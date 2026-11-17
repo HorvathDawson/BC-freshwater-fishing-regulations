@@ -410,3 +410,78 @@ def test_the_read_set_does_not_depend_on_whether_a_pyc_exists(world):
     assert not any(r.endswith(".py") for r in cold.reads), sorted(cold.reads)
     assert rel(pkg / "m.py") in cold.modules and rel(pkg / "m.py") in warm.modules
     assert rel(data) in cold.reads and rel(data) in warm.reads
+
+
+# ---------------------------------------------------------------------------------------- a checkout under the temp dir
+
+MINI_STEP = textwrap.dedent("""
+    import pathlib, sys
+    import pipeline.mod                                  # a module of the (mini) repo
+    root, d, outside = (pathlib.Path(a) for a in sys.argv[1:4])
+    text = (root / "src.txt").read_text()
+    outside.read_text()                                  # the step's own scratch in the temp dir, outside the repo
+    (d / "out.txt").write_text(text + pipeline.mod.WORD)
+""")
+
+
+@pytest.fixture
+def mini_repo():
+    """A repo checkout UNDER THE TEMP DIR (a lane worktree under /private/tmp is the same case, T799/T835): the real
+    recorder, the real `pipeline/__init__.py`, one module of its own and one input file."""
+    import tempfile
+    root = Path(tempfile.mkdtemp(prefix="stepcache-mini-"))
+    (root / "pipeline").mkdir()
+    for f in ("__init__.py", "_trace.py"):
+        shutil.copy(REPO_ROOT / "pipeline" / f, root / "pipeline" / f)
+    (root / "pipeline" / "mod.py").write_text('WORD = "one"\n')
+    (root / "src.txt").write_text("a")
+    (root / "step.py").write_text(MINI_STEP)
+    outside = Path(tempfile.mkdtemp(prefix="stepcache-outside-")) / "scratch.txt"
+    outside.write_text("scratch")
+    yield root, outside
+    shutil.rmtree(root, ignore_errors=True)
+    shutil.rmtree(outside.parent, ignore_errors=True)
+
+
+def _mini_run(root, outside, trace_dir, d):
+    subprocess.run([PY, str(root / "step.py"), str(root), str(d), str(outside)], check=True, cwd=root,
+                   env={**os.environ, "PIPELINE_TRACE": str(trace_dir), "PYTHONPATH": str(root)})
+
+
+def _mini_step(cache, root, outside, d):
+    argv = ["mini", "<staging>"]
+    rec, why = cache.reuse("mini", argv, d, {})
+    if rec is not None:
+        return "reused", why
+    before = SC.snapshot(d)
+    tr = root / f"tr-{uuid.uuid4().hex[:6]}"
+    _mini_run(root, outside, tr, d)
+    return "ran", cache.record("mini", argv, d, {}, before, SC.Trace(tr))
+
+
+def test_a_checkout_under_the_temp_dir_is_traced_and_its_scratch_is_not(mini_repo):
+    """T799/T835: the temp dir and /private/tmp are skipped roots; a repo INSIDE one is still the repo."""
+    root, outside = mini_repo
+    d = root / "d"
+    d.mkdir()
+    _mini_run(root, outside, root / "tr", d)
+    t = SC.Trace(root / "tr")
+    real = lambda p: os.path.realpath(p)                                  # noqa: E731
+    assert {real(m) for m in t.modules} >= {real(root / "pipeline" / "mod.py"), real(root / "pipeline" / "__init__.py")}
+    assert real(root / "src.txt") in {real(r) for r in t.reads}
+    assert real(outside) not in {real(r) for r in t.reads}               # the temp dir outside the repo: still skipped
+
+
+def test_split_roots_keeps_a_root_that_holds_the_repo_for_outside_paths_only(tmp_path):
+    """A root holds the repo as written or through a symlink (macOS: `/var` is `/private/var`)."""
+    from pipeline import _trace
+    real = tmp_path / "real"
+    (real / "x" / ".venv").mkdir(parents=True)
+    alias = tmp_path / "alias"
+    alias.symlink_to(real)
+    always, outside, repos = _trace.split_roots([str(alias), "/usr", str(real / "x" / ".venv")],
+                                                repo=str(real / "x"))
+    rp = os.path.realpath(real)
+    assert always == tuple(sorted([os.path.join(rp, "x", ".venv", ""), "/usr/"]))
+    assert outside == (os.path.join(str(alias), ""),)
+    assert os.path.join(str(alias), "x", "") in repos and os.path.join(rp, "x", "") in repos
