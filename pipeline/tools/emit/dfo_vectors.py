@@ -218,6 +218,30 @@ def _live(pages_html: dict) -> dict:
             "unplaced": ix["unplaced"]}
 
 
+#: (T770) A CARRIED PLACE (a row the feed could not read this run, kept from the last feed, `live._carry`): the hand
+#: case is a last index with a place whose year has a gear line and another fish's closure line (`o`), and a place
+#: of another region the carry leaves out. The worker's carry must give the same, words for words.
+CARRY_PREV = {
+    "verdicts": [{"s": "closed", "t": "Not opened by DFO", "d": 1}, {"s": "open", "t": "2 per day (Jul 1–Aug 31)"}],
+    "gears": [["No natural bait allowed"], ["Eulachon closed all year: No fishing for eulachon"]],
+    "locs": {"6:lakelse:whole": {"r": "6", "sp": [[0, 0], [0, 0, 182, 1, 244, 0], [0, 0], [0, 0], [0, 0]],
+                                 "g": [0, 0], "o": [0, 1]},
+             "5b:other:whole": {"r": "5b", "sp": [[0, 0]] * 5, "g": [0, -1]}},
+}
+
+
+def _carry_case() -> dict:
+    """`live._carry` over `CARRY_PREV` for region 6: the input, and each carried place's year in WORDS (each run's
+    verdict / gear list itself)."""
+    v, g = S._Interner(), S._Interner()
+    got = L._carry(CARRY_PREV, "6", v, g)
+    words = lambda runs, items: [x if k % 2 == 0 or x < 0 else items[x] for k, x in enumerate(runs)]  # noqa: E731
+    return {"prev": CARRY_PREV, "slug": "6",
+            "locs": {lid: {"r": c["r"], "sp": [words(r, v.items) for r in c["sp"]], "g": words(c["g"], g.items),
+                           **({"o": words(c["o"], g.items)} if c.get("o") else {})}
+                     for lid, c in sorted(got.items())}}
+
+
 def _dump(rules) -> list:
     return [r.model_dump(mode="json", exclude_defaults=True, by_alias=True) for r in rules]
 
@@ -273,7 +297,7 @@ def build() -> dict:
             rows[case["name"]] = {"error": why.split(":")[0], "rules": rules, "calendar": _calendar(rules)}
             continue
         rules = [r for i, (species, dates, limits) in enumerate(case["rows"])
-                 for r in _dump(T.to_rules({"species": species, "dates": dates, "limits_gear": limits}, "rows", i))]
+                 for r in T.typed_rules({"species": species, "dates": dates, "limits_gear": limits}, "rows", i)]
         rows[case["name"]] = {"rules": rules, "calendar": _calendar(rules)}
     names_in = sorted({*NAME_CASES, *(w for w in waters if w)})
     # (T757, T758) THE PYTHON LIVE FEED over the saved pages and the fixture entry files (`live.run`, dry run: nothing
@@ -282,7 +306,7 @@ def build() -> dict:
     # closed-area pieces, their calendars and verdict texts — not by a count typed into a test. `cases`: the same run on
     # an edited page (`edit`: [old, new], one replacement), e.g. a page that no longer prints its default sentence.
     pages_html = {_slug(p): p.read_text(encoding="utf-8") for p in files}
-    live = {**_live(pages_html), "cases": {}}
+    live = {**_live(pages_html), "cases": {}, "carry": _carry_case()}
     for name, slug, old, new in LIVE_CASES:
         if pages_html[slug].count(old) != 1:
             raise SystemExit(f"{_BY}: live case {name}: {old!r} is not on the region {slug} page exactly once")

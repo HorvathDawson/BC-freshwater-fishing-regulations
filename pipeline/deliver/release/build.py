@@ -83,8 +83,14 @@ FORMATS = {name: spec["format"] for name, spec in C.FILES.items()}
 #: 320,000 → 420,000: the Stikine and Taku "including tributaries" places bound (92,460 sections off the region
 #: default; no_extent in r-f749475d0962) measured 379,295 B gz on the 2026-11-15 hold-latest build (reach d8cefe97)
 #: against LATEST's 314,700. The other regions keep 320,000.
-SIZE_GATES = {"paint": 1_000_000, "access": 300_000, "core": 1_650_000, "lakes": 100_000, "salmon": 60_000,
-              **{f"salmon-{r}": 320_000 for r in (*SH.REGIONS, "x")}, "salmon-6": 420_000, "method": 600_000,
+#: (owner 2026-11-16, T796 A5, question dialog: "Raise to 100 kB (Recommended)"; RULINGS O5 "raise now, shrink later",
+#: O9; shrinking is T686) `salmon` 60,000 → 100,000: the rule book's full closures first in every DFO-listed chain they
+#: close (`deliver.salmon.with_book_closures`) — the head 31,847 → ~92,000 B gz on r-46e4355a7277's salmon step.
+#: (owner 2026-11-16 ~14:55, T796 A5: "but yes you can do the raise"; RULINGS O5, O10) `salmon-6` 420,000 → 460,000: the
+#: book places in every listed chain fragment Region 6's runs, +53,225 B gz on r-46e4355a7277's numbers (379,396 →
+#: ~432,600).
+SIZE_GATES = {"paint": 1_000_000, "access": 300_000, "core": 1_650_000, "lakes": 100_000, "salmon": 100_000,
+              **{f"salmon-{r}": 320_000 for r in (*SH.REGIONS, "x")}, "salmon-6": 460_000, "method": 600_000,
               # (T388) water + `part_line` (79,253 B gz measured alone on the 2026-11-04 bundle; water was 2,409,579 in
               # r-b86b60ca533b → ~2.49 MB, too close to 2.5 MB) → 2,650,000
               "water": 2_650_000, "near": 2_250_000, "climate": 1_650_000, "regs-sid": 1_400_000, "conditions": 1_060_000,
@@ -109,7 +115,8 @@ SIZE_GATES = {"paint": 1_000_000, "access": 300_000, "core": 1_650_000, "lakes":
 #: History: 14 → 15 MB, owner 2026-10-22 (Q55).
 OFFLINE_GATE = 20_000_000
 
-CORE_TABLES = ("item", "alias", "item_alias", "item_section", "place", "see_pointer", "name_source")
+#: (T796) `section_note` (`bundle.outside_note`): a water's note said once on its page, e.g. "Mostly outside <reserve>"
+CORE_TABLES = ("item", "alias", "item_alias", "item_section", "place", "see_pointer", "name_source", "section_note")
 NEAR_TABLES = ("place_water",)
 COND_TABLES = ("gauge", "section_gauge", "lake_gauge", "basin", "basin_frame", "basin_grid")
 DOWN_TABLES = ("section_down",)
@@ -221,6 +228,7 @@ def _core_flags(con: sqlite3.Connection) -> None:
     core_area(con)
 
 
+SECTION_NOTE_DDL = "CREATE TABLE section_note (sid INTEGER PRIMARY KEY, note TEXT NOT NULL) WITHOUT ROWID"
 NAME_SOURCE_DDL = ("CREATE TABLE name_source (item_id TEXT NOT NULL, name TEXT NOT NULL, src TEXT NOT NULL, "
                    "label TEXT NOT NULL, PRIMARY KEY (item_id, name)) WITHOUT ROWID")
 
@@ -498,7 +506,11 @@ def build(*, bundle: Path, store: Path, status_index: Path, export_dir: Path, ou
         # bundle region (owner 2026-10-28: a water page's card fetches its own region's slice), cut by the store's places
         from pipeline.deliver import salmon as SALMON
         _sid_regions = SH.sid_regions(st)
-        for name, blob in SALMON.encode_files(*SALMON.read_bundle(b), base["section_handles"],
+        # (T796 A5) the rule book's full closures, FIRST in the chains of the stretches they close (a static place:
+        # the stored verdicts beside the bundle say which rule closes which section on which days)
+        _payload, _secs = SALMON.read_bundle(b)
+        _payload, _secs = SALMON.with_book_closures(_payload, _secs, *SALMON.book_inputs(bundle, _secs))
+        for name, blob in SALMON.encode_files(_payload, _secs, base["section_handles"],
                                                lambda sid: _sid_regions.get(sid, ())).items():
             (work / f"{name}.bin").write_bytes(blob)
             files[name] = work / f"{name}.bin"
@@ -608,10 +620,18 @@ def bundle_files(work: Path, bundle: Path, b: sqlite3.Connection, base: Dict[str
     # (T224) `name_source` is additive: a bundle built before it gives an empty table (no name shows a source)
     with sqlite3.connect(f"file:{bundle}?mode=ro", uri=True) as _b:
         _has_ns = _b.execute("SELECT 1 FROM sqlite_master WHERE type='table' AND name='name_source'").fetchone()
+        # (T796) `section_note` is additive too: a bundle built before it ships an empty table (no page has a note)
+        _has_sn = _b.execute("SELECT 1 FROM sqlite_master WHERE type='table' AND name='section_note'").fetchone()
+    _flags = _core_flags if _has_ns else _core_flags_empty_name_source
+
+    def _core_extra(con: sqlite3.Connection) -> None:
+        _flags(con)
+        if not _has_sn:
+            con.execute(SECTION_NOTE_DDL)
     files["core"] = copy_file(work / "core.sqlite", {"b": bundle},
-                              [("b", t, None) for t in CORE_TABLES if t != "name_source" or _has_ns],
-                              {**base, "format": FORMATS["core"]},
-                              extra=_core_flags if _has_ns else _core_flags_empty_name_source)
+                              [("b", t, None) for t in CORE_TABLES
+                               if (t != "name_source" or _has_ns) and (t != "section_note" or _has_sn)],
+                              {**base, "format": FORMATS["core"]}, extra=_core_extra)
     files["near"] = copy_file(work / "near.sqlite", {"b": bundle}, [("b", t, None) for t in NEAR_TABLES],
                               {**base, "format": FORMATS["near"]})
     # (T823) THE SMALL-WATER WARNING follows the speaker: one bit per panel member per paint section (`flow-small`,

@@ -98,7 +98,11 @@ FILES = {
         # (T247) the regions a water lies in and the management units it touches (build.core_area), comma-joined: search
         # by "2-8" / "Region 2" and the "Region 2 · MU 2-8" that tells two waters of one name apart. ADDITIVE, so still
         # core/1: a core without it searches by name and town only (the app asks `HAS_ITEM_AREA` first)
-        "item_area": ["ord", "regions", "mus"]}},
+        "item_area": ["ord", "regions", "mus"],
+        # (T796, owner 2026-11-16) a section's note, one sentence said once on its page ("Mostly outside Gladys Lake
+        # Ecological Reserve: its closure (rule book p.9) does not apply here.", `bundle.outside_note`). ADDITIVE, so
+        # still core/1: a core without it has no notes
+        "section_note": ["sid", "note"]}},
     "near": {"format": "near/1", "kind": "sqlite", "tables": {
         "meta": ["k", "v"], "place_water": ["place_id", "ckm", "ord"]}},
     # (T182) the tables T129 measured riding in a file a moment did not otherwise need moved into files of their own:
@@ -180,7 +184,9 @@ FILES = {
                  "pieces"],
         "item_area": ["ord", "regions", "mus"], "item_near": ["ord", "place_id", "ckm"],
         "item_section": ["sid", "ord"], "meta": ["k", "v"], "name_source": ["item_id", "name", "src", "label"],
-        "place": ["place_id", "osm", "name", "kind", "pop", "lat", "lon"]}} for r in SH.REGIONS},
+        "place": ["place_id", "osm", "name", "kind", "pop", "lat", "lon"],
+        # (T796) ADDITIVE, still core-slice/1: the whole core's `section_note`, in every slice (slices.py)
+        "section_note": ["sid", "note"]}} for r in SH.REGIONS},
     # (T370) a water slice holds only its region's own rows; the tables every region reads whole are `water-shared`
     **{f"water-{r}": {"format": "water-slice/4", "kind": "sqlite", "tables": {
         "item": ["item_ord", "item_id", "shown", "picker", "unresolved", "name", "kind", "sections", "outside_bc",
@@ -241,13 +247,19 @@ UNITS = {
              "(0 never); days since 1900-01-01 (pipeline/deliver/lake_facts.py)",
     "salmon": "salmon/4: 'BCSA', u8 4, 8 bytes section_handles, u32le JSON length + UTF-8 JSON (credit, default, "
               "regions (+ the header notes, the bucket's quota tree, T356 shared + sizes), verdicts (+ T332 an open day's "
-              "quota tree, T356 c a header closure; u 1: both regions' words, no number), gears, chains (r, w, l the "
-              "places narrowest first, sp, g, m, + T356 c; u the places on its water not drawn yet; T668 s on a section "
+              "quota tree, T356 c a header closure; u 1: both regions' words, no number; T796 f 1 on a closed verdict from "
+              "DFO's Finfish closure: all fishing closed, trout included), gears, chains (r, w, l the "
+              "places narrowest first, sp, g, m, + T356 c; T770 o another fish's closure lines (\"Eulachon closed all "
+              "year: No fishing for eulachon\"), day runs of an index into gears (-1 none), apart from the gear lines g, "
+              "absent where none; u the places on its water not drawn yet; T668 s on a section "
               "in two DFO regions: each region's places as indices into l, the most strict answer per fish speaks, and "
               "h the region slugs whose fishing-hours line shows; a per species day runs of the index into l of the "
               "place that answers), unmapped, scopes, x, shards; T549 off: every curated place no chain names, id -> "
               "{why, k, r, w, items}, shown as a text row on its water's page; p: each chain place's {r, water, sec}, "
-              "what a row is named by) (pipeline/deliver/salmon.py, salmon_who.py)",
+              "what a row is named by; T796 a rule book closure is a place book:<entry_id>::<rule_id>[~n], first in "
+              "the chains it closes, its p {r?, water?, static 1, book {rule, pages}}; static: each such place's year "
+              "{sp: 5 runs of verdict indexes (-1 nothing), g}, kept by the app under a live feed) "
+              "(pipeline/deliver/salmon.py, salmon_who.py)",
     **{SALMON.shard_name(r): "salmon-shard/1: 'BCSR', u8 1, 8 bytes section_handles, u8 region length + region, LEB128 "
                              "run count, then per run LEB128 sid gap, count, chain (pipeline/deliver/salmon.py)"
        for r in (*SH.REGIONS, SALMON.NO_REGION)},
@@ -305,13 +317,18 @@ WEB_BUDGET = {
     # with nothing ahead of it.
     # (T370) + `water-shared`: the slice's region-wide tables, now one file (the same bytes, two fetches)
     "first_tap": {"files": ["core", "water-{region}", "water-shared", "geo", "access", "regs-{region}", "salmon", "salmon-{region}"],
-                  "gate": 4_200_000},
+                  # (owner 2026-11-16 ~14:55, T796 A5: "but yes you can do the raise"; RULINGS O5, O10) 4,200,000 →
+                  # 4,400,000: the book closures in the salmon head (+59,968) and salmon-6 (+53,225) on r-46e4355a7277's
+                  # 4,198,757 → ~4,312,000
+                  "gate": 4_400_000},
     # (T256) THE TAP WITH NOTHING AHEAD OF IT — Save-Data or the low-bandwidth mode (T254): no idle prefetch of core, the
     # Bait & fly marks (`method`) come with the tap; the tap reads its region's `core-{region}` + `water-{region}`, never the
     # whole files. Priced as the largest region (R6): ~3,090,000 (it was core + water + … ≈ 5,300,000)
     "first_tap_low": {"files": ["core-{region}", "water-{region}", "water-shared", "geo", "access", "regs-{region}", "salmon",
                                 "salmon-{region}", "method"],
-                      "gate": 3_400_000},
+                      # (owner 2026-11-16 ~14:55, T796 A5; RULINGS O5, O10) 3,400,000 → 3,600,000: the same +113 kB on
+                      # r-46e4355a7277's 3,359,382 → ~3,472,600
+                      "gate": 3_600_000},
     # the first tap on an UNNAMED stream (most streams): + its key (regs-sid) and the flow pointers (down) the header's
     # "Tributary of ..." walks — no longer all of conditions (8,590,503 → 5,892,308, regs-6)
     # (T182, 2026-10-28) + salmon for the page's Salmon card, as the named tap (6,282,328)

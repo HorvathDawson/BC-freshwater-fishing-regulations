@@ -20490,6 +20490,168 @@
   }
  },
  "live": {
+  "carry": {
+   "locs": {
+    "6:lakelse:whole": {
+     "g": [
+      0,
+      [
+       "No natural bait allowed"
+      ]
+     ],
+     "o": [
+      0,
+      [
+       "Eulachon closed all year: No fishing for eulachon"
+      ]
+     ],
+     "r": "6",
+     "sp": [
+      [
+       0,
+       {
+        "d": 1,
+        "s": "closed",
+        "t": "Not opened by DFO"
+       }
+      ],
+      [
+       0,
+       {
+        "d": 1,
+        "s": "closed",
+        "t": "Not opened by DFO"
+       },
+       182,
+       {
+        "s": "open",
+        "t": "2 per day (Jul 1–Aug 31)"
+       },
+       244,
+       {
+        "d": 1,
+        "s": "closed",
+        "t": "Not opened by DFO"
+       }
+      ],
+      [
+       0,
+       {
+        "d": 1,
+        "s": "closed",
+        "t": "Not opened by DFO"
+       }
+      ],
+      [
+       0,
+       {
+        "d": 1,
+        "s": "closed",
+        "t": "Not opened by DFO"
+       }
+      ],
+      [
+       0,
+       {
+        "d": 1,
+        "s": "closed",
+        "t": "Not opened by DFO"
+       }
+      ]
+     ]
+    }
+   },
+   "prev": {
+    "gears": [
+     [
+      "No natural bait allowed"
+     ],
+     [
+      "Eulachon closed all year: No fishing for eulachon"
+     ]
+    ],
+    "locs": {
+     "5b:other:whole": {
+      "g": [
+       0,
+       -1
+      ],
+      "r": "5b",
+      "sp": [
+       [
+        0,
+        0
+       ],
+       [
+        0,
+        0
+       ],
+       [
+        0,
+        0
+       ],
+       [
+        0,
+        0
+       ],
+       [
+        0,
+        0
+       ]
+      ]
+     },
+     "6:lakelse:whole": {
+      "g": [
+       0,
+       0
+      ],
+      "o": [
+       0,
+       1
+      ],
+      "r": "6",
+      "sp": [
+       [
+        0,
+        0
+       ],
+       [
+        0,
+        0,
+        182,
+        1,
+        244,
+        0
+       ],
+       [
+        0,
+        0
+       ],
+       [
+        0,
+        0
+       ],
+       [
+        0,
+        0
+       ]
+      ]
+     }
+    },
+    "verdicts": [
+     {
+      "d": 1,
+      "s": "closed",
+      "t": "Not opened by DFO"
+     },
+     {
+      "s": "open",
+      "t": "2 per day (Jul 1–Aug 31)"
+     }
+    ]
+   },
+   "slug": "6"
+  },
   "cases": {
    "no_default_sentence": {
     "edit": [
@@ -21462,7 +21624,7 @@
     "Single barbless hook (Apr 1–Mar 31)"
    ],
    [
-    "No fishing for eulachon (Apr 1–Mar 31)"
+    "Eulachon closed all year: No fishing for eulachon"
    ],
    [
     "No natural bait allowed (Jan 1–Dec 31)"
@@ -25047,23 +25209,23 @@
     "sp": [
      [
       0,
-      106
+      -1
      ],
      [
       0,
-      106
+      -1
      ],
      [
       0,
-      106
+      -1
      ],
      [
       0,
-      106
+      -1
      ],
      [
       0,
-      106
+      -1
      ]
     ]
    },
@@ -25076,23 +25238,23 @@
     "sp": [
      [
       0,
-      106
+      -1
      ],
      [
       0,
-      106
+      -1
      ],
      [
       0,
-      106
+      -1
      ],
      [
       0,
-      106
+      -1
      ],
      [
       0,
-      106
+      -1
      ]
     ]
    },
@@ -25599,6 +25761,10 @@
    },
    "6:b(ii):section": {
     "g": [
+     0,
+     -1
+    ],
+    "o": [
      0,
      7
     ],
@@ -30497,23 +30663,23 @@
     "sp": [
      [
       0,
-      228
+      -1
      ],
      [
       0,
-      228
+      -1
      ],
      [
       0,
-      228
+      -1
      ],
      [
       0,
-      228
+      -1
      ],
      [
       0,
-      228
+      -1
      ]
     ]
    },
@@ -31329,6 +31495,7 @@
     "t": "Non-retention — FN0952 (from Oct 15 until further notice)"
    },
    {
+    "f": 1,
     "s": "closed",
     "t": "Finfish closure (Aug 25–Dec 31)"
    },
@@ -31458,10 +31625,12 @@
     "t": "Non-retention (Oct 16–Dec 31)"
    },
    {
+    "f": 1,
     "s": "closed",
     "t": "Finfish closure (Apr 1–Mar 31)"
    },
    {
+    "f": 1,
     "s": "closed",
     "t": "Finfish closure (Aug 25–Oct 15)"
    },
@@ -31776,10 +31945,12 @@
     }
    },
    {
+    "f": 1,
     "s": "closed",
     "t": "Finfish closure (Aug 25–Nov 15)"
    },
    {
+    "f": 1,
     "s": "closed",
     "t": "Finfish closure (Jun 15–Nov 15)"
    },
@@ -31961,14 +32132,17 @@
     }
    },
    {
+    "f": 1,
     "s": "closed",
     "t": "Finfish closure (Jan 1–Apr 30)"
    },
    {
+    "f": 1,
     "s": "closed",
     "t": "Finfish closure (Aug 25–Oct 31)"
    },
    {
+    "f": 1,
     "s": "closed",
     "t": "Finfish closure (Oct 1–14)"
    },
@@ -34239,6 +34413,7 @@
     "t": "Non-retention (Apr 1–Mar 31)"
    },
    {
+    "f": 1,
     "s": "closed",
     "t": "Finfish closure (Jun 1–Aug 31)"
    },
@@ -39880,6 +40055,7 @@
       ],
       "verdicts": [
        {
+        "f": 1,
         "s": "closed",
         "t": "Finfish closure (Aug 25–Oct 15)"
        }
@@ -39891,6 +40067,7 @@
      ],
      "rules": [
       {
+       "finfish": true,
        "may_target": false,
        "rule_id": "bdcf67bc.r0",
        "species": [
@@ -39943,6 +40120,7 @@
       ],
       "verdicts": [
        {
+        "f": 1,
         "s": "closed",
         "t": "Finfish closure (Apr 1–Mar 31)"
        }
@@ -39954,6 +40132,7 @@
      ],
      "rules": [
       {
+       "finfish": true,
        "may_target": false,
        "rule_id": "3fbae663.r0",
        "species": [
@@ -40016,6 +40195,7 @@
       ],
       "verdicts": [
        {
+        "f": 1,
         "s": "closed",
         "t": "Finfish closure (Aug 25–Dec 31)"
        }
@@ -40027,6 +40207,7 @@
      ],
      "rules": [
       {
+       "finfish": true,
        "may_target": false,
        "rule_id": "cbf373c7.r0",
        "species": [
@@ -41689,6 +41870,7 @@
       ],
       "verdicts": [
        {
+        "f": 1,
         "s": "closed",
         "t": "Finfish closure (Aug 25–Nov 15)"
        }
@@ -41700,6 +41882,7 @@
      ],
      "rules": [
       {
+       "finfish": true,
        "may_target": false,
        "rule_id": "c9628f9d.r0",
        "species": [
@@ -41958,6 +42141,7 @@
       ],
       "verdicts": [
        {
+        "f": 1,
         "s": "closed",
         "t": "Finfish closure (Jun 15–Nov 15)"
        }
@@ -41969,6 +42153,7 @@
      ],
      "rules": [
       {
+       "finfish": true,
        "may_target": false,
        "rule_id": "47d0e705.r0",
        "species": [
@@ -42449,6 +42634,7 @@
       ],
       "verdicts": [
        {
+        "f": 1,
         "s": "closed",
         "t": "Finfish closure (Jan 1–Apr 30)"
        }
@@ -42460,6 +42646,7 @@
      ],
      "rules": [
       {
+       "finfish": true,
        "may_target": false,
        "rule_id": "7a189def.r0",
        "species": [
@@ -42532,6 +42719,7 @@
       ],
       "verdicts": [
        {
+        "f": 1,
         "s": "closed",
         "t": "Finfish closure (Jun 15–Nov 15)"
        }
@@ -42543,6 +42731,7 @@
      ],
      "rules": [
       {
+       "finfish": true,
        "may_target": false,
        "rule_id": "41136973.r0",
        "species": [
@@ -42615,6 +42804,7 @@
       ],
       "verdicts": [
        {
+        "f": 1,
         "s": "closed",
         "t": "Finfish closure (Aug 25–Oct 31)"
        }
@@ -42626,6 +42816,7 @@
      ],
      "rules": [
       {
+       "finfish": true,
        "may_target": false,
        "rule_id": "b12878bc.r0",
        "species": [
@@ -42698,6 +42889,7 @@
       ],
       "verdicts": [
        {
+        "f": 1,
         "s": "closed",
         "t": "Finfish closure (Oct 1–14)"
        }
@@ -42709,6 +42901,7 @@
      ],
      "rules": [
       {
+       "finfish": true,
        "may_target": false,
        "rule_id": "3d8b6bad.r0",
        "species": [
@@ -50605,31 +50798,26 @@
       "sp": [
        [
         0,
-        0
+        -1
        ],
        [
         0,
-        0
+        -1
        ],
        [
         0,
-        0
+        -1
        ],
        [
         0,
-        0
+        -1
        ],
        [
         0,
-        0
+        -1
        ]
       ],
-      "verdicts": [
-       {
-        "s": "closed",
-        "t": "Non-retention (from Apr 1 until further notice)"
-       }
-      ]
+      "verdicts": []
      },
      "fingerprint": "1d1c79cfcd34d4c5",
      "rows": [
@@ -50637,6 +50825,7 @@
      ],
      "rules": [
       {
+       "hidden": true,
        "may_target": false,
        "rule_id": "1d1c79cf.r0",
        "species": [
@@ -50860,10 +51049,6 @@
        ],
        [
         0,
-        -1,
-        234,
-        0,
-        259,
         -1
        ],
        [
@@ -50875,25 +51060,7 @@
         -1
        ]
       ],
-      "verdicts": [
-       {
-        "n": "FN0846",
-        "s": "open",
-        "t": "2 per day (Aug 22–Sep 15)",
-        "tree": {
-         "by": 0,
-         "children": [],
-         "id": "t1",
-         "n": 2,
-         "node": "tier",
-         "says": "2 a day",
-         "species": [
-          "SK"
-         ],
-         "tier": "count"
-        }
-       }
-      ]
+      "verdicts": []
      },
      "fingerprint": "88e5238ca194a164",
      "rows": [
@@ -50901,6 +51068,7 @@
      ],
      "rules": [
       {
+       "hidden": true,
        "notice": "FN0846",
        "rule_id": "88e5238c.r0",
        "species": [
@@ -50926,23 +51094,9 @@
      "calendar": {
       "g": [
        0,
-       -1,
-       234,
-       0,
-       259,
-       1,
-       274,
        -1
       ],
-      "gears": [
-       [
-        "bait ban (Aug 22–Sep 15)",
-        "bait ban (Aug 22–Sep 30)"
-       ],
-       [
-        "bait ban (Aug 22–Sep 30)"
-       ]
-      ],
+      "gears": [],
       "sp": [
        [
         0,
@@ -50954,18 +51108,10 @@
        ],
        [
         0,
-        -1,
-        234,
-        0,
-        259,
         -1
        ],
        [
         0,
-        -1,
-        234,
-        1,
-        274,
         -1
        ],
        [
@@ -50973,42 +51119,7 @@
         -1
        ]
       ],
-      "verdicts": [
-       {
-        "n": "FN0846",
-        "s": "open",
-        "t": "2 per day (Aug 22–Sep 15)",
-        "tree": {
-         "by": 0,
-         "children": [],
-         "id": "t1",
-         "n": 2,
-         "node": "tier",
-         "says": "2 a day",
-         "species": [
-          "SK"
-         ],
-         "tier": "count"
-        }
-       },
-       {
-        "n": "FN0846",
-        "s": "open",
-        "t": "4 per day (Aug 22–Sep 30)",
-        "tree": {
-         "by": 0,
-         "children": [],
-         "id": "t1",
-         "n": 4,
-         "node": "tier",
-         "says": "4 a day",
-         "species": [
-          "PK"
-         ],
-         "tier": "count"
-        }
-       }
-      ]
+      "verdicts": []
      },
      "fingerprint": "47c91b93af6df33a",
      "rows": [
@@ -51017,6 +51128,7 @@
      ],
      "rules": [
       {
+       "hidden": true,
        "notice": "FN0846",
        "rule_id": "47c91b93.r0",
        "species": [
@@ -51045,6 +51157,7 @@
          "slot": "bait"
         }
        ],
+       "hidden": true,
        "notice": "FN0846",
        "rule_id": "47c91b93.r0_bait",
        "type": "bait_restriction",
@@ -51064,6 +51177,7 @@
        ]
       },
       {
+       "hidden": true,
        "notice": "FN0846",
        "rule_id": "47c91b93.r1",
        "species": [
@@ -51092,6 +51206,7 @@
          "slot": "bait"
         }
        ],
+       "hidden": true,
        "notice": "FN0846",
        "rule_id": "47c91b93.r1_bait",
        "type": "bait_restriction",
@@ -57524,12 +57639,16 @@
      "calendar": {
       "g": [
        0,
-       0
+       -1
       ],
       "gears": [
        [
-        "No fishing for eulachon (Apr 1–Mar 31)"
+        "Eulachon closed all year: No fishing for eulachon"
        ]
+      ],
+      "o": [
+       0,
+       0
       ],
       "sp": [
        [
@@ -70017,6 +70136,7 @@
       ],
       "verdicts": [
        {
+        "f": 1,
         "s": "closed",
         "t": "Finfish closure (Jun 1–Aug 31)"
        }
@@ -70028,6 +70148,7 @@
      ],
      "rules": [
       {
+       "finfish": true,
        "may_target": false,
        "rule_id": "b9ed2059.r0",
        "species": [
@@ -71990,17 +72111,9 @@
      "calendar": {
       "g": [
        0,
-       -1,
-       234,
-       0,
-       265,
        -1
       ],
-      "gears": [
-       [
-        "bait ban (Aug 22–Sep 21)"
-       ]
-      ],
+      "gears": [],
       "sp": [
        [
         0,
@@ -72012,18 +72125,10 @@
        ],
        [
         0,
-        -1,
-        234,
-        0,
-        265,
         -1
        ],
        [
         0,
-        -1,
-        234,
-        1,
-        265,
         -1
        ],
        [
@@ -72031,42 +72136,7 @@
         -1
        ]
       ],
-      "verdicts": [
-       {
-        "n": "FN0851",
-        "s": "open",
-        "t": "2 per day (Aug 22–Sep 21)",
-        "tree": {
-         "by": 0,
-         "children": [],
-         "id": "t1",
-         "n": 2,
-         "node": "tier",
-         "says": "2 a day",
-         "species": [
-          "SK"
-         ],
-         "tier": "count"
-        }
-       },
-       {
-        "n": "FN0851",
-        "s": "open",
-        "t": "4 per day (Aug 22–Sep 21)",
-        "tree": {
-         "by": 0,
-         "children": [],
-         "id": "t1",
-         "n": 4,
-         "node": "tier",
-         "says": "4 a day",
-         "species": [
-          "PK"
-         ],
-         "tier": "count"
-        }
-       }
-      ]
+      "verdicts": []
      },
      "fingerprint": "8e55a740643c4b5e",
      "rows": [
@@ -72075,6 +72145,7 @@
      ],
      "rules": [
       {
+       "hidden": true,
        "notice": "FN0851",
        "rule_id": "8e55a740.r0",
        "species": [
@@ -72103,6 +72174,7 @@
          "slot": "bait"
         }
        ],
+       "hidden": true,
        "notice": "FN0851",
        "rule_id": "8e55a740.r0_bait",
        "type": "bait_restriction",
@@ -72122,6 +72194,7 @@
        ]
       },
       {
+       "hidden": true,
        "notice": "FN0851",
        "rule_id": "8e55a740.r1",
        "species": [
@@ -72150,6 +72223,7 @@
          "slot": "bait"
         }
        ],
+       "hidden": true,
        "notice": "FN0851",
        "rule_id": "8e55a740.r1_bait",
        "type": "bait_restriction",
@@ -75205,12 +75279,16 @@
    "calendar": {
     "g": [
      0,
-     0
+     -1
     ],
     "gears": [
      [
-      "No fishing for eulachon (Apr 1–Mar 31)"
+      "Eulachon closed all year: No fishing for eulachon"
      ]
+    ],
+    "o": [
+     0,
+     0
     ],
     "sp": [
      [
@@ -75918,5 +75996,5 @@
    "water": "R.V. Creek"
   }
  ],
- "typed_format": 3
+ "typed_format": 4
 }
