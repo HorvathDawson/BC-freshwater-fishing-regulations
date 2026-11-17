@@ -8,6 +8,8 @@
  */
 import { CONDITIONS_WORDS, DIVERSION_WORDS, donorShare, donorState, OTHER_QUANTITY_WORDS, type DonorAsk, type DonorFacts, type DonorReading }
   from "./conditions";
+import { bandWord } from "./standing";
+import { standing as bandOf } from "./flow";
 
 export const ROUTE_MAP_WORDS = {
   /** The key's two line samples. Role is where the GAUGE sits (`PanelRoute.role`). */
@@ -28,6 +30,8 @@ export const ROUTE_MAP_WORDS = {
   flowOnly: "flow forecast only",
   /** (T157) Beside a gauge whose runs forecast the day with no record to rank it against. */
   noRecord: "no record to compare with",
+  /** (T817) A gauged lake's own station, in the key: it reads the lake itself, nothing is estimated from it. */
+  ownGauge: "this lake's own gauge",
   fit: "Fit",
   fitLabel: "Fit the map to you and the gauges",
   larger: "Larger map",
@@ -78,6 +82,17 @@ export function donorMapKey(r: MapFacts & Pick<DonorFacts, "station"> & Partial<
                             o: DonorAsk = {}): string {
   const said = `${r.station} · ${donorMapLabel(r, o)}`;
   return r.route?.diversion === true ? `${said} · ${DIVERSION_WORDS}` : said;
+}
+
+/**
+ * (T817) A GAUGED LAKE'S OWN STATION ON ITS ROUTE MAP (the lake has no donors, so it was a map of "you are here" alone):
+ * its dot says where its reading stands — in the quantity the station reports (Harrison Lake: level) — or, in a donor's
+ * words, why it says nothing (`donorState`, the one decision). `key` is the key's line for it.
+ */
+export function ownGaugeMap(station: string, reading: DonorReading, o: DonorAsk = {}): { label: string; key: string } {
+  const s = donorState(reading, o);
+  return { label: s.kind === "reads" ? bandWord(bandOf(s.percentile)) : donorMapLabel({ ...reading, weight: 0 }, o),
+           key: `${station} · ${ROUTE_MAP_WORDS.ownGauge}` };
 }
 
 /** The spot's own label on the map — the same words as its key entry. */
