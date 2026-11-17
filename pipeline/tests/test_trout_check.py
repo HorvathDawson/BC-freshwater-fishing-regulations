@@ -526,17 +526,19 @@ def test_every_segment_of_the_named_waters_is_proved(request):
 #: the fix off). The book: Sheldens Creek, a stream that is not a steelhead water (a steelhead kept under 50 cm uses no
 #: "1 over 50 cm"); Inkaneep Creek (Region 8: "2 from streams" inside the 5; the brook trout's own 20 counted apart);
 #: Humphrys Creek (Kitimat: wild rainbow trout 1 a day, its own row); Shamrock Creek (the kind's 2 held together);
-#: Fraser River in Region 3 (one "1 over 50 cm" over every trout); Kaslo River (Region 4: its "Bull trout daily quota =
-#: 2" lifts nothing, so its Dolly Varden count toward the 2 from streams); the Kitimat River (Region 6's "1 trout from
+#: Fraser River in Region 3 (one "1 over 50 cm" over every trout); the Kitimat River (Region 6's "1 trout from
 #: streams Jul 1-Oct 31" holds brown, cutthroat and WILD rainbow trout together: its hatchery rainbow quota lifts hatchery
 #: fish only).
+#: `A_SHARE_HOLDS_ITS_UNLIFTED_FISH` is no longer pinned here: its one case was Kaslo River / Keen Creek, whose "Bull trout
+#: daily quota = 2" lifted nothing, and T834 (RULINGS T17) now lifts it (`bundle.rules.lifts._share_lifts`). Measured on
+#: the T834 side build over the live atlas and reach: the flag off leaves every answer byte-identical (5,950 tables, 0
+#: problems), so no live water shows the fault; the flag stays in the builder for a row the rule does not lift.
 FOUND = {
     "A_RAINBOW_STOPS_AT_THE_STEELHEAD_SIZE": ("blk:360846083", 0, "ST hatchery at"),
     "A_APART_SAYS_THE_BOX_MOST": ("blk:356370187", 0, "the top line says"),
     "A_WILD_QUOTA_FROM_EVERY_ROW": ("gnis:2046", 0, "RB wild at"),
     "A_KIND_NUMBER_IS_SHARED": ("blk:356196726", 0, "the engine refuses it"),
     "A_KIND_SIZE_CAP_IS_SHARED": ("gnis:39325", 19, "the engine refuses it"),
-    "A_SHARE_HOLDS_ITS_UNLIFTED_FISH": ("gnis:11345", 0, "the engine refuses it"),
     "A_WILD_QUOTA_JOINS_ITS_COUNT": ("gnis:3225", 0, "the engine refuses it"),
 }
 
@@ -551,14 +553,21 @@ def found(request):
     need(request, "bundle", BUNDLE, BUNDLE_HINT)
     need(request, "bundle", EXPORT_DIR / "ui-rules-export.json", EXPORT_HINT)
     data, guide = C.load_export(EXPORT_DIR)
-    items = sorted({x[0] for x in FOUND.values()})
-    model = A.build(str(BUNDLE), EXPORT_DIR, workers=1, items=items, sections=["rows", "display"],
-                    export=(data, guide), log=lambda *_: None)
-    return model, data, T.Rules.from_export(data, expand(data, guide)), str(BUNDLE)
+    rules = T.Rules.from_export(data, expand(data, guide))
+    # ONE MODEL PER WATER (T834): the proof's random baskets follow the key's position in the model, so a model shared by
+    # every pin made each pin depend on which other waters were built (dropping Kaslo from FOUND hid the Kitimat's fault)
+    models: dict = {}
+
+    def of(item):
+        if item not in models:
+            models[item] = A.build(str(BUNDLE), EXPORT_DIR, workers=1, items=[item], sections=["rows", "display"],
+                                   export=(data, guide), log=lambda *_: None)
+        return models[item], data, rules, str(BUNDLE)
+    return of
 
 
 def _found_problems(found, item, part) -> list:
-    model, data, rules, bundle = found
+    model, data, rules, bundle = found(item)
     m = copy.copy(model)
     m.sections = dict(model.sections)
     k = m.parts[item][part]

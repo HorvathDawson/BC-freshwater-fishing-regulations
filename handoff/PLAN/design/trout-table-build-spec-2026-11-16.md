@@ -360,6 +360,14 @@ waits for; the contract's list says where each landed, and its new 2.12 sums up 
 2, 3, 4, 16 → M0; 5 → M; 6 → N (behind the dev switch) and S; 7, 8 → S; 9 → N (behind the dev switch) and S;
 10 → N; 11, 12 → O; 13 → O and S; 14 → T; 15 → V and R.
 
+**Built 2026-11-17 (app chat, branch `app/t810-m0-m`): M0 (contract items 2, 3, 4, 16) and M (item 5).** Item 2:
+`readsRelease` holds `regulations.versions` to `KNOWN_VERSIONS` + `OPTIONAL_VERSIONS`. Item 3: the
+`OPTIONAL_VERSIONS` line is in I0's shape, and I0 reads it (its `trout` allowance is gone; both sides list it). Item 4:
+`store.test.ts` builds its versions from `KNOWN_VERSIONS`. Item 16: the bump rule is in `versions.ts`. Item 5: core's
+`CellIds` is the emitted one (`regsCell.generated.ts`, no emit change). `keyCells` and `cellOf` use `CELL_COLUMNS`,
+plus `trout` only when `meta.optional` holds it. `reads.trout` decodes the four families into `TroutValue`, and
+`RegsInputs.trout` carries it (null for a NULL cell, absent with no section). Details are in the T810 ticket.
+
 **Owner answers this section is written to** (verbatim labels):
 - About 16:55 (app chat dialog): fold row "All rows get arrow"; pinned top line "Drop it (Recommended)" (S removes the
   trout pin line); a lone other fish beside trout "Stays as today (Recommended)"; the year bar's "Trout: release

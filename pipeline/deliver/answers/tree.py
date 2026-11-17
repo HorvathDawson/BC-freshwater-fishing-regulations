@@ -101,6 +101,13 @@ A_WILD_LIMIT_ACROSS_ROWS_SAID = True
 A_BOTH_LAKES_SAID = True
 _BOTH_LAKES = re.compile(r"(?i)\bin the aggregate from both lakes\b")
 
+#: T834 (owner 2026-11-17, Kaslo River: "Yes: 2 in all"): a water's own tier whose fish the share still holds (no lift
+#: took them out) and whose number is NO LARGER than the share's sits INSIDE the share: Kaslo River / Keen Creek's "Bull
+#: trout daily quota = 2" under Region 4's "2 from streams" — 2 fish from the stream in all, both may be bull trout. It
+#: sat beside the share with "Not part of the 2 from streams" (only a SMALLER number nested), while the engine kept 2 in
+#: all. False = the old nesting (the mutation pin, `test_t834_share_lift.py`).
+AN_EQUAL_OWN_TIER_SITS_IN_THE_SHARE = True
+
 
 def across_rows(rows: Sequence[dict], home: int, kinds: Sequence[str]) -> Tuple[dict, ...]:
     """T805: the count limits of ONE origin (an `origin2` condition: "Wild trout/char daily quota = 2") that hold fish of
@@ -123,6 +130,14 @@ def across_rows(rows: Sequence[dict], home: int, kinds: Sequence[str]) -> Tuple[
         others = [S for i, fs in sorted(by_row.items()) for S in fs if S not in kinds]
         if mine and others and len(by_row) > 1:
             out.append({"r": r, "o": o, "n": n, "mine": mine, "others": list(dict.fromkeys(others))})
+        elif mine and len(by_row) > 1:
+            # T834: ONE card holds the fish of several rows the limit holds (a raised total joined them: Lois Lake's
+            # rainbow 6 beside its other trout) — still across rows: each row's fish, naming the other rows' fish
+            for i, fs in sorted(by_row.items()):
+                here = [S for S in kinds if S in fs]
+                there = [S for j, gs in sorted(by_row.items()) if j != i for S in gs if S not in fs]
+                if here and there:
+                    out.append({"r": r, "o": o, "n": n, "mine": here, "others": list(dict.fromkeys(there))})
     return tuple(out)
 
 
@@ -336,6 +351,12 @@ def _count_also(kn, n, mine: List[str], others: List[str], some: bool = False) -
     return None
 
 
+def share_from(water: Optional[str], region_wide: bool) -> str:
+    """" from streams" / " from this stream" — or "" for the share-like cap of a RAISED total, which holds on every water
+    (T834: "5 trout/char a day"; `rows.groups.A_RAISED_TOTAL_IS_ONE_BOX`)."""
+    return "" if water is None else f" from {share_place(water, region_wide)}"
+
+
 def share_place(water: str, region_wide: bool) -> str:
     """ROUND20f 3 (owner; a reader took "ALL REGION 2 STREAMS" + "from this stream" both ways): where the share is the
     REGION'S — a zone or province rule, the Region 2 streams' combined 2 — it says "from streams" ("from lakes"); a share
@@ -432,7 +453,7 @@ def _why_here(L) -> Optional[str]:
 
 
 def tree_of(P, model: dict, c: Ctx) -> Tuple[List[dict], dict]:
-    from pipeline.deliver.answers.card import _replaces, book_order, kind_rows
+    from pipeline.deliver.answers.card import _raised_total_by, _replaces, book_order, kind_rows
     from pipeline.deliver.answers.rows import badge_of
     grp = c.grp
     T = P.by_key[grp["pool"]]
@@ -441,7 +462,7 @@ def tree_of(P, model: dict, c: Ctx) -> Tuple[List[dict], dict]:
     from pipeline.deliver.answers.rows.groups import tables_words
     # T623 F14: a straddler's total is counted across both regions' tables — said so, once
     scope = tables_words(grp) or T.x.get("entry_name") or ("B.C." if badge_of(T) == "bc" else "the region")
-    wk = c.share["water"] if c.share is not None else ("stream" if P.kind == "stream" else "lake")
+    wk = c.share["water"] if c.share is not None and c.share["water"] else ("stream" if P.kind == "stream" else "lake")
     other = "lakes" if wk == "stream" else "streams"
     head_n = c.head.get("n")
     said_total = not c.unlimited and (c.share is not None or (head_n is not None and head_n < total))
@@ -455,6 +476,11 @@ def tree_of(P, model: dict, c: Ctx) -> Tuple[List[dict], dict]:
     # -- the total ---------------------------------------------------------------------------------------
     if c.unlimited:
         root = tier("total", None, c.head["says"], grp["pool"])
+    elif zone and c.share is not None and _raised_total_by(P, T) is not None:
+        # T834 (owner 12:29: "the total is 5 not 20"): a region total a water's own quota raised says the region's
+        # number; the raised one is the exception's, said on its own tier ("They count toward the 5; past 5, …")
+        root = tier("total", total, f"Up to {_js(total)} a day per angler here, with this water’s exception",
+                    grp["pool"])
     elif zone:
         # UR1 A (user panel: "per angler or per group?"): the total is each angler's
         root = tier("total", total, f"{_js(total)} a day per angler across {scope}"
@@ -525,7 +551,7 @@ def tree_of(P, model: dict, c: Ctx) -> Tuple[List[dict], dict]:
             own_ts.append((t, b))
         elif b["why"] == "share":
             # ROUND20f 3: a region's share says "from streams"; a water's own share "from this stream"
-            t = share_t = tier("share", b["cap"], f"{_js(b['cap'])} a day per angler from {share_place(c.share['water'], share_region_wide(P, c.share))}", b["by"])
+            t = share_t = tier("share", b["cap"], f"{_js(b['cap'])} a day per angler{share_from(c.share['water'], share_region_wide(P, c.share))}", b["by"])
             if c.share_origin is not None:
                 t["origin"] = c.share_origin           # ROUND20g 1: the origin rule where its scope is
                 t["origin_kind"] = c.origin_one        # T475: the same rule as a field (the headline says it)
@@ -552,8 +578,12 @@ def tree_of(P, model: dict, c: Ctx) -> Tuple[List[dict], dict]:
     under_share, under_total = [], []
     for t, b in own_ts:
         ks = {S for k in kind_rows(b) for S in k["species"]}
-        if share_t is not None and b not in c.lifting and c.share is not None and ks <= set(c.share["of"]) \
-                and t["n"] is not None and share_t["n"] is not None and t["n"] < share_t["n"]:
+        # (T834: never under a RAISED total's share-like cap: the region's number is the headline, a water's own tier
+        # stands beside it — Ross Lake's "trout 1" beside Region 2's 4 and the brook trout's 5)
+        if share_t is not None and b not in c.lifting and c.share is not None and c.share["water"] is not None \
+                and ks <= set(c.share["of"]) \
+                and t["n"] is not None and share_t["n"] is not None \
+                and (t["n"] <= share_t["n"] if AN_EQUAL_OWN_TIER_SITS_IN_THE_SHARE else t["n"] < share_t["n"]):
             under_share.append(t)
         else:
             under_total.append(t)
@@ -789,7 +819,7 @@ def tree_of(P, model: dict, c: Ctx) -> Tuple[List[dict], dict]:
             if up["n"] is not None and t["n"] is not None and t["n"] < up["n"]:
                 if t is share_t:
                     # T475 ask 3: "up to N", never "only"
-                    t["says"] = f"Up to {_js(t['n'])} of the {_js(up['n'])} from {share_place(c.share['water'], share_region_wide(P, c.share))}"
+                    t["says"] = f"Up to {_js(t['n'])} of the {_js(up['n'])}{share_from(c.share['water'], share_region_wide(P, c.share))}"
                     if lifted:
                         t["says"] += f", not counting {lifted}"
                         lifted = None
@@ -811,9 +841,18 @@ def tree_of(P, model: dict, c: Ctx) -> Tuple[List[dict], dict]:
     # share, they are in the total: "Not part of the 2 from streams; part of the 5 a day across Region 4" (`relation`)
     for t in under_total:
         if rel_on:
-            t["relation"] = (f"Not part of the {_js(share_t['n'])} from "
-                             f"{share_place(c.share['water'], share_region_wide(P, c.share))}; "
-                             f"part of the {_js(root['n'])} a day across {scope}")
+            if c.share["water"] is None:
+                # T834 (owner 12:29, the raised total's exception): "They count toward the 5; past 5, brook trout only" —
+                # said only of the rule lifting its fish past the region's number
+                lifting = any(t is tt and b in c.lifting for tt, b in own_ts)
+                fish = kind_names(list(dict.fromkeys(S for x, _p in walk(t["children"]) if x["node"] == "kind"
+                                                     for S in x["species"])), False)
+                t["relation"] = (f"They count toward the {_js(c.share['take'])}; past {_js(c.share['take'])}, "
+                                 f"{fish} only") if lifting else None
+            else:
+                t["relation"] = (f"Not part of the {_js(share_t['n'])} from "
+                                 f"{share_place(c.share['water'], share_region_wide(P, c.share))}; "
+                                 f"part of the {_js(root['n'])} a day across {scope}")
     from pipeline.deliver.bundle import read as RD
     steel_cm = RD._steelhead_min_cm()
     kind_origin: Dict[int, Optional[str]] = {}
@@ -887,7 +926,7 @@ def tree_of(P, model: dict, c: Ctx) -> Tuple[List[dict], dict]:
         if t["tier"] == "count":
             t["short"] = lc_first(_count_says(t))
         elif t["tier"] == "share":
-            t["short"] = f"up to {_js(t['n'])} from {share_place(c.share['water'], share_region_wide(P, c.share))}"
+            t["short"] = f"up to {_js(t['n'])}{share_from(c.share['water'], share_region_wide(P, c.share))}"
         else:
             ks = [k for k, _q in walk(t["children"]) if k["node"] == "kind" and k["n"] != 0]
             sp = book_order(list(dict.fromkeys(S for k in ks for S in k["species"])))

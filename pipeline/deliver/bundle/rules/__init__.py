@@ -35,7 +35,8 @@ from pipeline.deliver.bundle.rules.lifts import (
     size_clause_caution, NAMES_THE_FISH, ANY_SIZE_BASIS, _species_of, _targets, _lift_terms, _when_term,
     named_leaves, _is_species_closure, _NO_EXCEPTIONS, _SEE_TABLES, sends_to_tables, prints_its_exemptions,
     zone_closures, _kept_lengths, _named_lifts, is_size_constraint, _any_size_lifts, is_blanket_closure,
-    blanket_closures, lift_kind, _equivalent_closures, _exempts,
+    blanket_closures, lift_kind, _equivalent_closures, _exempts, OWN_QUOTA_ABOVE_A_CAP_RAISES_IT, OWN_QUOTA_BASIS,
+    is_stream_share, is_region_total, region_caps, row_on_a_stream, own_daily_quota, row_caps, _cap_lifts,
 )
 from pipeline.deliver.bundle.rules.see import (
     _see_column, entry_name, see_name, see_pointer_rows, ONE_WAY_IN_ACROSS_ROWS,

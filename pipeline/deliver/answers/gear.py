@@ -377,7 +377,10 @@ def summary_parts(top, elems, circ_for, hook: str, fly: Optional[str]) -> List[d
     T = top("terminal_attachments_per_line")
     if T is not None and T["c"].get("members"):
         ms = [m for m in T["c"]["members"] if m in ATTACH_NOUNS]
-        if fly == "fly_fishing_only":
+        if fly in FLY_MODES:
+            # p.80: an artificial fly is "a single or double hook dressed with feathers, hair, thread, tinsel or any
+            # similar material" — on a fly-only water the one attachment is a fly, never a bare hook (T789 G9: Pennask
+            # Lake read "one hook or fly")
             ms = [m for m in ms if m == "artificial_fly"]
         ms = [m for m in ms if verdict(f"lure:{m}") != "ban"]
         n = T["c"].get("max")

@@ -206,7 +206,7 @@ def origin_place(P, model: dict, kinds: Sequence[str], keep: str, T, share: Opti
     origin stays the group's)."""
     from pipeline.deliver.answers.rows import badge_of
     from pipeline.deliver.answers.tree import share_place
-    if share is None:
+    if share is None or share["water"] is None:
         return None
     other = "W" if keep == "hatchery" else "H"
     wins = [((model["R"].get(S) or {}).get(other) or {}).get("win") for S in kinds]
@@ -245,7 +245,7 @@ def possession_of(P, model: dict, kinds: Sequence[str], total, what: str, share:
     n = _js(n_)
     days = "1 day’s fish" if k == 1 else f"{k} days’ fish"    # ROUND20h (reader: "not 3" puzzled — said nothing)
     doubles = None
-    if share is not None and share.get("take") is not None and share["take"] < total:
+    if share is not None and share["water"] is not None and share.get("take") is not None and share["take"] < total:
         verb = {1: "is", 2: "doubles", 3: "triples"}.get(k, f"is {k} times")
         doubles = (f"Possession {verb} the {_js(total)} a day, not the {_js(share['take'])} from "
                    f"{share_place(share['water'], share_region_wide(P, share))}.")
@@ -253,12 +253,18 @@ def possession_of(P, model: dict, kinds: Sequence[str], total, what: str, share:
             "example": f"With {_js(total)} {what} a day you may have {n}: {days}.", "doubles": doubles}
 
 
-def headline_of(n, origin: Optional[str], what: str, place: str) -> dict:
+def _raised_total_by(P, T):
+    """T834: the raise of total `T` by a water's own quota (`rows.pools`), or None."""
+    from pipeline.deliver.answers.rows import pools
+    return next((x for x in pools(P) if x.clause.key == T.key and x.f.get("take") is not None), None)
+
+
+def headline_of(n, origin: Optional[str], what: str, place: Optional[str]) -> dict:
     """T475 ask 1 (owner 2026-11-07): a share's headline in one line, from fields — "2 hatchery trout/char a day from
     streams": the number, the one origin the share's water keeps (`origin`, the resolved rules' — `origin_place`; None
     where any is kept), the group's fish as one noun (`fish`, "trout/char") and where the share holds."""
     fish = what.replace(" and ", "/")
-    unit = f"{origin + ' ' if origin else ''}{fish} a day from {place}"
+    unit = f"{origin + ' ' if origin else ''}{fish} a day" + ("" if place is None else f" from {place}")
     return {"unit": unit, "says": f"{_js(n)} {unit}", "origin": origin, "fish": fish}
 
 
@@ -272,7 +278,7 @@ def share_info(P, model: dict, share: dict, T, total, head: dict, what: str, sco
     another water of its kind, keep 1 on the other kind, keep the whole total on the other kind."""
     from pipeline.deliver.answers.rows import badge_of
     from pipeline.deliver.answers.tree import share_place, share_region_wide
-    if badge_of(T) not in ("region", "bc"):
+    if badge_of(T) not in ("region", "bc") or share["water"] is None:
         return None
     s, T, water = share["take"], total, share["water"]
     other = "lake" if water == "stream" else "stream"
@@ -894,7 +900,7 @@ NO_FISHING_TERM = "no_fishing_for"
 
 def card_of(P, model: dict, grp: dict, rows_out: List[dict], home: int) -> dict:
     """The card fields of one group total (see the module docstring)."""
-    from pipeline.deliver.answers.rows import _lift_words, _kept, badge_of, written_name_of, keep_range
+    from pipeline.deliver.answers.rows import _lift_words, _kept, badge_of, written_name_of, keep_range, pools
     T = P.by_key[grp["pool"]]
     total = grp["total"]
     unlimited = total == "unlimited"
@@ -902,7 +908,8 @@ def card_of(P, model: dict, grp: dict, rows_out: List[dict], home: int) -> dict:
     what = written_name_of(T)
     states: List[dict] = []
     # the stream (lake) share holding EVERY kind of the total (the lead share, rows 7)
-    share = next((s for s in grp["subcaps"] if s["water"] and s["over_cm"] is None
+    # (T834: or a RAISED total's own number, `rows.groups.A_RAISED_TOTAL_IS_ONE_BOX` — a share-like cap with no water)
+    share = next((s for s in grp["subcaps"] if (s["water"] or s["r"] == grp["pool"]) and s["over_cm"] is None
                   and s["under_cm"] is None
                   and set(s["of"]) | {S for L in s["lifted"] for S in L["members"]} == set(kinds)),
                  None)
@@ -968,7 +975,8 @@ def card_of(P, model: dict, grp: dict, rows_out: List[dict], home: int) -> dict:
         n_head = capacity(kinds, base)
         # UR2 1 (user panel: the big "2 a day from this stream" read as the party's limit): whose number it is
         from pipeline.deliver.answers.tree import share_place, share_region_wide
-        unit = (f"a day per angler from {share_place(share['water'], share_region_wide(P, share))}" if share is not None
+        unit = (f"a day per angler from {share_place(share['water'], share_region_wide(P, share))}"
+                if share is not None and share["water"] is not None
                 else "a day per angler")   # ROUND20f 3: a region's share "from streams"
         head = {"n": n_head, "unit": unit, "says": f"{_js(n_head)} {unit}"}
         inners = {info[S]["inner"].key for S in kinds if info[S]["inner"] is not None}
@@ -999,7 +1007,7 @@ def card_of(P, model: dict, grp: dict, rows_out: List[dict], home: int) -> dict:
     # its sentence), the group's fish and the share's water
     if share is not None and not unlimited:
         head.update(headline_of(head["n"], next(iter(os_))[0] if share_origin is not None else None, what,
-                                share_place(share["water"], share_region_wide(P, share))))
+                                None if share["water"] is None else share_place(share["water"], share_region_wide(P, share))))
 
     # -- lifts out of the share, and the total under it ------------------------------------------
     region = (P.by_key[share["r"]].x.get("entry_name") if share else None) or "the region"
@@ -1022,13 +1030,20 @@ def card_of(P, model: dict, grp: dict, rows_out: List[dict], home: int) -> dict:
             {"kinds": list(L["members"]), "n": n, "by": L["by"],
              "fish": _lift_words(P, L["by"], L["members"])})
         states.append({"r": L["by"], "line": "lift"})
-    limit = (f"the {_js(share['take'])}-from-{share['water']}s limit across {share_both}" if share_both else
-             f"{region}’s {_js(share['take'])}-from-{share['water']}s limit") if share is not None else ""
+    limit = ((f"{region}’s {_js(share['take'])}-a-day limit" if share["water"] is None else
+              f"the {_js(share['take'])}-from-{share['water']}s limit across {share_both}" if share_both else
+              f"{region}’s {_js(share['take'])}-from-{share['water']}s limit") if share is not None else "")
     for each in each_of.values():
         each.sort(key=lambda e: -(INF if e["n"] is None else e["n"]))     # stable: highest first
         where, whose = _whose(P, P.by_key[each[0]["by"]])
         allows = ["any number" if e["n"] is None else f"up to {_js(e['n'])} a day" for e in each]
-        if len(each) == 1:
+        if share["water"] is None:
+            # T834 (owner 12:29): "5 with exception to 20 brook trout which also uses up your 5 quota"
+            t = _js(share["take"])
+            named = common.join([f"{e['fish']} {a}" for e, a in zip(each, allows)], " and ")
+            fish = common.join([e["fish"] for e in each], " and ")
+            says = f"{where}, {named} — they count toward the {t}; past {t}, {fish} only."
+        elif len(each) == 1:
             says = f"{where}, {each[0]['fish']}: {allows[0]} — {whose} replaces {limit} for them."
         else:
             named = common.join([f"{e['fish']} ({a})" for e, a in zip(each, allows)], " and ")
@@ -1050,12 +1065,18 @@ def card_of(P, model: dict, grp: dict, rows_out: List[dict], home: int) -> dict:
         scope = both or T.x.get("entry_name") or "the region"
         total_line = f"No more than {_js(total)} {what} a day per angler across {scope}, {other} included."   # UR1 A
         states.append({"r": grp["pool"], "line": "total"})
+    if total_line is not None and _raised_total_by(P, T) is not None:
+        # T834 (owner 12:29: "the total is 5 not 20 or 25"): a total a water's own quota raised is never said as the
+        # region's; its number is the exception's ("or 20 if they’re brook trout"), the region's the headline
+        total_line = None
+        states = [x for x in states if x["line"] != "total"]
 
     # -- buckets and kind rows -------------------------------------------------------------------
     share_b = None
     if share is not None:
         share_b = {"title": f"Up to {_js(share['take'])} a day between them — "
-                            + (f"all {share['water']}s in {share_both} combined" if share_both
+                            + (f"{region}’s {_js(share['take'])} a day" if share["water"] is None
+                               else f"all {share['water']}s in {share_both} combined" if share_both
                                else f"all {region} {share['water']}s combined"),
                    "cap": share["take"], "by": share["r"], "why": "share", "kinds": []}
     # one bucket per lifting entry (Duncan: its rainbow and its Dolly Varden rules are one row)
@@ -1146,7 +1167,8 @@ def card_of(P, model: dict, grp: dict, rows_out: List[dict], home: int) -> dict:
             if b not in lift_bucket.values() and share is not None and S in share["of"]:
                 # (ROUND14 3: not under the water's own rule printing the share's very number)
                 if info[S]["inner"] is None or info[S]["inner"].f["take"] != share["take"]:
-                    notes.append(f"counts toward the {_js(share['take'])} from {share['water']}s")
+                    notes.append(f"counts toward the {_js(share['take'])}"
+                                 + ("" if share["water"] is None else f" from {share['water']}s"))
             else:
                 notes.append(f"counts toward the {_js(total)} a day")
         duties = _duties(P, model, S, n, lo, hi)
@@ -1191,7 +1213,10 @@ def card_of(P, model: dict, grp: dict, rows_out: List[dict], home: int) -> dict:
 
     # -- the worked count (RULINGS Q23b) -----------------------------------------------------------
     worked: List[dict] = []
-    if share is not None and lifts and not unlimited:
+    # (T834: none on a RAISED total — what its lifted fish leave on other waters is the owner's open question to BC Fish
+    # and Wildlife, GOTCHAS; the card states no number for it yet)
+    raised_total = _raised_total_by(P, T) is not None
+    if share is not None and share["water"] is not None and lifts and not unlimited and not raised_total:
         parts = [e for L in lifts for e in L["each"]]              # every lifting rule (W1)
         main = max(parts, key=lambda L: (L["n"] or 0))
         q = main["n"] or 0
@@ -1203,6 +1228,10 @@ def card_of(P, model: dict, grp: dict, rows_out: List[dict], home: int) -> dict:
         m_origin = said_origin or "hatchery"
         plural = kind_names(main["kinds"], main["kinds"] == ["ST"], origin=said_origin)
         other_kind = "lake" if share["water"] == "stream" else "stream"
+        # T834 (RULINGS T17): a water's own quota that RAISED the share below the total (`rows.pools`: the Peace River's
+        # lake trout 3 over Zone 7's 2 from streams) holds every fish here to its number, the lifted ones included
+        up = next((x.f["take"] for x in pools(P) if x.clause.key == share["r"] and x.f.get("take") is not None
+                   and x.f["take"] < total), None)
         # ROUND20b C4 (owner: fewer words): the two ends of the range only — all the lifted fish ("that’s your day"),
         # and as many as the share ("none from other streams — up to N more from here or from lakes"); the lines
         # between are arithmetic the reader does not need
@@ -1214,6 +1243,8 @@ def card_of(P, model: dict, grp: dict, rows_out: List[dict], home: int) -> dict:
             # for the other kinds — here: the lifted kinds' rest, and the share's own number
             here = min(left, share["take"] + sum(max(0, (L["n"] or 0) - (k if L is main else 0))
                                                  for L in parts))
+            if up is not None:
+                here = min(here, max(0, up - k))
             if left == 0:
                 a = f"that’s your {what} for the day, everywhere."
             elif k == share["take"] and here >= left:
@@ -1233,6 +1264,9 @@ def card_of(P, model: dict, grp: dict, rows_out: List[dict], home: int) -> dict:
                 a = f"1 more fish of any kind, from here or from a {other_kind}."
             else:
                 a = f"{_js(left)} more fish of any kind, from here or from {other_kind}s."
+            if up is not None and left > 0 and here < left:
+                # T834: the raised share holds them here — say how many of those may come from here
+                a = a[:-1] + (" — none more from here." if here == 0 else f" — only {_js(here)} more from here.")
             # ROUND UR7 1: "here" — the lift is this water's (its fish count as the share's anywhere else)
             worked.append({"kept": k, "q": f"If you keep {k} {plural} here", "a": a, "species": [S0],
                            "origin": m_origin,
@@ -1243,7 +1277,7 @@ def card_of(P, model: dict, grp: dict, rows_out: List[dict], home: int) -> dict:
     # with no lift the kept-elsewhere examples are the list. Each keeps the basket it starts from and
     # the number the gate proves.
     el = rows_out[home].get("elsewhere") or {}
-    for x in el.get("lines") or []:
+    for x in ([] if raised_total else el.get("lines") or []):
         if worked and x["kind"] == "stream_tally":
             continue
         # "Kept 2 elsewhere today? Keep 3 more here" is the total's arithmetic: said where this water's

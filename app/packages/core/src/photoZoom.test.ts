@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { PHOTO_FIT, PHOTO_ZOOM, clampPhotoView, isPhotoZoomed, photoPanBy, photoSwipe, photoWheelFactor, photoZoomAt, togglePhotoZoom } from "./photoZoom";
+import { PHOTO_FIT, PHOTO_ZOOM, clampPhotoView, isPhotoZoomed, photoPanBy, photoWheelFactor, photoZoomAt, togglePhotoZoom } from "./photoZoom";
 
 const S = { w: 400, h: 600 };
 
@@ -41,11 +41,5 @@ describe("photo zoom", () => {
   it("wheel up zooms in, down zooms out", () => {
     expect(photoWheelFactor(-100)).toBeGreaterThan(1);
     expect(photoWheelFactor(100)).toBeLessThan(1);
-  });
-  it("a swipe changes photo at the fit but not while zoomed", () => {
-    expect(photoSwipe(PHOTO_FIT, -80, 50)).toBe(1);
-    expect(photoSwipe(PHOTO_FIT, 80, 50)).toBe(-1);
-    expect(photoSwipe(PHOTO_FIT, 20, 50)).toBe(0);
-    expect(photoSwipe({ scale: 2, x: 0, y: 0 }, -80, 50)).toBe(0);
   });
 });

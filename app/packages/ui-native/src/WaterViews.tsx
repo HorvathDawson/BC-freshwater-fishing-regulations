@@ -70,7 +70,10 @@ export function WaterConditions({ source, item, tapSid, palette, tiles, theme, o
   // (T728, owner 2026-11-14: "when you chang elvel/condition in the card it should not change cindition map layers too")
   // THE CARD'S QUANTITY IS THIS VIEW'S: one state, read by the card and the watershed days alike; the map's layer is
   // only where it starts. A pick here never reaches the map's Show.
-  const [own, setOwn] = useState<Parameter | null>(null);
+  // (T767, T369 one load path) and it is the REACH's: the shell keeps this view mounted from reach to reach, so the pick
+  // is held with the water and section it was made on and read only there; a move to another reach drops it, so the next
+  // reach, and this one again, open as they open.
+  const [pick, setPick] = useState<{ at: string; quantity: Parameter } | null>(null);
   // (T369) THE FRAME'S REACH AND POINT, read once from the release (`useFrameView`, the one reading of a frame)
   const store = useRegsStore(loader);
   const fv = useFrameView(store.value ?? null, { item, part, tapSid, at: from ?? null });
@@ -88,6 +91,10 @@ export function WaterConditions({ source, item, tapSid, palette, tiles, theme, o
   if (measures.state === "ready") held.current = { item, value: measures.value };
   const measured = measures.state === "ready" ? measures.value : held.current?.item === item ? held.current.value : null;
   const start = conditionsOpening(measured, opening ?? "discharge");
+  const pickAt = `${item ?? ""}|${section ?? ""}`;
+  if (pick && section !== null && pick.at !== pickAt) setPick(null);
+  const own = pick?.at === pickAt ? pick.quantity : null;
+  const setOwn = (quantity: Parameter) => setPick({ at: pickAt, quantity });
   const parameter = own ?? (start.note ? start.quantity : opening);
   const here = loader ? fv.value?.here ?? null : from ?? null;
   const waiting = loader ? fv.state === "loading" || store.state === "loading" : sheet.state === "loading";

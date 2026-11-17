@@ -1202,7 +1202,8 @@ def _marks_record(st: tuple) -> None:
 
 def marks_delta(old: tuple, new: tuple) -> dict | None:
     """WHAT THE MARKS STORE GAINED between two of its stamps: {"keys": the (scope, target, rule_id) of every line
-    appended (a several-target line names each), "new_splits": any appended line proposes a cut, "cleared": any is a
+    appended (a several-target line names each), "new_splits": any appended line proposes a cut (its own `new_splits`
+    or a closed area's `piece.new_splits`), "cleared": any is a
     clear}. None when it cannot be proven a pure append (a stamp never recorded, a shorter file, a changed prefix, a
     line that does not parse): the caller rebuilds everything. Same stamp: no keys."""
     import hashlib
@@ -1233,7 +1234,9 @@ def marks_delta(old: tuple, new: tuple) -> dict | None:
         for t in [m.get("target"), *(m.get("targets") or [])]:
             if t:
                 keys.add((m.get("scope"), t, m.get("rule_id")))
-        splits = splits or bool(m.get("new_splits"))
+        # a closed area carries its new cuts in `piece.new_splits` (T785; `marks.cut_proposals_of`): counted too, so
+        # a confirmed closed area's cuts reach the proposals list on the save that makes them
+        splits = splits or bool(m.get("new_splits")) or bool((m.get("piece") or {}).get("new_splits"))
         cleared = cleared or m.get("verdict") == "cleared"
     return {"keys": frozenset(keys), "new_splits": splits, "cleared": cleared}
 
