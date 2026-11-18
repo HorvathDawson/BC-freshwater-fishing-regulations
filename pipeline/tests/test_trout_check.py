@@ -292,6 +292,28 @@ def test_mutation_a_possession_line_fails(side):
     assert any(POSSESSION_MARK in p for p in got), got
 
 
+@pytest.mark.parametrize("where,text", [
+    ("box", "In your possession: no more than 1 trout and char in all"),
+    ("box", "In your possession: 1 day’s limit, not 2"),
+    ("row", "in your possession: no more than 1 trout and char in all"),
+    ("row", "in your possession: 1 day’s limit, not 2"),
+], ids=["box-count", "box-days", "row-count", "row-days"])
+def test_mutation_a_table_only_possession_line_the_rules_do_not_say_fails(side, where, text):
+    """The T809 re-review's plant (the cutover diff leaves table-only possession wording to J): a keep box's own
+    possession line (G2 Q4, `Box.possession`) or a row's line, stating numbers the possession rules do not (the mini
+    world's only possession rule is the region's 2 days' quota, the page's lead), fails J's possession proof."""
+    def change(c):
+        b = next(b for b in c["table"]["boxes"] if b["kind"] == "keep" and b["rows"][0]["fish"] != "ST")
+        if where == "box":
+            b["possession"] = text
+        else:
+            r = b["rows"][0]
+            r["lines"] = (*r["lines"], text)
+    got = _mutated(side, lambda c: any(b["kind"] == "keep" and b["rows"][0]["fish"] != "ST"
+                                       for b in c["table"]["boxes"]), change)
+    assert any(POSSESSION_MARK in p for p in got), got
+
+
 def _shared_band(side):
     """Two rows a box keeps up to its number each, planted as one shared band of 1."""
     def change(c):

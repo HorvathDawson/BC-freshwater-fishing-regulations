@@ -140,6 +140,10 @@ def _others_most(g: dict) -> float:
     return most(g["tree"][0]["children"])
 
 
+#: T810 L (the review's finding 1): each covered keep row's kept-elsewhere sentence and worked lines lead the table's
+#: `elsewhere`. False = only the groups' worked lines, as before (740 cells said nothing of fish kept elsewhere)
+A_ROW_ELSEWHERE_SAID = True
+
 #: T834: a share RAISED below the total is the box's number over every fish of the box (the Peace River's "Keep 3 in
 #: all"). False = the zone's 5 (the proof finds a basket the table accepts and the engine refuses)
 A_RAISED_SHARE_IS_A_BAND = True
@@ -278,6 +282,30 @@ def _only(row: dict, keep: Callable[[str], bool]) -> dict:
         sp = [S for S in o["week"]["species"] if keep(S)]
         o["week"] = {**o["week"], "species": sp} if sp else None
     return o
+
+
+def _covered(row: dict) -> bool:
+    """A row of a split frame the table covers: its fish are all trout or char (`split_mixed`'s rule)."""
+    fish = set(row.get("all_members") or ()) | set(row.get("members") or ())
+    return bool(fish) and fish <= TC
+
+
+def elsewhere_said(frame: dict) -> List[str]:
+    """Every kept-elsewhere text the card said for the rows the table covers, in the table's words: each covered row's
+    sentence and worked lines (`Row.elsewhere`), and its group's worked lines about fish kept elsewhere
+    (`group.worked`, not "here"). What the table's `elsewhere` must hold (`answers.cut_over` holds it)."""
+    split, covers = split_mixed(frame)
+    out: List[str] = []
+    for i in covers:
+        r = split["rows"][i]
+        e = r.get("elsewhere")
+        if e is not None:
+            out.append(W.elsewhere_says(e["says"]))
+            out += [W.elsewhere_line(q, a) for q, a in e.get("ask") or ()]
+        g = r.get("group")
+        if g is not None:
+            out += [W.elsewhere_line(w["q"], w["a"]) for w in g.get("worked") or () if w["at"] != "here"]
+    return list(dict.fromkeys(out))
 
 
 def split_mixed(frame: dict) -> Tuple[dict, List[int]]:
@@ -1186,8 +1214,20 @@ class Body:
         # keep box's group, in box order, under the app's "Fished elsewhere today? ›" (empty: no link). A line about
         # keeping HERE ("If you keep 4 hatchery rainbow trout here", `at` "here": a lifted kind past the stream share) is
         # not a kept-elsewhere line and is not under that link (G2 lists it for the owner)
-        elsewhere: List[str] = [W.elsewhere_line(w["q"], w["a"]) for b in self.boxes if b["group"] is not None
-                                for w in b["group"].get("worked") or () if w["at"] != "here"]
+        # (T810 L, the review's finding 1) FIRST each covered keep row's own kept-elsewhere sentence and its worked
+        # lines (`Row.elsewhere` `says` / `ask`: whose limit, its number, which fish kept elsewhere count toward it) — the
+        # cutover drops `elsewhere` from the rows the table covers, so the table says what it said (contract Q-D9);
+        # `answers.cut_over` stops the build where one is missing (`elsewhere_unsaid`)
+        elsewhere: List[str] = []
+        if A_ROW_ELSEWHERE_SAID:
+            for r in self.rows_out:
+                e = r.get("elsewhere")
+                if e is None or not _covered(r):
+                    continue
+                elsewhere.append(W.elsewhere_says(e["says"]))
+                elsewhere += [W.elsewhere_line(q, a) for q, a in e.get("ask") or ()]
+        elsewhere += [W.elsewhere_line(w["q"], w["a"]) for b in self.boxes if b["group"] is not None
+                      for w in b["group"].get("worked") or () if w["at"] != "here"]
         boxes = []
         src: List[int] = []
         for b in self.boxes:

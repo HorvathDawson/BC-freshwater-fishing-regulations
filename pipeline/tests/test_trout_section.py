@@ -237,8 +237,9 @@ def decoded(side, tmp_path_factory):
 
 
 def test_every_trout_cell_decodes_to_the_model_and_is_the_builders(decoded):
-    """Each shipped cell is the builder's table over the rows it read (before the cut), and the shipped rows are those
-    rows cut over (`answers.cut_over`)."""
+    """Each shipped cell is the builder's table over the rows it read (before the cut: `mini_chain.trout_inputs`), NULL
+    exactly per Q-D3, every fish said once. (That the shipped rows are those rows cut over is
+    `test_t810_cutover.test_every_row_the_table_does_not_cover_is_the_cards_row`.)"""
     model, pre, rules = decoded
     n = 0
     nulls = 0

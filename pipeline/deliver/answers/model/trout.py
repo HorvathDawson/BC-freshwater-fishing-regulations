@@ -186,6 +186,9 @@ class _TableFields(Model):
     boxes: Tuple[Any, ...] = Field(min_length=1)
     together: Optional[Together]
     year: Optional[YearBar]             # only when every fish shares one state today (all release or all closed)
+    #: under "Fished elsewhere today? ›" (no link where empty), in order: each covered keep row's kept-elsewhere SENTENCE
+    #: ("This lake’s rule: 2 a day here. …", "Your own limit, counted across …"; T810 L), then the worked lines ("Kept 2
+    #: elsewhere? Keep 3 more here."). A worked line starts "Kept "; anything else is a sentence. Drawn as given.
     elsewhere: Tuple[Txt, ...]
     src: Src
 

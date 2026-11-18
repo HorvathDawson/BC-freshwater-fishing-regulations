@@ -812,8 +812,14 @@ def measure(side: Path, live: Optional[Path] = None, log=print) -> dict:
     from pipeline.deliver.store.release import province_store
     side = Path(side)
     man = AD._manifest(side)
-    if "trout" not in ((man.get("regulations") or {}).get("versions") or {}):
-        raise AD.DiffError(f"trout_size: {side.name} carries no trout section (build it with --trout-table)")
+    vs = (man.get("regulations") or {}).get("versions") or {}
+    if "trout" not in vs:
+        raise AD.DiffError(f"trout_size: {side.name} carries no trout section (a release cut before the cutover)")
+    if int(vs.get("rows") or 0) >= 34:
+        # (T810 L) A1 measured a SIDE release (rows 33 + the section) in its three forms; a release built since the
+        # cutover IS the cutover form, and the release's own size gates price it
+        raise AD.DiffError(f"trout_size: {side.name} is already the cutover form (rows {vs['rows']}): A1 measures a side "
+                           "release built before it; the release's own size gates price this one")
     R = AD.Release(side)
     names = defaultdict(Counter)
     for h, a in R.akey.items():

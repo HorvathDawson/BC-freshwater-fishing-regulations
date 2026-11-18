@@ -1122,8 +1122,9 @@ class Row(Model):
             raise ValueError("a group total only on a pool row")
         # T810 ticket L (contract Q-D9, rows 34): the kept-elsewhere line is set <=> a keep row that no trout table
         # covers. A row cannot see the cell's `covers`, so here: set only on a keep row, and a keep row without one
-        # holds only trout and char (the only rows a table covers); the build holds it exactly, cell by cell
-        # (`answers.cut_over`: every covered row loses `group` and `elsewhere`, every other row keeps them)
+        # holds only trout and char (the only rows a table covers). The exact rule — only a row the cell's table covers,
+        # never one under a NULL cell — is the card gate's, over every shipped frame (`trout/check.cut_problems`, J:
+        # the store refuses answers whose stamp found a problem)
         if self.elsewhere is not None and self.kind != "keep":
             raise ValueError("the kept-elsewhere line is set only on a keep row")
         if self.elsewhere is None and self.kind == "keep":

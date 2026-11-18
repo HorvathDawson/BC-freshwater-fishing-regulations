@@ -282,3 +282,21 @@ unpacks a rows frame as exactly five slots, so a rows-34 frame (six) breaks the 
   per run; its answers again with `answers.A_CUT_OVER` off), since a shipped frame no longer holds the covered groups.
 - Mini release re-cut. NOT done here (the merge's): the goldens / regs fixture / trout fixture re-cut
   (`scripts/trout-refresh.sh`). Left: interning `page_possession` (A1: +11 to +34 kB gz per region; fits without it).
+
+## 2026-11-17 ~23:30: L review fixes (lane/t810-l, after the independent review's FIX FIRST)
+- The kept-elsewhere text the cut drops is on the table: `table.elsewhere` = each covered keep row's SENTENCE
+  (`words.elsewhere_says`: the stored `says` with "today" left to the link word) and its worked lines, then the groups'
+  worked lines, in that order (a worked line starts "Kept "). Same field and type (`trout` stays 1). The build stops
+  where a covered row's text is missing (`answers.A_ELSEWHERE_HELD`, `trout.table.elsewhere_said`); J reads every
+  sentence back and holds it to the covered keep rows' scopes and numbers (`check.elsewhere_said_problems`).
+- J over EVERY rows frame (a table or not): F0's `page_possession` derived again from the frame's roles and the bundle's
+  rules (`check.page_possession_problems`: value words, sentence, lead, every also-line); the cut itself
+  (`check.cut_problems`: covered rows hold no group / kept-elsewhere line, every other keep row keeps its line, NULL
+  cells too) — the exact form of the restated `_pool_rows`.
+- Split parts re-stamped and their years re-cut, each pinned (`A_SPLIT_RESTAMPED`, `A_SPLIT_YEARS_RECUT`) on a planted
+  mixed row (`test_t810_cutover.py`; the mini world has none under a table).
+- Live check (the live bundle, every key, in memory, not shipped): the cutover gate held on every key; J 5,950 tables of
+  5,950 cells, 13 problems, all one family — Region 8 streams' brook trout ("Brook trout 20 from streams", z8 r5):
+  the row's worked line "Kept 2 elsewhere? Keep 18 more here." (a group-less row's `ask`, which the old card gate never
+  proved) against the engine's 19 or more after 2 kept elsewhere (Inkaneep, Meighan, Bull Creek …, 13 keys from day 92).
+  FOR THE OWNER / main chat: the card or the engine is wrong there; until one is fixed the cutover build stops on it.
