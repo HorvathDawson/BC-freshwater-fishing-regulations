@@ -415,8 +415,8 @@
      },
      {
       "book": [],
-      "name": "Basic angling licence + Classified Waters Licence",
-      "price": "$62.87 a year · $22.86 a day · $41.15 for 8 days",
+      "name": "Basic angling licence ($62.87 a year · $22.86 a day · $41.15 for 8 days) + Classified Waters Licence ($22.86 a day)",
+      "price": null,
       "terms": [],
       "when": "Or, for your own limit: what a 16+ angler buys"
      }
@@ -515,8 +515,8 @@
      },
      {
       "book": [],
-      "name": "Basic angling licence + Classified Waters Licence",
-      "price": "$91.44 a year · $22.86 a day · $57.14 for 8 days",
+      "name": "Basic angling licence ($91.44 a year · $22.86 a day · $57.14 for 8 days) + Classified Waters Licence ($22.86 a day)",
+      "price": null,
       "terms": [],
       "when": "Or, for your own limit: what a 16+ angler buys"
      }
