@@ -80,6 +80,7 @@ function box(x: Box, bi: number): void {
     if (S !== r.fish) bad(`${rw}: its fish is ${r.fish}`);
     if ((o ?? null) !== r.origin) bad(`${rw}: origin ${String(r.origin)} <=> the key's origin`);
     if (r.origin !== null && r.label !== null) bad(`${rw}: a twin row carries its origin, never a label`);
+    if (r.split && (r.origin !== null || r.label !== null)) bad(`${rw}: a merged hatchery and wild row has no origin and no label`);
     txt(r.name, `${rw} name`); opt(r.label, `${rw} label`); opt(r.sub, `${rw} sub`);
     r.lines.forEach((l) => txt(l, `${rw} line`)); r.quiet.forEach((l) => txt(l, `${rw} quiet`));
     txt(r.sheet.head, `${rw} sheet head`); r.sheet.here.forEach((l) => txt(l.t, `${rw} sheet line`));
@@ -174,8 +175,8 @@ export function checkTrout(f: TroutValue, at: TroutBounds): void {
   if (new Set(keys).size !== keys.length) bad("a row key twice");
   const fishBox = new Map<string, number>();
   t.boxes.forEach((x, bi) => x.rows.forEach((r) => { if ((fishBox.get(r.fish) ?? bi) !== bi) bad(`${r.fish} sits in two boxes`); fishBox.set(r.fish, bi); }));
-  const marked = t.boxes.some((x) => x.label !== null || x.rows.some((r) => r.label !== null || r.origin !== null));
-  if (t.hatch_link !== marked) bad("hatch_link <=> some row or box carries a label or an origin");
+  const marked = t.boxes.some((x) => x.label !== null || x.rows.some((r) => r.label !== null || r.origin !== null || r.split));
+  if (t.hatch_link !== marked) bad("hatch_link <=> some row or box carries a label, an origin or a hatchery/wild split");
   // T810 G2: a limit across two boxes is said under the top line AND under the table (Lois); the lakes' own count
   // (Echoes) only under the top line, `second` without `together`
   if (t.together !== null && t.together.text !== t.top.second) bad("together is set => top.second is, in the same words");
@@ -233,7 +234,7 @@ export function troutOf(inp: RegsInputs, day: Day, today: Day): TroutVM | TroutR
       const at = (y: TroutBandVM) => y.from <= i && i <= y.to;
       const by = bands.find(at) ?? null, nest = inner.find(at) ?? null, date = d?.row[`${b}:${i}`] ?? null;
       return {
-        key: r.key, fish: r.fish, name: r.name, origin: r.origin, label: r.label, sub: r.sub, lines: r.lines, quiet: r.quiet,
+        key: r.key, fish: r.fish, name: r.name, origin: r.origin, label: r.label, split: r.split, sub: r.sub, lines: r.lines, quiet: r.quiet,
         src: r.src, sheet: r.sheet, coming: d?.sheet[r.key] ?? [], date,
         a11y: a11yOf([r.name, r.origin, r.label, r.sub, ...r.lines, ...r.quiet, by?.text, nest?.text, date ?? by?.date]),
       };

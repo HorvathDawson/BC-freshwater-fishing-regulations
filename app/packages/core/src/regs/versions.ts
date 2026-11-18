@@ -18,8 +18,8 @@ export type SectionName = "ladder" | "rows" | "gear" | "licence" | "display" | "
 export const SECTION_NAMES: readonly SectionName[] = Object.freeze(["ladder", "rows", "gear", "licence", "display", "trout"] as const);
 /** The answers section versions (water `meta.layout.versions`) and the glossary's (`static answers.glossary`). (T810 S)
  *  `rows` 34 carries `page_possession` (F0); `trout` (the trout and char table) is required from the cutover; `trout` 3: a
- *  date said once (the most specific level wins), `trout` 4: the top line's `sub` and a box's nested bands (`inner`). */
-export const KNOWN_VERSIONS = Object.freeze({ ladder: 1, rows: 34, gear: 12, licence: 7, display: 20, trout: 4, glossary: 5 } as const);
+ *  date said once (the most specific level wins), `trout` 4: the top line's `sub` and a box's nested bands (`inner`), `trout` 5: `TRow.split` (a merged hatchery+wild row). */
+export const KNOWN_VERSIONS = Object.freeze({ ladder: 1, rows: 34, gear: 12, licence: 7, display: 20, trout: 5, glossary: 5 } as const);
 /**
  * (T810 M0) THE OPTIONAL ANSWERS SECTIONS this reader was written for, at the version it reads. A release may leave one
  * out (absent: the page reads as without it); one present at another version is refused, at install (`readsRelease`)

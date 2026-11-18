@@ -88,12 +88,12 @@ export type KeepBlock = "strip" | "inherited" | "banner" | { caveat: number } | 
  *  the small line under its white box (`DateSet.band`; a nested band's is always null: the date set names no nested band). */
 export interface TroutBandVM { readonly from: number; readonly to: number; readonly text: string;
   readonly kind: "upto" | "own" | "shared" | "possession" | "size"; readonly date: string | null }
-/** One fish row. `origin` null on a plain row AND on a merged twin (trout 4: key = the fish, its first line "<size> if
+/** One fish row. `split` (trout 5): a merged hatchery+wild row ("… if wild"), never with an origin or a label. `origin` null on a plain row AND on a merged twin (trout 4: key = the fish, its first line "<size> if
  *  wild"); `date`: its own last line (`DateSet.row`); `coming`: its sheet's coming-change sentences (`DateSet.sheet`);
  *  `a11y`: its screen-reader label (payload texts in payload order, joined by ". "). */
 export interface TroutRowVM {
   readonly key: string; readonly fish: string; readonly name: string; readonly origin: "hatchery" | "wild" | null;
-  readonly label: string | null; readonly sub: string | null; readonly lines: readonly string[]; readonly quiet: readonly string[];
+  readonly label: string | null; readonly split: boolean; readonly sub: string | null; readonly lines: readonly string[]; readonly quiet: readonly string[];
   readonly src: readonly number[]; readonly sheet: FishSheet; readonly coming: readonly string[]; readonly date: string | null;
   readonly a11y: string;
 }

@@ -8,7 +8,7 @@
  * - the header: the row's name (title), its "Hatchery only" label or origin word as on the row (sub), `FishSheet.head`;
  * - "Here, today": `FishSheet.here` (bold where `bold`), then the coming-change sentences `DateSet.sheet[key]`;
  * - "How to tell it": app content, not a rule: the fish manifest's pictures (both for Dolly Varden / bull trout), the
- *   tips (`FISH_TIPS`), and the hatchery link on a row that carries an origin or a label;
+ *   tips (`FISH_TIPS`), and the hatchery link on a row that carries an origin, a label or a hatchery/wild split;
  * - "Sources": `FishSheet.src` exactly as given (Python cuts it to 4), then "All sources ›" = `TroutTable.src`.
  * THE APP NEVER SORTS, UNIONS OR CUTS A RULE LIST (Q-D6): each list is mapped one index to one row, in order.
  *
@@ -69,7 +69,7 @@ export function troutFishSheet(key: SheetKey, t: TroutVM, rowKey: string, rules:
   if (!tips.length) reportFailure(new TroutLooksMissing(row.fish, "tips"));
   blocks.push(...imageBlocks(row.fish, pics));
   if (tips.length) blocks.push({ k: "list", items: tips.map((x) => ({ line: [text(x)], strong: null })) });
-  if (row.origin !== null || row.label !== null || box.label !== null) blocks.push(link(TROUT_NAV.HATCH, "hatch"));
+  if (row.origin !== null || row.label !== null || row.split || box.label !== null) blocks.push(link(TROUT_NAV.HATCH, "hatch"));
   // Sources: this fish's rules as Python gave them, then the table's every rule
   if (s.src.length) blocks.push({ k: "head", text: TROUT_SHEET.SOURCES }, { k: "sources", groups: [{ where: "", rows: sourceRows(s.src, rules) }] });
   blocks.push(link(TROUT_SHEET.ALL_SOURCES, TROUT_SOURCES_KEY));

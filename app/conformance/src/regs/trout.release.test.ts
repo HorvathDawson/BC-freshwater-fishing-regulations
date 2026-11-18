@@ -158,7 +158,7 @@ describe("T810 N: the hand cases (trout-hand.json): each refused through reportF
     const t = troutOf(fake(HAND.base, ROWS), { month: 7, day: 15 }, { month: 7, day: 15 });
     expect([t?.kind, (t as TroutVM).top.lead, reports]).toEqual(["table", "Up to 2 today", []]);
   });
-  it("the file holds the contract's fourteen", () => expect(HAND.cases).toHaveLength(14));
+  it("the file holds the contract's twenty-two", () => expect(HAND.cases).toHaveLength(22));
   it.each(HAND.cases.map((c) => [c.name, c] as const))("%s", (_n, c) => {
     const t = troutOf(fake(c.frame, ROWS), { month: 7, day: 15 }, { month: 7, day: 15 });
     expect(t?.kind).toBe("refused");
@@ -172,6 +172,24 @@ describe("T810 N: the hand cases (trout-hand.json): each refused through reportF
       const f = { ...HAND.base, table: { ...HAND.base.table, boxes: [{ ...box, kind, label: null, strip: null, tag: null, bands: [], possession: "In your possession: no more than 2 trout and char in all" }] } };
       expect(troutOf(fake(f, ROWS), { month: 7, day: 15 }, { month: 7, day: 15 })?.kind, kind).toBe("refused");
       expect((reports[0] as TroutRefused).why, kind).toMatch(/possession/);
+    }
+  });
+  it("(trout 5) a split row: the table keeps its hatchery link, the fish sheet shows it; split with an origin or a label is refused", () => {
+    const day = { month: 7, day: 15 }, t0 = HAND.base.table, box = t0.boxes[0]!;
+    const withRow = (patch: object, link: boolean): TroutValue => ({ ...HAND.base, table: { ...t0, hatch_link: link,
+      boxes: [{ ...box, rows: box.rows.map((r, i) => ({ ...r, ...(i === 0 ? patch : {}), sheet: { ...r.sheet, src: [] } })) }, ...t0.boxes.slice(1)] } });
+    const ok = troutOf(fake(withRow({ split: true }, true), ROWS), day, day) as TroutVM;
+    expect([ok.kind, ok.hatchLink !== null, ok.boxes[0]!.rows[0]!.split, ok.boxes[0]!.rows[1]!.split]).toEqual(["table", true, true, false]);
+    const links = (k: string) => linksOf(troutFishSheet(`tf:${k}`, ok, k, { get: () => { throw new Error("no rules"); } }, FISH)!);
+    expect(links(ok.boxes[0]!.rows[0]!.key)).toContain("hatch");
+    expect(links(ok.boxes[0]!.rows[1]!.key)).not.toContain("hatch");
+    expect(reports).toEqual([]);
+    // the table link must follow a split row: hatch_link false beside one is refused
+    expect(troutOf(fake(withRow({ split: true }, false), ROWS), day, day)?.kind).toBe("refused");
+    for (const patch of [{ origin: "wild", key: `${box.rows[0]!.fish}/wild` }, { label: "HATCHERY ONLY" }]) {
+      reports = [];
+      expect(troutOf(fake(withRow({ split: true, ...patch }, true), ROWS), day, day)?.kind, JSON.stringify(patch)).toBe("refused");
+      expect((reports[0] as TroutRefused).why).toMatch(/merged hatchery and wild row has no origin and no label/);
     }
   });
   it("covers past the rows frame: refused (the reader's check)", () => {
@@ -415,7 +433,7 @@ describe("T810 P: the trout fish sheet over every vector", () => {
         const tell = section(vm, TROUT_SHEET.TELL);
         expect(tell.filter((x) => x.k === "image").length, at).toBe(FISH[r.fish]!.length);
         expect(tell.flatMap((x) => (x.k === "list" ? x.items.map((i) => lineOf({ k: "para", text: i.line })) : [])), at).toEqual(FISH_TIPS[r.fish]);
-        expect(linksOf(vm).includes("hatch"), at).toBe(r.origin !== null || r.label !== null || b.label !== null);
+        expect(linksOf(vm).includes("hatch"), at).toBe(r.origin !== null || r.label !== null || r.split || b.label !== null);
         // Sources: `FishSheet.src` exactly, then "All sources ›" (the table's every rule)
         expect(sourceKeys(section(vm, TROUT_SHEET.SOURCES)), at).toEqual(r.sheet.src.map(keyOf));
         expect(r.sheet.src.length, at).toBeLessThanOrEqual(4);
