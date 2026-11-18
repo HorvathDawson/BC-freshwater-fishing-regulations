@@ -3,8 +3,8 @@
 (a) the committed vectors are the committed trout fixture's cells (`trout_vectors --check`), one per case of
 `trout_vectors.CASES`, in order, each a valid `TroutFrame` (or null exactly where Q-D3 says), the `{day}` slot filled
 once; a changed vector fails the check. (b) every hand case of `trout-hand.json` is refused by the model, for its own
-reason (the app's reader refuses the same file). (c) the chain on a side release built here (the mini world with
-`--trout-table`): the fixture cut twice is the same bytes, the vectors read off it twice are the same, and they are
+reason (the app's reader refuses the same file). (c) the chain on the mini chain's release (`mini_chain`: every
+release carries the section since the cutover, T810 L): the fixture cut twice is the same bytes, the vectors read off it twice are the same, and they are
 the side release's own cells. (d) the refresh script refuses a release without the section; the staging `side`
 scenario's pure half (`deploy/staging/test-updates.test.mjs`).
 """
@@ -155,13 +155,11 @@ def test_the_dangling_rule_index_is_refused_by_the_rule_table():
 
 @pytest.fixture(scope="module")
 def side(tmp_path_factory):
-    """The mini world built WITH --trout-table (a side release) and, per one-part water with a table on a day that
-    reads the same every weekday, (item, its day): two lakes and two streams at most."""
+    """The mini chain's release (`mini_chain`) and, per one-part water with a table on a day that reads the same every
+    weekday, (item, its day): two lakes and two streams at most."""
     from pipeline.deliver.store.release import province_store
-    from pipeline.tools import mini_release as M
-    root = tmp_path_factory.mktemp("trout-vpy-side")
-    M.build(root / "b", trout_table=True)
-    rel = next((root / "b" / "release").glob("r-*"))
+    from pipeline.tests import mini_chain
+    rel = mini_chain.release(tmp_path_factory)
     st = province_store(rel)
     try:
         w = st.answers()
@@ -228,8 +226,15 @@ def test_the_chain_twice_is_a_no_op_and_the_vectors_are_the_side_releases_cells(
 
 # --------------------------------------------------------------------------- (d) the refresh script, the scenario
 
-def test_the_refresh_script_refuses_a_release_without_the_trout_section():
-    r = subprocess.run(["bash", str(REPO_ROOT / "scripts" / "trout-refresh.sh"), "--release", str(under_test.mini())],
+def test_the_refresh_script_refuses_a_release_without_the_trout_section(tmp_path):
+    """A release cut before the cutover (T810 L: every release since holds the section): the committed mini release's
+    manifest with its trout version taken out, which is all the script reads before it refuses."""
+    rel = tmp_path / under_test.mini().name
+    rel.mkdir()
+    m = json.loads((under_test.mini() / "manifest.json").read_text())
+    m["regulations"]["versions"].pop("trout")
+    (rel / "manifest.json").write_text(json.dumps(m))
+    r = subprocess.run(["bash", str(REPO_ROOT / "scripts" / "trout-refresh.sh"), "--release", str(rel)],
                        capture_output=True, text=True, cwd=REPO_ROOT)
     assert r.returncode != 0
     assert "holds no trout section" in r.stderr + r.stdout

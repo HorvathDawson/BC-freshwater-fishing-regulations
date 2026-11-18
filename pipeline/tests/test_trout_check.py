@@ -2,15 +2,17 @@
 with G's grammar and proves it says the same law as today's answers and the keeping engine, every key and segment.
 
 Anchors:
-  (a) THE SIDE MINI RELEASE (no data: this module builds one with `--trout-table`, as `test_trout_section` does): the card
-      gate's stamp carries the proof (`trout_check`), which checked every non-NULL trout cell and found nothing; the proof
-      over the decoded release with its bundle is clean.
+  (a) THE MINI CHAIN (no data: `mini_chain` builds it once per run; every release carries the section since the cutover,
+      ticket L): the card gate's stamp carries the proof (`trout_check`), which checked every non-NULL trout cell and
+      found nothing; the proof over the decoded answers with their bundle is clean.
   (b) MUTATIONS on that release's tables, one per check (contract 2.10): a wrong number, a dropped fish, a shifted date,
       an unparseable sentence, a size edge, an origin, a closure's scope, a possession line, a shared band's span: each
       fails. The floor: a stamp that checked fewer tables than the file holds, or none, is refused.
-  (c) THE RE-AIMED CHECKS (fight list item 9), each firing on a planted trout case: T793's origin words, T805's limit
-      across rows, the tree gate's numbers (the engine's baskets), the possession line (`card_check.possession_problems`
-      with F0's lead).
+  (c) THE RE-AIMED CHECKS (fight list item 9; ticket L), each firing on a planted trout case OF THE CUTOVER FORM: T793's
+      origin words (`tree.origin_unsaid`), T805's limit across rows (`tree.across_unsaid`), the tree gate's numbers
+      (`card_check.check_tree` / `check_caps`: the engine's baskets), the possession line
+      (`card_check.possession_problems` with F0's lead) — and each old check, which walks `group`, sees nothing of the
+      same planted case once the covered rows carry no group: J is what stops it.
   (d) THE DECODER IS SEPARATE: `check.py` imports nothing from the builder.
   (e) THE BUILDER FAULTS THE PROOF FOUND (ticket J's full side build): each fix's pin off makes the proof fail its case.
   (f) the live named waters (`needs_bundle`): every segment of every pinned water proved.
@@ -36,12 +38,10 @@ CHECK = Path(J.__file__)
 # ------------------------------------------------------------------------------------------------------ the side release
 
 class _Side:
-    """The mini chain built WITH `--trout-table`: its answers decoded, its export and bundle."""
+    """The mini chain (`mini_chain`): its answers decoded (the cutover form), its export and bundle."""
 
-    def __init__(self, root: Path):
-        from pipeline.tools import mini_release as M
-        M.build(root / "b", trout_table=True)
-        self.dir = root / "b" / "deliver"
+    def __init__(self, deliver: Path):
+        self.dir = deliver
         self.bundle = str(self.dir / "bundle.sqlite")
         self.raw = (self.dir / "ui-rules-answers.json").read_bytes()
         self.wire = json.loads(self.raw)
@@ -66,7 +66,8 @@ class _Side:
 
 @pytest.fixture(scope="module")
 def side(tmp_path_factory):
-    return _Side(tmp_path_factory.mktemp("trout-j-side"))
+    from pipeline.tests import mini_chain
+    return _Side(mini_chain.deliver(tmp_path_factory))
 
 
 def _cells(side, k):
@@ -364,8 +365,9 @@ def test_a_stamp_whose_trout_proof_found_problems_is_refused(side):
     assert any("trout proof found 1" in p for p in _stamp(side, bad))
 
 
-def test_answers_without_the_section_need_no_trout_proof():
-    """The committed mini release (flag off): no trout section, no trout proof, its stamp as before."""
+def test_the_committed_mini_release_answers_hold_the_section():
+    """Ticket L: every release carries the trout section, the committed mini release too, so its stamp needs the proof
+    (answers without it are refused at packaging: `test_trout_section`)."""
     from pipeline.deliver.answers.card_check import trout_cells
     from pipeline.tests import under_test
     from pipeline.deliver.store.release import province_store
@@ -374,7 +376,7 @@ def test_answers_without_the_section_need_no_trout_proof():
         raw = st.answers_bytes()
     finally:
         st.close()
-    assert trout_cells(json.loads(raw)) is None
+    assert trout_cells(json.loads(raw)) >= 15
 
 
 # ---------------------------------------------------------------------------------------------- (c) the re-aimed checks
@@ -395,6 +397,9 @@ def test_reaimed_t793_an_origin_condition_is_said_on_the_table(side):
     row["conds"] = [*(row.get("conds") or []), {"c": "origin", "o": "wild", "who": [S], "r": 0}]
     c, Tb = _cell(side, k, j, frame)
     assert J.origin_problems(c, Tb) == []
+    # the old check walks the row's group: the covered row has none since the cutover, so it sees nothing here
+    from pipeline.deliver.answers.tree import origin_unsaid
+    assert row.get("group") is None and origin_unsaid(frame) == []
     cell = copy.deepcopy(side.model.sections["trout"][k][j])
     for b in cell["table"]["boxes"]:
         for r in b["rows"]:
@@ -419,6 +424,9 @@ def test_reaimed_t805_a_limit_across_rows_is_said_across_them(side):
         r["conds"] = [*(r.get("conds") or []), {"c": "origin2", "o": "wild", "daily": 2, "who": [S], "r": 7}]
     c, Tb = _cell(side, k, j, frame)
     assert any("wild limit of 2 across rows" in p for p in J.origin_problems(c, Tb))
+    # the old check walks each keep row's group: none on the covered rows since the cutover, so it is silent here
+    from pipeline.deliver.answers.tree import across_unsaid
+    assert all(r.get("group") is None for r in keep) and across_unsaid(frame) == []
     told = copy.deepcopy(cell)
     told["table"]["together"] = {"text": W.together_origin(2, "wild", None), "src": [told["table"]["src"][0]]}
     told["table"]["top"]["second"] = told["table"]["together"]["text"]
@@ -434,9 +442,27 @@ def test_reaimed_tree_gate_a_number_the_engine_does_not_prove_fails(side):
         b["bands"][0] = {**b["bands"][0], "text": W.band_own(1), "kind": "own"}
         b["rows"][0]["sheet"]["head"] = W.sheet_keep(W.band_own(1), W.parse_head(b["head"])[1])
         b["rows"][0]["sheet"]["here"] = [*b["rows"][0]["sheet"]["here"], {"t": W.sheet_own(1), "bold": False}]
-    got = _mutated(side, lambda c: any(b["kind"] == "keep" and b["bands"][0]["kind"] == "upto" and
-                                       W.parse_head(b["head"])[1] > 1 for b in c["table"]["boxes"]), change)
+    pred = lambda c: any(b["kind"] == "keep" and b["bands"][0]["kind"] == "upto" and  # noqa: E731
+                         W.parse_head(b["head"])[1] > 1 for b in c["table"]["boxes"])
+    got = _mutated(side, pred, change)
     assert any("alone, the engine" in p for p in got), got
+    # the old tree gate (`card_check.check_model` -> `check_group` -> `check_tree` / `check_caps`) proves `group` trees:
+    # the covered trout rows carry none since the cutover, so on this key it has no trout card left to prove
+    k, j = _first(side, pred)
+    covered = side.model.sections["trout"][k][j]["covers"]
+    assert covered and all(side.model.sections["rows"][k][j]["rows"][i].get("group") is None for i in covered)
+
+
+def test_reaimed_possession_the_old_gate_sees_no_trout_kind_and_j_fires(side):
+    """`card_check.possession_problems` ran on each trout kind of a group tree (`check_group`, T805 B); since the cutover
+    no covered row has a group, so it is reached only through J (`check.possession_problems`, F0's lead): a planted
+    possession line where the page's lead speaks for the fish fails J."""
+    for k, cells in enumerate(side.model.sections["trout"]):
+        for j, c in enumerate(cells):
+            if c is not None:
+                rows = side.model.sections["rows"][k][j]["rows"]
+                assert not any(rows[i].get("group") or rows[i].get("elsewhere") for i in c["covers"]), (k, j)
+    assert any(POSSESSION_MARK in p for p in _possession_line(side))
 
 
 def test_reaimed_possession_problems_takes_f0s_lead():
@@ -479,14 +505,13 @@ def test_the_proof_imports_nothing_from_the_builder():
 
 # ------------------------------------------------------------------------------- (e) the builder faults the proof found
 
-def _recomposed(side, monkeypatch, flag):
-    """Every side key's tables composed again with one of F's fixes turned off; the proof over them."""
+def _recomposed(side, monkeypatch, flag, tmp_path_factory):
+    """Every side key's tables composed again with one of F's fixes turned off, from the rows the builder read (before
+    the rows 34 cut: `mini_chain.trout_inputs`); the proof over them."""
+    from pipeline.tests import mini_chain
+    m = mini_chain.trout_inputs(tmp_path_factory)
+    _data, _guide, rules = mini_chain.export(tmp_path_factory)
     monkeypatch.setattr(T, flag, False)
-    from pipeline.deliver.store.release import province_store  # noqa: F401  (the rule table is the export's)
-    from pipeline.deliver.export.codec import expand
-    data, guide = C.load_export(side.dir)
-    rules = T.Rules.from_export(data, expand(data, guide))
-    m = side.model
     probs = []
     for k in side.keys_with_tables():
         got = T.compose_key(m.sections["rows"][k], m.sections["display"][k], m.segments[k], m.moments[k], rules,
@@ -497,8 +522,8 @@ def _recomposed(side, monkeypatch, flag):
 
 
 @pytest.mark.parametrize("flag", ["A_KIND_SIZE_CAP_IS_SHARED", "A_RAINBOW_STOPS_AT_THE_STEELHEAD_SIZE"])
-def test_each_fix_the_proof_found_turned_off_fails_the_side_release(side, monkeypatch, flag):
-    assert _recomposed(side, monkeypatch, flag)
+def test_each_fix_the_proof_found_turned_off_fails_the_side_release(side, monkeypatch, flag, tmp_path_factory):
+    assert _recomposed(side, monkeypatch, flag, tmp_path_factory)
 
 
 # ---------------------------------------------------------------------------------------- (f) the live named waters

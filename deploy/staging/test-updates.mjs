@@ -23,7 +23,7 @@
 //                                                              test/app/android/latest.json and play.json name that version
 //                                                              (a build on the test channel reads them in its background check)
 //   node deploy/staging/test-updates.mjs side <release dir>    (T810 V-py, trout contract 2.8 / Q-D11) a SIDE release (one
-//                                                              built with --trout-table, e.g. by scripts/trout-refresh.sh):
+//                                                              holding the trout section, e.g. by scripts/trout-refresh.sh):
 //                                                              its data files go to test/release/<id>/ and the test
 //                                                              manifest names them (see `sideManifest` for the one way a
 //                                                              test manifest can reach them, and its limit)
@@ -138,7 +138,7 @@ export const SIDE_PREFIX = 'test/release/';
 /** The test manifest for side release `m`: its data files' urls reach test/release/<id>/ from `${origin}/release/`. */
 export function sideManifest(m) {
   if (!(m.regulations?.versions ?? {}).trout)
-    throw new Error(`${m.data_release}: no trout section — a side release is built with --trout-table`);
+    throw new Error(`${m.data_release}: no trout section — a release cut before the trout cutover (T810 L)`);
   const id = m.data_release;
   const files = {};
   for (const [name, f] of Object.entries(m.files)) {

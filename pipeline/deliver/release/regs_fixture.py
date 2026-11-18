@@ -310,7 +310,7 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
     ap.add_argument("--trout-cases", action="store_true",
                     help="(T810 V-py) THE TROUT FIXTURE: keep exactly the waters of `trout_vectors.CASES` (no golden "
                          "waters, no unnamed reach), into app/fixtures/trout/ unless --out names another root; the "
-                         "release must be a side release built with --trout-table")
+                         "release must hold the trout section (every release since the cutover, T810 L)")
     a = ap.parse_args(argv)
     rel = a.release
     if rel is None:
@@ -322,8 +322,8 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
         from pipeline.tools.emit import trout_vectors as TV
         if "trout" not in ((json.loads((rel / "manifest.json").read_text()).get("regulations") or {})
                            .get("versions") or {}):
-            raise FixtureError(f"regs fixture: {rel} holds no trout section (a side release is built with "
-                               "--trout-table)")
+            raise FixtureError(f"regs fixture: {rel} holds no trout section (a release cut before the trout "
+                               "cutover, T810 L)")
         out = TV.FIXTURE if a.out == OUT else a.out
         d = build(rel, sorted(set(TV.case_items()) | set(a.item)), [], out,
                   lines_out=TV.LINES if out == TV.FIXTURE else out.parent / "section-lines.json", unnamed=None)

@@ -61,13 +61,15 @@ def test_a_failing_card_gate_stops_the_chain_before_store(monkeypatch, tmp_path)
 
 def _stamp(dirpath: Path, raw: bytes, problems=0, parts=10, sha=None):
     st = {"card_check": {"problems": problems, "parts_checked": parts, "keys_checked": 3,
-                         "answers_sha256": sha or hashlib.sha256(raw).hexdigest(), "code_sha": "x"}}
+                         "answers_sha256": sha or hashlib.sha256(raw).hexdigest(), "code_sha": "x",
+                         # T810 J/L: every answers file holds the trout section, so every stamp carries its proof
+                         "trout_check": {"tables_checked": 0, "cells": 0, "problems": 0}}}
     (dirpath / CC.STAMP_NAME).write_text(json.dumps(st))
 
 
 def test_answers_without_a_passing_stamp_for_their_bytes_are_refused(tmp_path):
     ans = tmp_path / "ui-rules-answers.json"
-    raw = b'{"about": {}}'
+    raw = b'{"about": {}, "sections": {"trout": {"at": [[null]]}}}'      # T810 L: the trout section, no table
     ans.write_bytes(raw)
     assert any("no card-gate stamp" in p for p in CC.stamp_problems(ans, raw))
     _stamp(tmp_path, raw, problems=2)
@@ -80,6 +82,10 @@ def test_answers_without_a_passing_stamp_for_their_bytes_are_refused(tmp_path):
     assert CC.stamp_problems(ans, raw) == []
     # one byte changed after the gate ran: refused
     assert CC.stamp_problems(ans, raw + b" ")
+    # (T810 L) answers from before the cutover (no trout section) are refused, a passing stamp or not
+    old = b'{"about": {}}'
+    _stamp(tmp_path, old)
+    assert any("holds no trout section" in p for p in CC.stamp_problems(ans, old))
 
 
 def test_the_store_refuses_unproved_answers_before_reading_the_bundle(tmp_path, monkeypatch):

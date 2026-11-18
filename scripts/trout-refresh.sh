@@ -5,7 +5,8 @@
 #   scripts/heavy.sh trout-refresh 50 -- scripts/trout-refresh.sh                 # build the side release, then 2-5
 #   scripts/heavy.sh trout-refresh 50 -- scripts/trout-refresh.sh --release DIR   # 2-5 on a side release already built
 #
-#   1. side release  the live bundle's answers built WITH --trout-table (`pipeline.deliver answers`), the card gate (the
+#   1. side release  the live bundle's answers (`pipeline.deliver answers`: the trout section is in every build since the
+#                    cutover, T810 L), the card gate (the
 #                    trout proof J runs in it), the regs store and the release, into $SIDE (default
 #                    data/generated/side/trout-refresh/; never promoted: LATEST does not move). Inputs are the live
 #                    ones: the bundle, the export pair, the status index, the tiles. Heavy: run it through heavy.sh.
@@ -42,7 +43,7 @@ export PYTHONPATH="$REPO${PYTHONPATH:+:$PYTHONPATH}"
 step() { echo; echo "trout-refresh $1/5: $2"; }
 
 if [ -z "$RELEASE" ]; then
-  step 1 "the side release (--trout-table) into $SIDE"
+  step 1 "the side release into $SIDE"
   B="$DATA/generated/bundle/bundle.sqlite"
   for f in "$B" "$DATA/generated/regs/ui-rules-export.json" "$DATA/generated/regs/ui-rules-guide.json" \
            "$DATA/generated/bundle/status_index.bin" "$DATA/generated/tiles/atlas.meta.json"; do
@@ -50,12 +51,13 @@ if [ -z "$RELEASE" ]; then
   done
   rm -rf "$SIDE"; mkdir -p "$SIDE/regs"
   cp "$DATA/generated/regs/ui-rules-export.json" "$DATA/generated/regs/ui-rules-guide.json" "$SIDE/regs/"
-  "$PY" -m pipeline.deliver answers --bundle "$B" --export-dir "$SIDE/regs" --trout-table
+  "$PY" -m pipeline.deliver answers --bundle "$B" --export-dir "$SIDE/regs"
   "$PY" -m pipeline.deliver card_check --bundle "$B" --export-dir "$SIDE/regs"
   "$PY" -m pipeline.deliver store --bundle "$B" --export-dir "$SIDE/regs" --out "$SIDE/regs.sqlite"
-  # the release step builds the folder, then runs the size gates. A side release is OVER THE FIRST-TAP GATE by design
-  # (the trout section rides beside the old trout groups until the cutover drops them; A0 measured 22-51 kB, the owner
-  # raises the limit at the switch): those two gates are said here and passed over; any other refusal stops the script
+  # the release step builds the folder, then runs the size gates. A side release built before the cutover was OVER THE
+  # FIRST-TAP GATE by design (the section beside the old trout groups); since ticket L the groups are dropped and the
+  # release command gates the real candidate. Here, a fixture's source: those two gates are said and passed over; any
+  # other refusal stops the script
   set +e
   "$PY" -m pipeline.deliver release --bundle "$B" --store "$SIDE/regs.sqlite" \
     --status-index "$DATA/generated/bundle/status_index.bin" --export-dir "$SIDE/regs" --out-root "$SIDE/release" \
@@ -68,8 +70,8 @@ if [ -z "$RELEASE" ]; then
          "$SIDE/release.err" | grep -q . || ! grep -q '^SIZE GATE: ' "$SIDE/release.err"; then
       echo "trout-refresh: the release step failed (above)" >&2; exit 1
     fi
-    echo "trout-refresh: the side release is over the first-tap size gate only (expected until the cutover);" \
-         "it is a test fixture's source, never promoted"
+    echo "trout-refresh: the side release is over the first-tap size gate only (the release command gates the" \
+         "real candidate; A1 measures it); it is a test fixture's source, never promoted"
   fi
   rm -f "$SIDE/regs.sqlite" "$SIDE/release.err"
   RELEASE="$(ls -d "$SIDE"/release/r-* | head -n 1)"
@@ -81,7 +83,7 @@ fi
 import json, sys
 v = (json.load(open(sys.argv[1] + "/manifest.json")).get("regulations") or {}).get("versions") or {}
 if "trout" not in v:
-    sys.exit(f"trout-refresh: {sys.argv[1]} holds no trout section: not a side release built with --trout-table")
+    sys.exit(f"trout-refresh: {sys.argv[1]} holds no trout section: a release cut before the trout cutover (T810 L)")
 PYEOF
 
 step 2 "the trout fixture (app/fixtures/trout/regs-release + section-lines.json)"

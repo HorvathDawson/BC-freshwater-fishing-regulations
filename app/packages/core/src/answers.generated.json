@@ -6652,6 +6652,82 @@
      "title": "OriginLine",
      "type": "object"
     },
+    "PagePossession": {
+     "additionalProperties": false,
+     "description": "F0 (rows 34): the page's possession row, chosen once in Python \u2014 the lead (null: no multiplier speaks, the\nlines say it) and the lines kept under it; never empty.",
+     "properties": {
+      "also": {
+       "items": {
+        "$ref": "#/$defs/PossessionAlso"
+       },
+       "title": "Also",
+       "type": "array"
+      },
+      "lead": {
+       "anyOf": [
+        {
+         "$ref": "#/$defs/PossessionLead"
+        },
+        {
+         "type": "null"
+        }
+       ]
+      }
+     },
+     "required": [
+      "lead",
+      "also"
+     ],
+     "title": "PagePossession",
+     "type": "object"
+    },
+    "PossessionAlso": {
+     "additionalProperties": false,
+     "description": "F0: one line the page's possession row keeps under the lead (a non-trout fish's own possession).",
+     "properties": {
+      "says": {
+       "title": "Says",
+       "type": "string"
+      },
+      "src": {
+       "minimum": 0,
+       "title": "Src",
+       "type": "integer"
+      }
+     },
+     "required": [
+      "says",
+      "src"
+     ],
+     "title": "PossessionAlso",
+     "type": "object"
+    },
+    "PossessionLead": {
+     "additionalProperties": false,
+     "description": "F0: the page's possession lead (`card.page_line`): the rule `card.possession_lead` picks, its whole sentence (the\ndisplay section's `plain` of it) and the value words the page row shows (`display.rule.possession_value`).",
+     "properties": {
+      "says": {
+       "title": "Says",
+       "type": "string"
+      },
+      "src": {
+       "minimum": 0,
+       "title": "Src",
+       "type": "integer"
+      },
+      "value": {
+       "title": "Value",
+       "type": "string"
+      }
+     },
+     "required": [
+      "says",
+      "value",
+      "src"
+     ],
+     "title": "PossessionLead",
+     "type": "object"
+    },
     "Presence": {
      "additionalProperties": false,
      "description": "ROUND14 4: the steelhead presence line, said INSIDE the steelhead section (a steelhead kind row,\na not-kept steelhead line, or the steelhead's own row) \u2014 `line` the frame's `steelhead_line` code,\n`says` its words (\"Steelhead are known to be in this water.\"; UR2 4, where a rainbow over 50 cm is a steelhead:\n\"A rainbow trout over 50 cm (20 in) here counts as a steelhead.\", ROUND20g 2).",
@@ -8635,6 +8711,7 @@
     }
    },
    "additionalProperties": false,
+   "description": "The rows frame from version 34 (`PAGE_POSSESSION_SINCE`, the trout cutover): `page_possession` on every frame\n(null where no possession rule speaks), each of its rules one the frame's answers give that role.",
    "properties": {
     "fish": {
      "additionalProperties": {
@@ -8642,6 +8719,16 @@
      },
      "title": "Fish",
      "type": "object"
+    },
+    "page_possession": {
+     "anyOf": [
+      {
+       "$ref": "#/$defs/PagePossession"
+      },
+      {
+       "type": "null"
+      }
+     ]
     },
     "rows": {
      "items": {
@@ -8678,9 +8765,10 @@
     "spp",
     "fish",
     "rows",
-    "steelhead_line"
+    "steelhead_line",
+    "page_possession"
    ],
-   "title": "RowsFrame",
+   "title": "RowsFrame34",
    "type": "object"
   },
   "top.glossary": {

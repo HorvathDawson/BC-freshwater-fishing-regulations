@@ -305,9 +305,11 @@ def split_mixed(frame: dict) -> Tuple[dict, List[int]]:
         if t:
             covers.append(len(out))
         out.append(r)
-    for r in out:
-        if r.get("parent") is not None:
-            r["parent"] = moved[r["parent"]]
+    for k, r in enumerate(out):
+        # a copy, never the row itself: rows are shared between keys and segments, and the cutover splits the same
+        # frame again (`answers.cut_over`), so a parent moved in place would move twice (T810 L)
+        if r.get("parent") is not None and moved[r["parent"]] != r["parent"]:
+            out[k] = {**r, "parent": moved[r["parent"]]}
     return {**frame, "rows": out}, covers
 
 

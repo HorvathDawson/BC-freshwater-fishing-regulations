@@ -337,3 +337,27 @@ Q1 what you keep here; Q2 "between/among them" (box number: "up to the N"); Q3a 
 - Test: `TroutCard.test.tsx` "(G2 Q9)" on Dodd in light, dark and cvd (filled vs outlined by origin, the word as is, one
   size, the golden label, 44 px). 4 mutants (wild filled, hatchery outlined, outline word in sub, back to the plain
   word), each killed. Shot: scratch `t810-p/shots/badge-dodd-jul15-{light,dark}-*.png`.
+
+## 2026-11-17 ~22:00: L built (lane/t810-l, the cutover's pipeline half; merges with the app chat's S)
+- `--trout-table` gone (answers CLI, `pipeline.deliver`, `mini_release`, `trout-refresh.sh`): every build makes the trout
+  section. `rows` 34: F0's `RowsFrame.page_possession` written (sixth rows-frame slot); `answers.cut_over` splits every
+  row mixing trout or char with other fish (`trout.table.split_mixed`, the A0 amendment; parts re-stamped, year strips
+  re-cut) and drops `group` and `elsewhere` from the rows the table covers (Q-D9); `Row._pool_rows` restated (the
+  kept-elsewhere line only on a keep row; a keep row without it holds only trout and char).
+- `trout` required: in `contract._REGION_TABLES` (`cell.trout` INTEGER NULL + the four tables), `OPTIONAL_SECTION_TABLES`
+  and `model.OPTIONAL_FRAMES` empty; every `regs-{r}` is `regs-region/2` (`contract.REGS_REGION_FORMAT`). The store and
+  the shards hold it as an ADDED section (`store.build.ADDED_SECTIONS`, `shards.ADDED_TOP`): a release cut before it is
+  reassembled as built — the live r-46e4355a7277 still opens and holds its store digest; `licence_alien` and
+  `section_tidal` stay in `ADDITIVE_TABLES`. `shards.frame_refs` reads the six-slot rows frame (A1's finding).
+  `CellIds.trout` is `number | null`, from the store's own schema (`pack.cell_nullable`).
+- Re-aimed (each with a test on the cutover form: the old check sees nothing once the covered rows have no group, J's
+  twin fires): `tree.origin_unsaid` -> `trout/check.origin_problems` (T793); `tree.across_unsaid` -> the same (T805);
+  `card_check.check_tree` / `check_caps` -> J's alone and joint proofs; `card_check.possession_problems` -> J with F0's
+  lead (its one caller now). The old ones still run on the groups left (other fish, and trout keys with no table).
+- Deleted: the card's trout-only possession line (`card._duties`' `possession_duty`, said only for `POSSESSION_FISH`) and
+  its tree-gate call; the kind key still holds it, so the tree the builder reads is unchanged. Kept (the builder reads
+  them): the stop duty, the "from both lakes together" tier words, the cross-row `also_counts`.
+- Tests that rebuild the table from rows frames read them from `pipeline/tests/mini_chain.py` (the mini chain built once
+  per run; its answers again with `answers.A_CUT_OVER` off), since a shipped frame no longer holds the covered groups.
+- Mini release re-cut. NOT done here (the merge's): the goldens / regs fixture / trout fixture re-cut
+  (`scripts/trout-refresh.sh`). Left: interning `page_possession` (A1: +11 to +34 kB gz per region; fits without it).

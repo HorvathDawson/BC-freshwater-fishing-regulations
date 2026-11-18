@@ -4,11 +4,11 @@
 // the columns are emitted here as well as in @app/data's pack.generated.ts (PACK_FILES). Held by `--check`.
 
 /** Every column of `cell`, in the table's order: the key and segment, then one frame id per section. */
-export const CELL_COLUMNS = ["akey", "s", "ladder", "rows", "gear", "licence", "display"] as const;
+export const CELL_COLUMNS = ["akey", "s", "ladder", "rows", "gear", "licence", "display", "trout"] as const;
 
 /** The answers sections a cell names a frame of (`cell` less its key columns). */
-export const CELL_SECTIONS = ["ladder", "rows", "gear", "licence", "display"] as const;
+export const CELL_SECTIONS = ["ladder", "rows", "gear", "licence", "display", "trout"] as const;
 export type CellSection = (typeof CELL_SECTIONS)[number];
 
 /** One cell's frame ids, by section. */
-export interface CellIds { readonly ladder: number; readonly rows: number; readonly gear: number; readonly licence: number; readonly display: number }
+export interface CellIds { readonly ladder: number; readonly rows: number; readonly gear: number; readonly licence: number; readonly display: number; readonly trout: number | null }
