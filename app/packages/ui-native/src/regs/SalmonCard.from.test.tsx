@@ -3,7 +3,7 @@
  * ("Region 6 · Skeena River · B(ii)"); a release that names no places shows none. The words are core's (`placeFrom`).
  */
 import { afterEach, describe, expect, it } from "vitest";
-import { cleanup, render, screen } from "@testing-library/react";
+import { cleanup, render, screen, within } from "@testing-library/react";
 import { salmonCard, type SalmonFacts } from "@app/core";
 import { LIGHT } from "../theme";
 import { SalmonCard } from "./SalmonCard";
@@ -34,12 +34,15 @@ const facts = (named: boolean): SalmonFacts => ({
 describe("the Salmon card names where each species' answer comes from", () => {
   it("coho from the Skeena's B(ii) water, the rest from Region 6's section A", () => {
     render(<SalmonCard card={salmonCard(facts(true), { sids: [101], item: null }, new Date(2026, 6, 20))} palette={LIGHT} />);
-    expect(screen.getAllByTestId("salmon-from").map((e) => e.textContent)).toEqual(
-      ["Region 6 · A", "Region 6 · Skeena River · B(ii)", "Region 6 · A", "Region 6 · A", "Region 6 · A"]);
+    // (T829) each species' row (the open coho in the keep box, the closed four under it) ends with where it comes from
+    const from = Object.fromEntries(screen.getAllByTestId("keep-row").map((r) =>
+      [within(r).getByTestId("keep-name").textContent, within(r).getAllByTestId("keep-quiet").at(-1)!.textContent]));
+    expect(from).toEqual({ Chinook: "Region 6 · A", Coho: "Region 6 · Skeena River · B(ii)", Sockeye: "Region 6 · A",
+                           Pink: "Region 6 · A", Chum: "Region 6 · A" });
   });
 
   it("a release that names no places (before T668 fix 4) shows none", () => {
     render(<SalmonCard card={salmonCard(facts(false), { sids: [101], item: null }, new Date(2026, 6, 20))} palette={LIGHT} />);
-    expect(screen.queryAllByTestId("salmon-from")).toEqual([]);
+    expect(screen.getByTestId("salmon-card").textContent).not.toContain("Region 6 · ");
   });
 });

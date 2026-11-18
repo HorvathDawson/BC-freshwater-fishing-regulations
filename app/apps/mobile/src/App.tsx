@@ -181,8 +181,8 @@ const BOOT_LOADER_H = cohoHeight(COHO_WIDTH);
 /**
  * (T244) THE LOADING SCREEN: the loader at the centre of the WINDOW, its pun beneath, then the step and the progress.
  * (T814, owner 2026-11-17) the loader is the owner's linocut coho (`LoadingState coho`, `COHO_WIDTH` wide), no longer the
- * circling fish; the native splash picture (`pnpm splash`) is still the circling fish's first frame — a launch image
- * cannot move — so the hand-off now changes picture. The loader is drawn at once (`immediate`: no 300 ms hold) at the
+ * circling fish; (T843) the native splash picture (`pnpm splash`) is the coho's first frame at this size, so the hand-off
+ * is the same picture. The loader is drawn at once (`immediate`: no 300 ms hold) at the
  * centre of the window, not of the safe area (the native splash is centred in the window), so the insets' difference is
  * taken back out. Everything else hangs below it, so what arrives late (the step, a download bar) never moves it. The
  * native splash is let go once the loader is laid out.

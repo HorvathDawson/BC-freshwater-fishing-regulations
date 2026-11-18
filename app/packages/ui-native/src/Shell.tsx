@@ -379,7 +379,7 @@ export function Shell(p: ShellProps) {
    * starts on the Map tab (where its first step, search, is) and, once started, follows the reader wherever its steps
    * take them — a water, its Conditions, back to the map. It reads what is on screen (`guideFacts`) and does a step on
    * request ("Show me", `guideActs`) through the route, search and the opener: nothing of its own. More → Help replays it
-   * from the Map tab. (T824) Ten steps: the closed stretch, Layers and the spot-making steps were cut, with their acts.
+   * from the Map tab. (T824) Ten steps, then (T842) six: back to the map and Trout / Salmon are the last card's words, not acts.
    */
   const coach = useCoachRegistry();
   const onMapTab = route.mode === "browse" && tab === "map" && !rail.picking;
@@ -393,7 +393,7 @@ export function Shell(p: ShellProps) {
     selected: picked?.kind === "water" ? picked.item : null,
     open: frame ? { item: frame.item, view: frame.view, part: frame.part } : null,
     onMap: tab === "map" && frame === null && !searching && adding === null && openSpot === null && !rail.picking,
-    dayPicked: mapDay !== null, controls: guideCtl.values, regsLayer: col.regsLayer,
+    dayPicked: mapDay !== null, controls: guideCtl.values,
   };
   // (T234) A NOTIFICATION'S TAP: a gauge alert opens its water's Conditions (an unnamed reach's: the Conditions map)
   const openReq = p.openRequest ?? null;
@@ -426,12 +426,10 @@ export function Shell(p: ShellProps) {
     view: (v) => go({ type: "view", view: v }),
     toMap: () => { setLayersOpen(false); go({ type: "close" }); if (searching) { go({ type: "search", open: false }); search.searchType(""); }
                    if (tab !== "map") nav.toTab("map"); },
-    leaveWater: () => { if (frame) back(); },
     pickDay: () => {
       const d = stepDay(mapDay, 1, bcNow(), dayRange(bcNow(), loader?.manifest?.regulations?.valid_until ?? null));
       if (d !== undefined) setMapDay(d);
     },
-    regsLayer: (k) => col.setRegsLayer(k),
     control: guideCtl.set,
   };
   const guide = useGuide(p.walkthrough ?? null, firstRun.open || !onMapTab, guideFacts, guideActs);

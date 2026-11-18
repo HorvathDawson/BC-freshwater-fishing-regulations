@@ -42,6 +42,9 @@ export interface LicWords {
   readonly prov: { readonly entry_name?: string; readonly why?: string | null; readonly uncertain?: boolean };
   readonly period?: { readonly says: string; readonly dates?: readonly unknown[] } | null;
   readonly stamp_waiver?: { readonly says: string } | null;
+  /** (T801 item 2) the book's separate-licence line for non-residents, one whole sentence, on a classified designation whose
+   *  entry prints it (the Skeena River 2 and Section 4, p.53); absent or null = no line */
+  readonly non_resident_note?: { readonly says: string } | null;
   readonly not_yet_mapped?: { readonly part: string; readonly says: string } | null;
 }
 
@@ -165,7 +168,8 @@ function answerBlocks(inp: RegsInputs, F: LicenceValue & { holds: Holds }, who: 
     const box = { cls: "classbox" as const, head: d.period?.says ?? LIC.CLASS_HEAD(String(f.classified)), terms: gi(LIC.CLASS_TERM),
       body: LIC.UNIT(String(f.unit_name || f.unit))
         + (f.steelhead_stamp_during ? LIC.STAMP_DURING(datesOf(f.steelhead_stamp_during.when)) + (H.stamp_period ? LIC.IN_FORCE : "") + LIC.STAMP_OTHER_TIME : "")
-        + (d.stamp_waiver ? LIC.STOP + " " + d.stamp_waiver.says.replace(/\.$/, "") : f.steelhead_stamp_waived ? LIC.STAMP_WAIVED : "") + LIC.STOP };
+        + (d.stamp_waiver ? LIC.STOP + " " + d.stamp_waiver.says.replace(/\.$/, "") : f.steelhead_stamp_waived ? LIC.STAMP_WAIVED : "") + LIC.STOP
+        + (d.non_resident_note ? " " + d.non_resident_note.says : "") };
     // (T672, T462 audit G11) two designation records that say the same box, word for word (one licence unit printed on two
     // rows: the Elk's tributaries, the Stellako), are said once; a box that differs in any word is still drawn
     if (!out.some((o) => o.cls === "classbox" && o.head === box.head && o.body === box.body)) out.push(box);
@@ -208,6 +212,7 @@ function answerBlocks(inp: RegsInputs, F: LicenceValue & { holds: Holds }, who: 
   // (x9p3: a youth who buys their own permit gets the plain list, as the golden). `own_limit` without `none_needed` is
   // "keeps their own limit by buying" — the "Or buy … yourself" clause and the "Or, for your own limit" item.
   const U = who.age === "u16" ? (F.under_16 ?? []).find((u) => u.residency === who.residency) : undefined;
+  let inlinePrices = false;
   if (U?.with_adult && !P.documents.length) {
     // a document with its stored alternatives (licence 7 `or`), named as the 16+ list names its own ("… or …")
     const buyName = (b: (typeof U.buy)[number]): string => cap([b.name, ...(b.or ?? []).map((o) => o.names.join(LIC.PLUS))].join(` ${LIC.OR} `));
@@ -216,10 +221,19 @@ function answerBlocks(inp: RegsInputs, F: LicenceValue & { holds: Holds }, who: 
       body: (LIC.YOUTH_WITH(W.who) + (names.length ? LIC.YOUTH_DOCS(names.join(LIC.SEP)) : "") + LIC.STOP + (W.counts ? LIC.YOUTH_COUNTS_S : "")
         + (byBuying ? LIC.YOUTH_BUY(names.length ? LIC.YOUTH_THE(names.join(LIC.PLUS)) : LIC.YOUTH_ADULT_NEEDS) : "")).trim() });
     buy.push({ name: LIC.YOUTH_NOTHING, docs: [], terms: [], when: W.counts ? LIC.YOUTH_COUNTS : LIC.YOUTH_HOLD, price: null, book: [] });
-    if (byBuying && names.length) buy.push({ name: names.join(LIC.PLUS), docs: [], terms: [], when: LIC.YOUTH_OWN,
-      price: priceTxt(U.buy[0]!.prices) || null, book: [] });
+    // (T789 G10, owner 2026-11-17 "Yes, each its own price.") one document: its price on the price line; several: each
+    // document carries its own price beside its name ("Basic angling licence ($62.87 a year · …) + Steelhead stamp
+    // ($68.57 a year)"), never the first one's price under all of them
+    const prices = U.buy.map((b) => priceTxt(b.prices));
+    if (byBuying && names.length === 1) buy.push({ name: names[0]!, docs: [], terms: [], when: LIC.YOUTH_OWN, price: prices[0] || null, book: [] });
+    else if (byBuying && names.length) {
+      buy.push({ name: names.map((n, i) => prices[i] ? LIC.WITH_PRICE(n, prices[i]!) : n).join(LIC.PLUS), docs: [], terms: [],
+                 when: LIC.YOUTH_OWN, price: null, book: [] });
+      inlinePrices = prices.some(Boolean);
+    }
   }
-  if (buy.length) out.push({ cls: "needs", label: LIC.YOU_NEED, items: buy, onlyIf: null, priceNote: buy.some((b) => b.price) ? LIC.PRICE_NOTE : null });
+  if (buy.length) out.push({ cls: "needs", label: LIC.YOU_NEED, items: buy, onlyIf: null,
+    priceNote: buy.some((b) => b.price) || inlinePrices ? LIC.PRICE_NOTE : null });
 
   // the paper licence: the record duties that reach this part (answers display part paper_licence)
   const paperRules = (inp.item?.parts[inp.partIx]?.paper_licence ?? []).map((r) => inp.rules.get(r));

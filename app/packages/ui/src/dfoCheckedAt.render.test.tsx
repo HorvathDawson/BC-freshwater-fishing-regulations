@@ -50,3 +50,17 @@ describe("useDfoCheckedAt with the card's pick (T620 G14)", () => {
     expect(old.container.textContent).toBe("null");
   });
 });
+
+describe("useDfoCheckedAt reads only the salmon head (T808)", () => {
+  it("asks the loader for NO regions: the pick needs the head, never a salmon-<r> shard", async () => {
+    const asked: unknown[] = [];
+    function Probe3() {
+      return <p>{String(useDfoCheckedAt(src({ at: "2026-11-09T12:00:00Z" }),
+        { salmon: async (regions?: readonly string[]) => { asked.push(regions); return { fed: true } as never; } }))}</p>;
+    }
+    const r = render(<Probe3 />);
+    await settle();
+    expect(r.container.textContent).toBe("2026-11-09T12:00:00Z");
+    expect(asked).toEqual([[]]);
+  });
+});

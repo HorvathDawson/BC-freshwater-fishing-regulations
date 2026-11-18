@@ -52,6 +52,7 @@ import { count } from "./format";
 import { sheetRows } from "./search/rows";
 import { SheetRow } from "./search/SheetRow";
 import { hitProps } from "./regs/hit";
+import { CoachScrollContext, useCoachScroller } from "./coachScroll";
 
 /** How far down the sheet sits at HALF: this share of its full height goes below the screen's edge. */
 export const HALF_DROP = 0.45;
@@ -106,6 +107,9 @@ export function SearchSheet({ open, top, palette, session, pick, onAct, onOpenWa
   tall.current = height;
   const listTop = useRef(0);
   useEffect(() => { if (open) { pull.setValue(0); listTop.current = 0; } }, [open, pull]);
+  // (T842) the walkthrough's highlight on a row (the Vedder River) rides the list's scroll on the UI thread, and the walk
+  // may scroll the row into view (owner on 0.7.12: the box trailed a scroll; the row was under the keyboard and the card)
+  const coach = useCoachScroller();
   const phone = panel === null;
   const handlePull = usePanGesture(useMemo((): PanGestureConfig => ({
     runOnJS: true, disableReanimated: true, testID: "search-sheet-drag", enabled: phone,
@@ -214,7 +218,9 @@ export function SearchSheet({ open, top, palette, session, pick, onAct, onOpenWa
             {/* (T440's lesson) a real view between the pan's detector and the list's own: drawn as its direct child, Android
                 left the list out of the accessibility tree */}
             <View testID="search-list-frame" collapsable={false} style={{ flex: 1 }}>
+              <CoachScrollContext.Provider value={coach.scroller}>
               <FlatList
+                ref={coach.ref}
                 testID="search-list"
                 data={rows}
                 keyExtractor={(r) => r.key}
@@ -222,7 +228,7 @@ export function SearchSheet({ open, top, palette, session, pick, onAct, onOpenWa
                 // the list's own scroll runs beside the pull (neither cancels the other); `bounces` off: at the top a
                 // downward pull moves the sheet, not an iOS overscroll of the list
                 simultaneousWith={listPull} bounces={false} scrollEventThrottle={16}
-                onScroll={(e) => { listTop.current = e.nativeEvent.contentOffset.y; }}
+                onScroll={(e) => { listTop.current = e.nativeEvent.contentOffset.y; coach.track(listTop.current); }}
                 // at half the sheet's lower part is below the screen's edge: the list ends where the screen does
                 contentContainerStyle={{ paddingBottom: half ? drop : 0 }}
                 extraData={pick}
@@ -232,6 +238,7 @@ export function SearchSheet({ open, top, palette, session, pick, onAct, onOpenWa
                             onClearRecents={onClearRecents} />
                 )}
               />
+              </CoachScrollContext.Provider>
             </View>
           </GestureDetector>
         )}
