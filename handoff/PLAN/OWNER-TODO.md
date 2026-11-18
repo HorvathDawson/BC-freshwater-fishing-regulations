@@ -2689,3 +2689,6 @@ More questions (recommended answer first):
   "add as a future ticket please." -> T857 (future).
 - 2026-11-18 ~14:58, owner (app chat), on the T856 screenshots: "the desktop salmon/trout switch should be styled nicer to
   fit in the bar better rn it looks slapped in". T856 restyle, two looks with pictures to pick from.
+- 2026-11-18 15:05, owner (app chat dialogs), T856: not in the side bar, verbatim "actually maybe we shouldnt have in side
+  bar because it will make the buttons be jumpy when it disappears? where is a betetr desktop spot"; then picked "Top, after
+  the day strip" (a Trout | Salmon pair right after < Today > on desktop; phones unchanged).

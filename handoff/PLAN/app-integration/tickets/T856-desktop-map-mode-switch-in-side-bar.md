@@ -15,3 +15,10 @@ Map (NavRail `mapExtra` slot; RegsLayerToggle `inRail`); narrower keeps it on th
 (desktop Trout/Salmon, phone Salmon). Owner ~14:58, verbatim: "the desktop salmon/trout switch should be styled nicer to fit
 in the bar better rn it looks slapped in". So: restyle the rail version to read as part of the rail (two looks to pick from,
 with pictures), then merge with 0.8.1.
+
+Round 2 (a9a448cf2: rail looks A sub-items / B split block) shown to the owner. Owner, by dialog, verbatim: "actually maybe
+we shouldnt have in side bar because it will make the buttons be jumpy when it disappears? where is a betetr desktop spot"
+(the switch shows only on the Map tab, so the rail items below it would jump on a tab change). Offered: key bar left end,
+top after the day strip, or back on the map's right. Owner picked: "Top, after the day strip". So: on desktop the switch is
+a Trout | Salmon pair on the top row right after the day strip (< Today >), styled like that strip; the side bar goes back
+to as it was; phones unchanged.
