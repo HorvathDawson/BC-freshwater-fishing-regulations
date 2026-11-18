@@ -3,9 +3,9 @@
  * held for the loading screen. The app shell passes the platform half in (`@app/data/release/platform`), so this hook,
  * like every hook, runs under both renderers.
  */
-import { applyLine, keepsTryingByItself, reportFailure, now } from "@app/core";
+import { applyLine, INSTALL_WORDS, keepsTryingByItself, reportFailure, now } from "@app/core";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { bootRelease, BootError, SpaceError, warmLike, type BootOptions, type Booted, type Progress } from "@app/data/release";
+import { bootRelease, BootError, SpaceError, UnreadableError, warmLike, type BootOptions, type Booted, type Progress } from "@app/data/release";
 
 export type BootState =
   | { state: "loading"; stage: string; progress: Progress | null;
@@ -166,9 +166,11 @@ export function useReleaseBoot(opts: BootOptions | null, generation = 0, attempt
       // an apply that failed: the set in use stays (it never stopped working), and the failure is said (T746: on the
       // curtain, until the reader closes it)
       if (again) set((prev) => (prev.state === "ready" ? { ...prev, applying: false, applyError: error } : prev));
-      // (T722 F9) a failure in the reader's own words (a download that will not fit) is said as it is
+      // (T722 F9) a failure in the reader's own words (a download that will not fit) is said as it is; (T845) a release
+      // this app cannot read says so plainly (its message, which format, stays in the log above)
       else set({ state: "failed", error, firstRunOffline: error instanceof BootError && error.firstRunOffline,
-                 said: error instanceof SpaceError ? error.message : null, trying: false });
+                 said: error instanceof SpaceError ? error.message : error instanceof UnreadableError ? INSTALL_WORDS.unreadable : null,
+                 trying: false });
     };
     bootRelease({
       ...opts,
