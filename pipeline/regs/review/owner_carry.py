@@ -47,12 +47,15 @@ def load(p: Optional[Path] = None) -> list[dict]:
 def held(entries: Iterable[Mapping], inforce: Mapping, binding_now: Mapping[str, Optional[str]]) -> set:
     """THE KEYS OF THE MARKS AN ENTRY STILL HOLDS: the mark in force for its target is the one it was written for (by
     digest and date) and the place's binding print NOW is the one the decision produced. `inforce`: (scope, target) ->
-    the mark in force; `binding_now`: target -> its binding print now (None: the place is gone). Pure."""
+    the mark in force; `binding_now`: target -> its binding print now (None: the place is gone), or the SET of prints
+    that read the same place now (`dfo.same_place_bindings`: T807, a stored side-stream setting dropped because DFO's
+    words say the same is not a move). Pure."""
     from pipeline.regs.review.recheck import mark_digest
     out: set = set()
     for e in entries:
         m = inforce.get((e["scope"], e["target"]))
-        if (m is not None and m.date == e["mark_date"] and mark_digest(m) == e["mark"]
-                and binding_now.get(e["target"]) == e["binding"]):
+        now = binding_now.get(e["target"])
+        same = (e["binding"] in now) if isinstance(now, (set, frozenset)) else now == e["binding"]
+        if m is not None and m.date == e["mark_date"] and mark_digest(m) == e["mark"] and same:
             out.add(m.key)
     return out

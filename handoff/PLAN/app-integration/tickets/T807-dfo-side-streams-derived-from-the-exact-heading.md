@@ -1,6 +1,6 @@
 # T807 — A DFO place's side streams are derived from the exact heading its row sits under and its own words; a saved value is only a stated exception (ten places go river-only; a named creek keeps its side streams; the Kitimat outfall strip takes them)
 
-Status: OPEN (pipeline `pipeline/regs/dfo_salmon/` untangle / entries, the review app, curated places; the changed-answers list goes to the owner before it ships).
+Status: IN PROGRESS (lane/t804-t807, worktree .claude/worktrees/t804-t807: built, proved on a side reach run; left: the main chat merges, the owner reads the changed-answers page and re-ticks the listed marks before the release).
 
 Source: owner 2026-11-16 (`handoff/PLAN/OWNER-TODO.md`, "Answers by batch" and "Re-check of saves"): "this depends if the
 name has tributraries included in it. if it doesnt then no tribs otrherwise yes tribs"; "The heading counts"; "the

@@ -273,6 +273,8 @@ UP_ADJ_READERS = {
     ("pipeline/atlas/registry/lake_loops.py", "_neighbours"): "a piece's own up / down neighbours, one level",
     # the climbs: each asks `may_enter` (see WALKS above)
     ("pipeline/atlas/reach/build.py", "_stem_to_first_lake"): "may_enter",
+    ("pipeline/atlas/reach/build.py", "_through_river_with_the_lake"):
+        "T772: a lake's inflows, one level, to name the through-river's side channels; climbs through `subtree`",
     ("pipeline/common/io/export_gpkg.py", "export_tributaries"): "may_enter",
     ("pipeline/gauges/consume/shed.py", "build_gauge_sheds"): "hands up_adj to `_walk`, which asks may_enter",
     ("pipeline/gauges/consume/shed.py", "section_lengths"): "T252: a lake's inflow edges, one level (its length inflow to outlet)",

@@ -153,6 +153,12 @@ def same_place_bindings(loc: Mapping, water: Optional[Mapping]) -> set[str]:
     out = {_h(g)}
     if b.get("tributaries") is not None and not any(e.get("op") == "rest" for e in b.get("extents") or []):
         out |= {_h({**g, "water_tributaries": v}) for v in (True, False, None)}
+    # T807 (owner 2026-11-16): a named water's place stores NO side-stream setting when it is what DFO's words say (a
+    # matching save stores nothing): a mark made while the place stored that same value read the same place
+    from pipeline.regs.dfo_salmon import side_streams as SS
+    if b.get("tributaries") is None and SS.applies(loc):
+        was = {**g, "binding": {**g["binding"], "tributaries": SS.derived_of(loc).tributaries}}
+        out |= {_h({**was, "water_tributaries": v}) for v in (True, False, None)}
     return out
 
 

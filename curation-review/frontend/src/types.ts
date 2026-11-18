@@ -1505,6 +1505,19 @@ export interface DfoDetail {
   mark: (MarkView & { new_splits?: NewSplit[] }) | null;
   /** (owner 2026-11-15) DFO's words on the tributaries (`dfo.words_tributaries`), for the save's warning */
   words_tributaries?: import("./dfoExtent").WordsTributaries;
+  /** T807: the side streams this place binds with and the words that decided them (`dfo.side_streams_now`) */
+  side_streams?: SideStreamsNow;
+}
+
+/** T807 (owner 2026-11-16): a DFO place's side streams — DFO's words for it (its own line, else the exact heading it sits
+ *  under, else river only), or a stated exception */
+export interface SideStreamsNow {
+  tributaries: boolean;
+  only: boolean;
+  source: "own words" | "named water" | "heading" | "nothing said" | "exception" | "stored";
+  words: string;
+  /** an exception: what the words alone would say */
+  derived?: { tributaries: boolean; only: boolean; source: string; words: string };
 }
 
 // --- T212: the Tidal review mode (`curation-review/backend/tidal.py`) ---

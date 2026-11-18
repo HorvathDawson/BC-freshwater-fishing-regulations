@@ -1,6 +1,6 @@
 # T772 — A lake "including tributaries" takes the side channels of its own through-river (Kitsumkalum Lake: 16 pieces)
 
-Status: OPEN (pipeline, reach binding; found on the side build, same on the promoted atlas).
+Status: IN PROGRESS (lane/t804-t807, worktree .claude/worktrees/t804-t807, with T804/T807: built, proved on a side reach run; left: the main chat merges, the owner reads the list on the changed-answers page before the release).
 
 Source: second-look fix lane B, 2026-11-15 night (`second-look-fixes-2026-11-15.md`, Regions 2-8 finding 1).
 

@@ -536,7 +536,10 @@ def test_the_forks_is_two_pieces_on_both_places(src_now):
         assert p["applicable"], p["problems"]
         [ed] = [e for e in p["edits"] if e["field"] == "extents"]
         tri = [e for e in p["edits"] if e["field"] == "tributaries"]
-        assert [e["after"] for e in tri] == [False]          # 128 inherits none, 129 says include today
+        # T807: both places sit under a plain heading ("Bulkley River", "Morice River") with words naming no side
+        # streams, so "no tributaries" is what the words say: the save stores nothing (the frozen Morice place stored
+        # "include" then, so the apply drops it)
+        assert [e["after"] for e in tri] in ([], [None])
         assert ed["after"] == [{"op": "between", "splits": [FORK_CUT + "_u100m", FORK_CUT], "item_id": "gnis:2195"},
                                {"op": "between", "splits": [FORK_CUT, FORK_CUT + "_d1000m"], "item_id": "gnis:2195"}]
 

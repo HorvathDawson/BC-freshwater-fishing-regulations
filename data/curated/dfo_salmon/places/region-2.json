@@ -953,6 +953,7 @@
       "reviewed_by": "",
       "reviewed_at": "",
       "review_note": "",
+      "heading": "Alouette River and tributaries",
       "binding": {
         "extents": [
           {
@@ -969,7 +970,7 @@
             "item_id": "gnis:39404"
           }
         ],
-        "tributaries": true,
+        "tributaries": null,
         "tributaries_only": false,
         "tributary_excludes": [],
         "sections_cached": null,
@@ -1017,6 +1018,7 @@
       "reviewed_by": "",
       "reviewed_at": "",
       "review_note": "",
+      "heading": "Alouette River and tributaries",
       "binding": {
         "extents": [
           {
@@ -1069,6 +1071,7 @@
       "reviewed_by": "",
       "reviewed_at": "",
       "review_note": "",
+      "heading": "Ashlu Creek",
       "binding": {
         "extents": [
           {
@@ -1127,6 +1130,7 @@
       "reviewed_by": "",
       "reviewed_at": "",
       "review_note": "",
+      "heading": "Birkenhead River",
       "binding": {
         "extents": [],
         "tributaries": null,
@@ -1171,6 +1175,7 @@
       "reviewed_by": "",
       "reviewed_at": "",
       "review_note": "",
+      "heading": "Booth Creek",
       "binding": {
         "extents": [
           {
@@ -1223,6 +1228,7 @@
       "reviewed_by": "",
       "reviewed_at": "",
       "review_note": "",
+      "heading": "Brunette River",
       "binding": {
         "extents": [],
         "tributaries": null,
@@ -1267,6 +1273,7 @@
       "reviewed_by": "",
       "reviewed_at": "",
       "review_note": "",
+      "heading": "Capilano River",
       "binding": {
         "extents": [
           {
@@ -1277,7 +1284,7 @@
             "item_id": "gnis:5922"
           }
         ],
-        "tributaries": true,
+        "tributaries": null,
         "tributaries_only": false,
         "tributary_excludes": [],
         "sections_cached": null,
@@ -1334,6 +1341,7 @@
       "reviewed_by": "",
       "reviewed_at": "",
       "review_note": "",
+      "heading": "Chapman Creek",
       "binding": {
         "extents": [
           {
@@ -1387,6 +1395,7 @@
       "reviewed_by": "",
       "reviewed_at": "",
       "review_note": "",
+      "heading": "Cheakamus River",
       "binding": {
         "extents": [
           {
@@ -1441,6 +1450,7 @@
       "reviewed_by": "",
       "reviewed_at": "",
       "review_note": "",
+      "heading": "Chehalis River",
       "binding": {
         "extents": [
           {
@@ -1451,7 +1461,7 @@
             "item_id": "gnis:13015"
           }
         ],
-        "tributaries": true,
+        "tributaries": null,
         "tributaries_only": false,
         "tributary_excludes": [],
         "sections_cached": null,
@@ -1503,6 +1513,7 @@
       "reviewed_by": "",
       "reviewed_at": "",
       "review_note": "",
+      "heading": "Chehalis River Hatchery",
       "binding": {
         "extents": [
           {
@@ -1567,6 +1578,7 @@
       "reviewed_by": "",
       "reviewed_at": "",
       "review_note": "",
+      "heading": "Chilliwack/Vedder River (including Sumas River)",
       "binding": {
         "extents": [
           {
@@ -1638,6 +1650,7 @@
       "reviewed_by": "",
       "reviewed_at": "",
       "review_note": "",
+      "heading": "Chilliwack/Vedder River (including Sumas River)",
       "binding": {
         "extents": [
           {
@@ -1700,6 +1713,7 @@
       "reviewed_by": "",
       "reviewed_at": "",
       "review_note": "",
+      "heading": "Coquitlam River",
       "binding": {
         "extents": [
           {
@@ -1755,6 +1769,7 @@
       "reviewed_by": "",
       "reviewed_at": "",
       "review_note": "",
+      "heading": "De Boville Slough",
       "binding": {
         "extents": [
           {
@@ -1816,6 +1831,7 @@
       "reviewed_by": "",
       "reviewed_at": "",
       "review_note": "",
+      "heading": "Fraser River",
       "binding": {
         "extents": [
           {
@@ -1873,6 +1889,7 @@
       "reviewed_by": "",
       "reviewed_at": "",
       "review_note": "",
+      "heading": "Fraser River",
       "binding": {
         "extents": [
           {
@@ -1933,6 +1950,7 @@
       "reviewed_by": "",
       "reviewed_at": "",
       "review_note": "",
+      "heading": "Harrison River",
       "binding": {
         "extents": [
           {
@@ -1994,6 +2012,7 @@
       "reviewed_by": "",
       "reviewed_at": "",
       "review_note": "",
+      "heading": "Harrison River",
       "binding": {
         "extents": [
           {
@@ -2047,6 +2066,7 @@
       "reviewed_by": "",
       "reviewed_at": "",
       "review_note": "",
+      "heading": "Hope Slough",
       "binding": {
         "extents": [
           {
@@ -2106,6 +2126,7 @@
       "reviewed_by": "",
       "reviewed_at": "",
       "review_note": "",
+      "heading": "Inch Creek",
       "binding": {
         "extents": [],
         "tributaries": null,
@@ -2150,6 +2171,7 @@
       "reviewed_by": "",
       "reviewed_at": "",
       "review_note": "",
+      "heading": "Indian River",
       "binding": {
         "extents": [
           {
@@ -2203,6 +2225,7 @@
       "reviewed_by": "",
       "reviewed_at": "",
       "review_note": "",
+      "heading": "Kanaka Creek",
       "binding": {
         "extents": [
           {
@@ -2260,6 +2283,7 @@
       "reviewed_by": "",
       "reviewed_at": "",
       "review_note": "",
+      "heading": "Kanaka Creek",
       "binding": {
         "extents": [
           {
@@ -2312,6 +2336,7 @@
       "reviewed_by": "",
       "reviewed_at": "",
       "review_note": "",
+      "heading": "Khartoum Lake",
       "binding": {
         "extents": [
           {
@@ -2367,6 +2392,7 @@
       "reviewed_by": "",
       "reviewed_at": "",
       "review_note": "",
+      "heading": "Little Campbell River",
       "binding": {
         "extents": [
           {
@@ -2377,7 +2403,7 @@
             "item_id": "gnis:7250"
           }
         ],
-        "tributaries": true,
+        "tributaries": null,
         "tributaries_only": false,
         "tributary_excludes": [],
         "sections_cached": null,
@@ -2432,6 +2458,7 @@
       "reviewed_by": "",
       "reviewed_at": "",
       "review_note": "",
+      "heading": "Little Campbell River",
       "binding": {
         "extents": [
           {
@@ -2485,6 +2512,7 @@
       "reviewed_by": "",
       "reviewed_at": "",
       "review_note": "",
+      "heading": "Lois Lake",
       "binding": {
         "extents": [
           {
@@ -2533,6 +2561,7 @@
       "reviewed_by": "",
       "reviewed_at": "",
       "review_note": "",
+      "heading": "Mamquam River",
       "binding": {
         "extents": [
           {
@@ -2581,6 +2610,7 @@
       "reviewed_by": "",
       "reviewed_at": "",
       "review_note": "",
+      "heading": "McLennan Creek",
       "binding": {
         "extents": [
           {
@@ -2633,6 +2663,7 @@
       "reviewed_by": "",
       "reviewed_at": "",
       "review_note": "",
+      "heading": "Nicomekl River",
       "binding": {
         "extents": [
           {
@@ -2693,6 +2724,7 @@
       "reviewed_by": "",
       "reviewed_at": "",
       "review_note": "",
+      "heading": "Nicomen (including Dewdney) Slough",
       "binding": {
         "extents": [
           {
@@ -2753,6 +2785,7 @@
       "reviewed_by": "",
       "reviewed_at": "",
       "review_note": "",
+      "heading": "Nicomen (including Dewdney) Slough",
       "binding": {
         "extents": [
           {
@@ -2807,6 +2840,7 @@
       "reviewed_by": "",
       "reviewed_at": "",
       "review_note": "",
+      "heading": "Norrish (Suicide) Creek",
       "binding": {
         "extents": [
           {
@@ -2857,6 +2891,7 @@
       "reviewed_by": "",
       "reviewed_at": "",
       "review_note": "",
+      "heading": "Pitt River",
       "binding": {
         "extents": [],
         "tributaries": null,
@@ -2903,9 +2938,10 @@
       "reviewed_by": "",
       "reviewed_at": "",
       "review_note": "",
+      "heading": "Pitt River",
       "binding": {
         "extents": [],
-        "tributaries": true,
+        "tributaries": null,
         "tributaries_only": false,
         "tributary_excludes": [],
         "sections_cached": null,
@@ -2950,6 +2986,7 @@
       "reviewed_by": "",
       "reviewed_at": "",
       "review_note": "",
+      "heading": "Pitt River",
       "binding": {
         "extents": [],
         "tributaries": null,
@@ -3010,6 +3047,7 @@
       "reviewed_by": "",
       "reviewed_at": "",
       "review_note": "",
+      "heading": "Sakinaw Lake",
       "binding": {
         "extents": [],
         "tributaries": null,
@@ -3073,6 +3111,7 @@
       "reviewed_by": "",
       "reviewed_at": "",
       "review_note": "",
+      "heading": "Sakinaw Lake",
       "binding": {
         "extents": [],
         "tributaries": null,
@@ -3119,6 +3158,7 @@
       "reviewed_by": "",
       "reviewed_at": "",
       "review_note": "",
+      "heading": "Scott (Hoy) Creek",
       "binding": {
         "extents": [
           {
@@ -3171,6 +3211,7 @@
       "reviewed_by": "",
       "reviewed_at": "",
       "review_note": "",
+      "heading": "Serpentine River",
       "binding": {
         "extents": [],
         "tributaries": null,
@@ -3223,9 +3264,10 @@
       "reviewed_by": "",
       "reviewed_at": "",
       "review_note": "",
+      "heading": "Seymour River",
       "binding": {
         "extents": [],
-        "tributaries": true,
+        "tributaries": null,
         "tributaries_only": false,
         "tributary_excludes": [],
         "sections_cached": null,
@@ -3267,6 +3309,7 @@
       "reviewed_by": "",
       "reviewed_at": "",
       "review_note": "",
+      "heading": "Silverdale Creek",
       "binding": {
         "extents": [
           {
@@ -3317,6 +3360,7 @@
       "reviewed_by": "",
       "reviewed_at": "",
       "review_note": "",
+      "heading": "Squamish River (including Powerhouse Channel)",
       "binding": {
         "extents": [
           {
@@ -3372,6 +3416,7 @@
       "reviewed_by": "",
       "reviewed_at": "",
       "review_note": "",
+      "heading": "Stave River",
       "binding": {
         "extents": [
           {
@@ -3446,6 +3491,7 @@
       "reviewed_by": "",
       "reviewed_at": "",
       "review_note": "",
+      "heading": "Stave River",
       "binding": {
         "extents": [
           {
@@ -3502,6 +3548,7 @@
       "reviewed_by": "",
       "reviewed_at": "",
       "review_note": "",
+      "heading": "Alouette River and tributaries",
       "binding": {
         "extents": [
           {
@@ -3565,6 +3612,7 @@
       "reviewed_by": "",
       "reviewed_at": "",
       "review_note": "",
+      "heading": "Chilliwack/Vedder River (including Sumas River)",
       "binding": {
         "extents": [
           {
@@ -3649,6 +3697,7 @@
       "reviewed_by": "",
       "reviewed_at": "",
       "review_note": "",
+      "heading": "Chilliwack/Vedder River (including Sumas River)",
       "binding": {
         "extents": [
           {
@@ -3718,6 +3767,7 @@
       "reviewed_by": "",
       "reviewed_at": "",
       "review_note": "",
+      "heading": "Fraser River",
       "binding": {
         "extents": [
           {
@@ -3781,6 +3831,7 @@
       "reviewed_by": "",
       "reviewed_at": "",
       "review_note": "",
+      "heading": "Squamish River (including Powerhouse Channel)",
       "binding": {
         "extents": [
           {
@@ -3845,6 +3896,7 @@
       "reviewed_by": "",
       "reviewed_at": "",
       "review_note": "",
+      "heading": "Alouette River and tributaries",
       "binding": {
         "extents": [
           {
@@ -3856,7 +3908,7 @@
             "item_id": "gnis:9630"
           }
         ],
-        "tributaries": true,
+        "tributaries": null,
         "tributaries_only": false,
         "tributary_excludes": [],
         "sections_cached": null,
@@ -3906,6 +3958,7 @@
       "reviewed_by": "",
       "reviewed_at": "",
       "review_note": "",
+      "heading": "Alouette River and tributaries",
       "binding": {
         "extents": [
           {
@@ -3916,7 +3969,7 @@
             "item_id": "gnis:9630"
           }
         ],
-        "tributaries": true,
+        "tributaries": null,
         "tributaries_only": false,
         "tributary_excludes": [],
         "sections_cached": null,
@@ -3959,6 +4012,7 @@
       "reviewed_by": "",
       "reviewed_at": "",
       "review_note": "",
+      "heading": "Alouette River and tributaries",
       "binding": {
         "extents": [
           {
@@ -3966,7 +4020,7 @@
             "item_id": "gnis:39404"
           }
         ],
-        "tributaries": true,
+        "tributaries": null,
         "tributaries_only": false,
         "tributary_excludes": [],
         "sections_cached": null,
@@ -4028,6 +4082,7 @@
       "reviewed_by": "",
       "reviewed_at": "",
       "review_note": "",
+      "heading": "Chilliwack/Vedder River (including Sumas River)",
       "binding": {
         "extents": [
           {
@@ -4097,6 +4152,7 @@
       "reviewed_by": "",
       "reviewed_at": "",
       "review_note": "",
+      "heading": "Serpentine River",
       "binding": {
         "extents": [
           {
@@ -4169,6 +4225,7 @@
       "reviewed_by": "",
       "reviewed_at": "",
       "review_note": "",
+      "heading": "Chilliwack/Vedder River (including Sumas River)",
       "binding": {
         "extents": [
           {
@@ -4239,6 +4296,7 @@
       "reviewed_by": "",
       "reviewed_at": "",
       "review_note": "",
+      "heading": "Fraser River",
       "binding": {
         "extents": [
           {
@@ -4250,7 +4308,7 @@
             "item_id": "gnis:39325"
           }
         ],
-        "tributaries": false,
+        "tributaries": null,
         "tributaries_only": false,
         "tributary_excludes": [],
         "sections_cached": null,
@@ -4297,6 +4355,7 @@
       "reviewed_by": "",
       "reviewed_at": "",
       "review_note": "",
+      "heading": "Nicomekl River",
       "binding": {
         "extents": [
           {
@@ -4355,6 +4414,7 @@
       "reviewed_by": "",
       "reviewed_at": "",
       "review_note": "",
+      "heading": "Serpentine River",
       "binding": {
         "extents": [
           {
@@ -4425,6 +4485,7 @@
       "reviewed_by": "",
       "reviewed_at": "",
       "review_note": "",
+      "heading": "Stave River",
       "binding": {
         "extents": [
           {
@@ -4478,6 +4539,7 @@
       "reviewed_by": "",
       "reviewed_at": "",
       "review_note": "",
+      "heading": "Fraser River",
       "binding": {
         "extents": [
           {
@@ -4489,7 +4551,7 @@
             "item_id": "gnis:39325"
           }
         ],
-        "tributaries": false,
+        "tributaries": null,
         "tributaries_only": false,
         "tributary_excludes": [],
         "sections_cached": null,
@@ -4540,6 +4602,7 @@
       "reviewed_by": "",
       "reviewed_at": "",
       "review_note": "",
+      "heading": "Fraser River",
       "binding": {
         "extents": [
           {
@@ -4599,6 +4662,7 @@
       "reviewed_by": "",
       "reviewed_at": "",
       "review_note": "",
+      "heading": "Harrison River",
       "binding": {
         "extents": [
           {
@@ -4686,6 +4750,7 @@
       "reviewed_by": "",
       "reviewed_at": "",
       "review_note": "",
+      "heading": "Stave River",
       "binding": {
         "extents": [
           {
@@ -4776,6 +4841,7 @@
       "reviewed_by": "",
       "reviewed_at": "",
       "review_note": "",
+      "heading": "Stave River",
       "binding": {
         "extents": [
           {
@@ -4787,7 +4853,7 @@
             "item_id": "gnis:14589"
           }
         ],
-        "tributaries": false,
+        "tributaries": null,
         "tributaries_only": false,
         "tributary_excludes": [],
         "sections_cached": null,
@@ -4949,6 +5015,7 @@
       "reviewed_by": "",
       "reviewed_at": "",
       "review_note": "",
+      "heading": "Fraser River",
       "binding": {
         "extents": [
           {
@@ -5010,6 +5077,7 @@
       "reviewed_by": "",
       "reviewed_at": "",
       "review_note": "",
+      "heading": "Fraser River",
       "binding": {
         "extents": [
           {
@@ -5021,7 +5089,7 @@
             "item_id": "gnis:39325"
           }
         ],
-        "tributaries": false,
+        "tributaries": null,
         "tributaries_only": false,
         "tributary_excludes": [],
         "sections_cached": null,

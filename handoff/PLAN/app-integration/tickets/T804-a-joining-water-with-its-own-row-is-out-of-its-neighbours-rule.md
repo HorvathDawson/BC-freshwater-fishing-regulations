@@ -1,6 +1,6 @@
 # T804 — One stated rule, applied everywhere: a joining water with a row of its own is not inside its neighbour's stretch rule (Gosnell Creek and the Thautil River come out of the Morice closure; Lamprey Creek stays in)
 
-Status: OPEN (pipeline, tributary binding; the changed-answers list goes to the owner before it ships).
+Status: IN PROGRESS (lane/t804-t807, worktree .claude/worktrees/t804-t807: built, proved on a side reach run; left: the main chat merges, the owner reads the changed-answers page before the release).
 
 Source: owner 2026-11-16, question 9 (`handoff/PLAN/curation-review/skeena-cascade-review-2026-11-15.md` 2(b)): "yes
 they are out but please make sure this rule doesnt break other stuff. we need a trigger for why they are out? why

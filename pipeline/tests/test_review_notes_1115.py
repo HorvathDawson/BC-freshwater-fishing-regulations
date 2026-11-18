@@ -39,7 +39,8 @@ BELLA_LOC = {
                     "anchor_types": ["confluence"], "excludes": [], "areas": []},
     "status": "active", "duplicate_of": None, "duplicate_score": None, "duplicate_confirmed": None, "locked": False,
     "reviewed_by": "", "reviewed_at": "", "review_note": "",
-    "binding": {"extents": [{"op": "whole", "item_id": "gnis:11611"}], "tributaries": True, "tributaries_only": False,
+    # T807: the words ("All tributaries to …") say side streams, so the file stores no setting of its own (it did then)
+    "binding": {"extents": [{"op": "whole", "item_id": "gnis:11611"}], "tributaries": None, "tributaries_only": False,
                 "tributary_excludes": [], "sections_cached": None, "notes": [], "spatial_caveat": False}}
 BELLA_WATER = {"water_id": "5b:bella-coola-river-not-including-atnarko-river", "region": "5b", "region_number": 5,
                "name": "Bella Coola River (not including Atnarko River)", "aliases": [], "sections": [],
