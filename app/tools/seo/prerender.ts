@@ -187,6 +187,9 @@ export const afterPaint = (src: string): string => `<script type="module">` +
   `document.visibilityState==="hidden"?g():requestAnimationFrame(()=>setTimeout(g))` +
   `</script>`;
 
+/** (T844) the web export's opening coho, between its marks (tools/web-shell.mjs `MARKED`) */
+export const BOOT_COHO = /<!--boot-coho-->[\s\S]*?<!--\/boot-coho-->/g;
+
 export interface AppDocument {
   /** the page's head: title, description, canonical, social tags, JSON-LD (built by site.ts) */
   readonly head: string;
@@ -201,10 +204,11 @@ export interface AppDocument {
 /**
  * The app's index.html (the web export's) as a water page: its title replaced by the page's head, its render-blocking
  * stylesheets (the map's) loaded without blocking, the "needs JavaScript" line gone (the page reads without it), the pane
- * beside the app's empty root, and the hand-over.
+ * beside the app's empty root, and the hand-over. (T844) The export's opening coho is taken out: the pane is the first paint.
  */
 export function appDocument(template: string, d: AppDocument): string {
-  let t = template;
+  // (T844) the export's opening coho (tools/web-shell.mjs) is the app's first paint, not a water page's: the pane is that
+  let t = template.replace(BOOT_COHO, "");
   const need = (re: RegExp, what: string) => { if (!re.test(t)) throw new Error(`seo: the app's index.html has no ${what}`); };
   // (T304) every water page names its region: a page without one would land reading the whole core + water files
   if (d.region === null || regionOfTile(d.region) !== d.region) throw new Error(`seo: water ${d.item} names no bundle region (${d.region})`);

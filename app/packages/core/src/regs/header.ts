@@ -18,6 +18,7 @@ import { fmtDay } from "./strip";
 import { WD3, WORDS } from "./words";
 import { WEEKDAYS } from "../calendar.generated";
 import { sameDay } from "../day";
+import { classBadgeOf } from "./classBadge";
 
 /** (T517) Each part's name as the water map names the entry holding it, by part index: `@app/core` `entryNames` over
  *  the SAME `mergeNav(group, live salmon key)` the map draws (`@app/ui` `useMapEntries`), so the header, the Parts sheet
@@ -118,6 +119,8 @@ export function headerOf(inp: RegsInputs, o: { today: Day; status: "open" | "clo
   const lbl = lab && lab.short !== name ? lab.short : "";
   const tabs: readonly [Tab, string][] = [["keep", WORDS.TAB_KEEP], ["gear", WORDS.TAB_GEAR], ["methods", WORDS.TAB_METHODS], ["licence", WORDS.TAB_LICENCE]];
   const dayWord = sameDay(inp.day, o.today) ? WORDS.TODAY : WD3[WEEKDAYS.indexOf(inp.weekday)]!;
+  // (T841) the classified-water badge, set only on a classified part (the frozen headers carry no key for it)
+  const classed = classBadgeOf(inp);
   return {
     name,
     dayWord,
@@ -129,5 +132,6 @@ export function headerOf(inp: RegsInputs, o: { today: Day; status: "open" | "clo
     // (owner 2026-11-04) on a closed day no Licence section (`buildLicence`), so no Licence tab
     tabs: (o.status === "outside" || inp.tidalPart ? tabs.slice(0, 1) : o.status === "closed" ? tabs.filter(([t]) => t !== "licence") : tabs)
       .map(([tab, label]) => ({ tab, label })),
+    ...(classed ? { classed } : {}),
   };
 }

@@ -173,6 +173,14 @@
   "mode": null
  },
  "header": {
+  "classed": {
+   "aria": "Class II, Apr 1–Oct 31",
+   "cls": "II",
+   "inForce": true,
+   "label": "Class II",
+   "period": "Apr 1–Oct 31",
+   "term": "classified_waters"
+  },
   "date": "Oct 10",
   "dateAria": "Today Oct 10, change date",
   "dayWord": "Today",

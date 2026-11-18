@@ -6,6 +6,10 @@
  *   - (T814) a `CohoLoader` the same way, and the coho asked of `LoadingState` anywhere but the start screen
  *     (apps/mobile `App.tsx` `BootScreen`) and the applying curtain (`ApplyCurtain.tsx`): owner 2026-11-17, the coho
  *     "will replace the loading circle on the splash page or curtain (it will still be used for all other loading)";
+ *   - (T844) the web's opening, before the app's script has run, not being the coho: the web export's index.html carries
+ *     the start screen's coho's frame 0 (tools/web-shell.mjs, chained into both web exports; `pnpm splash` draws it from the
+ *     coho sheet) until the app's own coho is in: owner 2026-11-17, "loading on webapp should use the new one too like
+ *     the app", "Opening loader only" (the circling fish stays for all other loading);
  *   - a hand-made turning loop: an `Animated.loop` that drives a `rotate`;
  *   - a waiting word drawn alone as a button label or chip ("Loading…", "Refreshing…", "…") — the busy state is the
  *     component's `busy`, which draws the spinner.
@@ -50,6 +54,14 @@ describe("one spinner (T257)", () => {
     for (const [f, s] of files) if (!SPINNER_HOME.has(f)) expect([f, /<CohoLoader\b/.test(s)]).toEqual([f, false]);
     const asking = files.filter(([, s]) => /<LoadingState\b[^>]*\bcoho\b/.test(s)).map(([f]) => f).sort();
     expect(asking).toEqual(COHO_HOME);
+  });
+
+  it("the web's opening (before the app's script) is the coho too: both web exports put it into index.html (T844)", () => {
+    const scripts = JSON.parse(readFileSync(join(ROOT, "apps/mobile/package.json"), "utf8")).scripts as Record<string, string>;
+    for (const [name, out] of [["export:web", "dist"], ["export:web:staging", "../../dist/web-staging"]] as const)
+      expect([name, scripts[name]!.includes(`expo export`) && scripts[name]!.includes(`&& node ../../tools/web-shell.mjs ${out} &&`)]).toEqual([name, true]);
+    const shell = readFileSync(join(ROOT, "tools/web-shell.mjs"), "utf8");
+    expect([/web-frame0-\$\{t\}\.png/.test(shell), /fish-sprite/.test(shell)]).toEqual([true, false]);
   });
 
   it("no hand-made turning loop", () => {

@@ -1,6 +1,6 @@
 # T842 — The walkthrough on a phone: the highlight lags a scroll, the keyboard hides the target, and it has too many steps
 
-Status: IN PROGRESS (built on branch app-fix/t842-walkthrough; Android test-bed run and iPhone look pending; part of 0.8.0: a new user's first look).
+Status: DONE 45fff5e63 (CI green 2026-11-17 22:28; Android benches: walkthrough PASS in the batch-1 bench; iPhone look waits with iOS benched; in 0.8.0).
 
 Source: owner 2026-11-17 14:55, in the app chat, with two Android screenshots of the Play internal 0.7.12 build (step 3
 of 10, "Open its page", search "ved"), verbatim: "On the last release the walk through is still a bit glitchy. First

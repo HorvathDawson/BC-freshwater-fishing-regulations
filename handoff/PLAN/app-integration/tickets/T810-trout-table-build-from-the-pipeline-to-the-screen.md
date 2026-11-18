@@ -266,3 +266,11 @@ click on one with the sources for that entry plus identification": P's fish shee
 to tell it", the row's own Sources) and "Sources ›" (`table.src`) must be in the cutover build; the app chat shows him
 the sheet pictures before switching. R built on app/t810-r bb403c97f (selectors match old card or table; scenario
 `trout-table` written, run owed on the heavy lane with the side release on staging test/).
+
+## 2026-11-17 23:29: owner on the cutover look (verbatim in OWNER-TODO 23:29)
+The app's gates had cut the top line to 17 px and removed the fish tile (cutover a107d81cd); the owner keeps both as he
+signed off: "Keep it big, 23 px (Recommended)", "Keep the tile (Recommended)" — applied as named gate allowances
+(branch app/t810-cutover-keep-look 8ecf8d9ac: SIZE_ALLOW "trout-top"; census ALLOW "picture" for keep-tile and
+keep-tile-more). The pin bar has nothing to pin after the switch: "Remove it (Recommended)" (S2 deletes useAnchors,
+PinBar, the regs:rule CoachSpots). `elsewhere` on a table covering several keep rows: "Yes, name the fish
+(Recommended)" — each line starts with its fish where a table has more than one such line; Python writes the words (L).

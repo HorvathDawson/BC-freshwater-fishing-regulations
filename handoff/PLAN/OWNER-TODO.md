@@ -2476,6 +2476,10 @@ More questions (recommended answer first):
   (2521) and Morice (2596), dormant, already answered in T806 (closed areas; retired): dated allowances in the gate.
 - 2026-11-17 ~20:25, owner on the G8/G10 Licence page (T789). G8 weekend banner, verbatim: "Where is this? Should each of these waters just have their own info? Don't want this on waters it doesn't apply to". Lakelse/Telkwa every-day closures, verbatim: "Same thing applies to these". So: NO province-wide banner; each of the 12 waters (the 10 weekend ones + Lakelse + Telkwa) carries its own alien closure, with its own days and dates, on its own Licence tab only. G10 under-16 price: "Yes, each its own price (Recommended)" (each document with its own ordinary non-resident/alien price; the book prints no under-16 price).
 - 2026-11-17 ~20:27, owner (classified waters, T841 + T802), verbatim: "Also we need to make sure the classified water symbols are maintained properly and modify the license requirement. Also if a water is classified it should have a badge in the card I header I think. Make sure we capture all classified waters whether labeled by symbol or by tributary of something". Filed as T841 (audit + licence requirement + build check); T802's card part becomes a header badge (picture first).
+- 2026-11-17 21:38, owner (app chat dialog, T841 class badge; pictures of option A and B sent): "B: always, with dates
+  (Recommended)" (the Class I / II badge always shows on a classified water with its period, greyed out of season) and
+  "In the name row (Recommended)".
+
 - 2026-11-17 ~21:07, owner on G8 per water (T789; Skeena Sedan-Shegunia stretch, Lakelse above the power line, Vedder nothing; tributaries by "Incl. Tribs" as the Keep tab): "Yes, ship it (Recommended)". lane/g8-per-water 83d98ee55, licence_frame.alien_closures [{rule, says}].
 - 2026-11-17 ~21:18, owner on T841 (73/73 classified rows ship right; own-row tributaries that print no class, Li5/Li5a: Gosnell, Thautil, Glacier (Redslide), Two Mile, Station, Hevenor, Magar, Endako, Little Horsefly, McKinley, Moffat, Wahpeeto, Whiteswan outlet; closed all year: Line, Grave, Sandown, Nichyeskwa, Lean-to, Deep, East Fork White, Bear (Sustut)): "Keep: not classified". Li5/Li5a stand.
 - 2026-11-17 ~22:13, owner, verbatim: "loading on webapp should use the new one too like the app" (the web app's loading animation should be the new coho one, as in the app since T814/T843). Handed to the app chat as T844.
@@ -2492,3 +2496,36 @@ More questions (recommended answer first):
 - 2026-11-17 ~23:35 (relayed by the app chat), owner on the trout top line: "Up to 2 is just confusing because  it words weird. Like up to 2 what"; picked "Keep 2 trout and char today (Recommended)" (names the fish and the action; Kathie "Keep 5 trout and char today, or 10 if they're brook trout"; Elk winter "Release every trout and char today"). Fold row value: "Make it match other rows in table" ("Trout and char · 2 a day", the Other fish rows' form). L worker, same round.
 - 2026-11-17 ~23:36 (relayed by the app chat), owner: "Also we should look for other things that should be grouped like the bull /lake trout there we missed". Main chat: a sweep of all live trout tables for limits shared by rows but written row by row (patterns + examples), then the builder groups them; anything that changes meaning comes back to him with pictures.
 - 2026-11-18 ~00:00 (relayed by the app chat; verbatim in its OWNER-TODO b1d74a245), owner on the group sweep: STANDING RULE "in an ideal world we simplify stuff ... if we can only keep >60cm then 1 over 50cm implies only 1 of either a lake trout or bull and it uses your 1 over 50cm slot. this type of simplification should happen everywhere because it makes stuff easier to understand." (wants proper examples first); R4 cutthroat+rainbow: "i think A but still has to mention the overall limit. follow rule i said abotu simplifying" (one band 'only 1 over 50 cm between them', total still stated); Istsi possession: "why 1 days limit not 2? remember simplify also why does it end with \"in all\" ??" (explanation owed); e-wild: "i would need to see an example. to make sure it reads right". Main chat: analyst drafts real before/after examples; L builds 2A now, the general simplification rule after he OKs the examples.
+- 2026-11-17 23:02, owner (app chat dialog, T844 web loader; Fast 3G frame strip + fast-line clip sent), verbatim: "make
+  way smaller for web" (a much smaller web-only coho sheet so it swims on slow lines; phones unchanged).
+- 2026-11-17 23:29, owner (app chat dialog, T810 cutover look; Fraser at Mission before/after and Kathie Lake pictures
+  sent): top line "Keep it big, 23 px (Recommended)"; fish tile "Keep the tile (Recommended)"; pin bar "Remove it
+  (Recommended)"; the flat elsewhere list first "Idk what you mean", then, asked plainer (Kathie Lake: line 1 is the trout
+  and char, line 2 the brook trout): "Yes, name the fish (Recommended)" (each elsewhere line starts with the fish it is
+  about where a table has more than one such line; words from Python).
+- 2026-11-17 23:32, owner (app chat, on the Fraser at Mission before/after picture), verbatim: "Why are these not grouped
+  on the right column with max 1? The up to 2 is misleading also we still have old text of any of the 2". Asked what
+  makes "Up to 2" misleading, verbatim: "It says under the species for lake trout and bulls that we are allowed max 1
+  between both species so isn't that the grouped limit?". Dolly Varden + lake trout sharing one limit: "One shared 'only
+  1' box (Recommended)" (one white "only 1" box in the right column spanning both rows, inside the box's "Keep 2 in
+  all", replacing each row's "only 1, counting any … you keep" line). "any of the 2" is the pre-batch-2 wording; the
+  re-cut brings "counts toward the 2".
+- 2026-11-17 23:35, owner (app chat), verbatim: "Up to 2 is just confusing because  it words weird. Like up to 2 what".
+  Top line picked: "Keep 2 trout and char today (Recommended)" (names the fish and the action; Kathie "Keep 5 trout and
+  char today, or 10 if they're brook trout", Elk in winter "Release every trout and char today"). Fold row's value,
+  verbatim: "Make it match other rows in table" (app chat's reading: the same form as the other fold/list rows beside it,
+  e.g. "10 a day", so "2 a day"; Python's words).
+- 2026-11-17 23:36, owner (app chat), verbatim: "Also we should look for other things that should be grouped like the bull
+  /lake trout there we missed" (a sweep of every trout table for limits shared across rows but written row by row; sent
+  to the main chat's builder lane with the Fraser band).
+- 2026-11-18 ~00:00, owner (app chat dialog, the group sweep's four questions, verbatim):
+  1. Vedder nested DV+LT lines: "i need proper examples. but in an ideal world we simplify stuff. so for example if we can
+     only keep >60cm then 1 over 50cm implies only 1 of either a lake trout or bull and it uses your 1 over 50cm slot. this
+     type of simplification should happen everywhere because it makes stuff easier to understand." (A STANDING RULE: drop
+     any line another limit already implies, and say the implication once, everywhere; real before/after examples owed.)
+  2. R4 cutthroat + rainbow over 50 cm: "i think A but still has to mention the overall limit. follow rule i said abotu
+     simplifying" (one shared band, the box's overall number still stated).
+  3. Istsi/North Star/Sootheran/Rockbed possession: "why 1 days limit not 2? remember simplify also why does it end with
+     "in all" ??" (open: explain "1 day's limit, not 2" and simplify; drop or justify "in all").
+  4. Lakes' "only 4 wild" inside "Keep 4 in all": "i would need to see an example. to make sure it reads right" (open:
+     before/after pictures).

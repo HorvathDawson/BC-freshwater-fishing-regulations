@@ -8,11 +8,14 @@
  * moves: owner 2026-11-17, "we will ignore reduced motion for this".
  *
  * The sheet is drawn by react-native-web's `Image`, which resolves the bundled file (`coho/*.webp`) as the phone does.
+ *
+ * (T844, owner 2026-11-17: "make way smaller for web") THE WEB'S OWN SHEET, `COHO_WEB` (cohoWeb.generated.ts, ~105 KB:
+ * 40 frames at 10 fps, the colours stepped), not the phones' 0.9 MB one, which on Fast 3G came in after the map.
  */
 import { useEffect } from "react";
 import { Image } from "react-native";
 import { SPINNER_WORDS } from "@app/core";
-import { COHO } from "./coho.generated";
+import { COHO_WEB as COHO } from "./cohoWeb.generated";
 import { COHO_GROUND_PAD, COHO_WIDTH, cohoHeight, cohoSheet } from "./coho";
 import type { Palette } from "./theme";
 
@@ -51,7 +54,7 @@ export function CohoLoader({ palette, width = COHO_WIDTH, label = SPINNER_WORDS.
             ["--coho-cols" as string]: `-${width * COHO.columns}px`,
             animation: `coho-col ${rowMs}ms steps(${COHO.columns}) infinite`,
           }}>
-            <Image testID="coho-sheet" source={cohoSheet(palette)} resizeMode="stretch"
+            <Image testID="coho-sheet" source={cohoSheet(palette, COHO.sheets)} resizeMode="stretch"
                    style={{ width: width * COHO.columns, height: height * COHO.rows }} />
           </div>
         </div>
