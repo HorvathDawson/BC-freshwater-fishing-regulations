@@ -344,8 +344,15 @@
       {
        "date": null,
        "from": 0,
-       "kind": "shared",
-       "text": "only 3 between them",
+       "kind": "upto",
+       "text": "counts toward the 5",
+       "to": 0
+      },
+      {
+       "date": null,
+       "from": 1,
+       "kind": "upto",
+       "text": "counts toward the 5",
        "to": 1
       },
       {
@@ -365,126 +372,18 @@
       {
        "date": null,
        "from": 4,
-       "kind": "upto",
-       "text": "counts toward the 5",
-       "to": 4
-      },
-      {
-       "date": null,
-       "from": 5,
-       "kind": "upto",
-       "text": "counts toward the 5",
+       "kind": "shared",
+       "text": "counts toward the 5 · only 3 between them",
        "to": 5
       }
      ],
      "date": null,
      "head": "Keep 5 in all",
+     "inner": [],
      "kind": "keep",
      "label": null,
      "possession": null,
      "rows": [
-      {
-       "a11y": "Lake trout. release over 60 cm (24 in) and under 90 cm (35 in). only 2. only 1 over 90 cm (35 in). only 3 between them",
-       "coming": [],
-       "date": null,
-       "fish": "LT",
-       "key": "LT",
-       "label": null,
-       "lines": [
-        "release over 60 cm (24 in) and under 90 cm (35 in)",
-        "only 2",
-        "only 1 over 90 cm (35 in)"
-       ],
-       "name": "Lake trout",
-       "origin": null,
-       "quiet": [],
-       "sheet": {
-        "head": "Keep · only 3 between them · counts toward the 5",
-        "here": [
-         {
-          "bold": false,
-          "t": "Size: release over 60 cm (24 in) and under 90 cm (35 in)."
-         },
-         {
-          "bold": false,
-          "t": "Counts toward the 5 in all, together with Dolly Varden/bull trout, brook trout, brown trout, cutthroat trout and rainbow trout."
-         },
-         {
-          "bold": false,
-          "t": "Only 3 between them: this fish and Dolly Varden/bull trout."
-         },
-         {
-          "bold": false,
-          "t": "Only 2."
-         },
-         {
-          "bold": false,
-          "t": "Only 1 over 90 cm (35 in)."
-         }
-        ],
-        "src": [
-         2117,
-         2123,
-         3184,
-         3186
-        ]
-       },
-       "src": [
-        2117,
-        2123,
-        3184,
-        3186,
-        2125,
-        2124
-       ],
-       "sub": null
-      },
-      {
-       "a11y": "Dolly Varden/bull trout. only 3 between them",
-       "coming": [],
-       "date": null,
-       "fish": "DV",
-       "key": "DV",
-       "label": null,
-       "lines": [],
-       "name": "Dolly Varden/bull trout",
-       "origin": null,
-       "quiet": [],
-       "sheet": {
-        "head": "Keep · only 3 between them · counts toward the 5",
-        "here": [
-         {
-          "bold": false,
-          "t": "Any size."
-         },
-         {
-          "bold": false,
-          "t": "Counts toward the 5 in all, together with lake trout, brook trout, brown trout, cutthroat trout and rainbow trout."
-         },
-         {
-          "bold": false,
-          "t": "Only 3 between them: this fish and lake trout."
-         },
-         {
-          "bold": false,
-          "t": "Only 1 over 50 cm (20 in), not counting lake trout."
-         }
-        ],
-        "src": [
-         3184,
-         3186,
-         3185,
-         3198
-        ]
-       },
-       "src": [
-        3184,
-        3186,
-        3185,
-        3198
-       ],
-       "sub": null
-      },
       {
        "a11y": "Brook trout. counts toward the 5",
        "coming": [],
@@ -505,7 +404,7 @@
          },
          {
           "bold": false,
-          "t": "Counts toward the 5 in all, together with lake trout, Dolly Varden/bull trout, brown trout, cutthroat trout and rainbow trout."
+          "t": "Counts toward the 5 in all, together with brown trout, cutthroat trout, rainbow trout, Dolly Varden/bull trout and lake trout."
          },
          {
           "bold": false,
@@ -545,7 +444,7 @@
          },
          {
           "bold": false,
-          "t": "Counts toward the 5 in all, together with lake trout, Dolly Varden/bull trout, brook trout, cutthroat trout and rainbow trout."
+          "t": "Counts toward the 5 in all, together with brook trout, cutthroat trout, rainbow trout, Dolly Varden/bull trout and lake trout."
          },
          {
           "bold": false,
@@ -585,7 +484,7 @@
          },
          {
           "bold": false,
-          "t": "Counts toward the 5 in all, together with lake trout, Dolly Varden/bull trout, brook trout, brown trout and rainbow trout."
+          "t": "Counts toward the 5 in all, together with brook trout, brown trout, rainbow trout, Dolly Varden/bull trout and lake trout."
          },
          {
           "bold": false,
@@ -625,7 +524,7 @@
          },
          {
           "bold": false,
-          "t": "Counts toward the 5 in all, together with lake trout, Dolly Varden/bull trout, brook trout, brown trout and cutthroat trout."
+          "t": "Counts toward the 5 in all, together with brook trout, brown trout, cutthroat trout, Dolly Varden/bull trout and lake trout."
          },
          {
           "bold": false,
@@ -644,6 +543,108 @@
         3198
        ],
        "sub": null
+      },
+      {
+       "a11y": "Dolly Varden/bull trout. counts toward the 5 · only 3 between them",
+       "coming": [],
+       "date": null,
+       "fish": "DV",
+       "key": "DV",
+       "label": null,
+       "lines": [],
+       "name": "Dolly Varden/bull trout",
+       "origin": null,
+       "quiet": [],
+       "sheet": {
+        "head": "Keep · only 3 between them · counts toward the 5",
+        "here": [
+         {
+          "bold": false,
+          "t": "Any size."
+         },
+         {
+          "bold": false,
+          "t": "Counts toward the 5 in all, together with brook trout, brown trout, cutthroat trout, rainbow trout and lake trout."
+         },
+         {
+          "bold": false,
+          "t": "Only 3 between them: this fish and lake trout."
+         },
+         {
+          "bold": false,
+          "t": "Only 1 over 50 cm (20 in), not counting lake trout."
+         }
+        ],
+        "src": [
+         3184,
+         3186,
+         3185,
+         3198
+        ]
+       },
+       "src": [
+        3184,
+        3186,
+        3185,
+        3198
+       ],
+       "sub": null
+      },
+      {
+       "a11y": "Lake trout. release over 60 cm (24 in) and under 90 cm (35 in). only 2. only 1 over 90 cm (35 in). counts toward the 5 · only 3 between them",
+       "coming": [],
+       "date": null,
+       "fish": "LT",
+       "key": "LT",
+       "label": null,
+       "lines": [
+        "release over 60 cm (24 in) and under 90 cm (35 in)",
+        "only 2",
+        "only 1 over 90 cm (35 in)"
+       ],
+       "name": "Lake trout",
+       "origin": null,
+       "quiet": [],
+       "sheet": {
+        "head": "Keep · only 3 between them · counts toward the 5",
+        "here": [
+         {
+          "bold": false,
+          "t": "Size: release over 60 cm (24 in) and under 90 cm (35 in)."
+         },
+         {
+          "bold": false,
+          "t": "Counts toward the 5 in all, together with brook trout, brown trout, cutthroat trout, rainbow trout and Dolly Varden/bull trout."
+         },
+         {
+          "bold": false,
+          "t": "Only 3 between them: this fish and Dolly Varden/bull trout."
+         },
+         {
+          "bold": false,
+          "t": "Only 2."
+         },
+         {
+          "bold": false,
+          "t": "Only 1 over 90 cm (35 in)."
+         }
+        ],
+        "src": [
+         2117,
+         2123,
+         3184,
+         3186
+        ]
+       },
+       "src": [
+        2117,
+        2123,
+        3184,
+        3186,
+        2125,
+        2124
+       ],
+       "sub": null
       }
      ],
      "strip": "only 1 over 50 cm (20 in), not counting lake trout",
@@ -656,36 +657,37 @@
     1
    ],
    "elsewhere": [
-    "Your own limit, counted across every water in Region 6 you fish, lakes and streams alike.",
-    "This lake’s rule: 2 a day here. Lake trout you kept anywhere else count toward those 2. They also count toward Region 6’s 5 trout and char a day.",
-    "Kept 2 elsewhere? Keep 3 more here.",
-    "Kept trout or char over 50 cm (20 in) elsewhere? It counts here too: at most 1 over 50 cm (20 in) a day in all."
+    "Trout and char: Your own limit, counted across every water in Region 6 you fish, lakes and streams alike.",
+    "Trout and char: Kept 2 elsewhere? Keep 3 more here.",
+    "Trout and char: Kept trout or char over 50 cm (20 in) elsewhere? It counts here too: at most 1 over 50 cm (20 in) a day in all.",
+    "Lake trout: This lake’s rule: 2 a day here. Lake trout you kept anywhere else count toward those 2. They also count toward Region 6’s 5 trout and char a day."
    ],
    "elsewhereLink": "Fished elsewhere today? ›",
    "fold": {
     "date": null,
     "name": "Trout and char",
     "tone": "keep",
-    "value": "Up to 5"
+    "value": "5 a day"
    },
    "hatchLink": null,
    "kind": "table",
    "sourcesLink": "Sources ›",
    "src": [
+    3184,
+    3185,
+    3198,
+    3186,
     2117,
     2123,
-    3184,
-    3186,
     2125,
-    2124,
-    3185,
-    3198
+    2124
    ],
    "together": null,
    "top": {
     "date": null,
-    "lead": "Up to 5 today",
-    "second": null
+    "lead": "Keep 5 trout and char today",
+    "second": null,
+    "sub": null
    },
    "year": null
   },

@@ -417,37 +417,31 @@
       {
        "date": null,
        "from": 3,
-       "kind": "upto",
-       "text": "counts toward the 2",
+       "kind": "own",
+       "text": "counts toward the 2 · only 1",
        "to": 3
       },
       {
        "date": null,
        "from": 4,
-       "kind": "upto",
-       "text": "counts toward the 2",
-       "to": 4
-      },
-      {
-       "date": null,
-       "from": 5,
-       "kind": "upto",
-       "text": "counts toward the 2",
+       "kind": "shared",
+       "text": "counts toward the 2 · only 1 between them",
        "to": 5
       }
      ],
-     "date": null,
+     "date": "until May 31, then only 1 measuring 25–50 cm (10–20 in)",
      "head": "Keep 2 in all",
+     "inner": [],
      "kind": "keep",
      "label": null,
      "possession": null,
      "rows": [
       {
-       "a11y": "Brook trout. 25 cm (10 in) or longer. counts toward the 2. until May 31, then only 1 measuring 25–50 cm (10–20 in)",
+       "a11y": "Brook trout. 25 cm (10 in) or longer. counts toward the 2",
        "coming": [
         "From Jun 1: only 1 measuring 25–50 cm (10–20 in)."
        ],
-       "date": "until May 31, then only 1 measuring 25–50 cm (10–20 in)",
+       "date": null,
        "fish": "EB",
        "key": "EB",
        "label": null,
@@ -489,11 +483,11 @@
        "sub": null
       },
       {
-       "a11y": "Brown trout. 25 cm (10 in) or longer. counts toward the 2. until May 31, then only 1 measuring 25–50 cm (10–20 in)",
+       "a11y": "Brown trout. 25 cm (10 in) or longer. counts toward the 2",
        "coming": [
         "From Jun 1: only 1 measuring 25–50 cm (10–20 in)."
        ],
-       "date": "until May 31, then only 1 measuring 25–50 cm (10–20 in)",
+       "date": null,
        "fish": "GB",
        "key": "GB",
        "label": null,
@@ -535,11 +529,11 @@
        "sub": null
       },
       {
-       "a11y": "Lake trout. 25 cm (10 in) or longer. counts toward the 2. until May 31, then only 1 measuring 25–50 cm (10–20 in)",
+       "a11y": "Lake trout. 25 cm (10 in) or longer. counts toward the 2",
        "coming": [
         "From Jun 1: only 1 measuring 25–50 cm (10–20 in)."
        ],
-       "date": "until May 31, then only 1 measuring 25–50 cm (10–20 in)",
+       "date": null,
        "fish": "LT",
        "key": "LT",
        "label": null,
@@ -582,23 +576,22 @@
        "sub": null
       },
       {
-       "a11y": "Dolly Varden/bull trout. 25 cm (10 in) or longer. only 1. counts toward the 2. until May 31, then only 1 measuring 25–50 cm (10–20 in)",
+       "a11y": "Dolly Varden/bull trout. 25 cm (10 in) or longer. counts toward the 2 · only 1",
        "coming": [
         "From Jun 1: only 1 measuring 25–50 cm (10–20 in)."
        ],
-       "date": "until May 31, then only 1 measuring 25–50 cm (10–20 in)",
+       "date": null,
        "fish": "DV",
        "key": "DV",
        "label": null,
        "lines": [
-        "25 cm (10 in) or longer",
-        "only 1"
+        "25 cm (10 in) or longer"
        ],
        "name": "Dolly Varden/bull trout",
        "origin": null,
        "quiet": [],
        "sheet": {
-        "head": "Keep · counts toward the 2",
+        "head": "Keep · only 1 · counts toward the 2",
         "here": [
          {
           "bold": false,
@@ -610,7 +603,7 @@
          },
          {
           "bold": false,
-          "t": "Only 1."
+          "t": "This fish: only 1."
          },
          {
           "bold": false,
@@ -634,7 +627,7 @@
        "sub": null
       },
       {
-       "a11y": "Cutthroat trout. 25–33 cm (10–13 in). only 1, counting any rainbow trout you keep. counts toward the 2. until May 31, then only 1 measuring 25–33 cm (10–13 in)",
+       "a11y": "Cutthroat trout. 25–33 cm (10–13 in). counts toward the 2 · only 1 between them. until May 31, then only 1 measuring 25–33 cm (10–13 in)",
        "coming": [
         "From Jun 1: only 1 measuring 25–33 cm (10–13 in)."
        ],
@@ -643,14 +636,13 @@
        "key": "CT",
        "label": null,
        "lines": [
-        "25–33 cm (10–13 in)",
-        "only 1, counting any rainbow trout you keep"
+        "25–33 cm (10–13 in)"
        ],
        "name": "Cutthroat trout",
        "origin": null,
        "quiet": [],
        "sheet": {
-        "head": "Keep · counts toward the 2",
+        "head": "Keep · only 1 between them · counts toward the 2",
         "here": [
          {
           "bold": false,
@@ -662,7 +654,7 @@
          },
          {
           "bold": false,
-          "t": "Only 1, counting any rainbow trout you keep."
+          "t": "Only 1 between them: this fish and rainbow trout."
          }
         ],
         "src": [
@@ -683,7 +675,7 @@
        "sub": null
       },
       {
-       "a11y": "Rainbow trout. 25–50 cm (10–20 in). only 1, counting any cutthroat trout you keep. counts toward the 2. until May 31, then only 1",
+       "a11y": "Rainbow trout. 25–50 cm (10–20 in). counts toward the 2 · only 1 between them. until May 31, then only 1",
        "coming": [
         "From Jun 1: only 1."
        ],
@@ -692,14 +684,13 @@
        "key": "RB",
        "label": null,
        "lines": [
-        "25–50 cm (10–20 in)",
-        "only 1, counting any cutthroat trout you keep"
+        "25–50 cm (10–20 in)"
        ],
        "name": "Rainbow trout",
        "origin": null,
        "quiet": [],
        "sheet": {
-        "head": "Keep · counts toward the 2",
+        "head": "Keep · only 1 between them · counts toward the 2",
         "here": [
          {
           "bold": false,
@@ -711,7 +702,7 @@
          },
          {
           "bold": false,
-          "t": "Only 1, counting any cutthroat trout you keep."
+          "t": "Only 1 between them: this fish and cutthroat trout."
          }
         ],
         "src": [
@@ -737,6 +728,7 @@
      "bands": [],
      "date": null,
      "head": "Closed",
+     "inner": [],
      "kind": "closed",
      "label": null,
      "possession": null,
@@ -791,7 +783,7 @@
     "date": null,
     "name": "Trout and char",
     "tone": "keep",
-    "value": "Up to 2"
+    "value": "2 a day"
    },
    "hatchLink": null,
    "kind": "table",
@@ -810,8 +802,9 @@
    "together": null,
    "top": {
     "date": null,
-    "lead": "Up to 2 on May 1",
-    "second": null
+    "lead": "Keep 2 trout and char on May 1",
+    "second": null,
+    "sub": null
    },
    "year": null
   },

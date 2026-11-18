@@ -378,27 +378,21 @@
       {
        "date": null,
        "from": 3,
-       "kind": "upto",
-       "text": "counts toward the 2",
+       "kind": "own",
+       "text": "counts toward the 2 · only 1",
        "to": 3
       },
       {
        "date": null,
        "from": 4,
-       "kind": "upto",
-       "text": "counts toward the 2",
-       "to": 4
-      },
-      {
-       "date": null,
-       "from": 5,
-       "kind": "own",
-       "text": "only 1",
+       "kind": "size",
+       "text": "counts toward the 2 · only 1 over 50 cm (20 in) between them",
        "to": 5
       }
      ],
      "date": null,
      "head": "Keep 2 in all",
+     "inner": [],
      "kind": "keep",
      "label": null,
      "possession": null,
@@ -423,7 +417,7 @@
          },
          {
           "bold": false,
-          "t": "Counts toward the 2 in all, together with brown trout, cutthroat trout, lake trout, rainbow trout and Dolly Varden/bull trout."
+          "t": "Counts toward the 2 in all, together with brown trout, lake trout, Dolly Varden/bull trout, cutthroat trout and rainbow trout."
          }
         ],
         "src": [
@@ -457,7 +451,7 @@
          },
          {
           "bold": false,
-          "t": "Counts toward the 2 in all, together with brook trout, cutthroat trout, lake trout, rainbow trout and Dolly Varden/bull trout."
+          "t": "Counts toward the 2 in all, together with brook trout, lake trout, Dolly Varden/bull trout, cutthroat trout and rainbow trout."
          }
         ],
         "src": [
@@ -467,48 +461,6 @@
        },
        "src": [
         1363,
-        3143
-       ],
-       "sub": null
-      },
-      {
-       "a11y": "Cutthroat trout. only 1 over 50 cm (20 in), counting any rainbow trout you keep. counts toward the 2",
-       "coming": [],
-       "date": null,
-       "fish": "CT",
-       "key": "CT",
-       "label": null,
-       "lines": [
-        "only 1 over 50 cm (20 in), counting any rainbow trout you keep"
-       ],
-       "name": "Cutthroat trout",
-       "origin": null,
-       "quiet": [],
-       "sheet": {
-        "head": "Keep · counts toward the 2",
-        "here": [
-         {
-          "bold": false,
-          "t": "Any size."
-         },
-         {
-          "bold": false,
-          "t": "Counts toward the 2 in all, together with brook trout, brown trout, lake trout, rainbow trout and Dolly Varden/bull trout."
-         },
-         {
-          "bold": false,
-          "t": "Only 1 over 50 cm (20 in), counting any rainbow trout you keep."
-         }
-        ],
-        "src": [
-         1363,
-         3135,
-         3143
-        ]
-       },
-       "src": [
-        1363,
-        3135,
         3143
        ],
        "sub": null
@@ -533,7 +485,7 @@
          },
          {
           "bold": false,
-          "t": "Counts toward the 2 in all, together with brook trout, brown trout, cutthroat trout, rainbow trout and Dolly Varden/bull trout."
+          "t": "Counts toward the 2 in all, together with brook trout, brown trout, Dolly Varden/bull trout, cutthroat trout and rainbow trout."
          }
         ],
         "src": [
@@ -548,49 +500,7 @@
        "sub": null
       },
       {
-       "a11y": "Rainbow trout. only 1 over 50 cm (20 in), counting any cutthroat trout you keep. counts toward the 2",
-       "coming": [],
-       "date": null,
-       "fish": "RB",
-       "key": "RB",
-       "label": null,
-       "lines": [
-        "only 1 over 50 cm (20 in), counting any cutthroat trout you keep"
-       ],
-       "name": "Rainbow trout",
-       "origin": null,
-       "quiet": [],
-       "sheet": {
-        "head": "Keep · counts toward the 2",
-        "here": [
-         {
-          "bold": false,
-          "t": "Any size."
-         },
-         {
-          "bold": false,
-          "t": "Counts toward the 2 in all, together with brook trout, brown trout, cutthroat trout, lake trout and Dolly Varden/bull trout."
-         },
-         {
-          "bold": false,
-          "t": "Only 1 over 50 cm (20 in), counting any cutthroat trout you keep."
-         }
-        ],
-        "src": [
-         1363,
-         3135,
-         3143
-        ]
-       },
-       "src": [
-        1363,
-        3135,
-        3143
-       ],
-       "sub": null
-      },
-      {
-       "a11y": "Dolly Varden/bull trout. only 1",
+       "a11y": "Dolly Varden/bull trout. counts toward the 2 · only 1",
        "coming": [],
        "date": null,
        "fish": "DV",
@@ -609,7 +519,7 @@
          },
          {
           "bold": false,
-          "t": "Counts toward the 2 in all, together with brook trout, brown trout, cutthroat trout, lake trout and rainbow trout."
+          "t": "Counts toward the 2 in all, together with brook trout, brown trout, lake trout, cutthroat trout and rainbow trout."
          },
          {
           "bold": false,
@@ -628,9 +538,89 @@
         3143
        ],
        "sub": null
+      },
+      {
+       "a11y": "Cutthroat trout. counts toward the 2 · only 1 over 50 cm (20 in) between them",
+       "coming": [],
+       "date": null,
+       "fish": "CT",
+       "key": "CT",
+       "label": null,
+       "lines": [],
+       "name": "Cutthroat trout",
+       "origin": null,
+       "quiet": [],
+       "sheet": {
+        "head": "Keep · only 1 over 50 cm (20 in) between them · counts toward the 2",
+        "here": [
+         {
+          "bold": false,
+          "t": "Any size."
+         },
+         {
+          "bold": false,
+          "t": "Counts toward the 2 in all, together with brook trout, brown trout, lake trout, Dolly Varden/bull trout and rainbow trout."
+         },
+         {
+          "bold": false,
+          "t": "Only 1 over 50 cm (20 in) between them: this fish and rainbow trout."
+         }
+        ],
+        "src": [
+         1363,
+         3135,
+         3143
+        ]
+       },
+       "src": [
+        1363,
+        3135,
+        3143
+       ],
+       "sub": null
+      },
+      {
+       "a11y": "Rainbow trout. counts toward the 2 · only 1 over 50 cm (20 in) between them",
+       "coming": [],
+       "date": null,
+       "fish": "RB",
+       "key": "RB",
+       "label": null,
+       "lines": [],
+       "name": "Rainbow trout",
+       "origin": null,
+       "quiet": [],
+       "sheet": {
+        "head": "Keep · only 1 over 50 cm (20 in) between them · counts toward the 2",
+        "here": [
+         {
+          "bold": false,
+          "t": "Any size."
+         },
+         {
+          "bold": false,
+          "t": "Counts toward the 2 in all, together with brook trout, brown trout, lake trout, Dolly Varden/bull trout and cutthroat trout."
+         },
+         {
+          "bold": false,
+          "t": "Only 1 over 50 cm (20 in) between them: this fish and cutthroat trout."
+         }
+        ],
+        "src": [
+         1363,
+         3135,
+         3143
+        ]
+       },
+       "src": [
+        1363,
+        3135,
+        3143
+       ],
+       "sub": null
       }
      ],
-     "strip": "any size",
+     "strip": null,
      "tag": "Lake’s rule"
     }
    ],
@@ -646,7 +636,7 @@
     "date": null,
     "name": "Trout and char",
     "tone": "keep",
-    "value": "Up to 2"
+    "value": "2 a day"
    },
    "hatchLink": null,
    "kind": "table",
@@ -654,14 +644,15 @@
    "src": [
     1363,
     3143,
-    3135,
-    1364
+    1364,
+    3135
    ],
    "together": null,
    "top": {
     "date": null,
-    "lead": "Up to 2 today",
-    "second": null
+    "lead": "Keep 2 trout and char today",
+    "second": null,
+    "sub": null
    },
    "year": null
   },

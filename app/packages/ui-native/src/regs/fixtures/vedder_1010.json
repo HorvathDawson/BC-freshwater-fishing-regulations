@@ -455,7 +455,7 @@
        "date": null,
        "from": 0,
        "kind": "shared",
-       "text": "only 2 of these 6",
+       "text": "2 total from these 6",
        "to": 5
       },
       {
@@ -468,16 +468,25 @@
      ],
      "date": null,
      "head": "Keep 4 in all",
+     "inner": [
+      {
+       "date": null,
+       "from": 4,
+       "kind": "shared",
+       "text": "only 1 between them",
+       "to": 5
+      }
+     ],
      "kind": "keep",
      "label": "Hatchery only",
      "possession": null,
      "rows": [
       {
-       "a11y": "Brook trout. 30 cm (12 in) or longer. only 2 of these 6. until May 31, then closed to all fishing",
+       "a11y": "Brook trout. 30 cm (12 in) or longer. 2 total from these 6",
        "coming": [
         "From Jun 1 the water is closed to all fishing."
        ],
-       "date": "until May 31, then closed to all fishing",
+       "date": null,
        "fish": "EB",
        "key": "EB",
        "label": null,
@@ -488,7 +497,7 @@
        "origin": null,
        "quiet": [],
        "sheet": {
-        "head": "Keep · only 2 of these 6 · counts toward the 4",
+        "head": "Keep · 2 total from these 6 · counts toward the 4",
         "here": [
          {
           "bold": false,
@@ -500,11 +509,11 @@
          },
          {
           "bold": false,
-          "t": "Counts toward the 4 in all, together with brown trout, cutthroat trout, Dolly Varden/bull trout, lake trout, steelhead and rainbow trout."
+          "t": "Counts toward the 4 in all, together with brown trout, cutthroat trout, steelhead, Dolly Varden/bull trout, lake trout and rainbow trout."
          },
          {
           "bold": false,
-          "t": "Only 2 of these 6: this fish and brown trout, cutthroat trout, Dolly Varden/bull trout, lake trout and steelhead."
+          "t": "2 total from these 6: this fish and brown trout, cutthroat trout, steelhead, Dolly Varden/bull trout and lake trout."
          },
          {
           "bold": false,
@@ -529,11 +538,11 @@
        "sub": null
       },
       {
-       "a11y": "Brown trout. 30 cm (12 in) or longer. only 2 of these 6. until May 31, then closed to all fishing",
+       "a11y": "Brown trout. 30 cm (12 in) or longer. 2 total from these 6",
        "coming": [
         "From Jun 1 the water is closed to all fishing."
        ],
-       "date": "until May 31, then closed to all fishing",
+       "date": null,
        "fish": "GB",
        "key": "GB",
        "label": null,
@@ -544,7 +553,7 @@
        "origin": null,
        "quiet": [],
        "sheet": {
-        "head": "Keep · only 2 of these 6 · counts toward the 4",
+        "head": "Keep · 2 total from these 6 · counts toward the 4",
         "here": [
          {
           "bold": false,
@@ -556,11 +565,11 @@
          },
          {
           "bold": false,
-          "t": "Counts toward the 4 in all, together with brook trout, cutthroat trout, Dolly Varden/bull trout, lake trout, steelhead and rainbow trout."
+          "t": "Counts toward the 4 in all, together with brook trout, cutthroat trout, steelhead, Dolly Varden/bull trout, lake trout and rainbow trout."
          },
          {
           "bold": false,
-          "t": "Only 2 of these 6: this fish and brook trout, cutthroat trout, Dolly Varden/bull trout, lake trout and steelhead."
+          "t": "2 total from these 6: this fish and brook trout, cutthroat trout, steelhead, Dolly Varden/bull trout and lake trout."
          },
          {
           "bold": false,
@@ -585,7 +594,7 @@
        "sub": null
       },
       {
-       "a11y": "Cutthroat trout. 30 cm (12 in) or longer. only 2 of these 6. until Apr 30, then release",
+       "a11y": "Cutthroat trout. 30 cm (12 in) or longer. 2 total from these 6. until Apr 30, then release",
        "coming": [
         "From May 1 every one goes back."
        ],
@@ -600,7 +609,7 @@
        "origin": null,
        "quiet": [],
        "sheet": {
-        "head": "Keep · only 2 of these 6 · counts toward the 4",
+        "head": "Keep · 2 total from these 6 · counts toward the 4",
         "here": [
          {
           "bold": false,
@@ -612,11 +621,11 @@
          },
          {
           "bold": false,
-          "t": "Counts toward the 4 in all, together with brook trout, brown trout, Dolly Varden/bull trout, lake trout, steelhead and rainbow trout."
+          "t": "Counts toward the 4 in all, together with brook trout, brown trout, steelhead, Dolly Varden/bull trout, lake trout and rainbow trout."
          },
          {
           "bold": false,
-          "t": "Only 2 of these 6: this fish and brook trout, brown trout, Dolly Varden/bull trout, lake trout and steelhead."
+          "t": "2 total from these 6: this fish and brook trout, brown trout, steelhead, Dolly Varden/bull trout and lake trout."
          },
          {
           "bold": false,
@@ -641,145 +650,11 @@
        "sub": null
       },
       {
-       "a11y": "Dolly Varden/bull trout. 60 cm (24 in) or longer. uses the 1 over 50 cm (20 in). only 1, counting any lake trout you keep. only 2 of these 6. until May 31, then closed to all fishing",
+       "a11y": "Steelhead. a rainbow over 50 cm (20 in). after keeping 2, stop fishing this river today. Steelhead are known to be in this water. 2 total from these 6",
        "coming": [
         "From Jun 1 the water is closed to all fishing."
        ],
-       "date": "until May 31, then closed to all fishing",
-       "fish": "DV",
-       "key": "DV",
-       "label": null,
-       "lines": [
-        "60 cm (24 in) or longer",
-        "uses the 1 over 50 cm (20 in)",
-        "only 1, counting any lake trout you keep"
-       ],
-       "name": "Dolly Varden/bull trout",
-       "origin": null,
-       "quiet": [],
-       "sheet": {
-        "head": "Keep · only 2 of these 6 · counts toward the 4",
-        "here": [
-         {
-          "bold": false,
-          "t": "Size: 60 cm (24 in) or longer."
-         },
-         {
-          "bold": false,
-          "t": "Hatchery only: wild ones go back."
-         },
-         {
-          "bold": false,
-          "t": "Counts toward the 4 in all, together with brook trout, brown trout, cutthroat trout, lake trout, steelhead and rainbow trout."
-         },
-         {
-          "bold": false,
-          "t": "Only 2 of these 6: this fish and brook trout, brown trout, cutthroat trout, lake trout and steelhead."
-         },
-         {
-          "bold": false,
-          "t": "Only 1, counting any lake trout you keep."
-         },
-         {
-          "bold": false,
-          "t": "Only 1 over 50 cm (20 in), 2 if one is a hatchery steelhead."
-         },
-         {
-          "bold": false,
-          "t": "A kept one is always over 50 cm (20 in), so it is that one."
-         }
-        ],
-        "src": [
-         3081,
-         3085,
-         3082,
-         3086
-        ]
-       },
-       "src": [
-        3081,
-        3085,
-        3082,
-        3086,
-        3094,
-        3087,
-        3084
-       ],
-       "sub": null
-      },
-      {
-       "a11y": "Lake trout. 60 cm (24 in) or longer. uses the 1 over 50 cm (20 in). only 1, counting any Dolly Varden/bull trout you keep. only 2 of these 6. until May 31, then closed to all fishing",
-       "coming": [
-        "From Jun 1 the water is closed to all fishing."
-       ],
-       "date": "until May 31, then closed to all fishing",
-       "fish": "LT",
-       "key": "LT",
-       "label": null,
-       "lines": [
-        "60 cm (24 in) or longer",
-        "uses the 1 over 50 cm (20 in)",
-        "only 1, counting any Dolly Varden/bull trout you keep"
-       ],
-       "name": "Lake trout",
-       "origin": null,
-       "quiet": [],
-       "sheet": {
-        "head": "Keep · only 2 of these 6 · counts toward the 4",
-        "here": [
-         {
-          "bold": false,
-          "t": "Size: 60 cm (24 in) or longer."
-         },
-         {
-          "bold": false,
-          "t": "Hatchery only: wild ones go back."
-         },
-         {
-          "bold": false,
-          "t": "Counts toward the 4 in all, together with brook trout, brown trout, cutthroat trout, Dolly Varden/bull trout, steelhead and rainbow trout."
-         },
-         {
-          "bold": false,
-          "t": "Only 2 of these 6: this fish and brook trout, brown trout, cutthroat trout, Dolly Varden/bull trout and steelhead."
-         },
-         {
-          "bold": false,
-          "t": "Only 1, counting any Dolly Varden/bull trout you keep."
-         },
-         {
-          "bold": false,
-          "t": "Only 1 over 50 cm (20 in), 2 if one is a hatchery steelhead."
-         },
-         {
-          "bold": false,
-          "t": "A kept one is always over 50 cm (20 in), so it is that one."
-         }
-        ],
-        "src": [
-         3081,
-         3085,
-         3082,
-         3086
-        ]
-       },
-       "src": [
-        3081,
-        3085,
-        3082,
-        3086,
-        3094,
-        3087,
-        3084
-       ],
-       "sub": null
-      },
-      {
-       "a11y": "Steelhead. a rainbow over 50 cm (20 in). after keeping 2, stop fishing this river today. Steelhead are known to be in this water. only 2 of these 6. until May 31, then closed to all fishing",
-       "coming": [
-        "From Jun 1 the water is closed to all fishing."
-       ],
-       "date": "until May 31, then closed to all fishing",
+       "date": null,
        "fish": "ST",
        "key": "ST",
        "label": null,
@@ -792,7 +667,7 @@
         "Steelhead are known to be in this water."
        ],
        "sheet": {
-        "head": "Keep · only 2 of these 6 · counts toward the 4",
+        "head": "Keep · 2 total from these 6 · counts toward the 4",
         "here": [
          {
           "bold": false,
@@ -808,7 +683,7 @@
          },
          {
           "bold": false,
-          "t": "Only 2 of these 6: this fish and brook trout, brown trout, cutthroat trout, Dolly Varden/bull trout and lake trout."
+          "t": "2 total from these 6: this fish and brook trout, brown trout, cutthroat trout, Dolly Varden/bull trout and lake trout."
          },
          {
           "bold": false,
@@ -848,7 +723,129 @@
        "sub": "a rainbow over 50 cm (20 in)"
       },
       {
-       "a11y": "Rainbow trout. any length, 50 cm (20 in) or less. counts toward the 4. until Apr 30, then release",
+       "a11y": "Dolly Varden/bull trout. 60 cm (24 in) or longer. 2 total from these 6. only 1 between them",
+       "coming": [
+        "From Jun 1 the water is closed to all fishing."
+       ],
+       "date": null,
+       "fish": "DV",
+       "key": "DV",
+       "label": null,
+       "lines": [
+        "60 cm (24 in) or longer"
+       ],
+       "name": "Dolly Varden/bull trout",
+       "origin": null,
+       "quiet": [],
+       "sheet": {
+        "head": "Keep · 2 total from these 6 · counts toward the 4",
+        "here": [
+         {
+          "bold": false,
+          "t": "Size: 60 cm (24 in) or longer."
+         },
+         {
+          "bold": false,
+          "t": "Hatchery only: wild ones go back."
+         },
+         {
+          "bold": false,
+          "t": "Counts toward the 4 in all, together with brook trout, brown trout, cutthroat trout, steelhead, lake trout and rainbow trout."
+         },
+         {
+          "bold": false,
+          "t": "2 total from these 6: this fish and brook trout, brown trout, cutthroat trout, steelhead and lake trout."
+         },
+         {
+          "bold": false,
+          "t": "Only 1 between them: this fish and lake trout."
+         },
+         {
+          "bold": false,
+          "t": "Only 1 over 50 cm (20 in), 2 if one is a hatchery steelhead."
+         }
+        ],
+        "src": [
+         3081,
+         3085,
+         3082,
+         3086
+        ]
+       },
+       "src": [
+        3081,
+        3085,
+        3082,
+        3086,
+        3094,
+        3087,
+        3084
+       ],
+       "sub": null
+      },
+      {
+       "a11y": "Lake trout. 60 cm (24 in) or longer. 2 total from these 6. only 1 between them",
+       "coming": [
+        "From Jun 1 the water is closed to all fishing."
+       ],
+       "date": null,
+       "fish": "LT",
+       "key": "LT",
+       "label": null,
+       "lines": [
+        "60 cm (24 in) or longer"
+       ],
+       "name": "Lake trout",
+       "origin": null,
+       "quiet": [],
+       "sheet": {
+        "head": "Keep · 2 total from these 6 · counts toward the 4",
+        "here": [
+         {
+          "bold": false,
+          "t": "Size: 60 cm (24 in) or longer."
+         },
+         {
+          "bold": false,
+          "t": "Hatchery only: wild ones go back."
+         },
+         {
+          "bold": false,
+          "t": "Counts toward the 4 in all, together with brook trout, brown trout, cutthroat trout, steelhead, Dolly Varden/bull trout and rainbow trout."
+         },
+         {
+          "bold": false,
+          "t": "2 total from these 6: this fish and brook trout, brown trout, cutthroat trout, steelhead and Dolly Varden/bull trout."
+         },
+         {
+          "bold": false,
+          "t": "Only 1 between them: this fish and Dolly Varden/bull trout."
+         },
+         {
+          "bold": false,
+          "t": "Only 1 over 50 cm (20 in), 2 if one is a hatchery steelhead."
+         }
+        ],
+        "src": [
+         3081,
+         3085,
+         3082,
+         3086
+        ]
+       },
+       "src": [
+        3081,
+        3085,
+        3082,
+        3086,
+        3094,
+        3087,
+        3084
+       ],
+       "sub": null
+      },
+      {
+       "a11y": "Rainbow trout. 50 cm (20 in) or less. counts toward the 4. until Apr 30, then release",
        "coming": [
         "From May 1 every one goes back."
        ],
@@ -857,7 +854,7 @@
        "key": "RB",
        "label": null,
        "lines": [
-        "any length, 50 cm (20 in) or less"
+        "50 cm (20 in) or less"
        ],
        "name": "Rainbow trout",
        "origin": null,
@@ -867,7 +864,7 @@
         "here": [
          {
           "bold": false,
-          "t": "Size: any length, 50 cm (20 in) or less."
+          "t": "Size: 50 cm (20 in) or less."
          },
          {
           "bold": false,
@@ -875,7 +872,7 @@
          },
          {
           "bold": false,
-          "t": "Counts toward the 4 in all, together with brook trout, brown trout, cutthroat trout, Dolly Varden/bull trout, lake trout and steelhead."
+          "t": "Counts toward the 4 in all, together with brook trout, brown trout, cutthroat trout, steelhead, Dolly Varden/bull trout and lake trout."
          }
         ],
         "src": [
@@ -898,16 +895,16 @@
      "tag": null
     }
    ],
-   "card": null,
+   "card": "Until May 31, then closed to all fishing",
    "covers": [
     0,
     1
    ],
    "elsewhere": [
-    "Your own limit, counted across every Region 2 stream you fish.",
-    "This river’s rule: 4 a day here. Rainbow trout you kept anywhere else count toward those 4. They also count toward Region 2’s 4 trout and char a day.",
-    "Kept 1 at a lake? Keep 3 more here. Fish from lakes count toward the 4 a day, not toward the 2 from streams.",
-    "Kept trout or char over 50 cm (20 in) elsewhere? It counts here too: at most 2 over 50 cm (20 in) a day in all — only 1 of them may be anything other than a hatchery steelhead."
+    "Trout and char: Your own limit, counted across every Region 2 stream you fish.",
+    "Trout and char: Kept 1 at a lake? Keep 3 more here. Fish from lakes count toward the 4 a day, not toward the 2 from streams.",
+    "Trout and char: Kept trout or char over 50 cm (20 in) elsewhere? It counts here too: at most 2 over 50 cm (20 in) a day in all — only 1 of them may be anything other than a hatchery steelhead.",
+    "Rainbow trout: This river’s rule: 4 a day here. Rainbow trout you kept anywhere else count toward those 4. They also count toward Region 2’s 4 trout and char a day."
    ],
    "elsewhereLink": "Fished elsewhere today? ›",
    "fold": {
@@ -926,19 +923,20 @@
     3094,
     3087,
     3084,
-    3085,
-    3086,
     3083,
     3376,
     3092,
     3380,
+    3085,
+    3086,
     530
    ],
    "together": null,
    "top": {
     "date": null,
-    "lead": "Up to 2 today, or 4 if they’re hatchery rainbow trout 50 cm (20 in) or less",
-    "second": null
+    "lead": "Keep 2 trout and char today",
+    "second": null,
+    "sub": "or 4 if they’re hatchery rainbow trout 50 cm (20 in) or less"
    },
    "year": null
   },

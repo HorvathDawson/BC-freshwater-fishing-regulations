@@ -422,7 +422,7 @@
        "date": null,
        "from": 0,
        "kind": "shared",
-       "text": "only 2 of these 4",
+       "text": "2 total from these 4",
        "to": 3
       },
       {
@@ -435,12 +435,13 @@
      ],
      "date": "until Oct 31, then release",
      "head": "Keep 5 in all",
+     "inner": [],
      "kind": "keep",
      "label": null,
      "possession": null,
      "rows": [
       {
-       "a11y": "Brook trout. only 2 of these 4",
+       "a11y": "Brook trout. 2 total from these 4",
        "coming": [
         "From Nov 1 every one goes back."
        ],
@@ -453,7 +454,7 @@
        "origin": null,
        "quiet": [],
        "sheet": {
-        "head": "Keep · only 2 of these 4 · counts toward the 5",
+        "head": "Keep · 2 total from these 4 · counts toward the 5",
         "here": [
          {
           "bold": false,
@@ -461,11 +462,11 @@
          },
          {
           "bold": false,
-          "t": "Counts toward the 5 in all, together with brown trout, cutthroat trout, lake trout and rainbow trout."
+          "t": "Counts toward the 5 in all, together with brown trout, lake trout, cutthroat trout and rainbow trout."
          },
          {
           "bold": false,
-          "t": "Only 2 of these 4: this fish and brown trout, cutthroat trout and lake trout."
+          "t": "2 total from these 4: this fish and brown trout, lake trout and cutthroat trout."
          }
         ],
         "src": [
@@ -482,7 +483,7 @@
        "sub": null
       },
       {
-       "a11y": "Brown trout. only 2 of these 4",
+       "a11y": "Brown trout. 2 total from these 4",
        "coming": [
         "From Nov 1 every one goes back."
        ],
@@ -495,7 +496,7 @@
        "origin": null,
        "quiet": [],
        "sheet": {
-        "head": "Keep · only 2 of these 4 · counts toward the 5",
+        "head": "Keep · 2 total from these 4 · counts toward the 5",
         "here": [
          {
           "bold": false,
@@ -503,11 +504,11 @@
          },
          {
           "bold": false,
-          "t": "Counts toward the 5 in all, together with brook trout, cutthroat trout, lake trout and rainbow trout."
+          "t": "Counts toward the 5 in all, together with brook trout, lake trout, cutthroat trout and rainbow trout."
          },
          {
           "bold": false,
-          "t": "Only 2 of these 4: this fish and brook trout, cutthroat trout and lake trout."
+          "t": "2 total from these 4: this fish and brook trout, lake trout and cutthroat trout."
          }
         ],
         "src": [
@@ -524,7 +525,49 @@
        "sub": null
       },
       {
-       "a11y": "Cutthroat trout. only 1 over 50 cm (20 in). only 2 of these 4",
+       "a11y": "Lake trout. 2 total from these 4",
+       "coming": [
+        "From Nov 1 every one goes back."
+       ],
+       "date": null,
+       "fish": "LT",
+       "key": "LT",
+       "label": null,
+       "lines": [],
+       "name": "Lake trout",
+       "origin": null,
+       "quiet": [],
+       "sheet": {
+        "head": "Keep · 2 total from these 4 · counts toward the 5",
+        "here": [
+         {
+          "bold": false,
+          "t": "Any size."
+         },
+         {
+          "bold": false,
+          "t": "Counts toward the 5 in all, together with brook trout, brown trout, cutthroat trout and rainbow trout."
+         },
+         {
+          "bold": false,
+          "t": "2 total from these 4: this fish and brook trout, brown trout and cutthroat trout."
+         }
+        ],
+        "src": [
+         3134,
+         3143,
+         3136
+        ]
+       },
+       "src": [
+        3134,
+        3143,
+        3136
+       ],
+       "sub": null
+      },
+      {
+       "a11y": "Cutthroat trout. only 1 over 50 cm (20 in). 2 total from these 4",
        "coming": [
         "From Nov 1 every one goes back."
        ],
@@ -539,7 +582,7 @@
        "origin": null,
        "quiet": [],
        "sheet": {
-        "head": "Keep · only 2 of these 4 · counts toward the 5",
+        "head": "Keep · 2 total from these 4 · counts toward the 5",
         "here": [
          {
           "bold": false,
@@ -551,7 +594,7 @@
          },
          {
           "bold": false,
-          "t": "Only 2 of these 4: this fish and brook trout, brown trout and lake trout."
+          "t": "2 total from these 4: this fish and brook trout, brown trout and lake trout."
          },
          {
           "bold": false,
@@ -568,48 +611,6 @@
        "src": [
         3134,
         3135,
-        3143,
-        3136
-       ],
-       "sub": null
-      },
-      {
-       "a11y": "Lake trout. only 2 of these 4",
-       "coming": [
-        "From Nov 1 every one goes back."
-       ],
-       "date": null,
-       "fish": "LT",
-       "key": "LT",
-       "label": null,
-       "lines": [],
-       "name": "Lake trout",
-       "origin": null,
-       "quiet": [],
-       "sheet": {
-        "head": "Keep · only 2 of these 4 · counts toward the 5",
-        "here": [
-         {
-          "bold": false,
-          "t": "Any size."
-         },
-         {
-          "bold": false,
-          "t": "Counts toward the 5 in all, together with brook trout, brown trout, cutthroat trout and rainbow trout."
-         },
-         {
-          "bold": false,
-          "t": "Only 2 of these 4: this fish and brook trout, brown trout and cutthroat trout."
-         }
-        ],
-        "src": [
-         3134,
-         3143,
-         3136
-        ]
-       },
-       "src": [
-        3134,
         3143,
         3136
        ],
@@ -637,7 +638,7 @@
          },
          {
           "bold": false,
-          "t": "Counts toward the 5 in all, together with brook trout, brown trout, cutthroat trout and lake trout."
+          "t": "Counts toward the 5 in all, together with brook trout, brown trout, lake trout and cutthroat trout."
          }
         ],
         "src": [
@@ -654,13 +655,14 @@
        "sub": null
       }
      ],
-     "strip": "any size",
+     "strip": null,
      "tag": null
     },
     {
      "bands": [],
      "date": null,
      "head": "Release",
+     "inner": [],
      "kind": "release",
      "label": null,
      "possession": null,
@@ -701,10 +703,10 @@
     1
    ],
    "elsewhere": [
-    "Your own limit, counted across every Region 4 stream you fish.",
-    "The Duncan River’s rule: 5 a day here. Rainbow trout you kept anywhere else count toward those 5. They also count toward Region 4’s 5 trout and char a day.",
-    "Kept 1 at a lake? Keep 4 more here. Fish from lakes count toward the 5 a day, not toward the 2 from streams.",
-    "Kept cutthroat trout over 50 cm (20 in) elsewhere? It counts here too: at most 1 over 50 cm (20 in) a day in all."
+    "Trout and char: Your own limit, counted across every Region 4 stream you fish.",
+    "Trout and char: Kept 1 at a lake? Keep 4 more here. Fish from lakes count toward the 5 a day, not toward the 2 from streams.",
+    "Trout and char: Kept cutthroat trout over 50 cm (20 in) elsewhere? It counts here too: at most 1 over 50 cm (20 in) a day in all.",
+    "Rainbow trout: The Duncan River’s rule: 5 a day here. Rainbow trout you kept anywhere else count toward those 5. They also count toward Region 4’s 5 trout and char a day."
    ],
    "elsewhereLink": "Fished elsewhere today? ›",
    "fold": {
@@ -727,8 +729,9 @@
    "together": null,
    "top": {
     "date": null,
-    "lead": "Up to 2 on May 1, or 5 if they’re rainbow trout",
-    "second": null
+    "lead": "Keep 2 trout and char on May 1",
+    "second": null,
+    "sub": "or 5 if they’re rainbow trout"
    },
    "year": null
   },

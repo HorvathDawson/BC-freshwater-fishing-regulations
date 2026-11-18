@@ -382,6 +382,7 @@
      ],
      "date": null,
      "head": "Keep 2 in all",
+     "inner": [],
      "kind": "keep",
      "label": "Hatchery only",
      "possession": null,
@@ -595,6 +596,7 @@
      "bands": [],
      "date": null,
      "head": "Release",
+     "inner": [],
      "kind": "release",
      "label": null,
      "possession": null,
@@ -685,7 +687,7 @@
     1
    ],
    "elsewhere": [
-    "Your own limit, counted across every Region 1, excluding Haida Gwaii stream you fish.",
+    "Your own limit, counted across every stream in Region 1 (excluding Haida Gwaii) you fish.",
     "Kept 2 on another stream? None more here.",
     "Kept 1 at a lake? Keep 2 more here. Fish from lakes count toward the 4 a day, not toward the 2 from streams.",
     "Kept trout over 50 cm (20 in) elsewhere? It counts here too: at most 2 over 50 cm (20 in) a day in all — only 1 of them may be anything other than a steelhead."
@@ -695,7 +697,7 @@
     "date": null,
     "name": "Trout and char",
     "tone": "keep",
-    "value": "Up to 2"
+    "value": "2 a day"
    },
    "hatchLink": "How to tell a hatchery fish ›",
    "kind": "table",
@@ -715,8 +717,9 @@
    "together": null,
    "top": {
     "date": null,
-    "lead": "Up to 2 today",
-    "second": null
+    "lead": "Keep 2 trout and char today",
+    "second": null,
+    "sub": null
    },
    "year": null
   },

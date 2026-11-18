@@ -441,20 +441,14 @@
       {
        "date": null,
        "from": 4,
-       "kind": "upto",
-       "text": "counts toward the 2",
-       "to": 4
-      },
-      {
-       "date": null,
-       "from": 5,
-       "kind": "upto",
-       "text": "counts toward the 2",
+       "kind": "shared",
+       "text": "counts toward the 2 · only 1 between them",
        "to": 5
       }
      ],
      "date": null,
      "head": "Keep 2 in all",
+     "inner": [],
      "kind": "keep",
      "label": "Hatchery only",
      "possession": null,
@@ -485,7 +479,7 @@
          },
          {
           "bold": false,
-          "t": "Counts toward the 2 in all, together with brown trout, cutthroat trout, Dolly Varden/bull trout, lake trout and rainbow trout."
+          "t": "Counts toward the 2 in all, together with brown trout, cutthroat trout, rainbow trout, Dolly Varden/bull trout and lake trout."
          },
          {
           "bold": false,
@@ -535,7 +529,7 @@
          },
          {
           "bold": false,
-          "t": "Counts toward the 2 in all, together with brook trout, cutthroat trout, Dolly Varden/bull trout, lake trout and rainbow trout."
+          "t": "Counts toward the 2 in all, together with brook trout, cutthroat trout, rainbow trout, Dolly Varden/bull trout and lake trout."
          },
          {
           "bold": false,
@@ -585,7 +579,7 @@
          },
          {
           "bold": false,
-          "t": "Counts toward the 2 in all, together with brook trout, brown trout, Dolly Varden/bull trout, lake trout and rainbow trout."
+          "t": "Counts toward the 2 in all, together with brook trout, brown trout, rainbow trout, Dolly Varden/bull trout and lake trout."
          },
          {
           "bold": false,
@@ -603,128 +597,6 @@
         3081,
         3082,
         3090,
-        3094,
-        3087,
-        3084
-       ],
-       "sub": null
-      },
-      {
-       "a11y": "Dolly Varden/bull trout. 60 cm (24 in) or longer. uses the 1 over 50 cm (20 in). only 1, counting any lake trout you keep. counts toward the 2",
-       "coming": [],
-       "date": null,
-       "fish": "DV",
-       "key": "DV",
-       "label": null,
-       "lines": [
-        "60 cm (24 in) or longer",
-        "uses the 1 over 50 cm (20 in)",
-        "only 1, counting any lake trout you keep"
-       ],
-       "name": "Dolly Varden/bull trout",
-       "origin": null,
-       "quiet": [],
-       "sheet": {
-        "head": "Keep · counts toward the 2",
-        "here": [
-         {
-          "bold": false,
-          "t": "Size: 60 cm (24 in) or longer."
-         },
-         {
-          "bold": false,
-          "t": "Hatchery only: wild ones go back."
-         },
-         {
-          "bold": false,
-          "t": "Counts toward the 2 in all, together with brook trout, brown trout, cutthroat trout, lake trout and rainbow trout."
-         },
-         {
-          "bold": false,
-          "t": "Only 1, counting any lake trout you keep."
-         },
-         {
-          "bold": false,
-          "t": "Only 1 over 50 cm (20 in)."
-         },
-         {
-          "bold": false,
-          "t": "A kept one is always over 50 cm (20 in), so it is that one."
-         }
-        ],
-        "src": [
-         3081,
-         3085,
-         3082,
-         3086
-        ]
-       },
-       "src": [
-        3081,
-        3085,
-        3082,
-        3086,
-        3094,
-        3087,
-        3084
-       ],
-       "sub": null
-      },
-      {
-       "a11y": "Lake trout. 60 cm (24 in) or longer. uses the 1 over 50 cm (20 in). only 1, counting any Dolly Varden/bull trout you keep. counts toward the 2",
-       "coming": [],
-       "date": null,
-       "fish": "LT",
-       "key": "LT",
-       "label": null,
-       "lines": [
-        "60 cm (24 in) or longer",
-        "uses the 1 over 50 cm (20 in)",
-        "only 1, counting any Dolly Varden/bull trout you keep"
-       ],
-       "name": "Lake trout",
-       "origin": null,
-       "quiet": [],
-       "sheet": {
-        "head": "Keep · counts toward the 2",
-        "here": [
-         {
-          "bold": false,
-          "t": "Size: 60 cm (24 in) or longer."
-         },
-         {
-          "bold": false,
-          "t": "Hatchery only: wild ones go back."
-         },
-         {
-          "bold": false,
-          "t": "Counts toward the 2 in all, together with brook trout, brown trout, cutthroat trout, Dolly Varden/bull trout and rainbow trout."
-         },
-         {
-          "bold": false,
-          "t": "Only 1, counting any Dolly Varden/bull trout you keep."
-         },
-         {
-          "bold": false,
-          "t": "Only 1 over 50 cm (20 in)."
-         },
-         {
-          "bold": false,
-          "t": "A kept one is always over 50 cm (20 in), so it is that one."
-         }
-        ],
-        "src": [
-         3081,
-         3085,
-         3082,
-         3086
-        ]
-       },
-       "src": [
-        3081,
-        3085,
-        3082,
-        3086,
         3094,
         3087,
         3084
@@ -775,6 +647,116 @@
         3084
        ],
        "sub": null
+      },
+      {
+       "a11y": "Dolly Varden/bull trout. 60 cm (24 in) or longer. counts toward the 2 · only 1 between them",
+       "coming": [],
+       "date": null,
+       "fish": "DV",
+       "key": "DV",
+       "label": null,
+       "lines": [
+        "60 cm (24 in) or longer"
+       ],
+       "name": "Dolly Varden/bull trout",
+       "origin": null,
+       "quiet": [],
+       "sheet": {
+        "head": "Keep · only 1 between them · counts toward the 2",
+        "here": [
+         {
+          "bold": false,
+          "t": "Size: 60 cm (24 in) or longer."
+         },
+         {
+          "bold": false,
+          "t": "Hatchery only: wild ones go back."
+         },
+         {
+          "bold": false,
+          "t": "Counts toward the 2 in all, together with brook trout, brown trout, cutthroat trout, rainbow trout and lake trout."
+         },
+         {
+          "bold": false,
+          "t": "Only 1 between them: this fish and lake trout."
+         },
+         {
+          "bold": false,
+          "t": "Only 1 over 50 cm (20 in)."
+         }
+        ],
+        "src": [
+         3081,
+         3085,
+         3082,
+         3086
+        ]
+       },
+       "src": [
+        3081,
+        3085,
+        3082,
+        3086,
+        3094,
+        3087,
+        3084
+       ],
+       "sub": null
+      },
+      {
+       "a11y": "Lake trout. 60 cm (24 in) or longer. counts toward the 2 · only 1 between them",
+       "coming": [],
+       "date": null,
+       "fish": "LT",
+       "key": "LT",
+       "label": null,
+       "lines": [
+        "60 cm (24 in) or longer"
+       ],
+       "name": "Lake trout",
+       "origin": null,
+       "quiet": [],
+       "sheet": {
+        "head": "Keep · only 1 between them · counts toward the 2",
+        "here": [
+         {
+          "bold": false,
+          "t": "Size: 60 cm (24 in) or longer."
+         },
+         {
+          "bold": false,
+          "t": "Hatchery only: wild ones go back."
+         },
+         {
+          "bold": false,
+          "t": "Counts toward the 2 in all, together with brook trout, brown trout, cutthroat trout, rainbow trout and Dolly Varden/bull trout."
+         },
+         {
+          "bold": false,
+          "t": "Only 1 between them: this fish and Dolly Varden/bull trout."
+         },
+         {
+          "bold": false,
+          "t": "Only 1 over 50 cm (20 in)."
+         }
+        ],
+        "src": [
+         3081,
+         3085,
+         3082,
+         3086
+        ]
+       },
+       "src": [
+        3081,
+        3085,
+        3082,
+        3086,
+        3094,
+        3087,
+        3084
+       ],
+       "sub": null
       }
      ],
      "strip": "only 1 over 50 cm (20 in)",
@@ -784,6 +766,7 @@
      "bands": [],
      "date": "reopens Jan 1",
      "head": "Closed",
+     "inner": [],
      "kind": "closed",
      "label": null,
      "possession": null,
@@ -842,7 +825,7 @@
     "date": null,
     "name": "Trout and char",
     "tone": "keep",
-    "value": "Up to 2"
+    "value": "2 a day"
    },
    "hatchLink": "How to tell a hatchery fish ›",
    "kind": "table",
@@ -861,8 +844,9 @@
    "together": null,
    "top": {
     "date": null,
-    "lead": "Up to 2 today",
-    "second": null
+    "lead": "Keep 2 trout and char today",
+    "second": null,
+    "sub": null
    },
    "year": null
   },
