@@ -6,10 +6,10 @@ sections lie in that region. A reader needs one region's frames; a key in two re
                        the union over its sections. Read from the regs store alone: the shard holds no logic of its own.
   what a shard holds   the `cell` rows of its akeys, the five top frames those cells name, and every row those frames
                        reach: ladder → verdicts; rows → decided + rows; licence → holds, documents, under-16, the
-                       alien weekend closures (T789 G8), and the documents' answers. `gear_frame` and
-                       `display_frame` are self-contained; `display_rule` is per rule and lives in `water`. (T810 ticket I) An OPTIONAL section's too, where the store holds it
-                       (`cell` has its column): trout → its frame, the frame's table and date set, the table's sheets
-                       (a NULL cell reaches nothing).
+                       part's closures to the non-resident alien (T789 G8), and the documents' answers. `gear_frame` and
+                       `display_frame` are self-contained; `display_rule` is per rule and lives in `water`. (T810
+                       ticket I) An OPTIONAL section's too, where the store holds it (`cell` has its column): trout →
+                       its frame, the frame's table and date set, the table's sheets (a NULL cell reaches nothing).
 
 THE TABLE NAMES are the release contract's (`contract._REGION_TABLES`, `contract.OPTIONAL_SECTION_TABLES`): `TOP`,
 `SHARD_TABLES` and their optional twins are held equal to it by `test_trout_section.py` (this module cannot import the
@@ -105,7 +105,7 @@ def frame_refs(name: str, frame) -> Dict[str, List[int]]:
         # rows 33 (T161): a fish is [decided h, decided w, lead] — the lead is an origin word, not a row
         return {"rows_decided": [r for hwl in fish.values() for r in hwl[:2] if r is not None], "rows_row": list(rows)}
     if name == "licence_frame":
-        h, d, *rest = frame                             # [h, d, under_16?, alien_weekend?] (T789 G8: the 4th)
+        h, d, *rest = frame                             # [h, d, under_16?, alien_closures?] (T789 G8: the 4th)
         return {"licence_hold": [h], "licence_doc": [d], "licence_u16": rest[:1], "licence_alien": rest[1:2]}
     if name == "licence_doc":
         return {"licence_answer": list(frame)}

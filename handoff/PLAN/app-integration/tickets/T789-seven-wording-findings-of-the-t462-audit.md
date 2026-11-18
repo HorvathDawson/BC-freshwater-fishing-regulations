@@ -50,3 +50,4 @@ its price on the price line; several each carry their own beside the name: "Basi
 day · $41.15 for 8 days) + Steelhead stamp ($68.57 a year) + Classified Waters Licence ($22.86 a day)" (`LIC.WITH_PRICE`);
 the price note shows when any of them is priced. Test in `licence.test.ts` (fails on the old code). G8: no province-wide
 banner (owner: "Don't want this on waters it doesn't apply to"); the per-water field comes from the main chat's batch 2.
+- 2026-11-17 ~21:07, owner on G8 per water (T789; Skeena Sedan-Shegunia stretch, Lakelse above the power line, Vedder nothing; tributaries by "Incl. Tribs" as the Keep tab): "Yes, ship it (Recommended)". lane/g8-per-water 83d98ee55, licence_frame.alien_closures [{rule, says}].

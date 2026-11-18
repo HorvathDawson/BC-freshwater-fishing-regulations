@@ -2483,3 +2483,7 @@ More questions (recommended answer first):
   make sure to do the source table and the species row expansion when you click on on with the sources for that entry
   plus identification" (the trout table is signed off for the cutover with the new wording; the row press must open the
   fish's sheet with its own sources and how to tell it, and "Sources ›" the table's sources).
+- 2026-11-17 ~21:07, owner on G8 per water (T789; Skeena Sedan-Shegunia stretch, Lakelse above the power line, Vedder nothing; tributaries by "Incl. Tribs" as the Keep tab): "Yes, ship it (Recommended)". lane/g8-per-water 83d98ee55, licence_frame.alien_closures [{rule, says}].
+- 2026-11-17 ~21:18, owner on T841 (73/73 classified rows ship right; own-row tributaries that print no class, Li5/Li5a: Gosnell, Thautil, Glacier (Redslide), Two Mile, Station, Hevenor, Magar, Endako, Little Horsefly, McKinley, Moffat, Wahpeeto, Whiteswan outlet; closed all year: Line, Grave, Sandown, Nichyeskwa, Lean-to, Deep, East Fork White, Bear (Sustut)): "Keep: not classified". Li5/Li5a stand.
+- 2026-11-17 ~22:13, owner, verbatim: "loading on webapp should use the new one too like the app" (the web app's loading animation should be the new coho one, as in the app since T814/T843). Handed to the app chat as T844.
+- 2026-11-17 ~22:16, owner on T844 (should small in-app loading spots switch to the coho too?): "Opening loader only". Web first load gets the coho; small in-app loaders keep the circling fish (T814).

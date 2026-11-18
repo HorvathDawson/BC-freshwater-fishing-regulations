@@ -311,6 +311,18 @@ class VerdictStore:
                                   None if rs is None else T.by_code(T.LossReason, rs), b, l)
                      for r, s, rs, b, l in self.rows(self.verdict_id(key, reading, fish, origin)))
 
+    def speaking(self, keys: Sequence[int], rules: Sequence[int]) -> set:
+        """(T789 G8) Of `rules` (RuleIx), those that SPEAK (a `read.SPEAKERS` state) in some verdict of one of `keys` —
+        any reading, fish or origin: a rule the ladder never leaves standing there is not among them."""
+        keys, rules = list(keys), list(rules)
+        if not keys or not rules:
+            return set()
+        codes = sorted(T.SPEAKER_CODES)
+        return {r for (r,) in self.db.execute(
+            f"SELECT DISTINCT v.rule FROM frame f JOIN verdict_rule v ON v.verdict = f.verdict "
+            f"WHERE f.key_ix IN ({','.join('?' * len(keys))}) AND v.rule IN ({','.join('?' * len(rules))}) "
+            f"AND v.state IN ({','.join('?' * len(codes))})", (*keys, *rules, *codes))}
+
     def on_day(self, key: int, day: int, fish: str, origin: str = "none",
                moment: Optional[int] = None):
         """The verdict for a key on a day (1..366), at a moment (a key with one moment: None)."""

@@ -225,3 +225,45 @@ click on one with the sources for that entry plus identification": P's fish shee
 to tell it", the row's own Sources) and "Sources ›" (`table.src`) must be in the cutover build; the app chat shows him
 the sheet pictures before switching. R built on app/t810-r bb403c97f (selectors match old card or table; scenario
 `trout-table` written, run owed on the heavy lane with the side release on staging test/).
+
+## 2026-11-17 21:05: A1 measured (lane/t810-a1): the cutover form fits every gate, no raise
+`python -m pipeline.tools.audit.trout_size <side> --cutover --live <release>` (via heavy.sh) on side release
+r-eaddd042e618 (live bundle, `--trout-table`) beside live r-46e4355a7277. Every region file is written again by the
+release's own writer from the reassembled store: side = the shipped bytes (checked), flag off = the store less the
+section (exact on the mini release), cutover = rows 34 (1,878 mixed rows split, covers equal to the shipped ones;
+`group` / `elsewhere` cut from 1,418 covered rows; F0's `page_possession` on 4,330 of 4,340 frames; the release's own
+dictionaries, not retrained). gz bytes:
+
+| file | live | flag off | side | cutover | side − off | cutover − off | F0 slot alone |
+|---|---|---|---|---|---|---|---|
+| regs-1 | 300,920 | 302,923 | 312,424 | 300,066 | +9,501 | −2,857 | +25,788 |
+| regs-2 | 264,805 | 260,787 | 275,442 | 236,705 | +14,655 | −24,082 | +22,282 |
+| regs-3 | 351,239 | 368,361 | 400,801 | 289,843 | +32,440 | −78,518 | +28,724 |
+| regs-4 | 341,816 | 345,041 | 364,618 | 332,810 | +19,577 | −12,231 | +33,605 |
+| regs-5 | 387,155 | 395,834 | 443,715 | 324,613 | +47,881 | −71,221 | +21,376 |
+| regs-6 | 413,612 | 413,008 | 442,945 | 360,496 | +29,937 | −52,512 | +31,791 |
+| regs-7a | 315,434 | 289,915 | 317,272 | 223,960 | +27,357 | −65,955 | +14,380 |
+| regs-7b | 144,334 | 159,637 | 173,957 | 149,628 | +14,320 | −10,009 | +23,162 |
+| regs-8 | 149,423 | 149,274 | 158,967 | 138,020 | +9,693 | −11,254 | +11,673 |
+| water-shared | 745,970 | 746,537 | 761,788 | 761,788 | +15,251 | +15,251 | |
+| water | 2,570,279 | 2,571,033 | 2,586,362 | 2,586,362 | +15,329 | +15,329 | |
+
+The four dictionaries alone (gz): trout_dates 2,159, trout_frame 5,829, trout_sheet 2,448, trout_table 2,814; the
+water slices +75 to +100 B each. Largest region file: flag off regs-6, side regs-5, cutover regs-6.
+
+| WEB_BUDGET at HEAD | gate | live | flag off | side | cutover | cutover room |
+|---|---|---|---|---|---|---|
+| first_tap | 4,400,000 | 4,198,757 | 4,293,775 | 4,339,833 | 4,256,614 | +143,386 |
+| first_tap_low | 3,600,000 | 3,359,382 | 3,454,360 | 3,500,418 | 3,417,199 | +182,801 |
+| first_tap_unnamed | 6,200,000 | 6,018,006 | 6,113,024 | 6,159,082 | 6,075,863 | +124,137 |
+| cold_load | 3,350,000 | 3,042,537 | 3,042,252 | 3,072,959 | 2,989,740 | +360,260 |
+| first_paint / first_search / conditions_open | | | | unchanged by the section | | |
+
+Offline total: flag off 18,066,926, side 18,287,616, cutover 17,753,616 (gate 20,000,000). No file over its own gate.
+VERDICT: the cutover is under every gate, so L raises no limit (first tap stays 4,400,000). The side form (decision 1)
+would also have fit: +46,058 B on the first tap, 60,167 B under the gate. Soft target met in every region (cutover <
+flag off). Levers if room is needed later: F0's slot is stored inline per rows frame (+11 to +34 kB gz per region);
+interning it would recover most of that. Largest bodies: Lois / Khartoum 297 B stored (11 rows), Vaseux Creek,
+Okanagan River, Pitt / Chilliwack / Cultus / Horseshoe / Ireland / Lillooet ~195 B; largest sheets: Vaseux Creek
+rainbow 94 B, Tagish / Morley / Bennett / Teslin lake trout ~80 B (full list in the report). For L: `shards.frame_refs`
+unpacks a rows frame as exactly five slots, so a rows-34 frame (six) breaks the shard cut until it learns the slot.
