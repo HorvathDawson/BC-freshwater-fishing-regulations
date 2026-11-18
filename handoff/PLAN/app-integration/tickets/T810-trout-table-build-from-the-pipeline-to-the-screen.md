@@ -338,6 +338,48 @@ Q1 what you keep here; Q2 "between/among them" (box number: "up to the N"); Q3a 
   size, the golden label, 44 px). 4 mutants (wild filled, hatchery outlined, outline word in sub, back to the plain
   word), each killed. Shot: scratch `t810-p/shots/badge-dodd-jul15-{light,dark}-*.png`.
 
+## 2026-11-17 21:05: A1 measured (lane/t810-a1): the cutover form fits every gate, no raise
+`python -m pipeline.tools.audit.trout_size <side> --cutover --live <release>` (via heavy.sh) on side release
+r-eaddd042e618 (live bundle, `--trout-table`) beside live r-46e4355a7277. Every region file is written again by the
+release's own writer from the reassembled store: side = the shipped bytes (checked), flag off = the store less the
+section (exact on the mini release), cutover = rows 34 (1,878 mixed rows split, covers equal to the shipped ones;
+`group` / `elsewhere` cut from 1,418 covered rows; F0's `page_possession` on 4,330 of 4,340 frames; the release's own
+dictionaries, not retrained). gz bytes:
+
+| file | live | flag off | side | cutover | side − off | cutover − off | F0 slot alone |
+|---|---|---|---|---|---|---|---|
+| regs-1 | 300,920 | 302,923 | 312,424 | 300,066 | +9,501 | −2,857 | +25,788 |
+| regs-2 | 264,805 | 260,787 | 275,442 | 236,705 | +14,655 | −24,082 | +22,282 |
+| regs-3 | 351,239 | 368,361 | 400,801 | 289,843 | +32,440 | −78,518 | +28,724 |
+| regs-4 | 341,816 | 345,041 | 364,618 | 332,810 | +19,577 | −12,231 | +33,605 |
+| regs-5 | 387,155 | 395,834 | 443,715 | 324,613 | +47,881 | −71,221 | +21,376 |
+| regs-6 | 413,612 | 413,008 | 442,945 | 360,496 | +29,937 | −52,512 | +31,791 |
+| regs-7a | 315,434 | 289,915 | 317,272 | 223,960 | +27,357 | −65,955 | +14,380 |
+| regs-7b | 144,334 | 159,637 | 173,957 | 149,628 | +14,320 | −10,009 | +23,162 |
+| regs-8 | 149,423 | 149,274 | 158,967 | 138,020 | +9,693 | −11,254 | +11,673 |
+| water-shared | 745,970 | 746,537 | 761,788 | 761,788 | +15,251 | +15,251 | |
+| water | 2,570,279 | 2,571,033 | 2,586,362 | 2,586,362 | +15,329 | +15,329 | |
+
+The four dictionaries alone (gz): trout_dates 2,159, trout_frame 5,829, trout_sheet 2,448, trout_table 2,814; the
+water slices +75 to +100 B each. Largest region file: flag off regs-6, side regs-5, cutover regs-6.
+
+| WEB_BUDGET at HEAD | gate | live | flag off | side | cutover | cutover room |
+|---|---|---|---|---|---|---|
+| first_tap | 4,400,000 | 4,198,757 | 4,293,775 | 4,339,833 | 4,256,614 | +143,386 |
+| first_tap_low | 3,600,000 | 3,359,382 | 3,454,360 | 3,500,418 | 3,417,199 | +182,801 |
+| first_tap_unnamed | 6,200,000 | 6,018,006 | 6,113,024 | 6,159,082 | 6,075,863 | +124,137 |
+| cold_load | 3,350,000 | 3,042,537 | 3,042,252 | 3,072,959 | 2,989,740 | +360,260 |
+| first_paint / first_search / conditions_open | | | | unchanged by the section | | |
+
+Offline total: flag off 18,066,926, side 18,287,616, cutover 17,753,616 (gate 20,000,000). No file over its own gate.
+VERDICT: the cutover is under every gate, so L raises no limit (first tap stays 4,400,000). The side form (decision 1)
+would also have fit: +46,058 B on the first tap, 60,167 B under the gate. Soft target met in every region (cutover <
+flag off). Levers if room is needed later: F0's slot is stored inline per rows frame (+11 to +34 kB gz per region);
+interning it would recover most of that. Largest bodies: Lois / Khartoum 297 B stored (11 rows), Vaseux Creek,
+Okanagan River, Pitt / Chilliwack / Cultus / Horseshoe / Ireland / Lillooet ~195 B; largest sheets: Vaseux Creek
+rainbow 94 B, Tagish / Morley / Bennett / Teslin lake trout ~80 B (full list in the report). For L: `shards.frame_refs`
+unpacks a rows frame as exactly five slots, so a rows-34 frame (six) breaks the shard cut until it learns the slot.
+
 ## 2026-11-17 ~22:00: L built (lane/t810-l, the cutover's pipeline half; merges with the app chat's S)
 - `--trout-table` gone (answers CLI, `pipeline.deliver`, `mini_release`, `trout-refresh.sh`): every build makes the trout
   section. `rows` 34: F0's `RowsFrame.page_possession` written (sixth rows-frame slot); `answers.cut_over` splits every
@@ -361,3 +403,26 @@ Q1 what you keep here; Q2 "between/among them" (box number: "up to the N"); Q3a 
   per run; its answers again with `answers.A_CUT_OVER` off), since a shipped frame no longer holds the covered groups.
 - Mini release re-cut. NOT done here (the merge's): the goldens / regs fixture / trout fixture re-cut
   (`scripts/trout-refresh.sh`). Left: interning `page_possession` (A1: +11 to +34 kB gz per region; fits without it).
+
+## 2026-11-17 ~23:30: L review fixes (lane/t810-l, after the independent review's FIX FIRST)
+- The kept-elsewhere text the cut drops is on the table: `table.elsewhere` = each covered keep row's SENTENCE
+  (`words.elsewhere_says`: the stored `says` with "today" left to the link word) and its worked lines, then the groups'
+  worked lines, in that order (a worked line starts "Kept "). Same field and type (`trout` stays 1). The build stops
+  where a covered row's text is missing (`answers.A_ELSEWHERE_HELD`, `trout.table.elsewhere_said`); J reads every
+  sentence back and holds it to the covered keep rows' scopes and numbers (`check.elsewhere_said_problems`).
+- J over EVERY rows frame (a table or not): F0's `page_possession` derived again from the frame's roles and the bundle's
+  rules (`check.page_possession_problems`: value words, sentence, lead, every also-line); the cut itself
+  (`check.cut_problems`: covered rows hold no group / kept-elsewhere line, every other keep row keeps its line, NULL
+  cells too) — the exact form of the restated `_pool_rows`.
+- Split parts re-stamped and their years re-cut, each pinned (`A_SPLIT_RESTAMPED`, `A_SPLIT_YEARS_RECUT`) on a planted
+  mixed row (`test_t810_cutover.py`; the mini world has none under a table).
+- Live check (the live bundle, every key, in memory, not shipped): the cutover gate held on every key; J 5,950 tables of
+  5,950 cells, 13 problems, all one family — Region 8 streams' brook trout ("Brook trout 20 from streams", z8 r5):
+  the row's worked line "Kept 2 elsewhere? Keep 18 more here." (a group-less row's `ask`, which the old card gate never
+  proved) against the engine's 19 or more after 2 kept elsewhere (Inkaneep, Meighan, Bull Creek …, 13 keys from day 92).
+  FOR THE OWNER / main chat: the card or the engine is wrong there; until one is fixed the cutover build stops on it.
+- Taken from the app chat's cutover candidate (app/t810-cutover c9ec36bb6, 406f854b8, 4e87ab2bc; pipeline half only):
+  `split_mixed` leaves the steelhead presence line on the ST part (found on the live bundle; now a mini case too:
+  Stub Creek's "Steelhead and white sturgeon catch and release", `stub_creek.r3`, with a mutation test; its split parts re-stamped in the mini release too); `CELL_NULLABLE`
+  emitted beside `CellIds`; `check-format-pairs.py` reads `REGS_REGION_FORMAT`; test_answers_v1 reads rows 34; the
+  pre-cutover regs fixture kept at `pipeline/tests/fixtures/pre-cutover-regs-release/`.

@@ -34,3 +34,5 @@ Each changes words an angler reads. Fix or get the owner's OK to leave, one by o
 
 ## 2026-11-17 20:25, owner answers on G8/G10
 - 2026-11-17 ~20:25, owner on the G8/G10 Licence page (T789). G8 weekend banner, verbatim: "Where is this? Should each of these waters just have their own info? Don't want this on waters it doesn't apply to". Lakelse/Telkwa every-day closures, verbatim: "Same thing applies to these". So: NO province-wide banner; each of the 12 waters (the 10 weekend ones + Lakelse + Telkwa) carries its own alien closure, with its own days and dates, on its own Licence tab only. G10 under-16 price: "Yes, each its own price (Recommended)" (each document with its own ordinary non-resident/alien price; the book prints no under-16 price).
+
+- 2026-11-17 ~21:07, owner on G8 per water (T789; Skeena Sedan-Shegunia stretch, Lakelse above the power line, Vedder nothing; tributaries by "Incl. Tribs" as the Keep tab): "Yes, ship it (Recommended)". lane/g8-per-water 83d98ee55, licence_frame.alien_closures [{rule, says}].

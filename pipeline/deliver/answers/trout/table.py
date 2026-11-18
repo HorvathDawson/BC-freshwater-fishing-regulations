@@ -140,6 +140,10 @@ def _others_most(g: dict) -> float:
     return most(g["tree"][0]["children"])
 
 
+#: T810 L (the review's finding 1): each covered keep row's kept-elsewhere sentence and worked lines lead the table's
+#: `elsewhere`. False = only the groups' worked lines, as before (740 cells said nothing of fish kept elsewhere)
+A_ROW_ELSEWHERE_SAID = True
+
 #: T834: a share RAISED below the total is the box's number over every fish of the box (the Peace River's "Keep 3 in
 #: all"). False = the zone's 5 (the proof finds a basket the table accepts and the engine refuses)
 A_RAISED_SHARE_IS_A_BAND = True
@@ -158,9 +162,9 @@ A_HEAD_LEADS_WITH_THE_REGION = True
 # T810 G2 (the owner's sentence answers, OWNER-TODO 2026-11-17 15:34, 15:41, 15:46; pictures scratchpad t810-g2). Each
 # flag's False is today's (pre-G2) wording; a test in `test_trout_g2.py` fails with it off.
 #: Q1 "What you keep here": a box whose limits never let its fish reach its head's number says what they come to here
-#: ("Keep 1 in all", each fish "any of the 1": Echoes Lakes), never the region's 5 beside "only 1 of these 6"
+#: ("Keep 1 in all", each fish "counts toward the 1": Echoes Lakes), never the region's 5 beside "only 1 of these 6"
 A_HEAD_SAYS_WHAT_IS_KEPT_HERE = True
-#: Q2: a shared limit equal to a raised box's first number ("Keep 5, brook trout up to 20") is each row's "any of the 5"
+#: Q2: a shared limit equal to a raised box's first number ("Keep 5, brook trout up to 20") is each row's "counts toward the 5"
 A_SHARED_BOX_NUMBER_IS_ANY_OF = True
 #: Q3a: a size cap on one fish's own row reads "only 1 over 50 cm (20 in)", never the card's "up to 1 cutthroat trout
 #: over 50 cm (20 in)"
@@ -277,7 +281,35 @@ def _only(row: dict, keep: Callable[[str], bool]) -> dict:
     if o.get("week") is not None:
         sp = [S for S in o["week"]["species"] if keep(S)]
         o["week"] = {**o["week"], "species": sp} if sp else None
+    if o.get("presence") is not None and not keep("ST"):
+        # the steelhead presence line sits on the steelhead's own row (`model.Row`): the part holding ST keeps it
+        # (T810 cutover, found on the live bundle: a release row of steelhead and other fish)
+        o["presence"] = None
     return o
+
+
+def _covered(row: dict) -> bool:
+    """A row of a split frame the table covers: its fish are all trout or char (`split_mixed`'s rule)."""
+    fish = set(row.get("all_members") or ()) | set(row.get("members") or ())
+    return bool(fish) and fish <= TC
+
+
+def elsewhere_said(frame: dict) -> List[str]:
+    """Every kept-elsewhere text the card said for the rows the table covers, in the table's words: each covered row's
+    sentence and worked lines (`Row.elsewhere`), and its group's worked lines about fish kept elsewhere
+    (`group.worked`, not "here"). What the table's `elsewhere` must hold (`answers.cut_over` holds it)."""
+    split, covers = split_mixed(frame)
+    out: List[str] = []
+    for i in covers:
+        r = split["rows"][i]
+        e = r.get("elsewhere")
+        if e is not None:
+            out.append(W.elsewhere_says(e["says"]))
+            out += [W.elsewhere_line(q, a) for q, a in e.get("ask") or ()]
+        g = r.get("group")
+        if g is not None:
+            out += [W.elsewhere_line(w["q"], w["a"]) for w in g.get("worked") or () if w["at"] != "here"]
+    return list(dict.fromkeys(out))
 
 
 def split_mixed(frame: dict) -> Tuple[dict, List[int]]:
@@ -897,7 +929,7 @@ class Body:
                     j += 1
             if kind == "shared" and A_SHARED_BOX_NUMBER_IS_ANY_OF and first_n is not None and n == first_n \
                     and not (isinstance(gk, tuple) and gk[0] == "wild"):
-                # Q2 (owner 15:34): the raised box's first number shared by its other fish is each row's "any of the 5"
+                # Q2 (owner 15:34): the raised box's first number shared by its other fish is each row's "counts toward the 5"
                 bands += [{"from": x, "to": x, "text": W.band_upto(n), "kind": "upto"} for x in range(i, j + 1)]
                 i = j + 1
                 continue
@@ -918,7 +950,7 @@ class Body:
     def _kept_here(self, b: dict) -> None:
         """Q1 (owner 15:34 "What you keep here"): a keep box whose bands never let its fish reach the head's number —
         each band holds at most its number, a row with no limit of its own the box's — says what they come to here:
-        "Keep 1 in all", a band of that number becoming each row's "any of the 1" (Echoes Lakes; a Region 4 stream's
+        "Keep 1 in all", a band of that number becoming each row's "counts toward the 1" (Echoes Lakes; a Region 4 stream's
         "Keep 2 in all"). The region's number still speaks under "Fished elsewhere today?"."""
         if not A_HEAD_SAYS_WHAT_IS_KEPT_HERE or b["first"] is not None or b["head"] != W.head_keep(b["n"]):
             return
@@ -1186,8 +1218,20 @@ class Body:
         # keep box's group, in box order, under the app's "Fished elsewhere today? ›" (empty: no link). A line about
         # keeping HERE ("If you keep 4 hatchery rainbow trout here", `at` "here": a lifted kind past the stream share) is
         # not a kept-elsewhere line and is not under that link (G2 lists it for the owner)
-        elsewhere: List[str] = [W.elsewhere_line(w["q"], w["a"]) for b in self.boxes if b["group"] is not None
-                                for w in b["group"].get("worked") or () if w["at"] != "here"]
+        # (T810 L, the review's finding 1) FIRST each covered keep row's own kept-elsewhere sentence and its worked
+        # lines (`Row.elsewhere` `says` / `ask`: whose limit, its number, which fish kept elsewhere count toward it) — the
+        # cutover drops `elsewhere` from the rows the table covers, so the table says what it said (contract Q-D9);
+        # `answers.cut_over` stops the build where one is missing (`elsewhere_unsaid`)
+        elsewhere: List[str] = []
+        if A_ROW_ELSEWHERE_SAID:
+            for r in self.rows_out:
+                e = r.get("elsewhere")
+                if e is None or not _covered(r):
+                    continue
+                elsewhere.append(W.elsewhere_says(e["says"]))
+                elsewhere += [W.elsewhere_line(q, a) for q, a in e.get("ask") or ()]
+        elsewhere += [W.elsewhere_line(w["q"], w["a"]) for b in self.boxes if b["group"] is not None
+                      for w in b["group"].get("worked") or () if w["at"] != "here"]
         boxes = []
         src: List[int] = []
         for b in self.boxes:

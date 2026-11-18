@@ -12,13 +12,14 @@ release. The app's V test decodes the same cell from the same release and must g
 
 WHERE THE VECTORS COME FROM, SO CI CAN CHECK THEM. A full answers build cannot run in CI (AGENTS 39). The vectors are
 decoded from THE TROUT FIXTURE RELEASE, `app/fixtures/trout/regs-release/` (+ `section-lines.json` beside it): the regs
-fixture (`pipeline.deliver.release.regs_fixture --trout-cases`) cut from a SIDE release built with `--trout-table`,
-keeping exactly the waters of `CASES`. `--check` decodes them again and compares: it proves vectors = fixture, never
+fixture (`pipeline.deliver.release.regs_fixture --trout-cases`) cut from a release holding the section (a side release
+built with the flag before the cutover; any release since T810 L, which removed the flag), keeping exactly the waters
+of `CASES`. `--check` decodes them again and compares: it proves vectors = fixture, never
 vectors = builder; a builder change reaches both only through `scripts/trout-refresh.sh` (side release -> fixture ->
 these vectors -> the golden sync), which nobody runs by hand step by step.
 
-WHY A FIXTURE OF ITS OWN (until the switch). The section ships only behind `--trout-table` (owner 17:40: "only at the
-switch"), and the app's committed regs fixture (`app/packages/data/dev/regs-release/`, re-cut from every normal release
+WHY A FIXTURE OF ITS OWN (until the switch). Before the cutover the section shipped only in side releases (owner 17:40:
+"only at the switch"; the flag went with T810 L), and the app's committed regs fixture (`app/packages/data/dev/regs-release/`, re-cut from every normal release
 by `regs-recut/sync.mjs`) must stay the normal release's until the app reads the section (its M0): a regs fixture holding
 `trout` moves `taps.json`'s versions, which the app's conformance holds to `KNOWN_VERSIONS`. So the side-cut copy lives
 under `app/fixtures/trout/`; at the cutover (ticket L) the normal release carries the section and the two can be one.

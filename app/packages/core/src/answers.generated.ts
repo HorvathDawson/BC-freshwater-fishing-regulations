@@ -2,8 +2,7 @@
 // The answers/2 frames (pipeline/deliver/answers/model/), from their JSON Schema.
 
 export type Accompanied = { "holding": string; "who": Record<string, unknown> };
-export type AlienWater = { "name": string; "key": string };
-export type AlienWeekend = { "says": string; "waters": readonly (AlienWater)[] };
+export type AlienClosure = { "rule": number; "of": null | string; "says": string };
 export type Allowance = { "says": string; "by": readonly ([number, number])[] };
 export type AlsoCounts = { "tier": null | string; "by": null | number; "n": number; "over_cm": number; "then": readonly (TreeThen)[]; "species": readonly (string)[]; "says": string };
 export type Badge = { "of": "water" | "area" | "region" | "bc"; "entry": null | string; "share": boolean; "apart": boolean; "narrow_all": boolean; "both"?: null | string };
@@ -163,7 +162,7 @@ export type DisplayStripValue = readonly (StripState)[];
 export type DisplayWatersValue = Record<string, WaterFacts>;
 export type GearValue = GearAnswer | TidalState;
 export type GearCountNounsValue = Record<string, [string, string]>;
-export type LicenceValue = { "holds": Holds | TidalHolds; "profiles": readonly (ProfileAnswer | TidalProfile)[]; "under_16"?: null | readonly (UnderSixteen)[]; "alien_weekend"?: AlienWeekend | null };
+export type LicenceValue = { "holds": Holds | TidalHolds; "profiles": readonly (ProfileAnswer | TidalProfile)[]; "under_16"?: null | readonly (UnderSixteen)[]; "alien_closures"?: null | readonly (AlienClosure)[] };
 export type RowsValue = { "spp": readonly (string)[]; "fish": Record<string, FishAnswer>; "rows": readonly (Row)[]; "steelhead_line": "possible_with_rules" | "known_with_rules" | "known_no_rules" | null; "page_possession": PagePossession | null };
 export type TopGlossaryValue = { "version": number; "terms": readonly (GlossaryTerm)[] };
 export type TopMomentsValue = readonly (Moment)[];

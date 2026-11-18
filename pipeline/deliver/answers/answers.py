@@ -262,8 +262,14 @@ def _trout_compose_key(values: Dict[str, list], starts: List[int], moments, ctx:
 
 
 #: T810 ticket L: False = the cutover pass is off (the covered trout rows keep `group` and `elsewhere`, mixed rows stay
-#: whole): the mutation pin of `test_t810_cutover.py`, and how a test gets the rows the trout builder read
+#: whole): how a test gets the rows the trout builder read (`pipeline/tests/mini_chain.trout_inputs`); the cut
+#: itself is pinned in `test_t810_cutover.py`
 A_CUT_OVER = True
+#: T810 L (the review's findings 2 and 3), each False = its mutation pin: the build stops where a covered row's
+#: kept-elsewhere text is not on its table; a split part carries its own fish's stamps; the year strips are cut again
+A_ELSEWHERE_HELD = True
+A_SPLIT_RESTAMPED = True
+A_SPLIT_YEARS_RECUT = True
 
 #: the row fields the trout table says for the rows it covers, dropped from them at rows 34 (contract Q-D9: `year`,
 #: `week`, `items`, `conds`, `real_daily`, `everyone`, `stamps` and `presence` stay — the page reads them elsewhere)
@@ -292,12 +298,19 @@ def cut_over(frames: Sequence[dict], cells: Sequence[Optional[dict]], licences: 
         if list(cell["covers"]) != covers:
             raise AnswersError(f"answers: segment {j} from day {starts[j]}: the trout table covers {list(cell['covers'])}"
                                f", the split frame's trout rows are {covers}")
+        if A_ELSEWHERE_HELD:
+            # what the cut drops must be on the table: every kept-elsewhere text the card said for a covered row
+            from pipeline.deliver.answers.trout.table import elsewhere_said
+            lost = [t for t in elsewhere_said(f) if t not in (cell["table"].get("elsewhere") or ())]
+            if lost:
+                raise AnswersError(f"answers: segment {j} from day {starts[j]}: the cutover drops kept-elsewhere text the "
+                                   f"trout table does not say: {lost[:3]}")
         whole = {id(r) for r in f.get("rows") or ()}
         profiles = (licences[j] or {}).get("profiles") or []
         docs = documents_of(profiles[pix]) if pix < len(profiles) else []
         rows = []
         for i, r in enumerate(split["rows"]):
-            if id(r) not in whole:                      # a part of a split row: its own fish's documents
+            if id(r) not in whole and A_SPLIT_RESTAMPED:   # a part of a split row: its own fish's documents
                 r = {k: v for k, v in r.items() if k != "stamps"}
                 rs = row_stamps(r, docs, doc_names) if docs else None
                 if rs is not None:
@@ -308,8 +321,8 @@ def cut_over(frames: Sequence[dict], cells: Sequence[Optional[dict]], licences: 
         changed = len(rows) != len(f.get("rows") or ()) or any(a is not b for a, b in zip(rows, f.get("rows") or ()))
         out.append({**f, "rows": rows} if changed else f)
         moved |= changed
-    if not moved:
-        return list(frames)
+    if not moved or not A_SPLIT_YEARS_RECUT:
+        return out if moved else list(frames)
     bare = [{**f, "rows": [{k: v for k, v in r.items() if k != "year"} for r in f.get("rows") or ()]} for f in out]
     return stamp_years(bare, starts, moments)
 

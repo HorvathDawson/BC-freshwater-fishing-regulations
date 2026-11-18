@@ -349,7 +349,7 @@ def parse_sheet_sentence(text: str) -> Parsed:
 #   "only 1 over 50 cm (20 in)", "only 1 over 50 cm (20 in), 2 if one is a hatchery steelhead", "only 1 over 50 cm
 #   (20 in), not counting lake trout", "only 2 wild, each 40 cm (16 in) or less"); possession on its own line
 #   ("In your possession: no more than 1 trout and char in all"); tag "Lake’s rule".
-# THE BANDS: "any of the 5" (upto), "only 3" (own), "only 1 of these 4" / "only 3 between them" / "only 4 among them" /
+# THE BANDS: "counts toward the 5" (upto), "only 3" (own), "only 1 of these 4" / "only 3 between them" / "only 4 among them" /
 #   "only 2 wild in all" (shared), "only 2 in your possession".
 # A ROW'S LINES: its size ("30 cm (12 in) or longer", the kind's own words), "uses the 1 over 50 cm (20 in)", "only 1"
 #   (its own limit inside a shared band), "only 1, counting any lake trout you keep", the possession line ("in your
@@ -514,9 +514,10 @@ def box_possession(line: str) -> str:
 # -- the bands ---------------------------------------------------------------------------------
 
 def band_upto(n) -> str:
-    """A row with no limit of its own: "any of the 5", the box's shared day total (owner 15:46: "the up to the x per day
-    text is a little misleading", picked "'any of the 5' (Recommended)")."""
-    return f"any of the {_n(n)}"
+    """A row with no limit of its own: "counts toward the 5", the box's shared day total (owner 15:46: "the up to the x
+    per day text is a little misleading", picked "'any of the 5'"; then 2026-11-17 21:33 on the picture pack, "The
+    wording still using any of the x which I thought we changed?", picked "counts toward the 2")."""
+    return f"counts toward the {_n(n)}"
 
 
 def band_own(k) -> str:
@@ -682,12 +683,66 @@ def elsewhere_line(q: str, a: str) -> str:
     return _now(f"{q} {a}")
 
 
+#: (T810 L) the kept-elsewhere SENTENCE of a row the table covers (`rows/groups.py elsewhere_of` `says`): the stored
+#: sentence's "today" words, which the link word ("Fished elsewhere today?") says instead (contract Q-D2)
+_SAYS_TODAY = ((" you kept anywhere else today count toward ", " you kept anywhere else count toward "),
+               (" you fish today", " you fish"))
+
+
+def elsewhere_says(says: str) -> str:
+    """A covered row's kept-elsewhere sentence (`Row.elsewhere.says`: whose limit, its number, which fish kept elsewhere
+    count toward it) as the table's `elsewhere` says it, first, before the worked lines: the same words without
+    "today" (the link word says the day). A sentence this grammar cannot read back (`parse_elsewhere_says`) is
+    refused, never shipped as free text."""
+    out = says
+    for a, b in _SAYS_TODAY:
+        out = out.replace(a, b)
+    parse_elsewhere_says(out)
+    return _now(out)
+
+
+_SAYS_OWN = re.compile(r"Your own limit, counted across every (.+?) you fish(, lakes and streams alike)?\.")
+_SAYS_RULE = re.compile(
+    r"(.+?)[’']s rule( for its tributaries)?: (?:no daily limit here\.|(\d+(?:\.\d+)?) a day here\. (.+?) you kept "
+    r"anywhere else count toward (?:that 1|those (\d+(?:\.\d+)?))\.)"
+    r"( These fish are counted apart from the region[’']s total: they don[’']t use it up\.)?"
+    r"(?: They also count toward (.+?)\.)?")
+
+
+def parse_elsewhere_says(text: str) -> tuple:
+    """A kept-elsewhere sentence (`elsewhere_says`) -> ("own", scope) — "Your own limit, counted across every water in
+    Region 6 you fish, lakes and streams alike." — or ("rule", whose, n | None, fish words, apart, also | None) — "This
+    lake’s rule: 2 a day here. Trout and char other than steelhead you kept anywhere else count toward those 2."
+    (n None: "no daily limit here"; `also` the total it counts toward too, in words). Anything else is refused."""
+    if _TODAY.search(text):
+        raise WordsError(f"trout words: a kept-elsewhere sentence says today: {text!r}")
+    m = _SAYS_OWN.fullmatch(text)
+    if m:
+        return ("own", m[1])
+    m = _SAYS_RULE.fullmatch(text)
+    if m:
+        n = None if m[3] is None else _num(m[3])
+        if n is not None and (_num(m[5]) if m[5] else 1) != n:
+            raise WordsError(f"trout words: a kept-elsewhere sentence counts toward another number: {text!r}")
+        return ("rule", m[1], n, m[4], m[6] is not None, m[7])
+    raise WordsError(f"trout words: not a kept-elsewhere sentence {text!r}")
+
+
+def is_elsewhere_line(text: str) -> bool:
+    """A worked kept-elsewhere line ("Kept 2 elsewhere? …"), as against the sentence that leads the list."""
+    return text.startswith("Kept ")
+
+
 def sheet_keep(band_text: str, box_n) -> str:
     """The fish sheet's head on a keep row (spec 3.4): "Keep · only 1 of these 4 · counts toward the 5"; a row whose band
-    is the box's own number ("any of the 5") says it once: "Keep · counts toward the 5"."""
+    is the box's own number ("counts toward the 5") says it once: "Keep · counts toward the 5"; one toward a smaller
+    number of a raised box (Canuck: the 5 inside "Keep 5, brook trout up to 20") names both: "Keep · counts toward the 5
+    and the 20"."""
     kind, k, _m = parse_band(band_text)
     if kind == "upto" and k == box_n:
         return f"Keep · counts toward the {_n(box_n)}"
+    if kind == "upto":
+        return f"Keep · counts toward the {_n(k)} and the {_n(box_n)}"
     return f"Keep · {band_text} · counts toward the {_n(box_n)}"
 
 
@@ -788,8 +843,8 @@ def _num(s: str):
 
 
 def parse_band(text: str) -> Tuple[str, float, Optional[int]]:
-    """A band text -> (kind, n, m): "up to the 5" ("upto", 5, None), "only 1 of these 4" ("shared", 1, 4)."""
-    for kind, pat in (("upto", rf"any of the {_NUM}"), ("possession", rf"only {_NUM} in your possession"),
+    """A band text -> (kind, n, m): "counts toward the 5" ("upto", 5, None), "only 1 of these 4" ("shared", 1, 4)."""
+    for kind, pat in (("upto", rf"counts toward the {_NUM}"), ("possession", rf"only {_NUM} in your possession"),
                       ("shared", rf"only {_NUM} of these (\d+)"), ("shared", rf"only {_NUM} (between) them"),
                       ("shared", rf"only {_NUM} (among) them"), ("shared", rf"only {_NUM} wild in all"),
                       ("own", rf"only {_NUM}")):
@@ -1264,6 +1319,9 @@ def parse_sheet_head(text: str) -> tuple:
         return ("release",)
     if text == SHEET_CLOSED:
         return ("closed",)
+    m = re.fullmatch(rf"Keep · counts toward the {_NUM} and the {_NUM}", text)
+    if m:
+        return ("keep", band_upto(_num(m[1])), _num(m[2]))
     m = re.fullmatch(rf"Keep · (?:(.+) · )?counts toward the {_NUM}", text)
     if m:
         if m[1] is not None:

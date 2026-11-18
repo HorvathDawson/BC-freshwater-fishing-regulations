@@ -160,3 +160,17 @@ def test_the_cli_writes_its_report(tmp_path, capsys):
     assert {"mixed_rows", "angler_only", "hours_window"} <= set(rep)
     assert "TROUT TABLE A0" in (tmp_path / "report.txt").read_text()
     assert TS.main([str(tmp_path / "nowhere"), "--no-size", "--out", str(tmp_path)]) == 2
+
+
+# ================================================================================ ticket A1: the cutover form, measured
+#
+# A1 measured a SIDE release (rows 33 + the section, built with the flag before the cutover) in its three forms: the
+# result is in the T810 ticket (first_tap 4,256,614 of 4,400,000). Since the cutover (ticket L) every release IS the
+# cutover form and the flag is gone, so no side release can be built to measure: the tool refuses one already cut over
+# (the release's own size gates price it), and says why.
+
+def test_a1_refuses_a_release_already_cut_over(tmp_path):
+    from pipeline.tools.audit import answers_diff as AD
+    with pytest.raises(AD.DiffError, match="already the cutover form"):
+        TS.measure(under_test.mini(), log=lambda *x, **k: None)
+    assert TS.main([str(under_test.mini()), "--cutover", "--out", str(tmp_path / "a")]) == 2

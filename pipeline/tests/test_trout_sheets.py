@@ -37,9 +37,9 @@ def sheet_text(fr, key: str) -> str:
 # ------------------------------------------------------------------------------------------------- (a) no data: G's words
 
 def test_the_sheet_words_whole():
-    assert W.sheet_keep("any of the 5", 5) == "Keep · counts toward the 5"
+    assert W.sheet_keep("counts toward the 5", 5) == "Keep · counts toward the 5"
     # T810 G2 Q2: a raised box's other fish ("Keep 5, brook trout up to 20") say their own number
-    assert W.sheet_keep("any of the 5", 20) == "Keep · any of the 5 · counts toward the 20"
+    assert W.sheet_keep("counts toward the 5", 20) == "Keep · counts toward the 5 and the 20"
     assert W.sheet_shared("only 2 wild in all", "brown trout") == "Only 2 wild in all: this fish and brown trout."
     assert W.sheet_keep("only 1 of these 4", 5) == "Keep · only 1 of these 4 · counts toward the 5"
     assert W.sheet_size("30 cm (12 in) or longer") == "Size: 30 cm (12 in) or longer."
@@ -166,7 +166,7 @@ EXPECTED = {
         'Licence: 10 a year · record each on your licence right away · Steelhead Conservation Surcharge Stamp, only if you fish for steelhead, even to release them.'
     ),
     ('lois-jul15', 'LT'): (
-        'Keep · any of the 4 · counts toward the 6\n'
+        'Keep · counts toward the 4 and the 6\n'
         'Size: 60 cm (24 in) or longer.\n'
         'Hatchery only: wild ones go back.\n'
         'Counts toward the 6 in all, together with brook trout, brown trout, cutthroat trout, Dolly Varden/bull trout, rainbow trout and steelhead.\n'

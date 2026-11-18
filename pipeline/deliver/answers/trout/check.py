@@ -44,7 +44,15 @@ WHAT IT PROVES, per (answer key, segment):
   year bar   shown exactly when every fish shares one state (release or closed) on an open water; its runs the page's
              year rule over the table's fish (`year.stamp_years`)
   src        every rule a table cites exists; each fish's deciding rule is in its row's `src`
-  elsewhere  each kept-elsewhere line read back; its "Keep N more here" proved by the engine after the fish kept there
+  elsewhere  each kept-elsewhere line read back; its "Keep N more here" proved by the engine after the fish kept there;
+             (T810 L) each covered keep row's kept-elsewhere SENTENCE on the table (whose limit, the row's own number),
+             none standing for a row the table does not cover (`elsewhere_said_problems`)
+
+AND OVER EVERY ROWS FRAME OF EVERY KEY, a table or not (T810 L, the rows 34 cutover):
+  possession F0's `page_possession` as shipped = derived again from the frame's possession roles and the bundle's rules
+             (the lead, its sentence and value words, every also-line: `page_possession_problems`)
+  cut        a covered row carries no `group` and no `elsewhere`; every other keep row keeps its kept-elsewhere line, a
+             NULL cell's too (`cut_problems`)
 
 Each check has a mutation test (`test_trout_check.py`): a wrong number, a dropped fish, a shifted date, an unparseable
 sentence, a size edge, an origin, a scope, a possession line, a shared band's span: each fails.
@@ -203,7 +211,9 @@ class Table:
                 if second[0] != "lakes":
                     raise _Fail(f"top.second {t['top']['second']!r} without the line under the table")
                 self.together, self.together_text = second, t["top"]["second"]
-        self.elsewhere = [(e, W.parse_elsewhere(e)) for e in t["elsewhere"]]
+        # T810 L: the covered rows' kept-elsewhere sentences lead the list, then the worked lines; each read back
+        self.elsewhere = [(e, W.parse_elsewhere(e)) for e in t["elsewhere"] if W.is_elsewhere_line(e)]
+        self.elsewhere_says = [(e, W.parse_elsewhere_says(e)) for e in t["elsewhere"] if not W.is_elsewhere_line(e)]
         self.rows: List[Row] = []
         self.boxes = []
         for bi, b in enumerate(t["boxes"]):
@@ -330,7 +340,7 @@ class Table:
                     out.append((f"row {r.key} a day {r.daily_said}", of_rows([r]), r.daily_said))
                 elif kind == "upto" and k != b["n"] and not (b.get("except") is not None and k == b["except"][0]
                                                                and r.fish not in set(b["except"][1])):
-                    raise _Fail(f"row {r.key}: 'any of the {k}' in a box of {b['n']}")
+                    raise _Fail(f"row {r.key}: 'counts toward the {k}' in a box of {b['n']}")
             for p in b["strip"]:
                 if p[0] == "size":
                     n, cm, extra = p[1], p[2], p[3]
@@ -790,7 +800,7 @@ def possession_problems(c: Cell, T: Table) -> List[str]:
         duties = [f"{r.poss_text} ({POSSESSION_HOME})"] if r.poss_text else []
         x = {"species": [r.fish], "n": 1, "duties": duties}
         got = PP(c.P, x, f"row {r.key}", lead=lead)
-        # (the row's own number, or the box's where G2 Q1 turned the row's own band into "any of the N")
+        # (the row's own number, or the box's where G2 Q1 turned the row's own band into "counts toward the N")
         own = [y[1] for _t, y in r.lines if y[0] == "only"] + ([r.band[1]] if r.band and r.band[0] in ("own", "upto")
                                                                  else [])
         if got and not duties and own:
@@ -1007,6 +1017,42 @@ def _elsewhere_holds(E, q, a, kinds: Sequence[str], other: str, away: str):
                     return True
                 seen.append(m)
     return seen or None
+
+
+#: T810 L (the review's findings 1 and 2): every covered keep row's kept-elsewhere sentence is on the table, with its
+#: number. False = the check is off (the mutation pin)
+A_ELSEWHERE_SAID_PROOF = True
+
+
+def elsewhere_said_problems(c: Cell, T: Table) -> List[str]:
+    """The kept-elsewhere SENTENCES (T810 L): the cutover dropped `elsewhere` from the rows the table covers, so the
+    table must say it. Held to the shipped rows frame (never to the words the builder read): each covered keep row
+    (`kind` keep: its `scope` says whose count it is) has its sentence on the table — "Your own limit, counted across
+    …" for a region's, an area's or B.C.'s count, "<whose> rule: N a day here …" with the row's own daily number for a
+    water's — and every sentence on the table stands for a covered keep row. A table that lost one fails."""
+    if not A_ELSEWHERE_SAID_PROOF:
+        return []
+    rows = c.today.get("rows") or []
+    keep = [rows[i] for i in c.cell["covers"] if i < len(rows) and rows[i].get("kind") == "keep"]
+    said = [p for _t, p in T.elsewhere_says]
+    probs: List[str] = []
+    for r in keep:
+        sc = r.get("scope") or {}
+        if sc.get("of") == "water" and not sc.get("share"):
+            if not any(p[0] == "rule" and p[2] == r.get("daily") for p in said):
+                probs.append(f"the covered keep row of {r.get('members')} (its own {r.get('daily')} a day) has no "
+                             "kept-elsewhere sentence on the table")
+        elif not any(p[0] == "own" for p in said):
+            probs.append(f"the covered keep row of {r.get('members')} ({sc.get('of')}'s count) has no kept-elsewhere "
+                         "sentence on the table")
+    dailies = {r.get("daily") for r in keep if (r.get("scope") or {}).get("of") == "water"}
+    for text, p in T.elsewhere_says:
+        if p[0] == "rule" and p[2] not in dailies:
+            probs.append(f"{text!r}: no covered keep row keeps {p[2]} a day by its water's own rule")
+        if p[0] == "own" and not any((r.get("scope") or {}).get("of") != "water" or (r.get("scope") or {}).get("share")
+                                     for r in keep):
+            probs.append(f"{text!r}: no covered keep row is counted by a region's, an area's or B.C.'s limit")
+    return probs
 
 
 def elsewhere_problems(c: Cell, T: Table) -> List[str]:
@@ -1422,7 +1468,7 @@ def check_key(cells, frames, displays, licences, starts, moments, rule: Callable
             got.append(f"covers {list(cell['covers'])}; the rows frame's trout rows are {covers_of(frames[j])}")
         try:
             for f in (law_problems, top_problems, possession_problems, origin_problems, sheet_problems,
-                      elsewhere_problems, src_problems):
+                      elsewhere_problems, elsewhere_said_problems, src_problems):
                 got += f(c, T)
             got += joint_problems(c, T, f"{seed}:{j}")
             if one and parts:
@@ -1438,6 +1484,90 @@ def check_key(cells, frames, displays, licences, starts, moments, rule: Callable
     except (W.WordsError, _Fail) as e:
         probs.append(f"dates: {type(e).__name__}: {e}")
     return checked, probs
+
+
+# ============================================================================================
+# The rows 34 cutover (T810 L): every rows frame, every key — not only the trout tables
+# ============================================================================================
+
+#: T810 L (the review's findings 4 and 5): the page's possession row and the cut rows are proved over the shipped frames.
+#: False = each check is off (the mutation pins)
+A_PAGE_POSSESSION_PROOF = True
+A_CUT_PROOF = True
+
+
+def page_possession_expected(frame: dict, ids: Sequence[str], rule: Callable) -> Optional[dict]:
+    """The page's possession row the shipped rows frame must carry (F0, contract 2.11), derived again from what it ships:
+    the possession roles its decided answers give (fish by fish, hatchery then wild, each answer's roles in stored
+    order, as `card.possession_role_rules` walks them) over the bundle's rules — the lead `card.possession_lead` picks
+    with its sentence (`display.rule.rule_facts` `plain`) and its value words (`display.rule.possession_value`), and the
+    also-lines (every other multiplier of another number of days, then every count, less the trout- and char-only ones,
+    `card.trout_only`). The same choice functions; the inputs are the shipped bytes and the bundle."""
+    import types
+    from pipeline.deliver.answers.card import possession_lead, trout_only
+    from pipeline.deliver.answers.display.rule import possession_value, rule_facts
+    per: Dict[int, object] = {}
+    caps: Dict[int, object] = {}
+    for fa in (frame.get("fish") or {}).values():
+        for o in ("hatchery", "wild"):
+            d = fa.get(o)
+            for ix, role, _by in (d or {}).get("roles") or ():
+                if role in ("possession", "possession_cap"):
+                    (per if role == "possession" else caps).setdefault(
+                        ix, types.SimpleNamespace(key=ids[ix], f=rule(ix), ix=ix))
+    lead = possession_lead(list(per.values()))
+    if lead is None and not caps:
+        return None
+
+    def says(r) -> str:
+        w = rule_facts(r.f).get("plain")
+        if not w:
+            raise _Fail(f"the possession rule {r.key} has no sentence")
+        return w
+    also = [r for r in per.values() if r is not lead and float(r.f.get("per_daily") or 0) != float(lead.f["per_daily"])] \
+        if lead is not None else []
+    also = [{"says": says(r), "src": r.ix} for r in also + list(caps.values()) if not trout_only(r)]
+    out_lead = None if lead is None else {"says": says(lead), "value": possession_value(lead.f), "src": lead.ix}
+    if out_lead is None and not also:
+        return None
+    return {"lead": out_lead, "also": also}
+
+
+def page_possession_problems(frame: dict, ids: Sequence[str], rule: Callable) -> List[str]:
+    """F0's row as shipped against `page_possession_expected`: a wrong value word, a lost or extra also-line, a lead
+    that is not the pick, a row missing where one is owed (or the reverse) — each fails."""
+    if not A_PAGE_POSSESSION_PROOF:
+        return []
+    if "page_possession" not in frame:
+        return ["the rows frame has no `page_possession` (rows 34, F0)"]
+    try:
+        want = page_possession_expected(frame, ids, rule)
+    except _Fail as e:
+        return [str(e)]
+    got = frame["page_possession"]
+    if got != want:
+        return [f"page_possession {json.dumps(got, ensure_ascii=False)[:300]}; the frame's possession roles give "
+                f"{json.dumps(want, ensure_ascii=False)[:300]}"]
+    return []
+
+
+def cut_problems(frame: dict, cell: Optional[dict]) -> List[str]:
+    """The rows 34 cut (`answers.cut_over`, contract Q-D9) as shipped: a row the cell's table covers carries no `group`
+    and no `elsewhere` (the table says them); every other row is as the card made it — a keep row keeps its kept-
+    elsewhere line, on a NULL cell too (Q-D3: no table there, nothing covered)."""
+    if not A_CUT_PROOF:
+        return []
+    covers = set(cell["covers"]) if cell is not None else set()
+    probs: List[str] = []
+    for i, r in enumerate(frame.get("rows") or ()):
+        if i in covers:
+            if r.get("group") is not None or r.get("elsewhere") is not None:
+                probs.append(f"row {i} is covered by the table and still carries its "
+                             f"{'group' if r.get('group') is not None else 'kept-elsewhere line'}")
+        elif r.get("kind") == "keep" and r.get("scope") is not None and r.get("elsewhere") is None:
+            probs.append(f"row {i} ({r.get('members')}) is a keep row no table covers, and it lost its kept-elsewhere "
+                         "line")
+    return probs
 
 
 def check_model(model, bundle: str, data: dict, keys=None, log=print) -> dict:
@@ -1469,6 +1599,10 @@ def check_model(model, bundle: str, data: dict, keys=None, log=print) -> dict:
             continue
         tc = model.sections["trout"][k]
         cells += sum(1 for x in tc if x is not None)
+        # T810 L: every key's rows frames — the page's possession row (F0) and the cut — trout table or not
+        for j, f in enumerate(model.sections["rows"][k]):
+            probs += [f"key {k}: segment {j}: {p}" for p in page_possession_problems(f, ids, rule)
+                      + cut_problems(f, tc[j])]
         if all(x is None for x in tc) and all(not asked(f) for f in model.sections["rows"][k]):
             continue
         rk, kd = common.rule_key(key), common.key_dict(key)

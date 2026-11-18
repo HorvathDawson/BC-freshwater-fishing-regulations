@@ -564,15 +564,16 @@ SPEC = {
                     "exemptions, guiding and other anglers' rules",
             "version": "7",
             "at": "[[frame index per segment] per key]",
-            "frames": "[[holds, documents, under_16?, alien_weekend?]] — indexes into `holds`, `documents`, `under_16` "
-                      "(absent on tidal water) and `alien_weekend` (T789 G8: absent on tidal water and where no water "
-                      "has one; never without `under_16`)",
-            "alien_weekend": "[{says, waters [{name, key}]}] — T789 G8 (owner 2026-11-17): the province's weekend "
-                             "closures to non-guided non-resident aliens, the same on every non-tidal frame: `says` the "
-                             "book's sentence (Region 6 water rows, printed pp.50-53), `waters` every water whose rules "
-                             "close it to them on a Saturday or Sunday (`licence.alien_weekend`), by name; `key` the "
-                             "water's item_id (the store's `item`, `display.waters`). Additive: a reader that does not "
-                             "know it reads the first three indexes as before",
+            "frames": "[[holds, documents, under_16?, alien_closures?]] — indexes into `holds`, `documents`, `under_16` "
+                      "(absent on tidal water) and `alien_closures` (T789 G8: only on a part whose rule set holds one; "
+                      "never without `under_16`)",
+            "alien_closures": "[[{rule, of, says}]] — T789 G8 (owner 2026-11-17: each water its own, none where it does not "
+                              "apply): the closures to the non-resident alien the part's rule set holds "
+                              "(`licence.alien_closures`; the rule set is in the licence key there) and the ladder leaves "
+                              "standing, `rule` its export index, `of` the water whose rule it is on a tributary part (else "
+                              "null; data only), `says` the whole sentence (\"Lakelse River and its tributaries: …\" on a "
+                              "tributary; \"all year\" where no date is printed). Additive: a reader "
+                              "that does not know it reads the first three indexes as before",
             "under_16": "[[{residency, label, none_needed, with_adult {who, counts} | null, buy [{doc, name, "
                         "prices, or? [{need, names}]}], own_limit, says}] per residency] — version 5 (ROUND15 2): what an under-16 "
                         "angler needs here, per residency (not guided, no status), read off the profiles' "
@@ -900,13 +901,13 @@ class LicenceCodec:
             row = [holds.add(v["holds"]), docs.add([answers.add(p) for p in v["profiles"]])]
             if v.get("under_16") is not None:
                 row.append(u16.add(v["under_16"]))            # ROUND15 2
-            if v.get("alien_weekend") is not None:            # T789 G8: the 4th index, after under_16's
+            if v.get("alien_closures") is not None:           # T789 G8: the 4th index, after under_16's
                 if len(row) != 3:
-                    raise ValueError("licence: a frame with alien_weekend and no under_16")
-                row.append(aw.add(v["alien_weekend"]))
+                    raise ValueError("licence: a frame with alien_closures and no under_16")
+                row.append(aw.add(v["alien_closures"]))
             refs.append(frames.add(row))
         return {"holds": holds.rows, "answers": answers.rows, "documents": docs.rows,
-                "under_16": u16.rows, "alien_weekend": aw.rows, "frames": frames.rows}, refs
+                "under_16": u16.rows, "alien_closures": aw.rows, "frames": frames.rows}, refs
 
     def decode_frame(self, sec, ref, rules, fish):
         h, d, *rest = sec["frames"][ref]
@@ -914,7 +915,7 @@ class LicenceCodec:
         if rest:
             out["under_16"] = sec["under_16"][rest[0]]
         if len(rest) > 1:
-            out["alien_weekend"] = sec["alien_weekend"][rest[1]]
+            out["alien_closures"] = sec["alien_closures"][rest[1]]
         return out
 
 
