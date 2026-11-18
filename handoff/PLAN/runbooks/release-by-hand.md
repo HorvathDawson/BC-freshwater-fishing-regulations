@@ -39,7 +39,8 @@ Everything is already set up on this Mac. A two-minute check saves a stopped run
    - Cloudflare: `npx --prefix app wrangler whoami` (if expired: `npx --prefix app wrangler login`)
    - R2: `rclone listremotes` shows `r2:`
 4. **Secrets are in `~/.canifishthis/`**: the Play service account, the upload keystore, the App Store Connect key and
-   the iOS team id. They are there today. A new Mac: `handoff/PLAN/runbooks/fresh-machine.md`.
+   the iOS team id. They are there today. A new Mac: `handoff/PLAN/runbooks/fresh-machine.md`. Every secret, where it
+   lives and how to replace it: `handoff/PLAN/runbooks/secrets.md`.
 5. **The machine is free.** Big jobs wait their turn (the scripts queue themselves through `scripts/heavy.sh`), but two
    at once is slow. Don't start an app build while a release runs. Close big apps.
 6. **Disk space.** Test leftovers can fill the disk (151 GB once). If space is low, delete old `release-open-*` folders
