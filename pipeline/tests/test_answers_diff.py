@@ -610,6 +610,20 @@ def test_a_daily_change_moves_the_possession_number_but_only_the_limit_is_listed
     assert [g["kind"] for g in r["groups"]] == ["limit_lower"]
 
 
+def test_a_fish_no_longer_asked_about_lists_no_possession_change(pair):
+    """MUTATION of the skip: the fish leaves the card (`spp` and `fish`); its possession going is its own change."""
+    a, b = pair
+    st = Store(b)
+    akey, _ = _plain_key(st)
+    fid, fr, sp = _keep_fish(st, akey, 1)
+    fr[0] = [x for x in fr[0] if x != sp]
+    fr[1] = {k: v for k, v in fr[1].items() if k != sp}
+    st.cell(akey, 1, "rows", st.add("rows_frame", fr))
+    st.save()
+    kinds = {g["kind"] for g in _diff(a, b)["groups"]}
+    assert "other" in kinds and "possession" not in kinds
+
+
 def test_the_possession_sentence_is_whole(pair):
     a, b = pair
     _possession_pair(pair, {"take": 3})
@@ -695,6 +709,38 @@ def test_a_pooled_rows_number_is_a_shared_limit_in_its_direction(pair, edit, err
     assert g["errs"] == errs and len(r["groups"]) == 1 and g["block"] == "shared"
     from pipeline.regs.parsing.catalogue_parts.labels import species_words
     assert list(g["subjects"]) == [species_words(sorted(row["all_members"]))]
+
+
+def test_a_shared_limit_lists_only_the_limits_that_moved(pair):
+    a, b = pair
+    _, _, row = _plant_row(b, _trout_pool, lambda r: {**r, "daily": r["daily"] - 1})
+    from pipeline.regs.parsing.catalogue_parts.labels import species_words
+    g = _only(_diff(a, b), "shared_limit")
+    fish = species_words(sorted(set(row["all_members"])))
+    assert g["before"] == [f"{row['daily']} a day of {fish} together"]
+    assert g["after"] == [f"{row['daily'] - 1} a day of {fish} together"]
+
+
+def test_a_one_kind_rows_number_is_no_shared_limit(pair):
+    """MUTATION of the several-fish rule: a one-fish row's number is that fish's own (its daily answer says it)."""
+    a, b = pair
+    _plant_row(b, lambda r: r["kind"] == "keep" and len(set(r["all_members"])) == 1,
+               lambda r: {**r, "daily": r["daily"] - 1})
+    kinds = {g["kind"] for g in _diff(a, b)["groups"]}
+    assert kinds and "shared_limit" not in kinds
+
+
+def test_a_gear_ban_on_an_element_no_rule_spoke_of_is_stricter(pair):
+    a, b = pair
+    st = Store(a)                                            # A: the element unspoken; B (as built) bans it
+    akey, _ = _plain_key(st)
+    g = st.get("gear_frame", st.cell(akey, 1, "gear"))
+    e = next(k for k, v in sorted(g["elements"].items()) if v["verdict"] == "ban")
+    g["elements"] = {k: v for k, v in g["elements"].items() if k != e}
+    st.cell(akey, 1, "gear", st.add("gear_frame", g))
+    st.save()
+    assert _only(_diff(a, b), "gear")["errs"] == "closed"
+    assert _only(_diff(b, a), "gear")["errs"] == "open"
 
 
 def test_a_shared_count_added_is_a_stricter_shared_limit(pair):
@@ -897,3 +943,17 @@ def test_conduct_lines_name_every_rule_by_its_id():
     # differ) and a pair's entry index is read as rule 1
     bad = AD.resolve(v, AD.RULE_KEYS["gear"], frozenset(), ids.get, None)
     assert bad["conduct"]["keep"] == v["conduct"]["keep"] and bad["counts"]["x"]["by"] == ["e::r3", None]
+
+
+def test_a_cap_whose_size_band_moves_is_the_same_cap():
+    """A group cap is keyed by its fish (and origin) per place: `RB.0.h` -> `RB.25.h` is the rainbow's size band moving
+    (its size lines say it), not a cap gone and another come. MUTATION: keyed by the kind ids, the two rows' limits
+    differ."""
+    def row(band):
+        return {"all_members": ["CT", "RB"], "kind": "keep", "daily": 5, "group": {
+            "kinds": ["CT", "RB"], "total": 5, "subcaps": [],
+            "caps": [{"take": 1, "kinds": {"here": ["CT.50", f"RB.{band}.h"], "stream": [], "lake": []},
+                      "says": "Only 1 over 50 cm", "if_kept_here": False}]}}
+    a, b = AD.shared_limits(None, row(0)), AD.shared_limits(None, row(25))
+    assert a == b and any(k.startswith("cap:CT,RB.h|") for k in a)
+    assert AD._kind_fish("RB.25.h") == "RB.h" and AD._kind_fish("DV.0") == "DV"

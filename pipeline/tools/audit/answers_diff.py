@@ -46,8 +46,10 @@ THE KINDS: closes, opens, limit lower, limit higher, size stricter, size looser,
 shared limit, gear, licence, the fish card's rows, wording only, source only (same answer, another rule or place
 answers), new water or part, removed water or part, other. Each change says which way it errs: toward closed, toward
 open, no change to what you may do, or unclear. Possession, shared limits and counted gear read a direction from their
-numbers (fewer, a new limit: toward closed); "unclear" is left for a change both ways or one with no number. Groups: kind, then the rule or place behind it before and after (so 71,046 sections of 71 rule + place pairs
-are 71 lines), with section and water counts, the day ranges per fish, the water names and one worked example.
+numbers (fewer, a new limit: toward closed), and so does a gear ban that comes or goes; "unclear" is left for a
+change both ways or one with no number. Groups: kind, then the rule or place behind it before and after (so 71,046
+sections of 71 rule + place pairs are 71 lines), with section and water counts, the day ranges per fish, the water
+names and one worked example.
 
 ACROSS THE TROUT CUTOVER (rows `CUTOVER_ROWS`, spec ticket L): each release is decoded at its own rows version, so the
 last release before the cutover and the cutover candidate are one run; a trout row's dropped `group` / `elsewhere` and
@@ -626,8 +628,10 @@ def section_facets(rel: "Release", name: str, ref: int, resolve_refs: bool) -> d
             seen[mem] += 1
             lim = shared_limits(rel, r)
             src = rel.rid(r.get("pool"))
+            if not lim:
+                continue
             out[("shared", mem) + ((seen[mem],) if seen[mem] > 1 else ())] = F(
-                "shared", sorted([k, v] for k, (v, _) in lim.items()),
+                "shared", sorted([k, v, w] for k, (v, w) in lim.items()),
                 "; ".join(w for _, (_, w) in sorted(lim.items())) or "no number", src, "rows")
     elif name == "display":
         closed = fr.get("status") == "closed"
@@ -757,63 +761,88 @@ def count_bound(rel: "Release", by) -> Optional[list]:
 
 
 def shared_limits(rel: "Release", row: dict) -> Dict[str, Tuple[float, str]]:
-    """The numbers several fish of one pooled row share, by a key stable across releases (fish codes, cm, cap kind
-    ids; never a rule index): {key: (number, words)}. The row's number in all, its group's total, the most one may keep
+    """The numbers SEVERAL FISH of one pooled row share, by a key stable across releases (fish codes, cm, cap kind ids;
+    never a rule index): {key: (number, words)} — the row's number in all, its group's total and the most one may keep
     here, each sub-cap and cap of the group's cap system, the real daily limit's shared caps and counts, the row's
-    conditions' and items' sub-caps. Lower is stricter; a limit that is new is stricter, one that goes is looser."""
+    conditions' and items' sub-caps. A limit over ONE kind of fish is left out: that fish's own answer (its daily
+    number, its size lines) says it and is compared there. Lower is stricter; a new limit is stricter, one that goes
+    looser."""
     from pipeline.regs.parsing.catalogue_parts.labels import species_words
     out: Dict[str, Tuple[float, str]] = {}
-
-    def put(key, n, words):
-        if n is None:
-            return
-        n = INF if n == "unlimited" else float(n)
-        out[key] = (n, words)
+    mem = sorted(set(row["all_members"]))
+    if len(mem) < 2:
+        return out
 
     def fw(xs):
-        return species_words(sorted(xs)) if xs else "any fish"
-    mem = row["all_members"]
-    put("row", row.get("daily") if row.get("kind") == "keep" else "unlimited",
-        f"{fw(mem)}: {_num(row.get('daily'))} a day in all" if row.get("kind") == "keep" else f"{fw(mem)}: no limit")
+        return species_words(sorted(set(xs)))
+
+    def put(key, n, fish, words):
+        if n is None or len(set(fish)) < 2:
+            return
+        out[key] = (INF if n == "unlimited" else float(n), words)
+    put("row", row.get("daily") if row.get("kind") == "keep" else "unlimited", mem,
+        f"{_num(row.get('daily'))} a day of {fw(mem)} together" if row.get("kind") == "keep" else
+        f"no limit on {fw(mem)}")
     g = row.get("group") or {}
     if g:
-        put("group", g.get("total"), f"{_num(INF if g.get('total') == 'unlimited' else g.get('total'))} in all")
-        put("water_max", g.get("water_max"), f"at most {_num(g.get('water_max'))} here")
+        kinds = g.get("kinds") or mem
+        put("group", g.get("total"), kinds,
+            f"{_num(INF if g.get('total') == 'unlimited' else g.get('total'))} in all of {fw(kinds)}")
+        put("water_max", g.get("water_max"), kinds, f"at most {_num(g.get('water_max'))} of them kept here")
         for x in g.get("subcaps", []):
             where = (f" from {x['water']}s" if x.get("water") else "") + \
                     (f" over {x['over_cm']} cm" if x.get("over_cm") is not None else "") + \
                     (f" under {x['under_cm']} cm" if x.get("under_cm") is not None else "")
             put(f"subcap:{','.join(sorted(x['of']))}:{x.get('water')}:{x.get('over_cm')}:{x.get('under_cm')}",
-                x.get("take"), f"{_num(x.get('take'))} of {fw(x['of'])}{where}")
+                x.get("take"), x["of"], f"{_num(x.get('take'))} of {fw(x['of'])}{where}")
         for c in g.get("caps", []):
             k = c.get("kinds") or {}
-            put("cap:" + "|".join(",".join(sorted(k.get(p, []))) for p in ("here", "stream", "lake")) +
-                (":if_here" if c.get("if_kept_here") else ""), c.get("take"), c.get("says") or f"cap {c.get('take')}")
+            ids = [i for p in ("here", "stream", "lake") for i in k.get(p, [])]
+            # keyed by fish (and origin) per place, not by the cap kinds' size bands: a band that moves is the fish's
+            # size lines' change, not a cap that went and another that came
+            put("cap:" + "|".join(",".join(sorted({_kind_fish(i) for i in k.get(p, [])})) for p in ("here", "stream",
+                                                                                                  "lake")) +
+                (":if_here" if c.get("if_kept_here") else ""), c.get("take"), {i.split(".")[0] for i in ids},
+                (c.get("says") or "").rstrip(".") or f"{_num(c.get('take'))} together")
     rd = row.get("real_daily") or {}
     for x in rd.get("shared_cap") or []:
-        put(f"shared_cap:{x['over_cm']}", x.get("take"), f"{_num(x.get('take'))} over {x['over_cm']} cm together")
+        put(f"shared_cap:{x['over_cm']}", x.get("take"), mem, f"{_num(x.get('take'))} over {x['over_cm']} cm together")
     for x in rd.get("shared_count") or []:
-        put(f"shared_count:{','.join(sorted(x['members']))}", x.get("take"),
+        put(f"shared_count:{','.join(sorted(x['members']))}", x.get("take"), x["members"],
             f"{_num(x.get('take'))} of {fw(x['members'])} together")
     for c in row.get("conds") or []:
-        who = ",".join(sorted(c.get("who") or c.get("members") or c.get("of") or []))
+        who = c.get("who") or c.get("members") or c.get("of") or mem
         band = f"{c.get('a')}-{c.get('b')}" if "a" in c else ""
-        head = f"cond:{c['c']}:{c.get('o') or ''}:{who}:{band}"
-        words = f"{fw((c.get('who') or c.get('members') or c.get('of') or []))}" + \
-                (f" {c.get('a')}-{c.get('b') if c.get('b') is not None else 'up'} cm" if band else "") + \
-                (f" ({c['o']})" if c.get("o") else "")
-        put(head + ":take", c.get("take"), f"{words}: only {_num(c.get('take'))}")
-        put(head + ":daily", c.get("daily"), f"{words}: {_num(c.get('daily'))} a day")
-        put(head + ":sub", c.get("sub"), f"{words}: {_num(c.get('sub'))} of them")
+        head = f"cond:{c['c']}:{c.get('o') or ''}:{','.join(sorted(who))}:{band}"
+        what = fw(who) + (f" {c['o']}" if c.get("o") else "") + \
+            (f" over {c['a']} cm" if band and c.get("b") is None else f" {c['a']}-{c['b']} cm" if band else "")
+        put(head + ":take", c.get("take"), who, f"only {_num(c.get('take'))} {what}")
+        put(head + ":daily", c.get("daily"), who, f"{_num(c.get('daily'))} a day {what}")
+        put(head + ":sub", c.get("sub"), who, f"{_num(c.get('sub'))} of {what} together")
     for it in row.get("items") or []:
-        put(f"item:{','.join(sorted(it['members']))}:sub", it.get("sub"),
-            f"{fw(it['members'])}: {_num(it.get('sub'))} of them")
+        put(f"item:{','.join(sorted(it['members']))}:sub", it.get("sub"), it["members"],
+            f"{_num(it.get('sub'))} of {fw(it['members'])} together")
     return out
 
 
+def _kind_fish(cap_kind_id: str) -> str:
+    """A cap kind id `<species>.<band>[.h|.w]` without its band: `RB.h`, `DV`."""
+    sp, _, rest = cap_kind_id.partition(".")
+    o = rest.partition(".")[2]
+    return f"{sp}.{o}" if o else sp
+
+
+def moved_limits(a: Sequence, b: Sequence) -> Tuple[str, str]:
+    """(before, after) words of only the shared limits that differ (new, gone, another number or other words)."""
+    da, db = {x[0]: (x[1], x[2]) for x in a}, {x[0]: (x[1], x[2]) for x in b}
+    ks = [k for k in sorted(set(da) | set(db)) if da.get(k) != db.get(k)]
+    return ("; ".join(da[k][1] for k in ks if k in da) or "no such limit",
+            "; ".join(db[k][1] for k in ks if k in db) or "no such limit")
+
+
 def limits_dir(a: Optional[Sequence], b: Optional[Sequence]) -> str:
-    """closed / open / unclear / none, comparing two [[key, number]] lists (a missing limit is no limit)."""
-    da, db = dict(map(tuple, a or [])), dict(map(tuple, b or []))
+    """closed / open / unclear / none, comparing two [[key, number, words]] lists (a missing limit is no limit)."""
+    da, db = {x[0]: x[1] for x in a or []}, {x[0]: x[1] for x in b or []}
     stricter = looser = False
     for k in set(da) | set(db):
         x, y = da.get(k, INF), db.get(k, INF)
@@ -937,7 +966,8 @@ def classify_regs(key: tuple, fa: tuple, fb: tuple, other_origin_same: bool) -> 
             d = count_dir(va, vb)
             return ("source_only", "none") if d == "none" else ("gear", d)
         if va is None or vb is None:
-            return "gear", "unclear"
+            # an element no rule spoke of before: a ban that comes is stricter, one that goes looser
+            return "gear", "closed" if vb == "ban" else "open" if va == "ban" else "unclear"
         return "gear", "closed" if vb == "ban" else "open" if vb == "allow" else "unclear"
     if block == "boats":
         sa, sb = set(va or []), set(vb or [])
@@ -1084,8 +1114,9 @@ def _diff_frames(A, B, ka, sa, kb, sb, resolve_refs, when, cache) -> List[tuple]
         x, y = fa.get(k), fb.get(k)
         subject = ""
         other_same = False
-        if k[0] == "possession" and ("fish", k[1], k[2]) in diffset and x and y and x[5][0] == y[5][0]:
-            continue            # the same possession rules, their number moved with the fish's daily: the fish says it
+        if k[0] == "possession" and ("fish", k[1], k[2]) in diffset and (not x or not y or x[5][0] == y[5][0]):
+            continue            # the same possession rules, their number moved with the fish's daily, or the fish is
+            #                     not asked about on one side: the fish's own change says it
         if k[0] == "shared":
             if any(("fish", sp, o) in diffset for sp in k[1] for o in ORIGINS):
                 continue        # a member fish's own answer moved: that change says it
@@ -1105,8 +1136,10 @@ def _diff_frames(A, B, ka, sa, kb, sb, resolve_refs, when, cache) -> List[tuple]
             subject = k[1]
         kind, errs = classify_regs(k, x, y, other_same)
         block = (x or y)[0]
-        out.append(("regs", kind, errs, block, subject, x[2] if x else "not listed", y[2] if y else "not listed",
-                    x[3] if x else None, y[3] if y else None, when, ""))
+        bw, aw = x[2] if x else "not listed", y[2] if y else "not listed"
+        if block == "shared":
+            bw, aw = moved_limits(x[5] if x else [], y[5] if y else [])
+        out.append(("regs", kind, errs, block, subject, bw, aw, x[3] if x else None, y[3] if y else None, when, ""))
     # the net: a frame that differs with no field above explaining it
     for n, x_ref, y_ref in zip(SECTION_NAMES, ra, rb):
         x, y = fa[("net", n)], fb[("net", n)]
