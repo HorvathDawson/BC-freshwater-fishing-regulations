@@ -280,6 +280,8 @@ reads both files; a ticket closed here moves there once its lane is finished wit
 | T841 | Every classified water the book marks (symbol or "tributaries of …") is captured, bound and requires the Classified Waters Licence; Class badge in the card header | IN PROGRESS (app badge landed c76ff33d4: look B, in the name row; the data audit is the main chat's) | c76ff33d4 | owner 2026-11-17 (`handoff/PLAN/OWNER-TODO.md`) |
 | T846 | A decided fish answer says "keep" where a take-0 sub-cap over part of the pool releases it (Bella Coola cutthroat, 35 waters; the trout table is right) | OPEN | — | T810 L re-review 2026-11-18 |
 | T847 | The gauge roster email names only stations the roster has never seen, each once (owner: the feed already follows ECCC's list) | IN PROGRESS | app chat | owner 2026-11-18 12:18 |
+| T848 | The web map lags zooming out over Intata Reach (Chrome, staging web; owner's trace) | OPEN | app chat | owner 2026-11-18 |
+| T849 | WaterMode's cross-water test waits for the ▲ before it taps (CI flake on d6cbad35d) | OPEN | app chat | CI 2026-11-18 |
 
 ## Next after closed testing
 

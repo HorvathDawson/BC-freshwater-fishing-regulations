@@ -2649,3 +2649,7 @@ More questions (recommended answer first):
 - 2026-11-18 12:18, owner (app chat dialog), on the gauge roster email (T847: notify only stations the roster has never
   seen, once each): "Now, before 0.8.0". Earlier, verbatim: "shouldnt it automatically pick up the changes and handle it
   without needing a refresh unless it was. anever before seen gauge?"
+- 2026-11-18 ~13:15, owner (app chat), with a Traceur trace: "zooming out in map on a high detail big lake and it lags
+  out bad in 0.7.x version app. Be nice to fix this in 0.8.1 if it is still an issue in 0.8.0". The trace held only
+  Chrome (the app was idle in the background). Dialog: where = "In Chrome (staging web)"; lake = "Intata Reach area
+  with the multiple lakes there". T848.
