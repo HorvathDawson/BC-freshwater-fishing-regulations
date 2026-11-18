@@ -627,17 +627,17 @@ EXPECTED.update({
         '  Dolly Varden/bull trout: \n'
         '  Lake trout: '
     ),
-    'skeena-sedan-mill-jul15': (
-        'top: Keep 4 trout and char {day}\n'
-        'fold: 4 a day (keep)\n'
+    'skeena-sedan-mill-jul15': (  # T854 (owner 2026-11-18): lake trout are in Region 6's "1 trout from streams"
+        'top: Keep 1 trout and char {day}\n'
+        'fold: 1 a day (keep)\n'
         'card: Until Oct 31, then release\n'
-        '[Keep 4 in all · only 1 over 50 cm (20 in)]\n'
-        '  Lake trout: 30 cm (12 in) or longer  <counts toward the 4 · only 3 (until Sep 14, then release)>\n'
-        '  Brook trout: 30 cm (12 in) or longer  <counts toward the 4 · 1 total from these 5>\n'
-        '  Brown trout: 30 cm (12 in) or longer  <counts toward the 4 · 1 total from these 5>\n'
-        '  Cutthroat trout: 30 cm (12 in) or longer  <counts toward the 4 · 1 total from these 5>\n'
-        '  Rainbow trout: 30–50 cm (12–20 in)  <counts toward the 4 · 1 total from these 5>\n'
-        '  Steelhead [HATCHERY ONLY]: a rainbow over 50 cm (20 in) | after keeping 1, stop fishing this stream today | ~Steelhead are known to be in this water.  <counts toward the 4 · 1 total from these 5>\n'
+        '[Keep 1 in all]\n'
+        '  Brook trout: 30 cm (12 in) or longer  <counts toward the 1>\n'
+        '  Brown trout: 30 cm (12 in) or longer  <counts toward the 1>\n'
+        '  Cutthroat trout: 30 cm (12 in) or longer  <counts toward the 1>\n'
+        '  Lake trout: 30 cm (12 in) or longer  <counts toward the 1>  (until Sep 14, then release)\n'
+        '  Rainbow trout: 30–50 cm (12–20 in)  <counts toward the 1>\n'
+        '  Steelhead [HATCHERY ONLY]: a rainbow over 50 cm (20 in) | after keeping 1, stop fishing this stream today | ~Steelhead are known to be in this water.  <counts toward the 1>\n'
         '[Release]\n'
         '  Dolly Varden/bull trout:   (until Dec 31, then closed to all fishing)'
     ),
