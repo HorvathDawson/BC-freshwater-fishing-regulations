@@ -2658,3 +2658,5 @@ More questions (recommended answer first):
   landmark up to 18 km away, e.g. the Nass "Canyon City bridge → Canyon City bridge") and the DFO feed check (every
   region "stale" after one failed daily fetch, T851) are raised to big issues. Also asked: "Could you have a nice
   labelled map image show the nass system rules? Including the cascade section rules?"
+- 2026-11-18 ~13:50, owner (app chat), verbatim: "also on the app the loader fish icon should be higher resolution
+  please". T852.
