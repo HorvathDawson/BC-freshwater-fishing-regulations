@@ -9779,12 +9779,10 @@
      "tributaries_only": true,
      "extents": [
       {
-       "op": "downstream_of",
-       "splits": [
-        "puntledge_river__comox_lake"
-       ]
+       "op": "whole"
       }
-     ]
+     ],
+     "review_reason": "T798 (owner 2026-11-18 ~09:55, verbatim: \"no fishing tributaries shoudl be on the entire river??\", \"why woudl you think it doesnt close the wholel river????\", \"look at entry it is clearly close all tributaries\"): the line names no part, so it closes every tributary of the whole Puntledge River (as qualicum_river.r4 / little_qualicum_river.r2 read). It was bound below Comox Lake only. Closed beats r6's fly fishing only on the side streams; r6 sets fly fishing only on the river above the dam and on any side stream its own entry opens (owner: \"the fly fishing on is if a tributary gets opened on its own entry\")."
     },
     {
      "rule_id": "puntledge_river.r6",

@@ -2635,3 +2635,10 @@ More questions (recommended answer first):
   1-6", last line "Fly fishing only upstream of the BC Hydro diversion dam (approximately 3.5 km downstream of Comox
   Lake), including tributaries". The row name carries no tributaries star, so only that one line (and "No Fishing
   tributaries") reach the side streams. Cruickshank River (feeds Comox Lake) has its own row "No Fishing", which wins.
+- 2026-11-18 ~09:54-09:57, owner (main chat), on Puntledge "No Fishing tributaries" (it was bound below Comox Lake
+  only), verbatim: "no fishing tributaries shoudl be on the entire river??"; in the dialog (split at the dam / closed
+  on the entire river / keep today's): "why woudl you think it doesnt close the wholel river????"; "look at entry it is
+  clearly close all tributaries" (with a picture of the printed row); "the fly fishing on is if a tributary gets
+  opened on its own entry". So: every side stream of the whole Puntledge is closed; "Fly fishing only ..., including
+  tributaries" sets the method on the river above the dam and on any side stream that its own entry opens. In work
+  (T798): r5 rebound to the whole river; reach run to measure.

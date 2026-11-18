@@ -43,3 +43,15 @@ reading stands (1,069 sections, every stream above the dam). Confirmed in the bo
 Puntledge row's last line ends "..., including tributaries"; the row name has no tributaries star. Closed. Follow-up
 (not owner): r5 "No Fishing tributaries" binds downstream of the Comox Lake cut, not the dam, so any creek joining in the
 3.5 km between the lake and the dam reads closed although r6 makes it fly fishing only; check whether such creeks exist.
+
+## Item 2 corrected (2026-11-18 ~09:54-09:57, owner)
+Verbatim: "no fishing tributaries shoudl be on the entire river??"; "why woudl you think it doesnt close the wholel
+river????"; "look at entry it is clearly close all tributaries" (picture of the printed row); "the fly fishing on is if
+a tributary gets opened on its own entry". Done: `puntledge_river.r5` ("No Fishing tributaries", tributaries only)
+rebound from `downstream_of puntledge_river__comox_lake` to `whole`, as Qualicum r4 / Little Qualicum r2 read. Reach
+run (scratch punt-r5): exactly 1 of 3,404 rules changed, r5 +1,053 sections (1,389 now): every side stream of the river,
+Comox Lake's feeders included, is closed; r6's fly fishing only stays on the river above the dam. Own entries on
+those side streams: Browns River and Cruickshank River ("No Fishing") and Strathcona Park waters (boats only), so no
+side stream is opened by its own entry today (RULINGS T4: an inherited closure still closes an own-row tributary; only
+a lift opens it). `test_watershed_parts` now pins Cruickshank River INSIDE r5 (it pinned it outside). The follow-up
+above (creeks between the lake and the dam) is moot.
