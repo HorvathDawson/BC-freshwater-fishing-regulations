@@ -349,7 +349,7 @@ def parse_sheet_sentence(text: str) -> Parsed:
 #   "only 1 over 50 cm (20 in)", "only 1 over 50 cm (20 in), 2 if one is a hatchery steelhead", "only 1 over 50 cm
 #   (20 in), not counting lake trout", "only 2 wild, each 40 cm (16 in) or less"); possession on its own line
 #   ("In your possession: no more than 1 trout and char in all"); tag "Lake’s rule".
-# THE BANDS: "any of the 5" (upto), "only 3" (own), "only 1 of these 4" / "only 3 between them" / "only 4 among them" /
+# THE BANDS: "counts toward the 5" (upto), "only 3" (own), "only 1 of these 4" / "only 3 between them" / "only 4 among them" /
 #   "only 2 wild in all" (shared), "only 2 in your possession".
 # A ROW'S LINES: its size ("30 cm (12 in) or longer", the kind's own words), "uses the 1 over 50 cm (20 in)", "only 1"
 #   (its own limit inside a shared band), "only 1, counting any lake trout you keep", the possession line ("in your
@@ -514,9 +514,10 @@ def box_possession(line: str) -> str:
 # -- the bands ---------------------------------------------------------------------------------
 
 def band_upto(n) -> str:
-    """A row with no limit of its own: "any of the 5", the box's shared day total (owner 15:46: "the up to the x per day
-    text is a little misleading", picked "'any of the 5' (Recommended)")."""
-    return f"any of the {_n(n)}"
+    """A row with no limit of its own: "counts toward the 5", the box's shared day total (owner 15:46: "the up to the x
+    per day text is a little misleading", picked "'any of the 5'"; then 2026-11-17 21:33 on the picture pack, "The
+    wording still using any of the x which I thought we changed?", picked "counts toward the 2")."""
+    return f"counts toward the {_n(n)}"
 
 
 def band_own(k) -> str:
@@ -684,10 +685,14 @@ def elsewhere_line(q: str, a: str) -> str:
 
 def sheet_keep(band_text: str, box_n) -> str:
     """The fish sheet's head on a keep row (spec 3.4): "Keep · only 1 of these 4 · counts toward the 5"; a row whose band
-    is the box's own number ("any of the 5") says it once: "Keep · counts toward the 5"."""
+    is the box's own number ("counts toward the 5") says it once: "Keep · counts toward the 5"; one toward a smaller
+    number of a raised box (Canuck: the 5 inside "Keep 5, brook trout up to 20") names both: "Keep · counts toward the 5
+    and the 20"."""
     kind, k, _m = parse_band(band_text)
     if kind == "upto" and k == box_n:
         return f"Keep · counts toward the {_n(box_n)}"
+    if kind == "upto":
+        return f"Keep · counts toward the {_n(k)} and the {_n(box_n)}"
     return f"Keep · {band_text} · counts toward the {_n(box_n)}"
 
 
@@ -788,8 +793,8 @@ def _num(s: str):
 
 
 def parse_band(text: str) -> Tuple[str, float, Optional[int]]:
-    """A band text -> (kind, n, m): "up to the 5" ("upto", 5, None), "only 1 of these 4" ("shared", 1, 4)."""
-    for kind, pat in (("upto", rf"any of the {_NUM}"), ("possession", rf"only {_NUM} in your possession"),
+    """A band text -> (kind, n, m): "counts toward the 5" ("upto", 5, None), "only 1 of these 4" ("shared", 1, 4)."""
+    for kind, pat in (("upto", rf"counts toward the {_NUM}"), ("possession", rf"only {_NUM} in your possession"),
                       ("shared", rf"only {_NUM} of these (\d+)"), ("shared", rf"only {_NUM} (between) them"),
                       ("shared", rf"only {_NUM} (among) them"), ("shared", rf"only {_NUM} wild in all"),
                       ("own", rf"only {_NUM}")):
@@ -1264,6 +1269,9 @@ def parse_sheet_head(text: str) -> tuple:
         return ("release",)
     if text == SHEET_CLOSED:
         return ("closed",)
+    m = re.fullmatch(rf"Keep · counts toward the {_NUM} and the {_NUM}", text)
+    if m:
+        return ("keep", band_upto(_num(m[1])), _num(m[2]))
     m = re.fullmatch(rf"Keep · (?:(.+) · )?counts toward the {_NUM}", text)
     if m:
         if m[1] is not None:

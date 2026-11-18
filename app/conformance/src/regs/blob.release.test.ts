@@ -66,7 +66,9 @@ describe.skipIf(!paired)(`unpackBlob over the province store (${PATH ?? "absent"
     const all = JSON.parse(python(BLOBS)) as Record<string, string>;
     const trout = Object.keys(all).filter((t) => t.startsWith("trout_"));
     if (trout.some(has) && !trout.every(has)) expect.fail(`the store holds only some trout tables: ${trout.filter(has)}`);
-    columns = Object.fromEntries(Object.entries(all).filter(([t]) => !t.startsWith("trout_") || has(t)));
+    // ADDITIVE tables (pipeline/deliver/store/release.py ADDITIVE_TABLES): a release cut before one holds none of it
+    const ADDITIVE = new Set(["licence_alien"]);
+    columns = Object.fromEntries(Object.entries(all).filter(([t]) => (!t.startsWith("trout_") && !ADDITIVE.has(t)) || has(t)));
   });
   /** a table's primary key column (rule: rix, ruleset: set_id, static: k, item: item_ord, lic: lix, else id) */
   const keyCol = (t: string) => (store.prepare("SELECT name FROM pragma_table_info(?) WHERE pk = 1").get(t) as { name: string }).name;

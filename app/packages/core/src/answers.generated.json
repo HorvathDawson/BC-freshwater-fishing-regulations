@@ -2059,51 +2059,39 @@
      "title": "Accompanied",
      "type": "object"
     },
-    "AlienWater": {
+    "AlienClosure": {
      "additionalProperties": false,
-     "description": "One water with a weekend closure to non-guided non-resident aliens: its name and its `item_id` (the durable\nwater handle the app opens a water by, AGENTS 5).",
+     "description": "T789 G8 (owner 2026-11-17: each water its own, none on a water it does not apply to): one closure to the\nnon-resident alien that this part's rule set holds and the ladder leaves standing (`licence.alien_closures`) \u2014\n`rule` its export index; `of` the water whose rule it is where the part holds it by the tributary walk (data only),\nnull on that water's own parts; `says` the whole sentence to draw (its own days, dates and stretch, \"all year\"\nwhere the book prints it; \"<water> and its tributaries: \u2026\" on a tributary).",
      "properties": {
-      "key": {
-       "minLength": 1,
-       "title": "Key",
-       "type": "string"
+      "of": {
+       "anyOf": [
+        {
+         "minLength": 1,
+         "type": "string"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "title": "Of"
       },
-      "name": {
-       "minLength": 1,
-       "title": "Name",
-       "type": "string"
-      }
-     },
-     "required": [
-      "name",
-      "key"
-     ],
-     "title": "AlienWater",
-     "type": "object"
-    },
-    "AlienWeekend": {
-     "additionalProperties": false,
-     "description": "T789 G8 (owner 2026-11-17 \"add as banners\"): THE WEEKEND CLOSURES TO NON-GUIDED NON-RESIDENT ALIENS, province\nwide (`licence.alien_weekend`): `says` the book's sentence, `waters` every water whose rules close it to them on a\nSaturday or Sunday, by name. The same on every frame of a release; the Licence tab's banner for \"From outside\nCanada\".",
-     "properties": {
+      "rule": {
+       "minimum": 0,
+       "title": "Rule",
+       "type": "integer"
+      },
       "says": {
        "minLength": 1,
        "title": "Says",
        "type": "string"
-      },
-      "waters": {
-       "items": {
-        "$ref": "#/$defs/AlienWater"
-       },
-       "minItems": 1,
-       "title": "Waters",
-       "type": "array"
       }
      },
      "required": [
-      "says",
-      "waters"
+      "rule",
+      "of",
+      "says"
      ],
-     "title": "AlienWeekend",
+     "title": "AlienClosure",
      "type": "object"
     },
     "BuyDoc": {
@@ -2966,16 +2954,21 @@
    },
    "additionalProperties": false,
    "properties": {
-    "alien_weekend": {
+    "alien_closures": {
      "anyOf": [
       {
-       "$ref": "#/$defs/AlienWeekend"
+       "items": {
+        "$ref": "#/$defs/AlienClosure"
+       },
+       "minItems": 1,
+       "type": "array"
       },
       {
        "type": "null"
       }
      ],
-     "default": null
+     "default": null,
+     "title": "Alien Closures"
     },
     "holds": {
      "anyOf": [

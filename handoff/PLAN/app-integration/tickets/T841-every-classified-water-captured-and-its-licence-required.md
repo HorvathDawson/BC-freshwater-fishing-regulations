@@ -16,3 +16,5 @@ Source: owner 2026-11-17 ~20:27, verbatim: "Also we need to make sure the classi
 ## App (app chat, after T802's look)
 A Class I / Class II badge in the card header of a classified water (owner's direction; T802 was "looks first"). One
 picture to the owner before it ships.
+
+- 2026-11-17 ~21:18, owner on T841 (73/73 classified rows ship right; own-row tributaries that print no class, Li5/Li5a: Gosnell, Thautil, Glacier (Redslide), Two Mile, Station, Hevenor, Magar, Endako, Little Horsefly, McKinley, Moffat, Wahpeeto, Whiteswan outlet; closed all year: Line, Grave, Sandown, Nichyeskwa, Lean-to, Deep, East Fork White, Bear (Sustut)): "Keep: not classified". Li5/Li5a stand.

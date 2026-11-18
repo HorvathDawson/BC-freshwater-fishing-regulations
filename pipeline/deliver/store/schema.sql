@@ -81,7 +81,7 @@ CREATE TABLE licence_answer (id INTEGER PRIMARY KEY, j BLOB NOT NULL);
 CREATE TABLE licence_doc    (id INTEGER PRIMARY KEY, j BLOB NOT NULL);
 CREATE TABLE licence_frame  (id INTEGER PRIMARY KEY, j BLOB NOT NULL);
 CREATE TABLE licence_u16    (id INTEGER PRIMARY KEY, j BLOB NOT NULL);   -- ROUND15 2: the under-16 summary
-CREATE TABLE licence_alien  (id INTEGER PRIMARY KEY, j BLOB NOT NULL);   -- T789 G8: the alien weekend closures
+CREATE TABLE licence_alien  (id INTEGER PRIMARY KEY, j BLOB NOT NULL);   -- T789 G8: a part's closures to the non-resident alien
 CREATE TABLE display_frame  (id INTEGER PRIMARY KEY, j BLOB NOT NULL);
 -- display's static per-rule table, aligned with the export's rules (rix)
 CREATE TABLE display_rule   (id INTEGER PRIMARY KEY, j BLOB NOT NULL);

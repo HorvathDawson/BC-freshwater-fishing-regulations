@@ -160,3 +160,97 @@ def test_the_cli_writes_its_report(tmp_path, capsys):
     assert {"mixed_rows", "angler_only", "hours_window"} <= set(rep)
     assert "TROUT TABLE A0" in (tmp_path / "report.txt").read_text()
     assert TS.main([str(tmp_path / "nowhere"), "--no-size", "--out", str(tmp_path)]) == 2
+
+
+# ================================================================================ ticket A1: the cutover form, measured
+#
+# Anchor: the mini chain built WITH `--trout-table` (a side release, as `test_trout_section.py` builds it), measured
+# against the committed mini release (the same chain, flag off).
+
+@pytest.fixture(scope="module")
+def side(tmp_path_factory):
+    from pipeline.deliver.release.manifest import latest
+    from pipeline.tools import mini_release as M
+    root = tmp_path_factory.mktemp("trout-a1")
+    M.build(root / "b", trout_table=True)
+    return latest(root / "b" / "release")
+
+
+@pytest.fixture(scope="module")
+def a1(side):
+    return TS.measure(side, under_test.mini(), log=lambda *x, **k: None)
+
+
+def test_a1_the_flag_off_form_is_the_release_built_without_the_flag(a1):
+    # every region file of the flag-off store is the committed (flag-off) release's, to the byte's gzip
+    for name, z in a1["regions"].items():
+        assert z["off_gz"] == z["live_gz"], name
+        assert z["side_gz"] > z["off_gz"]
+    # the water files less the section's parts: what is left is the meta's digests (other answers, other hashes)
+    for name, z in a1["water"].items():
+        assert abs(z["off_gz"] - z["live_gz"]) <= 64, (name, z)
+        assert z["added"] > 0
+    assert set(a1["zdicts"]) == set(TS._trout_tables())
+
+
+def test_a1_the_side_form_is_priced_as_the_release_prices_it(a1, side):
+    from pipeline.deliver.release import build as B
+    for k, (n, _f) in B.web_moments(side).items():
+        assert a1["moments"]["side"][k]["used"] == n, k
+    assert a1["moments_live"]["first_tap"]["used"] == B.web_moments(under_test.mini())["first_tap"][0]
+
+
+def test_a1_the_cutover_form_cuts_the_covered_rows_and_carries_the_page_row(side, tmp_path):
+    from pipeline.deliver.store.decode import Store
+    from pipeline.deliver.store.release import province_store
+    st = province_store(side)
+    sp = tmp_path / "side.sqlite"
+    st.con.execute(f"VACUUM INTO '{sp}'")
+    st.close()
+    figs, ids, six = TS.Cutover(sp).build(tmp_path / "cut.sqlite")
+    assert figs["cover_mismatch"] == [] and figs["repack_differs"] == 0
+    assert figs["mixed_rows_split"] > 0 and figs["rows_cut"] > 0 and figs["groups_cut"] > 0
+    cut = Store(tmp_path / "cut.sqlite", verify=False)
+    rows = {i: cut.val("rows_row", b) for i, b in cut.con.execute("SELECT id, j FROM rows_row")}
+    frames = {i: cut.val("rows_frame", b) for i, b in cut.con.execute("SELECT id, j FROM rows_frame")}
+    assert frames == {i: json.loads(json.dumps(v)) for i, v in six.items()}
+    assert all(len(f) == 6 for f in frames.values())
+    covered = 0
+    for rf, tf in cut.con.execute("SELECT rows, trout FROM cell WHERE trout IS NOT NULL"):
+        covers = cut.val("trout_frame", cut.con.execute("SELECT j FROM trout_frame WHERE id = ?", (tf,)).fetchone()[0])[2]
+        rs = frames[rf][2]
+        for i, rid in enumerate(rs):
+            fish = TS._fish(rows[rid])
+            if i in covers:
+                covered += 1
+                assert fish and fish <= TC                     # a covered row holds trout and char only (split)
+                assert not set(TS.CUT_FIELDS) & set(rows[rid])  # Q-D9
+            else:
+                assert not fish & TC                           # the rest holds none
+    assert covered > 0
+    # every region's shard reaches only rows the store holds
+    for r, got in ids.items():
+        assert got["rows_row"] <= set(rows), r
+    cut.close()
+
+
+def test_a1_a_split_that_ships_other_covers_stops_the_run(side, monkeypatch):
+    from pipeline.deliver.answers.trout import table as TT
+    from pipeline.tools.audit import answers_diff as AD
+    real = TT.split_mixed
+
+    def wrong(frame):                                   # the split's covers one row short
+        got, covers = real(frame)
+        return got, covers[:-1]
+    monkeypatch.setattr(TT, "split_mixed", wrong)
+    with pytest.raises(AD.DiffError, match="other covers"):
+        TS.measure(side, log=lambda *x, **k: None)
+
+
+def test_a1_refuses_a_release_without_the_section_and_the_cli_writes_its_report(side, tmp_path):
+    assert TS.main([str(under_test.mini()), "--cutover", "--out", str(tmp_path / "a")]) == 2
+    assert TS.main([str(side), "--cutover", "--live", str(under_test.mini()), "--out", str(tmp_path / "b")]) == 0
+    rep = json.loads((tmp_path / "b" / "report.json").read_text())
+    assert {"regions", "water", "moments", "verdict", "largest", "zdicts"} <= set(rep)
+    assert rep["verdict"]["cutover_over"] == {}
+    assert "TROUT TABLE A1" in (tmp_path / "b" / "report.txt").read_text()

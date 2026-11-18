@@ -158,9 +158,9 @@ A_HEAD_LEADS_WITH_THE_REGION = True
 # T810 G2 (the owner's sentence answers, OWNER-TODO 2026-11-17 15:34, 15:41, 15:46; pictures scratchpad t810-g2). Each
 # flag's False is today's (pre-G2) wording; a test in `test_trout_g2.py` fails with it off.
 #: Q1 "What you keep here": a box whose limits never let its fish reach its head's number says what they come to here
-#: ("Keep 1 in all", each fish "any of the 1": Echoes Lakes), never the region's 5 beside "only 1 of these 6"
+#: ("Keep 1 in all", each fish "counts toward the 1": Echoes Lakes), never the region's 5 beside "only 1 of these 6"
 A_HEAD_SAYS_WHAT_IS_KEPT_HERE = True
-#: Q2: a shared limit equal to a raised box's first number ("Keep 5, brook trout up to 20") is each row's "any of the 5"
+#: Q2: a shared limit equal to a raised box's first number ("Keep 5, brook trout up to 20") is each row's "counts toward the 5"
 A_SHARED_BOX_NUMBER_IS_ANY_OF = True
 #: Q3a: a size cap on one fish's own row reads "only 1 over 50 cm (20 in)", never the card's "up to 1 cutthroat trout
 #: over 50 cm (20 in)"
@@ -897,7 +897,7 @@ class Body:
                     j += 1
             if kind == "shared" and A_SHARED_BOX_NUMBER_IS_ANY_OF and first_n is not None and n == first_n \
                     and not (isinstance(gk, tuple) and gk[0] == "wild"):
-                # Q2 (owner 15:34): the raised box's first number shared by its other fish is each row's "any of the 5"
+                # Q2 (owner 15:34): the raised box's first number shared by its other fish is each row's "counts toward the 5"
                 bands += [{"from": x, "to": x, "text": W.band_upto(n), "kind": "upto"} for x in range(i, j + 1)]
                 i = j + 1
                 continue
@@ -918,7 +918,7 @@ class Body:
     def _kept_here(self, b: dict) -> None:
         """Q1 (owner 15:34 "What you keep here"): a keep box whose bands never let its fish reach the head's number —
         each band holds at most its number, a row with no limit of its own the box's — says what they come to here:
-        "Keep 1 in all", a band of that number becoming each row's "any of the 1" (Echoes Lakes; a Region 4 stream's
+        "Keep 1 in all", a band of that number becoming each row's "counts toward the 1" (Echoes Lakes; a Region 4 stream's
         "Keep 2 in all"). The region's number still speaks under "Fished elsewhere today?"."""
         if not A_HEAD_SAYS_WHAT_IS_KEPT_HERE or b["first"] is not None or b["head"] != W.head_keep(b["n"]):
             return
