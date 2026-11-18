@@ -1,6 +1,6 @@
 # T847 — The gauge roster email: only stations the roster has never seen, each told once
 
-Status: IN PROGRESS (owner 2026-11-18 12:18: "Now, before 0.8.0"; rides the 0.8.0 feeds-worker deploy).
+Status: DONE 2026-11-18 (6432825f5, 7371677ef, 1ff1db9f2; staging feeds worker deployed 13:2x, version 5d796dcd).
 
 Source: owner 2026-11-18 ~12:05, on the "ECCC's real-time station list changed" email (10 joined, 13 left), verbatim:
 "why does it have to refresh here? … shouldnt it automatically pick up the changes and handle it without needing a
@@ -53,3 +53,7 @@ roster files. Notes kept on purpose:
 - The Python `notify.py` path still dedupes on the whole id list, not per station. No workflow runs it and the webhook
   gets the rendered email; the worker's email outbox is the path that tells the owner.
 - The match command is the owner's hand command (no `scripts/heavy.sh` in the email); a Claude session wraps it itself.
+
+Deployed 2026-11-18 (deploy/staging/feeds.sh: worker tests 521/521, every job ok). The first run's `maintenance` holds one
+roster notice, latest = "07FA008 08DA013 08DB015 08FB012": the four never-seen stations, no others. Production: with the
+owner's prod feeds deploy.
