@@ -91,7 +91,7 @@ function SeenMap({ at, theme, view, modes, groups, hide, show, initial, data, on
   useMarks(refs, marks, onPressMark, furniture);
   const spotLayer = useSpots(refs, spots, at);
   useChannels(refs, lit, { at, theme, data, status, standing, lakes, salmon, method, issue, runs });
-  useInsetLeft(refs, insetLeft);
+  useInsetLeft(refs, insetLeft, at);
   const traceBox = useFit(refs, fit, highlight);
   useGauges(refs, gauges);
   useTrace(refs, { trace, at, onError }, traceBox);
