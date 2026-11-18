@@ -2524,3 +2524,26 @@ More questions (recommended answer first):
      "in all" ??" (open: explain "1 day's limit, not 2" and simplify; drop or justify "in all").
   4. Lakes' "only 4 wild" inside "Keep 4 in all": "i would need to see an example. to make sure it reads right" (open:
      before/after pictures).
+- 2026-11-18 00:35, owner (app chat dialog over 6 before/after pictures: the main chat's owner-examples.md, the real web
+  export with the afters edited in; Fraser at Mission, Kamloops Lake, Vedder, Krumholtz Creek R4, Istsi Creek, Chilliwack
+  Lake), verbatim:
+  1. Simplify everywhere (the after DROPPED the DV/LT "only 1, counting any …" lines): "the fraser and kamloops sbs seems
+     worse aftert? kamloops like doesnt simplify to 1 between bull/lake trout (inferred from 1 over 50c with 60cm or
+     longer. fraser also never simplified tat but then removed the text that allowed a user to infer it? ... for vedder
+     what does 0nly 2 of 6 mean? it is worded really poorly i think. also the only 2 of these should be more clear it
+     applies to all." NOT approved as built. App chat's reading: simplify = STATE the conclusion once, plainly, never
+     delete it; DV+LT get one shared "only 1" band (his 23:32 pick, the Kamloops shape), "uses the 1 over 50 cm" stays as
+     the reason; band words like "only 2 of these 6" need plainer words, and the band must visibly span every row it
+     covers. Open: wording + look options, with pictures.
+  2. R4 cutthroat + rainbow: "Yes, one box (Recommended)" (one band "counts toward the 2 · only 1 over 50 cm (20 in)
+     between them"; rainbow beside cutthroat; the per-row lines go).
+  3. Bowron park creeks possession: "Yes, those words (Recommended)" (one box line "In your possession: just 1, the same
+     as the day"; the per-row possession lines go).
+  4. Chilliwack "only 4 wild": "the changing of bulls.lake trout is wrong jsut like i described before. then i dont know
+     why we have seperate wild and hatchery here when they are the same also there isnt a seperate quota for hatchery and
+     wild they are a simngle fish type. i guess it has no wild trout over 50cm so for this we still need the specieis to be
+     a single entity so yes keep them split up but it is a group of wild and hatchery of a specieis with combined counts
+     towards the 4. i know it is the same thing but it is the optics of it to a user. also hatchery and wild badge should
+     be in the same spot?" App chat's reading: keep the DV/LT band; hatchery + wild rows of a species read as ONE species
+     group with one combined count, split only for wild's 50 cm limit; HATCHERY and WILD badges in the same spot; "only 4
+     wild" goes (no separate quota), confirm on the next pictures.

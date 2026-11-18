@@ -274,3 +274,12 @@ signed off: "Keep it big, 23 px (Recommended)", "Keep the tile (Recommended)" �
 keep-tile-more). The pin bar has nothing to pin after the switch: "Remove it (Recommended)" (S2 deletes useAnchors,
 PinBar, the regs:rule CoachSpots). `elsewhere` on a table covering several keep rows: "Yes, name the fish
 (Recommended)" — each line starts with its fish where a table has more than one such line; Python writes the words (L).
+
+## 2026-11-18 00:35: owner on the simplify examples (verbatim in OWNER-TODO 00:35)
+Pictures: 6 before/after (main chat's owner-examples.md; real web export, afters edited in the DOM). R4 cutthroat +
+rainbow: one band "counts toward the 2 · only 1 over 50 cm (20 in) between them" (yes). Bowron park creeks: one box line
+"In your possession: just 1, the same as the day" (yes). NOT approved: dropping the DV/LT "only 1, counting any …" lines
+(he wants the inferred "only 1 between them" STATED once as a shared band, the reason kept). Owed: plainer band words
+("only 2 of these 6" reads poorly) and a band that visibly spans all its rows (app drawing); hatchery + wild of one
+species drawn as one species group with one combined count; HATCHERY and WILD badges in the same spot (app); "only 4
+wild" goes (confirm on the next pictures). Next pictures from the app chat.
