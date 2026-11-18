@@ -30,6 +30,17 @@ test('every key the scenario writes is under test/', () => {
   for (const [, key] of sideUploads(man())) assert.ok(key.startsWith('test/release/r-0123456789ab/'), key);
 });
 
+test('the side release\'s own synopsis goes to test/ with its data; a synopsis outside its folder keeps its url', () => {
+  // (T810 bench 2026-11-18) the synopsis was left on release/, where staging never held it: a 404 on first install
+  const own = { ...man(), synopsis: { url: 'r-0123456789ab/synopsis-cccc.pdf', sha256: 'c', bytes: 1 } };
+  assert.equal(keyOf(sideManifest(own).synopsis.url), 'test/release/r-0123456789ab/synopsis-cccc.pdf');
+  assert.ok(sideUploads(own).some(([local, key]) => local === 'r-0123456789ab/synopsis-cccc.pdf'
+                                                   && key === 'test/release/r-0123456789ab/synopsis-cccc.pdf'));
+  const live = { ...man(), synopsis: { url: 'r-live00000000/synopsis-dddd.pdf', sha256: 'd', bytes: 1 } };
+  assert.deepEqual(sideManifest(live).synopsis, live.synopsis);
+  assert.ok(!sideUploads(live).some(([local]) => local.includes('synopsis')));
+});
+
 test('a release without the trout section is refused', () => {
   assert.throws(() => sideManifest(man(false)), /no trout section/);
 });
