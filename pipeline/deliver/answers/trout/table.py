@@ -168,6 +168,9 @@ A_BAND_NAMES_THE_TOTAL = True
 #: owner 2026-11-18 00:52 leans to dropping "uses the 1 over 50 cm (20 in)" ("isnt it implied by the top bar?"): a switch,
 #: ON (today's words) until round 3 shows it off. Off, the strip's "only 1 over 50 cm" alone holds the law (J proves it)
 USES_THE_LINE = True
+#: owner 2026-11-18 00:52: in a box, the ungrouped fish at the top, the groups at the bottom, an inner group last inside
+#: its band (`_order_rows`). False = the mutation pin (the build's order: each group where its first row stood)
+A_GROUPS_LAST = True
 #: owner 2026-11-18, PENDING one more picture (Chilliwack Lake and the other five Region 2 lakes): a wild quota at or above
 #: the box's number never limits anything ("only 4 wild" in "Keep 4 in all"): unsaid. Off until the owner's picture
 WILD_QUOTA_AT_THE_BOX_NUMBER_UNSAID = False
@@ -552,7 +555,8 @@ class Body:
         self.rows_out = frame.get("rows") or []
         self.together: Optional[dict] = None
         self.boxes: List[dict] = []
-        self.inner_drawn = self.inner_left = self.inner_held = self.size_drawn = self.size_left = 0          # counts `_inner_bands` drew as a band, or left as lines
+        self.inner_drawn = self.inner_left = self.inner_held = self.size_drawn = self.size_left = 0
+        self.order_split = 0            # counts `_inner_bands` drew as a band, or left as lines
         self.placed: Dict[str, int] = {}
         self.extra_release: List[_Row] = []
 
@@ -602,6 +606,7 @@ class Body:
             self._inner_bands(b)
             if b["kind"] == "keep":
                 self._size_bands(b)
+                self._order_rows(b)
                 self._name_the_total(b)
         self._out_boxes()
         missing = sorted(S for S in self.states if S not in self.placed)
@@ -1171,6 +1176,47 @@ class Body:
         cms = [p[2] for p in b.get("parts") or () if p[0] in ("size", "size_except") and p[2] is not None]
         return bool(cms) and all(any(W.uses_the(k, cm) in r.lines for cm in cms for k in range(1, int(n) + 1))
                                  for r in members)
+
+    def _order_rows(self, b: dict) -> None:
+        """(Owner 2026-11-18 00:52) inside a box, the fish no band groups first, the groups after; no group splits
+        another: inside a band, the rows of a count they share among themselves only (the Vedder's Dolly Varden and lake
+        trout "only 1, counting any …" inside "2 total from these 6") come last, together. A count whose rows sit in two
+        bands cannot nest: counted (`order_split`), its band's order left as it is."""
+        if not A_GROUPS_LAST:
+            return
+        rows, bands = b["rows"], b["bands"]
+        if len(rows) < 2:
+            return
+
+        def inner(r) -> Optional[frozenset]:
+            got = {frozenset({r.fish, *x[3 if x[0] == "size_count" else 2]})
+                   for x in (W.parse_row_line(t) for t in r.lines) if x[0] in ("count", "size_count")}
+            return next(iter(got)) if len(got) == 1 else (frozenset() if got else None)
+        alone, grouped = [], []
+        for x in bands:
+            part = rows[x["from"]:x["to"] + 1]
+            if x["from"] == x["to"]:
+                alone.append((x, part))
+                continue
+            keys = [inner(r) for r in part]
+            held = {r.fish for r in part}
+            if any(k == frozenset() or (k and not k <= held) for k in keys):
+                self.order_split += 1
+                grouped.append((x, part))
+                continue
+            first = [r for r, k in zip(part, keys) if not k]
+            groups: "OrderedDict[frozenset, list]" = OrderedDict()
+            for r, k in zip(part, keys):
+                if k:
+                    groups.setdefault(k, []).append(r)
+            grouped.append((x, first + [r for g in groups.values() for r in g]))
+        if any(inner(r) for x, part in alone for r in part):
+            self.order_split += 1                  # a count over a row no band holds and rows of a band: no nesting
+        out_rows, out_bands = [], []
+        for x, part in alone + grouped:
+            out_bands.append({**x, "from": len(out_rows), "to": len(out_rows) + len(part) - 1})
+            out_rows += part
+        b["rows"], b["bands"] = out_rows, out_bands
 
     @staticmethod
     def _name_the_total(b: dict) -> None:

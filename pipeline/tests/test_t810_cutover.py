@@ -604,6 +604,23 @@ def test_the_fraser_proves_with_the_uses_the_line_off(request, monkeypatch):
     assert J.check_model(m, bundle, data, keys=ks, log=lambda *_: None)["problems"] == []
 
 
+@pytest.mark.needs_bundle
+def test_the_vedder_orders_ungrouped_first_and_nests_the_inner_group_last(request, monkeypatch):
+    """Owner 2026-11-18 00:52 ("at Vedder the DV/LT 'only 1' group cut through '2 of these 6'"): Jan 1, the rainbow trout
+    no band groups stands first; the band's six rows follow, its Dolly Varden and lake trout (their own "only 1"
+    between them) last and together. Mutation: the pin off puts the band's rows back in the build's order."""
+    from pipeline.deliver.answers.trout import table as TT
+    got, *_ = _live_tables(request, ("Vedder River",), md=(1, 1))
+    b = next(b for b in got["Vedder River"]["table"]["boxes"] if b["kind"] == "keep")
+    keys = [r["key"] for r in b["rows"]]
+    assert keys[0] == "RB" and keys[-2:] == ["DV", "LT"], keys
+    assert [(x["from"], x["to"]) for x in b["bands"]] == [(0, 0), (1, 6)]
+    monkeypatch.setattr(TT, "A_GROUPS_LAST", False)
+    got, *_ = _live_tables(request, ("Vedder River",), md=(1, 1))
+    b = next(b for b in got["Vedder River"]["table"]["boxes"] if b["kind"] == "keep")
+    assert [r["key"] for r in b["rows"]][-2:] != ["DV", "LT"]
+
+
 def _bowron(got):                                      # Istsi Creek, Jan 1-Mar 31: Bowron Lake Park's 1 trout/char
     return next(c for c in got["Istsi Creek (all parts)"] if c is not None)
 
