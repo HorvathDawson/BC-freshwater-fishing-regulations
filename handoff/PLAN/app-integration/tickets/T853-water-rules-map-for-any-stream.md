@@ -16,3 +16,17 @@ reads only the release files (manifest-checked), answers through the existing st
 pipeline/tests/test_water_map.py. Proof images (Nass, Vedder/Chilliwack, Kamloops Lake; both modes) sent to the owner. On
 the current release the Nass gauge break still reads "Canyon City bridge (gauge 08DB001)" (T850) and the Nass trout lines
 still keep lake trout (T854) until the new data release; the tool shows whatever the release holds. Merges with 0.8.1.
+
+## Done (branch worktree-agent-a619c74a4ba892f13)
+
+    .venv/bin/python -m pipeline.tools.water_map "<water name or item id>" [--release DIR] [--date YYYY-MM-DD]
+        [--mode salmon|freshwater|both] [--out DIR] [--focus KM-KM] [--max-tribs N] [--layers DIR]
+
+`pipeline/tools/water_map/` (doc in its `__init__`; MAP.md row). Reads only the release (files proved against the
+manifest sha256; answers via `province_store` + `encode.tap`, DFO via `salmon.decode_files`) and the tile layers (refused
+when their section handles differ). System = the watercourse (`water_continue`) + tributaries by `water_exit` carrying a
+BC row or a DFO place of their own (14 numbered, the rest named in a note); a lake brings its river's near parts. A water's
+parts that read the same in a mode join one panel. A main water with >16 stretches in a mode refuses and lists the parts
+for `--focus`. Zoom insets go to whichever column keeps the image shorter. Tests: `pipeline/tests/test_water_map.py`
+(mini release; one `needs_bundle` test on the live Nass). Proofs (Nass, Vedder/Chilliwack, Kamloops Lake, 2026-11-18,
+r-f1f2e8da9666) in the session scratchpad `t853/`.
