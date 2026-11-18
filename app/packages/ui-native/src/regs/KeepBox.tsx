@@ -90,7 +90,7 @@ function Label({ text, palette, outline = false, testID = "keep-label" }: { text
 const OriginBadge = ({ origin, palette }: { origin: string; palette: Palette }) =>
   <Label text={origin} palette={palette} outline={origin !== "hatchery"} testID="keep-origin" />;
 
-/** The row's picture on its tint tile (the owner's look, R picture pack 21:33: palette ALLOW `keep-tile`), or the group's
+/** The row's picture on its tint tile (owner 2026-11-17 23:29 "Keep the tile (Recommended)", as in the R picture pack 21:33: palette ALLOW `keep-tile`), or the group's
  *  mark. Not a press: the whole row is (`Row`). */
 function Tile({ pic, mark, faded, palette }: { pic: KeepPic | null; mark: { s: string; colour: string } | null; faded: boolean; palette: Palette }) {
   return (

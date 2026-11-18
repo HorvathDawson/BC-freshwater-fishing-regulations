@@ -181,14 +181,8 @@ export const WORDS = Object.freeze({
   SHORT_STREAMS: "streams", SHORT_DAY_UNDER: " a day under ", SHORT_UNDER: " under ", SHORT_PLUS: "plus up to ",
   SHORT_OF_THEM: " of them", SHORT_OF_THOSE: "of those, ", SHORT_OVER: "over ", COMMA: ", ", COLON_SP: ": ",
   OPEN_PAREN: " (", CLOSE_PAREN: ")",
-  // ── T28 pin bar (pins.ts: prototype pinUpdate's form a group line, the total in brackets under the share) ──
-  PIN_OF_TOTAL: (total: string) => `(of ${total})`,
-  // ── T481 pin bar "here-max + one breadcrumb" (owner 2026-11-07): line 1 the water's limit, line 2 the path below it ──
-  PIN_A_DAY: (n: number) => `${n} a day`,
-  PIN_SHARE: (n: number, from: string) => `${n} a day from ${from}`,
-  // the share plus a water's own tier beside it: the true most, the share inside it, the rest the exception's fish
-  PIN_EXCEPTION: (max: number, share: number, fish: string) => `${max} a day — up to ${share} of any kind, the rest ${fish}`,
-  PIN_OF_THEM: " of them", PIN_LEVEL_SEP: "; ", PIN_NONE: "none", PIN_OR: " or ", PIN_MAY_BE_OVER: "may be over ",
+  // shortOf's size line (T481; the pin bar it was also for left at the T810 cutover)
+  PIN_MAY_BE_OVER: "may be over ",
   // the card head's link under the region total, and its sheet (sheets.ts multiSheet: the water's own numbers)
   MULTI_LINK: "Fishing more than one water today? ›",
   MULTI_TITLE: "Fishing more than one water today",

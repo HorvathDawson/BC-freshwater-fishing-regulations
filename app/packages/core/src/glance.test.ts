@@ -4,7 +4,7 @@ import type { GroupVM } from "./regs/model";
 import { SALMON_WORDS, type SalmonCardVM } from "./salmon";
 
 const group = (over: Partial<GroupVM["head"]>, tree: GroupVM["tree"] = []): GroupVM => ({
-  row: 0, title: "Trout and char", scope: null, pinLine: null, origin: null, year: null, tree, notKept: [], worked: null,
+  row: 0, title: "Trout and char", scope: null, origin: null, year: null, tree, notKept: [], worked: null,
   more: { text: "", open: "src:r0" as never },
   head: { form: null, rootTier: null, lead: null, leadN: null, ofTotal: false, whyHere: null, shareOf: null, terms: [],
           nolimit: false, exception: null, words: [{ t: "num", s: "5", size: "big" }, { t: "text", s: " a day per angler across Region 6" }], ...over },

@@ -17,7 +17,7 @@ import type { PartModel, WaterModel, WaterStatus } from "./model";
 
 const squash = (s: string) => s.replace(/\s+/g, " ").trim();
 /** sub-trees that explain how a rule was decided rather than state it */
-const EXPLAINS = new Set(["ladder", "worked", "more", "pinLine", "runs", "legend", "months", "sheet", "needs", "lostlist", "axes", "terms", "tabs"]);
+const EXPLAINS = new Set(["ladder", "worked", "more", "runs", "legend", "months", "sheet", "needs", "lostlist", "axes", "terms", "tabs"]);
 const RUN_TYPES = new Set(["text", "num", "term", "book", "link"]);
 
 interface Run { t: string; s?: string }

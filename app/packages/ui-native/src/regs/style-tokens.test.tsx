@@ -57,8 +57,9 @@ function audit(root: Element) {
   const inLink = (h: TextHit) => links.some((l) => l === h.el || l.contains(h.el));
   return {
     hits,
-    // KEYED: the trout table's top line ("Up to 2 today") at TYPE.screen (23 px), the size the owner signed off in the R
-    // picture pack (2026-11-17 21:33); its own element only, every other text still counts
+    // KEYED: the trout table's top line ("Up to 2 today") at TYPE.screen (23 px): owner 2026-11-17 23:29 (app chat dialog,
+    // before/after pictures): "Keep it big, 23 px (Recommended)"; as signed off in the R picture pack (2026-11-17 21:33).
+    // Its own element only, every other text still counts
     sizes: [...new Set(hits.filter((h) => h.testID !== SIZE_ALLOW).map((h) => h.size))].sort(),
     weights: [...new Set(hits.map((h) => h.weight))].sort(),
     linkColours: [...new Set(hits.filter(inLink).map((h) => h.color))],

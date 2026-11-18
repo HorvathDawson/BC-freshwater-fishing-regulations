@@ -14,14 +14,12 @@
 import { afterEach, describe, expect, it } from "vitest";
 import { cleanup, render } from "@testing-library/react";
 import { Text, View } from "react-native";
-import type { PinLine, RegsPage, Tab } from "@app/core";
+import type { RegsPage, Tab } from "@app/core";
 import { CVD, DARK, LIGHT, type Palette } from "../theme";
 import { KeepTab } from "./KeepTab";
 import { GearTab } from "./GearTab";
 import { MethodsTab } from "./MethodsTab";
 import { LicenceTab } from "./LicenceTab";
-import { PinBar } from "./PinBar";
-import type { PinStore } from "./pinStore";
 import { NO_ACTIONS } from "./LineText";
 import type { FishImages } from "./types";
 import {
@@ -52,14 +50,6 @@ function drawTab(tab: Tab, page: RegsPage, palette: Palette): HTMLElement {
     : page.licence && <LicenceTab vm={page.licence} who={{ age: "adult", residency: "resident" }} palette={palette} actions={NO_ACTIONS} onWho={() => {}} />;
   return render(el).container;
 }
-
-/** The pin bar over vedder_1010's deepest bar (PinBar.test.tsx, scroll 240), its size line marked as v38 marks it. */
-const PIN_LINES: PinLine[] = [
-  { cls: "g two", text: "Trout and char · 2 a day from streams", sub: "(of 4 across Region 2)" },
-  { cls: "c", text: "↳ of those, 1 over 50 cm (2 if one is a hatchery steelhead)", sub: null, tier: "size" },
-];
-const pinStore = (lines: readonly PinLine[]) =>
-  ({ subscribe: () => () => {}, getLines: () => lines, getBoxes: () => new Map(), setLineHeight() {}, setStackHeight() {} }) as unknown as PinStore;
 
 type Rule = TextRule | "border" | "surface" | "picture";
 const RULES: readonly Rule[] = [...TEXT_RULES, "border", "surface", "picture"];
@@ -106,19 +96,12 @@ describe.each(THEMES)("%s palette: every tab of the frozen pages", (_name, palet
     const all = Object.keys(PAGES).map(of);
     const sum = (k: string) => all.reduce((a, d) => a + (d.roles[k] ?? 0), 0);
     // (T810 cutover) the old trout card's numbers (`n:` runs) and size chips went with it: these states' trout words are
-    // the table's payload sentences, so rule 5 has no subject on them and the size chips are few. Rule 5 is held by the
-    // pin bar case below (its three numbers) and its mutant; rule 6 by the chips left and its mutant
+    // the table's payload sentences, so rule 5 has no subject on them and the size chips are few. Rule 5 is held by its
+    // mutant (the pin bar case, its three numbers, left with the bar: owner 2026-11-17 23:29); rule 6 by the chips left and its mutant
     expect([sum("status") > 20, sum("chip") > 0, sum("button") >= 12, all.reduce((a, d) => a + d.pics, 0) >= 12])
       .toEqual([true, true, true, true]);
   });
 
-  it("the pin bar: one surface (the card's), its numbers in ink and the size line's in the rule", () => {
-    const root = render(<PinBar store={pinStore(PIN_LINES)} palette={palette} />).container;
-    const bar = root.querySelector<HTMLElement>('[data-testid="pin-bar"]')!;
-    const t = textFaults(bar, palette, "keep");
-    expect([surfaceFaults(bar, palette), t.number, t.token, t.status]).toEqual([[], [], [], []]);
-    expect(census(bar, palette).filter((h) => h.role === "number").map((h) => [h.text, h.token])).toEqual([["2", "ink"], ["4", "ink"], ["1", "rule"]]);
-  });
 });
 
 describe("the dark census, measured (light beside it): each tab's text colours, by token", () => {

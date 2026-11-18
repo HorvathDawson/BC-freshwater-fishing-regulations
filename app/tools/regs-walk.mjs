@@ -37,12 +37,6 @@ const ASPECT = Object.fromEntries(manifest.images.map((m) => [m.file, m.width / 
 const HEADER = `(() => { ${RECT} const h = ${tid('regs-header')}, n = ${tid('water-title')}, d = ${tid('regs-date')}, a = ${tid('regs-action')}, p = ${tid('regs-place')}, s = ${SCROLL};
   return { h: R(h), name: n && R(n), date: d && R(d), action: a && R(a), label: p && R(p), lh: p ? parseFloat(getComputedStyle(p).lineHeight) || 0 : 0, text: h.innerText, scroll: R(s) }; })()`;
 
-const PIN = `(() => { ${RECT} const bar = ${tid('pin-bar')}, s = ${SCROLL};
-  if (!bar || bar.getBoundingClientRect().height < 1) return { bar: null, scroll: R(s) };
-  const lines = [...bar.querySelectorAll('*')].filter((e) => [...e.childNodes].some((c) => c.nodeType === 3 && c.textContent.trim()) && !e.parentElement.closest('[data-pinline]'))
-    .map((e) => ({ r: R(e), lh: parseFloat(getComputedStyle(e).lineHeight) || 20, text: e.innerText.replace(/\\s+/g, ' ').trim() }));
-  return { bar: R(bar), lines, text: bar.innerText.replace(/\\s+/g, ' ').trim(), scroll: R(s), store: globalThis.__regsDebug?.pinLines() ?? null }; })()`;
-
 /** each keep group: its top/bottom in CONTENT px, its title, its head block's height, and its first kind row's content y.
  *  (T810 R) the old group cards only (`cardGroups`): a KeepBox's `keep-group` (the trout table's, the salmon card's) is a
  *  band of rows inside a box, not a group */
@@ -109,27 +103,7 @@ async function walkState(id, theme) {
     const edge = await b.evaluate(EDGE);
     say(edge.length === 0, 'r20f-headers', tag, edge.length ? edge.slice(0, 3).join(' · ') : `${groups.length} group(s): every block on the head's text edge`);
 
-    // 4 r20d-pinned-stack: each group's first kind row at 60 % of the viewport, and just past the group's head
-    for (const g of groups) {
-      const view = h0.scroll.h;
-      const samples = [['head passed', g.top + g.head + 4], ...g.rows.map((r) => [`row ${r.code}@60%`, r.y - 0.6 * view, r.y])];
-      for (const [why, y, rowY] of samples) {
-        if (y <= 0) continue;
-        const at = await scrollTo(b, Math.round(y));
-        const p = await b.evaluate(PIN);
-        const passed = g.top + g.head <= at;   // the group's head has gone under the header: its line must be pinned
-        if (!p.bar) { say(!passed, 'r20d-pinned-stack', `${tag} ${g.title} ${why}`, passed ? 'the head is gone and no pin bar' : 'head still in view: no bar'); continue; }
-        const under = rowY !== undefined && rowY - at + p.scroll.top < p.bar.bottom - 1;
-        const lines = p.lines.every((l) => l.r.h <= 2.6 * l.lh + 0.5);
-        const top = Math.abs(p.bar.top - p.scroll.top) <= 1.5, tall = p.bar.h <= 90;
-        const words = p.store === null || p.store.join(' ').replace(/\s+/g, ' ').trim() === p.text;
-        const own = !passed || p.text.startsWith(g.title);
-        say(lines && top && tall && words && own && !under, 'r20d-pinned-stack', `${tag} ${g.title} ${why}`,
-          `bar top ${p.bar.top.toFixed(1)} vs scroll top ${p.scroll.top.toFixed(1)}; ${p.bar.h.toFixed(1)} px (≤ 90); lines ${lines ? '≤ 2.6 LH' : 'TOO TALL'};` +
-          ` “${p.text.slice(0, 80)}”${words ? '' : ` ≠ store “${(p.store || []).join(' ')}”`}${own ? '' : ` — not this group's (${g.title})`}${under ? ' — the row is under the bar' : ''}`);
-      }
-    }
-    await scrollTo(b, 0);
+    // 4 r20d-pinned-stack: retired with the pin bar (T810 cutover, owner 2026-11-17 23:29 "Remove it (Recommended)")
 
     // 5 pictures-whole
     const pics = await b.evaluate(PICTURES);

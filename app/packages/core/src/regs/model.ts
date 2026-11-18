@@ -3,12 +3,11 @@
  * never compute: every finished sentence is here, pinned by a core test against the goldens
  * (app/fixtures/golden/golden.json, regs v38 @ 7fb6809f).
  *
- * Later tickets add fields where the contract marks them (T28 `GroupVM.pinLine`), and the functions declared beside
+ * Later tickets add fields where the contract marks them (T28 added `GroupVM.pinLine`, gone with the pin bar at the T810 cutover), and the functions declared beside
  * their types (T33 `licenceBlockLines`, T36 `sheetOf`/`sheetLines`).
  */
 import type { Line, RuleKey } from "./line";
 import type { SheetKey } from "./sheetKey";
-import type { PinLine } from "./pins";
 import type { RegsInputs } from "./inputs";
 import type { Weekday } from "../calendar.generated";
 import type { KeepEnv } from "./keep";
@@ -158,8 +157,6 @@ export interface GroupVM {
   readonly title: string;                   // page v36 rowTitle(row)
   readonly scope: string | null;            // head kicker, null when moved to the share (moveTag)
   readonly head: GroupHeadVM;
-  /** (T28) the pin bar's group line (pins.ts groupLine over the stored tree root + headline); null: no tree */
-  readonly pinLine: PinLine | null;
   readonly origin: OriginVM | null;         // the .ghd.gsub block
   readonly year: { label: string; says: string } | null;   // the .gyear year window (plainrow.ts yearWindowOf), under the head
   readonly tree: readonly TreeNodeVM[] | null;   // root's children when header.tier === tree[0].id, else tree[]
@@ -198,8 +195,6 @@ export interface TierVM {
   readonly sub: string | null;              // own tier: cap(why_here)
   readonly origin: OriginVM | null;         // tier.origin with How to tell and the root's book when group.origin is null
   readonly band: boolean;                   // tier === "size": the tinted SizeBand wraps this node
-  readonly short: string;                   // shortOf(tier) for the pin bar (T28)
-  readonly n: number | null;                // (T29) the stored tier's number: the pin bar's form-a share test (PinTierAnchor.n)
   readonly children: readonly TreeNodeVM[];
 }
 /**

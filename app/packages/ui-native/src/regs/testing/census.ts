@@ -57,8 +57,9 @@ export const ALLOW: readonly { testID: string; rule: "border" | "tint" | "filled
       + "wild in all\" (Recommended)' — filled HATCHERY, outlined WILD (the outlined one is ink on the ground: no "
       + "exception). Card on ink holds the contrast gates light / dark / CVD" },
   { testID: "keep-tile", rule: "picture",
-    reason: "T810, the trout table's picture tile (KeepBox `Tile`): the fish sits on a tint tile, the look the owner signed "
-      + "off in the R picture pack (2026-11-17 21:33). Only the tile itself; the picture and its parent paint nothing" },
+    reason: "T810, the trout table's picture tile (KeepBox `Tile`): the fish sits on a tint tile, owner 2026-11-17 23:29 (app "
+      + "chat dialog, before/after pictures): \"Keep the tile (Recommended)\"; as signed off in the R picture pack (2026-11-17 "
+      + "21:33). Only the tile itself; the picture and its parent paint nothing" },
   { testID: "keep-tile-more", rule: "picture",
     reason: "T810, the card patch under the tile's corner \"›\" (the picture opens its sheet), the same signed-off look" },
 ];
@@ -164,7 +165,7 @@ const allowed = (el: Element, rule: "border" | "tint" | "filled" | "picture", si
  *   2 token     every text colour is a TEXT_TOKENS token
  *   3 status    open / closed / restricted text only on a status word (role status)
  *   4 filled    card / onAccent text only on a filled control (role button)
- *   5 number    every number in ink (the size section's in its `rule`, UR7 owner B: under testID tier:size or pin:size)
+ *   5 number    every number in ink (the size section's in its `rule`, UR7 owner B: under testID tier:size)
  *   6 tint      a text background is `tint` only on a chip, and no other background but the card's
  *   9 release   every st:release word is bold (≥ 700, r20i-glare)
  */
@@ -186,7 +187,7 @@ export function textFaults(root: HTMLElement, palette: Palette, tab: Tab): Recor
     if (h.tokens.some((t) => t === "card" || t === "onAccent") && h.role !== "button" && !allowed(h.el, "filled"))
       bad.filled.push(`${tab}: ${h.token} text off a filled control: ${say(h)}`);
     if (h.role === "number") {
-      const size = h.el.closest('[data-testid="tier:size"], [data-testid="pin:size"]') !== null;
+      const size = h.el.closest('[data-testid="tier:size"]') !== null;
       const want: keyof Palette = size ? "rule" : "ink";
       if (!h.tokens.includes(want)) bad.number.push(`${tab}: a number not in ${want}: ${h.token ?? h.color} ${say(h)}`);
     }

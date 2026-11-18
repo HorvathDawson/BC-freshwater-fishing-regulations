@@ -26,7 +26,7 @@ import { RegsPress } from "./RegsPress";
 import { RegsScreen } from "./RegsScreen";
 import { SheetBody } from "./SheetBody";
 import { SheetHost } from "./SheetHost";
-import { createPinStore } from "./pinStore";
+import { createTabStore } from "./tabStore";
 import { labelAudit, pressAudit, scaleOf } from "./testing/a11yAudit";
 import vedder1010 from "./fixtures/vedder_1010.json";
 import klwa1010 from "./fixtures/klwa_1010.json";
@@ -74,7 +74,7 @@ function Licence({ actions }: { actions: Parameters<typeof LicenceTab>[0]["actio
 /** the Shell's menu, so the page's foot draws its "Report a problem with this page" link as the app does */
 const MENU = { report() {} } as unknown as MenuControls;
 
-function mount(id = "vedder_1010", layout: LayoutClass = "phone", store = createPinStore()) {
+function mount(id = "vedder_1010", layout: LayoutClass = "phone", store = createTabStore()) {
   const page = PAGES[id]!;
   return render(
     <MenuContext.Provider value={MENU}>
