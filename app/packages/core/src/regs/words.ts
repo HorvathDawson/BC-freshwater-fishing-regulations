@@ -435,7 +435,8 @@ export const LIC = Object.freeze({
   ACT_FISHING: "To fish here", ACT_TARGETING: (sp: string) => `To fish for ${sp}`, ACT_RETAINING: (sp: string) => `To keep ${sp}`,
   ACT_RECORDED: "When you keep a fish you must record", ACT_GUIDING: "To guide anglers",
   LEN_RANGE: (a: number, b: number) => `${a}–${b} cm`, LEN_OVER: (a: number) => `over ${a} cm`, LEN_UNDER: (b: number) => `under ${b} cm`,
-  // priceTxt
+  // priceTxt; (T789 G10) a document with its own price, in a list of several
+  WITH_PRICE: (name: string, price: string) => `${name} (${price})`,
   PER_YEAR: (p: string) => `$${p} a year`, PER_DAY: (p: string) => `$${p} a day`, PER_8_DAYS: (p: string) => `$${p} for 8 days`, DOT: " · ",
   // licParts whenTxt / alsoTxt
   NEEDED_AT_ALL: "Needed to fish at all", WHATEVER: ", whatever you fish for",

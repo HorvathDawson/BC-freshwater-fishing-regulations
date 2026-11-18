@@ -208,6 +208,7 @@ function answerBlocks(inp: RegsInputs, F: LicenceValue & { holds: Holds }, who: 
   // (x9p3: a youth who buys their own permit gets the plain list, as the golden). `own_limit` without `none_needed` is
   // "keeps their own limit by buying" — the "Or buy … yourself" clause and the "Or, for your own limit" item.
   const U = who.age === "u16" ? (F.under_16 ?? []).find((u) => u.residency === who.residency) : undefined;
+  let inlinePrices = false;
   if (U?.with_adult && !P.documents.length) {
     // a document with its stored alternatives (licence 7 `or`), named as the 16+ list names its own ("… or …")
     const buyName = (b: (typeof U.buy)[number]): string => cap([b.name, ...(b.or ?? []).map((o) => o.names.join(LIC.PLUS))].join(` ${LIC.OR} `));
@@ -216,10 +217,19 @@ function answerBlocks(inp: RegsInputs, F: LicenceValue & { holds: Holds }, who: 
       body: (LIC.YOUTH_WITH(W.who) + (names.length ? LIC.YOUTH_DOCS(names.join(LIC.SEP)) : "") + LIC.STOP + (W.counts ? LIC.YOUTH_COUNTS_S : "")
         + (byBuying ? LIC.YOUTH_BUY(names.length ? LIC.YOUTH_THE(names.join(LIC.PLUS)) : LIC.YOUTH_ADULT_NEEDS) : "")).trim() });
     buy.push({ name: LIC.YOUTH_NOTHING, docs: [], terms: [], when: W.counts ? LIC.YOUTH_COUNTS : LIC.YOUTH_HOLD, price: null, book: [] });
-    if (byBuying && names.length) buy.push({ name: names.join(LIC.PLUS), docs: [], terms: [], when: LIC.YOUTH_OWN,
-      price: priceTxt(U.buy[0]!.prices) || null, book: [] });
+    // (T789 G10, owner 2026-11-17 "Yes, each its own price.") one document: its price on the price line; several: each
+    // document carries its own price beside its name ("Basic angling licence ($62.87 a year · …) + Steelhead stamp
+    // ($68.57 a year)"), never the first one's price under all of them
+    const prices = U.buy.map((b) => priceTxt(b.prices));
+    if (byBuying && names.length === 1) buy.push({ name: names[0]!, docs: [], terms: [], when: LIC.YOUTH_OWN, price: prices[0] || null, book: [] });
+    else if (byBuying && names.length) {
+      buy.push({ name: names.map((n, i) => prices[i] ? LIC.WITH_PRICE(n, prices[i]!) : n).join(LIC.PLUS), docs: [], terms: [],
+                 when: LIC.YOUTH_OWN, price: null, book: [] });
+      inlinePrices = prices.some(Boolean);
+    }
   }
-  if (buy.length) out.push({ cls: "needs", label: LIC.YOU_NEED, items: buy, onlyIf: null, priceNote: buy.some((b) => b.price) ? LIC.PRICE_NOTE : null });
+  if (buy.length) out.push({ cls: "needs", label: LIC.YOU_NEED, items: buy, onlyIf: null,
+    priceNote: buy.some((b) => b.price) || inlinePrices ? LIC.PRICE_NOTE : null });
 
   // the paper licence: the record duties that reach this part (answers display part paper_licence)
   const paperRules = (inp.item?.parts[inp.partIx]?.paper_licence ?? []).map((r) => inp.rules.get(r));

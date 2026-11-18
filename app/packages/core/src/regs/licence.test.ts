@@ -188,6 +188,17 @@ describe("buildLicence", () => {
         "Basic angling licence Or, for your own limit: what a 16+ angler buys $62.87 a year · $22.86 a day · $41.15 for 8 days",
         "Prices as printed for 2025–2027, before tax. Today’s prices: gov.bc.ca/fish-licence"]]);
   });
+  it("(T789 G10, owner 2026-11-17 'Yes, each its own price.') several documents to buy: each says its own price", () => {
+    const u = [{ ...U16[1]!, buy: [
+      { doc: "basic_licence", name: "Basic angling licence", prices: { year: 62.87, day: [22.86], eight_days: [41.15] } },
+      { doc: "steelhead_stamp", name: "Steelhead stamp", prices: { year: 68.57 } },
+      { doc: "classified_waters_licence", name: "Classified Waters Licence", prices: { day: [22.86] } },
+      { doc: "unpriced", name: "Unpriced thing", prices: {} }] }];
+    const vm = buildLicence(INP({ licence: { ...frame(), under_16: u } }), WHO.u16_non!, { closed: false, glossary: GLOSS })!;
+    expect(lines(vm)[1]).toEqual(["needs", "You need", "Nothing, if you fish with a licensed adult (16 or older) What you keep counts toward their limit",
+      "Basic angling licence ($62.87 a year · $22.86 a day · $41.15 for 8 days) + Steelhead stamp ($68.57 a year) + Classified Waters Licence ($22.86 a day) + Unpriced thing Or, for your own limit: what a 16+ angler buys",
+      "Prices as printed for 2025–2027, before tax. Today’s prices: gov.bc.ca/fish-licence"]);
+  });
   it("under 16, resident (none needed): the box becomes the one 'You need' item; 'Nothing is required' is not said", () => {
     expect(lines(buildLicence(INP(), WHO.u16_res!, { closed: false, glossary: GLOSS }))).toEqual([["needs", "You need",
       "No licence needed to fish here Anglers under 16 who live in B.C. don’t need a basic angling licence. The fishing rules and limits still apply."]]);

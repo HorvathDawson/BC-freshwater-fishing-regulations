@@ -28,3 +28,11 @@ Each changes words an angler reads. Fix or get the owner's OK to leave, one by o
 - G9: STOPPED, not app. The words "One hook or fly" come from the answers payload (`pipeline/deliver/answers/gear.py`) and the curated data (the audit says: curated data only); the app only draws them. Needs a Python/data change ("one fly" for artificial-fly-only waters, p.80); owner/pipeline lane.
 - D6: STOPPED, not app. The Region 6 DFO gear line is cut in the pipeline's typing of the verbatim (`pipeline/regs/dfo_salmon/typed.py` ~175, the comma in "Single, barbless hook in tidal and non-tidal portions"); the audit's fix is "re-type the line", a pipeline change.
 - K8, G8, G10: untouched, waiting for the owner.
+
+## G10 — built 2026-11-17 20:27 (app chat, branch app-fix/t842-walkthrough)
+Owner 2026-11-17 (main chat, recorded in OWNER-TODO), verbatim: "Yes, each its own price." The under-16 "Or, for your own
+limit" item joined every document but showed only the first one's price (`core/src/regs/licence.ts`). Now one document keeps
+its price on the price line; several each carry their own beside the name: "Basic angling licence ($62.87 a year · $22.86 a
+day · $41.15 for 8 days) + Steelhead stamp ($68.57 a year) + Classified Waters Licence ($22.86 a day)" (`LIC.WITH_PRICE`);
+the price note shows when any of them is priced. Test in `licence.test.ts` (fails on the old code). G8: no province-wide
+banner (owner: "Don't want this on waters it doesn't apply to"); the per-water field comes from the main chat's batch 2.
