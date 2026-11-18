@@ -71,9 +71,6 @@ export const WORDS = Object.freeze({
   OPENS: (md: string) => `Opens ${md}`,
   CLOSED_FROM: (md: string) => `Closed from ${md}`,
   CLOSED_SPAN: (span: string) => `Closed ${span}`,
-  TROUT_CLOSED: "closed", TROUT_RELEASE: "release only",
-  TROUT_LINE: (state: string, tail: string) => `Trout ${state}${tail}`,
-  ALL_YEAR: " all year",
   UNTIL: (md: string) => ` until ${md}`,
   // T14 the closed banner (page v36 closedBanner / mergedHtml / tidalHtml; prototype closechain rewrite)
   CLOSED_ALL_YEAR: "Closed all year",
@@ -213,9 +210,6 @@ export const WORDS = Object.freeze({
   // ── T19 tail + other fish (tail.ts, others.ts: prototype nk, worked, Other fish; page v36 noRulesLine, rowsHtml) ──
   INTERPRET_EXAMPLES: "Examples of how to interpret regulations", EXCEPTION_REGIONAL: "Exception to regional quota", SEE_EVERY_LINE: "See every regulation line ›", OTHER_FISH: "Other fish",
   NO_LIMIT: "no limit", CLOSED_LC: "closed", RELEASE_LC: "release", SIZE_HINT: "· size limit", COLON: ":",
-  STEEL_POSSIBLE: "Steelhead rules apply here; steelhead may not be present in this water.",
-  STEEL_KNOWN: "Steelhead are known to be in this water.",
-  STEEL_NO_RULES: "Steelhead have been recorded here, but no steelhead rule applies: treat any rainbow, however big, as a rainbow trout.",
   CLOSED_MARK: "✕",
   /** (T829) the release group's shape mark (trout-table contract 2.4: the app draws the marks ↩ and ✕, never a rule) */
   RELEASE_MARK: "↩",

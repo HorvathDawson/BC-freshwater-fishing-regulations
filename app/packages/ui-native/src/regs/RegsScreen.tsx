@@ -134,14 +134,12 @@ export interface RegsScreenProps {
    * tall enough to hold it. Absent: the page opens at the top, as before.
    */
   scrollKey?: string | null;
-  /** (T810 O) the dev switch (`RegsPageOpts.troutTable`): the Keep tab's salmon and trout folds end in the arrow. Off: today's tab. */
-  troutTable?: boolean;
 }
 
 export function RegsScreen({ page, palette, images, adipose, actions, onDate,
                              gear, methods, licence, referenceOpen = false, footer, salmon, store: injected, layout = "phone", start = null, onStarted,
                              lapsed = null, access = [], inSeason = [], glance = null, salmonStrip = null,
-                             nameSource = null, asOf = null, scrollKey = null, sun = null, daylight = null, waterBook = [], troutTable = false }: RegsScreenProps) {
+                             nameSource = null, asOf = null, scrollKey = null, sun = null, daylight = null, waterBook = [] }: RegsScreenProps) {
   // (T286) the open probe (test bed only): the page's first render, and its first layout (mounted, before paint)
   openProbe.mark("regsRender");
   useLayoutEffect(() => { openProbe.mark("layout"); }, []);
@@ -253,7 +251,7 @@ export function RegsScreen({ page, palette, images, adipose, actions, onDate,
       {(!glance || !glance.salmon) && (typeof salmon === "function" ? salmon({ actions: keepActions, images }) : salmon)}
       <AnchorContext.Provider value={sink}>
         <StickyContext.Provider value={sticky}>
-          <KeepTab keep={page.keep} daylight={daylight} dateLabel={page.header.date} palette={palette} actions={keepActions} images={images} salmonStrip={salmonStrip} troutTable={troutTable}
+          <KeepTab keep={page.keep} daylight={daylight} dateLabel={page.header.date} palette={palette} actions={keepActions} images={images} salmonStrip={salmonStrip}
                    glance={glance ? { salmon: glance.salmon && salmon
                      ? { row: glance.salmon, card: () => (typeof salmon === "function" ? salmon({ actions: keepActions, images }) : salmon) }
                      : null } : null} />

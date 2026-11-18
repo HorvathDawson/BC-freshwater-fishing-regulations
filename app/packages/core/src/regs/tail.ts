@@ -1,24 +1,25 @@
 /**
  * T19 — a group's tail: each not-kept line (the store's words, whose rule and its Rule book page, ✕ for a closure, the
-* fish pictured), "Examples of how to interpret regulations" (T479; "How it adds up" before: the store's elsewhere sentence and worked lines), the steelhead quiet line, and
- * "See every regulation line ›".
+* fish pictured), "Examples of how to interpret regulations" (T479; "How it adds up" before: the store's elsewhere sentence and worked lines), and
+ * "See every regulation line ›". (T810 S) The steelhead quiet line (page v36 noRulesLine, STEEL_LINE) is gone: it spoke
+ * only over a row holding rainbow trout, and every such row is the trout table's, which carries Python's `quiet` lines.
  *
- * Owner rule 2026-10-21: what is not kept, its status, the worked counts and the steelhead line are the store's
- * (`group.not_kept`, `group.worked`, `rows_row.elsewhere`, `rows_frame.steelhead_line`); this file words and orders them.
+ * Owner rule 2026-10-21: what is not kept, its status and the worked counts are the store's (`group.not_kept`,
+ * `group.worked`, `rows_row.elsewhere`); this file words and orders them.
  *
  * A released fish's licence documents (prototype round UR7 stampsFor on a release line) are the store's (rows 31
  * `NotKept.stamps`); each is drawn as tree.ts `stampLine` words it.
  *
- * Ports (inventory names @ 7fb6809f): prototype buildKeep nk, els/worked, quiet, more; page v36 noRulesLine, STEEL_LINE,
+ * Ports (inventory names @ 7fb6809f): prototype buildKeep nk, els/worked, more; page v36
  * summaryHtml's linkrow.
  */
 import type { GroupTotal } from "../answers.generated";
-import { mainRes, type CardModel, type HydRow } from "./card";
+import { mainRes, type HydRow } from "./card";
 import { parentRow } from "./grouphead";
 import type { RuleView } from "./inputs";
 import { levelTag } from "./level";
 import { ruleBookLine } from "./book";
-import { text, type Line, type Run } from "./line";
+import { text, type Run } from "./line";
 import type { GroupVM, NotKeptVM } from "./model";
 import type { SheetKey } from "./sheetKey";
 import { fishNames, pictures, presenceLine, stampLine, type TreeEnv } from "./tree";
@@ -77,17 +78,6 @@ export function workedOf(row: HydRow, g: GroupTotal): GroupVM["worked"] {
   if (!els && !wk.length) return null;
   return { label: WORDS.INTERPRET_EXAMPLES, says: els || null,
     lines: wk.map((w) => ({ at: w.at === "here" ? "here" as const : "elsewhere" as const, q: w.q + (w.at === "here" ? WORDS.COLON : ""), a: w.a })) };
-}
-
-/** page v36 STEEL_LINE: the store's steelhead line, in words. */
-export const STEEL_LINE: Readonly<Record<"possible_with_rules" | "known_with_rules" | "known_no_rules", string>> = Object.freeze({
-  possible_with_rules: WORDS.STEEL_POSSIBLE, known_with_rules: WORDS.STEEL_KNOWN, known_no_rules: WORDS.STEEL_NO_RULES,
-});
-
-/** page v36 noRulesLine: only "recorded here, but no steelhead rule applies" stays on a card, and only over rainbow trout. */
-export function quietOf(row: HydRow, card: CardModel): Line | null {
-  return card.line === "known_no_rules" && row.allMembers.includes("RB")
-    ? [text(STEEL_LINE.known_no_rules), text(" "), { t: "term", ids: ["steelhead"] }] : null;
 }
 
 export const MORE: string = WORDS.SEE_EVERY_LINE;

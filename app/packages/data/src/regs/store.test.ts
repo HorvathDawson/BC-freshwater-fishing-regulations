@@ -5,7 +5,7 @@
  * store.release.test.ts`.
  */
 import { describe, expect, it } from "vitest";
-import { KNOWN_VERSIONS, OPTIONAL_VERSIONS, SECTION_NAMES } from "@app/core";
+import { KNOWN_VERSIONS, OPTIONAL_VERSIONS, REGS_FORMATS, SECTION_NAMES } from "@app/core";
 import { PACK_OPTIONAL_SECTION_TABLES } from "../pack.generated";
 import { openInMemory } from "../sql/drivers/node";
 import type { Db } from "../sql/db";
@@ -18,7 +18,9 @@ const META = "CREATE TABLE meta (k TEXT PRIMARY KEY, v TEXT NOT NULL);";
 /** The section versions this app reads (T810 M0: from `KNOWN_VERSIONS`, never retyped; the writer's side is held to the
  *  same line by pipeline/tests/test_answers_versions.py, the golden's store by conformance store.release.test.ts). */
 const VERSIONS: Record<string, number> = Object.fromEntries(SECTION_NAMES.map((n) => [n, KNOWN_VERSIONS[n]]));
-const K = KNOWN_VERSIONS, TROUT = OPTIONAL_VERSIONS.trout;
+const K = KNOWN_VERSIONS, TROUT = KNOWN_VERSIONS.trout;
+/** (T810 S) the region files' format: this app's, and the one before the trout cutover (a held set's) */
+const REGION = REGS_FORMATS.region, OLD_REGION = "regs-region/1";
 const H = "aaaaaaaaaaaaaaaa", R = "bbbbbbbbbbbbbbbb", I = "cccccccccccccccc";
 
 interface Opts {
@@ -28,8 +30,6 @@ interface Opts {
   manifestVersions?: Record<string, number> | null;
   tiles?: string | null;
   region2?: Record<string, string>;
-  /** (T810 M0) each region file's `cell` table (none when absent) */
-  cellSql?: string;
   sid?: Record<string, string>;
   noWater?: boolean;
 }
@@ -50,7 +50,7 @@ function release(o: Opts = {}): { loader: RegsLoader; opened: string[] } {
     "CREATE TABLE akey_region (akey INTEGER, region TEXT);" +
     "INSERT INTO akey_region VALUES (7, '1'), (9, '2'), (11, '2'), (11, '1');");
   const region = (r: string, extra: Record<string, string> = {}) => openInMemory("", metaSql({
-    format: "regs-region/1", region: r, section_handles: H, reach_digest: R, rule_ids_sha256: I, ...extra }) + (o.cellSql ?? ""));
+    format: REGION, region: r, section_handles: H, reach_digest: R, rule_ids_sha256: I, ...extra }));
   const dbs: Record<string, Db> = {
     water, "regs-1": region("1"), "regs-2": region("2", o.region2),
     "regs-sid": openInMemory("", metaSql({ format: "regs-sid/1", section_handles: H, reach_digest: R, rule_ids_sha256: I, ...o.sid })),
@@ -175,53 +175,34 @@ describe("openRegsStore: what it refuses at open (each a RegsStoreError naming w
 });
 
 /**
- * (T810 M0) THE OPTIONAL SECTIONS (core `OPTIONAL_VERSIONS`; trout table contract 2.1, all or nothing per release): a
- * release may leave one out; present, it is at the version this app reads, the manifest says the same, every region file
- * carries its `cell` column, and the store records it held, so the reads name its columns only then.
+ * (T810 S) THE TROUT SECTION IS REQUIRED from the cutover (`SECTION_NAMES`, `KNOWN_VERSIONS.trout`); no section is
+ * optional today (`OPTIONAL_VERSIONS` empty, the generated contract's `PACK_OPTIONAL_SECTION_TABLES` the same). A water
+ * file without it, or at another version, is another reader's release.
  */
-describe("openRegsStore: the optional sections (T810 M0)", () => {
-  const CELL = (cols: string) =>
-    `CREATE TABLE cell (akey INTEGER, s INTEGER, ladder INTEGER, rows INTEGER, gear INTEGER, licence INTEGER, display INTEGER${cols});`;
-  const withTrout = (v: number = TROUT, m: number | null = v) => release({
-    versions: { ...VERSIONS, trout: v }, manifestVersions: m === null ? VERSIONS : { ...VERSIONS, trout: m }, cellSql: CELL(", trout INTEGER") });
+describe("openRegsStore: the trout section (T810 S: required)", () => {
+  const without = (v: Record<string, number>) => Object.fromEntries(Object.entries(v).filter(([n]) => n !== "trout"));
 
-  it("every optional section this app reads has its columns and tables in the release contract (generated)", () => {
-    expect(Object.keys(OPTIONAL_VERSIONS).filter((n) => !PACK_OPTIONAL_SECTION_TABLES[n])).toEqual([]);
+  it("no optional section is left, on either side of the contract", () => {
+    expect([Object.keys(OPTIONAL_VERSIONS), Object.keys(PACK_OPTIONAL_SECTION_TABLES)]).toEqual([[], []]);
+    expect(SECTION_NAMES).toContain("trout");
   });
 
-  it("absent is fine: the store holds none, and a region file needs no column of it", async () => {
-    const st = await openRegsStore(release({ cellSql: CELL("") }).loader);
+  it("held at the version this app reads: opens, and meta.versions names it with the others", async () => {
+    const st = await openRegsStore(release().loader);
+    expect(st.meta.versions).toEqual(VERSIONS);
+    expect(st.meta.versions.trout).toBe(TROUT);
     expect(st.meta.optional).toEqual({});
-    await expect(st.region(9)).resolves.toBeDefined();
   });
 
-  it("present at the version this app reads: held (meta.optional), and its region files open", async () => {
-    const st = await openRegsStore(withTrout().loader);
-    expect(st.meta.optional).toEqual({ trout: TROUT });
-    expect(st.meta.versions).toEqual(VERSIONS);                    // the required ones, unchanged
-    await expect(st.region(9)).resolves.toBeDefined();
+  it("absent (a release from before the cutover): refused", async () => {
+    expect(await refusal(openRegsStore(release({ versions: without(VERSIONS), manifestVersions: without(VERSIONS) }).loader))).toEqual({
+      why: "version", message: `regs store: trout section version absent, this app reads ${TROUT} — refused` });
   });
 
-  it("present at another version: refused", async () => {
-    expect(await refusal(openRegsStore(withTrout(TROUT + 1).loader))).toEqual({
+  it("at another version: refused", async () => {
+    const v = { ...VERSIONS, trout: TROUT + 1 };
+    expect(await refusal(openRegsStore(release({ versions: v, manifestVersions: v }).loader))).toEqual({
       why: "version", message: `regs store: trout section version ${TROUT + 1}, this app reads ${TROUT} — refused` });
-  });
-
-  it("the manifest disagreeing with the water file: refused, either way round", async () => {
-    expect(await refusal(openRegsStore(withTrout(TROUT, null).loader))).toEqual({
-      why: "version", message: `regs store: the manifest says trout absent, the water file ${TROUT} — refused` });
-    expect(await refusal(openRegsStore(release({ manifestVersions: { ...VERSIONS, trout: TROUT } }).loader))).toEqual({
-      why: "version", message: `regs store: the manifest says trout ${TROUT}, the water file absent — refused` });
-  });
-
-  it("a region file without a held section's column is another build's: refused, and the store poisoned", async () => {
-    const st = await openRegsStore(withTrout().loader);
-    const bad = await openRegsStore(release({ versions: { ...VERSIONS, trout: TROUT }, manifestVersions: { ...VERSIONS, trout: TROUT },
-                                              cellSql: CELL("") }).loader);
-    await expect(st.region(9)).resolves.toBeDefined();
-    const want = { why: "damaged", message: "regs store: a region file has no cell.trout, which water's sections hold — refused" };
-    expect(await refusal(bad.region(9))).toEqual(want);
-    expect(bad.refused()?.message).toBe(want.message);
   });
 });
 
@@ -242,10 +223,10 @@ describe("openRegsStore: a region or sid file from another build refuses the WHO
     expect(st.refused()?.message).toBe(want.message);
   });
 
-  it("a region file of another format", async () => {
-    const st = await openRegsStore(release({ region2: { format: "regs-region/2" } }).loader);
+  it("a region file of another format (T810 S: a held set from before the trout cutover)", async () => {
+    const st = await openRegsStore(release({ region2: { format: OLD_REGION } }).loader);
     expect(await refusal(st.region(9))).toEqual({
-      why: "format", message: "regs store: a region file is regs-region/2, this app reads regs-region/1 — refused" });
+      why: "format", message: `regs store: a region file is ${OLD_REGION}, this app reads ${REGION} — refused` });
   });
 
   it("a region file that is not the key's region", async () => {
@@ -274,7 +255,7 @@ describe("openRegsStore: a region or sid file from another build refuses the WHO
  */
 function realLoader(o: { drop?: string; manifestFormat?: Record<string, string>; fail?: Set<string> } = {}) {
   const { loader: fake } = release();
-  const FMT: Record<string, string> = { water: "water/3", "regs-1": "regs-region/1", "regs-2": "regs-region/1", "regs-sid": "regs-sid/1" };
+  const FMT: Record<string, string> = { water: "water/3", "regs-1": REGION, "regs-2": REGION, "regs-sid": "regs-sid/1" };
   const files = Object.fromEntries(Object.keys(FMT).filter((n) => n !== o.drop)
     .map((n) => [n, { format: o.manifestFormat?.[n] ?? FMT[n], section_handles: H, url: n, sha256: "", bytes: 0 }]));
   const manifest = { ...fake.manifest, files } as unknown as Manifest;
@@ -308,7 +289,7 @@ describe("openRegsStore over the real loader: a file the loader refuses refuses 
   it("a region file the loader refuses (not the manifest's format): format, and poisoned", async () => {
     const { L } = realLoader({ manifestFormat: { "regs-2": "regs-region/9" } });
     const st = await openRegsStore(L);
-    const want = { why: "format", message: "regs store: regs-2: format regs-region/1 / handles " + H +
+    const want = { why: "format", message: `regs store: regs-2: format ${REGION} / handles ` + H +
       " are not the manifest's regs-region/9 / " + H + " — refused" };
     expect(await refusal(st.region(9))).toEqual(want);
     expect(await refusal(st.sid())).toEqual(want);

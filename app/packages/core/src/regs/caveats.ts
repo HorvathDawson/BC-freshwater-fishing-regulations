@@ -35,7 +35,6 @@ import { WD3, WORDS, pageWaterNoun } from "./words";
 
 export type { CaveatVM } from "./model";
 
-const NONE: ReadonlySet<string> = new Set();
 
 /** The families the Keep tab's caveats speak for (renderCard). */
 export const KEEP_FAMS: readonly string[] = Object.freeze(["retention", "access"]);
@@ -200,12 +199,12 @@ const describeShort = (r: RuleView, inp: RegsInputs) => cap(describe(r, sp(inp))
  * moments; (c) an angler closure that speaks at some of the day's moments, not the card's. `settledAtSeg(j)` is T07's
  * settle at segment j of the same day (its display frame and ladder).
  *
- * (T810 N, behind the dev switch) `covered`: the members of the rows the trout table replaces (its `covers`). Such a fish
- * is the table's, which says its weekday and hours words itself (contract 2.2, 2.5), so (b) skips it as it skips a
- * week-split fish: no fish is spoken twice. Empty (the default): the old path, unchanged.
+ * (T810 N, S) `covered`: the members of the rows the trout table replaces (its `covers`). Such a fish is the table's,
+ * which says its weekday and hours words itself (contract 2.2, 2.5), so (b) always skips it, as it skips a week-split
+ * fish: no fish is spoken twice.
  */
 export function timedOf(inp: RegsInputs, s: Settled, settledAtSeg: (seg: number) => Settled,
-                        covered: ReadonlySet<string> = NONE): CaveatVM | null {
+                        covered: ReadonlySet<string>): CaveatVM | null {
   const M = inp.year?.moments ?? null;
   if (!M || !inp.year || s.s < 0) return null;
   const ss = daySegments(inp.year.segStarts, tapDay(s.day, inp.calendarYear).day);
@@ -275,7 +274,7 @@ export function timedOf(inp: RegsInputs, s: Settled, settledAtSeg: (seg: number)
  * "couldn't be placed" block read a store field nothing fills, and is gone.
  */
 export function caveatsOf(inp: RegsInputs, s: Settled, settledAtSeg: (seg: number) => Settled,
-                          covered: ReadonlySet<string> = NONE): readonly CaveatVM[] {
+                          covered: ReadonlySet<string>): readonly CaveatVM[] {
   const st = s.status?.status;
   if (!st || st === "closed" || st === "tidal") return [];
   return [inPartOf(s, inp, KEEP_FAMS), sideOf(s, KEEP_FAMS), anglerOf(s), timedOf(inp, s, settledAtSeg, covered)]
