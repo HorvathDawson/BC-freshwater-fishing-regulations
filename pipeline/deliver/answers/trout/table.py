@@ -202,6 +202,12 @@ A_SIZE_BAND_IN_A_RAISED_BOX = True
 #: (R1, the sweep) a row's own cap a size band's cap already implies goes (Sowerby Lake's rainbow "only 1", kept only at
 #: 50 cm or longer under "only 1 over 50 cm (20 in)" with cutthroat). False = the pin
 A_IMPLIED_OWN_CAP_GOES = True
+#: (the C2 proof bundle) the top line's number never past its box's (`_top`); a possession line's "only 1 measuring 90 cm
+#: (35 in) or longer" is a clause, so a possession equal to the row's own number is still said (Bennett Lake's lake
+#: trout); the kept-elsewhere lines of a group carry its home row's subject (Kitimat, Humphrys). False = each pin
+A_TOP_NEVER_PAST_THE_BOX = True
+A_POSSESSION_MEASURING_IS_A_CLAUSE = True
+A_GROUP_LINES_SAY_THEIR_ROWS_SUBJECT = True
 #: owner 2026-11-18 (R1, a cap at or above its pool goes; the implied-limit sweep): a wild quota at or above the box's
 #: number never limits anything ("only 4 wild" in "Keep 4 in all": Chilliwack and five Region 2 lakes, Great Central,
 #: Sproat, Makii): unsaid
@@ -372,10 +378,15 @@ def elsewhere_lines(rows: Sequence[dict], groups: Sequence[dict], rows_said: boo
             sub = W.elsewhere_subject(r.get("members") or r.get("all_members") or ())
             items.append((sub, W.elsewhere_says(e["says"])))
             items += [(sub, W.elsewhere_line(q, a)) for q, a in e.get("ask") or ()]
-    for g in groups:
+    for item in groups:
+        g, home = item if isinstance(item, tuple) else (item, None)
         if g is None:
             continue
         sub = W.elsewhere_subject([S for S in g.get("kinds") or () if S in TC] or g.get("kinds") or ())
+        if A_GROUP_LINES_SAY_THEIR_ROWS_SUBJECT and home:
+            # the subject of the covered keep row the group is the card's group of: the box's own fish, as J reads
+            # them, never the group's whole pool (Kitimat in winter: "Rainbow trout", "Lake trout", never "Trout and char")
+            sub = W.elsewhere_subject(home)
         items += [(sub, W.elsewhere_line(w["q"], w["a"])) for w in g.get("worked") or () if w["at"] != "here"]
     items = list(dict.fromkeys(items))
     subjects = list(dict.fromkeys(sub for sub, _t in items))
@@ -389,7 +400,7 @@ def elsewhere_said(frame: dict) -> List[str]:
     over the covered rows and their groups). What the table's `elsewhere` must hold (`answers.cut_over` holds it)."""
     split, covers = split_mixed(frame)
     rows = [split["rows"][i] for i in covers]
-    return elsewhere_lines(rows, [r.get("group") for r in rows])
+    return elsewhere_lines(rows, [(r.get("group"), r.get("members") or r.get("all_members")) for r in rows])
 
 
 def split_mixed(frame: dict) -> Tuple[dict, List[int]]:
@@ -991,7 +1002,8 @@ class Body:
                 own_said = count is not None and ((r.band[0] == "own" and r.band[1] == count) or
                                                   W.only_line(count) in lines_of.get(r.key, []))
                 if A_POSSESSION_EQUAL_TO_THE_DAY_UNSAID and count is not None and own_said \
-                        and W.possession_clause(W.possession_row(line)) is None:
+                        and W.possession_clause(W.possession_row(line)) is None \
+                        and not (A_POSSESSION_MEASURING_IS_A_CLAUSE and ", only " in W.possession_row(line)):
                     # (only a number the ROW says for its own fish: a box's count stays, Bowron Lake's "2 in all")
                     pass                               # Tagish's lake trout: "only 2" a day, 2 in possession
                 else:
@@ -1687,6 +1699,11 @@ class Body:
             rest = list(dict.fromkeys(rest))
             if alsos and A_TOP_SAYS_WHAT_THE_OTHER_FISH_COME_TO:
                 n = min(n, _others_most(g))
+            if A_TOP_NEVER_PAST_THE_BOX:
+                # (the C2 proof bundle: 107 Region 6 streams, Jul 1-Oct 31) the group's headline counts each fish's own
+                # number, never "these fish together keep 1": the top line says no more than its box holds (the box's
+                # first number in a raised box), as "Keep 4 in all" says (Andi Creek: not "Keep 5")
+                n = min(n, b["first"] if b["first"] is not None else b["n"])
             lead = W.top_up_to(n, [a["says"] for a in alsos], rest if alsos else (), () if alsos else rest)
             return lead, {"value": W.fold_up_to(n, [a["n"] for a in alsos]), "tone": "keep"}
         named, others = [], []
@@ -1727,7 +1744,10 @@ class Body:
         # lines (`Row.elsewhere` `says` / `ask`: whose limit, its number, which fish kept elsewhere count toward it) — the
         # cutover drops `elsewhere` from the rows the table covers, so the table says what it said (contract Q-D9);
         # `answers.cut_over` stops the build where one is missing (`elsewhere_unsaid`)
-        elsewhere = elsewhere_lines([r for r in self.rows_out if _covered(r)], [b["group"] for b in self.boxes],
+        elsewhere = elsewhere_lines([r for r in self.rows_out if _covered(r)],
+                                    [(b["group"], (self.rows_out[b["home"]].get("members")
+                                                   or self.rows_out[b["home"]].get("all_members"))
+                                      if b["home"] is not None else None) for b in self.boxes],
                                     rows_said=A_ROW_ELSEWHERE_SAID)
         boxes = []
         src: List[int] = []
