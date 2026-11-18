@@ -242,6 +242,21 @@ describe("<LicenceTab>", () => {
     expect(within(screen.getByTestId("licence-answer")).queryByRole("button", { name: "Source" })).toBeNull();
   });
 
+  it("(T789 G8) From outside Canada: each closure to the non-resident alien is its own plain note, in the stored words, after the class box", () => {
+    const SEDAN = "Angling closed to non-guided non-resident aliens, Jul 1-Dec 31, on Saturdays and Sundays — between the Shegunia River confluence and the Sedan Creek confluence";
+    const GLACIER = "Angling closed to non-resident aliens, Aug 15-Oct 31 — from the lake to Glacier Creek";
+    const alien: Who = { age: "adult", residency: "non_resident_alien" };
+    const vm = LIC_X5P1["adult|non_resident_alien"]!;
+    // where core's buildLicence puts them (licence.test.ts "T789 G8"): after the designation boxes, before "You need"
+    const notes: Block[] = [{ cls: "scopenote", text: SEDAN }, { cls: "scopenote", text: GLACIER }];
+    mountLicence({ ...vm, blocks: [vm.blocks[0]!, ...notes, ...vm.blocks.slice(1)] }, alien);
+    const lines = domLines(screen.getByTestId("licence-answer"));
+    const at = lines.indexOf(SEDAN);
+    expect(at).toBeGreaterThan(0);
+    expect(lines.slice(at, at + 3)).toEqual([SEDAN, GLACIER, LICW.YOU_NEED]);
+    expect(within(screen.getByTestId("licence-answer")).queryByTestId("st:contested")).toBeNull();
+  });
+
   it("vedder_615 (closed): no Licence section at all (owner 2026-11-04; the prototype drew only its heading, D16 a)", () => {
     expect((vedder615 as unknown as RegsPage).licence).toBeNull();
   });

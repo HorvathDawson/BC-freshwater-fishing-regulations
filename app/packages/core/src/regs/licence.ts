@@ -178,6 +178,9 @@ function answerBlocks(inp: RegsInputs, F: LicenceValue & { holds: Holds }, who: 
   // page v36's unresolved-licensing flags ("Check: … couldn't be placed on the map") need the store's item.unresolved, which
   // T09 does not load yet (no item carries one in the current release) — not drawn
   if (P.exempt) out.push({ cls: "scopenote", text: LIC.EXEMPT_FROM(P.exempt.from.map(DOC).join(LIC.SEP)) });
+  // (T789 G8, owner 2026-11-17 "Yes, ship it") "From outside Canada": each closure to the non-resident alien THIS part's
+  // rule set holds (`alien_closures`, only on those parts; never province-wide), its own note in the rule's own words
+  if (who.residency === "non_resident_alien") for (const c of F.alien_closures ?? []) out.push({ cls: "scopenote", text: c.says });
   if (P.none_needed) out.push({ cls: "classbox", head: LIC.NONE_HEAD, terms: [],
     body: (who.age === "u16" ? LIC.NONE_U16 : P.exempt ? LIC.NONE_EXEMPT : LIC.NONE_ANY) + " " + LIC.NONE_TAIL });
 

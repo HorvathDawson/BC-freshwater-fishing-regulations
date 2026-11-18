@@ -35,7 +35,7 @@ const DICT = Buffer.from(JSON.stringify(RULE));
 
 /** Two regions; akey 1 → region 1, akey 2 → region 2. Frame id 5 exists in BOTH region files with DIFFERENT content,
  *  so a read routed to the wrong file is seen. regs-sid: handle 4097 (block 1, slot 1) → akey 2, place 0. */
-function seed(o: { noTidal?: boolean; badCells?: boolean; ruleGap?: boolean; noDict?: boolean; badStrip?: boolean; tidalPart?: boolean; lengths?: boolean;
+function seed(o: { alien?: boolean; noTidal?: boolean; badCells?: boolean; ruleGap?: boolean; noDict?: boolean; badStrip?: boolean; tidalPart?: boolean; lengths?: boolean;
                    partLine?: boolean; alias?: boolean; notes?: "rows" | "badShape" | "noWords" } = {}) {
   const asked: string[] = [];
   const spy = (name: string, d: Db): Db => ({
@@ -116,6 +116,9 @@ function seed(o: { noTidal?: boolean; badCells?: boolean; ruleGap?: boolean; noD
     INSERT INTO licence_doc VALUES (1, ${X([3, 4, 3])});
     INSERT INTO licence_answer VALUES (3, ${X({ need: "a" })}), (4, ${X({ need: "b" })});
     INSERT INTO licence_u16 VALUES (2, ${X([{ residency: "resident" }])});
+    ${o.alien ? `CREATE TABLE licence_alien (id INTEGER PRIMARY KEY, j BLOB);
+      INSERT INTO licence_alien VALUES (0, ${X([{ rule: 41, says: "Closed to aliens on weekends" }, { rule: 7, says: "Closed to aliens Aug" }])});
+      INSERT INTO licence_frame VALUES (7, ${X([0, 1, 2, 0])});` : ""}
     INSERT INTO display_frame VALUES (5, ${X({ status: "own", closing: [], strip: 0 })}),
       (6, ${X({ status: "tidal", tidal: true, note: "n", see: "s", licence: null })});`);
   const regs1 = region("1", `
@@ -337,6 +340,19 @@ describe("cells and frames: routed to the key's region file", () => {
     expect(await st.licence(2, 5)).toEqual({ holds: { holds: ["basic"] }, profiles: [{ need: "a" }, { need: "b" }, { need: "a" }],
       under_16: [{ residency: "resident" }] });
     expect(await st.licence(2, 6)).toEqual({ holds: { holds: ["basic"] }, profiles: [{ need: "a" }, { need: "b" }, { need: "a" }] });
+  });
+
+  it("(T789 G8) licence: the 4th index is the part's alien_closures (licence_alien), in order; a store without the table reads as before", async () => {
+    const st = await openRegsStore(seed({ alien: true }).loader);
+    expect(await st.licence(2, 7)).toEqual({ holds: { holds: ["basic"] }, profiles: [{ need: "a" }, { need: "b" }, { need: "a" }],
+      under_16: [{ residency: "resident" }],
+      alien_closures: [{ rule: 41, says: "Closed to aliens on weekends" }, { rule: 7, says: "Closed to aliens Aug" }] });
+    // a frame without the 4th index, in a store that holds the table: no alien_closures key at all
+    expect(await st.licence(2, 5)).not.toHaveProperty("alien_closures");
+    // a release cut before the table (the live r-46e4355a7277): its frames carry 3 indexes, read as before, no error
+    const old = await openRegsStore(seed().loader);
+    expect(await old.licence(2, 5)).toEqual({ holds: { holds: ["basic"] }, profiles: [{ need: "a" }, { need: "b" }, { need: "a" }],
+      under_16: [{ residency: "resident" }] });
   });
 
   it("gear and display ARE the frame (FrameCodec); frames() reads one cell's five", async () => {
