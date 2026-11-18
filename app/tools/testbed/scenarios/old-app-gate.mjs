@@ -53,10 +53,12 @@ export const oldAppGate = {
       await toMap(ctx);
       return `in use ${now}`;
     });
-    await ctx.step('a FRESH old install on the 0.8.0 release: its first run says "Update the app to get new regulations"', async () => {
+    // a 0.7.x first run says it in its own words of the day: "New data needs the latest app." under the failed start
+    // (bench 2026-11-18, 0.7.9), "Update the app to get new regulations" in later apps
+    await ctx.step('a FRESH old install on the 0.8.0 release: its first run says it needs the latest app', async () => {
       ctx.device.stop(); ctx.device.cleanApp();
       ctx.device.launch();
-      await ctx.waitText(/Update the app to get new regulations/, 120_000);
+      await ctx.waitText(/Update the app to get new regulations|New data needs the latest app/, 120_000);
       return ctx.device.screenText().filter((w) => w.trim()).slice(0, 6).join(' | ');
     });
   },
