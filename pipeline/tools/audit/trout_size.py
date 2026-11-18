@@ -439,6 +439,16 @@ def _trout_tables() -> Tuple[str, ...]:
     return tuple(C.OPTIONAL_SECTION_TABLES["trout"]["tables"])
 
 
+def _content_digest(b: bytes) -> str:
+    """A sqlite file's CONTENT digest, platform-free: `mini_release._sqlite_content`, the form the mini release itself is
+    compared by (a SQLite or zlib build writes the same rows in other bytes, so a CI runner's libraries cannot fail it)."""
+    from pipeline.tools.mini_release import _sqlite_content
+    with tempfile.TemporaryDirectory() as td:
+        p = Path(td) / "f.sqlite"
+        p.write_bytes(b)
+        return hashlib.sha256(_sqlite_content(p, Path(td))).hexdigest()
+
+
 def _gz(b: bytes) -> int:
     return len(gzip.compress(b, 9, mtime=0))
 
@@ -867,8 +877,8 @@ def measure(side: Path, live: Optional[Path] = None, log=print) -> dict:
                 "groups_freed": g["side"] - g["cutover"],
                 # F0's page possession row, priced apart: the cutover form with and without the sixth slot
                 "cutover_without_f0_gz": _gz(b_five), "f0_cost": g["cutover"] - _gz(b_five),
-                # the flag-off file's identity, platform-free (a gzip length differs by a few bytes between zlib builds)
-                "off_sha256": hashlib.sha256(b_off).hexdigest()}
+                # the flag-off file's identity by content (bytes and gzip lengths differ between sqlite/zlib builds)
+                "off_content": _content_digest(b_off)}
         for name in sorted(k for k in man["files"] if k == "water" or k.startswith("water-")):
             raw = AD._file_bytes(side, man, name)
             off = water_flag_off(raw)
@@ -880,7 +890,7 @@ def measure(side: Path, live: Optional[Path] = None, log=print) -> dict:
         rep["live"] = lm.get("data_release") or Path(live).name
         for name, z in rep["regions"].items():
             z["live_gz"] = int(lm["files"][name]["gz"]) if name in lm["files"] else None
-            z["live_sha256"] = lm["files"][name].get("sha256") if name in lm["files"] else None
+            z["live_content"] = _content_digest(AD._file_bytes(Path(live), lm, name)) if name in lm["files"] else None
         for name, z in rep["water"].items():
             z["live_gz"] = int(lm["files"][name]["gz"]) if name in lm["files"] else None
         rep["moments_live"] = _moments(Path(live), {})

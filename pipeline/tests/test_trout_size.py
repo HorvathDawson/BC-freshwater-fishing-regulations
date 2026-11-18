@@ -205,10 +205,10 @@ def a1(side):
 
 
 def test_a1_the_flag_off_form_is_the_release_built_without_the_flag(a1):
-    # every region file of the flag-off store is the committed (flag-off) release's, byte for byte (by its sha256: the
-    # gzip length differs by a few bytes between zlib builds, macOS 934 vs CI 932 on regs-3)
+    # every region file of the flag-off store is the committed (flag-off) release's, row for row (by content: the file's
+    # bytes and its gzip length differ between sqlite/zlib builds; macOS vs the Linux CI, regs-3 gz 934 vs 932)
     for name, z in a1["regions"].items():
-        assert z["off_sha256"] == z["live_sha256"], name
+        assert z["off_content"] == z["live_content"], name
         assert abs(z["off_gz"] - z["live_gz"]) <= 16, name
         assert z["side_gz"] > z["off_gz"]
     # the water files less the section's parts: what is left is the meta's digests (other answers, other hashes)
