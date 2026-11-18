@@ -481,8 +481,10 @@ and every normal release re-cuts them (`regs-recut/sync.mjs`). So the vectors de
 **trout fixture of their own**: `app/fixtures/trout/regs-release/` + `section-lines.json`, the same `regs_fixture`
 cut (`--trout-cases`: exactly the waters of `trout_vectors.CASES`, no golden waters) from a side release.
 `scripts/trout-refresh.sh` runs the chain (side release → `regs_fixture --trout-cases` → `trout_vectors` → golden
-sync → every `--check` and the cut again byte for byte); its golden-sync step runs `sync.mjs` only once
-`versions.ts` lists `trout` (M0), and says so when it does not. At the cutover (L) the normal release carries the
+sync → every `--check` and the cut again byte for byte); its golden-sync step runs `sync.mjs` only at the
+cutover (`trout` in `KNOWN_VERSIONS`, L; 2026-11-17: at M0 it broke the app's local live-release tests, which hold the
+live release to the goldens, and `reads.trout.test.ts`, which needs the normal fixture without the section), and says
+so when it does not. At the cutover (L) the normal release carries the
 section and the two fixtures can be one. The staging `side <dir>` scenario: the app reads every release file's url
 relative to `<origin>/release/` on the test channel too, so the scenario names its files `../test/release/<id>/…`
 (the staging data worker resolves the dot segment itself; `deploy/staging/test-updates.test.mjs`); not yet walked on

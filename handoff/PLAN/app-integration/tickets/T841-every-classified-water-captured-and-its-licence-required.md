@@ -22,9 +22,11 @@ picture to the owner before it ships.
   the Fording above Josephine Falls and Kwinamass River print none and are classified through the Wigwam, the lower
   Fording and Ksi X'anmas) and the West Road's glyph-less Class II (Li10). The Elk River's tributaries row and every
   "including tributaries" / ✱ clause are the "tributary of" classifications (69 of 74 designations walk them).
-- Shipped (r-46e4355a7277): all 73 right against the corpus and the rulings. On every one of 86,963 designated section
-  bindings the resident adult's Licence tab asks for the Classified Waters Licence on the first day of the period
-  (the Atnarko and Burnt Bridge asleep "until reopened", as printed), and never outside one.
+- Shipped (r-46e4355a7277): 72 of 73 right. On every one of 86,963 designated section bindings the resident adult's
+  Licence tab asks for the Classified Waters Licence on the first day of the period (the Atnarko and Burnt Bridge
+  asleep "until reopened", as printed), and never outside one. THE GAP (independent review): Coal Creek above the old
+  MF&M bridge (7 sections, 6.9 km up) ships unclassified — that release's reach run (11-16 00:24) predates Li5a's code
+  (374f94b48, 11-16 13:48); the corpus already had `walk_past`. The next build fixes it (reach-only rerun, below).
 - No data change. Gate added: `python -m pipeline.regs.classified_waters` — `--check` (corpus vs the book's 73 rows,
   in fast-fail and the release preflight) and `--check --bundle` (the licence on every bound section, release checks
   stage on the candidate).
@@ -36,3 +38,4 @@ picture to the owner before it ships.
 - For the app's badge: the licence frame of a day lists the designations in force (`holds.designations`, each a
   licensing record with `classified` I/II, `unit_name` and `period.says`); out of the period it lists none, so a
   year-round badge reads the key's other frames (no pipeline change needed).
+- 2026-11-17 ~21:18, owner on T841 (73/73 classified rows ship right; own-row tributaries that print no class, Li5/Li5a: Gosnell, Thautil, Glacier (Redslide), Two Mile, Station, Hevenor, Magar, Endako, Little Horsefly, McKinley, Moffat, Wahpeeto, Whiteswan outlet; closed all year: Line, Grave, Sandown, Nichyeskwa, Lean-to, Deep, East Fork White, Bear (Sustut)): "Keep: not classified". Li5/Li5a stand.
