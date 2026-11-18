@@ -464,7 +464,7 @@ def test_q45_explicit_exclusion_in_the_text_counts():
     ("3", "r3:coldwater_river@3-13", "coldwater_river.r2", []),                  # size vs bull trout release
     ("3", "r3:nicola_river@3-13", "nicola_river.r3", ["DV"]),                     # release vs bull trout release
     ("6", "z6:daily_quotas", "trout_char_quota.r6", []),                       # size vs char releases
-    ("6", "z6:daily_quotas", "trout_char_quota.r7", ["DV", "LT"]),             # stream release vs DV, LT lines
+    ("6", "z6:daily_quotas", "trout_char_quota.r7", ["DV"]),                   # stream release vs the DV line (T854: LT stays in)
 ])
 def test_q45_corpus_reading_by_relatedness(region, entry_id, rule_id, out):
     r = _rule(region, entry_id, rule_id)

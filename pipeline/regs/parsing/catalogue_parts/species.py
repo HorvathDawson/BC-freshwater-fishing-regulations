@@ -205,19 +205,55 @@ def char_rules_apart(rules) -> list:
     return [r for r in rules if set(r.species) & chars and "TROUT_CHAR" not in r.species]
 
 
+def _places(r) -> Optional[frozenset]:
+    """The areas a rule's own extents name (None: no extents of its own — it stands on its row's water)."""
+    ex = getattr(r, "extents", None) or []
+    if not ex:
+        return None
+    return frozenset((getattr(e, "area_id", None) if not isinstance(e, dict) else e.get("area_id"),
+                      getattr(e, "within_area", None) if not isinstance(e, dict) else e.get("within_area"))
+                     for e in ex)
+
+
+def _covers(c, t) -> bool:
+    """(T854) Does char rule `c` stand everywhere trout line `t` does? Both on the row's own water (no extents), or
+    `c` naming at least every area `t` names (Region 6's "all Dolly Varden/bull trout from streams" stands in the
+    whole region, as the stream lines do; its Fraser/Skeena lake trout release stands in two basins only)."""
+    pc, pt = _places(c), _places(t)
+    if pc is None:
+        return True
+    if pt is None:
+        return False
+    return pt <= pc
+
+
 def trout_char_excluded(r, rules) -> List[str]:
     """THE CHAR A "TROUT" LINE EXCLUDES, read from its row (RULINGS C2 as amended by the owner
     2026-11-18): `["CHAR"]` when (a) the line excludes char in so many words, or (b) the CHAR GROUP AS
     A WHOLE has a related rule of its own in the row — a rule naming "char", or rules that between
     them name every char; else the char that have a related rule of their own, each alone (Chilliwack
-    Lake: `["DV"]`); else none. `rules` is the row (a water's row, or a zone table)."""
+    Lake: `["DV"]`); else none. `rules` is the row (a water's row, or a zone table).
+
+    (Owner 2026-11-18, T854: "trout always covers char unles "char" as a whole is referenced elsewise on its own
+    ... this should be a release like brook trout") A char's own rule takes it out of a trout line only where it
+    STANDS EVERYWHERE THE LINE DOES (`_covers`): Region 6's "Lake trout from Fraser and Skeena Watersheds, Sept
+    15-Nov 30" stands in two basins of the region, so it leaves lake trout in the region's stream lines ("Trout of
+    any size from streams, Nov 1-June 30", "1 trout from streams July 1-Oct 31") — it adds its own release there,
+    it exempts lake trout from nothing."""
     if _EXCLUDES_CHAR.search(r.verbatim or ""):
         return ["CHAR"]
     chars = BOOK_FAMILIES["CHAR"]
     named: set = set()
     for c in char_rules_apart(rules):
-        if c is not r and related_rules(r, c):
-            named |= {"CHAR"} if "CHAR" in c.species else set(c.species) & set(chars)
+        if c is not r and related_rules(r, c) and _covers(c, r):
+            if "CHAR" in c.species:
+                named.add("CHAR")
+            elif not (c.within and c.take is not None and not c.lengths):
+                named |= set(c.species) & set(chars)
+            # (T854) else a COUNT SHARE inside a group quota naming one or two char ("3 Dolly Varden/bull trout and/or
+            # lake trout combined" within Region 6's "Trout/char: 5") is the group's own count, stacked with the other
+            # lines (Q23), never those char's rule of their own: they stay in the trout lines beside it. A SIZE clause
+            # inside the quota ("no bull trout under 75 cm", upper Kootenay) is the char's own size rule: it leaves.
     if "CHAR" in named or set(chars) <= named:
         return ["CHAR"]
     return [c for c in chars if c in named]

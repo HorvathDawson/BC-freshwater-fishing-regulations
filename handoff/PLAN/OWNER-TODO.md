@@ -2681,3 +2681,5 @@ More questions (recommended answer first):
   to the left side bar? maybe under map button?" then "might be the other chats job". So: T855 (Salmon map slower than
   Trout; not fixed yet, T848's fix covers the Trout map's zoom lag) and T856 (desktop: the switch goes in the left side
   bar under the Map button; phones unchanged). Both in 0.8.1, app chat.
+
+- 2026-11-18 14:33 (T854, main chat) Owner, on whether a one-char rule (Chilliwack "1 bull trout over 60 cm", upper Kootenay "no bull trout under 75 cm") still takes that char out of the trout line, verbatim: "the species specific ones still are more specific so it applies to that species but if it is something like bull trout only 1 over 60cm but regional quota is 2 bull trout and 3 trout, then we could keep 2 bull trout which take 2/3 of our trout quota. make sense? so i think this is the mornign decision unless im confused? idk what other char -group one is idk what you meant" -> this morning's ruling stands; Region 6 lake trout fixed (released in streams Nov 1-June 30, 1 from streams in summer). RULINGS C2 + T854.

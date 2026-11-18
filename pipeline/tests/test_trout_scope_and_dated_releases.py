@@ -134,10 +134,11 @@ def test_region_6_and_region_1_trout_lines_are_trout_only(corpus):
     it, and Region 6's size line 'Trout under 30 cm from any stream' (no char size line beside it)
     covers char. The label says 'Trout'."""
     assert "CHAR" not in _rule(corpus, "z6:daily_quotas", "trout_char_quota.r6").species_except
-    # C2 as amended 2026-11-18: Region 6 names Dolly Varden and lake trout, never char as a group or
-    # brook trout — its stream lines leave out those two and hold brook trout
+    # C2 as amended 2026-11-18: Region 6's stream lines leave out Dolly Varden alone ("all Dolly Varden/bull
+    # trout from streams all year", region-wide); lake trout stay in (T854, owner 2026-11-18: its Fraser/Skeena
+    # line stands in two basins, its "3 … combined" is a share of the group quota), and brook trout
     for rid in ("trout_char_quota.r4", "trout_char_quota.r7"):
-        assert _rule(corpus, "z6:daily_quotas", rid).species_except == ["DV", "LT"], rid
+        assert _rule(corpus, "z6:daily_quotas", rid).species_except == ["DV"], rid
     for eid, rid in (("z1:daily_quotas", "trout_quota.r1"), ("z1:daily_quotas", "trout_quota.r2"),
                      ("z1:daily_quotas", "trout_quota.r4"), ("z1:daily_quotas", "trout_quota.r6")):
         r = _rule(corpus, eid, rid)

@@ -226,8 +226,8 @@ SWEEP = {
      "kootenay_river_upper.r6"): ["DV"],
     ("r4:kootenay_river_upstream_of_koocanusa_reservoir@4-2+4-21+4-22+4-24+4-25+4-35",
      "kootenay_river_upper.r9"): ["DV"],
-    ("z6:daily_quotas", "trout_char_quota.r4"): ["DV", "LT"],
-    ("z6:daily_quotas", "trout_char_quota.r7"): ["DV", "LT"],
+    ("z6:daily_quotas", "trout_char_quota.r4"): ["DV"],      # T854: lake trout stay in (was [DV, LT])
+    ("z6:daily_quotas", "trout_char_quota.r7"): ["DV"],
 }
 
 
@@ -268,3 +268,22 @@ def test_the_label_names_the_char_left_out_as_the_answers_do():
         "Trout and char other than Dolly Varden/bull trout and brook trout")
     assert L.species_words(["TROUT_CHAR"], ["CHAR", "ST"]) == "Trout other than steelhead"
     assert L.PROPER_NAME.pattern == common._PROPER.pattern          # one list of proper names, two copies
+
+
+def test_t853_a_char_line_that_stands_in_part_of_the_region_leaves_that_char_in_the_regions_trout_lines():
+    """T854 (owner 2026-11-18: "trout always covers chgar unles "char" as a whole is referenced elsewise on its own
+    ... this should be a release like brook trout"). Region 6: "Lake trout from Fraser and Skeena Watersheds, Sept
+    15-Nov 30" stands in two basins, so lake trout stay in "Trout of any size from streams, Nov 1-June 30" and "1
+    trout from streams July 1-Oct 31" everywhere in the region (the Nass kept lake trout in November); "all Dolly
+    Varden/bull trout from streams all year" stands in the whole region, so bull trout leave them. MUTATION: the lake
+    trout line made region-wide takes lake trout out again."""
+    e = _corpus("6")["z6:daily_quotas"]
+    by = {r.rule_id: r for r in e.rules}
+    for rid in ("trout_char_quota.r4", "trout_char_quota.r7"):
+        assert by[rid].species_except == ["DV"] and C.trout_char_excluded(by[rid], e.rules) == ["DV"]
+    assert not [p for p in C.trout_scope_problems(e.entry_id, "", e.rules) if p.startswith("trout_char_quota.r")]
+    lt = by["trout_char_quota.r8"]
+    assert lt.species == ["LT"] and "Fraser and Skeena" in lt.verbatim
+    wide = lt.model_copy(update={"extents": by["trout_char_quota.r7"].extents})
+    rules = [wide if r is lt else r for r in e.rules]
+    assert C.trout_char_excluded(by["trout_char_quota.r7"], rules) == ["DV", "LT"]

@@ -11148,8 +11148,7 @@
       "TROUT_CHAR"
      ],
      "species_except": [
-      "DV",
-      "LT"
+      "DV"
      ],
      "when": {
       "dates": [
@@ -11226,8 +11225,7 @@
       "TROUT_CHAR"
      ],
      "species_except": [
-      "DV",
-      "LT"
+      "DV"
      ],
      "when": {
       "dates": [
