@@ -2,7 +2,8 @@
 /**
  * THE NATIVE SPLASH, DRAWN FROM THE LOADER (T244, owner 2026-10-29; T843, owner 2026-11-17: the coho, not the circling fish).
  *
- *   node tools/build-splash.mjs            -> writes apps/mobile/assets/splash/splash-{light,dark}.png
+ *   node tools/build-splash.mjs            -> writes apps/mobile/assets/splash/splash-{light,dark}.png and (T844) the web's
+ *                                             opening picture, web-frame0-{light,dark}.png (frame 0 at the sheet's own size)
  *   node tools/build-splash.mjs --check    -> exits 1 when either committed file differs (`pnpm splash`)
  *
  * The native splash (expo-splash-screen) must hand off to the boot screen's loader with no jump, so it is not new art:
@@ -120,9 +121,15 @@ function draw(px, fw, fh) {
 }
 
 const { fw, fh, sheetOf } = coho();
-const files = ["light", "dark"].map((name) => ({
-  path: here(`../apps/mobile/assets/splash/splash-${name}.png`), ...draw(frameZero(sheetOf(name), fw, fh), fw, fh),
-}));
+const files = ["light", "dark"].flatMap((name) => {
+  const px = frameZero(sheetOf(name), fw, fh);
+  return [
+    { path: here(`../apps/mobile/assets/splash/splash-${name}.png`), ...draw(px, fw, fh) },
+    // (T844) the web's opening picture: frame 0 at the sheet's own pixels (the web draws the sheet at 1.5 px per CSS px
+    // too), shown by the export's HTML shell (`tools/web-shell.mjs`) until the sheet itself has arrived
+    { path: here(`../apps/mobile/assets/splash/web-frame0-${name}.png`), bytes: pngRGBA(fw, fh, px), far: 0 },
+  ];
+});
 
 if (process.argv.includes("--check")) {
   const stale = files.filter((f) => !existsSync(f.path) || !readFileSync(f.path).equals(f.bytes));
@@ -133,5 +140,5 @@ if (process.argv.includes("--check")) {
   console.log("splash art: current");
 } else {
   mkdirSync(here("../apps/mobile/assets/splash"), { recursive: true });
-  for (const f of files) { writeFileSync(f.path, f.bytes); console.log(`wrote ${f.path} (${f.bytes.length} B; reaches ${f.far.toFixed(1)} dp)`); }
+  for (const f of files) { writeFileSync(f.path, f.bytes); console.log(`wrote ${f.path} (${f.bytes.length} B${f.far ? `; reaches ${f.far.toFixed(1)} dp` : ""})`); }
 }

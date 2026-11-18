@@ -283,7 +283,7 @@ reads both files; a ticket closed here moves there once its lane is finished wit
 | T841 | Every classified water the book marks (symbol or "tributaries of …") is captured, bound and requires the Classified Waters Licence; Class badge in the card header | OPEN | — | owner 2026-11-17 (`handoff/PLAN/OWNER-TODO.md`) |
 | T842 | The walkthrough on a phone: the highlight lags a scroll, the keyboard hides the target, too many steps for a first look | IN PROGRESS (built on branch app-fix/t842-walkthrough) | — | owner 2026-11-17 (app) |
 | T843 | On opening the app the old circling fish shows before the new swimming coho (the native launch picture was never moved to the coho) | IN PROGRESS (built on branch app-fix/t842-walkthrough) | — | owner 2026-11-17 (app) |
-| T844 | The web app's opening loader is the new coho, as the phone's is; small in-app loaders keep the circling fish | OPEN | — | owner 2026-11-17 (`handoff/PLAN/OWNER-TODO.md`) |
+| T844 | The web app's opening loader is the new coho, as the phone's is; small in-app loaders keep the circling fish | IN PROGRESS (built on branch app-fix/t844-web-coho) | — | owner 2026-11-17 (`handoff/PLAN/OWNER-TODO.md`) |
 
 ## Next after closed testing
 
