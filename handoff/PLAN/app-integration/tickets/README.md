@@ -279,6 +279,7 @@ reads both files; a ticket closed here moves there once its lane is finished wit
 | T840 | A salmon verdict's short text carries its own condition (two verdicts with different quota trees never share one `t`; lands with the app dropping its T767 join) | OPEN | — | app chat T767 2026-11-17 (after 0.8.0) |
 | T841 | Every classified water the book marks (symbol or "tributaries of …") is captured, bound and requires the Classified Waters Licence; Class badge in the card header | OPEN | — | owner 2026-11-17 (`handoff/PLAN/OWNER-TODO.md`) |
 | T844 | The web app's opening loader is the new coho, as the phone's is; small in-app loaders keep the circling fish | IN PROGRESS (built on branch app-fix/t844-web-coho; web-only coho sheet 105 KB) | — | owner 2026-11-17 (`handoff/PLAN/OWNER-TODO.md`) |
+| T846 | A decided fish answer says "keep" where a take-0 sub-cap over part of the pool releases it (Bella Coola cutthroat, 35 waters; the trout table is right) | OPEN | — | T810 L re-review 2026-11-18 |
 
 ## Next after closed testing
 
