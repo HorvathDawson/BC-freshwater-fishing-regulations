@@ -2529,3 +2529,4 @@ More questions (recommended answer first):
      "in all" ??" (open: explain "1 day's limit, not 2" and simplify; drop or justify "in all").
   4. Lakes' "only 4 wild" inside "Keep 4 in all": "i would need to see an example. to make sure it reads right" (open:
      before/after pictures).
+- 2026-11-18 ~00:52 (relayed by the app chat; verbatim in its OWNER-TODO ab7baad), owner round 2 on the trout table: 3+ row boxes "K total from these M" (A); every shared box names the overall limit; "uses the 1 over 50 cm" likely unneeded (switchable, shown off in round 3); ungrouped fish first, groups last, no group splitting another; shared dates said once ("the dates need to be handled better"); Vedder hatchery rainbow as a separate "river rule"; hatchery+wild Group A (one row per fish, one count). Main chat: all to the L worker as one round.
