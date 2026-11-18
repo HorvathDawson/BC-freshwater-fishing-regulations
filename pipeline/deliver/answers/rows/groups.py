@@ -347,6 +347,11 @@ def _line(q: str, a: str, model: dict, kinds: Sequence[str], kept, at: str, here
             "of": None if of is None else list(of)}
 
 
+#: T810 L: a pool of one kind of water (Region 8's "20 brook trout from streams") says that kind in its kept-elsewhere
+#: sentence and worked line. False = the mutation pin (`test_t810_cutover.py`)
+A_ONE_WATER_POOL_SAYS_ITS_WATER = True
+
+
 def elsewhere_of(P: "Part", model: dict, row: dict, sc: dict, T: R,
                  grp: Optional[dict]) -> dict:
     """The kept-elsewhere line of a keep row (rows F9, F14) — `says` one sentence, `ask`
@@ -408,8 +413,17 @@ def elsewhere_of(P: "Part", model: dict, row: dict, sc: dict, T: R,
                  _line(f"Kept 1 at a {other}?" if here2 is not None else f"Kept some at a {other}?", a2,
                        model, row["members"], 1, other, here2)]
     elif s:
-        says = f"Your own limit, counted across every water in {s} you fish today" + \
-            (", lakes and streams alike." if not pool.f.get("water") else ".")
+        # T810 L (Region 8 p.68 "And you may retain: 20 brook trout from streams"): a pool of ONE kind of water counts
+        # only the fish kept today from that kind — said so (the share's own form, RULINGS P44), and its worked line
+        # keeps them on another water of that kind ("Kept 2 on another stream?"), never "elsewhere" (a lake's do not
+        # count). False = the mutation pin (the sentence said "every water" and the line "elsewhere")
+        wk = pool.f.get("water") if A_ONE_WATER_POOL_SAYS_ITS_WATER else None
+        if wk:
+            says = (f"Your own limit, counted across every {wk} in {s} you fish today." if both and s == both
+                    else f"Your own limit, counted across every {s} {wk} you fish today.")
+        else:
+            says = f"Your own limit, counted across every water in {s} you fish today" + \
+                (", lakes and streams alike." if not pool.f.get("water") else ".")
         if row["kind"] == "keep" and n is not None and n > 1:
             k = 2 if n > 2 else 1
             a = f"Keep {_js(n - k)} more here"
@@ -425,8 +439,9 @@ def elsewhere_of(P: "Part", model: dict, row: dict, sc: dict, T: R,
                 if ex:
                     # RULINGS Q23b: lifted fish count toward the tally; they may go past it here
                     a += f" ({ex} may go past it here)"
-            lines = [_line(f"Kept {k} elsewhere today?", a, model, (grp or {}).get("kinds") or row["members"],
-                           k, "elsewhere", None if sh is not None else n - k, kind="tally")]
+            lines = [_line(f"Kept {k} on another {wk}?" if wk else f"Kept {k} elsewhere today?", a, model,
+                           (grp or {}).get("kinds") or row["members"], k, wk or "elsewhere",
+                           None if sh is not None else n - k, kind="tally")]
     else:
         # RULINGS P26: SPECIFIC — whose limit, its number, and which fish kept elsewhere today count
         # toward it (the row's kinds: Ape Creek's char released on Oct 10 are not among them): "The Bella

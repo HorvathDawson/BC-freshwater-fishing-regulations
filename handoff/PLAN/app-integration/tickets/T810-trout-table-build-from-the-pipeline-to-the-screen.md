@@ -426,3 +426,10 @@ unpacks a rows frame as exactly five slots, so a rows-34 frame (six) breaks the 
   Stub Creek's "Steelhead and white sturgeon catch and release", `stub_creek.r3`, with a mutation test; its split parts re-stamped in the mini release too); `CELL_NULLABLE`
   emitted beside `CellIds`; `check-format-pairs.py` reads `REGS_REGION_FORMAT`; test_answers_v1 reads rows 34; the
   pre-cutover regs fixture kept at `pipeline/tests/fixtures/pre-cutover-regs-release/`.
+- Region 8's brook trout settled by the book (p.68 "And you may retain: 20 brook trout from streams"): the CARD line was
+  wrong. `rows/groups.elsewhere_of`: a one-water pool says its water ("Your own limit, counted across every Region 8
+  stream you fish today.") and keeps on that water ("Kept 2 on another stream? Keep 18 more here."); the table's two
+  word-identical stream sentences collapse into one. Engine (latent): a fish kept elsewhere is exempt from a zone rule
+  an in-force zone rule applying to it lists in `exempts` (`engine.A_ZONE_EXEMPTS_ELSEWHERE`; Inkaneep day 1: 4 other
+  trout after 2 brook trout kept on another stream, not 2). Live in memory: J 0 problems on 5,950 tables; the card
+  gate 0 problems on 9,251 groups.
