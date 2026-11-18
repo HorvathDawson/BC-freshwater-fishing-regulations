@@ -28,6 +28,7 @@ export { LayersSheet, legendColour } from "./LayersSheet";
 export { OptionRow, type Option } from "./OptionRow";
 export { Button, type ButtonKind } from "./Button";
 export { SayingLine } from "./SayingLine";
+export { LoaderLine, loaderLineText } from "./LoaderLine";
 export { ago, count, plural } from "./format";
 export { Icon, IconText, ICONS, ICON_STROKE, LUCIDE_NAME, type IconName } from "./icons";
 export * from "./type";

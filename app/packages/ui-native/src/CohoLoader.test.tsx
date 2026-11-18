@@ -56,14 +56,16 @@ describe("<CohoLoader> web (T814)", () => {
             by(container, "coho-cols").style.animation.includes("steps")]).toEqual(["", "", true]);
   });
 
-  it("(T844) draws the web's own sheet (40 frames, ~105 KB), never the phones' 0.9 MB one: owner, \"make way smaller for web\"", () => {
+  it("(T844) draws the web's own sheet (40 frames, ~146 KB), never the phones' 1.5 MB one: owner, \"make way smaller for web\"", () => {
     for (const [p, t] of [[LIGHT, "light"], [DARK, "dark"]] as const) {
       const { container } = render(<CohoLoader palette={p} />);
       const src = by(container, "coho-sheet").querySelector("img")!.getAttribute("src");
       expect([src, src === String(COHO.sheets[t])]).toEqual([String(COHO_WEB.sheets[t]), false]);
       cleanup();
     }
-    expect([COHO_WEB.frames, COHO_WEB.loopMs, COHO_WEB.frame]).toEqual([40, COHO.loopMs, COHO.frame]);
+    // (T852) its own frame (2 px per CSS px), at the phones' aspect, so `cohoHeight` holds for both
+    expect([COHO_WEB.frames, COHO_WEB.loopMs, COHO_WEB.frame.width * COHO.frame.height])
+      .toEqual([40, COHO.loopMs, COHO.frame.width * COHO_WEB.frame.height]);
     expect(Object.keys(COHO_WEB.sheets).sort()).toEqual(Object.keys(THEMES).sort());
   });
 

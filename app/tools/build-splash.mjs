@@ -11,7 +11,7 @@
  * wide), and the splash had stayed the circling fish's frame 0, so a launch showed the old fish, then the coho (owner
  * 2026-11-17: "the old loading icon shows up before the new swimming fish one"). Now it is the coho sheet's frame 0 per
  * theme (light: coho-light, dark: coho-dark; the sheets are already printed in the theme's ink and red), at the pixel
- * size the app draws it (192 x 80 dp x 3 = 576 x 240 px, bilinear from the 288 x 120 px frame, as the Image stretch
+ * size the app draws it (192 x 80 dp x 3 = 576 x 240 px, bilinear from the 480 x 200 px frame, as the Image stretch
  * does), on a transparent ground. The ground the coho sits on is `color.ui.coho.ground` = `color.ui.card`, what the boot
  * screen paints and what `apps/mobile/app.config.js` gives the splash; no colour is written down here or there.
  *
@@ -122,12 +122,13 @@ function draw(px, fw, fh) {
 
 const { fw, fh, sheetOf } = coho();
 const web = coho("cohoWeb.generated.ts");
-if (web.fw !== fw || web.fh !== fh) throw new Error("build-splash: the web's coho frame is not the phones'");
+// (T852) the web's frame is its own size (2 px per CSS px; the phones' 2.5 px per dp), at the phones' aspect
+if (web.fw * fh !== fw * web.fh) throw new Error("build-splash: the web's coho frame is not the phones' aspect");
 const files = ["light", "dark"].flatMap((name) => [
   { path: here(`../apps/mobile/assets/splash/splash-${name}.png`), ...draw(frameZero(sheetOf(name), fw, fh), fw, fh) },
-  // (T844) the web's opening picture: the WEB sheet's frame 0 at its own pixels (the web draws it at 1.5 px per CSS px
-  // too), shown by the export's HTML shell (`tools/web-shell.mjs`) until that sheet has arrived: the same picture
-  { path: here(`../apps/mobile/assets/splash/web-frame0-${name}.png`), bytes: pngRGBA(fw, fh, frameZero(web.sheetOf(name), fw, fh)), far: 0 },
+  // (T844) the web's opening picture: the WEB sheet's frame 0 at its own pixels (the web draws it at 2 px per CSS px
+  // too, T852), shown by the export's HTML shell (`tools/web-shell.mjs`) until that sheet has arrived: the same picture
+  { path: here(`../apps/mobile/assets/splash/web-frame0-${name}.png`), bytes: pngRGBA(web.fw, web.fh, frameZero(web.sheetOf(name), web.fw, web.fh)), far: 0 },
 ]);
 
 if (process.argv.includes("--check")) {

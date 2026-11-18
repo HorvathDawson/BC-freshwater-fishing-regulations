@@ -6,7 +6,7 @@ import { THEMES, type Palette, type ThemeName } from "./theme";
 
 /**
  * Its width on the start screen and the curtain, in dp: about the circling fish's weight at 110 dp, as a long fish
- * (192 x 80). The sheet is baked at 1.5 px per dp of this (`tools/build-coho.mjs` FRAME_PX).
+ * (192 x 80). The sheet is baked at 2.5 px per dp of this (`tools/build-coho.mjs` FRAME_PX; T852).
  */
 export const COHO_WIDTH = 192;
 
