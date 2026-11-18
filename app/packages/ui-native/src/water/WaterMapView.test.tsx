@@ -10,7 +10,7 @@ import type { ItemId, SectionId } from "@app/data";
 import type { MapProps } from "@app/map";
 import { openRegsFixture, openRegsFixtureWithLines, regsFixtureLines, sectionNames } from "@app/data/release/node";
 import { loadWaterGroup, openRegsStore } from "@app/data/regs";
-import { partName, partWhere, setFailureSink } from "@app/core";
+import { markLabel, partName, partWhere, setFailureSink } from "@app/core";
 import { BackLayerContext, HOME, openWater, parseStartLink, partAction, partOfTap, reduce, useBack, useRoute,
          waterFrame, type Route, type StartLink, type SystemBack } from "@app/ui";
 import { linkSearch, placeReads, resolveStartLink } from "@app/ui/place";
@@ -138,7 +138,7 @@ describe("<WaterMapView>", () => {
     mount("gnis:8634", 0);
     await ready();
     const name = screen.getByTestId("water-map-name");
-    expect(name.getAttribute("aria-label")).toBe("Vedder Crossing Bridge → Orange triangular boundary signs (200 m upstream of Vedder Crossing bridge)");
+    expect(name.getAttribute("aria-label")).toBe(partName(await groupOf("gnis:8634"), 0));   // (T768) the group's words, pinned in conformance
     const down = screen.getByTestId("water-map-step-down"), up = screen.getByTestId("water-map-step-up");
     for (const el of [name, down, up]) expect(el.style.getPropertyValue("-webkit-line-clamp"), el.textContent ?? "").toBe("2");
     // each step's button holds its own words (a shrinkable column of half the bar), and names the whole way for a reader
@@ -157,16 +157,18 @@ describe("<WaterMapView>", () => {
       highlight: await sections.streams(CHW0_LIT), water: await sections.streams(CHW0_WATER) });
     expect(seen.props?.fit).toEqual({ key: "gnis:8634:0", bbox: [-121.96469, 49.096026, -121.962945, 49.097385], refine: false,
       maxZoom: 12 });
-    expect(seen.props?.marks?.map((m) => `${m.label ?? "(ring)"} ${m.a11y}`)).toEqual([
-      "Orange triangular boundary signs (200 m upstream of Vedder Crossing bridge) Boundary: Orange triangular boundary signs (200 m upstream of Vedder Crossing bridge)",
-      "(ring) Boundary: Tamihi Rapids Bridge",
-      "(ring) Boundary: 100 m below the Slesse Creek confluence",
-      "(ring) Boundary: Chilliwack River Ecological Reserve boundary"]);
-    for (let k = 0; k < 4; k += 1) fireEvent.click(screen.getByRole("button", { name: "Upstream" }));
+    // (T768) every mark's words are the group's (markLabel); only the part's own ends are labelled, the rest are rings
+    const chw = await groupOf("gnis:8634");
+    expect(seen.props?.marks?.map((m) => `${m.label ?? "(ring)"} ${m.a11y}`)).toEqual(chw.marks.map((m) => {
+      const w = markLabel(chw, m);
+      return `${m.down === 0 || m.up.includes(0) ? w ?? "(ring)" : "(ring)"} Boundary: ${w}`;
+    }));
+    expect(markLabel(chw, chw.marks[0]!)).toBeTruthy();   // not vacuous: the first mark is a named place
+    for (let k = 0; k < chw.parts.length - 1; k += 1) fireEvent.click(screen.getByRole("button", { name: "Upstream" }));
     expect(bar()).toBe(`${await lead("gnis:8634", "top")}` + " | Downstream | Highest part (off)");
     // the committed regs fixture's handle of the Chilliwack's part 4 (frozen until `pnpm regs-fixture` re-cuts it; T206,
     // r-f6918815ca78: 380887781:58646; T220 re-cut it to 1236842; T222 r-445850b69ae1 to 1236847, handles +5; T289 r-ce76b4ed3624: handles -2, the Thomas / Angelo lake stubs re-joined)
-    expect([lit().highlight, seen.props?.fit?.key]).toEqual([[await sections.stream(...CHW_SOURCE)], "gnis:8634:4"]);
+    expect([lit().highlight, seen.props?.fit?.key]).toEqual([[await sections.stream(...CHW_SOURCE)], `gnis:8634:${chw.parts.length - 1}`]);
     // the disabled end does nothing
     fireEvent.click(screen.getByRole("button", { name: "Highest part" }));
     expect(screen.getByTestId("water-map-where").textContent).toBe(await where("gnis:8634", "top"));
@@ -232,11 +234,11 @@ describe("<WaterMapView>", () => {
     await ready();
     act(() => seen.props!.onPressMark!(2));
     // (T517) a mark says the same words as the ends of the parts it joins
-    const pop = within(screen.getByRole("dialog", { name: "100 m below the Slesse Creek confluence" }));
+    const chw = await groupOf("gnis:8634"), mk = chw.marks[2]!, word = markLabel(chw, mk)!;
+    const pop = within(screen.getByRole("dialog", { name: word }));
     expect(screen.getByTestId("water-map-mark").textContent).toBe(
-      "100 m below the Slesse Creek confluence"
-      + "Upstream100 m below the Slesse Creek confluence → Chilliwack River Ecological Reserve boundaryChilliwack River"
-      + "DownstreamTamihi Rapids Bridge → 100 m below the Slesse Creek confluenceChilliwack River");
+      `${word}Upstream${partName(chw, mk.up[0]!)}Chilliwack River`
+      + `Downstream${partName(chw, mk.down)}Chilliwack River`);
     expect(seen.props?.marks?.[2]?.on).toBe(true);
     fireEvent.click(pop.getByRole("button", { name: "Close" }));
     expect(screen.queryByTestId("water-map-mark")).toBeNull();
@@ -296,7 +298,7 @@ describe("<WaterMapView>", () => {
     act(() => seen.props!.onPressMark!(2));
     const seenMark = [open(), `${back()} -> ${open()}`, `${back()} -> ${open()}`];
     expect(seenMark).toEqual([
-      "100 m below the Slesse Creek confluence · water",
+      `${markLabel(await groupOf("gnis:8634"), (await groupOf("gnis:8634")).marks[2]!)} · water`,
       "true -> nothing open · water",
       "true -> nothing open · browse",
     ]);

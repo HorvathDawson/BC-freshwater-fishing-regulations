@@ -294,14 +294,26 @@ describe("the water's Map view and the rest of the water screen agree (P15 follo
       "chilliwack_vedder_rivers__vedder_crossing_bridge_200_m_downstream", "chilliwack_vedder_rivers__vedder_crossing_bridge");
     await onMap("gnis:3062", upper);
     const vedderTop = await barOf("gnis:3062", "top"), chwMouth = await barOf(CHILLIWACK, 0);
+    // (T849) every tap waits for a settled screen (the bar at the place the last step left it, not busy through a read,
+    // the arrow there and enabled): a tap that lands before that moves nothing and the wait after it cannot succeed
+    const settledAt = (place: string, button: string) => () => {
+      const b = screen.queryByRole("button", { name: button });
+      const bar = screen.queryByTestId("water-map-bar");
+      return where().startsWith(place) && b !== null && b.getAttribute("aria-disabled") !== "true"
+        && bar !== null && bar.getAttribute("aria-busy") !== "true";
+    };
+    const tap = async (place: string, button: string) => {
+      await until(settledAt(place, button));
+      act(() => { fireEvent.click(screen.getByRole("button", { name: button })); });
+    };
     const seen = [where()];
-    fireEvent.click(screen.getByRole("button", { name: "Upstream into Chilliwack River" }));
+    await tap(vedderTop, "Upstream into Chilliwack River");
     await until(() => where().startsWith(chwMouth));
     seen.push(`${where()} | ${screen.getByLabelText(BACK).textContent}`);
-    fireEvent.click(screen.getByRole("button", { name: "Downstream into Vedder River" }));
+    await tap(chwMouth, "Downstream into Vedder River");
     await until(() => where().startsWith(vedderTop));
     seen.push(`${where()} | ${screen.getByLabelText(BACK).textContent}`);
-    fireEvent.click(screen.getByRole("button", { name: "Upstream into Chilliwack River" }));
+    await tap(vedderTop, "Upstream into Chilliwack River");
     await until(() => where().startsWith(chwMouth));
     seen.push(`${where()} | ${screen.getByLabelText(BACK).textContent}`);
     act(() => { fireEvent.click(screen.getByLabelText(BACK)); });

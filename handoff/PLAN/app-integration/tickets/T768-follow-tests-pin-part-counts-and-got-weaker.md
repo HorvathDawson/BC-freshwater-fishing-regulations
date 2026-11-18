@@ -71,3 +71,13 @@ fail when their subject is wrong (a mutation each).
   by design. No change needed. `release-perf.test.ts` reads the BUNDLE (a data/generated read), so it stays out of the
   guaranteed run; it now says `NOT RUN: RELEASE_DIR is set but BUNDLE is not` in its test name and on the console
   instead of silently skipping 14 tests.
+
+## Done (branch worktree-agent-a2d88a582cedab642, 0.8.1 lane C)
+More typed content now read from the water's group (`loadWaterGroup`, `markLabel`, `partName`, `partRowAria`): in
+`ui/src/waterMap.test.ts` the Chilliwack's ▲ climb length, the part_section rows, the marks (rings and labelled ends),
+the mark card (words, up/down part names and part_ix), the parts list rows, `section`/`part` actions at the top part, and
+the part / whole-river frames (checked to hold the parts' own boxes instead of typed bounds); in
+`ui-native/.../WaterMapView.test.tsx` the bar's name, the marks, the mark card text, the back test's open-mark label, the
+number of ▲ taps and the top fit key. Typed content left: the Skeena names (T750, ends), part-0 stream keys and bbox
+(`CHW0_LIT`, geometry), `waterNav.test.ts` row tables. The "made-up part end fails exactly one file" proof is still NOT
+run; fix item 3 was already settled.
