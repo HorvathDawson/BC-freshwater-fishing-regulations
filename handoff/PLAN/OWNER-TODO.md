@@ -2498,3 +2498,10 @@ More questions (recommended answer first):
   (Recommended)"; the flat elsewhere list first "Idk what you mean", then, asked plainer (Kathie Lake: line 1 is the trout
   and char, line 2 the brook trout): "Yes, name the fish (Recommended)" (each elsewhere line starts with the fish it is
   about where a table has more than one such line; words from Python).
+- 2026-11-17 23:32, owner (app chat, on the Fraser at Mission before/after picture), verbatim: "Why are these not grouped
+  on the right column with max 1? The up to 2 is misleading also we still have old text of any of the 2". Asked what
+  makes "Up to 2" misleading, verbatim: "It says under the species for lake trout and bulls that we are allowed max 1
+  between both species so isn't that the grouped limit?". Dolly Varden + lake trout sharing one limit: "One shared 'only
+  1' box (Recommended)" (one white "only 1" box in the right column spanning both rows, inside the box's "Keep 2 in
+  all", replacing each row's "only 1, counting any … you keep" line). "any of the 2" is the pre-batch-2 wording; the
+  re-cut brings "counts toward the 2".
