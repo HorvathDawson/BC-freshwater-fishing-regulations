@@ -116,8 +116,13 @@ def test_the_live_bulkley_closure_is_never_said_beside_a_nearer_rows(request):
     got = L.alien_closures(db, VerdictStore.open(under_test.verdicts(request), b).speaking)
     bulkley = ix["bulkley_river.r1"]
     nearer = {ix["morice_river.r1"], ix["telkwa_river.r1"], ix["suskwa_river.r1"]}
-    assert any(x["rule"] == bulkley for v in got.values() for x in v)      # the Bulkley itself still says it
-    assert not [s for s, v in got.items() if bulkley in {x["rule"] for x in v} and nearer & {x["rule"] for x in v}]
+    said = {s: {x["rule"] for x in v} for s, v in got.items()}
+    both = [s for s, v in L.alien_candidates(db).items()
+            if bulkley in {x["rule"] for x in v} and nearer & {x["rule"] for x in v}]
+    assert both                                                        # sets where the nearer row competes
+    for s in both:                                                     # there the nearer row's is said, not the Bulkley's
+        assert bulkley not in said.get(s, set()) and nearer & said.get(s, set()), s
+    assert any(bulkley in v for v in said.values())                    # the Bulkley itself still says its own
 
 
 # 2 ---------------------------------------------------------------------------------------------------------------------
