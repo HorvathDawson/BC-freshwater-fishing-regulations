@@ -628,16 +628,16 @@ EXPECTED.update({
         '  Lake trout: '
     ),
     'skeena-sedan-mill-jul15': (
-        'top: Keep 5 trout and char {day}\n'
-        'fold: 5 a day (keep)\n'
+        'top: Keep 4 trout and char {day}\n'
+        'fold: 4 a day (keep)\n'
         'card: Until Oct 31, then release\n'
-        '[Keep 5 in all · only 1 over 50 cm (20 in)]\n'
-        '  Brook trout: 30 cm (12 in) or longer  <counts toward the 5>  (until Dec 31, then closed to all fishing)\n'
-        '  Lake trout: 30 cm (12 in) or longer  <counts toward the 5 · only 3 (until Sep 14, then release)>\n'
-        '  Brown trout: 30 cm (12 in) or longer  <counts toward the 5 · 1 total from these 4>\n'
-        '  Cutthroat trout: 30 cm (12 in) or longer  <counts toward the 5 · 1 total from these 4>\n'
-        '  Rainbow trout: 30–50 cm (12–20 in)  <counts toward the 5 · 1 total from these 4>\n'
-        '  Steelhead [HATCHERY ONLY]: a rainbow over 50 cm (20 in) | after keeping 1, stop fishing this stream today | ~Steelhead are known to be in this water.  <counts toward the 5 · 1 total from these 4>\n'
+        '[Keep 4 in all · only 1 over 50 cm (20 in)]\n'
+        '  Lake trout: 30 cm (12 in) or longer  <counts toward the 4 · only 3 (until Sep 14, then release)>\n'
+        '  Brook trout: 30 cm (12 in) or longer  <counts toward the 4 · 1 total from these 5>\n'
+        '  Brown trout: 30 cm (12 in) or longer  <counts toward the 4 · 1 total from these 5>\n'
+        '  Cutthroat trout: 30 cm (12 in) or longer  <counts toward the 4 · 1 total from these 5>\n'
+        '  Rainbow trout: 30–50 cm (12–20 in)  <counts toward the 4 · 1 total from these 5>\n'
+        '  Steelhead [HATCHERY ONLY]: a rainbow over 50 cm (20 in) | after keeping 1, stop fishing this stream today | ~Steelhead are known to be in this water.  <counts toward the 4 · 1 total from these 5>\n'
         '[Release]\n'
         '  Dolly Varden/bull trout:   (until Dec 31, then closed to all fishing)'
     ),
@@ -650,7 +650,7 @@ EXPECTED.update({
         '  Cutthroat trout:   <counts toward the 5>\n'
         '  Rainbow trout:   <counts toward the 5>\n'
         '  Dolly Varden/bull trout:   <counts toward the 5 · only 3 between them>\n'
-        '  Lake trout: release over 60 cm (24 in) and under 90 cm (35 in) | only 2 | only 1 over 90 cm (35 in)  <counts toward the 5 · only 3 between them>'
+        '  Lake trout: release over 60 cm (24 in) and under 90 cm (35 in) | only 2 | only 1 over 90 cm (35 in) | in your possession: no more than 2 lake trout, only 1 over 90 cm (35 in)  <counts toward the 5 · only 3 between them>'
     ),
     'takla-jul15': (
         'top: Keep 5 trout and char {day}\n'
