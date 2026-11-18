@@ -193,7 +193,7 @@ export function Shell(p: ShellProps) {
    * not, so a wide native window (a tablet in landscape) keeps the rail in the layout, beside the map. This is the LIVE
    * route's answer; what is drawn while a pane is held is the last browse render's (`railOver`, below).
    */
-  const railOverLive = Platform.OS === "web" && tabsRail && bottomBarShown(route)
+  const railOverLive = Platform.select({ web: true, default: false }) && tabsRail && bottomBarShown(route)
     && (tab === "map" || tab === "conditions" || tab === "runs");
   const tabsH = tabsRail ? 0 : tabsRowH;
   const [runsAt, setRunsAt] = useState<number | null>(null);
