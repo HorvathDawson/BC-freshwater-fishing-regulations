@@ -64,7 +64,7 @@ export function RegsLayerToggle({ col, palette, fishImages, look, inRail = false
     return (
       <View ref={target} collapsable={false} testID="regs-paint" accessibilityLabel={W.label} accessibilityRole="radiogroup"
             style={{ width: NAV_RAIL.width, backgroundColor: palette.card, ...(A
-              ? { paddingLeft: 10 } : { flexDirection: "row", borderTopWidth: 1, borderBottomWidth: 1, borderColor: palette.line2 }) }}>
+              ? { paddingLeft: 8 } : { flexDirection: "row", borderTopWidth: 1, borderBottomWidth: 1, borderColor: palette.line2 }) }}>
         {keys.map((k, i) => {
           const on = col.regsLayer === k;
           const busy = (k === "salmon" && col.salmonLoading === true) || (on && painting);
@@ -72,22 +72,22 @@ export function RegsLayerToggle({ col, palette, fishImages, look, inRail = false
           // A: quiet selected = the tint ground, ink type, a heavier ink rule; B: the rail's own selected fill (ink)
           const fg = A || !on ? (on ? palette.ink : palette.sub) : palette.card;
           const glyph = busy ? <LoadingState palette={palette} size={15} colour={fg} />
-            : A && art ? <Image source={art} resizeMode="contain" accessibilityIgnoresInvertColors style={{ width: 28, height: 14 }} />
+            : A && art ? <Image source={art} resizeMode="contain" accessibilityIgnoresInvertColors style={{ width: 20, height: 10 }} />
             : <Icon name="fish" colour={fg} size={16} />;
           return (
             <Pressable key={k} testID={`regs-paint-${k}`} onPress={() => col.setRegsLayer(k)} accessibilityRole="radio"
                        aria-checked={on} aria-busy={busy} accessibilityLabel={W.said[k]} accessibilityHint={W.hint}
-                       {...hitProps({ w: A ? NAV_RAIL.width - 10 : NAV_RAIL.width / 2, h: A ? 40 : 56 })}
+                       {...hitProps({ w: A ? NAV_RAIL.width - 8 : NAV_RAIL.width / 2, h: A ? 40 : 56 })}
                        style={A
-                         ? { flexDirection: "row", alignItems: "center", gap: 6, height: 40, paddingLeft: 10,
+                         ? { flexDirection: "row", alignItems: "center", gap: 4, height: 40, paddingLeft: 8,
                              backgroundColor: on ? palette.tint : "transparent" }
-                         : { flex: 1, alignItems: "center", justifyContent: "center", gap: 3, height: 56,
+                         : { flex: 1, flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 3, height: 56,
                              backgroundColor: on ? palette.ink : "transparent",
                              borderLeftWidth: i ? 1 : 0, borderLeftColor: palette.line2 }}>
               {A && <View aria-hidden testID={`regs-paint-bar-${k}`}
                           style={{ position: "absolute", left: 0, top: 0, bottom: 0, width: on ? 3 : 1, backgroundColor: on ? palette.ink : palette.line2 }} />}
               {glyph}
-              <Text numberOfLines={1} style={{ ...TYPE.tab, color: fg, fontWeight: on ? "800" : "600" }}>{W.rail[k]}</Text>
+              <Text numberOfLines={1} style={{ ...TYPE.tab, letterSpacing: 0.5, color: fg, fontWeight: on ? "800" : "600" }}>{W.rail[k]}</Text>
             </Pressable>
           );
         })}
