@@ -8,6 +8,7 @@ import { cleanup, render } from "@testing-library/react";
 import { CohoLoader } from "./CohoLoader";
 import { LoadingState } from "./LoadingState";
 import { COHO } from "./coho.generated";
+import { COHO_WEB } from "./cohoWeb.generated";
 import { COHO_GROUND_PAD, cohoHeight, cohoSheet } from "./coho";
 import { DARK, LIGHT, THEMES } from "./theme";
 
@@ -33,8 +34,8 @@ describe("<CohoLoader> web (T814)", () => {
     const cols = by(container, "coho-cols");
     expect([box.style.width, box.style.height, cols.parentElement!.parentElement!.style.overflow,
             cols.style.width, cols.style.height])
-      .toEqual(["192px", `${cohoHeight(192)}px`, "hidden", `${192 * COHO.columns}px`, `${cohoHeight(192) * COHO.rows}px`]);
-    expect(cohoHeight(192) / 192).toBe(COHO.frame.height / COHO.frame.width);
+      .toEqual(["192px", `${cohoHeight(192)}px`, "hidden", `${192 * COHO_WEB.columns}px`, `${cohoHeight(192) * COHO_WEB.rows}px`]);
+    expect(cohoHeight(192) / 192).toBe(COHO_WEB.frame.height / COHO_WEB.frame.width);
   });
 
   it("pages the sheet with two CSS steps keyframes, in pixels: a row a tenth of the loop, a column a frame", () => {
@@ -42,10 +43,10 @@ describe("<CohoLoader> web (T814)", () => {
     const rows = by(container, "coho-rows"), cols = by(container, "coho-cols");
     expect([rows.style.animation, rows.style.getPropertyValue("--coho-rows"),
             cols.style.animation, cols.style.getPropertyValue("--coho-cols")])
-      .toEqual([`coho-row ${COHO.loopMs}ms steps(${COHO.rows}) infinite`, `-${cohoHeight(192) * COHO.rows}px`,
-                `coho-col ${COHO.loopMs / COHO.rows}ms steps(${COHO.columns}) infinite`, `-${192 * COHO.columns}px`]);
+      .toEqual([`coho-row ${COHO_WEB.loopMs}ms steps(${COHO_WEB.rows}) infinite`, `-${cohoHeight(192) * COHO_WEB.rows}px`,
+                `coho-col ${COHO_WEB.loopMs / COHO_WEB.rows}ms steps(${COHO_WEB.columns}) infinite`, `-${192 * COHO_WEB.columns}px`]);
     // one row's columns are one row's time: the two never disagree about the frame
-    expect((COHO.loopMs / COHO.rows / COHO.columns) * COHO.frames).toBe(COHO.loopMs);
+    expect((COHO_WEB.loopMs / COHO_WEB.rows / COHO_WEB.columns) * COHO_WEB.frames).toBe(COHO_WEB.loopMs);
   });
 
   it("moves under reduced motion too (owner 2026-11-17: \"we will ignore reduced motion for this\")", () => {
@@ -53,6 +54,17 @@ describe("<CohoLoader> web (T814)", () => {
     const { container } = render(<CohoLoader palette={LIGHT} />);
     expect([by(container, "coho-rows").style.animationPlayState, by(container, "coho-cols").style.animationPlayState,
             by(container, "coho-cols").style.animation.includes("steps")]).toEqual(["", "", true]);
+  });
+
+  it("(T844) draws the web's own sheet (40 frames, ~105 KB), never the phones' 0.9 MB one: owner, \"make way smaller for web\"", () => {
+    for (const [p, t] of [[LIGHT, "light"], [DARK, "dark"]] as const) {
+      const { container } = render(<CohoLoader palette={p} />);
+      const src = by(container, "coho-sheet").querySelector("img")!.getAttribute("src");
+      expect([src, src === String(COHO.sheets[t])]).toEqual([String(COHO_WEB.sheets[t]), false]);
+      cleanup();
+    }
+    expect([COHO_WEB.frames, COHO_WEB.loopMs, COHO_WEB.frame]).toEqual([40, COHO.loopMs, COHO.frame]);
+    expect(Object.keys(COHO_WEB.sheets).sort()).toEqual(Object.keys(THEMES).sort());
   });
 
   it("draws its ground a little past the frame, in the palette's coho ground", () => {

@@ -2491,3 +2491,5 @@ More questions (recommended answer first):
   make sure to do the source table and the species row expansion when you click on on with the sources for that entry
   plus identification" (the trout table is signed off for the cutover with the new wording; the row press must open the
   fish's sheet with its own sources and how to tell it, and "Sources ›" the table's sources).
+- 2026-11-17 23:02, owner (app chat dialog, T844 web loader; Fast 3G frame strip + fast-line clip sent), verbatim: "make
+  way smaller for web" (a much smaller web-only coho sheet so it swims on slow lines; phones unchanged).

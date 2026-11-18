@@ -2,7 +2,8 @@
 /**
  * THE NATIVE SPLASH, DRAWN FROM THE LOADER (T244, owner 2026-10-29; T843, owner 2026-11-17: the coho, not the circling fish).
  *
- *   node tools/build-splash.mjs            -> writes apps/mobile/assets/splash/splash-{light,dark}.png
+ *   node tools/build-splash.mjs            -> writes apps/mobile/assets/splash/splash-{light,dark}.png and (T844) the web's
+ *                                             opening picture, web-frame0-{light,dark}.png (the web sheet's frame 0)
  *   node tools/build-splash.mjs --check    -> exits 1 when either committed file differs (`pnpm splash`)
  *
  * The native splash (expo-splash-screen) must hand off to the boot screen's loader with no jump, so it is not new art:
@@ -69,18 +70,18 @@ function pngRGBA(w, h, rgba) {
   return Buffer.concat([SIG, chunk("IHDR", ihdr), chunk("IDAT", Buffer.from(zlibSync(raw, { level: 9 }))), chunk("IEND", Buffer.alloc(0))]);
 }
 
-/** The coho module's facts: the frame size and each theme's sheet file. */
-function coho() {
-  const src = readFileSync(here("../packages/ui-native/src/coho.generated.ts"), "utf8");
+/** The coho module's facts: the frame size and each theme's sheet file; (T844) `web`: the web's sheets' module. */
+function coho(module = "coho.generated.ts") {
+  const src = readFileSync(here(`../packages/ui-native/src/${module}`), "utf8");
   const fw = Number(/frame:\s*\{\s*width:\s*(\d+)/.exec(src)?.[1]);
   const fh = Number(/frame:\s*\{[^}]*height:\s*(\d+)/.exec(src)?.[1]);
   const imports = Object.fromEntries([...src.matchAll(/import (\w+) from "\.\/coho\/([\w.-]+)";/g)].map((m) => [m[1], m[2]]));
   const sheetOf = (theme) => {
     const v = new RegExp(`\\b${theme}:\\s*(\\w+),`).exec(src)?.[1];
-    if (!v || !imports[v]) throw new Error(`build-splash: coho.generated.ts names no sheet for theme ${theme}`);
+    if (!v || !imports[v]) throw new Error(`build-splash: ${module} names no sheet for theme ${theme}`);
     return here(`../packages/ui-native/src/coho/${imports[v]}`);
   };
-  if (!fw || !fh) throw new Error("build-splash: cannot read the frame size from coho.generated.ts");
+  if (!fw || !fh) throw new Error(`build-splash: cannot read the frame size from ${module}`);
   return { fw, fh, sheetOf };
 }
 
@@ -120,9 +121,14 @@ function draw(px, fw, fh) {
 }
 
 const { fw, fh, sheetOf } = coho();
-const files = ["light", "dark"].map((name) => ({
-  path: here(`../apps/mobile/assets/splash/splash-${name}.png`), ...draw(frameZero(sheetOf(name), fw, fh), fw, fh),
-}));
+const web = coho("cohoWeb.generated.ts");
+if (web.fw !== fw || web.fh !== fh) throw new Error("build-splash: the web's coho frame is not the phones'");
+const files = ["light", "dark"].flatMap((name) => [
+  { path: here(`../apps/mobile/assets/splash/splash-${name}.png`), ...draw(frameZero(sheetOf(name), fw, fh), fw, fh) },
+  // (T844) the web's opening picture: the WEB sheet's frame 0 at its own pixels (the web draws it at 1.5 px per CSS px
+  // too), shown by the export's HTML shell (`tools/web-shell.mjs`) until that sheet has arrived: the same picture
+  { path: here(`../apps/mobile/assets/splash/web-frame0-${name}.png`), bytes: pngRGBA(fw, fh, frameZero(web.sheetOf(name), fw, fh)), far: 0 },
+]);
 
 if (process.argv.includes("--check")) {
   const stale = files.filter((f) => !existsSync(f.path) || !readFileSync(f.path).equals(f.bytes));
@@ -133,5 +139,5 @@ if (process.argv.includes("--check")) {
   console.log("splash art: current");
 } else {
   mkdirSync(here("../apps/mobile/assets/splash"), { recursive: true });
-  for (const f of files) { writeFileSync(f.path, f.bytes); console.log(`wrote ${f.path} (${f.bytes.length} B; reaches ${f.far.toFixed(1)} dp)`); }
+  for (const f of files) { writeFileSync(f.path, f.bytes); console.log(`wrote ${f.path} (${f.bytes.length} B${f.far ? `; reaches ${f.far.toFixed(1)} dp` : ""})`); }
 }
