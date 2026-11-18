@@ -2608,4 +2608,8 @@ More questions (recommended answer first):
   (p.38) sits outside Region 4's "2 from streams" (p.34), so 2 trout/char + 2 DV, max 5), verbatim: "i thought we were
   assuming those quotas still used uop the 2 a day regional quota? but that i would ask a CO about it". (He recalls the
   standing assumption that a water's own per-fish quota still counts inside the region's 2 a day; open: the main chat
-  finds the recorded ruling; the question for a Conservation Officer is his.)
+  finds the recorded ruling; the question for a Conservation Officer is his.) RESOLVED: he is right, by his own ruling
+  T17 (2026-11-17 11:06, "Strict everywhere", T834): a water's own quota N ≤ the region cap sits inside it, so at
+  Madden the DV count inside the 2 from streams ("Keep 2 trout and char today, or 5 if they're rainbow trout"; the DV
+  clause goes). The live bundle predates T834; the next data build applies it. The book (p.3) is silent, so "ask a CO"
+  is on the To-Do page (row ask-co-water-quota-inside-share).
