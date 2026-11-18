@@ -2566,3 +2566,18 @@ More questions (recommended answer first):
      "uses the 1 over 50 cm" dropped; a date shared by every row said once, not on each row. Open: pictures of that look.
   3. Hatchery + wild: "i like group A bets but the hatchery vs wild tags are a bit clunky the way they are current
      implemented there." (Group A, one row per fish, picked; the HATCHERY/WILD tags need a lighter look; pictures owed.)
+- 2026-11-18 01:07, owner (app chat dialog over round 3: vedder-r3 / fraser-r3 Look 1 panels vs Look 2 box + line,
+  chilliwack-r3 tags), verbatim:
+  1. Group look: "i thinj neither. look 1 is better but the number is hard to see and breaks the table format we have
+     everywhere else. we want to keep the same number on right and species/info on left. this is in look 2 but the line
+     kind of sucks i liked the box spanning both better ... in the fraser same thing. one other comment is unless it is
+     something like vedder with weird rainbow rul have rainbow above steelhead." App chat's reading: the count stays in
+     the right column on every row; a group is a white box in the right column spanning all its rows (round 2's spanning
+     box), with ungrouped rows first and an inner group last inside its outer one so nothing splits; rainbow above
+     steelhead unless a water's own rainbow rule makes it odd.
+  2. Vedder dates once + "River rule" apart + "uses the 1 over 50 cm" gone: "does the river rule apart actually make
+     sense? i am not sure maybe it breaks it up. also the river rule saying counts towards the 4 for vedder feels really
+     weird when the top is 2 or 4 or whateevr. idk the fix but it jsut has a weird feel..." (River rule apart: doubted;
+     the hatchery rainbow's "counts toward the 4" reads oddly; open, options owed. Dates once and "uses the 1 over 50 cm"
+     dropped: not objected to.)
+  3. Hatchery/wild tags: "Neither yet" (plain words and small grey tags both rejected; new options owed).

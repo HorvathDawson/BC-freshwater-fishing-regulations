@@ -291,3 +291,10 @@ from the app chat: groups drawn as sub-groups of the grey card (words in the gre
 band cells; no group splitting another; ungrouped rows first); the Vedder hatchery-rainbow 4 apart as the river's own
 rule; "uses the 1 over 50 cm" dropped (the strip says it); a date shared by every row said once; lighter HATCHERY/WILD
 tags.
+
+## 2026-11-18 01:07: owner on round 3 (verbatim in OWNER-TODO)
+Neither group look: keep the table's form (count on the right on every row, fish on the left) with a white box spanning
+all of a group's rows (round 2's look), ungrouped rows first, inner group last inside its outer one; rainbow above
+steelhead unless a water's own rainbow rule. Vedder's "River rule" apart doubted and the hatchery rainbow's "counts
+toward the 4" reads oddly: options owed. Hatchery/wild tags: neither; options owed. Chilliwack brook trout: the main
+chat's C2 change (owner) gives wild brook trout "50 cm or less" at the six lakes; wild lake trout release-only there.
