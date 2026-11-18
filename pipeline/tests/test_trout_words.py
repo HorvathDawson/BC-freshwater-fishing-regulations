@@ -159,7 +159,7 @@ NOW = [
     (W.TOP_NONE, "Nothing to keep {day}", W.parse_top, ("none", ())),
     (W.head_keep(5), "Keep 5 in all", W.parse_head, ("keep", 5)),
     (W.HEAD_RELEASE, "Release", W.parse_head, ("release", None)),
-    (W.band_upto(5), "any of the 5", W.parse_band, ("upto", 5, None)),          # T810 G2, owner 15:46
+    (W.band_upto(5), "counts toward the 5", W.parse_band, ("upto", 5, None)),          # T810 G2, owner 15:46
     (W.band_own(3), "only 3", W.parse_band, ("own", 3, None)),
     (W.band_shared(1, 4), "only 1 of these 4", W.parse_band, ("shared", 1, 4)),
     (W.band_shared(3, 2), "only 3 between them", W.parse_band, ("shared", 3, 2)),   # T810 G2 Q2

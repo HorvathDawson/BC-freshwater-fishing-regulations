@@ -148,9 +148,12 @@ class UnderSixteen(Model):
 
 class AlienClosure(Model):
     """T789 G8 (owner 2026-11-17: each water its own, none on a water it does not apply to): one closure to the
-    non-resident alien that this part's rule set holds (`licence.alien_closures`) — `rule` its export index, `says` its
-    line (the rule's label, as the Keep tab's "Closed to some anglers" caveat says it: its own days, dates, stretch)."""
+    non-resident alien that this part's rule set holds and the ladder leaves standing (`licence.alien_closures`) —
+    `rule` its export index; `of` the water whose rule it is where the part holds it by the tributary walk (data only),
+    null on that water's own parts; `says` the whole sentence to draw (its own days, dates and stretch, "all year"
+    where the book prints it; "<water> and its tributaries: …" on a tributary)."""
     rule: RuleIx
+    of: Optional[StrictStr] = Field(min_length=1)
     says: StrictStr = Field(min_length=1)
 
 

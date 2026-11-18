@@ -330,7 +330,7 @@ class Table:
                     out.append((f"row {r.key} a day {r.daily_said}", of_rows([r]), r.daily_said))
                 elif kind == "upto" and k != b["n"] and not (b.get("except") is not None and k == b["except"][0]
                                                                and r.fish not in set(b["except"][1])):
-                    raise _Fail(f"row {r.key}: 'any of the {k}' in a box of {b['n']}")
+                    raise _Fail(f"row {r.key}: 'counts toward the {k}' in a box of {b['n']}")
             for p in b["strip"]:
                 if p[0] == "size":
                     n, cm, extra = p[1], p[2], p[3]
@@ -790,7 +790,7 @@ def possession_problems(c: Cell, T: Table) -> List[str]:
         duties = [f"{r.poss_text} ({POSSESSION_HOME})"] if r.poss_text else []
         x = {"species": [r.fish], "n": 1, "duties": duties}
         got = PP(c.P, x, f"row {r.key}", lead=lead)
-        # (the row's own number, or the box's where G2 Q1 turned the row's own band into "any of the N")
+        # (the row's own number, or the box's where G2 Q1 turned the row's own band into "counts toward the N")
         own = [y[1] for _t, y in r.lines if y[0] == "only"] + ([r.band[1]] if r.band and r.band[0] in ("own", "upto")
                                                                  else [])
         if got and not duties and own:

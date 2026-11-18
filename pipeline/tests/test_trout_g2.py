@@ -132,7 +132,7 @@ def test_q1_echoes_says_what_is_kept_here_and_the_lakes_count_once(fx):
     fr = fx.table("echoes-jul15")
     b = _box(fr)
     assert b["head"] == "Keep 1 in all"
-    assert set(_bands(b)) == {"any of the 1"} and len(b["bands"]) == len(b["rows"])
+    assert set(_bands(b)) == {"counts toward the 1"} and len(b["bands"]) == len(b["rows"])
     assert fr["table"]["top"]["second"] == "only 1 from both lakes together"
     assert fr["table"]["together"] is None
     _proof(fr)
@@ -152,7 +152,7 @@ def test_the_lakes_count_said_twice_when_its_rule_is_off(fx, monkeypatch):
 def test_q1_a_stream_under_the_regions_share(fx):
     """Kaslo River (Region 4, Jul 15): every fish inside the 2 from streams: "Keep 2 in all"."""
     b = _box(fx.table("kaslo-jul15"))
-    assert b["head"] == "Keep 2 in all" and set(_bands(b)) == {"any of the 2"}
+    assert b["head"] == "Keep 2 in all" and set(_bands(b)) == {"counts toward the 2"}
 
 
 # ----------------------------------------------------------------------------------- Q2, Q3b, the slot and its possession
@@ -191,12 +191,12 @@ def test_q3a_one_fish_cap_says_only(fx, monkeypatch):
 
 
 def test_q2_a_raised_boxs_first_number_is_any_of(fx, monkeypatch):
-    """Canuck Lake (Region 4, T834): "Keep 5, brook trout up to 20": the other fish each "any of the 5"."""
+    """Canuck Lake (Region 4, T834): "Keep 5, brook trout up to 20": the other fish each "counts toward the 5"."""
     fr = fx.table("canuck-lake-jul15")
     b = _box(fr)
     assert b["head"] == "Keep 5, brook trout up to 20"
     for r, x in zip(b["rows"], b["bands"]):
-        assert x["text"] == ("any of the 20" if r["fish"] == "EB" else "any of the 5"), r["key"]
+        assert x["text"] == ("counts toward the 20" if r["fish"] == "EB" else "counts toward the 5"), r["key"]
     _proof(fr)
     monkeypatch.setattr(T, "A_SHARED_BOX_NUMBER_IS_ANY_OF", False)
     assert "only 5 among them" in _bands(_box(fx.table("canuck-lake-jul15")))

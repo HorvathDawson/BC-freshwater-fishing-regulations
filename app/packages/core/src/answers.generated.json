@@ -2061,8 +2061,20 @@
     },
     "AlienClosure": {
      "additionalProperties": false,
-     "description": "T789 G8 (owner 2026-11-17: each water its own, none on a water it does not apply to): one closure to the\nnon-resident alien that this part's rule set holds (`licence.alien_closures`) \u2014 `rule` its export index, `says` its\nline (the rule's label, as the Keep tab's \"Closed to some anglers\" caveat says it: its own days, dates, stretch).",
+     "description": "T789 G8 (owner 2026-11-17: each water its own, none on a water it does not apply to): one closure to the\nnon-resident alien that this part's rule set holds and the ladder leaves standing (`licence.alien_closures`) \u2014\n`rule` its export index; `of` the water whose rule it is where the part holds it by the tributary walk (data only),\nnull on that water's own parts; `says` the whole sentence to draw (its own days, dates and stretch, \"all year\"\nwhere the book prints it; \"<water> and its tributaries: \u2026\" on a tributary).",
      "properties": {
+      "of": {
+       "anyOf": [
+        {
+         "minLength": 1,
+         "type": "string"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "title": "Of"
+      },
       "rule": {
        "minimum": 0,
        "title": "Rule",
@@ -2076,6 +2088,7 @@
      },
      "required": [
       "rule",
+      "of",
       "says"
      ],
      "title": "AlienClosure",

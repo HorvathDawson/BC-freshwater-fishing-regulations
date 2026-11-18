@@ -35,14 +35,16 @@ verified 1-to-1 against the consumer page (COMPARISON.md).
 
 Owner 2026-11-17 ("Should each of these waters just have their own info? Don't want this on waters it doesn't apply
 to"; Lakelse and Telkwa "Same thing applies to these"): no province-wide list. `LicenceFrame.alien_closures`
-[{rule, says}] (`licence.alien_closures`) is on the frame of a part whose RULE SET holds an `angler_closure` naming the
+[{rule, of, says}] (`licence.alien_closures`) is on the frame of a part whose RULE SET holds an `angler_closure` naming the
 non-resident alien — the bundle's `ruleset` binding, the tributary walk included — that the ladder leaves standing
 there on some day (the reader, `effective_rules_bound`, asked at the set's moments and day cuts: what the Keep tab's
 "Closed to some anglers" caveat says; the Bulkley's inherited closure loses to the Telkwa's, Morice's and Suskwa's own
-or nearer rows) — and on no other frame. `rule` the export index, `says` the rule's label: its own
-days, dates and stretch ("Angling closed to non-guided non-resident aliens, Jul 1-Dec 31, on Saturdays and Sundays —
-between the Shegunia River confluence and the Sedan Creek confluence"; Lakelse "— between Lakelse Lake and power line
-crossing", all year; Telkwa "Sep 1-Oct 31"). For it, such a part's rule set is in its licence key
+or nearer rows) — and on no other frame. `rule` the export index; `of` the water whose rule it
+is where the part holds it by the tributary walk (data only, null on its own parts); `says` the whole sentence,
+composed here (`licence.alien_line` / `alien_says`): the catalogue's composer over the rule's parts, "all year" where
+it has no dates (the synopsis: no date is all year; the book prints it on all 6 such rows), and on a tributary
+"<water> and its tributaries: <line>" ("Lakelse River and its tributaries: Angling closed to non-guided non-resident
+aliens, all year — between Lakelse Lake and power line crossing"); the app draws it and composes nothing. For it, such a part's rule set is in its licence key
 (`part_licence_key` / `section_scope`, as for a sleepy designation's set): 15 rules in 71 rule sets, 356 named
 parts of 314 waters (the 12 the book names and, by "Incl. Tribs", their tributaries), 165 -> 212 named licence keys.
 On the wire: `frames` rows [holds, documents, under_16?, alien_closures?] (the 4th only with the 3rd) into the interned `alien_closures`
