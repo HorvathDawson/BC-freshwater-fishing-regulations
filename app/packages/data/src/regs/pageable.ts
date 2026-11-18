@@ -4,7 +4,7 @@
  * B.C. on the day. The site's build (`tools/seo/model.ts` `listWaterOrds` / `waterModel`) and the app's Share on a gauge both
  * read it, so a gauge is offered only where the site has a page for a water it serves.
  */
-import { buildRegsPage, type Day, type RegsPage, type Weekday } from "@app/core";
+import { buildRegsPage, type Day, type RegsPage, type RegsPageOpts, type Weekday } from "@app/core";
 import { loadRegsInputs } from "./inputs";
 import type { PartRow } from "./reads";
 import type { RegsStore } from "./store";
@@ -18,9 +18,10 @@ export const PAGE_ORDS_SQL = "SELECT i.item_ord AS ord FROM item i WHERE i.shown
 export interface PageDay { readonly day: Day; readonly weekday: Weekday; readonly year: number }
 
 /** The page the app shows for part `partIx` of a water, for an adult resident (the site's own reader). */
-export async function regsPage(store: RegsStore, itemId: string, partIx: number, on: PageDay, today: Day = on.day): Promise<RegsPage> {
+export async function regsPage(store: RegsStore, itemId: string, partIx: number, on: PageDay, today: Day = on.day,
+                               more: Pick<RegsPageOpts, "troutTable"> = {}): Promise<RegsPage> {
   const inp = await loadRegsInputs(store, { kind: "part", item: itemId, partIx }, on.day, on.weekday, on.year);
-  return buildRegsPage(inp, { today, who: ADULT_RESIDENT });
+  return buildRegsPage(inp, { today, who: ADULT_RESIDENT, ...more });
 }
 
 /** B.C.'s regions (1-8) of the answer keys. */

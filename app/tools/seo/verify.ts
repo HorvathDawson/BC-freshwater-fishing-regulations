@@ -38,6 +38,16 @@ function harvest(v: unknown, lines: Set<string>, leaves: Set<string>, key = ""):
   if (v && typeof v === "object") for (const [k, x] of Object.entries(v)) harvest(x, lines, leaves, k);
 }
 
+/** (T810 T) every word the app's trout table draws (its payload strings; not keys, links, sheets, row ids or source indexes) */
+const NOT_WORDS = new Set(["kind", "tone", "key", "fish", "sheet", "src", "covers", "from", "to", "a11y", "hatchLink", "elsewhereLink", "sourcesLink", "runs"]);
+function troutStrings(v: unknown, out: string[] = [], key = ""): string[] {
+  if (NOT_WORDS.has(key)) return out;
+  if (typeof v === "string") { if (squash(v)) out.push(squash(v)); }
+  else if (Array.isArray(v)) for (const x of v) troutStrings(x, out, key);
+  else if (v && typeof v === "object") for (const [k, x] of Object.entries(v)) troutStrings(x, out, k);
+  return out;
+}
+
 const JOINERS = /[\s:·.,;—–()'"’“”-]/;
 /** is `text` nothing but leaves and joiners? (a memoised walk: a leaf may be a prefix of another, so no greedy match) */
 function madeOf(text: string, leaves: ReadonlySet<string>, longest: number): boolean {
@@ -87,6 +97,9 @@ function checkPart(part: PartModel, page: RegsPage, say: (m: string) => void): v
   const has = (w: string) => texts.some((t) => t.includes(w));
   const wanted = new Set<string>();
   harvest({ keep: bare.keep, gear: bare.gear, methods: bare.methods }, wanted, new Set<string>());
+  // (T810 T) the trout table's words are strings, not Lines: every one the app draws is on the page; no slot is left open
+  for (const w of troutStrings(bare.keep.trout)) if (!has(w)) say(`${at}: the app's trout table says "${w.slice(0, 80)}" and the page does not`);
+  for (const t of texts) if (/[{}]/.test(t)) say(`${at}: the page says "${t.slice(0, 80)}", with a brace in it (an unfilled slot)`);
   for (const w of wanted) if (!has(w)) say(`${at}: the app says "${w.slice(0, 80)}" and the page does not`);
   const longest = Math.max(1, ...[...leaves].map((l) => l.length));
   for (const t of texts) if (!madeOf(t, leaves, longest)) say(`${at}: the page says "${t.slice(0, 80)}", which is not the app's words`);
