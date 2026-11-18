@@ -638,6 +638,33 @@ def test_rainbow_stands_above_steelhead_where_they_read_alike(request, monkeypat
     assert keys.index("RB") > keys.index("ST"), keys
 
 
+@pytest.mark.needs_bundle
+@pytest.mark.parametrize("flag", ["A_NO_ANY_LENGTH", "A_ANY_SIZE_UNSAID", "A_TOP_NAMES_A_FEW_OTHERS"])
+def test_three_misleading_forms_read_plainly(request, monkeypatch, flag):
+    """Owner 2026-11-18 01:22 (the analyst's misleading forms, the law unchanged): the Vedder's rainbow trout "50 cm (20
+    in) or less" (not "any length, …"); a Region 4 stream's box says no "any size" over its size band; Bruer Creek's top
+    line names its other box's one fish, "… and 20 brook trout {day}". J proves each. Mutation: each pin off brings its
+    old form back."""
+    from pipeline.deliver.answers.trout import table as TT
+    names = ("Vedder River", "Bugaboo Creek", "Bruer Creek")
+
+    def forms(got):
+        v = next(b for b in got["Vedder River"]["table"]["boxes"] if b["kind"] == "keep")
+        rb = next(r for r in v["rows"] if r["key"] == "RB")
+        r4 = next(b for b in _r4(got)["table"]["boxes"] if b["kind"] == "keep")
+        top = [c["table"]["top"]["lead"] for c in got["Bruer Creek (all parts)"] if c is not None]
+        return {"A_NO_ANY_LENGTH": "50 cm (20 in) or less" in rb["lines"],
+                "A_ANY_SIZE_UNSAID": "any size" not in (r4["strip"] or ""),
+                "A_TOP_NAMES_A_FEW_OTHERS": any(t.endswith(" and 20 brook trout {day}") for t in top)}
+    got, m, bundle, data = _live_tables(request, names)
+    assert all(forms(got).values()), forms(got)
+    ks = sorted({k for k, cells in enumerate(m.sections["trout"]) if any(c is not None for c in cells)})
+    assert J.check_model(m, bundle, data, keys=ks, log=lambda *_: None)["problems"] == []
+    monkeypatch.setattr(TT, flag, False)
+    got, *_ = _live_tables(request, names)
+    assert not forms(got)[flag]
+
+
 def _bowron(got):                                      # Istsi Creek, Jan 1-Mar 31: Bowron Lake Park's 1 trout/char
     return next(c for c in got["Istsi Creek (all parts)"] if c is not None)
 

@@ -224,17 +224,23 @@ def test_q4_mutation(fx, monkeypatch):
 
 # ------------------------------------------------------------------------------------------------- Q6: any size once
 
-def test_q6_any_size_once_in_the_strip(fx):
-    fr = fx.table("kaslo-jul15")
-    b = _box(fr)
-    assert (b["strip"] or "").split("; ")[0] == "any size"
+def test_q6_any_size_said_nowhere(fx):
+    """Q6, then owner 2026-11-18 01:22: "any size" is said nowhere — not on the rows, not in the strip (it read wrong
+    over Region 4's size band)."""
+    b = _box(fx.table("kaslo-jul15"))
+    assert "any size" not in (b["strip"] or "").split("; ")
     assert not any("any size" in r["lines"] for r in b["rows"])
 
 
-def test_q6_mutation(fx, monkeypatch):
-    monkeypatch.setattr(T, "A_ANY_SIZE_ONCE", False)
+@pytest.mark.parametrize("unsaid,once", [(False, True), (False, False)], ids=["Q6 strip", "each row"])
+def test_q6_mutation(fx, monkeypatch, unsaid, once):
+    monkeypatch.setattr(T, "A_ANY_SIZE_UNSAID", unsaid)
+    monkeypatch.setattr(T, "A_ANY_SIZE_ONCE", once)
     b = _box(fx.table("kaslo-jul15"))
-    assert all("any size" in r["lines"] for r in b["rows"])
+    if once:
+        assert (b["strip"] or "").split("; ")[0] == "any size"
+    else:
+        assert all("any size" in r["lines"] for r in b["rows"])
 
 
 # ------------------------------------------------------------------------------------------------- Q7: the stop noun

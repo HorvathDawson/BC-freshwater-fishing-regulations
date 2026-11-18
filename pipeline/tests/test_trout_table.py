@@ -462,10 +462,10 @@ EXPECTED.update({
         'fold: 1 a day (keep)\n'
         'card: Until Oct 31, then release\n'
         '[Keep 1 in all · River’s rule]\n'
-        '  Brook trout: any size  <counts toward the 1>\n'
-        '  Brown trout: any size  <counts toward the 1>\n'
-        '  Lake trout: any size  <counts toward the 1>\n'
-        '  Rainbow trout: any size  <counts toward the 1>\n'
+        '  Brook trout:   <counts toward the 1>\n'
+        '  Brown trout:   <counts toward the 1>\n'
+        '  Lake trout:   <counts toward the 1>\n'
+        '  Rainbow trout:   <counts toward the 1>\n'
         '  Cutthroat trout: 30 cm (12 in) or longer  <counts toward the 1>\n'
         '  Dolly Varden/bull trout: 75 cm (30 in) or longer  <counts toward the 1>'
     ),
@@ -578,7 +578,7 @@ EXPECTED.update({
     'kootenay-main-nov15': (
         'top: Keep 5 trout and char {day}, or 10 if they’re rainbow trout\n'
         'fold: Up to 5 or 10 (keep)\n'
-        '[Keep 5, rainbow trout up to 10 · any size]\n'
+        '[Keep 5, rainbow trout up to 10]\n'
         '  Brook trout:   <counts toward the 5>\n'
         '  Brown trout:   <counts toward the 5>\n'
         '  Cutthroat trout: only 1 over 50 cm (20 in)  <counts toward the 5>\n'
@@ -675,7 +675,7 @@ EXPECTED.update({
         '  Dolly Varden/bull trout: 60 cm (24 in) or longer | only 1, counting any lake trout you keep  <counts toward the 4 · 2 total from these 6>\n'
         '  Lake trout: 60 cm (24 in) or longer | only 1, counting any Dolly Varden/bull trout you keep  <counts toward the 4 · 2 total from these 6>\n'
         '  Steelhead: a rainbow over 50 cm (20 in) | after keeping 2, stop fishing this river today | ~Steelhead are known to be in this water.  <counts toward the 4 · 2 total from these 6>\n'
-        '  Rainbow trout: any length, 50 cm (20 in) or less  <counts toward the 4>  (until Apr 30, then release)'
+        '  Rainbow trout: 50 cm (20 in) or less  <counts toward the 4>  (until Apr 30, then release)'
     ),
     'windsor-jul15': (
         'top: Keep 4 trout and char {day}\n'

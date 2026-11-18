@@ -175,6 +175,12 @@ A_GROUPS_LAST = False
 #: owner 2026-11-18 01:07: rainbow trout just above steelhead in a box, where they read alike (`_rainbow_above_steelhead`).
 #: False = the mutation pin (the build's order)
 A_RAINBOW_ABOVE_STEELHEAD = True
+#: owner 2026-11-18 01:22 (the analyst's misleading forms, the law unchanged): "any length, 50 cm (20 in) or less" says
+#: "50 cm (20 in) or less"; "any size" is said nowhere (never in a strip over a box with an over-50 cm cap); a top line's
+#: other box holding few fish names them ("… and 20 brook trout {day}"). False = each pin
+A_NO_ANY_LENGTH = True
+A_ANY_SIZE_UNSAID = True
+A_TOP_NAMES_A_FEW_OTHERS = True
 #: owner 2026-11-18, PENDING one more picture (Chilliwack Lake and the other five Region 2 lakes): a wild quota at or above
 #: the box's number never limits anything ("only 4 wild" in "Keep 4 in all"): unsaid. Off until the owner's picture
 WILD_QUOTA_AT_THE_BOX_NUMBER_UNSAID = False
@@ -925,7 +931,11 @@ class Body:
         for r in rows:
             r.size = law_size(self.fish[r.fish][r.origin], self.rules) if r.origin is not None else r.detail
         any_once = A_ANY_SIZE_ONCE and not has_size_strip and all(r.size == "any size" for r in rows)
-        if any_once:
+        if A_ANY_SIZE_UNSAID:
+            # (owner 2026-11-18 01:22) "any size" is said nowhere: a row with no size keeps any length; the strip never
+            # says it (it read wrong over a box with an over-50 cm cap: Region 4's streams)
+            any_once = True
+        elif any_once:
             strip.insert(0, W.STRIP_ANY_SIZE)
         for r in rows:
             fa = self.fish[r.fish]
@@ -1531,6 +1541,9 @@ class Body:
             named += others[:-1]
             others = others[-1:]
         fish = lambda b: list(dict.fromkeys(r.fish for r in b["rows"]))
+        if A_TOP_NAMES_A_FEW_OTHERS and named and others and len(fish(others[0])) <= 2:
+            # (owner 01:22) the other box holds few fish: named ("… and 20 brook trout today"), not "20 other trout and char"
+            named, others = named + others, []
         n_of = lambda b: _headline_n(b) if A_APART_SAYS_THE_BOX_MOST else b["n"]
         lead = W.top_apart([(n_of(b), W.fish_words(fish(b))) for b in named], n_of(others[0]) if others else None)
         fold = W.fold_apart([(n_of(b), W.short_fish(fish(b)[0])) for b in named], n_of(others[0]) if others else None)
@@ -1582,6 +1595,11 @@ def _slot_words(size: str) -> str:
     or longer" -> "release over 60 cm (24 in) and under 90 cm (35 in)" (60 and 90 exactly may be kept, as the book
     says); every other size as it is."""
     import re
+    if A_NO_ANY_LENGTH:
+        # (owner 01:22) "any length, 50 cm (20 in) or less" -> "50 cm (20 in) or less": "or less" has no minimum
+        m = re.fullmatch(rf"any length, ({W._CM} or less)", size)
+        if m:
+            size = m[1]
     if not A_SLOT_SAYS_WHAT_TO_RELEASE:
         return size
     m = re.fullmatch(rf"({W._CM}) or less, or ({W._CM}) or longer", size)
