@@ -200,7 +200,7 @@ describe("what each job tells", () => {
     expect(r2).toMatchObject({ key: "roster:new:08DA013", kind: "roster", data: { station: "08DA013" } });
     expect(rest).toEqual([]);
     // (T847 review) the event's own text names every step, the match between the roster fetch and the build
-    const [m] = gaugeEvents([{ kind: "roster", since: "x", current: "data/source/bc_hydrometric_stations.json", latest: "07FA008",
+    const [m] = gaugeEvents([{ kind: "roster", since: "x", current: repoData("source/bc_hydrometric_stations.json"), latest: "07FA008",
                                action: "rm R && fetch R && build B" }], "t");
     expect(m!.text).toContain("1. Refresh the roster:\n   rm R && fetch R\n");
     expect(m!.text).toContain("2. Match the new station:\n   python -m pipeline.gauges.generate.match --build data/generated/atlas/full && python -m pipeline.gauges.generate.promote --only 07FA008\n");
