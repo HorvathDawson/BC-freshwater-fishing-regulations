@@ -6,8 +6,8 @@
    "section_handles": "55032563b98ee973",
    "reach_digest": "11eb6853dff81815",
    "rule_ids_sha256": "cbdd8387c469591b",
-   "answers_sha256": "d3c68e7fd8342f0f4c3192a9b715b058d3bfe66876c86b29630cddba719ca194",
-   "store_digest": "c40bb49097d88bb0",
+   "answers_sha256": "575f096e39af5e9b9892ea724a331388fca68de6caea8e7dd2c36562ba46d035",
+   "store_digest": "271807ca2e940b63",
    "layout": "{\"top\":[\"about\",\"spec\",\"schemas\",\"fish\",\"keys\",\"segments\",\"moments\",\"segment_moments\",\"parts\",\"places\",\"unnamed\",\"glossary\",\"sections\"],\"sections\":{\"ladder\":[\"version\",\"at\",\"reasons\",\"reason_state\",\"verdicts\",\"frames\"],\"rows\":[\"version\",\"at\",\"decided\",\"rows\",\"strips\",\"frames\"],\"gear\":[\"version\",\"at\",\"frames\",\"province_methods\",\"parent\",\"methods\",\"count_nouns\",\"moments\",\"conduct_means\"],\"licence\":[\"version\",\"at\",\"holds\",\"answers\",\"documents\",\"under_16\",\"alien_closures\",\"frames\",\"profiles\",\"profile_dims\",\"residency_labels\",\"profile_labels\"],\"display\":[\"version\",\"at\",\"frames\",\"rules\",\"waters\",\"strip\",\"reasons\",\"ends\",\"licensing\"],\"trout\":[\"version\",\"at\",\"frames\",\"tables\",\"dates\",\"sheets\"]},\"versions\":{\"ladder\":1,\"rows\":34,\"gear\":12,\"licence\":7,\"display\":20,\"trout\":5}}"
   },
   "golden": "d7b1ed353",
