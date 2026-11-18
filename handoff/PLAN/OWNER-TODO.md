@@ -2694,3 +2694,4 @@ More questions (recommended answer first):
   the day strip" (a Trout | Salmon pair right after < Today > on desktop; phones unchanged).
   15:06, owner: "the side bar should have some opacity to it too in desktop will look cleaner i think" (T856: a see-through
   side bar on desktop, the map running under it).
+- 2026-11-18 16:53 (main chat) Cranberry River Canyon cuts. Owner, verbatim: "the top point is confident the lower point of canyon less so" -> the falls (top) cut is now HIGH confidence; the canyon bottom estimate stays LOW. Shows from the next data release (after r-86d43303bee2).
