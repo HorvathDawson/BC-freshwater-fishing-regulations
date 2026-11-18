@@ -303,3 +303,20 @@ def test_a_one_fish_rows_line_names_its_fish_where_it_is_not_true_of_every_one(m
             "origin": "wild", "here": 2, "over_cm": None, "most": "exactly", "kind": "tally", "of": None}
     got = G._exact_lines(P, model, {"members": ["LT"]}, {"kinds": ["LT"]}, [line])
     assert [(x["q"], x["a"]) for x in got] == [("Kept 2 lake trout elsewhere today?", "Keep 2 more here")]
+
+
+@pytest.mark.parametrize("on", [True, False], ids=["the label names it once", "mutation: said twice"])
+def test_a_label_naming_the_fish_is_not_repeated_in_the_question(monkeypatch, on):
+    """Region 8: the brook trout row's line names its fish ("Kept 2 brook trout on another stream?"); under the label
+    "Brook trout:" it reads "Brook trout: Kept 2 on another stream? Keep 18 more here.", and J reads the label as the
+    line's fish. Off: the fish said twice."""
+    monkeypatch.setattr(T, "A_LABEL_NAMES_THE_FISH_ONCE", on)
+    rows = [{"kind": "keep", "members": ["RB", "CT"], "elsewhere": {"says": ZONE, "ask": []}},
+            {"kind": "keep", "members": ["EB"], "elsewhere": {"says": ZONE, "ask": [
+                ["Kept 2 brook trout on another stream?", "Keep 18 more here"]]}}]
+    got = T.elsewhere_lines(rows, [])
+    want = "Brook trout: Kept 2 on another stream? Keep 18 more here." if on else \
+        "Brook trout: Kept 2 brook trout on another stream? Keep 18 more here."
+    assert want in got, got
+    q, _a = W.parse_elsewhere(want)
+    assert W.split_subject(want)[0] == "Brook trout" and q == ("kept", 2, "stream", None if on else ("EB",))
