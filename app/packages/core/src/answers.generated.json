@@ -9113,6 +9113,13 @@
        "title": "Head",
        "type": "string"
       },
+      "inner": {
+       "items": {
+        "$ref": "#/$defs/Band"
+       },
+       "title": "Inner",
+       "type": "array"
+      },
       "kind": {
        "enum": [
         "keep",
@@ -9187,7 +9194,8 @@
       "possession",
       "tag",
       "rows",
-      "bands"
+      "bands",
+      "inner"
      ],
      "title": "Box",
      "type": "object"
@@ -9541,10 +9549,23 @@
         }
        ],
        "title": "Second"
+      },
+      "sub": {
+       "anyOf": [
+        {
+         "minLength": 1,
+         "type": "string"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "title": "Sub"
       }
      },
      "required": [
       "lead",
+      "sub",
       "second"
      ],
      "title": "TopLine",
@@ -9753,6 +9774,13 @@
        "title": "Head",
        "type": "string"
       },
+      "inner": {
+       "items": {
+        "$ref": "#/$defs/Band"
+       },
+       "title": "Inner",
+       "type": "array"
+      },
       "kind": {
        "enum": [
         "keep",
@@ -9827,7 +9855,8 @@
       "possession",
       "tag",
       "rows",
-      "bands"
+      "bands",
+      "inner"
      ],
      "title": "BoxWire",
      "type": "object"
@@ -10183,10 +10212,23 @@
         }
        ],
        "title": "Second"
+      },
+      "sub": {
+       "anyOf": [
+        {
+         "minLength": 1,
+         "type": "string"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "title": "Sub"
       }
      },
      "required": [
       "lead",
+      "sub",
       "second"
      ],
      "title": "TopLine",

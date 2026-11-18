@@ -474,8 +474,10 @@ def _sections() -> Tuple[Section, ...]:
         # licence answer (the fish sheets' stamps). REQUIRED since the cutover (ticket L; owner 17:40: only at the
         # switch): in every file, `--trout-table` gone. ANY change of its shape bumps this number (contract 2.1).
         # trout 2 (T810 L, owner 2026-11-18): a band's kind "size" ("counts toward the 2 · only 1 over 50 cm (20 in)
-        # between them", Region 4's cutthroat and rainbow)
-        Section("trout", 2, _no_scope, compose_from=("rows", "display", "licence"), compose_key=_trout_compose_key),
+        # between them", Region 4's cutthroat and rainbow). trout 3 (owner 2026-11-18 00:52, "said once"): a date level
+        # holds every row under it without one of its own (`DateSet`, the most specific wins). trout 4 (owner 01:22 /
+        # 01:28): `TopLine.sub`, nested bands (`Box.inner`), one row for a fish's hatchery and wild twins
+        Section("trout", 4, _no_scope, compose_from=("rows", "display", "licence"), compose_key=_trout_compose_key),
     )
 
 

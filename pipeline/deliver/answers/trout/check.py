@@ -168,6 +168,7 @@ class Row:
         self.kind = box["kind"]
         self.label = bool(r["label"] or box["label"])
         self.ranges: Optional[Tuple[Tuple[float, float], ...]] = None
+        self.wild_ranges: Optional[Tuple[Tuple[float, float], ...]] = None   # "… if wild": the wild fish's own size
         self.lines = [(t, W.parse_row_line(t)) for t in r["lines"]]
         self.quiet = [(t, W.parse_quiet(t)) for t in r["quiet"]]
         self.band: Optional[tuple] = None          # (kind, n, m, from, to)
@@ -184,6 +185,10 @@ class Row:
                 if self.ranges is not None:
                     raise _Fail(f"row {self.key}: two sizes")
                 self.ranges = x[1]
+            elif x[0] == "size_wild":
+                if self.wild_ranges is not None or self.origin is not None or self.label:
+                    raise _Fail(f"row {self.key}: 'if wild' on a row of one origin, or twice")
+                self.wild_ranges = x[1]
 
     def origins(self) -> Tuple[str, ...]:
         if self.origin:
@@ -200,7 +205,7 @@ class Table:
         self.cell = cell
         t = cell["table"]
         self.t = t
-        self.top = W.parse_top_full(t["top"]["lead"])
+        self.top = W.parse_top_full(W.join_top(t["top"]["lead"], t["top"].get("sub")))
         self.fold = W.parse_fold(t["fold"]["value"])
         self.together = W.parse_together(t["together"]["text"]) if t["together"] else None
         self.together_text = t["together"]["text"] if t["together"] else None
@@ -238,6 +243,12 @@ class Table:
                 kind_, k, m = W.parse_band(x["text"])
                 if kind_ != x["kind"]:
                     raise _Fail(f"box {bi}: band {x['text']!r} is marked {x['kind']}")
+                total = W.band_total(x["text"])
+                if kind_ in ("shared", "own") and total is not None:
+                    # (owner 00:52) the overall limit the band names first: the box's, or a raised box's first number
+                    ex = W.parse_head_except(b["head"])
+                    if total != n and not (ex is not None and total == ex[0]):
+                        raise _Fail(f"box {bi}: band {x['text']!r} names {total} in a box of {n}")
                 if kind_ == "shared" and (m != x["to"] - x["from"] + 1 if m is not None else x["to"] == x["from"]):
                     raise _Fail(f"box {bi}: band {x['text']!r} spans rows {x['from']}..{x['to']}")
                 if kind_ == "size" and (m != x["to"] - x["from"] + 1 if m is not None else x["to"] - x["from"] + 1 < 3):
@@ -250,7 +261,22 @@ class Table:
                     raise _Fail(f"box {bi}: band {x['text']!r} over two rows says 'between them'")
                 for r in rows[x["from"]:x["to"] + 1]:
                     r.band = (kind_, k, m, x["from"], x["to"])
-            self.boxes.append({"kind": b["kind"], "n": n, "strip": strip, "rows": rows, "raw": b,
+            inner = []
+            for x in b.get("inner") or ():
+                # (trout 4, R4) a count nested in one band, its cap's words only
+                span = x["to"] - x["from"] + 1
+                if x["kind"] == "shared":
+                    kind_, k, m = W.parse_band(x["text"])
+                    if kind_ != "shared" or W.band_total(x["text"]) is not None or (m is not None and m != span) \
+                            or (m is None and span < 3):
+                        raise _Fail(f"box {bi}: nested band {x['text']!r} over rows {x['from']}..{x['to']}")
+                    inner.append((x["from"], x["to"], k, None))
+                else:
+                    got = W.parse_size_part(x["text"])
+                    if got is None or (got[2] is not None and got[2] != span) or (got[2] is None and span < 3):
+                        raise _Fail(f"box {bi}: nested band {x['text']!r} over rows {x['from']}..{x['to']}")
+                    inner.append((x["from"], x["to"], got[0], got[1]))
+            self.boxes.append({"kind": b["kind"], "n": n, "strip": strip, "rows": rows, "raw": b, "inner": inner,
                                "except": W.parse_head_except(b["head"])})
             self.rows += rows
         for r in self.rows:
@@ -283,6 +309,8 @@ class Table:
             if r.fish != S or o not in r.origins():
                 continue
             rng = r.ranges if r.ranges is not None else ((0, INF),)
+            if o == "wild" and r.wild_ranges is not None:
+                rng = r.wild_ranges
             if any(a < L < b for a, b in rng):
                 return r
         return None
@@ -342,8 +370,8 @@ class Table:
                     out.append((f"row {r.key} a day {r.daily_said}", of_rows([r]), r.daily_said))
                 elif kind == "size":
                     # (T810 L) "counts toward the 2 · only 1 over 50 cm (20 in) between them": the box's number (its
-                    # total, above), and these rows over the size: at most the band's
-                    if k != b["n"]:
+                    # total, above), and these rows over the size: at most the band's (a raised box: its first number)
+                    if k != b["n"] and not (b.get("except") is not None and k == b["except"][0]):
                         raise _Fail(f"row {r.key}: a size band of the {k} in a box of {b['n']}")
                     _bn, n_, cm_, _m = W.parse_band_size(b["raw"]["bands"][next(
                         i for i, x in enumerate(b["raw"]["bands"]) if x["from"] == fr)]["text"])
@@ -352,6 +380,10 @@ class Table:
                 elif kind == "upto" and k != b["n"] and not (b.get("except") is not None and k == b["except"][0]
                                                                and r.fish not in set(b["except"][1])):
                     raise _Fail(f"row {r.key}: 'counts toward the {k}' in a box of {b['n']}")
+            for fr, to, k, cm in b.get("inner") or ():
+                # a nested band: these rows (over its size, a size band): at most its number
+                out.append((f"box {bi} nested {fr}..{to}: {k}" + (f" over {cm}" if cm is not None else ""),
+                            (lambda f, rf, R=of_rows(rows[fr:to + 1]), cm=cm: R(f, rf) and (cm is None or f[2] > cm)), k))
             for p in b["strip"]:
                 if p[0] == "size":
                     n, cm, extra = p[1], p[2], p[3]
@@ -374,7 +406,8 @@ class Table:
                 me = of_rows([r])
                 for t, x in r.lines:
                     k = x[0]
-                    if k in ("only", "uses"):
+                    if k in ("only", "uses", "stop"):
+                        # ("stop": "after keeping 2, stop fishing this river today" — at most 2 of this row's fish)
                         out.append((f"row {r.key} {t!r}", me, x[1]))
                     elif k == "count":
                         out.append((f"row {r.key} {t!r}", lambda f, rf, me=me, o=set(x[2]) & keep_fish:
@@ -439,7 +472,7 @@ def _cms(x) -> List[float]:
                 walk(y)
     if isinstance(x, tuple):
         k = x[0]
-        if k in ("size",) and len(x) == 2:
+        if k in ("size", "size_wild") and len(x) == 2:
             for a, b in x[1]:
                 out.extend([a, b])
         elif k in ("uses",):
@@ -585,7 +618,7 @@ def law_problems(c: Cell, T: Table) -> List[str]:
                 if not keeps(lw["hatchery"]) or lw["wild"] is None or keeps(lw["wild"]):
                     probs.append(f"{S}: 'Hatchery only', but hatchery {lw['hatchery'] and lw['hatchery'][0]}, wild "
                                  f"{lw['wild'] and lw['wild'][0]}")
-            else:
+            elif r.wild_ranges is None:
                 if lw["hatchery"] is not None and lw["wild"] is not None and \
                         any(count_at(lw["hatchery"], L) != count_at(lw["wild"], L)
                             for L in mids(law_cuts(lw["hatchery"], lw["wild"]))):
@@ -901,7 +934,7 @@ def origin_problems(c: Cell, T: Table) -> List[str]:
         for r in by_fish.get(S, ()):
             if r.label or r.origin:
                 return True
-            if any(x[0] == "wild" or (x[0] == "also" and x[1][0] == "across") for _t, x in r.lines):
+            if any(x[0] in ("wild", "size_wild") or (x[0] == "also" and x[1][0] == "across") for _t, x in r.lines):
                 return True
             if any(p[0] == "wild" for p in T.boxes[r.b]["strip"]):
                 return True
@@ -961,7 +994,14 @@ def sheet_problems(c: Cell, T: Table) -> List[str]:
             probs.append(f"{where}: head {sh['head']!r} on a {r.kind} row")
         elif r.kind == "keep":
             band = next(x["text"] for x in r.box["bands"] if x["from"] <= r.i <= x["to"])
-            if head[2] != T.boxes[r.b]["n"] or (head[1] or W.band_upto(T.boxes[r.b]["n"])) != band:
+            total = W.band_total(band) if W.parse_band(band)[0] in ("shared", "own") else None
+            if W.parse_band(band)[0] == "size":
+                ok = head[2] == W.parse_band(band)[1] and head[1] == band
+            elif total is not None:
+                ok = head[2] == total and head[1] == W.band_part(band)
+            else:
+                ok = head[2] == T.boxes[r.b]["n"] and (head[1] or W.band_upto(T.boxes[r.b]["n"])) == band
+            if not ok:
                 probs.append(f"{where}: head {sh['head']!r}; the row's band {band!r} in a box of {T.boxes[r.b]['n']}")
         row_texts = {t for t, _x in r.lines} | {t for t, _x in r.quiet}
         strip_texts = set((r.box["strip"] or "").split("; ")) - {""}
@@ -975,6 +1015,9 @@ def sheet_problems(c: Cell, T: Table) -> List[str]:
                 rng = r.ranges if r.ranges is not None else ((0, INF),)
                 if tuple(x[1]) != tuple(rng):
                     probs.append(f"{where}: {ln['t']!r}; the row keeps {rng}")
+            elif k == "size_wild":
+                if r.wild_ranges is None or tuple(x[1]) != tuple(r.wild_ranges):
+                    probs.append(f"{where}: {ln['t']!r}; the row's wild fish keep {r.wild_ranges}")
             elif k == "sub":
                 if r.fish != "ST" or r.ranges != ((x[1], INF),):
                     probs.append(f"{where}: {ln['t']!r} on row {r.key}")
@@ -992,12 +1035,25 @@ def sheet_problems(c: Cell, T: Table) -> List[str]:
             elif k == "shared":
                 band = next(y["text"] for y in r.box["bands"] if y["from"] <= r.i <= y["to"])
                 held = {(y.fish, y.origin) for y in T.boxes[r.b]["rows"][r.band[3]:r.band[4] + 1]} - {(r.fish, r.origin)}
-                if x[1] != band or {(S, o) for S, o in x[2]} != held:
+                nest = next((y for y in r.box.get("inner") or () if y["kind"] == "shared" and y["text"] == x[1]
+                             and y["from"] <= r.i <= y["to"]), None)
+                if nest is not None:
+                    band = nest["text"]
+                    held = {(y.fish, y.origin) for y in T.boxes[r.b]["rows"][nest["from"]:nest["to"] + 1]} - \
+                        {(r.fish, r.origin)}
+                if x[1] != W.band_part(band) or {(S, o) for S, o in x[2]} != held:
                     probs.append(f"{where}: {ln['t']!r}; the row's band {band!r} over {sorted(held, key=str)}")
             elif k == "size_band":
                 band = next(y["text"] for y in r.box["bands"] if y["from"] <= r.i <= y["to"])
                 held = {(y.fish, y.origin) for y in T.boxes[r.b]["rows"][r.band[3]:r.band[4] + 1]} - {(r.fish, r.origin)}
-                if r.band[0] != "size" or band.split(W.BAND_SEP, 1)[1] != x[1] or {(S, o) for S, o in x[2]} != held:
+                nest = next((y for y in r.box.get("inner") or () if y["kind"] == "size" and y["text"] == x[1]
+                             and y["from"] <= r.i <= y["to"]), None)
+                if nest is not None:
+                    held = {(y.fish, y.origin) for y in T.boxes[r.b]["rows"][nest["from"]:nest["to"] + 1]} - \
+                        {(r.fish, r.origin)}
+                elif r.band[0] != "size" or band.split(W.BAND_SEP, 1)[1] != x[1]:
+                    held = None
+                if held is None or {(S, o) for S, o in x[2]} != held:
                     probs.append(f"{where}: {ln['t']!r}; the row's band {band!r} over {sorted(held, key=str)}")
             elif k == "uses":
                 if not any(y[0] == "uses" and y[2] == x[1] for _t, y in r.lines):
@@ -1382,7 +1438,7 @@ def next_change(starts, moments, answers: Callable[[int], object], j: int) -> Op
 
 
 def _texts_by_row(T: Table) -> Dict[str, Tuple[str, str]]:
-    """Each row key -> (where, the date text that holds it) from the date set (one level each: the model's rule)."""
+    """Each row key -> (where, the date text that holds it) from the date set: the most specific level that says one."""
     d = T.cell["dates"] or {}
     out: Dict[str, Tuple[str, str]] = {}
     for r in T.rows:
@@ -1400,10 +1456,13 @@ def _texts_by_row(T: Table) -> Dict[str, Tuple[str, str]]:
                 got.append(("band", v))
         if f"{r.b}:{r.i}" in (d.get("row") or {}):
             got.append(("row", d["row"][f"{r.b}:{r.i}"]))
-        if len(got) > 1:
-            raise _Fail(f"row {r.key} has dates at {[g[0] for g in got]}")
+        levels = [g[0] for g in got]
+        if len(set(levels)) != len(levels) or {"card", "top"} <= set(levels):
+            raise _Fail(f"row {r.key} has dates at {levels}")
         if got:
-            out[r.key] = got[0]
+            # (owner 2026-11-18 00:52, "said once") the most specific level holds the row: its own, its band's, its box's,
+            # then the card line; each row's date is then proved against the following segments (`date_problems`)
+            out[r.key] = got[-1]
     return out
 
 

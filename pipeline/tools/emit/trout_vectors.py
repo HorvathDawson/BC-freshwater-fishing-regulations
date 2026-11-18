@@ -275,7 +275,7 @@ def vector(fx: Fixture, c: Case) -> dict:
     composed = None
     if frame is not None:
         TroutFrame.model_validate_json(json.dumps(frame, ensure_ascii=False))
-        lead = frame["table"]["top"]["lead"]
+        lead = frame["table"]["top"]["lead"]                # (trout 4: the exception's subline is drawn as given)
         on = f"on {MONTHS[c.day[0] - 1]} {c.day[1]}"
         composed = {"lead_today": lead.replace("{day}", "today"), "lead_on": lead.replace("{day}", on)}
     return {**c.json(), "s": s, "frame": frame, "composed": composed}

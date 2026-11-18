@@ -535,7 +535,8 @@ def test_kathie_canuck_and_similkameen_name_each_subject(request):
         "Brook trout: This lake’s rule: 20 a day here. Brook trout you kept anywhere else count toward those 20. These "
         "fish are counted apart from the region’s total: they don’t use it up. They also count toward Region 4’s 5 "
         "trout and char a day."]
-    assert got["Kathie Lake"]["table"]["top"]["lead"] == "Keep 5 trout and char {day}, or 10 if they’re brook trout"
+    assert (got["Kathie Lake"]["table"]["top"]["lead"], got["Kathie Lake"]["table"]["top"]["sub"]) == (
+        "Keep 5 trout and char {day}", "or 10 if they’re brook trout")                  # owner 01:28: the subline
 
 
 @pytest.mark.needs_bundle
@@ -577,14 +578,184 @@ def test_the_fraser_at_mission_states_the_dolly_varden_and_lake_trout_count_once
     i, j = keys.index("DV"), keys.index("LT")
     assert abs(i - j) == 1
     band = next(x for x in b["bands"] if x["from"] == min(i, j))
-    assert (band["to"], band["text"], band["kind"]) == (max(i, j), "only 1 between them", "shared")
-    assert all("uses the 1 over 50 cm (20 in)" in b["rows"][x]["lines"] for x in (i, j))
+    assert (band["to"], band["text"], band["kind"]) == (max(i, j), "counts toward the 2 · only 1 between them", "shared")
+    assert not any(t.startswith("uses the ") for r in b["rows"] for t in r["lines"])   # owner 01:07: dropped
     assert not any(x.startswith("only 1, counting any") for r in b["rows"] for x in r["lines"])
+    monkeypatch.setattr(TT, "A_BAND_NAMES_THE_TOTAL", False)       # owner 00:52's "counts toward the 2 · " pin
+    got, *_ = _live_tables(request, ("Fraser River",))
+    b, keys = _one_box(_mission(got), ("DV", "LT"))
+    assert "only 1 between them" in [x["text"] for x in b["bands"]]
     monkeypatch.setattr(TT, "INNER_BAND_WHEN_THE_STRIP_SAYS_IT", False)
     got, *_ = _live_tables(request, ("Fraser River",))
     b, keys = _one_box(_mission(got), ("DV", "LT"))
     assert all(x["kind"] == "upto" for x in b["bands"]), b["bands"]
     assert sum(x.startswith("only 1, counting any") for r in b["rows"] for x in r["lines"]) == 2
+
+
+@pytest.mark.needs_bundle
+@pytest.mark.parametrize("on", [False, True], ids=["off (default)", "on"])
+def test_the_fraser_proves_with_the_uses_the_line_either_way(request, monkeypatch, on):
+    """(Owner 00:52 / 01:07: dropped, the switch off by default) the Fraser at Mission says "uses the 1 over 50 cm" only
+    with the switch on, and J proves every table of the river either way."""
+    from pipeline.deliver.answers.trout import table as TT
+    monkeypatch.setattr(TT, "USES_THE_LINE", on)
+    got, m, bundle, data = _live_tables(request, ("Fraser River",))
+    b, _keys = _one_box(_mission(got), ("DV", "LT"))
+    assert any(t.startswith("uses the ") for r in b["rows"] for t in r["lines"]) == on
+    ks = sorted({k for k, cells in enumerate(m.sections["trout"]) if any(c is not None for c in cells)})
+    assert J.check_model(m, bundle, data, keys=ks, log=lambda *_: None)["problems"] == []
+
+
+@pytest.mark.needs_bundle
+def test_the_vedder_orders_its_rows_and_nests_the_dolly_varden_and_lake_trout(request, monkeypatch):
+    """Owner 2026-11-18 00:52 / 01:22 / 01:28: Jan 1, the six fish of "2 total from these 6" (the top line names the
+    2), the Dolly Varden and lake trout last inside it under a nested "only 1 between them" (their "only 1, counting any
+    …" lines gone), the hatchery rainbow its own rule raises ("or 4") last in the box. J proves it; a nested band said
+    with 2 fails. Mutations: each pin off brings its old form back."""
+    from pipeline.deliver.answers.trout import table as TT
+    got, m, bundle, data = _live_tables(request, ("Vedder River",), md=(1, 1))
+    t = got["Vedder River"]
+    b = next(b for b in t["table"]["boxes"] if b["kind"] == "keep")
+    keys = [r["key"] for r in b["rows"]]
+    assert keys[-3:] == ["DV", "LT", "RB"], keys
+    assert [(x["from"], x["to"], x["text"]) for x in b["bands"]] == [(0, 5, "2 total from these 6"),
+                                                                      (6, 6, "counts toward the 4")]
+    assert [(x["from"], x["to"], x["text"], x["kind"]) for x in b["inner"]] == [(4, 5, "only 1 between them", "shared")]
+    assert not any("counting any" in x for r in b["rows"] for x in r["lines"])
+    k = next(k for k, cells in enumerate(m.sections["trout"]) if any(c is not None and c == t for c in cells))
+    assert J.check_model(m, bundle, data, keys=[k], log=lambda *_: None)["problems"] == []
+    cells = copy.deepcopy(m.sections["trout"][k])
+    jj = next(jj for jj, c in enumerate(cells) if c == t)
+    bb = next(b for b in cells[jj]["table"]["boxes"] if b["kind"] == "keep")
+    # (the nested count over the brook and brown trout instead: the table refuses two the engine keeps)
+    bb["inner"] = ({**bb["inner"][0], "from": 0, "to": 1},)
+    m.sections["trout"] = list(m.sections["trout"])
+    m.sections["trout"][k] = cells
+    assert any("the engine accepts it" in p for p in J.check_model(m, bundle, data, keys=[k], log=lambda *_: None)[
+        "problems"])
+    for flag, old in (("A_NESTED_BANDS", lambda b: any("counting any" in x for r in b["rows"] for x in r["lines"])),
+                      ("A_RAISED_ROW_LAST", lambda b: b["rows"][-1]["key"] != "RB")):
+        with monkeypatch.context() as mp:
+            mp.setattr(TT, flag, False)
+            g2, *_ = _live_tables(request, ("Vedder River",), md=(1, 1))
+            assert old(next(b for b in g2["Vedder River"]["table"]["boxes"] if b["kind"] == "keep")), flag
+
+
+@pytest.mark.needs_bundle
+def test_rainbow_stands_above_steelhead_where_they_read_alike(request, monkeypatch):
+    """Owner 2026-11-18 01:07: at Mission the Fraser's rainbow trout stand just above its steelhead (both "counts toward
+    the 2"); the Vedder's rainbow, under a rule of its own ("4 if they're hatchery rainbow trout"), stays where it is.
+    Mutation: the pin off leaves the build's order."""
+    from pipeline.deliver.answers.trout import table as TT
+    got, *_ = _live_tables(request, ("Fraser River",))
+    b, keys = _one_box(_mission(got), ("RB", "ST"))
+    assert keys.index("RB") + 1 == keys.index("ST"), keys
+    monkeypatch.setattr(TT, "A_RAINBOW_ABOVE_STEELHEAD", False)
+    got, *_ = _live_tables(request, ("Fraser River",))
+    b, keys = _one_box(_mission(got), ("RB", "ST"))
+    assert keys.index("RB") > keys.index("ST"), keys
+
+
+@pytest.mark.needs_bundle
+@pytest.mark.parametrize("flag", ["A_NO_ANY_LENGTH", "A_ANY_SIZE_UNSAID", "A_TOP_NAMES_A_FEW_OTHERS"])
+def test_three_misleading_forms_read_plainly(request, monkeypatch, flag):
+    """Owner 2026-11-18 01:22 (the analyst's misleading forms, the law unchanged): the Vedder's rainbow trout "50 cm (20
+    in) or less" (not "any length, …"); a Region 4 stream's box says no "any size" over its size band; Bruer Creek's top
+    line names its other box's one fish, "… and 20 brook trout {day}". J proves each. Mutation: each pin off brings its
+    old form back."""
+    from pipeline.deliver.answers.trout import table as TT
+    names = ("Vedder River", "Bugaboo Creek", "Bruer Creek")
+
+    def forms(got):
+        v = next(b for b in got["Vedder River"]["table"]["boxes"] if b["kind"] == "keep")
+        rb = next(r for r in v["rows"] if r["key"] == "RB")
+        r4 = next(b for b in _r4(got)["table"]["boxes"] if b["kind"] == "keep")
+        top = [c["table"]["top"]["lead"] for c in got["Bruer Creek (all parts)"] if c is not None]
+        return {"A_NO_ANY_LENGTH": "50 cm (20 in) or less" in rb["lines"],
+                "A_ANY_SIZE_UNSAID": "any size" not in (r4["strip"] or ""),
+                "A_TOP_NAMES_A_FEW_OTHERS": any(t.endswith(" and 20 brook trout {day}") for t in top)}
+    got, m, bundle, data = _live_tables(request, names)
+    assert all(forms(got).values()), forms(got)
+    ks = sorted({k for k, cells in enumerate(m.sections["trout"]) if any(c is not None for c in cells)})
+    assert J.check_model(m, bundle, data, keys=ks, log=lambda *_: None)["problems"] == []
+    monkeypatch.setattr(TT, flag, False)
+    got, *_ = _live_tables(request, names)
+    assert not forms(got)[flag]
+
+
+@pytest.mark.needs_bundle
+@pytest.mark.parametrize("flag", ["A_OWN_CAP_IN_THE_BAND", "A_BAND_TOTAL_UNSAID_WHEN_TOP_NAMES_IT", "A_TOP_SUBLINE"])
+def test_the_count_column_and_the_vedders_top_line(request, monkeypatch, flag):
+    """Owner 2026-11-18 01:22 (R2, R3) and 01:28: a Region 4 stream's Dolly Varden "counts toward the 2 · only 1" (its
+    row's "only 1" gone); the Vedder's "2 total from these 6" without "counts toward the 4" (the top line names the 2);
+    its top line "Keep 2 trout and char {day}" with the subline "or 4 if they’re hatchery rainbow trout 50 cm (20 in)
+    or less". J proves each. Mutation: each pin off brings its old form back."""
+    from pipeline.deliver.answers.trout import table as TT
+    names = ("Vedder River", "Bugaboo Creek")
+
+    def forms(got):
+        v = got["Vedder River"]["table"]
+        r4 = next(b for b in _r4(got)["table"]["boxes"] if b["kind"] == "keep")
+        dv = next(i for i, r in enumerate(r4["rows"]) if r["key"] == "DV")
+        band = next(x for x in r4["bands"] if x["from"] <= dv <= x["to"])
+        vb = next(b for b in v["boxes"] if b["kind"] == "keep")
+        return {"A_OWN_CAP_IN_THE_BAND": band["text"] == "counts toward the 2 · only 1"
+                and "only 1" not in r4["rows"][dv]["lines"],
+                "A_BAND_TOTAL_UNSAID_WHEN_TOP_NAMES_IT": "2 total from these 6" in [x["text"] for x in vb["bands"]],
+                "A_TOP_SUBLINE": (v["top"]["lead"], v["top"]["sub"]) == (
+                    "Keep 2 trout and char {day}", "or 4 if they’re hatchery rainbow trout 50 cm (20 in) or less")}
+    got, m, bundle, data = _live_tables(request, names, md=(7, 1))
+    assert all(forms(got).values()), forms(got)
+    ks = sorted({k for k, cells in enumerate(m.sections["trout"]) if any(c is not None for c in cells)})
+    assert J.check_model(m, bundle, data, keys=ks, log=lambda *_: None)["problems"] == []
+    monkeypatch.setattr(TT, flag, False)
+    got, *_ = _live_tables(request, names, md=(7, 1))
+    assert not forms(got)[flag]
+
+
+@pytest.mark.needs_bundle
+def test_hatchery_and_wild_twins_are_one_row(request, monkeypatch):
+    """Owner 2026-11-18 01:22: Chilliwack Lake's brown, cutthroat and rainbow trout are one row each, "50 cm (20 in) or
+    less if wild" (hatchery fish any size); Lois Lake's "under 40 cm (16 in) if wild". J proves the wild-only size; the
+    size said of every fish (the "if wild" dropped) fails. Mutation: the pin off draws the twin rows again."""
+    from pipeline.deliver.answers.trout import table as TT
+    got, m, bundle, data = _live_tables(request, ("Chilliwack Lake",))
+    t = got["Chilliwack Lake"]
+    b = next(b for b in t["table"]["boxes"] if b["kind"] == "keep")
+    rb = next(r for r in b["rows"] if r["fish"] == "RB")
+    assert (rb["key"], rb["origin"], rb["lines"][0]) == ("RB", None, "50 cm (20 in) or less if wild")
+    assert not any(r["origin"] for r in b["rows"])
+    k = next(k for k, cells in enumerate(m.sections["trout"]) if any(c is not None and c == t for c in cells))
+    assert J.check_model(m, bundle, data, keys=[k], log=lambda *_: None)["problems"] == []
+    cells = copy.deepcopy(m.sections["trout"][k])
+    jj = next(jj for jj, c in enumerate(cells) if c == t)
+    for r in next(b for b in cells[jj]["table"]["boxes"] if b["kind"] == "keep")["rows"]:
+        r["lines"] = tuple(x.replace(" if wild", "") for x in r["lines"])
+        r["sheet"]["here"] = tuple({**h, "t": h["t"].replace(" if wild", "")} for h in r["sheet"]["here"])
+    m.sections["trout"] = list(m.sections["trout"])
+    m.sections["trout"][k] = cells
+    assert J.check_model(m, bundle, data, keys=[k], log=lambda *_: None)["problems"]
+    monkeypatch.setattr(TT, "A_TWINS_ONE_ROW", False)
+    got, *_ = _live_tables(request, ("Chilliwack Lake",))
+    assert {"RB/wild", "RB/hatchery"} <= {r["key"] for b in got["Chilliwack Lake"]["table"]["boxes"] for r in b["rows"]}
+
+
+@pytest.mark.needs_bundle
+def test_sowerby_lakes_rainbow_cap_the_size_band_implies_goes(request, monkeypatch):
+    """R1 (the sweep): Sowerby Lake's rainbow trout, kept only at 50 cm or longer, under "only 1 over 50 cm (20 in)" with
+    the cutthroat: its own "only 1" is implied and goes; the two share the size band. J proves the lake. Mutation: the
+    pin off keeps the rainbow's own cap and the old per-row lines."""
+    from pipeline.deliver.answers.trout import table as TT
+    got, m, bundle, data = _live_tables(request, ("Sowerby Lake",))
+    b = next(b for b in got["Sowerby Lake"]["table"]["boxes"] if b["kind"] == "keep")
+    assert "counts toward the 5 · only 1 over 50 cm (20 in) between them" in [x["text"] for x in b["bands"]]
+    assert not any("counting any" in x for r in b["rows"] for x in r["lines"])
+    ks = sorted({k for k, cells in enumerate(m.sections["trout"]) if any(c is not None for c in cells)})
+    assert J.check_model(m, bundle, data, keys=ks, log=lambda *_: None)["problems"] == []
+    monkeypatch.setattr(TT, "A_IMPLIED_OWN_CAP_GOES", False)
+    got, *_ = _live_tables(request, ("Sowerby Lake",))
+    b = next(b for b in got["Sowerby Lake"]["table"]["boxes"] if b["kind"] == "keep")
+    assert any("counting any" in x for r in b["rows"] for x in r["lines"])
 
 
 def _bowron(got):                                      # Istsi Creek, Jan 1-Mar 31: Bowron Lake Park's 1 trout/char
@@ -621,26 +792,52 @@ def test_bowron_park_creeks_say_their_possession_once(request, monkeypatch):
 
 
 @pytest.mark.needs_bundle
-def test_chilliwack_lake_drops_only_4_wild_behind_its_switch(request, monkeypatch):
-    """Owner 2026-11-18, PENDING one more picture: Chilliwack Lake's "only 4 wild" inside "Keep 4 in all" never limits
-    anything. Off by default (the rows say it); the switch on drops it and the proof still holds."""
+def test_chilliwack_lake_drops_only_4_wild(request, monkeypatch):
+    """R1 (a cap at or above its pool goes; the owner's approval, the implied-limit sweep): Chilliwack Lake's "only 4
+    wild" inside "Keep 4 in all" never limits anything: unsaid, and J proves the lake. Mutation: the switch off says it."""
     from pipeline.deliver.answers.trout import table as TT
-    got, m, bundle, data = _live_tables(request, ("Chilliwack Lake",))
-    rows = [r for b in got["Chilliwack Lake"]["table"]["boxes"] for r in b["rows"]]
-    assert any("only 4 wild" in r["lines"] for r in rows)
-    monkeypatch.setattr(TT, "WILD_QUOTA_AT_THE_BOX_NUMBER_UNSAID", True)
     got, m, bundle, data = _live_tables(request, ("Chilliwack Lake",))
     t = got["Chilliwack Lake"]
     assert not any("only 4 wild" in r["lines"] for b in t["table"]["boxes"] for r in b["rows"])
-    assert {r["key"] for b in t["table"]["boxes"] for r in b["rows"]} >= {"RB/wild", "RB/hatchery"}
     ks = sorted({k for k, cells in enumerate(m.sections["trout"]) if any(c is not None for c in cells)})
     assert J.check_model(m, bundle, data, keys=ks, log=lambda *_: None)["problems"] == []
+    monkeypatch.setattr(TT, "WILD_QUOTA_AT_THE_BOX_NUMBER_UNSAID", False)
+    got, *_ = _live_tables(request, ("Chilliwack Lake",))
+    assert any("only 4 wild" in r["lines"] for b in got["Chilliwack Lake"]["table"]["boxes"] for r in b["rows"])
+
+
+@pytest.mark.needs_bundle
+@pytest.mark.parametrize("flag", ["A_STOP_LINE_SAYS_THE_CAP", "A_SIZE_BAND_IN_A_RAISED_BOX"])
+def test_the_sweeps_r1_r2_forms(request, monkeypatch, flag):
+    """The implied-limit sweep, approved: Aveling Creek's hatchery steelhead "counts toward the 5" (its "after keeping 2,
+    stop fishing this creek today" says the 2); Canuck Lake's raised box ("Keep 5, brook trout up to 20") draws the
+    Region 4 size band over its cutthroat and rainbow ("counts toward the 5 · only 1 over 50 cm (20 in) between them",
+    as Beaver Creek's "Keep 2, brook trout up to 8" does). J proves both; each pin off
+    brings the old form back."""
+    from pipeline.deliver.answers.trout import table as TT
+    names = ("Aveling Creek", "Canuck Lake")
+
+    def forms(got, m):
+        raised = [x for cells in m.sections["trout"] for c in cells if c for b in c["table"]["boxes"]
+                  if W.parse_head_except(b["head"]) is not None for x in b["bands"]]
+        av = next((b, i) for c in got["Aveling Creek (all parts)"] if c for b in c["table"]["boxes"]
+                  for i, r in enumerate(b["rows"]) if r["key"] == "ST" and b["kind"] == "keep")
+        st_band = next(x for x in av[0]["bands"] if x["from"] <= av[1] <= x["to"])
+        return {"A_STOP_LINE_SAYS_THE_CAP": st_band["kind"] == "upto",
+                "A_SIZE_BAND_IN_A_RAISED_BOX": any(x["kind"] == "size" for x in raised)}
+    got, m, bundle, data = _live_tables(request, names)
+    assert all(forms(got, m).values()), forms(got, m)
+    ks = sorted({k for k, cells in enumerate(m.sections["trout"]) if any(c is not None for c in cells)})
+    assert J.check_model(m, bundle, data, keys=ks, log=lambda *_: None)["problems"] == []
+    monkeypatch.setattr(TT, flag, False)
+    got, m, *_ = _live_tables(request, names)
+    assert not forms(got, m)[flag]
 
 
 @pytest.mark.needs_bundle
 def test_big_bend_creek_draws_one_shared_band_the_strip_does_not_say(request, monkeypatch):
     """Owner 23:32, built where nothing else says it (a1-real: Big Bend Creek, the Nechako and the Liard): brown,
-    cutthroat, rainbow trout and steelhead, all kept from 30 cm, share "only 1 of these 4" inside "Keep 2 in all"; no
+    cutthroat, rainbow trout and steelhead, all kept from 30 cm, share "1 total from these 4" inside "Keep 2 in all"; no
     row says "only 1, counting any …". Mutation: the pin off says the count on each row again."""
     from pipeline.deliver.answers.trout import table as TT
     four = ("GB", "CT", "RB", "ST")
@@ -654,7 +851,7 @@ def test_big_bend_creek_draws_one_shared_band_the_strip_does_not_say(request, mo
     at = sorted(keys.index(k) for k in four)
     assert at == list(range(at[0], at[0] + 4))
     assert [x for x in b["bands"] if x["from"] == at[0]] == [
-        {"from": at[0], "to": at[-1], "text": "only 1 of these 4", "kind": "shared"}]
+        {"from": at[0], "to": at[-1], "text": "counts toward the 2 · 1 total from these 4", "kind": "shared"}]
     assert not any(x.startswith("only 1, counting any") for r in b["rows"] for x in r["lines"])
     monkeypatch.setattr(TT, "A_INNER_CAP_IS_A_BAND", False)
     got, *_ = _live_tables(request, ("Big Bend Creek",))

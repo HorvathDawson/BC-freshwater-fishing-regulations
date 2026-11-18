@@ -162,9 +162,50 @@ A_SIZE_CAP_IS_A_BAND = True
 #: owner 2026-11-18 (Bowron Lake Park's creeks): rows whose possession lines differ but each come to the day's number say
 #: it once on the box, "In your possession: just 1, the same as the day". False = the mutation pin (each row's own line)
 A_POSSESSION_SAME_AS_THE_DAY = True
-#: owner 2026-11-18, PENDING one more picture (Chilliwack Lake and the other five Region 2 lakes): a wild quota at or above
-#: the box's number never limits anything ("only 4 wild" in "Keep 4 in all"): unsaid. Off until the owner's picture
-WILD_QUOTA_AT_THE_BOX_NUMBER_UNSAID = False
+#: owner 2026-11-18 00:52: a shared band names the overall limit first ("counts toward the 2 · only 1 between them").
+#: False = the mutation pin (the band's own words alone)
+A_BAND_NAMES_THE_TOTAL = True
+#: owner 2026-11-18 00:52 leans to dropping "uses the 1 over 50 cm (20 in)" ("isnt it implied by the top bar?"); 01:07 no
+#: objection: OFF (dropped); then "A: drop it everywhere". Off, the strip's "only 1 over 50 cm" alone holds the law (J
+#: proves it either way)
+USES_THE_LINE = False
+#: owner 2026-11-18 00:52: in a box, the ungrouped fish at the top, the groups at the bottom, an inner group last inside
+#: its band (`_order_rows`). On again (owner 01:22, round 4: "the order switch goes ON"); off = the build's order
+A_GROUPS_LAST = True
+#: owner 2026-11-18 01:07: rainbow trout just above steelhead in a box, where they read alike (`_rainbow_above_steelhead`).
+#: False = the mutation pin (the build's order)
+A_RAINBOW_ABOVE_STEELHEAD = True
+#: owner 2026-11-18 01:22 (the analyst's misleading forms, the law unchanged): "any length, 50 cm (20 in) or less" says
+#: "50 cm (20 in) or less"; "any size" is said nowhere (never in a strip over a box with an over-50 cm cap); a top line's
+#: other box holding few fish names them ("… and 20 brook trout {day}"). False = each pin
+A_NO_ANY_LENGTH = True
+A_ANY_SIZE_UNSAID = True
+A_TOP_NAMES_A_FEW_OTHERS = True
+#: owner 2026-11-18 01:22 (the count column, R2/R3) and 01:28 (the Vedder's top line): a lone row's own cap is in its band
+#: ("counts toward the 2 · only 1"); a shared band's count the top line names is said without the box's number; a top
+#: line's exception sits on a subline (`TopLine.sub`). False = each pin
+A_OWN_CAP_IN_THE_BAND = True
+A_BAND_TOTAL_UNSAID_WHEN_TOP_NAMES_IT = True
+A_TOP_SUBLINE = True
+#: owner 2026-11-18 01:22 (R4/R5): a count some rows of one band share among themselves is a band nested in it
+#: (`Box.inner`), their "only 1, counting any …" lines gone; 01:28: a row its water's own rule raises comes last in its
+#: box. False = each pin
+A_NESTED_BANDS = True
+#: owner 2026-11-18 01:22: a fish's hatchery and wild twins are one row, "… if wild" (`_merge_twins`). False = the pin
+A_TWINS_ONE_ROW = True
+A_RAISED_ROW_LAST = True
+#: (the implied-limit sweep, approved R1/R2) a hatchery steelhead's own "only 2" beside its "after keeping 2, stop
+#: fishing this water today" is the box's "counts toward the 5": the stop line says the 2. False = the pin
+A_STOP_LINE_SAYS_THE_CAP = True
+#: (the sweep) the size band in a raised box too ("Keep 2, brook trout up to 8": 11 Region 4 tables). False = the pin
+A_SIZE_BAND_IN_A_RAISED_BOX = True
+#: (R1, the sweep) a row's own cap a size band's cap already implies goes (Sowerby Lake's rainbow "only 1", kept only at
+#: 50 cm or longer under "only 1 over 50 cm (20 in)" with cutthroat). False = the pin
+A_IMPLIED_OWN_CAP_GOES = True
+#: owner 2026-11-18 (R1, a cap at or above its pool goes; the implied-limit sweep): a wild quota at or above the box's
+#: number never limits anything ("only 4 wild" in "Keep 4 in all": Chilliwack and five Region 2 lakes, Great Central,
+#: Sproat, Makii): unsaid
+WILD_QUOTA_AT_THE_BOX_NUMBER_UNSAID = True
 
 #: T834: a share RAISED below the total is the box's number over every fish of the box (the Peace River's "Keep 3 in
 #: all"). False = the zone's 5 (the proof finds a basket the table accepts and the engine refuses)
@@ -546,7 +587,8 @@ class Body:
         self.rows_out = frame.get("rows") or []
         self.together: Optional[dict] = None
         self.boxes: List[dict] = []
-        self.inner_drawn = self.inner_left = self.inner_held = self.size_drawn = self.size_left = 0          # counts `_inner_bands` drew as a band, or left as lines
+        self.inner_drawn = self.inner_left = self.inner_held = self.size_drawn = self.size_left = 0
+        self.order_split = self.nest_left = self.twins_left = 0            # counts `_inner_bands` drew as a band, or left as lines
         self.placed: Dict[str, int] = {}
         self.extra_release: List[_Row] = []
 
@@ -596,6 +638,11 @@ class Body:
             self._inner_bands(b)
             if b["kind"] == "keep":
                 self._size_bands(b)
+                self._merge_twins(b)
+                self._order_rows(b)
+                self._nest_inner(b)
+                self._name_the_total(b)
+                self._rainbow_above_steelhead(b)       # (after the bands' words: rows that read alike)
         self._out_boxes()
         missing = sorted(S for S in self.states if S not in self.placed)
         if missing:
@@ -908,7 +955,11 @@ class Body:
         for r in rows:
             r.size = law_size(self.fish[r.fish][r.origin], self.rules) if r.origin is not None else r.detail
         any_once = A_ANY_SIZE_ONCE and not has_size_strip and all(r.size == "any size" for r in rows)
-        if any_once:
+        if A_ANY_SIZE_UNSAID:
+            # (owner 2026-11-18 01:22) "any size" is said nowhere: a row with no size keeps any length; the strip never
+            # says it (it read wrong over a box with an over-50 cm cap: Region 4's streams)
+            any_once = True
+        elif any_once:
             strip.insert(0, W.STRIP_ANY_SIZE)
         for r in rows:
             fa = self.fish[r.fish]
@@ -920,6 +971,8 @@ class Body:
                 r.size_text = W.size_line(_slot_words(size))
                 r.add(r.size_text)
             for x in lines_of.get(r.key, []):
+                if not USES_THE_LINE and W.parse_uses(x) is not None:
+                    continue                   # (owner 00:52 / 01:07 / "A: drop it everywhere") the strip says it
                 r.add(x)
             for a in r.also:
                 if a["by"] in across_rules or a["by"] in box_across or (id(r), a["says"]) in consumed_also \
@@ -1106,9 +1159,13 @@ class Body:
         toward the 2 · only 1 over 50 cm (20 in) between them" (`Band.kind` "size", trout 2). Its rows are moved together;
         only rows whose band is the box's own number ("counts toward the 2") join one, one fish per row (bands never
         overlap: a cap over rows of another band, or over twin rows, stays each row's line)."""
-        if not A_SIZE_CAP_IS_A_BAND or b["first"] is not None:
+        if not A_SIZE_CAP_IS_A_BAND:
             return
-        upto = W.band_upto(b["n"])
+        # (the implied-limit sweep) a raised box ("Keep 2, brook trout up to 8": Beaver Creek) too: its rows outside the
+        # exception count toward the first number
+        ex = W.parse_head_except(b["head"])
+        if b["first"] is not None and (ex is None or not A_SIZE_BAND_IN_A_RAISED_BOX):
+            return
         done: set = set()
         for r0 in list(b["rows"]):
             for t in list(r0.lines):
@@ -1132,6 +1189,17 @@ class Body:
                 for bx in b["bands"]:
                     for i in range(bx["from"], bx["to"] + 1):
                         band_of[id(rows[i])] = bx
+                total = ex[0] if ex is not None and not fish & set(ex[1]) else b["n"]
+                upto = W.band_upto(total)
+                if A_IMPLIED_OWN_CAP_GOES:
+                    # (R1, the sweep: Sowerby Lake) a row's own "only k" the size cap already implies — its fish kept
+                    # only over the size, the cap's n <= k — goes; the row joins the band "counts toward the 5"
+                    for r in members:
+                        x0 = band_of[id(r)]
+                        if x0["kind"] == "own" and x0["from"] == x0["to"] and W.parse_band(x0["text"])[1] >= n \
+                                and self._min_keep(r) >= cm:
+                            x0["kind"], x0["text"] = "upto", upto
+                            r.band = ("upto", total, None)
                 if any(band_of[id(r)]["kind"] != "upto" or band_of[id(r)]["text"] != upto for r in members):
                     self.size_left += 1
                     continue
@@ -1139,11 +1207,11 @@ class Body:
                 first = min(at[id(r)] for r in members)
                 rest = [r for r in rows if r not in members]
                 new_rows = rest[:first] + members + rest[first:]
-                band = {"from": 0, "to": 0, "text": W.band_size(b["n"], n, cm, len(members)), "kind": "size"}
+                band = {"from": 0, "to": 0, "text": W.band_size(total, n, cm, len(members)), "kind": "size"}
                 for r in members:
                     band_of[id(r)] = band
                     r.lines = [y for y in r.lines if y != said[id(r)]]
-                    r.band = ("size", b["n"], ("size", n, cm, fish))
+                    r.band = ("size", total, ("size", n, cm, fish))
                 bands: List[dict] = []
                 for i, r in enumerate(new_rows):
                     bx = band_of[id(r)]
@@ -1155,13 +1223,230 @@ class Body:
                 b["rows"] = new_rows
                 self.size_drawn += 1
 
+    def _strip_says(self, b: dict, n, members) -> bool:
+        """The box's size strip already holds `members` to `n`: a strip part "only K over C" (K <= n) holding each of
+        them, each kept only over C (what "uses the K over C" says, whether or not the row says it: `USES_THE_LINE`)."""
+        for kind, text, cm in b.get("parts") or ():
+            if kind not in ("size", "size_except") or cm is None:
+                continue
+            for p in W.parse_strip(text):
+                if p[0] not in ("size", "size_except") or p[2] != cm or p[1] > n:
+                    continue
+                out = set(p[3]) if p[0] == "size_except" else set()
+                if all(r.fish not in out and self._min_keep(r) >= cm for r in members):
+                    return True
+        return False
+
+    def _order_rows(self, b: dict) -> None:
+        """(Owner 2026-11-18 00:52) inside a box, the fish no band groups first, the groups after; no group splits
+        another: inside a band, the rows of a count they share among themselves only (the Vedder's Dolly Varden and lake
+        trout "only 1, counting any …" inside "2 total from these 6") come last, together. A count whose rows sit in two
+        bands cannot nest: counted (`order_split`), its band's order left as it is."""
+        if not A_GROUPS_LAST:
+            return
+        rows, bands = b["rows"], b["bands"]
+        if len(rows) < 2:
+            return
+
+        def inner(r) -> Optional[frozenset]:
+            got = {frozenset({r.fish, *x[3 if x[0] == "size_count" else 2]})
+                   for x in (W.parse_row_line(t) for t in r.lines) if x[0] in ("count", "size_count")}
+            return next(iter(got)) if len(got) == 1 else (frozenset() if got else None)
+        alone, grouped = [], []
+        for x in bands:
+            part = rows[x["from"]:x["to"] + 1]
+            if x["from"] == x["to"]:
+                alone.append((x, part))
+                continue
+            keys = [inner(r) for r in part]
+            held = {r.fish for r in part}
+            if any(k == frozenset() or (k and not k <= held) for k in keys):
+                self.order_split += 1
+                grouped.append((x, part))
+                continue
+            first = [r for r, k in zip(part, keys) if not k]
+            groups: "OrderedDict[frozenset, list]" = OrderedDict()
+            for r, k in zip(part, keys):
+                if k:
+                    groups.setdefault(k, []).append(r)
+            grouped.append((x, first + [r for g in groups.values() for r in g]))
+        if any(inner(r) for x, part in alone for r in part):
+            self.order_split += 1                  # a count over a row no band holds and rows of a band: no nesting
+        # (owner 01:28) a row whose water's own rule RAISES the limit for its fish (the Vedder's hatchery rainbow, "or 4")
+        # comes last in its box, after the groups: the exception
+        raised = {S for L in ((b.get("group") or {}).get("lifts") or ()) for S in L.get("kinds") or ()} \
+            if A_RAISED_ROW_LAST else set()
+        last = [(x, part) for x, part in alone if all(r.fish in raised for r in part)]
+        alone = [(x, part) for x, part in alone if (x, part) not in last]
+        out_rows, out_bands = [], []
+        for x, part in alone + grouped + last:
+            out_bands.append({**x, "from": len(out_rows), "to": len(out_rows) + len(part) - 1})
+            out_rows += part
+        b["rows"], b["bands"] = out_rows, out_bands
+
+    def _merge_twins(self, b: dict) -> None:
+        """(Owner 2026-11-18 01:22) a fish's hatchery and wild twin rows are ONE row (`fish`, no origin): the wild fish's
+        own size says "if wild" ("50 cm (20 in) or less if wild"; "under 40 cm (16 in) if wild" at Lois and Windsor),
+        hatchery fish any size, one count. Only twins that read alike but for that: the same band (or each its own
+        under the same words), the hatchery row saying nothing of its own, the wild row its size and its wild lines
+        only. Any other pair stays two rows (`twins_left`)."""
+        if not A_TWINS_ONE_ROW:
+            return
+        rows, bands = b["rows"], b["bands"]
+        band_of = {i: k for k, x in enumerate(bands) for i in range(x["from"], x["to"] + 1)}
+        for S in list(dict.fromkeys(r.fish for r in rows if r.origin is not None)):
+            at = {r.origin: i for i, r in enumerate(rows) if r.fish == S and r.origin is not None}
+            if set(at) != {"hatchery", "wild"}:
+                continue
+            h, w = rows[at["hatchery"]], rows[at["wild"]]
+            bh, bw = bands[band_of[at["hatchery"]]], bands[band_of[at["wild"]]]
+            same = bh is bw or (bh["from"] == bh["to"] and bw["from"] == bw["to"]
+                                and (bh["kind"], bh["text"]) == (bw["kind"], bw["text"]))
+            h_size = h.size if h.size not in (None, "any size") else None
+            w_own = [t for t in w.lines if t != w.size_text and W.parse_row_line(t)[0] != "wild"]
+            if not same or h_size is not None or h.lines or w_own or h.quiet != w.quiet or h.sub or w.sub \
+                    or h.label or w.label or h.duties != w.duties or h.poss != w.poss \
+                    or (bh is bw and bh["kind"] == "size"):
+                self.twins_left += 1
+                continue
+            r = _Row(S, S, None)
+            for a in ("kind_n", "kind_ix", "chain", "detail", "duties", "also", "band", "poss", "sizes"):
+                setattr(r, a, getattr(h, a))
+            r.src = list(dict.fromkeys(h.src + w.src))
+            if w.size_text is not None:
+                r.size_text = W.size_if_wild(w.size_text)
+                r.lines = [r.size_text] + [t for t in w.lines if t != w.size_text]
+            else:
+                r.lines = list(w.lines)
+            r.quiet = list(h.quiet)
+            keep_i, drop_i = sorted((at["hatchery"], at["wild"]))
+            rows[keep_i] = r
+            del rows[drop_i]
+            out = []
+            for x in bands:
+                fr, to = x["from"], x["to"]
+                if fr == to == drop_i:
+                    continue
+                y = {**x, "from": fr - (1 if fr > drop_i else 0), "to": to - (1 if to >= drop_i else 0)}
+                if fr <= drop_i <= to and fr != to and x["kind"] == "shared" and W.band_wild_n(x["text"]) is None:
+                    y["text"] = W.band_shared(W.parse_band(x["text"])[1], y["to"] - y["from"] + 1)
+                out.append(y)
+            b["bands"] = bands = out
+            band_of = {i: k for k, x in enumerate(bands) for i in range(x["from"], x["to"] + 1)}
+
+    def _nest_inner(self, b: dict) -> None:
+        """(Owner 2026-11-18 01:22, R4/R5) a count some rows of one band share among themselves only — each saying it as
+        "only 1, counting any lake trout you keep" (or "only 1 over 50 cm (20 in), counting any …") — is a band nested
+        in that band, its cap's words only ("only 1 between them"); the rows' lines go. One that cannot nest (its rows
+        apart, in two bands, or twin rows) keeps its lines (`nest_left`)."""
+        b.setdefault("nested", [])
+        if not A_NESTED_BANDS:
+            return
+        rows = b["rows"]
+        for x in b["bands"]:
+            if x["from"] == x["to"]:
+                continue
+            groups: "OrderedDict[tuple, list]" = OrderedDict()
+            for i in range(x["from"], x["to"] + 1):
+                r = rows[i]
+                for t in r.lines:
+                    p = W.parse_row_line(t)
+                    if p[0] == "count":
+                        groups.setdefault(("shared", p[1], None, frozenset({r.fish, *p[2]})), []).append((i, t))
+                    elif p[0] == "size_count":
+                        groups.setdefault(("size", p[1], p[2], frozenset({r.fish, *p[3]})), []).append((i, t))
+            for (kind, n, cm, fish), got in groups.items():
+                at = sorted(i for i, _t in got)
+                if len(at) < 2 or at != list(range(at[0], at[-1] + 1)) or {rows[i].fish for i in at} != fish \
+                        or len(at) != len(fish) or (at[0], at[-1]) == (x["from"], x["to"]):
+                    self.nest_left += 1
+                    continue
+                for i, t in got:
+                    rows[i].lines = [y for y in rows[i].lines if y != t]
+                text = W.band_shared(n, len(at)) if kind == "shared" else W.band_size_part(n, cm, len(at))
+                b["nested"].append({"from": at[0], "to": at[-1], "text": text, "kind": kind})
+
     @staticmethod
-    def _strip_says(b: dict, n, members) -> bool:
-        """The box's size strip already holds `members` to `n`: each is kept only over a strip's size, its row saying
-        "uses the K over …" for K <= n."""
-        cms = [p[2] for p in b.get("parts") or () if p[0] in ("size", "size_except") and p[2] is not None]
-        return bool(cms) and all(any(W.uses_the(k, cm) in r.lines for cm in cms for k in range(1, int(n) + 1))
-                                 for r in members)
+    def _rainbow_above_steelhead(b: dict) -> None:
+        """(Owner 2026-11-18 01:07) a box's rainbow trout stand just above its steelhead where they read alike: in one
+        band, or each a row of its own under the same band words. A rainbow under a rule of its own (the Vedder's "4 if
+        they're hatchery rainbow trout") stays where it is."""
+        if not A_RAINBOW_ABOVE_STEELHEAD:
+            return
+        rows, bands = b["rows"], b["bands"]
+        st = [i for i, r in enumerate(rows) if r.fish == "ST"]
+        rb = [i for i, r in enumerate(rows) if r.fish == "RB"]
+        if not st or not rb or max(rb) < min(st):
+            return
+        band_of = {i: k for k, x in enumerate(bands) for i in range(x["from"], x["to"] + 1)}
+        if len({band_of[i] for i in st}) == 1 and bands[band_of[st[0]]]["from"] == bands[band_of[st[0]]]["to"]:
+            # a steelhead row of its own: the rainbow rows of their own under the same words move (Aveling: the
+            # hatchery rainbow; its wild twin in a shared band stays there)
+            sx = bands[band_of[st[0]]]
+            rb = [i for i in rb if bands[band_of[i]]["from"] == bands[band_of[i]]["to"]
+                  and (bands[band_of[i]]["kind"], bands[band_of[i]]["text"]) == (sx["kind"], sx["text"])]
+            if not rb or max(rb) < min(st):
+                return
+        same_band = {band_of[i] for i in st + rb}
+        if len(same_band) == 1:
+            x = bands[same_band.pop()]
+            part = [rows[i] for i in range(x["from"], x["to"] + 1)]
+            move = [r for r in part if r.fish == "RB"]
+            rest = [r for r in part if r.fish != "RB"]
+            at = next(k for k, r in enumerate(rest) if r.fish == "ST")
+            b["rows"] = rows[:x["from"]] + rest[:at] + move + rest[at:] + rows[x["to"] + 1:]
+            return
+        singles = [bands[band_of[i]] for i in st + rb]
+        if any(x["from"] != x["to"] for x in singles) or len({(x["kind"], x["text"]) for x in singles}) != 1:
+            return
+        moved = [(bands[band_of[i]], rows[i]) for i in sorted(rb)]
+        out_rows, out_bands = [], []
+        first_st = min(st)
+        for k, x in enumerate(bands):
+            if x["from"] == x["to"] and rows[x["from"]].fish == "RB":
+                continue
+            if x["from"] == first_st:
+                for bx, r in moved:
+                    out_bands.append({**bx, "from": len(out_rows), "to": len(out_rows)})
+                    out_rows.append(r)
+            part = rows[x["from"]:x["to"] + 1]
+            out_bands.append({**x, "from": len(out_rows), "to": len(out_rows) + len(part) - 1})
+            out_rows += part
+        b["rows"], b["bands"] = out_rows, out_bands
+
+    @staticmethod
+    def _name_the_total(b: dict) -> None:
+        """(Owner 2026-11-18 00:52) a shared band names the overall limit its rows count toward first, as the size band
+        does: "counts toward the 2 · only 1 between them". A band over every row of the box IS its count: unchanged. In a
+        raised box ("Keep 5, brook trout up to 20") the overall limit of rows outside the exception is the first number."""
+        if not A_BAND_NAMES_THE_TOTAL:
+            return
+        ex = W.parse_head_except(b["head"])
+        for x in b["bands"]:
+            rows = b["rows"][x["from"]:x["to"] + 1]
+            fish = {r.fish for r in rows}
+            total = ex[0] if ex is not None and not fish & set(ex[1]) else b["n"]
+            if A_OWN_CAP_IN_THE_BAND and x["from"] == x["to"] and x["kind"] in ("own", "upto"):
+                # (owner 01:22, R2) a lone row's own cap is its band's: "counts toward the 2 · only 1" (Krumholtz's
+                # Dolly Varden), the row's "only 1" line gone
+                r = rows[0]
+                k = W.parse_band(x["text"])[1] if x["kind"] == "own" else min(
+                    (W.parse_row_line(t)[1] for t in r.lines if W.parse_row_line(t)[0] == "only"), default=None)
+                if k is None or k >= total:
+                    continue
+                if A_STOP_LINE_SAYS_THE_CAP and any(W.parse_row_line(t)[:2] == ("stop", k) for t in r.lines):
+                    # (the sweep, R1) "after keeping 2, stop fishing this river today" says the 2: the band is the box's
+                    r.lines = [t for t in r.lines if W.parse_row_line(t) != ("only", k)]
+                    r.band = ("upto", total, None)
+                    x["kind"], x["text"] = "upto", W.band_upto(total)
+                    continue
+                r.lines = [t for t in r.lines if W.parse_row_line(t) != ("only", k)]
+                r.band = ("own", k, None)
+                x["kind"], x["text"] = "own", W.band_in(total, W.band_own(k))
+                continue
+            if x["kind"] != "shared" or (x["from"] == 0 and x["to"] == len(b["rows"]) - 1):
+                continue
+            x["text"] = W.band_in(total, x["text"])
 
     @staticmethod
     def _poss_comes_to(r: _Row) -> Optional[float]:
@@ -1410,6 +1695,9 @@ class Body:
             named += others[:-1]
             others = others[-1:]
         fish = lambda b: list(dict.fromkeys(r.fish for r in b["rows"]))
+        if A_TOP_NAMES_A_FEW_OTHERS and named and others and len(fish(others[0])) <= 2:
+            # (owner 01:22) the other box holds few fish: named ("… and 20 brook trout today"), not "20 other trout and char"
+            named, others = named + others, []
         n_of = lambda b: _headline_n(b) if A_APART_SAYS_THE_BOX_MOST else b["n"]
         lead = W.top_apart([(n_of(b), W.fish_words(fish(b))) for b in named], n_of(others[0]) if others else None)
         fold = W.fold_apart([(n_of(b), W.short_fish(fish(b)[0])) for b in named], n_of(others[0]) if others else None)
@@ -1417,6 +1705,18 @@ class Body:
 
     def _table(self) -> dict:
         lead, fold = self._top()
+        sub = None
+        if A_TOP_SUBLINE:
+            lead, sub = W.split_top(lead)
+        if A_BAND_TOTAL_UNSAID_WHEN_TOP_NAMES_IT:
+            # (owner 01:22, R3) a shared band's count the top line already names is said without "counts toward the N"
+            # (the Vedder's "2 total from these 6" under "Keep 2 trout and char {day}")
+            named = W.top_numbers(lead, sub)
+            for b in self.boxes:
+                for x in b["bands"]:
+                    if x["kind"] == "shared" and W.band_total(x["text"]) is not None \
+                            and W.parse_band(x["text"])[1] in named:
+                        x["text"] = W.band_part(x["text"])
         # `elsewhere` (ticket H): the card's kept-elsewhere lines (`group.worked`, `rows/groups.py elsewhere_of`) of every
         # keep box's group, in box order, under the app's "Fished elsewhere today? ›" (empty: no link). A line about
         # keeping HERE ("If you keep 4 hatchery rainbow trout here", `at` "here": a lifted kind past the stream share) is
@@ -1441,7 +1741,7 @@ class Body:
                 src += r.src
             boxes.append({"kind": b["kind"], "head": b["head"], "label": b["label"], "strip": b["strip"],
                           "possession": b["possession"], "tag": b["tag"], "rows": tuple(rows),
-                          "bands": tuple(b["bands"])})
+                          "bands": tuple(b["bands"]), "inner": tuple(b.get("nested") or ())})
         together = None
         second = None
         if self.together is not None:
@@ -1451,7 +1751,7 @@ class Body:
             if A_LAKES_LIMIT_SAID_ONCE and self.together["origin"] is None:
                 together = None                        # the lakes' count: once, under the top line (Echoes Lakes)
         marked = any(b["label"] for b in boxes) or any(r["label"] or r["origin"] for b in boxes for r in b["rows"])
-        return {"top": {"lead": lead, "second": second}, "fold": fold,
+        return {"top": {"lead": lead, "sub": sub, "second": second}, "fold": fold,
                 "hatch_link": marked, "boxes": tuple(boxes), "together": together, "year": None,
                 "elsewhere": tuple(dict.fromkeys(elsewhere)), "src": tuple(dict.fromkeys(src))}
 
@@ -1461,6 +1761,11 @@ def _slot_words(size: str) -> str:
     or longer" -> "release over 60 cm (24 in) and under 90 cm (35 in)" (60 and 90 exactly may be kept, as the book
     says); every other size as it is."""
     import re
+    if A_NO_ANY_LENGTH:
+        # (owner 01:22) "any length, 50 cm (20 in) or less" -> "50 cm (20 in) or less": "or less" has no minimum
+        m = re.fullmatch(rf"any length, ({W._CM} or less)", size)
+        if m:
+            size = m[1]
     if not A_SLOT_SAYS_WHAT_TO_RELEASE:
         return size
     m = re.fullmatch(rf"({W._CM}) or less, or ({W._CM}) or longer", size)

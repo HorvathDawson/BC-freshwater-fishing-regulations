@@ -161,9 +161,11 @@ NOW = [
     (W.HEAD_RELEASE, "Release", W.parse_head, ("release", None)),
     (W.band_upto(5), "counts toward the 5", W.parse_band, ("upto", 5, None)),          # T810 G2, owner 15:46
     (W.band_own(3), "only 3", W.parse_band, ("own", 3, None)),
-    (W.band_shared(1, 4), "only 1 of these 4", W.parse_band, ("shared", 1, 4)),
+    (W.band_shared(1, 4), "1 total from these 4", W.parse_band, ("shared", 1, 4)),    # owner 2026-11-18 00:52
     (W.band_shared(3, 2), "only 3 between them", W.parse_band, ("shared", 3, 2)),   # T810 G2 Q2
-    (W.band_shared(4, 3), "only 4 among them", W.parse_band, ("shared", 4, None)),
+    (W.band_shared(4, 3), "4 total from these 3", W.parse_band, ("shared", 4, 3)),
+    (W.band_in(2, W.band_shared(1, 2)), "counts toward the 2 · only 1 between them", W.parse_band, ("shared", 1, 2)),
+    (W.band_in(6, W.band_shared(2, 6)), "counts toward the 6 · 2 total from these 6", W.parse_band, ("shared", 2, 6)),
     (W.band_wild(2), "only 2 wild in all", W.parse_band, ("shared", 2, None)),  # T810 G2 Q9
     (W.strip_size_except(1, 50, W.fish_words(["LT"])), "only 1 over 50 cm (20 in), not counting lake trout",
      W.parse_strip, (("size_except", 1, 50, ("LT",)),)),                         # T810 G2 Q3b
@@ -212,7 +214,8 @@ def test_the_other_now_words_whole():
     assert W.together_origin(2, "wild", "under 40 cm (16 in)") == \
         "only 2 wild trout and char in all, each under 40 cm (16 in)"
     assert W.together_lakes(1) == "only 1 from both lakes together"
-    assert W.sheet_keep("only 1 of these 4", 5) == "Keep · only 1 of these 4 · counts toward the 5"
+    assert W.sheet_keep("1 total from these 4", 5) == "Keep · 1 total from these 4 · counts toward the 5"
+    assert W.sheet_keep("counts toward the 5 · 1 total from these 4", 5) == "Keep · 1 total from these 4 · counts toward the 5"
     assert W.one_day(D(7, 31), ["60 cm (24 in) or longer"]) == "On Jul 31 only: 60 cm (24 in) or longer."
     with pytest.raises(W.WordsError):
         W.parse_band("up to 5")

@@ -72,13 +72,15 @@ def test_the_vectors_carry_the_fixed_bands():
     """J's last faults (T810 2026-11-17) as the vectors show them: Kaslo's Dolly Varden inside the 2 from streams; the
     Kitimat's wild rainbow inside Region 6's "1 trout from streams"."""
     by = {v["name"]: v["frame"]["table"] for v in _vectors()["cases"] if v["frame"]}
-    assert by["kaslo-jul15"]["top"]["lead"] == "Up to 2 {day}"
-    # G2 (owner 2026-11-17, "'counts toward the 5'"): a row inside the day's shared number says "counts toward the N" on its own band
+    assert by["kaslo-jul15"]["top"]["lead"] == "Keep 2 trout and char {day}"
+    # G2 (owner 2026-11-17, "'counts toward the 5'"): a row inside the day's shared number says "counts toward the N" on its own
+    # band; (owner 2026-11-18) the cutthroat and rainbow under the Region 4 size band, last
     kaslo = by["kaslo-jul15"]["boxes"][0]
     assert [r["key"] for r in kaslo["rows"]][0] == "DV"
-    assert [(b["text"], b["from"], b["to"]) for b in kaslo["bands"]] == [("counts toward the 2", i, i) for i in range(6)]
+    assert [(b["text"], b["from"], b["to"]) for b in kaslo["bands"]] == [("counts toward the 2", i, i) for i in range(4)] + [
+        ("counts toward the 2 · only 1 over 50 cm (20 in) between them", 4, 5)]
     kit = by["kitimat-jul15"]["boxes"][0]
-    band = next(b for b in kit["bands"] if b["text"] == "only 1 of these 3")
+    band = next(b for b in kit["bands"] if b["text"] == "counts toward the 5 · 1 total from these 3")
     assert {r["key"] for r in kit["rows"][band["from"]:band["to"] + 1]} == {"GB", "CT", "RB/wild"}
 
 
@@ -98,7 +100,7 @@ def test_the_fixture_keeps_exactly_the_case_waters():
 def test_a_changed_vector_fails_the_check(tmp_path):
     bad = copy.deepcopy(_vectors())
     v = next(x for x in bad["cases"] if x["frame"])
-    v["frame"]["table"]["top"]["lead"] = v["frame"]["table"]["top"]["lead"].replace("Up to", "Keep up to")
+    v["frame"]["table"]["top"]["lead"] = v["frame"]["table"]["top"]["lead"].replace("Keep", "Keep up to")
     out = tmp_path / "v.json"
     out.write_text(json.dumps(bad, ensure_ascii=False, indent=1, sort_keys=True) + "\n", encoding="utf-8")
     assert TV.main(["--check", "--out", str(out)]) == 1
@@ -112,7 +114,7 @@ REASON = {
     "band overlap": "the bands leave a gap or overlap",
     "a date key to a missing box": "a date names box 9, which does not exist",
     "a date key to a missing row": "a date names row 0:7, which does not exist",
-    "a row with dates at two levels": "carries a date at two levels",
+    "a row with dates at two levels": "carries one date at two levels",
     "a key used twice": "a row key twice",
     "a label on a box and its rows": "a label on a box and on its rows",
     "{day} twice": "the top line holds {day} more than once",
