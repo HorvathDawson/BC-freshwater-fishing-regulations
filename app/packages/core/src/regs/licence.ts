@@ -42,6 +42,9 @@ export interface LicWords {
   readonly prov: { readonly entry_name?: string; readonly why?: string | null; readonly uncertain?: boolean };
   readonly period?: { readonly says: string; readonly dates?: readonly unknown[] } | null;
   readonly stamp_waiver?: { readonly says: string } | null;
+  /** (T801 item 2) the book's separate-licence line for non-residents, one whole sentence, on a classified designation whose
+   *  entry prints it (the Skeena River 2 and Section 4, p.53); absent or null = no line */
+  readonly non_resident_note?: { readonly says: string } | null;
   readonly not_yet_mapped?: { readonly part: string; readonly says: string } | null;
 }
 
@@ -165,7 +168,8 @@ function answerBlocks(inp: RegsInputs, F: LicenceValue & { holds: Holds }, who: 
     const box = { cls: "classbox" as const, head: d.period?.says ?? LIC.CLASS_HEAD(String(f.classified)), terms: gi(LIC.CLASS_TERM),
       body: LIC.UNIT(String(f.unit_name || f.unit))
         + (f.steelhead_stamp_during ? LIC.STAMP_DURING(datesOf(f.steelhead_stamp_during.when)) + (H.stamp_period ? LIC.IN_FORCE : "") + LIC.STAMP_OTHER_TIME : "")
-        + (d.stamp_waiver ? LIC.STOP + " " + d.stamp_waiver.says.replace(/\.$/, "") : f.steelhead_stamp_waived ? LIC.STAMP_WAIVED : "") + LIC.STOP };
+        + (d.stamp_waiver ? LIC.STOP + " " + d.stamp_waiver.says.replace(/\.$/, "") : f.steelhead_stamp_waived ? LIC.STAMP_WAIVED : "") + LIC.STOP
+        + (d.non_resident_note ? " " + d.non_resident_note.says : "") };
     // (T672, T462 audit G11) two designation records that say the same box, word for word (one licence unit printed on two
     // rows: the Elk's tributaries, the Stellako), are said once; a box that differs in any word is still drawn
     if (!out.some((o) => o.cls === "classbox" && o.head === box.head && o.body === box.body)) out.push(box);

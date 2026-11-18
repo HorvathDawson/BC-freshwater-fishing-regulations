@@ -40,3 +40,10 @@ the review app's tiers still count a designation with any review_reason as flagg
   quote the stamp line beside the place, or trim the Skeena row to its (a) part.
 - Item 2 needs the app: the class box body is composed in `app/packages/core/src/regs/licence.ts` from the record's
   fields; a "separate licence per section" line needs a field the box reads (the app chat).
+
+## Built (app), item 2 (branch `app-fix/t801-t797`, 2026-11-17; not merged)
+`core/src/regs/licence.ts`: `LicWords.non_resident_note?: { says } | null`; the class box says `says` as its own sentence
+after the unit and stamp words ("Licence unit: … . <stamp text>. Non-residents and non-resident aliens require separate
+licences describing which section they are fishing."); absent or null, no line. Reads the per-record licensing words
+(store `LIC_KEEP`, lane/bugs-080b 6d5651c2f), so it shows once a release carries the field. Tests: `licence.test.ts`
+(with, without, null, after the stamp text); mutation (the appended line removed) fails 2.
