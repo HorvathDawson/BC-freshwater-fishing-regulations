@@ -188,6 +188,17 @@ describe("buildLicence", () => {
         "Basic angling licence Or, for your own limit: what a 16+ angler buys $62.87 a year · $22.86 a day · $41.15 for 8 days",
         "Prices as printed for 2025–2027, before tax. Today’s prices: gov.bc.ca/fish-licence"]]);
   });
+  it("(T789 G10, owner 2026-11-17 'Yes, each its own price.') several documents to buy: each says its own price", () => {
+    const u = [{ ...U16[1]!, buy: [
+      { doc: "basic_licence", name: "Basic angling licence", prices: { year: 62.87, day: [22.86], eight_days: [41.15] } },
+      { doc: "steelhead_stamp", name: "Steelhead stamp", prices: { year: 68.57 } },
+      { doc: "classified_waters_licence", name: "Classified Waters Licence", prices: { day: [22.86] } },
+      { doc: "unpriced", name: "Unpriced thing", prices: {} }] }];
+    const vm = buildLicence(INP({ licence: { ...frame(), under_16: u } }), WHO.u16_non!, { closed: false, glossary: GLOSS })!;
+    expect(lines(vm)[1]).toEqual(["needs", "You need", "Nothing, if you fish with a licensed adult (16 or older) What you keep counts toward their limit",
+      "Basic angling licence ($62.87 a year · $22.86 a day · $41.15 for 8 days) + Steelhead stamp ($68.57 a year) + Classified Waters Licence ($22.86 a day) + Unpriced thing Or, for your own limit: what a 16+ angler buys",
+      "Prices as printed for 2025–2027, before tax. Today’s prices: gov.bc.ca/fish-licence"]);
+  });
   it("under 16, resident (none needed): the box becomes the one 'You need' item; 'Nothing is required' is not said", () => {
     expect(lines(buildLicence(INP(), WHO.u16_res!, { closed: false, glossary: GLOSS }))).toEqual([["needs", "You need",
       "No licence needed to fish here Anglers under 16 who live in B.C. don’t need a basic angling licence. The fishing rules and limits still apply."]]);
@@ -279,5 +290,64 @@ describe("T670 (owner 2026-11-12, 'Show the fee only'): the basic licence shows 
   it("a fee term the answer names that the release does not hold is an error, never a silent gap", () => {
     const lics = new Map(LICS_B); lics.delete(14);
     expect(() => basicOf(WHO.adult!, lics)).toThrow(/licensing record 14/);
+  });
+});
+
+describe("T801 item 2: the class box says the book's separate-licence line for non-residents, after the stamp words", () => {
+  const SAYS = "Non-residents and non-resident aliens require separate licences describing which section they are fishing.";
+  const WAIVER = "Steelhead Stamp not required upstream of the Kitsumkalum";
+  const des = (over: Record<string, unknown> = {}) => ({ entry_id: "r6:skeena_river", record_id: "skeena_river_section_4", kind: "designation",
+    label: "Class II", placement: "on_designation", fields: { classified: "II", unit_name: "Skeena River Section 4" }, prov: {}, ...over });
+  const box = (d: Record<string, unknown>) => {
+    const f = frame(); const lics = new Map(LICS); lics.set(20, d);
+    const licence = { ...f, holds: { ...f.holds, designations: [20] } } as LicenceValue;
+    const vm = buildLicence(INP({ licence, lics, paper: [] }), WHO.adult!, { closed: false, glossary: GLOSS })!;
+    return lines(vm).find((l) => l[0] === "classbox")!.slice(1).join(" ");
+  };
+  it("with the note: one plain sentence after the unit", () => {
+    expect(box(des({ non_resident_note: { says: SAYS } }))).toBe(`Class II Classified Water ⓘ Licence unit: Skeena River Section 4. ${SAYS}`);
+  });
+  it("the note follows the stamp text", () => {
+    expect(box(des({ stamp_waiver: { says: WAIVER + "." }, non_resident_note: { says: SAYS } })))
+      .toBe(`Class II Classified Water ⓘ Licence unit: Skeena River Section 4. ${WAIVER}. ${SAYS}`);
+  });
+  it("absent or null: no line", () => {
+    const plain = "Class II Classified Water ⓘ Licence unit: Skeena River Section 4.";
+    expect(box(des())).toBe(plain);
+    expect(box(des({ non_resident_note: null }))).toBe(plain);
+  });
+});
+
+describe("T789 G8 (owner 2026-11-17 'Yes, ship it'): the closures to the non-resident alien this part's rule set holds", () => {
+  const SEDAN = "Angling closed to non-guided non-resident aliens, Jul 1-Dec 31, on Saturdays and Sundays — between the Shegunia River confluence and the Sedan Creek confluence";
+  // (G8 final shape) on a tributary part Python composes the whole line into `says`; `of` is data only and never drawn
+  const GLACIER = "Lakelse River and its tributaries: Angling closed to non-guided non-resident aliens, all year — between Lakelse Lake and power line crossing";
+  const TWO: LicenceValue["alien_closures"] = [{ rule: 41, of: null, says: SEDAN }, { rule: 7, of: "Lakelse River", says: GLACIER }];
+  const ALIEN = "non_resident_alien/16_plus/non_guided/none";
+  const vmOf = (who: Who, alien_closures?: LicenceValue["alien_closures"]) => {
+    const f = frame({ adult_alien: ADULT_NON });
+    return buildLicence(INP({ licence: alien_closures === undefined ? f : { ...f, alien_closures }, paper: [] }), who, { closed: false, glossary: GLOSS })!;
+  };
+  const notes = (vm: ReturnType<typeof buildLicence>) => vm!.blocks.filter((b) => b.cls === "scopenote").map((b) => licenceBlockLines(b));
+  it("from outside Canada: each its own note, the stored words unchanged, in stored order, before the 'You need' list", () => {
+    expect(PROFILES.indexOf(ALIEN)).toBe(40);
+    const vm = vmOf(WHO.adult_alien!, TWO);
+    expect(notes(vm)).toEqual([[SEDAN], [GLACIER]]);
+    expect(lines(vm).map((l) => l[0])).toEqual(["scopenote", "scopenote", "needs", "lostlist lopen"]);
+    // under 16 from outside Canada: the same part, the same closures
+    expect(notes(vmOf(WHO.u16_alien!, TWO))).toEqual([[SEDAN], [GLACIER]]);
+  });
+  it("a B.C. resident or a Canadian from another province: no note, whatever the part holds", () => {
+    for (const w of [WHO.adult!, WHO.adult_non!, WHO.u16_res!, WHO.u16_non!]) {
+      const vm = vmOf(w, TWO);
+      expect(notes(vm)).toEqual([]);
+      expect(JSON.stringify(vm)).not.toContain("non-resident aliens");
+    }
+  });
+  it("a part that holds none (null, absent, empty): no note, the tab as before", () => {
+    const before = lines(vmOf(WHO.adult_alien!));
+    expect(notes(vmOf(WHO.adult_alien!))).toEqual([]);
+    expect(lines(vmOf(WHO.adult_alien!, null))).toEqual(before);
+    expect(lines(vmOf(WHO.adult_alien!, []))).toEqual(before);
   });
 });

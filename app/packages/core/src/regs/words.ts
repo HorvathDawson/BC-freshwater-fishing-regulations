@@ -110,6 +110,8 @@ export const WORDS = Object.freeze({
   ROW_STREAM: "Stream", ROW_LAKE: "Lake", ROW_WETLAND: "Wetland",
   CALM_LATER: "Not in force today. The map can’t draw these places yet, so check where you are.",
   WHERE: (p: string) => "Where: " + p,
+  // (T797 item 4) an undrawn-part rule's words then its stored conditions, joined as its label joins them ("…, wild only")
+  COND_SEP: ", ",
   // (T623 F4, owner 2026-11-11) a closure of a part of the water the map does not draw: a warning on every day, at the top
   PART_CLOSED_NOW: (noun: string, when: string) => `Part of this ${noun} is closed ${when}`,
   PART_CLOSED_LATER: (noun: string) => `Part of this ${noun} closes at times`,
@@ -217,6 +219,8 @@ export const WORDS = Object.freeze({
   STEEL_KNOWN: "Steelhead are known to be in this water.",
   STEEL_NO_RULES: "Steelhead have been recorded here, but no steelhead rule applies: treat any rainbow, however big, as a rainbow trout.",
   CLOSED_MARK: "✕",
+  /** (T829) the release group's shape mark (trout-table contract 2.4: the app draws the marks ↩ and ✕, never a rule) */
+  RELEASE_MARK: "↩",
   // page v36 levelTag (level.ts): the level a rule speaks at, by the part's rank (Region N from the rule's own entry id)
   LEVEL_TAG_BC: "B.C. rule", LEVEL_TAG_REGION: (n: string) => `Region ${n} rule`, LEVEL_TAG_REGION_ANY: "Region rule",
   LEVEL_TAG_AREA: "Named area rule", LEVEL_TAG_DOWN: "Downstream rule", LEVEL_TAG_FED: "Federal or park rule",
@@ -435,7 +439,8 @@ export const LIC = Object.freeze({
   ACT_FISHING: "To fish here", ACT_TARGETING: (sp: string) => `To fish for ${sp}`, ACT_RETAINING: (sp: string) => `To keep ${sp}`,
   ACT_RECORDED: "When you keep a fish you must record", ACT_GUIDING: "To guide anglers",
   LEN_RANGE: (a: number, b: number) => `${a}–${b} cm`, LEN_OVER: (a: number) => `over ${a} cm`, LEN_UNDER: (b: number) => `under ${b} cm`,
-  // priceTxt
+  // priceTxt; (T789 G10) a document with its own price, in a list of several
+  WITH_PRICE: (name: string, price: string) => `${name} (${price})`,
   PER_YEAR: (p: string) => `$${p} a year`, PER_DAY: (p: string) => `$${p} a day`, PER_8_DAYS: (p: string) => `$${p} for 8 days`, DOT: " · ",
   // licParts whenTxt / alsoTxt
   NEEDED_AT_ALL: "Needed to fish at all", WHATEVER: ", whatever you fish for",
@@ -444,6 +449,8 @@ export const LIC = Object.freeze({
   OTHER_TIME: (act: string) => `at any other time only if you ${act}`, EITHER: ". Either one does", ALSO_SEP: "; ",
   // designation classbox
   CLASS_HEAD: (c: string) => `Class ${c} Classified Water`, CLASS_TERM: "classified_waters",
+  /** (T841) the header's badge: "Class II"; with its period (look B), said "Class II, Jul 1–Dec 31" */
+  CLASS_BADGE: (c: string) => `Class ${c}`, CLASS_BADGE_ARIA: (cls: string, period: string) => `${cls}, ${period}`,
   UNIT: (u: string) => `Licence unit: ${u}`,
   STAMP_DURING: (dates: string) => `. Steelhead Stamp needed ${dates}, whatever you fish for`, IN_FORCE: " (in force today)",
   STAMP_OTHER_TIME: "; at any other time only to fish for steelhead",

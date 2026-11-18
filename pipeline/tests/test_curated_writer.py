@@ -122,6 +122,7 @@ CLASSIFIED = {
     "pipeline/deliver/__main__.py": "the deliver out dir and release staging",
     "pipeline/deliver/bundle/build.py": "continuations_held.json beside the bundle",
     "pipeline/deliver/sync_inputs.py": "copies curated inputs INTO a staging dir (reads curated)",
+    "pipeline/regs/classified_waters.py": "T841: --write-pins writes its pins file beside the module (reads the corpus)",
     # --- tools whose outputs are generated (review inputs, feeds, proposals, worklists)
     "pipeline/bathymetry/contours.py": "generated bathymetry contours",
     "pipeline/bathymetry/propose.py": "generated bathymetry proposals",

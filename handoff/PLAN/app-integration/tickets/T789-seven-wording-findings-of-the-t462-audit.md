@@ -1,6 +1,6 @@
 # T789 — Seven wording findings of the T462 audit have no ticket (the owner's gate 1 for closed testing: each fixed or ticketed with his OK)
 
-Status: OPEN (app core wording; before closed testing; the app chat's area for the fixes).
+Status: IN PROGRESS (K6, K7 and G10 landed 45fff5e63; G8 app half built on branch app/g8-alien, lands with the main chat's batch-2 field; G9, D6, K8 pipeline) (app core wording; before closed testing).
 
 Source: general audit 2026-11-16, decisions checker item 7 (`handoff/PLAN/audit-2026-11-16/decisions.md`); T462 is DONE, T495 gate 1.
 
@@ -36,3 +36,18 @@ Each changes words an angler reads. Fix or get the owner's OK to leave, one by o
 - 2026-11-17 ~20:25, owner on the G8/G10 Licence page (T789). G8 weekend banner, verbatim: "Where is this? Should each of these waters just have their own info? Don't want this on waters it doesn't apply to". Lakelse/Telkwa every-day closures, verbatim: "Same thing applies to these". So: NO province-wide banner; each of the 12 waters (the 10 weekend ones + Lakelse + Telkwa) carries its own alien closure, with its own days and dates, on its own Licence tab only. G10 under-16 price: "Yes, each its own price (Recommended)" (each document with its own ordinary non-resident/alien price; the book prints no under-16 price).
 
 - 2026-11-17 ~21:07, owner on G8 per water (T789; Skeena Sedan-Shegunia stretch, Lakelse above the power line, Vedder nothing; tributaries by "Incl. Tribs" as the Keep tab): "Yes, ship it (Recommended)". lane/g8-per-water 83d98ee55, licence_frame.alien_closures [{rule, says}].
+## Built (K6, K7, G9, D6)
+
+- K6: already fixed by T800 (8b6bad68c, in this branch): the "at certain times" angler line now says the rule's own label, not `describeShort`'s cut at the first bracket; pinned by the T800 test in `caveats.test.ts`. No change here.
+- K7: `strip.ts` counts an undrawn-part retention rule as "except some parts" only when it is a closure (`closedGate`); a release/limit gate leaves "Open". Test in `strip.test.ts` ("T789 K7"); mutation-checked (dropping the `closedGate` term fails it).
+- G9: STOPPED, not app. The words "One hook or fly" come from the answers payload (`pipeline/deliver/answers/gear.py`) and the curated data (the audit says: curated data only); the app only draws them. Needs a Python/data change ("one fly" for artificial-fly-only waters, p.80); owner/pipeline lane.
+- D6: STOPPED, not app. The Region 6 DFO gear line is cut in the pipeline's typing of the verbatim (`pipeline/regs/dfo_salmon/typed.py` ~175, the comma in "Single, barbless hook in tidal and non-tidal portions"); the audit's fix is "re-type the line", a pipeline change.
+- K8, G8, G10: untouched, waiting for the owner.
+
+## G10 — built 2026-11-17 20:27 (app chat, branch app-fix/t842-walkthrough)
+Owner 2026-11-17 (main chat, recorded in OWNER-TODO), verbatim: "Yes, each its own price." The under-16 "Or, for your own
+limit" item joined every document but showed only the first one's price (`core/src/regs/licence.ts`). Now one document keeps
+its price on the price line; several each carry their own beside the name: "Basic angling licence ($62.87 a year · $22.86 a
+day · $41.15 for 8 days) + Steelhead stamp ($68.57 a year) + Classified Waters Licence ($22.86 a day)" (`LIC.WITH_PRICE`);
+the price note shows when any of them is priced. Test in `licence.test.ts` (fails on the old code). G8: no province-wide
+banner (owner: "Don't want this on waters it doesn't apply to"); the per-water field comes from the main chat's batch 2.

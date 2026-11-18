@@ -311,6 +311,13 @@ step "review marks have landed in their curated files" "$PY" -m pipeline.regs.re
 # refuses while one is listed, live or dormant; only a dated WRONG_SAVE_OK row (pipeline/regs/review/wrong_saves.py) passes
 step "no place ships on a wrong save with no fix" "$PY" -m pipeline.regs.review.wrong_saves --check
 
+# (T841, owner 2026-11-17: "make sure we capture all classified waters whether labeled by symbol or by tributary of
+# something") the bundle's symbol cross-check only PRINTED a CW glyph with no designation; nothing held a parse to the
+# book's classified rows. Instant, corpus only: every row the book prints with the CW glyph or a "Class I/II water" is
+# in the corpus with its classes, its tributaries and its glyph (BOOK in pipeline/regs/classified_waters.py); the
+# release's checks stage runs the same gate with --bundle on the candidate (the licence on every section it binds)
+step "every classified water the book prints is in the corpus as printed" "$PY" -m pipeline.regs.classified_waters --check
+
 # caught (2026-11-10, T546/T632): OKANAGAN RIVER OXBOWS pinned 26 wsc ids no registry item carries; the row bound the
 # rest with nothing said. Owner 2026-11-11: no build runs with a dead override id (the reach run refuses it too).
 # Reads the live atlas's registry.json (~2 s); a missing build raises naming the command that makes it

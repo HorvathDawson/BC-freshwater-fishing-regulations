@@ -3093,6 +3093,8 @@
       "color.ui.imagery.scrub": "#6E7F53",
       "opacity.ui.shadow": 0.9,
       "opacity.ui.scrim": 0.28,
+      "color.ui.coach-scrim": "#15181C",
+      "opacity.ui.coach-scrim": 0.45,
       "opacity.parcel.edge": 0.5,
       "opacity.closure.edge": 0.85,
       "opacity.park.edge": 0.9,
@@ -3292,6 +3294,8 @@
       "color.ui.imagery.scrub": "#6E7F53",
       "opacity.ui.shadow": 0.85,
       "opacity.ui.scrim": 0.28,
+      "color.ui.coach-scrim": "#000000",
+      "opacity.ui.coach-scrim": 0.65,
       "opacity.parcel.edge": 0.42,
       "opacity.closure.edge": 0.85,
       "opacity.park.edge": 0.75,
@@ -3491,6 +3495,8 @@
       "color.ui.imagery.scrub": "#6E7F53",
       "opacity.ui.shadow": 0.9,
       "opacity.ui.scrim": 0.28,
+      "color.ui.coach-scrim": "#15181C",
+      "opacity.ui.coach-scrim": 0.45,
       "opacity.parcel.edge": 0.5,
       "opacity.closure.edge": 0.85,
       "opacity.park.edge": 1,
@@ -4198,6 +4204,16 @@
       "type": "number",
       "themeable": true,
       "$comment": "the scrim behind a bottom sheet"
+    },
+    "color.ui.coach-scrim": {
+      "type": "color",
+      "themeable": true,
+      "$comment": "(T842) the walkthrough's dim round its highlighted control: a spotlight tour's dim must read clearly in both themes, so it is its own colour, not the sheet's scrim"
+    },
+    "opacity.ui.coach-scrim": {
+      "type": "number",
+      "themeable": true,
+      "$comment": "(T842) the walkthrough dim's alpha: heavier on dark, where the page is already dark"
     },
     "color.ui.imagery.label": {
       "type": "color",

@@ -598,8 +598,9 @@ W46. **The guards the 2026-11 audits put in (T429–T442) stay in. A change that
     call, a `may_target` read, a part grouping or a calendar spelled anywhere else.
 57. **The 2026-10-03 rulings, as built (Phase 3).** Classified Waters: ONE UNIT PER SECTION — a
     walked section takes the designation of the FIRST classified water it flows into (the nearest
-    downstream water with a designation of its own: Gosnell → Morice, not Bulkley; the Nanika above
-    Morice Lake → Morice, handed on from the Bulkley's walk), and a tributary with a ROW OF ITS OWN
+    downstream water with a designation of its own: the Nanika above Morice Lake (no row of its own)
+    → Morice, handed on from the Bulkley's walk; Gosnell Creek has its own row with no class, so it is
+    NOT classified, owner 2026-11-17 "Keep: not classified"), and a tributary with a ROW OF ITS OWN
     that prints no designation is NOT classified, it and everything above it (the Endako under the
     Stellako). ONE ENTRY PRINTING TWO UNITS on two stretches (the Zymoetz: A below Limonite Creek,
     B above): a walker's own water is no stop EXCEPT its sibling designations' reaches, so each

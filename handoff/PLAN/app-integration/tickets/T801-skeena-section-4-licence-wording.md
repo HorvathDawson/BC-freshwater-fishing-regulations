@@ -1,6 +1,6 @@
 # T801 — Skeena Section 4: the "separate licence per section" line barely shows, the stamp sentence quotes the wrong printed line, zone (b) reads "the Zymoetz River confluence (1500 m upstream)"; the upper-end flag is cleared (owner: all the way up)
 
-Status: OPEN (pipeline: `pipeline/deliver/export/read.py` about line 387, the curated licensing record; data: `data/curated/regulations/synopsis/region-6.json`).
+Status: IN PROGRESS (item 2 landed: pipeline 6d5651c2f, app 45fff5e63; item 3 landed 8e3d5f051; the rest as below).
 
 Source: owner 2026-11-16, question 35 and his two maps of the weekend zones: "Should run all the way up but also we
 should handle the weekend zones properly too. Make sure licensing info is done properly there." The province's
@@ -49,3 +49,10 @@ the review app's tiers still count a designation with any review_reason as flagg
 - Item 3 DONE 8e3d5f051 (owner 2026-11-17 15:11, "Trim to this water's part (Recommended)"): the curated Skeena River 2
   designation quotes only its (a) part; its stamp sentence follows. Diff-proved: 9 waivers, only skeena_river_2's moved.
   Ships with the 0.8.0 reach + deliver build (the corpus digest moves).
+
+## Built (app), item 2 (branch `app-fix/t801-t797`, 2026-11-17; not merged)
+`core/src/regs/licence.ts`: `LicWords.non_resident_note?: { says } | null`; the class box says `says` as its own sentence
+after the unit and stamp words ("Licence unit: … . <stamp text>. Non-residents and non-resident aliens require separate
+licences describing which section they are fishing."); absent or null, no line. Reads the per-record licensing words
+(store `LIC_KEEP`, lane/bugs-080b 6d5651c2f), so it shows once a release carries the field. Tests: `licence.test.ts`
+(with, without, null, after the stamp text); mutation (the appended line removed) fails 2.

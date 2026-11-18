@@ -44,6 +44,11 @@ const FACTS: SalmonFacts = {
 const JUL20 = new Date(2026, 6, 20), SEP15 = new Date(2026, 8, 15);
 const page = { ...(vedder1010 as unknown as RegsPage), sheet: () => null } as RegsPage;
 const NOOP = { onSheet() {}, onDay() {}, onBook() {} };
+/** (T828) DFO's rows as printed, the region rules and DFO's words for the water sit in the source fold: open it */
+const openSource = () => fireEvent.click(screen.getByTestId("salmon-source-summary"));
+/** (T829) the species' names in one group of the trout-table look: the keep box, or the release / closed group */
+const names = (id: string) => within(screen.getByTestId(id)).getAllByTestId("keep-name").map((e) => e.textContent);
+const texts = (id: string) => screen.queryAllByTestId(id).map((e) => e.textContent);
 
 describe("the Salmon card", () => {
   it("(T320, T332) the bucket total over the species rows, and each open species' numbers on its row — the quota tree", () => {
@@ -55,14 +60,15 @@ describe("the Salmon card", () => {
       verdicts: P.verdicts.map((v, i) => (i === 2 ? { ...v, tree: tier("count", 4, "4 a day", { species: ["CO"],
         children: [tier("size", 2, "only 2 over 50 cm", { over_cm: 50 })] }) } : v)) } } as SalmonFacts;
     render(<SalmonCard card={salmonCard(facts, { sids: [101], item: null }, JUL20)} palette={LIGHT} />);
-    expect(screen.getByTestId("salmon-bucket-line").textContent).toBe("Up to 4 salmon a day in total · 8 in possession");
-    expect(screen.getAllByTestId("salmon-quota").map((e) => e.textContent)).toEqual(["4 a day · only 2 over 50 cm"]);
-    // the trout presenter's runs: each tier's number its own run (tierWords), the bucket's and the quota's
-    expect(screen.getAllByTestId("n:big").map((e) => e.textContent)).toEqual(["4", "4", "2"]);
-    // nothing kept today: no bucket line
+    // (T829) the bucket is the keep box's head; each open species' numbers (the quota tree's words) its white box
+    const box = screen.getByTestId("salmon-keep-box");
+    expect(within(box).getByTestId("keep-head").textContent).toBe("Up to 4 salmon a day in total · 8 in possession");
+    expect(within(box).getAllByTestId("keep-band-text").map((e) => e.textContent)).toEqual(["4 a day · only 2 over 50 cm"]);
+    expect(within(box).getAllByTestId("keep-band-date").map((e) => e.textContent)).toEqual(["Jul 15–Aug 23"]);
+    // nothing kept today: no keep box, so no bucket line
     cleanup();
     render(<SalmonCard card={salmonCard(facts, { sids: [101], item: null }, SEP15)} palette={LIGHT} />);
-    expect(screen.queryByTestId("salmon-bucket-line")).toBeNull();
+    expect([screen.queryByTestId("salmon-keep-box"), screen.queryByTestId("keep-head")]).toEqual([null, null]);
   });
 
   it("(T671 D3) the bucket's period limits are drawn under the total, each in the store's words, while a species it names may be kept", () => {
@@ -78,10 +84,11 @@ describe("the Salmon card", () => {
       verdicts: P.verdicts.map((v, i) => (i === 2 ? { ...v, tree: tier("count", 4, "4 a day", { species: ["CO"] }) } : v)) } } as SalmonFacts;
     render(<SalmonCard card={salmonCard(facts, { sids: [101], item: null }, JUL20)} palette={LIGHT} />);
     // coho may be kept (the chinook limit names a species that may not: not drawn); the line is the whole sentence
-    expect(screen.getAllByTestId("salmon-bucket-tier").map((e) => (e.textContent ?? "").replace(/\u00a0/g, " ")))
+    expect(screen.getAllByTestId("keep-strip-note").map((e) => (e.textContent ?? "").replace(/\u00a0/g, " ")))
       .toEqual(["The total annual limit for coho salmon over 50 cm is 10 fish from all fresh waters combined."]);
     // the total stays first
-    expect(screen.getByTestId("salmon-bucket-line").textContent).toBe("Up to 4 salmon a day in total · 8 in possession");
+    expect(screen.getByTestId("keep-head").textContent).toBe("Up to 4 salmon a day in total · 8 in possession");
+    expect(screen.getByTestId("keep-head").compareDocumentPosition(screen.getByTestId("keep-strip-note")) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
   });
 
   it("draws under the provincial rules, framed, with its own source and as-of line", () => {
@@ -92,13 +99,15 @@ describe("the Salmon card", () => {
     // ABOVE the Keep tab (owner 2026-10-28)
     expect(screen.getByTestId("keep-tab").compareDocumentPosition(el) & Node.DOCUMENT_POSITION_PRECEDING).toBeTruthy();
     expect(el.getAttribute("aria-label")).toBe("Salmon, DFO: Open today");
-    // (T318) ONE row per species, today's status; DFO's words once under the table; ONE picture each (T394: the spawning look)
-    const rows = screen.getAllByTestId("salmon-species-row").map((r) => r.textContent!);
-    expect(rows.map((r, i) => [r.startsWith(["Chinook", "Coho", "Sockeye", "Pink", "Chum"][i]!), r.endsWith(["Closed", "Open", "Closed", "Closed", "Closed"][i]!)]))
-      .toEqual([[true, true], [true, true], [true, true], [true, true], [true, true]]);
-    expect(screen.getAllByTestId("salmon-says-line").map((e) => e.textContent)).toContain("4 per day, only 2 over 50 cm (Jul 15–Aug 23)");
-    expect(screen.getAllByTestId("salmon-look").length).toBe(5);
-    expect(screen.getByTestId("pic:CO").textContent).toBe("Coho ›");
+    // (T318) ONE row per species; (T829) the open one in the keep box, the closed ones under one "✕ Closed" word; ONE
+    // picture each (T394: the spawning look)
+    expect([names("salmon-keep-box"), names("salmon-closed-group")]).toEqual([["Coho"], ["Chinook", "Sockeye", "Pink", "Chum"]]);
+    expect(texts("keep-col-word")).toEqual(["✕ Closed"]);
+    // (T828) DFO's words for the rows are in the source fold, closed by default
+    expect(screen.queryAllByTestId("salmon-says-line")).toEqual([]);
+    expect(screen.getAllByTestId("keep-look").length).toBe(5);
+    expect([screen.getByTestId("pic:CO").getAttribute("aria-label"), screen.getByTestId("pic:CO").textContent])
+      .toEqual(["Coho salmon — what it looks like", "›"]);
     expect(screen.getByTestId("salmon-card-block-gear").textContent).toBe("No natural bait allowed (Jan 1–Dec 31)");
     // (T482) DFO's source block is a fold, closed by default: its summary only, then everything on a press
     const summary = screen.getByTestId("salmon-source-summary");
@@ -106,6 +115,7 @@ describe("the Salmon card", () => {
       .toEqual(["Source (DFO)", "false", null]);
     expect(screen.queryByTestId("salmon-note")).toBeNull();
     fireEvent.click(summary);
+    expect(screen.getAllByTestId("salmon-says-line").map((e) => e.textContent)).toContain("4 per day, only 2 over 50 cm (Jul 15–Aug 23)");
     expect(screen.getByTestId("salmon-note").textContent).toBe("Salmon are set by DFO, not the provincial regulations above. Both apply.");
     expect([screen.getByTestId("salmon-source").textContent, screen.getByTestId("salmon-asof").textContent])
       .toEqual(["Fisheries and Oceans Canada · Region 6 Skeena", "DFO page dated Aug 28, 2026"]);
@@ -133,7 +143,7 @@ describe("the Salmon card", () => {
   it("(T394) each species row wears its SPAWNING look (owner 2026-10-31, T343 item 6), never the ocean one", () => {
     const images = Object.fromEntries(Object.entries(FISH).map(([code, looks]) => [code, looks.map((l) => ({ thumb: { uri: `thumbs/${l.file}` }, full: { uri: l.file } }))]));
     render(<SalmonCard card={salmonCard(FACTS, { sids: [101], item: null }, JUL20)} palette={LIGHT} images={images as never} />);
-    const looks = screen.getAllByTestId("salmon-look").map((e) => e.outerHTML);
+    const looks = screen.getAllByTestId("keep-look").map((e) => e.outerHTML);
     expect(looks.length).toBe(5);
     expect(looks.every((h) => h.includes("-spawning-phase.webp") && !h.includes("-ocean-phase.webp"))).toBe(true);
     // (T405) a row draws the thumbnail, never the full picture
@@ -142,14 +152,15 @@ describe("the Salmon card", () => {
 
   it("every species closed: five closed species rows and DFO's closed words said ONCE (not per picture)", () => {
     render(<SalmonCard card={salmonCard(FACTS, { sids: [101], item: null }, SEP15)} palette={LIGHT} />);
-    expect(screen.getAllByTestId("salmon-species-status").map((e) => e.textContent)).toEqual(Array(5).fill("Closed"));
+    expect([names("salmon-closed-group"), texts("keep-col-word"), screen.queryByTestId("salmon-keep-box")])
+      .toEqual([["Chinook", "Coho", "Sockeye", "Pink", "Chum"], ["✕ Closed"], null]);
     expect(screen.getAllByTestId("salmon-says-line").length).toBe(2);               // the chinook line and the not-opened line, once
     expect(screen.getByTestId("salmon-card").getAttribute("aria-label")).toBe("Salmon, DFO: Closed today");
   });
 
   it("A WATER DFO DOES NOT LIST reads 'Salmon — closed', and says why (owner 2026-10-27)", () => {
     render(<SalmonCard card={salmonCard(FACTS, { sids: [7], item: "gnis:1" }, JUL20)} palette={LIGHT} />);
-    expect(screen.getAllByTestId("salmon-species-status").map((e) => e.textContent)).toEqual(Array(5).fill("Closed"));
+    expect([names("salmon-closed-group"), texts("keep-col-word")]).toEqual([["Chinook", "Coho", "Sockeye", "Pink", "Chum"], ["✕ Closed"]]);
     // (T502) DFO's "not opened" words repeat the five Closed rows: not said under the table; the line below says why
     expect(screen.queryAllByTestId("salmon-says-line")).toEqual([]);
     expect(screen.getByTestId("salmon-not-listed").textContent)
@@ -228,6 +239,7 @@ describe("(T318) every DFO rule on a water is still reachable in the table layou
       const card = salmonCard(f, { sids: [101], item }, day);
       render(<SalmonCard card={card} palette={LIGHT} />);
       screen.queryAllByTestId("caveat-fold").forEach((b) => fireEvent.click(b));
+      openSource();
       const text = screen.getByTestId("salmon-card").textContent!;
       // (T502) a row's words its species rows already say (`repeats`) are said by those rows, not under the table
       for (const t of salmonRowTexts(card)) if (!card.rows.some((r) => r.repeats?.includes(t))) expect(text, t).toContain(t);
@@ -267,11 +279,13 @@ describe("(owner 2026-10-28) the region header and the provincial gear on the ca
 
   it("region rules in their own block, the water's coho note and sizes on the open coho row, the gear line", () => {
     render(<SalmonCard card={salmonCard(WITH_HEADER, { sids: [101], item: "gnis:77", gear: ["bait"] }, JUL20)} palette={LIGHT} />);
+    openSource();
     const block = screen.getByTestId("salmon-region-rules");
     expect(within(block).getByText("Region rules (DFO) · Region 6 Skeena")).toBeTruthy();
     expect(within(block).getByText("You can only fish for salmon in Region 6 during daylight hours.")).toBeTruthy();
     expect(screen.getByText(/Kispiox watershed: the aggregate daily limit/)).toBeTruthy();
-    expect(screen.getByTestId("salmon-limit").textContent).toBe("Sizes (DFO): coho 25 cm or more to keep");
+    expect(within(screen.getByTestId("salmon-keep-box")).getAllByTestId("keep-quiet").map((e) => e.textContent))
+      .toContain("Sizes (DFO): coho 25 cm or more to keep");
     expect(screen.getByTestId("salmon-gear-provincial").textContent).toBe("B.C. rules, also for salmon: Bait ban: no bait of any kind.");
   });
 
@@ -280,6 +294,7 @@ describe("(owner 2026-10-28) the region header and the provincial gear on the ca
     const f: SalmonFacts = { ...WITH_HEADER, payload: { ...WITH_HEADER.payload, regions: { "6": { ...WITH_HEADER.payload.regions["6"]!,
       notes: [n("6:other:z", "other", long, { sp: ["CH"] })] } } } };
     render(<SalmonCard card={salmonCard(f, { sids: [101], item: "gnis:77" }, JUL20)} palette={LIGHT} />);
+    openSource();
     const row = screen.getByTestId("salmon-rule");
     expect(within(row).getByTestId("salmon-rule-kind").textContent).toBe("Rule");
     expect(within(row).getByText("Chinook")).toBeTruthy();
@@ -295,6 +310,7 @@ describe("(owner 2026-10-28) the region header and the provincial gear on the ca
     const f: SalmonFacts = { ...WITH_HEADER, payload: { ...WITH_HEADER.payload, regions: { "6": { ...WITH_HEADER.payload.regions["6"]!,
       notes: [...WITH_HEADER.payload.regions["6"]!.notes!, n("6:annual:d", "annual", "The annual coho limit is 10.", { sp: ["CO"], n: 10 })] } } } };
     render(<SalmonCard card={salmonCard(f, { sids: [101], item: "gnis:9" }, JUL20)} palette={LIGHT} />);
+    openSource();
     expect(screen.getAllByTestId("salmon-says-line").map((e) => e.textContent)).toContain("The annual coho limit is 10.");
     expect(screen.getByTestId("salmon-region-rules").textContent).not.toContain("annual coho");
     expect(screen.getByTestId("salmon-region-rules").textContent).not.toContain("25 cm");
@@ -302,10 +318,12 @@ describe("(owner 2026-10-28) the region header and the provincial gear on the ca
 
   it("another water in the region: the region block only; a closed water: no gear line", () => {
     render(<SalmonCard card={salmonCard(WITH_HEADER, { sids: [7], item: "gnis:1", gear: ["bait"] }, JUL20)} palette={LIGHT} />);
+    openSource();
     expect(screen.queryByTestId("salmon-region-rules")).toBeNull();                // unlisted: no DFO region
     expect(screen.queryByTestId("salmon-gear-provincial")).toBeNull();
     cleanup();
     render(<SalmonCard card={salmonCard(WITH_HEADER, { sids: [101], item: "gnis:9", gear: [] }, JUL20)} palette={LIGHT} />);
+    openSource();
     expect(screen.getByTestId("salmon-region-rules")).toBeTruthy();
     expect(screen.queryByText(/Kispiox watershed/)).toBeNull();
   });
@@ -322,7 +340,11 @@ describe("(T321) DFO's words on the card", () => {
     expect(box.textContent).toContain("DFO changed the wording here — read their text");
     expect(box.textContent).toContain("Coho · Jul 15 to Aug 23");
     expect(within(box).getByTestId("salmon-words-text").textContent).toBe("4 per day, fish from shore on Sundays");
+    // (T828) the rows whose words matter as printed are in the source fold, closed by default; the warning is not
+    expect(screen.queryByTestId("salmon-wording-notes")).toBeNull();
+    openSource();
     expect(screen.getByTestId("salmon-wording-notes").textContent).toContain("Chinook · All year");
+    expect(within(screen.getByTestId("salmon-source-body")).queryByTestId("salmon-wording-changed")).toBeNull();
     cleanup();
     render(<SalmonCard card={salmonCard(FACTS, { sids: [101], item: null }, JUL20)} palette={LIGHT} />);
     expect(screen.queryByTestId("salmon-wording-changed")).toBeNull();
@@ -348,7 +370,7 @@ describe("(T796, owner 2026-11-16 15:19) a book closure on the card says where i
     const el = screen.getByTestId("salmon-card");
     expect(el.getAttribute("aria-label")).toBe("Salmon, Rule book: Closed today");
     expect(screen.getAllByTestId("salmon-says-line").map((e) => e.textContent)).toEqual([`${BOOK} (all year)`]);
-    expect([...new Set(screen.getAllByTestId("salmon-from").map((e) => e.textContent))]).toEqual(["Rule book p.9 · National Parks and Ecological Reserves"]);
+    expect([...new Set(screen.getAllByTestId("keep-quiet").map((e) => e.textContent))]).toEqual(["Rule book p.9 · National Parks and Ecological Reserves"]);
     const summary = screen.getByTestId("salmon-source-summary");
     expect(summary.textContent).toBe("Sources (rule book and DFO)");
     fireEvent.click(summary);

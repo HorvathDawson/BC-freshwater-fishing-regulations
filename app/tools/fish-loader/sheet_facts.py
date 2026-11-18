@@ -3,6 +3,7 @@
 (T814) What a baked coho sheet IS, read back from the committed file: its size and the two colours it is printed in.
 
     .venv/bin/python app/tools/fish-loader/sheet_facts.py SHEET.webp [SHEET.webp ...]   -> one JSON line per sheet
+    .venv/bin/python app/tools/fish-loader/sheet_facts.py --frame0 W H SHEET.webp        -> frame 0, RGBA, base64 (T843)
 
 `pnpm coho` (app/tools/build-coho.mjs --check) compares these with the colour tokens and the generated module, so a
 token changed without `pnpm coho:build` fails. Decoding a lossless WebP is exact on every machine, which re-rendering
@@ -28,6 +29,19 @@ def facts(path):
             "width": rgba.width, "height": rgba.height, "colours": top}
 
 
+def frame_zero(path, width, height):
+    """(T843) The sheet's first frame (top-left `width` x `height` px) as straight-alpha RGBA bytes, base64: what the
+    native splash is drawn from (`tools/build-splash.mjs`)."""
+    import base64
+    im = Image.open(path)
+    im.load()
+    return base64.b64encode(im.convert("RGBA").crop((0, 0, width, height)).tobytes()).decode("ascii")
+
+
 if __name__ == "__main__":
+    if sys.argv[1:2] == ["--frame0"]:
+        _, _, w, h, sheet = sys.argv
+        print(frame_zero(sheet, int(w), int(h)))
+        sys.exit(0)
     for p in sys.argv[1:]:
         print(json.dumps(facts(p)))

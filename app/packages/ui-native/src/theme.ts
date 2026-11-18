@@ -123,6 +123,8 @@ export interface Palette {
   imagery: readonly [string, string, string];
   /** The dimming behind a bottom sheet. */
   scrim: string;
+  /** (T842) The walkthrough's dim round its highlighted control: heavier than a sheet's, so it reads in both themes. */
+  coachScrim: string;
   /**
    * Elevation. `boxShadow` — the `shadow*` props are deprecated in React Native 0.76+ and
    * warn on every render on web.
@@ -304,6 +306,7 @@ export function paletteFor(theme: string): Palette {
     imagery: [c("color.ui.imagery.water"), c("color.ui.imagery.forest"),
               c("color.ui.imagery.scrub")],
     scrim: translucent(theme, "color.ui.shadow", "opacity.ui.scrim"),
+    coachScrim: translucent(theme, "color.ui.coach-scrim", "opacity.ui.coach-scrim"),
     lift: HARD(3, translucent(theme, "color.ui.shadow", "opacity.ui.shadow")),
     r: RADIUS,
   };
