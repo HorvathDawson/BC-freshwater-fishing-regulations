@@ -35,7 +35,9 @@ already done for this release):
                `--ship-stale-atlas REASON`); every review mark in
                force landed in its curated file (T545, `review.apply --check`; not skipped by --no-fast-fail); no place's
                latest review save is "wrong" / "unsure" with no extent fix (T786, `review.wrong_saves`; only a dated
-               WRONG_SAVE_OK row passes one; not skipped by --no-fast-fail); HEAD pushed to
+               WRONG_SAVE_OK row passes one; not skipped by --no-fast-fail); every classified water the book prints is
+               in the corpus as printed — its classes, its tributaries, its glyph (T841, `regs.classified_waters`; not
+               skipped by --no-fast-fail); HEAD pushed to
                origin/redesign/stream-sections (T484: the staging upload starts a GitHub workflow that runs GitHub's
                copy — found only at stage 6 on 2026-11-07); CI (`app-ci`, `pipeline-ci`) not red on HEAD, nor on the
                newest finished run when HEAD has none (T533, `scripts/ci_status.py`; running / no run = a warning;
@@ -51,7 +53,9 @@ already done for this release):
                LATEST does NOT move.
   4 checks     manifest sanity (every file the manifest names is there at its size, the size gate, the bundle block
                names the reach run on disk), the app-version gate (`deliver.release.app_gate`, the one the staging
-               upload runs), and the reach BINDING DIFF against the live release (`atlas.reach.binding_diff`). A diff
+               upload runs), every book-classified water shipping classified with the Classified Waters Licence on its
+               Licence tab, in its period, on every section it binds (T841, `regs.classified_waters --bundle`, on the
+               candidate's bundle), and the reach BINDING DIFF against the live release (`atlas.reach.binding_diff`). A diff
                that is not empty STOPS the run: the summary is printed and written beside its json; a reviewer reads it
                and reruns with `--accept-diff <that json>` (its content must be the one written, so a stale accept never
                passes a new diff; content = the changes and counts, not the before/after path strings).
@@ -211,6 +215,35 @@ def wrong_saves() -> tuple[bool, str]:
     from pipeline.regs.review import wrong_saves as W
     rc, said = W.say(W.check())
     return rc == 0, said
+
+
+def classified(bundle: Path | None = None) -> tuple[bool, str]:
+    """(T841) Is every classified water the book prints in the corpus as printed (`regs.classified_waters`, instant) —
+    and, given the candidate's `bundle`, shipped classified with the Classified Waters Licence on every section it binds
+    (~15 s)? (ok, what it says). fast-fail runs the corpus half too; preflight asks again itself so `--no-fast-fail`
+    cannot skip it. A corpus or bundle it cannot read raises: never a pass."""
+    from pipeline.regs import classified_waters as CW
+    rc, said = CW.say(CW.check(bundle=bundle))
+    return rc == 0, said
+
+
+def candidate_bundle(rid: str) -> Path:
+    """(T841) The bundle the candidate was cut from — the build's, refused unless its digests are the ones the release's
+    manifest names (a bundle rebuilt since is not this release's)."""
+    import sqlite3
+    b = Path(GENERATED.bundle) / "bundle.sqlite"
+    if not b.is_file():
+        raise RuntimeError(f"no bundle at {b}")
+    want = manifest_of(rid).get("bundle") or {}
+    db = sqlite3.connect(f"file:{b}?mode=ro", uri=True)
+    try:
+        meta = dict(db.execute("SELECT k, v FROM meta WHERE k IN ('entries_digest', 'reach_digest')"))
+    finally:
+        db.close()
+    for k in ("entries_digest", "reach_digest"):
+        if want.get(k) != meta.get(k):
+            raise RuntimeError(f"{b} is not {rid}'s bundle: its {k} is {meta.get(k)}, the manifest says {want.get(k)}")
+    return b
 
 
 def atlas_behind() -> list[str]:
@@ -636,6 +669,16 @@ def manifest_problems(rid: str) -> list[str]:
     return out
 
 
+def classified_problems(rid: str) -> str:
+    """(T841) What the classified-waters gate says against the candidate's bundle; "" when it passes. A bundle it
+    cannot read, or one not the candidate's, is a problem too (never a pass)."""
+    try:
+        ok, said = classified(candidate_bundle(rid))
+    except Exception as e:  # noqa: BLE001 — a gate that could not read is a stop, never a pass
+        return f"the gate could not run ({type(e).__name__}: {e})"
+    return "" if ok else said
+
+
 def app_gate_problems(rid: str, min_app: str | None) -> list[str]:
     from pipeline.deliver.release.app_gate import problems
     return problems(manifest_of(rid), min_app)
@@ -763,6 +806,19 @@ def check_wrong_saves(ctx: Ctx) -> Finding:
                        "ships):\n" + said,
                        "fix and re-save each place in the review app; a save that must ship as it is goes on "
                        "WRONG_SAVE_OK (pipeline/regs/review/wrong_saves.py), dated, with its line and reason")
+    return Finding(True, said.splitlines()[-1])
+
+
+def check_classified(ctx: Ctx) -> Finding:
+    try:
+        ok, said = classified()
+    except Exception as e:  # noqa: BLE001 — a gate that could not read is a stop, never a pass
+        return Finding(False, f"the classified-waters gate could not run ({type(e).__name__}: {e})",
+                       "run `python -m pipeline.regs.classified_waters --check` and fix what it says")
+    if not ok:
+        return Finding(False, "classified waters the book prints are not in the corpus as printed (T841):\n" + said,
+                       "read each printed page; a parse defect is fixed in the corpus (the human re-runs the parser), "
+                       "a changed book in BOOK (pipeline/regs/classified_waters.py)")
     return Finding(True, said.splitlines()[-1])
 
 
@@ -922,7 +978,7 @@ def check_fresh_copy(ctx: Ctx) -> Finding:
 #: every preflight check, in order: (name, check). The instant ones first; then the two that take minutes: fast-fail,
 #: and last the fresh-copy test run (the whole no-data tier on a clean clone, once per release).
 PREFLIGHT = (("committed", check_committed), ("atlas", check_atlas), ("marks", check_marks),
-             ("wrong-saves", check_wrong_saves), ("pushed", check_pushed),
+             ("wrong-saves", check_wrong_saves), ("classified", check_classified), ("pushed", check_pushed),
              ("ci", check_ci), ("live", check_live), ("site", check_site), ("fast-fail", check_fast_fail),
              ("fresh-copy", check_fresh_copy))
 
@@ -1031,6 +1087,12 @@ def stage_checks(ctx: Ctx) -> str:
     if probs:
         raise Stop("checks", "app-version gate: " + "; ".join(probs),
                    "rerun with --min-app-version X.Y.Z (the oldest app that reads these formats)")
+    probs = classified_problems(rid)
+    if probs:
+        raise Stop("checks", "classified waters: the candidate ships a book-classified water without its Classified "
+                   "Waters Licence (T841):\n" + probs,
+                   "fix the cause it names (the corpus, the reach run or the licence reader), rebuild, and rerun; "
+                   "`python -m pipeline.regs.classified_waters --check --bundle` says it again")
     after_digest = (manifest_of(rid).get("bundle") or {}).get("reach_digest")
     before_digest = reach_digest_of(base) if rid != ctx.live else after_digest
     out_dir = HOME / "checks" / rid
@@ -1087,7 +1149,7 @@ def stage_checks(ctx: Ctx) -> str:
     out_dir.mkdir(parents=True, exist_ok=True)
     (out_dir / "live_counts.txt").write_text(txt + "\n", encoding="utf-8")
     print(txt)
-    r["checks"] = {"manifest": "ok", "app_gate": "ok", "min_app_version": ctx.min_app,
+    r["checks"] = {"manifest": "ok", "app_gate": "ok", "classified": "ok", "min_app_version": ctx.min_app,
                    "binding_diff": done["status"], "gone_ids": n_gone, "counts": counts, "at": now()}
     r["fingerprint"] = fingerprint(rid)
     save_ledger(ctx.led)
@@ -1530,6 +1592,9 @@ def dry_run(ctx: Ctx) -> int:
         probs = app_gate_problems(target, min_app)
         print(f"{P}app-version gate on {target} (min app {min_app or 'any'}): "
               + (stop("; ".join(probs)) if probs else "ok"))
+    if built:
+        said = classified_problems(cand)
+        print(f"{P}classified waters on {cand}'s bundle (T841): " + (stop(said) if said else "ok"))
     if built:
         after_digest = (manifest_of(cand).get("bundle") or {}).get("reach_digest")
         done = r.get("binding_diff") or {}

@@ -119,6 +119,12 @@ def world(tmp_path: Path, monkeypatch):
     monkeypatch.setattr(R, "marks_landed", lambda: w["landed"])
     w["wrong_saves"] = (True, "wrong saves: no place ships on a wrong or unsure save with no fix (0 allowed)")
     monkeypatch.setattr(R, "wrong_saves", lambda: w["wrong_saves"])
+    # (T841) the classified-waters gate: the corpus half at preflight, the candidate's bundle at checks (pinned in
+    # test_classified_waters.py)
+    w["classified"] = (True, "classified waters: 73 book rows, 74 designations — every one in the corpus as printed")
+    monkeypatch.setattr(R, "classified", lambda bundle=None: w["classified"])
+    w["classified_problems"] = ""
+    monkeypatch.setattr(R, "classified_problems", lambda rid: w["classified_problems"])
     w["atlas_behind"] = []
     monkeypatch.setattr(R, "atlas_behind", lambda: list(w["atlas_behind"]))
     monkeypatch.setattr(R, "binding_diff", diff)
@@ -917,8 +923,8 @@ def test_the_rehearsal_walks_every_stages_checks_and_lists_the_stops(world, caps
 def test_the_rehearsal_and_the_run_read_one_preflight_table(world, capsys):
     """By construction: a check added to PREFLIGHT is in both. Every check's failure shows in the rehearsal with the
     words the real run stops with."""
-    assert [n for n, _ in R.PREFLIGHT] == ["committed", "atlas", "marks", "wrong-saves", "pushed", "ci", "live", "site",
-                                           "fast-fail", "fresh-copy"]
+    assert [n for n, _ in R.PREFLIGHT] == ["committed", "atlas", "marks", "wrong-saves", "classified", "pushed", "ci",
+                                           "live", "site", "fast-fail", "fresh-copy"]
     world["pushed"], world["site_problems"], world["fast_fail_rc"] = False, ["site 0.6.9 < 0.7.0"], 1
     assert _staging() == 1
     real = capsys.readouterr()
@@ -1231,5 +1237,35 @@ def test_t786_mutation_without_the_gate_in_the_table_the_wrong_save_ships(world,
     the gate is the only thing that stops it (no other check reads the verdicts)."""
     world["wrong_saves"] = (False, "wrong saves: 1 place(s) …:\n  dfo 2:some-river:x: mark line 41, verdict wrong")
     monkeypatch.setattr(R, "PREFLIGHT", tuple((n, c) for n, c in R.PREFLIGHT if n != "wrong-saves"))
+    assert _staging() == 0
+    assert "STOPPED" not in capsys.readouterr().err and _latest(world) != LIVE
+
+
+def test_t841_a_classified_water_missing_from_the_corpus_stops_the_preflight(world, capsys):
+    """T841 (owner 2026-11-17: "make sure we capture all classified waters"): the preflight stops on the corpus half of
+    the classified-waters gate, naming the row and its page; --no-fast-fail does not skip it."""
+    world["classified"] = (False, "classified waters (corpus): 1 problem(s) — …:\n  p.53 SKEENA RIVER (mainstem only) "
+                                  "(Region 6): the book prints Class II, Class II; r6:skeena@6-10 carries Class II")
+    assert _staging(no_fast_fail="docs only") == 1
+    err = capsys.readouterr().err
+    assert "STOPPED at preflight" in err and "p.53 SKEENA RIVER (mainstem only)" in err and "T841" in err
+    assert world["calls"] == [] and _latest(world) == LIVE
+
+
+def test_t841_a_candidate_shipping_a_classified_water_without_its_licence_stops_at_checks(world, capsys):
+    """The bundle half runs on the candidate after the build: a water that ships without the Classified Waters Licence
+    stops the release before anything is promoted."""
+    world["classified_problems"] = ("classified waters (bundle): 1 problem(s) — …:\n  r6:telkwa_river@6-9#telkwa_river "
+                                    "(p.54 TELKWA RIVER): 3 of its 41 section(s) ship WITHOUT the Classified Waters Licence")
+    assert _staging() == 1
+    err = capsys.readouterr().err
+    assert "STOPPED at checks" in err and "TELKWA RIVER" in err and "Classified Waters Licence" in err
+    assert _latest(world) == LIVE
+
+
+def test_t841_mutation_without_the_gate_in_the_table_the_gap_ships(world, monkeypatch, capsys):
+    """The mutation: with `check_classified` out of PREFLIGHT the same corpus gap goes through the whole release."""
+    world["classified"] = (False, "classified waters (corpus): 1 problem(s)")
+    monkeypatch.setattr(R, "PREFLIGHT", tuple((n, c) for n, c in R.PREFLIGHT if n != "classified"))
     assert _staging() == 0
     assert "STOPPED" not in capsys.readouterr().err and _latest(world) != LIVE
