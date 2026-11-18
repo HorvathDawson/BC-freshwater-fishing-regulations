@@ -131,6 +131,30 @@ describe("the native style", () => {
     expect(s.sources.gauges!.data).toEqual(JSON.parse(fc));
   });
 
+  /*
+   * (T831) THE ROUTE MAP ON A PHONE: every piece the web's route overlay draws its dots and pin with is in the phone's
+   * style — the `trace-pins` source, its layers reading it, the pin's image under this theme's name and given to the map
+   * — and the pins a route map opens with are IN that source (the binding adopts a source the style declares and never
+   * pushes the data it mounted with). The web's `setTrace` writes `pinCollection(pins)`; this is the same collection.
+   */
+  it("(T831) carries the route overlay's pin source, layers and image, and starts it with the pins it is given", () => {
+    const pins = [{ lat: 49.1, lon: -121.9, kind: "here" as const, tone: "#000", label: "You are here", rank: 0 },
+                  { lat: 49.2, lon: -122.1, kind: "gauge" as const, tone: "#1f77b4", label: null, rank: 1 }];
+    for (const theme of ["light", "dark"]) {
+      const s = nativeStyle({ ...base, theme, tracePins: pins }).style as unknown as S;
+      const onPins = (s.layers as (L & { source?: string })[]).filter((l) => l.source === "trace-pins").map((l) => l.id);
+      expect([theme, onPins]).toEqual([theme, ["trace-gauge-halo", "trace-gauge", "trace-label", "trace-here", "trace-here-label"]]);
+      const here = layer(s, "trace-here").layout!["icon-image"] as string;
+      expect([theme, here, here in nativeImages(theme)]).toEqual([theme, nativeImageName("trace-here", theme), true]);
+      expect([theme, s.sources["trace-pins"]!.data]).toEqual([theme, { type: "FeatureCollection", features: [
+        { type: "Feature", properties: { kind: "here", tone: "#000", rank: 0, label: "You are here" },
+          geometry: { type: "Point", coordinates: [-121.9, 49.1] } },
+        { type: "Feature", properties: { kind: "gauge", tone: "#1f77b4", rank: 1 },
+          geometry: { type: "Point", coordinates: [-122.1, 49.2] } }] }]);
+    }
+    expect((nativeStyle(base).style as unknown as S).sources["trace-pins"]!.data).toEqual({ type: "FeatureCollection", features: [] });
+  });
+
   it("a caller's bad mode is reported, and the style is still made", () => {
     const { style, errors } = nativeStyle({ ...base, modes: { stream: "nope" } });
     expect(errors.map((e) => e.message))

@@ -35,6 +35,11 @@
  *     units, so it sat under the status bar in miles. Updated when the camera settles, not per frame of a pinch.
  *   - (T317) The marker, pins and boundary marks are GeoJSON layers (`point-marks.ts`); (T316) the spots too
  *     (`spot-marks.ts`): no view annotation is left.
+ *   - (T831) THE ROUTE MAP's pins (`trace.pins`: the gauges' dots, "you are here") go to the style's own `trace-pins`
+ *     source, as the web's `setTrace` writes them: baked into each style (`nativeStyle`'s `tracePins`: the binding never
+ *     pushes a mounted source's data into a source the style declares) and changed in place after. Its route LINES
+ *     (`trace.routes`) are not drawn here yet: they are copied out of the atlas by byte range (`trace-geometry.ts`), and
+ *     a phone's atlas is a `file://` archive that `fetch` cannot read a range of (T831 ticket, "Not done").
  */
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { AccessibilityInfo, Pressable, Text, View, type LayoutChangeEvent } from "react-native";
@@ -76,6 +81,7 @@ import { ME_SOURCE, meData, mePaint } from "./me";
 import { camProbe } from "./native/camProbe";
 import { watchStyleAssets } from "./native/styleAssets";
 import { MAX_PIXEL_RATIO } from "./pixel-ratio";
+import { pinCollection, TRACE_PINS_SOURCE } from "./trace-overlay";
 
 /** (T401) MapLibre's prefetch zoom delta: how many zooms below the shown one it also loads, drawn as the placeholder
  *  while a tile loads. -1 = MapLibre's own (4). Measured 2026-11-06 on the stressed emulator: 2 and 3 moved neither the
@@ -112,7 +118,7 @@ export function Map({ at, theme, view, modes, groups, hide, show, initial, data,
                       onMoved, onMapPoint, onLongPress, onOpenLab, highlight, inSeason, water, waterLine, selection = "outline", marker, style, gauges,
                       onVisible, pins, bare, fit, status, standing, lakes, salmon, method, issue, runs, focus, near,
                       basemap, marks, onPressMark, spots, me, onImageryError: _noTileErrors,
-                      onRegion: _noPrefetch, insetBottom = 0, insetTop = 0, zoomControls, trace: _noTrace, onOpenLink, useBackLayer, onDrawn, lookKey, onLookDrawn }: MapProps) {
+                      onRegion: _noPrefetch, insetBottom = 0, insetTop = 0, zoomControls, trace, onOpenLink, useBackLayer, onDrawn, lookKey, onLookDrawn }: MapProps) {
   // `onRegion` is accepted and never called: it feeds the WEB's prefetch, and a phone holds the release installed.
   // `onImageryError` is accepted and never called: the binding has no per-tile error event. A phone learns the imagery
   // is unreachable from `useImageryReach`'s probe instead (satellite is online-only, owner 2026-10-21).
@@ -224,10 +230,13 @@ export function Map({ at, theme, view, modes, groups, hide, show, initial, data,
    */
   const gaugesNow = useRef(gauges);
   gaugesNow.current = gauges;
+  // (T831) the route map's pins likewise: in each style it is handed, then to the `trace-pins` source below
+  const tracePinsNow = useRef(trace?.pins);
+  tracePinsNow.current = trace?.pins;
   const look = useMemo(
     () => nativeStyle({ at, theme, view, modes, hide, show, groups, basemap: basemap ?? "map", focus: !!focus,
-                        gauges: gaugesNow.current ?? EMPTY_FC, areaData: JSON.parse(areaKey) as Data,
-                        values: cv }),
+                        gauges: gaugesNow.current ?? EMPTY_FC, tracePins: tracePinsNow.current,
+                        areaData: JSON.parse(areaKey) as Data, values: cv }),
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [at.atlas, at.basemap, at.glyphs, at.sprite, at.assets, at.outside, theme, view, JSON.stringify(modes ?? {}),
      JSON.stringify(hide ?? []), JSON.stringify(show ?? []), JSON.stringify(groups ?? {}), basemap, areaKey, valuesKey, !!focus]);
@@ -286,6 +295,9 @@ export function Map({ at, theme, view, modes, groups, hide, show, initial, data,
   }, [look]);  // eslint-disable-line react-hooks/exhaustive-deps
 
   const gaugeData = useMemo(() => JSON.parse(gauges ?? EMPTY_FC) as GeoJSON.FeatureCollection, [gauges]);
+  // (T831) keyed on the pins' content: a caller hands a new `trace` object on every render (`DonorMap`)
+  const tracePinKey = JSON.stringify(trace?.pins ?? []);
+  const tracePinJson = useMemo(() => pinCollection(trace?.pins ?? []), [tracePinKey]);  // eslint-disable-line react-hooks/exhaustive-deps
   const camera0 = useRef({ center: [initial.lon, initial.lat] as [number, number], zoom: initial.zoom });
   /** Where the camera is, for the scale bar: the latitude and zoom it last settled at. */
   const [scaleAt, setScaleAt] = useState({ lat: initial.lat, zoom: initial.zoom });
@@ -898,6 +910,7 @@ export function Map({ at, theme, view, modes, groups, hide, show, initial, data,
   const pinLook = useMemo(() => pinDotLayer(furniture.card), [furniture.card]);
   // (T499, the pan probe's build) each GeoJSON source handed new data: a redraw with no camera move
   useEffect(() => { panProbe.src("gauges"); }, [gaugeData]);
+  useEffect(() => { panProbe.src("trace-pins"); }, [tracePinJson]);
   useEffect(() => { panProbe.src("copy"); }, [copyData]);
   useEffect(() => { panProbe.src("me"); }, [meJson]);
   useEffect(() => { panProbe.src("pins"); }, [pinJson]);
@@ -951,6 +964,8 @@ export function Map({ at, theme, view, modes, groups, hide, show, initial, data,
         {/* (T74) the hatches, the gauge pill and the route's pin, in this theme */}
         <Images images={images as never} />
         <GeoJSONSource id="gauges" data={gaugeData} />
+        {/* (T831) the route map's gauge dots and "you are here" pin: the style's own source by id, as `gauges` */}
+        <GeoJSONSource id={TRACE_PINS_SOURCE} data={tracePinJson as never} />
         {/* (T175) the water copy: the style's own source by id, its lines from the tiles (`keepCopy`) */}
         <GeoJSONSource id={COPY_SOURCE} ref={copyRef} data={copyData as never} />
         {/* (T303) your location: the accuracy circle, then the dot over it, above every map layer */}

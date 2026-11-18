@@ -623,6 +623,66 @@ describe("native only (T317)", () => {
   });
 });
 
+/**
+ * (T831) THE ROUTE MAP'S PINS ON BOTH MAPS. A water's Conditions route map (`DonorMap`) hands `trace.pins`: a dot per
+ * gauge in its donor tone with its share, and the "you are here" pin. The phone ignored `trace` (`trace: _noTrace`), so
+ * its `trace-pins` source stayed the style's empty one: no dots, no pin, on Android and iOS, while the web drew them.
+ *
+ * What a phone DRAWS for a source its style declares is the style's own data until the binding's `data` CHANGES: its
+ * `GeoJSONSource` adopts the existing source and never pushes the data it mounted with (`MLRNSource.addToMap`). So the
+ * pins a route map opens with must be in the style, and a later change in the source's data — never a style swap.
+ */
+describe.each(["web", "native"] as const)("T831 the route map's gauge dots and you-are-here pin: %s", (name) => {
+  const HERE = { lat: 49.1, lon: -121.9, kind: "here" as const, tone: "#000", label: "You are here", rank: 0 };
+  const GAUGE = { lat: 49.2, lon: -122.1, kind: "gauge" as const, tone: "#1f77b4", label: "62%", rank: 0 };
+  const QUIET = { lat: 49.3, lon: -122.3, kind: "gauge" as const, tone: "#555555", label: null, rank: 1 };
+  const trace = (pins: readonly (typeof HERE | typeof GAUGE | typeof QUIET)[]) => ({ key: "r1", routes: [], pins });
+  const point = (lon: number, lat: number) => ({ type: "Point", coordinates: [lon, lat] });
+  const OPENED = { type: "FeatureCollection", features: [
+    { type: "Feature", properties: { kind: "gauge", tone: "#1f77b4", rank: 0, label: "62%" }, geometry: point(-122.1, 49.2) },
+    { type: "Feature", properties: { kind: "gauge", tone: "#555555", rank: 1 }, geometry: point(-122.3, 49.3) },
+    { type: "Feature", properties: { kind: "here", tone: "#000", rank: 0, label: "You are here" }, geometry: point(-121.9, 49.1) },
+  ] };
+  /** The pins the map draws now: the web's source as last set; a phone's style source until its `data` changed. */
+  let mountedWith: unknown = null;
+  const drawn = () => {
+    if (name === "web") return web.data["trace-pins"];
+    const now = native.geojson["trace-pins"];
+    if (now === mountedWith) return (native.props!.mapStyle as { sources: Record<string, { data: unknown }> }).sources["trace-pins"]!.data;
+    return now;
+  };
+  const ready = async () => {
+    if (name === "web") await waitFor(() => expect(web.data["trace-pins"]).toBeTruthy());
+    else { await waitFor(() => expect(native.props).toBeTruthy()); mountedWith = native.geojson["trace-pins"]; }
+  };
+
+  it("a route map opens with every gauge's dot (its share beside it, a null share left out) and the pin", async () => {
+    const M = PLATFORMS[name].Map;
+    render(<M {...base({ data: undefined, highlight: undefined, trace: trace([GAUGE, QUIET, HERE]) })} />);
+    await ready();
+    expect(drawn()).toEqual(OPENED);
+  });
+
+  it("a share that changes (a new horizon) moves the dots' words in place: no style swap, the same pins", async () => {
+    const M = PLATFORMS[name].Map;
+    const r = render(<M {...base({ data: undefined, highlight: undefined, trace: trace([GAUGE, HERE]) })} />);
+    await ready();
+    const style1 = native.props?.mapStyle;
+    r.rerender(<M {...base({ data: undefined, highlight: undefined, trace: trace([{ ...GAUGE, label: "40%" }, HERE]) })} />);
+    await act(async () => {});
+    expect(drawn()).toEqual({ ...OPENED, features: [{ ...OPENED.features[0]!, properties: { ...OPENED.features[0]!.properties, label: "40%" } },
+                                                    OPENED.features[2]] });
+    if (name === "native") expect(native.props!.mapStyle).toBe(style1);
+  });
+
+  it("no route map: no pins", async () => {
+    const M = PLATFORMS[name].Map;
+    render(<M {...base({ data: undefined, highlight: undefined })} />);
+    await ready();
+    expect(drawn()).toEqual({ type: "FeatureCollection", features: [] });
+  });
+});
+
 describe("overzoom: the camera past the tiles, every source at its own deepest zoom", () => {
   it("web: maplibre-gl is constructed with the camera to z18 and each source stopping where its archive stops", () => {
     render(<WebMap {...base()} />);
