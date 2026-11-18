@@ -433,6 +433,31 @@ def top_up_to(n, alsos=(), more=(), plus=()) -> str:
     return s
 
 
+def split_top(lead: str) -> Tuple[str, Optional[str]]:
+    """(Owner 2026-11-18 01:28, the Vedder) a top line with an exception leads with its general number, the exception on
+    a subline under it: "Keep 2 trout and char {day}" / "or 4 if they’re hatchery rainbow trout 50 cm (20 in) or less"
+    (`TopLine.sub`); any other top line whole, no subline."""
+    at = lead.find(DAY_SLOT + ", or ")
+    if at < 0:
+        return lead, None
+    return lead[:at + len(DAY_SLOT)], lead[at + len(DAY_SLOT) + 2:]
+
+
+def join_top(lead: str, sub: Optional[str]) -> str:
+    """`split_top` undone: the top line whole, as `parse_top_full` reads it."""
+    return lead if sub is None else f"{lead}, {sub}"
+
+
+def top_numbers(lead: str, sub: Optional[str] = None) -> set:
+    """Every count a top line names (its general number, each exception's, each fish's) — never a size."""
+    got = parse_top_full(join_top(lead, sub))
+    if got[0] == "up_to":
+        return {got[1], *(a[0] for a in got[2]), *(k for k, _w in got[3]), *(k for k, _w in got[4])}
+    if got[0] == "apart":
+        return {k for k, _w in got[1]} | ({got[2]} if got[2] is not None else set())
+    return set()
+
+
 def top_apart(named, others_n: Optional[float]) -> str:
     """Boxes counted apart: "Keep 6 rainbow trout or steelhead and 4 other trout and char {day}" (`named`: [(n, fish
     words)] for each box named by its fish; `others_n` the box of the other trout and char, None when every box is
@@ -961,9 +986,10 @@ def parse_band(text: str) -> Tuple[str, float, Optional[int]]:
     if sz is not None:
         return "size", sz[0], sz[3]
     if band_total(text) is not None:
-        # (owner 00:52) "counts toward the 2 · only 1 between them": a shared band naming the overall limit first
+        # (owner 00:52) "counts toward the 2 · only 1 between them": a shared band naming the overall limit first; (01:22)
+        # a lone row's own cap the same way, "counts toward the 2 · only 1"
         got = parse_band(band_part(text))
-        if got[0] != "shared":
+        if got[0] not in ("shared", "own"):
             raise WordsError(f"trout words: cannot read the band {text!r}")
         return got
     for kind, pat in (("upto", rf"counts toward the {_NUM}"), ("possession", rf"only {_NUM} in your possession"),

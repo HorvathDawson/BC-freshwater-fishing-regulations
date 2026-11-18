@@ -60,6 +60,8 @@ RowKey = Annotated[StrictStr, Field(pattern=r"^(CT|DV|EB|GB|LT|RB|ST)(/(wild|hat
 
 class TopLine(Model):
     lead: Annotated[StrictStr, Field(min_length=1), AfterValidator(_lead)]
+    sub: Optional[Txt]                  # (trout 4, owner 2026-11-18 01:28) the exception under the general number: "or 4 if
+                                        # they’re hatchery rainbow trout 50 cm (20 in) or less" (the Vedder); null otherwise
     second: Optional[Txt]               # the cross-box limit (Lois, Khartoum: = TroutTable.together, same words) or the
                                         # lakes' own count (Echoes: "only 1 from both lakes together", together null)
 

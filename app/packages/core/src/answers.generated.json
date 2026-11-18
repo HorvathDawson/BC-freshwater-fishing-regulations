@@ -9541,10 +9541,23 @@
         }
        ],
        "title": "Second"
+      },
+      "sub": {
+       "anyOf": [
+        {
+         "minLength": 1,
+         "type": "string"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "title": "Sub"
       }
      },
      "required": [
       "lead",
+      "sub",
       "second"
      ],
      "title": "TopLine",
@@ -10183,10 +10196,23 @@
         }
        ],
        "title": "Second"
+      },
+      "sub": {
+       "anyOf": [
+        {
+         "minLength": 1,
+         "type": "string"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "title": "Sub"
       }
      },
      "required": [
       "lead",
+      "sub",
       "second"
      ],
      "title": "TopLine",

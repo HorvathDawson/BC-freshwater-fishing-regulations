@@ -200,10 +200,12 @@ def test_q2_a_raised_boxs_first_number_is_any_of(fx, monkeypatch):
     b = _box(fr)
     assert b["head"] == "Keep 5, brook trout up to 20"
     for r, x in zip(b["rows"], b["bands"]):
-        assert x["text"] == ("counts toward the 20" if r["fish"] == "EB" else "counts toward the 5"), r["key"]
+        # (owner 01:22, R2) a row's own cap in its band: the Dolly Varden's "counts toward the 5 · only 1"
+        want = "counts toward the 20" if r["fish"] == "EB" else "counts toward the 5"
+        assert x["text"] == want or W.band_total(x["text"]) == 5 and x["kind"] == "own", r["key"]
     _proof(fr)
     monkeypatch.setattr(T, "A_SHARED_BOX_NUMBER_IS_ANY_OF", False)
-    assert "counts toward the 5 · 5 total from these 5" in _bands(_box(fx.table("canuck-lake-jul15")))
+    assert "5 total from these 5" in _bands(_box(fx.table("canuck-lake-jul15")))   # the top line names the 5 (R3)
 
 
 # --------------------------------------------------------------------------------------------------- Q4: own line

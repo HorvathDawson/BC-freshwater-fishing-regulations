@@ -181,6 +181,12 @@ A_RAINBOW_ABOVE_STEELHEAD = True
 A_NO_ANY_LENGTH = True
 A_ANY_SIZE_UNSAID = True
 A_TOP_NAMES_A_FEW_OTHERS = True
+#: owner 2026-11-18 01:22 (the count column, R2/R3) and 01:28 (the Vedder's top line): a lone row's own cap is in its band
+#: ("counts toward the 2 · only 1"); a shared band's count the top line names is said without the box's number; a top
+#: line's exception sits on a subline (`TopLine.sub`). False = each pin
+A_OWN_CAP_IN_THE_BAND = True
+A_BAND_TOTAL_UNSAID_WHEN_TOP_NAMES_IT = True
+A_TOP_SUBLINE = True
 #: owner 2026-11-18, PENDING one more picture (Chilliwack Lake and the other five Region 2 lakes): a wild quota at or above
 #: the box's number never limits anything ("only 4 wild" in "Keep 4 in all"): unsaid. Off until the owner's picture
 WILD_QUOTA_AT_THE_BOX_NUMBER_UNSAID = False
@@ -1288,10 +1294,23 @@ class Body:
             return
         ex = W.parse_head_except(b["head"])
         for x in b["bands"]:
+            rows = b["rows"][x["from"]:x["to"] + 1]
+            fish = {r.fish for r in rows}
+            total = ex[0] if ex is not None and not fish & set(ex[1]) else b["n"]
+            if A_OWN_CAP_IN_THE_BAND and x["from"] == x["to"] and x["kind"] in ("own", "upto"):
+                # (owner 01:22, R2) a lone row's own cap is its band's: "counts toward the 2 · only 1" (Krumholtz's
+                # Dolly Varden), the row's "only 1" line gone
+                r = rows[0]
+                k = W.parse_band(x["text"])[1] if x["kind"] == "own" else min(
+                    (W.parse_row_line(t)[1] for t in r.lines if W.parse_row_line(t)[0] == "only"), default=None)
+                if k is None or k >= total:
+                    continue
+                r.lines = [t for t in r.lines if W.parse_row_line(t) != ("only", k)]
+                r.band = ("own", k, None)
+                x["kind"], x["text"] = "own", W.band_in(total, W.band_own(k))
+                continue
             if x["kind"] != "shared" or (x["from"] == 0 and x["to"] == len(b["rows"]) - 1):
                 continue
-            fish = {r.fish for r in b["rows"][x["from"]:x["to"] + 1]}
-            total = ex[0] if ex is not None and not fish & set(ex[1]) else b["n"]
             x["text"] = W.band_in(total, x["text"])
 
     @staticmethod
@@ -1551,6 +1570,18 @@ class Body:
 
     def _table(self) -> dict:
         lead, fold = self._top()
+        sub = None
+        if A_TOP_SUBLINE:
+            lead, sub = W.split_top(lead)
+        if A_BAND_TOTAL_UNSAID_WHEN_TOP_NAMES_IT:
+            # (owner 01:22, R3) a shared band's count the top line already names is said without "counts toward the N"
+            # (the Vedder's "2 total from these 6" under "Keep 2 trout and char {day}")
+            named = W.top_numbers(lead, sub)
+            for b in self.boxes:
+                for x in b["bands"]:
+                    if x["kind"] == "shared" and W.band_total(x["text"]) is not None \
+                            and W.parse_band(x["text"])[1] in named:
+                        x["text"] = W.band_part(x["text"])
         # `elsewhere` (ticket H): the card's kept-elsewhere lines (`group.worked`, `rows/groups.py elsewhere_of`) of every
         # keep box's group, in box order, under the app's "Fished elsewhere today? ›" (empty: no link). A line about
         # keeping HERE ("If you keep 4 hatchery rainbow trout here", `at` "here": a lifted kind past the stream share) is
@@ -1585,7 +1616,7 @@ class Body:
             if A_LAKES_LIMIT_SAID_ONCE and self.together["origin"] is None:
                 together = None                        # the lakes' count: once, under the top line (Echoes Lakes)
         marked = any(b["label"] for b in boxes) or any(r["label"] or r["origin"] for b in boxes for r in b["rows"])
-        return {"top": {"lead": lead, "second": second}, "fold": fold,
+        return {"top": {"lead": lead, "sub": sub, "second": second}, "fold": fold,
                 "hatch_link": marked, "boxes": tuple(boxes), "together": together, "year": None,
                 "elsewhere": tuple(dict.fromkeys(elsewhere)), "src": tuple(dict.fromkeys(src))}
 

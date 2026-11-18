@@ -143,9 +143,9 @@ def test_the_committed_mini_release_carries_the_section_all_or_nothing(tmp_path)
     rel = _release(under_test.mini())
     assert contract_problems(rel, tmp_path, every_file=False) == []
     m, open_ = _files(rel, tmp_path)
-    assert m["regulations"]["versions"]["trout"] == 3 and m["regulations"]["versions"]["rows"] == 34
+    assert m["regulations"]["versions"]["trout"] == 4 and m["regulations"]["versions"]["rows"] == 34
     layout = json.loads(dict(open_("water").execute("SELECT k, v FROM meta"))["layout"])
-    assert layout["versions"]["trout"] == 3
+    assert layout["versions"]["trout"] == 4
     for r in SH.REGIONS:
         assert m["files"][f"regs-{r}"]["format"] == "regs-region/2"
         con = open_(f"regs-{r}")

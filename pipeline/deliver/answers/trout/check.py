@@ -200,7 +200,7 @@ class Table:
         self.cell = cell
         t = cell["table"]
         self.t = t
-        self.top = W.parse_top_full(t["top"]["lead"])
+        self.top = W.parse_top_full(W.join_top(t["top"]["lead"], t["top"].get("sub")))
         self.fold = W.parse_fold(t["fold"]["value"])
         self.together = W.parse_together(t["together"]["text"]) if t["together"] else None
         self.together_text = t["together"]["text"] if t["together"] else None
@@ -239,7 +239,7 @@ class Table:
                 if kind_ != x["kind"]:
                     raise _Fail(f"box {bi}: band {x['text']!r} is marked {x['kind']}")
                 total = W.band_total(x["text"])
-                if kind_ == "shared" and total is not None:
+                if kind_ in ("shared", "own") and total is not None:
                     # (owner 00:52) the overall limit the band names first: the box's, or a raised box's first number
                     ex = W.parse_head_except(b["head"])
                     if total != n and not (ex is not None and total == ex[0]):
@@ -967,7 +967,7 @@ def sheet_problems(c: Cell, T: Table) -> List[str]:
             probs.append(f"{where}: head {sh['head']!r} on a {r.kind} row")
         elif r.kind == "keep":
             band = next(x["text"] for x in r.box["bands"] if x["from"] <= r.i <= x["to"])
-            total = W.band_total(band) if W.parse_band(band)[0] == "shared" else None
+            total = W.band_total(band) if W.parse_band(band)[0] in ("shared", "own") else None
             if total is not None:
                 ok = head[2] == total and head[1] == W.band_part(band)
             else:

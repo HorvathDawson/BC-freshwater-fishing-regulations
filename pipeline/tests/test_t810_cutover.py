@@ -665,6 +665,36 @@ def test_three_misleading_forms_read_plainly(request, monkeypatch, flag):
     assert not forms(got)[flag]
 
 
+@pytest.mark.needs_bundle
+@pytest.mark.parametrize("flag", ["A_OWN_CAP_IN_THE_BAND", "A_BAND_TOTAL_UNSAID_WHEN_TOP_NAMES_IT", "A_TOP_SUBLINE"])
+def test_the_count_column_and_the_vedders_top_line(request, monkeypatch, flag):
+    """Owner 2026-11-18 01:22 (R2, R3) and 01:28: a Region 4 stream's Dolly Varden "counts toward the 2 · only 1" (its
+    row's "only 1" gone); the Vedder's "2 total from these 6" without "counts toward the 4" (the top line names the 2);
+    its top line "Keep 2 trout and char {day}" with the subline "or 4 if they’re hatchery rainbow trout 50 cm (20 in)
+    or less". J proves each. Mutation: each pin off brings its old form back."""
+    from pipeline.deliver.answers.trout import table as TT
+    names = ("Vedder River", "Bugaboo Creek")
+
+    def forms(got):
+        v = got["Vedder River"]["table"]
+        r4 = next(b for b in _r4(got)["table"]["boxes"] if b["kind"] == "keep")
+        dv = next(i for i, r in enumerate(r4["rows"]) if r["key"] == "DV")
+        band = next(x for x in r4["bands"] if x["from"] <= dv <= x["to"])
+        vb = next(b for b in v["boxes"] if b["kind"] == "keep")
+        return {"A_OWN_CAP_IN_THE_BAND": band["text"] == "counts toward the 2 · only 1"
+                and "only 1" not in r4["rows"][dv]["lines"],
+                "A_BAND_TOTAL_UNSAID_WHEN_TOP_NAMES_IT": "2 total from these 6" in [x["text"] for x in vb["bands"]],
+                "A_TOP_SUBLINE": (v["top"]["lead"], v["top"]["sub"]) == (
+                    "Keep 2 trout and char {day}", "or 4 if they’re hatchery rainbow trout 50 cm (20 in) or less")}
+    got, m, bundle, data = _live_tables(request, names, md=(7, 1))
+    assert all(forms(got).values()), forms(got)
+    ks = sorted({k for k, cells in enumerate(m.sections["trout"]) if any(c is not None for c in cells)})
+    assert J.check_model(m, bundle, data, keys=ks, log=lambda *_: None)["problems"] == []
+    monkeypatch.setattr(TT, flag, False)
+    got, *_ = _live_tables(request, names, md=(7, 1))
+    assert not forms(got)[flag]
+
+
 def _bowron(got):                                      # Istsi Creek, Jan 1-Mar 31: Bowron Lake Park's 1 trout/char
     return next(c for c in got["Istsi Creek (all parts)"] if c is not None)
 
