@@ -145,21 +145,21 @@ describe("T45 the Regulations view on a wide screen, laid out in Chrome", () => 
     expect(Object.fromEntries(Object.entries(m).map(([k, v]) => [k, `${v.page.join("–")} body ${v.longest} note ${v.note}`])))
       .toMatchInlineSnapshot(`
         {
-          "bc1_501 desktop 1280": "492–1052 body 71 note 99",
-          "bc1_501 desktop 1440": "572–1132 body 71 note 99",
-          "bc1_501 phone 390": "0–390 body 45 note 66",
-          "bc1_501 tablet 1024": "232–792 body 71 note 99",
-          "bc1_501 tablet 900": "170–730 body 71 note 99",
-          "klwa_1010 desktop 1280": "492–1052 body 63 note 99",
-          "klwa_1010 desktop 1440": "572–1132 body 63 note 99",
-          "klwa_1010 phone 390": "0–390 body 48 note 66",
-          "klwa_1010 tablet 1024": "232–792 body 63 note 99",
-          "klwa_1010 tablet 900": "170–730 body 63 note 99",
-          "vedder_1010 desktop 1280": "492–1052 body 77 note 99",
-          "vedder_1010 desktop 1440": "572–1132 body 77 note 99",
-          "vedder_1010 phone 390": "0–390 body 54 note 67",
-          "vedder_1010 tablet 1024": "232–792 body 77 note 99",
-          "vedder_1010 tablet 900": "170–730 body 77 note 99",
+          "bc1_501 desktop 1280": "492–1052 body 45 note 99",
+          "bc1_501 desktop 1440": "572–1132 body 45 note 99",
+          "bc1_501 phone 390": "0–390 body 25 note 66",
+          "bc1_501 tablet 1024": "232–792 body 45 note 99",
+          "bc1_501 tablet 900": "170–730 body 45 note 99",
+          "klwa_1010 desktop 1280": "492–1052 body 39 note 99",
+          "klwa_1010 desktop 1440": "572–1132 body 39 note 99",
+          "klwa_1010 phone 390": "0–390 body 25 note 66",
+          "klwa_1010 tablet 1024": "232–792 body 39 note 99",
+          "klwa_1010 tablet 900": "170–730 body 39 note 99",
+          "vedder_1010 desktop 1280": "492–1052 body 73 note 99",
+          "vedder_1010 desktop 1440": "572–1132 body 73 note 99",
+          "vedder_1010 phone 390": "0–390 body 54 note 66",
+          "vedder_1010 tablet 1024": "232–792 body 73 note 99",
+          "vedder_1010 tablet 900": "170–730 body 73 note 99",
         }
       `);
   }, 180_000);
@@ -170,10 +170,10 @@ describe("T45 the Regulations view on a wide screen, laid out in Chrome", () => 
       // (the line's words dropped from each problem: the count and where are the claim)
       expect(problems(measure()).map((p) => p.replace(/ characters: .*$/, " characters"))).toMatchInlineSnapshot(`
         [
-          "vedder_1010 tablet 900: a line of 114 characters",
-          "vedder_1010 tablet 1024: a line of 122 characters",
-          "vedder_1010 desktop 1280: a line of 122 characters",
-          "vedder_1010 desktop 1440: a line of 122 characters",
+          "vedder_1010 tablet 900: a line of 104 characters",
+          "vedder_1010 tablet 1024: a line of 104 characters",
+          "vedder_1010 desktop 1280: a line of 104 characters",
+          "vedder_1010 desktop 1440: a line of 104 characters",
         ]
       `);
     } finally { MUTANT.on = false; }

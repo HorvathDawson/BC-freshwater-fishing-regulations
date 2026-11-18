@@ -33,8 +33,10 @@ const BAND_W = 112;
 const TILE = { w: 64, h: 32 } as const;
 
 /** the two text sizes (spec 3.2), the fish's name above them */
+//   (T810 cutover) both on the page's own type scale (style-tokens: 12.5 / 15 / 17 / 26): now = the page's bold body,
+//   next = its meta line, so the table adds no size of its own
 const NAME = TYPE.regsBodySemi;
-const NOW = TYPE.legend;
+const NOW = TYPE.regsBodyBold;
 const NEXT = TYPE.meta;
 
 /** A row's picture: the fish's look (`source`, none: a plain tile), what it opens and its name for a screen reader. */
@@ -72,12 +74,13 @@ const rowLabel = (r: KeepRowVM, band: readonly string[]) =>
     .reduce((out, x) => (out ? `${out}${/[.!?]$/.test(out) ? " " : ". "}${x}` : x), "");
 
 /** The filled label ("Hatchery only"), or (`outline`) the same badge drawn as an outline. Both carry a 1 px border in
- *  the ink, so the two are one size; the word is the payload's, drawn as is (the pill face sets it in capitals). */
+ *  the ink, so the two are one size; the word is the payload's, drawn as is (the kicker face sets it in capitals: the
+ *  page's label type, `kicker:badge`, so the table adds no size and its capitals are a label's). */
 function Label({ text, palette, outline = false, testID = "keep-label" }: { text: string; palette: Palette; outline?: boolean; testID?: string }) {
   return (
     <View testID={testID} style={{ backgroundColor: outline ? "transparent" : palette.ink, borderWidth: 1, borderColor: palette.ink,
                                    paddingHorizontal: 5, paddingVertical: 1, alignSelf: "center" }}>
-      <Text style={{ ...TYPE.pill, fontSize: 11, color: outline ? palette.ink : palette.card }}>{text}</Text>
+      <Text testID="kicker:badge" style={{ ...TYPE.kicker, color: outline ? palette.ink : palette.card }}>{text}</Text>
     </View>
   );
 }
@@ -87,36 +90,40 @@ function Label({ text, palette, outline = false, testID = "keep-label" }: { text
 const OriginBadge = ({ origin, palette }: { origin: string; palette: Palette }) =>
   <Label text={origin} palette={palette} outline={origin !== "hatchery"} testID="keep-origin" />;
 
+/** The row's picture on the ground it sits on (the palette gate's rule 8: a picture paints no surface of its own), or the
+ *  group's mark. Not a press: the whole row is (`Row`). */
 function Tile({ pic, mark, faded, palette }: { pic: KeepPic | null; mark: { s: string; colour: string } | null; faded: boolean; palette: Palette }) {
-  const ground = (
-    <View style={{ width: TILE.w, height: TILE.h, backgroundColor: palette.tint, alignItems: "center", justifyContent: "center" }}>
+  return (
+    <View testID={pic?.testID} style={{ minHeight: 44, paddingTop: 4 }}>
+    <View style={{ width: TILE.w, height: TILE.h, alignItems: "center", justifyContent: "center" }}>
       {pic?.source ? <Image testID="keep-look" source={pic.source} style={{ width: TILE.w, height: TILE.h, opacity: faded ? 0.6 : 1 }}
                             resizeMode="contain" accessibilityIgnoresInvertColors />
         : pic ? <View testID="keep-look" style={{ width: TILE.w, height: TILE.h, backgroundColor: palette.line2, opacity: faded ? 0.6 : 1 }} />
         : mark ? <Text aria-hidden style={{ ...TYPE.regsBodyBold, color: mark.colour }}>{mark.s}</Text> : null}
-      {pic?.more && (
-        <View style={{ position: "absolute", right: 0, bottom: 0, backgroundColor: palette.card, paddingHorizontal: 3 }}>
+      {pic?.more && pic.onPress && (
+        <View style={{ position: "absolute", right: 0, bottom: 0, paddingHorizontal: 3 }}>
           <Text aria-hidden style={{ ...TYPE.metaSemi, color: palette.sub }}>{pic.more}</Text>
         </View>
       )}
     </View>
+    </View>
   );
-  return pic?.onPress ? (
-    <RegsPress testID={pic.testID} accessibilityRole="button" accessibilityLabel={pic.label} box={{ w: TILE.w, h: 44 }}
-               onPress={pic.onPress} style={{ minHeight: 44, paddingTop: 4 }}>{ground}</RegsPress>
-  ) : <View testID={pic?.testID} style={{ minHeight: 44, paddingTop: 4 }}>{ground}</View>;
 }
 
-/** One row: picture, then the name (with its filled label), sub, today's lines, the quiet lines, the row's date. */
+/** One row: picture, then the name (with its filled label), sub, today's lines, the quiet lines, the row's date. A row
+ *  whose picture opens a sheet IS the press (build spec P: "Opened from a row press"), named by its one label (contract
+ *  2.8, N's golden), so the label holds only the press's own words (a11y: no label over text outside a press); a row
+ *  that opens nothing carries no label and its texts read one by one. */
 function Row({ r, palette, faded, mark, first, under, band, testID }: {
   r: KeepRowVM; palette: Palette; faded: boolean; mark: { s: string; colour: string } | null; first: boolean;
   /** (large text) the band's words, drawn as bold lines under this row, with their date */
   under: readonly KeepBandVM[]; band: readonly string[]; testID: string }) {
-  return (
-    <View testID={testID} style={{ flexDirection: "row", columnGap: 6, paddingVertical: 4, paddingLeft: 4, minHeight: 44,
-                                   ...(first ? {} : { borderTopWidth: 1, borderTopColor: palette.line }) }}>
+  const style = { flexDirection: "row", columnGap: 6, paddingVertical: 4, paddingLeft: 4, minHeight: 44,
+                  ...(first ? {} : { borderTopWidth: 1, borderTopColor: palette.line }) } as const;
+  const body = (
+    <>
       <Tile pic={r.pic} mark={mark} faded={faded} palette={palette} />
-      <View role="group" accessible aria-label={r.a11y ?? rowLabel(r, band)} style={{ flex: 1, minWidth: 0, paddingVertical: 2, paddingRight: 8 }}>
+      <View style={{ flex: 1, minWidth: 0, paddingVertical: 2, paddingRight: 8 }}>
         <View style={{ flexDirection: "row", flexWrap: "wrap", alignItems: "center", columnGap: 6, rowGap: 2 }}>
           <Text testID="keep-name" style={{ ...NAME, ...(faded ? { fontFamily: TYPE.regsBody.fontFamily } : {}), color: palette.ink }}>{r.name}</Text>
           {r.origin && <OriginBadge origin={r.origin} palette={palette} />}
@@ -133,8 +140,12 @@ function Row({ r, palette, faded, mark, first, under, band, testID }: {
           </View>
         ))}
       </View>
-    </View>
+    </>
   );
+  return r.pic?.onPress ? (
+    <RegsPress testID={testID} accessibilityRole="button" accessibilityLabel={r.a11y ?? rowLabel(r, band)} box={{ w: TILE.w, h: 44 }}
+               onPress={r.pic.onPress} style={style}>{body}</RegsPress>
+  ) : <View testID={testID} style={style}>{body}</View>;
 }
 
 /** The right band's cell: a white box (own / shared / possession) or the free words of an "up to the N" band. */
@@ -182,12 +193,12 @@ export function KeepBox({ head, label, strip, possession = null, tag, notes = []
   return (
     <View testID={testID} style={{ backgroundColor: palette.tint, paddingLeft: 8, paddingBottom: 8, marginTop: 6 }}>
       {hasStrip ? (
-        <View testID="keep-strip" style={{ paddingTop: 7, paddingBottom: 8, paddingRight: 9, paddingLeft: 1 }}>
+        <View testID="box-strip" style={{ paddingTop: 7, paddingBottom: 8, paddingRight: 9, paddingLeft: 1 }}>
           <View style={{ flexDirection: "row", flexWrap: "wrap", alignItems: "center", columnGap: 6, rowGap: 2 }}>
             {head && <Text selectable testID="keep-head" style={{ ...NOW, color: palette.ink }}>{head}</Text>}
             {label && <Label text={label} palette={palette} />}
             {strip && <Text selectable testID="keep-strip-text" style={{ ...NOW, color: palette.ink }}>{strip}</Text>}
-            {tag && <Text testID="keep-tag" style={{ ...TYPE.chip, color: palette.accent, borderWidth: 1, borderColor: palette.accent, paddingHorizontal: 5 }}>{tag}</Text>}
+            {tag && <View testID="keep-tag" style={{ borderWidth: 1, borderColor: palette.accent, paddingHorizontal: 5 }}><Text testID="kicker:tag" style={{ ...TYPE.kicker, color: palette.accent }}>{tag}</Text></View>}
           </View>
           {possession && <Text selectable testID="keep-possession" style={{ ...NOW, color: palette.ink, marginTop: 2 }}>{possession}</Text>}
           {notes.map((l) => <Text selectable key={l} testID="keep-strip-note" style={{ ...NOW, color: palette.ink, marginTop: 2 }}>{l}</Text>)}
@@ -198,7 +209,7 @@ export function KeepBox({ head, label, strip, possession = null, tag, notes = []
         const its = rows.slice(g.from, g.to + 1);
         const shared = g.to > g.from;
         return (
-          <View key={`${g.from}`} testID="keep-group" style={{ flexDirection: "row", ...(gi ? { borderTopWidth: 1, borderTopColor: palette.line } : {}) }}>
+          <View key={`${g.from}`} testID="box-group" style={{ flexDirection: "row", ...(gi ? { borderTopWidth: 1, borderTopColor: palette.line } : {}) }}>
             <View style={{ flex: 1, minWidth: 0, backgroundColor: palette.card,
                            ...(folded && shared ? { borderLeftWidth: 3, borderLeftColor: palette.line2 } : {}) }}>
               {its.map((r, k) => (
@@ -230,7 +241,9 @@ export function ShutGroup({ kind, head, date, rows, palette, testID = `keep-${ki
   const word = (
     <View testID="keep-col">
       <Text testID="keep-col-word" style={{ ...NOW, fontFamily: TYPE.regsBodyBold.fontFamily, color: colour }}>
-        {mark ? `${mark} ` : ""}{head}
+        {/* the release / closed word is a status word, as the old card's (`st:<kind>`, palette rule 3; rule 9 bold) */}
+        {kind === "other" ? `${head}` : <Text testID={`st:${kind}`} style={{ ...NOW, fontFamily: TYPE.regsBodyBold.fontFamily, color: colour }}>
+          {mark ? `${mark} ` : ""}{head}</Text>}
       </Text>
       {date && <Text selectable testID="keep-col-date" style={{ ...NEXT, color: palette.sub, marginTop: 2 }}>{date}</Text>}
     </View>

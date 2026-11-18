@@ -8,7 +8,8 @@
  * head fails the two head cases (the frame would open under the head, cutting Glenn's F4 line); `blockOf` returning
  * the head for every row fails "ST" (the steelhead row is not the first in its box).
  *
- * (T810 R) The same functions over the trout table (`TroutCard`, behind the dev switch until the cutover), so the browser
+ * (T810 cutover) Since the cutover no Keep tab draws the group card: the old-card cases are retired (see below).
+ * (T810 R) The same functions over the trout table (`TroutCard`), so the browser
  * tools hold before (the old card) and after (the table) with no flag: a table row is the `keep-row` whose picture is
  * `pic:<code>` or a twin's `pic:<code>/<origin>`; a row that opens its keep box or its release group frames that whole
  * block; `cardGroups` never counts KeepBox's own `keep-group` (a band of rows) as a group card; `IN_PAGE` (the source the
@@ -22,43 +23,20 @@ import { TroutCard } from "./TroutCard";
 import vectors from "../../../../fixtures/trout/trout-vectors.generated.json";
 import { LIGHT } from "../theme";
 // @ts-expect-error — a plain .mjs module of the node tools (no declaration file)
-import { HEAD_ID, IN_PAGE, ROW_ID, blockOf, cardGroups, rowOf, troutShown } from "../../../../tools/regs-web/rows.mjs";
+import { IN_PAGE, blockOf, cardGroups, rowOf, troutShown } from "../../../../tools/regs-web/rows.mjs";
 import vedder1010 from "./fixtures/vedder_1010.json";
-import glenn615 from "./fixtures/glenn_615.json";
 
 afterEach(cleanup);
 
 const mount = (f: unknown) => render(<KeepTab keep={(f as RegsPage).keep as KeepVM} dateLabel="Oct 10" palette={LIGHT}
                                               actions={{ onSheet() {}, onDay() {}, onTab() {}, onBook() {} }} />).container;
 const picsOf = (row: Element) => [...row.querySelectorAll("[data-testid^='pic:']")].map((p) => p.getAttribute("data-testid"));
-const words = (e: Element) => e.textContent!.replace(/\s/g, " ");   // the chips' spaces are no-break
 
 describe("row frame target (T138)", () => {
-  it("every Keep row is a krow; each holds only its own pictures", () => {
-    const c = mount(vedder1010);
-    expect([ROW_ID, HEAD_ID]).toEqual(["krow", "khead"]);
-    expect([...c.querySelectorAll("[data-testid='krow']")].map(picsOf)).toEqual([["pic:EB", "pic:GB", "pic:CT"], ["pic:DV", "pic:LT"], ["pic:ST"], ["pic:RB"]]);
-  });
-  it("RB (Vedder): the rainbow row, opened by its own tier head — not the steelhead row, the box or the group's body", () => {
-    const c = mount(vedder1010), row = rowOf(c, "RB") as Element;
-    expect(row).toBe(c.querySelector("[data-testid='pic:RB']")!.closest("[data-testid='krow']"));
-    expect(words(row)).toBe("50 cm (20 in) or lessRainbow trout ›");
-    const block = blockOf(row) as Element;
-    expect(block.getAttribute("data-testid")).toBe("khead");
-    // T479: the own tier's "Exception to regional quota" kicker heads its block
-    expect(words(block)).toMatch(/^Exception to regional quotaThis river’s rule: up to 4 hatchery rainbow trout a day/);
-  });
-  it("ST (Vedder): the steelhead row itself — the second row in its box, so not the box head", () => {
-    const row = rowOf(mount(vedder1010), "ST") as Element;
-    expect(picsOf(row)).toEqual(["pic:ST"]);
-    expect(blockOf(row)).toBe(row);
-    expect(words(row)).not.toMatch(/Of these, only/);
-  });
-  it("RB (Glenn Jun 15): the Duncan River's tier head, which says why another river's rule applies (reader F4)", () => {
-    const block = blockOf(rowOf(mount(glenn615), "RB")) as Element;
-    expect(block.getAttribute("data-testid")).toBe("khead");
-    expect(words(block)).toMatch(/Duncan River’s rule: up to 5 rainbow trout a day.*Its row covers its tributaries, so it applies here/);
-  });
+  // (T810 cutover) retired, the four old-card cases over the Vedder and Glenn ("every Keep row is a krow …", "RB (Vedder):
+  // … its own tier head", "ST (Vedder): …", "RB (Glenn Jun 15): the Duncan River's tier head …"): no Keep tab draws the
+  // group card since the cutover, so no page has a `krow` or `khead`. The same targets over the table are the "(T810 R)"
+  // cases below (a row, its keep box, its release group, a twin), and the Vedder's rainbow row through the in-page copy
   it("a fish with no row on the page: null (the shooter throws, naming it)", () => {
     expect(rowOf(mount(vedder1010), "ZZ")).toBeNull();
   });
@@ -98,14 +76,13 @@ describe("(T810 R) the same targets over the trout table", () => {
   });
   it("cardGroups: the old cards' articles, never a KeepBox band; troutShown names what the screen shows", () => {
     const t = table("fraser-r2-mission-jul15");
-    expect(t.querySelectorAll("[data-testid='keep-group']").length).toBeGreaterThan(0);
+    expect(t.querySelectorAll("[data-testid='box-group']").length).toBeGreaterThan(0);   // KeepBox's bands of rows
     expect(cardGroups(t)).toEqual([]);
     expect(troutShown(t)).toBe("table");
     cleanup();
+    // (T810 cutover) the Vedder's real page: the table, and no group card (no Keep tab draws one since the cutover)
     const v = mount(vedder1010);
-    expect(cardGroups(v).length).toBe(v.querySelectorAll("[data-testid='keep-group']").length);
-    expect(cardGroups(v).length).toBeGreaterThan(0);
-    expect(troutShown(v)).toBe("card");
+    expect([cardGroups(v), troutShown(v), rowOf(v, "RB") === null]).toEqual([[], "table", false]);
   });
   it("IN_PAGE (the walk's in-page copy) answers as the module", () => {
     const page = new Function(`${IN_PAGE}\nreturn { rowOf, blockOf, cardGroups, troutShown };`)() as

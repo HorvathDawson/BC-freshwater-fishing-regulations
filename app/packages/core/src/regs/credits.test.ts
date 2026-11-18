@@ -53,6 +53,17 @@ describe("creditsFor", () => {
     expect(creditsFor(page({ groups: [[pic("RB")]] }), FISH, lines)).toEqual(["RB credit"]);
     expect(creditsFor(page({ groups: [[pic("RB")]] }), { ...FISH, RB: [] }, lines)).toEqual([]);
   });
+  it("(T810 cutover) the trout table: each row's fish, and the pictures its fish sheet (`tf:<row key>`) opens", () => {
+    const base = page({ sheets: { "tf:ST/hatchery": [{ k: "image", code: "DV" } as unknown as SheetBlock] } });
+    const p = { ...base, keep: { ...base.keep, trout: { kind: "table", boxes: [{ rows: [{ key: "RB", fish: "RB" }, { key: "ST/hatchery", fish: "ST" }] }] } } } as unknown as RegsPage;
+    expect(creditsFor(p)).toEqual([
+      "Bull trout — Joel Sartore / National Geographic (Commons)", "Dolly Varden — WDFW (eRegulations WA)",
+      "Rainbow trout — Freshwater Fisheries Society of BC (GoFishBC)",
+      "Steelhead · ocean — Freshwater Fisheries Society of BC (GoFishBC)", "Steelhead · spawning — WDFW (eRegulations WA)",
+    ]);
+    // mutation: a table not drawn (null) credits none of its fish
+    expect(creditsFor({ ...p, keep: { ...p.keep, trout: null } } as unknown as RegsPage)).toEqual([]);
+  });
   it("a frozen page with no sheet function (a render fixture) reads its Keep alone", () => {
     const p = { ...page({ groups: [[pic("RB")]] }), sheet: undefined } as unknown as RegsPage;
     expect(creditsFor(p)).toEqual(["Rainbow trout — Freshwater Fisheries Society of BC (GoFishBC)"]);

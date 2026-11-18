@@ -105,8 +105,11 @@ describe.each(THEMES)("%s palette: every tab of the frozen pages", (_name, palet
   it("the gate is not vacuous: status words, numbers, chips, filled buttons and pictures were all censused", () => {
     const all = Object.keys(PAGES).map(of);
     const sum = (k: string) => all.reduce((a, d) => a + (d.roles[k] ?? 0), 0);
-    expect([sum("status") > 20, sum("number") > 20, sum("chip") > 10, sum("button") >= 12, all.reduce((a, d) => a + d.pics, 0) >= 12])
-      .toEqual([true, true, true, true, true]);
+    // (T810 cutover) the old trout card's numbers (`n:` runs) and size chips went with it: these states' trout words are
+    // the table's payload sentences, so rule 5 has no subject on them and the size chips are few. Rule 5 is held by the
+    // pin bar case below (its three numbers) and its mutant; rule 6 by the chips left and its mutant
+    expect([sum("status") > 20, sum("chip") > 0, sum("button") >= 12, all.reduce((a, d) => a + d.pics, 0) >= 12])
+      .toEqual([true, true, true, true]);
   });
 
   it("the pin bar: one surface (the card's), its numbers in ink and the size line's in the rule", () => {
@@ -122,7 +125,9 @@ describe("the dark census, measured (light beside it): each tab's text colours, 
   // the prototype's census at v38 (check.mjs r20g BOUND, tokens.json .census): Keep 7 (ink sub accent open closed
   // restricted rule), Gear 5, Methods 5, Licence 4 — the same in light and dark
   const want = (licenceFilled: "onAccent" | "card") => ({
-    keep: ["accent", "closed", "ink", "open", "restricted", "rule", "sub"],
+    // (T810 cutover) the trout table's filled badge (ALLOW `kicker:badge`) brings the filled colour; the size section's
+    // `rule` went with the old trout card. Still 7
+    keep: ["accent", "closed", "ink", licenceFilled, "open", "restricted", "sub"].sort(),
     gear: ["accent", "closed", "ink", "open", "sub"],
     methods: ["accent", "closed", "ink", "open", "sub"],
     licence: ["accent", "ink", licenceFilled, "sub"].sort(),
@@ -141,7 +146,7 @@ describe("the gate reads the palette, never a hex (T47 swaps the status colours 
     const moved: Palette = { ...LIGHT, open: CVD.open, closed: CVD.closed, restricted: CVD.restricted };
     const d = drawPage(PAGES.vedder_1010!, moved);
     expect(RULES.flatMap((r) => d.faults[r])).toEqual([]);
-    expect(d.colours.keep).toEqual(["accent", "closed", "ink", "open", "restricted", "rule", "sub"]);
+    expect(d.colours.keep).toEqual(["accent", "closed", "ink", "onAccent", "open", "restricted", "sub"]);
   });
 });
 
@@ -203,7 +208,8 @@ describe("each rule fails its mutant", () => {
     expect(borderFaults(bad, P)).toEqual(["a restricted left rule on keep-somewhere “Some times”"]);
     cleanup();
     expect(borderFaults(tree(<View testID="keep-caveat" style={rule}><Text testID="kicker:times" style={{ color: P.sub }}>Some times</Text></View>), P)).toEqual([]);
-    expect(ALLOW.map((a) => [a.testID, a.rule, a.side ?? null])).toEqual([["keep-caveat", "border", "left"], ["keep-banner", "border", "top"], ["note:paper", "tint", null]]);
+    expect(ALLOW.map((a) => [a.testID, a.rule, a.side ?? null])).toEqual([["keep-caveat", "border", "left"], ["keep-banner", "border", "top"], ["note:paper", "tint", null],
+      ["kicker:badge", "filled", null]]);
   });
 
   it("3 status (rules): a key excuses its own element and side only — never what it holds (P11: a closed rule on a banner chain row)", () => {
@@ -224,6 +230,12 @@ describe("each rule fails its mutant", () => {
     expect(textFaults(tree(<T c={DARK.card} s="16 or older" />), DARK, "licence").filled).toEqual(["licence: card text off a filled control: “16 or older”"]);
     cleanup();
     expect(textFaults(tree(<View testID="btn:adult"><T c={DARK.card} s="16 or older" /></View>), DARK, "licence").filled).toEqual([]);
+    cleanup();
+    // (T810) the keyed badge excuses its own word only: the same card word one element down is still a fault
+    expect(textFaults(tree(<T c={DARK.card} s="Hatchery only" id="kicker:badge" />), DARK, "keep").filled).toEqual([]);
+    cleanup();
+    expect(textFaults(tree(<View testID="kicker:badge"><T c={DARK.card} s="Hatchery only" /></View>), DARK, "keep").filled)
+      .toEqual(["keep: card text off a filled control: “Hatchery only”"]);
   });
 
   it("5 number: a number in sub; the rule colour only inside the size section", () => {

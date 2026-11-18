@@ -105,9 +105,12 @@ describe("the Salmon card", () => {
     expect(texts("keep-col-word")).toEqual(["✕ Closed"]);
     // (T828) DFO's words for the rows are in the source fold, closed by default
     expect(screen.queryAllByTestId("salmon-says-line")).toEqual([]);
-    expect(screen.getAllByTestId("keep-look").length).toBe(5);
-    expect([screen.getByTestId("pic:CO").getAttribute("aria-label"), screen.getByTestId("pic:CO").textContent])
-      .toEqual(["Coho salmon — what it looks like", "›"]);
+    // (T810 cutover) the card's own pictures (the page's trout table draws its own), and a row is its press: the picture
+    // opens the species sheet through it, the row's one label its name
+    expect(within(el).getAllByTestId("keep-look").length).toBe(5);
+    const co = within(el).getByTestId("pic:CO").closest("[data-testid='keep-row']")!;
+    expect([co.getAttribute("role"), co.getAttribute("aria-label")!.split(". ")[0], within(el).getByTestId("pic:CO").textContent])
+      .toEqual(["button", "Coho", "›"]);
     expect(screen.getByTestId("salmon-card-block-gear").textContent).toBe("No natural bait allowed (Jan 1–Dec 31)");
     // (T482) DFO's source block is a fold, closed by default: its summary only, then everything on a press
     const summary = screen.getByTestId("salmon-source-summary");

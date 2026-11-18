@@ -10,15 +10,14 @@
 // `pic:<row key>` (the fish code, or `<code>/<origin>` for a twin: `pic:ST/hatchery`), inside a keep box
 // (`trout-box:<i>`) or a release / closed group (`trout-release`, `trout-closed`). The selectors match WHATEVER THE
 // SCREEN SHOWS: the old group card's `krow` first, else the table's row; so they hold before the cutover (switch off:
-// the old card) and after it (the table), with no flag. The table's `keep-group` / `keep-strip` are KeepBox's own (a
-// band of rows, the box's strip), not a group card's: `cardGroups` leaves them out.
-export const ROW_ID = 'krow';
-export const HEAD_ID = 'khead';
+// the old card) and after it (the table), with no flag. KeepBox's own bands and strip are `box-group` / `box-strip`
+// (T810 cutover; they were `keep-group` / `keep-strip`), never a group card's: `cardGroups` leaves any inside a box out.
+// the old group card's row and tier-head ids ('krow', 'khead': GroupCard, now drawn only in an Other fish sheet)
 export const TABLE_ID = 'keep-trout';
 export const TABLE_ROW_ID = 'keep-row';
 /** a trout table block (a keep box, or the release / closed group) */
 export const TABLE_BLOCK = '[data-testid^="trout-box:"], [data-testid="trout-release"], [data-testid="trout-closed"]';
-/** any KeepBox (the salmon card's `keep-box` too): its `keep-group` is a band of rows, never a group card */
+/** any KeepBox (the salmon card's `keep-box` too): its bands of rows are never a group card */
 export const KEEP_BOX = '[data-testid="keep-box"], [data-testid^="trout-box:"]';
 
 /** the first `krow` under `root` whose pictures include `pic:<code>`, else the trout table's row of that fish

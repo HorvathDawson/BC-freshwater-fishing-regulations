@@ -30,14 +30,16 @@ function mount(keep: KeepVM) {
   const sheets: SheetKey[] = [], books: number[] = [];
   const actions: KeepActions = { onSheet: (k) => sheets.push(k), onDay() {}, onTab() {}, onBook: (p) => books.push(p) };
   const r = render(<KeepTab keep={keep} dateLabel="Oct 10" palette={LIGHT} actions={actions} />);
-  const drawn = [...r.container.querySelectorAll("[data-testid^='keep-']")].map((e) => e.getAttribute("data-testid")).filter((t) => t !== "keep-tab");
+  // the tab's own blocks (T810 cutover: the trout table inside its block carries `keep-*` ids of its own: KeepBox's rows)
+  const drawn = [...r.container.querySelector("[data-testid='keep-tab']")!.children].map((e) => e.getAttribute("data-testid"))
+    .filter((t): t is string => !!t && t.startsWith("keep-"));
   return { r, sheets, books, drawn };
 }
 
 describe("<KeepTab> over the frozen pages", () => {
-  it("vedder_1010: the blocks in keep.order — strip, the group, Other fish, possession, where-not", () => {
+  it("vedder_1010: the blocks in keep.order — strip, the trout table, Other fish, possession, where-not", () => {
     const keep = keepOf(vedder1010), { drawn } = mount(keep);
-    expect(drawn).toEqual(["keep-strip", "keep-group", "keep-otherfish", "keep-possession", "keep-wherenot"]);
+    expect(drawn).toEqual(["keep-strip", "keep-trout", "keep-otherfish", "keep-possession", "keep-wherenot"]);
     expect(drawn).toEqual(keep.order.map(idOf));
     expect(screen.getByTestId("keep-possession").textContent).toBe("Possession2 days’ quota›");
   });
@@ -67,24 +69,16 @@ describe("<KeepTab> over the frozen pages", () => {
       + "Trout Lake’s row, nearer this stream, prints no such exemption; the Duncan River’s is applied here because its row covers all its tributaries.");
   });
 
-  it("glenn_501: the group's year window under its head block, before the tree (prototype .gyear)", () => {
-    const keep = keepOf(glenn501);
-    mount(keep);
-    const y = screen.getByTestId("keep-group-year");
-    expect(y.textContent).toBe("Through the yearYou can keep them until Oct 31. Then release only Nov 1–Mar 31. You can keep them from Apr 1 next year.");
-    expect(keep.groups[0]!.year).toEqual({ label: "Through the year", says: "You can keep them until Oct 31. Then release only Nov 1–Mar 31. You can keep them from Apr 1 next year." });
-    const vedder = keepOf(vedder1010);
-    mount(vedder);
-    expect(vedder.groups[0]!.year).toBeNull();
-    expect(screen.getAllByTestId("keep-group-year")).toHaveLength(1);   // only glenn's
-  });
+  // (T810 cutover) retired: "glenn_501: the group's year window under its head block, before the tree" — no Keep tab
+  // draws a group card since the cutover; the trout table's year is its year bar, TroutCard.test "the year bar is drawn
+  // exactly when `year` is set (…)"
 
-  it("links say where they go: a Rule book page, an Other fish row, 'See every regulation line ›'", () => {
+  it("links say where they go: a Rule book page, an Other fish row, the trout table's 'Sources ›'", () => {
     const { sheets, books } = mount(keepOf(vedder1010));
-    fireEvent.click(screen.getAllByText("Rule book p.21 ↗")[0]!);
+    fireEvent.click(screen.getAllByText("Rule book p.9 ↗")[0]!);
     fireEvent.click(screen.getByText("Kokanee"));
-    fireEvent.click(screen.getByText("See every regulation line ›"));
-    expect([books, sheets]).toEqual([[23], ["other:o0", "src:r0"]]);
+    fireEvent.click(screen.getByTestId("trout-sources"));
+    expect([books, sheets]).toEqual([[11], ["other:o0", "src:trout"]]);
   });
 });
 
@@ -97,9 +91,9 @@ describe("(T227, owner 2026-10-28) the salmon bar at the top, and the glance row
   it("drawn on top, right above the provincial bar (owner 2026-11-12), the two named; none without salmon (the bar unnamed)", () => {
     const keep = keepOf(vedder1010);
     const r = render(<KeepTab keep={keep} dateLabel="Oct 10" palette={LIGHT} actions={actions} salmonStrip={STRIP as never} />);
-    const ids = [...r.container.querySelectorAll("[data-testid='keep-strip'],[data-testid='salmon-strip'],[data-testid='keep-group']")]
+    const ids = [...r.container.querySelectorAll("[data-testid='keep-strip'],[data-testid='salmon-strip'],[data-testid='keep-trout']")]
       .map((e) => e.getAttribute("data-testid"));
-    expect(ids).toEqual(["salmon-strip", "keep-strip", "keep-group"]);
+    expect(ids).toEqual(["salmon-strip", "keep-strip", "keep-trout"]);   // (T810 cutover) the trout table, where the group was
     expect([screen.getByTestId("keep-strip-title").textContent, screen.getByTestId("salmon-strip-title").textContent])
       .toEqual(["Game fish (B.C. rules)", "Salmon (DFO)"]);
     expect(screen.getByTestId("salmon-strip-st:release").textContent).toBe("✓ Release only");
@@ -142,12 +136,12 @@ describe("(T531, owner 2026-11-09) each calendar owns its species", () => {
   const salmon = { row: { source: "dfo", thumb: "CO", name: SALMON_WORDS.title, value: null, tone: "keep" }, card: () => <span>salmon card</span> } as const;
   const group = (r: ReturnType<typeof render>) => r.container.querySelector("[data-testid='keep-tab']") as HTMLElement;
 
-  it("Vedder: Salmon (bar, its Salmon row) on top, then game fish (strip, its group and Other fish rows); no 'Species and limits' list", () => {
+  it("Vedder: Salmon (bar, its Salmon row) on top, then game fish (strip, its trout fold and Other fish rows); no 'Species and limits' list", () => {
     const keep = keepOf(vedder1010);
     const r = render(<KeepTab keep={keep} dateLabel="Oct 10" palette={LIGHT} actions={actions} salmonStrip={STRIP as never} glance={{ salmon }} />);
-    const ids = [...group(r).querySelectorAll("[data-testid='keep-strip'],[data-testid='glance:group:0'],[data-testid='keep-species'],[data-testid='species-rows'],[data-testid='salmon-block'],[data-testid='salmon-strip'],[data-testid='glance:salmon']")]
+    const ids = [...group(r).querySelectorAll("[data-testid='keep-strip'],[data-testid='glance:trout'],[data-testid='keep-species'],[data-testid='species-rows'],[data-testid='salmon-block'],[data-testid='salmon-strip'],[data-testid='glance:salmon']")]
       .map((e) => e.getAttribute("data-testid"));
-    expect(ids).toEqual(["salmon-block", "salmon-strip", "species-rows", "glance:salmon", "keep-strip", "species-rows", "glance:group:0"]);
+    expect(ids).toEqual(["salmon-block", "salmon-strip", "species-rows", "glance:salmon", "keep-strip", "species-rows", "glance:trout"]);
     expect(screen.queryByTestId("keep-otherfish")).toBeNull();
     expect(screen.queryByText("Species and limits")).toBeNull();
   });
@@ -157,11 +151,11 @@ describe("(T531, owner 2026-11-09) each calendar owns its species", () => {
     render(<KeepTab keep={keep} dateLabel="Oct 10" palette={LIGHT} actions={actions} salmonStrip={STRIP as never} glance={{ salmon }} />);
     const dfo = screen.getByTestId("salmon-block"), strip = screen.getByTestId("keep-strip");
     expect(within(dfo).getByTestId("glance:salmon")).toBeTruthy();                       // the DFO row: under the salmon block
-    expect(within(dfo).queryByTestId("glance:group:0")).toBeNull();                      // no B.C. group in it
+    expect(within(dfo).queryByTestId("glance:trout")).toBeNull();                      // no B.C. trout fold in it
     expect(within(dfo).queryByText("Kokanee")).toBeNull();                               // no B.C. Other fish row in it
     const bc = strip.nextElementSibling as HTMLElement | null;
     if (!bc) throw new Error("no rows under the game-fish calendar");                                  // the rows right under the game-fish calendar
-    expect(within(bc).getByTestId("glance:group:0")).toBeTruthy();
+    expect(within(bc).getByTestId("glance:trout")).toBeTruthy();
     expect(within(bc).getByText("Kokanee")).toBeTruthy();
     expect(within(bc).queryByTestId("glance:salmon")).toBeNull();                        // and no salmon row among them
     expect(screen.getAllByTestId("glance:salmon")).toHaveLength(1);
@@ -251,7 +245,9 @@ describe("(T810 O, S; owner about 17:15 \"Salmon + trout folds\") the trout tabl
     const [month, day] = c.day.split("-").map(Number) as [number, number];
     const inp = { trout: c.frame, rules: { has: () => true }, frames: { rows: { rows: { length: 1e6 } } } } as unknown as RegsInputs;
     const keep = keepOf(vedder1010);
-    return { ...keep, trout: troutOf(inp, { month, day }, { month, day }), order: ["strip", "trout", ...keep.order.slice(1)] };
+    // (T810 cutover) the frozen Vedder already draws its own table in keep.order: the vector's table takes its place
+    return { ...keep, trout: troutOf(inp, { month, day }, { month, day }),
+             order: keep.order.includes("trout") ? keep.order : ["strip", "trout", ...keep.order.slice(1)] };
   };
   const tab = (keep: KeepVM, glance = true) =>
     render(<KeepTab keep={keep} dateLabel="Jul 15" palette={LIGHT} actions={actions} {...(glance ? { glance: { salmon } } : {})} />);
@@ -263,8 +259,8 @@ describe("(T810 O, S; owner about 17:15 \"Salmon + trout folds\") the trout tabl
       expect([within(f).queryByTestId("glance-arrow") !== null, within(f).queryByTestId("glance-toggle"), within(f).queryByText(GLANCE_WORDS.show)], k)
         .toEqual([true, null, null]);
     }
-    const g = screen.getByTestId("glance:group:0");
-    expect([within(g).getByTestId("glance-toggle").textContent, within(g).queryByTestId("glance-arrow")]).toEqual([GLANCE_WORDS.show, null]);
+    // (T810 cutover) retired: "the other fish's group fold keeps its Details" — no Keep tab draws a group fold since the
+    // cutover (the groups left sit in the Other fish list, whose rows open sheets: KeepTab.test "links say where they go")
     expect(screen.getAllByTestId("glance:trout")).toHaveLength(1);   // ONE trout fold, the table's
   });
 
@@ -277,7 +273,7 @@ describe("(T810 O, S; owner about 17:15 \"Salmon + trout folds\") the trout tabl
     fireEvent.click(press);
     expect(press.getAttribute("aria-expanded")).toBe("true");
     expect(within(screen.getByTestId("glance-body:trout")).getByTestId("keep-trout")).toBeTruthy();
-    expect(within(screen.getByTestId("glance-body:trout")).queryByTestId("trout-kicker")).toBeNull();   // the fold names it
+    expect(within(screen.getByTestId("glance-body:trout")).queryByTestId("kicker:trout")).toBeNull();   // the fold names it
     cleanup();
     // a fold's date (the Elk in winter) is a visible word, so in the name too
     tab(withTrout("elk-nov15"));
@@ -297,7 +293,8 @@ describe("(T810 O, S; owner about 17:15 \"Salmon + trout folds\") the trout tabl
   });
 
   it("(S, no dev switch) a page with no table: the salmon fold still ends in the arrow; the Other fish rows are drawn as before", () => {
-    const plain = keepOf(vedder1010);
+    const v = keepOf(vedder1010);
+    const plain: KeepVM = { ...v, trout: null, order: v.order.filter((b) => b !== "trout") };   // a page with no table (Q-D3)
     tab(plain);
     const f = screen.getByTestId("glance:salmon");
     expect([within(f).queryByTestId("glance-arrow") !== null, within(f).queryByTestId("glance-toggle")]).toEqual([true, null]);
@@ -309,7 +306,7 @@ describe("(T810 O, S; owner about 17:15 \"Salmon + trout folds\") the trout tabl
     const { r } = mount(withTrout());
     // the tab's own blocks (the keep box inside the table carries T829's `keep-strip` / `keep-group` ids of its own)
     expect([...r.container.querySelector("[data-testid='keep-tab']")!.children].map((e) => e.getAttribute("data-testid")).slice(0, 4))
-      .toEqual(["keep-strip", "keep-trout", "keep-group", "keep-otherfish"]);
-    expect(screen.getByTestId("trout-kicker").textContent).toBe("Trout and char");
+      .toEqual(["keep-strip", "keep-trout", "keep-otherfish", "keep-possession"]);
+    expect(screen.getByTestId("kicker:trout").textContent).toBe("Trout and char");
   });
 });

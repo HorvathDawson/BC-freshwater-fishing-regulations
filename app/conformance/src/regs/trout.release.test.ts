@@ -424,6 +424,8 @@ describe("T810 P: the trout fish sheet over every vector", () => {
       }
       const all = page.sheet(TROUT_SOURCES_KEY);
       expect([all?.title, sourceKeys(all?.blocks ?? [])], c.name).toEqual([TROUT_SHEET.SOURCES, f.src.map(keyOf)]);
+      // (T810 cutover) its sub line names the water and the day, as a row's sources sheet did (SheetHost.test draws it)
+      expect(all?.sub?.startsWith(`${page.header.name} · `), `${c.name}: ${all?.sub}`).toBe(true);
       if (!ascending(f.src)) unsortedTable++;
       // a key the table does not hold opens nothing; a cell with no table opens no trout sheet
       const held = new Set(f.boxes.flatMap((b) => b.rows.map((r) => r.key)));

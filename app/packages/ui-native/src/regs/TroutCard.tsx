@@ -16,7 +16,7 @@
  * every rule (`src:trout`, `TroutTable.src` in Python's order).
  */
 import { useState } from "react";
-import { PixelRatio, View, useWindowDimensions } from "react-native";
+import { View, useWindowDimensions } from "react-native";
 import { TROUT_NAV, TROUT_SOURCES_KEY, WORDS, type TroutBoxVM, type TroutRowVM, type TroutVM } from "@app/core";
 import { Text } from "../Text";
 import { TYPE } from "../type";
@@ -28,8 +28,6 @@ import { TroutYearBar } from "./TroutYearBar";
 import type { FishImages } from "./types";
 
 const PRESS = { w: 44, h: 44 } as const;
-/** the OS text scale from which the top line steps down a size, so a long lead wraps in words, not letters (spec 3.5) */
-const BIG_AT = 1.5;
 
 /** A table row as the keep box draws it: the payload's texts, its own date line, core's one label, the fish's picture. */
 function rowOf(r: TroutRowVM, actions: KeepActions, images: FishImages | undefined): KeepRowVM {
@@ -56,7 +54,6 @@ export function TroutCard({ t, palette, actions, images, kicker = false, todayAt
   todayAt?: number | null; months?: readonly string[];
 }) {
   useWindowDimensions();
-  const big = (PixelRatio.getFontScale() || 1) >= BIG_AT;
   const [away, setAway] = useState(false);
   /** a navigation link: accent words, a 44 px press; `expanded` set: it unfolds lines in place (aria-expanded) */
   const link =(text: string, testID: string, onPress: () => void, expanded?: boolean) => (
@@ -69,11 +66,11 @@ export function TroutCard({ t, palette, actions, images, kicker = false, todayAt
     <View testID="keep-trout" style={{ paddingHorizontal: GUTTER, paddingTop: 4, paddingBottom: 8 }}>
       {(kicker || t.hatchLink) && (
         <View testID="trout-kline" style={{ flexDirection: "row", flexWrap: "wrap", alignItems: "center", justifyContent: "space-between", columnGap: 12 }}>
-          {kicker ? <Text testID="trout-kicker" accessibilityRole="header" style={[TYPE.kicker, { color: palette.sub }]}>{t.fold.name}</Text> : <View />}
+          {kicker ? <Text testID="kicker:trout" accessibilityRole="header" style={[TYPE.kicker, { color: palette.sub }]}>{t.fold.name}</Text> : <View />}
           {t.hatchLink && link(t.hatchLink, "trout-hatch", () => actions.onSheet("hatch"))}
         </View>
       )}
-      <Text selectable testID="trout-top" style={[big ? TYPE.lead : TYPE.screen, { color: palette.ink, marginTop: 4 }]}>{t.top.lead}</Text>
+      <Text selectable testID="trout-top" style={[TYPE.lead, { color: palette.ink, marginTop: 4 }]}>{t.top.lead}</Text>
       {t.top.second && <Text selectable testID="trout-second" style={[TYPE.regsBodyBold, { color: palette.ink, marginTop: 2 }]}>{t.top.second}</Text>}
       {t.top.date && <Text selectable testID="trout-top-date" style={[TYPE.meta, { color: palette.sub, marginTop: 2 }]}>{t.top.date}</Text>}
       {t.card && <Text selectable testID="trout-card-line" style={[TYPE.meta, { color: palette.sub, marginTop: 4 }]}>{t.card}</Text>}

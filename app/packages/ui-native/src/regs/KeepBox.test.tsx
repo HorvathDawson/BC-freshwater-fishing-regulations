@@ -15,8 +15,9 @@ import { KeepBox, ShutGroup, type KeepBandVM, type KeepRowVM } from "./KeepBox";
 afterEach(() => { cleanup(); vi.restoreAllMocks(); });
 
 const pic = (code: string, onPress?: () => void) => ({ label: `${code} — what it looks like`, testID: `pic:${code}`, more: "›", onPress });
+/** (T810 cutover) a row whose picture opens a sheet IS the press, so the rows here open one, as every trout row does */
 const row = (key: string, name: string, more: Partial<KeepRowVM> = {}): KeepRowVM =>
-  ({ key, name, label: null, sub: null, lines: [], quiet: [], pic: pic(key), ...more });
+  ({ key, name, label: null, sub: null, lines: [], quiet: [], pic: pic(key, () => {}), ...more });
 // round 15's Skeena box: brook trout under the box's 5, lake trout its own 3, four sharing "only 1 of these 4"
 const ROWS: KeepRowVM[] = [
   row("EB", "Brook trout", { lines: ["30 cm (12 in) or longer"] }),
@@ -42,7 +43,7 @@ describe("(T829) <KeepBox>", () => {
     box();
     expect([screen.getByTestId("keep-head").textContent, screen.getByTestId("keep-strip-text").textContent])
       .toEqual(["Keep 5 in all", "only 1 over 50 cm (20 in)"]);
-    const groups = screen.getAllByTestId("keep-group");
+    const groups = screen.getAllByTestId("box-group");
     expect(groups.map(names)).toEqual([["Brook trout"], ["Lake trout"], ["Brown trout", "Cutthroat trout", "Steelhead", "Rainbow trout"]]);
     // the free words of "up to the N" beside its row; a white box for an own and a shared band, its date small under it
     expect(groups.map((g) => [within(g).queryByTestId("keep-band-free")?.textContent ?? null, within(g).queryByTestId("keep-band-box")?.textContent ?? null]))
@@ -57,18 +58,19 @@ describe("(T829) <KeepBox>", () => {
     const now = [screen.getByTestId("keep-head"), screen.getAllByTestId("keep-line")[0]!, screen.getAllByTestId("keep-band-text")[0]!];
     const next = [screen.getByTestId("keep-row-date"), screen.getAllByTestId("keep-band-date")[0]!, screen.getByTestId("keep-sub"), screen.getByTestId("keep-quiet")];
     const size = (e: HTMLElement) => parseFloat(getComputedStyle(e).fontSize);
-    expect([...new Set(now.map(size))]).toEqual([TYPE.legend.fontSize]);
+    // (T810 cutover) the page's own scale: the bold body and the meta line (style-tokens: no size of the table's own)
+    expect([...new Set(now.map(size))]).toEqual([TYPE.regsBodyBold.fontSize]);
     expect([...new Set(next.map(size))]).toEqual([TYPE.meta.fontSize]);
-    expect(TYPE.legend.fontSize).toBeGreaterThan(TYPE.meta.fontSize);
+    expect(TYPE.regsBodyBold.fontSize).toBeGreaterThan(TYPE.meta.fontSize);
     expect([...new Set(next.map((e) => getComputedStyle(e).color))]).toEqual([rgb(LIGHT.sub)]);
     expect([...new Set(now.map((e) => getComputedStyle(e).color))]).toEqual([rgb(LIGHT.ink)]);
     // the filled label: the ink block, the card's colour for its words
     expect(getComputedStyle(screen.getByTestId("keep-label")).backgroundColor).toBe(rgb(LIGHT.ink));
   });
 
-  it("each row reads as ONE label, its words in payload order: name, label, sub, lines, quiet, band, date", () => {
+  it("each row reads as ONE label, its words in payload order: name, label, sub, lines, quiet, band, date (the row's press)", () => {
     box();
-    const labels = screen.getAllByRole("group").map((e) => e.getAttribute("aria-label"));
+    const labels = screen.getAllByTestId("keep-row").map((e) => [e.getAttribute("role"), e.getAttribute("aria-label")]).map(([r, l]) => (r === "button" ? l : null));
     expect(labels).toEqual([
       "Brook trout. 30 cm (12 in) or longer. up to the 5",
       "Lake trout. 30 cm (12 in) or longer. only 3. until Sep 14, then release",
@@ -80,18 +82,19 @@ describe("(T829) <KeepBox>", () => {
     ]);
   });
 
-  it("a picture that opens a sheet is a named button reaching 44 × 44; one that opens nothing is no button", () => {
+  it("a row whose picture opens a sheet is ONE named button reaching 44 × 44 (build spec P: a row press); one that opens nothing is no button and carries no label", () => {
     const opened: string[] = [];
     render(<KeepBox head={null} label={null} strip={null} tag={null} palette={LIGHT} bands={[]}
-                    rows={[row("CO", "Coho", { pic: pic("CO", () => opened.push("sp:CO")) }), row("PK", "Pink")]} />);
-    const b = screen.getByTestId("pic:CO");
+                    rows={[row("CO", "Coho", { pic: pic("CO", () => opened.push("sp:CO")) }), row("PK", "Pink", { pic: pic("PK") })]} />);
+    const [b, plain] = screen.getAllByTestId("keep-row") as [HTMLElement, HTMLElement];
     expect([b.getAttribute("role"), b.getAttribute("aria-label"), hitArea(b.getAttribute("data-hitslop")!)])
-      .toEqual(["button", "CO — what it looks like", { w: 64, h: 44 }]);
-    fireEvent.click(b);
+      .toEqual(["button", "Coho", { w: 64, h: 44 }]);
+    expect(b.contains(screen.getByTestId("pic:CO"))).toBe(true);
+    fireEvent.click(screen.getByTestId("pic:CO"));   // a tap on the picture is a tap on the row
     expect(opened).toEqual(["sp:CO"]);
-    expect(screen.getByTestId("pic:PK").getAttribute("role")).toBeNull();
+    expect([plain.getAttribute("role"), plain.getAttribute("aria-label"), screen.getByTestId("pic:PK").getAttribute("role")]).toEqual([null, null, null]);
     // no strip asked for: none drawn; a row no band covers sits beside an empty cell
-    expect([screen.queryByTestId("keep-strip"), screen.getAllByTestId("keep-band-empty").length]).toEqual([null, 2]);
+    expect([screen.queryByTestId("box-strip"), screen.getAllByTestId("keep-band-empty").length]).toEqual([null, 2]);
   });
 
   it("(large text) the band folds away: each band's words a bold line under its last row, a shared band's rows on one rail", () => {
@@ -99,7 +102,7 @@ describe("(T829) <KeepBox>", () => {
     box();
     expect(screen.queryAllByTestId("keep-band")).toEqual([]);
     expect(screen.queryAllByTestId("keep-band-empty")).toEqual([]);
-    const groups = screen.getAllByTestId("keep-group");
+    const groups = screen.getAllByTestId("box-group");
     expect(groups.map((g) => within(g).queryAllByTestId("keep-band-line").map((e) => e.textContent)))
       .toEqual([["up to the 5"], ["only 3until Sep 14, then release"], ["only 1 of these 4until Oct 31, then release"]]);
     // under the shared band's LAST row (Rainbow trout), the four rows joined by a left rail
@@ -124,7 +127,7 @@ describe("(T829) <ShutGroup>: the release and closed groups under the box", () =
     const last = within(g).getAllByTestId("keep-row")[1]!;
     expect([within(last).queryByTestId("keep-look"), last.textContent]).toEqual([null, "✕Eulachon closed all year: No fishing for eulachon"]);
     // the column word and its date are the first row's label's end, never the mark
-    expect(within(g).getAllByRole("group")[0]!.getAttribute("aria-label")).toBe("Chinook. Sizes (DFO): chinook 30 cm or more to keep. Closed. reopens Nov 1");
+    expect(within(g).getAllByRole("button")[0]!.getAttribute("aria-label")).toBe("Chinook. Sizes (DFO): chinook 30 cm or more to keep. Closed. reopens Nov 1");
   });
 
   it("release: ↩ and the release colour; other (\"Check DFO\"): no mark, the quiet colour", () => {

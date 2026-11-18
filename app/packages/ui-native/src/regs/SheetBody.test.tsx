@@ -9,6 +9,7 @@ import type { GroupVM, SheetBlock, SheetKey, Tab } from "@app/core";
 import { SheetBlockView } from "./SheetBody";
 import { LIGHT } from "../theme";
 import vedder1010 from "./fixtures/vedder_1010.json";
+import { otherGroup } from "./testing/otherGroup";
 
 afterEach(cleanup);
 
@@ -16,7 +17,8 @@ const t = (s: string) => ({ t: "text" as const, s });
 const book = (printed: number, pdf: number | null) => ({ t: "book" as const, printed, pdf });
 const rgb = (h: string) => `rgb(${[1, 3, 5].map((i) => parseInt(h.slice(i, i + 2), 16)).join(", ")})`;
 const LIGHT_RGB = { sub: rgb(LIGHT.sub), ink: rgb(LIGHT.ink) };
-const GROUP = (vedder1010 as unknown as { keep: { groups: GroupVM[] } }).keep.groups[0]!;
+// (T810 cutover) the group card a real page still draws: the Whitefish row's sheet on the Vedder (testing/otherGroup.ts)
+const GROUP: GroupVM = otherGroup(vedder1010, "other:o1");
 
 function mount(b: SheetBlock) {
   const opened: SheetKey[] = [], tabs: Tab[] = [], books: number[] = [];

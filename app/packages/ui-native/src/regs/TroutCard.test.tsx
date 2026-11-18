@@ -69,7 +69,9 @@ describe("(T810 O) every vector drawn", { timeout: 30_000 }, () => {
     let n = 0;
     for (const c of CASES) {
       mount(vmOf(c));
-      const got = screen.getAllByRole("group").map((e) => e.getAttribute("aria-label"));
+      // (T810 cutover) each row is its press (build spec P), named by that label
+      const got = screen.getAllByTestId("keep-row").map((e) => [e.getAttribute("role"), e.getAttribute("aria-label")])
+        .map(([role, l]) => (role === "button" ? l : `not a press: ${l}`));
       expect(got, c.name).toEqual(Object.values(A11Y[c.name]!));
       n += got.length;
       cleanup();
@@ -127,10 +129,11 @@ describe("(T810 O) the links and the presses", { timeout: 30_000 }, () => {
     expect(m.sheets).toEqual([`tf:${tk}`]);
   });
 
-  it("every press reaches 44 × 44: the links and each row's picture", () => {
+  it("every press reaches 44 × 44: the links and each row (the row is the press its picture opens through)", () => {
     mount(byName("fraser-r2-mission-jul15"));
-    for (const id of ["trout-hatch", "trout-sources", "trout-elsewhere", "pic:ST", "pic:RB"]) {
-      const b = screen.getByTestId(id);
+    const rowOf = (id: string) => screen.getByTestId(id).closest<HTMLElement>("[data-testid='keep-row']")!;
+    for (const [id, b] of [...["trout-hatch", "trout-sources", "trout-elsewhere"].map((i) => [i, screen.getByTestId(i)] as const),
+                           ...["pic:ST", "pic:RB"].map((i) => [i, rowOf(i)] as const)]) {
       expect([b.getAttribute("role"), hitArea(b.getAttribute("data-hitslop")!)!.h >= 44, hitArea(b.getAttribute("data-hitslop")!)!.w >= 44], id)
         .toEqual(["button", true, true]);
     }
@@ -138,11 +141,11 @@ describe("(T810 O) the links and the presses", { timeout: 30_000 }, () => {
 
   it("the kicker: the entry's name only where no folded row heads the table", () => {
     mount(byName("elk-nov15"), LIGHT, true);
-    expect(screen.getByTestId("trout-kicker").textContent).toBe(TROUT_NAV.ENTRY);
+    expect(screen.getByTestId("kicker:trout").textContent).toBe(TROUT_NAV.ENTRY);
     expect(screen.queryByTestId("trout-hatch")).toBeNull();   // the kicker's line holds the hatchery link only where hatch_link
     cleanup();
     mount(byName("elk-nov15"));
-    expect(screen.queryByTestId("trout-kicker")).toBeNull();
+    expect(screen.queryByTestId("kicker:trout")).toBeNull();
   });
 });
 
@@ -150,7 +153,7 @@ describe("(T810 O) the look: two text sizes, the filled label, the origin word, 
   it("today's rule bigger and in ink; a coming change smaller, regular, quiet", () => {
     mount(byName("elk-nov15"));
     const size = (e: HTMLElement) => parseFloat(getComputedStyle(e).fontSize);
-    expect([size(screen.getByTestId("trout-top")), size(screen.getByTestId("trout-top-date"))]).toEqual([TYPE.screen.fontSize, TYPE.meta.fontSize]);
+    expect([size(screen.getByTestId("trout-top")), size(screen.getByTestId("trout-top-date"))]).toEqual([TYPE.lead.fontSize, TYPE.meta.fontSize]);   // (T810 cutover) the page's lead size (style-tokens)
     expect(getComputedStyle(screen.getByTestId("trout-top-date")).color).toBe(rgb(LIGHT.sub));
     cleanup();
     mount(byName("shamrock-jul15"));
@@ -158,13 +161,13 @@ describe("(T810 O) the look: two text sizes, the filled label, the origin word, 
     cleanup();
     mount(byName("fraser-r2-mission-jul15"));
     const st = screen.getAllByTestId("keep-row").find((r) => within(r).queryByText("Steelhead"))!;
-    expect([size(within(st).getAllByTestId("keep-line")[0]!), size(within(st).getByTestId("keep-row-date"))]).toEqual([TYPE.legend.fontSize, TYPE.meta.fontSize]);
+    expect([size(within(st).getAllByTestId("keep-line")[0]!), size(within(st).getByTestId("keep-row-date"))]).toEqual([TYPE.regsBodyBold.fontSize, TYPE.meta.fontSize]);
   });
 
   it("HATCHERY ONLY: the filled label once on the box's top line (Fraser R2), or beside the one fish's name (Windsor's char)", () => {
     mount(byName("fraser-r2-mission-jul15"));
     const box = screen.getByTestId("trout-box:0");
-    expect(within(within(box).getByTestId("keep-strip")).getByTestId("keep-label").textContent).toBe("Hatchery only");
+    expect(within(within(box).getByTestId("box-strip")).getByTestId("keep-label").textContent).toBe("Hatchery only");
     expect(within(box).getAllByTestId("keep-label")).toHaveLength(1);
     expect(getComputedStyle(within(box).getByTestId("keep-label")).backgroundColor).toBe(rgb(LIGHT.ink));
     cleanup();
@@ -198,11 +201,11 @@ describe("(T810 O) the look: two text sizes, the filled label, the origin word, 
         // one size: the same padding and border as the label
         expect([s.paddingLeft, s.paddingTop, s.borderTopWidth], name).toEqual([ls.paddingLeft, ls.paddingTop, ls.borderTopWidth]);
       }
-      // the row still reads as N's golden label (the word as is), and its picture is still a 44 × 44 press
+      // the row still reads as N's golden label (the word as is), and it is still a 44 × 44 press (the row, its picture in it)
       const row = screen.getAllByTestId("keep-row").find((r) => within(r).queryByTestId("keep-origin"))!;
-      expect(row.querySelector("[role=group][aria-label]")!.getAttribute("aria-label"), name).toBe(A11Y["dodd-jul15"]![twins[0]!.key]);
-      const pic = screen.getByTestId(`pic:${twins[0]!.key}`);
-      expect([hitArea(pic.getAttribute("data-hitslop")!)!.h >= 44, hitArea(pic.getAttribute("data-hitslop")!)!.w >= 44], name).toEqual([true, true]);
+      expect([row.getAttribute("role"), row.getAttribute("aria-label")], name).toEqual(["button", A11Y["dodd-jul15"]![twins[0]!.key]]);
+      expect(row.contains(screen.getByTestId(`pic:${twins[0]!.key}`)), name).toBe(true);
+      expect([hitArea(row.getAttribute("data-hitslop")!)!.h >= 44, hitArea(row.getAttribute("data-hitslop")!)!.w >= 44], name).toEqual([true, true]);
       cleanup();
     }
   });
@@ -229,13 +232,13 @@ describe("(T810 O) the look: two text sizes, the filled label, the origin word, 
     const t = byName("bowron-jul15"), b = t.boxes[0]!;
     expect(b.possession).toBe("In your possession: no more than 2 trout and char in all");
     mount(t);
-    const strip = within(screen.getByTestId("trout-box:0")).getByTestId("keep-strip");
+    const strip = within(screen.getByTestId("trout-box:0")).getByTestId("box-strip");
     const line = within(strip).getByTestId("keep-possession");
     expect(line.textContent).toBe(b.possession);
     // its own line: a sibling right after the top line's row (head, label, strip, tag), not inside it
     const top = within(strip).getByTestId("keep-head").parentElement!;
     expect([within(top).queryByTestId("keep-possession"), top.nextElementSibling]).toEqual([null, line]);
-    expect([parseFloat(getComputedStyle(line).fontSize), getComputedStyle(line).color]).toEqual([TYPE.legend.fontSize, rgb(LIGHT.ink)]);
+    expect([parseFloat(getComputedStyle(line).fontSize), getComputedStyle(line).color]).toEqual([TYPE.regsBodyBold.fontSize, rgb(LIGHT.ink)]);
     expect(screen.getAllByTestId("keep-possession")).toHaveLength(1);
     cleanup();
     // every other vector box: no possession, no line
@@ -247,7 +250,7 @@ describe("(T810 O) the look: two text sizes, the filled label, the origin word, 
     }
   });
 
-  it("(large text) the band folds into bold lines under the rows, and the top line steps down a size", () => {
+  it("(large text) the band folds into bold lines under the rows, and the top line is the page's lead size (as at 1×)", () => {
     vi.spyOn(PixelRatio, "getFontScale").mockReturnValue(2);
     mount(byName("skeena-sedan-mill-jul15"));
     expect(screen.queryAllByTestId("keep-band")).toEqual([]);

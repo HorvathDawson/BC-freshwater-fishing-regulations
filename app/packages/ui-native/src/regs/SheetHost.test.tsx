@@ -186,9 +186,10 @@ describe("<SheetHost> over the frozen vedder_1010 page", () => {
     expect(d.onClose).toHaveBeenCalledTimes(3);
   });
 
-  it("the sub line: a row's sources sheet names the water and the day", () => {
-    host("src:r0");
-    expect(screen.getByTestId("sheet-sub").textContent).toBe(
-      "Vedder River · Oct 10. The more specific rule speaks first: this water, then from downstream, a named area, the region, then the province.");
+  it("the sub line: the trout table's every-rule sheet names the water and the day (T810 cutover: where a row's sources sheet did)", () => {
+    // the sub as core writes it for the page (sheets.ts: the water · the day; conformance trout.release.test.ts holds that)
+    const t = troutVmOf(TROUT_CASES[0]!);
+    host(TROUT_SOURCES_KEY, { ...VEDDER, sheet: (k: SheetKey) => (k === TROUT_SOURCES_KEY ? troutSourcesSheet(k, t, RULES, "Vedder River · Oct 10") : null) });
+    expect(screen.getByTestId("sheet-sub").textContent).toBe("Vedder River · Oct 10");
   });
 });

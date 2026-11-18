@@ -478,7 +478,9 @@ describe("(T456) the Vedder River's Regulations draw every rules step's control"
       const missing = rules.filter((s) => !s.optional).flatMap((s) => s.targets).filter((t) => reg.get(t) === null);
       expect(missing).toEqual([]);
     }, { timeout: 30_000 });
-    expect(reg.get("regs:rule")).not.toBeNull();                          // the release's group card: the rule a step reads
+    // (T810 cutover) retired: `regs:rule` registered ("the release's group card: the rule a step reads"). No Keep tab draws
+    // a group card since the cutover, and no step targets `regs:rule` (help.ts GUIDE_STEPS; the steps' own targets are
+    // held just above); the trout fold's spot is `regs:trout` (the "(T810 O) the arrow folds" case below)
   });
 });
 
