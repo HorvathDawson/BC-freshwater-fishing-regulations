@@ -36,8 +36,10 @@ verified 1-to-1 against the consumer page (COMPARISON.md).
 Owner 2026-11-17 ("Should each of these waters just have their own info? Don't want this on waters it doesn't apply
 to"; Lakelse and Telkwa "Same thing applies to these"): no province-wide list. `LicenceFrame.alien_closures`
 [{rule, says}] (`licence.alien_closures`) is on the frame of a part whose RULE SET holds an `angler_closure` naming the
-non-resident alien — the bundle's `ruleset` binding, the tributary walk included, the same rows the Keep tab's "Closed
-to some anglers" caveat speaks from — and on no other frame. `rule` the export index, `says` the rule's label: its own
+non-resident alien — the bundle's `ruleset` binding, the tributary walk included — that the ladder leaves standing
+there on some day (the reader, `effective_rules_bound`, asked at the set's moments and day cuts: what the Keep tab's
+"Closed to some anglers" caveat says; the Bulkley's inherited closure loses to the Telkwa's, Morice's and Suskwa's own
+or nearer rows) — and on no other frame. `rule` the export index, `says` the rule's label: its own
 days, dates and stretch ("Angling closed to non-guided non-resident aliens, Jul 1-Dec 31, on Saturdays and Sundays —
 between the Shegunia River confluence and the Sedan Creek confluence"; Lakelse "— between Lakelse Lake and power line
 crossing", all year; Telkwa "Sep 1-Oct 31"). For it, such a part's rule set is in its licence key
