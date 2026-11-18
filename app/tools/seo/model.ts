@@ -102,7 +102,7 @@ function bannerItems(b: BannerVM | null): Item[] {
  * says "Up to 5 today"): every string is the payload's; nothing is composed here. The in-app links are not words.
  */
 export function troutWords(t: TroutVM): (Item | null)[] {
-  const out: (Item | null)[] = [item(t.fold.name, null, true), item(t.top.lead), item(t.top.second), item(t.top.date), item(t.card), item(t.fold.value), item(t.fold.date)];
+  const out: (Item | null)[] = [item(t.fold.name, null, true), item(t.top.lead), item(t.top.sub), item(t.top.second), item(t.top.date), item(t.card), item(t.fold.value), item(t.fold.date)];
   for (const b of t.boxes) {
     out.push(item(b.head), item(b.label), item(b.strip), item(b.tag), item(b.possession), item(b.date));
     for (const r of b.rows) {
@@ -110,6 +110,7 @@ export function troutWords(t: TroutVM): (Item | null)[] {
                item(r.date), ...r.coming.map((c) => item(c)));
     }
     for (const y of b.bands) out.push(item(y.text), item(y.date));
+    for (const y of b.inner) out.push(item(y.text), item(y.date));   // (trout 4) nested bands, after the outer ones as the app reads them
   }
   out.push(item(t.together?.text), item(t.year?.title), ...t.elsewhere.map((e) => item(e)));
   return out;

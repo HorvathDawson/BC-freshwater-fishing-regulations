@@ -88,10 +88,12 @@ describe("the page model is the app's answer (T192, fixture release)", () => {
     const v = models.find((m) => m.name === "Vedder River")!;
     expect(v.status).toBe("open");
     const text = v.parts.flatMap((p) => p.sections.flatMap((s) => s.items.map((i) => i.text))).join("\n");
-    // (T810 cutover) the trout table's words (Python's): Region 2's 2 (hatchery only), the river's own 4 hatchery rainbow
-    expect(text).toMatch(/Up to 2 today, or 4 if they’re hatchery rainbow trout 50 cm \(20 in\) or less/);
+    // (T810 cutover, trout 4: owner 2026-11-18) the trout table's words (Python's): the lead names Region 2's 2 (hatchery
+    // only), its sub the river's own 4 hatchery rainbow; the six other fish share "2 total from these 6", DV + LT inside it
+    expect(text).toMatch(/Keep 2 trout and char today\nor 4 if they’re hatchery rainbow trout 50 cm \(20 in\) or less/);
     expect(text).toMatch(/Keep 4 in all\nHatchery only/);
-    expect(text).toMatch(/only 2 of these 6/);
+    expect(text).toMatch(/2 total from these 6/);
+    expect(text).toMatch(/only 1 between them/);
   });
 
   it("MUTATION: a wrong verdict, a dropped rule and an invented sentence are each reported", async () => {
