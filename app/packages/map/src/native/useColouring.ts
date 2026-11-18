@@ -22,6 +22,7 @@ import type { MapAdapter } from "../adapters/contract";
 import type { MapProps } from "../map-props";
 import type { ChannelValues } from "../style";
 import { TILE_IDS_EVENT, TileHold, type TileIdsEvent } from "../tile-hold";
+import { unsetValue } from "../sections";
 import type { CopyTarget, WaterCopy } from "../water-copy";
 import { readingDayOf, salmonDayIndex } from "@app/core";
 import { useLab } from "../lab";
@@ -69,7 +70,8 @@ export class StateQueue {
     this.q.delete(layer);
     const w = this.worn.get(layer);
     if (!w || !w.ids.size) return;
-    const nulls = Object.fromEntries([...w.keys].map((k) => [k, null]));
+    // (T832) each key's non-null sentinel: iOS's bridge drops a null-valued key, so a null clear never reached the map
+    const nulls = Object.fromEntries([...w.keys].map((k) => [k, unsetValue(k)]));
     this.q.set(layer, new Map([...w.ids].map((id) => [id, nulls])));
     this.worn.set(layer, { ids: new Set(), keys: new Set() });
   }

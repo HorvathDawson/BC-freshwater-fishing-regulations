@@ -335,7 +335,9 @@ export function colorExpression(layerId: string, modeName: string, t: Tokens,
     out.push(val(fallback));
     return out;
   }
-  const out: unknown[] = ["case", ["==", read, null], val(mode.missing),
+  // (T832) anything but a number is `missing`: no state, and the cleared sentinel (`sections.ts` `CLEARED`) a phone writes
+  // in place of null (iOS's bridge drops a null-valued key)
+  const out: unknown[] = ["case", ["!=", ["typeof", read], "number"], val(mode.missing),
                           ["interpolate", ["linear"], read]];
   const interp = out[3] as unknown[];
   for (const [at, ref] of mode.stops) interp.push(at, val(ref));

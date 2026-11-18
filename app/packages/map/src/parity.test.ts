@@ -14,7 +14,7 @@ import { describe, expect, it } from "vitest";
 import { nativeAdapter, nativeRenderer, type NativeRefs } from "./adapters/native";
 import { webAdapter, webRenderer, type GlMapSlice } from "./adapters/web";
 import { baseAdapter, type MapHandle, type MapRenderer } from "./adapters/contract";
-import { CASING_PX, paintFor, SELECTION_CASING, SELECTION_RINGS } from "./paint";
+import { CASING_PX, markWidth, paintFor, SELECTION_CASING, SELECTION_RINGS, streamWidths } from "./paint";
 import {
   MAP_STYLE, STYLE_META, colorExpression, isRuntimeLayer, layerIds, resolveTheme,
   toggleableGroups,
@@ -411,8 +411,9 @@ describe("the style adapter (platform-free: one implementation, tested for what 
     expect([SELECTION_CASING, SELECTION_RINGS.lake, SELECTION_RINGS.wetland].map((id) =>
       [layer(id).type, layer(id)["source-layer"], layer(id).paint["line-opacity"]])).toEqual([
       ["line", "stream", shown], ["line", "lake", shown], ["line", "wetland", shown]]);
-    // the casing is the stream's own width (with its floors) plus the outline on each side, inside the zoom curve
-    const w = paintFor("stream", "plain", resolveTheme("light"))["line-width"] as unknown[];
+    // the casing is the stream's own width (with its floors) plus the outline on each side, inside the zoom curve —
+    // (T848) the drawn width only where a casing shows, the base width elsewhere (`markWidth`)
+    const w = markWidth("casing", "plain", streamWidths("plain", resolveTheme("light"))) as unknown[];
     const cw = layer(SELECTION_CASING).paint["line-width"] as unknown[];
     expect([cw.slice(0, 3), cw.slice(3).filter((_, i) => i % 2 === 1)]).toEqual([
       w.slice(0, 3), w.slice(3).filter((_, i) => i % 2 === 1).map((v) => ["+", v, 2 * CASING_PX])]);

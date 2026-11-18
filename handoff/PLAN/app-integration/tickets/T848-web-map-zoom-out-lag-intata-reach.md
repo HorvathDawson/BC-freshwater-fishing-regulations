@@ -49,3 +49,30 @@ Fixes, ranked:
 
 Scripts, traces and summaries: the app chat's scratchpad `t848/` (zoom.mjs with PRE/DURING, analyze.mjs, buckets.mjs).
 Plan: fix 1 (+2 if cheap) after 0.8.0 ships, with before/after pictures; the web site can take it before the app's 0.8.1.
+
+## Done (branch worktree-agent-a1e41c47a10b4ccef, 2026-11-18, 0.8.1 lane A; not merged)
+
+Fix 1, reshaped: the floor and the closed factor could not simply move to the copy / casing / stripe — the copy is drawn
+only below the atlas's own zoom, and a thinner `stream` inside a floor-wide casing shows a band of highlight. So:
+- `stream` is drawn at the width zoom and order give (`paint.ts` `streamWidths().base`: no feature-state), and hidden
+  where a section is lit (selected / part / water) or closed;
+- a new runtime layer directly over it, `stream-heavy`, draws exactly those sections with the stream's own colour and
+  opacity at the width the stream had (`drawn`, `paintFor`'s unchanged width) — `splitStream`;
+- every mark sized from the stream's width reads the drawn width only where it can show and differs (`markWidth`: the
+  casing behind `selected|part|inseason`, the gear edges behind `lit`, closed's stripe the factor always + the floor where
+  lit, the issue stripe behind `gi`), the base width in a mode that never shows it. Both platforms (runtime style + adapter).
+Fix 2: the stream marks a MODE never shows are `visibility: none` (`markShownIn`: nobaseline, no-access dots, gear
+edges and rings, runs dash, closed stripe, issue stripe) on the first frame and in the adapter; by mode only, never by
+day, so a day arriving never flips visibility. The selection ring from the copy source was not done.
+
+Look: identical. Proven by evaluation (`app/tools/stream-heavy.test.ts`: width, colour, opacity of the stream as drawn
+and every mark's width wherever it shows, all themes and modes, against the one-layer paint; midzoom, imagery-casing and
+water-focus read the stream as drawn) and by pictures: staging page vs staging with this tree's paint injected (its own
+day), light + dark, z9 + z12, with selected / part / water / closed (lit and not) / fly / bait states written on the
+sections: 0 map pixels differ (only the search box's rotating placeholder). Pictures: the lane's scratchpad
+`t848/before`, `t848/after`, `t848/diff`.
+
+Measured (staging, Intata Reach z12 -> z7 in 5 s, 390x844 dpr 2, CPU 4x; this tree's paint injected): long tasks
+10 / 1,045-1,082 ms -> 1-2 / 133-153 ms; worst frame 250-450 ms -> 133-183 ms (in the zoom 167 -> 67 ms). Salmon map
+(T855), same view: zoom-out 16-19 / 2.4-2.6 s -> 6 / ~525 ms, pan 600 px 5-6 / 1.0-1.2 s -> 2-3 / ~285 ms; the switch
+Trout -> Salmon is ~380 ms to idle either way.

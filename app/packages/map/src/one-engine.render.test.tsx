@@ -160,7 +160,7 @@ describe("one colouring engine in the web map", () => {
     r.rerender(<WebMap {...props({ data: undefined, standing: { labels: ROUTE, values: values([20]) } })} />);
     await act(async () => { await Promise.resolve(); });
     // feature-state only, the route only: a reach with nothing to say now is cleared, no paint, no clear-all
-    expect(log).toEqual(['set atlas/stream 11 {"standing":20}', 'set atlas/lake 12 {"standing":null}']);
+    expect(log).toEqual(['set atlas/stream 11 {"standing":20}', 'set atlas/lake 12 {"standing":""}']);
   });
 
   it("before any feed answers nothing is labelled; the status is not held back by it", async () => {

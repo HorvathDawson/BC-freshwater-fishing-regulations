@@ -41,8 +41,9 @@ describe("the map lab", () => {
   });
 
   it("streams in one bucket: today four, the lab one, and nothing else moves", () => {
-    // casing (round caps) · overlays (butt, round joins) · the line (defaults) · `minzoom: 0` vs none
-    expect(buckets(today(), (l) => streamLine(l) && visible(l))).toBe(4);
+    // casing (round caps) · the line and its heavy sections (defaults); (T848 fix 2) the overlays a plain map never shows
+    // are not drawn, so their bucket (butt caps, round joins) is gone from today's style
+    expect(buckets(today(), (l) => streamLine(l) && visible(l))).toBe(2);
     const s = lab({ streamsOneBucket: true });
     expect(buckets(s, (l) => streamLine(l) && visible(l))).toBe(1);
     const t = labStyle(today(), LAB_DEFAULT);
@@ -53,7 +54,8 @@ describe("the map lab", () => {
   it("skip invisible: hides only layers whose every opacity is the constant 0", () => {
     const t = today(), s = lab({ hideInvisible: true });
     const ids = moved(t, s);
-    expect(ids.length).toBeGreaterThan(0);
+    // (T848 fix 2) the stream marks a mode never shows are hidden by the map itself now, before the lab
+    expect(t.layers.filter((l) => l.id === "stream-runs-pass" || l.id === "stream-nobaseline").map(visible)).toEqual([false, false]);
     for (const id of ids) {
       const l = t.layers.find((x) => x.id === id)! as L & { paint?: Record<string, unknown> };
       expect(Object.entries(l.paint ?? {}).filter(([k]) => k.endsWith("opacity")).every(([, v]) => v === 0)).toBe(true);

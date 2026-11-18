@@ -252,8 +252,8 @@ describe("the standing channel: the same engine, the Conditions map's values", (
     r.c.set(r.h, r.target, r.renderer, "standing", standingInput(standing(CLASSES, FEED2)), "light");
     expect(r.take()).toEqual([
       // a class with nothing to say today CLEARS the value it had (null: `missing`); a basin that lost its value too
-      'state stream 10 {"standing":80}', 'state stream 11 {"standing":80}', 'state lake 12 {"standing":null}',
-      'basin 08MF {"standing":null}',
+      'state stream 10 {"standing":80}', 'state stream 11 {"standing":80}', 'state lake 12 {"standing":""}',
+      'basin 08MF {"standing":""}',
     ]);
     // a tile arriving after is labelled from the new values
     expect(r.c.label(r.target, { lake: [10] })).toBe(1);
@@ -275,7 +275,7 @@ describe("the standing channel: the same engine, the Conditions map's values", (
     r.setTiles([{ stream: [10, 11, 12, 13] }]);
     r.c.set(r.h, r.target, r.renderer, "standing", standingInput(standing(CLASSES2, FEED1)), "light");
     expect(states(r.take())).toEqual([
-      'basin 08MF {"standing":null}',
+      'basin 08MF {"standing":""}',
       "clear stream", "clear lake", "clear wetland", "restore",
       'state stream 10 {"p":"p0"}', 'state stream 11 {"p":"p1","standing":-1}', 'state stream 12 {"p":"p2"}',
       'state stream 13 {"p":"b","standing":42.5}',
@@ -291,7 +291,7 @@ describe("the standing channel: the same engine, the Conditions map's values", (
     r.take();
     r.c.set(r.h, r.target, r.renderer, "standing", null, "light");
     expect(states(r.take())).toEqual([
-      'basin 08MF {"standing":null}', "clear stream", "clear lake", "clear wetland", "restore",
+      'basin 08MF {"standing":""}', "clear stream", "clear lake", "clear wetland", "restore",
       'state stream 10 {"p":"p0"}',
     ]);
   });

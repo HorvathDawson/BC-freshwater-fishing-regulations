@@ -2,7 +2,8 @@
  * (T369 D14) A PHONE'S COLOURING CLEAR, THEN ITS RELABEL, IN ONE FRAME, ENDS RELABELLED. MapLibre Native's feature-state
  * queue (`source_feature_state.cpp`) applies a frame's sets first and its removals after: a whole-layer
  * `removeFeatureState({sourceLayer})` sent beside the relabelling wiped the new labels (8a5b5bd fixed the highlight's
- * per-key removals the same way). The engine's queue (`StateQueue`) clears by NULL writes, in order with the sets.
+ * per-key removals the same way). The engine's queue (`StateQueue`) clears by writes, in order with the sets — (T832) of
+ * each key's non-null sentinel (`sections.ts` `unsetValue`), since iOS's bridge drops a null-valued key.
  */
 import { describe, expect, it } from "vitest";
 import { StateQueue } from "./native/useColouring";
@@ -23,9 +24,9 @@ function mbgl() {
       for (const l of cleared) for (const k of [...cur.keys()]) if (k.startsWith(`${l}/`)) cur.delete(k);
       sets = []; cleared = [];
     },
-    /** what a paint reads (a null value is unset) */
+    /** what a paint reads (a null value, or the cleared sentinel "", is unset) */
     on: (layer: string, id: string) =>
-      Object.fromEntries(Object.entries(cur.get(`${layer}/${id}`) ?? {}).filter(([, v]) => v !== null)),
+      Object.fromEntries(Object.entries(cur.get(`${layer}/${id}`) ?? {}).filter(([, v]) => v !== null && v !== "")),
   };
 }
 const send = (q: StateQueue, m: ReturnType<typeof mbgl>) => { for (const [l, ids, st] of q.drain()) m.setFeatureStates(l, ids, st); };
@@ -57,7 +58,7 @@ describe("(T369 D14) the native colouring queue", () => {
     expect(q.drain()).toEqual([]);
     q.set("lake", "9", { survey: 1 });
     q.clear("lake");
-    expect(q.drain()).toEqual([["lake", ["9"], [{ survey: null }]]]);
+    expect(q.drain()).toEqual([["lake", ["9"], [{ survey: "" }]]]);
   });
 
   it("(T451) a section cleared then relabelled in one burst is ONE write: no frame between them draws it bare", () => {
@@ -74,6 +75,6 @@ describe("(T369 D14) the native colouring queue", () => {
       for (const [k, v] of cur) if (v.p === null || v.p === undefined) bare.push(k);
     });
     expect(bare).toEqual([]);
-    expect(Object.fromEntries(cur)).toEqual({ 1: { p: 2, rs: null }, 2: { p: 3, rs: null } });
+    expect(Object.fromEntries(cur)).toEqual({ 1: { p: 2, rs: "" }, 2: { p: 3, rs: "" } });
   });
 });

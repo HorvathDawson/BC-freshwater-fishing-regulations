@@ -365,6 +365,144 @@ export function issuePaint(part: keyof typeof ISSUE_LAYERS, mode: string, tokens
   };
 }
 
+type WidthSpec = Exclude<(typeof STYLE_META.widths)[string], string>;
+/** One stop of a "linear" width: its zoom, the width there (zoom and the tile's order only), the T470 closed factor. */
+interface WidthStop { at: number; w: unknown; f: number }
+
+function linearStops(spec: WidthSpec, scale: number): WidthStop[] {
+  const attr = ["coalesce", ["to-number", ["get", spec.by]], 1];
+  return spec.ramp.map(([at, base, slope]) => ({
+    at, w: ["*", scale, ["+", base, ["*", attr, slope]]], f: spec.closed ? rampAt(spec.closed, at) : 1 }));
+}
+
+/** A stop's width with the T470 factor on the sections `closed` holds (the stop itself where there is none). */
+function closedPart(s: WidthStop, closed: unknown | null): unknown {
+  return s.f === 1 || closed === null ? s.w : ["*", ["case", closed, s.f, 1], s.w];
+}
+
+/**
+ * THE HIGHLIGHT'S WIDTH FLOOR (px, by feature-state), or null where the theme has none. P15: the water's other parts
+ * (`water`) take their own, lower floor — after `selected`, which wins. T151: the part you are on in a water's Map view
+ * (`part`) takes the SAME floor as the others — one width for every part.
+ */
+function highlightFloor(tokens: Tokens): unknown | null {
+  if (tokens["width.stream.highlight"] === undefined) return null;
+  return tokens["width.stream.water"] !== undefined
+    ? ["case", SELECTED, Number(tokens["width.stream.highlight"]), ["any", PART, WATER], Number(tokens["width.stream.water"]), 0]
+    : ["case", SELECTED, Number(tokens["width.stream.highlight"]), 0];
+}
+
+/**
+ * (T848) THE STREAM LAYER DRAWN OVER `stream` WHERE ITS WIDTH READS FEATURE-STATE — a selected or lit section (the
+ * highlight's floor) and a closed one (T470's heavier mid-zoom line). Owner 2026-11-18, the web map lagging zooming out
+ * over Intata Reach: every labelled section re-evaluated each feature-state paint property of every layer it is in, and
+ * the costliest was the stream's own width — a 2.7 KB zoom curve with `max`, `in` and `feature-state`, evaluated twice per
+ * feature and shared by nine layers. So the `stream` layer's width reads zoom and order only (`StreamWidths.base`), and
+ * this layer — the stream's own colour and opacity — draws the sections whose width differs (`heavy`), at the width the
+ * stream had before (`drawn`); `stream` is hidden under it there, so a translucent line is never drawn twice. Each mark
+ * drawn with the stream's width reads the drawn width only where it can show and the two differ (`markWidth`).
+ */
+export const STREAM_HEAVY = "stream-heavy";
+
+/** (T848) The stream's width, split: what reads feature-state, and where. */
+export interface StreamWidths {
+  /** the width from zoom and stream order alone: no feature-state */
+  readonly base: unknown;
+  /** the stream's width as drawn (the floors and closed's factor): `paintFor`'s, the one width before T848 */
+  readonly drawn: unknown;
+  /** where `drawn` may differ from `base` (lit or closed), as a boolean expression; null: nowhere */
+  readonly heavy: unknown | null;
+  /** where the highlight's floor applies (selected, part, water); null: the theme has no floor */
+  readonly lit: unknown | null;
+  /** `drawn` on the lit sections, the closed factor (unconditionally) elsewhere: right wherever a section is heavy */
+  readonly heavyWidth: unknown;
+  /** `drawn` where `guard` holds, `base` elsewhere (null: `base`) */
+  within(guard: unknown | null): unknown;
+}
+
+/** (T848) The stream's widths in `mode` — `paintFor("stream", …)["line-width"]` is their `drawn`. */
+export function streamWidths(mode: string, tokens: Tokens, given: ChannelValues | null = NO_VALUES): StreamWidths {
+  const values = given ?? NO_VALUES;
+  const m = STYLE_META.colorModes["stream"]?.[mode];
+  // a profile mode with no day is the plain map (`paintFor`)
+  const eff = profileChannel(m) && profileDay(m, values) === null ? "plain" : mode;
+  const spec = STYLE_META.widths["stream"];
+  if (spec === undefined || typeof spec === "string" || (spec.mode ?? "linear") !== "linear")
+    throw new Error("streamWidths: the stream's width is no longer a linear ramp over order");
+  const stops = linearStops(spec, Number(tokens[spec.token] ?? 1));
+  const closed = spec.closed ? closedShown("stream", eff, values) : null;
+  const floor = highlightFloor(tokens);
+  const lit = floor === null ? null : tokens["width.stream.water"] !== undefined ? ["any", SELECTED, PART, WATER] : SELECTED;
+  const drawnAt = (s: WidthStop) => (floor === null ? closedPart(s, closed) : ["max", closedPart(s, closed), floor]);
+  const factorAt = (s: WidthStop) => (s.f === 1 || closed === null ? s.w : ["*", s.f, s.w]);
+  const curve = (f: (s: WidthStop) => unknown) => ["interpolate", ["linear"], ["zoom"], ...stops.flatMap((s) => [s.at, f(s)])];
+  const heavy = lit !== null && closed !== null ? ["any", lit, closed] : lit ?? closed;
+  return {
+    base: curve((s) => s.w),
+    drawn: curve(drawnAt),
+    heavy, lit,
+    heavyWidth: curve((s) => (lit === null ? factorAt(s) : ["case", lit, drawnAt(s), factorAt(s)])),
+    within: (guard) => (guard === null ? curve((s) => s.w) : curve((s) => ["case", guard, drawnAt(s), s.w])),
+  };
+}
+
+/**
+ * (T848) `paint` (the stream's, as `paintFor` and the focus make it) split between the two layers that draw it: `stream`
+ * at the base width, hidden where `heavy`; `STREAM_HEAVY` at the drawn width, shown only there. The same colour on both.
+ */
+export function splitStream(paint: Record<string, unknown>, sw: StreamWidths):
+    { stream: Record<string, unknown>; heavy: Record<string, unknown> } {
+  const op = paint["line-opacity"] ?? 1;
+  if (sw.heavy === null)
+    return { stream: { ...paint, "line-width": sw.base }, heavy: { ...paint, "line-width": sw.base, "line-opacity": 0 } };
+  return {
+    stream: { ...paint, "line-width": sw.base, "line-opacity": withinZoomCurve(op, (v) => ["case", sw.heavy, 0, v]) },
+    heavy: { ...paint, "line-width": sw.heavyWidth, "line-opacity": withinZoomCurve(op, (v) => ["case", sw.heavy, v, 0]) },
+  };
+}
+
+/** (T848) The marks drawn with the stream's width. */
+export type StreamMark = "casing" | "glow" | "gear" | "closed" | "runs" | "issue";
+/** a casing shows on a selected section, the part you are on, or one an in-season change covers (`casingPaint`) */
+const CASED = ["any", SELECTED, PART, INSEASON];
+
+/**
+ * (T848) The stream width a mark is drawn with in `mode`: the drawn width wherever the mark can show AND it differs
+ * from the base, the base (no feature-state) everywhere else — so a mark reads the floor or closed's factor only where
+ * it would be seen, and not at all in a mode that never shows it.
+ */
+export function markWidth(mark: StreamMark, mode: string, sw: StreamWidths): unknown {
+  switch (mark) {
+    case "casing": return sw.within(CASED);
+    case "glow": return sw.within(ON);
+    // never on a closed section (`gearShown`): the floor is all that differs
+    case "gear": return markShownIn("gear", mode) ? sw.within(sw.lit) : sw.base;
+    // only on a closed section: the factor always, the floor where lit
+    case "closed": return markShownIn("closed", mode) ? sw.heavyWidth : sw.base;
+    case "runs": return markShownIn("runs", mode) ? sw.within(sw.heavy) : sw.base;
+    case "issue": return markShownIn("issue", mode) ? sw.within(issueShown(mode)) : sw.base;
+  }
+}
+
+/**
+ * (T848 fix 2) THE MODES A STREAM MARK CAN SHOW IN — by the mode alone, never its day (a day arriving must not flip a
+ * layer's visibility: that re-lays out every tile). A mark outside them is `visibility: none`: no bucket, no
+ * feature-state work. `nobaseline` / `noaccess` / `runs` / `issue` / `gear` / `closed` as their paint functions read them.
+ */
+export type ModalMark = "nobaseline" | "noaccess" | "gear" | "closed" | "runs" | "issue";
+export function markShownIn(mark: ModalMark, mode: string, layerId: "stream" | "lake" = "stream"): boolean {
+  const m = STYLE_META.colorModes[layerId]?.[mode];
+  const cats = m && "categories" in m ? m.categories : {};
+  switch (mark) {
+    case "nobaseline": return mode === "standing";
+    case "noaccess": return cats["no_access"] !== undefined && (m?.scale === "profile" || m?.scale === "categorical");
+    case "gear": return GEAR_MODES.includes(mode) && m?.scale === "profile";
+    case "closed": return cats["closed"] !== undefined && (m?.scale === "profile" || m?.scale === "categorical");
+    case "runs": return mode === "runs";
+    case "issue": return issueShown(mode) !== null;
+  }
+}
+
 /** The MapLibre paint property that carries colour, per layer type. */
 // Module-private: an implementation detail of `paintFor`.
 function colourPropFor(type: string | undefined): string {
@@ -401,7 +539,6 @@ export function paintFor(layerId: string, mode: string, tokens: Tokens,
    * colour is now the mode's, always; what is selected is OUTLINED by the selection layers (`SELECTION_CASING`,
    * `SELECTION_RINGS`), and a selected stream is drawn at least `width.stream.highlight` wide (below).
    */
-  const selected = SELECTED;
   const isHighlightable = STYLE_META.highlightable.some((h) => h.id === layerId);
   let out: Record<string, unknown> = { [colourPropFor(type)]: colorExpression(layerId, mode, tokens, values) };
 
@@ -438,14 +575,9 @@ export function paintFor(layerId: string, mode: string, tokens: Tokens,
           z.push(at, f === 1 ? w : ["*", closed === null ? f : ["case", closed, 1, f], w]);
         }
       } else {
-        const attr = ["coalesce", ["to-number", ["get", spec.by]], 1];
         // (T470) `closed`: a section the day paints closed is drawn this much heavier, short of the factor's last zoom
         const closed = spec.closed ? closedShown(layerId, mode, values) : null;
-        for (const [at, base, slope] of spec.ramp) {
-          const w = ["*", scale, ["+", base, ["*", attr, slope]]];
-          const f = spec.closed ? rampAt(spec.closed, at) : 1;
-          z.push(at, f === 1 || closed === null ? w : ["*", ["case", closed, f, 1], w]);
-        }
+        for (const s of linearStops(spec, scale)) z.push(s.at, closedPart(s, closed));
       }
       out[widthKey] = z;
     }
@@ -465,15 +597,8 @@ export function paintFor(layerId: string, mode: string, tokens: Tokens,
      * layer is dropped and the map comes up unstyled with a single console line.
      * `tools/style-valid.test.ts` now runs the spec's own validator over this.
      */
-    if (isHighlightable && type === "line" && tokens["width.stream.highlight"] !== undefined) {
-      // P15: the water's other parts (`water`) take their own, lower floor — after `selected`, which wins. T151: the part
-      // you are on in a water's Map view (`part`) takes the SAME floor as the others — one width for every part
-      const floor: unknown = tokens["width.stream.water"] !== undefined
-        ? ["case", selected, Number(tokens["width.stream.highlight"]),
-           ["any", PART, WATER], Number(tokens["width.stream.water"]), 0]
-        : ["case", selected, Number(tokens["width.stream.highlight"]), 0];
-      out[widthKey] = withinZoomCurve(out[widthKey], (v) => ["max", v, floor]);
-    }
+    const floor = isHighlightable && type === "line" ? highlightFloor(tokens) : null;
+    if (floor !== null) out[widthKey] = withinZoomCurve(out[widthKey], (v) => ["max", v, floor]);
   }
 
   const dash = (STYLE_META.dashes ?? {})[layerId];
