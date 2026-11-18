@@ -2676,3 +2676,8 @@ More questions (recommended answer first):
   "trout" covers char (lake trout included) unless the book names char as a whole separately; Region 6 stream lines
   release lake trout like brook trout. Main chat's fix; rides the 0.8.0 data release.
   14:17, owner, refining it, verbatim: "one time trout is not applied to char is if there is a seperate char groupo reg". So: a "trout" rule covers char UNLESS the same place has its own separate rule for char as a group (then char follows that one); a rule about one char species (e.g. Region 6's lake trout Sept 15-Nov 30 release) does not take char out of the trout rule.
+- 2026-11-18 ~14:20, owner (to the main chat, relayed to the app chat 14:22), verbatim: "so we fixed the salmon painting?
+  right now on 0.8.0 it seems way slower then trout painting? also on desktop can we move the salmon/trout toggle for map
+  to the left side bar? maybe under map button?" then "might be the other chats job". So: T855 (Salmon map slower than
+  Trout; not fixed yet, T848's fix covers the Trout map's zoom lag) and T856 (desktop: the switch goes in the left side
+  bar under the Map button; phones unchanged). Both in 0.8.1, app chat.
