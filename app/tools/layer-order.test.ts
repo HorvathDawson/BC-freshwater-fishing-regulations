@@ -70,6 +70,8 @@ describe("boundaries sit under the water's status lines and over its fills (T83)
          ...(theme === "dark" ? [SELECTION_GLOW] : []),
          // (T213) the gear edges: over the selection casing, under the line whose colour stays the read
          SELECTION_CASING, GEAR_LAYERS.stream.fly, GEAR_LAYERS.stream.bait, "stream",
+         // (T848) the stream's lit and closed sections, at their own width, directly over it
+         "stream-heavy",
          "stream-nobaseline", "stream-noaccess"]]);
       // (T175) the water copy directly UNDER the water's own layers: the lake's under the lake, the line under the casing
       expect([theme, ids.indexOf(COPY_FILL) === ids.indexOf("lake") - 1]).toEqual([theme, true]);

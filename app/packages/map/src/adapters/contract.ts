@@ -17,8 +17,10 @@ import {
   resolveTheme, type ChannelValues, type Tokens,
 } from "../style";
 import { ISSUE_LAYERS, issuePaint, CLOSED_CUE_LAYER, closedCuePaint, casingPaint, glowPaint, focusTheOthers, hideTheOthers, copyFillPaint, copyLinePaint, GEAR_LAYERS, gearPaint, NOACCESS_LAYER, noaccessPaint, NOBASELINE_LAYER, nobaselineOpacity, RUNS_PASS_LAYER, runsPassPaint,
-         paintFor, ringPaint, SELECTION_CASING, SELECTION_GLOW, SELECTION_RINGS, type SelectionCue } from "../paint";
+         paintFor, ringPaint, SELECTION_CASING, SELECTION_GLOW, SELECTION_RINGS, type SelectionCue,
+         markShownIn, markWidth, splitStream, STREAM_HEAVY, streamWidths } from "../paint";
 import { openedPaint, waterOnImagery } from "../on-imagery";
+import { unsetValue } from "../sections";
 
 export type { ChannelValues } from "../style";
 
@@ -175,6 +177,7 @@ function zoomFor(h: MapHandle, layerId: string, mode: string | undefined, fieldO
   h.setZoomRange(layerId, floor);
   // the selection's casing is drawn where its stream is, never as an outline round nothing
   if (layerId === "stream") {
+    h.setZoomRange(STREAM_HEAVY, floor);         // (T848) the stream's own lit and closed sections
     h.setZoomRange(SELECTION_CASING, floor);
     h.setZoomRange(SELECTION_GLOW, floor);      // (T735) absent from a theme with no glow: harmless, like every runtime layer
   }
@@ -220,40 +223,60 @@ export function baseAdapter(platform: "native" | "web"): MapAdapter {
     modeOf[layerId] = mode;
     const own = paintFor(layerId, mode, tokens, values);
     const out = focused ? focusTheOthers(layerId, own, tokens) : own;
-    // the stream's solid width: what every mark drawn with it is sized from, on either ground
-    const w = out["line-width"];
-    const drawn = layerId === "stream" ? onGround(out, w, tokens)
-      : ground === "satellite" ? waterOnImagery(layerId, out, tokens) : out;
-    for (const [prop, value] of Object.entries(drawn)) h.setPaint(layerId, prop, value);
+    const drawn = ground === "satellite" ? waterOnImagery(layerId, out, tokens) : out;
+    if (layerId !== "stream") for (const [prop, value] of Object.entries(drawn)) h.setPaint(layerId, prop, value);
     // the stream's dash reads the stream's own mode (a runtime layer: absent from a style that has none, harmless)
     if (layerId === "stream") {
+      /*
+       * (T848) THE STREAM IN TWO LAYERS: `stream` at the width zoom and order give (no feature-state), and over it the
+       * lit and closed sections at the width the stream is drawn at (`STREAM_HEAVY`). Each mark below is sized from the
+       * stream's width only where it can show (`markWidth`), and a mark this mode never shows is not drawn at all.
+       */
+      const sw = streamWidths(mode, tokens, values);
+      const split = splitStream(out, sw);
+      for (const [prop, value] of Object.entries(onGround(split.stream, sw.base, tokens))) h.setPaint("stream", prop, value);
+      for (const [prop, value] of Object.entries(onGround(split.heavy, sw.heavyWidth, tokens))) h.setPaint(STREAM_HEAVY, prop, value);
+      h.setVisibility(NOBASELINE_LAYER, markShownIn("nobaseline", mode));
       h.setPaint(NOBASELINE_LAYER, "line-opacity", quiet({ "line-opacity": nobaselineOpacity(mode) })["line-opacity"]);
       h.setPaint(NOBASELINE_LAYER, "line-color", tokens["color.water.ungauged"]);
       // (T165) and so do the no-access dots: shown where this mode (and its day) paints a section no_access
+      h.setVisibility(NOACCESS_LAYER, markShownIn("noaccess", mode));
       for (const [prop, value] of Object.entries(quiet(noaccessPaint(mode, tokens, values)))) h.setPaint(NOACCESS_LAYER, prop, value);
       // (T213) the gear edges: the stream's mode, its width, the status and method days
-      for (const mark of GEAR_LEGEND)
-        for (const [prop, value] of Object.entries(onGround(quiet(gearPaint("stream", mode, mark, tokens, values, w)), w, tokens)))
+      const gw = markWidth("gear", mode, sw);
+      for (const mark of GEAR_LEGEND) {
+        h.setVisibility(GEAR_LAYERS.stream[mark], markShownIn("gear", mode));
+        for (const [prop, value] of Object.entries(onGround(quiet(gearPaint("stream", mode, mark, tokens, values, gw)), gw, tokens)))
           h.setPaint(GEAR_LAYERS.stream[mark], prop, value);
+      }
       // (T199) a passing run's dash: the stream's mode and width
-      for (const [prop, value] of Object.entries(onGround(quiet(runsPassPaint(mode, tokens, w)), w, tokens)))
+      const rw = markWidth("runs", mode, sw);
+      h.setVisibility(RUNS_PASS_LAYER, markShownIn("runs", mode));
+      for (const [prop, value] of Object.entries(onGround(quiet(runsPassPaint(mode, tokens, rw)), rw, tokens)))
         h.setPaint(RUNS_PASS_LAYER, prop, value);
       // (T377) closed's stripe: the stream's mode, its day and width — over imagery, the paper dash breaks the edges
       // themselves (drawn at the stream's own width, opened), never a stripe over the clear middle
-      const cue = quiet(closedCuePaint(mode, tokens, values, w));
-      for (const [prop, value] of Object.entries(onGround(cue, w, tokens, true, w)))
+      const cw = markWidth("closed", mode, sw);
+      h.setVisibility(CLOSED_CUE_LAYER, markShownIn("closed", mode));
+      const cue = quiet(closedCuePaint(mode, tokens, values, cw));
+      for (const [prop, value] of Object.entries(onGround(cue, cw, tokens, true, cw)))
         h.setPaint(CLOSED_CUE_LAYER, prop, value);
       // (T759) the issue stripe: the stream's mode (Salmon only) and width — over imagery, like closed's stripe, it breaks the
       // edges themselves (drawn at the stream's own width, opened)
-      for (const part of ["casing", "stripe"] as const)
-        for (const [prop, value] of Object.entries(onGround(quiet(issuePaint(part, mode, tokens, w)), w, tokens, true, w)))
+      const iw = markWidth("issue", mode, sw);
+      for (const part of ["casing", "stripe"] as const) {
+        h.setVisibility(ISSUE_LAYERS[part], markShownIn("issue", mode));
+        for (const [prop, value] of Object.entries(onGround(quiet(issuePaint(part, mode, tokens, iw)), iw, tokens, true, iw)))
           h.setPaint(ISSUE_LAYERS[part], prop, value);
+      }
       // the selection's outline goes with the stream: its width is the stream's, its colour the theme's (full strength)
-      for (const [prop, value] of Object.entries(onGround(casingPaint(w, tokens), w, tokens, false)))
+      const sel = markWidth("casing", mode, sw);
+      for (const [prop, value] of Object.entries(onGround(casingPaint(sel, tokens), sel, tokens, false)))
         h.setPaint(SELECTION_CASING, prop, value);
       // (T735) look C's glow under it. A theme with no glow has no such layer (harmless, like every runtime layer here), and
       // a live map that moves from a glow theme to one without is told opacity 0 by the same call: no state kept
-      for (const [prop, value] of Object.entries(onGround(glowPaint(w, tokens), w, tokens, false)))
+      const glw = markWidth("glow", mode, sw);
+      for (const [prop, value] of Object.entries(onGround(glowPaint(glw, tokens), glw, tokens, false)))
         h.setPaint(SELECTION_GLOW, prop, value);
       for (const ring of Object.values(SELECTION_RINGS))
         for (const [prop, value] of Object.entries(ringPaint(tokens))) h.setPaint(ring, prop, value);
@@ -267,9 +290,11 @@ export function baseAdapter(platform: "native" | "web"): MapAdapter {
     if (layerId === "lake") {
       for (const [prop, value] of Object.entries(copyFillPaint(drawn))) h.setPaint(COPY_FILL, prop, value);
       // (T213) and its gear rings
-      for (const mark of GEAR_LEGEND)
+      for (const mark of GEAR_LEGEND) {
+        h.setVisibility(GEAR_LAYERS.lake[mark], markShownIn("gear", mode, "lake"));
         for (const [prop, value] of Object.entries(quiet(gearPaint("lake", mode, mark, tokens, values))))
           h.setPaint(GEAR_LAYERS.lake[mark], prop, value);
+      }
     }
   };
   /** Is the field drawn now — its layer in a mode it draws in? */
@@ -361,10 +386,10 @@ export function baseAdapter(platform: "native" | "web"): MapAdapter {
         /*
          * THE FIELD'S VALUES, by the basin's own id: one feature-state per catchment (190 of them), and nothing for the
          * style — a basin is a property-keyed feature, so it needs no per-tile label, and a paint change would make the
-         * whole atlas re-lay out. A basin that had a value and has none now is told so (null: `missing`).
+         * whole atlas re-lay out. A basin that had a value and has none now is told so (`""`, read as `missing`; never null, T832).
          */
         const now = (next as ChannelValues["standing"])?.basins ?? {};
-        for (const id of basinsHeld) if (!(id in now)) { h.setFeatureState("basin", id, { standing: null }); basinsHeld.delete(id); }
+        for (const id of basinsHeld) if (!(id in now)) { h.setFeatureState("basin", id, { standing: unsetValue("standing") }); basinsHeld.delete(id); }
         for (const [id, v] of Object.entries(now)) { h.setFeatureState("basin", id, { standing: v }); basinsHeld.add(id); }
         return;
       }
@@ -375,7 +400,7 @@ export function baseAdapter(platform: "native" | "web"): MapAdapter {
          * pentad change (the slider) makes no paint call at all.
          */
         const now = (next as ChannelValues["runs"])?.basins ?? {};
-        for (const id of runBasinsHeld) if (!(id in now)) { h.setFeatureState("basin", id, { rt: null }); runBasinsHeld.delete(id); }
+        for (const id of runBasinsHeld) if (!(id in now)) { h.setFeatureState("basin", id, { rt: unsetValue("rt") }); runBasinsHeld.delete(id); }
         for (const [id, v] of Object.entries(now)) { h.setFeatureState("basin", id, { rt: v }); runBasinsHeld.add(id); }
         return;
       }

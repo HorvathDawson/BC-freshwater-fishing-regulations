@@ -98,8 +98,9 @@ describe("the profile colour mode", () => {
         // stream's two edges, the lake's two rings), T199's passing-run dash (`stream-runs-pass`, off outside `runs`),
         // T377's closed stripe (`stream-closed`, on with the day's `closed` labels), and T735's glow under the part's
         // casing (`selection-glow`, look C: dark only; a theme with no glow has no such layer), and T759's issue stripe
-        // (`stream-issue-casing` + `stream-issue-stripe`, off outside `salmon`) — all validated with the real paint
-        expect(patched, theme).toBe(theme === "dark" ? 23 : 22);
+        // (`stream-issue-casing` + `stream-issue-stripe`, off outside `salmon`), and T848's heavy line (`stream-heavy`: the
+        // stream's lit and closed sections over it) — all validated with the real paint
+        expect(patched, theme).toBe(theme === "dark" ? 24 : 23);
         for (const e of validateStyleMin(style as never)) problems.push(`${theme}: ${e.message}`);
       }
     expect(problems).toEqual([]);

@@ -41,7 +41,7 @@ import { readingDayOf, dayProfiles, finfishDayLabels, isolateDay, methodDayProfi
          type StatusIndex } from "@app/core";
 import type { ChannelValues, MapAdapter, MapHandle } from "./adapters/contract";
 import { SALMON_LABEL_KEY, type StandingValues, type StatusDay, type Tokens } from "./style";
-import { perSectionLayers, spreadSections, type PerSectionLayer } from "./sections";
+import { perSectionLayers, spreadSections, unsetValue, type PerSectionLayer } from "./sections";
 
 /** The day's status as the map is told it — given ONLY on a proven pair, with an index that passed its digest checks. */
 export interface ProfileStatus {
@@ -361,7 +361,9 @@ export class Colouring {
           seen[k]!.add(id);
           const v = chans[k]!.labels.label(id);
           if (v === undefined) continue;
-          (state ??= {})[chans[k]!.labels.key] = v;
+          // (T832) a label cleared is written as its non-null sentinel: iOS's bridge drops a null-valued key
+          const key = chans[k]!.labels.key;
+          (state ??= {})[key] = v === null ? unsetValue(key) : v;
           chans[k]!.dirty = true;
         }
         if (state === null) continue;

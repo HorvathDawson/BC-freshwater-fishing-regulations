@@ -46,7 +46,7 @@ function midzoomPaint(theme: string): Record<string, Record<string, unknown>> {
   const s = runtimeStyle({ atlas: "a.pmtiles", basemap: "b.pmtiles", outside: "o.geojson" } as never, theme) as
     { layers: { id: string; paint?: Record<string, unknown> }[] };
   paint["outside"] = s.layers.find((l) => l.id === "outside")!.paint!;
-  return Object.fromEntries(MIDZOOM_LAYERS.map((l) => [l, paint[l] ?? {}]));
+  return { ...Object.fromEntries(MIDZOOM_LAYERS.map((l) => [l, paint[l] ?? {}])), "stream-heavy": paint["stream-heavy"] ?? {} };
 }
 
 const THEMES = ["light", "dark", "cvd"] as const;
@@ -72,15 +72,32 @@ const at = (prop: string, value: unknown) => {
                                     state as never), (_, v) => (typeof v === "number" ? Math.round(v * 1e6) / 1e6 : v));
 };
 
+/**
+ * (T848) The stream AS DRAWN: `stream`, or where the lit and closed sections' own layer shows (`stream-heavy`), that one.
+ * The frozen paint has no `stream-heavy`: there the stream is its one layer.
+ */
+const drawn = (p: Paint, layer: string, prop: string) => {
+  const own = at(prop, p[layer]?.[prop]);
+  if (layer !== "stream" || !p["stream-heavy"]) return own;
+  const [h, ho] = [at(prop, p["stream-heavy"][prop]), at("line-opacity", p["stream-heavy"]["line-opacity"])];
+  return (zoom: number, ord: number, area: number, state: Record<string, unknown>) =>
+    (Number(ho(zoom, ord, area, state)) > 0 ? h : own)(zoom, ord, area, state);
+};
+
 /** Every (layer, prop) whose evaluated value differs between `a` and `b` at one of `zooms`, with its first case. */
 function differences(a: Paint, b: Paint, zooms: number[]): string[] {
   const out: string[] = [];
   for (const layer of MIDZOOM_LAYERS) {
     const props = new Set([...Object.keys(a[layer] ?? {}), ...Object.keys(b[layer] ?? {})]);
+    // (T848) a value nothing shows is not the look: a line's width and colour count only where it is drawn
+    const opProp = Object.keys({ ...a[layer], ...b[layer] }).find((p) => p.endsWith("-opacity") && !p.startsWith("text"));
+    const [ox, oy] = opProp ? [drawn(a, layer, opProp), drawn(b, layer, opProp)] : [null, null];
     for (const prop of props) {
-      const [fx, fy] = [at(prop, a[layer]?.[prop]), at(prop, b[layer]?.[prop])];
+      const [fx, fy] = [drawn(a, layer, prop), drawn(b, layer, prop)];
+      const hidden = (z: number, ord: number, area: number, s: Record<string, unknown>) => prop !== opProp && ox !== null
+        && Number(ox(z, ord, area, s)) === 0 && Number(oy!(z, ord, area, s)) === 0;
       found: for (const z of zooms) for (const ord of ORDS) for (const area of AREAS) for (const s of STATES)
-        if (fx(z, ord, area, s) !== fy(z, ord, area, s)) {
+        if (!hidden(z, ord, area, s) && fx(z, ord, area, s) !== fy(z, ord, area, s)) {
           out.push(`${layer} ${prop} z${z} ord ${ord} ${JSON.stringify(s)}: ${fx(z, ord, area, s)} -> ${fy(z, ord, area, s)}`);
           break found;
         }
@@ -106,8 +123,8 @@ describe("(T470) the mid-zoom recede", () => {
   }
 
   it("fades own and base by order, never closed; closed is the heaviest line (light, z8)", () => {
-    const p = midzoomPaint("light").stream!;
-    const op = at("line-opacity", p["line-opacity"]), w = at("line-width", p["line-width"]);
+    const all = midzoomPaint("light");
+    const op = drawn(all, "stream", "line-opacity"), w = drawn(all, "stream", "line-width");
     const o = (ord: number, s: string) => Number(op(8, ord, 0, { p: s }));
     // z8 is halfway between the z7 and z9 rows of `fadeByOrder`
     expect([o(3, "p2"), o(4, "p2"), o(5, "b"), o(6, "b"), o(7, "p2"), o(9, "b")]).toEqual([0.475, 0.575, 0.725, 0.875, 1, 1]);
