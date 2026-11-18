@@ -104,7 +104,7 @@ function bannerItems(b: BannerVM | null): Item[] {
 export function troutWords(t: TroutVM): (Item | null)[] {
   const out: (Item | null)[] = [item(t.fold.name, null, true), item(t.top.lead), item(t.top.second), item(t.top.date), item(t.card), item(t.fold.value), item(t.fold.date)];
   for (const b of t.boxes) {
-    out.push(item(b.head), item(b.label), item(b.strip), item(b.tag), item(b.date));
+    out.push(item(b.head), item(b.label), item(b.strip), item(b.tag), item(b.possession), item(b.date));
     for (const r of b.rows) {
       out.push(item(r.name), item(r.origin), item(r.label), item(r.sub), ...r.lines.map((l) => item(l)), ...r.quiet.map((q) => item(q)),
                item(r.date), ...r.coming.map((c) => item(c)));
