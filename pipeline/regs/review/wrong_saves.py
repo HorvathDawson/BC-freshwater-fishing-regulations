@@ -43,7 +43,21 @@ FIX_WORDS = "fix and re-save it"
 
 #: T786 — THE WRONG SAVES KNOWN TO SHIP, which the gate lets through: mark key -> {date, line, why}. Explicit and
 #: dated, by hand, naming the store line it excuses. Empty: no place ships on a wrong save.
-WRONG_SAVE_OK: dict[str, dict] = {}
+WRONG_SAVE_OK: dict[str, dict] = {
+    # all four are DORMANT: DFO no longer lists the place, so nothing ships from them (they bind only if DFO lists them again)
+    "dfo|3:thompson-river:from-kamloops-lake-outlet-downstre|": {
+        "date": "2026-11-17", "line": 2521,
+        "why": "dormant; owner 2026-11-16 (T806): answered by the three Thompson closed areas"},
+    "dfo|6:morice-river:from-fishing-boundary-signs-locate|": {
+        "date": "2026-11-17", "line": 2596,
+        "why": "dormant; owner 2026-11-16 (T806): retired, fine by his own note"},
+    "dfo|2:alouette-river-and-tributaries:downstream-of-a-line-between-two-f|": {
+        "date": "2026-11-17", "line": 2846,
+        "why": "dormant; owner 2026-11-17 17:01 OK'd its new drawing (T807, side streams in by DFO's heading); his P '?' of 11-09 kept as given"},
+    "dfo|1:cowichan-river:from-cnr-trestle-at-mile-70-2-to-s|": {
+        "date": "2026-11-17", "line": 2848,
+        "why": "dormant; owner 2026-11-17 'dfo words' (T807, river only by DFO's words); his P '?' of 11-15 kept as given"},
+}
 
 _DATE = re.compile(r"^\d{4}-\d{2}-\d{2}$")
 
