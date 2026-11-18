@@ -7,13 +7,14 @@ import { useCallback, useContext, type MutableRefObject } from "react";
 import { Platform, View } from "react-native";
 import { openProbe } from "@app/data";
 import type { ReleaseLoader } from "@app/data/release";
-import { mapPointTap, routeWhere, spotsMenu, tapOpensWater, useCueLit, type PressCueStore, type TapAhead, type Locate, type MyLocation, type MapRail, type MenuControls, type RegsPrefetch,
+import { mapPointTap, tabsAsRail, useLayoutClass, routeWhere, spotsMenu, tapOpensWater, useCueLit, type PressCueStore, type TapAhead, type Locate, type MyLocation, type MapRail, type MenuControls, type RegsPrefetch,
          mapError, InSeasonContext, type HeldLookStore, type SpotPhotos, type SyncState } from "@app/ui";
 import type { Spot } from "@app/data/spots";
 import type { Camera, MapSpots, TileEndpoints } from "@app/map";
 import { hiddenLayers, shownLayers } from "@app/map/colours";
 import { MapDayStrip } from "../DayCalendar";
 import { TABS } from "../TabBar";
+import { NAV_RAIL } from "../NavRail";
 import type { MenuInfo } from "../menu/MenuHost";
 import type { Palette, ThemeName } from "../theme";
 import { HANDOVER_Z, HOME, type MapColouring } from "./useMapColouring";
@@ -21,7 +22,7 @@ import type { FishImages } from "../regs/types";
 import type { ShellNav } from "./useShellNav";
 import type { ShellSearch } from "./useShellSearch";
 import { part } from "../part";
-import { RegsLayerToggle } from "./RegsLayerToggle";
+import { RegsLayerToggle, RegsLayerStrip } from "./RegsLayerToggle";
 
 // (T282) loaded later on the web (`part`): not on the first screen's path
 const MapScreen = part(() => import("../later").then((m) => m.MapScreen));
@@ -36,7 +37,7 @@ export function BrowseHost({ nav, col, search, rail, palette, theme, themeName, 
                              spots, spotsShown, spotLayer, spotsError, onRefreshSpots, refreshing, locate, me = null,
                              photos, loader, syncState, dfoCheckedAt = null, sync = null, onSync, menu, menuInfo, mapDay, onSaveSpot, onLayers, onRegion,
                              offline = null, onDay, onOpenDay, dayRange, onObstacle, onNotFishing, onRuns, fishImages, regsPrefetch = null,
-                             lookKey, look, cue, tap }: {
+                             lookKey, look, railOver = false, cue, tap }: {
   nav: ShellNav; col: MapColouring; search: ShellSearch; rail: MapRail; palette: Palette; theme: string;
   themeName: ThemeName; onTheme: (t: ThemeName) => void; tiles: TileEndpoints; camera: MutableRefObject<Camera>;
   insetTop: number; insetBottom: number; spots: readonly Spot[]; spotsShown: boolean; spotLayer: MapSpots | undefined;
@@ -76,6 +77,8 @@ export function BrowseHost({ nav, col, search, rail, palette, theme, themeName, 
   offline?: { ready: readonly string[]; total: number } | null;
   /** (T566) the colouring asked of the map (`MapProps.lookKey`) and the key held until the map says it drew it */
   lookKey?: string; look?: HeldLookStore<unknown>;
+  /** (T856) the desktop's see-through nav rail floats over this map's left edge (the Shell's): its corner clears it */
+  railOver?: boolean;
   /** (T716) the tap's cue, the Shell's (`@app/ui` pressCue.ts): lit here, put out by the Shell when the map is back */
   cue: PressCueStore;
   /** (T716) a tap's open, started at the lift and shown at the click (the Shell's, `@app/ui` pressCue.ts `tapAhead`) */
@@ -85,6 +88,7 @@ export function BrowseHost({ nav, col, search, rail, palette, theme, themeName, 
   const { flowParam, mm, layers, imagery, cond, gauges, lakeFeed, salmonFeed, methodFeed, issueFeed, mapStatus, noteVisible, setZoomedOut,
           horizonChipsShown, pickDay, vintage } = col;
   const { searching, session, arrive, wideSearch, closeSearch } = search;
+  const onRail = tabsAsRail(useLayoutClass());
   /**
    * Tapping a map. A tile carries a `section_id`, and a section is not something a person asked about — they tapped a
    * river. `opener.tap` resolves it to the water and opens the water screen (`@app/ui` openWater.ts): with Regulations
@@ -152,13 +156,16 @@ export function BrowseHost({ nav, col, search, rail, palette, theme, themeName, 
   const regsDrawn = tab === "map" && !searching && col.statusOk && layers.water.drawn === "regulations";
   // the day alone: Trout | Salmon is on the rail under locate + layers (T425, `railExtra`), the key at the foot (`MapLegend`)
   const corner = regsDrawn
-    ? <View testID="map-corner-row" pointerEvents="box-none" style={{ flexDirection: "row", gap: 8, alignItems: "flex-start" }}>
+    ? <View testID="map-corner-row" pointerEvents="box-none" style={{ flexDirection: "row", flexWrap: "wrap", gap: 8, alignItems: "flex-start" }}>
         <MapDayStrip palette={palette} day={mapDay} range={dayRange} onDay={onDay} onOpen={onOpenDay} />
+        {/* (T856) desktop width: Trout | Salmon directly after the day, the same strip; narrower, it is on the map's rail */}
+        {col.salmonOffered && onRail && <RegsLayerStrip col={col} palette={palette} look={look} />}
       </View>
     // (T367) the Runs tab's species moved into its bar at the foot (`RunsLegend`), with the rest of run timing
     : undefined;
 
-  const railExtra = regsDrawn && col.salmonOffered
+  // (T856) on a desktop-width window the switch is in the top row after the day (above), so not also here
+  const railExtra = regsDrawn && col.salmonOffered && !onRail
     ? <RegsLayerToggle col={col} palette={palette} fishImages={fishImages} look={look} /> : undefined;
 
   return tab === "spots"
@@ -193,7 +200,7 @@ export function BrowseHost({ nav, col, search, rail, palette, theme, themeName, 
                     onPick={(k) => (k === "report" ? menu.report(routeWhere(route, mapDay ? dayLabel(mapDay) : null))
                                     : menu.show(k))} />
       : tab === "map" || tab === "conditions" || tab === "runs"
-        ? <MapScreen at={tiles} palette={palette} theme={theme} me={me} railExtra={railExtra} lookKey={lookKey} onLookDrawn={look?.drawn}
+        ? <MapScreen at={tiles} palette={palette} insetLeft={railOver ? NAV_RAIL.width : 0} theme={theme} me={me} railExtra={railExtra} lookKey={lookKey} onLookDrawn={look?.drawn}
                      camera={camera.current}
                      // (T48) the top bar over the map: the corner's chips, the rail and the web map's controls go under it
                      insetTop={insetTop} insetBottom={insetBottom}

@@ -24,7 +24,7 @@ export function MapScreen({ at, palette, theme, view, modes, groups, hide, show,
                             onLayers, layersChanged = 0, onLongPress, onPressFeature, onPressStart, onPressObstacle, onPressNotFishing, onMoved, onMapPoint, horizons,
                             highlight, inSeason, marker, pins, status, standing, lakes, salmon, method, issue, runs, gauges, onVisible, onError,
                             fit, basemap, onImageryError, water, waterLine, selection, focus, near, marks, onPressMark, spots,
-                            insetTop = 0, insetBottom = 0, onRegion, corner, railExtra, me = null, developer, onDrawn, lookKey, onLookDrawn }: {
+                            insetTop = 0, insetBottom = 0, insetLeft = 0, onRegion, corner, railExtra, me = null, developer, onDrawn, lookKey, onLookDrawn }: {
   at: TileEndpoints; palette: Palette; theme: string; view: string;
   groups?: Record<string, boolean>;
   /** Layers this view does not draw — see `hiddenLayers`. Not a user toggle. */
@@ -111,6 +111,8 @@ export function MapScreen({ at, palette, theme, view, modes, groups, hide, show,
   insetTop?: number;
   /** (T275) the foot block over the map, px: the credits and scale sit above it (MapProps.insetBottom). */
   insetBottom?: number;
+  /** (T856) the desktop's see-through nav rail floats over the map's left edge: the corner starts clear of it, px */
+  insetLeft?: number;
   /** (T303) My location (the rail's button, the dot): `useMyLocation`'s state, absent where the platform has none. */
   me?: MyLocation | null;
   /** (T476) the Developer card's facts (the Shell's menu info and the release in use); drawn only where `LAB_ON` (never production) */
@@ -132,7 +134,7 @@ export function MapScreen({ at, palette, theme, view, modes, groups, hide, show,
       <Map at={at} theme={theme} me={me ? { on: me.on, fix: me.fix, following: me.following, centre: me.centre, zoom: me.zoom, onRelease: me.release } : null} view={view} modes={modes} groups={groups} hide={hide} show={show}
            initial={camera}
            onPressFeature={onPressFeature} onPressStart={onPressStart} onPressObstacle={onPressObstacle} onPressNotFishing={onPressNotFishing} onMoved={onMoved} onMapPoint={onMapPoint} onLongPress={onLongPress}
-           highlight={highlight} inSeason={inSeason} pins={pins} spots={spots} insetTop={insetTop} insetBottom={insetBottom} onOpenLink={openLink} useBackLayer={useBackLayer} water={water} waterLine={waterLine} selection={selection} focus={focus} near={near} marks={marks} onPressMark={onPressMark} marker={marker} status={status} standing={standing} lakes={lakes} salmon={salmon} method={method} issue={issue} runs={runs}
+           highlight={highlight} inSeason={inSeason} pins={pins} spots={spots} insetTop={insetTop} insetBottom={insetBottom} insetLeft={insetLeft} onOpenLink={openLink} useBackLayer={useBackLayer} water={water} waterLine={waterLine} selection={selection} focus={focus} near={near} marks={marks} onPressMark={onPressMark} marker={marker} status={status} standing={standing} lakes={lakes} salmon={salmon} method={method} issue={issue} runs={runs}
            gauges={gauges}
            onVisible={onVisible} onError={onError ?? mapError} fit={fit} basemap={basemap} onImageryError={onImageryError}
            onRegion={onRegion} onDrawn={onDrawn} lookKey={lookKey} onLookDrawn={onLookDrawn} onOpenLab={LAB_ON && developer ? () => setDevOpen(true) : undefined} />
@@ -160,7 +162,7 @@ export function MapScreen({ at, palette, theme, view, modes, groups, hide, show,
         NO satellite button here either: the choice is the Layers sheet's Basemap — two controls for one setting is one
         too many.
       */}
-      <View testID="map-corner" style={{ position: "absolute", top: insetTop + 8, left: 14, right: 72, flexDirection: "column",
+      <View testID="map-corner" style={{ position: "absolute", top: insetTop + 8, left: 14 + insetLeft, right: 72, flexDirection: "column",
                                           gap: 8, alignItems: "flex-start" }} pointerEvents="box-none">
       {horizons && (
         // (T367) Now · <day> ▾ · Change: the forecast days open under the strip
