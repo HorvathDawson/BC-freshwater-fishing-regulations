@@ -49,10 +49,12 @@ export const routeScroll = {
       return `map box ${JSON.stringify(map.box)} · ${(m.share * 100).toFixed(0)} % its commonest colour (${m.colour}): drawn`;
     }, { stop: true });
 
-    // (T831) the phone drew no gauge dots and no "you are here" pin on this map (its `trace` was ignored); the web did.
-    // The pin is the accent violet (color.ui.accent: light #5F26E0, dark #A97CFF), so none of it in the map means no
-    // pin. Some of it is not proof on its own (an accent outline would pass too): the shot is kept to set beside the web's.
-    await ctx.step('T831: the route map draws the "you are here" pin and the gauge dots', async () => {
+    // (T831) the phone drew no route lines, no gauge dots and no "you are here" pin on this map (its `trace` was ignored);
+    // the web did. The pin is the accent violet (color.ui.accent: light #5F26E0, dark #A97CFF), so none of it in the map
+    // means no pin. Some of it is not proof on its own (an accent outline would pass too), and the lines and dots are in
+    // each gauge's own tone: the shot is kept to set beside the web's — a solid line to each gauge downstream, a dashed
+    // one to each upstream, arrows along them, a dot per gauge with its share beside it.
+    await ctx.step('T831: the route map draws its lines, the gauge dots and the "you are here" pin', async () => {
       const file = path.join(ctx.dir, 'T831-route-pins.png');
       d.screenshot(file);
       const near = (r, g, b, [R, G, B]) => Math.abs(r - R) + Math.abs(g - G) + Math.abs(b - B) < 60;
@@ -60,7 +62,7 @@ export const routeScroll = {
       const pin = count(readPng(file), { x: c.x0, y: c.y0, w: c.x1 - c.x0, h: c.y1 - c.y0 },
                         (r, g, b) => near(r, g, b, [0x5f, 0x26, 0xe0]) || near(r, g, b, [0xa9, 0x7c, 0xff]));
       if (pin < 40) throw new Error(`no accent pixels in the route map (${pin}): no "you are here" pin drawn (${path.basename(file)})`);
-      return `${pin} accent pixels in the map (the pin) · compare ${path.basename(file)} with the web's route map: a dot per gauge, its share beside it`;
+      return `${pin} accent pixels in the map (the pin) · compare ${path.basename(file)} with the web's route map: the lines (solid down, dashed up, arrows), a dot per gauge, its share beside it`;
     });
 
     await ctx.step(`${ROUNDS} × (fling down the pane, fling back up): the map each time it returns`, async () => {

@@ -43,6 +43,7 @@ import { onAppLink } from "./appLink";
 import { PHOTO_SOURCES, pickPhoto } from "./pickPhoto";
 import { routeAddress, routeLinks, routeUrl, systemBack } from "./systemBack";
 import { locate } from "./locate";
+import type { ReadRange } from "@app/map";
 import { returnedFromBackground } from "./returnedFromBackground";
 import { share } from "./share";
 // (T390) the platform's way to a newer app: Play's in-app update, the App Store page, the staging APK page; none on the web
@@ -519,7 +520,7 @@ export default function App() {
   const menuInfo = useMemo(() => ({ ...MENU_INFO, updatesLog, report: reportOutbox, install: INSTALL.id }), [updatesLog, reportOutbox]);
 
   const data = useMemo((): { source: WaterSource; status: StatusSource; pairing: PairingInput;
-                             tiles: MapTiles & { imagery: string }; loader: ReleaseLoader } | null => {
+                             tiles: MapTiles & { imagery: string; readRange?: ReadRange }; loader: ReleaseLoader } | null => {
     if (boot.state !== "ready") return null;
     const b = boot.booted;
     // the tiles, mask, basemap and map assets from the release when it names them, else the dev server's; the pair
@@ -527,8 +528,12 @@ export default function App() {
     // T01: the loader goes to the water screen too — the Regulations page reads water / regs-<region> / regs-sid
     // through it (no regs store file of its own)
     // the satellite imagery is Esri's, online (never in a release): `IMAGERY_TILES`
+    // (T831) and a phone's reader of its installed atlas by range (the route map's lines); none on the web
+    // (`@app/data/release/platform` `atlasRange`)
     const m = releaseMapInput(b, ENDPOINTS.tiles);
-    return { source: b.source, status: releaseStatus(b.loader), ...m, tiles: { ...m.tiles, imagery: IMAGERY_TILES },
+    const readRange = platform.atlasRange;
+    return { source: b.source, status: releaseStatus(b.loader), ...m,
+             tiles: { ...m.tiles, imagery: IMAGERY_TILES, ...(readRange ? { readRange } : {}) },
              loader: b.loader };
   }, [boot]);
   useEffect(() => { drawnHandles.current = data?.pairing.manifest.tiles.current?.id?.split(".")[0] ?? null; }, [data]);

@@ -155,6 +155,16 @@ describe("the native style", () => {
     expect((nativeStyle(base).style as unknown as S).sources["trace-pins"]!.data).toEqual({ type: "FeatureCollection", features: [] });
   });
 
+  it("(T831) starts the route overlay's line source with the lines it is given, and its line layers read it", () => {
+    const lines = { type: "FeatureCollection" as const, features: [{ type: "Feature" as const,
+      properties: { role: "down" as const, tone: "#1f77b4", kind: "line" as const, order: 1, on: false },
+      geometry: { type: "MultiLineString" as const, coordinates: [[[-122, 49], [-121.9, 49.1]] as [number, number][]] } }] };
+    const s = nativeStyle({ ...base, traceLines: lines }).style as unknown as S;
+    const onLines = (s.layers as (L & { source?: string })[]).filter((l) => l.source === "trace").map((l) => l.id);
+    expect([onLines, s.sources.trace!.data]).toEqual([["trace-line-down", "trace-line-up", "trace-arrows", "trace-join", "trace-join-label"], lines]);
+    expect((nativeStyle(base).style as unknown as S).sources.trace!.data).toEqual({ type: "FeatureCollection", features: [] });
+  });
+
   it("a caller's bad mode is reported, and the style is still made", () => {
     const { style, errors } = nativeStyle({ ...base, modes: { stream: "nope" } });
     expect(errors.map((e) => e.message))
