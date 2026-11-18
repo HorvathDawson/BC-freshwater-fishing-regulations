@@ -564,10 +564,12 @@ SPEC = {
             "frames": "[[holds, documents, under_16?, alien_closures?]] — indexes into `holds`, `documents`, `under_16` "
                       "(absent on tidal water) and `alien_closures` (T789 G8: only on a part whose rule set holds one; "
                       "never without `under_16`)",
-            "alien_closures": "[[{rule, says}]] — T789 G8 (owner 2026-11-17: each water its own, none where it does not "
+            "alien_closures": "[[{rule, of, says}]] — T789 G8 (owner 2026-11-17: each water its own, none where it does not "
                               "apply): the closures to the non-resident alien the part's rule set holds "
-                              "(`licence.alien_closures`; the rule set is in the licence key there), `rule` its export "
-                              "index, `says` its line (the rule's label, the Keep tab caveat's words). Additive: a reader "
+                              "(`licence.alien_closures`; the rule set is in the licence key there) and the ladder leaves "
+                              "standing, `rule` its export index, `of` the water whose rule it is on a tributary part (else "
+                              "null; data only), `says` the whole sentence (\"Lakelse River and its tributaries: …\" on a "
+                              "tributary; \"all year\" where no date is printed). Additive: a reader "
                               "that does not know it reads the first three indexes as before",
             "under_16": "[[{residency, label, none_needed, with_adult {who, counts} | null, buy [{doc, name, "
                         "prices, or? [{need, names}]}], own_limit, says}] per residency] — version 5 (ROUND15 2): what an under-16 "
