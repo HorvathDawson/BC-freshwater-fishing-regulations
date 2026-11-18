@@ -7,8 +7,9 @@
 //                                      entry files — see `EntrySource`), rows/region-<slug>.json (T366: the last
 //                                      typed page's rows, the row digest's baseline — rows.ts)
 //
-// THE SAFETY RULES (each as the Python): a failed fetch keeps the region's last answers, marked `stale`, and the
-// second failure in a row notifies; a page that does not parse / verify HOLDS the region at the last feed; a
+// THE SAFETY RULES (each as the Python): a failed fetch keeps the region's last answers and counts `failures` (in a
+// row); the region is `stale` only once its last GOOD read (`checked`) is older than STALE_AFTER_HOURS, and that is when
+// the owner is told (T851: one failed daily fetch used to mark every region stale); a page that does not parse / verify HOLDS the region at the last feed; a
 // STRUCTURAL reconcile holds the region; a `section_moved` location keeps its last answers; a fingerprint no curated
 // location knows is UNPLACED (its rules held in unplaced.json, the owner told once). Nothing here writes a curated
 // file.
@@ -45,7 +46,20 @@ import { feedMap, readBaseline, rowChanges, rowsNotice, ROWS_KEY, type RowChange
 // (T556) the string is generated from the Python table (pipeline/common/feed_formats.py), the app's reader with it
 export const FORMAT = FEED_FORMATS.dfoFeed;
 const SPECIES_N = [...SPECIES];
-export const FAIL_NOTIFY = 2;
+/**
+ * (T851) A region is STALE when its last good read (`checked`) is older than this at a run whose fetch failed — not
+ * because one fetch failed. 30 h is the app's own line for the DFO feed (packages/core staleness.ts
+ * `STALE_AFTER.dfo` = `DAILY_FEED_STALE_MS`: the slowest cron, daily, plus 6 h; test/dfo.stale.test.ts pins them equal),
+ * so a region's answers are doubted exactly when the app would doubt the whole feed. A failure inside the line is kept
+ * honest as `failures` (fetches in a row that failed; 0 after a read), /status (`dfoHeld`) and the run's health record.
+ * The Python's `live.STALE_AFTER_HOURS` is the same number (pinned by the same test).
+ */
+export const STALE_AFTER_HOURS = 30;
+/** (T851) the last good read `checked` is past the line at `at` (no read at all, or an unreadable time: stale) */
+export function staleAt(checked: string | null | undefined, at: string): boolean {
+  const age = Date.parse(at) - Date.parse(checked ?? "");
+  return !(age <= STALE_AFTER_HOURS * 3600_000);
+}
 /** (T549 item 9) `live queue` reads the MAC's unplaced.json, never the worker's on R2: the Mac reads DFO's page first
  *  (`live run`), then queues what it holds. `queue` alone seeded nothing when the Mac had not run since the page changed. */
 export const QUEUE_ACTION = (slugs: string) =>
@@ -652,17 +666,18 @@ export async function runDfo(deps: DfoDeps): Promise<DfoResult> {
     try {
       [html, fetched] = await fetcher(slug);
     } catch (e) {
-      reg.stale = true;
+      // (T851) the last answers stand; `stale` only once the last good read is older than the line (STALE_AFTER_HOURS)
+      reg.stale = staleAt(was.checked, at);
       reg.failures = Number(was.failures || 0) + 1;
       unread[slug] = "stale";
       Object.assign(locs, carry(prev, slug, verdicts, gears));
       unplaced.push(...prevUnplacedOf(slug));
-      log(`region ${slug}: fetch failed (${pyStrOf(e)}); the last feed stands`);
-      if (reg.failures >= FAIL_NOTIFY)
+      log(`region ${slug}: fetch failed (${pyStrOf(e)}); the last feed stands${reg.stale ? " (stale)" : ""}`);
+      if (reg.stale)
         notices.push({
           key: `dfo-fetch:${slug}:${was.checked || "never"}`,
-          text: `DFO Region ${slug}: ${reg.failures} fetches in a row failed (${pyStrOf(e)}); the feed shows the page of ${reg.asof || "no date"}`,
-          data: { region: slug, kind: "fetch", affects: `${reg.failures} fetches in a row failed (${pyStrOf(e)}); the app shows the page of ${reg.asof || "no date"}` },
+          text: `DFO Region ${slug}: no good read since ${was.checked || "never"} (over ${STALE_AFTER_HOURS} h), ${reg.failures} fetches in a row failed (${pyStrOf(e)}); the feed shows the page of ${reg.asof || "no date"}, marked stale`,
+          data: { region: slug, kind: "fetch", affects: `no good read since ${was.checked || "never"} (over ${STALE_AFTER_HOURS} h), ${reg.failures} fetches in a row failed (${pyStrOf(e)}); the app shows the page of ${reg.asof || "no date"}, marked stale` },
         });
       continue;
     }

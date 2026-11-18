@@ -21,7 +21,7 @@ describe("fetchRegion", () => {
     const got = await fetchRegion(async () => bodies.shift()!, "4", { sleep: async (ms) => void waits.push(ms), random: () => 0 });
     expect(got.snap.attempts).toBe(3);
     expect(got.snap.warnings).toEqual(["attempt 1: HTTP 503", "attempt 2: body too small (24 B < 8000 B)"]);
-    expect(waits).toEqual([7000, 4000]);
+    expect(waits).toEqual([7000, 15000]); // (T851) Retry-After, then the second wait of 5, 15, 45 s
     expect(got.snap.date_modified).toBe("2025-04-01");
   });
   it("gives up after four attempts with FetchError", async () => {
@@ -52,7 +52,7 @@ describe("runDfo in the Worker shape", () => {
       const slug = /region(\w+)-eng\.html$/.exec(url)![1]!;
       return new Response(slug === "7" ? "<html>down</html>" : page(slug));
     };
-    // the previous feed says region 7 already failed once: this failure is the second in a row → notify
+    // the previous feed says region 7 already failed once, its last good read 36 h ago: past the 30 h line → stale, notify (T851)
     feed.m.set("index.json", JSON.stringify({ regions: { "7": { failures: 1, checked: "2026-10-27T00:00:00+00:00", asof: "2026-04-01" } } }));
     {
       const got = await runDfo({ fetch, feed, priv, now: "2026-10-28T12:00:00Z", regions: ["4", "7"], notifyUrl: "https://ntfy.example/dfo", fetchOptions: { sleep: noSleep } });

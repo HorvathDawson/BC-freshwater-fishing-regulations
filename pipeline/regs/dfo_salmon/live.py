@@ -40,7 +40,8 @@ chain_calendar` does (`compose` here is the reference, pinned against it), so th
 Per region, every run (no credits, no secrets — safe on a cron):
   * fetch (validated, atomic; `fetch.fetch_region`), every page fetched kept in `cache/dfo_salmon/history/` once
     (`fetch.archive`: the wording archive dates it);
-    a failed fetch keeps the last feed's answers for the region, marked `stale`; two failures in a row notify;
+    a failed fetch keeps the last feed's answers for the region and counts `failures` (in a row); the region is
+    `stale` — and the owner is told — only once its last good read (`checked`) is older than STALE_AFTER_HOURS (T851);
   * parse → untangle → `verify()` → locations → typed (`feed.build`); a failure holds the region at the last feed and
     notifies;
   * `entries.reconcile`: a STRUCTURAL change holds the whole region (last feed) and notifies; a `section_moved`
@@ -82,8 +83,28 @@ logger = logging.getLogger(__name__)
 #: verdict carries `c`, a region `shared` + `sizes` (`deliver.salmon.header_answers`), a note's length is `lengths`
 FORMAT = FEED_FORMATS["dfo_feed"]          # (T556) typed once, in pipeline/common/feed_formats.py
 OUT_DIR = Path(GENERATED.regs.dfo_salmon) / "feed"
-#: two failed fetches in a row tell the owner (one is a blip)
-FAIL_NOTIFY = 2
+#: (T851) a region is STALE when its last good read (`checked`) is older than this at a run whose fetch failed — not
+#: because one fetch failed (2026-11-18: one 5xx at the daily run marked every region stale). 30 h is the app's own
+#: line for the DFO feed (app/packages/core/src/staleness.ts `STALE_AFTER.dfo`: the daily cron plus 6 h), so a region
+#: is doubted exactly when the app would doubt the whole feed; that is also when the owner is told (once per outage).
+#: The worker's `dfo/live.ts STALE_AFTER_HOURS` is the same number (test/dfo.stale.test.ts pins both to the app's).
+STALE_AFTER_HOURS = 30
+
+
+def _stamp(s: Optional[str]) -> Optional[datetime]:
+    try:
+        t = datetime.fromisoformat(str(s).replace("Z", "+00:00"))
+    except ValueError:
+        return None
+    return t if t.tzinfo else t.replace(tzinfo=timezone.utc)
+
+
+def stale_at(checked: Optional[str], at: str) -> bool:
+    """(T851) The last good read `checked` is past STALE_AFTER_HOURS at `at` (no read, or an unreadable time: stale)."""
+    c, a = _stamp(checked) if checked else None, _stamp(at)
+    if c is None or a is None:
+        return True
+    return (a - c).total_seconds() > STALE_AFTER_HOURS * 3600
 QUEUE_ACTION = "python -m pipeline.regs.dfo_salmon.live queue --regions {slug}"
 #: (T321) an in-season notice number in a cell, as printed
 Q_FN = re.compile(r"\bFN\s*\d{3,4}\b", re.I)
@@ -699,15 +720,18 @@ def run(out: Path, *, fetcher: Fetcher, regions: Optional[Sequence[str]] = None,
         try:
             html, fetched = fetcher(slug)
         except Exception as exc:                               # noqa: BLE001 — a page that failed keeps its last answers
-            reg["stale"], reg["failures"] = True, int(was.get("failures") or 0) + 1
+            # (T851) the last answers stand; `stale` only once the last good read is older than STALE_AFTER_HOURS
+            reg["stale"], reg["failures"] = stale_at(was.get("checked"), at), int(was.get("failures") or 0) + 1
             unread[slug] = "stale"
             locs.update(_carry(prev, slug, verdicts, gears))
             unplaced.extend(u for (r, _), u in prev_unplaced.items() if r == slug)
-            logger.warning("region %s: fetch failed (%s); the last feed stands", slug, exc)
-            if reg["failures"] >= FAIL_NOTIFY:
+            logger.warning("region %s: fetch failed (%s); the last feed stands%s", slug, exc,
+                           " (stale)" if reg["stale"] else "")
+            if reg["stale"]:
                 notices.append({"key": f"dfo-fetch:{slug}:{was.get('checked') or 'never'}",
-                                "text": f"DFO Region {slug}: {reg['failures']} fetches in a row failed ({exc}); "
-                                        f"the feed shows the page of {reg['asof'] or 'no date'}"})
+                                "text": f"DFO Region {slug}: no good read since {was.get('checked') or 'never'} "
+                                        f"(over {STALE_AFTER_HOURS} h), {reg['failures']} fetches in a row failed "
+                                        f"({exc}); the feed shows the page of {reg['asof'] or 'no date'}, marked stale"})
             continue
         sha = hashlib.sha256(html.encode("utf-8", "replace")).hexdigest()
         if sha != reg["sha256"]:

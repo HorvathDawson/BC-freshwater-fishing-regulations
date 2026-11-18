@@ -67,6 +67,8 @@ SITE_ORIGIN = "https://staging.canifishthis.ca"
 #                      never 00:05 (T550/T597: ECCC's /today/ directory answers 404 for every file at its UTC day turn)
 #   :15 DFO      every 6 h Jun–Oct (salmon season), daily 14 UTC (07 PDT) Nov–May
 #   :45 in-season  as DFO
+#   :50 DFO retry  hourly, but runs only after a DFO run left a region unread (private/feeds/dfo/retry.json): those
+#                  regions again until read, at most 12 tries after a regular run (T851; src/index.ts `dfoRetry`)
 #   :25 backup   daily 09 UTC (T246)
 #   :55 model score  monthly, the 1st at 10:55 UTC (02:55 PST): CLEVER vs COFFEE on the month that closed (T178)
 #   :40 run timing   weekly, Monday 10:40 UTC: a newer NuSEDS starts feeds-runtiming.yml (T412; src/runtiming.ts)
@@ -84,4 +86,5 @@ crons = [
   "25 9 * * *",                  # T246: the daily backup (02:25 PDT), src/backup.ts
   "55 10 1 * *",                 # T178: the monthly model score (reports only), src/gauges/score.ts
   "40 10 * * 1",                 # T412: the weekly run-timing source check (NuSEDS), src/runtiming.ts
+  "50 * * * *",                  # T851: hourly, the DFO regions the last run could not read (only when retry.json says so)
 ]

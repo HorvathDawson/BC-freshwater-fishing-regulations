@@ -40,9 +40,10 @@ describe("scheduled(): which job each cron starts", () => {
       "45 14 * 1-5,11-12 *": "inseason",
       "25 9 * * *": "backup",
       "55 10 1 * *": "skill",
+      "50 * * * *": "dfo-retry",
       ...Object.fromEntries(CRONS.filter((c) => c.startsWith("40 ")).map((c) => [c, "runtiming"])),
     });
-    expect(new Set(Object.values(got))).toEqual(new Set(["gauges", "dfo", "inseason", "backup", "skill", "runtiming"]));
+    expect(new Set(Object.values(got))).toEqual(new Set(["gauges", "dfo", "inseason", "backup", "skill", "runtiming", "dfo-retry"]));
   });
 });
 

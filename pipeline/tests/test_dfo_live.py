@@ -6,7 +6,9 @@
   * THE TEST FEED WITH AN UNSEEN LOCATION (part 4): a reworded scope (drift) and an invented water (new_water) are held
     in unplaced.json with their rules, the owner told once each, every other location publishes — and the next run
     tells nobody again;
-  * a failed fetch keeps the last answers (stale), two in a row notify; a page that does not parse holds the region;
+  * a failed fetch keeps the last answers and counts `failures`; the region is `stale` (and the owner told, once) only
+    when its last good read is older than STALE_AFTER_HOURS (T851); the in-run backoff waits 5, 15, 45 s; a page that
+    does not parse holds the region;
   * the golden the app's `withSalmonFeed` test reads is current.
 """
 from __future__ import annotations
@@ -127,15 +129,73 @@ def test_an_unseen_location_is_held_and_told_once(tmp_path):
     assert s2.sent == [] and {u["first_seen"] for u in again["unplaced"]} == {AT}
 
 
-def test_a_failed_fetch_keeps_the_last_answers_and_two_notify(tmp_path):
-    L.run(tmp_path, fetcher=_pages(), now=AT, notify_url="http://n", sender=Sender())
+def _later(hours: float) -> str:
+    from datetime import datetime, timedelta
+    return (datetime.fromisoformat(AT.replace("Z", "+00:00")) + timedelta(hours=hours)).isoformat().replace("+00:00", "Z")
+
+
+def test_a_failed_fetch_keeps_the_last_answers_and_is_stale_only_past_the_line(tmp_path):
+    """T851 (2026-11-18): one 5xx at the daily run marked every region stale though its last read was 18 h old."""
+    L.run(tmp_path, fetcher=_pages(), now=AT, notify_url="http://n", sender=Sender())     # region 6 read at AT
     s = Sender()
-    one = L.run(tmp_path, fetcher=_pages({"6": OSError("down")}), now=AT, notify_url="http://n", sender=s)
+    down = _pages({"6": OSError("down")})
+    one = L.run(tmp_path, fetcher=down, regions=["6"], now=_later(18), notify_url="http://n", sender=s)
     r6 = one["index"]["regions"]["6"]
-    assert r6["stale"] and r6["failures"] == 1 and r6["asof"] == "2026-08-28" and s.sent == []
+    # a failed fetch with a fresh last answer is NOT stale: counted, said in `unread`, nobody emailed
+    assert not r6["stale"] and r6["failures"] == 1 and r6["checked"] == AT and r6["asof"] == "2026-08-28" and s.sent == []
+    assert one["index"]["issues"]["unread"]["6"] == "stale"
     assert sum(1 for c in one["index"]["locs"].values() if c["r"] == "6") == 150          # T573: 137 + Babine's 13 closed areas
-    two = L.run(tmp_path, fetcher=_pages({"6": OSError("down")}), now=AT, notify_url="http://n", sender=s)
-    assert two["index"]["regions"]["6"]["failures"] == 2 and len(s.sent) == 1 and "Region 6" in s.sent[0]
+    two = L.run(tmp_path, fetcher=down, regions=["6"], now=_later(30), notify_url="http://n", sender=s)
+    assert not two["index"]["regions"]["6"]["stale"] and two["index"]["regions"]["6"]["failures"] == 2 and s.sent == []
+    # past the line (30 h, the app's DFO line): stale, and the owner is told once for the outage
+    three = L.run(tmp_path, fetcher=down, regions=["6"], now=_later(31), notify_url="http://n", sender=s)
+    assert three["index"]["regions"]["6"]["stale"] and three["index"]["regions"]["6"]["failures"] == 3
+    assert len(s.sent) == 1 and "Region 6: no good read since" in s.sent[0] and "marked stale" in s.sent[0]
+    L.run(tmp_path, fetcher=down, regions=["6"], now=_later(40), notify_url="http://n", sender=s)
+    assert len(s.sent) == 1
+    # a read ends it
+    back = L.run(tmp_path, fetcher=_pages(), regions=["6"], now=_later(41), notify_url="http://n", sender=s)["index"]
+    assert not back["regions"]["6"]["stale"] and back["regions"]["6"]["failures"] == 0
+
+
+def test_stale_at_reads_the_age_of_the_last_good_read():
+    assert L.STALE_AFTER_HOURS == 30
+    assert [L.stale_at(AT, _later(h)) for h in (18, 30, 30.01, 48)] == [False, False, True, True]
+    assert [L.stale_at(None, AT), L.stale_at("", AT), L.stale_at("not a time", AT)] == [True, True, True]
+    assert not L.stale_at("2026-10-27T00:00:00+00:00", AT)        # "+00:00" and "Z" both read
+
+
+def test_the_in_run_retry_waits_about_a_minute_and_takes_a_page_after_a_5xx(monkeypatch):
+    """T851: four tries, 5, 15, 45 s apart (+ jitter), so a passing 5xx is ridden out inside the run."""
+    from pipeline.regs.dfo_salmon import fetch as F
+    waits: list[float] = []
+    monkeypatch.setattr(F.time, "sleep", waits.append)
+    monkeypatch.setattr(F.random, "uniform", lambda a, b: 0.0)
+
+    class Resp:
+        def __init__(self, status, text=""):
+            self.status_code, self.text, self.headers = status, text, {}
+
+        def raise_for_status(self):
+            if self.status_code >= 400:
+                raise OSError(f"HTTP {self.status_code}")
+
+    def session(answers):
+        class S:
+            @staticmethod
+            def get(url, **kw):
+                return answers.pop(0)
+        return lambda: (S, {})
+
+    monkeypatch.setattr(F, "_session", session([Resp(503)] * 4))
+    with pytest.raises(F.FetchError, match="HTTP 503 after 4 attempts"):
+        F.fetch_page("4")
+    assert waits == [5.0, 15.0, 45.0]
+    waits.clear()
+    page = (FIX / "region6-eng.html").read_text(encoding="utf-8")
+    monkeypatch.setattr(F, "_session", session([Resp(502), Resp(200, page)]))
+    body, snap = F.fetch_page("6")
+    assert body == page and snap.attempts == 2 and waits == [5.0]
 
 
 def test_a_page_that_does_not_parse_holds_the_region(tmp_path):

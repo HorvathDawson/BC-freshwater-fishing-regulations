@@ -101,7 +101,11 @@ _IMPERSONATE = "chrome124"
 
 _REQUEST_TIMEOUT = 30
 _MAX_ATTEMPTS = 4
-_BACKOFF_BASE = 2.0  # seconds: 2, 4, 8 (+ jitter)
+#: (T851) seconds: 5, 15, 45 (+ jitter) — four tries over about a minute, so a passing 5xx / network blip / timeout is
+#: ridden out inside the run (it was 2, 4, 8 s; DFO's whole site answered 5xx for longer on 2026-11-18). The feeds
+#: worker's `dfo/fetch.ts` waits the same.
+_BACKOFF_BASE = 5.0
+_BACKOFF_FACTOR = 3
 _THROTTLE = 1.5      # seconds between regions; polite, and keeps us off any rate limit
 
 #: A body that does not contain all of these is not the page we asked for.
@@ -190,7 +194,7 @@ def _sleep_backoff(attempt: int, retry_after: Optional[float] = None) -> None:
     if retry_after is not None:
         delay = retry_after
     else:
-        delay = _BACKOFF_BASE * (2 ** (attempt - 1))
+        delay = _BACKOFF_BASE * (_BACKOFF_FACTOR ** (attempt - 1))
     delay += random.uniform(0, 0.75)  # jitter: never sync up with another runner
     logger.info("  retrying in %.1fs", delay)
     time.sleep(delay)
