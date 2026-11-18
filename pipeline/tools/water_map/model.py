@@ -19,6 +19,8 @@ from dataclasses import dataclass, field
 from datetime import date
 from typing import Dict, Iterable, List, Optional, Sequence, Set, Tuple
 
+from pipeline.common import entry_id as eid
+
 MODES = ("salmon", "freshwater")
 SPECIES_NAMES = {"CH": "chinook", "CO": "coho", "SK": "sockeye", "PK": "pink", "CM": "chum"}
 #: a rule kind that never says what the angler may do on the water (notices, possession arithmetic)
@@ -404,9 +406,9 @@ class Reader:
         for rid in self.rules_of(p):
             entry = rid.split("::", 1)[0]
             r = self.rule(rid)
-            if entry.startswith("zp:"):
+            if eid.is_province(entry):
                 continue
-            if re.match(r"^z\w*:", entry):
+            if eid.is_zone(entry):
                 if r.get("kind") not in QUIET_KINDS:
                     base.append(rid)
                 continue
