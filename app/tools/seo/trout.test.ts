@@ -12,7 +12,7 @@ import { buildRegsPage, WEEKDAYS, type RegsPage } from "@app/core";
 import { loadRegsInputs, openRegsStore, type RegsStore } from "@app/data/regs";
 import { openTroutFixture, TROUT_FIXTURE_ROOT } from "@app/data/release/node";
 import { openFixture } from "./fixture";
-import { listWaterOrds, waterModel, type BuildDay, type WaterModel } from "./model";
+import { listWaterOrds, troutWords, waterModel, type BuildDay, type WaterModel } from "./model";
 import { verifyAgainstApp } from "./verify";
 
 interface Vector { readonly name: string; readonly item: string; readonly day: string; readonly weekday: string;
@@ -62,5 +62,21 @@ describe("the regs fixture release (it carries the section since the cutover)", 
       expect(verifyAgainstApp(m, pages), m.id).toEqual([]);
     }
     expect(drawn).toBeGreaterThan(0);
+  });
+});
+
+describe("(T810 L) the kept-elsewhere list on the site", () => {
+  it("a mixed list — the sentence, its row's worked lines, the groups' — is carried whole, as given, in order, after the table", async () => {
+    const MIXED = ["This lake's rule: 2 a day here. Trout and char other than steelhead you kept anywhere else count toward those 2.",
+      "Kept 1 at a stream? Keep 1 more here.", "Kept 2 elsewhere? Keep 3 more here."];
+    const c = V.cases.find((x) => x.frame !== null)!, on = dayOf(c), ord = (await st.itemOrd(c.item))!;
+    const m = (await waterModel(st, ord, on))!;
+    const part = m.parts.find((p) => p.sections.some((x) => x.title === TITLE))!;
+    const page = buildRegsPage(await loadRegsInputs(st, { kind: "part", item: m.id, partIx: part.partIx }, on.day, on.weekday, on.year),
+      { today: on.day, who: { age: "adult", residency: "resident" } });
+    const t = page.keep.trout;
+    if (t?.kind !== "table") throw new Error(`${c.name}: no table`);
+    const said = troutWords({ ...t, elsewhere: MIXED }).filter((x) => x !== null).map((x) => x!.text);
+    expect(said.slice(-MIXED.length)).toEqual(MIXED);
   });
 });

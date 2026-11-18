@@ -129,6 +129,27 @@ describe("(T810 O) the links and the presses", { timeout: 30_000 }, () => {
     expect(m.sheets).toEqual([`tf:${tk}`]);
   });
 
+  it("(T810 L elsewhere) a mixed list — the kept-elsewhere sentence, its row's worked lines, the groups' — drawn whole, as given, in order", () => {
+    const MIXED = [
+      "This lake's rule: 2 a day here. Trout and char other than steelhead you kept anywhere else count toward those 2.",
+      "Kept 1 at a stream? Keep 1 more here.",
+      "Kept 2 elsewhere? Keep 3 more here.",
+      "Kept trout or char over 50 cm (20 in) elsewhere? It counts here too: at most 1 over 50 cm (20 in) a day in all.",
+    ];
+    const t: TroutVM = { ...byName("fraser-r2-mission-jul15"), elsewhere: MIXED, elsewhereLink: TROUT_NAV.ELSEWHERE };
+    mount(t);
+    fireEvent.click(screen.getByTestId("trout-elsewhere"));
+    const lines = screen.getAllByTestId("trout-elsewhere-line");
+    // every entry, the sentence first, nothing dropped, merged or reordered; each its own text a screen reader reaches
+    expect(lines.map((e) => e.textContent)).toEqual(MIXED);
+    expect(lines.filter((e) => e.closest("[aria-hidden='true']") || e.closest("[aria-label]"))).toEqual([]);
+    cleanup();
+    // a list with no worked line at all (one sentence) still shows the link and draws it
+    mount({ ...t, elsewhere: [MIXED[0]!] });
+    fireEvent.click(screen.getByTestId("trout-elsewhere"));
+    expect(screen.getAllByTestId("trout-elsewhere-line").map((e) => e.textContent)).toEqual([MIXED[0]]);
+  });
+
   it("every press reaches 44 × 44: the links and each row (the row is the press its picture opens through)", () => {
     mount(byName("fraser-r2-mission-jul15"));
     const rowOf = (id: string) => screen.getByTestId(id).closest<HTMLElement>("[data-testid='keep-row']")!;
