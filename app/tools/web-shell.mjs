@@ -16,9 +16,11 @@
  *          until then): frame 0 stays over its coho box, the start screen's words show;
  *   gone   the app's sheet is in, or the app drew anything else: the picture is removed and the watching stops.
  * Frame 0 only, never the sheet: the shell asks for nothing the app would not. Measured on Fast 3G: the shell asking for
- * the 0.9 MB sheet itself (to step it before the app was up) put the map ~0.7 s later, the sheet taking the line from the
- * release files; frame 0 (`web-frame0-<theme>.png`, 20 KB, `pnpm splash`) costs ~0.2 s. Light or dark by the system's
- * scheme, as the start screen reads it. Without script the page says it needs one, uncovered (`<noscript>`).
+ * the then 0.9 MB sheet itself (to step it before the app was up) put the map ~0.7 s later, the sheet taking the line
+ * from the release files. Frame 0 (`web-frame0-<theme>.png`, 5 KB, `pnpm splash`) is the web's own sheet's
+ * (`cohoWeb.generated.ts`, ~105 KB since the owner's "make way smaller for web"), so the hand-over is the same
+ * picture. Light or dark by the system's scheme, as the start screen reads it. Without script the page says it needs
+ * one, uncovered (`<noscript>`).
  * The water pages (tools/seo `appDocument`) take it out: their prerendered pane is the first paint there.
  */
 import { copyFileSync, existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";

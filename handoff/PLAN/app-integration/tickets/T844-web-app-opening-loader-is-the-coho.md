@@ -52,9 +52,33 @@ Frame strip, Fast 3G (staging today / branch before / with T844): `t844-frame-st
 `t844-after-fast3g.mp4`, `t844-after-fastline.mp4`, `t844-after-dark-fast3g.mp4`.
 
 ## Open for the owner
-On a slow line the coho stays still (frame 0) until its 0.9 MB sheet is in, which on Fast 3G is after the map: a
+(Answered 23:02, below.) On a slow line the coho stayed still (frame 0) until its 0.9 MB sheet was in, after the map: a
 lighter web sheet (lossy WebP or fewer frames) would let it swim sooner. Not built; his call.
 
 2026-11-17 23:02, owner (app chat dialog, after the Fast 3G frame strip and the fast-line clip), verbatim: "make way
 smaller for web". So the web gets its own much smaller coho sheet (lossy and/or fewer frames, web only; the phones keep
 theirs), so it swims on a slow line before the map.
+
+## The web's own sheet (built after the owner's "make way smaller for web")
+- `pnpm coho:build` (`app/tools/build-coho.mjs`) also bakes `coho-{light,dark}-web.webp` from the owner's generator: the
+  same drawing and frame size (288 x 120, drawn 192 x 80), 40 frames over the same 4 s loop (10 fps, not 20), and each
+  pixel put back on the line between its two inks at 4 steps and its alpha at 16 (`app/tools/fish-loader/web_sheet.py`),
+  so the lossless WebP packs it as a palette: 105 KB / 106 KB, from 887 KB / 1,088 KB. The inks stay exact. Lossy WebP
+  was tried and is bigger at any quality that keeps the edges (q40 293 KB at 40 frames); 2 ink steps (146 KB at 80
+  frames) left a jagged ink/red seam; 4 steps x 16 alpha matches the phones' sheet at the start screen's size (side by
+  side: `t844-web-sheet-side-by-side.png`). `pnpm coho` checks the web sheets (size, grid, the two inks) and
+  `cohoWeb.generated.ts` like the phones'.
+- `cohoWeb.generated.ts` (`COHO_WEB`) is imported by `CohoLoader.web.tsx` only; `cohoSheet(palette, sheets?)` takes the
+  web's sheets there; the phones' loader and sheets are untouched (a phone never bundles the web's). The shell's frame 0
+  (`pnpm splash`, `web-frame0-*.png`, now 5.5 KB) is the web sheet's own frame 0, so the hand-over is the same picture.
+- Measured (same harness, cold, staging data): Fast 3G, the coho swims from ~13.1 s (sheet in) and the map comes at
+  16.3 s (two runs; was 18.4-18.7 s with the phones' sheet, which came in after the map); fast line, it swims from
+  ~1.2 s and the map comes at 1.75-1.86 s (as before).
+- Tests: `CohoLoader.test.tsx` (the web loader draws `COHO_WEB`'s sheet per theme, never the phones'; its grid and
+  steps are the web's); `app/tools/web-shell.test.ts` (only `CohoLoader.web.tsx` imports `cohoWeb.generated`, the
+  native loader draws the phones' sheet; each web sheet at most 150 KB, same frame and loop). Mutation-checked: the web
+  loader on the phones' sheet, the native loader on (or importing) the web's, a 0.9 MB file as the web sheet each fail
+  (the last also fails `pnpm coho`).
+- Pictures: `t844-web-sheet-side-by-side.png` (a frame, phones' vs web's, both themes, 2x and 4x);
+  `t844-web-sheet-frame-strip-fast3g.png` (staging today / T844 before this change / with the web sheet);
+  `t844-web-sheet-frame-strip-fastline.png`; clips `t844-web-sheet-after-fast3g.mp4`, `t844-web-sheet-after-fastline.mp4`.

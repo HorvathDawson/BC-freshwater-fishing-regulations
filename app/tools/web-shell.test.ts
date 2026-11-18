@@ -6,14 +6,15 @@
  * gate keeps node:fs out of the packages).
  */
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
-import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import { mkdirSync, mkdtempSync, readdirSync, readFileSync, rmSync, statSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
-import { join } from "node:path";
+import { join, relative } from "node:path";
 import { fileURLToPath } from "node:url";
 import { JSDOM } from "jsdom";
 // @ts-expect-error a plain .mjs tool (no types)
 import { bootCoho, cohoFacts, MARKED, shellExport, withBootCoho } from "./web-shell.mjs";
 import { COHO } from "../packages/ui-native/src/coho.generated";
+import { COHO_WEB } from "../packages/ui-native/src/cohoWeb.generated";
 import { COHO_GROUND_PAD, COHO_WIDTH, cohoHeight } from "../packages/ui-native/src/coho";
 import { THEMES } from "../packages/ui-native/src/theme";
 import { BARE_APP } from "./seo/build";
@@ -144,5 +145,34 @@ describe("the web's opening is the coho (T844)", () => {
       const b = readFileSync(at(`apps/mobile/assets/splash/web-frame0-${t}.png`));
       expect([b.readUInt32BE(16), b.readUInt32BE(20)]).toEqual([COHO.frame.width, COHO.frame.height]);
     }
+  });
+});
+
+describe("the web's own coho sheet, the phones' unchanged (T844, owner 2026-11-17: \"make way smaller for web\")", () => {
+  const ROOT = at("");
+  const files: [string, string][] = [];
+  const walk = (d: string) => {
+    for (const f of readdirSync(d)) {
+      const p = join(d, f);
+      if (statSync(p).isDirectory()) { if (f !== "node_modules" && f !== "dist") walk(p); continue; }
+      if (/\.tsx?$/.test(f) && !/\.test\.tsx?$/.test(f) && !f.endsWith(".d.ts")) files.push([relative(ROOT, p), readFileSync(p, "utf8")]);
+    }
+  };
+  for (const d of ["packages/ui-native/src", "packages/ui/src", "packages/core/src", "apps/mobile/src"]) walk(at(d));
+  const imports = (s: string, m: string) => new RegExp(`from "\\./(?:[\\w/]*/)?${m}"`).test(s);
+
+  it("only the web's halves import it (a phone never bundles it); the phones' loader draws the phones' sheet", () => {
+    expect(files.length).toBeGreaterThan(50);
+    expect(files.filter(([, s]) => imports(s, "cohoWeb\\.generated")).map(([f]) => f)).toEqual(["packages/ui-native/src/CohoLoader.web.tsx"]);
+    const native = files.find(([f]) => f === "packages/ui-native/src/CohoLoader.native.tsx")![1];
+    expect([imports(native, "coho\\.generated"), imports(native, "cohoWeb\\.generated"), /cohoSheet\(palette\)/.test(native)]).toEqual([true, false, true]);
+  });
+
+  it("is way smaller: each theme's web sheet at most 150 KB (the phones' are 0.9 to 1.1 MB), same frame and loop", () => {
+    const gen = readFileSync(at("packages/ui-native/src/cohoWeb.generated.ts"), "utf8");
+    const sheets = [...gen.matchAll(/from "\.\/(coho\/[\w-]+\.webp)"/g)].map((m) => m[1]!);
+    expect(sheets.sort()).toEqual(["coho/coho-dark-web.webp", "coho/coho-light-web.webp"]);
+    for (const f of sheets) expect([f, statSync(at(`packages/ui-native/src/${f}`)).size <= 150 * 1024]).toEqual([f, true]);
+    expect([COHO_WEB.frame, COHO_WEB.loopMs, COHO_WEB.columns * COHO_WEB.rows >= COHO_WEB.frames]).toEqual([COHO.frame, COHO.loopMs, true]);
   });
 });
