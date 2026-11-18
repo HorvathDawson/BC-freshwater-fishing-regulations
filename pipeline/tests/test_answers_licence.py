@@ -165,12 +165,12 @@ def live(request):
 def _keys(db) -> dict:
     """{LicenceKey: [the lowest section of each part carrying it]} — off the bundle's parts."""
     from pipeline.deliver.bundle.derived import parts
-    sleepy = L.sleepy_sets(db)
+    sleepy, alien = L.keyed_sets(db)
     out: dict = {}
     for ps in parts(db).values():
         for p in ps:
             if p.set_id is not None:
-                out.setdefault(L.part_licence_key(p, sleepy), []).append(p.rep_sid)
+                out.setdefault(L.part_licence_key(p, sleepy, alien), []).append(p.rep_sid)
     return {k: sorted(v) for k, v in out.items()}
 
 

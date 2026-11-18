@@ -26,7 +26,7 @@ import json
 import sqlite3
 from collections import defaultdict
 from dataclasses import dataclass
-from typing import Callable, Dict, List, Optional, Sequence, Tuple  # noqa: F401
+from typing import Callable, Dict, Iterable, List, Optional, Sequence, Tuple  # noqa: F401
 
 from pipeline.deliver.answers.common import Interner, connect, dumps
 from pipeline.deliver.calendar import month_day, segments, when_vector
@@ -132,49 +132,30 @@ def under_16_summary(answers: Sequence[dict], names: Dict[str, str]) -> List[dic
     return out
 
 
-#: T789 G8 (owner 2026-11-17: "yes add to 0.8.0 we can add as banners?"): THE BOOK'S SENTENCE for the weekend closures
-#: to non-guided non-resident aliens, as it prints it on the Region 6 water rows (printed p.50 Babine and Bulkley, p.51
-#: Kispiox, p.52 Kitseguecla, Kitwanga and Morice, p.53 Suskwa; Skeena p.53 "... in Skeena River Section 4 on Saturdays
-#: and Sundays"). The book prints no province-wide sentence for them; each water's own rule says its days and dates
-#: (Kitsumkalum: Saturdays on a part, Sundays the whole river; Zymoetz: Fridays too).
-ALIEN_WEEKEND_SAYS = "Angling prohibited for non-guided non-resident aliens on Saturdays and Sundays"
-#: the printed pages `ALIEN_WEEKEND_SAYS` is quoted from (`test_answers_licence_alien_weekend.py` reads them)
-ALIEN_WEEKEND_PAGES = (50, 51, 52, 53)
+def alien_closures(db) -> Dict[int, List[dict]]:
+    """T789 G8 (owner 2026-11-17: "Should each of these waters just have their own info? Don't want this on waters it
+    doesn't apply to"; Lakelse and Telkwa "Same thing applies to these"): EACH RULE SET'S CLOSURES TO THE NON-RESIDENT
+    ALIEN — {set_id: [{rule, says}]}: every `angler_closure` whose `closed_to` names the non-resident alien that the set
+    holds (the bundle's `ruleset`: the reach run's binding, the tributary walk included — the very rows the Keep tab's
+    "Closed to some anglers" caveat speaks from), by its export index (`rule_ix`), `says` its line (`rule.label`, the
+    caveat's words: its own days, dates and stretch — "Angling closed to non-guided non-resident aliens, Jul 24-Dec 31,
+    on Fridays and Saturdays and Sundays — upstream of the Limonite Creek confluence"). A set holding none is absent."""
+    out: Dict[int, List[dict]] = defaultdict(list)
+    for set_id, ix, label, cond in db.execute(
+            "SELECT s.set_id, x.ix, r.label, r.conditions FROM ruleset s "
+            "JOIN rule r ON r.entry_id = s.entry_id AND r.rule_id = s.rule_id "
+            "JOIN rule_ix x ON x.entry_id = s.entry_id AND x.rule_id = s.rule_id "
+            "WHERE r.type = 'angler_closure' ORDER BY s.set_id, x.ix"):
+        to = json.loads(cond or "{}").get("closed_to") or {}
+        if "non_resident_alien" in (to.get("residency") or ()):
+            out[set_id].append({"rule": ix, "says": label})
+    return dict(out)
 
 
-def alien_weekend(db) -> Optional[dict]:
-    """T789 G8: EVERY WATER IN THE PROVINCE WITH A WEEKEND CLOSURE TO NON-GUIDED NON-RESIDENT ALIENS, read off the
-    bundle's rules: an `angler_closure` whose `closed_to` names the non-resident alien and whose `when` holds on a
-    Saturday or a Sunday. Each water by its book entry's matched items (`entry.matched`, else `entry.item_id`): {name,
-    key} with `key` the item_id, the durable handle the app opens a water by (AGENTS 5; the answers' `display.waters`
-    and the store's `item` table are keyed by it). {says, waters} by name, or None when no water has one.
-
-    Every day closure (Lakelse's part, Telkwa Sep 1-Oct 31) is not a weekend closure and is not listed. A weekend
-    closure to the alien that is not the non-guided one would make `says` wrong: it stops the build, as does one whose
-    entry names no water (nothing to link)."""
-    from pipeline.deliver.answers.common import AnswersError, holds_on_a_weekend
-    names = dict(db.execute("SELECT item_id, name FROM item"))
-    entries = {e: (i, json.loads(m or "[]")) for e, i, m in db.execute("SELECT entry_id, item_id, matched FROM entry")}
-    waters: Dict[str, str] = {}
-    for e, rid, cond, when in db.execute("SELECT entry_id, rule_id, conditions, when_ FROM rule "
-                                         "WHERE type = 'angler_closure' ORDER BY entry_id, rule_id"):
-        to = (json.loads(cond or "{}").get("closed_to") or {})
-        days = (json.loads(when) if when else {}).get("weekdays") or ()
-        if "non_resident_alien" not in (to.get("residency") or ()) or not holds_on_a_weekend(days):
-            continue
-        if to.get("guidance") != ["non_guided"] or set(to) != {"residency", "guidance"}:
-            raise AnswersError(f"licence: {e} {rid} closes weekends to {to}, which the alien weekend sentence "
-                               f"({ALIEN_WEEKEND_SAYS!r}) does not say")
-        item, matched = entries.get(e, (None, []))
-        items = [i for i in (matched or ([item] if item else [])) if i in names]
-        if not items:
-            raise AnswersError(f"licence: {e} {rid} is an alien weekend closure on no water of the bundle")
-        for i in items:
-            waters[i] = names[i]
-    if not waters:
-        return None
-    return {"says": ALIEN_WEEKEND_SAYS,
-            "waters": [{"name": n, "key": k} for k, n in sorted(waters.items(), key=lambda kv: (kv[1], kv[0]))]}
+def alien_of(key: "LicenceKey", alien: Dict[int, List[dict]]) -> Optional[List[dict]]:
+    """T789 G8: the closures to the non-resident alien of THIS key's rule set — the rule set is in the key only where it
+    holds one or a designation of its licensing set can sleep (`part_licence_key`); every other key has none."""
+    return alien.get(key.ruleset) if key.ruleset is not None else None
 
 
 def document_names(bundle_path: str) -> Dict[str, str]:
@@ -257,7 +238,8 @@ class LicenceKey:
     province_except: str
     tidal: bool
     kind: Optional[str]
-    ruleset: Optional[int]          # only where a designation of the set can be put to sleep
+    ruleset: Optional[int]          # only where a designation of the set can be put to sleep, or (T789 G8) the set
+                                    # holds a closure to the non-resident alien
 
     def as_list(self) -> list:
         return [self.licensing_set, self.province_except, int(self.tidal), self.kind,
@@ -303,11 +285,14 @@ def corpus(db: sqlite3.Connection) -> Corpus:
 # Keys
 # --------------------------------------------------------------------------------------------
 
-def part_licence_key(p, sleepy: set) -> LicenceKey:
+def part_licence_key(p, sleepy: set, alien: Iterable[int] = ()) -> LicenceKey:
     """A part's licence key (`types.Part`, the bundle's `part`): what `requirements_in_force`
-    reads of its sections — read off the part, never off a scan of every section (M4)."""
+    reads of its sections — read off the part, never off a scan of every section (M4). The rule set is in the key
+    where a designation of its licensing set can sleep (`sleepy`), or (T789 G8) where the set holds a closure to the
+    non-resident alien (`alien`, `alien_closures`' sets): that part's frame says it, no other's."""
+    keyed = p.licensing_set in sleepy or p.set_id in alien
     return LicenceKey(p.licensing_set, ",".join(p.province_except), p.tidal, p.kind,
-                      p.set_id if p.licensing_set in sleepy else None)
+                      p.set_id if keyed else None)
 
 
 def change_days(db: sqlite3.Connection) -> List[int]:
@@ -596,12 +581,13 @@ def key_year(db, C: Corpus, key: LicenceKey, sid: int, days: Sequence[int],
         names = memo.get("_names")
         if names is None:
             names = memo["_names"] = dict(db.execute("SELECT doc_id, name FROM licence"))
-        if "_alien_weekend" not in memo:
-            memo["_alien_weekend"] = alien_weekend(db)
+        if "_alien" not in memo:
+            memo["_alien"] = alien_closures(db)
         # ROUND15 2: the under-16 summary per residency, read off the profiles' answers
         ans = {"holds": wire, "profiles": memo[mk], "under_16": under_16_summary(memo[mk], names)}
-        if memo["_alien_weekend"] is not None:
-            ans["alien_weekend"] = memo["_alien_weekend"]          # T789 G8: the same on every frame
+        aw = alien_of(key, memo["_alien"])
+        if aw:
+            ans["alien_closures"] = aw
 
         s = dumps(wire)
         if s != last:
@@ -624,22 +610,30 @@ def sleepy_sets(db) -> set:
         "SELECT set_id, entry_id, record_id FROM licensing_set") if (e, r) in sleepy}
 
 
-_SLEEPY: Dict[str, set] = {}
+def keyed_sets(db) -> Tuple[set, frozenset]:
+    """(the sleepy licensing sets, the rule sets holding a closure to the non-resident alien): where the rule set is in
+    the licence key (`part_licence_key`, `section_scope`) — one reading for both."""
+    return sleepy_sets(db), frozenset(alien_closures(db))
+
+
+_KEYED: Dict[str, Tuple[set, frozenset]] = {}
 
 
 def section_scope(key: tuple, B) -> LicenceKey:
-    """The part key's licence key: what `requirements_in_force` reads of a part."""
+    """The part key's licence key: what `requirements_in_force` reads of a part (and, T789 G8, its rule set where that
+    holds a closure to the non-resident alien)."""
     from pipeline.deliver.answers.common import key_dict
     k = key_dict(key)
-    if B.path not in _SLEEPY:
+    if B.path not in _KEYED:
         db = connect(B.path)
         try:
-            _SLEEPY[B.path] = sleepy_sets(db)
+            _KEYED[B.path] = keyed_sets(db)
         finally:
             db.close()
+    sleepy, alien = _KEYED[B.path]
     ls = k["licensing_set"]
     return LicenceKey(ls, ",".join(k["province_except"]), bool(k["tidal"]), k["kind"],
-                      k["ruleset"] if ls in _SLEEPY[B.path] else None)
+                      k["ruleset"] if ls in sleepy or k["ruleset"] in alien else None)
 
 
 def representatives(path: str, wanted) -> Dict[LicenceKey, int]:
@@ -653,19 +647,19 @@ def representatives(path: str, wanted) -> Dict[LicenceKey, int]:
     wanted = set(wanted)
     db = connect(path)
     try:
-        sleepy = sleepy_sets(db)
+        sleepy, alien = keyed_sets(db)
         out: Dict[LicenceKey, int] = {}
         for ps in parts(db).values():
             for p in ps:
                 if p.set_id is None:
                     continue
-                k = part_licence_key(p, sleepy)
+                k = part_licence_key(p, sleepy, alien)
                 if k in wanted and (k not in out or p.rep_sid < out[k]):
                     out[k] = p.rep_sid
         loose: Dict[LicenceKey, int] = {}
         if wanted - set(out):
             for p in unnamed_parts(db):
-                k = part_licence_key(p, sleepy)
+                k = part_licence_key(p, sleepy, alien)
                 if k in wanted and k not in out and (k not in loose or p.rep_sid < loose[k]):
                     loose[k] = p.rep_sid
         out.update(loose)
