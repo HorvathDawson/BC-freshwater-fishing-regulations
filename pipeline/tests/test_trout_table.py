@@ -489,8 +489,8 @@ EXPECTED.update({
         '  Brook trout: 30 cm (12 in) or longer  <counts toward the 2>\n'
         '  Brown trout: 30 cm (12 in) or longer  <counts toward the 2>\n'
         '  Cutthroat trout: 30 cm (12 in) or longer  <counts toward the 2>\n'
-        '  Steelhead: a rainbow over 50 cm (20 in) | after keeping 2, stop fishing this river today | ~Steelhead are known to be in this water.  <counts toward the 2>  (until Aug 14, then closed for steelhead)\n'
         '  Rainbow trout: 30–50 cm (12–20 in)  <counts toward the 2>\n'
+        '  Steelhead: a rainbow over 50 cm (20 in) | after keeping 2, stop fishing this river today | ~Steelhead are known to be in this water.  <counts toward the 2>  (until Aug 14, then closed for steelhead)\n'
         '  Dolly Varden/bull trout: 60 cm (24 in) or longer | uses the 1 over 50 cm (20 in)  <counts toward the 2 · only 1 between them>\n'
         '  Lake trout: 60 cm (24 in) or longer | uses the 1 over 50 cm (20 in)  <counts toward the 2 · only 1 between them>'
     ),
@@ -637,8 +637,8 @@ EXPECTED.update({
         '  Lake trout: 30 cm (12 in) or longer  <only 3 (until Sep 14, then release)>\n'
         '  Brown trout: 30 cm (12 in) or longer  <counts toward the 5 · 1 total from these 4>\n'
         '  Cutthroat trout: 30 cm (12 in) or longer  <counts toward the 5 · 1 total from these 4>\n'
-        '  Steelhead [HATCHERY ONLY]: a rainbow over 50 cm (20 in) | uses the 1 over 50 cm (20 in) | after keeping 1, stop fishing this stream today | ~Steelhead are known to be in this water.  <counts toward the 5 · 1 total from these 4>\n'
         '  Rainbow trout: 30–50 cm (12–20 in)  <counts toward the 5 · 1 total from these 4>\n'
+        '  Steelhead [HATCHERY ONLY]: a rainbow over 50 cm (20 in) | uses the 1 over 50 cm (20 in) | after keeping 1, stop fishing this stream today | ~Steelhead are known to be in this water.  <counts toward the 5 · 1 total from these 4>\n'
         '[Release]\n'
         '  Dolly Varden/bull trout:   (until Dec 31, then closed to all fishing)'
     ),

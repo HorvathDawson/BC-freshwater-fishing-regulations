@@ -621,6 +621,21 @@ def test_the_vedder_orders_ungrouped_first_and_nests_the_inner_group_last(reques
     assert [r["key"] for r in b["rows"]][-2:] != ["DV", "LT"]
 
 
+@pytest.mark.needs_bundle
+def test_rainbow_stands_above_steelhead_where_they_read_alike(request, monkeypatch):
+    """Owner 2026-11-18 01:07: at Mission the Fraser's rainbow trout stand just above its steelhead (both "counts toward
+    the 2"); the Vedder's rainbow, under a rule of its own ("4 if they're hatchery rainbow trout"), stays where it is.
+    Mutation: the pin off leaves the build's order."""
+    from pipeline.deliver.answers.trout import table as TT
+    got, *_ = _live_tables(request, ("Fraser River",))
+    b, keys = _one_box(_mission(got), ("RB", "ST"))
+    assert keys.index("RB") + 1 == keys.index("ST"), keys
+    monkeypatch.setattr(TT, "A_RAINBOW_ABOVE_STEELHEAD", False)
+    got, *_ = _live_tables(request, ("Fraser River",))
+    b, keys = _one_box(_mission(got), ("RB", "ST"))
+    assert keys.index("RB") > keys.index("ST"), keys
+
+
 def _bowron(got):                                      # Istsi Creek, Jan 1-Mar 31: Bowron Lake Park's 1 trout/char
     return next(c for c in got["Istsi Creek (all parts)"] if c is not None)
 

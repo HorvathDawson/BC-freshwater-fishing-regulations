@@ -171,6 +171,9 @@ USES_THE_LINE = True
 #: owner 2026-11-18 00:52: in a box, the ungrouped fish at the top, the groups at the bottom, an inner group last inside
 #: its band (`_order_rows`). False = the mutation pin (the build's order: each group where its first row stood)
 A_GROUPS_LAST = True
+#: owner 2026-11-18 01:07: rainbow trout just above steelhead in a box, where they read alike (`_rainbow_above_steelhead`).
+#: False = the mutation pin (the build's order)
+A_RAINBOW_ABOVE_STEELHEAD = True
 #: owner 2026-11-18, PENDING one more picture (Chilliwack Lake and the other five Region 2 lakes): a wild quota at or above
 #: the box's number never limits anything ("only 4 wild" in "Keep 4 in all"): unsaid. Off until the owner's picture
 WILD_QUOTA_AT_THE_BOX_NUMBER_UNSAID = False
@@ -607,6 +610,7 @@ class Body:
             if b["kind"] == "keep":
                 self._size_bands(b)
                 self._order_rows(b)
+                self._rainbow_above_steelhead(b)
                 self._name_the_total(b)
         self._out_boxes()
         missing = sorted(S for S in self.states if S not in self.placed)
@@ -1214,6 +1218,46 @@ class Body:
             self.order_split += 1                  # a count over a row no band holds and rows of a band: no nesting
         out_rows, out_bands = [], []
         for x, part in alone + grouped:
+            out_bands.append({**x, "from": len(out_rows), "to": len(out_rows) + len(part) - 1})
+            out_rows += part
+        b["rows"], b["bands"] = out_rows, out_bands
+
+    @staticmethod
+    def _rainbow_above_steelhead(b: dict) -> None:
+        """(Owner 2026-11-18 01:07) a box's rainbow trout stand just above its steelhead where they read alike: in one
+        band, or each a row of its own under the same band words. A rainbow under a rule of its own (the Vedder's "4 if
+        they're hatchery rainbow trout") stays where it is."""
+        if not A_RAINBOW_ABOVE_STEELHEAD:
+            return
+        rows, bands = b["rows"], b["bands"]
+        st = [i for i, r in enumerate(rows) if r.fish == "ST"]
+        rb = [i for i, r in enumerate(rows) if r.fish == "RB"]
+        if not st or not rb or max(rb) < min(st):
+            return
+        band_of = {i: k for k, x in enumerate(bands) for i in range(x["from"], x["to"] + 1)}
+        same_band = {band_of[i] for i in st + rb}
+        if len(same_band) == 1:
+            x = bands[same_band.pop()]
+            part = [rows[i] for i in range(x["from"], x["to"] + 1)]
+            move = [r for r in part if r.fish == "RB"]
+            rest = [r for r in part if r.fish != "RB"]
+            at = next(k for k, r in enumerate(rest) if r.fish == "ST")
+            b["rows"] = rows[:x["from"]] + rest[:at] + move + rest[at:] + rows[x["to"] + 1:]
+            return
+        singles = [bands[band_of[i]] for i in st + rb]
+        if any(x["from"] != x["to"] for x in singles) or len({(x["kind"], x["text"]) for x in singles}) != 1:
+            return
+        moved = [(bands[band_of[i]], rows[i]) for i in sorted(rb)]
+        out_rows, out_bands = [], []
+        first_st = min(st)
+        for k, x in enumerate(bands):
+            if x["from"] == x["to"] and rows[x["from"]].fish == "RB":
+                continue
+            if x["from"] == first_st:
+                for bx, r in moved:
+                    out_bands.append({**bx, "from": len(out_rows), "to": len(out_rows)})
+                    out_rows.append(r)
+            part = rows[x["from"]:x["to"] + 1]
             out_bands.append({**x, "from": len(out_rows), "to": len(out_rows) + len(part) - 1})
             out_rows += part
         b["rows"], b["bands"] = out_rows, out_bands
