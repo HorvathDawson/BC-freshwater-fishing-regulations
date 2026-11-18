@@ -132,20 +132,53 @@ def under_16_summary(answers: Sequence[dict], names: Dict[str, str]) -> List[dic
     return out
 
 
+#: T789 G8 (reviewer 2026-11-17, owner rule: Python decides the words): a closure a part holds BY THE TRIBUTARY WALK
+#: is its water's, not the part's own — said with the water's name ("Lakelse River and its tributaries: …")
+ALIEN_OF_TRIBS = "{water} and its tributaries: {line}"
+#: the synopsis: "When no date is listed, the regulations apply ALL YEAR" — and each of these rows prints it (pp.52-53:
+#: Kitseguecla, Kitsumkalum, Kitwanga, Lakelse, Suskwa)
+ALL_YEAR = "all year"
+
+
+def alien_line(parts: dict, when: Optional[dict]) -> str:
+    """T789 G8: an alien closure's own line — the catalogue's composer (`labels.compose`, the rule label's) over the
+    rule's parts, its `when` saying "all year" where the rule has no dates (none unread): "Angling closed to non-guided
+    non-resident aliens, on Saturdays and Sundays, all year", "… aliens, all year — between Lakelse Lake and power
+    line crossing"; a dated one as its label ("…, Sep 1-Oct 31, on Saturdays and Sundays")."""
+    from pipeline.regs.parsing.catalogue_parts.labels import compose
+    w = when or {}
+    p = dict(parts)
+    if not w.get("dates") and not w.get("unparsed"):
+        p["when"] = f"{p['when']}, {ALL_YEAR}" if p.get("when") else ALL_YEAR
+    return compose(p)
+
+
+def alien_says(line: str, of: Optional[str]) -> str:
+    """The whole sentence a part says: its own line, or (a closure it holds by the tributary walk) its water's —
+    "Lakelse River and its tributaries: Angling closed to non-guided non-resident aliens, all year — between Lakelse
+    Lake and power line crossing"."""
+    return line if of is None else ALIEN_OF_TRIBS.format(water=of, line=line)
+
+
 def alien_candidates(db) -> Dict[int, List[dict]]:
     """T789 G8: each rule set's `angler_closure`s naming the non-resident alien, as the bundle binds them (`ruleset`:
-    the reach run's binding, the tributary walk included) — {set_id: [{rule, says}]}, by export index (`rule_ix`),
-    `says` the rule's line (`rule.label`). A set with none is absent. These sets carry their rule set in the licence
-    key (`keyed_sets`); which of the closures a part SAYS is the ladder's (`alien_closures`)."""
+    the reach run's binding, the tributary walk included) — {set_id: [{rule, of, says}]}, by export index (`rule_ix`):
+    `of` the rule's water (its entry's name) where the set holds it BY THE TRIBUTARY WALK (`via` trib), else null (the
+    part is that water); `says` the whole sentence (`alien_says` over `alien_line`). A set with none is absent. These
+    sets carry their rule set in the licence key (`keyed_sets`); which closures a part SAYS is the ladder's
+    (`alien_closures`)."""
     out: Dict[int, List[dict]] = defaultdict(list)
-    for set_id, ix, label, cond in db.execute(
-            "SELECT s.set_id, x.ix, r.label, r.conditions FROM ruleset s "
+    for set_id, ix, via, name, parts, when, cond in db.execute(
+            "SELECT s.set_id, x.ix, s.via, e.name, r.parts, r.when_, r.conditions FROM ruleset s "
             "JOIN rule r ON r.entry_id = s.entry_id AND r.rule_id = s.rule_id "
             "JOIN rule_ix x ON x.entry_id = s.entry_id AND x.rule_id = s.rule_id "
+            "JOIN entry e ON e.entry_id = s.entry_id "
             "WHERE r.type = 'angler_closure' ORDER BY s.set_id, x.ix"):
         to = json.loads(cond or "{}").get("closed_to") or {}
         if "non_resident_alien" in (to.get("residency") or ()):
-            out[set_id].append({"rule": ix, "says": label})
+            of = name if via == "trib" else None
+            line = alien_line(json.loads(parts), json.loads(when) if when else None)
+            out[set_id].append({"rule": ix, "of": of, "says": alien_says(line, of)})
     return dict(out)
 
 

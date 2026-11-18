@@ -2,7 +2,7 @@
 // The answers/2 frames (pipeline/deliver/answers/model/), from their JSON Schema.
 
 export type Accompanied = { "holding": string; "who": Record<string, unknown> };
-export type AlienClosure = { "rule": number; "says": string };
+export type AlienClosure = { "rule": number; "of": null | string; "says": string };
 export type Allowance = { "says": string; "by": readonly ([number, number])[] };
 export type AlsoCounts = { "tier": null | string; "by": null | number; "n": number; "over_cm": number; "then": readonly (TreeThen)[]; "species": readonly (string)[]; "says": string };
 export type Badge = { "of": "water" | "area" | "region" | "bc"; "entry": null | string; "share": boolean; "apart": boolean; "narrow_all": boolean; "both"?: null | string };
