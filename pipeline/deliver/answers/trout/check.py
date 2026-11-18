@@ -62,6 +62,7 @@ from __future__ import annotations
 import json
 import math
 import random
+import re
 from typing import Callable, Dict, Iterable, List, Optional, Sequence, Tuple
 
 from pipeline.deliver import calendar as K
@@ -77,6 +78,13 @@ SEED = 20261116
 # Mutation pins (False = the check is off; each has a test that fails with it off):
 #: the joint limits through the engine's basket proof
 A_JOINT_PROOF = True
+#: (T810 L, the re-review of a5aabd870) every stated cap — a box's total, a band's (own, shared, size), a nested band's —
+#: is the most the engine keeps of the fish it holds, EXACTLY: a redundant cap another limit already implies (the strip's
+#: "only 1 over 50 cm" with a 60 cm minimum) said with a wrong number passes the joint proof, never this one. False = pin
+A_STATED_CAP_EXACT = True
+STATED_MARK = "the engine keeps exactly"
+#: (R3) a shared band without "counts toward the N" only where the top line names its count. False = the pin
+A_TOTAL_UNSAID_ONLY_WHERE_THE_TOP_NAMES_IT = True
 #: possession said <=> it differs from the page's lead (F0), with the rules' numbers
 A_POSSESSION_PROOF = True
 #: the dates against the following segments
@@ -248,6 +256,11 @@ class Table:
                 if kind_ != x["kind"]:
                     raise _Fail(f"box {bi}: band {x['text']!r} is marked {x['kind']}")
                 total = W.band_total(x["text"])
+                if A_TOTAL_UNSAID_ONLY_WHERE_THE_TOP_NAMES_IT and kind_ == "shared" and total is None \
+                        and W.band_wild_n(x["text"]) is None and (x["from"], x["to"]) != (0, len(b["rows"]) - 1) \
+                        and k not in W.top_numbers(t["top"]["lead"], t["top"].get("sub")):
+                    # (owner 01:22, R3) "counts toward the N" is left out only where the top line names the count
+                    raise _Fail(f"box {bi}: band {x['text']!r} says no overall limit, and the top line names no {k}")
                 if kind_ in ("shared", "own") and total is not None:
                     # (owner 00:52) the overall limit the band names first: the box's, or a raised box's first number
                     ex = W.parse_head_except(b["head"])
@@ -664,6 +677,34 @@ def _engine(P):
     if not P.cands:
         return None
     return Engine(P, P.cands[0].key)
+
+
+def stated_cap_problems(c: Cell, T: Table) -> List[str]:
+    """`A_STATED_CAP_EXACT`: each stated cap's number N is what the engine keeps of the fish it holds — N reachable and
+    N + 1 refused, every other rule respected (`Engine.most` over those fish at every length the table and the rules
+    cut)."""
+    if c.P is None or not A_STATED_CAP_EXACT:
+        return []
+    from pipeline.deliver.answers.engine import CAP
+    E = _engine(c.P)
+    if E is None:
+        return []
+    limits = T.limits()
+    keep = sorted({r.fish for r in T.keep_rows})
+    Ls = sorted(set(E.lengths()) | set(mids(T.cuts())))
+    alone = [(S, o, L, "here") for S in keep for o in common.ORIGINS for L in Ls if not _st_skip(c.st_water, S, L)]
+    alone = [f for f in alone if T.accepts([f], limits) and E.accepts([f])]
+    probs: List[str] = []
+    for name, pred, n in limits:
+        if not re.match(r"box \d+ (total|band|nested) ", name) or n == INF or n > CAP:
+            continue
+        held = [f for f in alone if pred(f, T.row_for(f[0], f[1], f[2]))]
+        if not held:
+            continue
+        got = E.most(held, cap=int(n) + 1)
+        if got != n:
+            probs.append(f"{name}: the table says {_say(n)}; {STATED_MARK} {_say(got)} of its fish")
+    return probs
 
 
 def joint_problems(c: Cell, T: Table, key_seed: str) -> List[str]:
@@ -1620,6 +1661,7 @@ def check_key(cells, frames, displays, licences, starts, moments, rule: Callable
                       elsewhere_problems, elsewhere_said_problems, src_problems):
                 got += f(c, T)
             got += joint_problems(c, T, f"{seed}:{j}")
+            got += stated_cap_problems(c, T)
             if one and parts:
                 got += one_day_problems(T, parts(j), st_water)
             got += year_problems(c, T, frames, starts, moments)

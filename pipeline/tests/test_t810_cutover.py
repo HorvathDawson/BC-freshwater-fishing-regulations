@@ -769,6 +769,33 @@ def test_sowerby_lakes_rainbow_cap_the_size_band_implies_goes(request, monkeypat
     assert any("counting any" in x for r in b["rows"] for x in r["lines"])
 
 
+@pytest.mark.needs_bundle
+@pytest.mark.parametrize("name,md", [("Vedder River", (1, 1)), ("Alberta Creek", (7, 15))])
+def test_a_redundant_cap_said_one_higher_fails_j(request, monkeypatch, name, md):
+    """The re-review's plants: the Vedder's nested "only 1 between them" said "only 2", Alberta Creek's "counts toward the
+    2 · only 1 between them" said "only 2" (sheets kept consistent): the strip and the 60 cm minimum still hold the law,
+    so only the stated-cap proof sees it. Mutation: its pin off lets them through."""
+    got, m, bundle, data = _live_tables(request, (name,), md=md)
+    t = got[name]
+    k = next(k for k, cells in enumerate(m.sections["trout"]) if any(c is not None and c == t for c in cells))
+    cells = copy.deepcopy(m.sections["trout"][k])
+    jj = next(jj for jj, c in enumerate(cells) if c == t)
+    b = next(b for b in cells[jj]["table"]["boxes"] if b["kind"] == "keep")
+    x = next(x for x in list(b.get("inner") or ()) + list(b["bands"]) if "only 1 between them" in x["text"])
+    x["text"] = x["text"].replace("only 1 between them", "only 2 between them")
+    for r in b["rows"][x["from"]:x["to"] + 1]:
+        r["sheet"]["here"] = tuple({**h, "t": h["t"].replace("Only 1 between them", "Only 2 between them")}
+                                   for h in r["sheet"]["here"])
+        if x in b["bands"]:
+            r["sheet"]["head"] = W.sheet_keep(x["text"], W.parse_head(b["head"])[1])
+    m.sections["trout"] = list(m.sections["trout"])
+    m.sections["trout"][k] = cells
+    probs = J.check_model(m, bundle, data, keys=[k], log=lambda *_: None)["problems"]
+    assert any(J.STATED_MARK in p for p in probs), probs
+    monkeypatch.setattr(J, "A_STATED_CAP_EXACT", False)
+    assert not any(J.STATED_MARK in p for p in J.check_model(m, bundle, data, keys=[k], log=lambda *_: None)["problems"])
+
+
 def _bowron(got):                                      # Istsi Creek, Jan 1-Mar 31: Bowron Lake Park's 1 trout/char
     return next(c for c in got["Istsi Creek (all parts)"] if c is not None)
 

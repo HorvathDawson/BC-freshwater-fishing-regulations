@@ -470,6 +470,100 @@ def test_the_size_band_is_read_as_a_limit_over_its_size(side):
     assert not T1.accepts(two) and T2.accepts(two)
 
 
+# ------------------------------------- (T810 L, the re-review of a5aabd870) every stated cap exact; the no-data pins
+
+def _own_cap(c):
+    return next(((bi, x) for bi, b in enumerate(c["table"]["boxes"]) if b["kind"] == "keep" for x in b["bands"]
+                 if x["kind"] == "own" and W.band_total(x["text"]) is not None), None)
+
+
+@pytest.mark.parametrize("plant", ["one higher", "dropped"])
+def test_a_redundant_own_cap_said_wrong_fails(side, monkeypatch, plant):
+    """The mini world's Fixture River: the steelhead's own "counts toward the 2 · only 1" is also implied by the strip;
+    said "only 2" (the sheet kept consistent), or dropped to "counts toward the 2", the joint proof still passes — the
+    stated-cap proof does not. Mutation: the pin off lets it through."""
+    def change(c):
+        bi, x = _own_cap(c)
+        n, k = W.band_total(x["text"]), W.parse_band(x["text"])[1]
+        x["kind"], x["text"] = ("own", W.band_in(n, W.band_own(k + 1))) if plant == "one higher" else \
+            ("upto", W.band_upto(n))
+        b = c["table"]["boxes"][bi]
+        r = b["rows"][x["from"]]
+        r["sheet"]["head"] = W.sheet_keep(x["text"], W.parse_head(b["head"])[1])
+        r["sheet"]["here"] = tuple(h for h in r["sheet"]["here"] if not h["t"].startswith("This fish: only"))
+    got = _mutated(side, lambda c: _own_cap(c) is not None, change)
+    if plant == "one higher":
+        assert any(J.STATED_MARK in p for p in got), got
+    monkeypatch.setattr(J, "A_STATED_CAP_EXACT", False)
+    assert not any(J.STATED_MARK in p for p in _mutated(side, lambda c: _own_cap(c) is not None, change))
+
+
+def test_a_shared_band_without_the_box_number_the_top_does_not_name_fails(side, monkeypatch):
+    """R3: "counts toward the N" is left out only where the top line names the band's count. Mutation: the pin off."""
+    def change(c):
+        b = next(b for b in c["table"]["boxes"] if b["kind"] == "keep" and len(b["rows"]) > 2
+                 and [x["kind"] for x in b["bands"][:2]] == ["upto", "upto"])
+        b["bands"] = [{"from": 0, "to": 1, "text": W.band_shared(7, 2), "kind": "shared"}, *b["bands"][2:]]
+    pred = lambda c: any(b["kind"] == "keep" and len(b["rows"]) > 2 and [x["kind"] for x in b["bands"][:2]] ==  # noqa
+                         ["upto", "upto"] for b in c["table"]["boxes"])
+    mark = "says no overall limit"
+    assert any(mark in p for p in _mutated(side, pred, change))
+    monkeypatch.setattr(J, "A_TOTAL_UNSAID_ONLY_WHERE_THE_TOP_NAMES_IT", False)
+    assert not any(mark in p for p in _mutated(side, pred, change))
+
+
+def _keep_cell(side, rows_at_least=2):
+    k, j = _first(side, lambda c: any(b["kind"] == "keep" and len(b["rows"]) >= rows_at_least
+                                      for b in c["table"]["boxes"]))
+    return copy.deepcopy(side.model.sections["trout"][k][j])
+
+
+def test_a_nested_band_is_read_as_a_limit_without_data(side):
+    """`Box.inner` read by J (no data): inside a band over three rows, a nested "only 1 between them" over two of them
+    refuses two of their fish; without it the two are kept."""
+    c = _keep_cell(side, 3)
+    b = next(b for b in c["table"]["boxes"] if b["kind"] == "keep" and len(b["rows"]) >= 3)
+    n = W.parse_head(b["head"])[1]
+    m = len(b["rows"])
+    b["strip"], b["possession"], b["label"] = None, None, None
+    b["bands"] = ({"from": 0, "to": m - 1, "text": W.band_shared(n, m), "kind": "shared"},)
+    for r in b["rows"]:
+        r["lines"], r["label"] = (), None
+    two = [(r["fish"], "hatchery", 20.0, "here") for r in b["rows"][:2]]
+    free = J.Table(c)
+    b["inner"] = ({"from": 0, "to": 1, "text": W.band_shared(1, 2), "kind": "shared"},)
+    held = J.Table(c)
+    assert n >= 2 and free.accepts(two) and not held.accepts(two)
+
+
+def test_the_most_specific_date_level_holds_a_row_without_data(side):
+    """`_texts_by_row` (no data): a row's own date wins over its box's, the box's over the card line's."""
+    c = _keep_cell(side)
+    bi = next(i for i, b in enumerate(c["table"]["boxes"]) if b["kind"] == "keep" and len(b["rows"]) >= 2)
+    b = c["table"]["boxes"][bi]
+    c["dates"] = {"top": None, "card": "Until Oct 31, then release", "fold": None,
+                  "box": {str(bi): "until Sep 30, then release"}, "band": {},
+                  "row": {f"{bi}:0": "until Aug 31, then release"}, "sheet": {}}
+    got = J._texts_by_row(J.Table(c))
+    assert got[b["rows"][0]["key"]] == ("row", "until Aug 31, then release")
+    assert got[b["rows"][1]["key"]] == ("box", "until Sep 30, then release")
+
+
+def test_if_wild_sizes_only_the_wild_fish_without_data(side):
+    """`Row.wild_ranges` (no data): a merged row "50 cm (20 in) or less if wild" keeps a hatchery fish of any length and
+    a wild one only to 50 cm."""
+    c = _keep_cell(side, 1)
+    b = next(b for b in c["table"]["boxes"] if b["kind"] == "keep")
+    r = b["rows"][0]
+    r["origin"], r["label"], r["split"] = None, None, True
+    r["lines"] = (W.size_if_wild("50 cm (20 in) or less"),)
+    b["label"] = None
+    T_ = J.Table(c)
+    S = r["fish"]
+    assert T_.row_for(S, "hatchery", 70.0) is not None and T_.row_for(S, "wild", 40.0) is not None
+    assert T_.row_for(S, "wild", 70.0) is None
+
+
 def test_mutation_a_band_naming_another_total_fails(side):
     """(Owner 2026-11-18 00:52) a shared band names the overall limit first; J holds that number to the box's."""
     def change(c):
