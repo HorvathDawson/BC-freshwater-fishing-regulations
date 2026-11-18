@@ -234,10 +234,10 @@ describe("(T831) the atlas read through a byte-range reader", () => {
     const asked: [string, number, number][] = [];
     const file = "file:///d/t831-geometry/atlas.pmtiles";
     const { fc, missing } = await traceOverlay(file,
-                                               [route({ role: "up", tone: "#1f77b4", path: [311274 as never], from: at, to: at })],
+                                               [route({ role: "up", tone: "tone-blue", path: [311274 as never], from: at, to: at })],
                                                reader(bytes, asked));
     expect({ missing, features: fc.features }).toEqual({ missing: [], features: [{
-      type: "Feature", properties: { role: "up", tone: "#1f77b4", order: 1, on: false, kind: "line" },
+      type: "Feature", properties: { role: "up", tone: "tone-blue", order: 1, on: false, kind: "line" },
       geometry: { type: "MultiLineString", coordinates: [[project(12, x, y, 4096, [0, 2048]), project(12, x, y, 4096, [4096, 2048])]] },
     }] });
     // the header and directory in one read, then the tile itself: never the whole 40 kB archive

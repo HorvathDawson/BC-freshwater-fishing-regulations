@@ -138,8 +138,8 @@ describe("the native style", () => {
    * pushes the data it mounted with). The web's `setTrace` writes `pinCollection(pins)`; this is the same collection.
    */
   it("(T831) carries the route overlay's pin source, layers and image, and starts it with the pins it is given", () => {
-    const pins = [{ lat: 49.1, lon: -121.9, kind: "here" as const, tone: "#000", label: "You are here", rank: 0 },
-                  { lat: 49.2, lon: -122.1, kind: "gauge" as const, tone: "#1f77b4", label: null, rank: 1 }];
+    const pins = [{ lat: 49.1, lon: -121.9, kind: "here" as const, tone: "tone-ink", label: "You are here", rank: 0 },
+                  { lat: 49.2, lon: -122.1, kind: "gauge" as const, tone: "tone-blue", label: null, rank: 1 }];
     for (const theme of ["light", "dark"]) {
       const s = nativeStyle({ ...base, theme, tracePins: pins }).style as unknown as S;
       const onPins = (s.layers as (L & { source?: string })[]).filter((l) => l.source === "trace-pins").map((l) => l.id);
@@ -147,9 +147,9 @@ describe("the native style", () => {
       const here = layer(s, "trace-here").layout!["icon-image"] as string;
       expect([theme, here, here in nativeImages(theme)]).toEqual([theme, nativeImageName("trace-here", theme), true]);
       expect([theme, s.sources["trace-pins"]!.data]).toEqual([theme, { type: "FeatureCollection", features: [
-        { type: "Feature", properties: { kind: "here", tone: "#000", rank: 0, label: "You are here" },
+        { type: "Feature", properties: { kind: "here", tone: "tone-ink", rank: 0, label: "You are here" },
           geometry: { type: "Point", coordinates: [-121.9, 49.1] } },
-        { type: "Feature", properties: { kind: "gauge", tone: "#1f77b4", rank: 1 },
+        { type: "Feature", properties: { kind: "gauge", tone: "tone-blue", rank: 1 },
           geometry: { type: "Point", coordinates: [-122.1, 49.2] } }] }]);
     }
     expect((nativeStyle(base).style as unknown as S).sources["trace-pins"]!.data).toEqual({ type: "FeatureCollection", features: [] });
@@ -157,7 +157,7 @@ describe("the native style", () => {
 
   it("(T831) starts the route overlay's line source with the lines it is given, and its line layers read it", () => {
     const lines = { type: "FeatureCollection" as const, features: [{ type: "Feature" as const,
-      properties: { role: "down" as const, tone: "#1f77b4", kind: "line" as const, order: 1, on: false },
+      properties: { role: "down" as const, tone: "tone-blue", kind: "line" as const, order: 1, on: false },
       geometry: { type: "MultiLineString" as const, coordinates: [[[-122, 49], [-121.9, 49.1]] as [number, number][]] } }] };
     const s = nativeStyle({ ...base, traceLines: lines }).style as unknown as S;
     const onLines = (s.layers as (L & { source?: string })[]).filter((l) => l.source === "trace").map((l) => l.id);

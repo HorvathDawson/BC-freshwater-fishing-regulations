@@ -638,15 +638,15 @@ describe("native only (T317)", () => {
  * and a later change goes to the source — never a style swap.
  */
 describe.each(["web", "native"] as const)("T831 the route map's gauge dots and you-are-here pin: %s", (name) => {
-  const HERE = { lat: 49.1, lon: -121.9, kind: "here" as const, tone: "#000", label: "You are here", rank: 0 };
-  const GAUGE = { lat: 49.2, lon: -122.1, kind: "gauge" as const, tone: "#1f77b4", label: "62%", rank: 0 };
-  const QUIET = { lat: 49.3, lon: -122.3, kind: "gauge" as const, tone: "#555555", label: null, rank: 1 };
+  const HERE = { lat: 49.1, lon: -121.9, kind: "here" as const, tone: "tone-ink", label: "You are here", rank: 0 };
+  const GAUGE = { lat: 49.2, lon: -122.1, kind: "gauge" as const, tone: "tone-blue", label: "62%", rank: 0 };
+  const QUIET = { lat: 49.3, lon: -122.3, kind: "gauge" as const, tone: "tone-grey", label: null, rank: 1 };
   const trace = (pins: readonly (typeof HERE | typeof GAUGE | typeof QUIET)[]) => ({ key: "r1", routes: [], pins });
   const point = (lon: number, lat: number) => ({ type: "Point", coordinates: [lon, lat] });
   const OPENED = { type: "FeatureCollection", features: [
-    { type: "Feature", properties: { kind: "gauge", tone: "#1f77b4", rank: 0, label: "62%" }, geometry: point(-122.1, 49.2) },
-    { type: "Feature", properties: { kind: "gauge", tone: "#555555", rank: 1 }, geometry: point(-122.3, 49.3) },
-    { type: "Feature", properties: { kind: "here", tone: "#000", rank: 0, label: "You are here" }, geometry: point(-121.9, 49.1) },
+    { type: "Feature", properties: { kind: "gauge", tone: "tone-blue", rank: 0, label: "62%" }, geometry: point(-122.1, 49.2) },
+    { type: "Feature", properties: { kind: "gauge", tone: "tone-grey", rank: 1 }, geometry: point(-122.3, 49.3) },
+    { type: "Feature", properties: { kind: "here", tone: "tone-ink", rank: 0, label: "You are here" }, geometry: point(-121.9, 49.1) },
   ] };
   /** The pins the map draws now: the web's source as last set; a phone's source once its style has loaded. */
   const drawn = () => (name === "web" ? web.data["trace-pins"] : native.geojson["trace-pins"]);
@@ -695,8 +695,8 @@ describe("T831 native: the route lines, read through the injected atlas reader",
   const tileCentre = { lon: project(12, X, Y, 1, [0.5, 0.5])[0], lat: project(12, X, Y, 1, [0.5, 0.5])[1] };
   const ARCHIVE = encodePmtiles([{ z: 12, x: X, y: Y,
     data: encodeTile({ stream: [{ id: 311274, type: 2, parts: [[[0, 2048], [4096, 2048]]] }] }, 4096) }], 40_000);
-  const routes = [{ role: "down" as const, tone: "#1f77b4", path: [311274 as never], from: tileCentre, to: tileCentre }];
-  const LINE = { type: "Feature", properties: { role: "down", tone: "#1f77b4", order: 1, on: false, kind: "line" },
+  const routes = [{ role: "down" as const, tone: "tone-blue", path: [311274 as never], from: tileCentre, to: tileCentre }];
+  const LINE = { type: "Feature", properties: { role: "down", tone: "tone-blue", order: 1, on: false, kind: "line" },
                  geometry: { type: "MultiLineString", coordinates: [[project(12, X, Y, 4096, [0, 2048]), project(12, X, Y, 4096, [4096, 2048])]] } };
   let n = 0;
   /** A fresh archive path per test: the overlay keeps one archive (and its sections) per path for the session. */
@@ -720,7 +720,7 @@ describe("T831 native: the route lines, read through the injected atlas reader",
 
   it("a theme swap keeps the route: its lines and pins are in the new style", async () => {
     const { at } = reader();
-    const pins = [{ lat: tileCentre.lat, lon: tileCentre.lon, kind: "here" as const, tone: "#000", label: null, rank: 0 }];
+    const pins = [{ lat: tileCentre.lat, lon: tileCentre.lon, kind: "here" as const, tone: "tone-ink", label: null, rank: 0 }];
     const r = render(<NativeMap {...base({ at, data: undefined, highlight: undefined, trace: { key: "r1", routes, pins } })} />);
     await waitFor(() => expect(lines()?.features.length).toBe(1));
     r.rerender(<NativeMap {...base({ at, theme: "dark", data: undefined, highlight: undefined, trace: { key: "r1", routes, pins } })} />);
