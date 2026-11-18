@@ -17,17 +17,24 @@ starts, so every day is covered once; a weekday or hours moment is compared per 
                 daily number, the deciding rule (`rows` decided)
     size        per fish and origin: the decided answer's size lines (`cap`, `rel`, `outersize` with their cm bounds and
                 take)
-    possession  per fish and origin: the possession rules the decided answer names
+    possession  per fish and origin: the possession rules the decided answer names and the number they let you have
+                per length (a rule's `take` and `lengths`, or `per_daily` times the daily number: the export subset's
+                fields); a number that moves only with the fish's own daily number is the fish's change, not listed
+    shared      per pooled row: the numbers several fish share (the row's number in all, its group's total and cap
+                system, the real daily limit's shared caps and counts, the conditions' and items' sub-caps), keyed by
+                fish and cm, never by rule index; listed only where no member fish's own answer moved
     closure     the whole water closed to all fishing (`display.status` closed) and the rules closing it
     gear        each gear element's verdict (bait, lures, methods, barbs), hook, fly only, bait ban, the counted gear
-                (lines, hooks, weight: its words or its rule)
+                (lines, hooks, weight, hook gap: the deciding rule's most / least, and its words)
     boats       the boat rules in force (`gear.vessel`)
     licence     per angler profile: the documents needed (or none); the classified-water designations
     water       the key's steelhead presence, steelhead rules, water kind, tidal flag
     the rest    every section frame (ladder, rows, gear, licence, display) whole, rule refs as rule ids: a difference no
                 field above explains is listed as "wording only" (only text fields differ) or "other" (its field paths
-                named) — never dropped. The year strips (`rows[].year`, `display.strip`) are left out of this net: they
-                restate the per-day answers that are compared directly.
+                named) — never dropped. A rows frame whose difference is all outside `fish` (its rows, the fish it asks
+                about, the steelhead line, the page's possession row) with every facet above the same is "the fish
+                card's rows" (it says when rows split, join or reorder). The year strips (`rows[].year`,
+                `display.strip`) are left out of this net: they restate the per-day answers that are compared directly.
   salmon (one chain per section, the salmon shards)
     per species (chinook, coho, sockeye, pink, chum): the day's verdict (open / release / closed / check, its limit
     tree and words) and the place that answers it (`a` into `l`: a DFO place or a `book:` closure); the gear lines; the
@@ -36,10 +43,17 @@ starts, so every day is covered once; a weekday or hours moment is compared per 
     rule wording (a rule id whose title changed), waters and parts that appear or go.
 
 THE KINDS: closes, opens, limit lower, limit higher, size stricter, size looser, size mixed, wild/hatchery, possession,
-gear, licence, wording only, source only (same answer, another rule or place answers), new water or part, removed water
-or part, other. Each change says which way it errs: toward closed, toward open, no change to what you may do, or
-unclear. Groups: kind, then the rule or place behind it before and after (so 71,046 sections of 71 rule + place pairs
+shared limit, gear, licence, the fish card's rows, wording only, source only (same answer, another rule or place
+answers), new water or part, removed water or part, other. Each change says which way it errs: toward closed, toward
+open, no change to what you may do, or unclear. Possession, shared limits and counted gear read a direction from their
+numbers (fewer, a new limit: toward closed); "unclear" is left for a change both ways or one with no number. Groups: kind, then the rule or place behind it before and after (so 71,046 sections of 71 rule + place pairs
 are 71 lines), with section and water counts, the day ranges per fish, the water names and one worked example.
+
+ACROSS THE TROUT CUTOVER (rows `CUTOVER_ROWS`, spec ticket L): each release is decoded at its own rows version, so the
+last release before the cutover and the cutover candidate are one run; a trout row's dropped `group` / `elsewhere` and
+the new `page_possession` are left out of both sides (`rows34_view`), every other field and every non-trout row is
+compared. The trout table itself (the optional `trout` section) is not compared: ticket J proves it against the engine
+on every build; this tool compares the law under it.
 
 SECTIONS ACROSS TWO ATLASES. Same `section_handles` digest: a handle is the same section in both. Otherwise a stream
 section is matched by its stream key and start metre (`lines`), and a re-cut one by the other release's section holding
@@ -67,6 +81,7 @@ from pathlib import Path
 from typing import Dict, Iterable, List, Optional, Sequence, Tuple
 
 from pipeline.common import calendar_spec as CAL
+from pipeline.deliver.answers.model.rows import PAGE_POSSESSION_SINCE, page_possession_written
 
 DAYS = CAL.DAYS                                         # 366, the leap calendar (Jan 1 = 1, Feb 29 = 60)
 ALL_DAYS = ((1 << DAYS) - 1) << 1                       # bits 1..366
@@ -91,11 +106,13 @@ KINDS = {
     "size_mixed": ("Size rule changed both ways", "unclear"),
     "wild_hatchery": ("Wild or hatchery", None),
     "possession": ("Possession", None),
+    "shared_limit": ("Shared limits (several fish together)", None),
     "gear": ("Gear and bait, boats", None),
     "licence": ("Licences and classified waters", None),
     "new_part": ("New water or part", "unclear"),
     "removed_part": ("Removed water or part", "unclear"),
     "other": ("Other changes (read these)", "unclear"),
+    "card_rows": ("The fish card's rows (same answer for every fish)", "none"),
     "wording": ("Wording only", "none"),
     "source_only": ("Same answer, another rule or place behind it", "none"),
 }
@@ -105,18 +122,32 @@ ERRS_WORDS = {"closed": "Errs toward closed.", "open": "Errs toward open.", "non
 #: leaf keys whose values are words only (a difference only there is "wording only")
 TEXT_KEYS = frozenset({"t", "says", "title", "plain", "label", "text", "sentence", "detail", "words", "w", "name",
                        "applies", "applies_trib", "heading", "lost", "won", "status_words", "note", "caution", "why",
-                       "when", "days", "verbatim", "tp", "url", "asof", "headline", "fold"})
+                       "when", "days", "verbatim", "tp", "url", "asof", "headline", "fold", "duties"})
 #: rule refs, per section (ints index the release's `rule_ids`; a pair/list's first element where it is [rule, n])
 RULE_KEYS = {
-    "rows": frozenset({"win", "narrow", "pool", "r", "rules", "outer", "wins", "of", "lifts", "by"}),
+    "rows": frozenset({"win", "narrow", "pool", "r", "rules", "outer", "wins", "of", "lifts", "by", "src"}),
     "gear": frozenset({"by", "over", "cites", "main", "clause", "decides", "repeats", "caught", "while_rules", "rule",
                        "active", "timed", "in_part", "side", "lifts", "downrigger", "light", "rules"}),
     "display": frozenset({"closing", "closers", "unless_opened", "by", "lifts"}),
 }
 LIC_KEYS = frozenset({"holds", "designations", "considered", "wrong_water", "waived", "not_yet_mapped", "req", "terms",
                       "by", "presumes_by"})
+#: rule refs where EVERY int under the key is a rule index (a list of rules, not a [rule, n] pair): gear's conduct lines
+#: [[name, [rule, ...]], ...] per heading
+ALL_REF_KEYS = {"gear": frozenset({"conduct"})}
+#: rule refs held as ONE [rule, n] pair (n an entry index, never a rule): gear's `by` on a count or an element
+PAIR_KEYS = {"gear": frozenset({"by"})}
 #: derived fields left out of the whole-frame net (module doc)
 DERIVED = {"rows": ("year",), "display": ("strip",)}
+
+#: THE TROUT CUTOVER, KEYED OFF THE ROWS VERSION (spec ticket L; contract 2.7, Q-D9, 2.11): from rows
+#: `CUTOVER_ROWS` (= F0's `PAGE_POSSESSION_SINCE`, the one number) a trout row — every fish of it a trout or char,
+#: `common.trout_char`, the predicate the group is made by — carries no `group` and no `elsewhere` (the trout table
+#: says them), and every frame carries `page_possession`. Across that line (one release before it, one at or after)
+#: those are not changes: `rows34_view` leaves them out of both sides' frames. A non-trout row keeps its `group` and
+#: `elsewhere` and is compared whole. Two releases on the same side of the line are compared as they are.
+CUTOVER_ROWS = PAGE_POSSESSION_SINCE
+ROWS34_TROUT_DROPS = ("group", "elsewhere")
 
 
 class DiffError(SystemExit):
@@ -236,6 +267,15 @@ class Release:
         if missing:
             raise DiffError(f"answers_diff: {self.name} holds no {missing} answers section(s)")
         self.versions = {n: self.sections[n]["version"] for n in SECTION_NAMES}
+        if "trout" in self.sections:                              # the optional trout table (not compared: module doc)
+            self.versions["trout"] = self.sections["trout"]["version"]
+        #: the rows version this release was cut at: from `CUTOVER_ROWS` on, trout rows drop `group` / `elsewhere`
+        #: and every frame carries `page_possession` (`rows34_view`)
+        self.rows_version = int(self.versions["rows"])
+        #: set by `run`: the pair crosses the trout cutover (one release before rows 34, the other at or after it)
+        self.straddle = False
+        #: each rule's structured fields (the export subset), by rule index: the possession and gear-count numbers
+        self.rule_fields: List[dict] = [(sub["rules"].get(r) or {}).get("fields") or {} for r in self.rule_ids]
         self.titles = [r.get("title") or r.get("plain") or "" for r in self.sections["display"]["rules"]]
         if len(self.titles) != len(self.rule_ids):
             raise DiffError(f"answers_diff: {self.name}: {len(self.titles)} display rules for {len(self.rule_ids)} rule "
@@ -345,8 +385,7 @@ class Release:
         return starts, moms
 
     def frames(self, k: int, s: int) -> dict:
-        return {n: self.codecs[n].decode_frame(self.sections[n], self.sections[n]["at"][k][s], self.rule_ids, self.fish)
-                for n in SECTION_NAMES}
+        return {n: decode(self, n, self.sections[n]["at"][k][s]) for n in SECTION_NAMES}
 
     def refs(self, k: int, s: int) -> tuple:
         return tuple(self.sections[n]["at"][k][s] for n in SECTION_NAMES)
@@ -371,6 +410,42 @@ class Release:
         return str(lid) if i is None else self.lic_labels[i]
 
 
+# ------------------------------------------------------------------------------------------------------- decoding
+
+def decode(rel: "Release", name: str, ref: int) -> dict:
+    """One frame of section `name`, decoded by the release's codec AT THE RELEASE'S OWN ROWS VERSION: a rows frame of
+    rows < `CUTOVER_ROWS` has five slots, from it six (`page_possession`), whichever this code writes — so the last
+    release before the cutover and the cutover candidate are read by one run. Any other slot count stops the run."""
+    sec, codec = rel.sections[name], rel.codecs[name]
+    if name != "rows":
+        return codec.decode_frame(sec, ref, rel.rule_ids, rel.fish)
+    fr = sec["frames"][ref]
+    slots = 6 if rel.rows_version >= CUTOVER_ROWS else 5
+    if len(fr) != slots:
+        raise DiffError(f"answers_diff: {rel.name}: rows {rel.rows_version} frame {ref} has {len(fr)} slots, not "
+                        f"{slots}")
+    want = 6 if page_possession_written() else 5
+    if slots == want:
+        return codec.decode_frame(sec, ref, rel.rule_ids, rel.fish)
+    out = codec.decode_frame({**sec, "frames": {ref: fr[:5] + [None] * (want - 5)}}, ref, rel.rule_ids, rel.fish)
+    out.pop("page_possession", None)
+    if slots == 6:
+        out["page_possession"] = fr[5]
+    return out
+
+
+def is_trout_row(row: dict) -> bool:
+    from pipeline.deliver.answers.common import trout_char
+    return bool(row["all_members"]) and set(row["all_members"]) <= trout_char()
+
+
+def rows34_view(fr: dict) -> dict:
+    """A rows frame as compared across the trout cutover (`CUTOVER_ROWS`): no `page_possession`, and no
+    `ROWS34_TROUT_DROPS` on a trout row."""
+    rows = [{k: v for k, v in r.items() if k not in ROWS34_TROUT_DROPS} if is_trout_row(r) else r for r in fr["rows"]]
+    return {**{k: v for k, v in fr.items() if k != "page_possession"}, "rows": rows}
+
+
 # ------------------------------------------------------------------------------------------------------- resolving refs
 
 def _map_refs(v, f):
@@ -386,25 +461,43 @@ def _map_refs(v, f):
     return v
 
 
-def resolve(v, rule_keys: frozenset, lic_keys: frozenset, rf, lf, drop: Sequence[str] = ()):
-    """`v` with its rule refs (under `rule_keys`) as rule ids and licensing refs (under `lic_keys`) as licensing ids;
-    `drop`ped keys (derived fields) left out."""
+def _all_refs(v, f):
+    if isinstance(v, bool) or v is None:
+        return v
+    if isinstance(v, int):
+        return f(v)
     if isinstance(v, list):
-        return [resolve(x, rule_keys, lic_keys, rf, lf, drop) for x in v]
+        return [_all_refs(x, f) for x in v]
+    if isinstance(v, dict):
+        return {k: _all_refs(x, f) for k, x in v.items()}
+    return v
+
+
+def resolve(v, rule_keys: frozenset, lic_keys: frozenset, rf, lf, drop: Sequence[str] = (),
+            all_refs: frozenset = frozenset(), pairs: frozenset = frozenset()):
+    """`v` with its rule refs (under `rule_keys`; every int under `all_refs`; the first of an [int, int] pair under
+    `pairs`) as rule ids and licensing refs (under `lic_keys`) as licensing ids; `drop`ped keys (derived fields) left
+    out."""
+    if isinstance(v, list):
+        return [resolve(x, rule_keys, lic_keys, rf, lf, drop, all_refs, pairs) for x in v]
     if not isinstance(v, dict):
         return v
     out = {}
     for k, x in v.items():
         if k in drop:
             continue
-        if k == "roles" and isinstance(x, list):
+        if k in all_refs:
+            out[k] = _all_refs(x, rf)
+        elif k in pairs and isinstance(x, list) and len(x) == 2 and all(type(y) is int for y in x):
+            out[k] = [rf(x[0]), x[1]]
+        elif k == "roles" and isinstance(x, list):
             out[k] = [[rf(r[0]), r[1], rf(r[2]) if isinstance(r[2], int) else r[2]] for r in x]
         elif k in lic_keys and lf is not None:
             out[k] = _map_refs(x, lf)
         elif k in rule_keys:
             out[k] = _map_refs(x, rf)
         else:
-            out[k] = resolve(x, rule_keys, lic_keys, rf, lf, drop)
+            out[k] = resolve(x, rule_keys, lic_keys, rf, lf, drop, all_refs, pairs)
     return out
 
 
@@ -479,14 +572,17 @@ def _digest(v) -> str:
 
 def net_value(rel: "Release", name: str, ref: int, resolve_refs: bool):
     """A section frame whole, refs resolved (when the two releases' rule lists differ), derived fields dropped."""
-    fr = rel.codecs[name].decode_frame(rel.sections[name], ref, rel.rule_ids, rel.fish)
+    fr = decode(rel, name, ref)
     if name == "ladder":
         return fr
+    if name == "rows" and rel.straddle:
+        fr = rows34_view(fr)
     rf = rel.rid if resolve_refs else (lambda i: i)
     lf = rel.lid if resolve_refs else (lambda i: i)
     return resolve(fr, RULE_KEYS.get(name, frozenset()) if resolve_refs else frozenset(),
                    (LIC_KEYS if name == "licence" else frozenset()) if resolve_refs else frozenset(),
-                   rf, lf, DERIVED.get(name, ()))
+                   rf, lf, DERIVED.get(name, ()), ALL_REF_KEYS.get(name, frozenset()) if resolve_refs else frozenset(),
+                   PAIR_KEYS.get(name, frozenset()) if resolve_refs else frozenset())
 
 
 def section_facets(rel: "Release", name: str, ref: int, resolve_refs: bool) -> dict:
@@ -496,7 +592,9 @@ def section_facets(rel: "Release", name: str, ref: int, resolve_refs: bool) -> d
     hit = rel._facet_cache.get(ck)
     if hit is not None:
         return hit
-    fr = rel.codecs[name].decode_frame(rel.sections[name], ref, rel.rule_ids, rel.fish)
+    fr = decode(rel, name, ref)
+    if name == "rows" and rel.straddle:
+        fr = rows34_view(fr)                 # a trout row's group is in the trout table from rows 34: not compared
     out: dict = {}
     if name == "rows":
         for sp in sorted(fr["fish"]):
@@ -514,8 +612,23 @@ def section_facets(rel: "Release", name: str, ref: int, resolve_refs: bool) -> d
                 lsrc = ",".join(sorted({rel.rid(l.get("r")) or "" for l in sl}))
                 out[("size", sp, o)] = F("size", lines, size_words(lines), lsrc or None, "rows")
                 pos = sorted({rel.rid(r[0]) for r in d.get("roles", []) if r[1] in ("possession", "possession_cap")})
-                out[("possession", sp, o)] = F("possession", pos, "; ".join(rel.title(p) for p in pos) or "none",
-                                               ",".join(pos) or None, "rows")
+                prof = profile_runs(possession_profile(rel, d))
+                bare = sorted({rel.rid(r[0]) for r in d.get("roles", []) if r[1] in ("possession", "possession_cap")
+                               and not _possession_number(rel, r[0])})
+                out[("possession", sp, o)] = F("possession", [pos, prof, bare],
+                                               ("; ".join(rel.title(p) for p in pos) or "none") +
+                                               f" ({possession_words(prof)})", ",".join(pos) or None, "rows")
+        seen: Counter = Counter()
+        for r in fr["rows"]:
+            if r.get("pool") is None:
+                continue
+            mem = tuple(sorted(r["all_members"]))
+            seen[mem] += 1
+            lim = shared_limits(rel, r)
+            src = rel.rid(r.get("pool"))
+            out[("shared", mem) + ((seen[mem],) if seen[mem] > 1 else ())] = F(
+                "shared", sorted([k, v] for k, (v, _) in lim.items()),
+                "; ".join(w for _, (_, w) in sorted(lim.items())) or "no number", src, "rows")
     elif name == "display":
         closed = fr.get("status") == "closed"
         closers = sorted({rel.rid(c[0]) for c in fr.get("closing", [])}) if closed else []
@@ -536,8 +649,11 @@ def section_facets(rel: "Release", name: str, ref: int, resolve_refs: bool) -> d
             v = fr["counts"][c]
             by = rel.rid((v.get("by") or [None])[0])
             says = v.get("says")
-            out[("gear", "count:" + c)] = F("gear", says if says is not None else by,
-                                            f"{c.replace('_', ' ')}: {says or rel.title(by)}", by, "gear")
+            bound = count_bound(rel, v.get("by"))
+            out[("gear", "count:" + c)] = F("gear", [bound, says, None if says is not None else by],
+                                            f"{c.replace('_', ' ')}: " + (says or (
+                                                f"{'at most' if bound[0] == 'max' else 'at least'} {_num(bound[1])} "
+                                                f"({rel.title(by)})" if bound else rel.title(by))), by, "gear")
         for f in ("hook", "fly", "bait_ban"):
             out[("gear", f)] = F("gear", fr.get(f), f"{f.replace('_', ' ')}: {fr.get(f)}", None, "gear")
         ves = fr.get("vessel") or {}
@@ -562,6 +678,185 @@ def section_facets(rel: "Release", name: str, ref: int, resolve_refs: bool) -> d
     out[("net", name)] = ("net:" + name, _digest(net), name, None, name, ref)
     rel._facet_cache[ck] = out
     return out
+
+
+INF = float("inf")
+
+
+def _num(n) -> str:
+    return "no limit" if n is None or n == INF else (str(int(n)) if float(n).is_integer() else str(n))
+
+
+def possession_profile(rel: "Release", d: dict) -> List[float]:
+    """How many of a fish of each length (0..300 cm) one decided answer lets you have IN POSSESSION, from the numbers
+    of the rules it names in a possession role (the release's export subset): `take` (a fixed number, its `lengths`
+    bands each with their own take or the rule's; outside every band the rule holds nothing), or `per_daily` times the
+    answer's daily number ("2 days' quota"). Not kept (release, closed): none. No possession number: no limit (inf)."""
+    if d["status"] not in ("keep", "no_limit"):
+        return [0.0] * 301
+    daily = INF if d.get("daily") is None else float(d["daily"])
+    v = [INF] * 301
+    for rix, role, *_ in d.get("roles", []):
+        if role not in ("possession", "possession_cap") or not isinstance(rix, int) or not \
+                0 <= rix < len(rel.rule_fields):
+            continue
+        f = rel.rule_fields[rix]
+        if not _possession_number(rel, rix):
+            continue
+        base = f["take"] if f.get("take") is not None else f["per_daily"] * daily
+        bands = f.get("lengths") or [{}]
+        for b in bands:
+            t = b.get("take", base)
+            lo, hi = int(b.get("min_cm") or 0), (301 if b.get("max_cm") is None else int(b["max_cm"]))
+            for L in range(max(lo, 0), min(hi, 301)):
+                v[L] = min(v[L], float(t))
+    return v
+
+
+def _possession_number(rel: "Release", rix) -> bool:
+    f = rel.rule_fields[rix] if isinstance(rix, int) and 0 <= rix < len(rel.rule_fields) else {}
+    return f.get("take") is not None or f.get("per_daily") is not None
+
+
+def profile_runs(v: Sequence[float]) -> List[list]:
+    """A 0..300 cm profile as runs [[from cm, to cm, n | None (no limit)]]."""
+    out: List[list] = []
+    for L, n in enumerate(v):
+        n = None if n == INF else n
+        if out and out[-1][2] == n:
+            out[-1][1] = L
+        else:
+            out.append([L, L, n])
+    return out
+
+
+def runs_profile(runs: Optional[Sequence[Sequence]]) -> List[float]:
+    v = [INF] * 301
+    for lo, hi, n in runs or []:
+        for L in range(lo, hi + 1):
+            v[L] = INF if n is None else n
+    return v
+
+
+def possession_words(runs: Sequence[Sequence]) -> str:
+    if len(runs) == 1:
+        n = runs[0][2]
+        return "no possession number" if n is None else f"{_num(n)} in possession"
+    return "in possession: " + ", ".join(f"{_num(n)} at {lo}-{hi} cm" for lo, hi, n in runs)
+
+
+def count_bound(rel: "Release", by) -> Optional[list]:
+    """A counted gear item's bound: ["max", n] or ["min", n] (a smallest hook gap) of the deciding rule's gear entry
+    (`by` = [rule, entry index]); None where the entry states no number."""
+    if not by or not isinstance(by[0], int) or not 0 <= by[0] < len(rel.rule_fields):
+        return None
+    g = rel.rule_fields[by[0]].get("gear") or []
+    i = by[1] if len(by) > 1 and isinstance(by[1], int) else 0
+    e = g[i] if 0 <= i < len(g) else {}
+    return ["max", e["max"]] if e.get("max") is not None else ["min", e["min"]] if e.get("min") is not None else None
+
+
+def shared_limits(rel: "Release", row: dict) -> Dict[str, Tuple[float, str]]:
+    """The numbers several fish of one pooled row share, by a key stable across releases (fish codes, cm, cap kind
+    ids; never a rule index): {key: (number, words)}. The row's number in all, its group's total, the most one may keep
+    here, each sub-cap and cap of the group's cap system, the real daily limit's shared caps and counts, the row's
+    conditions' and items' sub-caps. Lower is stricter; a limit that is new is stricter, one that goes is looser."""
+    from pipeline.regs.parsing.catalogue_parts.labels import species_words
+    out: Dict[str, Tuple[float, str]] = {}
+
+    def put(key, n, words):
+        if n is None:
+            return
+        n = INF if n == "unlimited" else float(n)
+        out[key] = (n, words)
+
+    def fw(xs):
+        return species_words(sorted(xs)) if xs else "any fish"
+    mem = row["all_members"]
+    put("row", row.get("daily") if row.get("kind") == "keep" else "unlimited",
+        f"{fw(mem)}: {_num(row.get('daily'))} a day in all" if row.get("kind") == "keep" else f"{fw(mem)}: no limit")
+    g = row.get("group") or {}
+    if g:
+        put("group", g.get("total"), f"{_num(INF if g.get('total') == 'unlimited' else g.get('total'))} in all")
+        put("water_max", g.get("water_max"), f"at most {_num(g.get('water_max'))} here")
+        for x in g.get("subcaps", []):
+            where = (f" from {x['water']}s" if x.get("water") else "") + \
+                    (f" over {x['over_cm']} cm" if x.get("over_cm") is not None else "") + \
+                    (f" under {x['under_cm']} cm" if x.get("under_cm") is not None else "")
+            put(f"subcap:{','.join(sorted(x['of']))}:{x.get('water')}:{x.get('over_cm')}:{x.get('under_cm')}",
+                x.get("take"), f"{_num(x.get('take'))} of {fw(x['of'])}{where}")
+        for c in g.get("caps", []):
+            k = c.get("kinds") or {}
+            put("cap:" + "|".join(",".join(sorted(k.get(p, []))) for p in ("here", "stream", "lake")) +
+                (":if_here" if c.get("if_kept_here") else ""), c.get("take"), c.get("says") or f"cap {c.get('take')}")
+    rd = row.get("real_daily") or {}
+    for x in rd.get("shared_cap") or []:
+        put(f"shared_cap:{x['over_cm']}", x.get("take"), f"{_num(x.get('take'))} over {x['over_cm']} cm together")
+    for x in rd.get("shared_count") or []:
+        put(f"shared_count:{','.join(sorted(x['members']))}", x.get("take"),
+            f"{_num(x.get('take'))} of {fw(x['members'])} together")
+    for c in row.get("conds") or []:
+        who = ",".join(sorted(c.get("who") or c.get("members") or c.get("of") or []))
+        band = f"{c.get('a')}-{c.get('b')}" if "a" in c else ""
+        head = f"cond:{c['c']}:{c.get('o') or ''}:{who}:{band}"
+        words = f"{fw((c.get('who') or c.get('members') or c.get('of') or []))}" + \
+                (f" {c.get('a')}-{c.get('b') if c.get('b') is not None else 'up'} cm" if band else "") + \
+                (f" ({c['o']})" if c.get("o") else "")
+        put(head + ":take", c.get("take"), f"{words}: only {_num(c.get('take'))}")
+        put(head + ":daily", c.get("daily"), f"{words}: {_num(c.get('daily'))} a day")
+        put(head + ":sub", c.get("sub"), f"{words}: {_num(c.get('sub'))} of them")
+    for it in row.get("items") or []:
+        put(f"item:{','.join(sorted(it['members']))}:sub", it.get("sub"),
+            f"{fw(it['members'])}: {_num(it.get('sub'))} of them")
+    return out
+
+
+def limits_dir(a: Optional[Sequence], b: Optional[Sequence]) -> str:
+    """closed / open / unclear / none, comparing two [[key, number]] lists (a missing limit is no limit)."""
+    da, db = dict(map(tuple, a or [])), dict(map(tuple, b or []))
+    stricter = looser = False
+    for k in set(da) | set(db):
+        x, y = da.get(k, INF), db.get(k, INF)
+        stricter |= y < x
+        looser |= y > x
+    return "unclear" if stricter and looser else "closed" if stricter else "open" if looser else "none"
+
+
+def _allowances(says: str) -> Tuple[float, float, frozenset]:
+    """A counted gear item's words ("1 line (rod); 2 while alone in a boat on a lake", "… no limit from a boat") as
+    (the first clause's number, the largest, the clauses): fewer on both is stricter, more on both looser."""
+    import re
+    clauses = [c.strip() for c in says.split(";") if c.strip()]
+    nums = []
+    for c in clauses:
+        m = re.search(r"\d+(?:\.\d+)?", c)
+        nums.append(INF if "no limit" in c else float(m.group()) if m else None)
+    known = [n for n in nums if n is not None]
+    return (nums[0] if nums and nums[0] is not None else INF, max(known) if known else INF, frozenset(clauses))
+
+
+def count_dir(va, vb) -> str:
+    """Which way a counted gear item (lines, hooks, points, weight, bait kg: a MOST; a hook gap: a most or a LEAST)
+    moved: its number, else its words' allowances. A count that appears is stricter, one that goes looser; same number
+    and words: none."""
+    if va is None or vb is None:
+        return "closed" if va is None else "open"
+    (ba, wa, _), (bb, wb, _) = va, vb
+    if ba is not None and bb is not None and ba != bb:
+        if ba[0] != bb[0]:
+            return "unclear"
+        lower = bb[1] < ba[1]
+        return ("closed" if lower else "open") if ba[0] == "max" else ("open" if lower else "closed")
+    if isinstance(wa, str) and isinstance(wb, str) and wa != wb:
+        (b1, t1, c1), (b2, t2, c2) = _allowances(wa), _allowances(wb)
+        if (b1, t1) == (b2, t2):
+            return "unclear"                 # the same numbers, said of other circumstances: read it
+        if b2 <= b1 and t2 <= t1:
+            return "closed"
+        if b2 >= b1 and t2 >= t1:
+            return "open"
+        return "unclear"
+    return "none"
 
 
 def key_facets(rel: "Release", k: int) -> dict:
@@ -617,7 +912,17 @@ def classify_regs(key: tuple, fa: tuple, fb: tuple, other_origin_same: bool) -> 
             return "wording", "none"
         return "size_mixed", "unclear"
     if block == "possession":
-        return "possession", "unclear"
+        if va is None or vb is None:
+            return "possession", "unclear"
+        pa, pb = runs_profile(va[1]), runs_profile(vb[1])
+        le, ge = all(x <= y for x, y in zip(pb, pa)), all(x >= y for x, y in zip(pb, pa))
+        if le and ge:
+            # the same numbers: another rule says them — unless a rule with no number of its own came or went
+            return ("source_only", "none") if va[2] == vb[2] else ("possession", "unclear")
+        return "possession", "closed" if le else "open" if ge else "unclear"
+    if block == "shared":
+        d = limits_dir(va, vb)
+        return ("card_rows", "none") if d == "none" else ("shared_limit", d)
     if block == "closure":
         return ("closes", "closed") if vb else ("opens", "open")
     if block == "gear":
@@ -629,7 +934,8 @@ def classify_regs(key: tuple, fa: tuple, fb: tuple, other_origin_same: bool) -> 
                 return "gear", "closed" if vb and not va else "open" if va and not vb else "unclear"
             return "gear", "unclear"
         if sub.startswith("count:"):
-            return "gear", "unclear"
+            d = count_dir(va, vb)
+            return ("source_only", "none") if d == "none" else ("gear", d)
         if va is None or vb is None:
             return "gear", "unclear"
         return "gear", "closed" if vb == "ban" else "open" if vb == "allow" else "unclear"
@@ -778,7 +1084,14 @@ def _diff_frames(A, B, ka, sa, kb, sb, resolve_refs, when, cache) -> List[tuple]
         x, y = fa.get(k), fb.get(k)
         subject = ""
         other_same = False
-        if k[0] in ("fish", "size", "possession"):
+        if k[0] == "possession" and ("fish", k[1], k[2]) in diffset and x and y and x[5][0] == y[5][0]:
+            continue            # the same possession rules, their number moved with the fish's daily: the fish says it
+        if k[0] == "shared":
+            if any(("fish", sp, o) in diffset for sp in k[1] for o in ORIGINS):
+                continue        # a member fish's own answer moved: that change says it
+            from pipeline.regs.parsing.catalogue_parts.labels import species_words
+            subject = species_words(list(k[1]))
+        elif k[0] in ("fish", "size", "possession"):
             sp, o = k[1], k[2]
             twin = (k[0], sp, "wild" if o == "hatchery" else "hatchery")
             tx, ty = fa.get(twin), fb.get(twin)
@@ -802,11 +1115,31 @@ def _diff_frames(A, B, ka, sa, kb, sb, resolve_refs, when, cache) -> List[tuple]
         va = net_value(A, n, x_ref, resolve_refs)
         vb = net_value(B, n, y_ref, resolve_refs)
         paths = leaf_diffs(va, vb)
-        kind = "wording" if only_words(paths) else "other"
-        out.append(("regs", kind, "none" if kind == "wording" else "unclear", "net:" + n, n, "", "", None, None,
-                    when, ", ".join(p.lstrip(".") for p in paths[:6])))
+        kind = "wording" if only_words(paths) else "card_rows" if n == "rows" and card_only(paths) else "other"
+        detail = ", ".join(p.lstrip(".") for p in paths[:6])
+        if kind == "card_rows":
+            detail = "; ".join(x for x in (rows_split_words(va, vb), detail) if x)
+        out.append(("regs", kind, "unclear" if kind == "other" else "none", "net:" + n, n, "", "", None, None,
+                    when, detail))
     cache[ck] = out
     return out + keyed
+
+
+def card_only(paths: Sequence[str]) -> bool:
+    """A rows frame difference that is the card's own (its rows, the fish it asks about, the steelhead line, the page's
+    possession row), with every fish's decided answer the same — not one inside `fish` (a decided answer's season limit,
+    duty or caution line that no facet reads: that stays "other")."""
+    return bool(paths) and all(not p.lstrip(".").startswith("fish") for p in paths)
+
+
+def rows_split_words(va: dict, vb: dict) -> str:
+    """'rows split or joined: CT+RB | KO -> CT | RB | KO' when the rows hold the fish otherwise; else ''."""
+    def part(v):
+        return [tuple(r.get("all_members") or ()) for r in v.get("rows", [])]
+    pa, pb = part(va), part(vb)
+    if sorted(pa) == sorted(pb):
+        return "rows reordered" if pa != pb else ""
+    return "rows split or joined: " + " | ".join("+".join(x) for x in pa) + " -> " + " | ".join("+".join(x) for x in pb)
 
 
 # ------------------------------------------------------------------------------------------------------- salmon
@@ -1016,6 +1349,7 @@ def run(dir_a, dir_b, log=print, handles_a=None, handles_b=None) -> dict:
     t0 = time.time()
     A, B = Release(dir_a, handles_a), Release(dir_b, handles_b)
     resolve_refs = not (A.rule_ids == B.rule_ids and A.lic_ids == B.lic_ids)
+    A.straddle = B.straddle = (A.rows_version >= CUTOVER_ROWS) != (B.rows_version >= CUTOVER_ROWS)
     pairs, how = match_sections(A, B)
     # 1. the distinct (key A, key B) and (chain A, chain B) pairs, with their sections
     regs_pairs: Dict[Tuple[Optional[int], Optional[int]], List[int]] = defaultdict(list)
@@ -1182,12 +1516,17 @@ def assemble(A, B, groups, pairs, how, resolve_refs, wide) -> dict:
     return {"format": "answers-diff/1", "a": A.name, "b": B.name, "a_dir": str(A.dir), "b_dir": str(B.dir),
             "sections_compared": len(pairs), "matching": how,
             "rule_refs": "resolved to rule ids" if resolve_refs else "same rule and licensing lists in both",
+            "rows_cutover": (f"across the trout cutover (rows {A.rows_version} -> {B.rows_version}): a trout row's "
+                             f"{' and '.join(ROWS34_TROUT_DROPS)} and the frame's page_possession are not compared")
+            if A.straddle else None,
             "versions": {"a": A.versions, "b": B.versions},
             "groups": out_groups, "release_wide": wide,
             "counts": {"groups": len(out_groups), "sections_changed": len({i for g in groups.values()
                                                                            for i in g["sections"]}),
                        "sections_answer_changed": len({i for gk, g in groups.items() if gk[2] != "none"
                                                        for i in g["sections"]}),
+                       "sections_errs": {e: len({i for gk, g in groups.items() if gk[2] == e for i in g["sections"]})
+                                         for e in ("closed", "open", "unclear")},
                        "by_kind": dict(sorted(Counter(g["kind"] for g in out_groups).items()))}}
 
 
@@ -1220,7 +1559,7 @@ def _subjects_line(g: dict) -> str:
 
 
 #: kinds that change nothing you may do: listed short (the rest is in diff.json)
-QUIET_KINDS = ("wording", "source_only")
+QUIET_KINDS = ("card_rows", "wording", "source_only")
 QUIET_CAP = {"text": 15, "owner": 10}
 
 
@@ -1272,6 +1611,7 @@ _HEADLINE = {
     "closes": "now closed", "opens": "now open", "limit_lower": "lower daily limit", "limit_higher": "higher daily limit",
     "size_stricter": "stricter size rule", "size_looser": "looser size rule", "size_mixed": "size rule changed",
     "wild_hatchery": "wild or hatchery rule changed", "possession": "possession rule changed",
+    "shared_limit": "shared limit changed", "card_rows": "the card shows it otherwise",
     "gear": "gear rule changed", "licence": "licence rule changed", "wording": "only the words changed",
     "source_only": "same answer, another rule now gives it", "new_part": "new", "removed_part": "gone",
     "other": "changed",
@@ -1283,7 +1623,8 @@ def _short(w: str, n: int = 160) -> str:
 
 _BLOCK_WORDS = {"salmon": "Salmon", "salmon gear": "Salmon gear", "salmon card": "Salmon card", "closure":
                 "Whole water", "boats": "Boats", "licence": "Licence", "water": "The water", "fish": "Fish",
-                "size": "Fish size", "possession": "Possession", "gear": "Gear"}
+                "size": "Fish size", "possession": "Possession", "gear": "Gear", "shared": "Shared limit",
+                "net:rows": "Fish card"}
 
 
 def owner_page(r: dict) -> str:
@@ -1300,7 +1641,7 @@ def owner_page(r: dict) -> str:
         for g in gs:
             block = _BLOCK_WORDS.get(g["block"], g["block"].replace("net:", "").capitalize())
             subs = g["subjects"]
-            names = [x for x in subs if x and x != g["block"]]
+            names = [x for x in subs if x and x not in (g["block"], g["block"].replace("net:", ""))]
             joined = names[0] if len(names) == 1 else ", ".join(names[:-1]) + " and " + names[-1] if names else ""
             if len(set(subs.values())) == 1:
                 head = f"{block}: {joined + ' ' if joined else ''}{_HEADLINE[g['kind']]}, {next(iter(subs.values()))}."

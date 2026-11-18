@@ -94,6 +94,8 @@ class Store:
             if name == "water":
                 meta = dict(fc.execute("SELECT k, v FROM meta"))
                 sm = json.loads(meta["store_meta"])
+                # the store's meta as edited (`layout`, `export_subset_sha256`), its digest renewed
+                sm.update({k: v for k, v in con.execute("SELECT k, v FROM meta") if k != "store_digest"})
                 sm["store_digest"] = digest
                 fc.execute("UPDATE meta SET v = ? WHERE k = 'store_meta'", (json.dumps(sm),))
             fc.commit()
@@ -504,3 +506,394 @@ def test_across_atlases_the_handle_tables_match_every_section_by_its_id():
     pairs, how = D.match_sections(A, B)
     assert how.startswith("matched by section id")
     assert sorted(pairs, key=str) == sorted([(1, 3), (2, 4), (2, 5), (None, 1), (None, 2), (3, None)], key=str)
+
+
+# ------------------------------------------------------------------------------------------------------- T809 leftovers
+# (2026-11-17) rows 34 (the trout cutover), possession and gear-count directions, shared limits and the card's rows as
+# kinds of their own, conduct rule refs resolved. Each planted change has a mutation beside it that must show.
+
+def _set_rule_fields(st: Store, rix: int, fields: dict) -> None:
+    """Rule `rix`'s structured fields (the export subset) replaced, the export digest renewed."""
+    from pipeline.deliver.store.common import canonical, sha
+    (b,) = st.con.execute("SELECT j FROM rule WHERE rix = ?", (rix,)).fetchone()
+    r = json.loads(unpack(b, st.zd.get("rule")))
+    st.con.execute("UPDATE rule SET j = ? WHERE rix = ?", (json.dumps({**r, "fields": fields}).encode(), rix))
+    st.con.execute("UPDATE meta SET v = ? WHERE k = 'export_subset_sha256'",
+                   (sha(canonical(st.st.export_subset(check=False))),))
+
+
+def _both(pair, edit) -> None:
+    for rel in pair:
+        st = Store(rel)
+        edit(st)
+        st.save()
+
+
+def _heads(r: dict) -> list:
+    return [line for line in AD.owner_page(r).splitlines() if line.startswith("- **")]
+
+
+def _cells(st: Store):
+    return st.con.execute("SELECT akey, s, rows FROM cell ORDER BY akey, s").fetchall()
+
+
+def _plant_row(rel: Path, pred, edit):
+    """One cell's rows frame with ONE row (the first `pred` holds for, in cell order) replaced by `edit` of a copy.
+    Returns (akey, s, row)."""
+    st = Store(rel)
+    for akey, s, fid in _cells(st):
+        fr = st.get("rows_frame", fid)
+        for i, x in enumerate(fr[2]):
+            row = st.get("rows_row", x)
+            if pred(row):
+                fr[2] = [*fr[2][:i], st.add("rows_row", edit(dict(row))), *fr[2][i + 1:]]
+                st.cell(akey, s, "rows", st.add("rows_frame", fr))
+                st.save()
+                return akey, s, row
+    raise AssertionError("no row of the mini release holds")
+
+
+def _trout_pool(row) -> bool:
+    return AD.is_trout_row(row) and row["kind"] == "keep" and row.get("group") is not None
+
+
+# --- possession: a direction, from the numbers of the rules it names
+
+POS_RULE = 0       # a rule of the mini release given possession numbers in both releases (`_set_rule_fields`)
+
+
+def _possession_pair(pair, fields) -> None:
+    _both(pair, lambda st: _set_rule_fields(st, POS_RULE, {"period": "possession", **fields}))
+
+
+@pytest.mark.parametrize("fields,kind,errs", [
+    ({"take": 3}, "possession", "closed"),                                   # 3 under the region's 2 x 5 = 10
+    ({"take": 30}, "source_only", "none"),                                   # above 10: the same 10, another rule
+    ({"take": 1, "lengths": [{"min_cm": 50}]}, "possession", "closed"),      # 1 over 50 cm, 10 under: stricter
+])
+def test_a_possession_cap_added_reads_its_direction(pair, fields, kind, errs):
+    a, b = pair
+    _possession_pair(pair, fields)
+    _, _, sp = _plant_decided(b, lambda d: {**d, "roles": [*d["roles"], [POS_RULE, "possession_cap", None]]})
+    r = _diff(a, b)
+    g = _only(r, kind)
+    assert len(r["groups"]) == 1 and g["errs"] == errs
+    back = _only(_diff(b, a), kind)                                          # MUTATION: the other way round
+    assert back["errs"] == {"closed": "open", "open": "closed"}.get(errs, errs)
+
+
+def test_a_possession_cap_swapped_for_a_looser_one_in_some_lengths_only_is_unclear(pair):
+    """MUTATION of the direction: 10 everywhere -> no number under 50 cm and 1 over: stricter AND looser."""
+    a, b = pair
+    _possession_pair(pair, {"take": 1, "lengths": [{"min_cm": 50}]})
+    _plant_decided(b, lambda d: {**d, "roles": [[POS_RULE, "possession_cap", None] if ro[1] == "possession" else ro
+                                                for ro in d["roles"]]})
+    g = _only(_diff(a, b), "possession")
+    assert g["errs"] == "unclear"
+    assert g["before"][0].endswith("(10 in possession)")
+    assert g["after"][0].endswith("(in possession: no limit at 0-49 cm, 1 at 50-300 cm)")
+
+
+def test_a_possession_rule_with_no_number_coming_is_unclear_not_the_same(pair):
+    a, b = pair
+    _possession_pair(pair, {})                                               # no take, no per_daily
+    _plant_decided(b, lambda d: {**d, "roles": [*d["roles"], [POS_RULE, "possession", None]]})
+    assert _only(_diff(a, b), "possession")["errs"] == "unclear"
+
+
+def test_a_daily_change_moves_the_possession_number_but_only_the_limit_is_listed(pair):
+    """5 a day -> 4 with 2 days' possession (10 -> 8): the fish's limit says it. MUTATION: without the skip in
+    `_diff_frames` a possession group (10 -> 8) is listed too."""
+    a, b = pair
+    _plant_decided(b, lambda d: {**d, "daily": d["daily"] - 1})
+    r = _diff(a, b)
+    assert [g["kind"] for g in r["groups"]] == ["limit_lower"]
+
+
+def test_the_possession_sentence_is_whole(pair):
+    a, b = pair
+    _possession_pair(pair, {"take": 3})
+    _, starts, sp = _plant_decided(b, lambda d: {**d, "roles": [*d["roles"], [POS_RULE, "possession_cap", None]]})
+    (head,) = _heads(_diff(a, b))
+    assert head.startswith(f"- **Possession: {AD.fish_words(sp)} possession rule changed, "
+                           f"{AD.days_words(_mask(starts, 1))}.** Errs toward closed. On ")
+
+
+# --- gear counts: a direction, from the deciding rule's number, else from the words
+
+def _points_rule(st: Store, entry: dict) -> None:
+    rix = 18                          # z1 single barbless hook: gear [barb, points_per_hook max 1] (the gear frames' by)
+    f = st.st.export_subset(check=False)["rules"][st.st.export_subset(check=False)["rule_ids"][rix]]["fields"]
+    _set_rule_fields(st, rix, {**f, "gear": [f["gear"][0], {**entry, "slot": "points_per_hook"}]})
+
+
+@pytest.mark.parametrize("a_entry,b_entry,errs", [
+    ({"max": 1.0}, {"max": 2.0}, "open"),
+    ({"max": 2.0}, {"max": 1.0}, "closed"),
+    ({"min": 30.0}, {"min": 40.0}, "closed"),          # a smallest hook gap raised: stricter
+    ({"min": 40.0}, {"min": 30.0}, "open"),
+    ({"max": 1.0}, {"min": 1.0}, "unclear"),
+])
+def test_a_counted_gear_number_reads_its_direction(pair, a_entry, b_entry, errs):
+    a, b = pair
+    for rel, e in ((a, a_entry), (b, b_entry)):
+        st = Store(rel)
+        _points_rule(st, e)
+        st.save()
+    r = _diff(a, b)
+    g = _only(r, "gear")
+    assert g["errs"] == errs and list(g["subjects"]) == ["count:points_per_hook"] and len(r["groups"]) == 1
+
+
+@pytest.mark.parametrize("a_says,b_says,errs", [
+    ("1 line (rod)", "1 line (rod); 2 while alone in a boat on a lake", "open"),
+    ("1 line (rod); no limit from a boat", "1 line (rod); 2 while alone in a boat", "closed"),
+    ("2 lines (rods)", "1 line (rod)", "closed"),
+    ("1 line (rod) from shore; no limit from a boat", "2 lines (rods); 1 while alone in a boat", "unclear"),
+    ("1 line (rod); 2 while alone in a boat", "1 line (rod); 2 while alone in a boat on a lake", "unclear"),
+])
+def test_counted_gear_words_read_their_direction_when_the_number_is_the_same(pair, a_says, b_says, errs):
+    a, b = pair
+    for rel, says in ((a, a_says), (b, b_says)):
+        st = Store(rel)
+        akey, _ = _plain_key(st)
+        g = st.get("gear_frame", st.cell(akey, 1, "gear"))
+        c = sorted(g["counts"])[0]
+        g["counts"][c] = {**g["counts"][c], "says": says}
+        st.cell(akey, 1, "gear", st.add("gear_frame", g))
+        st.save()
+    assert _only(_diff(a, b), "gear")["errs"] == errs
+
+
+def test_the_same_count_from_another_rule_is_source_only(pair):
+    a, b = pair
+    st = Store(b)
+    akey, _ = _plain_key(st)
+    g = st.get("gear_frame", st.cell(akey, 1, "gear"))
+    c = sorted(g["counts"])[0]
+    by = g["counts"][c]["by"]
+    assert by[0] in (18, 27) and not g["counts"][c].get("says")
+    # z1 single barbless hook's entry 1 and zp barbless streams r3's entry 0: both points_per_hook max 1
+    g["counts"][c] = {**g["counts"][c], "by": [27, 0] if by[0] == 18 else [18, 1]}
+    st.cell(akey, 1, "gear", st.add("gear_frame", g))
+    st.save()
+    assert _only(_diff(a, b), "source_only")["block"] == "gear"
+
+
+# --- shared limits and the card's rows: kinds of their own
+
+@pytest.mark.parametrize("edit,errs", [
+    (lambda r: {**r, "daily": r["daily"] - 1}, "closed"),
+    (lambda r: {**r, "daily": r["daily"] + 1}, "open"),
+    (lambda r: {**r, "daily": r["daily"] - 1, "group": {**r["group"], "water_max": 99}}, "unclear"),
+])
+def test_a_pooled_rows_number_is_a_shared_limit_in_its_direction(pair, edit, errs):
+    a, b = pair
+    _, _, row = _plant_row(b, _trout_pool, edit)
+    r = _diff(a, b)
+    g = _only(r, "shared_limit")
+    assert g["errs"] == errs and len(r["groups"]) == 1 and g["block"] == "shared"
+    from pipeline.regs.parsing.catalogue_parts.labels import species_words
+    assert list(g["subjects"]) == [species_words(sorted(row["all_members"]))]
+
+
+def test_a_shared_count_added_is_a_stricter_shared_limit(pair):
+    a, b = pair
+
+    def edit(r):
+        two = sorted(r["all_members"])[:2]
+        rd = r.get("real_daily") or {}
+        return {**r, "real_daily": {**rd, "shared_count": [*(rd.get("shared_count") or []),
+                                                            {"take": 1, "members": two}]}}
+    _plant_row(b, lambda r: _trout_pool(r) and len(r["all_members"]) >= 2, edit)
+    g = _only(_diff(a, b), "shared_limit")
+    assert g["errs"] == "closed" and any("together" in w for w in g["after"])
+
+
+def test_a_shared_limit_that_moves_with_a_member_fishs_own_answer_is_not_listed_twice(pair):
+    """MUTATION of the skip: the row's number AND a member fish's daily drop: only the fish's limit is listed."""
+    a, b = pair
+    akey, s, row = _plant_row(b, _trout_pool, lambda r: {**r, "daily": r["daily"] - 1})
+    st = Store(b)
+    fr = st.get("rows_frame", st.cell(akey, s, "rows"))
+    sp = next(x for x in row["members"] if x in fr[1] and fr[1][x][0] is not None
+              and st.get("rows_decided", fr[1][x][0])["status"] == "keep")
+    h, w, lead = fr[1][sp]
+    d = st.get("rows_decided", h)
+    nd = st.add("rows_decided", {**d, "daily": d["daily"] - 1})
+    fr[1][sp] = [nd, nd if w == h else w, lead]
+    st.cell(akey, s, "rows", st.add("rows_frame", fr))
+    st.save()
+    kinds = {g["kind"] for g in _diff(a, b)["groups"]}
+    assert "shared_limit" not in kinds and "limit_lower" in kinds
+
+
+def test_rows_reordered_on_the_card_are_card_rows_and_change_nothing_you_may_do(pair):
+    a, b = pair
+    st = Store(b)
+    akey, s, fid = next(c for c in _cells(st) if len(st.get("rows_frame", c[2])[2]) >= 2)
+    fr = st.get("rows_frame", fid)
+    fr[2] = [fr[2][1], fr[2][0], *fr[2][2:]]
+    fr[4] = [fr[4][1], fr[4][0], *fr[4][2:]]
+    st.cell(akey, s, "rows", st.add("rows_frame", fr))
+    st.save()
+    r = _diff(a, b)
+    g = _only(r, "card_rows")
+    assert len(r["groups"]) == 1 and g["errs"] == "none" and g["block"] == "net:rows"
+    assert g["detail"][0].startswith("rows reordered")
+    assert r["counts"]["sections_answer_changed"] == 0
+    (head,) = _heads(r)
+    assert head.startswith("- **Fish card: the card shows it otherwise, ") and "No change to what you may do." in head
+
+
+def test_a_difference_inside_a_decided_answer_no_facet_reads_stays_other(pair):
+    """MUTATION of `card_only`: a season-limit line added to a fish's decided answer is not the card's layout."""
+    a, b = pair
+    _plant_decided(b, lambda d: {**d, "lines": [*d["lines"], {"t": "annual", "r": 0}]})
+    g = _only(_diff(a, b), "other")
+    assert g["block"] == "net:rows" and g["errs"] == "unclear"
+
+
+def test_a_row_split_says_so(pair):
+    a, b = pair
+
+    def split(st):
+        akey, s, fid = next(c for c in _cells(st) if any(
+            len(st.get("rows_row", x)["all_members"]) >= 2 and st.get("rows_row", x)["kind"] == "release"
+            for x in st.get("rows_frame", c[2])[2]))
+        fr = st.get("rows_frame", fid)
+        i = next(i for i, x in enumerate(fr[2]) if len(st.get("rows_row", fr[2][i])["all_members"]) >= 2
+                 and st.get("rows_row", fr[2][i])["kind"] == "release")
+        row = st.get("rows_row", fr[2][i])
+        m = row["all_members"]
+        one = st.add("rows_row", {**row, "members": [x for x in row["members"] if x == m[0]], "all_members": m[:1]})
+        rest = st.add("rows_row", {**row, "members": [x for x in row["members"] if x != m[0]], "all_members": m[1:]})
+        fr[2] = [*fr[2][:i], one, rest, *fr[2][i + 1:]]
+        fr[4] = [*fr[4][:i], fr[4][i], fr[4][i], *fr[4][i + 1:]]
+        st.cell(akey, s, "rows", st.add("rows_frame", fr))
+    st = Store(b)
+    split(st)
+    st.save()
+    g = _only(_diff(a, b), "card_rows")
+    assert g["detail"][0].startswith("rows split or joined: ")
+
+
+# --- rows 34: the trout cutover (spec ticket L; contract Q-D9 and 2.11), planted on the mini release
+
+def _rows34(rel: Path) -> None:
+    """`rel` as the cutover writes it: rows 34 in the store's layout and the manifest, `page_possession` the sixth slot
+    of every frame (a lead where an answer names a possession rule, else null), and `group` / `elsewhere` dropped from
+    every trout row (every fish a trout or char). Nothing else moves."""
+    st = Store(rel)
+    for (i,) in st.con.execute("SELECT id FROM rows_row ORDER BY id").fetchall():
+        r = st.get("rows_row", i)
+        if AD.is_trout_row(r):
+            st.put("rows_row", i, {k: v for k, v in r.items() if k not in ("group", "elsewhere")})
+    for (i,) in st.con.execute("SELECT id FROM rows_frame ORDER BY id").fetchall():
+        fr = st.get("rows_frame", i)
+        assert len(fr) == 5
+        pos = next((ro[0] for sp in sorted(fr[1]) for d in fr[1][sp][:2] if d is not None
+                    for ro in st.get("rows_decided", d)["roles"] if ro[1] == "possession"), None)
+        st.put("rows_frame", i, [*fr, None if pos is None else {
+            "lead": {"says": "Possession: 2 days' quota.", "value": "2 days' quota", "src": pos}, "also": []}])
+    (lay,) = st.con.execute("SELECT v FROM meta WHERE k = 'layout'").fetchone()
+    lay = json.loads(lay)
+    lay["versions"]["rows"] = type(lay["versions"]["rows"])(AD.CUTOVER_ROWS)
+    st.con.execute("UPDATE meta SET v = ? WHERE k = 'layout'", (json.dumps(lay, separators=(",", ":")),))
+    st.save()
+    man = json.loads((rel / "manifest.json").read_text())
+    man["regulations"]["versions"]["rows"] = AD.CUTOVER_ROWS
+    (rel / "manifest.json").write_text(json.dumps(man, indent=1, sort_keys=True))
+
+
+def test_the_cutover_is_keyed_off_f0s_rows_version():
+    from pipeline.deliver.answers.model.rows import PAGE_POSSESSION_SINCE
+    assert AD.CUTOVER_ROWS == PAGE_POSSESSION_SINCE == 34 and AD.ROWS34_TROUT_DROPS == ("group", "elsewhere")
+
+
+def test_across_the_cutover_a_dropped_trout_group_and_the_page_possession_are_not_changes(pair):
+    a, b = pair
+    st = Store(a)
+    trout = [i for (i,) in st.con.execute("SELECT id FROM rows_row") if _trout_pool(st.get("rows_row", i))]
+    assert trout, "the mini release has no trout row with a group: the plant proves nothing"
+    _rows34(b)
+    for x, y in ((a, b), (b, a)):
+        r = _diff(x, y)
+        assert r["groups"] == [] and r["release_wide"] == [], [(g["kind"], g["detail"]) for g in r["groups"]]
+        assert r["rows_cutover"].startswith("across the trout cutover (rows ")
+    assert {AD.Release(b).rows_version, AD.Release(a).rows_version} == {33, 34}
+
+
+def test_across_the_cutover_mutation_without_the_drop_the_trout_groups_show(pair, monkeypatch):
+    a, b = pair
+    _rows34(b)
+    monkeypatch.setattr(AD, "ROWS34_TROUT_DROPS", ())
+    r = _diff(a, b)
+    # the group's numbers read as shared limits gone, its words as the card's rows
+    assert r["groups"] and {g["kind"] for g in r["groups"]} <= {"card_rows", "shared_limit"}
+
+
+def test_across_the_cutover_a_non_trout_row_losing_its_kept_elsewhere_line_is_a_change(pair):
+    a, b = pair
+    _rows34(b)
+    st = Store(b)
+    non = [(i, st.get("rows_row", i)) for (i,) in st.con.execute("SELECT id FROM rows_row ORDER BY id")]
+    non = [(i, r) for i, r in non if r["kind"] == "keep" and not AD.is_trout_row(r) and r.get("elsewhere")]
+    assert non, "the mini release has no non-trout keep row"
+    i, r = non[0]
+    st.put("rows_row", i, {k: v for k, v in r.items() if k != "elsewhere"})
+    st.save()
+    r = _diff(a, b)
+    assert r["groups"] and {g["kind"] for g in r["groups"]} == {"card_rows"}
+    assert all("elsewhere" in g["detail"][0] for g in r["groups"])
+
+
+def test_across_the_cutover_a_trout_fish_closing_is_still_found(pair):
+    a, b = pair
+    _rows34(b)
+    _, _, sp = _plant_decided(b, lambda d: {**d, "status": "closed", "daily": None})
+    assert _only(_diff(a, b), "closes")["errs"] == "closed"
+
+
+def test_two_rows_34_releases_compare_their_page_possession(pair, tmp_path):
+    """On the same side of the cutover nothing is left out: a lead's words that differ are a card change."""
+    a, b = pair
+    _rows34(a)
+    _rows34(b)
+    assert _diff(a, b)["groups"] == []
+    st = Store(b)
+    fid = next(i for (i,) in st.con.execute("SELECT id FROM rows_frame ORDER BY id")
+               if st.get("rows_frame", i)[5] is not None)
+    fr = st.get("rows_frame", fid)
+    fr[5] = {**fr[5], "lead": {**fr[5]["lead"], "value": "2 days’ quota (changed)"}}
+    st.put("rows_frame", fid, fr)
+    st.save()
+    r = _diff(a, b)
+    assert r["groups"] and {g["kind"] for g in r["groups"]} == {"card_rows"} and r["rows_cutover"] is None
+    assert all("page_possession" in g["detail"][0] for g in r["groups"])
+
+
+def test_a_rows_34_release_with_a_five_slot_frame_stops_the_run(pair, tmp_path, capsys):
+    a, b = pair
+    _rows34(b)
+    st = Store(b)
+    fid = st.cell(*_plain_key(st)[:1], 1, "rows")
+    st.cell(_plain_key(st)[0], 1, "rows", st.add("rows_frame", st.get("rows_frame", fid)[:5]))
+    st.save()
+    assert AD.main([str(a), str(b), "--out", str(tmp_path / "o")]) == 2
+    assert "slots, not 6" in capsys.readouterr().err
+
+
+# --- rule refs: every rule of a conduct line, not only the first of a pair
+
+def test_conduct_lines_name_every_rule_by_its_id():
+    v = {"conduct": {"keep": [["do_not_waste_catch", [3, 4]]]}, "counts": {"x": {"by": [3, 1]}}}
+    ids = {3: "e::r3", 4: "e::r4"}
+    out = AD.resolve(v, AD.RULE_KEYS["gear"], frozenset(), ids.get, None, (), AD.ALL_REF_KEYS["gear"],
+                     AD.PAIR_KEYS["gear"])
+    assert out["conduct"]["keep"] == [["do_not_waste_catch", ["e::r3", "e::r4"]]]
+    assert out["counts"]["x"]["by"] == ["e::r3", 1]                    # a [rule, n] pair keeps its n
+    # MUTATIONS: without them, the conduct lines stay indices (a rule list that differs makes every gear frame
+    # differ) and a pair's entry index is read as rule 1
+    bad = AD.resolve(v, AD.RULE_KEYS["gear"], frozenset(), ids.get, None)
+    assert bad["conduct"]["keep"] == v["conduct"]["keep"] and bad["counts"]["x"]["by"] == ["e::r3", None]
