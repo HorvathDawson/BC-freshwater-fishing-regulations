@@ -53,6 +53,16 @@ describe("(T829) <KeepBox>", () => {
     expect(getComputedStyle(screen.getByTestId("keep-box")).backgroundColor).toBe(rgb(LIGHT.tint));
   });
 
+  it("(T810) a size band is drawn like a shared one: one white box spanning its rows, its text as given", () => {
+    const text = "counts toward the 2 \u00b7 only 1 over 50 cm (20 in) between them";
+    render(<KeepBox head="Keep 2" label={null} strip={null} tag={null} rows={ROWS.slice(0, 3)} palette={LIGHT}
+      bands={[{ from: 0, to: 2, kind: "size", text }]} />);
+    const groups = screen.getAllByTestId("box-group");
+    expect(groups.length).toBe(1);
+    expect(within(groups[0]!).getByTestId("keep-band-box").textContent).toBe(text);
+    expect(names(groups[0]!).length).toBe(3);
+  });
+
   it("two text sizes: today's rule bigger and bold, a coming change smaller and regular in the quiet colour", () => {
     box();
     const now = [screen.getByTestId("keep-head"), screen.getAllByTestId("keep-line")[0]!, screen.getAllByTestId("keep-band-text")[0]!];

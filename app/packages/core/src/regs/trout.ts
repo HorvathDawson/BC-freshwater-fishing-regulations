@@ -62,8 +62,9 @@ function lead(v: string): void {
 function band(b: Band, where: string): void {
   txt(b.text, where);
   if (b.to < b.from) bad(`${where}: a band runs backwards`);
-  if (b.kind !== "shared" && b.to !== b.from) bad(`${where}: a ${b.kind} band is one row's`);
-  if (b.kind === "shared" && b.to === b.from) bad(`${where}: a shared band spans two rows or more`);
+  const spans = b.kind === "shared" || b.kind === "size";
+  if (!spans && b.to !== b.from) bad(`${where}: a ${b.kind} band is one row's`);
+  if (spans && b.to === b.from) bad(`${where}: a ${b.kind} band spans two rows or more`);
 }
 
 function box(x: Box, bi: number): void {

@@ -87,7 +87,7 @@ export type KeepBlock = "strip" | "inherited" | "banner" | { caveat: number } | 
 /** One band of a keep box's right column ("up to the 5", "only 3", "only 1 of these 4"), over rows `from`..`to`; `date`:
  *  the small line under its white box (`DateSet.band`). */
 export interface TroutBandVM { readonly from: number; readonly to: number; readonly text: string;
-  readonly kind: "upto" | "own" | "shared" | "possession"; readonly date: string | null }
+  readonly kind: "upto" | "own" | "shared" | "possession" | "size"; readonly date: string | null }
 /** One fish row. `date`: its own last line (`DateSet.row`); `coming`: its sheet's coming-change sentences
  *  (`DateSet.sheet`); `a11y`: its screen-reader label (payload texts in payload order, joined by ". "). */
 export interface TroutRowVM {
