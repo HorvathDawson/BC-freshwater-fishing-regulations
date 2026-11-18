@@ -327,15 +327,32 @@ def test_the_table_is_dated_from_outside_an_hours_window():
     assert [said(y, j, "RB") for j in range(3)] == [None, None, "reopens Jan 1"]
 
 
-def test_placement_strip_band_and_row():
-    """Rule 7: the box's strip when every row of the box shares the line; a shared white box when all its rows share
-    it; else each row."""
+def test_placement_strip_band_and_row(monkeypatch):
+    """Rule 7 (owner 2026-11-18 00:52, "said once"): the date most rows of the table share is the card line; only the
+    row whose date differs says its own. The pin off: the box's strip when every row of the box shares the line; a
+    shared white box when all its rows share it; else each row."""
     boxes = [T.BoxRows("keep", ("RB", "CT", "EB"), ((0, 1, "shared"), (2, 2, "upto"))),
              T.BoxRows("keep", ("DV", "LT"), ((0, 1, "upto"),))]
     a = "until Oct 31, then release"
-    got = T.place_dates(boxes, {"RB": a, "CT": a, "EB": "rule changes Apr 1", "DV": a, "LT": a})
-    assert got == {"top": None, "card": None, "box": {"1": a}, "band": {"0:0": a},
-                   "row": {"0:2": "rule changes Apr 1"}}
+    dates = {"RB": a, "CT": a, "EB": "rule changes Apr 1", "DV": a, "LT": a}
+    assert T.place_dates(boxes, dates) == {"top": None, "card": "Until Oct 31, then release", "box": {}, "band": {},
+                                           "row": {"0:2": "rule changes Apr 1"}}
+    monkeypatch.setattr(T, "A_DATE_SAID_ONCE", False)
+    assert T.place_dates(boxes, dates) == {"top": None, "card": None, "box": {"1": a}, "band": {"0:0": a},
+                                           "row": {"0:2": "rule changes Apr 1"}}
+
+
+def test_a_box_says_its_common_date_and_a_row_without_one_keeps_the_level_off():
+    """A box whose rows mostly share a date says it once, the others their own; a row with no change keeps every level
+    above it silent (a level's date would read as its change)."""
+    a, b = "until May 31, then closed to all fishing", "until Apr 30, then release"
+    boxes = [T.BoxRows("keep", ("EB", "GB", "CT", "RB"), ((0, 0, "upto"), (1, 1, "upto"), (2, 2, "upto"),
+                                                          (3, 3, "upto"))),
+             T.BoxRows("release", ("DV",))]
+    got = T.place_dates(boxes, {"EB": a, "GB": a, "CT": b, "RB": b, "DV": None})
+    assert got == {"top": None, "card": None, "box": {}, "band": {}, "row": {"0:0": a, "0:1": a, "0:2": b, "0:3": b}}
+    got = T.place_dates(boxes, {"EB": a, "GB": a, "CT": a, "RB": b, "DV": None})
+    assert got == {"top": None, "card": None, "box": {"0": a}, "band": {}, "row": {"0:3": b}}
 
 
 def test_a_column_date_over_30_characters_goes_under_the_name():

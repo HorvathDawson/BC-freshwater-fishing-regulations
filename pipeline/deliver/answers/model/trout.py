@@ -16,7 +16,7 @@ unchanged (`Txt`): no leading or trailing space, no "{" or "}" except the one `{
 """
 from __future__ import annotations
 
-from typing import Annotated, Any, Dict, Literal, Optional, Tuple
+from typing import Annotated, Any, Dict, List, Literal, Optional, Tuple
 
 from pydantic import AfterValidator, Field, StrictBool, StrictInt, StrictStr, model_validator
 from typing_extensions import TypeAliasType
@@ -280,35 +280,41 @@ class TroutFrame(Model):
         if d is None:
             return self
         boxes = self.table.boxes
-        levels: Dict[Tuple[int, int], int] = {}
+        # (T810 L, trout 3; owner 2026-11-18 00:52 "said once") a date holds every row under its level without a date of
+        # its own: the most specific level wins (row, band, box, then the card line or top). A level never repeats the
+        # date of the level above it (said once), and each level speaks once per row
+        levels: Dict[Tuple[int, int], List[str]] = {}
 
         def box_of(k: str) -> int:
             b = int(k)
             if not 0 <= b < len(boxes):
                 raise ValueError(f"a date names box {k}, which does not exist")
             return b
-        for k in d.box:
+        whole = d.card if d.card is not None else d.top
+        for b in range(len(boxes)):
+            for r in range(len(boxes[b].rows)):
+                levels[(b, r)] = [] if whole is None else [whole[:1].lower() + whole[1:]]
+        for k, t in d.box.items():
             b = box_of(k)
             for r in range(len(boxes[b].rows)):
-                levels[(b, r)] = levels.get((b, r), 0) + 1
-        for k in d.band:
+                levels[(b, r)].append(t)
+        for k, t in d.band.items():
             b, _, i = k.partition(":")
             bi = box_of(b)
             if not i.isdigit() or int(i) >= len(boxes[bi].bands):
                 raise ValueError(f"a date names band {k}, which does not exist")
             band = boxes[bi].bands[int(i)]
             for r in range(band.from_, band.to + 1):
-                levels[(bi, r)] = levels.get((bi, r), 0) + 1
-        for k in d.row:
+                levels[(bi, r)].append(t)
+        for k, t in d.row.items():
             b, _, i = k.partition(":")
             bi = box_of(b)
             if not i.isdigit() or int(i) >= len(boxes[bi].rows):
                 raise ValueError(f"a date names row {k}, which does not exist")
-            levels[(bi, int(i))] = levels.get((bi, int(i)), 0) + 1
-        whole = 1 if (d.card is not None or d.top is not None) else 0
-        for (b, r), n in levels.items():
-            if n + whole > 1:
-                raise ValueError(f"row {b}:{r} carries a date at two levels")
+            levels[(bi, int(i))].append(t)
+        for (b, r), got in levels.items():
+            if any(x == y for x, y in zip(got, got[1:])):
+                raise ValueError(f"row {b}:{r} carries one date at two levels")
         keys = {r.key for b in boxes for r in b.rows}
         for k in d.sheet:
             if k not in keys:

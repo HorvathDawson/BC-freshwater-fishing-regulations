@@ -731,8 +731,9 @@ SPEC = {
                     "`TroutFrame` {table, dates, covers} (schema `trout`); on the wire `trout.wire`. Version 2 (T810 L, "
                     "owner 2026-11-18 on Region 4's cutthroat and rainbow): a band's kind may be \"size\" — the box's "
                     "number and a size cap its rows share, \"counts toward the 2 · only 1 over 50 cm (20 in) between "
-                    "them\".",
-            "version": "2",
+                    "them\". Version 3 (owner 2026-11-18 00:52): a date said once — the card line (or a box's, or a "
+                    "band's) holds every row under it without a date of its own; the most specific level wins.",
+            "version": "3",
             "at": "[[frame index per segment, or null (no table)] per key]",
             "frames": "[[table, dates | null, covers]] (`TroutFrameWire`) — `table` an index into `tables`, `dates` into "
                       "`dates` (null: no fish of the table changes later in the year), `covers` the rows frame's rows "

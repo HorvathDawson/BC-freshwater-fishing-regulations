@@ -1393,7 +1393,7 @@ def next_change(starts, moments, answers: Callable[[int], object], j: int) -> Op
 
 
 def _texts_by_row(T: Table) -> Dict[str, Tuple[str, str]]:
-    """Each row key -> (where, the date text that holds it) from the date set (one level each: the model's rule)."""
+    """Each row key -> (where, the date text that holds it) from the date set: the most specific level that says one."""
     d = T.cell["dates"] or {}
     out: Dict[str, Tuple[str, str]] = {}
     for r in T.rows:
@@ -1411,10 +1411,13 @@ def _texts_by_row(T: Table) -> Dict[str, Tuple[str, str]]:
                 got.append(("band", v))
         if f"{r.b}:{r.i}" in (d.get("row") or {}):
             got.append(("row", d["row"][f"{r.b}:{r.i}"]))
-        if len(got) > 1:
-            raise _Fail(f"row {r.key} has dates at {[g[0] for g in got]}")
+        levels = [g[0] for g in got]
+        if len(set(levels)) != len(levels) or {"card", "top"} <= set(levels):
+            raise _Fail(f"row {r.key} has dates at {levels}")
         if got:
-            out[r.key] = got[0]
+            # (owner 2026-11-18 00:52, "said once") the most specific level holds the row: its own, its band's, its box's,
+            # then the card line; each row's date is then proved against the following segments (`date_problems`)
+            out[r.key] = got[-1]
     return out
 
 

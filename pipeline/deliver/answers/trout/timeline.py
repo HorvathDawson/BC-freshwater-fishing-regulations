@@ -37,9 +37,10 @@ A change whose new answer lasts under `SHORT_GAP` days is still dated and is lis
 spec 3.3 rule 5: the shortest in r-46e4355a7277 is 15 days, Denetiah; Adams River's one-day Jul 31 is the planted
 case).
 
-THE PLACEMENT (spec 3.3 rule 7, contract 2.5): `place_dates`: the card line when every row shares the date and its
-words, else the box's strip when every row of the box shares it, else a white box (an own or shared band) when all its
-rows share it, else the row; a closed or release-every-one table's shared date sits under its top line; a Release /
+THE PLACEMENT (spec 3.3 rule 7, contract 2.5; owner 2026-11-18 00:52 "said once"): `place_dates`: the card line says the
+date most rows of the table share, else a box's the date most of its rows share, a white box (an own or shared band)
+one all its rows share that differs from the level above, a row only its own different date (the most specific
+level wins); a closed or release-every-one table's shared date sits under its top line; a Release /
 Closed column date over `words.COLUMN_MAX` characters goes under the fish's name.
 
 What this module does not see (F's and J's): joint limits (a box's total, a shared band, `together`); the size bands'
@@ -506,37 +507,67 @@ class BoxRows(NamedTuple):
     bands: Tuple[Tuple[int, int, str], ...] = ()
 
 
+#: owner 2026-11-18 00:52 ("until May 31, then closed to all fishing" on 5 of the Vedder's rows): a date most rows of a box
+#: (or of the whole table) share is said once, at the box (or under the top line, the card line); only the rows whose
+#: date differs say their own. A level's date holds every row under it WITHOUT a date of its own (the most specific
+#: wins: row, then band, then box, then the card line). False = the pin: a level only where every row shares it
+A_DATE_SAID_ONCE = True
+
+
+def _common(got: Sequence[Optional[str]]) -> Optional[str]:
+    """The date most of `got` share, where every row has one, two or more share it and no other date as many; None
+    otherwise (a row with no date under a level's date would read as changing)."""
+    if not got or any(x is None for x in got):
+        return None
+    if len(set(got)) == 1:
+        return got[0]
+    if not A_DATE_SAID_ONCE:
+        return None
+    counts = sorted(((got.count(x), x) for x in set(got)), reverse=True)
+    return counts[0][1] if counts[0][0] >= 2 and counts[0][0] > counts[1][0] else None
+
+
 def place_dates(boxes: Sequence[BoxRows], dates: Mapping[str, Optional[str]], form: Optional[str] = None) -> dict:
-    """Spec 3.3 rule 7: each row's date text (`words.date_line`; None: no change) placed at ONE level. `form` "closed"
-    or "release" for a closed or release-every-one table (its shared date goes under the top line). Returns the
-    `DateSet` placement fields {top, card, box {"b"}, band {"b:k"}, row {"b:r"}}."""
+    """Spec 3.3 rule 7: each row's date text (`words.date_line`; None: no change) placed ONCE. `form` "closed" or
+    "release" for a closed or release-every-one table (its shared date goes under the top line). The card line (or a
+    box) says the date most of its rows share (`_common`); a band or a row says only what differs from the level above
+    it. Returns the `DateSet` placement fields {top, card, box {"b"}, band {"b:k"}, row {"b:r"}}."""
     from pipeline.deliver.answers.trout import words as W
     out: dict = {"top": None, "card": None, "box": {}, "band": {}, "row": {}}
     every = [dates.get(r) for b in boxes for r in b.rows]
-    if every and every[0] is not None and len(set(every)) == 1:
-        if form in ("closed", "release"):
-            out["top"] = every[0]
-            return out
-        if W.is_reopening(every[0]):
-            raise TimelineError("answers: trout timeline: a reopening date on an open table's card line")
-        out["card"] = W.card_line(every[0])
+    if every and every[0] is not None and len(set(every)) == 1 and form in ("closed", "release"):
+        out["top"] = every[0]
         return out
+    above = _common(every) if form not in ("closed", "release") else None
+    if above is not None and W.is_reopening(above):
+        if len(set(every)) == 1:
+            raise TimelineError("answers: trout timeline: a reopening date on an open table's card line")
+        above = None
+    if above is not None:
+        out["card"] = W.card_line(above)
     for bi, b in enumerate(boxes):
         got = [dates.get(r) for r in b.rows]
         if b.kind != "closed" and any(x is not None and W.is_reopening(x) for x in got):
             raise TimelineError(f"answers: trout timeline: a reopening date in a {b.kind} box: only a fish closed today "
                                 "reopens")
-        if got and got[0] is not None and len(set(got)) == 1 and (b.kind == "keep" or W.column_fits(got[0])):
-            out["box"][str(bi)] = got[0]
-            continue
+        here = above
+        mine = _common(got)
+        if mine is not None and mine != above and (b.kind == "keep" or W.column_fits(mine)) \
+                and sum(x != mine for x in got) < sum(x != above for x in got):
+            out["box"][str(bi)] = mine
+            here = mine
         said = set()
         if b.kind == "keep":
             for ki, (fr, to, kind) in enumerate(b.bands):
                 span = got[fr:to + 1]
-                if kind != "upto" and span and span[0] is not None and len(set(span)) == 1:
+                if kind != "upto" and span and span[0] is not None and len(set(span)) == 1 and span[0] != here:
                     out["band"][f"{bi}:{ki}"] = span[0]
                     said |= set(range(fr, to + 1))
         for ri, x in enumerate(got):
-            if x is not None and ri not in said:
-                out["row"][f"{bi}:{ri}"] = x
+            if ri in said or x == here:
+                continue
+            if x is None:
+                # (only where no level above says a date: `_common` asks every row for one)
+                continue
+            out["row"][f"{bi}:{ri}"] = x
     return out

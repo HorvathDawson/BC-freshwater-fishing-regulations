@@ -112,7 +112,7 @@ REASON = {
     "band overlap": "the bands leave a gap or overlap",
     "a date key to a missing box": "a date names box 9, which does not exist",
     "a date key to a missing row": "a date names row 0:7, which does not exist",
-    "a row with dates at two levels": "carries a date at two levels",
+    "a row with dates at two levels": "carries one date at two levels",
     "a key used twice": "a row key twice",
     "a label on a box and its rows": "a label on a box and on its rows",
     "{day} twice": "the top line holds {day} more than once",

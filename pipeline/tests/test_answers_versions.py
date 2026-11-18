@@ -8,8 +8,8 @@ pipeline writes is at the version the app's reader was written for, and no secti
 Which writer sections are REQUIRED is read from the release contract, not typed here: a section with a column in the
 regs files' `cell` table (`contract._REGION_TABLES["cell"]`) is in every release; a section in `answers.SECTIONS`
 without one is optional (contract 2.1: `trout` stayed out of `cell` until the cutover, T810 ticket L, moved it in: rows 34
-and `trout` required — at 2 since its band kind "size", T810 L 2026-11-18 — so THE PIN FAILS until the app's ticket S
-lists `rows: 34` and `trout: 2` in KNOWN_VERSIONS and empties OPTIONAL_VERSIONS — the two land in one merge).
+and `trout` required — at 3 since the band kind "size" and the dates said once, T810 L 2026-11-18 — so THE PIN FAILS
+until the app's ticket S lists `rows: 34` and `trout: 3` in KNOWN_VERSIONS and empties OPTIONAL_VERSIONS — the two land in one merge).
 
 The mutation pins run on an app line built from the writer (`AGREED`: what S writes), so they hold the mechanism whatever
 the app file says today; only the pin itself reads the app's file.
@@ -155,14 +155,14 @@ def test_the_apps_regs_format_is_the_contracts():
 def test_the_cutover_writes_rows_34_and_trout_required():
     """Ticket L: `trout` has a `cell` column (required), rows is 34, nothing is optional."""
     req, opt = writer_versions()
-    assert req["rows"] == 34 and req["trout"] == 2 and opt == {}            # trout 2: the band kind "size"
+    assert req["rows"] == 34 and req["trout"] == 3 and opt == {}            # trout 3: the band kind "size", the dates said once
     assert [s.optional for s in A.SECTIONS if s.name == "trout"] == [False]
 
 
 def test_the_pin_holds_with_the_app_s_will_write():
-    """The app line S writes (`AGREED`: KNOWN_VERSIONS with rows 34 and trout 2, OPTIONAL_VERSIONS empty) agrees."""
+    """The app line S writes (`AGREED`: KNOWN_VERSIONS with rows 34 and trout 3, OPTIONAL_VERSIONS empty) agrees."""
     assert pin_problems(writer_versions(), _reader(AGREED)) == []
-    assert app_reader_versions(AGREED)["trout"] == 2 and app_optional_versions(AGREED) == {}
+    assert app_reader_versions(AGREED)["trout"] == 3 and app_optional_versions(AGREED) == {}
 
 
 def test_an_allowance_names_only_an_optional_section_nobody_requires():
@@ -190,7 +190,7 @@ def _reader(src: str):
     return app_reader_versions(src), app_optional_versions(src)
 
 
-#: the app's line as ticket S writes it: the writer's versions exactly (rows 34, trout 2 required, nothing optional)
+#: the app's line as ticket S writes it: the writer's versions exactly (rows 34, trout 3 required, nothing optional)
 AGREED = _app_src(*writer_versions())
 
 
