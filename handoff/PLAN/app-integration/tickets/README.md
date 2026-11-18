@@ -284,6 +284,7 @@ reads both files; a ticket closed here moves there once its lane is finished wit
 | T850 | A part ending at a gauge cut is named for a landmark up to 18 km away (Nass: "Canyon City bridge → Canyon City bridge"; 69 of 236) | PARTIAL | main chat | fix built (topology.gauge_near along the stem); left (Claude): the new 0.8.0 data release to staging |
 | T851 | The DFO salmon feed reads "stale" for every region after one failed daily fetch (owner: big issue) | OPEN | app chat | owner 2026-11-18 13:43 |
 | T852 | The coho loader drawn sharp (sheet baked at 1.5 px/dp; phones draw ~2.6), and the line under it set nicer (0.8.1) | OPEN | app chat | owner 2026-11-18 |
+| T853 | One command draws the Nass-style rules map for any water, salmon or freshwater (owner) | OPEN | app chat | owner 2026-11-18 |
 
 ## Next after closed testing
 
