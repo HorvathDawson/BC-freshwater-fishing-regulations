@@ -5,11 +5,11 @@
  * Owner rule 2026-10-21: each row's kind, daily take, members, weekday status and group are the store's (`rows_row`); the
  * day's status is the settled store answer. This file SPLITS the rows for display and words each other-fish row's stored
  * answer; it decides no regulation. (T810 S) Which rows are trout and char is Python's: the trout table's `covers` (the
- * rows-frame rows today's trout cell replaces, contract Q-D4). Page v36's hand list (TROUTISH) is gone. The licence documents a row's fish
+ * rows-frame rows today's trout cell replaces, contract Q-D4). Page v36's hand trout list is gone. The licence documents a row's fish
  * need (prototype round UR7 stampsFor on an Other fish row) are the store's (rows 32 `Row.stamps`, the pipeline's
  * `stamps.row_stamps`); each is drawn as tree.ts `stampLine` words it.
  *
- * Ports (inventory names @ 7fb6809f): page v36 rowsHtml (TROUTISH, rowsHtml.short), renderCard's rows condition;
+ * Ports (inventory names @ 7fb6809f): page v36 rowsHtml (its hand trout list, rowsHtml.short), renderCard's rows condition;
  * prototype buildKeep Other fish (owk, the v33 size hint), thumb.
  */
 import type { CardModel, CardStatus, HydRow } from "./card";

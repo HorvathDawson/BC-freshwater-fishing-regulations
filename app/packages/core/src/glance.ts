@@ -61,7 +61,7 @@ export function groupGlance(g: GroupVM): GlanceRowVM {
 }
 
 /**
- * (T810 N, behind the dev switch) THE TROUT AND CHAR ENTRY'S FOLDED ROW, from the trout table: its value, tone and date
+ * (T810 N) THE TROUT AND CHAR ENTRY'S FOLDED ROW, from the trout table: its value, tone and date
  * exactly as Python ships them (`Fold.value` "Up to 5", `Fold.tone`, `DateSet.fold`). The 2026-10-28 "a folded row says
  * no count" rule is lifted for the trout fold only (owner 2026-11-16 15:47: "the better text like 2 or 4 with expand
  * arrow"): the count is the table's own words, not a group's number. The picture: a rainbow trout where the table holds

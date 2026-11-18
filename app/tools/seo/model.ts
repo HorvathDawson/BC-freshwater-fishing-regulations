@@ -299,9 +299,8 @@ async function focusOf(store: RegsStore, akeys: readonly number[]): Promise<stri
 
 /** The app's page for one part on `on` (the angler defaults as the app's do). */
 export async function appPage(store: RegsStore, itemId: string, partIx: number, on: BuildDay, today: Day = on.day): Promise<RegsPage> {
-  // (T810 T) the crawler draws the trout table wherever the release carries the section (the page's switch is the section
-  // itself: a release without it reads as today's page, so the live releases do not move)
-  return regsPage(store, itemId, partIx, on, today, { troutTable: true });
+  // (T810 T, S) the crawler draws the trout table as the app does: wherever the cell names one (one trout path)
+  return regsPage(store, itemId, partIx, on, today);
 }
 
 /** The water at `ord`, as of `on`; null when it has no page (every part outside B.C. or without rules). */

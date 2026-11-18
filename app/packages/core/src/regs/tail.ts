@@ -1,7 +1,7 @@
 /**
  * T19 — a group's tail: each not-kept line (the store's words, whose rule and its Rule book page, ✕ for a closure, the
 * fish pictured), "Examples of how to interpret regulations" (T479; "How it adds up" before: the store's elsewhere sentence and worked lines), and
- * "See every regulation line ›". (T810 S) The steelhead quiet line (page v36 noRulesLine, STEEL_LINE) is gone: it spoke
+ * "See every regulation line ›". (T810 S) The steelhead quiet line (page v36 noRulesLine and its line constant) is gone: it spoke
  * only over a row holding rainbow trout, and every such row is the trout table's, which carries Python's `quiet` lines.
  *
  * Owner rule 2026-10-21: what is not kept, its status and the worked counts are the store's (`group.not_kept`,

@@ -1,8 +1,9 @@
 /**
- * (T810 T) THE CRAWLER'S TROUT TABLE. On the trout fixture release (a release that carries the optional `trout` section) a
- * water's page model reads N's view model (`troutOf`): the table's words are a "Trout and char" section, the top line's
- * `{day}` slot is filled through `dayPhrase` with the build day as today ("Up to 5 today"), and the model agrees with the
- * app's own page (`verifyAgainstApp`). On the normal fixture (no section) the page is today's: no such section.
+ * (T810 T) THE CRAWLER'S TROUT TABLE. On the trout fixture release a water's page model reads N's view model (`troutOf`):
+ * the table's words are a "Trout and char" section, the top line's `{day}` slot is filled through `dayPhrase` with the
+ * build day as today ("Up to 5 today"), and the model agrees with the app's own page (`verifyAgainstApp`). Since the
+ * cutover (T810 L + S) every release carries the section, the normal fixture too: a water whose cell names a table has the
+ * section, and one whose cell is NULL (no table drawn, Q-D3) has none.
  */
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
@@ -40,18 +41,26 @@ describe("the trout fixture release", () => {
       expect(words(m).filter((t) => /[{}]/.test(t)), c.name).toEqual([]);
       const pages: RegsPage[] = await Promise.all(m.parts.map(async (p) => buildRegsPage(
         await loadRegsInputs(st, { kind: "part", item: m.id, partIx: p.partIx }, on.day, on.weekday, on.year),
-        { today: on.day, who: { age: "adult", residency: "resident" }, troutTable: true })));
+        { today: on.day, who: { age: "adult", residency: "resident" } })));
       expect(verifyAgainstApp(m, pages), c.name).toEqual([]);
     }
   });
 });
 
-describe("a release without the section", () => {
-  it("draws today's page: no trout section on any water", async () => {
+describe("the regs fixture release (it carries the section since the cutover)", () => {
+  it("a water whose cell names a table has the section, and every page agrees with the app's", async () => {
     const { store } = await openFixture();
+    const on: BuildDay = { day: { month: 10, day: 27 }, weekday: "Tuesday", year: 2026, iso: "2026-10-27" };
+    let drawn = 0;
     for (const ord of await listWaterOrds(store)) {
-      const m = await waterModel(store, ord, { day: { month: 10, day: 27 }, weekday: "Tuesday", year: 2026, iso: "2026-10-27" });
-      if (m) expect(m.parts.flatMap((p) => p.sections.map((s) => s.title))).not.toContain(TITLE);
+      const m = await waterModel(store, ord, on);
+      if (!m) continue;
+      if (m.parts.some((p) => p.sections.some((s) => s.title === TITLE))) drawn++;
+      const pages: RegsPage[] = await Promise.all(m.parts.map(async (p) => buildRegsPage(
+        await loadRegsInputs(store, { kind: "part", item: m.id, partIx: p.partIx }, on.day, on.weekday, on.year),
+        { today: on.day, who: { age: "adult", residency: "resident" } })));
+      expect(verifyAgainstApp(m, pages), m.id).toEqual([]);
     }
+    expect(drawn).toBeGreaterThan(0);
   });
 });

@@ -47,7 +47,7 @@ describe.each([
       for (const c of await st.cells(akey)) {
         expect(Object.keys(c)).toEqual([...CELL_COLUMNS.slice(2)]);
         if (c.trout === null) { nulls++; continue; }
-        expect(c.trout).toBeGreaterThan(0);
+        expect(Number.isInteger(c.trout) && c.trout >= 0, `akey ${akey} trout ${c.trout}`).toBe(true);   // frame 0 is a frame
         const v = await st.trout(akey, c.trout);
         expect(Object.keys(v).sort()).toEqual(["covers", "dates", "table"]);
         expect(v.covers.length).toBeGreaterThan(0);

@@ -1,5 +1,5 @@
 /**
- * (T810 P, behind the dev switch `troutTable`) THE TROUT FISH SHEET (`tf:<row key>`, `tf:ST/hatchery`) and the table's
+ * (T810 P) THE TROUT FISH SHEET (`tf:<row key>`, `tf:ST/hatchery`) and the table's
  * every-rule sheet (`src:trout`, the table's "Sources ›" and the fish sheet's "All sources ›"). Build spec 3.4; contract
  * 2.3 `FishSheet`, `DateSet.sheet`, `TroutTable.src`.
  *

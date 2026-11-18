@@ -249,7 +249,7 @@ function Thumb({ code, images, palette }: { code: string | null; images: FishIma
 /** (T221) A folded row of the at-a-glance table: its row (picture, name, the day's answer) and the card it opens. */
 export interface GlanceFold {
   readonly key: string; readonly row: GlanceRowVM; readonly body: () => ReactNode;
-  /** (T810 O, owner about 17:15 "Salmon + trout folds", behind the dev switch) the row's end is the expand / collapse arrow
+  /** (T810 O, owner about 17:15 "Salmon + trout folds") the row's end is the expand / collapse arrow
    *  beside its value words, not the "Details" / "Hide" button; the Other fish list's own folds never set it */
   readonly arrow?: boolean;
 }
@@ -335,7 +335,7 @@ const FOLD_STACK_AT = 1.5;
 
 /**
  * (T810 O, owner about 17:15 "Salmon + trout folds": "Both folded entries (salmon and trout) show their words + an arrow
- * instead of 'Details'", behind the dev switch) THE ARROW FOLD: picture, name, the value words (and their small date, the
+ * instead of 'Details'") THE ARROW FOLD: picture, name, the value words (and their small date, the
  * trout fold's `DateSet.fold`), then the expand / collapse arrow beside them. The whole row stays the one 44 px press,
  * open or folded by aria-expanded; its spoken name is exactly its visible words (WCAG 2.5.3), the arrow being a picture.
  * At large text the value goes under the name, so nothing scrolls sideways.

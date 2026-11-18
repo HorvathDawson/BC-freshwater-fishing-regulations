@@ -1,14 +1,14 @@
-// (T810 R) THE TROUT TABLE ON A FRESH INSTALL. Before the cutover the table shows only in an app built with
-// EXPO_PUBLIC_TROUT_TABLE=1 (the dev switch) and only on a release carrying the optional `trout` section: a SIDE release
-// (built with --trout-table), put on the staging test channel by `node deploy/staging/test-updates.mjs side <dir>` (test/
-// only) BEFORE this run. Its upload is long, so it is not done here; and `install` resets test/ to the live release, so this
+// (T810 R) THE TROUT TABLE ON A FRESH INSTALL. Since the cutover (T810 L + S) every app build draws the table, and every
+// release carries the `trout` section; this scenario still installs a named release (a SIDE release, or the candidate)
+// put on the staging test channel by `node deploy/staging/test-updates.mjs side <dir>` (test/ only) BEFORE this run. Its
+// upload is long, so it is not done here; and `install` resets test/ to the live release, so this
 // scenario runs alone (`run.mjs trout-table`), never after `install` in the same run.
 //
 // Steps: test/ names the side release; a clean app (uninstalled, installed again) downloads it whole and opens the map;
 // the Updates log says that release; a water's Regulations (the Vedder by default); the trout fold (`glance:trout`) opens
 // the table in place (`keep-trout`); the first row's picture inside the table (`pic:<row key>`) opens that fish's sheet
 // (`sheet-panel`, heading = the row's fish); Done closes it. Each step is shot. The old card where the table should be
-// (no `glance:trout`, no `keep-trout`) fails, naming the two causes (the APK's switch, the release's section).
+// (no `glance:trout`, no `keep-trout`) fails, naming the two causes (an APK or a release from before the cutover).
 //
 //   TROUT_SIDE_ID=r-…        (required) the side release's id, as test/release/manifest.json names it
 //   TROUT_Q / TROUT_ROW      the water: search words and its result row (default the Vedder River, Region 2)
@@ -47,7 +47,7 @@ export const troutTable = {
       await openWater(ctx, { q: Q, row: ROW, view: 'regs' });
       try { ctx.flow('scroll-to-id', { ID: 'glance:trout' }); } catch { /* said below */ }
       if (!ctx.hasId('glance:trout') && !ctx.hasId('keep-trout'))
-        throw new Error('no trout fold and no trout table (the old card): is the APK built with EXPO_PUBLIC_TROUT_TABLE=1, and does the release carry the `trout` section?');
+        throw new Error('no trout fold and no trout table (the old card): is the APK from before the cutover (0.8.0), or the release cut before rows 34 (no `trout` section)?');
       return ctx.hasId('glance:trout') ? 'the fold is drawn' : 'the table is drawn in full (no at-a-glance fold)';
     }, { stop: true });
     await ctx.step('the fold opens the table in place', async () => {

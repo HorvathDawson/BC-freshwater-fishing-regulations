@@ -36,8 +36,8 @@ PAIRS = [
     ("regs water file",
      "pipeline/deliver/release/contract.py", r'"water":\s*\{"format":\s*"([^"]+)"',
      "app/packages/core/src/regs/versions.ts", r'\bwater:\s*"([^"]+)"'),
-    ("regs region files",
-     "pipeline/deliver/release/contract.py", r'"regs-\{r\}":\s*\{"format":\s*"([^"]+)"',
+    ("regs region files",       # (T810 L) `regs-{r}` names the constant: `"format": REGS_REGION_FORMAT`
+     "pipeline/deliver/release/contract.py", PY_CONST.format(name="REGS_REGION_FORMAT"),
      "app/packages/core/src/regs/versions.ts", r'\bregion:\s*"([^"]+)"'),
     ("regs sid file",
      "pipeline/deliver/release/contract.py", r'"regs-sid":\s*\{"format":\s*"([^"]+)"',
@@ -66,6 +66,8 @@ GENERATED = [
     ("app/packages/core/src/runTiming.ts", r'index: FEED_FORMATS\.runtimingIndex, runs: FEED_FORMATS\.runtimingRuns,\s+paint: FEED_FORMATS\.runtimingPaint'),
     ("app/workers/feeds/src/dfo/live.ts", r'^export const FORMAT = FEED_FORMATS\.dfoFeed;'),
     ("app/workers/feeds/src/inseason.ts", r'^export const FEED_FORMAT = INSEASON_FEED_FORMAT;'),
+    # (T810 L) not a feed: the regs region files' format pair above reads this constant, so the files must use it
+    ("pipeline/deliver/release/contract.py", r'"regs-\{r\}": \{"format": REGS_REGION_FORMAT,'),
 ]
 #: where a feed format may be typed: the table, and the file generated from it
 TABLE = "pipeline/common/feed_formats.py"

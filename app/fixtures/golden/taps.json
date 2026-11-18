@@ -6,9 +6,9 @@
    "section_handles": "55032563b98ee973",
    "reach_digest": "11eb6853dff81815",
    "rule_ids_sha256": "cbdd8387c469591b",
-   "answers_sha256": "fecbda03d9bd3ab348dc609f65601d6427b5e598f8e6c3df74d08ae27343e8df",
-   "store_digest": "f91bc0877c2492b7",
-   "layout": "{\"top\":[\"about\",\"spec\",\"schemas\",\"fish\",\"keys\",\"segments\",\"moments\",\"segment_moments\",\"parts\",\"places\",\"unnamed\",\"glossary\",\"sections\"],\"sections\":{\"ladder\":[\"version\",\"at\",\"reasons\",\"reason_state\",\"verdicts\",\"frames\"],\"rows\":[\"version\",\"at\",\"decided\",\"rows\",\"strips\",\"frames\"],\"gear\":[\"version\",\"at\",\"frames\",\"province_methods\",\"parent\",\"methods\",\"count_nouns\",\"moments\",\"conduct_means\"],\"licence\":[\"version\",\"at\",\"holds\",\"answers\",\"documents\",\"under_16\",\"frames\",\"profiles\",\"profile_dims\",\"residency_labels\",\"profile_labels\"],\"display\":[\"version\",\"at\",\"frames\",\"rules\",\"waters\",\"strip\",\"reasons\",\"ends\",\"licensing\"]},\"versions\":{\"ladder\":1,\"rows\":33,\"gear\":12,\"licence\":7,\"display\":20}}"
+   "answers_sha256": "e5b1730f6dec9729bf681144220803fd36769a0e29c2d0175e4d86734f143729",
+   "store_digest": "a09809189365f50c",
+   "layout": "{\"top\":[\"about\",\"spec\",\"schemas\",\"fish\",\"keys\",\"segments\",\"moments\",\"segment_moments\",\"parts\",\"places\",\"unnamed\",\"glossary\",\"sections\"],\"sections\":{\"ladder\":[\"version\",\"at\",\"reasons\",\"reason_state\",\"verdicts\",\"frames\"],\"rows\":[\"version\",\"at\",\"decided\",\"rows\",\"strips\",\"frames\"],\"gear\":[\"version\",\"at\",\"frames\",\"province_methods\",\"parent\",\"methods\",\"count_nouns\",\"moments\",\"conduct_means\"],\"licence\":[\"version\",\"at\",\"holds\",\"answers\",\"documents\",\"under_16\",\"alien_weekend\",\"frames\",\"profiles\",\"profile_dims\",\"residency_labels\",\"profile_labels\"],\"display\":[\"version\",\"at\",\"frames\",\"rules\",\"waters\",\"strip\",\"reasons\",\"ends\",\"licensing\"],\"trout\":[\"version\",\"at\",\"frames\",\"tables\",\"dates\",\"sheets\"]},\"versions\":{\"ladder\":1,\"rows\":34,\"gear\":12,\"licence\":7,\"display\":20,\"trout\":1}}"
   },
   "golden": "d7b1ed353",
   "version": "v38",
@@ -36,10 +36,11 @@
    "s": 1,
    "cell": {
     "ladder": 1126,
-    "rows": 2114,
+    "rows": 2068,
     "gear": 329,
     "licence": 1,
-    "display": 109
+    "display": 109,
+    "trout": 594
    },
    "displayByDay": [
     20,
@@ -431,10 +432,11 @@
    "s": 2,
    "cell": {
     "ladder": 2555,
-    "rows": 2115,
+    "rows": 2069,
     "gear": 150,
     "licence": 1,
-    "display": 342
+    "display": 342,
+    "trout": null
    },
    "displayByDay": [
     20,
@@ -826,10 +828,11 @@
    "s": 3,
    "cell": {
     "ladder": 1125,
-    "rows": 2113,
+    "rows": 2067,
     "gear": 150,
     "licence": 1,
-    "display": 20
+    "display": 20,
+    "trout": 593
    },
    "displayByDay": [
     20,
@@ -1237,10 +1240,11 @@
    "s": 1,
    "cell": {
     "ladder": 3513,
-    "rows": 2947,
+    "rows": 2894,
     "gear": 438,
     "licence": 2,
-    "display": 157
+    "display": 157,
+    "trout": 839
    },
    "displayByDay": [
     157,
@@ -1648,10 +1652,11 @@
    "s": 0,
    "cell": {
     "ladder": 3512,
-    "rows": 2946,
+    "rows": 2893,
     "gear": 438,
     "licence": 2,
-    "display": 157
+    "display": 157,
+    "trout": 839
    },
    "displayByDay": [
     157,
@@ -2048,10 +2053,11 @@
    "s": 3,
    "cell": {
     "ladder": 674,
-    "rows": 604,
+    "rows": 593,
     "gear": 99,
     "licence": 0,
-    "display": 237
+    "display": 237,
+    "trout": null
    },
    "displayByDay": [
     3,
@@ -2445,10 +2451,11 @@
    "s": 3,
    "cell": {
     "ladder": 675,
-    "rows": 605,
+    "rows": 594,
     "gear": 101,
     "licence": 0,
-    "display": 5
+    "display": 5,
+    "trout": 219
    },
    "displayByDay": [
     3,
@@ -2842,10 +2849,11 @@
    "s": 3,
    "cell": {
     "ladder": 679,
-    "rows": 605,
+    "rows": 594,
     "gear": 103,
     "licence": 0,
-    "display": 5
+    "display": 5,
+    "trout": 219
    },
    "displayByDay": [
     5,
@@ -3241,10 +3249,11 @@
    "s": 4,
    "cell": {
     "ladder": 675,
-    "rows": 609,
+    "rows": 598,
     "gear": 105,
     "licence": 0,
-    "display": 5
+    "display": 5,
+    "trout": 220
    },
    "displayByDay": [
     238,
@@ -3643,7 +3652,8 @@
     "rows": 46,
     "gear": 0,
     "licence": 1,
-    "display": 20
+    "display": 20,
+    "trout": 253
    },
    "displayByDay": [
     20,
@@ -4034,10 +4044,11 @@
    "s": 2,
    "cell": {
     "ladder": 22,
-    "rows": 1650,
+    "rows": 1613,
     "gear": 0,
     "licence": 1,
-    "display": 20
+    "display": 20,
+    "trout": 434
    },
    "displayByDay": [
     20,
@@ -4430,7 +4441,8 @@
     "rows": 58,
     "gear": 0,
     "licence": 1,
-    "display": 51
+    "display": 51,
+    "trout": null
    },
    "displayByDay": [
     51,
@@ -4819,10 +4831,11 @@
    "s": 0,
    "cell": {
     "ladder": 3507,
-    "rows": 2941,
+    "rows": 2888,
     "gear": 439,
     "licence": 162,
-    "display": 157
+    "display": 157,
+    "trout": 836
    },
    "displayByDay": [
     157,
@@ -5216,10 +5229,11 @@
    "s": 5,
    "cell": {
     "ladder": 3510,
-    "rows": 2944,
+    "rows": 2891,
     "gear": 438,
     "licence": 2,
-    "display": 157
+    "display": 157,
+    "trout": 838
    },
    "displayByDay": [
     157,
@@ -5611,7 +5625,8 @@
     "rows": 0,
     "gear": 0,
     "licence": 0,
-    "display": 0
+    "display": 0,
+    "trout": 0
    },
    "displayByDay": [
     0,
@@ -6005,10 +6020,11 @@
    "s": 3,
    "cell": {
     "ladder": 128,
-    "rows": 115,
+    "rows": 114,
     "gear": 8,
     "licence": 1,
-    "display": 31
+    "display": 31,
+    "trout": 44
    },
    "displayByDay": [
     25,
@@ -6410,10 +6426,11 @@
    "s": 1,
    "cell": {
     "ladder": 545,
-    "rows": 513,
+    "rows": 506,
     "gear": 83,
     "licence": 5,
-    "display": 70
+    "display": 70,
+    "trout": 197
    },
    "displayByDay": [
     70,
@@ -6815,10 +6832,11 @@
    "s": 1,
    "cell": {
     "ladder": 553,
-    "rows": 513,
+    "rows": 506,
     "gear": 85,
     "licence": 5,
-    "display": 70
+    "display": 70,
+    "trout": 197
    },
    "displayByDay": [
     70,
@@ -7220,10 +7238,11 @@
    "s": 6,
    "cell": {
     "ladder": 550,
-    "rows": 515,
+    "rows": 508,
     "gear": 83,
     "licence": 5,
-    "display": 70
+    "display": 70,
+    "trout": 200
    },
    "displayByDay": [
     70,
@@ -7625,10 +7644,11 @@
    "s": 6,
    "cell": {
     "ladder": 558,
-    "rows": 515,
+    "rows": 508,
     "gear": 85,
     "licence": 5,
-    "display": 70
+    "display": 70,
+    "trout": 200
    },
    "displayByDay": [
     70,
@@ -8024,10 +8044,11 @@
    "s": 0,
    "cell": {
     "ladder": 101,
-    "rows": 89,
+    "rows": 88,
     "gear": 20,
     "licence": 5,
-    "display": 70
+    "display": 70,
+    "trout": 32
    },
    "displayByDay": [
     70,
@@ -8423,10 +8444,11 @@
    "s": 5,
    "cell": {
     "ladder": 106,
-    "rows": 93,
+    "rows": 92,
     "gear": 20,
     "licence": 5,
-    "display": 70
+    "display": 70,
+    "trout": 32
    },
    "displayByDay": [
     70,
@@ -8818,10 +8840,11 @@
    "s": 1,
    "cell": {
     "ladder": 286,
-    "rows": 266,
+    "rows": 264,
     "gear": 47,
     "licence": 2,
-    "display": 132
+    "display": 132,
+    "trout": 126
    },
    "displayByDay": [
     131,
@@ -9213,10 +9236,11 @@
    "s": 2,
    "cell": {
     "ladder": 287,
-    "rows": 267,
+    "rows": 265,
     "gear": 47,
     "licence": 2,
-    "display": 63
+    "display": 63,
+    "trout": 126
    },
    "displayByDay": [
     131,
@@ -9608,10 +9632,11 @@
    "s": 2,
    "cell": {
     "ladder": 287,
-    "rows": 267,
+    "rows": 265,
     "gear": 47,
     "licence": 2,
-    "display": 63
+    "display": 63,
+    "trout": 126
    },
    "displayByDay": [
     131,
@@ -10003,10 +10028,11 @@
    "s": 2,
    "cell": {
     "ladder": 756,
-    "rows": 666,
+    "rows": 651,
     "gear": 47,
     "licence": 2,
-    "display": 63
+    "display": 63,
+    "trout": 246
    },
    "displayByDay": [
     252,
@@ -10398,10 +10424,11 @@
    "s": 2,
    "cell": {
     "ladder": 756,
-    "rows": 666,
+    "rows": 651,
     "gear": 47,
     "licence": 2,
-    "display": 63
+    "display": 63,
+    "trout": 246
    },
    "displayByDay": [
     252,
@@ -10794,10 +10821,11 @@
    "s": 2,
    "cell": {
     "ladder": 241,
-    "rows": 229,
+    "rows": 228,
     "gear": 1,
     "licence": 0,
-    "display": 121
+    "display": 121,
+    "trout": 104
    },
    "displayByDay": [
     120,
@@ -11190,10 +11218,11 @@
    "s": 3,
    "cell": {
     "ladder": 240,
-    "rows": 228,
+    "rows": 227,
     "gear": 1,
     "licence": 0,
-    "display": 3
+    "display": 3,
+    "trout": 104
    },
    "displayByDay": [
     120,
@@ -11582,10 +11611,11 @@
    "s": 0,
    "cell": {
     "ladder": 4549,
-    "rows": 3663,
+    "rows": 3610,
     "gear": 833,
     "licence": 2,
-    "display": 32
+    "display": 32,
+    "trout": 1361
    },
    "displayByDay": [
     32,
@@ -11974,10 +12004,11 @@
    "s": 0,
    "cell": {
     "ladder": 3548,
-    "rows": 2979,
+    "rows": 2926,
     "gear": 433,
     "licence": 2,
-    "display": 88
+    "display": 88,
+    "trout": 862
    },
    "displayByDay": [
     88,
@@ -12371,10 +12402,11 @@
    "s": 4,
    "cell": {
     "ladder": 4770,
-    "rows": 3808,
+    "rows": 3755,
     "gear": 923,
     "licence": 171,
-    "display": 139
+    "display": 139,
+    "trout": 1455
    },
    "displayByDay": [
     139,
@@ -12767,10 +12799,11 @@
    "s": 2,
    "cell": {
     "ladder": 1596,
-    "rows": 1336,
+    "rows": 1309,
     "gear": 215,
     "licence": 47,
-    "display": 63
+    "display": 63,
+    "trout": 404
    },
    "displayByDay": [
     59,
@@ -13165,10 +13198,11 @@
    "s": 3,
    "cell": {
     "ladder": 1600,
-    "rows": 1340,
+    "rows": 1313,
     "gear": 12,
     "licence": 47,
-    "display": 220
+    "display": 220,
+    "trout": null
    },
    "displayByDay": [
     218,
@@ -13561,10 +13595,11 @@
    "s": 2,
    "cell": {
     "ladder": 888,
-    "rows": 787,
+    "rows": 769,
     "gear": 12,
     "licence": 2,
-    "display": 292
+    "display": 292,
+    "trout": 268
    },
    "displayByDay": [
     292,
@@ -13957,10 +13992,11 @@
    "s": 2,
    "cell": {
     "ladder": 73,
-    "rows": 790,
+    "rows": 772,
     "gear": 12,
     "licence": 2,
-    "display": 59
+    "display": 59,
+    "trout": 268
    },
    "displayByDay": [
     59,
@@ -14353,10 +14389,11 @@
    "s": 2,
    "cell": {
     "ladder": 896,
-    "rows": 796,
+    "rows": 778,
     "gear": 12,
     "licence": 23,
-    "display": 157
+    "display": 157,
+    "trout": 268
    },
    "displayByDay": [
     157,
@@ -14749,10 +14786,11 @@
    "s": 2,
    "cell": {
     "ladder": 685,
-    "rows": 799,
+    "rows": 781,
     "gear": 12,
     "licence": 2,
-    "display": 59
+    "display": 59,
+    "trout": 268
    },
    "displayByDay": [
     59,
@@ -15149,7 +15187,8 @@
     "rows": 63,
     "gear": 12,
     "licence": 2,
-    "display": 53
+    "display": 53,
+    "trout": 21
    },
    "displayByDay": [
     53,
@@ -15543,10 +15582,11 @@
    "s": 2,
    "cell": {
     "ladder": 901,
-    "rows": 802,
+    "rows": 784,
     "gear": 126,
     "licence": 2,
-    "display": 63
+    "display": 63,
+    "trout": 270
    },
    "displayByDay": [
     63,
@@ -15943,10 +15983,11 @@
    "s": 2,
    "cell": {
     "ladder": 903,
-    "rows": 805,
+    "rows": 787,
     "gear": 126,
     "licence": 7,
-    "display": 63
+    "display": 63,
+    "trout": 272
    },
    "displayByDay": [
     63,
@@ -16340,10 +16381,11 @@
    "s": 3,
    "cell": {
     "ladder": 2642,
-    "rows": 2157,
+    "rows": 2108,
     "gear": 337,
     "licence": 2,
-    "display": 695
+    "display": 695,
+    "trout": null
    },
    "displayByDay": [
     32,
@@ -16737,10 +16779,11 @@
    "s": 3,
    "cell": {
     "ladder": 2642,
-    "rows": 2154,
+    "rows": 2105,
     "gear": 337,
     "licence": 2,
-    "display": 695
+    "display": 695,
+    "trout": null
    },
    "displayByDay": [
     32,
@@ -17133,10 +17176,11 @@
    "s": 2,
    "cell": {
     "ladder": 2300,
-    "rows": 1881,
+    "rows": 1840,
     "gear": 302,
     "licence": 51,
-    "display": 63
+    "display": 63,
+    "trout": 528
    },
    "displayByDay": [
     63,
@@ -17530,10 +17574,11 @@
    "s": 3,
    "cell": {
     "ladder": 2301,
-    "rows": 1885,
+    "rows": 1844,
     "gear": 303,
     "licence": 80,
-    "display": 435
+    "display": 435,
+    "trout": null
    },
    "displayByDay": [
     63,
@@ -17922,10 +17967,11 @@
    "s": 0,
    "cell": {
     "ladder": 3552,
-    "rows": 2983,
+    "rows": 2930,
     "gear": 433,
     "licence": 166,
-    "display": 88
+    "display": 88,
+    "trout": 865
    },
    "displayByDay": [
     88,
@@ -18320,10 +18366,11 @@
    "s": 3,
    "cell": {
     "ladder": 1162,
-    "rows": 1011,
+    "rows": 991,
     "gear": 153,
     "licence": 67,
-    "display": 354
+    "display": 354,
+    "trout": null
    },
    "displayByDay": [
     354,
@@ -18724,10 +18771,11 @@
    "s": 5,
    "cell": {
     "ladder": 1172,
-    "rows": 1018,
+    "rows": 998,
     "gear": 154,
     "licence": 69,
-    "display": 239
+    "display": 239,
+    "trout": null
    },
    "displayByDay": [
     239,
@@ -19127,10 +19175,11 @@
    "s": 4,
    "cell": {
     "ladder": 1172,
-    "rows": 1018,
+    "rows": 998,
     "gear": 154,
     "licence": 69,
-    "display": 239
+    "display": 239,
+    "trout": null
    },
    "displayByDay": [
     239,
@@ -19527,10 +19576,11 @@
    "s": 5,
    "cell": {
     "ladder": 1181,
-    "rows": 1028,
+    "rows": 1007,
     "gear": 157,
     "licence": 72,
-    "display": 356
+    "display": 356,
+    "trout": 313
    },
    "displayByDay": [
     356,
@@ -19927,10 +19977,11 @@
    "s": 4,
    "cell": {
     "ladder": 1183,
-    "rows": 1031,
+    "rows": 1007,
     "gear": 153,
     "licence": 0,
-    "display": 91
+    "display": 91,
+    "trout": 316
    },
    "displayByDay": [
     91,
@@ -20324,10 +20375,11 @@
    "s": 3,
    "cell": {
     "ladder": 2653,
-    "rows": 2168,
+    "rows": 2119,
     "gear": 339,
     "licence": 0,
-    "display": 80
+    "display": 80,
+    "trout": 607
    },
    "displayByDay": [
     80,
@@ -20721,10 +20773,11 @@
    "s": 3,
    "cell": {
     "ladder": 1661,
-    "rows": 2168,
+    "rows": 2119,
     "gear": 339,
     "licence": 0,
-    "display": 80
+    "display": 80,
+    "trout": 607
    },
    "displayByDay": [
     80,
@@ -21121,10 +21174,11 @@
    "s": 5,
    "cell": {
     "ladder": 1661,
-    "rows": 2173,
+    "rows": 2124,
     "gear": 339,
     "licence": 0,
-    "display": 80
+    "display": 80,
+    "trout": 608
    },
    "displayByDay": [
     80,
@@ -21522,10 +21576,11 @@
    "s": 5,
    "cell": {
     "ladder": 2955,
-    "rows": 2452,
+    "rows": 2401,
     "gear": 8,
     "licence": 1,
-    "display": 757
+    "display": 757,
+    "trout": null
    },
    "displayByDay": [
     754,
@@ -22099,10 +22154,11 @@
    "s": 4,
    "cell": {
     "ladder": 2943,
-    "rows": 2434,
+    "rows": 2383,
     "gear": 375,
     "licence": 1,
-    "display": 750
+    "display": 750,
+    "trout": null
    },
    "displayByDay": [
     20,
@@ -22588,10 +22644,11 @@
    "s": 2,
    "cell": {
     "ladder": 2939,
-    "rows": 2428,
+    "rows": 2377,
     "gear": 375,
     "licence": 152,
-    "display": 746
+    "display": 746,
+    "trout": 696
    },
    "displayByDay": [
     20,
@@ -22989,10 +23046,11 @@
    "s": 5,
    "cell": {
     "ladder": 2946,
-    "rows": 2443,
+    "rows": 2392,
     "gear": 8,
     "licence": 1,
-    "display": 753
+    "display": 753,
+    "trout": 701
    },
    "displayByDay": [
     25,
@@ -23389,10 +23447,11 @@
    "s": 4,
    "cell": {
     "ladder": 2971,
-    "rows": 2468,
+    "rows": 2417,
     "gear": 8,
     "licence": 1,
-    "display": 763
+    "display": 763,
+    "trout": 705
    },
    "displayByDay": [
     761,
@@ -23790,10 +23849,11 @@
    "s": 5,
    "cell": {
     "ladder": 2977,
-    "rows": 2477,
+    "rows": 2426,
     "gear": 376,
     "licence": 1,
-    "display": 765
+    "display": 765,
+    "trout": null
    },
    "displayByDay": [
     764,
@@ -24190,10 +24250,11 @@
    "s": 5,
    "cell": {
     "ladder": 2987,
-    "rows": 2493,
+    "rows": 2442,
     "gear": 8,
     "licence": 1,
-    "display": 769
+    "display": 769,
+    "trout": null
    },
    "displayByDay": [
     768,
@@ -24591,10 +24652,11 @@
    "s": 6,
    "cell": {
     "ladder": 2983,
-    "rows": 2501,
+    "rows": 2450,
     "gear": 8,
     "licence": 1,
-    "display": 767
+    "display": 767,
+    "trout": 710
    },
    "displayByDay": [
     762,
@@ -24990,10 +25052,11 @@
    "s": 4,
    "cell": {
     "ladder": 2983,
-    "rows": 2485,
+    "rows": 2434,
     "gear": 8,
     "licence": 1,
-    "display": 767
+    "display": 767,
+    "trout": 710
    },
    "displayByDay": [
     762,
@@ -25389,10 +25452,11 @@
    "s": 4,
    "cell": {
     "ladder": 3005,
-    "rows": 2518,
+    "rows": 2467,
     "gear": 378,
     "licence": 1,
-    "display": 776
+    "display": 776,
+    "trout": 719
    },
    "displayByDay": [
     774,
@@ -25788,10 +25852,11 @@
    "s": 4,
    "cell": {
     "ladder": 3011,
-    "rows": 2524,
+    "rows": 2473,
     "gear": 378,
     "licence": 1,
-    "display": 777
+    "display": 777,
+    "trout": 183
    },
    "displayByDay": [
     777,
@@ -26191,10 +26256,11 @@
    "s": 4,
    "cell": {
     "ladder": 3017,
-    "rows": 2530,
+    "rows": 2479,
     "gear": 378,
     "licence": 0,
-    "display": 778
+    "display": 778,
+    "trout": 183
    },
    "displayByDay": [
     778,
@@ -26589,10 +26655,11 @@
    "s": 3,
    "cell": {
     "ladder": 3028,
-    "rows": 2541,
+    "rows": 2490,
     "gear": 381,
     "licence": 2,
-    "display": 378
+    "display": 378,
+    "trout": 727
    },
    "displayByDay": [
     378,
@@ -26988,10 +27055,11 @@
    "s": 4,
    "cell": {
     "ladder": 3096,
-    "rows": 2593,
+    "rows": 2542,
     "gear": 390,
     "licence": 0,
-    "display": 790
+    "display": 790,
+    "trout": null
    },
    "displayByDay": [
     102,
@@ -27389,10 +27457,11 @@
    "s": 3,
    "cell": {
     "ladder": 230,
-    "rows": 218,
+    "rows": 217,
     "gear": 390,
     "licence": 0,
-    "display": 3
+    "display": 3,
+    "trout": 100
    },
    "displayByDay": [
     102,
@@ -27784,10 +27853,11 @@
    "s": 2,
    "cell": {
     "ladder": 3097,
-    "rows": 218,
+    "rows": 217,
     "gear": 392,
     "licence": 0,
-    "display": 5
+    "display": 5,
+    "trout": 100
    },
    "displayByDay": [
     5,
@@ -28179,10 +28249,11 @@
    "s": 2,
    "cell": {
     "ladder": 230,
-    "rows": 2596,
+    "rows": 2545,
     "gear": 1,
     "licence": 0,
-    "display": 3
+    "display": 3,
+    "trout": 741
    },
    "displayByDay": [
     3,
@@ -28576,10 +28647,11 @@
    "s": 4,
    "cell": {
     "ladder": 230,
-    "rows": 2598,
+    "rows": 2547,
     "gear": 1,
     "licence": 0,
-    "display": 3
+    "display": 3,
+    "trout": 741
    },
    "displayByDay": [
     3,
@@ -28973,10 +29045,11 @@
    "s": 4,
    "cell": {
     "ladder": 230,
-    "rows": 2602,
+    "rows": 2551,
     "gear": 1,
     "licence": 0,
-    "display": 3
+    "display": 3,
+    "trout": 742
    },
    "displayByDay": [
     3,
@@ -29368,10 +29441,11 @@
    "s": 2,
    "cell": {
     "ladder": 230,
-    "rows": 218,
+    "rows": 217,
     "gear": 1,
     "licence": 0,
-    "display": 1
+    "display": 1,
+    "trout": 100
    },
    "displayByDay": [
     1,
@@ -29761,10 +29835,11 @@
    "s": 0,
    "cell": {
     "ladder": 332,
-    "rows": 264,
+    "rows": 262,
     "gear": 55,
     "licence": 0,
-    "display": 3
+    "display": 3,
+    "trout": 124
    },
    "displayByDay": [
     3,
@@ -30158,10 +30233,11 @@
    "s": 4,
    "cell": {
     "ladder": 3105,
-    "rows": 2606,
+    "rows": 2555,
     "gear": 1,
     "licence": 0,
-    "display": 797
+    "display": 797,
+    "trout": null
    },
    "displayByDay": [
     797,
@@ -30557,10 +30633,11 @@
    "s": 5,
    "cell": {
     "ladder": 1374,
-    "rows": 642,
+    "rows": 244,
     "gear": 188,
     "licence": 26,
-    "display": 80
+    "display": 80,
+    "trout": 233
    },
    "displayByDay": [
     78,
@@ -31066,10 +31143,11 @@
    "s": 7,
    "cell": {
     "ladder": 1377,
-    "rows": 642,
+    "rows": 244,
     "gear": 188,
     "licence": 26,
-    "display": 80
+    "display": 80,
+    "trout": 233
    },
    "displayByDay": [
     78,
@@ -31594,10 +31672,11 @@
    "s": 9,
    "cell": {
     "ladder": 1377,
-    "rows": 642,
+    "rows": 244,
     "gear": 189,
     "licence": 26,
-    "display": 80
+    "display": 80,
+    "trout": 233
    },
    "displayByDay": [
     78,
@@ -32104,10 +32183,11 @@
    "s": 7,
    "cell": {
     "ladder": 1405,
-    "rows": 642,
+    "rows": 244,
     "gear": 192,
     "licence": 26,
-    "display": 214
+    "display": 214,
+    "trout": 233
    },
    "displayByDay": [
     78,
@@ -32507,10 +32587,11 @@
    "s": 4,
    "cell": {
     "ladder": 1411,
-    "rows": 1196,
+    "rows": 1170,
     "gear": 192,
     "licence": 0,
-    "display": 214
+    "display": 214,
+    "trout": 370
    },
    "displayByDay": [
     214,
@@ -32906,10 +32987,11 @@
    "s": 4,
    "cell": {
     "ladder": 1417,
-    "rows": 1196,
+    "rows": 1170,
     "gear": 191,
     "licence": 0,
-    "display": 80
+    "display": 80,
+    "trout": 370
    },
    "displayByDay": [
     80,
@@ -33415,10 +33497,11 @@
    "s": 7,
    "cell": {
     "ladder": 1389,
-    "rows": 1191,
+    "rows": 1166,
     "gear": 188,
     "licence": 26,
-    "display": 408
+    "display": 408,
+    "trout": null
    },
    "displayByDay": [
     406,
@@ -33811,10 +33894,11 @@
    "s": 2,
    "cell": {
     "ladder": 2834,
-    "rows": 2309,
+    "rows": 2259,
     "gear": 365,
     "licence": 2,
-    "display": 292
+    "display": 292,
+    "trout": 268
    },
    "displayByDay": [
     292,
@@ -34209,10 +34293,11 @@
    "s": 4,
    "cell": {
     "ladder": 2834,
-    "rows": 2314,
+    "rows": 2264,
     "gear": 365,
     "licence": 2,
-    "display": 292
+    "display": 292,
+    "trout": 653
    },
    "displayByDay": [
     292,
@@ -34605,10 +34690,11 @@
    "s": 2,
    "cell": {
     "ladder": 2840,
-    "rows": 2317,
+    "rows": 2267,
     "gear": 365,
     "licence": 2,
-    "display": 292
+    "display": 292,
+    "trout": 268
    },
    "displayByDay": [
     292,
@@ -35005,10 +35091,11 @@
    "s": 2,
    "cell": {
     "ladder": 1421,
-    "rows": 1200,
+    "rows": 1174,
     "gear": 193,
     "licence": 2,
-    "display": 410
+    "display": 410,
+    "trout": 268
    },
    "displayByDay": [
     410,
@@ -35401,10 +35488,11 @@
    "s": 2,
    "cell": {
     "ladder": 2846,
-    "rows": 2323,
+    "rows": 2273,
     "gear": 365,
     "licence": 2,
-    "display": 726
+    "display": 726,
+    "trout": null
    },
    "displayByDay": [
     726,
@@ -35797,10 +35885,11 @@
    "s": 2,
    "cell": {
     "ladder": 2843,
-    "rows": 2320,
+    "rows": 2270,
     "gear": 366,
     "licence": 2,
-    "display": 410
+    "display": 410,
+    "trout": 654
    },
    "displayByDay": [
     410,
@@ -36198,10 +36287,11 @@
    "s": 5,
    "cell": {
     "ladder": 1560,
-    "rows": 1196,
+    "rows": 1170,
     "gear": 318,
     "licence": 105,
-    "display": 80
+    "display": 80,
+    "trout": 370
    },
    "displayByDay": [
     80,
@@ -36601,10 +36691,11 @@
    "s": 4,
    "cell": {
     "ladder": 1560,
-    "rows": 1196,
+    "rows": 1170,
     "gear": 318,
     "licence": 0,
-    "display": 80
+    "display": 80,
+    "trout": 370
    },
    "displayByDay": [
     80,
@@ -37000,10 +37091,11 @@
    "s": 4,
    "cell": {
     "ladder": 1560,
-    "rows": 2011,
+    "rows": 1340,
     "gear": 318,
     "licence": 108,
-    "display": 80
+    "display": 80,
+    "trout": 556
    },
    "displayByDay": [
     80,
@@ -37404,10 +37496,11 @@
    "s": 5,
    "cell": {
     "ladder": 1560,
-    "rows": 2017,
+    "rows": 1974,
     "gear": 318,
     "licence": 108,
-    "display": 80
+    "display": 80,
+    "trout": 233
    },
    "displayByDay": [
     658,
@@ -37912,10 +38005,11 @@
    "s": 6,
    "cell": {
     "ladder": 2431,
-    "rows": 2011,
+    "rows": 1340,
     "gear": 318,
     "licence": 108,
-    "display": 80
+    "display": 80,
+    "trout": 556
    },
    "displayByDay": [
     80,
@@ -38433,10 +38527,11 @@
    "s": 7,
    "cell": {
     "ladder": 2447,
-    "rows": 2017,
+    "rows": 1974,
     "gear": 319,
     "licence": 108,
-    "display": 80
+    "display": 80,
+    "trout": 233
    },
    "displayByDay": [
     658,
@@ -38954,10 +39049,11 @@
    "s": 7,
    "cell": {
     "ladder": 2437,
-    "rows": 2021,
+    "rows": 1974,
     "gear": 318,
     "licence": 108,
-    "display": 80
+    "display": 80,
+    "trout": 233
    },
    "displayByDay": [
     658,
@@ -39358,10 +39454,11 @@
    "s": 5,
    "cell": {
     "ladder": 3074,
-    "rows": 2570,
+    "rows": 2519,
     "gear": 385,
     "licence": 154,
-    "display": 787
+    "display": 787,
+    "trout": null
    },
    "displayByDay": [
     786,
@@ -39759,10 +39856,11 @@
    "s": 6,
    "cell": {
     "ladder": 3082,
-    "rows": 2579,
+    "rows": 2528,
     "gear": 387,
     "licence": 154,
-    "display": 787
+    "display": 787,
+    "trout": null
    },
    "displayByDay": [
     786,
@@ -40159,10 +40257,11 @@
    "s": 5,
    "cell": {
     "ladder": 3082,
-    "rows": 2570,
+    "rows": 2519,
     "gear": 386,
     "licence": 154,
-    "display": 787
+    "display": 787,
+    "trout": null
    },
    "displayByDay": [
     786,
@@ -40557,10 +40656,11 @@
    "s": 3,
    "cell": {
     "ladder": 3089,
-    "rows": 2585,
+    "rows": 2534,
     "gear": 8,
     "licence": 1,
-    "display": 26
+    "display": 26,
+    "trout": 739
    },
    "displayByDay": [
     26,
@@ -40957,10 +41057,11 @@
    "s": 2,
    "cell": {
     "ladder": 1271,
-    "rows": 1108,
+    "rows": 1084,
     "gear": 171,
     "licence": 74,
-    "display": 63
+    "display": 63,
+    "trout": 341
    },
    "displayByDay": [
     59,
@@ -41357,10 +41458,11 @@
    "s": 2,
    "cell": {
     "ladder": 1275,
-    "rows": 1113,
+    "rows": 1089,
     "gear": 173,
     "licence": 75,
-    "display": 63
+    "display": 63,
+    "trout": 345
    },
    "displayByDay": [
     59,
@@ -41753,10 +41855,11 @@
    "s": 2,
    "cell": {
     "ladder": 1274,
-    "rows": 1111,
+    "rows": 1087,
     "gear": 173,
     "licence": 75,
-    "display": 63
+    "display": 63,
+    "trout": 343
    },
    "displayByDay": [
     59,
@@ -42156,10 +42259,11 @@
    "s": 5,
    "cell": {
     "ladder": 985,
-    "rows": 862,
+    "rows": 844,
     "gear": 16,
     "licence": 2,
-    "display": 3
+    "display": 3,
+    "trout": 30
    },
    "displayByDay": [
     3,
@@ -42561,10 +42665,11 @@
    "s": 7,
    "cell": {
     "ladder": 1000,
-    "rows": 883,
+    "rows": 865,
     "gear": 16,
     "licence": 2,
-    "display": 3
+    "display": 3,
+    "trout": 289
    },
    "displayByDay": [
     3,
@@ -42964,10 +43069,11 @@
    "s": 5,
    "cell": {
     "ladder": 1000,
-    "rows": 877,
+    "rows": 859,
     "gear": 16,
     "licence": 2,
-    "display": 3
+    "display": 3,
+    "trout": 30
    },
    "displayByDay": [
     3,
@@ -43363,10 +43469,11 @@
    "s": 5,
    "cell": {
     "ladder": 1014,
-    "rows": 893,
+    "rows": 875,
     "gear": 16,
     "licence": 2,
-    "display": 1
+    "display": 1,
+    "trout": 30
    },
    "displayByDay": [
     1,
@@ -43760,10 +43867,11 @@
    "s": 0,
    "cell": {
     "ladder": 153,
-    "rows": 140,
+    "rows": 139,
     "gear": 0,
     "licence": 0,
-    "display": 32
+    "display": 32,
+    "trout": 63
    },
    "displayByDay": [
     32,
@@ -44153,10 +44261,11 @@
    "s": 0,
    "cell": {
     "ladder": 154,
-    "rows": 141,
+    "rows": 140,
     "gear": 0,
     "licence": 0,
-    "display": 87
+    "display": 87,
+    "trout": null
    },
    "displayByDay": [
     87,
@@ -44545,10 +44654,11 @@
    "s": 0,
    "cell": {
     "ladder": 4083,
-    "rows": 3346,
+    "rows": 3293,
     "gear": 676,
     "licence": 168,
-    "display": 32
+    "display": 32,
+    "trout": 1139
    },
    "displayByDay": [
     32,
@@ -44941,10 +45051,11 @@
    "s": 3,
    "cell": {
     "ladder": 3569,
-    "rows": 3109,
+    "rows": 3056,
     "gear": 449,
     "licence": 2,
-    "display": 204
+    "display": 204,
+    "trout": 965
    },
    "displayByDay": [
     204,
@@ -45340,10 +45451,11 @@
    "s": 4,
    "cell": {
     "ladder": 2160,
-    "rows": 1743,
+    "rows": 1704,
     "gear": 279,
     "licence": 102,
-    "display": 570
+    "display": 570,
+    "trout": 499
    },
    "displayByDay": [
     569,
@@ -45741,10 +45853,11 @@
    "s": 5,
    "cell": {
     "ladder": 2174,
-    "rows": 1757,
+    "rows": 1718,
     "gear": 281,
     "licence": 104,
-    "display": 317
+    "display": 317,
+    "trout": 506
    },
    "displayByDay": [
     573,
@@ -46133,10 +46246,11 @@
    "s": 0,
    "cell": {
     "ladder": 3538,
-    "rows": 2969,
+    "rows": 2916,
     "gear": 433,
     "licence": 163,
-    "display": 88
+    "display": 88,
+    "trout": 855
    },
    "displayByDay": [
     88,
@@ -46525,10 +46639,11 @@
    "s": 0,
    "cell": {
     "ladder": 4747,
-    "rows": 3795,
+    "rows": 3742,
     "gear": 911,
     "licence": 170,
-    "display": 981
+    "display": 981,
+    "trout": null
    },
    "displayByDay": [
     981,
@@ -47028,10 +47143,11 @@
    "s": 5,
    "cell": {
     "ladder": 427,
-    "rows": 388,
+    "rows": 385,
     "gear": 71,
     "licence": 2,
-    "display": 63
+    "display": 63,
+    "trout": 165
    },
    "displayByDay": [
     59,
@@ -47426,7 +47542,8 @@
     "rows": 63,
     "gear": 71,
     "licence": 2,
-    "display": 63
+    "display": 63,
+    "trout": 21
    },
    "displayByDay": [
     59,
@@ -47815,10 +47932,11 @@
    "s": 0,
    "cell": {
     "ladder": 4052,
-    "rows": 3323,
+    "rows": 3270,
     "gear": 438,
     "licence": 8,
-    "display": 20
+    "display": 20,
+    "trout": 1121
    },
    "displayByDay": [
     20,
@@ -48207,10 +48325,11 @@
    "s": 0,
    "cell": {
     "ladder": 3553,
-    "rows": 2984,
+    "rows": 2931,
     "gear": 433,
     "licence": 167,
-    "display": 88
+    "display": 88,
+    "trout": 866
    },
    "displayByDay": [
     88,
@@ -48603,10 +48722,11 @@
    "s": 2,
    "cell": {
     "ladder": 1606,
-    "rows": 1346,
+    "rows": 1319,
     "gear": 218,
     "licence": 0,
-    "display": 32
+    "display": 32,
+    "trout": 406
    },
    "displayByDay": [
     32,
@@ -49001,10 +49121,11 @@
    "s": 5,
    "cell": {
     "ladder": 649,
-    "rows": 576,
+    "rows": 565,
     "gear": 16,
     "licence": 2,
-    "display": 3
+    "display": 3,
+    "trout": 30
    },
    "displayByDay": [
     3,
@@ -49667,10 +49788,11 @@
    "s": 1,
    "cell": {
     "ladder": 2584,
-    "rows": 1368,
+    "rows": 454,
     "gear": 335,
     "licence": 19,
-    "display": 80
+    "display": 80,
+    "trout": 412
    }
   },
   {
@@ -49841,10 +49963,11 @@
    "s": 0,
    "cell": {
     "ladder": 2583,
-    "rows": 1368,
+    "rows": 454,
     "gear": 335,
     "licence": 19,
-    "display": 80
+    "display": 80,
+    "trout": 412
    }
   },
   {
@@ -50015,10 +50138,11 @@
    "s": 0,
    "cell": {
     "ladder": 2583,
-    "rows": 1368,
+    "rows": 454,
     "gear": 335,
     "licence": 19,
-    "display": 80
+    "display": 80,
+    "trout": 412
    }
   },
   {
@@ -50189,10 +50313,11 @@
    "s": 0,
    "cell": {
     "ladder": 2583,
-    "rows": 1368,
+    "rows": 454,
     "gear": 335,
     "licence": 19,
-    "display": 80
+    "display": 80,
+    "trout": 412
    }
   }
  ],

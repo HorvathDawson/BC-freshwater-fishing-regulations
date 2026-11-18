@@ -18,6 +18,7 @@ import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
 import { gunzipSync } from "node:zlib";
 import { describe, expect, it } from "vitest";
+import { REGS_FORMATS } from "@app/core";
 import { unpackBlob } from "@app/data/regs";
 import { REGS_FIXTURE_ROOT, regsFixtureDir } from "@app/data/release/node";
 
@@ -177,7 +178,8 @@ describe("T10 the committed regs fixture release", () => {
     }
     expect(Object.fromEntries(Object.entries(MAN.files).map(([n, f]) => [n, f.format]))).toEqual({
       core: "core/1", geo: "geo/2", water: "water/3", "regs-sid": "regs-sid/1",
-      ...Object.fromEntries(["1", "2", "3", "4", "5", "6", "7a", "7b", "8"].map((r) => [`regs-${r}`, "regs-region/1"])) });
+      ...Object.fromEntries(["1", "2", "3", "4", "5", "6", "7a", "7b", "8"].map((r) => [`regs-${r}`, REGS_FORMATS.region])) });
+    expect(REGS_FORMATS.region).toBe("regs-region/2");   // (T810 L) the trout section's cell column
   });
 
   it("5. small: under 3.5 MB gzipped in all", () => {

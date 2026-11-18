@@ -219,361 +219,11 @@
  "keep": {
   "banner": null,
   "caveats": [],
-  "groups": [
-   {
-    "head": {
-     "exception": null,
-     "form": "a",
-     "lead": [
-      {
-       "s": "2",
-       "size": "big",
-       "t": "num"
-      },
-      {
-       "s": " ",
-       "t": "text"
-      },
-      {
-       "s": "trout/char a day from streams",
-       "t": "text"
-      },
-      {
-       "s": " ",
-       "t": "text"
-      },
-      {
-       "label": "How this limit is shared",
-       "open": "share:r0",
-       "s": "ⓘ",
-       "t": "link"
-      }
-     ],
-     "leadN": 2,
-     "multi": [
-      {
-       "open": "multi:r0",
-       "s": "Fishing more than one water today? ›",
-       "t": "link"
-      }
-     ],
-     "nolimit": false,
-     "ofTotal": true,
-     "rootTier": "t1",
-     "shareOf": null,
-     "terms": [],
-     "whyHere": null,
-     "words": [
-      {
-       "s": "5",
-       "size": "big",
-       "t": "num"
-      },
-      {
-       "s": " ",
-       "t": "text"
-      },
-      {
-       "s": "a day per angler across Region 4, lakes included",
-       "t": "text"
-      }
-     ]
-    },
-    "more": {
-     "open": "src:r0",
-     "text": "See every regulation line ›"
-    },
-    "notKept": [
-     {
-      "mark": null,
-      "pictures": [
-       {
-        "caption": "Bull trout ›",
-        "code": "DV",
-        "name": "Dolly Varden/bull trout",
-        "open": "sp:DV",
-        "sil": false
-       }
-      ],
-      "presence": null,
-      "says": "Dolly Varden/bull trout: release every one",
-      "stamps": [],
-      "status": "release",
-      "term": null,
-      "whose": [
-       {
-        "s": "Trout Lake’s rule for its tributaries",
-        "t": "text"
-       },
-       {
-        "s": " · ",
-        "t": "text"
-       },
-       {
-        "box": [
-         {
-          "box": [
-           36,
-           183.84,
-           540,
-           193.44
-          ],
-          "pdf": 42,
-          "size": [
-           576,
-           756
-          ]
-         }
-        ],
-        "pdf": 42,
-        "printed": 40,
-        "t": "book"
-       }
-      ]
-     }
-    ],
-    "origin": {
-     "book": [
-      {
-       "pdf": 36,
-       "printed": 34,
-       "t": "book"
-      }
-     ],
-     "howtell": false,
-     "says": [],
-     "tag": null
-    },
-    "pinLine": {
-     "cls": "g",
-     "n": 2,
-     "said": [
-      "t3",
-      "t2"
-     ],
-     "sub": null,
-     "text": "Trout and char · 5 a day — up to 2 of any kind, the rest rainbow"
-    },
-    "quiet": null,
-    "row": 0,
-    "scope": null,
-    "title": "Trout and char",
-    "tree": [
-     {
-      "band": false,
-      "children": [
-       {
-        "also": [
-         "Up to 1 cutthroat trout over 50 cm (20 in)"
-        ],
-        "duty": null,
-        "folded": true,
-        "kind": "Brook trout, brown trout, cutthroat trout and lake trout",
-        "pictures": [
-         {
-          "caption": "Brook trout ›",
-          "code": "EB",
-          "name": "Brook trout",
-          "open": "sp:EB",
-          "sil": false
-         },
-         {
-          "caption": "Brown trout ›",
-          "code": "GB",
-          "name": "Brown trout",
-          "open": "sp:GB",
-          "sil": false
-         },
-         {
-          "caption": "Coastal cutthroat trout ›",
-          "code": "CT",
-          "name": "Cutthroat trout",
-          "open": "sp:CT",
-          "sil": false
-         },
-         {
-          "caption": "Lake trout ›",
-          "code": "LT",
-          "name": "Lake trout",
-          "open": "sp:LT",
-          "sil": false
-         }
-        ],
-        "presence": null,
-        "qualifiers": null,
-        "says": null,
-        "size": {
-         "chip": "any size",
-         "def": false,
-         "lead": null,
-         "rule": false,
-         "text": "any size",
-         "then": null
-        },
-        "species": [
-         "EB",
-         "GB",
-         "CT",
-         "LT"
-        ],
-        "stamps": [],
-        "t": "kind",
-        "zero": false
-       }
-      ],
-      "exception": null,
-      "folded": false,
-      "kicker": "All Region 4 streams",
-      "line": [
-       {
-        "s": "Up to ",
-        "t": "text"
-       },
-       {
-        "s": "2",
-        "size": "big",
-        "t": "num"
-       },
-       {
-        "s": " brook, brown, cutthroat or lake trout of the 5 from streams",
-        "t": "text"
-       }
-      ],
-      "n": 2,
-      "origin": null,
-      "relation": null,
-      "short": "2 of them from streams",
-      "sub": null,
-      "t": "tier",
-      "tid": "t3",
-      "tier": "share"
-     },
-     {
-      "band": false,
-      "children": [
-       {
-        "also": [],
-        "duty": null,
-        "folded": true,
-        "kind": "Rainbow trout",
-        "pictures": [
-         {
-          "caption": "Rainbow trout ›",
-          "code": "RB",
-          "name": "Rainbow trout",
-          "open": "sp:RB",
-          "sil": false
-         }
-        ],
-        "presence": null,
-        "qualifiers": null,
-        "says": null,
-        "size": {
-         "chip": "any size",
-         "def": false,
-         "lead": null,
-         "rule": false,
-         "text": "any size",
-         "then": null
-        },
-        "species": [
-         "RB"
-        ],
-        "stamps": [],
-        "t": "kind",
-        "zero": false
-       }
-      ],
-      "exception": "Exception to regional quota",
-      "folded": false,
-      "kicker": null,
-      "line": [
-       {
-        "s": "The Duncan River’s rule: up to ",
-        "t": "text"
-       },
-       {
-        "s": "5",
-        "size": "big",
-        "t": "num"
-       },
-       {
-        "s": " rainbow trout a day",
-        "t": "text"
-       },
-       {
-        "s": " ",
-        "t": "text"
-       },
-       {
-        "box": [
-         {
-          "box": [
-           36,
-           241.44,
-           540,
-           270.24
-          ],
-          "pdf": 38,
-          "size": [
-           576,
-           756
-          ]
-         }
-        ],
-        "pdf": 38,
-        "printed": 36,
-        "t": "book"
-       }
-      ],
-      "n": 5,
-      "origin": null,
-      "relation": "Not part of the 2 from streams; part of the 5 a day across Region 4",
-      "short": "up to 5 rainbow trout",
-      "sub": "Its row covers its tributaries, so it applies here",
-      "t": "tier",
-      "tid": "t2",
-      "tier": "own"
-     }
-    ],
-    "worked": {
-     "label": "Examples of how to interpret regulations",
-     "lines": [
-      {
-       "a": "that’s your trout and char for the day, everywhere.",
-       "at": "here",
-       "q": "If you keep 5 rainbow trout here:"
-      },
-      {
-       "a": "they don’t use up your 2 from streams here, but on other streams they count as them: none from other streams today — up to 3 more of any kind, from here or from lakes.",
-       "at": "here",
-       "q": "If you keep 2 rainbow trout here:"
-      },
-      {
-       "a": "Keep 4 more here. Fish from lakes count toward the 5 a day, not toward the 2 from streams.",
-       "at": "elsewhere",
-       "q": "Kept 1 at a lake?"
-      },
-      {
-       "a": "It counts here too: at most 1 over 50 cm (20 in) a day in all.",
-       "at": "elsewhere",
-       "q": "Kept cutthroat trout over 50 cm (20 in) elsewhere today?"
-      }
-     ],
-     "says": "Your own limit, counted across every Region 4 stream you fish today."
-    },
-    "year": {
-     "label": "Through the year",
-     "says": "You can keep them until Oct 31. Then release only Nov 1–Mar 31. You can keep them from Apr 1 next year."
-    }
-   }
-  ],
+  "groups": [],
   "inherited": null,
   "order": [
    "strip",
-   {
-    "group": 0
-   },
+   "trout",
    "otherFish",
    "possession",
    "whereNot"
@@ -725,6 +375,322 @@
    ],
    "status": "open",
    "todayAt": 0.4520547945205479
+  },
+  "trout": {
+   "boxes": [
+    {
+     "bands": [
+      {
+       "date": null,
+       "from": 0,
+       "kind": "shared",
+       "text": "only 2 of these 4",
+       "to": 3
+      },
+      {
+       "date": null,
+       "from": 4,
+       "kind": "upto",
+       "text": "any of the 5",
+       "to": 4
+      }
+     ],
+     "date": "until Oct 31, then release",
+     "head": "Keep 5 in all",
+     "kind": "keep",
+     "label": null,
+     "possession": null,
+     "rows": [
+      {
+       "a11y": "Brook trout. only 2 of these 4",
+       "coming": [
+        "From Nov 1 every one goes back."
+       ],
+       "date": null,
+       "fish": "EB",
+       "key": "EB",
+       "label": null,
+       "lines": [],
+       "name": "Brook trout",
+       "origin": null,
+       "quiet": [],
+       "sheet": {
+        "head": "Keep · only 2 of these 4 · counts toward the 5",
+        "here": [
+         {
+          "bold": false,
+          "t": "Any size."
+         },
+         {
+          "bold": false,
+          "t": "Counts toward the 5 in all, together with brown trout, cutthroat trout, lake trout and rainbow trout."
+         },
+         {
+          "bold": false,
+          "t": "Only 2 of these 4: this fish and brown trout, cutthroat trout and lake trout."
+         }
+        ],
+        "src": [
+         3134,
+         3143,
+         3136
+        ]
+       },
+       "src": [
+        3134,
+        3143,
+        3136
+       ],
+       "sub": null
+      },
+      {
+       "a11y": "Brown trout. only 2 of these 4",
+       "coming": [
+        "From Nov 1 every one goes back."
+       ],
+       "date": null,
+       "fish": "GB",
+       "key": "GB",
+       "label": null,
+       "lines": [],
+       "name": "Brown trout",
+       "origin": null,
+       "quiet": [],
+       "sheet": {
+        "head": "Keep · only 2 of these 4 · counts toward the 5",
+        "here": [
+         {
+          "bold": false,
+          "t": "Any size."
+         },
+         {
+          "bold": false,
+          "t": "Counts toward the 5 in all, together with brook trout, cutthroat trout, lake trout and rainbow trout."
+         },
+         {
+          "bold": false,
+          "t": "Only 2 of these 4: this fish and brook trout, cutthroat trout and lake trout."
+         }
+        ],
+        "src": [
+         3134,
+         3143,
+         3136
+        ]
+       },
+       "src": [
+        3134,
+        3143,
+        3136
+       ],
+       "sub": null
+      },
+      {
+       "a11y": "Cutthroat trout. only 1 over 50 cm (20 in). only 2 of these 4",
+       "coming": [
+        "From Nov 1 every one goes back."
+       ],
+       "date": null,
+       "fish": "CT",
+       "key": "CT",
+       "label": null,
+       "lines": [
+        "only 1 over 50 cm (20 in)"
+       ],
+       "name": "Cutthroat trout",
+       "origin": null,
+       "quiet": [],
+       "sheet": {
+        "head": "Keep · only 2 of these 4 · counts toward the 5",
+        "here": [
+         {
+          "bold": false,
+          "t": "Any size."
+         },
+         {
+          "bold": false,
+          "t": "Counts toward the 5 in all, together with brook trout, brown trout, lake trout and rainbow trout."
+         },
+         {
+          "bold": false,
+          "t": "Only 2 of these 4: this fish and brook trout, brown trout and lake trout."
+         },
+         {
+          "bold": false,
+          "t": "Only 1 over 50 cm (20 in)."
+         }
+        ],
+        "src": [
+         3134,
+         3135,
+         3143,
+         3136
+        ]
+       },
+       "src": [
+        3134,
+        3135,
+        3143,
+        3136
+       ],
+       "sub": null
+      },
+      {
+       "a11y": "Lake trout. only 2 of these 4",
+       "coming": [
+        "From Nov 1 every one goes back."
+       ],
+       "date": null,
+       "fish": "LT",
+       "key": "LT",
+       "label": null,
+       "lines": [],
+       "name": "Lake trout",
+       "origin": null,
+       "quiet": [],
+       "sheet": {
+        "head": "Keep · only 2 of these 4 · counts toward the 5",
+        "here": [
+         {
+          "bold": false,
+          "t": "Any size."
+         },
+         {
+          "bold": false,
+          "t": "Counts toward the 5 in all, together with brook trout, brown trout, cutthroat trout and rainbow trout."
+         },
+         {
+          "bold": false,
+          "t": "Only 2 of these 4: this fish and brook trout, brown trout and cutthroat trout."
+         }
+        ],
+        "src": [
+         3134,
+         3143,
+         3136
+        ]
+       },
+       "src": [
+        3134,
+        3143,
+        3136
+       ],
+       "sub": null
+      },
+      {
+       "a11y": "Rainbow trout. any of the 5",
+       "coming": [
+        "From Nov 1 every one goes back."
+       ],
+       "date": null,
+       "fish": "RB",
+       "key": "RB",
+       "label": null,
+       "lines": [],
+       "name": "Rainbow trout",
+       "origin": null,
+       "quiet": [],
+       "sheet": {
+        "head": "Keep · counts toward the 5",
+        "here": [
+         {
+          "bold": false,
+          "t": "Any size."
+         },
+         {
+          "bold": false,
+          "t": "Counts toward the 5 in all, together with brook trout, brown trout, cutthroat trout and lake trout."
+         }
+        ],
+        "src": [
+         1271,
+         3134,
+         3143
+        ]
+       },
+       "src": [
+        1271,
+        3134,
+        3143
+       ],
+       "sub": null
+      }
+     ],
+     "strip": "any size",
+     "tag": null
+    },
+    {
+     "bands": [],
+     "date": null,
+     "head": "Release",
+     "kind": "release",
+     "label": null,
+     "possession": null,
+     "rows": [
+      {
+       "a11y": "Dolly Varden/bull trout",
+       "coming": [],
+       "date": null,
+       "fish": "DV",
+       "key": "DV",
+       "label": null,
+       "lines": [],
+       "name": "Dolly Varden/bull trout",
+       "origin": null,
+       "quiet": [],
+       "sheet": {
+        "head": "Put it back",
+        "here": [],
+        "src": [
+         1569,
+         3143
+        ]
+       },
+       "src": [
+        1569,
+        3143
+       ],
+       "sub": null
+      }
+     ],
+     "strip": null,
+     "tag": null
+    }
+   ],
+   "card": null,
+   "covers": [
+    0,
+    1
+   ],
+   "elsewhere": [
+    "Kept 1 at a lake? Keep 4 more here. Fish from lakes count toward the 5 a day, not toward the 2 from streams.",
+    "Kept cutthroat trout over 50 cm (20 in) elsewhere? It counts here too: at most 1 over 50 cm (20 in) a day in all."
+   ],
+   "elsewhereLink": "Fished elsewhere today? ›",
+   "fold": {
+    "date": null,
+    "name": "Trout and char",
+    "tone": "keep",
+    "value": "Up to 2 or 5"
+   },
+   "hatchLink": null,
+   "kind": "table",
+   "sourcesLink": "Sources ›",
+   "src": [
+    3134,
+    3143,
+    3136,
+    3135,
+    1271,
+    1569
+   ],
+   "together": null,
+   "top": {
+    "date": null,
+    "lead": "Up to 2 on Jun 15, or 5 if they’re rainbow trout",
+    "second": null
+   },
+   "year": null
   },
   "whereNot": {
    "heading": "Where you can’t fish",
@@ -1618,7 +1584,6 @@
        "sub": null,
        "text": "Whitefish · 15 a day"
       },
-      "quiet": null,
       "row": 3,
       "scope": "Region 4-wide",
       "title": "Whitefish",
@@ -2365,15 +2330,6 @@
     },
     {
      "items": [
-      {
-       "line": [
-        {
-         "s": "With 5 trout and char a day you may have 10: 2 days’ fish.",
-         "t": "text"
-        }
-       ],
-       "strong": "Possession doubles the 5 a day, not the 2 from streams."
-      },
       {
        "line": [
         {
@@ -4498,181 +4454,7 @@
    "sub": null,
    "title": "White sturgeon"
   },
-  "src:r0": {
-   "blocks": [
-    {
-     "k": "head",
-     "text": "These decide it (5)"
-    },
-    {
-     "groups": [
-      {
-       "rows": [
-        {
-         "book": [
-          {
-           "box": [
-            {
-             "box": [
-              36,
-              183.84,
-              540,
-              193.44
-             ],
-             "pdf": 42,
-             "size": [
-              576,
-              756
-             ]
-            }
-           ],
-           "pdf": 42,
-           "printed": 40,
-           "t": "book"
-          }
-         ],
-         "key": "r4:trout_lake_s_tributaries@4-30::trout_lakes_tributaries.r1",
-         "quote": "Bull trout catch and release",
-         "role": "Release every one · for Dolly Varden/bull trout",
-         "title": "Release all Dolly Varden/bull trout in tributaries"
-        }
-       ],
-       "where": "Region 4 · for this water (Trout Lake)"
-      },
-      {
-       "rows": [
-        {
-         "book": [
-          {
-           "pdf": 36,
-           "printed": 34,
-           "t": "book"
-          }
-         ],
-         "key": "z4:daily_quotas::trout_char_quota.r1",
-         "quote": "Trout/char: 5",
-         "role": "Sets the number · for cutthroat trout, brook trout, brown trout and lake trout",
-         "title": "Keep up to 5 trout and char a day"
-        },
-        {
-         "book": [
-          {
-           "pdf": 36,
-           "printed": 34,
-           "t": "book"
-          }
-         ],
-         "key": "z4:daily_quotas::trout_char_quota.r3",
-         "quote": "2 from streams",
-         "role": "Lowers the number · for cutthroat trout, brook trout, brown trout and lake trout",
-         "title": "At most 2 trout and char a day from streams"
-        },
-        {
-         "book": [
-          {
-           "pdf": 36,
-           "printed": 34,
-           "t": "book"
-          }
-         ],
-         "key": "z4:possession_quota::possession_quota.r1",
-         "quote": "Possession quotas = 2 daily quotas (See tables for exceptions)",
-         "role": "Possession limit",
-         "title": "Possession: twice the daily quota"
-        },
-        {
-         "book": [
-          {
-           "pdf": 36,
-           "printed": 34,
-           "t": "book"
-          }
-         ],
-         "key": "z4:daily_quotas::trout_char_quota.r2",
-         "quote": "1 rainbow trout or cutthroat trout over 50 cm",
-         "role": "A limit inside the total · for cutthroat trout",
-         "title": "At most 1 rainbow trout or cutthroat trout over 50 cm (20 in) a day"
-        }
-       ],
-       "where": "Region 4 · region-wide"
-      }
-     ],
-     "k": "sources"
-    },
-    {
-     "body": [
-      {
-       "groups": [
-        {
-         "rows": [
-          {
-           "book": [],
-           "key": "r4:duncan_river@4-19::duncan_river.r5",
-           "notes": [],
-           "quote": "bull trout daily quota = 2 (any size)",
-           "role": "Beaten by “Bull trout catch and release” · for Dolly Varden/bull trout",
-           "title": "Keep up to 2 Dolly Varden/bull trout a day",
-           "trib": true
-          }
-         ],
-         "where": "Region 4 · for this water (Duncan River)"
-        },
-        {
-         "rows": [
-          {
-           "book": [],
-           "key": "r4:kootenay_lake_s_tributaries@4-19+4-7::kootenay_lake_tributaries.r1",
-           "notes": [],
-           "quote": "Bull trout catch and release",
-           "role": "Beaten by “Bull trout catch and release” · for Dolly Varden/bull trout",
-           "title": "Release all Dolly Varden/bull trout in tributaries",
-           "trib": true
-          }
-         ],
-         "where": "Region 4 · for this water (Kootenay Lake — Main Body)"
-        },
-        {
-         "rows": [
-          {
-           "book": [],
-           "key": "z4:daily_quotas::trout_char_quota.r4",
-           "notes": [],
-           "quote": "1 bull trout (Dolly Varden) of any size",
-           "role": "Beaten by “Bull trout catch and release” · for Dolly Varden/bull trout",
-           "title": "At most 1 Dolly Varden/bull trout a day",
-           "trib": false
-          }
-         ],
-         "where": "Region 4 · region-wide"
-        },
-        {
-         "rows": [
-          {
-           "book": [],
-           "key": "zp:quota_defaults::quota_defaults.r1",
-           "notes": [],
-           "quote": "Possession quota — no more than twice the daily quota unless otherwise specified.",
-           "role": "Beaten by “Possession quotas = 2 daily quotas (See tables for exceptions)”",
-           "title": "Possession: twice the daily quota",
-           "trib": false
-          }
-         ],
-         "where": "Provincial · province-wide"
-        }
-       ],
-       "k": "sources",
-       "overruled": true
-      }
-     ],
-     "k": "fold",
-     "open": false,
-     "summary": "Overruled (4)"
-    }
-   ],
-   "key": "src:r0",
-   "sub": "Glenn Creek · Jun 15. The more specific rule speaks first: this water, then from downstream, a named area, the region, then the province.",
-   "title": "Trout and char"
-  },
+  "src:r0": null,
   "srcs:always": {
    "blocks": [
     {

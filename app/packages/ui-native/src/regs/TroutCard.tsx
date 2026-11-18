@@ -1,5 +1,5 @@
 /**
- * (T810 O, behind the dev switch `troutTable`) THE TROUT AND CHAR TABLE: N's `TroutVM` (core `troutOf`) laid out, as the
+ * (T810 O) THE TROUT AND CHAR TABLE: N's `TroutVM` (core `troutOf`) laid out, as the
  * build spec's section 3 and the mockup's round 15 draw it (`handoff/PLAN/design/trout-table-build-spec-2026-11-16.md`,
  * contract 2.12 "Draw"). Every string is the payload's, drawn unchanged; the app joins none and decides nothing: which
  * rows, boxes, dates, labels and bars exist is Python's. The app's own words are navigation only (`TROUT_NAV`, the shape
