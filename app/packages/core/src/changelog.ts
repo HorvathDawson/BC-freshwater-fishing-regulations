@@ -27,6 +27,15 @@ export interface ChangelogEntry {
 
 export const CHANGELOG: readonly ChangelogEntry[] = [
   {
+    version: "0.8.0", date: null, draft: true, notes: [
+      "Trout and char: one table per water: each fish's size and what it counts toward, shared limits boxed together",
+      "Tap a fish for how to tell it apart, what applies to it here today, and the book's own lines",
+      "Classified waters show their class and dates beside the water's name",
+      "Licence: closures for non-resident aliens on the waters they apply to; each youth licence with its own price",
+      "The swimming coho now greets you when the app opens, on the phone and the web",
+    ],
+  },
+  {
     version: "0.7.12", date: "2026-11-16", draft: true, notes: [
       "A swimming coho while data loads; the first download resumes in the background",
       "Applying new data shows progress; the bar never goes backwards",
