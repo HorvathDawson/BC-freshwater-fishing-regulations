@@ -14,7 +14,8 @@ export const key: KeyOf = (n) => `${n.kind}:${n.latest}`;
 
 export const message: MessageOf = (n) => {
   if (n.kind === "hydat") return `HYDAT ${n.latest} is out; the gauge feed is on ${n.current}. Run: ${n.action}`;
-  if (n.kind === "roster") return `ECCC's real-time station list differs from ${n.current} (${n.latest}). Run: ${n.action}`;
+  // T847: the roster notice names only stations the roster has never seen (publish.maintenanceNotices)
+  if (n.kind === "roster") return `ECCC lists stations ${n.current} has never seen (${n.latest}): refresh it, match them, rebuild. Run: ${n.action}`;
   return `${n.kind}: ${n.latest} is due (on ${n.current}). Run: ${n.action}`;
 };
 

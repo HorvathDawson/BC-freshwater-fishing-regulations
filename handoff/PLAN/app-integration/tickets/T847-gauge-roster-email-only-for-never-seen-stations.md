@@ -35,3 +35,11 @@ refresh unless it was. anever before seen gauge?"
 
 Both suites green (worker tests + the gauges pytest files), an independent review, merged, the staging feeds worker
 deployed with 0.8.0, and the first run after deploy raises one notice per never-seen station (the 4 above), no others.
+
+## Done (branch worktree-agent-a6918514b349ce963, not merged)
+
+`roster_drift`/`rosterDrift` gain `unknown` (listed, no roster row at all); the `roster` notice's `latest` is those ids
+space-separated, nothing else (a kept pre-T847 `+id -id` notice is dropped). `gaugeEvents` makes one event per id,
+key `roster:new:<id>`; the email: "ECCC lists N stations we've never seen", the ids, refresh → match → rebuild → sync.
+Worker 521/521 (parity fixture now carries one never-seen station), pytest feed + liveness files 126/126. Owes: an
+independent review, merge, the 0.8.0 staging worker deploy, and the first-run check (the 4 stations, no others).

@@ -5,6 +5,8 @@ import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 import { compose, deliver, mime, NOTIFY_STATE, readState, type FeedEvent, type NotifyConfig } from "../src/events";
 import { dfoEvents, gaugeEvents, healthEvents } from "../src/index";
+import { rosterDrift, type RosterRow } from "../src/gauges/liveness";
+import { maintenanceNotices } from "../src/gauges/publish";
 import { buildFeed, diff, effectiveDates, undatedEvent, matchedWaters, parseChange, parseInSeason, regionOf, rowId, runInSeason, type InSeasonFeed } from "../src/inseason";
 import { repoData } from "../../../conformance/src/repoData";
 import { MemStore } from "./dfo.scenario";
@@ -182,24 +184,51 @@ describe("the outbox", () => {
 });
 
 describe("what each job tells", () => {
-  it("HYDAT: the action to run; roster drift; DFO with the review link; health", () => {
-    const [h, r] = gaugeEvents(
+  it("HYDAT: the action to run; never-seen stations; DFO with the review link; health", () => {
+    const [h, r, r2, ...rest] = gaugeEvents(
       [
         { kind: "hydat", since: "2026-10-28T00:00:00Z", current: "20250115", latest: "20261015", action: "scripts/update-hydat.sh" },
-        { kind: "roster", since: "x", current: repoData("source/bc_hydrometric_stations.json"), latest: "+2/-1", action: "python -m …" },
+        { kind: "roster", since: "x", current: repoData("source/bc_hydrometric_stations.json"), latest: "07FA008 08DA013", action: "python -m …" },
       ],
       "t",
     );
     // (T554 item 4) the envelope in use is in the key: an older clim.json put back is a new event, told again
     expect(h).toMatchObject({ key: "hydat:20261015:20250115", kind: "hydat", title: "New HYDAT 20261015 — run the HYDAT action" });
     expect(h!.text).toMatch(/feeds — HYDAT → climatology → R2/);
-    expect(r).toMatchObject({ key: "roster:+2/-1", kind: "roster" });
+    // (T847) one event per never-seen station, keyed by the station alone
+    expect(r).toMatchObject({ key: "roster:new:07FA008", kind: "roster", data: { station: "07FA008" } });
+    expect(r2).toMatchObject({ key: "roster:new:08DA013", kind: "roster", data: { station: "08DA013" } });
+    expect(rest).toEqual([]);
     const [d] = dfoEvents([{ key: "dfo-new:6:abc", text: "DFO Region 6: new location on Skeena River: 'x' — 2 rules held unplaced. Place it in DFO review after: …" }], "t");
     // (T549 item 9) the Mac reads DFO's page first: `queue` alone reads the Mac's own unplaced.json, never the worker's
     expect(d!.text).toContain("First: python -m pipeline.regs.dfo_salmon.live run --regions 6 && python -m pipeline.regs.dfo_salmon.live queue --regions 6\n");
     expect(d!.text).toContain("Then: Review app → DFO → Extents: Skeena River — x");
     expect(d!.text).not.toMatch(/https?:/);
     expect(healthEvents([{ job: "dfo", from: "ok", to: "stale", text: "DFO salmon feed is STALE" }], "t")[0]!.key).toBe("health:dfo:ok>stale:t");
+  });
+
+  it("(T847) the roster: a known station joining or leaving is no event; a never-seen station is told once, ever", async () => {
+    const roster: RosterRow[] = [{ station: "A", realtime: true }, { station: "S", realtime: false }, { station: "L", realtime: true }];
+    const run = (listed: string[], previous: unknown = null) =>
+      maintenanceNotices({ release: null, latest: null, drift: rosterDrift(roster, new Set(listed)), previous, at: "t" });
+    // S (known, silent in the roster) joins, L (known, live) leaves: the feed follows ECCC, nothing to tell
+    expect(run(["A", "S"])).toEqual([]);
+    expect(gaugeEvents(run(["A", "S"]), "t")).toEqual([]);
+    // a pre-T847 notice kept on a run with no list says nothing either
+    expect(maintenanceNotices({ release: null, latest: null, drift: null, at: "t",
+      previous: [{ kind: "roster", since: "s", latest: "+S -L", current: "c", action: "a" }] })).toEqual([]);
+    // N is in no roster row: told once; the list wobbling around it (L back, then a second new station) never repeats it
+    const store = new MemStore();
+    const told: string[][] = [];
+    const tell = async (listed: string[], at: string) => {
+      const r = await deliver(gaugeEvents(run(listed), at), { store, config: {}, fetch: okFetch, now: T(at), log: () => {} });
+      told.push(r.messages.flatMap((m) => m.keys));
+    };
+    await tell(["A", "N"], "2026-11-18T12:00:00Z");
+    await tell(["A", "L", "N"], "2026-11-18T12:30:00Z");
+    await tell(["A", "N", "Q"], "2026-11-18T13:00:00Z");
+    await tell(["A", "N", "Q"], "2026-11-19T13:00:00Z");
+    expect(told).toEqual([["roster:new:N"], [], ["roster:new:Q"], []]);
   });
 });
 

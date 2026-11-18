@@ -16,7 +16,7 @@ from pipeline.gauges.feed import notify
 HYDAT = {"kind": "hydat", "since": "2026-10-22T21:00:00Z", "current": "20260717", "latest": "20261020",
          "action": "scripts/update-hydat.sh"}
 ROSTER = {"kind": "roster", "since": "2026-10-22T21:00:00Z", "current": "data/source/bc_hydrometric_stations.json",
-          "latest": "+08NM139 -08EG012", "action": "rm x && y"}
+          "latest": "07FA008 08DA013", "action": "rm x && y"}
 
 
 class Sender:
@@ -34,8 +34,8 @@ def test_the_message_is_short_plain_text_with_the_command():
     assert notify.message(HYDAT) == (
         "HYDAT 20261020 is out; the gauge feed is on 20260717. Run: scripts/update-hydat.sh")
     assert notify.message(ROSTER) == (
-        "ECCC's real-time station list differs from data/source/bc_hydrometric_stations.json "
-        "(+08NM139 -08EG012). Run: rm x && y")
+        "ECCC lists stations data/source/bc_hydrometric_stations.json has never seen (07FA008 08DA013): "
+        "refresh it, match them, rebuild. Run: rm x && y")
 
 
 def test_the_state_file_sits_beside_the_feed_not_in_it(tmp_path):
@@ -55,12 +55,12 @@ def test_sends_each_notice_once(tmp_path, capsys):
     out = tmp_path / "feeds"
     send = Sender()
     got = notify.send_due([HYDAT, ROSTER], out, url="https://ntfy.sh/x", sender=send)
-    assert got == {"sent": ["hydat:20261020", "roster:+08NM139 -08EG012"], "failed": [], "off": False}
+    assert got == {"sent": ["hydat:20261020", "roster:07FA008 08DA013"], "failed": [], "off": False}
     assert send.sent == [("https://ntfy.sh/x", notify.message(HYDAT)), ("https://ntfy.sh/x", notify.message(ROSTER))]
     again = notify.send_due([HYDAT, ROSTER], out, url="https://ntfy.sh/x", sender=send)
     assert again == {"sent": [], "failed": [], "off": False}
     assert len(send.sent) == 2
-    assert json.loads(notify.state_path(out).read_text()) == {"sent": ["hydat:20261020", "roster:+08NM139 -08EG012"]}
+    assert json.loads(notify.state_path(out).read_text()) == {"sent": ["hydat:20261020", "roster:07FA008 08DA013"]}
 
 
 def test_a_new_latest_is_sent_again(tmp_path):

@@ -159,7 +159,8 @@ def small(full: Path, out: Path, n_extra: int) -> None:
     ghost = silent[0] if silent else "08ZZ999"
     ask = sorted(set(pick) | {ghost})
 
-    # roster: picked stations live; one live-in-roster-not-listed ("left"); one listed-not-live ("joined")
+    # roster: picked stations live; one live-in-roster-not-listed ("left"); one listed-not-live ("joined"); one listed
+    # with no roster row at all ("unknown", T847: the only one that raises the `roster` notice)
     roster = json.loads((full / "roster.json").read_text())
     by = {r["station"]: r for r in roster}
     keep = []
@@ -168,6 +169,7 @@ def small(full: Path, out: Path, n_extra: int) -> None:
         r["realtime"] = True
         keep.append(r)
     keep[0]["realtime"] = False                      # joined
+    del keep[1]                                      # unknown (never seen)
     gone = next(r for r in roster if r["station"] not in hourly and r.get("realtime") is not None)
     keep.append({**gone, "realtime": True})          # left
     out.mkdir(parents=True, exist_ok=True)

@@ -9,15 +9,6 @@
 "area_km2": 4142.0
 },
 {
-"station": "07EA005",
-"name": "FINLAY RIVER ABOVE AKIE RIVER",
-"lon": -125.24992370605467,
-"lat": 57.126220703125,
-"realtime": true,
-"active": true,
-"area_km2": 15630.0
-},
-{
 "station": "07EA007",
 "name": "AKIE RIVER NEAR THE 760 M CONTOUR",
 "lon": -124.90110778808594,

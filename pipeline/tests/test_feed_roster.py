@@ -69,9 +69,10 @@ def test_without_the_list_the_roster_still_answers():
     assert ids == ["08EG012", "08MG014", "08MH001"]
 
 
-def test_roster_drift_names_both_directions():
+def test_roster_drift_names_both_directions_and_the_never_seen():
     drift = pub.roster_drift(ROSTER, pub.listed_stations(LIST_CSV))
-    assert drift == {"joined": ["07FA008", "08NM139", "10CD005"], "left": ["08EG012"]}
+    # T847: 07FA008 has no roster row at all (never seen); 08NM139 / 10CD005 are known rows that began transmitting
+    assert drift == {"joined": ["07FA008", "08NM139", "10CD005"], "left": ["08EG012"], "unknown": ["07FA008"]}
     assert pub.roster_drift(ROSTER, None) is None
 
 

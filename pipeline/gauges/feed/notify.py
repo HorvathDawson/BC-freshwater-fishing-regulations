@@ -41,8 +41,9 @@ def message(n: dict) -> str:
     if n["kind"] == "hydat":
         return f"HYDAT {n['latest']} is out; the gauge feed is on {n['current']}. Run: {n['action']}"
     if n["kind"] == "roster":
-        return (f"ECCC's real-time station list differs from {n['current']} ({n['latest']}). "
-                f"Run: {n['action']}")
+        # T847: the roster notice names only stations the roster has never seen (`publish.maintenance_notices`)
+        return (f"ECCC lists stations {n['current']} has never seen ({n['latest']}): refresh it, match them, "
+                f"rebuild. Run: {n['action']}")
     return f"{n['kind']}: {n['latest']} is due (on {n['current']}). Run: {n['action']}"
 
 

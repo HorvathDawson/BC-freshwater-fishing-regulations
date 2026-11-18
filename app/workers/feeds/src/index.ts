@@ -6,7 +6,8 @@
 // GET /status (HTML) and GET /status.json (no auth): every feed's last run, last success, counts, held rows / places,
 // staleness against its cadence, last error — from private/feeds/status.json, which each run writes (src/status.ts).
 //
-// NOTIFICATIONS (src/events.ts): every run hands its events — a new HYDAT (asked daily), ECCC roster drift, in-season
+// NOTIFICATIONS (src/events.ts): every run hands its events — a new HYDAT (asked daily), a station ECCC lists that the
+// roster has never seen (T847: once per station), in-season
 // changes (the diff), DFO places to review (unplaced / held / moved, linked to the review app's DFO queue), a feed's
 // health changing — to one outbox: deduped by key, email through the EMAIL send_email binding (NOTIFY_EMAIL_FROM →
 // NOTIFY_EMAIL_TO), else / on failure the FEED_NOTIFY_URL webhook, else logged. NOTIFY_DIGEST=daily batches all but
@@ -32,6 +33,7 @@ import { cardEvents, runCards, type CardBucket, type CardRun } from "./gauges/ca
 import { runSkill, skillText, type SkillReport } from "./gauges/score";
 import { FLOOD_WEIGHTS } from "./gauges/change";
 import { STATION_LIST } from "./gauges/liveness";
+import { neverSeen } from "./gauges/publish";
 import { READING_MAX_AGE_HOURS } from "../../../packages/core/src/gauge-policy.generated";
 import { checkToken, dispatchOnce, OVERDUE_MS, unfinished, type Dispatch, type DispatchEnv } from "./dispatch";
 import { checkRunTiming } from "./runtiming";
@@ -91,9 +93,25 @@ export function notifyConfig(env: Env): NotifyConfig {
 
 /** gauge maintenance notices (publish.maintenanceNotices) → events */
 export function gaugeEvents(maintenance: any[], at: string): FeedEvent[] {
-  return maintenance.map((n) =>
-    n.kind === "hydat"
-      ? {
+  return maintenance.flatMap((n): FeedEvent[] =>
+    n.kind === "roster"
+      ? // (T847, owner 2026-11-18) ONE EVENT PER STATION THE ROSTER HAS NEVER SEEN, keyed by the station alone
+        // (`roster:new:<id>`): the told-keys ledger (events.ts) tells each once, however ECCC's list moves around it. A
+        // known station joining or leaving the list is no notice at all (publish.maintenanceNotices): the feed asks
+        // today's list, and waters hold their gauge by `active`, never `realtime`.
+        neverSeen(n.latest).map((id) => ({
+          key: `roster:new:${id}`,
+          kind: "roster" as const,
+          title: `ECCC lists a gauge station we've never seen: ${id}`,
+          text:
+            `${id} is on ECCC's real-time station list but has no row in ${n.current}: the feed asks it, but no water can show it until it is matched.\n\n` +
+            `1. Refresh the roster, match the new station, rebuild:\n   ${n.action}\n` +
+            `2. Then sync it to R2: Actions → "feeds — sync curated inputs → R2 private/" (what: roster).\n\nNoticed ${n.since}.`,
+          at,
+          data: { station: id, current: n.current, action: n.action, since: n.since },
+        }))
+      : n.kind === "hydat"
+      ? [{
           // (T554 item 4) the envelope in use is in the key: an older clim.json put back over a newer one is told again
           key: `hydat:${n.latest}:${n.current}`,
           kind: "hydat" as const,
@@ -105,15 +123,15 @@ export function gaugeEvents(maintenance: any[], at: string): FeedEvent[] {
             `Noticed ${n.since}.`,
           at,
           data: { latest: n.latest, current: n.current, since: n.since },
-        }
-      : {
+        }]
+      : [{
+          // a notice kind this worker does not know yet: its own words, once per `latest`
           key: `${n.kind}:${n.latest}`,
           kind: "roster" as const,
-          title: n.kind === "roster" ? "ECCC's real-time station list changed — refresh the roster" : `${n.kind}: ${n.latest} is due`,
-          text: `${n.kind}: ${n.latest} (feed on ${n.current}). Run: ${n.action}\nThen sync it to R2: Actions → "feeds — sync curated inputs → R2 private/" (what: roster).`,
+          title: `${n.kind}: ${n.latest} is due`,
+          text: `${n.kind}: ${n.latest} (feed on ${n.current}). Run: ${n.action}`,
           at,
-          data: { latest: n.latest, current: n.current, action: n.action },
-        },
+        }],
   );
 }
 

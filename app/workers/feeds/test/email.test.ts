@@ -30,7 +30,7 @@ const inseason: FeedEvent = {
   },
 };
 const hydat = gaugeEvents([{ kind: "hydat", since: "2026-10-28T09:00:00Z", current: "20250115", latest: "20261015", action: "scripts/update-hydat.sh" }], at);
-const roster = gaugeEvents([{ kind: "roster", since: at, current: repoData("source/bc_hydrometric_stations.json"), latest: "+07FA008 +08DA013 -08NM050", action: "rm data/source/bc_hydrometric_stations.json && (cd data && PYTHONPATH=.. ../.venv/bin/python fetch_data.py --layers hydrometric_stations)" }], at);
+const roster = gaugeEvents([{ kind: "roster", since: at, current: repoData("source/bc_hydrometric_stations.json"), latest: "07FA008 08DA013", action: "rm data/source/bc_hydrometric_stations.json && (cd data && PYTHONPATH=.. ../.venv/bin/python fetch_data.py --layers hydrometric_stations) && scripts/heavy.sh build 40 -- .venv/bin/python -m pipeline build" }], at);
 const health = healthEvents([{ job: "gauges", from: "ok", to: "failing", text: "Gauge feed FAILED 2 run(s) in a row: Error: no station answered (asked 438)" }], at);
 const report: FeedEvent = { key: "report:0123456789abcdef", kind: "report", title: "Wrong rule: Elk River — the closure dates are a year out", text: "The closure dates are a year out.\n\nWhere: Elk River · map regs", at };
 
@@ -85,26 +85,27 @@ describe("the email template", () => {
   });
 
   it("feed health, HYDAT, roster drift, a problem report", () => {
-    const all = [...health, ...hydat, ...roster, report];
-    const subjects = all.map((e) => compose([e], false, ctx)[0]!.subject);
+    // (T847) the roster's events are one per never-seen station; a run's are one email together, as compose sends them
+    const groups = [health, hydat, roster, [report]];
+    const subjects = groups.map((es) => compose(es, false, ctx)[0]!.subject);
     expect(subjects).toEqual([
       "[staging] Gauge feed failing",
       "[staging] New HYDAT 20261015 — run the HYDAT action",
-      "[staging] Roster drift: 2 joined, 1 left",
+      "[staging] ECCC lists 2 stations we've never seen",
       "[staging] 1 problem report from the app",
     ]);
-    for (const e of all) {
-      const [m] = compose([e], false, ctx);
+    for (const es of groups) {
+      const [m] = compose(es, false, ctx);
       checkWidth(m!.text);
       expect(m!.text).toContain("Environment: STAGING");
-      expect(m!.text).toMatchSnapshot(`${e.kind}.txt`);
-      expect(m!.html).toMatchSnapshot(`${e.kind}.html`);
+      expect(m!.text).toMatchSnapshot(`${es[0]!.kind}.txt`);
+      expect(m!.html).toMatchSnapshot(`${es[0]!.kind}.html`);
     }
   });
 
   it("the daily digest: one section per kind, each with its own what-to-do", () => {
     const [m] = compose([...health, ...hydat, ...roster], true, ctx);
-    expect(m!.subject).toBe("[staging] Daily digest: Gauge feed failing; New HYDAT 20261015 — run the HYDAT action; Roster drift: 2 joined, 1 left");
+    expect(m!.subject).toBe("[staging] Daily digest: Gauge feed failing; New HYDAT 20261015 — run the HYDAT action; ECCC lists 2 stations we've never seen");
     expect(count(m!.text, "What to do:")).toBe(3);
     checkWidth(m!.text);
     expect(m!.text).toMatchSnapshot("digest.txt");

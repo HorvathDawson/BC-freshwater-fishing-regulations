@@ -185,7 +185,8 @@ def _thinned(series: list, last: tuple) -> list:
 
 
 # OWNER-RUN UPSTREAM UPDATES, SAID IN THE INDEX (owner 2026-10-22 late). Each run already learns two things only the
-# owner can act on: a newer HYDAT on the listing, and ECCC's real-time list drifting from the roster snapshot. Both
+# owner can act on: a newer HYDAT on the listing, and ECCC's real-time list naming a station the roster has never seen
+# (T847: only those; a known station joining or leaving the list is followed with no refresh). Both
 # were console lines nobody reads on a cron. They are now `maintenance` notices in index.json — ONE list for every
 # owner task, so another kind joins it without a new field — sent to the owner once (`pipeline.gauges.feed.notify`)
 # and read by the app (the Data sources page's HYDAT line). Each names the exact command that clears it.
@@ -229,6 +230,12 @@ def newest_forecast_issue(forecast: dict | None) -> str | None:
     return best[1] if best else None
 
 
+def never_seen(latest: object) -> list[str]:
+    """The station ids a `roster` notice's `latest` names (T847: space-separated). A token with a `+`/`-` sign is the
+    pre-T847 joined/left text, not a never-seen station: dropped."""
+    return [t for t in str(latest or "").split() if t[:1] not in "+-"]
+
+
 def maintenance_notices(*, release: str | None, latest: str | None, drift: dict | None,
                         previous: list | None, at: str, roster: str = ROSTER_PATH) -> list[dict]:
     """The owner tasks due this run, sorted by kind: `[{kind, since, current, latest, action}]`; empty when none.
@@ -238,6 +245,11 @@ def maintenance_notices(*, release: str | None, latest: str | None, drift: dict 
     skipped; `drift` None: no station list) KEEPS the previous notice of its kind rather than calling the task done on
     one failed GET — except a HYDAT notice the envelope has since caught up with. No envelope (`release` None): no
     HYDAT claim either way, there is nothing in use to compare.
+
+    THE ROSTER NOTICE (T847) is the stations ECCC lists that the roster holds no row for (`drift["unknown"]`), its
+    `latest` their ids space-separated; known stations joining or leaving the list raise none. The worker tells each id
+    once (`index.ts gaugeEvents`, key `roster:new:<id>`). A kept notice from before T847 (`+id`/`-id` tokens) keeps
+    only its bare ids (`never_seen`): none, so it is dropped.
     """
     prev = {n.get("kind"): n for n in previous or [] if isinstance(n, dict)}
 
@@ -254,11 +266,10 @@ def maintenance_notices(*, release: str | None, latest: str | None, drift: dict 
         elif (p := prev.get("hydat")) and p.get("latest") and p["latest"] != release:
             out.append(notice("hydat", release, p["latest"], HYDAT_ACTION))
     if drift is not None:
-        if drift.get("joined") or drift.get("left"):
-            said = " ".join([f"+{s}" for s in drift.get("joined", [])] + [f"-{s}" for s in drift.get("left", [])])
-            out.append(notice("roster", roster, said, roster_action(roster)))
-    elif (p := prev.get("roster")) and p.get("latest"):
-        out.append(notice("roster", roster, p["latest"], roster_action(roster)))
+        if drift.get("unknown"):
+            out.append(notice("roster", roster, " ".join(drift["unknown"]), roster_action(roster)))
+    elif (p := prev.get("roster")) and (kept := never_seen(p.get("latest"))):
+        out.append(notice("roster", roster, " ".join(kept), roster_action(roster)))
     return sorted(out, key=lambda n: n["kind"])
 
 
@@ -812,8 +823,8 @@ def publish(out: Path, stations: list[str], clim: dict | None = None,
     `now` is the clock, injectable so a test can stand on a known day; a run uses the wall.
     `listed` is ECCC's real-time list this run (`listed_stations`); published in the index
     when known, so "not a real-time gauge" and "real-time but quiet today" can be told apart.
-    `drift` is `roster_drift` this run (None: no list), written as a `roster` maintenance notice naming `roster`, the
-    roster file this run read (`roster_shown`).
+    `drift` is `roster_drift` this run (None: no list); its `unknown` stations (listed, never seen by the roster) are
+    written as a `roster` maintenance notice naming `roster`, the roster file this run read (`roster_shown`).
     """
     out.mkdir(parents=True, exist_ok=True)
     # the previous index's notices, read before it is overwritten: each notice's `since` is carried from there
@@ -1122,10 +1133,12 @@ def main() -> None:
         print("  ⚠️  ECCC real-time station list unavailable; asking the roster's "
               f"{len(ids)} realtime stations", file=sys.stderr)
     if drift and (drift["joined"] or drift["left"]):
-        print(f"  ⚠️  ROSTER DRIFT: ECCC now lists {len(drift['joined'])} station(s) the roster "
+        print(f"  roster drift: ECCC now lists {len(drift['joined'])} station(s) the roster "
               f"calls silent ({', '.join(drift['joined'])}) and no longer lists "
-              f"{len(drift['left'])} it calls live ({', '.join(drift['left'])}).\n"
-              f"     The feed follows ECCC; the bundle follows the roster. Refresh with:\n"
+              f"{len(drift['left'])} it calls live ({', '.join(drift['left'])}); the feed follows ECCC, nothing to do.")
+    if drift and drift["unknown"]:
+        print(f"  ⚠️  NEVER-SEEN STATIONS: ECCC lists {len(drift['unknown'])} station(s) the roster has no row for "
+              f"({', '.join(drift['unknown'])}); no water can show them until they are matched. Refresh with:\n"
               f"       {roster_action(shown)}")
     if args.limit:
         ids = ids[: args.limit]

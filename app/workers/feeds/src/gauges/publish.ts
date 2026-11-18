@@ -8,7 +8,7 @@ import { contentHash, readStored, rev, type Fetch, type Meter, type Store } from
 import { sendDue } from "../notify";
 import { combineDay, forecastDays, gaugeScale, modelName, stale, stationChange, type Rank } from "./change";
 import { ATTRIBUTION, fetchSummary, timeout, withSeries, type Runs, type Summary } from "./forecast";
-import { listedStations, rosterDrift, STATION_LIST, stationsToAsk, type RosterRow } from "./liveness";
+import { listedStations, rosterDrift, STATION_LIST, stationsToAsk, type RosterDrift, type RosterRow } from "./liveness";
 import { dictRows, pool, pyFloat, pyRound, pyRoundInt, pySum, csvRows, truthy, urlencode } from "./py";
 import { appendRuns, type DeletableStore } from "./skill";
 import { addDays, centreWall, DAY_MS, dayMs, dayOf, HOUR, hours, instant, wallIso, yday } from "./time";
@@ -167,8 +167,13 @@ export interface Notice {
   action: string;
 }
 
-/** publish.maintenance_notices */
-export function maintenanceNotices(o: { release: string | null; latest: string | null; drift: { joined: string[]; left: string[] } | null; previous: unknown; at: string; roster?: string }): Notice[] {
+/** publish.never_seen (T847): the ids a `roster` notice's `latest` names; a pre-T847 `+id`/`-id` token is dropped */
+export function neverSeen(latest: unknown): string[] {
+  return String(latest ?? "").split(/\s+/).filter((t) => t && t[0] !== "+" && t[0] !== "-");
+}
+
+/** publish.maintenance_notices. The roster notice (T847) is `drift.unknown` alone, ids space-separated. */
+export function maintenanceNotices(o: { release: string | null; latest: string | null; drift: RosterDrift | null; previous: unknown; at: string; roster?: string }): Notice[] {
   const roster = o.roster ?? ROSTER_PATH;
   const prev = new Map<unknown, Record<string, any>>();
   if (Array.isArray(o.previous)) for (const n of o.previous) if (n && typeof n === "object" && !Array.isArray(n)) prev.set((n as any).kind ?? null, n);
@@ -187,13 +192,10 @@ export function maintenanceNotices(o: { release: string | null; latest: string |
     }
   }
   if (o.drift !== null) {
-    if (o.drift.joined.length || o.drift.left.length) {
-      const said = [...o.drift.joined.map((s) => `+${s}`), ...o.drift.left.map((s) => `-${s}`)].join(" ");
-      out.push(notice("roster", roster, said, rosterAction(roster)));
-    }
+    if (o.drift.unknown.length) out.push(notice("roster", roster, o.drift.unknown.join(" "), rosterAction(roster)));
   } else {
-    const p = prev.get("roster");
-    if (p && truthy(p.latest)) out.push(notice("roster", roster, p.latest, rosterAction(roster)));
+    const kept = neverSeen(prev.get("roster")?.latest);
+    if (kept.length) out.push(notice("roster", roster, kept.join(" "), rosterAction(roster)));
   }
   return out.sort((a, b) => cmpStr(a.kind, b.kind));
 }
@@ -541,7 +543,10 @@ export async function runGauges(deps: GaugeDeps): Promise<GaugeSummary> {
   if (!roster) log("  ⚠️  no roster (priv roster.json): no drift check this run");
   if (source === "roster") log(`  ⚠️  ECCC real-time station list unavailable; asking the roster's ${ids.length} realtime stations`);
   if (drift && (drift.joined.length || drift.left.length))
-    log(`  ⚠️  ROSTER DRIFT: ECCC now lists ${drift.joined.length} station(s) the roster calls silent (${drift.joined.join(", ")}) and no longer lists ${drift.left.length} it calls live (${drift.left.join(", ")}).`);
+    log(`  roster drift: ECCC now lists ${drift.joined.length} station(s) the roster calls silent (${drift.joined.join(", ")}) and no longer lists ${drift.left.length} it calls live (${drift.left.join(", ")}); the feed follows ECCC, nothing to do.`);
+  // (T847) the only owner task: a listed station the roster holds no row for
+  if (drift && drift.unknown.length)
+    log(`  ⚠️  NEVER-SEEN STATIONS: ECCC lists ${drift.unknown.length} station(s) the roster has no row for (${drift.unknown.join(", ")}); no water can show them until they are matched.`);
   // (T550 item 3) A SHRUNKEN ECCC LIST is not believed: more than LIST_SHRINK_SHARE fewer stations than the last index
   // listed (a truncated hydrometric_StationList.csv gave a 40-station run, recorded ok) → the roster's realtime stations
   // are asked, no drift is announced from the broken list, and the index carries no `listed` (unknown, never "nobody").
@@ -747,7 +752,7 @@ interface PublishArgs {
   latest: string | null;
   now: number;
   listed: Set<string> | null;
-  drift: { joined: string[]; left: string[] } | null;
+  drift: RosterDrift | null;
   roster: string;
   log: (s: string) => void;
   sleep: (ms: number) => Promise<void>;
