@@ -193,8 +193,9 @@ class TopLine(Model):
                               # "Up to 6 rainbow trout or steelhead and 4 other trout and char {day}" |
                               # "Release every one {day}" | "Closed for trout and char {day}" | "Nothing to keep {day}"
                               # Validator: "{day}" appears at most once
-    second: Optional[Txt]     # the cross-box wild limit (Lois, Khartoum). Set <=> TroutTable.together is set,
-                              # with the same words (validator)
+    second: Optional[Txt]     # the cross-box wild limit (Lois, Khartoum; = TroutTable.together, same words), or the
+                              # lakes' own count said once (Echoes "only 1 from both lakes together", together null;
+                              # T810 G2). Validator: together set => second set, same words
 
 class Fold(Model):            # the existing "Trout and char" entry's short line (owner 15:47)
     value: Txt                # "Up to 5" | "Up to 2 or 5" | "Up to 6 rainbow, 4 others" | "Release" | "Closed" |
@@ -228,8 +229,10 @@ class Box(Model):
     kind: Literal["keep", "release", "closed"]
     head: Txt                 # keep: "Keep 5 in all" | release: "Release" | closed: "Closed"  (Q-D1)
     label: Optional[Txt]      # keep only: "Hatchery only" when it covers every row of the box (owner 16:00)
-    strip: Optional[Txt]      # keep only: "only 1 over 50 cm (20 in)" | "only 2 wild, each 40 cm (16 in) or less" |
-                              # "In your possession: only 1 in all, not 1 of each"
+    strip: Optional[Txt]      # keep only: "any size" | "only 1 over 50 cm (20 in)" | "only 1 over 50 cm (20 in), not
+                              # counting lake trout" | "only 2 wild, each 40 cm (16 in) or less" (parts joined by "; ")
+    possession: Optional[Txt] # keep only (T810 G2 Q4, 2026-11-17): the possession every row shares, drawn on ITS OWN
+                              # LINE under the strip: "In your possession: no more than 2 trout and char in all"
     tag: Optional[Txt]        # keep only: "Lake's rule"
     rows: Tuple[TRow, ...]    # min 1, in Python's order (a shared band's rows are next to each other, round 3)
     bands: Tuple[Band, ...]   # keep: covers rows 0..len-1 exactly once, in order, no gaps or overlaps (validator);
@@ -310,7 +313,7 @@ rows in `water-shared`). A table name added in one place and not the others fail
 ### 2.4 Who writes which word
 
 **Python writes, whole:** `top.lead` (except the slot), `top.second`, `fold.value`, every `Box.head`, `label`,
-`strip`, `tag`, every `TRow.name`, `sub`, `lines`, `quiet`, every `Band.text`, `together.text`, `year.title`,
+`strip`, `possession`, `tag`, every `TRow.name`, `sub`, `lines`, `quiet`, every `Band.text`, `together.text`, `year.title`,
 `elsewhere`, every sheet `head` and `here` line, and every `DateSet` text. That includes the HATCHERY ONLY label (as
 `label`) and the Release and Closed column words (as `head`). They all come from one words module
 (`answers/trout/words.py`, ticket G), with whole-string tests, and are listed in G's catalogue for the owner. **The

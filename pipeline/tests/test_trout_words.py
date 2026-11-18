@@ -159,10 +159,26 @@ NOW = [
     (W.TOP_NONE, "Nothing to keep {day}", W.parse_top, ("none", ())),
     (W.head_keep(5), "Keep 5 in all", W.parse_head, ("keep", 5)),
     (W.HEAD_RELEASE, "Release", W.parse_head, ("release", None)),
-    (W.band_upto(5), "up to the 5", W.parse_band, ("upto", 5, None)),
+    (W.band_upto(5), "any of the 5", W.parse_band, ("upto", 5, None)),          # T810 G2, owner 15:46
     (W.band_own(3), "only 3", W.parse_band, ("own", 3, None)),
     (W.band_shared(1, 4), "only 1 of these 4", W.parse_band, ("shared", 1, 4)),
-    (W.band_shared(3, 2), "only 3 from these 2 together", W.parse_band, ("shared", 3, 2)),
+    (W.band_shared(3, 2), "only 3 between them", W.parse_band, ("shared", 3, 2)),   # T810 G2 Q2
+    (W.band_shared(4, 3), "only 4 among them", W.parse_band, ("shared", 4, None)),
+    (W.band_wild(2), "only 2 wild in all", W.parse_band, ("shared", 2, None)),  # T810 G2 Q9
+    (W.strip_size_except(1, 50, W.fish_words(["LT"])), "only 1 over 50 cm (20 in), not counting lake trout",
+     W.parse_strip, (("size_except", 1, 50, ("LT",)),)),                         # T810 G2 Q3b
+    (W.STRIP_ANY_SIZE, "any size", W.parse_strip, (("any",),)),                  # T810 G2 Q6
+    (W.box_possession("in your possession: no more than 2 trout and char in all (fish at home don’t count)"),
+     "In your possession: no more than 2 trout and char in all", lambda t: W.parse_possession("i" + t[1:]),
+     ("count", 2, W.parse_fish("trout and char"), ())),                          # T810 G2 Q4
+    (W.possession_quiet(3, 2, "lake trout", "only 1 over 50 cm (20 in)"),
+     "3 a day, but never more than 2 lake trout with you, and only 1 of them over 50 cm (20 in)", W.parse_quiet,
+     ("possession", 3, 2, ("LT",), ((1, ((50, W.INF),)),))),                     # T810 G2 Q10
+    (W.size_release(60, 90), "release over 60 cm (24 in) and under 90 cm (35 in)", W.parse_size,
+     ((0, 60), (90, W.INF))),                                                    # T810 G2, Tagish lake trout
+    (W.CLOSED_ALL_YEAR, "closed all year", W.parse_row_line, ("closed_year",)),  # T810 G2 Q8
+    (W.stop_duty("stop fishing this river after 1 a day", "creek"), "after keeping 1, stop fishing this creek today",
+     W.parse_stop_duty, (1, "creek")),                                           # T810 G2 Q7
     (W.band_possession(2), "only 2 in your possession", W.parse_band, ("possession", 2, None)),
     (W.strip_size(1, 50), "only 1 over 50 cm (20 in)", W.parse_strip_size, (1, 50, None)),
     (W.strip_size(1, 50, 1), "only 1 over 50 cm (20 in), 2 if one is a hatchery steelhead", W.parse_strip_size,

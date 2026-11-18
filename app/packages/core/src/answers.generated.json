@@ -8941,6 +8941,18 @@
        ],
        "title": "Label"
       },
+      "possession": {
+       "anyOf": [
+        {
+         "minLength": 1,
+         "type": "string"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "title": "Possession"
+      },
       "rows": {
        "items": {
         "$ref": "#/$defs/TRow"
@@ -8979,6 +8991,7 @@
       "head",
       "label",
       "strip",
+      "possession",
       "tag",
       "rows",
       "bands"
@@ -9567,6 +9580,18 @@
        ],
        "title": "Label"
       },
+      "possession": {
+       "anyOf": [
+        {
+         "minLength": 1,
+         "type": "string"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "title": "Possession"
+      },
       "rows": {
        "items": {
         "$ref": "#/$defs/TRowWire"
@@ -9605,6 +9630,7 @@
       "head",
       "label",
       "strip",
+      "possession",
       "tag",
       "rows",
       "bands"
