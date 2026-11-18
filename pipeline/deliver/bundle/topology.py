@@ -687,60 +687,86 @@ def gauge_near(db: sqlite3.Connection, geo: Dict[int, Geometry], span: Dict[int,
                sids: Dict[Tuple[int, int], List[int]], kind: Dict[int, str]) -> List[Tuple[str, str, float]]:
     """T517 (review finding 7) THE NEAREST NAMED FEATURE TO A GAUGE CUT a part ends at: a gauge's code and station name
     are never the words of a place a regulation's part ends at (they go to the mark's `alt`), so the end is said by what
-    stands nearest the cut on the ground — a named tributary's confluence (`item_down` into the water, distance to its
-    nearest drawn section), or a named non-gauge, non-length cut of the water (the end of its sections). Rows (split_id,
-    token, metres): `token` an end token the answers name (`confluence:<item>` or the cut's id). Only gauge cuts that are
-    a run end of a named water's section, and only a feature within `NEAR_M`: none farther (the answers then say the
-    cut by its km from the mouth, `part._named_token`)."""
-    from shapely.ops import nearest_points
+    stands nearest the cut along the water — a named tributary's confluence (`item_down` into the water), or a named
+    non-gauge, non-length cut of the water. Rows (split_id, token, metres): `token` an end token the answers name
+    (`confluence:<item>` or the cut's id). Only gauge cuts a named water's main-stem section ends at, and only a feature
+    within `NEAR_M` of it: none farther (the answers then say the cut by its km from the mouth, `part._named_token`).
+
+    T850 (owner 2026-11-18: "a big issue") MEASURED ALONG THE MAIN STEM, from the cut's own measure, as `crossing_near`
+    measures (`_stem_feats`): it measured from a point ON the gauge's section to the WHOLE of each named cut's sections,
+    so a named cut at the far end of the one section the gauge ends (the Nass's Canyon City bridge, 11.8 km below
+    08DB001) read 0 m and named the part "bridge → bridge" — 69 of 236 gauge ends named for a feature 1.5-18 km away. A
+    gauge cut no main-stem section ends at (a side channel's) has no measure: no row, the answers say its km."""
     kinds = dict(db.execute("SELECT split_id, kind FROM split"))
-    # a cut with a name of its own: never a gauge, never a length or shore cut (`length:…`, T660 `shore:…`: its name is a generated description
-    # of an unnamed side channel's junction, "side channel above Iltasyuko River", not a named feature)
-    named_cut = {k for k, n in db.execute("SELECT split_id, name FROM split")
-                 if n and kinds.get(k) != "gauge" and not k.startswith(("length:", "shore:"))}
+    named_cut = _named_cuts(db, kinds)
     item_id = dict(db.execute("SELECT ord, item_id FROM item"))
-    owner = {x: o for (o, _p), ss in sids.items() for x in ss}
-    ends: Dict[Tuple[int, str], List[int]] = defaultdict(list)       # (water, token) -> the sections ending there
-    for x, r in span.items():
-        if x in owner:
-            for t in {r[2], r[3]} - {None}:
-                ends[(owner[x], t)].append(x)
+    secs_of, tribs = _secs_and_tribs(db, sids, kind)
+    best: Dict[str, Tuple[float, str]] = {}           # one feature per cut: the nearest over every water it ends a part of
+    for o, ss in sorted(secs_of.items()):
+        stem = _stem(ss, span, geo)
+        cuts = sorted({(t, float(m)) for x in stem for t, m in ((span[x][2], span[x][0]), (span[x][3], span[x][1]))
+                       if kinds.get(t) == "gauge"})
+        if not cuts:
+            continue
+        feats = _stem_feats(stem, span, geo, named_cut, tribs.get(o, ()), secs_of, item_id)
+        for t, m in cuts:
+            near = min(((abs(fm - m), ft) for fm, ft in feats if ft != t), default=None)
+            if near is not None and near[0] <= NEAR_M and (t not in best or near < best[t]):
+                best[t] = near
+    return [(t, tok, round(d, 1)) for t, (d, tok) in sorted(best.items())]
+
+
+def _named_cuts(db: sqlite3.Connection, kinds: Dict[str, str]) -> set:
+    """The cuts with a name of their own: never a gauge, never a length or shore cut (`length:…`, T660 `shore:…`: its
+    name is a generated description of an unnamed side channel's junction, "side channel above Iltasyuko River", not
+    a named feature)."""
+    return {k for k, n in db.execute("SELECT split_id, name FROM split")
+            if n and kinds.get(k) != "gauge" and not k.startswith(("length:", "shore:"))}
+
+
+def _secs_and_tribs(db: sqlite3.Connection, sids: Dict[Tuple[int, int], List[int]], kind: Dict[int, str]):
+    """({water: its sections}, {water: the named streams that flow into it (`item_down`)})."""
+    secs_of: Dict[int, List[int]] = defaultdict(list)
+    for (o, _p), ss in sids.items():
+        secs_of[o] += ss
     tribs: Dict[int, List[int]] = defaultdict(list)
     for a, b in db.execute("SELECT ord, down_ord FROM item_down ORDER BY ord"):
         if kind.get(a) == "stream":
             tribs[b].append(a)
-    secs_of: Dict[int, List[int]] = defaultdict(list)
-    for (o, _p), ss in sids.items():
-        secs_of[o] += ss
-    best: Dict[str, Tuple[float, str]] = {}           # one feature per cut: the nearest over every water it ends a part of
-    for (o, t), xs in sorted(ends.items()):
-        if kinds.get(t) != "gauge":
+    return secs_of, tribs
+
+
+def _stem(ss: Sequence[int], span: Dict[int, tuple], geo: Dict[int, Geometry]) -> List[int]:
+    """A water's main-stem sections with a measure, from the mouth up."""
+    return sorted((x for x in ss if x in span and x in geo and not span[x][4] and span[x][0] is not None
+                   and span[x][1] is not None), key=lambda x: (span[x][0], x))
+
+
+def _stem_feats(stem: List[int], span: Dict[int, tuple], geo: Dict[int, Geometry], named_cut: set,
+                tribs: Sequence[int], secs_of: Dict[int, List[int]], item_id: Dict[int, str]) -> List[Tuple[float, str]]:
+    """The named features ON a main stem, (metres from the mouth, token): every named cut a stem section ends at, and
+    every named tributary whose drawn sections come within `TRIBUTARY_REACH_M` of the stem (`confluence:<item>`, at the
+    stem's point nearest it)."""
+    from shapely.ops import nearest_points, unary_union
+    feats: List[Tuple[float, str]] = []
+    for x in stem:
+        for t, m in ((span[x][2], span[x][0]), (span[x][3], span[x][1])):
+            if t in named_cut:
+                feats.append((float(m), t))
+    if not stem:
+        return feats
+    sg = unary_union([geo[x] for x in stem])
+    for tr in tribs:
+        tg = [geo[x] for x in secs_of.get(tr, ()) if x in geo]
+        if not tg:
             continue
-        gs = [geo[x] for x in sorted(xs) if x in geo]
-        if not gs:
+        tu = unary_union(tg)
+        if tu.distance(sg) > TRIBUTARY_REACH_M:
             continue
-        if len(gs) >= 2:
-            pa, pb = nearest_points(gs[0], gs[1])
-            from shapely.geometry import Point
-            pt = Point((pa.x + pb.x) / 2, (pa.y + pb.y) / 2)
-        else:
-            pt = gs[0].representative_point()
-        cands: List[Tuple[float, str]] = []
-        for tr in tribs.get(o, ()):
-            d = min((geo[x].distance(pt) for x in secs_of.get(tr, ()) if x in geo), default=None)
-            if d is not None:
-                cands.append((d, f"confluence:{item_id[tr]}"))
-        for (o2, c), cx in ends.items():
-            if o2 == o and c in named_cut:
-                d = min((geo[x].distance(pt) for x in cx if x in geo), default=None)
-                if d is not None:
-                    cands.append((d, c))
-        cands = [c for c in cands if c[0] <= NEAR_M]
-        if cands:
-            c = min(cands)
-            if t not in best or c < best[t]:
-                best[t] = c
-    return [(t, tok, round(d, 1)) for t, (d, tok) in sorted(best.items())]
+        p = nearest_points(sg, tu)[0]
+        x = min(stem, key=lambda s: (geo[s].distance(p), s))
+        feats.append((_measure_at(x, p, stem, span, geo), f"confluence:{item_id[tr]}"))
+    return feats
 
 
 #: a named tributary whose drawn sections come no closer than this to the water's main stem meets it at no place the
@@ -811,48 +837,24 @@ def crossing_near(db: sqlite3.Connection, geo: Dict[int, Geometry], span: Dict[i
     `answers.display.builders._names` reads it where two parts of one water would otherwise say one name."""
     from pyproj import Transformer
     from shapely.geometry import Point
-    from shapely.ops import nearest_points, unary_union
     kinds = dict(db.execute("SELECT split_id, kind FROM split"))
-    named_cut = {k for k, n in db.execute("SELECT split_id, name FROM split")
-                 if n and kinds.get(k) != "gauge" and not k.startswith(("length:", "shore:"))}
+    named_cut = _named_cuts(db, kinds)
     item_id = dict(db.execute("SELECT ord, item_id FROM item"))
     to3005 = Transformer.from_crs(4326, 3005, always_xy=True)
     towns = [(Point(*to3005.transform(lon, lat)), name) for name, lon, lat in db.execute(
         f"SELECT name, lon, lat FROM place WHERE kind IN ({','.join('?' * len(TOWN_KINDS))}) AND name IS NOT NULL "
         "AND lat IS NOT NULL ORDER BY place_id", TOWN_KINDS)]
-    secs_of: Dict[int, List[int]] = defaultdict(list)
-    for (o, _p), ss in sids.items():
-        secs_of[o] += ss
-    tribs: Dict[int, List[int]] = defaultdict(list)
-    for a, b in db.execute("SELECT ord, down_ord FROM item_down ORDER BY ord"):
-        if kind.get(a) == "stream":
-            tribs[b].append(a)
+    secs_of, tribs = _secs_and_tribs(db, sids, kind)
     out: List[tuple] = []
     for o, ss in sorted(secs_of.items()):
         if kind.get(o) != "stream":
             continue
-        stem = sorted((x for x in ss if x in span and x in geo and not span[x][4] and span[x][0] is not None
-                       and span[x][1] is not None), key=lambda x: (span[x][0], x))
+        stem = _stem(ss, span, geo)
         ends = [(t, m, x, side) for x in stem for t, m, side in ((span[x][2], span[x][0], "lo"),
                                                                   (span[x][3], span[x][1], "hi")) if is_crossing(t)]
         if not ends:
             continue
-        feats: List[Tuple[float, str]] = []                 # (metres along the stem, token)
-        for x in stem:
-            for t, m in ((span[x][2], span[x][0]), (span[x][3], span[x][1])):
-                if t in named_cut:
-                    feats.append((float(m), t))
-        sg = unary_union([geo[x] for x in stem])
-        for tr in tribs.get(o, ()):
-            tg = [geo[x] for x in secs_of.get(tr, ()) if x in geo]
-            if not tg:
-                continue
-            tu = unary_union(tg)
-            if tu.distance(sg) > TRIBUTARY_REACH_M:
-                continue
-            p = nearest_points(sg, tu)[0]
-            x = min(stem, key=lambda s: (geo[s].distance(p), s))
-            feats.append((_measure_at(x, p, stem, span, geo), f"confluence:{item_id[tr]}"))
+        feats = _stem_feats(stem, span, geo, named_cut, tribs.get(o, ()), secs_of, item_id)   # (metres, token)
         done = set()
         for t, m, x, side in sorted(ends, key=lambda e: (e[1], e[0])):
             key = (t, round(m / 1000.0, 2))

@@ -281,7 +281,7 @@ reads both files; a ticket closed here moves there once its lane is finished wit
 | T846 | A decided fish answer says "keep" where a take-0 sub-cap over part of the pool releases it (Bella Coola cutthroat, 35 waters; the trout table is right) | OPEN | — | T810 L re-review 2026-11-18 |
 | T848 | The web map lags zooming out over Intata Reach (Chrome, staging web; owner's trace) | OPEN | app chat | owner 2026-11-18 |
 | T849 | WaterMode's cross-water test waits for the ▲ before it taps (CI flake on d6cbad35d) | OPEN | app chat | CI 2026-11-18 |
-| T850 | A part ending at a gauge cut is named for a landmark up to 18 km away (Nass: "Canyon City bridge → Canyon City bridge"; 69 of 236) | OPEN | main chat | app chat Nass check 2026-11-18 |
+| T850 | A part ending at a gauge cut is named for a landmark up to 18 km away (Nass: "Canyon City bridge → Canyon City bridge"; 69 of 236) | PARTIAL | main chat | fix built (topology.gauge_near along the stem); left (Claude): the new 0.8.0 data release to staging |
 | T851 | The DFO salmon feed reads "stale" for every region after one failed daily fetch (owner: big issue) | OPEN | app chat | owner 2026-11-18 13:43 |
 | T852 | The coho loader drawn sharp (sheet baked at 1.5 px/dp; phones draw ~2.6), and the line under it set nicer (0.8.1) | OPEN | app chat | owner 2026-11-18 |
 
