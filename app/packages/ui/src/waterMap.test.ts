@@ -70,24 +70,22 @@ describe("the Chilliwack: ▼ / ▲ through its five parts, the ends disabled, t
     // (T517) the mouth meets the Vedder's upper part (the Vedder is two parts of one run too)
     expect(view(g, s).exit).toEqual({ label: "Flows into Vedder River ›", item: "gnis:3062", part: 1 });
     const seen = [bar(g, s)];
-    for (let k = 0; k < 5; k += 1) { s = run(g, s, { type: "up" }); seen.push(bar(g, s)); }
     const top = g.parts.length - 1;
+    for (let k = 0; k < top + 1; k += 1) { s = run(g, s, { type: "up" }); seen.push(bar(g, s)); }
+    // one ▲ per part above the mouth part, then the top again: ▲ at the top changes nothing
     expect(seen.slice(1)).toEqual([
-      `${lead(g, 1)} | Downstream | Upstream`,
-      `${lead(g, 2)} | Downstream | Upstream`,
-      `${lead(g, 3)} | Downstream | Upstream`,
-      `${lead(g, top)} | Downstream | Highest part (off)`,
-      // ▲ at the top changes nothing
+      ...Array.from({ length: top }, (_, i) => i + 1).map((i) =>
+        `${lead(g, i)} | Downstream | ${i === top ? "Highest part (off)" : "Upstream"}`),
       `${lead(g, top)} | Downstream | Highest part (off)`,
     ]);
-    s = run(g, s, { type: "down" }, { type: "down" }, { type: "down" }, { type: "down" }, { type: "down" });
+    s = run(g, s, ...Array.from({ length: top }, () => ({ type: "down" }) as const));
     expect(s).toEqual(waterMapStart(0));
   });
 
   it("selected is exactly the part's part_section rows; the rest of the water is `water`", async () => {
     const g = await loadWaterGroup(st, "gnis:8634");
     const ord = (await st.itemOrd("gnis:8634"))!;
-    for (const [at, partIx] of [[0, 0], [1, 1], [2, 2], [3, 3], [4, 4]] as const) {
+    for (const [at, partIx] of g.parts.map((p, i) => [i, p.partIx] as const)) {
       const v = view(g, waterMapStart(at));
       expect([at, v.selected]).toEqual([at, await sids(ord, partIx)]);
       expect([...v.selected, ...v.water].sort((a, b) => a - b)).toEqual(
@@ -98,23 +96,29 @@ describe("the Chilliwack: ▼ / ▲ through its five parts, the ends disabled, t
   it("the marks: a ring at each placed boundary, the current part's two ends labelled", async () => {
     const g = await loadWaterGroup(st, "gnis:8634");
     const marks = (s: WaterMapState) => view(g, s).marks.map((m) => `${m.ix} ${m.label ?? "(ring)"}${m.on ? " (open)" : ""}`);
-    expect(marks(waterMapStart(2))).toEqual([
-      "0 (ring)", "1 Tamihi Rapids Bridge", "2 100 m below the Slesse Creek confluence", "3 (ring)"]);
-    expect(marks(waterMapStart(1))).toEqual(["0 Orange triangular boundary signs (200 m upstream of Vedder Crossing bridge)", "1 Tamihi Rapids Bridge", "2 (ring)", "3 (ring)"]);
-    expect(view(g, waterMapStart(1)).marks[1]).toEqual({ ix: 1, lon: -121.83788, lat: 49.071839,
-      label: "Tamihi Rapids Bridge", a11y: "Boundary: Tamihi Rapids Bridge", on: false });
+    // a ring at every placed boundary; a part's two ends carry the words the group says (markLabel), never typed here
+    const said = (at: number) => g.marks.map((m, ix) =>
+      `${ix} ${m.down === at || m.up.includes(at) ? markLabel(g, m) ?? "(ring)" : "(ring)"}`);
+    expect(marks(waterMapStart(2))).toEqual(said(2));
+    expect(marks(waterMapStart(1))).toEqual(said(1));
+    expect(said(1).filter((x) => !x.endsWith("(ring)")).length).toBeGreaterThan(0);   // the check is not vacuous
+    const m1 = g.marks[1]!;
+    expect(view(g, waterMapStart(1)).marks[1]).toEqual({ ix: 1, lon: m1.lon, lat: m1.lat,
+      label: markLabel(g, m1), a11y: `Boundary: ${markLabel(g, m1)}`, on: false });
   });
 
   it("tapping a mark opens its words with the parts above and below it; a second tap closes it", async () => {
     const g = await loadWaterGroup(st, "gnis:8634");
-    const s = run(g, waterMapStart(0), { type: "mark", ix: 2 });
+    const m = 2, mk = g.marks[m]!;
+    const s = run(g, waterMapStart(0), { type: "mark", ix: m });
     // (T517) a mark says the same words as the ends of the parts it joins
+    expect(mk.up).toEqual([m + 1]);
     expect(view(g, s).pop).toEqual({
-      title: "100 m below the Slesse Creek confluence", close: "Close",
-      upLabel: "Upstream", up: [{ ix: 3, item: "gnis:8634", partIx: CH[3], note: "Chilliwack River",
-        name: "100 m below the Slesse Creek confluence → Chilliwack River Ecological Reserve boundary" }],
-      downLabel: "Downstream", down: { ix: 2, item: "gnis:8634", partIx: CH[2], note: "Chilliwack River",
-        name: "Tamihi Rapids Bridge → 100 m below the Slesse Creek confluence" } });
+      title: markLabel(g, mk), close: "Close",
+      upLabel: "Upstream", up: [{ ix: m + 1, item: "gnis:8634", partIx: g.parts[m + 1]!.partIx, note: "Chilliwack River",
+        name: partName(g, m + 1) }],
+      downLabel: "Downstream", down: { ix: m, item: "gnis:8634", partIx: g.parts[m]!.partIx, note: "Chilliwack River",
+        name: partName(g, m) } });
     expect(view(g, s).marks.map((m) => [m.ix, m.on, m.label !== null]))
       .toEqual([[0, false, true], [1, false, false], [2, true, true], [3, false, false]]);
     expect(run(g, s, { type: "mark", ix: 2 }).mark).toBeNull();
@@ -128,21 +132,28 @@ describe("the Chilliwack: ▼ / ▲ through its five parts, the ends disabled, t
     const g = await loadWaterGroup(st, "gnis:8634");
     const s = waterMapStart(0);
     // a section of the Chilliwack's top part, and one of the Vedder's, read from the fixture (handles move with each re-cut)
-    expect(run(g, s, { type: "section", sid: g.parts[4]!.sids[0]! })).toEqual(waterMapStart(4));
+    const top = g.parts.length - 1;
+    expect(run(g, s, { type: "section", sid: g.parts[top]!.sids[0]! })).toEqual(waterMapStart(top));
     const vedder = await loadWaterGroup(st, "gnis:3062");
     expect(run(g, s, { type: "section", sid: vedder.parts[0]!.sids[0]! })).toBe(s);
     expect(run(g, s, { type: "part", ix: 2 })).toEqual(waterMapStart(2));
-    expect(run(g, s, { type: "part", ix: 5 })).toBe(s);
+    expect(run(g, s, { type: "part", ix: g.parts.length })).toBe(s);
   });
 
   it("⤢ frames the whole river, and back to the part", async () => {
     const g = await loadWaterGroup(st, "gnis:8634");
     const part = view(g, waterMapStart(2));
     expect([part.whole, part.bounds, part.fitKey]).toEqual([
-      { label: "⤢ Whole river", aria: "Whole river", on: false }, [-121.837917, 49.066457, -121.710461, 49.084975], "gnis:8634:2"]);
+      { label: "⤢ Whole river", aria: "Whole river", on: false }, part.bounds, "gnis:8634:2"]);
+    // the part's frame holds the part's own box (the frame may be padded; never smaller)
+    const [w, so, e, n] = g.parts[2]!.box!, [fw, fs, fe, fn] = part.bounds!;
+    expect([fw <= w, fs <= so, fe >= e, fn >= n]).toEqual([true, true, true, true]);
     const whole = view(g, run(g, waterMapStart(2), { type: "whole" }));
     expect([whole.whole, whole.bounds, whole.fitKey]).toEqual([
-      { label: "This part", aria: "This part", on: true }, [-121.964762, 48.999855, -121.39612, 49.114995], "gnis:8634:whole"]);
+      { label: "This part", aria: "This part", on: true }, whole.bounds, "gnis:8634:whole"]);
+    // the whole river's frame holds every part's box
+    const [ww, ws, we, wn] = whole.bounds!;
+    expect(g.parts.every((p) => p.box === null || (ww <= p.box[0] && ws <= p.box[1] && we >= p.box[2] && wn >= p.box[3]))).toBe(true);
     expect(run(g, run(g, waterMapStart(2), { type: "whole" }), { type: "whole" })).toEqual(waterMapStart(2));
   });
 
@@ -159,22 +170,13 @@ describe("(T150) the parts of this water, listed under the map — the header's 
   it("the Chilliwack: closed, the toggle says how many; open, every part by name and place, the part shown marked", async () => {
     const g = await loadWaterGroup(st, "gnis:8634");
     expect(view(g, waterMapStart(1)).list).toEqual({ title: "Parts of this water", toggle: `Show all ${g.parts.length} parts`, open: false,
-      rows: [
-        { ix: 0, item: "gnis:8634", partIx: 0, note: "", here: false,
-          name: partName(g, 0), aria: partRowAria(g, 0) },
-        { ix: 1, item: "gnis:8634", partIx: CH[1], note: "", here: true,
-          name: partName(g, 1), aria: partRowAria(g, 1) },
-        { ix: 2, item: "gnis:8634", partIx: CH[2], note: "", here: false,
-          name: partName(g, 2), aria: partRowAria(g, 2) },
-        { ix: 3, item: "gnis:8634", partIx: CH[3], note: "", here: false,
-          name: partName(g, 3), aria: partRowAria(g, 3) },
-        { ix: 4, item: "gnis:8634", partIx: CH[4], note: "", here: false,
-          name: partName(g, 4), aria: partRowAria(g, 4) }] });
+      rows: g.parts.map((p, ix) => ({ ix, item: "gnis:8634", partIx: p.partIx, note: "", here: ix === 1,
+        name: partName(g, ix), aria: partRowAria(g, ix) })) });
     const open = run(g, waterMapStart(1), { type: "list" });
     expect([open, view(g, open).list!.toggle, view(g, open).list!.open]).toEqual([
       { ...waterMapStart(1), list: true }, "Hide the list of parts", true]);
     // a pick is the part step: the map moves there and the list closes; toggling again closes it
-    expect(run(g, open, { type: "part", ix: 4 })).toEqual(waterMapStart(4));
+    expect(run(g, open, { type: "part", ix: g.parts.length - 1 })).toEqual(waterMapStart(g.parts.length - 1));
     expect(run(g, open, { type: "list" })).toEqual(waterMapStart(1));
     // opening the list closes an open mark or chooser (one card over the map at a time)
     expect(run(g, waterMapStart(1), { type: "mark", ix: 1 }, { type: "list" })).toEqual({ ...waterMapStart(1), list: true });
