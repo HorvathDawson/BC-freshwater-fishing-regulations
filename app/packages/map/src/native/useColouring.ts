@@ -65,7 +65,7 @@ export class StateQueue {
     w.ids.add(id);
     for (const k of Object.keys(s)) w.keys.add(k);
   }
-  /** Every state on `layer` unset: what is queued for it is dropped, and every id it wears gets its keys written null. */
+  /** Every state on `layer` unset: what is queued for it is dropped, and every id it wears gets its keys written unset (`unsetValue`: false or "", never null, T832). */
   clear(layer: string): void {
     this.q.delete(layer);
     const w = this.worn.get(layer);

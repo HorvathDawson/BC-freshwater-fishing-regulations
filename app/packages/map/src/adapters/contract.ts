@@ -386,7 +386,7 @@ export function baseAdapter(platform: "native" | "web"): MapAdapter {
         /*
          * THE FIELD'S VALUES, by the basin's own id: one feature-state per catchment (190 of them), and nothing for the
          * style — a basin is a property-keyed feature, so it needs no per-tile label, and a paint change would make the
-         * whole atlas re-lay out. A basin that had a value and has none now is told so (null: `missing`).
+         * whole atlas re-lay out. A basin that had a value and has none now is told so (`""`, read as `missing`; never null, T832).
          */
         const now = (next as ChannelValues["standing"])?.basins ?? {};
         for (const id of basinsHeld) if (!(id in now)) { h.setFeatureState("basin", id, { standing: unsetValue("standing") }); basinsHeld.delete(id); }
