@@ -19,3 +19,5 @@ its own is left out; Lamprey Creek has no row, so it stays in.
 2. Find why T9 does not fire for the Morice stretch today, and every other stretch where it does not fire.
 3. Apply it as the one rule, province-wide; diff every rule binding before and after; the list of waters whose answer
    changes (which days, which fish) goes to the owner before it ships.
+
+2026-11-17 ~17:01, owner: land it (verbatim in OWNER-TODO 17:01); Tatshenshini named-tributary places bind only the named tributary; dormant three follow DFO words; Claude re-saves the 12 changed marks.

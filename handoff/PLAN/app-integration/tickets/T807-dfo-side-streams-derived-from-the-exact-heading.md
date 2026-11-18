@@ -27,3 +27,5 @@ places agree; the 14 that do not; how the pipeline decides today; the design not
 5. Review app: show the derived answer and the words that decided it; a matching save stores nothing.
 6. A test: every live place is derived or a listed exception; a change in a heading or in the words is flagged.
 7. Reach rerun; the list of every answer that changes (water, fish, days) to the owner before the release.
+
+2026-11-17 ~17:01, owner: land it (verbatim in OWNER-TODO 17:01); Tatshenshini named-tributary places bind only the named tributary; dormant three follow DFO words; Claude re-saves the 12 changed marks.

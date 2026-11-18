@@ -16,3 +16,5 @@ from the lake's tributary walk; the river's own side channels still come in as i
 - A test on built data (anchors rule): a lake with a through-river that has side channels.
 
 2026-11-17 ~15:04, owner: see OWNER-TODO 15:04 (answer recorded verbatim there).
+
+2026-11-17 ~17:01, owner: land it (verbatim in OWNER-TODO 17:01); Tatshenshini named-tributary places bind only the named tributary; dormant three follow DFO words; Claude re-saves the 12 changed marks.

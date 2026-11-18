@@ -2464,3 +2464,9 @@ More questions (recommended answer first):
   (Recommended)". T797 item 2 sturgeon dead-fin-fish bait line "Show it (Recommended)" (reverses the app's D18 a).
 - 2026-11-17 ~16:30, owner (app chat dialog, T797 item 2): the bait-ban allowance field also holds set lining (Region 6 /
   7A lakes). Picked "Show both (Recommended)": sturgeon on the Fraser/Harrison and set lining on its lakes. Answered.
+- 2026-11-17 ~17:01, owner on the T804/T807/T772 page: land it, verbatim: "for tatshenhini is the other 2 that list
+  specific tributaries only locating that specific tributary remember thta was a mistake on my mark that i wanted you
+  to fix. the rest seem good." (the two Tatshenshini places that name specific tributaries, Blanchard and "Kwatini,
+  Stanley and Goat creeks", bind ONLY the named tributary; his earlier mark there was a mistake to fix). The three
+  dormant saves (Cowichan x2, Stamp Ash-GCL dam), verbatim: "dfo words but make sure it is compatible with the name
+  tributaruies or not." Re-saves of the 12 changed answers: "Save them for me (Recommended)".
