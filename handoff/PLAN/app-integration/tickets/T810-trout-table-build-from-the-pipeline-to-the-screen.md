@@ -300,3 +300,8 @@ unpacks a rows frame as exactly five slots, so a rows-34 frame (six) breaks the 
   the row's worked line "Kept 2 elsewhere? Keep 18 more here." (a group-less row's `ask`, which the old card gate never
   proved) against the engine's 19 or more after 2 kept elsewhere (Inkaneep, Meighan, Bull Creek …, 13 keys from day 92).
   FOR THE OWNER / main chat: the card or the engine is wrong there; until one is fixed the cutover build stops on it.
+- Taken from the app chat's cutover candidate (app/t810-cutover c9ec36bb6, 406f854b8, 4e87ab2bc; pipeline half only):
+  `split_mixed` leaves the steelhead presence line on the ST part (found on the live bundle; now a mini case too:
+  Stub Creek's "Steelhead and white sturgeon catch and release", `stub_creek.r3`, with a mutation test; its split parts re-stamped in the mini release too); `CELL_NULLABLE`
+  emitted beside `CellIds`; `check-format-pairs.py` reads `REGS_REGION_FORMAT`; test_answers_v1 reads rows 34; the
+  pre-cutover regs fixture kept at `pipeline/tests/fixtures/pre-cutover-regs-release/`.

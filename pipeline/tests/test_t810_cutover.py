@@ -258,7 +258,7 @@ def test_every_row_the_table_does_not_cover_is_the_cards_row(chain):
     """Finding 7 (spec L's test): over every frame of the mini chain, each row the table does not cover is the row the
     card made (its group and kept-elsewhere line kept); each covered row lost exactly `group` and `elsewhere`. The mini
     world's own groups are all trout (the planted kokanee group above holds the other side)."""
-    n = {"covered": 0, "kept": 0}
+    n = {"covered": 0, "kept": 0, "parts": 0}
     for k, cells in enumerate(chain.model.sections["trout"]):
         for j, c in enumerate(cells):
             pre = chain.pre.sections["rows"][k][j]
@@ -268,9 +268,53 @@ def test_every_row_the_table_does_not_cover_is_the_cards_row(chain):
                 n["kept"] += len(pre["rows"])
                 continue
             split, covers = T.split_mixed(pre)
+            whole = {id(r) for r in pre["rows"]}
             for i, (a, b) in enumerate(zip(split["rows"], post["rows"])):
                 drop = A.COVERED_DROP if i in covers else ()
-                assert {x: v for x, v in a.items() if x not in drop and x != "year"} == \
-                    {x: v for x, v in b.items() if x != "year"}, (k, j, i)
+                # a split part is stamped again for its own fish (finding 3): no steelhead stamp without steelhead
+                part = id(a) not in whole
+                skip = ("year", "stamps") if part else ("year",)
+                assert {x: v for x, v in a.items() if x not in drop and x not in skip} == \
+                    {x: v for x, v in b.items() if x not in skip}, (k, j, i)
+                if part:
+                    n["parts"] += 1
+                    assert "ST" in b["all_members"] or not any(st["doc"] == "steelhead_stamp"
+                                                               for st in b.get("stamps") or ()), (k, j, i)
                 n["covered" if i in covers else "kept"] += 1
-    assert n["covered"] > 0 and n["kept"] > 0
+    assert n["covered"] > 0 and n["kept"] > 0 and n["parts"] > 0
+
+
+def test_the_mini_world_splits_a_steelhead_and_white_sturgeon_release_row(chain, monkeypatch):
+    """The app chat's cutover candidate found it on the live bundle: a release row of steelhead and another fish carries
+    the steelhead presence line, and the split must leave it on the steelhead's part (`model.Row` refuses it on a row
+    without ST). The mini world holds the case: Stub Creek's "Steelhead and white sturgeon catch and release" (mini
+    corpus, `stub_creek.r3`). Mutation: the line copied onto the sturgeon part stops the build (the rows model refuses
+    it)."""
+    from pipeline.deliver.answers import licence as L
+    from pipeline.deliver.answers import model as M
+    from pipeline.deliver.answers.stamps import DEFAULT_PROFILE
+    hits = []
+    for k, cells in enumerate(chain.model.sections["trout"]):
+        for j, c in enumerate(cells):
+            pre = chain.pre.sections["rows"][k][j]
+            if c is not None and any(r.get("presence") and set(r["all_members"]) == {"ST", "WSG"} for r in pre["rows"]):
+                hits.append((k, j))
+    assert hits, "the mini world holds no steelhead + sturgeon release row with the presence line under a table"
+    k, j = hits[0]
+    rows = chain.model.sections["rows"][k][j]["rows"]
+    st = next(r for r in rows if r["all_members"] == ["ST"])
+    ko = next(r for r in rows if r["all_members"] == ["WSG"] and r["kind"] == "release")
+    assert st.get("presence") is not None and ko.get("presence") is None
+    real = T._only
+
+    def keeps_presence(row, keep):
+        o = real(row, keep)
+        if row.get("presence") is not None:
+            o["presence"] = row["presence"]
+        return o
+    monkeypatch.setattr(T, "_only", keeps_presence)
+    pix = L.profile_index(DEFAULT_PROFILE)
+    cut = A.cut_over(chain.pre.sections["rows"][k], chain.model.sections["trout"][k], chain.pre.sections["licence"][k],
+                     chain.model.segments[k], chain.model.moments[k], L.document_names(chain.bundle), pix)
+    with pytest.raises(M.ShapeError, match="presence"):
+        M.validate_section("rows", cut)

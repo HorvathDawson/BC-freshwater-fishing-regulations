@@ -281,6 +281,10 @@ def _only(row: dict, keep: Callable[[str], bool]) -> dict:
     if o.get("week") is not None:
         sp = [S for S in o["week"]["species"] if keep(S)]
         o["week"] = {**o["week"], "species": sp} if sp else None
+    if o.get("presence") is not None and not keep("ST"):
+        # the steelhead presence line sits on the steelhead's own row (`model.Row`): the part holding ST keeps it
+        # (T810 cutover, found on the live bundle: a release row of steelhead and other fish)
+        o["presence"] = None
     return o
 
 

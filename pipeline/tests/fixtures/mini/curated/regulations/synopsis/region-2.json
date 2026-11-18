@@ -161,7 +161,7 @@
    "name": "STUB CREEK",
    "display_name": "Stub Creek",
    "region": "2",
-   "regs_verbatim": "Trout/char catch and release\nExempt from July 15-Aug 31 summer closure",
+   "regs_verbatim": "Trout/char catch and release\nExempt from July 15-Aug 31 summer closure\nSteelhead and white sturgeon catch and release",
    "source_pages": [
     92
    ],
@@ -204,6 +204,22 @@
      "exempts": [
       {
        "default_id": "summer_stream_closure"
+      }
+     ]
+    },
+    {
+     "rule_id": "stub_creek.r3",
+     "type": "retention_limit",
+     "verbatim": "Steelhead and white sturgeon catch and release",
+     "species": [
+      "ST",
+      "WSG"
+     ],
+     "take": 0,
+     "may_target": true,
+     "extents": [
+      {
+       "op": "whole"
       }
      ]
     }
