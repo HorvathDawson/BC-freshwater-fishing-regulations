@@ -56304,9 +56304,9 @@
        "narrow": null
       },
       "W": {
-       "status": "release",
-       "daily": null,
-       "win": "r2:lois_lake@2-12::lois_lake.r2",
+       "status": "keep",
+       "daily": 2,
+       "win": "r2:lois_lake@2-12::lois_lake.r1",
        "narrow": null
       }
      },
@@ -56318,9 +56318,9 @@
        "narrow": null
       },
       "W": {
-       "status": "release",
-       "daily": null,
-       "win": "r2:lois_lake@2-12::lois_lake.r2",
+       "status": "keep",
+       "daily": 2,
+       "win": "r2:lois_lake@2-12::lois_lake.r1",
        "narrow": null
       }
      },

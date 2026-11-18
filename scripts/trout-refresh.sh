@@ -12,8 +12,8 @@
 #   2. regs fixture  python -m pipeline.deliver.release.regs_fixture --release <side> --trout-cases
 #                    -> app/fixtures/trout/regs-release/ + section-lines.json (the waters of trout_vectors.CASES)
 #   3. vectors       python -m pipeline.tools.emit.trout_vectors -> app/fixtures/trout/trout-vectors.generated.json
-#   4. golden sync   node app/tools/regs-recut/sync.mjs --release <side>: ONLY once the app reads the trout section
-#                    (`trout` in core/src/regs/versions.ts: its M0). Before that the goldens stay the normal release's
+#   4. golden sync   node app/tools/regs-recut/sync.mjs --release <side>: ONLY at the cutover
+#                    (`trout` in KNOWN_VERSIONS of core/src/regs/versions.ts: ticket L; not at M0, see step 4). Before that the goldens stay the normal release's
 #                    and this step says so (a golden cut from a side release names a section version the app's
 #                    conformance does not hold, so `pnpm check` would fail on a fixture, not on a fault)
 #   5. checks        every generator `--check` (`python -m pipeline.tools.emit --check`, the trout vectors among them),
@@ -91,12 +91,15 @@ step 3 "the trout vectors"
 "$PY" -m pipeline.tools.emit.trout_vectors
 
 step 4 "the golden sync"
-if grep -Eq 'export const (OPTIONAL_VERSIONS|KNOWN_VERSIONS) = Object\.freeze\(\{[^}]*\btrout:' \
+# 2026-11-17: only at the cutover (L, `trout` in KNOWN_VERSIONS), not at M0. The goldens are also what the app's
+# local release tests (regs/blob/reads/store.release.test.ts) hold the LIVE release to, so they must stay the live
+# release's until the live release carries the section; and reads.trout.test.ts needs the normal regs fixture without it.
+if grep -Eq 'export const KNOWN_VERSIONS = Object\.freeze\(\{[^}]*\btrout:' \
      app/packages/core/src/regs/versions.ts; then
   node app/tools/regs-recut/sync.mjs --release "$RELEASE"
 else
-  echo "trout-refresh: golden sync NOT run: the app does not read the trout section yet (no \`trout\` in" \
-       "app/packages/core/src/regs/versions.ts, ticket M0); the goldens stay the normal release's."
+  echo "trout-refresh: golden sync NOT run: \`trout\` is not in KNOWN_VERSIONS (the cutover, ticket L); the goldens" \
+       "stay the live release's."
 fi
 
 step 5 "every generated file fresh, and the fixture cut again is the same bytes"
