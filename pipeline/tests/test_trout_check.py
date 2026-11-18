@@ -811,6 +811,10 @@ def test_each_fault_the_full_side_build_found_is_fixed_and_pinned(found, monkeyp
     monkeypatch.setattr(T, flag, False)
     if flag == "A_RAINBOW_STOPS_AT_THE_STEELHEAD_SIZE":
         monkeypatch.setattr(T, "USES_THE_LINE", True)      # the fault is a steelhead's "uses the 1" line (off by default)
+    if flag == "A_WILD_QUOTA_JOINS_ITS_COUNT":
+        # (round 4, R2) a lone row's own cap now sits in its band, which also holds the law here: the fault shows
+        # through the row's own line, as it was found
+        monkeypatch.setattr(T, "A_OWN_CAP_IN_THE_BAND", False)
     if flag == "A_APART_SAYS_THE_BOX_MOST":
         # T810 G2 Q1 also brings a box's number down to what it holds here, which hides this fault: pin it alone
         monkeypatch.setattr(T, "A_HEAD_SAYS_WHAT_IS_KEPT_HERE", False)

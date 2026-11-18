@@ -358,3 +358,14 @@ unpacks a rows frame as exactly five slots, so a rows-34 frame (six) breaks the 
     Lake)", "They also count toward the 4 trout a day across Region 1 (excluding Haida Gwaii)" (`groups.scope_words`,
     `every_of`). Every qualified label the live build says is tested.
   - Live in memory: J 0 problems on 5,950 tables; card gate 0 on 9,251 groups.
+- 2026-11-18 ~02:00, the owner's rounds 2-4 (00:52, 01:07, 01:22, 01:28) and the sweeps, built (lane/t810-l, one commit
+  each change): band words "K total from these M" and the overall limit named first ("counts toward the 2 · only 1
+  between them"; dropped where the top line names the count); "uses the 1 over 50 cm" dropped everywhere (switch off);
+  dates said once (the most specific level wins, trout 3); rows ordered (ungrouped first, groups last, a nested group
+  last in its band, the row its water's own rule raises last, rainbow above steelhead); a lone row's own cap in its band
+  ("counts toward the 2 · only 1"); nested bands (`Box.inner`, the Vedder's "only 1 between them" inside "2 total from
+  these 6"); the top line's exception on a subline (`TopLine.sub`, trout 4); a fish's hatchery and wild twins as one
+  row ("50 cm (20 in) or less if wild"); the misleading forms ("any length", "any size", "20 other trout and char");
+  R1 caps at or above their pool go ("only 4 wild", a stop line's 2, Sowerby's rainbow "only 1"); the size band in a
+  raised box. The trout fixture re-cut from a scratch side release (goldens NOT synced). Not built (held by the owner):
+  the River-rule section. Live: J 0 on 5,950 tables; card gate 0 on 9,251 groups.
