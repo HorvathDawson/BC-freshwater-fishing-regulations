@@ -4,7 +4,7 @@
  * measurement), pause / resume, cancellation, a failed file left for the tap, the events the Updates log reads, and
  * that a prefetched file is the cache the tap reads — the real web source, no second download.
  */
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import type { UpdateEvent } from "@app/core";
 import { sha256Hex } from "../sha256";
 import { parseManifest, type Manifest } from "../manifest";
@@ -365,13 +365,15 @@ describe("(T737, owner 2026-11-14) the unnamed tap's files early, behind the rea
       return { all: async () => [{ k: "format", v: n.startsWith("regs-") ? "regs-region/1" : `${n}/1` },
                                  { k: "section_handles", v: H }], get: async () => undefined } as unknown as Db;
     });
-    const tick = () => new Promise((r) => setTimeout(r, 0));
-    for (const n of ["core", "access", "regs-2"]) { void L.prefetch(n as FileName); await tick(); held.get(n)!(); await tick(); }
-    void L.prefetch("regs-sid"); await tick();       // the background's file in flight
+    // (2026-11-18, app CI on 77b044468) wait for each request to be ASKED, never a fixed number of ticks: under load the
+    // cache lookup before a fetch takes more than one macrotask, and a one-tick wait read `asked` too early
+    const asks = (n: string) => vi.waitFor(() => { if (!held.has(n)) throw new Error(`${n} not asked yet`); }, { timeout: 5_000, interval: 5 });
+    for (const n of ["core", "access", "regs-2"]) { void L.prefetch(n as FileName); await asks(n); held.get(n)!(); }
+    void L.prefetch("regs-sid"); await asks("regs-sid");       // the background's file in flight
     expect(asked).toEqual(["core", "access", "regs-2", "regs-sid"]);
     // the tap: its three opens together, as the unnamed page asks them
     const tap = Promise.all((["regs-sid", "down", "lines"] as const).map((n) => L.db(n)));
-    await tick(); await tick();
+    await asks("down"); await asks("lines");
     expect(asked).toEqual(["core", "access", "regs-2", "regs-sid", "down", "lines"]);   // joined: no second regs-sid
     for (const n of ["regs-sid", "down", "lines"]) held.get(n)!();
     await tap;
