@@ -9,8 +9,9 @@
  *
  * The sheet is drawn by react-native-web's `Image`, which resolves the bundled file (`coho/*.webp`) as the phone does.
  *
- * (T844, owner 2026-11-17: "make way smaller for web") THE WEB'S OWN SHEET, `COHO_WEB` (cohoWeb.generated.ts, ~105 KB:
- * 40 frames at 10 fps, the colours stepped), not the phones' 0.9 MB one, which on Fast 3G came in after the map.
+ * (T844, owner 2026-11-17: "make way smaller for web") THE WEB'S OWN SHEET, `COHO_WEB` (cohoWeb.generated.ts, ~146 KB
+ * since T852's 2 px per CSS px: 40 frames at 10 fps, the colours stepped), not the phones' 1.5-1.8 MB one, which on
+ * Fast 3G came in after the map.
  */
 import { useEffect } from "react";
 import { Image } from "react-native";

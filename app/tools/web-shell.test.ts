@@ -140,10 +140,10 @@ describe("the web's opening is the coho (T844)", () => {
     });
   });
 
-  it("frame 0 is the sheet's own frame size (the web draws the sheet at that density too)", () => {
+  it("frame 0 is the web sheet's own frame size (the web draws the sheet at that density too)", () => {
     for (const t of ["light", "dark"]) {
       const b = readFileSync(at(`apps/mobile/assets/splash/web-frame0-${t}.png`));
-      expect([b.readUInt32BE(16), b.readUInt32BE(20)]).toEqual([COHO.frame.width, COHO.frame.height]);
+      expect([b.readUInt32BE(16), b.readUInt32BE(20)]).toEqual([COHO_WEB.frame.width, COHO_WEB.frame.height]);
     }
   });
 });
@@ -168,11 +168,13 @@ describe("the web's own coho sheet, the phones' unchanged (T844, owner 2026-11-1
     expect([imports(native, "coho\\.generated"), imports(native, "cohoWeb\\.generated"), /cohoSheet\(palette\)/.test(native)]).toEqual([true, false, true]);
   });
 
-  it("is way smaller: each theme's web sheet at most 150 KB (the phones' are 0.9 to 1.1 MB), same frame and loop", () => {
+  it("is way smaller: each theme's web sheet at most 150 KB (the phones' are 1.4 to 1.8 MB), same loop and aspect", () => {
     const gen = readFileSync(at("packages/ui-native/src/cohoWeb.generated.ts"), "utf8");
     const sheets = [...gen.matchAll(/from "\.\/(coho\/[\w-]+\.webp)"/g)].map((m) => m[1]!);
     expect(sheets.sort()).toEqual(["coho/coho-dark-web.webp", "coho/coho-light-web.webp"]);
     for (const f of sheets) expect([f, statSync(at(`packages/ui-native/src/${f}`)).size <= 150 * 1024]).toEqual([f, true]);
-    expect([COHO_WEB.frame, COHO_WEB.loopMs, COHO_WEB.columns * COHO_WEB.rows >= COHO_WEB.frames]).toEqual([COHO.frame, COHO.loopMs, true]);
+    // (T852) its own frame (2 px per CSS px; the phones' 2.5 px per dp), at the phones' aspect
+    expect([COHO_WEB.frame.width * COHO.frame.height, COHO_WEB.loopMs, COHO_WEB.columns * COHO_WEB.rows >= COHO_WEB.frames])
+      .toEqual([COHO.frame.width * COHO_WEB.frame.height, COHO.loopMs, true]);
   });
 });
