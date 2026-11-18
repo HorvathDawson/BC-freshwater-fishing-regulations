@@ -57,6 +57,10 @@ class FakeGl {
   addControl() {} hasImage() { return false; } addImage() {} removeImage() {} remove() {}
   getContainer() { return { clientWidth: 400, clientHeight: 400 }; }
   getCanvasContainer() { return { style: { cursor: "" } }; } isMoving() { return false; }
+  /** (T856) the camera padding the web map sets for the desktop rail */
+  padding = { top: 0, bottom: 0, left: 0, right: 0 };
+  getPadding() { return this.padding; }
+  setPadding(p: { top: number; bottom: number; left: number; right: number }) { this.padding = p; }
   getCanvas() { return { style: { width: "400px", height: "400px" } }; }
   resize() {}
   getCenter() { return { lng: cam.lng, lat: cam.lat }; }

@@ -70,6 +70,10 @@ class FakeGl {
   /** the element whose cursor the hover sets (GL JS's canvas container) */
   container = { style: { cursor: "" } };
   getCanvasContainer() { return this.container; }
+  /** (T856) the camera padding the web map sets for the desktop rail */
+  padding = { top: 0, bottom: 0, left: 0, right: 0 };
+  getPadding() { return this.padding; }
+  setPadding(p: { top: number; bottom: number; left: number; right: number }) { this.padding = p; }
   isMoving() { return false; }
   /** The canvas as last sized: a test sets `web.canvasH` to leave it stale (its box changed, the observer not yet run). */
   getCanvas() { return { style: { width: "400px", height: `${web.canvasH}px` } }; }
