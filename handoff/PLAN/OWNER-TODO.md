@@ -2487,3 +2487,4 @@ More questions (recommended answer first):
   make sure to do the source table and the species row expansion when you click on on with the sources for that entry
   plus identification" (the trout table is signed off for the cutover with the new wording; the row press must open the
   fish's sheet with its own sources and how to tell it, and "Sources ›" the table's sources).
+- 2026-11-17 ~23:29 (relayed by the app chat at 23:31), owner look answers on the trout cutover: top line "Keep it big, 23 px"; fish tile "Keep the tile"; pin bar "Remove it"; Kathie Lake kept-elsewhere lines: first "Idk what you mean", then (asked plainer) "Yes, name the fish (Recommended)". Main chat: every elsewhere line names its subject when a table has more than one (L worker).
