@@ -442,3 +442,8 @@ card, and Ross Lake's headline 2 against a daily total of 4 (both from the trout
 - STOPPED at follows: 14 tests on the candidate. Mine (2 trout whole-strings) fixed on branch release/080-pipeline-tests 74b9ffb4a (also local main, unpushed). App chat fixes the 12 app/worker ones on app/release-080-follows (re-cut b34297f29 + fixes), merges my branch, pushes ONE push -> then rerun the release command above.
 - AFTER the release promotes LATEST + uploads: run deploy/staging/site-all.sh (0.8.0 web on new LATEST; from a clean worktree at the release HEAD), smoke; send the app chat the release id + "site up" -> its full 0.8.0 bench + finals re-shot from staging for the owner. Then 0.8.0 Play/TestFlight after the owner's sign-off. Prod R2 is the owner's (CONFIRM_PROD=<r-id> python -m pipeline release --prod <r-id>).
 - Puntledge "including tributaries": owner 11-18 09:52 "the whole watershed" = what the candidate binds; closed (T798).
+- 10:12 Puntledge ruling (owner 11-18: "No Fishing tributaries" closes every side stream of the whole river): ae3061f71
+  (r5 whole; reach run: 1 rule changed, +1,053 sections). It RIDES 0.8.0: the release rerun rebuilds (new candidate,
+  r-c7c6b2422c65 is superseded), stops at a new binding diff (expect r5 +1,053 on top of the accepted one; read it,
+  accept its new json) and the fixtures token may change. App chat's 63319879e merged locally (1526fd001); CRLF
+  fixtures re-checked out as LF. Push my commits only after its "CI green".
