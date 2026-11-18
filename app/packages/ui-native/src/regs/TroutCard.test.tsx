@@ -42,8 +42,9 @@ function mount(t: TroutVM, palette = LIGHT, kicker = false) {
 
 /** every text the payload ships for this table (the strings O must draw unchanged) */
 function payloadTexts(t: TroutVM): string[] {
-  return [t.top.lead, t.top.second, t.top.date, t.card, t.together?.text, t.year?.title,
+  return [t.top.lead, t.top.sub, t.top.second, t.top.date, t.card, t.together?.text, t.year?.title,
     ...t.boxes.flatMap((b) => [b.head, b.label, b.strip, b.possession, b.tag, b.date, ...b.bands.flatMap((x) => [x.text, x.date]),
+      ...b.inner.map((x) => x.text),
       ...b.rows.flatMap((r) => [r.name, r.origin, r.label, r.sub, ...r.lines, ...r.quiet, r.date])])]
     .filter((x): x is string => !!x);
 }
@@ -269,6 +270,31 @@ describe("(T810 O) the look: two text sizes, the filled label, the origin word, 
       expect(screen.queryAllByTestId("keep-possession").length, c.name).toBe(v.boxes.filter((x) => x.possession).length);
       cleanup();
     }
+  });
+
+  it("(trout 4) the Vedder: the sub under the top line in its face a size down; the card date grey under them; the nested band in its band's box", () => {
+    const t = byName("vedder-jul15");
+    expect(t.top.sub).not.toBeNull();
+    mount(t);
+    const top = screen.getByTestId("trout-top"), sub = screen.getByTestId("trout-sub");
+    expect(sub.textContent).toBe(t.top.sub);
+    // the full sentence is the lead's, then the sub: drawn in that order, one under the other
+    expect(top.compareDocumentPosition(sub) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    const [ts, ss] = [getComputedStyle(top), getComputedStyle(sub)];
+    expect([ss.fontFamily, parseFloat(ss.fontSize), ss.color]).toEqual([ts.fontFamily, TYPE.lead.fontSize, rgb(LIGHT.ink)]);
+    expect(parseFloat(ss.fontSize)).toBeLessThan(parseFloat(ts.fontSize));
+    const inner = t.boxes.flatMap((b) => b.inner);
+    expect(screen.getAllByTestId("keep-inner-text").map((e) => e.textContent)).toEqual(inner.map((x) => x.text));
+    if (t.card) {
+      const card = screen.getByTestId("trout-card-line");
+      expect([card.textContent, getComputedStyle(card).color]).toEqual([t.card, rgb(LIGHT.sub)]);
+      expect(sub.compareDocumentPosition(card) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    }
+  });
+
+  it("(trout 4) no sub: no subtitle drawn", () => {
+    mount(byName("fraser-r3-sep15"));
+    expect(screen.queryByTestId("trout-sub")).toBeNull();
   });
 
   it("(large text) the band folds into bold lines under the rows, and the top line steps down a size", () => {

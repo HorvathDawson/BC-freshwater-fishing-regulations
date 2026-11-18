@@ -53,16 +53,18 @@ function table(name: string) {
 const tid = (e: Element | null) => e?.getAttribute("data-testid") ?? null;
 
 describe("(T810 R) the same targets over the trout table", () => {
-  it("Kitimat Jul 15: ST opens keep box 0 (its first row); EB is a row inside it; RB is the first twin (RB/wild)", () => {
+  // (T810 S, trout 4) the re-cut Kitimat puts the hatchery rainbow first (RB/hatchery, ST, EB, …, RB/wild)
+  it("Kitimat Jul 15: RB (its first twin, RB/hatchery) opens keep box 0 (its first row); ST and EB are rows inside it", () => {
     const c = table("kitimat-jul15");
-    const st = rowOf(c, "ST") as Element;
-    expect(tid(st)).toBe("keep-row");
-    expect(picsOf(st)).toEqual(["pic:ST"]);
-    expect(tid(blockOf(st))).toBe("trout-box:0");
-    const eb = rowOf(c, "EB") as Element;
-    expect(picsOf(eb)).toEqual(["pic:EB"]);
-    expect(blockOf(eb)).toBe(eb);
-    expect(picsOf(rowOf(c, "RB") as Element)).toEqual(["pic:RB/wild"]);
+    const rb = rowOf(c, "RB") as Element;
+    expect(tid(rb)).toBe("keep-row");
+    expect(picsOf(rb)).toEqual(["pic:RB/hatchery"]);
+    expect(tid(blockOf(rb))).toBe("trout-box:0");
+    for (const code of ["ST", "EB"]) {
+      const r = rowOf(c, code) as Element;
+      expect(picsOf(r)).toEqual([`pic:${code}`]);
+      expect(blockOf(r)).toBe(r);
+    }
   });
   it("Kitimat Jul 15: DV is the release group's first row, so the frame is the whole group (its column word)", () => {
     const c = table("kitimat-jul15"), dv = rowOf(c, "DV") as Element;

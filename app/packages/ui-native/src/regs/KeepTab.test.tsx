@@ -268,8 +268,8 @@ describe("(T810 O, S; owner about 17:15 \"Salmon + trout folds\") the trout tabl
     tab(withTrout());
     const press = within(screen.getByTestId("glance:trout")).getByRole("button");
     expect([press.getAttribute("aria-label"), press.getAttribute("aria-expanded"), hitArea(press.getAttribute("data-hitslop")!)!.h >= 44])
-      .toEqual(["Trout and char Up to 2", "false", true]);
-    expect(press.textContent).toBe("Trout and charUp to 2");
+      .toEqual(["Trout and char 2 a day", "false", true]);
+    expect(press.textContent).toBe("Trout and char2 a day");
     fireEvent.click(press);
     expect(press.getAttribute("aria-expanded")).toBe("true");
     expect(within(screen.getByTestId("glance-body:trout")).getByTestId("keep-trout")).toBeTruthy();
@@ -288,7 +288,7 @@ describe("(T810 O, S; owner about 17:15 \"Salmon + trout folds\") the trout tabl
     vi.spyOn(PixelRatio, "getFontScale").mockReturnValue(2);
     tab(withTrout());
     const press = within(screen.getByTestId("glance:trout")).getByRole("button");
-    expect(within(press).getByTestId("glance-value").parentElement!.textContent).toBe("Trout and charUp to 2");   // the name's column
+    expect(within(press).getByTestId("glance-value").parentElement!.textContent).toBe("Trout and char2 a day");   // the name's column
     expect(press.lastElementChild!.getAttribute("data-testid")).toBe("glance-arrow");
   });
 

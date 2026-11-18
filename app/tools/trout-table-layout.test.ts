@@ -42,7 +42,9 @@ interface Vector { readonly name: string; readonly day: string; readonly frame: 
 const CASES = (JSON.parse(readFileSync(join(process.cwd(), "fixtures/trout/trout-vectors.generated.json"), "utf8")) as { cases: Vector[] }).cases;
 /** the widest shapes: a shared band over seven rows and a hatchery label (Fraser R2), twin rows (Windsor), three boxes and a
  *  closed group (Fraser R3 Sep), two keep boxes and the together line (Lois), the year bar (Elk Nov), Skeena's own and shared bands */
-const SHOWN = ["fraser-r2-mission-jul15", "windsor-jul15", "fraser-r3-sep15", "lois-jul15", "elk-nov15", "skeena-sedan-mill-jul15"];
+const SHOWN = ["fraser-r2-mission-jul15", "windsor-jul15", "fraser-r3-sep15", "lois-jul15", "elk-nov15", "skeena-sedan-mill-jul15",
+  // (T810 S, trout 4) the Vedder: the top line's sub and a nested band inside its band's white box
+  "vedder-jul15"];
 
 function vmOf(name: string) {
   const c = CASES.find((x) => x.name === name)!;
