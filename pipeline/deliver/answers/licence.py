@@ -132,24 +132,57 @@ def under_16_summary(answers: Sequence[dict], names: Dict[str, str]) -> List[dic
     return out
 
 
-def alien_closures(db) -> Dict[int, List[dict]]:
+def _ladder_speaks(path: str):
+    """The ladder's own answer, for `alien_closures`: the rules (entry, rule) a rule set's bound rows leave standing on
+    a day at a moment (`read.ladder.effective_rules_bound`, the reader the verdicts — and so the Keep tab's caveat —
+    are read from); asked about a rainbow, as an angler closure speaks for every fish."""
+    from pipeline.deliver.bundle.read.ladder import effective_rules_bound
+
+    def speaks(bound, md, at) -> set:
+        return {(r["entry_id"], r["rule_id"]) for r in effective_rules_bound(bound, False, md, "RB", path, at=at)}
+    return speaks
+
+
+def alien_closures(db, speaks=None) -> Dict[int, List[dict]]:
     """T789 G8 (owner 2026-11-17: "Should each of these waters just have their own info? Don't want this on waters it
     doesn't apply to"; Lakelse and Telkwa "Same thing applies to these"): EACH RULE SET'S CLOSURES TO THE NON-RESIDENT
     ALIEN — {set_id: [{rule, says}]}: every `angler_closure` whose `closed_to` names the non-resident alien that the set
-    holds (the bundle's `ruleset`: the reach run's binding, the tributary walk included — the very rows the Keep tab's
-    "Closed to some anglers" caveat speaks from), by its export index (`rule_ix`), `says` its line (`rule.label`, the
-    caveat's words: its own days, dates and stretch — "Angling closed to non-guided non-resident aliens, Jul 24-Dec 31,
-    on Fridays and Saturdays and Sundays — upstream of the Limonite Creek confluence"). A set holding none is absent."""
-    out: Dict[int, List[dict]] = defaultdict(list)
-    for set_id, ix, label, cond in db.execute(
-            "SELECT s.set_id, x.ix, r.label, r.conditions FROM ruleset s "
+    holds (the bundle's `ruleset`: the reach run's binding, the tributary walk included) AND that the ladder leaves
+    standing there on some day it holds (`speaks`, default the reader itself, asked at each of the set's moments and
+    day cuts): what the Keep tab's "Closed to some anglers" caveat says, never re-decided. On the
+    Telkwa, the Morice and the Suskwa and their tributaries the Bulkley's own closure loses to the nearer row's (own
+    row / nearer row, RULINGS T4 / T14): only theirs is said. By export index (`rule_ix`), `says` the rule's line
+    (`rule.label`, the caveat's words: its own days, dates and stretch). A set with none is absent."""
+    from pipeline.deliver.calendar import moments
+    if speaks is None:
+        speaks = _ladder_speaks(db.execute("PRAGMA database_list").fetchone()[2])
+    cand: Dict[int, List[tuple]] = defaultdict(list)
+    for set_id, ix, e, r, label, cond, when in db.execute(
+            "SELECT s.set_id, x.ix, r.entry_id, r.rule_id, r.label, r.conditions, r.when_ FROM ruleset s "
             "JOIN rule r ON r.entry_id = s.entry_id AND r.rule_id = s.rule_id "
             "JOIN rule_ix x ON x.entry_id = s.entry_id AND x.rule_id = s.rule_id "
             "WHERE r.type = 'angler_closure' ORDER BY s.set_id, x.ix"):
         to = json.loads(cond or "{}").get("closed_to") or {}
         if "non_resident_alien" in (to.get("residency") or ()):
-            out[set_id].append({"rule": ix, "says": label})
-    return dict(out)
+            cand[set_id].append((ix, e, r, label, json.loads(when) if when else None))
+    out: Dict[int, List[dict]] = {}
+    for set_id, cs in sorted(cand.items()):
+        bound = [tuple(x) for x in db.execute(
+            "SELECT entry_id, rule_id, via FROM ruleset WHERE set_id = ? ORDER BY entry_id, rule_id", (set_id,))]
+        whens = [json.loads(w) if w else None for (w,) in db.execute(
+            "SELECT r.when_ FROM ruleset s JOIN rule r ON r.entry_id = s.entry_id AND r.rule_id = s.rule_id "
+            "WHERE s.set_id = ?", (set_id,))]
+        # the set's moments and day cuts, as the verdicts ask them (`calendar.moments`, `segments`)
+        ats = moments([{"when": x} for x in whens])
+        cuts = {at: [d for d, _ in segments([when_vector(x, at) for x in whens])[0]] for at in ats}
+        keep = []
+        for ix, e, r, label, w in cs:
+            if any(when_vector(w, at)[d - 1] and (e, r) in speaks(bound, month_day(d), at)
+                   for at in ats for d in cuts[at]):
+                keep.append({"rule": ix, "says": label})
+        if keep:
+            out[set_id] = keep
+    return out
 
 
 def alien_of(key: "LicenceKey", alien: Dict[int, List[dict]]) -> Optional[List[dict]]:

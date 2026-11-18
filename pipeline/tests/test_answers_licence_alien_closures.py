@@ -3,8 +3,9 @@ doesn't apply to"; Lakelse and Telkwa "Same thing applies to these"): THE CLOSUR
 — `licence_frame.alien_closures: [{rule, says}]`, only on a part whose rule set holds one.
 
   1  `licence.alien_closures` reads each rule set's `angler_closure`s naming the non-resident alien off the bundle's
-     `ruleset` binding (the Keep tab caveat's rows): by export index, its label as `says`; no other angler's, no other
-     rule type, no set without one.
+     `ruleset` binding, keeping those the ladder leaves standing (the Keep tab caveat's rows): by export index, its label
+     as `says`; no other angler's, no other rule type, no set without one, none the ladder drops (the Bulkley's under
+     the Telkwa's own row). The live bundle: the Bulkley's closure is never said beside a nearer row's.
   2  Such a part's rule set is in its licence key (`part_licence_key`), so its frame and only its frame carries them
      (`alien_of`); a part of the same licensing set without one keeps the plain key.
   3  The wire: the frame's 4th index (`encode.LicenceCodec`) into its own table, decoded back; the region shard reaches
@@ -36,12 +37,13 @@ LAKELSE = "Angling closed to non-guided non-resident aliens — between Lakelse 
 def _db(rules, sets) -> sqlite3.Connection:
     """rules: [(entry, rule, ix, type, closed_to, label)]; sets: {set_id: [(entry, rule)]}."""
     db = sqlite3.connect(":memory:")
-    db.execute("CREATE TABLE rule (entry_id TEXT, rule_id TEXT, type TEXT, label TEXT, conditions TEXT)")
+    db.execute("CREATE TABLE rule (entry_id TEXT, rule_id TEXT, type TEXT, label TEXT, conditions TEXT, when_ TEXT)")
     db.execute("CREATE TABLE rule_ix (ix INTEGER, entry_id TEXT, rule_id TEXT)")
     db.execute("CREATE TABLE ruleset (set_id INTEGER, entry_id TEXT, rule_id TEXT, via TEXT)")
     for e, r, ix, typ, to, label in rules:
-        db.execute("INSERT INTO rule VALUES (?, ?, ?, ?, ?)",
-                   (e, r, typ, label, json.dumps({"closed_to": to} if to else {})))
+        db.execute("INSERT INTO rule VALUES (?, ?, ?, ?, ?, ?)",
+                   (e, r, typ, label, json.dumps({"closed_to": to} if to else {}),
+                    json.dumps({"weekdays": ["Saturday"]}) if r == "k.r1" else None))
         db.execute("INSERT INTO rule_ix VALUES (?, ?, ?)", (ix, e, r))
     for s, members in sets.items():
         for e, r in members:
@@ -49,12 +51,19 @@ def _db(rules, sets) -> sqlite3.Connection:
     return db
 
 
+def everything(bound, md, at) -> set:
+    """A ladder that leaves every bound rule standing."""
+    return {(e, r) for e, r, _via in bound}
+
+
 RULES = [("r6:skeena", "skeena_river.r5", 2343, "angler_closure", ALIEN, SKEENA),
          ("r6:lakelse", "lakelse_river.r1", 2257, "angler_closure", ALIEN, LAKELSE),
          ("r6:kalum", "k.r2", 2226, "angler_closure", ALIEN, "Angling closed to non-guided non-resident aliens, on Sundays"),
          ("r6:kalum", "k.r1", 2225, "angler_closure", ALIEN, "Angling closed to non-guided non-resident aliens, on Saturdays"),
          ("r2:x", "x.r1", 10, "angler_closure", {"residency": ["non_resident"]}, "Closed to non-residents"),
-         ("r2:x", "x.r2", 11, "retention_limit", ALIEN, "not a closure")]
+         ("r2:x", "x.r2", 11, "retention_limit", ALIEN, "not a closure"),
+         ("r6:bulkley", "bulkley_river.r1", 2145, "angler_closure", ALIEN, "Angling closed (Bulkley)"),
+         ("r6:telkwa", "telkwa_river.r1", 2390, "angler_closure", ALIEN, "Angling closed (Telkwa)")]
 
 
 def test_each_rule_set_holds_its_own_closures_to_the_alien():
@@ -63,7 +72,7 @@ def test_each_rule_set_holds_its_own_closures_to_the_alien():
                      3: [("r6:kalum", "k.r1"), ("r6:kalum", "k.r2")],              # Saturdays on a part, Sundays all
                      4: [("r6:kalum", "k.r2")],
                      5: [("r2:x", "x.r1"), ("r2:x", "x.r2")]})                     # no alien closure: absent
-    assert L.alien_closures(db) == {
+    assert L.alien_closures(db, everything) == {
         1: [{"rule": 2343, "says": SKEENA}],
         2: [{"rule": 2257, "says": LAKELSE}],
         3: [{"rule": 2225, "says": "Angling closed to non-guided non-resident aliens, on Saturdays"},
@@ -74,9 +83,35 @@ def test_each_rule_set_holds_its_own_closures_to_the_alien():
 def test_another_anglers_closure_is_not_the_aliens():
     # mutation: the same closure to the alien is listed
     db = _db(RULES, {5: [("r2:x", "x.r1")]})
-    assert L.alien_closures(db) == {}
+    assert L.alien_closures(db, everything) == {}
     db.execute("UPDATE rule SET conditions = ? WHERE rule_id = 'x.r1'", (json.dumps({"closed_to": ALIEN}),))
-    assert L.alien_closures(db) == {5: [{"rule": 10, "says": "Closed to non-residents"}]}
+    assert L.alien_closures(db, everything) == {5: [{"rule": 10, "says": "Closed to non-residents"}]}
+
+
+def test_a_closure_the_ladder_drops_is_not_said():
+    """The Telkwa's own row beats the Bulkley's inherited closure (own row, RULINGS T4): the Keep tab says only the
+    Telkwa's, and so does the licence frame. Mutation: a ladder dropping nothing says both."""
+    db = _db(RULES, {6: [("r6:bulkley", "bulkley_river.r1"), ("r6:telkwa", "telkwa_river.r1")]})
+    asked = []
+
+    def ladder(bound, md, at):
+        asked.append((md, at))
+        return everything(bound, md, at) - {("r6:bulkley", "bulkley_river.r1")}
+    assert L.alien_closures(db, ladder) == {6: [{"rule": 2390, "says": "Angling closed (Telkwa)"}]}
+    assert asked                                                       # the ladder was asked, never bypassed
+    assert [x["rule"] for x in L.alien_closures(db, everything)[6]] == [2145, 2390]
+
+
+@pytest.mark.needs_bundle
+def test_the_live_bulkley_closure_is_never_said_beside_a_nearer_rows(request):
+    from pipeline.tests import under_test
+    db = sqlite3.connect(f"file:{under_test.bundle(request)}?mode=ro", uri=True)
+    ix = dict(db.execute("SELECT rule_id, ix FROM rule_ix WHERE entry_id LIKE 'r6:%'"))
+    got = L.alien_closures(db)
+    bulkley = ix["bulkley_river.r1"]
+    nearer = {ix["morice_river.r1"], ix["telkwa_river.r1"], ix["suskwa_river.r1"]}
+    assert any(x["rule"] == bulkley for v in got.values() for x in v)      # the Bulkley itself still says it
+    assert not [s for s, v in got.items() if bulkley in {x["rule"] for x in v} and nearer & {x["rule"] for x in v}]
 
 
 # 2 ---------------------------------------------------------------------------------------------------------------------
