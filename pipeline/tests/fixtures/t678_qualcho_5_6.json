@@ -988,9 +988,9 @@
     }
    ],
    "family": "retention",
-   "label": "Trout — 1 per day, all species combined, from streams, Jul 1-Oct 31",
+   "label": "Trout and char other than Dolly Varden/bull trout and lake trout — 1 per day, all species combined, from streams, Jul 1-Oct 31",
    "may_target": null,
-   "parts": "{\"what\":\"Trout — 1 per day, all species combined\",\"conditions\":\"from streams\",\"when\":\"Jul 1-Oct 31\"}",
+   "parts": "{\"what\":\"Trout and char other than Dolly Varden/bull trout and lake trout — 1 per day, all species combined\",\"conditions\":\"from streams\",\"when\":\"Jul 1-Oct 31\"}",
    "period": "daily",
    "rule": "trout_char_quota.r4",
    "rule_id": "trout_char_quota.r4",
@@ -999,7 +999,8 @@
     "TROUT_CHAR"
    ],
    "species_except": [
-    "CHAR"
+    "DV",
+    "LT"
    ],
    "take": 1,
    "type": "retention_limit",
@@ -1112,9 +1113,9 @@
     }
    ],
    "family": "retention",
-   "label": "Trout — release all, from streams, Nov 1-Jun 30",
+   "label": "Trout and char other than Dolly Varden/bull trout and lake trout — release all, from streams, Nov 1-Jun 30",
    "may_target": 1,
-   "parts": "{\"what\":\"Trout — release all\",\"conditions\":\"from streams\",\"when\":\"Nov 1-Jun 30\"}",
+   "parts": "{\"what\":\"Trout and char other than Dolly Varden/bull trout and lake trout — release all\",\"conditions\":\"from streams\",\"when\":\"Nov 1-Jun 30\"}",
    "period": "daily",
    "rule": "trout_char_quota.r7",
    "rule_id": "trout_char_quota.r7",
@@ -1123,7 +1124,8 @@
     "TROUT_CHAR"
    ],
    "species_except": [
-    "CHAR"
+    "DV",
+    "LT"
    ],
    "take": 0,
    "type": "retention_limit",

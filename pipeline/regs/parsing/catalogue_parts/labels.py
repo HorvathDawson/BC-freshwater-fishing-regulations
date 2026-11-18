@@ -84,13 +84,16 @@ def species_menu() -> str:
            "    regulations that apply to trout (as a group) also apply to char unless char are",
            "    specifically excluded'). 'Trout daily quota = 2' is `TROUT_CHAR`. There is no",
            "    TROUT-only code: the code TROUT is refused. BUT when the SAME ROW (or the same",
-           "    zone table) mentions char apart — 'char', Dolly Varden/bull trout, lake trout,",
-           "    brook trout on their own; 'trout/char' names char IN and does not count — that",
-           "    row's bare 'trout' lines exclude char: `TROUT_CHAR` with species_except [CHAR].",
-           "    Region 6's box ('Trout/char: 5 … 3 Dolly Varden/bull trout and/or lake trout",
-           "    combined, 1 trout from streams July 1-Oct 31 … Trout under 30 cm from any",
-           "    stream') mentions char, so '1 trout from streams' and 'Trout under 30 cm' are",
-           "    [TROUT_CHAR] except [CHAR]; 'Trout/char: 5' stays [TROUT_CHAR].",
+           "    zone table) gives a char a RELATED line of its own (same thing: count/release,",
+           "    size or gear; same water, days that meet; 'trout/char' names char IN and does not",
+           "    count), that row's bare 'trout' line leaves out THAT char only: Chilliwack Lake's",
+           "    'No wild trout over 50 cm, 1 bull trout over 60 cm' is [TROUT_CHAR] except [DV].",
+           "    All char leave (except [CHAR]) only when the line names 'char' as a group or",
+           "    every char is named (owner 2026-11-18). Region 6's box ('Trout/char: 5 … 3 Dolly",
+           "    Varden/bull trout and/or lake trout combined, 1 trout from streams July 1-Oct 31",
+           "    … Trout under 30 cm from any stream') names Dolly Varden and lake trout, so '1",
+           "    trout from streams' is [TROUT_CHAR] except [DV, LT]; 'Trout under 30 cm' (no char",
+           "    size line beside it) and 'Trout/char: 5' stay plain [TROUT_CHAR].",
            "  * A BULL TROUT IS A DOLLY VARDEN ('*Any bull trout that you catch and keep must be",
            "    counted as part of your Dolly Varden quota'). 'Bull trout catch and release' is",
            "    `DV`. The code BT is refused.",
@@ -103,7 +106,8 @@ def species_menu() -> str:
            "GROUPS — prefer these:"]
     gloss = {"ALL_GAME_FISH": "the whole list below; NOT salmon, NOT non-game fish",
              "TROUT_CHAR": ("'trout', 'trout/char', 'trout and char' — trout rules cover char "
-                            "(except [CHAR] on a bare 'trout' line whose row mentions char apart)"),
+                            "(a bare 'trout' line leaves out each char its row gives a related line — "
+                            "[DV]; [CHAR] only for a 'char' line or every char named)"),
              "CHAR": "'char' — Dolly Varden/bull trout, lake trout, brook trout",
              "ALL_FIN_FISH": ("\"any fish\" / \"fin fish\" — game fish, salmon AND non-game; never "
                               "crayfish"),
@@ -143,6 +147,18 @@ def is_protected_list(codes) -> bool:
     return bool(codes) and all(c in PROTECTED_FISH for c in codes)
 
 
+#: A NAME THAT STARTS WITH A PROPER NOUN KEEPS ITS CASE in a sentence ("other than Dolly Varden/bull
+#: trout"); the same list as the answers' `common._PROPER` (pinned equal in test_c2_one_char.py).
+PROPER_NAME = re.compile(r"^(Dolly|Arctic|Nooksack|Salish|Cultus|Enos|Coastal|Westslope|Misty|Vananda"
+                         r"|Paxton|Hadley|Morrison|Rocky|Speckled|Charlotte)")
+
+
+def _lc(name: str) -> str:
+    """A fish's name lower-cased for the middle of a sentence, a proper noun kept ("lake trout",
+    "Dolly Varden/bull trout") — as the answers say it (`common.lc`)."""
+    return name if PROPER_NAME.match(name) else name[:1].lower() + name[1:]
+
+
 def species_words(codes: List[str], excepts: List[str] | None = None) -> str:
     if not codes:
         return ""
@@ -159,7 +175,7 @@ def species_words(codes: List[str], excepts: List[str] | None = None) -> str:
              for c in codes]
     out = names[0] if len(names) == 1 else ", ".join(names[:-1]) + " and " + names[-1]
     if excepts:
-        ex = [_SPECIES_WORDS.get(c, c).lower() for c in excepts]
+        ex = [_lc(_SPECIES_WORDS.get(c, c)) for c in excepts]
         out += " other than " + (ex[0] if len(ex) == 1 else ", ".join(ex[:-1]) + " and " + ex[-1])
     return out
 

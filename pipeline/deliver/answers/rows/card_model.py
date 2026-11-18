@@ -15,6 +15,11 @@ from pipeline.deliver.answers.rows.evaluate import counts_toward, eval_sp, main_
 #: trout again, though Perry Creek's own "brook trout 20" displaced it (reason own_row).
 A_DISPLACED_POOL_IS_NO_CROSS_REFERENCE = True
 
+#: C2 AMENDED (owner 2026-11-18): a keep row's number is the most any of its fish keeps (a narrower clause is said as
+#: the row's stream cap against it; each kind is held to its own answer), not whichever fish sorts first's. False only in the
+#: mutation pin (test_t183_two_regions_card.py): Big Bend's lake trout then says 1 where it may keep 2.
+A_ROW_NUMBER_FROM_AN_UNNARROWED_FISH = True
+
 
 def _icu_key(s: str):
     """`String.prototype.localeCompare` (ICU root) closely enough for fish names: letters by their
@@ -187,7 +192,16 @@ def build_model(P: "Part") -> dict:
                 continue
             key = ",".join(sorted(l["members"]))
             groups.setdefault(key, {"members": list(l["members"]), "facts": []})["facts"].append(l)
+        # THE ROW'S NUMBER IS THE MOST ANY OF ITS FISH KEEPS (`A_ROW_NUMBER_FROM_AN_UNNARROWED_FISH`): a narrower
+        # clause is the row's stream cap against it, and each kind is held to its own answer (`fish_bands`). Region
+        # 6's "1 trout from streams" holds brook trout but not lake trout (RULINGS C2, amended 2026-11-18): read from
+        # the first fish by name (a brook trout) the row's number was that 1, and the lake trout's 2 was said as 1.
         first = main_res(Rm[M[0]]["H"], Rm[M[0]]["W"])
+        if A_ROW_NUMBER_FROM_AN_UNNARROWED_FISH:
+            most = max((main_res(Rm[S]["H"], Rm[S]["W"]) for S in M),
+                       key=lambda m: -1 if m["daily"] is None else m["daily"])
+            if most["daily"] is not None and (first["daily"] is None or most["daily"] > first["daily"]):
+                first = most
         rows.append({"kind": row["kind"], "pool": row["pool"], "members": M,
                      "daily": first["daily"], "narrow": narrow, "everyone": everyone,
                      "groups": sorted(groups.values(), key=lambda g: len(g["members"])),
