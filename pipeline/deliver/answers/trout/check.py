@@ -1207,6 +1207,10 @@ A_ELSEWHERE_SAID_PROOF = True
 #: (the re-review of 3f273c172) a kept-elsewhere answer holds for EVERY fish its question covers, not for some one fish
 #: of the box. False = the pin (Qualcho's "Kept 1 at a lake? Keep 1 more here" passed: true of a lake trout only)
 A_ELSEWHERE_EVERY_FISH = True
+#: (the re-review of 5788a7914) EVERY kept-elsewhere line, same water and other water, named or not, holds for every fish
+#: it covers (unnamed: every trout and char). False = the pin (an unnamed same-water line held to the box's kinds, some
+#: one of them: Abies Creek's "Keep 3 more here" after 2 lake trout passed)
+A_ELSEWHERE_EVERY_LINE = True
 
 
 def elsewhere_said_problems(c: Cell, T: Table) -> List[str]:
@@ -1267,13 +1271,19 @@ def elsewhere_problems(c: Cell, T: Table) -> List[str]:
     tc = sorted(TC)
     named = {(q[1], q[2]): set(q[3]) for _t, (q, _a) in T.elsewhere if q[0] == "kept" and q[3] not in (None, "other")}
     by_name = {W.fish_name(S): S for S in tc}
+    # the table's one subject, where it has one (no labels then): a covered keep row of one fish speaks of that fish
+    rows_ = c.today.get("rows") or []
+    subjects = list(dict.fromkeys(W.elsewhere_subject(r.get("members") or r.get("all_members") or ())
+                                  for r in (rows_[i] for i in c.cell["covers"] if i < len(rows_))
+                                  if r.get("kind") == "keep"))
+    lone = by_name.get(subjects[0]) if len(subjects) == 1 else None
     for text, (q, a) in T.elsewhere:
         if q[0] == "kept":
             # the fish the question covers (the re-review of 3f273c172): the fish it names; "other": every trout and char
             # its sibling line does not name; its subject label's one fish ("Brook trout: Kept 2 …"); a line about the
             # other kind of water ("Kept 1 at a lake?") every trout and char, EVERY one holding the answer; any other
             # line the box's own kinds, as the card's worked line keeps them (SOME one, `_elsewhere_holds` every=False)
-            sub = by_name.get(W.split_subject(text)[0] or "")
+            sub = by_name.get(W.split_subject(text)[0] or "") or (lone if W.split_subject(text)[0] is None else None)
             every = True
             if q[3] == "other":
                 covered = sorted(set(tc) - named.get((q[1], q[2]), set()))
@@ -1281,7 +1291,8 @@ def elsewhere_problems(c: Cell, T: Table) -> List[str]:
                 covered = list(q[3])
             elif sub is not None:
                 covered = [sub]
-            elif q[2] in ("stream", "lake") and q[2] != c.P.kind and a[0] == "more_tally":
+            elif q[2] in ("stream", "lake") and q[2] != c.P.kind and a[0] == "more_tally" \
+                    or A_ELSEWHERE_EVERY_LINE:
                 covered = tc
             else:
                 covered, every = None, False
