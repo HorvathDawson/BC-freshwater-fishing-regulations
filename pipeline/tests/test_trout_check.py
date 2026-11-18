@@ -578,19 +578,19 @@ def _recomposed(side, monkeypatch, flag, tmp_path_factory):
 
 @pytest.mark.parametrize("flag", ["A_KIND_SIZE_CAP_IS_SHARED", "A_RAINBOW_STOPS_AT_THE_STEELHEAD_SIZE"])
 def test_each_fix_the_proof_found_turned_off_fails_the_side_release(side, monkeypatch, flag, tmp_path_factory):
+    if flag == "A_RAINBOW_STOPS_AT_THE_STEELHEAD_SIZE":
+        monkeypatch.setattr(T, "USES_THE_LINE", True)      # the fault is a steelhead's "uses the 1" line (off by default)
     assert _recomposed(side, monkeypatch, flag, tmp_path_factory)
 
 
-def test_the_uses_the_line_switch_off_still_proves_the_law(side, monkeypatch, tmp_path_factory):
-    """(Owner 2026-11-18 00:52, for round 3) "uses the 1 over 50 cm" off: no row says it, and J still proves every table
-    of the side release (the strip's size cap holds the law). On (today): the rows say it."""
-    said = lambda model: sum(t.startswith("uses the ") for cells in model.sections["trout"] for c in cells if c  # noqa
-                             for b in c["table"]["boxes"] for r in b["rows"] for t in r["lines"])
-    assert said(side.model) > 0
+@pytest.mark.parametrize("on", [False, True], ids=["off (default)", "on"])
+def test_the_uses_the_line_switch_proves_the_law_either_way(side, monkeypatch, tmp_path_factory, on):
+    """(Owner 2026-11-18 00:52 / 01:07) "uses the 1 over 50 cm" is said only with its switch on (off by default: the
+    strip's size cap holds the law), and J proves every table of the side release either way."""
     from pipeline.tests import mini_chain
     m = mini_chain.trout_inputs(tmp_path_factory)
     _data, _guide, rules = mini_chain.export(tmp_path_factory)
-    monkeypatch.setattr(T, "USES_THE_LINE", False)
+    monkeypatch.setattr(T, "USES_THE_LINE", on)
     probs, n = [], 0
     for k in side.keys_with_tables():
         got = T.compose_key(m.sections["rows"][k], m.sections["display"][k], m.segments[k], m.moments[k], rules,
@@ -599,7 +599,7 @@ def test_the_uses_the_line_switch_off_still_proves_the_law(side, monkeypatch, tm
         n += sum(t.startswith("uses the ") for c in cells if c for b in c["table"]["boxes"] for r in b["rows"]
                  for t in r["lines"])
         probs += side.prove(k, cells)
-    assert n == 0 and probs == [], probs[:5]
+    assert (n > 0) == on and probs == [], probs[:5]
 
 
 # ---------------------------------------------------------------------------------------- (f) the live named waters
@@ -695,6 +695,8 @@ def test_each_fault_the_full_side_build_found_is_fixed_and_pinned(found, monkeyp
     item, part, mark = FOUND[flag]
     assert not any(mark in p for p in _found_problems(found, item, part))
     monkeypatch.setattr(T, flag, False)
+    if flag == "A_RAINBOW_STOPS_AT_THE_STEELHEAD_SIZE":
+        monkeypatch.setattr(T, "USES_THE_LINE", True)      # the fault is a steelhead's "uses the 1" line (off by default)
     if flag == "A_APART_SAYS_THE_BOX_MOST":
         # T810 G2 Q1 also brings a box's number down to what it holds here, which hides this fault: pin it alone
         monkeypatch.setattr(T, "A_HEAD_SAYS_WHAT_IS_KEPT_HERE", False)

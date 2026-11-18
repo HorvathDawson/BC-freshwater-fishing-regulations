@@ -165,12 +165,13 @@ A_POSSESSION_SAME_AS_THE_DAY = True
 #: owner 2026-11-18 00:52: a shared band names the overall limit first ("counts toward the 2 · only 1 between them").
 #: False = the mutation pin (the band's own words alone)
 A_BAND_NAMES_THE_TOTAL = True
-#: owner 2026-11-18 00:52 leans to dropping "uses the 1 over 50 cm (20 in)" ("isnt it implied by the top bar?"): a switch,
-#: ON (today's words) until round 3 shows it off. Off, the strip's "only 1 over 50 cm" alone holds the law (J proves it)
-USES_THE_LINE = True
+#: owner 2026-11-18 00:52 leans to dropping "uses the 1 over 50 cm (20 in)" ("isnt it implied by the top bar?"); 01:07 no
+#: objection: OFF (dropped). Off, the strip's "only 1 over 50 cm" alone holds the law (J proves it either way)
+USES_THE_LINE = False
 #: owner 2026-11-18 00:52: in a box, the ungrouped fish at the top, the groups at the bottom, an inner group last inside
-#: its band (`_order_rows`). False = the mutation pin (the build's order: each group where its first row stood)
-A_GROUPS_LAST = True
+#: its band (`_order_rows`). HELD OFF (owner 01:07: a fresh reviewer proposes the simplest grouping first); off = the
+#: build's order, each group where its first row stood
+A_GROUPS_LAST = False
 #: owner 2026-11-18 01:07: rainbow trout just above steelhead in a box, where they read alike (`_rainbow_above_steelhead`).
 #: False = the mutation pin (the build's order)
 A_RAINBOW_ABOVE_STEELHEAD = True
@@ -1173,13 +1174,19 @@ class Body:
                 b["rows"] = new_rows
                 self.size_drawn += 1
 
-    @staticmethod
-    def _strip_says(b: dict, n, members) -> bool:
-        """The box's size strip already holds `members` to `n`: each is kept only over a strip's size, its row saying
-        "uses the K over …" for K <= n."""
-        cms = [p[2] for p in b.get("parts") or () if p[0] in ("size", "size_except") and p[2] is not None]
-        return bool(cms) and all(any(W.uses_the(k, cm) in r.lines for cm in cms for k in range(1, int(n) + 1))
-                                 for r in members)
+    def _strip_says(self, b: dict, n, members) -> bool:
+        """The box's size strip already holds `members` to `n`: a strip part "only K over C" (K <= n) holding each of
+        them, each kept only over C (what "uses the K over C" says, whether or not the row says it: `USES_THE_LINE`)."""
+        for kind, text, cm in b.get("parts") or ():
+            if kind not in ("size", "size_except") or cm is None:
+                continue
+            for p in W.parse_strip(text):
+                if p[0] not in ("size", "size_except") or p[2] != cm or p[1] > n:
+                    continue
+                out = set(p[3]) if p[0] == "size_except" else set()
+                if all(r.fish not in out and self._min_keep(r) >= cm for r in members):
+                    return True
+        return False
 
     def _order_rows(self, b: dict) -> None:
         """(Owner 2026-11-18 00:52) inside a box, the fish no band groups first, the groups after; no group splits

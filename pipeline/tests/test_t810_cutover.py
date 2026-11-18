@@ -578,7 +578,7 @@ def test_the_fraser_at_mission_states_the_dolly_varden_and_lake_trout_count_once
     assert abs(i - j) == 1
     band = next(x for x in b["bands"] if x["from"] == min(i, j))
     assert (band["to"], band["text"], band["kind"]) == (max(i, j), "counts toward the 2 · only 1 between them", "shared")
-    assert all("uses the 1 over 50 cm (20 in)" in b["rows"][x]["lines"] for x in (i, j))
+    assert not any(t.startswith("uses the ") for r in b["rows"] for t in r["lines"])   # owner 01:07: dropped
     assert not any(x.startswith("only 1, counting any") for r in b["rows"] for x in r["lines"])
     monkeypatch.setattr(TT, "A_BAND_NAMES_THE_TOTAL", False)       # owner 00:52's "counts toward the 2 · " pin
     got, *_ = _live_tables(request, ("Fraser River",))
@@ -592,14 +592,15 @@ def test_the_fraser_at_mission_states_the_dolly_varden_and_lake_trout_count_once
 
 
 @pytest.mark.needs_bundle
-def test_the_fraser_proves_with_the_uses_the_line_off(request, monkeypatch):
-    """(Owner 00:52, round 3's choice) the Fraser at Mission with "uses the 1 over 50 cm" off: the rows no longer say it,
-    and J still proves every table of the river."""
+@pytest.mark.parametrize("on", [False, True], ids=["off (default)", "on"])
+def test_the_fraser_proves_with_the_uses_the_line_either_way(request, monkeypatch, on):
+    """(Owner 00:52 / 01:07: dropped, the switch off by default) the Fraser at Mission says "uses the 1 over 50 cm" only
+    with the switch on, and J proves every table of the river either way."""
     from pipeline.deliver.answers.trout import table as TT
-    monkeypatch.setattr(TT, "USES_THE_LINE", False)
+    monkeypatch.setattr(TT, "USES_THE_LINE", on)
     got, m, bundle, data = _live_tables(request, ("Fraser River",))
     b, _keys = _one_box(_mission(got), ("DV", "LT"))
-    assert not any(t.startswith("uses the ") for r in b["rows"] for t in r["lines"])
+    assert any(t.startswith("uses the ") for r in b["rows"] for t in r["lines"]) == on
     ks = sorted({k for k, cells in enumerate(m.sections["trout"]) if any(c is not None for c in cells)})
     assert J.check_model(m, bundle, data, keys=ks, log=lambda *_: None)["problems"] == []
 
@@ -610,6 +611,7 @@ def test_the_vedder_orders_ungrouped_first_and_nests_the_inner_group_last(reques
     no band groups stands first; the band's six rows follow, its Dolly Varden and lake trout (their own "only 1"
     between them) last and together. Mutation: the pin off puts the band's rows back in the build's order."""
     from pipeline.deliver.answers.trout import table as TT
+    monkeypatch.setattr(TT, "A_GROUPS_LAST", True)              # HELD OFF (owner 01:07): the switch's own case
     got, *_ = _live_tables(request, ("Vedder River",), md=(1, 1))
     b = next(b for b in got["Vedder River"]["table"]["boxes"] if b["kind"] == "keep")
     keys = [r["key"] for r in b["rows"]]

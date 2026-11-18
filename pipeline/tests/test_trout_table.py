@@ -372,12 +372,12 @@ EXPECTED.update({
         'fold: 4 a day (keep)\n'
         'card: Until Dec 31, then closed to all fishing\n'
         '[Keep 4 in all · only 1 over 50 cm (20 in)]\n'
+        '  Dolly Varden/bull trout: 80 cm (31 in) or longer  <counts toward the 4 · only 1 between them>  (rule changes Jul 31)\n'
+        '  Lake trout: 60 cm (24 in) or longer  <counts toward the 4 · only 1 between them>  (until Oct 14, then release)\n'
         '  Rainbow trout: 30 cm (12 in) or longer | only 2  <counts toward the 4>\n'
         '  Brook trout:   <counts toward the 4>\n'
         '  Brown trout:   <counts toward the 4>\n'
         '  Cutthroat trout:   <counts toward the 4>\n'
-        '  Dolly Varden/bull trout: 80 cm (31 in) or longer | uses the 1 over 50 cm (20 in)  <counts toward the 4 · only 1 between them>  (rule changes Jul 31)\n'
-        '  Lake trout: 60 cm (24 in) or longer | uses the 1 over 50 cm (20 in)  <counts toward the 4 · only 1 between them>  (until Oct 14, then release)\n'
         '[Release]\n'
         '  Steelhead: ~Steelhead rules apply here; steelhead may not be present in this water.'
     ),
@@ -390,8 +390,8 @@ EXPECTED.update({
         '  Brook trout:   <counts toward the 4>\n'
         '  Brown trout:   <counts toward the 4>\n'
         '  Cutthroat trout:   <counts toward the 4>\n'
-        '  Dolly Varden/bull trout: 80 cm (31 in) or longer | uses the 1 over 50 cm (20 in)  <counts toward the 4 · only 1 between them>  (until Jul 31, then release)\n'
-        '  Lake trout: 60 cm (24 in) or longer | uses the 1 over 50 cm (20 in)  <counts toward the 4 · only 1 between them>  (until Oct 14, then release)\n'
+        '  Dolly Varden/bull trout: 80 cm (31 in) or longer  <counts toward the 4 · only 1 between them>  (until Jul 31, then release)\n'
+        '  Lake trout: 60 cm (24 in) or longer  <counts toward the 4 · only 1 between them>  (until Oct 14, then release)\n'
         '[Release]\n'
         '  Steelhead: ~Steelhead rules apply here; steelhead may not be present in this water.'
     ),
@@ -489,10 +489,10 @@ EXPECTED.update({
         '  Brook trout: 30 cm (12 in) or longer  <counts toward the 2>\n'
         '  Brown trout: 30 cm (12 in) or longer  <counts toward the 2>\n'
         '  Cutthroat trout: 30 cm (12 in) or longer  <counts toward the 2>\n'
+        '  Dolly Varden/bull trout: 60 cm (24 in) or longer  <counts toward the 2 · only 1 between them>\n'
+        '  Lake trout: 60 cm (24 in) or longer  <counts toward the 2 · only 1 between them>\n'
         '  Rainbow trout: 30–50 cm (12–20 in)  <counts toward the 2>\n'
-        '  Steelhead: a rainbow over 50 cm (20 in) | after keeping 2, stop fishing this river today | ~Steelhead are known to be in this water.  <counts toward the 2>  (until Aug 14, then closed for steelhead)\n'
-        '  Dolly Varden/bull trout: 60 cm (24 in) or longer | uses the 1 over 50 cm (20 in)  <counts toward the 2 · only 1 between them>\n'
-        '  Lake trout: 60 cm (24 in) or longer | uses the 1 over 50 cm (20 in)  <counts toward the 2 · only 1 between them>'
+        '  Steelhead: a rainbow over 50 cm (20 in) | after keeping 2, stop fishing this river today | ~Steelhead are known to be in this water.  <counts toward the 2>  (until Aug 14, then closed for steelhead)'
     ),
     'fraser-r3-nov15': (
         'top: Keep 2 trout and char {day}\n'
@@ -552,12 +552,12 @@ EXPECTED.update({
         'top: Keep 5 trout and char {day}\n'
         'fold: 5 a day (keep)\n'
         '[Keep 5 in all · only 1 over 50 cm (20 in)]\n'
+        '  Dolly Varden/bull trout: 60 cm (24 in) or longer  <counts toward the 5 · only 1 between them>\n'
+        '  Lake trout: 60 cm (24 in) or longer  <counts toward the 5 · only 1 between them>  (until Oct 14, then release)\n'
         '  Rainbow trout: 50 cm (20 in) or less  <only 2>\n'
         '  Brook trout:   <counts toward the 5>\n'
         '  Brown trout:   <counts toward the 5>\n'
-        '  Cutthroat trout:   <counts toward the 5>\n'
-        '  Dolly Varden/bull trout: 60 cm (24 in) or longer | uses the 1 over 50 cm (20 in)  <counts toward the 5 · only 1 between them>\n'
-        '  Lake trout: 60 cm (24 in) or longer | uses the 1 over 50 cm (20 in)  <counts toward the 5 · only 1 between them>  (until Oct 14, then release)'
+        '  Cutthroat trout:   <counts toward the 5>'
     ),
     'khartoum-jul15': (
         'top: Keep 4 trout and char {day}, or 6 if they’re rainbow trout or steelhead\n'
@@ -569,11 +569,11 @@ EXPECTED.update({
         '  Brown trout wild: under 40 cm (16 in)  <counts toward the 4>\n'
         '  Cutthroat trout hatchery:   <counts toward the 4>\n'
         '  Cutthroat trout wild: under 40 cm (16 in)  <counts toward the 4>\n'
+        '  Dolly Varden/bull trout [HATCHERY ONLY]: 60 cm (24 in) or longer  <counts toward the 4 · only 1 between them>\n'
+        '  Lake trout [HATCHERY ONLY]: 60 cm (24 in) or longer  <counts toward the 4 · only 1 between them>\n'
         '  Rainbow trout hatchery:   <counts toward the 6>\n'
         '  Rainbow trout wild: under 40 cm (16 in)  <counts toward the 6>\n'
-        '  Steelhead [HATCHERY ONLY]: ~Steelhead are known to be in this water.  <counts toward the 6>\n'
-        '  Dolly Varden/bull trout [HATCHERY ONLY]: 60 cm (24 in) or longer | uses the 1 over 50 cm (20 in)  <counts toward the 4 · only 1 between them>\n'
-        '  Lake trout [HATCHERY ONLY]: 60 cm (24 in) or longer | uses the 1 over 50 cm (20 in)  <counts toward the 4 · only 1 between them>'
+        '  Steelhead [HATCHERY ONLY]: ~Steelhead are known to be in this water.  <counts toward the 6>'
     ),
     'kootenay-main-nov15': (
         'top: Keep 5 trout and char {day}, or 10 if they’re rainbow trout\n'
@@ -596,11 +596,11 @@ EXPECTED.update({
         '  Brown trout wild: under 40 cm (16 in)  <counts toward the 4>\n'
         '  Cutthroat trout hatchery:   <counts toward the 4>\n'
         '  Cutthroat trout wild: under 40 cm (16 in)  <counts toward the 4>\n'
+        '  Dolly Varden/bull trout [HATCHERY ONLY]: 60 cm (24 in) or longer  <counts toward the 4 · only 1 between them>\n'
+        '  Lake trout [HATCHERY ONLY]: 60 cm (24 in) or longer  <counts toward the 4 · only 1 between them>\n'
         '  Rainbow trout hatchery:   <counts toward the 6>\n'
         '  Rainbow trout wild: under 40 cm (16 in)  <counts toward the 6>\n'
-        '  Steelhead [HATCHERY ONLY]: ~Steelhead are known to be in this water.  <counts toward the 6>\n'
-        '  Dolly Varden/bull trout [HATCHERY ONLY]: 60 cm (24 in) or longer | uses the 1 over 50 cm (20 in)  <counts toward the 4 · only 1 between them>\n'
-        '  Lake trout [HATCHERY ONLY]: 60 cm (24 in) or longer | uses the 1 over 50 cm (20 in)  <counts toward the 4 · only 1 between them>'
+        '  Steelhead [HATCHERY ONLY]: ~Steelhead are known to be in this water.  <counts toward the 6>'
     ),
     'nation-lakes-jul15': (
         'top: Keep 5 trout and char {day}\n'
@@ -638,7 +638,7 @@ EXPECTED.update({
         '  Brown trout: 30 cm (12 in) or longer  <counts toward the 5 · 1 total from these 4>\n'
         '  Cutthroat trout: 30 cm (12 in) or longer  <counts toward the 5 · 1 total from these 4>\n'
         '  Rainbow trout: 30–50 cm (12–20 in)  <counts toward the 5 · 1 total from these 4>\n'
-        '  Steelhead [HATCHERY ONLY]: a rainbow over 50 cm (20 in) | uses the 1 over 50 cm (20 in) | after keeping 1, stop fishing this stream today | ~Steelhead are known to be in this water.  <counts toward the 5 · 1 total from these 4>\n'
+        '  Steelhead [HATCHERY ONLY]: a rainbow over 50 cm (20 in) | after keeping 1, stop fishing this stream today | ~Steelhead are known to be in this water.  <counts toward the 5 · 1 total from these 4>\n'
         '[Release]\n'
         '  Dolly Varden/bull trout:   (until Dec 31, then closed to all fishing)'
     ),
@@ -646,12 +646,12 @@ EXPECTED.update({
         'top: Keep 5 trout and char {day}\n'
         'fold: 5 a day (keep)\n'
         '[Keep 5 in all · only 1 over 50 cm (20 in), not counting lake trout]\n'
+        '  Lake trout: release over 60 cm (24 in) and under 90 cm (35 in) | only 2 | only 1 over 90 cm (35 in)  <counts toward the 5 · only 3 between them>\n'
+        '  Dolly Varden/bull trout:   <counts toward the 5 · only 3 between them>\n'
         '  Brook trout:   <counts toward the 5>\n'
         '  Brown trout:   <counts toward the 5>\n'
         '  Cutthroat trout:   <counts toward the 5>\n'
-        '  Rainbow trout:   <counts toward the 5>\n'
-        '  Dolly Varden/bull trout:   <counts toward the 5 · only 3 between them>\n'
-        '  Lake trout: release over 60 cm (24 in) and under 90 cm (35 in) | only 2 | only 1 over 90 cm (35 in)  <counts toward the 5 · only 3 between them>'
+        '  Rainbow trout:   <counts toward the 5>'
     ),
     'takla-jul15': (
         'top: Keep 5 trout and char {day}\n'
@@ -669,13 +669,13 @@ EXPECTED.update({
         'fold: Up to 2 or 4 (keep)\n'
         'card: Until May 31, then closed to all fishing\n'
         '[Keep 4 in all · HATCHERY ONLY · only 1 over 50 cm (20 in), 2 if one is a hatchery steelhead]\n'
-        '  Rainbow trout: any length, 50 cm (20 in) or less  <counts toward the 4>  (until Apr 30, then release)\n'
         '  Brook trout: 30 cm (12 in) or longer  <counts toward the 4 · 2 total from these 6>\n'
         '  Brown trout: 30 cm (12 in) or longer  <counts toward the 4 · 2 total from these 6>\n'
         '  Cutthroat trout: 30 cm (12 in) or longer  <counts toward the 4 · 2 total from these 6>  (until Apr 30, then release)\n'
+        '  Dolly Varden/bull trout: 60 cm (24 in) or longer | only 1, counting any lake trout you keep  <counts toward the 4 · 2 total from these 6>\n'
+        '  Lake trout: 60 cm (24 in) or longer | only 1, counting any Dolly Varden/bull trout you keep  <counts toward the 4 · 2 total from these 6>\n'
         '  Steelhead: a rainbow over 50 cm (20 in) | after keeping 2, stop fishing this river today | ~Steelhead are known to be in this water.  <counts toward the 4 · 2 total from these 6>\n'
-        '  Dolly Varden/bull trout: 60 cm (24 in) or longer | uses the 1 over 50 cm (20 in) | only 1, counting any lake trout you keep  <counts toward the 4 · 2 total from these 6>\n'
-        '  Lake trout: 60 cm (24 in) or longer | uses the 1 over 50 cm (20 in) | only 1, counting any Dolly Varden/bull trout you keep  <counts toward the 4 · 2 total from these 6>'
+        '  Rainbow trout: any length, 50 cm (20 in) or less  <counts toward the 4>  (until Apr 30, then release)'
     ),
     'windsor-jul15': (
         'top: Keep 4 trout and char {day}\n'
@@ -689,8 +689,8 @@ EXPECTED.update({
         '  Brown trout wild: 40 cm (16 in) or less  <counts toward the 4 · only 2 wild in all>\n'
         '  Cutthroat trout wild: 40 cm (16 in) or less  <counts toward the 4 · only 2 wild in all>\n'
         '  Rainbow trout wild: 40 cm (16 in) or less  <counts toward the 4 · only 2 wild in all>\n'
-        '  Dolly Varden/bull trout [HATCHERY ONLY]: 60 cm (24 in) or longer | uses the 1 over 50 cm (20 in)  <counts toward the 4 · only 1 between them>\n'
-        '  Lake trout [HATCHERY ONLY]: 60 cm (24 in) or longer | uses the 1 over 50 cm (20 in)  <counts toward the 4 · only 1 between them>'
+        '  Dolly Varden/bull trout [HATCHERY ONLY]: 60 cm (24 in) or longer  <counts toward the 4 · only 1 between them>\n'
+        '  Lake trout [HATCHERY ONLY]: 60 cm (24 in) or longer  <counts toward the 4 · only 1 between them>'
     ),
 })
 
