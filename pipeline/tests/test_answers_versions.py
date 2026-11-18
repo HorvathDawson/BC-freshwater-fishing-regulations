@@ -1,13 +1,18 @@
 """THE WRITER = READER VERSION PIN (trout table plan, ticket I0; fresh review blocker B2): every answers section the
 pipeline writes is at the version the app's reader was written for, and no section is on one side only.
 
-    writer   `answers.SECTIONS` (ladder, rows, gear, licence, display; later the optional `trout`) + `glossary.VERSION`
+    writer   `answers.SECTIONS` (ladder, rows, gear, licence, display and, since the cutover, `trout`) + `glossary.VERSION`
     reader   app/packages/core/src/regs/versions.ts: `KNOWN_VERSIONS` (required) and `OPTIONAL_VERSIONS` (optional;
              the app chat's ticket M0 adds it — until then its absence reads as "no optional sections")
 
 Which writer sections are REQUIRED is read from the release contract, not typed here: a section with a column in the
 regs files' `cell` table (`contract._REGION_TABLES["cell"]`) is in every release; a section in `answers.SECTIONS`
-without one is optional (contract 2.1: `trout` stays out of `cell` until the cutover merge moves it in).
+without one is optional (contract 2.1: `trout` stayed out of `cell` until the cutover, T810 ticket L, moved it in: rows 34
+and `trout` 1 required, so THE PIN FAILS until the app's ticket S lists `rows: 34` and `trout: 1` in KNOWN_VERSIONS and
+empties OPTIONAL_VERSIONS — the two land in one merge).
+
+The mutation pins run on an app line built from the writer (`AGREED`: what S writes), so they hold the mechanism whatever
+the app file says today; only the pin itself reads the app's file.
 
 The versions stay hand-typed on the app side on purpose (a reader says what it was WRITTEN for); this test is what
 stops one side bumping alone: a `rows` 34 in Python without the app's `rows: 34`, or the reverse, fails here. A
@@ -128,6 +133,8 @@ def pin_problems(writer: Tuple[Versions, Versions], reader: Tuple[Versions, Vers
 # ---------------------------------------------------------------------------------------------------------- the pin
 
 def test_every_answers_section_is_at_the_apps_reader_version():
+    """THE PIN (I0) on the app's own file. Since the cutover (ticket L) it holds rows 34 and `trout` required: it fails
+    until the app's S lands in the same merge."""
     writer = writer_versions()
     reader = (app_reader_versions(), app_optional_versions())
     problems = pin_problems(writer, reader)
@@ -135,6 +142,27 @@ def test_every_answers_section_is_at_the_apps_reader_version():
     # the pin covers every section the pipeline writes, not a chosen few (B2: only the tidal three were pinned)
     assert {s.name for s in A.SECTIONS} <= set(writer[0]) | set(writer[1])
     assert set(writer[0]) >= {"ladder", "rows", "gear", "licence", "display", "glossary"}
+
+
+def test_the_apps_regs_format_is_the_contracts():
+    """The regs store's own format check is hand-typed in the app (`REGS_FORMATS.region`, versions.ts): it must be the
+    contract's `regs-region/2` (ticket L), or the app opens no regs file of the cutover release. Fails until S."""
+    m = re.search(r'export const REGS_FORMATS = Object\.freeze\(\{[^}]*\bregion:\s*"([^"]+)"', _src())
+    assert m, f"{APP_VERSIONS}: no REGS_FORMATS line with `region`"
+    assert m.group(1) == C.REGS_REGION_FORMAT
+
+
+def test_the_cutover_writes_rows_34_and_trout_required():
+    """Ticket L: `trout` has a `cell` column (required), rows is 34, nothing is optional."""
+    req, opt = writer_versions()
+    assert req["rows"] == 34 and req["trout"] == 1 and opt == {}
+    assert [s.optional for s in A.SECTIONS if s.name == "trout"] == [False]
+
+
+def test_the_pin_holds_with_the_app_s_will_write():
+    """The app line S writes (`AGREED`: KNOWN_VERSIONS with rows 34 and trout 1, OPTIONAL_VERSIONS empty) agrees."""
+    assert pin_problems(writer_versions(), _reader(AGREED)) == []
+    assert app_reader_versions(AGREED)["trout"] == 1 and app_optional_versions(AGREED) == {}
 
 
 def test_an_allowance_names_only_an_optional_section_nobody_requires():
@@ -149,8 +177,21 @@ def _src() -> str:
     return APP_VERSIONS.read_text(encoding="utf-8")
 
 
+def _app_src(required: Versions, optional: Optional[Versions]) -> str:
+    """A versions.ts in the app's line shape: KNOWN_VERSIONS (and OPTIONAL_VERSIONS when given), then the anchor line
+    the optional list is inserted before (`_with_m0`)."""
+    def line(name, v):
+        return f"export const {name} = Object.freeze({{ {', '.join(f'{k}: {n}' for k, n in v.items())} }} as const);\n"
+    return line("KNOWN_VERSIONS", required) + ("" if optional is None else line("OPTIONAL_VERSIONS", optional)) \
+        + "/** The blob codecs the data layer can read (`meta.blob_codec`). */\n"
+
+
 def _reader(src: str):
     return app_reader_versions(src), app_optional_versions(src)
+
+
+#: the app's line as ticket S writes it: the writer's versions exactly (rows 34, trout 1 required, nothing optional)
+AGREED = _app_src(*writer_versions())
 
 
 def _bump(sections, name: str, by: int = 1):
@@ -160,7 +201,7 @@ def _bump(sections, name: str, by: int = 1):
 
 @pytest.mark.parametrize("name", ["ladder", "rows", "gear", "licence", "display", "glossary"])
 def test_mutation_the_app_bumping_one_section_alone_fails(name):
-    src = _src()
+    src = AGREED
     v = app_reader_versions(src)[name]
     bumped = re.sub(rf"\b{name}:\s*{v}\b", f"{name}: {v + 1}", src, count=1)
     assert bumped != src
@@ -173,11 +214,11 @@ def test_mutation_the_pipeline_bumping_one_section_alone_fails(name):
         writer = writer_versions(glossary_version=G.VERSION + 1)
     else:
         writer = writer_versions(_bump(A.SECTIONS, name))
-    assert any(p.startswith(f"{name}:") for p in pin_problems(writer, _reader(_src())))
+    assert any(p.startswith(f"{name}:") for p in pin_problems(writer, _reader(AGREED)))
 
 
 def test_mutation_a_section_dropped_from_the_apps_line_fails():
-    src = _src()
+    src = AGREED
     dropped = re.sub(r"\bgear:\s*\d+,\s*", "", src, count=1)
     assert "gear" not in app_reader_versions(dropped)
     v = writer_versions()[0]["gear"]
@@ -190,15 +231,15 @@ def test_mutation_a_section_added_to_the_pipeline_only_fails():
     extra = A.SECTIONS + (Section("bait", 1, lambda *a: None),)
     # optional (no `cell` column) and on one side, with no allowance
     assert "bait (optional, v1) is on one side only (the pipeline): add it to the other side" in \
-        pin_problems(writer_versions(extra), _reader(_src()))
+        pin_problems(writer_versions(extra), _reader(AGREED))
     # required (given a `cell` column), and the app does not list it
     cell = C._REGION_TABLES["cell"] + ["bait"]
     assert "bait: the pipeline writes it in every release (v1), not in the app's KNOWN_VERSIONS" in \
-        pin_problems(writer_versions(extra, cell=cell), _reader(_src()))
+        pin_problems(writer_versions(extra, cell=cell), _reader(AGREED))
 
 
 def test_mutation_a_section_added_to_the_app_only_fails():
-    src = _src().replace("display: ", "bait: 1, display: ", 1)
+    src = AGREED.replace("display: ", "bait: 1, display: ", 1)
     assert "bait: the app requires it (v1), not written by the pipeline" in pin_problems(writer_versions(), _reader(src))
 
 
@@ -212,8 +253,17 @@ def test_mutation_a_cell_column_no_section_writes_fails():
 M0_LINE = "export const OPTIONAL_VERSIONS = Object.freeze({ trout: 1 } as const);\n"
 
 #: the allowance `trout` held while one side listed it (T810: the app's M0 and the pipeline's ticket I landed apart);
-#: the mutation pins below hold the mechanism on it, now that both sides list `trout` and AWAITING_ONE_SIDE is empty
+#: the mutation pins below hold the mechanism on it as it was before the cutover (`PRE_CELL`: `trout` optional, no `cell`
+#: column), now that `trout` is required and AWAITING_ONE_SIDE is empty
 _TROUT_WAITING: Dict[str, Tuple[int, str]] = {"trout": (1, "the trout table (T810): one side listed it first")}
+
+
+#: `cell` before the cutover (ticket L moved `trout` in): the optional mechanism's ground
+PRE_CELL = [c for c in C._REGION_TABLES["cell"] if c != "trout"]
+
+
+def _pre(sections, cell=None):
+    return writer_versions(sections, cell=PRE_CELL if cell is None else cell)
 
 
 def _with_m0(src: str, line: str = M0_LINE) -> str:
@@ -229,14 +279,6 @@ def _trout(sections, version: int = 1):
 def _no_trout(sections):
     """The sections as they were before ticket I listed `trout` (the app's M0 landing first)."""
     return tuple(s for s in sections if s.name != "trout")
-
-
-def test_ticket_i_lists_trout_optional_whether_built_or_not():
-    """Ticket I: `Section("trout", 1)` is in `answers.SECTIONS` (optional: no `cell` column), built only with
-    `--trout-table`; the app's M0 lists it at the same version in OPTIONAL_VERSIONS, so no allowance is left."""
-    assert writer_versions()[1] == {"trout": 1} == app_optional_versions()
-    assert "trout" not in AWAITING_ONE_SIDE
-    assert [s.optional for s in A.SECTIONS if s.name == "trout"] == [True]
 
 
 def test_the_optional_list_is_read_and_its_absence_is_no_optional_section():
@@ -256,46 +298,50 @@ def _no_m0(src: str) -> str:
     return re.sub(r"export const OPTIONAL_VERSIONS = Object\.freeze\(\{[^}]*\}[^\n]*\n", "", src)
 
 
+def _base() -> str:
+    """The app's line as it was before M0 (the pre-cutover sections required, no optional list)."""
+    return _app_src(_pre(_no_trout(A.SECTIONS))[0], None)
+
+
 def test_the_trout_allowance_holds_either_side_alone_at_its_version():
-    base = _no_m0(_src())
+    base = _base()
     # the app's M0 first: the app lists trout 1, the pipeline does not write it yet
-    assert pin_problems(writer_versions(_no_trout(A.SECTIONS)), _reader(_with_m0(base)), _TROUT_WAITING) == []
+    assert pin_problems(_pre(_no_trout(A.SECTIONS)), _reader(_with_m0(base)), _TROUT_WAITING) == []
     # the pipeline's ticket I first: trout 1 written (optional: no `cell` column), the app does not list it yet
-    assert pin_problems(writer_versions(_trout(A.SECTIONS)), _reader(base), _TROUT_WAITING) == []
+    assert pin_problems(_pre(_trout(A.SECTIONS)), _reader(base), _TROUT_WAITING) == []
 
 
 def test_mutation_trout_bumped_on_one_side_alone_fails():
-    base = _no_m0(_src())
+    base = _base()
     two = M0_LINE.replace("trout: 1", "trout: 2")
     # app alone at 2 (pipeline not yet); pipeline alone at 2 (app not yet); both listed, one at 2
     assert any("trout (optional) is v2 in the app" in p
-               for p in pin_problems(writer_versions(_no_trout(A.SECTIONS)), _reader(_with_m0(base, two)), _TROUT_WAITING))
+               for p in pin_problems(_pre(_no_trout(A.SECTIONS)), _reader(_with_m0(base, two)), _TROUT_WAITING))
     assert any("trout (optional) is v2 in the pipeline" in p
-               for p in pin_problems(writer_versions(_trout(A.SECTIONS, 2)), _reader(base), _TROUT_WAITING))
+               for p in pin_problems(_pre(_trout(A.SECTIONS, 2)), _reader(base), _TROUT_WAITING))
     assert any("trout (optional): the pipeline writes v2, the app reads v1" in p
-               for p in pin_problems(writer_versions(_trout(A.SECTIONS, 2)), _reader(_with_m0(base))))
+               for p in pin_problems(_pre(_trout(A.SECTIONS, 2)), _reader(_with_m0(base))))
 
 
 def test_mutation_the_allowance_goes_stale_once_both_sides_list_trout():
-    base = _no_m0(_src())
-    assert pin_problems(writer_versions(_trout(A.SECTIONS)), _reader(_with_m0(base)), _TROUT_WAITING) == [
+    base = _base()
+    assert pin_problems(_pre(_trout(A.SECTIONS)), _reader(_with_m0(base)), _TROUT_WAITING) == [
         "trout: both sides list it now; delete its AWAITING_ONE_SIDE line"]
-    assert pin_problems(writer_versions(_trout(A.SECTIONS)), _reader(_with_m0(base)), awaiting={}) == []
+    assert pin_problems(_pre(_trout(A.SECTIONS)), _reader(_with_m0(base)), awaiting={}) == []
 
 
 def test_mutation_an_optional_section_without_an_allowance_fails_on_one_side():
-    base = _no_m0(_src())
-    assert pin_problems(writer_versions(_no_trout(A.SECTIONS)), _reader(_with_m0(base)), awaiting={}) == [
+    base = _base()
+    assert pin_problems(_pre(_no_trout(A.SECTIONS)), _reader(_with_m0(base)), awaiting={}) == [
         "trout (optional, v1) is on one side only (the app): add it to the other side"]
-    assert pin_problems(writer_versions(), _reader(base), awaiting={}) == [
+    assert pin_problems(_pre(_trout(A.SECTIONS)), _reader(base), awaiting={}) == [
         "trout (optional, v1) is on one side only (the pipeline): add it to the other side"]
 
 
 def test_mutation_trout_required_on_one_side_and_optional_on_the_other_fails():
-    base = _no_m0(_src())
+    base = _base()
     required_in_app = base.replace("display: ", "trout: 1, display: ", 1)
-    probs = pin_problems(writer_versions(_trout(A.SECTIONS)), _reader(required_in_app))
+    probs = pin_problems(_pre(_trout(A.SECTIONS)), _reader(required_in_app))
     assert "trout: the app requires it (v1), optional in the pipeline" in probs
-    cell = C._REGION_TABLES["cell"] + ["trout"]
-    probs = pin_problems(writer_versions(_trout(A.SECTIONS), cell=cell), _reader(_with_m0(base)))
+    probs = pin_problems(writer_versions(_trout(A.SECTIONS)), _reader(_with_m0(base)))
     assert "trout: the pipeline writes it in every release (v1), optional in the app" in probs

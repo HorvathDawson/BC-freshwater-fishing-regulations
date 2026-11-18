@@ -24,14 +24,17 @@ FRAMES: Dict[str, TypeAdapter] = {
     "gear": TypeAdapter(GearFrame),
     "licence": TypeAdapter(LicenceFrame),
     "display": TypeAdapter(DisplayFrame),
-    # T810 ticket I: the trout and char table (contract 2.3), an OPTIONAL section (`OPTIONAL_FRAMES`)
+    # T810 ticket I: the trout and char table (contract 2.3); required since the cutover (ticket L)
     "trout": TypeAdapter(TroutFrame),
 }
 
-#: The OPTIONAL sections' frames (contract 2.1: `answers.SECTIONS`' `optional` ones, held equal by a test): a cell of one
-#: may be null (Q-D3: no table there), and a file without the section carries none of its schemas, so a release built
-#: without it is byte for byte what it was before the section existed.
-OPTIONAL_FRAMES = frozenset({"trout"})
+#: The OPTIONAL sections' frames (contract 2.1: `answers.SECTIONS`' `optional` ones, held equal by a test): a file
+#: without one carries none of its schemas. None since the trout cutover (T810 ticket L: `trout` is required); the rule
+#: stays for the next additive section.
+OPTIONAL_FRAMES: frozenset = frozenset()
+
+#: The sections whose cell may be null (contract 2.6, Q-D3: the trout table is null where no table is drawn).
+NULLABLE_FRAMES = frozenset({"trout"})
 
 #: (T810 ticket I, contract 2.3 "wire against decoded") the shapes the trout section's tables hold on the wire — a
 #: `trout_frame` row, a `trout_table` body, a `trout_dates` date set, a `trout_sheet` fish sheet — emitted beside the
@@ -74,7 +77,7 @@ def validate_section(name: str, values, statics: Optional[dict] = None) -> int:
     n = 0
     if ad is not None:
         for v in values:
-            if v is None and name in OPTIONAL_FRAMES:
+            if v is None and name in NULLABLE_FRAMES:
                 continue                                # Q-D3: no table at this cell
             s = json.dumps(v, sort_keys=True)
             if s in seen:

@@ -286,7 +286,7 @@ def test_the_stored_fish_answer_carries_its_lead_whole():
 
 def _frame_with(h, w, lead):
     return {"spp": ["RB"], "fish": {"RB": {"hatchery": h, "wild": w, "lead": lead}}, "rows": [],
-            "steelhead_line": None}
+            "steelhead_line": None, "page_possession": None}
 
 
 def test_the_model_holds_the_stored_lead_to_the_one_function():
@@ -309,10 +309,10 @@ def test_the_model_holds_the_stored_lead_to_the_one_function():
 def test_the_wire_carries_the_lead_third_and_refuses_a_frame_without_it():
     h, w = _dec("release", 1), _dec("keep", 2)
     tables, refs = RowsCodec().encode([_frame_with(h, w, "wild")], {}, {})
-    assert tables["frames"] == [[["RB"], {"RB": [0, 1, "wild"]}, [], None, []]]
+    assert tables["frames"] == [[["RB"], {"RB": [0, 1, "wild"]}, [], None, [], None]]       # rows 34: + F0's slot
     sec = dict(tables)
     assert RowsCodec().decode_frame(sec, refs[0], [], []) == _frame_with(h, w, "wild")
-    sec["frames"] = [[["RB"], {"RB": [0, 1]}, [], None, []]]           # a rows 32 frame
+    sec["frames"] = [[["RB"], {"RB": [0, 1]}, [], None, [], None]]     # a rows 32 frame's fish
     with pytest.raises(AnswersError, match=r"holds RB as \[0, 1\] — not \[decided h, decided w, lead\]"):
         RowsCodec().decode_frame(sec, 0, [], [])
     # the shard closure reads the two answer slots only: the lead word is no row reference

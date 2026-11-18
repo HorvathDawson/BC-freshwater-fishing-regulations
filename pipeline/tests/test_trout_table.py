@@ -1,7 +1,8 @@
 """THE TROUT AND CHAR TABLE BUILDER (trout table plan, T810 ticket F): `answers/trout/table.py` builds each (answer key,
 segment)'s `model.trout.TroutFrame`, every word from G (`trout/words.py`), every date from E (`trout/timeline.py`).
 
-Anchors: (a) EVERY KEY of the committed mini release (no data: the property that every trout and char fish of a frame
+Anchors: (a) EVERY KEY of the mini chain (no data, `mini_chain`: the rows as the builder read them, before the rows 34
+cutover; the property that every trout and char fish of a frame
 is said exactly once, NULL exactly per Q-D3, and every table valid under the model); (b) frames planted on a mini-release
 frame (a mixed trout + kokanee closed row split, a weekday split, an hours window, the model's refusals); (c) the plan's
 named waters on the live bundle (`needs_bundle`), each table whole; (d) the whole built release (`needs_bundle`);
@@ -109,33 +110,26 @@ def check_key(rows, displays, frames) -> list:
 # ------------------------------------------------------------------------------- (a) every key of the mini release
 
 class _Mini:
-    def __init__(self):
-        from pipeline.deliver.store.release import province_store
-        from pipeline.tools.audit import answers_diff as AD
-        from pipeline.tools.audit import trout_table as TT
-        d = under_test.mini()
-        self.R = AD.Release(d)
-        st = province_store(d)
-        try:
-            sub = st.export_subset(check=True)
-        finally:
-            st.close()
-        self.rules = T.Rules({i: T.rule_of(sub["rules"][rid]) for i, rid in enumerate(self.R.rule_ids)})
-        rows, disp, lic = self.R.sections["rows"], self.R.sections["display"], self.R.sections["licence"]
+    """Every key of the mini chain (`mini_chain`, the committed mini release's own stages), its rows frames AS THE
+    BUILDER READ THEM: since the cutover (rows 34) a shipped frame's covered rows carry no `group`, which the builder
+    reads, so the answers are built again in this process with the cutover pass off (`mini_chain.trout_inputs`)."""
+
+    def __init__(self, tmp_path_factory):
+        from pipeline.tests import mini_chain
+        m = mini_chain.trout_inputs(tmp_path_factory)
+        _data, _guide, self.rules = mini_chain.export(tmp_path_factory)
+        self.model = m
         self.keys = []
         #: per key, its post-pass licence frames (the fish sheets' stamps, ticket H)
         self.lics = {}
-        for k, starts, moms in TT._keys(self.R):
-            fs = [self.R.codecs["rows"].decode_frame(rows, ref, self.R.rule_ids, self.R.fish) for ref in rows["at"][k]]
-            ds = [disp["frames"][i] for i in disp["at"][k]]
-            self.lics[k] = [self.R.codecs["licence"].decode_frame(lic, ref, self.R.rule_ids, self.R.fish)
-                            for ref in lic["at"][k]]
-            self.keys.append((k, starts, moms, fs, ds))
+        for k, starts in enumerate(m.segments):
+            self.lics[k] = m.sections["licence"][k]
+            self.keys.append((k, starts, m.moments[k], m.sections["rows"][k], m.sections["display"][k]))
 
 
 @pytest.fixture(scope="module")
-def mini():
-    return _Mini()
+def mini(tmp_path_factory):
+    return _Mini(tmp_path_factory)
 
 
 def test_every_key_of_the_mini_release_holds_the_properties(mini):
@@ -763,3 +757,17 @@ def test_the_mixed_row_split_broken_fails_its_case(live, monkeypatch):
     rows, ds, starts, moms = live.key("burnt-jan15")
     assert check_key(rows, ds, T.compose_key(rows, ds, starts, moms, live.rules,
                                              licences=live.licences("burnt-jan15"))) != []
+
+
+def test_the_split_never_changes_the_frame_it_reads():
+    """T810 L: `split_mixed` runs twice on one frame (the table, then the cutover), and rows are shared between keys:
+    a parent index moved past a split row is moved on a copy, so the second split gives the same frame as the first."""
+    closed_mixed = {"kind": "closed", "members": ["RB", "KO"], "all_members": ["RB", "KO"], "groups": []}
+    pool = {"kind": "keep", "pool": 1, "members": ["CT"], "all_members": ["CT"], "groups": []}
+    held = {"kind": "keep", "pool": 2, "members": ["CT"], "all_members": ["CT"], "groups": [], "parent": 1}
+    frame = {"rows": [closed_mixed, pool, held]}
+    before = copy.deepcopy(frame)
+    first, covers = T.split_mixed(frame)
+    assert frame == before
+    assert [r.get("parent") for r in first["rows"]] == [None, None, None, 2] and covers == [0, 2, 3]
+    assert T.split_mixed(frame) == (first, covers)

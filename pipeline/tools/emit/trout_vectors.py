@@ -183,8 +183,8 @@ class Fixture:
         self.dir = rels[0]
         self.manifest = json.loads((self.dir / "manifest.json").read_text())
         if "trout" not in ((self.manifest.get("regulations") or {}).get("versions") or {}):
-            raise SystemExit(f"{_BY}: {self.dir.name} holds no trout section: it was not cut from a side release "
-                             "built with --trout-table")
+            raise SystemExit(f"{_BY}: {self.dir.name} holds no trout section: it was cut from a release made before the "
+                             "trout cutover (T810 L)")
         self.st = province_store(self.dir, verify=False)
         con = self.st.con
         self.moments = self.st.static("answers.moments")

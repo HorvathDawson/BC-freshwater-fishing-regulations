@@ -144,42 +144,19 @@ def test_a_trout_answer_that_changes_inside_an_hours_window_is_counted(base, tmp
 
 # ------------------------------------------------------------------------------------------------------- the estimate
 
-def test_the_estimate_prices_the_side_and_cutover_forms_of_a_region_file(base):
+def test_the_estimate_refuses_a_release_already_cut_over(base):
+    """(T810 L) The estimate prices the section added and the trout groups cut from a release made BEFORE the cutover
+    (A0's question, measured on the real form by A1). The committed mini release is the cutover form now: the estimate
+    refuses it, saying why, rather than pricing the section twice."""
     a, _ = base
-    rep = a.size(["1"])["regs-1"]
-    assert rep["baseline_gz"] == rep["manifest_gz"]                     # gzipped as the release gzips
-    assert rep["rows_row_cut"]["repack_differs"] == 0                  # the re-pack reproduces every stored row
-    assert rep["rows_row_cut"]["rows"] > 0 and rep["rows_row_cut"]["packed_bytes_freed"] > 0
-    nulls = sum(1 for k, s, ref in a.cells() if a.status(k, s) in ("closed", "tidal")
-                or not TS.trout_law(a.frame(ref)))
-    regs1 = {(akey, s) for akey, s in _region_cells(a, "regs-1")}
-    assert rep["cells"] == len(regs1) and 0 < rep["null_cells"] <= nulls
-    for variant in TS.BODIES:
-        v = rep[variant]
-        assert v["side_gz"] > rep["baseline_gz"] and v["section_packed"] > 0
-        assert v["cutover_gz"] < v["side_gz"]
-        assert v["families"]["trout_frame"]["distinct"] >= v["families"]["trout_table"]["distinct"]
-    assert rep["lean"]["section_packed"] <= rep["full"]["section_packed"]
-
-
-def _region_cells(a: TS.Audit, name: str):
-    import sqlite3
-    import tempfile
-    from pathlib import Path
-    from pipeline.tools.audit import answers_diff as AD
-    raw = AD._file_bytes(a.dir, a.R.manifest, name)
-    with tempfile.TemporaryDirectory() as tmp:
-        p = Path(tmp) / "r.sqlite"
-        p.write_bytes(raw)
-        con = sqlite3.connect(str(p))
-        out = con.execute("SELECT akey, s FROM cell").fetchall()
-        con.close()
-    return out
+    with pytest.raises(TS.SizeError, match="already holds the trout section"):
+        a.size(["1"])
 
 
 def test_the_cli_writes_its_report(tmp_path, capsys):
-    assert TS.main([str(under_test.mini()), "--regions", "1", "--out", str(tmp_path)]) == 0
+    assert TS.main([str(under_test.mini()), "--regions", "1", "--out", str(tmp_path)]) == 2      # T810 L: cut over
+    assert TS.main([str(under_test.mini()), "--no-size", "--out", str(tmp_path)]) == 0
     rep = json.loads((tmp_path / "report.json").read_text())
-    assert {"mixed_rows", "angler_only", "hours_window", "size"} <= set(rep)
+    assert {"mixed_rows", "angler_only", "hours_window"} <= set(rep)
     assert "TROUT TABLE A0" in (tmp_path / "report.txt").read_text()
     assert TS.main([str(tmp_path / "nowhere"), "--no-size", "--out", str(tmp_path)]) == 2

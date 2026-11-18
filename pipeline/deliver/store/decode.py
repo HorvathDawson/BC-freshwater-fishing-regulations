@@ -68,11 +68,12 @@ class Store:
 
     # ---- the answers file
     def answers(self) -> dict:
-        from pipeline.deliver.store.build import FAMILIES, OPTIONAL_SECTIONS, SECTIONS
+        from pipeline.deliver.store.build import ADDED_SECTIONS, FAMILIES, SECTIONS
         layout = json.loads(self.meta["layout"])
-        # (T810 ticket I) the cell's columns: every section's, then each optional one the store holds (its layout's)
+        # (T810 tickets I, L) the cell's columns: every section's, then each added one the store holds (its layout's: an
+        # older release's store has none)
         cols = [c[1] for c in self.con.execute("PRAGMA table_info(cell)")]
-        cell_secs = SECTIONS + tuple(n for n in OPTIONAL_SECTIONS if n in layout["sections"])
+        cell_secs = SECTIONS + tuple(n for n in ADDED_SECTIONS if n in layout["sections"])
         if cols != ["akey", "s", *cell_secs]:
             raise StoreError(f"store: cell's columns {cols} are not the layout's sections {list(cell_secs)}")
         keys = []

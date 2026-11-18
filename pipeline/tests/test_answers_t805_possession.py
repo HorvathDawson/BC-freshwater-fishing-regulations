@@ -12,10 +12,14 @@ The kinds stand on data built here: the answers 2.8 fixture's plain Region 2 lak
 quotas" added, as `test_answers_r20h.py` does) plus a lake trout "1 daily quota" line in Zone 7A's words and a water's
 possession count with its clause in Cunningham Lake's words (each a bundle-shaped record on a Region 2 lake entry),
 through the REAL reader and the REAL rows. The live twins are in `test_answers_t805_live.py`.
+
+T810 ticket L (the cutover): the line is no longer a card duty (`card._duties`: only trout and char said one, and their
+cards are dropped); it is `card.possession_duty`, which the trout table puts on the fish's row, and the gate is J's
+re-aimed check (`card_check.possession_problems` with F0's lead, `trout/check.possession_problems`). These tests hold
+the line and that gate on the same frames as before; the tree's kinds carry no possession duty any more.
 """
 from __future__ import annotations
 
-import copy
 import json
 
 from pipeline.deliver.answers import answers as A
@@ -92,63 +96,63 @@ def _group(out):
     return g
 
 
-def _duties(out) -> dict:
-    return {tuple(n["species"]): n["duties"] for n, _p in walk(_group(out)["tree"]) if n["node"] == "kind"}
+def _kinds(out) -> list:
+    return [n for n, _p in walk(_group(out)["tree"]) if n["node"] == "kind"]
+
+
+def _line(entry, S: str):
+    """(the fish's own possession line, `card.possession_duty`; P, the reader's model)."""
+    from pipeline.deliver.answers.rows.card_model import build_model
+    _out, P = _frame(entry)
+    model = build_model(P)
+    return CD.possession_duty(P, model, S), P, model
+
+
+def _gate(P, model, species, n, line) -> list:
+    """J's re-aimed check (`card_check.possession_problems` with F0's lead) on one row saying `line`."""
+    return CC.possession_problems(P, {"species": list(species), "n": n, "duties": [line] if line else []}, "row",
+                                  lead=CD.page_possession(P, model))
 
 
 def test_a_fish_whose_possession_is_one_days_limit_says_it_on_its_row():
-    out, P = _frame(PER)
-    d = _duties(out)
-    lt = next(v for k, v in d.items() if "LT" in k)
-    assert lt == ["in your possession: 1 day’s limit, not 2 (fish at home don’t count)"]
-    assert all(v == [] for k, v in d.items() if "LT" not in k)       # the page's line is theirs: nothing on the row
-    assert CC.check_tree(P, _group(out)) == []
+    line, P, model = _line(PER, "LT")
+    assert line == "in your possession: 1 day’s limit, not 2 (fish at home don’t count)"
+    assert CD.possession_duty(P, model, "RB") is None             # the page's line is theirs: nothing on the row
+    assert _gate(P, model, ["LT"], 3, line) == []
 
 
 def test_a_waters_possession_count_says_its_size_clause():
-    out, P = _frame(CAP)
-    lt = next(v for k, v in _duties(out).items() if "LT" in k)
-    assert lt == ["in your possession: no more than 2 lake trout, only 1 over 50 cm (20 in) (fish at home don’t count)"]
-    assert CC.check_tree(P, _group(out)) == []
+    line, P, model = _line(CAP, "LT")
+    assert line == "in your possession: no more than 2 lake trout, only 1 over 50 cm (20 in) (fish at home don’t count)"
+    assert _gate(P, model, ["LT"], 3, line) == []
 
 
 def test_a_plain_lake_says_no_possession_on_any_row():
-    out, P = _frame(None)
-    assert all(v == [] for v in _duties(out).values())
-    assert CC.check_tree(P, _group(out)) == []
+    line, P, model = _line(None, "LT")
+    assert line is None and _gate(P, model, ["LT"], 3, None) == []
 
 
-def _mutate(g, fn):
-    g = copy.deepcopy(g)
-    for n, _p in walk(g["tree"]):
-        if n["node"] == "kind":
-            n["duties"] = [fn(d) for d in n["duties"] if fn(d) is not None]
-    return g
+def test_the_card_says_no_possession_line_since_the_cutover():
+    """Ticket L: the card's kinds carry no possession duty (the table's row says it); the fish whose own possession
+    differs is still a kind apart (the tree the table builder reads is unchanged)."""
+    out, _P = _frame(PER)
+    assert not any(d.startswith("in your possession") for n in _kinds(out) for d in n["duties"])
+    assert any(n["species"] == ["LT"] for n in _kinds(out))
 
 
 def test_mutation_the_gate_refuses_a_dropped_size_clause_a_larger_number_and_a_missing_line():
-    out, P = _frame(CAP)
-    g = _group(out)
-    dropped = _mutate(g, lambda d: d.replace(", only 1 over 50 cm (20 in)", ""))
-    assert any("the rules" in p for p in CC.check_tree(P, dropped))
-    larger = _mutate(g, lambda d: d.replace("no more than 2", "no more than 4"))
-    assert any("the rules" in p for p in CC.check_tree(P, larger))
-    gone = _mutate(g, lambda d: None if d.startswith("in your possession") else d)
-    assert any("is on no line" in p for p in CC.check_tree(P, gone))
-    out, P = _frame(PER)
-    two = _mutate(_group(out), lambda d: d.replace("1 day’s limit", "2 day’s limit"))
-    assert any("the rules" in p for p in CC.check_tree(P, two))
-    out, P = _frame(None)                                            # a line where the page's line is the fish's
-    extra = copy.deepcopy(_group(out))
-    for n, _p in walk(extra["tree"]):
-        if n["node"] == "kind" and "LT" in n["species"]:
-            n["duties"] = ["in your possession: 1 day’s limit, not 2"]
-    assert any("is the page's" in p for p in CC.check_tree(P, extra))
+    line, P, model = _line(CAP, "LT")
+    assert any("the rules" in p for p in _gate(P, model, ["LT"], 3, line.replace(", only 1 over 50 cm (20 in)", "")))
+    assert any("the rules" in p for p in _gate(P, model, ["LT"], 3, line.replace("no more than 2", "no more than 4")))
+    assert any("is on no line" in p for p in _gate(P, model, ["LT"], 3, None))
+    line, P, model = _line(PER, "LT")
+    assert any("the rules" in p for p in _gate(P, model, ["LT"], 3, line.replace("1 day’s limit", "2 day’s limit")))
+    _l, P, model = _line(None, "LT")                                 # a line where the page's line is the fish's
+    assert any("is the page's" in p for p in _gate(P, model, ["LT"], 3, "in your possession: 1 day’s limit, not 2"))
 
 
 def test_mutation_no_possession_line_on_the_row(monkeypatch):
     monkeypatch.setattr(CD, "A_POSSESSION_ON_THE_FISH_ROW", False)
-    out, P = _frame(CAP)
-    assert all(v == [] for v in _duties(out).values())
-    # with no line the lake trout fold in with the Dolly Varden: the gate names the count holding only one of them
-    assert any("is on no line" in p or "holds only some of its fish" in p for p in CC.check_tree(P, _group(out)))
+    line, P, model = _line(CAP, "LT")
+    assert line is None
+    assert any("is on no line" in p for p in _gate(P, model, ["LT"], 3, line))

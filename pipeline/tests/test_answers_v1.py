@@ -61,7 +61,7 @@ def built(request):
 @pytest.mark.needs_bundle
 def test_every_section_round_trips_and_is_described(built):
     data, guide, model, wire = built
-    assert set(wire["sections"]) == {s.name for s in A.SECTIONS if not s.optional}      # trout: only with --trout-table
+    assert set(wire["sections"]) == {s.name for s in A.SECTIONS}      # trout: in every file since the cutover (T810 L)
     back = E.decode(wire, data)
     assert back == model
     assert E.spec_gaps(wire) == []
