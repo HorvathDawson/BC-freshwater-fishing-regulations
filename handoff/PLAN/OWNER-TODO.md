@@ -2703,3 +2703,7 @@ More questions (recommended answer first):
   app/integrate-081): faster map (Salmon zoom-out most), route-map gauge dots + you-are-here on phones, sharper coho
   loader + its line, desktop Trout/Salmon switch beside the day + see-through side bar, iPhone stale colour fixed. Clear
   them or note changes (To-Do page row "Clear the 0.8.1 'What's new' lines").
+- 2026-11-18 ~16:52, owner (to the main chat, relayed to the app chat 16:53), verbatim: "on desktop webapp when you click
+  about or simialr in more it shouldnt take over the entire page iot should be a card that overlays that pops up which you
+  can click off to close maybe?" -> T859 (desktop web only: More's pages open as a centred card over the page; a click
+  outside, Escape or ✕ closes it; phones unchanged). Lands with T858, right after 0.8.1, web only (no Play/TestFlight build).
