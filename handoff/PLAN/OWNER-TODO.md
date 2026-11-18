@@ -2487,3 +2487,5 @@ More questions (recommended answer first):
 - 2026-11-17 ~21:18, owner on T841 (73/73 classified rows ship right; own-row tributaries that print no class, Li5/Li5a: Gosnell, Thautil, Glacier (Redslide), Two Mile, Station, Hevenor, Magar, Endako, Little Horsefly, McKinley, Moffat, Wahpeeto, Whiteswan outlet; closed all year: Line, Grave, Sandown, Nichyeskwa, Lean-to, Deep, East Fork White, Bear (Sustut)): "Keep: not classified". Li5/Li5a stand.
 - 2026-11-17 ~22:13, owner, verbatim: "loading on webapp should use the new one too like the app" (the web app's loading animation should be the new coho one, as in the app since T814/T843). Handed to the app chat as T844.
 - 2026-11-17 ~22:16, owner on T844 (should small in-app loading spots switch to the coho too?): "Opening loader only". Web first load gets the coho; small in-app loaders keep the circling fish (T814).
+- 2026-11-17 23:02, owner (app chat dialog, T844 web loader; Fast 3G frame strip + fast-line clip sent), verbatim: "make
+  way smaller for web" (a much smaller web-only coho sheet so it swims on slow lines; phones unchanged).

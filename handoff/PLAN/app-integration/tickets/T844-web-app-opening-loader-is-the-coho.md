@@ -54,3 +54,7 @@ Frame strip, Fast 3G (staging today / branch before / with T844): `t844-frame-st
 ## Open for the owner
 On a slow line the coho stays still (frame 0) until its 0.9 MB sheet is in, which on Fast 3G is after the map: a
 lighter web sheet (lossy WebP or fewer frames) would let it swim sooner. Not built; his call.
+
+2026-11-17 23:02, owner (app chat dialog, after the Fast 3G frame strip and the fast-line clip), verbatim: "make way
+smaller for web". So the web gets its own much smaller coho sheet (lossy and/or fewer frames, web only; the phones keep
+theirs), so it swims on a slow line before the map.
