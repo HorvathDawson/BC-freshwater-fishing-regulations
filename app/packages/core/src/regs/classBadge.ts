@@ -23,7 +23,7 @@ import { LIC } from "./words";
 
 /** The look the app draws: "in_period" (A) or "year_round" (B). One constant, so the owner's pick is one line. */
 export type ClassBadgeMode = "in_period" | "year_round";
-export const CLASS_BADGE_MODE: ClassBadgeMode = "in_period";
+export const CLASS_BADGE_MODE: ClassBadgeMode = "year_round";   // owner 2026-11-17 21:38: "B: always, with dates"
 
 export interface ClassBadgeVM {
   /** "I" | "II": the class said */

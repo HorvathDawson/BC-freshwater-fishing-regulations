@@ -88,12 +88,15 @@ describe("look B (year round, with the period)", () => {
   });
 });
 
-describe("the header carries it (look A, the app's default)", () => {
+describe("the header carries it (look B, the app's default: owner 2026-11-17 21:38 \"B: always, with dates\")", () => {
   const h = (i: RegsInputs) => headerOf(i, { today: { month: 8, day: 15 }, status: "open" });
-  it("a classified day: `classed` set", () => {
-    expect(h(inputs([77], [77])).classed?.label).toBe("Class II");
+  it("a classified day: `classed` set, in force", () => {
+    expect([h(inputs([77], [77])).classed?.label, h(inputs([77], [77])).classed?.inForce]).toEqual(["Class II", true]);
   });
-  it("an unclassified day: no `classed` key at all (the frozen headers stay equal)", () => {
-    expect("classed" in h(inputs([], [77]))).toBe(false);
+  it("a classified water out of its period: still shown, not in force (drawn muted)", () => {
+    expect([h(inputs([], [77])).classed?.label, h(inputs([], [77])).classed?.inForce]).toEqual(["Class II", false]);
+  });
+  it("a water with no designation at all: no `classed` key (the frozen headers stay equal)", () => {
+    expect("classed" in h(inputs([], []))).toBe(false);
   });
 });

@@ -16,3 +16,14 @@ Source: owner 2026-11-17 ~20:27, verbatim: "Also we need to make sure the classi
 ## App (app chat, after T802's look)
 A Class I / Class II badge in the card header of a classified water (owner's direction; T802 was "looks first"). One
 picture to the owner before it ships.
+
+## App half — built 2026-11-17 (app chat, branch app/t841-class-badge), owner picks 21:38
+`core/src/regs/classBadge.ts` `classBadgeOf` → `HeaderVM.classed`; drawn by `ClassBadge` in `ui-native/src/regs/RegsHeader.tsx`
+(name row, before the date pill; outlined chip, tokens only; press opens `gl:classified_waters`). The period comes from the
+record's stored `period.dates` (existing `rangeTxt`); every day's frame lists the part's designations in
+`holds.considered`, so no union over days. On r-46e4355a7277: Skeena S4 "Class II · Jul 1–Dec 31", Skeena River 2 Jul 1–Sep 30,
+Dean Class I Jun 1–Sep 30 (canyon parts) and Class II Jun 16–Oct 31 (Iltasyuko–Anahim), the Elk and its tributaries "Class
+II" (no dates: whenever open), lower Coal Creek none. Two classes on one part: the highest shows (none in the release).
+Owner 2026-11-17 21:38 (app chat dialog, pictures of A and B sent): "B: always, with dates (Recommended)" and "In the name
+row (Recommended)". Possible data gap sent to the main chat: upper Coal Creek (gnis:17550 part 1, above the Old MF&M
+Railway bridge) carries no designation.
