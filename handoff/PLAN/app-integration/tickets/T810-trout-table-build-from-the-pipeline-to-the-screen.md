@@ -216,3 +216,12 @@ Q1 what you keep here; Q2 "between/among them" (box number: "up to the N"); Q3a 
   `inp.s` and `inp.trout` equal Python's. 10 mutations of the new guards each fail a test.
 - Next for the main chat: `scripts/trout-refresh.sh` step 4 (the golden sync) now RUNS, because `versions.ts` lists
   `trout`. The conformance checks of the golden versions now accept an optional section at `OPTIONAL_VERSIONS`.
+
+## 2026-11-17 21:33: owner signs off the picture pack (R), with one wording change
+Verbatim in OWNER-TODO 21:33. (1) Rows with no limit of their own say "counts toward the 2" (replacing "any of the 2",
+the 15:46 wording): Python's words (G2 builder, main chat); the app re-cuts the a11y golden and vectors after. (2) The
+table is signed off for the cutover, "also make sure to do the source table and the species row expansion when you
+click on one with the sources for that entry plus identification": P's fish sheet (`tf:<row key>`: "Here, today", "How
+to tell it", the row's own Sources) and "Sources ›" (`table.src`) must be in the cutover build; the app chat shows him
+the sheet pictures before switching. R built on app/t810-r bb403c97f (selectors match old card or table; scenario
+`trout-table` written, run owed on the heavy lane with the side release on staging test/).

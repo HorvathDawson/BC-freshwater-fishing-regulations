@@ -2476,3 +2476,10 @@ More questions (recommended answer first):
   (2521) and Morice (2596), dormant, already answered in T806 (closed areas; retired): dated allowances in the gate.
 - 2026-11-17 ~20:25, owner on the G8/G10 Licence page (T789). G8 weekend banner, verbatim: "Where is this? Should each of these waters just have their own info? Don't want this on waters it doesn't apply to". Lakelse/Telkwa every-day closures, verbatim: "Same thing applies to these". So: NO province-wide banner; each of the 12 waters (the 10 weekend ones + Lakelse + Telkwa) carries its own alien closure, with its own days and dates, on its own Licence tab only. G10 under-16 price: "Yes, each its own price (Recommended)" (each document with its own ordinary non-resident/alien price; the book prints no under-16 price).
 - 2026-11-17 ~20:27, owner (classified waters, T841 + T802), verbatim: "Also we need to make sure the classified water symbols are maintained properly and modify the license requirement. Also if a water is classified it should have a badge in the card I header I think. Make sure we capture all classified waters whether labeled by symbol or by tributary of something". Filed as T841 (audit + licence requirement + build check); T802's card part becomes a header badge (picture first).
+- 2026-11-17 21:33, owner (app chat dialog, T810 R picture pack: Elk Nov 15, Fraser at Mission Jul 15, Bowron Jul 15,
+  Fraser 360 px cvd). First asked, verbatim: "The wording still using any of the x which I thought we changed?" (it had
+  changed from "up to the x" at 15:46). Then picked, for a row with no limit of its own: "\"counts toward the 2\""
+  (replaces "any of the 2" everywhere: Python's words, the main chat). Sign-off, verbatim: "Yes with wording above also
+  make sure to do the source table and the species row expansion when you click on on with the sources for that entry
+  plus identification" (the trout table is signed off for the cutover with the new wording; the row press must open the
+  fish's sheet with its own sources and how to tell it, and "Sources ›" the table's sources).
