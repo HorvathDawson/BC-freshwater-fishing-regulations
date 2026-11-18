@@ -230,7 +230,7 @@
    "name": "SAMPLE LAKE",
    "display_name": "Sample Lake",
    "region": "2",
-   "regs_verbatim": "Trout/char daily quota = 1",
+   "regs_verbatim": "Trout/char daily quota = 1 (all cutthroat trout catch and release)",
    "source_pages": [
     92
    ],
@@ -251,6 +251,22 @@
       "TROUT_CHAR"
      ],
      "take": 1,
+     "extents": [
+      {
+       "op": "whole"
+      }
+     ]
+    },
+    {
+     "rule_id": "sample_lake.r2",
+     "type": "retention_limit",
+     "verbatim": "all cutthroat trout catch and release",
+     "species": [
+      "CT"
+     ],
+     "take": 0,
+     "within": "sample_lake.r1",
+     "may_target": true,
      "extents": [
       {
        "op": "whole"

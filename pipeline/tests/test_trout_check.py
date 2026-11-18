@@ -356,6 +356,120 @@ def _zero_band(side):
                                         and b["bands"][0]["to"] == 0 for b in c["table"]["boxes"]), change)
 
 
+# ------------------------------------------------- (T810 L, the re-review's FIX FIRST) each new J check pinned, no data
+
+def _released_ct(side):
+    """(key, segment) of the mini world's Sample Lake: its rows frame answers cutthroat keep, its "all cutthroat trout
+    catch and release" (take 0 inside the lake's 1) keeps none — the table stands it under Release."""
+    for k in side.keys_with_tables():
+        for j, c in enumerate(side.model.sections["trout"][k]):
+            if c is None:
+                continue
+            rel = [r["fish"] for b in c["table"]["boxes"] if b["kind"] == "release" for r in b["rows"]]
+            if "CT" in rel and J.asked(side.model.sections["rows"][k][j]).get("CT") == "keep":
+                return k, j
+    raise AssertionError("the mini world has no cutthroat held to 0 (Sample Lake's sample_lake.r2)")
+
+
+def test_a_fish_held_to_zero_stands_under_release_and_j_holds_it(side, monkeypatch):
+    """The zero -> Release guard: J accepts a fish its frame answers keep under Release only where the engine keeps none
+    of it. Mutation: the guard off (A_NONE_KEPT_IS_RELEASE) and the same table fails."""
+    k, _j = _released_ct(side)
+    assert side.prove(k) == []
+    monkeypatch.setattr(J, "A_NONE_KEPT_IS_RELEASE", False)
+    assert any("CT sits in the release box" in p for p in side.prove(k))
+
+
+def _keepable_under_release(side):
+    """Sample Lake's rainbow trout (kept here) moved under Release."""
+    k, j = _released_ct(side)
+    cells = _cells(side, k)
+    t = cells[j]["table"]
+    keep = next(b for b in t["boxes"] if b["kind"] == "keep")
+    rel = next(b for b in t["boxes"] if b["kind"] == "release")
+    i = next(i for i, r in enumerate(keep["rows"]) if r["fish"] == "RB")
+    row = keep["rows"][i]
+    keep["rows"] = tuple(r for r in keep["rows"] if r is not row)
+    bands = []
+    for x in keep["bands"]:
+        if x["from"] <= i <= x["to"] and x["from"] == x["to"]:
+            continue
+        sh = (1 if x["from"] > i else 0)
+        bands.append({**x, "from": x["from"] - sh, "to": x["to"] - (1 if x["to"] >= i else 0)})
+    keep["bands"] = tuple(bands)
+    rel["rows"] = tuple(rel["rows"]) + ({**row, "lines": (), "quiet": (),
+                                         "sheet": {**row["sheet"], "head": W.SHEET_RELEASE, "here": ()}},)
+    if cells[j]["dates"]:
+        cells[j]["dates"] = None
+    return k, cells
+
+
+def test_a_keepable_fish_under_release_fails(side, monkeypatch):
+    """`_engine_keeps`: a fish the engine keeps here, stood under Release, fails. Mutation: `_engine_keeps` always
+    False lets the box through (the fish-alone proof still sees it)."""
+    k, cells = _keepable_under_release(side)
+    assert any("RB sits in the release box" in p for p in side.prove(k, cells))
+    monkeypatch.setattr(J, "_engine_keeps", lambda *a: False)
+    assert not any("RB sits in the release box" in p for p in side.prove(k, cells))
+
+
+def test_a_possession_same_as_the_day_the_rules_do_not_say_fails(side, monkeypatch):
+    """`_same_as_the_day`: "In your possession: just N, the same as the day" on a box whose possession is the page's two
+    days fails. Mutation: the check returning nothing accepts it."""
+    def change(c):
+        b = next(b for b in c["table"]["boxes"] if b["kind"] == "keep" and len(b["rows"]) > 1)
+        b["possession"] = f"In your possession: just {W._n(W.parse_head(b['head'])[1])}, the same as the day"
+    pred = lambda c: any(b["kind"] == "keep" and len(b["rows"]) > 1 for b in c["table"]["boxes"])  # noqa: E731
+    mark = "the same as the day', but"
+    assert any(mark in p for p in _mutated(side, pred, change))
+    monkeypatch.setattr(J, "_same_as_the_day", lambda *a: [])
+    assert not any(mark in p for p in _mutated(side, pred, change))
+
+
+def test_a_list_of_two_subjects_without_its_labels_fails():
+    """The subject-label check, no data: Kathie Lake's two kept-elsewhere sentences (the zone's pool, the lake's brook
+    trout) need their subjects; dropped, J fails; labelled, it passes."""
+    zone = "Your own limit, counted across every water in Zone A you fish, lakes and streams alike."
+    lake = ("This lake’s rule: 10 a day here. Brook trout you kept anywhere else count toward those 10. These fish are "
+            "counted apart from the region’s total: they don’t use it up. They also count toward Zone A’s 5 trout and "
+            "char a day.")
+    rows = [{"kind": "keep", "members": ["RB", "CT", "LT"], "daily": 5, "scope": {"of": "region"}},
+            {"kind": "keep", "members": ["EB"], "daily": 10, "scope": {"of": "water"}}]
+
+    def problems(lines):
+        import types
+        cell = {"covers": [0, 1], "table": {"elsewhere": lines}}
+        c = J.Cell(cell, {"rows": rows}, {}, None, lambda *_: {})
+        T_ = types.SimpleNamespace(elsewhere_says=[(t, W.parse_elsewhere_says(t)) for t in lines
+                                                   if not W.is_elsewhere_line(t)])
+        return J.elsewhere_said_problems(c, T_)
+    assert problems([f"Trout and char: {zone}", f"Brook trout: {lake}"]) == []
+    assert any("a line without its subject" in p for p in problems([zone, f"Brook trout: {lake}"]))
+
+
+def test_the_size_band_is_read_as_a_limit_over_its_size(side):
+    """`Table.limits` reads a size band "counts toward the N · only 1 over 50 cm (20 in) between them" as "these rows,
+    over 50 cm: at most 1": two fish of its rows over 50 cm are refused; the band said with 2, they are kept."""
+    k, j = _first(side, lambda c: any(b["kind"] == "keep" and len(b["rows"]) > 1 and W.parse_head(b["head"])[1] >= 2
+                                      and [x["kind"] for x in b["bands"][:2]] == ["upto", "upto"]
+                                      for b in c["table"]["boxes"]))
+
+    def table(k_):
+        c = copy.deepcopy(side.model.sections["trout"][k][j])
+        b = next(b for b in c["table"]["boxes"] if b["kind"] == "keep" and len(b["rows"]) > 1
+                 and W.parse_head(b["head"])[1] >= 2 and [x["kind"] for x in b["bands"][:2]] == ["upto", "upto"])
+        n = W.parse_head(b["head"])[1]
+        b["strip"] = None
+        b["bands"] = ({"from": 0, "to": 1, "text": W.band_size(n, k_, 50, 2), "kind": "size"}, *b["bands"][2:])
+        for r in b["rows"][:2]:
+            r["lines"] = tuple(x for x in r["lines"] if W.parse_row_line(x)[0] == "size")
+        return J.Table(c), [(r["fish"], "hatchery", 60.0, "here") for r in b["rows"][:2]]
+    T1, two = table(1)
+    T2, _ = table(2)
+    assert all(T.row_for(*f[:3]) is not None for T in (T1, T2) for f in two)
+    assert not T1.accepts(two) and T2.accepts(two)
+
+
 def test_mutation_a_band_naming_another_total_fails(side):
     """(Owner 2026-11-18 00:52) a shared band names the overall limit first; J holds that number to the box's."""
     def change(c):

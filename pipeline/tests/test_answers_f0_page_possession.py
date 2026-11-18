@@ -581,8 +581,12 @@ def test_bowron_park_istsi_creek(live):
     f = _live(live, ISTSI)
     assert _page(f) == {"lead": REGION_LEAD, "also": []}       # the park's "1 in all" is on the table, not here
     ln = _table_lines(live, ISTSI)
-    assert ln["RB"] == ["in your possession: no more than 1 trout and char in all"]
-    assert ln["LT"] == ["in your possession: 1 day’s limit, not 2"]
+    # (T810 L, owner 2026-11-18) the park's flat 1 and Region 7A's lake trout "1 daily quota" come to the day's 1: the
+    # box says it once, "In your possession: just 1, the same as the day"; no row says its own
+    assert ln["RB"] == ln["LT"] == []
+    c = _cell(live, ISTSI)
+    assert [b["possession"] for b in c["table"]["boxes"] if b["kind"] == "keep"] == [
+        "In your possession: just 1, the same as the day"]
 
 
 @pytest.mark.needs_bundle
