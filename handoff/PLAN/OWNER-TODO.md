@@ -2529,3 +2529,95 @@ More questions (recommended answer first):
      "in all" ??" (open: explain "1 day's limit, not 2" and simplify; drop or justify "in all").
   4. Lakes' "only 4 wild" inside "Keep 4 in all": "i would need to see an example. to make sure it reads right" (open:
      before/after pictures).
+- 2026-11-18 00:35, owner (app chat dialog over 6 before/after pictures: the main chat's owner-examples.md, the real web
+  export with the afters edited in; Fraser at Mission, Kamloops Lake, Vedder, Krumholtz Creek R4, Istsi Creek, Chilliwack
+  Lake), verbatim:
+  1. Simplify everywhere (the after DROPPED the DV/LT "only 1, counting any …" lines): "the fraser and kamloops sbs seems
+     worse aftert? kamloops like doesnt simplify to 1 between bull/lake trout (inferred from 1 over 50c with 60cm or
+     longer. fraser also never simplified tat but then removed the text that allowed a user to infer it? ... for vedder
+     what does 0nly 2 of 6 mean? it is worded really poorly i think. also the only 2 of these should be more clear it
+     applies to all." NOT approved as built. App chat's reading: simplify = STATE the conclusion once, plainly, never
+     delete it; DV+LT get one shared "only 1" band (his 23:32 pick, the Kamloops shape), "uses the 1 over 50 cm" stays as
+     the reason; band words like "only 2 of these 6" need plainer words, and the band must visibly span every row it
+     covers. Open: wording + look options, with pictures.
+  2. R4 cutthroat + rainbow: "Yes, one box (Recommended)" (one band "counts toward the 2 · only 1 over 50 cm (20 in)
+     between them"; rainbow beside cutthroat; the per-row lines go).
+  3. Bowron park creeks possession: "Yes, those words (Recommended)" (one box line "In your possession: just 1, the same
+     as the day"; the per-row possession lines go).
+  4. Chilliwack "only 4 wild": "the changing of bulls.lake trout is wrong jsut like i described before. then i dont know
+     why we have seperate wild and hatchery here when they are the same also there isnt a seperate quota for hatchery and
+     wild they are a simngle fish type. i guess it has no wild trout over 50cm so for this we still need the specieis to be
+     a single entity so yes keep them split up but it is a group of wild and hatchery of a specieis with combined counts
+     towards the 4. i know it is the same thing but it is the optics of it to a user. also hatchery and wild badge should
+     be in the same spot?" App chat's reading: keep the DV/LT band; hatchery + wild rows of a species read as ONE species
+     group with one combined count, split only for wild's 50 cm limit; HATCHERY and WILD badges in the same spot; "only 4
+     wild" goes (no separate quota), confirm on the next pictures.
+- 2026-11-18 00:52, owner (app chat dialog over round 2: fraser-band, vedder-words A/B/C, chilliwack-groups A/B), verbatim:
+  1. Fraser shared DV/LT box "counts toward the 2 · only 1 between them": "yes the shared box it is good but maybe move the
+     (uses the 1 over 50cm to the box too)? or maybe that isnt even needed ? isnt it implied byt the top bar?" (the shared
+     box approved; "uses the 1 over 50 cm" on the rows leans to dropped, the strip says it; see 2.)
+  2. Box words: "i like words from A best. my only other coment is i dont like the way the groupoing looks here. before
+     the card used to be the grey then a white box (with grey aroudn it still) had the group info. this created the look
+     that it was a subgroup of the grey. now steelhead is in its own white box with nothing?? what can you keep for it?
+     and the groups seemed to have inverted the colors? also the only 1 between them group seems to split the group of
+     only 2 between all 6. the default fish (ungrouped) should always be at the top then the groups at the bottom i
+     think? make sure the grey color card fix happens with flatter group boxes too.... for this one the rainbow trout are
+     a seperate river rule so maybe it should be split from the table and say river rule? that way user can tell it is
+     special and seperate romt he generic grey greop too? also the "uses the 1 over 50cm" still feels unneeded? and the
+     dates need to be handled better i think". App chat's reading: words A, "K total from these M" (3+ rows; two rows
+     keep "only 1 between them", approved in 1); a group draws as a sub-group of the grey card (the old look: the group's
+     words in the grey, its rows white inside), never a white band beside rows with nothing in it; no group splitting
+     another; ungrouped rows first, groups after; the Vedder hatchery-rainbow 4 shown apart as the river's own rule;
+     "uses the 1 over 50 cm" dropped; a date shared by every row said once, not on each row. Open: pictures of that look.
+  3. Hatchery + wild: "i like group A bets but the hatchery vs wild tags are a bit clunky the way they are current
+     implemented there." (Group A, one row per fish, picked; the HATCHERY/WILD tags need a lighter look; pictures owed.)
+- 2026-11-18 01:07, owner (app chat dialog over round 3: vedder-r3 / fraser-r3 Look 1 panels vs Look 2 box + line,
+  chilliwack-r3 tags), verbatim:
+  1. Group look: "i thinj neither. look 1 is better but the number is hard to see and breaks the table format we have
+     everywhere else. we want to keep the same number on right and species/info on left. this is in look 2 but the line
+     kind of sucks i liked the box spanning both better ... in the fraser same thing. one other comment is unless it is
+     something like vedder with weird rainbow rul have rainbow above steelhead." App chat's reading: the count stays in
+     the right column on every row; a group is a white box in the right column spanning all its rows (round 2's spanning
+     box), with ungrouped rows first and an inner group last inside its outer one so nothing splits; rainbow above
+     steelhead unless a water's own rainbow rule makes it odd.
+  2. Vedder dates once + "River rule" apart + "uses the 1 over 50 cm" gone: "does the river rule apart actually make
+     sense? i am not sure maybe it breaks it up. also the river rule saying counts towards the 4 for vedder feels really
+     weird when the top is 2 or 4 or whateevr. idk the fix but it jsut has a weird feel..." (River rule apart: doubted;
+     the hatchery rainbow's "counts toward the 4" reads oddly; open, options owed. Dates once and "uses the 1 over 50 cm"
+     dropped: not objected to.)
+  3. Hatchery/wild tags: "Neither yet" (plain words and small grey tags both rejected; new options owed).
+- 2026-11-18 01:22, owner (app chat dialog over round 4, built from a fresh reviewer's rules: fraser-r4, vedder-r4,
+  chilliwack-r4, r4-r4 (Krumholtz Creek)), verbatim:
+  1. The count-column rules (lone "counts toward the N"; own cap "counts toward the N · only k"; shared box spanning its
+     rows "counts toward the N · only k between them" for 2, "k total from these m" for 3+; nested "only 1 between them";
+     "uses the 1 over 50 cm" and "only 1, counting any …" gone; "any size" off the box head): "Yes, everywhere
+     (Recommended)".
+  2. Vedder top line "Keep 4 trout and char today" + "only 2 besides hatchery rainbow trout": "i think leading with 2 is
+     still important becasue only one is an exception to that." (Lead with 2; the hatchery rainbow 4 is the exception.
+     Open: the exact two lines, picture owed.)
+  3. Hatchery + wild in one row, "50 cm (20 in) or less if wild", no tags: "Yes, "if wild" (Recommended)".
+- 2026-11-18 01:28, owner (app chat dialog; vedder-r4b V1 rainbow first | V2 rainbow last, both "Keep 2 trout and char
+  today" + "or 4 if they're hatchery rainbow trout 50 cm (20 in) or less"; and the analyst's three look questions),
+  verbatim:
+  1. Vedder: "V2: rainbow last (Recommended)" (lead with 2; the hatchery rainbow row last, as the exception).
+  2. HATCHERY ONLY over char on Region 2 streams and DV/LT at Lois/Khartoum: "Leave as is".
+  3. Madden Creek top line: "isnt the dolly not needed to be mentioned since it is 2 and it is keep up to 2 trout/char in
+     general? so it could be dropped from header line?" (open: the main chat answers whether the DV 2 sits outside the
+     general 2; if it does, dropping it would hide that you may keep 2 more).
+  4. Nation/Cunningham/Nakinilerak lake trout "only 2 in your possession": "Keep "in your possession" (Recommended)".
+- 2026-11-18 01:29, owner (app chat), verbatim: "similar to region 2 lake trout and bull /dolly simplification we should
+  look for other ones like that in other regions" (sent to the main chat's analyst: a sweep of every region for limits
+  implied but not stated as one shared line; fits of the round-4 rules go into L's build, new kinds come back to him
+  with pictures).
+- 2026-11-18 01:33, owner (app chat dialog; the main chat's answer that Madden/Lardeau bull trout's own "daily quota = 2"
+  (p.38) sits outside Region 4's "2 from streams" (p.34), so 2 trout/char + 2 DV, max 5), verbatim: "i thought we were
+  assuming those quotas still used uop the 2 a day regional quota? but that i would ask a CO about it". (He recalls the
+  standing assumption that a water's own per-fish quota still counts inside the region's 2 a day; open: the main chat
+  finds the recorded ruling; the question for a Conservation Officer is his.) RESOLVED: he is right, by his own ruling
+  T17 (2026-11-17 11:06, "Strict everywhere", T834): a water's own quota N ≤ the region cap sits inside it, so at
+  Madden the DV count inside the 2 from streams ("Keep 2 trout and char today, or 5 if they're rainbow trout"; the DV
+  clause goes). The live bundle predates T834; the next data build applies it. The book (p.3) is silent, so "ask a CO"
+  is on the To-Do page (row ask-co-water-quota-inside-share).
+- 2026-11-18 01:42, owner (app chat dialog over fraser-over50 A no line | B "uses your 1 over 50 cm (20 in)" on DV/LT; the
+  main chat's sweep: 1,387 tables where a fish kept only over 50 cm sits beside fish that can also pass 50 cm), verbatim:
+  "A: drop it everywhere". (The box head's "only 1 over 50 cm" carries it; no per-row line anywhere.)

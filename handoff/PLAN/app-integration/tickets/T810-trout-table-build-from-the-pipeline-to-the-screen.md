@@ -507,3 +507,44 @@ signed off: "Keep it big, 23 px (Recommended)", "Keep the tile (Recommended)" �
 keep-tile-more). The pin bar has nothing to pin after the switch: "Remove it (Recommended)" (S2 deletes useAnchors,
 PinBar, the regs:rule CoachSpots). `elsewhere` on a table covering several keep rows: "Yes, name the fish
 (Recommended)" — each line starts with its fish where a table has more than one such line; Python writes the words (L).
+
+## 2026-11-18 00:35: owner on the simplify examples (verbatim in OWNER-TODO 00:35)
+Pictures: 6 before/after (main chat's owner-examples.md; real web export, afters edited in the DOM). R4 cutthroat +
+rainbow: one band "counts toward the 2 · only 1 over 50 cm (20 in) between them" (yes). Bowron park creeks: one box line
+"In your possession: just 1, the same as the day" (yes). NOT approved: dropping the DV/LT "only 1, counting any …" lines
+(he wants the inferred "only 1 between them" STATED once as a shared band, the reason kept). Owed: plainer band words
+("only 2 of these 6" reads poorly) and a band that visibly spans all its rows (app drawing); hatchery + wild of one
+species drawn as one species group with one combined count; HATCHERY and WILD badges in the same spot (app); "only 4
+wild" goes (confirm on the next pictures). Next pictures from the app chat.
+
+## 2026-11-18 00:52: owner on round 2 (verbatim in OWNER-TODO 00:52)
+Approved: the shared two-row box "counts toward the 2 · only 1 between them" (Fraser); 3+ row box words A "K total from
+these M" (was "only K of these M"); Group A for hatchery + wild of one fish (one row, one count). Owed, with pictures
+from the app chat: groups drawn as sub-groups of the grey card (words in the grey, white rows inside; no empty white
+band cells; no group splitting another; ungrouped rows first); the Vedder hatchery-rainbow 4 apart as the river's own
+rule; "uses the 1 over 50 cm" dropped (the strip says it); a date shared by every row said once; lighter HATCHERY/WILD
+tags.
+
+## 2026-11-18 01:07: owner on round 3 (verbatim in OWNER-TODO)
+Neither group look: keep the table's form (count on the right on every row, fish on the left) with a white box spanning
+all of a group's rows (round 2's look), ungrouped rows first, inner group last inside its outer one; rainbow above
+steelhead unless a water's own rainbow rule. Vedder's "River rule" apart doubted and the hatchery rainbow's "counts
+toward the 4" reads oddly: options owed. Hatchery/wild tags: neither; options owed. Chilliwack brook trout: the main
+chat's C2 change (owner) gives wild brook trout "50 cm or less" at the six lakes; wild lake trout release-only there.
+
+## 2026-11-18 01:22: owner on round 4 (verbatim in OWNER-TODO)
+APPROVED everywhere: the count-column rules (R1 "counts toward the N"; R2 "counts toward the N · only k"; R3 one white
+box spanning its rows, "counts toward the N · only k between them" for 2 rows, "k total from these m" for 3+; R4 nested
+"only 1 between them"; R5 "uses the 1 over 50 cm" and "only 1, counting any …" gone, the result stated once); "any size"
+off the box head; ungrouped rows first, inner groups last; hatchery + wild as one row "50 cm (20 in) or less if wild"
+(no tags). Vedder: lead with 2 ("only one is an exception"): top line form owed, picture next.
+
+## 2026-11-18 01:28: owner on Vedder and three look questions (verbatim in OWNER-TODO)
+Vedder: "Keep 2 trout and char today" + subline "or 4 if they're hatchery rainbow trout 50 cm (20 in) or less", the
+rainbow row LAST (V2). Char HATCHERY ONLY: leave as is. "in your possession": keep. Madden's DV clause: he asks if it can
+go (it is 2, as is the general limit); the main chat to answer whether the DV 2 sits outside the general 2.
+2026-11-18 01:29, owner: sweep every region for implied groups like Region 2's DV/LT (verbatim in OWNER-TODO); sent to
+the main chat's analyst on the live model.
+2026-11-18 01:42, owner: "uses your 1 over 50 cm" dropped everywhere, including the 1,387 tables where another fish in
+the box can pass 50 cm ("A: drop it everywhere"; verbatim in OWNER-TODO). All-regions sweep (L e88cb9991): the rest fit
+the approved rules and go into L.

@@ -1,6 +1,6 @@
 # T844 — The web app's opening loader is the new coho, as the phone's is (owner)
 
-Status: IN PROGRESS (app chat, built on branch app-fix/t844-web-coho; not landed; 0.8.0).
+Status: DONE (landed c76ff33d4, 2026-11-18; 0.8.0).
 
 Source: owner 2026-11-17 ~22:20 (via the main chat), verbatim: "loading on webapp should use the new one too like the
 app", then "new loader". Asked whether the small in-app loading spots switch too: "Opening loader only" (recorded in
