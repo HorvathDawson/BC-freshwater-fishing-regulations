@@ -133,14 +133,18 @@ Page 80 (*"Freshwater game fish are defined as follows"*) is the only species se
   part of your Dolly Varden quota."* One fish, `DV`; `BT` is refused. The label reads "Dolly
   Varden/bull trout".
 * **"Trout" includes char unless char are excluded** (p.80), so the printed word "trout" is
-  `TROUT_CHAR`; a `TROUT` code is refused. **The exclusion is scoped by the row:** when the same
-  water row, or the same zone table, mentions a char on its own (char, Dolly Varden/bull trout,
-  lake trout, brook trout), its bare "trout" lines are `TROUT_CHAR` with `species_except:
-  ["CHAR"]`. A line printing the group word "trout/char" names char in and never excludes them;
-  a "trout" line never excludes one char alone. Region 1's box (*"Trout: 4 … you must release: All
-  char (includes Dolly Varden)"*) makes its trout lines trout-only; a lake row printing only
-  *"Trout daily quota = 2"* counts char toward the 2. The validator refuses a row that breaks this
-  either way (`trout_scope_problems`). 25 rules carry `species_except: ["CHAR"]` today.
+  `TROUT_CHAR`; a `TROUT` code is refused. **The exclusion is scoped by the row (RULINGS C2):** when
+  the same water row, or the same zone table, gives a char a RELATED line of its own (same aspect,
+  water and days), its bare "trout" line leaves out THAT char alone — Chilliwack Lake's *"No wild
+  trout over 50 cm, 1 bull trout over 60 cm"* is `species_except: ["DV"]`, so a wild brook or lake
+  trout over 50 cm goes back (owner 2026-11-18). All char leave (`["CHAR"]`) only when the related
+  line names char as a group or every char is named. A line printing the group word "trout/char"
+  names char in and never excludes any. Region 1's box (*"Trout: 4 … you must release: All char
+  (includes Dolly Varden)"*) makes its trout lines trout-only; Region 6's names Dolly Varden and
+  lake trout, so its stream lines are `["DV", "LT"]`; a lake row printing only *"Trout daily quota =
+  2"* counts char toward the 2. The validator refuses a row that breaks this either way
+  (`trout_char_excluded`, `trout_scope_problems`). 6 rules carry `species_except: ["CHAR"]` today
+  (Region 1's table and Alta Lake); 15 leave out named char.
 * **Groups:** `TROUT_CHAR`, `CHAR`, `WHITEFISH`, `BASS`, `ALL_GAME_FISH`. `CHAR` NAMES its fish
   (`NAMING_GROUPS`): "All char" is how the book names char apart from trout, so it beats a
   water's group quota for a char. Open subjects with no members: `ALL_FIN_FISH` (never crayfish),

@@ -214,24 +214,28 @@ def test_amor_lakes_2_replaces_region_1s_4_and_the_char_release_still_binds(tmp_
         assert _states(path, char, (7, 1)) == {"q.r7": "speaks"}, char
 
 
-def test_region_6s_winter_stream_release_no_longer_takes_char(tmp_path):
-    """'Trout of any size from streams, Nov 1-June 30' is trout only: a brook trout in a stream in
-    December answers to the box's 'Trout/char: 5' (and its char lines), a rainbow is released."""
+def test_region_6s_winter_stream_release_takes_brook_trout_not_its_named_char(tmp_path):
+    """'Trout of any size from streams, Nov 1-June 30' leaves out only the char Region 6 gives lines
+    of their own — Dolly Varden and lake trout (RULINGS C2, amended by the owner 2026-11-18): a brook
+    trout in a stream in December is released like a rainbow; a lake trout answers to the box's
+    'Trout/char: 5' (and its own lines)."""
     path = _tiny(tmp_path, [
         {"entry": "z6:q", "rule": "q.r1", "species": ["TROUT_CHAR"], "take": 5, "_rank": 3},
-        {"entry": "z6:q", "rule": "q.r7", "species": ["TROUT_CHAR"], "species_except": ["CHAR"],
+        {"entry": "z6:q", "rule": "q.r7", "species": ["TROUT_CHAR"], "species_except": ["DV", "LT"],
          "take": 0, "may_target": 1, "water": "stream", "_rank": 3,
          "dimension": "daily@water=stream",
          "when": {"dates": [{"from_month": 11, "from_day": 1, "to_month": 6, "to_day": 30}]}}])
-    assert _states(path, "EB", (12, 1)) == {"q.r1": "speaks"}
+    assert _states(path, "EB", (12, 1)) == {"q.r1": "speaks", "q.r7": "speaks"}
     assert _states(path, "RB", (12, 1)) == {"q.r1": "speaks", "q.r7": "speaks"}
+    for char in ("LT", "DV"):
+        assert _states(path, char, (12, 1)) == {"q.r1": "speaks"}, char
 
 
 @pytest.mark.needs_bundle
 def test_the_book_answers_on_real_sections():
     """On the built bundle: Amor Lake answers a rainbow with its own 2 and a Dolly Varden with
-    Region 1's char release; Region 6's winter stream release speaks for a rainbow, not a brook
-    trout."""
+    Region 1's char release; Region 6's winter stream release speaks for a rainbow and a brook trout,
+    not a lake trout (RULINGS C2, amended 2026-11-18)."""
     need(None, "bundle", BUNDLE, BUNDLE_HINT)
     db = sqlite3.connect(f"file:{BUNDLE}?mode=ro", uri=True)
     sp = db.execute("select species_except from rule where entry_id='z1:daily_quotas' and "
@@ -249,9 +253,14 @@ def test_the_book_answers_on_real_sections():
     assert "z1:daily_quotas::trout_quota.r1" not in speaks(amor, "RB", (7, 1))
     assert "z1:daily_quotas::trout_quota.r7" in speaks(amor, "DV", (7, 1))
     assert "r1:amor_lake@1-10::amor_lake.r1" not in speaks(amor, "DV", (7, 1))
+    r7 = db.execute("select species_except from rule where entry_id='z6:daily_quotas' and "
+                    "rule_id='trout_char_quota.r7'").fetchone()
+    if not r7 or "CHAR" in (r7[0] or ""):
+        predates(f"{BUNDLE} predates the C2 amendment of 2026-11-18 (Region 6's r7 still leaves out CHAR)")
     stream = sid("z6:daily_quotas", "trout_char_quota.r7")
     assert "z6:daily_quotas::trout_char_quota.r7" in speaks(stream, "RB", (12, 1))
-    assert "z6:daily_quotas::trout_char_quota.r7" not in speaks(stream, "EB", (12, 1))
+    assert "z6:daily_quotas::trout_char_quota.r7" in speaks(stream, "EB", (12, 1))
+    assert "z6:daily_quotas::trout_char_quota.r7" not in speaks(stream, "LT", (12, 1))
 
 
 # ================================================================ B — dated zone releases stand

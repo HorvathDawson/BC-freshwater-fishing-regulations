@@ -240,3 +240,31 @@ def test_the_corpus_lines_that_leave_char_out_are_the_swept_ones():
                 if "TROUT_CHAR" in r.species and set(r.species_except) & char:
                     got[(e.entry_id, r.rule_id)] = list(r.species_except)
     assert got == SWEEP
+
+
+@pytest.mark.parametrize("region, entry_id, rule_id", [
+    ("2", "r2:pitt_lake@2-8", "pitt_lake.r3"),          # "Wild trout/char catch and release … near the head"
+    ("3", None, "spruce_lake.r1"),
+])
+def test_a_trout_char_line_never_leaves_out_one_char(region, entry_id, rule_id):
+    """'trout/char' names every char in (C2): a one-char exception on it is refused. MUTATION: [DV] on the
+    curated line (which validates without it) is refused; the line as curated is not."""
+    entries = _corpus(region)
+    e = entries[entry_id] if entry_id else next(x for x in entries.values()
+                                                if any(r.rule_id == rule_id for r in x.rules))
+    r = next(x for x in e.rules if x.rule_id == rule_id)
+    assert C.trout_word(r.verbatim) == "trout/char" and not set(r.species_except) & {"CHAR", "DV", "LT", "EB"}
+    assert not [p for p in C.trout_scope_problems(e.entry_id, "", e.rules) if p.startswith(rule_id + ":")]
+    for bad in (["DV"], ["LT", "EB"]):
+        got = [p for p in C.trout_scope_problems(e.entry_id, "", _with(e, rule_id, bad)) if p.startswith(rule_id + ":")]
+        assert got and "never leaves out one char" in got[0], bad
+
+
+def test_the_label_names_the_char_left_out_as_the_answers_do():
+    from pipeline.deliver.answers import common
+    from pipeline.regs.parsing.catalogue_parts import labels as L
+    assert L.species_words(["TROUT_CHAR"], ["DV"]) == "Trout and char other than Dolly Varden/bull trout"
+    assert L.species_words(["TROUT_CHAR"], ["DV", "EB"]) == (
+        "Trout and char other than Dolly Varden/bull trout and brook trout")
+    assert L.species_words(["TROUT_CHAR"], ["CHAR", "ST"]) == "Trout other than steelhead"
+    assert L.PROPER_NAME.pattern == common._PROPER.pattern          # one list of proper names, two copies

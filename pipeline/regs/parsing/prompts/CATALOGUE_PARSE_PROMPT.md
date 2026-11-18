@@ -153,26 +153,35 @@ it is refused.
   gives char — *char*, *Dolly Varden/bull trout*, *lake trout*, *brook trout* — a rule of their own
   about the SAME THING as the trout line: how many you keep / must release / closure (one aspect),
   sizes, or gear — on the same kind of water and days that meet. Then that "trout" line EXCLUDES
-  char. A char line about something else excludes nothing: *"no trout under 25 cm"* beside *"bull
+  THE CHAR THAT LINE NAMES — and only those (owner, 2026-11-18: "only bull trout is out it needs to
+  change the char group as a whole to get the char to change compeltely out of the group"). A char
+  line about something else excludes nothing: *"no trout under 25 cm"* beside *"bull
   trout catch and release"* (size vs release) still covers bull trout. Otherwise "trout" = trout + char.
-  - Write an excluding line `species: ["TROUT_CHAR"], species_except: ["CHAR"]` (keep any other
-    exception beside it: `["CHAR", "ST"]`). A clause printed under a "trout" quota (*"1 over 50
-    cm"* under *"Trout: 4"*) is a "trout" line too.
+  - Which char leave: the char GROUP (`species_except: ["CHAR"]`) when the related line names
+    *char* (*"All char"*, *"1 char"*) or the related lines between them name every char (Dolly
+    Varden/bull trout, lake trout AND brook trout), or the line excludes char in words; otherwise
+    each char a related line names, alone, in the order `DV`, `LT`, `EB`: Chilliwack Lake's *"No
+    wild trout over 50 cm, 1 bull trout over 60 cm"* is `species: ["TROUT_CHAR"], species_except:
+    ["DV"]` — a wild brook trout or lake trout over 50 cm still goes back. Keep any other exception
+    beside it: `["CHAR", "ST"]`. A clause printed under a "trout" quota (*"1 over 50 cm"* under
+    *"Trout: 4"*) is a "trout" line too.
   - Only a BARE "trout" line is scoped this way. A line printing *"trout/char"* (or *"trout and
     char"*) names char in and is always plain `TROUT_CHAR` — and that group word is not itself a
     mention of char apart: *"Wild trout/char daily quota = 2 (no wild trout over 40 cm)"* names
     no char on its own, so its *"no wild trout over 40 cm"* holds for char too.
-  - Never exclude ONE char from a "trout" line (`species_except: ["DV"]`): the exclusion is of
-    char as a group.
+  - Never exclude a char the row gives no related line (`["CHAR"]` beside only a bull trout
+    line is wrong: brook trout and lake trout stay in), and never exclude one char from a
+    *"trout/char"* line.
   - Example — Region 6's box: *"Trout/char: 5, but not more than … 3 Dolly Varden/bull trout
     and/or lake trout combined, 1 trout from streams July 1-Oct 31. And you must release: … Trout
     under 30 cm from any stream, Trout of any size from streams, Nov 1-June 30"*. The box
-    gives Dolly Varden/bull trout and lake trout count and release lines of their own, so *"1
-    trout from streams July 1-Oct 31"* and *"Trout of any size from streams, Nov 1-June 30"* are
-    `["TROUT_CHAR"]` except `["CHAR"]`; *"Trout under 30 cm from any stream"* is a SIZE line with no
+    gives Dolly Varden/bull trout and lake trout count and release lines of their own (never char
+    as a group, never brook trout), so *"1 trout from streams July 1-Oct 31"* and *"Trout of any
+    size from streams, Nov 1-June 30"* are `["TROUT_CHAR"]` except `["DV", "LT"]` — a brook trout
+    counts toward the 1 and is released Nov 1-June 30; *"Trout under 30 cm from any stream"* is a SIZE line with no
     char size line beside it: plain `["TROUT_CHAR"]`; *"Trout/char: 5"* stays `["TROUT_CHAR"]`.
-    Region 1's *"Trout: 4 … And you must release: … All char (includes Dolly Varden)"* likewise
-    makes *"Trout: 4"* trout only. A lake row printing only *"Trout daily quota = 2"* mentions no
+    Region 1's *"Trout: 4 … And you must release: … All char (includes Dolly Varden)"* names char
+    as a group, so *"Trout: 4"* is trout only: except `["CHAR"]`. A lake row printing only *"Trout daily quota = 2"* mentions no
     char: `["TROUT_CHAR"]`, and a char counts toward the 2.
   - Validation refuses a row that breaks this, both ways.
 * Groups: `TROUT_CHAR`, `CHAR`, `WHITEFISH`, `BASS`, `ALL_GAME_FISH` (the whole list). Words the
