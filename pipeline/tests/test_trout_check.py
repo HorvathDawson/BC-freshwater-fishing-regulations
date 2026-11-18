@@ -581,6 +581,27 @@ def test_each_fix_the_proof_found_turned_off_fails_the_side_release(side, monkey
     assert _recomposed(side, monkeypatch, flag, tmp_path_factory)
 
 
+def test_the_uses_the_line_switch_off_still_proves_the_law(side, monkeypatch, tmp_path_factory):
+    """(Owner 2026-11-18 00:52, for round 3) "uses the 1 over 50 cm" off: no row says it, and J still proves every table
+    of the side release (the strip's size cap holds the law). On (today): the rows say it."""
+    said = lambda model: sum(t.startswith("uses the ") for cells in model.sections["trout"] for c in cells if c  # noqa
+                             for b in c["table"]["boxes"] for r in b["rows"] for t in r["lines"])
+    assert said(side.model) > 0
+    from pipeline.tests import mini_chain
+    m = mini_chain.trout_inputs(tmp_path_factory)
+    _data, _guide, rules = mini_chain.export(tmp_path_factory)
+    monkeypatch.setattr(T, "USES_THE_LINE", False)
+    probs, n = [], 0
+    for k in side.keys_with_tables():
+        got = T.compose_key(m.sections["rows"][k], m.sections["display"][k], m.segments[k], m.moments[k], rules,
+                            licences=m.sections["licence"][k])
+        cells = [None if f is None else json.loads(json.dumps(f, ensure_ascii=False)) for f in got]
+        n += sum(t.startswith("uses the ") for c in cells if c for b in c["table"]["boxes"] for r in b["rows"]
+                 for t in r["lines"])
+        probs += side.prove(k, cells)
+    assert n == 0 and probs == [], probs[:5]
+
+
 # ---------------------------------------------------------------------------------------- (f) the live named waters
 
 @pytest.mark.needs_bundle

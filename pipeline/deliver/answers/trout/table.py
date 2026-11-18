@@ -165,6 +165,9 @@ A_POSSESSION_SAME_AS_THE_DAY = True
 #: owner 2026-11-18 00:52: a shared band names the overall limit first ("counts toward the 2 · only 1 between them").
 #: False = the mutation pin (the band's own words alone)
 A_BAND_NAMES_THE_TOTAL = True
+#: owner 2026-11-18 00:52 leans to dropping "uses the 1 over 50 cm (20 in)" ("isnt it implied by the top bar?"): a switch,
+#: ON (today's words) until round 3 shows it off. Off, the strip's "only 1 over 50 cm" alone holds the law (J proves it)
+USES_THE_LINE = True
 #: owner 2026-11-18, PENDING one more picture (Chilliwack Lake and the other five Region 2 lakes): a wild quota at or above
 #: the box's number never limits anything ("only 4 wild" in "Keep 4 in all"): unsaid. Off until the owner's picture
 WILD_QUOTA_AT_THE_BOX_NUMBER_UNSAID = False
@@ -924,6 +927,8 @@ class Body:
                 r.size_text = W.size_line(_slot_words(size))
                 r.add(r.size_text)
             for x in lines_of.get(r.key, []):
+                if not USES_THE_LINE and W.parse_uses(x) is not None:
+                    continue                   # (owner 00:52, for round 3) the strip's size cap already says it
                 r.add(x)
             for a in r.also:
                 if a["by"] in across_rules or a["by"] in box_across or (id(r), a["says"]) in consumed_also \

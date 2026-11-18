@@ -591,6 +591,19 @@ def test_the_fraser_at_mission_states_the_dolly_varden_and_lake_trout_count_once
     assert sum(x.startswith("only 1, counting any") for r in b["rows"] for x in r["lines"]) == 2
 
 
+@pytest.mark.needs_bundle
+def test_the_fraser_proves_with_the_uses_the_line_off(request, monkeypatch):
+    """(Owner 00:52, round 3's choice) the Fraser at Mission with "uses the 1 over 50 cm" off: the rows no longer say it,
+    and J still proves every table of the river."""
+    from pipeline.deliver.answers.trout import table as TT
+    monkeypatch.setattr(TT, "USES_THE_LINE", False)
+    got, m, bundle, data = _live_tables(request, ("Fraser River",))
+    b, _keys = _one_box(_mission(got), ("DV", "LT"))
+    assert not any(t.startswith("uses the ") for r in b["rows"] for t in r["lines"])
+    ks = sorted({k for k, cells in enumerate(m.sections["trout"]) if any(c is not None for c in cells)})
+    assert J.check_model(m, bundle, data, keys=ks, log=lambda *_: None)["problems"] == []
+
+
 def _bowron(got):                                      # Istsi Creek, Jan 1-Mar 31: Bowron Lake Park's 1 trout/char
     return next(c for c in got["Istsi Creek (all parts)"] if c is not None)
 
