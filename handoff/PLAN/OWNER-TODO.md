@@ -2669,3 +2669,9 @@ More questions (recommended answer first):
 - 2026-11-18 14:04, owner (app chat dialog), T852 loader line: "B: red rule, muted line" (a short coho-red rule above a smaller muted line).
 - 2026-11-18 14:08, owner (app chat dialog), on the Nass trout table (only lake trout keepable in November; headline "Keep 3 trout and char today"): "Keep \"trout and char\"". The headline stays; not a fault (the table keeps only lake trout, the rest release).
 - 2026-11-18 14:12, owner (app chat): "could we make a script that generates the nass style images for any stream we want? for both salmon or freshwater regs?" T853. Also asked: "are we sure that one lets us keep lake trout? why is that the only one allowed?" — looks like a real keep-where-release error (trout/char definition: trout rules apply to char; Region 6 releases trout from streams Nov 1-Jun 30); sent to the main chat to check.
+- 2026-11-18 14:14, owner (app chat), on Region 6 streams keeping lake trout (RULINGS C2(b) as amended put species_except
+  [DV, LT] on "Trout of any size from streams, Nov 1-June 30" and "1 trout from streams July 1-Oct 31"), verbatim:
+  "trout always covers chgar unles \"char\" as a whole is referenced elsewise on its own. per the book like you said so
+  yes this should be a release like brook trout i think that ius the intention by the book". So: a rule that says
+  "trout" covers char (lake trout included) unless the book names char as a whole separately; Region 6 stream lines
+  release lake trout like brook trout. Main chat's fix; rides the 0.8.0 data release.
