@@ -39,3 +39,14 @@ picture to the owner before it ships.
   licensing record with `classified` I/II, `unit_name` and `period.says`); out of the period it lists none, so a
   year-round badge reads the key's other frames (no pipeline change needed).
 - 2026-11-17 ~21:18, owner on T841 (73/73 classified rows ship right; own-row tributaries that print no class, Li5/Li5a: Gosnell, Thautil, Glacier (Redslide), Two Mile, Station, Hevenor, Magar, Endako, Little Horsefly, McKinley, Moffat, Wahpeeto, Whiteswan outlet; closed all year: Line, Grave, Sandown, Nichyeskwa, Lean-to, Deep, East Fork White, Bear (Sustut)): "Keep: not classified". Li5/Li5a stand.
+
+## Review fixes, 2026-11-17 night (lane/t841)
+- Coal Creek above the old MF&M bridge (Li5a) ships unclassified on r-46e4355a7277 (its reach run, 11-16 00:24,
+  predates 374f94b48). A reach-only rerun on the rebuild3 atlas with today's code binds it (and its two tributaries,
+  gnis:37330 / gnis:9398, ~28 km) to both Elk designations: the next build fixes it, no data change.
+- The gate now holds: each designation's printed period, place (cut names), carve-outs (`walk_past`) and sleep in BOOK;
+  the Li5/Li5a waters by name (Coal above/below the bridge, Line, Grave, Gosnell, Endako: none; the Nanika: Morice);
+  measured pins (`pipeline/regs/classified_pins.json`, cut from the rerun bundle: own-water and walk length, named
+  waters) so a lost walk or a narrowed stretch stops; the Atnarko's sleep only where its closure binds;
+  `holds.considered` naming every designation of the section on every day (the card's Class badge reads it).
+  Live LATEST fails it on exactly Coal Creek; the rerun bundle passes.

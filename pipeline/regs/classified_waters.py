@@ -5,6 +5,7 @@ waters whether labeled by symbol or by tributary of something").
     python -m pipeline.regs.classified_waters --check                     # the corpus against the book (instant)
     python -m pipeline.regs.classified_waters --check --bundle [PATH]     # + the built bundle (~15 s)
     python -m pipeline.regs.classified_waters --extraction PATH           # the book table against an extraction
+    python -m pipeline.regs.classified_waters --write-pins BUNDLE         # re-cut the measured pins, after reading them
 
     exit 0: every book-classified water ships classified; 1: a gap, each named with its printed page; 2: could not run
 
@@ -22,7 +23,9 @@ water the tables do not. `--extraction` re-reads an extraction against it (a new
 
 THE CORPUS CHECK (`corpus_problems`, instant — fast-fail and the release preflight):
   * every BOOK row has its entry (region + printed name), with the page among its `source_pages`;
-  * that entry's designations print the row's classes, no more, no fewer (the Dean: I, I, II; the Skeena: II, II);
+  * that entry's designations print the row's classes, no more, no fewer (the Dean: I, I, II; the Skeena: II, II),
+    each with the row's PRINTED period, its place (own extents and the row's clip, by op, item and cut name: a
+    narrowed stretch is a changed place), its tributary carve-outs (`walk_past` included, Li5a) and its sleep;
   * each designation reaches the tributaries exactly when the book says (its own `includes_tributaries`, else its
     entry's — AGENTS 9; `tributaries_only` for "X's tributaries");
   * the entry carries the glyph exactly when the book prints it (`symbols`);
@@ -38,8 +41,17 @@ THE BUNDLE CHECK (`bundle_problems`, `--bundle` — the release's checks stage, 
   * ON EVERY SECTION A DESIGNATION BINDS, on the first day of its period (all year: Sep 15), the Licence tab's answer for
     a B.C. resident aged 16+ (the profile every other answer adds to) lists the Classified Waters Licence — the reader the
     answers are built from (`answers.licence.holds` / `documents`). Only a designation the book puts to sleep is let
-    off: one with `suspended_while` whose closure binds that day (the Atnarko: "Classified Waters Licence … not required
-    until reopened to steelhead fishing");
+    off, and only where its closure (`suspended_while`: a closure-graded rule of its entry) binds the section that day
+    (the Atnarko: "Classified Waters Licence … not required until reopened to steelhead fishing") — there the licence
+    must NOT be asked for, and a sleep whose closure binds none of its sections is a problem;
+  * the day's licence frame names every designation of the section in `holds.considered`, in period and out (the
+    card's Class badge reads it there);
+  * THE RULINGS' OWN WATERS (`NAMED`, Li5 / Li5a): Coal Creek above the old MF&M bridge the Elk's Class II, below it
+    none; Line, Grave, Gosnell, Endako none; the Nanika above Morice Lake the Morice's unit;
+  * THE PINS (`classified_pins.json`, cut from a reviewed bundle by `--write-pins`): each designation's own-water and
+    tributary-walk lengths (within 2 % / 200 m) and the named waters each reaches — a walk that loses or gains a water,
+    or a stretch that narrows, stops until it is read and the pins re-cut (the walk is the reach builder's, AGENTS 16:
+    the gate holds its outcome, it never walks again);
   * on the day before a dated period starts, a section no designation is in force on does not list it ("nowhere it
     should not");
   * every requirement satisfied by the Classified Waters Licence holds `on: classified_period` (so it can hold only
@@ -74,112 +86,364 @@ ALL_YEAR_DAY = (9, 15)
 
 
 @dataclass(frozen=True)
+class U:
+    """One designation the book prints on a row: its class, its PRINTED period ("" = all year or "when open"), its place
+    as the corpus states it ("" = the row's whole water; else the designation's own extents, then the row's clip — op,
+    item and cut names: a narrowed stretch is a changed place), the tributary carve-outs it prints (`excludes`, same
+    spelling; "walk_past" = the walk goes on above the excepted part, RULINGS Li5a) and whether the book puts it to sleep
+    while a closure binds (`sleeps`: "not required until reopened")."""
+    cls: str
+    period: str = ""
+    place: str = ""
+    excludes: str = ""
+    sleeps: bool = False
+
+
+@dataclass(frozen=True)
 class Row:
-    """One book row that is a Classified Water. `classes`: each "Class I/II water" it prints, in print order.
-    `tributaries`: True / False for every designation of the row, or "only" ("X's tributaries"). `glyph`: the row
-    prints the CW glyph. `via`: (region, printed name) of the row whose designation classifies this one, for a glyph
-    row that prints no class of its own; `why` says how."""
+    """One book row that is a Classified Water. `units`: each designation it prints, in print order. `tributaries`:
+    True / False for every designation of the row, or "only" ("X's tributaries"). `glyph`: the row prints the CW glyph.
+    `via`: (region, printed name) of the row whose designation classifies this one, for a glyph row that prints no class
+    of its own; `why` says how."""
     region: str
     page: int
     name: str
-    classes: tuple = ()
+    units: tuple = ()
     tributaries: object = None
     glyph: bool = True
     via: Optional[tuple] = None
     why: str = ""
 
+    @property
+    def classes(self) -> tuple:
+        return tuple(u.cls for u in self.units)
+
 
 #: THE BOOK, 2025-27: 72 rows with the CW glyph (69 printing their classes, 3 classified through another row) and one
-#: printing its class without it. Printed pages (AGENTS: printed = PDF − 2 to p.40, PDF − 6 after).
+#: printing its class without it (the West Road, RULINGS Li10). Printed pages (printed = PDF − 2 to p.40, PDF − 6
+#: after). Each period is the row's printed dates (every designation's quote is the row's own text, word for word: T841
+#: audit); each place is the corpus's, read against the page (the Skeena's Section 4 runs to the source: owner
+#: 2026-11-16, T801; the Dean's three, the Zymoetz's two, the Babine below Nilkitkwa Lake, the Thompson below Kamloops
+#: Lake, the Kootenay above the White River).
 BOOK: tuple[Row, ...] = (
-    # ---- Region 1 (pp. 14-19) — every one Class II, with its own dated period and Steelhead Stamp clause
-    Row("1", 14, "AHNUHATI RIVER", ("II",), True),
-    Row("1", 15, "COPPER CREEK", ("II",), True),
-    Row("1", 15, "DATLAMEN CREEK", ("II",), True),
-    Row("1", 15, "DEENA CREEK", ("II",), False),
-    Row("1", 16, "HONNA RIVER", ("II",), True),
-    Row("1", 16, "KAKWEIKEN RIVER", ("II",), True),
-    Row("1", 16, "KINGCOME RIVER", ("II",), True),
-    Row("1", 17, "MAMIN RIVER", ("II",), True),
-    Row("1", 17, "PALLANT CREEK", ("II",), True),
-    Row("1", 18, "SEYMOUR RIVER", ("II",), True),
-    Row("1", 18, "TLELL RIVER", ("II",), True),
-    Row("1", 19, "WAKEMAN RIVER", ("II",), True),
-    Row("1", 19, "YAKOUN RIVER", ("II",), True),
-    # ---- Region 3 (p.32)
+    # ---- Region 1
+    Row("1", 14, "AHNUHATI RIVER",
+        tributaries=True, units=(
+            U("II", "Apr 1-Oct 31"),
+        )),
+    Row("1", 15, "COPPER CREEK",
+        tributaries=True, units=(
+            U("II", "Sep 1-Apr 30"),
+        )),
+    Row("1", 15, "DATLAMEN CREEK",
+        tributaries=True, units=(
+            U("II", "Sep 1-Apr 30"),
+        )),
+    Row("1", 15, "DEENA CREEK",
+        tributaries=False, units=(
+            U("II", "Sep 1-Apr 30"),
+        )),
+    Row("1", 16, "HONNA RIVER",
+        tributaries=True, units=(
+            U("II", "Sep 1-Apr 30"),
+        )),
+    Row("1", 16, "KAKWEIKEN RIVER",
+        tributaries=True, units=(
+            U("II", "Apr 1-Oct 31"),
+        )),
+    Row("1", 16, "KINGCOME RIVER",
+        tributaries=True, units=(
+            U("II", "Apr 1-Oct 31"),
+        )),
+    Row("1", 17, "MAMIN RIVER",
+        tributaries=True, units=(
+            U("II", "Sep 1-Apr 30"),
+        )),
+    Row("1", 17, "PALLANT CREEK",
+        tributaries=True, units=(
+            U("II", "Sep 1-Apr 30"),
+        )),
+    Row("1", 18, "SEYMOUR RIVER",
+        tributaries=True, units=(
+            U("II", "Aug 15-Oct 31"),
+        )),
+    Row("1", 18, "TLELL RIVER",
+        tributaries=True, units=(
+            U("II", "Sep 1-Apr 30"),
+        )),
+    Row("1", 19, "WAKEMAN RIVER",
+        tributaries=True, units=(
+            U("II", "Apr 1-Oct 31"),
+        )),
+    Row("1", 19, "YAKOUN RIVER",
+        tributaries=True, units=(
+            U("II", "Sep 1-Apr 30"),
+        )),
+    # ---- Region 3
     Row("3", 32, "THOMPSON RIVER (downstream of signs at Kamloops Lake outlet to the confluence with Fraser River)",
-        ("II",), False),
-    # ---- Region 4 (pp. 35-40) — "Class II water when open, including tributaries"; the p.33 map hatches these
-    Row("4", 35, "ABRUZZI CREEK", ("II",), True),
-    Row("4", 35, "ALEXANDER CREEK (downstream of the easternmost Hwy 3 bridge)", ("II",), True),
-    Row("4", 35, "ALEXANDER CREEK (upstream of the easternmost Hwy 3 bridge)", ("II",), True),
-    Row("4", 35, "BIGHORN (Ram) CREEK", via=("4", "WIGWAM RIVER (downstream of the access road adjacent to km 42 on the "
-                                              "Bighorn (Ram) Forest Service Road)"),
+        tributaries=False, units=(
+            U("II", "Oct 1-Dec 31", place="downstream_of thompson_river__kamloops_lake"),
+        )),
+    # ---- Region 4
+    Row("4", 35, "ABRUZZI CREEK",
+        tributaries=True, units=(
+            U("II", ""),
+        )),
+    Row("4", 35, "ALEXANDER CREEK (downstream of the easternmost Hwy 3 bridge)",
+        tributaries=True, units=(
+            U("II", "", place="downstream_of alexander_creek__easternmost_hwy_3"),
+        )),
+    Row("4", 35, "ALEXANDER CREEK (upstream of the easternmost Hwy 3 bridge)",
+        tributaries=True, units=(
+            U("II", "", place="upstream_of alexander_creek__easternmost_hwy_3"),
+        )),
+    Row("4", 35, "BIGHORN (Ram) CREEK",
+        via=("4", "WIGWAM RIVER (downstream of the access road adjacent to km 42 on the Bighorn (Ram) Forest Service "
+                  "Road)"),
         why="prints only \"A tributary of Wigwam River; see Wigwam River\": the Wigwam's tributaries are Class II"),
-    Row("4", 35, "BULL RIVER", ("II",), True),
-    Row("4", 35, "CADORNA CREEK", ("II",), True),
-    Row("4", 36, "ELK RIVER (downstream of Elko Dam)", ("II",), True),
-    Row("4", 36, "ELK RIVER'S TRIBUTARIES (see exceptions)", ("II",), "only"),
-    Row("4", 36, "ELK RIVER (upstream of Elko Dam)", ("II",), True),
-    Row("4", 36, "FORDING RIVER (downstream of Josephine Falls)", ("II",), True),
-    Row("4", 36, "FORDING RIVER (upstream of Josephine Falls)", via=("4", "FORDING RIVER (downstream of Josephine Falls)"),
+    Row("4", 35, "BULL RIVER",
+        tributaries=True, units=(
+            U("II", ""),
+        )),
+    Row("4", 35, "CADORNA CREEK",
+        tributaries=True, units=(
+            U("II", ""),
+        )),
+    Row("4", 36, "ELK RIVER (downstream of Elko Dam)",
+        tributaries=True, units=(
+            U("II", "", place="downstream_of gauge__08NK031"),
+        )),
+    Row("4", 36, "ELK RIVER'S TRIBUTARIES (see exceptions)",
+        tributaries='only', units=(
+            U("II", "",
+              excludes="downstream_of gnis:17550 elk_river_s_tributaries__old_mf_m_railway_bridge_coal_ck walk_past"),
+        )),
+    Row("4", 36, "ELK RIVER (upstream of Elko Dam)",
+        tributaries=True, units=(
+            U("II", "", place="upstream_of gauge__08NK031",
+              excludes="downstream_of gnis:17550 elk_river_s_tributaries__old_mf_m_railway_bridge_coal_ck walk_past"),
+        )),
+    Row("4", 36, "FORDING RIVER (downstream of Josephine Falls)",
+        tributaries=True, units=(
+            U("II", "", place="downstream_of fording_river__josephine_falls"),
+        )),
+    Row("4", 36, "FORDING RIVER (upstream of Josephine Falls)",
+        via=("4", "FORDING RIVER (downstream of Josephine Falls)"),
         why="prints only \"No Fishing\": the lower Fording's \"including tributaries\" and the Elk's carry it"),
-    Row("4", 36, "FORSYTH CREEK", ("II",), True),
-    Row("4", 37, "HELLROARING CREEK", ("II",), True),
-    Row("4", 37, "KOOTENAY RIVER (upstream of Koocanusa Reservoir)", ("II",), True),
-    Row("4", 38, "LODGEPOLE CREEK (downstream of falls near the km 26 post on Lodgepole Road)", ("II",), True),
-    Row("4", 38, "LODGEPOLE CREEK (upstream of falls)", ("II",), True),
-    Row("4", 38, "MICHEL CREEK (downstream of the easternmost Hwy 3 bridge)", ("II",), True),
-    Row("4", 38, "MICHEL CREEK (upstream of the easternmost Hwy 3 bridge)", ("II",), True),
-    Row("4", 38, "MORRISSEY CREEK", ("II",), True),
-    Row("4", 39, "NORTH (Fork) WHITE RIVER", ("II",), True),
-    Row("4", 39, "PERRY CREEK", ("II",), True),
-    Row("4", 39, "QUINN CREEK", ("II",), True),
-    Row("4", 39, "SKOOKUMCHUCK CREEK", ("II",), True),
-    Row("4", 39, "ST. MARY RIVER", ("II",), True),
-    Row("4", 40, "WHITE RIVER (see also east White & North White Rivers)", ("II",), True),
+    Row("4", 36, "FORSYTH CREEK",
+        tributaries=True, units=(
+            U("II", ""),
+        )),
+    Row("4", 37, "HELLROARING CREEK",
+        tributaries=True, units=(
+            U("II", ""),
+        )),
+    Row("4", 37, "KOOTENAY RIVER (upstream of Koocanusa Reservoir)",
+        tributaries=True, units=(
+            U("II", "",
+              place="upstream_of kootenay_river__white_river_into_kootenay_river & upstream_of gnis:14097 "
+                    "kootenay_river__kootenay_koocanusa"),
+        )),
+    Row("4", 38, "LODGEPOLE CREEK (downstream of falls near the km 26 post on Lodgepole Road)",
+        tributaries=True, units=(
+            U("II", "", place="downstream_of lodgepole_creek__falls"),
+        )),
+    Row("4", 38, "LODGEPOLE CREEK (upstream of falls)",
+        tributaries=True, units=(
+            U("II", "", place="upstream_of lodgepole_creek__falls"),
+        )),
+    Row("4", 38, "MICHEL CREEK (downstream of the easternmost Hwy 3 bridge)",
+        tributaries=True, units=(
+            U("II", "", place="downstream_of michel_creek__easternmost_hwy_3"),
+        )),
+    Row("4", 38, "MICHEL CREEK (upstream of the easternmost Hwy 3 bridge)",
+        tributaries=True, units=(
+            U("II", "", place="upstream_of michel_creek__easternmost_hwy_3"),
+        )),
+    Row("4", 38, "MORRISSEY CREEK",
+        tributaries=True, units=(
+            U("II", ""),
+        )),
+    Row("4", 39, "NORTH (Fork) WHITE RIVER",
+        tributaries=True, units=(
+            U("II", ""),
+        )),
+    Row("4", 39, "PERRY CREEK",
+        tributaries=True, units=(
+            U("II", ""),
+        )),
+    Row("4", 39, "QUINN CREEK",
+        tributaries=True, units=(
+            U("II", ""),
+        )),
+    Row("4", 39, "SKOOKUMCHUCK CREEK",
+        tributaries=True, units=(
+            U("II", ""),
+        )),
+    Row("4", 39, "ST. MARY RIVER",
+        tributaries=True, units=(
+            U("II", "",
+              excludes="whole gnis:2563"),
+        )),
+    Row("4", 40, "WHITE RIVER (see also east White & North White Rivers)",
+        tributaries=True, units=(
+            U("II", ""),
+        )),
     Row("4", 40, "WIGWAM RIVER (downstream of the access road adjacent to km 42 on the Bighorn (Ram) Forest Service "
-                 "Road)", ("II",), True),
-    Row("4", 40, "WIGWAM RIVER (upstream of the Forest Service recreation site adjacent to km 42 on the Bighorn (Ram) "
-                 "Forest Service Road)", ("II",), True),
-    # ---- Region 5 (pp. 43-47; the Dean's box on p.42)
+                  "Road)",
+        tributaries=True, units=(
+            U("II", "", place="downstream_of wigwam_river__wigwam_km42_ram_fsr"),
+        )),
+    Row("4", 40, "WIGWAM RIVER (upstream of the Forest Service recreation site adjacent to km 42 on the Bighorn "
+                  "(Ram) Forest Service Road)",
+        tributaries=True, units=(
+            U("II", "", place="upstream_of wigwam_river__wigwam_km42_ram_fsr"),
+        )),
+    # ---- Region 5
     Row("5", 43, "ATNARKO/BELLA COOLA RIVERS [Includes Tributaries] EXCEPT: Burnt Bridge Creek upstream of Sitkatapa "
-                 "Creek, Hunlen Creek upstream of Hunlen Falls, and Young Creek upstream of Hwy 20 (see separate entries "
-                 "for these three waters)", ("II",), True),
-    Row("5", 43, "BURNT BRIDGE CREEK (upstream of Sitkatapa Creek)", ("II",), True),
-    Row("5", 43, "CHILCOTIN RIVER", ("II",), True),
-    Row("5", 44, "CHILKO RIVER", ("II",), True),
-    Row("5", 44, "CHUCKWALLA RIVER", ("II",), True),
-    Row("5", 44, "DEAN RIVER", ("I", "I", "II"), True),
-    Row("5", 45, "HORSEFLY RIVER (from Quesnel Lake to Horsefly River Falls)", ("II",), True),
-    Row("5", 45, "KILBELLA RIVER", ("II",), True),
-    Row("5", 46, "NEKITE RIVER", ("II",), True),
-    Row("5", 47, "WEST ROAD (\"Blackwater\") RIVER", ("II",), False, glyph=False),     # "Mainstem only"; RULINGS Li10
-    # ---- Region 6 (pp. 50-54)
-    Row("6", 50, "BABINE RIVER", ("I",), True),
-    Row("6", 50, "BULKLEY RIVER", ("II",), True),
-    Row("6", 50, "DAMDOCHAX CREEK", ("II",), True),
-    Row("6", 51, "ECSTALL RIVER", ("II",), True),
-    Row("6", 51, "GITNADOIX RIVER", ("I",), True),
-    Row("6", 51, "KISPIOX RIVER", ("II",), True),
-    Row("6", 52, "KITSEGUECLA RIVER", ("II",), True),
-    Row("6", 52, "KITSUMKALUM (Kalum) RIVER", ("II",), True),
-    Row("6", 52, "KITWANGA RIVER", ("II",), True),
-    Row("6", 52, "KLUATANTAN RIVER", ("II",), True),
-    Row("6", 52, "KSI X'ANMAS RIVER (formerly Kwinamass River)", ("II",), True),
-    Row("6", 52, "KWINAGEESE RIVER", ("II",), True),
-    Row("6", 52, "KWINAMASS RIVER", via=("6", "KSI X'ANMAS RIVER (formerly Kwinamass River)"),
+                  "Creek, Hunlen Creek upstream of Hunlen Falls, and Young Creek upstream of Hwy 20 (see separate "
+                  "entries for these three waters)",
+        tributaries=True, units=(
+            U("II", "Mar 1-May 31",
+              place="downstream_of "
+                    "atnarko_bella_coola_rivers_includes_tributaries_exce__young_creek_into_atnarko_river",
+              excludes="upstream_of gnis:2100 burnt_bridge_creek__sitkatapa_confluence; upstream_of gnis:22290 "
+                       "hunlen_creek__hunlen_falls; upstream_of gnis:1914 young_creek__young_hwy20", sleeps=True),
+        )),
+    Row("5", 43, "BURNT BRIDGE CREEK (upstream of Sitkatapa Creek)",
+        tributaries=True, units=(
+            U("II", "Mar 1-May 31", place="upstream_of burnt_bridge_creek__sitkatapa_confluence", sleeps=True),
+        )),
+    Row("5", 43, "CHILCOTIN RIVER",
+        tributaries=True, units=(
+            U("II", "Oct 1-May 31", place="downstream_of chilcotin_river__chilko_river_into_chilcotin_river"),
+        )),
+    Row("5", 44, "CHILKO RIVER",
+        tributaries=True, units=(
+            U("II", "Jun 11-Oct 31", place="upstream_of chilko_river__brittany_creek_into_chilko_river"),
+        )),
+    Row("5", 44, "CHUCKWALLA RIVER",
+        tributaries=True, units=(
+            U("II", "Apr 1-May 31"),
+        )),
+    Row("5", 44, "DEAN RIVER",
+        tributaries=True, units=(
+            U("I", "Jun 1-Sep 30",
+              place="between dean_river__crag_creek_into_dean_river,"
+                    "dean_river__signs_0_5_km_above_the_canyon_500_m_upstream"),
+            U("I", "Jun 1-Sep 30", place="downstream_of dean_river__signs_100_m_below_the_canyon_100_m_downstream"),
+            U("II", "Jun 16-Oct 31",
+              place="between dean_river__anahim_lake,dean_river__iltasyuko_river_into_dean_river"),
+        )),
+    Row("5", 45, "HORSEFLY RIVER (from Quesnel Lake to Horsefly River Falls)",
+        tributaries=True, units=(
+            U("II", "Jun 1-Oct 31", place="downstream_of horsefly_river__horsefly_river_falls"),
+        )),
+    Row("5", 45, "KILBELLA RIVER",
+        tributaries=True, units=(
+            U("II", "Apr 1-May 31"),
+        )),
+    Row("5", 46, "NEKITE RIVER",
+        tributaries=True, units=(
+            U("II", "Apr 1-May 31"),
+        )),
+    Row("5", 47, "WEST ROAD (\"Blackwater\") RIVER",
+        glyph=False, tributaries=False, units=(
+            U("II", "Jun 15-Oct 31"),
+        )),
+    # ---- Region 6
+    Row("6", 50, "BABINE RIVER",
+        tributaries=True, units=(
+            U("I", "Sep 1-Oct 31", place="downstream_of babine_river__nilkitkwa_lake"),
+        )),
+    Row("6", 50, "BULKLEY RIVER",
+        tributaries=True, units=(
+            U("II", "Sep 1-Oct 31"),
+        )),
+    Row("6", 50, "DAMDOCHAX CREEK",
+        tributaries=True, units=(
+            U("II", "Sep 1-Oct 31"),
+        )),
+    Row("6", 51, "ECSTALL RIVER",
+        tributaries=True, units=(
+            U("II", ""),
+        )),
+    Row("6", 51, "GITNADOIX RIVER",
+        tributaries=True, units=(
+            U("I", ""),
+        )),
+    Row("6", 51, "KISPIOX RIVER",
+        tributaries=True, units=(
+            U("II", "Sep 1-Oct 31"),
+        )),
+    Row("6", 52, "KITSEGUECLA RIVER",
+        tributaries=True, units=(
+            U("II", ""),
+        )),
+    Row("6", 52, "KITSUMKALUM (Kalum) RIVER",
+        tributaries=True, units=(
+            U("II", ""),
+        )),
+    Row("6", 52, "KITWANGA RIVER",
+        tributaries=True, units=(
+            U("II", ""),
+        )),
+    Row("6", 52, "KLUATANTAN RIVER",
+        tributaries=True, units=(
+            U("II", ""),
+        )),
+    Row("6", 52, "KSI X'ANMAS RIVER (formerly Kwinamass River)",
+        tributaries=True, units=(
+            U("II", "Apr 1-Sep 30"),
+        )),
+    Row("6", 52, "KWINAGEESE RIVER",
+        tributaries=True, units=(
+            U("II", "Sep 1-Oct 31"),
+        )),
+    Row("6", 52, "KWINAMASS RIVER",
+        via=("6", "KSI X'ANMAS RIVER (formerly Kwinamass River)"),
         why="the old name's pointer (\"See Ksi X'anmas River\"): the same water"),
-    Row("6", 52, "LAKELSE RIVER", ("I",), True),
-    Row("6", 52, "MORICE RIVER", ("II",), True),
-    Row("6", 53, "SKEENA RIVER (mainstem only)", ("II", "II"), False),    # "Skeena River 2" and "Section 4"
-    Row("6", 53, "STELLAKO RIVER", ("II",), True),
-    Row("6", 53, "SUSKWA (Bear) RIVER", ("I",), True),
-    Row("6", 53, "SUSTUT RIVER", ("I",), True),
-    Row("6", 54, "TELKWA RIVER", ("II",), True),
-    Row("6", 54, "ZYMOETZ (Copper) RIVER", ("I", "II"), True),            # "Zymoetz River A" / "B"
-    # ---- Region 7A (p.61): the Stellako's row printed again
-    Row("7", 61, "STELLAKO RIVER", ("II",), True),
+    Row("6", 52, "LAKELSE RIVER",
+        tributaries=True, units=(
+            U("I", ""),
+        )),
+    Row("6", 52, "MORICE RIVER",
+        tributaries=True, units=(
+            U("II", "Sep 1-Oct 31"),
+        )),
+    Row("6", 53, "SKEENA RIVER (mainstem only)",
+        tributaries=False, units=(
+            U("II", "Jul 1-Sep 30",
+              place="between skeena_river__exchamsiks_river_into_skeena_river,"
+                    "skeena_river__kitsumkalum_river_into_skeena_river_u1500m"),
+            U("II", "Jul 1-Dec 31", place="upstream_of skeena_river__zymoetz_river_into_skeena_river_u1500m"),
+        )),
+    Row("6", 53, "STELLAKO RIVER",
+        tributaries=True, units=(
+            U("II", ""),
+        )),
+    Row("6", 53, "SUSKWA (Bear) RIVER",
+        tributaries=True, units=(
+            U("I", ""),
+        )),
+    Row("6", 53, "SUSTUT RIVER",
+        tributaries=True, units=(
+            U("I", "Sep 1-Oct 31"),
+        )),
+    Row("6", 54, "TELKWA RIVER",
+        tributaries=True, units=(
+            U("II", "Sep 1-Oct 31"),
+        )),
+    Row("6", 54, "ZYMOETZ (Copper) RIVER",
+        tributaries=True, units=(
+            U("I", "Jul 24-Dec 31", place="upstream_of zymoetz__limonite_creek_into_zymoetz_river"),
+            U("II", "Jul 24-May 31", place="downstream_of zymoetz__limonite_creek_into_zymoetz_river"),
+        )),
+    # ---- Region 7A
+    Row("7", 61, "STELLAKO RIVER",
+        tributaries=True, units=(
+            U("II", ""),
+        )),
 )
 
 #: The rows that print "NOT a Classified Water" (each an asserted absence, a `not_classified` record).
@@ -228,6 +492,42 @@ def reaches_tributaries(entry: Mapping, d: Mapping) -> object:
         return "only"
     own = d.get("includes_tributaries")
     return bool(entry.get("includes_tributaries") if own is None else own)
+
+
+_MON = ("", "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec")
+_UNIT_WORDS = {"cls": "is class", "period": "is classified", "place": "lies", "excludes": "carves out",
+               "sleeps": "sleeps while its closure binds:"}
+
+
+def period_words(when: Optional[Mapping]) -> str:
+    """A `When`'s dates as the BOOK spells them ("Apr 1-Oct 31"; "" = all year / when open)."""
+    return ", ".join(f"{_MON[d['from_month']]} {d['from_day']}-{_MON[d['to_month']]} {d['to_day']}"
+                     for d in (when or {}).get("dates") or [])
+
+
+def extent_words(extents: Optional[Sequence[Mapping]]) -> str:
+    """Extents as the BOOK spells a place: "op [item] cut,cut [walk_past]", joined by "; "."""
+    out = []
+    for x in extents or []:
+        w = x.get("op", "?")
+        if x.get("item_id"):
+            w += f" {x['item_id']}"
+        if x.get("splits"):
+            w += " " + ",".join(x["splits"])
+        if x.get("walk_past"):
+            w += " walk_past"
+        out.append(w)
+    return "; ".join(out)
+
+
+def unit_of(entry: Mapping, d: Mapping) -> U:
+    """A corpus designation as a BOOK unit: its period, its place (own extents, then its row's clip — the entry's extents
+    clip a licensing record, AGENTS 13), its carve-outs, its sleep."""
+    own = "" if _whole(d.get("extents")) else extent_words(d.get("extents"))
+    clip = "" if _whole(entry.get("extents")) else extent_words(entry.get("extents"))
+    return U(cls=str(d.get("classified")), period=period_words(d.get("when")),
+             place=" & ".join(dict.fromkeys(x for x in (own, clip) if x)),
+             excludes=extent_words(d.get("tributary_excludes")), sleeps=bool(d.get("suspended_while")))
 
 
 def _row_name(r: Row) -> str:
@@ -287,6 +587,15 @@ def corpus_problems(entries: Mapping[str, Mapping], book: Sequence[Row] = BOOK,
             if t != r.tributaries:
                 out.append(f"{_row_name(r)}: designation {d.get('id')} "
                            f"{_trib_words(t)}; the book: {_trib_words(r.tributaries)}")
+        # each designation's printed period, its place, its carve-outs and its sleep, against the book's units (in
+        # print order; the classes above already said a count that differs)
+        if len(ds) == len(r.units):
+            for d, u in zip(ds, r.units):
+                got_u = unit_of(e, d)
+                for f in ("period", "place", "excludes", "sleeps"):          # the class: said above
+                    if getattr(got_u, f) != getattr(u, f):
+                        out.append(f"{_row_name(r)}: designation {d.get('id')} {_UNIT_WORDS[f]} "
+                                   f"{getattr(got_u, f)!r}; the book: {getattr(u, f)!r}")
     # the reverse: a classified-looking entry the book table does not list
     for e in sorted(entries.values(), key=lambda x: x.get("entry_id", "")):
         if not is_water_row(e) or _key(e.get("region", ""), e.get("name", "")) in rows:
@@ -386,11 +695,13 @@ class _Asker:
             docs = L.documents(C, h, L._alternatives_here(self.db, C, sid), PROFILE, C.index.__getitem__)
             self.memo[k] = {"designations": set(h["designations"]),
                             "cwl": any(x["doc"] == CWL for x in docs["documents"]),
-                            "wrong_water": list(h["wrong_water"]), "displaced": dict(h["displaced"])}
+                            "wrong_water": list(h["wrong_water"]), "displaced": dict(h["displaced"]),
+                            "considered": set(h["considered"])}
         return self.memo[k]
 
 
-def bundle_problems(bundle: Path, entries: Mapping[str, Mapping], book: Sequence[Row] = BOOK) -> list[str]:
+def bundle_problems(bundle: Path, entries: Mapping[str, Mapping], book: Sequence[Row] = BOOK,
+                    pins: Optional[Mapping] = None) -> list[str]:
     """Every way the built bundle ships a classified water without its licence (see the module doc). [] when none."""
     from pipeline.deliver.answers.common import connect
     if not Path(bundle).is_file():
@@ -433,10 +744,15 @@ def bundle_problems(bundle: Path, entries: Mapping[str, Mapping], book: Sequence
             example: dict = {}
             for sid, _via in rows:
                 a = ask.answer(sid, md)
+                sleeping = bool(rec.get("suspended_while")) and _closure_binds(db, eid, rec, sid, md)
                 if a["cwl"]:
+                    if sleeping:
+                        missing["asks for the licence while its closure binds — the book: \"not required until "
+                                "reopened\""] += 1
+                        example.setdefault(next(iter(missing)), sid)
                     continue
-                if f"{eid}#{did}" not in a["designations"] and rec.get("suspended_while"):
-                    asleep += 1                    # the book's own "not required until reopened"
+                if sleeping and f"{eid}#{did}" not in a["designations"]:
+                    asleep += 1                    # the book's own "not required until reopened", its closure binding
                     continue
                 why = ("not in force" if f"{eid}#{did}" not in a["designations"] else
                        f"dropped for the other kind of water {a['wrong_water']}" if a["wrong_water"] else
@@ -445,7 +761,13 @@ def bundle_problems(bundle: Path, entries: Mapping[str, Mapping], book: Sequence
                 example.setdefault(why, sid)
             for why, n in sorted(missing.items()):
                 out.append(f"{where}: {n} of its {len(rows)} section(s) ship WITHOUT the Classified Waters Licence on "
-                           f"{md[0]}/{md[1]} — {why} (e.g. section {example[why]})")
+                           f"{md[0]}/{md[1]} — {why} (e.g. section {example[why]})"
+                           if not why.startswith("asks") else
+                           f"{where}: {n} of its {len(rows)} section(s) {why} (e.g. section {example[why]})")
+            if rec.get("suspended_while") and not asleep:
+                out.append(f"{where}: the book puts it to sleep while {[x['rule_id'] for x in rec['suspended_while']]} "
+                           f"binds, but that closure binds none of its {len(rows)} section(s) in force on "
+                           f"{md[0]}/{md[1]}")
             if start is not None:
                 before = _day_before(start)
                 extra = [sid for sid, _ in rows
@@ -454,6 +776,15 @@ def bundle_problems(bundle: Path, entries: Mapping[str, Mapping], book: Sequence
                     out.append(f"{where}: {len(extra)} section(s) ask for the Classified Waters Licence on "
                                f"{before[0]}/{before[1]}, outside its period, with no designation in force "
                                f"(e.g. section {extra[0]})")
+            # THE CARD'S CLASS BADGE (T841, owner: "always, with dates") reads a part's designations off the day's
+            # frame, `holds.considered`, in period or out (asleep too): it must name this designation on every day
+            key = f"{eid}#{did}"
+            days = [md] + ([_day_before(start)] if start is not None else [])
+            unnamed = [(sid, d) for sid, _ in rows for d in days if key not in ask.answer(sid, d)["considered"]]
+            if unnamed:
+                out.append(f"{where}: {len(unnamed)} section-day(s) whose licence frame does not list it in "
+                           f"`considered` (e.g. section {unnamed[0][0]} on {unnamed[0][1][0]}/{unnamed[0][1][1]}) — the "
+                           f"card's Class badge would miss it")
         # a requirement satisfied by the licence must wait for a designation
         for eid, rid, rec in db.execute("SELECT entry_id, req_id, record FROM requirement"):
             r = json.loads(rec)
@@ -477,9 +808,169 @@ def bundle_problems(bundle: Path, entries: Mapping[str, Mapping], book: Sequence
                 if bare:
                     out.append(f"{_row_name(r)}: {len(bare)} of {len(got)} section(s) of {item} carry no designation "
                                f"— the book classifies it through {r.via[1]} (e.g. section {bare[0]})")
+        out += named_case_problems(db, entries)
+        out += pin_problems(db, entries, pins if pins is not None else load_pins())
     finally:
         db.close()
     return out
+
+
+def _closure_binds(db: sqlite3.Connection, eid: str, rec: Mapping, sid: int, md: tuple[int, int]) -> bool:
+    """Does a closure the designation sleeps under (`suspended_while`, a rule of its own entry with a closure grade)
+    bind the section and hold on the day?"""
+    from pipeline.deliver.bundle.read import in_force
+    for x in rec.get("suspended_while") or []:
+        got = db.execute("SELECT r.when_, r.closure_grade FROM rule r WHERE r.entry_id = ? AND r.rule_id = ?",
+                         (eid, x["rule_id"])).fetchone()
+        if not got or not got[1]:
+            continue
+        binds = db.execute("SELECT 1 FROM section_ruleset s JOIN ruleset rs ON rs.set_id = s.set_id WHERE s.sid = ? "
+                           "AND rs.entry_id = ? AND rs.rule_id = ?", (sid, eid, x["rule_id"])).fetchone()
+        if binds and in_force(json.loads(got[0]) if got[0] else None, md) == "yes":
+            return True
+    return False
+
+
+@dataclass(frozen=True)
+class Case:
+    """A water the rulings decide, held by name: `row` (region, printed name) or `item`; `part` "not_classified" (the
+    sections its own NOT-classified record binds), "rest" (the others) or "" (all); `unit` every one of them must carry
+    (and no other), or None: none may carry any."""
+    ruling: str
+    says: str
+    row: Optional[tuple] = None
+    item: str = ""
+    part: str = ""
+    unit: Optional[str] = None
+
+
+_COAL = ("4", "COAL CREEK (downstream of Old MF&M Railway bridge 7 km upstream of Elk River)")
+#: THE RULINGS' OWN WATERS (RULINGS Li5, Li5a; owner 2026-11-17 on T841: "Keep: not classified"): a tributary whose
+#: own row prints no class is not classified; a part the designation excepts and walks past stops nothing above it;
+#: a joining water with no row takes the first classified water it flows into.
+NAMED: tuple[Case, ...] = (
+    Case("Li5a", "Coal Creek above the old MF&M Railway bridge is the Elk River's Class II", row=_COAL, part="rest",
+         unit="elk_river"),
+    Case("Li5a", "Coal Creek below the bridge is not a Classified Water (its row)", row=_COAL, part="not_classified"),
+    Case("Li5a", "Line Creek (its own row, no class) is not classified", row=("4", "LINE CREEK")),
+    Case("Li5a", "Grave Creek (its own row, no class) is not classified", row=("4", "GRAVE CREEK")),
+    Case("Li5", "Gosnell Creek (its own row, no class) is not classified (owner 2026-11-17: keep)",
+         row=("6", "GOSNELL CREEK")),
+    Case("Li5", "the Endako River (its own row, no class) is not classified", row=("6", "ENDAKO RIVER")),
+    Case("Li5", "the Nanika River above Morice Lake (no row) is the Morice River's Class II", item="gnis:16517",
+         unit="morice_river"),
+)
+
+
+def named_case_problems(db: sqlite3.Connection, entries: Mapping[str, Mapping],
+                        cases: Sequence[Case] = NAMED) -> list[str]:
+    """Each NAMED case, asked of the bundle. A case whose water or part has no section is a problem too."""
+    out: list[str] = []
+    by_name = {_key(e.get("region", ""), e.get("name", "")): e for e in entries.values() if is_water_row(e)}
+    units = {(e, i): u for e, i, u in db.execute("SELECT entry_id, designation_id, unit FROM designation")}
+    for c in cases:
+        if c.row is not None:
+            e = by_name.get(_key(*c.row))
+            if e is None:
+                out.append(f"{c.ruling}: {c.says} — no corpus row {c.row[1]!r}")
+                continue
+            items = list(e.get("matched") or [])
+        else:
+            e, items = None, [c.item]
+        sids = [sid for item in items for sid, t, o in _item_sections(db, item) if not t and not o]
+        if c.part and e is not None:
+            nc = {sid for (sid,) in db.execute("SELECT sid FROM not_classified_section WHERE entry_id = ?",
+                                               (e["entry_id"],))}
+            sids = [s for s in sids if (s in nc) == (c.part == "not_classified")]
+        if not sids:
+            out.append(f"{c.ruling}: {c.says} — the bundle has no section of it")
+            continue
+        wrong = []
+        for sid in sids:
+            got = {units[(x, y)] for x, y in db.execute(
+                "SELECT entry_id, designation_id FROM designation_section WHERE sid = ?", (sid,))}
+            if got != ({c.unit} if c.unit else set()):
+                wrong.append((sid, sorted(got)))
+        if wrong:
+            out.append(f"{c.ruling}: {c.says} — {len(wrong)} of its {len(sids)} section(s) carry "
+                       f"{wrong[0][1] or 'no designation'} (e.g. section {wrong[0][0]})")
+    return out
+
+
+# ------------------------------------------------------------------------------------------------- the pins
+#: WHERE EACH DESIGNATION LIES, MEASURED: its own water's length and the waters and length its tributary walk takes,
+#: cut from a reviewed bundle (`--write-pins`). A walk is the reach builder's (AGENTS 16: no second resolver), so the
+#: gate holds its OUTCOME instead: a walk that loses or gains a named water, or a stretch whose length moves by more than
+#: PIN_TOLERANCE, stops the release until the change is read and the pins re-cut.
+PINS_FILE = Path(__file__).with_name("classified_pins.json")
+PIN_TOLERANCE = (0.02, 200)            # the larger of 2 % and 200 m
+
+
+def measure_pins(db: sqlite3.Connection) -> dict:
+    """{eid#did: {own_m, walk_m, own_waters, walk_waters}} — lengths in metres (`section_length`), waters by item id."""
+    out: dict = {}
+    for eid, did in db.execute("SELECT entry_id, designation_id FROM designation ORDER BY 1, 2").fetchall():
+        rec = {"own_m": 0, "walk_m": 0, "own_waters": set(), "walk_waters": set()}
+        for via, m, item in db.execute(
+                "SELECT d.via, COALESCE(l.m, 0), (SELECT GROUP_CONCAT(i.item_id) FROM item_section s JOIN item i "
+                "ON i.ord = s.ord WHERE s.sid = d.sid) FROM designation_section d LEFT JOIN section_length l "
+                "ON l.sid = d.sid WHERE d.entry_id = ? AND d.designation_id = ?", (eid, did)):
+            side = "own" if via == "reach" else "walk"
+            rec[f"{side}_m"] += m
+            rec[f"{side}_waters"].update((item or "").split(",") if item else ())
+        out[f"{eid}#{did}"] = {"own_m": rec["own_m"], "walk_m": rec["walk_m"],
+                               "own_waters": sorted(rec["own_waters"]), "walk_waters": sorted(rec["walk_waters"])}
+    return out
+
+
+def load_pins(path: Path = PINS_FILE) -> dict:
+    if not Path(path).is_file():
+        raise FileNotFoundError(f"no classified-water pins at {path}: cut them from a reviewed bundle — "
+                                f"python -m pipeline.regs.classified_waters --write-pins BUNDLE")
+    return json.loads(Path(path).read_text(encoding="utf-8"))
+
+
+def pin_problems(db: sqlite3.Connection, entries: Mapping[str, Mapping], pins: Mapping) -> list[str]:
+    out: list[str] = []
+    want = pins.get("designations") or {}
+    got = measure_pins(db)
+    for k in sorted(set(got) - set(want)):
+        out.append(f"{k}: no pin — read where it lies, then re-cut the pins (--write-pins)")
+    for k in sorted(set(want) - set(got)):
+        out.append(f"{k}: pinned but not in the bundle")
+    for k in sorted(set(want) & set(got)):
+        w, g = want[k], got[k]
+        for f in ("own_m", "walk_m"):
+            tol = max(PIN_TOLERANCE[0] * w[f], PIN_TOLERANCE[1])
+            if abs(g[f] - w[f]) > tol:
+                out.append(f"{k}: {'its own water' if f == 'own_m' else 'its tributary walk'} is {g[f] / 1000:,.1f} km;"
+                           f" pinned {w[f] / 1000:,.1f} km")
+        for f in ("own_waters", "walk_waters"):
+            lost, new = sorted(set(w[f]) - set(g[f])), sorted(set(g[f]) - set(w[f]))
+            what = "its own water" if f == "own_waters" else "its tributary walk"
+            if lost:
+                out.append(f"{k}: {what} no longer reaches {len(lost)} pinned water(s): {', '.join(lost[:6])}")
+            if new:
+                out.append(f"{k}: {what} now reaches {len(new)} water(s) not pinned: {', '.join(new[:6])}")
+    return out
+
+
+def write_pins(bundle: Path, path: Path = PINS_FILE) -> dict:
+    """Cut the pins from a bundle someone has read (the walk's waters and lengths are its outcome, not a ruling)."""
+    from pipeline.deliver.answers.common import connect
+    db = connect(str(bundle))
+    try:
+        meta = dict(db.execute("SELECT k, v FROM meta WHERE k IN ('entries_digest', 'reach_digest', "
+                               "'section_handles')"))
+        pins = {"_about": "T841: where each classified-water designation lies, measured on a reviewed bundle — its own "
+                          "water's length and waters, its tributary walk's length and waters. Written by `python -m "
+                          "pipeline.regs.classified_waters --write-pins BUNDLE`; read by its --check --bundle "
+                          "(fast-fail's corpus half does not read it).",
+                "cut_from": meta, "designations": measure_pins(db)}
+    finally:
+        db.close()
+    Path(path).write_text(json.dumps(pins, indent=1, sort_keys=True) + "\n", encoding="utf-8")
+    return pins
 
 
 # ------------------------------------------------------------------------------------------------- the extraction
@@ -545,11 +1036,16 @@ def main(argv: Optional[list[str]] = None) -> int:
     ap.add_argument("--corpus", type=Path, default=None, help="the corpus directory (default: the curated one)")
     ap.add_argument("--extraction", type=Path, default=None,
                     help="check the BOOK table against an extraction (synopsis_raw_data.json)")
+    ap.add_argument("--write-pins", type=Path, default=None, metavar="BUNDLE",
+                    help="re-cut the measured pins from this bundle (after reading what moved)")
     a = ap.parse_args(argv)
-    if not a.check and a.extraction is None:
-        ap.error("say --check and/or --extraction PATH")
+    if not a.check and a.extraction is None and a.write_pins is None:
+        ap.error("say --check, --extraction PATH and/or --write-pins BUNDLE")
     try:
         rc = 0
+        if a.write_pins is not None:
+            pins = write_pins(a.write_pins)
+            print(f"classified pins: {len(pins['designations'])} designations, cut from {a.write_pins} -> {PINS_FILE}")
         if a.extraction is not None:
             ps = extraction_problems(json.loads(Path(a.extraction).read_text(encoding="utf-8")))
             print("\n".join(["book table vs extraction: " + (f"{len(ps)} problem(s)" if ps else "agree")]
