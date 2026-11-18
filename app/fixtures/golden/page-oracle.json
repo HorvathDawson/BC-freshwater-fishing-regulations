@@ -8314,472 +8314,6 @@
     ]
    ]
   },
-  "bc1_501": {
-   "s": 1,
-   "via": {},
-   "ranks": {},
-   "settle": {
-    "status": "own",
-    "broad": [
-     "z5:bass_illegal::bass_illegal.r1",
-     "z5:daily_quotas::species_quotas.r1",
-     "r5:atnarko_bella_coola_rivers_includes_tributaries_except_burnt@5-11+5-6+5-8::atnarko_bella_coola_rivers.r13",
-     "zp:white_sturgeon_licence::white_sturgeon_licence.r4"
-    ],
-    "speaks": [
-     "r5:atnarko_bella_coola_rivers_includes_tributaries_except_burnt@5-11+5-6+5-8::atnarko_bella_coola_rivers.r10",
-     "r5:atnarko_bella_coola_rivers_includes_tributaries_except_burnt@5-11+5-6+5-8::atnarko_bella_coola_rivers.r11",
-     "r5:atnarko_bella_coola_rivers_includes_tributaries_except_burnt@5-11+5-6+5-8::atnarko_bella_coola_rivers.r12",
-     "z5:single_barbless_hook::single_barbless_hook.r1",
-     "zp:allowable_methods::allowable_methods.r1",
-     "zp:allowable_methods::allowable_methods.r2",
-     "zp:allowable_methods::allowable_methods.r2b",
-     "zp:allowable_methods::allowable_methods.r3",
-     "zp:allowable_methods::allowable_methods.r4",
-     "zp:bait::bait.r1",
-     "zp:bait::bait.r6",
-     "zp:barbless_single_hook_streams::barbless_single_hook_streams.r1",
-     "zp:barbless_single_hook_streams::barbless_single_hook_streams.r3",
-     "zp:conduct::conduct.r1",
-     "zp:conduct::conduct.r10",
-     "zp:conduct::conduct.r2",
-     "zp:conduct::conduct.r3",
-     "zp:conduct::conduct.r4",
-     "zp:conduct::conduct.r6",
-     "zp:conduct::conduct.r7",
-     "zp:conduct::conduct.r8",
-     "zp:conduct::conduct.r9",
-     "zp:crayfish_trapping::crayfish_trapping.r1",
-     "zp:further_prohibitions::further_prohibitions.r1",
-     "zp:further_prohibitions::further_prohibitions.r2",
-     "zp:further_prohibitions::further_prohibitions.r3",
-     "zp:prohibited_methods::prohibited_methods.r1",
-     "zp:prohibited_methods::prohibited_methods.r2",
-     "zp:prohibited_methods::prohibited_methods.r4",
-     "zp:set_lining::set_lining.r1b",
-     "zp:spear_fishing::spear_fishing.r1",
-     "zp:spear_fishing::spear_fishing.r2",
-     "zp:spear_fishing::spear_fishing.r4",
-     "zp:terminal_tackle::terminal_tackle.r1",
-     "zp:terminal_tackle::terminal_tackle.r3",
-     "zp:terminal_tackle::terminal_tackle.r4",
-     "zp:terminal_tackle::terminal_tackle.r5",
-     "zp:terminal_tackle::terminal_tackle.r6",
-     "zp:terminal_tackle::terminal_tackle.r7",
-     "zp:transporting_catch::transporting_catch.r1",
-     "zp:transporting_catch::transporting_catch.r2",
-     "zp:transporting_catch::transporting_catch.r3",
-     "zp:transporting_catch::transporting_catch.r4",
-     "zp:transporting_catch::transporting_catch.r5",
-     "zp:transporting_catch::transporting_catch.r6",
-     "z5:daily_quotas::species_quotas.r2",
-     "z5:possession_quota::possession_quota.r1",
-     "zp:conduct::conduct.r5",
-     "zp:crayfish_trapping::crayfish_trapping.r2",
-     "zp:preparing_catch::preparing_catch.r1",
-     "zp:preparing_catch::preparing_catch.r2",
-     "zp:prohibited_methods::prohibited_methods.r3",
-     "zp:salmon_stamp::salmon_stamp.r1",
-     "r5:atnarko_bella_coola_rivers_includes_tributaries_except_burnt@5-11+5-6+5-8::atnarko_bella_coola_rivers.r5",
-     "r5:atnarko_bella_coola_rivers_includes_tributaries_except_burnt@5-11+5-6+5-8::atnarko_bella_coola_rivers.r6",
-     "r5:atnarko_bella_coola_rivers_includes_tributaries_except_burnt@5-11+5-6+5-8::atnarko_bella_coola_rivers.r7",
-     "z5:daily_quotas::trout_char_quota.r1",
-     "z5:daily_quotas::trout_char_quota.r2",
-     "z5:daily_quotas::trout_char_quota.r3",
-     "zp:protected_species::protected_species.r1",
-     "zp:protected_species::protected_species.r3",
-     "z5:daily_quotas::trout_char_quota.r4",
-     "z5:daily_quotas::species_quotas.r4",
-     "z5:bass_illegal::bass_illegal.r1",
-     "z5:daily_quotas::species_quotas.r1",
-     "z5:daily_quotas::trout_char_quota.r5",
-     "z5:daily_quotas::species_quotas.r5",
-     "r5:atnarko_bella_coola_rivers_includes_tributaries_except_burnt@5-11+5-6+5-8::atnarko_bella_coola_rivers.r13",
-     "zp:steelhead::steelhead.r2",
-     "zp:steelhead::steelhead.r4",
-     "zp:white_sturgeon_licence::white_sturgeon_licence.r4"
-    ],
-    "beside": [],
-    "shown": [
-     "zp:bait::bait.r7",
-     "zp:conduct::conduct.r11",
-     "zp:crayfish_trapping::crayfish_trapping.r3",
-     "zp:fluctuating_levels::fluctuating_levels.r1",
-     "zp:licence_administration::licence_administration.r1",
-     "zp:licence_fees::licence_fees.r1",
-     "zp:measuring_and_possession::measuring_and_possession.r1",
-     "zp:measuring_and_possession::measuring_and_possession.r2",
-     "zp:no_fishing_buffers::no_fishing_buffers.r3",
-     "zp:no_fishing_scope::no_fishing_scope.r1",
-     "zp:prohibited_methods::prohibited_methods.r5",
-     "zp:quota_defaults::quota_defaults.r2",
-     "zp:quota_defaults::quota_defaults.r3",
-     "zp:quota_defaults::quota_defaults.r4",
-     "zp:white_sturgeon_licence::white_sturgeon_licence.r3",
-     "zp:no_fishing_buffers::no_fishing_buffers.r1",
-     "zp:no_fishing_buffers::no_fishing_buffers.r2"
-    ],
-    "inpart": [],
-    "lifted": [
-     [
-      "r5:atnarko_bella_coola_rivers_includes_tributaries_except_burnt@5-11+5-6+5-8::atnarko_bella_coola_rivers.r3",
-      "r5:atnarko_bella_coola_rivers_includes_tributaries_except_burnt@5-11+5-6+5-8::atnarko_bella_coola_rivers.r5"
-     ],
-     [
-      "r5:atnarko_bella_coola_rivers_includes_tributaries_except_burnt@5-11+5-6+5-8::atnarko_bella_coola_rivers.r4",
-      "r5:atnarko_bella_coola_rivers_includes_tributaries_except_burnt@5-11+5-6+5-8::atnarko_bella_coola_rivers.r5"
-     ]
-    ],
-    "timed": [],
-    "side": [],
-    "standing": [
-     "zp:no_fishing_buffers::no_fishing_buffers.r1",
-     "zp:no_fishing_buffers::no_fishing_buffers.r2"
-    ],
-    "anglerclosed": []
-   },
-   "model": {
-    "spp": [
-     "ST",
-     "RB",
-     "CT",
-     "GB",
-     "DV",
-     "LT",
-     "EB",
-     "LMB",
-     "SMB",
-     "BB",
-     "KO",
-     "LW",
-     "MW",
-     "WSG"
-    ],
-    "line": "known_with_rules",
-    "missingRows": false,
-    "status": "own",
-    "broad": [],
-    "rows": [
-     {
-      "kind": "keep",
-      "pool": "r5:atnarko_bella_coola_rivers_includes_tributaries_except_burnt@5-11+5-6+5-8::atnarko_bella_coola_rivers.r5",
-      "win": null,
-      "daily": 2,
-      "narrow": null,
-      "members": [
-       "EB",
-       "GB",
-       "CT",
-       "DV",
-       "LT",
-       "RB"
-      ]
-     },
-     {
-      "kind": "release",
-      "pool": null,
-      "win": "z5:daily_quotas::species_quotas.r4",
-      "daily": null,
-      "narrow": null,
-      "members": [
-       "KO"
-      ]
-     },
-     {
-      "kind": "keep",
-      "pool": "z5:daily_quotas::species_quotas.r5",
-      "win": null,
-      "daily": 15,
-      "narrow": null,
-      "members": [
-       "LW",
-       "MW"
-      ]
-     },
-     {
-      "kind": "keep",
-      "pool": "z5:daily_quotas::species_quotas.r2",
-      "win": null,
-      "daily": 5,
-      "narrow": null,
-      "members": [
-       "BB"
-      ]
-     },
-     {
-      "kind": "closed",
-      "pool": null,
-      "win": "z5:bass_illegal::bass_illegal.r1",
-      "daily": null,
-      "narrow": null,
-      "members": [
-       "LMB",
-       "SMB"
-      ]
-     },
-     {
-      "kind": "closed",
-      "pool": null,
-      "win": "zp:white_sturgeon_licence::white_sturgeon_licence.r4",
-      "daily": null,
-      "narrow": null,
-      "members": [
-       "WSG"
-      ]
-     },
-     {
-      "kind": "closed",
-      "pool": null,
-      "win": "zp:protected_species::protected_species.r1",
-      "daily": null,
-      "narrow": null,
-      "members": []
-     }
-    ],
-    "R": {
-     "ST": {
-      "H": {
-       "status": "closed",
-       "daily": null,
-       "win": "r5:atnarko_bella_coola_rivers_includes_tributaries_except_burnt@5-11+5-6+5-8::atnarko_bella_coola_rivers.r13",
-       "narrow": null
-      },
-      "W": {
-       "status": "closed",
-       "daily": null,
-       "win": "r5:atnarko_bella_coola_rivers_includes_tributaries_except_burnt@5-11+5-6+5-8::atnarko_bella_coola_rivers.r13",
-       "narrow": null
-      }
-     },
-     "RB": {
-      "H": {
-       "status": "keep",
-       "daily": 2,
-       "win": "r5:atnarko_bella_coola_rivers_includes_tributaries_except_burnt@5-11+5-6+5-8::atnarko_bella_coola_rivers.r5",
-       "narrow": null
-      },
-      "W": {
-       "status": "keep",
-       "daily": 2,
-       "win": "r5:atnarko_bella_coola_rivers_includes_tributaries_except_burnt@5-11+5-6+5-8::atnarko_bella_coola_rivers.r5",
-       "narrow": null
-      }
-     },
-     "CT": {
-      "H": {
-       "status": "keep",
-       "daily": 2,
-       "win": "r5:atnarko_bella_coola_rivers_includes_tributaries_except_burnt@5-11+5-6+5-8::atnarko_bella_coola_rivers.r5",
-       "narrow": null
-      },
-      "W": {
-       "status": "keep",
-       "daily": 2,
-       "win": "r5:atnarko_bella_coola_rivers_includes_tributaries_except_burnt@5-11+5-6+5-8::atnarko_bella_coola_rivers.r5",
-       "narrow": null
-      }
-     },
-     "GB": {
-      "H": {
-       "status": "keep",
-       "daily": 2,
-       "win": "r5:atnarko_bella_coola_rivers_includes_tributaries_except_burnt@5-11+5-6+5-8::atnarko_bella_coola_rivers.r5",
-       "narrow": null
-      },
-      "W": {
-       "status": "keep",
-       "daily": 2,
-       "win": "r5:atnarko_bella_coola_rivers_includes_tributaries_except_burnt@5-11+5-6+5-8::atnarko_bella_coola_rivers.r5",
-       "narrow": null
-      }
-     },
-     "DV": {
-      "H": {
-       "status": "keep",
-       "daily": 2,
-       "win": "r5:atnarko_bella_coola_rivers_includes_tributaries_except_burnt@5-11+5-6+5-8::atnarko_bella_coola_rivers.r5",
-       "narrow": null
-      },
-      "W": {
-       "status": "keep",
-       "daily": 2,
-       "win": "r5:atnarko_bella_coola_rivers_includes_tributaries_except_burnt@5-11+5-6+5-8::atnarko_bella_coola_rivers.r5",
-       "narrow": null
-      }
-     },
-     "LT": {
-      "H": {
-       "status": "keep",
-       "daily": 2,
-       "win": "r5:atnarko_bella_coola_rivers_includes_tributaries_except_burnt@5-11+5-6+5-8::atnarko_bella_coola_rivers.r5",
-       "narrow": null
-      },
-      "W": {
-       "status": "keep",
-       "daily": 2,
-       "win": "r5:atnarko_bella_coola_rivers_includes_tributaries_except_burnt@5-11+5-6+5-8::atnarko_bella_coola_rivers.r5",
-       "narrow": null
-      }
-     },
-     "EB": {
-      "H": {
-       "status": "keep",
-       "daily": 2,
-       "win": "r5:atnarko_bella_coola_rivers_includes_tributaries_except_burnt@5-11+5-6+5-8::atnarko_bella_coola_rivers.r5",
-       "narrow": null
-      },
-      "W": {
-       "status": "keep",
-       "daily": 2,
-       "win": "r5:atnarko_bella_coola_rivers_includes_tributaries_except_burnt@5-11+5-6+5-8::atnarko_bella_coola_rivers.r5",
-       "narrow": null
-      }
-     },
-     "LMB": {
-      "H": {
-       "status": "closed",
-       "daily": null,
-       "win": "z5:bass_illegal::bass_illegal.r1",
-       "narrow": null
-      },
-      "W": {
-       "status": "closed",
-       "daily": null,
-       "win": "z5:bass_illegal::bass_illegal.r1",
-       "narrow": null
-      }
-     },
-     "SMB": {
-      "H": {
-       "status": "closed",
-       "daily": null,
-       "win": "z5:bass_illegal::bass_illegal.r1",
-       "narrow": null
-      },
-      "W": {
-       "status": "closed",
-       "daily": null,
-       "win": "z5:bass_illegal::bass_illegal.r1",
-       "narrow": null
-      }
-     },
-     "BB": {
-      "H": {
-       "status": "keep",
-       "daily": 5,
-       "win": "z5:daily_quotas::species_quotas.r2",
-       "narrow": null
-      },
-      "W": {
-       "status": "keep",
-       "daily": 5,
-       "win": "z5:daily_quotas::species_quotas.r2",
-       "narrow": null
-      }
-     },
-     "KO": {
-      "H": {
-       "status": "release",
-       "daily": null,
-       "win": "z5:daily_quotas::species_quotas.r4",
-       "narrow": null
-      },
-      "W": {
-       "status": "release",
-       "daily": null,
-       "win": "z5:daily_quotas::species_quotas.r4",
-       "narrow": null
-      }
-     },
-     "LW": {
-      "H": {
-       "status": "keep",
-       "daily": 15,
-       "win": "z5:daily_quotas::species_quotas.r5",
-       "narrow": null
-      },
-      "W": {
-       "status": "keep",
-       "daily": 15,
-       "win": "z5:daily_quotas::species_quotas.r5",
-       "narrow": null
-      }
-     },
-     "MW": {
-      "H": {
-       "status": "keep",
-       "daily": 15,
-       "win": "z5:daily_quotas::species_quotas.r5",
-       "narrow": null
-      },
-      "W": {
-       "status": "keep",
-       "daily": 15,
-       "win": "z5:daily_quotas::species_quotas.r5",
-       "narrow": null
-      }
-     },
-     "WSG": {
-      "H": {
-       "status": "closed",
-       "daily": null,
-       "win": "zp:white_sturgeon_licence::white_sturgeon_licence.r4",
-       "narrow": null
-      },
-      "W": {
-       "status": "closed",
-       "daily": null,
-       "win": "zp:white_sturgeon_licence::white_sturgeon_licence.r4",
-       "narrow": null
-      }
-     }
-    }
-   },
-   "dayStatus": [
-    [
-     [
-      "keep",
-      365
-     ]
-    ],
-    [
-     [
-      "release",
-      365
-     ]
-    ],
-    [
-     [
-      "keep",
-      365
-     ]
-    ],
-    [
-     [
-      "keep",
-      365
-     ]
-    ],
-    [
-     [
-      "closed",
-      365
-     ]
-    ],
-    [
-     [
-      "closed",
-      365
-     ]
-    ],
-    [
-     [
-      "none",
-      365
-     ]
-    ]
-   ]
-  },
   "bc0_501": {
    "s": 1,
    "via": {},
@@ -9097,460 +8631,6 @@
        "status": "keep",
        "daily": 2,
        "win": "r5:atnarko_bella_coola_rivers_includes_tributaries_except_burnt@5-11+5-6+5-8::atnarko_bella_coola_rivers.r5",
-       "narrow": null
-      }
-     },
-     "LMB": {
-      "H": {
-       "status": "closed",
-       "daily": null,
-       "win": "z5:bass_illegal::bass_illegal.r1",
-       "narrow": null
-      },
-      "W": {
-       "status": "closed",
-       "daily": null,
-       "win": "z5:bass_illegal::bass_illegal.r1",
-       "narrow": null
-      }
-     },
-     "SMB": {
-      "H": {
-       "status": "closed",
-       "daily": null,
-       "win": "z5:bass_illegal::bass_illegal.r1",
-       "narrow": null
-      },
-      "W": {
-       "status": "closed",
-       "daily": null,
-       "win": "z5:bass_illegal::bass_illegal.r1",
-       "narrow": null
-      }
-     },
-     "BB": {
-      "H": {
-       "status": "keep",
-       "daily": 5,
-       "win": "z5:daily_quotas::species_quotas.r2",
-       "narrow": null
-      },
-      "W": {
-       "status": "keep",
-       "daily": 5,
-       "win": "z5:daily_quotas::species_quotas.r2",
-       "narrow": null
-      }
-     },
-     "KO": {
-      "H": {
-       "status": "release",
-       "daily": null,
-       "win": "z5:daily_quotas::species_quotas.r4",
-       "narrow": null
-      },
-      "W": {
-       "status": "release",
-       "daily": null,
-       "win": "z5:daily_quotas::species_quotas.r4",
-       "narrow": null
-      }
-     },
-     "LW": {
-      "H": {
-       "status": "keep",
-       "daily": 15,
-       "win": "z5:daily_quotas::species_quotas.r5",
-       "narrow": null
-      },
-      "W": {
-       "status": "keep",
-       "daily": 15,
-       "win": "z5:daily_quotas::species_quotas.r5",
-       "narrow": null
-      }
-     },
-     "MW": {
-      "H": {
-       "status": "keep",
-       "daily": 15,
-       "win": "z5:daily_quotas::species_quotas.r5",
-       "narrow": null
-      },
-      "W": {
-       "status": "keep",
-       "daily": 15,
-       "win": "z5:daily_quotas::species_quotas.r5",
-       "narrow": null
-      }
-     },
-     "WSG": {
-      "H": {
-       "status": "closed",
-       "daily": null,
-       "win": "zp:white_sturgeon_licence::white_sturgeon_licence.r4",
-       "narrow": null
-      },
-      "W": {
-       "status": "closed",
-       "daily": null,
-       "win": "zp:white_sturgeon_licence::white_sturgeon_licence.r4",
-       "narrow": null
-      }
-     }
-    }
-   },
-   "dayStatus": [
-    [
-     [
-      "keep",
-      365
-     ]
-    ],
-    [
-     [
-      "release",
-      365
-     ]
-    ],
-    [
-     [
-      "keep",
-      365
-     ]
-    ],
-    [
-     [
-      "keep",
-      365
-     ]
-    ],
-    [
-     [
-      "closed",
-      365
-     ]
-    ],
-    [
-     [
-      "closed",
-      365
-     ]
-    ],
-    [
-     [
-      "none",
-      365
-     ]
-    ]
-   ]
-  },
-  "bc1_1010": {
-   "s": 6,
-   "via": {},
-   "ranks": {},
-   "settle": {
-    "status": "own",
-    "broad": [
-     "z5:bass_illegal::bass_illegal.r1",
-     "z5:daily_quotas::species_quotas.r1",
-     "r5:atnarko_bella_coola_rivers_includes_tributaries_except_burnt@5-11+5-6+5-8::atnarko_bella_coola_rivers.r13",
-     "zp:white_sturgeon_licence::white_sturgeon_licence.r4"
-    ],
-    "speaks": [
-     "r5:atnarko_bella_coola_rivers_includes_tributaries_except_burnt@5-11+5-6+5-8::atnarko_bella_coola_rivers.r10",
-     "r5:atnarko_bella_coola_rivers_includes_tributaries_except_burnt@5-11+5-6+5-8::atnarko_bella_coola_rivers.r11",
-     "r5:atnarko_bella_coola_rivers_includes_tributaries_except_burnt@5-11+5-6+5-8::atnarko_bella_coola_rivers.r12",
-     "z5:single_barbless_hook::single_barbless_hook.r1",
-     "zp:allowable_methods::allowable_methods.r1",
-     "zp:allowable_methods::allowable_methods.r2",
-     "zp:allowable_methods::allowable_methods.r2b",
-     "zp:allowable_methods::allowable_methods.r3",
-     "zp:allowable_methods::allowable_methods.r4",
-     "zp:bait::bait.r1",
-     "zp:bait::bait.r6",
-     "zp:barbless_single_hook_streams::barbless_single_hook_streams.r1",
-     "zp:barbless_single_hook_streams::barbless_single_hook_streams.r3",
-     "zp:conduct::conduct.r1",
-     "zp:conduct::conduct.r10",
-     "zp:conduct::conduct.r2",
-     "zp:conduct::conduct.r3",
-     "zp:conduct::conduct.r4",
-     "zp:conduct::conduct.r6",
-     "zp:conduct::conduct.r7",
-     "zp:conduct::conduct.r8",
-     "zp:conduct::conduct.r9",
-     "zp:crayfish_trapping::crayfish_trapping.r1",
-     "zp:further_prohibitions::further_prohibitions.r1",
-     "zp:further_prohibitions::further_prohibitions.r2",
-     "zp:further_prohibitions::further_prohibitions.r3",
-     "zp:prohibited_methods::prohibited_methods.r1",
-     "zp:prohibited_methods::prohibited_methods.r2",
-     "zp:prohibited_methods::prohibited_methods.r4",
-     "zp:set_lining::set_lining.r1b",
-     "zp:spear_fishing::spear_fishing.r1",
-     "zp:spear_fishing::spear_fishing.r2",
-     "zp:spear_fishing::spear_fishing.r4",
-     "zp:terminal_tackle::terminal_tackle.r1",
-     "zp:terminal_tackle::terminal_tackle.r3",
-     "zp:terminal_tackle::terminal_tackle.r4",
-     "zp:terminal_tackle::terminal_tackle.r5",
-     "zp:terminal_tackle::terminal_tackle.r6",
-     "zp:terminal_tackle::terminal_tackle.r7",
-     "zp:transporting_catch::transporting_catch.r1",
-     "zp:transporting_catch::transporting_catch.r2",
-     "zp:transporting_catch::transporting_catch.r3",
-     "zp:transporting_catch::transporting_catch.r4",
-     "zp:transporting_catch::transporting_catch.r5",
-     "zp:transporting_catch::transporting_catch.r6",
-     "z5:daily_quotas::species_quotas.r2",
-     "z5:possession_quota::possession_quota.r1",
-     "zp:conduct::conduct.r5",
-     "zp:crayfish_trapping::crayfish_trapping.r2",
-     "zp:preparing_catch::preparing_catch.r1",
-     "zp:preparing_catch::preparing_catch.r2",
-     "zp:prohibited_methods::prohibited_methods.r3",
-     "zp:salmon_stamp::salmon_stamp.r1",
-     "r5:atnarko_bella_coola_rivers_includes_tributaries_except_burnt@5-11+5-6+5-8::atnarko_bella_coola_rivers.r3",
-     "r5:atnarko_bella_coola_rivers_includes_tributaries_except_burnt@5-11+5-6+5-8::atnarko_bella_coola_rivers.r4",
-     "z5:daily_quotas::trout_char_quota.r3",
-     "z5:daily_quotas::trout_char_quota.r1",
-     "z5:daily_quotas::trout_char_quota.r2",
-     "zp:protected_species::protected_species.r1",
-     "zp:protected_species::protected_species.r3",
-     "z5:daily_quotas::trout_char_quota.r8",
-     "z5:daily_quotas::species_quotas.r4",
-     "z5:bass_illegal::bass_illegal.r1",
-     "z5:daily_quotas::species_quotas.r1",
-     "z5:daily_quotas::trout_char_quota.r7",
-     "z5:daily_quotas::species_quotas.r5",
-     "r5:atnarko_bella_coola_rivers_includes_tributaries_except_burnt@5-11+5-6+5-8::atnarko_bella_coola_rivers.r13",
-     "zp:steelhead::steelhead.r2",
-     "zp:steelhead::steelhead.r4",
-     "zp:white_sturgeon_licence::white_sturgeon_licence.r4"
-    ],
-    "beside": [],
-    "shown": [
-     "zp:bait::bait.r7",
-     "zp:conduct::conduct.r11",
-     "zp:crayfish_trapping::crayfish_trapping.r3",
-     "zp:fluctuating_levels::fluctuating_levels.r1",
-     "zp:licence_administration::licence_administration.r1",
-     "zp:licence_fees::licence_fees.r1",
-     "zp:measuring_and_possession::measuring_and_possession.r1",
-     "zp:measuring_and_possession::measuring_and_possession.r2",
-     "zp:no_fishing_buffers::no_fishing_buffers.r3",
-     "zp:no_fishing_scope::no_fishing_scope.r1",
-     "zp:prohibited_methods::prohibited_methods.r5",
-     "zp:quota_defaults::quota_defaults.r2",
-     "zp:quota_defaults::quota_defaults.r3",
-     "zp:quota_defaults::quota_defaults.r4",
-     "zp:white_sturgeon_licence::white_sturgeon_licence.r3",
-     "zp:no_fishing_buffers::no_fishing_buffers.r1",
-     "zp:no_fishing_buffers::no_fishing_buffers.r2"
-    ],
-    "inpart": [],
-    "lifted": [],
-    "timed": [],
-    "side": [],
-    "standing": [
-     "zp:no_fishing_buffers::no_fishing_buffers.r1",
-     "zp:no_fishing_buffers::no_fishing_buffers.r2"
-    ],
-    "anglerclosed": []
-   },
-   "model": {
-    "spp": [
-     "ST",
-     "RB",
-     "CT",
-     "GB",
-     "DV",
-     "LT",
-     "EB",
-     "LMB",
-     "SMB",
-     "BB",
-     "KO",
-     "LW",
-     "MW",
-     "WSG"
-    ],
-    "line": "known_with_rules",
-    "missingRows": false,
-    "status": "own",
-    "broad": [],
-    "rows": [
-     {
-      "kind": "keep",
-      "pool": "r5:atnarko_bella_coola_rivers_includes_tributaries_except_burnt@5-11+5-6+5-8::atnarko_bella_coola_rivers.r3",
-      "win": null,
-      "daily": 1,
-      "narrow": null,
-      "members": [
-       "EB",
-       "GB",
-       "CT",
-       "RB"
-      ]
-     },
-     {
-      "kind": "release",
-      "pool": null,
-      "win": "z5:daily_quotas::species_quotas.r4",
-      "daily": null,
-      "narrow": null,
-      "members": [
-       "KO"
-      ]
-     },
-     {
-      "kind": "keep",
-      "pool": "z5:daily_quotas::species_quotas.r5",
-      "win": null,
-      "daily": 15,
-      "narrow": null,
-      "members": [
-       "LW",
-       "MW"
-      ]
-     },
-     {
-      "kind": "keep",
-      "pool": "z5:daily_quotas::species_quotas.r2",
-      "win": null,
-      "daily": 5,
-      "narrow": null,
-      "members": [
-       "BB"
-      ]
-     },
-     {
-      "kind": "closed",
-      "pool": null,
-      "win": "z5:bass_illegal::bass_illegal.r1",
-      "daily": null,
-      "narrow": null,
-      "members": [
-       "LMB",
-       "SMB"
-      ]
-     },
-     {
-      "kind": "closed",
-      "pool": null,
-      "win": "zp:white_sturgeon_licence::white_sturgeon_licence.r4",
-      "daily": null,
-      "narrow": null,
-      "members": [
-       "WSG"
-      ]
-     },
-     {
-      "kind": "closed",
-      "pool": null,
-      "win": "zp:protected_species::protected_species.r1",
-      "daily": null,
-      "narrow": null,
-      "members": []
-     }
-    ],
-    "R": {
-     "ST": {
-      "H": {
-       "status": "closed",
-       "daily": null,
-       "win": "r5:atnarko_bella_coola_rivers_includes_tributaries_except_burnt@5-11+5-6+5-8::atnarko_bella_coola_rivers.r13",
-       "narrow": null
-      },
-      "W": {
-       "status": "closed",
-       "daily": null,
-       "win": "r5:atnarko_bella_coola_rivers_includes_tributaries_except_burnt@5-11+5-6+5-8::atnarko_bella_coola_rivers.r13",
-       "narrow": null
-      }
-     },
-     "RB": {
-      "H": {
-       "status": "keep",
-       "daily": 1,
-       "win": "r5:atnarko_bella_coola_rivers_includes_tributaries_except_burnt@5-11+5-6+5-8::atnarko_bella_coola_rivers.r3",
-       "narrow": null
-      },
-      "W": {
-       "status": "keep",
-       "daily": 1,
-       "win": "r5:atnarko_bella_coola_rivers_includes_tributaries_except_burnt@5-11+5-6+5-8::atnarko_bella_coola_rivers.r3",
-       "narrow": null
-      }
-     },
-     "CT": {
-      "H": {
-       "status": "keep",
-       "daily": 1,
-       "win": "r5:atnarko_bella_coola_rivers_includes_tributaries_except_burnt@5-11+5-6+5-8::atnarko_bella_coola_rivers.r3",
-       "narrow": null
-      },
-      "W": {
-       "status": "keep",
-       "daily": 1,
-       "win": "r5:atnarko_bella_coola_rivers_includes_tributaries_except_burnt@5-11+5-6+5-8::atnarko_bella_coola_rivers.r3",
-       "narrow": null
-      }
-     },
-     "GB": {
-      "H": {
-       "status": "keep",
-       "daily": 1,
-       "win": "r5:atnarko_bella_coola_rivers_includes_tributaries_except_burnt@5-11+5-6+5-8::atnarko_bella_coola_rivers.r3",
-       "narrow": null
-      },
-      "W": {
-       "status": "keep",
-       "daily": 1,
-       "win": "r5:atnarko_bella_coola_rivers_includes_tributaries_except_burnt@5-11+5-6+5-8::atnarko_bella_coola_rivers.r3",
-       "narrow": null
-      }
-     },
-     "DV": {
-      "H": {
-       "status": "release",
-       "daily": null,
-       "win": "z5:daily_quotas::trout_char_quota.r8",
-       "narrow": null
-      },
-      "W": {
-       "status": "release",
-       "daily": null,
-       "win": "z5:daily_quotas::trout_char_quota.r8",
-       "narrow": null
-      }
-     },
-     "LT": {
-      "H": {
-       "status": "release",
-       "daily": null,
-       "win": "z5:daily_quotas::trout_char_quota.r7",
-       "narrow": null
-      },
-      "W": {
-       "status": "release",
-       "daily": null,
-       "win": "z5:daily_quotas::trout_char_quota.r7",
-       "narrow": null
-      }
-     },
-     "EB": {
-      "H": {
-       "status": "keep",
-       "daily": 1,
-       "win": "r5:atnarko_bella_coola_rivers_includes_tributaries_except_burnt@5-11+5-6+5-8::atnarko_bella_coola_rivers.r3",
-       "narrow": null
-      },
-      "W": {
-       "status": "keep",
-       "daily": 1,
-       "win": "r5:atnarko_bella_coola_rivers_includes_tributaries_except_burnt@5-11+5-6+5-8::atnarko_bella_coola_rivers.r3",
        "narrow": null
       }
      },
@@ -11209,11 +10289,11 @@
       "r4:duncan_river@4-19::duncan_river.r1"
      ],
      [
-      "z4:daily_quotas::trout_char_quota.r3",
+      "z4:daily_quotas::trout_char_quota.r2",
       "r4:duncan_river@4-19::duncan_river.r4"
      ],
      [
-      "z4:daily_quotas::trout_char_quota.r2",
+      "z4:daily_quotas::trout_char_quota.r3",
       "r4:duncan_river@4-19::duncan_river.r4"
      ]
     ],
@@ -11790,11 +10870,11 @@
       "zp:spear_fishing::spear_fishing.r3"
      ],
      [
-      "z4:daily_quotas::trout_char_quota.r3",
+      "z4:daily_quotas::trout_char_quota.r2",
       "r4:duncan_river@4-19::duncan_river.r4"
      ],
      [
-      "z4:daily_quotas::trout_char_quota.r2",
+      "z4:daily_quotas::trout_char_quota.r3",
       "r4:duncan_river@4-19::duncan_river.r4"
      ]
     ],
@@ -12371,11 +11451,11 @@
       "zp:spear_fishing::spear_fishing.r3"
      ],
      [
-      "z4:daily_quotas::trout_char_quota.r3",
+      "z4:daily_quotas::trout_char_quota.r2",
       "r4:duncan_river@4-19::duncan_river.r4"
      ],
      [
-      "z4:daily_quotas::trout_char_quota.r2",
+      "z4:daily_quotas::trout_char_quota.r3",
       "r4:duncan_river@4-19::duncan_river.r4"
      ]
     ],
@@ -12950,11 +12030,11 @@
       "zp:spear_fishing::spear_fishing.r3"
      ],
      [
-      "z4:daily_quotas::trout_char_quota.r3",
+      "z4:daily_quotas::trout_char_quota.r2",
       "r4:duncan_river@4-19::duncan_river.r4"
      ],
      [
-      "z4:daily_quotas::trout_char_quota.r2",
+      "z4:daily_quotas::trout_char_quota.r3",
       "r4:duncan_river@4-19::duncan_river.r4"
      ]
     ],
@@ -13545,11 +12625,11 @@
       "zp:spear_fishing::spear_fishing.r3"
      ],
      [
-      "z4:daily_quotas::trout_char_quota.r3",
+      "z4:daily_quotas::trout_char_quota.r2",
       "r4:duncan_river@4-19::duncan_river.r4"
      ],
      [
-      "z4:daily_quotas::trout_char_quota.r2",
+      "z4:daily_quotas::trout_char_quota.r3",
       "r4:duncan_river@4-19::duncan_river.r4"
      ]
     ],
@@ -26641,15 +25721,15 @@
      "EB": {
       "H": {
        "status": "keep",
-       "daily": 5,
+       "daily": 1,
        "win": "z6:daily_quotas::trout_char_quota.r1",
-       "narrow": null
+       "narrow": "z6:daily_quotas::trout_char_quota.r4"
       },
       "W": {
        "status": "keep",
-       "daily": 5,
+       "daily": 1,
        "win": "z6:daily_quotas::trout_char_quota.r1",
-       "narrow": null
+       "narrow": "z6:daily_quotas::trout_char_quota.r4"
       }
      }
     }
@@ -27198,15 +26278,15 @@
      "EB": {
       "H": {
        "status": "keep",
-       "daily": 5,
+       "daily": 1,
        "win": "z6:daily_quotas::trout_char_quota.r1",
-       "narrow": null
+       "narrow": "z6:daily_quotas::trout_char_quota.r4"
       },
       "W": {
        "status": "keep",
-       "daily": 5,
+       "daily": 1,
        "win": "z6:daily_quotas::trout_char_quota.r1",
-       "narrow": null
+       "narrow": "z6:daily_quotas::trout_char_quota.r4"
       }
      }
     }
@@ -27755,15 +26835,15 @@
      "EB": {
       "H": {
        "status": "keep",
-       "daily": 5,
+       "daily": 1,
        "win": "z6:daily_quotas::trout_char_quota.r1",
-       "narrow": null
+       "narrow": "z6:daily_quotas::trout_char_quota.r4"
       },
       "W": {
        "status": "keep",
-       "daily": 5,
+       "daily": 1,
        "win": "z6:daily_quotas::trout_char_quota.r1",
-       "narrow": null
+       "narrow": "z6:daily_quotas::trout_char_quota.r4"
       }
      }
     }
@@ -38610,7 +37690,7 @@
       "kind": "keep",
       "pool": "z6:daily_quotas::trout_char_quota.r1",
       "win": null,
-      "daily": 5,
+      "daily": 1,
       "narrow": "z6:daily_quotas::trout_char_quota.r4",
       "members": [
        "EB",
@@ -38900,15 +37980,15 @@
      "EB": {
       "H": {
        "status": "keep",
-       "daily": 5,
+       "daily": 1,
        "win": "z6:daily_quotas::trout_char_quota.r1",
-       "narrow": null
+       "narrow": "z6:daily_quotas::trout_char_quota.r4"
       },
       "W": {
        "status": "keep",
-       "daily": 5,
+       "daily": 1,
        "win": "z6:daily_quotas::trout_char_quota.r1",
-       "narrow": null
+       "narrow": "z6:daily_quotas::trout_char_quota.r4"
       }
      }
     }
@@ -38920,8 +38000,16 @@
       166
      ],
      [
+      "release",
+      15
+     ],
+     [
       "keep",
-      199
+      123
+     ],
+     [
+      "release",
+      61
      ]
     ],
     [
@@ -39153,7 +38241,7 @@
       "kind": "keep",
       "pool": "z6:daily_quotas::trout_char_quota.r1",
       "win": null,
-      "daily": 5,
+      "daily": 1,
       "narrow": "z6:daily_quotas::trout_char_quota.r4",
       "members": [
        "EB",
@@ -39443,15 +38531,15 @@
      "EB": {
       "H": {
        "status": "keep",
-       "daily": 5,
+       "daily": 1,
        "win": "z6:daily_quotas::trout_char_quota.r1",
-       "narrow": null
+       "narrow": "z6:daily_quotas::trout_char_quota.r4"
       },
       "W": {
        "status": "keep",
-       "daily": 5,
+       "daily": 1,
        "win": "z6:daily_quotas::trout_char_quota.r1",
-       "narrow": null
+       "narrow": "z6:daily_quotas::trout_char_quota.r4"
       }
      }
     }
@@ -39463,8 +38551,16 @@
       166
      ],
      [
+      "release",
+      15
+     ],
+     [
       "keep",
-      199
+      123
+     ],
+     [
+      "release",
+      61
      ]
     ],
     [
@@ -39696,7 +38792,7 @@
       "kind": "keep",
       "pool": "z6:daily_quotas::trout_char_quota.r1",
       "win": null,
-      "daily": 5,
+      "daily": 1,
       "narrow": "z6:daily_quotas::trout_char_quota.r4",
       "members": [
        "EB",
@@ -39986,15 +39082,15 @@
      "EB": {
       "H": {
        "status": "keep",
-       "daily": 5,
+       "daily": 1,
        "win": "z6:daily_quotas::trout_char_quota.r1",
-       "narrow": null
+       "narrow": "z6:daily_quotas::trout_char_quota.r4"
       },
       "W": {
        "status": "keep",
-       "daily": 5,
+       "daily": 1,
        "win": "z6:daily_quotas::trout_char_quota.r1",
-       "narrow": null
+       "narrow": "z6:daily_quotas::trout_char_quota.r4"
       }
      }
     }
@@ -40006,8 +39102,16 @@
       166
      ],
      [
+      "release",
+      15
+     ],
+     [
       "keep",
-      199
+      123
+     ],
+     [
+      "release",
+      61
      ]
     ],
     [
@@ -40239,7 +39343,7 @@
       "kind": "keep",
       "pool": "z6:daily_quotas::trout_char_quota.r1",
       "win": null,
-      "daily": 5,
+      "daily": 1,
       "narrow": "z6:daily_quotas::trout_char_quota.r4",
       "members": [
        "EB",
@@ -40529,15 +39633,15 @@
      "EB": {
       "H": {
        "status": "keep",
-       "daily": 5,
+       "daily": 1,
        "win": "z6:daily_quotas::trout_char_quota.r1",
-       "narrow": null
+       "narrow": "z6:daily_quotas::trout_char_quota.r4"
       },
       "W": {
        "status": "keep",
-       "daily": 5,
+       "daily": 1,
        "win": "z6:daily_quotas::trout_char_quota.r1",
-       "narrow": null
+       "narrow": "z6:daily_quotas::trout_char_quota.r4"
       }
      }
     }
@@ -40549,8 +39653,16 @@
       166
      ],
      [
+      "release",
+      15
+     ],
+     [
       "keep",
-      199
+      123
+     ],
+     [
+      "release",
+      61
      ]
     ],
     [
@@ -40780,7 +39892,7 @@
       "kind": "keep",
       "pool": "z6:daily_quotas::trout_char_quota.r1",
       "win": null,
-      "daily": 5,
+      "daily": 1,
       "narrow": "z6:daily_quotas::trout_char_quota.r4",
       "members": [
        "EB",
@@ -41070,15 +40182,15 @@
      "EB": {
       "H": {
        "status": "keep",
-       "daily": 5,
+       "daily": 1,
        "win": "z6:daily_quotas::trout_char_quota.r1",
-       "narrow": null
+       "narrow": "z6:daily_quotas::trout_char_quota.r4"
       },
       "W": {
        "status": "keep",
-       "daily": 5,
+       "daily": 1,
        "win": "z6:daily_quotas::trout_char_quota.r1",
-       "narrow": null
+       "narrow": "z6:daily_quotas::trout_char_quota.r4"
       }
      }
     }
@@ -41086,8 +40198,16 @@
    "dayStatus": [
     [
      [
+      "release",
+      181
+     ],
+     [
       "keep",
-      365
+      123
+     ],
+     [
+      "release",
+      61
      ]
     ],
     [
@@ -41292,7 +40412,7 @@
       "kind": "keep",
       "pool": "z6:daily_quotas::trout_char_quota.r1",
       "win": null,
-      "daily": 5,
+      "daily": 1,
       "narrow": "z6:daily_quotas::trout_char_quota.r4",
       "members": [
        "EB",
@@ -41582,15 +40702,15 @@
      "EB": {
       "H": {
        "status": "keep",
-       "daily": 5,
+       "daily": 1,
        "win": "z6:daily_quotas::trout_char_quota.r1",
-       "narrow": null
+       "narrow": "z6:daily_quotas::trout_char_quota.r4"
       },
       "W": {
        "status": "keep",
-       "daily": 5,
+       "daily": 1,
        "win": "z6:daily_quotas::trout_char_quota.r1",
-       "narrow": null
+       "narrow": "z6:daily_quotas::trout_char_quota.r4"
       }
      }
     }
@@ -41598,8 +40718,16 @@
    "dayStatus": [
     [
      [
+      "release",
+      181
+     ],
+     [
       "keep",
-      365
+      123
+     ],
+     [
+      "release",
+      61
      ]
     ],
     [
@@ -45610,7 +44738,7 @@
       "kind": "keep",
       "pool": "z6:daily_quotas::trout_char_quota.r1",
       "win": null,
-      "daily": 5,
+      "daily": 1,
       "narrow": "z6:daily_quotas::trout_char_quota.r4",
       "members": [
        "EB",
@@ -45900,15 +45028,15 @@
      "EB": {
       "H": {
        "status": "keep",
-       "daily": 5,
+       "daily": 1,
        "win": "z6:daily_quotas::trout_char_quota.r1",
-       "narrow": null
+       "narrow": "z6:daily_quotas::trout_char_quota.r4"
       },
       "W": {
        "status": "keep",
-       "daily": 5,
+       "daily": 1,
        "win": "z6:daily_quotas::trout_char_quota.r1",
-       "narrow": null
+       "narrow": "z6:daily_quotas::trout_char_quota.r4"
       }
      }
     }
@@ -45916,8 +45044,16 @@
    "dayStatus": [
     [
      [
+      "release",
+      181
+     ],
+     [
       "keep",
-      365
+      123
+     ],
+     [
+      "release",
+      61
      ]
     ],
     [
@@ -46117,7 +45253,7 @@
       "kind": "keep",
       "pool": "z6:daily_quotas::trout_char_quota.r1",
       "win": null,
-      "daily": 5,
+      "daily": 1,
       "narrow": "z6:daily_quotas::trout_char_quota.r4",
       "members": [
        "EB",
@@ -46407,15 +45543,15 @@
      "EB": {
       "H": {
        "status": "keep",
-       "daily": 5,
+       "daily": 1,
        "win": "z6:daily_quotas::trout_char_quota.r1",
-       "narrow": null
+       "narrow": "z6:daily_quotas::trout_char_quota.r4"
       },
       "W": {
        "status": "keep",
-       "daily": 5,
+       "daily": 1,
        "win": "z6:daily_quotas::trout_char_quota.r1",
-       "narrow": null
+       "narrow": "z6:daily_quotas::trout_char_quota.r4"
       }
      }
     }
@@ -46423,8 +45559,16 @@
    "dayStatus": [
     [
      [
+      "release",
+      181
+     ],
+     [
       "keep",
-      365
+      123
+     ],
+     [
+      "release",
+      61
      ]
     ],
     [
@@ -46624,7 +45768,7 @@
       "kind": "keep",
       "pool": "z6:daily_quotas::trout_char_quota.r1",
       "win": null,
-      "daily": 5,
+      "daily": 1,
       "narrow": "z6:daily_quotas::trout_char_quota.r4",
       "members": [
        "EB",
@@ -46914,15 +46058,15 @@
      "EB": {
       "H": {
        "status": "keep",
-       "daily": 5,
+       "daily": 1,
        "win": "z6:daily_quotas::trout_char_quota.r1",
-       "narrow": null
+       "narrow": "z6:daily_quotas::trout_char_quota.r4"
       },
       "W": {
        "status": "keep",
-       "daily": 5,
+       "daily": 1,
        "win": "z6:daily_quotas::trout_char_quota.r1",
-       "narrow": null
+       "narrow": "z6:daily_quotas::trout_char_quota.r4"
       }
      }
     }
@@ -46930,8 +46074,16 @@
    "dayStatus": [
     [
      [
+      "release",
+      181
+     ],
+     [
       "keep",
-      365
+      123
+     ],
+     [
+      "release",
+      61
      ]
     ],
     [
@@ -47131,7 +46283,7 @@
       "kind": "keep",
       "pool": "z6:daily_quotas::trout_char_quota.r1",
       "win": null,
-      "daily": 5,
+      "daily": 1,
       "narrow": "z6:daily_quotas::trout_char_quota.r4",
       "members": [
        "EB",
@@ -47421,15 +46573,15 @@
      "EB": {
       "H": {
        "status": "keep",
-       "daily": 5,
+       "daily": 1,
        "win": "z6:daily_quotas::trout_char_quota.r1",
-       "narrow": null
+       "narrow": "z6:daily_quotas::trout_char_quota.r4"
       },
       "W": {
        "status": "keep",
-       "daily": 5,
+       "daily": 1,
        "win": "z6:daily_quotas::trout_char_quota.r1",
-       "narrow": null
+       "narrow": "z6:daily_quotas::trout_char_quota.r4"
       }
      }
     }
@@ -47441,8 +46593,16 @@
       151
      ],
      [
+      "release",
+      30
+     ],
+     [
       "keep",
-      214
+      123
+     ],
+     [
+      "release",
+      61
      ]
     ],
     [
@@ -47669,7 +46829,7 @@
       "kind": "keep",
       "pool": "z6:daily_quotas::trout_char_quota.r1",
       "win": null,
-      "daily": 5,
+      "daily": 1,
       "narrow": "z6:daily_quotas::trout_char_quota.r4",
       "members": [
        "EB",
@@ -47959,15 +47119,15 @@
      "EB": {
       "H": {
        "status": "keep",
-       "daily": 5,
+       "daily": 1,
        "win": "z6:daily_quotas::trout_char_quota.r1",
-       "narrow": null
+       "narrow": "z6:daily_quotas::trout_char_quota.r4"
       },
       "W": {
        "status": "keep",
-       "daily": 5,
+       "daily": 1,
        "win": "z6:daily_quotas::trout_char_quota.r1",
-       "narrow": null
+       "narrow": "z6:daily_quotas::trout_char_quota.r4"
       }
      }
     }
@@ -47975,8 +47135,16 @@
    "dayStatus": [
     [
      [
+      "release",
+      181
+     ],
+     [
       "keep",
-      365
+      123
+     ],
+     [
+      "release",
+      61
      ]
     ],
     [
@@ -48180,7 +47348,7 @@
       "kind": "keep",
       "pool": "z6:daily_quotas::trout_char_quota.r1",
       "win": null,
-      "daily": 5,
+      "daily": 1,
       "narrow": "z6:daily_quotas::trout_char_quota.r4",
       "members": [
        "EB",
@@ -48470,15 +47638,15 @@
      "EB": {
       "H": {
        "status": "keep",
-       "daily": 5,
+       "daily": 1,
        "win": "z6:daily_quotas::trout_char_quota.r1",
-       "narrow": null
+       "narrow": "z6:daily_quotas::trout_char_quota.r4"
       },
       "W": {
        "status": "keep",
-       "daily": 5,
+       "daily": 1,
        "win": "z6:daily_quotas::trout_char_quota.r1",
-       "narrow": null
+       "narrow": "z6:daily_quotas::trout_char_quota.r4"
       }
      }
     }
@@ -48490,8 +47658,16 @@
       151
      ],
      [
+      "release",
+      30
+     ],
+     [
       "keep",
-      214
+      123
+     ],
+     [
+      "release",
+      61
      ]
     ],
     [
@@ -48718,7 +47894,7 @@
       "kind": "keep",
       "pool": "z6:daily_quotas::trout_char_quota.r1",
       "win": null,
-      "daily": 5,
+      "daily": 1,
       "narrow": "z6:daily_quotas::trout_char_quota.r4",
       "members": [
        "EB",
@@ -49008,15 +48184,15 @@
      "EB": {
       "H": {
        "status": "keep",
-       "daily": 5,
+       "daily": 1,
        "win": "z6:daily_quotas::trout_char_quota.r1",
-       "narrow": null
+       "narrow": "z6:daily_quotas::trout_char_quota.r4"
       },
       "W": {
        "status": "keep",
-       "daily": 5,
+       "daily": 1,
        "win": "z6:daily_quotas::trout_char_quota.r1",
-       "narrow": null
+       "narrow": "z6:daily_quotas::trout_char_quota.r4"
       }
      }
     }
@@ -49028,8 +48204,16 @@
       151
      ],
      [
+      "release",
+      30
+     ],
+     [
       "keep",
-      214
+      123
+     ],
+     [
+      "release",
+      61
      ]
     ],
     [
@@ -54449,608 +53633,6 @@
     [
      [
       "release",
-      365
-     ]
-    ],
-    [
-     [
-      "keep",
-      365
-     ]
-    ],
-    [
-     [
-      "keep",
-      90
-     ],
-     [
-      "release",
-      45
-     ],
-     [
-      "keep",
-      230
-     ]
-    ],
-    [
-     [
-      "keep",
-      365
-     ]
-    ],
-    [
-     [
-      "keep",
-      365
-     ]
-    ],
-    [
-     [
-      "keep",
-      365
-     ]
-    ],
-    [
-     [
-      "closed",
-      365
-     ]
-    ],
-    [
-     [
-      "none",
-      365
-     ]
-    ]
-   ]
-  },
-  "x22p6_1010": {
-   "s": 5,
-   "via": {},
-   "ranks": {},
-   "settle": {
-    "status": "base",
-    "broad": [
-     "zp:white_sturgeon_licence::white_sturgeon_licence.r4"
-    ],
-    "speaks": [
-     "z7b:bait::bait.r1",
-     "z7b:bait::bait.r2",
-     "z7b:set_lining::set_lining.r1",
-     "z7b:single_barbless_hook::single_barbless_hook.r1",
-     "zp:allowable_methods::allowable_methods.r1",
-     "zp:allowable_methods::allowable_methods.r2",
-     "zp:allowable_methods::allowable_methods.r2b",
-     "zp:allowable_methods::allowable_methods.r3",
-     "zp:allowable_methods::allowable_methods.r4",
-     "zp:bait::bait.r6",
-     "zp:barbless_single_hook_streams::barbless_single_hook_streams.r1",
-     "zp:barbless_single_hook_streams::barbless_single_hook_streams.r3",
-     "zp:conduct::conduct.r1",
-     "zp:conduct::conduct.r10",
-     "zp:conduct::conduct.r2",
-     "zp:conduct::conduct.r3",
-     "zp:conduct::conduct.r4",
-     "zp:conduct::conduct.r6",
-     "zp:conduct::conduct.r7",
-     "zp:conduct::conduct.r8",
-     "zp:conduct::conduct.r9",
-     "zp:crayfish_trapping::crayfish_trapping.r1",
-     "zp:further_prohibitions::further_prohibitions.r1",
-     "zp:further_prohibitions::further_prohibitions.r2",
-     "zp:further_prohibitions::further_prohibitions.r3",
-     "zp:prohibited_methods::prohibited_methods.r1",
-     "zp:prohibited_methods::prohibited_methods.r2",
-     "zp:prohibited_methods::prohibited_methods.r4",
-     "zp:spear_fishing::spear_fishing.r1",
-     "zp:spear_fishing::spear_fishing.r2",
-     "zp:spear_fishing::spear_fishing.r4",
-     "zp:terminal_tackle::terminal_tackle.r1",
-     "zp:terminal_tackle::terminal_tackle.r3",
-     "zp:terminal_tackle::terminal_tackle.r4",
-     "zp:terminal_tackle::terminal_tackle.r5",
-     "zp:terminal_tackle::terminal_tackle.r6",
-     "zp:terminal_tackle::terminal_tackle.r7",
-     "zp:transporting_catch::transporting_catch.r1",
-     "zp:transporting_catch::transporting_catch.r2",
-     "zp:transporting_catch::transporting_catch.r3",
-     "zp:transporting_catch::transporting_catch.r4",
-     "zp:transporting_catch::transporting_catch.r5",
-     "zp:transporting_catch::transporting_catch.r6",
-     "z7b:daily_quotas::species_quotas.r1",
-     "z7b:possession_exceptions::possession_exceptions.r0",
-     "zp:conduct::conduct.r5",
-     "zp:crayfish_trapping::crayfish_trapping.r2",
-     "zp:preparing_catch::preparing_catch.r1",
-     "zp:preparing_catch::preparing_catch.r2",
-     "zp:prohibited_methods::prohibited_methods.r3",
-     "zp:salmon_stamp::salmon_stamp.r1",
-     "z7b:daily_quotas::trout_char_quota.r1",
-     "z7b:daily_quotas::trout_char_quota.r2",
-     "z7b:daily_quotas::trout_char_quota.r3",
-     "zp:protected_species::protected_species.r1",
-     "zp:protected_species::protected_species.r3",
-     "z7b:daily_quotas::trout_char_quota.r9",
-     "z7b:possession_exceptions::possession_exceptions.r2",
-     "z7b:daily_quotas::species_quotas.r2",
-     "z7b:daily_quotas::arctic_grayling.r1",
-     "z7b:daily_quotas::arctic_grayling.r2",
-     "z7b:daily_quotas::arctic_grayling.r3",
-     "z7b:possession_exceptions::possession_exceptions.r1",
-     "z7b:daily_quotas::species_quotas.r3",
-     "z7b:daily_quotas::species_quotas.r4",
-     "z7b:daily_quotas::trout_char_quota.r8",
-     "z7b:possession_exceptions::possession_exceptions.r3",
-     "z7b:daily_quotas::species_quotas.r11",
-     "z7b:daily_quotas::species_quotas.r6",
-     "z7b:daily_quotas::species_quotas.r7",
-     "z7b:daily_quotas::species_quotas.r8",
-     "z7b:daily_quotas::species_quotas.r9",
-     "zp:white_sturgeon_licence::white_sturgeon_licence.r4",
-     "z7b:daily_quotas::species_quotas.r12"
-    ],
-    "beside": [],
-    "shown": [
-     "z7b:bull_trout_dolly_varden::bull_trout_dolly_varden.r1",
-     "z7b:site_c_tagging::site_c_tagging.r1",
-     "zp:bait::bait.r7",
-     "zp:conduct::conduct.r11",
-     "zp:crayfish_trapping::crayfish_trapping.r3",
-     "zp:fluctuating_levels::fluctuating_levels.r1",
-     "zp:licence_administration::licence_administration.r1",
-     "zp:licence_fees::licence_fees.r1",
-     "zp:measuring_and_possession::measuring_and_possession.r1",
-     "zp:measuring_and_possession::measuring_and_possession.r2",
-     "zp:no_fishing_buffers::no_fishing_buffers.r3",
-     "zp:no_fishing_scope::no_fishing_scope.r1",
-     "zp:prohibited_methods::prohibited_methods.r5",
-     "zp:quota_defaults::quota_defaults.r2",
-     "zp:quota_defaults::quota_defaults.r3",
-     "zp:quota_defaults::quota_defaults.r4",
-     "zp:white_sturgeon_licence::white_sturgeon_licence.r3",
-     "zp:no_fishing_buffers::no_fishing_buffers.r1",
-     "zp:no_fishing_buffers::no_fishing_buffers.r2"
-    ],
-    "inpart": [
-     [
-      "z7b:peace_river_navigation::peace_river_navigation.r1",
-      true
-     ]
-    ],
-    "lifted": [],
-    "timed": [],
-    "side": [],
-    "standing": [
-     "zp:no_fishing_buffers::no_fishing_buffers.r1",
-     "zp:no_fishing_buffers::no_fishing_buffers.r2"
-    ],
-    "anglerclosed": []
-   },
-   "model": {
-    "spp": [
-     "GR",
-     "BB",
-     "WP",
-     "LW",
-     "MW",
-     "YP",
-     "GE",
-     "IN",
-     "KO",
-     "NP",
-     "RB",
-     "CT",
-     "GB",
-     "DV",
-     "LT",
-     "EB",
-     "WSG"
-    ],
-    "line": null,
-    "missingRows": false,
-    "status": "base",
-    "broad": [],
-    "rows": [
-     {
-      "kind": "keep",
-      "pool": "z7b:daily_quotas::trout_char_quota.r1",
-      "win": null,
-      "daily": 2,
-      "narrow": "z7b:daily_quotas::trout_char_quota.r3",
-      "members": [
-       "EB",
-       "GB",
-       "CT",
-       "RB"
-      ]
-     },
-     {
-      "kind": "keep",
-      "pool": "z7b:daily_quotas::species_quotas.r4",
-      "win": null,
-      "daily": 10,
-      "narrow": null,
-      "members": [
-       "KO"
-      ]
-     },
-     {
-      "kind": "keep",
-      "pool": "z7b:daily_quotas::species_quotas.r11",
-      "win": null,
-      "daily": 15,
-      "narrow": null,
-      "members": [
-       "LW",
-       "MW"
-      ]
-     },
-     {
-      "kind": "keep",
-      "pool": "z7b:daily_quotas::arctic_grayling.r1",
-      "win": null,
-      "daily": 2,
-      "narrow": null,
-      "members": [
-       "GR"
-      ]
-     },
-     {
-      "kind": "keep",
-      "pool": "z7b:daily_quotas::species_quotas.r3",
-      "win": null,
-      "daily": 1,
-      "narrow": null,
-      "members": [
-       "IN"
-      ]
-     },
-     {
-      "kind": "keep",
-      "pool": "z7b:daily_quotas::species_quotas.r1",
-      "win": null,
-      "daily": 5,
-      "narrow": null,
-      "members": [
-       "BB"
-      ]
-     },
-     {
-      "kind": "keep",
-      "pool": "z7b:daily_quotas::species_quotas.r8",
-      "win": null,
-      "daily": 3,
-      "narrow": null,
-      "members": [
-       "WP"
-      ]
-     },
-     {
-      "kind": "keep",
-      "pool": "z7b:daily_quotas::species_quotas.r12",
-      "win": null,
-      "daily": 5,
-      "narrow": null,
-      "members": [
-       "YP"
-      ]
-     },
-     {
-      "kind": "keep",
-      "pool": "z7b:daily_quotas::species_quotas.r2",
-      "win": null,
-      "daily": 10,
-      "narrow": null,
-      "members": [
-       "GE"
-      ]
-     },
-     {
-      "kind": "keep",
-      "pool": "z7b:daily_quotas::species_quotas.r6",
-      "win": null,
-      "daily": 3,
-      "narrow": null,
-      "members": [
-       "NP"
-      ]
-     },
-     {
-      "kind": "closed",
-      "pool": null,
-      "win": "zp:white_sturgeon_licence::white_sturgeon_licence.r4",
-      "daily": null,
-      "narrow": null,
-      "members": [
-       "WSG"
-      ]
-     },
-     {
-      "kind": "closed",
-      "pool": null,
-      "win": "zp:protected_species::protected_species.r1",
-      "daily": null,
-      "narrow": null,
-      "members": []
-     }
-    ],
-    "R": {
-     "GR": {
-      "H": {
-       "status": "keep",
-       "daily": 2,
-       "win": "z7b:daily_quotas::arctic_grayling.r1",
-       "narrow": null
-      },
-      "W": {
-       "status": "keep",
-       "daily": 2,
-       "win": "z7b:daily_quotas::arctic_grayling.r1",
-       "narrow": null
-      }
-     },
-     "BB": {
-      "H": {
-       "status": "keep",
-       "daily": 5,
-       "win": "z7b:daily_quotas::species_quotas.r1",
-       "narrow": null
-      },
-      "W": {
-       "status": "keep",
-       "daily": 5,
-       "win": "z7b:daily_quotas::species_quotas.r1",
-       "narrow": null
-      }
-     },
-     "WP": {
-      "H": {
-       "status": "keep",
-       "daily": 3,
-       "win": "z7b:daily_quotas::species_quotas.r8",
-       "narrow": null
-      },
-      "W": {
-       "status": "keep",
-       "daily": 3,
-       "win": "z7b:daily_quotas::species_quotas.r8",
-       "narrow": null
-      }
-     },
-     "LW": {
-      "H": {
-       "status": "keep",
-       "daily": 15,
-       "win": "z7b:daily_quotas::species_quotas.r11",
-       "narrow": null
-      },
-      "W": {
-       "status": "keep",
-       "daily": 15,
-       "win": "z7b:daily_quotas::species_quotas.r11",
-       "narrow": null
-      }
-     },
-     "MW": {
-      "H": {
-       "status": "keep",
-       "daily": 15,
-       "win": "z7b:daily_quotas::species_quotas.r11",
-       "narrow": null
-      },
-      "W": {
-       "status": "keep",
-       "daily": 15,
-       "win": "z7b:daily_quotas::species_quotas.r11",
-       "narrow": null
-      }
-     },
-     "YP": {
-      "H": {
-       "status": "keep",
-       "daily": 5,
-       "win": "z7b:daily_quotas::species_quotas.r12",
-       "narrow": null
-      },
-      "W": {
-       "status": "keep",
-       "daily": 5,
-       "win": "z7b:daily_quotas::species_quotas.r12",
-       "narrow": null
-      }
-     },
-     "GE": {
-      "H": {
-       "status": "keep",
-       "daily": 10,
-       "win": "z7b:daily_quotas::species_quotas.r2",
-       "narrow": null
-      },
-      "W": {
-       "status": "keep",
-       "daily": 10,
-       "win": "z7b:daily_quotas::species_quotas.r2",
-       "narrow": null
-      }
-     },
-     "IN": {
-      "H": {
-       "status": "keep",
-       "daily": 1,
-       "win": "z7b:daily_quotas::species_quotas.r3",
-       "narrow": null
-      },
-      "W": {
-       "status": "keep",
-       "daily": 1,
-       "win": "z7b:daily_quotas::species_quotas.r3",
-       "narrow": null
-      }
-     },
-     "KO": {
-      "H": {
-       "status": "keep",
-       "daily": 10,
-       "win": "z7b:daily_quotas::species_quotas.r4",
-       "narrow": null
-      },
-      "W": {
-       "status": "keep",
-       "daily": 10,
-       "win": "z7b:daily_quotas::species_quotas.r4",
-       "narrow": null
-      }
-     },
-     "NP": {
-      "H": {
-       "status": "keep",
-       "daily": 3,
-       "win": "z7b:daily_quotas::species_quotas.r6",
-       "narrow": null
-      },
-      "W": {
-       "status": "keep",
-       "daily": 3,
-       "win": "z7b:daily_quotas::species_quotas.r6",
-       "narrow": null
-      }
-     },
-     "RB": {
-      "H": {
-       "status": "keep",
-       "daily": 2,
-       "win": "z7b:daily_quotas::trout_char_quota.r1",
-       "narrow": "z7b:daily_quotas::trout_char_quota.r3"
-      },
-      "W": {
-       "status": "keep",
-       "daily": 2,
-       "win": "z7b:daily_quotas::trout_char_quota.r1",
-       "narrow": "z7b:daily_quotas::trout_char_quota.r3"
-      }
-     },
-     "CT": {
-      "H": {
-       "status": "keep",
-       "daily": 2,
-       "win": "z7b:daily_quotas::trout_char_quota.r1",
-       "narrow": "z7b:daily_quotas::trout_char_quota.r3"
-      },
-      "W": {
-       "status": "keep",
-       "daily": 2,
-       "win": "z7b:daily_quotas::trout_char_quota.r1",
-       "narrow": "z7b:daily_quotas::trout_char_quota.r3"
-      }
-     },
-     "GB": {
-      "H": {
-       "status": "keep",
-       "daily": 2,
-       "win": "z7b:daily_quotas::trout_char_quota.r1",
-       "narrow": "z7b:daily_quotas::trout_char_quota.r3"
-      },
-      "W": {
-       "status": "keep",
-       "daily": 2,
-       "win": "z7b:daily_quotas::trout_char_quota.r1",
-       "narrow": "z7b:daily_quotas::trout_char_quota.r3"
-      }
-     },
-     "DV": {
-      "H": {
-       "status": "release",
-       "daily": null,
-       "win": "z7b:daily_quotas::trout_char_quota.r9",
-       "narrow": null
-      },
-      "W": {
-       "status": "release",
-       "daily": null,
-       "win": "z7b:daily_quotas::trout_char_quota.r9",
-       "narrow": null
-      }
-     },
-     "LT": {
-      "H": {
-       "status": "release",
-       "daily": null,
-       "win": "z7b:daily_quotas::trout_char_quota.r8",
-       "narrow": null
-      },
-      "W": {
-       "status": "release",
-       "daily": null,
-       "win": "z7b:daily_quotas::trout_char_quota.r8",
-       "narrow": null
-      }
-     },
-     "EB": {
-      "H": {
-       "status": "keep",
-       "daily": 2,
-       "win": "z7b:daily_quotas::trout_char_quota.r1",
-       "narrow": "z7b:daily_quotas::trout_char_quota.r3"
-      },
-      "W": {
-       "status": "keep",
-       "daily": 2,
-       "win": "z7b:daily_quotas::trout_char_quota.r1",
-       "narrow": "z7b:daily_quotas::trout_char_quota.r3"
-      }
-     },
-     "WSG": {
-      "H": {
-       "status": "closed",
-       "daily": null,
-       "win": "zp:white_sturgeon_licence::white_sturgeon_licence.r4",
-       "narrow": null
-      },
-      "W": {
-       "status": "closed",
-       "daily": null,
-       "win": "zp:white_sturgeon_licence::white_sturgeon_licence.r4",
-       "narrow": null
-      }
-     }
-    }
-   },
-   "dayStatus": [
-    [
-     [
-      "keep",
-      365
-     ]
-    ],
-    [
-     [
-      "keep",
-      365
-     ]
-    ],
-    [
-     [
-      "keep",
-      365
-     ]
-    ],
-    [
-     [
-      "keep",
-      120
-     ],
-     [
-      "release",
-      46
-     ],
-     [
-      "keep",
-      199
-     ]
-    ],
-    [
-     [
-      "keep",
       365
      ]
     ],
