@@ -318,3 +318,71 @@ def test_the_mini_world_splits_a_steelhead_and_white_sturgeon_release_row(chain,
                      chain.model.segments[k], chain.model.moments[k], L.document_names(chain.bundle), pix)
     with pytest.raises(M.ShapeError, match="presence"):
         M.validate_section("rows", cut)
+
+
+# ------------------------------------------- Region 8's brook trout from streams (the book, p.68; the live J's 13 keys)
+
+def _r8_pool():
+    import types
+    return types.SimpleNamespace(f={"water": "stream", "take": 20}, x={"entry_name": "Region 8"},
+                                 key="z8:daily_quotas::trout_char_quota.r5", entry_id="z8:daily_quotas")
+
+
+def _r8_elsewhere(monkeypatch):
+    from pipeline.deliver.answers.rows import groups as G
+    monkeypatch.setattr(G, "over_elsewhere", lambda *a, **k: [])
+    pool = _r8_pool()
+    row = {"daily": 20, "pool": pool, "narrow": None, "members": ["EB"], "kind": "keep"}
+    sc = {"of": "region", "share": False, "apart": False, "narrow_all": False}
+    model = {"R": {"EB": {"H": None, "W": {"status": "keep"}}}}
+    return G.elsewhere_of(None, model, row, sc, pool, None)
+
+
+def test_a_one_water_pool_says_its_water_and_keeps_on_that_water(monkeypatch):
+    """p.68 "And you may retain: 20 brook trout from streams": only brook trout kept today from Region 8 STREAMS count
+    toward the 20 — the sentence says "every Region 8 stream" (the share's own form, P44) and the worked line keeps them
+    "on another stream", never "elsewhere" (the engine and J hold 2 kept on another stream to 18 more here). Mutation:
+    the old words ("every water in Region 8", "Kept 2 elsewhere today?")."""
+    from pipeline.deliver.answers.rows import groups as G
+    got = _r8_elsewhere(monkeypatch)
+    assert got["says"] == "Your own limit, counted across every Region 8 stream you fish today."
+    assert [(x["q"], x["a"], x["at"]) for x in got["lines"]] == [("Kept 2 on another stream?", "Keep 18 more here",
+                                                                   "stream")]
+    assert W.parse_elsewhere_says(W.elsewhere_says(got["says"])) == ("own", "Region 8 stream")
+    assert W.parse_elsewhere(W.elsewhere_line(got["lines"][0]["q"], got["lines"][0]["a"]))[0] == ("kept", 2, "stream")
+    monkeypatch.setattr(G, "A_ONE_WATER_POOL_SAYS_ITS_WATER", False)
+    old = _r8_elsewhere(monkeypatch)
+    assert old["says"] == "Your own limit, counted across every water in Region 8 you fish today."
+    assert old["lines"][0]["q"] == "Kept 2 elsewhere today?"
+
+
+def test_a_fish_kept_elsewhere_is_exempt_from_the_zone_rules_its_own_zone_rule_lifts(monkeypatch):
+    """Inkaneep Creek (Region 8), day 1: after 2 brook trout kept on another Region 8 stream, the book still allows 4
+    other trout here — the brook trout are "counted apart from the trout/char quota" (the 20's `exempts` names the 5 and
+    the 4 from streams for brook trout). The engine's kept-elsewhere path skips a zone rule a fish is exempt from by an
+    in-force zone rule that applies to it (`Engine._zone_exempt`), in `counts` and in `checks`. Mutation: the pin off
+    counts the brook trout toward the 4 again (2 more here, not 4)."""
+    import types
+    from pipeline.deliver.answers import engine as EN
+
+    def rule(rid, species, take, water=None, exempts=()):
+        return types.SimpleNamespace(entry_id="z8:daily_quotas", rule_id=rid, key=f"z8:daily_quotas::{rid}",
+                                     species=species, except_=(), x={}, f={"take": take, "water": water,
+                                                                          "exempts": list(exempts)})
+    ex = [{"entry_id": "z8:daily_quotas", "rule_id": r, "species": ["EB"]}
+          for r in ("trout_char_quota.r1", "trout_char_quota.r3")]
+    total = rule("trout_char_quota.r1", ["EB", "RB", "CT"], 5)
+    share = rule("trout_char_quota.r3", ["EB", "RB", "CT"], 4, "stream")
+    brook = rule("trout_char_quota.r5", ["EB"], 20, "stream", ex)
+    E = EN.Engine.__new__(EN.Engine)
+    E.P = types.SimpleNamespace(kind="stream")
+    E.zone = [total, share, brook]
+    E._zone = {id(r) for r in E.zone}
+    eb, rb = ("EB", "wild", 30.0, "stream"), ("RB", "wild", 30.0, "stream")
+    assert not E.counts(share, eb) and not E.counts(total, eb) and E.counts(brook, eb)
+    assert E.counts(share, rb) and E.counts(total, rb)
+    assert not E.checks(share, eb) and E.checks(brook, eb)
+    lake_eb = ("EB", "wild", 30.0, "lake")                         # the 20 is from streams: no exemption at a lake
+    assert E.counts(total, lake_eb)
+    monkeypatch.setattr(EN, "A_ZONE_EXEMPTS_ELSEWHERE", False)
+    assert E.counts(share, eb) and E.checks(share, eb)
