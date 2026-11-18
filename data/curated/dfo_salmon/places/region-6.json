@@ -5355,6 +5355,10 @@
       "reviewed_at": "",
       "review_note": "",
       "heading": "Tatshenshini River (upstream of the BC/ Yukon border – along the Haines Hwy.)",
+      "side_streams_overruled": {
+        "through": "2026-11-15",
+        "owner": "2026-11-17 17:01 (OWNER-TODO): \"for tatshenhini is the other 2 that list specific tributaries only locating that specific tributary remember thta was a mistake on my mark that i wanted you to fix\" (this place's save: Claude for Dawson 2026-11-15, marks line 2779)"
+      },
       "binding": {
         "extents": [
           {

@@ -3,8 +3,9 @@ EXACT heading its row sits under, else river only — and a saved value is only 
 
 "this depends if the name has tributraries included in it. if it doesnt then no tribs otrherwise yes tribs"; "The
 heading counts"; "the locations should be matched only to their exact naming then"; the ten disagreeing places "Yes,
-river only for all ten (Recommended)"; "A named creek keeps its side streams"; the Kitimat outfall strip "Heading
-counts here too". The words below are DFO's, as printed on the pages of 2026-11-06.
+river only for all ten (Recommended)"; the Kitimat outfall strip "Heading counts here too"; 2026-11-17 17:01 on the
+Tatshenshini's named creeks: "only locating that specific tributary" (it replaces 11-16's "A named creek keeps its side
+streams"). The words below are DFO's, as printed on the pages of 2026-11-06.
 """
 from __future__ import annotations
 
@@ -33,11 +34,13 @@ KITSUMKALUM = ("Kitsumkalum River (including tpinributaries) Note: The mouth of 
      "heading"),
     ("downstream of railway bridge.", KITSUMKALUM, (True, False), "heading"),
     ("downstream of the 216th Street bridge", "Alouette River and tributaries", (True, False), "heading"),
-    # a named creek keeps its side streams
-    ("upstream of the BC/ Yukon border – along the Haines Hwy.; Blanchard River.", TAT_UP, (True, False),
+    # a place that names its creeks is those creeks only (owner 2026-11-17 17:01: "only locating that specific
+    # tributary"), whatever the heading says
+    ("upstream of the BC/ Yukon border – along the Haines Hwy.; Blanchard River.", TAT_UP, (False, False),
      "named water"),
     ("upstream of the BC/ Yukon border – along the Haines Hwy.; Kwatini Creek, Stanley Creek and Goat Creek.",
-     TAT_UP, (True, False), "named water"),
+     TAT_UP, (False, False), "named water"),
+    ("Blanchard River.", "X River (including tributaries)", (False, False), "named water"),
     # the place's own words speak first
     ("upstream of the BC/ Yukon border – along the Haines Hwy.; Tatshenshini mainstem and all other tributaries.",
      TAT_UP, (True, False), "own words"),

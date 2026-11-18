@@ -1504,9 +1504,9 @@
       "reviewed_at": "",
       "review_note": "",
       "heading": "Cowichan River",
-      "tributaries_exception": {
-        "reason": "the owner saved side streams in (Dawson 2026-11-15 (verified)) before the 2026-11-16 rule; DFO's words say river only (nothing said); a dormant place, so nothing ships from it — kept until the owner confirms or drops it",
-        "save": "Dawson 2026-11-15 (verified), marks line 2599"
+      "side_streams_overruled": {
+        "through": "2026-11-15",
+        "owner": "2026-11-17 17:01 (OWNER-TODO), on the three dormant saves: \"dfo words but make sure it is compatible with the name tributaruies or not\" (this place's save: Dawson 2026-11-15, marks line 2599)"
       },
       "binding": {
         "extents": [
@@ -1519,7 +1519,7 @@
             "item_id": "gnis:12227"
           }
         ],
-        "tributaries": true,
+        "tributaries": null,
         "tributaries_only": false,
         "tributary_excludes": [],
         "sections_cached": null,
@@ -3784,9 +3784,9 @@
       "reviewed_at": "",
       "review_note": "",
       "heading": "Stamp River",
-      "tributaries_exception": {
-        "reason": "the owner saved side streams in (Dawson 2026-11-15 (verified)) before the 2026-11-16 rule; DFO's words say river only (nothing said); a dormant place, so nothing ships from it — kept until the owner confirms or drops it",
-        "save": "Dawson 2026-11-15 (verified), marks line 2707"
+      "side_streams_overruled": {
+        "through": "2026-11-15",
+        "owner": "2026-11-17 17:01 (OWNER-TODO), on the three dormant saves: \"dfo words but make sure it is compatible with the name tributaruies or not\" (this place's save: Dawson 2026-11-15, marks line 2707)"
       },
       "binding": {
         "extents": [
@@ -3798,7 +3798,7 @@
             "item_id": "gnis:14533"
           }
         ],
-        "tributaries": true,
+        "tributaries": null,
         "tributaries_only": false,
         "tributary_excludes": [],
         "sections_cached": null,
@@ -4502,9 +4502,9 @@
       "reviewed_at": "",
       "review_note": "",
       "heading": "Cowichan River",
-      "tributaries_exception": {
-        "reason": "the owner saved side streams in (Dawson 2026-11-15 (unsure)) before the 2026-11-16 rule; DFO's words say river only (nothing said); a dormant place, so nothing ships from it — kept until the owner confirms or drops it",
-        "save": "Dawson 2026-11-15 (unsure), marks line 2600"
+      "side_streams_overruled": {
+        "through": "2026-11-15",
+        "owner": "2026-11-17 17:01 (OWNER-TODO), on the three dormant saves: \"dfo words but make sure it is compatible with the name tributaruies or not\" (this place's save: Dawson 2026-11-15, marks line 2600)"
       },
       "binding": {
         "extents": [
@@ -4517,7 +4517,7 @@
             "item_id": "gnis:12227"
           }
         ],
-        "tributaries": true,
+        "tributaries": null,
         "tributaries_only": false,
         "tributary_excludes": [],
         "sections_cached": null,

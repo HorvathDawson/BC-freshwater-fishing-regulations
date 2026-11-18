@@ -3,8 +3,11 @@ sits under — and a saved value is only a stated exception.
 
 Owner 2026-11-16 (`handoff/PLAN/OWNER-TODO.md`, "Answers by batch"): "this depends if the name has tributraries included
 in it. if it doesnt then no tribs otrherwise yes tribs"; "The heading counts"; "the locations should be matched only to
-their exact naming then"; the ten disagreeing places "river only for all ten"; "A named creek keeps its side streams";
-the Kitimat outfall strip "Heading counts here too". The audit:
+their exact naming then"; the ten disagreeing places "river only for all ten"; (11-16 "A named creek keeps its side streams", replaced:)
+the Kitimat outfall strip "Heading counts here too"; 2026-11-17 17:01, on the Tatshenshini's named creeks: "only
+locating that specific tributary … that was a mistake on my mark that i wanted you to fix" (a place naming its creeks
+is those creeks only); on the three dormant saves: "dfo words but make sure it is compatible with the name tributaruies
+or not" (no exception kept). The audit:
 `handoff/PLAN/curation-review/dfo-side-streams-against-exact-headings-2026-11-16.md`.
 
 THE RULE, in order (`derive`):
@@ -16,7 +19,9 @@ THE RULE, in order (`derive`):
        "including / and (its / all) tributaries"               side streams in
        "mainstem" (no tributary words)                         river only
        a place that only NAMES waters ("Kwatini Creek, Stanley Creek and Goat Creek", "Blanchard River")
-                                                               the named water's own side streams in
+                                                               those waters only, no side streams (owner
+                                                               2026-11-17 17:01: "only locating that specific
+                                                               tributary")
   2. else the EXACT heading the row sits under on DFO's page ("Morice River (including tributaries)" — in; "Morice
      River" — out), DFO's "tpinributaries" typo read as the word;
   3. else river only.
@@ -97,7 +102,9 @@ def own_words(text: str) -> Optional[SideStreams]:
     if (x := _MAINSTEM.search(head)):
         return SideStreams(False, False, "own words", x.group(0))
     if _NAMED.match(head) and not _PLACE_WORDS.search(head):
-        return SideStreams(True, False, "named water", head.rstrip("."))
+        # owner 2026-11-17 17:01 (OWNER-TODO), on the Tatshenshini's Blanchard River and "Kwatini, Stanley and Goat
+        # creeks": "only locating that specific tributary" — the named waters themselves, not their side streams
+        return SideStreams(False, False, "named water", head.rstrip("."))
     return None
 
 
