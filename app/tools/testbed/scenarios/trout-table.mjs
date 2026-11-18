@@ -62,7 +62,9 @@ export const troutTable = {
     // flattens it, so its `pic:<key>` id is not in the hierarchy (bench 2026-11-18)
     await ctx.step("a row opens that fish's sheet", async () => {
       ctx.flow('scroll-to-id', { ID: 'keep-row' });   // the rows sit under the top line, below the fold's first screen
-      ctx.flow('tap-id-in', { ID: 'keep-row', IN: 'keep-trout' });
+      // Maestro's childOf misses it in this hierarchy (keep-row is on screen 5 times, bench 2026-11-18): the first keep-row,
+      // the trout table's (the salmon fold is closed, Other fish come after it)
+      ctx.flow('tap-id', { ID: 'keep-row' });
       await ctx.until(() => ctx.hasId('sheet-panel') || ctx.hasId('sheet-dialog'), { ms: 8_000, what: 'the fish sheet (sheet-panel)' });
       const w = ctx.device.screenText();
       if (!w.some((x) => /^(Keep|Release|Closed)\b/.test(x))) throw new Error(`the sheet says no Keep / Release / Closed (saw: ${w.slice(0, 10).join(' | ').slice(0, 300)})`);
