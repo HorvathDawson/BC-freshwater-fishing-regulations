@@ -195,6 +195,31 @@ def test_t668_option2_the_pair_table_is_the_pythons_answer_for_every_differing_o
     assert gone == ["7:default"]
 
 
+def test_t796_a_book_place_in_a_two_region_chain_answers_from_the_releases_own_year():
+    """(T796 A5) A rule-book closure (`book:...`) is a release-side place the curated files never hold: the pair table
+    reads its year from the payload's `static` (indices into the payload's verdicts), first in each group, so where it
+    closes the group no opening is left to pair; without its year it is named missing (release r-f1f2e8da9666 stopped
+    the staging upload so)."""
+    from pipeline.deliver import salmon_pairs
+    locs, rules, placed, reg, waters = _world()
+    payload, _ = _build(locs, rules, placed, reg, None, waters)
+    feed_rules = {"6:e": OPEN + GEAR + COHO_SUMMER_4, "7:default": OPEN + COHO_SUMMER + NO_BAIT, "6:sustut": OPEN,
+                  "6:late": OPEN}
+    two = [c for c in payload["chains"] if c.get("s")]
+    assert two, "the fixture has a two-region chain"
+    book = "book:r6:x@6-1::x.r1"
+    chains = [{**c, "l": [book] + c["l"], "s": [[0] + [i + 1 for i in g] for g in c["s"]]} for c in two]
+    shut = {"s": "closed", "t": "Closed to all fishing by the rule book"}
+    verdicts = [S.NOT_LISTED, shut]
+    static = {book: {"g": [0, -1], "sp": [[0, 1] for _ in S.SPECIES]}}
+    assert salmon_pairs.pairs(two, feed_rules)[0], "without the book place the chain pairs its two openings"
+    assert salmon_pairs.pairs(chains, feed_rules, static, verdicts) == ([], [])
+    assert salmon_pairs.pairs(chains, feed_rules)[1] == [book]
+    # a book place closed only on its own days leaves the other days' pairs (the year's runs are read, not its first)
+    part = {book: {"g": [0, -1], "sp": [[0, -1] for _ in S.SPECIES]}}
+    assert salmon_pairs.pairs(chains, feed_rules, part, verdicts) == salmon_pairs.pairs(two, feed_rules)
+
+
 def golden_text() -> str:
     return HEAD + json.dumps(golden(), indent=1) + ";\n"
 
