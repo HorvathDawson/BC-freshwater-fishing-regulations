@@ -37,8 +37,9 @@ describe("the Salmon card on a partly mapped water", () => {
     const card = salmonCard(FACTS, { sids: [101], item: "gnis:3225" }, new Date(2026, 9, 28));
     render(<SalmonCard card={card} palette={LIGHT} />);
     // the rows are the drawn answer: coho release only — never "check DFO"
-    const rows = screen.getAllByTestId("salmon-species-row").map((r) => r.textContent!);
-    expect(rows.some((r) => r.includes("Release only"))).toBe(true);
+    // (T829) the coho in the release group under its one "↩ Release only" word
+    expect([within(screen.getByTestId("salmon-release-group")).getAllByTestId("keep-name").map((e) => e.textContent),
+            within(screen.getByTestId("salmon-release-group")).getByTestId("keep-col-word").textContent]).toEqual([["Coho"], "↩ Release only"]);
     expect(screen.getByTestId("salmon-card").getAttribute("aria-label")).not.toContain("Check DFO");
     // the place, folded under the trout card's head; opened: where it is and what DFO says for it
     const block = screen.getByTestId("keep-caveat");
