@@ -25412,7 +25412,7 @@
       "kind": "keep",
       "pool": "z6:daily_quotas::trout_char_quota.r1",
       "win": null,
-      "daily": 5,
+      "daily": 1,
       "narrow": "z6:daily_quotas::trout_char_quota.r4",
       "members": [
        "EB",
@@ -25707,15 +25707,15 @@
      "LT": {
       "H": {
        "status": "keep",
-       "daily": 5,
+       "daily": 1,
        "win": "z6:daily_quotas::trout_char_quota.r1",
-       "narrow": null
+       "narrow": "z6:daily_quotas::trout_char_quota.r4"
       },
       "W": {
        "status": "keep",
-       "daily": 5,
+       "daily": 1,
        "win": "z6:daily_quotas::trout_char_quota.r1",
-       "narrow": null
+       "narrow": "z6:daily_quotas::trout_char_quota.r4"
       }
      },
      "EB": {
@@ -25737,8 +25737,16 @@
    "dayStatus": [
     [
      [
+      "release",
+      181
+     ],
+     [
       "keep",
-      365
+      123
+     ],
+     [
+      "release",
+      61
      ]
     ],
     [
@@ -25969,7 +25977,7 @@
       "kind": "keep",
       "pool": "z6:daily_quotas::trout_char_quota.r1",
       "win": null,
-      "daily": 5,
+      "daily": 1,
       "narrow": "z6:daily_quotas::trout_char_quota.r4",
       "members": [
        "EB",
@@ -26264,15 +26272,15 @@
      "LT": {
       "H": {
        "status": "keep",
-       "daily": 5,
+       "daily": 1,
        "win": "z6:daily_quotas::trout_char_quota.r1",
-       "narrow": null
+       "narrow": "z6:daily_quotas::trout_char_quota.r4"
       },
       "W": {
        "status": "keep",
-       "daily": 5,
+       "daily": 1,
        "win": "z6:daily_quotas::trout_char_quota.r1",
-       "narrow": null
+       "narrow": "z6:daily_quotas::trout_char_quota.r4"
       }
      },
      "EB": {
@@ -26294,8 +26302,16 @@
    "dayStatus": [
     [
      [
+      "release",
+      181
+     ],
+     [
       "keep",
-      365
+      123
+     ],
+     [
+      "release",
+      61
      ]
     ],
     [
@@ -26526,7 +26542,7 @@
       "kind": "keep",
       "pool": "z6:daily_quotas::trout_char_quota.r1",
       "win": null,
-      "daily": 5,
+      "daily": 1,
       "narrow": "z6:daily_quotas::trout_char_quota.r4",
       "members": [
        "EB",
@@ -26821,15 +26837,15 @@
      "LT": {
       "H": {
        "status": "keep",
-       "daily": 5,
+       "daily": 1,
        "win": "z6:daily_quotas::trout_char_quota.r1",
-       "narrow": null
+       "narrow": "z6:daily_quotas::trout_char_quota.r4"
       },
       "W": {
        "status": "keep",
-       "daily": 5,
+       "daily": 1,
        "win": "z6:daily_quotas::trout_char_quota.r1",
-       "narrow": null
+       "narrow": "z6:daily_quotas::trout_char_quota.r4"
       }
      },
      "EB": {
@@ -26851,7 +26867,7 @@
    "dayStatus": [
     [
      [
-      "keep",
+      "release",
       74
      ],
      [
@@ -26859,8 +26875,16 @@
       77
      ],
      [
+      "release",
+      30
+     ],
+     [
       "keep",
-      214
+      123
+     ],
+     [
+      "release",
+      61
      ]
     ],
     [
