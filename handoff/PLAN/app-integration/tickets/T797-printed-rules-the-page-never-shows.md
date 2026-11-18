@@ -1,6 +1,6 @@
 # T797 — Printed rules the page never shows: "No angling from powered boats" (7 rules), dead fin fish as sturgeon bait, the Shuswap pier exemptions, "wild" on the Pitt Lake caveat
 
-Status: IN PROGRESS (item 1, the powered-boats line, is fixed on branch `app-fix/t797-powered-boats`, 2026-11-16, not merged; items 2 to 5 are the pipeline's display model, the main chat's).
+Status: IN PROGRESS (items 2 and 4, app, landed 45fff5e63; item 1 landed earlier; items 3 and 5 and the item-2 one-`says`-per-allowance dedup with the main chat).
 
 Source: general audit 2026-11-16, answers checker D1, B2, B3, B4, E5, E6 (`handoff/PLAN/audit-2026-11-16/answers.md`).
 

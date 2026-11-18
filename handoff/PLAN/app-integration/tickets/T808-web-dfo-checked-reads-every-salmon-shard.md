@@ -1,6 +1,6 @@
 # T808 — The More tab's "DFO checked" time made every web visit download every salmon file; it now reads only the salmon head
 
-Status: IN PROGRESS (app `packages/ui/src/dfoNotice.ts`; branch `app-fix/t808-salmon-head-only`, not merged; the request
+Status: DONE 45fff5e63 (CI green 2026-11-17; regs-open PASS at low load; in 0.8.0).
 walk confirms the before and after numbers).
 
 Source: app chat 2026-11-16, found while sizing T796 A6 (the Standard map's finfish closure); the main chat handed it to

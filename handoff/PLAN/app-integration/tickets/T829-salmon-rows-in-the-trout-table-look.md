@@ -1,6 +1,6 @@
 # T829 — Salmon species rows in the same look as the other fish table and the new trout table (formatting only)
 
-Status: IN PROGRESS (built on branch `app-fix/t828-t829-salmon-card`, not merged; Android bench owed)
+Status: DONE 45fff5e63 (CI green 2026-11-17; batch-1 Android benches: install, crash-bed, walkthrough, memory, regs-switch PASS; regs-open PASS 2/2 at low load; in 0.8.0).
 
 Source: owner 2026-11-16 (verbatim): "Can we also clean up the format for the salmon rows to make it look more
 consistent with the other table and the new trout table just a formatting thing same data tho".

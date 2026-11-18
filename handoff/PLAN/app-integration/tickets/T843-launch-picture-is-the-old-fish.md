@@ -1,6 +1,6 @@
 # T843 — On opening the app, the old circling fish shows before the new swimming coho
 
-Status: IN PROGRESS (built on branch app-fix/t842-walkthrough, in the app chat's batch 1 for 0.8.0; Android look pending).
+Status: DONE 45fff5e63 (CI green 2026-11-17; checked on the Android emulator: a cold launch shows the coho from the first frame, scratch t843/launch-*-frames.png, sent to the owner; in 0.8.0).
 
 Source: owner 2026-11-17 ~17:30, in the app chat (Play internal 0.7.12), verbatim: "riught now on current app version
 the old loading icon shows up before the new swimming fish one when the app is opened."
