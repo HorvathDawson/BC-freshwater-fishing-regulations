@@ -17,7 +17,7 @@ def test_with_no_claims_file_the_export_holds_the_corpus_to_the_whole_book():
     from pipeline.deliver.export.examples import EXAMPLES
     from pipeline.regs.extraction.row_boxes import default_out
     b = CL.of(None)
-    assert b.examples == tuple(EXAMPLES) and len(b.examples) == 64
+    assert b.examples == tuple(EXAMPLES) and len(b.examples) == 66  # +2 Chilliwack Lake (C2, 6582498f2)
     assert b.mechanisms == tuple(CASE_MECHANISMS) and len(b.mechanisms) == 75
     assert b.duties == CL.DUTIES == CL.duties_of(None) == ("paper_licence", "protected_fish")
     assert (b.synopsis, b.row_boxes, b.source) == (default_pdf(), default_out(), None)
