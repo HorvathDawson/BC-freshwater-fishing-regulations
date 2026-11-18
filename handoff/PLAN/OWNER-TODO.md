@@ -2660,3 +2660,4 @@ More questions (recommended answer first):
   labelled map image show the nass system rules? Including the cascade section rules?"
 - 2026-11-18 ~13:50, owner (app chat), verbatim: "also on the app the loader fish icon should be higher resolution
   please". T852.
+  ~13:55, verbatim: "the quote text should be formated in a nicer way too on loader for 0.8.1". T852 item 2.
