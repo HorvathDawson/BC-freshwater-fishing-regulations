@@ -2510,3 +2510,6 @@ More questions (recommended answer first):
   char today, or 10 if they're brook trout", Elk in winter "Release every trout and char today"). Fold row's value,
   verbatim: "Make it match other rows in table" (app chat's reading: the same form as the other fold/list rows beside it,
   e.g. "10 a day", so "2 a day"; Python's words).
+- 2026-11-17 23:36, owner (app chat), verbatim: "Also we should look for other things that should be grouped like the bull
+  /lake trout there we missed" (a sweep of every trout table for limits shared across rows but written row by row; sent
+  to the main chat's builder lane with the Fraser band).
