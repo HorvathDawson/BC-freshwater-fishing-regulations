@@ -171,7 +171,7 @@ describe("4. every press is named and reaches 44 × 44", () => {
 
   for (const id of ["vedder_1010", "klwa_1010", "bc1_501", "glenn_501"] as const)
     it(`${id}: every sheet the page opens, on a phone and as a wide dialog`, () => {
-      const page = PAGES[id]!, keys = Object.keys((({ vedder_1010: vedder1010, klwa_1010: klwa1010, bc1_501: bc1501, glenn_501: glenn501 })[id] as Frozen).sheets);
+      const page = PAGES[id]!, keys = Object.keys((({ vedder_1010: vedder1010, klwa_1010: klwa1010, bc1_501: bc1501, glenn_501: glenn501 })[id] as unknown as Frozen).sheets);
       const offences: string[] = [];
       let sized = 0;
       for (const layout of ["phone", "desktop"] as const)

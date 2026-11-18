@@ -85,11 +85,12 @@ export type KeepBlock = "strip" | "inherited" | "banner" | { caveat: number } | 
 
 // ── (T810 N) the trout and char table (trout-table-contract.md 2.3, 2.12): every text the payload's, drawn unchanged ──
 /** One band of a keep box's right column ("up to the 5", "only 3", "only 1 of these 4"), over rows `from`..`to`; `date`:
- *  the small line under its white box (`DateSet.band`). */
+ *  the small line under its white box (`DateSet.band`; a nested band's is always null: the date set names no nested band). */
 export interface TroutBandVM { readonly from: number; readonly to: number; readonly text: string;
   readonly kind: "upto" | "own" | "shared" | "possession" | "size"; readonly date: string | null }
-/** One fish row. `date`: its own last line (`DateSet.row`); `coming`: its sheet's coming-change sentences
- *  (`DateSet.sheet`); `a11y`: its screen-reader label (payload texts in payload order, joined by ". "). */
+/** One fish row. `origin` null on a plain row AND on a merged twin (trout 4: key = the fish, its first line "<size> if
+ *  wild"); `date`: its own last line (`DateSet.row`); `coming`: its sheet's coming-change sentences (`DateSet.sheet`);
+ *  `a11y`: its screen-reader label (payload texts in payload order, joined by ". "). */
 export interface TroutRowVM {
   readonly key: string; readonly fish: string; readonly name: string; readonly origin: "hatchery" | "wild" | null;
   readonly label: string | null; readonly sub: string | null; readonly lines: readonly string[]; readonly quiet: readonly string[];
@@ -102,12 +103,17 @@ export interface TroutBoxVM {
   /** (T810 G2 Q4) the possession every row shares, drawn on its own line under the box's top line (keep only) */
   readonly possession: string | null;
   readonly tag: string | null; readonly date: string | null; readonly rows: readonly TroutRowVM[]; readonly bands: readonly TroutBandVM[];
+  /** (trout 4) the nested bands (`Box.inner`, kind "shared" / "size"): each over 2+ rows inside ONE band (never that band
+   *  whole), none overlapping; drawn inside its band's white box. [] on a release or closed box. */
+  readonly inner: readonly TroutBandVM[];
 }
-/** The table under the Trout and char entry. `top.lead` has its day slot filled; `card`: the line above the table; `fold`:
+/** The table under the Trout and char entry. `top.lead` has its day slot filled; `top.sub` (trout 4): the exception, drawn
+ *  as the lead's subtitle (the full sentence is `lead + ", " + sub`); `card`: the card-level date (`DateSet.card`), the
+ *  grey line under the top line; `fold`:
  *  the entry's folded row (`name` the app's entry word); the links are the app's navigation words, null where hidden. */
 export interface TroutVM {
   readonly kind: "table";
-  readonly top: { readonly lead: string; readonly second: string | null; readonly date: string | null };
+  readonly top: { readonly lead: string; readonly sub: string | null; readonly second: string | null; readonly date: string | null };
   readonly card: string | null;
   readonly fold: { readonly name: string; readonly value: string; readonly tone: "keep" | "release" | "closed" | "none"; readonly date: string | null };
   readonly hatchLink: string | null;

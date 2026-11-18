@@ -8,7 +8,9 @@ import { troutGlance } from "../glance";
 import { keepOrder } from "./keep";
 import { listRows, looseRows, splitRows } from "./others";
 import { dayPhrase } from "./strip";
-import { a11yOf, DAY_SLOT } from "./trout";
+import { a11yOf, checkTrout, DAY_SLOT, TroutRefused, troutOf } from "./trout";
+import type { Band, TRow, TroutValue } from "../answers.generated";
+import type { RegsInputs } from "./inputs";
 import type { TroutVM } from "./model";
 import { TROUT_NAV } from "./words";
 import { cardOf, rowOf, TROUT_ROW } from "./testing/keepFixtures";
@@ -76,5 +78,103 @@ describe("keepOrder and the fold row", () => {
                 fold: { name: TROUT_NAV.ENTRY, value: "Up to 2 or 5", tone: "none", date: "until Mar 31" } } as unknown as TroutVM;
     expect(troutGlance(t)).toEqual({ source: "bc", thumb: "RB", name: "Trout and char", value: "Up to 2 or 5", tone: "none", date: "until Mar 31" });
     expect(troutGlance({ ...t, fold: { ...t.fold, date: null } })).not.toHaveProperty("date");
+  });
+});
+
+// ── (T810 S, trout 4) the new shapes: the top line's sub, nested bands, merged twins, a date said once ──
+const SHEET = { head: "x", here: [], src: [0] };
+const row = (key: string, name: string, lines: readonly string[] = []): TRow =>
+  ({ key, fish: key.split("/")[0], name, origin: null, label: null, sub: null, lines, quiet: [], src: [0], sheet: SHEET }) as unknown as TRow;
+/** the Vedder's shape, cut down: four rows in one shared band (0..3), the last two with a count between them, then an
+ *  `upto` row (4) */
+function vedder(over: { inner?: readonly Band[]; bands?: readonly Band[]; dates?: TroutValue["dates"]; sub?: string | null } = {}): TroutValue {
+  return {
+    table: {
+      top: { lead: "Keep 2 trout and char {day}", sub: over.sub === undefined ? "or 4 if they're hatchery rainbow trout 50 cm (20 in) or less" : over.sub, second: null },
+      fold: { value: "2 or 4 a day", tone: "keep" }, hatch_link: false,
+      boxes: [{
+        kind: "keep", head: "Keep 4 in all", label: null, strip: null, possession: null, tag: null,
+        rows: [row("EB", "Brook trout"), row("CT", "Cutthroat trout"), row("DV", "Dolly Varden/bull trout"), row("LT", "Lake trout"),
+               row("RB", "Rainbow trout", ["50 cm (20 in) or less if wild"])],
+        bands: over.bands ?? [{ from: 0, to: 3, text: "2 total from these 4", kind: "shared" }, { from: 4, to: 4, text: "counts toward the 4", kind: "upto" }],
+        inner: over.inner ?? [{ from: 2, to: 3, text: "only 1 between them", kind: "shared" }],
+      }],
+      together: null, year: null, elsewhere: [], src: [0],
+    },
+    dates: over.dates === undefined ? null : over.dates,
+    covers: [0],
+  };
+}
+const BOUNDS = { hasRule: (i: number) => i === 0, rows: 1 };
+const why = (f: TroutValue): string | null => { try { checkTrout(f, BOUNDS); return null; } catch (e) { if (e instanceof TroutRefused) return e.why; throw e; } };
+const DATES = { top: null, card: null, fold: null, box: {}, band: {}, row: {}, sheet: {} };
+
+describe("checkTrout (trout 4): the new shapes held, the bad ones refused", () => {
+  it("accepts the Vedder's shape: a sub, a nested band inside the shared band, a merged twin (key = fish, origin null)", () => {
+    expect(why(vedder())).toBeNull();
+    expect(why(vedder({ inner: [{ from: 0, to: 1, text: "only 1 over 50 cm (20 in) between them", kind: "size" },
+                                { from: 2, to: 3, text: "only 1 between them", kind: "shared" }] }))).toBeNull();
+  });
+  it("refuses a nested band that is its band whole", () => {
+    expect(why(vedder({ inner: [{ from: 0, to: 3, text: "only 1 between them", kind: "shared" }] }))).toMatch(/inside no band, or is one whole/);
+  });
+  it("refuses a nested band across two bands, or inside none", () => {
+    expect(why(vedder({ inner: [{ from: 3, to: 4, text: "only 1 between them", kind: "shared" }] }))).toMatch(/inside no band/);
+    expect(why(vedder({ inner: [{ from: 5, to: 6, text: "only 1 between them", kind: "shared" }] }))).toMatch(/inside no band/);
+  });
+  it("refuses a nested band of one row", () => {
+    expect(why(vedder({ inner: [{ from: 2, to: 2, text: "only 1", kind: "shared" }] }))).toMatch(/spans two rows or more/);
+  });
+  it("refuses nested bands that overlap", () => {
+    expect(why(vedder({ inner: [{ from: 0, to: 2, text: "only 1 between them", kind: "shared" },
+                                { from: 2, to: 3, text: "only 1 over 50 cm (20 in) between them", kind: "size" }] })))
+      .toMatch(/nested bands overlap at row 2/);
+  });
+  it("refuses a nested band of a kind but shared or size", () => {
+    expect(why(vedder({ inner: [{ from: 2, to: 3, text: "only 1 between them", kind: "possession" }] }))).toMatch(/a possession band is one row's/);
+    expect(why(vedder({ inner: [{ from: 4, to: 4, text: "up to the 4", kind: "upto" }] }))).toMatch(/nested band is shared or size, not upto/);
+  });
+  it("refuses a nested band on a release box", () => {
+    const f = vedder(), b = f.table.boxes[0]!;
+    const rel = { ...f, table: { ...f.table, fold: { value: "Release", tone: "release" as const },
+      boxes: [{ ...b, kind: "release" as const, head: "Release", bands: [], inner: [{ from: 0, to: 1, text: "only 1 between them", kind: "shared" as const }] }] } };
+    expect(why(rel)).toMatch(/a release box has no bands/);
+  });
+  it("refuses a bad sub (the same Txt as every phrase)", () => {
+    expect(why(vedder({ sub: " or 4" }))).toMatch(/top.sub: a leading or trailing space/);
+    expect(why(vedder({ sub: "or 4 {day}" }))).toMatch(/top.sub/);
+  });
+  it("a date said once: a card date with box, band and row dates under it, none repeating the level above", () => {
+    expect(why(vedder({ dates: { ...DATES, card: "Until May 31, then closed to all fishing", band: { "0:0": "until Apr 30, then release" },
+                                 row: { "0:4": "until Apr 30, then release" } } }))).toBeNull();
+    // the most specific level repeating the level above: refused (the card's, its first letter lowered, as the model compares)
+    expect(why(vedder({ dates: { ...DATES, card: "Until May 31, then closed to all fishing", box: { "0": "until May 31, then closed to all fishing" } } })))
+      .toMatch(/row 0:0 carries one date at two levels/);
+    expect(why(vedder({ dates: { ...DATES, band: { "0:0": "until Apr 30, then release" }, row: { "0:1": "until Apr 30, then release" } } })))
+      .toMatch(/row 0:1 carries one date at two levels/);
+  });
+});
+
+describe("troutOf (trout 4): the sub, the nested bands and the row labels", () => {
+  const inputs = (f: TroutValue) => ({ trout: f, rules: { has: (i: number) => i === 0 }, frames: { rows: { rows: [{}] } } }) as unknown as RegsInputs;
+  const day = { month: 4, day: 2 };
+  it("carries the sub and the nested bands as given; a nested band has no date", () => {
+    const vm = troutOf(inputs(vedder({ dates: { ...DATES, card: "Until May 31, then closed to all fishing" } })), day, day) as TroutVM;
+    expect(vm.top).toEqual({ lead: "Keep 2 trout and char today", sub: "or 4 if they're hatchery rainbow trout 50 cm (20 in) or less", second: null, date: null });
+    expect(vm.card).toBe("Until May 31, then closed to all fishing");
+    expect(vm.boxes[0]!.inner).toEqual([{ from: 2, to: 3, text: "only 1 between them", kind: "shared", date: null }]);
+  });
+  it("a row's label reads its band's words, then its nested band's (nested after outer), once each", () => {
+    const vm = troutOf(inputs(vedder({ dates: { ...DATES, band: { "0:0": "until Apr 30, then release" } } })), day, day) as TroutVM;
+    const a11y = vm.boxes[0]!.rows.map((r) => r.a11y);
+    expect(a11y).toEqual([
+      "Brook trout. 2 total from these 4. until Apr 30, then release",
+      "Cutthroat trout. 2 total from these 4. until Apr 30, then release",
+      "Dolly Varden/bull trout. 2 total from these 4. only 1 between them. until Apr 30, then release",
+      "Lake trout. 2 total from these 4. only 1 between them. until Apr 30, then release",
+      "Rainbow trout. 50 cm (20 in) or less if wild. counts toward the 4",
+    ]);
+    // the merged twin: origin null, nothing read for it
+    expect(vm.boxes[0]!.rows[4]!.origin).toBeNull();
   });
 });

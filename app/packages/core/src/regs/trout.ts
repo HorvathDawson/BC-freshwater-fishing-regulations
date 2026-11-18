@@ -6,7 +6,8 @@
  * exist; the app draws only. So this file states NO rule. It composes exactly two things (contract 2.12):
  * (1) the top line's one `{day}` slot, filled by `dayPhrase` ("today" / "on Jul 15", the strip's helper), and
  * (2) a row's screen-reader label: the row's payload texts in payload order (name, origin, label, sub, `lines`,
- *     `quiet`, the band text that covers it, then its date), joined by ". ", nothing else (contract 2.8).
+ *     `quiet`, the band text that covers it, then the nested band's (trout 4: nested after outer), then its date),
+ *     joined by ". ", nothing else (contract 2.8).
  * Everything else is the payload, drawn unchanged; a date sits at the one level the frame names.
  *
  * Before drawing, the frame is held to its shape: the same refusals as the pydantic model (`model/trout.py`), pinned by
@@ -84,13 +85,23 @@ function box(x: Box, bi: number): void {
     txt(r.sheet.head, `${rw} sheet head`); r.sheet.here.forEach((l) => txt(l.t, `${rw} sheet line`));
     if (r.sheet.src.length > 4) bad(`${rw}: a sheet cites at most 4 rules`);
   });
+  x.bands.forEach((b, k) => band(b, `band ${bi}:${k}`));
+  x.inner.forEach((b, k) => band(b, `nested band ${bi}:${k}`));
   if (x.kind !== "keep") {
-    if (x.bands.length || x.label || x.strip || x.possession || x.tag) bad(`a ${x.kind} box has no bands, label, strip, possession or tag`);
+    if (x.bands.length || x.label || x.strip || x.possession || x.tag || x.inner.length)
+      bad(`a ${x.kind} box has no bands, label, strip, possession or tag`);
     return;
   }
+  // (trout 4) a nested band: shared or size, inside ONE band and never that band whole (its 2+ rows: `band`), none overlapping
+  const taken = new Set<number>();
+  for (const y of x.inner) {
+    if (y.kind !== "shared" && y.kind !== "size") bad(`a nested band is shared or size, not ${y.kind}`);
+    const out = x.bands.find((b) => b.from <= y.from && y.to <= b.to);
+    if (!out || (out.from === y.from && out.to === y.to)) bad(`a nested band ${y.from}..${y.to} lies inside no band, or is one whole`);
+    for (let r = y.from; r <= y.to; r++) { if (taken.has(r)) bad(`nested bands overlap at row ${r}`); taken.add(r); }
+  }
   let next = 0;
-  x.bands.forEach((b, k) => {
-    band(b, `band ${bi}:${k}`);
+  x.bands.forEach((b) => {
     if (b.from !== next) bad(`the bands leave a gap or overlap at row ${next} (a band from ${b.from})`);
     next = b.to + 1;
   });
@@ -112,21 +123,26 @@ function dates(d: DateSet, t: TroutValue["table"]): void {
     if (!(b >= 0 && b < boxes.length)) bad(`a date names box ${k}, which does not exist`);
     return b;
   };
-  const levels = new Map<string, number>(), mark = (b: number, r: number) => levels.set(`${b}:${r}`, (levels.get(`${b}:${r}`) ?? 0) + 1);
-  for (const k of Object.keys(d.box)) { const b = boxOf(k); boxes[b]!.rows.forEach((_, r) => mark(b, r)); }
-  for (const k of Object.keys(d.band)) {
+  // (trout 3, "said once") a date holds every row under its level without a date of its own: the most specific level wins
+  // (row, band, box, then the card line or top). A level never repeats the date of the level above it, compared as the
+  // pydantic model does (the whole-table date with its first letter lowered)
+  const whole = d.card ?? d.top;
+  const levels = new Map<string, string[]>();
+  boxes.forEach((x, b) => x.rows.forEach((_, r) => levels.set(`${b}:${r}`, whole === null ? [] : [whole.slice(0, 1).toLowerCase() + whole.slice(1)])));
+  const mark = (b: number, r: number, t: string) => levels.get(`${b}:${r}`)!.push(t);
+  for (const [k, t] of Object.entries(d.box)) { const b = boxOf(k); boxes[b]!.rows.forEach((_, r) => mark(b, r, t)); }
+  for (const [k, t] of Object.entries(d.band)) {
     const [b, i = ""] = k.split(":"), bi = boxOf(b!);
     const x = /^\d+$/.test(i) ? boxes[bi]!.bands[Number(i)] : undefined;
     if (!x) bad(`a date names band ${k}, which does not exist`);
-    for (let r = x!.from; r <= x!.to; r++) mark(bi, r);
+    for (let r = x!.from; r <= x!.to; r++) mark(bi, r, t);
   }
-  for (const k of Object.keys(d.row)) {
+  for (const [k, t] of Object.entries(d.row)) {
     const [b, i = ""] = k.split(":"), bi = boxOf(b!);
     if (!/^\d+$/.test(i) || Number(i) >= boxes[bi]!.rows.length) bad(`a date names row ${k}, which does not exist`);
-    mark(bi, Number(i));
+    mark(bi, Number(i), t);
   }
-  const whole = d.card !== null || d.top !== null ? 1 : 0;
-  for (const [at, n] of levels) if (n + whole > 1) bad(`row ${at} carries a date at two levels`);
+  for (const [at, got] of levels) if (got.some((x, i) => i > 0 && x === got[i - 1])) bad(`row ${at} carries one date at two levels`);
   const keys = new Set(boxes.flatMap((x) => x.rows.map((r) => r.key)));
   for (const k of Object.keys(d.sheet)) if (!keys.has(k)) bad(`a sheet date names row ${k}, which the table does not hold`);
   const kinds = new Set(boxes.map((x) => x.kind));
@@ -147,7 +163,7 @@ function dates(d: DateSet, t: TroutValue["table"]): void {
  */
 export function checkTrout(f: TroutValue, at: TroutBounds): void {
   const t = f.table;
-  lead(t.top.lead); opt(t.top.second, "top.second");
+  lead(t.top.lead); opt(t.top.sub, "top.sub"); opt(t.top.second, "top.second");
   txt(t.fold.value, "fold.value");
   if (!t.boxes.length) bad("a table holds a box");
   t.boxes.forEach(box);
@@ -212,19 +228,21 @@ export function troutOf(inp: RegsInputs, day: Day, today: Day): TroutVM | TroutR
   const t = f.table, d = f.dates;
   const boxes = t.boxes.map((x, b): TroutBoxVM => {
     const bands = x.bands.map((y, k): TroutBandVM => ({ from: y.from, to: y.to, text: y.text, kind: y.kind, date: d?.band[`${b}:${k}`] ?? null }));
+    const inner = x.inner.map((y): TroutBandVM => ({ from: y.from, to: y.to, text: y.text, kind: y.kind, date: null }));
     const rows = x.rows.map((r, i): TroutRowVM => {
-      const by = bands.find((y) => y.from <= i && i <= y.to) ?? null, date = d?.row[`${b}:${i}`] ?? null;
+      const at = (y: TroutBandVM) => y.from <= i && i <= y.to;
+      const by = bands.find(at) ?? null, nest = inner.find(at) ?? null, date = d?.row[`${b}:${i}`] ?? null;
       return {
         key: r.key, fish: r.fish, name: r.name, origin: r.origin, label: r.label, sub: r.sub, lines: r.lines, quiet: r.quiet,
         src: r.src, sheet: r.sheet, coming: d?.sheet[r.key] ?? [], date,
-        a11y: a11yOf([r.name, r.origin, r.label, r.sub, ...r.lines, ...r.quiet, by?.text, date ?? by?.date]),
+        a11y: a11yOf([r.name, r.origin, r.label, r.sub, ...r.lines, ...r.quiet, by?.text, nest?.text, date ?? by?.date]),
       };
     });
-    return { kind: x.kind, head: x.head, label: x.label, strip: x.strip, possession: x.possession, tag: x.tag, date: d?.box[String(b)] ?? null, rows, bands };
+    return { kind: x.kind, head: x.head, label: x.label, strip: x.strip, possession: x.possession, tag: x.tag, date: d?.box[String(b)] ?? null, rows, bands, inner };
   });
   return {
     kind: "table",
-    top: { lead: t.top.lead.replace(DAY_SLOT, dayPhrase(day, today)), second: t.top.second, date: d?.top ?? null },
+    top: { lead: t.top.lead.replace(DAY_SLOT, dayPhrase(day, today)), sub: t.top.sub, second: t.top.second, date: d?.top ?? null },
     card: d?.card ?? null,
     fold: { name: TROUT_NAV.ENTRY, value: t.fold.value, tone: t.fold.tone, date: d?.fold ?? null },
     hatchLink: t.hatch_link ? TROUT_NAV.HATCH : null,
