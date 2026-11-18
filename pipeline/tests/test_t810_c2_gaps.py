@@ -132,3 +132,36 @@ def test_a_measuring_possession_clause_is_said(on, monkeypatch):
     monkeypatch.setattr(T, "A_POSSESSION_MEASURING_IS_A_CLAUSE", on)
     assert T.possession_says_more(BENNETT) is on
     assert T.possession_says_more("in your possession: no more than 2 lake trout (fish at home don’t count)") is False
+
+
+# ------------------------------------------------------------- a planted T17 frame (the mini world's Fixture River)
+
+def test_a_water_quota_no_larger_than_its_pool_sits_inside_it(tmp_path_factory, monkeypatch):
+    """RULINGS T17 planted in the mini world: Fixture River's "Dolly Varden daily quota = 2" (fixture_river.r5) sits inside
+    the river's own "Trout/char daily quota = 2": the Dolly Varden row "counts toward the 2" with no "only 2" (the
+    Lardeau's bull trout 2 inside Region 4's 2 from streams, Madden Creek). J proves the table. Mutation: the same table
+    with "only 2" planted on the Dolly Varden is still law (the stated-cap proof holds it exact) but no longer the T17
+    form this test pins."""
+    import json
+    from pipeline.tests import mini_chain
+    m = mini_chain.trout_inputs(tmp_path_factory)
+    data, _guide, rules = mini_chain.export(tmp_path_factory)
+    item = next(i for i, w in data["waters"].items() if w.get("name") == "Fixture River")
+    k = next(x for x in m.parts[item] if x is not None)
+    got = T.compose_key(m.sections["rows"][k], m.sections["display"][k], m.segments[k], m.moments[k], rules,
+                        licences=m.sections["licence"][k])
+    c = next(json.loads(json.dumps(f, ensure_ascii=False)) for f in got if f is not None)
+
+    def t17(cell) -> bool:
+        b = next(b for b in cell["table"]["boxes"] if b["kind"] == "keep")
+        i = next(i for i, r in enumerate(b["rows"]) if r["fish"] == "DV")
+        band = next(x for x in b["bands"] if x["from"] <= i <= x["to"])
+        return band["text"] == W.band_upto(W.parse_head(b["head"])[1]) and "only 2" not in b["rows"][i]["lines"]
+    assert any(r["fish"] == "DV" for b in c["table"]["boxes"] if b["kind"] == "keep" for r in b["rows"])
+    assert t17(c)
+    bad = copy.deepcopy(c)
+    b = next(b for b in bad["table"]["boxes"] if b["kind"] == "keep")
+    i = next(i for i, r in enumerate(b["rows"]) if r["fish"] == "DV")
+    b["bands"] = tuple({**x, "kind": "own", "text": W.band_in(W.parse_head(b["head"])[1], W.band_own(2))}
+                       if x["from"] == x["to"] == i else x for x in b["bands"])
+    assert not t17(bad)
