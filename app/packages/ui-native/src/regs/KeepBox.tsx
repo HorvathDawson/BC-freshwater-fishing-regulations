@@ -5,8 +5,8 @@
  * (`trout-table-contract.md` 2.3; core `TroutBox`, `TroutRow`, `TroutBand`) plus the DateSet text that lands on each cell
  * and the fish picture the caller resolves.
  *
- *  - KeepBox: one tint block, no outline. A strip across the top (the head, the filled label, the strip sentence, its
- *    notes, the strip date), the rows on the card colour with the tint as a left rail, the right band in the tint: a white
+ *  - KeepBox: one tint block, no outline. A strip across the top (the head, the filled label, the strip sentence; then the
+ *    trout box's possession line on its own line, its notes, the strip date), the rows on the card colour with the tint as a left rail, the right band in the tint: a white
  *    box per `own` / `shared` / `possession` band level with its rows (a shared one spans them), the free words of an
  *    `upto` band beside each row, a band's date small under it; then the bottom edge.
  *  - ShutGroup: under the box, no fill, faded pictures, ONE column word for the whole group ("↩ Release", "✕ Closed"),
@@ -165,10 +165,12 @@ function groupsOf(n: number, bands: readonly KeepBandVM[]): { from: number; to: 
   return out;
 }
 
-export function KeepBox({ head, label, strip, tag, notes = [], date, rows, bands, palette, testID = "keep-box" }:
+export function KeepBox({ head, label, strip, possession = null, tag, notes = [], date, rows, bands, palette, testID = "keep-box" }:
   Pick<TroutBox, "label" | "strip" | "tag"> & {
     /** the box's head ("Keep 5 in all"; the salmon card: DFO's day total), null: no strip */
     readonly head: string | null;
+    /** (T810 G2 Q4) the trout box's possession line, on its own line directly under the top line; absent: none */
+    readonly possession?: string | null;
     /** lines the strip carries under its sentence (the salmon card: the total's period limits, a water system's limit) */
     readonly notes?: readonly string[];
     /** DateSet.box: the strip date, when every row of the box shares it */
@@ -176,7 +178,7 @@ export function KeepBox({ head, label, strip, tag, notes = [], date, rows, bands
     readonly rows: readonly KeepRowVM[]; readonly bands: readonly KeepBandVM[]; readonly palette: Palette; readonly testID?: string }) {
   const folded = useFolded();
   const groups = groupsOf(rows.length, bands);
-  const hasStrip = !!(head || label || strip || tag || notes.length || date);
+  const hasStrip = !!(head || label || strip || possession || tag || notes.length || date);
   return (
     <View testID={testID} style={{ backgroundColor: palette.tint, paddingLeft: 8, paddingBottom: 8, marginTop: 6 }}>
       {hasStrip ? (
@@ -187,6 +189,7 @@ export function KeepBox({ head, label, strip, tag, notes = [], date, rows, bands
             {strip && <Text selectable testID="keep-strip-text" style={{ ...NOW, color: palette.ink }}>{strip}</Text>}
             {tag && <Text testID="keep-tag" style={{ ...TYPE.chip, color: palette.accent, borderWidth: 1, borderColor: palette.accent, paddingHorizontal: 5 }}>{tag}</Text>}
           </View>
+          {possession && <Text selectable testID="keep-possession" style={{ ...NOW, color: palette.ink, marginTop: 2 }}>{possession}</Text>}
           {notes.map((l) => <Text selectable key={l} testID="keep-strip-note" style={{ ...NOW, color: palette.ink, marginTop: 2 }}>{l}</Text>)}
           {date && <Text selectable testID="keep-strip-date" style={{ ...NEXT, color: palette.sub, marginTop: 2 }}>{date}</Text>}
         </View>

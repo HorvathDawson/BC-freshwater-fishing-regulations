@@ -43,7 +43,7 @@ function rowOf(r: TroutRowVM, actions: KeepActions, images: FishImages | undefin
 function Box({ b, i, palette, actions, images }: { b: TroutBoxVM; i: number; palette: Palette; actions: KeepActions; images?: FishImages }) {
   const rows = b.rows.map((r) => rowOf(r, actions, images));
   if (b.kind === "keep")
-    return <KeepBox testID={`trout-box:${i}`} head={b.head} label={b.label} strip={b.strip} tag={b.tag} date={b.date} rows={rows}
+    return <KeepBox testID={`trout-box:${i}`} head={b.head} label={b.label} strip={b.strip} possession={b.possession} tag={b.tag} date={b.date} rows={rows}
                     bands={b.bands} palette={palette} />;
   return <ShutGroup testID={`trout-${b.kind}`} kind={b.kind} head={b.head} date={b.date} rows={rows} palette={palette} />;
 }
