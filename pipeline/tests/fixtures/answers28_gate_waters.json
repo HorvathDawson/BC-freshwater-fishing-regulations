@@ -661,7 +661,7 @@
     }
    ],
    "family": "retention",
-   "label": "Trout — 1 per day, all species combined (none under 40 cm)",
+   "label": "Trout and char other than Dolly Varden/bull trout and brook trout — 1 per day, all species combined (none under 40 cm)",
    "lengths": [
     {
      "min_cm": 40
@@ -672,7 +672,7 @@
     }
    ],
    "may_target": null,
-   "parts": "{\"what\":\"Trout — 1 per day, all species combined\",\"size\":\"none under 40 cm\"}",
+   "parts": "{\"what\":\"Trout and char other than Dolly Varden/bull trout and brook trout — 1 per day, all species combined\",\"size\":\"none under 40 cm\"}",
    "period": "daily",
    "rule": "ross_lake.r3",
    "rule_id": "ross_lake.r3",
@@ -681,7 +681,8 @@
     "TROUT_CHAR"
    ],
    "species_except": [
-    "CHAR"
+    "DV",
+    "EB"
    ],
    "take": 1,
    "type": "retention_limit",

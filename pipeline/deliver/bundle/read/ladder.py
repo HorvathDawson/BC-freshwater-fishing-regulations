@@ -202,10 +202,10 @@ def stricter(a: dict, b: dict) -> bool:
 
 #: OWNER 2026-10-24 (T183 follow-ups): ON A PIECE IN TWO REGIONS EVERY CAP IS THE STRICTER OF THE TWO — and a cap
 #: over FEWER fish is another cap, not a stricter copy. Region 6's "1 trout from streams July 1-Oct 31" (trout/char
-#: less char) and Zone 7A's "2 from streams" (trout and char) say the same WORD ("from streams", `same_statement`
-#: keeps a CHAR exception out of the statement), but Region 6's holds no char: had it displaced Zone 7A's for a
-#: rainbow, the rainbow would count toward no stream share of 2 and an angler could keep 1 trout AND 2 char from
-#: the stream. Both bind: the stricter of each. A quota displaces the other region's only when it holds every fish
+#: less Dolly Varden and lake trout, C2 as amended 2026-11-18) and Zone 7A's "2 from streams" (trout and char) say
+#: the same WORD ("from streams", `same_statement` keeps a char exception out of the statement), but Region 6's
+#: holds no Dolly Varden or lake trout: had it displaced Zone 7A's for a rainbow, the rainbow would count toward no
+#: stream share of 2 and an angler could keep 1 trout AND 2 of those char from the stream. Both bind: the stricter of each. A quota displaces the other region's only when it holds every fish
 #: that one holds. False = the CHAR scope ignored here too (the mutation pin: Big Bend Creek keeps 3).
 A_NARROWER_CAP_NEVER_DISPLACES_A_WIDER = True
 

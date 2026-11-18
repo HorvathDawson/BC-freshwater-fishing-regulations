@@ -1132,16 +1132,21 @@ def guide_gotchas(d: dict) -> dict:
                     "excludes char in so many words, or its own row or zone table gives char a "
                     "RELATED line of their own — about the same thing (how many you keep or must "
                     "release, sizes, gear), on the same kind of water and days (user ruling "
-                    "2026-10-07). Region 1's box releases 'All char', so its 'Trout: 4' and '2 from "
-                    "streams (must be hatchery)' count trout only; Region 6's 'Trout of any size from "
-                    "streams, Nov 1-June 30' sits beside its own Dolly Varden stream release, so it "
-                    "is trout only, but its size line 'Trout under 30 cm from any stream' has no char "
+                    "2026-10-07). Only the char given that line leave the trout line; all char leave "
+                    "it only when char as a group have it (owner 2026-11-18). Region 1's box releases "
+                    "'All char', so its 'Trout: 4' and '2 from streams (must be hatchery)' count "
+                    "trout only; Chilliwack Lake's 'No wild trout over 50 cm' beside '1 bull trout "
+                    "over 60 cm' leaves out bull trout alone, so a wild brook trout or lake trout over "
+                    "50 cm goes back; Region 6's 'Trout of any size from streams, Nov 1-June 30' "
+                    "sits beside its own Dolly Varden and lake trout lines, so it covers trout and "
+                    "brook trout, but its size line 'Trout under 30 cm from any stream' has no char "
                     "size line beside it and covers char. A row printing only 'no trout under 25 cm' "
                     "and 'Bull trout catch and release' keeps the 25 cm limit on bull trout too. "
                     "'Trout/char' always includes char. Show `note` beside every trout rule, and "
                     "`note_trout_only` beside one whose char are excluded.",
             "note": "Trout includes char (Dolly Varden/bull trout, lake trout, brook trout) "
-                    "unless the line excludes them or char have their own line about the same thing.",
+                    "unless the line excludes them or char have their own line about the same thing; "
+                    "when one char has its own line, only that char is left out.",
             "note_trout_only": "Char have their own line about the same thing here, so 'trout' "
                                "means trout only (rainbow, steelhead, cutthroat, brown); char follow "
                                "their own lines.",

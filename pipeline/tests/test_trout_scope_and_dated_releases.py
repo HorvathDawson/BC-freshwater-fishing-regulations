@@ -73,25 +73,29 @@ def _entry(text: str, rules: list[dict]) -> dict:
 
 
 def test_the_row_decides_the_scope_both_ways():
-    """A 'trout' line of a row naming char apart must exclude char; of a row naming none, must
-    not; a 'trout/char' line never does; one char alone is never the exclusion."""
+    """A 'trout' line of a row naming char apart must exclude the char named; of a row naming none,
+    must not; a 'trout/char' line never does. RULINGS C2 as amended by the owner 2026-11-18: one
+    char's own line takes only that char out ([DV]); the char GROUP's line takes all char out."""
     trout = {"rule_id": "x.r1", "verbatim": "1 trout from streams", "species": ["TROUT_CHAR"],
              "take": 1}
+    dv = {"rule_id": "x.r2", "verbatim": "bull trout catch and release", "species": ["DV"], "take": 0,
+          "may_target": True}
     ok = _entry("1 trout from streams; bull trout catch and release",
-                [dict(trout, species_except=["CHAR"]),
-                 {"rule_id": "x.r2", "verbatim": "bull trout catch and release",
-                  "species": ["DV"], "take": 0, "may_target": True}])
+                [dict(trout, species_except=["DV"]), dv])
     C.CatalogueEntry.model_validate(ok)
+    C.CatalogueEntry.model_validate(_entry("1 trout from streams; char catch and release", [
+        dict(trout, species_except=["CHAR"]),
+        dict(dv, verbatim="char catch and release", species=["CHAR"])]))
     for bad, why in (
-            (_entry("1 trout from streams; bull trout catch and release",
-                    [trout, ok["rules"][1]]), "its trout exclude char"),
+            (_entry("1 trout from streams; bull trout catch and release", [trout, dv]),
+             "gives \\['DV'\\] a related rule"),
             (_entry("1 trout from streams", [dict(trout, species_except=["CHAR"])]),
-             "no char rule of its own"),
+             "gives no char a related rule"),
             (_entry("Trout/char: 5; char catch and release",
                     [dict(trout, verbatim="Trout/char: 5", take=5, species_except=["CHAR"])]),
              "names char in"),
-            (_entry("1 trout from streams; bull trout catch and release",
-                    [dict(trout, species_except=["DV"]), ok["rules"][1]]), "never one char")):
+            (_entry("1 trout from streams; bull trout catch and release",      # the reading before 2026-11-18
+                    [dict(trout, species_except=["CHAR"]), dv]), "species_except \\['DV'\\], not \\['CHAR'\\]")):
         with pytest.raises(ValueError, match=why):
             C.CatalogueEntry.model_validate(bad)
     # a clause under a "trout" quota is a trout line too (Region 1's "1 over 50 cm")
@@ -124,14 +128,17 @@ def _rule(corpus, eid, rid):
 
 
 def test_region_6_and_region_1_trout_lines_are_trout_only(corpus):
-    """R6 (p.49) and R1 (p.13) give char RELATED lines of their own (user 2026-10-07, TROUT/CHAR
-    CLARIFIED), so their bare 'trout' count/release lines exclude it; their 'Trout/char' lines keep
+    """R1 (p.13) gives char as a group a RELATED line of its own ("All char"; user 2026-10-07, TROUT/CHAR
+    CLARIFIED), so its bare 'trout' count/release lines exclude char; R6 (p.49) gives Dolly Varden and
+    lake trout theirs, so its exclude those two (C2 amended 2026-11-18); their 'Trout/char' lines keep
     it, and Region 6's size line 'Trout under 30 cm from any stream' (no char size line beside it)
     covers char. The label says 'Trout'."""
     assert "CHAR" not in _rule(corpus, "z6:daily_quotas", "trout_char_quota.r6").species_except
-    for eid, rid in (("z6:daily_quotas", "trout_char_quota.r4"),
-                     ("z6:daily_quotas", "trout_char_quota.r7"),
-                     ("z1:daily_quotas", "trout_quota.r1"), ("z1:daily_quotas", "trout_quota.r2"),
+    # C2 as amended 2026-11-18: Region 6 names Dolly Varden and lake trout, never char as a group or
+    # brook trout — its stream lines leave out those two and hold brook trout
+    for rid in ("trout_char_quota.r4", "trout_char_quota.r7"):
+        assert _rule(corpus, "z6:daily_quotas", rid).species_except == ["DV", "LT"], rid
+    for eid, rid in (("z1:daily_quotas", "trout_quota.r1"), ("z1:daily_quotas", "trout_quota.r2"),
                      ("z1:daily_quotas", "trout_quota.r4"), ("z1:daily_quotas", "trout_quota.r6")):
         r = _rule(corpus, eid, rid)
         assert "CHAR" in r.species_except and r.species == ["TROUT_CHAR"], (eid, rid)
@@ -153,13 +160,13 @@ def test_a_row_naming_no_char_apart_keeps_char_in_its_trout(corpus):
         assert r.species == ["TROUT_CHAR"] and "CHAR" not in r.species_except, lake
 
 
-def test_the_region_2_bull_trout_rows_exclude_char_as_a_group(corpus):
-    """The six 'No wild trout over 50 cm, 1 bull trout over 60 cm' lakes now follow the general
-    rule (CHAR), not a DV-only exception."""
+def test_the_region_2_bull_trout_rows_exclude_bull_trout_alone(corpus):
+    """The six 'No wild trout over 50 cm, 1 bull trout over 60 cm' lakes: bull trout alone is out
+    (owner 2026-11-18, RULINGS C2 amended: "only bull trout is out")."""
     for lake, mu in (("chehalis", "2-19"), ("chilliwack", "2-4"), ("cultus", "2-3"),
                      ("harrison", "2-18"), ("lillooet", "2-10"), ("pitt", "2-8")):
         r = _rule(corpus, f"r2:{lake}_lake@{mu}", f"{lake}_lake.r1")
-        assert r.species_except == ["CHAR"], lake
+        assert r.species_except == ["DV"], lake
 
 
 def test_the_printed_word_trout_is_one_statement():
@@ -170,6 +177,7 @@ def test_the_printed_word_trout_is_one_statement():
             "take": 4}
     lake = {"type": "retention_limit", "species": ["TROUT_CHAR"], "take": 2}
     assert RM.same_statement(zone, lake)
+    assert RM.same_statement(dict(zone, species_except=["DV"]), lake)       # one char alone (C2, 2026-11-18)
     assert not RM.same_statement(dict(zone, species_except=["CHAR", "ST"]), lake)
     assert not RM.same_statement({"type": "retention_limit", "species": ["ST"], "take": 1}, lake)
 
@@ -206,24 +214,28 @@ def test_amor_lakes_2_replaces_region_1s_4_and_the_char_release_still_binds(tmp_
         assert _states(path, char, (7, 1)) == {"q.r7": "speaks"}, char
 
 
-def test_region_6s_winter_stream_release_no_longer_takes_char(tmp_path):
-    """'Trout of any size from streams, Nov 1-June 30' is trout only: a brook trout in a stream in
-    December answers to the box's 'Trout/char: 5' (and its char lines), a rainbow is released."""
+def test_region_6s_winter_stream_release_takes_brook_trout_not_its_named_char(tmp_path):
+    """'Trout of any size from streams, Nov 1-June 30' leaves out only the char Region 6 gives lines
+    of their own — Dolly Varden and lake trout (RULINGS C2, amended by the owner 2026-11-18): a brook
+    trout in a stream in December is released like a rainbow; a lake trout answers to the box's
+    'Trout/char: 5' (and its own lines)."""
     path = _tiny(tmp_path, [
         {"entry": "z6:q", "rule": "q.r1", "species": ["TROUT_CHAR"], "take": 5, "_rank": 3},
-        {"entry": "z6:q", "rule": "q.r7", "species": ["TROUT_CHAR"], "species_except": ["CHAR"],
+        {"entry": "z6:q", "rule": "q.r7", "species": ["TROUT_CHAR"], "species_except": ["DV", "LT"],
          "take": 0, "may_target": 1, "water": "stream", "_rank": 3,
          "dimension": "daily@water=stream",
          "when": {"dates": [{"from_month": 11, "from_day": 1, "to_month": 6, "to_day": 30}]}}])
-    assert _states(path, "EB", (12, 1)) == {"q.r1": "speaks"}
+    assert _states(path, "EB", (12, 1)) == {"q.r1": "speaks", "q.r7": "speaks"}
     assert _states(path, "RB", (12, 1)) == {"q.r1": "speaks", "q.r7": "speaks"}
+    for char in ("LT", "DV"):
+        assert _states(path, char, (12, 1)) == {"q.r1": "speaks"}, char
 
 
 @pytest.mark.needs_bundle
 def test_the_book_answers_on_real_sections():
     """On the built bundle: Amor Lake answers a rainbow with its own 2 and a Dolly Varden with
-    Region 1's char release; Region 6's winter stream release speaks for a rainbow, not a brook
-    trout."""
+    Region 1's char release; Region 6's winter stream release speaks for a rainbow and a brook trout,
+    not a lake trout (RULINGS C2, amended 2026-11-18)."""
     need(None, "bundle", BUNDLE, BUNDLE_HINT)
     db = sqlite3.connect(f"file:{BUNDLE}?mode=ro", uri=True)
     sp = db.execute("select species_except from rule where entry_id='z1:daily_quotas' and "
@@ -241,9 +253,14 @@ def test_the_book_answers_on_real_sections():
     assert "z1:daily_quotas::trout_quota.r1" not in speaks(amor, "RB", (7, 1))
     assert "z1:daily_quotas::trout_quota.r7" in speaks(amor, "DV", (7, 1))
     assert "r1:amor_lake@1-10::amor_lake.r1" not in speaks(amor, "DV", (7, 1))
+    r7 = db.execute("select species_except from rule where entry_id='z6:daily_quotas' and "
+                    "rule_id='trout_char_quota.r7'").fetchone()
+    if not r7 or "CHAR" in (r7[0] or ""):
+        predates(f"{BUNDLE} predates the C2 amendment of 2026-11-18 (Region 6's r7 still leaves out CHAR)")
     stream = sid("z6:daily_quotas", "trout_char_quota.r7")
     assert "z6:daily_quotas::trout_char_quota.r7" in speaks(stream, "RB", (12, 1))
-    assert "z6:daily_quotas::trout_char_quota.r7" not in speaks(stream, "EB", (12, 1))
+    assert "z6:daily_quotas::trout_char_quota.r7" in speaks(stream, "EB", (12, 1))
+    assert "z6:daily_quotas::trout_char_quota.r7" not in speaks(stream, "LT", (12, 1))
 
 
 # ================================================================ B — dated zone releases stand

@@ -120,15 +120,26 @@ def test_fraser_in_regions_3_and_5_is_2_from_streams():
 
 
 def test_big_bend_in_regions_6_and_7a_both_stream_caps_bind():
-    """Region 6 "1 trout from streams July 1-Oct 31" (trout, char excepted) and Zone 7A "2 from streams" (trout and
-    char): both bind — 1 trout, 2 in all from streams. In January Region 6's is out of season: Zone 7A's 2."""
+    """Region 6 "1 trout from streams July 1-Oct 31" (trout and brook trout; Dolly Varden and lake trout excepted, RULINGS
+    C2 as amended 2026-11-18) and Zone 7A "2 from streams" (trout and char): both bind — 1 trout or brook trout, 2 in
+    all from streams, a lake trout up to the 2. In January Region 6's is out of season and its Nov 1-June 30 release
+    sends the trout AND brook trout back: lake trout alone, Zone 7A's 2.
+    (January's card: the gate cannot prove Region 6's total of 5 with lake trout alone — an open question for the
+    card, reported with the C2 lane; the answers are pinned here, the gate in July.)"""
     for md in (JUL15, JAN15):
         out, P = _card("big_bend_6_7a", md)
-        _row, g = _trout(out)
+        row, g = _trout(out)
         assert g["headline"]["n"] == 2, (md, g["headline"])
-        z7a = next(s for s in g["subcaps"] if s["r"] == "z7a:daily_quotas::trout_char_quota.r3")
-        assert {"RB", "EB"} <= set(z7a["of"]) or md == JAN15
-        assert CC.check_card(P, out) == [], md
+        bands = {S: max(b[2] for b in it["bands"]) for it in row["items"] if it["bands"] for S in it["members"]}
+        if md == JUL15:
+            z7a = next(s for s in g["subcaps"] if s["r"] == "z7a:daily_quotas::trout_char_quota.r3")
+            r6 = next(s for s in g["subcaps"] if s["r"] == "z6:daily_quotas::trout_char_quota.r4")
+            assert {"RB", "EB", "LT"} <= set(z7a["of"]) and "EB" in r6["of"] and "LT" not in r6["of"]
+            assert bands["EB"] == bands["RB"] == 1 and bands["LT"] == 2
+            assert CC.check_card(P, out) == [], md
+        else:
+            assert bands == {"LT": 2}
+            assert all(out["fish"][S][o]["status"] == "release" for S in ("EB", "RB") for o in ("hatchery", "wild"))
 
 
 def test_contact_creek_in_regions_6_and_7b_is_2_from_streams():
@@ -158,28 +169,39 @@ def test_copper_creek_in_regions_2_and_8_keeps_1_over_50_cm():
 
 def test_qualcho_pond_in_regions_5_and_6_keeps_1_trout_from_streams_in_summer():
     """T678: the pond on Qualcho Creek (Regions 5 and 6). Region 5's table wins the total, so Region 6's "1 trout from
-    streams July 1-Oct 31" (char excepted) folds into each trout's own answer with no fact line of its own. Every kind
-    row says what that fish alone may be kept (`conds.A_KIND_NEVER_SAYS_MORE_THAN_ITS_OWN_ANSWER`): brook and lake trout
-    2, brown, cutthroat and rainbow trout 1 between them, inside the 2 from streams. In January Region 6's cap is out of
-    season (the trout go back there then; brook and lake trout keep Region 5's 2)."""
+    streams July 1-Oct 31" (Dolly Varden and lake trout excepted, RULINGS C2 as amended 2026-11-18) folds into each
+    trout's own answer. Every kind row says what that fish alone may be kept (`conds.A_KIND_NEVER_SAYS_MORE_THAN_ITS_OWN_
+    ANSWER`): lake trout 2; brook, brown, cutthroat and rainbow trout 1 between them, inside the 2 from streams. In
+    January Region 6's cap is out of season and its Nov 1-June 30 release sends the trout and brook trout back; lake
+    trout keep Region 5's 2. (January's card: the gate cannot prove Region 5's total of 5 with lake trout alone — an
+    open question for the card, reported with the C2 lane; the answers are pinned here.)"""
     out, P = _card("qualcho_5_6")
     row, g = _trout(out)
     assert g["headline"]["n"] == 2
     bands = {S: max(b[2] for b in it["bands"]) for it in row["items"] if it["bands"] for S in it["members"]}
-    assert bands == {"EB": 2, "LT": 2, "GB": 1, "CT": 1, "RB": 1}
+    assert bands == {"EB": 1, "LT": 2, "GB": 1, "CT": 1, "RB": 1}
     (share,) = [b for b in g["buckets"] if b["why"] == "share"]
     trout = [x for x in share["groups"] if x["by"] == "z6:daily_quotas::trout_char_quota.r4"]
-    assert [x["says"] for x in trout] == ["Brown trout, cutthroat trout or rainbow trout: 1 between them"]
-    assert {S for k in trout[0]["kinds"] for S in k["species"]} == {"GB", "CT", "RB"}
+    assert [x["says"] for x in trout] == ["Brook trout, brown trout, cutthroat trout or rainbow trout: 1 between them"]
+    assert {S for k in trout[0]["kinds"] for S in k["species"]} == {"EB", "GB", "CT", "RB"}
     assert all(k["n"] == 1 for k in trout[0]["kinds"])
     assert row["scope"]["both"] == "Regions 5 and 6"
     assert CC.check_card(P, out) == []
     out, P = _card("qualcho_5_6", JAN15)
     row, _g = _trout(out)
     bands = {S: max(b[2] for b in it["bands"]) for it in row["items"] if it["bands"] for S in it["members"]}
-    assert bands == {"EB": 2, "LT": 2}
-    assert {S for it in row["items"] if it["back"] for S in it["members"]} >= {"GB", "CT", "RB"}
-    assert CC.check_card(P, out) == []
+    assert bands == {"LT": 2}
+    assert all(out["fish"][S][o]["status"] == "release" for S in ("EB", "GB", "CT", "RB") for o in ("hatchery", "wild"))
+
+
+def test_mutation_the_row_number_from_the_first_fish_says_1_lake_trout_where_2_may_be_kept(monkeypatch):
+    """`card_model.A_ROW_NUMBER_FROM_AN_UNNARROWED_FISH` off: the row's number is the brook trout's 1 (the first fish by
+    name, now under Region 6's "1 trout from streams"), and the lake trout's 2 is said as 1."""
+    from pipeline.deliver.answers.rows import card_model
+    monkeypatch.setattr(card_model, "A_ROW_NUMBER_FROM_AN_UNNARROWED_FISH", False)
+    for shape in ("big_bend_6_7a", "qualcho_5_6"):
+        out, P = _card(shape)
+        assert any("says 1, LT alone keeps 2" in p for p in CC.check_card(P, out)), shape
 
 
 # ------------------------------------------------------------------------------------------- mutation pins
@@ -217,7 +239,7 @@ def test_mutation_the_kind_rows_from_the_rows_number_say_2_rainbow_where_1_may_b
     from pipeline.deliver.answers.rows import conds
     monkeypatch.setattr(conds, "A_KIND_NEVER_SAYS_MORE_THAN_ITS_OWN_ANSWER", False)
     out, P = _card("qualcho_5_6")
-    assert any("kind ['RB'] says 2" in p for p in CC.check_card(P, out))
+    assert any("kind ['RB'] says 2" in p for p in CC.check_card(P, out))     # (and the brook trout's kind)
 
 
 @pytest.mark.parametrize("shape", sorted(FLAGS))

@@ -423,3 +423,12 @@ card, and Ross Lake's headline 2 against a daily total of 4 (both from the trout
 - zsh does not split $VAR into words: build argument lists as arrays.
 - `git apply` of several cut patches collides; use `apply_proposals --only <id> --side-checked <id>`.
 - A lane's fix can trip a layout guard only the full tier sees (the size-shape guard): full tier before push, always.
+
+## 04:34 11-18 — 0.8.0 state (main chat)
+- PUSHED: batch 1 f75a09681, batch 2 8aa3b8733, batch 3 db385b9d9 + CI fixes 238ba3809 (T841 classified gate, T809 answers_diff, G8 per-water, trout words, A1). App chat batch 1 45fff5e63, batch 2 c76ff33d4.
+- CUTOVER (L+S): lane/t810-l merge-ready 5788a7914 (trout v5; owner rounds 1-4 + simplify/order/dates/merged twins; J exact caps; reviewed x5). App chat integrates on app/t810-cutover (f75b3d62e + T845), refresh + tier + bench, pushes after my "review clear" (last short re-review running).
+- C2 (owner: one char named leaves the trout line alone; 15 lines incl. R6 brook trout, Ross Lake; approved): lane/c2-one-char 6582498f2, reviewed + fixed. Merge on top of the cutover push.
+- C2+L proof: scratchpad/c2l-proof (bundle on rebuild3 + C2 + T17; side release r-54d7abce9bec, J 0). Finals for the owner shot from it.
+- Golden declarations for the rebuild3 release (x17p2 Babine T812, x22p6 Peace T794, bc1 Bella Coola T794): scratchpad/golden-moves/declarations.patch — commit right before the data build.
+- DATA BUILD: scratchpad/rebuild4/chain.sh needs its worktree (rebuild4-wt, not present) recreated at the merged HEAD; run dfo_salmon.feed first. Then staging release (tiles+data, min 0.8.0 derived), app chat full bench + old-app check, then 0.8.0 Play/TestFlight after the owner's finals sign-off. Web deploy moves with the release.
+- Open after 0.8.0: T846 (Bella Coola decided keep), T840, T845 (app chat, maybe in 0.8.0).

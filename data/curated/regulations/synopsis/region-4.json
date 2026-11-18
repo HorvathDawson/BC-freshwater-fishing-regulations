@@ -4778,7 +4778,7 @@
       }
      ],
      "species_except": [
-      "CHAR"
+      "DV"
      ]
     },
     {
@@ -4880,7 +4880,7 @@
       "TROUT_CHAR"
      ],
      "species_except": [
-      "CHAR"
+      "DV"
      ],
      "when": {
       "dates": [
@@ -7553,7 +7553,7 @@
      ],
      "extent_text": "upstream of Koocanusa Reservoir to White River",
      "species_except": [
-      "CHAR"
+      "DV"
      ]
     },
     {
@@ -7651,7 +7651,7 @@
       }
      ],
      "species_except": [
-      "CHAR"
+      "DV"
      ]
     },
     {

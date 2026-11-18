@@ -68,11 +68,13 @@ def species_table() -> dict:
                                    "also apply to char unless char are specifically excluded' "
                                    "— the trout group is TROUT_CHAR; a bare 'trout' line is "
                                    "TROUT_CHAR with species_except CHAR only where it excludes "
-                                   "char in words or its row or zone table gives char a RELATED "
-                                   "line of their own (same aspect, water kind and days; user "
-                                   "ruling 2026-10-07)",
+                                   "char in words or its row or zone table gives char as a group "
+                                   "a RELATED line of their own (same aspect, water kind and days; "
+                                   "user ruling 2026-10-07); a char given such a line alone is "
+                                   "excepted alone (species_except DV; owner 2026-11-18)",
             "trout_note": "Trout includes char (Dolly Varden/bull trout, lake trout, brook "
-                          "trout) unless the line excludes them or char have their own line about the same thing.",
+                          "trout) unless the line excludes them or char have their own line about the same thing; "
+                          "when one char has its own line, only that char is left out.",
             # A SALMON THE BOOK NAMES — not a game fish, not in `fish` (user ruling 2026-09-28)
             "salmon": {c: {"name": _name(c), "group": g, "game_fish": False}
                        for c, g in sorted(C.SALMON_FISH.items())},
