@@ -12,7 +12,7 @@
 //
 //   TROUT_SIDE_ID=r-…        (required) the side release's id, as test/release/manifest.json names it
 //   TROUT_Q / TROUT_ROW      the water: search words and its result row (default the Vedder River, Region 2)
-import { appUp, logStatus, openLog, openWater, toMap } from './common.mjs';
+import { appUp, openLog, openWater, toMap } from './common.mjs';
 
 const SIDE = process.env.TROUT_SIDE_ID ?? null;
 const Q = process.env.TROUT_Q ?? 'Vedder River';
@@ -38,8 +38,10 @@ export const troutTable = {
     }, { stop: true });
     await ctx.step('the Updates log names the side release', async () => {
       openLog(ctx);
-      const line = await ctx.until(() => { const l = logStatus(ctx); return l.includes(SIDE) ? l : null; },
-                                   { ms: 30_000, what: `the log's Release line naming ${SIDE}` });
+      // the release in use is named in the log's header ("channel test · release r-…"); the status block's "Release: ok"
+      // never names it (bench 2026-11-18: the table was fine, this step looked in the wrong place)
+      const line = await ctx.until(() => ctx.device.screenText().find((w) => w.includes(`release ${SIDE}`)) ?? null,
+                                   { ms: 30_000, what: `the log's header naming release ${SIDE}` });
       await toMap(ctx);
       return line;
     }, { stop: true });
