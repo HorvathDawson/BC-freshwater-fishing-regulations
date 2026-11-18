@@ -27,6 +27,16 @@ export interface ChangelogEntry {
 
 export const CHANGELOG: readonly ChangelogEntry[] = [
   {
+    version: "0.8.1", date: null, draft: true, notes: [
+      "The map draws faster, most of all the Salmon map when you zoom out",
+      "Route maps on the phone show the gauge dots and where you are",
+      "A sharper swimming coho while data loads, with a cleaner line under it",
+      "On a computer, the Trout / Salmon switch sits beside the day, and the side bar lets the map show through",
+      "iPhone: a water no longer keeps an old colour after the map changes",
+    ],
+    only: { "iPhone: a water no longer keeps an old colour after the map changes": "ios" },
+  },
+  {
     version: "0.8.0", date: null, notes: [
       "Trout and char: one table per water: each fish's size and what it counts toward, shared limits boxed together",
       "Tap a fish for how to tell it apart, what applies to it here today, and the book's own lines",
