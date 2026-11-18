@@ -409,9 +409,10 @@ def _exact_lines(P, model: dict, row: dict, grp: Optional[dict], lines: List[dic
     E = Engine(P, P.cands[0].key)
     other = "stream" if P.kind == "stream" else "lake"
     away = "lake" if P.kind == "stream" else "stream"
-    # the fish a line covers: a row of one fish speaks of that fish (its subject on the table: "Brook trout: Kept 2 …");
-    # any other of every trout and char
-    tc = sorted(set(row["members"])) if len(set(row["members"])) == 1 else sorted(common.trout_char())
+    # an unlabelled line reads as any trout or char (the re-review of f34069a91): checked over every one; a row of one
+    # fish whose line is not true of every one names that fish ("Kept 2 brook trout on another stream? Keep 18 more")
+    tc = sorted(common.trout_char())
+    single = sorted(set(row["members"]))[0] if len(set(row["members"])) == 1 else None
     out: List[dict] = []
     for L in lines:
         m = _KEPT_Q.fullmatch(L["q"])
@@ -437,7 +438,20 @@ def _exact_lines(P, model: dict, row: dict, grp: Optional[dict], lines: List[dic
                             got.append(f)
                     if len(got) == n:
                         res.setdefault(S, set()).add(E.most(E.fish(kinds), got, cap=int(claim) + 25))
-        if not res or all(v == {claim} for v in res.values()) or any(len(v) > 1 for v in res.values()):
+        if not res or all(v == {claim} for v in res.values()):
+            out.append(L)
+            continue
+        if single is not None:
+            mine = res.get(single)
+            if mine is None or len(mine) > 1:
+                out.append(L)
+                continue
+            k0 = next(iter(mine))
+            out.append({**L, "q": f"Kept {_js(n)} {common.lc_names([single])} {m[2] + (m[5] or '')}?",
+                        "a": L["a"] if k0 == claim else _more_words(k0), "here": L.get("here") if k0 == claim else k0,
+                        "species": [single]})
+            continue
+        if any(len(v) > 1 for v in res.values()):
             out.append(L)
             continue
         by: Dict[float, List[str]] = {}
