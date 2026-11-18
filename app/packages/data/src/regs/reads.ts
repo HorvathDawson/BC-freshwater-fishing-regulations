@@ -30,7 +30,7 @@ import type {
   LadderFrameWire, LicenceValue, Moment, OptionalSectionName, PartFacts, Picker, RowsValue, RuleFacts, Statics, TroutFrameWire,
   TroutTableWire, TroutValue, VerdictWire,
 } from "@app/core";
-import { CELL_COLUMNS, CELL_SECTIONS, isConfidence } from "@app/core";
+import { CELL_COLUMNS, CELL_NULLABLE, CELL_SECTIONS, isConfidence } from "@app/core";
 import { PACK_OPTIONAL_SECTION_TABLES } from "../pack.generated";
 import type { Cell, Db, Row } from "../sql/db";
 import { CROSS } from "../release/queries";
@@ -75,8 +75,9 @@ export type StoreStatics = Statics;
  */
 export type StoredCell = CellIds & { readonly [K in OptionalSectionName]?: number | null };
 /** (T810 S) The `cell` columns that may be NULL (contract 2.1: the trout table's, Q-D3: no table there), read as null,
- *  never as frame 0 (`Number(null)`). Every other section's frame id is a number in every cell. */
-const NULL_CELLS: ReadonlySet<string> = new Set(["trout"]);
+ *  never as frame 0 (`Number(null)`): the GENERATED list (`CELL_NULLABLE`, from the store's own schema). Every other
+ *  section's frame id is a number in every cell. */
+const NULL_CELLS: ReadonlySet<string> = new Set(CELL_NULLABLE);
 export interface Frames {
   readonly ladder: LadderFrameWire; readonly rows: RowsValue; readonly gear: GearValue;
   readonly licence: LicenceValue; readonly display: DisplayFrame;

@@ -22,7 +22,7 @@ export type { RowsValue, Row, Decided, GearAnswer, GearValue, StatusFrame, Licen
 /** (T810 M) the trout section's decoded value and its wire parts (`@app/data` reads decode them) */
 export type { TroutValue, TroutFrameWire, TroutTableWire, DateSet, FishSheet } from "../answers.generated";
 /** (T810 M) one cell's frame ids, and the `cell` columns: GENERATED from the release contract (`regsCell.generated.ts`) */
-export { CELL_COLUMNS, CELL_SECTIONS, type CellIds, type CellSection } from "../regsCell.generated";
+export { CELL_COLUMNS, CELL_NULLABLE, CELL_SECTIONS, type CellIds, type CellSection } from "../regsCell.generated";
 /** (T829) the trout table's keep box, as the contract types it (handoff/PLAN/design/trout-table-contract.md 2.3): the
  *  ui-native KeepBox takes its props from these fields, so ticket O hands a Box straight to it */
 export type { Band as TroutBand, Box as TroutBox, TRow as TroutRow } from "../answers.generated";
