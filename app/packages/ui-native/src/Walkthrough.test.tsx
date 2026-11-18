@@ -149,7 +149,8 @@ describe("the guided walkthrough (T293, T456, T824, T842)", { timeout: 30_000 },
       expect(dismiss).not.toHaveBeenCalled();                            // typing in search: the keyboard stays
       act(() => out.set!((x) => ({ ...x, searching: true, query: "ved" })));
       await waitFor(() => expect(keyAt()).toBe("pick"), { timeout: WAIT });
-      expect(dismiss).toHaveBeenCalledTimes(1);
+      // the close runs in the step's effect, a tick after the step shows: waited for, as the step is (a busy machine missed it)
+      await waitFor(() => expect(dismiss).toHaveBeenCalledTimes(1), { timeout: WAIT });
       cleanup(); dismiss.mockClear();
       render(<Harness store={memory(atStep("pick"))} reg={useRegistry()} log={[]} out={{}} start={{ ...BROWSE, searching: true, query: "ved" }} />);
       expect([keyAt(), dismiss.mock.calls.length]).toEqual(["pick", 1]);
