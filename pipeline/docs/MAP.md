@@ -70,6 +70,7 @@ step's output; nothing is promoted unless every step and the vintage check pass)
 | **the LLM parse** | `regs/parsing/` (`run_parse.sh`, `dispatch`) | **HUMAN-ONLY, spends credits** (AGENTS 1); writes the catalogue |
 | catalogue model + gate | `regs/parsing/catalogue.py`, `validate_catalogue.py` | what ingest refuses |
 | curation review | `regs/review/` + `curation-review/` (FastAPI + frontend) | marks only in review mode (AGENTS 65–67) |
+| classified waters gate | `regs/classified_waters.py` (`BOOK`: the book's 73 classified rows, printed pages) | T841: `--check` holds the corpus to the book's classes, tributaries and CW glyph (fast-fail, release preflight); `--bundle` holds the candidate to the Classified Waters Licence on every section a designation binds (release checks stage) |
 | steelhead list | `regs/steelhead/known_waters.py`, `regs/steelhead/accept.py` | generates the list; `accept` prints added / dropped and `--write`s `data/curated/waters/steelhead_waters.json` (AGENTS 54, T324) |
 | DFO salmon | `regs/dfo_salmon/` | see [`19-dfo-salmon-pipeline.md`](19-dfo-salmon-pipeline.md) |
 | gauge matches | `gauges/generate/` (`match.py`, `promote.py`) | REVIEWED data: promote station by station (AGENTS 38) |
