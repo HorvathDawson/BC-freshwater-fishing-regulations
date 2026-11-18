@@ -2547,3 +2547,22 @@ More questions (recommended answer first):
      be in the same spot?" App chat's reading: keep the DV/LT band; hatchery + wild rows of a species read as ONE species
      group with one combined count, split only for wild's 50 cm limit; HATCHERY and WILD badges in the same spot; "only 4
      wild" goes (no separate quota), confirm on the next pictures.
+- 2026-11-18 00:52, owner (app chat dialog over round 2: fraser-band, vedder-words A/B/C, chilliwack-groups A/B), verbatim:
+  1. Fraser shared DV/LT box "counts toward the 2 · only 1 between them": "yes the shared box it is good but maybe move the
+     (uses the 1 over 50cm to the box too)? or maybe that isnt even needed ? isnt it implied byt the top bar?" (the shared
+     box approved; "uses the 1 over 50 cm" on the rows leans to dropped, the strip says it; see 2.)
+  2. Box words: "i like words from A best. my only other coment is i dont like the way the groupoing looks here. before
+     the card used to be the grey then a white box (with grey aroudn it still) had the group info. this created the look
+     that it was a subgroup of the grey. now steelhead is in its own white box with nothing?? what can you keep for it?
+     and the groups seemed to have inverted the colors? also the only 1 between them group seems to split the group of
+     only 2 between all 6. the default fish (ungrouped) should always be at the top then the groups at the bottom i
+     think? make sure the grey color card fix happens with flatter group boxes too.... for this one the rainbow trout are
+     a seperate river rule so maybe it should be split from the table and say river rule? that way user can tell it is
+     special and seperate romt he generic grey greop too? also the "uses the 1 over 50cm" still feels unneeded? and the
+     dates need to be handled better i think". App chat's reading: words A, "K total from these M" (3+ rows; two rows
+     keep "only 1 between them", approved in 1); a group draws as a sub-group of the grey card (the old look: the group's
+     words in the grey, its rows white inside), never a white band beside rows with nothing in it; no group splitting
+     another; ungrouped rows first, groups after; the Vedder hatchery-rainbow 4 shown apart as the river's own rule;
+     "uses the 1 over 50 cm" dropped; a date shared by every row said once, not on each row. Open: pictures of that look.
+  3. Hatchery + wild: "i like group A bets but the hatchery vs wild tags are a bit clunky the way they are current
+     implemented there." (Group A, one row per fish, picked; the HATCHERY/WILD tags need a lighter look; pictures owed.)

@@ -283,3 +283,11 @@ rainbow: one band "counts toward the 2 · only 1 over 50 cm (20 in) between them
 ("only 2 of these 6" reads poorly) and a band that visibly spans all its rows (app drawing); hatchery + wild of one
 species drawn as one species group with one combined count; HATCHERY and WILD badges in the same spot (app); "only 4
 wild" goes (confirm on the next pictures). Next pictures from the app chat.
+
+## 2026-11-18 00:52: owner on round 2 (verbatim in OWNER-TODO 00:52)
+Approved: the shared two-row box "counts toward the 2 · only 1 between them" (Fraser); 3+ row box words A "K total from
+these M" (was "only K of these M"); Group A for hatchery + wild of one fish (one row, one count). Owed, with pictures
+from the app chat: groups drawn as sub-groups of the grey card (words in the grey, white rows inside; no empty white
+band cells; no group splitting another; ungrouped rows first); the Vedder hatchery-rainbow 4 apart as the river's own
+rule; "uses the 1 over 50 cm" dropped (the strip says it); a date shared by every row said once; lighter HATCHERY/WILD
+tags.
