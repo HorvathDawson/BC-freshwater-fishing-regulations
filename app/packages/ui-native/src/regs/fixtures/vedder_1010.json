@@ -527,6 +527,7 @@
          3094
         ]
        },
+       "split": false,
        "src": [
         3081,
         3082,
@@ -583,6 +584,7 @@
          3094
         ]
        },
+       "split": false,
        "src": [
         3081,
         3082,
@@ -639,6 +641,7 @@
          3094
         ]
        },
+       "split": false,
        "src": [
         3081,
         3082,
@@ -709,6 +712,7 @@
          3092
         ]
        },
+       "split": false,
        "src": [
         3081,
         3083,
@@ -772,6 +776,7 @@
          3086
         ]
        },
+       "split": false,
        "src": [
         3081,
         3085,
@@ -833,6 +838,7 @@
          3086
         ]
        },
+       "split": false,
        "src": [
         3081,
         3085,
@@ -882,6 +888,7 @@
          3087
         ]
        },
+       "split": false,
        "src": [
         530,
         3081,
@@ -911,7 +918,7 @@
     "date": null,
     "name": "Trout and char",
     "tone": "keep",
-    "value": "Up to 2 or 4"
+    "value": "2 or 4 a day"
    },
    "hatchLink": "How to tell a hatchery fish ›",
    "kind": "table",

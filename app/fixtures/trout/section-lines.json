@@ -1,4 +1,4 @@
-{"about":"(T369, T441) TEST FIXTURE, WRITTEN by pipeline.deliver.release.regs_fixture: the stream line [handle, blue_line_key, from_m, to_m) of every stream section of the regs fixture's waters (dev/regs-release), plus one unnamed reach (`unnamed`, found by `unnamed_at` = [blue_line_key, from_m]), cut from the release's own `lines` file. 4294967295 = open end. Never hand-edited.","release":"r-ce91036b8ed2","unnamed":null,"unnamed_at":null,"lines":[[428,354087840,0,4294967295],
+{"about":"(T369, T441) TEST FIXTURE, WRITTEN by pipeline.deliver.release.regs_fixture: the stream line [handle, blue_line_key, from_m, to_m) of every stream section of the regs fixture's waters (dev/regs-release), plus one unnamed reach (`unnamed`, found by `unnamed_at` = [blue_line_key, from_m]), cut from the release's own `lines` file. 4294967295 = open end. Never hand-edited.","release":"r-c5b949b5b06a","unnamed":null,"unnamed_at":null,"lines":[[428,354087840,0,4294967295],
 [447,354087883,0,4294967295],
 [615,354088225,0,4294967295],
 [58221,354154451,0,24782],

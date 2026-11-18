@@ -437,6 +437,7 @@
          3136
         ]
        },
+       "split": false,
        "src": [
         3134,
         3143,
@@ -479,6 +480,7 @@
          3136
         ]
        },
+       "split": false,
        "src": [
         3134,
         3143,
@@ -521,6 +523,7 @@
          3136
         ]
        },
+       "split": false,
        "src": [
         3134,
         3143,
@@ -570,6 +573,7 @@
          3136
         ]
        },
+       "split": false,
        "src": [
         3134,
         3135,
@@ -609,6 +613,7 @@
          3143
         ]
        },
+       "split": false,
        "src": [
         1271,
         3134,
@@ -648,6 +653,7 @@
          3143
         ]
        },
+       "split": false,
        "src": [
         1569,
         3143
@@ -675,7 +681,7 @@
     "date": null,
     "name": "Trout and char",
     "tone": "keep",
-    "value": "Up to 2 or 5"
+    "value": "2 or 5 a day"
    },
    "hatchLink": null,
    "kind": "table",
