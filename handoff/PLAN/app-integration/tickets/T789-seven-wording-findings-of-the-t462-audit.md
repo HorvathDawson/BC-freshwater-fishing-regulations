@@ -1,6 +1,6 @@
 # T789 — Seven wording findings of the T462 audit have no ticket (the owner's gate 1 for closed testing: each fixed or ticketed with his OK)
 
-Status: IN PROGRESS (K6, K7 and G10 landed 45fff5e63; G8 app half built on branch app/g8-alien, lands with the main chat's batch-2 field; G9, D6, K8 pipeline) (app core wording; before closed testing).
+Status: IN PROGRESS (K6, K7 and G10 landed 45fff5e63; G8 app half landed c76ff33d4; G9, D6, K8 pipeline) (app core wording; before closed testing).
 
 Source: general audit 2026-11-16, decisions checker item 7 (`handoff/PLAN/audit-2026-11-16/decisions.md`); T462 is DONE, T495 gate 1.
 

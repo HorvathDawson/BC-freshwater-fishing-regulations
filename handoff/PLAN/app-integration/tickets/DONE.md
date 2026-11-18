@@ -579,3 +579,4 @@ any row here that is not DONE or DROPPED. A reopened ticket's row moves back to 
 | T829 | Salmon species rows in the same look as the other fish table and the new trout table (formatting only) | DONE | 45fff5e63 | owner 2026-11-16 (app) |
 | T828 | Salmon card: DFO's rows as printed fold into "Source (DFO)" | DONE | 45fff5e63 | owner 2026-11-16 (app) |
 | T808 | The More tab's "DFO checked" time made every web visit download every salmon file; it now reads only the salmon head | DONE | 45fff5e63 | app chat 2026-11-16 (found sizing T796 A6); branch `app-fix/t808-salmon-head-only` |
+| T844 | The web app's opening loader is the new coho, as the phone's is; small in-app loaders keep the circling fish | DONE | c76ff33d4 | owner 2026-11-17 (`handoff/PLAN/OWNER-TODO.md`) |
