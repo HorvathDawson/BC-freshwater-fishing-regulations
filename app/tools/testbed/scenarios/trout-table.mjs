@@ -61,6 +61,7 @@ export const troutTable = {
     // (round 4 look) the whole row is the press, not its picture: the picture's own view is layout-only and Android
     // flattens it, so its `pic:<key>` id is not in the hierarchy (bench 2026-11-18)
     await ctx.step("a row opens that fish's sheet", async () => {
+      ctx.flow('scroll-to-id', { ID: 'keep-row' });   // the rows sit under the top line, below the fold's first screen
       ctx.flow('tap-id-in', { ID: 'keep-row', IN: 'keep-trout' });
       await ctx.until(() => ctx.hasId('sheet-panel') || ctx.hasId('sheet-dialog'), { ms: 8_000, what: 'the fish sheet (sheet-panel)' });
       const w = ctx.device.screenText();
