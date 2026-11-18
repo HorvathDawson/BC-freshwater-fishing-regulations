@@ -282,6 +282,7 @@ reads both files; a ticket closed here moves there once its lane is finished wit
 | T847 | The gauge roster email names only stations the roster has never seen, each once (owner: the feed already follows ECCC's list) | IN PROGRESS | app chat | owner 2026-11-18 12:18 |
 | T848 | The web map lags zooming out over Intata Reach (Chrome, staging web; owner's trace) | OPEN | app chat | owner 2026-11-18 |
 | T849 | WaterMode's cross-water test waits for the ▲ before it taps (CI flake on d6cbad35d) | OPEN | app chat | CI 2026-11-18 |
+| T850 | A part ending at a gauge cut is named for a landmark up to 18 km away (Nass: "Canyon City bridge → Canyon City bridge"; 69 of 236) | OPEN | main chat | app chat Nass check 2026-11-18 |
 
 ## Next after closed testing
 
