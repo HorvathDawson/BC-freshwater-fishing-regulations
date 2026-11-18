@@ -320,8 +320,9 @@ describe("T801 item 2: the class box says the book's separate-licence line for n
 
 describe("T789 G8 (owner 2026-11-17 'Yes, ship it'): the closures to the non-resident alien this part's rule set holds", () => {
   const SEDAN = "Angling closed to non-guided non-resident aliens, Jul 1-Dec 31, on Saturdays and Sundays — between the Shegunia River confluence and the Sedan Creek confluence";
-  const GLACIER = "Angling closed to non-resident aliens, Aug 15-Oct 31 — from the lake to Glacier Creek";
-  const TWO: LicenceValue["alien_closures"] = [{ rule: 41, says: SEDAN }, { rule: 7, says: GLACIER }];
+  // (G8 final shape) on a tributary part Python composes the whole line into `says`; `of` is data only and never drawn
+  const GLACIER = "Lakelse River and its tributaries: Angling closed to non-guided non-resident aliens, all year — between Lakelse Lake and power line crossing";
+  const TWO: LicenceValue["alien_closures"] = [{ rule: 41, of: null, says: SEDAN }, { rule: 7, of: "Lakelse River", says: GLACIER }];
   const ALIEN = "non_resident_alien/16_plus/non_guided/none";
   const vmOf = (who: Who, alien_closures?: LicenceValue["alien_closures"]) => {
     const f = frame({ adult_alien: ADULT_NON });
