@@ -9469,6 +9469,10 @@
       "sheet": {
        "$ref": "#/$defs/FishSheet"
       },
+      "split": {
+       "title": "Split",
+       "type": "boolean"
+      },
       "src": {
        "items": {
         "minimum": 0,
@@ -9496,6 +9500,7 @@
       "name",
       "origin",
       "label",
+      "split",
       "sub",
       "lines",
       "quiet",
@@ -10132,6 +10137,10 @@
        "title": "Sheet",
        "type": "integer"
       },
+      "split": {
+       "title": "Split",
+       "type": "boolean"
+      },
       "src": {
        "items": {
         "minimum": 0,
@@ -10159,6 +10168,7 @@
       "name",
       "origin",
       "label",
+      "split",
       "sub",
       "lines",
       "quiet",

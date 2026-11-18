@@ -513,7 +513,7 @@ def law_size(dec: dict, rules: Rules) -> str:
 class _Row:
     """A table row while the body is built."""
     __slots__ = ("key", "fish", "origin", "label", "sub", "lines", "quiet", "src", "kind_n", "kind_ix", "chain",
-                 "detail", "duties", "also", "band", "state", "poss", "sizes", "size_text", "size")
+                 "detail", "duties", "also", "band", "state", "poss", "sizes", "size_text", "size", "split")
 
     def __init__(self, key, fish, origin=None):
         self.key, self.fish, self.origin = key, fish, origin
@@ -533,6 +533,7 @@ class _Row:
         self.sizes = None              # the kind's keep ranges as the card states them (`tree` kind `sizes.cm`)
         self.size_text = None          # the size line the row says first (the sheet's "Size: …")
         self.size = None               # the row's size, said or not ("any size" under a box's size strip)
+        self.split = False             # a fish's hatchery and wild twins merged into this one row (`_merge_twins`)
 
     def add(self, text: Optional[str], where: str = "lines"):
         lst = getattr(self, where)
@@ -1310,6 +1311,7 @@ class Body:
                 self.twins_left += 1
                 continue
             r = _Row(S, S, None)
+            r.split = True
             for a in ("kind_n", "kind_ix", "chain", "detail", "duties", "also", "band", "poss", "sizes"):
                 setattr(r, a, getattr(h, a))
             r.src = list(dict.fromkeys(h.src + w.src))
@@ -1736,7 +1738,8 @@ class Body:
                                      duties=self._licence_duties(r) if b["kind"] == "keep" else (),
                                      together=self.together)
                 rows.append({"key": r.key, "fish": r.fish, "name": W.fish_name(r.fish), "origin": r.origin,
-                             "label": r.label, "sub": r.sub, "lines": tuple(r.lines), "quiet": tuple(r.quiet),
+                             "label": r.label, "split": r.split, "sub": r.sub, "lines": tuple(r.lines),
+                             "quiet": tuple(r.quiet),
                              "src": tuple(r.src), "sheet": sheet})
                 src += r.src
             boxes.append({"kind": b["kind"], "head": b["head"], "label": b["label"], "strip": b["strip"],
@@ -1750,7 +1753,8 @@ class Body:
             src += self.together["src"]
             if A_LAKES_LIMIT_SAID_ONCE and self.together["origin"] is None:
                 together = None                        # the lakes' count: once, under the top line (Echoes Lakes)
-        marked = any(b["label"] for b in boxes) or any(r["label"] or r["origin"] for b in boxes for r in b["rows"])
+        marked = any(b["label"] for b in boxes) or any(r["label"] or r["origin"] or r["split"] for b in boxes
+                                                       for r in b["rows"])
         return {"top": {"lead": lead, "sub": sub, "second": second}, "fold": fold,
                 "hatch_link": marked, "boxes": tuple(boxes), "together": together, "year": None,
                 "elsewhere": tuple(dict.fromkeys(elsewhere)), "src": tuple(dict.fromkeys(src))}

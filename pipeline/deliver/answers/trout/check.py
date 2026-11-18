@@ -189,6 +189,10 @@ class Row:
                 if self.wild_ranges is not None or self.origin is not None or self.label:
                     raise _Fail(f"row {self.key}: 'if wild' on a row of one origin, or twice")
                 self.wild_ranges = x[1]
+        if bool(r.get("split")) != (self.wild_ranges is not None):
+            # (trout 5) the merged hatchery and wild row is marked, and only it
+            raise _Fail(f"row {self.key}: split {r.get('split')} but its lines {'say' if self.wild_ranges else 'say no'} "
+                        "'if wild'")
 
     def origins(self) -> Tuple[str, ...]:
         if self.origin:

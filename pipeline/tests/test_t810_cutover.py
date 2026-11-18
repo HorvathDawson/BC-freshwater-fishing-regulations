@@ -725,6 +725,17 @@ def test_hatchery_and_wild_twins_are_one_row(request, monkeypatch):
     rb = next(r for r in b["rows"] if r["fish"] == "RB")
     assert (rb["key"], rb["origin"], rb["lines"][0]) == ("RB", None, "50 cm (20 in) or less if wild")
     assert not any(r["origin"] for r in b["rows"])
+    # (trout 5, the app chat) the merged row says so (`split`): the sheet's hatchery link; and only it
+    assert rb["split"] is True and t["table"]["hatch_link"] is True
+    assert not next(r for r in b["rows"] if r["fish"] == "EB")["split"]
+    k0 = next(k for k, cells in enumerate(m.sections["trout"]) if any(c is not None and c == t for c in cells))
+    cells0 = copy.deepcopy(m.sections["trout"][k0])
+    j0 = next(jj for jj, c in enumerate(cells0) if c == t)
+    next(r for b_ in cells0[j0]["table"]["boxes"] for r in b_["rows"] if r["fish"] == "RB")["split"] = False
+    m0 = copy.copy(m)
+    m0.sections = {**m.sections, "trout": list(m.sections["trout"])}
+    m0.sections["trout"][k0] = cells0
+    assert any("split False" in p for p in J.check_model(m0, bundle, data, keys=[k0], log=lambda *_: None)["problems"])
     k = next(k for k, cells in enumerate(m.sections["trout"]) if any(c is not None and c == t for c in cells))
     assert J.check_model(m, bundle, data, keys=[k], log=lambda *_: None)["problems"] == []
     cells = copy.deepcopy(m.sections["trout"][k])
