@@ -2666,3 +2666,4 @@ More questions (recommended answer first):
   release, T840 salmon short text, T849+T768 test reliability; T850 rides the 0.8.0 data release), verbatim: "All these
   fixes can go in 0.8.1 / Which will release right after". So push (T822+T739) and T740 move from "after 0.8.0" into
   0.8.1, and 0.8.1 follows 0.8.0 straight away.
+- 2026-11-18 14:04, owner (app chat dialog), T852 loader line: "B: red rule, muted line" (a short coho-red rule above a smaller muted line).

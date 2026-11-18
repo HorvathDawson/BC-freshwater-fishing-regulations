@@ -17,3 +17,8 @@ The sayings under the loader (core `DOWNLOAD_SAYINGS`, first install; `APPLY_WOR
 boot screen, `ApplyCurtain.tsx` `apply-line`, 15 pt body, centred) read as a plain caption. Draw 2-3 settings (e.g. italic
 in quotes with hanging punctuation, a smaller muted line with a short rule, two-line balanced wrap) at phone and web size,
 light and dark, and let the owner pick from pictures before any lands. Target 0.8.1.
+
+## 2026-11-18 14:04: owner picks B for the line under the fish
+Pictures sent (today / A italic red quotes / B red rule + muted line / C two balanced lines, light and dark). Owner: "B: red
+rule, muted line". Part 1 (sharper sheet) on branch worktree-agent-aa579d9bb6fd2ca09 dc6a19b13: phone 2.5 px/dp (480x200
+frames, 8x10 = 3840x2000, 30.7 MB decoded), web 2 px/css px (384x160, 145 KB, under the 150 KB web limit).
