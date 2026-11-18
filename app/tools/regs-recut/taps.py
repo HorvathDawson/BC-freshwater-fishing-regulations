@@ -101,6 +101,11 @@ T228 = ("T228 (a757756b, owner 2026-10-28): no-access land breaks a water's piec
 _LEN = "the automatic length cuts moved off braid-spanned junctions (owner Q2)"
 _GAUGE = "the old perpendicular sweep's gauge cuts are gone"
 COLUMBIA_R11 = ('2026-10-27 (owner, decisions.md "needs a split"): columbia_river.r11 \'Speed restriction (10 km/h) from Mud Lake to Columbia Lake\' now binds the Fairmont -> Columbia Lake stretch, so the golden\'s two-stretch part (Kinbasket Lake -> Donald + Fairmont -> Columbia Lake outlet, 3 sections) is two parts: 3 (Fairmont, 2 sections, with the speed limit) and 7 (Kinbasket -> Donald, 1 section)')
+T794_BC = ("T794 (owner 2026-11-16 'Go on all', 0e2b483b6, r-54d7abce9bec): the Atnarko's 'No powered boats … from Goat "
+           "Creek to the confluence with Talchako River' (atnarko_bella_coola_rivers.r12) ends at the Atnarko's mouth, off "
+           "the Bella Coola's side channels, so the golden part (4 side channels joining 55–59.1 km from the mouth; store "
+           "part 0 of 2 in r-46e4355a7277, 7 sections) has the mainstem's rows and is in store part 0, 'From the mouth up "
+           "to the Talchako River confluence' (47 + 7 = 54 sections): the Bella Coola has one part")
 PART_MOVED = {"x15p16_1010": 14,   # (T183) 15; then T278 FRASER_TIDAL: 14
               # (T278) FRASER_TIDAL: the golden part at old store part k (k > 3) is store part k - 1 (x15p9: closed all
               # year, held to the store's part being closed)
@@ -133,7 +138,8 @@ MOVED_WHY = {**{k: FRASER_TIDAL for k in ("x15p4_1010", "x15p5_1010", "x15p6_101
                                           "x15p11_1010", "x15p12_1010", "x15p13_1010")},
              "x16p4_1010": CAMPBELL_TIDAL, "x16p5_1010": CAMPBELL_TIDAL,
              "x16p7_1010": f"{T517}: the Campbell's closed parts are 5 and 9 in river order"}
-              # (T187) x22p6 (the Peace's Dinosaur Lake part) is back to its golden place and size: part 6, 1 section
+              # (T187) x22p6 (the Peace's Dinosaur Lake part) was back to its golden place and size: part 6, 1 section;
+              # (T794, r-54d7abce9bec) it is PART_GONE now (closed with the Dinosaur Lake row)
 #: gone states whose water's list of parts is still the golden's (labels and order the Parts sheet draws): not `recut`
 GONE_NOT_RECUT: set[str] = set()
 #: the reason a water is `recut` (its list of parts is not the golden's), by the state that shows it
@@ -195,6 +201,13 @@ PART_GROWN = {
                       "and now keeps its own name (bundle.spans.end_token), so the part's top end reads 'the juvenile "
                       "counting weir', not 'the Nilkitkwa Lake outlet' (label only; same piece at the 99.05 km mark, 1 "
                       "section, open, same rule rows; owner 2026-11-13 'Accept same-piece changes')"),
+    "x17p2_1010": (7, "T812 (owner 2026-11-16 'split babine lake on the line like our other split lakes', a9475700d, "
+                      "r-54d7abce9bec): Babine Lake is two lakes split on the due-south Gullwing Creek line (added_lakes "
+                      "wbk:-24 'Babine Lake — Main Body' and wbk:-25 'Babine Lake — East of Gullwing Creek', part_of "
+                      "wbk:329026676), so this part's top end is the Main Body's outlet (lake_outlet:wbk:-24, was "
+                      "wbk:329026676) and reads 'the Babine Lake — Main Body outlet' (label only; same piece, 110.73 -> "
+                      "111.12 km, 1 section, same rows) — store part 7, where river order numbers it (r-46e4355a7277 "
+                      "tapped it there by label)"),
     "x9p3_1010": (3, "T497 (owner 2026-11-08, follow connections): three pieces of this stretch are the Old Kootenay "
                      "River Channel's now, which also renumbers the Kootenay's parts: 4 -> 1 sections, same rows (was "
                      "PART_RECOUNTED at 7, carried to store part 3 by label); then T708 (owner 2026-11-13, Kootenay "
@@ -215,6 +228,7 @@ PART_GROWN_IS: dict = {
     'x9p0_1010': ('From the B.C. border up to the Lake Koocanusa outlet', 1),
     'x5p0_1010': ('Upstream of Josephine Falls / See exceptions · From the Josephine Falls up to the top of the river', 11),
     'x17p7_1010': ('From the fishing boundary signs 100 m upstream of adult fish counting fence up to the juvenile counting weir', 1),
+    'x17p2_1010': ('From the Fort Babine Bridge up to the Babine Lake — Main Body outlet', 1),
     'x9p3_1010': ('Downstream of Idaho border · From the CPR Bridge near Creston up to the Old Kootenay River Channel confluence', 1),
 }
 PART_GONE = {
@@ -224,6 +238,13 @@ PART_GONE = {
     "x13p2_1010": (3, f"{T220}: restored braid pieces renumbered the Dean; the golden closed part (the page's merged "
                       f"'closed all year', 4 sections) is store parts 3 and 6 now, part 2 is the open 0.5-3.5 km stretch"),
     "x18p3_1010": (3, COLUMBIA_R11),
+    "x22p6_1010": (9, "T794 (owner 2026-11-16 'Go on all', 673e0df2a, r-54d7abce9bec): the Dinosaur Lake row's 'No Fishing "
+                      "from W.A.C. Bennett Dam to 100 m south of Gething Creek' (p.65) binds the Peace below the dam as the "
+                      "new rule dinosaur_lake.r1b (between peace_river__dinosaur_lake and peace_river__williston_lake_zone_b), "
+                      "so the golden part (open, the zone's rows only) is store part 9 closed all year, labelled 'Reservoir "
+                      "Downstream of W.A.C. Bennett Dam · From Dinosaur Lake up to the Williston Lake — Zone B outlet': same "
+                      "piece (1706.11 -> 1706.74 km, 1 section), its rows are not the golden's"),
+    "bc1_501": (0, T794_BC), "bc1_1010": (0, T794_BC),
     "x27p1_1010": (0, f"{T183}: the West Road's Region 6 stretch below Carnlick Creek shares its rules with part 0 now"),
     "x15p17_1010": (15, f"{T183}: the golden part (356364114:674465, Region 5 and Region 7A) shares its rules with 699253 and is in part 16 (T278: 15) now"),
     "x15p18_1010": (15, f"{T183}: the golden part (356364114:699253, Region 5 and Region 7A) shares its rules with 674465 and is in part 16 (T278: 15) now"),
@@ -259,10 +280,10 @@ PART_RECOUNTED = {
                       "Babine Bridge cut and now joins it (gauge an alias), so the sliver between is gone: 2 -> 1 sections"),
     "x13p3_1010": (2, f"{T67}: the Dean's side channel 360227736 is cut at the 0.5 km sign (421 m): 2 -> 3 sections; "
                       f"then {T220}: restored braid pieces, 4 sections, renumbered 3 -> 2 (part order follows rule-set ids)"),
-    "bc1_501": (1, f"{T220}: braid pieces that close a kept side channel were restored: 6 -> 7 sections"),
-    "bc0_501": (0, f"{T220}: braid pieces that close a kept side channel were restored: 44 -> 47 sections"),
-    "bc1_1010": (1, f"{T220}: braid pieces that close a kept side channel were restored: 6 -> 7 sections"),
-    "bc0_1010": (0, f"{T220}: braid pieces that close a kept side channel were restored: 44 -> 47 sections"),
+    "bc0_501": (0, f"{T220}: braid pieces that close a kept side channel were restored: 44 -> 47 sections; then "
+                   f"{T794_BC}: 47 -> 54 sections"),
+    "bc0_1010": (0, f"{T220}: braid pieces that close a kept side channel were restored: 44 -> 47 sections; then "
+                   f"{T794_BC}: 47 -> 54 sections"),
     "x13p1_1010": (1, f"{T220}: braid pieces that close a kept side channel were restored: 14 -> 15 sections"),
     "x15p1_1010": (1, f"{T220}: braid pieces that close a kept side channel were restored: 35 -> 36 sections"),
     "x21p1_1010": (1, f"{T220}: braid pieces that close a kept side channel were restored: 36 -> 37 sections"),
