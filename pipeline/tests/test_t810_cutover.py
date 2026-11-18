@@ -740,6 +740,24 @@ def test_hatchery_and_wild_twins_are_one_row(request, monkeypatch):
     assert {"RB/wild", "RB/hatchery"} <= {r["key"] for b in got["Chilliwack Lake"]["table"]["boxes"] for r in b["rows"]}
 
 
+@pytest.mark.needs_bundle
+def test_sowerby_lakes_rainbow_cap_the_size_band_implies_goes(request, monkeypatch):
+    """R1 (the sweep): Sowerby Lake's rainbow trout, kept only at 50 cm or longer, under "only 1 over 50 cm (20 in)" with
+    the cutthroat: its own "only 1" is implied and goes; the two share the size band. J proves the lake. Mutation: the
+    pin off keeps the rainbow's own cap and the old per-row lines."""
+    from pipeline.deliver.answers.trout import table as TT
+    got, m, bundle, data = _live_tables(request, ("Sowerby Lake",))
+    b = next(b for b in got["Sowerby Lake"]["table"]["boxes"] if b["kind"] == "keep")
+    assert "counts toward the 5 · only 1 over 50 cm (20 in) between them" in [x["text"] for x in b["bands"]]
+    assert not any("counting any" in x for r in b["rows"] for x in r["lines"])
+    ks = sorted({k for k, cells in enumerate(m.sections["trout"]) if any(c is not None for c in cells)})
+    assert J.check_model(m, bundle, data, keys=ks, log=lambda *_: None)["problems"] == []
+    monkeypatch.setattr(TT, "A_IMPLIED_OWN_CAP_GOES", False)
+    got, *_ = _live_tables(request, ("Sowerby Lake",))
+    b = next(b for b in got["Sowerby Lake"]["table"]["boxes"] if b["kind"] == "keep")
+    assert any("counting any" in x for r in b["rows"] for x in r["lines"])
+
+
 def _bowron(got):                                      # Istsi Creek, Jan 1-Mar 31: Bowron Lake Park's 1 trout/char
     return next(c for c in got["Istsi Creek (all parts)"] if c is not None)
 

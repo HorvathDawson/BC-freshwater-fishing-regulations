@@ -199,6 +199,9 @@ A_RAISED_ROW_LAST = True
 A_STOP_LINE_SAYS_THE_CAP = True
 #: (the sweep) the size band in a raised box too ("Keep 2, brook trout up to 8": 11 Region 4 tables). False = the pin
 A_SIZE_BAND_IN_A_RAISED_BOX = True
+#: (R1, the sweep) a row's own cap a size band's cap already implies goes (Sowerby Lake's rainbow "only 1", kept only at
+#: 50 cm or longer under "only 1 over 50 cm (20 in)" with cutthroat). False = the pin
+A_IMPLIED_OWN_CAP_GOES = True
 #: owner 2026-11-18 (R1, a cap at or above its pool goes; the implied-limit sweep): a wild quota at or above the box's
 #: number never limits anything ("only 4 wild" in "Keep 4 in all": Chilliwack and five Region 2 lakes, Great Central,
 #: Sproat, Makii): unsaid
@@ -1188,6 +1191,15 @@ class Body:
                         band_of[id(rows[i])] = bx
                 total = ex[0] if ex is not None and not fish & set(ex[1]) else b["n"]
                 upto = W.band_upto(total)
+                if A_IMPLIED_OWN_CAP_GOES:
+                    # (R1, the sweep: Sowerby Lake) a row's own "only k" the size cap already implies — its fish kept
+                    # only over the size, the cap's n <= k — goes; the row joins the band "counts toward the 5"
+                    for r in members:
+                        x0 = band_of[id(r)]
+                        if x0["kind"] == "own" and x0["from"] == x0["to"] and W.parse_band(x0["text"])[1] >= n \
+                                and self._min_keep(r) >= cm:
+                            x0["kind"], x0["text"] = "upto", upto
+                            r.band = ("upto", total, None)
                 if any(band_of[id(r)]["kind"] != "upto" or band_of[id(r)]["text"] != upto for r in members):
                     self.size_left += 1
                     continue
