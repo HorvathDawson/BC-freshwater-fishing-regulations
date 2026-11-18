@@ -50,6 +50,7 @@ manifest with the form's sizes), with the live release's own as shipped beside t
 """
 from __future__ import annotations
 
+import hashlib
 import argparse
 import gzip
 import json
@@ -865,7 +866,9 @@ def measure(side: Path, live: Optional[Path] = None, log=print) -> dict:
                 "side_added": g["side"] - g["off"], "cutover_added": g["cutover"] - g["off"],
                 "groups_freed": g["side"] - g["cutover"],
                 # F0's page possession row, priced apart: the cutover form with and without the sixth slot
-                "cutover_without_f0_gz": _gz(b_five), "f0_cost": g["cutover"] - _gz(b_five)}
+                "cutover_without_f0_gz": _gz(b_five), "f0_cost": g["cutover"] - _gz(b_five),
+                # the flag-off file's identity, platform-free (a gzip length differs by a few bytes between zlib builds)
+                "off_sha256": hashlib.sha256(b_off).hexdigest()}
         for name in sorted(k for k in man["files"] if k == "water" or k.startswith("water-")):
             raw = AD._file_bytes(side, man, name)
             off = water_flag_off(raw)
@@ -877,6 +880,7 @@ def measure(side: Path, live: Optional[Path] = None, log=print) -> dict:
         rep["live"] = lm.get("data_release") or Path(live).name
         for name, z in rep["regions"].items():
             z["live_gz"] = int(lm["files"][name]["gz"]) if name in lm["files"] else None
+            z["live_sha256"] = lm["files"][name].get("sha256") if name in lm["files"] else None
         for name, z in rep["water"].items():
             z["live_gz"] = int(lm["files"][name]["gz"]) if name in lm["files"] else None
         rep["moments_live"] = _moments(Path(live), {})
