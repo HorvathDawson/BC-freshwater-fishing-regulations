@@ -146,10 +146,36 @@ class UnderSixteen(Model):
     says: StrictStr = Field(min_length=1)
 
 
+class AlienWater(Model):
+    """One water with a weekend closure to non-guided non-resident aliens: its name and its `item_id` (the durable
+    water handle the app opens a water by, AGENTS 5)."""
+    name: StrictStr = Field(min_length=1)
+    key: StrictStr = Field(min_length=1)
+
+
+class AlienWeekend(Model):
+    """T789 G8 (owner 2026-11-17 "add as banners"): THE WEEKEND CLOSURES TO NON-GUIDED NON-RESIDENT ALIENS, province
+    wide (`licence.alien_weekend`): `says` the book's sentence, `waters` every water whose rules close it to them on a
+    Saturday or Sunday, by name. The same on every frame of a release; the Licence tab's banner for "From outside
+    Canada"."""
+    says: StrictStr = Field(min_length=1)
+    waters: Tuple[AlienWater, ...] = Field(min_length=1)
+
+    @model_validator(mode="after")
+    def _once_each(self):
+        keys = [w.key for w in self.waters]
+        if len(set(keys)) != len(keys):
+            raise ValueError("a water is listed once")
+        return self
+
+
 class LicenceFrame(Model):
     holds: Union[Holds, TidalHolds]
     profiles: Tuple[Union[ProfileAnswer, TidalProfile], ...]
     under_16: Optional[Tuple[UnderSixteen, ...]] = None     # ROUND15 2; absent on tidal water
+    #: T789 G8: the province's weekend closures to non-guided non-resident aliens; absent on tidal water, and where
+    #: no water has one
+    alien_weekend: Optional[AlienWeekend] = None
 
     @model_validator(mode="after")
     def _sixty(self):
@@ -158,4 +184,6 @@ class LicenceFrame(Model):
         tidal = isinstance(self.holds, TidalHolds)
         if any(isinstance(p, TidalProfile) != tidal for p in self.profiles):
             raise ValueError("a tidal frame is the documented state on every profile, only there")
+        if tidal and self.alien_weekend is not None:
+            raise ValueError("a tidal frame is the documented state only: no alien weekend closures")
         return self

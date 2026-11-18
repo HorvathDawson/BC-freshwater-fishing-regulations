@@ -33,18 +33,19 @@ that index. Declared states are themselves checked, so an entry that no longer d
   and rows, but the atlas added or removed sections under it (T67: braid cuts, a ditch leaving its river, moved
   length cuts), so only its section COUNT differs. Tapped and compared whole (`recounted` on the state: the reason and
   the store's count); the parity holds the subtitle to the golden's with the count replaced.
-- A "closed all year" golden part (no label to check) is held to the store's part at its index being closed all year
-  (T67: a renumbering put an open part at a closed state's index); one that is not must be declared.
+- A "closed all year" golden part has no label, so (T765) it is declared by its two END TOKENS in CLOSED_ENDS and held
+  to them wherever it is tapped (moved, grown or not); every closed state not gone or tidal must be declared there,
+  and every stale declaration is listed in ONE run.
 - PART_TIDAL (T278): a tidal cut (T166/T185/T212: the piece below a stream's tidal boundary leaves every binding, no
   freshwater rules, off the map) took the golden part. `(None, tidal_ix, why)`: the WHOLE golden part is tidal now — the
   store's part `tidal_ix` is unkeyed and unlabelled (the tidal remainder) and no store part has the golden label; written
-  to taps.json `tidal` (not `states`), and the parity excludes the state in every block (exclusions.ts PART_TIDAL_IDS).
+  to taps.json `tidal` (not `states`), and the parity excludes the state in every block (golden.ts `tidal`).
   `(ix, tidal_ix, why)`: the freshwater remainder of the golden part is the store's part `ix` (its extent words changed,
   its rows did not) — tapped and compared like PART_GROWN (`tidal` on the state). A part only RENUMBERED by a tidal cut
   is PART_MOVED, citing the cut. Each entry cites its cut (the bundle's `tidal` table: section -> split / entry).
 - PART_GONE: the golden part's water merged into the store's part `now_in` (or, T67, was split or recounted so
   the page's merged closed list is not the golden's); no store part has the golden label and count. Written to taps.json `gone` (not `states`), and the parity excludes the state with this reason
-  (conformance/src/regs/exclusions.ts PART_GONE_IDS).
+  (golden.ts `gone`).
 """
 import argparse, datetime, json, re, sys
 from pathlib import Path
@@ -346,6 +347,57 @@ def t517_group(golden, parts):
     return hit[0] if hit else None
 
 
+#: (T765) a golden part that is closed all year has no label to compare, so it is declared by what it IS: the two end
+#: tokens (`part.lo_s` / `part.hi_s`) of the store part it is. A release that adds part ends moves the index; the ends
+#: do not move, so a wrong landing is an error that names the state, the declared ends and what the store holds there.
+CLOSED_ENDS = {
+    "chw0_1010": ("chilliwack_vedder_rivers__boundary_signs_below_slesse_creek", "area:CHILLIWACK RIVER ECOLOGICAL RESERVE"),
+    "x15p9_1010": ("fraser_river__signs_2800_m_downstream_of_hell_s_gate", "fraser_river__hell_s_gate"),
+    "x16p7_1010": ("campbell_river__strathcona_dam_100_m_downstream", "campbell_river__strathcona_dam"),
+    "x17p5_1010": ("babine_river__signs_80_m_downstream_of_adult_fish_counting_fence", "babine_river__adult_counting_fence"),
+}
+
+
+def closed_state(st):
+    """Is the golden state's part a closed-all-year one (no label)? Its `sub` is 'kind · N sections · closed all year'."""
+    return golden_part(st)[0] == "closed all year"
+
+
+def ends_problem(sid, ix, ends_at, declared=CLOSED_ENDS):
+    """(T765) None when the store part `ix` has the declared ends of closed state `sid`, else the sentence naming the
+    state, the declared index, the declared ends and what the store holds there. `ends_at` is {part_ix: (lo, hi)}."""
+    want = declared.get(sid)
+    if want is None:
+        return f"{sid}: a closed golden part with no declared ends — add it to CLOSED_ENDS (store part {ix} holds {ends_at.get(ix)})"
+    got = ends_at.get(ix)
+    if tuple(got or ()) != tuple(want):
+        found = sorted(i for i, e in ends_at.items() if tuple(e) == tuple(want))
+        return (f"{sid}: declared store part {ix} should have ends {want} but holds {got}"
+                + (f"; those ends are store part {found}" if found else "; no store part has those ends"))
+    return None
+
+
+def resolve_all(states, resolve_one, ends_of):
+    """(T765) Resolve every state, collecting EVERY stale declaration (one run names them all, not the first).
+    `resolve_one(sid, st)` -> (ix, gone) or raises SystemExit; `ends_of(sid, st)` -> {part_ix: (lo, hi)} or None for a
+    state with no store water. Returns ({sid: (ix, gone)}, [problems]); a closed state that is tapped is held to its ends."""
+    done, problems = {}, []
+    for sid, st in states.items():
+        try:
+            ix, gone = resolve_one(sid, st)
+        except SystemExit as e:
+            problems.append(str(e))
+            continue
+        ends = ends_of(sid, st)
+        if gone is None and ends is not None and closed_state(st):
+            bad = ends_problem(sid, ix, ends)
+            if bad:
+                problems.append(f"taps: {bad}")
+                continue
+        done[sid] = (ix, gone)
+    return done, problems
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--release", default=None, help="the release folder whose regs store to read (default: data/release/LATEST)")
@@ -481,6 +533,16 @@ def main():
                              "not: the release renumbered the water — declare the state in PART_GONE")
         return part_ix, None
 
+    def ends_at(item):
+        return {ix: (s.s(lo), s.s(hi)) for ix, lo, hi in
+                c.execute("select part_ix, lo_s, hi_s from part where item_ord=?", (ord_of[item],))}
+
+    # the cell's frame ids: the five always-on sections, then any optional section the store carries (T810: `trout`,
+    # contract.OPTIONAL_SECTIONS); the app's harness reads the same columns, so a side release's taps name them too
+    have = {r[1] for r in c.execute("pragma table_info(cell)")}
+    CELL_COLS = ("ladder", "rows", "gear", "licence", "display") + tuple(k for k in ("trout",) if k in have)
+    CELL_SQL = f"select {', '.join(CELL_COLS)} from cell where akey=? and s=?"
+
     def tap(item, part_ix, month, day, weekday):
         o = ord_of.get(item)
         if o is None:
@@ -495,7 +557,7 @@ def main():
         if mom is not None:
             moms = [M[i] for i in json.loads(c.execute("select ix from segmom where mom=?", (mom,)).fetchone()[0])]
         si = E.segment_index(starts, day_of((month, day)), moms, weekday, False)
-        cell = c.execute("select ladder, rows, gear, licence, display from cell where akey=? and s=?", (akey, si)).fetchone()
+        cell = c.execute(CELL_SQL, (akey, si)).fetchone()
         # the display frame of every day of the leap calendar, each at ITS OWN weekday in 2026 (page v36 segOf(w, md) =
         # segAt(w, md, weekdayOf(md), false), the snapshot's runsOf); day 60 (Feb 29, absent in 2026) at its first moment
         days = []
@@ -508,7 +570,7 @@ def main():
                 sd = E.segment_index(starts, d, moms, WD_OF_DAY[d], False)
             days.append(c.execute("select display from cell where akey=? and s=?", (akey, sd)).fetchone()[0])
         return {"item_ord": o, "akey": akey, "seg": seg, "mom": mom, "nseg": nseg, "starts": starts, "moments": moms,
-                "s": si, "cell": dict(zip(("ladder", "rows", "gear", "licence", "display"), cell)), "displayByDay": days}
+                "s": si, "cell": dict(zip(CELL_COLS, cell)), "displayByDay": days}
 
     def leap(cid, item, part_ix, year, month, day):
         wd = weekday_of(year, month, day)
@@ -518,22 +580,35 @@ def main():
         moms = None if mom is None else [M[i] for i in json.loads(c.execute("select ix from segmom where mom=?", (mom,)).fetchone()[0])]
         rd = reading_day_of((month, day))
         si = E.segment_index(starts, rd, moms, wd, False)
-        cell = c.execute("select ladder, rows, gear, licence, display from cell where akey=? and s=?", (akey, si)).fetchone()
+        cell = c.execute(CELL_SQL, (akey, si)).fetchone()
         return {"id": cid, "item": item, "partIx": part_ix, "date": f"{year}-{month:02d}-{day:02d}", "weekday": wd,
                 "readingDay": rd, "akey": akey, "starts": starts, "moments": moms, "s": si,
-                "cell": dict(zip(("ladder", "rows", "gear", "licence", "display"), cell))}
+                "cell": dict(zip(CELL_COLS, cell))}
 
     out = {"meta": {"generator": "app/tools/regs-recut/taps.py", "store": {k: meta.get(k) for k in ("format", "section_handles", "reach_digest", "rule_ids_sha256", "answers_sha256", "store_digest", "layout")},
                     "golden": G["meta"].get("sha"), "version": G["meta"].get("version"), "year": 2026}, "states": {}, "unnamed": [],
            "leap": [leap("zymoetz_20360229", "gnis:3137", 0, 2036, 2, 29), leap("zymoetz_20360228", "gnis:3137", 0, 2036, 2, 28),
                     leap("zymoetz_20280229", "gnis:3137", 0, 2028, 2, 29), leap("zymoetz_20280228", "gnis:3137", 0, 2028, 2, 28)],
            "gone": {}, "tidal": {}, "recut": {}}
+    def _pix(st):
+        return int(st["part"]) if st.get("part") not in (None, "") else 0
+    resolved, problems = resolve_all(
+        G["states"],
+        lambda sid, st: resolve(sid, st, by_name.get(st["water"]), _pix(st)) if by_name.get(st["water"]) else (_pix(st), None),
+        lambda sid, st: ends_at(by_name[st["water"]]) if by_name.get(st["water"]) in ord_of else None)
+    # (T765) a closed golden part must be declared by its ends, tapped or not gone
+    undeclared = sorted(sid for sid, st in G["states"].items() if closed_state(st) and sid not in CLOSED_ENDS
+                        and sid not in PART_GONE and sid not in PART_TIDAL)
+    problems += [f"taps: {sid}: a closed golden part with no declared ends — add it to CLOSED_ENDS" for sid in undeclared
+                 if not any(p.startswith(f"taps: {sid}:") for p in problems)]
+    if problems:
+        raise SystemExit(f"taps: {len(problems)} stale declaration(s):\n  " + "\n  ".join(problems))
     for sid, st in G["states"].items():
         item = by_name.get(st["water"])
-        part_ix = int(st["part"]) if st.get("part") not in (None, "") else 0
+        part_ix = _pix(st)
         md = st["md"]; month, day = md // 100, md % 100
         wd = WEEKDAYS[datetime.date(2026, month, day).weekday()]
-        ix, gone = resolve(sid, st, item, part_ix) if item else (part_ix, None)
+        ix, gone = resolved[sid]
         if gone is not None:
             out["tidal" if sid in PART_TIDAL else "gone"][sid] = {**gone, "md": md, "date": f"2026-{month:02d}-{day:02d}", "weekday": wd}
             continue

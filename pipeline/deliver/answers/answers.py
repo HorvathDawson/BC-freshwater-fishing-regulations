@@ -246,7 +246,9 @@ def _trout_compose_key(values: Dict[str, list], starts: List[int], moments, ctx:
         data = ctx.cache["export"]
         rules = ctx.cache["trout_rules"] = TT.Rules.from_export(data, ctx.doc)
     rows, disp, lic = values["rows"], values["display"], values["licence"]
-    got = TT.compose_key(rows, disp, starts, moments, rules, licences=lic)
+    # T810 G2 Q7: the stop duty's noun from the names of the key's waters (`key_names`, filled per key below)
+    got = TT.compose_key(rows, disp, starts, moments, rules, licences=lic,
+                         noun=TT.stop_noun(ctx.cache.get("key_names") or ()))
     out = [None if f is None else json.loads(json.dumps(f, ensure_ascii=False)) for f in got]
     for j in range(1, len(out)):
         same_in = rows[j] == rows[j - 1] and disp[j] == disp[j - 1] and lic[j] == lic[j - 1]
@@ -678,10 +680,18 @@ def build(bundle: str, export_dir: Path, *, workers: int = 0, items: Optional[It
     # T810 ticket I (contract 2.2): a WHOLE-KEY compose, after every post-pass and every compose above — it reads their
     # final values (the weekday words, the stamps, the steelhead stamp's drop, the display frame's status)
     ctx.cache["export"] = data
+    names_of: Dict[int, list] = {}
+    if any(s.compose_key is not None for s in chosen):
+        for item, ks in parts.items():
+            nm = (data["waters"].get(item) or {}).get("name")
+            for k in set(ks):
+                if k is not None:
+                    names_of.setdefault(k, []).append(nm)
     for s in chosen:
         if s.compose_key is None:
             continue
         for ki in range(len(keys)):
+            ctx.cache["key_names"] = names_of.get(ki, ())
             try:
                 out[s.name].append(s.compose_key({n: out[n][ki] for n in s.compose_from}, segs[ki], seg_moments[ki],
                                                  ctx))

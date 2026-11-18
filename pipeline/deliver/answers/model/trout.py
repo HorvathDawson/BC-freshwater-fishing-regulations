@@ -60,7 +60,8 @@ RowKey = Annotated[StrictStr, Field(pattern=r"^(CT|DV|EB|GB|LT|RB|ST)(/(wild|hat
 
 class TopLine(Model):
     lead: Annotated[StrictStr, Field(min_length=1), AfterValidator(_lead)]
-    second: Optional[Txt]               # the cross-box limit (Lois, Khartoum) <=> TroutTable.together, same words
+    second: Optional[Txt]               # the cross-box limit (Lois, Khartoum: = TroutTable.together, same words) or the
+                                        # lakes' own count (Echoes: "only 1 from both lakes together", together null)
 
 
 class Fold(Model):
@@ -135,6 +136,8 @@ class _BoxFields(Model):
     head: Txt
     label: Optional[Txt]                # keep only: "Hatchery only" when it covers every row of the box
     strip: Optional[Txt]                # keep only
+    possession: Optional[Txt]           # keep only: the possession every row shares, its own line under the strip
+                                        # ("In your possession: no more than 2 trout and char in all"; T810 G2 Q4)
     tag: Optional[Txt]                  # keep only: "Lake’s rule"
     rows: Tuple[Any, ...] = Field(min_length=1)
     bands: Tuple[Band, ...]
@@ -142,8 +145,8 @@ class _BoxFields(Model):
     @model_validator(mode="after")
     def _bands(self):
         if self.kind != "keep":
-            if self.bands or self.label or self.strip or self.tag:
-                raise ValueError(f"a {self.kind} box has no bands, label, strip or tag")
+            if self.bands or self.label or self.strip or self.tag or self.possession:
+                raise ValueError(f"a {self.kind} box has no bands, label, strip, possession or tag")
             return self
         at = 0
         for b in self.bands:
@@ -203,9 +206,10 @@ class _TableFields(Model):
         marked = any(b.label for b in self.boxes) or any(r.label or r.origin for b in self.boxes for r in b.rows)
         if self.hatch_link != marked:
             raise ValueError("hatch_link <=> some row or box carries a label or an origin")
-        if (self.together is None) != (self.top.second is None) or (
-                self.together is not None and self.together.text != self.top.second):
-            raise ValueError("top.second is set <=> together is, in the same words")
+        if self.together is not None and self.together.text != self.top.second:
+            # T810 G2 (owner 15:41): a limit across two boxes is said under the top line AND under the table (Lois);
+            # the lakes' own count (Echoes) only under the top line: `second` without `together`
+            raise ValueError("together is set => top.second is, in the same words")
         if self.year is not None and (any(b.kind == "keep" for b in self.boxes) or len(self.boxes) != 1):
             raise ValueError("the year bar only on a table whose fish all share one state (all release or all closed)")
         cited = set(self.src)

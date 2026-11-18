@@ -19,6 +19,7 @@
      "head": "Keep 2 in all",
      "label": null,
      "strip": null,
+     "possession": null,
      "tag": null,
      "rows": [
       {
@@ -92,6 +93,7 @@
      "head": "Release",
      "label": null,
      "strip": null,
+     "possession": null,
      "tag": null,
      "rows": [
       {
@@ -173,6 +175,7 @@
        "head": "Keep 2 in all",
        "label": null,
        "strip": null,
+       "possession": null,
        "tag": null,
        "rows": [
         {
@@ -246,6 +249,7 @@
        "head": "Release",
        "label": null,
        "strip": null,
+       "possession": null,
        "tag": null,
        "rows": [
         {
@@ -327,6 +331,7 @@
        "head": "Keep 2 in all",
        "label": null,
        "strip": null,
+       "possession": null,
        "tag": null,
        "rows": [
         {
@@ -406,6 +411,7 @@
        "head": "Release",
        "label": null,
        "strip": null,
+       "possession": null,
        "tag": null,
        "rows": [
         {
@@ -487,6 +493,7 @@
        "head": "Keep 2 in all",
        "label": null,
        "strip": null,
+       "possession": null,
        "tag": null,
        "rows": [
         {
@@ -561,6 +568,7 @@
        "head": "Release",
        "label": null,
        "strip": null,
+       "possession": null,
        "tag": null,
        "rows": [
         {
@@ -643,6 +651,7 @@
        "head": "Keep 2 in all",
        "label": null,
        "strip": null,
+       "possession": null,
        "tag": null,
        "rows": [
         {
@@ -716,6 +725,7 @@
        "head": "Release",
        "label": null,
        "strip": null,
+       "possession": null,
        "tag": null,
        "rows": [
         {
@@ -793,6 +803,7 @@
        "head": "Keep 2 in all",
        "label": null,
        "strip": null,
+       "possession": null,
        "tag": null,
        "rows": [
         {
@@ -866,6 +877,7 @@
        "head": "Release",
        "label": null,
        "strip": null,
+       "possession": null,
        "tag": null,
        "rows": [
         {
@@ -943,6 +955,7 @@
        "head": "Keep 2 in all",
        "label": null,
        "strip": null,
+       "possession": null,
        "tag": null,
        "rows": [
         {
@@ -1016,6 +1029,7 @@
        "head": "Release",
        "label": null,
        "strip": null,
+       "possession": null,
        "tag": null,
        "rows": [
         {
@@ -1095,6 +1109,7 @@
        "head": "Keep 2 in all",
        "label": null,
        "strip": null,
+       "possession": null,
        "tag": null,
        "rows": [
         {
@@ -1195,6 +1210,7 @@
        "head": "Release",
        "label": null,
        "strip": null,
+       "possession": null,
        "tag": null,
        "rows": [
         {
@@ -1276,6 +1292,7 @@
        "head": "Keep 2 in all",
        "label": "Hatchery only",
        "strip": null,
+       "possession": null,
        "tag": null,
        "rows": [
         {
@@ -1349,6 +1366,7 @@
        "head": "Release",
        "label": null,
        "strip": null,
+       "possession": null,
        "tag": null,
        "rows": [
         {
@@ -1430,6 +1448,7 @@
        "head": "Keep 2 in all",
        "label": null,
        "strip": null,
+       "possession": null,
        "tag": null,
        "rows": [
         {
@@ -1503,6 +1522,7 @@
        "head": "Release",
        "label": null,
        "strip": null,
+       "possession": null,
        "tag": null,
        "rows": [
         {
@@ -1584,6 +1604,7 @@
        "head": "Keep 2 in all {day}",
        "label": null,
        "strip": null,
+       "possession": null,
        "tag": null,
        "rows": [
         {
@@ -1657,6 +1678,7 @@
        "head": "Release",
        "label": null,
        "strip": null,
+       "possession": null,
        "tag": null,
        "rows": [
         {
@@ -1738,6 +1760,7 @@
        "head": "Keep 2 in all",
        "label": null,
        "strip": null,
+       "possession": null,
        "tag": null,
        "rows": [
         {
@@ -1811,6 +1834,7 @@
        "head": "Release",
        "label": null,
        "strip": null,
+       "possession": null,
        "tag": null,
        "rows": [
         {
@@ -1892,6 +1916,7 @@
        "head": "Keep 2 in all",
        "label": null,
        "strip": null,
+       "possession": null,
        "tag": null,
        "rows": [
         {
@@ -1965,6 +1990,7 @@
        "head": "Release",
        "label": null,
        "strip": null,
+       "possession": null,
        "tag": null,
        "rows": [
         {
@@ -2040,6 +2066,7 @@
        "head": "Keep 2 in all",
        "label": null,
        "strip": null,
+       "possession": null,
        "tag": null,
        "rows": [
         {
@@ -2113,6 +2140,7 @@
        "head": "Release",
        "label": null,
        "strip": null,
+       "possession": null,
        "tag": null,
        "rows": [
         {
@@ -2202,6 +2230,7 @@
        "head": "Keep 2 in all",
        "label": null,
        "strip": null,
+       "possession": null,
        "tag": null,
        "rows": [
         {
@@ -2275,6 +2304,7 @@
        "head": "Release",
        "label": null,
        "strip": null,
+       "possession": null,
        "tag": null,
        "rows": [
         {

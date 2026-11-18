@@ -317,13 +317,14 @@
       "reviewed_by": "",
       "reviewed_at": "",
       "review_note": "",
+      "heading": "Atnarko River including tributaries",
       "binding": {
         "extents": [
           {
             "op": "whole"
           }
         ],
-        "tributaries": true,
+        "tributaries": null,
         "tributaries_only": false,
         "tributary_excludes": [],
         "sections_cached": null,
@@ -372,6 +373,7 @@
       "reviewed_by": "",
       "reviewed_at": "",
       "review_note": "",
+      "heading": "Atnarko River including tributaries",
       "binding": {
         "extents": [
           {
@@ -381,7 +383,7 @@
             ]
           }
         ],
-        "tributaries": true,
+        "tributaries": null,
         "tributaries_only": false,
         "tributary_excludes": [],
         "sections_cached": null,
@@ -426,6 +428,7 @@
       "reviewed_by": "",
       "reviewed_at": "",
       "review_note": "",
+      "heading": "Bella Coola River including tributaries (not including Atnarko River)",
       "binding": {
         "extents": [
           {
@@ -433,7 +436,7 @@
             "item_id": "gnis:11611"
           }
         ],
-        "tributaries": true,
+        "tributaries": null,
         "tributaries_only": false,
         "tributary_excludes": [
           {
@@ -486,6 +489,7 @@
       "reviewed_by": "",
       "reviewed_at": "",
       "review_note": "",
+      "heading": "Bella Coola River including tributaries (not including Atnarko River)",
       "binding": {
         "extents": [
           {
@@ -493,7 +497,7 @@
             "item_id": "gnis:11611"
           }
         ],
-        "tributaries": true,
+        "tributaries": null,
         "tributaries_only": true,
         "tributary_excludes": [
           {
@@ -540,6 +544,7 @@
       "reviewed_by": "",
       "reviewed_at": "",
       "review_note": "",
+      "heading": "Chuckwalla River",
       "binding": {
         "extents": [
           {
@@ -599,6 +604,7 @@
       "reviewed_by": "",
       "reviewed_at": "",
       "review_note": "",
+      "heading": "Dean River",
       "binding": {
         "extents": [
           {
@@ -664,6 +670,7 @@
       "reviewed_by": "",
       "reviewed_at": "",
       "review_note": "",
+      "heading": "Dean River",
       "binding": {
         "extents": [
           {
@@ -722,6 +729,7 @@
       "reviewed_by": "",
       "reviewed_at": "",
       "review_note": "",
+      "heading": "Dean River",
       "binding": {
         "extents": [
           {
@@ -774,6 +782,7 @@
       "reviewed_by": "",
       "reviewed_at": "",
       "review_note": "",
+      "heading": "Docee River",
       "binding": {
         "extents": [
           {
@@ -822,6 +831,7 @@
       "reviewed_by": "",
       "reviewed_at": "",
       "review_note": "",
+      "heading": "Kilbella River",
       "binding": {
         "extents": [
           {
@@ -870,6 +880,7 @@
       "reviewed_by": "",
       "reviewed_at": "",
       "review_note": "",
+      "heading": "Long Lake",
       "binding": {
         "extents": [
           {
@@ -877,7 +888,7 @@
             "item_id": "wbk:329462886"
           }
         ],
-        "tributaries": true,
+        "tributaries": null,
         "tributaries_only": false,
         "tributary_excludes": [],
         "sections_cached": null,
@@ -919,6 +930,7 @@
       "reviewed_by": "",
       "reviewed_at": "",
       "review_note": "",
+      "heading": "Wannock River",
       "binding": {
         "extents": [
           {

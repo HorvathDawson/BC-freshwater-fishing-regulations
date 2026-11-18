@@ -1,6 +1,6 @@
 # T806 — The 40 saves to re-check with the owner, in chat with a picture each: 5 he marked wrong, 35 written by Claude for him (11 live and open in Nov or Dec)
 
-Status: OPEN (the owner's review, in chat; then saves through the review app with his words).
+Status: DONE (e5d2f3cd1; owner 2026-11-17 15:18). Owed later: pictures for 2739 and 2783 after their fixes.
 
 Source: owner 2026-11-16, question 18: "can we sort this out now i want to review it and make it correct for sure";
 how: "In chat, with a picture each (Recommended)". T786 (ship DFO's words undrawn for a place marked wrong) stays
@@ -32,3 +32,6 @@ Why "495 m": the re-check drawing tool used the new cut's base measure (the brid
 (116,608, 1,000 m below) and snapped to the gauge 08LF033 section edge (117,094). The build binds the landed cut
 (`closures._piece_location` via `landed_cut`). Redrawn: 999 m below the bridge, 3.6 km closed. Owner: "Right
 (Recommended)". Nothing changes.
+
+## 2026-11-17 ~15:18: closed (owner, OWNER-TODO 15:18)
+All 34 re-check places answered from pictures 2026-11-16 and re-saved (marks 2795-2839). Owner: "I feel like we have done these like 3 times already so it should be good???". Done. Owed later: pictures for 2739 (Morice Gosnell-Lamprey, after its fix) and 2783 (Sheldens, after the map rebuild).

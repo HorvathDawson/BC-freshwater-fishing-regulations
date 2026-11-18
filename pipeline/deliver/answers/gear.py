@@ -36,7 +36,7 @@ import json
 from typing import Callable, Dict, Iterable, List, Optional, Sequence, Tuple
 
 from pipeline.deliver.answers.common import AnswersError, Bundle, RuleKey, dumps, \
-    expand, join, rule_id
+    expand, join, lc_names, rule_id
 from pipeline.deliver.calendar import month_day
 from pipeline.deliver import types as T
 from pipeline.deliver.bundle import read
@@ -250,6 +250,38 @@ def _held_words(e: dict) -> str:
     return " ".join(words)
 
 
+#: T797 item 2: an allowed bait element as its allowance names it ("Dead fin fish may be used …": the probe is dead fin fish)
+_ALLOW_NOUN = {"worms": "Worms", "roe": "Roe", "invertebrate": "Invertebrates", "fin_fish": "Dead fin fish"}
+#: … and a circumstance of it in words ("while set lining"); the rest as a count's (`_CIRC_WORDS`)
+_ALLOW_CIRC = {"set_lining": "while set lining", "spear_fishing": "while spear fishing", "ice_fishing": "while ice fishing",
+               "water=lake": "in a lake", "water=stream": "in a stream"}
+
+
+def allowance_says(el: str, e: dict) -> str:
+    """T797 item 2: one bait allowance in words — "Dead fin fish may be used when fishing for white sturgeon.",
+    "Dead fin fish may be used while set lining."."""
+    words = [_ALLOW_CIRC.get(t) or _CIRC_WORDS.get(t) or t.replace("_", " ") for t in e["circ"]]
+    if e["targeting_codes"]:
+        words.append("when fishing for " + lc_names(e["targeting_codes"], " or "))
+    if e["note"]:
+        words.append(e["note"])
+    return " ".join([f"{_ALLOW_NOUN[el]} may be used", *words]) + "."
+
+
+def allowances(el: str, held: Sequence[dict], ref: Callable[[dict], list]) -> List[dict]:
+    """T797 item 2 (owner: show the sturgeon dead-fin-fish line): EACH DISTINCT BAIT ALLOWANCE ONCE — [{says, by}], `says`
+    its words (`allowance_says`), `by` every clause allowing it, merged in order (the Sources cite each rule). A Fraser
+    part holds the Fraser row's own "Dead fin fish may be used … when fishing for sturgeon" AND the province's bait.r3,
+    the same allowance twice in `also_allowed` (one per clause); here it is one line citing both."""
+    out: Dict[str, List[list]] = {}
+    for e in held:
+        r = ref(e)
+        by = out.setdefault(allowance_says(el, e), [])
+        if r not in by:
+            by.append(r)
+    return [{"says": s, "by": by} for s, by in out.items()]
+
+
 def _from_a_boat(held: Sequence[dict]) -> bool:
     """UR1 G (user panel: "1 line (no limit while in a boat)" read as a contradiction): every circumstance is simply
     being in a boat, so the main count is the one from shore."""
@@ -377,7 +409,10 @@ def summary_parts(top, elems, circ_for, hook: str, fly: Optional[str]) -> List[d
     T = top("terminal_attachments_per_line")
     if T is not None and T["c"].get("members"):
         ms = [m for m in T["c"]["members"] if m in ATTACH_NOUNS]
-        if fly == "fly_fishing_only":
+        if fly in FLY_MODES:
+            # p.80: an artificial fly is "a single or double hook dressed with feathers, hair, thread, tinsel or any
+            # similar material" — on a fly-only water the one attachment is a fly, never a bare hook (T789 G9: Pennask
+            # Lake read "one hook or fly")
             ms = [m for m in ms if m == "artificial_fly"]
         ms = [m for m in ms if verdict(f"lure:{m}") != "ban"]
         n = T["c"].get("max")
@@ -591,12 +626,13 @@ def resolve(active: Sequence[Rule], kind: Optional[str], lawful: Sequence[str], 
                 "roe" in (pos["c"].get("of") or []):
             row["carry_kg"] = pos["c"].get("max")
         probe = "dead_fin_fish" if el == "fin_fish" else el
-        also = [circ_ref(e) for e in circ if e["c"].get("slot") == "bait"
+        held = [e for e in circ if e["c"].get("slot") == "bait"
                 and (e["c"].get("allow") or e["c"].get("only"))
                 and says_about(e["c"], probe) == "allow"
                 and all(method_ok(m) for m in e["circ"])]
-        if also:
-            row["also_allowed"] = also
+        if held:
+            row["also_allowed"] = [circ_ref(e) for e in held]
+            row["allowances"] = allowances(el, held, ref)
         bait.append(row)
     # ROUND20g-h 1 (owner: "roe — still OK, not part of the ban" read against a dated bait ban): an allowed element that a
     # banned element's ban EXCEPTS names that ban — the province's year-round "fin fish … other than roe" (p.8) — on the

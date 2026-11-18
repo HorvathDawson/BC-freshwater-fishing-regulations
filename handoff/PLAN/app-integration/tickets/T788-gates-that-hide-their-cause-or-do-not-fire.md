@@ -10,6 +10,7 @@ Source: general audit 2026-11-16, code and guards checkers (`handoff/PLAN/audit-
 2. The gate's question to the feeds worker is asked only inside the upload, after the promote: ask it in preflight
    and in the rehearsal too.
 3. fast-fail's mini-release check does not trigger on `pipeline/regs/**` (the path that turned CI red on 11-15).
+   **FIXED** (lane/bugs-080, 2026-11-17, the commit naming T788 item 3): `regs` is in `mini_chain`'s trigger.
 4. `deploy/staging/site.sh` run on its own does not refuse a dirty `app/`; `deploy/prod/site.sh` stamps the commit at
    deploy time, not the export's.
 5. `--no-basemap` / `--no-synopsis` are accepted for the live release root.

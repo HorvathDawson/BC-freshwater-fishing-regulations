@@ -24,3 +24,11 @@ Expected: about 10 minutes saved on a clean release; about 60 of last night's 10
 
 ## Owner, 2026-11-16 (question dialog; verbatim in `handoff/PLAN/OWNER-TODO.md`, "Answers by batch")
 Question 14: "Yes, as proposed (Recommended)" (section H's proposal; staging releases still wait for GitHub's run: he did not pick the skip).
+
+## Lane result (lane/bugs-080b, 2026-11-17)
+- Item 3, the part that is code: when the release's fresh-copy run follows in the same preflight, fast-fail leaves it
+  the whole no-data tier and its two subsets (source scanners, review tests): `release.FRESH_COPY_NEXT` /
+  `fast-fail.sh fresh_copy_next`. `--no-fresh-copy` keeps them in place. Tests + two mutations.
+- Item 6: the app check's time corrected (3 to 4 min) in AGENTS 18, `scripts/test-smoke.sh`, `scripts/test-full.sh`.
+- Item 1 is practice (no code). Not built here: item 2 (one before-push command / hook: the owner's call on the hook),
+  item 4 (the data tier on the candidate, in chunks, as a follows step).

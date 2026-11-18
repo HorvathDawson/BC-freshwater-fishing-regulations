@@ -5,9 +5,9 @@ sections lie in that region. A reader needs one region's frames; a key in two re
                        (`section_place`, place + 1); a place names its regions (`place.regions`). An akey's regions are
                        the union over its sections. Read from the regs store alone: the shard holds no logic of its own.
   what a shard holds   the `cell` rows of its akeys, the five top frames those cells name, and every row those frames
-                       reach: ladder → verdicts; rows → decided + rows; licence → holds, documents, under-16, and the
-                       documents' answers. `gear_frame` and `display_frame` are self-contained; `display_rule` is per
-                       rule and lives in `water`. (T810 ticket I) An OPTIONAL section's too, where the store holds it
+                       reach: ladder → verdicts; rows → decided + rows; licence → holds, documents, under-16, the
+                       alien weekend closures (T789 G8), and the documents' answers. `gear_frame` and
+                       `display_frame` are self-contained; `display_rule` is per rule and lives in `water`. (T810 ticket I) An OPTIONAL section's too, where the store holds it
                        (`cell` has its column): trout → its frame, the frame's table and date set, the table's sheets
                        (a NULL cell reaches nothing).
 
@@ -29,7 +29,8 @@ TOP = {"ladder": "ladder_frame", "rows": "rows_frame", "gear": "gear_frame", "li
        "display": "display_frame"}
 #: every table a shard holds
 SHARD_TABLES = ("cell", "ladder_frame", "ladder_verdict", "rows_frame", "rows_decided", "rows_row", "gear_frame",
-                "licence_frame", "licence_hold", "licence_doc", "licence_answer", "licence_u16", "display_frame")
+                "licence_frame", "licence_hold", "licence_doc", "licence_answer", "licence_u16", "licence_alien",
+                "display_frame")
 #: (T810 ticket I) an OPTIONAL section's cell column -> its top frame table, and every table of it a shard holds — in a
 #: release whose store holds the section only (`tops`, `shard_tables`)
 OPTIONAL_TOP = {"trout": "trout_frame"}
@@ -104,8 +105,8 @@ def frame_refs(name: str, frame) -> Dict[str, List[int]]:
         # rows 33 (T161): a fish is [decided h, decided w, lead] — the lead is an origin word, not a row
         return {"rows_decided": [r for hwl in fish.values() for r in hwl[:2] if r is not None], "rows_row": list(rows)}
     if name == "licence_frame":
-        h, d, *u = frame
-        return {"licence_hold": [h], "licence_doc": [d], "licence_u16": list(u)}
+        h, d, *rest = frame                             # [h, d, under_16?, alien_weekend?] (T789 G8: the 4th)
+        return {"licence_hold": [h], "licence_doc": [d], "licence_u16": rest[:1], "licence_alien": rest[1:2]}
     if name == "licence_doc":
         return {"licence_answer": list(frame)}
     if name == "trout_frame":                           # T810 ticket I: [table, dates | null, covers]

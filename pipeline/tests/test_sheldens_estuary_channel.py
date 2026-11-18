@@ -41,16 +41,29 @@ def test_the_estuary_channel_is_minted_as_its_own_line_of_the_creeks_code():
     assert (round(seg[0], 3), round(seg[1], 3)) == (615733.858, 920150.919)   # = FWA 360846083's mouth vertex
 
 
-def test_a_tail_past_the_fwa_mouth_is_not_an_upstream_extension():
+def test_a_tail_past_the_fwa_mouth_is_not_an_upstream_extension(monkeypatch):
     """The resolver read the trace as an EXTENSION of the FWA line and minted it at the line's TOP measure (3,692 m)
-    with its geometry at the bottom. For a trusted (hand-drawn) source a tail past the mouth is a stream of its own."""
+    with its geometry at the bottom. A tail past the mouth is never an extension, from ANY source (T813): which end is
+    the mouth is read from the FWA line, never from the source line's vertex order."""
     from shapely.geometry import LineString
     fwa = LineString([(0, 0), (0, 1000)])                          # mouth first, as FWA lines are
     trace = LineString([(0, 0), (0, -300), (200, -400)])           # drawn on from the mouth
-    assert fwa_match._tail_past_end(trace, fwa, 40.0, downstream_tail_novel=True) is None
-    assert fwa_match._tail_past_end(trace, fwa, 40.0) is not None             # city layers: unchanged
+    assert fwa_match._tail_past_end(trace, fwa, 40.0) is None
+    assert fwa_match._tail_past_end(LineString(trace.coords[::-1]), fwa, 40.0) is None   # drawn the other way too
     up = LineString([(0, 1000), (0, 1300), (200, 1400)])           # a tail past the SOURCE stays an extension
-    assert fwa_match._tail_past_end(up, fwa, 40.0, downstream_tail_novel=True) is not None
+    assert fwa_match._tail_past_end(up, fwa, 40.0) is not None
+    monkeypatch.setattr(fwa_match, "DOWNSTREAM_TAIL_IS_NOVEL", False)          # the mutation pin: the old reading
+    assert fwa_match._tail_past_end(trace, fwa, 40.0) is not None
+
+
+def test_no_city_stream_is_minted_on_an_fwa_line_past_its_mouth():
+    """T813: Port Moody's Schoolhouse Creek North (src 3, a 104 m hook at the tidal mouth of FWA 360827018) was an
+    `extension` minted at the line's top measure (1,663 m) with its geometry at the mouth. Under the general rule it is
+    a re-draw of the FWA line (a duplicate, the FWA line kept) and no record is minted for it."""
+    data = json.loads(curated().waters.added_streams.read_text(encoding="utf-8"))
+    pm = [(s["src_id"], s["klass"]) for s in data["streams"] if s["source"] == "port_moody"
+          and str(s["blk"]) == "360827018"]
+    assert (3, "extension") not in pm and sorted(pm) == [(10, "extension"), (46, "extension")]
 
 
 @pytest.fixture(scope="module")

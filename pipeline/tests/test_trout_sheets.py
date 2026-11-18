@@ -37,7 +37,10 @@ def sheet_text(fr, key: str) -> str:
 # ------------------------------------------------------------------------------------------------- (a) no data: G's words
 
 def test_the_sheet_words_whole():
-    assert W.sheet_keep("up to the 5", 5) == "Keep · counts toward the 5"
+    assert W.sheet_keep("any of the 5", 5) == "Keep · counts toward the 5"
+    # T810 G2 Q2: a raised box's other fish ("Keep 5, brook trout up to 20") say their own number
+    assert W.sheet_keep("any of the 5", 20) == "Keep · any of the 5 · counts toward the 20"
+    assert W.sheet_shared("only 2 wild in all", "brown trout") == "Only 2 wild in all: this fish and brown trout."
     assert W.sheet_keep("only 1 of these 4", 5) == "Keep · only 1 of these 4 · counts toward the 5"
     assert W.sheet_size("30 cm (12 in) or longer") == "Size: 30 cm (12 in) or longer."
     assert W.sheet_size("any size") == "Any size."
@@ -116,20 +119,18 @@ EXPECTED = {
     ('skeena-sedan-mill-jul15', 'DV'): (
         'Put it back'
     ),
-    ('adams-jul15', 'DV'): (
-        'Keep · only 4 of these 6 · counts toward the 5\n'
+    ('adams-jul15', 'DV'): (                    # T810 G2 Q1: the 4 that may be kept here
+        'Keep · counts toward the 4\n'
         'Size: 80 cm (31 in) or longer.\n'
-        'Counts toward the 5 in all, together with rainbow trout, brook trout, brown trout, cutthroat trout and lake trout.\n'
-        'Only 4 of these 6: this fish and rainbow trout, brook trout, brown trout, cutthroat trout and lake trout.\n'
+        'Counts toward the 4 in all, together with rainbow trout, brook trout, brown trout, cutthroat trout and lake trout.\n'
         'Only 1, counting any lake trout you keep.\n'
         'Only 1 over 50 cm (20 in).\n'
         'A kept one is always over 50 cm (20 in), so it is that one.'
     ),
-    ('adams-jul31', 'DV'): (
-        'Keep · only 4 of these 6 · counts toward the 5\n'
+    ('adams-jul31', 'DV'): (                    # T810 G2 Q1: the 4 that may be kept here
+        'Keep · counts toward the 4\n'
         'Size: 80 cm (31 in) or longer.\n'
-        'Counts toward the 5 in all, together with rainbow trout, brook trout, brown trout, cutthroat trout and lake trout.\n'
-        'Only 4 of these 6: this fish and rainbow trout, brook trout, brown trout, cutthroat trout and lake trout.\n'
+        'Counts toward the 4 in all, together with rainbow trout, brook trout, brown trout, cutthroat trout and lake trout.\n'
         'Only 1, counting any lake trout you keep.\n'
         'Only 1 over 50 cm (20 in).\n'
         'A kept one is always over 50 cm (20 in), so it is that one.\n'
@@ -153,24 +154,24 @@ EXPECTED = {
     ('lois-jul15', 'RB/wild'): (
         'Keep · counts toward the 6\n'
         'Size: under 40 cm (16 in).\n'
-        'Counts toward the 6 in all, together with steelhead.\n'
-        'Only 2 wild trout and char in all, each under 40 cm (16 in).'
+        'Counts toward the 6 in all, together with brook trout, brown trout, cutthroat trout, Dolly Varden/bull trout, lake trout and steelhead.\n'
+        'Only 2 wild, each under 40 cm (16 in).'
     ),
     ('lois-jul15', 'ST'): (
         'Keep · counts toward the 6\n'
         'Any size.\n'
         'Hatchery only: wild ones go back.\n'
-        'Counts toward the 6 in all, together with rainbow trout.\n'
+        'Counts toward the 6 in all, together with brook trout, brown trout, cutthroat trout, Dolly Varden/bull trout, lake trout and rainbow trout.\n'
         'Steelhead are known to be in this water.\n'
         'Licence: 10 a year · record each on your licence right away · Steelhead Conservation Surcharge Stamp, only if you fish for steelhead, even to release them.'
     ),
     ('lois-jul15', 'LT'): (
-        'Keep · only 1 of these 2 · counts toward the 4\n'
+        'Keep · any of the 4 · counts toward the 6\n'
         'Size: 60 cm (24 in) or longer.\n'
         'Hatchery only: wild ones go back.\n'
-        'Counts toward the 4 in all, together with brook trout, brown trout, cutthroat trout and Dolly Varden/bull trout.\n'
-        'Only 1 of these 2: this fish and Dolly Varden/bull trout.\n'
-        'Only 1 over 50 cm (20 in).\n'
+        'Counts toward the 6 in all, together with brook trout, brown trout, cutthroat trout, Dolly Varden/bull trout, rainbow trout and steelhead.\n'
+        'Only 1, counting any Dolly Varden/bull trout you keep.\n'
+        'Only 1 over 50 cm (20 in), not counting rainbow trout or steelhead.\n'
         'A kept one is always over 50 cm (20 in), so it is that one.'
     ),
 }

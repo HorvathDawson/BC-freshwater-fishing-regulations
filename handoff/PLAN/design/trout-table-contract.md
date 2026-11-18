@@ -193,8 +193,9 @@ class TopLine(Model):
                               # "Up to 6 rainbow trout or steelhead and 4 other trout and char {day}" |
                               # "Release every one {day}" | "Closed for trout and char {day}" | "Nothing to keep {day}"
                               # Validator: "{day}" appears at most once
-    second: Optional[Txt]     # the cross-box wild limit (Lois, Khartoum). Set <=> TroutTable.together is set,
-                              # with the same words (validator)
+    second: Optional[Txt]     # the cross-box wild limit (Lois, Khartoum; = TroutTable.together, same words), or the
+                              # lakes' own count said once (Echoes "only 1 from both lakes together", together null;
+                              # T810 G2). Validator: together set => second set, same words
 
 class Fold(Model):            # the existing "Trout and char" entry's short line (owner 15:47)
     value: Txt                # "Up to 5" | "Up to 2 or 5" | "Up to 6 rainbow, 4 others" | "Release" | "Closed" |
@@ -228,8 +229,10 @@ class Box(Model):
     kind: Literal["keep", "release", "closed"]
     head: Txt                 # keep: "Keep 5 in all" | release: "Release" | closed: "Closed"  (Q-D1)
     label: Optional[Txt]      # keep only: "Hatchery only" when it covers every row of the box (owner 16:00)
-    strip: Optional[Txt]      # keep only: "only 1 over 50 cm (20 in)" | "only 2 wild, each 40 cm (16 in) or less" |
-                              # "In your possession: only 1 in all, not 1 of each"
+    strip: Optional[Txt]      # keep only: "any size" | "only 1 over 50 cm (20 in)" | "only 1 over 50 cm (20 in), not
+                              # counting lake trout" | "only 2 wild, each 40 cm (16 in) or less" (parts joined by "; ")
+    possession: Optional[Txt] # keep only (T810 G2 Q4, 2026-11-17): the possession every row shares, drawn on ITS OWN
+                              # LINE under the strip: "In your possession: no more than 2 trout and char in all"
     tag: Optional[Txt]        # keep only: "Lake's rule"
     rows: Tuple[TRow, ...]    # min 1, in Python's order (a shared band's rows are next to each other, round 3)
     bands: Tuple[Band, ...]   # keep: covers rows 0..len-1 exactly once, in order, no gaps or overlaps (validator);
@@ -310,7 +313,7 @@ rows in `water-shared`). A table name added in one place and not the others fail
 ### 2.4 Who writes which word
 
 **Python writes, whole:** `top.lead` (except the slot), `top.second`, `fold.value`, every `Box.head`, `label`,
-`strip`, `tag`, every `TRow.name`, `sub`, `lines`, `quiet`, every `Band.text`, `together.text`, `year.title`,
+`strip`, `possession`, `tag`, every `TRow.name`, `sub`, `lines`, `quiet`, every `Band.text`, `together.text`, `year.title`,
 `elsewhere`, every sheet `head` and `here` line, and every `DateSet` text. That includes the HATCHERY ONLY label (as
 `label`) and the Release and Closed column words (as `head`). They all come from one words module
 (`answers/trout/words.py`, ticket G), with whole-string tests, and are listed in G's catalogue for the owner. **The
@@ -478,8 +481,10 @@ and every normal release re-cuts them (`regs-recut/sync.mjs`). So the vectors de
 **trout fixture of their own**: `app/fixtures/trout/regs-release/` + `section-lines.json`, the same `regs_fixture`
 cut (`--trout-cases`: exactly the waters of `trout_vectors.CASES`, no golden waters) from a side release.
 `scripts/trout-refresh.sh` runs the chain (side release → `regs_fixture --trout-cases` → `trout_vectors` → golden
-sync → every `--check` and the cut again byte for byte); its golden-sync step runs `sync.mjs` only once
-`versions.ts` lists `trout` (M0), and says so when it does not. At the cutover (L) the normal release carries the
+sync → every `--check` and the cut again byte for byte); its golden-sync step runs `sync.mjs` only at the
+cutover (`trout` in `KNOWN_VERSIONS`, L; 2026-11-17: at M0 it broke the app's local live-release tests, which hold the
+live release to the goldens, and `reads.trout.test.ts`, which needs the normal fixture without the section), and says
+so when it does not. At the cutover (L) the normal release carries the
 section and the two fixtures can be one. The staging `side <dir>` scenario: the app reads every release file's url
 relative to `<origin>/release/` on the test channel too, so the scenario names its files `../test/release/<id>/…`
 (the staging data worker resolves the dot segment itself; `deploy/staging/test-updates.test.mjs`); not yet walked on
@@ -590,7 +595,9 @@ with the payload above, and nothing more. Each line names the spec 6 ticket that
   are pinned: the first by the vectors' `composed`, the second by an app golden over every vector row.
 - **Draw (O, P).** Every `Txt` drawn unchanged. Layout only: boxes in order, bands beside their rows, the label as a
   filled tag, the date at the one level the frame names, the year bar from `table.year` (drawn only when set; `runs`
-  used only as lengths, with the page strip's own fills). The folded entry shows `fold.value` and its arrow; the
+  used only as lengths, with the page strip's own fills; a `none` run is drawn neutral, the strip's empty fill:
+  main chat 2026-11-17, from O). The table has no kicker of its own: the entry's name shows above it only when no fold
+  row heads it (O). The folded entry shows `fold.value` and its arrow; the
   arrow replaces "Details" on the salmon and trout folds only (owner about 17:15). The fish sheet draws `FishSheet`
   and `DateSet.sheet`; its Sources are `src` as given.
 - **Split (N behind the dev switch, then S).** Other fish = the rows-frame rows **not in `covers`**. Each row is drawn

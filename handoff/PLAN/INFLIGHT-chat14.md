@@ -115,6 +115,15 @@ its `_reindex`), dfo_vectors --check with both in.
   "was X, now Y" per water comes back first. 3f440729a pushed; app chat pushed f7b41c208 on top (CI running, hold push
   until its "CI green"). Local unpushed: 42d8212d7 (answers + T835 step-cache /tmp ticket). Plan unchanged: T834 ->
   ONE data build (also carries Babine closes_item) -> staging release.
+  **17:05 11-17: 0.8.0 PROGRESS.** Pushed 6a4d42e7e (T834, Nahwitti, bug lanes 1+2, T813, T825 main-river gauges). Owner
+  15:00-17:05 answered (OWNER-TODO): T825 rule, T752 keep, one-fly, Skeena/Shuswap words, sturgeon+set-lining show,
+  T740 after 0.8.0, G2 trout wording all 10 (+ "any of the 5", Q9 badges), T804/T807/T772 land (Tatshenshini named
+  tributaries only; dormant three follow words; Claude re-saves 12 + Stave + Pitt), T786 = RELEASE GATE (lane/t786-gate
+  126ac0488, lists Stave/Pitt (being re-saved) + Thompson 2521/Morice 2596 (dormant, answered in T806: add dated
+  WRONG_SAVE_OK rows at merge)), T806 done. IN FLIGHT: G2 merged locally + trout-refresh (golden sync) running;
+  T804/T807 worker aa78c06015861b949 (Tatshenshini fix + re-saves); bugs-080c ab75c9ab68993d320 (G8 alien_weekend, G10
+  under-16 prices, T771 list, also_allowed dedupe). App chat: O/N/P trout table, T829, T842, T801/T797 app halves.
+  LEFT before the data build: T810 A1/L cutover + T809 run, app chat's trout switch; then rebuild4/chain.sh (+ dfo feed).
   **13:57 11-17: 0.8.0 stock-take** (scratchpad/release-080-scope.md). Bug lane a0653d0ad43fe742a (lane/bugs-080):
   triage T771-T775/T782/T788/T686, fix T784, T785, T792A, T799, T797 2-5, T801 2-4, T835, T790, T791, T823 data, T803
   follow-ups. App-side extras sent to the app chat (T808 branch-only ticket, T765-T768/T751/T789/T740 triage, stale

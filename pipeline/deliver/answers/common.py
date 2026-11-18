@@ -620,6 +620,11 @@ def names_a_weekday(text: str) -> bool:
     return bool(_NAMES_A_WEEKDAY.search(text))
 
 
+def holds_on_a_weekend(days: Sequence[str]) -> bool:
+    """A stored `when.weekdays` names a Saturday or a Sunday (T789 G8, `licence.alien_weekend`)."""
+    return bool(set(days or ()) & {"Saturday", "Sunday"})
+
+
 def _weekday_words(days: Sequence[str], style: str) -> str:
     """A set of weekdays (calendar names) in one style. A RUN is consecutive days Monday first."""
     if style == "label":                       # the catalogue's label: the stored order, each in the plural
