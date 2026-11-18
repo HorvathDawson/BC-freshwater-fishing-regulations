@@ -2692,3 +2692,5 @@ More questions (recommended answer first):
 - 2026-11-18 15:05, owner (app chat dialogs), T856: not in the side bar, verbatim "actually maybe we shouldnt have in side
   bar because it will make the buttons be jumpy when it disappears? where is a betetr desktop spot"; then picked "Top, after
   the day strip" (a Trout | Salmon pair right after < Today > on desktop; phones unchanged).
+  15:06, owner: "the side bar should have some opacity to it too in desktop will look cleaner i think" (T856: a see-through
+  side bar on desktop, the map running under it).

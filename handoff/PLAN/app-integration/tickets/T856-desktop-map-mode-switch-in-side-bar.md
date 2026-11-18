@@ -22,3 +22,6 @@ we shouldnt have in side bar because it will make the buttons be jumpy when it d
 top after the day strip, or back on the map's right. Owner picked: "Top, after the day strip". So: on desktop the switch is
 a Trout | Salmon pair on the top row right after the day strip (< Today >), styled like that strip; the side bar goes back
 to as it was; phones unchanged.
+Owner, right after, verbatim: "the side bar should have some opacity to it too in desktop will look cleaner i think". So
+(part of T856): on desktop the left side bar is see-through (the map runs under it; paper at partial opacity, a blur on
+web), text and icons keep full contrast; shots in light and dark.
