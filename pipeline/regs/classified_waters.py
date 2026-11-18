@@ -197,8 +197,9 @@ def _key(region: str, name: str) -> tuple[str, str]:
 
 
 def is_water_row(entry: Mapping) -> bool:
-    """A row of a region's water table (`r<region>:…`), not a zone or province table (`z…`)."""
-    return str(entry.get("entry_id", "")).startswith("r")
+    """A row of a region's water table, not a zone or province table (`common.entry_id.is_water_row`)."""
+    from pipeline.common import entry_id as EID
+    return EID.is_water_row(entry.get("entry_id", ""))
 
 
 def load_corpus(root: Optional[Path] = None) -> dict[str, dict]:
