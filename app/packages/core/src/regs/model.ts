@@ -77,8 +77,8 @@ export interface KeepVM {
   readonly possession: PossessionVM | null; // (T15)
   readonly whereNot: WhereNotVM | null;
   readonly outside: string | null;          // words.OUTSIDE_BC (page v36 renderCard foot) (T42)
-  /** (T810 N, behind the dev switch `RegsPageOpts.troutTable`) the trout and char table (`trout.ts` `troutOf`), or its
-   *  refusal; null: the cell has none. ABSENT with the switch off or a release without the trout section: the old card. */
+  /** (T810 N, S) the trout and char table (`trout.ts` `troutOf`), or its refusal; null: the cell has none, or the day is
+   *  closed. ABSENT only on the two edges with no card (outside B.C., tidal water). The one trout path (no old card). */
   readonly trout?: TroutVM | TroutRefusedVM | null;
 }
 export type KeepBlock = "strip" | "inherited" | "banner" | { caveat: number } | { group: number } | { plain: number } | "otherFish" | "possession" | "whereNot"
@@ -165,7 +165,6 @@ export interface GroupVM {
   readonly tree: readonly TreeNodeVM[] | null;   // root's children when header.tier === tree[0].id, else tree[]
   readonly notKept: readonly NotKeptVM[];
   readonly worked: { label: string; says: string | null; lines: readonly { at: "here" | "elsewhere"; q: string; a: string }[] } | null;   // q carries ":" for at=here
-  readonly quiet: Line | null;              // page v36 noRulesLine (STEEL_LINE) + ⓘ steelhead
   readonly more: { text: string; open: SheetKey };   // "See every regulation line ›" → src:r<i>
 }
 export interface GroupHeadVM {

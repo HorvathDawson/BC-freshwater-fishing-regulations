@@ -242,10 +242,10 @@ describe("(T531, owner 2026-11-09) each calendar owns its species", () => {
   });
 });
 
-describe("(T810 O, owner about 17:15 \"Salmon + trout folds\") the dev switch: the trout table's one fold, and the arrow", () => {
+describe("(T810 O, S; owner about 17:15 \"Salmon + trout folds\") the trout table's one fold, and the arrow", () => {
   const actions: KeepActions = { onSheet() {}, onDay() {}, onTab() {}, onBook() {} };
   const salmon = { row: { source: "dfo", thumb: "CO", name: SALMON_WORDS.title, value: "closed", tone: "closed" }, card: () => <span>salmon card</span> } as const;
-  /** Vedder's page with the switch's trout table (a vector's frame, through N's troutOf), its block before the group */
+  /** Vedder's page with a trout table (a vector's frame, through N's troutOf), its block before the group */
   const withTrout = (name = "fraser-r2-mission-jul15"): KeepVM => {
     const c = (vectors as unknown as { cases: { name: string; day: string; frame: TroutValue | null }[] }).cases.find((x) => x.name === name)!;
     const [month, day] = c.day.split("-").map(Number) as [number, number];
@@ -253,12 +253,11 @@ describe("(T810 O, owner about 17:15 \"Salmon + trout folds\") the dev switch: t
     const keep = keepOf(vedder1010);
     return { ...keep, trout: troutOf(inp, { month, day }, { month, day }), order: ["strip", "trout", ...keep.order.slice(1)] };
   };
-  const tab = (keep: KeepVM, troutTable?: boolean, glance = true) =>
-    render(<KeepTab keep={keep} dateLabel="Jul 15" palette={LIGHT} actions={actions} {...(glance ? { glance: { salmon } } : {})}
-                    {...(troutTable === undefined ? {} : { troutTable })} />);
+  const tab = (keep: KeepVM, glance = true) =>
+    render(<KeepTab keep={keep} dateLabel="Jul 15" palette={LIGHT} actions={actions} {...(glance ? { glance: { salmon } } : {})} />);
 
-  it("switch on: the salmon and trout folds end in the arrow, no 'Details'; the other fish's group fold keeps its Details", () => {
-    tab(withTrout(), true);
+  it("the salmon and trout folds end in the arrow, no 'Details'; the other fish's group fold keeps its Details", () => {
+    tab(withTrout());
     for (const k of ["salmon", "trout"]) {
       const f = screen.getByTestId(`glance:${k}`);
       expect([within(f).queryByTestId("glance-arrow") !== null, within(f).queryByTestId("glance-toggle"), within(f).queryByText(GLANCE_WORDS.show)], k)
@@ -270,7 +269,7 @@ describe("(T810 O, owner about 17:15 \"Salmon + trout folds\") the dev switch: t
   });
 
   it("the whole row is one 44 px press, open or folded by aria-expanded, named by exactly its visible words", () => {
-    tab(withTrout(), true);
+    tab(withTrout());
     const press = within(screen.getByTestId("glance:trout")).getByRole("button");
     expect([press.getAttribute("aria-label"), press.getAttribute("aria-expanded"), hitArea(press.getAttribute("data-hitslop")!)!.h >= 44])
       .toEqual(["Trout and char Up to 2", "false", true]);
@@ -281,7 +280,7 @@ describe("(T810 O, owner about 17:15 \"Salmon + trout folds\") the dev switch: t
     expect(within(screen.getByTestId("glance-body:trout")).queryByTestId("trout-kicker")).toBeNull();   // the fold names it
     cleanup();
     // a fold's date (the Elk in winter) is a visible word, so in the name too
-    tab(withTrout("elk-nov15"), true);
+    tab(withTrout("elk-nov15"));
     const elk = within(screen.getByTestId("glance:trout")).getByRole("button");
     expect(elk.getAttribute("aria-label")).toBe("Trout and char Release until Mar 31, then closed to all fishing");
     expect(within(elk).getByTestId("glance-date").textContent).toBe("until Mar 31, then closed to all fishing");
@@ -291,26 +290,19 @@ describe("(T810 O, owner about 17:15 \"Salmon + trout folds\") the dev switch: t
 
   it("(2× text) the value goes under the name, the arrow stays at the end", () => {
     vi.spyOn(PixelRatio, "getFontScale").mockReturnValue(2);
-    tab(withTrout(), true);
+    tab(withTrout());
     const press = within(screen.getByTestId("glance:trout")).getByRole("button");
     expect(within(press).getByTestId("glance-value").parentElement!.textContent).toBe("Trout and charUp to 2");   // the name's column
     expect(press.lastElementChild!.getAttribute("data-testid")).toBe("glance-arrow");
   });
 
-  it("switch off: the folds are today's (salmon's Details); switch on changes only the salmon fold's end, never the Other fish", () => {
+  it("(S, no dev switch) a page with no table: the salmon fold still ends in the arrow; the Other fish rows are drawn as before", () => {
     const plain = keepOf(vedder1010);
-    const before = tab(plain).container.innerHTML;
-    cleanup();
-    expect(tab(plain, false).container.innerHTML).toBe(before);
-    expect(within(screen.getByTestId("glance:salmon")).getByTestId("glance-toggle").textContent).toBe(GLANCE_WORDS.show);
-    cleanup();
-    const rest = (root: HTMLElement) => [within(root).getByTestId("glance:group:0").innerHTML,
-      ...[...root.querySelectorAll("[data-testid='species-rows'] > div:last-child")].map((e) => e.innerHTML)];
-    const on = rest(tab(plain, true).container as HTMLElement);
-    cleanup();
-    const off = rest(tab(plain).container as HTMLElement);
-    expect(on).toEqual(off);
-    expect(off.join("")).toContain("Kokanee");
+    tab(plain);
+    const f = screen.getByTestId("glance:salmon");
+    expect([within(f).queryByTestId("glance-arrow") !== null, within(f).queryByTestId("glance-toggle")]).toEqual([true, null]);
+    expect(screen.queryByTestId("glance:trout")).toBeNull();
+    expect(screen.getByTestId("keep-tab").textContent).toContain("Kokanee");
   });
 
   it("no at-a-glance table: the trout table in full where its block is, named by its kicker", () => {

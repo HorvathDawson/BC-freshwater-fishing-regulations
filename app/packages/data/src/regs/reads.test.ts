@@ -6,6 +6,7 @@
  */
 import { deflateSync } from "fflate";
 import { describe, expect, it } from "vitest";
+import { KNOWN_VERSIONS, REGS_FORMATS, SECTION_NAMES } from "@app/core";
 import { openInMemory } from "../sql/drivers/node";
 import type { Db } from "../sql/db";
 import type { Manifest } from "../manifest";
@@ -16,7 +17,10 @@ const X = (v: unknown) => `X'${Buffer.from(typeof v === "string" ? v : JSON.stri
 const H = "aaaaaaaaaaaaaaaa", R = "bbbbbbbbbbbbbbbb", I = "cccccccccccccccc";
 const META = (rows: Record<string, string>) => "CREATE TABLE meta (k TEXT PRIMARY KEY, v TEXT NOT NULL);" +
   Object.entries(rows).map(([k, v]) => `INSERT INTO meta VALUES ('${k}', '${v}');`).join("");
-const VERSIONS = { ladder: 1, rows: 33, gear: 12, licence: 7, display: 20 };
+/** The section versions this app reads (T810 S: from `KNOWN_VERSIONS`, never retyped: rows 34, trout required). */
+const VERSIONS: Record<string, number> = Object.fromEntries(SECTION_NAMES.map((n) => [n, KNOWN_VERSIONS[n]]));
+/** (T810 S, F0) the page's possession row a rows 34 frame carries in its sixth slot */
+const PAGE_POSSESSION = { lead: { says: "Possession: 2 days’ quota.", value: "2 days’ quota", src: 0 }, also: [] };
 const FISH = ["BB", "CT", "RB"];
 const MOMENTS = [{ weekdays: ["Monday"], hours: null }, { weekdays: ["Sunday"], hours: null }];
 const STATICS: Record<string, unknown> = {
@@ -92,22 +96,22 @@ function seed(o: { noTidal?: boolean; badCells?: boolean; ruleGap?: boolean; noD
     INSERT INTO place VALUES (0, '["2"]', 6, '{"stream":"Unnamed stream · Region 2","lake":"Unnamed lake · Region 2"}');
   `);
   const FRAMES = `
-    CREATE TABLE cell (akey INTEGER, s INTEGER, ladder INTEGER, rows INTEGER, gear INTEGER, licence INTEGER, display INTEGER);
+    CREATE TABLE cell (akey INTEGER, s INTEGER, ladder INTEGER, rows INTEGER, gear INTEGER, licence INTEGER, display INTEGER, trout INTEGER);
     CREATE TABLE ladder_frame (id INTEGER PRIMARY KEY, j BLOB); CREATE TABLE ladder_verdict (id INTEGER PRIMARY KEY, j BLOB);
     CREATE TABLE rows_frame (id INTEGER PRIMARY KEY, j BLOB); CREATE TABLE rows_decided (id INTEGER PRIMARY KEY, j BLOB);
     CREATE TABLE rows_row (id INTEGER PRIMARY KEY, j BLOB); CREATE TABLE gear_frame (id INTEGER PRIMARY KEY, j BLOB);
     CREATE TABLE licence_frame (id INTEGER PRIMARY KEY, j BLOB); CREATE TABLE licence_hold (id INTEGER PRIMARY KEY, j BLOB);
     CREATE TABLE licence_doc (id INTEGER PRIMARY KEY, j BLOB); CREATE TABLE licence_answer (id INTEGER PRIMARY KEY, j BLOB);
     CREATE TABLE licence_u16 (id INTEGER PRIMARY KEY, j BLOB); CREATE TABLE display_frame (id INTEGER PRIMARY KEY, j BLOB);`;
-  const region = (r: string, extra: string) => openInMemory("", META({ format: "regs-region/1", region: r, section_handles: H,
+  const region = (r: string, extra: string) => openInMemory("", META({ format: REGS_FORMATS.region, region: r, section_handles: H,
     reach_digest: R, rule_ids_sha256: I }) + FRAMES + extra);
   const regs2 = region("2", `
-    INSERT INTO cell VALUES ${o.badCells ? "(2, 1, 5, 5, 5, 5, 5)" : "(2, 0, 5, 5, 5, 5, 5), (2, 1, 5, 6, 5, 6, 6)"};
+    INSERT INTO cell VALUES ${o.badCells ? "(2, 1, 5, 5, 5, 5, 5, NULL)" : "(2, 0, 5, 5, 5, 5, 5, NULL), (2, 1, 5, 6, 5, 6, 6, NULL)"};
     INSERT INTO ladder_frame VALUES (5, ${X([10, [[2, 11], [1, 12, 13, 14]]])});
     INSERT INTO ladder_verdict VALUES (10, ${X([[0], [], [], [], [], []])}), (11, ${X([[1], [], [], [], [[1, [0]]], []])}),
       (12, ${X([[], [1], [], [], [], []])}), (13, ${X([[], [], [1], [], [], []])}), (14, ${X([[], [], [], [], [], [[1, 0, 0]]])});
-    INSERT INTO rows_frame VALUES (5, ${X([["RB", "CT"], { RB: [7, null, "hatchery"], CT: [null, 8, "wild"] }, [3, 4, 3], "known_with_rules", [0, 1, 1]])}),
-      (6, ${X([[], {}, [], null, []])})${o.badStrip ? `, (9, ${X([[], {}, [3], null, [2]])}), (10, ${X([[], {}, [3, 4], null, [0]])}), (11, ${X([["RB"], { RB: [7, null] }, [], null, []])})` : ""};
+    INSERT INTO rows_frame VALUES (5, ${X([["RB", "CT"], { RB: [7, null, "hatchery"], CT: [null, 8, "wild"] }, [3, 4, 3], "known_with_rules", [0, 1, 1], PAGE_POSSESSION])}),
+      (6, ${X([[], {}, [], null, [], null])})${o.badStrip ? `, (9, ${X([[], {}, [3], null, [2], null])}), (10, ${X([[], {}, [3, 4], null, [0], null])}), (11, ${X([["RB"], { RB: [7, null] }, [], null, [], null])}), (12, ${X([[], {}, [], null, []])})` : ""};
     INSERT INTO rows_decided VALUES (7, ${X({ status: "keep", win: 0 })}), (8, ${X({ status: "release", win: 1 })});
     INSERT INTO rows_row VALUES (3, ${X({ kind: "keep", pool: 0 })}), (4, ${X({ kind: "closed", pool: null })});
     INSERT INTO gear_frame VALUES (5, ${X({ summary: "g", counts: {} })});
@@ -119,7 +123,7 @@ function seed(o: { noTidal?: boolean; badCells?: boolean; ruleGap?: boolean; noD
     INSERT INTO display_frame VALUES (5, ${X({ status: "own", closing: [], strip: 0 })}),
       (6, ${X({ status: "tidal", tidal: true, note: "n", see: "s", licence: null })});`);
   const regs1 = region("1", `
-    INSERT INTO cell VALUES (1, 0, 5, 5, 5, 5, 5), (1, 1, 5, 5, 5, 5, 5);
+    INSERT INTO cell VALUES (1, 0, 5, 5, 5, 5, 5, NULL), (1, 1, 5, 5, 5, 5, 5, NULL);
     INSERT INTO display_frame VALUES (5, ${X({ status: "closed", closing: [[0, ["RB"]]], strip: 1 })});`);
   // handle 4097 = block 1, slot 1: akey bytes [2, 0] at offset 2 (little-endian 2), place byte 1 at offset 1 (place 0)
   const akeyBlock = Buffer.alloc(8192); akeyBlock[2] = 2; akeyBlock[3] = 0; akeyBlock[8191] = 1;   // slot 4095 → akey 256
@@ -289,9 +293,10 @@ describe("cells and frames: routed to the key's region file", () => {
     const { loader, asked } = seed();
     const st = await openRegsStore(loader);
     asked.length = 0;
-    expect(await st.cell(2, 1)).toEqual({ ladder: 5, rows: 6, gear: 5, licence: 6, display: 6 });
-    expect(await st.cells(2)).toEqual([{ ladder: 5, rows: 5, gear: 5, licence: 5, display: 5 },
-                                       { ladder: 5, rows: 6, gear: 5, licence: 6, display: 6 }]);
+    // (T810 S) the trout table's id is a cell column like the others; a NULL one (no table here, Q-D3) is null, never 0
+    expect(await st.cell(2, 1)).toEqual({ ladder: 5, rows: 6, gear: 5, licence: 6, display: 6, trout: null });
+    expect(await st.cells(2)).toEqual([{ ladder: 5, rows: 5, gear: 5, licence: 5, display: 5, trout: null },
+                                       { ladder: 5, rows: 6, gear: 5, licence: 6, display: 6, trout: null }]);
     expect(await st.display(1, 5)).toEqual({ status: "closed", closing: [[0, ["RB"]]], strip: 1 });
     expect(asked.filter((a) => a.startsWith("regs-")))
       // (T286) a key's cells are read whole, once: `cell` and `cells` share that read
@@ -317,7 +322,8 @@ describe("cells and frames: routed to the key's region file", () => {
       fish: { RB: { hatchery: { status: "keep", win: 0 }, wild: null, lead: "hatchery" }, CT: { hatchery: null, wild: { status: "release", win: 1 }, lead: "wild" } },
       // row 3 twice, with two strips: the stored row has no year, the frame's fifth slot names it (rows 30)
       rows: [{ kind: "keep", pool: 0, year: SPLIT }, { kind: "closed", pool: null, year: NONE }, { kind: "keep", pool: 0, year: NONE }],
-      steelhead_line: "known_with_rules" });
+      steelhead_line: "known_with_rules", page_possession: PAGE_POSSESSION });
+    expect((await st.rows(2, 6)).page_possession).toBeNull();      // (T810 S, F0) the sixth slot as stored: null or the row
     expect(got.rows.map((r) => Object.keys(r))).toEqual([["kind", "pool", "year"], ["kind", "pool", "year"], ["kind", "pool", "year"]]);
     expect(got.rows[1]!.year).toBe(got.rows[2]!.year);              // one strip, one value: identical strips share
   });
@@ -330,6 +336,9 @@ describe("cells and frames: routed to the key's region file", () => {
     // rows 33 (T161): a fish held as [h, w] — no stored leading origin — is damaged, never re-picked here
     await expect(st.rows(2, 11)).rejects.toThrow(
       new RegsStoreError("damaged", "regs store: rows frame 11 holds RB as [7,null], not [h, w, lead]"));
+    // rows 34 (T810 S, F0): a frame with no sixth slot (a rows 33 frame) is damaged, never read as "no possession row"
+    await expect(st.rows(2, 12)).rejects.toThrow(
+      new RegsStoreError("damaged", "regs store: rows frame 12 has no page_possession slot (rows 34, F0)"));
   });
 
   it("licence: holds, the document's answers in order, under_16 only when the frame has it", async () => {

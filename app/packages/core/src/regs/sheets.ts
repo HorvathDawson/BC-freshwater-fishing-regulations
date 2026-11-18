@@ -29,6 +29,7 @@ import { fishSheet } from "./sheets/fish";
 import { otherSheet } from "./sheets/other";
 import { TROUT_SOURCES_KEY, troutFishSheet, troutSourcesSheet } from "./sheets/trout";
 import { fmtDay } from "./strip";
+import { tableCovers } from "./others";
 
 const para = (s: string, tone?: "small" | "note" | "mono"): SheetBlock => (tone ? { k: "para", text: [text(s)], tone } : { k: "para", text: [text(s)] });
 
@@ -166,15 +167,17 @@ export function sheetOf(ctx: SheetCtx, key: SheetKey): SheetVM | null {
   if (key === "hatch") return hatchSheet(key, ctx.inp);
   if (key.startsWith("srcs:")) return srcsSheet(ctx, key);
   if (key.startsWith("tf:") || key === TROUT_SOURCES_KEY) {
-    // (T810 P) the trout table's sheets: only where today's table is drawn (the dev switch on, a table, not refused)
+    // (T810 P) the trout table's sheets: only where today's table is drawn (a table, not refused)
     const t = ctx.page.keep.trout;
     if (t?.kind !== "table") return null;
     if (key === TROUT_SOURCES_KEY) return troutSourcesSheet(key, t, ctx.inp.rules, `${ctx.page.header.name}${WORDS.DOT}${fmtDay(ctx.page.day)}`);
     return troutFishSheet(key, t, key.slice(3), ctx.inp.rules, ctx.env?.fish);
   }
-  if (key.startsWith("src:r")) return srcSheet(ctx, key, +key.slice(5));
-  if (key.startsWith("share:r")) return shareSheet(key, ctx, +key.slice(7));
-  if (key.startsWith("multi:r")) return multiSheet(key, ctx, +key.slice(7));
+  // (T810 S) a row's own sheets are the other fish's: a row the trout table covers opens none (its sheets are `tf:`)
+  const rowOf = (at: number): number | null => { const ix = +key.slice(at); return tableCovers(ctx.inp).includes(ix) ? null : ix; };
+  if (key.startsWith("src:r")) { const ix = rowOf(5); return ix === null ? null : srcSheet(ctx, key, ix); }
+  if (key.startsWith("share:r")) { const ix = rowOf(7); return ix === null ? null : shareSheet(key, ctx, ix); }
+  if (key.startsWith("multi:r")) { const ix = rowOf(7); return ix === null ? null : multiSheet(key, ctx, ix); }
   if (key.startsWith("other:o")) return otherSheet(ctx, key, +key.slice(7));
   if (key.startsWith("sp:")) return fishSheet(ctx.inp, key, key.slice(3), ctx.env?.fish);
   return null;

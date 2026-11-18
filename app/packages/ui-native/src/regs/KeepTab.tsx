@@ -34,24 +34,21 @@ import { CoachSpot } from "../CoachMarks";
 import type { KeepActions } from "./LineText";
 import type { FishImages } from "./types";
 
-export function KeepTab({ keep, dateLabel, palette, actions, images, glance = null, salmonStrip = null, daylight = null, troutTable = false }: {
+export function KeepTab({ keep, dateLabel, palette, actions, images, glance = null, salmonStrip = null, daylight = null }: {
   keep: KeepVM; dateLabel: string; palette: Palette; actions: KeepActions; images?: FishImages;
   salmonStrip?: SalmonStripVM | null;
   /** (T473) the open hours of a daylight-only closure on the day at the water, from the rule's own offsets; null: no point */
   daylight?: ((after: number, before: number) => string | null) | null;
   glance?: { salmon: { row: GlanceRowVM; card: () => ReactNode } | null } | null;
-  /** (T810 O) THE DEV SWITCH (`RegsPageOpts.troutTable`, off by default): the salmon fold's end is the arrow, not "Details".
-   *  The trout table itself is drawn from `keep.trout`, which only the switch fills. Off: the tab is today's. */
-  troutTable?: boolean;
 }) {
-  // (T810 O) the trout and char table, as N built it (null: none drawn: no section, no cell, or a refused frame)
+  // (T810 O, S) the trout and char table, as N built it (null: none drawn: no cell, a closed day, or a refused frame)
   const trout = keep.trout?.kind === "table" ? keep.trout : null;
   const troutCard = (kicker: boolean) => trout && (
     <TroutCard t={trout} palette={palette} actions={actions} images={images} kicker={kicker}
                todayAt={keep.strip?.todayAt ?? null} months={keep.strip?.months ?? []} />
   );
   const folds: GlanceFold[] = !glance ? [] : [
-    ...(glance.salmon ? [{ key: "salmon", row: glance.salmon.row, body: glance.salmon.card, ...(troutTable ? { arrow: true } : {}) }] : []),
+    ...(glance.salmon ? [{ key: "salmon", row: glance.salmon.row, body: glance.salmon.card, arrow: true }] : []),
     // (T810 O) ONE trout fold for the table (owner 15:47: the existing entry, its short line, the expand arrow); the other
     // fish's quota groups keep their own folds, unchanged
     ...keep.order.flatMap((b): GlanceFold[] => b === "trout" && trout ? [{ key: "trout", row: troutGlance(trout), body: () => troutCard(false), arrow: true }]
@@ -121,7 +118,7 @@ export function KeepTab({ keep, dateLabel, palette, actions, images, glance = nu
         if (b === "possession") return <PossessionRow key={i} possession={keep.possession!} palette={palette} actions={actions} />;
         if (b === "whereNot") return <WhereNot key={i} whereNot={keep.whereNot!} palette={palette} actions={actions} />;
         if (b === "outside") return <OutsideFoot key={i} text={keep.outside!} palette={palette} />;
-        // (T810 O, the dev switch) no at-a-glance table: the trout table in full where its block is, named by its kicker
+        // (T810 O) no at-a-glance table: the trout table in full where its block is, named by its kicker
         if (b === "trout") return trout ? <Fragment key={i}>{troutCard(true)}</Fragment> : null;
 
         if ("caveat" in b && i === timedAt && timed) return null;

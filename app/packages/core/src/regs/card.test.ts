@@ -23,7 +23,7 @@ const dec = (status: Decided["status"], win: number, daily: number | null, narro
 const FRAME: RowsValue = { spp: ["RB", "CT", "LMB"], steelhead_line: "known_with_rules", rows: [KEEP, NOLIMIT, CLOSED], fish: {
   RB: { hatchery: dec("keep", 3091, 2), wild: dec("release", 3098, null), lead: "hatchery" },
   CT: { hatchery: dec("release", 528, null), wild: dec("release", 3098, null), lead: "hatchery" },
-  LMB: { hatchery: dec("no_limit", 1362, null), wild: null, lead: "hatchery" } } };
+  LMB: { hatchery: dec("no_limit", 1362, null), wild: null, lead: "hatchery" } }, page_possession: null };
 
 const OPEN_F = { status: "own", closing: [], strip: 1 } as unknown as DisplayFrame;
 const SHUT_F = { status: "closed", closing: [[3080, ["RB"]]], strip: 2 } as unknown as DisplayFrame;

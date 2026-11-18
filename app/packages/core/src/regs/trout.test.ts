@@ -33,7 +33,7 @@ describe("a11yOf: payload texts in payload order, joined by \". \", nothing else
   });
 });
 
-describe("the dev switch's split by covers (others.ts)", () => {
+describe("the split by covers (others.ts; T810 S: the only split)", () => {
   const KO = rowOf({ kind: "keep", pool: 3, daily: 5, members: ["KO"], all_members: ["KO"] });
   const BASS = rowOf({ kind: "no_limit", pool: 3, members: ["LMB", "SMB"], all_members: ["LMB", "SMB"] });
   // (Nahwitti) Region 1's "Release all char": a row with no pool and no group, beside the trout keep pool
@@ -53,12 +53,11 @@ describe("the dev switch's split by covers (others.ts)", () => {
   it("Nahwitti: a pool-less release row the table covers is drawn by nothing else (no plain row, no list line)", () => {
     const card = cardOf([TROUT_ROW, CHAR, WSG]);
     expect([splitRows(card, [0, 1]), listRows(card, [0, 1]), looseRows(card, [0, 1])]).toEqual([{ main: [2], rest: null }, null, []]);
-    // mutation: the old split (no covers) draws the char row in full beside the trout card
-    expect(splitRows(card).main).toContain(1);
+    // mutation: a covers that leaves the char row out draws it beside the table (an Other fish line)
+    expect(splitRows(card, [0]).rest).toContain(1);
   });
-  it("no covered row (the cell has no table): every row drawn as today; the switch off: TROUTISH, unchanged", () => {
+  it("no covered row (the cell has no table): every row drawn in order", () => {
     expect(splitRows(cardOf([KO, BASS]), [])).toEqual({ main: [0, 1], rest: null });
-    expect(splitRows(cardOf([KO, TROUT_ROW, BASS]))).toEqual({ main: [1], rest: [0, 2] });
   });
   it("a closed day: no rows", () => {
     expect(splitRows(cardOf([TROUT_ROW, KO, BASS], { status: "closed" }), [0])).toEqual({ main: [], rest: null });

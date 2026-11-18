@@ -1,6 +1,6 @@
 /**
- * (T810 N) THE TROUT TABLE'S VIEW MODEL against the shared vectors and the trout fixture release (always run: committed),
- * with the dev switch on (`troutTable`). The proof column of the build spec's N row:
+ * (T810 N, S) THE TROUT TABLE'S VIEW MODEL against the shared vectors and the trout fixture release (always run:
+ * committed); since S the table is the only trout path (no dev switch). The proof column of the build spec's N row:
  * - whole strings per vector: the top line with both day words is the vector's `composed.lead_today` / `lead_on`, and
  *   every other drawn string is the frame's own (none added or changed, contract fight list #5);
  * - each hand case of `trout-hand.json` refused through `reportFailure`, no table drawn (the base frame is drawn);
@@ -9,9 +9,9 @@
  * - DRAWN EXACTLY ONCE: over every vector cell and every cell of the trout fixture release, each rows-frame row is drawn
  *   once: by the table (`covers`), as a full row of the main block, or as a line of the Other fish list;
  * - a lone other fish beside the table is drawn in full; no fish is named by both caveat (b) and the table;
- * - the switch off: the page is today's (no `trout`, the old split).
+ * - (S) a cell with no table (`trout` null): no trout block, no trout sheet, every row drawn by the old card.
  */
-import { existsSync, readFileSync, writeFileSync } from "node:fs";
+import { existsSync, readdirSync, readFileSync, writeFileSync } from "node:fs";
 import { join, resolve } from "node:path";
 import { afterEach, beforeAll, beforeEach, describe, expect, it } from "vitest";
 import {
@@ -56,8 +56,9 @@ async function inputsOfCase(c: Vector): Promise<RegsInputs> {
   return loadRegsInputs(st, await targetFor(st, c.item, await sectionOf(c)), { month: mm!, day: dd! },
     WEEKDAY[c.weekday as keyof typeof WEEKDAY], 2026);
 }
-const pageOf = (inp: RegsInputs, on: boolean, today = inp.day): RegsPage =>
-  buildRegsPage(inp, { today, who: ADULT_RESIDENT, ...(on ? { troutTable: true } : {}) });
+const pageOf = (inp: RegsInputs, today = inp.day): RegsPage => buildRegsPage(inp, { today, who: ADULT_RESIDENT });
+/** (T810 S) the same inputs with no trout table in the cell (Q-D3 null): the mutation every switch-off check became */
+const noTable = (inp: RegsInputs): RegsInputs => ({ ...inp, trout: null });
 
 /**
  * How many times the page draws each rows-frame row (contract 2.12 "Split"): the table through `covers`, a full row of
@@ -71,7 +72,7 @@ function drawnCount(inp: RegsInputs, page: RegsPage): number[] {
   if (t) for (const i of t.covers) n[i]! += 1;
   for (const g of keep.groups) n[g.row]! += 1;
   for (const p of keep.plainRows) n[p.row]! += 1;
-  for (const i of listRows(card, tableCovers(inp, true)) ?? []) n[i]! += 1;
+  for (const i of listRows(card, tableCovers(inp)) ?? []) n[i]! += 1;
   const drawn = drawnRows(card);
   card.rows.forEach((r, i) => {
     const p = r.raw.parent;
@@ -115,7 +116,7 @@ function vmStrings(t: TroutVM): string[] {
   return out;
 }
 
-describe("T810 N: the trout view model over every vector (dev switch on)", () => {
+describe("T810 N: the trout view model over every vector", () => {
   it("the vectors hold tables and null cells both", () => {
     expect(V.cases.filter((c) => c.frame !== null).length).toBeGreaterThan(40);
     expect(V.cases.some((c) => c.frame === null)).toBe(true);
@@ -124,7 +125,7 @@ describe("T810 N: the trout view model over every vector (dev switch on)", () =>
   it.each(V.cases.map((c) => [c.name, c] as const))("%s", async (_n, c) => {
     const inp = await inputsOfCase(c);
     expect(inp.trout).toEqual(c.frame);
-    const on = pageOf(inp, true), off = pageOf(inp, false);
+    const on = pageOf(inp), off = pageOf(noTable(inp));
     // whole strings: the lead with both day words; every other drawn string is the frame's own
     const t = on.keep.trout;
     if (c.frame === null) expect(t ?? null).toBeNull();
@@ -137,11 +138,12 @@ describe("T810 N: the trout view model over every vector (dev switch on)", () =>
       expect(on.keep.order.filter((b) => b === "trout")).toEqual(["trout"]);
     }
     expect(reports).toEqual([]);
-    // drawn exactly once; no fish spoken twice; the switch off is today's page
+    // drawn exactly once; no fish spoken twice; with no table in the cell, no trout block and every row the old card's
     expectDrawnOnce(inp, on, c.name);
     expect(spokenTwice(on)).toEqual([]);
-    expect(off.keep.trout).toBeUndefined();
+    expect(off.keep.trout ?? null).toBeNull();
     expect(off.keep.order).not.toContain("trout");
+    expectDrawnOnce(noTable(inp), off, `${c.name} (no table)`);
   });
 });
 
@@ -180,7 +182,7 @@ describe("T810 N: the hand cases (trout-hand.json): each refused through reportF
     const c = V.cases.find((x) => x.name === "skeena-sedan-mill-jul15")!;
     const inp = await inputsOfCase(c);
     const bad = { ...inp, trout: { ...inp.trout!, table: { ...inp.trout!.table, hatch_link: !inp.trout!.table.hatch_link } } };
-    const page = pageOf(bad, true);
+    const page = pageOf(bad);
     expect([page.keep.trout?.kind, page.keep.order.includes("trout"), reports.length]).toEqual(["refused", true, 1]);
     expect(drawnCount(bad, page).filter((x, i) => bad.trout.covers.includes(i) && x !== 1)).toEqual([]);
     expect(page.keep.groups.filter((g) => bad.trout.covers.includes(g.row))).toEqual([]);
@@ -205,7 +207,7 @@ describe("T810 N: the screen-reader golden over every vector row", () => {
   });
 });
 
-describe("T810 N: every cell of the trout fixture release (dev switch on)", () => {
+describe("T810 N: every cell of the trout fixture release", () => {
   /** Per water of the fixture (the vectors' waters), each key once, each segment once: the first 2026 day that reads it. */
   async function* cells(): AsyncGenerator<RegsInputs> {
     const seen = new Set<number>();
@@ -231,9 +233,9 @@ describe("T810 N: every cell of the trout fixture release (dev switch on)", () =
   it("each rows-frame row drawn exactly once; no fish spoken twice; a lone other fish drawn in full", async () => {
     let cellsRead = 0, tables = 0, listed = 0;
     for await (const inp of cells()) {
-      if (inp.trout === undefined) continue;
+      expect(inp.trout, "a keyed tap carries its trout cell (required from rows 34)").not.toBeUndefined();
       cellsRead++;
-      const page = pageOf(inp, true), what = `${inp.item?.id} part ${inp.partIx} ${inp.day.month}-${inp.day.day}`;
+      const page = pageOf(inp), what = `${inp.item?.id} part ${inp.partIx} ${inp.day.month}-${inp.day.day}`;
       expectDrawnOnce(inp, page, what);
       expect(spokenTwice(page), what).toEqual([]);
       const t = page.keep.trout;
@@ -266,11 +268,11 @@ describe("T810 N: caveat (b) leaves a covered fish to the table", () => {
       rowsBySeg: at(y.rowsBySeg, sunday), displayBySeg: at(y.displayBySeg, y.displayBySeg[s]!) } };
   }
   const named = (p: RegsPage) => p.keep.caveats.filter((c) => c.kind === "timed").flatMap((c) => c.items).map((x) => x.fish);
-  it("the plant speaks: with the switch off, caveat (b) names rainbow trout", async () => {
-    expect(named(pageOf(await planted(), false))).toContain("RB");
+  it("the plant speaks: with no table in the cell (nothing covered), caveat (b) names rainbow trout", async () => {
+    expect(named(pageOf(noTable(await planted())))).toContain("RB");
   });
-  it("with the switch on, the table holds rainbow trout and caveat (b) does not name it", async () => {
-    const page = pageOf(await planted(), true);
+  it("with the table, it holds rainbow trout and caveat (b) does not name it", async () => {
+    const page = pageOf(await planted());
     expect([page.keep.trout?.kind, named(page).includes("RB"), spokenTwice(page)]).toEqual(["table", false, []]);
   });
 });
@@ -289,7 +291,7 @@ describe("T810 N: a lone other fish beside the table stays as today (drawn in fu
       const back = free.find((i) => !inp.trout!.covers.includes(i)) ?? free[0];
       if (back === undefined) continue;
       const lone = { ...inp, trout: { ...inp.trout, covers: card.rows.map((_, i) => i).filter((i) => i !== back) } };
-      const page = pageOf(lone, true), full = [...page.keep.groups.map((g) => g.row), ...page.keep.plainRows.map((p) => p.row)];
+      const page = pageOf(lone), full = [...page.keep.groups.map((g) => g.row), ...page.keep.plainRows.map((p) => p.row)];
       // in full: a group or a plain row, no list; a pooled row with no stored card is a list line, as it is today (T670 K4)
       const loose = !card.rows[back]!.raw.group?.headline && !!card.rows[back]!.pool;
       expect(loose ? [full, page.keep.otherFish?.length] : [full, page.keep.otherFish], c.name).toEqual(loose ? [[], 1] : [[back], null]);
@@ -349,6 +351,30 @@ describe("T810 N: trout.ts imports no rule logic", () => {
   });
 });
 
+/**
+ * (T810 S, contract 2.12 "Never in the app") After the switch the app's own trout decisions are gone: the hand fish lists,
+ * the strip's trout line, the steelhead quiet line, the possession pick and its value regex, and the dev switch. Read
+ * from the source, as the imports test is (core imports no platform).
+ */
+describe("T810 S: the app's trout decisions are gone (one trout path)", () => {
+  const CORE = resolve(REPO, "app/packages/core/src");
+  const sources = (readdirSync(CORE, { recursive: true }) as string[])
+    .filter((f) => /\.tsx?$/.test(f) && !/\.test\.tsx?$/.test(f) && !f.includes("testing/"))
+    .map((f) => [f, readFileSync(join(CORE, f), "utf8")] as const);
+  const GONE = ["TROUTISH", "TROUT_LINE_FISH", "troutLine", "STEEL_LINE", "quietOf", "possessionRules", "possessionValue",
+                "possessionCaps", "troutTable"];
+  it("no core source names one of them", () => {
+    expect(sources.length).toBeGreaterThan(50);
+    expect(sources.flatMap(([f, src]) => GONE.filter((n) => new RegExp(`\\b${n}\\b`).test(src)).map((n) => `${f}: ${n}`))).toEqual([]);
+  });
+  it("the possession row reads page_possession and picks nothing (no days compared, no roles walked, no sentence cut)", () => {
+    const src = readFileSync(join(CORE, "regs/standing.ts"), "utf8");
+    const body = src.slice(src.indexOf("export function possessionOf"));
+    expect(body).toContain("page_possession");
+    for (const pick of ["per_daily", "roles", ".sort(", ".match(", "RegExp", "possession_cap"]) expect(body, pick).not.toContain(pick);
+  });
+});
+
 // ── (T810 P) the fish sheet ─────────────────────────────────────────────────────────────────────────────────────────────
 
 /** A sheet's blocks between the head `from` and the next head (the section's body). */
@@ -366,12 +392,12 @@ const linksOf = (vm: SheetVM): string[] =>
   vm.blocks.flatMap((b) => (b.k === "source" ? b.line.flatMap((r) => (r.t === "link" && typeof r.open === "string" ? [r.open] : [])) : []));
 const ascending = (xs: readonly number[]) => xs.every((x, i) => i === 0 || xs[i - 1]! < x);
 
-describe("T810 P: the trout fish sheet over every vector (dev switch on)", () => {
+describe("T810 P: the trout fish sheet over every vector", () => {
   it("every fish of every vector opens its sheet, built only from the payload, every rule list in Python's order", async () => {
     let rows = 0, unsortedSheet = 0, unsortedTable = 0, twins = 0;
     for (const c of V.cases) {
       if (!c.frame) continue;
-      const inp = await inputsOfCase(c), page = pageOf(inp, true);
+      const inp = await inputsOfCase(c), page = pageOf(inp);
       expect(page.keep.trout?.kind, c.name).toBe("table");
       const f = c.frame.table, keyOf = (ix: number) => inp.rules.get(ix).key;
       for (const b of f.boxes) for (const r of b.rows) {
@@ -399,11 +425,11 @@ describe("T810 P: the trout fish sheet over every vector (dev switch on)", () =>
       const all = page.sheet(TROUT_SOURCES_KEY);
       expect([all?.title, sourceKeys(all?.blocks ?? [])], c.name).toEqual([TROUT_SHEET.SOURCES, f.src.map(keyOf)]);
       if (!ascending(f.src)) unsortedTable++;
-      // a key the table does not hold opens nothing; the switch off opens no trout sheet
+      // a key the table does not hold opens nothing; a cell with no table opens no trout sheet
       const held = new Set(f.boxes.flatMap((b) => b.rows.map((r) => r.key)));
       const absent = ["CT", "DV", "EB", "GB", "LT", "RB", "ST"].flatMap((x) => [x, `${x}/wild`, `${x}/hatchery`]).find((k) => !held.has(k))!;
       expect(page.sheet(`tf:${absent}`), c.name).toBeNull();
-      const off = pageOf(inp, false);
+      const off = pageOf(noTable(inp));
       expect([off.sheet(`tf:${f.boxes[0]!.rows[0]!.key}`), off.sheet(TROUT_SOURCES_KEY)], c.name).toEqual([null, null]);
     }
     expect(rows).toBeGreaterThan(100);
@@ -422,7 +448,7 @@ describe("T810 P: the trout fish sheet over every vector (dev switch on)", () =>
   });
 
   it("a fish the manifest lacks is reported, never drawn as a blank section", async () => {
-    const c = V.cases.find((x) => x.frame)!, inp = await inputsOfCase(c), t = pageOf(inp, true).keep.trout as TroutVM;
+    const c = V.cases.find((x) => x.frame)!, inp = await inputsOfCase(c), t = pageOf(inp).keep.trout as TroutVM;
     const r = t.boxes[0]!.rows[0]!;
     const vm = troutFishSheet(`tf:${r.key}`, t, r.key, inp.rules, {});
     expect(vm!.blocks.some((b) => b.k === "image")).toBe(false);

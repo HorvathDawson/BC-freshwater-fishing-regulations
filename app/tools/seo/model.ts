@@ -132,7 +132,7 @@ function sectionsOf(page: Omit<RegsPage, "sheet">): Section[] {
   for (const g of k.groups) {
     keep.push(item(g.title, null, true), item(g.scope), item(g.head.lead), item(g.head.words), item(g.head.whyHere),
               item(g.origin?.says ?? null, g.origin?.book ?? null), item(g.year?.says), ...treeItems(g.tree),
-              ...g.notKept.flatMap((n) => [item(n.says), item(n.whose), item(n.presence), ...n.stamps.map((s) => item(s))]), item(g.quiet));
+              ...g.notKept.flatMap((n) => [item(n.says), item(n.whose), item(n.presence), ...n.stamps.map((s) => item(s))]));
   }
   for (const p of k.plainRows) {
     keep.push(item(p.title, null, true), item(p.pill?.text), item(p.scope), item(p.sum), item(p.week?.says),

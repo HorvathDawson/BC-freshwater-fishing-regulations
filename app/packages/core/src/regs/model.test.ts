@@ -34,7 +34,7 @@ const page = {
           size: { text: "keep 30 cm (12 in) or longer", lead: null, chip: "keep 30 cm (12 in) or longer", then: null, rule: false, def: false }, qualifiers: null,
           pictures: [{ code: "EB", name: "Brook trout", caption: "Brook trout ›", open: "sp:EB", sil: false }],
           also: [], duty: null, stamps: [], presence: null }] }],
-      notKept: [], worked: null, quiet: null, more: { text: "See every regulation line ›", open: "src:r0" },
+      notKept: [], worked: null, more: { text: "See every regulation line ›", open: "src:r0" },
     }],
     plainRows: [], otherFish: [{ thumb: null, name: "Kokanee", value: "release", tone: "release", week: null, sizeHint: null,
       open: "other:o0", stamps: [], back: [] }],

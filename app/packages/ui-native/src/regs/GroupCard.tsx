@@ -284,7 +284,6 @@ export function GroupCard({ g, palette, actions, images, titled = true }: { g: G
                         coachFirst="regs:ruleline" />}
       {g.notKept.map((x, i) => <NotKept key={i} x={x} palette={palette} actions={actions} images={images} />)}
       {g.worked && <Worked w={g.worked} palette={palette} />}
-      {g.quiet && <View style={{ marginTop: 8 }}><LineText line={g.quiet} style={TYPE.meta} color={palette.sub} palette={palette} actions={actions} /></View>}
       <RegsPress accessibilityRole="link" onPress={() => actions.onSheet(g.more.open)} box={{ w: 44, h: 44 }} style={{ minHeight: 44, justifyContent: "center", marginTop: 8 }}>
         <Text style={[TYPE.regsBodyBold, { color: palette.accent }]}>{g.more.text}</Text>
       </RegsPress>

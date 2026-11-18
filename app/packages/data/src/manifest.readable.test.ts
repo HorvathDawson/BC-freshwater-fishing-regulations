@@ -4,7 +4,7 @@
  * file" and "this release has no section_line" were thrown on the map and the regs page.
  */
 import { describe, expect, it } from "vitest";
-import { KNOWN_VERSIONS, OPTIONAL_VERSIONS, SECTION_NAMES } from "@app/core";
+import { KNOWN_VERSIONS, SECTION_NAMES } from "@app/core";
 import { readsRelease, type Manifest } from "./manifest";
 import { PACK_FILES, PACK_OPTIONAL, PACK_WEB_ONLY } from "./pack.generated";
 
@@ -58,7 +58,7 @@ describe("readsRelease", () => {
     const REQUIRED: Record<string, number> = Object.fromEntries(SECTION_NAMES.map((n) => [n, KNOWN_VERSIONS[n]]));
     const said = (versions: Record<string, number> | null): Manifest =>
       ({ ...release(), regulations: { valid_until: null, versions } }) as Manifest;
-    const TROUT = OPTIONAL_VERSIONS.trout;
+    const TROUT = KNOWN_VERSIONS.trout;
 
     it("no versions named passes (the store still holds the water file to them); this app's own pass", () => {
       expect(readsRelease(said(null), "phone")).toEqual({ ok: true });
@@ -73,10 +73,12 @@ describe("readsRelease", () => {
         reason: `release r-test is not one this app reads: regulations gear is absent, not ${KNOWN_VERSIONS.gear}` });
     });
 
-    it("an optional section (trout) absent or at this app's version passes; at another version it is refused", () => {
-      expect(readsRelease(said({ ...REQUIRED, trout: TROUT }), "phone")).toEqual({ ok: true });
+    it("(T810 S) the trout section is required: left out, or at another version, is refused", () => {
       expect(readsRelease(said({ ...REQUIRED, trout: TROUT + 1 }), "phone")).toEqual({ ok: false,
         reason: `release r-test is not one this app reads: regulations trout is ${TROUT + 1}, not ${TROUT}` });
+      const noTrout = Object.fromEntries(Object.entries(REQUIRED).filter(([n]) => n !== "trout"));
+      expect(readsRelease(said(noTrout), "phone")).toEqual({ ok: false,
+        reason: `release r-test is not one this app reads: regulations trout is absent, not ${TROUT}` });
     });
 
     it("a section this app knows neither way is a newer release's: it passes", () => {

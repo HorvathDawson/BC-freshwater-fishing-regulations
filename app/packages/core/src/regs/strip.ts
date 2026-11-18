@@ -4,16 +4,15 @@
  * Owner rule 2026-10-21 (decisions.md): every answer drawn here is the PIPELINE's —
  * - open / closed on a day is the display frame's `status` (display_frame, one per book day: `inp.year.displayByDay`);
  * - the bar's per-day flags are the display frame's `strip` bits (answers 2.6), drawn as they are;
- * - the trout line's runs are the row's STORED year strip (rows 30 `rows[].year`, `HydRow.year`; decided by
- *   `pipeline/deliver/answers/year.py` with page v36's rule). Nothing here ranks, merges or decides a day: `runOf` only
- *   reads how long the stored state of the selected day lasts, and the trout line only SELECTS which stored row to word.
+ * - nothing here ranks, merges or decides a day: `runOf` only reads how long the stored state of the selected day lasts
+ *   (T810 S: the strip's old trout line, "Trout release only until Mar 31", is gone, owner 2026-11-16 "Drop it"; the
+ *   trout and char table's own year bar is Python's `TroutTable.year`).
  *
  * Ports (inventory names @ 7fb6809f): page_v36 DAYS, daySegs (its length), nextOpen, runOf, waterStrip0, segBar (the
  * marker's idx/365); prototype buildKeep's "Closed from" → "Closed <span>" rewrite (round 20i), flagBar (the runs),
  * flagLegend, span. page v36 `strip`/`dayStatus` are NOT ported (the store's `rows[].year` replaces them).
  */
 import { COMMON_YEAR_MONTH_LAST_DAY, MONTHS, readingDay, WEEKDAYS } from "../calendar.generated";
-import type { CardModel, HydRow, YearRun } from "./card";
 import type { DisplayFrame, RegsInputs } from "./inputs";
 import type { Day, StripVM } from "./model";
 import type { Settled } from "./settle";
@@ -123,28 +122,13 @@ export function legendText(l: StripVM["legend"][number]): string {
   return (l.mark ? `${l.mark} ` : "") + l.label.charAt(0).toUpperCase() + l.label.slice(1);
 }
 
-/** The fish a "Trout …" line speaks for (page v36 waterStrip0 TR, round UR5): a match key, never said. */
-export const TROUT_LINE_FISH: readonly string[] = Object.freeze(["RB", "CT", "GB"]);
-const trouty = (r: HydRow) => r.members.some((S) => TROUT_LINE_FISH.includes(S));
-
-/** page waterStrip0's trout line: the stored release/closed trout row (none beside a trout keep row), worded over its
- *  STORED year strip; null when the card has no such row. */
-export function troutLine(card: CardModel, d: Day): string | null {
-  if (card.rows.some((r) => r.kind === "keep" && trouty(r))) return null;
-  const tr = card.rows.find((r) => !r.pool && (r.kind === "closed" || r.kind === "release") && trouty(r));
-  if (!tr) return null;
-  const ru = runOf(tr.year as readonly YearRun[], d);
-  return WORDS.TROUT_LINE(tr.kind === "closed" ? WORDS.TROUT_CLOSED : WORDS.TROUT_RELEASE,
-                          ru.all ? WORDS.ALL_YEAR : WORDS.UNTIL(fmtDay(ru.until!)));
-}
-
 const SOON_WINDOW = 21;
 
 /**
  * The year strip of the selected day `inp.day` (`today` only picks "today" over "on <day>"). Null where page v36 draws
  * none: tidal water (T14's banner) or no display frame (outside B.C.).
  */
-export function stripOf(inp: RegsInputs, settled: Settled, card: CardModel, today: Day): StripVM | null {
+export function stripOf(inp: RegsInputs, settled: Settled, today: Day): StripVM | null {
   const frame = settled.status;
   if (!frame || frame.status === "tidal" || inp.key?.tidal) return null;
   const day = inp.day, i = bookIndex(day);
@@ -174,7 +158,7 @@ export function stripOf(inp: RegsInputs, settled: Settled, card: CardModel, toda
         if (at > i && r.bits != null && (r.bits & 1)) { soon = WORDS.CLOSED_SPAN(spanWords(at, at + r.days - 1)); break; }
         at += r.days;
       }
-    } else soon = troutLine(card, day);
+    }
     if (soon !== null) line.push({ kind: "soon", text: soon });
   }
   return {

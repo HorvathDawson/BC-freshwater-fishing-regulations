@@ -92,7 +92,8 @@ function fixedWords(inp: RegsInputs): Set<string> {
   return FIXED = new Set([...wordsOf(JSON.stringify([rules, inp.statics, FISH, MONTHS, WEEKDAYS])), ...[...ALL_WORDS].flatMap(wordsOf)]);
 }
 function vocabulary(inp: RegsInputs): Set<string> {
-  return new Set([...fixedWords(inp), ...wordsOf(JSON.stringify([inp.frames, inp.item, inp.place, inp.year?.rowsBySeg, [...inp.lics.values()]]))]);
+  // (T810 S) the trout table's words are its payload's (`inp.trout`, Python's), drawn unchanged
+  return new Set([...fixedWords(inp), ...wordsOf(JSON.stringify([inp.frames, inp.item, inp.place, inp.year?.rowsBySeg, [...inp.lics.values()], inp.trout ?? null]))]);
 }
 const wordsOf = (s: string): string[] => (s.match(/[A-Za-z][A-Za-z’']+/g) ?? []).map((w) => w.toLowerCase().replace(/[’']s$/, ""));
 /** every string in the Keep VM (sheet keys and enum-like fields left out: they are keys, not words) */
@@ -130,32 +131,20 @@ describe("T21 Keep properties (every state)", () => {
     expect(bad).toEqual([]);
   }, 120_000);
 
-  it("3. vedder_1010 literally: form a leads with the share, of the region's total; form b flips", async () => {
-    for await (const c of cases()) {
-      if (c.id !== "vedder_1010") continue;
-      const a = (await c.page()).keep.groups[0]!.head, b = (await c.page(undefined, "b")).keep.groups[0]!.head;
-      expect([a.form, plain(a.lead), a.ofTotal, plain(a.words), nums(a.lead)[0]]).toEqual(
-        ["a", "2 hatchery trout/char a day from streams ⓘ", true, "4 a day per angler across Region 2, lakes included", "2"]);
-      expect([b.form, nums(b.words)[0], plain(b.shareOf), b.lead]).toEqual(["b", "4", "↳ 2 of them from streams", null]);
-    }
-  });
-
-  it("2. glenn_501 literally: the region tag moved to the share ('All Region 4 streams'), the head scope empty", async () => {
-    for await (const c of cases()) {
-      if (c.id !== "glenn_501") continue;
-      const g = (await c.page()).keep.groups[0]!;
-      const share = (g.tree ?? []).find((x) => x.t === "tier" && x.tier === "share");
-      expect([g.scope, share && share.t === "tier" ? [share.kicker, plain(share.line)] : null]).toEqual(
-        [null, ["All Region 4 streams", "Up to 2 brook, brown, cutthroat or lake trout of the 5 from streams"]]);
-    }
-  });
+  // (T810 S) "3. vedder_1010 literally" and "2. glenn_501 literally" are retired: both pinned a TROUT group (the Vedder's
+  // hatchery trout/char share, Glenn's Region 4 stream share), which the trout table draws now (its words are Python's)
 
   it("the property checkers fail on a broken group (mutation pins)", async () => {
+    // (T810 S) on the first state with a group holding a tier (an other fish's, since the trout groups left the card)
+    let pinned = 0;
     for await (const c of cases()) {
-      if (c.id !== "glenn_501") continue;
-      const g = (await c.page()).keep.groups[0]!, b = (await c.page(undefined, "b")).keep.groups[0]!;
+      if (pinned) break;
+      const g = (await c.page()).keep.groups.find((x) => (x.tree ?? []).some((n) => n.t === "tier"));
+      if (!g) continue;
+      pinned++;
+      const b = (await c.page(undefined, "b")).keep.groups.find((x) => x.row === g.row)!;
       const tier = (g.tree ?? []).find((x) => x.t === "tier")!;
-      if (tier.t !== "tier") throw new Error("glenn_501: no top tier");
+      if (tier.t !== "tier") throw new Error(`${c.id}: no top tier`);
       const dupBook: GroupVM = { ...g, tree: [{ ...tier, line: [...tier.line, { t: "book", printed: 34, pdf: 36 }, { t: "book", printed: 34, pdf: 36 }] }] };
       const streamsHead: GroupVM = { ...g, scope: "All Region 4 streams" };
       const badShare: GroupVM = { ...g, tree: [{ ...tier, line: [{ t: "text", s: "Up to 2 from streams" }] }] };
@@ -164,5 +153,6 @@ describe("T21 Keep properties (every state)", () => {
       const keep = (await c.page()).keep, vocab = vocabulary(await c.inputs());
       expect(keepStrings({ ...keep, groups: [{ ...g, title: "Quokka and char" }] }).flatMap(wordsOf).filter((w) => !vocab.has(w))).toEqual(["quokka"]);
     }
+    expect(pinned, "a state with a group holding a tier").toBe(1);
   });
 });

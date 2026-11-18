@@ -69,10 +69,14 @@ export interface StoredRule { readonly rix: number; readonly export: ExportRule;
  *  (`export.pdf_pages`, the export guide's `pdf_pages`, pipeline.common.synopsis_pages); the app never computes one. */
 export type StoreStatics = Statics;
 /**
- * (T810 M) One stored cell: its frame ids (the generated `CellIds`), and, ONLY when the store holds an optional section,
- * that section's id — null where the cell has none (contract 2.6). A key absent from the object: not held.
+ * (T810 M) One stored cell: its frame ids (the generated `CellIds`; the trout table's null where the cell has none,
+ * contract 2.1 `cell.trout INTEGER NULL`, Q-D3), and, ONLY when the store holds an optional section, that section's id
+ * (null: none). A key absent from the object: not held.
  */
 export type StoredCell = CellIds & { readonly [K in OptionalSectionName]?: number | null };
+/** (T810 S) The `cell` columns that may be NULL (contract 2.1: the trout table's, Q-D3: no table there), read as null,
+ *  never as frame 0 (`Number(null)`). Every other section's frame id is a number in every cell. */
+const NULL_CELLS: ReadonlySet<string> = new Set(["trout"]);
 export interface Frames {
   readonly ladder: LadderFrameWire; readonly rows: RowsValue; readonly gear: GearValue;
   readonly licence: LicenceValue; readonly display: DisplayFrame;
@@ -314,7 +318,7 @@ export function makeReads(base: ReadBase): RegsReads & { clear(): void } {
     .flatMap((sec) => PACK_OPTIONAL_SECTION_TABLES[sec]!.cell.map((c) => [sec, c] as const));
   const cellColumns = [...CELL_COLUMNS, ...optionalCells.map(([, c]) => c)];
   const cellOf = (r: Row): StoredCell => {
-    const ids = Object.fromEntries(CELL_SECTIONS.map((c) => [c, n(r[c])])) as Record<string, number | null>;
+    const ids = Object.fromEntries(CELL_SECTIONS.map((c) => [c, NULL_CELLS.has(c) ? nn(r[c]) : n(r[c])])) as Record<string, number | null>;
     for (const [sec, c] of optionalCells) ids[sec] = nn(r[c]);
     return ids as unknown as StoredCell;
   };
@@ -468,12 +472,14 @@ export function makeReads(base: ReadBase): RegsReads & { clear(): void } {
 
     rows: (akey, id) => once("rows", id, async () => {
       // rows 30: the frame's fifth slot names each row's year strip in the static `rows.strips` (each distinct strip
-      // held once); the stored row has no `year` — it goes back on as the row's last field, as RowsCodec.decode_frame
-      const [[spp, fs, rs, line, ys], strips] = await Promise.all([
-        blob<[string[], Record<string, [number | null, number | null, "hatchery" | "wild" | null]>, number[], RowsValue["steelhead_line"], number[]]>(
-          FAMILY.rowsFrame, akey, id),
+      // held once); the stored row has no `year` — it goes back on as the row's last field, as RowsCodec.decode_frame.
+      // (T810 S) rows 34: the sixth slot is the page's possession row (F0 `page_possession`, null or the object), as stored
+      const [[spp, fs, rs, line, ys, pp], strips] = await Promise.all([
+        blob<[string[], Record<string, [number | null, number | null, "hatchery" | "wild" | null]>, number[], RowsValue["steelhead_line"], number[],
+              RowsValue["page_possession"]]>(FAMILY.rowsFrame, akey, id),
         yearStrips()]);
       if (!Array.isArray(ys) || ys.length !== rs.length) throw damaged(`rows frame ${id} has ${rs.length} rows and ${ys?.length ?? 0} strips`);
+      if (pp === undefined) throw damaged(`rows frame ${id} has no page_possession slot (rows 34, F0)`);
       for (const y of ys) {
         if (!(y >= 0 && y < strips.length)) throw damaged(`rows frame ${id} names strip ${y}, which is not in rows.strips (${strips.length})`);
       }
@@ -488,7 +494,7 @@ export function makeReads(base: ReadBase): RegsReads & { clear(): void } {
         Promise.all(Object.entries(fs).map(async ([S, [h, w, lead]]) => [S, { hatchery: await decided(h), wild: await decided(w), lead }] as const)),
         Promise.all(rs.map((r) => blob<Omit<RowsValue["rows"][number], "year">>(FAMILY.rowsRow, akey, r)))]);
       for (const [S, f] of decidedOf) fish[S] = f;
-      return { spp, fish, rows: rows.map((r, i) => ({ ...r, year: strips[ys[i]!]! })), steelhead_line: line };
+      return { spp, fish, rows: rows.map((r, i) => ({ ...r, year: strips[ys[i]!]! })), steelhead_line: line, page_possession: pp };
     }),
 
     gear: (akey, id) => blob<GearValue>(FAMILY.gearFrame, akey, id),

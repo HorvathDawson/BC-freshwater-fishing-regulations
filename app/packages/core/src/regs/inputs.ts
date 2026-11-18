@@ -71,9 +71,10 @@ export interface RegsInputs {
    *  Gladys Lake Ecological Reserve: its closure (rule book p.9) does not apply here."), said once, in section order;
    *  [] none. Drawn as they are (`keep.ts` `sectionNotesOf`). */
   readonly notes: readonly string[];
-  /** (T810 M) today's trout and char table (the cell's `trout` frame, decoded): null = the cell has none (contract Q-D3:
-   *  the banner or the tidal page speaks, or no trout or char fish here); ABSENT = the release holds no trout section,
-   *  or the tap has no cell (outside B.C., a tidal piece). Kept apart (AGENTS 32). Nothing draws it yet (N, O). */
+  /** (T810 M, S) today's trout and char table (the cell's `trout` frame, decoded): null = the cell has none (contract
+   *  Q-D3: the banner or the tidal page speaks, or no trout or char fish here); ABSENT = the tap has no cell (outside
+   *  B.C., a tidal piece). Kept apart (AGENTS 32). From rows 34 the section is required (`SECTION_NAMES`): a tap with a
+   *  cell always carries it, and `others.ts` `tableCovers` refuses one that does not. */
   readonly trout?: TroutValue | null;
 }
 
