@@ -9,3 +9,9 @@ On a wide (desktop) window the map's mode switch (Trout / Salmon, and Runs) sits
 directly under the Map button, where the other places to go are. Phones and narrow windows keep it where it is. The map
 key must still follow the switch (the 0.7.7 check: flip quickly, the key always matches the colours). Proof: desktop and
 phone-width screenshots on staging web.
+
+2026-11-18: built on branch worktree-agent-a9320341d38308cce (b05790e0a): from 1280 px the switch is in the nav rail under
+Map (NavRail `mapExtra` slot; RegsLayerToggle `inRail`); narrower keeps it on the map; 4 render tests. Screenshots sent
+(desktop Trout/Salmon, phone Salmon). Owner ~14:58, verbatim: "the desktop salmon/trout switch should be styled nicer to fit
+in the bar better rn it looks slapped in". So: restyle the rail version to read as part of the rail (two looks to pick from,
+with pictures), then merge with 0.8.1.
