@@ -27,6 +27,26 @@ the shape (cells, interning, dictionaries), not the wording.
 
 Output: the report (stdout), and `report.json` + `report.txt` under `--out` (default
 `data/generated/audit/trout-size/<release>`). Exit 0, or 2 when the release cannot be read.
+
+TICKET A1, THE CUTOVER FORM MEASURED (contract 2.9 steps 2-6), on a SIDE release built with `--trout-table`:
+
+    python -m pipeline.tools.audit.trout_size <side release> --cutover [--live <release>] [--out DIR]
+
+The side release's regs store is put back together (`store.release.province_store`) and every region file is written
+again BY THE RELEASE'S OWN WRITER (`release.build.copy_file` over `shards.shard_rows`), from three stores:
+  side      the store as built: its region files must be the shipped bytes (checked; the run stops if not)
+  flag off  the store without the section (`cell.trout` and the four tables gone): the release `--trout-table` off
+            would ship at the same code and data (exact on the mini release: `test_trout_size.py`)
+  cutover   the side store at rows 34 (ticket L): every rows frame's mixed rows SPLIT (`trout.table.split_mixed`, the
+            covers it gives checked against the shipped `trout_frame` covers), `group` and `elsewhere` cut from every
+            row some cell's `covers` holds (Q-D9), and F0's `page_possession` as each frame's sixth slot
+            (`card.page_line` over the decoded frame, `trout.table.reading`); blobs packed with the release's own
+            dictionaries (no retraining: contract 2.9 step 2, the app check's m5 method)
+The water files (`water`, `water-shared`, the `water-<r>` slices) are priced side as shipped and flag off as shipped
+less the section's parts: its four dictionaries, its schemas, spec and `about` entry, its layout and card-check stamp
+lines (`water_flag_off`). The cutover form's water files are the side release's (rows 34's schema text, a few bytes,
+is not priced). Every `WEB_BUDGET` moment at HEAD is priced on each form (`release.build.web_moments` over the
+manifest with the form's sizes), with the live release's own as shipped beside them.
 """
 from __future__ import annotations
 
@@ -404,6 +424,534 @@ class Audit:
         return out
 
 
+# ============================================================================================
+# Ticket A1: the cutover form, measured (contract 2.9 steps 2-6)
+# ============================================================================================
+
+#: Q-D9: the fields a covered trout row loses at rows 34
+CUT_FIELDS = ("group", "elsewhere")
+TOP_N = 10
+
+
+def _trout_tables() -> Tuple[str, ...]:
+    from pipeline.deliver.release import contract as C
+    return tuple(C.OPTIONAL_SECTION_TABLES["trout"]["tables"])
+
+
+def _gz(b: bytes) -> int:
+    return len(gzip.compress(b, 9, mtime=0))
+
+
+def _redump(text: str, value) -> str:
+    """`value` as JSON in the formatting `text` was written in (the release's meta values are written by more than one
+    `json.dumps`); refuses a text none of them reproduces."""
+    styles = ({}, {"sort_keys": True}, {"separators": (",", ":")}, {"separators": (",", ":"), "sort_keys": True},
+              {"separators": (",", ":"), "ensure_ascii": False}, {"separators": (",", ":"), "sort_keys": True,
+                                                                     "ensure_ascii": False})
+    for kw in styles:
+        if json.dumps(json.loads(text), **kw) == text:
+            return json.dumps(value, **kw)
+    raise ValueError(f"trout_size: no JSON style writes {text[:60]!r}…")
+
+
+def _no_trout_layout(text: str) -> str:
+    v = json.loads(text)
+    for k in ("sections", "versions"):
+        if isinstance(v.get(k), dict):
+            v[k].pop("trout", None)
+    return _redump(text, v)
+
+
+def _no_trout_stamp(text: str) -> str:
+    v = json.loads(text)
+    v.pop("trout_check", None)
+    return _redump(text, v)
+
+
+def _no_trout_meta(meta: Dict[str, str]) -> Dict[str, str]:
+    """A water file's meta as the flag-off build writes it: no `trout` in the layout, no trout line in the card-check
+    stamp, and the same in the store meta it carries whole."""
+    out = dict(meta)
+    if "layout" in out:
+        out["layout"] = _no_trout_layout(out["layout"])
+    if "card_check" in out:
+        out["card_check"] = _no_trout_stamp(out["card_check"])
+    if "store_meta" in out:
+        sm = json.loads(out["store_meta"])
+        if "layout" in sm:
+            sm["layout"] = _no_trout_layout(sm["layout"])
+        if "card_check" in sm:
+            sm["card_check"] = _no_trout_stamp(sm["card_check"])
+        out["store_meta"] = _redump(out["store_meta"], sm)
+    return out
+
+
+def water_flag_off(raw: bytes) -> bytes:
+    """A water file (`water`, `water-shared`, a `water-<r>` slice) of a side release as the flag-off build ships it: the
+    section's four dictionaries gone, `answers.about` / `spec` / `schemas` without it (`encode.spec_for`,
+    `model.json_schemas`), its meta lines gone (`_no_trout_meta`). VACUUMed as the release finishes a file."""
+    from pipeline.deliver.answers.encode import spec_for
+    from pipeline.deliver.answers.model import json_schemas
+    from pipeline.deliver.store.common import pack, unpack
+    with tempfile.TemporaryDirectory(prefix="trout-size-w-") as tmp:
+        p, q = Path(tmp) / "w.sqlite", Path(tmp) / "w2.sqlite"
+        p.write_bytes(raw)
+        con = sqlite3.connect(str(p))
+        tabs = {t for (t,) in con.execute("SELECT name FROM sqlite_master WHERE type = 'table'")}
+        zd: Dict[str, bytes] = {}
+        if "zdict" in tabs:
+            zd = dict(con.execute("SELECT tbl, d FROM zdict"))
+            con.execute("DELETE FROM zdict WHERE tbl IN (%s)" % ",".join("?" * len(_trout_tables())), _trout_tables())
+        if "static" in tabs:
+            got = dict(con.execute("SELECT k, j FROM static WHERE k IN ('answers.about', 'answers.spec', "
+                                   "'answers.schemas')"))
+            if got:
+                zs = zd.get("static")
+                about = json.loads(unpack(got["answers.about"], zs))
+                about["sections"].pop("trout", None)
+                secs = list(about["sections"])
+                for k, v in (("answers.about", about), ("answers.spec", spec_for(secs)),
+                             ("answers.schemas", json_schemas(secs))):
+                    con.execute("UPDATE static SET j = ? WHERE k = ?",
+                                (pack(json.dumps(v, ensure_ascii=False, separators=(",", ":")).encode("utf-8"),
+                                      "zdict", zs), k))
+        meta = dict(con.execute("SELECT k, v FROM meta"))
+        for k, v in _no_trout_meta(meta).items():
+            if v != meta[k]:
+                con.execute("UPDATE meta SET v = ? WHERE k = ?", (v, k))
+        con.commit()
+        con.execute(f"VACUUM INTO '{q}'")
+        con.close()
+        return q.read_bytes()
+
+
+def _region_meta(raw: bytes) -> Dict[str, str]:
+    with tempfile.TemporaryDirectory(prefix="trout-size-m-") as tmp:
+        p = Path(tmp) / "r.sqlite"
+        p.write_bytes(raw)
+        con = sqlite3.connect(str(p))
+        out = dict(con.execute("SELECT k, v FROM meta"))
+        con.close()
+    return out
+
+
+def region_ids(store_path: Path, r: str) -> Dict[str, set]:
+    """{table: the ids region `r`'s file holds} (`shards.shard_rows`, as the release cuts them)."""
+    from pipeline.deliver.release import shards as SH
+    con = sqlite3.connect(str(store_path))
+    try:
+        mine = [a for a, rs in SH.akey_regions(con).items() if r in rs]
+    finally:
+        con.close()
+    return SH.shard_rows(store_path, mine)
+
+
+def region_file(store_path: Path, r: str, meta: Dict[str, str], out: Path, ids=None) -> bytes:
+    """Region `r`'s file written from `store_path` by the release's own writer (`build.copy_file`, the plan of
+    `release.build.build`); `ids` the shard's rows when they were cut before the store changed."""
+    from pipeline.deliver.release import build as B
+    from pipeline.deliver.release import shards as SH
+    ids = region_ids(store_path, r) if ids is None else ids
+    con = sqlite3.connect(str(store_path))
+    try:
+        # an ADDITIVE table (`store.release.ADDITIVE_TABLES`) a release cut before it does not hold is not written
+        held = {t for (t,) in con.execute("SELECT name FROM sqlite_master WHERE type = 'table'")}
+        tables = [t for t in SH.shard_tables(con) if t in held]
+    finally:
+        con.close()
+    plan = [("s", t, f"WHERE {'akey' if t == 'cell' else 'id'} IN ({','.join(map(str, sorted(ids[t]))) or 'NULL'})")
+            for t in tables]
+    B.copy_file(out, {"s": store_path}, plan, meta)
+    return out.read_bytes()
+
+
+def flag_off_store(side: Path, out: Path) -> Path:
+    """The side store without the section: a store made from `schema.sql` alone (no `optional_schema`), every table
+    copied but the four trout tables, `cell` without its `trout` column, the trout dictionaries dropped."""
+    from pipeline.deliver.store.build import SCHEMA
+    con = sqlite3.connect(str(out))
+    con.executescript(SCHEMA.read_text())
+    con.execute("ATTACH ? AS s", (str(side),))
+    have = {t for (t,) in con.execute("SELECT name FROM s.sqlite_master WHERE type = 'table'")}
+    for (t,) in con.execute("SELECT name FROM main.sqlite_master WHERE type = 'table'").fetchall():
+        if t in have:
+            cols = ", ".join(c[1] for c in con.execute(f"PRAGMA main.table_info({t})"))
+            con.execute(f"INSERT INTO main.{t} ({cols}) SELECT {cols} FROM s.{t}")
+    # a table the side store holds and schema.sql does not (ADDITIVE_TABLES dropped by the reassembly aside) is the
+    # section's, or the run is measuring something else
+    extra = sorted(have - {t for (t,) in con.execute("SELECT name FROM main.sqlite_master WHERE type = 'table'")})
+    if extra != sorted(_trout_tables()):
+        raise ValueError(f"trout_size: the side store holds tables {extra} beyond the flag-off schema")
+    con.execute("DELETE FROM main.zdict WHERE tbl IN (%s)" % ",".join("?" * len(_trout_tables())), _trout_tables())
+    from pipeline.deliver.store.release import ADDITIVE_TABLES
+    for t in sorted(ADDITIVE_TABLES - have):              # as the reassembly leaves a table the release did not hold
+        con.execute(f"DROP TABLE main.{t}")
+    con.commit()
+    con.execute("DETACH s")
+    con.close()
+    return out
+
+
+class Cutover:
+    """The side store at rows 34 (module doc, "cutover"): built by `build(out)`, which returns the figures."""
+
+    def __init__(self, side: Path):
+        from pipeline.deliver.answers.trout import table as TT
+        from pipeline.deliver.store.decode import Store
+        self.side = side
+        self.st = Store(side, verify=False)
+        self.zd = self.st.zd
+        self.rules = TT.Rules.from_store(self.st)
+        self.rix = {r.key: i for i, r in self.rules.by_ref.items()}
+
+    def _val(self, t, b):
+        return self.st.val(t, b)
+
+    @staticmethod
+    def five_of(out: Path) -> Path:
+        """Where `build(out)` leaves the cutover store before F0's sixth slot (split and cut only)."""
+        return out.with_name(out.stem + ".five" + out.suffix)
+
+    def build(self, out: Path) -> Tuple[dict, Dict[str, Dict[str, set]], Dict[int, list]]:
+        """Writes the cutover store to `out` (and, before F0's slot, to `five_of(out)`) and returns (figures, {region:
+        shard ids}, {rows frame id: its six-slot frame}). The shards are cut while the frames have five slots: the
+        shard rule reads exactly five (`shards.frame_refs`, which L must teach the sixth) and the sixth reaches no
+        row, so the cut is the same."""
+        import shutil
+        from pipeline.deliver.answers import card
+        from pipeline.deliver.answers.trout import table as TT
+        from pipeline.deliver.release import shards as SH
+        from pipeline.deliver.store.common import dumps, pack
+        con = self.st.con
+        rows = {i: self._val("rows_row", b) for i, b in con.execute("SELECT id, j FROM rows_row")}
+        decided = {i: self._val("rows_decided", b) for i, b in con.execute("SELECT id, j FROM rows_decided")}
+        frames = {i: self._val("rows_frame", b) for i, b in con.execute("SELECT id, j FROM rows_frame")}
+        tframes = {i: self._val("trout_frame", b) for i, b in con.execute("SELECT id, j FROM trout_frame")}
+        shipped_covers: Dict[int, set] = defaultdict(set)
+        for rf, tf in con.execute("SELECT rows, trout FROM cell WHERE trout IS NOT NULL"):
+            shipped_covers[rf].add(tuple(tframes[tf][2]))
+        # 1. every frame split (A0 amendment), its covers checked against the shipped ones
+        split: Dict[int, list] = {}
+        covered_content: set = set()
+        cover_mismatch, mixed_split = [], 0
+        for fid, fr in sorted(frames.items()):
+            spp, fish, rs, line, ys = fr
+            got, covers = TT.split_mixed({"rows": [{**rows[i], "_y": y} for i, y in zip(rs, ys)]})
+            mixed_split += len(got["rows"]) - len(rs)
+            sc = shipped_covers.get(fid)
+            if sc is not None:
+                if sc != {tuple(covers)}:
+                    cover_mismatch.append(fid)
+                for i in covers:
+                    covered_content.add(dumps({k: v for k, v in got["rows"][i].items() if k != "_y"}))
+            split[fid] = got["rows"]
+        # 2. the covered rows cut, every row interned again (an unchanged row keeps its id)
+        by_content = {dumps(v): i for i, v in sorted(rows.items(), reverse=True)}
+        nxt = max(rows, default=-1) + 1
+        new_rows: Dict[int, dict] = {}
+        new_frames: Dict[int, list] = {}
+        cut_rows, groups_cut, elsewhere_cut = set(), 0, 0
+        for fid, rlist in split.items():
+            spp, fish, rs, line, ys = frames[fid]
+            rids, yids = [], []
+            for r in rlist:
+                y = r.pop("_y")
+                key = dumps(r)
+                if key in covered_content:
+                    groups_cut += r.get("group") is not None
+                    elsewhere_cut += r.get("elsewhere") is not None
+                    r = {k: v for k, v in r.items() if k not in CUT_FIELDS}
+                    key = dumps(r)
+                    cut_rows.add(key)
+                rid = by_content.get(key)
+                if rid is None:
+                    rid = by_content[key] = nxt
+                    nxt += 1
+                new_rows[rid] = r
+                rids.append(rid)
+                yids.append(y)
+            new_frames[fid] = [spp, fish, rids, line, yids]
+        # 3. the store: rows_row and rows_frame replaced (five slots), packed with the release's dictionaries
+        shutil.copyfile(self.side, out)
+        oc = sqlite3.connect(str(out))
+        zr, zf = self.zd.get("rows_row"), self.zd.get("rows_frame")
+        repack_differs = sum(pack(dumps(v), "zdict", zr) != bytes(b)
+                             for i, b in con.execute("SELECT id, j FROM rows_row") for v in (rows[i],))
+        oc.execute("DELETE FROM rows_row")
+        oc.executemany("INSERT INTO rows_row (id, j) VALUES (?, ?)",
+                       [(i, pack(dumps(v), "zdict", zr)) for i, v in sorted(new_rows.items())])
+        oc.executemany("UPDATE rows_frame SET j = ? WHERE id = ?",
+                       [(pack(dumps(v), "zdict", zf), i) for i, v in sorted(new_frames.items())])
+        oc.commit()
+        oc.close()
+        ids = {r: region_ids(out, r) for r in SH.REGIONS}
+        shutil.copyfile(out, self.five_of(out))           # the form without F0's slot, to price that slot apart
+        # 4. F0's sixth slot: the page's possession row, over each frame as decoded
+        six, with_line = {}, 0
+        for fid, fr in sorted(new_frames.items()):
+            spp, fish, rids, line, yids = fr
+            dec = {"fish": {S: {"hatchery": None if h is None else decided[h], "wild": None if w is None else decided[w],
+                                "lead": lead} for S, (h, w, lead) in fish.items()}}
+            p = card.page_line(*TT.reading(dec, self.rules))
+            if p is not None:
+                with_line += 1
+                p = {"lead": None if p["lead"] is None else {**p["lead"], "src": self.rix[p["lead"]["src"]]},
+                     "also": [{**a, "src": self.rix[a["src"]]} for a in p["also"]]}
+            six[fid] = fr + [p]
+        oc = sqlite3.connect(str(out))
+        oc.executemany("UPDATE rows_frame SET j = ? WHERE id = ?",
+                       [(pack(dumps(v), "zdict", zf), i) for i, v in sorted(six.items())])
+        oc.commit()
+        oc.close()
+        figs = {"frames": len(frames), "frames_with_a_table": len(shipped_covers),
+                "cover_mismatch": cover_mismatch, "mixed_rows_split": mixed_split,
+                "rows_before": len(rows), "rows_after": len(new_rows), "rows_cut": len(cut_rows),
+                "groups_cut": groups_cut, "elsewhere_cut": elsewhere_cut, "repack_differs": repack_differs,
+                "frames_with_a_possession_row": with_line}
+        return figs, ids, six
+
+
+def _family_figures(con: sqlite3.Connection, zd: Dict[str, bytes], tables) -> Dict[str, dict]:
+    from pipeline.deliver.store.common import unpack
+    out = {}
+    for t in tables:
+        rows = con.execute(f"SELECT j FROM {t}").fetchall()
+        out[t] = {"distinct": len(rows), "raw": sum(len(unpack(b, zd.get(t))) for (b,) in rows),
+                  "stored": sum(len(b) for (b,) in rows)}
+    return out
+
+
+def _moments(release: Path, sizes: Dict[str, int]) -> Dict[str, dict]:
+    """Every `WEB_BUDGET` moment at HEAD (`release.build.web_moments`) over `release`'s manifest with the files' gzip
+    sizes `sizes` put in; the manifest itself priced at its shipped size."""
+    from pipeline.deliver.release import build as B
+    from pipeline.deliver.release import contract as C
+    shipped = (Path(release) / "manifest.json").read_bytes()
+    m = json.loads(shipped)
+    for k, n in sizes.items():
+        m["files"][k]["gz"] = n
+    with tempfile.TemporaryDirectory(prefix="trout-size-mo-") as tmp:
+        p = Path(tmp) / "manifest.json"
+        p.write_text(json.dumps(m), encoding="utf-8")
+        fix = len(shipped) - p.stat().st_size
+        got = B.web_moments(Path(tmp))
+    out = {}
+    for k, (n, f) in got.items():
+        n += fix if "manifest" in f else 0
+        out[k] = {"used": n, "gate": C.WEB_BUDGET[k]["gate"], "room": C.WEB_BUDGET[k]["gate"] - n, "files": f}
+    return out
+
+
+def _offline(manifest: dict, sizes: Dict[str, int]) -> int:
+    """The offline total (`build.gate_problems`: every file but the web-only slices)."""
+    from pipeline.deliver.release import contract as C
+    from pipeline.deliver.release import slices as SLICES
+    skip = set(SLICES.slice_marks()) | set(C.WEB_ONLY)
+    return sum(sizes.get(k, int(f["gz"])) for k, f in manifest["files"].items() if k not in skip)
+
+
+def _largest(st, akey_names: Dict[int, List[str]]) -> dict:
+    """The ten largest table bodies and fish sheets as stored, each with the waters (and, for a sheet, the fish) it
+    is shown for."""
+    con = st.con
+    tf_of_table: Dict[int, set] = defaultdict(set)
+    for i, b in con.execute("SELECT id, j FROM trout_frame"):
+        tf_of_table[st.val("trout_frame", b)[0]].add(i)
+    keys_of_tf: Dict[int, set] = defaultdict(set)
+    for a, tf in con.execute("SELECT akey, trout FROM cell WHERE trout IS NOT NULL"):
+        keys_of_tf[tf].add(a)
+    sheet_of: Dict[int, set] = defaultdict(set)              # sheet -> (table, fish name)
+    bodies = []
+    for i, b in con.execute("SELECT id, j FROM trout_table"):
+        v = st.val("trout_table", b)
+        keys = set().union(*(keys_of_tf[f] for f in tf_of_table[i])) if tf_of_table[i] else set()
+        for bx in v["boxes"]:
+            for r in bx["rows"]:
+                sheet_of[r["sheet"]].add((i, r["name"]))
+        bodies.append({"id": i, "stored": len(b), "raw": len(json.dumps(v, ensure_ascii=False, separators=(",", ":"))
+                                                              .encode("utf-8")),
+                       "rows": sum(len(bx["rows"]) for bx in v["boxes"]), "boxes": len(v["boxes"]),
+                       "answer_keys": len(keys), "keys": keys})
+    by_table = {x["id"]: x for x in bodies}
+
+    def waters(keys) -> List[str]:
+        c = Counter(n for a in keys for n in akey_names.get(a, [])[:1])
+        return [n for n, _ in c.most_common(4)]
+    sheets = []
+    for i, b in con.execute("SELECT id, j FROM trout_sheet"):
+        v = st.val("trout_sheet", b)
+        uses = sheet_of.get(i, set())
+        keys = set().union(*(by_table[t]["keys"] for t, _ in uses)) if uses else set()
+        sheets.append({"id": i, "stored": len(b), "raw": len(json.dumps(v, ensure_ascii=False, separators=(",", ":"))
+                                                              .encode("utf-8")),
+                       "fish": sorted({n for _, n in uses}), "lines": len(v.get("here") or ()), "head": v.get("head"),
+                       "answer_keys": len(keys), "keys": keys})
+    out = {}
+    for name, xs in (("bodies", bodies), ("sheets", sheets)):
+        top = sorted(xs, key=lambda x: (-x["stored"], x["id"]))[:TOP_N]
+        out[name] = [{**{k: v for k, v in x.items() if k != "keys"}, "waters": waters(x["keys"])} for x in top]
+    return out
+
+
+def measure(side: Path, live: Optional[Path] = None, log=print) -> dict:
+    """Ticket A1 (module doc): the side release `side` in its three forms, every region file and water file priced,
+    every web moment at HEAD; `live` the release beside it, as shipped."""
+    from pipeline.deliver.release import build as B
+    from pipeline.deliver.release import shards as SH
+    from pipeline.deliver.store.release import province_store
+    side = Path(side)
+    man = AD._manifest(side)
+    if "trout" not in ((man.get("regulations") or {}).get("versions") or {}):
+        raise AD.DiffError(f"trout_size: {side.name} carries no trout section (build it with --trout-table)")
+    R = AD.Release(side)
+    names = defaultdict(Counter)
+    for h, a in R.akey.items():
+        if a:
+            names[a][R.where(h)[2]] += 1
+    akey_names = {a: [n for n, _ in c.most_common()] for a, c in names.items()}
+    rep: dict = {"release": R.name, "live": None, "regions": {}, "water": {}}
+    with tempfile.TemporaryDirectory(prefix="trout-size-a1-") as tmp:
+        t = Path(tmp)
+        st = province_store(side)
+        sp = t / "side.sqlite"
+        st.con.execute(f"VACUUM INTO '{sp}'")
+        st.close()
+        op = flag_off_store(sp, t / "off.sqlite")
+        log("trout_size: the side store and its flag-off twin written; building the cutover form")
+        cut = Cutover(sp)
+        cp = t / "cutover.sqlite"
+        figs, cut_ids, _six = cut.build(cp)
+        rep["cutover"] = figs
+        if figs["cover_mismatch"]:
+            raise AD.DiffError(f"trout_size: {len(figs['cover_mismatch'])} rows frames split to other covers than "
+                               f"their trout frames ship (frames {figs['cover_mismatch'][:5]})")
+        rep["largest"] = _largest(cut.st, akey_names)
+        zd = cut.st.zd
+        rep["families"] = _family_figures(cut.st.con, zd, _trout_tables())
+        rep["zdicts"] = {tb: {"raw": len(zd[tb]), "gz": _gz(zd[tb])} for tb in _trout_tables() if tb in zd}
+        cut.st.close()
+        sizes = {"side": {}, "off": {}, "cutover": {}}
+        for r in SH.REGIONS:
+            name = f"regs-{r}"
+            shipped = AD._file_bytes(side, man, name)
+            meta = _region_meta(shipped)
+            b_side = region_file(sp, r, meta, t / f"{name}.side.sqlite")
+            if b_side != shipped:
+                raise AD.DiffError(f"trout_size: {name} written again from the reassembled store is not the shipped file")
+            b_off = region_file(op, r, meta, t / f"{name}.off.sqlite")
+            b_cut = region_file(cp, r, meta, t / f"{name}.cut.sqlite", ids=cut_ids[r])
+            b_five = region_file(Cutover.five_of(cp), r, meta, t / f"{name}.five.sqlite", ids=cut_ids[r])
+            fc = sqlite3.connect(str(t / f"{name}.side.sqlite"))
+            fam = _family_figures(fc, zd, _trout_tables())
+            cells = fc.execute("SELECT count(*), count(trout) FROM cell").fetchone()
+            rr = fc.execute("SELECT count(*), sum(length(j)) FROM rows_row").fetchone()
+            fc.close()
+            cc = sqlite3.connect(str(t / f"{name}.cut.sqlite"))
+            rr_cut = cc.execute("SELECT count(*), sum(length(j)) FROM rows_row").fetchone()
+            rf = (cc.execute("SELECT sum(length(j)) FROM rows_frame").fetchone()[0],)
+            cc.close()
+            oc = sqlite3.connect(str(t / f"{name}.off.sqlite"))
+            rf_off = oc.execute("SELECT sum(length(j)) FROM rows_frame").fetchone()[0]
+            oc.close()
+            g = {"side": _gz(b_side), "off": _gz(b_off), "cutover": _gz(b_cut)}
+            for k in sizes:
+                sizes[k][name] = g[k]
+            rep["regions"][name] = {
+                "live_gz": None, **{f"{k}_gz": v for k, v in g.items()},
+                "section_stored": sum(f["stored"] for f in fam.values()), "families": fam,
+                "cells": cells[0], "cells_with_a_table": cells[1],
+                "rows_row": {"side": {"rows": rr[0], "stored": rr[1]}, "cutover": {"rows": rr_cut[0], "stored": rr_cut[1]}},
+                "rows_frame_stored": {"off": rf_off, "cutover": rf[0]},
+                "side_added": g["side"] - g["off"], "cutover_added": g["cutover"] - g["off"],
+                "groups_freed": g["side"] - g["cutover"],
+                # F0's page possession row, priced apart: the cutover form with and without the sixth slot
+                "cutover_without_f0_gz": _gz(b_five), "f0_cost": g["cutover"] - _gz(b_five)}
+        for name in sorted(k for k in man["files"] if k == "water" or k.startswith("water-")):
+            raw = AD._file_bytes(side, man, name)
+            off = water_flag_off(raw)
+            sizes["side"][name] = sizes["cutover"][name] = _gz(raw)
+            sizes["off"][name] = _gz(off)
+            rep["water"][name] = {"side_gz": _gz(raw), "off_gz": _gz(off), "added": _gz(raw) - _gz(off)}
+    if live is not None:
+        lm = AD._manifest(Path(live))
+        rep["live"] = lm.get("data_release") or Path(live).name
+        for name, z in rep["regions"].items():
+            z["live_gz"] = int(lm["files"][name]["gz"]) if name in lm["files"] else None
+        for name, z in rep["water"].items():
+            z["live_gz"] = int(lm["files"][name]["gz"]) if name in lm["files"] else None
+        rep["moments_live"] = _moments(Path(live), {})
+        rep["offline_live"] = _offline(lm, {})
+    rep["moments"] = {k: _moments(side, v) for k, v in sizes.items()}
+    rep["offline"] = {k: _offline(man, v) for k, v in sizes.items()}
+    rep["largest_region"] = {k: max((n for n in v if n.startswith("regs-")), key=lambda n: v[n]) for k, v in sizes.items()}
+    over = {k: m["used"] - m["gate"] for k, m in rep["moments"]["cutover"].items() if m["used"] > m["gate"]}
+    rep["verdict"] = {
+        "cutover_over": over,
+        # owner 15:42 / RULINGS O5: raise the limit by what was measured plus 10 %, at the switch (ticket L)
+        "first_tap_limit": (-(-int(rep["moments"]["cutover"]["first_tap"]["used"] * 1.10) // 10_000) * 10_000
+                            if "first_tap" in over else rep["moments"]["cutover"]["first_tap"]["gate"]),
+        "side_over": {k: m["used"] - m["gate"] for k, m in rep["moments"]["side"].items() if m["used"] > m["gate"]},
+        # the files' own gates (`build.SIZE_GATES`) and the offline total (`build.OFFLINE_GATE`), each form
+        "file_gates_over": {k: {n: g - B.SIZE_GATES[n] for n, g in v.items() if g > B.SIZE_GATES.get(n, g)}
+                            for k, v in sizes.items()},
+        "offline_over": {k: n - B.OFFLINE_GATE for k, n in rep["offline"].items() if n > B.OFFLINE_GATE}}
+    return rep
+
+
+def a1_text(rep: dict) -> str:
+    L = [f"TROUT TABLE A1 on {rep['release']} (side release, --trout-table); live {rep['live'] or 'not given'}", ""]
+    c = rep["cutover"]
+    L.append(f"CUTOVER FORM (rows 34): {c['frames']} rows frames ({c['frames_with_a_table']} under a table); "
+             f"{c['mixed_rows_split']} mixed rows split; rows {c['rows_before']} -> {c['rows_after']} "
+             f"({c['rows_cut']} cut: {c['groups_cut']} groups, {c['elsewhere_cut']} elsewhere lines); "
+             f"{c['frames_with_a_possession_row']} frames carry a page possession row; covers checked "
+             f"({len(c['cover_mismatch'])} differ), re-pack differs on {c['repack_differs']} rows")
+    L += ["", "REGION FILES, gz bytes (flag off = this code without the section; side = as shipped; cutover = rows 34)",
+          f"  {'file':8} {'live':>9} {'flag off':>9} {'side':>9} {'cutover':>9} {'side+':>8} {'cut+':>8} "
+          f"{'cut-side':>8} {'F0 row':>7} {'section':>8} {'tables':>6}"]
+    for name, z in rep["regions"].items():
+        lv = f"{z['live_gz']:,}" if z.get("live_gz") is not None else "-"
+        L.append(f"  {name:8} {lv:>9} {z['off_gz']:>9,} {z['side_gz']:>9,} {z['cutover_gz']:>9,} "
+                 f"{z['side_added']:>+8,} {z['cutover_added']:>+8,} {-z['groups_freed']:>+8,} {z['f0_cost']:>+7,} "
+                 f"{z['section_stored']:>8,} {z['cells_with_a_table']:>6}")
+    L.append("  (side+ / cut+: against flag off; cut-side: the trout groups and elsewhere lines cut, the split and F0's "
+             "row added; F0 row: F0's page possession slot alone, inside cut-side; section: the four tables' blobs as "
+             "stored; tables: cells with a table)")
+    L += ["", "WATER FILES, gz bytes"]
+    for name, z in rep["water"].items():
+        lv = f"{z['live_gz']:,}" if z.get("live_gz") is not None else "-"
+        L.append(f"  {name:12} live {lv:>9}  flag off {z['off_gz']:>9,}  side/cutover {z['side_gz']:>9,}  "
+                 f"({z['added']:+,})")
+    L += ["", "THE SECTION'S DICTIONARIES (water-shared `zdict`)"]
+    for tb, z in rep["zdicts"].items():
+        L.append(f"  {tb:12} {z['raw']:>7,} B raw, {z['gz']:>6,} B gz alone")
+    L += ["", "THE SECTION, PROVINCE STORE"]
+    for tb, f in rep["families"].items():
+        L.append(f"  {tb:12} {f['distinct']:>6,} distinct, raw {f['raw']:>10,} B, stored {f['stored']:>9,} B")
+    L += ["", f"WEB MOMENTS AT HEAD (largest region: flag off {rep['largest_region']['off']}, side "
+              f"{rep['largest_region']['side']}, cutover {rep['largest_region']['cutover']})",
+          f"  {'moment':18} {'gate':>10} {'live':>10} {'flag off':>10} {'side':>10} {'cutover':>10} {'room':>9}"]
+    for k, m in rep["moments"]["cutover"].items():
+        lv = f"{rep['moments_live'][k]['used']:,}" if rep.get("moments_live") else "-"
+        L.append(f"  {k:18} {m['gate']:>10,} {lv:>10} {rep['moments']['off'][k]['used']:>10,} "
+                 f"{rep['moments']['side'][k]['used']:>10,} {m['used']:>10,} {m['room']:>+9,}")
+    L.append(f"  offline total: live {rep.get('offline_live') or 0:,}, flag off {rep['offline']['off']:,}, side "
+             f"{rep['offline']['side']:,}, cutover {rep['offline']['cutover']:,}")
+    v = rep["verdict"]
+    L += ["", f"VERDICT: cutover over a gate: {v['cutover_over'] or 'none'}; side over a gate: {v['side_over'] or 'none'}; "
+              f"first-tap limit at the switch: {v['first_tap_limit']:,}; files over their own gate: "
+              f"{ {k: x for k, x in v['file_gates_over'].items() if x} or 'none'}; offline total over: "
+              f"{v['offline_over'] or 'none'}"]
+    for name in ("bodies", "sheets"):
+        L += ["", f"THE {TOP_N} LARGEST {name.upper()} (stored bytes)"]
+        for x in rep["largest"][name]:
+            what = (f"{x['boxes']} boxes, {x['rows']} rows" if name == "bodies"
+                    else f"{', '.join(x['fish'])}: {x['lines']} lines")
+            L.append(f"  #{x['id']:<5} {x['stored']:>6,} B ({x['raw']:,} raw) {what}; {x['answer_keys']} keys — "
+                     f"{', '.join(x['waters'])}")
+    return "\n".join(L) + "\n"
+
+
 def run(d, regions=("5", "6"), size: bool = True, log=print) -> dict:
     a = Audit(d, log=log)
     rep = {"release": a.R.name, "trout_char": sorted(TC),
@@ -454,16 +1002,22 @@ def main(argv=None) -> int:
     ap.add_argument("release", type=Path)
     ap.add_argument("--regions", default="5,6")
     ap.add_argument("--no-size", action="store_true")
+    ap.add_argument("--cutover", action="store_true",
+                    help="(ticket A1) measure the side release's three forms (flag off, side, cutover) and every web moment")
+    ap.add_argument("--live", type=Path, help="(with --cutover) the release to set beside it, as shipped")
     ap.add_argument("--out", type=Path)
     a = ap.parse_args(argv)
     try:
-        rep = run(a.release, tuple(x.strip() for x in a.regions.split(",") if x.strip()), not a.no_size)
+        if a.cutover:
+            rep = measure(a.release, a.live)
+        else:
+            rep = run(a.release, tuple(x.strip() for x in a.regions.split(",") if x.strip()), not a.no_size)
     except AD.DiffError as e:
         print(str(e).replace("answers_diff:", "trout_size:"), file=sys.stderr)
         return 2
-    out = a.out or OUT_ROOT / rep["release"]
+    out = a.out or OUT_ROOT / (rep["release"] + ("-a1" if a.cutover else ""))
     out.mkdir(parents=True, exist_ok=True)
-    t = text(rep)
+    t = a1_text(rep) if a.cutover else text(rep)
     (out / "report.json").write_text(json.dumps(rep, indent=1, sort_keys=True, default=list), encoding="utf-8")
     (out / "report.txt").write_text(t, encoding="utf-8")
     print(t + f"\nwrote {out}/report.json, report.txt")
