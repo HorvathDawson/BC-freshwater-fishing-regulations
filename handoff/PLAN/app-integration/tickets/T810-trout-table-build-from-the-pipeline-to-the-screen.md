@@ -563,3 +563,9 @@ the approved set (Vedder + rainbow sheet + dark, Chilliwack Lake + brown sheet, 
 Kamloops, Lois, Krumholtz). Words identical to the approved local shots; the staging pages wrap a few lines sooner in
 desktop Chrome (a scrollbar gutter; phones have none). Owner: "Signed off". Next: the 0.8.0 bench (running), then
 the Play internal + TestFlight build.
+
+## 2026-11-18 13:44: 0.8.0 shipped to Play internal and TestFlight
+Bench green 11/11 on r-f1f2e8da9666 (APK at d6cbad35d: install, feeds, offline, crash-bed, regs-open 26/26, walkthrough,
+water-nav, part-steps, regs-switch, trout-table 7/7, report). Play internal: versionCode 35, built from cabdb411f
+(bump 7ed1598e6), staging data, notes = the 0.8.0 changelog (owner: "0.8 release notes are fine"). TestFlight: 0.8.0
+(38) uploaded, built from 7ed1598e6. Production stays the owner's.
