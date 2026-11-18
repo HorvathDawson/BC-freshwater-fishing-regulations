@@ -63,6 +63,9 @@ describe.skipIf(!at.dir)(`T670: what the release holds is on the screen (${at.di
     const lt = async (m: number, d: number) => boxes(await page("wbk:329518145", 0, m, d, "Wednesday"))
       .filter(([, fish]) => fish.includes("LT")).map(([kind]) => kind);
     expect(await lt(11, 11)).toEqual(["release"]);
+    // exact (main chat, live bundle with L): the lake trout ALONE in the Release box
+    expect(boxes(await page("wbk:329518145", 0, 11, 11, "Wednesday")).filter(([kind]) => kind === "release")
+      .map(([, fish, j]) => [fish, JSON.parse(j).head])).toEqual([[["LT"], "Release"]]);
     expect(await lt(7, 15)).not.toContain("release");
   });
 
@@ -71,6 +74,7 @@ describe.skipIf(!at.dir)(`T670: what the release holds is on the screen (${at.di
     const eb = boxes(p).filter(([kind, fish]) => kind === "keep" && fish.includes("EB"));
     expect(eb.length).toBe(1);
     expect(eb[0]![2]).toMatch(/\b20\b/);
+    expect([eb[0]![1], JSON.parse(eb[0]![2]).head]).toEqual([["EB"], "Keep 20 in all"]);   // brook trout alone in its box
     expect((p.keep.otherFish ?? []).map((o) => o.name)).not.toContain("Brook trout");   // never a second time
   });
 
@@ -79,6 +83,7 @@ describe.skipIf(!at.dir)(`T670: what the release holds is on the screen (${at.di
     const dv = boxes(p).filter(([kind, fish]) => kind === "keep" && fish.includes("DV"));
     expect(dv.length).toBe(1);
     expect(dv[0]![2]).toMatch(/\b2\b/);
+    expect([dv[0]![1], JSON.parse(dv[0]![2]).head]).toEqual([["DV"], "Keep 2 in all"]);   // (the band's words are G2's)
     expect((p.keep.otherFish ?? []).map((o) => o.name)).not.toContain("Dolly Varden/bull trout");
   });
 

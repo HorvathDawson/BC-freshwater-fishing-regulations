@@ -229,7 +229,8 @@ describe.skipIf(!LIVE || !STORE)(`T04 frames = the Python reference decoder's ($
   it("every frame the 134 golden taps reach, all five families", async () => {
     const st = await openRegsStore(openReleaseDir(LIVE!));
     const ids: Record<string, Map<number, number>> = { ladder: new Map(), rows: new Map(), gear: new Map(), licence: new Map(), display: new Map() };
-    for (const t of Object.values(T.states)) for (const [f, id] of Object.entries(t.cell)) ids[f]!.set(id, t.akey);
+    // (T810 cutover) the five families here; the trout cell's frames equal Python's in inputs.release.test.ts (the vectors)
+    for (const t of Object.values(T.states)) for (const [f, id] of Object.entries(t.cell)) if (f in ids) ids[f]!.set(id as number, t.akey);
     const py = JSON.parse(execFileSync(resolve(__dirname, "../../../../.venv/bin/python"), ["-c", PY, STORE!], {
       cwd: resolve(__dirname, "../../../.."), encoding: "utf8", maxBuffer: 1 << 28,
       input: JSON.stringify(Object.fromEntries(Object.entries(ids).map(([f, m]) => [f, [...m.keys()]]))),

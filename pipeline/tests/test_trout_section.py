@@ -42,8 +42,9 @@ from pipeline.tests.test_trout_table import check_key, mini  # noqa: F401  (modu
 
 TC_TABLES = ("trout_frame", "trout_table", "trout_dates", "trout_sheet")
 REPO = Path(__file__).resolve().parents[2]
-#: the committed regs fixture: a cut of the live release r-46e4355a7277, from before the cutover
-REGS_FIXTURE = REPO / "app" / "packages" / "data" / "dev" / "regs-release"
+#: a release from before the cutover, kept as its own fixture (T810 cutover): the regs fixture as it was cut from the live
+#: release r-46e4355a7277 (rows 33, no trout section, `regs-region/1`), before the cutover re-cut the app's copy
+REGS_FIXTURE = REPO / "pipeline" / "tests" / "fixtures" / "pre-cutover-regs-release"
 
 
 # ------------------------------------------------------------------------------------------------------ (a) the registry
@@ -338,7 +339,7 @@ def _older_release() -> Path:
     got = sorted(p for p in REGS_FIXTURE.glob("r-*") if (p / "manifest.json").exists())
     if len(got) != 1:
         pytest.fail(f"the regs fixture: {len(got)} releases under {REGS_FIXTURE} (one expected) — "
-                    "python -m pipeline.deliver.release.regs_fixture", pytrace=False)
+                    "a copy of a regs fixture from before the cutover", pytrace=False)
     m = json.loads((got[0] / "manifest.json").read_text())
     if "trout" in (m["regulations"].get("versions") or {}):
         pytest.fail(f"the regs fixture {got[0].name} was re-cut from a release with the trout section: this test needs a "
