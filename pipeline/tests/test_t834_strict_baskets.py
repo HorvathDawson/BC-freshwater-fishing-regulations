@@ -236,7 +236,7 @@ def _tables(item, md, monkeypatch=None, **flags):
 @pytest.mark.needs_bundle
 def test_jewel_lake_is_one_box_5_or_20_if_brook_trout(built, monkeypatch):
     (tb,) = _tables(JEWEL, JUL15)
-    assert tb["top"]["lead"] == "Up to 5 {day}, or 20 if they’re brook trout"
+    assert _full(tb) == "Keep 5 trout and char {day}, or 20 if they’re brook trout"     # (T810 L: lead + its subline)
     assert [b["head"] for b in tb["boxes"] if b["kind"] == "keep"] == ["Keep 5 in all, or 20 if they’re brook trout"]
     # MUTATION: two boxes that read as 25
     (tb,) = _tables(JEWEL, JUL15, monkeypatch, A_RAISED_TOTAL_IS_ONE_BOX=False)
@@ -245,23 +245,31 @@ def test_jewel_lake_is_one_box_5_or_20_if_brook_trout(built, monkeypatch):
 
 @pytest.mark.needs_bundle
 def test_peace_river_says_its_3_in_all_from_the_river(built, monkeypatch):
-    tbs = [t for t in _tables(PEACE, JUL15) if "lake trout" in t["top"]["lead"]]
-    assert tbs and all(t["top"]["lead"] == "Up to 2 {day}, or 3 if they’re lake trout" for t in tbs)
-    assert all(b["head"] == "Keep 2, lake trout up to 3" for t in tbs for b in t["boxes"] if b["kind"] == "keep")
+    tbs = [t for t in _tables(PEACE, JUL15) if "lake trout" in _full(t)]
+    assert tbs and all(_full(t) == "Keep 2 trout and char {day}, or 3 if they’re lake trout" for t in tbs)
+    assert all(b["head"] == "Keep 2 in all, or 3 if they’re lake trout" for t in tbs for b in t["boxes"]
+               if b["kind"] == "keep")
     # MUTATION: without the raised share the box says the zone's 5 as the day's most
-    tbs = [t for t in _tables(PEACE, JUL15, monkeypatch, A_RAISED_SHARE_IS_A_BAND=False) if "lake trout" in t["top"]["lead"]]
-    assert any(b["head"] == "Keep 2, lake trout up to 5" for t in tbs for b in t["boxes"] if b["kind"] == "keep")
+    tbs = [t for t in _tables(PEACE, JUL15, monkeypatch, A_RAISED_SHARE_IS_A_BAND=False) if "lake trout" in _full(t)]
+    assert any(b["head"] == "Keep 2 in all, or 5 if they’re lake trout" for t in tbs for b in t["boxes"]
+               if b["kind"] == "keep")
 
 
 @pytest.mark.needs_bundle
 def test_the_box_head_leads_with_the_regions_number(built, monkeypatch):
-    """Owner 13:15 ("lead with 5"): "Keep 5, rainbow trout up to 10" on Kootenay Lake's main body; never "Keep 10 in
-    all". MUTATION: the flag off says "Keep 10 in all"."""
+    """Owner 13:15 ("lead with 5"): "Keep 5 in all, or 10 if they’re rainbow trout" on Kootenay Lake's main body (the
+    top line's form since 2026-11-18); never "Keep 10 in all". MUTATION: the flag off says "Keep 10 in all"."""
     heads = [b["head"] for t in _tables(KOOTENAY, JUL15) for b in t["boxes"] if b["kind"] == "keep"]
-    assert heads == ["Keep 5, rainbow trout up to 10"], heads
+    assert heads == ["Keep 5 in all, or 10 if they’re rainbow trout"], heads
     heads = [b["head"] for t in _tables(KOOTENAY, JUL15, monkeypatch, A_HEAD_LEADS_WITH_THE_REGION=False)
              for b in t["boxes"] if b["kind"] == "keep"]
     assert heads == ["Keep 10 in all"], heads
+
+
+def _full(t) -> str:
+    """The top line whole, its subline after it (`words.join_top`)."""
+    from pipeline.deliver.answers.trout import words as W
+    return W.join_top(t["top"]["lead"], t["top"].get("sub"))
 
 
 def test_the_excepted_head_reads_back():
@@ -275,10 +283,11 @@ def test_the_excepted_head_reads_back():
 @pytest.mark.needs_bundle
 def test_perry_creek_june_16_the_other_trout_come_to_1(built, monkeypatch):
     tbs = _tables(PERRY, (6, 16))
-    assert any(t["top"]["lead"].startswith("Up to 1 {day}, or 20 if they’re brook trout") for t in tbs), \
-        [t["top"]["lead"] for t in tbs]
-    tbs = _tables(PERRY, (6, 16), monkeypatch, A_TOP_SAYS_WHAT_THE_OTHER_FISH_COME_TO=False)
-    assert any(t["top"]["lead"].startswith("Up to 2 {day}, or 20 if they’re brook trout") for t in tbs)
+    assert any(_full(t).startswith("Keep 1 trout and char {day}, or 20 if they’re brook trout") for t in tbs), \
+        [_full(t) for t in tbs]
+    tbs = _tables(PERRY, (6, 16), monkeypatch, A_TOP_SAYS_WHAT_THE_OTHER_FISH_COME_TO=False,
+                  A_TOP_NEVER_PAST_THE_BOX=False)
+    assert any(_full(t).startswith("Keep 2 trout and char {day}, or 20 if they’re brook trout") for t in tbs)
 
 
 @pytest.mark.needs_bundle
