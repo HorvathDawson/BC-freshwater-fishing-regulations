@@ -83,6 +83,15 @@ class Store:
             p.write_bytes(raw)
             fc = sqlite3.connect(str(p))
             have = {t for (t,) in fc.execute("SELECT name FROM sqlite_master WHERE type = 'table'")}
+            if name.startswith("regs-") and "cell" in have:
+                # a section the store gained (`_cut_over`: the trout table): its cell column and tables, as built
+                fcols = {c[1] for c in fc.execute("PRAGMA table_info(cell)")}
+                for c in [c[1] for c in con.execute("PRAGMA table_info(cell)") if c[1] not in fcols]:
+                    fc.execute(f"ALTER TABLE cell ADD COLUMN {c} INTEGER")
+                for (t,) in con.execute("SELECT name FROM sqlite_master WHERE type = 'table' AND name LIKE 'trout_%'"):
+                    if t not in have:
+                        fc.execute(f"CREATE TABLE {t} (id INTEGER PRIMARY KEY, j BLOB NOT NULL)")
+                        have.add(t)
             for t in sorted(have - {"meta"}):
                 if not con.execute("SELECT 1 FROM sqlite_master WHERE type = 'table' AND name = ?", (t,)).fetchone():
                     continue
@@ -694,40 +703,76 @@ def test_the_same_count_from_another_rule_is_source_only(pair):
     assert _only(_diff(a, b), "source_only")["block"] == "gear"
 
 
-# --- shared limits and the card's rows: kinds of their own
+def test_counted_gear_edges_read_a_direction(pair):
+    """(review M6) A number that comes on a count with no words is stricter; words that lose an allowance at the same
+    number are stricter, words that gain one looser."""
+    assert AD.count_dir([None, None, "e::r1"], [["max", 1.0], None, "e::r1"]) == "closed"
+    assert AD.count_dir([["max", 1.0], None, "e::r1"], [None, None, "e::r1"]) == "open"
+    assert AD.count_dir([["max", 1.0], "1 line (rod); 2 while alone in a boat", None],
+                        [["max", 1.0], None, "e::r1"]) == "closed"
+    assert AD.count_dir([["max", 1.0], None, "e::r1"],
+                        [["max", 1.0], "1 line (rod); no limit from a boat", None]) == "open"
+
+
+# --- possession, the review's cases (M1, the base)
+
+def test_review_m1_a_possession_cut_is_listed_even_when_the_daily_also_moves(pair):
+    """(review M1) The same rule, take 6 -> 1, while the fish's daily drops by one: the rule's number moved, so the
+    possession change is listed beside the limit. MUTATION: skipping on the rule ids alone hides it."""
+    a, b = pair
+    for rel, take in ((a, 6), (b, 1)):
+        st = Store(rel)
+        _set_rule_fields(st, POS_RULE, {"period": "possession", "take": take})
+        st.save()
+
+    def add(d):
+        return {**d, "roles": [*d["roles"], [POS_RULE, "possession_cap", None]]}
+    _plant_decided(a, add)
+    _plant_decided(b, lambda d: add({**d, "daily": d["daily"] - 1}))
+    kinds = {(g["kind"], g["errs"]) for g in _diff(a, b)["groups"]}
+    assert ("possession", "closed") in kinds and ("limit_lower", "closed") in kinds
+
+
+def test_possession_multiplies_the_groups_total_not_the_share_under_it():
+    """(review item 2; `GroupPossession.of`) "Possession doubles the 4 a day, not the 2 from streams": the base of a
+    fish in a group is the group's total; a pooled row's number otherwise; the table's box number from rows 34."""
+    fr = {"rows": [{"pool": 1, "kind": "keep", "daily": 2, "all_members": ["RB", "CT"], "group": {"total": 4}},
+                   {"pool": 2, "kind": "keep", "daily": 5, "all_members": ["KO"]}]}
+    assert AD.possession_bases(fr) == {"RB": 4.0, "CT": 4.0, "KO": 5.0}
+    rel = type("R", (), {"rule_fields": [{"per_daily": 2}]})()
+    d = {"status": "keep", "daily": 2, "roles": [[0, "possession", None]]}
+    assert AD.possession_profile(rel, d, 4.0)[40] == 8.0          # 2 days x the 4 in all
+    assert AD.possession_profile(rel, d)[40] == 4.0               # MUTATION: the fish's own 2 a day
+
+
+# --- the keeping law: shared limits by the baskets each side accepts
+
+def _cap_row(r) -> bool:
+    return _trout_pool(r) and len((r.get("group") or {}).get("caps") or []) >= 4
+
+
+def _caps(edit):
+    def go(r):
+        caps = [dict(c) for c in r["group"]["caps"]]
+        edit(caps)
+        return {**r, "group": {**r["group"], "caps": caps}}
+    return go
+
 
 @pytest.mark.parametrize("edit,errs", [
     (lambda r: {**r, "daily": r["daily"] - 1}, "closed"),
-    (lambda r: {**r, "daily": r["daily"] + 1}, "open"),
-    (lambda r: {**r, "daily": r["daily"] - 1, "group": {**r["group"], "water_max": 99}}, "unclear"),
+    (lambda r: {**r, "daily": r["daily"] + 1, "group": {**r["group"], "total": 99, "water_max": None,
+                                                         "caps": [c for c in r["group"]["caps"] if c["take"] != 2]}},
+     "open"),
 ])
 def test_a_pooled_rows_number_is_a_shared_limit_in_its_direction(pair, edit, errs):
     a, b = pair
-    _, _, row = _plant_row(b, _trout_pool, edit)
+    _plant_row(b, _cap_row, edit)
     r = _diff(a, b)
-    g = _only(r, "shared_limit")
-    assert g["errs"] == errs and len(r["groups"]) == 1 and g["block"] == "shared"
-    from pipeline.regs.parsing.catalogue_parts.labels import species_words
-    assert list(g["subjects"]) == [species_words(sorted(row["all_members"]))]
-
-
-def test_a_shared_limit_lists_only_the_limits_that_moved(pair):
-    a, b = pair
-    _, _, row = _plant_row(b, _trout_pool, lambda r: {**r, "daily": r["daily"] - 1})
-    from pipeline.regs.parsing.catalogue_parts.labels import species_words
-    g = _only(_diff(a, b), "shared_limit")
-    fish = species_words(sorted(set(row["all_members"])))
-    assert g["before"] == [f"{row['daily']} a day of {fish} together"]
-    assert g["after"] == [f"{row['daily'] - 1} a day of {fish} together"]
-
-
-def test_a_one_kind_rows_number_is_no_shared_limit(pair):
-    """MUTATION of the several-fish rule: a one-fish row's number is that fish's own (its daily answer says it)."""
-    a, b = pair
-    _plant_row(b, lambda r: r["kind"] == "keep" and len(set(r["all_members"])) == 1,
-               lambda r: {**r, "daily": r["daily"] - 1})
-    kinds = {g["kind"] for g in _diff(a, b)["groups"]}
-    assert kinds and "shared_limit" not in kinds
+    assert {g["kind"] for g in r["groups"]} == {"shared_limit"} and {g["errs"] for g in r["groups"]} == {errs}
+    assert all(g["block"] == "joint" for g in r["groups"])
+    _plant_row(a, _cap_row, edit)                          # MUTATION: the same edit on both sides: nothing
+    assert _diff(a, b)["groups"] == []
 
 
 def test_a_gear_ban_on_an_element_no_rule_spoke_of_is_stricter(pair):
@@ -752,17 +797,22 @@ def test_a_shared_count_added_is_a_stricter_shared_limit(pair):
         return {**r, "real_daily": {**rd, "shared_count": [*(rd.get("shared_count") or []),
                                                             {"take": 1, "members": two}]}}
     _plant_row(b, lambda r: _trout_pool(r) and len(r["all_members"]) >= 2, edit)
-    g = _only(_diff(a, b), "shared_limit")
-    assert g["errs"] == "closed" and any("together" in w for w in g["after"])
+    r = _diff(a, b)
+    assert r["groups"] and {(g["kind"], g["errs"]) for g in r["groups"]} == {("shared_limit", "closed")}
 
 
-def test_a_shared_limit_that_moves_with_a_member_fishs_own_answer_is_not_listed_twice(pair):
-    """MUTATION of the skip: the row's number AND a member fish's daily drop: only the fish's limit is listed."""
+def test_review_m2_a_shared_count_is_listed_when_another_member_moves(pair):
+    """(review M2) A shared count of two kinds added while ANOTHER member's daily drops: both are listed. MUTATION: the
+    old skip (any member moved) hid the shared count."""
     a, b = pair
-    akey, s, row = _plant_row(b, _trout_pool, lambda r: {**r, "daily": r["daily"] - 1})
+
+    def edit(r):
+        rd = r.get("real_daily") or {}
+        return {**r, "real_daily": {**rd, "shared_count": [{"take": 1, "members": ["CT", "RB"]}]}}
+    akey, s, row = _plant_row(b, lambda r: _trout_pool(r) and {"CT", "RB"} <= set(r["all_members"]), edit)
     st = Store(b)
     fr = st.get("rows_frame", st.cell(akey, s, "rows"))
-    sp = next(x for x in row["members"] if x in fr[1] and fr[1][x][0] is not None
+    sp = next(x for x in sorted(fr[1]) if x not in ("CT", "RB") and x in row["all_members"] and fr[1][x][0] is not None
               and st.get("rows_decided", fr[1][x][0])["status"] == "keep")
     h, w, lead = fr[1][sp]
     d = st.get("rows_decided", h)
@@ -770,8 +820,37 @@ def test_a_shared_limit_that_moves_with_a_member_fishs_own_answer_is_not_listed_
     fr[1][sp] = [nd, nd if w == h else w, lead]
     st.cell(akey, s, "rows", st.add("rows_frame", fr))
     st.save()
-    kinds = {g["kind"] for g in _diff(a, b)["groups"]}
-    assert "shared_limit" not in kinds and "limit_lower" in kinds
+    kinds = {(g["kind"], g["errs"]) for g in _diff(a, b)["groups"]}
+    assert ("shared_limit", "closed") in kinds and ("limit_lower", "closed") in kinds
+
+
+def test_review_m8_m12_a_binding_caps_number_is_a_shared_limit(pair):
+    """(review M8, M12) The streams' 2 of a Region's 4 cut to 1 (a cap that binds here). Caps over the same fish no
+    longer collide: the law is compared by baskets, not by a key per cap."""
+    a, b = pair
+    _plant_row(b, _cap_row, _caps(lambda cs: cs.__setitem__(0, {**cs[0], "take": cs[0]["take"] - 1})))
+    g = _only(_diff(a, b), "shared_limit")
+    assert g["errs"] == "closed"
+
+
+def test_review_m9_a_cap_that_binds_nothing_here_is_other_never_no_change(pair):
+    """(review M9) The Region's 4 raised to 5 where the streams' 2 binds: the same baskets, but the group's numbers
+    differ — "other" (read it), never the card's layout. MUTATION: with `group` paths card-only it reads "none"."""
+    a, b = pair
+    _plant_row(b, _cap_row, _caps(lambda cs: cs.__setitem__(1, {**cs[1], "take": cs[1]["take"] + 1})))
+    r = _diff(a, b)
+    g = _only(r, "other")
+    assert g["block"] == "net:rows" and g["errs"] == "unclear" and "group" in g["detail"][0]
+
+
+def test_a_stamp_gone_from_a_row_is_other_not_the_cards_layout(pair):
+    """(review: Anahim's steelhead stamp) A licence document gone from a row (or a group's not-kept line) is never
+    "no change"."""
+    a, b = pair
+    _plant_row(b, lambda r: bool(r.get("stamps")), lambda r: {k: v for k, v in r.items() if k != "stamps"})
+    g = _only(_diff(a, b), "other")
+    assert g["errs"] == "unclear" and "stamps" in g["detail"][0]
+    assert not AD.card_only(["rows[0].group.not_kept[0].stamps"]) and AD.card_only(["rows[1].parent"])
 
 
 def test_rows_reordered_on_the_card_are_card_rows_and_change_nothing_you_may_do(pair):
@@ -800,55 +879,74 @@ def test_a_difference_inside_a_decided_answer_no_facet_reads_stays_other(pair):
     assert g["block"] == "net:rows" and g["errs"] == "unclear"
 
 
-def test_a_row_split_says_so(pair):
-    a, b = pair
+# --- rows 34: the trout cutover (spec ticket L; contract 2.7, Q-D9, 2.11, the A0 amendment), made by the real
+# trout builder on the mini release, as L's `answers.cut_over` makes it (lane/t810-l bfc3faba3)
 
-    def split(st):
-        akey, s, fid = next(c for c in _cells(st) if any(
-            len(st.get("rows_row", x)["all_members"]) >= 2 and st.get("rows_row", x)["kind"] == "release"
-            for x in st.get("rows_frame", c[2])[2]))
-        fr = st.get("rows_frame", fid)
-        i = next(i for i, x in enumerate(fr[2]) if len(st.get("rows_row", fr[2][i])["all_members"]) >= 2
-                 and st.get("rows_row", fr[2][i])["kind"] == "release")
-        row = st.get("rows_row", fr[2][i])
-        m = row["all_members"]
-        one = st.add("rows_row", {**row, "members": [x for x in row["members"] if x == m[0]], "all_members": m[:1]})
-        rest = st.add("rows_row", {**row, "members": [x for x in row["members"] if x != m[0]], "all_members": m[1:]})
-        fr[2] = [*fr[2][:i], one, rest, *fr[2][i + 1:]]
-        fr[4] = [*fr[4][:i], fr[4][i], fr[4][i], *fr[4][i + 1:]]
-        st.cell(akey, s, "rows", st.add("rows_frame", fr))
-    st = Store(b)
-    split(st)
-    st.save()
-    g = _only(_diff(a, b), "card_rows")
-    assert g["detail"][0].startswith("rows split or joined: ")
-
-
-# --- rows 34: the trout cutover (spec ticket L; contract Q-D9 and 2.11), planted on the mini release
-
-def _rows34(rel: Path) -> None:
-    """`rel` as the cutover writes it: rows 34 in the store's layout and the manifest, `page_possession` the sixth slot
-    of every frame (a lead where an answer names a possession rule, else null), and `group` / `elsewhere` dropped from
-    every trout row (every fish a trout or char). Nothing else moves."""
+def _cut_over(rel: Path) -> None:
+    """`rel` as the cutover writes it: per key the trout cells the builder composes (`trout.table.compose_key`, the
+    release's own rules), the trout section (`encode.TroutCodec`, the store's optional schema), rows 34 in the layout
+    and the manifest, and every rows frame with a table cut as L's `cut_over` cuts it — each mixed row split
+    (`split_mixed`; a part's stamps made again, here dropped: the mini's licence answer is not re-read), the covered rows
+    without `group` / `elsewhere` — and `page_possession` the sixth slot of every frame (a lead where an answer names a
+    possession rule, else null)."""
+    from pipeline.deliver.answers.common import trout_char
+    from pipeline.deliver.answers.encode import CODECS, TroutCodec
+    from pipeline.deliver.answers.trout import table as TT
+    from pipeline.deliver.store.build import optional_schema
     st = Store(rel)
-    for (i,) in st.con.execute("SELECT id FROM rows_row ORDER BY id").fetchall():
-        r = st.get("rows_row", i)
-        if AD.is_trout_row(r):
-            st.put("rows_row", i, {k: v for k, v in r.items() if k not in ("group", "elsewhere")})
-    for (i,) in st.con.execute("SELECT id FROM rows_frame ORDER BY id").fetchall():
-        fr = st.get("rows_frame", i)
-        assert len(fr) == 5
-        pos = next((ro[0] for sp in sorted(fr[1]) for d in fr[1][sp][:2] if d is not None
+    S = st.st
+    w, sub = S.answers(), S.export_subset(check=False)
+    rules, secs, TC = TT.Rules.from_store(S), w["sections"], trout_char()
+    cells: dict = {}
+    for k, key in enumerate(w["keys"]):
+        starts = w["segments"][key[9]]
+        moms = None if key[10] is None else [w["moments"][i] for i in w["segment_moments"][key[10]]]
+        fr = {x: [CODECS[x].decode_frame(secs[x], secs[x]["at"][k][s], sub["rule_ids"], w["fish"])
+                  for s in range(len(starts))] for x in ("rows", "display", "licence")}
+        for s, c in enumerate(TT.compose_key(fr["rows"], fr["display"], starts, moms, rules, licences=fr["licence"])):
+            cells[(k + 1, s)] = c
+    order = sorted(cells)
+    tsec, refs = TroutCodec().encode([cells[x] for x in order], None, None)
+    optional_schema(st.con, ["trout"])
+    for part, tbl in (("frames", "trout_frame"), ("tables", "trout_table"), ("dates", "trout_dates"),
+                      ("sheets", "trout_sheet")):
+        for i, v in enumerate(tsec[part]):
+            st.con.execute(f"INSERT INTO {tbl} (id, j) VALUES (?, ?)", (i, json.dumps(v).encode()))
+    for (akey, s), ref in zip(order, refs):
+        st.cell(akey, s, "trout", ref)
+        raw = st.get("rows_frame", st.cell(akey, s, "rows"))
+        cell = cells[(akey, s)]
+        spp, fish, rs, line, ys = raw[:5]
+        if cell is not None:
+            rows = [st.get("rows_row", x) for x in rs]
+            split, covers = TT.split_mixed({"rows": [dict(r) for r in rows]})
+            assert covers == list(cell["covers"])
+            ys2, parts = [], []
+            for r, y in zip(rows, ys):
+                f = set(r.get("all_members") or ()) | set(r.get("members") or ())
+                n = 2 if (f & TC and f - TC) else 1
+                ys2 += [y] * n
+                parts += [n == 2] * n
+            rs2 = []
+            for i, r in enumerate(split["rows"]):
+                drop = (("group", "elsewhere") if i in covers else ()) + (("stamps",) if parts[i] else ())
+                rs2.append(st.add("rows_row", {k_: v for k_, v in r.items() if k_ not in drop}))
+            rs, ys = rs2, ys2
+        pos = next((ro[0] for sp in sorted(fish) for d in fish[sp][:2] if d is not None
                     for ro in st.get("rows_decided", d)["roles"] if ro[1] == "possession"), None)
-        st.put("rows_frame", i, [*fr, None if pos is None else {
-            "lead": {"says": "Possession: 2 days' quota.", "value": "2 days' quota", "src": pos}, "also": []}])
+        pp = None if pos is None else {"lead": {"says": "Possession: 2 days' quota.", "value": "2 days' quota",
+                                                "src": pos}, "also": []}
+        st.cell(akey, s, "rows", st.add("rows_frame", [spp, fish, rs, line, ys, pp]))
     (lay,) = st.con.execute("SELECT v FROM meta WHERE k = 'layout'").fetchone()
     lay = json.loads(lay)
-    lay["versions"]["rows"] = type(lay["versions"]["rows"])(AD.CUTOVER_ROWS)
+    vt = type(lay["versions"]["rows"])
+    lay["versions"]["rows"] = vt(AD.CUTOVER_ROWS)
+    lay["versions"]["trout"] = vt(1)
+    lay["sections"]["trout"] = ["version", "at", "frames", "tables", "dates", "sheets"]
     st.con.execute("UPDATE meta SET v = ? WHERE k = 'layout'", (json.dumps(lay, separators=(",", ":")),))
     st.save()
     man = json.loads((rel / "manifest.json").read_text())
-    man["regulations"]["versions"]["rows"] = AD.CUTOVER_ROWS
+    man["regulations"]["versions"].update(rows=AD.CUTOVER_ROWS, trout=1)
     (rel / "manifest.json").write_text(json.dumps(man, indent=1, sort_keys=True))
 
 
@@ -857,59 +955,92 @@ def test_the_cutover_is_keyed_off_f0s_rows_version():
     assert AD.CUTOVER_ROWS == PAGE_POSSESSION_SINCE == 34 and AD.ROWS34_TROUT_DROPS == ("group", "elsewhere")
 
 
-def test_across_the_cutover_a_dropped_trout_group_and_the_page_possession_are_not_changes(pair):
+def test_the_cutover_of_the_same_answers_is_empty_both_ways(pair):
+    """THE CUTOVER DIFF'S PROMISE (spec 7 point 2): the release before the cutover against its own cutover form lists
+    nothing — the trout groups' law read from the groups, the table's by J's decoder, compared by baskets."""
     a, b = pair
+    _cut_over(b)
+    B = AD.Release(b)
+    assert B.rows_version == 34 and B.has_trout
+    assert any(x is not None for k in B.sections["trout"]["at"] for x in k), "the builder made no table"
     st = Store(a)
-    trout = [i for (i,) in st.con.execute("SELECT id FROM rows_row") if _trout_pool(st.get("rows_row", i))]
-    assert trout, "the mini release has no trout row with a group: the plant proves nothing"
-    _rows34(b)
+    assert any(_trout_pool(st.get("rows_row", i)) for (i,) in st.con.execute("SELECT id FROM rows_row"))
     for x, y in ((a, b), (b, a)):
         r = _diff(x, y)
-        assert r["groups"] == [] and r["release_wide"] == [], [(g["kind"], g["detail"]) for g in r["groups"]]
+        assert r["groups"] == [] and r["release_wide"] == [], [(g["kind"], g["subjects"], g["before"], g["after"],
+                                                                 g["detail"]) for g in r["groups"]]
         assert r["rows_cutover"].startswith("across the trout cutover (rows ")
-    assert {AD.Release(b).rows_version, AD.Release(a).rows_version} == {33, 34}
+
+
+@pytest.mark.parametrize("edit", [
+    lambda g: {**g, "water_max": 1},                                              # (review M3)
+    lambda g: {**g, "caps": [{**g["caps"][0], "take": g["caps"][0]["take"] - 1}, *g["caps"][1:]]},
+])
+def test_review_m3_a_trout_groups_number_across_the_cutover_is_found(pair, monkeypatch, edit):
+    """(review M3) A's trout group says another number than the law B's table holds: listed as a shared limit (A
+    stricter: B reads looser). MUTATION: without `joint_changes` nothing compares the trout group's numbers across the
+    cutover and the list is empty."""
+    a, b = pair
+    _cut_over(b)
+    _plant_row(a, _cap_row, lambda r: {**r, "group": edit(r["group"])})
+    g = _only(_diff(a, b), "shared_limit")
+    assert g["errs"] == "open" and g["block"] == "joint"
+    monkeypatch.setattr(AD, "joint_changes", lambda *x, **k: [])
+    assert _diff(a, b)["groups"] == []
 
 
 def test_across_the_cutover_mutation_without_the_drop_the_trout_groups_show(pair, monkeypatch):
     a, b = pair
-    _rows34(b)
+    _cut_over(b)
     monkeypatch.setattr(AD, "ROWS34_TROUT_DROPS", ())
-    r = _diff(a, b)
-    # the group's numbers read as shared limits gone, its words as the card's rows
-    assert r["groups"] and {g["kind"] for g in r["groups"]} <= {"card_rows", "shared_limit"}
+    assert _diff(a, b)["groups"]
 
 
 def test_across_the_cutover_a_non_trout_row_losing_its_kept_elsewhere_line_is_a_change(pair):
     a, b = pair
-    _rows34(b)
+    _cut_over(b)
     st = Store(b)
     non = [(i, st.get("rows_row", i)) for (i,) in st.con.execute("SELECT id FROM rows_row ORDER BY id")]
     non = [(i, r) for i, r in non if r["kind"] == "keep" and not AD.is_trout_row(r) and r.get("elsewhere")]
     assert non, "the mini release has no non-trout keep row"
-    i, r = non[0]
-    st.put("rows_row", i, {k: v for k, v in r.items() if k != "elsewhere"})
+    for i, r in non:
+        st.put("rows_row", i, {k: v for k, v in r.items() if k != "elsewhere"})
     st.save()
     r = _diff(a, b)
-    assert r["groups"] and {g["kind"] for g in r["groups"]} == {"card_rows"}
-    assert all("elsewhere" in g["detail"][0] for g in r["groups"])
+    assert r["groups"] and all("elsewhere" in g["detail"][0] for g in r["groups"])
 
 
 def test_across_the_cutover_a_trout_fish_closing_is_still_found(pair):
     a, b = pair
-    _rows34(b)
-    _, _, sp = _plant_decided(b, lambda d: {**d, "status": "closed", "daily": None})
+    _cut_over(b)
+    _plant_decided(b, lambda d: {**d, "status": "closed", "daily": None})
     assert _only(_diff(a, b), "closes")["errs"] == "closed"
 
 
-def test_two_rows_34_releases_compare_their_page_possession(pair, tmp_path):
+def test_across_the_cutover_a_split_row_is_the_row_it_was():
+    """The A0 amendment: a release row mixing trout with kokanee, before the cutover whole, after it split in two with
+    each part's stamps made again: compared as the same rows (the split by `split_mixed`, the parts' stamps left to the
+    licence facet). MUTATION: without the split the rows differ."""
+    from pipeline.deliver.answers.trout.table import split_mixed
+    mixed = {"kind": "release", "members": ["RB", "KO"], "all_members": ["RB", "KO"], "stamps": [{"doc": "x"}]}
+    old = {"fish": {}, "rows": [mixed]}
+    parts = split_mixed(old)[0]["rows"]
+    new = {"fish": {}, "rows": [{**parts[0], "stamps": [{"doc": "y"}]}, {**parts[1]}], "page_possession": None}
+    va, vb = AD.cutover_views(old, new, {"covers": [0]})
+    assert va == vb
+    va, vb = AD.cutover_views(old, new, None)                       # Q-D3: no table, nothing split
+    assert va != vb
+
+
+def test_two_rows_34_releases_compare_their_page_possession(pair):
     """On the same side of the cutover nothing is left out: a lead's words that differ are a card change."""
     a, b = pair
-    _rows34(a)
-    _rows34(b)
+    _cut_over(a)
+    _cut_over(b)
     assert _diff(a, b)["groups"] == []
     st = Store(b)
     fid = next(i for (i,) in st.con.execute("SELECT id FROM rows_frame ORDER BY id")
-               if st.get("rows_frame", i)[5] is not None)
+               if len(st.get("rows_frame", i)) == 6 and st.get("rows_frame", i)[5] is not None)
     fr = st.get("rows_frame", fid)
     fr[5] = {**fr[5], "lead": {**fr[5]["lead"], "value": "2 days’ quota (changed)"}}
     st.put("rows_frame", fid, fr)
@@ -921,39 +1052,54 @@ def test_two_rows_34_releases_compare_their_page_possession(pair, tmp_path):
 
 def test_a_rows_34_release_with_a_five_slot_frame_stops_the_run(pair, tmp_path, capsys):
     a, b = pair
-    _rows34(b)
+    _cut_over(b)
     st = Store(b)
-    fid = st.cell(*_plain_key(st)[:1], 1, "rows")
-    st.cell(_plain_key(st)[0], 1, "rows", st.add("rows_frame", st.get("rows_frame", fid)[:5]))
+    akey = _plain_key(st)[0]
+    st.cell(akey, 1, "rows", st.add("rows_frame", st.get("rows_frame", st.cell(akey, 1, "rows"))[:5]))
     st.save()
     assert AD.main([str(a), str(b), "--out", str(tmp_path / "o")]) == 2
     assert "slots, not 6" in capsys.readouterr().err
 
 
+def test_a_rows_34_release_with_no_trout_section_stops_the_run(pair, tmp_path, capsys):
+    a, b = pair
+    st = Store(b)
+    (lay,) = st.con.execute("SELECT v FROM meta WHERE k = 'layout'").fetchone()
+    lay = json.loads(lay)
+    lay["versions"]["rows"] = type(lay["versions"]["rows"])(AD.CUTOVER_ROWS)
+    st.con.execute("UPDATE meta SET v = ? WHERE k = 'layout'", (json.dumps(lay, separators=(",", ":")),))
+    st.save()
+    assert AD.main([str(a), str(b), "--out", str(tmp_path / "o")]) == 2
+    assert "holds no trout section" in capsys.readouterr().err
+
+
 # --- rule refs: every rule of a conduct line, not only the first of a pair
 
 def test_conduct_lines_name_every_rule_by_its_id():
-    v = {"conduct": {"keep": [["do_not_waste_catch", [3, 4]]]}, "counts": {"x": {"by": [3, 1]}}}
+    v = {"conduct": {"keep": [["do_not_waste_catch", [3, 4]]]}, "counts": {"x": {"by": [3, 1]}},
+         "circumstantial": [{"clause": [3, 1]}], "specs": {"light": [[4, 0]]}}
     ids = {3: "e::r3", 4: "e::r4"}
     out = AD.resolve(v, AD.RULE_KEYS["gear"], frozenset(), ids.get, None, (), AD.ALL_REF_KEYS["gear"],
                      AD.PAIR_KEYS["gear"])
     assert out["conduct"]["keep"] == [["do_not_waste_catch", ["e::r3", "e::r4"]]]
     assert out["counts"]["x"]["by"] == ["e::r3", 1]                    # a [rule, n] pair keeps its n
+    assert out["circumstantial"][0]["clause"] == ["e::r3", 1]          # (review) a ClauseRef too
+    assert [list(x) for x in out["specs"]["light"]] == [["e::r4", 0]]  # (review) the specs' rules
     # MUTATIONS: without them, the conduct lines stay indices (a rule list that differs makes every gear frame
     # differ) and a pair's entry index is read as rule 1
     bad = AD.resolve(v, AD.RULE_KEYS["gear"], frozenset(), ids.get, None)
     assert bad["conduct"]["keep"] == v["conduct"]["keep"] and bad["counts"]["x"]["by"] == ["e::r3", None]
 
 
-def test_a_cap_whose_size_band_moves_is_the_same_cap():
-    """A group cap is keyed by its fish (and origin) per place: `RB.0.h` -> `RB.25.h` is the rainbow's size band moving
-    (its size lines say it), not a cap gone and another come. MUTATION: keyed by the kind ids, the two rows' limits
-    differ."""
-    def row(band):
-        return {"all_members": ["CT", "RB"], "kind": "keep", "daily": 5, "group": {
-            "kinds": ["CT", "RB"], "total": 5, "subcaps": [],
-            "caps": [{"take": 1, "kinds": {"here": ["CT.50", f"RB.{band}.h"], "stream": [], "lake": []},
-                      "says": "Only 1 over 50 cm", "if_kept_here": False}]}}
-    a, b = AD.shared_limits(None, row(0)), AD.shared_limits(None, row(25))
-    assert a == b and any(k.startswith("cap:CT,RB.h|") for k in a)
-    assert AD._kind_fish("RB.25.h") == "RB.h" and AD._kind_fish("DV.0") == "DV"
+def test_review_m4_m5_across_the_cutover_a_daily_and_a_pooled_number_are_found(pair):
+    """(review M4, M5) Across the cutover a fish's daily is its limit's change, a pooled row's number a shared limit."""
+    a, b = pair
+    _cut_over(b)
+    _plant_decided(b, lambda d: {**d, "daily": d["daily"] - 1})
+    assert _only(_diff(a, b), "limit_lower")["errs"] == "closed"
+    b2 = b.parent.parent / "b2" / b.name
+    shutil.copytree(under_test.mini(), b2)
+    _cut_over(b2)
+    _plant_row(b2, lambda r: AD.is_trout_row(r) and r["kind"] == "keep" and len(set(r["all_members"])) > 1,
+               lambda r: {**r, "daily": r["daily"] - 1})
+    assert {g["kind"] for g in _diff(under_test.mini(), b2)["groups"]} == {"shared_limit"}
