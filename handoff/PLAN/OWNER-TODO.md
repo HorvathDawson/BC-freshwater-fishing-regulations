@@ -2668,3 +2668,4 @@ More questions (recommended answer first):
   0.8.1, and 0.8.1 follows 0.8.0 straight away.
 - 2026-11-18 14:04, owner (app chat dialog), T852 loader line: "B: red rule, muted line" (a short coho-red rule above a smaller muted line).
 - 2026-11-18 14:08, owner (app chat dialog), on the Nass trout table (only lake trout keepable in November; headline "Keep 3 trout and char today"): "Keep \"trout and char\"". The headline stays; not a fault (the table keeps only lake trout, the rest release).
+- 2026-11-18 14:12, owner (app chat): "could we make a script that generates the nass style images for any stream we want? for both salmon or freshwater regs?" T853. Also asked: "are we sure that one lets us keep lake trout? why is that the only one allowed?" — looks like a real keep-where-release error (trout/char definition: trout rules apply to char; Region 6 releases trout from streams Nov 1-Jun 30); sent to the main chat to check.
