@@ -20,15 +20,6 @@ import { TABS, TAB_BAR, type TabKey } from "./TabBar";
 /** the rail's width and each tab's box: 92 wide holds "CONDITIONS" at the tab type; 64 tall is well over 44 */
 export const NAV_RAIL = { width: 92, tabH: 64 } as const;
 
-/** (T856) the paper at partial opacity (#rrggbb -> rgba); anything else is left as it is */
-const seeThrough = (hex: string, a: number): string => {
-  const m = /^#([0-9a-f]{6})$/i.exec(hex);
-  if (!m) return hex;
-  const n = parseInt(m[1]!, 16);
-  return `rgba(${(n >> 16) & 255}, ${(n >> 8) & 255}, ${n & 255}, ${a})`;
-};
-/** (T856) how much of the map shows through the rail: the paper at 85 %, blurred on the web */
-export const NAV_RAIL_OPACITY = 0.85;
 
 export function NavRail({ active, onChange, palette }:
   { active: TabKey; onChange: (k: TabKey) => void; palette: Palette }) {
@@ -36,7 +27,7 @@ export function NavRail({ active, onChange, palette }:
   return (
     <View accessibilityRole="tablist" testID="nav-rail"
           style={{ width: NAV_RAIL.width, borderRightWidth: 1.5, borderRightColor: palette.ink,
-                   backgroundColor: seeThrough(palette.card, NAV_RAIL_OPACITY), paddingTop: 8,
+                   backgroundColor: palette.railGlass, paddingTop: 8,
                    // the web blurs what is under it, so the type keeps its contrast over a busy map
                    ...Platform.select<object>({ web: { backdropFilter: "blur(10px)" }, default: {} }) }}>
       {TABS.map(({ k, t }) => {

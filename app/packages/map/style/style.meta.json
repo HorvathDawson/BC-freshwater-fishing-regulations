@@ -3095,6 +3095,7 @@
       "opacity.ui.scrim": 0.28,
       "color.ui.coach-scrim": "#15181C",
       "opacity.ui.coach-scrim": 0.45,
+      "opacity.ui.rail": 0.85,
       "opacity.parcel.edge": 0.5,
       "opacity.closure.edge": 0.85,
       "opacity.park.edge": 0.9,
@@ -3296,6 +3297,7 @@
       "opacity.ui.scrim": 0.28,
       "color.ui.coach-scrim": "#000000",
       "opacity.ui.coach-scrim": 0.65,
+      "opacity.ui.rail": 0.85,
       "opacity.parcel.edge": 0.42,
       "opacity.closure.edge": 0.85,
       "opacity.park.edge": 0.75,
@@ -3497,6 +3499,7 @@
       "opacity.ui.scrim": 0.28,
       "color.ui.coach-scrim": "#15181C",
       "opacity.ui.coach-scrim": 0.45,
+      "opacity.ui.rail": 0.85,
       "opacity.parcel.edge": 0.5,
       "opacity.closure.edge": 0.85,
       "opacity.park.edge": 1,
@@ -4214,6 +4217,11 @@
       "type": "number",
       "themeable": true,
       "$comment": "(T842) the walkthrough dim's alpha: heavier on dark, where the page is already dark"
+    },
+    "opacity.ui.rail": {
+      "type": "number",
+      "themeable": true,
+      "$comment": "(T856) the desktop's floating nav rail: its paper (color.ui.card) at this alpha, so the map shows through"
     },
     "color.ui.imagery.label": {
       "type": "color",

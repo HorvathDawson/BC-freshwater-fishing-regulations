@@ -159,6 +159,7 @@
     "opacity.ui.scrim": 0.28,
     "color.ui.coach-scrim": "@color.ui.shadow",
     "opacity.ui.coach-scrim": 0.45,
+    "opacity.ui.rail": 0.85,
     "opacity.parcel.edge": 0.5,
     "opacity.closure.edge": 0.85,
     "opacity.park.edge": 1.0,
