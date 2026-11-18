@@ -9,7 +9,8 @@
  *              (T796, `section_note`: ADDITIVE in core/1, so asked for first — a core cut before it has no notes)
  *   water      item, parts, picker, akey, segStarts, segMoments, ruleset, rules, lics, statics, str, place, sectionPart,
  *              partLines (T388)
- *   regs-<r>   cell, cells and the five frame families, in the file water's `akey_region` names for the KEY — a frame
+ *   regs-<r>   cell, cells and the five frame families (and, T810 M, the optional trout section's four when the store
+ *              holds it), in the file water's `akey_region` names for the KEY — a frame
  *              id is the store's, the same in every region file that holds it, but only those files hold it; so every
  *              frame read is asked with the key it was reached from (`ladder(akey, id)`, not `ladder(id)`)
  *   regs-sid   sectionAkey, sectionPlace (one 8 KB / 4 KB block per lookup, cached), and so unnamedName; sectionTidal
@@ -25,10 +26,12 @@
  * `store/common.py` `BLOCK_BITS = 12`.
  */
 import type {
-  AkeyRow, AnswersPlace, CellIds, Confidence, ContinueRow, DisplayFrame, ExportRule, GearValue, LadderFrameWire, LicenceValue,
-  Moment, PartFacts, Picker, RowsValue, RuleFacts, Statics, VerdictWire,
+  AkeyRow, AnswersPlace, CellIds, Confidence, ContinueRow, DateSet, DisplayFrame, ExportRule, FishSheet, GearValue,
+  LadderFrameWire, LicenceValue, Moment, OptionalSectionName, PartFacts, Picker, RowsValue, RuleFacts, Statics, TroutFrameWire,
+  TroutTableWire, TroutValue, VerdictWire,
 } from "@app/core";
-import { isConfidence } from "@app/core";
+import { CELL_COLUMNS, CELL_SECTIONS, isConfidence } from "@app/core";
+import { PACK_OPTIONAL_SECTION_TABLES } from "../pack.generated";
 import type { Cell, Db, Row } from "../sql/db";
 import { CROSS } from "../release/queries";
 import { RegsStoreError } from "./errors";
@@ -65,6 +68,11 @@ export interface StoredRule { readonly rix: number; readonly export: ExportRule;
 /** The store's statics (`static` rows) — `pdfPages` too: the release ships the synopsis's printed → PDF page map
  *  (`export.pdf_pages`, the export guide's `pdf_pages`, pipeline.common.synopsis_pages); the app never computes one. */
 export type StoreStatics = Statics;
+/**
+ * (T810 M) One stored cell: its frame ids (the generated `CellIds`), and, ONLY when the store holds an optional section,
+ * that section's id — null where the cell has none (contract 2.6). A key absent from the object: not held.
+ */
+export type StoredCell = CellIds & { readonly [K in OptionalSectionName]?: number | null };
 export interface Frames {
   readonly ladder: LadderFrameWire; readonly rows: RowsValue; readonly gear: GearValue;
   readonly licence: LicenceValue; readonly display: DisplayFrame;
@@ -79,15 +87,18 @@ export interface RegsReads {
   segStarts(seg: number): Promise<readonly number[]>;
   /** segmom.ix → statics.moments[i] */
   segMoments(mom: number): Promise<readonly Moment[]>;
-  cell(akey: number, s: number): Promise<CellIds>;
+  cell(akey: number, s: number): Promise<StoredCell>;
   /** Every segment's cell of the key, index = s (= 0..nseg-1, else damaged). */
-  cells(akey: number): Promise<readonly CellIds[]>;
+  cells(akey: number): Promise<readonly StoredCell[]>;
   ladder(akey: number, id: number): Promise<LadderFrameWire>;
   rows(akey: number, id: number): Promise<RowsValue>;
   gear(akey: number, id: number): Promise<GearValue>;
   licence(akey: number, id: number): Promise<LicenceValue>;
   /** StatusFrame | TidalStatus (a tidal key's display frame has status "tidal"). */
   display(akey: number, id: number): Promise<DisplayFrame>;
+  /** (T810 M) The trout section's frame `id`, decoded (`TroutCodec.decode_frame`): the table body with each row's
+   *  fish sheet back on it, the date set (null: none), `covers`. Asked only of a store that holds the section. */
+  trout(akey: number, id: number): Promise<TroutValue>;
   /** The five frames of one cell. */
   frames(akey: number, cell: CellIds): Promise<Frames>;
   ruleset(setId: number): Promise<RulesetRow>;
@@ -167,6 +178,8 @@ export interface ReadBase {
   /** (T182) the file holding `part_geo`: geo. */
   geo(): Promise<Db>;
   val<T = unknown>(table: string, blob: Cell): T;
+  /** (T810 M0) the optional sections the store holds (`RegsMeta.optional`); absent: none */
+  readonly optional?: { readonly [K in OptionalSectionName]?: number };
 }
 
 /** The family tables a frame read may name — a fixed list, never caller input. */
@@ -174,6 +187,7 @@ const FAMILY = {
   ladderFrame: "ladder_frame", ladderVerdict: "ladder_verdict", rowsFrame: "rows_frame", rowsDecided: "rows_decided",
   rowsRow: "rows_row", gearFrame: "gear_frame", licenceFrame: "licence_frame", licenceHold: "licence_hold",
   licenceDoc: "licence_doc", licenceAnswer: "licence_answer", licenceU16: "licence_u16", displayFrame: "display_frame",
+  troutFrame: "trout_frame", troutTable: "trout_table", troutDates: "trout_dates", troutSheet: "trout_sheet",
 } as const;
 type Family = (typeof FAMILY)[keyof typeof FAMILY];
 
@@ -294,13 +308,23 @@ export function makeReads(base: ReadBase): RegsReads & { clear(): void } {
   };
   /** One blob of a family, by id, from the region file holding the key's frames. */
   const blob = <T>(t: Family, akey: number, id: number): Promise<T> => familyOf(t)(akey, id) as Promise<T>;
+  /** (T810 M) the `cell` columns read: the generated ones, then each held optional section's (never a missing column) */
+  //     (the store refuses, at open, a held section the contract names no tables for)
+  const optionalCells = (Object.keys(base.optional ?? {}) as OptionalSectionName[])
+    .flatMap((sec) => PACK_OPTIONAL_SECTION_TABLES[sec]!.cell.map((c) => [sec, c] as const));
+  const cellColumns = [...CELL_COLUMNS, ...optionalCells.map(([, c]) => c)];
+  const cellOf = (r: Row): StoredCell => {
+    const ids = Object.fromEntries(CELL_SECTIONS.map((c) => [c, n(r[c])])) as Record<string, number | null>;
+    for (const [sec, c] of optionalCells) ids[sec] = nn(r[c]);
+    return ids as unknown as StoredCell;
+  };
   /** Every cell of a key (`s` order), batched per region file. */
   const keyCells = batched<number, Row[]>("keyCells", "cells of akey", async (keys) => {
     const byDb = new Map<Db, number[]>();
     for (const k of keys) { const d = await base.region(k); byDb.set(d, [...(byDb.get(d) ?? []), k]); }
     const out = new Map<number, Row[]>(keys.map((k) => [k, []]));
     for (const [d, some] of byDb) {
-      const rs = await d.all(`SELECT akey, s, ladder, rows, gear, licence, display FROM cell WHERE akey IN (${some.map(() => "?").join(", ")}) `
+      const rs = await d.all(`SELECT ${cellColumns.join(", ")} FROM cell WHERE akey IN (${some.map(() => "?").join(", ")}) `
         + "ORDER BY akey, s", ...some);
       for (const r of rs) out.get(n(r.akey))?.push(r);
     }
@@ -481,6 +505,17 @@ export function makeReads(base: ReadBase): RegsReads & { clear(): void } {
 
     display: (akey, id) => blob<DisplayFrame>(FAMILY.displayFrame, akey, id),
 
+    // (T810 M) TroutCodec.decode_frame: [table, dates | null, covers]; each row's `sheet` id back as its FishSheet
+    trout: (akey, id) => once("trout", id, async () => {
+      const [t, d, covers] = await blob<TroutFrameWire>(FAMILY.troutFrame, akey, id);
+      const [body, dates] = await Promise.all([
+        blob<TroutTableWire>(FAMILY.troutTable, akey, t), d === null ? null : blob<DateSet>(FAMILY.troutDates, akey, d)]);
+      const boxes = await Promise.all(body.boxes.map(async (b) => ({
+        ...b, rows: await Promise.all(b.rows.map(async (r) => ({ ...r, sheet: await blob<FishSheet>(FAMILY.troutSheet, akey, r.sheet) }))),
+      })));
+      return { table: { ...body, boxes }, dates, covers };
+    }),
+
     async frames(akey, c) {
       const [ladder, rows, gear, licence, display] = await Promise.all([
         reads.ladder(akey, c.ladder), reads.rows(akey, c.rows), reads.gear(akey, c.gear), reads.licence(akey, c.licence),
@@ -659,5 +694,3 @@ export function makeReads(base: ReadBase): RegsReads & { clear(): void } {
   return { ...reads, clear: () => caches.clear() };
 }
 
-const cellOf = (r: Row): CellIds =>
-  ({ ladder: n(r.ladder), rows: n(r.rows), gear: n(r.gear), licence: n(r.licence), display: n(r.display) });

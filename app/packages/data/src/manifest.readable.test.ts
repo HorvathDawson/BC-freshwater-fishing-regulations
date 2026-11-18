@@ -4,6 +4,7 @@
  * file" and "this release has no section_line" were thrown on the map and the regs page.
  */
 import { describe, expect, it } from "vitest";
+import { KNOWN_VERSIONS, OPTIONAL_VERSIONS, SECTION_NAMES } from "@app/core";
 import { readsRelease, type Manifest } from "./manifest";
 import { PACK_FILES, PACK_OPTIONAL, PACK_WEB_ONLY } from "./pack.generated";
 
@@ -50,6 +51,37 @@ describe("readsRelease", () => {
 
   it("an unpublished release (a fixture, a local build) is a partial set: only its formats are held to", () => {
     expect(readsRelease(release(["lines", "salmon", "geo"], null), "phone")).toEqual({ ok: true });
+  });
+
+  /** (T810 M0) the section versions are held at install, not by the regs store on every page */
+  describe("the regulations' section versions", () => {
+    const REQUIRED: Record<string, number> = Object.fromEntries(SECTION_NAMES.map((n) => [n, KNOWN_VERSIONS[n]]));
+    const said = (versions: Record<string, number> | null): Manifest =>
+      ({ ...release(), regulations: { valid_until: null, versions } }) as Manifest;
+    const TROUT = OPTIONAL_VERSIONS.trout;
+
+    it("no versions named passes (the store still holds the water file to them); this app's own pass", () => {
+      expect(readsRelease(said(null), "phone")).toEqual({ ok: true });
+      expect(readsRelease(said(REQUIRED), "phone")).toEqual({ ok: true });
+    });
+
+    it("a required section at another version, or left out, is refused", () => {
+      expect(readsRelease(said({ ...REQUIRED, rows: KNOWN_VERSIONS.rows + 1 }), "phone")).toEqual({ ok: false,
+        reason: `release r-test is not one this app reads: regulations rows is ${KNOWN_VERSIONS.rows + 1}, not ${KNOWN_VERSIONS.rows}` });
+      const noGear = Object.fromEntries(Object.entries(REQUIRED).filter(([n]) => n !== "gear"));
+      expect(readsRelease(said(noGear), "web")).toEqual({ ok: false,
+        reason: `release r-test is not one this app reads: regulations gear is absent, not ${KNOWN_VERSIONS.gear}` });
+    });
+
+    it("an optional section (trout) absent or at this app's version passes; at another version it is refused", () => {
+      expect(readsRelease(said({ ...REQUIRED, trout: TROUT }), "phone")).toEqual({ ok: true });
+      expect(readsRelease(said({ ...REQUIRED, trout: TROUT + 1 }), "phone")).toEqual({ ok: false,
+        reason: `release r-test is not one this app reads: regulations trout is ${TROUT + 1}, not ${TROUT}` });
+    });
+
+    it("a section this app knows neither way is a newer release's: it passes", () => {
+      expect(readsRelease(said({ ...REQUIRED, bait: 3 }), "phone")).toEqual({ ok: true });
+    });
   });
 
   it("a file the contract does not know is a newer release's: it passes", () => {

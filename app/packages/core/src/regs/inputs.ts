@@ -8,8 +8,9 @@
  */
 import type {
   GearValue, GlossaryTerm, LicenceValue, Moment, PartFacts, Picker, RowsValue, RuleFacts, StatusFrame, StripState,
-  TidalStatus,
+  TidalStatus, TroutValue,
 } from "../answers.generated";
+import type { CellIds } from "../regsCell.generated";
 import type { Day, RegsTarget, Weekday } from "./model";
 import type { RuleKey } from "./line";
 import type { SpeciesBook } from "./names";
@@ -18,10 +19,13 @@ import type { Md } from "./time";
 
 export type { RowsValue, Row, Decided, GearAnswer, GearValue, StatusFrame, LicenceValue, ProfileAnswer, Holds,
               RuleFacts, PartFacts, Picker, Choice, Moment, GlossaryTerm, StripState, Place as AnswersPlace } from "../answers.generated";
+/** (T810 M) the trout section's decoded value and its wire parts (`@app/data` reads decode them) */
+export type { TroutValue, TroutFrameWire, TroutTableWire, DateSet, FishSheet } from "../answers.generated";
+/** (T810 M) one cell's frame ids, and the `cell` columns: GENERATED from the release contract (`regsCell.generated.ts`) */
+export { CELL_COLUMNS, CELL_SECTIONS, type CellIds, type CellSection } from "../regsCell.generated";
 
 /** A tidal key's frame is {status:"tidal", tidal, note, see, licence}. */
 export type DisplayFrame = StatusFrame | TidalStatus;
-export interface CellIds { readonly ladder: number; readonly rows: number; readonly gear: number; readonly licence: number; readonly display: number }
 export type VerdictWire = readonly [speaks: readonly number[], beside: readonly number[], shown: readonly number[],
   nym: readonly number[], partly: readonly (readonly [number, readonly number[]])[], lost: readonly (readonly [number, number, number])[]];
 export interface LadderFrameWire { readonly common: VerdictWire; readonly rows: readonly (readonly [fish: string, none: VerdictWire, hatchery: VerdictWire, wild: VerdictWire])[] }
@@ -64,6 +68,10 @@ export interface RegsInputs {
    *  Gladys Lake Ecological Reserve: its closure (rule book p.9) does not apply here."), said once, in section order;
    *  [] none. Drawn as they are (`keep.ts` `sectionNotesOf`). */
   readonly notes: readonly string[];
+  /** (T810 M) today's trout and char table (the cell's `trout` frame, decoded): null = the cell has none (contract Q-D3:
+   *  the banner or the tidal page speaks, or no trout or char fish here); ABSENT = the release holds no trout section,
+   *  or the tap has no cell (outside B.C., a tidal piece). Kept apart (AGENTS 32). Nothing draws it yet (N, O). */
+  readonly trout?: TroutValue | null;
 }
 
 export interface AkeyRow { akey: number; ruleset: number; licensingSet: number | null; steelheadWater: boolean; steelhead: 1 | 2 | null; steelheadRules: boolean; kind: string; tidal: boolean; seg: number; mom: number | null; nseg: number }

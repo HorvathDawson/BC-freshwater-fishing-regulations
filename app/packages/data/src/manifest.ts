@@ -9,7 +9,7 @@
  *                  On a mismatch, or a manifest that cannot be read, the LAST GOOD PAIR is kept and said so; tiles are
  *                  never coloured from an incompatible file.
  */
-import { PAINT_READS } from "@app/core";
+import { KNOWN_VERSIONS, OPTIONAL_VERSIONS, PAINT_READS, SECTION_NAMES } from "@app/core";
 import { MANIFEST_FORMAT, PACK_FILES, PACK_OPTIONAL, PACK_WEB_ONLY, type Manifest } from "./pack.generated";
 
 export type { Manifest, SynopsisAppend } from "./pack.generated";
@@ -75,12 +75,25 @@ type Readable = { ok: true } | { ok: false; reason: string };
  * web's own. A release made for an older app fails here (measured 2026-11-05: a phone updated to 0.5.0 opened the
  * r-4e709418ebd8 it held from 0.4.0 — salmon/3, no `lines` — and its readers threw on the map and the regs page).
  * Files the contract does not know are a newer release's and are not read: they pass.
+ *
+ * (T810 M0) And the regulations' section versions (`regulations.versions`) are the ones this app reads: every required
+ * section at its `KNOWN_VERSIONS` version, and an optional one (`OPTIONAL_VERSIONS`) absent or at its version. So a
+ * mismatch is refused at install (the held set, an update), not by the regs store on every page (a final
+ * `RegsStoreError`). A manifest that names no versions passes (the store still holds the water file to them); a section
+ * this app knows neither way is a newer release's, and passes.
  */
 export function readsRelease(m: Manifest, where: "web" | "phone"): Readable {
   const wrong: string[] = [];
   for (const [name, f] of Object.entries(m.files)) {
     const want = PACK_FILES[name]?.format;
     if (want && f.format !== want && !(ALSO_READS[name] ?? []).includes(f.format)) wrong.push(`${name} is ${f.format}, not ${want}`);
+  }
+  const said = m.regulations?.versions;
+  if (said) {
+    for (const n of SECTION_NAMES)
+      if (said[n] !== KNOWN_VERSIONS[n]) wrong.push(`regulations ${n} is ${said[n] ?? "absent"}, not ${KNOWN_VERSIONS[n]}`);
+    for (const [n, v] of Object.entries(OPTIONAL_VERSIONS) as [string, number][])
+      if (said[n] !== undefined && said[n] !== v) wrong.push(`regulations ${n} is ${said[n]}, not ${v}`);
   }
   const missing = m.published
     ? Object.keys(PACK_FILES).filter((n) => !m.files[n] && !PACK_OPTIONAL.includes(n)
