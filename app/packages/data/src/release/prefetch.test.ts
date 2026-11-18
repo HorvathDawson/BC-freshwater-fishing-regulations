@@ -119,7 +119,9 @@ describe("runPrefetch through the loader: one download per file, the later open 
     const { L, fetched, mark } = await setup();
     for (const region of ["2", "5", "2"] as const)
       runPrefetch(L, prefetchPlan({ region, idle: false, saveData: false, effectiveType: null }), mark);
-    await settle(); await settle();
+    // a bounded wait, as the test above: two fixed settles missed regs-5 on a slow CI runner (f75a09681's app CI)
+    for (let i = 0; i < 20 && fetched.length < 2; i++) await settle();
+    await settle();   // and one more: a third download (regs-2 twice) would show here
     expect(fetched).toEqual(["regs-2", "regs-5"]);
   });
 
