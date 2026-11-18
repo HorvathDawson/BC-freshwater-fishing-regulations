@@ -249,12 +249,7 @@
          "Up to 1 over 90 cm (35 in)",
          "No more than 3 counting any Dolly Varden/bull trout you keep"
         ],
-        "duty": [
-         {
-          "s": "In your possession: no more than 2 lake trout (fish at home don’t count)",
-          "t": "text"
-         }
-        ],
+        "duty": null,
         "folded": true,
         "kind": "Lake trout",
         "pictures": [
