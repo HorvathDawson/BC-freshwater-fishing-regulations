@@ -68,8 +68,8 @@ def _wire() -> dict:
             "licence": {"version": 5, "at": [[0], [0, 0, 0], [0]], "holds": [{"holds": [0]}],
                         "answers": [{"documents": []}], "documents": [[0, 0]],
                         "under_16": [[{"residency": "resident", "says": "No licence needed."}]],
-                        # T789 G8: the alien weekend closures, the frame's 4th index
-                        "alien_weekend": [{"says": "Angling prohibited", "waters": [{"name": "A", "key": "w:a"}]}],
+                        # T789 G8: the part's closures to the non-resident alien, the frame's 4th index
+                        "alien_closures": [[{"rule": 0, "says": "Angling closed to non-guided non-resident aliens"}]],
                         "frames": [[0, 0, 0, 0]],
                         "profiles": ["a", "b"], "profile_dims": [["age", ["a", "b"]]],
                         "residency_labels": {"resident": "B.C. resident"}, "profile_labels": ["A", "B"]},
