@@ -6,7 +6,8 @@
   "table": {
    "top": {
     "lead": "Up to 2 {day}",
-    "second": null
+    "second": null,
+    "sub": null
    },
    "fold": {
     "value": "Up to 2",
@@ -86,7 +87,8 @@
        "text": "only 2 of these 2",
        "kind": "shared"
       }
-     ]
+     ],
+     "inner": []
     },
     {
      "kind": "release",
@@ -122,7 +124,8 @@
        }
       }
      ],
-     "bands": []
+     "bands": [],
+     "inner": []
     }
    ],
    "together": null,
@@ -162,7 +165,8 @@
     "table": {
      "top": {
       "lead": "Up to 2 {day}",
-      "second": null
+      "second": null,
+      "sub": null
      },
      "fold": {
       "value": "Up to 2",
@@ -242,7 +246,8 @@
          "text": "only 2",
          "kind": "own"
         }
-       ]
+       ],
+       "inner": []
       },
       {
        "kind": "release",
@@ -278,7 +283,8 @@
          }
         }
        ],
-       "bands": []
+       "bands": [],
+       "inner": []
       }
      ],
      "together": null,
@@ -318,7 +324,8 @@
     "table": {
      "top": {
       "lead": "Up to 2 {day}",
-      "second": null
+      "second": null,
+      "sub": null
      },
      "fold": {
       "value": "Up to 2",
@@ -404,7 +411,8 @@
          "text": "only 2 of these 2",
          "kind": "shared"
         }
-       ]
+       ],
+       "inner": []
       },
       {
        "kind": "release",
@@ -440,7 +448,8 @@
          }
         }
        ],
-       "bands": []
+       "bands": [],
+       "inner": []
       }
      ],
      "together": null,
@@ -480,7 +489,8 @@
     "table": {
      "top": {
       "lead": "Up to 2 {day}",
-      "second": null
+      "second": null,
+      "sub": null
      },
      "fold": {
       "value": "Up to 2",
@@ -561,7 +571,8 @@
          "text": "only 2 of these 2",
          "kind": "shared"
         }
-       ]
+       ],
+       "inner": []
       },
       {
        "kind": "release",
@@ -597,7 +608,8 @@
          }
         }
        ],
-       "bands": []
+       "bands": [],
+       "inner": []
       }
      ],
      "together": null,
@@ -638,7 +650,8 @@
     "table": {
      "top": {
       "lead": "Up to 2 {day}",
-      "second": null
+      "second": null,
+      "sub": null
      },
      "fold": {
       "value": "Up to 2",
@@ -718,7 +731,8 @@
          "text": "only 2 of these 2",
          "kind": "shared"
         }
-       ]
+       ],
+       "inner": []
       },
       {
        "kind": "release",
@@ -754,7 +768,8 @@
          }
         }
        ],
-       "bands": []
+       "bands": [],
+       "inner": []
       }
      ],
      "together": null,
@@ -790,7 +805,8 @@
     "table": {
      "top": {
       "lead": "Up to 2 {day}",
-      "second": null
+      "second": null,
+      "sub": null
      },
      "fold": {
       "value": "Up to 2",
@@ -870,7 +886,8 @@
          "text": "only 2 of these 2",
          "kind": "shared"
         }
-       ]
+       ],
+       "inner": []
       },
       {
        "kind": "release",
@@ -906,7 +923,8 @@
          }
         }
        ],
-       "bands": []
+       "bands": [],
+       "inner": []
       }
      ],
      "together": null,
@@ -942,7 +960,8 @@
     "table": {
      "top": {
       "lead": "Up to 2 {day}",
-      "second": null
+      "second": null,
+      "sub": null
      },
      "fold": {
       "value": "Up to 2",
@@ -1022,7 +1041,8 @@
          "text": "only 2 of these 2",
          "kind": "shared"
         }
-       ]
+       ],
+       "inner": []
       },
       {
        "kind": "release",
@@ -1058,7 +1078,8 @@
          }
         }
        ],
-       "bands": []
+       "bands": [],
+       "inner": []
       }
      ],
      "together": null,
@@ -1096,7 +1117,8 @@
     "table": {
      "top": {
       "lead": "Up to 2 {day}",
-      "second": null
+      "second": null,
+      "sub": null
      },
      "fold": {
       "value": "Up to 2",
@@ -1203,7 +1225,8 @@
          "text": "only 2 of these 3",
          "kind": "shared"
         }
-       ]
+       ],
+       "inner": []
       },
       {
        "kind": "release",
@@ -1239,7 +1262,8 @@
          }
         }
        ],
-       "bands": []
+       "bands": [],
+       "inner": []
       }
      ],
      "together": null,
@@ -1279,7 +1303,8 @@
     "table": {
      "top": {
       "lead": "Up to 2 {day}",
-      "second": null
+      "second": null,
+      "sub": null
      },
      "fold": {
       "value": "Up to 2",
@@ -1359,7 +1384,8 @@
          "text": "only 2 of these 2",
          "kind": "shared"
         }
-       ]
+       ],
+       "inner": []
       },
       {
        "kind": "release",
@@ -1395,7 +1421,8 @@
          }
         }
        ],
-       "bands": []
+       "bands": [],
+       "inner": []
       }
      ],
      "together": null,
@@ -1435,7 +1462,8 @@
     "table": {
      "top": {
       "lead": "Up to 2 {day} {day}",
-      "second": null
+      "second": null,
+      "sub": null
      },
      "fold": {
       "value": "Up to 2",
@@ -1515,7 +1543,8 @@
          "text": "only 2 of these 2",
          "kind": "shared"
         }
-       ]
+       ],
+       "inner": []
       },
       {
        "kind": "release",
@@ -1551,7 +1580,8 @@
          }
         }
        ],
-       "bands": []
+       "bands": [],
+       "inner": []
       }
      ],
      "together": null,
@@ -1591,7 +1621,8 @@
     "table": {
      "top": {
       "lead": "Up to 2 {day}",
-      "second": null
+      "second": null,
+      "sub": null
      },
      "fold": {
       "value": "Up to 2",
@@ -1671,7 +1702,8 @@
          "text": "only 2 of these 2",
          "kind": "shared"
         }
-       ]
+       ],
+       "inner": []
       },
       {
        "kind": "release",
@@ -1707,7 +1739,8 @@
          }
         }
        ],
-       "bands": []
+       "bands": [],
+       "inner": []
       }
      ],
      "together": null,
@@ -1747,7 +1780,8 @@
     "table": {
      "top": {
       "lead": "Up to 2 {day}",
-      "second": null
+      "second": null,
+      "sub": null
      },
      "fold": {
       "value": "Up to 2",
@@ -1827,7 +1861,8 @@
          "text": "only 2 of these 2",
          "kind": "shared"
         }
-       ]
+       ],
+       "inner": []
       },
       {
        "kind": "release",
@@ -1863,7 +1898,8 @@
          }
         }
        ],
-       "bands": []
+       "bands": [],
+       "inner": []
       }
      ],
      "together": null,
@@ -1903,7 +1939,8 @@
     "table": {
      "top": {
       "lead": "Up to 2 {day}",
-      "second": null
+      "second": null,
+      "sub": null
      },
      "fold": {
       "value": "Up to 2",
@@ -1983,7 +2020,8 @@
          "text": "only 2 of these 2",
          "kind": "shared"
         }
-       ]
+       ],
+       "inner": []
       },
       {
        "kind": "release",
@@ -2019,7 +2057,8 @@
          }
         }
        ],
-       "bands": []
+       "bands": [],
+       "inner": []
       }
      ],
      "together": null,
@@ -2053,7 +2092,8 @@
     "table": {
      "top": {
       "lead": "Up to 2 {day}",
-      "second": null
+      "second": null,
+      "sub": null
      },
      "fold": {
       "value": "Up to 2",
@@ -2133,7 +2173,8 @@
          "text": "only 2 of these 2",
          "kind": "shared"
         }
-       ]
+       ],
+       "inner": []
       },
       {
        "kind": "release",
@@ -2169,7 +2210,8 @@
          }
         }
        ],
-       "bands": []
+       "bands": [],
+       "inner": []
       }
      ],
      "together": null,
@@ -2217,7 +2259,8 @@
     "table": {
      "top": {
       "lead": "Up to 2 {day}",
-      "second": null
+      "second": null,
+      "sub": null
      },
      "fold": {
       "value": "Up to 2",
@@ -2297,7 +2340,8 @@
          "text": "only 2 of these 2",
          "kind": "shared"
         }
-       ]
+       ],
+       "inner": []
       },
       {
        "kind": "release",
@@ -2333,7 +2377,8 @@
          }
         }
        ],
-       "bands": []
+       "bands": [],
+       "inner": []
       }
      ],
      "together": null,
