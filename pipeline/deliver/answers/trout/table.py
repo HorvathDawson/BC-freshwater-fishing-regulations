@@ -49,6 +49,7 @@ its lines say "today", H words them); ticket I wires `compose_key`, the codec an
 """
 from __future__ import annotations
 
+import re
 import types
 from collections import OrderedDict
 from typing import Callable, Dict, Iterable, List, Mapping, Optional, Sequence, Tuple
@@ -146,6 +147,9 @@ A_ROW_ELSEWHERE_SAID = True
 #: owner 2026-11-17 23:29 ("Yes, name the fish"): a kept-elsewhere list of more than one subject labels every line.
 #: False = the mutation pin (unlabelled lines: Kathie Lake's two limits read as one list)
 A_ELSEWHERE_SUBJECT_NAMED = True
+#: (coordinator, after 679f790c0) a labelled line whose question names the label's own fish says it once, in the label.
+#: False = the mutation pin ("Brook trout: Kept 2 brook trout on another stream? …")
+A_LABEL_NAMES_THE_FISH_ONCE = True
 #: owner 2026-11-17 23:32 (the Fraser at Mission, "One shared 'only 1' box"): a count rows share inside the box's number
 #: is one shared band over them. False = the mutation pin (each row's "only 1, counting any … you keep")
 A_INNER_CAP_IS_A_BAND = True
@@ -392,6 +396,12 @@ def elsewhere_lines(rows: Sequence[dict], groups: Sequence[dict], rows_said: boo
     subjects = list(dict.fromkeys(sub for sub, _t in items))
     if len(subjects) <= 1 or not A_ELSEWHERE_SUBJECT_NAMED:
         return list(dict.fromkeys(t for _s, t in items))
+    if A_LABEL_NAMES_THE_FISH_ONCE:
+        # the label names the fish: its question does not again ("Brook trout: Kept 2 on another stream? …", never
+        # "Brook trout: Kept 2 brook trout on another stream? …"); J reads the label as the line's fish
+        names = {W.fish_name(S): common.lc_names([S]) for S in TC}
+        items = [(sub, re.sub(rf"^Kept (\d+(?:\.\d+)?) {re.escape(names[sub])} (?=elsewhere|on another|at a)",
+                              r"Kept \1 ", t)) if sub in names else (sub, t) for sub, t in items]
     return [W.elsewhere_labeled(sub, t) for want in subjects for sub, t in items if sub == want]
 
 
