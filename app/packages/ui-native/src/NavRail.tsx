@@ -38,7 +38,7 @@ export function NavRail({ active, onChange, palette }:
           style={{ width: NAV_RAIL.width, borderRightWidth: 1.5, borderRightColor: palette.ink,
                    backgroundColor: seeThrough(palette.card, NAV_RAIL_OPACITY), paddingTop: 8,
                    // the web blurs what is under it, so the type keeps its contrast over a busy map
-                   ...(Platform.OS === "web" ? { backdropFilter: "blur(10px)" } as object : {}) }}>
+                   ...Platform.select<object>({ web: { backdropFilter: "blur(10px)" }, default: {} }) }}>
       {TABS.map(({ k, t }) => {
         const on = k === active;
         const fg = on ? palette.card : palette.sub;

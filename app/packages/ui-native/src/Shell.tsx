@@ -187,8 +187,14 @@ export function Shell(p: ShellProps) {
   const [tabsRowH, setTabsH] = useState(0);
   /** (T839) at the desktop breakpoint the four tabs are a left rail (`NavRail`), not a bottom bar: no row under the body */
   const tabsRail = tabsAsRail(useLayoutClass());
-  /** (T856) on the map tabs at desktop width the see-through rail FLOATS over the map (which runs to the window's edge) */
-  const railOver = tabsRail && bottomBarShown(route) && (tab === "map" || tab === "conditions" || tab === "runs");
+  /**
+   * (T856) on the map tabs at desktop width the see-through rail FLOATS over the map (which runs to the window's edge).
+   * The WEB only: the web map takes the rail's width as its left inset (camera padding, scale bar); a native map does
+   * not, so a wide native window (a tablet in landscape) keeps the rail in the layout, beside the map. This is the LIVE
+   * route's answer; what is drawn while a pane is held is the last browse render's (`railOver`, below).
+   */
+  const railOverLive = Platform.select({ web: true, default: false }) && tabsRail && bottomBarShown(route)
+    && (tab === "map" || tab === "conditions" || tab === "runs");
   const tabsH = tabsRail ? 0 : tabsRowH;
   const [runsAt, setRunsAt] = useState<number | null>(null);
   /** (T369 D15) where on that section the Runs tap landed: the water it opens is that tap's */
@@ -512,7 +518,9 @@ export function Shell(p: ShellProps) {
   // (T498) while a pane is held, the screen is the one the reader left, AS IT WAS: the elements of the last browse
   // render (the map, and the search bar, the map's foot and the tab bar over it), so the route's change (a search
   // consumed, the water's fit, the bars a water hides) reaches none of them under the hold — the screen changes once
-  const lastBrowse = useRef<{ map: React.ReactNode; top: React.ReactNode; foot: React.ReactNode; tabs: React.ReactNode } | null>(null);
+  // (T856) with whether the rail floated over that render's map: the held map keeps its box and its left inset
+  const lastBrowse = useRef<{ map: React.ReactNode; top: React.ReactNode; foot: React.ReactNode; tabs: React.ReactNode;
+                              railOver: boolean } | null>(null);
   const browseNow = frame === null && !viewing && !(adding && onSaveSpot);
   useEffect(() => { browseShown.current = browseNow; });
   if (viewing)
@@ -586,7 +594,9 @@ export function Shell(p: ShellProps) {
                   offline={background.scheduler ? background.status : null}
                   onObstacle={setObstacle} onNotFishing={setNotFishing} onRuns={(sid, at) => { setRunsAt(sid); setRunsPoint(at); }}
                   fishImages={p.fishImages}
-                  lookKey={look.lookKey} look={lookStore as HeldLookStore<unknown>} railOver={railOver} cue={tapCue} tap={tapOpen} />
+                  lookKey={look.lookKey} look={lookStore as HeldLookStore<unknown>} cue={tapCue} tap={tapOpen}
+                  // (T856) the map kept under a page keeps the inset it was left with (T717), so Back moves nothing
+                  railOver={frame === null ? railOverLive : lastBrowse.current?.railOver ?? railOverLive} />
     : null;
 
   /** (T48) The top bar — the search field, the sync icon and the bell — is the maps': on Map, Conditions and (T261)
@@ -647,8 +657,11 @@ export function Shell(p: ShellProps) {
                   : <TabBar active={tab} palette={palette} onChange={nav.toTab} />)
       : null,
   };
-  if (frame === null) lastBrowse.current = { map: browseLive, ...chromeLive };
+  if (frame === null) lastBrowse.current = { map: browseLive, ...chromeLive, railOver: railOverLive };
   const held = pane.holding ? lastBrowse.current : null;
+  // (T856) the rail floats as the chrome DRAWN says: held, the last browse render's (its rail over its map, which keeps
+  // its box and its left inset), not the live route's — a water's route has no bar, and the held map shrank by the rail
+  const railOver = held ? held.railOver : railOverLive;
   // (T717) held: the last browse render's map element (the same map, kept mounted; its props as they were)
   const browse = held ? held.map : browseLive;
   const chrome = held ?? chromeLive;
@@ -698,8 +711,12 @@ export function Shell(p: ShellProps) {
         <View collapsable={false} style={{ position: "absolute", left: railOver ? NAV_RAIL.width : 0, right: 0, top: 0, bottom: 0, zIndex: 2 }}
               pointerEvents={held ? "none" : "box-none"}>{chrome.top}</View>
         {/* PICK ON THE MAP (owner 2026-10-22): the slim banner in the search field's place; a back layer */}
+        {/* (T856) right of the floating rail, as the search field it stands in for */}
         {rail.picking && route.mode === "browse" && tab === "map" && (
-          <SpotPickBanner palette={palette} onCancel={rail.cancelPick} />
+          <View collapsable={false} testID="spot-pick-layer" pointerEvents="box-none"
+                style={{ position: "absolute", left: railOver ? NAV_RAIL.width : 0, right: 0, top: 0, bottom: 0, zIndex: 2 }}>
+            <SpotPickBanner palette={palette} onCancel={rail.cancelPick} />
+          </View>
         )}
         {/* (T275) THE FOOT OVERLAYS THE MAP: a block at the bottom of the map area that hangs up over the map. Its height
             changes with the mode (Standard / Salmon / Runs / Conditions) and as a flex sibling it resized the map each

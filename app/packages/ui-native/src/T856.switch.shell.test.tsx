@@ -1,8 +1,11 @@
 /**
- * (T856) THE MAP'S TROUT / SALMON SWITCH: on a desktop-width window it is in the left nav rail directly under the Map
- * button and not on the map; on a phone or narrow window it is on the map's rail as before. Flipping it still changes the
- * key. Through the real Shell on the fixture; the map renderer is a stub that draws the rail's extra (`railExtra`), so
- * "on the map" is observable.
+ * (T856) THE MAP'S TROUT / SALMON SWITCH AND THE FLOATING RAIL: on a desktop-width window the switch is in the map's top
+ * row directly after the day strip — not in the nav rail, not on the map's right rail; on a phone or narrow window it is
+ * on the map's right rail as before. Flipping it still changes the key. At desktop width the see-through nav rail floats
+ * over the map (the web map takes its width as a left inset), the pick banner starts right of it, and while a water's
+ * pane is held (T498) the screen keeps that layout — the held map neither shrinks nor loses its inset. Through the real
+ * Shell on the fixture; the map renderer is a stub that draws the rail's extra (`railExtra`) and the inset it was given,
+ * and a lift button (`onPressStart`, the T716 tap) that opens a water held until its click.
  */
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { act, cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
@@ -11,23 +14,30 @@ import type { ReactNode } from "react";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { makeFixtureSource } from "@app/data/fixture";
 import type { SalmonFacts, StatusIndex } from "@app/core";
-import { parseManifest } from "@app/data";
+import { parseManifest, type ItemId } from "@app/data";
 import { HOME, LayoutWidthContext, type PairingInput, type StatusSource } from "@app/ui";
 import { LIGHT } from "./theme";
 import { NAV_RAIL } from "./NavRail";
 
+const TAP = { sid: 0 };
 vi.mock("./MapScreen", async () => {
   // (T566) a map says the look it was handed is drawn: the key under it follows that word
   const { useEffect } = await import("react");
+  const { Pressable } = await import("react-native");
   const Drawn = ({ k, on }: { k?: string; on?: (k: string) => void }) => { useEffect(() => { if (k !== undefined) on?.(k); }, [k, on]); return null; };
   return {
-    MapScreen: (p: { railExtra?: ReactNode; corner?: ReactNode; insetLeft?: number; lookKey?: string; onLookDrawn?: (k: string) => void }) =>
-      <View testID="map-stub"><Drawn k={p.lookKey} on={p.onLookDrawn} /><Text>map</Text><Text testID="stub-inset">{String(p.insetLeft)}</Text><View testID="stub-corner">{p.corner}</View><View testID="stub-rail">{p.railExtra}</View></View>,
+    MapScreen: (p: { railExtra?: ReactNode; corner?: ReactNode; insetLeft?: number; lookKey?: string; onLookDrawn?: (k: string) => void;
+                     onPressStart?: (l: string, id: number) => void }) =>
+      <View testID="map-stub"><Drawn k={p.lookKey} on={p.onLookDrawn} /><Text>map</Text><Text testID="stub-inset">{String(p.insetLeft)}</Text><View testID="stub-corner">{p.corner}</View><View testID="stub-rail">{p.railExtra}</View>
+        <Pressable accessibilityRole="button" accessibilityLabel="lift" onPress={() => { p.onPressStart?.("stream", TAP.sid); }}><Text>lift</Text></Pressable></View>,
   };
 });
 vi.mock("./FishSpinner", () => ({ FishSpinner: () => null }));
+// the water's own small map (its Conditions view): no WebGL here
+vi.mock("@app/map", async (orig) => ({ ...(await orig<Record<string, unknown>>()), Map: () => null }));
 const { Shell } = await import("./Shell");
-const { openRegsFixtureWithLines } = await import("@app/data/release/node");
+const { openRegsFixture, openRegsFixtureWithLines } = await import("@app/data/release/node");
+const { openRegsStore } = await import("@app/data/regs");
 afterEach(cleanup);
 
 const H = "d768d6e135e62b99";
@@ -109,4 +119,53 @@ describe("(T856) where the Trout / Salmon switch is", () => {
     await settle();
     expect(key()).toBe(before);
   });
+});
+
+/** The rail's wrapper (the nav rail's parent), and the screen's layout around it, as drawn. */
+const railLayout = () => {
+  const wrap = screen.getByTestId("nav-rail").parentElement!;
+  return { rail: getComputedStyle(wrap).position, outer: getComputedStyle(wrap.parentElement!).flexDirection,
+           foot: getComputedStyle(screen.getByTestId("map-foot")).left, inset: screen.getByTestId("stub-inset").textContent };
+};
+const FLOATING = { rail: "absolute", outer: "column", foot: `${NAV_RAIL.width}px`, inset: String(NAV_RAIL.width) };
+
+describe("(T856) the floating rail", () => {
+  it("1280: the pick banner starts right of the rail (the search field's place)", async () => {
+    mount(1280); await settle();
+    const tab = (name: string) => act(() => { fireEvent.click(screen.getByRole("tab", { name })); });
+    const press = (name: string) => act(() => { fireEvent.click(screen.getByLabelText(name)); });
+    tab("Spots");
+    if (!screen.queryByLabelText("Pick on the map")) press("Add a spot");
+    press("Pick on the map");
+    await settle();
+    expect(screen.getByTestId("spot-pick-banner")).toBeTruthy();
+    expect(getComputedStyle(screen.getByTestId("spot-pick-layer")).left).toBe(`${NAV_RAIL.width}px`);
+  });
+
+  it("1280: while a water's pane is held the rail still floats over the map, which keeps its box and its inset (T498)", async () => {
+    // the Chilliwack's first section in the regs fixture (TapCue.shell.test.tsx)
+    const fx = SOURCE();
+    const st = await openRegsStore(openRegsFixture());
+    TAP.sid = (await st.navRows((await st.itemOrd("gnis:8634"))!)).sections[0]!.sid;
+    const source = { ...fx, itemForSection: async (s: number) => (s === TAP.sid ? "gnis:8634" as ItemId : fx.itemForSection(s as never)) };
+    render(
+      <LayoutWidthContext.Provider value={1280}><GestureHandlerRootView>
+        <Shell source={source} loader={openRegsFixture()} palette={LIGHT} theme="light" themeName="light" onTheme={() => {}}
+               tiles={{ atlas: "a", basemap: "b" } as never} initialRoute={HOME} systemBack={() => ({ sync: () => {}, dispose: () => {} })}
+               status={STATUS} pairing={PAIRING} spots={[]} onSaveSpot={async () => {}} />
+      </GestureHandlerRootView></LayoutWidthContext.Provider>);
+    await settle();
+    expect(railLayout()).toEqual(FLOATING);
+    // the lift opens the water, its pane built hidden and held until the click (T716) — which never comes here; the
+    // clock is frozen so the cue's own timeout cannot take the open back while the pane builds
+    vi.useFakeTimers({ toFake: ["setTimeout", "clearTimeout"] });
+    try {
+      act(() => { fireEvent.click(screen.getByRole("button", { name: "lift" })); });
+      const held = () => { const h = screen.queryByTestId("regs-header"); return !!h && !!h.closest('[aria-hidden="true"]'); };
+      for (let i = 0; i < 400 && !held(); i++)
+        await act(async () => { await vi.advanceTimersByTimeAsync(1); await new Promise((r) => setImmediate(r)); });
+      expect(held()).toBe(true);
+      expect(railLayout()).toEqual(FLOATING);
+    } finally { vi.useRealTimers(); }
+  }, 40_000);
 });
