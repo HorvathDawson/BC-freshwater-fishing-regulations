@@ -278,7 +278,6 @@ reads both files; a ticket closed here moves there once its lane is finished wit
 | T838 | Drop the loose "Conditions: today" line above the estimate card (the switch names the day) | DONE | e40851285 | owner 2026-11-17 (app) |
 | T840 | A salmon verdict's short text carries its own condition (two verdicts with different quota trees never share one `t`; lands with the app dropping its T767 join) | OPEN | — | app chat T767 2026-11-17 (after 0.8.0) |
 | T841 | Every classified water the book marks (symbol or "tributaries of …") is captured, bound and requires the Classified Waters Licence; Class badge in the card header | IN PROGRESS (app badge landed c76ff33d4: look B, in the name row; the data audit is the main chat's) | c76ff33d4 | owner 2026-11-17 (`handoff/PLAN/OWNER-TODO.md`) |
-| T845 | A first start on data this app cannot read says so plainly, not "the map data could not be loaded" | IN PROGRESS (branch app/t845-boot-needs-newer-data) | — | app chat 2026-11-18 (T810 cutover bench) |
 
 ## Next after closed testing
 

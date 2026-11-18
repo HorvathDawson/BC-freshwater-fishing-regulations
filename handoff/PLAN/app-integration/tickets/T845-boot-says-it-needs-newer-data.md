@@ -1,6 +1,6 @@
 # T845 — A first start on data this app cannot read says so plainly
 
-Status: IN PROGRESS (app chat, branch app/t845-boot-needs-newer-data; 0.8.0).
+Status: DONE (landed e0434e1b8 with the T810 cutover, CI green 2026-11-18 06:27; 0.8.0).
 
 Source: app chat 2026-11-18, found by the T810 cutover bench. The 0.8.0 candidate (trout 4+) on the live staging release (trout 1)
 failed every start with "The map data could not be loaded. Check the connection and try again." The release order makes

@@ -548,3 +548,11 @@ the main chat's analyst on the live model.
 2026-11-18 01:42, owner: "uses your 1 over 50 cm" dropped everywhere, including the 1,387 tables where another fish in
 the box can pass 50 cm ("A: drop it everywhere"; verbatim in OWNER-TODO). All-regions sweep (L e88cb9991): the rest fit
 the approved rules and go into L.
+
+## 2026-11-18 06:27: the cutover landed (e0434e1b8, CI green)
+App chat pushed L 679f790c0 + S (trout 5: top.sub, nested bands, split rows, the round-4 look: full-height band box,
+nested outline box, sub line) + T845 + the batch-2 records, re-cut from side release r-d582ecab6af7 (live bundle). Tier
+green; Android bench green on a fresh APK with r-c5b949b5b06a on test/ (regs-open, walkthrough, water-nav, part-steps,
+regs-switch, trout-table 7/7). Next (main chat): C2 on top, the data build on rebuild3, the staging tiles+data release;
+then the app chat's full 0.8.0 bench and old-app held-set check; the owner's sign-off on the finals gates the 0.8.0
+Play/TestFlight build.
