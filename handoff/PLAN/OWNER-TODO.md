@@ -2699,3 +2699,7 @@ More questions (recommended answer first):
   navigation like in search bar using arrows to move highlight etc." -> T858 (web only: ↑/↓ move a highlight through the
   search results, Enter opens, Escape closes as today; then the same in other lists where it fits). After 0.8.1: the
   web site can carry it as soon as it is built, without a Play or TestFlight build.
+- 2026-11-18 16:55 (app chat) Review: the 0.8.1 "What's new" lines are a draft (app/packages/core/src/changelog.ts on
+  app/integrate-081): faster map (Salmon zoom-out most), route-map gauge dots + you-are-here on phones, sharper coho
+  loader + its line, desktop Trout/Salmon switch beside the day + see-through side bar, iPhone stale colour fixed. Clear
+  them or note changes (To-Do page row "Clear the 0.8.1 'What's new' lines").
