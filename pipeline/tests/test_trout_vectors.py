@@ -73,7 +73,10 @@ def test_the_vectors_carry_the_fixed_bands():
     Kitimat's wild rainbow inside Region 6's "1 trout from streams"."""
     by = {v["name"]: v["frame"]["table"] for v in _vectors()["cases"] if v["frame"]}
     assert by["kaslo-jul15"]["top"]["lead"] == "Up to 2 {day}"
-    assert [b["text"] for b in by["kaslo-jul15"]["boxes"][0]["bands"]] == ["only 2 of these 6"]
+    # G2 (owner 2026-11-17, "'any of the 5'"): a row inside the day's shared number says "any of the N" on its own band
+    kaslo = by["kaslo-jul15"]["boxes"][0]
+    assert [r["key"] for r in kaslo["rows"]][0] == "DV"
+    assert [(b["text"], b["from"], b["to"]) for b in kaslo["bands"]] == [("any of the 2", i, i) for i in range(6)]
     kit = by["kitimat-jul15"]["boxes"][0]
     band = next(b for b in kit["bands"] if b["text"] == "only 1 of these 3")
     assert {r["key"] for r in kit["rows"][band["from"]:band["to"] + 1]} == {"GB", "CT", "RB/wild"}
