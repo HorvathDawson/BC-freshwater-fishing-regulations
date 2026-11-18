@@ -476,8 +476,7 @@ def fold_up_to(n, alsos=()) -> str:
         return f"{_n(n)} a day"
     # (owner 2026-11-18, "Make it match other rows in table", the app chat's finals) two numbers the same way: "2 or 4 a
     # day" (the Vedder), "4 or 6 a day" (Lois)
-    ns = [_n(k) for k in [n, *alsos]]
-    return (", ".join(ns[:-1]) + " or " + ns[-1]) + " a day"
+    return common.join([_n(k) for k in [n, *alsos]], " or ") + " a day"
 
 
 def fold_apart(named, others_n: Optional[float]) -> str:
