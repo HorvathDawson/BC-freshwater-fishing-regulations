@@ -199,3 +199,70 @@ def test_j_holds_a_lake_line_for_every_fish_it_covers(monkeypatch, on):
     # a line that names the lake trout holds
     assert J._elsewhere_holds(_Engine(), ("kept", 1, "lake", ("LT",)), ("more_tally", 1), ["LT"], "stream", "lake",
                               ["LT"]) is True
+
+
+# --------------------------------------- every kept-elsewhere line exact for every fish (the re-review of 5788a7914)
+
+class _Abies:
+    """A focused engine for Abies Creek on the C2 bundle (Region 6, from Jul 2): after 2 lake trout or 2 Dolly Varden
+    kept elsewhere, 2 more here (their own cap of 3); after 2 of any other trout or char, 3."""
+    def __init__(self, *_a, **_k):
+        pass
+
+    def fish(self, kinds, places=("here",), origins=("hatchery", "wild")):
+        return [(S, o, 30.0, p) for S in kinds for p in places for o in origins]
+
+    def can_keep(self, got, f):
+        return f[3] == "lake" or f[0] not in ("DV",)
+
+    def most(self, fish, base=(), cap=99):
+        return 2 if base and base[0][0] in ("LT", "DV") else 3
+
+
+def _abies_lines(monkeypatch):
+    from pipeline.deliver.answers import engine as EN
+    from pipeline.deliver.answers.rows import groups as G
+    monkeypatch.setattr(EN, "Engine", _Abies)
+    P = types.SimpleNamespace(cands=[types.SimpleNamespace(key="z6:total")], kind="stream")
+    kinds = ["EB", "GB", "CT", "LT", "RB", "ST"]
+    model = {"R": {S: {"H": None, "W": {"status": "keep"}} for S in kinds}}
+    row = {"members": kinds}
+    line = {"q": "Kept 2 elsewhere today?", "a": "Keep 3 more here, but no more than 1 brook trout from streams in all",
+            "kept": 2, "at": "elsewhere", "species": kinds, "origin": "wild", "here": None, "over_cm": None,
+            "most": "exactly", "kind": "tally", "of": None}
+    return G._exact_lines(P, model, row, {"kinds": kinds}, [line])
+
+
+@pytest.mark.parametrize("on", [True, False], ids=["named by fish", "mutation: one line for any fish"])
+def test_a_worked_line_that_differs_by_fish_names_its_fish(monkeypatch, on):
+    """Abies Creek: "Kept 2 elsewhere? Keep 3 more here, but …" overstated after 2 lake trout or Dolly Varden (2 more):
+    the lines name the fish — "Kept 2 Dolly Varden/bull trout or lake trout elsewhere today? Keep 2 more here." — and the
+    original words stand for "Kept 2 other trout or char elsewhere today?". Off: the one line for any fish."""
+    from pipeline.deliver.answers.rows import groups as G
+    monkeypatch.setattr(G, "A_WORKED_LINE_EXACT_PER_FISH", on)
+    got = [(x["q"], x["a"], x["here"]) for x in _abies_lines(monkeypatch)]
+    if on:
+        assert got == [("Kept 2 Dolly Varden/bull trout or lake trout elsewhere today?", "Keep 2 more here", 2),
+                       ("Kept 2 other trout or char elsewhere today?",
+                        "Keep 3 more here, but no more than 1 brook trout from streams in all", None)], got
+        for q, a, _h in got:
+            W.parse_elsewhere(W.elsewhere_line(q.replace(" today", ""), a)) if a.endswith("here") else None
+    else:
+        assert got == [("Kept 2 elsewhere today?", "Keep 3 more here, but no more than 1 brook trout from streams in all",
+                        None)], got
+
+
+@pytest.mark.parametrize("on", [True, False], ids=["every line", "mutation: the box's kinds, some one"])
+def test_j_holds_an_unnamed_same_water_line_for_every_fish(monkeypatch, on):
+    """J (a focused engine): "Kept 2 elsewhere? Keep 3 more here." on Abies Creek is false after 2 lake trout (2 more):
+    held to every trout and char it covers, it fails. Off (the box's kinds, some one of them): it passed."""
+    from pipeline.deliver.answers.trout import check as J
+    monkeypatch.setattr(J, "A_ELSEWHERE_EVERY_LINE", on)
+    monkeypatch.setattr(J, "_engine", lambda P: _Abies())
+    text = "Kept 2 elsewhere? Keep 3 more here."
+    T_ = types.SimpleNamespace(elsewhere=[(text, W.parse_elsewhere(text))],
+                               boxes=[{"kind": "keep", "rows": [types.SimpleNamespace(fish=S) for S in ("RB", "LT")]}])
+    c = types.SimpleNamespace(P=types.SimpleNamespace(kind="stream"), today={"rows": []},
+                              cell={"covers": [], "table": {"elsewhere": [text]}})
+    probs = J.elsewhere_problems(c, T_)
+    assert bool(probs) is on, probs
