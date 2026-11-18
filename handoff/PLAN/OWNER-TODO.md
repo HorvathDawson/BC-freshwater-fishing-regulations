@@ -2493,3 +2493,8 @@ More questions (recommended answer first):
   fish's sheet with its own sources and how to tell it, and "Sources ›" the table's sources).
 - 2026-11-17 23:02, owner (app chat dialog, T844 web loader; Fast 3G frame strip + fast-line clip sent), verbatim: "make
   way smaller for web" (a much smaller web-only coho sheet so it swims on slow lines; phones unchanged).
+- 2026-11-17 23:29, owner (app chat dialog, T810 cutover look; Fraser at Mission before/after and Kathie Lake pictures
+  sent): top line "Keep it big, 23 px (Recommended)"; fish tile "Keep the tile (Recommended)"; pin bar "Remove it
+  (Recommended)"; the flat elsewhere list first "Idk what you mean", then, asked plainer (Kathie Lake: line 1 is the trout
+  and char, line 2 the brook trout): "Yes, name the fish (Recommended)" (each elsewhere line starts with the fish it is
+  about where a table has more than one such line; words from Python).
