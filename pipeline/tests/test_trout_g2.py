@@ -143,7 +143,7 @@ def test_q1_echoes_says_what_is_kept_here_and_the_lakes_count_once(fx):
 def test_q1_mutation_keeps_the_regions_number(fx, monkeypatch):
     monkeypatch.setattr(T, "A_HEAD_SAYS_WHAT_IS_KEPT_HERE", False)
     b = _box(fx.table("echoes-jul15"))
-    assert b["head"] == "Keep 5 in all" and _bands(b) == ["only 1 of these 6"]
+    assert b["head"] == "Keep 5 in all" and _bands(b) == ["1 total from these 6"]
 
 
 def test_the_lakes_count_said_twice_when_its_rule_is_off(fx, monkeypatch):
@@ -164,7 +164,7 @@ def test_q1_a_stream_under_the_regions_share(fx):
 def test_q2_q3b_tagish(fx):
     fr = fx.table("tagish-jul15")
     b = _box(fr)
-    assert "only 3 between them" in _bands(b)
+    assert "counts toward the 5 · only 3 between them" in _bands(b)
     assert b["strip"] == "only 1 over 50 cm (20 in), not counting lake trout"
     lt = _row(fr, "LT")
     assert lt["lines"][0] == "release over 60 cm (24 in) and under 90 cm (35 in)"
@@ -203,7 +203,7 @@ def test_q2_a_raised_boxs_first_number_is_any_of(fx, monkeypatch):
         assert x["text"] == ("counts toward the 20" if r["fish"] == "EB" else "counts toward the 5"), r["key"]
     _proof(fr)
     monkeypatch.setattr(T, "A_SHARED_BOX_NUMBER_IS_ANY_OF", False)
-    assert "only 5 among them" in _bands(_box(fx.table("canuck-lake-jul15")))
+    assert "counts toward the 5 · 5 total from these 5" in _bands(_box(fx.table("canuck-lake-jul15")))
 
 
 # --------------------------------------------------------------------------------------------------- Q4: own line
@@ -293,7 +293,7 @@ def test_q9_dodd_groups_the_wild_rows(fx):
     keys = [r["key"] for r in b["rows"]]
     assert keys[:8] == ["EB/hatchery", "GB/hatchery", "CT/hatchery", "RB/hatchery",
                         "EB/wild", "GB/wild", "CT/wild", "RB/wild"]
-    wild = next(x for x in b["bands"] if x["text"] == "only 2 wild in all")
+    wild = next(x for x in b["bands"] if W.band_part(x["text"]) == "only 2 wild in all")
     assert (wild["from"], wild["to"], wild["kind"]) == (4, 7, "shared")
     assert "wild" not in (b["strip"] or "")
     assert all(r["lines"][:1] == ("40 cm (16 in) or less",) for r in b["rows"][4:8])

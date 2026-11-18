@@ -238,6 +238,12 @@ class Table:
                 kind_, k, m = W.parse_band(x["text"])
                 if kind_ != x["kind"]:
                     raise _Fail(f"box {bi}: band {x['text']!r} is marked {x['kind']}")
+                total = W.band_total(x["text"])
+                if kind_ == "shared" and total is not None:
+                    # (owner 00:52) the overall limit the band names first: the box's, or a raised box's first number
+                    ex = W.parse_head_except(b["head"])
+                    if total != n and not (ex is not None and total == ex[0]):
+                        raise _Fail(f"box {bi}: band {x['text']!r} names {total} in a box of {n}")
                 if kind_ == "shared" and (m != x["to"] - x["from"] + 1 if m is not None else x["to"] == x["from"]):
                     raise _Fail(f"box {bi}: band {x['text']!r} spans rows {x['from']}..{x['to']}")
                 if kind_ == "size" and (m != x["to"] - x["from"] + 1 if m is not None else x["to"] - x["from"] + 1 < 3):
@@ -961,7 +967,12 @@ def sheet_problems(c: Cell, T: Table) -> List[str]:
             probs.append(f"{where}: head {sh['head']!r} on a {r.kind} row")
         elif r.kind == "keep":
             band = next(x["text"] for x in r.box["bands"] if x["from"] <= r.i <= x["to"])
-            if head[2] != T.boxes[r.b]["n"] or (head[1] or W.band_upto(T.boxes[r.b]["n"])) != band:
+            total = W.band_total(band) if W.parse_band(band)[0] == "shared" else None
+            if total is not None:
+                ok = head[2] == total and head[1] == W.band_part(band)
+            else:
+                ok = head[2] == T.boxes[r.b]["n"] and (head[1] or W.band_upto(T.boxes[r.b]["n"])) == band
+            if not ok:
                 probs.append(f"{where}: head {sh['head']!r}; the row's band {band!r} in a box of {T.boxes[r.b]['n']}")
         row_texts = {t for t, _x in r.lines} | {t for t, _x in r.quiet}
         strip_texts = set((r.box["strip"] or "").split("; ")) - {""}
@@ -992,7 +1003,7 @@ def sheet_problems(c: Cell, T: Table) -> List[str]:
             elif k == "shared":
                 band = next(y["text"] for y in r.box["bands"] if y["from"] <= r.i <= y["to"])
                 held = {(y.fish, y.origin) for y in T.boxes[r.b]["rows"][r.band[3]:r.band[4] + 1]} - {(r.fish, r.origin)}
-                if x[1] != band or {(S, o) for S, o in x[2]} != held:
+                if x[1] != W.band_part(band) or {(S, o) for S, o in x[2]} != held:
                     probs.append(f"{where}: {ln['t']!r}; the row's band {band!r} over {sorted(held, key=str)}")
             elif k == "size_band":
                 band = next(y["text"] for y in r.box["bands"] if y["from"] <= r.i <= y["to"])

@@ -162,6 +162,9 @@ A_SIZE_CAP_IS_A_BAND = True
 #: owner 2026-11-18 (Bowron Lake Park's creeks): rows whose possession lines differ but each come to the day's number say
 #: it once on the box, "In your possession: just 1, the same as the day". False = the mutation pin (each row's own line)
 A_POSSESSION_SAME_AS_THE_DAY = True
+#: owner 2026-11-18 00:52: a shared band names the overall limit first ("counts toward the 2 · only 1 between them").
+#: False = the mutation pin (the band's own words alone)
+A_BAND_NAMES_THE_TOTAL = True
 #: owner 2026-11-18, PENDING one more picture (Chilliwack Lake and the other five Region 2 lakes): a wild quota at or above
 #: the box's number never limits anything ("only 4 wild" in "Keep 4 in all"): unsaid. Off until the owner's picture
 WILD_QUOTA_AT_THE_BOX_NUMBER_UNSAID = False
@@ -596,6 +599,7 @@ class Body:
             self._inner_bands(b)
             if b["kind"] == "keep":
                 self._size_bands(b)
+                self._name_the_total(b)
         self._out_boxes()
         missing = sorted(S for S in self.states if S not in self.placed)
         if missing:
@@ -1162,6 +1166,21 @@ class Body:
         cms = [p[2] for p in b.get("parts") or () if p[0] in ("size", "size_except") and p[2] is not None]
         return bool(cms) and all(any(W.uses_the(k, cm) in r.lines for cm in cms for k in range(1, int(n) + 1))
                                  for r in members)
+
+    @staticmethod
+    def _name_the_total(b: dict) -> None:
+        """(Owner 2026-11-18 00:52) a shared band names the overall limit its rows count toward first, as the size band
+        does: "counts toward the 2 · only 1 between them". A band over every row of the box IS its count: unchanged. In a
+        raised box ("Keep 5, brook trout up to 20") the overall limit of rows outside the exception is the first number."""
+        if not A_BAND_NAMES_THE_TOTAL:
+            return
+        ex = W.parse_head_except(b["head"])
+        for x in b["bands"]:
+            if x["kind"] != "shared" or (x["from"] == 0 and x["to"] == len(b["rows"]) - 1):
+                continue
+            fish = {r.fish for r in b["rows"][x["from"]:x["to"] + 1]}
+            total = ex[0] if ex is not None and not fish & set(ex[1]) else b["n"]
+            x["text"] = W.band_in(total, x["text"])
 
     @staticmethod
     def _poss_comes_to(r: _Row) -> Optional[float]:

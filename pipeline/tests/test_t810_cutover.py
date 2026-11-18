@@ -577,9 +577,13 @@ def test_the_fraser_at_mission_states_the_dolly_varden_and_lake_trout_count_once
     i, j = keys.index("DV"), keys.index("LT")
     assert abs(i - j) == 1
     band = next(x for x in b["bands"] if x["from"] == min(i, j))
-    assert (band["to"], band["text"], band["kind"]) == (max(i, j), "only 1 between them", "shared")
+    assert (band["to"], band["text"], band["kind"]) == (max(i, j), "counts toward the 2 · only 1 between them", "shared")
     assert all("uses the 1 over 50 cm (20 in)" in b["rows"][x]["lines"] for x in (i, j))
     assert not any(x.startswith("only 1, counting any") for r in b["rows"] for x in r["lines"])
+    monkeypatch.setattr(TT, "A_BAND_NAMES_THE_TOTAL", False)       # owner 00:52's "counts toward the 2 · " pin
+    got, *_ = _live_tables(request, ("Fraser River",))
+    b, keys = _one_box(_mission(got), ("DV", "LT"))
+    assert "only 1 between them" in [x["text"] for x in b["bands"]]
     monkeypatch.setattr(TT, "INNER_BAND_WHEN_THE_STRIP_SAYS_IT", False)
     got, *_ = _live_tables(request, ("Fraser River",))
     b, keys = _one_box(_mission(got), ("DV", "LT"))
@@ -640,7 +644,7 @@ def test_chilliwack_lake_drops_only_4_wild_behind_its_switch(request, monkeypatc
 @pytest.mark.needs_bundle
 def test_big_bend_creek_draws_one_shared_band_the_strip_does_not_say(request, monkeypatch):
     """Owner 23:32, built where nothing else says it (a1-real: Big Bend Creek, the Nechako and the Liard): brown,
-    cutthroat, rainbow trout and steelhead, all kept from 30 cm, share "only 1 of these 4" inside "Keep 2 in all"; no
+    cutthroat, rainbow trout and steelhead, all kept from 30 cm, share "1 total from these 4" inside "Keep 2 in all"; no
     row says "only 1, counting any …". Mutation: the pin off says the count on each row again."""
     from pipeline.deliver.answers.trout import table as TT
     four = ("GB", "CT", "RB", "ST")
@@ -654,7 +658,7 @@ def test_big_bend_creek_draws_one_shared_band_the_strip_does_not_say(request, mo
     at = sorted(keys.index(k) for k in four)
     assert at == list(range(at[0], at[0] + 4))
     assert [x for x in b["bands"] if x["from"] == at[0]] == [
-        {"from": at[0], "to": at[-1], "text": "only 1 of these 4", "kind": "shared"}]
+        {"from": at[0], "to": at[-1], "text": "counts toward the 2 · 1 total from these 4", "kind": "shared"}]
     assert not any(x.startswith("only 1, counting any") for r in b["rows"] for x in r["lines"])
     monkeypatch.setattr(TT, "A_INNER_CAP_IS_A_BAND", False)
     got, *_ = _live_tables(request, ("Big Bend Creek",))

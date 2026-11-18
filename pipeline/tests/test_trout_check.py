@@ -160,8 +160,8 @@ def test_the_grammar_reads_the_numbers_back():
     assert W.parse_top_full("Keep 6 rainbow trout or steelhead and 4 other trout and char {day}") == \
         ("apart", ((6, ("RB", "ST")),), 4)
     assert W.parse_elsewhere("Kept 2 on another stream? None more here.") == (("kept", 2, "stream"), ("more", 0))
-    assert W.parse_sheet_line("Only 1 of these 4: this fish and brook trout, wild rainbow trout and lake trout.") == \
-        ("shared", "only 1 of these 4", (("EB", None), ("RB", "wild"), ("LT", None)))
+    assert W.parse_sheet_line("1 total from these 4: this fish and brook trout, wild rainbow trout and lake trout.") == \
+        ("shared", "1 total from these 4", (("EB", None), ("RB", "wild"), ("LT", None)))
 
 
 # ---------------------------------------------------------------------------------------------------- (b) the mutations
@@ -354,6 +354,22 @@ def _zero_band(side):
         r["sheet"]["head"] = W.sheet_keep(W.band_own(0), W.parse_head(b["head"])[1])
     return _mutated(side, lambda c: any(b["kind"] == "keep" and b["bands"][0]["kind"] == "upto"
                                         and b["bands"][0]["to"] == 0 for b in c["table"]["boxes"]), change)
+
+
+def test_mutation_a_band_naming_another_total_fails(side):
+    """(Owner 2026-11-18 00:52) a shared band names the overall limit first; J holds that number to the box's."""
+    def change(c):
+        b = next(b for b in c["table"]["boxes"] if b["kind"] == "keep" and len(b["rows"]) > 2
+                 and [x["kind"] for x in b["bands"][:2]] == ["upto", "upto"])
+        n = W.parse_head(b["head"])[1]
+        text = W.band_in(n + 1, W.band_shared(1, 2))
+        b["bands"] = [{"from": 0, "to": 1, "text": text, "kind": "shared"}, *b["bands"][2:]]
+        for r in b["rows"][:2]:
+            r["sheet"]["head"] = W.sheet_keep(text, n)
+    got = _mutated(side, lambda c: any(b["kind"] == "keep" and len(b["rows"]) > 2 and
+                                       [x["kind"] for x in b["bands"][:2]] == ["upto", "upto"]
+                                       for b in c["table"]["boxes"]), change)
+    assert any("names" in p for p in got), got
 
 
 def test_mutation_a_keep_row_with_a_zero_fails(side):

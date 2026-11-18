@@ -41,14 +41,14 @@ def test_the_sheet_words_whole():
     # T810 G2 Q2: a raised box's other fish ("Keep 5, brook trout up to 20") say their own number
     assert W.sheet_keep("counts toward the 5", 20) == "Keep · counts toward the 5 and the 20"
     assert W.sheet_shared("only 2 wild in all", "brown trout") == "Only 2 wild in all: this fish and brown trout."
-    assert W.sheet_keep("only 1 of these 4", 5) == "Keep · only 1 of these 4 · counts toward the 5"
+    assert W.sheet_keep("1 total from these 4", 5) == "Keep · 1 total from these 4 · counts toward the 5"
     assert W.sheet_size("30 cm (12 in) or longer") == "Size: 30 cm (12 in) or longer."
     assert W.sheet_size("any size") == "Any size."
     assert W.sheet_sub("a rainbow over 50 cm (20 in)") == "Here a steelhead is a rainbow over 50 cm (20 in)."
     assert W.sheet_box(5, "brook trout and lake trout") == "Counts toward the 5 in all, together with brook trout and lake trout."
     assert W.sheet_own(3) == "This fish: only 3."
-    assert W.sheet_shared("only 1 of these 4", "brown trout and rainbow trout") == \
-        "Only 1 of these 4: this fish and brown trout and rainbow trout."
+    assert W.sheet_shared("counts toward the 5 · 1 total from these 4", "brown trout and rainbow trout") == \
+        "1 total from these 4: this fish and brown trout and rainbow trout."
     assert W.sheet_uses(50) == "A kept one is always over 50 cm (20 in), so it is that one."
     assert W.sheet_stop(1, "river", "steelhead") == ("Once you have kept 1 steelhead here, stop fishing this river for the "
                                                      "rest of the day: the whole river, not only this stretch.")
@@ -105,11 +105,11 @@ def test_every_sheet_of_the_mini_release_is_whole_and_says_no_today(mini):
 #: (case, row key) -> the sheet, whole
 EXPECTED = {
     ('skeena-sedan-mill-jul15', 'ST'): (
-        'Keep · only 1 of these 4 · counts toward the 5\n'
+        'Keep · 1 total from these 4 · counts toward the 5\n'
         'Here a steelhead is a rainbow over 50 cm (20 in).\n'
         'Hatchery only: wild ones go back.\n'
         'Counts toward the 5 in all, together with brook trout, lake trout, brown trout, cutthroat trout and rainbow trout.\n'
-        'Only 1 of these 4: this fish and brown trout, cutthroat trout and rainbow trout.\n'
+        '1 total from these 4: this fish and brown trout, cutthroat trout and rainbow trout.\n'
         'Only 1 over 50 cm (20 in).\n'
         'A kept one is always over 50 cm (20 in), so it is that one.\n'
         'Steelhead are known to be in this water.\n'
@@ -166,7 +166,7 @@ EXPECTED = {
         'Licence: 10 a year · record each on your licence right away · Steelhead Conservation Surcharge Stamp, only if you fish for steelhead, even to release them.'
     ),
     ('lois-jul15', 'LT'): (
-        'Keep · only 1 between them · counts toward the 6\n'
+        'Keep · only 1 between them · counts toward the 4\n'
         'Size: 60 cm (24 in) or longer.\n'
         'Hatchery only: wild ones go back.\n'
         'Counts toward the 6 in all, together with brook trout, brown trout, cutthroat trout, Dolly Varden/bull trout, rainbow trout and steelhead.\n'

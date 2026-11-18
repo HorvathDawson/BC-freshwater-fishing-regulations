@@ -534,16 +534,30 @@ def band_own(k) -> str:
 
 
 def band_shared(k, m: int) -> str:
-    """"only 1 of these 4"; a number at least the rows it spans (each row holds more than one fish: Tagish's lake trout
-    and Dolly Varden "3 in the aggregate") reads "only 3 between them" over two rows, "only 4 among them" over more
-    (T810 G2 Q2, owner 15:34)."""
+    """A count rows share, its own words (the band's second half, `band_in`): over two rows "only 1 between them" (owner
+    2026-11-18, for now); over three or more "2 total from these 6" (owner 2026-11-18 00:52: "only 2 of these 6 … is worded
+    really poorly"). THE one place these words change."""
     if m == 2:
-        # (owner 2026-11-18, via the coordinator: "only 1 between them" over two rows, for now; his pick for the general
-        # form is coming — the one place the band's words change)
         return f"only {_n(k)} between them"
-    if k < m:
-        return f"only {_n(k)} of these {m}"
-    return f"only {_n(k)} among them"
+    return f"{_n(k)} total from these {m}"
+
+
+def band_in(total, part: str) -> str:
+    """(Owner 2026-11-18 00:52) a band over several rows names the overall limit first, as the size band does: "counts
+    toward the 2 · only 1 between them", "counts toward the 6 · 2 total from these 6"."""
+    return band_upto(total) + BAND_SEP + part
+
+
+def band_total(text: str) -> Optional[float]:
+    """The overall limit a band names first ("counts toward the 2 · …" -> 2); None for a band without one."""
+    m = re.fullmatch(rf"counts toward the {_NUM}{re.escape(BAND_SEP)}.+", text)
+    return _num(m[1]) if m else None
+
+
+def band_part(text: str) -> str:
+    """A band's own words, the overall limit set aside ("counts toward the 2 · only 1 between them" -> "only 1 between
+    them")."""
+    return text.split(BAND_SEP, 1)[1] if band_total(text) is not None else text
 
 
 def band_wild(n) -> str:
@@ -554,7 +568,7 @@ def band_wild(n) -> str:
 
 def band_wild_n(text: str) -> Optional[float]:
     """"only 2 wild in all" -> 2; None for any other band."""
-    m = re.fullmatch(rf"only {_NUM} wild in all", text)
+    m = re.fullmatch(rf"only {_NUM} wild in all", band_part(text))
     return _num(m[1]) if m else None
 
 
@@ -831,7 +845,9 @@ def sheet_keep(band_text: str, box_n) -> str:
         return f"Keep · counts toward the {_n(box_n)}"
     if kind == "upto":
         return f"Keep · counts toward the {_n(k)} and the {_n(box_n)}"
-    return f"Keep · {band_text} · counts toward the {_n(box_n)}"
+    total = band_total(band_text)
+    # a band naming the overall limit (owner 00:52) says it once, last: "Keep · only 1 between them · counts toward the 2"
+    return f"Keep · {band_part(band_text)} · counts toward the {_n(box_n if total is None else total)}"
 
 
 # -- THE FISH SHEET'S "HERE" LINES (ticket H, spec 3.4): whole sentences, never "today" ----------------------------------
@@ -886,7 +902,7 @@ def sheet_shared(band_text: str, others: str) -> str:
     kind, _k, _m = parse_band(band_text)
     if kind != "shared":
         raise WordsError(f"trout words: not a shared band: {band_text!r}")
-    return _sheet(f"{common.cap(band_text)}: this fish and {others}.")
+    return _sheet(f"{common.cap(band_part(band_text))}: this fish and {others}.")
 
 
 def sheet_size_band(band_text: str, others: str) -> str:
@@ -944,17 +960,22 @@ def parse_band(text: str) -> Tuple[str, float, Optional[int]]:
     sz = parse_band_size(text)
     if sz is not None:
         return "size", sz[0], sz[3]
+    if band_total(text) is not None:
+        # (owner 00:52) "counts toward the 2 · only 1 between them": a shared band naming the overall limit first
+        got = parse_band(band_part(text))
+        if got[0] != "shared":
+            raise WordsError(f"trout words: cannot read the band {text!r}")
+        return got
     for kind, pat in (("upto", rf"counts toward the {_NUM}"), ("possession", rf"only {_NUM} in your possession"),
-                      ("shared", rf"only {_NUM} of these (\d+)"), ("shared", rf"only {_NUM} (between) them"),
-                      ("shared", rf"only {_NUM} (among) them"), ("shared", rf"only {_NUM} wild in all"),
-                      ("own", rf"only {_NUM}")):
+                      ("shared", rf"{_NUM} total from these (\d+)"), ("shared", rf"only {_NUM} (between) them"),
+                      ("shared", rf"only {_NUM} wild in all"), ("own", rf"only {_NUM}")):
         m = re.fullmatch(pat, text)
         if m:
             if kind != "shared":
                 return kind, _num(m[1]), None
             g = m[2] if m.lastindex and m.lastindex >= 2 else None
-            # "between them": two rows; "among them" and "wild in all": the band's own span (J checks it holds 2+)
-            return kind, _num(m[1]), (2 if g == "between" else None if g in ("among", None) else int(g))
+            # "between them": two rows; "from these M": M rows; "wild in all": the band's own span (J checks it holds 2+)
+            return kind, _num(m[1]), (2 if g == "between" else None if g is None else int(g))
     raise WordsError(f"trout words: cannot read the band {text!r}")
 
 
@@ -1437,6 +1458,7 @@ def parse_sheet_head(text: str) -> tuple:
             return ("keep", band_upto(_num(m[2])) + BAND_SEP + m[1], _num(m[2]))       # a size band (`sheet_keep`)
         if m[1] is not None:
             parse_band(m[1])
+        # a shared band's own words: the band is they, or they after "counts toward the N · " (J holds it to one)
         return ("keep", m[1], _num(m[2]))
     raise WordsError(f"trout words: cannot read the sheet head {text!r}")
 
@@ -1490,12 +1512,12 @@ def parse_sheet_line(text: str) -> tuple:
     m = re.fullmatch(rf"(Only {_NUM} over {_CM} (?:between|among) them): this fish and (.+)\.", text)
     if m:
         return ("size_band", _decap(m[1]), _parse_named(m[5]))
-    m = re.fullmatch(r"(Only .+?): this fish and (.+)\.", text)
+    m = re.fullmatch(rf"({_NUM} total from these \d+|Only .+?): this fish and (.+)\.", text)
     if m:
         band = _decap(m[1])
         if parse_band(band)[0] != "shared":
             raise WordsError(f"trout words: cannot read the sheet line {text!r}")
-        return ("shared", band, _parse_named(m[2]))
+        return ("shared", band, _parse_named(m[3]))
     m = re.fullmatch(rf"A kept one is always over {_CM}, so it is that one\.", text)
     if m:
         return ("uses", _cm(m[1], m[2]))

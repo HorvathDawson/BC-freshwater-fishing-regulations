@@ -20,7 +20,7 @@
 ["head", "Closed · do not fish for it"],
 ["head", "Keep · counts toward the 20"],
 ["head", "Keep · only 2 in your possession · counts toward the 5"],
-["head", "Keep · only 2 of these 7 · counts toward the 4"],
+["head", "Keep · 2 total from these 7 · counts toward the 4"],
 ["head", "Keep · only 0 · counts toward the 1"],
 ["head", "Put it back"],
 ["here", "A kept one is always over 50 cm (20 in), so it is that one."],
@@ -48,7 +48,7 @@
 ["here", "Once you have kept 2 steelhead here, stop fishing this slough for the rest of the day: the whole slough, not only this stretch."],
 ["here", "Once you have kept 2 steelhead here, stop fishing this stream for the rest of the day: the whole stream, not only this stretch."],
 ["here", "Only 1 from both lakes together."],
-["here", "Only 2 of these 7: this fish and brown trout, cutthroat trout, rainbow trout, Dolly Varden/bull trout, lake trout and steelhead."],
+["here", "2 total from these 7: this fish and brown trout, cutthroat trout, rainbow trout, Dolly Varden/bull trout, lake trout and steelhead."],
 ["here", "Only 1 over 50 cm (20 in), 2 if one is a hatchery steelhead."],
 ["here", "Only 1 over 50 cm (20 in), counting any rainbow trout you keep."],
 ["here", "Only 1 over 50 cm (20 in)."],
@@ -143,5 +143,9 @@
 ["strip", "only 1 over 50 cm (20 in); only 2 over 30 cm (12 in), not counting brook trout"],
 ["band", "counts toward the 2 · only 1 over 50 cm (20 in) between them"],
 ["head", "Keep · only 1 over 50 cm (20 in) between them · counts toward the 2"],
-["here", "Only 1 over 50 cm (20 in) between them: this fish and rainbow trout."]
+["here", "Only 1 over 50 cm (20 in) between them: this fish and rainbow trout."],
+["band", "counts toward the 2 · only 1 between them"],
+["band", "counts toward the 6 · 2 total from these 6"],
+["band", "2 total from these 6"],
+["band", "counts toward the 4 · only 2 wild in all"]
 ]
