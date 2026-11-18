@@ -433,3 +433,49 @@ unpacks a rows frame as exactly five slots, so a rows-34 frame (six) breaks the 
   an in-force zone rule applying to it lists in `exempts` (`engine.A_ZONE_EXEMPTS_ELSEWHERE`; Inkaneep day 1: 4 other
   trout after 2 brook trout kept on another stream, not 2). Live in memory: J 0 problems on 5,950 tables; the card
   gate 0 problems on 9,251 groups.
+- Owner 2026-11-17 23:29 / 23:32 / 23:35, built (lane/t810-l):
+  - Kept-elsewhere subjects: a list of more than one subject starts every line with it ("Trout and char: …",
+    "Brook trout: …"), each subject's lines together; one subject: no labels (`table.elsewhere_lines`,
+    `words.elsewhere_subject` / `elsewhere_labeled` / `split_subject`; J checks the labels).
+  - One shared band for a count rows share inside the box's number ("only 1 of these 2" over Dolly Varden and lake trout
+    on the Fraser at Mission), the rows' "only 1, counting any …" lines dropped (`table._inner_bands`): 294 tables /
+    175 keys on the live bundle ("only 1 of these 2" 274, "of these 3" 7, "of these 4" 13); the a2 cases (the Vedder,
+    Stewart Slough: the count nested inside "only 2 of these 6") stay as today, waiting for the owner. Shape unchanged
+    (`Band.kind` "shared"; bands never overlap).
+  - Top line names the fish and the action ("Keep 2 trout and char {day}", "Keep 5 trout and char {day}, or 10 if
+    they’re brook trout", "Release every trout and char {day}", "Keep no trout and char {day}"); the fold's one number
+    is the Other fish rows' "2 a day". Two-number folds ("Up to 5 or 10") stay: the Other fish rows have no such form
+    (for the owner).
+  - Live in memory: J 0 problems on 5,950 tables; card gate 0 on 9,251 groups.
+- 2026-11-18 ~00:30, the simplify course correction, the R4 decision, a builder fault, a wording bug (lane/t810-l):
+  - Shared band where the strip already holds the rows to its count (owner 2026-11-18: "simplify" STATES the conclusion
+    once; "fraser also never simplified that but then removed the text that allowed a user to infer it"): the Fraser's
+    Dolly Varden and lake trout get one band, as Kamloops Lake does, each row keeping "uses the 1 over 50 cm" as the
+    reason, no "only 1, counting any …" (switch `table.INNER_BAND_WHEN_THE_STRIP_SAYS_IT`, True; a brief hold earlier
+    in this round is its False). A band over two rows reads "only 1 between them" for now (`words.band_shared`, the one
+    place; the owner's pick for the general form is coming). The analyst's delete-style simplify rule is NOT applied.
+    Live: 483 tables with "only 1 between them"; Big Bend Creek, the Nechako, the Liard keep "only 1 of these 4".
+  - Bowron Lake Park's creeks (owner approved): rows whose possession lines differ but each come to the day's number say
+    it once on the box, "In your possession: just 1, the same as the day" (`words.possession_same`, pin
+    `table.A_POSSESSION_SAME_AS_THE_DAY`); J reads it back: the box's number, and either the park's flat count or k days'
+    limits of the row's day (Region 7A's lake trout "1 daily quota") must pass the possession proof. Live: 23 tables.
+  - Chilliwack Lake and the other five Region 2 lakes, PENDING the owner's picture: "only 4 wild" in "Keep 4 in all"
+    dropped behind `table.WILD_QUOTA_AT_THE_BOX_NUMBER_UNSAID` (False; tested on, J 0). A species' wild and hatchery rows
+    already share `fish` ("RB") and differ by `origin` / key ("RB/wild", "RB/hatchery"): the app can group on `fish`.
+  - R4 cutthroat and rainbow (owner "A but still has to mention the overall limit"): one band over the two rows,
+    "counts toward the 2 · only 1 over 50 cm (20 in) between them", their "only 1 over 50 cm (20 in), counting any …"
+    lines gone (`table._size_bands`, pin `A_SIZE_CAP_IS_A_BAND`). NEW `Band.kind` "size" (two rows or more; the size in
+    the words only), so `trout` is 2 (contract 2.1): the app's S lists `trout: 2`. Words: `band_size`, `parse_band_size`,
+    the sheet head "Keep · only 1 over 50 cm (20 in) between them · counts toward the 2", the sheet line "Only 1 over 50
+    cm (20 in) between them: this fish and rainbow trout.". J reads it as the box's number plus "these rows, over 50 cm:
+    at most 1" (the band one higher, or removed, fails). Live: 188 bands / 135 keys; 22 rows keep the line (a cap over
+    rows of another band or twin rows).
+  - Builder fault (79 tables / 35 waters: Ape, Assanany, Burnt Bridge Creeks, the Atnarko): cutthroat "catch and
+    release" with "only 0" in the Keep box. A kept fish its group holds to 0 is released (`table.A_ZERO_COUNT_IS_RELEASE`);
+    J: no Keep row carries a 0 (`check.A_NO_ZERO_KEEP_ROW`), and a fish the frame answers keep may stand under Release
+    only where the engine keeps none of it. Live: 0 zero bands (was 79).
+  - Wording: a scope label with a qualifier is never spliced mid-sentence: "every stream in Region 1 (excluding Haida
+    Gwaii) you fish", "every stream in Haida Gwaii (MUs 6-12, 6-13)", "every water in BOWRON LAKE Park (other than Bowron
+    Lake)", "They also count toward the 4 trout a day across Region 1 (excluding Haida Gwaii)" (`groups.scope_words`,
+    `every_of`). Every qualified label the live build says is tested.
+  - Live in memory: J 0 problems on 5,950 tables; card gate 0 on 9,251 groups.

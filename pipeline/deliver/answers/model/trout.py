@@ -73,7 +73,10 @@ class Band(Model):
     from_: StrictInt = Field(alias="from", ge=0)
     to: StrictInt = Field(ge=0)
     text: Txt
-    kind: Literal["upto", "own", "shared", "possession"]
+    #: "size" (T810 L, trout 2; owner 2026-11-18 on Region 4's cutthroat and rainbow): the box's number and a size cap the
+    #: band's rows share, "counts toward the 2 · only 1 over 50 cm (20 in) between them" (two halves joined by " · ";
+    #: drawn as given, its size in the words only)
+    kind: Literal["upto", "own", "shared", "possession", "size"]
 
     @model_validator(mode="after")
     def _span(self):
@@ -81,8 +84,8 @@ class Band(Model):
             raise ValueError(f"a band runs backwards: {self.from_}..{self.to}")
         if self.kind in ("upto", "own", "possession") and self.to != self.from_:
             raise ValueError(f"a {self.kind!r} band is one row's ({self.from_}..{self.to})")
-        if self.kind == "shared" and self.to == self.from_:
-            raise ValueError("a shared band spans two rows or more")
+        if self.kind in ("shared", "size") and self.to == self.from_:
+            raise ValueError(f"a {self.kind} band spans two rows or more")
         return self
 
 

@@ -174,6 +174,8 @@ def here(box: dict, ri: int, r, *, stamps: Sequence[str], duties: Sequence[str],
             add(W.sheet_own(W.parse_band(band["text"])[1]))
         elif band["kind"] == "shared":
             add(W.sheet_shared(band["text"], _others(rows[band["from"]:band["to"] + 1], r)))
+        elif band["kind"] == "size":
+            add(W.sheet_size_band(band["text"], _others(rows[band["from"]:band["to"] + 1], r)))
         # 4. the row's own lines
         uses = None
         for t in lines:

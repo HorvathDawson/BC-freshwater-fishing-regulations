@@ -728,8 +728,11 @@ SPEC = {
                     "(every word, structure and rule ref decided in Python; the app draws it and composes only the top "
                     "line's {day} slot), or null where none is drawn: the display frame at the same key and segment says "
                     "closed or tidal, or the rows frame asks about no trout or char fish (Q-D3). Decoded: "
-                    "`TroutFrame` {table, dates, covers} (schema `trout`); on the wire `trout.wire`.",
-            "version": "1",
+                    "`TroutFrame` {table, dates, covers} (schema `trout`); on the wire `trout.wire`. Version 2 (T810 L, "
+                    "owner 2026-11-18 on Region 4's cutthroat and rainbow): a band's kind may be \"size\" — the box's "
+                    "number and a size cap its rows share, \"counts toward the 2 · only 1 over 50 cm (20 in) between "
+                    "them\".",
+            "version": "2",
             "at": "[[frame index per segment, or null (no table)] per key]",
             "frames": "[[table, dates | null, covers]] (`TroutFrameWire`) — `table` an index into `tables`, `dates` into "
                       "`dates` (null: no fish of the table changes later in the year), `covers` the rows frame's rows "

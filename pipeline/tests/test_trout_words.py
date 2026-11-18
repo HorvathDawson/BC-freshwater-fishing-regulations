@@ -146,17 +146,17 @@ def test_mutation_the_round_trip_catches_a_composer_drift(monkeypatch):
 
 #: every NOW form the table builder writes, whole, with what the grammar reads back
 NOW = [
-    (W.top_up_to(5), "Up to 5 {day}", W.parse_top, ("up_to", (5,))),
+    (W.top_up_to(5), "Keep 5 trout and char {day}", W.parse_top, ("up_to", (5,))),
     (W.top_up_to(2, ["5 if they’re rainbow trout"], [(2, "Dolly Varden/bull trout")]),
-     "Up to 2 {day}, or 5 if they’re rainbow trout and no more than 2 Dolly Varden/bull trout", W.parse_top,
+     "Keep 2 trout and char {day}, or 5 if they’re rainbow trout and no more than 2 Dolly Varden/bull trout", W.parse_top,
      ("up_to", (2, 5, 2))),
-    (W.top_up_to(2, plus=[(2, "Dolly Varden/bull trout")]), "Up to 2 {day}, plus 2 Dolly Varden/bull trout", W.parse_top,
+    (W.top_up_to(2, plus=[(2, "Dolly Varden/bull trout")]), "Keep 2 trout and char {day}, plus 2 Dolly Varden/bull trout", W.parse_top,
      ("up_to", (2, 2))),
     (W.top_apart([(6, W.fish_words(["RB", "ST"]))], 4),
-     "Up to 6 rainbow trout or steelhead and 4 other trout and char {day}", W.parse_top, ("apart", (6, 4))),
-    (W.TOP_RELEASE, "Release every one {day}", W.parse_top, ("release", ())),
+     "Keep 6 rainbow trout or steelhead and 4 other trout and char {day}", W.parse_top, ("apart", (6, 4))),
+    (W.TOP_RELEASE, "Release every trout and char {day}", W.parse_top, ("release", ())),
     (W.TOP_CLOSED, "Closed for trout and char {day}", W.parse_top, ("closed", ())),
-    (W.TOP_NONE, "Nothing to keep {day}", W.parse_top, ("none", ())),
+    (W.TOP_NONE, "Keep no trout and char {day}", W.parse_top, ("none", ())),
     (W.head_keep(5), "Keep 5 in all", W.parse_head, ("keep", 5)),
     (W.HEAD_RELEASE, "Release", W.parse_head, ("release", None)),
     (W.band_upto(5), "counts toward the 5", W.parse_band, ("upto", 5, None)),          # T810 G2, owner 15:46
@@ -195,7 +195,9 @@ def test_every_now_form_whole_and_read_back(got, whole, parse, back):
 
 
 def test_the_other_now_words_whole():
-    assert W.fold_up_to(2, [5]) == "Up to 2 or 5"
+    assert W.fold_up_to(2) == "2 a day"                    # owner 23:35: the Other fish rows' form
+    assert W.parse_fold("2 a day") == ("up_to", (2,))
+    assert W.fold_up_to(2, [5]) == "Up to 2 or 5"           # two numbers: no Other fish form yet (asked)
     assert W.fold_apart([(6, W.short_fish("RB"))], 4) == "Up to 6 rainbow, 4 others"
     assert W.tag_of("This lake’s rule") == "Lake’s rule"
     assert W.strip_wild(2, "40 cm (16 in) or less") == "only 2 wild, each 40 cm (16 in) or less"

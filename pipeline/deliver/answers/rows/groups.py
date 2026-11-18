@@ -3,6 +3,8 @@
 (`parent_of`)."""
 from __future__ import annotations
 
+import re
+
 from typing import Dict, List, Optional, Sequence
 from pipeline.common import entry_id as EID
 from pipeline.deliver.answers import common
@@ -352,6 +354,31 @@ def _line(q: str, a: str, model: dict, kinds: Sequence[str], kept, at: str, here
 A_ONE_WATER_POOL_SAYS_ITS_WATER = True
 
 
+def scope_words(s: str) -> str:
+    """(T810 L) a scope's entry name as a sentence carries it: a qualifier the book writes after a comma or as "waters
+    other than" goes in brackets — "Region 1, excluding Haida Gwaii" -> "Region 1 (excluding Haida Gwaii)", "BOWRON LAKE
+    Park waters other than Bowron Lake" -> "BOWRON LAKE Park (other than Bowron Lake)"; any other name as it is."""
+    m = re.fullmatch(r"(.+?), (excluding .+)", s)
+    if m:
+        return f"{m[1]} ({m[2]})"
+    m = re.fullmatch(r"(.+?) waters (other than .+)", s)
+    if m:
+        return f"{m[1]} ({m[2]})"
+    return s
+
+
+def every_of(s: str, wk: Optional[str], both: bool = False) -> str:
+    """"every Region 2 stream", "every water in Region 6", "every stream in Regions 2 and 8" (a straddler's two regions,
+    `both`), and a name with a qualifier always "every stream in Region 1 (excluding Haida Gwaii)": never spliced
+    mid-sentence ("every Region 1, excluding Haida Gwaii stream" read as two lists; the coordinator 2026-11-18)."""
+    label = scope_words(s)
+    if wk is None:
+        return f"every water in {label}"
+    if both or label != s or "(" in label or "," in label:
+        return f"every {wk} in {label}"
+    return f"every {s} {wk}"
+
+
 def elsewhere_of(P: "Part", model: dict, row: dict, sc: dict, T: R,
                  grp: Optional[dict]) -> dict:
     """The kept-elsewhere line of a keep row (rows F9, F14) — `says` one sentence, `ask`
@@ -369,8 +396,7 @@ def elsewhere_of(P: "Part", model: dict, row: dict, sc: dict, T: R,
         other = "lake" if wk == "stream" else "stream"
         mine = next((x for x in (grp or {}).get("subcaps", []) if x["r"] == nw.key), None)
         tot = "unlimited" if T.f.get("unlimited") else T.f.get("take")
-        says = (f"Your own limit, counted across every {wk} in {s} you fish today." if both and s == both
-                else f"Your own limit, counted across every {s} {wk} you fish today.")   # RULINGS P44
+        says = f"Your own limit, counted across {every_of(s, wk, bool(both and s == both))} you fish today."  # P44
         # RULINGS Q23b: the stream tally counts every trout/char kept from ANY
         # stream today; a kind THIS water lifts may still go past it here, to its own quota and the
         # total — after n kept on another stream, up to min(its own, total - n) more of it here
@@ -419,10 +445,9 @@ def elsewhere_of(P: "Part", model: dict, row: dict, sc: dict, T: R,
         # count). False = the mutation pin (the sentence said "every water" and the line "elsewhere")
         wk = pool.f.get("water") if A_ONE_WATER_POOL_SAYS_ITS_WATER else None
         if wk:
-            says = (f"Your own limit, counted across every {wk} in {s} you fish today." if both and s == both
-                    else f"Your own limit, counted across every {s} {wk} you fish today.")
+            says = f"Your own limit, counted across {every_of(s, wk, bool(both and s == both))} you fish today."
         else:
-            says = f"Your own limit, counted across every water in {s} you fish today" + \
+            says = f"Your own limit, counted across {every_of(s, None)} you fish today" + \
                 (", lakes and streams alike." if not pool.f.get("water") else ".")
         if row["kind"] == "keep" and n is not None and n > 1:
             k = 2 if n > 2 else 1
@@ -466,11 +491,18 @@ def elsewhere_of(P: "Part", model: dict, row: dict, sc: dict, T: R,
                      f" They also count toward the {written_name_of(T)} across {both}, which has no daily limit.")
         elif T is not pool:
             whose = T.x.get("entry_name") if badge_of(T) != "water" else None
-            whose = "B.C.’s" if badge_of(T) == "bc" else f"{whose}’s" if whose else "the"
-            says += (f" They also count toward {whose} {_js(T.f.get('take'))} {written_name_of(T)} a "
-                     f"day." if not T.f.get("unlimited") else
-                     f" They also count toward {whose} {written_name_of(T)}, which has no daily "
-                     f"limit.")
+            if whose and badge_of(T) != "bc" and scope_words(whose) != whose:
+                # a name with a qualifier takes no "’s" ("Region 1, excluding Haida Gwaii’s 4 trout"): said across it
+                w = scope_words(whose)
+                says += (f" They also count toward the {_js(T.f.get('take'))} {written_name_of(T)} a day across "
+                         f"{w}." if not T.f.get("unlimited") else
+                         f" They also count toward the {written_name_of(T)} across {w}, which has no daily limit.")
+            else:
+                whose = "B.C.’s" if badge_of(T) == "bc" else f"{whose}’s" if whose else "the"
+                says += (f" They also count toward {whose} {_js(T.f.get('take'))} {written_name_of(T)} a "
+                         f"day." if not T.f.get("unlimited") else
+                         f" They also count toward {whose} {written_name_of(T)}, which has no daily "
+                         f"limit.")
     lines += over_elsewhere(P, model, row, grp)
     if two_tables(grp):
         # A PIECE IN TWO REGIONS (T183): "kept 1 elsewhere today" has no one answer — a stream in which

@@ -356,6 +356,59 @@ def test_a_one_water_pool_says_its_water_and_keeps_on_that_water(monkeypatch):
     assert old["lines"][0]["q"] == "Kept 2 elsewhere today?"
 
 
+#: every scope label with a qualifier the live build says (T810 L, the coordinator 2026-11-18: "counted across every
+#: Region 1, excluding Haida Gwaii stream you fish" spliced the label mid-sentence) -> its stream and its water sentence
+QUALIFIED = {
+    "Region 1, excluding Haida Gwaii": (
+        "Your own limit, counted across every stream in Region 1 (excluding Haida Gwaii) you fish today.",
+        "Your own limit, counted across every water in Region 1 (excluding Haida Gwaii) you fish today, lakes and "
+        "streams alike."),
+    "Haida Gwaii (MUs 6-12, 6-13)": (
+        "Your own limit, counted across every stream in Haida Gwaii (MUs 6-12, 6-13) you fish today.",
+        "Your own limit, counted across every water in Haida Gwaii (MUs 6-12, 6-13) you fish today, lakes and streams "
+        "alike."),
+    "LIARD RIVER WATERSHED (see map on page 63)": (
+        "Your own limit, counted across every stream in LIARD RIVER WATERSHED (see map on page 63) you fish today.",
+        "Your own limit, counted across every water in LIARD RIVER WATERSHED (see map on page 63) you fish today, lakes "
+        "and streams alike."),
+    "BOWRON LAKE Park waters other than Bowron Lake": (
+        "Your own limit, counted across every stream in BOWRON LAKE Park (other than Bowron Lake) you fish today.",
+        "Your own limit, counted across every water in BOWRON LAKE Park (other than Bowron Lake) you fish today, lakes "
+        "and streams alike."),
+    "Region 2": ("Your own limit, counted across every Region 2 stream you fish today.",
+                 "Your own limit, counted across every water in Region 2 you fish today, lakes and streams alike."),
+}
+
+
+@pytest.mark.parametrize("label", sorted(QUALIFIED))
+def test_a_scope_label_with_a_qualifier_is_never_spliced_mid_sentence(monkeypatch, label):
+    """Each label's kept-elsewhere sentence, a pool of streams and a pool of every water: the qualifier stays in brackets
+    after the name ("every stream in Region 1 (excluding Haida Gwaii) you fish"); a plain name keeps its short form
+    ("every Region 2 stream"). G's grammar reads each back, its scope whole."""
+    import types
+    from pipeline.deliver.answers.rows import groups as G
+    monkeypatch.setattr(G, "over_elsewhere", lambda *a, **k: [])
+    stream, water = QUALIFIED[label]
+    for f, want in (({"water": "stream", "take": 20}, stream), ({"take": 20}, water)):
+        pool = types.SimpleNamespace(f=f, x={"entry_name": label}, key="z:r", entry_id="z")
+        row = {"daily": 20, "pool": pool, "narrow": None, "members": ["EB"], "kind": "keep"}
+        sc = {"of": "region", "share": False, "apart": False, "narrow_all": False}
+        got = G.elsewhere_of(None, {"R": {"EB": {"H": None, "W": {"status": "keep"}}}}, row, sc, pool, None)
+        assert got["says"] == want
+        scope = W.parse_elsewhere_says(W.elsewhere_says(got["says"]))[1]
+        assert scope == want.split("counted across every ")[1].split(" you fish")[0]
+    assert ", excluding" not in stream and " waters other than" not in stream
+
+
+def test_a_qualified_total_takes_no_possessive():
+    """"They also count toward Region 1, excluding Haida Gwaii’s 4 trout a day" reads "… toward the 4 trout a day across
+    Region 1 (excluding Haida Gwaii)"; a plain name keeps "Zone A’s"."""
+    from pipeline.deliver.answers.rows import groups as G
+    assert G.scope_words("Region 1, excluding Haida Gwaii") == "Region 1 (excluding Haida Gwaii)"
+    assert G.scope_words("Zone A") == "Zone A"
+    assert G.every_of("Regions 2 and 8", "stream", both=True) == "every stream in Regions 2 and 8"
+
+
 def test_a_fish_kept_elsewhere_is_exempt_from_the_zone_rules_its_own_zone_rule_lifts(monkeypatch):
     """Inkaneep Creek (Region 8), day 1: after 2 brook trout kept on another Region 8 stream, the book still allows 4
     other trout here — the brook trout are "counted apart from the trout/char quota" (the 20's `exempts` names the 5 and
@@ -386,3 +439,288 @@ def test_a_fish_kept_elsewhere_is_exempt_from_the_zone_rules_its_own_zone_rule_l
     assert E.counts(total, lake_eb)
     monkeypatch.setattr(EN, "A_ZONE_EXEMPTS_ELSEWHERE", False)
     assert E.counts(share, eb) and E.checks(share, eb)
+
+
+# ------------------------------------------------- the owner's 23:29 / 23:32 / 23:35 answers (labels, inner band, words)
+
+def test_a_list_of_two_subjects_labels_every_line_and_keeps_each_together(monkeypatch):
+    """Owner 23:29 ("Yes, name the fish"): more than one subject -> every line starts with its subject, each subject's
+    lines together in today's order; one subject -> no labels. Mutation: the pin off leaves them unlabelled."""
+    from pipeline.deliver.answers.trout import table as TT
+    pool = {"kind": "keep", "members": ["RB", "CT"], "elsewhere": {
+        "says": "Your own limit, counted across every water in Zone A you fish today, lakes and streams alike.",
+        "ask": []}, "group": {"kinds": ["RB", "CT"], "worked": [
+            {"q": "Kept 2 elsewhere today?", "a": "Keep 3 more here", "at": "elsewhere"}]}}
+    brook = {"kind": "keep", "members": ["EB"], "elsewhere": {
+        "says": "This lake’s rule: 10 a day here. Brook trout you kept anywhere else today count toward those 10.",
+        "ask": [["Kept 2 elsewhere today?", "Keep 8 more here"]]}}
+    got = TT.elsewhere_lines([pool, brook], [pool["group"]])
+    assert got == [
+        "Trout and char: Your own limit, counted across every water in Zone A you fish, lakes and streams alike.",
+        "Trout and char: Kept 2 elsewhere? Keep 3 more here.",
+        "Brook trout: This lake’s rule: 10 a day here. Brook trout you kept anywhere else count toward those 10.",
+        "Brook trout: Kept 2 elsewhere? Keep 8 more here."]
+    for t in got:                                  # every labelled line reads back
+        sub, rest = W.split_subject(t)
+        assert sub in ("Trout and char", "Brook trout")
+        (W.parse_elsewhere if W.is_elsewhere_line(t) else W.parse_elsewhere_says)(t)
+    assert TT.elsewhere_lines([pool], [pool["group"]])[0].startswith("Your own limit")      # one subject: none
+    monkeypatch.setattr(TT, "A_ELSEWHERE_SUBJECT_NAMED", False)
+    assert not any(W.split_subject(t)[0] for t in TT.elsewhere_lines([pool, brook], [pool["group"]]))
+
+
+def test_mutation_j_fails_a_label_where_the_list_has_one_subject(chain):
+    """J's label rule on the shipped tables: a list of one subject carrying a label fails (the two-subject plants are on
+    the live waters below)."""
+    k, j = _says_cell(chain)
+    cells = copy.deepcopy(chain.model.sections["trout"][k])
+    cells[j]["table"]["elsewhere"] = tuple(W.elsewhere_labeled("Brook trout", e) for e in cells[j]["table"]["elsewhere"])
+    assert any("carries a label" in p for p in chain.prove(k, cells))
+
+
+def test_the_top_line_and_fold_name_the_fish_and_the_action(chain):
+    """Owner 23:35 ("Keep 2 trout and char today"; the fold "Make it match other rows in table"): every shipped top line
+    names the fish and the action, and a one-number fold is the Other fish rows' "N a day"."""
+    n = 0
+    for cells in chain.model.sections["trout"]:
+        for c in cells:
+            if c is None:
+                continue
+            lead, fold = c["table"]["top"]["lead"], c["table"]["fold"]["value"]
+            assert lead.startswith(("Keep ", "Release every trout and char", "Closed for trout and char")), lead
+            assert "Up to" not in lead
+            if W.parse_fold(fold)[0] == "up_to" and len(W.parse_fold(fold)[1]) == 1:
+                assert fold.endswith(" a day"), fold
+            n += 1
+    assert n > 0
+
+
+def test_mutation_j_fails_a_top_line_number_the_engine_does_not_keep(chain):
+    k, j = chain.first(lambda k, j, c: c is not None and W.parse_top(c["table"]["top"]["lead"])[0] == "up_to")
+    cells = copy.deepcopy(chain.model.sections["trout"][k])
+    n = W.parse_top(cells[j]["table"]["top"]["lead"])[1][0]
+    cells[j]["table"]["top"]["lead"] = W.top_up_to(n + 3)
+    assert chain.prove(k, cells)
+
+
+# --- the live waters (the owner's pictures): Kathie, Canuck, Similkameen; the Fraser at Mission -----------------------
+
+def _live_tables(request, names, md=(7, 15)):
+    from pipeline.deliver import calendar as K
+    from pipeline.tests import under_test
+    bundle, export_dir = under_test.bundle(request), under_test.export_dir(request)
+    data, guide = C.load_export(export_dir)
+    items = {w["name"]: i for i, w in data["waters"].items() if w.get("name") in names}
+    m = A.build(str(bundle), export_dir, workers=1, items=sorted(items.values()), export=(data, guide),
+                log=lambda *_: None)
+    out = {}
+    for name, item in items.items():
+        cells = [m.sections["trout"][k][E.segment_index(m.segments[k], K.day_of(md), m.moments[k], "Wednesday", inside=False)]
+                 for k in dict.fromkeys(x for x in m.parts[item] if x is not None)]
+        out[name] = next((c for c in cells if c is not None), None)
+        out[name + " (all parts)"] = cells
+    return out, m, str(bundle), data
+
+
+@pytest.mark.needs_bundle
+def test_kathie_canuck_and_similkameen_name_each_subject(request):
+    got, m, bundle, data = _live_tables(request, ("Kathie Lake", "Canuck Lake", "Similkameen River"))
+    assert list(got["Kathie Lake"]["table"]["elsewhere"]) == [
+        "Trout and char: Your own limit, counted across every water in Zone A you fish, lakes and streams alike.",
+        "Brook trout: This lake’s rule: 10 a day here. Brook trout you kept anywhere else count toward those 10. These "
+        "fish are counted apart from the region’s total: they don’t use it up. They also count toward Zone A’s 5 trout "
+        "and char a day."]
+    assert list(got["Canuck Lake"]["table"]["elsewhere"]) == [
+        "Trout and char: Your own limit, counted across every water in Region 4 you fish, lakes and streams alike.",
+        "Brook trout: This lake’s rule: 20 a day here. Brook trout you kept anywhere else count toward those 20. These "
+        "fish are counted apart from the region’s total: they don’t use it up. They also count toward Region 4’s 5 "
+        "trout and char a day."]
+    assert got["Kathie Lake"]["table"]["top"]["lead"] == "Keep 5 trout and char {day}, or 10 if they’re brook trout"
+
+
+@pytest.mark.needs_bundle
+def test_mutation_j_fails_a_dropped_label_on_kathie(request):
+    got, m, bundle, data = _live_tables(request, ("Kathie Lake",))
+    k = next(k for k, cells in enumerate(m.sections["trout"]) if any(c is not None and c == got["Kathie Lake"]
+                                                                     for c in cells))
+    cells = copy.deepcopy(m.sections["trout"][k])
+    j = next(j for j, c in enumerate(cells) if c == got["Kathie Lake"])
+    cells[j]["table"]["elsewhere"] = (W.split_subject(cells[j]["table"]["elsewhere"][0])[1],
+                                      *cells[j]["table"]["elsewhere"][1:])
+    m.sections["trout"] = list(m.sections["trout"])
+    m.sections["trout"][k] = cells
+    probs = J.check_model(m, bundle, data, keys=[k], log=lambda *_: None)["problems"]
+    assert any("a line without its subject" in p for p in probs), probs
+
+
+def _one_box(t, keys):
+    b = next(b for b in t["table"]["boxes"] if b["kind"] == "keep" and set(keys) <= {r["key"] for r in b["rows"]})
+    return b, [r["key"] for r in b["rows"]]
+
+
+def _mission(got):                                     # the Region 2 part at Mission: a "Keep 2 in all" box of both
+    return next(c for c in got["Fraser River (all parts)"] if c is not None and any(
+        b["kind"] == "keep" and b["head"] == "Keep 2 in all" and b["label"] == W.HATCHERY_ONLY
+        and {"DV", "LT"} <= {r["key"] for r in b["rows"]} for b in c["table"]["boxes"]))
+
+
+@pytest.mark.needs_bundle
+def test_the_fraser_at_mission_states_the_dolly_varden_and_lake_trout_count_once(request, monkeypatch):
+    """Owner 23:32 ("One shared 'only 1' box"), and 2026-11-18 on the simplify examples ("fraser also never simplified
+    that but then removed the text that allowed a user to infer it"): Region 2's Dolly Varden and lake trout, both kept
+    only at 60 cm or longer under the strip's "only 1 over 50 cm", get ONE band "only 1 between them" (the conclusion
+    stated once, as Kamloops Lake shows it); each row keeps "uses the 1 over 50 cm (20 in)" as the reason; no row says
+    "only 1, counting any …". Mutation: the switch off (the coordinator's first hold) says the count on each row."""
+    from pipeline.deliver.answers.trout import table as TT
+    got, *_ = _live_tables(request, ("Fraser River",))
+    b, keys = _one_box(_mission(got), ("DV", "LT"))
+    i, j = keys.index("DV"), keys.index("LT")
+    assert abs(i - j) == 1
+    band = next(x for x in b["bands"] if x["from"] == min(i, j))
+    assert (band["to"], band["text"], band["kind"]) == (max(i, j), "only 1 between them", "shared")
+    assert all("uses the 1 over 50 cm (20 in)" in b["rows"][x]["lines"] for x in (i, j))
+    assert not any(x.startswith("only 1, counting any") for r in b["rows"] for x in r["lines"])
+    monkeypatch.setattr(TT, "INNER_BAND_WHEN_THE_STRIP_SAYS_IT", False)
+    got, *_ = _live_tables(request, ("Fraser River",))
+    b, keys = _one_box(_mission(got), ("DV", "LT"))
+    assert all(x["kind"] == "upto" for x in b["bands"]), b["bands"]
+    assert sum(x.startswith("only 1, counting any") for r in b["rows"] for x in r["lines"]) == 2
+
+
+def _bowron(got):                                      # Istsi Creek, Jan 1-Mar 31: Bowron Lake Park's 1 trout/char
+    return next(c for c in got["Istsi Creek (all parts)"] if c is not None)
+
+
+@pytest.mark.needs_bundle
+def test_bowron_park_creeks_say_their_possession_once(request, monkeypatch):
+    """Owner 2026-11-18 (Bowron Lake Park's creeks): the park's flat 1 (p.43) and Region 7A's lake trout "1 daily quota"
+    (p.58) each come to the day's 1: ONE box line "In your possession: just 1, the same as the day"; no row says its own
+    possession. J reads it back against both rules. Mutation: the pin off says each row's own line again."""
+    from pipeline.deliver.answers.trout import table as TT
+    got, m, bundle, data = _live_tables(request, ("Istsi Creek",), md=(2, 15))
+    t = _bowron(got)
+    b = next(b for b in t["table"]["boxes"] if b["kind"] == "keep")
+    assert (b["head"], b["possession"]) == ("Keep 1 in all", "In your possession: just 1, the same as the day")
+    assert "LT" in {r["key"] for r in b["rows"]}
+    assert not any(x.startswith("in your possession") for r in b["rows"] for x in r["lines"])
+    k = next(k for k, cells in enumerate(m.sections["trout"]) if any(c is not None and c == t for c in cells))
+    assert J.check_model(m, bundle, data, keys=[k], log=lambda *_: None)["problems"] == []
+    # a wrong number on the line fails the proof
+    cells = copy.deepcopy(m.sections["trout"][k])
+    jj = next(jj for jj, c in enumerate(cells) if c == t)
+    next(b for b in cells[jj]["table"]["boxes"] if b["kind"] == "keep")["possession"] = \
+        "In your possession: just 2, the same as the day"
+    m.sections["trout"] = list(m.sections["trout"])
+    m.sections["trout"][k] = cells
+    assert J.check_model(m, bundle, data, keys=[k], log=lambda *_: None)["problems"]
+    monkeypatch.setattr(TT, "A_POSSESSION_SAME_AS_THE_DAY", False)
+    got, *_ = _live_tables(request, ("Istsi Creek",), md=(2, 15))
+    b = next(b for b in _bowron(got)["table"]["boxes"] if b["kind"] == "keep")
+    assert b["possession"] is None
+    assert any(x.startswith("in your possession") for r in b["rows"] for x in r["lines"])
+
+
+@pytest.mark.needs_bundle
+def test_chilliwack_lake_drops_only_4_wild_behind_its_switch(request, monkeypatch):
+    """Owner 2026-11-18, PENDING one more picture: Chilliwack Lake's "only 4 wild" inside "Keep 4 in all" never limits
+    anything. Off by default (the rows say it); the switch on drops it and the proof still holds."""
+    from pipeline.deliver.answers.trout import table as TT
+    got, m, bundle, data = _live_tables(request, ("Chilliwack Lake",))
+    rows = [r for b in got["Chilliwack Lake"]["table"]["boxes"] for r in b["rows"]]
+    assert any("only 4 wild" in r["lines"] for r in rows)
+    monkeypatch.setattr(TT, "WILD_QUOTA_AT_THE_BOX_NUMBER_UNSAID", True)
+    got, m, bundle, data = _live_tables(request, ("Chilliwack Lake",))
+    t = got["Chilliwack Lake"]
+    assert not any("only 4 wild" in r["lines"] for b in t["table"]["boxes"] for r in b["rows"])
+    assert {r["key"] for b in t["table"]["boxes"] for r in b["rows"]} >= {"RB/wild", "RB/hatchery"}
+    ks = sorted({k for k, cells in enumerate(m.sections["trout"]) if any(c is not None for c in cells)})
+    assert J.check_model(m, bundle, data, keys=ks, log=lambda *_: None)["problems"] == []
+
+
+@pytest.mark.needs_bundle
+def test_big_bend_creek_draws_one_shared_band_the_strip_does_not_say(request, monkeypatch):
+    """Owner 23:32, built where nothing else says it (a1-real: Big Bend Creek, the Nechako and the Liard): brown,
+    cutthroat, rainbow trout and steelhead, all kept from 30 cm, share "only 1 of these 4" inside "Keep 2 in all"; no
+    row says "only 1, counting any …". Mutation: the pin off says the count on each row again."""
+    from pipeline.deliver.answers.trout import table as TT
+    four = ("GB", "CT", "RB", "ST")
+
+    def big_bend(got):
+        return next(c for c in got["Big Bend Creek (all parts)"] if c is not None and any(
+            b["kind"] == "keep" and b["head"] == "Keep 2 in all" and set(four) <= {r["key"] for r in b["rows"]}
+            for b in c["table"]["boxes"]))
+    got, *_ = _live_tables(request, ("Big Bend Creek",))
+    b, keys = _one_box(big_bend(got), four)
+    at = sorted(keys.index(k) for k in four)
+    assert at == list(range(at[0], at[0] + 4))
+    assert [x for x in b["bands"] if x["from"] == at[0]] == [
+        {"from": at[0], "to": at[-1], "text": "only 1 of these 4", "kind": "shared"}]
+    assert not any(x.startswith("only 1, counting any") for r in b["rows"] for x in r["lines"])
+    monkeypatch.setattr(TT, "A_INNER_CAP_IS_A_BAND", False)
+    got, *_ = _live_tables(request, ("Big Bend Creek",))
+    b, _keys = _one_box(big_bend(got), four)
+    assert any(x.startswith("only 1, counting any") for r in b["rows"] for x in r["lines"])
+
+
+def _r4(got):                                          # a Region 4 stream's default, Jun 15-Oct 31: "Keep 2 in all"
+    return next(c for c in got["Bugaboo Creek (all parts)"] if c is not None and any(
+        b["kind"] == "keep" and {"CT", "RB"} <= {r["key"] for r in b["rows"]} for b in c["table"]["boxes"]))
+
+
+@pytest.mark.needs_bundle
+def test_region_4_cutthroat_and_rainbow_share_one_size_band(request, monkeypatch):
+    """Owner 2026-11-18 on Region 4's cutthroat and rainbow over 50 cm ("A but still has to mention the overall limit"):
+    the two rows together under ONE band "counts toward the 2 · only 1 over 50 cm (20 in) between them" (`Band.kind`
+    "size", trout 2); neither row says "only 1 over 50 cm (20 in), counting any …"; the box's "Keep 2 in all" stays.
+    Mutation: the pin off says the cap on each row again."""
+    from pipeline.deliver.answers.trout import table as TT
+    got, *_ = _live_tables(request, ("Bugaboo Creek",))
+    t = _r4(got)
+    b, keys = _one_box(t, ("CT", "RB"))
+    i, j = keys.index("CT"), keys.index("RB")
+    assert (b["head"], j - i) == ("Keep 2 in all", 1)
+    assert [x for x in b["bands"] if x["from"] == i] == [
+        {"from": i, "to": j, "text": "counts toward the 2 · only 1 over 50 cm (20 in) between them", "kind": "size"}]
+    assert not any(" over 50 cm (20 in), counting any" in x for r in b["rows"] for x in r["lines"])
+    assert [r["sheet"]["head"] for r in b["rows"][i:j + 1]] == [
+        "Keep · only 1 over 50 cm (20 in) between them · counts toward the 2"] * 2
+    assert "Only 1 over 50 cm (20 in) between them: this fish and rainbow trout." in [
+        h["t"] for h in b["rows"][i]["sheet"]["here"]]
+    from pipeline.deliver.answers.model.trout import TroutFrame
+    TroutFrame.model_validate_json(json.dumps(t, ensure_ascii=False))
+    monkeypatch.setattr(TT, "A_SIZE_CAP_IS_A_BAND", False)
+    got, *_ = _live_tables(request, ("Bugaboo Creek",))
+    b, _keys = _one_box(_r4(got), ("CT", "RB"))
+    assert not any(x["kind"] == "size" for x in b["bands"])
+    assert sum(" over 50 cm (20 in), counting any" in x for r in b["rows"] for x in r["lines"]) == 2
+
+
+@pytest.mark.needs_bundle
+@pytest.mark.parametrize("plant", ["one higher", "gone"])
+def test_mutation_j_fails_a_wrong_or_missing_size_band(request, plant):
+    """J reads the size band as a limit ("these rows, over 50 cm: at most 1"): the band set one higher, or removed (its
+    rows each "counts toward the 2"), lets through two cutthroat or rainbow over 50 cm the engine refuses."""
+    got, m, bundle, data = _live_tables(request, ("Bugaboo Creek",))
+    t = _r4(got)
+    k = next(k for k, cells in enumerate(m.sections["trout"]) if any(c is not None and c == t for c in cells))
+    cells = copy.deepcopy(m.sections["trout"][k])
+    assert J.check_model(m, bundle, data, keys=[k], log=lambda *_: None)["problems"] == []
+    j = next(j for j, c in enumerate(cells) if c == t)
+    b = next(b for b in cells[j]["table"]["boxes"] if any(x["kind"] == "size" for x in b["bands"]))
+    x = next(x for x in b["bands"] if x["kind"] == "size")
+    if plant == "one higher":
+        x["text"] = W.band_size(2, 2, 50, 2)
+        for r in b["rows"][x["from"]:x["to"] + 1]:
+            r["sheet"]["head"] = W.sheet_keep(x["text"], 2)
+            r["sheet"]["here"] = [h for h in r["sheet"]["here"] if not h["t"].startswith("Only 1 over")]
+    else:
+        at = b["bands"].index(x)
+        b["bands"][at:at + 1] = [{"from": i, "to": i, "text": W.band_upto(2), "kind": "upto"}
+                                 for i in range(x["from"], x["to"] + 1)]
+        for r in b["rows"][x["from"]:x["to"] + 1]:
+            r["sheet"]["head"] = W.sheet_keep(W.band_upto(2), 2)
+            r["sheet"]["here"] = [h for h in r["sheet"]["here"] if not h["t"].startswith("Only 1 over")]
+    m.sections["trout"] = list(m.sections["trout"])
+    m.sections["trout"][k] = cells
+    probs = J.check_model(m, bundle, data, keys=[k], log=lambda *_: None)["problems"]
+    assert any("the engine refuses it" in p for p in probs), probs

@@ -473,7 +473,9 @@ def _sections() -> Tuple[Section, ...]:
         # (`answers/trout/table.compose_key`), composed from the POST-PASS rows, the display frame (Q-D3's NULL) and the
         # licence answer (the fish sheets' stamps). REQUIRED since the cutover (ticket L; owner 17:40: only at the
         # switch): in every file, `--trout-table` gone. ANY change of its shape bumps this number (contract 2.1).
-        Section("trout", 1, _no_scope, compose_from=("rows", "display", "licence"), compose_key=_trout_compose_key),
+        # trout 2 (T810 L, owner 2026-11-18): a band's kind "size" ("counts toward the 2 · only 1 over 50 cm (20 in)
+        # between them", Region 4's cutthroat and rainbow)
+        Section("trout", 2, _no_scope, compose_from=("rows", "display", "licence"), compose_key=_trout_compose_key),
     )
 
 

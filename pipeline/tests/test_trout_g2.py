@@ -152,9 +152,11 @@ def test_the_lakes_count_said_twice_when_its_rule_is_off(fx, monkeypatch):
 
 
 def test_q1_a_stream_under_the_regions_share(fx):
-    """Kaslo River (Region 4, Jul 15): every fish inside the 2 from streams: "Keep 2 in all"."""
+    """Kaslo River (Region 4, Jul 15): every fish inside the 2 from streams: "Keep 2 in all" (T810 L, owner 2026-11-18:
+    its cutthroat and rainbow under one size band, the 2 said first)."""
     b = _box(fx.table("kaslo-jul15"))
-    assert b["head"] == "Keep 2 in all" and set(_bands(b)) == {"counts toward the 2"}
+    assert b["head"] == "Keep 2 in all" and set(_bands(b)) == {
+        "counts toward the 2", "counts toward the 2 · only 1 over 50 cm (20 in) between them"}
 
 
 # ----------------------------------------------------------------------------------- Q2, Q3b, the slot and its possession
