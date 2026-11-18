@@ -556,3 +556,10 @@ green; Android bench green on a fresh APK with r-c5b949b5b06a on test/ (regs-ope
 regs-switch, trout-table 7/7). Next (main chat): C2 on top, the data build on rebuild3, the staging tiles+data release;
 then the app chat's full 0.8.0 bench and old-app held-set check; the owner's sign-off on the finals gates the 0.8.0
 Play/TestFlight build.
+
+## 2026-11-18 12:18: owner signs off the finals from staging
+Shot from https://staging.canifishthis.ca on r-f1f2e8da9666 (min app 0.8.0, site from d6cbad35d), the same 11 scenes as
+the approved set (Vedder + rainbow sheet + dark, Chilliwack Lake + brown sheet, Fraser at Mission, Madden, Istsi,
+Kamloops, Lois, Krumholtz). Words identical to the approved local shots; the staging pages wrap a few lines sooner in
+desktop Chrome (a scrollbar gutter; phones have none). Owner: "Signed off". Next: the 0.8.0 bench (running), then
+the Play internal + TestFlight build.

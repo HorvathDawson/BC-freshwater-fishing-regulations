@@ -2642,3 +2642,10 @@ More questions (recommended answer first):
   opened on its own entry". So: every side stream of the whole Puntledge is closed; "Fly fishing only ..., including
   tributaries" sets the method on the river above the dam and on any side stream that its own entry opens. In work
   (T798): r5 rebound to the whole river; reach run to measure.
+- 2026-11-18 12:18, owner (app chat dialog), on the final trout tables shot from the staging site (r-f1f2e8da9666; 11
+  pictures: Vedder + sheet + dark, Chilliwack Lake + sheet, Fraser at Mission, Madden, Istsi, Kamloops, Lois,
+  Krumholtz; same words as the approved local set, only a desktop scrollbar gutter wraps a few lines sooner): "Signed
+  off". The 0.8.0 Play internal + TestFlight builds start once the app chat's 0.8.0 bench passes.
+- 2026-11-18 12:18, owner (app chat dialog), on the gauge roster email (T847: notify only stations the roster has never
+  seen, once each): "Now, before 0.8.0". Earlier, verbatim: "shouldnt it automatically pick up the changes and handle it
+  without needing a refresh unless it was. anever before seen gauge?"
