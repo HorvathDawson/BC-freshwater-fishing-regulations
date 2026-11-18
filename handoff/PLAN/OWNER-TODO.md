@@ -2470,3 +2470,7 @@ More questions (recommended answer first):
   Stanley and Goat creeks", bind ONLY the named tributary; his earlier mark there was a mistake to fix). The three
   dormant saves (Cowichan x2, Stamp Ash-GCL dam), verbatim: "dfo words but make sure it is compatible with the name
   tributaruies or not." Re-saves of the 12 changed answers: "Save them for me (Recommended)".
+- 2026-11-17 ~17:05, owner on the T786 gate's two open October saves: Stave River (marks line 30) "Yes, save it as right
+  (Recommended)" (both spawning channels drawn and closed since T222). Lower Pitt River (line 1265), verbatim: "im not
+  sure what this was about so just approve as right". Claude re-saves both as right citing these words. Thompson
+  (2521) and Morice (2596), dormant, already answered in T806 (closed areas; retired): dated allowances in the gate.
