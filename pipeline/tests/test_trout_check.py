@@ -584,4 +584,7 @@ def test_each_fault_the_full_side_build_found_is_fixed_and_pinned(found, monkeyp
     item, part, mark = FOUND[flag]
     assert not any(mark in p for p in _found_problems(found, item, part))
     monkeypatch.setattr(T, flag, False)
+    if flag == "A_APART_SAYS_THE_BOX_MOST":
+        # T810 G2 Q1 also brings a box's number down to what it holds here, which hides this fault: pin it alone
+        monkeypatch.setattr(T, "A_HEAD_SAYS_WHAT_IS_KEPT_HERE", False)
     assert any(mark in p for p in _found_problems(found, item, part))

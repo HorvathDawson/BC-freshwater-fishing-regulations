@@ -117,6 +117,8 @@ def world(tmp_path: Path, monkeypatch):
     monkeypatch.setattr(R, "git_pushed", lambda: w["pushed"])
     w["landed"] = (True, "review marks: every mark in force has landed")
     monkeypatch.setattr(R, "marks_landed", lambda: w["landed"])
+    w["wrong_saves"] = (True, "wrong saves: no place ships on a wrong or unsure save with no fix (0 allowed)")
+    monkeypatch.setattr(R, "wrong_saves", lambda: w["wrong_saves"])
     w["atlas_behind"] = []
     monkeypatch.setattr(R, "atlas_behind", lambda: list(w["atlas_behind"]))
     monkeypatch.setattr(R, "binding_diff", diff)
@@ -764,15 +766,38 @@ def test_fast_fail_reads_the_candidate_once_the_fixtures_are_cut_for_it(world):
     """Between the re-cut and the promote the goldens pair with the CANDIDATE: a rerun's fast-fail is told so
     (RELEASE_DIR), and not before the re-cut (they still pair with LATEST then)."""
     world["rc"] = {"inseason": 3}
-    assert _staging() == 1 and world["fast_fail_env"] == {}                  # no candidate yet
+    assert _staging() == 1 and world["fast_fail_env"] == NEXT                  # no candidate yet
     world["tree"] = "t2"
-    assert _staging() == 1 and world["fast_fail_env"] == {}                  # a candidate, fixtures not re-cut on it
+    assert _staging() == 1 and world["fast_fail_env"] == NEXT                  # a candidate, fixtures not re-cut on it
     world["rc"], world["recut_changed"], world["tree"] = {}, ["app/fixtures/golden/taps.json"], "t3"
     assert _staging() == 1                                                   # re-cut + committed: the push gate
     world["pushed"], world["unpushed"] = True, []
     assert _staging() == 0
-    assert world["fast_fail_env"] == {"RELEASE_DIR": str(world["root"] / NEW)}
+    assert world["fast_fail_env"] == {"RELEASE_DIR": str(world["root"] / NEW), **NEXT}
     assert json.loads(R.LEDGER.read_text())["fast_fail"]["release_dir"] == str(world["root"] / NEW)
+
+
+#: (T791) the fresh copy runs next in the same preflight: fast-fail leaves it the whole tier
+NEXT = {R.FRESH_COPY_NEXT: "1"}
+
+
+def test_fast_fail_leaves_the_whole_tier_to_the_fresh_copy_that_follows(world):
+    """T791 item 3 (owner 2026-11-16 "Yes, as proposed"): the same 6,490 tests ran in place inside fast-fail, then on the
+    clean clone minutes later. Fast-fail is told the fresh copy follows; with --no-fresh-copy it is not (it runs them)."""
+    assert _staging() == 0 and world["fast_fail_env"] == NEXT and world["fresh_copies"] == 1
+    world["tree"] = "t2"
+    assert _staging(no_fresh_copy="the clone is down") == 0 and world["fast_fail_env"] == {}
+
+
+def test_fast_fail_sh_skips_the_in_place_tier_and_its_subsets_when_told():
+    """The script's side: the three steps that run the whole no-data tier or a subset of it check the variable first."""
+    from pipeline.common.curated import REPO_ROOT
+    sh = (REPO_ROOT / "scripts" / "fast-fail.sh").read_text(encoding="utf-8")
+    assert f'${{{R.FRESH_COPY_NEXT}:-}} == 1' in sh
+    for fn in ("as_ci", "source_scanners", "review_tests"):
+        body = sh[sh.index(f"{fn}() {{"):]
+        body = body[:body.index("\n}\n")]
+        assert "fresh_copy_next && return 0" in body, fn
 
 
 def test_the_command_remembers_its_flags_and_a_rerun_needs_none(world, tmp_path, capsys):
@@ -892,8 +917,8 @@ def test_the_rehearsal_walks_every_stages_checks_and_lists_the_stops(world, caps
 def test_the_rehearsal_and_the_run_read_one_preflight_table(world, capsys):
     """By construction: a check added to PREFLIGHT is in both. Every check's failure shows in the rehearsal with the
     words the real run stops with."""
-    assert [n for n, _ in R.PREFLIGHT] == ["committed", "atlas", "marks", "pushed", "ci", "live", "site", "fast-fail",
-                                           "fresh-copy"]
+    assert [n for n, _ in R.PREFLIGHT] == ["committed", "atlas", "marks", "wrong-saves", "pushed", "ci", "live", "site",
+                                           "fast-fail", "fresh-copy"]
     world["pushed"], world["site_problems"], world["fast_fail_rc"] = False, ["site 0.6.9 < 0.7.0"], 1
     assert _staging() == 1
     real = capsys.readouterr()
@@ -1187,3 +1212,24 @@ def test_heavy_runs_a_scripts_precheck_before_it_takes_the_lock(tmp_path):
                         env={**env, "HEAVY_PRECHECK": "1", "TESTBED_APK_TAG": "t"}, capture_output=True, text=True,
                         timeout=60)
     assert ok.returncode == 0 and "precheck ok" in ok.stdout
+
+
+def test_t786_a_wrong_save_stops_the_preflight_naming_the_place(world, capsys):
+    """T786 (owner 2026-11-17: "do not ship \"wrong\" places"): the preflight stops on the wrong-saves gate, with the
+    place, its mark line, its verdict and "fix and re-save it"; --no-fast-fail does not skip it."""
+    world["wrong_saves"] = (False, "wrong saves: 1 place(s) …:\n  dfo 2:some-river:x: mark line 41, verdict wrong, "
+                                   "no extent fix (…) — fix and re-save it")
+    assert _staging(no_fast_fail="docs only") == 1
+    err = capsys.readouterr().err
+    assert "STOPPED at preflight" in err and "dfo 2:some-river:x: mark line 41, verdict wrong" in err
+    assert "fix and re-save" in err and "WRONG_SAVE_OK" in err
+    assert world["calls"] == [] and _latest(world) == LIVE
+
+
+def test_t786_mutation_without_the_gate_in_the_table_the_wrong_save_ships(world, monkeypatch, capsys):
+    """The mutation: with `check_wrong_saves` out of PREFLIGHT the same wrong save goes through the whole release —
+    the gate is the only thing that stops it (no other check reads the verdicts)."""
+    world["wrong_saves"] = (False, "wrong saves: 1 place(s) …:\n  dfo 2:some-river:x: mark line 41, verdict wrong")
+    monkeypatch.setattr(R, "PREFLIGHT", tuple((n, c) for n, c in R.PREFLIGHT if n != "wrong-saves"))
+    assert _staging() == 0
+    assert "STOPPED" not in capsys.readouterr().err and _latest(world) != LIVE

@@ -19,7 +19,9 @@ Each line is written straight to the file descriptor (no buffer), so a worker ki
 
 NOT RECORDED, by design, and covered elsewhere: paths under the interpreter (`sys.prefix`: the venv — the consumer keys
 the interpreter and every installed distribution, `stepcache.env_fingerprint`), the temp dir (a step's own scratch;
-no build input lives there), `/dev` and the system; `shutil.rmtree`'s fd-relative scans (a deletion, not an input);
+no build input lives there), `/dev` and the system — EXCEPT the repo itself: a skipped root that holds the repo (a
+lane worktree under `/private/tmp` or the temp dir) skips only what is outside the repo, so a checkout anywhere is
+traced (T799/T835: a worktree under /tmp recorded 0 modules and 0 reads, and the cache reused a stale bundle); `shutil.rmtree`'s fd-relative scans (a deletion, not an input);
 `os.stat` of an open file descriptor (the open was recorded); and every read or scan the IMPORT SYSTEM makes —
 a module is keyed by its M line, a package's version by the env. (Recording the import system's reads made the read
 set depend on whether a `.pyc` existed: a fresh checkout's first run read each module's source, a later run its
@@ -38,10 +40,14 @@ import threading
 
 #: the repo root: the directory holding the `pipeline` package this file is in
 _REPO = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "")
+#: the repo root as written and as resolved (`/tmp` → `/private/tmp`, `/var` → `/private/var`); `install` adds the
+#: spelling through every skipped root that resolves to one holding it (`split_roots`)
+_REPOS = tuple(sorted({_REPO, os.path.join(os.path.realpath(_REPO), "")}))
 _state = threading.local()
 _seen: set = set()
 _fd = -1
-_skip: tuple = ()
+_skip: tuple = ()          # roots skipped wherever the path is (the venv, /dev, a system dir that does not hold the repo)
+_skip_outside: tuple = ()  # roots that HOLD the repo (the temp dir, /private/tmp): skipped only outside the repo
 _real_stat = os.stat
 _real_lstat = os.lstat
 _real_listdir = os.listdir
@@ -99,9 +105,15 @@ def _norm(p) -> str | None:
     """An absolute path to record, or None for one under a skipped root. A non-path (an fd) is the caller's to handle."""
     p = os.fsdecode(os.fspath(p))
     p = os.path.abspath(p)
-    if p.startswith(_skip) or "__pycache__" in p:
+    if _skipped(p) or "__pycache__" in p:
         return None
     return p
+
+
+def _skipped(p: str) -> bool:
+    """Whether an absolute path is under a skipped root: always for `_skip`; for a root that holds the repo, only when
+    the path is outside the repo."""
+    return p.startswith(_skip) or (p.startswith(_skip_outside) and not p.startswith(_REPOS))
 
 
 def _is_path(p) -> bool:
@@ -193,7 +205,7 @@ class _ModuleRecorder:
 def _is_repo_module(origin: str) -> bool:
     """A module file of this repo: under the repo root, not under a skipped root (the venv is `sys.prefix`)."""
     p = os.path.abspath(origin)
-    return p.startswith(_REPO) and not p.startswith(_skip) and p.endswith(".py")
+    return p.startswith(_REPOS) and not _skipped(p) and p.endswith(".py")
 
 
 def _probe_recorder(real, name: str):
@@ -220,8 +232,23 @@ def _probe_recorder(real, name: str):
     return probe
 
 
+def split_roots(roots, repo: str = _REPO) -> tuple[tuple, tuple, tuple]:
+    """(skipped everywhere, skipped outside the repo, the repo's spellings). A root that holds the repo — as written
+    or through a symlink (`/var/folders/…/T` is `/private/var/folders/…/T`) — goes in the second, and the repo as
+    spelled under that root joins the spellings, so a path opened either way is known as the repo's."""
+    real_repo = os.path.join(os.path.realpath(repo), "")
+    repos = {os.path.join(repo, ""), real_repo}
+    roots = sorted({os.path.join(r, "") for r in roots if r})
+    for r in roots:
+        rr = os.path.join(os.path.realpath(r), "")
+        if real_repo.startswith(rr):
+            repos.add(os.path.join(r, real_repo[len(rr):]))
+    holds = lambda r: any(x.startswith(r) for x in repos)              # noqa: E731
+    return (tuple(r for r in roots if not holds(r)), tuple(r for r in roots if holds(r)), tuple(sorted(repos)))
+
+
 def install(directory: str) -> None:
-    global _fd, _skip
+    global _fd, _skip, _skip_outside, _REPOS
     if _fd >= 0:
         return
     _state.busy = True
@@ -230,7 +257,7 @@ def install(directory: str) -> None:
         _fd = os.open(os.path.join(directory, f"{os.getpid()}.trace"), os.O_WRONLY | os.O_CREAT | os.O_APPEND, 0o644)
         roots = {sys.prefix, sys.base_prefix, sys.exec_prefix, tempfile.gettempdir(), os.path.realpath(tempfile.gettempdir()),
                  "/dev", "/System", "/usr", "/Library", "/private/var/folders", "/private/tmp", "/tmp", "/etc", "/private/etc"}
-        _skip = tuple(sorted(os.path.join(r, "") for r in roots if r))
+        _skip, _skip_outside, _REPOS = split_roots(roots)
         _emit("V", sys.version.replace("\n", " "), os.path.realpath(sys.executable))
         # the modules loaded before this hook: `pipeline/__init__.py` (and any repo module a caller imported first)
         for name, mod in list(sys.modules.items()):

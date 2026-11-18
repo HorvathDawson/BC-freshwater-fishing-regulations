@@ -343,7 +343,7 @@ export type LicenceBlockVM =                                          // (T33)
   | { cls: "lostlist lopen"; label: string; cards: readonly { forWho: string; label: string; paths: readonly string[] }[] };
 export function licenceBlockLines(b: LicenceBlockVM): readonly string[];   // plain form = golden blocks[].lines   // (T33)
 ```
-Sources: `LicenceValue{holds, profiles[60], under_16}`; profile index = `profileIndex(who ⊕ {guidance:"non_guided", status:"none"},
+Sources: `LicenceValue{holds, profiles[60], under_16, alien_weekend?}` (T789 G8: the weekend closures to non-guided non-resident aliens, a banner for "From outside Canada"); profile index = `profileIndex(who ⊕ {guidance:"non_guided", status:"none"},
 static licence.profile_dims, static licence.profiles)`; documents/prices ← `ProfileAnswer.documents[]`, `export.licences`;
 designations ← `lic[lix]` export words. Golden `needs[].items[].text` is derived from the `needs` block:
 `[name, "ⓘ" per term, when, price].join(" ")`, `onlyIf` items included in order (T33).
@@ -520,7 +520,7 @@ Store mapping (verified 2026-10-20 on `data/generated/bundle/regs.sqlite`, see T
 | parts | `part` rows `(item_ord, part_ix)` → `akey`, `ord`, `label_s/short_s/runs_s/place_s/hint_s` (str), `km`, `closed_all_year`, `paper_licence` |
 | key | `akey` row → `seg`→`seglist.starts`, `mom`→`segmom.ix`→`static answers.moments[i]` |
 | s | `segmentIndex(starts, dayOfYear(day), moments, weekday, inside=false)` (port of `encode.segment_index`) |
-| frames | `cell(akey, s)` → ids; `display_frame`/`gear_frame` blob = the frame; `rows_frame` = `[spp, {S:[h,w]}, [rowIds], line]` → `rows_decided`, `rows_row`; `licence_frame` = `[h, d, u?]` → `licence_hold`, `licence_doc` → `licence_answer[]`, `licence_u16`; `ladder_frame` = `[common, [[fix, v…]]]` → `ladder_verdict` |
+| frames | `cell(akey, s)` → ids; `display_frame`/`gear_frame` blob = the frame; `rows_frame` = `[spp, {S:[h,w]}, [rowIds], line]` → `rows_decided`, `rows_row`; `licence_frame` = `[h, d, u?, a?]` → `licence_hold`, `licence_doc` → `licence_answer[]`, `licence_u16`, `licence_alien` (T789 G8: `alien_weekend` {says, waters [{name, key: item_id}]}, the 4th index only with the 3rd); `ladder_frame` = `[common, [[fix, v…]]]` → `ladder_verdict` |
 | rules | ALL rules (T04 `rules()`, once per store) viewed through the part's `via` (`ruleIndex`, T06): `display_rule.j` (RuleFacts, rix-aligned) + `rule.j` (export words: `entry_id`, `rule_id`, `label`, `verbatim`, `fields`, `prov`) |
 | unnamed | `section_akey` block `h>>12`, u16le at `2*(h&4095)`; `section_place` byte `h&4095` minus 1; name = `place.names[akey.kind]` |
 | blobs | first byte `0x02` → raw inflate with `zdict[table]`; `0x01` raw inflate; else UTF-8 JSON |

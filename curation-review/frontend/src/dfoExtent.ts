@@ -248,6 +248,24 @@ export function newCutsOf(fixes: ExtentFix[]): string[] {
     .map((p) => p.split_id as string)))];
 }
 
+/** T807 (owner 2026-11-16): WHY THE PLACE HAS THE SIDE STREAMS IT HAS, in one plain line — DFO's words for it (its own
+ *  line, else the exact heading it sits under, else river only), or the stated exception and what the words alone say.
+ *  A save that matches the words stores nothing; one that differs is kept as an exception. */
+export function sideStreamsWhy(s: import("./types").SideStreamsNow): string {
+  const said = (x: { tributaries: boolean; only: boolean }) =>
+    x.only ? "side streams only" : x.tributaries ? "side streams in" : "river only";
+  const quote = (w: string) => (w ? ` “${w}”` : "");
+  switch (s.source) {
+    case "own words": return `${said(s)}: its own words say so${quote(s.words)}`;
+    case "named water": return `${said(s)}: it names the water${quote(s.words)}, which keeps its own side streams`;
+    case "heading": return `${said(s)}: DFO's heading says so${quote(s.words)}`;
+    case "nothing said": return `${said(s)}: neither its words nor its heading name side streams`;
+    case "exception": return `${said(s)}: a saved exception${s.words ? ` (${s.words})` : ""}`
+      + (s.derived ? `; DFO's words alone say ${said(s.derived)}` : "");
+    default: return said(s);
+  }
+}
+
 /** DFO's words on the tributaries (`dfo.words_tributaries`, the suggester's one reading) */
 export interface WordsTributaries { only: boolean; with: boolean; without: boolean; names: string[]; excepted: string[];
                                     unresolved?: string[];

@@ -163,6 +163,15 @@ describe("T810 N: the hand cases (trout-hand.json): each refused through reportF
     expect(reports).toHaveLength(1);
     expect(reports[0]).toBeInstanceOf(TroutRefused);
   });
+  it("(G2 Q4) a possession line on a release or closed box: refused, as the pydantic model refuses it", () => {
+    const box = HAND.base.table.boxes[0]!;
+    for (const kind of ["release", "closed"] as const) {
+      reports = [];
+      const f = { ...HAND.base, table: { ...HAND.base.table, boxes: [{ ...box, kind, label: null, strip: null, tag: null, bands: [], possession: "In your possession: no more than 2 trout and char in all" }] } };
+      expect(troutOf(fake(f, ROWS), { month: 7, day: 15 }, { month: 7, day: 15 })?.kind, kind).toBe("refused");
+      expect((reports[0] as TroutRefused).why, kind).toMatch(/possession/);
+    }
+  });
   it("covers past the rows frame: refused (the reader's check)", () => {
     expect(troutOf(fake(HAND.base, ROWS - 1), { month: 7, day: 15 }, { month: 7, day: 15 })?.kind).toBe("refused");
     expect((reports[0] as TroutRefused).why).toMatch(/covers names row 2 of a rows frame of 2/);

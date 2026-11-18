@@ -69,7 +69,7 @@ function band(b: Band, where: string): void {
 function box(x: Box, bi: number): void {
   const at = `box ${bi}`;
   txt(x.head, `${at} head`);
-  opt(x.label, `${at} label`); opt(x.strip, `${at} strip`); opt(x.tag, `${at} tag`);
+  opt(x.label, `${at} label`); opt(x.strip, `${at} strip`); opt(x.possession, `${at} possession`); opt(x.tag, `${at} tag`);
   if (!x.rows.length) bad(`${at}: a box holds a row`);
   x.rows.forEach((r, ri) => {
     const rw = `row ${bi}:${ri}`;
@@ -84,7 +84,7 @@ function box(x: Box, bi: number): void {
     if (r.sheet.src.length > 4) bad(`${rw}: a sheet cites at most 4 rules`);
   });
   if (x.kind !== "keep") {
-    if (x.bands.length || x.label || x.strip || x.tag) bad(`a ${x.kind} box has no bands, label, strip or tag`);
+    if (x.bands.length || x.label || x.strip || x.possession || x.tag) bad(`a ${x.kind} box has no bands, label, strip, possession or tag`);
     return;
   }
   let next = 0;
@@ -159,8 +159,9 @@ export function checkTrout(f: TroutValue, at: TroutBounds): void {
   t.boxes.forEach((x, bi) => x.rows.forEach((r) => { if ((fishBox.get(r.fish) ?? bi) !== bi) bad(`${r.fish} sits in two boxes`); fishBox.set(r.fish, bi); }));
   const marked = t.boxes.some((x) => x.label !== null || x.rows.some((r) => r.label !== null || r.origin !== null));
   if (t.hatch_link !== marked) bad("hatch_link <=> some row or box carries a label or an origin");
-  if ((t.together === null) !== (t.top.second === null) || (t.together !== null && t.together.text !== t.top.second))
-    bad("top.second is set <=> together is, in the same words");
+  // T810 G2: a limit across two boxes is said under the top line AND under the table (Lois); the lakes' own count
+  // (Echoes) only under the top line, `second` without `together`
+  if (t.together !== null && t.together.text !== t.top.second) bad("together is set => top.second is, in the same words");
   if (t.together) txt(t.together.text, "together");
   if (t.year !== null) {
     txt(t.year.title, "year.title");
@@ -218,7 +219,7 @@ export function troutOf(inp: RegsInputs, day: Day, today: Day): TroutVM | TroutR
         a11y: a11yOf([r.name, r.origin, r.label, r.sub, ...r.lines, ...r.quiet, by?.text, date ?? by?.date]),
       };
     });
-    return { kind: x.kind, head: x.head, label: x.label, strip: x.strip, tag: x.tag, date: d?.box[String(b)] ?? null, rows, bands };
+    return { kind: x.kind, head: x.head, label: x.label, strip: x.strip, possession: x.possession, tag: x.tag, date: d?.box[String(b)] ?? null, rows, bands };
   });
   return {
     kind: "table",

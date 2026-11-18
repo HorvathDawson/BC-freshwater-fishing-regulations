@@ -17,8 +17,8 @@ _FRAME = ["id", "j"]
 _REGION_TABLES = {
     "cell": ["akey", "s", "ladder", "rows", "gear", "licence", "display"],
     **{t: _FRAME for t in ("display_frame", "gear_frame", "ladder_frame", "ladder_verdict", "licence_answer",
-                           "licence_doc", "licence_frame", "licence_hold", "licence_u16", "rows_decided", "rows_frame",
-                           "rows_row")},
+                           "licence_alien", "licence_doc", "licence_frame", "licence_hold", "licence_u16", "rows_decided",
+                           "rows_frame", "rows_row")},
     "meta": ["k", "v"],
 }
 

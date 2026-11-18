@@ -43,7 +43,7 @@ function mount(t: TroutVM, palette = LIGHT, kicker = false) {
 /** every text the payload ships for this table (the strings O must draw unchanged) */
 function payloadTexts(t: TroutVM): string[] {
   return [t.top.lead, t.top.second, t.top.date, t.card, t.together?.text, t.year?.title,
-    ...t.boxes.flatMap((b) => [b.head, b.label, b.strip, b.tag, b.date, ...b.bands.flatMap((x) => [x.text, x.date]),
+    ...t.boxes.flatMap((b) => [b.head, b.label, b.strip, b.possession, b.tag, b.date, ...b.bands.flatMap((x) => [x.text, x.date]),
       ...b.rows.flatMap((r) => [r.name, r.origin, r.label, r.sub, ...r.lines, ...r.quiet, r.date])])]
     .filter((x): x is string => !!x);
 }
@@ -171,8 +171,11 @@ describe("(T810 O) the look: two text sizes, the filled label, the origin word, 
     mount(byName("windsor-jul15"));
     const dv = screen.getAllByTestId("keep-row").find((r) => within(r).queryByText("Dolly Varden/bull trout"))!;
     expect(within(dv).getByTestId("keep-label").textContent).toBe("Hatchery only");
-    // the twin rows: the origin word itself beside the name, never a label
-    expect(screen.getAllByTestId("keep-origin").map((e) => e.textContent).slice(0, 2)).toEqual(["hatchery", "wild"]);
+    // the twin rows: the origin word itself beside the name, never a label, in the payload's row order (G2: Windsor's
+    // hatchery rows first, then its wild ones)
+    const twins = byName("windsor-jul15").boxes.flatMap((b) => b.rows).filter((r) => r.origin !== null);
+    expect(screen.getAllByTestId("keep-origin").map((e) => e.textContent)).toEqual(twins.map((r) => r.origin));
+    expect(new Set(twins.map((r) => r.origin))).toEqual(new Set(["hatchery", "wild"]));
   });
 
   it("(G2 Q9) a twin row's origin is a badge: hatchery FILLED as the Hatchery only label, wild OUTLINED; the word as is, the row's label unchanged", () => {
@@ -208,11 +211,40 @@ describe("(T810 O) the look: two text sizes, the filled label, the origin word, 
     mount(byName("fraser-r3-sep15"));
     expect(screen.getAllByTestId("keep-col-word").map((e) => e.textContent)).toEqual(["↩ Release", "✕ Closed"]);
     cleanup();
-    const t = byName("lois-jul15");
+    // (G2) the lakes' own count under the top line only: `second` without `together` (Echoes), no together line
+    const e = byName("echoes-jul15");
+    mount(e);
+    expect([screen.getByTestId("trout-second").textContent, screen.queryByTestId("trout-together"), e.together]).toEqual([e.top.second, null, null]);
+    cleanup();
+    // a limit across two boxes is said under the top line AND under the table; G2's vectors hold none today (Lois is one
+    // box now), so its frame is Echoes' with a together in the second's words, as the validator requires
+    const t: TroutVM = { ...e, together: { text: e.top.second!, src: [] } };
     mount(t);
     expect(screen.getByTestId("trout-together").textContent).toBe(t.together!.text);
     expect(screen.getByTestId("trout-second").textContent).toBe(t.top.second);
     expect(screen.getByTestId("trout-boxes").compareDocumentPosition(screen.getByTestId("trout-together")) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+  });
+
+  it("(G2 Q4) a box's possession: its own line directly under the box's top line, today's size, the words unchanged", () => {
+    const t = byName("bowron-jul15"), b = t.boxes[0]!;
+    expect(b.possession).toBe("In your possession: no more than 2 trout and char in all");
+    mount(t);
+    const strip = within(screen.getByTestId("trout-box:0")).getByTestId("keep-strip");
+    const line = within(strip).getByTestId("keep-possession");
+    expect(line.textContent).toBe(b.possession);
+    // its own line: a sibling right after the top line's row (head, label, strip, tag), not inside it
+    const top = within(strip).getByTestId("keep-head").parentElement!;
+    expect([within(top).queryByTestId("keep-possession"), top.nextElementSibling]).toEqual([null, line]);
+    expect([parseFloat(getComputedStyle(line).fontSize), getComputedStyle(line).color]).toEqual([TYPE.legend.fontSize, rgb(LIGHT.ink)]);
+    expect(screen.getAllByTestId("keep-possession")).toHaveLength(1);
+    cleanup();
+    // every other vector box: no possession, no line
+    for (const c of CASES) {
+      const v = vmOf(c);
+      mount(v);
+      expect(screen.queryAllByTestId("keep-possession").length, c.name).toBe(v.boxes.filter((x) => x.possession).length);
+      cleanup();
+    }
   });
 
   it("(large text) the band folds into bold lines under the rows, and the top line steps down a size", () => {

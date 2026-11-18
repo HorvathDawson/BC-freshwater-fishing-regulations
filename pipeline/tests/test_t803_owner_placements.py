@@ -68,7 +68,10 @@ def test_gitnadoix_coho_place_is_upstream_of_the_mouth_alias():
     loc = _place(_places("6"), GITNADOIX_PLACE)
     assert loc.status == "active"
     assert _dump(loc.binding.extents) == [{"op": "upstream_of", "splits": [GITNADOIX_CUT], "item_id": "gnis:3508"}]
-    assert loc.binding.tributaries is True          # unchanged: the whole river with its side streams
+    # unchanged: the whole river with its side streams — T807: by its heading "Gitnadoix River (including tributaries)",
+    # so the file stores no setting of its own
+    from pipeline.regs.dfo_salmon import side_streams as SS
+    assert loc.binding.tributaries is None and SS.effective(loc).tributaries is True
 
 
 def _salmon_sections(request, *location_ids: str) -> dict[str, set[str]]:
@@ -175,7 +178,9 @@ def test_middle_shuswap_is_the_main_river_only():
     ef = _places("8")
     for lid in ("8:shuswap-river:middle-between-shuswap-falls-and-m",
                 "8:shuswap-river:middle-between-shuswap-falls-and-m~2"):
-        assert _place(ef, lid).binding.tributaries is False, lid
+        # T807: main river only because DFO's words for it say nothing of side streams (heading "Shuswap River")
+        from pipeline.regs.dfo_salmon import side_streams as SS
+        assert SS.effective(_place(ef, lid)).tributaries is False, lid
     assert _reach_flag("8", "8:shuswap-river:middle-between-shuswap-falls-and-m~2") is False
 
 

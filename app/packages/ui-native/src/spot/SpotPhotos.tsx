@@ -1,8 +1,8 @@
 /** S1: a spot's photographs — drawn from the store; in draft and edit, with add and remove (`usePhotoEdit`). */
 import { ErrorState } from "../ErrorState";
 import { LoadingState } from "../LoadingState";
-import { useState } from "react";
-import { Image, View } from "react-native";
+import { useCallback, useRef, useState } from "react";
+import { Image, View, type ViewInstance } from "react-native";
 import { Text } from "../Text";
 import { Pressable } from "../Pressable";
 import { PHOTO_WORDS, photoLabel, removePhotoLabel } from "@app/data/spots";
@@ -14,22 +14,26 @@ import { Icon } from "../icons";
 import { OpenSettings } from "../OpenSettings";
 import { hitProps } from "../regs/hit";
 import { Block } from "./parts";
-import { PhotoViewer } from "./PhotoViewer";
+import { PhotoViewer, measureWindow } from "./PhotoViewer";
 
 export function SpotPhotos({ photos, uris, pe, palette }: {
   photos: readonly string[]; uris: ReturnType<typeof import("@app/ui").usePhotoUris>; pe: PhotoEdit | undefined;
   palette: Palette;
 }) {
   const [open, setOpen] = useState<number | null>(null);
+  // (T836) each thumbnail's cell, measured for the viewer to grow from and shrink back into
+  const cells = useRef<(ViewInstance | null)[]>([]);
+  const thumb = useCallback((i: number) => measureWindow(cells.current[i]), []);
   return (
     <Block palette={palette} title={PHOTO_WORDS.heading}>
       <PhotoViewer uris={photos.map((r) => uris.get(r) ?? null)} index={open} onIndex={setOpen}
-                   onClose={() => setOpen(null)} palette={palette} />
+                   onClose={() => setOpen(null)} palette={palette} thumb={thumb} />
       <View testID="spot-photo-grid" style={{ flexDirection: "row", flexWrap: "wrap", gap: 8 }}>
         {photos.map((ref, i) => {
           const uri = uris.get(ref);
           return (
-            <View key={ref} style={{ width: "31.5%", aspectRatio: 1, borderRadius: palette.r.box,
+            <View key={ref} ref={(r) => { cells.current[i] = r; }} collapsable={false}
+                  style={{ width: "31.5%", aspectRatio: 1, borderRadius: palette.r.box,
                                      overflow: "hidden", backgroundColor: palette.tint,
                                      alignItems: "center", justifyContent: "center" }}>
               {uri ? (

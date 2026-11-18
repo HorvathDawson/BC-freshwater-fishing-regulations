@@ -104,13 +104,7 @@ def _row_boxes(key: tuple, raw_key: tuple, pdf_key: tuple = (None, None, None)) 
 @lru_cache(maxsize=12)
 def _render(pdf_page: int, scale: float):
     """The PDF page rendered (PIL, RGB) — the repo copy the entries were read from."""
-    import pypdfium2 as pdfium
-    with synopsis_pages.PDFIUM_LOCK:                 # pdfium is not thread-safe (synopsis_pages)
-        doc = pdfium.PdfDocument(str(synopsis_pages.PDF_PATH))
-        try:
-            return doc[pdf_page - 1].render(scale=scale).to_pil().convert("RGB")
-        finally:
-            doc.close()
+    return synopsis_pages.render(pdf_page, scale).convert("RGB")   # pdfium is not thread-safe: its one locked call
 
 
 @lru_cache(maxsize=24)

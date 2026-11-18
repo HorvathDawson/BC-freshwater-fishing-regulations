@@ -1,6 +1,6 @@
 # T807 — A DFO place's side streams are derived from the exact heading its row sits under and its own words; a saved value is only a stated exception (ten places go river-only; a named creek keeps its side streams; the Kitimat outfall strip takes them)
 
-Status: OPEN (pipeline `pipeline/regs/dfo_salmon/` untangle / entries, the review app, curated places; the changed-answers list goes to the owner before it ships).
+Status: IN PROGRESS (lane/t804-t807, worktree .claude/worktrees/t804-t807: built, proved on a side reach run; left: the main chat merges, the owner reads the changed-answers page and re-ticks the listed marks before the release).
 
 Source: owner 2026-11-16 (`handoff/PLAN/OWNER-TODO.md`, "Answers by batch" and "Re-check of saves"): "this depends if the
 name has tributraries included in it. if it doesnt then no tribs otrherwise yes tribs"; "The heading counts"; "the
@@ -27,3 +27,5 @@ places agree; the 14 that do not; how the pipeline decides today; the design not
 5. Review app: show the derived answer and the words that decided it; a matching save stores nothing.
 6. A test: every live place is derived or a listed exception; a change in a heading or in the words is flagged.
 7. Reach rerun; the list of every answer that changes (water, fish, days) to the owner before the release.
+
+2026-11-17 ~17:01, owner: land it (verbatim in OWNER-TODO 17:01); Tatshenshini named-tributary places bind only the named tributary; dormant three follow DFO words; Claude re-saves the 12 changed marks.

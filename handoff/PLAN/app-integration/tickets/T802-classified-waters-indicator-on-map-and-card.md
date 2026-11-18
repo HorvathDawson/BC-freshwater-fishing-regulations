@@ -12,3 +12,6 @@ line treatment or a badge for Class I and Class II stretches, in season and out 
 (a chip beside the name; today the class shows only on the Licence tab). Use real waters: the Skeena (two sections
 with different periods and a gap between them), the Elk and its tributaries, the Dean (Class I). Nothing is built
 until he picks.
+
+## 2026-11-17 20:27, owner
+Verbatim: "Also we need to make sure the classified water symbols are maintained properly and modify the license requirement. Also if a water is classified it should have a badge in the card I header I think. Make sure we capture all classified waters whether labeled by symbol or by tributary of something". The card part is now a badge in the card header (picture before it ships); data side is T841.

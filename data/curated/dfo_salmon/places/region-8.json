@@ -143,6 +143,7 @@
       "reviewed_by": "",
       "reviewed_at": "",
       "review_note": "",
+      "heading": "Mabel Lake",
       "binding": {
         "extents": [],
         "tributaries": null,
@@ -195,6 +196,7 @@
       "reviewed_by": "",
       "reviewed_at": "",
       "review_note": "",
+      "heading": "Osoyoos Lake",
       "binding": {
         "extents": [],
         "tributaries": null,
@@ -259,6 +261,7 @@
       "reviewed_by": "",
       "reviewed_at": "",
       "review_note": "",
+      "heading": "Shuswap River",
       "binding": {
         "extents": [
           {
@@ -270,7 +273,7 @@
             "item_id": "gnis:25478"
           }
         ],
-        "tributaries": false,
+        "tributaries": null,
         "tributaries_only": false,
         "tributary_excludes": [],
         "sections_cached": null,
@@ -319,6 +322,7 @@
       "reviewed_by": "",
       "reviewed_at": "",
       "review_note": "",
+      "heading": "Shuswap River",
       "binding": {
         "extents": [
           {
@@ -379,6 +383,7 @@
       "reviewed_by": "",
       "reviewed_at": "",
       "review_note": "",
+      "heading": "Shuswap River",
       "binding": {
         "extents": [
           {
@@ -441,6 +446,7 @@
       "reviewed_by": "",
       "reviewed_at": "",
       "review_note": "",
+      "heading": "Osoyoos Lake",
       "binding": {
         "extents": [],
         "tributaries": null,
@@ -505,6 +511,7 @@
       "reviewed_by": "",
       "reviewed_at": "",
       "review_note": "",
+      "heading": "Shuswap River",
       "binding": {
         "extents": [
           {
@@ -516,7 +523,7 @@
             "item_id": "gnis:25478"
           }
         ],
-        "tributaries": false,
+        "tributaries": null,
         "tributaries_only": false,
         "tributary_excludes": [],
         "sections_cached": null,

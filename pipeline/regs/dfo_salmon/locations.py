@@ -44,6 +44,7 @@ from typing import Dict, List, Optional
 from pipeline.regs.dfo_salmon.fetch import ALL_SLUGS, DEFAULT_CACHE, PAGES, load_cached, normalize_slug
 from pipeline.regs.dfo_salmon.parse import parse_region
 from pipeline.regs.dfo_salmon.untangle import Untangled, classify_scope, untangle
+from pipeline.regs.dfo_salmon import side_streams as _side_streams
 from pipeline.common.curated import GENERATED
 
 logger = logging.getLogger(__name__)
@@ -132,6 +133,9 @@ class Location:
     #: True when a note NARROWS the extent (a radius closure, a lake closure line), so
     #: binding the whole water would read as more open than the source allows.
     narrows_extent: bool = False
+    #: T807: the exact waters heading a named water's row sits under (None for a default, or when its rows sit under
+    #: two headings — `side_streams check` names those)
+    heading: Optional[str] = None
 
     def to_dict(self) -> dict:
         return asdict(self)
@@ -254,6 +258,8 @@ def extract(u: Untangled) -> tuple[List[Location], List[RuleRecord], dict]:
     for w in u.waters:
         for reach in w.reaches:
             op, a_types, _mainstem, tribs = classify_scope(reach.scope)
+            # T807: the side streams are DFO's words for THIS place — its own line, else its exact heading
+            heading = reach.headings[0] if len(reach.headings) == 1 else None
             add(Location(
                 fingerprint=fingerprint(w.section, w.name, reach.scope),
                 region=u.region, region_number=u.region_number,
@@ -261,11 +267,12 @@ def extract(u: Untangled) -> tuple[List[Location], List[RuleRecord], dict]:
                 section=w.section, inherits=list(w.inherits),
                 water=w.name, aliases=list(w.aliases), specific_area=reach.scope,
                 op=op, anchor_types=a_types,
-                tributaries=reach.tributaries if reach.tributaries is not None else w.tributaries,
+                tributaries=_side_streams.derive(reach.scope, heading).tributaries,
                 excludes=list(reach.excludes), areas=[],
                 landmarks=landmarks(f"{w.name} {reach.scope}"),
                 notes=_notes_for(reach.scope)[0] + ([w.name_note] if w.name_note else []),
                 narrows_extent=_notes_for(reach.scope)[1],
+                heading=heading,
             ), reach.rules)
 
     return locations, rules, structure_signature(u)

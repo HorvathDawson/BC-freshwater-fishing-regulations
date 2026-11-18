@@ -859,9 +859,11 @@ def test_to_reach_input_shapes_a_watershed_above_a_point():
     assert rules[0]["extents"][0]["splits"] == ["split:kispiox-resort"]
     assert rules[0]["includes_tributaries"] is True
     # Only what resolution reads: the scraped row's species, dates and gear never reach it.
-    # T679 D5: and the policy flag that keeps a confluence cut's joining water out unless DFO's words add it
+    # T679 D5: and the policy flag that keeps a confluence cut's joining water out unless DFO's words add it; T784:
+    # and those words (the place's `specific_area`), which that exception reads
     assert set(rules[0]) == {"rule_id", "extents", "includes_tributaries", "tributaries_only",
-                             "tributary_excludes", "_joining_water_stays_out"}
+                             "tributary_excludes", "_joining_water_stays_out", "extent_text"}
+    assert rules[0]["extent_text"] == loc.source_text["specific_area"].strip()
 
 
 def test_to_reach_input_carries_tributary_carve_outs():

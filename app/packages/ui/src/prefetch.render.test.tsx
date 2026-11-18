@@ -5,6 +5,7 @@
  */
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { cleanup, render } from "@testing-library/react";
+import { setFailureSink } from "@app/core";
 import type { BackgroundPrefetch, PrefetchSnapshot, ReleaseLoader } from "@app/data/release";
 import { BACKGROUND_DELAY_MS, batteryLow, connectionSignals, useBackgroundPrefetch, useReleasePrefetch, useWaterRegionsAhead,
          webNetSignals } from "./prefetch";
@@ -247,5 +248,20 @@ describe("(T737, 2026-11-15) the open water's other regions first", () => {
     render(<N />);
     await new Promise((x) => setTimeout(x, 0));
     expect(wanted.length).toBe(4);
+  });
+
+  it("(T767) a failed read of the water's regions is reported, never dropped; nothing is wanted for it", async () => {
+    const got: unknown[] = [];
+    const undo = setFailureSink((e) => got.push(e));
+    try {
+      const wanted: string[][] = [];
+      const sch = { want: (r: readonly string[]) => wanted.push([...r]) } as unknown as Pick<BackgroundPrefetch, "want">;
+      const broken = new Error("regs-2 will not parse");
+      const regionsOf = async () => { throw broken; };
+      function W() { useWaterRegionsAhead(sch, {} as never, "gnis:39325" as never, regionsOf as never); return null; }
+      render(<W />);
+      await new Promise((x) => setTimeout(x, 0));
+      expect([got, wanted]).toEqual([[broken], []]);
+    } finally { undo(); }
   });
 });

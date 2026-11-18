@@ -1545,7 +1545,7 @@ def run(out_dir: Path = OUT_DIR, *, marks_path: Optional[Path] = None, gpkg: Opt
     todo = [(lid, loc, w) for lid, (_s, loc, w) in D.locations().items()
             if needs_suggestion(loc, w) or tributary_form_differs(
                 loc, water_of(list((w or {}).get("item_ids") or []), registry), look,
-                water_flag=(w or {}).get("tributaries"))]
+                heading=loc.get("heading"), water_flag=None)]
     if isinstance(look, FwaLookup):
         names = set()
         for _lid, loc, w in todo:
@@ -1584,8 +1584,9 @@ def run(out_dir: Path = OUT_DIR, *, marks_path: Optional[Path] = None, gpkg: Opt
         water = water_of(items, registry)
         # DFO's heading as printed: its "(including tributaries)" qualifier is the water's flag, which the place
         # inherits already (a suggestion repeating it changes nothing)
-        head = (loc.get("source_text") or {}).get("waters") or ""
-        flag = (w or {}).get("tributaries")          # the water's own "(including tributaries)"
+        # T807: the EXACT heading the place sits under (stamped); the merged water's flag never decides
+        head = loc.get("heading") or (loc.get("source_text") or {}).get("waters") or ""
+        flag = None
         bound = bool((loc.get("binding") or {}).get("extents"))
         r = (bound_row(loc, water, look, head, flag) if bound
              else suggest_one(loc, water, cuts_on(items, registry, smeta, props), look, head, flag))

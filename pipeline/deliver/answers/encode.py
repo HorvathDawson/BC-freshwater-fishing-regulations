@@ -535,7 +535,7 @@ SPEC = {
                       "alone in a boat\"), specs {slot: [clause]}, "
                       "elements {slot:member: {verdict, by, over}}, main [clause], circumstantial "
                       "[{clause, while?, targeting?, note?}], hook, fly, bait [{element, ok, by, "
-                      "why?, carry_kg?, also_allowed?, excepted_from? {element, by} — version 11 (ROUND20h): the ban an allowed "
+                      "why?, carry_kg?, also_allowed?, allowances? [{says, by [clause]}] (T797 item 2, additive: each distinct allowance once, every clause allowing it), excepted_from? {element, by} — version 11 (ROUND20h): the ban an allowed "
                       "element is an exception to, the province's fin-fish ban's roe, on the days it is in force}], bait_ban, "
                       "(version 12, ROUND20i: `summary.changes[].when` leaves out the days the water is closed; the hook "
                       "\"a single barbless hook, no trebles\"; fly fishing only \"no float or strike indicator, no sinker or "
@@ -561,8 +561,15 @@ SPEC = {
                     "exemptions, guiding and other anglers' rules",
             "version": "7",
             "at": "[[frame index per segment] per key]",
-            "frames": "[[holds, documents, under_16?]] — indexes into `holds`, `documents` and `under_16` "
-                      "(absent on tidal water)",
+            "frames": "[[holds, documents, under_16?, alien_weekend?]] — indexes into `holds`, `documents`, `under_16` "
+                      "(absent on tidal water) and `alien_weekend` (T789 G8: absent on tidal water and where no water "
+                      "has one; never without `under_16`)",
+            "alien_weekend": "[{says, waters [{name, key}]}] — T789 G8 (owner 2026-11-17): the province's weekend "
+                             "closures to non-guided non-resident aliens, the same on every non-tidal frame: `says` the "
+                             "book's sentence (Region 6 water rows, printed pp.50-53), `waters` every water whose rules "
+                             "close it to them on a Saturday or Sunday (`licence.alien_weekend`), by name; `key` the "
+                             "water's item_id (the store's `item`, `display.waters`). Additive: a reader that does not "
+                             "know it reads the first three indexes as before",
             "under_16": "[[{residency, label, none_needed, with_adult {who, counts} | null, buy [{doc, name, "
                         "prices, or? [{need, names}]}], own_limit, says}] per residency] — version 5 (ROUND15 2): what an under-16 "
                         "angler needs here, per residency (not guided, no status), read off the profiles' "
@@ -884,21 +891,27 @@ class LicenceCodec:
     static_keys = ("profiles", "profile_dims", "residency_labels", "profile_labels")
 
     def encode(self, values, rix, fix):
-        holds, answers, docs, u16, frames = Table(), Table(), Table(), Table(), Table()
+        holds, answers, docs, u16, aw, frames = Table(), Table(), Table(), Table(), Table(), Table()
         refs = []
         for v in values:
             row = [holds.add(v["holds"]), docs.add([answers.add(p) for p in v["profiles"]])]
             if v.get("under_16") is not None:
                 row.append(u16.add(v["under_16"]))            # ROUND15 2
+            if v.get("alien_weekend") is not None:            # T789 G8: the 4th index, after under_16's
+                if len(row) != 3:
+                    raise ValueError("licence: a frame with alien_weekend and no under_16")
+                row.append(aw.add(v["alien_weekend"]))
             refs.append(frames.add(row))
         return {"holds": holds.rows, "answers": answers.rows, "documents": docs.rows,
-                "under_16": u16.rows, "frames": frames.rows}, refs
+                "under_16": u16.rows, "alien_weekend": aw.rows, "frames": frames.rows}, refs
 
     def decode_frame(self, sec, ref, rules, fish):
-        h, d, *u = sec["frames"][ref]
+        h, d, *rest = sec["frames"][ref]
         out = {"holds": sec["holds"][h], "profiles": [sec["answers"][i] for i in sec["documents"][d]]}
-        if u:
-            out["under_16"] = sec["under_16"][u[0]]
+        if rest:
+            out["under_16"] = sec["under_16"][rest[0]]
+        if len(rest) > 1:
+            out["alien_weekend"] = sec["alien_weekend"][rest[1]]
         return out
 
 

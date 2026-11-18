@@ -284,6 +284,43 @@ def unified(rel: str, before: str, after: str) -> str:
 _MISSING = "__absent__"
 
 
+def _same_side_streams(seen: Optional[bool], loc: Mapping) -> bool:
+    """T525's guard, read through T807: the side-stream setting a DFO mark saw is the one the place has now — the same
+    stored value, or (a named water storing nothing, since a save that matches DFO's words stores nothing) the value its
+    words give, which is what the mark's place stored when it was made."""
+    from pipeline.regs.dfo_salmon import side_streams as SS
+    now = (loc.get("binding") or {}).get("tributaries")
+    if seen == now:
+        return True
+    return now is None and seen is not None and SS.applies(loc) and SS.derived_of(loc).tributaries == seen
+
+
+def _side_stream_fields(m, loc: Mapping, fields: dict) -> dict:
+    """T807 (owner 2026-11-16): A DFO MARK'S SIDE-STREAM CALL, AS THE PLACE STORES IT. On a named water DFO's words
+    decide (`dfo_salmon.side_streams`): a call that matches them stores NOTHING (`binding.tributaries` None, no
+    exception); one that differs is a STATED EXCEPTION, stored with its reason and its save (`tributaries_exception`).
+    A call the owner overruled (`side_streams_overruled`: a save dated on or before `through`) sets nothing. Edits
+    `fields` (the binding's) in place; returns the location fields to set."""
+    from pipeline.regs.dfo_salmon import side_streams as SS
+    if "tributaries" not in fields or not SS.applies(loc):
+        return {}
+    over = loc.get("side_streams_overruled") or {}
+    if over.get("through") and str(m.date) <= str(over["through"]):
+        fields.pop("tributaries")
+        return {}
+    d = SS.derived_of(loc)
+    if fields["tributaries"] == d.tributaries:
+        fields["tributaries"] = None
+        return {"tributaries_exception": {}} if loc.get("tributaries_exception") else {}
+    if (loc.get("binding") or {}).get("tributaries") == fields["tributaries"] and loc.get("tributaries_exception"):
+        return {}                                         # the exception it states is already stored
+    words = (f"DFO's words say {'in' if d.tributaries else 'river only'} ({d.source}"
+             + (f": {d.words}" if d.words else "") + ")")
+    return {"tributaries_exception": {
+        "reason": f"the owner's save in the review app: side streams {'in' if fields['tributaries'] else 'out'}; "
+                  + words, "save": f"{m.reviewer} {m.date}"}}
+
+
 def _target_of(doc: dict, ed: Mapping) -> Optional[dict]:
     """The dict an edit sets a field on, inside one file's document."""
     if ed["kind"] == "catalogue":
@@ -1334,6 +1371,12 @@ def build(decided, src: Sources, *, applied: Optional[set] = None) -> list[dict]
                     if scope != "entry":
                         problems.append(f"a DFO location has no rule {scope}")
                         continue
+                    fields = dict(fields)
+                    for fld, val in _side_stream_fields(m, loc, fields).items():
+                        if loc.get(fld, _MISSING) != val:
+                            edits.append({"file": _rel(path), "kind": "dfo_loc", "location_id": m.target,
+                                          "scope": "entry", "field": fld, "before": loc.get(fld, _MISSING),
+                                          "after": val})
                     # T525: the extents an extent fix replaces must be ones it can say again — a field the review
                     # editor cannot express (a `within_area`, `outside_areas`, ...) would be dropped by the write
                     if "extents" in fields and fields["extents"] != b.get("extents"):
@@ -1355,7 +1398,7 @@ def build(decided, src: Sources, *, applied: Optional[set] = None) -> list[dict]
                     # fix has landed changes nothing, so it is not held
                     seen = m.extent_before
                     if seen is not None and edits and (seen.extents != (b.get("extents") or [])
-                                                       or seen.tributaries != b.get("tributaries")):
+                                                       or not _same_side_streams(seen.tributaries, loc)):
                         problems.append("entry: the extent changed since this mark was made (it saw "
                                         f"{json.dumps(seen.model_dump())}): mark the place again")
         else:
@@ -1450,7 +1493,7 @@ def applied_keys(marks: Iterable, src: Sources, carries: Optional[list] = None) 
     inforce = M.latest(m for m in marks if m.scope == "dfo")
     entries = OC.load() if carries is None else carries
     if entries:
-        now_of = {e["target"]: (D._h(D.geography(places[e["target"]][1], places[e["target"]][2]))
+        now_of = {e["target"]: (D.same_place_bindings(places[e["target"]][1], places[e["target"]][2])
                                 if e["target"] in places else None) for e in entries}
         out |= OC.held(entries, {(m.scope, m.target): m for m in inforce.values()}, now_of)
     for m in inforce.values():

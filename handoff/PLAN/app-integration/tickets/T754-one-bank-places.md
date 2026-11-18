@@ -1,6 +1,6 @@
 # T754 — Places that cover one bank of a river only (Kitimat west bank)
 
-Status: OPEN (investigated; options for the owner)
+Status: OPEN (owner answered 2026-11-15, round 4: "Build it this way (Recommended)"; to build)
 
 Source: owner 2026-11-15, while labelling DFO salmon places: "also for kitimat it is (on west bank between signs at
 Kitimat hatchery outfall. · ) we should have a way to define one half of the river closing maybe? could color only

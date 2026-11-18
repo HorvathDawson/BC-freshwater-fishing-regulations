@@ -48,6 +48,7 @@ export * from "./gaugeSide";
 export * from "./change";
 export * from "./chartZoom";
 export * from "./photoZoom";
+export * from "./photoViewer";
 export * from "./routeMap";
 export * from "./temperature";
 export * from "./install";

@@ -1,6 +1,6 @@
 # T765 — Golden taps: a closed part is not checked, so a moved index lands on the wrong part and nothing objects
 
-Status: OPEN (filed 2026-11-16 by the app chat; found by the main chat on release r-46e4355a7277).
+Status: DONE 2cdce6538 (landed 2026-11-17, CI green, 6/6 Android benches; was: IN PROGRESS (built on branch app-fix/t765-t768; not merged) (filed 2026-11-16 by the app chat; found by the main chat on release r-46e4355a7277).)
 
 Source: the main chat, 2026-11-16 03:08. Area: the app chat (`app/tools/regs-recut/`).
 
@@ -31,3 +31,15 @@ Source: the main chat, 2026-11-16 03:08. Area: the app chat (`app/tools/regs-rec
   every stale declaration in one run.
 - Five comments still cite the removed `exclusions.ts`: `app/tools/regs-recut/taps.py` (about lines 41 and 47),
   `app/packages/core/src/regs/testing/golden.ts` (30 and 37), `app/packages/core/src/regs/tree.ts` (54).
+
+## Built (branch app-fix/t765-t768)
+- `taps.py` `CLOSED_ENDS`: each closed golden state (x15p9, x16p7, chw0, x17p5) is declared by its two end tokens
+  (`part.lo_s` / `part.hi_s`) and held to them wherever it is tapped, whichever path resolved it (PART_MOVED, the T517
+  group, remap). A closed state with no declaration is an error. `resolve_all` collects every stale declaration and the
+  run lists them together (one `SystemExit` with all), instead of stopping at the first.
+- Proof on r-46e4355a7277: taps.json output identical to before; moving x15p9 to part 8 fails naming the state, the
+  declared ends, what part 8 holds, and "those ends are store part [7]".
+- The five `exclusions.ts` comments (taps.py x2, core `testing/golden.ts` x2, core `regs/tree.ts`) now point at taps.json
+  `gone` / `tidal` and the golden parity.
+- Test: `pipeline/tests/test_taps_closed_ends.py` (5 tests, no data). Mutation: with the ends check removed the
+  "lists every stale declaration" test fails.

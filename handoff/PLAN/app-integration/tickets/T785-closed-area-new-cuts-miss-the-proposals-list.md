@@ -1,6 +1,6 @@
 # T785 — Review app: a confirmed closed area's new cuts do not reach the proposals list until a later save or a restart
 
-Status: OPEN (review app backend `curation-review/backend/reuse.py` `marks_delta` / `proposals_stamp`).
+Status: DONE db33d2980 (lane/bugs-080 2026-11-17: marks_delta counts a closed area's piece.new_splits; test + mutation)
 
 Source: general audit 2026-11-16, code checker finding 3 (`handoff/PLAN/audit-2026-11-16/code.md`); two lanes 30 minutes apart (3920760a4 against fe11e0af7).
 

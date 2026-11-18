@@ -94,6 +94,13 @@ function params(name: string): unknown[][] {
   }
 }
 
+// (T768 item 3) a run that NAMED a release but gave no BUNDLE checked nothing, and said nothing: it says so now, in the
+// test's own name and on the console, so the release's output shows the parity + speed checks did not run
+const unchecked = REL !== null && BUNDLE === null;
+it(`release parity + perf${unchecked ? ` — NOT RUN: RELEASE_DIR is set but BUNDLE is not (the bundle it was cut from)` : ""}`, () => {
+  if (unchecked) console.warn("release-perf NOT RUN: RELEASE_DIR is set but BUNDLE is not");
+});
+
 describe.skipIf(!live)("release parity + perf (Tier 2: RELEASE_DIR + BUNDLE)", () => {
   for (const [name, q] of Object.entries(RELEASE_QUERIES)) {
     it(`${name}: the release answers like the bundle`, () => {

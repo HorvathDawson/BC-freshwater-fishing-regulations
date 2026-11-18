@@ -31,6 +31,27 @@ verified 1-to-1 against the consumer page (COMPARISON.md).
   written out: `no_rule`, `by_origin`, a `null` part key for a part outside B.C., a `null` decided
   answer (no rule in scope speaks).
 
+## THE ALIEN WEEKEND CLOSURES (2026-11-17, T789 G8) — licence frame `alien_weekend`, additive (licence stays 7)
+
+Owner 2026-11-17 ("yes add to 0.8.0 we can add as banners?"): the Licence tab shows the weekend closures to non-guided
+non-resident aliens. `LicenceFrame.alien_weekend` {says, waters [{name, key}]} | null (`licence.alien_weekend`, read off
+the bundle's rules): `says` the book's sentence ("Angling prohibited for non-guided non-resident aliens on Saturdays
+and Sundays", the Region 6 water rows, printed pp.50-53); `waters` every water whose `angler_closure` names the
+non-resident alien and holds on a Saturday or Sunday, by its entry's matched items, by name; `key` the item_id (the
+durable water handle, AGENTS 5; the store's `item`, `display.waters`). The same value on every non-tidal frame; absent
+on tidal water and where no water has one. Every-day closures (Lakelse's part, Telkwa Sep 1-Oct 31) are not listed. On
+the wire: `frames` rows [holds, documents, under_16?, alien_weekend?] (the 4th only with the 3rd) into the interned
+`alien_weekend` table; the store's `licence_alien`, in every regs shard. ADDITIVE: a reader that does not know it reads
+the first three indexes as before, so `licence` stays 7 until the app reads it (bump both sides together then).
+
+## A BAIT ALLOWANCE SAID ONCE (2026-11-17, T797 item 2) — gear `bait[].allowances`, additive (gear stays 12)
+
+`BaitPick.allowances` [{says, by [clause]}] (`gear.allowances`): each distinct allowance of an allowed-by-circumstance
+bait element once per part, deduped across rules by its words ("Dead fin fish may be used when fishing for white
+sturgeon.", "Dead fin fish may be used while set lining."), `by` every clause allowing it, merged in order so the
+Sources cite each. A Fraser part holding the Fraser row's own sturgeon line and the province's bait.r3 says it once,
+citing both. Present exactly where `also_allowed` is (which keeps one circumstance per clause, unchanged).
+
 ## THE TROUT SECTION (2026-11-16, T810 ticket I) — `trout` 1, OPTIONAL, behind `--trout-table`
 
 The trout and char table (handoff/PLAN/design/trout-table-contract.md): per part key and segment a `TroutFrame`

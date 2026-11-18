@@ -195,6 +195,7 @@
       "reviewed_by": "",
       "reviewed_at": "",
       "review_note": "",
+      "heading": "Bridge River",
       "binding": {
         "extents": [
           {
@@ -243,6 +244,7 @@
       "reviewed_by": "",
       "reviewed_at": "",
       "review_note": "",
+      "heading": "Clearwater River",
       "binding": {
         "extents": [
           {
@@ -293,6 +295,7 @@
       "reviewed_by": "",
       "reviewed_at": "",
       "review_note": "",
+      "heading": "Fraser River",
       "binding": {
         "extents": [
           {
@@ -345,6 +348,7 @@
       "reviewed_by": "",
       "reviewed_at": "",
       "review_note": "",
+      "heading": "Kamloops Lake",
       "binding": {
         "extents": [
           {
@@ -407,6 +411,7 @@
       "reviewed_by": "",
       "reviewed_at": "",
       "review_note": "",
+      "heading": "South Thompson River",
       "binding": {
         "extents": [
           {
@@ -481,6 +486,7 @@
       "reviewed_by": "",
       "reviewed_at": "",
       "review_note": "",
+      "heading": "Thompson River",
       "binding": {
         "extents": [],
         "tributaries": null,
@@ -546,6 +552,7 @@
       "reviewed_by": "",
       "reviewed_at": "",
       "review_note": "",
+      "heading": "Thompson River",
       "binding": {
         "extents": [
           {
@@ -611,6 +618,7 @@
       "reviewed_by": "",
       "reviewed_at": "",
       "review_note": "",
+      "heading": "Fraser River",
       "binding": {
         "extents": [
           {
@@ -688,6 +696,7 @@
       "reviewed_by": "",
       "reviewed_at": "",
       "review_note": "",
+      "heading": "Thompson River",
       "binding": {
         "extents": [
           {

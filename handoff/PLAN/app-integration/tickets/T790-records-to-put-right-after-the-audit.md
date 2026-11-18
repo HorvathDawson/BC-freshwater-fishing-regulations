@@ -24,3 +24,21 @@ Source: general audit 2026-11-16, decisions checker (`handoff/PLAN/audit-2026-11
 8. T778: the "test on built data" was not written (unit tests on hand-made graphs only).
 9. 5 of the owner's 17 reviewed continuation links are stale and stopped shipping; 4 new ones wait with no owner row
    (`data/generated/bundle/continuations_held.json`).
+
+## Lane result (lane/bugs-080, 2026-11-17)
+Item 4, the ledger half: the 47 DONE / DROPPED rows still in README.md moved to DONE.md (`check-tickets` passes).
+Not done here: the stale rows' statuses (T690 … T738), the missing ticket numbers, items 1-3 and 5-9 (OWNER-TODO and
+RULINGS are the main chat's files today).
+
+## Lane result, second round (lane/bugs-080b, 2026-11-17)
+- Item 1 DONE: T754's ticket, ledger row and OWNER-TODO row say the owner's answer ("Build it this way (Recommended)",
+  2026-11-15 round 4) and "to build".
+- Item 7 DONE: OWNER-TODO's two out-of-date production command blocks (r-f749475d0962, r-a178299f6005) removed; the
+  fresh commands come with 0.8.0's data release. `release/PRODUCTION.md` "Every later release": the feeds worker goes
+  first when the release carries closed areas (before or with the data).
+- Item 6, the lost follow-ups, still to ticket (not numbered here: lanes mint numbers that collide). The suggester
+  proposing a new cut where one exists (match by position); the review app naming the unticked row when Confirm is
+  greyed; the Hope gauge (66 m reads 08MF076) and the three gauge cuts never placed (08HD024, 08ME002, 08MH032); the
+  About page's "not affiliated with the government" sentence; the approved push privacy line; leftovers of T549, T554,
+  T673, T600.
+- Not done: items 2, 3 (the 14 readings for RULINGS need each reading's source words), 4 (stale statuses), 5, 8, 9.

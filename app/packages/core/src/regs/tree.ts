@@ -51,7 +51,7 @@ const OF_THESE = "Of these, ";
  * T214 item 1: a size sub-cap names the total it belongs to. The store says "Of these, only 1 may be over 50 cm (20 in)";
  * the page reads "Of your 2 trout and char, only 1 may be …": the group (its title) and the number of the tier the cap sits
  * in. A load-time rewrite of the store's words (the pipeline still prints "Of these"); null when the line is not that
- * sentence or the tier it sits in has no number to name. conformance/exclusions.ts counts every golden line it changes.
+ * sentence or the tier it sits in has no number to name. the golden parity (conformance/src/regs/golden.test.ts) is where a changed golden line is held.
  */
 export function subcapLead(t: TreeTier, up: TreeTier | null, title: string): string | null {
   if (t.tier !== "size" || !t.says.startsWith(OF_THESE) || !up || up.n === null || !title) return null;

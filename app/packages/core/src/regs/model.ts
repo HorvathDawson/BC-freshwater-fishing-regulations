@@ -100,6 +100,8 @@ export interface TroutRowVM {
 /** A keep box, or the Release / Closed group under them; `date`: the strip date, or the column date under the word. */
 export interface TroutBoxVM {
   readonly kind: "keep" | "release" | "closed"; readonly head: string; readonly label: string | null; readonly strip: string | null;
+  /** (T810 G2 Q4) the possession every row shares, drawn on its own line under the box's top line (keep only) */
+  readonly possession: string | null;
   readonly tag: string | null; readonly date: string | null; readonly rows: readonly TroutRowVM[]; readonly bands: readonly TroutBandVM[];
 }
 /** The table under the Trout and char entry. `top.lead` has its day slot filled; `card`: the line above the table; `fold`:

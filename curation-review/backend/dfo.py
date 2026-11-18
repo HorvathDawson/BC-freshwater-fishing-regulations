@@ -288,10 +288,25 @@ def same_extents(a: list[dict], b: list[dict]) -> bool:
 
 
 def tributaries_now(loc: dict, water: dict | None) -> bool | None:
-    """THE TRIBUTARY CALL A PLACE BINDS WITH: its own flag, else its water's (the DFO title, "Morice River (including
-    tributaries)") — the builder's own inheritance (`entries.to_reach_input`)."""
-    own = (loc.get("binding") or {}).get("tributaries")
-    return own if own is not None else (water or {}).get("tributaries")
+    """THE TRIBUTARY CALL A PLACE BINDS WITH — the builder's own (`entries.to_reach_input` through
+    `side_streams.effective`, T807): a named water's stated exception, else DFO's words for it (its own line, else the
+    exact heading it sits under, else river only); a default's own flag, else its water's (None: neither says)."""
+    from pipeline.regs.dfo_salmon import side_streams as SS
+    if not SS.applies(loc):
+        own = (loc.get("binding") or {}).get("tributaries")
+        return own if own is not None else (water or {}).get("tributaries")
+    return side_streams_now(loc, water)["tributaries"]
+
+
+def side_streams_now(loc: dict, water: dict | None) -> dict:
+    """T807 (owner 2026-11-16): the place's side streams AND what decided them, for the screen: {tributaries, only,
+    source: "own words" | "named water" | "heading" | "nothing said" | "exception" | "stored", words}. A save that
+    matches what the words say stores nothing; one that differs is an exception (`proposals._side_stream_fields`)."""
+    from pipeline.regs.dfo_salmon import side_streams as SS
+    out = SS.effective(loc, water).as_dict()
+    if out["source"] == "exception":
+        out["derived"] = SS.derived_of(loc).as_dict()
+    return out
 
 
 def fix_extents(fixes) -> tuple[list[dict], list[str]]:
@@ -898,6 +913,8 @@ def detail(location_id: str) -> dict | None:
         # (owner 2026-11-15) what DFO's words say of the tributaries — the suggester's one reading — for the save's
         # warning when the extent says otherwise (a warning only: the meaning is his call)
         "words_tributaries": words_tributaries(loc, water),
+        # T807: the side streams this place binds with and the words that decided them (`side_streams_now`)
+        "side_streams": side_streams_now(loc, water),
     }
     return reuse._json_safe({**view, "cut_labels": cut_labels(view), "item_names": item_names(view)})
 
@@ -909,8 +926,9 @@ def words_tributaries(loc: dict, water: dict | None) -> dict:
     look = _name_look(id(reuse._registry()))
     items = list((water or {}).get("item_ids") or [])
     st = loc.get("source_text") or {}
-    tf = SG.tributary_form(st.get("specific_area") or "", st.get("waters") or "", SG.water_of(items, look.reg), look,
-                           (water or {}).get("tributaries"))
+    # T807: the EXACT heading the place sits under (stamped), never the merged water's flag
+    tf = SG.tributary_form(st.get("specific_area") or "", loc.get("heading") or st.get("waters") or "",
+                           SG.water_of(items, look.reg), look, None)
     return {k: tf[k] for k in ("only", "with", "without", "names", "excepted", "unresolved", "water_says", "conflict")}
 
 

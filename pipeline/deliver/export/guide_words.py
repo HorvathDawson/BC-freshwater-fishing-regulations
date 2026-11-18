@@ -434,6 +434,12 @@ SPLIT_TEXT = {
 }
 
 #: A designation's classified period (`licensing[*].period`, designations only).
+#: `licensing[].non_resident_note` — see `add_non_resident_notes` (T801 item 2).
+NON_RESIDENT_NOTE_TEXT = {
+    "says": "the book's separate-licence line as one whole sentence with its full stop (p.53: 'Non-residents and "
+            "non-resident aliens require separate licences describing which section they are fishing.')",
+}
+
 #: `licensing[].stamp_waiver` — see `add_stamp_waivers`.
 STAMP_WAIVER_TEXT = {
     "outright": "true: '(Steelhead Stamp not required)' — NO steelhead stamp on the designation's "
@@ -798,6 +804,9 @@ LICENSING_RECORD_TEXT = {
                       "Show it on the water as a place not yet mapped; it is NEVER required of "
                       "the whole water (`read.requirements_in_force` lists it under "
                       "`not_yet_mapped`, never `holds`)",
+    "non_resident_note": "ONLY on a classified designation whose entry prints the book's separate-licence line "
+                         "(p.53, the Skeena River 2 and Section 4): {says}, one whole sentence in the book's "
+                         "words — show it in the designation's box (`read.add_non_resident_notes`)",
     "stamp_waiver": "ONLY on a designation that waives the Steelhead Stamp: {outright, lifts, "
                     "verbatim, says} (see `licensing.stamp_waiver`). `outright` "
                     "('(Steelhead Stamp not required)'): NO steelhead stamp on its sections while "
