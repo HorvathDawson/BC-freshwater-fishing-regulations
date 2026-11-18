@@ -2661,7 +2661,7 @@ More questions (recommended answer first):
 - 2026-11-18 ~13:50, owner (app chat), verbatim: "also on the app the loader fish icon should be higher resolution
   please". T852.
   ~13:55, verbatim: "the quote text should be formated in a nicer way too on loader for 0.8.1". T852 item 2.
-- 2026-11-18 ~14:00, owner (app chat), on the proposed 0.8.1 list (T848 web map lag, T852 loader fish + line, T851 DFO
+- 2026-11-18 13:46, owner (app chat), on the proposed 0.8.1 list (T848 web map lag, T852 loader fish + line, T851 DFO
   stale, T822+T739 push, T740 kept-map memory, T831 route-map dots, T832 iOS stale colour, T846 decided keep vs
   release, T840 salmon short text, T849+T768 test reliability; T850 rides the 0.8.0 data release), verbatim: "All these
   fixes can go in 0.8.1 / Which will release right after". So push (T822+T739) and T740 move from "after 0.8.0" into
