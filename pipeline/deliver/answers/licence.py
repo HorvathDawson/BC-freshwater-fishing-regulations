@@ -140,7 +140,6 @@ def under_16_summary(answers: Sequence[dict], names: Dict[str, str]) -> List[dic
 ALIEN_WEEKEND_SAYS = "Angling prohibited for non-guided non-resident aliens on Saturdays and Sundays"
 #: the printed pages `ALIEN_WEEKEND_SAYS` is quoted from (`test_answers_licence_alien_weekend.py` reads them)
 ALIEN_WEEKEND_PAGES = (50, 51, 52, 53)
-_WEEKEND = frozenset({"Saturday", "Sunday"})
 
 
 def alien_weekend(db) -> Optional[dict]:
@@ -153,15 +152,15 @@ def alien_weekend(db) -> Optional[dict]:
     Every day closure (Lakelse's part, Telkwa Sep 1-Oct 31) is not a weekend closure and is not listed. A weekend
     closure to the alien that is not the non-guided one would make `says` wrong: it stops the build, as does one whose
     entry names no water (nothing to link)."""
-    from pipeline.deliver.answers.common import AnswersError
+    from pipeline.deliver.answers.common import AnswersError, holds_on_a_weekend
     names = dict(db.execute("SELECT item_id, name FROM item"))
     entries = {e: (i, json.loads(m or "[]")) for e, i, m in db.execute("SELECT entry_id, item_id, matched FROM entry")}
     waters: Dict[str, str] = {}
     for e, rid, cond, when in db.execute("SELECT entry_id, rule_id, conditions, when_ FROM rule "
                                          "WHERE type = 'angler_closure' ORDER BY entry_id, rule_id"):
         to = (json.loads(cond or "{}").get("closed_to") or {})
-        days = set((json.loads(when) if when else {}).get("weekdays") or ())
-        if "non_resident_alien" not in (to.get("residency") or ()) or not days & _WEEKEND:
+        days = (json.loads(when) if when else {}).get("weekdays") or ()
+        if "non_resident_alien" not in (to.get("residency") or ()) or not holds_on_a_weekend(days):
             continue
         if to.get("guidance") != ["non_guided"] or set(to) != {"residency", "guidance"}:
             raise AnswersError(f"licence: {e} {rid} closes weekends to {to}, which the alien weekend sentence "
