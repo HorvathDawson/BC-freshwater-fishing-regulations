@@ -43,3 +43,13 @@ space-separated, nothing else (a kept pre-T847 `+id -id` notice is dropped). `ga
 key `roster:new:<id>`; the email: "ECCC lists N stations we've never seen", the ids, refresh → match → rebuild → sync.
 Worker 521/521 (parity fixture now carries one never-seen station), pytest feed + liveness files 126/126. Owes: an
 independent review, merge, the 0.8.0 staging worker deploy, and the first-run check (the 4 stations, no others).
+
+Review (main chat, 2026-11-18): OK after one fix, made: the per-station event text named "match" but printed the
+fetch && build action; it now lists the fetch, `MATCH_ACTION([id])`, the build and the sync as separate steps
+(`splitRosterAction`, shared with the email), pinned in events.test. Worker 521/521, tsc clean, pytest 52/52 on the four
+roster files. Notes kept on purpose:
+- "Once" means at most once a year: the told-keys ledger forgets a key after a year, so a station still unmatched a year
+  later is told again (the roster was not refreshed).
+- The Python `notify.py` path still dedupes on the whole id list, not per station. No workflow runs it and the webhook
+  gets the rendered email; the worker's email outbox is the path that tells the owner.
+- The match command is the owner's hand command (no `scripts/heavy.sh` in the email); a Claude session wraps it itself.

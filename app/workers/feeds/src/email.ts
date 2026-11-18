@@ -267,6 +267,13 @@ export function runTimingSection(events: FeedEvent[]): Section {
   };
 }
 
+/** (T847) the roster notice's action is "<fetch the roster> && <build>" (publish.roster_action; a non-default roster adds
+ *  "&& cp …" to the fetch half): split at the LAST " && " so the match step goes between the two */
+export function splitRosterAction(action: string): [string, string] {
+  const cut = action.lastIndexOf(" && ");
+  return cut < 0 ? [action, ""] : [action.slice(0, cut), action.slice(cut + 4)];
+}
+
 /** (T847) the match step for stations new to the roster (`pipeline/tools/audit/check_curated.py`'s regenerate line) */
 export const MATCH_ACTION = (ids: string[]) =>
   `python -m pipeline.gauges.generate.match --build data/generated/atlas/full && python -m pipeline.gauges.generate.promote --only ${ids.join(" ")}`;
@@ -288,9 +295,7 @@ export function rosterSection(events: FeedEvent[]): Section {
   const ids = [...new Set(fresh.map((e) => String(e.data.station)))].sort();
   const d = fresh[fresh.length - 1]!.data;
   // the notice's action is "<fetch the roster> && <build>" (publish.roster_action): the match goes between the two
-  const action = String(d.action ?? "");
-  const cut = action.lastIndexOf(" && ");
-  const [fetchRoster, build] = cut < 0 ? [action, ""] : [action.slice(0, cut), action.slice(cut + 4)];
+  const [fetchRoster, build] = splitRosterAction(String(d.action ?? ""));
   const heading = `ECCC lists ${plural(ids.length, "station")} we've never seen`;
   return {
     heading,

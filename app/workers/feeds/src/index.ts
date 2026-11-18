@@ -22,7 +22,7 @@ import { runDfo } from "./dfo";
 import { QUEUE_ACTION, SHAPE } from "./dfo/live";
 import { runInSeason } from "./inseason";
 import { channelOf, compose, deliver, readState, sendApk, sendTest, type FeedEvent, type NotifyConfig } from "./events";
-import { parseApk, sampleDfoEvents } from "./email";
+import { MATCH_ACTION, parseApk, sampleDfoEvents, splitRosterAction } from "./email";
 import { checkStatus, dfoIssueCounts, INPUT_FORMATS, readStatus, readStatusAt, record, recordHealth, refresh, servedStatus, statusHtml, STATUS_KEY, type Alert, type Held, type Job } from "./status";
 import { classOfError, fmtErrors, resilientFetch, RunHealth, SourceError, summarize } from "./health";
 import { pageUrl } from "./dfo/fetch";
@@ -99,17 +99,19 @@ export function gaugeEvents(maintenance: any[], at: string): FeedEvent[] {
         // (`roster:new:<id>`): the told-keys ledger (events.ts) tells each once, however ECCC's list moves around it. A
         // known station joining or leaving the list is no notice at all (publish.maintenanceNotices): the feed asks
         // today's list, and waters hold their gauge by `active`, never `realtime`.
-        neverSeen(n.latest).map((id) => ({
+        neverSeen(n.latest).map((id) => { const [fetchRoster, build] = splitRosterAction(String(n.action ?? "")); return {
           key: `roster:new:${id}`,
           kind: "roster" as const,
           title: `ECCC lists a gauge station we've never seen: ${id}`,
           text:
             `${id} is on ECCC's real-time station list but has no row in ${n.current}: the feed asks it, but no water can show it until it is matched.\n\n` +
-            `1. Refresh the roster, match the new station, rebuild:\n   ${n.action}\n` +
-            `2. Then sync it to R2: Actions → "feeds — sync curated inputs → R2 private/" (what: roster).\n\nNoticed ${n.since}.`,
+            `1. Refresh the roster:\n   ${fetchRoster}\n` +
+            `2. Match the new station:\n   ${MATCH_ACTION([id])}\n` +
+            (build ? `3. Rebuild:\n   ${build}\n` : "") +
+            `${build ? 4 : 3}. Then sync it to R2: Actions → "feeds — sync curated inputs → R2 private/" (what: roster).\n\nNoticed ${n.since}.`,
           at,
           data: { station: id, current: n.current, action: n.action, since: n.since },
-        }))
+        }; })
       : n.kind === "hydat"
       ? [{
           // (T554 item 4) the envelope in use is in the key: an older clim.json put back over a newer one is told again
