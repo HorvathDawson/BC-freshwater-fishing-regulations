@@ -33,10 +33,7 @@ function inputs(o: { day?: Day; byDay?: (DisplayFrame | null)[]; moments?: boole
 const settled = (status: DisplayFrame | null, inpart: { family: string; now: boolean; closure?: boolean }[] = []): Settled =>
   ({ status, inpart: inpart.map((x) => ({ now: x.now,
     rule: { export: { family: x.family }, kind: "gate", facts: { closure: x.closure ?? true } } as unknown as RuleView })) }) as unknown as Settled;
-const row = (kind: HydRow["kind"], members: string[], yr: [string, number][] = [["release", 365]], pool = false): HydRow =>
-  ({ kind, members, pool: pool ? ({} as RuleView) : null, year: yr }) as unknown as HydRow;
-const card = (rows: HydRow[] = []): CardModel => ({ rows }) as unknown as CardModel;
-const texts = (inp: RegsInputs, s: Settled, c = card(), today = D(10, 10)) => stripOf(inp, s, c, today)!.line.map((l) => l.text);
+const texts = (inp: RegsInputs, s: Settled, today = D(10, 10)) => stripOf(inp, s, today)!.line.map((l) => l.text);
 
 describe("the book's year", () => {
   it("BOOK_DAYS is the 365 days with no Feb 29; bookIndex is its index (Feb 29 reads as Feb 28)", () => {

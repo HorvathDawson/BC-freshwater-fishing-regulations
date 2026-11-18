@@ -182,7 +182,7 @@ describe("T10 the committed regs fixture release", () => {
       .map((r) => ({ id: r.id, f: unpackBlob(r.j, dicts.get("licence_frame") ?? null) as number[] })).filter((r) => r.f.length === 3);
     const [held, gone] = [frames[0]!, frames[1]!];
     const u16 = Math.max(...ids(r2, "licence_u16")), stray = u16 + 1000;   // an alien id no licence_u16 row holds
-    r2.exec("CREATE TABLE licence_alien (id INTEGER PRIMARY KEY, j BLOB)");
+    r2.exec("CREATE TABLE IF NOT EXISTS licence_alien (id INTEGER PRIMARY KEY, j BLOB)");   // a fixture cut since G8 has the table
     r2.prepare("INSERT INTO licence_alien VALUES (?, ?)").run(stray, Buffer.from(JSON.stringify([{ rule: 1, says: "x" }])));
     const put = (id: number, f: number[]) => r2.prepare("UPDATE licence_frame SET j = ? WHERE id = ?").run(Buffer.from(JSON.stringify(f)), id);
     put(held.id, [...held.f, stray]); put(gone.id, [...gone.f, stray + 1]);

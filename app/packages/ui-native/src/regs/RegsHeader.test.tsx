@@ -166,7 +166,7 @@ describe("(T841) the classified-water badge", () => {
   const A = { cls: "II", label: "Class II", period: null, inForce: true, term: "classified_waters", aria: "Class II" } as const;
   const B = { ...A, period: "Jul 1–Dec 31", aria: "Class II, Jul 1–Dec 31" } as const;
   const mountWith = (classed: HeaderVM["classed"], onTerm?: (id: string) => void) =>
-    render(<RegsHeader header={{ ...base, ...(classed ? { classed } : {}) }} palette={LIGHT} tabs={createPinStore()}
+    render(<RegsHeader header={{ ...base, ...(classed ? { classed } : {}) }} palette={LIGHT} tabs={createTabStore()}
                        onDate={() => {}} onTab={() => {}} onTerm={onTerm} />);
 
   it("a classified header: the class in the name row, named by its words; a press opens its term", () => {
