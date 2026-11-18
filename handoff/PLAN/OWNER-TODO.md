@@ -11,18 +11,18 @@ with the default Claude uses until you answer). Newest first inside each section
 
 ## Decisions that block work (nothing ships until you answer)
 
+- **ANSWERED 2026-11-17 15:04 (T825 side-channel gauges): "Yes, use the rule (Recommended)"; being built.** Was: Page:
+  scratchpad t813-t825/T825-side-channel-gauges.html (245 sections on 9 rivers, grouped by river, each with the gauge
+  it reads now and the one it would read). PROPOSED RULE: a side channel, slough or wide pool reads the nearest gauge
+  on its own main river that measures flow and drains about as much country (a tenth to ten times); if the river has
+  none, it reads none. 244 get a nearer gauge, 1 gets none (lower Sumas). Worth a look: 2 Kootenay channels near
+  Creston would read Corra Linn across Kootenay Lake. No gauge data changed yet.
+
 - **ANSWERED 2026-11-14 (production move changed).** Owner, verbatim: "Production will use the latest version" and "It
   will also get new dfo places I will label tonight". So production is NOT deployed from the 9048fbc20 copy below: it
   waits for tonight's DFO labels, then a new data release with them, then the website built from the latest checked
   code and that release. Claude: staging site redeployed from the latest code now; after the labels, a new staging
   release, then fresh production folders and fresh commands here. The commands in the next item are OUT OF DATE.
-- **Production move (2026-11-14): SUPERSEDED by the answer above; was: READY, yours to run** (owner: "tonight we will probably do that"). Follow
-  `handoff/PLAN/release/PRODUCTION.md`, first-transition steps 3-8. Data, from the main folder:
-  `CONFIRM_PROD=r-f749475d0962 .venv/bin/python -m pipeline release --prod r-f749475d0962`. Website, from the clean copy
-  `~/bcfish-clean-staging` (must be at 9048fbc20, `git status --porcelain -- app` empty): `deploy/prod/site.sh --dry-run`,
-  then `CONFIRM_PROD=canifishthis.ca deploy/prod/site.sh`, then `node app/tools/smoke-staging.mjs --production`. Then look
-  at `https://canifishthis.ca/privacy`. Production has no Play config file (`play.json`) yet. Page row
-  `hold-prod-move-staging-dirty-1114` has the same steps.
 - **To-Do page and this file compared 2026-11-14.** Added to the page: T686 pick, the 12 iOS-day defaults (one row),
   Apple account after approval, Play closed-testing steps. Closed on the page: T688 wording (answered 11-12). Build 29
   phone check marked replaced by the 0.7.8 / 0.7.9 rows. Not on the page (old, to prune or re-ask): Run timing T199 runs,
@@ -399,8 +399,9 @@ with the default Claude uses until you answer). Newest first inside each section
   Two small calls, defaults in use: (1) ✗ also flags "tributaries walked but the words don't say" and "a carve-out the
   words never state" — default: keep ✗ (look at it), say "make those ?" otherwise; (2) a check saves on the place only, not
   on its older rewordings (they are dormant) — default: yes.
-- **Production release: later, after your DFO extent labelling (owner 2026-11-08).** The command when ready:
-  `CONFIRM_PROD=r-a178299f6005 python -m pipeline release --prod r-a178299f6005` (or the newer release by then).
+- **Production release: after 0.8.0's data release (owner 2026-11-17: everything lands first).** Fresh commands come
+  here with that release id (`handoff/PLAN/release/PRODUCTION.md`, "Every later release"; the feeds worker first when it
+  carries closed areas). The two older command blocks (r-f749475d0962, r-a178299f6005) were removed (T790 item 7).
 - **Phone check (current build): last done 2026-11-09 on build 24** (answers on the owner checks page,
   https://claude.ai/artifact/5LRBFFgvYeTRnygSBWvZbM). 20 tickets closed on "fine". Follow-ups filed: T563 (percentile
   alert follows each day), T564 (gauge page: forecast + readable chart), T565 (in-season notice at the top), T566 (map
@@ -790,7 +791,8 @@ decisions.md "CLAUDE 2026-10-23 — owner-question triage" (read and reverse any
   uses against that stream's own tidal boundary; report to come in handoff/PLAN/curation-review/ (mouth-tidal-ends-audit, dated 2026-11-15).
 - OPEN, pick (T753, Sproat and 10 other waters): river pieces that loop out of a lake and back; take them out of the
   river and give them to the lake (recommended), take out only, or leave. Rides on the next map rebuild.
-- OPEN, six questions (T754, one-bank places: Kitimat west bank, Nakina). On the To-Do page.
+- ANSWERED 2026-11-15, round 4 (T754, one-bank places: Kitimat west bank, Nakina): "Build it this way
+  (Recommended)". To build (T790 item 1).
 - ANSWERED 2026-11-15 (T753, river pieces that loop out of a lake and back; Sproat): "yes do both steps but make sure it
   is done in a clean way". Both steps = take the pieces out of the river, then give them to the lake. Code lane started;
   it lands with the next map rebuild.
@@ -2416,3 +2418,61 @@ More questions (recommended answer first):
   Creston channels read Corra Linn). T752 desktop split "Keep it (Recommended)". T789 G9 "one fly" (36 rules / 35
   waters) and T801 item 4 confluence wording "Yes, ship both (Recommended)". T772 Kitsumkalum Lake side channels "Yes,
   show me the list (Recommended)" (the 16 as was/now before anything lands).
+- 2026-11-17 ~15:11, owner: T740 kept-map memory "After 0.8.0 (Recommended)". T789 K8/G8/G10 (Shuswap pier exemption,
+  non-resident-alien weekend closures on the Licence tab, under-16 non-resident price line), verbatim: "yes add to 0.8.0
+  we can add as banners? i thought we already had these as banners" (app chat to check what banners exist; book's
+  words; owner sees the wording before it ships). T801 item 3 Skeena River 2 stamp line: "Trim to this water's part
+  (Recommended)" (quote only its (a) part; other waters' stamp lines unchanged).
+- 2026-11-17 ~15:18, owner on T786/T806 (wrong saves): "I never changed it so it must have never been updated if it
+  was ones we fixed can you check?" Checked: all 34 re-check places were answered from pictures 11-16 12:20-12:42 and
+  re-saved (marks 2795-2839); Sproat 2795, Stamp Falls 2796 ("Keep 500 m below the fishway"; T803 item 13's "60 m
+  down" marked superseded). Then: "I feel like we have done these like 3 times already so it should be good???" So no
+  safety net (T786 dropped) and T806 done; owed later only: pictures for Morice Gosnell-Lamprey (2739, after its fix)
+  and Sheldens (2783, after the map rebuild). Don't ask him about these saves again.
+- 2026-11-17 ~15:19, owner (verbatim): "The safety net should be a build warning I think then we fix it and do not ship
+  "wrong" places..". So T786 is REOPENED as a release gate: the build lists every place whose latest save is "wrong"
+  (no fix drawn) and the release refuses to ship until each is fixed and re-saved. Not "ship undrawn".
+- 2026-11-17 ~15:22, owner (verbatim): "We should only ship not wrong items", then on "leave out what": "The build should
+  fail but Unmatched items ( from feed say it matches stream but no place exists yet because it is a new entry) should
+  have the dfos words added to the dfo rule section with the stream having the check rule style that we implemented
+  before. This should already be how it works?". So: T786 gate FAILS the build on a "wrong" save (as being built);
+  a new DFO feed entry with no drawn place yet ships DFO's words in the water's DFO rule section, the stream in the
+  "check rule" style. Verify that second part already works (he believes it does).
+- 2026-11-17 ~15:34, owner, T810 G2 trout wording (pictures g2.html): Q1 "What you keep here (Recommended)" (Echoes
+  "Keep 1 in all", each fish "up to the 1"; region's 5 under "Fished elsewhere today?"). Q2 "'only 3 between them'
+  (Recommended)" ("among them" for 3+; "up to the 5" where it is the box's own number). Q3a "'only 1 over 50 cm'
+  (Recommended)". Q3b verbatim: "once in top yes. but the lake trout in that example still has crazy size text that is
+  complex" (Tagish lake trout row to simplify; follow-up).
+- 2026-11-17 ~15:41, owner, T810 G2 continued: Tagish lake trout row "Say what to release (Recommended)" (row
+  "release 60-90 cm (24-35 in)" + "only 1 over 90 cm", box "only 2", possession line dropped as it equals the day's 2;
+  builder must keep the book's exact bounds: 60 cm or less and 90 cm or longer may be kept). Q4 "Own line, 'In your
+  possession' (Recommended)". Q6 "Once in the top line (Recommended)". Q7 verbatim: "waters own kind default to thisa
+  water when not known" (the kind in the water's name; "this water" when the name has none). Q8 "Once; steelhead says
+  'closed all year' (Recommended)". Q9 verbatim: "if it is 2 wild trout total then it should group wild i think except
+  "only 2 of these4" is worded not great... we should make the wild vs hatchery more obvious too. add this lake to hard
+  examples too" (follow-up mockup owed; Dodd/Windsor/Horseshoe/Nanton/Ireland into the hard vector cases). Q10 "Box +
+  one quiet line (Recommended)". Q5 gone (T834). Also fix without asking: Echoes says "only 1 from both lakes
+  together" twice; Fraser R3's closed table shows the year bar.
+- 2026-11-17 ~15:46, owner (verbatim): "the up to the x per day text is a little misleading whaty is the 5 we should word it
+  a little better i think." Picked "'any of the 5' (Recommended)": a row with no limit of its own says "any of the 5"
+  (the box's shared day total), replacing "up to the 5" everywhere (including G2 Q2's box-number case).
+- 2026-11-17 ~15:50, owner, T810 G2 Q9 follow-up (Dodd/Windsor/Horseshoe/Nanton/Ireland, mockup q9b): "1: Badges + 'only 2
+  wild in all' (Recommended)" (hatchery rows first, then the four wild rows under one white box "only 2 wild in all";
+  filled HATCHERY / outlined WILD badges; no new data).
+- 2026-11-17 ~15:52, owner: the 0.8.0 new-words page (Skeena non-resident line in both boxes, Skeena River 2 stamp sentence
+  trimmed, Salmon Arm pier exemption on the Shuswap closure and bait ban; book p.53, p.32) "Yes, ship them
+  (Recommended)". T797 item 2 sturgeon dead-fin-fish bait line "Show it (Recommended)" (reverses the app's D18 a).
+- 2026-11-17 ~16:30, owner (app chat dialog, T797 item 2): the bait-ban allowance field also holds set lining (Region 6 /
+  7A lakes). Picked "Show both (Recommended)": sturgeon on the Fraser/Harrison and set lining on its lakes. Answered.
+- 2026-11-17 ~17:01, owner on the T804/T807/T772 page: land it, verbatim: "for tatshenhini is the other 2 that list
+  specific tributaries only locating that specific tributary remember thta was a mistake on my mark that i wanted you
+  to fix. the rest seem good." (the two Tatshenshini places that name specific tributaries, Blanchard and "Kwatini,
+  Stanley and Goat creeks", bind ONLY the named tributary; his earlier mark there was a mistake to fix). The three
+  dormant saves (Cowichan x2, Stamp Ash-GCL dam), verbatim: "dfo words but make sure it is compatible with the name
+  tributaruies or not." Re-saves of the 12 changed answers: "Save them for me (Recommended)".
+- 2026-11-17 ~17:05, owner on the T786 gate's two open October saves: Stave River (marks line 30) "Yes, save it as right
+  (Recommended)" (both spawning channels drawn and closed since T222). Lower Pitt River (line 1265), verbatim: "im not
+  sure what this was about so just approve as right". Claude re-saves both as right citing these words. Thompson
+  (2521) and Morice (2596), dormant, already answered in T806 (closed areas; retired): dated allowances in the gate.
+- 2026-11-17 ~20:25, owner on the G8/G10 Licence page (T789). G8 weekend banner, verbatim: "Where is this? Should each of these waters just have their own info? Don't want this on waters it doesn't apply to". Lakelse/Telkwa every-day closures, verbatim: "Same thing applies to these". So: NO province-wide banner; each of the 12 waters (the 10 weekend ones + Lakelse + Telkwa) carries its own alien closure, with its own days and dates, on its own Licence tab only. G10 under-16 price: "Yes, each its own price (Recommended)" (each document with its own ordinary non-resident/alien price; the book prints no under-16 price).
+- 2026-11-17 ~20:27, owner (classified waters, T841 + T802), verbatim: "Also we need to make sure the classified water symbols are maintained properly and modify the license requirement. Also if a water is classified it should have a badge in the card I header I think. Make sure we capture all classified waters whether labeled by symbol or by tributary of something". Filed as T841 (audit + licence requirement + build check); T802's card part becomes a header badge (picture first).

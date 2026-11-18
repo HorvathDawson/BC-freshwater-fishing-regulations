@@ -72,6 +72,21 @@ Data note sent to the main chat: the Nicomekl / Serpentine rule reaches 27 side 
 (1/1, 22:01Z run) on the same `t797` APK (`--allow-stale`: only bench files and the dev mini-release changed since it
 was built). With the 12:28 runs, all six benches pass. Ready to land after the main chat's clear.
 
+2026-11-17 ~15:52, owner on item 2: "Show it (Recommended)": the dead-fin-fish-for-sturgeon allowance shows on sturgeon waters (the app reverses D18 a; the pipeline already computes also_allowed). OWNER-TODO 15:52.
+## Items 2-5 traced (lane/bugs-080b, 2026-11-17): the app's words, not the pipeline's
+- Item 2 (dead fin fish for sturgeon): the pipeline's bait row carries it (`gear.py` `also_allowed`, the sturgeon rules'
+  `when_targeting: WSG`); the app does not show `also_allowed` on purpose (`core/src/regs/bait.ts` header: decision D18 a).
+  Showing it is the app's change, and a reversal of D18 a: the owner's call.
+- Item 4 (Pitt Lake head "release all"): `pitt_lake.r3` keeps `origin: wild`; the in-part caveat's words are composed
+  in the app (`core/src/regs/caveats.ts` `inPartBlock` / `answerTxt`, which has no origin). The app's.
+- Item 5: the size-limit hint (E5) and the Cowichan boats line (E6) are the app's row words; the part labels (E7, Halfway,
+  Stellako) not traced. Item 3 (Shuswap pier exemptions, an undrawn part) not traced.
+
+2026-11-17 ~16:30, owner (app chat dialog, item 2 follow-up): the same `also_allowed` field also holds the set-lining
+allowance (Region 6 and Zone 7A lakes: "Dead fin fish may be used, while set lining, in lakes"). Picked, verbatim label:
+"Show both (Recommended)": every allowance the book prints under a bait ban shows on its waters. Duplicate labels on a
+Fraser part (row rule + bait.r3) become one line when the pipeline emits one `says` per allowance (main chat, bugs-080c).
+
 ## Built (app), items 2 and 4 (branch `app-fix/t801-t797`, 2026-11-17; not merged)
 - **Item 2** (owner "Show it", reversing D18 a; `decisions.md` D18 updated): `core/src/regs/bait.ts` says each bait
   element's stored `also_allowed` under the item, in its rule's label (`allowanceRules`, `noteWithAllowances`), each

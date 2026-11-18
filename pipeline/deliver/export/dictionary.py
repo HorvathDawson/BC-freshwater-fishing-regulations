@@ -11,7 +11,7 @@ from pipeline.deliver.export import codec as K
 from pipeline.deliver.export.guide_words import (
     CLAUSE_TEXT, END_TEXT, ENTRY_TEXT, FILE_TEXT, LENGTH_TEXT, LICENSING_FIELD_TEXT, LICENSING_RECORD_TEXT,
     LIFT_TEXT, OP_TEXT, PERIOD_TEXT, PROVENANCE_TEXT, RECORD_TEXT, RULE_FIELD_TEXT, RUN_TEXT, SET_TEXT,
-    SPLIT_TEXT, STAMP_WAIVER_TEXT, TIDAL_TEXT, WATER_PART_TEXT, WATER_TEXT, WHEN_TEXT, WHO_TEXT, extent_text
+    NON_RESIDENT_NOTE_TEXT, SPLIT_TEXT, STAMP_WAIVER_TEXT, TIDAL_TEXT, WATER_PART_TEXT, WATER_TEXT, WHEN_TEXT, WHO_TEXT, extent_text
 )
 from pipeline.deliver.export.guide import _fields, _licensing_models
 
@@ -125,6 +125,7 @@ def field_dictionary(d: dict) -> dict:
                                                                    "why")},
         "licensing.period": PERIOD_TEXT,
         "licensing.stamp_waiver": STAMP_WAIVER_TEXT,
+        "licensing.non_resident_note": NON_RESIDENT_NOTE_TEXT,
         "entry": ENTRY_TEXT,
         "water": WATER_TEXT,
         "water.tidal": TIDAL_TEXT,
@@ -159,6 +160,8 @@ _DICTIONARY_SCOPES = (
      lambda doc: [x["period"] for x in doc["licensing"].values() if x.get("period")]),
     ("licensing stamp_waiver key", ("licensing.stamp_waiver",),
      lambda doc: [x["stamp_waiver"] for x in doc["licensing"].values() if x.get("stamp_waiver")]),
+    ("licensing non_resident_note key", ("licensing.non_resident_note",),
+     lambda doc: [x["non_resident_note"] for x in doc["licensing"].values() if x.get("non_resident_note")]),
     ("entry field", ("entry",), lambda doc: doc["entries"].values()),
     ("set key", ("rulesets{} / licensing_sets{}",),
      lambda doc: list(doc["rulesets"].values()) + list(doc["licensing_sets"].values())),

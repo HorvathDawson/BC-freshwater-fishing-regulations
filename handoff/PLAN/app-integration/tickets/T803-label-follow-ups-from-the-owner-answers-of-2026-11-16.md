@@ -30,8 +30,9 @@ batches 2 to 9). His words are quoted there; the work, one item each:
     then it is all good?": the powerline is the mouth for this place (the mouth carries the name); the whole river
     stays open for coho; no new cut.
 12. **Skeena side channel name**: reword from the lower end up (check which end is lower first).
-13. **Stamp Falls lower cut**: "Move it 60 m down (Recommended)" (225 m below Deer Creek; next map rebuild; picture
-    to him before it ships). **Sproat**: his 50 m fix is in; re-save as right.
+13. ~~**Stamp Falls lower cut**: "Move it 60 m down (Recommended)"~~ **SUPERSEDED, DO NOT MOVE THE CUT**: the owner
+    replaced it on 2026-11-16 ~12:20 (T806 re-check, picture 2): "Keep 500 m below the fishway" (marks.jsonl line 2796,
+    verified). **Sproat**: re-saved as right (line 2795). Both done.
 14. **Kitimat east bank**: both banks stay closed until one-bank places are built (no change).
 15. **Nicomekl and Serpentine** "No angling (from a powered boat) — upstream of dyke gates" binds 27 side streams too
     (the app chat's note, 11:32): check the book's words; the two rivers only, or their side streams.
@@ -48,7 +49,7 @@ by the book's words; the binding stays. Item 3's rule ("The heading counts") is 
 Done elsewhere: 1, 2, 9, 11 (a5990dd7b, 5debac3ef; carries 02f0fedca), 3 (RULINGS T16, 865cbac37), 5 and 6 (GOTCHAS,
 4bd6e5333), 15 (no change), 16 (with T770), 14 (no change). Left:
 - 4, 8, the Sproat re-save, 10: saves through the review app (marks), not a file edit; 4's label lookup is T776.
-- 7 (Chemainus DFO sentence in `waters/tidal_split_authority.json`) and 13 (Stamp Falls cut 60 m down, `cuts.json`): both
+- 7 (Chemainus DFO sentence in `waters/tidal_split_authority.json`) and 13 (SUPERSEDED: no Stamp Falls cut move, see item 13): both
   files are ATLAS INPUTS (`pipeline/atlas/inputs.py`); an edit makes the live atlas stale and the release preflight
   stops. They go with the next atlas rebuild, not the 0.8.0 reach-only build (13 also wants a picture to the owner).
 - 12 (Skeena side channel name): not traced here.

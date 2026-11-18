@@ -830,6 +830,10 @@ export const PACK_FILES: Record<string, PackFile> = {
         "id",
         "j"
       ],
+      "licence_alien": [
+        "id",
+        "j"
+      ],
       "licence_answer": [
         "id",
         "j"
@@ -894,6 +898,10 @@ export const PACK_FILES: Record<string, PackFile> = {
         "j"
       ],
       "ladder_verdict": [
+        "id",
+        "j"
+      ],
+      "licence_alien": [
         "id",
         "j"
       ],
@@ -964,6 +972,10 @@ export const PACK_FILES: Record<string, PackFile> = {
         "id",
         "j"
       ],
+      "licence_alien": [
+        "id",
+        "j"
+      ],
       "licence_answer": [
         "id",
         "j"
@@ -1028,6 +1040,10 @@ export const PACK_FILES: Record<string, PackFile> = {
         "j"
       ],
       "ladder_verdict": [
+        "id",
+        "j"
+      ],
+      "licence_alien": [
         "id",
         "j"
       ],
@@ -1098,6 +1114,10 @@ export const PACK_FILES: Record<string, PackFile> = {
         "id",
         "j"
       ],
+      "licence_alien": [
+        "id",
+        "j"
+      ],
       "licence_answer": [
         "id",
         "j"
@@ -1162,6 +1182,10 @@ export const PACK_FILES: Record<string, PackFile> = {
         "j"
       ],
       "ladder_verdict": [
+        "id",
+        "j"
+      ],
+      "licence_alien": [
         "id",
         "j"
       ],
@@ -1232,6 +1256,10 @@ export const PACK_FILES: Record<string, PackFile> = {
         "id",
         "j"
       ],
+      "licence_alien": [
+        "id",
+        "j"
+      ],
       "licence_answer": [
         "id",
         "j"
@@ -1299,6 +1327,10 @@ export const PACK_FILES: Record<string, PackFile> = {
         "id",
         "j"
       ],
+      "licence_alien": [
+        "id",
+        "j"
+      ],
       "licence_answer": [
         "id",
         "j"
@@ -1363,6 +1395,10 @@ export const PACK_FILES: Record<string, PackFile> = {
         "j"
       ],
       "ladder_verdict": [
+        "id",
+        "j"
+      ],
+      "licence_alien": [
         "id",
         "j"
       ],

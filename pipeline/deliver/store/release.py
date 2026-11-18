@@ -33,7 +33,7 @@ from pipeline.deliver.store.decode import Store
 #: (T672 1b) store tables added after releases were cut WITHOUT a format change (ADDITIVE, `contract.FILES`): a release
 #: whose files hold none of them was cut before the table, so the reassembled store drops it — its store, as built,
 #: had no such table (`store_digest` hashes every table's name). A release cut with it holds it and is held to it.
-ADDITIVE_TABLES = frozenset({"section_tidal"})
+ADDITIVE_TABLES = frozenset({"section_tidal", "licence_alien"})
 
 #: the water file's meta keys an older release (no `store_meta`) carries over from the store's
 WATER_STORE_KEYS = ("about_bundle", "answers_sha256", "blob_codec", "card_check", "layout", "reach_digest",

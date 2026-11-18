@@ -175,5 +175,14 @@ from __future__ import annotations
 #:     side channel along the piece. The Gitnadoix coho place upstream of the mouth alias binds the river's 1,000
 #:     sections, not 991; the Chilliwack, joining 25.4 m below the Vedder Crossing Bridge cut on the Vedder line's top,
 #:     stays across it. No classify.py outcome changed; the bump marks the binding diff.
-POLICY_VERSION = "46"
+#: 47: (T804 + T807, owner 2026-11-16) THE WATER AT A CONFLUENCE CUT IS THE ONE THAT BRINGS ITS NAMED WATER TO THE LINE
+#:     (`build.THE_WATER_AT_A_CONFLUENCE_CUT_IS_THE_ONE_THAT_BRINGS_ITS_NAMED_WATER`): the Morice's "Gosnell Creek to
+#:     Lamprey Creek" cut finds the Thautil River (Gosnell joins it 222 m up), which has a row of its own, so T9 keeps it
+#:     and Gosnell Creek out of the stretch's two rules. And A DFO PLACE'S SIDE STREAMS ARE DFO'S WORDS FOR IT
+#:     (`regs.dfo_salmon.side_streams`): its own line, else the exact heading it sits under, else river only; a saved
+#:     value is a stated exception; the merged water's flag never decides (11 live places go river-only). And (T772) A
+#:     THROUGH-RIVER THAT STAYS OUT OF A LAKE'S WALK STAYS OUT WITH ITS SIDE CHANNELS
+#:     (`build.A_THROUGH_RIVER_STAYS_OUT_WITH_ITS_SIDE_CHANNELS`): Kitsumkalum Lake no longer takes the Kitsumkalum
+#:     River's side channels above the lake.
+POLICY_VERSION = "47"
 

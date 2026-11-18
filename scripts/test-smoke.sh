@@ -4,7 +4,7 @@
 #
 #   ./scripts/test-smoke.sh
 #
-#   1. pnpm -C app check            every app gate + the whole vitest suite (≈ 17 s; vitest alone ≈ 5 s)
+#   1. pnpm -C app check            every app gate + the whole vitest suite (3 to 4 min, audit 2026-11-16)
 #   2. pytest -m smoke              per pipeline test file, its first no-data test (or the ones it marks smoke): pipeline/tests/smoke.py
 #
 # Tier 0 (while iterating) is the one test file / vitest filter you touched. Tier 2 is

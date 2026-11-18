@@ -189,6 +189,12 @@ not count towards the regions 2? That seems wrong". Kaslo and Keen: B (count tow
 built is right; the shipped card's "Not part of the 2 from streams" line there is wrong and goes at the cutover).
 Follow-up asked: does T3a (Lardeau, Duncan lift) stand.
 
+## 2026-11-17 ~15:41: G2 answered by the owner (OWNER-TODO 15:34 and 15:41, verbatim there)
+Q1 what you keep here; Q2 "between/among them" (box number: "up to the N"); Q3a "only 1 over 50 cm"; Q3b once in the top line + Tagish lake trout "release 60-90 cm" form (exact book bounds); Q4 own line "In your possession"; Q5 gone (T834); Q6 "any size" once in the top line; Q7 the water's own kind, else "this water"; Q8 reopens once, steelhead "closed all year"; Q9 group the wild rows with clearer words than "only 2 of these 4", wild vs hatchery more obvious (FOLLOW-UP MOCKUP OWED), Dodd lake into the hard cases; Q10 box + one quiet line. Bugs to fix: Echoes double "both lakes together"; Fraser R3 closed table year bar. Pictures: scratchpad t810-g2/.
+
+2026-11-17 ~15:46, owner: rows with no limit of their own say "any of the 5" (not "up to the 5"); applies to G2 Q2 and Q9 too. Verbatim in OWNER-TODO 15:46.
+
+2026-11-17 ~15:50, owner Q9: option 1, badges + "only 2 wild in all" (hatchery rows first, then wild rows grouped; filled HATCHERY / outlined WILD badge, a look change in O). OWNER-TODO 15:50.
 ## 2026-11-17 14:10: M0 + M built (app chat, branch app/t810-m0-m)
 - M0: `OPTIONAL_VERSIONS = Object.freeze({ trout: 1 } as const)` in `core/src/regs/versions.ts`, in I0's line shape,
   with the bump rule beside it. `openRegsStore` walks it. An absent section is fine. A section at another version is

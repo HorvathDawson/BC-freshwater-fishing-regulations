@@ -537,6 +537,12 @@ def main():
         return {ix: (s.s(lo), s.s(hi)) for ix, lo, hi in
                 c.execute("select part_ix, lo_s, hi_s from part where item_ord=?", (ord_of[item],))}
 
+    # the cell's frame ids: the five always-on sections, then any optional section the store carries (T810: `trout`,
+    # contract.OPTIONAL_SECTIONS); the app's harness reads the same columns, so a side release's taps name them too
+    have = {r[1] for r in c.execute("pragma table_info(cell)")}
+    CELL_COLS = ("ladder", "rows", "gear", "licence", "display") + tuple(k for k in ("trout",) if k in have)
+    CELL_SQL = f"select {', '.join(CELL_COLS)} from cell where akey=? and s=?"
+
     def tap(item, part_ix, month, day, weekday):
         o = ord_of.get(item)
         if o is None:
@@ -551,7 +557,7 @@ def main():
         if mom is not None:
             moms = [M[i] for i in json.loads(c.execute("select ix from segmom where mom=?", (mom,)).fetchone()[0])]
         si = E.segment_index(starts, day_of((month, day)), moms, weekday, False)
-        cell = c.execute("select ladder, rows, gear, licence, display from cell where akey=? and s=?", (akey, si)).fetchone()
+        cell = c.execute(CELL_SQL, (akey, si)).fetchone()
         # the display frame of every day of the leap calendar, each at ITS OWN weekday in 2026 (page v36 segOf(w, md) =
         # segAt(w, md, weekdayOf(md), false), the snapshot's runsOf); day 60 (Feb 29, absent in 2026) at its first moment
         days = []
@@ -564,7 +570,7 @@ def main():
                 sd = E.segment_index(starts, d, moms, WD_OF_DAY[d], False)
             days.append(c.execute("select display from cell where akey=? and s=?", (akey, sd)).fetchone()[0])
         return {"item_ord": o, "akey": akey, "seg": seg, "mom": mom, "nseg": nseg, "starts": starts, "moments": moms,
-                "s": si, "cell": dict(zip(("ladder", "rows", "gear", "licence", "display"), cell)), "displayByDay": days}
+                "s": si, "cell": dict(zip(CELL_COLS, cell)), "displayByDay": days}
 
     def leap(cid, item, part_ix, year, month, day):
         wd = weekday_of(year, month, day)
@@ -574,10 +580,10 @@ def main():
         moms = None if mom is None else [M[i] for i in json.loads(c.execute("select ix from segmom where mom=?", (mom,)).fetchone()[0])]
         rd = reading_day_of((month, day))
         si = E.segment_index(starts, rd, moms, wd, False)
-        cell = c.execute("select ladder, rows, gear, licence, display from cell where akey=? and s=?", (akey, si)).fetchone()
+        cell = c.execute(CELL_SQL, (akey, si)).fetchone()
         return {"id": cid, "item": item, "partIx": part_ix, "date": f"{year}-{month:02d}-{day:02d}", "weekday": wd,
                 "readingDay": rd, "akey": akey, "starts": starts, "moments": moms, "s": si,
-                "cell": dict(zip(("ladder", "rows", "gear", "licence", "display"), cell))}
+                "cell": dict(zip(CELL_COLS, cell))}
 
     out = {"meta": {"generator": "app/tools/regs-recut/taps.py", "store": {k: meta.get(k) for k in ("format", "section_handles", "reach_digest", "rule_ids_sha256", "answers_sha256", "store_digest", "layout")},
                     "golden": G["meta"].get("sha"), "version": G["meta"].get("version"), "year": 2026}, "states": {}, "unnamed": [],

@@ -145,7 +145,7 @@ A6. **Commit only your own paths: `git commit -- <paths>`.** Several agents shar
     2026-09-29 (`pytest --collect-only -q -m slow`, run unfiltered, not through rtk). Determinism and full-build
     guards live there, so CI must run `-m slow` explicitly or they never run.
     **Test tiers (P00, 2026-10-20):** Tier 0 is the one file you touched; Tier 1 is `scripts/test-smoke.sh`, run per
-    commit (≈ 75 s: `pnpm -C app check`, `pytest -m smoke`: per test file its first no-data test, or the
+    commit (the app check alone takes 3 to 4 min, audit 2026-11-16, T791: `pnpm -C app check`, `pytest -m smoke`: per test file its first no-data test, or the
     ones it marks `@pytest.mark.smoke` (guards), by rule in `pipeline/tests/smoke.py` — no list to edit, T667 D6); Tier 2 is
     `scripts/test-full.sh` via `scripts/heavy.sh`, once per phase or before a merge. **The tier decides the world** (T667 slice 7):
     a run whose `-m` leaves out every `slow` / `needs_*` test (CI's tier, `-m smoke`) hides this machine's builds whoever

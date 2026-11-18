@@ -201,8 +201,16 @@ step "the mini chain on invented data (an atlas / deliver / gauges / mini file c
 # imports nothing. A changed pipeline Python file runs every test file that walks the pipeline's sources (found by
 # the same grep each time, so a new scanner joins by itself), CI's markers (~40 s). Two are left out: their time is
 # the review app's own fixtures, not the scan (test_review_screen 83 s, test_review_marks 15 s), and CI runs them.
+# (T791 item 3, owner 2026-11-16 "Yes, as proposed") the release preflight sets FAST_FAIL_FRESH_COPY_NEXT when its
+# fresh-copy run (the whole no-data tier on a clean clone) follows in the same preflight: the in-place whole tier and its
+# two subsets here (source scanners, review tests) ran the same tests twice more, ~27 min over one night's attempts
+fresh_copy_next() {
+  [[ ${FAST_FAIL_FRESH_COPY_NEXT:-} == 1 ]] || return 1
+  echo "   (left to the release's fresh-copy run, next in this preflight: the whole no-data tier on a clean clone)"
+}
 source_scanners() {
   grep -qE '^pipeline/.*\.py$' <<<"$CHANGED" || { echo "   (no pipeline Python file changed)"; return 0; }
+  fresh_copy_next && return 0
   local files
   files=$(git grep -l -E 'rglob\("\*\.py"\)|glob\("\*\*/\*\.py"\)|_py_sources\(|walk\(.*pipeline' -- 'pipeline/tests/test_*.py' \
     | grep -vE 'test_review_(screen|marks)\.py$')
@@ -221,6 +229,7 @@ step "every source scanner (a pipeline Python file changed)" source_scanners
 review_tests() {
   grep -qE '^(pipeline/regs/review|curation-review/backend)/.*\.py$' <<<"$CHANGED" \
     || { echo "   (no review module changed)"; return 0; }
+  fresh_copy_next && return 0
   local files markers
   files=$(git grep -l -E 'pipeline\.regs\.review|regs\.review import|curation-review' -- 'pipeline/tests/test_*.py')
   markers=$(no_data_markers) || return 1
@@ -297,6 +306,11 @@ step "goldens cut from LATEST" "$PY" scripts/check-goldens-paired.py
 # in its curated file, or is on the dated allow-list (`pipeline/regs/review/apply.py` NOT_LANDED_OK)
 step "review marks have landed in their curated files" "$PY" -m pipeline.regs.review.apply --check --waiting-ok
 
+# (T786, owner 2026-11-17: "do not ship \"wrong\" places") a place whose latest review save is "wrong" / "unsure" with no
+# extent fix shipped its older drawing (Sproat, Stamp Falls, the Region 3 Fraser on staging 11-16). Read-only, instant:
+# refuses while one is listed, live or dormant; only a dated WRONG_SAVE_OK row (pipeline/regs/review/wrong_saves.py) passes
+step "no place ships on a wrong save with no fix" "$PY" -m pipeline.regs.review.wrong_saves --check
+
 # caught (2026-11-10, T546/T632): OKANAGAN RIVER OXBOWS pinned 26 wsc ids no registry item carries; the row bound the
 # rest with nothing said. Owner 2026-11-11: no build runs with a dead override id (the reach run refuses it too).
 # Reads the live atlas's registry.json (~2 s); a missing build raises naming the command that makes it
@@ -327,6 +341,7 @@ as_ci() {
   local tests src
   src=$(grep -E '^pipeline/.*\.py$' <<<"$CHANGED" | grep -vE '(^|/)(test_[^/]*|conftest)\.py$' | grep -vE '^pipeline/tests/' || true)
   if [[ -n $src && -n ${FAST_FAIL_BASE:-} ]]; then
+    fresh_copy_next && return 0
     echo "   $(grep -c . <<<"$src") pipeline source file(s) changed ($(head -3 <<<"$src" | paste -sd' ' -)…): the whole no-data tier, as CI"
     bash scripts/pytest-chunked.sh -- -m "$CI_MARKERS"
     return

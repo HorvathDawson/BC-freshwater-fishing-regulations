@@ -195,8 +195,14 @@ class Table:
         self.top = W.parse_top_full(t["top"]["lead"])
         self.fold = W.parse_fold(t["fold"]["value"])
         self.together = W.parse_together(t["together"]["text"]) if t["together"] else None
+        self.together_text = t["together"]["text"] if t["together"] else None
         if t["top"]["second"] is not None:
-            W.parse_together(t["top"]["second"])
+            second = W.parse_together(t["top"]["second"])
+            if self.together is None:
+                # T810 G2: the lakes' own count said once, under the top line (Echoes)
+                if second[0] != "lakes":
+                    raise _Fail(f"top.second {t['top']['second']!r} without the line under the table")
+                self.together, self.together_text = second, t["top"]["second"]
         self.elsewhere = [(e, W.parse_elsewhere(e)) for e in t["elsewhere"]]
         self.rows: List[Row] = []
         self.boxes = []
@@ -205,6 +211,11 @@ class Table:
             if kind != b["kind"]:
                 raise _Fail(f"box {bi} is {b['kind']} and its head says {b['head']!r}")
             strip = W.parse_strip(b["strip"]) if b["strip"] else ()
+            if b.get("possession"):
+                # T810 G2 Q4: the box's possession on its own line ("In your possession: …")
+                if not b["possession"].startswith("In your possession: "):
+                    raise W.WordsError(f"trout words: cannot read the box's possession {b['possession']!r}")
+                strip = strip + (("possession", W.parse_possession("i" + b["possession"][1:])),)
             if b["tag"] is not None and not W.re.fullmatch(r"[A-Z][a-z]+’s rule", b["tag"]):
                 raise W.WordsError(f"trout words: cannot read the tag {b['tag']!r}")
             if b["label"] is not None and b["label"] != W.HATCHERY_ONLY:
@@ -217,8 +228,14 @@ class Table:
                 kind_, k, m = W.parse_band(x["text"])
                 if kind_ != x["kind"]:
                     raise _Fail(f"box {bi}: band {x['text']!r} is marked {x['kind']}")
-                if kind_ == "shared" and m != x["to"] - x["from"] + 1:
+                if kind_ == "shared" and (m != x["to"] - x["from"] + 1 if m is not None else x["to"] == x["from"]):
                     raise _Fail(f"box {bi}: band {x['text']!r} spans rows {x['from']}..{x['to']}")
+                if kind_ == "shared" and m is None and W.band_wild_n(x["text"]) is not None and \
+                        any(r.origin != "wild" for r in rows[x["from"]:x["to"] + 1]):
+                    raise _Fail(f"box {bi}: band {x['text']!r} over a row that is not wild")
+                if kind_ == "shared" and m is None and W.band_wild_n(x["text"]) is None and \
+                        x["to"] - x["from"] + 1 < 3:
+                    raise _Fail(f"box {bi}: band {x['text']!r} over two rows says 'between them'")
                 for r in rows[x["from"]:x["to"] + 1]:
                     r.band = (kind_, k, m, x["from"], x["to"])
             self.boxes.append({"kind": b["kind"], "n": n, "strip": strip, "rows": rows, "raw": b,
@@ -232,16 +249,20 @@ class Table:
                 for p in self.boxes[r.b]["strip"]:
                     if p[0] == "possession":
                         r.poss = p[1]
-                        r.poss_text = next(s for s in (r.box["strip"] or "").split("; ")
-                                           if s.startswith("in your possession: "))
+                        r.poss_text = next((s for s in (r.box["strip"] or "").split("; ")
+                                            if s.startswith("in your possession: ")), None) or \
+                            "i" + r.box["possession"][1:]
             if r.band and r.band[0] == "possession":
                 q = [x for _t, x in r.quiet if x[0] == "possession"]
                 if len(q) != 1 or q[0][2] != r.band[1] or q[0][3] != (r.fish,):
                     raise _Fail(f"row {r.key}: a possession band {r.band[1]} without its quiet line")
                 r.daily_said = q[0][1]
                 if r.poss is None:
-                    r.poss = ("count", r.band[1], (r.fish,), ())
-                    r.poss_text = f"in your possession: no more than {W._n(r.band[1])}"
+                    # T810 G2 Q10: the quiet line carries the possession's size clause ("…, and only 1 of them over …")
+                    r.poss = ("count", r.band[1], (r.fish,), q[0][4])
+                    r.poss_text = f"in your possession: no more than {W._n(r.band[1])} " \
+                        f"{common.lc_names([r.fish])}" + "".join(
+                            f", only {W._n(k)} over {common.cm_in(rng[0][0])}" for k, rng in q[0][4])
         self.keep_rows = [r for r in self.rows if r.kind == "keep"]
 
     # -- the row a fish (species, origin, length) is kept under, if any ---------------------------------
@@ -307,8 +328,9 @@ class Table:
                     out.append((f"box {bi} band {fr}..{to} {k}", of_rows(rows[fr:to + 1]), k))
                 elif kind == "possession":
                     out.append((f"row {r.key} a day {r.daily_said}", of_rows([r]), r.daily_said))
-                elif kind == "upto" and k != b["n"]:
-                    raise _Fail(f"row {r.key}: 'up to the {k}' in a box of {b['n']}")
+                elif kind == "upto" and k != b["n"] and not (b.get("except") is not None and k == b["except"][0]
+                                                               and r.fish not in set(b["except"][1])):
+                    raise _Fail(f"row {r.key}: 'any of the {k}' in a box of {b['n']}")
             for p in b["strip"]:
                 if p[0] == "size":
                     n, cm, extra = p[1], p[2], p[3]
@@ -320,6 +342,10 @@ class Table:
                                     and not (f[0] == "ST" and f[1] == "hatchery"), n))
                         out.append((f"box {bi} over {cm}: {extra} with one", lambda f, rf, R=of_rows(rows), cm=cm:
                                     R(f, rf) and f[2] > cm, extra))
+                elif p[0] == "size_except":
+                    out.append((f"box {bi} over {p[2]}: {p[1]}, not counting {list(p[3])}",
+                                lambda f, rf, R=of_rows(rows), cm=p[2], ex=set(p[3]): R(f, rf) and f[2] > cm
+                                and f[0] not in ex, p[1]))
                 elif p[0] == "wild":
                     out.append((f"box {bi} wild {p[1]}", lambda f, rf, R=of_rows(rows): R(f, rf) and f[1] == "wild",
                                 p[1]))
@@ -353,10 +379,10 @@ class Table:
                             out.append((f"row {r.key} {t!r}", fishes({r.fish} | set(others), origin=o), n))
         if self.together is not None:
             if self.together[0] == "origin":
-                out.append((f"together {self.t['together']['text']!r}",
+                out.append((f"together {self.together_text!r}",
                             lambda f, rf, o=self.together[2]: rf is not None and f[1] == o, self.together[1]))
             else:
-                out.append((f"together {self.t['together']['text']!r}", lambda f, rf: rf is not None,
+                out.append((f"together {self.together_text!r}", lambda f, rf: rf is not None,
                             self.together[1]))
         return out
 
@@ -399,7 +425,7 @@ def _cms(x) -> List[float]:
             out.append(x[2])
         elif k == "size_count":
             out.append(x[2])
-        elif k == "size" and len(x) == 4:          # a strip size part
+        elif k in ("size", "size_except") and len(x) == 4:          # a strip size part
             out.append(x[2])
         elif k in ("wild",) and x[2]:
             for a, b in x[2]:
@@ -763,7 +789,18 @@ def possession_problems(c: Cell, T: Table) -> List[str]:
             continue
         duties = [f"{r.poss_text} ({POSSESSION_HOME})"] if r.poss_text else []
         x = {"species": [r.fish], "n": 1, "duties": duties}
-        probs += PP(c.P, x, f"row {r.key}", lead=lead)
+        got = PP(c.P, x, f"row {r.key}", lead=lead)
+        # (the row's own number, or the box's where G2 Q1 turned the row's own band into "any of the N")
+        own = [y[1] for _t, y in r.lines if y[0] == "only"] + ([r.band[1]] if r.band and r.band[0] in ("own", "upto")
+                                                                 else [])
+        if got and not duties and own:
+            # T810 G2: a water's possession count equal to the fish's own day number is not said again (Tagish's lake
+            # trout, "only 2"): the rules must say exactly that count, with no clause
+            alt = {**x, "duties": [f"in your possession: no more than {W._n(min(own))} {common.lc_names([r.fish])} "
+                                   f"({POSSESSION_HOME})"]}
+            if not PP(c.P, alt, f"row {r.key}", lead=lead):
+                got = []
+        probs += got
     return probs
 
 
@@ -789,6 +826,8 @@ def origin_problems(c: Cell, T: Table) -> List[str]:
             if any(x[0] == "wild" or (x[0] == "also" and x[1][0] == "across") for _t, x in r.lines):
                 return True
             if any(p[0] == "wild" for p in T.boxes[r.b]["strip"]):
+                return True
+            if any(W.band_wild_n(x["text"]) is not None for x in r.box["bands"]):
                 return True
         return T.together is not None and T.together[0] == "origin"
     for i, row in enumerate(rows):
@@ -819,9 +858,12 @@ def origin_problems(c: Cell, T: Table) -> List[str]:
                             every <= {r.fish, *x[1][3]}:
                         said = True
             boxes = {r.b for S in every for r in by_fish[S]}
-            if len(boxes) == 1 and any(p[0] == "wild" and p[1] == a["n"] for p in T.boxes[boxes.pop()]["strip"]) \
-                    and a["o"] == "wild":
-                said = True
+            if len(boxes) == 1:
+                b1 = T.boxes[boxes.pop()]
+                if a["o"] == "wild" and (any(p[0] == "wild" and p[1] == a["n"] for p in b1["strip"]) or any(
+                        W.band_wild_n(x["text"]) == a["n"] and {y.fish for y in b1["rows"][x["from"]:x["to"] + 1]}
+                        >= every for x in b1["raw"]["bands"])):
+                    said = True
             if not said:
                 probs.append(f"the {a['o']} limit of {a['n']} across rows ({sorted(every)}) is not said across them")
     return probs
@@ -831,7 +873,7 @@ def origin_problems(c: Cell, T: Table) -> List[str]:
 
 def sheet_problems(c: Cell, T: Table) -> List[str]:
     probs: List[str] = []
-    together = T.t["together"]["text"] if T.t["together"] else None
+    together = T.together_text            # the line under the table, or the lakes' count under the top line (G2)
     docs = _documents(c.licence)
     for r in T.rows:
         sh = r.r["sheet"]
@@ -1009,7 +1051,8 @@ def elsewhere_problems(c: Cell, T: Table) -> List[str]:
 def year_problems(c: Cell, T: Table, frames, starts, moments) -> List[str]:
     from pipeline.deliver.answers.year import stamp_years
     states = set(asked(c.frame).values())
-    want = c.display.get("status") != "closed" and len(states) == 1 and states <= {"release", "closed"}
+    # T810 G2 (owner 15:41): the bar only when every fish is released, never on a closed table (Fraser in October)
+    want = c.display.get("status") != "closed" and len(states) == 1 and states <= {"release"}
     y = T.t["year"]
     if (y is not None) != want:
         return [f"the year bar is {'shown' if y else 'not shown'}; the fish are {sorted(states)}"]
@@ -1212,8 +1255,9 @@ def _texts_by_row(T: Table) -> Dict[str, Tuple[str, str]]:
     out: Dict[str, Tuple[str, str]] = {}
     for r in T.rows:
         got = []
+        year_long = any(x[0] == "closed_year" for _t, x in r.lines)
         for lvl in ("card", "top"):
-            if d.get(lvl):
+            if d.get(lvl) and not (lvl == "top" and year_long):
                 got.append((lvl, d[lvl]))
         if str(r.b) in (d.get("box") or {}):
             got.append(("box", d["box"][str(r.b)]))
@@ -1275,6 +1319,11 @@ def date_problems(key_cells: Sequence[Optional[dict]], frames, displays, starts,
                 continue
             got = texts.get(r.key)
             where = f"segment {j} (day {starts[j]}) row {r.key}"
+            if any(x[0] == "closed_year" for _t, x in r.lines):
+                # T810 G2 Q8: "closed all year" — closed today, and no later segment of the year changes it
+                if r.kind != "closed" or want is not None:
+                    probs.append(f"{where}: says 'closed all year' ({r.kind}; next change {want})")
+                continue
             if want is None:
                 if got is not None:
                     probs.append(f"{where}: dated {got[1]!r} ({got[0]}); its answer holds all year")

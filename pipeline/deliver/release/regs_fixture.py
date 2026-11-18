@@ -248,8 +248,10 @@ def build(release: Path, items: Sequence[str], handles: Sequence[int], out_root:
             if name not in con:
                 raise FixtureError(f"regs fixture: release {src_id} has no {name} file")
             ids = _shard_ids(con[name], zd, regions[r])
+            # an ADDITIVE table (`licence_alien`, T789 G8) a release cut before it does not hold: its fixture none either
+            have = {t for (t,) in con[name].execute("SELECT name FROM sqlite_master WHERE type = 'table'")}
             plan = [("s", t, f"WHERE {'akey' if t == 'cell' else 'id'} IN ({_ids(ids[t])})")
-                    for t in SH.shard_tables(con[name])]
+                    for t in SH.shard_tables(con[name]) if t in have or t not in ADDITIVE_TABLES]
             files[name] = B.copy_file(work / f"{name}.sqlite", {"s": src[name]}, plan, {**meta[name], **fix})
 
         def sid_extra(c: sqlite3.Connection) -> None:
