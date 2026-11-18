@@ -305,3 +305,8 @@ box spanning its rows, "counts toward the N · only k between them" for 2 rows, 
 "only 1 between them"; R5 "uses the 1 over 50 cm" and "only 1, counting any …" gone, the result stated once); "any size"
 off the box head; ungrouped rows first, inner groups last; hatchery + wild as one row "50 cm (20 in) or less if wild"
 (no tags). Vedder: lead with 2 ("only one is an exception"): top line form owed, picture next.
+
+## 2026-11-18 01:28: owner on Vedder and three look questions (verbatim in OWNER-TODO)
+Vedder: "Keep 2 trout and char today" + subline "or 4 if they're hatchery rainbow trout 50 cm (20 in) or less", the
+rainbow row LAST (V2). Char HATCHERY ONLY: leave as is. "in your possession": keep. Madden's DV clause: he asks if it can
+go (it is 2, as is the general limit); the main chat to answer whether the DV 2 sits outside the general 2.

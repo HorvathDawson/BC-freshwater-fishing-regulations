@@ -2591,3 +2591,12 @@ More questions (recommended answer first):
      still important becasue only one is an exception to that." (Lead with 2; the hatchery rainbow 4 is the exception.
      Open: the exact two lines, picture owed.)
   3. Hatchery + wild in one row, "50 cm (20 in) or less if wild", no tags: "Yes, "if wild" (Recommended)".
+- 2026-11-18 01:28, owner (app chat dialog; vedder-r4b V1 rainbow first | V2 rainbow last, both "Keep 2 trout and char
+  today" + "or 4 if they're hatchery rainbow trout 50 cm (20 in) or less"; and the analyst's three look questions),
+  verbatim:
+  1. Vedder: "V2: rainbow last (Recommended)" (lead with 2; the hatchery rainbow row last, as the exception).
+  2. HATCHERY ONLY over char on Region 2 streams and DV/LT at Lois/Khartoum: "Leave as is".
+  3. Madden Creek top line: "isnt the dolly not needed to be mentioned since it is 2 and it is keep up to 2 trout/char in
+     general? so it could be dropped from header line?" (open: the main chat answers whether the DV 2 sits outside the
+     general 2; if it does, dropping it would hide that you may keep 2 more).
+  4. Nation/Cunningham/Nakinilerak lake trout "only 2 in your possession": "Keep "in your possession" (Recommended)".
