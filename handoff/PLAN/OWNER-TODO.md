@@ -2627,3 +2627,11 @@ More questions (recommended answer first):
 - 2026-11-18 01:42, owner (app chat dialog over fraser-over50 A no line | B "uses your 1 over 50 cm (20 in)" on DV/LT; the
   main chat's sweep: 1,387 tables where a fish kept only over 50 cm sits beside fish that can also pass 50 cm), verbatim:
   "A: drop it everywhere". (The box head's "only 1 over 50 cm" carries it; no per-row line anywhere.)
+- 2026-11-18 09:52, owner (main chat), on the Puntledge "including tributaries" reading (whole watershed above the
+  diversion dam, or only creeks joining the river), verbatim: "the whole watershed (Not blocking: whether the
+  Puntledge's "including tributaries" covers the whole watershed above the dam, or only creeks joining the river.) but
+  are we sure puntledge river actually has tribs included?" RESOLVED: the whole watershed, which is what the 0.8.0
+  candidate already binds (1,069 sections; no change). Checked against the book: printed p.17, row "PUNTLEDGE RIVER
+  1-6", last line "Fly fishing only upstream of the BC Hydro diversion dam (approximately 3.5 km downstream of Comox
+  Lake), including tributaries". The row name carries no tributaries star, so only that one line (and "No Fishing
+  tributaries") reach the side streams. Cruickshank River (feeds Comox Lake) has its own row "No Fishing", which wins.

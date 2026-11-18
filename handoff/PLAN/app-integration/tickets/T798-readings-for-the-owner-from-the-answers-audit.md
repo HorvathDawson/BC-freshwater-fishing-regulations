@@ -36,3 +36,10 @@ Question 31: "Class II above the bridge (Recommended)". Question 33, typed: "If 
    tributaries are streams). Binding the river's inter-lake stretches instead gives the same 1,069 (the walk seeds at
    each lake-end cut), so "only streams joining the river" cannot be drawn today. OWNER CHECK owed before it ships.
 4. **Non-retention** written into RULINGS (D7, 865cbac37).
+
+## Owner check, item 2 (2026-11-18 09:52)
+Verbatim: "the whole watershed (...) but are we sure puntledge river actually has tribs included?" So the as-printed
+reading stands (1,069 sections, every stream above the dam). Confirmed in the book: printed p.17 (PDF p.19), the
+Puntledge row's last line ends "..., including tributaries"; the row name has no tributaries star. Closed. Follow-up
+(not owner): r5 "No Fishing tributaries" binds downstream of the Comox Lake cut, not the dam, so any creek joining in the
+3.5 km between the lake and the dam reads closed although r6 makes it fly fishing only; check whether such creeks exist.
