@@ -2581,3 +2581,13 @@ More questions (recommended answer first):
      the hatchery rainbow's "counts toward the 4" reads oddly; open, options owed. Dates once and "uses the 1 over 50 cm"
      dropped: not objected to.)
   3. Hatchery/wild tags: "Neither yet" (plain words and small grey tags both rejected; new options owed).
+- 2026-11-18 01:22, owner (app chat dialog over round 4, built from a fresh reviewer's rules: fraser-r4, vedder-r4,
+  chilliwack-r4, r4-r4 (Krumholtz Creek)), verbatim:
+  1. The count-column rules (lone "counts toward the N"; own cap "counts toward the N · only k"; shared box spanning its
+     rows "counts toward the N · only k between them" for 2, "k total from these m" for 3+; nested "only 1 between them";
+     "uses the 1 over 50 cm" and "only 1, counting any …" gone; "any size" off the box head): "Yes, everywhere
+     (Recommended)".
+  2. Vedder top line "Keep 4 trout and char today" + "only 2 besides hatchery rainbow trout": "i think leading with 2 is
+     still important becasue only one is an exception to that." (Lead with 2; the hatchery rainbow 4 is the exception.
+     Open: the exact two lines, picture owed.)
+  3. Hatchery + wild in one row, "50 cm (20 in) or less if wild", no tags: "Yes, "if wild" (Recommended)".

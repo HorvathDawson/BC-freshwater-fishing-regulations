@@ -298,3 +298,10 @@ all of a group's rows (round 2's look), ungrouped rows first, inner group last i
 steelhead unless a water's own rainbow rule. Vedder's "River rule" apart doubted and the hatchery rainbow's "counts
 toward the 4" reads oddly: options owed. Hatchery/wild tags: neither; options owed. Chilliwack brook trout: the main
 chat's C2 change (owner) gives wild brook trout "50 cm or less" at the six lakes; wild lake trout release-only there.
+
+## 2026-11-18 01:22: owner on round 4 (verbatim in OWNER-TODO)
+APPROVED everywhere: the count-column rules (R1 "counts toward the N"; R2 "counts toward the N · only k"; R3 one white
+box spanning its rows, "counts toward the N · only k between them" for 2 rows, "k total from these m" for 3+; R4 nested
+"only 1 between them"; R5 "uses the 1 over 50 cm" and "only 1, counting any …" gone, the result stated once); "any size"
+off the box head; ungrouped rows first, inner groups last; hatchery + wild as one row "50 cm (20 in) or less if wild"
+(no tags). Vedder: lead with 2 ("only one is an exception"): top line form owed, picture next.
