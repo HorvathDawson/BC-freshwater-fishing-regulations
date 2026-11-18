@@ -13,6 +13,8 @@
  * flagLegend, span. page v36 `strip`/`dayStatus` are NOT ported (the store's `rows[].year` replaces them).
  */
 import { COMMON_YEAR_MONTH_LAST_DAY, MONTHS, readingDay, WEEKDAYS } from "../calendar.generated";
+import { closedGate } from "./describe";
+import type { CardModel, HydRow, YearRun } from "./card";
 import type { DisplayFrame, RegsInputs } from "./inputs";
 import type { Day, StripVM } from "./model";
 import type { Settled } from "./settle";
@@ -133,7 +135,7 @@ export function stripOf(inp: RegsInputs, settled: Settled, today: Day): StripVM 
   if (!frame || frame.status === "tidal" || inp.key?.tidal) return null;
   const day = inp.day, i = bookIndex(day);
   const openNow = frame.status !== "closed";
-  const partShut = openNow && settled.inpart.some((x) => x.now && x.rule.export.family === "retention");
+  const partShut = openNow && settled.inpart.some((x) => x.now && x.rule.export.family === "retention" && closedGate(x.rule));
   const runs = stripRuns(inp);
 
   const line: { kind: "status" | "when" | "soon" | "soonOpen"; text: string }[] = [

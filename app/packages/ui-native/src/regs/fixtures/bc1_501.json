@@ -207,6 +207,14 @@
   "mode": null
  },
  "header": {
+  "classed": {
+   "aria": "Class II, Mar 1–May 31",
+   "cls": "II",
+   "inForce": false,
+   "label": "Class II",
+   "period": "Mar 1–May 31",
+   "term": "classified_waters"
+  },
   "date": "May 1",
   "dateAria": "Fri May 1, change date",
   "dayWord": "Fri",

@@ -873,9 +873,12 @@ class RowsCodec:
 
     def decode_frame(self, sec, ref, rules, fish):
         fr = sec["frames"][ref]
-        # (the section's version is this code's: `decode` refuses another before any frame is read)
-        if len(fr) != (6 if page_possession_written() else 5):
-            raise AnswersError(f"answers: rows {ROWS_VERSION} frame {ref} has {len(fr)} slots")
+        # (the section's version is this code's: `decode` refuses another before any frame is read; a reader of an older
+        # release's own section — the changed-answers list, `answers_diff`, across the cutover — passes a rows 33
+        # section: five slots, or six where F0 wrote the page's possession before the cutover)
+        old = str(sec.get("version")) not in ("", "None") and int(sec.get("version")) < 34
+        if len(fr) not in ((5, 6) if old else (6 if page_possession_written() else 5,)):
+            raise AnswersError(f"answers: rows {sec.get('version', ROWS_VERSION)} frame {ref} has {len(fr)} slots")
         spp, fs, rs, line, ys = fr[:5]
         if len(ys) != len(rs):
             raise AnswersError(f"answers: rows frame {ref} has {len(rs)} rows and {len(ys)} strips")

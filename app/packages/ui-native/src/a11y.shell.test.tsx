@@ -148,7 +148,7 @@ const STATES_T258: [string, (width: number) => Promise<void>, RegExp][] = [
     const reg = await coachRegistry();
     reg.set("search", { measureInWindow: (cb: (...n: number[]) => void) => cb(14, 10, 362, 46) } as never);
     const noop = () => {};
-    render(<GuideCard guide={{ open: true, pending: true, at: 1, paused: false, reopen: noop, finish: noop, next: noop, back: noop, resume: noop, pass: noop }}
+    render(<GuideCard guide={{ open: true, pending: true, at: 0, paused: false, reopen: noop, finish: noop, next: noop, back: noop, resume: noop, pass: noop }}
       facts={{ water: { item: "w", name: "Vedder River" }, searching: false, query: "", selected: null, open: null }}
       acts={{ search: noop, select: noop, openWater: noop, view: noop }}
       palette={LIGHT} registry={reg} top={60} bottom={64} />);

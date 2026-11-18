@@ -115,7 +115,10 @@ export function inPartBlock(u: readonly InPartEntry[], noun: string): CaveatVM |
 function inPartItem(r: RuleView, inp: RegsInputs): CaveatItemVM {
   const p = cap(r.part ?? "").replace(/\(map ([A-Z])\)/, WORDS.MAP_IN_REGS);
   const where = /various|do not identify|buoys and signs/i.test(p) ? WORDS.WHERE_SIGNS : WORDS.WHERE(p);
-  const words: Line = [text(clean(parts(r).what || r.export.label).replace(/ — in part:.*$/, "")),
+  // (T797 item 4) the rule's stored conditions follow its words, as its label joins them: the Pitt Lake head's "Trout and
+  // char — release all, wild only" (p.25, "Wild trout/char catch and release"); `what` alone dropped which fish
+  const pr = parts(r), what = pr.what ? [pr.what, pr.conditions].filter(Boolean).join(WORDS.COND_SEP) : r.export.label;
+  const words: Line = [text(clean(what).replace(/ — in part:.*$/, "")),
     ...(r.wins.length ? [text(" · " + winTxt(r.wins).slice(2))] : [])];
   const area = areaOf(r, inp);
   return area ? { ...item(words, where, r), area } : item(words, where, r);

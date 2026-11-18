@@ -3,8 +3,8 @@
  * bait.parity.test.ts (retired, T439)): the item words, note2, the allowance move, the dated ban runs and the all-year line.
  */
 import { describe, expect, it } from "vitest";
-import { allYearBan, baitItems, banHeading, datedBans, moveAllowances, note2, type BaitItem } from "./bait";
-import type { GearAnswer, StripState } from "./inputs";
+import { allowanceRules, allYearBan, baitItems, banHeading, datedBans, moveAllowances, note2, noteWithAllowances, type BaitItem } from "./bait";
+import type { GearAnswer, RuleIndex, RuleView, StripState } from "./inputs";
 
 const LABELS: StripState[] = [
   { state: "fly_only", bit: 4, label: "fly fishing only", says: "" }, { state: "bait_ban", bit: 16, label: "bait ban", says: "" },
@@ -102,4 +102,23 @@ describe("banHeading (T515): one line — what, when, status, ⓘ", () => {
     expect(line(banHeading(true, none, null, [next], true))).toEqual(["No natural bait Sep 1–Dec 31 · not today ⓘ"]);
   });
   it("only some baits banned, no season: no heading line at all", () => expect(banHeading(false, some, null, [], true)).toEqual([]));
+});
+
+describe("T797 item 2 (owner 2026-11-16 'Show it', D18 b): an element's stored allowance is said under it, in its rule's words", () => {
+  const LABEL = "Dead fin fish may be used, when fishing for white sturgeon — upstream of the CPR Bridge at Mission";
+  const rules: RuleIndex = { get: (ix) => ({ rix: ix, export: { label: ix === 574 ? `${LABEL}*` : "other" } }) as unknown as RuleView,
+    has: (ix) => ix === 574, size: 1 };
+  const sturgeon: GearAnswer["bait"] = [{ element: "worms", ok: true, by: null },
+    { element: "fin_fish", ok: false, by: [4, 0], why: "banned_roe_ok", also_allowed: [{ clause: [574, 0], targeting: ["WSG"] }, { clause: [574, 0] }] }];
+  it("a sturgeon water: the fin-fish item's rules, each once; its note then says the label (cleaned), after the item's own words", () => {
+    const also = allowanceRules({ bait: sturgeon } as GearAnswer);
+    expect(also).toEqual([[], [574]]);
+    expect(noteWithAllowances("", also[1]!, rules)).toBe(LABEL);
+    expect(noteWithAllowances("bait ban", also[1]!, rules)).toBe(`bait ban · ${LABEL}`);
+  });
+  it("elsewhere (no allowance): nothing is added", () => {
+    const also = allowanceRules({ bait: [{ element: "fin_fish", ok: false, by: [4, 0], why: "banned_roe_ok" }] } as unknown as GearAnswer);
+    expect(also).toEqual([[]]);
+    expect(noteWithAllowances("roe is still OK", also[0]!, rules)).toBe("roe is still OK");
+  });
 });

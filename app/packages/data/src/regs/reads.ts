@@ -191,7 +191,8 @@ export interface ReadBase {
 const FAMILY = {
   ladderFrame: "ladder_frame", ladderVerdict: "ladder_verdict", rowsFrame: "rows_frame", rowsDecided: "rows_decided",
   rowsRow: "rows_row", gearFrame: "gear_frame", licenceFrame: "licence_frame", licenceHold: "licence_hold",
-  licenceDoc: "licence_doc", licenceAnswer: "licence_answer", licenceU16: "licence_u16", displayFrame: "display_frame",
+  licenceDoc: "licence_doc", licenceAnswer: "licence_answer", licenceU16: "licence_u16", licenceAlien: "licence_alien",
+  displayFrame: "display_frame",
   troutFrame: "trout_frame", troutTable: "trout_table", troutDates: "trout_dates", troutSheet: "trout_sheet",
 } as const;
 type Family = (typeof FAMILY)[keyof typeof FAMILY];
@@ -505,9 +506,13 @@ export function makeReads(base: ReadBase): RegsReads & { clear(): void } {
       const [holds, doc] = await Promise.all([
         blob<LicenceValue["holds"]>(FAMILY.licenceHold, akey, h!), blob<number[]>(FAMILY.licenceDoc, akey, d!)]);
       const profiles = await Promise.all(doc.map((a) => blob<LicenceValue["profiles"][number]>(FAMILY.licenceAnswer, akey, a)));
-      return u.length
-        ? { holds, profiles, under_16: await blob<NonNullable<LicenceValue["under_16"]>>(FAMILY.licenceU16, akey, u[0]!) }
-        : { holds, profiles };
+      if (!u.length) return { holds, profiles };
+      // [h, d, under_16?, alien_closures?]: (T789 G8) the 4th index, only with the 3rd, only on a part whose rule set holds a
+      // closure to the non-resident alien — in the ADDITIVE `licence_alien` table (a release cut before it has no 4th index)
+      const [under_16, alien_closures] = await Promise.all([
+        blob<NonNullable<LicenceValue["under_16"]>>(FAMILY.licenceU16, akey, u[0]!),
+        u.length > 1 ? blob<NonNullable<LicenceValue["alien_closures"]>>(FAMILY.licenceAlien, akey, u[1]!) : null]);
+      return alien_closures ? { holds, profiles, under_16, alien_closures } : { holds, profiles, under_16 };
     }),
 
     display: (akey, id) => blob<DisplayFrame>(FAMILY.displayFrame, akey, id),

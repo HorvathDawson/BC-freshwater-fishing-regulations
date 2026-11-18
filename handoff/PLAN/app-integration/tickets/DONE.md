@@ -574,3 +574,8 @@ any row here that is not DONE or DROPPED. A reopened ticket's row moves back to 
 | T830 | A gauge that reports a live level but has no level history shows no Level (Capilano at Canyon, 15 more) | DONE | 3eb8a4e28 | owner 2026-11-17 (gauges) |
 | T837 | The sun line writes "sunset" in lower case after the dot ("Sunrise 08:50 PT · Sunset 17:43 PT") | DONE | 745d59ae8 | owner 2026-11-17 (app) |
 | T839 | Web on a desktop: the Map / Conditions / Spots / More bar becomes a left navigation rail | DONE | 6046669c2 | owner 2026-11-17 (app) |
+| T842 | The walkthrough on a phone: the highlight lags a scroll, the keyboard hides the target, too many steps for a first look | DONE | 45fff5e63 | owner 2026-11-17 (app) |
+| T843 | On opening the app the old circling fish shows before the new swimming coho (the native launch picture was never moved to the coho) | DONE | 45fff5e63 | owner 2026-11-17 (app) |
+| T829 | Salmon species rows in the same look as the other fish table and the new trout table (formatting only) | DONE | 45fff5e63 | owner 2026-11-16 (app) |
+| T828 | Salmon card: DFO's rows as printed fold into "Source (DFO)" | DONE | 45fff5e63 | owner 2026-11-16 (app) |
+| T808 | The More tab's "DFO checked" time made every web visit download every salmon file; it now reads only the salmon head | DONE | 45fff5e63 | app chat 2026-11-16 (found sizing T796 A6); branch `app-fix/t808-salmon-head-only` |

@@ -13,7 +13,17 @@ import pytest
 from pipeline.deliver.store import decode as D
 from pipeline.deliver.store.common import unpack
 from pipeline.tests import under_test
-from pipeline.tests.test_answers_diff import Store, _copy
+from pipeline.tests.test_answers_diff import Store
+
+
+def _copy(tmp_path, name: str):
+    """The committed mini release, copied (the A0 audit reads the release as it is built: since the merge,
+    test_answers_diff's own `_copy` takes the frozen pre-cutover mini)."""
+    import shutil
+    src = under_test.mini()
+    dst = tmp_path / name / src.name
+    shutil.copytree(src, dst)
+    return dst
 from pipeline.tools.audit import trout_size as TS
 
 TC = TS.TC

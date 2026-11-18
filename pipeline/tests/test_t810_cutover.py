@@ -349,7 +349,7 @@ def test_a_one_water_pool_says_its_water_and_keeps_on_that_water(monkeypatch):
     assert [(x["q"], x["a"], x["at"]) for x in got["lines"]] == [("Kept 2 on another stream?", "Keep 18 more here",
                                                                    "stream")]
     assert W.parse_elsewhere_says(W.elsewhere_says(got["says"])) == ("own", "Region 8 stream")
-    assert W.parse_elsewhere(W.elsewhere_line(got["lines"][0]["q"], got["lines"][0]["a"]))[0] == ("kept", 2, "stream")
+    assert W.parse_elsewhere(W.elsewhere_line(got["lines"][0]["q"], got["lines"][0]["a"]))[0] == ("kept", 2, "stream", None)
     monkeypatch.setattr(G, "A_ONE_WATER_POOL_SAYS_ITS_WATER", False)
     old = _r8_elsewhere(monkeypatch)
     assert old["says"] == "Your own limit, counted across every water in Region 8 you fish today."

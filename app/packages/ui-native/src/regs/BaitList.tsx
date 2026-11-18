@@ -1,5 +1,5 @@
 /**
- * T34 — the Bait item (prototype `.gxc[data-k=bait]`): its label, its notes (a Line each — the ⓘ is a term run), the ban heading (T515: when it runs, once), the ✓/✕ list, its source line. `also_allowed` is not drawn (D18 a, parity). No logic.
+ * T34 — the Bait item (prototype `.gxc[data-k=bait]`): its label, its notes (a Line each — the ⓘ is a term run), the ban heading (T515: when it runs, once), the ✓/✕ list, its source line. An element's `also_allowed` is in its note (core `bait.ts`, T797 item 2, D18 b). No logic.
  */
 import { View } from "react-native";
 import type { BaitVM } from "@app/core";

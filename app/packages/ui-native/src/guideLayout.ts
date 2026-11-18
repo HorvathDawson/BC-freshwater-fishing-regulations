@@ -24,7 +24,12 @@ export interface CardRoom {
   readonly bottom: number;
 }
 
-export interface CardPlace { readonly left: number; readonly top: number; readonly covers: boolean }
+/**
+ * (T842) Which side of the ring the card took: `below` / `above` carry the card's pointer (its little arrow at the ring),
+ * `beside` (a desktop) and `dock` (nothing ringed, or no side had room) do not.
+ */
+export type CardSide = "below" | "above" | "beside" | "dock";
+export interface CardPlace { readonly left: number; readonly top: number; readonly covers: boolean; readonly side: CardSide }
 
 const overlaps = (a: Rect, b: Rect) => a.x < b.x + b.w && b.x < a.x + a.w && a.y < b.y + b.h && b.y < a.y + a.h;
 
@@ -37,23 +42,24 @@ export function placeGuideCard(ring: Rect | null, win: { w: number; h: number },
   const floor = win.h - room.bottom;
   const clampTop = (t: number) => Math.max(room.top, Math.min(t, floor - card.h));
   const sideLeft = win.w >= BESIDE_AT ? win.w - card.w - GUTTER : (win.w - card.w) / 2;
-  if (!ring) return { left: sideLeft, top: dock === "top" ? room.top : floor - SPACE.s3 - card.h, covers: false };
+  if (!ring) return { left: sideLeft, top: dock === "top" ? room.top : floor - SPACE.s3 - card.h, covers: false, side: "dock" };
   const fits = (left: number, top: number) => top >= room.top - 0.5 && top + card.h <= floor + 0.5
     && left >= 0 && left + card.w <= win.w && !overlaps({ x: left, y: top, w: card.w, h: card.h }, ring);
   // centred on the ring, inside the gutters
   const under = Math.max(GUTTER, Math.min(ring.x + ring.w / 2 - card.w / 2, win.w - card.w - GUTTER));
-  const tries: [number, number][] = [];
+  const tries: [number, number, CardSide][] = [];
   if (win.w >= BESIDE_AT) {
-    tries.push([ring.x + ring.w + CARD_GAP, clampTop(ring.y)], [ring.x - CARD_GAP - card.w, clampTop(ring.y)]);
+    tries.push([ring.x + ring.w + CARD_GAP, clampTop(ring.y), "beside"], [ring.x - CARD_GAP - card.w, clampTop(ring.y), "beside"]);
   }
   const below = ring.y + ring.h + CARD_GAP, above = ring.y - CARD_GAP - card.h;
-  // the side with more room first
+  // the side with more room first: the side away from the ring
   const room1 = floor - (ring.y + ring.h), room2 = ring.y - room.top;
-  if (room1 >= room2) tries.push([under, below], [under, above]); else tries.push([under, above], [under, below]);
+  if (room1 >= room2) tries.push([under, below, "below"], [under, above, "above"]);
+  else tries.push([under, above, "above"], [under, below, "below"]);
   // docked at the far edge from the ring
-  tries.push([sideLeft, room.top], [sideLeft, floor - card.h]);
-  for (const [l, t] of tries) if (fits(l, t)) return { left: l, top: t, covers: false };
-  return { left: under, top: clampTop(room1 >= room2 ? below : above), covers: true };
+  tries.push([sideLeft, room.top, "dock"], [sideLeft, floor - card.h, "dock"]);
+  for (const [l, t, side] of tries) if (fits(l, t)) return { left: l, top: t, covers: false, side };
+  return { left: under, top: clampTop(room1 >= room2 ? below : above), covers: true, side: "dock" };
 }
 
 /**

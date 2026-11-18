@@ -160,3 +160,39 @@ describe("the sun line in the header (T471)", () => {
     expect(screen.queryByTestId("regs-sun")).toBeNull();
   });
 });
+
+describe("(T841) the classified-water badge", () => {
+  const base = headerOf("vedder_1010");
+  const A = { cls: "II", label: "Class II", period: null, inForce: true, term: "classified_waters", aria: "Class II" } as const;
+  const B = { ...A, period: "Jul 1–Dec 31", aria: "Class II, Jul 1–Dec 31" } as const;
+  const mountWith = (classed: HeaderVM["classed"], onTerm?: (id: string) => void) =>
+    render(<RegsHeader header={{ ...base, ...(classed ? { classed } : {}) }} palette={LIGHT} tabs={createPinStore()}
+                       onDate={() => {}} onTab={() => {}} onTerm={onTerm} />);
+
+  it("a classified header: the class in the name row, named by its words; a press opens its term", () => {
+    const got: string[] = [];
+    mountWith(A, (id) => got.push(id));
+    const b = screen.getByRole("button", { name: "Class II" });
+    expect([b.textContent, within(screen.getByTestId("water-title")).getByTestId("regs-class") === b]).toEqual(["Class II", true]);
+    fireEvent.click(b);
+    expect(got).toEqual(["classified_waters"]);
+  });
+  it("no badge on a header without one (the frozen pages): nothing drawn", () => {
+    mountWith(undefined);
+    expect(screen.queryByTestId("regs-class")).toBeNull();
+  });
+  it("no term (or no press handler): drawn, named, not a button", () => {
+    mountWith({ ...A, term: null }, () => {});
+    expect([screen.getByTestId("regs-class").getAttribute("aria-label"), screen.queryByRole("button", { name: "Class II" })]).toEqual(["Class II", null]);
+  });
+  it("look B: the period under the class; in force in the accent, out of period in the secondary colour", () => {
+    mountWith(B, () => {});
+    const b = screen.getByRole("button", { name: "Class II, Jul 1–Dec 31" });
+    expect(b.textContent).toBe("Class IIJul 1–Dec 31");
+    const chipColour = () => (screen.getByText("Class II") as HTMLElement).style.color;
+    expect(chipColour()).toBe(rgb(LIGHT.accent));
+    cleanup();
+    mountWith({ ...B, inForce: false }, () => {});
+    expect(chipColour()).toBe(rgb(LIGHT.sub));
+  });
+});

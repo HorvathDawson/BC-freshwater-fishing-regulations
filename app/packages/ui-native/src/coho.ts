@@ -18,11 +18,12 @@ export const COHO_GROUND_PAD = 10;
 
 /**
  * The sheet printed in this palette's coho ink and red: the theme whose tokens those are. A palette no theme wears has
- * no sheet, and says so (a sheet in other colours would be a guess).
+ * no sheet, and says so (a sheet in other colours would be a guess). (T844) `sheets`: the web passes its own
+ * (`COHO_WEB.sheets`, cohoWeb.generated.ts); a phone takes the default.
  */
-export function cohoSheet(palette: Palette) {
+export function cohoSheet<S extends Record<ThemeName, unknown> = typeof COHO.sheets>(palette: Palette, sheets?: S): S[ThemeName] {
   const name = (Object.keys(THEMES) as ThemeName[])
     .find((t) => THEMES[t].coho.ink === palette.coho.ink && THEMES[t].coho.red === palette.coho.red);
   if (!name) throw new Error(`no coho sheet is printed in ${palette.coho.ink} + ${palette.coho.red} (pnpm coho:build)`);
-  return COHO.sheets[name];
+  return ((sheets ?? COHO.sheets) as S)[name];
 }

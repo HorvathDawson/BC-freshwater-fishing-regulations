@@ -55,7 +55,7 @@ const ids = (d: DatabaseSync, t: string, col = "id") =>
 /**
  * Closure of a fixture's region files and regs-sid (test 3): the problems, as sentences, in a stable order. The frame
  * shapes are the encoder's (`pipeline/deliver/release/shards.py` `frame_refs`): ladder [common, [[fish, v, v, v]…]],
- * rows [spp, {fish: [h, w, lead]}, [row…], line], licence [hold, doc, u16…]; a licence doc is its answer ids.
+ * rows [spp, {fish: [h, w, lead]}, [row…], line], licence [hold, doc, u16?, alien?]; a licence doc is its answer ids.
  */
 function closureProblems(db: Record<string, DatabaseSync>): string[] {
   const water = db.water!, out: string[] = [];
@@ -70,7 +70,9 @@ function closureProblems(db: Record<string, DatabaseSync>): string[] {
   }
   for (const [name, r] of Object.entries(db).filter(([n]) => /^regs-\d/.test(n)).sort()) {
     const have = Object.fromEntries(["ladder_frame", "ladder_verdict", "rows_frame", "rows_decided", "rows_row", "gear_frame",
-      "licence_frame", "licence_hold", "licence_doc", "licence_answer", "licence_u16", "licence_alien", "display_frame"].map((t) => [t, ids(r, t)]));
+      "licence_frame", "licence_hold", "licence_doc", "licence_answer", "licence_u16", "licence_alien", "display_frame"].map((t) => [t,
+      // (T789 G8) `licence_alien` is ADDITIVE: a release cut before it holds no table (and so no frame names one)
+      t === "licence_alien" && !r.prepare("SELECT 1 FROM sqlite_master WHERE type = 'table' AND name = ?").get(t) ? new Set<number>() : ids(r, t)]));
     const need = (t: string, i: number, from: string) => { if (!have[t]!.has(i)) out.push(`${name}: ${from} names ${t} ${i}, absent`); };
     for (const c of r.prepare("SELECT * FROM cell ORDER BY akey, s").all() as Record<string, number>[])
       for (const f of ["ladder", "rows", "gear", "licence", "display"]) need(`${f}_frame`, c[f]!, `cell ${c.akey}/${c.s}`);
@@ -85,11 +87,12 @@ function closureProblems(db: Record<string, DatabaseSync>): string[] {
       for (const x of rows) need("rows_row", x, `rows_frame ${id}`);
     }
     for (const { id, j } of r.prepare("SELECT id, j FROM licence_frame ORDER BY id").all() as { id: number; j: Uint8Array }[]) {
-      // [h, d, under_16?, alien_closures?] (T789 G8: the 4th slot names a licence_alien row; either may be null)
-      const [h, d, u16, alien] = val("licence_frame", j) as (number | null | undefined)[];
+      // [h, d, under_16?, alien_closures?] (T789 G8: the 4th index is `licence_alien`'s, never a second under_16; either may be null)
+      const [h, d, u16, alien, ...more] = val("licence_frame", j) as (number | null | undefined)[];
       need("licence_hold", h!, `licence_frame ${id}`); need("licence_doc", d!, `licence_frame ${id}`);
       if (u16 != null) need("licence_u16", u16, `licence_frame ${id}`);
       if (alien != null) need("licence_alien", alien, `licence_frame ${id}`);
+      if (more.length) out.push(`${name}: licence_frame ${id} holds ${4 + more.length} indexes, at most 4`);
     }
     for (const { id, j } of r.prepare("SELECT id, j FROM licence_doc ORDER BY id").all() as { id: number; j: Uint8Array }[])
       for (const a of val("licence_doc", j) as number[]) need("licence_answer", a, `licence_doc ${id}`);
@@ -163,6 +166,28 @@ describe("T10 the committed regs fixture release", () => {
     expect(problems).toContain(`regs-2: ladder_frame ${lf.id} names ladder_verdict ${common}, absent`);
     expect(problems).toContain(`akey ${vedder}: regs-2 holds 3 cells, the key has 4 segments`);
     expect(problems).toContain(`regs-sid: section ${(blk.block << 12) | slot} names akey 65535, not kept`);
+  });
+
+  it("3 (T789 G8). a licence frame's 4th index is licence_alien's: held, no problem; absent, named — never read as under_16", () => {
+    const tmp = mkdtempSync(join(tmpdir(), "regs-fixture-alien-"));
+    const mut: Record<string, DatabaseSync> = {};
+    for (const n of ["water", "regs-2", "regs-sid"]) {
+      const p = join(tmp, `${n}.sqlite`);
+      copyFileSync((DB[n] as unknown as { location(): string }).location(), p);
+      mut[n] = new DatabaseSync(p, { enableForeignKeyConstraints: false });
+    }
+    const r2 = mut["regs-2"]!;
+    const dicts = new Map((mut.water!.prepare("SELECT tbl, d FROM zdict").all() as { tbl: string; d: Uint8Array }[]).map((r) => [r.tbl, r.d]));
+    const frames = (r2.prepare("SELECT id, j FROM licence_frame ORDER BY id").all() as { id: number; j: Uint8Array }[])
+      .map((r) => ({ id: r.id, f: unpackBlob(r.j, dicts.get("licence_frame") ?? null) as number[] })).filter((r) => r.f.length === 3);
+    const [held, gone] = [frames[0]!, frames[1]!];
+    const u16 = Math.max(...ids(r2, "licence_u16")), stray = u16 + 1000;   // an alien id no licence_u16 row holds
+    r2.exec("CREATE TABLE licence_alien (id INTEGER PRIMARY KEY, j BLOB)");
+    r2.prepare("INSERT INTO licence_alien VALUES (?, ?)").run(stray, Buffer.from(JSON.stringify([{ rule: 1, says: "x" }])));
+    const put = (id: number, f: number[]) => r2.prepare("UPDATE licence_frame SET j = ? WHERE id = ?").run(Buffer.from(JSON.stringify(f)), id);
+    put(held.id, [...held.f, stray]); put(gone.id, [...gone.f, stray + 1]);
+    const problems = closureProblems(mut).filter((p) => p.includes("licence"));
+    expect(problems).toEqual([`regs-2: licence_frame ${gone.id} names licence_alien ${stray + 1}, absent`]);
   });
 
   it("4. every rule kept; the digests are the golden store's; the formats the app reads", () => {

@@ -566,6 +566,13 @@ def _summed(t: dict, rules: Rules) -> bool:
     return A_SUMMED_TIER_NEVER_DRAWN and isinstance(take, (int, float)) and t["n"] is not None and take != t["n"]
 
 
+def possession_says_more(line: str) -> bool:
+    """A possession duty (`card.possession_duty`) says more than its count: a size clause, "only 1 over 50 cm (20 in)"
+    or (A_POSSESSION_MEASURING_IS_A_CLAUSE, Bennett Lake) "only 1 measuring 90 cm (35 in) or longer"."""
+    row = W.possession_row(line)
+    return W.possession_clause(row) is not None or (A_POSSESSION_MEASURING_IS_A_CLAUSE and ", only " in row)
+
+
 def _row_src(fa: dict, key: str, extra: Iterable = ()) -> List[int]:
     """A row's rules: the rule that decides its state or count first, then its size, origin, possession and duty
     lines, the other origin's deciding rule, then `extra` (contract Q-D6), no repeats."""
@@ -1002,8 +1009,7 @@ class Body:
                 own_said = count is not None and ((r.band[0] == "own" and r.band[1] == count) or
                                                   W.only_line(count) in lines_of.get(r.key, []))
                 if A_POSSESSION_EQUAL_TO_THE_DAY_UNSAID and count is not None and own_said \
-                        and W.possession_clause(W.possession_row(line)) is None \
-                        and not (A_POSSESSION_MEASURING_IS_A_CLAUSE and ", only " in W.possession_row(line)):
+                        and not possession_says_more(line):
                     # (only a number the ROW says for its own fish: a box's count stays, Bowron Lake's "2 in all")
                     pass                               # Tagish's lake trout: "only 2" a day, 2 in possession
                 else:
