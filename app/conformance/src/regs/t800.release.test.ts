@@ -33,7 +33,9 @@ describe.skipIf(!at.dir)(`T800: a some-days angler closure reads the same on the
     (await notes(item, partIx, 8, 15, "Saturday", "angler")).map((n) => n.what)];
 
   it("Skeena Section 4, zone (b), Chimdemash Creek to 1.5 km above the Zymoetz (p.52): Wednesday's line says who and where", async () => {
-    const S = "Angling closed to non-guided non-resident aliens, Jul 1-Dec 31, on Saturdays and Sundays — between the Chimdemash Creek confluence and the Zymoetz River confluence (1500 m upstream)";
+    // (T801 item 4, d0df51fd0; first on the 0.8.0 release r-c7c6b2422c65) the cut's place name reads as the book prints
+    // it: "1.5 km upstream of the Zymoetz River confluence", no longer "the Zymoetz River confluence (1500 m upstream)"
+    const S = "Angling closed to non-guided non-resident aliens, Jul 1-Dec 31, on Saturdays and Sundays — between the Chimdemash Creek confluence and 1.5 km upstream of the Zymoetz River confluence";
     const part = await names.part("gnis:2936", "skeena_river__zymoetz_river_into_skeena_river_u1500m", "skeena_river__chimdemash_creek_into_skeena_river");
     expect(await both("gnis:2936", part)).toEqual([[[S, "Sat, Sun"]], [S]]);
   });

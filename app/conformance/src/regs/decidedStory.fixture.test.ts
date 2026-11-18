@@ -24,12 +24,18 @@ const steps = (s: DecidedStoryVM, head?: RegExp) => s.layers.filter((l) => !head
   .flatMap((l) => l.steps.map((t) => `${plain(t.says)} ${plain(t.book)} | ${t.verdict} | ${t.why}`));
 const byOf = (s: DecidedStoryVM, says: RegExp) => plain(s.layers.flatMap((l) => l.steps).find((t) => says.test(plain(t.says)))!.by);
 
+/** The Fraser's Regions 3 and 5 part: Region 5's line up to Region 3's. */
+const fraserPart = () => sectionNames(openRegsFixture()).part("gnis:39325", "region_line:5", "region_line:3");
+/** The Bella Coola's part from its mouth up to the Talchako's confluence (the Atnarko/Bella Coola row's extent). */
+const bellaCoolaPart = () => sectionNames(openRegsFixture()).part("gnis:11611", "mouth",
+  "atnarko_bella_coola_rivers_includes_tributaries_exce__talchako_river_into_bella_coola_river");
+
 describe("T216 on the fixture release", () => {
   // (T278, regs fixture on r-62e2f3a8c81e) the Fraser's tidal cut at the CPR Bridge at Mission took its old part 3: the Regions 3 and 5 part is 13 now (was 14)
   // (T517, regs fixture r-fc17c4373686) part_ix is river order: "Region 5 boundary → Region 3 boundary" is part 14
   it("the Fraser, part 14 (Regions 3 and 5), Oct 10: both regions' bases, the river's own closure decides, each region's limit overridden by it", async () => {
     // (T667) the part by its ENDS, never its number (it was 14, 13, 14 over three releases): Region 5's line up to Region 3's
-    const part = await sectionNames(openRegsFixture()).part("gnis:39325", "region_line:5", "region_line:3");
+    const part = await fraserPart();
     const rows = await rowsOf(await openRegsStore(openRegsFixture()), "gnis:39325", part, 10, 10);
     const tc = storyOf(rows, /^Brook trout/);
     expect(tc.notes).toEqual(["This stretch is in Region 3 and Region 5, so both regions’ rules apply here."]);
@@ -52,9 +58,10 @@ describe("T216 on the fixture release", () => {
       "Keep up to 5 burbot a day. Rule book p.42 ↗ | Overridden | The Region 3 rule is stricter, and the stricter rule wins."]);
   });
 
-  it("a sub-cap: the Bella Coola, part 1, May 1 — the region's 5 lowered to 2 in streams, smaller caps inside it, the river's own row decides", async () => {
-    const part = await sectionNames(openRegsFixture()).part("gnis:11611", "mouth",
-      "atnarko_bella_coola_rivers_includes_tributaries_exce__talchako_river_into_bella_coola_river");
+  // (T794 item 3, r-c7c6b2422c65) Atnarko r12 ends at its mouth, so the side-channel part merged into this one: the
+  // Bella Coola has ONE part now (it was part 1 of 2); found by its ends, so the number never mattered here
+  it("a sub-cap: the Bella Coola, mouth to the Talchako, May 1 — the region's 5 lowered to 2 in streams, smaller caps inside it, the river's own row decides", async () => {
+    const part = await bellaCoolaPart();
     const s = storyOf(await rowsOf(await openRegsStore(openRegsFixture()), "gnis:11611", part, 5, 1), /^Trout and char/);
     expect(heads(s)).toEqual(["All of B.C.: the province’s base rules", "Region 5: the region’s base rules", "Bella Coola River: this water’s own rules"]);
     expect(steps(s, /^Region 5/).slice(0, 4).map((x) => x.split(" | ").slice(1).join(" | "))).toEqual([
@@ -79,7 +86,11 @@ describe("T216 on the fixture release", () => {
 
   it("every step of every row of every fixture case cites a printed page; every layer has a step", async () => {
     const st = await openRegsStore(openRegsFixture());
-    for (const [item, partIx, m, d] of [["gnis:39325", 13, 10, 10], ["gnis:11611", 1, 5, 1], ["gnis:10457", 0, 5, 1], ["gnis:3062", 0, 5, 15]] as const) {
+    // (T794 item 3, r-c7c6b2422c65) the cases above by their ENDS, never a typed part number: the Bella Coola's typed
+    // part 1 vanished when its side-channel part merged into part 0, and the Fraser's typed 13 had already drifted to 14
+    const cases = [["gnis:39325", await fraserPart(), 10, 10], ["gnis:11611", await bellaCoolaPart(), 5, 1],
+      ["gnis:10457", 0, 5, 1], ["gnis:3062", 0, 5, 15]] as const;
+    for (const [item, partIx, m, d] of cases) {
       for (const r of await rowsOf(st, item, partIx, m, d)) {
         const s = r.ladder.story!;
         for (const l of s.layers) {

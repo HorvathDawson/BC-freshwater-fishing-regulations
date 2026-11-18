@@ -111,7 +111,7 @@ function seed(o: { alien?: boolean; noTidal?: boolean; badCells?: boolean; ruleG
     INSERT INTO ladder_verdict VALUES (10, ${X([[0], [], [], [], [], []])}), (11, ${X([[1], [], [], [], [[1, [0]]], []])}),
       (12, ${X([[], [1], [], [], [], []])}), (13, ${X([[], [], [1], [], [], []])}), (14, ${X([[], [], [], [], [], [[1, 0, 0]]])});
     INSERT INTO rows_frame VALUES (5, ${X([["RB", "CT"], { RB: [7, null, "hatchery"], CT: [null, 8, "wild"] }, [3, 4, 3], "known_with_rules", [0, 1, 1], PAGE_POSSESSION])}),
-      (6, ${X([[], {}, [], null, [], null])})${o.badStrip ? `, (9, ${X([[], {}, [3], null, [2], null])}), (10, ${X([[], {}, [3, 4], null, [0], null])}), (11, ${X([["RB"], { RB: [7, null] }, [], null, [], null])}), (12, ${X([[], {}, [], null, []])})` : ""};
+      (6, ${X([[], {}, [], null, [], null])}), (13, ${X([["RB"], { RB: [7, 8, "hatchery"] }, [], null, [], null])})${o.badStrip ? `, (9, ${X([[], {}, [3], null, [2], null])}), (10, ${X([[], {}, [3, 4], null, [0], null])}), (11, ${X([["RB"], { RB: [7, null] }, [], null, [], null])}), (12, ${X([[], {}, [], null, []])})` : ""};
     INSERT INTO rows_decided VALUES (7, ${X({ status: "keep", win: 0 })}), (8, ${X({ status: "release", win: 1 })});
     INSERT INTO rows_row VALUES (3, ${X({ kind: "keep", pool: 0 })}), (4, ${X({ kind: "closed", pool: null })});
     INSERT INTO gear_frame VALUES (5, ${X({ summary: "g", counts: {} })});
@@ -383,6 +383,20 @@ describe("cells and frames: routed to the key's region file", () => {
     expect(asked.filter((a) => a === "regs-2: rows_row")).toEqual(["regs-2: rows_row"]);   // ids 3, 4 in one read (T286)
     const bad = await openRegsStore(seed({ badCells: true }).loader);
     await expect(bad.cells(2)).rejects.toThrow(new RegsStoreError("damaged", "regs store: akey 2's cells are out of sequence"));
+  });
+
+  it("(T286, 0.8.0) a ladder's verdicts, common and rows, are ONE read; a fish's hatchery and wild decided rows are ONE read", async () => {
+    // an `await` on the common verdict (or on the hatchery row) before asking the rest held them into a second batch:
+    // one more native round trip on every tap (the live Cultus Lake page took 31 calls against its budget of 30)
+    const { loader, asked } = seed();
+    const st = await openRegsStore(loader);
+    await Promise.all([st.region(2), st.statics()]);
+    asked.length = 0;
+    await st.ladder(2, 5);
+    expect(asked).toEqual(["regs-2: ladder_frame", "regs-2: ladder_verdict"]);
+    asked.length = 0;
+    expect((await st.rows(2, 13)).fish).toEqual({ RB: { hatchery: { status: "keep", win: 0 }, wild: { status: "release", win: 1 }, lead: "hatchery" } });
+    expect(asked.filter((a) => a.startsWith("regs-"))).toEqual(["regs-2: rows_frame", "regs-2: rows_decided"]);
   });
 });
 

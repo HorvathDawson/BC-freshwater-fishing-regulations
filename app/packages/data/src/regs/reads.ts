@@ -460,16 +460,16 @@ export function makeReads(base: ReadBase): RegsReads & { clear(): void } {
         blob<[number, number[][]]>(FAMILY.ladderFrame, akey, id), reads.statics()]);
       const fish = st.fish as readonly string[];
       const verdict = (v: number) => blob<VerdictWire>(FAMILY.ladderVerdict, akey, v);
-      return {
-        common: await verdict(common),
-        rows: await Promise.all(rows.map(async (r) => {
-          const code = fish[r[0]!];
-          if (code === undefined) throw damaged(`ladder frame ${id} names fish ${r[0]}, which is not in answers.fish`);
-          const own = r.length === 2 ? [r[1]!, r[1]!, r[1]!] : r.slice(1);
-          const [none, hatchery, wild] = await Promise.all(own.map(verdict));
-          return [code, none!, hatchery!, wild!] as const;
-        })),
-      };
+      // (T286, 0.8.0) the common verdict and the rows' asked together: one ladder_verdict read, not two (an `await`
+      // on the common one first held the rows' back into a second batch — a wasted round trip on every tap)
+      const [commonV, rowsV] = await Promise.all([verdict(common), Promise.all(rows.map(async (r) => {
+        const code = fish[r[0]!];
+        if (code === undefined) throw damaged(`ladder frame ${id} names fish ${r[0]}, which is not in answers.fish`);
+        const own = r.length === 2 ? [r[1]!, r[1]!, r[1]!] : r.slice(1);
+        const [none, hatchery, wild] = await Promise.all(own.map(verdict));
+        return [code, none!, hatchery!, wild!] as const;
+      }))]);
+      return { common: commonV, rows: rowsV };
     }),
 
     rows: (akey, id) => once("rows", id, async () => {
@@ -493,7 +493,11 @@ export function makeReads(base: ReadBase): RegsReads & { clear(): void } {
       }
       // (T286) every decided row and every row asked at once (one read each family), then put back in order
       const [decidedOf, rows] = await Promise.all([
-        Promise.all(Object.entries(fs).map(async ([S, [h, w, lead]]) => [S, { hatchery: await decided(h), wild: await decided(w), lead }] as const)),
+        // (0.8.0) a fish's hatchery and wild decided rows asked together: one rows_decided read (awaiting h before w was two)
+        Promise.all(Object.entries(fs).map(async ([S, [h, w, lead]]) => {
+          const [hatchery, wild] = await Promise.all([decided(h), decided(w)]);
+          return [S, { hatchery, wild, lead }] as const;
+        })),
         Promise.all(rs.map((r) => blob<Omit<RowsValue["rows"][number], "year">>(FAMILY.rowsRow, akey, r)))]);
       for (const [S, f] of decidedOf) fish[S] = f;
       return { spp, fish, rows: rows.map((r, i) => ({ ...r, year: strips[ys[i]!]! })), steelhead_line: line, page_possession: pp };

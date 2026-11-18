@@ -79,15 +79,20 @@ async function tribClosedUnnamed(): Promise<number> {
 /** the tapped reach, by what it IS (never by an id or a stream key: the fixture's sample moves) */
 const TRIB = await tribClosedUnnamed();
 
-/** (T768) The named water of the store that OWNS rule `key`'s entry (the one shown water whose `entries` hold it); a
- *  zone's or the province's rule has no such water, and throws. */
+/** (T768) The named water that OWNS rule `key`: its entry, as the store holds it (`entry.j`), is one water's row of the
+ *  book (`kind` "water") and names it; a zone's or an area's rule (the region's, the province's) has no such water, and
+ *  throws. (0.8.0 re-cut) It was "the one shown ITEM whose `entries` hold the entry", which asks whether the FIXTURE
+ *  holds that water: it holds the golden waters and taps.json's unnamed sample, not every water whose tributary rule
+ *  reaches a sampled stream. The sample moved, and the closed stream it holds now is a Cheekye River tributary
+ *  (r2:cheekye_river@2-7, "Incl. Tribs"): the Cheekye is no golden water, so 0 items held its entry, though the store
+ *  holds the entry and the entry names its water. */
 async function ownerOf(key: string): Promise<string> {
-  const w = await (await loadRegsStore(openRegsFixture())).water();
-  const e = await w.get("SELECT e FROM entry WHERE id = ?", key.split("::")[0]!);
-  const own = (await w.all("SELECT name, entries FROM item WHERE shown = 1"))
-    .filter((r) => e !== undefined && (JSON.parse(String(r.entries)) as number[]).includes(Number(e.e)));
-  if (own.length !== 1) throw new Error(`rule ${key}: its entry is ${own.length} named waters', not one`);
-  return String(own[0]!.name);
+  const st = await loadRegsStore(openRegsFixture());
+  const r = await (await st.water()).get("SELECT j FROM entry WHERE id = ?", key.split("::")[0]!);
+  if (r === undefined) throw new Error(`rule ${key}: the store holds no entry ${key.split("::")[0]}`);
+  const e = st.val<{ kind: string; name: string }>("entry", r.j);
+  if (e.kind !== "water") throw new Error(`rule ${key}: its entry is a ${e.kind}'s (${e.name}), not a named water's`);
+  return e.name;
 }
 /** The water the tapped reach is a tributary OF: the named water whose own rule closes it (the store's tie between
  *  the rule and its water, not a name typed here). The fixture SOURCE answers the trace with this water

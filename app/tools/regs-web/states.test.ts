@@ -43,7 +43,10 @@ describe("regs-web states", () => {
     // (T115, T67, T183, T220, T228) 123: the golden's 134 less the 11 whose part the release re-cut (taps.json `gone`; T220 added
     // Dean x13p2, Kootenay x9p2; T228's no-access split cut the Coquitlam's x37p0 in two)
     // (T278) 121: and the 2 whose whole part is tidal now (taps.json `tidal`: x15p3, x37p1), in GONE too
-    expect({ n: IDS.length, protos: protos.size, apps: apps.size, wrong }).toEqual({ n: 121, protos: 121, apps: 121, wrong: [] });
+    // (T794 items 1 and 3, declared 8391ff0ca; the 0.8.0 re-cut) 118: and 3 more in `gone` — x22p6_1010 (the Peace's
+    // Dinosaur Lake part, closed all year now: dinosaur_lake.r1b) and bc1_501 + bc1_1010 (Atnarko r12 ends at its mouth,
+    // so the Bella Coola's side-channel part merged into part 0: one part now)
+    expect({ n: IDS.length, protos: protos.size, apps: apps.size, wrong }).toEqual({ n: 118, protos: 118, apps: 118, wrong: [] });
     expect([...IDS, ...GONE].sort()).toEqual(Object.keys(G.states).sort());
     // (T183) the Fraser's gone states' reasons are T183's now (a straddling piece carries both regions' rules again)
     expect(() => stateOf("x15p14_1010")).toThrow(/has no part in the store: T183/);
@@ -66,9 +69,11 @@ describe("regs-web states", () => {
   });
 
   // (T278, r-62e2f3a8c81e) x15p3_1010 leaves: its part is tidal now (taps.json `tidal`, off the map)
+  // (T794 item 3, the 0.8.0 re-cut) bc1_501 leaves: the Bella Coola's part 1 merged into part 0 (taps.json `gone`); its
+  // hash stays in HASHES, which mirrors check.mjs's sets, and GONE filters it as it does x15p3
   it("WALK_STATES: check.mjs's state sets as golden ids + the tidal and timed edge states, less a part that is tidal now", () => {
     expect(WALK_STATES).toEqual(["vedder_1010", "klwa_1010", "cow1_1010", "chw1_1010", "wilkes_1010", "vedder_515", "x12p_1010",
-      "x3p_1010", "iron_720", "x34p_1010", "x35p_1010", "bc0_1010", "bc0_501", "ape_1010", "ape_501", "bc1_501",
+      "x3p_1010", "iron_720", "x34p_1010", "x35p_1010", "bc0_1010", "bc0_501", "ape_1010", "ape_501",
       "hamill_615", "klwa_1012", "glenn_615", "chw2_1010", "x31p_1010", "x15p2_1010"]);
   });
 });

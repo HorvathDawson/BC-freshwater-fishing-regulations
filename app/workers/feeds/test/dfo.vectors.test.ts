@@ -52,7 +52,11 @@ interface Join { by_fingerprint: Record<string, string>; reconcile: unknown }
 interface Header { notes: unknown[]; digest: string; scopes: Record<string, string[]>; unresolved: unknown[]; answers: unknown; closure: unknown }
 const V: Vectors = JSON.parse(readFileSync(join(FIX, "python-vectors.generated.json"), "utf-8"));
 const ROWS: { cases: { name: string; rows: [string, string, string][]; robust?: unknown }[] } = JSON.parse(readFileSync(join(FIX, "dfo-rows.json"), "utf-8"));
-const page = (slug: string) => readFileSync(join(FIX, `pages/region${slug}-eng.html`), "utf-8");
+// A saved page as the PYTHON reads it (the emitter's `Path.read_text`: universal newlines, CRLF read as LF). Git holds the
+// pages LF ("text" in .gitattributes), but a working tree may hold them CRLF (the main checkout's are, i/lf w/crlf, since
+// 2026-10-28; `git status` calls them clean): read raw there, the cases whose edit spans a line break (gone, new_water,
+// unmatched_new, unmatched_undrawn) found their anchor 0 times, not once, though both sides read the same page.
+const page = (slug: string) => readFileSync(join(FIX, `pages/region${slug}-eng.html`), "utf-8").replace(/\r\n?/g, "\n");
 const entryText = (slug: string): string | null => {
   try {
     return readFileSync(join(FIX, `entries/region-${slug}.json`), "utf-8");
