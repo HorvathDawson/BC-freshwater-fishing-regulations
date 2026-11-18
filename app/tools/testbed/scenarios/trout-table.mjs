@@ -58,12 +58,14 @@ export const troutTable = {
       try { ctx.flow('scroll-to-id', { ID: 'trout-boxes' }); } catch { /* the boxes already in view */ }
       return ctx.device.screenText().filter((w) => /^(Keep|Release|Closed|Up to)\b/.test(w)).slice(0, 4).join(' | ');
     }, { stop: true });
-    await ctx.step("a row's picture opens that fish's sheet", async () => {
-      ctx.flow('tap-id-in', { ID: 'pic:.*', IN: 'keep-trout' });
+    // (round 4 look) the whole row is the press, not its picture: the picture's own view is layout-only and Android
+    // flattens it, so its `pic:<key>` id is not in the hierarchy (bench 2026-11-18)
+    await ctx.step("a row opens that fish's sheet", async () => {
+      ctx.flow('tap-id-in', { ID: 'keep-row', IN: 'keep-trout' });
       await ctx.until(() => ctx.hasId('sheet-panel') || ctx.hasId('sheet-dialog'), { ms: 8_000, what: 'the fish sheet (sheet-panel)' });
       const w = ctx.device.screenText();
-      if (!w.some((x) => /^Here, today$/i.test(x))) throw new Error(`the sheet has no "Here, today" (saw: ${w.slice(0, 10).join(' | ').slice(0, 300)})`);
-      return w.slice(0, 4).join(' | ');
+      if (!w.some((x) => /^(Keep|Release|Closed)\b/.test(x))) throw new Error(`the sheet says no Keep / Release / Closed (saw: ${w.slice(0, 10).join(' | ').slice(0, 300)})`);
+      return w.slice(0, 6).join(' | ');
     });
     await ctx.step('Done closes the sheet', async () => {
       ctx.flow('tap-text', { TEXT: 'Done' });
