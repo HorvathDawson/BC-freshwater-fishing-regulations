@@ -45,7 +45,7 @@ from .catalogue_parts.species import (  # noqa: F401
     BOOK_FAMILIES, BOOK_SPECIES, GAME_FISH, SCIENTIFIC_NAMES, SPECIES_GROUPS, NAMING_GROUPS,
     _CHAR_NAMED, _TROUT_GROUP, _TROUT_WORD, _TROUT_KIND, _is_group_trout, mentions_char_apart,
     trout_word, _EXCLUDES_CHAR, rule_aspects, _dates_meet, related_rules, char_rules_apart,
-    trout_scope_problems, _PRINTS_STEELHEAD, _size_key, steelhead_scope_problems, OPEN_SUBJECTS, _s,
+    trout_char_excluded, trout_scope_problems, _PRINTS_STEELHEAD, _size_key, steelhead_scope_problems, OPEN_SUBJECTS, _s,
     SALMON_FISH, PROTECTED_FISH, KNOWN_SPECIES, protected_fish_printed, REFUSED_SPECIES,
     FEDERAL_SALMON, species_problems, DEFINITIONAL_SIZE, expand_species, _FAMILY, _COUNTED_TYPES,
     SOURCE_ARTEFACTS, source_artefact_problems

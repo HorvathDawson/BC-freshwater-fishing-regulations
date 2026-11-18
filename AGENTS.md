@@ -448,8 +448,12 @@ W46. **The guards the 2026-11 audits put in (T429–T442) stay in. A change that
     TROUT/CHAR CLARIFIED, superseding the 2026-09-28 "mentions char" reading). Region 1's "2 from
     streams (must be hatchery)" beside "All char" release: trout only; "no trout under 25 cm" beside
     "bull trout catch and release" (another aspect): covers bull trout. A combined "trout/char" never
-    excludes char. Such a line carries `species_except: [CHAR]` — never one char alone; `TROUT` is
-    refused; `trout_scope_problems` refuses it both ways.
+    excludes char. AMENDED by the owner 2026-11-18 (Chilliwack Lake, RULINGS C2): a related rule
+    for ONE char takes only that char out — "No wild trout over 50 cm, 1 bull trout over 60 cm" is
+    `species_except: [DV]`, so a wild brook or lake trout over 50 cm goes back; ALL char leave
+    (`species_except: [CHAR]`) only when the char GROUP as a whole has the related rule ("char", or
+    every char named) or the line excludes char in words. `TROUT` is refused;
+    `trout_char_excluded` reads the set and `trout_scope_problems` refuses any other, both ways.
 47. **A `;` ends a dating run.** "Trout/char catch and release; bait ban, June 15-Oct 31" dates
     only the bait ban; an "and"/comma chain shares the date. The model refuses a `when` that
     crosses a `;` and a quote that prints dates its rule does not carry. (3b5c6e9c, 1c8dfac8)

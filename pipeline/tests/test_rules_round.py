@@ -456,17 +456,19 @@ def test_q45_explicit_exclusion_in_the_text_counts():
     assert C.trout_scope_problems("r9:x", "", [t]) == []
 
 
-@pytest.mark.parametrize("region,entry_id,rule_id,trout_only", [
-    ("2", CHILLIWACK := "r2:chilliwack_lake@2-4", "chilliwack_lake.r1", True),   # 1 bull trout over 60: size
-    ("2", "r2:alta_lake@2-9", "alta_lake.r3", True),                              # 1 char none under 60: size
-    ("3", "r3:coldwater_river@3-13", "coldwater_river.r2", False),               # size vs bull trout release
-    ("3", "r3:nicola_river@3-13", "nicola_river.r3", True),                       # release vs bull trout release
-    ("6", "z6:daily_quotas", "trout_char_quota.r6", False),                    # size vs char releases
-    ("6", "z6:daily_quotas", "trout_char_quota.r7", True),                     # stream release vs DV stream release
+# C2 as amended by the owner 2026-11-18: a related line for ONE char takes only that char out; all
+# char only when the char group as a whole has it ("char", or every char named).
+@pytest.mark.parametrize("region,entry_id,rule_id,out", [
+    ("2", CHILLIWACK := "r2:chilliwack_lake@2-4", "chilliwack_lake.r1", ["DV"]),  # 1 bull trout over 60: size
+    ("2", "r2:alta_lake@2-9", "alta_lake.r3", ["CHAR"]),                          # 1 char none under 60: size
+    ("3", "r3:coldwater_river@3-13", "coldwater_river.r2", []),                  # size vs bull trout release
+    ("3", "r3:nicola_river@3-13", "nicola_river.r3", ["DV"]),                     # release vs bull trout release
+    ("6", "z6:daily_quotas", "trout_char_quota.r6", []),                       # size vs char releases
+    ("6", "z6:daily_quotas", "trout_char_quota.r7", ["DV", "LT"]),             # stream release vs DV, LT lines
 ])
-def test_q45_corpus_reading_by_relatedness(region, entry_id, rule_id, trout_only):
+def test_q45_corpus_reading_by_relatedness(region, entry_id, rule_id, out):
     r = _rule(region, entry_id, rule_id)
-    assert ("CHAR" in (r.get("species_except") or [])) is trout_only
+    assert [c for c in (r.get("species_except") or []) if c in ("CHAR", "DV", "LT", "EB")] == out
 
 
 # ---------------------------------------------------------------------------------------------
