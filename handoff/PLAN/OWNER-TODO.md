@@ -2684,3 +2684,13 @@ More questions (recommended answer first):
 
 - 2026-11-18 14:33 (T854, main chat) Owner, on whether a one-char rule (Chilliwack "1 bull trout over 60 cm", upper Kootenay "no bull trout under 75 cm") still takes that char out of the trout line, verbatim: "the species specific ones still are more specific so it applies to that species but if it is something like bull trout only 1 over 60cm but regional quota is 2 bull trout and 3 trout, then we could keep 2 bull trout which take 2/3 of our trout quota. make sense? so i think this is the mornign decision unless im confused? idk what other char -group one is idk what you meant" -> this morning's ruling stands; Region 6 lake trout fixed (released in streams Nov 1-June 30, 1 from streams in summer). RULINGS C2 + T854.
 - 2026-11-18 14:36 (T854, main chat) Owner, clarifying, verbatim: "i just meant trout means troutt and char unless the group char are explicitly listed on their own like 3 trout and 2 char per day" -> C2 (b) as built: char leave a "trout" line only when char as a group has its own line.
+- 2026-11-18 ~14:55, owner (app chat): "also should we use the rust port of map libre? seems really good ??" Answer: not yet
+  (two weeks old, no Android/iOS map SDK or React Native binding; the app already ships the fix it is praised for). Owner:
+  "add as a future ticket please." -> T857 (future).
+- 2026-11-18 ~14:58, owner (app chat), on the T856 screenshots: "the desktop salmon/trout switch should be styled nicer to
+  fit in the bar better rn it looks slapped in". T856 restyle, two looks with pictures to pick from.
+- 2026-11-18 15:05, owner (app chat dialogs), T856: not in the side bar, verbatim "actually maybe we shouldnt have in side
+  bar because it will make the buttons be jumpy when it disappears? where is a betetr desktop spot"; then picked "Top, after
+  the day strip" (a Trout | Salmon pair right after < Today > on desktop; phones unchanged).
+  15:06, owner: "the side bar should have some opacity to it too in desktop will look cleaner i think" (T856: a see-through
+  side bar on desktop, the map running under it).

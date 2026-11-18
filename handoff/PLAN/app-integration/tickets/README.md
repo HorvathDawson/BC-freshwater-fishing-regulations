@@ -288,6 +288,7 @@ reads both files; a ticket closed here moves there once its lane is finished wit
 | T854 | Region 6 streams kept lake trout Nov 1-June 30 (book: released like every trout and char; owner) | PARTIAL | main chat | fix built (catalogue trout_char_excluded + R6 r4/r7); left (Claude): the new 0.8.0 data release to staging |
 | T855 | The Salmon map draws noticeably slower than the Trout map on 0.8.0 (owner) | OPEN | app chat | owner 2026-11-18 |
 | T856 | Desktop: the Trout / Salmon map switch moves to the left side bar, under the Map button (owner) | OPEN | app chat | owner 2026-11-18 |
+| T857 | Revisit the Rust port of MapLibre Native (mln-rs) for the phones once it has phone SDKs (owner; future) | OPEN — FUTURE | app chat | owner 2026-11-18 |
 
 ## Next after closed testing
 
