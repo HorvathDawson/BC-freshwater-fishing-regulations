@@ -143,6 +143,12 @@ def _others_most(g: dict) -> float:
 #: T810 L (the review's finding 1): each covered keep row's kept-elsewhere sentence and worked lines lead the table's
 #: `elsewhere`. False = only the groups' worked lines, as before (740 cells said nothing of fish kept elsewhere)
 A_ROW_ELSEWHERE_SAID = True
+#: owner 2026-11-17 23:29 ("Yes, name the fish"): a kept-elsewhere list of more than one subject labels every line.
+#: False = the mutation pin (unlabelled lines: Kathie Lake's two limits read as one list)
+A_ELSEWHERE_SUBJECT_NAMED = True
+#: owner 2026-11-17 23:32 (the Fraser at Mission, "One shared 'only 1' box"): a count rows share inside the box's number
+#: is one shared band over them. False = the mutation pin (each row's "only 1, counting any … you keep")
+A_INNER_CAP_IS_A_BAND = True
 
 #: T834: a share RAISED below the total is the box's number over every fish of the box (the Peace River's "Keep 3 in
 #: all"). False = the zone's 5 (the proof finds a basket the table accepts and the engine refuses)
@@ -294,22 +300,39 @@ def _covered(row: dict) -> bool:
     return bool(fish) and fish <= TC
 
 
+def elsewhere_lines(rows: Sequence[dict], groups: Sequence[dict], rows_said: bool = True) -> List[str]:
+    """THE TABLE'S `elsewhere`, from the covered rows `rows` (each keep row's kept-elsewhere sentence and worked lines,
+    `Row.elsewhere`; T810 L) and the groups `groups` (their worked lines about fish kept elsewhere, not "here"): in that
+    order, each text once per subject. (Owner 2026-11-17 23:29, "Yes, name the fish") where the lines speak of more
+    than one subject — a row's or group's one fish, else the pool, `words.elsewhere_subject` — every line starts with
+    its subject, and each subject's lines stay together, in that order; one subject: no labels."""
+    items: List[Tuple[str, str]] = []
+    if rows_said:
+        for r in rows:
+            e = r.get("elsewhere")
+            if e is None:
+                continue
+            sub = W.elsewhere_subject(r.get("members") or r.get("all_members") or ())
+            items.append((sub, W.elsewhere_says(e["says"])))
+            items += [(sub, W.elsewhere_line(q, a)) for q, a in e.get("ask") or ()]
+    for g in groups:
+        if g is None:
+            continue
+        sub = W.elsewhere_subject([S for S in g.get("kinds") or () if S in TC] or g.get("kinds") or ())
+        items += [(sub, W.elsewhere_line(w["q"], w["a"])) for w in g.get("worked") or () if w["at"] != "here"]
+    items = list(dict.fromkeys(items))
+    subjects = list(dict.fromkeys(sub for sub, _t in items))
+    if len(subjects) <= 1 or not A_ELSEWHERE_SUBJECT_NAMED:
+        return list(dict.fromkeys(t for _s, t in items))
+    return [W.elsewhere_labeled(sub, t) for want in subjects for sub, t in items if sub == want]
+
+
 def elsewhere_said(frame: dict) -> List[str]:
-    """Every kept-elsewhere text the card said for the rows the table covers, in the table's words: each covered row's
-    sentence and worked lines (`Row.elsewhere`), and its group's worked lines about fish kept elsewhere
-    (`group.worked`, not "here"). What the table's `elsewhere` must hold (`answers.cut_over` holds it)."""
+    """Every kept-elsewhere text the card said for the rows the table covers, in the table's words (`elsewhere_lines`
+    over the covered rows and their groups). What the table's `elsewhere` must hold (`answers.cut_over` holds it)."""
     split, covers = split_mixed(frame)
-    out: List[str] = []
-    for i in covers:
-        r = split["rows"][i]
-        e = r.get("elsewhere")
-        if e is not None:
-            out.append(W.elsewhere_says(e["says"]))
-            out += [W.elsewhere_line(q, a) for q, a in e.get("ask") or ()]
-        g = r.get("group")
-        if g is not None:
-            out += [W.elsewhere_line(w["q"], w["a"]) for w in g.get("worked") or () if w["at"] != "here"]
-    return list(dict.fromkeys(out))
+    rows = [split["rows"][i] for i in covers]
+    return elsewhere_lines(rows, [r.get("group") for r in rows])
 
 
 def split_mixed(frame: dict) -> Tuple[dict, List[int]]:
@@ -485,6 +508,7 @@ class Body:
         self.rows_out = frame.get("rows") or []
         self.together: Optional[dict] = None
         self.boxes: List[dict] = []
+        self.inner_drawn = self.inner_left = 0          # counts `_inner_bands` drew as a band, or left as lines
         self.placed: Dict[str, int] = {}
         self.extra_release: List[_Row] = []
 
@@ -531,6 +555,7 @@ class Body:
         self._loose_boxes()
         for b in self.boxes:
             self._kept_here(b)
+            self._inner_bands(b)
         self._out_boxes()
         missing = sorted(S for S in self.states if S not in self.placed)
         if missing:
@@ -945,7 +970,9 @@ class Body:
             r.src = list(dict.fromkeys(_row_src(self.fish[r.fish], r.key, [t["by"] for t in r.chain]) + r.src))
         self.boxes.append({"kind": "keep", "head": head, "label": label, "strip": W.strip(strip),
                            "possession": box_poss, "tag": tag, "rows": rows, "bands": bands, "n": box_n, "home": home,
-                           "group": g, "parts": parts, "passes": self._passes, "first": first_n})
+                           "group": g, "parts": parts, "passes": self._passes, "first": first_n,
+                           # the counts no band drew (each row's "only 1, counting any … you keep"): `_inner_bands`
+                           "inner": [(gd["n"], list(gd["rows"])) for gk, gd in groups.items() if gk not in drawn]})
 
     def _kept_here(self, b: dict) -> None:
         """Q1 (owner 15:34 "What you keep here"): a keep box whose bands never let its fish reach the head's number —
@@ -973,6 +1000,52 @@ class Body:
         for r in b["rows"]:
             if r.band[0] != "upto" and r.band[1] == reach:
                 r.band = ("upto", reach, None)
+
+    def _inner_bands(self, b: dict) -> None:
+        """(Owner 2026-11-17 23:32 on the Fraser at Mission, "One shared 'only 1' box (Recommended)") a count two or more
+        of the box's rows share INSIDE the box's number — Region 2's 1 Dolly Varden or lake trout inside "Keep 2 in all"
+        — is ONE shared band over those rows ("only 1 of these 2"), never each row's "only 1, counting any … you keep";
+        the box's other rows keep "counts toward the 2". Its rows are moved together where the box's number is all
+        that spans them (each a one-row "counts toward" band); a count inside another shared band (a share of the box's
+        number over all its rows) stays each row's line: bands never overlap (contract `Box.bands`)."""
+        if not A_INNER_CAP_IS_A_BAND:
+            return
+        for n, grows in sorted(b.get("inner") or (), key=lambda x: x[0]):
+            rows = b["rows"]
+            members = [r for r in rows if r in grows]
+            fish = list(dict.fromkeys(r.fish for r in members))
+            if len(fish) < 2 or n is None or n >= b["n"]:
+                continue
+            # only a count each of its rows says as its own line ("only 1, counting any lake trout you keep")
+            if not all(W.count_line(n, [S for S in fish if S != r.fish]) in r.lines for r in members):
+                continue
+            at = {id(r): i for i, r in enumerate(rows)}
+            band_of = {}
+            for x in b["bands"]:
+                for i in range(x["from"], x["to"] + 1):
+                    band_of[id(rows[i])] = x
+            if any(band_of[id(r)]["kind"] != "upto" for r in members):
+                self.inner_left += 1
+                continue
+            first = min(at[id(r)] for r in members)
+            rest = [r for r in rows if r not in members]
+            new_rows = rest[:first] + members + rest[first:]
+            band = {"from": 0, "to": 0, "text": W.band_shared(n, len(members)), "kind": "shared"}
+            for r in members:
+                band_of[id(r)] = band
+                others = [S for S in fish if S != r.fish]
+                r.lines = [x for x in r.lines if x != W.count_line(n, others)]
+                r.band = ("shared", n, ("inner", n, tuple(fish)))
+            bands: List[dict] = []
+            for i, r in enumerate(new_rows):
+                x = band_of[id(r)]
+                if bands and bands[-1]["_src"] is x:
+                    bands[-1]["to"] = i
+                else:
+                    bands.append({**x, "from": i, "to": i, "_src": x})
+            b["bands"] = [{k: v for k, v in x.items() if k != "_src"} for x in bands]
+            b["rows"] = new_rows
+            self.inner_drawn += 1
 
     def _noun_duty(self, d: str) -> str:
         """Q7: a stored stop duty ("stop fishing this river after 1 a day") with this key's noun."""
@@ -1222,16 +1295,8 @@ class Body:
         # lines (`Row.elsewhere` `says` / `ask`: whose limit, its number, which fish kept elsewhere count toward it) — the
         # cutover drops `elsewhere` from the rows the table covers, so the table says what it said (contract Q-D9);
         # `answers.cut_over` stops the build where one is missing (`elsewhere_unsaid`)
-        elsewhere: List[str] = []
-        if A_ROW_ELSEWHERE_SAID:
-            for r in self.rows_out:
-                e = r.get("elsewhere")
-                if e is None or not _covered(r):
-                    continue
-                elsewhere.append(W.elsewhere_says(e["says"]))
-                elsewhere += [W.elsewhere_line(q, a) for q, a in e.get("ask") or ()]
-        elsewhere += [W.elsewhere_line(w["q"], w["a"]) for b in self.boxes if b["group"] is not None
-                      for w in b["group"].get("worked") or () if w["at"] != "here"]
+        elsewhere = elsewhere_lines([r for r in self.rows_out if _covered(r)], [b["group"] for b in self.boxes],
+                                    rows_said=A_ROW_ELSEWHERE_SAID)
         boxes = []
         src: List[int] = []
         for b in self.boxes:

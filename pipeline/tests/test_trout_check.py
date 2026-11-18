@@ -154,10 +154,10 @@ def test_the_grammar_reads_the_numbers_back():
     assert W.parse_possession("in your possession: no more than 2 lake trout, only 1 over 50 cm (20 in)") == \
         ("count", 2, ("LT",), ((1, ((50, W.INF),)),))
     assert W.parse_possession("in your possession: 1 day’s limit, not 2") == ("days", 1, 2)
-    assert W.parse_top_full("Up to 2 {day}, or 4 if they’re hatchery rainbow trout 50 cm (20 in) or less") == \
+    assert W.parse_top_full("Keep 2 trout and char {day}, or 4 if they’re hatchery rainbow trout 50 cm (20 in) or less") == \
         ("up_to", 2, ((4, ("RB",), ((0, 50),), "hatchery"),), (), ())
-    assert W.parse_top_full("Up to 2 {day}, plus 2 Dolly Varden/bull trout") == ("up_to", 2, (), (), ((2, ("DV",)),))
-    assert W.parse_top_full("Up to 6 rainbow trout or steelhead and 4 other trout and char {day}") == \
+    assert W.parse_top_full("Keep 2 trout and char {day}, plus 2 Dolly Varden/bull trout") == ("up_to", 2, (), (), ((2, ("DV",)),))
+    assert W.parse_top_full("Keep 6 rainbow trout or steelhead and 4 other trout and char {day}") == \
         ("apart", ((6, ("RB", "ST")),), 4)
     assert W.parse_elsewhere("Kept 2 on another stream? None more here.") == (("kept", 2, "stream"), ("more", 0))
     assert W.parse_sheet_line("Only 1 of these 4: this fish and brook trout, wild rainbow trout and lake trout.") == \
@@ -563,6 +563,13 @@ def test_every_segment_of_the_named_waters_is_proved(request):
         got = T.compose_key(m.sections["rows"][k], m.sections["display"][k], m.segments[k], m.moments[k], live.rules,
                             licences=m.sections["licence"][k])
         m.sections["trout"][k] = [None if f is None else json.loads(json.dumps(f, ensure_ascii=False)) for f in got]
+        # (T810 L) the rows as they ship beside the table: cut over (`answers.cut_over`), as the build does
+        from pipeline.deliver.answers import answers as A
+        from pipeline.deliver.answers import licence as L
+        from pipeline.deliver.answers.stamps import DEFAULT_PROFILE
+        m.sections["rows"][k] = A.cut_over(m.sections["rows"][k], m.sections["trout"][k], m.sections["licence"][k],
+                                           m.segments[k], m.moments[k], L.document_names(str(BUNDLE)),
+                                           L.profile_index(DEFAULT_PROFILE))
     data, _g = C.load_export(under_test.path("export_dir"))
     got = J.check_model(m, str(BUNDLE), data, keys=keys, log=lambda *_: None)
     assert got["tables"] == got["cells"] > 50

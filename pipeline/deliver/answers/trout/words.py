@@ -365,9 +365,12 @@ YEAR_TITLE = "Trout and char through the year"
 HEAD_RELEASE, HEAD_CLOSED = "Release", "Closed"
 SHEET_RELEASE, SHEET_CLOSED = "Put it back", "Closed · do not fish for it"
 FOLD_RELEASE, FOLD_CLOSED, FOLD_NONE = "Release", "Closed", "None to keep"
-TOP_RELEASE = f"Release every one {DAY_SLOT}"
-TOP_CLOSED = f"Closed for trout and char {DAY_SLOT}"
-TOP_NONE = f"Nothing to keep {DAY_SLOT}"
+#: (owner 2026-11-17 23:35, "Keep 2 trout and char today (Recommended)": "Up to 2 is just confusing … up to 2 what") every
+#: top line names the fish and the action
+TOP_FISH = "trout and char"
+TOP_RELEASE = f"Release every {TOP_FISH} {DAY_SLOT}"
+TOP_CLOSED = f"Closed for {TOP_FISH} {DAY_SLOT}"
+TOP_NONE = f"Keep no {TOP_FISH} {DAY_SLOT}"
 #: T810 G2 Q8 (owner 15:41 "Once; steelhead says 'closed all year'"): a closed table's one fish that never reopens this
 #: year, on its own row while the others' reopening day stands once under the top line
 CLOSED_ALL_YEAR = "closed all year"
@@ -416,10 +419,11 @@ def fish_words(codes) -> str:
 # -- the top line and the fold ---------------------------------------------------------------
 
 def top_up_to(n, alsos=(), more=(), plus=()) -> str:
-    """One keep box: "Up to 2 {day}", ", or 5 if they’re rainbow trout" for each stored `also` (the headline's), " and
-    no more than 2 Dolly Varden/bull trout" for a lifted fish under its own number beside an `also`, ", plus 2 Dolly
-    Varden/bull trout" for one without (`more` / `plus`: [(n, fish words)])."""
-    s = f"Up to {_n(n)} {DAY_SLOT}"
+    """One keep box: "Keep 2 trout and char {day}" (owner 23:35: the fish and the action), ", or 5 if they’re rainbow
+    trout" for each stored `also` (the headline's), " and no more than 2 Dolly Varden/bull trout" for a lifted fish under
+    its own number beside an `also`, ", plus 2 Dolly Varden/bull trout" for one without (`more` / `plus`: [(n, fish
+    words)])."""
+    s = f"Keep {_n(n)} {TOP_FISH} {DAY_SLOT}"
     if alsos:
         s += ", or " + " or ".join(_now(a) for a in alsos)
     for k, w in more:
@@ -430,16 +434,21 @@ def top_up_to(n, alsos=(), more=(), plus=()) -> str:
 
 
 def top_apart(named, others_n: Optional[float]) -> str:
-    """Boxes counted apart: "Up to 6 rainbow trout or steelhead and 4 other trout and char {day}" (`named`: [(n, fish
+    """Boxes counted apart: "Keep 6 rainbow trout or steelhead and 4 other trout and char {day}" (`named`: [(n, fish
     words)] for each box named by its fish; `others_n` the box of the other trout and char, None when every box is
     named)."""
     parts = [f"{_n(k)} {w}" for k, w in named]
     if others_n is not None:
         parts.append(f"{_n(others_n)} other trout and char")
-    return f"Up to {common.join(parts)} {DAY_SLOT}"
+    return f"Keep {common.join(parts)} {DAY_SLOT}"
 
 
 def fold_up_to(n, alsos=()) -> str:
+    """The folded entry's value (owner 23:35, "Make it match other rows in table"): one number in the Other fish rows'
+    form, "2 a day" (the app's `others.ts` `shortValue`); several (", or 10 if they’re brook trout") keep "Up to 5 or 10"
+    — the Other fish rows have no two-number form (asked of the owner, not invented)."""
+    if not alsos:
+        return f"{_n(n)} a day"
     return "Up to " + " or ".join(_n(k) for k in [n, *alsos])
 
 
@@ -716,6 +725,7 @@ def parse_elsewhere_says(text: str) -> tuple:
     (n None: "no daily limit here"; `also` the total it counts toward too, in words). Anything else is refused."""
     if _TODAY.search(text):
         raise WordsError(f"trout words: a kept-elsewhere sentence says today: {text!r}")
+    text = split_subject(text)[1]                       # (owner 23:29) its subject label, read by `split_subject`
     m = _SAYS_OWN.fullmatch(text)
     if m:
         return ("own", m[1])
@@ -729,8 +739,45 @@ def parse_elsewhere_says(text: str) -> tuple:
 
 
 def is_elsewhere_line(text: str) -> bool:
-    """A worked kept-elsewhere line ("Kept 2 elsewhere? …"), as against the sentence that leads the list."""
-    return text.startswith("Kept ")
+    """A worked kept-elsewhere line ("Kept 2 elsewhere? …"), as against the sentence that leads the list — its subject
+    label, if any, set aside (`split_subject`)."""
+    return split_subject(text)[1].startswith("Kept ")
+
+
+#: (T810 L, owner 2026-11-17 23:29 "Yes, name the fish (Recommended)") the subject of a kept-elsewhere list's lines when
+#: the list speaks of more than one: a row's or group's one fish by the table's own name ("Brook trout"), several fish
+#: (the trout and char pool, a share) "Trout and char"
+POOL_SUBJECT = "Trout and char"
+
+
+def elsewhere_subject(codes) -> str:
+    """The subject a kept-elsewhere line speaks of: the one fish of its row or group by the row's name (`fish_name`),
+    else the pool, "Trout and char"."""
+    got = list(dict.fromkeys(codes))
+    if not got:
+        raise WordsError("trout words: a kept-elsewhere line of no fish")
+    return fish_name(got[0]) if len(got) == 1 else POOL_SUBJECT
+
+
+def elsewhere_labeled(subject: str, text: str) -> str:
+    """A kept-elsewhere sentence or worked line under its subject, when the list speaks of more than one: "Brook trout:
+    Kept 2 elsewhere? Keep 8 more here." (owner 23:29: the grouping cannot be misread)."""
+    if split_subject(f"{subject}: {text}") != (subject, text):
+        raise WordsError(f"trout words: not a kept-elsewhere subject {subject!r}")
+    return _now(f"{subject}: {text}")
+
+
+def _subjects() -> Tuple[str, ...]:
+    return (POOL_SUBJECT, *sorted({common.sp_name(S) for S in common.trout_char()}, key=len, reverse=True))
+
+
+def split_subject(text: str) -> Tuple[Optional[str], str]:
+    """A kept-elsewhere text -> (its subject label, the text after it); (None, text) where it has none. Only a subject
+    `elsewhere_subject` can say is a label ("This lake’s rule: …" is a sentence, never a label)."""
+    for sub in _subjects():
+        if text.startswith(sub + ": "):
+            return sub, text[len(sub) + 2:]
+    return None, text
 
 
 def sheet_keep(band_text: str, box_n) -> str:
@@ -902,10 +949,10 @@ def parse_top(lead: str) -> Tuple[str, Tuple]:
     fixed = {TOP_RELEASE: "release", TOP_CLOSED: "closed", TOP_NONE: "none"}
     if lead in fixed:
         return fixed[lead], ()
-    m = re.fullmatch(rf"Up to {_NUM} \{{day\}}(.*)", lead)
+    m = re.fullmatch(rf"Keep {_NUM} {TOP_FISH} \{{day\}}(.*)", lead)
     if m:
         return "up_to", (_num(m[1]), *(_num(x) for x in re.findall(rf"(?:or|than|plus|and) {_NUM}", m[2])))
-    m = re.fullmatch(rf"Up to (.+) \{{day\}}", lead)
+    m = re.fullmatch(rf"Keep (.+) \{{day\}}", lead)
     if m and " other trout and char" in m[1] or (m and re.match(rf"{_NUM} ", m[1])):
         return "apart", tuple(_num(x) for x in re.findall(rf"(?:^|, | and ){_NUM} ", m[1]))
     raise WordsError(f"trout words: cannot read the top line {lead!r}")
@@ -1210,7 +1257,10 @@ def parse_fold(text: str) -> Tuple[str, Tuple]:
     fixed = {FOLD_RELEASE: "release", FOLD_CLOSED: "closed", FOLD_NONE: "none"}
     if text in fixed:
         return fixed[text], ()
-    m = re.fullmatch(rf"Up to {_NUM}((?: or {_NUM})*)", text)
+    m = re.fullmatch(rf"{_NUM} a day", text)
+    if m:
+        return "up_to", (_num(m[1]),)
+    m = re.fullmatch(rf"Up to {_NUM}((?: or {_NUM})+)", text)
     if m:
         return "up_to", (_num(m[1]), *(_num(x) for x in re.findall(_NUM, m[2])))
     m = re.fullmatch(r"Up to (.+)", text)
@@ -1233,7 +1283,7 @@ def parse_top_full(lead: str) -> tuple:
     fixed = {TOP_RELEASE: "release", TOP_CLOSED: "closed", TOP_NONE: "none"}
     if lead in fixed:
         return (fixed[lead],)
-    m = re.fullmatch(rf"Up to {_NUM} \{{day\}}(.*)", lead)
+    m = re.fullmatch(rf"Keep {_NUM} {TOP_FISH} \{{day\}}(.*)", lead)
     if m:
         n, rest = _num(m[1]), m[2]
         alsos, more, plus = [], [], []
@@ -1258,7 +1308,7 @@ def parse_top_full(lead: str) -> tuple:
             for k, w in re.findall(rf" and no more than {_NUM} ([^,]+?)(?= and no more than|$)", mm[2] or ""):
                 more.append((_num(k), parse_fish(w)))
         return ("up_to", n, tuple(alsos), tuple(more), ())
-    m = re.fullmatch(r"Up to (.+) \{day\}", lead)
+    m = re.fullmatch(r"Keep (.+) \{day\}", lead)
     if m:
         body = m[1]
         others = None
@@ -1291,7 +1341,9 @@ _SAY_ANSWER = (
 def parse_elsewhere(text: str) -> tuple:
     """A kept-elsewhere line (`elsewhere_line`) -> (question, answer): the question ("kept", n, place) — "Kept 2
     elsewhere?", "Kept 2 on another stream?", "Kept 1 at a lake?" — or ("over", fish, cm) — "Kept trout or char over
-    50 cm (20 in) elsewhere?"; the answer one of `_SAY_ANSWER`'s forms."""
+    50 cm (20 in) elsewhere?"; the answer one of `_SAY_ANSWER`'s forms. A subject label before it (owner 23:29,
+    `elsewhere_labeled`) is set aside."""
+    text = split_subject(text)[1]
     m = re.fullmatch(r"(Kept [^?]+\?) (.+)", text)
     if not m:
         raise WordsError(f"trout words: not a kept-elsewhere line {text!r}")

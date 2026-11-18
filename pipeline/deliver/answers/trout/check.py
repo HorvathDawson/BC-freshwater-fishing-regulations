@@ -1036,6 +1036,19 @@ def elsewhere_said_problems(c: Cell, T: Table) -> List[str]:
     keep = [rows[i] for i in c.cell["covers"] if i < len(rows) and rows[i].get("kind") == "keep"]
     said = [p for _t, p in T.elsewhere_says]
     probs: List[str] = []
+    # (owner 2026-11-17 23:29, "Yes, name the fish") the list's subjects: one per covered keep row's fish (its one fish,
+    # else the pool); more than one -> every line labelled with one of them, each subject's lines together; one -> none
+    subjects = list(dict.fromkeys(W.elsewhere_subject(r.get("members") or r.get("all_members") or ()) for r in keep))
+    labels = [W.split_subject(t)[0] for t in c.cell["table"]["elsewhere"]]
+    if len(subjects) > 1:
+        bad = [t for t, lb in zip(c.cell["table"]["elsewhere"], labels) if lb not in subjects]
+        if bad:
+            probs.append(f"the kept-elsewhere list speaks of {subjects}; a line without its subject: {bad[0]!r}")
+        runs = [lb for i, lb in enumerate(labels) if i == 0 or labels[i - 1] != lb]
+        if len(runs) != len(set(runs)):
+            probs.append(f"the kept-elsewhere list's subjects are not kept together: {runs}")
+    elif any(lb is not None for lb in labels):
+        probs.append(f"a kept-elsewhere list of one subject {subjects} carries a label")
     for r in keep:
         sc = r.get("scope") or {}
         if sc.get("of") == "water" and not sc.get("share"):

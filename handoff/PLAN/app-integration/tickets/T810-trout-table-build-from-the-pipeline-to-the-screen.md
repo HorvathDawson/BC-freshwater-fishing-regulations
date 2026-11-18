@@ -312,3 +312,17 @@ unpacks a rows frame as exactly five slots, so a rows-34 frame (six) breaks the 
   an in-force zone rule applying to it lists in `exempts` (`engine.A_ZONE_EXEMPTS_ELSEWHERE`; Inkaneep day 1: 4 other
   trout after 2 brook trout kept on another stream, not 2). Live in memory: J 0 problems on 5,950 tables; the card
   gate 0 problems on 9,251 groups.
+- Owner 2026-11-17 23:29 / 23:32 / 23:35, built (lane/t810-l):
+  - Kept-elsewhere subjects: a list of more than one subject starts every line with it ("Trout and char: …",
+    "Brook trout: …"), each subject's lines together; one subject: no labels (`table.elsewhere_lines`,
+    `words.elsewhere_subject` / `elsewhere_labeled` / `split_subject`; J checks the labels).
+  - One shared band for a count rows share inside the box's number ("only 1 of these 2" over Dolly Varden and lake trout
+    on the Fraser at Mission), the rows' "only 1, counting any …" lines dropped (`table._inner_bands`): 294 tables /
+    175 keys on the live bundle ("only 1 of these 2" 274, "of these 3" 7, "of these 4" 13); the a2 cases (the Vedder,
+    Stewart Slough: the count nested inside "only 2 of these 6") stay as today, waiting for the owner. Shape unchanged
+    (`Band.kind` "shared"; bands never overlap).
+  - Top line names the fish and the action ("Keep 2 trout and char {day}", "Keep 5 trout and char {day}, or 10 if
+    they’re brook trout", "Release every trout and char {day}", "Keep no trout and char {day}"); the fold's one number
+    is the Other fish rows' "2 a day". Two-number folds ("Up to 5 or 10") stay: the Other fish rows have no such form
+    (for the owner).
+  - Live in memory: J 0 problems on 5,950 tables; card gate 0 on 9,251 groups.
