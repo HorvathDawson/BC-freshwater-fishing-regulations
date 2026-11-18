@@ -2695,3 +2695,7 @@ More questions (recommended answer first):
   15:06, owner: "the side bar should have some opacity to it too in desktop will look cleaner i think" (T856: a see-through
   side bar on desktop, the map running under it).
 - 2026-11-18 16:50 (main chat) Cranberry River Canyon cuts. Owner, verbatim: "the top point is confident the lower point of canyon less so" -> the falls (top) cut is now HIGH confidence; the canyon bottom estimate stays LOW. Shows from the next data release (after r-86d43303bee2).
+- 2026-11-18 ~16:50, owner (to the main chat, relayed to the app chat 16:51), verbatim: "in the webapp we shopuld have keyboard
+  navigation like in search bar using arrows to move highlight etc." -> T858 (web only: ↑/↓ move a highlight through the
+  search results, Enter opens, Escape closes as today; then the same in other lists where it fits). After 0.8.1: the
+  web site can carry it as soon as it is built, without a Play or TestFlight build.
