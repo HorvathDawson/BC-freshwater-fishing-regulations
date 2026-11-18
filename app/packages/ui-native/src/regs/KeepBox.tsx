@@ -7,15 +7,17 @@
  *
  *  - KeepBox: one tint block, no outline. A strip across the top (the head, the filled label, the strip sentence; then the
  *    trout box's possession line on its own line, its notes, the strip date), the rows on the card colour with the tint as a left rail, the right band in the tint: a white
- *    box per `own` / `shared` / `possession` band level with its rows (a shared one spans them), the free words of an
- *    `upto` band beside each row, a band's date small under it; then the bottom edge.
+ *    box per `own` / `shared` / `possession` / `size` band spanning the FULL height of its rows, from the top of its first
+ *    to the bottom of its last, its words at the top (owner 2026-11-18, round 4), the free words of an `upto` band beside
+ *    each row, a band's date small under its words; a nested band (trout 4 `Box.inner`) INSIDE its band's white box, a
+ *    1 px hairline outline spanning just its rows, its words at its top; then the bottom edge.
  *  - ShutGroup: under the box, no fill, faded pictures, ONE column word for the whole group ("↩ Release", "✕ Closed"),
  *    its date small under the word.
  *
  * Two text sizes (spec 3.2): today's rule is the bigger bold ink (strip, row lines, band text, the column word); a coming
  * change or a quiet line is the smaller regular face in the quiet colour, on its own line. Tokens only (light, dark, cvd).
  * Large text (OS scale ≥ `FOLD_AT`): the right band folds away — each band's words become a bold line under its last
- * row, a shared band's rows joined by a left rail — and the column word becomes a line above its group, so nothing
+ * row (a nested band's first, then its band's), a shared band's rows joined by a left rail — and the column word becomes a line above its group, so nothing
  * scrolls sideways at 360 px. Every word drawn is the caller's (Python's payload, or core's words); the app joins none
  * but the shape marks ↩ / ✕. Each row reads as ONE label, its texts joined in payload order (contract 2.8).
  */
@@ -148,19 +150,41 @@ function Row({ r, palette, faded, mark, first, under, band, testID }: {
   ) : <View testID={testID} style={style}>{body}</View>;
 }
 
-/** The right band's cell: a white box (own / shared / possession) or the free words of an "up to the N" band. */
-function BandCell({ b, palette }: { b: KeepBandVM | null; palette: Palette }) {
-  if (!b) return <View testID="keep-band-empty" style={{ width: BAND_W }} />;
-  const words = (
+/** A band's words, with its date small under them. */
+function Words({ b, palette, testID }: { b: KeepBandVM; palette: Palette; testID: string }) {
+  return (
     <>
-      <Text selectable testID="keep-band-text" style={{ ...NOW, color: palette.ink }}>{b.text}</Text>
-      {b.date && <Text selectable testID="keep-band-date" style={{ ...NEXT, color: palette.sub, marginTop: 4 }}>{b.date}</Text>}
+      <Text selectable testID={`${testID}-text`} style={{ ...NOW, color: palette.ink }}>{b.text}</Text>
+      {b.date && <Text selectable testID={`${testID}-date`} style={{ ...NEXT, color: palette.sub, marginTop: 4 }}>{b.date}</Text>}
     </>
   );
+}
+
+/** The right band's cell beside one stretch of a group's rows (a group is one stretch, or, where a nested band sits,
+ *  the stretches before, inside and after it). An `upto` band: its free words. Any other band: one slice of its ONE white
+ *  box, the slices flush so the box runs the group's full height, its words in the first slice only; a nested band's
+ *  hairline box inside the slice beside its rows. No band: an empty cell (salmon: an open species with no number). */
+function BandCell({ b, nest, first, last, palette }: {
+  b: KeepBandVM | null; nest: KeepBandVM | null; first: boolean; last: boolean; palette: Palette }) {
+  if (!b) return <View testID="keep-band-empty" style={{ width: BAND_W }} />;
+  if (b.kind === "upto")
+    return (
+      <View testID="keep-band" style={{ width: BAND_W, paddingHorizontal: 6, paddingVertical: 6 }}>
+        <View testID="keep-band-free" style={{ paddingHorizontal: 2 }}><Words b={b} palette={palette} testID="keep-band" /></View>
+      </View>
+    );
   return (
-    <View testID="keep-band" style={{ width: BAND_W, paddingHorizontal: 6, paddingVertical: 6 }}>
-      {b.kind === "upto" ? <View testID="keep-band-free" style={{ paddingHorizontal: 2 }}>{words}</View>
-        : <View testID="keep-band-box" style={{ backgroundColor: palette.card, paddingHorizontal: 7, paddingVertical: 6 }}>{words}</View>}
+    <View testID={first ? "keep-band" : "keep-band-more"} style={{ width: BAND_W, paddingHorizontal: 6, paddingTop: first ? 6 : 0, paddingBottom: last ? 6 : 0 }}>
+      <View testID={first ? "keep-band-box" : "keep-band-box-more"}
+            style={{ flex: 1, backgroundColor: palette.card, paddingHorizontal: 7, paddingTop: first ? 6 : 0, paddingBottom: last ? 6 : 0 }}>
+        {first && <Words b={b} palette={palette} testID="keep-band" />}
+        {nest && (
+          <View testID="keep-inner" style={{ flex: 1, borderWidth: 1, borderColor: palette.line, paddingHorizontal: 5, paddingVertical: 5,
+                                             marginTop: first ? 6 : 4, marginBottom: last ? 0 : 4, marginHorizontal: -3 }}>
+            <Words b={nest} palette={palette} testID="keep-inner" />
+          </View>
+        )}
+      </View>
     </View>
   );
 }
@@ -176,7 +200,19 @@ function groupsOf(n: number, bands: readonly KeepBandVM[]): { from: number; to: 
   return out;
 }
 
-export function KeepBox({ head, label, strip, possession = null, tag, notes = [], date, rows, bands, palette, testID = "keep-box" }:
+/** a group's rows cut at its nested bands: the stretches before, inside and after each (in row order) */
+function stretchesOf(from: number, to: number, inner: readonly KeepBandVM[]): { from: number; to: number; nest: KeepBandVM | null }[] {
+  const out: { from: number; to: number; nest: KeepBandVM | null }[] = [];
+  for (let i = from; i <= to;) {
+    const y = inner.find((x) => x.from === i);
+    if (y) { out.push({ from: i, to: y.to, nest: y }); i = y.to + 1; continue; }
+    const next = Math.min(to + 1, ...inner.filter((x) => x.from > i).map((x) => x.from));
+    out.push({ from: i, to: next - 1, nest: null }); i = next;
+  }
+  return out;
+}
+
+export function KeepBox({ head, label, strip, possession = null, tag, notes = [], date, rows, bands, inner = [], palette, testID = "keep-box" }:
   Pick<TroutBox, "label" | "strip" | "tag"> & {
     /** the box's head ("Keep 5 in all"; the salmon card: DFO's day total), null: no strip */
     readonly head: string | null;
@@ -186,7 +222,10 @@ export function KeepBox({ head, label, strip, possession = null, tag, notes = []
     readonly notes?: readonly string[];
     /** DateSet.box: the strip date, when every row of the box shares it */
     readonly date?: string | null;
-    readonly rows: readonly KeepRowVM[]; readonly bands: readonly KeepBandVM[]; readonly palette: Palette; readonly testID?: string }) {
+    readonly rows: readonly KeepRowVM[]; readonly bands: readonly KeepBandVM[];
+    /** (trout 4) the nested bands (`Box.inner`): each inside one band's white box, over just its rows; absent: none */
+    readonly inner?: readonly KeepBandVM[];
+    readonly palette: Palette; readonly testID?: string }) {
   const folded = useFolded();
   const groups = groupsOf(rows.length, bands);
   const hasStrip = !!(head || label || strip || possession || tag || notes.length || date);
@@ -206,19 +245,28 @@ export function KeepBox({ head, label, strip, possession = null, tag, notes = []
         </View>
       ) : <View style={{ height: 8 }} />}
       {groups.map((g, gi) => {
-        const its = rows.slice(g.from, g.to + 1);
         const shared = g.to > g.from;
+        const nests = g.band && g.band.kind !== "upto" ? inner.filter((y) => g.from <= y.from && y.to <= g.to) : [];
+        const parts = stretchesOf(g.from, g.to, nests);
         return (
-          <View key={`${g.from}`} testID="box-group" style={{ flexDirection: "row", ...(gi ? { borderTopWidth: 1, borderTopColor: palette.line } : {}) }}>
-            <View style={{ flex: 1, minWidth: 0, backgroundColor: palette.card,
-                           ...(folded && shared ? { borderLeftWidth: 3, borderLeftColor: palette.line2 } : {}) }}>
-              {its.map((r, k) => (
-                <Row key={r.key} r={r} palette={palette} faded={false} mark={null} first={k === 0} testID="keep-row"
-                     band={g.band && (g.band.kind === "upto" || k === its.length - 1) ? [g.band.text, ...(g.band.date ? [g.band.date] : [])] : []}
-                     under={folded && g.band && k === its.length - 1 ? [g.band] : []} />
-              ))}
-            </View>
-            {!folded && <BandCell b={g.band} palette={palette} />}
+          <View key={`${g.from}`} testID="box-group" style={gi ? { borderTopWidth: 1, borderTopColor: palette.line } : undefined}>
+            {parts.map((p, pi) => (
+              <View key={`${p.from}`} testID="box-stretch" style={{ flexDirection: "row" }}>
+                <View style={{ flex: 1, minWidth: 0, backgroundColor: palette.card,
+                               ...(folded && shared ? { borderLeftWidth: 3, borderLeftColor: palette.line2 } : {}) }}>
+                  {rows.slice(p.from, p.to + 1).map((r, k) => {
+                    const i = p.from + k, last = i === g.to, nestEnd = p.nest !== null && i === p.to;
+                    return (
+                      <Row key={r.key} r={r} palette={palette} faded={false} mark={null} first={i === g.from} testID="keep-row"
+                           band={[...(g.band && (g.band.kind === "upto" || last) ? [g.band.text, ...(g.band.date ? [g.band.date] : [])] : []),
+                                  ...(nestEnd ? [p.nest!.text] : [])]}
+                           under={folded ? [...(nestEnd ? [p.nest!] : []), ...(g.band && last ? [g.band] : [])] : []} />
+                    );
+                  })}
+                </View>
+                {!folded && <BandCell b={g.band} nest={p.nest} first={pi === 0} last={pi === parts.length - 1} palette={palette} />}
+              </View>
+            ))}
           </View>
         );
       })}

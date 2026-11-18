@@ -6,7 +6,8 @@
  * marks ↩ / ✕ that `ShutGroup` adds).
  *
  * In order: the kicker line (the entry's name only when no folded row heads the table, and "How to tell a hatchery fish ›"
- * when `hatchLink` is set), the top line (bigger) with its second half and its date (smaller), the card line, the keep
+ * when `hatchLink` is set), the top line (bigger), its sub (trout 4: the exception, the top line's face a size down, as a
+ * subtitle), its second half and its date (smaller), the card line (the card-level date, grey), the keep
  * boxes (T829's `KeepBox`: one component for the salmon and trout tables), the release and closed groups under their head
  * word (`ShutGroup`), the all-together line, the year bar when `year` is set, then "Sources ›" and, only when `elsewhere`
  * holds lines, "Fished elsewhere today? ›", which unfolds them in place.
@@ -44,7 +45,7 @@ function Box({ b, i, palette, actions, images }: { b: TroutBoxVM; i: number; pal
   const rows = b.rows.map((r) => rowOf(r, actions, images));
   if (b.kind === "keep")
     return <KeepBox testID={`trout-box:${i}`} head={b.head} label={b.label} strip={b.strip} possession={b.possession} tag={b.tag} date={b.date} rows={rows}
-                    bands={b.bands} palette={palette} />;
+                    bands={b.bands} inner={b.inner} palette={palette} />;
   return <ShutGroup testID={`trout-${b.kind}`} kind={b.kind} head={b.head} date={b.date} rows={rows} palette={palette} />;
 }
 
@@ -74,6 +75,7 @@ export function TroutCard({ t, palette, actions, images, kicker = false, todayAt
         </View>
       )}
       <Text selectable testID="trout-top" style={[big ? TYPE.lead : TYPE.screen, { color: palette.ink, marginTop: 4 }]}>{t.top.lead}</Text>
+      {t.top.sub && <Text selectable testID="trout-sub" style={[TYPE.lead, { color: palette.ink, marginTop: 2 }]}>{t.top.sub}</Text>}
       {t.top.second && <Text selectable testID="trout-second" style={[TYPE.regsBodyBold, { color: palette.ink, marginTop: 2 }]}>{t.top.second}</Text>}
       {t.top.date && <Text selectable testID="trout-top-date" style={[TYPE.meta, { color: palette.sub, marginTop: 2 }]}>{t.top.date}</Text>}
       {t.card && <Text selectable testID="trout-card-line" style={[TYPE.meta, { color: palette.sub, marginTop: 4 }]}>{t.card}</Text>}
