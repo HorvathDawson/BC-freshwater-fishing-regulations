@@ -8,7 +8,7 @@ export const STATE = `(() => {
   const sal = [...document.querySelectorAll('*')].filter((x) => x.children.length === 0 && /^salmon \\(dfo\\)$/i.test(x.textContent.trim())).pop();
   const pressed = (id) => { const e = q(id); return !!e && ['aria-pressed', 'aria-checked', 'aria-selected'].some((a) => e.getAttribute(a) === 'true'); };
   return { text: document.body.innerText, ids: [...new Set([...document.querySelectorAll('[data-testid]')].map((e) => e.dataset.testid))],
-    vis: Object.fromEntries(['map-day', 'keep-strip', 'salmon-block', 'gauge-card', 'water-map-step-up', 'water-title', 'chart-model-CLEVER'].map((id) => [id, vis(q(id))])),
+    vis: Object.fromEntries(['map-day', 'keep-strip', 'keep-trout', 'salmon-block', 'gauge-card', 'water-map-step-up', 'water-title', 'chart-model-CLEVER'].map((id) => [id, vis(q(id))])),
     keepTop: q('keep-strip')?.getBoundingClientRect().top ?? null, salmonHeadTop: sal?.getBoundingClientRect().top ?? null, salmonBlockTop: q('salmon-block')?.getBoundingClientRect().top ?? null,
     clever: pressed('chart-model-CLEVER'), canvas: !!document.querySelector('canvas.maplibregl-canvas'), scale: document.querySelector('.maplibregl-ctrl-scale')?.textContent.replace(/\\s+/g, ' ').trim() ?? null,
     waterTitle: q('water-title')?.innerText.trim() ?? '' }; })()`;
@@ -19,7 +19,10 @@ const need = (cond, msg) => (cond ? [] : [msg]);
 export const CHECKS = {
   '01-map': (s) => [...need(s.vis['map-day'] && s.canvas, 'the map (day bar + canvas) is not showing')],
   // shot 2, salmon on top (0cba57a73): the SALMON (DFO) block sits ABOVE the game-fish calendar in the page, both drawn
-  '18-regs-trout': (s) => [...need(s.vis['keep-strip'], 'the game-fish calendar (keep-strip) is not showing'), ...need(/GAME FISH/i.test(s.text), 'no GAME FISH (B.C. RULES) heading')],
+  // (T810 R) switched by what the page shows: the old card needs nothing more; the trout table (its fold `glance:trout`)
+  // is shot OPEN (`keep-trout` drawn), never as a folded row
+  '18-regs-trout': (s) => [...need(s.vis['keep-strip'], 'the game-fish calendar (keep-strip) is not showing'), ...need(/GAME FISH/i.test(s.text), 'no GAME FISH (B.C. RULES) heading'),
+    ...need(!(s.ids ?? []).includes('glance:trout') || s.vis['keep-trout'], 'the trout table is folded (glance:trout drawn, keep-trout not)')],
   '19-regs-salmon': (s) => [...need(s.salmonHeadTop !== null, 'no "Salmon (DFO)" block on the Vedder'), ...need(s.keepTop !== null, 'no game-fish calendar on the page'),
     ...need(s.salmonHeadTop !== null && s.keepTop !== null && s.salmonHeadTop < s.keepTop, `salmon is not above the game-fish calendar (salmon top ${s.salmonHeadTop}, game fish top ${s.keepTop}): the site serving the shots predates 0cba57a73`),
     ...need(/Open|Closed/.test(s.text), 'no open/closed answer on the page')],

@@ -12,6 +12,11 @@ describe('store shot checks', () => {
     expect(judge('19-regs-salmon', page({ salmonHeadTop: 969, keepTop: 281 }))[0]).toMatch(/salmon is not above/);
     expect(judge('19-regs-salmon', page({ salmonHeadTop: null }))[0]).toMatch(/no "Salmon \(DFO\)" block/);
   });
+  it('(T810 R) shot 18: the old card as is; the trout table only when its fold is open', () => {
+    expect(judge('18-regs-trout', page())).toEqual([]);
+    expect(judge('18-regs-trout', page({ ids: ['glance:trout', 'keep-trout'], vis: { 'keep-strip': true, 'keep-trout': true } }))).toEqual([]);
+    expect(judge('18-regs-trout', page({ ids: ['glance:trout'], vis: { 'keep-strip': true, 'keep-trout': false } }))[0]).toMatch(/trout table is folded/);
+  });
   it('the conditions chart needs the forecast switched on', () => {
     expect(judge('11-cond-chart', page())).toEqual([]);
     expect(judge('11-cond-chart', page({ clever: false }))[0]).toMatch(/forecast/);

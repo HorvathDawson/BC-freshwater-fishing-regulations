@@ -86,7 +86,13 @@ Object.assign(SCENES, {
   // The Vedder is open for salmon in the fall; out of season the salmon bar and row still show, closed.
   // (owner 2026-11-12 "Stacked: trout top, salmon bottom") store shot 10 is two captures of the Vedder, same day: 18 = trout/game-fish year bar
   // and first rows, 19 = the SALMON (DFO) section. The composite is named 10-regs-bar-table in store-shots.json.
-  '18-regs-trout': async (b) => { await until(b, `!!document.querySelector('[data-testid=keep-strip]')`, 120000); await sleep(3000); await scrollTo(b, 'keep-strip'); await sleep(1500); },
+  // (T810 R) switched by what the page shows: the trout table's fold (`glance:trout`: after the cutover, or a build with
+  // EXPO_PUBLIC_TROUT_TABLE=1 on a release carrying the `trout` section) is opened so the shot holds the table under the
+  // calendar; the old card needs no press. The compose crop of 10-regs-bar-table was set on the old card: re-pick it.
+  '18-regs-trout': async (b) => { await until(b, `!!document.querySelector('[data-testid=keep-strip]')`, 120000); await sleep(3000);
+    const fold = `document.querySelector('[data-testid="glance:trout"] [role=button]')`;
+    if (await b.evaluate(`!!${fold}`)) { await b.evaluate(`${fold}.scrollIntoView({ block: 'center' })`); await sleep(500); await click(b, fold); await until(b, `!!document.querySelector('[data-testid=keep-trout]')`, 10000); await sleep(1000); }
+    await scrollTo(b, 'keep-strip'); await sleep(1500); },
   '19-regs-salmon': async (b) => { await until(b, `!!document.querySelector('[data-testid=keep-strip]')`, 120000); await sleep(3000);
     const at = await b.evaluate(`(() => { const e = [...document.querySelectorAll('*')].filter((x) => x.children.length === 0 && /^salmon \\(dfo\\)$/i.test(x.textContent.trim())).pop(); if (!e) return 'no SALMON (DFO) section';
       let p = e.parentElement; while (p && p.scrollHeight <= p.clientHeight + 2) p = p.parentElement; if (!p) return 'nothing scrolls';
