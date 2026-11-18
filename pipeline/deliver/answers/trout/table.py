@@ -149,6 +149,22 @@ A_ELSEWHERE_SUBJECT_NAMED = True
 #: owner 2026-11-17 23:32 (the Fraser at Mission, "One shared 'only 1' box"): a count rows share inside the box's number
 #: is one shared band over them. False = the mutation pin (each row's "only 1, counting any … you keep")
 A_INNER_CAP_IS_A_BAND = True
+#: (owner 2026-11-18 on the simplify examples: "the fraser and kamloops seems worse after? … fraser also never simplified
+#: that but then removed the text that allowed a user to infer it") simplify STATES the conclusion once: rows the strip
+#: already holds to the count (each kept only over its size, saying "uses the 1 over 50 cm" — the Fraser's Dolly Varden
+#: and lake trout) get the one shared band too, "uses the 1" staying on the rows as the reason. False = the hold the
+#: coordinator asked for first (each row's "only 1, counting any …"), kept as the switch
+INNER_BAND_WHEN_THE_STRIP_SAYS_IT = True
+#: owner 2026-11-18 (Region 4's cutthroat and rainbow, "A but still has to mention the overall limit"): a size cap rows
+#: share is one "size" band over them (`_size_bands`). False = the mutation pin (each row's "only 1 over 50 cm (20 in),
+#: counting any … you keep")
+A_SIZE_CAP_IS_A_BAND = True
+#: owner 2026-11-18 (Bowron Lake Park's creeks): rows whose possession lines differ but each come to the day's number say
+#: it once on the box, "In your possession: just 1, the same as the day". False = the mutation pin (each row's own line)
+A_POSSESSION_SAME_AS_THE_DAY = True
+#: owner 2026-11-18, PENDING one more picture (Chilliwack Lake and the other five Region 2 lakes): a wild quota at or above
+#: the box's number never limits anything ("only 4 wild" in "Keep 4 in all"): unsaid. Off until the owner's picture
+WILD_QUOTA_AT_THE_BOX_NUMBER_UNSAID = False
 
 #: T834: a share RAISED below the total is the box's number over every fish of the box (the Peace River's "Keep 3 in
 #: all"). False = the zone's 5 (the proof finds a basket the table accepts and the engine refuses)
@@ -372,9 +388,29 @@ def split_mixed(frame: dict) -> Tuple[dict, List[int]]:
 # One fish: its state, its origin case, its law
 # ============================================================================================
 
+#: T810 L (the sweep's builder fault: 79 tables, 35 waters — Ape, Assanany, Burnt Bridge Creeks, the Atnarko River): a
+#: kept fish its group holds to 0 everywhere ("Trout/char daily quota = 1 (… all cutthroat trout catch and release)")
+#: is released: its row goes under Release. False = the mutation pin (a Keep row "catch and release" with "only 0")
+A_ZERO_COUNT_IS_RELEASE = True
+
+
+def _held_at_zero(frame: dict, S: str) -> bool:
+    """Every count of the frame's groups that holds `S` (its kind's, or a tier above it) is 0."""
+    ns = []
+    for r in frame.get("rows") or ():
+        g = r.get("group")
+        if not g:
+            continue
+        for node, chain in _walk(g["tree"]):
+            if S in (node.get("species") or ()):
+                ns.append(min([x["n"] for x in (node, *chain) if x.get("n") is not None] or [None],
+                              key=lambda v: INF if v is None else v))
+    return bool(ns) and all(n == 0 for n in ns)
+
+
 def fish_states(frame: dict) -> Dict[str, str]:
     """Every trout and char fish the frame answers -> its state today (keep / release / closed), its leading origin's
-    (`common.lead_name`, the one picker)."""
+    (`common.lead_name`, the one picker); a kept fish its group holds to 0 is released (`A_ZERO_COUNT_IS_RELEASE`)."""
     out = {}
     for S, fa in (frame.get("fish") or {}).items():
         if S not in TC:
@@ -382,6 +418,8 @@ def fish_states(frame: dict) -> Dict[str, str]:
         lead = common.lead_name(fa.get("hatchery"), fa.get("wild"))
         if lead is not None:
             out[S] = TL._STATE[fa[lead]["status"]]
+            if out[S] == "keep" and A_ZERO_COUNT_IS_RELEASE and _held_at_zero(frame, S):
+                out[S] = "release"
     return out
 
 
@@ -508,7 +546,7 @@ class Body:
         self.rows_out = frame.get("rows") or []
         self.together: Optional[dict] = None
         self.boxes: List[dict] = []
-        self.inner_drawn = self.inner_left = 0          # counts `_inner_bands` drew as a band, or left as lines
+        self.inner_drawn = self.inner_left = self.inner_held = self.size_drawn = self.size_left = 0          # counts `_inner_bands` drew as a band, or left as lines
         self.placed: Dict[str, int] = {}
         self.extra_release: List[_Row] = []
 
@@ -556,6 +594,8 @@ class Body:
         for b in self.boxes:
             self._kept_here(b)
             self._inner_bands(b)
+            if b["kind"] == "keep":
+                self._size_bands(b)
         self._out_boxes()
         missing = sorted(S for S in self.states if S not in self.placed)
         if missing:
@@ -786,6 +826,8 @@ class Body:
             mine = [r for r in rows if r.origin == c["o"] and r.fish in who]
             if not mine:
                 continue
+            if WILD_QUOTA_AT_THE_BOX_NUMBER_UNSAID and c["daily"] >= box_n:
+                continue                       # (pending) it never limits: the box's number holds every fish first
             every = [r for r in rows if r.origin == c["o"]] if not A_WILD_QUOTA_FROM_EVERY_ROW else \
                 [r for r in rows if r.origin == c["o"] or (r.origin is None and not r.label and
                                                            TL._keeps(TL.law_of(self.fish[r.fish].get(c["o"]))))]
@@ -905,6 +947,13 @@ class Body:
             self._week_and_steel(r)
         # -- possession: below the day's number a band; shared by every row: the strip ---------------------
         plines = {r.poss[0] if r.poss else None for r in rows}
+        if A_POSSESSION_SAME_AS_THE_DAY and len(rows) > 1 and len(plines) > 1 and None not in plines \
+                and all(self._poss_comes_to(r) == box_n for r in rows):
+            # (owner 2026-11-18, Bowron Lake Park's creeks) every row comes to the day's number in possession, each said
+            # its own way: one box line, "In your possession: just 1, the same as the day"
+            for r in rows:
+                r.poss = (W.possession_same(box_n), box_n)
+            plines = {r.poss[0] for r in rows}
         box_poss = None
         if len(rows) > 1 and len(plines) == 1 and None not in plines:
             if A_BOX_POSSESSION_OWN_LINE:
@@ -1019,6 +1068,9 @@ class Body:
             # only a count each of its rows says as its own line ("only 1, counting any lake trout you keep")
             if not all(W.count_line(n, [S for S in fish if S != r.fish]) in r.lines for r in members):
                 continue
+            if not INNER_BAND_WHEN_THE_STRIP_SAYS_IT and self._strip_says(b, n, members):
+                self.inner_held += 1
+                continue
             at = {id(r): i for i, r in enumerate(rows)}
             band_of = {}
             for x in b["bands"]:
@@ -1046,6 +1098,84 @@ class Body:
             b["bands"] = [{k: v for k, v in x.items() if k != "_src"} for x in bands]
             b["rows"] = new_rows
             self.inner_drawn += 1
+
+    def _size_bands(self, b: dict) -> None:
+        """(Owner 2026-11-18 on Region 4's cutthroat and rainbow over 50 cm, "A but still has to mention the overall
+        limit") a size cap two or more of the box's rows share — each row saying it as its own line, "only 1 over 50 cm
+        (20 in), counting any rainbow trout you keep" — is ONE band over those rows, the box's number first: "counts
+        toward the 2 · only 1 over 50 cm (20 in) between them" (`Band.kind` "size", trout 2). Its rows are moved together;
+        only rows whose band is the box's own number ("counts toward the 2") join one, one fish per row (bands never
+        overlap: a cap over rows of another band, or over twin rows, stays each row's line)."""
+        if not A_SIZE_CAP_IS_A_BAND or b["first"] is not None:
+            return
+        upto = W.band_upto(b["n"])
+        done: set = set()
+        for r0 in list(b["rows"]):
+            for t in list(r0.lines):
+                x = W.parse_row_line(t)
+                if x[0] != "size_count":
+                    continue
+                n, cm, fish = x[1], x[2], frozenset({r0.fish, *x[3]})
+                if (n, cm, fish) in done:
+                    continue
+                done.add((n, cm, fish))
+                rows = b["rows"]
+                members = [r for r in rows if r.fish in fish]
+                if len(members) < 2 or len(members) != len(fish) or n >= b["n"]:
+                    continue
+                said = {id(r): next((y for y in r.lines if (lambda p: p[0] == "size_count" and p[1] == n and p[2] == cm
+                                                            and frozenset({r.fish, *p[3]}) == fish)(W.parse_row_line(y))),
+                                    None) for r in members}
+                if any(v is None for v in said.values()):
+                    continue
+                band_of = {}
+                for bx in b["bands"]:
+                    for i in range(bx["from"], bx["to"] + 1):
+                        band_of[id(rows[i])] = bx
+                if any(band_of[id(r)]["kind"] != "upto" or band_of[id(r)]["text"] != upto for r in members):
+                    self.size_left += 1
+                    continue
+                at = {id(r): i for i, r in enumerate(rows)}
+                first = min(at[id(r)] for r in members)
+                rest = [r for r in rows if r not in members]
+                new_rows = rest[:first] + members + rest[first:]
+                band = {"from": 0, "to": 0, "text": W.band_size(b["n"], n, cm, len(members)), "kind": "size"}
+                for r in members:
+                    band_of[id(r)] = band
+                    r.lines = [y for y in r.lines if y != said[id(r)]]
+                    r.band = ("size", b["n"], ("size", n, cm, fish))
+                bands: List[dict] = []
+                for i, r in enumerate(new_rows):
+                    bx = band_of[id(r)]
+                    if bands and bands[-1]["_src"] is bx:
+                        bands[-1]["to"] = i
+                    else:
+                        bands.append({**bx, "from": i, "to": i, "_src": bx})
+                b["bands"] = [{k: v for k, v in bx.items() if k != "_src"} for bx in bands]
+                b["rows"] = new_rows
+                self.size_drawn += 1
+
+    @staticmethod
+    def _strip_says(b: dict, n, members) -> bool:
+        """The box's size strip already holds `members` to `n`: each is kept only over a strip's size, its row saying
+        "uses the K over …" for K <= n."""
+        cms = [p[2] for p in b.get("parts") or () if p[0] in ("size", "size_except") and p[2] is not None]
+        return bool(cms) and all(any(W.uses_the(k, cm) in r.lines for cm in cms for k in range(1, int(n) + 1))
+                                 for r in members)
+
+    @staticmethod
+    def _poss_comes_to(r: _Row) -> Optional[float]:
+        """The number a row's possession line comes to (its count; k days' limits times the row's day number), None
+        where it says more than a number (a size clause) or the row's day number is not its own."""
+        if r.poss is None or r.band is None or r.band[0] not in ("own", "upto"):
+            return None
+        line, count = r.poss
+        if W.possession_clause(W.possession_row(line)) is not None:
+            return None
+        if count is not None:
+            return count
+        got = W.parse_possession(W.possession_row(line))
+        return got[1] * r.band[1] if got[0] == "days" else None
 
     def _noun_duty(self, d: str) -> str:
         """Q7: a stored stop duty ("stop fishing this river after 1 a day") with this key's noun."""

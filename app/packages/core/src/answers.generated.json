@@ -9072,7 +9072,8 @@
         "upto",
         "own",
         "shared",
-        "possession"
+        "possession",
+        "size"
        ],
        "title": "Kind",
        "type": "string"
@@ -9711,7 +9712,8 @@
         "upto",
         "own",
         "shared",
-        "possession"
+        "possession",
+        "size"
        ],
        "title": "Kind",
        "type": "string"

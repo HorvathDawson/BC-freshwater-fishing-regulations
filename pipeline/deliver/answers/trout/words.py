@@ -537,9 +537,13 @@ def band_shared(k, m: int) -> str:
     """"only 1 of these 4"; a number at least the rows it spans (each row holds more than one fish: Tagish's lake trout
     and Dolly Varden "3 in the aggregate") reads "only 3 between them" over two rows, "only 4 among them" over more
     (T810 G2 Q2, owner 15:34)."""
+    if m == 2:
+        # (owner 2026-11-18, via the coordinator: "only 1 between them" over two rows, for now; his pick for the general
+        # form is coming — the one place the band's words change)
+        return f"only {_n(k)} between them"
     if k < m:
         return f"only {_n(k)} of these {m}"
-    return f"only {_n(k)} between them" if m == 2 else f"only {_n(k)} among them"
+    return f"only {_n(k)} among them"
 
 
 def band_wild(n) -> str:
@@ -556,6 +560,33 @@ def band_wild_n(text: str) -> Optional[float]:
 
 def band_possession(k) -> str:
     return f"only {_n(k)} in your possession"
+
+
+#: the two halves of a size band (`band_size`)
+BAND_SEP = " · "
+
+
+def band_size_part(n, over_cm, m: int) -> str:
+    """A size cap the band's rows share, its half of the band: "only 1 over 50 cm (20 in) between them" (two rows),
+    "… among them" (more)."""
+    return f"only {_n(n)} over {common.cm_in(over_cm)} {'between' if m == 2 else 'among'} them"
+
+
+def band_size(box_n, n, over_cm, m: int) -> str:
+    """(T810 L, the owner's R4 decision 2026-11-18 "A but still has to mention the overall limit") a size cap two or more
+    rows share inside the box's number, drawn over them, the box's number first: "counts toward the 2 · only 1 over 50 cm
+    (20 in) between them" (Region 4 streams' cutthroat and rainbow trout; never each row's "only 1 over 50 cm (20 in),
+    counting any rainbow trout you keep")."""
+    return band_upto(box_n) + BAND_SEP + band_size_part(n, over_cm, m)
+
+
+def parse_band_size(text: str) -> Optional[Tuple[float, float, float, Optional[int]]]:
+    """A size band -> (box n, n, over cm, rows: 2 "between", None "among" (J holds it to 3 or more)); None for any other
+    band."""
+    m = re.fullmatch(rf"counts toward the {_NUM}{re.escape(BAND_SEP)}only {_NUM} over {_CM} (between|among) them", text)
+    if not m:
+        return None
+    return _num(m[1]), _num(m[2]), _cm(m[3], m[4]), (2 if m[5] == "between" else None)
 
 
 # -- a row -------------------------------------------------------------------------------------
@@ -593,6 +624,13 @@ def size_count_line(n, over_cm, others) -> str:
 def also_line(says: str) -> str:
     """A cap the card says on the kind (`tree` `also_counts[].says`, gate-proved), as the row's line."""
     return _now(says)
+
+
+def possession_same(n) -> str:
+    """(Owner 2026-11-18, Bowron Lake Park's creeks: "In your possession: just 1, the same as the day") the possession
+    duty every row of a box comes to, its day's number, where the rows' own lines say it differently (the park's flat
+    "no more than 1 trout and char in all", Region 7A's lake trout "1 day’s limit, not 2"): said once, on the box."""
+    return f"in your possession: just {_n(n)}, the same as the day{_home()}"
 
 
 def possession_row(line: str) -> str:
@@ -786,6 +824,9 @@ def sheet_keep(band_text: str, box_n) -> str:
     number of a raised box (Canuck: the 5 inside "Keep 5, brook trout up to 20") names both: "Keep · counts toward the 5
     and the 20"."""
     kind, k, _m = parse_band(band_text)
+    if kind == "size":
+        # "Keep · only 1 over 50 cm (20 in) between them · counts toward the 2": the box's number once, last
+        return f"Keep · {band_text.split(BAND_SEP, 1)[1]} · counts toward the {_n(box_n)}"
     if kind == "upto" and k == box_n:
         return f"Keep · counts toward the {_n(box_n)}"
     if kind == "upto":
@@ -848,6 +889,14 @@ def sheet_shared(band_text: str, others: str) -> str:
     return _sheet(f"{common.cap(band_text)}: this fish and {others}.")
 
 
+def sheet_size_band(band_text: str, others: str) -> str:
+    """A size band's cap with the fish it holds besides this one: "Only 1 over 50 cm (20 in) between them: this fish and
+    rainbow trout."."""
+    if parse_band_size(band_text) is None:
+        raise WordsError(f"trout words: not a size band: {band_text!r}")
+    return _sheet(f"{common.cap(band_text.split(BAND_SEP, 1)[1])}: this fish and {others}.")
+
+
 def sheet_uses(over_cm) -> str:
     return _sheet(f"A kept one is always over {common.cm_in(over_cm)}, so it is that one.")
 
@@ -890,7 +939,11 @@ def _num(s: str):
 
 
 def parse_band(text: str) -> Tuple[str, float, Optional[int]]:
-    """A band text -> (kind, n, m): "counts toward the 5" ("upto", 5, None), "only 1 of these 4" ("shared", 1, 4)."""
+    """A band text -> (kind, n, m): "counts toward the 5" ("upto", 5, None), "only 1 of these 4" ("shared", 1, 4),
+    "counts toward the 2 · only 1 over 50 cm (20 in) between them" ("size", 2, 2: its rows; `parse_band_size` the rest)."""
+    sz = parse_band_size(text)
+    if sz is not None:
+        return "size", sz[0], sz[3]
     for kind, pat in (("upto", rf"counts toward the {_NUM}"), ("possession", rf"only {_NUM} in your possession"),
                       ("shared", rf"only {_NUM} of these (\d+)"), ("shared", rf"only {_NUM} (between) them"),
                       ("shared", rf"only {_NUM} (among) them"), ("shared", rf"only {_NUM} wild in all"),
@@ -1057,11 +1110,15 @@ def parse_size(text: str) -> Tuple[Tuple[float, float], ...]:
 def parse_possession(text: str) -> tuple:
     """A possession line on a row or a strip (`possession_row`, `card.possession_duty` less its home exception) ->
     ("count", n, fish, clauses [(k, ranges)]) — "in your possession: no more than 2 lake trout, only 1 over 50 cm
-    (20 in)" — or ("days", k, the page's k | None) — "in your possession: 1 day’s limit, not 2"."""
+    (20 in)" — or ("days", k, the page's k | None) — "in your possession: 1 day’s limit, not 2" — or ("same", n) — "in
+    your possession: just 1, the same as the day"."""
     m = re.fullmatch(r"in your possession: (.+)", text)
     if not m:
         raise WordsError(f"trout words: not a possession line {text!r}")
     s = m[1]
+    m = re.fullmatch(rf"just {_NUM}, the same as the day", s)
+    if m:
+        return ("same", _num(m[1]))                     # `possession_same`
     m = re.fullmatch(rf"(?:1 day’s limit|{_NUM} days’ limits)(?:, not {_NUM})?", s)
     if m:
         return ("days", _num(m[1]) if m[1] else 1, _num(m[2]) if m[2] else None)
@@ -1376,6 +1433,8 @@ def parse_sheet_head(text: str) -> tuple:
         return ("keep", band_upto(_num(m[1])), _num(m[2]))
     m = re.fullmatch(rf"Keep · (?:(.+) · )?counts toward the {_NUM}", text)
     if m:
+        if m[1] is not None and parse_band_size(band_upto(_num(m[2])) + BAND_SEP + m[1]) is not None:
+            return ("keep", band_upto(_num(m[2])) + BAND_SEP + m[1], _num(m[2]))       # a size band (`sheet_keep`)
         if m[1] is not None:
             parse_band(m[1])
         return ("keep", m[1], _num(m[2]))
@@ -1406,7 +1465,8 @@ def parse_licence_part(text: str) -> tuple:
 def parse_sheet_line(text: str) -> tuple:
     """One "Here" line of a fish sheet -> what it says:
       ("size", ranges) "Size: …." / "Any size." · ("sub", cm) "Here a steelhead is a rainbow over 50 cm (20 in)." ·
-      ("hatchery",) · ("box", n, others | ()) · ("own", k) · ("shared", band text, others) · ("uses", cm) ·
+      ("hatchery",) · ("box", n, others | ()) · ("own", k) · ("shared", band text, others) · ("size_band", the band's size half
+      "only 1 over 50 cm (20 in) between them", others) · ("uses", cm) ·
       ("possession", …) the duty whole, with its home exception · ("stop", n, fish, noun) · ("licence", parts) ·
       ("one_day", day, the day's lines read as row lines) · ("line", what) any other row, strip, together or quiet
       line as a sentence."""
@@ -1427,6 +1487,9 @@ def parse_sheet_line(text: str) -> tuple:
     m = re.fullmatch(rf"This fish: only {_NUM}\.", text)
     if m:
         return ("own", _num(m[1]))
+    m = re.fullmatch(rf"(Only {_NUM} over {_CM} (?:between|among) them): this fish and (.+)\.", text)
+    if m:
+        return ("size_band", _decap(m[1]), _parse_named(m[5]))
     m = re.fullmatch(r"(Only .+?): this fish and (.+)\.", text)
     if m:
         band = _decap(m[1])

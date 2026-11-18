@@ -127,7 +127,7 @@ def test_every_text_of_the_side_release_reads_back(side):
 TEXTS = json.loads((Path(__file__).parent / "fixtures" / "trout_texts.json").read_text())
 READERS = {"top": W.parse_top_full, "fold": W.parse_fold, "together": W.parse_together, "elsewhere": W.parse_elsewhere,
            "strip": W.parse_strip, "line": W.parse_row_line, "quiet": W.parse_quiet, "head": W.parse_sheet_head,
-           "here": W.parse_sheet_line}
+           "here": W.parse_sheet_line, "band": W.parse_band}
 
 
 @pytest.mark.parametrize("reader,text", TEXTS, ids=[f"{r}:{i}" for i, (r, _t) in enumerate(TEXTS)])
@@ -344,11 +344,28 @@ def test_mutation_a_table_where_q_d3_says_null_fails(side):
     assert any("Q-D3" in p for p in side.prove(k, cells, frames))
 
 
+def _zero_band(side):
+    """(T810 L, the sweep's builder fault) a Keep row planted "only 0": a fish kept nowhere belongs under Release."""
+    def change(c):
+        b = next(b for b in c["table"]["boxes"] if b["kind"] == "keep" and b["bands"][0]["kind"] == "upto"
+                 and b["bands"][0]["to"] == 0)
+        b["bands"][0] = {"from": 0, "to": 0, "text": W.band_own(0), "kind": "own"}
+        r = b["rows"][0]
+        r["sheet"]["head"] = W.sheet_keep(W.band_own(0), W.parse_head(b["head"])[1])
+    return _mutated(side, lambda c: any(b["kind"] == "keep" and b["bands"][0]["kind"] == "upto"
+                                        and b["bands"][0]["to"] == 0 for b in c["table"]["boxes"]), change)
+
+
+def test_mutation_a_keep_row_with_a_zero_fails(side):
+    assert any(J.ZERO_MARK in p for p in _zero_band(side))
+
+
 @pytest.mark.parametrize("flag,plant,mark", [
     ("A_DATE_PROOF", _shifted_date, DATE_MARK),
     ("A_POSSESSION_PROOF", _possession_line, POSSESSION_MARK),
     ("A_JOINT_PROOF", _shared_band, JOINT_MARK),
-], ids=["dates", "possession", "joint"])
+    ("A_NO_ZERO_KEEP_ROW", _zero_band, J.ZERO_MARK),
+], ids=["dates", "possession", "joint", "zero"])
 def test_each_proof_pin_off_silences_its_check(side, monkeypatch, flag, plant, mark):
     """The pins are wired: with a check off, its planted fault no longer draws its message (another check may still see
     the same fault from its side)."""
@@ -588,6 +605,9 @@ def test_every_segment_of_the_named_waters_is_proved(request):
 #: the T834 side build over the live atlas and reach: the flag off leaves every answer byte-identical (5,950 tables, 0
 #: problems), so no live water shows the fault; the flag stays in the builder for a row the rule does not lift.
 FOUND = {
+    # T810 L: Ape Creek (Bella Coola, "all cutthroat trout catch and release" inside the 1 trout/char a day): cutthroat
+    # trout under Release, never a Keep row "catch and release" with "only 0" (79 tables, 35 waters)
+    "A_ZERO_COUNT_IS_RELEASE": ("gnis:10549", 0, J.ZERO_MARK),
     "A_RAINBOW_STOPS_AT_THE_STEELHEAD_SIZE": ("blk:360846083", 0, "ST hatchery at"),
     "A_APART_SAYS_THE_BOX_MOST": ("blk:356370187", 0, "the top line says"),
     "A_WILD_QUOTA_FROM_EVERY_ROW": ("gnis:2046", 0, "RB wild at"),

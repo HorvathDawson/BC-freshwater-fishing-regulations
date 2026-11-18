@@ -140,5 +140,8 @@
 ["line", "after keeping 2, stop fishing this water today"],
 ["quiet", "3 a day, but never more than 2 lake trout with you, and only 1 of them over 50 cm (20 in)"],
 ["strip", "any size"],
-["strip", "only 1 over 50 cm (20 in); only 2 over 30 cm (12 in), not counting brook trout"]
+["strip", "only 1 over 50 cm (20 in); only 2 over 30 cm (12 in), not counting brook trout"],
+["band", "counts toward the 2 · only 1 over 50 cm (20 in) between them"],
+["head", "Keep · only 1 over 50 cm (20 in) between them · counts toward the 2"],
+["here", "Only 1 over 50 cm (20 in) between them: this fish and rainbow trout."]
 ]
