@@ -1,6 +1,6 @@
 # T852 — The coho loader is drawn sharp on the phone (and the web)
 
-Status: OPEN, 0.8.1 (owner 2026-11-18 ~13:50: "also on the app the loader fish icon should be higher resolution please"; ~13:55 the line under it too).
+Status: IN PROGRESS, 0.8.1 — both parts built on branch worktree-agent-aa579d9bb6fd2ca09 (dc6a19b13 sheets, 0f3ada780 line B); waits to be merged and shipped (owner 2026-11-18 ~13:50: "also on the app the loader fish icon should be higher resolution please"; ~13:55 the line under it too).
 
 Today (T814/T844): the sheet is baked at 1.5 px per dp (`tools/build-coho.mjs` FRAME_PX 288 for a 192 dp loader;
 80 frames of 288x120 in an 8x10 sheet, 2304x1200, lossless WebP ~0.9-1.1 MB per theme). A Pixel 9 draws ~2.6 px per dp,
@@ -17,3 +17,19 @@ The sayings under the loader (core `DOWNLOAD_SAYINGS`, first install; `APPLY_WOR
 boot screen, `ApplyCurtain.tsx` `apply-line`, 15 pt body, centred) read as a plain caption. Draw 2-3 settings (e.g. italic
 in quotes with hanging punctuation, a smaller muted line with a short rule, two-line balanced wrap) at phone and web size,
 light and dark, and let the owner pick from pictures before any lands. Target 0.8.1.
+
+## Done (2026-11-18, branch worktree-agent-aa579d9bb6fd2ca09, not yet merged)
+
+1. **Sheets** (dc6a19b13). Phones: 80 frames of 480x200 (2.5 px per dp), full 8x10 grid, 3840x2000 lossless WebP,
+   1.48 / 1.82 MB (light / dark; was 0.89 / 1.1), 30.7 MB decoded (was 11.1). A Pixel 9 (2.625 px/dp) draws it at
+   1.05x. 3 px per dp (576x240) was measured and not taken: 44.2 MB decoded, 1.8 / 2.3 MB, and no 8-column grid fits
+   4096 px. Web: its own 384x160 frame (2 px per CSS px), 8x5, 3072x800, ~146 KB, inside the 150 KB web budget (the
+   phones' 480 frame would be ~188 KB). `build-coho` refuses a sheet past 4096 px or a part-filled last row (the web's
+   CSS steps would show empty cells). Splash and web frame 0 re-cut.
+2. **The line, owner's pick B** (0f3ada780; picked from the three settings drawn 2026-11-18): `LoaderLine`
+   (ui-native) — a 24x2 rule in `palette.coho.red`, then the line in `TYPE.small`, Archivo Medium, tracked 0.4,
+   `palette.sub`, centred — on the curtain's `apply-line`, the boot screen's `boot-line` and the first install's
+   `SayingLine`; the step words beneath (`boot-words`) go to `TYPE.small` in `sub`. Pinned by `LoaderLine.test.tsx`
+   and `tools/one-spinner.test.ts`.
+
+Checks: `pnpm check:fast` (with knip) passes; the coho, curtain, loader-line, web-shell and one-spinner tests pass.
