@@ -10,3 +10,4 @@ export { releaseOpener, type OpenAt } from "./open";
 export { releaseCache, type ByteCache } from "./cache";
 export { releaseSource, type SourceAt } from "./source";
 export { device, type Device } from "./install";
+export { atlasRange, type ReadAt } from "./range";

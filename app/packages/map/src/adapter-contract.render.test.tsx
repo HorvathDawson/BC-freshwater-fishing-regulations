@@ -19,6 +19,9 @@ import type { StatusIndex } from "@app/core";
 import { maplibreGestures, nativeMapGestures } from "./gestures";
 import { colour } from "./chrome";
 import { MARK_LABEL, MARK_RING, MARK_SOURCE, PIN_DOT, PIN_SOURCE } from "./point-marks";
+import { encodeTile } from "./mvt.fixture";
+import { encodePmtiles } from "./pmtiles.fixture";
+import { project } from "./trace-geometry";
 
 /** Every SDK call that matters to the contract, in order, as one string each. */
 const log: string[] = [];
@@ -115,7 +118,8 @@ class Marker {
 }
 vi.mock("maplibre-gl", () => ({ Map: FakeGl, NavigationControl: Control, ScaleControl: Control, Marker,
                                 Popup: class { setText() { return this; } }, addProtocol: () => {} }));
-vi.mock("pmtiles", () => ({ Protocol: class { tile = () => {}; } }));
+// the protocol handler is the web renderer's (faked); the archive reader is the real one (T831: the route lines)
+vi.mock("pmtiles", async (real) => ({ ...(await real<typeof import("pmtiles")>()), Protocol: class { tile = () => {}; } }));
 
 // ---- @maplibre/maplibre-react-native, recorded ----------------------------------------------------------------------
 type Press = { nativeEvent: { point: [number, number]; lngLat: [number, number] } | null };
@@ -620,6 +624,126 @@ describe("native only (T317)", () => {
     const marks = native.geojson[MARK_SOURCE] as { features: { properties: { kind: string } }[] };
     expect([pins.features.map((f) => f.properties.kind), marks.features.map((f) => f.properties.kind)])
       .toEqual([["pin", "marker"], ["ring", "label"]]);
+  });
+});
+
+/**
+ * (T831) THE ROUTE MAP'S PINS ON BOTH MAPS. A water's Conditions route map (`DonorMap`) hands `trace.pins`: a dot per
+ * gauge in its donor tone with its share, and the "you are here" pin. The phone ignored `trace` (`trace: _noTrace`), so
+ * its `trace-pins` source stayed the style's empty one: no dots, no pin, on Android and iOS, while the web drew them.
+ *
+ * What a phone DRAWS for a source its style declares is the style's own data until the binding's `data` CHANGES: its
+ * `GeoJSONSource` adopts the existing source and never pushes the data it mounted with (`MLRNSource.addToMap`). So the
+ * pins a route map opens with are in each style it is handed, the source's data is handed only once a style has loaded,
+ * and a later change goes to the source — never a style swap.
+ */
+describe.each(["web", "native"] as const)("T831 the route map's gauge dots and you-are-here pin: %s", (name) => {
+  const HERE = { lat: 49.1, lon: -121.9, kind: "here" as const, tone: "#000", label: "You are here", rank: 0 };
+  const GAUGE = { lat: 49.2, lon: -122.1, kind: "gauge" as const, tone: "#1f77b4", label: "62%", rank: 0 };
+  const QUIET = { lat: 49.3, lon: -122.3, kind: "gauge" as const, tone: "#555555", label: null, rank: 1 };
+  const trace = (pins: readonly (typeof HERE | typeof GAUGE | typeof QUIET)[]) => ({ key: "r1", routes: [], pins });
+  const point = (lon: number, lat: number) => ({ type: "Point", coordinates: [lon, lat] });
+  const OPENED = { type: "FeatureCollection", features: [
+    { type: "Feature", properties: { kind: "gauge", tone: "#1f77b4", rank: 0, label: "62%" }, geometry: point(-122.1, 49.2) },
+    { type: "Feature", properties: { kind: "gauge", tone: "#555555", rank: 1 }, geometry: point(-122.3, 49.3) },
+    { type: "Feature", properties: { kind: "here", tone: "#000", rank: 0, label: "You are here" }, geometry: point(-121.9, 49.1) },
+  ] };
+  /** The pins the map draws now: the web's source as last set; a phone's source once its style has loaded. */
+  const drawn = () => (name === "web" ? web.data["trace-pins"] : native.geojson["trace-pins"]);
+  const ready = async () => {
+    if (name === "web") await waitFor(() => expect(web.data["trace-pins"]).toBeTruthy());
+    else await waitFor(() => expect(native.props).toBeTruthy());
+  };
+
+  it("a route map opens with every gauge's dot (its share beside it, a null share left out) and the pin", async () => {
+    const M = PLATFORMS[name].Map;
+    render(<M {...base({ data: undefined, highlight: undefined, trace: trace([GAUGE, QUIET, HERE]) })} />);
+    await ready();
+    expect(drawn()).toEqual(OPENED);
+    // and a phone's style holds them too: what its adopted source draws before any change
+    if (name === "native")
+      expect((native.props!.mapStyle as { sources: Record<string, { data: unknown }> }).sources["trace-pins"]!.data).toEqual(OPENED);
+  });
+
+  it("a share that changes (a new horizon) moves the dots' words in place: no style swap, the same pins", async () => {
+    const M = PLATFORMS[name].Map;
+    const r = render(<M {...base({ data: undefined, highlight: undefined, trace: trace([GAUGE, HERE]) })} />);
+    await ready();
+    const style1 = native.props?.mapStyle;
+    r.rerender(<M {...base({ data: undefined, highlight: undefined, trace: trace([{ ...GAUGE, label: "40%" }, HERE]) })} />);
+    await act(async () => {});
+    expect(drawn()).toEqual({ ...OPENED, features: [{ ...OPENED.features[0]!, properties: { ...OPENED.features[0]!.properties, label: "40%" } },
+                                                    OPENED.features[2]] });
+    if (name === "native") expect(native.props!.mapStyle).toBe(style1);
+  });
+
+  it("no route map: no pins", async () => {
+    const M = PLATFORMS[name].Map;
+    render(<M {...base({ data: undefined, highlight: undefined })} />);
+    await ready();
+    expect(drawn()).toEqual({ type: "FeatureCollection", features: [] });
+  });
+});
+
+/**
+ * (T831) THE ROUTE LINES ON A PHONE. The web copies a route's reaches out of the atlas over HTTP (`traceOverlay`); a
+ * phone's atlas is an installed file, so the app hands the map a byte-range reader (`at.readRange`) and the lines are
+ * read through it — here over a real `.pmtiles` archive held in memory — into the style's own `trace` source.
+ */
+describe("T831 native: the route lines, read through the injected atlas reader", () => {
+  const [X, Y] = [660, 1404];
+  const tileCentre = { lon: project(12, X, Y, 1, [0.5, 0.5])[0], lat: project(12, X, Y, 1, [0.5, 0.5])[1] };
+  const ARCHIVE = encodePmtiles([{ z: 12, x: X, y: Y,
+    data: encodeTile({ stream: [{ id: 311274, type: 2, parts: [[[0, 2048], [4096, 2048]]] }] }, 4096) }], 40_000);
+  const routes = [{ role: "down" as const, tone: "#1f77b4", path: [311274 as never], from: tileCentre, to: tileCentre }];
+  const LINE = { type: "Feature", properties: { role: "down", tone: "#1f77b4", order: 1, on: false, kind: "line" },
+                 geometry: { type: "MultiLineString", coordinates: [[project(12, X, Y, 4096, [0, 2048]), project(12, X, Y, 4096, [4096, 2048])]] } };
+  let n = 0;
+  /** A fresh archive path per test: the overlay keeps one archive (and its sections) per path for the session. */
+  const reader = () => {
+    const asked: string[] = [];
+    const readRange = async (path: string, offset: number, length: number) => {
+      asked.push(path);
+      return ARCHIVE.subarray(offset, offset + length);
+    };
+    return { at: { ...AT, atlas: `file:///d/t831-${++n}/atlas.pmtiles`, readRange }, asked };
+  };
+  const lines = () => native.geojson.trace as { features: unknown[] } | undefined;
+
+  it("a route map's lines are copied out of the atlas through the app's reader, into the style's `trace` source", async () => {
+    const { at, asked } = reader();
+    render(<NativeMap {...base({ at, data: undefined, highlight: undefined, trace: { key: "r1", routes, pins: [] } })} />);
+    await waitFor(() => expect(lines()?.features.length).toBe(1));
+    expect({ asked: [...new Set(asked)], lines: lines() })
+      .toEqual({ asked: [at.atlas], lines: { type: "FeatureCollection", features: [LINE] } });
+  });
+
+  it("a theme swap keeps the route: its lines and pins are in the new style", async () => {
+    const { at } = reader();
+    const pins = [{ lat: tileCentre.lat, lon: tileCentre.lon, kind: "here" as const, tone: "#000", label: null, rank: 0 }];
+    const r = render(<NativeMap {...base({ at, data: undefined, highlight: undefined, trace: { key: "r1", routes, pins } })} />);
+    await waitFor(() => expect(lines()?.features.length).toBe(1));
+    r.rerender(<NativeMap {...base({ at, theme: "dark", data: undefined, highlight: undefined, trace: { key: "r1", routes, pins } })} />);
+    await act(async () => {});
+    const sources = (native.props!.mapStyle as { sources: Record<string, { data: { features: unknown[] } }> }).sources;
+    expect([sources.trace!.data.features, sources["trace-pins"]!.data.features.length]).toEqual([[LINE], 1]);
+  });
+
+  it("the routes change: the old lines go at once; no routes, no lines", async () => {
+    const { at } = reader();
+    const r = render(<NativeMap {...base({ at, data: undefined, highlight: undefined, trace: { key: "r1", routes, pins: [] } })} />);
+    await waitFor(() => expect(lines()?.features.length).toBe(1));
+    r.rerender(<NativeMap {...base({ at, data: undefined, highlight: undefined, trace: { key: "none", routes: [], pins: [] } })} />);
+    await act(async () => {});
+    expect(lines()).toEqual({ type: "FeatureCollection", features: [] });
+  });
+
+  it("no reader handed: no line is drawn, and the map says why (never a fetch of the installed file)", async () => {
+    const onError = vi.fn();
+    render(<NativeMap {...base({ data: undefined, highlight: undefined, onError, trace: { key: "r1", routes, pins: [] } })} />);
+    await waitFor(() => expect(onError).toHaveBeenCalled());
+    expect([String(onError.mock.calls[0]![0]?.message), lines()?.features])
+      .toEqual(["route map: no atlas reader on this phone (TileEndpoints.readRange), so no route lines are drawn", []]);
   });
 });
 

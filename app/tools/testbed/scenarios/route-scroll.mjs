@@ -11,7 +11,7 @@
 import path from 'node:path';
 import { coldStart, openWater, closeWaters, toMap } from './common.mjs';
 import { BLANK_AT, blankShare, blankShareOf, look, screenSize, shown } from '../lib/screen.mjs';
-import { changed, readPng } from '../lib/png.mjs';
+import { changed, count, readPng } from '../lib/png.mjs';
 
 const Q = process.env.ROUTE_Q ?? 'Coquitlam River';
 const ROW = process.env.ROUTE_ROW ?? '.* · Region 2 · MU 2-8.*';
@@ -48,6 +48,22 @@ export const routeScroll = {
       if (m.share >= BLANK_AT) throw new Error(`the route map is one flat colour before any scroll (${(m.share * 100).toFixed(1)} % ${m.colour})`);
       return `map box ${JSON.stringify(map.box)} · ${(m.share * 100).toFixed(0)} % its commonest colour (${m.colour}): drawn`;
     }, { stop: true });
+
+    // (T831) the phone drew no route lines, no gauge dots and no "you are here" pin on this map (its `trace` was ignored);
+    // the web did. The pin is the accent violet (color.ui.accent: light #5F26E0, dark #A97CFF), so none of it in the map
+    // means no pin. Some of it is not proof on its own (an accent outline would pass too), and the lines and dots are in
+    // each gauge's own tone: the shot is kept to set beside the web's — a solid line to each gauge downstream, a dashed
+    // one to each upstream, arrows along them, a dot per gauge with its share beside it.
+    await ctx.step('T831: the route map draws its lines, the gauge dots and the "you are here" pin', async () => {
+      const file = path.join(ctx.dir, 'T831-route-pins.png');
+      d.screenshot(file);
+      const near = (r, g, b, [R, G, B]) => Math.abs(r - R) + Math.abs(g - G) + Math.abs(b - B) < 60;
+      const c = core(home);
+      const pin = count(readPng(file), { x: c.x0, y: c.y0, w: c.x1 - c.x0, h: c.y1 - c.y0 },
+                        (r, g, b) => near(r, g, b, [0x5f, 0x26, 0xe0]) || near(r, g, b, [0xa9, 0x7c, 0xff]));
+      if (pin < 40) throw new Error(`no accent pixels in the route map (${pin}): no "you are here" pin drawn (${path.basename(file)})`);
+      return `${pin} accent pixels in the map (the pin) · compare ${path.basename(file)} with the web's route map: the lines (solid down, dashed up, arrows), a dot per gauge, its share beside it`;
+    });
 
     await ctx.step(`${ROUNDS} × (fling down the pane, fling back up): the map each time it returns`, async () => {
       // in the pane's left gutter: a drag that starts ON the map is the map's own (it pans), not the pane's scroll

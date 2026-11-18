@@ -31,6 +31,8 @@ import { runtimeStyle } from "./runtime-style";
 import { ATLAS_SOURCES, SECTION_SOURCE_LAYERS, stateTarget } from "./sections";
 import { NO_VALUES, STYLE_META, type ChannelValues } from "./style";
 import { themedImageRefs } from "./images";
+import { pinCollection, TRACE_PINS_SOURCE, TRACE_SOURCE, type TracePin } from "./trace-overlay";
+import type { TraceCollection } from "./trace-geometry";
 
 type Json = Record<string, unknown>;
 type StyleLayer = { id: string; paint?: Json; layout?: Json; minzoom?: number; maxzoom?: number };
@@ -41,6 +43,15 @@ export interface NativeStyleInput extends Look {
   basemap: "map" | "satellite";
   /** The gauge points the style starts with (GeoJSON text); later ticks go to the `gauges` source directly. */
   gauges: string;
+  /**
+   * (T831) The route map's pins (its gauges' dots and "you are here") the style starts with; later changes go to the
+   * `trace-pins` source directly. Baked in for the same reason as `gauges`: the binding's `GeoJSONSource` ADOPTS a source
+   * the style already declares and never pushes the data it was mounted with (`MLRNSource.addToMap`, both platforms) —
+   * only a later change of its `data` reaches it — so the pins a route map opens with must be in the style itself.
+   */
+  tracePins?: readonly TracePin[];
+  /** (T831) The route lines copied out of the atlas so far (`traceOverlay`), into the `trace` source likewise. */
+  traceLines?: TraceCollection;
   /**
    * Per-feature values for the layers a phone cannot address by feature-state (`areaLayer`), as `MapProps.data` holds
    * them: layer → feature id → state. Written into the style; a change is a style swap.
@@ -143,6 +154,11 @@ export function nativeStyle(o: NativeStyleInput): { style: Json; errors: Error[]
   }
 
   for (const id of ATLAS_SOURCES) if (s.sources[id]) delete s.sources[id]!.promoteId;
+  // (T831) the route map's pins and lines, as the web's `setTrace` writes them (`pinCollection`, `traceOverlay`)
+  const pinSource = s.sources[TRACE_PINS_SOURCE];
+  if (pinSource && o.tracePins?.length) pinSource.data = pinCollection(o.tracePins);
+  const lineSource = s.sources[TRACE_SOURCE];
+  if (lineSource && o.traceLines?.features.length) lineSource.data = o.traceLines;
   for (const l of s.layers) {
     // the generated images under this theme's names (`nativeImages`)
     if (l.paint?.["fill-pattern"] !== undefined)

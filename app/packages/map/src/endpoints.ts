@@ -41,7 +41,17 @@ export interface TileEndpoints {
    * makes it Esri's keyed endpoint. Absent, the style's own (`layers.source.json`, source `imagery`).
    */
   imagery?: string;
+  /**
+   * (T831) HOW THE ATLAS IS READ BY BYTE RANGE outside the renderer — the route overlay's copy of its lines
+   * (`trace-geometry.ts`). A phone's atlas is an installed `file://` archive, which `fetch` cannot read a range of (it
+   * reads the whole file), so the app hands its file reader (`@app/data/release/platform` `atlasRange`), and a phone draws no
+   * route lines without one (reported, never fetched). Absent on the web: the archive is read over HTTP by `pmtiles`.
+   */
+  readRange?: ReadRange;
 }
+
+/** (T831) `length` bytes of the archive at `path` from `offset` — fewer only at its end. */
+export type ReadRange = (path: string, offset: number, length: number) => Promise<Uint8Array>;
 
 /** Esri's keyed World Imagery tiles (ArcGIS Location Platform), the same MapServer tile scheme under a token. */
 const ESRI_KEYED = "https://ibasemaps-api.arcgis.com/arcgis/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}";
