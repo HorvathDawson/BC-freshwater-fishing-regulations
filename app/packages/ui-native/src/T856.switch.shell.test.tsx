@@ -20,8 +20,8 @@ vi.mock("./MapScreen", async () => {
   const { useEffect } = await import("react");
   const Drawn = ({ k, on }: { k?: string; on?: (k: string) => void }) => { useEffect(() => { if (k !== undefined) on?.(k); }, [k, on]); return null; };
   return {
-    MapScreen: (p: { railExtra?: ReactNode; lookKey?: string; onLookDrawn?: (k: string) => void }) =>
-      <View testID="map-stub"><Drawn k={p.lookKey} on={p.onLookDrawn} /><Text>map</Text>{p.railExtra}</View>,
+    MapScreen: (p: { railExtra?: ReactNode; corner?: ReactNode; lookKey?: string; onLookDrawn?: (k: string) => void }) =>
+      <View testID="map-stub"><Drawn k={p.lookKey} on={p.onLookDrawn} /><Text>map</Text><View testID="stub-corner">{p.corner}</View><View testID="stub-rail">{p.railExtra}</View></View>,
   };
 });
 vi.mock("./FishSpinner", () => ({ FishSpinner: () => null }));
@@ -59,29 +59,29 @@ const settle = () => act(async () => { await new Promise((r) => setTimeout(r, 26
 const key = () => screen.queryAllByTestId("legend-entry").map((e) => e.textContent).join("|");
 
 describe("(T856) where the Trout / Salmon switch is", () => {
-  it("1280: in the nav rail under the Map button, not on the map", async () => {
+  it("1280: in the map's top row directly after the day strip; not in the nav, not on the right rail", async () => {
     mount(1280); await settle();
     await waitFor(() => expect(screen.queryByTestId("regs-paint")).not.toBeNull());
-    const rail = screen.getByTestId("nav-rail");
     const sw = screen.getByTestId("regs-paint");
-    expect(rail.contains(sw)).toBe(true);
-    expect(screen.getByTestId("map-stub").contains(sw)).toBe(false);
-    // directly under the Map button: the next tab after Map's is Conditions, the switch sits between them
-    const map = screen.getByLabelText("Map"), cond = screen.getByLabelText("Conditions");
-    expect(map.compareDocumentPosition(sw) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
-    expect(sw.compareDocumentPosition(cond) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    const row = screen.getByTestId("map-corner-row"), day = screen.getByTestId("map-day");
+    expect(row.contains(sw) && row.contains(day)).toBe(true);
+    expect(day.compareDocumentPosition(sw) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    expect(screen.getByTestId("nav-rail").contains(sw)).toBe(false);
+    expect(screen.getByTestId("stub-rail").contains(sw)).toBe(false);
     expect(screen.getAllByTestId("regs-paint")).toHaveLength(1);
   });
 
-  it.each([390, 1279])("%i: on the map's rail as before, not in the nav", async (w) => {
+  it.each([390, 1279])("%i: on the map's right rail as before, not in the top row", async (w) => {
     mount(w); await settle();
     await waitFor(() => expect(screen.queryByTestId("regs-paint")).not.toBeNull());
     expect(screen.queryByTestId("nav-rail")).toBeNull();
-    expect(screen.getByTestId("map-stub").contains(screen.getByTestId("regs-paint"))).toBe(true);
+    const sw = screen.getByTestId("regs-paint");
+    expect(screen.getByTestId("stub-rail").contains(sw)).toBe(true);
+    expect(screen.getByTestId("map-corner-row").contains(sw)).toBe(false);
     expect(screen.getAllByTestId("regs-paint")).toHaveLength(1);
   });
 
-  it("1280: flipping the switch in the rail changes the key", async () => {
+  it("1280: flipping the switch in the top row changes the key", async () => {
     mount(1280); await settle();
     await waitFor(() => expect(screen.queryByTestId("regs-paint-salmon")).not.toBeNull());
     expect(screen.getByTestId("regs-paint-standard").getAttribute("aria-checked")).toBe("true");

@@ -19,36 +19,39 @@ import { useCoachTarget } from "../CoachMarks";
 import { hitProps } from "../regs/hit";
 import type { FishImages } from "../regs/types";
 import { TYPE } from "../type";
-import { NAV_RAIL } from "../NavRail";
+import { CornerStrip } from "../CornerStrip";
 import type { Palette } from "../theme";
 import type { MapColouring } from "./useMapColouring";
 import { usePainting, type HeldLookStore } from "@app/ui";
-
-/**
- * (T856 round 2) THE LOOK OF THE SWITCH IN THE DESKTOP NAV RAIL, two to choose from, both drawn as part of the rail (its
- * width, its type, square, no card box): "A" two sub-items of Map (indented, a rule down their left edge, the chosen one
- * tinted with a heavier rule); "B" one segmented block, Trout | Salmon, the chosen half filled as the rail fills its tab.
- * On the web `?railLook=A|B` picks one, to shoot both from one build.
- */
-const asked = typeof window !== "undefined" ? new URLSearchParams(window.location?.search ?? "").get("railLook") : null;
-export const RAIL_LOOK: "A" | "B" = asked === "B" ? "B" : "A";
 
 /** the rail's button size (MapRail `SIZE`) */
 const SIZE = 44;
 const HIT = hitProps({ w: SIZE, h: SIZE });
 
 /**
- * (T856) WHERE THE SWITCH IS DRAWN, one rule for both homes: only on the Map tab, the day's regulations drawn and the
- * Salmon file offered, search not over it. On a desktop-width window it is in the left rail under the Map button
- * (`NavRail`'s `mapExtra`); anywhere narrower it is on the map's right rail (`MapRail` children). Never both.
+ * (T856) ON A DESKTOP-WIDTH WINDOW (from 1280) the switch is in the map's top row, directly after the day strip, drawn
+ * with the same strip (`CornerStrip`: same height, border, lift, a filled chosen segment): Trout | Salmon, a fish and
+ * the word. Same ids and the same handler as the rail's buttons; never both are drawn (`BrowseHost`).
  */
-export function regsToggleShown(a: { tab: string; searching: boolean; col: Pick<MapColouring, "statusOk" | "layers" | "salmonOffered"> }): boolean {
-  return a.tab === "map" && !a.searching && a.col.statusOk && a.col.layers.water.drawn === "regulations" && !!a.col.salmonOffered;
+export function RegsLayerStrip({ col, palette, look }: {
+  col: Pick<MapColouring, "regsLayer" | "setRegsLayer"> & Partial<Pick<MapColouring, "salmonLoading" | "salmonOffered">>;
+  palette: Palette; look?: HeldLookStore<unknown>;
+}) {
+  const painting = usePainting(look);
+  const W = SALMON_WORDS.toggle;
+  const keys = (["standard", "salmon"] as const).filter((k) => k === "standard" || col.salmonOffered !== false);
+  return (
+    <CornerStrip palette={palette} testID="regs-paint" label={W.label} radio coach="modes"
+                 segments={keys.map((k) => {
+                   const on = col.regsLayer === k;
+                   return { key: k, chip: W.rail[k], icon: "fish" as const, label: W.said[k], on,
+                            busy: (k === "salmon" && col.salmonLoading === true) || (on && painting),
+                            onPress: () => col.setRegsLayer(k) };
+                 })} />
+  );
 }
 
-export function RegsLayerToggle({ col, palette, fishImages, look, inRail = false }: {
-  /** (T856) in the desktop nav rail: centred under the Map button, no lift (the rail is the card) */
-  inRail?: boolean;
+export function RegsLayerToggle({ col, palette, fishImages, look }: {
   col: Pick<MapColouring, "regsLayer" | "setRegsLayer"> & Partial<Pick<MapColouring, "salmonLoading" | "salmonOffered">>;
   palette: Palette; fishImages?: FishImages;
   /** (T566) the key held until the map draws the chosen colouring (`HeldLookStore`): meanwhile the chosen one is busy */
@@ -59,45 +62,10 @@ export function RegsLayerToggle({ col, palette, fishImages, look, inRail = false
   const target = useCoachTarget("modes");
   // (T261) Run timing is no choice here any more: it has its own tab, Runs
   const keys = (["standard", "salmon"] as const).filter((k) => k === "standard" || col.salmonOffered !== false);
-  if (inRail) {
-    const A = RAIL_LOOK === "A";
-    return (
-      <View ref={target} collapsable={false} testID="regs-paint" accessibilityLabel={W.label} accessibilityRole="radiogroup"
-            style={{ width: NAV_RAIL.width, backgroundColor: palette.card, ...(A
-              ? { paddingLeft: 8 } : { flexDirection: "row", borderTopWidth: 1, borderBottomWidth: 1, borderColor: palette.line2 }) }}>
-        {keys.map((k, i) => {
-          const on = col.regsLayer === k;
-          const busy = (k === "salmon" && col.salmonLoading === true) || (on && painting);
-          const art = fishImages?.[W.art[k]]?.[0]?.thumb;
-          // A: quiet selected = the tint ground, ink type, a heavier ink rule; B: the rail's own selected fill (ink)
-          const fg = A || !on ? (on ? palette.ink : palette.sub) : palette.card;
-          const glyph = busy ? <LoadingState palette={palette} size={15} colour={fg} />
-            : A && art ? <Image source={art} resizeMode="contain" accessibilityIgnoresInvertColors style={{ width: 20, height: 10 }} />
-            : <Icon name="fish" colour={fg} size={16} />;
-          return (
-            <Pressable key={k} testID={`regs-paint-${k}`} onPress={() => col.setRegsLayer(k)} accessibilityRole="radio"
-                       aria-checked={on} aria-busy={busy} accessibilityLabel={W.said[k]} accessibilityHint={W.hint}
-                       {...hitProps({ w: A ? NAV_RAIL.width - 8 : NAV_RAIL.width / 2, h: A ? 40 : 56 })}
-                       style={A
-                         ? { flexDirection: "row", alignItems: "center", gap: 4, height: 40, paddingLeft: 8,
-                             backgroundColor: on ? palette.tint : "transparent" }
-                         : { flex: 1, flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 3, height: 56,
-                             backgroundColor: on ? palette.ink : "transparent",
-                             borderLeftWidth: i ? 1 : 0, borderLeftColor: palette.line2 }}>
-              {A && <View aria-hidden testID={`regs-paint-bar-${k}`}
-                          style={{ position: "absolute", left: 0, top: 0, bottom: 0, width: on ? 3 : 1, backgroundColor: on ? palette.ink : palette.line2 }} />}
-              {glyph}
-              <Text numberOfLines={1} style={{ ...TYPE.tab, letterSpacing: 0.5, color: fg, fontWeight: on ? "800" : "600" }}>{W.rail[k]}</Text>
-            </Pressable>
-          );
-        })}
-      </View>
-    );
-  }
   return (
     <View ref={target} collapsable={false} testID="regs-paint" accessibilityLabel={W.label} accessibilityRole="radiogroup"
-          style={{ backgroundColor: palette.card, borderWidth: 1, borderColor: palette.line2, borderRadius: inRail ? 0 : palette.r.box,
-                   overflow: "hidden", ...(inRail ? { alignSelf: "center" as const, marginVertical: 8 } : palette.lift) }}>
+          style={{ backgroundColor: palette.card, borderWidth: 1, borderColor: palette.line2, borderRadius: palette.r.box,
+                   overflow: "hidden", ...palette.lift }}>
       {keys.map((k, i) => {
         const on = col.regsLayer === k;
         const busy = (k === "salmon" && col.salmonLoading === true) || (on && painting);

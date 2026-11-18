@@ -49,7 +49,6 @@ import { WaterViewsContext } from "./ViewSwipe";
 import { SharePortContext } from "./SharePortContext";
 import { MenuContext } from "./menu/MenuContext";
 import { BrowseHost } from "./shell/BrowseHost";
-import { RegsLayerToggle, regsToggleShown } from "./shell/RegsLayerToggle";
 import { GaugeOnlyKey, MapLegend, PairBanner, RunsKey, RunsLegend } from "./shell/MapLegend";
 import { HeldKey } from "./shell/HeldKey";
 import { NetBanner } from "./NetBanner";
@@ -188,6 +187,8 @@ export function Shell(p: ShellProps) {
   const [tabsRowH, setTabsH] = useState(0);
   /** (T839) at the desktop breakpoint the four tabs are a left rail (`NavRail`), not a bottom bar: no row under the body */
   const tabsRail = tabsAsRail(useLayoutClass());
+  /** (T856) on the map tabs at desktop width the see-through rail FLOATS over the map (which runs to the window's edge) */
+  const railOver = tabsRail && bottomBarShown(route) && (tab === "map" || tab === "conditions" || tab === "runs");
   const tabsH = tabsRail ? 0 : tabsRowH;
   const [runsAt, setRunsAt] = useState<number | null>(null);
   /** (T369 D15) where on that section the Runs tap landed: the water it opens is that tap's */
@@ -585,7 +586,7 @@ export function Shell(p: ShellProps) {
                   offline={background.scheduler ? background.status : null}
                   onObstacle={setObstacle} onNotFishing={setNotFishing} onRuns={(sid, at) => { setRunsAt(sid); setRunsPoint(at); }}
                   fishImages={p.fishImages}
-                  lookKey={look.lookKey} look={lookStore as HeldLookStore<unknown>} cue={tapCue} tap={tapOpen} />
+                  lookKey={look.lookKey} look={lookStore as HeldLookStore<unknown>} railOver={railOver} cue={tapCue} tap={tapOpen} />
     : null;
 
   /** (T48) The top bar — the search field, the sync icon and the bell — is the maps': on Map, Conditions and (T261)
@@ -642,9 +643,7 @@ export function Shell(p: ShellProps) {
       </>
     ),
     tabs: bottomBarShown(route)
-      ? (tabsRail ? <NavRail active={tab} palette={palette} onChange={nav.toTab}
-                       mapExtra={regsToggleShown({ tab, searching, col: look.col })
-                         ? <RegsLayerToggle inRail col={look.col} palette={palette} fishImages={p.fishImages} look={lookStore as HeldLookStore<unknown>} /> : undefined} />
+      ? (tabsRail ? <NavRail active={tab} palette={palette} onChange={nav.toTab} />
                   : <TabBar active={tab} palette={palette} onChange={nav.toTab} />)
       : null,
   };
@@ -673,13 +672,13 @@ export function Shell(p: ShellProps) {
     {/* a regulations tab's "Report a problem with this page" reads the menu from here (menu/ReportLink) */}
     <MenuContext.Provider value={menu}>
     <SharePortContext.Provider value={sharePorts}>
-    <View style={{ flex: 1, backgroundColor: palette.card, flexDirection: tabsRail ? "row" : "column" }}>
+    <View style={{ flex: 1, backgroundColor: palette.card, flexDirection: tabsRail && !railOver ? "row" : "column" }}>
       {/* (T839) the desktop's left rail: the map and its bars start to its right; held with the rest while a pane is held */}
-      {tabsRail && <View collapsable={false} pointerEvents={held ? "none" : "auto"} style={{ flexDirection: "row" }}>{chrome.tabs}</View>}
+      {tabsRail && <View collapsable={false} pointerEvents={held ? "none" : "auto"} style={{ flexDirection: "row", ...(railOver ? { position: "absolute", left: 0, top: 0, bottom: 0, zIndex: 3 } as const : {}) }}>{chrome.tabs}</View>}
       <View style={{ flex: 1 }}>
-      <PairBanner col={col} palette={palette} />
+      <View style={railOver ? { marginLeft: NAV_RAIL.width } : undefined}><PairBanner col={col} palette={palette} /></View>
       {/* (T254) a slow or missing line, said once over everything: "Slow connection — showing what we have" */}
-      <NetBanner palette={palette} onPress={() => nav.toTab("more")} />
+      <View style={railOver ? { marginLeft: NAV_RAIL.width } : undefined}><NetBanner palette={palette} onPress={() => nav.toTab("more")} /></View>
       <View style={{ flex: 1 }}>
         <EdgeBack drag={nav.edge}>
           <WaterViewsContext.Provider value={nav.waterViews && share ? { ...nav.waterViews, share } : nav.waterViews}>
@@ -696,7 +695,7 @@ export function Shell(p: ShellProps) {
           */}
         {/* (T498) held, the frozen bars take no press (their handlers are the last browse render's); one wrapper always,
             so the hold neither mounts nor remounts them */}
-        <View collapsable={false} style={{ position: "absolute", left: 0, right: 0, top: 0, bottom: 0, zIndex: 2 }}
+        <View collapsable={false} style={{ position: "absolute", left: railOver ? NAV_RAIL.width : 0, right: 0, top: 0, bottom: 0, zIndex: 2 }}
               pointerEvents={held ? "none" : "box-none"}>{chrome.top}</View>
         {/* PICK ON THE MAP (owner 2026-10-22): the slim banner in the search field's place; a back layer */}
         {rail.picking && route.mode === "browse" && tab === "map" && (
@@ -707,7 +706,7 @@ export function Shell(p: ShellProps) {
             time; now the map keeps its size and camera, and only the block changes. (T397) It is INSIDE the map area,
             not hung from a zero-height row: Android delivers a native drag only within the parent's bounds, so the Runs
             species row (a native horizontal ScrollView) never scrolled, while taps (hit-tested in JS) still worked. */}
-        <View testID="map-foot" style={{ position: "absolute", left: 0, right: 0, bottom: 0, zIndex: 1 }} pointerEvents="box-none"
+        <View testID="map-foot" style={{ position: "absolute", left: railOver ? NAV_RAIL.width : 0, right: 0, bottom: 0, zIndex: 1 }} pointerEvents="box-none"
               // (T717) measured on the browse screen only: a water's page empties the foot, and a 0 kept from there put the
               // Conditions map's card at the bottom edge (and moved the kept map's insets) for a frame after Back
               onLayout={(e) => { if (frame === null) setFootH(Math.round(e.nativeEvent.layout.height)); }}>

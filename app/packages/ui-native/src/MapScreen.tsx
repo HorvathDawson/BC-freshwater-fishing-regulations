@@ -24,7 +24,7 @@ export function MapScreen({ at, palette, theme, view, modes, groups, hide, show,
                             onLayers, layersChanged = 0, onLongPress, onPressFeature, onPressStart, onPressObstacle, onPressNotFishing, onMoved, onMapPoint, horizons,
                             highlight, inSeason, marker, pins, status, standing, lakes, salmon, method, issue, runs, gauges, onVisible, onError,
                             fit, basemap, onImageryError, water, waterLine, selection, focus, near, marks, onPressMark, spots,
-                            insetTop = 0, insetBottom = 0, onRegion, corner, railExtra, me = null, developer, onDrawn, lookKey, onLookDrawn }: {
+                            insetTop = 0, insetBottom = 0, insetLeft = 0, onRegion, corner, railExtra, me = null, developer, onDrawn, lookKey, onLookDrawn }: {
   at: TileEndpoints; palette: Palette; theme: string; view: string;
   groups?: Record<string, boolean>;
   /** Layers this view does not draw — see `hiddenLayers`. Not a user toggle. */
@@ -111,6 +111,8 @@ export function MapScreen({ at, palette, theme, view, modes, groups, hide, show,
   insetTop?: number;
   /** (T275) the foot block over the map, px: the credits and scale sit above it (MapProps.insetBottom). */
   insetBottom?: number;
+  /** (T856) the desktop's see-through nav rail floats over the map's left edge: the corner starts clear of it, px */
+  insetLeft?: number;
   /** (T303) My location (the rail's button, the dot): `useMyLocation`'s state, absent where the platform has none. */
   me?: MyLocation | null;
   /** (T476) the Developer card's facts (the Shell's menu info and the release in use); drawn only where `LAB_ON` (never production) */
@@ -160,7 +162,7 @@ export function MapScreen({ at, palette, theme, view, modes, groups, hide, show,
         NO satellite button here either: the choice is the Layers sheet's Basemap — two controls for one setting is one
         too many.
       */}
-      <View testID="map-corner" style={{ position: "absolute", top: insetTop + 8, left: 14, right: 72, flexDirection: "column",
+      <View testID="map-corner" style={{ position: "absolute", top: insetTop + 8, left: 14 + insetLeft, right: 72, flexDirection: "column",
                                           gap: 8, alignItems: "flex-start" }} pointerEvents="box-none">
       {horizons && (
         // (T367) Now · <day> ▾ · Change: the forecast days open under the strip
