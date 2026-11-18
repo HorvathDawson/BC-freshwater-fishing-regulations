@@ -2675,3 +2675,4 @@ More questions (recommended answer first):
   yes this should be a release like brook trout i think that ius the intention by the book". So: a rule that says
   "trout" covers char (lake trout included) unless the book names char as a whole separately; Region 6 stream lines
   release lake trout like brook trout. Main chat's fix; rides the 0.8.0 data release.
+  14:17, owner, refining it, verbatim: "one time trout is not applied to char is if there is a seperate char groupo reg". So: a "trout" rule covers char UNLESS the same place has its own separate rule for char as a group (then char follows that one); a rule about one char species (e.g. Region 6's lake trout Sept 15-Nov 30 release) does not take char out of the trout rule.
