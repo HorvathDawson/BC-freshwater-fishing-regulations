@@ -413,16 +413,16 @@
          }
         ],
         "src": [
-         3184,
          3185,
-         3198
+         3186,
+         3199
         ]
        },
        "split": false,
        "src": [
-        3184,
         3185,
-        3198
+        3186,
+        3199
        ],
        "sub": null
       },
@@ -454,16 +454,16 @@
          }
         ],
         "src": [
-         3184,
          3185,
-         3198
+         3186,
+         3199
         ]
        },
        "split": false,
        "src": [
-        3184,
         3185,
-        3198
+        3186,
+        3199
        ],
        "sub": null
       },
@@ -495,16 +495,16 @@
          }
         ],
         "src": [
-         3184,
          3185,
-         3198
+         3186,
+         3199
         ]
        },
        "split": false,
        "src": [
-        3184,
         3185,
-        3198
+        3186,
+        3199
        ],
        "sub": null
       },
@@ -536,16 +536,16 @@
          }
         ],
         "src": [
-         3184,
          3185,
-         3198
+         3186,
+         3199
         ]
        },
        "split": false,
        "src": [
-        3184,
         3185,
-        3198
+        3186,
+        3199
        ],
        "sub": null
       },
@@ -581,23 +581,23 @@
          }
         ],
         "src": [
-         3184,
-         3186,
          3185,
-         3198
+         3187,
+         3186,
+         3199
         ]
        },
        "split": false,
        "src": [
-        3184,
-        3186,
         3185,
-        3198
+        3187,
+        3186,
+        3199
        ],
        "sub": null
       },
       {
-       "a11y": "Lake trout. release over 60 cm (24 in) and under 90 cm (35 in). only 2. only 1 over 90 cm (35 in). counts toward the 5 · only 3 between them",
+       "a11y": "Lake trout. release over 60 cm (24 in) and under 90 cm (35 in). only 2. only 1 over 90 cm (35 in). in your possession: no more than 2 lake trout, only 1 measuring 90 cm (35 in) or longer. counts toward the 5 · only 3 between them",
        "coming": [],
        "date": null,
        "fish": "LT",
@@ -606,7 +606,8 @@
        "lines": [
         "release over 60 cm (24 in) and under 90 cm (35 in)",
         "only 2",
-        "only 1 over 90 cm (35 in)"
+        "only 1 over 90 cm (35 in)",
+        "in your possession: no more than 2 lake trout, only 1 measuring 90 cm (35 in) or longer"
        ],
        "name": "Lake trout",
        "origin": null,
@@ -633,23 +634,27 @@
          {
           "bold": false,
           "t": "Only 1 over 90 cm (35 in)."
+         },
+         {
+          "bold": false,
+          "t": "In your possession: no more than 2 lake trout, only 1 measuring 90 cm (35 in) or longer (fish at home don’t count)."
          }
         ],
         "src": [
          2117,
          2123,
-         3184,
-         3186
+         3185,
+         3187
         ]
        },
        "split": false,
        "src": [
         2117,
         2123,
-        3184,
-        3186,
-        2125,
-        2124
+        3185,
+        3187,
+        2124,
+        2125
        ],
        "sub": null
       }
@@ -680,14 +685,14 @@
    "kind": "table",
    "sourcesLink": "Sources ›",
    "src": [
-    3184,
     3185,
-    3198,
     3186,
+    3199,
+    3187,
     2117,
     2123,
-    2125,
-    2124
+    2124,
+    2125
    ],
    "together": null,
    "top": {
