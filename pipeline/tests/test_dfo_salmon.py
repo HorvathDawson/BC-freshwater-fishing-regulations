@@ -2300,7 +2300,10 @@ def test_every_scraped_rule_types_and_keeps_its_chain_of_custody():
 
 @pytest.mark.needs_source
 def test_the_feed_revalidates_from_disk():
-    """What is on disk is what the catalogue model accepts — not merely what we wrote."""
+    """What is on disk is what the catalogue model accepts — not merely what we wrote. (T796 A6) Its DFO marks
+    (`typed.DFO_MARKS`: `hidden`, `finfish`) are the feed's own keys, dropped as every reader drops them
+    (`typed.as_catalogue`)."""
+    from pipeline.regs.dfo_salmon.typed import as_catalogue
     from pipeline.regs.parsing.catalogue import CatalogueRule
 
     feed_dir = need(None, "source", Path(under_test.generated().regs.dfo_salmon) / "typed", DFO_FEED_HINT)
@@ -2308,7 +2311,7 @@ def test_the_feed_revalidates_from_disk():
     for path in sorted(feed_dir.glob("region-*.json")):
         for loc in json.loads(path.read_text(encoding="utf-8"))["locators"]:
             for rule in loc["rules"]:
-                CatalogueRule(**rule)
+                CatalogueRule(**as_catalogue(rule))
                 total += 1
     # T349: + 10 page-default sentences (one rule each, `cascade.statement_locators`)
     # 11-09 refresh: + 1 typed rule each for the two rows above (R1 FN1216, R2 FN1217); 548 on the 11-03 pages
