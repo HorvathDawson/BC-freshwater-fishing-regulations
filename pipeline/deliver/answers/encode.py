@@ -734,8 +734,8 @@ SPEC = {
                     "them\". Version 3 (owner 2026-11-18 00:52): a date said once — the card line (or a box's, or a "
                     "band's) holds every row under it without a date of its own; the most specific level wins. Version 4 "
                     "(owner 01:22 / 01:28): the top line's exception on a subline (`TopLine.sub`), nested bands "
-                    "(`Box.inner`), a fish's hatchery and wild twins as one row.",
-            "version": "4",
+                    "(`Box.inner`), a fish's hatchery and wild twins as one row. Version 5: `split` marks that row.",
+            "version": "5",
             "at": "[[frame index per segment, or null (no table)] per key]",
             "frames": "[[table, dates | null, covers]] (`TroutFrameWire`) — `table` an index into `tables`, `dates` into "
                       "`dates` (null: no fish of the table changes later in the year), `covers` the rows frame's rows "

@@ -352,6 +352,9 @@ def _line(q: str, a: str, model: dict, kinds: Sequence[str], kept, at: str, here
 #: T810 L: a pool of one kind of water (Region 8's "20 brook trout from streams") says that kind in its kept-elsewhere
 #: sentence and worked line. False = the mutation pin (`test_t810_cutover.py`)
 A_ONE_WATER_POOL_SAYS_ITS_WATER = True
+#: (the C2 proof bundle) the share's lake line counts a fish kept at a lake against the smaller cap every kind here sits
+#: under. False = the pin ("Keep 2 more here" where the engine keeps 1)
+A_LAKE_LINE_UNDER_ITS_CAP = True
 
 
 def scope_words(s: str) -> str:
@@ -425,6 +428,15 @@ def elsewhere_of(P: "Part", model: dict, row: dict, sc: dict, T: R,
         unl = tot == "unlimited" or any(x is None for x in lifted_own)
         here1 = None if unl else min(tot - n, sum(m for _w, m in ex)) if ex else 0
         here2 = None if unl else min(tot - 1, n + sum(lifted_own), INF if up is None else up)
+        if here2 is not None and A_LAKE_LINE_UNDER_ITS_CAP and not lifted_own:
+            # (the C2 proof bundle: Qualcho Creek in winter) every kind kept here under a smaller cap of the total (Region
+            # 5's char): one kept at a lake is one of those, so at most the cap less 1 more here (no kind lifted past
+            # the share: a lifted kind's own number is worked out above)
+            caps = [x["take"] for x in (grp or {}).get("subcaps", []) if x.get("water") is None
+                    and x.get("over_cm") is None and x.get("take") is not None
+                    and set(row["members"]) <= set(x.get("of") or ())]
+            if caps:
+                here2 = min(here2, max(0, min(caps) - 1))
         # RULINGS P41: the lake line says how many are left here after 1 kept there (the gate
         # proves `here`), then why: "Keep 2 more here. Fish from lakes count toward the 4 a day, not
         # toward the 2 from streams."

@@ -725,6 +725,17 @@ def test_hatchery_and_wild_twins_are_one_row(request, monkeypatch):
     rb = next(r for r in b["rows"] if r["fish"] == "RB")
     assert (rb["key"], rb["origin"], rb["lines"][0]) == ("RB", None, "50 cm (20 in) or less if wild")
     assert not any(r["origin"] for r in b["rows"])
+    # (trout 5, the app chat) the merged row says so (`split`): the sheet's hatchery link; and only it
+    assert rb["split"] is True and t["table"]["hatch_link"] is True
+    assert not next(r for r in b["rows"] if r["fish"] == "EB")["split"]
+    k0 = next(k for k, cells in enumerate(m.sections["trout"]) if any(c is not None and c == t for c in cells))
+    cells0 = copy.deepcopy(m.sections["trout"][k0])
+    j0 = next(jj for jj, c in enumerate(cells0) if c == t)
+    next(r for b_ in cells0[j0]["table"]["boxes"] for r in b_["rows"] if r["fish"] == "RB")["split"] = False
+    m0 = copy.copy(m)
+    m0.sections = {**m.sections, "trout": list(m.sections["trout"])}
+    m0.sections["trout"][k0] = cells0
+    assert any("split False" in p for p in J.check_model(m0, bundle, data, keys=[k0], log=lambda *_: None)["problems"])
     k = next(k for k, cells in enumerate(m.sections["trout"]) if any(c is not None and c == t for c in cells))
     assert J.check_model(m, bundle, data, keys=[k], log=lambda *_: None)["problems"] == []
     cells = copy.deepcopy(m.sections["trout"][k])
@@ -756,6 +767,33 @@ def test_sowerby_lakes_rainbow_cap_the_size_band_implies_goes(request, monkeypat
     got, *_ = _live_tables(request, ("Sowerby Lake",))
     b = next(b for b in got["Sowerby Lake"]["table"]["boxes"] if b["kind"] == "keep")
     assert any("counting any" in x for r in b["rows"] for x in r["lines"])
+
+
+@pytest.mark.needs_bundle
+@pytest.mark.parametrize("name,md", [("Vedder River", (1, 1)), ("Alberta Creek", (7, 15))])
+def test_a_redundant_cap_said_one_higher_fails_j(request, monkeypatch, name, md):
+    """The re-review's plants: the Vedder's nested "only 1 between them" said "only 2", Alberta Creek's "counts toward the
+    2 · only 1 between them" said "only 2" (sheets kept consistent): the strip and the 60 cm minimum still hold the law,
+    so only the stated-cap proof sees it. Mutation: its pin off lets them through."""
+    got, m, bundle, data = _live_tables(request, (name,), md=md)
+    t = got[name]
+    k = next(k for k, cells in enumerate(m.sections["trout"]) if any(c is not None and c == t for c in cells))
+    cells = copy.deepcopy(m.sections["trout"][k])
+    jj = next(jj for jj, c in enumerate(cells) if c == t)
+    b = next(b for b in cells[jj]["table"]["boxes"] if b["kind"] == "keep")
+    x = next(x for x in list(b.get("inner") or ()) + list(b["bands"]) if "only 1 between them" in x["text"])
+    x["text"] = x["text"].replace("only 1 between them", "only 2 between them")
+    for r in b["rows"][x["from"]:x["to"] + 1]:
+        r["sheet"]["here"] = tuple({**h, "t": h["t"].replace("Only 1 between them", "Only 2 between them")}
+                                   for h in r["sheet"]["here"])
+        if x in b["bands"]:
+            r["sheet"]["head"] = W.sheet_keep(x["text"], W.parse_head(b["head"])[1])
+    m.sections["trout"] = list(m.sections["trout"])
+    m.sections["trout"][k] = cells
+    probs = J.check_model(m, bundle, data, keys=[k], log=lambda *_: None)["problems"]
+    assert any(J.STATED_MARK in p for p in probs), probs
+    monkeypatch.setattr(J, "A_STATED_CAP_EXACT", False)
+    assert not any(J.STATED_MARK in p for p in J.check_model(m, bundle, data, keys=[k], log=lambda *_: None)["problems"])
 
 
 def _bowron(got):                                      # Istsi Creek, Jan 1-Mar 31: Bowron Lake Park's 1 trout/char

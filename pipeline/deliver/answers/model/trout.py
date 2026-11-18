@@ -109,6 +109,8 @@ class _TRowFields(Model):
     name: Txt
     origin: Optional[OriginLit]         # set <=> one of a twin pair (wild with a quota or size of its own)
     label: Optional[Txt]                # "Hatchery only" beside the name; null when the box carries it
+    split: StrictBool                   # (trout 5) a fish's hatchery and wild twins drawn as ONE row ("… if wild"): the
+                                        # fish sheet's hatchery link shows as for a row with an origin or a label
     sub: Optional[Txt]
     lines: Tuple[Txt, ...]              # NOW, bold: size, "uses the 1 over …", possession, stop duty, weekday words
     quiet: Tuple[Txt, ...]              # NOW, regular weight
@@ -124,6 +126,8 @@ class _TRowFields(Model):
             raise ValueError(f"row {self.key}: origin {self.origin!r} <=> the key's origin")
         if self.origin is not None and self.label is not None:
             raise ValueError(f"row {self.key}: a twin row carries its origin, never a label")
+        if self.split and (self.origin is not None or self.label is not None):
+            raise ValueError(f"row {self.key}: a merged hatchery and wild row has no origin and no label")
         return self
 
 
@@ -227,9 +231,10 @@ class _TableFields(Model):
             for r in b.rows:
                 if fish_box.setdefault(r.fish, bi) != bi:
                     raise ValueError(f"{r.fish} sits in two boxes")
-        marked = any(b.label for b in self.boxes) or any(r.label or r.origin for b in self.boxes for r in b.rows)
+        marked = any(b.label for b in self.boxes) or any(r.label or r.origin or r.split for b in self.boxes
+                                                         for r in b.rows)
         if self.hatch_link != marked:
-            raise ValueError("hatch_link <=> some row or box carries a label or an origin")
+            raise ValueError("hatch_link <=> some row or box carries a label, an origin or a hatchery/wild split")
         if self.together is not None and self.together.text != self.top.second:
             # T810 G2 (owner 15:41): a limit across two boxes is said under the top line AND under the table (Lois);
             # the lakes' own count (Echoes) only under the top line: `second` without `together`

@@ -123,6 +123,15 @@ REASON = {
     "a top date on a keep table": "a top-line date only on a closed or release-every-one table",
     "a year bar on a keep table": "the year bar only on a table whose fish all share one state",
     "a reopening date in a keep box": "a reopening date in a keep box",
+    # (T810 L, trout 4-5: the app chat's S refusals, both readers)
+    "a nested band that is its whole band": "lies inside no band, or is one whole",
+    "a nested band across two bands": "lies inside no band, or is one whole",
+    "a nested band of one row": "a shared band spans two rows or more",
+    "overlapping nested bands": "nested bands overlap",
+    "a wrong nested kind": "a nested band is shared or size",
+    "a nested band on a release box": "a release box has no bands",
+    "a bad sub": "a table text has a leading or trailing space",
+    "a repeated date level": "carries one date at two levels",
 }
 
 
