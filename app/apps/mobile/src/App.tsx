@@ -33,7 +33,7 @@ import { bootSaid, type MobileDataGate, type ReleaseLoader } from "@app/data/rel
 import * as platform from "@app/data/release/platform";
 import { fillDayFlow, onVisit, visitIdOf, storedHydat, openLayerStore, openLikeStore, openSalmonFeedStore, openGaugeHistoryStore, openInSeasonStore, openInSeasonSeenStore, openInSeasonInboxStore, openFirstRunStore, openDataModeStore, openWalkthroughStore, openLocationAskStore, openAppUpdateStore, openRecentSearchStore, openRunSpeciesStore, openUpdateStore, openUpdateLogStore, openReportOutboxStore, openCrashSettingStore, openCrashPendingStore, openCrashExitStore, openInstallIdStore, openMeteo, openPhotos, openSpots, needsRefresh, refreshSpot, syncBackupSet,
          type DayFlowAnswer, type Spot } from "@app/data/spots";
-import { Button, COHO_WIDTH, cohoHeight, connectivity, ErrorState, LoadingState, SayingLine, setSynopsisNet, setSynopsisSource, Shell, StageBar, THEMES, UpdateToast, setLinkFailedSink, type ThemeName,
+import { Button, COHO_WIDTH, cohoHeight, connectivity, ErrorState, LoadingState, LoaderLine, loaderLineText, SayingLine, TYPE, setSynopsisNet, setSynopsisSource, Shell, StageBar, THEMES, UpdateToast, setLinkFailedSink, type ThemeName,
          platformLine, type ShellProps, type UpdatesLogControls } from "@app/ui-native";
 import { LayoutWidthContext, liveFetch, NetRoot, useNet, useNetActivity, releaseMapInput, releaseStatus, setAnglerProfile, teeConsoleErrors, createCrashReporter, createCrashSetting, CrashSettingRoot, NotifyRoot, AlertLinesRefresh, installCrashHandlers, installId, reportPastExits, crashWhere, useRefreshOnReconnect, useApplyCurtain, useDownloadStill, useReleaseBoot, useBootTries, useRetryByItself, retriesByItselfNow, useSpots, type MapTiles,
          DataProvenanceContext, loadRegsStore, reportFailure, startNeedsRelease, startNoticeLine,
@@ -202,10 +202,14 @@ function BootScreen({ palette, line, words, saying = false, children }: {
         <LoadingState palette={palette} size={COHO_WIDTH} label={words} immediate coho />
       </View>
       <View style={{ position: "absolute", top: "50%", marginTop: BOOT_LOADER_H / 2 + 8, left: 0, right: 0, alignItems: "center", gap: 10 }}>
-        {saying
-          ? <SayingLine style={{ color: palette.ink, fontSize: 15, textAlign: "center", paddingHorizontal: 24 }} />
-          : <Text testID="boot-line" style={{ color: palette.ink, fontSize: 15, textAlign: "center", paddingHorizontal: 24 }}>{line}</Text>}
-        <Text style={{ color: palette.sub, fontSize: 13 }}>{words}</Text>
+        {/* (T852) the line under the coho, set as the curtain's: the red rule, then the line small and muted */}
+        <LoaderLine palette={palette}>
+          {saying
+            ? <SayingLine style={{ ...loaderLineText(palette), paddingHorizontal: 24 }} />
+            : <Text testID="boot-line" style={{ ...loaderLineText(palette), paddingHorizontal: 24 }}>{line}</Text>}
+        </LoaderLine>
+        {/* (T852) the step beneath, a step quieter than the line above it (as in the owner's pick B) */}
+        <Text testID="boot-words" style={{ ...TYPE.small, color: palette.sub, textAlign: "center", paddingHorizontal: 24 }}>{words}</Text>
         {children}
       </View>
     </View>

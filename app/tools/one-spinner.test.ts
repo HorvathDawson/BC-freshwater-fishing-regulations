@@ -56,6 +56,15 @@ describe("one spinner (T257)", () => {
     expect(asking).toEqual(COHO_HOME);
   });
 
+  it("every line under the coho is set as one (T852, the owner's B): in a LoaderLine, in loaderLineText, nothing typed out", () => {
+    for (const f of COHO_HOME) {
+      const s = files.find(([g]) => g === f)![1];
+      const all = [...s.matchAll(/<Text testID="(?:apply-line|boot-line)"[^>]*>|<SayingLine\b[^>]*\/>/g)].map((m) => m[0]);
+      expect([f, all.length > 0, all.every((l) => /loaderLineText\(palette\)/.test(l)), /<LoaderLine palette=\{palette\}>/.test(s)])
+        .toEqual([f, true, true, true]);
+    }
+  });
+
   it("the web's opening (before the app's script) is the coho too: both web exports put it into index.html (T844)", () => {
     const scripts = JSON.parse(readFileSync(join(ROOT, "apps/mobile/package.json"), "utf8")).scripts as Record<string, string>;
     for (const [name, out] of [["export:web", "dist"], ["export:web:staging", "../../dist/web-staging"]] as const)
