@@ -21,6 +21,11 @@ export const INSTALL_WORDS = {
    * (the error's message, so the failed screen says it with its Retry)
    */
   stuck: "A file would not download after several tries. Check your connection, then tap Try again.",
+  /**
+   * (T845) the server's data is in a format this app does not read (`readsRelease`: a release older than the app, or a
+   * newer one not stamped for it): nothing this app reads is on the phone, so the start stops and says so plainly
+   */
+  unreadable: "This version of the app can't read the data on the server yet. Try again later, or check for an app update.",
 } as const;
 
 /**

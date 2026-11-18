@@ -6,7 +6,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { cleanup, renderHook, waitFor } from "@testing-library/react";
 import { setFailureSink } from "@app/core";
-import { SpaceError, type BootOptions, type Booted } from "@app/data/release";
+import { SpaceError, UnreadableError, type BootOptions, type Booted } from "@app/data/release";
 
 const boots: (() => Promise<Booted>)[] = [];
 vi.mock("@app/data/release", async (orig) => ({
@@ -99,5 +99,15 @@ describe("useReleaseBoot: the replaced set is retired (T360)", () => {
     rerender({ a: 1 });
     await waitFor(() => expect(result.current.state === "failed" && result.current.error.message).toBe("offline"));
     expect(result.current.state === "failed" && result.current.said).toBeNull();
+  });
+
+  it("(T845) a release this app cannot read says so plainly; the format stays in the error (the log)", async () => {
+    vi.spyOn(console, "error").mockImplementation(() => {});
+    const why = "release r-old is not one this app reads: regulations trout is 1, not 5";
+    boots.push(async () => { throw new UnreadableError(why); });
+    const { result } = renderHook(() => useReleaseBoot(OPTS, 0, 0));
+    await waitFor(() => expect(result.current.state).toBe("failed"));
+    expect(result.current.state === "failed" && [result.current.said, result.current.error.message])
+      .toEqual(["This version of the app can't read the data on the server yet. Try again later, or check for an app update.", why]);
   });
 });

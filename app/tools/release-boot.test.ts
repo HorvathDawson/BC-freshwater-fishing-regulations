@@ -28,7 +28,7 @@ import { join } from "node:path";
 import { DatabaseSync } from "node:sqlite";
 import { gunzipSync } from "node:zlib";
 import { fetchVerified, sha256Hex, type ItemId, type Manifest } from "@app/data";
-import { assetsDigest, bootRelease, bootSaid, heldPath, POINTER, releaseTiles, SpaceError, type ReleaseFs, type ReleasePlatform }
+import { assetsDigest, bootRelease, bootSaid, heldPath, POINTER, releaseTiles, SpaceError, UnreadableError, type ReleaseFs, type ReleasePlatform }
   from "@app/data/release";
 import { readsRelease } from "../packages/data/src/manifest";
 import { PACK_FILES } from "../packages/data/src/pack.generated";
@@ -772,6 +772,8 @@ describe("native: always offline, updated by diff, swapped at the next launch", 
         manifestUrl: `${BASE}manifest.json`, releaseBase: BASE, wasmBase: "", platform: phone(fs), fetch: f,
         manifestTimeoutMs: 1000 });
       await expect(boot(memFs(), at(bad))).rejects.toThrow("salmon is salmon/3, not salmon/4");
+      // (T845) as its own kind: the screen says the plain words, not "the map data could not be loaded"
+      await expect(boot(memFs(), at(bad))).rejects.toBeInstanceOf(UnreadableError);
       const fs = memFs();
       const first = await boot(fs, at(r1.dir));
       const second = await boot(fs, at(bad));
