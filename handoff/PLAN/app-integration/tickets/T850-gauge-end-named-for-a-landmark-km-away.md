@@ -1,6 +1,6 @@
 # T850 — A part that ends at a gauge cut is named for a landmark up to 18 km away ("Canyon City bridge → Canyon City bridge")
 
-Status: OPEN (main chat's area: pipeline/deliver/bundle; found 2026-11-18 by the app chat's Nass salmon check).
+Status: OPEN, owner: big issue (2026-11-18 13:43). Main chat's area: pipeline/deliver/bundle; found 2026-11-18 by the app chat's Nass salmon check.
 
 On the staging release r-f1f2e8da9666 the Nass's open coho stretch (Canyon City bridge → water survey station 08DB001,
 ~11.8 km) is titled "Canyon City (Gitwinksihlkw) bridge … → Canyon City (Gitwinksihlkw) bridge", and the next part

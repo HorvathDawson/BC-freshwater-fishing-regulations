@@ -27,7 +27,7 @@ export interface ChangelogEntry {
 
 export const CHANGELOG: readonly ChangelogEntry[] = [
   {
-    version: "0.8.0", date: null, draft: true, notes: [
+    version: "0.8.0", date: null, notes: [
       "Trout and char: one table per water: each fish's size and what it counts toward, shared limits boxed together",
       "Tap a fish for how to tell it apart, what applies to it here today, and the book's own lines",
       "Classified waters show their class and dates beside the water's name",

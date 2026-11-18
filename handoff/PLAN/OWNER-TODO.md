@@ -2653,3 +2653,8 @@ More questions (recommended answer first):
   out bad in 0.7.x version app. Be nice to fix this in 0.8.1 if it is still an issue in 0.8.0". The trace held only
   Chrome (the app was idle in the background). Dialog: where = "In Chrome (staging web)"; lake = "Intata Reach area
   with the multiple lakes there". T848.
+- 2026-11-18 13:43, owner (app chat), verbatim: "0.8 release notes are fine. The naming bug is a big issue. The feed
+  check too." So: the 0.8.0 changelog draft is cleared (draft flag off); T850 (gauge-end part names pointing at a
+  landmark up to 18 km away, e.g. the Nass "Canyon City bridge → Canyon City bridge") and the DFO feed check (every
+  region "stale" after one failed daily fetch, T851) are raised to big issues. Also asked: "Could you have a nice
+  labelled map image show the nass system rules? Including the cascade section rules?"
