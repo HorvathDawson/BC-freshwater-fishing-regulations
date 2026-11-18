@@ -7,1533 +7,1977 @@
  },
  "designations": {
   "r1:ahnuhati_river@1-15#ahnuhati_river": {
-   "own_m": 35272,
-   "own_waters": [
-    "gnis:9105"
-   ],
-   "walk_m": 15753,
-   "walk_waters": [
-    "gnis:23912"
-   ]
+   "own": {
+    "m": 35286,
+    "n": 17,
+    "waters": {
+     "gnis:9105": 35286
+    }
+   },
+   "walk": {
+    "m": 456269,
+    "n": 452,
+    "waters": {
+     "gnis:23912": 15760
+    }
+   }
   },
   "r1:copper_creek@6-12#copper_creek": {
-   "own_m": 24313,
-   "own_waters": [
-    "gnis:33991"
-   ],
-   "walk_m": 0,
-   "walk_waters": []
+   "own": {
+    "m": 24333,
+    "n": 4,
+    "waters": {
+     "gnis:33991": 24333
+    }
+   },
+   "walk": {
+    "m": 259776,
+    "n": 228,
+    "waters": {}
+   }
   },
   "r1:datlamen_creek@6-13#datlamen_creek": {
-   "own_m": 13272,
-   "own_waters": [
-    "gnis:3344"
-   ],
-   "walk_m": 0,
-   "walk_waters": []
+   "own": {
+    "m": 13284,
+    "n": 1,
+    "waters": {
+     "gnis:3344": 13284
+    }
+   },
+   "walk": {
+    "m": 70167,
+    "n": 60,
+    "waters": {}
+   }
   },
   "r1:deena_creek@6-12#deena_creek": {
-   "own_m": 18472,
-   "own_waters": [
-    "gnis:6912"
-   ],
-   "walk_m": 0,
-   "walk_waters": []
+   "own": {
+    "m": 18487,
+    "n": 5,
+    "waters": {
+     "gnis:6912": 18487
+    }
+   },
+   "walk": {
+    "m": 0,
+    "n": 0,
+    "waters": {}
+   }
   },
   "r1:honna_river@6-13#honna_river": {
-   "own_m": 13473,
-   "own_waters": [
-    "gnis:33832"
-   ],
-   "walk_m": 5593,
-   "walk_waters": [
-    "gnis:32739",
-    "gnis:35370"
-   ]
+   "own": {
+    "m": 13485,
+    "n": 4,
+    "waters": {
+     "gnis:33832": 13485
+    }
+   },
+   "walk": {
+    "m": 75164,
+    "n": 59,
+    "waters": {
+     "gnis:32739": 1563,
+     "gnis:35370": 4033
+    }
+   }
   },
   "r1:kakweiken_river@1-15#kakweiken_river": {
-   "own_m": 38818,
-   "own_waters": [
-    "gnis:11294"
-   ],
-   "walk_m": 0,
-   "walk_waters": []
+   "own": {
+    "m": 38836,
+    "n": 8,
+    "waters": {
+     "gnis:11294": 38836
+    }
+   },
+   "walk": {
+    "m": 886038,
+    "n": 904,
+    "waters": {}
+   }
   },
   "r1:kingcome_river@1-14#kingcome_river": {
-   "own_m": 114573,
-   "own_waters": [
-    "gnis:30705"
-   ],
-   "walk_m": 179964,
-   "walk_waters": [
-    "gnis:31016",
-    "gnis:31497",
-    "gnis:31530",
-    "gnis:31542",
-    "gnis:31549",
-    "gnis:31690",
-    "gnis:31701",
-    "gnis:31798",
-    "gnis:31834",
-    "gnis:31906",
-    "gnis:35942",
-    "gnis:8456"
-   ]
+   "own": {
+    "m": 114631,
+    "n": 45,
+    "waters": {
+     "gnis:30705": 114631
+    }
+   },
+   "walk": {
+    "m": 2600585,
+    "n": 2284,
+    "waters": {
+     "gnis:31016": 29146,
+     "gnis:31497": 16070,
+     "gnis:31530": 16374,
+     "gnis:31542": 11217,
+     "gnis:31549": 11075,
+     "gnis:31690": 11433,
+     "gnis:31701": 18397,
+     "gnis:31798": 8339,
+     "gnis:31834": 4776,
+     "gnis:31906": 41879,
+     "gnis:35942": 1654,
+     "gnis:8456": 9712
+    }
+   }
   },
   "r1:mamin_river@6-13#mamin_river": {
-   "own_m": 34723,
-   "own_waters": [
-    "gnis:34252"
-   ],
-   "walk_m": 15813,
-   "walk_waters": [
-    "gnis:32709"
-   ]
+   "own": {
+    "m": 34755,
+    "n": 8,
+    "waters": {
+     "gnis:34252": 34755
+    }
+   },
+   "walk": {
+    "m": 280628,
+    "n": 248,
+    "waters": {
+     "gnis:32709": 15823
+    }
+   }
   },
   "r1:pallant_creek@6-12#pallant_creek": {
-   "own_m": 13485,
-   "own_waters": [
-    "gnis:8515"
-   ],
-   "walk_m": 4109,
-   "walk_waters": [
-    "gnis:38722"
-   ]
+   "own": {
+    "m": 13493,
+    "n": 4,
+    "waters": {
+     "gnis:8515": 13493
+    }
+   },
+   "walk": {
+    "m": 206521,
+    "n": 202,
+    "waters": {
+     "gnis:38722": 4115
+    }
+   }
   },
   "r1:seymour_river@1-14#seymour_river": {
-   "own_m": 37878,
-   "own_waters": [
-    "gnis:31917"
-   ],
-   "walk_m": 52899,
-   "walk_waters": [
-    "gnis:31826",
-    "gnis:31899"
-   ]
+   "own": {
+    "m": 37896,
+    "n": 9,
+    "waters": {
+     "gnis:31917": 37896
+    }
+   },
+   "walk": {
+    "m": 695528,
+    "n": 582,
+    "waters": {
+     "gnis:31826": 12044,
+     "gnis:31899": 40892
+    }
+   }
   },
   "r1:tlell_river@6-13#tlell_river": {
-   "own_m": 54358,
-   "own_waters": [
-    "gnis:35583"
-   ],
-   "walk_m": 46483,
-   "walk_waters": [
-    "gnis:33376",
-    "gnis:35125",
-    "gnis:35464",
-    "gnis:38838"
-   ]
+   "own": {
+    "m": 54421,
+    "n": 4,
+    "waters": {
+     "gnis:35583": 54421
+    }
+   },
+   "walk": {
+    "m": 356123,
+    "n": 193,
+    "waters": {
+     "gnis:33376": 5322,
+     "gnis:35125": 21880,
+     "gnis:35464": 13049,
+     "gnis:38838": 6267
+    }
+   }
   },
   "r1:wakeman_river@1-14#wakeman_river": {
-   "own_m": 86855,
-   "own_waters": [
-    "gnis:31815"
-   ],
-   "walk_m": 73400,
-   "walk_waters": [
-    "gnis:30943",
-    "gnis:31019",
-    "gnis:31480",
-    "gnis:31683"
-   ]
+   "own": {
+    "m": 86904,
+    "n": 26,
+    "waters": {
+     "gnis:31815": 86904
+    }
+   },
+   "walk": {
+    "m": 1508427,
+    "n": 1380,
+    "waters": {
+     "gnis:30943": 12938,
+     "gnis:31019": 31809,
+     "gnis:31480": 13664,
+     "gnis:31683": 15041
+    }
+   }
   },
   "r1:yakoun_river@6-13#yakoun_river": {
-   "own_m": 63892,
-   "own_waters": [
-    "gnis:3485"
-   ],
-   "walk_m": 164277,
-   "walk_waters": [
-    "gnis:32537",
-    "gnis:32640",
-    "gnis:32903",
-    "gnis:33022",
-    "gnis:33095",
-    "gnis:33225",
-    "gnis:33288",
-    "gnis:33450",
-    "gnis:33554",
-    "gnis:33689",
-    "gnis:33834",
-    "gnis:34050",
-    "gnis:3406",
-    "gnis:35555",
-    "gnis:35834",
-    "gnis:37635",
-    "gnis:4900",
-    "gnis:6848"
-   ]
+   "own": {
+    "m": 63961,
+    "n": 8,
+    "waters": {
+     "gnis:3485": 63961
+    }
+   },
+   "walk": {
+    "m": 775113,
+    "n": 570,
+    "waters": {
+     "gnis:32537": 1731,
+     "gnis:32640": 5027,
+     "gnis:32903": 4864,
+     "gnis:33022": 10930,
+     "gnis:33095": 19347,
+     "gnis:33225": 7227,
+     "gnis:33288": 11391,
+     "gnis:33450": 10756,
+     "gnis:33554": 1428,
+     "gnis:33689": 18246,
+     "gnis:33834": 5830,
+     "gnis:34050": 14548,
+     "gnis:3406": 10923,
+     "gnis:35555": 5528,
+     "gnis:35834": 4149,
+     "gnis:37635": 7609,
+     "gnis:4900": 7815,
+     "gnis:6848": 17096
+    }
+   }
   },
   "r3:thompson_river_downstream_of_signs_at_kamloops_lake_outlet_t@3-13+3-14+3-18#thompson_river": {
-   "own_m": 125405,
-   "own_waters": [
-    "gnis:39492"
-   ],
-   "walk_m": 0,
-   "walk_waters": []
+   "own": {
+    "m": 125472,
+    "n": 26,
+    "waters": {
+     "gnis:39492": 125472
+    }
+   },
+   "walk": {
+    "m": 0,
+    "n": 0,
+    "waters": {}
+   }
   },
   "r4:abruzzi_creek@4-23#abruzzi_creek": {
-   "own_m": 10322,
-   "own_waters": [
-    "gnis:8798"
-   ],
-   "walk_m": 0,
-   "walk_waters": []
+   "own": {
+    "m": 10330,
+    "n": 1,
+    "waters": {
+     "gnis:8798": 10330
+    }
+   },
+   "walk": {
+    "m": 41817,
+    "n": 39,
+    "waters": {}
+   }
   },
   "r4:alexander_creek_downstream_of_the_easternmost_hwy_3_bridge@4-23#michel_creek": {
-   "own_m": 4676,
-   "own_waters": [
-    "gnis:9343"
-   ],
-   "walk_m": 0,
-   "walk_waters": []
+   "own": {
+    "m": 4681,
+    "n": 1,
+    "waters": {
+     "gnis:9343": 4681
+    }
+   },
+   "walk": {
+    "m": 6125,
+    "n": 6,
+    "waters": {}
+   }
   },
   "r4:alexander_creek_upstream_of_the_easternmost_hwy_3_bridge@4-23#michel_creek": {
-   "own_m": 33693,
-   "own_waters": [
-    "gnis:9343"
-   ],
-   "walk_m": 15382,
-   "walk_waters": [
-    "gnis:20270",
-    "gnis:26046"
-   ]
+   "own": {
+    "m": 33692,
+    "n": 7,
+    "waters": {
+     "gnis:9343": 33692
+    }
+   },
+   "walk": {
+    "m": 230460,
+    "n": 151,
+    "waters": {
+     "gnis:20270": 8506,
+     "gnis:26046": 6877
+    }
+   }
   },
   "r4:bull_river@4-22#bull_river": {
-   "own_m": 110575,
-   "own_waters": [
-    "gnis:10583"
-   ],
-   "walk_m": 278370,
-   "walk_waters": [
-    "gnis:10291",
-    "gnis:10326",
-    "gnis:10643",
-    "gnis:10652",
-    "gnis:10934",
-    "gnis:10972",
-    "gnis:11030",
-    "gnis:18677",
-    "gnis:18817",
-    "gnis:20266",
-    "gnis:20446",
-    "gnis:21827",
-    "gnis:22248",
-    "gnis:23374",
-    "gnis:23439",
-    "gnis:23636",
-    "gnis:23906",
-    "gnis:24098",
-    "gnis:24457",
-    "gnis:24475",
-    "gnis:25644",
-    "gnis:2672",
-    "gnis:27542",
-    "gnis:7734",
-    "gnis:7884",
-    "gnis:8214",
-    "gnis:8381",
-    "gnis:9141",
-    "gnis:9332",
-    "gnis:9764",
-    "gnis:9785"
-   ]
+   "own": {
+    "m": 110592,
+    "n": 13,
+    "waters": {
+     "gnis:10583": 110592
+    }
+   },
+   "walk": {
+    "m": 2493781,
+    "n": 1883,
+    "waters": {
+     "gnis:10291": 18546,
+     "gnis:10326": 4108,
+     "gnis:10643": 5314,
+     "gnis:10652": 4293,
+     "gnis:10934": 5750,
+     "gnis:10972": 2950,
+     "gnis:11030": 7227,
+     "gnis:18677": 6877,
+     "gnis:18817": 5716,
+     "gnis:20266": 11710,
+     "gnis:20446": 3954,
+     "gnis:21827": 4884,
+     "gnis:22248": 5799,
+     "gnis:23374": 8731,
+     "gnis:23439": 18045,
+     "gnis:23636": 8467,
+     "gnis:23906": 23810,
+     "gnis:24098": 4045,
+     "gnis:24457": 2930,
+     "gnis:24475": 11429,
+     "gnis:25644": 2928,
+     "gnis:2672": 4723,
+     "gnis:27542": 3701,
+     "gnis:7734": 30623,
+     "gnis:7884": 19881,
+     "gnis:8214": 7040,
+     "gnis:8381": 14352,
+     "gnis:9141": 9839,
+     "gnis:9332": 4097,
+     "gnis:9764": 10440,
+     "gnis:9785": 6285
+    }
+   }
   },
   "r4:cadorna_creek@4-23#elk_river": {
-   "own_m": 20901,
-   "own_waters": [
-    "gnis:16777"
-   ],
-   "walk_m": 0,
-   "walk_waters": []
+   "own": {
+    "m": 20915,
+    "n": 6,
+    "waters": {
+     "gnis:16777": 20915
+    }
+   },
+   "walk": {
+    "m": 188064,
+    "n": 160,
+    "waters": {}
+   }
   },
   "r4:elk_river_downstream_of_elko_dam@4-2#elk_river": {
-   "own_m": 18004,
-   "own_waters": [
-    "gnis:16880"
-   ],
-   "walk_m": 12631,
-   "walk_waters": [
-    "gnis:24437",
-    "gnis:28794"
-   ]
+   "own": {
+    "m": 18003,
+    "n": 2,
+    "waters": {
+     "gnis:16880": 18003
+    }
+   },
+   "walk": {
+    "m": 67866,
+    "n": 85,
+    "waters": {
+     "gnis:24437": 6005,
+     "gnis:28794": 6643
+    }
+   }
   },
   "r4:elk_river_s_tributaries_see_exceptions@4-2+4-23#elk_river": {
-   "own_m": 0,
-   "own_waters": [],
-   "walk_m": 430465,
-   "walk_waters": [
-    "blk:356559786",
-    "gnis:13074",
-    "gnis:13654",
-    "gnis:13655",
-    "gnis:14291",
-    "gnis:14297",
-    "gnis:14986",
-    "gnis:15213",
-    "gnis:15289",
-    "gnis:15346",
-    "gnis:15866",
-    "gnis:15954",
-    "gnis:16429",
-    "gnis:16821",
-    "gnis:17005",
-    "gnis:17356",
-    "gnis:17550",
-    "gnis:18047",
-    "gnis:18229",
-    "gnis:18479",
-    "gnis:18580",
-    "gnis:18645",
-    "gnis:19560",
-    "gnis:22420",
-    "gnis:2330",
-    "gnis:23381",
-    "gnis:23754",
-    "gnis:24358",
-    "gnis:24437",
-    "gnis:24572",
-    "gnis:24730",
-    "gnis:24878",
-    "gnis:2502",
-    "gnis:25091",
-    "gnis:25263",
-    "gnis:2572",
-    "gnis:25931",
-    "gnis:27482",
-    "gnis:27668",
-    "gnis:27795",
-    "gnis:28543",
-    "gnis:28794",
-    "gnis:2882",
-    "gnis:29875",
-    "gnis:36197",
-    "gnis:37330",
-    "gnis:39245",
-    "gnis:44003",
-    "gnis:7579",
-    "gnis:7625",
-    "gnis:7710",
-    "gnis:8074",
-    "gnis:8162",
-    "gnis:8199",
-    "gnis:8363",
-    "gnis:8866",
-    "gnis:9333",
-    "gnis:9398",
-    "gnis:9656"
-   ]
+   "own": {
+    "m": 0,
+    "n": 0,
+    "waters": {}
+   },
+   "walk": {
+    "m": 3256041,
+    "n": 2504,
+    "waters": {
+     "blk:356559786": 2526,
+     "gnis:13074": 16866,
+     "gnis:13654": 3192,
+     "gnis:13655": 10682,
+     "gnis:14291": 4285,
+     "gnis:14297": 26259,
+     "gnis:14986": 3986,
+     "gnis:15213": 7536,
+     "gnis:15289": 6,
+     "gnis:15346": 9832,
+     "gnis:15866": 1932,
+     "gnis:15954": 9138,
+     "gnis:16429": 3712,
+     "gnis:16821": 3328,
+     "gnis:17005": 13036,
+     "gnis:17356": 6992,
+     "gnis:17550": 15780,
+     "gnis:18047": 6913,
+     "gnis:18229": 5894,
+     "gnis:18479": 762,
+     "gnis:18580": 9175,
+     "gnis:18645": 9082,
+     "gnis:19560": 3761,
+     "gnis:22420": 3092,
+     "gnis:2330": 7941,
+     "gnis:23381": 12144,
+     "gnis:23754": 4361,
+     "gnis:24358": 4389,
+     "gnis:24437": 6005,
+     "gnis:24572": 6084,
+     "gnis:24730": 10789,
+     "gnis:24878": 3224,
+     "gnis:2502": 13779,
+     "gnis:25091": 3690,
+     "gnis:25263": 8118,
+     "gnis:2572": 4476,
+     "gnis:25931": 9116,
+     "gnis:27482": 4237,
+     "gnis:27668": 3353,
+     "gnis:27795": 4088,
+     "gnis:28543": 2135,
+     "gnis:28794": 6643,
+     "gnis:2882": 16273,
+     "gnis:29875": 4806,
+     "gnis:36197": 12592,
+     "gnis:37330": 9826,
+     "gnis:39245": 345,
+     "gnis:44003": 25717,
+     "gnis:7579": 2936,
+     "gnis:7625": 6165,
+     "gnis:7710": 3244,
+     "gnis:8074": 3075,
+     "gnis:8162": 7138,
+     "gnis:8199": 6146,
+     "gnis:8363": 2725,
+     "gnis:8866": 16653,
+     "gnis:9333": 15997,
+     "gnis:9398": 2225,
+     "gnis:9656": 2547
+    }
+   }
   },
   "r4:elk_river_upstream_of_elko_dam@4-2+4-23#elk_river": {
-   "own_m": 244855,
-   "own_waters": [
-    "gnis:16880"
-   ],
-   "walk_m": 417834,
-   "walk_waters": [
-    "blk:356559786",
-    "gnis:13074",
-    "gnis:13654",
-    "gnis:13655",
-    "gnis:14291",
-    "gnis:14297",
-    "gnis:14986",
-    "gnis:15213",
-    "gnis:15289",
-    "gnis:15346",
-    "gnis:15866",
-    "gnis:15954",
-    "gnis:16429",
-    "gnis:16821",
-    "gnis:17005",
-    "gnis:17356",
-    "gnis:17550",
-    "gnis:18047",
-    "gnis:18229",
-    "gnis:18479",
-    "gnis:18580",
-    "gnis:18645",
-    "gnis:19560",
-    "gnis:22420",
-    "gnis:2330",
-    "gnis:23381",
-    "gnis:23754",
-    "gnis:24358",
-    "gnis:24572",
-    "gnis:24730",
-    "gnis:24878",
-    "gnis:2502",
-    "gnis:25091",
-    "gnis:25263",
-    "gnis:2572",
-    "gnis:25931",
-    "gnis:27482",
-    "gnis:27668",
-    "gnis:27795",
-    "gnis:28543",
-    "gnis:2882",
-    "gnis:29875",
-    "gnis:36197",
-    "gnis:37330",
-    "gnis:39245",
-    "gnis:44003",
-    "gnis:7579",
-    "gnis:7625",
-    "gnis:7710",
-    "gnis:8074",
-    "gnis:8162",
-    "gnis:8199",
-    "gnis:8363",
-    "gnis:8866",
-    "gnis:9333",
-    "gnis:9398",
-    "gnis:9656"
-   ]
+   "own": {
+    "m": 244868,
+    "n": 60,
+    "waters": {
+     "gnis:16880": 244868
+    }
+   },
+   "walk": {
+    "m": 3188175,
+    "n": 2419,
+    "waters": {
+     "blk:356559786": 2526,
+     "gnis:13074": 16866,
+     "gnis:13654": 3192,
+     "gnis:13655": 10682,
+     "gnis:14291": 4285,
+     "gnis:14297": 26259,
+     "gnis:14986": 3986,
+     "gnis:15213": 7536,
+     "gnis:15289": 6,
+     "gnis:15346": 9832,
+     "gnis:15866": 1932,
+     "gnis:15954": 9138,
+     "gnis:16429": 3712,
+     "gnis:16821": 3328,
+     "gnis:17005": 13036,
+     "gnis:17356": 6992,
+     "gnis:17550": 15780,
+     "gnis:18047": 6913,
+     "gnis:18229": 5894,
+     "gnis:18479": 762,
+     "gnis:18580": 9175,
+     "gnis:18645": 9082,
+     "gnis:19560": 3761,
+     "gnis:22420": 3092,
+     "gnis:2330": 7941,
+     "gnis:23381": 12144,
+     "gnis:23754": 4361,
+     "gnis:24358": 4389,
+     "gnis:24572": 6084,
+     "gnis:24730": 10789,
+     "gnis:24878": 3224,
+     "gnis:2502": 13779,
+     "gnis:25091": 3690,
+     "gnis:25263": 8118,
+     "gnis:2572": 4476,
+     "gnis:25931": 9116,
+     "gnis:27482": 4237,
+     "gnis:27668": 3353,
+     "gnis:27795": 4088,
+     "gnis:28543": 2135,
+     "gnis:2882": 16273,
+     "gnis:29875": 4806,
+     "gnis:36197": 12592,
+     "gnis:37330": 9826,
+     "gnis:39245": 345,
+     "gnis:44003": 25717,
+     "gnis:7579": 2936,
+     "gnis:7625": 6165,
+     "gnis:7710": 3244,
+     "gnis:8074": 3075,
+     "gnis:8162": 7138,
+     "gnis:8199": 6146,
+     "gnis:8363": 2725,
+     "gnis:8866": 16653,
+     "gnis:9333": 15997,
+     "gnis:9398": 2225,
+     "gnis:9656": 2547
+    }
+   }
   },
   "r4:fording_river_downstream_of_josephine_falls@4-23#elk_river": {
-   "own_m": 20943,
-   "own_waters": [
-    "gnis:19955"
-   ],
-   "walk_m": 170980,
-   "walk_waters": [
-    "gnis:12024",
-    "gnis:12993",
-    "gnis:14855",
-    "gnis:17114",
-    "gnis:18528",
-    "gnis:18740",
-    "gnis:19955",
-    "gnis:20716",
-    "gnis:23075",
-    "gnis:25948",
-    "gnis:27246",
-    "gnis:37034",
-    "gnis:39245",
-    "gnis:8103",
-    "gnis:8308"
-   ]
+   "own": {
+    "m": 20942,
+    "n": 4,
+    "waters": {
+     "gnis:19955": 20942
+    }
+   },
+   "walk": {
+    "m": 928948,
+    "n": 765,
+    "waters": {
+     "gnis:12024": 11030,
+     "gnis:12993": 11743,
+     "gnis:14855": 1738,
+     "gnis:17114": 5399,
+     "gnis:18528": 14610,
+     "gnis:18740": 10434,
+     "gnis:19955": 60863,
+     "gnis:20716": 13423,
+     "gnis:23075": 4074,
+     "gnis:25948": 9185,
+     "gnis:27246": 5124,
+     "gnis:37034": 9100,
+     "gnis:39245": 10330,
+     "gnis:8103": 2790,
+     "gnis:8308": 1217
+    }
+   }
   },
   "r4:forsyth_creek@4-23#forsyth_creek": {
-   "own_m": 30611,
-   "own_waters": [
-    "gnis:11815"
-   ],
-   "walk_m": 19031,
-   "walk_waters": [
-    "gnis:2973"
-   ]
+   "own": {
+    "m": 30618,
+    "n": 14,
+    "waters": {
+     "gnis:11815": 30618
+    }
+   },
+   "walk": {
+    "m": 281023,
+    "n": 218,
+    "waters": {
+     "gnis:2973": 19037
+    }
+   }
   },
   "r4:hellroaring_creek@4-20#st_mary_river": {
-   "own_m": 31049,
-   "own_waters": [
-    "gnis:20676"
-   ],
-   "walk_m": 12108,
-   "walk_waters": [
-    "gnis:10481"
-   ]
+   "own": {
+    "m": 31046,
+    "n": 5,
+    "waters": {
+     "gnis:20676": 31046
+    }
+   },
+   "walk": {
+    "m": 200520,
+    "n": 137,
+    "waters": {
+     "gnis:10481": 12102
+    }
+   }
   },
   "r4:kootenay_river_upstream_of_koocanusa_reservoir@4-2+4-21+4-22+4-24+4-25+4-35#kootenay_river": {
-   "own_m": 84536,
-   "own_waters": [
-    "gnis:14097"
-   ],
-   "walk_m": 604396,
-   "walk_waters": [
-    "gnis:10079",
-    "gnis:10844",
-    "gnis:11091",
-    "gnis:12101",
-    "gnis:13183",
-    "gnis:14657",
-    "gnis:14991",
-    "gnis:15180",
-    "gnis:16360",
-    "gnis:17177",
-    "gnis:17572",
-    "gnis:17626",
-    "gnis:17854",
-    "gnis:18540",
-    "gnis:18552",
-    "gnis:18683",
-    "gnis:18708",
-    "gnis:19020",
-    "gnis:19040",
-    "gnis:19571",
-    "gnis:20013",
-    "gnis:20443",
-    "gnis:20555",
-    "gnis:20853",
-    "gnis:21887",
-    "gnis:21929",
-    "gnis:22701",
-    "gnis:2279",
-    "gnis:23109",
-    "gnis:23474",
-    "gnis:23903",
-    "gnis:24187",
-    "gnis:25902",
-    "gnis:25990",
-    "gnis:26247",
-    "gnis:27546",
-    "gnis:28638",
-    "gnis:2902",
-    "gnis:2959",
-    "gnis:29687",
-    "gnis:29963",
-    "gnis:31346",
-    "gnis:32105",
-    "gnis:36203",
-    "gnis:38321",
-    "gnis:7659",
-    "gnis:7938",
-    "gnis:7978",
-    "gnis:9173",
-    "gnis:9308",
-    "gnis:9319",
-    "gnis:9825",
-    "gnis:9850"
-   ]
+   "own": {
+    "m": 84582,
+    "n": 27,
+    "waters": {
+     "gnis:14097": 84582
+    }
+   },
+   "walk": {
+    "m": 5247642,
+    "n": 4438,
+    "waters": {
+     "gnis:10079": 4495,
+     "gnis:10844": 7602,
+     "gnis:11091": 5503,
+     "gnis:12101": 15217,
+     "gnis:13183": 9897,
+     "gnis:14657": 12789,
+     "gnis:14991": 10583,
+     "gnis:15180": 9875,
+     "gnis:16360": 4971,
+     "gnis:17177": 13577,
+     "gnis:17572": 17016,
+     "gnis:17626": 8841,
+     "gnis:17854": 2864,
+     "gnis:18540": 6610,
+     "gnis:18552": 6919,
+     "gnis:18683": 2887,
+     "gnis:18708": 5192,
+     "gnis:19020": 24269,
+     "gnis:19040": 3227,
+     "gnis:19571": 9368,
+     "gnis:20013": 3649,
+     "gnis:20443": 7201,
+     "gnis:20555": 3171,
+     "gnis:20853": 10608,
+     "gnis:21887": 5069,
+     "gnis:21929": 65444,
+     "gnis:22701": 13293,
+     "gnis:2279": 8323,
+     "gnis:23109": 13927,
+     "gnis:23474": 9362,
+     "gnis:23903": 9296,
+     "gnis:24187": 8172,
+     "gnis:25902": 6274,
+     "gnis:25990": 3927,
+     "gnis:26247": 13908,
+     "gnis:27546": 6125,
+     "gnis:28638": 7036,
+     "gnis:2902": 23671,
+     "gnis:2959": 6098,
+     "gnis:29687": 6185,
+     "gnis:29963": 33353,
+     "gnis:31346": 5960,
+     "gnis:32105": 15652,
+     "gnis:36203": 45876,
+     "gnis:38321": 8533,
+     "gnis:7659": 11008,
+     "gnis:7938": 3006,
+     "gnis:7978": 4707,
+     "gnis:9173": 7312,
+     "gnis:9308": 33503,
+     "gnis:9319": 8714,
+     "gnis:9825": 8156,
+     "gnis:9850": 6488
+    }
+   }
   },
   "r4:lodgepole_creek_downstream_of_falls_near_the_km_26_post_on_l@4-2#wigwam_river": {
-   "own_m": 23057,
-   "own_waters": [
-    "gnis:17044"
-   ],
-   "walk_m": 38857,
-   "walk_waters": [
-    "gnis:17791",
-    "gnis:19558",
-    "gnis:23032",
-    "gnis:23200",
-    "gnis:23241",
-    "gnis:23454",
-    "gnis:26608",
-    "gnis:27097",
-    "gnis:29908",
-    "gnis:8795"
-   ]
+   "own": {
+    "m": 23081,
+    "n": 1,
+    "waters": {
+     "gnis:17044": 23081
+    }
+   },
+   "walk": {
+    "m": 309395,
+    "n": 239,
+    "waters": {
+     "gnis:17791": 2659,
+     "gnis:19558": 8178,
+     "gnis:23032": 3477,
+     "gnis:23200": 1418,
+     "gnis:23241": 3820,
+     "gnis:23454": 9018,
+     "gnis:26608": 3091,
+     "gnis:27097": 2316,
+     "gnis:29908": 2406,
+     "gnis:8795": 2476
+    }
+   }
   },
   "r4:lodgepole_creek_upstream_of_falls@4-2#wigwam_river": {
-   "own_m": 6469,
-   "own_waters": [
-    "gnis:17044"
-   ],
-   "walk_m": 0,
-   "walk_waters": []
+   "own": {
+    "m": 6473,
+    "n": 2,
+    "waters": {
+     "gnis:17044": 6473
+    }
+   },
+   "walk": {
+    "m": 21821,
+    "n": 29,
+    "waters": {}
+   }
   },
   "r4:michel_creek_downstream_of_the_easternmost_hwy_3_bridge@4-23#michel_creek": {
-   "own_m": 13316,
-   "own_waters": [
-    "gnis:28953"
-   ],
-   "walk_m": 25060,
-   "walk_waters": [
-    "gnis:12810",
-    "gnis:1642",
-    "gnis:17863",
-    "gnis:25854"
-   ]
+   "own": {
+    "m": 13322,
+    "n": 2,
+    "waters": {
+     "gnis:28953": 13322
+    }
+   },
+   "walk": {
+    "m": 127154,
+    "n": 84,
+    "waters": {
+     "gnis:12810": 3029,
+     "gnis:1642": 5193,
+     "gnis:17863": 10951,
+     "gnis:25854": 5887
+    }
+   }
   },
   "r4:michel_creek_upstream_of_the_easternmost_hwy_3_bridge@4-23#michel_creek": {
-   "own_m": 38571,
-   "own_waters": [
-    "gnis:28953"
-   ],
-   "walk_m": 98852,
-   "walk_waters": [
-    "gnis:14189",
-    "gnis:18361",
-    "gnis:19740",
-    "gnis:19990",
-    "gnis:21759",
-    "gnis:24270",
-    "gnis:26803",
-    "gnis:5482",
-    "gnis:9222",
-    "gnis:9253"
-   ]
+   "own": {
+    "m": 38572,
+    "n": 5,
+    "waters": {
+     "gnis:28953": 38572
+    }
+   },
+   "walk": {
+    "m": 661728,
+    "n": 530,
+    "waters": {
+     "gnis:14189": 13504,
+     "gnis:18361": 7024,
+     "gnis:19740": 7497,
+     "gnis:19990": 10774,
+     "gnis:21759": 2618,
+     "gnis:24270": 2673,
+     "gnis:26803": 12512,
+     "gnis:5482": 12430,
+     "gnis:9222": 6186,
+     "gnis:9253": 23686
+    }
+   }
   },
   "r4:morrissey_creek@4-2#elk_river": {
-   "own_m": 19550,
-   "own_waters": [
-    "gnis:14951"
-   ],
-   "walk_m": 0,
-   "walk_waters": []
+   "own": {
+    "m": 19559,
+    "n": 1,
+    "waters": {
+     "gnis:14951": 19559
+    }
+   },
+   "walk": {
+    "m": 114701,
+    "n": 85,
+    "waters": {}
+   }
   },
   "r4:north_fork_white_river@4-24#north_white_river": {
-   "own_m": 47242,
-   "own_waters": [
-    "gnis:24059"
-   ],
-   "walk_m": 53911,
-   "walk_waters": [
-    "gnis:11306",
-    "gnis:11328",
-    "gnis:13361",
-    "gnis:18082",
-    "gnis:21135",
-    "gnis:21165",
-    "gnis:23588",
-    "gnis:44272",
-    "gnis:9135",
-    "gnis:9140",
-    "gnis:9145"
-   ]
+   "own": {
+    "m": 47253,
+    "n": 10,
+    "waters": {
+     "gnis:24059": 47253
+    }
+   },
+   "walk": {
+    "m": 546843,
+    "n": 407,
+    "waters": {
+     "gnis:11306": 4816,
+     "gnis:11328": 458,
+     "gnis:13361": 2010,
+     "gnis:18082": 8360,
+     "gnis:21135": 7206,
+     "gnis:21165": 6012,
+     "gnis:23588": 11850,
+     "gnis:44272": 2365,
+     "gnis:9135": 3082,
+     "gnis:9140": 3734,
+     "gnis:9145": 4053
+    }
+   }
   },
   "r4:perry_creek@4-20#st_mary_river": {
-   "own_m": 37023,
-   "own_waters": [
-    "gnis:14741"
-   ],
-   "walk_m": 77910,
-   "walk_waters": [
-    "gnis:10330",
-    "gnis:10401",
-    "gnis:10536",
-    "gnis:11909",
-    "gnis:12748",
-    "gnis:13241",
-    "gnis:14570",
-    "gnis:16998",
-    "gnis:17457",
-    "gnis:1819",
-    "gnis:22195",
-    "gnis:22535",
-    "gnis:22588",
-    "gnis:25250",
-    "gnis:25456",
-    "gnis:26674",
-    "gnis:29985",
-    "gnis:9944"
-   ]
+   "own": {
+    "m": 37037,
+    "n": 2,
+    "waters": {
+     "gnis:14741": 37037
+    }
+   },
+   "walk": {
+    "m": 183989,
+    "n": 152,
+    "waters": {
+     "gnis:10330": 3634,
+     "gnis:10401": 4946,
+     "gnis:10536": 7786,
+     "gnis:11909": 3967,
+     "gnis:12748": 3892,
+     "gnis:13241": 4671,
+     "gnis:14570": 7687,
+     "gnis:16998": 3584,
+     "gnis:17457": 3992,
+     "gnis:1819": 6662,
+     "gnis:22195": 3178,
+     "gnis:22535": 3329,
+     "gnis:22588": 3203,
+     "gnis:25250": 4393,
+     "gnis:25456": 3094,
+     "gnis:26674": 2437,
+     "gnis:29985": 4335,
+     "gnis:9944": 3156
+    }
+   }
   },
   "r4:quinn_creek@4-22#bull_river": {
-   "own_m": 36508,
-   "own_waters": [
-    "gnis:1961"
-   ],
-   "walk_m": 22349,
-   "walk_waters": [
-    "gnis:10960",
-    "gnis:14111",
-    "gnis:18848",
-    "gnis:9952"
-   ]
+   "own": {
+    "m": 36511,
+    "n": 9,
+    "waters": {
+     "gnis:1961": 36511
+    }
+   },
+   "walk": {
+    "m": 339326,
+    "n": 291,
+    "waters": {
+     "gnis:10960": 7672,
+     "gnis:14111": 4073,
+     "gnis:18848": 3594,
+     "gnis:9952": 7025
+    }
+   }
   },
   "r4:skookumchuck_creek@4-20#skookumchuck_creek": {
-   "own_m": 64931,
-   "own_waters": [
-    "gnis:27202"
-   ],
-   "walk_m": 53652,
-   "walk_waters": [
-    "gnis:10144",
-    "gnis:11042",
-    "gnis:9193"
-   ]
+   "own": {
+    "m": 64971,
+    "n": 5,
+    "waters": {
+     "gnis:27202": 64971
+    }
+   },
+   "walk": {
+    "m": 854115,
+    "n": 624,
+    "waters": {
+     "gnis:10144": 29274,
+     "gnis:11042": 9648,
+     "gnis:9193": 14743
+    }
+   }
   },
   "r4:st_mary_river@4-20#st_mary_river": {
-   "own_m": 130486,
-   "own_waters": [
-    "gnis:2619"
-   ],
-   "walk_m": 470452,
-   "walk_waters": [
-    "gnis:12034",
-    "gnis:12310",
-    "gnis:13519",
-    "gnis:14280",
-    "gnis:14938",
-    "gnis:15873",
-    "gnis:16347",
-    "gnis:16640",
-    "gnis:16801",
-    "gnis:17060",
-    "gnis:18208",
-    "gnis:18275",
-    "gnis:18312",
-    "gnis:19057",
-    "gnis:19195",
-    "gnis:19847",
-    "gnis:19979",
-    "gnis:21273",
-    "gnis:21353",
-    "gnis:22287",
-    "gnis:22606",
-    "gnis:23261",
-    "gnis:23543",
-    "gnis:24185",
-    "gnis:25061",
-    "gnis:26536",
-    "gnis:26854",
-    "gnis:26907",
-    "gnis:27036",
-    "gnis:27103",
-    "gnis:27268",
-    "gnis:28849",
-    "gnis:37469",
-    "gnis:43937",
-    "gnis:7562",
-    "gnis:7609",
-    "gnis:8288",
-    "gnis:8617",
-    "gnis:9581"
-   ]
+   "own": {
+    "m": 130584,
+    "n": 25,
+    "waters": {
+     "gnis:2619": 130584
+    }
+   },
+   "walk": {
+    "m": 3276169,
+    "n": 2487,
+    "waters": {
+     "gnis:12034": 11273,
+     "gnis:12310": 2476,
+     "gnis:13519": 30368,
+     "gnis:14280": 25782,
+     "gnis:14938": 2997,
+     "gnis:15873": 4214,
+     "gnis:16347": 4128,
+     "gnis:16640": 4142,
+     "gnis:16801": 10516,
+     "gnis:17060": 8044,
+     "gnis:18208": 11762,
+     "gnis:18275": 4183,
+     "gnis:18312": 14665,
+     "gnis:19057": 7215,
+     "gnis:19195": 5414,
+     "gnis:19847": 3969,
+     "gnis:19979": 6788,
+     "gnis:21273": 4107,
+     "gnis:21353": 45744,
+     "gnis:22287": 10728,
+     "gnis:22606": 11444,
+     "gnis:23261": 7948,
+     "gnis:23543": 8139,
+     "gnis:24185": 4466,
+     "gnis:25061": 2135,
+     "gnis:26536": 7548,
+     "gnis:26854": 33665,
+     "gnis:26907": 6489,
+     "gnis:27036": 7939,
+     "gnis:27103": 8389,
+     "gnis:27268": 38671,
+     "gnis:28849": 50409,
+     "gnis:37469": 10544,
+     "gnis:43937": 12427,
+     "gnis:7562": 6522,
+     "gnis:7609": 8683,
+     "gnis:8288": 3147,
+     "gnis:8617": 14093,
+     "gnis:9581": 9399
+    }
+   }
   },
   "r4:white_river_see_also_east_white_north_white_rivers@4-24#white_river": {
-   "own_m": 105675,
-   "own_waters": [
-    "gnis:26897"
-   ],
-   "walk_m": 199503,
-   "walk_waters": [
-    "gnis:12007",
-    "gnis:12132",
-    "gnis:13396",
-    "gnis:13557",
-    "gnis:14072",
-    "gnis:14104",
-    "gnis:14229",
-    "gnis:14962",
-    "gnis:16862",
-    "gnis:16924",
-    "gnis:19232",
-    "gnis:19454",
-    "gnis:21167",
-    "gnis:23317",
-    "gnis:23982",
-    "gnis:24343",
-    "gnis:25115",
-    "gnis:26360",
-    "gnis:26605",
-    "gnis:26609",
-    "gnis:27573",
-    "gnis:30012",
-    "gnis:9129",
-    "gnis:9132",
-    "gnis:9136",
-    "gnis:9146"
-   ]
+   "own": {
+    "m": 105723,
+    "n": 17,
+    "waters": {
+     "gnis:26897": 105723
+    }
+   },
+   "walk": {
+    "m": 2087465,
+    "n": 1670,
+    "waters": {
+     "gnis:12007": 2425,
+     "gnis:12132": 11673,
+     "gnis:13396": 7827,
+     "gnis:13557": 26961,
+     "gnis:14072": 2601,
+     "gnis:14104": 7566,
+     "gnis:14229": 3402,
+     "gnis:14962": 8874,
+     "gnis:16862": 22994,
+     "gnis:16924": 6279,
+     "gnis:19232": 2662,
+     "gnis:19454": 13543,
+     "gnis:21167": 3025,
+     "gnis:23317": 3551,
+     "gnis:23982": 3226,
+     "gnis:24343": 10043,
+     "gnis:25115": 17233,
+     "gnis:26360": 8236,
+     "gnis:26605": 10763,
+     "gnis:26609": 6719,
+     "gnis:27573": 2869,
+     "gnis:30012": 2919,
+     "gnis:9129": 3071,
+     "gnis:9132": 2759,
+     "gnis:9136": 3583,
+     "gnis:9146": 4787
+    }
+   }
   },
   "r4:wigwam_river_downstream_of_the_access_road_adjacent_to_km_42@4-2#wigwam_river": {
-   "own_m": 26337,
-   "own_waters": [
-    "gnis:27703"
-   ],
-   "walk_m": 27238,
-   "walk_waters": [
-    "gnis:12449"
-   ]
+   "own": {
+    "m": 26351,
+    "n": 2,
+    "waters": {
+     "gnis:27703": 26351
+    }
+   },
+   "walk": {
+    "m": 491700,
+    "n": 415,
+    "waters": {
+     "gnis:12449": 27250
+    }
+   }
   },
   "r4:wigwam_river_upstream_of_the_forest_service_recreation_site@4-2#wigwam_river": {
-   "own_m": 30428,
-   "own_waters": [
-    "gnis:27703"
-   ],
-   "walk_m": 39705,
-   "walk_waters": [
-    "gnis:19015",
-    "gnis:21308",
-    "gnis:25264",
-    "gnis:27888"
-   ]
+   "own": {
+    "m": 30429,
+    "n": 3,
+    "waters": {
+     "gnis:27703": 30429
+    }
+   },
+   "walk": {
+    "m": 591696,
+    "n": 508,
+    "waters": {
+     "gnis:19015": 9953,
+     "gnis:21308": 17580,
+     "gnis:25264": 2508,
+     "gnis:27888": 9683
+    }
+   }
   },
   "r5:atnarko_bella_coola_rivers_includes_tributaries_except_burnt@5-11+5-6+5-8#atnarko_bella_coola_rivers": {
-   "own_m": 141389,
-   "own_waters": [
-    "gnis:11611",
-    "gnis:17209"
-   ],
-   "walk_m": 570044,
-   "walk_waters": [
-    "blk:360686071",
-    "blk:360871596",
-    "gnis:10549",
-    "gnis:12305",
-    "gnis:13807",
-    "gnis:14771",
-    "gnis:15385",
-    "gnis:16773",
-    "gnis:1914",
-    "gnis:19994",
-    "gnis:20371",
-    "gnis:2100",
-    "gnis:22431",
-    "gnis:23362",
-    "gnis:23368",
-    "gnis:23382",
-    "gnis:2624",
-    "gnis:27398",
-    "gnis:2770",
-    "gnis:29254",
-    "gnis:29259",
-    "gnis:37811",
-    "gnis:38125",
-    "gnis:5850",
-    "gnis:6183",
-    "gnis:6210",
-    "gnis:6220",
-    "gnis:6455",
-    "gnis:6543",
-    "gnis:7811",
-    "gnis:8012"
-   ]
+   "own": {
+    "m": 141447,
+    "n": 64,
+    "waters": {
+     "gnis:11611": 115515,
+     "gnis:17209": 25932
+    }
+   },
+   "walk": {
+    "m": 6002600,
+    "n": 5227,
+    "waters": {
+     "blk:360686071": 1786,
+     "blk:360871596": 8652,
+     "gnis:10549": 23945,
+     "gnis:12305": 23259,
+     "gnis:13807": 12123,
+     "gnis:14771": 6530,
+     "gnis:15385": 4017,
+     "gnis:16773": 14851,
+     "gnis:1914": 10593,
+     "gnis:19994": 3914,
+     "gnis:20371": 45216,
+     "gnis:2100": 12100,
+     "gnis:22431": 16438,
+     "gnis:23362": 14780,
+     "gnis:23368": 30233,
+     "gnis:23382": 20677,
+     "gnis:2624": 30512,
+     "gnis:27398": 9682,
+     "gnis:2770": 99255,
+     "gnis:29254": 6929,
+     "gnis:29259": 11056,
+     "gnis:37811": 26780,
+     "gnis:38125": 7977,
+     "gnis:5850": 5070,
+     "gnis:6183": 18628,
+     "gnis:6210": 11411,
+     "gnis:6220": 46555,
+     "gnis:6455": 16105,
+     "gnis:6543": 8668,
+     "gnis:7811": 14643,
+     "gnis:8012": 8147
+    }
+   }
   },
   "r5:burnt_bridge_creek_upstream_of_sitkatapa_creek@5-11#burnt_bridge_creek": {
-   "own_m": 11514,
-   "own_waters": [
-    "gnis:2100"
-   ],
-   "walk_m": 7910,
-   "walk_waters": [
-    "wsc:910-275583-777225-504013"
-   ]
+   "own": {
+    "m": 11526,
+    "n": 10,
+    "waters": {
+     "gnis:2100": 11526
+    }
+   },
+   "walk": {
+    "m": 178826,
+    "n": 317,
+    "waters": {
+     "wsc:910-275583-777225-504013": 7919
+    }
+   }
   },
   "r5:chilcotin_river@5-12+5-13+5-14#chilcotin_river": {
-   "own_m": 125786,
-   "own_waters": [
-    "gnis:13744"
-   ],
-   "walk_m": 1159635,
-   "walk_waters": [
-    "gnis:11617",
-    "gnis:12416",
-    "gnis:17656",
-    "gnis:23606",
-    "gnis:26453",
-    "gnis:30724",
-    "gnis:3136",
-    "gnis:32811",
-    "gnis:32850",
-    "gnis:32859",
-    "gnis:32914",
-    "gnis:32987",
-    "gnis:3303",
-    "gnis:33206",
-    "gnis:33500",
-    "gnis:33583",
-    "gnis:33705",
-    "gnis:33876",
-    "gnis:33988",
-    "gnis:34420",
-    "gnis:34653",
-    "gnis:34716",
-    "gnis:35278",
-    "gnis:35389",
-    "gnis:3542",
-    "gnis:35543",
-    "gnis:35570",
-    "gnis:35598",
-    "gnis:35680",
-    "gnis:36016",
-    "gnis:38507",
-    "gnis:39513",
-    "gnis:8494",
-    "gnis:8510",
-    "gnis:8518",
-    "gnis:9354",
-    "gnis:9999"
-   ]
+   "own": {
+    "m": 125858,
+    "n": 37,
+    "waters": {
+     "gnis:13744": 125858
+    }
+   },
+   "walk": {
+    "m": 5452384,
+    "n": 4116,
+    "waters": {
+     "gnis:11617": 13317,
+     "gnis:12416": 26464,
+     "gnis:17656": 23988,
+     "gnis:23606": 23555,
+     "gnis:26453": 22301,
+     "gnis:30724": 9936,
+     "gnis:3136": 27940,
+     "gnis:32811": 57194,
+     "gnis:32850": 17394,
+     "gnis:32859": 9907,
+     "gnis:32914": 34180,
+     "gnis:32987": 31729,
+     "gnis:3303": 10458,
+     "gnis:33206": 159907,
+     "gnis:33500": 14295,
+     "gnis:33583": 48041,
+     "gnis:33705": 7136,
+     "gnis:33876": 14579,
+     "gnis:33988": 19339,
+     "gnis:34420": 49974,
+     "gnis:34653": 37511,
+     "gnis:34716": 17718,
+     "gnis:35278": 20305,
+     "gnis:35389": 6593,
+     "gnis:3542": 10499,
+     "gnis:35543": 15992,
+     "gnis:35570": 18822,
+     "gnis:35598": 18396,
+     "gnis:35680": 37550,
+     "gnis:36016": 31476,
+     "gnis:38507": 9596,
+     "gnis:39513": 22288,
+     "gnis:8494": 114982,
+     "gnis:8510": 44506,
+     "gnis:8518": 26967,
+     "gnis:9354": 31231,
+     "gnis:9999": 74346
+    }
+   }
   },
   "r5:chilko_river@5-5#chilko_river": {
-   "own_m": 28908,
-   "own_waters": [
-    "gnis:13741"
-   ],
-   "walk_m": 95414,
-   "walk_waters": [
-    "gnis:33298",
-    "gnis:33412",
-    "gnis:33729"
-   ]
+   "own": {
+    "m": 28927,
+    "n": 10,
+    "waters": {
+     "gnis:13741": 28927
+    }
+   },
+   "walk": {
+    "m": 519007,
+    "n": 403,
+    "waters": {
+     "gnis:33298": 52601,
+     "gnis:33412": 35331,
+     "gnis:33729": 7543
+    }
+   }
   },
   "r5:chuckwalla_river@5-7#chuckwalla_river": {
-   "own_m": 65478,
-   "own_waters": [
-    "gnis:31700"
-   ],
-   "walk_m": 27432,
-   "walk_waters": [
-    "gnis:3155",
-    "gnis:31878",
-    "gnis:8457"
-   ]
+   "own": {
+    "m": 65513,
+    "n": 31,
+    "waters": {
+     "gnis:31700": 65513
+    }
+   },
+   "walk": {
+    "m": 997079,
+    "n": 1296,
+    "waters": {
+     "gnis:3155": 8081,
+     "gnis:31878": 3132,
+     "gnis:8457": 16237
+    }
+   }
   },
   "r5:dean_river@5-9#dean_river_class_i_lower": {
-   "own_m": 3747,
-   "own_waters": [
-    "gnis:16075"
-   ],
-   "walk_m": 0,
-   "walk_waters": []
+   "own": {
+    "m": 3749,
+    "n": 1,
+    "waters": {
+     "gnis:16075": 3749
+    }
+   },
+   "walk": {
+    "m": 811,
+    "n": 1,
+    "waters": {}
+   }
   },
   "r5:dean_river@5-9#dean_river_class_i_main": {
-   "own_m": 54143,
-   "own_waters": [
-    "gnis:16075"
-   ],
-   "walk_m": 129738,
-   "walk_waters": [
-    "gnis:12367",
-    "gnis:16506",
-    "gnis:20499",
-    "gnis:23367",
-    "gnis:24093",
-    "gnis:27214",
-    "gnis:5567",
-    "gnis:9779"
-   ]
+   "own": {
+    "m": 54170,
+    "n": 19,
+    "waters": {
+     "gnis:16075": 54170
+    }
+   },
+   "walk": {
+    "m": 1671406,
+    "n": 1454,
+    "waters": {
+     "gnis:12367": 12731,
+     "gnis:16506": 2313,
+     "gnis:20499": 41826,
+     "gnis:23367": 15388,
+     "gnis:24093": 6322,
+     "gnis:27214": 12608,
+     "gnis:5567": 21502,
+     "gnis:9779": 17173
+    }
+   }
   },
   "r5:dean_river@5-9#dean_river_class_ii_upper": {
-   "own_m": 136363,
-   "own_waters": [
-    "gnis:16075"
-   ],
-   "walk_m": 320287,
-   "walk_waters": [
-    "gnis:11512",
-    "gnis:11578",
-    "gnis:13808",
-    "gnis:16666",
-    "gnis:18631",
-    "gnis:19048",
-    "gnis:23461",
-    "gnis:23913",
-    "gnis:24154",
-    "gnis:24333",
-    "gnis:29926",
-    "gnis:30922",
-    "gnis:39726",
-    "gnis:43681",
-    "gnis:9856"
-   ]
+   "own": {
+    "m": 136472,
+    "n": 20,
+    "waters": {
+     "gnis:16075": 136472
+    }
+   },
+   "walk": {
+    "m": 3408899,
+    "n": 2739,
+    "waters": {
+     "gnis:11512": 10794,
+     "gnis:11578": 52632,
+     "gnis:13808": 36281,
+     "gnis:16666": 12374,
+     "gnis:18631": 18518,
+     "gnis:19048": 23009,
+     "gnis:23461": 13226,
+     "gnis:23913": 21863,
+     "gnis:24154": 21182,
+     "gnis:24333": 1308,
+     "gnis:29926": 34475,
+     "gnis:30922": 19711,
+     "gnis:39726": 16825,
+     "gnis:43681": 7012,
+     "gnis:9856": 31296
+    }
+   }
   },
   "r5:horsefly_river_from_quesnel_lake_to_horsefly_river_falls@5-2#horsefly_river": {
-   "own_m": 67210,
-   "own_waters": [
-    "gnis:24531"
-   ],
-   "walk_m": 103154,
-   "walk_waters": [
-    "gnis:13551",
-    "gnis:16274",
-    "gnis:20607",
-    "gnis:25905",
-    "gnis:2703",
-    "gnis:29339",
-    "gnis:29663",
-    "gnis:3004",
-    "gnis:39671",
-    "gnis:8659"
-   ]
+   "own": {
+    "m": 67256,
+    "n": 13,
+    "waters": {
+     "gnis:24531": 67256
+    }
+   },
+   "walk": {
+    "m": 553093,
+    "n": 448,
+    "waters": {
+     "gnis:13551": 8681,
+     "gnis:16274": 19494,
+     "gnis:20607": 12460,
+     "gnis:25905": 12270,
+     "gnis:2703": 7058,
+     "gnis:29339": 23851,
+     "gnis:29663": 4590,
+     "gnis:3004": 6464,
+     "gnis:39671": 6091,
+     "gnis:8659": 2277
+    }
+   }
   },
   "r5:kilbella_river@5-7#kilbella_river": {
-   "own_m": 81094,
-   "own_waters": [
-    "gnis:2271"
-   ],
-   "walk_m": 36383,
-   "walk_waters": [
-    "gnis:31522",
-    "gnis:32242",
-    "gnis:32294",
-    "gnis:8436",
-    "gnis:8437"
-   ]
+   "own": {
+    "m": 81149,
+    "n": 32,
+    "waters": {
+     "gnis:2271": 81149
+    }
+   },
+   "walk": {
+    "m": 836286,
+    "n": 1059,
+    "waters": {
+     "gnis:31522": 8982,
+     "gnis:32242": 6559,
+     "gnis:32294": 9725,
+     "gnis:8436": 7666,
+     "gnis:8437": 3478
+    }
+   }
   },
   "r5:nekite_river@5-7#nekite_river": {
-   "own_m": 32706,
-   "own_waters": [
-    "gnis:31586"
-   ],
-   "walk_m": 60363,
-   "walk_waters": [
-    "gnis:31020",
-    "gnis:31875",
-    "gnis:8440"
-   ]
+   "own": {
+    "m": 32725,
+    "n": 9,
+    "waters": {
+     "gnis:31586": 32725
+    }
+   },
+   "walk": {
+    "m": 986754,
+    "n": 983,
+    "waters": {
+     "gnis:31020": 15364,
+     "gnis:31875": 21442,
+     "gnis:8440": 23590
+    }
+   }
   },
   "r5:west_road_blackwater_river@5-12+5-13#west_road_river": {
-   "own_m": 236288,
-   "own_waters": [
-    "gnis:26104"
-   ],
-   "walk_m": 0,
-   "walk_waters": []
+   "own": {
+    "m": 236428,
+    "n": 89,
+    "waters": {
+     "gnis:26104": 236428
+    }
+   },
+   "walk": {
+    "m": 0,
+    "n": 0,
+    "waters": {}
+   }
   },
   "r6:babine_river@6-8#babine_river": {
-   "own_m": 99740,
-   "own_waters": [
-    "gnis:17687"
-   ],
-   "walk_m": 693852,
-   "walk_waters": [
-    "gnis:10967",
-    "gnis:11663",
-    "gnis:11719",
-    "gnis:12963",
-    "gnis:13199",
-    "gnis:14390",
-    "gnis:15224",
-    "gnis:18200",
-    "gnis:18290",
-    "gnis:18310",
-    "gnis:20557",
-    "gnis:21132",
-    "gnis:22012",
-    "gnis:22393",
-    "gnis:22774",
-    "gnis:22796",
-    "gnis:22971",
-    "gnis:26093",
-    "gnis:27471",
-    "gnis:28071",
-    "gnis:37848",
-    "gnis:37849",
-    "gnis:39133",
-    "gnis:39134",
-    "gnis:39135",
-    "gnis:43736",
-    "gnis:8104",
-    "gnis:8138"
-   ]
+   "own": {
+    "m": 99838,
+    "n": 12,
+    "waters": {
+     "gnis:17687": 99838
+    }
+   },
+   "walk": {
+    "m": 6190853,
+    "n": 5029,
+    "waters": {
+     "gnis:10967": 14733,
+     "gnis:11663": 12907,
+     "gnis:11719": 14285,
+     "gnis:12963": 20634,
+     "gnis:13199": 25682,
+     "gnis:14390": 34253,
+     "gnis:15224": 6131,
+     "gnis:18200": 13108,
+     "gnis:18290": 25852,
+     "gnis:18310": 18422,
+     "gnis:20557": 18739,
+     "gnis:21132": 90571,
+     "gnis:22012": 15296,
+     "gnis:22393": 19335,
+     "gnis:22774": 22493,
+     "gnis:22796": 17593,
+     "gnis:22971": 18989,
+     "gnis:26093": 29768,
+     "gnis:27471": 19453,
+     "gnis:28071": 18768,
+     "gnis:37848": 16508,
+     "gnis:37849": 7840,
+     "gnis:39133": 19362,
+     "gnis:39134": 9803,
+     "gnis:39135": 8861,
+     "gnis:43736": 51134,
+     "gnis:8104": 49048,
+     "gnis:8138": 75168
+    }
+   }
   },
   "r6:bulkley_river@6-9#bulkley_river": {
-   "own_m": 311813,
-   "own_waters": [
-    "gnis:2195"
-   ],
-   "walk_m": 1452217,
-   "walk_waters": [
-    "gnis:10106",
-    "gnis:10599",
-    "gnis:10611",
-    "gnis:11364",
-    "gnis:11695",
-    "gnis:11872",
-    "gnis:11906",
-    "gnis:12154",
-    "gnis:12755",
-    "gnis:13258",
-    "gnis:13763",
-    "gnis:13959",
-    "gnis:14350",
-    "gnis:14735",
-    "gnis:15446",
-    "gnis:15797",
-    "gnis:16315",
-    "gnis:1649",
-    "gnis:16902",
-    "gnis:17217",
-    "gnis:17282",
-    "gnis:17304",
-    "gnis:1741",
-    "gnis:17534",
-    "gnis:17802",
-    "gnis:17831",
-    "gnis:18773",
-    "gnis:18810",
-    "gnis:18896",
-    "gnis:20002",
-    "gnis:20178",
-    "gnis:20693",
-    "gnis:21051",
-    "gnis:21579",
-    "gnis:21608",
-    "gnis:21863",
-    "gnis:22080",
-    "gnis:22241",
-    "gnis:22258",
-    "gnis:22375",
-    "gnis:22397",
-    "gnis:2284",
-    "gnis:22892",
-    "gnis:23403",
-    "gnis:23580",
-    "gnis:23761",
-    "gnis:2382",
-    "gnis:23891",
-    "gnis:24012",
-    "gnis:2431",
-    "gnis:24361",
-    "gnis:2468",
-    "gnis:25028",
-    "gnis:25588",
-    "gnis:2580",
-    "gnis:25932",
-    "gnis:25959",
-    "gnis:26334",
-    "gnis:26571",
-    "gnis:2674",
-    "gnis:2679",
-    "gnis:27151",
-    "gnis:27248",
-    "gnis:27298",
-    "gnis:28476",
-    "gnis:2981",
-    "gnis:30199",
-    "gnis:30360",
-    "gnis:31408",
-    "gnis:36208",
-    "gnis:37090",
-    "gnis:37091",
-    "gnis:37408",
-    "gnis:37545",
-    "gnis:38186",
-    "gnis:38339",
-    "gnis:38357",
-    "gnis:38387",
-    "gnis:38590",
-    "gnis:38843",
-    "gnis:38844",
-    "gnis:38845",
-    "gnis:39035",
-    "gnis:39488",
-    "gnis:44040",
-    "gnis:44199",
-    "gnis:44330",
-    "gnis:4974",
-    "gnis:4975",
-    "gnis:4998",
-    "gnis:5372",
-    "gnis:5952",
-    "gnis:7565",
-    "gnis:7577",
-    "gnis:7651",
-    "gnis:7692",
-    "gnis:7745",
-    "gnis:7783",
-    "gnis:7824",
-    "gnis:7872",
-    "gnis:8005",
-    "gnis:8249",
-    "gnis:8253",
-    "gnis:8408",
-    "gnis:8541",
-    "gnis:8667",
-    "gnis:8837",
-    "gnis:9123",
-    "gnis:9943"
-   ]
+   "own": {
+    "m": 312159,
+    "n": 81,
+    "waters": {
+     "gnis:2195": 312159
+    }
+   },
+   "walk": {
+    "m": 7535229,
+    "n": 5279,
+    "waters": {
+     "gnis:10106": 77541,
+     "gnis:10599": 6423,
+     "gnis:10611": 9775,
+     "gnis:11364": 12539,
+     "gnis:11695": 21847,
+     "gnis:11872": 5023,
+     "gnis:11906": 30308,
+     "gnis:12154": 19776,
+     "gnis:12755": 7293,
+     "gnis:13258": 19163,
+     "gnis:13763": 6848,
+     "gnis:13959": 7256,
+     "gnis:14350": 6808,
+     "gnis:14735": 10881,
+     "gnis:15446": 12593,
+     "gnis:15797": 12646,
+     "gnis:16315": 5024,
+     "gnis:1649": 8333,
+     "gnis:16902": 8824,
+     "gnis:17217": 2893,
+     "gnis:17282": 7017,
+     "gnis:17304": 27303,
+     "gnis:1741": 9208,
+     "gnis:17534": 3165,
+     "gnis:17802": 2099,
+     "gnis:17831": 49937,
+     "gnis:18773": 15426,
+     "gnis:18810": 13960,
+     "gnis:18896": 22592,
+     "gnis:20002": 11838,
+     "gnis:20178": 20915,
+     "gnis:20693": 14626,
+     "gnis:21051": 6398,
+     "gnis:21579": 31740,
+     "gnis:21608": 1179,
+     "gnis:21863": 10328,
+     "gnis:22080": 403,
+     "gnis:22241": 5559,
+     "gnis:22258": 19312,
+     "gnis:22375": 14921,
+     "gnis:22397": 17530,
+     "gnis:2284": 9209,
+     "gnis:22892": 10963,
+     "gnis:23403": 11152,
+     "gnis:23580": 11520,
+     "gnis:23761": 8451,
+     "gnis:2382": 9509,
+     "gnis:23891": 13719,
+     "gnis:24012": 15037,
+     "gnis:2431": 41387,
+     "gnis:24361": 23983,
+     "gnis:2468": 8053,
+     "gnis:25028": 33403,
+     "gnis:25588": 12658,
+     "gnis:2580": 9373,
+     "gnis:25932": 21220,
+     "gnis:25959": 11565,
+     "gnis:26334": 9412,
+     "gnis:26571": 16319,
+     "gnis:2674": 11743,
+     "gnis:2679": 8251,
+     "gnis:27151": 7030,
+     "gnis:27248": 23601,
+     "gnis:27298": 9439,
+     "gnis:28476": 19537,
+     "gnis:2981": 4992,
+     "gnis:30199": 5316,
+     "gnis:30360": 6888,
+     "gnis:31408": 16777,
+     "gnis:36208": 21543,
+     "gnis:37090": 6932,
+     "gnis:37091": 3302,
+     "gnis:37408": 14212,
+     "gnis:37545": 8044,
+     "gnis:38186": 5007,
+     "gnis:38339": 5376,
+     "gnis:38357": 8824,
+     "gnis:38387": 11643,
+     "gnis:38590": 12319,
+     "gnis:38843": 17163,
+     "gnis:38844": 7597,
+     "gnis:38845": 7820,
+     "gnis:39035": 5203,
+     "gnis:39488": 1798,
+     "gnis:44040": 36775,
+     "gnis:44199": 11121,
+     "gnis:44330": 11356,
+     "gnis:4974": 4561,
+     "gnis:4975": 4397,
+     "gnis:4998": 15815,
+     "gnis:5372": 13096,
+     "gnis:5952": 16246,
+     "gnis:7565": 22684,
+     "gnis:7577": 15604,
+     "gnis:7651": 6207,
+     "gnis:7692": 3305,
+     "gnis:7745": 35792,
+     "gnis:7783": 4069,
+     "gnis:7824": 8032,
+     "gnis:7872": 11881,
+     "gnis:8005": 10619,
+     "gnis:8249": 23624,
+     "gnis:8253": 20897,
+     "gnis:8408": 5500,
+     "gnis:8541": 4668,
+     "gnis:8667": 938,
+     "gnis:8837": 7956,
+     "gnis:9123": 28179,
+     "gnis:9943": 5703
+    }
+   }
   },
   "r6:damdochax_creek@6-17#damdochax_creek": {
-   "own_m": 29013,
-   "own_waters": [
-    "gnis:2439"
-   ],
-   "walk_m": 94281,
-   "walk_waters": [
-    "gnis:16050",
-    "gnis:2649",
-    "gnis:27970",
-    "gnis:30378"
-   ]
+   "own": {
+    "m": 29036,
+    "n": 15,
+    "waters": {
+     "gnis:2439": 29036
+    }
+   },
+   "walk": {
+    "m": 1097832,
+    "n": 841,
+    "waters": {
+     "gnis:16050": 5918,
+     "gnis:2649": 25958,
+     "gnis:27970": 34910,
+     "gnis:30378": 27614
+    }
+   }
   },
   "r6:ecstall_river@6-11#ecstall_river": {
-   "own_m": 137338,
-   "own_waters": [
-    "gnis:3986"
-   ],
-   "walk_m": 190927,
-   "walk_waters": [
-    "gnis:2026",
-    "gnis:2031",
-    "gnis:2041",
-    "gnis:2043",
-    "gnis:3479",
-    "gnis:36402",
-    "gnis:36781",
-    "gnis:36895",
-    "gnis:36942",
-    "gnis:3889",
-    "gnis:3896"
-   ]
+   "own": {
+    "m": 137489,
+    "n": 44,
+    "waters": {
+     "gnis:3986": 137489
+    }
+   },
+   "walk": {
+    "m": 2142469,
+    "n": 1877,
+    "waters": {
+     "gnis:2026": 18284,
+     "gnis:2031": 10470,
+     "gnis:2041": 16277,
+     "gnis:2043": 8891,
+     "gnis:3479": 39674,
+     "gnis:36402": 13939,
+     "gnis:36781": 22296,
+     "gnis:36895": 5364,
+     "gnis:36942": 28721,
+     "gnis:3889": 7001,
+     "gnis:3896": 20161
+    }
+   }
   },
   "r6:gitnadoix_river@6-10#gitnadoix_river": {
-   "own_m": 40651,
-   "own_waters": [
-    "gnis:3508"
-   ],
-   "walk_m": 27135,
-   "walk_waters": [
-    "gnis:36537"
-   ]
+   "own": {
+    "m": 40706,
+    "n": 14,
+    "waters": {
+     "gnis:3508": 40706
+    }
+   },
+   "walk": {
+    "m": 647698,
+    "n": 611,
+    "waters": {
+     "gnis:36537": 27164
+    }
+   }
   },
   "r6:kispiox_river@6-30#kispiox_river": {
-   "own_m": 176003,
-   "own_waters": [
-    "gnis:2308"
-   ],
-   "walk_m": 350732,
-   "walk_waters": [
-    "gnis:14126",
-    "gnis:14292",
-    "gnis:14840",
-    "gnis:15275",
-    "gnis:15863",
-    "gnis:2716",
-    "gnis:36258",
-    "gnis:36525",
-    "gnis:36600",
-    "gnis:36636",
-    "gnis:36690",
-    "gnis:36785",
-    "gnis:36858",
-    "gnis:36866",
-    "gnis:36935",
-    "gnis:36951",
-    "gnis:36953",
-    "gnis:8175"
-   ]
+   "own": {
+    "m": 176225,
+    "n": 27,
+    "waters": {
+     "gnis:2308": 176225
+    }
+   },
+   "walk": {
+    "m": 3393734,
+    "n": 2747,
+    "waters": {
+     "gnis:14126": 5590,
+     "gnis:14292": 32539,
+     "gnis:14840": 5662,
+     "gnis:15275": 24919,
+     "gnis:15863": 16165,
+     "gnis:2716": 37725,
+     "gnis:36258": 40484,
+     "gnis:36525": 13946,
+     "gnis:36600": 19661,
+     "gnis:36636": 11345,
+     "gnis:36690": 24973,
+     "gnis:36785": 36262,
+     "gnis:36858": 13785,
+     "gnis:36866": 14092,
+     "gnis:36935": 2915,
+     "gnis:36951": 18413,
+     "gnis:36953": 21776,
+     "gnis:8175": 10911
+    }
+   }
   },
   "r6:kitseguecla_river@6-9#kitseguecla_river": {
-   "own_m": 36683,
-   "own_waters": [
-    "gnis:12684"
-   ],
-   "walk_m": 83010,
-   "walk_waters": [
-    "gnis:12690",
-    "gnis:16649",
-    "gnis:19188",
-    "gnis:20171",
-    "gnis:20183",
-    "gnis:26312",
-    "gnis:2691",
-    "gnis:27924",
-    "gnis:9370"
-   ]
+   "own": {
+    "m": 36721,
+    "n": 5,
+    "waters": {
+     "gnis:12684": 36721
+    }
+   },
+   "walk": {
+    "m": 1066757,
+    "n": 733,
+    "waters": {
+     "gnis:12690": 31656,
+     "gnis:16649": 3189,
+     "gnis:19188": 18046,
+     "gnis:20171": 13094,
+     "gnis:20183": 1884,
+     "gnis:26312": 1181,
+     "gnis:2691": 3831,
+     "gnis:27924": 1842,
+     "gnis:9370": 8367
+    }
+   }
   },
   "r6:kitsumkalum_kalum_river@6-15#kitsumkalum_river": {
-   "own_m": 180843,
-   "own_waters": [
-    "gnis:3942"
-   ],
-   "walk_m": 423586,
-   "walk_waters": [
-    "gnis:2024",
-    "gnis:2051",
-    "gnis:3183",
-    "gnis:3184",
-    "gnis:3208",
-    "gnis:3507",
-    "gnis:35723",
-    "gnis:36559",
-    "gnis:36621",
-    "gnis:3816",
-    "gnis:3852",
-    "gnis:3970",
-    "gnis:3974",
-    "gnis:4094",
-    "gnis:4097",
-    "gnis:4101",
-    "gnis:4108",
-    "gnis:4222",
-    "gnis:4632",
-    "gnis:4847",
-    "gnis:4886",
-    "gnis:56125",
-    "gnis:7409",
-    "gnis:8534",
-    "gnis:8597"
-   ]
+   "own": {
+    "m": 180977,
+    "n": 119,
+    "waters": {
+     "gnis:3942": 180977
+    }
+   },
+   "walk": {
+    "m": 3421928,
+    "n": 3014,
+    "waters": {
+     "gnis:2024": 16878,
+     "gnis:2051": 4391,
+     "gnis:3183": 28392,
+     "gnis:3184": 15302,
+     "gnis:3208": 43500,
+     "gnis:3507": 10260,
+     "gnis:35723": 4638,
+     "gnis:36559": 6735,
+     "gnis:36621": 26482,
+     "gnis:3816": 14940,
+     "gnis:3852": 5292,
+     "gnis:3970": 67534,
+     "gnis:3974": 25010,
+     "gnis:4094": 22511,
+     "gnis:4097": 17285,
+     "gnis:4101": 34721,
+     "gnis:4108": 16263,
+     "gnis:4222": 1777,
+     "gnis:4632": 3987,
+     "gnis:4847": 10832,
+     "gnis:4886": 14956,
+     "gnis:56125": 7000,
+     "gnis:7409": 3372,
+     "gnis:8534": 17819,
+     "gnis:8597": 4111
+    }
+   }
   },
   "r6:kitwanga_river@6-30#kitwanga_river": {
-   "own_m": 63749,
-   "own_waters": [
-    "gnis:3227"
-   ],
-   "walk_m": 80558,
-   "walk_waters": [
-    "gnis:36267",
-    "gnis:36488",
-    "gnis:36775",
-    "gnis:3687",
-    "gnis:4716"
-   ]
+   "own": {
+    "m": 63836,
+    "n": 8,
+    "waters": {
+     "gnis:3227": 63836
+    }
+   },
+   "walk": {
+    "m": 1220542,
+    "n": 913,
+    "waters": {
+     "gnis:36267": 5465,
+     "gnis:36488": 1548,
+     "gnis:36775": 25115,
+     "gnis:3687": 36009,
+     "gnis:4716": 12504
+    }
+   }
   },
   "r6:kluatantan_river@6-18#kluatantan_river": {
-   "own_m": 71619,
-   "own_waters": [
-    "gnis:2343"
-   ],
-   "walk_m": 132045,
-   "walk_waters": [
-    "gnis:11806",
-    "gnis:13068",
-    "gnis:13411",
-    "gnis:16667",
-    "gnis:17415",
-    "gnis:17766",
-    "gnis:23650",
-    "gnis:25210",
-    "gnis:27013",
-    "gnis:2775",
-    "gnis:28074",
-    "gnis:36533"
-   ]
+   "own": {
+    "m": 71718,
+    "n": 9,
+    "waters": {
+     "gnis:2343": 71718
+    }
+   },
+   "walk": {
+    "m": 1042245,
+    "n": 909,
+    "waters": {
+     "gnis:11806": 6287,
+     "gnis:13068": 10504,
+     "gnis:13411": 37707,
+     "gnis:16667": 6788,
+     "gnis:17415": 15912,
+     "gnis:17766": 10764,
+     "gnis:23650": 3673,
+     "gnis:25210": 14225,
+     "gnis:27013": 8394,
+     "gnis:2775": 8934,
+     "gnis:28074": 4727,
+     "gnis:36533": 4290
+    }
+   }
   },
   "r6:ksi_x_anmas_river_formerly_kwinamass_river@6-14#ksi_x_anmas_river": {
-   "own_m": 62155,
-   "own_waters": [
-    "gnis:3815"
-   ],
-   "walk_m": 16750,
-   "walk_waters": [
-    "gnis:2029"
-   ]
+   "own": {
+    "m": 62202,
+    "n": 28,
+    "waters": {
+     "gnis:3815": 62202
+    }
+   },
+   "walk": {
+    "m": 760004,
+    "n": 702,
+    "waters": {
+     "gnis:2029": 16770
+    }
+   }
   },
   "r6:kwinageese_river@6-30#kwinageese_river": {
-   "own_m": 60469,
-   "own_waters": [
-    "gnis:14170"
-   ],
-   "walk_m": 80048,
-   "walk_waters": [
-    "gnis:10375",
-    "gnis:20120",
-    "gnis:22029",
-    "gnis:36623",
-    "gnis:8819"
-   ]
+   "own": {
+    "m": 60557,
+    "n": 16,
+    "waters": {
+     "gnis:14170": 60557
+    }
+   },
+   "walk": {
+    "m": 1071318,
+    "n": 1137,
+    "waters": {
+     "gnis:10375": 6751,
+     "gnis:20120": 13596,
+     "gnis:22029": 33024,
+     "gnis:36623": 19310,
+     "gnis:8819": 7449
+    }
+   }
   },
   "r6:lakelse_river@6-10#lakelse_river": {
-   "own_m": 21843,
-   "own_waters": [
-    "gnis:4903"
-   ],
-   "walk_m": 49594,
-   "walk_waters": [
-    "gnis:36853",
-    "gnis:3819",
-    "gnis:3975",
-    "gnis:4166"
-   ]
+   "own": {
+    "m": 21866,
+    "n": 5,
+    "waters": {
+     "gnis:4903": 21866
+    }
+   },
+   "walk": {
+    "m": 323176,
+    "n": 283,
+    "waters": {
+     "gnis:36853": 5460,
+     "gnis:3819": 14459,
+     "gnis:3975": 24838,
+     "gnis:4166": 4896
+    }
+   }
   },
   "r6:morice_river@6-9#morice_river": {
-   "own_m": 147990,
-   "own_waters": [
-    "gnis:14918"
-   ],
-   "walk_m": 422471,
-   "walk_waters": [
-    "gnis:11742",
-    "gnis:12345",
-    "gnis:13365",
-    "gnis:14622",
-    "gnis:14955",
-    "gnis:15083",
-    "gnis:15160",
-    "gnis:15393",
-    "gnis:16463",
-    "gnis:16517",
-    "gnis:17207",
-    "gnis:17308",
-    "gnis:17988",
-    "gnis:19014",
-    "gnis:21855",
-    "gnis:22080",
-    "gnis:23160",
-    "gnis:26252",
-    "gnis:2647",
-    "gnis:27068",
-    "gnis:2737",
-    "gnis:29266",
-    "gnis:3070",
-    "gnis:38453",
-    "gnis:38718",
-    "gnis:7309",
-    "gnis:7747",
-    "gnis:8204",
-    "gnis:8251"
-   ]
+   "own": {
+    "m": 148090,
+    "n": 69,
+    "waters": {
+     "gnis:14918": 148090
+    }
+   },
+   "walk": {
+    "m": 4587791,
+    "n": 3672,
+    "waters": {
+     "gnis:11742": 8158,
+     "gnis:12345": 28769,
+     "gnis:13365": 7225,
+     "gnis:14622": 16723,
+     "gnis:14955": 5465,
+     "gnis:15083": 30133,
+     "gnis:15160": 19276,
+     "gnis:15393": 3631,
+     "gnis:16463": 12540,
+     "gnis:16517": 50373,
+     "gnis:17207": 31977,
+     "gnis:17308": 2223,
+     "gnis:17988": 6626,
+     "gnis:19014": 10188,
+     "gnis:21855": 16375,
+     "gnis:22080": 403,
+     "gnis:23160": 13546,
+     "gnis:26252": 12339,
+     "gnis:2647": 9468,
+     "gnis:27068": 9335,
+     "gnis:2737": 23506,
+     "gnis:29266": 5357,
+     "gnis:3070": 4299,
+     "gnis:38453": 15154,
+     "gnis:38718": 13717,
+     "gnis:7309": 2676,
+     "gnis:7747": 4889,
+     "gnis:8204": 49181,
+     "gnis:8251": 9374
+    }
+   }
   },
   "r6:skeena_river_mainstem_only@6-10#skeena_river_2": {
-   "own_m": 181897,
-   "own_waters": [
-    "gnis:2936"
-   ],
-   "walk_m": 0,
-   "walk_waters": []
+   "own": {
+    "m": 181992,
+    "n": 68,
+    "waters": {
+     "gnis:2936": 181992
+    }
+   },
+   "walk": {
+    "m": 0,
+    "n": 0,
+    "waters": {}
+   }
   },
   "r6:skeena_river_mainstem_only@6-10#skeena_river_section_4": {
-   "own_m": 523259,
-   "own_waters": [
-    "gnis:2936"
-   ],
-   "walk_m": 0,
-   "walk_waters": []
+   "own": {
+    "m": 523960,
+    "n": 91,
+    "waters": {
+     "gnis:2936": 523960
+    }
+   },
+   "walk": {
+    "m": 0,
+    "n": 0,
+    "waters": {}
+   }
   },
   "r6:stellako_river@6-4+7-12#stellako_river": {
-   "own_m": 16471,
-   "own_waters": [
-    "gnis:7836"
-   ],
-   "walk_m": 0,
-   "walk_waters": []
+   "own": {
+    "m": 16481,
+    "n": 9,
+    "waters": {
+     "gnis:7836": 16481
+    }
+   },
+   "walk": {
+    "m": 59104,
+    "n": 50,
+    "waters": {}
+   }
   },
   "r6:suskwa_bear_river@6-8#suskwa_river": {
-   "own_m": 67624,
-   "own_waters": [
-    "gnis:2637"
-   ],
-   "walk_m": 337138,
-   "walk_waters": [
-    "gnis:10696",
-    "gnis:12129",
-    "gnis:14501",
-    "gnis:15303",
-    "gnis:1735",
-    "gnis:18671",
-    "gnis:20444",
-    "gnis:20671",
-    "gnis:21877",
-    "gnis:24614",
-    "gnis:25466",
-    "gnis:26214",
-    "gnis:26755",
-    "gnis:26770",
-    "gnis:29269",
-    "gnis:30494",
-    "gnis:5964",
-    "gnis:7670",
-    "gnis:8299",
-    "gnis:9799"
-   ]
+   "own": {
+    "m": 67649,
+    "n": 43,
+    "waters": {
+     "gnis:2637": 67649
+    }
+   },
+   "walk": {
+    "m": 2322871,
+    "n": 1725,
+    "waters": {
+     "gnis:10696": 5300,
+     "gnis:12129": 10908,
+     "gnis:14501": 42332,
+     "gnis:15303": 84243,
+     "gnis:1735": 32952,
+     "gnis:18671": 15420,
+     "gnis:20444": 15065,
+     "gnis:20671": 16077,
+     "gnis:21877": 5747,
+     "gnis:24614": 7390,
+     "gnis:25466": 6400,
+     "gnis:26214": 7592,
+     "gnis:26755": 11663,
+     "gnis:26770": 22282,
+     "gnis:29269": 5159,
+     "gnis:30494": 8447,
+     "gnis:5964": 8832,
+     "gnis:7670": 9508,
+     "gnis:8299": 9347,
+     "gnis:9799": 12872
+    }
+   }
   },
   "r6:sustut_river@6-18#sustut_river": {
-   "own_m": 135649,
-   "own_waters": [
-    "gnis:25386"
-   ],
-   "walk_m": 476787,
-   "walk_waters": [
-    "gnis:11224",
-    "gnis:15557",
-    "gnis:15684",
-    "gnis:19626",
-    "gnis:20931",
-    "gnis:22098",
-    "gnis:25339",
-    "gnis:25409",
-    "gnis:30749",
-    "gnis:30767",
-    "gnis:31372",
-    "gnis:32199",
-    "gnis:36276",
-    "gnis:36659",
-    "gnis:36918",
-    "gnis:37499",
-    "gnis:38231",
-    "gnis:38258",
-    "gnis:38284",
-    "gnis:38310"
-   ]
+   "own": {
+    "m": 135801,
+    "n": 36,
+    "waters": {
+     "gnis:25386": 135801
+    }
+   },
+   "walk": {
+    "m": 5254791,
+    "n": 3767,
+    "waters": {
+     "gnis:11224": 8860,
+     "gnis:15557": 53983,
+     "gnis:15684": 32078,
+     "gnis:19626": 68060,
+     "gnis:20931": 31725,
+     "gnis:22098": 8861,
+     "gnis:25339": 19582,
+     "gnis:25409": 22416,
+     "gnis:30749": 33819,
+     "gnis:30767": 24379,
+     "gnis:31372": 14128,
+     "gnis:32199": 42691,
+     "gnis:36276": 2245,
+     "gnis:36659": 3512,
+     "gnis:36918": 2785,
+     "gnis:37499": 44404,
+     "gnis:38231": 21273,
+     "gnis:38258": 14502,
+     "gnis:38284": 15247,
+     "gnis:38310": 12812
+    }
+   }
   },
   "r6:telkwa_river@6-9#telkwa_river": {
-   "own_m": 91223,
-   "own_waters": [
-    "gnis:24733"
-   ],
-   "walk_m": 309713,
-   "walk_waters": [
-    "gnis:14296",
-    "gnis:14881",
-    "gnis:16901",
-    "gnis:18512",
-    "gnis:19100",
-    "gnis:20831",
-    "gnis:21602",
-    "gnis:21723",
-    "gnis:2186",
-    "gnis:2221",
-    "gnis:2253",
-    "gnis:23206",
-    "gnis:25977",
-    "gnis:26345",
-    "gnis:28511",
-    "gnis:28602",
-    "gnis:29019",
-    "gnis:3027",
-    "gnis:3565",
-    "gnis:44044",
-    "gnis:4977",
-    "gnis:5504",
-    "gnis:8165"
-   ]
+   "own": {
+    "m": 91301,
+    "n": 40,
+    "waters": {
+     "gnis:24733": 91301
+    }
+   },
+   "walk": {
+    "m": 2104905,
+    "n": 1688,
+    "waters": {
+     "gnis:14296": 9634,
+     "gnis:14881": 8928,
+     "gnis:16901": 14738,
+     "gnis:18512": 3077,
+     "gnis:19100": 7254,
+     "gnis:20831": 21167,
+     "gnis:21602": 26548,
+     "gnis:21723": 24351,
+     "gnis:2186": 15143,
+     "gnis:2221": 20182,
+     "gnis:2253": 7413,
+     "gnis:23206": 32839,
+     "gnis:25977": 10631,
+     "gnis:26345": 18973,
+     "gnis:28511": 14073,
+     "gnis:28602": 14065,
+     "gnis:29019": 18604,
+     "gnis:3027": 6188,
+     "gnis:3565": 3652,
+     "gnis:44044": 11542,
+     "gnis:4977": 1636,
+     "gnis:5504": 5044,
+     "gnis:8165": 14388
+    }
+   }
   },
   "r6:zymoetz_copper_river@6-9#zymoetz_river_a": {
-   "own_m": 100362,
-   "own_waters": [
-    "gnis:3137"
-   ],
-   "walk_m": 263036,
-   "walk_waters": [
-    "gnis:10345",
-    "gnis:12784",
-    "gnis:13142",
-    "gnis:17552",
-    "gnis:1876",
-    "gnis:20597",
-    "gnis:20704",
-    "gnis:22655",
-    "gnis:2427",
-    "gnis:24963",
-    "gnis:25645",
-    "gnis:26301",
-    "gnis:2745",
-    "gnis:27656",
-    "gnis:29018",
-    "gnis:2955",
-    "gnis:3017",
-    "gnis:39116",
-    "gnis:9290",
-    "wsc:400-221484-900709"
-   ]
+   "own": {
+    "m": 100461,
+    "n": 47,
+    "waters": {
+     "gnis:3137": 100461
+    }
+   },
+   "walk": {
+    "m": 2511366,
+    "n": 2151,
+    "waters": {
+     "gnis:10345": 26341,
+     "gnis:12784": 12021,
+     "gnis:13142": 10824,
+     "gnis:17552": 14946,
+     "gnis:1876": 4155,
+     "gnis:20597": 8018,
+     "gnis:20704": 6770,
+     "gnis:22655": 18258,
+     "gnis:2427": 6034,
+     "gnis:24963": 44676,
+     "gnis:25645": 3431,
+     "gnis:26301": 13002,
+     "gnis:2745": 8355,
+     "gnis:27656": 3232,
+     "gnis:29018": 13034,
+     "gnis:2955": 10520,
+     "gnis:3017": 17596,
+     "gnis:39116": 28661,
+     "gnis:9290": 4997,
+     "wsc:400-221484-900709": 8384
+    }
+   }
   },
   "r6:zymoetz_copper_river@6-9#zymoetz_river_b": {
-   "own_m": 81487,
-   "own_waters": [
-    "gnis:3137"
-   ],
-   "walk_m": 330834,
-   "walk_waters": [
-    "gnis:10641",
-    "gnis:12682",
-    "gnis:15417",
-    "gnis:2037",
-    "gnis:20592",
-    "gnis:21122",
-    "gnis:24148",
-    "gnis:24625",
-    "gnis:2490",
-    "gnis:2518",
-    "gnis:2664",
-    "gnis:26711",
-    "gnis:29562",
-    "gnis:29871",
-    "gnis:32341",
-    "gnis:36426",
-    "gnis:36708",
-    "gnis:38423",
-    "gnis:39072",
-    "gnis:4535",
-    "gnis:4690",
-    "gnis:4970",
-    "gnis:6786",
-    "gnis:9440"
-   ]
+   "own": {
+    "m": 81497,
+    "n": 59,
+    "waters": {
+     "gnis:3137": 81497
+    }
+   },
+   "walk": {
+    "m": 3249878,
+    "n": 3052,
+    "waters": {
+     "gnis:10641": 42348,
+     "gnis:12682": 41104,
+     "gnis:15417": 11265,
+     "gnis:2037": 13868,
+     "gnis:20592": 7085,
+     "gnis:21122": 9526,
+     "gnis:24148": 3847,
+     "gnis:24625": 4615,
+     "gnis:2490": 3915,
+     "gnis:2518": 80029,
+     "gnis:2664": 15642,
+     "gnis:26711": 12461,
+     "gnis:29562": 11006,
+     "gnis:29871": 4714,
+     "gnis:32341": 9042,
+     "gnis:36426": 4597,
+     "gnis:36708": 12527,
+     "gnis:38423": 10210,
+     "gnis:39072": 4581,
+     "gnis:4535": 7051,
+     "gnis:4690": 4556,
+     "gnis:4970": 3303,
+     "gnis:6786": 9861,
+     "gnis:9440": 4053
+    }
+   }
   },
   "r7:stellako_river@7-12#stellako_river": {
-   "own_m": 16471,
-   "own_waters": [
-    "gnis:7836"
-   ],
-   "walk_m": 0,
-   "walk_waters": []
+   "own": {
+    "m": 16481,
+    "n": 9,
+    "waters": {
+     "gnis:7836": 16481
+    }
+   },
+   "walk": {
+    "m": 59104,
+    "n": 50,
+    "waters": {}
+   }
   }
  }
 }

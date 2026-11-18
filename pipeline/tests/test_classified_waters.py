@@ -265,18 +265,22 @@ def test_the_extraction_cross_check_reads_glyphs_and_printed_classes():
 
 
 def _mini_bundle(sections, bound=(), not_classified=()) -> sqlite3.Connection:
-    """The tables the named cases and the pins read: `sections` [(sid, item, m)], `bound` [(sid, eid, did, unit, via)],
-    `not_classified` [(sid, eid)]."""
+    """The tables the named cases and the pins read: `sections` [(sid, item, m)] (item None: an unnamed section, its
+    length a route measure span), `bound` [(sid, eid, did, unit, via)], `not_classified` [(sid, eid)]."""
     db = sqlite3.connect(":memory:")
     db.executescript("""
         CREATE TABLE item (ord INTEGER PRIMARY KEY, item_id TEXT); CREATE TABLE item_section (ord INTEGER, sid INTEGER);
         CREATE TABLE item_alias (alias TEXT, item_id TEXT); CREATE TABLE tidal (sid INTEGER);
         CREATE TABLE outside_bc (sid INTEGER); CREATE TABLE section_length (sid INTEGER, m INTEGER);
+        CREATE TABLE section_measure (sid INTEGER, blk INTEGER, from_m INTEGER, to_m INTEGER);
         CREATE TABLE designation (entry_id TEXT, designation_id TEXT, unit TEXT);
         CREATE TABLE designation_section (sid INTEGER, entry_id TEXT, designation_id TEXT, via TEXT);
         CREATE TABLE not_classified_section (sid INTEGER, entry_id TEXT);""")
     items = {}
     for sid, item, m in sections:
+        if item is None:
+            db.execute("INSERT INTO section_measure VALUES (?, 1, 1000, ?)", (sid, 1000 + m))
+            continue
         o = items.setdefault(item, len(items) + 1)
         db.execute("INSERT OR IGNORE INTO item VALUES (?, ?)", (o, item))
         db.execute("INSERT INTO item_section VALUES (?, ?)", (o, sid))
@@ -333,25 +337,55 @@ def test_the_named_cases_unclassified_rows_and_the_nanika():
 
 
 def test_the_pins_hold_each_walk_and_each_stretch():
-    """A walk that loses a water or length (the reviewer's 2,229 deleted Elk tributary sections), a stretch that narrows
-    (Skeena River 2), a water gained, a designation unpinned: each named."""
-    secs = [(1, "gnis:1", 5000), (2, "gnis:1", 5000), (3, "gnis:2", 3000), (4, "gnis:3", 2000)]
-    full = [(1, "r6:s@6-10", "s2", "s2", "reach"), (2, "r6:s@6-10", "s2", "s2", "reach"),
-            (3, "r6:s@6-10", "s2", "s2", "trib"), (4, "r6:s@6-10", "s2", "s2", "trib")]
+    """A walk that loses its unnamed creeks (the reviewer's 4,846 deleted Bulkley sections), a named water or part of
+    one, a stretch that narrows (Skeena River 2), a water gained, a designation unpinned: each named."""
+    secs = [(1, "gnis:1", 5000), (2, "gnis:1", 5000), (3, "gnis:2", 3000), (4, "gnis:3", 2000), (5, "gnis:3", 2000)]
+    secs += [(10 + i, None, 1000) for i in range(20)]                  # twenty unnamed creeks, 1 km each
+    full = [(1, "r6:s@6-10", "s2", "s2", "reach"), (2, "r6:s@6-10", "s2", "s2", "reach")] + [
+        (sid, "r6:s@6-10", "s2", "s2", "trib") for sid in [3, 4, 5] + list(range(10, 30))]
     pins = {"designations": CW.measure_pins(_mini_bundle(secs, full))}
-    assert pins["designations"] == {"r6:s@6-10#s2": {"own_m": 10000, "own_waters": ["gnis:1"], "walk_m": 5000,
-                                                     "walk_waters": ["gnis:2", "gnis:3"]}}
+    assert pins["designations"] == {"r6:s@6-10#s2": {
+        "own": {"n": 2, "m": 10000, "waters": {"gnis:1": 10000}},
+        "walk": {"n": 23, "m": 27000, "waters": {"gnis:2": 3000, "gnis:3": 4000}}}}
     assert CW.pin_problems(_mini_bundle(secs, full), {}, pins) == []
-    walk_gone = CW.pin_problems(_mini_bundle(secs, full[:2]), {}, pins)
-    assert walk_gone == ["r6:s@6-10#s2: its tributary walk is 0.0 km; pinned 5.0 km",
-                         "r6:s@6-10#s2: its tributary walk no longer reaches 2 pinned water(s): gnis:2, gnis:3"]
+    named_only = [x for x in full if x[0] < 10]
+    assert CW.pin_problems(_mini_bundle(secs, named_only), {}, pins) == [
+        "r6:s@6-10#s2: its tributary walk binds 3 section(s); pinned 23",
+        "r6:s@6-10#s2: its tributary walk is 7.0 km; pinned 27.0 km"]
+    no_trib = full[:2]
+    assert CW.pin_problems(_mini_bundle(secs, no_trib), {}, pins)[-1] == \
+        "r6:s@6-10#s2: its tributary walk no longer reaches 2 pinned water(s): gnis:2, gnis:3"
+    half_a_water = [x for x in full if x[0] != 5]                      # gnis:3 loses 2 of its 4 km
+    assert CW.pin_problems(_mini_bundle(secs, half_a_water), {}, pins) == [
+        "r6:s@6-10#s2: its tributary walk is 25.0 km; pinned 27.0 km",
+        "r6:s@6-10#s2: its tributary walk moved on 1 named water(s): gnis:3 2.0 km (pinned 4.0)"]
     narrowed = CW.pin_problems(_mini_bundle(secs, full[1:]), {}, pins)
-    assert narrowed == ["r6:s@6-10#s2: its own water is 5.0 km; pinned 10.0 km"]
-    more = CW.pin_problems(_mini_bundle(secs + [(5, "gnis:9", 50)], full + [(5, "r6:s@6-10", "s2", "s2", "trib"),
-                                                                             (5, "r6:x@6-1", "x", "x", "reach")]),
+    assert narrowed == ["r6:s@6-10#s2: its own water is 5.0 km; pinned 10.0 km",
+                        "r6:s@6-10#s2: its own water moved on 1 named water(s): gnis:1 5.0 km (pinned 10.0)"]
+    more = CW.pin_problems(_mini_bundle(secs + [(6, "gnis:9", 50)], full + [(6, "r6:s@6-10", "s2", "s2", "trib"),
+                                                                             (6, "r6:x@6-1", "x", "x", "reach")]),
                            {}, pins)
     assert more == ["r6:x@6-1#x: no pin — read where it lies, then re-cut the pins (--write-pins)",
                     "r6:s@6-10#s2: its tributary walk now reaches 1 water(s) not pinned: gnis:9"]
+
+
+def test_write_pins_says_what_moved(tmp_path, capsys):
+    """A re-cut prints what moved since the last cut, so it is read, not rubber-stamped."""
+    secs = [(1, "gnis:1", 5000), (2, "gnis:1", 5000)]
+    b = tmp_path / "b.sqlite"
+    src = _mini_bundle(secs, [(1, "r6:s@6-10", "s2", "s2", "reach"), (2, "r6:s@6-10", "s2", "s2", "reach")])
+    src.execute("CREATE TABLE meta (k TEXT, v TEXT)")
+    src.commit()
+    src.execute("VACUUM INTO ?", (str(b),))
+    pins = tmp_path / "pins.json"
+    assert CW.write_pins(b, pins)["moved"] == ["(no earlier pins)"]
+    db = sqlite3.connect(b)
+    with db:
+        db.execute("DELETE FROM designation_section WHERE sid = 2")
+    db.close()
+    assert CW.write_pins(b, pins)["moved"] == [                      # (a count within 3 sections is noise)
+        "r6:s@6-10#s2: its own water is 5.0 km; pinned 10.0 km",
+        "r6:s@6-10#s2: its own water moved on 1 named water(s): gnis:1 5.0 km (pinned 10.0)"]
 
 
 def test_the_committed_pins_name_every_corpus_designation():
@@ -435,6 +469,18 @@ def test_mutation_the_elks_walk_deleted_is_named(request, tmp_path):
         "r4:elk_river_upstream_of_elko_dam@4-2+4-23", "trib") + ")")
     assert any("r4:elk_river_upstream_of_elko_dam@4-2+4-23#elk_river: its tributary walk is" in p for p in got)
     assert any("its tributary walk no longer reaches" in p for p in got)
+
+
+@pytest.mark.slow
+@pytest.mark.needs_bundle
+def test_mutation_the_bulkleys_unnamed_creeks_deleted_are_named(request, tmp_path):
+    """The re-review's mutation: every UNNAMED section of the Bulkley's tributary walk unbound (94 % of walked sections
+    are unnamed — "tributary of something")."""
+    got = _new_problems(request, tmp_path, "DELETE FROM section_licensing WHERE sid IN (SELECT d.sid FROM "
+                        "designation_section d WHERE d.entry_id = 'r6:bulkley_river@6-9' AND d.via = 'trib' AND NOT "
+                        "EXISTS (SELECT 1 FROM item_section s WHERE s.sid = d.sid))")
+    assert any(p.startswith("r6:bulkley_river@6-9#bulkley_river: its tributary walk binds") for p in got)
+    assert any(p.startswith("r6:bulkley_river@6-9#bulkley_river: its tributary walk is") for p in got)
 
 
 @pytest.mark.slow

@@ -50,3 +50,8 @@ picture to the owner before it ships.
   waters) so a lost walk or a narrowed stretch stops; the Atnarko's sleep only where its closure binds;
   `holds.considered` naming every designation of the section on every day (the card's Class badge reads it).
   Live LATEST fails it on exactly Coal Creek; the rerun bundle passes.
+- Re-review 2: the pins now count every section a designation binds, named or not (94 % of walked sections are
+  unnamed creeks; length = route measure span), with a section count and the length on each named water;
+  `--write-pins` prints what moved since the last cut. RULINGS Li5's example corrected (Gosnell not classified, the
+  Nanika takes the Morice's unit). The card's Class badge can read `holds.considered`: it names every designation of
+  the part on every day (gated).

@@ -48,10 +48,11 @@ THE BUNDLE CHECK (`bundle_problems`, `--bundle` — the release's checks stage, 
     card's Class badge reads it there);
   * THE RULINGS' OWN WATERS (`NAMED`, Li5 / Li5a): Coal Creek above the old MF&M bridge the Elk's Class II, below it
     none; Line, Grave, Gosnell, Endako none; the Nanika above Morice Lake the Morice's unit;
-  * THE PINS (`classified_pins.json`, cut from a reviewed bundle by `--write-pins`): each designation's own-water and
-    tributary-walk lengths (within 2 % / 200 m) and the named waters each reaches — a walk that loses or gains a water,
-    or a stretch that narrows, stops until it is read and the pins re-cut (the walk is the reach builder's, AGENTS 16:
-    the gate holds its outcome, it never walks again);
+  * THE PINS (`classified_pins.json`, cut from a reviewed bundle by `--write-pins`, which prints what moved since the
+    last cut): for each designation's own water and its tributary walk, the section count (1 % / 3), the length of
+    every section named or not (2 % / 200 m) and the length on each named water (5 % / 200 m) — a walk that loses
+    unnamed creeks or a water, or a stretch that narrows, stops until it is read and the pins re-cut (the walk is the
+    reach builder's, AGENTS 16: the gate holds its outcome, it never walks again);
   * on the day before a dated period starts, a section no designation is in force on does not list it ("nowhere it
     should not");
   * every requirement satisfied by the Classified Waters Licence holds `on: classified_period` (so it can hold only
@@ -898,28 +899,39 @@ def named_case_problems(db: sqlite3.Connection, entries: Mapping[str, Mapping],
 
 
 # ------------------------------------------------------------------------------------------------- the pins
-#: WHERE EACH DESIGNATION LIES, MEASURED: its own water's length and the waters and length its tributary walk takes,
-#: cut from a reviewed bundle (`--write-pins`). A walk is the reach builder's (AGENTS 16: no second resolver), so the
-#: gate holds its OUTCOME instead: a walk that loses or gains a named water, or a stretch whose length moves by more than
-#: PIN_TOLERANCE, stops the release until the change is read and the pins re-cut.
+#: WHERE EACH DESIGNATION LIES, MEASURED: for its own water and for its tributary walk, the number of sections, their
+#: length and the length on each named water, cut from a reviewed bundle (`--write-pins`). Every section counts, named or
+#: not: its length is its route measure span (`section_measure`, else `section_length`) — 94 % of the walked sections
+#: are unnamed creeks ("tributary of something", the owner's words). A walk is the reach builder's (AGENTS 16: no
+#: second resolver), so the gate holds its OUTCOME: a walk or stretch that loses or gains sections, length or a named
+#: water stops the release until the change is read and the pins re-cut. Rebuild noise measured 2026-11-17: the live
+#: atlas and rebuild3 give the same numbers for every designation but the Elk's (the Coal Creek fix).
 PINS_FILE = Path(__file__).with_name("classified_pins.json")
-PIN_TOLERANCE = (0.02, 200)            # the larger of 2 % and 200 m
+PIN_TOLERANCE = {"m": (0.02, 200), "n": (0.01, 3), "water_m": (0.05, 200)}   # the larger of (share, floor)
+
+
+def _tol(kind: str, pinned: float) -> float:
+    share, floor = PIN_TOLERANCE[kind]
+    return max(share * pinned, floor)
 
 
 def measure_pins(db: sqlite3.Connection) -> dict:
-    """{eid#did: {own_m, walk_m, own_waters, walk_waters}} — lengths in metres (`section_length`), waters by item id."""
+    """{eid#did: {own: {n, m, waters: {item: m}}, walk: {…}}} — metres, every section counted, named waters by item id."""
     out: dict = {}
     for eid, did in db.execute("SELECT entry_id, designation_id FROM designation ORDER BY 1, 2").fetchall():
-        rec = {"own_m": 0, "walk_m": 0, "own_waters": set(), "walk_waters": set()}
-        for via, m, item in db.execute(
-                "SELECT d.via, COALESCE(l.m, 0), (SELECT GROUP_CONCAT(i.item_id) FROM item_section s JOIN item i "
-                "ON i.ord = s.ord WHERE s.sid = d.sid) FROM designation_section d LEFT JOIN section_length l "
-                "ON l.sid = d.sid WHERE d.entry_id = ? AND d.designation_id = ?", (eid, did)):
-            side = "own" if via == "reach" else "walk"
-            rec[f"{side}_m"] += m
-            rec[f"{side}_waters"].update((item or "").split(",") if item else ())
-        out[f"{eid}#{did}"] = {"own_m": rec["own_m"], "walk_m": rec["walk_m"],
-                               "own_waters": sorted(rec["own_waters"]), "walk_waters": sorted(rec["walk_waters"])}
+        rec = {side: {"n": 0, "m": 0, "waters": Counter()} for side in ("own", "walk")}
+        for via, m, items in db.execute(
+                "SELECT d.via, COALESCE(sm.to_m - sm.from_m, l.m, 0), (SELECT GROUP_CONCAT(i.item_id) FROM item_section "
+                "s JOIN item i ON i.ord = s.ord WHERE s.sid = d.sid) FROM designation_section d LEFT JOIN "
+                "section_measure sm ON sm.sid = d.sid LEFT JOIN section_length l ON l.sid = d.sid "
+                "WHERE d.entry_id = ? AND d.designation_id = ?", (eid, did)):
+            r = rec["own" if via == "reach" else "walk"]
+            r["n"] += 1
+            r["m"] += m
+            for item in (items or "").split(",") if items else ():
+                r["waters"][item] += m
+        out[f"{eid}#{did}"] = {side: {"n": r["n"], "m": int(r["m"]), "waters": dict(sorted(
+            (k, int(v)) for k, v in r["waters"].items()))} for side, r in rec.items()}
     return out
 
 
@@ -930,28 +942,33 @@ def load_pins(path: Path = PINS_FILE) -> dict:
     return json.loads(Path(path).read_text(encoding="utf-8"))
 
 
-def pin_problems(db: sqlite3.Connection, entries: Mapping[str, Mapping], pins: Mapping) -> list[str]:
+def pin_problems(db: sqlite3.Connection, entries: Mapping[str, Mapping], pins: Mapping,
+                 got: Optional[Mapping] = None) -> list[str]:
     out: list[str] = []
     want = pins.get("designations") or {}
-    got = measure_pins(db)
+    got = measure_pins(db) if got is None else got
     for k in sorted(set(got) - set(want)):
         out.append(f"{k}: no pin — read where it lies, then re-cut the pins (--write-pins)")
     for k in sorted(set(want) - set(got)):
         out.append(f"{k}: pinned but not in the bundle")
     for k in sorted(set(want) & set(got)):
-        w, g = want[k], got[k]
-        for f in ("own_m", "walk_m"):
-            tol = max(PIN_TOLERANCE[0] * w[f], PIN_TOLERANCE[1])
-            if abs(g[f] - w[f]) > tol:
-                out.append(f"{k}: {'its own water' if f == 'own_m' else 'its tributary walk'} is {g[f] / 1000:,.1f} km;"
-                           f" pinned {w[f] / 1000:,.1f} km")
-        for f in ("own_waters", "walk_waters"):
-            lost, new = sorted(set(w[f]) - set(g[f])), sorted(set(g[f]) - set(w[f]))
-            what = "its own water" if f == "own_waters" else "its tributary walk"
+        for side, what in (("own", "its own water"), ("walk", "its tributary walk")):
+            w, g = want[k][side], got[k][side]
+            if abs(g["n"] - w["n"]) > _tol("n", w["n"]):
+                out.append(f"{k}: {what} binds {g['n']:,} section(s); pinned {w['n']:,}")
+            if abs(g["m"] - w["m"]) > _tol("m", w["m"]):
+                out.append(f"{k}: {what} is {g['m'] / 1000:,.1f} km; pinned {w['m'] / 1000:,.1f} km")
+            lost = sorted(set(w["waters"]) - set(g["waters"]))
+            new = sorted(set(g["waters"]) - set(w["waters"]))
             if lost:
                 out.append(f"{k}: {what} no longer reaches {len(lost)} pinned water(s): {', '.join(lost[:6])}")
             if new:
                 out.append(f"{k}: {what} now reaches {len(new)} water(s) not pinned: {', '.join(new[:6])}")
+            moved = [(i, w["waters"][i], g["waters"][i]) for i in sorted(set(w["waters"]) & set(g["waters"]))
+                     if abs(g["waters"][i] - w["waters"][i]) > _tol("water_m", w["waters"][i])]
+            if moved:
+                out.append(f"{k}: {what} moved on {len(moved)} named water(s): " + ", ".join(
+                    f"{i} {b / 1000:,.1f} km (pinned {a / 1000:,.1f})" for i, a, b in moved[:6]))
     return out
 
 
@@ -962,14 +979,21 @@ def write_pins(bundle: Path, path: Path = PINS_FILE) -> dict:
     try:
         meta = dict(db.execute("SELECT k, v FROM meta WHERE k IN ('entries_digest', 'reach_digest', "
                                "'section_handles')"))
+        fresh = measure_pins(db)
+        old = load_pins(path) if Path(path).is_file() else None
+        moved = (["(no earlier pins)"] if old is None else
+                 ["(the earlier pins are in another format: nothing to compare)"]
+                 if not all("own" in v for v in (old.get("designations") or {}).values()) else
+                 pin_problems(db, {}, old, got=fresh))
         pins = {"_about": "T841: where each classified-water designation lies, measured on a reviewed bundle — its own "
                           "water's length and waters, its tributary walk's length and waters. Written by `python -m "
                           "pipeline.regs.classified_waters --write-pins BUNDLE`; read by its --check --bundle "
                           "(fast-fail's corpus half does not read it).",
-                "cut_from": meta, "designations": measure_pins(db)}
+                "cut_from": meta, "designations": fresh}
     finally:
         db.close()
     Path(path).write_text(json.dumps(pins, indent=1, sort_keys=True) + "\n", encoding="utf-8")
+    pins["moved"] = moved
     return pins
 
 
@@ -1045,6 +1069,8 @@ def main(argv: Optional[list[str]] = None) -> int:
         rc = 0
         if a.write_pins is not None:
             pins = write_pins(a.write_pins)
+            print(f"classified pins: what moved since the last cut — read it before committing the new pins:\n"
+                  + ("\n".join(f"  {m}" for m in pins["moved"]) if pins["moved"] else "  nothing"))
             print(f"classified pins: {len(pins['designations'])} designations, cut from {a.write_pins} -> {PINS_FILE}")
         if a.extraction is not None:
             ps = extraction_problems(json.loads(Path(a.extraction).read_text(encoding="utf-8")))
