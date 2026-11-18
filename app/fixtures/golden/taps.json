@@ -6,9 +6,9 @@
    "section_handles": "55032563b98ee973",
    "reach_digest": "11eb6853dff81815",
    "rule_ids_sha256": "cbdd8387c469591b",
-   "answers_sha256": "fecbda03d9bd3ab348dc609f65601d6427b5e598f8e6c3df74d08ae27343e8df",
-   "store_digest": "f91bc0877c2492b7",
-   "layout": "{\"top\":[\"about\",\"spec\",\"schemas\",\"fish\",\"keys\",\"segments\",\"moments\",\"segment_moments\",\"parts\",\"places\",\"unnamed\",\"glossary\",\"sections\"],\"sections\":{\"ladder\":[\"version\",\"at\",\"reasons\",\"reason_state\",\"verdicts\",\"frames\"],\"rows\":[\"version\",\"at\",\"decided\",\"rows\",\"strips\",\"frames\"],\"gear\":[\"version\",\"at\",\"frames\",\"province_methods\",\"parent\",\"methods\",\"count_nouns\",\"moments\",\"conduct_means\"],\"licence\":[\"version\",\"at\",\"holds\",\"answers\",\"documents\",\"under_16\",\"frames\",\"profiles\",\"profile_dims\",\"residency_labels\",\"profile_labels\"],\"display\":[\"version\",\"at\",\"frames\",\"rules\",\"waters\",\"strip\",\"reasons\",\"ends\",\"licensing\"]},\"versions\":{\"ladder\":1,\"rows\":33,\"gear\":12,\"licence\":7,\"display\":20}}"
+   "answers_sha256": "a511112aa301c8b7bc74e82166dbfde137eddadf98c54e765cca3ee42a044ee4",
+   "store_digest": "c30793150e1320e5",
+   "layout": "{\"top\":[\"about\",\"spec\",\"schemas\",\"fish\",\"keys\",\"segments\",\"moments\",\"segment_moments\",\"parts\",\"places\",\"unnamed\",\"glossary\",\"sections\"],\"sections\":{\"ladder\":[\"version\",\"at\",\"reasons\",\"reason_state\",\"verdicts\",\"frames\"],\"rows\":[\"version\",\"at\",\"decided\",\"rows\",\"strips\",\"frames\"],\"gear\":[\"version\",\"at\",\"frames\",\"province_methods\",\"parent\",\"methods\",\"count_nouns\",\"moments\",\"conduct_means\"],\"licence\":[\"version\",\"at\",\"holds\",\"answers\",\"documents\",\"under_16\",\"frames\",\"profiles\",\"profile_dims\",\"residency_labels\",\"profile_labels\"],\"display\":[\"version\",\"at\",\"frames\",\"rules\",\"waters\",\"strip\",\"reasons\",\"ends\",\"licensing\"],\"trout\":[\"version\",\"at\",\"frames\",\"tables\",\"dates\",\"sheets\"]},\"versions\":{\"ladder\":1,\"rows\":33,\"gear\":12,\"licence\":7,\"display\":20,\"trout\":1}}"
   },
   "golden": "d7b1ed353",
   "version": "v38",
@@ -39,7 +39,8 @@
     "rows": 2114,
     "gear": 329,
     "licence": 1,
-    "display": 109
+    "display": 109,
+    "trout": 594
    },
    "displayByDay": [
     20,
@@ -434,7 +435,8 @@
     "rows": 2115,
     "gear": 150,
     "licence": 1,
-    "display": 342
+    "display": 342,
+    "trout": null
    },
    "displayByDay": [
     20,
@@ -829,7 +831,8 @@
     "rows": 2113,
     "gear": 150,
     "licence": 1,
-    "display": 20
+    "display": 20,
+    "trout": 593
    },
    "displayByDay": [
     20,
@@ -1240,7 +1243,8 @@
     "rows": 2947,
     "gear": 438,
     "licence": 2,
-    "display": 157
+    "display": 157,
+    "trout": 839
    },
    "displayByDay": [
     157,
@@ -1651,7 +1655,8 @@
     "rows": 2946,
     "gear": 438,
     "licence": 2,
-    "display": 157
+    "display": 157,
+    "trout": 839
    },
    "displayByDay": [
     157,
@@ -2051,7 +2056,8 @@
     "rows": 604,
     "gear": 99,
     "licence": 0,
-    "display": 237
+    "display": 237,
+    "trout": null
    },
    "displayByDay": [
     3,
@@ -2448,7 +2454,8 @@
     "rows": 605,
     "gear": 101,
     "licence": 0,
-    "display": 5
+    "display": 5,
+    "trout": 219
    },
    "displayByDay": [
     3,
@@ -2845,7 +2852,8 @@
     "rows": 605,
     "gear": 103,
     "licence": 0,
-    "display": 5
+    "display": 5,
+    "trout": 219
    },
    "displayByDay": [
     5,
@@ -3244,7 +3252,8 @@
     "rows": 609,
     "gear": 105,
     "licence": 0,
-    "display": 5
+    "display": 5,
+    "trout": 220
    },
    "displayByDay": [
     238,
@@ -3643,7 +3652,8 @@
     "rows": 46,
     "gear": 0,
     "licence": 1,
-    "display": 20
+    "display": 20,
+    "trout": 253
    },
    "displayByDay": [
     20,
@@ -4037,7 +4047,8 @@
     "rows": 1650,
     "gear": 0,
     "licence": 1,
-    "display": 20
+    "display": 20,
+    "trout": 434
    },
    "displayByDay": [
     20,
@@ -4430,7 +4441,8 @@
     "rows": 58,
     "gear": 0,
     "licence": 1,
-    "display": 51
+    "display": 51,
+    "trout": null
    },
    "displayByDay": [
     51,
@@ -4822,7 +4834,8 @@
     "rows": 2941,
     "gear": 439,
     "licence": 162,
-    "display": 157
+    "display": 157,
+    "trout": 836
    },
    "displayByDay": [
     157,
@@ -5219,7 +5232,8 @@
     "rows": 2944,
     "gear": 438,
     "licence": 2,
-    "display": 157
+    "display": 157,
+    "trout": 838
    },
    "displayByDay": [
     157,
@@ -5611,7 +5625,8 @@
     "rows": 0,
     "gear": 0,
     "licence": 0,
-    "display": 0
+    "display": 0,
+    "trout": 0
    },
    "displayByDay": [
     0,
@@ -6008,7 +6023,8 @@
     "rows": 115,
     "gear": 8,
     "licence": 1,
-    "display": 31
+    "display": 31,
+    "trout": 44
    },
    "displayByDay": [
     25,
@@ -6413,7 +6429,8 @@
     "rows": 513,
     "gear": 83,
     "licence": 5,
-    "display": 70
+    "display": 70,
+    "trout": 197
    },
    "displayByDay": [
     70,
@@ -6818,7 +6835,8 @@
     "rows": 513,
     "gear": 85,
     "licence": 5,
-    "display": 70
+    "display": 70,
+    "trout": 197
    },
    "displayByDay": [
     70,
@@ -7223,7 +7241,8 @@
     "rows": 515,
     "gear": 83,
     "licence": 5,
-    "display": 70
+    "display": 70,
+    "trout": 200
    },
    "displayByDay": [
     70,
@@ -7628,7 +7647,8 @@
     "rows": 515,
     "gear": 85,
     "licence": 5,
-    "display": 70
+    "display": 70,
+    "trout": 200
    },
    "displayByDay": [
     70,
@@ -8027,7 +8047,8 @@
     "rows": 89,
     "gear": 20,
     "licence": 5,
-    "display": 70
+    "display": 70,
+    "trout": 32
    },
    "displayByDay": [
     70,
@@ -8426,7 +8447,8 @@
     "rows": 93,
     "gear": 20,
     "licence": 5,
-    "display": 70
+    "display": 70,
+    "trout": 32
    },
    "displayByDay": [
     70,
@@ -8821,7 +8843,8 @@
     "rows": 266,
     "gear": 47,
     "licence": 2,
-    "display": 132
+    "display": 132,
+    "trout": 126
    },
    "displayByDay": [
     131,
@@ -9216,7 +9239,8 @@
     "rows": 267,
     "gear": 47,
     "licence": 2,
-    "display": 63
+    "display": 63,
+    "trout": 126
    },
    "displayByDay": [
     131,
@@ -9611,7 +9635,8 @@
     "rows": 267,
     "gear": 47,
     "licence": 2,
-    "display": 63
+    "display": 63,
+    "trout": 126
    },
    "displayByDay": [
     131,
@@ -10006,7 +10031,8 @@
     "rows": 666,
     "gear": 47,
     "licence": 2,
-    "display": 63
+    "display": 63,
+    "trout": 246
    },
    "displayByDay": [
     252,
@@ -10401,7 +10427,8 @@
     "rows": 666,
     "gear": 47,
     "licence": 2,
-    "display": 63
+    "display": 63,
+    "trout": 246
    },
    "displayByDay": [
     252,
@@ -10797,7 +10824,8 @@
     "rows": 229,
     "gear": 1,
     "licence": 0,
-    "display": 121
+    "display": 121,
+    "trout": 104
    },
    "displayByDay": [
     120,
@@ -11193,7 +11221,8 @@
     "rows": 228,
     "gear": 1,
     "licence": 0,
-    "display": 3
+    "display": 3,
+    "trout": 104
    },
    "displayByDay": [
     120,
@@ -11585,7 +11614,8 @@
     "rows": 3663,
     "gear": 833,
     "licence": 2,
-    "display": 32
+    "display": 32,
+    "trout": 1361
    },
    "displayByDay": [
     32,
@@ -11977,7 +12007,8 @@
     "rows": 2979,
     "gear": 433,
     "licence": 2,
-    "display": 88
+    "display": 88,
+    "trout": 862
    },
    "displayByDay": [
     88,
@@ -12374,7 +12405,8 @@
     "rows": 3808,
     "gear": 923,
     "licence": 171,
-    "display": 139
+    "display": 139,
+    "trout": 1455
    },
    "displayByDay": [
     139,
@@ -12770,7 +12802,8 @@
     "rows": 1336,
     "gear": 215,
     "licence": 47,
-    "display": 63
+    "display": 63,
+    "trout": 404
    },
    "displayByDay": [
     59,
@@ -13168,7 +13201,8 @@
     "rows": 1340,
     "gear": 12,
     "licence": 47,
-    "display": 220
+    "display": 220,
+    "trout": null
    },
    "displayByDay": [
     218,
@@ -13564,7 +13598,8 @@
     "rows": 787,
     "gear": 12,
     "licence": 2,
-    "display": 292
+    "display": 292,
+    "trout": 268
    },
    "displayByDay": [
     292,
@@ -13960,7 +13995,8 @@
     "rows": 790,
     "gear": 12,
     "licence": 2,
-    "display": 59
+    "display": 59,
+    "trout": 268
    },
    "displayByDay": [
     59,
@@ -14356,7 +14392,8 @@
     "rows": 796,
     "gear": 12,
     "licence": 23,
-    "display": 157
+    "display": 157,
+    "trout": 268
    },
    "displayByDay": [
     157,
@@ -14752,7 +14789,8 @@
     "rows": 799,
     "gear": 12,
     "licence": 2,
-    "display": 59
+    "display": 59,
+    "trout": 268
    },
    "displayByDay": [
     59,
@@ -15149,7 +15187,8 @@
     "rows": 63,
     "gear": 12,
     "licence": 2,
-    "display": 53
+    "display": 53,
+    "trout": 21
    },
    "displayByDay": [
     53,
@@ -15546,7 +15585,8 @@
     "rows": 802,
     "gear": 126,
     "licence": 2,
-    "display": 63
+    "display": 63,
+    "trout": 270
    },
    "displayByDay": [
     63,
@@ -15946,7 +15986,8 @@
     "rows": 805,
     "gear": 126,
     "licence": 7,
-    "display": 63
+    "display": 63,
+    "trout": 272
    },
    "displayByDay": [
     63,
@@ -16343,7 +16384,8 @@
     "rows": 2157,
     "gear": 337,
     "licence": 2,
-    "display": 695
+    "display": 695,
+    "trout": null
    },
    "displayByDay": [
     32,
@@ -16740,7 +16782,8 @@
     "rows": 2154,
     "gear": 337,
     "licence": 2,
-    "display": 695
+    "display": 695,
+    "trout": null
    },
    "displayByDay": [
     32,
@@ -17136,7 +17179,8 @@
     "rows": 1881,
     "gear": 302,
     "licence": 51,
-    "display": 63
+    "display": 63,
+    "trout": 528
    },
    "displayByDay": [
     63,
@@ -17533,7 +17577,8 @@
     "rows": 1885,
     "gear": 303,
     "licence": 80,
-    "display": 435
+    "display": 435,
+    "trout": null
    },
    "displayByDay": [
     63,
@@ -17925,7 +17970,8 @@
     "rows": 2983,
     "gear": 433,
     "licence": 166,
-    "display": 88
+    "display": 88,
+    "trout": 865
    },
    "displayByDay": [
     88,
@@ -18323,7 +18369,8 @@
     "rows": 1011,
     "gear": 153,
     "licence": 67,
-    "display": 354
+    "display": 354,
+    "trout": null
    },
    "displayByDay": [
     354,
@@ -18727,7 +18774,8 @@
     "rows": 1018,
     "gear": 154,
     "licence": 69,
-    "display": 239
+    "display": 239,
+    "trout": null
    },
    "displayByDay": [
     239,
@@ -19130,7 +19178,8 @@
     "rows": 1018,
     "gear": 154,
     "licence": 69,
-    "display": 239
+    "display": 239,
+    "trout": null
    },
    "displayByDay": [
     239,
@@ -19530,7 +19579,8 @@
     "rows": 1028,
     "gear": 157,
     "licence": 72,
-    "display": 356
+    "display": 356,
+    "trout": 313
    },
    "displayByDay": [
     356,
@@ -19930,7 +19980,8 @@
     "rows": 1031,
     "gear": 153,
     "licence": 0,
-    "display": 91
+    "display": 91,
+    "trout": 316
    },
    "displayByDay": [
     91,
@@ -20327,7 +20378,8 @@
     "rows": 2168,
     "gear": 339,
     "licence": 0,
-    "display": 80
+    "display": 80,
+    "trout": 607
    },
    "displayByDay": [
     80,
@@ -20724,7 +20776,8 @@
     "rows": 2168,
     "gear": 339,
     "licence": 0,
-    "display": 80
+    "display": 80,
+    "trout": 607
    },
    "displayByDay": [
     80,
@@ -21124,7 +21177,8 @@
     "rows": 2173,
     "gear": 339,
     "licence": 0,
-    "display": 80
+    "display": 80,
+    "trout": 608
    },
    "displayByDay": [
     80,
@@ -21525,7 +21579,8 @@
     "rows": 2452,
     "gear": 8,
     "licence": 1,
-    "display": 757
+    "display": 757,
+    "trout": null
    },
    "displayByDay": [
     754,
@@ -22102,7 +22157,8 @@
     "rows": 2434,
     "gear": 375,
     "licence": 1,
-    "display": 750
+    "display": 750,
+    "trout": null
    },
    "displayByDay": [
     20,
@@ -22591,7 +22647,8 @@
     "rows": 2428,
     "gear": 375,
     "licence": 152,
-    "display": 746
+    "display": 746,
+    "trout": 696
    },
    "displayByDay": [
     20,
@@ -22992,7 +23049,8 @@
     "rows": 2443,
     "gear": 8,
     "licence": 1,
-    "display": 753
+    "display": 753,
+    "trout": 701
    },
    "displayByDay": [
     25,
@@ -23392,7 +23450,8 @@
     "rows": 2468,
     "gear": 8,
     "licence": 1,
-    "display": 763
+    "display": 763,
+    "trout": 705
    },
    "displayByDay": [
     761,
@@ -23793,7 +23852,8 @@
     "rows": 2477,
     "gear": 376,
     "licence": 1,
-    "display": 765
+    "display": 765,
+    "trout": null
    },
    "displayByDay": [
     764,
@@ -24193,7 +24253,8 @@
     "rows": 2493,
     "gear": 8,
     "licence": 1,
-    "display": 769
+    "display": 769,
+    "trout": null
    },
    "displayByDay": [
     768,
@@ -24594,7 +24655,8 @@
     "rows": 2501,
     "gear": 8,
     "licence": 1,
-    "display": 767
+    "display": 767,
+    "trout": 710
    },
    "displayByDay": [
     762,
@@ -24993,7 +25055,8 @@
     "rows": 2485,
     "gear": 8,
     "licence": 1,
-    "display": 767
+    "display": 767,
+    "trout": 710
    },
    "displayByDay": [
     762,
@@ -25392,7 +25455,8 @@
     "rows": 2518,
     "gear": 378,
     "licence": 1,
-    "display": 776
+    "display": 776,
+    "trout": 719
    },
    "displayByDay": [
     774,
@@ -25791,7 +25855,8 @@
     "rows": 2524,
     "gear": 378,
     "licence": 1,
-    "display": 777
+    "display": 777,
+    "trout": 183
    },
    "displayByDay": [
     777,
@@ -26194,7 +26259,8 @@
     "rows": 2530,
     "gear": 378,
     "licence": 0,
-    "display": 778
+    "display": 778,
+    "trout": 183
    },
    "displayByDay": [
     778,
@@ -26592,7 +26658,8 @@
     "rows": 2541,
     "gear": 381,
     "licence": 2,
-    "display": 378
+    "display": 378,
+    "trout": 727
    },
    "displayByDay": [
     378,
@@ -26991,7 +27058,8 @@
     "rows": 2593,
     "gear": 390,
     "licence": 0,
-    "display": 790
+    "display": 790,
+    "trout": null
    },
    "displayByDay": [
     102,
@@ -27392,7 +27460,8 @@
     "rows": 218,
     "gear": 390,
     "licence": 0,
-    "display": 3
+    "display": 3,
+    "trout": 100
    },
    "displayByDay": [
     102,
@@ -27787,7 +27856,8 @@
     "rows": 218,
     "gear": 392,
     "licence": 0,
-    "display": 5
+    "display": 5,
+    "trout": 100
    },
    "displayByDay": [
     5,
@@ -28182,7 +28252,8 @@
     "rows": 2596,
     "gear": 1,
     "licence": 0,
-    "display": 3
+    "display": 3,
+    "trout": 741
    },
    "displayByDay": [
     3,
@@ -28579,7 +28650,8 @@
     "rows": 2598,
     "gear": 1,
     "licence": 0,
-    "display": 3
+    "display": 3,
+    "trout": 741
    },
    "displayByDay": [
     3,
@@ -28976,7 +29048,8 @@
     "rows": 2602,
     "gear": 1,
     "licence": 0,
-    "display": 3
+    "display": 3,
+    "trout": 742
    },
    "displayByDay": [
     3,
@@ -29371,7 +29444,8 @@
     "rows": 218,
     "gear": 1,
     "licence": 0,
-    "display": 1
+    "display": 1,
+    "trout": 100
    },
    "displayByDay": [
     1,
@@ -29764,7 +29838,8 @@
     "rows": 264,
     "gear": 55,
     "licence": 0,
-    "display": 3
+    "display": 3,
+    "trout": 124
    },
    "displayByDay": [
     3,
@@ -30161,7 +30236,8 @@
     "rows": 2606,
     "gear": 1,
     "licence": 0,
-    "display": 797
+    "display": 797,
+    "trout": null
    },
    "displayByDay": [
     797,
@@ -30560,7 +30636,8 @@
     "rows": 642,
     "gear": 188,
     "licence": 26,
-    "display": 80
+    "display": 80,
+    "trout": 233
    },
    "displayByDay": [
     78,
@@ -31069,7 +31146,8 @@
     "rows": 642,
     "gear": 188,
     "licence": 26,
-    "display": 80
+    "display": 80,
+    "trout": 233
    },
    "displayByDay": [
     78,
@@ -31597,7 +31675,8 @@
     "rows": 642,
     "gear": 189,
     "licence": 26,
-    "display": 80
+    "display": 80,
+    "trout": 233
    },
    "displayByDay": [
     78,
@@ -32107,7 +32186,8 @@
     "rows": 642,
     "gear": 192,
     "licence": 26,
-    "display": 214
+    "display": 214,
+    "trout": 233
    },
    "displayByDay": [
     78,
@@ -32510,7 +32590,8 @@
     "rows": 1196,
     "gear": 192,
     "licence": 0,
-    "display": 214
+    "display": 214,
+    "trout": 370
    },
    "displayByDay": [
     214,
@@ -32909,7 +32990,8 @@
     "rows": 1196,
     "gear": 191,
     "licence": 0,
-    "display": 80
+    "display": 80,
+    "trout": 370
    },
    "displayByDay": [
     80,
@@ -33418,7 +33500,8 @@
     "rows": 1191,
     "gear": 188,
     "licence": 26,
-    "display": 408
+    "display": 408,
+    "trout": null
    },
    "displayByDay": [
     406,
@@ -33814,7 +33897,8 @@
     "rows": 2309,
     "gear": 365,
     "licence": 2,
-    "display": 292
+    "display": 292,
+    "trout": 268
    },
    "displayByDay": [
     292,
@@ -34212,7 +34296,8 @@
     "rows": 2314,
     "gear": 365,
     "licence": 2,
-    "display": 292
+    "display": 292,
+    "trout": 653
    },
    "displayByDay": [
     292,
@@ -34608,7 +34693,8 @@
     "rows": 2317,
     "gear": 365,
     "licence": 2,
-    "display": 292
+    "display": 292,
+    "trout": 268
    },
    "displayByDay": [
     292,
@@ -35008,7 +35094,8 @@
     "rows": 1200,
     "gear": 193,
     "licence": 2,
-    "display": 410
+    "display": 410,
+    "trout": 268
    },
    "displayByDay": [
     410,
@@ -35404,7 +35491,8 @@
     "rows": 2323,
     "gear": 365,
     "licence": 2,
-    "display": 726
+    "display": 726,
+    "trout": null
    },
    "displayByDay": [
     726,
@@ -35800,7 +35888,8 @@
     "rows": 2320,
     "gear": 366,
     "licence": 2,
-    "display": 410
+    "display": 410,
+    "trout": 654
    },
    "displayByDay": [
     410,
@@ -36201,7 +36290,8 @@
     "rows": 1196,
     "gear": 318,
     "licence": 105,
-    "display": 80
+    "display": 80,
+    "trout": 370
    },
    "displayByDay": [
     80,
@@ -36604,7 +36694,8 @@
     "rows": 1196,
     "gear": 318,
     "licence": 0,
-    "display": 80
+    "display": 80,
+    "trout": 370
    },
    "displayByDay": [
     80,
@@ -37003,7 +37094,8 @@
     "rows": 2011,
     "gear": 318,
     "licence": 108,
-    "display": 80
+    "display": 80,
+    "trout": 556
    },
    "displayByDay": [
     80,
@@ -37407,7 +37499,8 @@
     "rows": 2017,
     "gear": 318,
     "licence": 108,
-    "display": 80
+    "display": 80,
+    "trout": 233
    },
    "displayByDay": [
     658,
@@ -37915,7 +38008,8 @@
     "rows": 2011,
     "gear": 318,
     "licence": 108,
-    "display": 80
+    "display": 80,
+    "trout": 556
    },
    "displayByDay": [
     80,
@@ -38436,7 +38530,8 @@
     "rows": 2017,
     "gear": 319,
     "licence": 108,
-    "display": 80
+    "display": 80,
+    "trout": 233
    },
    "displayByDay": [
     658,
@@ -38957,7 +39052,8 @@
     "rows": 2021,
     "gear": 318,
     "licence": 108,
-    "display": 80
+    "display": 80,
+    "trout": 233
    },
    "displayByDay": [
     658,
@@ -39361,7 +39457,8 @@
     "rows": 2570,
     "gear": 385,
     "licence": 154,
-    "display": 787
+    "display": 787,
+    "trout": null
    },
    "displayByDay": [
     786,
@@ -39762,7 +39859,8 @@
     "rows": 2579,
     "gear": 387,
     "licence": 154,
-    "display": 787
+    "display": 787,
+    "trout": null
    },
    "displayByDay": [
     786,
@@ -40162,7 +40260,8 @@
     "rows": 2570,
     "gear": 386,
     "licence": 154,
-    "display": 787
+    "display": 787,
+    "trout": null
    },
    "displayByDay": [
     786,
@@ -40560,7 +40659,8 @@
     "rows": 2585,
     "gear": 8,
     "licence": 1,
-    "display": 26
+    "display": 26,
+    "trout": 739
    },
    "displayByDay": [
     26,
@@ -40960,7 +41060,8 @@
     "rows": 1108,
     "gear": 171,
     "licence": 74,
-    "display": 63
+    "display": 63,
+    "trout": 341
    },
    "displayByDay": [
     59,
@@ -41360,7 +41461,8 @@
     "rows": 1113,
     "gear": 173,
     "licence": 75,
-    "display": 63
+    "display": 63,
+    "trout": 345
    },
    "displayByDay": [
     59,
@@ -41756,7 +41858,8 @@
     "rows": 1111,
     "gear": 173,
     "licence": 75,
-    "display": 63
+    "display": 63,
+    "trout": 343
    },
    "displayByDay": [
     59,
@@ -42159,7 +42262,8 @@
     "rows": 862,
     "gear": 16,
     "licence": 2,
-    "display": 3
+    "display": 3,
+    "trout": 30
    },
    "displayByDay": [
     3,
@@ -42564,7 +42668,8 @@
     "rows": 883,
     "gear": 16,
     "licence": 2,
-    "display": 3
+    "display": 3,
+    "trout": 289
    },
    "displayByDay": [
     3,
@@ -42967,7 +43072,8 @@
     "rows": 877,
     "gear": 16,
     "licence": 2,
-    "display": 3
+    "display": 3,
+    "trout": 30
    },
    "displayByDay": [
     3,
@@ -43366,7 +43472,8 @@
     "rows": 893,
     "gear": 16,
     "licence": 2,
-    "display": 1
+    "display": 1,
+    "trout": 30
    },
    "displayByDay": [
     1,
@@ -43763,7 +43870,8 @@
     "rows": 140,
     "gear": 0,
     "licence": 0,
-    "display": 32
+    "display": 32,
+    "trout": 63
    },
    "displayByDay": [
     32,
@@ -44156,7 +44264,8 @@
     "rows": 141,
     "gear": 0,
     "licence": 0,
-    "display": 87
+    "display": 87,
+    "trout": null
    },
    "displayByDay": [
     87,
@@ -44548,7 +44657,8 @@
     "rows": 3346,
     "gear": 676,
     "licence": 168,
-    "display": 32
+    "display": 32,
+    "trout": 1139
    },
    "displayByDay": [
     32,
@@ -44944,7 +45054,8 @@
     "rows": 3109,
     "gear": 449,
     "licence": 2,
-    "display": 204
+    "display": 204,
+    "trout": 965
    },
    "displayByDay": [
     204,
@@ -45343,7 +45454,8 @@
     "rows": 1743,
     "gear": 279,
     "licence": 102,
-    "display": 570
+    "display": 570,
+    "trout": 499
    },
    "displayByDay": [
     569,
@@ -45744,7 +45856,8 @@
     "rows": 1757,
     "gear": 281,
     "licence": 104,
-    "display": 317
+    "display": 317,
+    "trout": 506
    },
    "displayByDay": [
     573,
@@ -46136,7 +46249,8 @@
     "rows": 2969,
     "gear": 433,
     "licence": 163,
-    "display": 88
+    "display": 88,
+    "trout": 855
    },
    "displayByDay": [
     88,
@@ -46528,7 +46642,8 @@
     "rows": 3795,
     "gear": 911,
     "licence": 170,
-    "display": 981
+    "display": 981,
+    "trout": null
    },
    "displayByDay": [
     981,
@@ -47031,7 +47146,8 @@
     "rows": 388,
     "gear": 71,
     "licence": 2,
-    "display": 63
+    "display": 63,
+    "trout": 165
    },
    "displayByDay": [
     59,
@@ -47426,7 +47542,8 @@
     "rows": 63,
     "gear": 71,
     "licence": 2,
-    "display": 63
+    "display": 63,
+    "trout": 21
    },
    "displayByDay": [
     59,
@@ -47818,7 +47935,8 @@
     "rows": 3323,
     "gear": 438,
     "licence": 8,
-    "display": 20
+    "display": 20,
+    "trout": 1121
    },
    "displayByDay": [
     20,
@@ -48210,7 +48328,8 @@
     "rows": 2984,
     "gear": 433,
     "licence": 167,
-    "display": 88
+    "display": 88,
+    "trout": 866
    },
    "displayByDay": [
     88,
@@ -48606,7 +48725,8 @@
     "rows": 1346,
     "gear": 218,
     "licence": 0,
-    "display": 32
+    "display": 32,
+    "trout": 406
    },
    "displayByDay": [
     32,
@@ -49004,7 +49124,8 @@
     "rows": 576,
     "gear": 16,
     "licence": 2,
-    "display": 3
+    "display": 3,
+    "trout": 30
    },
    "displayByDay": [
     3,
@@ -49670,7 +49791,8 @@
     "rows": 1368,
     "gear": 335,
     "licence": 19,
-    "display": 80
+    "display": 80,
+    "trout": 412
    }
   },
   {
@@ -49844,7 +49966,8 @@
     "rows": 1368,
     "gear": 335,
     "licence": 19,
-    "display": 80
+    "display": 80,
+    "trout": 412
    }
   },
   {
@@ -50018,7 +50141,8 @@
     "rows": 1368,
     "gear": 335,
     "licence": 19,
-    "display": 80
+    "display": 80,
+    "trout": 412
    }
   },
   {
@@ -50192,7 +50316,8 @@
     "rows": 1368,
     "gear": 335,
     "licence": 19,
-    "display": 80
+    "display": 80,
+    "trout": 412
    }
   }
  ],
