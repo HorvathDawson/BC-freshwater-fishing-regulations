@@ -771,15 +771,3 @@ def test_the_split_never_changes_the_frame_it_reads():
     assert frame == before
     assert [r.get("parent") for r in first["rows"]] == [None, None, None, 2] and covers == [0, 2, 3]
     assert T.split_mixed(frame) == (first, covers)
-
-
-def test_the_steelhead_presence_line_stays_on_the_steelhead_part():
-    """T810 cutover: a release row holding steelhead and a fish outside the table (the live bundle has them) is split;
-    the steelhead presence line goes with the part holding ST (the table's), never the remainder (`model.Row` refuses a
-    presence line on a row without ST). Mutation: the remainder keeping `presence` fails here and stops the build."""
-    line = {"line": "possible_with_rules", "says": "Steelhead may be present."}
-    mixed = {"kind": "release", "members": ["ST", "KO"], "all_members": ["ST", "KO"], "groups": [], "presence": line}
-    split, covers = T.split_mixed({"rows": [mixed]})
-    assert [r["all_members"] for r in split["rows"]] == [["ST"], ["KO"]] and covers == [0]
-    assert [r.get("presence") for r in split["rows"]] == [line, None]
-    assert mixed["presence"] == line

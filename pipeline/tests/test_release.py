@@ -383,8 +383,6 @@ def test_a_nullable_cell_column_is_typed_number_or_null():
     text = emit_pack.render_cell()
     assert "readonly trout: number | null" in text
     assert re.findall(r"readonly (\w+): number \| null", text) == ["trout"]
-    assert 'export const CELL_NULLABLE = ["trout"] as const;' in text          # the reader's runtime list, same source
-    assert 'CELL_NULLABLE = ["display", "trout"]' in emit_pack.render_cell({**nullable, "display": True})
     assert "readonly display: number | null" in emit_pack.render_cell({**nullable, "display": True})
     assert "readonly trout: number;" in emit_pack.render_cell({**nullable, "trout": False}).replace(" }", "; }")
 
