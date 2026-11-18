@@ -402,20 +402,25 @@ describe("(T737, 2026-11-15) a reader's request never waits for a file fetched a
     });
     const tick = () => new Promise((r) => setTimeout(r, 0));
     const finish = async (n: string) => { open.get(n)!(); open.delete(n); await tick(); await tick(); };
-    return { L, log, open, tick, finish };
+    // (2026-11-18) WAIT FOR THE REQUEST, NOT FOR A TICK: under a loaded machine (the release preflight) one or two
+    // timer ticks were not always enough for a request to go out, and by the time it did the lane's 5 ms join had
+    // passed and the yielded file's abort was already in the log. Wait until the entry is there, then check the order.
+    const seen = (entry: string) => vi.waitFor(() => { if (!log.includes(entry)) throw new Error(`${entry} not in ${log.join(",")}`); },
+      { timeout: 5_000, interval: 1 });
+    return { L, log, open, tick, finish, seen };
   }
 
   it("a tap during a background download: its own request goes out at once (high), the background's is aborted and comes again after", async () => {
     const r = await rig(["core", "regs-sid", "down", "water-2", "geo"]);
     let bgDone = false;
     void r.L.prefetch("regs-sid").then(() => { bgDone = true; });
-    await r.tick();
+    await r.seen("regs-sid:low");
     expect(r.log).toEqual(["regs-sid:low"]);                       // the background's file, low priority
     const tap = Promise.all([r.L.db("water-2"), r.L.db("geo")]);   // a named tap: neither is regs-sid
-    await r.tick();
-    expect(r.log).toEqual(["regs-sid:low", "water-2:high", "geo:high"]);   // at once, not behind it
-    await new Promise((ok) => setTimeout(ok, 10));
-    expect(r.log).toContain("regs-sid✗");                          // and the line is theirs: regs-sid stopped
+    await r.seen("water-2:high"); await r.seen("geo:high");
+    // the first three in this order; regs-sid's abort may already follow them (the join is 5 ms), checked just below
+    expect(r.log.slice(0, 3)).toEqual(["regs-sid:low", "water-2:high", "geo:high"]);   // at once, not behind it
+    await r.seen("regs-sid✗");                          // and the line is theirs: regs-sid stopped
     await r.finish("water-2"); await r.finish("geo");
     await tap;
     expect(r.log.filter((x) => x.startsWith("regs-sid:")).length).toBe(1);   // nothing new within the grace
@@ -428,23 +433,24 @@ describe("(T737, 2026-11-15) a reader's request never waits for a file fetched a
   it("at most one file ahead on the network, whoever asked (idle tier, background tier, address bar)", async () => {
     const r = await rig(["core", "regs-2", "lines", "regs-sid"]);
     for (const n of ["regs-2", "core", "lines", "regs-sid"] as const) void r.L.prefetch(n);
-    await r.tick(); await r.tick();
+    await r.seen("regs-2:low");
     expect(r.log).toEqual(["regs-2:low"]);
-    await r.finish("regs-2");
+    await r.finish("regs-2"); await r.seen("core:low");
     expect(r.log).toEqual(["regs-2:low", "core:low"]);
-    await r.finish("core");
-    await r.finish("lines");
+    await r.finish("core"); await r.seen("lines:low");
+    await r.finish("lines"); await r.seen("regs-sid:low");
     expect(r.log).toEqual(["regs-2:low", "core:low", "lines:low", "regs-sid:low"]);
   });
 
   it("a file still waiting in the lane that the tap needs goes out at once, as the tap's", async () => {
     const r = await rig(["core", "regs-sid", "down"]);
     void r.L.prefetch("core"); void r.L.prefetch("regs-sid");
-    await r.tick(); await r.tick();
+    await r.seen("core:low");
     expect(r.log).toEqual(["core:low"]);
     const tap = r.L.db("regs-sid");                                // the unnamed tap needs regs-sid, waiting behind core
-    await r.tick(); await r.tick();
-    expect(r.log).toEqual(["core:low", "regs-sid:high"]);
+    await r.seen("regs-sid:high");
+    // core yields to the tap and may already be aborted ("core✗", after the 5 ms join): only the first two are pinned
+    expect(r.log.slice(0, 2)).toEqual(["core:low", "regs-sid:high"]);
     await r.finish("regs-sid");
     await tap;
     expect(r.log.filter((x) => x.startsWith("regs-sid")).length).toBe(1);   // one download, the tap's
