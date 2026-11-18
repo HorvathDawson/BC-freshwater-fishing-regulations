@@ -256,7 +256,22 @@ class Table:
                     raise _Fail(f"box {bi}: band {x['text']!r} over two rows says 'between them'")
                 for r in rows[x["from"]:x["to"] + 1]:
                     r.band = (kind_, k, m, x["from"], x["to"])
-            self.boxes.append({"kind": b["kind"], "n": n, "strip": strip, "rows": rows, "raw": b,
+            inner = []
+            for x in b.get("inner") or ():
+                # (trout 4, R4) a count nested in one band, its cap's words only
+                span = x["to"] - x["from"] + 1
+                if x["kind"] == "shared":
+                    kind_, k, m = W.parse_band(x["text"])
+                    if kind_ != "shared" or W.band_total(x["text"]) is not None or (m is not None and m != span) \
+                            or (m is None and span < 3):
+                        raise _Fail(f"box {bi}: nested band {x['text']!r} over rows {x['from']}..{x['to']}")
+                    inner.append((x["from"], x["to"], k, None))
+                else:
+                    got = W.parse_size_part(x["text"])
+                    if got is None or (got[2] is not None and got[2] != span) or (got[2] is None and span < 3):
+                        raise _Fail(f"box {bi}: nested band {x['text']!r} over rows {x['from']}..{x['to']}")
+                    inner.append((x["from"], x["to"], got[0], got[1]))
+            self.boxes.append({"kind": b["kind"], "n": n, "strip": strip, "rows": rows, "raw": b, "inner": inner,
                                "except": W.parse_head_except(b["head"])})
             self.rows += rows
         for r in self.rows:
@@ -348,8 +363,8 @@ class Table:
                     out.append((f"row {r.key} a day {r.daily_said}", of_rows([r]), r.daily_said))
                 elif kind == "size":
                     # (T810 L) "counts toward the 2 · only 1 over 50 cm (20 in) between them": the box's number (its
-                    # total, above), and these rows over the size: at most the band's
-                    if k != b["n"]:
+                    # total, above), and these rows over the size: at most the band's (a raised box: its first number)
+                    if k != b["n"] and not (b.get("except") is not None and k == b["except"][0]):
                         raise _Fail(f"row {r.key}: a size band of the {k} in a box of {b['n']}")
                     _bn, n_, cm_, _m = W.parse_band_size(b["raw"]["bands"][next(
                         i for i, x in enumerate(b["raw"]["bands"]) if x["from"] == fr)]["text"])
@@ -358,6 +373,10 @@ class Table:
                 elif kind == "upto" and k != b["n"] and not (b.get("except") is not None and k == b["except"][0]
                                                                and r.fish not in set(b["except"][1])):
                     raise _Fail(f"row {r.key}: 'counts toward the {k}' in a box of {b['n']}")
+            for fr, to, k, cm in b.get("inner") or ():
+                # a nested band: these rows (over its size, a size band): at most its number
+                out.append((f"box {bi} nested {fr}..{to}: {k}" + (f" over {cm}" if cm is not None else ""),
+                            (lambda f, rf, R=of_rows(rows[fr:to + 1]), cm=cm: R(f, rf) and (cm is None or f[2] > cm)), k))
             for p in b["strip"]:
                 if p[0] == "size":
                     n, cm, extra = p[1], p[2], p[3]
@@ -380,7 +399,8 @@ class Table:
                 me = of_rows([r])
                 for t, x in r.lines:
                     k = x[0]
-                    if k in ("only", "uses"):
+                    if k in ("only", "uses", "stop"):
+                        # ("stop": "after keeping 2, stop fishing this river today" — at most 2 of this row's fish)
                         out.append((f"row {r.key} {t!r}", me, x[1]))
                     elif k == "count":
                         out.append((f"row {r.key} {t!r}", lambda f, rf, me=me, o=set(x[2]) & keep_fish:
@@ -968,7 +988,9 @@ def sheet_problems(c: Cell, T: Table) -> List[str]:
         elif r.kind == "keep":
             band = next(x["text"] for x in r.box["bands"] if x["from"] <= r.i <= x["to"])
             total = W.band_total(band) if W.parse_band(band)[0] in ("shared", "own") else None
-            if total is not None:
+            if W.parse_band(band)[0] == "size":
+                ok = head[2] == W.parse_band(band)[1] and head[1] == band
+            elif total is not None:
                 ok = head[2] == total and head[1] == W.band_part(band)
             else:
                 ok = head[2] == T.boxes[r.b]["n"] and (head[1] or W.band_upto(T.boxes[r.b]["n"])) == band
@@ -1003,12 +1025,25 @@ def sheet_problems(c: Cell, T: Table) -> List[str]:
             elif k == "shared":
                 band = next(y["text"] for y in r.box["bands"] if y["from"] <= r.i <= y["to"])
                 held = {(y.fish, y.origin) for y in T.boxes[r.b]["rows"][r.band[3]:r.band[4] + 1]} - {(r.fish, r.origin)}
+                nest = next((y for y in r.box.get("inner") or () if y["kind"] == "shared" and y["text"] == x[1]
+                             and y["from"] <= r.i <= y["to"]), None)
+                if nest is not None:
+                    band = nest["text"]
+                    held = {(y.fish, y.origin) for y in T.boxes[r.b]["rows"][nest["from"]:nest["to"] + 1]} - \
+                        {(r.fish, r.origin)}
                 if x[1] != W.band_part(band) or {(S, o) for S, o in x[2]} != held:
                     probs.append(f"{where}: {ln['t']!r}; the row's band {band!r} over {sorted(held, key=str)}")
             elif k == "size_band":
                 band = next(y["text"] for y in r.box["bands"] if y["from"] <= r.i <= y["to"])
                 held = {(y.fish, y.origin) for y in T.boxes[r.b]["rows"][r.band[3]:r.band[4] + 1]} - {(r.fish, r.origin)}
-                if r.band[0] != "size" or band.split(W.BAND_SEP, 1)[1] != x[1] or {(S, o) for S, o in x[2]} != held:
+                nest = next((y for y in r.box.get("inner") or () if y["kind"] == "size" and y["text"] == x[1]
+                             and y["from"] <= r.i <= y["to"]), None)
+                if nest is not None:
+                    held = {(y.fish, y.origin) for y in T.boxes[r.b]["rows"][nest["from"]:nest["to"] + 1]} - \
+                        {(r.fish, r.origin)}
+                elif r.band[0] != "size" or band.split(W.BAND_SEP, 1)[1] != x[1]:
+                    held = None
+                if held is None or {(S, o) for S, o in x[2]} != held:
                     probs.append(f"{where}: {ln['t']!r}; the row's band {band!r} over {sorted(held, key=str)}")
             elif k == "uses":
                 if not any(y[0] == "uses" and y[2] == x[1] for _t, y in r.lines):

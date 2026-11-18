@@ -121,14 +121,14 @@ EXPECTED = {
     ('adams-jul15', 'DV'): (
         'Keep · only 1 between them · counts toward the 4\n'
         'Size: 80 cm (31 in) or longer.\n'
-        'Counts toward the 4 in all, together with lake trout, rainbow trout, brook trout, brown trout and cutthroat trout.\n'
+        'Counts toward the 4 in all, together with rainbow trout, brook trout, brown trout, cutthroat trout and lake trout.\n'
         'Only 1 between them: this fish and lake trout.\n'
         'Only 1 over 50 cm (20 in).'
     ),
     ('adams-jul31', 'DV'): (
         'Keep · only 1 between them · counts toward the 4\n'
         'Size: 80 cm (31 in) or longer.\n'
-        'Counts toward the 4 in all, together with lake trout, rainbow trout, brook trout, brown trout and cutthroat trout.\n'
+        'Counts toward the 4 in all, together with rainbow trout, brook trout, brown trout, cutthroat trout and lake trout.\n'
         'Only 1 between them: this fish and lake trout.\n'
         'Only 1 over 50 cm (20 in).\n'
         'On Jul 31 only: 60 cm (24 in) or longer.'

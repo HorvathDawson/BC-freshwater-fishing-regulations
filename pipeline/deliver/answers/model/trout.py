@@ -146,13 +146,29 @@ class _BoxFields(Model):
     tag: Optional[Txt]                  # keep only: "Lake’s rule"
     rows: Tuple[Any, ...] = Field(min_length=1)
     bands: Tuple[Band, ...]
+    #: (trout 4, owner 2026-11-18 01:22, R4) a count some rows of one band share among themselves, drawn INSIDE that band
+    #: with its cap's words only: "only 1 between them" (the Vedder's Dolly Varden and lake trout inside "2 total from
+    #: these 6"), "only 1 over 50 cm (20 in) between them" (kind "size"). Each spans two rows or more of one band, never
+    #: the band whole; they never overlap
+    inner: Tuple[Band, ...]
 
     @model_validator(mode="after")
     def _bands(self):
         if self.kind != "keep":
-            if self.bands or self.label or self.strip or self.tag or self.possession:
+            if self.bands or self.label or self.strip or self.tag or self.possession or self.inner:
                 raise ValueError(f"a {self.kind} box has no bands, label, strip, possession or tag")
             return self
+        taken: set = set()
+        for x in self.inner:
+            if x.kind not in ("shared", "size"):
+                raise ValueError(f"a nested band is shared or size, not {x.kind!r}")
+            out = next((b for b in self.bands if b.from_ <= x.from_ and x.to <= b.to), None)
+            if out is None or (out.from_, out.to) == (x.from_, x.to):
+                raise ValueError(f"a nested band {x.from_}..{x.to} lies inside no band, or is one whole")
+            span = set(range(x.from_, x.to + 1))
+            if span & taken:
+                raise ValueError(f"nested bands overlap at rows {sorted(span & taken)}")
+            taken |= span
         at = 0
         for b in self.bands:
             if b.from_ != at:

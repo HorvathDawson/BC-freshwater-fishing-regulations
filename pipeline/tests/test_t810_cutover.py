@@ -535,7 +535,8 @@ def test_kathie_canuck_and_similkameen_name_each_subject(request):
         "Brook trout: This lake’s rule: 20 a day here. Brook trout you kept anywhere else count toward those 20. These "
         "fish are counted apart from the region’s total: they don’t use it up. They also count toward Region 4’s 5 "
         "trout and char a day."]
-    assert got["Kathie Lake"]["table"]["top"]["lead"] == "Keep 5 trout and char {day}, or 10 if they’re brook trout"
+    assert (got["Kathie Lake"]["table"]["top"]["lead"], got["Kathie Lake"]["table"]["top"]["sub"]) == (
+        "Keep 5 trout and char {day}", "or 10 if they’re brook trout")                  # owner 01:28: the subline
 
 
 @pytest.mark.needs_bundle
@@ -606,21 +607,38 @@ def test_the_fraser_proves_with_the_uses_the_line_either_way(request, monkeypatc
 
 
 @pytest.mark.needs_bundle
-def test_the_vedder_orders_ungrouped_first_and_nests_the_inner_group_last(request, monkeypatch):
-    """Owner 2026-11-18 00:52 ("at Vedder the DV/LT 'only 1' group cut through '2 of these 6'"): Jan 1, the rainbow trout
-    no band groups stands first; the band's six rows follow, its Dolly Varden and lake trout (their own "only 1"
-    between them) last and together. Mutation: the pin off puts the band's rows back in the build's order."""
+def test_the_vedder_orders_its_rows_and_nests_the_dolly_varden_and_lake_trout(request, monkeypatch):
+    """Owner 2026-11-18 00:52 / 01:22 / 01:28: Jan 1, the six fish of "2 total from these 6" (the top line names the
+    2), the Dolly Varden and lake trout last inside it under a nested "only 1 between them" (their "only 1, counting any
+    …" lines gone), the hatchery rainbow its own rule raises ("or 4") last in the box. J proves it; a nested band said
+    with 2 fails. Mutations: each pin off brings its old form back."""
     from pipeline.deliver.answers.trout import table as TT
-    monkeypatch.setattr(TT, "A_GROUPS_LAST", True)              # HELD OFF (owner 01:07): the switch's own case
-    got, *_ = _live_tables(request, ("Vedder River",), md=(1, 1))
-    b = next(b for b in got["Vedder River"]["table"]["boxes"] if b["kind"] == "keep")
+    got, m, bundle, data = _live_tables(request, ("Vedder River",), md=(1, 1))
+    t = got["Vedder River"]
+    b = next(b for b in t["table"]["boxes"] if b["kind"] == "keep")
     keys = [r["key"] for r in b["rows"]]
-    assert keys[0] == "RB" and keys[-2:] == ["DV", "LT"], keys
-    assert [(x["from"], x["to"]) for x in b["bands"]] == [(0, 0), (1, 6)]
-    monkeypatch.setattr(TT, "A_GROUPS_LAST", False)
-    got, *_ = _live_tables(request, ("Vedder River",), md=(1, 1))
-    b = next(b for b in got["Vedder River"]["table"]["boxes"] if b["kind"] == "keep")
-    assert [r["key"] for r in b["rows"]][-2:] != ["DV", "LT"]
+    assert keys[-3:] == ["DV", "LT", "RB"], keys
+    assert [(x["from"], x["to"], x["text"]) for x in b["bands"]] == [(0, 5, "2 total from these 6"),
+                                                                      (6, 6, "counts toward the 4")]
+    assert [(x["from"], x["to"], x["text"], x["kind"]) for x in b["inner"]] == [(4, 5, "only 1 between them", "shared")]
+    assert not any("counting any" in x for r in b["rows"] for x in r["lines"])
+    k = next(k for k, cells in enumerate(m.sections["trout"]) if any(c is not None and c == t for c in cells))
+    assert J.check_model(m, bundle, data, keys=[k], log=lambda *_: None)["problems"] == []
+    cells = copy.deepcopy(m.sections["trout"][k])
+    jj = next(jj for jj, c in enumerate(cells) if c == t)
+    bb = next(b for b in cells[jj]["table"]["boxes"] if b["kind"] == "keep")
+    # (the nested count over the brook and brown trout instead: the table refuses two the engine keeps)
+    bb["inner"] = ({**bb["inner"][0], "from": 0, "to": 1},)
+    m.sections["trout"] = list(m.sections["trout"])
+    m.sections["trout"][k] = cells
+    assert any("the engine accepts it" in p for p in J.check_model(m, bundle, data, keys=[k], log=lambda *_: None)[
+        "problems"])
+    for flag, old in (("A_NESTED_BANDS", lambda b: any("counting any" in x for r in b["rows"] for x in r["lines"])),
+                      ("A_RAISED_ROW_LAST", lambda b: b["rows"][-1]["key"] != "RB")):
+        with monkeypatch.context() as mp:
+            mp.setattr(TT, flag, False)
+            g2, *_ = _live_tables(request, ("Vedder River",), md=(1, 1))
+            assert old(next(b for b in g2["Vedder River"]["table"]["boxes"] if b["kind"] == "keep")), flag
 
 
 @pytest.mark.needs_bundle
@@ -729,20 +747,46 @@ def test_bowron_park_creeks_say_their_possession_once(request, monkeypatch):
 
 
 @pytest.mark.needs_bundle
-def test_chilliwack_lake_drops_only_4_wild_behind_its_switch(request, monkeypatch):
-    """Owner 2026-11-18, PENDING one more picture: Chilliwack Lake's "only 4 wild" inside "Keep 4 in all" never limits
-    anything. Off by default (the rows say it); the switch on drops it and the proof still holds."""
+def test_chilliwack_lake_drops_only_4_wild(request, monkeypatch):
+    """R1 (a cap at or above its pool goes; the owner's approval, the implied-limit sweep): Chilliwack Lake's "only 4
+    wild" inside "Keep 4 in all" never limits anything: unsaid, and J proves the lake. Mutation: the switch off says it."""
     from pipeline.deliver.answers.trout import table as TT
-    got, m, bundle, data = _live_tables(request, ("Chilliwack Lake",))
-    rows = [r for b in got["Chilliwack Lake"]["table"]["boxes"] for r in b["rows"]]
-    assert any("only 4 wild" in r["lines"] for r in rows)
-    monkeypatch.setattr(TT, "WILD_QUOTA_AT_THE_BOX_NUMBER_UNSAID", True)
     got, m, bundle, data = _live_tables(request, ("Chilliwack Lake",))
     t = got["Chilliwack Lake"]
     assert not any("only 4 wild" in r["lines"] for b in t["table"]["boxes"] for r in b["rows"])
-    assert {r["key"] for b in t["table"]["boxes"] for r in b["rows"]} >= {"RB/wild", "RB/hatchery"}
     ks = sorted({k for k, cells in enumerate(m.sections["trout"]) if any(c is not None for c in cells)})
     assert J.check_model(m, bundle, data, keys=ks, log=lambda *_: None)["problems"] == []
+    monkeypatch.setattr(TT, "WILD_QUOTA_AT_THE_BOX_NUMBER_UNSAID", False)
+    got, *_ = _live_tables(request, ("Chilliwack Lake",))
+    assert any("only 4 wild" in r["lines"] for b in got["Chilliwack Lake"]["table"]["boxes"] for r in b["rows"])
+
+
+@pytest.mark.needs_bundle
+@pytest.mark.parametrize("flag", ["A_STOP_LINE_SAYS_THE_CAP", "A_SIZE_BAND_IN_A_RAISED_BOX"])
+def test_the_sweeps_r1_r2_forms(request, monkeypatch, flag):
+    """The implied-limit sweep, approved: Aveling Creek's hatchery steelhead "counts toward the 5" (its "after keeping 2,
+    stop fishing this creek today" says the 2); Canuck Lake's raised box ("Keep 5, brook trout up to 20") draws the
+    Region 4 size band over its cutthroat and rainbow ("counts toward the 5 · only 1 over 50 cm (20 in) between them",
+    as Beaver Creek's "Keep 2, brook trout up to 8" does). J proves both; each pin off
+    brings the old form back."""
+    from pipeline.deliver.answers.trout import table as TT
+    names = ("Aveling Creek", "Canuck Lake")
+
+    def forms(got, m):
+        raised = [x for cells in m.sections["trout"] for c in cells if c for b in c["table"]["boxes"]
+                  if W.parse_head_except(b["head"]) is not None for x in b["bands"]]
+        av = next((b, i) for c in got["Aveling Creek (all parts)"] if c for b in c["table"]["boxes"]
+                  for i, r in enumerate(b["rows"]) if r["key"] == "ST" and b["kind"] == "keep")
+        st_band = next(x for x in av[0]["bands"] if x["from"] <= av[1] <= x["to"])
+        return {"A_STOP_LINE_SAYS_THE_CAP": st_band["kind"] == "upto",
+                "A_SIZE_BAND_IN_A_RAISED_BOX": any(x["kind"] == "size" for x in raised)}
+    got, m, bundle, data = _live_tables(request, names)
+    assert all(forms(got, m).values()), forms(got, m)
+    ks = sorted({k for k, cells in enumerate(m.sections["trout"]) if any(c is not None for c in cells)})
+    assert J.check_model(m, bundle, data, keys=ks, log=lambda *_: None)["problems"] == []
+    monkeypatch.setattr(TT, flag, False)
+    got, m, *_ = _live_tables(request, names)
+    assert not forms(got, m)[flag]
 
 
 @pytest.mark.needs_bundle

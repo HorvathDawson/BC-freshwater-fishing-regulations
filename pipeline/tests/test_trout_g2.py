@@ -199,10 +199,12 @@ def test_q2_a_raised_boxs_first_number_is_any_of(fx, monkeypatch):
     fr = fx.table("canuck-lake-jul15")
     b = _box(fr)
     assert b["head"] == "Keep 5, brook trout up to 20"
-    for r, x in zip(b["rows"], b["bands"]):
+    for i, r in enumerate(b["rows"]):
+        x = next(y for y in b["bands"] if y["from"] <= i <= y["to"])
         # (owner 01:22, R2) a row's own cap in its band: the Dolly Varden's "counts toward the 5 · only 1"
         want = "counts toward the 20" if r["fish"] == "EB" else "counts toward the 5"
-        assert x["text"] == want or W.band_total(x["text"]) == 5 and x["kind"] == "own", r["key"]
+        assert x["text"] == want or W.band_total(x["text"]) == 5 and x["kind"] == "own" \
+            or x["kind"] == "size" and W.parse_band(x["text"])[1] == 5, r["key"]       # (and the sweep's size band)
     _proof(fr)
     monkeypatch.setattr(T, "A_SHARED_BOX_NUMBER_IS_ANY_OF", False)
     assert "5 total from these 5" in _bands(_box(fx.table("canuck-lake-jul15")))   # the top line names the 5 (R3)

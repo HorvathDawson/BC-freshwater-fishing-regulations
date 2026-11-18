@@ -619,6 +619,12 @@ def band_size(box_n, n, over_cm, m: int) -> str:
     return band_upto(box_n) + BAND_SEP + band_size_part(n, over_cm, m)
 
 
+def parse_size_part(text: str) -> Optional[Tuple[float, float, Optional[int]]]:
+    """A size cap's own words (a nested band's, `band_size_part`) -> (n, over cm, rows: 2 "between", None "among")."""
+    m = re.fullmatch(rf"only {_NUM} over {_CM} (between|among) them", text)
+    return (_num(m[1]), _cm(m[2], m[3]), 2 if m[4] == "between" else None) if m else None
+
+
 def parse_band_size(text: str) -> Optional[Tuple[float, float, float, Optional[int]]]:
     """A size band -> (box n, n, over cm, rows: 2 "between", None "among" (J holds it to 3 or more)); None for any other
     band."""
@@ -865,7 +871,7 @@ def sheet_keep(band_text: str, box_n) -> str:
     kind, k, _m = parse_band(band_text)
     if kind == "size":
         # "Keep · only 1 over 50 cm (20 in) between them · counts toward the 2": the box's number once, last
-        return f"Keep · {band_text.split(BAND_SEP, 1)[1]} · counts toward the {_n(box_n)}"
+        return f"Keep · {band_text.split(BAND_SEP, 1)[1]} · counts toward the {_n(k)}"   # its own total (a raised box's first)
     if kind == "upto" and k == box_n:
         return f"Keep · counts toward the {_n(box_n)}"
     if kind == "upto":
@@ -933,9 +939,10 @@ def sheet_shared(band_text: str, others: str) -> str:
 def sheet_size_band(band_text: str, others: str) -> str:
     """A size band's cap with the fish it holds besides this one: "Only 1 over 50 cm (20 in) between them: this fish and
     rainbow trout."."""
-    if parse_band_size(band_text) is None:
+    part = band_text.split(BAND_SEP, 1)[1] if parse_band_size(band_text) is not None else band_text
+    if parse_size_part(part) is None:
         raise WordsError(f"trout words: not a size band: {band_text!r}")
-    return _sheet(f"{common.cap(band_text.split(BAND_SEP, 1)[1])}: this fish and {others}.")
+    return _sheet(f"{common.cap(part)}: this fish and {others}.")
 
 
 def sheet_uses(over_cm) -> str:
