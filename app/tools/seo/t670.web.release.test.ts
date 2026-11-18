@@ -52,9 +52,10 @@ describe.skipIf(!LIVE)(`T672: the site's model carries what T670 put on the app'
       "Have no more than 3 northern pike in possession. Fish at home don’t count."]],
     ["K2 Peace River", "gnis:14619", ["peace_river__site_c_dam", "peace_river__halfway_river_into_peace_river_d5000m"], JUL15,
       ["Whitefish · 15 a day", "Release every mountain whitefish."]],
-    ["K3 Shuswap Lake", "wbk:329518145", null, on("2026-11-11"), ["Release every lake trout, Oct 15–Jan 31."]],
-    ["K4 Bruer Creek", "gnis:10061", ["mouth", "source"], JUL15, ["Brook trout · 20 a day"]],
-    ["K5 Mat Creek", "gnis:14254", ["mouth", "source"], on("2026-01-15"), ["Dolly Varden/bull trout · 2 a day"]],
+    // (T810 cutover) K3-K5 are the trout table's: its box head, then the row, one run in the model (`TABLE_RUNS`)
+    ["K3 Shuswap Lake", "wbk:329518145", null, on("2026-11-11"), ["Release", "until Jan 31", "Lake trout"]],
+    ["K4 Bruer Creek", "gnis:10061", ["mouth", "source"], JUL15, ["Keep 20 in all", "Brook trout"]],
+    ["K5 Mat Creek", "gnis:14254", ["mouth", "source"], on("2026-01-15"), ["Keep 2 in all", "Dolly Varden/bull trout"]],
     ["G1 Kispiox River", "gnis:2308", null, on("2026-08-15"), ["No angling (from a boat)", "No powered boats"]],
     ["G3 Mahood Lake", "wbk:329354708", null, JUL15, ["Bait ban · Jul 1–Dec 31", "Single barbless hook · Jul 1–Dec 31",
       "Where: Within fishing boundary signs at the western tip of the lake"]],
@@ -67,6 +68,7 @@ describe.skipIf(!LIVE)(`T672: the site's model carries what T670 put on the app'
     ["G8 basic licence fee", "gnis:16880", null, JUL15,
       ["If you are a resident of B.C. and disabled: You may qualify for a basic freshwater angling licence at the reduced fee of $1.14."]],
   ];
+  const TABLE_RUNS = new Set(["K3 Shuswap Lake", "K4 Bruer Creek", "K5 Mat Creek"]);
   const pageOf = async (item: string, ends: readonly [string, string] | null, day: BuildDay) =>
     appPage(st, item, ends ? await names.part(item, ends[0], ends[1]) : 0, day);
 
@@ -74,6 +76,8 @@ describe.skipIf(!LIVE)(`T672: the site's model carries what T670 put on the app'
     const got = said(await pageOf(item, ends, day));
     // a line is an item of the model, or (K1: the possession sentence says the limits one after the other) whole inside one
     expect(lines.filter((l) => !got.some((g) => g.includes(l)))).toEqual([]);
+    // a trout table's pins are one run of the model's items (the box and its row together, never two boxes' words)
+    if (TABLE_RUNS.has(_name)) expect(got.some((_, i) => lines.every((l, j) => got[i + j] === l)), _name).toBe(true);
   });
 
   it("the guard: no string the view model carries in those fields is missing from the model, on any of the waters", async () => {

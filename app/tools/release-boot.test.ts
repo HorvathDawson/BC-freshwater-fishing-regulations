@@ -28,8 +28,10 @@ import { join } from "node:path";
 import { DatabaseSync } from "node:sqlite";
 import { gunzipSync } from "node:zlib";
 import { fetchVerified, sha256Hex, type ItemId, type Manifest } from "@app/data";
-import { assetsDigest, bootRelease, bootSaid, heldPath, POINTER, releaseTiles, SpaceError, type ReleaseFs, type ReleasePlatform }
+import { assetsDigest, bootRelease, bootSaid, heldPath, POINTER, releaseTiles, SpaceError, UnreadableError, type ReleaseFs, type ReleasePlatform }
   from "@app/data/release";
+import { readsRelease } from "../packages/data/src/manifest";
+import { PACK_FILES } from "../packages/data/src/pack.generated";
 import { releaseCache } from "../packages/data/src/release/drivers/cache.web";
 import { releaseSource } from "../packages/data/src/release/drivers/source.web";
 import { releaseStatus, statusOf } from "../packages/ui/src/release";
@@ -718,6 +720,45 @@ describe("native: always offline, updated by diff, swapped at the next launch", 
       expect(fs.files.has("release/previous")).toBe(false);
     });
 
+  /**
+   * (T810 S, trout table contract 2.7) The held set made BEFORE THE TROUT CUTOVER: its kept manifest names the regs files
+   * at `regs-region/1` and the rows-33 sections with no trout (what every phone held on the day of the switch). The
+   * format, not only the section versions, is what the held-set path compares: this app reads `regs-region/2`.
+   */
+  const makePreCutover = async (fs: ReturnType<typeof memFs>, h: { manifest?: string }) => {
+    const path = h.manifest!;
+    const m = JSON.parse(new TextDecoder().decode(await fs.read(path))) as Manifest;
+    for (const r of ["1", "2"]) m.files[`regs-${r}`] = { ...m.files.access!, format: "regs-region/1" };
+    m.regulations = { ...m.regulations, versions: { ladder: 1, rows: 33, gear: 12, licence: 7, display: 20 } };
+    await fs.write(path, new TextEncoder().encode(JSON.stringify(m)));
+  };
+
+  it("(T810 S) a held regs-region/1 set (before the trout cutover) is never opened: offline the start says why; online the new set is installed first",
+    async () => {
+      expect(PACK_FILES["regs-1"]?.format).toBe("regs-region/2");
+      const r1 = fixtureRelease("plain"), r2 = fixtureRelease("lakeGauged");
+      const fs = memFs(), stages: string[] = [];
+      const boot = (f: typeof fetch) => bootRelease({ manifestUrl: `${BASE}manifest.json`, releaseBase: BASE, wasmBase: "",
+                                                       platform: phone(fs), fetch: f, manifestTimeoutMs: 1000,
+                                                       onStage: (s) => stages.push(s) });
+      const first = await boot(releaseFetch(BASE, r1.dir, []));
+      await makePreCutover(fs, first.held);
+      // offline with only the /1 set: never opened (no regs page would read), the start fails and says why
+      await expect(boot(offline)).rejects.toMatchObject({ firstRunOffline: true,
+        message: expect.stringContaining("regs-1 is regs-region/1, not regs-region/2") });
+      // online: the manifest's set is installed BEFORE the map, as a first run is, and the /1 set is pruned
+      stages.length = 0;
+      const b = await boot(releaseFetch(BASE, r2.dir, []));
+      expect(stages).toEqual(["manifest", "install", "apply"]);
+      expect(b.applied).toEqual({ from: first.held.release });
+      expect(b.rolledBack).toBeNull();
+      expect(await b.update).toBeNull();
+      const held = JSON.parse(new TextDecoder().decode(await fs.read(b.held.manifest!))) as Manifest;
+      expect(readsRelease(held, "phone")).toEqual({ ok: true });
+      expect(Object.values(held.files).map((f) => f.format)).not.toContain("regs-region/1");
+      expect([...fs.files.keys()].some((k) => k.startsWith(`release/${first.held.release}/`))).toBe(false);
+    });
+
   it("(T403) a manifest this app cannot read is never installed: a first run fails saying why, an update is refused",
     async () => {
       const r1 = fixtureRelease("plain"), r2 = fixtureRelease("lakeGauged");
@@ -731,6 +772,8 @@ describe("native: always offline, updated by diff, swapped at the next launch", 
         manifestUrl: `${BASE}manifest.json`, releaseBase: BASE, wasmBase: "", platform: phone(fs), fetch: f,
         manifestTimeoutMs: 1000 });
       await expect(boot(memFs(), at(bad))).rejects.toThrow("salmon is salmon/3, not salmon/4");
+      // (T845) as its own kind: the screen says the plain words, not "the map data could not be loaded"
+      await expect(boot(memFs(), at(bad))).rejects.toBeInstanceOf(UnreadableError);
       const fs = memFs();
       const first = await boot(fs, at(r1.dir));
       const second = await boot(fs, at(bad));

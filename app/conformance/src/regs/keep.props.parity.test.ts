@@ -15,7 +15,7 @@
  */
 import { afterAll, describe, expect, it } from "vitest";
 import {
-  ALL_WORDS, FISH, MONTHS, plain, WEEKDAYS, type GroupVM, type KeepVM, type Line, type RegsInputs, type TreeNodeVM,
+  ALL_WORDS, FISH, MONTHS, plain, WEEKDAYS, type GroupVM, type KeepVM, type Line, type RegsInputs, type RegsPage, type TreeNodeVM,
 } from "@app/core";
 import { cases } from "./golden";
 
@@ -92,7 +92,8 @@ function fixedWords(inp: RegsInputs): Set<string> {
   return FIXED = new Set([...wordsOf(JSON.stringify([rules, inp.statics, FISH, MONTHS, WEEKDAYS])), ...[...ALL_WORDS].flatMap(wordsOf)]);
 }
 function vocabulary(inp: RegsInputs): Set<string> {
-  return new Set([...fixedWords(inp), ...wordsOf(JSON.stringify([inp.frames, inp.item, inp.place, inp.year?.rowsBySeg, [...inp.lics.values()]]))]);
+  // (T810 S) the trout table's words are its payload's (`inp.trout`, Python's), drawn unchanged
+  return new Set([...fixedWords(inp), ...wordsOf(JSON.stringify([inp.frames, inp.item, inp.place, inp.year?.rowsBySeg, [...inp.lics.values()], inp.trout ?? null]))]);
 }
 const wordsOf = (s: string): string[] => (s.match(/[A-Za-z][A-Za-z’']+/g) ?? []).map((w) => w.toLowerCase().replace(/[’']s$/, ""));
 /** every string in the Keep VM (sheet keys and enum-like fields left out: they are keys, not words) */
@@ -110,6 +111,18 @@ function keepStrings(k: KeepVM): string[] {
 }
 
 let states = 0, groupsSeen = 0, formsA = 0;
+
+/** (T810 cutover) the group cards a page draws: the Keep tab's (none since the cutover: the trout groups are the table's)
+ *  and those of its Other fish rows' sheets (`other:oN`'s group block: whitefish, bass, grayling, pike …) */
+function groupsOf(page: RegsPage): GroupVM[] {
+  const out: GroupVM[] = [...page.keep.groups];
+  for (let i = 0; ; i++) {
+    const vm = page.sheet(`other:o${i}`);
+    if (!vm) break;
+    for (const b of vm.blocks) if (b.k === "group") out.push(b.group);
+  }
+  return out;
+}
 afterAll(() => { if (states) console.info(`keep props: ${states} states, ${groupsSeen} groups, ${formsA} with a share lead (form a)`); });
 
 describe("T21 Keep properties (every state)", () => {
@@ -117,11 +130,11 @@ describe("T21 Keep properties (every state)", () => {
     const bad: string[] = [];
     for await (const c of cases()) {
       states++;
-      const inp = await c.inputs(), a = (await c.page()).keep, b = (await c.page(undefined, "b")).keep;
-      a.groups.forEach((g, i) => {
+      const inp = await c.inputs(), pa = await c.page(), a = pa.keep, gb = groupsOf(await c.page(undefined, "b"));
+      groupsOf(pa).forEach((g, i) => {
         groupsSeen++;
         if (g.head.form === "a") formsA++;
-        for (const e of [...numberOnce(g), ...regionWords(g), ...forms(g, b.groups[i]!)]) bad.push(`${c.id}: ${e}`);
+        for (const e of [...numberOnce(g), ...regionWords(g), ...forms(g, gb[i]!)]) bad.push(`${c.id}: ${e}`);
       });
       const vocab = vocabulary(inp);
       const strange = [...new Set(keepStrings(a).flatMap(wordsOf).filter((w) => !vocab.has(w)))];
@@ -130,39 +143,32 @@ describe("T21 Keep properties (every state)", () => {
     expect(bad).toEqual([]);
   }, 120_000);
 
-  it("3. vedder_1010 literally: form a leads with the share, of the region's total; form b flips", async () => {
-    for await (const c of cases()) {
-      if (c.id !== "vedder_1010") continue;
-      const a = (await c.page()).keep.groups[0]!.head, b = (await c.page(undefined, "b")).keep.groups[0]!.head;
-      expect([a.form, plain(a.lead), a.ofTotal, plain(a.words), nums(a.lead)[0]]).toEqual(
-        ["a", "2 hatchery trout/char a day from streams ⓘ", true, "4 a day per angler across Region 2, lakes included", "2"]);
-      expect([b.form, nums(b.words)[0], plain(b.shareOf), b.lead]).toEqual(["b", "4", "↳ 2 of them from streams", null]);
-    }
-  });
-
-  it("2. glenn_501 literally: the region tag moved to the share ('All Region 4 streams'), the head scope empty", async () => {
-    for await (const c of cases()) {
-      if (c.id !== "glenn_501") continue;
-      const g = (await c.page()).keep.groups[0]!;
-      const share = (g.tree ?? []).find((x) => x.t === "tier" && x.tier === "share");
-      expect([g.scope, share && share.t === "tier" ? [share.kicker, plain(share.line)] : null]).toEqual(
-        [null, ["All Region 4 streams", "Up to 2 brook, brown, cutthroat or lake trout of the 5 from streams"]]);
-    }
-  });
+  // (T810 S) "3. vedder_1010 literally" and "2. glenn_501 literally" are retired: both pinned a TROUT group (the Vedder's
+  // hatchery trout/char share, Glenn's Region 4 stream share), which the trout table draws now (its words are Python's)
 
   it("the property checkers fail on a broken group (mutation pins)", async () => {
+    // (T810 cutover) checks 1–3 read a group's tiers, shares and stream totals; since the cutover no group a page draws
+    // holds one (the Keep tab draws no group; the Other fish sheets' groups are one kind each), so their pins plant a tier
+    // on a real sheet group (the first state's first Other fish group card). Check 4 (no hand facts) is pinned on it as it is
+    let pinned = 0;
     for await (const c of cases()) {
-      if (c.id !== "glenn_501") continue;
-      const g = (await c.page()).keep.groups[0]!, b = (await c.page(undefined, "b")).keep.groups[0]!;
-      const tier = (g.tree ?? []).find((x) => x.t === "tier")!;
-      if (tier.t !== "tier") throw new Error("glenn_501: no top tier");
-      const dupBook: GroupVM = { ...g, tree: [{ ...tier, line: [...tier.line, { t: "book", printed: 34, pdf: 36 }, { t: "book", printed: 34, pdf: 36 }] }] };
-      const streamsHead: GroupVM = { ...g, scope: "All Region 4 streams" };
-      const badShare: GroupVM = { ...g, tree: [{ ...tier, line: [{ t: "text", s: "Up to 2 from streams" }] }] };
-      expect([numberOnce(dupBook).length > 0, regionWords(streamsHead).length > 0, regionWords(badShare).length > 0,
-        forms(g, { ...b, head: { ...b.head, shareOf: null } }).length > 0]).toEqual([true, true, true, true]);
-      const keep = (await c.page()).keep, vocab = vocabulary(await c.inputs());
-      expect(keepStrings({ ...keep, groups: [{ ...g, title: "Quokka and char" }] }).flatMap(wordsOf).filter((w) => !vocab.has(w))).toEqual(["quokka"]);
+      if (pinned) break;
+      const page = await c.page(), g = groupsOf(page)[0];
+      if (!g) continue;
+      pinned++;
+      const tier = { t: "tier", tier: "share", tid: "t9", n: 2, line: [{ t: "num", s: "2", size: "big" }, { t: "text", s: " from streams" },
+        { t: "book", printed: 34, pdf: 36 }], children: [], folded: false, origin: null } as unknown as TreeNodeVM;
+      const withTier = (line: Line): GroupVM => ({ ...g, tree: [{ ...(tier as object), line } as unknown as TreeNodeVM] });
+      const dupBook = withTier([...(tier as unknown as { line: Line }).line, { t: "book", printed: 34, pdf: 36 }]);
+      const across = { ...g.head, words: [{ t: "num", s: "4", size: "big" }, { t: "text", s: " across Region 4" }] } as GroupVM["head"];
+      const streamsHead: GroupVM = { ...g, head: across, scope: "All Region 4 streams" };
+      const badShare: GroupVM = { ...withTier([{ t: "text", s: "Up to 2 from streams" }]), head: across, scope: null };
+      expect([numberOnce(dupBook).length > 0, numberOnce(withTier((tier as unknown as { line: Line }).line)), regionWords(streamsHead).length > 0,
+              regionWords(badShare).length > 0, forms(g, { ...g, head: { ...g.head, ofTotal: !g.head.ofTotal } }).length > 0], c.id)
+        .toEqual([true, [], true, true, true]);
+      const vocab = vocabulary(await c.inputs());
+      expect(keepStrings({ ...page.keep, groups: [{ ...g, title: "Quokka and char" }] }).flatMap(wordsOf).filter((w) => !vocab.has(w))).toEqual(["quokka"]);
     }
+    expect(pinned, "a state with an Other fish group card").toBe(1);
   });
 });

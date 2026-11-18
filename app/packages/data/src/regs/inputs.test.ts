@@ -18,7 +18,7 @@ const rule = (rix: number, rank: number): StoredRule => ({ rix,
   facts: { kind: "gate" } as unknown as RuleFacts });
 const facts = (label: string) => ({ order: 0, label, short: label, lo: null, hi: null, runs: label, place: null, km: 1, closed_all_year: false,
   paper_licence: [] });
-const cell = (ladder: number, display: number): CellIds => ({ ladder, rows: 1, gear: 9, licence: 4, display });
+const cell = (ladder: number, display: number): CellIds => ({ ladder, rows: 1, gear: 9, licence: 4, display, trout: null });
 
 /** One water (gnis:1, ord 3) of three parts — part 0 on key 2 (no moments, closed Jun 1–30), part 1 on key 5 (a weekday
  *  split), part 2 outside B.C. — a picker grouping parts 0 and 1 as closed, and two sections (4097 named → part 1; 4098

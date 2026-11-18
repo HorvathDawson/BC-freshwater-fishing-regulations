@@ -200,7 +200,10 @@ SPEC = {
                       + ("; version 34 (trout plan F0): a SIXTH slot, `page_possession` — null, or {lead: null | "
                          "{says, value, src}, also: [{says, src}]}: the page's possession row chosen once in Python "
                          "(`card.page_line`): the lead's whole sentence, the value words the row shows and its rule; "
-                         "the lines kept under it (no trout- or char-only rule: the table's rows say those)"
+                         "the lines kept under it (no trout- or char-only rule: the table's rows say those). Version 34 "
+                         "also (the trout cutover): where the trout section has a table, every row mixing trout or char "
+                         "with other fish is two rows (its trout part, then the rest), and the rows the table covers "
+                         "(its `covers`) carry no `group` and no `elsewhere`: the table says them"
                          if page_possession_written() else ""),
             "strips": "[[[status, days]]] — version 30: every DISTINCT year strip, once (run-length over the 365 "
                       "book days, status keep | release | closed | none, the days summing to 365; see `rows[].year`). "
@@ -717,16 +720,22 @@ SPEC = {
                       "`unresolved_licensing` [licensing ref]. `km` null: no run carries a measure; `place` null: "
                       "no entry heading",
         },
-        # T810 ticket I (contract 2.1-2.6): the trout and char table, OPTIONAL — present only in a release built with
-        # `--trout-table` (then every cell has a value, NULL where no table is drawn); this text ships only with it
+        # T810 ticket I (contract 2.1-2.6): the trout and char table — every file since the cutover (ticket L); every cell
+        # has a value, NULL where no table is drawn
         "trout": {
-            "what": "The trout and char table (trout table plan, contract 2.3), OPTIONAL: present only in a release built "
-                    "with --trout-table. Per part key and segment, the table the page draws under its Trout and char entry "
+            "what": "The trout and char table (trout table plan, contract 2.3). "
+                    "Per part key and segment, the table the page draws under its Trout and char entry "
                     "(every word, structure and rule ref decided in Python; the app draws it and composes only the top "
                     "line's {day} slot), or null where none is drawn: the display frame at the same key and segment says "
                     "closed or tidal, or the rows frame asks about no trout or char fish (Q-D3). Decoded: "
-                    "`TroutFrame` {table, dates, covers} (schema `trout`); on the wire `trout.wire`.",
-            "version": "1",
+                    "`TroutFrame` {table, dates, covers} (schema `trout`); on the wire `trout.wire`. Version 2 (T810 L, "
+                    "owner 2026-11-18 on Region 4's cutthroat and rainbow): a band's kind may be \"size\" — the box's "
+                    "number and a size cap its rows share, \"counts toward the 2 · only 1 over 50 cm (20 in) between "
+                    "them\". Version 3 (owner 2026-11-18 00:52): a date said once — the card line (or a box's, or a "
+                    "band's) holds every row under it without a date of its own; the most specific level wins. Version 4 "
+                    "(owner 01:22 / 01:28): the top line's exception on a subline (`TopLine.sub`), nested bands "
+                    "(`Box.inner`), a fish's hatchery and wild twins as one row. Version 5: `split` marks that row.",
+            "version": "5",
             "at": "[[frame index per segment, or null (no table)] per key]",
             "frames": "[[table, dates | null, covers]] (`TroutFrameWire`) — `table` an index into `tables`, `dates` into "
                       "`dates` (null: no fish of the table changes later in the year), `covers` the rows frame's rows "
@@ -864,9 +873,12 @@ class RowsCodec:
 
     def decode_frame(self, sec, ref, rules, fish):
         fr = sec["frames"][ref]
-        # (the section's version is this code's: `decode` refuses another before any frame is read)
-        if len(fr) != (6 if page_possession_written() else 5):
-            raise AnswersError(f"answers: rows {ROWS_VERSION} frame {ref} has {len(fr)} slots")
+        # (the section's version is this code's: `decode` refuses another before any frame is read; a reader of an older
+        # release's own section — the changed-answers list, `answers_diff`, across the cutover — passes a rows 33
+        # section: five slots, or six where F0 wrote the page's possession before the cutover)
+        old = str(sec.get("version")) not in ("", "None") and int(sec.get("version")) < 34
+        if len(fr) not in ((5, 6) if old else (6 if page_possession_written() else 5,)):
+            raise AnswersError(f"answers: rows {sec.get('version', ROWS_VERSION)} frame {ref} has {len(fr)} slots")
         spp, fs, rs, line, ys = fr[:5]
         if len(ys) != len(rs):
             raise AnswersError(f"answers: rows frame {ref} has {len(rs)} rows and {len(ys)} strips")

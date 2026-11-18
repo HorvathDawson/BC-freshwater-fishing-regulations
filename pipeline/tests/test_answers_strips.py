@@ -31,7 +31,7 @@ def row(kind, year, **x):
 
 def frame(rows, spp=("RB",)):
     return {"spp": list(spp), "fish": {S: {"hatchery": DEC, "wild": None, "lead": "hatchery"} for S in spp}, "rows": rows,
-            "steelhead_line": None}
+            "steelhead_line": None, "page_possession": None}
 
 
 def roundtrip(values):
@@ -74,7 +74,8 @@ def test_no_stored_row_carries_a_strip():
 
 def test_the_frame_layout_is_spp_fish_rows_line_strips():
     sec, _refs, _ = roundtrip([frame([row("keep", KEEP)])])
-    assert sec["frames"] == [[["RB"], {"RB": [0, None, "hatchery"]}, [0], None, [0]]]      # rows 33: + the lead
+    # rows 33: + the lead; rows 34 (F0): + `page_possession`, the sixth slot
+    assert sec["frames"] == [[["RB"], {"RB": [0, None, "hatchery"]}, [0], None, [0], None]]
 
 
 def test_frames_equal_but_for_their_strips_stay_two_frames():
@@ -106,6 +107,7 @@ def test_the_model_check_still_holds_every_decoded_strip_to_365_days():
     full = {"kind": "release", "pool": None, "win": 3, "members": ["RB"], "all_members": ["RB"], "daily": None,
             "narrow": None, "everyone": [], "groups": [], "prot": None, "wins": None, "lift_notes": [], "scope": None}
     vals = [{"spp": ["RB"], "fish": {"RB": {"hatchery": None, "wild": None, "lead": None}}, "steelhead_line": None,
+             "page_possession": None,
              "rows": [{**full, "year": SPLIT}]}]
     sec, refs, back = roundtrip(vals)
     M.validate_section("rows", back)

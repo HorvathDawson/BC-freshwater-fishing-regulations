@@ -18,7 +18,7 @@
 import type { Presence, Stamp, TreeKind, TreeTier } from "../answers.generated";
 import type { CardModel } from "./card";
 import type { FishManifest } from "./fish.generated";
-import { leadSaysOrigin, pagesOf, shortOf, type HeadCtx } from "./grouphead";
+import { leadSaysOrigin, pagesOf, type HeadCtx } from "./grouphead";
 import { ruleBookLine } from "./book";
 import type { RegsInputs } from "./inputs";
 import { boldN, nbsp, text, type Line, type Run } from "./line";
@@ -261,7 +261,7 @@ export function tierNode(t: TreeTier, env: TreeEnv, root: boolean, seen: Readonl
     : null;
   const below = new Set([...seen, ...pg]);
   const children = nodesOf(t.children, env, below, t);
-  const base = { t: "tier" as const, tier: t.tier, tid: t.id, n: t.n, band: t.tier === "size", short: shortOf(t), children,
+  const base = { t: "tier" as const, tier: t.tier, tid: t.id, band: t.tier === "size", children,
     exception: t.over_region ? WORDS.EXCEPTION_REGIONAL : null };
   if (foldsShare(t, env)) {
     const origin = torg(bk);

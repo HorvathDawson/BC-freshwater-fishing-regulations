@@ -11,7 +11,7 @@ import { act, cleanup, fireEvent, render, screen, within } from "@testing-librar
 import type { HeaderVM } from "@app/core";
 import { LIGHT } from "../theme";
 import { pickPlace, RegsHeader, type TabSource } from "./RegsHeader";
-import { createPinStore } from "./pinStore";
+import { createTabStore } from "./tabStore";
 import bc1501 from "./fixtures/bc1_501.json";
 import glenn501 from "./fixtures/glenn_501.json";
 import glenn615 from "./fixtures/glenn_615.json";
@@ -36,7 +36,7 @@ const rgb = (hex: string) => {
 
 function mount(h: HeaderVM, o: { tabs?: TabSource } = {}) {
   const calls: string[] = [];
-  const r = render(<RegsHeader header={h} palette={LIGHT} tabs={o.tabs ?? createPinStore()}
+  const r = render(<RegsHeader header={h} palette={LIGHT} tabs={o.tabs ?? createTabStore()}
                                onDate={() => calls.push("date")} onTab={(t) => calls.push(`tab:${t}`)} />);
   return { r, calls };
 }
@@ -129,7 +129,7 @@ describe("<RegsHeader>", () => {
   });
 
   it("the selected tab is the tab source's (the pin store): a change re-renders the tabs", () => {
-    const store = createPinStore();
+    const store = createTabStore();
     mount(headerOf("vedder_1010"), { tabs: store });
     expect(screen.getByRole("tab", { name: "What you can keep" }).getAttribute("aria-selected")).toBe("true");
     fireEvent.click(screen.getByRole("tab", { name: "Gear" }));                 // the press only reports…
@@ -142,7 +142,7 @@ describe("<RegsHeader>", () => {
 describe("the sun line in the header (T471)", () => {
   const LINE = "Sunrise 08:04 PT · Sunset 17:37 PT";
   const mountSun = (sun: string | null, side = false) =>
-    render(<RegsHeader header={headerOf("vedder_1010")} palette={LIGHT} tabs={createPinStore()} onDate={() => {}} onTab={() => {}}
+    render(<RegsHeader header={headerOf("vedder_1010")} palette={LIGHT} tabs={createTabStore()} onDate={() => {}} onTab={() => {}}
                        side={side} sun={sun} />);
   it("is a secondary line inside the header, under the place label, the whole line", () => {
     mountSun(LINE);
@@ -166,7 +166,7 @@ describe("(T841) the classified-water badge", () => {
   const A = { cls: "II", label: "Class II", period: null, inForce: true, term: "classified_waters", aria: "Class II" } as const;
   const B = { ...A, period: "Jul 1–Dec 31", aria: "Class II, Jul 1–Dec 31" } as const;
   const mountWith = (classed: HeaderVM["classed"], onTerm?: (id: string) => void) =>
-    render(<RegsHeader header={{ ...base, ...(classed ? { classed } : {}) }} palette={LIGHT} tabs={createPinStore()}
+    render(<RegsHeader header={{ ...base, ...(classed ? { classed } : {}) }} palette={LIGHT} tabs={createTabStore()}
                        onDate={() => {}} onTab={() => {}} onTerm={onTerm} />);
 
   it("a classified header: the class in the name row, named by its words; a press opens its term", () => {

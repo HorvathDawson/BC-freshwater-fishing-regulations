@@ -30,7 +30,7 @@ describe("(T829) the salmon card in the trout keep box", () => {
     expect(within(box).getByTestId("keep-head").textContent).toBe("Up to 4 salmon a day in total, fresh and tidal waters combined · 8 in possession");
     // each species' row with its own cell: coho's and pink's numbers in a white box (their dates small under them),
     // sockeye (no number of its own) its status word, free
-    const cells = within(box).getAllByTestId("keep-group").map((g) => [within(g).getByTestId("keep-name").textContent,
+    const cells = within(box).getAllByTestId("box-group").map((g) => [within(g).getByTestId("keep-name").textContent,
       within(g).queryByTestId("keep-band-box")?.textContent ?? null, within(g).queryByTestId("keep-band-free")?.textContent ?? null]);
     expect(cells).toEqual([["Coho", "4 a day · only 2 over 50 cmJul 15–Aug 31", null], ["Sockeye", null, "Open"],
                            ["Pink", "2 a dayApr 1–Mar 31", null]]);
@@ -96,7 +96,8 @@ describe("(T829) the salmon card in the trout keep box", () => {
 
   it("a11y: each species row one label in payload order; every press named and 44 × 44", () => {
     render(<SalmonCard card={card()} palette={LIGHT} />);
-    const labels = within(screen.getByTestId("salmon-keep-box")).getAllByRole("group").map((e) => e.getAttribute("aria-label"));
+    // (T810 cutover) the row is its press: its one label is the button's name
+    const labels = within(screen.getByTestId("salmon-keep-box")).getAllByTestId("keep-row").map((e) => e.getAttribute("aria-label"));
     expect(labels[0]).toBe("Coho. Sizes (DFO): coho 30 cm or more to keep. Region 6 · Skeena River · B(ii). 4 a day · only 2 over 50 cm. Jul 15–Aug 31");
     for (const b of within(screen.getByTestId("salmon-card")).getAllByRole("button")) {
       expect(b.getAttribute("aria-label") || b.textContent, b.outerHTML.slice(0, 80)).toBeTruthy();

@@ -12,7 +12,7 @@ import { LIGHT } from "../theme";
 import { WaterFrame } from "../WaterFrame";
 import { forgetRegsScroll, recallRegsScroll, regsScrollKey } from "./scrollMemory";
 import { RegsScreen, type RegsScreenProps } from "./RegsScreen";
-import { createPinStore } from "./pinStore";
+import { createTabStore } from "./tabStore";
 import vedder1010 from "./fixtures/vedder_1010.json";
 
 afterEach(() => { cleanup(); vi.restoreAllMocks(); });
@@ -139,7 +139,7 @@ describe("<RegsScreen>", () => {
   });
 
   it("(T29) a tab press selects it at once and scrolls to its section top + 2 (prototype 2000); Keep scrolls to 0", () => {
-    const store = createPinStore();
+    const store = createTabStore();
     mount({ store });
     // react-native-web's ScrollView.scrollTo is the DOM node's scroll(): smooth when animated
     const to = vi.fn();
@@ -154,7 +154,7 @@ describe("<RegsScreen>", () => {
   it("(T29) the tab follows the scroll: past the Gear section's top the Gear tab is selected", () => {
     vi.useFakeTimers();
     try {
-      const store = createPinStore();
+      const store = createTabStore();
       mount({ store });
       act(() => {
         store.setViewport(584); store.setContentHeight(3300);
@@ -171,7 +171,7 @@ describe("<RegsScreen>", () => {
   it("(T41) a start link: its sheet is open at once; once the tab's section is measured the page jumps there (+ scroll), selects it, says started", () => {
     vi.useFakeTimers();
     try {
-      const store = createPinStore(), onStarted = vi.fn();
+      const store = createTabStore(), onStarted = vi.fn();
       const withSheets = { ...page, sheet: (k: string) => (page as unknown as { sheets: Record<string, unknown> }).sheets[k] ?? null } as RegsPage;
       mount({ page: withSheets, store, start: { tab: "gear", sheet: "pos:pos", scroll: 40 }, onStarted });
       const to = vi.fn();
@@ -187,8 +187,8 @@ describe("<RegsScreen>", () => {
     } finally { vi.useRealTimers(); }
   });
 
-  it("(T41) the dev-only walk hook: opens a sheet by key (a bad key: false) and reads the pin bar's lines; gone on unmount and outside dev", () => {
-    type Hook = { openSheet(k: string): boolean; pinLines(): string[] } | undefined;
+  it("(T41) the dev-only walk hook: opens a sheet by key (a bad key: false); gone on unmount and outside dev (T810 cutover: no pin bar lines)", () => {
+    type Hook = { openSheet(k: string): boolean } | undefined;
     const g = globalThis as { __DEV__?: boolean; __regsDebug?: Hook };
     mount();
     const outside = g.__regsDebug;
@@ -200,9 +200,8 @@ describe("<RegsScreen>", () => {
       const opened = [g.__regsDebug!.openSheet("nope")];
       act(() => { opened.push(g.__regsDebug!.openSheet("pos:pos")); });
       const heading = screen.getAllByRole("heading").map((h) => h.textContent).filter((t) => t === "Possession");
-      const lines = g.__regsDebug!.pinLines();
       cleanup();
-      expect({ outside, opened, heading, lines, after: g.__regsDebug }).toEqual({ outside: undefined, opened: [false, true], heading: ["Possession"], lines: [], after: undefined });
+      expect({ outside, opened, heading, after: g.__regsDebug }).toEqual({ outside: undefined, opened: [false, true], heading: ["Possession"], after: undefined });
     } finally { delete g.__DEV__; }
   });
 

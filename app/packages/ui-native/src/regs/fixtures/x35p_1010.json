@@ -177,336 +177,11 @@
  "keep": {
   "banner": null,
   "caveats": [],
-  "groups": [
-   {
-    "head": {
-     "exception": null,
-     "form": null,
-     "lead": null,
-     "leadN": null,
-     "multi": [
-      {
-       "open": "multi:r0",
-       "s": "Fishing more than one water today? ›",
-       "t": "link"
-      }
-     ],
-     "nolimit": false,
-     "ofTotal": false,
-     "rootTier": "t1",
-     "shareOf": null,
-     "terms": [],
-     "whyHere": null,
-     "words": [
-      {
-       "s": "5",
-       "size": "big",
-       "t": "num"
-      },
-      {
-       "s": " ",
-       "t": "text"
-      },
-      {
-       "s": "a day per angler across Region 6",
-       "t": "text"
-      }
-     ]
-    },
-    "more": {
-     "open": "src:r0",
-     "text": "See every regulation line ›"
-    },
-    "notKept": [],
-    "origin": {
-     "book": [
-      {
-       "pdf": 55,
-       "printed": 49,
-       "t": "book"
-      }
-     ],
-     "howtell": false,
-     "says": [],
-     "tag": null
-    },
-    "pinLine": {
-     "cls": "g",
-     "n": 5,
-     "said": [],
-     "sub": null,
-     "text": "Trout and char · 5 a day"
-    },
-    "quiet": null,
-    "row": 0,
-    "scope": "Region 6-wide",
-    "title": "Trout and char",
-    "tree": [
-     {
-      "band": false,
-      "children": [
-       {
-        "also": [
-         "Up to 1 over 90 cm (35 in)",
-         "No more than 3 counting any Dolly Varden/bull trout you keep"
-        ],
-        "duty": null,
-        "folded": true,
-        "kind": "Lake trout",
-        "pictures": [
-         {
-          "caption": "Lake trout ›",
-          "code": "LT",
-          "name": "Lake trout",
-          "open": "sp:LT",
-          "sil": false
-         }
-        ],
-        "presence": null,
-        "qualifiers": null,
-        "says": null,
-        "size": {
-         "chip": "between 60 cm (24 in) and 90 cm (35 in)",
-         "def": false,
-         "lead": "release any",
-         "rule": true,
-         "text": "release any between 60 cm (24 in) and 90 cm (35 in)",
-         "then": null
-        },
-        "species": [
-         "LT"
-        ],
-        "stamps": [],
-        "t": "kind",
-        "zero": false
-       }
-      ],
-      "exception": null,
-      "folded": false,
-      "kicker": null,
-      "line": [
-       {
-        "s": "This lake’s rule: up to ",
-        "t": "text"
-       },
-       {
-        "s": "2",
-        "size": "big",
-        "t": "num"
-       },
-       {
-        "s": " lake trout a day (part of the 5)",
-        "t": "text"
-       },
-       {
-        "s": " ",
-        "t": "text"
-       },
-       {
-        "box": [
-         {
-          "box": [
-           36,
-           316.32,
-           540,
-           359.04
-          ],
-          "pdf": 56,
-          "size": [
-           576,
-           756
-          ]
-         }
-        ],
-        "pdf": 56,
-        "printed": 50,
-        "t": "book"
-       }
-      ],
-      "n": 2,
-      "origin": null,
-      "relation": null,
-      "short": "up to 2 lake trout",
-      "sub": null,
-      "t": "tier",
-      "tid": "t2",
-      "tier": "own"
-     },
-     {
-      "band": true,
-      "children": [
-       {
-        "also": [],
-        "duty": null,
-        "folded": false,
-        "kind": "Brook trout, brown trout, cutthroat trout and rainbow trout",
-        "pictures": [
-         {
-          "caption": "Brook trout ›",
-          "code": "EB",
-          "name": "Brook trout",
-          "open": "sp:EB",
-          "sil": false
-         },
-         {
-          "caption": "Brown trout ›",
-          "code": "GB",
-          "name": "Brown trout",
-          "open": "sp:GB",
-          "sil": false
-         },
-         {
-          "caption": "Coastal cutthroat trout ›",
-          "code": "CT",
-          "name": "Cutthroat trout",
-          "open": "sp:CT",
-          "sil": false
-         },
-         {
-          "caption": "Rainbow trout ›",
-          "code": "RB",
-          "name": "Rainbow trout",
-          "open": "sp:RB",
-          "sil": false
-         }
-        ],
-        "presence": null,
-        "qualifiers": null,
-        "says": [
-         {
-          "s": "Up to ",
-          "t": "text"
-         },
-         {
-          "s": "5",
-          "size": "inline",
-          "t": "num"
-         },
-         {
-          "s": " brook, brown, cutthroat or rainbow trout combined",
-          "t": "text"
-         }
-        ],
-        "size": {
-         "chip": "any size",
-         "def": false,
-         "lead": null,
-         "rule": false,
-         "text": "any size",
-         "then": null
-        },
-        "species": [
-         "EB",
-         "GB",
-         "CT",
-         "RB"
-        ],
-        "stamps": [],
-        "t": "kind",
-        "zero": false
-       },
-       {
-        "also": [
-         "No more than 3 counting any lake trout you keep"
-        ],
-        "duty": null,
-        "folded": false,
-        "kind": "Dolly Varden/bull trout",
-        "pictures": [
-         {
-          "caption": "Bull trout ›",
-          "code": "DV",
-          "name": "Dolly Varden/bull trout",
-          "open": "sp:DV",
-          "sil": false
-         }
-        ],
-        "presence": null,
-        "qualifiers": null,
-        "says": [
-         {
-          "s": "Up to ",
-          "t": "text"
-         },
-         {
-          "s": "3",
-          "size": "inline",
-          "t": "num"
-         },
-         {
-          "s": " Dolly Varden/bull trout",
-          "t": "text"
-         }
-        ],
-        "size": {
-         "chip": "any size",
-         "def": false,
-         "lead": null,
-         "rule": false,
-         "text": "any size",
-         "then": null
-        },
-        "species": [
-         "DV"
-        ],
-        "stamps": [],
-        "t": "kind",
-        "zero": false
-       }
-      ],
-      "exception": null,
-      "folded": false,
-      "kicker": null,
-      "line": [
-       {
-        "s": "Only ",
-        "t": "text"
-       },
-       {
-        "s": "1",
-        "size": "big",
-        "t": "num"
-       },
-       {
-        "s": " of your rainbow trout, cutthroat trout, brown trout, Dolly Varden/bull trout and brook trout may be over 50 cm (20 in) — not 1 per species.",
-        "t": "text"
-       }
-      ],
-      "n": 1,
-      "origin": null,
-      "relation": null,
-      "short": "may be over 50 cm (20 in)",
-      "sub": null,
-      "t": "tier",
-      "tid": "t3",
-      "tier": "size"
-     }
-    ],
-    "worked": {
-     "label": "Examples of how to interpret regulations",
-     "lines": [
-      {
-       "a": "Keep 3 more here",
-       "at": "elsewhere",
-       "q": "Kept 2 elsewhere today?"
-      },
-      {
-       "a": "It counts here too: at most 1 over 50 cm (20 in) a day in all.",
-       "at": "elsewhere",
-       "q": "Kept trout or char over 50 cm (20 in) elsewhere today?"
-      }
-     ],
-     "says": "Your own limit, counted across every water in Region 6 you fish today, lakes and streams alike."
-    },
-    "year": null
-   }
-  ],
+  "groups": [],
   "inherited": null,
   "order": [
    "strip",
-   {
-    "group": 0
-   },
+   "trout",
    "otherFish",
    "possession",
    "whereNot"
@@ -612,14 +287,13 @@
   "plainRows": [],
   "possession": {
    "also": [
-    "Have no more than 2 lake trout in possession. Fish at home don’t count.",
     "Have no more than 4 northern pike in possession. Fish at home don’t count.",
     "Have no more than 4 Arctic grayling in possession. Fish at home don’t count."
    ],
    "label": "Possession",
    "open": "pos:pos",
    "rule": "z6:possession_quota::possession_quota.r1",
-   "says": "Possession: 2 days’ quota. Fish at home don’t count. Have no more than 2 lake trout in possession. Fish at home don’t count. Have no more than 4 northern pike in possession. Fish at home don’t count. Have no more than 4 Arctic grayling in possession. Fish at home don’t count.",
+   "says": "Possession: 2 days’ quota. Fish at home don’t count. Have no more than 4 northern pike in possession. Fish at home don’t count. Have no more than 4 Arctic grayling in possession. Fish at home don’t count.",
    "term": "possession_quota",
    "value": "2 days’ quota"
   },
@@ -663,6 +337,366 @@
    ],
    "status": "open",
    "todayAt": 0.7726027397260274
+  },
+  "trout": {
+   "boxes": [
+    {
+     "bands": [
+      {
+       "date": null,
+       "from": 0,
+       "kind": "upto",
+       "text": "counts toward the 5",
+       "to": 0
+      },
+      {
+       "date": null,
+       "from": 1,
+       "kind": "upto",
+       "text": "counts toward the 5",
+       "to": 1
+      },
+      {
+       "date": null,
+       "from": 2,
+       "kind": "upto",
+       "text": "counts toward the 5",
+       "to": 2
+      },
+      {
+       "date": null,
+       "from": 3,
+       "kind": "upto",
+       "text": "counts toward the 5",
+       "to": 3
+      },
+      {
+       "date": null,
+       "from": 4,
+       "kind": "shared",
+       "text": "counts toward the 5 · only 3 between them",
+       "to": 5
+      }
+     ],
+     "date": null,
+     "head": "Keep 5 in all",
+     "inner": [],
+     "kind": "keep",
+     "label": null,
+     "possession": null,
+     "rows": [
+      {
+       "a11y": "Brook trout. counts toward the 5",
+       "coming": [],
+       "date": null,
+       "fish": "EB",
+       "key": "EB",
+       "label": null,
+       "lines": [],
+       "name": "Brook trout",
+       "origin": null,
+       "quiet": [],
+       "sheet": {
+        "head": "Keep · counts toward the 5",
+        "here": [
+         {
+          "bold": false,
+          "t": "Any size."
+         },
+         {
+          "bold": false,
+          "t": "Counts toward the 5 in all, together with brown trout, cutthroat trout, rainbow trout, Dolly Varden/bull trout and lake trout."
+         },
+         {
+          "bold": false,
+          "t": "Only 1 over 50 cm (20 in), not counting lake trout."
+         }
+        ],
+        "src": [
+         3184,
+         3185,
+         3198
+        ]
+       },
+       "split": false,
+       "src": [
+        3184,
+        3185,
+        3198
+       ],
+       "sub": null
+      },
+      {
+       "a11y": "Brown trout. counts toward the 5",
+       "coming": [],
+       "date": null,
+       "fish": "GB",
+       "key": "GB",
+       "label": null,
+       "lines": [],
+       "name": "Brown trout",
+       "origin": null,
+       "quiet": [],
+       "sheet": {
+        "head": "Keep · counts toward the 5",
+        "here": [
+         {
+          "bold": false,
+          "t": "Any size."
+         },
+         {
+          "bold": false,
+          "t": "Counts toward the 5 in all, together with brook trout, cutthroat trout, rainbow trout, Dolly Varden/bull trout and lake trout."
+         },
+         {
+          "bold": false,
+          "t": "Only 1 over 50 cm (20 in), not counting lake trout."
+         }
+        ],
+        "src": [
+         3184,
+         3185,
+         3198
+        ]
+       },
+       "split": false,
+       "src": [
+        3184,
+        3185,
+        3198
+       ],
+       "sub": null
+      },
+      {
+       "a11y": "Cutthroat trout. counts toward the 5",
+       "coming": [],
+       "date": null,
+       "fish": "CT",
+       "key": "CT",
+       "label": null,
+       "lines": [],
+       "name": "Cutthroat trout",
+       "origin": null,
+       "quiet": [],
+       "sheet": {
+        "head": "Keep · counts toward the 5",
+        "here": [
+         {
+          "bold": false,
+          "t": "Any size."
+         },
+         {
+          "bold": false,
+          "t": "Counts toward the 5 in all, together with brook trout, brown trout, rainbow trout, Dolly Varden/bull trout and lake trout."
+         },
+         {
+          "bold": false,
+          "t": "Only 1 over 50 cm (20 in), not counting lake trout."
+         }
+        ],
+        "src": [
+         3184,
+         3185,
+         3198
+        ]
+       },
+       "split": false,
+       "src": [
+        3184,
+        3185,
+        3198
+       ],
+       "sub": null
+      },
+      {
+       "a11y": "Rainbow trout. counts toward the 5",
+       "coming": [],
+       "date": null,
+       "fish": "RB",
+       "key": "RB",
+       "label": null,
+       "lines": [],
+       "name": "Rainbow trout",
+       "origin": null,
+       "quiet": [],
+       "sheet": {
+        "head": "Keep · counts toward the 5",
+        "here": [
+         {
+          "bold": false,
+          "t": "Any size."
+         },
+         {
+          "bold": false,
+          "t": "Counts toward the 5 in all, together with brook trout, brown trout, cutthroat trout, Dolly Varden/bull trout and lake trout."
+         },
+         {
+          "bold": false,
+          "t": "Only 1 over 50 cm (20 in), not counting lake trout."
+         }
+        ],
+        "src": [
+         3184,
+         3185,
+         3198
+        ]
+       },
+       "split": false,
+       "src": [
+        3184,
+        3185,
+        3198
+       ],
+       "sub": null
+      },
+      {
+       "a11y": "Dolly Varden/bull trout. counts toward the 5 · only 3 between them",
+       "coming": [],
+       "date": null,
+       "fish": "DV",
+       "key": "DV",
+       "label": null,
+       "lines": [],
+       "name": "Dolly Varden/bull trout",
+       "origin": null,
+       "quiet": [],
+       "sheet": {
+        "head": "Keep · only 3 between them · counts toward the 5",
+        "here": [
+         {
+          "bold": false,
+          "t": "Any size."
+         },
+         {
+          "bold": false,
+          "t": "Counts toward the 5 in all, together with brook trout, brown trout, cutthroat trout, rainbow trout and lake trout."
+         },
+         {
+          "bold": false,
+          "t": "Only 3 between them: this fish and lake trout."
+         },
+         {
+          "bold": false,
+          "t": "Only 1 over 50 cm (20 in), not counting lake trout."
+         }
+        ],
+        "src": [
+         3184,
+         3186,
+         3185,
+         3198
+        ]
+       },
+       "split": false,
+       "src": [
+        3184,
+        3186,
+        3185,
+        3198
+       ],
+       "sub": null
+      },
+      {
+       "a11y": "Lake trout. release over 60 cm (24 in) and under 90 cm (35 in). only 2. only 1 over 90 cm (35 in). counts toward the 5 · only 3 between them",
+       "coming": [],
+       "date": null,
+       "fish": "LT",
+       "key": "LT",
+       "label": null,
+       "lines": [
+        "release over 60 cm (24 in) and under 90 cm (35 in)",
+        "only 2",
+        "only 1 over 90 cm (35 in)"
+       ],
+       "name": "Lake trout",
+       "origin": null,
+       "quiet": [],
+       "sheet": {
+        "head": "Keep · only 3 between them · counts toward the 5",
+        "here": [
+         {
+          "bold": false,
+          "t": "Size: release over 60 cm (24 in) and under 90 cm (35 in)."
+         },
+         {
+          "bold": false,
+          "t": "Counts toward the 5 in all, together with brook trout, brown trout, cutthroat trout, rainbow trout and Dolly Varden/bull trout."
+         },
+         {
+          "bold": false,
+          "t": "Only 3 between them: this fish and Dolly Varden/bull trout."
+         },
+         {
+          "bold": false,
+          "t": "Only 2."
+         },
+         {
+          "bold": false,
+          "t": "Only 1 over 90 cm (35 in)."
+         }
+        ],
+        "src": [
+         2117,
+         2123,
+         3184,
+         3186
+        ]
+       },
+       "split": false,
+       "src": [
+        2117,
+        2123,
+        3184,
+        3186,
+        2125,
+        2124
+       ],
+       "sub": null
+      }
+     ],
+     "strip": "only 1 over 50 cm (20 in), not counting lake trout",
+     "tag": null
+    }
+   ],
+   "card": null,
+   "covers": [
+    0,
+    1
+   ],
+   "elsewhere": [
+    "Trout and char: Your own limit, counted across every water in Region 6 you fish, lakes and streams alike.",
+    "Trout and char: Kept 2 elsewhere? Keep 3 more here.",
+    "Trout and char: Kept trout or char over 50 cm (20 in) elsewhere? It counts here too: at most 1 over 50 cm (20 in) a day in all.",
+    "Lake trout: This lake’s rule: 2 a day here. Lake trout you kept anywhere else count toward those 2. They also count toward Region 6’s 5 trout and char a day."
+   ],
+   "elsewhereLink": "Fished elsewhere today? ›",
+   "fold": {
+    "date": null,
+    "name": "Trout and char",
+    "tone": "keep",
+    "value": "5 a day"
+   },
+   "hatchLink": null,
+   "kind": "table",
+   "sourcesLink": "Sources ›",
+   "src": [
+    3184,
+    3185,
+    3198,
+    3186,
+    2117,
+    2123,
+    2125,
+    2124
+   ],
+   "together": null,
+   "top": {
+    "date": null,
+    "lead": "Keep 5 trout and char today",
+    "second": null,
+    "sub": null
+   },
+   "year": null
   },
   "whereNot": {
    "heading": "Where you can’t fish",
@@ -1356,14 +1390,6 @@
        "says": [],
        "tag": null
       },
-      "pinLine": {
-       "cls": "g",
-       "n": 5,
-       "said": [],
-       "sub": null,
-       "text": "Whitefish · 5 a day"
-      },
-      "quiet": null,
       "row": 3,
       "scope": "This water",
       "title": "Whitefish",
@@ -1522,14 +1548,6 @@
        "says": [],
        "tag": null
       },
-      "pinLine": {
-       "cls": "g",
-       "n": 4,
-       "said": [],
-       "sub": null,
-       "text": "Arctic grayling · 4 a day"
-      },
-      "quiet": null,
       "row": 4,
       "scope": "This water",
       "title": "Arctic grayling",
@@ -1815,14 +1833,6 @@
        "says": [],
        "tag": null
       },
-      "pinLine": {
-       "cls": "g",
-       "n": 4,
-       "said": [],
-       "sub": null,
-       "text": "Northern pike · 4 a day"
-      },
-      "quiet": null,
       "row": 6,
       "scope": "This water",
       "title": "Northern pike",
@@ -2255,7 +2265,7 @@
      "k": "para",
      "text": [
       {
-       "s": "Possession: 2 days’ quota. Fish at home don’t count. Have no more than 2 lake trout in possession. Fish at home don’t count. Have no more than 4 northern pike in possession. Fish at home don’t count. Have no more than 4 Arctic grayling in possession. Fish at home don’t count.",
+       "s": "Possession: 2 days’ quota. Fish at home don’t count. Have no more than 4 northern pike in possession. Fish at home don’t count. Have no more than 4 Arctic grayling in possession. Fish at home don’t count.",
        "t": "text"
       }
      ]
@@ -4509,106 +4519,7 @@
    "sub": null,
    "title": "White sturgeon"
   },
-  "src:r0": {
-   "blocks": [
-    {
-     "k": "head",
-     "text": "These decide it (4)"
-    },
-    {
-     "groups": [
-      {
-       "rows": [
-        {
-         "book": [
-          {
-           "pdf": 55,
-           "printed": 49,
-           "t": "book"
-          }
-         ],
-         "key": "z6:daily_quotas::trout_char_quota.r1",
-         "quote": "Trout/char: 5",
-         "role": "Sets the number",
-         "title": "Keep up to 5 trout and char a day"
-        },
-        {
-         "book": [
-          {
-           "pdf": 55,
-           "printed": 49,
-           "t": "book"
-          }
-         ],
-         "key": "z6:daily_quotas::trout_char_quota.r2",
-         "quote": "1 over 50 cm (quota includes hatchery steelhead)",
-         "role": "A limit inside the total",
-         "title": "At most 1 trout or char over 50 cm (20 in) a day"
-        },
-        {
-         "book": [
-          {
-           "pdf": 55,
-           "printed": 49,
-           "t": "book"
-          }
-         ],
-         "key": "z6:possession_quota::possession_quota.r1",
-         "quote": "Possession quotas = 2 daily quotas.",
-         "role": "Possession limit",
-         "title": "Possession: twice the daily quota"
-        },
-        {
-         "book": [
-          {
-           "pdf": 55,
-           "printed": 49,
-           "t": "book"
-          }
-         ],
-         "key": "z6:daily_quotas::trout_char_quota.r3",
-         "quote": "3 Dolly Varden/bull trout and/or lake trout combined",
-         "role": "A limit inside the total · for Dolly Varden/bull trout",
-         "title": "At most 3 Dolly Varden/bull trout and lake trout a day"
-        }
-       ],
-       "where": "Region 6 · region-wide"
-      }
-     ],
-     "k": "sources"
-    },
-    {
-     "body": [
-      {
-       "groups": [
-        {
-         "rows": [
-          {
-           "book": [],
-           "key": "zp:quota_defaults::quota_defaults.r1",
-           "notes": [],
-           "quote": "Possession quota — no more than twice the daily quota unless otherwise specified.",
-           "role": "Beaten by “Possession quotas = 2 daily quotas.”",
-           "title": "Possession: twice the daily quota",
-           "trib": false
-          }
-         ],
-         "where": "Provincial · province-wide"
-        }
-       ],
-       "k": "sources",
-       "overruled": true
-      }
-     ],
-     "k": "fold",
-     "open": false,
-     "summary": "Overruled (1)"
-    }
-   ],
-   "key": "src:r0",
-   "sub": "Bennett Lake · Oct 10. The more specific rule speaks first: this water, then from downstream, a named area, the region, then the province.",
-   "title": "Trout and char"
-  },
+  "src:r0": null,
   "srcs:always": {
    "blocks": [
     {

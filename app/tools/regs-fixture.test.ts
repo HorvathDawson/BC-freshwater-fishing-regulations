@@ -18,6 +18,7 @@ import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
 import { gunzipSync } from "node:zlib";
 import { describe, expect, it } from "vitest";
+import { REGS_FORMATS } from "@app/core";
 import { unpackBlob } from "@app/data/regs";
 import { REGS_FIXTURE_ROOT, regsFixtureDir } from "@app/data/release/node";
 
@@ -86,11 +87,11 @@ function closureProblems(db: Record<string, DatabaseSync>): string[] {
       for (const x of rows) need("rows_row", x, `rows_frame ${id}`);
     }
     for (const { id, j } of r.prepare("SELECT id, j FROM licence_frame ORDER BY id").all() as { id: number; j: Uint8Array }[]) {
-      // [h, d, under_16?, alien_closures?] (T789 G8: the 4th index is `licence_alien`'s, never a second under_16)
-      const [h, d, u, a, ...more] = val("licence_frame", j) as number[];
+      // [h, d, under_16?, alien_closures?] (T789 G8: the 4th index is `licence_alien`'s, never a second under_16; either may be null)
+      const [h, d, u16, alien, ...more] = val("licence_frame", j) as (number | null | undefined)[];
       need("licence_hold", h!, `licence_frame ${id}`); need("licence_doc", d!, `licence_frame ${id}`);
-      if (u !== undefined) need("licence_u16", u, `licence_frame ${id}`);
-      if (a !== undefined) need("licence_alien", a, `licence_frame ${id}`);
+      if (u16 != null) need("licence_u16", u16, `licence_frame ${id}`);
+      if (alien != null) need("licence_alien", alien, `licence_frame ${id}`);
       if (more.length) out.push(`${name}: licence_frame ${id} holds ${4 + more.length} indexes, at most 4`);
     }
     for (const { id, j } of r.prepare("SELECT id, j FROM licence_doc ORDER BY id").all() as { id: number; j: Uint8Array }[])
@@ -181,7 +182,7 @@ describe("T10 the committed regs fixture release", () => {
       .map((r) => ({ id: r.id, f: unpackBlob(r.j, dicts.get("licence_frame") ?? null) as number[] })).filter((r) => r.f.length === 3);
     const [held, gone] = [frames[0]!, frames[1]!];
     const u16 = Math.max(...ids(r2, "licence_u16")), stray = u16 + 1000;   // an alien id no licence_u16 row holds
-    r2.exec("CREATE TABLE licence_alien (id INTEGER PRIMARY KEY, j BLOB)");
+    r2.exec("CREATE TABLE IF NOT EXISTS licence_alien (id INTEGER PRIMARY KEY, j BLOB)");   // a fixture cut since G8 has the table
     r2.prepare("INSERT INTO licence_alien VALUES (?, ?)").run(stray, Buffer.from(JSON.stringify([{ rule: 1, says: "x" }])));
     const put = (id: number, f: number[]) => r2.prepare("UPDATE licence_frame SET j = ? WHERE id = ?").run(Buffer.from(JSON.stringify(f)), id);
     put(held.id, [...held.f, stray]); put(gone.id, [...gone.f, stray + 1]);
@@ -204,7 +205,8 @@ describe("T10 the committed regs fixture release", () => {
     }
     expect(Object.fromEntries(Object.entries(MAN.files).map(([n, f]) => [n, f.format]))).toEqual({
       core: "core/1", geo: "geo/2", water: "water/3", "regs-sid": "regs-sid/1",
-      ...Object.fromEntries(["1", "2", "3", "4", "5", "6", "7a", "7b", "8"].map((r) => [`regs-${r}`, "regs-region/1"])) });
+      ...Object.fromEntries(["1", "2", "3", "4", "5", "6", "7a", "7b", "8"].map((r) => [`regs-${r}`, REGS_FORMATS.region])) });
+    expect(REGS_FORMATS.region).toBe("regs-region/2");   // (T810 L) the trout section's cell column
   });
 
   it("5. small: under 3.5 MB gzipped in all", () => {

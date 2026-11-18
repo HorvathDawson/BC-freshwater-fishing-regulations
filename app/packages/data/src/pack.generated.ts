@@ -802,7 +802,7 @@ export const PACK_FILES: Record<string, PackFile> = {
     "tables": {}
   },
   "regs-1": {
-    "format": "regs-region/1",
+    "format": "regs-region/2",
     "kind": "sqlite",
     "tables": {
       "cell": [
@@ -812,7 +812,8 @@ export const PACK_FILES: Record<string, PackFile> = {
         "rows",
         "gear",
         "licence",
-        "display"
+        "display",
+        "trout"
       ],
       "display_frame": [
         "id",
@@ -867,13 +868,29 @@ export const PACK_FILES: Record<string, PackFile> = {
         "j"
       ],
       "rows_row": [
+        "id",
+        "j"
+      ],
+      "trout_dates": [
+        "id",
+        "j"
+      ],
+      "trout_frame": [
+        "id",
+        "j"
+      ],
+      "trout_sheet": [
+        "id",
+        "j"
+      ],
+      "trout_table": [
         "id",
         "j"
       ]
     }
   },
   "regs-2": {
-    "format": "regs-region/1",
+    "format": "regs-region/2",
     "kind": "sqlite",
     "tables": {
       "cell": [
@@ -883,7 +900,8 @@ export const PACK_FILES: Record<string, PackFile> = {
         "rows",
         "gear",
         "licence",
-        "display"
+        "display",
+        "trout"
       ],
       "display_frame": [
         "id",
@@ -938,13 +956,29 @@ export const PACK_FILES: Record<string, PackFile> = {
         "j"
       ],
       "rows_row": [
+        "id",
+        "j"
+      ],
+      "trout_dates": [
+        "id",
+        "j"
+      ],
+      "trout_frame": [
+        "id",
+        "j"
+      ],
+      "trout_sheet": [
+        "id",
+        "j"
+      ],
+      "trout_table": [
         "id",
         "j"
       ]
     }
   },
   "regs-3": {
-    "format": "regs-region/1",
+    "format": "regs-region/2",
     "kind": "sqlite",
     "tables": {
       "cell": [
@@ -954,7 +988,8 @@ export const PACK_FILES: Record<string, PackFile> = {
         "rows",
         "gear",
         "licence",
-        "display"
+        "display",
+        "trout"
       ],
       "display_frame": [
         "id",
@@ -1009,13 +1044,29 @@ export const PACK_FILES: Record<string, PackFile> = {
         "j"
       ],
       "rows_row": [
+        "id",
+        "j"
+      ],
+      "trout_dates": [
+        "id",
+        "j"
+      ],
+      "trout_frame": [
+        "id",
+        "j"
+      ],
+      "trout_sheet": [
+        "id",
+        "j"
+      ],
+      "trout_table": [
         "id",
         "j"
       ]
     }
   },
   "regs-4": {
-    "format": "regs-region/1",
+    "format": "regs-region/2",
     "kind": "sqlite",
     "tables": {
       "cell": [
@@ -1025,7 +1076,8 @@ export const PACK_FILES: Record<string, PackFile> = {
         "rows",
         "gear",
         "licence",
-        "display"
+        "display",
+        "trout"
       ],
       "display_frame": [
         "id",
@@ -1080,13 +1132,29 @@ export const PACK_FILES: Record<string, PackFile> = {
         "j"
       ],
       "rows_row": [
+        "id",
+        "j"
+      ],
+      "trout_dates": [
+        "id",
+        "j"
+      ],
+      "trout_frame": [
+        "id",
+        "j"
+      ],
+      "trout_sheet": [
+        "id",
+        "j"
+      ],
+      "trout_table": [
         "id",
         "j"
       ]
     }
   },
   "regs-5": {
-    "format": "regs-region/1",
+    "format": "regs-region/2",
     "kind": "sqlite",
     "tables": {
       "cell": [
@@ -1096,7 +1164,8 @@ export const PACK_FILES: Record<string, PackFile> = {
         "rows",
         "gear",
         "licence",
-        "display"
+        "display",
+        "trout"
       ],
       "display_frame": [
         "id",
@@ -1151,13 +1220,29 @@ export const PACK_FILES: Record<string, PackFile> = {
         "j"
       ],
       "rows_row": [
+        "id",
+        "j"
+      ],
+      "trout_dates": [
+        "id",
+        "j"
+      ],
+      "trout_frame": [
+        "id",
+        "j"
+      ],
+      "trout_sheet": [
+        "id",
+        "j"
+      ],
+      "trout_table": [
         "id",
         "j"
       ]
     }
   },
   "regs-6": {
-    "format": "regs-region/1",
+    "format": "regs-region/2",
     "kind": "sqlite",
     "tables": {
       "cell": [
@@ -1167,7 +1252,8 @@ export const PACK_FILES: Record<string, PackFile> = {
         "rows",
         "gear",
         "licence",
-        "display"
+        "display",
+        "trout"
       ],
       "display_frame": [
         "id",
@@ -1222,13 +1308,29 @@ export const PACK_FILES: Record<string, PackFile> = {
         "j"
       ],
       "rows_row": [
+        "id",
+        "j"
+      ],
+      "trout_dates": [
+        "id",
+        "j"
+      ],
+      "trout_frame": [
+        "id",
+        "j"
+      ],
+      "trout_sheet": [
+        "id",
+        "j"
+      ],
+      "trout_table": [
         "id",
         "j"
       ]
     }
   },
   "regs-7a": {
-    "format": "regs-region/1",
+    "format": "regs-region/2",
     "kind": "sqlite",
     "tables": {
       "cell": [
@@ -1238,7 +1340,8 @@ export const PACK_FILES: Record<string, PackFile> = {
         "rows",
         "gear",
         "licence",
-        "display"
+        "display",
+        "trout"
       ],
       "display_frame": [
         "id",
@@ -1293,13 +1396,29 @@ export const PACK_FILES: Record<string, PackFile> = {
         "j"
       ],
       "rows_row": [
+        "id",
+        "j"
+      ],
+      "trout_dates": [
+        "id",
+        "j"
+      ],
+      "trout_frame": [
+        "id",
+        "j"
+      ],
+      "trout_sheet": [
+        "id",
+        "j"
+      ],
+      "trout_table": [
         "id",
         "j"
       ]
     }
   },
   "regs-7b": {
-    "format": "regs-region/1",
+    "format": "regs-region/2",
     "kind": "sqlite",
     "tables": {
       "cell": [
@@ -1309,7 +1428,8 @@ export const PACK_FILES: Record<string, PackFile> = {
         "rows",
         "gear",
         "licence",
-        "display"
+        "display",
+        "trout"
       ],
       "display_frame": [
         "id",
@@ -1364,13 +1484,29 @@ export const PACK_FILES: Record<string, PackFile> = {
         "j"
       ],
       "rows_row": [
+        "id",
+        "j"
+      ],
+      "trout_dates": [
+        "id",
+        "j"
+      ],
+      "trout_frame": [
+        "id",
+        "j"
+      ],
+      "trout_sheet": [
+        "id",
+        "j"
+      ],
+      "trout_table": [
         "id",
         "j"
       ]
     }
   },
   "regs-8": {
-    "format": "regs-region/1",
+    "format": "regs-region/2",
     "kind": "sqlite",
     "tables": {
       "cell": [
@@ -1380,7 +1516,8 @@ export const PACK_FILES: Record<string, PackFile> = {
         "rows",
         "gear",
         "licence",
-        "display"
+        "display",
+        "trout"
       ],
       "display_frame": [
         "id",
@@ -1435,6 +1572,22 @@ export const PACK_FILES: Record<string, PackFile> = {
         "j"
       ],
       "rows_row": [
+        "id",
+        "j"
+      ],
+      "trout_dates": [
+        "id",
+        "j"
+      ],
+      "trout_frame": [
+        "id",
+        "j"
+      ],
+      "trout_sheet": [
+        "id",
+        "j"
+      ],
+      "trout_table": [
         "id",
         "j"
       ]
@@ -2569,31 +2722,7 @@ export const PACK_OPTIONAL: readonly string[] = ["flow-small", "lakes"];
  * `regulations.versions`), and none of them when it does not — all or nothing. The app's reader takes the names from
  * here; the version it was written for stays hand-typed (`OPTIONAL_VERSIONS`, core/src/regs/versions.ts).
  */
-export const PACK_OPTIONAL_SECTION_TABLES: Record<string, { cell: readonly string[]; tables: Record<string, readonly string[]> }> = {
-  "trout": {
-    "cell": [
-      "trout"
-    ],
-    "tables": {
-      "trout_dates": [
-        "id",
-        "j"
-      ],
-      "trout_frame": [
-        "id",
-        "j"
-      ],
-      "trout_sheet": [
-        "id",
-        "j"
-      ],
-      "trout_table": [
-        "id",
-        "j"
-      ]
-    }
-  }
-};
+export const PACK_OPTIONAL_SECTION_TABLES: Record<string, { cell: readonly string[]; tables: Record<string, readonly string[]> }> = {};
 
 /** (T403) The files only the web fetches (the answer slices and contract WEB_ONLY): a phone never installs or holds one. */
 export const PACK_WEB_ONLY: readonly string[] = ["core-1", "core-2", "core-3", "core-4", "core-5", "core-6", "core-7a", "core-7b", "core-8", "water-1", "water-2", "water-3", "water-4", "water-5", "water-6", "water-7a", "water-7b", "water-8", "water-shared"];

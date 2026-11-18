@@ -23,7 +23,7 @@
 //                                                              test/app/android/latest.json and play.json name that version
 //                                                              (a build on the test channel reads them in its background check)
 //   node deploy/staging/test-updates.mjs side <release dir>    (T810 V-py, trout contract 2.8 / Q-D11) a SIDE release (one
-//                                                              built with --trout-table, e.g. by scripts/trout-refresh.sh):
+//                                                              holding the trout section, e.g. by scripts/trout-refresh.sh):
 //                                                              its data files go to test/release/<id>/ and the test
 //                                                              manifest names them (see `sideManifest` for the one way a
 //                                                              test manifest can reach them, and its limit)
@@ -138,18 +138,25 @@ export const SIDE_PREFIX = 'test/release/';
 /** The test manifest for side release `m`: its data files' urls reach test/release/<id>/ from `${origin}/release/`. */
 export function sideManifest(m) {
   if (!(m.regulations?.versions ?? {}).trout)
-    throw new Error(`${m.data_release}: no trout section — a side release is built with --trout-table`);
+    throw new Error(`${m.data_release}: no trout section — a release cut before the trout cutover (T810 L)`);
   const id = m.data_release;
   const files = {};
   for (const [name, f] of Object.entries(m.files)) {
     if (!f.url.startsWith(`${id}/`)) throw new Error(`${name}: ${f.url} is not in the release folder ${id}/`);
     files[name] = { ...f, url: `../${SIDE_PREFIX}${f.url}` };
   }
-  return { ...structuredClone(m), files };
+  const out = { ...structuredClone(m), files };
+  // (T810 bench 2026-11-18) a side release cuts its OWN synopsis into its folder (r-…/synopsis-….pdf): staging's release/
+  // never holds it, so a first install's synopsis download was a 404 and the start failed at 468.6 of 480.4 MB. It goes
+  // to test/ as the data files do; a synopsis named outside the folder (the live one's) keeps its url.
+  if (m.synopsis?.url?.startsWith(`${id}/`)) out.synopsis = { ...out.synopsis, url: `../${SIDE_PREFIX}${m.synopsis.url}` };
+  return out;
 }
-/** Where each data file goes: [local path under the release root, bucket key] — test/ keys only. */
+/** Where each data file goes: [local path under the release root, bucket key] — test/ keys only (the synopsis too, when
+ *  it is the side release's own). */
 export function sideUploads(m) {
-  return Object.values(m.files).map((f) => [f.url, `${SIDE_PREFIX}${f.url}`]);
+  const own = m.synopsis?.url?.startsWith(`${m.data_release}/`) ? [m.synopsis] : [];
+  return [...Object.values(m.files), ...own].map((f) => [f.url, `${SIDE_PREFIX}${f.url}`]);
 }
 /** The bucket key a manifest url names, as a normalising client resolves it against `${origin}/release/`. */
 export function keyOf(url) {
@@ -166,6 +173,8 @@ export async function side(dir) {
     const key = keyOf(f.url);
     if (key !== `${SIDE_PREFIX}${m.files[name].url}`) throw new Error(`${name}: ${f.url} resolves to ${key}`);
   }
+  if (t.synopsis && t.synopsis.url !== m.synopsis.url && keyOf(t.synopsis.url) !== `${SIDE_PREFIX}${m.synopsis.url}`)
+    throw new Error(`synopsis: ${t.synopsis.url} resolves to ${keyOf(t.synopsis.url)}`);
   const ups = sideUploads(m);
   for (const [local] of ups) if (!fs.existsSync(path.join(root, local))) throw new Error(`missing ${local} under ${root}`);
   for (const [local, key] of ups) {

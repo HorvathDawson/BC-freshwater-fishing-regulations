@@ -74,7 +74,7 @@ export type WalkthroughTarget = "days" | "modes" | "map" | "tab:conditions" | "t
   | "search:hit" | "search:go"
   | "view:regs" | "view:conditions" | "water:back"
   | "regs:answer" | "regs:date" | "regs:keep" | "regs:tabs" | "regs:place" | "regs:book"
-  | "regs:salmon" | "regs:trout" | "regs:rule" | "regs:ruleline" | "regs:both"
+  | "regs:salmon" | "regs:trout" | "regs:both"
   | "cond:headline" | "cond:horizons" | "cond:reading" | "cond:quantity" | "cond:span" | "cond:chart"
   | "spot:days" | "spot:best"
   | "locate" | "layers" | "layers:ground" | "layers:obstacles"

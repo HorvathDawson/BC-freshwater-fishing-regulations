@@ -3,6 +3,8 @@
 (`parent_of`)."""
 from __future__ import annotations
 
+import re
+
 from typing import Dict, List, Optional, Sequence
 from pipeline.common import entry_id as EID
 from pipeline.deliver.answers import common
@@ -347,6 +349,128 @@ def _line(q: str, a: str, model: dict, kinds: Sequence[str], kept, at: str, here
             "of": None if of is None else list(of)}
 
 
+#: T810 L: a pool of one kind of water (Region 8's "20 brook trout from streams") says that kind in its kept-elsewhere
+#: sentence and worked line. False = the mutation pin (`test_t810_cutover.py`)
+A_ONE_WATER_POOL_SAYS_ITS_WATER = True
+#: (the C2 proof bundle) the share's lake line counts a fish kept at a lake against the smaller cap every kind here sits
+#: under. False = the pin ("Keep 2 more here" where the engine keeps 1)
+A_LAKE_LINE_UNDER_ITS_CAP = True
+
+
+def scope_words(s: str) -> str:
+    """(T810 L) a scope's entry name as a sentence carries it: a qualifier the book writes after a comma or as "waters
+    other than" goes in brackets — "Region 1, excluding Haida Gwaii" -> "Region 1 (excluding Haida Gwaii)", "BOWRON LAKE
+    Park waters other than Bowron Lake" -> "BOWRON LAKE Park (other than Bowron Lake)"; any other name as it is."""
+    m = re.fullmatch(r"(.+?), (excluding .+)", s)
+    if m:
+        return f"{m[1]} ({m[2]})"
+    m = re.fullmatch(r"(.+?) waters (other than .+)", s)
+    if m:
+        return f"{m[1]} ({m[2]})"
+    return s
+
+
+def every_of(s: str, wk: Optional[str], both: bool = False) -> str:
+    """"every Region 2 stream", "every water in Region 6", "every stream in Regions 2 and 8" (a straddler's two regions,
+    `both`), and a name with a qualifier always "every stream in Region 1 (excluding Haida Gwaii)": never spliced
+    mid-sentence ("every Region 1, excluding Haida Gwaii stream" read as two lists; the coordinator 2026-11-18)."""
+    label = scope_words(s)
+    if wk is None:
+        return f"every water in {label}"
+    if both or label != s or "(" in label or "," in label:
+        return f"every {wk} in {label}"
+    return f"every {s} {wk}"
+
+
+#: (the re-review of 5788a7914, owner "exact, not conservative") a worked kept-elsewhere line holds for EVERY trout and
+#: char it covers: where keeping those fish there leaves a different number here by fish (Region 6's lake trout and Dolly
+#: Varden under their own 3, Region 8's brook trout counted apart), the line names its fish, one line per answer — the
+#: answer most fish share keeps its words for "other trout or char". False = the mutation pin (one line for any fish)
+A_WORKED_LINE_EXACT_PER_FISH = True
+
+_KEPT_Q = re.compile(r"Kept (\d+(?:\.\d+)?) (elsewhere|on another (stream|lake)|at a (stream|lake))( today)?\?")
+
+
+def _more_words(k) -> str:
+    return "None more here" if k == 0 else f"Keep {_js(k)} more here"
+
+
+def _exact_lines(P, model: dict, row: dict, grp: Optional[dict], lines: List[dict]) -> List[dict]:
+    """`A_WORKED_LINE_EXACT_PER_FISH`: each worked line "Kept n <place>? <answer>" checked by the engine for every trout
+    and char kept there (each origin; a fish no basket of n can be kept of today is out of it); where the number here
+    differs by fish the line splits, named: "Kept 2 lake trout or Dolly Varden/bull trout elsewhere? Keep 1 more here."
+    and the original words for "Kept 2 other trout or char elsewhere? …"."""
+    if not A_WORKED_LINE_EXACT_PER_FISH or P is None or not getattr(P, "cands", None):
+        return lines
+    from pipeline.deliver.answers.engine import Engine
+    kinds = [S for S in ((grp or {}).get("kinds") or row["members"]) if _kept_origin(model, S) is not None]
+    if not kinds or not set(row["members"]) <= common.trout_char():
+        return lines                       # (trout and char only: another fish's lines speak of its own kinds)
+    E = Engine(P, P.cands[0].key)
+    other = "stream" if P.kind == "stream" else "lake"
+    away = "lake" if P.kind == "stream" else "stream"
+    # an unlabelled line reads as any trout or char (the re-review of f34069a91): checked over every one; a row of one
+    # fish whose line is not true of every one names that fish ("Kept 2 brook trout on another stream? Keep 18 more")
+    tc = sorted(common.trout_char())
+    single = sorted(set(row["members"]))[0] if len(set(row["members"])) == 1 else None
+    out: List[dict] = []
+    for L in lines:
+        m = _KEPT_Q.fullmatch(L["q"])
+        said = re.match(r"(?:Keep (\d+(?:\.\d+)?) more here|None more here)", L["a"])
+        claim = L.get("here")
+        if claim is None and said:
+            # (a line whose number the gate does not prove — "Keep 3 more here, but no more than 1 … from streams in
+            # all" — still states one: the words' own)
+            claim = float(said[1]) if said[1] else 0
+            claim = int(claim) if float(claim).is_integer() else claim
+        if not m or claim is None or L.get("over_cm") is not None or L.get("most", "exactly") != "exactly":
+            out.append(L)
+            continue
+        n, place = float(m[1]), (m[3] or m[4] or "elsewhere")
+        places = (other, away) if place == "elsewhere" else (place,)
+        res: Dict[str, set] = {}
+        for S in tc:
+            for p in places:
+                for o in common.ORIGINS:
+                    got: list = []
+                    for f in E.fish([S], (p,), (o,)):
+                        while len(got) < n and E.can_keep(got, f):
+                            got.append(f)
+                    if len(got) == n:
+                        res.setdefault(S, set()).add(E.most(E.fish(kinds), got, cap=int(claim) + 25))
+        if not res or all(v == {claim} for v in res.values()):
+            out.append(L)
+            continue
+        if single is not None:
+            mine = res.get(single)
+            if mine is None or len(mine) > 1:
+                out.append(L)
+                continue
+            k0 = next(iter(mine))
+            out.append({**L, "q": f"Kept {_js(n)} {common.lc_names([single])} {m[2] + (m[5] or '')}?",
+                        "a": L["a"] if k0 == claim else _more_words(k0), "here": L.get("here") if k0 == claim else k0,
+                        "species": [single]})
+            continue
+        if any(len(v) > 1 for v in res.values()):
+            out.append(L)
+            continue
+        by: Dict[float, List[str]] = {}
+        for S, v in res.items():
+            by.setdefault(next(iter(v)), []).append(S)
+        rest_k = claim if claim in by else max(by, key=lambda k: len(by[k]))
+        where = m[2] + (m[5] or "")
+        for k, fish in sorted(by.items(), key=lambda kv: kv[0] == rest_k):
+            if k == rest_k:
+                q = f"Kept {_js(n)} other trout or char {where}?"
+                a = L["a"] if k == claim else _more_words(k)
+            else:
+                q = f"Kept {_js(n)} {common.lc_names(fish, ' or ')} {where}?"
+                a = _more_words(k)
+            out.append({**L, "q": q, "a": a, "here": L.get("here") if (k == rest_k and k == claim) else k,
+                        "species": [S for S in fish if S in kinds] or list(fish)})
+    return out
+
+
 def elsewhere_of(P: "Part", model: dict, row: dict, sc: dict, T: R,
                  grp: Optional[dict]) -> dict:
     """The kept-elsewhere line of a keep row (rows F9, F14) — `says` one sentence, `ask`
@@ -364,8 +488,7 @@ def elsewhere_of(P: "Part", model: dict, row: dict, sc: dict, T: R,
         other = "lake" if wk == "stream" else "stream"
         mine = next((x for x in (grp or {}).get("subcaps", []) if x["r"] == nw.key), None)
         tot = "unlimited" if T.f.get("unlimited") else T.f.get("take")
-        says = (f"Your own limit, counted across every {wk} in {s} you fish today." if both and s == both
-                else f"Your own limit, counted across every {s} {wk} you fish today.")   # RULINGS P44
+        says = f"Your own limit, counted across {every_of(s, wk, bool(both and s == both))} you fish today."  # P44
         # RULINGS Q23b: the stream tally counts every trout/char kept from ANY
         # stream today; a kind THIS water lifts may still go past it here, to its own quota and the
         # total — after n kept on another stream, up to min(its own, total - n) more of it here
@@ -394,22 +517,57 @@ def elsewhere_of(P: "Part", model: dict, row: dict, sc: dict, T: R,
         unl = tot == "unlimited" or any(x is None for x in lifted_own)
         here1 = None if unl else min(tot - n, sum(m for _w, m in ex)) if ex else 0
         here2 = None if unl else min(tot - 1, n + sum(lifted_own), INF if up is None else up)
+        if here2 is not None and A_LAKE_LINE_UNDER_ITS_CAP and not lifted_own:
+            # (the C2 proof bundle: Qualcho Creek in winter) every kind kept here under a smaller cap of the total (Region
+            # 5's char): one kept at a lake is one of those, so at most the cap less 1 more here (no kind lifted past
+            # the share: a lifted kind's own number is worked out above)
+            caps = [x["take"] for x in (grp or {}).get("subcaps", []) if x.get("water") is None
+                    and x.get("over_cm") is None and x.get("take") is not None
+                    and set(row["members"]) <= set(x.get("of") or ())]
+            capped = None
+            if caps:
+                capped = (here2, min(here2, max(0, min(caps) - 1)))       # (any other fish, one of the capped kinds)
         # RULINGS P41: the lake line says how many are left here after 1 kept there (the gate
         # proves `here`), then why: "Keep 2 more here. Fish from lakes count toward the 4 a day, not
         # toward the 2 from streams."
-        if tot == "unlimited":
+        else:
+            capped = None
+
+        def lake_words(k):
+            return (f"Keep {_js(k)} more here. Fish from {other}s count toward the {_js(tot)} a day, not "
+                    f"toward the {_js(n)} from {wk}s.")
+        if capped is not None and capped[1] < capped[0]:
+            # (the re-review of 3f273c172) the line names the fish: one of the capped kinds kept at a lake leaves the cap
+            # less 1 here; any other trout or char leaves the share's own number ("Kept 1 lake trout at a lake? Keep 1
+            # more here." / "Kept 1 other trout or char at a lake? Keep 2 more here.")
+            mine = list(row["members"])
+            rest = sorted(S for S in common.trout_char() if S not in mine)
+            lines = [_line(f"Kept {_js(n)} on another {wk}?", a1, model, held, n, wk, here1, kind="stream_tally"),
+                     _line(f"Kept 1 {common.lc_names(mine, ' or ')} at a {other}?", lake_words(capped[1]), model,
+                           mine, 1, other, capped[1]),
+                     {**_line(f"Kept 1 other trout or char at a {other}?", lake_words(capped[0]), model, mine, 1,
+                              other, capped[0]), "species": rest}]
+        elif tot == "unlimited":
             a2 = f"They don’t count toward the {_js(n)} from {wk}s"
         elif here2 is None:
             a2 = f"They count toward the {_js(tot)} a day, not toward the {_js(n)} from {wk}s"
         else:
-            a2 = (f"Keep {_js(here2)} more here. Fish from {other}s count toward the {_js(tot)} a day, not "
-                  f"toward the {_js(n)} from {wk}s.")
-        lines = [_line(f"Kept {_js(n)} on another {wk}?", a1, model, held, n, wk, here1, kind="stream_tally"),
-                 _line(f"Kept 1 at a {other}?" if here2 is not None else f"Kept some at a {other}?", a2,
-                       model, row["members"], 1, other, here2)]
+            a2 = lake_words(here2 if capped is None else capped[1])
+        if not (capped is not None and capped[1] < capped[0]):
+            lines = [_line(f"Kept {_js(n)} on another {wk}?", a1, model, held, n, wk, here1, kind="stream_tally"),
+                     _line(f"Kept 1 at a {other}?" if here2 is not None else f"Kept some at a {other}?", a2,
+                           model, row["members"], 1, other, here2)]
     elif s:
-        says = f"Your own limit, counted across every water in {s} you fish today" + \
-            (", lakes and streams alike." if not pool.f.get("water") else ".")
+        # T810 L (Region 8 p.68 "And you may retain: 20 brook trout from streams"): a pool of ONE kind of water counts
+        # only the fish kept today from that kind — said so (the share's own form, RULINGS P44), and its worked line
+        # keeps them on another water of that kind ("Kept 2 on another stream?"), never "elsewhere" (a lake's do not
+        # count). False = the mutation pin (the sentence said "every water" and the line "elsewhere")
+        wk = pool.f.get("water") if A_ONE_WATER_POOL_SAYS_ITS_WATER else None
+        if wk:
+            says = f"Your own limit, counted across {every_of(s, wk, bool(both and s == both))} you fish today."
+        else:
+            says = f"Your own limit, counted across {every_of(s, None)} you fish today" + \
+                (", lakes and streams alike." if not pool.f.get("water") else ".")
         if row["kind"] == "keep" and n is not None and n > 1:
             k = 2 if n > 2 else 1
             a = f"Keep {_js(n - k)} more here"
@@ -425,8 +583,9 @@ def elsewhere_of(P: "Part", model: dict, row: dict, sc: dict, T: R,
                 if ex:
                     # RULINGS Q23b: lifted fish count toward the tally; they may go past it here
                     a += f" ({ex} may go past it here)"
-            lines = [_line(f"Kept {k} elsewhere today?", a, model, (grp or {}).get("kinds") or row["members"],
-                           k, "elsewhere", None if sh is not None else n - k, kind="tally")]
+            lines = [_line(f"Kept {k} on another {wk}?" if wk else f"Kept {k} elsewhere today?", a, model,
+                           (grp or {}).get("kinds") or row["members"], k, wk or "elsewhere",
+                           None if sh is not None else n - k, kind="tally")]
     else:
         # RULINGS P26: SPECIFIC — whose limit, its number, and which fish kept elsewhere today count
         # toward it (the row's kinds: Ape Creek's char released on Oct 10 are not among them): "The Bella
@@ -451,11 +610,19 @@ def elsewhere_of(P: "Part", model: dict, row: dict, sc: dict, T: R,
                      f" They also count toward the {written_name_of(T)} across {both}, which has no daily limit.")
         elif T is not pool:
             whose = T.x.get("entry_name") if badge_of(T) != "water" else None
-            whose = "B.C.’s" if badge_of(T) == "bc" else f"{whose}’s" if whose else "the"
-            says += (f" They also count toward {whose} {_js(T.f.get('take'))} {written_name_of(T)} a "
-                     f"day." if not T.f.get("unlimited") else
-                     f" They also count toward {whose} {written_name_of(T)}, which has no daily "
-                     f"limit.")
+            if whose and badge_of(T) != "bc" and scope_words(whose) != whose:
+                # a name with a qualifier takes no "’s" ("Region 1, excluding Haida Gwaii’s 4 trout"): said across it
+                w = scope_words(whose)
+                says += (f" They also count toward the {_js(T.f.get('take'))} {written_name_of(T)} a day across "
+                         f"{w}." if not T.f.get("unlimited") else
+                         f" They also count toward the {written_name_of(T)} across {w}, which has no daily limit.")
+            else:
+                whose = "B.C.’s" if badge_of(T) == "bc" else f"{whose}’s" if whose else "the"
+                says += (f" They also count toward {whose} {_js(T.f.get('take'))} {written_name_of(T)} a "
+                         f"day." if not T.f.get("unlimited") else
+                         f" They also count toward {whose} {written_name_of(T)}, which has no daily "
+                         f"limit.")
+    lines = _exact_lines(P, model, row, grp, lines)
     lines += over_elsewhere(P, model, row, grp)
     if two_tables(grp):
         # A PIECE IN TWO REGIONS (T183): "kept 1 elsewhere today" has no one answer — a stream in which

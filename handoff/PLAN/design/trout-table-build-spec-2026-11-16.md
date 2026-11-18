@@ -368,6 +368,32 @@ waits for; the contract's list says where each landed, and its new 2.12 sums up 
 plus `trout` only when `meta.optional` holds it. `reads.trout` decodes the four families into `TroutValue`, and
 `RegsInputs.trout` carries it (null for a NULL cell, absent with no section). Details are in the T810 ticket.
 
+**Built 2026-11-17 (app chat, branch `app/t810-n`): N (contract items 6 and 9 behind the dev switch, and 10).**
+`core/src/regs/trout.ts` `troutOf` gives `TroutVM` or a reported refusal. It composes only the `{day}` slot (through
+`dayPhrase`, which the strip shares) and the a11y join. Its shape check refuses all 14 hand cases. The dev switch is
+`RegsPageOpts.troutTable`, off by default, so the page is unchanged. With it on: `KeepVM.trout`, one `"trout"` block,
+the other-fish split by `covers`, caveat (b) skipping covered fish, and the trout fold from `fold` / `DateSet.fold`.
+The tests are in `conformance/src/regs/trout.release.test.ts` (vectors, hand cases, a11y golden, drawn exactly once
+over every fixture cell, imports). Details, and one contract gap (a text ending in "." doubles the stop in the a11y
+join), are in the T810 ticket.
+
+**Built 2026-11-17 (app chat, branch `app/t810-o`): O (contract items 11, 12, 13 behind the dev switch).**
+`ui-native/src/regs/TroutCard.tsx` draws N's `TroutVM` through T829's `KeepBox` / `ShutGroup` (one component),
+with `TroutYearBar.tsx` on `YearStrip`'s exported `RunRect` / `Patterns`. Every string is drawn unchanged. The salmon
+and trout folds end in the arrow (`KeepBlocks` `ArrowFold`): the whole row is one 44 px press, `aria-expanded`, and is
+named by its visible words. `KeepTab` builds the salmon fold and one trout fold, and leaves the other fish unchanged.
+The switch is `EXPO_PUBLIC_TROUT_TABLE=1`. Off, the tab is today's. The a11y join adds no second stop (contract 2.8 as
+amended). `help.ts` is left to T842. Item 12 (notes): none, per Q-D7. Until P, a row's picture opens `sp:<fish>`.
+Details are in the T810 ticket.
+
+**Built 2026-11-17 (app chat, branch `app/t810-p`): P (the fish sheet, behind the dev switch).** Keys `tf:<row key>`
+(the "/" parses) and `src:trout`; a `tf:` key has no state id in the golden bridge. `core/src/regs/sheets/trout.ts`
+builds both from the payload only: title = `name`, sub = the label or origin word as on the row, then `FishSheet.head`;
+"Here, today" = `here` (bold where `bold`) then `DateSet.sheet[key]`; "How to tell it" = the manifest's pictures (both
+for DV), `FISH_TIPS`, the hatchery link on a row with an origin or a label; "Sources" = `FishSheet.src` in its order,
+then "All sources ›" = `table.src`. No list is sorted, merged or cut. TroutCard's row picture opens `tf:<row key>` and
+"Sources ›" opens `src:trout`. No new sheet block kind. Details are in the T810 ticket.
+
 **Owner answers this section is written to** (verbatim labels):
 - About 16:55 (app chat dialog): fold row "All rows get arrow"; pinned top line "Drop it (Recommended)" (S removes the
   trout pin line); a lone other fish beside trout "Stays as today (Recommended)"; the year bar's "Trout: release

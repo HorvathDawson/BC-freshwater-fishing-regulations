@@ -28,13 +28,13 @@ import { cap, clean, gameFish, spName, type SpeciesBook } from "./names";
 import { makePlace } from "./place";
 import type { Settled } from "./settle";
 import { daySegments, tapDay } from "./tap";
-import { fmtDay } from "./strip";
-import { sameDay } from "../day";
+import { dayPhrase } from "./strip";
 import { timeCond, winTxt } from "./time";
 import { ruleBook } from "./book";
 import { WD3, WORDS, pageWaterNoun } from "./words";
 
 export type { CaveatVM } from "./model";
+
 
 /** The families the Keep tab's caveats speak for (renderCard). */
 export const KEEP_FAMS: readonly string[] = Object.freeze(["retention", "access"]);
@@ -167,7 +167,7 @@ export function partClosedOf(s: Settled, inp: RegsInputs, today: Day): CaveatVM 
   const shut = s.inpart.filter((x) => closedGate(x.rule));
   if (!shut.length) return null;
   const noun = pageWaterNoun(inp), now = shut.filter((x) => x.now), later = shut.filter((x) => !x.now);
-  const when = sameDay(s.day, today) ? WORDS.TODAY_LC : WORDS.ON_DAY(fmtDay(s.day));
+  const when = dayPhrase(s.day, today);
   return {
     kind: "partclosed", hot: now.length > 0,
     title: now.length ? WORDS.PART_CLOSED_NOW(noun, when) : WORDS.PART_CLOSED_LATER(noun),
@@ -201,8 +201,13 @@ const describeShort = (r: RuleView, inp: RegsInputs) => cap(describe(r, sp(inp))
  * moment while the card's is open — its stored closures; (b) a fish whose stored answer differs between the day's open
  * moments; (c) an angler closure that speaks at some of the day's moments, not the card's. `settledAtSeg(j)` is T07's
  * settle at segment j of the same day (its display frame and ladder).
+ *
+ * (T810 N, S) `covered`: the members of the rows the trout table replaces (its `covers`). Such a fish is the table's,
+ * which says its weekday and hours words itself (contract 2.2, 2.5), so (b) always skips it, as it skips a week-split
+ * fish: no fish is spoken twice.
  */
-export function timedOf(inp: RegsInputs, s: Settled, settledAtSeg: (seg: number) => Settled): CaveatVM | null {
+export function timedOf(inp: RegsInputs, s: Settled, settledAtSeg: (seg: number) => Settled,
+                        covered: ReadonlySet<string>): CaveatVM | null {
   const M = inp.year?.moments ?? null;
   if (!M || !inp.year || s.s < 0) return null;
   const ss = daySegments(inp.year.segStarts, tapDay(s.day, inp.calendarYear).day);
@@ -232,6 +237,7 @@ export function timedOf(inp: RegsInputs, s: Settled, settledAtSeg: (seg: number)
   const weekly = new Set(rs.flatMap(([, r]) => (r ? r.rows.flatMap((x) => x.raw.week?.species ?? []) : [])));
   for (const S of spp) {
     if (weekly.has(S)) continue;   // its row says the weekday window (rows[].week)
+    if (covered.has(S)) continue;  // (T810 N) the trout table says it
     const by = rs.map(([j, r]) => [j, r ? mainRes(r.R[S]) : null] as const);
     const words = by.map(([j, d]) => [j, answerTxt(d)] as const);
     if (new Set(words.map(([, t]) => t)).size < 2) continue;
@@ -270,10 +276,11 @@ export function timedOf(inp: RegsInputs, s: Settled, settledAtSeg: (seg: number)
  * whose part is not drawn is `not_yet_mapped` (pipeline `undrawn_part`), carried on the water; page v36's separate
  * "couldn't be placed" block read a store field nothing fills, and is gone.
  */
-export function caveatsOf(inp: RegsInputs, s: Settled, settledAtSeg: (seg: number) => Settled): readonly CaveatVM[] {
+export function caveatsOf(inp: RegsInputs, s: Settled, settledAtSeg: (seg: number) => Settled,
+                          covered: ReadonlySet<string>): readonly CaveatVM[] {
   const st = s.status?.status;
   if (!st || st === "closed" || st === "tidal") return [];
-  return [inPartOf(s, inp, KEEP_FAMS), sideOf(s, KEEP_FAMS), anglerOf(s), timedOf(inp, s, settledAtSeg)]
+  return [inPartOf(s, inp, KEEP_FAMS), sideOf(s, KEEP_FAMS), anglerOf(s), timedOf(inp, s, settledAtSeg, covered)]
     .filter((c): c is CaveatVM => c !== null);
 }
 

@@ -3,13 +3,12 @@
  * matter). The 134-state parity against the golden is app/conformance/src/regs/standing.parity.test.ts (retired, T439).
  */
 import { describe, expect, it } from "vitest";
-import type { CardModel } from "./card";
 import type { DisplayFrame, ExportRule, RegsInputs, RuleFacts, RuleIndex, RuleView, RowsValue } from "./inputs";
 import { plain } from "./line";
 import { ruleView } from "./rules";
 import type { Settled } from "./settle";
 import { bookLine, ruleBook, withBook } from "./book";
-import { inheritedOf, possessionCaps, possessionOf, possessionRules, possessionValue, whereNotOf, whereWords } from "./standing";
+import { inheritedOf, possessionOf, whereNotOf, whereWords } from "./standing";
 import { BOOK } from "./testing/speciesBook";
 import { RULE_ROWS } from "./testing/ruleRows";
 
@@ -82,67 +81,37 @@ describe("whereNotOf: the day's standing rules with a `where` heading", () => {
   });
 });
 
-describe("possession: the rules the stored answers give the role 'possession', and the row", () => {
+describe("(T810 S) possession: the rows frame's page_possession (F0, contract 2.11), drawn as Python chose it", () => {
   const all = view(3079, { species: [] }, { plain: "Possession: 2 days’ quota. Fish at home don’t count." });
   const lt = view(2281, { per_daily: 3 }, { plain: "Lake trout: 3 days’ quota." });
-  const same = view(9010, { species: ["RB"], per_daily: 2 }, { plain: "Rainbow trout: 2 days’ quota." }, 3079);
-  const R = indexOf([all, lt, same]);
-  const dec = (roles: [number, string, number | null][]) => ({ roles });
-  const card = (fish: RowsValue["fish"], s = 0) => ({
-    inp: { rules: R, year: { rowsBySeg: [{ fish } as unknown as RowsValue] } } as unknown as RegsInputs,
-    card: { ctx: { s }, R: Object.fromEntries(Object.keys(fish).map((k) => [k, {}])) } as unknown as CardModel,
+  const cap = view(4001, { species: ["WP"] }, { plain: "Have no more than 3 walleye in possession. Fish at home don’t count." }, 2281);
+  const R = indexOf([all, lt, cap]);
+  type PP = RowsValue["page_possession"];
+  const inp = (pp: PP, seg = 0) => ({ rules: R, year: { rowsBySeg: Object.assign([], { [seg]: { page_possession: pp } }) } }) as unknown as RegsInputs;
+  const LEAD = { says: all.facts!.plain!, value: "2 days’ quota", src: all.rix };
+  it("the row: label, the lead's value words, every sentence (lead first), the lines kept under it, the lead's rule", () => {
+    const pp: PP = { lead: LEAD, also: [{ says: lt.facts!.plain!, src: lt.rix }, { says: cap.facts!.plain!, src: cap.rix }] };
+    expect(possessionOf(inp(pp), settled({}))).toEqual({ label: "Possession", value: "2 days’ quota",
+      says: "Possession: 2 days’ quota. Fish at home don’t count. Lake trout: 3 days’ quota. Have no more than 3 walleye in possession. Fish at home don’t count.",
+      also: ["Lake trout: 3 days’ quota.", "Have no more than 3 walleye in possession. Fish at home don’t count."],
+      rule: all.key, term: "possession_quota", open: "pos:pos" });
   });
-  it("(T670 K1) a water's own possession limit (role possession_cap) is on the row: after the lead, in the stored sentence (Charlie Lake p.65)", () => {
-    const cap = view(4001, { species: ["WP"] }, { plain: "Have no more than 3 walleye in possession. Fish at home don’t count." }, 2281);
-    const R2 = indexOf([all, lt, cap]);
-    const mk = (fish: RowsValue["fish"]) => ({
-      inp: { rules: R2, year: { rowsBySeg: [{ fish } as unknown as RowsValue] } } as unknown as RegsInputs,
-      card: { ctx: { s: 0 }, R: Object.fromEntries(Object.keys(fish).map((k) => [k, {}])) } as unknown as CardModel });
-    const a = mk({ WP: { hatchery: dec([[3079, "replaced", null], [4001, "possession_cap", null]]), wild: dec([[4001, "possession_cap", null]]) },
-      RB: { hatchery: dec([[3079, "possession", null]]), wild: null } } as unknown as RowsValue["fish"]);
-    expect(possessionCaps(a.card, a.inp).map((r) => r.rix)).toEqual([4001]);
-    expect(possessionOf(a.card, a.inp, settled({}))).toEqual({ label: "Possession", value: "2 days’ quota",
-      says: "Possession: 2 days’ quota. Fish at home don’t count. Have no more than 3 walleye in possession. Fish at home don’t count.",
-      also: ["Have no more than 3 walleye in possession. Fish at home don’t count."], rule: all.key, term: "possession_quota", open: "pos:pos" });
-    // the water's own limits alone: no value word, the lines say it
-    const b = mk({ WP: { hatchery: dec([[4001, "possession_cap", null]]), wild: null } } as unknown as RowsValue["fish"]);
-    expect(possessionOf(b.card, b.inp, settled({}))).toEqual({ label: "Possession", value: "",
-      says: "Have no more than 3 walleye in possession. Fish at home don’t count.",
-      also: ["Have no more than 3 walleye in possession. Fish at home don’t count."], rule: cap.key, term: "possession_quota", open: "pos:pos" });
-    // mutation: the role gone from the stored answers, the line is gone
-    const c = mk({ WP: { hatchery: dec([[4001, "governs", null]]), wild: null }, RB: { hatchery: dec([[3079, "possession", null]]), wild: null } } as unknown as RowsValue["fish"]);
-    expect(possessionOf(c.card, c.inp, settled({}))!.also).toEqual([]);
+  it("(T670 K1) a water's own limits alone (no lead): no value word, the lines say it, the first line's rule opens", () => {
+    const pp: PP = { lead: null, also: [{ says: cap.facts!.plain!, src: cap.rix }] };
+    expect(possessionOf(inp(pp), settled({}))).toEqual({ label: "Possession", value: "", says: cap.facts!.plain!,
+      also: [cap.facts!.plain!], rule: cap.key, term: "possession_quota", open: "pos:pos" });
   });
-  it("collects the role over every fish, hatchery then wild, once per rule; the one naming no fish leads; same days dropped", () => {
-    const { inp, card: c } = card({
-      LT: { hatchery: dec([[2281, "possession", null], [5, "governs", null]]), wild: dec([[3079, "possession", null]]) },
-      RB: { hatchery: dec([[9010, "possession", null], [3079, "possession", null]]), wild: null },
-    } as unknown as RowsValue["fish"]);
-    expect(possessionRules(c, inp).map((r) => r.rix)).toEqual([3079, 2281]);   // 9010 says 2 days, as the lead does
+  it("the value words are the payload's, never cut from the sentence (the old regex is gone)", () => {
+    const pp: PP = { lead: { says: "Possession: twice the daily quota (fish at home don’t count).", value: "twice the daily quota", src: all.rix }, also: [] };
+    expect(possessionOf(inp(pp), settled({}))!.value).toBe("twice the daily quota");
   });
-  it("no rule naming no fish: the most days leads", () => {
-    const { inp, card: c } = card({ RB: { hatchery: dec([[9010, "possession", null], [2281, "possession", null]]), wild: null } } as unknown as RowsValue["fish"]);
-    expect(possessionRules(c, inp).map((r) => r.rix)).toEqual([2281, 9010]);
-  });
-  it("the value words: both prototype patterns over the data's sentence; anything else → null", () => {
-    expect(possessionValue("Possession: 2 days’ quota. Fish at home don’t count.")).toBe("2 days’ quota");
-    expect(possessionValue("Possession: twice the daily quota (fish at home don’t count).")).toBe("twice the daily quota");
-    expect(possessionValue("Possession: 2 days’ quota")).toBe("2 days’ quota");
-    expect(possessionValue("Have no more than 2 lake trout in possession.")).toBeNull();
-  });
-  it("the row: label, value, the whole sentence, the lead rule, its term and sheet — only on an open, keyed, non-tidal day", () => {
-    const { inp, card: c } = card({ RB: { hatchery: dec([[3079, "possession", null], [2281, "possession", null]]), wild: null } } as unknown as RowsValue["fish"]);
-    expect(possessionOf(c, inp, settled({}))).toEqual({ label: "Possession", value: "2 days’ quota",
-      says: "Possession: 2 days’ quota. Fish at home don’t count. Lake trout: 3 days’ quota.", also: ["Lake trout: 3 days’ quota."], rule: all.key, term: "possession_quota", open: "pos:pos" });
+  it("the card's own segment's frame; null where it says nothing, or on a closed, tidal or unknown day", () => {
+    const pp: PP = { lead: LEAD, also: [] };
+    expect(possessionOf(inp(pp, 1), settled({ s: 1 }))!.value).toBe("2 days’ quota");
+    expect(possessionOf(inp(pp, 1), settled({ s: 0 }))).toBeNull();
+    expect(possessionOf(inp(null), settled({}))).toBeNull();
+    expect(possessionOf(inp(pp), settled({ s: -1 }))).toBeNull();
     for (const status of [null, { status: "closed" }, { status: "tidal" }])
-      expect(possessionOf(c, inp, settled({ status: status as unknown as DisplayFrame }))).toBeNull();
-  });
-  it("a rule with no sentence, or no rule with the role → null", () => {
-    const bare = view(9011, { species: [] }, { plain: null }, 3079);
-    const { inp, card: c } = card({ RB: { hatchery: dec([[9011, "possession", null]]), wild: null } } as unknown as RowsValue["fish"]);
-    (inp.rules as { get: (n: number) => RuleView }).get = (n) => (n === 9011 ? bare : R.get(n));
-    expect(possessionOf(c, inp, settled({}))).toBeNull();
-    const none = card({ RB: { hatchery: dec([[3079, "governs", null]]), wild: null } } as unknown as RowsValue["fish"]);
-    expect(possessionOf(none.card, none.inp, settled({}))).toBeNull();
+      expect(possessionOf(inp(pp), settled({ status: status as unknown as DisplayFrame }))).toBeNull();
   });
 });

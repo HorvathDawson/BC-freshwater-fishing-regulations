@@ -31,6 +31,7 @@ from pipeline.deliver.answers import gear as G
 from pipeline.deliver.answers import licence as L
 from pipeline.deliver.answers import rows as RW
 from pipeline.deliver.answers import stamps as ST
+from pipeline.deliver.answers.model import NULLABLE_FRAMES
 from pipeline.deliver.bundle import read as R
 from pipeline.tests.conftest import need, part_at, BUNDLE_HINT, EXPORT_HINT
 from pipeline.tests import under_test
@@ -61,7 +62,7 @@ def built(request):
 @pytest.mark.needs_bundle
 def test_every_section_round_trips_and_is_described(built):
     data, guide, model, wire = built
-    assert set(wire["sections"]) == {s.name for s in A.SECTIONS if not s.optional}      # trout: only with --trout-table
+    assert set(wire["sections"]) == {s.name for s in A.SECTIONS}      # trout: in every file since the cutover (T810 L)
     back = E.decode(wire, data)
     assert back == model
     assert E.spec_gaps(wire) == []
@@ -70,7 +71,9 @@ def test_every_section_round_trips_and_is_described(built):
         assert len(sec["at"]) == len(wire["keys"])
         for k, at in enumerate(sec["at"]):
             assert len(at) == len(wire["segments"][wire["keys"][k][E.SEG_SLOT]])
-            assert all(0 <= f < len(sec["frames"]) for f in at)
+            # (T810 L) a nullable section's cell is null where it has no frame (the trout table: Q-D3)
+            assert all((f is None and name in NULLABLE_FRAMES) or (f is not None and 0 <= f < len(sec["frames"]))
+                       for f in at)
 
 
 @pytest.mark.needs_bundle
@@ -164,6 +167,13 @@ def test_taps_equal_the_producers(built):
                 # frame at the same key and segment (stamps.py) — asked of that frame here
                 want = ST.stamp_licence_documents([want], [model.sections["licence"][k][s]], doc_names,
                                                   L.profile_index(ST.DEFAULT_PROFILE))[0]
+                # rows 34 (T810 L): beside a trout table the frame ships CUT OVER (`answers.cut_over`: mixed rows split,
+                # the covered rows without group / elsewhere), so the producer's frame is cut the same way
+                tc = model.sections["trout"][k][s]
+                if tc is not None:
+                    cut = A.cut_over([want], [tc], [model.sections["licence"][k][s]], [1], None, doc_names,
+                                     L.profile_index(ST.DEFAULT_PROFILE))[0]
+                    want = {**cut, "rows": [{x: v for x, v in r.items() if x != "year"} for r in cut["rows"]]}
                 # rows 30: the build stamps each row's year strip (the key's year, not one day's: year.py);
                 # the day's producer is everything else
                 got = model.sections["rows"][k][s]

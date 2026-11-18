@@ -514,7 +514,7 @@ def build(*, bundle: Path, store: Path, status_index: Path, export_dir: Path, ou
                                                lambda sid: _sid_regions.get(sid, ())).items():
             (work / f"{name}.bin").write_bytes(blob)
             files[name] = work / f"{name}.bin"
-        shard_tables = SH.shard_tables(st)              # (T810 ticket I) + an optional section's, where the store holds it
+        shard_tables = SH.shard_tables(st)              # (T810 tickets I, L) + an added section's, where the store holds it
         common = [t for (t,) in st.execute("SELECT name FROM sqlite_master WHERE type='table' ORDER BY name")
                   if t not in shard_tables and t not in SH.SID_TABLES and t != "meta"]
 

@@ -14,14 +14,12 @@
 import { afterEach, describe, expect, it } from "vitest";
 import { cleanup, render } from "@testing-library/react";
 import { Text, View } from "react-native";
-import type { PinLine, RegsPage, Tab } from "@app/core";
+import type { RegsPage, Tab } from "@app/core";
 import { CVD, DARK, LIGHT, type Palette } from "../theme";
 import { KeepTab } from "./KeepTab";
 import { GearTab } from "./GearTab";
 import { MethodsTab } from "./MethodsTab";
 import { LicenceTab } from "./LicenceTab";
-import { PinBar } from "./PinBar";
-import type { PinStore } from "./pinStore";
 import { NO_ACTIONS } from "./LineText";
 import type { FishImages } from "./types";
 import {
@@ -52,14 +50,6 @@ function drawTab(tab: Tab, page: RegsPage, palette: Palette): HTMLElement {
     : page.licence && <LicenceTab vm={page.licence} who={{ age: "adult", residency: "resident" }} palette={palette} actions={NO_ACTIONS} onWho={() => {}} />;
   return render(el).container;
 }
-
-/** The pin bar over vedder_1010's deepest bar (PinBar.test.tsx, scroll 240), its size line marked as v38 marks it. */
-const PIN_LINES: PinLine[] = [
-  { cls: "g two", text: "Trout and char · 2 a day from streams", sub: "(of 4 across Region 2)" },
-  { cls: "c", text: "↳ of those, 1 over 50 cm (2 if one is a hatchery steelhead)", sub: null, tier: "size" },
-];
-const pinStore = (lines: readonly PinLine[]) =>
-  ({ subscribe: () => () => {}, getLines: () => lines, getBoxes: () => new Map(), setLineHeight() {}, setStackHeight() {} }) as unknown as PinStore;
 
 type Rule = TextRule | "border" | "surface" | "picture";
 const RULES: readonly Rule[] = [...TEXT_RULES, "border", "surface", "picture"];
@@ -105,24 +95,22 @@ describe.each(THEMES)("%s palette: every tab of the frozen pages", (_name, palet
   it("the gate is not vacuous: status words, numbers, chips, filled buttons and pictures were all censused", () => {
     const all = Object.keys(PAGES).map(of);
     const sum = (k: string) => all.reduce((a, d) => a + (d.roles[k] ?? 0), 0);
-    expect([sum("status") > 20, sum("number") > 20, sum("chip") > 10, sum("button") >= 12, all.reduce((a, d) => a + d.pics, 0) >= 12])
-      .toEqual([true, true, true, true, true]);
+    // (T810 cutover) the old trout card's numbers (`n:` runs) and size chips went with it: these states' trout words are
+    // the table's payload sentences, so rule 5 has no subject on them and the size chips are few. Rule 5 is held by its
+    // mutant (the pin bar case, its three numbers, left with the bar: owner 2026-11-17 23:29); rule 6 by the chips left and its mutant
+    expect([sum("status") > 20, sum("chip") > 0, sum("button") >= 12, all.reduce((a, d) => a + d.pics, 0) >= 12])
+      .toEqual([true, true, true, true]);
   });
 
-  it("the pin bar: one surface (the card's), its numbers in ink and the size line's in the rule", () => {
-    const root = render(<PinBar store={pinStore(PIN_LINES)} palette={palette} />).container;
-    const bar = root.querySelector<HTMLElement>('[data-testid="pin-bar"]')!;
-    const t = textFaults(bar, palette, "keep");
-    expect([surfaceFaults(bar, palette), t.number, t.token, t.status]).toEqual([[], [], [], []]);
-    expect(census(bar, palette).filter((h) => h.role === "number").map((h) => [h.text, h.token])).toEqual([["2", "ink"], ["4", "ink"], ["1", "rule"]]);
-  });
 });
 
 describe("the dark census, measured (light beside it): each tab's text colours, by token", () => {
   // the prototype's census at v38 (check.mjs r20g BOUND, tokens.json .census): Keep 7 (ink sub accent open closed
   // restricted rule), Gear 5, Methods 5, Licence 4 — the same in light and dark
   const want = (licenceFilled: "onAccent" | "card") => ({
-    keep: ["accent", "closed", "ink", "open", "restricted", "rule", "sub"],
+    // (T810 cutover) the trout table's filled badge (ALLOW `kicker:badge`) brings the filled colour; the size section's
+    // `rule` went with the old trout card. Still 7
+    keep: ["accent", "closed", "ink", licenceFilled, "open", "restricted", "sub"].sort(),
     gear: ["accent", "closed", "ink", "open", "sub"],
     methods: ["accent", "closed", "ink", "open", "sub"],
     licence: ["accent", "ink", licenceFilled, "sub"].sort(),
@@ -141,7 +129,7 @@ describe("the gate reads the palette, never a hex (T47 swaps the status colours 
     const moved: Palette = { ...LIGHT, open: CVD.open, closed: CVD.closed, restricted: CVD.restricted };
     const d = drawPage(PAGES.vedder_1010!, moved);
     expect(RULES.flatMap((r) => d.faults[r])).toEqual([]);
-    expect(d.colours.keep).toEqual(["accent", "closed", "ink", "open", "restricted", "rule", "sub"]);
+    expect(d.colours.keep).toEqual(["accent", "closed", "ink", "onAccent", "open", "restricted", "sub"]);
   });
 });
 
@@ -203,7 +191,8 @@ describe("each rule fails its mutant", () => {
     expect(borderFaults(bad, P)).toEqual(["a restricted left rule on keep-somewhere “Some times”"]);
     cleanup();
     expect(borderFaults(tree(<View testID="keep-caveat" style={rule}><Text testID="kicker:times" style={{ color: P.sub }}>Some times</Text></View>), P)).toEqual([]);
-    expect(ALLOW.map((a) => [a.testID, a.rule, a.side ?? null])).toEqual([["keep-caveat", "border", "left"], ["keep-banner", "border", "top"], ["note:paper", "tint", null]]);
+    expect(ALLOW.map((a) => [a.testID, a.rule, a.side ?? null])).toEqual([["keep-caveat", "border", "left"], ["keep-banner", "border", "top"], ["note:paper", "tint", null],
+      ["kicker:badge", "filled", null], ["keep-tile", "picture", null], ["keep-tile-more", "picture", null]]);
   });
 
   it("3 status (rules): a key excuses its own element and side only — never what it holds (P11: a closed rule on a banner chain row)", () => {
@@ -220,10 +209,25 @@ describe("each rule fails its mutant", () => {
       "a closed left rule on keep-banner “Closedchain row”", "a closed top rule on div “chain row”", "a open left rule on div “caveat item”"]);
   });
 
+  it("8 picture: a keyed tile excuses its own ground only, never the picture or its parent", () => {
+    const pic = (ground: string | undefined, id: string) => tree(<View><View testID="pic:RB"><View testID={id} style={{ backgroundColor: ground }}><T c={P.sub} s="›" /></View></View></View>);
+    expect(pictureFaults(pic(P.tint, "keep-tile"))).toEqual([]);
+    cleanup();
+    expect(pictureFaults(pic(P.tint, "keep-somewhere"))).toEqual([`pic:RB: keep-somewhere paints ${rgbOf(P.tint)}`]);
+    cleanup();
+    expect(pictureFaults(tree(<View testID="keep-tile" style={{ backgroundColor: P.tint }}><View testID="pic:RB" /></View>))).toEqual([`pic:RB: its parent paints ${rgbOf(P.tint)}`]);
+  });
+
   it("4 filled: card / onAccent text off a filled control", () => {
     expect(textFaults(tree(<T c={DARK.card} s="16 or older" />), DARK, "licence").filled).toEqual(["licence: card text off a filled control: “16 or older”"]);
     cleanup();
     expect(textFaults(tree(<View testID="btn:adult"><T c={DARK.card} s="16 or older" /></View>), DARK, "licence").filled).toEqual([]);
+    cleanup();
+    // (T810) the keyed badge excuses its own word only: the same card word one element down is still a fault
+    expect(textFaults(tree(<T c={DARK.card} s="Hatchery only" id="kicker:badge" />), DARK, "keep").filled).toEqual([]);
+    cleanup();
+    expect(textFaults(tree(<View testID="kicker:badge"><T c={DARK.card} s="Hatchery only" /></View>), DARK, "keep").filled)
+      .toEqual(["keep: card text off a filled control: “Hatchery only”"]);
   });
 
   it("5 number: a number in sub; the rule colour only inside the size section", () => {

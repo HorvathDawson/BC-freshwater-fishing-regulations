@@ -71,9 +71,6 @@ export const WORDS = Object.freeze({
   OPENS: (md: string) => `Opens ${md}`,
   CLOSED_FROM: (md: string) => `Closed from ${md}`,
   CLOSED_SPAN: (span: string) => `Closed ${span}`,
-  TROUT_CLOSED: "closed", TROUT_RELEASE: "release only",
-  TROUT_LINE: (state: string, tail: string) => `Trout ${state}${tail}`,
-  ALL_YEAR: " all year",
   UNTIL: (md: string) => ` until ${md}`,
   // T14 the closed banner (page v36 closedBanner / mergedHtml / tidalHtml; prototype closechain rewrite)
   CLOSED_ALL_YEAR: "Closed all year",
@@ -186,14 +183,8 @@ export const WORDS = Object.freeze({
   SHORT_STREAMS: "streams", SHORT_DAY_UNDER: " a day under ", SHORT_UNDER: " under ", SHORT_PLUS: "plus up to ",
   SHORT_OF_THEM: " of them", SHORT_OF_THOSE: "of those, ", SHORT_OVER: "over ", COMMA: ", ", COLON_SP: ": ",
   OPEN_PAREN: " (", CLOSE_PAREN: ")",
-  // ── T28 pin bar (pins.ts: prototype pinUpdate's form a group line, the total in brackets under the share) ──
-  PIN_OF_TOTAL: (total: string) => `(of ${total})`,
-  // ── T481 pin bar "here-max + one breadcrumb" (owner 2026-11-07): line 1 the water's limit, line 2 the path below it ──
-  PIN_A_DAY: (n: number) => `${n} a day`,
-  PIN_SHARE: (n: number, from: string) => `${n} a day from ${from}`,
-  // the share plus a water's own tier beside it: the true most, the share inside it, the rest the exception's fish
-  PIN_EXCEPTION: (max: number, share: number, fish: string) => `${max} a day — up to ${share} of any kind, the rest ${fish}`,
-  PIN_OF_THEM: " of them", PIN_LEVEL_SEP: "; ", PIN_NONE: "none", PIN_OR: " or ", PIN_MAY_BE_OVER: "may be over ",
+  // shortOf's size line (T481; the pin bar it was also for left at the T810 cutover)
+  PIN_MAY_BE_OVER: "may be over ",
   // the card head's link under the region total, and its sheet (sheets.ts multiSheet: the water's own numbers)
   MULTI_LINK: "Fishing more than one water today? ›",
   MULTI_TITLE: "Fishing more than one water today",
@@ -215,9 +206,6 @@ export const WORDS = Object.freeze({
   // ── T19 tail + other fish (tail.ts, others.ts: prototype nk, worked, Other fish; page v36 noRulesLine, rowsHtml) ──
   INTERPRET_EXAMPLES: "Examples of how to interpret regulations", EXCEPTION_REGIONAL: "Exception to regional quota", SEE_EVERY_LINE: "See every regulation line ›", OTHER_FISH: "Other fish",
   NO_LIMIT: "no limit", CLOSED_LC: "closed", RELEASE_LC: "release", SIZE_HINT: "· size limit", COLON: ":",
-  STEEL_POSSIBLE: "Steelhead rules apply here; steelhead may not be present in this water.",
-  STEEL_KNOWN: "Steelhead are known to be in this water.",
-  STEEL_NO_RULES: "Steelhead have been recorded here, but no steelhead rule applies: treat any rainbow, however big, as a rainbow trout.",
   CLOSED_MARK: "✕",
   /** (T829) the release group's shape mark (trout-table contract 2.4: the app draws the marks ↩ and ✕, never a rule) */
   RELEASE_MARK: "↩",
@@ -414,6 +402,28 @@ function deepWords(t: object): string[] {
     : v && typeof v === "object" && !(v instanceof RegExp) ? deepWords(v) : []);
 }
 
+/**
+ * (T810 N, trout-table-contract.md 2.4) THE TROUT TABLE'S NAVIGATION WORDS: the only app words the table draws (beside
+ * the day phrase in its top line's slot). None states a rule; every rule word is the payload's.
+ */
+export const TROUT_NAV = Object.freeze({
+  /** the folded entry's name (the entry exists today) */
+  ENTRY: "Trout and char",
+  HATCH: "How to tell a hatchery fish ›",
+  SOURCES: "Sources ›",
+  ELSEWHERE: "Fished elsewhere today? ›",
+  /** (T810 O) the small mark in a row picture's corner: the picture opens the fish's sheet */
+  MORE: "›",
+} as const);
+
+/** (T810 P) the trout fish sheet's section heads and its link to the table's every rule (app words; none states a rule). */
+export const TROUT_SHEET = Object.freeze({
+  HERE: "Here, today",
+  TELL: "How to tell it",
+  SOURCES: "Sources",
+  ALL_SOURCES: "All sources ›",
+} as const);
+
 /** "Mon" … "Sun" (Monday first, as the calendar). */
 export const WD3: readonly string[] = WEEKDAYS.map((w) => w.slice(0, 3));
 /** "J", "F", … — the strip's month initials. */
@@ -533,6 +543,10 @@ export const ALL_WORDS: ReadonlySet<string> = new Set([
   ...deepWords(METHODS),
   // (T33) the licence words
   ...licWords(),
+  // (T810 N) the trout table's navigation words
+  ...deepWords(TROUT_NAV),
+  // (T810 P) the trout fish sheet's heads
+  ...deepWords(TROUT_SHEET),
 ]);
 
 /** The words of a Line that are not data: text and link words, and the fixed words of term and book runs. Numbers are

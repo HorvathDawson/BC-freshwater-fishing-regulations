@@ -13,7 +13,7 @@ import { KeepTab } from "./KeepTab";
 import { CaveatBlock } from "./KeepBlocks";
 import { RegsHeader } from "./RegsHeader";
 import { RegsScreen } from "./RegsScreen";
-import { createPinStore } from "./pinStore";
+import { createTabStore } from "./tabStore";
 import type { KeepActions } from "./LineText";
 import x31p from "./fixtures/edge_x31p_1010.json";
 import x15p2 from "./fixtures/edge_x15p2_1010.json";
@@ -70,7 +70,7 @@ describe("9. tidal water (x31p_1010)", () => {
     expect([screen.queryByTestId("keep-strip"), screen.queryByTestId("keep-group"), screen.queryByRole("heading", { name: /trout/i })]).toEqual([null, null, null]);
   });
   it("the header dot is faint (the sub grey), not a status colour", () => {
-    render(<RegsHeader header={asPage(x31p).header} palette={LIGHT} tabs={createPinStore()} onDate={() => {}} onTab={() => {}} />);
+    render(<RegsHeader header={asPage(x31p).header} palette={LIGHT} tabs={createTabStore()} onDate={() => {}} onTab={() => {}} />);
     expect(getComputedStyle(screen.getByTestId("regs-dot")).backgroundColor).toBe(rgb(LIGHT.sub));
   });
 });
@@ -78,7 +78,7 @@ describe("9. tidal water (x31p_1010)", () => {
 describe("10. an unnamed section (D11 a)", () => {
   const h = asPage(unnamed).header;
   it("the store's place name as the heading; no Map or Parts button", () => {
-    render(<RegsHeader header={h} palette={LIGHT} tabs={createPinStore()} onDate={() => {}} onTab={() => {}} />);
+    render(<RegsHeader header={h} palette={LIGHT} tabs={createTabStore()} onDate={() => {}} onTab={() => {}} />);
     expect(h.name).toMatch(/^Unnamed stream · Regions? \d/);
     expect(within(screen.getByTestId("regs-header")).getByRole("heading").textContent).toBe(h.name);
     expect(screen.queryByRole("button", { name: /map|parts/i })).toBeNull();
@@ -87,7 +87,7 @@ describe("10. an unnamed section (D11 a)", () => {
   });
   it("header-one-shape: the empty label slot is the height of a named water's", () => {
     const style = (header: RegsPage["header"]) => {
-      render(<RegsHeader header={header} palette={LIGHT} tabs={createPinStore()} onDate={() => {}} onTab={() => {}} />);
+      render(<RegsHeader header={header} palette={LIGHT} tabs={createTabStore()} onDate={() => {}} onTab={() => {}} />);
       const s = getComputedStyle(screen.getByTestId("regs-place")).height;
       cleanup();
       return s;

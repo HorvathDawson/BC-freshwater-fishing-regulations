@@ -3,16 +3,15 @@
  * never compute: every finished sentence is here, pinned by a core test against the goldens
  * (app/fixtures/golden/golden.json, regs v38 @ 7fb6809f).
  *
- * Later tickets add fields where the contract marks them (T28 `GroupVM.pinLine`), and the functions declared beside
+ * Later tickets add fields where the contract marks them (T28 added `GroupVM.pinLine`, gone with the pin bar at the T810 cutover), and the functions declared beside
  * their types (T33 `licenceBlockLines`, T36 `sheetOf`/`sheetLines`).
  */
 import type { Line, RuleKey } from "./line";
 import type { SheetKey } from "./sheetKey";
-import type { PinLine } from "./pins";
 import type { RegsInputs } from "./inputs";
 import type { Weekday } from "../calendar.generated";
 import type { KeepEnv } from "./keep";
-import type { BookBox } from "../answers.generated";
+import type { BookBox, FishSheet, Together, YearBar } from "../answers.generated";
 import type { ClassBadgeVM } from "./classBadge";
 
 export type { Weekday } from "../calendar.generated";
@@ -80,9 +79,59 @@ export interface KeepVM {
   readonly possession: PossessionVM | null; // (T15)
   readonly whereNot: WhereNotVM | null;
   readonly outside: string | null;          // words.OUTSIDE_BC (page v36 renderCard foot) (T42)
+  /** (T810 N, S) the trout and char table (`trout.ts` `troutOf`), or its refusal; null: the cell has none, or the day is
+   *  closed. ABSENT only on the two edges with no card (outside B.C., tidal water). The one trout path (no old card). */
+  readonly trout?: TroutVM | TroutRefusedVM | null;
 }
 export type KeepBlock = "strip" | "inherited" | "banner" | { caveat: number } | { group: number } | { plain: number } | "otherFish" | "possession" | "whereNot"
-  | "outside";
+  | "outside" | "trout";
+
+// ── (T810 N) the trout and char table (trout-table-contract.md 2.3, 2.12): every text the payload's, drawn unchanged ──
+/** One band of a keep box's right column ("up to the 5", "only 3", "only 1 of these 4"), over rows `from`..`to`; `date`:
+ *  the small line under its white box (`DateSet.band`; a nested band's is always null: the date set names no nested band). */
+export interface TroutBandVM { readonly from: number; readonly to: number; readonly text: string;
+  readonly kind: "upto" | "own" | "shared" | "possession" | "size"; readonly date: string | null }
+/** One fish row. `split` (trout 5): a merged hatchery+wild row ("… if wild"), never with an origin or a label. `origin` null on a plain row AND on a merged twin (trout 4: key = the fish, its first line "<size> if
+ *  wild"); `date`: its own last line (`DateSet.row`); `coming`: its sheet's coming-change sentences (`DateSet.sheet`);
+ *  `a11y`: its screen-reader label (payload texts in payload order, joined by ". "). */
+export interface TroutRowVM {
+  readonly key: string; readonly fish: string; readonly name: string; readonly origin: "hatchery" | "wild" | null;
+  readonly label: string | null; readonly split: boolean; readonly sub: string | null; readonly lines: readonly string[]; readonly quiet: readonly string[];
+  readonly src: readonly number[]; readonly sheet: FishSheet; readonly coming: readonly string[]; readonly date: string | null;
+  readonly a11y: string;
+}
+/** A keep box, or the Release / Closed group under them; `date`: the strip date, or the column date under the word. */
+export interface TroutBoxVM {
+  readonly kind: "keep" | "release" | "closed"; readonly head: string; readonly label: string | null; readonly strip: string | null;
+  /** (T810 G2 Q4) the possession every row shares, drawn on its own line under the box's top line (keep only) */
+  readonly possession: string | null;
+  readonly tag: string | null; readonly date: string | null; readonly rows: readonly TroutRowVM[]; readonly bands: readonly TroutBandVM[];
+  /** (trout 4) the nested bands (`Box.inner`, kind "shared" / "size"): each over 2+ rows inside ONE band (never that band
+   *  whole), none overlapping; drawn inside its band's white box. [] on a release or closed box. */
+  readonly inner: readonly TroutBandVM[];
+}
+/** The table under the Trout and char entry. `top.lead` has its day slot filled; `top.sub` (trout 4): the exception, drawn
+ *  as the lead's subtitle (the full sentence is `lead + ", " + sub`); `card`: the card-level date (`DateSet.card`), the
+ *  grey line under the top line; `fold`:
+ *  the entry's folded row (`name` the app's entry word); the links are the app's navigation words, null where hidden. */
+export interface TroutVM {
+  readonly kind: "table";
+  readonly top: { readonly lead: string; readonly sub: string | null; readonly second: string | null; readonly date: string | null };
+  readonly card: string | null;
+  readonly fold: { readonly name: string; readonly value: string; readonly tone: "keep" | "release" | "closed" | "none"; readonly date: string | null };
+  readonly hatchLink: string | null;
+  readonly boxes: readonly TroutBoxVM[];
+  readonly together: Together | null;
+  readonly year: YearBar | null;
+  readonly elsewhere: readonly string[]; readonly elsewhereLink: string | null;
+  readonly sourcesLink: string;
+  readonly src: readonly number[];
+  /** the rows-frame rows the table replaces (Q-D4): drawn nowhere else */
+  readonly covers: readonly number[];
+}
+/** A trout frame that broke the contract (`trout.ts` `checkTrout`): reported, no table drawn; `covers` still names the rows
+ *  it would have replaced (never drawn by the old card instead). */
+export interface TroutRefusedVM { readonly kind: "refused"; readonly why: string; readonly covers: readonly number[] }
 /** `also` (T670 K1): the sentences after the lead — fish whose possession differs, then the water's own possession limits —
  *  drawn under the row; `value` is "" when the water's own limits are the only possession rules. */
 export interface PossessionVM { readonly label: string; readonly value: string; readonly says: string; readonly also: readonly string[];
@@ -117,14 +166,11 @@ export interface GroupVM {
   readonly title: string;                   // page v36 rowTitle(row)
   readonly scope: string | null;            // head kicker, null when moved to the share (moveTag)
   readonly head: GroupHeadVM;
-  /** (T28) the pin bar's group line (pins.ts groupLine over the stored tree root + headline); null: no tree */
-  readonly pinLine: PinLine | null;
   readonly origin: OriginVM | null;         // the .ghd.gsub block
   readonly year: { label: string; says: string } | null;   // the .gyear year window (plainrow.ts yearWindowOf), under the head
   readonly tree: readonly TreeNodeVM[] | null;   // root's children when header.tier === tree[0].id, else tree[]
   readonly notKept: readonly NotKeptVM[];
   readonly worked: { label: string; says: string | null; lines: readonly { at: "here" | "elsewhere"; q: string; a: string }[] } | null;   // q carries ":" for at=here
-  readonly quiet: Line | null;              // page v36 noRulesLine (STEEL_LINE) + ⓘ steelhead
   readonly more: { text: string; open: SheetKey };   // "See every regulation line ›" → src:r<i>
 }
 export interface GroupHeadVM {
@@ -158,8 +204,6 @@ export interface TierVM {
   readonly sub: string | null;              // own tier: cap(why_here)
   readonly origin: OriginVM | null;         // tier.origin with How to tell and the root's book when group.origin is null
   readonly band: boolean;                   // tier === "size": the tinted SizeBand wraps this node
-  readonly short: string;                   // shortOf(tier) for the pin bar (T28)
-  readonly n: number | null;                // (T29) the stored tier's number: the pin bar's form-a share test (PinTierAnchor.n)
   readonly children: readonly TreeNodeVM[];
 }
 /**

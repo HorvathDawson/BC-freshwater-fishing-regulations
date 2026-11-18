@@ -23,7 +23,7 @@ ROW = {"kind": "keep", "pool": 3, "win": None, "members": ["RB"], "all_members":
        "elsewhere": {"says": "This river’s own limit.", "ask": []},     # answers 2.5 (rows 6)
        "year": [["keep", 365]]}                                          # rows 30: the year strip
 FRAME = {"spp": ["RB"], "fish": {"RB": {"hatchery": DECIDED, "wild": DECIDED, "lead": "hatchery"}}, "rows": [ROW],
-         "steelhead_line": None}
+         "steelhead_line": None, "page_possession": None}
 
 
 def _ok(name, v):
@@ -69,7 +69,13 @@ def test_every_nullable_field_is_null_exactly_where_its_model_says():
     _bad("rows", {**FRAME, "rows": [{**ROW, "items": [{"members": ["RB"], "bands": None,
                                                        "back": False, "xref": False, "sub": None,
                                                        "conds": [], "against": 4}]}]})
-    _bad("rows", {**FRAME, "rows": [{**ROW, "elsewhere": None}]})          # 2.5: elsewhere <=> keep
+    # 2.5: elsewhere <=> keep; rows 34 (T810 L, Q-D9): a keep row the trout table covers (trout and char only) leaves
+    # it to the table, any other keep row keeps it
+    _bad("rows", {**FRAME, "fish": {**FRAME["fish"], "KO": FRAME["fish"]["RB"]}, "spp": ["RB", "KO"],
+                  "rows": [{**ROW, "members": ["KO"], "all_members": ["KO"], "elsewhere": None}]})
+    _ok("rows", {**FRAME, "rows": [{**ROW, "elsewhere": None}]})
+    _bad("rows", {**FRAME, "rows": [{**ROW, "kind": "release", "pool": None, "win": 3, "daily": None, "conds": None,
+                                     "items": None, "scope": None}]})       # a release row with the line
     _bad("rows", {**FRAME, "rows": [{**ROW, "group": {"pool": 3, "total": 2, "kinds": ["RB"],
                                                       "subcaps": [], "says": "Up to 2."}}]})
 

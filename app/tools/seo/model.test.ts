@@ -88,8 +88,12 @@ describe("the page model is the app's answer (T192, fixture release)", () => {
     const v = models.find((m) => m.name === "Vedder River")!;
     expect(v.status).toBe("open");
     const text = v.parts.flatMap((p) => p.sections.flatMap((s) => s.items.map((i) => i.text))).join("\n");
-    expect(text).toMatch(/2 hatchery trout\/char a day from streams/);   // T475: Region 2's "2 from streams (must be hatchery)"
-    expect(text).toMatch(/This river’s rule: up to 4 hatchery rainbow trout a day/);
+    // (T810 cutover, trout 4: owner 2026-11-18) the trout table's words (Python's): the lead names Region 2's 2 (hatchery
+    // only), its sub the river's own 4 hatchery rainbow; the six other fish share "2 total from these 6", DV + LT inside it
+    expect(text).toMatch(/Keep 2 trout and char today\nor 4 if they’re hatchery rainbow trout 50 cm \(20 in\) or less/);
+    expect(text).toMatch(/Keep 4 in all\nHatchery only/);
+    expect(text).toMatch(/2 total from these 6/);
+    expect(text).toMatch(/only 1 between them/);
   });
 
   it("MUTATION: a wrong verdict, a dropped rule and an invented sentence are each reported", async () => {
@@ -98,7 +102,7 @@ describe("the page model is the app's answer (T192, fixture release)", () => {
     const flip = { ...m, status: "closed" as const, parts: m.parts.map((p) => ({ ...p, status: "closed" as const })) };
     expect(verifyAgainstApp(flip, pages).join("|")).toMatch(/status closed, the app says open/);
     const dropped = { ...m, parts: m.parts.map((p) => ({ ...p, sections: p.sections.map((s) => ({ ...s, items: s.items.filter((i) => !/hatchery rainbow/.test(i.text)) })) })) };
-    expect(verifyAgainstApp(dropped, pages).join("|")).toMatch(/the app says ".*hatchery rainbow.*" and the page does not/);
+    expect(verifyAgainstApp(dropped, pages).join("|")).toMatch(/the app's trout table says ".*hatchery rainbow.*" and the page does not/);   // (T810 T) the table's own check
     const invented = { ...m, parts: m.parts.map((p, i) => i ? p : { ...p, sections: [{ title: "Extra", items: [{ text: "Keep 10 a day of anything.", book: [] }] }, ...p.sections] }) };
     expect(verifyAgainstApp(invented, pages).join("|")).toMatch(/Keep 10 a day of anything/);
     expect(verifyAgainstApp({ ...m, answer: "Closed to fishing today." }, pages).join("|")).toMatch(/does not open with its status/);

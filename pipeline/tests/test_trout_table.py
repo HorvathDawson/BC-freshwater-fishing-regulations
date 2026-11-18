@@ -1,7 +1,8 @@
 """THE TROUT AND CHAR TABLE BUILDER (trout table plan, T810 ticket F): `answers/trout/table.py` builds each (answer key,
 segment)'s `model.trout.TroutFrame`, every word from G (`trout/words.py`), every date from E (`trout/timeline.py`).
 
-Anchors: (a) EVERY KEY of the committed mini release (no data: the property that every trout and char fish of a frame
+Anchors: (a) EVERY KEY of the mini chain (no data, `mini_chain`: the rows as the builder read them, before the rows 34
+cutover; the property that every trout and char fish of a frame
 is said exactly once, NULL exactly per Q-D3, and every table valid under the model); (b) frames planted on a mini-release
 frame (a mixed trout + kokanee closed row split, a weekday split, an hours window, the model's refusals); (c) the plan's
 named waters on the live bundle (`needs_bundle`), each table whole; (d) the whole built release (`needs_bundle`);
@@ -21,6 +22,7 @@ kokanee, whitefish, burbot).
 from __future__ import annotations
 
 import copy
+import json
 from collections import Counter
 
 import pytest
@@ -45,6 +47,8 @@ def render(fr) -> str:
     t, d = fr["table"], fr["dates"] or {}
     out = [f"top: {t['top']['lead']}" + (f" // {t['top']['second']}" if t["top"]["second"] else ""),
            f"fold: {t['fold']['value']} ({t['fold']['tone']})"]
+    if t["top"].get("sub"):
+        out.insert(1, f"sub: {t['top']['sub']}")
     if d.get("card"):
         out.append(f"card: {d['card']}")
     if d.get("top"):
@@ -56,6 +60,7 @@ def render(fr) -> str:
         for ri, r in enumerate(b["rows"]):
             band = next((f"{x['text']}" + (f" ({d['band'][f'{bi}:{k}']})" if f"{bi}:{k}" in d.get("band", {}) else "")
                          for k, x in enumerate(b["bands"]) if x["from"] <= ri <= x["to"]), "")
+            band += "".join(f" [{x['text']}]" for x in b.get("inner") or () if x["from"] <= ri <= x["to"])
             name = r["name"] + (f" {r['origin']}" if r["origin"] else "") + (f" [{r['label'].upper()}]" if r["label"] else "")
             bits = ([r["sub"]] if r["sub"] else []) + list(r["lines"]) + [f"~{q}" for q in r["quiet"]]
             when = d.get("row", {}).get(f"{bi}:{ri}")
@@ -109,33 +114,26 @@ def check_key(rows, displays, frames) -> list:
 # ------------------------------------------------------------------------------- (a) every key of the mini release
 
 class _Mini:
-    def __init__(self):
-        from pipeline.deliver.store.release import province_store
-        from pipeline.tools.audit import answers_diff as AD
-        from pipeline.tools.audit import trout_table as TT
-        d = under_test.mini()
-        self.R = AD.Release(d)
-        st = province_store(d)
-        try:
-            sub = st.export_subset(check=True)
-        finally:
-            st.close()
-        self.rules = T.Rules({i: T.rule_of(sub["rules"][rid]) for i, rid in enumerate(self.R.rule_ids)})
-        rows, disp, lic = self.R.sections["rows"], self.R.sections["display"], self.R.sections["licence"]
+    """Every key of the mini chain (`mini_chain`, the committed mini release's own stages), its rows frames AS THE
+    BUILDER READ THEM: since the cutover (rows 34) a shipped frame's covered rows carry no `group`, which the builder
+    reads, so the answers are built again in this process with the cutover pass off (`mini_chain.trout_inputs`)."""
+
+    def __init__(self, tmp_path_factory):
+        from pipeline.tests import mini_chain
+        m = mini_chain.trout_inputs(tmp_path_factory)
+        _data, _guide, self.rules = mini_chain.export(tmp_path_factory)
+        self.model = m
         self.keys = []
         #: per key, its post-pass licence frames (the fish sheets' stamps, ticket H)
         self.lics = {}
-        for k, starts, moms in TT._keys(self.R):
-            fs = [self.R.codecs["rows"].decode_frame(rows, ref, self.R.rule_ids, self.R.fish) for ref in rows["at"][k]]
-            ds = [disp["frames"][i] for i in disp["at"][k]]
-            self.lics[k] = [self.R.codecs["licence"].decode_frame(lic, ref, self.R.rule_ids, self.R.fish)
-                            for ref in lic["at"][k]]
-            self.keys.append((k, starts, moms, fs, ds))
+        for k, starts in enumerate(m.segments):
+            self.lics[k] = m.sections["licence"][k]
+            self.keys.append((k, starts, m.moments[k], m.sections["rows"][k], m.sections["display"][k]))
 
 
 @pytest.fixture(scope="module")
-def mini():
-    return _Mini()
+def mini(tmp_path_factory):
+    return _Mini(tmp_path_factory)
 
 
 def test_every_key_of_the_mini_release_holds_the_properties(mini):
@@ -374,33 +372,35 @@ def live(request):
 EXPECTED: dict = {}
 EXPECTED.update({
     'adams-jul15': (
-        'top: Up to 4 {day}\n'
-        'fold: Up to 4 (keep)\n'
+        'top: Keep 4 trout and char {day}\n'
+        'fold: 4 a day (keep)\n'
+        'card: Until Dec 31, then closed to all fishing\n'
         '[Keep 4 in all · only 1 over 50 cm (20 in)]\n'
-        '  Dolly Varden/bull trout: 80 cm (31 in) or longer | uses the 1 over 50 cm (20 in) | only 1, counting any lake trout you keep  <counts toward the 4>  (rule changes Jul 31)\n'
-        '  Rainbow trout: 30 cm (12 in) or longer | only 2  <counts toward the 4>  (until Dec 31, then closed to all fishing)\n'
-        '  Brook trout:   <counts toward the 4>  (until Dec 31, then closed to all fishing)\n'
-        '  Brown trout:   <counts toward the 4>  (until Dec 31, then closed to all fishing)\n'
-        '  Cutthroat trout:   <counts toward the 4>  (until Dec 31, then closed to all fishing)\n'
-        '  Lake trout: 60 cm (24 in) or longer | uses the 1 over 50 cm (20 in) | only 1, counting any Dolly Varden/bull trout you keep  <counts toward the 4>  (until Oct 14, then release)\n'
+        '  Rainbow trout: 30 cm (12 in) or longer  <counts toward the 4 · only 2>\n'
+        '  Brook trout:   <counts toward the 4>\n'
+        '  Brown trout:   <counts toward the 4>\n'
+        '  Cutthroat trout:   <counts toward the 4>\n'
+        '  Dolly Varden/bull trout: 80 cm (31 in) or longer  <counts toward the 4 · only 1 between them>  (rule changes Jul 31)\n'
+        '  Lake trout: 60 cm (24 in) or longer  <counts toward the 4 · only 1 between them>  (until Oct 14, then release)\n'
         '[Release]\n'
-        '  Steelhead: ~Steelhead rules apply here; steelhead may not be present in this water.  (until Dec 31, then closed to all fishing)'
+        '  Steelhead: ~Steelhead rules apply here; steelhead may not be present in this water.'
     ),
     'adams-jul31': (
-        'top: Up to 4 {day}\n'
-        'fold: Up to 4 (keep)\n'
+        'top: Keep 4 trout and char {day}\n'
+        'fold: 4 a day (keep)\n'
+        'card: Until Dec 31, then closed to all fishing\n'
         '[Keep 4 in all · only 1 over 50 cm (20 in)]\n'
-        '  Rainbow trout: 30 cm (12 in) or longer | only 2  <counts toward the 4>  (until Dec 31, then closed to all fishing)\n'
-        '  Brook trout:   <counts toward the 4>  (until Dec 31, then closed to all fishing)\n'
-        '  Brown trout:   <counts toward the 4>  (until Dec 31, then closed to all fishing)\n'
-        '  Cutthroat trout:   <counts toward the 4>  (until Dec 31, then closed to all fishing)\n'
-        '  Dolly Varden/bull trout: 80 cm (31 in) or longer | uses the 1 over 50 cm (20 in) | only 1, counting any lake trout you keep  <counts toward the 4>  (until Jul 31, then release)\n'
-        '  Lake trout: 60 cm (24 in) or longer | uses the 1 over 50 cm (20 in) | only 1, counting any Dolly Varden/bull trout you keep  <counts toward the 4>  (until Oct 14, then release)\n'
+        '  Rainbow trout: 30 cm (12 in) or longer  <counts toward the 4 · only 2>\n'
+        '  Brook trout:   <counts toward the 4>\n'
+        '  Brown trout:   <counts toward the 4>\n'
+        '  Cutthroat trout:   <counts toward the 4>\n'
+        '  Dolly Varden/bull trout: 80 cm (31 in) or longer  <counts toward the 4 · only 1 between them>  (until Jul 31, then release)\n'
+        '  Lake trout: 60 cm (24 in) or longer  <counts toward the 4 · only 1 between them>  (until Oct 14, then release)\n'
         '[Release]\n'
-        '  Steelhead: ~Steelhead rules apply here; steelhead may not be present in this water.  (until Dec 31, then closed to all fishing)'
+        '  Steelhead: ~Steelhead rules apply here; steelhead may not be present in this water.'
     ),
     'bish-may20': (
-        'top: Nothing to keep {day}\n'
+        'top: Keep no trout and char {day}\n'
         'fold: None to keep (none)\n'
         '[Release]\n'
         '  Rainbow trout: \n'
@@ -413,18 +413,18 @@ EXPECTED.update({
         '  Steelhead: ~Steelhead are known to be in this water.'
     ),
     'bowron-jul15': (
-        'top: Up to 2 {day}\n'
-        'fold: Up to 2 (keep)\n'
+        'top: Keep 2 trout and char {day}\n'
+        'fold: 2 a day (keep)\n'
         '[Keep 2 in all · only 1 over 50 cm (20 in) · In your possession: no more than 2 trout and char in all · Lake’s rule]\n'
         '  Brook trout:   <counts toward the 2>\n'
         '  Brown trout:   <counts toward the 2>\n'
         '  Cutthroat trout:   <counts toward the 2>\n'
         '  Lake trout:   <counts toward the 2>  (until Sep 30, then release)\n'
         '  Rainbow trout:   <counts toward the 2>\n'
-        '  Dolly Varden/bull trout:   <only 1>'
+        '  Dolly Varden/bull trout:   <counts toward the 2 · only 1>'
     ),
     'burnt-jan15': (
-        'top: Release every one {day}\n'
+        'top: Release every trout and char {day}\n'
         'fold: Release (release)\n'
         '[Release]\n'
         '  Rainbow trout: \n'
@@ -436,19 +436,20 @@ EXPECTED.update({
         'year: Trout and char through the year'
     ),
     'cunningham-jul15': (
-        'top: Up to 5 {day}\n'
-        'fold: Up to 5 (keep)\n'
+        'top: Keep 5 trout and char {day}\n'
+        'fold: 5 a day (keep)\n'
+        'card: Until Oct 31, then closed to all fishing\n'
         '[Keep 5 in all · only 1 over 50 cm (20 in)]\n'
-        '  Brook trout:   <counts toward the 5>  (until Oct 31, then closed to all fishing)\n'
-        '  Brown trout:   <counts toward the 5>  (until Oct 31, then closed to all fishing)\n'
-        '  Cutthroat trout:   <counts toward the 5>  (until Oct 31, then closed to all fishing)\n'
-        '  Rainbow trout:   <counts toward the 5>  (until Oct 31, then closed to all fishing)\n'
+        '  Brook trout:   <counts toward the 5>\n'
+        '  Brown trout:   <counts toward the 5>\n'
+        '  Cutthroat trout:   <counts toward the 5>\n'
+        '  Rainbow trout:   <counts toward the 5>\n'
         '  Lake trout: 30 cm (12 in) or longer | ~3 a day, but never more than 2 lake trout with you, and only 1 of them over 50 cm (20 in)  <only 2 in your possession (until Sep 14, then release)>\n'
-        '  Dolly Varden/bull trout: 30–50 cm (12–20 in) | in your possession: 1 day’s limit, not 2  <only 1 (until Aug 14, then release)>'
+        '  Dolly Varden/bull trout: 30–50 cm (12–20 in) | in your possession: 1 day’s limit, not 2  <counts toward the 5 · only 1 (until Aug 14, then release)>'
     ),
     'echoes-jul15': (
-        'top: Up to 1 {day} // only 1 from both lakes together\n'
-        'fold: Up to 1 (keep)\n'
+        'top: Keep 1 trout and char {day} // only 1 from both lakes together\n'
+        'fold: 1 a day (keep)\n'
         '[Keep 1 in all]\n'
         '  Brook trout: 50 cm (20 in) or longer  <counts toward the 1>\n'
         '  Brown trout: 50 cm (20 in) or longer  <counts toward the 1>\n'
@@ -461,19 +462,19 @@ EXPECTED.update({
         'NULL'
     ),
     'elk-jul15': (
-        'top: Up to 1 {day}\n'
-        'fold: Up to 1 (keep)\n'
+        'top: Keep 1 trout and char {day}\n'
+        'fold: 1 a day (keep)\n'
         'card: Until Oct 31, then release\n'
         '[Keep 1 in all · River’s rule]\n'
-        '  Brook trout: any size  <counts toward the 1>\n'
-        '  Brown trout: any size  <counts toward the 1>\n'
-        '  Lake trout: any size  <counts toward the 1>\n'
-        '  Rainbow trout: any size  <counts toward the 1>\n'
+        '  Brook trout:   <counts toward the 1>\n'
+        '  Brown trout:   <counts toward the 1>\n'
+        '  Lake trout:   <counts toward the 1>\n'
+        '  Rainbow trout:   <counts toward the 1>\n'
         '  Cutthroat trout: 30 cm (12 in) or longer  <counts toward the 1>\n'
         '  Dolly Varden/bull trout: 75 cm (30 in) or longer  <counts toward the 1>'
     ),
     'elk-nov15': (
-        'top: Release every one {day}\n'
+        'top: Release every trout and char {day}\n'
         'fold: Release (release)\n'
         'under top: until Mar 31, then closed to all fishing\n'
         '[Release]\n'
@@ -486,26 +487,26 @@ EXPECTED.update({
         'year: Trout and char through the year'
     ),
     'fraser-r2-mission-jul15': (
-        'top: Up to 2 {day}\n'
-        'fold: Up to 2 (keep)\n'
+        'top: Keep 2 trout and char {day}\n'
+        'fold: 2 a day (keep)\n'
         '[Keep 2 in all · HATCHERY ONLY · only 1 over 50 cm (20 in), 2 if one is a hatchery steelhead]\n'
         '  Brook trout: 30 cm (12 in) or longer  <counts toward the 2>\n'
         '  Brown trout: 30 cm (12 in) or longer  <counts toward the 2>\n'
         '  Cutthroat trout: 30 cm (12 in) or longer  <counts toward the 2>\n'
-        '  Dolly Varden/bull trout: 60 cm (24 in) or longer | uses the 1 over 50 cm (20 in) | only 1, counting any lake trout you keep  <counts toward the 2>\n'
-        '  Lake trout: 60 cm (24 in) or longer | uses the 1 over 50 cm (20 in) | only 1, counting any Dolly Varden/bull trout you keep  <counts toward the 2>\n'
+        '  Rainbow trout: 30–50 cm (12–20 in)  <counts toward the 2>\n'
         '  Steelhead: a rainbow over 50 cm (20 in) | after keeping 2, stop fishing this river today | ~Steelhead are known to be in this water.  <counts toward the 2>  (until Aug 14, then closed for steelhead)\n'
-        '  Rainbow trout: 30–50 cm (12–20 in)  <counts toward the 2>'
+        '  Dolly Varden/bull trout: 60 cm (24 in) or longer  <counts toward the 2 · only 1 between them>\n'
+        '  Lake trout: 60 cm (24 in) or longer  <counts toward the 2 · only 1 between them>'
     ),
     'fraser-r3-nov15': (
-        'top: Up to 2 {day}\n'
-        'fold: Up to 2 (keep)\n'
-        '[Keep 2 in all · only 1 over 50 cm (20 in)]\n'
-        '  Brook trout:   <counts toward the 2>  (until Sep 30, then closed to trout and char)\n'
-        '  Brown trout:   <counts toward the 2>  (until Sep 30, then closed to trout and char)\n'
-        '  Cutthroat trout:   <counts toward the 2>  (until Sep 30, then closed to trout and char)\n'
-        '  Dolly Varden/bull trout: only 1  <counts toward the 2>  (until Jul 31, then release)\n'
-        '  Rainbow trout: 50 cm (20 in) or less  <counts toward the 2>  (until Sep 30, then closed to trout and char)\n'
+        'top: Keep 2 trout and char {day}\n'
+        'fold: 2 a day (keep)\n'
+        '[Keep 2 in all · only 1 over 50 cm (20 in)]  (until Sep 30, then closed to trout and char)\n'
+        '  Brook trout:   <counts toward the 2>\n'
+        '  Brown trout:   <counts toward the 2>\n'
+        '  Cutthroat trout:   <counts toward the 2>\n'
+        '  Dolly Varden/bull trout:   <counts toward the 2 · only 1 (until Jul 31, then release)>\n'
+        '  Rainbow trout: 50 cm (20 in) or less  <counts toward the 2>\n'
         '[Release]  (until Nov 30)\n'
         '  Lake trout: \n'
         '[Closed]\n'
@@ -525,8 +526,8 @@ EXPECTED.update({
         '  Brook trout: '
     ),
     'fraser-r3-sep15': (
-        'top: Up to 2 {day}\n'
-        'fold: Up to 2 (keep)\n'
+        'top: Keep 2 trout and char {day}\n'
+        'fold: 2 a day (keep)\n'
         '[Keep 2 in all · only 1 over 50 cm (20 in)]  (until Sep 30, then closed to trout and char)\n'
         '  Brook trout:   <counts toward the 2>\n'
         '  Brown trout:   <counts toward the 2>\n'
@@ -539,85 +540,82 @@ EXPECTED.update({
         '  Steelhead: ~Steelhead are known to be in this water.'
     ),
     'istsi-jul15': (
-        'top: Up to 1 {day}\n'
-        'fold: Up to 1 (keep)\n'
-        '[Keep 1 in all]\n'
-        '  Brook trout: 30–50 cm (12–20 in) | in your possession: no more than 1 trout and char in all  <counts toward the 1>  (until Mar 31, then closed to all fishing)\n'
-        '  Brown trout: 30–50 cm (12–20 in) | in your possession: no more than 1 trout and char in all  <counts toward the 1>  (until Mar 31, then closed to all fishing)\n'
-        '  Cutthroat trout: 30–50 cm (12–20 in) | in your possession: no more than 1 trout and char in all  <counts toward the 1>  (until Mar 31, then closed to all fishing)\n'
-        '  Rainbow trout: 30–50 cm (12–20 in) | in your possession: no more than 1 trout and char in all  <counts toward the 1>  (until Mar 31, then closed to all fishing)\n'
-        '  Lake trout: 30–50 cm (12–20 in) | in your possession: 1 day’s limit, not 2  <counts toward the 1>  (until Sep 14, then release)\n'
+        'top: Keep 1 trout and char {day}\n'
+        'fold: 1 a day (keep)\n'
+        'card: Until Mar 31, then closed to all fishing\n'
+        '[Keep 1 in all · In your possession: just 1, the same as the day]\n'
+        '  Brook trout: 30–50 cm (12–20 in)  <counts toward the 1>\n'
+        '  Brown trout: 30–50 cm (12–20 in)  <counts toward the 1>\n'
+        '  Cutthroat trout: 30–50 cm (12–20 in)  <counts toward the 1>\n'
+        '  Rainbow trout: 30–50 cm (12–20 in)  <counts toward the 1>\n'
+        '  Lake trout: 30–50 cm (12–20 in)  <counts toward the 1>  (until Sep 14, then release)\n'
         '[Release]\n'
-        '  Dolly Varden/bull trout:   (until Mar 31, then closed to all fishing)'
+        '  Dolly Varden/bull trout: '
     ),
     'kamloops-lake-jul15': (
-        'top: Up to 5 {day}\n'
-        'fold: Up to 5 (keep)\n'
+        'top: Keep 5 trout and char {day}\n'
+        'fold: 5 a day (keep)\n'
         '[Keep 5 in all · only 1 over 50 cm (20 in)]\n'
-        '  Dolly Varden/bull trout: 60 cm (24 in) or longer | uses the 1 over 50 cm (20 in)  <only 1 of these 2>\n'
-        '  Lake trout: 60 cm (24 in) or longer | uses the 1 over 50 cm (20 in)  <only 1 of these 2>  (until Oct 14, then release)\n'
-        '  Rainbow trout: 50 cm (20 in) or less  <only 2>\n'
+        '  Rainbow trout: 50 cm (20 in) or less  <counts toward the 5 · only 2>\n'
         '  Brook trout:   <counts toward the 5>\n'
         '  Brown trout:   <counts toward the 5>\n'
-        '  Cutthroat trout:   <counts toward the 5>'
+        '  Cutthroat trout:   <counts toward the 5>\n'
+        '  Dolly Varden/bull trout: 60 cm (24 in) or longer  <counts toward the 5 · only 1 between them>\n'
+        '  Lake trout: 60 cm (24 in) or longer  <counts toward the 5 · only 1 between them>  (until Oct 14, then release)'
     ),
     'khartoum-jul15': (
-        'top: Up to 4 {day}, or 6 if they’re rainbow trout or steelhead\n'
-        'fold: Up to 4 or 6 (keep)\n'
-        '[Keep 4, rainbow trout or steelhead up to 6 · only 1 over 50 cm (20 in), not counting rainbow trout or steelhead; only 2 wild, each under 40 cm (16 in)]\n'
-        '  Brook trout hatchery:   <counts toward the 4>\n'
-        '  Brook trout wild: under 40 cm (16 in)  <counts toward the 4>\n'
-        '  Brown trout hatchery:   <counts toward the 4>\n'
-        '  Brown trout wild: under 40 cm (16 in)  <counts toward the 4>\n'
-        '  Cutthroat trout hatchery:   <counts toward the 4>\n'
-        '  Cutthroat trout wild: under 40 cm (16 in)  <counts toward the 4>\n'
-        '  Dolly Varden/bull trout [HATCHERY ONLY]: 60 cm (24 in) or longer | uses the 1 over 50 cm (20 in) | only 1, counting any lake trout you keep  <counts toward the 4>\n'
-        '  Lake trout [HATCHERY ONLY]: 60 cm (24 in) or longer | uses the 1 over 50 cm (20 in) | only 1, counting any Dolly Varden/bull trout you keep  <counts toward the 4>\n'
-        '  Rainbow trout hatchery:   <counts toward the 6>\n'
-        '  Rainbow trout wild: under 40 cm (16 in)  <counts toward the 6>\n'
+        'top: Keep 4 trout and char {day}\n'
+        'sub: or 6 if they’re rainbow trout or steelhead\n'
+        'fold: 4 or 6 a day (keep)\n'
+        '[Keep 4 in all, or 6 if they’re rainbow trout or steelhead · only 1 over 50 cm (20 in), not counting rainbow trout or steelhead; only 2 wild, each under 40 cm (16 in)]\n'
+        '  Brook trout: under 40 cm (16 in) if wild  <counts toward the 4>\n'
+        '  Brown trout: under 40 cm (16 in) if wild  <counts toward the 4>\n'
+        '  Cutthroat trout: under 40 cm (16 in) if wild  <counts toward the 4>\n'
+        '  Dolly Varden/bull trout [HATCHERY ONLY]: 60 cm (24 in) or longer  <counts toward the 4 · only 1 between them>\n'
+        '  Lake trout [HATCHERY ONLY]: 60 cm (24 in) or longer  <counts toward the 4 · only 1 between them>\n'
+        '  Rainbow trout: under 40 cm (16 in) if wild  <counts toward the 6>\n'
         '  Steelhead [HATCHERY ONLY]: ~Steelhead are known to be in this water.  <counts toward the 6>'
     ),
     'kootenay-main-nov15': (
-        'top: Up to 5 {day}, or 10 if they’re rainbow trout\n'
-        'fold: Up to 5 or 10 (keep)\n'
-        '[Keep 5, rainbow trout up to 10 · any size]\n'
+        'top: Keep 5 trout and char {day}\n'
+        'sub: or 10 if they’re rainbow trout\n'
+        'fold: 5 or 10 a day (keep)\n'
+        '[Keep 5 in all, or 10 if they’re rainbow trout]\n'
         '  Brook trout:   <counts toward the 5>\n'
         '  Brown trout:   <counts toward the 5>\n'
         '  Cutthroat trout: only 1 over 50 cm (20 in)  <counts toward the 5>\n'
         '  Lake trout:   <counts toward the 5>\n'
-        '  Dolly Varden/bull trout: only 1  <counts toward the 5>\n'
+        '  Dolly Varden/bull trout:   <counts toward the 5 · only 1>\n'
         '  Rainbow trout:   <counts toward the 10>'
     ),
     'lois-jul15': (
-        'top: Up to 4 {day}, or 6 if they’re rainbow trout or steelhead\n'
-        'fold: Up to 4 or 6 (keep)\n'
-        '[Keep 4, rainbow trout or steelhead up to 6 · only 1 over 50 cm (20 in), not counting rainbow trout or steelhead; only 2 wild, each under 40 cm (16 in)]\n'
-        '  Brook trout hatchery:   <counts toward the 4>\n'
-        '  Brook trout wild: under 40 cm (16 in)  <counts toward the 4>\n'
-        '  Brown trout hatchery:   <counts toward the 4>\n'
-        '  Brown trout wild: under 40 cm (16 in)  <counts toward the 4>\n'
-        '  Cutthroat trout hatchery:   <counts toward the 4>\n'
-        '  Cutthroat trout wild: under 40 cm (16 in)  <counts toward the 4>\n'
-        '  Dolly Varden/bull trout [HATCHERY ONLY]: 60 cm (24 in) or longer | uses the 1 over 50 cm (20 in) | only 1, counting any lake trout you keep  <counts toward the 4>\n'
-        '  Lake trout [HATCHERY ONLY]: 60 cm (24 in) or longer | uses the 1 over 50 cm (20 in) | only 1, counting any Dolly Varden/bull trout you keep  <counts toward the 4>\n'
-        '  Rainbow trout hatchery:   <counts toward the 6>\n'
-        '  Rainbow trout wild: under 40 cm (16 in)  <counts toward the 6>\n'
+        'top: Keep 4 trout and char {day}\n'
+        'sub: or 6 if they’re rainbow trout or steelhead\n'
+        'fold: 4 or 6 a day (keep)\n'
+        '[Keep 4 in all, or 6 if they’re rainbow trout or steelhead · only 1 over 50 cm (20 in), not counting rainbow trout or steelhead; only 2 wild, each under 40 cm (16 in)]\n'
+        '  Brook trout: under 40 cm (16 in) if wild  <counts toward the 4>\n'
+        '  Brown trout: under 40 cm (16 in) if wild  <counts toward the 4>\n'
+        '  Cutthroat trout: under 40 cm (16 in) if wild  <counts toward the 4>\n'
+        '  Dolly Varden/bull trout [HATCHERY ONLY]: 60 cm (24 in) or longer  <counts toward the 4 · only 1 between them>\n'
+        '  Lake trout [HATCHERY ONLY]: 60 cm (24 in) or longer  <counts toward the 4 · only 1 between them>\n'
+        '  Rainbow trout: under 40 cm (16 in) if wild  <counts toward the 6>\n'
         '  Steelhead [HATCHERY ONLY]: ~Steelhead are known to be in this water.  <counts toward the 6>'
     ),
     'nation-lakes-jul15': (
-        'top: Up to 5 {day}\n'
-        'fold: Up to 5 (keep)\n'
+        'top: Keep 5 trout and char {day}\n'
+        'fold: 5 a day (keep)\n'
+        'card: Until Oct 31, then closed to all fishing\n'
         '[Keep 5 in all · only 1 over 50 cm (20 in)]\n'
-        '  Brook trout:   <counts toward the 5>  (until Oct 31, then closed to all fishing)\n'
-        '  Brown trout:   <counts toward the 5>  (until Oct 31, then closed to all fishing)\n'
-        '  Cutthroat trout:   <counts toward the 5>  (until Oct 31, then closed to all fishing)\n'
-        '  Rainbow trout:   <counts toward the 5>  (until Oct 31, then closed to all fishing)\n'
+        '  Brook trout:   <counts toward the 5>\n'
+        '  Brown trout:   <counts toward the 5>\n'
+        '  Cutthroat trout:   <counts toward the 5>\n'
+        '  Rainbow trout:   <counts toward the 5>\n'
         '  Lake trout: 30 cm (12 in) or longer | ~3 a day, but never more than 2 lake trout with you, and only 1 of them over 50 cm (20 in)  <only 2 in your possession (until Sep 14, then release)>\n'
-        '  Dolly Varden/bull trout: 30–50 cm (12–20 in) | in your possession: 1 day’s limit, not 2  <only 1 (until Aug 14, then release)>'
+        '  Dolly Varden/bull trout: 30–50 cm (12–20 in) | in your possession: 1 day’s limit, not 2  <counts toward the 5 · only 1 (until Aug 14, then release)>'
     ),
     'shamrock-jul15': (
-        'top: Up to 2 {day}\n'
-        'fold: Up to 2 (keep)\n'
+        'top: Keep 2 trout and char {day}\n'
+        'fold: 2 a day (keep)\n'
         'card: Until Jan 31, then closed to all fishing\n'
         '[Keep 2 in all · HATCHERY ONLY]\n'
         '  Brook trout: 20–30 cm (8–12 in)  <counts toward the 2>\n'
@@ -630,66 +628,69 @@ EXPECTED.update({
         '  Lake trout: '
     ),
     'skeena-sedan-mill-jul15': (
-        'top: Up to 5 {day}\n'
-        'fold: Up to 5 (keep)\n'
+        'top: Keep 5 trout and char {day}\n'
+        'fold: 5 a day (keep)\n'
+        'card: Until Oct 31, then release\n'
         '[Keep 5 in all · only 1 over 50 cm (20 in)]\n'
         '  Brook trout: 30 cm (12 in) or longer  <counts toward the 5>  (until Dec 31, then closed to all fishing)\n'
-        '  Lake trout: 30 cm (12 in) or longer  <only 3 (until Sep 14, then release)>\n'
-        '  Brown trout: 30 cm (12 in) or longer  <only 1 of these 4 (until Oct 31, then release)>\n'
-        '  Cutthroat trout: 30 cm (12 in) or longer  <only 1 of these 4 (until Oct 31, then release)>\n'
-        '  Steelhead [HATCHERY ONLY]: a rainbow over 50 cm (20 in) | uses the 1 over 50 cm (20 in) | after keeping 1, stop fishing this stream today | ~Steelhead are known to be in this water.  <only 1 of these 4 (until Oct 31, then release)>\n'
-        '  Rainbow trout: 30–50 cm (12–20 in)  <only 1 of these 4 (until Oct 31, then release)>\n'
+        '  Lake trout: 30 cm (12 in) or longer  <counts toward the 5 · only 3 (until Sep 14, then release)>\n'
+        '  Brown trout: 30 cm (12 in) or longer  <counts toward the 5 · 1 total from these 4>\n'
+        '  Cutthroat trout: 30 cm (12 in) or longer  <counts toward the 5 · 1 total from these 4>\n'
+        '  Rainbow trout: 30–50 cm (12–20 in)  <counts toward the 5 · 1 total from these 4>\n'
+        '  Steelhead [HATCHERY ONLY]: a rainbow over 50 cm (20 in) | after keeping 1, stop fishing this stream today | ~Steelhead are known to be in this water.  <counts toward the 5 · 1 total from these 4>\n'
         '[Release]\n'
         '  Dolly Varden/bull trout:   (until Dec 31, then closed to all fishing)'
     ),
     'tagish-jul15': (
-        'top: Up to 5 {day}\n'
-        'fold: Up to 5 (keep)\n'
+        'top: Keep 5 trout and char {day}\n'
+        'fold: 5 a day (keep)\n'
         '[Keep 5 in all · only 1 over 50 cm (20 in), not counting lake trout]\n'
-        '  Lake trout: release over 60 cm (24 in) and under 90 cm (35 in) | only 2 | only 1 over 90 cm (35 in)  <only 3 between them>\n'
-        '  Dolly Varden/bull trout:   <only 3 between them>\n'
         '  Brook trout:   <counts toward the 5>\n'
         '  Brown trout:   <counts toward the 5>\n'
         '  Cutthroat trout:   <counts toward the 5>\n'
-        '  Rainbow trout:   <counts toward the 5>'
+        '  Rainbow trout:   <counts toward the 5>\n'
+        '  Dolly Varden/bull trout:   <counts toward the 5 · only 3 between them>\n'
+        '  Lake trout: release over 60 cm (24 in) and under 90 cm (35 in) | only 2 | only 1 over 90 cm (35 in)  <counts toward the 5 · only 3 between them>'
     ),
     'takla-jul15': (
-        'top: Up to 5 {day}\n'
-        'fold: Up to 5 (keep)\n'
+        'top: Keep 5 trout and char {day}\n'
+        'fold: 5 a day (keep)\n'
         '[Keep 5 in all · only 1 over 50 cm (20 in)]\n'
         '  Brook trout:   <counts toward the 5>\n'
         '  Brown trout:   <counts toward the 5>\n'
         '  Cutthroat trout:   <counts toward the 5>\n'
         '  Rainbow trout:   <counts toward the 5>\n'
-        '  Lake trout: 30 cm (12 in) or longer | in your possession: 1 day’s limit, not 2  <only 3 (until Sep 14, then release)>\n'
-        '  Dolly Varden/bull trout: 30–50 cm (12–20 in) | in your possession: 1 day’s limit, not 2  <only 1 (until Aug 14, then release)>'
+        '  Lake trout: 30 cm (12 in) or longer | in your possession: 1 day’s limit, not 2  <counts toward the 5 · only 3 (until Sep 14, then release)>\n'
+        '  Dolly Varden/bull trout: 30–50 cm (12–20 in) | in your possession: 1 day’s limit, not 2  <counts toward the 5 · only 1 (until Aug 14, then release)>'
     ),
     'vedder-jul15': (
-        'top: Up to 2 {day}, or 4 if they’re hatchery rainbow trout 50 cm (20 in) or less\n'
-        'fold: Up to 2 or 4 (keep)\n'
+        'top: Keep 2 trout and char {day}\n'
+        'sub: or 4 if they’re hatchery rainbow trout 50 cm (20 in) or less\n'
+        'fold: 2 or 4 a day (keep)\n'
+        'card: Until May 31, then closed to all fishing\n'
         '[Keep 4 in all · HATCHERY ONLY · only 1 over 50 cm (20 in), 2 if one is a hatchery steelhead]\n'
-        '  Brook trout: 30 cm (12 in) or longer  <only 2 of these 6>  (until May 31, then closed to all fishing)\n'
-        '  Brown trout: 30 cm (12 in) or longer  <only 2 of these 6>  (until May 31, then closed to all fishing)\n'
-        '  Cutthroat trout: 30 cm (12 in) or longer  <only 2 of these 6>  (until Apr 30, then release)\n'
-        '  Dolly Varden/bull trout: 60 cm (24 in) or longer | uses the 1 over 50 cm (20 in) | only 1, counting any lake trout you keep  <only 2 of these 6>  (until May 31, then closed to all fishing)\n'
-        '  Lake trout: 60 cm (24 in) or longer | uses the 1 over 50 cm (20 in) | only 1, counting any Dolly Varden/bull trout you keep  <only 2 of these 6>  (until May 31, then closed to all fishing)\n'
-        '  Steelhead: a rainbow over 50 cm (20 in) | after keeping 2, stop fishing this river today | ~Steelhead are known to be in this water.  <only 2 of these 6>  (until May 31, then closed to all fishing)\n'
-        '  Rainbow trout: any length, 50 cm (20 in) or less  <counts toward the 4>  (until Apr 30, then release)'
+        '  Brook trout: 30 cm (12 in) or longer  <2 total from these 6>\n'
+        '  Brown trout: 30 cm (12 in) or longer  <2 total from these 6>\n'
+        '  Cutthroat trout: 30 cm (12 in) or longer  <2 total from these 6>  (until Apr 30, then release)\n'
+        '  Steelhead: a rainbow over 50 cm (20 in) | after keeping 2, stop fishing this river today | ~Steelhead are known to be in this water.  <2 total from these 6>\n'
+        '  Dolly Varden/bull trout: 60 cm (24 in) or longer  <2 total from these 6 [only 1 between them]>\n'
+        '  Lake trout: 60 cm (24 in) or longer  <2 total from these 6 [only 1 between them]>\n'
+        '  Rainbow trout: 50 cm (20 in) or less  <counts toward the 4>  (until Apr 30, then release)'
     ),
     'windsor-jul15': (
-        'top: Up to 4 {day}\n'
-        'fold: Up to 4 (keep)\n'
+        'top: Keep 4 trout and char {day}\n'
+        'fold: 4 a day (keep)\n'
         '[Keep 4 in all · only 1 over 50 cm (20 in)]\n'
         '  Brook trout hatchery:   <counts toward the 4>\n'
         '  Brown trout hatchery:   <counts toward the 4>\n'
         '  Cutthroat trout hatchery:   <counts toward the 4>\n'
         '  Rainbow trout hatchery:   <counts toward the 4>\n'
-        '  Brook trout wild: 40 cm (16 in) or less  <only 2 wild in all>\n'
-        '  Brown trout wild: 40 cm (16 in) or less  <only 2 wild in all>\n'
-        '  Cutthroat trout wild: 40 cm (16 in) or less  <only 2 wild in all>\n'
-        '  Rainbow trout wild: 40 cm (16 in) or less  <only 2 wild in all>\n'
-        '  Dolly Varden/bull trout [HATCHERY ONLY]: 60 cm (24 in) or longer | uses the 1 over 50 cm (20 in)  <only 1 of these 2>\n'
-        '  Lake trout [HATCHERY ONLY]: 60 cm (24 in) or longer | uses the 1 over 50 cm (20 in)  <only 1 of these 2>'
+        '  Brook trout wild: 40 cm (16 in) or less  <counts toward the 4 · only 2 wild in all>\n'
+        '  Brown trout wild: 40 cm (16 in) or less  <counts toward the 4 · only 2 wild in all>\n'
+        '  Cutthroat trout wild: 40 cm (16 in) or less  <counts toward the 4 · only 2 wild in all>\n'
+        '  Rainbow trout wild: 40 cm (16 in) or less  <counts toward the 4 · only 2 wild in all>\n'
+        '  Dolly Varden/bull trout [HATCHERY ONLY]: 60 cm (24 in) or longer  <counts toward the 4 · only 1 between them>\n'
+        '  Lake trout [HATCHERY ONLY]: 60 cm (24 in) or longer  <counts toward the 4 · only 1 between them>'
     ),
 })
 
@@ -731,7 +732,12 @@ def test_every_key_of_the_built_release(request):
     """Every answer key of the release under test: built, valid, every fish once, NULL per Q-D3 (a release cut before
     the switch still carries the trout groups the builder reads)."""
     from pipeline.tools.audit import trout_table as TT
-    rep = TT.run(under_test.release(request), log=lambda *_: None)
+    rel = under_test.release(request)
+    m = json.loads((rel / "manifest.json").read_text()) if (rel / "manifest.json").exists() else {}
+    rows = ((m.get("regulations") or {}).get("versions") or {}).get("rows")
+    if rows is not None and int(rows) < 34:
+        pytest.skip(f"the release under test is rows {rows}: this check waits for a rows-34 (cutover) release as LATEST")
+    rep = TT.run(rel, log=lambda *_: None)
     assert rep["refused"] == {}, list(rep["refused"].items())[:5]
     assert rep["counts"]["tables"] > 1000, rep["counts"]
 
@@ -763,3 +769,29 @@ def test_the_mixed_row_split_broken_fails_its_case(live, monkeypatch):
     rows, ds, starts, moms = live.key("burnt-jan15")
     assert check_key(rows, ds, T.compose_key(rows, ds, starts, moms, live.rules,
                                              licences=live.licences("burnt-jan15"))) != []
+
+
+def test_the_split_never_changes_the_frame_it_reads():
+    """T810 L: `split_mixed` runs twice on one frame (the table, then the cutover), and rows are shared between keys:
+    a parent index moved past a split row is moved on a copy, so the second split gives the same frame as the first."""
+    closed_mixed = {"kind": "closed", "members": ["RB", "KO"], "all_members": ["RB", "KO"], "groups": []}
+    pool = {"kind": "keep", "pool": 1, "members": ["CT"], "all_members": ["CT"], "groups": []}
+    held = {"kind": "keep", "pool": 2, "members": ["CT"], "all_members": ["CT"], "groups": [], "parent": 1}
+    frame = {"rows": [closed_mixed, pool, held]}
+    before = copy.deepcopy(frame)
+    first, covers = T.split_mixed(frame)
+    assert frame == before
+    assert [r.get("parent") for r in first["rows"]] == [None, None, None, 2] and covers == [0, 2, 3]
+    assert T.split_mixed(frame) == (first, covers)
+
+
+def test_the_steelhead_presence_line_stays_on_the_steelhead_part():
+    """T810 cutover: a release row holding steelhead and a fish outside the table (the live bundle has them) is split;
+    the steelhead presence line goes with the part holding ST (the table's), never the remainder (`model.Row` refuses a
+    presence line on a row without ST). Mutation: the remainder keeping `presence` fails here and stops the build."""
+    line = {"line": "possible_with_rules", "says": "Steelhead may be present."}
+    mixed = {"kind": "release", "members": ["ST", "KO"], "all_members": ["ST", "KO"], "groups": [], "presence": line}
+    split, covers = T.split_mixed({"rows": [mixed]})
+    assert [r["all_members"] for r in split["rows"]] == [["ST"], ["KO"]] and covers == [0]
+    assert [r.get("presence") for r in split["rows"]] == [line, None]
+    assert mixed["presence"] == line

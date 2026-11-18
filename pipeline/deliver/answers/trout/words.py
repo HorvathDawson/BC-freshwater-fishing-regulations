@@ -365,9 +365,12 @@ YEAR_TITLE = "Trout and char through the year"
 HEAD_RELEASE, HEAD_CLOSED = "Release", "Closed"
 SHEET_RELEASE, SHEET_CLOSED = "Put it back", "Closed · do not fish for it"
 FOLD_RELEASE, FOLD_CLOSED, FOLD_NONE = "Release", "Closed", "None to keep"
-TOP_RELEASE = f"Release every one {DAY_SLOT}"
-TOP_CLOSED = f"Closed for trout and char {DAY_SLOT}"
-TOP_NONE = f"Nothing to keep {DAY_SLOT}"
+#: (owner 2026-11-17 23:35, "Keep 2 trout and char today (Recommended)": "Up to 2 is just confusing … up to 2 what") every
+#: top line names the fish and the action
+TOP_FISH = "trout and char"
+TOP_RELEASE = f"Release every {TOP_FISH} {DAY_SLOT}"
+TOP_CLOSED = f"Closed for {TOP_FISH} {DAY_SLOT}"
+TOP_NONE = f"Keep no {TOP_FISH} {DAY_SLOT}"
 #: T810 G2 Q8 (owner 15:41 "Once; steelhead says 'closed all year'"): a closed table's one fish that never reopens this
 #: year, on its own row while the others' reopening day stands once under the top line
 CLOSED_ALL_YEAR = "closed all year"
@@ -416,10 +419,11 @@ def fish_words(codes) -> str:
 # -- the top line and the fold ---------------------------------------------------------------
 
 def top_up_to(n, alsos=(), more=(), plus=()) -> str:
-    """One keep box: "Up to 2 {day}", ", or 5 if they’re rainbow trout" for each stored `also` (the headline's), " and
-    no more than 2 Dolly Varden/bull trout" for a lifted fish under its own number beside an `also`, ", plus 2 Dolly
-    Varden/bull trout" for one without (`more` / `plus`: [(n, fish words)])."""
-    s = f"Up to {_n(n)} {DAY_SLOT}"
+    """One keep box: "Keep 2 trout and char {day}" (owner 23:35: the fish and the action), ", or 5 if they’re rainbow
+    trout" for each stored `also` (the headline's), " and no more than 2 Dolly Varden/bull trout" for a lifted fish under
+    its own number beside an `also`, ", plus 2 Dolly Varden/bull trout" for one without (`more` / `plus`: [(n, fish
+    words)])."""
+    s = f"Keep {_n(n)} {TOP_FISH} {DAY_SLOT}"
     if alsos:
         s += ", or " + " or ".join(_now(a) for a in alsos)
     for k, w in more:
@@ -429,18 +433,50 @@ def top_up_to(n, alsos=(), more=(), plus=()) -> str:
     return s
 
 
+def split_top(lead: str) -> Tuple[str, Optional[str]]:
+    """(Owner 2026-11-18 01:28, the Vedder) a top line with an exception leads with its general number, the exception on
+    a subline under it: "Keep 2 trout and char {day}" / "or 4 if they’re hatchery rainbow trout 50 cm (20 in) or less"
+    (`TopLine.sub`); any other top line whole, no subline."""
+    at = lead.find(DAY_SLOT + ", or ")
+    if at < 0:
+        return lead, None
+    return lead[:at + len(DAY_SLOT)], lead[at + len(DAY_SLOT) + 2:]
+
+
+def join_top(lead: str, sub: Optional[str]) -> str:
+    """`split_top` undone: the top line whole, as `parse_top_full` reads it."""
+    return lead if sub is None else f"{lead}, {sub}"
+
+
+def top_numbers(lead: str, sub: Optional[str] = None) -> set:
+    """Every count a top line names (its general number, each exception's, each fish's) — never a size."""
+    got = parse_top_full(join_top(lead, sub))
+    if got[0] == "up_to":
+        return {got[1], *(a[0] for a in got[2]), *(k for k, _w in got[3]), *(k for k, _w in got[4])}
+    if got[0] == "apart":
+        return {k for k, _w in got[1]} | ({got[2]} if got[2] is not None else set())
+    return set()
+
+
 def top_apart(named, others_n: Optional[float]) -> str:
-    """Boxes counted apart: "Up to 6 rainbow trout or steelhead and 4 other trout and char {day}" (`named`: [(n, fish
+    """Boxes counted apart: "Keep 6 rainbow trout or steelhead and 4 other trout and char {day}" (`named`: [(n, fish
     words)] for each box named by its fish; `others_n` the box of the other trout and char, None when every box is
     named)."""
     parts = [f"{_n(k)} {w}" for k, w in named]
     if others_n is not None:
         parts.append(f"{_n(others_n)} other trout and char")
-    return f"Up to {common.join(parts)} {DAY_SLOT}"
+    return f"Keep {common.join(parts)} {DAY_SLOT}"
 
 
 def fold_up_to(n, alsos=()) -> str:
-    return "Up to " + " or ".join(_n(k) for k in [n, *alsos])
+    """The folded entry's value (owner 23:35, "Make it match other rows in table"): one number in the Other fish rows'
+    form, "2 a day" (the app's `others.ts` `shortValue`); several (", or 10 if they’re brook trout") keep "Up to 5 or 10"
+    — the Other fish rows have no two-number form (asked of the owner, not invented)."""
+    if not alsos:
+        return f"{_n(n)} a day"
+    # (owner 2026-11-18, "Make it match other rows in table", the app chat's finals) two numbers the same way: "2 or 4 a
+    # day" (the Vedder), "4 or 6 a day" (Lois)
+    return common.join([_n(k) for k in [n, *alsos]], " or ") + " a day"
 
 
 def fold_apart(named, others_n: Optional[float]) -> str:
@@ -458,8 +494,9 @@ def head_keep(n) -> str:
 
 def head_keep_except(n, fish: str, most) -> str:
     """T834 (owner 13:15, "lead with 5"): a box whose region cap a water's own quota raised leads with the region's
-    number and names the exception: "Keep 5, brook trout up to 20" — never "Keep 20 in all"."""
-    return f"Keep {_n(n)}, {fish} up to {_n(most)}"
+    number and names the exception, as the top line does (owner 2026-11-18, "up to 2 what"): "Keep 5 in all, or 20 if
+    they’re brook trout" — never "Keep 20 in all" (and no longer "Keep 5, brook trout up to 20")."""
+    return f"Keep {_n(n)} in all, or {_n(most)} if they’re {fish}"
 
 
 def tag_of(whose: str) -> str:
@@ -525,12 +562,30 @@ def band_own(k) -> str:
 
 
 def band_shared(k, m: int) -> str:
-    """"only 1 of these 4"; a number at least the rows it spans (each row holds more than one fish: Tagish's lake trout
-    and Dolly Varden "3 in the aggregate") reads "only 3 between them" over two rows, "only 4 among them" over more
-    (T810 G2 Q2, owner 15:34)."""
-    if k < m:
-        return f"only {_n(k)} of these {m}"
-    return f"only {_n(k)} between them" if m == 2 else f"only {_n(k)} among them"
+    """A count rows share, its own words (the band's second half, `band_in`): over two rows "only 1 between them" (owner
+    2026-11-18, for now); over three or more "2 total from these 6" (owner 2026-11-18 00:52: "only 2 of these 6 … is worded
+    really poorly"). THE one place these words change."""
+    if m == 2:
+        return f"only {_n(k)} between them"
+    return f"{_n(k)} total from these {m}"
+
+
+def band_in(total, part: str) -> str:
+    """(Owner 2026-11-18 00:52) a band over several rows names the overall limit first, as the size band does: "counts
+    toward the 2 · only 1 between them", "counts toward the 6 · 2 total from these 6"."""
+    return band_upto(total) + BAND_SEP + part
+
+
+def band_total(text: str) -> Optional[float]:
+    """The overall limit a band names first ("counts toward the 2 · …" -> 2); None for a band without one."""
+    m = re.fullmatch(rf"counts toward the {_NUM}{re.escape(BAND_SEP)}.+", text)
+    return _num(m[1]) if m else None
+
+
+def band_part(text: str) -> str:
+    """A band's own words, the overall limit set aside ("counts toward the 2 · only 1 between them" -> "only 1 between
+    them")."""
+    return text.split(BAND_SEP, 1)[1] if band_total(text) is not None else text
 
 
 def band_wild(n) -> str:
@@ -541,12 +596,45 @@ def band_wild(n) -> str:
 
 def band_wild_n(text: str) -> Optional[float]:
     """"only 2 wild in all" -> 2; None for any other band."""
-    m = re.fullmatch(rf"only {_NUM} wild in all", text)
+    m = re.fullmatch(rf"only {_NUM} wild in all", band_part(text))
     return _num(m[1]) if m else None
 
 
 def band_possession(k) -> str:
     return f"only {_n(k)} in your possession"
+
+
+#: the two halves of a size band (`band_size`)
+BAND_SEP = " · "
+
+
+def band_size_part(n, over_cm, m: int) -> str:
+    """A size cap the band's rows share, its half of the band: "only 1 over 50 cm (20 in) between them" (two rows),
+    "… among them" (more)."""
+    return f"only {_n(n)} over {common.cm_in(over_cm)} {'between' if m == 2 else 'among'} them"
+
+
+def band_size(box_n, n, over_cm, m: int) -> str:
+    """(T810 L, the owner's R4 decision 2026-11-18 "A but still has to mention the overall limit") a size cap two or more
+    rows share inside the box's number, drawn over them, the box's number first: "counts toward the 2 · only 1 over 50 cm
+    (20 in) between them" (Region 4 streams' cutthroat and rainbow trout; never each row's "only 1 over 50 cm (20 in),
+    counting any rainbow trout you keep")."""
+    return band_upto(box_n) + BAND_SEP + band_size_part(n, over_cm, m)
+
+
+def parse_size_part(text: str) -> Optional[Tuple[float, float, Optional[int]]]:
+    """A size cap's own words (a nested band's, `band_size_part`) -> (n, over cm, rows: 2 "between", None "among")."""
+    m = re.fullmatch(rf"only {_NUM} over {_CM} (between|among) them", text)
+    return (_num(m[1]), _cm(m[2], m[3]), 2 if m[4] == "between" else None) if m else None
+
+
+def parse_band_size(text: str) -> Optional[Tuple[float, float, float, Optional[int]]]:
+    """A size band -> (box n, n, over cm, rows: 2 "between", None "among" (J holds it to 3 or more)); None for any other
+    band."""
+    m = re.fullmatch(rf"counts toward the {_NUM}{re.escape(BAND_SEP)}only {_NUM} over {_CM} (between|among) them", text)
+    if not m:
+        return None
+    return _num(m[1]), _num(m[2]), _cm(m[3], m[4]), (2 if m[5] == "between" else None)
 
 
 # -- a row -------------------------------------------------------------------------------------
@@ -584,6 +672,13 @@ def size_count_line(n, over_cm, others) -> str:
 def also_line(says: str) -> str:
     """A cap the card says on the kind (`tree` `also_counts[].says`, gate-proved), as the row's line."""
     return _now(says)
+
+
+def possession_same(n) -> str:
+    """(Owner 2026-11-18, Bowron Lake Park's creeks: "In your possession: just 1, the same as the day") the possession
+    duty every row of a box comes to, its day's number, where the rows' own lines say it differently (the park's flat
+    "no more than 1 trout and char in all", Region 7A's lake trout "1 day’s limit, not 2"): said once, on the box."""
+    return f"in your possession: just {_n(n)}, the same as the day{_home()}"
 
 
 def possession_row(line: str) -> str:
@@ -683,17 +778,110 @@ def elsewhere_line(q: str, a: str) -> str:
     return _now(f"{q} {a}")
 
 
+#: (T810 L) the kept-elsewhere SENTENCE of a row the table covers (`rows/groups.py elsewhere_of` `says`): the stored
+#: sentence's "today" words, which the link word ("Fished elsewhere today?") says instead (contract Q-D2)
+_SAYS_TODAY = ((" you kept anywhere else today count toward ", " you kept anywhere else count toward "),
+               (" you fish today", " you fish"))
+
+
+def elsewhere_says(says: str) -> str:
+    """A covered row's kept-elsewhere sentence (`Row.elsewhere.says`: whose limit, its number, which fish kept elsewhere
+    count toward it) as the table's `elsewhere` says it, first, before the worked lines: the same words without
+    "today" (the link word says the day). A sentence this grammar cannot read back (`parse_elsewhere_says`) is
+    refused, never shipped as free text."""
+    out = says
+    for a, b in _SAYS_TODAY:
+        out = out.replace(a, b)
+    parse_elsewhere_says(out)
+    return _now(out)
+
+
+_SAYS_OWN = re.compile(r"Your own limit, counted across every (.+?) you fish(, lakes and streams alike)?\.")
+_SAYS_RULE = re.compile(
+    r"(.+?)[’']s rule( for its tributaries)?: (?:no daily limit here\.|(\d+(?:\.\d+)?) a day here\. (.+?) you kept "
+    r"anywhere else count toward (?:that 1|those (\d+(?:\.\d+)?))\.)"
+    r"( These fish are counted apart from the region[’']s total: they don[’']t use it up\.)?"
+    r"(?: They also count toward (.+?)\.)?")
+
+
+def parse_elsewhere_says(text: str) -> tuple:
+    """A kept-elsewhere sentence (`elsewhere_says`) -> ("own", scope) — "Your own limit, counted across every water in
+    Region 6 you fish, lakes and streams alike." — or ("rule", whose, n | None, fish words, apart, also | None) — "This
+    lake’s rule: 2 a day here. Trout and char other than steelhead you kept anywhere else count toward those 2."
+    (n None: "no daily limit here"; `also` the total it counts toward too, in words). Anything else is refused."""
+    if _TODAY.search(text):
+        raise WordsError(f"trout words: a kept-elsewhere sentence says today: {text!r}")
+    text = split_subject(text)[1]                       # (owner 23:29) its subject label, read by `split_subject`
+    m = _SAYS_OWN.fullmatch(text)
+    if m:
+        return ("own", m[1])
+    m = _SAYS_RULE.fullmatch(text)
+    if m:
+        n = None if m[3] is None else _num(m[3])
+        if n is not None and (_num(m[5]) if m[5] else 1) != n:
+            raise WordsError(f"trout words: a kept-elsewhere sentence counts toward another number: {text!r}")
+        return ("rule", m[1], n, m[4], m[6] is not None, m[7])
+    raise WordsError(f"trout words: not a kept-elsewhere sentence {text!r}")
+
+
+def is_elsewhere_line(text: str) -> bool:
+    """A worked kept-elsewhere line ("Kept 2 elsewhere? …"), as against the sentence that leads the list — its subject
+    label, if any, set aside (`split_subject`)."""
+    return split_subject(text)[1].startswith("Kept ")
+
+
+#: (T810 L, owner 2026-11-17 23:29 "Yes, name the fish (Recommended)") the subject of a kept-elsewhere list's lines when
+#: the list speaks of more than one: a row's or group's one fish by the table's own name ("Brook trout"), several fish
+#: (the trout and char pool, a share) "Trout and char"
+POOL_SUBJECT = "Trout and char"
+
+
+def elsewhere_subject(codes) -> str:
+    """The subject a kept-elsewhere line speaks of: the one fish of its row or group by the row's name (`fish_name`),
+    else the pool, "Trout and char"."""
+    got = list(dict.fromkeys(codes))
+    if not got:
+        raise WordsError("trout words: a kept-elsewhere line of no fish")
+    return fish_name(got[0]) if len(got) == 1 else POOL_SUBJECT
+
+
+def elsewhere_labeled(subject: str, text: str) -> str:
+    """A kept-elsewhere sentence or worked line under its subject, when the list speaks of more than one: "Brook trout:
+    Kept 2 elsewhere? Keep 8 more here." (owner 23:29: the grouping cannot be misread)."""
+    if split_subject(f"{subject}: {text}") != (subject, text):
+        raise WordsError(f"trout words: not a kept-elsewhere subject {subject!r}")
+    return _now(f"{subject}: {text}")
+
+
+def _subjects() -> Tuple[str, ...]:
+    return (POOL_SUBJECT, *sorted({common.sp_name(S) for S in common.trout_char()}, key=len, reverse=True))
+
+
+def split_subject(text: str) -> Tuple[Optional[str], str]:
+    """A kept-elsewhere text -> (its subject label, the text after it); (None, text) where it has none. Only a subject
+    `elsewhere_subject` can say is a label ("This lake’s rule: …" is a sentence, never a label)."""
+    for sub in _subjects():
+        if text.startswith(sub + ": "):
+            return sub, text[len(sub) + 2:]
+    return None, text
+
+
 def sheet_keep(band_text: str, box_n) -> str:
     """The fish sheet's head on a keep row (spec 3.4): "Keep · only 1 of these 4 · counts toward the 5"; a row whose band
     is the box's own number ("counts toward the 5") says it once: "Keep · counts toward the 5"; one toward a smaller
     number of a raised box (Canuck: the 5 inside "Keep 5, brook trout up to 20") names both: "Keep · counts toward the 5
     and the 20"."""
     kind, k, _m = parse_band(band_text)
+    if kind == "size":
+        # "Keep · only 1 over 50 cm (20 in) between them · counts toward the 2": the box's number once, last
+        return f"Keep · {band_text.split(BAND_SEP, 1)[1]} · counts toward the {_n(k)}"   # its own total (a raised box's first)
     if kind == "upto" and k == box_n:
         return f"Keep · counts toward the {_n(box_n)}"
     if kind == "upto":
         return f"Keep · counts toward the {_n(k)} and the {_n(box_n)}"
-    return f"Keep · {band_text} · counts toward the {_n(box_n)}"
+    total = band_total(band_text)
+    # a band naming the overall limit (owner 00:52) says it once, last: "Keep · only 1 between them · counts toward the 2"
+    return f"Keep · {band_part(band_text)} · counts toward the {_n(box_n if total is None else total)}"
 
 
 # -- THE FISH SHEET'S "HERE" LINES (ticket H, spec 3.4): whole sentences, never "today" ----------------------------------
@@ -723,6 +911,13 @@ def sentence(text: str) -> str:
     return _sheet(t if t.endswith((".", "?", "!")) else t + ".")
 
 
+def size_if_wild(size: str) -> str:
+    """(Owner 2026-11-18 01:22) a fish's hatchery and wild twins as ONE row: the wild fish's own size, "50 cm (20 in) or
+    less if wild" (Chilliwack), "under 40 cm (16 in) if wild" (Lois, Windsor); hatchery fish any size."""
+    parse_size(size)
+    return f"{size} if wild"
+
+
 def sheet_size(detail: str) -> str:
     return _sheet("Any size." if detail in ("any size", "any length") else f"Size: {detail}.")
 
@@ -748,7 +943,16 @@ def sheet_shared(band_text: str, others: str) -> str:
     kind, _k, _m = parse_band(band_text)
     if kind != "shared":
         raise WordsError(f"trout words: not a shared band: {band_text!r}")
-    return _sheet(f"{common.cap(band_text)}: this fish and {others}.")
+    return _sheet(f"{common.cap(band_part(band_text))}: this fish and {others}.")
+
+
+def sheet_size_band(band_text: str, others: str) -> str:
+    """A size band's cap with the fish it holds besides this one: "Only 1 over 50 cm (20 in) between them: this fish and
+    rainbow trout."."""
+    part = band_text.split(BAND_SEP, 1)[1] if parse_band_size(band_text) is not None else band_text
+    if parse_size_part(part) is None:
+        raise WordsError(f"trout words: not a size band: {band_text!r}")
+    return _sheet(f"{common.cap(part)}: this fish and {others}.")
 
 
 def sheet_uses(over_cm) -> str:
@@ -793,18 +997,28 @@ def _num(s: str):
 
 
 def parse_band(text: str) -> Tuple[str, float, Optional[int]]:
-    """A band text -> (kind, n, m): "counts toward the 5" ("upto", 5, None), "only 1 of these 4" ("shared", 1, 4)."""
+    """A band text -> (kind, n, m): "counts toward the 5" ("upto", 5, None), "only 1 of these 4" ("shared", 1, 4),
+    "counts toward the 2 · only 1 over 50 cm (20 in) between them" ("size", 2, 2: its rows; `parse_band_size` the rest)."""
+    sz = parse_band_size(text)
+    if sz is not None:
+        return "size", sz[0], sz[3]
+    if band_total(text) is not None:
+        # (owner 00:52) "counts toward the 2 · only 1 between them": a shared band naming the overall limit first; (01:22)
+        # a lone row's own cap the same way, "counts toward the 2 · only 1"
+        got = parse_band(band_part(text))
+        if got[0] not in ("shared", "own"):
+            raise WordsError(f"trout words: cannot read the band {text!r}")
+        return got
     for kind, pat in (("upto", rf"counts toward the {_NUM}"), ("possession", rf"only {_NUM} in your possession"),
-                      ("shared", rf"only {_NUM} of these (\d+)"), ("shared", rf"only {_NUM} (between) them"),
-                      ("shared", rf"only {_NUM} (among) them"), ("shared", rf"only {_NUM} wild in all"),
-                      ("own", rf"only {_NUM}")):
+                      ("shared", rf"{_NUM} total from these (\d+)"), ("shared", rf"only {_NUM} (between) them"),
+                      ("shared", rf"only {_NUM} wild in all"), ("own", rf"only {_NUM}")):
         m = re.fullmatch(pat, text)
         if m:
             if kind != "shared":
                 return kind, _num(m[1]), None
             g = m[2] if m.lastindex and m.lastindex >= 2 else None
-            # "between them": two rows; "among them" and "wild in all": the band's own span (J checks it holds 2+)
-            return kind, _num(m[1]), (2 if g == "between" else None if g in ("among", None) else int(g))
+            # "between them": two rows; "from these M": M rows; "wild in all": the band's own span (J checks it holds 2+)
+            return kind, _num(m[1]), (2 if g == "between" else None if g is None else int(g))
     raise WordsError(f"trout words: cannot read the band {text!r}")
 
 
@@ -824,11 +1038,11 @@ def parse_head(text: str) -> Tuple[str, Optional[float]]:
 
 
 def parse_head_except(text: str) -> Optional[Tuple[float, Tuple[str, ...], float]]:
-    """"Keep 5, brook trout up to 20" -> (5, the excepted fish, 20); None for any other head."""
-    m = re.fullmatch(rf"Keep {_NUM}, (.+) up to {_NUM}", text or "")
+    """"Keep 5 in all, or 20 if they’re brook trout" -> (5, the excepted fish, 20); None for any other head."""
+    m = re.fullmatch(rf"Keep {_NUM} in all, or {_NUM} if they’re (.+)", text or "")
     if not m:
         return None
-    return _num(m[1]), parse_fish(m[2]), _num(m[3])
+    return _num(m[1]), parse_fish(m[3]), _num(m[2])
 
 
 def parse_strip_size(text: str) -> Tuple[float, float, Optional[float]]:
@@ -852,10 +1066,10 @@ def parse_top(lead: str) -> Tuple[str, Tuple]:
     fixed = {TOP_RELEASE: "release", TOP_CLOSED: "closed", TOP_NONE: "none"}
     if lead in fixed:
         return fixed[lead], ()
-    m = re.fullmatch(rf"Up to {_NUM} \{{day\}}(.*)", lead)
+    m = re.fullmatch(rf"Keep {_NUM} {TOP_FISH} \{{day\}}(.*)", lead)
     if m:
         return "up_to", (_num(m[1]), *(_num(x) for x in re.findall(rf"(?:or|than|plus|and) {_NUM}", m[2])))
-    m = re.fullmatch(rf"Up to (.+) \{{day\}}", lead)
+    m = re.fullmatch(rf"Keep (.+) \{{day\}}", lead)
     if m and " other trout and char" in m[1] or (m and re.match(rf"{_NUM} ", m[1])):
         return "apart", tuple(_num(x) for x in re.findall(rf"(?:^|, | and ){_NUM} ", m[1]))
     raise WordsError(f"trout words: cannot read the top line {lead!r}")
@@ -960,11 +1174,15 @@ def parse_size(text: str) -> Tuple[Tuple[float, float], ...]:
 def parse_possession(text: str) -> tuple:
     """A possession line on a row or a strip (`possession_row`, `card.possession_duty` less its home exception) ->
     ("count", n, fish, clauses [(k, ranges)]) — "in your possession: no more than 2 lake trout, only 1 over 50 cm
-    (20 in)" — or ("days", k, the page's k | None) — "in your possession: 1 day’s limit, not 2"."""
+    (20 in)" — or ("days", k, the page's k | None) — "in your possession: 1 day’s limit, not 2" — or ("same", n) — "in
+    your possession: just 1, the same as the day"."""
     m = re.fullmatch(r"in your possession: (.+)", text)
     if not m:
         raise WordsError(f"trout words: not a possession line {text!r}")
     s = m[1]
+    m = re.fullmatch(rf"just {_NUM}, the same as the day", s)
+    if m:
+        return ("same", _num(m[1]))                     # `possession_same`
     m = re.fullmatch(rf"(?:1 day’s limit|{_NUM} days’ limits)(?:, not {_NUM})?", s)
     if m:
         return ("days", _num(m[1]) if m[1] else 1, _num(m[2]) if m[2] else None)
@@ -1091,6 +1309,9 @@ def parse_row_line(text: str) -> tuple:
     m = re.fullmatch(rf"only {_NUM} wild(?:, each (.+))?", text)
     if m:
         return ("wild", _num(m[1]), parse_size(m[2]) if m[2] else None)
+    m = re.fullmatch(r"(.+) if wild", text)
+    if m:
+        return ("size_wild", parse_size(m[1]))                 # `size_if_wild`: the wild fish's size only
     try:
         return ("size", parse_size(text))
     except WordsError:
@@ -1160,9 +1381,12 @@ def parse_fold(text: str) -> Tuple[str, Tuple]:
     fixed = {FOLD_RELEASE: "release", FOLD_CLOSED: "closed", FOLD_NONE: "none"}
     if text in fixed:
         return fixed[text], ()
-    m = re.fullmatch(rf"Up to {_NUM}((?: or {_NUM})*)", text)
+    m = re.fullmatch(rf"{_NUM} a day", text)
     if m:
-        return "up_to", (_num(m[1]), *(_num(x) for x in re.findall(_NUM, m[2])))
+        return "up_to", (_num(m[1]),)
+    m = re.fullmatch(rf"{_NUM}((?:, {_NUM})*) or {_NUM} a day", text)
+    if m:
+        return "up_to", (_num(m[1]), *(_num(x) for x in re.findall(_NUM, m[2] or "")), _num(m[m.lastindex]))
     m = re.fullmatch(r"Up to (.+)", text)
     if m:
         parts = m[1].split(", ")
@@ -1183,7 +1407,7 @@ def parse_top_full(lead: str) -> tuple:
     fixed = {TOP_RELEASE: "release", TOP_CLOSED: "closed", TOP_NONE: "none"}
     if lead in fixed:
         return (fixed[lead],)
-    m = re.fullmatch(rf"Up to {_NUM} \{{day\}}(.*)", lead)
+    m = re.fullmatch(rf"Keep {_NUM} {TOP_FISH} \{{day\}}(.*)", lead)
     if m:
         n, rest = _num(m[1]), m[2]
         alsos, more, plus = [], [], []
@@ -1208,7 +1432,7 @@ def parse_top_full(lead: str) -> tuple:
             for k, w in re.findall(rf" and no more than {_NUM} ([^,]+?)(?= and no more than|$)", mm[2] or ""):
                 more.append((_num(k), parse_fish(w)))
         return ("up_to", n, tuple(alsos), tuple(more), ())
-    m = re.fullmatch(r"Up to (.+) \{day\}", lead)
+    m = re.fullmatch(r"Keep (.+) \{day\}", lead)
     if m:
         body = m[1]
         others = None
@@ -1241,15 +1465,21 @@ _SAY_ANSWER = (
 def parse_elsewhere(text: str) -> tuple:
     """A kept-elsewhere line (`elsewhere_line`) -> (question, answer): the question ("kept", n, place) — "Kept 2
     elsewhere?", "Kept 2 on another stream?", "Kept 1 at a lake?" — or ("over", fish, cm) — "Kept trout or char over
-    50 cm (20 in) elsewhere?"; the answer one of `_SAY_ANSWER`'s forms."""
+    50 cm (20 in) elsewhere?"; the answer one of `_SAY_ANSWER`'s forms. A subject label before it (owner 23:29,
+    `elsewhere_labeled`) is set aside."""
+    text = split_subject(text)[1]
     m = re.fullmatch(r"(Kept [^?]+\?) (.+)", text)
     if not m:
         raise WordsError(f"trout words: not a kept-elsewhere line {text!r}")
     q, a = m[1], m[2]
-    mm = re.fullmatch(rf"Kept {_NUM} (elsewhere|on another (stream|lake)|at a (stream|lake))\?", q)
+    mm = re.fullmatch(rf"Kept {_NUM} (?:(.+?) )?(elsewhere|on another (stream|lake)|at a (stream|lake))\?", q)
     if mm:
-        place = mm[3] or mm[4] or "elsewhere"
-        question = ("kept", _num(mm[1]), place)
+        place = mm[4] or mm[5] or "elsewhere"
+        # (the re-review of 3f273c172) the fish the question keeps there: named ("Kept 1 lake trout at a lake?"),
+        # "other" ("Kept 1 other trout or char at a lake?": every trout and char the table's other line names not), or
+        # None: any trout or char
+        fish = None if mm[2] is None else "other" if mm[2] == "other trout or char" else parse_fish(mm[2])
+        question = ("kept", _num(mm[1]), place, fish)
     else:
         mm = re.fullmatch(rf"Kept (.+) over {_CM} elsewhere\?", q)
         if not mm:
@@ -1274,8 +1504,11 @@ def parse_sheet_head(text: str) -> tuple:
         return ("keep", band_upto(_num(m[1])), _num(m[2]))
     m = re.fullmatch(rf"Keep · (?:(.+) · )?counts toward the {_NUM}", text)
     if m:
+        if m[1] is not None and parse_band_size(band_upto(_num(m[2])) + BAND_SEP + m[1]) is not None:
+            return ("keep", band_upto(_num(m[2])) + BAND_SEP + m[1], _num(m[2]))       # a size band (`sheet_keep`)
         if m[1] is not None:
             parse_band(m[1])
+        # a shared band's own words: the band is they, or they after "counts toward the N · " (J holds it to one)
         return ("keep", m[1], _num(m[2]))
     raise WordsError(f"trout words: cannot read the sheet head {text!r}")
 
@@ -1304,13 +1537,17 @@ def parse_licence_part(text: str) -> tuple:
 def parse_sheet_line(text: str) -> tuple:
     """One "Here" line of a fish sheet -> what it says:
       ("size", ranges) "Size: …." / "Any size." · ("sub", cm) "Here a steelhead is a rainbow over 50 cm (20 in)." ·
-      ("hatchery",) · ("box", n, others | ()) · ("own", k) · ("shared", band text, others) · ("uses", cm) ·
+      ("hatchery",) · ("box", n, others | ()) · ("own", k) · ("shared", band text, others) · ("size_band", the band's size half
+      "only 1 over 50 cm (20 in) between them", others) · ("uses", cm) ·
       ("possession", …) the duty whole, with its home exception · ("stop", n, fish, noun) · ("licence", parts) ·
       ("one_day", day, the day's lines read as row lines) · ("line", what) any other row, strip, together or quiet
       line as a sentence."""
     _sheet(text)
     if text in ("Any size.",):
         return ("size", ((0, INF),))
+    m = re.fullmatch(r"Size: (.+) if wild\.", text)
+    if m:
+        return ("size_wild", parse_size(m[1]))
     m = re.fullmatch(r"Size: (.+)\.", text)
     if m:
         return ("size", parse_size(m[1]))
@@ -1325,12 +1562,15 @@ def parse_sheet_line(text: str) -> tuple:
     m = re.fullmatch(rf"This fish: only {_NUM}\.", text)
     if m:
         return ("own", _num(m[1]))
-    m = re.fullmatch(r"(Only .+?): this fish and (.+)\.", text)
+    m = re.fullmatch(rf"(Only {_NUM} over {_CM} (?:between|among) them): this fish and (.+)\.", text)
+    if m:
+        return ("size_band", _decap(m[1]), _parse_named(m[5]))
+    m = re.fullmatch(rf"({_NUM} total from these \d+|Only .+?): this fish and (.+)\.", text)
     if m:
         band = _decap(m[1])
         if parse_band(band)[0] != "shared":
             raise WordsError(f"trout words: cannot read the sheet line {text!r}")
-        return ("shared", band, _parse_named(m[2]))
+        return ("shared", band, _parse_named(m[3]))
     m = re.fullmatch(rf"A kept one is always over {_CM}, so it is that one\.", text)
     if m:
         return ("uses", _cm(m[1], m[2]))

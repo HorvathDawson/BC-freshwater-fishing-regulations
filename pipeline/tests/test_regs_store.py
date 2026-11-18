@@ -94,6 +94,9 @@ def _wire() -> dict:
                                                       "closed_all_year": True, "paper_licence": []}],
                                            "picker": {"choices": [], "headed": False},
                                            "unresolved_licensing": [0]}}},
+            # T810 L: the trout section, in every answers file since the cutover (a NULL cell: no table there, Q-D3)
+            "trout": {"version": 1, "at": [[None], [0, None, 0], [None]], "frames": [[0, None, [0]]],
+                      "tables": [{"boxes": [{"rows": [{"sheet": 0}]}]}], "dates": [], "sheets": [{"head": "h"}]},
         },
     }
 

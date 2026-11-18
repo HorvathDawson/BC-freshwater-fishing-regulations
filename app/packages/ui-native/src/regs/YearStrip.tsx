@@ -12,7 +12,7 @@ import { TYPE } from "../type";
 import { GUTTER, type Palette } from "../theme";
 import { useCoachTarget } from "../CoachMarks";
 
-const GAP = 2, H = 10;
+export const GAP = 2, H = 10;
 
 /**
  * (T269) THE BAR'S WIDTH BEFORE IT IS MEASURED. In the app: 0 — the bar waits for its layout, as it always has. The SEO
@@ -23,7 +23,7 @@ const GAP = 2, H = 10;
 export const StripWidthHint = createContext(0);
 
 /** The bar's drawing: measured (the app), else the hint scaled to the box (the prerender). */
-function useBarWidth() {
+export function useBarWidth() {
   const hint = useContext(StripWidthHint);
   const [w, setW] = useState(0);
   const at = w || hint;
@@ -35,7 +35,7 @@ function useBarWidth() {
 }
 
 /** One run's fill (prototype .f-* classes): bit 1 closed hatch; else open / release stripes, + fly, flies, bait. */
-function RunRect({ x, w, bits, palette, id }: { x: number; w: number; bits: number | null; palette: Palette; id: string }) {
+export function RunRect({ x, w, bits, palette, id }: { x: number; w: number; bits: number | null; palette: Palette; id: string }) {
   const f = bits ?? 0;
   if (f & 1) return <Rect x={x} y={0} width={w} height={H} fill={`url(#${id}-closed)`} />;
   const base = f & 2 ? `url(#${id}-rel)` : f & 4 ? `url(#${id}-fly)` : f & 8 ? `url(#${id}-flies)` : palette.open;
@@ -47,7 +47,7 @@ function RunRect({ x, w, bits, palette, id }: { x: number; w: number; bits: numb
   );
 }
 
-function Patterns({ id, palette }: { id: string; palette: Palette }) {
+export function Patterns({ id, palette }: { id: string; palette: Palette }) {
   return (
     <Defs>
       <Pattern id={`${id}-closed`} patternUnits="userSpaceOnUse" width={6 * Math.SQRT2} height={6 * Math.SQRT2} patternTransform="rotate(135)">

@@ -15,6 +15,12 @@ import { WORDS } from "../words";
 import { text } from "../line";
 import { SALMON_TIPS } from "./salmonTips";
 
+/** A fish's pictures as image blocks, each with its credit line (sheetHtml sp: `.pic` + `.cred`). */
+export function imageBlocks(code: string, pics: FishManifest[string]): SheetBlock[] {
+  return pics.map((p) => ({ k: "image", code, file: p.file, alt: p.caption, width: p.width, height: p.height,
+    credit: `${p.caption}${p.phase ? WORDS.DOT + p.phase : ""}${WORDS.DOT}${p.credit} (${p.source})` }));
+}
+
 /** sheetHtml sp: — null when the species is neither in the export's book nor pictured (the prototype's `!f && !pics`).
  *  (T344, owner 2026-10-31) A GROUP the book names ("Whitefish": lake, mountain) is one page per member that has a
  *  sheet, swiped between; a group with one such member is that member's sheet. The members are the book's. */
@@ -30,8 +36,7 @@ export function fishSheet(inp: RegsInputs, key: SheetKey, code: string, fish: Fi
   }
   const pics = fish[code] ?? [];
   if (!inp.statics.exportSpecies.fish[code] && !pics.length) return null;
-  const blocks: SheetBlock[] = pics.map((p) => ({ k: "image", code, file: p.file, alt: p.caption, width: p.width, height: p.height,
-    credit: `${p.caption}${p.phase ? WORDS.DOT + p.phase : ""}${WORDS.DOT}${p.credit} (${p.source})` }));
+  const blocks: SheetBlock[] = imageBlocks(code, pics);
   const tips = FISH_TIPS[code] ?? SALMON_TIPS[code] ?? [];
   if (tips.length) blocks.push({ k: "head", text: WORDS.SHEET_LOOK_FOR }, { k: "list", items: tips.map((t) => ({ line: [text(t)], strong: null })) });
   return { key, title: fishNames(inp, fish)(code), sub: null, blocks };

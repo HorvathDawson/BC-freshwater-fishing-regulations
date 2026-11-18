@@ -2,15 +2,17 @@
 with G's grammar and proves it says the same law as today's answers and the keeping engine, every key and segment.
 
 Anchors:
-  (a) THE SIDE MINI RELEASE (no data: this module builds one with `--trout-table`, as `test_trout_section` does): the card
-      gate's stamp carries the proof (`trout_check`), which checked every non-NULL trout cell and found nothing; the proof
-      over the decoded release with its bundle is clean.
+  (a) THE MINI CHAIN (no data: `mini_chain` builds it once per run; every release carries the section since the cutover,
+      ticket L): the card gate's stamp carries the proof (`trout_check`), which checked every non-NULL trout cell and
+      found nothing; the proof over the decoded answers with their bundle is clean.
   (b) MUTATIONS on that release's tables, one per check (contract 2.10): a wrong number, a dropped fish, a shifted date,
       an unparseable sentence, a size edge, an origin, a closure's scope, a possession line, a shared band's span: each
       fails. The floor: a stamp that checked fewer tables than the file holds, or none, is refused.
-  (c) THE RE-AIMED CHECKS (fight list item 9), each firing on a planted trout case: T793's origin words, T805's limit
-      across rows, the tree gate's numbers (the engine's baskets), the possession line (`card_check.possession_problems`
-      with F0's lead).
+  (c) THE RE-AIMED CHECKS (fight list item 9; ticket L), each firing on a planted trout case OF THE CUTOVER FORM: T793's
+      origin words (`tree.origin_unsaid`), T805's limit across rows (`tree.across_unsaid`), the tree gate's numbers
+      (`card_check.check_tree` / `check_caps`: the engine's baskets), the possession line
+      (`card_check.possession_problems` with F0's lead) — and each old check, which walks `group`, sees nothing of the
+      same planted case once the covered rows carry no group: J is what stops it.
   (d) THE DECODER IS SEPARATE: `check.py` imports nothing from the builder.
   (e) THE BUILDER FAULTS THE PROOF FOUND (ticket J's full side build): each fix's pin off makes the proof fail its case.
   (f) the live named waters (`needs_bundle`): every segment of every pinned water proved.
@@ -36,12 +38,10 @@ CHECK = Path(J.__file__)
 # ------------------------------------------------------------------------------------------------------ the side release
 
 class _Side:
-    """The mini chain built WITH `--trout-table`: its answers decoded, its export and bundle."""
+    """The mini chain (`mini_chain`): its answers decoded (the cutover form), its export and bundle."""
 
-    def __init__(self, root: Path):
-        from pipeline.tools import mini_release as M
-        M.build(root / "b", trout_table=True)
-        self.dir = root / "b" / "deliver"
+    def __init__(self, deliver: Path):
+        self.dir = deliver
         self.bundle = str(self.dir / "bundle.sqlite")
         self.raw = (self.dir / "ui-rules-answers.json").read_bytes()
         self.wire = json.loads(self.raw)
@@ -66,7 +66,8 @@ class _Side:
 
 @pytest.fixture(scope="module")
 def side(tmp_path_factory):
-    return _Side(tmp_path_factory.mktemp("trout-j-side"))
+    from pipeline.tests import mini_chain
+    return _Side(mini_chain.deliver(tmp_path_factory))
 
 
 def _cells(side, k):
@@ -126,7 +127,7 @@ def test_every_text_of_the_side_release_reads_back(side):
 TEXTS = json.loads((Path(__file__).parent / "fixtures" / "trout_texts.json").read_text())
 READERS = {"top": W.parse_top_full, "fold": W.parse_fold, "together": W.parse_together, "elsewhere": W.parse_elsewhere,
            "strip": W.parse_strip, "line": W.parse_row_line, "quiet": W.parse_quiet, "head": W.parse_sheet_head,
-           "here": W.parse_sheet_line}
+           "here": W.parse_sheet_line, "band": W.parse_band}
 
 
 @pytest.mark.parametrize("reader,text", TEXTS, ids=[f"{r}:{i}" for i, (r, _t) in enumerate(TEXTS)])
@@ -153,14 +154,14 @@ def test_the_grammar_reads_the_numbers_back():
     assert W.parse_possession("in your possession: no more than 2 lake trout, only 1 over 50 cm (20 in)") == \
         ("count", 2, ("LT",), ((1, ((50, W.INF),)),))
     assert W.parse_possession("in your possession: 1 day’s limit, not 2") == ("days", 1, 2)
-    assert W.parse_top_full("Up to 2 {day}, or 4 if they’re hatchery rainbow trout 50 cm (20 in) or less") == \
+    assert W.parse_top_full("Keep 2 trout and char {day}, or 4 if they’re hatchery rainbow trout 50 cm (20 in) or less") == \
         ("up_to", 2, ((4, ("RB",), ((0, 50),), "hatchery"),), (), ())
-    assert W.parse_top_full("Up to 2 {day}, plus 2 Dolly Varden/bull trout") == ("up_to", 2, (), (), ((2, ("DV",)),))
-    assert W.parse_top_full("Up to 6 rainbow trout or steelhead and 4 other trout and char {day}") == \
+    assert W.parse_top_full("Keep 2 trout and char {day}, plus 2 Dolly Varden/bull trout") == ("up_to", 2, (), (), ((2, ("DV",)),))
+    assert W.parse_top_full("Keep 6 rainbow trout or steelhead and 4 other trout and char {day}") == \
         ("apart", ((6, ("RB", "ST")),), 4)
-    assert W.parse_elsewhere("Kept 2 on another stream? None more here.") == (("kept", 2, "stream"), ("more", 0))
-    assert W.parse_sheet_line("Only 1 of these 4: this fish and brook trout, wild rainbow trout and lake trout.") == \
-        ("shared", "only 1 of these 4", (("EB", None), ("RB", "wild"), ("LT", None)))
+    assert W.parse_elsewhere("Kept 2 on another stream? None more here.") == (("kept", 2, "stream", None), ("more", 0))
+    assert W.parse_sheet_line("1 total from these 4: this fish and brook trout, wild rainbow trout and lake trout.") == \
+        ("shared", "1 total from these 4", (("EB", None), ("RB", "wild"), ("LT", None)))
 
 
 # ---------------------------------------------------------------------------------------------------- (b) the mutations
@@ -291,14 +292,38 @@ def test_mutation_a_possession_line_fails(side):
     assert any(POSSESSION_MARK in p for p in got), got
 
 
+@pytest.mark.parametrize("where,text", [
+    ("box", "In your possession: no more than 1 trout and char in all"),
+    ("box", "In your possession: 1 day’s limit, not 2"),
+    ("row", "in your possession: no more than 1 trout and char in all"),
+    ("row", "in your possession: 1 day’s limit, not 2"),
+], ids=["box-count", "box-days", "row-count", "row-days"])
+def test_mutation_a_table_only_possession_line_the_rules_do_not_say_fails(side, where, text):
+    """The T809 re-review's plant (the cutover diff leaves table-only possession wording to J): a keep box's own
+    possession line (G2 Q4, `Box.possession`) or a row's line, stating numbers the possession rules do not (the mini
+    world's only possession rule is the region's 2 days' quota, the page's lead), fails J's possession proof."""
+    def change(c):
+        b = next(b for b in c["table"]["boxes"] if b["kind"] == "keep" and b["rows"][0]["fish"] != "ST")
+        if where == "box":
+            b["possession"] = text
+        else:
+            r = b["rows"][0]
+            r["lines"] = (*r["lines"], text)
+    got = _mutated(side, lambda c: any(b["kind"] == "keep" and b["rows"][0]["fish"] != "ST"
+                                       for b in c["table"]["boxes"]), change)
+    assert any(POSSESSION_MARK in p for p in got), got
+
+
 def _shared_band(side):
     """Two rows a box keeps up to its number each, planted as one shared band of 1."""
     def change(c):
         b = next(b for b in c["table"]["boxes"] if b["kind"] == "keep" and
                  [x["kind"] for x in b["bands"][:2]] == ["upto", "upto"])
-        b["bands"] = [{"from": 0, "to": 1, "text": W.band_shared(1, 2), "kind": "shared"}, *b["bands"][2:]]
+        n = W.parse_head(b["head"])[1]
+        text = W.band_in(n, W.band_shared(1, 2)) if len(b["rows"]) > 2 else W.band_shared(1, 2)   # (R3: names the box)
+        b["bands"] = [{"from": 0, "to": 1, "text": text, "kind": "shared"}, *b["bands"][2:]]
         for r in b["rows"][:2]:
-            r["sheet"]["head"] = W.sheet_keep(W.band_shared(1, 2), W.parse_head(b["head"])[1])
+            r["sheet"]["head"] = W.sheet_keep(text, n)
     return _mutated(side, lambda c: any(b["kind"] == "keep" and [x["kind"] for x in b["bands"][:2]] == ["upto", "upto"]
                                         for b in c["table"]["boxes"]), change)
 
@@ -321,11 +346,252 @@ def test_mutation_a_table_where_q_d3_says_null_fails(side):
     assert any("Q-D3" in p for p in side.prove(k, cells, frames))
 
 
+def _zero_band(side):
+    """(T810 L, the sweep's builder fault) a Keep row planted "only 0": a fish kept nowhere belongs under Release."""
+    def change(c):
+        b = next(b for b in c["table"]["boxes"] if b["kind"] == "keep" and b["bands"][0]["kind"] == "upto"
+                 and b["bands"][0]["to"] == 0)
+        b["bands"][0] = {"from": 0, "to": 0, "text": W.band_own(0), "kind": "own"}
+        r = b["rows"][0]
+        r["sheet"]["head"] = W.sheet_keep(W.band_own(0), W.parse_head(b["head"])[1])
+    return _mutated(side, lambda c: any(b["kind"] == "keep" and b["bands"][0]["kind"] == "upto"
+                                        and b["bands"][0]["to"] == 0 for b in c["table"]["boxes"]), change)
+
+
+# ------------------------------------------------- (T810 L, the re-review's FIX FIRST) each new J check pinned, no data
+
+def _released_ct(side):
+    """(key, segment) of the mini world's Sample Lake: its rows frame answers cutthroat keep, its "all cutthroat trout
+    catch and release" (take 0 inside the lake's 1) keeps none — the table stands it under Release."""
+    for k in side.keys_with_tables():
+        for j, c in enumerate(side.model.sections["trout"][k]):
+            if c is None:
+                continue
+            rel = [r["fish"] for b in c["table"]["boxes"] if b["kind"] == "release" for r in b["rows"]]
+            if "CT" in rel and J.asked(side.model.sections["rows"][k][j]).get("CT") == "keep":
+                return k, j
+    raise AssertionError("the mini world has no cutthroat held to 0 (Sample Lake's sample_lake.r2)")
+
+
+def test_a_fish_held_to_zero_stands_under_release_and_j_holds_it(side, monkeypatch):
+    """The zero -> Release guard: J accepts a fish its frame answers keep under Release only where the engine keeps none
+    of it. Mutation: the guard off (A_NONE_KEPT_IS_RELEASE) and the same table fails."""
+    k, _j = _released_ct(side)
+    assert side.prove(k) == []
+    monkeypatch.setattr(J, "A_NONE_KEPT_IS_RELEASE", False)
+    assert any("CT sits in the release box" in p for p in side.prove(k))
+
+
+def _keepable_under_release(side):
+    """Sample Lake's rainbow trout (kept here) moved under Release."""
+    k, j = _released_ct(side)
+    cells = _cells(side, k)
+    t = cells[j]["table"]
+    keep = next(b for b in t["boxes"] if b["kind"] == "keep")
+    rel = next(b for b in t["boxes"] if b["kind"] == "release")
+    i = next(i for i, r in enumerate(keep["rows"]) if r["fish"] == "RB")
+    row = keep["rows"][i]
+    keep["rows"] = tuple(r for r in keep["rows"] if r is not row)
+    bands = []
+    for x in keep["bands"]:
+        if x["from"] <= i <= x["to"] and x["from"] == x["to"]:
+            continue
+        sh = (1 if x["from"] > i else 0)
+        bands.append({**x, "from": x["from"] - sh, "to": x["to"] - (1 if x["to"] >= i else 0)})
+    keep["bands"] = tuple(bands)
+    rel["rows"] = tuple(rel["rows"]) + ({**row, "lines": (), "quiet": (),
+                                         "sheet": {**row["sheet"], "head": W.SHEET_RELEASE, "here": ()}},)
+    if cells[j]["dates"]:
+        cells[j]["dates"] = None
+    return k, cells
+
+
+def test_a_keepable_fish_under_release_fails(side, monkeypatch):
+    """`_engine_keeps`: a fish the engine keeps here, stood under Release, fails. Mutation: `_engine_keeps` always
+    False lets the box through (the fish-alone proof still sees it)."""
+    k, cells = _keepable_under_release(side)
+    assert any("RB sits in the release box" in p for p in side.prove(k, cells))
+    monkeypatch.setattr(J, "_engine_keeps", lambda *a: False)
+    assert not any("RB sits in the release box" in p for p in side.prove(k, cells))
+
+
+def test_a_possession_same_as_the_day_the_rules_do_not_say_fails(side, monkeypatch):
+    """`_same_as_the_day`: "In your possession: just N, the same as the day" on a box whose possession is the page's two
+    days fails. Mutation: the check returning nothing accepts it."""
+    def change(c):
+        b = next(b for b in c["table"]["boxes"] if b["kind"] == "keep" and len(b["rows"]) > 1)
+        b["possession"] = f"In your possession: just {W._n(W.parse_head(b['head'])[1])}, the same as the day"
+    pred = lambda c: any(b["kind"] == "keep" and len(b["rows"]) > 1 for b in c["table"]["boxes"])  # noqa: E731
+    mark = "the same as the day', but"
+    assert any(mark in p for p in _mutated(side, pred, change))
+    monkeypatch.setattr(J, "_same_as_the_day", lambda *a: [])
+    assert not any(mark in p for p in _mutated(side, pred, change))
+
+
+def test_a_list_of_two_subjects_without_its_labels_fails():
+    """The subject-label check, no data: Kathie Lake's two kept-elsewhere sentences (the zone's pool, the lake's brook
+    trout) need their subjects; dropped, J fails; labelled, it passes."""
+    zone = "Your own limit, counted across every water in Zone A you fish, lakes and streams alike."
+    lake = ("This lake’s rule: 10 a day here. Brook trout you kept anywhere else count toward those 10. These fish are "
+            "counted apart from the region’s total: they don’t use it up. They also count toward Zone A’s 5 trout and "
+            "char a day.")
+    rows = [{"kind": "keep", "members": ["RB", "CT", "LT"], "daily": 5, "scope": {"of": "region"}},
+            {"kind": "keep", "members": ["EB"], "daily": 10, "scope": {"of": "water"}}]
+
+    def problems(lines):
+        import types
+        cell = {"covers": [0, 1], "table": {"elsewhere": lines}}
+        c = J.Cell(cell, {"rows": rows}, {}, None, lambda *_: {})
+        T_ = types.SimpleNamespace(elsewhere_says=[(t, W.parse_elsewhere_says(t)) for t in lines
+                                                   if not W.is_elsewhere_line(t)])
+        return J.elsewhere_said_problems(c, T_)
+    assert problems([f"Trout and char: {zone}", f"Brook trout: {lake}"]) == []
+    assert any("a line without its subject" in p for p in problems([zone, f"Brook trout: {lake}"]))
+
+
+def test_the_size_band_is_read_as_a_limit_over_its_size(side):
+    """`Table.limits` reads a size band "counts toward the N · only 1 over 50 cm (20 in) between them" as "these rows,
+    over 50 cm: at most 1": two fish of its rows over 50 cm are refused; the band said with 2, they are kept."""
+    k, j = _first(side, lambda c: any(b["kind"] == "keep" and len(b["rows"]) > 1 and W.parse_head(b["head"])[1] >= 2
+                                      and [x["kind"] for x in b["bands"][:2]] == ["upto", "upto"]
+                                      for b in c["table"]["boxes"]))
+
+    def table(k_):
+        c = copy.deepcopy(side.model.sections["trout"][k][j])
+        b = next(b for b in c["table"]["boxes"] if b["kind"] == "keep" and len(b["rows"]) > 1
+                 and W.parse_head(b["head"])[1] >= 2 and [x["kind"] for x in b["bands"][:2]] == ["upto", "upto"])
+        n = W.parse_head(b["head"])[1]
+        b["strip"] = None
+        b["bands"] = ({"from": 0, "to": 1, "text": W.band_size(n, k_, 50, 2), "kind": "size"}, *b["bands"][2:])
+        for r in b["rows"][:2]:
+            r["lines"] = tuple(x for x in r["lines"] if W.parse_row_line(x)[0] == "size")
+        return J.Table(c), [(r["fish"], "hatchery", 60.0, "here") for r in b["rows"][:2]]
+    T1, two = table(1)
+    T2, _ = table(2)
+    assert all(T.row_for(*f[:3]) is not None for T in (T1, T2) for f in two)
+    assert not T1.accepts(two) and T2.accepts(two)
+
+
+# ------------------------------------- (T810 L, the re-review of a5aabd870) every stated cap exact; the no-data pins
+
+def _own_cap(c):
+    return next(((bi, x) for bi, b in enumerate(c["table"]["boxes"]) if b["kind"] == "keep" for x in b["bands"]
+                 if x["kind"] == "own" and W.band_total(x["text"]) is not None), None)
+
+
+@pytest.mark.parametrize("plant", ["one higher", "dropped"])
+def test_a_redundant_own_cap_said_wrong_fails(side, monkeypatch, plant):
+    """The mini world's Fixture River: the steelhead's own "counts toward the 2 · only 1" is also implied by the strip;
+    said "only 2" (the sheet kept consistent), or dropped to "counts toward the 2", the joint proof still passes — the
+    stated-cap proof does not. Mutation: the pin off lets it through."""
+    def change(c):
+        bi, x = _own_cap(c)
+        n, k = W.band_total(x["text"]), W.parse_band(x["text"])[1]
+        x["kind"], x["text"] = ("own", W.band_in(n, W.band_own(k + 1))) if plant == "one higher" else \
+            ("upto", W.band_upto(n))
+        b = c["table"]["boxes"][bi]
+        r = b["rows"][x["from"]]
+        r["sheet"]["head"] = W.sheet_keep(x["text"], W.parse_head(b["head"])[1])
+        r["sheet"]["here"] = tuple(h for h in r["sheet"]["here"] if not h["t"].startswith("This fish: only"))
+    got = _mutated(side, lambda c: _own_cap(c) is not None, change)
+    if plant == "one higher":
+        assert any(J.STATED_MARK in p for p in got), got
+    monkeypatch.setattr(J, "A_STATED_CAP_EXACT", False)
+    assert not any(J.STATED_MARK in p for p in _mutated(side, lambda c: _own_cap(c) is not None, change))
+
+
+def test_a_shared_band_without_the_box_number_the_top_does_not_name_fails(side, monkeypatch):
+    """R3: "counts toward the N" is left out only where the top line names the band's count. Mutation: the pin off."""
+    def change(c):
+        b = next(b for b in c["table"]["boxes"] if b["kind"] == "keep" and len(b["rows"]) > 2
+                 and [x["kind"] for x in b["bands"][:2]] == ["upto", "upto"])
+        b["bands"] = [{"from": 0, "to": 1, "text": W.band_shared(7, 2), "kind": "shared"}, *b["bands"][2:]]
+    pred = lambda c: any(b["kind"] == "keep" and len(b["rows"]) > 2 and [x["kind"] for x in b["bands"][:2]] ==  # noqa
+                         ["upto", "upto"] for b in c["table"]["boxes"])
+    mark = "says no overall limit"
+    assert any(mark in p for p in _mutated(side, pred, change))
+    monkeypatch.setattr(J, "A_TOTAL_UNSAID_ONLY_WHERE_THE_TOP_NAMES_IT", False)
+    assert not any(mark in p for p in _mutated(side, pred, change))
+
+
+def _keep_cell(side, rows_at_least=2):
+    k, j = _first(side, lambda c: any(b["kind"] == "keep" and len(b["rows"]) >= rows_at_least
+                                      for b in c["table"]["boxes"]))
+    return copy.deepcopy(side.model.sections["trout"][k][j])
+
+
+def test_a_nested_band_is_read_as_a_limit_without_data(side):
+    """`Box.inner` read by J (no data): inside a band over three rows, a nested "only 1 between them" over two of them
+    refuses two of their fish; without it the two are kept."""
+    c = _keep_cell(side, 3)
+    b = next(b for b in c["table"]["boxes"] if b["kind"] == "keep" and len(b["rows"]) >= 3)
+    n = W.parse_head(b["head"])[1]
+    m = len(b["rows"])
+    b["strip"], b["possession"], b["label"] = None, None, None
+    b["bands"] = ({"from": 0, "to": m - 1, "text": W.band_shared(n, m), "kind": "shared"},)
+    for r in b["rows"]:
+        r["lines"], r["label"] = (), None
+    two = [(r["fish"], "hatchery", 20.0, "here") for r in b["rows"][:2]]
+    free = J.Table(c)
+    b["inner"] = ({"from": 0, "to": 1, "text": W.band_shared(1, 2), "kind": "shared"},)
+    held = J.Table(c)
+    assert n >= 2 and free.accepts(two) and not held.accepts(two)
+
+
+def test_the_most_specific_date_level_holds_a_row_without_data(side):
+    """`_texts_by_row` (no data): a row's own date wins over its box's, the box's over the card line's."""
+    c = _keep_cell(side)
+    bi = next(i for i, b in enumerate(c["table"]["boxes"]) if b["kind"] == "keep" and len(b["rows"]) >= 2)
+    b = c["table"]["boxes"][bi]
+    c["dates"] = {"top": None, "card": "Until Oct 31, then release", "fold": None,
+                  "box": {str(bi): "until Sep 30, then release"}, "band": {},
+                  "row": {f"{bi}:0": "until Aug 31, then release"}, "sheet": {}}
+    got = J._texts_by_row(J.Table(c))
+    assert got[b["rows"][0]["key"]] == ("row", "until Aug 31, then release")
+    assert got[b["rows"][1]["key"]] == ("box", "until Sep 30, then release")
+
+
+def test_if_wild_sizes_only_the_wild_fish_without_data(side):
+    """`Row.wild_ranges` (no data): a merged row "50 cm (20 in) or less if wild" keeps a hatchery fish of any length and
+    a wild one only to 50 cm."""
+    c = _keep_cell(side, 1)
+    b = next(b for b in c["table"]["boxes"] if b["kind"] == "keep")
+    r = b["rows"][0]
+    r["origin"], r["label"], r["split"] = None, None, True
+    r["lines"] = (W.size_if_wild("50 cm (20 in) or less"),)
+    b["label"] = None
+    T_ = J.Table(c)
+    S = r["fish"]
+    assert T_.row_for(S, "hatchery", 70.0) is not None and T_.row_for(S, "wild", 40.0) is not None
+    assert T_.row_for(S, "wild", 70.0) is None
+
+
+def test_mutation_a_band_naming_another_total_fails(side):
+    """(Owner 2026-11-18 00:52) a shared band names the overall limit first; J holds that number to the box's."""
+    def change(c):
+        b = next(b for b in c["table"]["boxes"] if b["kind"] == "keep" and len(b["rows"]) > 2
+                 and [x["kind"] for x in b["bands"][:2]] == ["upto", "upto"])
+        n = W.parse_head(b["head"])[1]
+        text = W.band_in(n + 1, W.band_shared(1, 2))
+        b["bands"] = [{"from": 0, "to": 1, "text": text, "kind": "shared"}, *b["bands"][2:]]
+        for r in b["rows"][:2]:
+            r["sheet"]["head"] = W.sheet_keep(text, n)
+    got = _mutated(side, lambda c: any(b["kind"] == "keep" and len(b["rows"]) > 2 and
+                                       [x["kind"] for x in b["bands"][:2]] == ["upto", "upto"]
+                                       for b in c["table"]["boxes"]), change)
+    assert any("names" in p for p in got), got
+
+
+def test_mutation_a_keep_row_with_a_zero_fails(side):
+    assert any(J.ZERO_MARK in p for p in _zero_band(side))
+
+
 @pytest.mark.parametrize("flag,plant,mark", [
     ("A_DATE_PROOF", _shifted_date, DATE_MARK),
     ("A_POSSESSION_PROOF", _possession_line, POSSESSION_MARK),
     ("A_JOINT_PROOF", _shared_band, JOINT_MARK),
-], ids=["dates", "possession", "joint"])
+    ("A_NO_ZERO_KEEP_ROW", _zero_band, J.ZERO_MARK),
+], ids=["dates", "possession", "joint", "zero"])
 def test_each_proof_pin_off_silences_its_check(side, monkeypatch, flag, plant, mark):
     """The pins are wired: with a check off, its planted fault no longer draws its message (another check may still see
     the same fault from its side)."""
@@ -364,8 +630,9 @@ def test_a_stamp_whose_trout_proof_found_problems_is_refused(side):
     assert any("trout proof found 1" in p for p in _stamp(side, bad))
 
 
-def test_answers_without_the_section_need_no_trout_proof():
-    """The committed mini release (flag off): no trout section, no trout proof, its stamp as before."""
+def test_the_committed_mini_release_answers_hold_the_section():
+    """Ticket L: every release carries the trout section, the committed mini release too, so its stamp needs the proof
+    (answers without it are refused at packaging: `test_trout_section`)."""
     from pipeline.deliver.answers.card_check import trout_cells
     from pipeline.tests import under_test
     from pipeline.deliver.store.release import province_store
@@ -374,7 +641,7 @@ def test_answers_without_the_section_need_no_trout_proof():
         raw = st.answers_bytes()
     finally:
         st.close()
-    assert trout_cells(json.loads(raw)) is None
+    assert trout_cells(json.loads(raw)) >= 15
 
 
 # ---------------------------------------------------------------------------------------------- (c) the re-aimed checks
@@ -395,6 +662,9 @@ def test_reaimed_t793_an_origin_condition_is_said_on_the_table(side):
     row["conds"] = [*(row.get("conds") or []), {"c": "origin", "o": "wild", "who": [S], "r": 0}]
     c, Tb = _cell(side, k, j, frame)
     assert J.origin_problems(c, Tb) == []
+    # the old check walks the row's group: the covered row has none since the cutover, so it sees nothing here
+    from pipeline.deliver.answers.tree import origin_unsaid
+    assert row.get("group") is None and origin_unsaid(frame) == []
     cell = copy.deepcopy(side.model.sections["trout"][k][j])
     for b in cell["table"]["boxes"]:
         for r in b["rows"]:
@@ -419,6 +689,9 @@ def test_reaimed_t805_a_limit_across_rows_is_said_across_them(side):
         r["conds"] = [*(r.get("conds") or []), {"c": "origin2", "o": "wild", "daily": 2, "who": [S], "r": 7}]
     c, Tb = _cell(side, k, j, frame)
     assert any("wild limit of 2 across rows" in p for p in J.origin_problems(c, Tb))
+    # the old check walks each keep row's group: none on the covered rows since the cutover, so it is silent here
+    from pipeline.deliver.answers.tree import across_unsaid
+    assert all(r.get("group") is None for r in keep) and across_unsaid(frame) == []
     told = copy.deepcopy(cell)
     told["table"]["together"] = {"text": W.together_origin(2, "wild", None), "src": [told["table"]["src"][0]]}
     told["table"]["top"]["second"] = told["table"]["together"]["text"]
@@ -434,9 +707,27 @@ def test_reaimed_tree_gate_a_number_the_engine_does_not_prove_fails(side):
         b["bands"][0] = {**b["bands"][0], "text": W.band_own(1), "kind": "own"}
         b["rows"][0]["sheet"]["head"] = W.sheet_keep(W.band_own(1), W.parse_head(b["head"])[1])
         b["rows"][0]["sheet"]["here"] = [*b["rows"][0]["sheet"]["here"], {"t": W.sheet_own(1), "bold": False}]
-    got = _mutated(side, lambda c: any(b["kind"] == "keep" and b["bands"][0]["kind"] == "upto" and
-                                       W.parse_head(b["head"])[1] > 1 for b in c["table"]["boxes"]), change)
+    pred = lambda c: any(b["kind"] == "keep" and b["bands"][0]["kind"] == "upto" and  # noqa: E731
+                         W.parse_head(b["head"])[1] > 1 for b in c["table"]["boxes"])
+    got = _mutated(side, pred, change)
     assert any("alone, the engine" in p for p in got), got
+    # the old tree gate (`card_check.check_model` -> `check_group` -> `check_tree` / `check_caps`) proves `group` trees:
+    # the covered trout rows carry none since the cutover, so on this key it has no trout card left to prove
+    k, j = _first(side, pred)
+    covered = side.model.sections["trout"][k][j]["covers"]
+    assert covered and all(side.model.sections["rows"][k][j]["rows"][i].get("group") is None for i in covered)
+
+
+def test_reaimed_possession_the_old_gate_sees_no_trout_kind_and_j_fires(side):
+    """`card_check.possession_problems` ran on each trout kind of a group tree (`check_group`, T805 B); since the cutover
+    no covered row has a group, so it is reached only through J (`check.possession_problems`, F0's lead): a planted
+    possession line where the page's lead speaks for the fish fails J."""
+    for k, cells in enumerate(side.model.sections["trout"]):
+        for j, c in enumerate(cells):
+            if c is not None:
+                rows = side.model.sections["rows"][k][j]["rows"]
+                assert not any(rows[i].get("group") or rows[i].get("elsewhere") for i in c["covers"]), (k, j)
+    assert any(POSSESSION_MARK in p for p in _possession_line(side))
 
 
 def test_reaimed_possession_problems_takes_f0s_lead():
@@ -479,14 +770,13 @@ def test_the_proof_imports_nothing_from_the_builder():
 
 # ------------------------------------------------------------------------------- (e) the builder faults the proof found
 
-def _recomposed(side, monkeypatch, flag):
-    """Every side key's tables composed again with one of F's fixes turned off; the proof over them."""
+def _recomposed(side, monkeypatch, flag, tmp_path_factory):
+    """Every side key's tables composed again with one of F's fixes turned off, from the rows the builder read (before
+    the rows 34 cut: `mini_chain.trout_inputs`); the proof over them."""
+    from pipeline.tests import mini_chain
+    m = mini_chain.trout_inputs(tmp_path_factory)
+    _data, _guide, rules = mini_chain.export(tmp_path_factory)
     monkeypatch.setattr(T, flag, False)
-    from pipeline.deliver.store.release import province_store  # noqa: F401  (the rule table is the export's)
-    from pipeline.deliver.export.codec import expand
-    data, guide = C.load_export(side.dir)
-    rules = T.Rules.from_export(data, expand(data, guide))
-    m = side.model
     probs = []
     for k in side.keys_with_tables():
         got = T.compose_key(m.sections["rows"][k], m.sections["display"][k], m.segments[k], m.moments[k], rules,
@@ -497,8 +787,29 @@ def _recomposed(side, monkeypatch, flag):
 
 
 @pytest.mark.parametrize("flag", ["A_KIND_SIZE_CAP_IS_SHARED", "A_RAINBOW_STOPS_AT_THE_STEELHEAD_SIZE"])
-def test_each_fix_the_proof_found_turned_off_fails_the_side_release(side, monkeypatch, flag):
-    assert _recomposed(side, monkeypatch, flag)
+def test_each_fix_the_proof_found_turned_off_fails_the_side_release(side, monkeypatch, flag, tmp_path_factory):
+    if flag == "A_RAINBOW_STOPS_AT_THE_STEELHEAD_SIZE":
+        monkeypatch.setattr(T, "USES_THE_LINE", True)      # the fault is a steelhead's "uses the 1" line (off by default)
+    assert _recomposed(side, monkeypatch, flag, tmp_path_factory)
+
+
+@pytest.mark.parametrize("on", [False, True], ids=["off (default)", "on"])
+def test_the_uses_the_line_switch_proves_the_law_either_way(side, monkeypatch, tmp_path_factory, on):
+    """(Owner 2026-11-18 00:52 / 01:07) "uses the 1 over 50 cm" is said only with its switch on (off by default: the
+    strip's size cap holds the law), and J proves every table of the side release either way."""
+    from pipeline.tests import mini_chain
+    m = mini_chain.trout_inputs(tmp_path_factory)
+    _data, _guide, rules = mini_chain.export(tmp_path_factory)
+    monkeypatch.setattr(T, "USES_THE_LINE", on)
+    probs, n = [], 0
+    for k in side.keys_with_tables():
+        got = T.compose_key(m.sections["rows"][k], m.sections["display"][k], m.segments[k], m.moments[k], rules,
+                            licences=m.sections["licence"][k])
+        cells = [None if f is None else json.loads(json.dumps(f, ensure_ascii=False)) for f in got]
+        n += sum(t.startswith("uses the ") for c in cells if c for b in c["table"]["boxes"] for r in b["rows"]
+                 for t in r["lines"])
+        probs += side.prove(k, cells)
+    assert (n > 0) == on and probs == [], probs[:5]
 
 
 # ---------------------------------------------------------------------------------------- (f) the live named waters
@@ -516,6 +827,13 @@ def test_every_segment_of_the_named_waters_is_proved(request):
         got = T.compose_key(m.sections["rows"][k], m.sections["display"][k], m.segments[k], m.moments[k], live.rules,
                             licences=m.sections["licence"][k])
         m.sections["trout"][k] = [None if f is None else json.loads(json.dumps(f, ensure_ascii=False)) for f in got]
+        # (T810 L) the rows as they ship beside the table: cut over (`answers.cut_over`), as the build does
+        from pipeline.deliver.answers import answers as A
+        from pipeline.deliver.answers import licence as L
+        from pipeline.deliver.answers.stamps import DEFAULT_PROFILE
+        m.sections["rows"][k] = A.cut_over(m.sections["rows"][k], m.sections["trout"][k], m.sections["licence"][k],
+                                           m.segments[k], m.moments[k], L.document_names(str(BUNDLE)),
+                                           L.profile_index(DEFAULT_PROFILE))
     data, _g = C.load_export(under_test.path("export_dir"))
     got = J.check_model(m, str(BUNDLE), data, keys=keys, log=lambda *_: None)
     assert got["tables"] == got["cells"] > 50
@@ -534,6 +852,9 @@ def test_every_segment_of_the_named_waters_is_proved(request):
 #: the T834 side build over the live atlas and reach: the flag off leaves every answer byte-identical (5,950 tables, 0
 #: problems), so no live water shows the fault; the flag stays in the builder for a row the rule does not lift.
 FOUND = {
+    # T810 L: Ape Creek (Bella Coola, "all cutthroat trout catch and release" inside the 1 trout/char a day): cutthroat
+    # trout under Release, never a Keep row "catch and release" with "only 0" (79 tables, 35 waters)
+    "A_ZERO_COUNT_IS_RELEASE": ("gnis:10549", 0, J.ZERO_MARK),
     "A_RAINBOW_STOPS_AT_THE_STEELHEAD_SIZE": ("blk:360846083", 0, "ST hatchery at"),
     "A_APART_SAYS_THE_BOX_MOST": ("blk:356370187", 0, "the top line says"),
     "A_WILD_QUOTA_FROM_EVERY_ROW": ("gnis:2046", 0, "RB wild at"),
@@ -584,6 +905,12 @@ def test_each_fault_the_full_side_build_found_is_fixed_and_pinned(found, monkeyp
     item, part, mark = FOUND[flag]
     assert not any(mark in p for p in _found_problems(found, item, part))
     monkeypatch.setattr(T, flag, False)
+    if flag == "A_RAINBOW_STOPS_AT_THE_STEELHEAD_SIZE":
+        monkeypatch.setattr(T, "USES_THE_LINE", True)      # the fault is a steelhead's "uses the 1" line (off by default)
+    if flag == "A_WILD_QUOTA_JOINS_ITS_COUNT":
+        # (round 4, R2) a lone row's own cap now sits in its band, which also holds the law here: the fault shows
+        # through the row's own line, as it was found
+        monkeypatch.setattr(T, "A_OWN_CAP_IN_THE_BAND", False)
     if flag == "A_APART_SAYS_THE_BOX_MOST":
         # T810 G2 Q1 also brings a box's number down to what it holds here, which hides this fault: pin it alone
         monkeypatch.setattr(T, "A_HEAD_SAYS_WHAT_IS_KEPT_HERE", False)

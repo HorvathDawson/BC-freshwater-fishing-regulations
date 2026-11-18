@@ -179,9 +179,8 @@ describe("tierNode / treeOf", () => {
   });
   it("the own tier: its fresh page on its line, its relation under it; a page shown above is not repeated below", () => {
     const own = treeOf(envOf())![1] as TierVM;
-    expect([plain(own.line), own.relation, own.sub, own.short]).toEqual(["This river’s rule: up to 4 hatchery rainbow trout a day Rule book p.22 ↗",
-      "Not part of the 2 from streams; part of the 4 a day across Region 2", null,
-      "4 hatchery rainbow trout a day under this river’s rule, not part of the 2 from streams"]);
+    expect([plain(own.line), own.relation, own.sub]).toEqual(["This river’s rule: up to 4 hatchery rainbow trout a day Rule book p.22 ↗",
+      "Not part of the 2 from streams; part of the 4 a day across Region 2", null]);
     const env = envOf();
     const nested = tierNode(tier({ id: "x", tier: "own", n: 1, by: 5, says: "up to 1", children: [tier({ id: "y", tier: "count", n: 1, by: 3, says: "1 in all" })] }),
       env, false, new Set([21]));

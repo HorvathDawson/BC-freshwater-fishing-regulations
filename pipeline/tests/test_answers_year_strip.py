@@ -37,7 +37,7 @@ def frame(fish, rows):
             "fish": {S: {"hatchery": None if h is None else dec(h), "wild": None if w is None else dec(w)}
                      for S, (h, w) in fish.items()},
             "rows": [{"kind": "x", "members": list(m)} for m in rows],
-            "steelhead_line": None}
+            "steelhead_line": None, "page_possession": None}
 
 
 def years(frames):
@@ -187,7 +187,7 @@ def test_a_row_already_stamped_is_refused():
 ROW = {"kind": "release", "pool": None, "win": 3, "members": ["RB"], "all_members": ["RB"],
        "daily": None, "narrow": None, "everyone": [], "groups": [], "prot": None, "wins": None,
        "lift_notes": [], "scope": None}
-FRAME = {"spp": ["RB"], "fish": {"RB": {"hatchery": None, "wild": None, "lead": None}}, "steelhead_line": None}
+FRAME = {"spp": ["RB"], "fish": {"RB": {"hatchery": None, "wild": None, "lead": None}}, "steelhead_line": None, "page_possession": None}
 
 
 def _rows(year):

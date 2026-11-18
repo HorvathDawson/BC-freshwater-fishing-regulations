@@ -56,7 +56,7 @@ from pipeline.deliver.answers.model.trout import (
     TroutTableWire, DateSet, TroutFrame, TroutFrameWire,
 )
 from pipeline.deliver.answers.model.frames import (
-    FRAMES, OPTIONAL_FRAMES, TROUT_WIRE, TOP, STATICS, ShapeError, _wire, validate_section, json_schemas, validate_top,
+    FRAMES, OPTIONAL_FRAMES, NULLABLE_FRAMES, TROUT_WIRE, TOP, STATICS, ShapeError, _wire, validate_section, json_schemas, validate_top,
 )
 from pipeline.deliver.answers.model.emit import (
     _CORE, SCHEMA_OUT, TS_OUT, emitted_schema, _ts, emitted_ts, main,

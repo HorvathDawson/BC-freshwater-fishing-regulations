@@ -16,7 +16,7 @@ unchanged (`Txt`): no leading or trailing space, no "{" or "}" except the one `{
 """
 from __future__ import annotations
 
-from typing import Annotated, Any, Dict, Literal, Optional, Tuple
+from typing import Annotated, Any, Dict, List, Literal, Optional, Tuple
 
 from pydantic import AfterValidator, Field, StrictBool, StrictInt, StrictStr, model_validator
 from typing_extensions import TypeAliasType
@@ -60,6 +60,8 @@ RowKey = Annotated[StrictStr, Field(pattern=r"^(CT|DV|EB|GB|LT|RB|ST)(/(wild|hat
 
 class TopLine(Model):
     lead: Annotated[StrictStr, Field(min_length=1), AfterValidator(_lead)]
+    sub: Optional[Txt]                  # (trout 4, owner 2026-11-18 01:28) the exception under the general number: "or 4 if
+                                        # they’re hatchery rainbow trout 50 cm (20 in) or less" (the Vedder); null otherwise
     second: Optional[Txt]               # the cross-box limit (Lois, Khartoum: = TroutTable.together, same words) or the
                                         # lakes' own count (Echoes: "only 1 from both lakes together", together null)
 
@@ -73,7 +75,10 @@ class Band(Model):
     from_: StrictInt = Field(alias="from", ge=0)
     to: StrictInt = Field(ge=0)
     text: Txt
-    kind: Literal["upto", "own", "shared", "possession"]
+    #: "size" (T810 L, trout 2; owner 2026-11-18 on Region 4's cutthroat and rainbow): the box's number and a size cap the
+    #: band's rows share, "counts toward the 2 · only 1 over 50 cm (20 in) between them" (two halves joined by " · ";
+    #: drawn as given, its size in the words only)
+    kind: Literal["upto", "own", "shared", "possession", "size"]
 
     @model_validator(mode="after")
     def _span(self):
@@ -81,8 +86,8 @@ class Band(Model):
             raise ValueError(f"a band runs backwards: {self.from_}..{self.to}")
         if self.kind in ("upto", "own", "possession") and self.to != self.from_:
             raise ValueError(f"a {self.kind!r} band is one row's ({self.from_}..{self.to})")
-        if self.kind == "shared" and self.to == self.from_:
-            raise ValueError("a shared band spans two rows or more")
+        if self.kind in ("shared", "size") and self.to == self.from_:
+            raise ValueError(f"a {self.kind} band spans two rows or more")
         return self
 
 
@@ -104,6 +109,8 @@ class _TRowFields(Model):
     name: Txt
     origin: Optional[OriginLit]         # set <=> one of a twin pair (wild with a quota or size of its own)
     label: Optional[Txt]                # "Hatchery only" beside the name; null when the box carries it
+    split: StrictBool                   # (trout 5) a fish's hatchery and wild twins drawn as ONE row ("… if wild"): the
+                                        # fish sheet's hatchery link shows as for a row with an origin or a label
     sub: Optional[Txt]
     lines: Tuple[Txt, ...]              # NOW, bold: size, "uses the 1 over …", possession, stop duty, weekday words
     quiet: Tuple[Txt, ...]              # NOW, regular weight
@@ -119,6 +126,8 @@ class _TRowFields(Model):
             raise ValueError(f"row {self.key}: origin {self.origin!r} <=> the key's origin")
         if self.origin is not None and self.label is not None:
             raise ValueError(f"row {self.key}: a twin row carries its origin, never a label")
+        if self.split and (self.origin is not None or self.label is not None):
+            raise ValueError(f"row {self.key}: a merged hatchery and wild row has no origin and no label")
         return self
 
 
@@ -141,13 +150,29 @@ class _BoxFields(Model):
     tag: Optional[Txt]                  # keep only: "Lake’s rule"
     rows: Tuple[Any, ...] = Field(min_length=1)
     bands: Tuple[Band, ...]
+    #: (trout 4, owner 2026-11-18 01:22, R4) a count some rows of one band share among themselves, drawn INSIDE that band
+    #: with its cap's words only: "only 1 between them" (the Vedder's Dolly Varden and lake trout inside "2 total from
+    #: these 6"), "only 1 over 50 cm (20 in) between them" (kind "size"). Each spans two rows or more of one band, never
+    #: the band whole; they never overlap
+    inner: Tuple[Band, ...]
 
     @model_validator(mode="after")
     def _bands(self):
         if self.kind != "keep":
-            if self.bands or self.label or self.strip or self.tag or self.possession:
+            if self.bands or self.label or self.strip or self.tag or self.possession or self.inner:
                 raise ValueError(f"a {self.kind} box has no bands, label, strip, possession or tag")
             return self
+        taken: set = set()
+        for x in self.inner:
+            if x.kind not in ("shared", "size"):
+                raise ValueError(f"a nested band is shared or size, not {x.kind!r}")
+            out = next((b for b in self.bands if b.from_ <= x.from_ and x.to <= b.to), None)
+            if out is None or (out.from_, out.to) == (x.from_, x.to):
+                raise ValueError(f"a nested band {x.from_}..{x.to} lies inside no band, or is one whole")
+            span = set(range(x.from_, x.to + 1))
+            if span & taken:
+                raise ValueError(f"nested bands overlap at rows {sorted(span & taken)}")
+            taken |= span
         at = 0
         for b in self.bands:
             if b.from_ != at:
@@ -186,6 +211,9 @@ class _TableFields(Model):
     boxes: Tuple[Any, ...] = Field(min_length=1)
     together: Optional[Together]
     year: Optional[YearBar]             # only when every fish shares one state today (all release or all closed)
+    #: under "Fished elsewhere today? ›" (no link where empty), in order: each covered keep row's kept-elsewhere SENTENCE
+    #: ("This lake’s rule: 2 a day here. …", "Your own limit, counted across …"; T810 L), then the worked lines ("Kept 2
+    #: elsewhere? Keep 3 more here."). A worked line starts "Kept "; anything else is a sentence. Drawn as given.
     elsewhere: Tuple[Txt, ...]
     src: Src
 
@@ -203,9 +231,10 @@ class _TableFields(Model):
             for r in b.rows:
                 if fish_box.setdefault(r.fish, bi) != bi:
                     raise ValueError(f"{r.fish} sits in two boxes")
-        marked = any(b.label for b in self.boxes) or any(r.label or r.origin for b in self.boxes for r in b.rows)
+        marked = any(b.label for b in self.boxes) or any(r.label or r.origin or r.split for b in self.boxes
+                                                         for r in b.rows)
         if self.hatch_link != marked:
-            raise ValueError("hatch_link <=> some row or box carries a label or an origin")
+            raise ValueError("hatch_link <=> some row or box carries a label, an origin or a hatchery/wild split")
         if self.together is not None and self.together.text != self.top.second:
             # T810 G2 (owner 15:41): a limit across two boxes is said under the top line AND under the table (Lois);
             # the lakes' own count (Echoes) only under the top line: `second` without `together`
@@ -274,35 +303,41 @@ class TroutFrame(Model):
         if d is None:
             return self
         boxes = self.table.boxes
-        levels: Dict[Tuple[int, int], int] = {}
+        # (T810 L, trout 3; owner 2026-11-18 00:52 "said once") a date holds every row under its level without a date of
+        # its own: the most specific level wins (row, band, box, then the card line or top). A level never repeats the
+        # date of the level above it (said once), and each level speaks once per row
+        levels: Dict[Tuple[int, int], List[str]] = {}
 
         def box_of(k: str) -> int:
             b = int(k)
             if not 0 <= b < len(boxes):
                 raise ValueError(f"a date names box {k}, which does not exist")
             return b
-        for k in d.box:
+        whole = d.card if d.card is not None else d.top
+        for b in range(len(boxes)):
+            for r in range(len(boxes[b].rows)):
+                levels[(b, r)] = [] if whole is None else [whole[:1].lower() + whole[1:]]
+        for k, t in d.box.items():
             b = box_of(k)
             for r in range(len(boxes[b].rows)):
-                levels[(b, r)] = levels.get((b, r), 0) + 1
-        for k in d.band:
+                levels[(b, r)].append(t)
+        for k, t in d.band.items():
             b, _, i = k.partition(":")
             bi = box_of(b)
             if not i.isdigit() or int(i) >= len(boxes[bi].bands):
                 raise ValueError(f"a date names band {k}, which does not exist")
             band = boxes[bi].bands[int(i)]
             for r in range(band.from_, band.to + 1):
-                levels[(bi, r)] = levels.get((bi, r), 0) + 1
-        for k in d.row:
+                levels[(bi, r)].append(t)
+        for k, t in d.row.items():
             b, _, i = k.partition(":")
             bi = box_of(b)
             if not i.isdigit() or int(i) >= len(boxes[bi].rows):
                 raise ValueError(f"a date names row {k}, which does not exist")
-            levels[(bi, int(i))] = levels.get((bi, int(i)), 0) + 1
-        whole = 1 if (d.card is not None or d.top is not None) else 0
-        for (b, r), n in levels.items():
-            if n + whole > 1:
-                raise ValueError(f"row {b}:{r} carries a date at two levels")
+            levels[(bi, int(i))].append(t)
+        for (b, r), got in levels.items():
+            if any(x == y for x, y in zip(got, got[1:])):
+                raise ValueError(f"row {b}:{r} carries one date at two levels")
         keys = {r.key for b in boxes for r in b.rows}
         for k in d.sheet:
             if k not in keys:

@@ -174,6 +174,14 @@ def here(box: dict, ri: int, r, *, stamps: Sequence[str], duties: Sequence[str],
             add(W.sheet_own(W.parse_band(band["text"])[1]))
         elif band["kind"] == "shared":
             add(W.sheet_shared(band["text"], _others(rows[band["from"]:band["to"] + 1], r)))
+        elif band["kind"] == "size":
+            add(W.sheet_size_band(band["text"], _others(rows[band["from"]:band["to"] + 1], r)))
+        for x in box.get("nested") or ():
+            # (trout 4, R4) a count nested in the band: its cap's words with the fish it holds besides this one
+            if x["from"] <= ri <= x["to"]:
+                part = rows[x["from"]:x["to"] + 1]
+                add(W.sheet_shared(x["text"], _others(part, r)) if x["kind"] == "shared"
+                    else W.sheet_size_band(x["text"], _others(part, r)))
         # 4. the row's own lines
         uses = None
         for t in lines:

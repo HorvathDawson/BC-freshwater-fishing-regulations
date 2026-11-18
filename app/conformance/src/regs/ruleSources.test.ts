@@ -16,7 +16,7 @@ const RULE = { entry_id: "r1:x", rule_id: "x.r1", type: "retention_limit", famil
   fields: { species: ["RB"], take: 2, period: "daily" }, prov: { rank: 0 } };
 const FACTS = { kind: "limit" };
 const BOOK = { fish: { RB: { name: "Rainbow trout" } }, groups: { ALL_GAME_FISH: { name: "All game fish", members: ["RB"] } } };
-const VERSIONS = { ladder: 1, rows: 33, gear: 12, licence: 7, display: KNOWN_VERSIONS.display };
+const { glossary: _g, ...VERSIONS } = KNOWN_VERSIONS;   // (T810 cutover) the sections this app reads, trout among them
 const DICT = Buffer.from(JSON.stringify(RULE));
 const bytes = (o: unknown) => Buffer.from(JSON.stringify(o));
 const zdict = (o: unknown) => Buffer.concat([Buffer.from([0x02]), deflateRawSync(bytes(o), { dictionary: DICT })]);

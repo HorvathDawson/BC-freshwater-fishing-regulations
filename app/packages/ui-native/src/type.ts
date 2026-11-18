@@ -20,7 +20,7 @@ export const FACE = {
   textMedium: "Archivo_500Medium",
   textSemi: "Archivo_600SemiBold",
   textBold: "Archivo_700Bold",
-  /** Archivo 800 (T22, tokens.md §2.2): the regs page's date-day word, size chip, pin numbers, ✓/✕ marks. */
+  /** Archivo 800 (T22, tokens.md §2.2): the regs page's date-day word, size chip, ✓/✕ marks. */
   textHeavy: "Archivo_800ExtraBold",
   figure: "JetBrainsMono_500Medium",
 } as const;
@@ -106,10 +106,6 @@ export const TYPE = {
   kicker:      { fontFamily: FACE.textBold, fontSize: 12.48, lineHeight: 16.22, letterSpacing: 1, textTransform: "uppercase" },
   /** The four header tabs (.segm[role=tablist] button: 700 --t4, tracking .2, sentence case; line-height normal → 15). */
   regsTab:     { fontFamily: FACE.textBold, fontSize: 12.48, lineHeight: 15, letterSpacing: 0.2 },
-  /** The pin bar: the group line (--t3 700 /1.3), a tier line (--t4 700 /1.3), the form-a sub-line (--t4 600 /1.3). */
-  pinGroup:    { fontFamily: FACE.textBold, fontSize: 15, lineHeight: 19.5 },
-  pinLine:     { fontFamily: FACE.textBold, fontSize: 12.48, lineHeight: 16.22 },
-  pinSub:      { fontFamily: FACE.textSemi, fontSize: 12.48, lineHeight: 16.22 },
   /** The strip's month initials (.smonths: JetBrains Mono .625rem/1). */
   month:       { fontFamily: FACE.figure, fontSize: 10, lineHeight: 10 },
 } as const satisfies Record<string, TextStyle>;

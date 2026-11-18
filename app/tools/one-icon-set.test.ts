@@ -32,6 +32,7 @@ const DRAWINGS: Record<string, string> = {
   "packages/ui-native/src/Chrome.tsx": "the Conditions legend's ramp: the flow standing gradient (data, not a glyph)",
   "packages/ui-native/src/ConditionsPanel.tsx": "a forecast run's days as a small line, its peak marked (T52: data)",
   "packages/ui-native/src/regs/YearStrip.tsx": "the regs year bar (open / closed spans, a hatch)",
+  "packages/ui-native/src/regs/TroutYearBar.tsx": "(T810 O) the trout table's year bar (keep / release / closed runs, YearStrip's patterns)",
   "packages/ui-native/src/regs/KeepBlocks.tsx": "a fish's silhouette where it has no picture",
   "packages/ui-native/src/SyncRing.tsx": "(T231) how much of an update has downloaded, round the sync glyph",
 };

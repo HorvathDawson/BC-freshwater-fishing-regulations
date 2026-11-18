@@ -29,7 +29,7 @@ function Row({ r, palette, actions }: { r: SourceRowVM; palette: Palette; action
       {r.key ? <RegsPress accessibilityRole="button" accessibilityLabel={r.title ?? r.quote} onPress={() => actions.onSheet(`rule:${r.key}`)} box={LINE}>{words}</RegsPress> : words}
       <Text style={[TYPE.meta, { color: palette.sub }]}>
         <Text>{r.role}</Text>
-        {r.book.length > 0 ? <Text>{" "}</Text> : null}
+        {r.role && r.book.length > 0 ? <Text>{" "}</Text> : null}
         {r.book.length > 0 ? <LineText line={r.book} style={TYPE.meta} color={palette.sub} palette={palette} actions={actions} /> : null}
       </Text>
     </View>

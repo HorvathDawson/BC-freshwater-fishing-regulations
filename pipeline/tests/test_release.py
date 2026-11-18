@@ -363,9 +363,30 @@ def test_the_cell_columns_reach_core_by_generation(monkeypatch):
     m = re.search(r"export interface CellIds \{([^}]*)\}", hand)
     if m:                                                       # still hand-typed: it must not drift meanwhile
         assert re.findall(r"readonly (\w+): number", m.group(1)) == secs, "inputs.ts CellIds != contract `cell`"
-    monkeypatch.setitem(C._REGION_TABLES, "cell", C._REGION_TABLES["cell"] + ["trout"])
-    grown = emit_pack.render_cell()
-    assert grown != emit_pack.CELL_OUT.read_text() and "readonly trout: number" in grown
+    nullable = {**emit_pack.cell_nullable(), "bait": False}
+    monkeypatch.setitem(C._REGION_TABLES, "cell", C._REGION_TABLES["cell"] + ["bait"])
+    grown = emit_pack.render_cell(nullable)
+    assert grown != emit_pack.CELL_OUT.read_text() and "readonly bait: number" in grown
+    with pytest.raises(SystemExit, match="not in the store's `cell` table"):     # a column the store does not make
+        emit_pack.render_cell()
+
+
+def test_a_nullable_cell_column_is_typed_number_or_null():
+    """(T810 L, the app chat's S) `cell.trout` is INTEGER NULL in the store (no table drawn: Q-D3), so `CellIds.trout` is
+    `number | null` — read from the store's own schema (`pack.cell_nullable`), never a hand list; every NOT NULL column
+    stays `number`. Mutation: a NOT NULL column read as nullable renders `| null`, and the reverse drops it."""
+    import re
+    from pipeline.tools.emit import pack as emit_pack
+    nullable = emit_pack.cell_nullable()
+    assert nullable["trout"] is True
+    assert not any(v for c, v in nullable.items() if c != "trout")
+    text = emit_pack.render_cell()
+    assert "readonly trout: number | null" in text
+    assert re.findall(r"readonly (\w+): number \| null", text) == ["trout"]
+    assert 'export const CELL_NULLABLE = ["trout"] as const;' in text          # the reader's runtime list, same source
+    assert 'CELL_NULLABLE = ["display", "trout"]' in emit_pack.render_cell({**nullable, "display": True})
+    assert "readonly display: number | null" in emit_pack.render_cell({**nullable, "display": True})
+    assert "readonly trout: number;" in emit_pack.render_cell({**nullable, "trout": False}).replace(" }", "; }")
 
 
 def test_the_web_budget_prices_each_moment_and_fails_a_crossed_gate(tmp_path):

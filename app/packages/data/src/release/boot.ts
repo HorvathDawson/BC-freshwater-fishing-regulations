@@ -197,6 +197,13 @@ export class BootError extends Error {
 export class SpaceError extends BootError {}
 
 /**
+ * (T845) The manifest names a release this app cannot read (`readsRelease`) and nothing this app reads is held: the
+ * start stops. Its message is the developer's (which format, which file: the log); the screen says
+ * `INSTALL_WORDS.unreadable` (useReleaseBoot's `said`), not "the map data could not be loaded".
+ */
+export class UnreadableError extends BootError {}
+
+/**
  * (T722 F9) WILL THE DOWNLOAD FIT? Before a release download (the first install, an update), on both platforms: what
  * installing `m` beside `held` downloads (`installBytes`, the manifest's sizes) less what of its big files is on disk
  * already (a `.part` or the finished file at its path, or on Android the bytes its system download holds), against the
@@ -312,7 +319,7 @@ export async function bootRelease(o: BootOptions): Promise<Booted> {
     // the device is offline the boot waits for it to come back rather than failing
     const m = o.net ? await resilientManifest(o.manifestUrl, f, o.net) : await loadManifest(o.manifestUrl, undefined, f);
     const readable = readsRelease(m, "web");
-    if (!readable.ok) throw new BootError(readable.reason);
+    if (!readable.ok) throw new UnreadableError(readable.reason);
     const cache = await o.platform.releaseCache();
     const loader = withLiveSalmon(
       releaseLoader(m, o.platform.releaseSource(m, { base: o.releaseBase, cache, held: null, fetch: f, net: o.net ?? null }),
@@ -373,7 +380,7 @@ export async function bootRelease(o: BootOptions): Promise<Booted> {
     if (!latest) throw new BootError(`${stale.reason}, and the manifest could not be read (${unread ?? "no answer"})`, true);
     if (!allowed(latest)) throw new BootError(UPDATE_WORDS.row.appTooOld);
     const fresh = readsRelease(latest, "phone");
-    if (!fresh.ok) throw new BootError(`${stale.reason}; and the manifest's ${fresh.reason}`);
+    if (!fresh.ok) throw new UnreadableError(`${stale.reason}; and the manifest's ${fresh.reason}`);
     const old = held;
     await checkRoom(latest, old, dev.space, await jobsOf(o.background));
     if (o.mobileData && await o.mobileData.decide(installBytes(latest, old)) === "wifi") {
@@ -388,7 +395,7 @@ export async function bootRelease(o: BootOptions): Promise<Booted> {
     if (!latest) throw new BootError(`first run: the manifest could not be read (${unread ?? "no answer"})`, true);
     if (!allowed(latest)) throw new BootError(UPDATE_WORDS.row.appTooOld);
     const fresh = readsRelease(latest, "phone");
-    if (!fresh.ok) throw new BootError(fresh.reason);
+    if (!fresh.ok) throw new UnreadableError(fresh.reason);
     // (T722 F9) before anything is queued or downloaded: a download that will not fit says so
     await checkRoom(latest, null, dev.space, await jobsOf(o.background));
     // (T298) every big file handed to the system's downloader BEFORE anything else downloads, so closing the app a moment

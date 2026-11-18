@@ -4,7 +4,7 @@
  * each draws its VM slice.
  */
 import { useState, type ReactNode } from "react";
-import { Image, View } from "react-native";
+import { Image, PixelRatio, View, useWindowDimensions } from "react-native";
 import { Text } from "../Text";
 import Svg, { Circle, Path } from "react-native-svg";
 import { GLANCE_WORDS, SALMON_ISSUE_WORDS, WORDS, daylightOffsets, timedLineText, type BannerVM, type GlanceRowVM, type CaveatVM, type InheritedVM, type OtherFishKeyVM, type OtherFishRowVM, type PossessionVM, type WhereNotVM } from "@app/core";
@@ -247,7 +247,12 @@ function Thumb({ code, images, palette }: { code: string | null; images: FishIma
 }
 
 /** (T221) A folded row of the at-a-glance table: its row (picture, name, the day's answer) and the card it opens. */
-export interface GlanceFold { readonly key: string; readonly row: GlanceRowVM; readonly body: () => ReactNode }
+export interface GlanceFold {
+  readonly key: string; readonly row: GlanceRowVM; readonly body: () => ReactNode;
+  /** (T810 O, owner about 17:15 "Salmon + trout folds") the row's end is the expand / collapse arrow
+   *  beside its value words, not the "Details" / "Hide" button; the Other fish list's own folds never set it */
+  readonly arrow?: boolean;
+}
 
 /**
  * (T759, owner 2026-11-15: "mark the folded row") THE FOLDED SALMON ROW'S MARK when its card holds a DFO issue banner: a small
@@ -293,6 +298,7 @@ function FoldRow({ f, palette, images, coach }: { f: GlanceFold; palette: Palett
       ))}
     </View>
   );
+  if (f.arrow) return <ArrowFold f={f} open={open} setOpen={setOpen} ring={ring} tone={tone} palette={palette} images={images} />;
   return (
     <View testID={`glance:${f.key}`}>
       <View ref={ring} collapsable={false} style={{ paddingHorizontal: GUTTER }}>
@@ -324,6 +330,53 @@ function FoldRow({ f, palette, images, coach }: { f: GlanceFold; palette: Palett
   );
 }
 
+/** (T810 O) the OS text scale from which the arrow fold's value goes under its name (spec 3.5: 200 % text) */
+const FOLD_STACK_AT = 1.5;
+
+/**
+ * (T810 O, owner about 17:15 "Salmon + trout folds": "Both folded entries (salmon and trout) show their words + an arrow
+ * instead of 'Details'") THE ARROW FOLD: picture, name, the value words (and their small date, the
+ * trout fold's `DateSet.fold`), then the expand / collapse arrow beside them. The whole row stays the one 44 px press,
+ * open or folded by aria-expanded; its spoken name is exactly its visible words (WCAG 2.5.3), the arrow being a picture.
+ * At large text the value goes under the name, so nothing scrolls sideways.
+ */
+function ArrowFold({ f, open, setOpen, ring, tone, palette, images }: {
+  f: GlanceFold; open: boolean; setOpen: (v: boolean) => void; ring: ReturnType<typeof useCoachTarget>; tone: string;
+  palette: Palette; images?: FishImages }) {
+  useWindowDimensions();
+  const stack = (PixelRatio.getFontScale() || 1) >= FOLD_STACK_AT;
+  const value = (f.row.value || f.row.date) ? (
+    <View testID="glance-value" style={stack ? { marginTop: 2 } : { flex: 1, minWidth: 0, alignItems: "flex-end" }}>
+      {f.row.value && <Text testID={`st:${f.row.tone}`} style={[TYPE.regsBodyBold, { color: tone, ...(stack ? {} : { textAlign: "right" }) }]}>{f.row.value}</Text>}
+      {f.row.date && <Text testID="glance-date" style={[TYPE.meta, { color: palette.sub, ...(stack ? {} : { textAlign: "right" }) }]}>{f.row.date}</Text>}
+    </View>
+  ) : null;
+  return (
+    <View testID={`glance:${f.key}`}>
+      <View ref={ring} collapsable={false} style={{ paddingHorizontal: GUTTER }}>
+        <RegsPress accessibilityRole="button" aria-expanded={open} accessibilityLabel={[f.row.name, f.row.value, f.row.date].filter(Boolean).join(" ")}
+                   onPress={() => setOpen(!open)} box={ROW}
+                   style={(st) => {
+                     const lit = st.pressed || !!(st as { hovered?: boolean }).hovered || !!(st as { focused?: boolean }).focused;
+                     return { flexDirection: "row", alignItems: "center", gap: 10, minHeight: 44, paddingVertical: 9, borderTopWidth: 1,
+                              borderTopColor: palette.line, backgroundColor: lit ? palette.tint : "transparent" };
+                   }}>
+          <Thumb code={f.row.thumb} images={images} palette={palette} />
+          {/* the name keeps its own width (up to half the row); a long value or date wraps under itself, not the name */}
+          <View style={stack ? { flex: 1, minWidth: 0 } : { flexShrink: 0, maxWidth: "50%" }}>
+            <Text style={[TYPE.regsBodySemi, { color: palette.ink }]}>{f.row.name}</Text>
+            {stack && value}
+          </View>
+          {f.row.issue && <IssueMark palette={palette} />}
+          {!stack && (value ?? <View style={{ flex: 1 }} />)}
+          <View testID="glance-arrow"><Icon name={open ? "collapse" : "expand"} colour={palette.ink} size={18} /></View>
+        </RegsPress>
+      </View>
+      {open && <View testID={`glance-body:${f.key}`} style={{ paddingBottom: 12 }}>{f.body()}</View>}
+    </View>
+  );
+}
+
 /**
  * (T531) A block's species: its folded rows, then the Other fish rows and their status key — no heading, no rule of its own,
  * so it sits under the calendar it belongs to (or, in `OtherFish`, under "Species and limits").
@@ -336,7 +389,9 @@ export function SpeciesRows({ rows, keys, palette, actions, images, folds = [] }
   return (
     <View testID="species-rows">
       {folds.map((f) => <FoldRow key={f.key} f={f} palette={palette} images={images}
-                                 coach={f.key === "salmon" ? "regs:salmon" : f === folds.find((x) => x.key.startsWith("group:")) ? "regs:trout" : undefined} />)}
+                                 coach={f.key === "salmon" ? "regs:salmon"
+                                   // (T810 O) the trout table's one fold where it is drawn, else the first group's
+                                   : f === (folds.find((x) => x.key === "trout") ?? folds.find((x) => x.key.startsWith("group:"))) ? "regs:trout" : undefined} />)}
       <View style={{ paddingHorizontal: GUTTER }}>
       {rows.map((o) => [
         <RegsPress key={o.open} accessibilityRole="button" onPress={() => actions.onSheet(o.open)} box={ROW}

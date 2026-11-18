@@ -33,11 +33,13 @@ SCHEMA = Path(__file__).with_name("schema.sql")
 
 #: The answers sections the store holds, and each one's frame families: {(section, table key):
 #: store table}. A section or table key the store does not know is refused (teach it here).
-#: `SECTIONS` are in every answers file (a `cell` column each); an OPTIONAL section (`OPTIONAL_SECTIONS`, T810: the trout
-#: table, built only with `--trout-table`) is in some: a store of a file holding it gains its `cell` column (LAST) and
-#: its tables (`optional_schema`), one without it is exactly the store it was before the section existed.
+#: `SECTIONS` are in every answers file (a `cell` column each). An ADDED section (`ADDED_SECTIONS`, T810 ticket L: the
+#: trout table, required since the cutover) is in every answers file this code builds a store from (`build` refuses one
+#: without it) but NOT in a release cut before it (regs-region/1, rows 33): its `cell` column (LAST) and its tables are
+#: made where the store holds it (`added_schema`), so the reassembly of an older release (`store/release.py`), the
+#: decoder and the shards read that release as it was built (the previous live release still opens).
 SECTIONS = ("ladder", "rows", "gear", "licence", "display")
-OPTIONAL_SECTIONS = ("trout",)
+ADDED_SECTIONS = ("trout",)
 FAMILIES = {("ladder", "verdicts"): "ladder_verdict", ("ladder", "frames"): "ladder_frame",
             ("rows", "decided"): "rows_decided", ("rows", "rows"): "rows_row",
             ("rows", "frames"): "rows_frame", ("gear", "frames"): "gear_frame",
@@ -70,20 +72,20 @@ WATER_COLUMNS = ("name", "kind", "sections", "outside_bc", "entries", "steelhead
 KEY_LEN = 11
 
 
-def optional_schema(con: sqlite3.Connection, names) -> None:
-    """THE OPTIONAL SECTIONS' SCHEMA (T810 ticket I, contract 2.1), on a store made from `schema.sql`: each present
-    section's `cell` column, LAST, in `OPTIONAL_SECTIONS` order (NULL where the section has no value: Q-D3), and its
-    frame families' tables. One definition, shared by the builder and the release's reassembly (`store/release.py`)."""
-    for n in OPTIONAL_SECTIONS:
+def added_schema(con: sqlite3.Connection, names) -> None:
+    """THE ADDED SECTIONS' SCHEMA (T810 tickets I and L, contract 2.1), on a store made from `schema.sql`: each present
+    section's `cell` column, LAST, in `ADDED_SECTIONS` order (NULL where the section has no value: Q-D3), and its frame
+    families' tables. One definition, shared by the builder and the release's reassembly (`store/release.py`)."""
+    for n in ADDED_SECTIONS:
         if n not in names:
             continue
         con.execute(f"ALTER TABLE cell ADD COLUMN {n} INTEGER")
         for (sec, _k), tbl in FAMILIES.items():
             if sec == n:
                 con.execute(f"CREATE TABLE {tbl} (id INTEGER PRIMARY KEY, j BLOB NOT NULL)")
-    unknown = sorted(set(names) - set(OPTIONAL_SECTIONS))
+    unknown = sorted(set(names) - set(ADDED_SECTIONS))
     if unknown:
-        raise StoreError(f"store: {unknown} are not optional sections the store knows")
+        raise StoreError(f"store: {unknown} are not added sections the store knows")
 
 
 class _Strings:
@@ -301,13 +303,14 @@ def _write(con, raw: bytes, A: dict, sub: dict, item_ord: Dict[str, int], part_s
     if untaught or missing:
         raise StoreError(f"store: top-level keys {sorted(untaught)} are not taught to the store, "
                          f"{sorted(missing)} are missing")
-    if not set(SECTIONS) <= set(A["sections"]) <= set(SECTIONS) | set(OPTIONAL_SECTIONS):
+    # (T810 ticket L) every section, the added ones too: answers without the trout section are a build from before the
+    # cutover, and the store is not cut from them
+    if set(A["sections"]) != set(SECTIONS) | set(ADDED_SECTIONS):
         raise StoreError(f"store: the answers hold sections {sorted(A['sections'])}, the store "
-                         f"knows {sorted(SECTIONS)} (+ optional {sorted(OPTIONAL_SECTIONS)}) — teach it "
-                         "(store/build.py SECTIONS, FAMILIES)")
-    optional = [n for n in OPTIONAL_SECTIONS if n in A["sections"]]
-    optional_schema(con, optional)
-    cell_secs = SECTIONS + tuple(optional)
+                         f"needs {sorted(set(SECTIONS) | set(ADDED_SECTIONS))} — teach it "
+                         "(store/build.py SECTIONS, ADDED_SECTIONS, FAMILIES)")
+    added_schema(con, ADDED_SECTIONS)
+    cell_secs = SECTIONS + ADDED_SECTIONS
     layout = {"top": list(A), "sections": {n: list(s) for n, s in A["sections"].items()},
               "versions": {n: s["version"] for n, s in A["sections"].items()}}
     for name, sec in A["sections"].items():

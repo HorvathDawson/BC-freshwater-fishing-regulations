@@ -178,10 +178,10 @@ def test_a_build_that_writes_a_live_path_is_refused(tmp_path, monkeypatch):
     monkeypatch.setattr(M, "write_source", lambda d, fwa: {})
     import sys
     touch = [sys.executable, "-c", f"open({str(watched / 'x')!r}, 'w').write('1')"]
-    monkeypatch.setattr(M, "stage_commands", lambda out, fwa, coast, trout_table=False: [("toucher", touch)])
+    monkeypatch.setattr(M, "stage_commands", lambda out, fwa, coast: [("toucher", touch)])
     with pytest.raises(SystemExit, match=r"changed 1 live path"):
         M.build(tmp_path / "out")
-    monkeypatch.setattr(M, "stage_commands", lambda out, fwa, coast, trout_table=False: [("quiet", [sys.executable, "-c", "1"])])
+    monkeypatch.setattr(M, "stage_commands", lambda out, fwa, coast: [("quiet", [sys.executable, "-c", "1"])])
     assert set(M.build(tmp_path / "out2")) == {"inputs", "quiet"}
 
 

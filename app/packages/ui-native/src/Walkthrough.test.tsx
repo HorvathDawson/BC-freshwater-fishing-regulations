@@ -16,7 +16,7 @@
  */
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { useState, type ReactNode } from "react";
-import { act, cleanup, fireEvent, render, renderHook, screen, waitFor } from "@testing-library/react";
+import { act, cleanup, fireEvent, render, renderHook, screen, waitFor, within } from "@testing-library/react";
 import { Animated, Keyboard } from "react-native";
 import { GLANCE_WORDS, GUIDE_WATER, HELP_WORDS, WALKTHROUGH_VERSION, WALKTHROUGH_WORDS, guideResumeAt, helpVM, type GlanceRowVM } from "@app/core";
 import { BackLayerContext } from "@app/ui";
@@ -485,7 +485,9 @@ describe("(T456) the Vedder River's Regulations draw every rules step's control"
       const missing = rules.filter((s) => !s.optional).flatMap((s) => s.targets).filter((t) => reg.get(t) === null);
       expect(missing).toEqual([]);
     }, { timeout: 30_000 });
-    expect(reg.get("regs:rule")).not.toBeNull();                          // the release's group card: the rule a step reads
+    // (T810 cutover) retired: `regs:rule` registered ("the release's group card: the rule a step reads"). No Keep tab draws
+    // a group card since the cutover, and no step targets `regs:rule` (help.ts GUIDE_STEPS; the steps' own targets are
+    // held just above); the trout fold's spot is `regs:trout` (the "(T810 O) the arrow folds" case below)
   });
 });
 
@@ -534,6 +536,21 @@ describe("(T456) the words name only controls drawn inside the highlight", { tim
     host.rerender();
     expect(host.result.current.values["regs:salmon"]).toBe(true);
     expect(screen.getByText(GLANCE_WORDS.hide)).toBeTruthy();             // the fold opened, as a tap opens it
+  });
+  it("(T810 O) the arrow folds (dev switch): the walk still sees and sets the salmon and trout folds (the steps' words are T842's)", () => {
+    const host = renderHook(() => useGuideControlHost());
+    const reg = renderHook(() => useCoachRegistry()).result.current;
+    const arrow = (key: string, name: string) => ({ ...fold(key, name), arrow: true });
+    render(<GuideControlContext.Provider value={host.result.current.sink}><Coached reg={reg}>
+      <OtherFish rows={[]} keys={[]} palette={LIGHT} actions={{} as never} folds={[arrow("salmon", "Salmon"), arrow("trout", "Trout and char")]} />
+    </Coached></GuideControlContext.Provider>);
+    host.rerender();
+    expect([host.result.current.values["regs:salmon"], host.result.current.values["regs:trout"]]).toEqual([false, false]);
+    act(() => { host.result.current.set("regs:trout", true); });
+    host.rerender();
+    expect([host.result.current.values["regs:trout"], screen.queryByText(GLANCE_WORDS.show), screen.queryByText(GLANCE_WORDS.hide)])
+      .toEqual([true, null, null]);
+    expect(within(screen.getByTestId("glance:trout")).getByRole("button").getAttribute("aria-expanded")).toBe("true");
   });
 });
 

@@ -1079,8 +1079,8 @@ class Row(Model):
     conds: Optional[Tuple[Cond, ...]] = None          # set <=> the row has a pool
     items: Optional[Tuple[Item, ...]] = None          # set <=> the row has a pool
     real_daily: Optional[RealDaily] = None            # only on a pool row
-    group: Optional[GroupTotal] = None                # answers 2.5: on ONE row per total
-    elsewhere: Optional[Elsewhere] = None             # answers 2.5: set <=> a keep row
+    group: Optional[GroupTotal] = None                # answers 2.5: on ONE row per total (rows 34: none on a covered row)
+    elsewhere: Optional[Elsewhere] = None             # answers 2.5: set <=> a keep row (rows 34: no trout table covers)
     presence: Optional[Presence] = None               # ROUND14 4: on the steelhead's own row
     week: Optional[Week] = None                       # ROUND14 5: its fish's weekday window in words
     restates: Optional[Tuple[Restated, ...]] = None   # ROUND15 3: same-row restatements, as notes
@@ -1120,8 +1120,18 @@ class Row(Model):
         has_pool = self.pool is not None
         if self.group is not None and not has_pool:
             raise ValueError("a group total only on a pool row")
-        if (self.elsewhere is not None) != (self.kind == "keep"):
-            raise ValueError("the kept-elsewhere line is set <=> a keep row")
+        # T810 ticket L (contract Q-D9, rows 34): the kept-elsewhere line is set <=> a keep row that no trout table
+        # covers. A row cannot see the cell's `covers`, so here: set only on a keep row, and a keep row without one
+        # holds only trout and char (the only rows a table covers). The exact rule — only a row the cell's table covers,
+        # never one under a NULL cell — is the card gate's, over every shipped frame (`trout/check.cut_problems`, J:
+        # the store refuses answers whose stamp found a problem)
+        if self.elsewhere is not None and self.kind != "keep":
+            raise ValueError("the kept-elsewhere line is set only on a keep row")
+        if self.elsewhere is None and self.kind == "keep":
+            from pipeline.deliver.answers import common
+            if not set(self.all_members) <= common.trout_char():
+                raise ValueError(f"a keep row without its kept-elsewhere line holds {sorted(self.all_members)}: only "
+                                 "a row the trout table covers (trout and char) leaves it to the table")
         if has_pool != (self.kind in ("keep", "no_limit")):
             raise ValueError(f"a {self.kind} row with pool {self.pool}: pool <=> keep or no_limit")
         if has_pool == (self.win is not None):
@@ -1164,9 +1174,10 @@ class FishAnswer(Model):
         return self
 
 
-#: THE `rows` SECTION'S VERSION — the one number (`answers.SECTIONS` and `encode.SPEC` read it). The trout cutover
-#: (ticket L) bumps it to 34, and with it `RowsFrame.page_possession` is written (`PAGE_POSSESSION_SINCE`).
-ROWS_VERSION = 33
+#: THE `rows` SECTION'S VERSION — the one number (`answers.SECTIONS` and `encode.SPEC` read it). 34: the trout cutover
+#: (T810 ticket L): `RowsFrame.page_possession` is written (`PAGE_POSSESSION_SINCE`), every row mixing trout or char
+#: with other fish is split in two, and the rows the trout table covers lose `group` and `elsewhere` (contract Q-D9).
+ROWS_VERSION = 34
 
 #: Trout plan F0 (contract 2.11): the rows version from which every frame carries `page_possession` — the cutover's bump,
 #: so no release before the switch changes. Tied to the version itself, not a second switch: the bump cannot ship

@@ -66,6 +66,11 @@ from pipeline.common.curated import REPO_ROOT
 from pipeline.deliver.answers import common
 from pipeline.tools.audit import answers_diff as AD
 
+
+
+class SizeError(Exception):
+    """The size estimate cannot price this release (T810 L: it is already the cutover form)."""
+
 TC = common.trout_char()
 #: the row fields a crude table body keeps (refs to rules and pools go to `src`): `full` every trout row whole (the
 #: upper-side guess), `lean` only what today's card says in words or the table states (the group card, the number, the
@@ -384,6 +389,11 @@ class Audit:
 
     def size(self, regions: Iterable[str]) -> dict:
         from pipeline.deliver.store.release import province_store
+        if "trout" in ((self.R.manifest.get("regulations") or {}).get("versions") or {}):
+            # (T810 L) the estimate adds the section and cuts the trout groups: a release built since the cutover IS that
+            # form, and the release's own size gates price it (A1 measured it); nothing is left to estimate
+            raise SizeError(f"trout_size: {self.dir.name} already holds the trout section (the cutover form): the "
+                            "estimate prices a release from before the cutover; use --no-size")
         st = province_store(self.dir)
         zd_row = st.zd.get("rows_row")
         st.close()
@@ -435,8 +445,9 @@ TOP_N = 10
 
 
 def _trout_tables() -> Tuple[str, ...]:
-    from pipeline.deliver.release import contract as C
-    return tuple(C.OPTIONAL_SECTION_TABLES["trout"]["tables"])
+    # (T810 L) the section's tables: required in the contract since the cutover, an ADDED section of the store
+    from pipeline.deliver.release import shards as SH
+    return tuple(sorted(SH.ADDED_SHARD_TABLES["trout"]))
 
 
 def _content_digest(b: bytes) -> str:
@@ -577,7 +588,7 @@ def region_file(store_path: Path, r: str, meta: Dict[str, str], out: Path, ids=N
 
 
 def flag_off_store(side: Path, out: Path) -> Path:
-    """The side store without the section: a store made from `schema.sql` alone (no `optional_schema`), every table
+    """The side store without the section: a store made from `schema.sql` alone (no `added_schema`), every table
     copied but the four trout tables, `cell` without its `trout` column, the trout dictionaries dropped."""
     from pipeline.deliver.store.build import SCHEMA
     con = sqlite3.connect(str(out))
@@ -812,8 +823,14 @@ def measure(side: Path, live: Optional[Path] = None, log=print) -> dict:
     from pipeline.deliver.store.release import province_store
     side = Path(side)
     man = AD._manifest(side)
-    if "trout" not in ((man.get("regulations") or {}).get("versions") or {}):
-        raise AD.DiffError(f"trout_size: {side.name} carries no trout section (build it with --trout-table)")
+    vs = (man.get("regulations") or {}).get("versions") or {}
+    if "trout" not in vs:
+        raise AD.DiffError(f"trout_size: {side.name} carries no trout section (a release cut before the cutover)")
+    if int(vs.get("rows") or 0) >= 34:
+        # (T810 L) A1 measured a SIDE release (rows 33 + the section) in its three forms; a release built since the
+        # cutover IS the cutover form, and the release's own size gates price it
+        raise AD.DiffError(f"trout_size: {side.name} is already the cutover form (rows {vs['rows']}): A1 measures a side "
+                           "release built before it; the release's own size gates price this one")
     R = AD.Release(side)
     names = defaultdict(Counter)
     for h, a in R.akey.items():
@@ -1028,6 +1045,9 @@ def main(argv=None) -> int:
             rep = run(a.release, tuple(x.strip() for x in a.regions.split(",") if x.strip()), not a.no_size)
     except AD.DiffError as e:
         print(str(e).replace("answers_diff:", "trout_size:"), file=sys.stderr)
+        return 2
+    except SizeError as e:
+        print(str(e), file=sys.stderr)
         return 2
     out = a.out or OUT_ROOT / (rep["release"] + ("-a1" if a.cutover else ""))
     out.mkdir(parents=True, exist_ok=True)

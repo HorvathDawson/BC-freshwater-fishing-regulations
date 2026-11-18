@@ -14,11 +14,15 @@ from pipeline.deliver.release import paint as PAINT
 from pipeline.deliver.release import shards as SH
 
 _FRAME = ["id", "j"]
+#: (T810 ticket L, the trout cutover) `cell.trout` (LAST, nullable: no table at that key and segment, Q-D3) and the trout
+#: section's four tables are REQUIRED: in every `regs-<region>` file, with the format `regs-region/2` (below). The store's
+#: and the shards' lists (`store.build.SECTIONS` + `ADDED_SECTIONS` / `FAMILIES`, `shards.TOP` + `ADDED_TOP` /
+#: `SHARD_TABLES` + `ADDED_SHARD_TABLES`) are held equal to it by `test_trout_section.py`.
 _REGION_TABLES = {
-    "cell": ["akey", "s", "ladder", "rows", "gear", "licence", "display"],
+    "cell": ["akey", "s", "ladder", "rows", "gear", "licence", "display", "trout"],
     **{t: _FRAME for t in ("display_frame", "gear_frame", "ladder_frame", "ladder_verdict", "licence_answer",
                            "licence_alien", "licence_doc", "licence_frame", "licence_hold", "licence_u16", "rows_decided",
-                           "rows_frame", "rows_row")},
+                           "rows_frame", "rows_row", "trout_dates", "trout_frame", "trout_sheet", "trout_table")},
     "meta": ["k", "v"],
 }
 
@@ -27,14 +31,14 @@ _REGION_TABLES = {
 #: `regulations.versions`, its `cell` column (LAST, nullable: no value at that key and segment) and its tables in EVERY
 #: `regs-<region>` file; or none of the three. A release without it is exactly the release before it existed (an
 #: all-NULL column is never shipped: "absent" and "nothing here" must not look the same). Emitted for the app as
-#: `PACK_OPTIONAL_SECTION_TABLES` (pack.py), held by `test_release.py`; the store's and the shards' lists
-#: (`store.build.OPTIONAL_SECTIONS` / `FAMILIES`, `shards.OPTIONAL_TOP` / `OPTIONAL_SHARD_TABLES`) are held equal to it by
-#: `test_trout_section.py`. At the cutover (ticket L) `trout` moves into `_REGION_TABLES` and this is empty again.
-#: Kept apart from `OPTIONAL` below (optional FILES).
-OPTIONAL_SECTION_TABLES = {
-    "trout": {"cell": ["trout"],
-              "tables": {t: _FRAME for t in ("trout_dates", "trout_frame", "trout_sheet", "trout_table")}},
-}
+#: `PACK_OPTIONAL_SECTION_TABLES` (pack.py), held by `test_release.py`. EMPTY since the cutover (ticket L): `trout` moved
+#: into `_REGION_TABLES`; the rule stays for the next additive section. Kept apart from `OPTIONAL` below (optional FILES).
+OPTIONAL_SECTION_TABLES: dict = {}
+
+#: (T810 ticket L) THE REGS FILES' FORMAT. regs-region/2: rows 34 and the trout section required (contract 2.7) — an app
+#: that reads regs-region/1 cannot open them, so the held-set path installs the new set over the old one and
+#: `app_gate.oldest_reader` derives `minAppVersion` from the format (`app_reads.json`), never a stamp typed by hand.
+REGS_REGION_FORMAT = "regs-region/2"
 
 
 def region_tables(sections=()) -> dict:
@@ -175,7 +179,7 @@ FILES = {
         "water_exit": ["ord", "down_ord", "down_part"],
         "xpart": _FRAME,
         "zdict": ["tbl", "d"]}},
-    **{f"regs-{r}": {"format": "regs-region/1", "kind": "sqlite", "tables": _REGION_TABLES} for r in SH.REGIONS},
+    **{f"regs-{r}": {"format": REGS_REGION_FORMAT, "kind": "sqlite", "tables": _REGION_TABLES} for r in SH.REGIONS},
     # (T256) THE ANSWER SLICES (slices.py), web-only: per region, the rows of core / water a tap there reads, complete
     # for what they cover; the manifest marks each (`slice_of`, `region`) and a phone never installs one
     **{f"core-{r}": {"format": "core-slice/1", "kind": "sqlite", "tables": {

@@ -22,7 +22,7 @@ import { MoreScreen, type MobileDataControl } from "./MoreScreen";
 import { MenuHost, type MenuInfo } from "./MenuHost";
 import { ReportLink, WaterReportLink } from "./ReportLink";
 import { RegsScreen } from "../regs/RegsScreen";
-import { createPinStore } from "../regs/pinStore";
+import { createTabStore } from "../regs/tabStore";
 import vedder1010 from "../regs/fixtures/vedder_1010.json";
 
 afterEach(() => { cleanup(); vi.restoreAllMocks(); ERROR_LOG.clear(); });
@@ -552,7 +552,7 @@ describe("the Regulations screen's report link (T41 Q3, Claude 2026-10-22: once,
   it("is drawn ONCE, after the Licence section and before the picture credits — no tab section ends with one", () => {
     const report = vi.fn();
     const menu = { report } as unknown as MenuControls;
-    const store = createPinStore();
+    const store = createTabStore();
     render(
       <MenuContext.Provider value={menu}>
         <RegsScreen page={vedder1010 as unknown as RegsPage} palette={LIGHT} store={store}

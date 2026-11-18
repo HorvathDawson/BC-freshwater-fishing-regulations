@@ -3,23 +3,23 @@
  * `WaterFrame`: the back and the view strip, the same row on every view of the water, are the frame's — this screen
  * draws no header row, gutter or width of its own): the regs header (name, date pill, place label, the four tabs; no Parts since T150)
  * FIXED above ONE ScrollView that holds the four tab sections — "What you can keep", then the Gear / Methods
- * / Licence slots — and the pin bar over the scroll's top edge.
+ * / Licence slots. (T810 cutover, owner 2026-11-17 23:29 "Remove it (Recommended)") The pin bar is gone.
  *
- * Owns the layout state only: the open regs sheet (T37 SheetHost), the pin store (scroll offset → pinned lines + tab in view, off
- * React's render path) and the anchors. The tabs are not a pager (D1 a): a press scrolls to its section
+ * Owns the layout state only: the open regs sheet (T37 SheetHost), the tab store (scroll offset → tab in view, off React's
+ * render path) and the section anchors. The tabs are not a pager (D1 a): a press scrolls to its section
  * (`tabScrollY`), and the scroll moves the selected tab (`tabInView`). No words of its own and no regulation logic:
  * every string is the RegsPage's.
  *
  * (T45) ON A WIDE SCREEN (`layout`, the water screen's `useLayoutClass`) the same page is arranged by `RegsWide`: the
- * page and its pin bar in a reading column of about 70 characters (tablet), and beside it a side column holding the date
- * pill, the sections as a list and the pinned lines (desktop). A phone is drawn exactly as before.
+ * page in a reading column of about 70 characters (tablet), and beside it a side column holding the date pill and the
+ * sections as a list (desktop). A phone is drawn exactly as before.
  *
  * ONE MAP ENTRY (T71, owner call 3, 2026-10-22): the regs header has no Map button; the water's Map view is offered once,
  * by the view strip the frame draws.
  */
 import { useCallback, useContext, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { openProbe } from "@app/data";
-import { AccessibilityInfo, Animated, Platform, ScrollView, View, type ScrollViewInstance, type ViewInstance } from "react-native";
+import { AccessibilityInfo, Platform, ScrollView, View, type ScrollViewInstance, type ViewInstance } from "react-native";
 import { Text } from "../Text";
 import { LEGAL_WORDS, parseSheetKey, tabScrollY, type AccessNotice, type GlanceRowVM, type InSeasonBannerVM, type Line, type RegsPage, type SalmonStripVM, type SheetKey, type Tab } from "@app/core";
 import { AccessNoticeBlock } from "./AccessNoticeBlock";
@@ -32,13 +32,13 @@ import { type Palette } from "../theme";
 import { ReferenceFold } from "./ReferenceFold";
 import { KeepTab } from "./KeepTab";
 import { LineText, TermTitles, type KeepActions } from "./LineText";
-import { createPinStore, type PinStore } from "./pinStore";
+import { createTabStore, type TabStore } from "./tabStore";
 import { RegsHeader } from "./RegsHeader";
-import { PinOver, ReadingColumn, RegsSide } from "./RegsWide";
+import { ReadingColumn, RegsSide } from "./RegsWide";
 import { SheetHost } from "./SheetHost";
 import { recallRegsScroll, rememberRegsScroll } from "./scrollMemory";
 import type { LayoutClass, RegsStart } from "@app/ui";
-import { AnchorContext, StickyContext, useAnchors } from "./useAnchors";
+import { AnchorContext, useAnchors } from "./useAnchors";
 import { InSeasonBanners } from "./InSeasonBanner";
 import type { AdiposeImages, FishImages } from "./types";
 import { CoachScrollContext, useCoachScroller } from "../CoachMarks";
@@ -49,7 +49,7 @@ declare const __DEV__: boolean | undefined;
  * (T41) THE BROWSER WALK'S HOOK — in a development build on the web only (`app/tools/regs-walk.mjs`): open any sheet of
  * this page by its key without a reload, and read the pin bar's lines. Never in a release build, never on native.
  */
-export interface RegsDebug { openSheet(k: string): boolean; pinLines(): string[] }
+export interface RegsDebug { openSheet(k: string): boolean }
 const debugOn = () => typeof __DEV__ !== "undefined" && __DEV__ && Platform.OS === "web";
 
 /** A section slot: a node, or a node drawn with this screen's actions. */
@@ -95,7 +95,7 @@ export interface RegsScreenProps {
    */
   layout?: LayoutClass;
   /** a test injects its store (golden anchors); the app makes its own */
-  store?: PinStore;
+  store?: TabStore;
   /**
    * (T41) where the page starts — the web start link's (`@app/ui` `parseStartLink`), a test affordance: the sheet is open
    * at once; the scroll jumps to the tab's section (+ `scroll` px) once that section is measured. `onStarted` is called
@@ -143,12 +143,10 @@ export function RegsScreen({ page, palette, images, adipose, actions, onDate,
   // (T286) the open probe (test bed only): the page's first render, and its first layout (mounted, before paint)
   openProbe.mark("regsRender");
   useLayoutEffect(() => { openProbe.mark("layout"); }, []);
-  const store = useMemo(() => injected ?? createPinStore(), [injected]);
+  const store = useMemo(() => injected ?? createTabStore(), [injected]);
   const scroll = useRef<ScrollViewInstance>(null);
   const content = useRef<ViewInstance>(null);
   const { sink, section, remeasure } = useAnchors(page, content, store);
-  const scrollY = useRef(new Animated.Value(0)).current;
-  const sticky = useMemo(() => ({ store, overlay: layout !== "desktop", scrollY }), [store, layout, scrollY]);
   // the sideways swipe between the water's views (Regulations · Conditions · Map): the frame's header, the regs header and
   // the scroll's content each listen (siblings, never nested — nested detectors race); see WaterViews in ViewSwipe.tsx.
   // Only the scroll's content follows the finger: the regs header listens `still` (it is one page with the frame's rows)
@@ -207,7 +205,6 @@ export function RegsScreen({ page, palette, images, adipose, actions, onDate,
     const g = globalThis as { __regsDebug?: RegsDebug };
     const hook: RegsDebug = {
       openSheet: (k) => { const key = parseSheetKey(k); if (key) setSheet(key); return key !== null; },
-      pinLines: () => store.getLines().map((l) => (l.sub ? `${l.text} ${l.sub}` : l.text)),
     };
     g.__regsDebug = hook;
     return () => { if (g.__regsDebug === hook) delete g.__regsDebug; };
@@ -250,12 +247,10 @@ export function RegsScreen({ page, palette, images, adipose, actions, onDate,
           failed, is drawn here in its place (its pending / failed face) — never a silent gap */}
       {(!glance || !glance.salmon) && (typeof salmon === "function" ? salmon({ actions: keepActions, images }) : salmon)}
       <AnchorContext.Provider value={sink}>
-        <StickyContext.Provider value={sticky}>
           <KeepTab keep={page.keep} daylight={daylight} dateLabel={page.header.date} palette={palette} actions={keepActions} images={images} salmonStrip={salmonStrip}
                    glance={glance ? { salmon: glance.salmon && salmon
                      ? { row: glance.salmon, card: () => (typeof salmon === "function" ? salmon({ actions: keepActions, images }) : salmon) }
                      : null } : null} />
-        </StickyContext.Provider>
       </AnchorContext.Provider>
       {sec("gear", gear)}
       {sec("methods", methods)}
@@ -290,7 +285,7 @@ export function RegsScreen({ page, palette, images, adipose, actions, onDate,
   const pageScroll = (
     <View style={{ flex: 1 }}>
       <ScrollView ref={pageRef} testID="regs-scroll" scrollEventThrottle={16} onScrollBeginDrag={() => { restoring.current = false; }} contentContainerStyle={{ flexGrow: 1, paddingBottom: 32 }}
-                  onScroll={(e) => { const y = e.nativeEvent.contentOffset.y; scrollY.setValue(y); store.setScroll(y); coachScroll.track(y);
+                  onScroll={(e) => { const y = e.nativeEvent.contentOffset.y; store.setScroll(y); coachScroll.track(y);
                                      if (scrollKey && !restoring.current) rememberRegsScroll(scrollKey, y); }}
                   onLayout={(e) => { viewH.current = e.nativeEvent.layout.height; store.setViewport(e.nativeEvent.layout.height); }}
                   onContentSizeChange={(_w, h) => { contentH.current = h; store.setContentHeight(h); remeasure(); }}>
@@ -299,7 +294,6 @@ export function RegsScreen({ page, palette, images, adipose, actions, onDate,
           {swipe ? <ViewSwipe swipe={swipe} testId="view-swipe-body">{read}</ViewSwipe> : read}
         </CoachScrollContext.Provider>
       </ScrollView>
-      {layout !== "desktop" && <PinOver layout={layout} store={store} palette={palette} />}
     </View>
   );
 

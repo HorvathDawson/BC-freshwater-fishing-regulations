@@ -27,6 +27,8 @@ const indexOf = (views: readonly RuleView[]): RuleIndex => {
   return { get: (rix) => m.get(rix) ?? noRule(rix), has: (rix) => m.has(rix), size: m.size };
 };
 const OPEN = { status: "own", closing: [], strip: 0 } as unknown as DisplayFrame;
+/** (T810 S) no fish the trout table covers */
+const NONE: ReadonlySet<string> = new Set();
 const settled = (o: Partial<Settled>): Settled =>
   ({ s: 0, day: { month: 10, day: 10 }, status: OPEN, inpart: [], side: [], anglerclosed: [], L: null, ...o }) as unknown as Settled;
 const W = (...d: string[]) => d;
@@ -221,27 +223,27 @@ describe("timedOf: the day reads differently by moment", () => {
   const lines = (c: ReturnType<typeof timedOf>) => c && [c.title, ...c.items.map((i) => [plain(i.what), i.where, i.rule, i.fish, plain(i.book)])];
 
   it("(b) a fish whose stored answer differs: its answers by days, and today's", () => {
-    expect(lines(timedOf(inputs(), settled({ s: 0 }), at([L([]), L([])])))).toEqual(["⚠ At certain times",
+    expect(lines(timedOf(inputs(), settled({ s: 0 }), at([L([]), L([])]), NONE))).toEqual(["⚠ At certain times",
       ["Kokanee: release Mon–Fri; 5 a day Sat–Sun", "today (Mon–Fri): release", null, "KO", ""]]);
   });
   it("(c) an angler closure speaking at another moment, not the card's: its own sentence (T800: as the 'some anglers' note says it) and the days", () => {
     const same = rows("release", 11, null);
     // (T800) the stored label, whole, brackets and all: the printed text cut at its first bracket named nobody
-    expect(lines(timedOf(inputs({ rows: [same, same] }), settled({ s: 0 }), at([L([]), L([12])])))).toEqual(["⚠ At certain times",
+    expect(lines(timedOf(inputs({ rows: [same, same] }), settled({ s: 0 }), at([L([]), L([12])]), NONE))).toEqual(["⚠ At certain times",
       ["Angling closed (weekends)", "Sat–Sun", angler.key, null, "Rule book p.9 ↗"]]);
-    expect(timedOf(inputs({ rows: [same, same] }), settled({ s: 1 }), at([L([]), L([12])]))).toBeNull();   // speaks on the card's own moment
+    expect(timedOf(inputs({ rows: [same, same] }), settled({ s: 1 }), at([L([]), L([12])]), NONE)).toBeNull();   // speaks on the card's own moment
   });
   it("(a) a closed moment while the card's is open: its stored closure, unless the card's moment has it too", () => {
     const shut = { status: "closed", closing: [[13, ["KO", "RB"]]], strip: 1 } as unknown as DisplayFrame;
     const same = rows("release", 11, null);
-    expect(lines(timedOf(inputs({ display: [OPEN, shut], rows: [same, same] }), settled({ s: 0 }), at([L([]), L([])])))).toEqual(["⚠ At certain times",
+    expect(lines(timedOf(inputs({ display: [OPEN, shut], rows: [same, same] }), settled({ s: 0 }), at([L([]), L([])]), NONE))).toEqual(["⚠ At certain times",
       ["No fishing for any game fish", "Sat–Sun", closer.key, null, "Rule book p.23 ↗"]]);
     const both = { status: "own", closing: [[13, ["KO"]]], strip: 0 } as unknown as DisplayFrame;
-    expect(lines(timedOf(inputs({ display: [both, shut], rows: [same, same] }), settled({ s: 0 }), at([L([]), L([])])))).toEqual(["⚠ At certain times",
+    expect(lines(timedOf(inputs({ display: [both, shut], rows: [same, same] }), settled({ s: 0 }), at([L([]), L([])]), NONE))).toEqual(["⚠ At certain times",
       ["Missing from the answers file: the closure that closes it Sat–Sun", null, null, null, ""]]);
   });
   it("no moments, or one segment that day → null", () => {
-    expect(timedOf(inputs({ moments: null }), settled({ s: 0 }), at([L([]), L([])]))).toBeNull();
+    expect(timedOf(inputs({ moments: null }), settled({ s: 0 }), at([L([]), L([])]), NONE)).toBeNull();
   });
 });
 
@@ -250,8 +252,8 @@ describe("caveatsOf: renderCard's order, open keyed days only", () => {
   const s = view(4, 3351, { label: "No fishing" }, { side: "West" });
   const inp = { item: null, rules: indexOf([]), year: null } as unknown as RegsInputs;
   it("side before angler; none on a closed, tidal or unkeyed day", () => {
-    expect(caveatsOf(inp, settled({ side: [s], anglerclosed: [a] }), () => settled({})).map((c) => c.kind)).toEqual(["side", "angler"]);
+    expect(caveatsOf(inp, settled({ side: [s], anglerclosed: [a] }), () => settled({}), NONE).map((c) => c.kind)).toEqual(["side", "angler"]);
     for (const status of [{ status: "closed" }, { status: "tidal" }, null])
-      expect(caveatsOf(inp, settled({ side: [s], status: status as unknown as DisplayFrame }), () => settled({}))).toEqual([]);
+      expect(caveatsOf(inp, settled({ side: [s], status: status as unknown as DisplayFrame }), () => settled({}), NONE)).toEqual([]);
   });
 });

@@ -35,8 +35,11 @@ export function displayByDay(year: Omit<RegsYear, "displayByDay">, calendarYear:
 /** The statics as `RegsInputs` carries them: the store's, as read (`pdfPages` the release's printed → PDF page map). */
 const staticsOf = (st: StoreStatics): Statics => st;
 
+/** A section every cell names a frame of (never NULL: not the trout table's, contract 2.1). */
+type EveryCell = { [K in CellSection]: StoredCell[K] extends number ? K : never }[CellSection];
+
 /** Every distinct id of one frame family over a key's cells, read once each (a key's segments often share frames). */
-async function byId<T>(cells: readonly StoredCell[], fam: CellSection, read: (id: number) => Promise<T>): Promise<T[]> {
+async function byId<T>(cells: readonly StoredCell[], fam: EveryCell, read: (id: number) => Promise<T>): Promise<T[]> {
   const ids = [...new Set(cells.map((c) => c[fam]))];
   const got = new Map(await Promise.all(ids.map(async (id) => [id, await read(id)] as const)));
   return cells.map((c) => got.get(c[fam])!);
@@ -60,9 +63,8 @@ async function keyed(store: InputsStore, key: AkeyRow, day: Day, weekday: Weekda
   const partial = { segStarts, moments: moments as readonly Moment[] | null, cells, ladderBySeg, rowsBySeg, displayBySeg };
   const year: RegsYear = { ...partial, displayByDay: displayByDay(partial, calendarYear) };
   const frames = { ladder: ladderBySeg[s]!, rows: rowsBySeg[s]!, gear, licence, display: displayBySeg[s]! };
-  // (T810 M) today's trout table, only when the store holds the section (the cell then has the key): a NULL cell is
-  // null, never read; a store without the section leaves `trout` off the inputs (absent, not null)
-  const trout = cell.trout === undefined ? {} : { trout: cell.trout === null ? null : await store.trout(a, cell.trout) };
+  // (T810 M, S) today's trout table (the section is required from rows 34): a NULL cell is null, never read
+  const trout = { trout: cell.trout === null ? null : await store.trout(a, cell.trout) };
   return { s, cell, year, frames, ruleset: { reach: ruleset.reach, trib: ruleset.trib }, trout };
 }
 

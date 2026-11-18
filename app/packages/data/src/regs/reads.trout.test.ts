@@ -1,13 +1,12 @@
 /**
- * (T810 M) THE TROUT SECTION, READ, on the trout fixture release (`app/fixtures/trout/regs-release/`, a regs fixture cut
- * from a side release built with `--trout-table`): the store holds the section, `cell`'s SELECT is the generated column
- * list plus `trout`, every cell's trout frame decodes (each row's fish sheet back on it), and a NULL cell stays null.
- * On the normal regs fixture (no section) the reads are as before: no `trout` in the SELECT, none on a cell or the
- * inputs. That every vector's decoded value equals Python's (`trout-vectors.generated.json`) is the conformance
- * `inputs.release.test.ts`'s.
+ * (T810 M, S) THE TROUT SECTION, READ. From the cutover (rows 34) the section is required: every regs release holds it,
+ * `cell`'s SELECT is the generated column list (`trout` among it), every cell's trout frame decodes (each row's fish sheet
+ * back on it), and a NULL cell stays null (contract 2.1, Q-D3), never frame 0. Both fixtures: the regs fixture release
+ * and the trout fixture release (`app/fixtures/trout/regs-release/`, the vectors' side release). That every vector's
+ * decoded value equals Python's (`trout-vectors.generated.json`) is the conformance `inputs.release.test.ts`'s.
  */
 import { describe, expect, it } from "vitest";
-import { CELL_COLUMNS, OPTIONAL_VERSIONS } from "@app/core";
+import { CELL_COLUMNS, KNOWN_VERSIONS } from "@app/core";
 import type { Db } from "../sql/db";
 import { openRegsFixture, openTroutFixture } from "../sql/drivers/releaseDir";
 import type { ReleaseLoader } from "../release/loader";
@@ -34,17 +33,22 @@ async function keysOf(loader: ReleaseLoader): Promise<number[]> {
   return [...out].sort((a, b) => a - b);
 }
 
-describe("the trout section on the trout fixture release", () => {
-  it("the store holds it; every cell's trout frame decodes, a NULL cell is null; the SELECT names `trout` after the generated columns", async () => {
-    const { loader, cellSelects } = spied(openTroutFixture);
+describe.each([
+  ["the regs fixture release", openRegsFixture, 1],
+  ["the trout fixture release", openTroutFixture, 20],
+] as const)("the trout section on %s (required from rows 34)", (_, open, least) => {
+  it("the store holds it; every cell's trout frame decodes, a NULL cell is null; the SELECT is the generated columns", async () => {
+    const { loader, cellSelects } = spied(open);
     const st = await openRegsStore(loader);
-    expect(st.meta.optional).toEqual({ trout: OPTIONAL_VERSIONS.trout });
+    expect([st.meta.versions.trout, st.meta.optional]).toEqual([KNOWN_VERSIONS.trout, {}]);
+    expect(CELL_COLUMNS).toContain("trout");
     let tables = 0, nulls = 0;
     for (const akey of await keysOf(loader)) {
       for (const c of await st.cells(akey)) {
-        expect(Object.keys(c)).toEqual([...CELL_COLUMNS.slice(2), "trout"]);
+        expect(Object.keys(c)).toEqual([...CELL_COLUMNS.slice(2)]);
         if (c.trout === null) { nulls++; continue; }
-        const v = await st.trout(akey, c.trout!);
+        expect(Number.isInteger(c.trout) && c.trout >= 0, `akey ${akey} trout ${c.trout}`).toBe(true);   // frame 0 is a frame
+        const v = await st.trout(akey, c.trout);
         expect(Object.keys(v).sort()).toEqual(["covers", "dates", "table"]);
         expect(v.covers.length).toBeGreaterThan(0);
         for (const b of v.table.boxes) {
@@ -53,26 +57,21 @@ describe("the trout section on the trout fixture release", () => {
         tables++;
       }
     }
-    // the fixture's cases hold both: tables, and cells the page draws no table for (Q-D3)
-    expect(tables).toBeGreaterThan(20);
+    // the cases hold both: tables, and cells the page draws no table for (Q-D3)
+    expect(tables).toBeGreaterThanOrEqual(least);
     expect(nulls).toBeGreaterThan(0);
     const selects = cellSelects();
     expect(selects.length).toBeGreaterThan(0);
-    for (const q of selects) expect(q).toMatch(new RegExp(`^SELECT ${[...CELL_COLUMNS, "trout"].join(", ")} FROM cell `));
+    for (const q of selects) expect(q).toMatch(new RegExp(`^SELECT ${CELL_COLUMNS.join(", ")} FROM cell `));
   });
 });
 
-describe("a release without the section reads as before", () => {
-  it("no `trout` in the SELECT, on a cell, or on the inputs (absent, not null)", async () => {
-    const { loader, cellSelects } = spied(openRegsFixture);
-    const st = await openRegsStore(loader);
-    expect(st.meta.optional).toEqual({});
+describe("the inputs of a keyed tap always carry the trout cell (null or the frame), never leave it out", () => {
+  it("gnis:3062 on Jul 15", async () => {
+    const st = await openRegsStore(spied(openRegsFixture).loader);
     const inp = await loadRegsInputs(st, await targetFor(st, "gnis:3062", null), { month: 7, day: 15 }, "Wednesday", 2026);
     expect(inp.cell).not.toBeNull();
-    expect("trout" in inp.cell!).toBe(false);
-    expect("trout" in inp).toBe(false);
-    const selects = cellSelects();
-    expect(selects.length).toBeGreaterThan(0);
-    for (const q of selects) expect(q).toMatch(new RegExp(`^SELECT ${CELL_COLUMNS.join(", ")} FROM cell `));
+    expect("trout" in inp.cell!).toBe(true);
+    expect(inp.trout === null || Array.isArray(inp.trout?.covers)).toBe(true);
   });
 });

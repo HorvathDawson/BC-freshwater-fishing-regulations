@@ -404,10 +404,10 @@ def _duties(P, model: dict, S: str, n, lo: float, hi: float) -> List[str]:
             continue
         if w not in out:
             out.append(w)
-    if n != 0:
-        w = possession_duty(P, model, S)
-        if w is not None and w not in out:
-            out.append(w)
+    # (T810 ticket L) a fish's own possession line (`possession_duty`) is no longer a card duty: it was said only for
+    # trout and char (`POSSESSION_FISH`), whose cards the cutover drops — the table says it on the fish's row, and J
+    # proves it (`trout/check.possession_problems`, F0's lead). The kind's key still holds it (`_kinds_of`), so the tree
+    # the table builder reads is the same.
     return out
 
 
@@ -1172,7 +1172,9 @@ def card_of(P, model: dict, grp: dict, rows_out: List[dict], home: int) -> dict:
             else:
                 notes.append(f"counts toward the {_js(total)} a day")
         duties = _duties(P, model, S, n, lo, hi)
-        key = (id(b), said_by, n, name, detail, tuple(notes), tuple(duties))
+        # (T810 L) a fish whose own possession differs stays a kind apart, as when the card said it (the table's input)
+        poss = possession_duty(P, model, S) if n != 0 else None
+        key = (id(b), said_by, n, name, detail, tuple(notes), tuple(duties), poss)
         k = rows_by.get(key)
         if k is None:
             k = {"species": [], "name": name, "detail": detail, "n": None if n == INF else n,
@@ -1277,8 +1279,9 @@ def card_of(P, model: dict, grp: dict, rows_out: List[dict], home: int) -> dict:
     # with no lift the kept-elsewhere examples are the list. Each keeps the basket it starts from and
     # the number the gate proves.
     el = rows_out[home].get("elsewhere") or {}
+    keep_n = bool(worked)                  # (the keep-N lines; a stream tally split by fish is still one tally's lines)
     for x in ([] if raised_total else el.get("lines") or []):
-        if worked and x["kind"] == "stream_tally":
+        if keep_n and x["kind"] == "stream_tally":
             continue
         # "Kept 2 elsewhere today? Keep 3 more here" is the total's arithmetic: said where this water's
         # number IS the total (Ross Lake's own trout 1 counts the fish kept elsewhere too — the

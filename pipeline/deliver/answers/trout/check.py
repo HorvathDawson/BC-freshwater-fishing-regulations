@@ -44,7 +44,15 @@ WHAT IT PROVES, per (answer key, segment):
   year bar   shown exactly when every fish shares one state (release or closed) on an open water; its runs the page's
              year rule over the table's fish (`year.stamp_years`)
   src        every rule a table cites exists; each fish's deciding rule is in its row's `src`
-  elsewhere  each kept-elsewhere line read back; its "Keep N more here" proved by the engine after the fish kept there
+  elsewhere  each kept-elsewhere line read back; its "Keep N more here" proved by the engine after the fish kept there;
+             (T810 L) each covered keep row's kept-elsewhere SENTENCE on the table (whose limit, the row's own number),
+             none standing for a row the table does not cover (`elsewhere_said_problems`)
+
+AND OVER EVERY ROWS FRAME OF EVERY KEY, a table or not (T810 L, the rows 34 cutover):
+  possession F0's `page_possession` as shipped = derived again from the frame's possession roles and the bundle's rules
+             (the lead, its sentence and value words, every also-line: `page_possession_problems`)
+  cut        a covered row carries no `group` and no `elsewhere`; every other keep row keeps its kept-elsewhere line, a
+             NULL cell's too (`cut_problems`)
 
 Each check has a mutation test (`test_trout_check.py`): a wrong number, a dropped fish, a shifted date, an unparseable
 sentence, a size edge, an origin, a scope, a possession line, a shared band's span: each fails.
@@ -54,6 +62,7 @@ from __future__ import annotations
 import json
 import math
 import random
+import re
 from typing import Callable, Dict, Iterable, List, Optional, Sequence, Tuple
 
 from pipeline.deliver import calendar as K
@@ -69,6 +78,13 @@ SEED = 20261116
 # Mutation pins (False = the check is off; each has a test that fails with it off):
 #: the joint limits through the engine's basket proof
 A_JOINT_PROOF = True
+#: (T810 L, the re-review of a5aabd870) every stated cap — a box's total, a band's (own, shared, size), a nested band's —
+#: is the most the engine keeps of the fish it holds, EXACTLY: a redundant cap another limit already implies (the strip's
+#: "only 1 over 50 cm" with a 60 cm minimum) said with a wrong number passes the joint proof, never this one. False = pin
+A_STATED_CAP_EXACT = True
+STATED_MARK = "the engine keeps exactly"
+#: (R3) a shared band without "counts toward the N" only where the top line names its count. False = the pin
+A_TOTAL_UNSAID_ONLY_WHERE_THE_TOP_NAMES_IT = True
 #: possession said <=> it differs from the page's lead (F0), with the rules' numbers
 A_POSSESSION_PROOF = True
 #: the dates against the following segments
@@ -160,6 +176,7 @@ class Row:
         self.kind = box["kind"]
         self.label = bool(r["label"] or box["label"])
         self.ranges: Optional[Tuple[Tuple[float, float], ...]] = None
+        self.wild_ranges: Optional[Tuple[Tuple[float, float], ...]] = None   # "… if wild": the wild fish's own size
         self.lines = [(t, W.parse_row_line(t)) for t in r["lines"]]
         self.quiet = [(t, W.parse_quiet(t)) for t in r["quiet"]]
         self.band: Optional[tuple] = None          # (kind, n, m, from, to)
@@ -176,6 +193,14 @@ class Row:
                 if self.ranges is not None:
                     raise _Fail(f"row {self.key}: two sizes")
                 self.ranges = x[1]
+            elif x[0] == "size_wild":
+                if self.wild_ranges is not None or self.origin is not None or self.label:
+                    raise _Fail(f"row {self.key}: 'if wild' on a row of one origin, or twice")
+                self.wild_ranges = x[1]
+        if bool(r.get("split")) != (self.wild_ranges is not None):
+            # (trout 5) the merged hatchery and wild row is marked, and only it
+            raise _Fail(f"row {self.key}: split {r.get('split')} but its lines {'say' if self.wild_ranges else 'say no'} "
+                        "'if wild'")
 
     def origins(self) -> Tuple[str, ...]:
         if self.origin:
@@ -192,7 +217,7 @@ class Table:
         self.cell = cell
         t = cell["table"]
         self.t = t
-        self.top = W.parse_top_full(t["top"]["lead"])
+        self.top = W.parse_top_full(W.join_top(t["top"]["lead"], t["top"].get("sub")))
         self.fold = W.parse_fold(t["fold"]["value"])
         self.together = W.parse_together(t["together"]["text"]) if t["together"] else None
         self.together_text = t["together"]["text"] if t["together"] else None
@@ -203,7 +228,9 @@ class Table:
                 if second[0] != "lakes":
                     raise _Fail(f"top.second {t['top']['second']!r} without the line under the table")
                 self.together, self.together_text = second, t["top"]["second"]
-        self.elsewhere = [(e, W.parse_elsewhere(e)) for e in t["elsewhere"]]
+        # T810 L: the covered rows' kept-elsewhere sentences lead the list, then the worked lines; each read back
+        self.elsewhere = [(e, W.parse_elsewhere(e)) for e in t["elsewhere"] if W.is_elsewhere_line(e)]
+        self.elsewhere_says = [(e, W.parse_elsewhere_says(e)) for e in t["elsewhere"] if not W.is_elsewhere_line(e)]
         self.rows: List[Row] = []
         self.boxes = []
         for bi, b in enumerate(t["boxes"]):
@@ -228,7 +255,20 @@ class Table:
                 kind_, k, m = W.parse_band(x["text"])
                 if kind_ != x["kind"]:
                     raise _Fail(f"box {bi}: band {x['text']!r} is marked {x['kind']}")
+                total = W.band_total(x["text"])
+                if A_TOTAL_UNSAID_ONLY_WHERE_THE_TOP_NAMES_IT and kind_ == "shared" and total is None \
+                        and W.band_wild_n(x["text"]) is None and (x["from"], x["to"]) != (0, len(b["rows"]) - 1) \
+                        and k not in W.top_numbers(t["top"]["lead"], t["top"].get("sub")):
+                    # (owner 01:22, R3) "counts toward the N" is left out only where the top line names the count
+                    raise _Fail(f"box {bi}: band {x['text']!r} says no overall limit, and the top line names no {k}")
+                if kind_ in ("shared", "own") and total is not None:
+                    # (owner 00:52) the overall limit the band names first: the box's, or a raised box's first number
+                    ex = W.parse_head_except(b["head"])
+                    if total != n and not (ex is not None and total == ex[0]):
+                        raise _Fail(f"box {bi}: band {x['text']!r} names {total} in a box of {n}")
                 if kind_ == "shared" and (m != x["to"] - x["from"] + 1 if m is not None else x["to"] == x["from"]):
+                    raise _Fail(f"box {bi}: band {x['text']!r} spans rows {x['from']}..{x['to']}")
+                if kind_ == "size" and (m != x["to"] - x["from"] + 1 if m is not None else x["to"] - x["from"] + 1 < 3):
                     raise _Fail(f"box {bi}: band {x['text']!r} spans rows {x['from']}..{x['to']}")
                 if kind_ == "shared" and m is None and W.band_wild_n(x["text"]) is not None and \
                         any(r.origin != "wild" for r in rows[x["from"]:x["to"] + 1]):
@@ -238,7 +278,22 @@ class Table:
                     raise _Fail(f"box {bi}: band {x['text']!r} over two rows says 'between them'")
                 for r in rows[x["from"]:x["to"] + 1]:
                     r.band = (kind_, k, m, x["from"], x["to"])
-            self.boxes.append({"kind": b["kind"], "n": n, "strip": strip, "rows": rows, "raw": b,
+            inner = []
+            for x in b.get("inner") or ():
+                # (trout 4, R4) a count nested in one band, its cap's words only
+                span = x["to"] - x["from"] + 1
+                if x["kind"] == "shared":
+                    kind_, k, m = W.parse_band(x["text"])
+                    if kind_ != "shared" or W.band_total(x["text"]) is not None or (m is not None and m != span) \
+                            or (m is None and span < 3):
+                        raise _Fail(f"box {bi}: nested band {x['text']!r} over rows {x['from']}..{x['to']}")
+                    inner.append((x["from"], x["to"], k, None))
+                else:
+                    got = W.parse_size_part(x["text"])
+                    if got is None or (got[2] is not None and got[2] != span) or (got[2] is None and span < 3):
+                        raise _Fail(f"box {bi}: nested band {x['text']!r} over rows {x['from']}..{x['to']}")
+                    inner.append((x["from"], x["to"], got[0], got[1]))
+            self.boxes.append({"kind": b["kind"], "n": n, "strip": strip, "rows": rows, "raw": b, "inner": inner,
                                "except": W.parse_head_except(b["head"])})
             self.rows += rows
         for r in self.rows:
@@ -271,6 +326,8 @@ class Table:
             if r.fish != S or o not in r.origins():
                 continue
             rng = r.ranges if r.ranges is not None else ((0, INF),)
+            if o == "wild" and r.wild_ranges is not None:
+                rng = r.wild_ranges
             if any(a < L < b for a, b in rng):
                 return r
         return None
@@ -328,9 +385,22 @@ class Table:
                     out.append((f"box {bi} band {fr}..{to} {k}", of_rows(rows[fr:to + 1]), k))
                 elif kind == "possession":
                     out.append((f"row {r.key} a day {r.daily_said}", of_rows([r]), r.daily_said))
+                elif kind == "size":
+                    # (T810 L) "counts toward the 2 · only 1 over 50 cm (20 in) between them": the box's number (its
+                    # total, above), and these rows over the size: at most the band's (a raised box: its first number)
+                    if k != b["n"] and not (b.get("except") is not None and k == b["except"][0]):
+                        raise _Fail(f"row {r.key}: a size band of the {k} in a box of {b['n']}")
+                    _bn, n_, cm_, _m = W.parse_band_size(b["raw"]["bands"][next(
+                        i for i, x in enumerate(b["raw"]["bands"]) if x["from"] == fr)]["text"])
+                    out.append((f"box {bi} band {fr}..{to} over {cm_}: {n_}",
+                                lambda f, rf, R=of_rows(rows[fr:to + 1]), cm=cm_: R(f, rf) and f[2] > cm, n_))
                 elif kind == "upto" and k != b["n"] and not (b.get("except") is not None and k == b["except"][0]
                                                                and r.fish not in set(b["except"][1])):
                     raise _Fail(f"row {r.key}: 'counts toward the {k}' in a box of {b['n']}")
+            for fr, to, k, cm in b.get("inner") or ():
+                # a nested band: these rows (over its size, a size band): at most its number
+                out.append((f"box {bi} nested {fr}..{to}: {k}" + (f" over {cm}" if cm is not None else ""),
+                            (lambda f, rf, R=of_rows(rows[fr:to + 1]), cm=cm: R(f, rf) and (cm is None or f[2] > cm)), k))
             for p in b["strip"]:
                 if p[0] == "size":
                     n, cm, extra = p[1], p[2], p[3]
@@ -353,7 +423,8 @@ class Table:
                 me = of_rows([r])
                 for t, x in r.lines:
                     k = x[0]
-                    if k in ("only", "uses"):
+                    if k in ("only", "uses", "stop"):
+                        # ("stop": "after keeping 2, stop fishing this river today" — at most 2 of this row's fish)
                         out.append((f"row {r.key} {t!r}", me, x[1]))
                     elif k == "count":
                         out.append((f"row {r.key} {t!r}", lambda f, rf, me=me, o=set(x[2]) & keep_fish:
@@ -418,7 +489,7 @@ def _cms(x) -> List[float]:
                 walk(y)
     if isinstance(x, tuple):
         k = x[0]
-        if k in ("size",) and len(x) == 2:
+        if k in ("size", "size_wild") and len(x) == 2:
             for a, b in x[1]:
                 out.extend([a, b])
         elif k in ("uses",):
@@ -490,9 +561,37 @@ def _st_skip(st_water: bool, S: str, L: float) -> bool:
     return (S == "RB" and L > st) or (S == "ST" and L < st)
 
 
+#: T810 L (the sweep's builder fault): a Keep row never carries a 0 — a band "only 0" or a line "only 0" (a fish kept
+#: nowhere is released); and a fish answered keep that the engine keeps none of at any length may stand under Release.
+#: False = the mutation pins (each check off)
+A_NO_ZERO_KEEP_ROW = True
+A_NONE_KEPT_IS_RELEASE = True
+ZERO_MARK = "a Keep row carries a 0"
+
+
+def _engine_keeps(c: Cell, S: str) -> bool:
+    """The engine keeps some fish `S` here, alone, at some length, of either origin."""
+    from pipeline.deliver.answers.engine import CAP
+    E = _engine(c.P)
+    return any(E.most([(S, o, L, "here")], cap=CAP) > 0 for o in common.ORIGINS for L in E.lengths() or (30.0,))
+
+
+def zero_problems(T: Table) -> List[str]:
+    """No Keep row carries a 0 (`A_NO_ZERO_KEEP_ROW`)."""
+    if not A_NO_ZERO_KEEP_ROW:
+        return []
+    probs = []
+    for r in T.keep_rows:
+        if r.band is not None and r.band[0] in ("own", "shared", "possession") and r.band[1] == 0:
+            probs.append(f"row {r.key}: {ZERO_MARK} band")
+        if any(x[0] in ("only", "count", "size_count", "wild") and x[1] == 0 for _t, x in r.lines):
+            probs.append(f"row {r.key}: {ZERO_MARK} line")
+    return probs
+
+
 def law_problems(c: Cell, T: Table) -> List[str]:
     """State, origins, coverage and each fish's count alone at every length, against the rows frame's decided answers."""
-    probs: List[str] = []
+    probs: List[str] = zero_problems(T)
     fa_all = c.frame.get("fish") or {}
     want = asked(c.frame)
     said: Dict[str, int] = {}
@@ -509,6 +608,9 @@ def law_problems(c: Cell, T: Table) -> List[str]:
             continue
         rows = [r for r in T.rows if r.fish == S]
         kind = rows[0].kind
+        if kind == "release" and want[S] == "keep" and A_NONE_KEPT_IS_RELEASE and c.P is not None \
+                and not _engine_keeps(c, S):
+            continue                # (T810 L) answered keep, but its group holds it to 0: the engine keeps none
         if kind != want[S]:
             probs.append(f"{S} sits in the {kind} box; its answer is {want[S]}")
             continue
@@ -533,7 +635,7 @@ def law_problems(c: Cell, T: Table) -> List[str]:
                 if not keeps(lw["hatchery"]) or lw["wild"] is None or keeps(lw["wild"]):
                     probs.append(f"{S}: 'Hatchery only', but hatchery {lw['hatchery'] and lw['hatchery'][0]}, wild "
                                  f"{lw['wild'] and lw['wild'][0]}")
-            else:
+            elif r.wild_ranges is None:
                 if lw["hatchery"] is not None and lw["wild"] is not None and \
                         any(count_at(lw["hatchery"], L) != count_at(lw["wild"], L)
                             for L in mids(law_cuts(lw["hatchery"], lw["wild"]))):
@@ -575,6 +677,34 @@ def _engine(P):
     if not P.cands:
         return None
     return Engine(P, P.cands[0].key)
+
+
+def stated_cap_problems(c: Cell, T: Table) -> List[str]:
+    """`A_STATED_CAP_EXACT`: each stated cap's number N is what the engine keeps of the fish it holds — N reachable and
+    N + 1 refused, every other rule respected (`Engine.most` over those fish at every length the table and the rules
+    cut)."""
+    if c.P is None or not A_STATED_CAP_EXACT:
+        return []
+    from pipeline.deliver.answers.engine import CAP
+    E = _engine(c.P)
+    if E is None:
+        return []
+    limits = T.limits()
+    keep = sorted({r.fish for r in T.keep_rows})
+    Ls = sorted(set(E.lengths()) | set(mids(T.cuts())))
+    alone = [(S, o, L, "here") for S in keep for o in common.ORIGINS for L in Ls if not _st_skip(c.st_water, S, L)]
+    alone = [f for f in alone if T.accepts([f], limits) and E.accepts([f])]
+    probs: List[str] = []
+    for name, pred, n in limits:
+        if not re.match(r"box \d+ (total|band|nested) ", name) or n == INF or n > CAP:
+            continue
+        held = [f for f in alone if pred(f, T.row_for(f[0], f[1], f[2]))]
+        if not held:
+            continue
+        got = E.most(held, cap=int(n) + 1)
+        if got != n:
+            probs.append(f"{name}: the table says {_say(n)}; {STATED_MARK} {_say(got)} of its fish")
+    return probs
 
 
 def joint_problems(c: Cell, T: Table, key_seed: str) -> List[str]:
@@ -789,9 +919,14 @@ def possession_problems(c: Cell, T: Table) -> List[str]:
             continue
         duties = [f"{r.poss_text} ({POSSESSION_HOME})"] if r.poss_text else []
         x = {"species": [r.fish], "n": 1, "duties": duties}
+        if r.poss is not None and r.poss[0] == "same":
+            # (T810 L, Bowron Lake Park) "just 1, the same as the day": the box's number, and what the rules speaking for
+            # this fish come to — a count of that number, or k days' limits of the row's day number
+            probs += _same_as_the_day(c, T, r, x, lead, PP, POSSESSION_HOME)
+            continue
         got = PP(c.P, x, f"row {r.key}", lead=lead)
         # (the row's own number, or the box's where G2 Q1 turned the row's own band into "counts toward the N")
-        own = [y[1] for _t, y in r.lines if y[0] == "only"] + ([r.band[1]] if r.band and r.band[0] in ("own", "upto")
+        own = [y[1] for _t, y in r.lines if y[0] == "only"] + ([r.band[1]] if r.band and r.band[0] in ("own", "upto", "size")
                                                                  else [])
         if got and not duties and own:
             # T810 G2: a water's possession count equal to the fish's own day number is not said again (Tagish's lake
@@ -802,6 +937,27 @@ def possession_problems(c: Cell, T: Table) -> List[str]:
                 got = []
         probs += got
     return probs
+
+
+def _same_as_the_day(c: Cell, T: Table, r: Row, x: dict, lead, PP, home: str) -> List[str]:
+    n = r.poss[1]
+    where = f"row {r.key}"
+    if n != T.boxes[r.b]["n"]:
+        return [f"{where}: possession 'just {W._n(n)}, the same as the day' in a box of {T.boxes[r.b]['n']}"]
+    day = r.band[1] if r.band and r.band[0] in ("own", "upto", "size") else None
+    alts = [f"in your possession: no more than {W._n(n)} {common.lc_names([r.fish])}"]
+    if day:
+        k = n / day
+        base = "1 day’s limit" if k == 1 else f"{W._n(k)} days’ limits"
+        alts += [base] + ([f"{base}, not {W._n(float(lead.f['per_daily']))}"] if lead is not None else [])
+        alts = alts[:1] + [f"in your possession: {a}" for a in alts[1:]]
+    first = None
+    for a in alts:
+        got = PP(c.P, {**x, "duties": [f"{a} ({home})"]}, where, lead=lead)
+        if not got:
+            return []
+        first = first if first is not None else got
+    return [f"{where}: 'just {W._n(n)}, the same as the day', but {first}"]
 
 
 # -- T793 and T805 re-aimed --------------------------------------------------------------------------------
@@ -823,7 +979,7 @@ def origin_problems(c: Cell, T: Table) -> List[str]:
         for r in by_fish.get(S, ()):
             if r.label or r.origin:
                 return True
-            if any(x[0] == "wild" or (x[0] == "also" and x[1][0] == "across") for _t, x in r.lines):
+            if any(x[0] in ("wild", "size_wild") or (x[0] == "also" and x[1][0] == "across") for _t, x in r.lines):
                 return True
             if any(p[0] == "wild" for p in T.boxes[r.b]["strip"]):
                 return True
@@ -883,7 +1039,14 @@ def sheet_problems(c: Cell, T: Table) -> List[str]:
             probs.append(f"{where}: head {sh['head']!r} on a {r.kind} row")
         elif r.kind == "keep":
             band = next(x["text"] for x in r.box["bands"] if x["from"] <= r.i <= x["to"])
-            if head[2] != T.boxes[r.b]["n"] or (head[1] or W.band_upto(T.boxes[r.b]["n"])) != band:
+            total = W.band_total(band) if W.parse_band(band)[0] in ("shared", "own") else None
+            if W.parse_band(band)[0] == "size":
+                ok = head[2] == W.parse_band(band)[1] and head[1] == band
+            elif total is not None:
+                ok = head[2] == total and head[1] == W.band_part(band)
+            else:
+                ok = head[2] == T.boxes[r.b]["n"] and (head[1] or W.band_upto(T.boxes[r.b]["n"])) == band
+            if not ok:
                 probs.append(f"{where}: head {sh['head']!r}; the row's band {band!r} in a box of {T.boxes[r.b]['n']}")
         row_texts = {t for t, _x in r.lines} | {t for t, _x in r.quiet}
         strip_texts = set((r.box["strip"] or "").split("; ")) - {""}
@@ -897,6 +1060,9 @@ def sheet_problems(c: Cell, T: Table) -> List[str]:
                 rng = r.ranges if r.ranges is not None else ((0, INF),)
                 if tuple(x[1]) != tuple(rng):
                     probs.append(f"{where}: {ln['t']!r}; the row keeps {rng}")
+            elif k == "size_wild":
+                if r.wild_ranges is None or tuple(x[1]) != tuple(r.wild_ranges):
+                    probs.append(f"{where}: {ln['t']!r}; the row's wild fish keep {r.wild_ranges}")
             elif k == "sub":
                 if r.fish != "ST" or r.ranges != ((x[1], INF),):
                     probs.append(f"{where}: {ln['t']!r} on row {r.key}")
@@ -914,7 +1080,25 @@ def sheet_problems(c: Cell, T: Table) -> List[str]:
             elif k == "shared":
                 band = next(y["text"] for y in r.box["bands"] if y["from"] <= r.i <= y["to"])
                 held = {(y.fish, y.origin) for y in T.boxes[r.b]["rows"][r.band[3]:r.band[4] + 1]} - {(r.fish, r.origin)}
-                if x[1] != band or {(S, o) for S, o in x[2]} != held:
+                nest = next((y for y in r.box.get("inner") or () if y["kind"] == "shared" and y["text"] == x[1]
+                             and y["from"] <= r.i <= y["to"]), None)
+                if nest is not None:
+                    band = nest["text"]
+                    held = {(y.fish, y.origin) for y in T.boxes[r.b]["rows"][nest["from"]:nest["to"] + 1]} - \
+                        {(r.fish, r.origin)}
+                if x[1] != W.band_part(band) or {(S, o) for S, o in x[2]} != held:
+                    probs.append(f"{where}: {ln['t']!r}; the row's band {band!r} over {sorted(held, key=str)}")
+            elif k == "size_band":
+                band = next(y["text"] for y in r.box["bands"] if y["from"] <= r.i <= y["to"])
+                held = {(y.fish, y.origin) for y in T.boxes[r.b]["rows"][r.band[3]:r.band[4] + 1]} - {(r.fish, r.origin)}
+                nest = next((y for y in r.box.get("inner") or () if y["kind"] == "size" and y["text"] == x[1]
+                             and y["from"] <= r.i <= y["to"]), None)
+                if nest is not None:
+                    held = {(y.fish, y.origin) for y in T.boxes[r.b]["rows"][nest["from"]:nest["to"] + 1]} - \
+                        {(r.fish, r.origin)}
+                elif r.band[0] != "size" or band.split(W.BAND_SEP, 1)[1] != x[1]:
+                    held = None
+                if held is None or {(S, o) for S, o in x[2]} != held:
                     probs.append(f"{where}: {ln['t']!r}; the row's band {band!r} over {sorted(held, key=str)}")
             elif k == "uses":
                 if not any(y[0] == "uses" and y[2] == x[1] for _t, y in r.lines):
@@ -922,7 +1106,7 @@ def sheet_problems(c: Cell, T: Table) -> List[str]:
             elif k == "possession":
                 said_poss = True
                 if r.poss is None or r.poss[0] == "count" and x[1][:2] != r.poss[:2] or \
-                        r.poss[0] == "days" and x[1] != r.poss:
+                        r.poss[0] in ("days", "same") and x[1] != r.poss:
                     probs.append(f"{where}: {ln['t']!r}; the row says {r.poss_text!r}")
             elif k == "stop":
                 said_stop = True
@@ -986,15 +1170,17 @@ def _licence_problems(c: Cell, r: Row, parts, docs, where) -> List[str]:
 
 # -- the kept-elsewhere lines ------------------------------------------------------------------------------
 
-def _elsewhere_holds(E, q, a, kinds: Sequence[str], other: str, away: str):
-    """Whether "Kept n <place>? Keep N more here." holds for a box of `kinds`: keeping n of SOME one fish of the box
-    there (the card's worked line kept its first kind, `card_check._check_elsewhere_line`; the words name none) leaves
-    exactly N here. True; None (no such basket can be kept today: nothing to prove); else the numbers the engine gives."""
+def _elsewhere_holds(E, q, a, kinds: Sequence[str], other: str, away: str, covered: Sequence[str],
+                     every: bool = True):
+    """Whether "Kept n [fish] <place>? Keep N more here." holds for a box of `kinds`: keeping n of EVERY fish the question
+    covers (`covered`: the fish it names, else every trout and char; the re-review of 3f273c172 — "the line reads as any
+    fish") there, each in turn, leaves exactly N here. True; None (no such basket can be kept today: nothing to prove);
+    else the numbers the engine gives."""
     n, place = q[1], q[2]
     places = (other, away) if place == "elsewhere" else (place,)
-    claim, seen = a[1], []
+    claim, seen, held, any_basket = a[1], [], False, False
     for p in places:
-        for S in kinds:
+        for S in covered:
             for o in common.ORIGINS:
                 got: list = []
                 for f in E.fish([S], (p,), (o,)):
@@ -1002,11 +1188,73 @@ def _elsewhere_holds(E, q, a, kinds: Sequence[str], other: str, away: str):
                         got.append(f)
                 if len(got) != n:
                     continue
+                any_basket = True
                 m = E.most(E.fish(list(kinds)), got, cap=int(claim) + 1)
                 if m == claim:
-                    return True
-                seen.append(m)
-    return seen or None
+                    held = True
+                else:
+                    seen.append(m)
+    if not any_basket:
+        return None
+    if A_ELSEWHERE_EVERY_FISH and every:
+        return True if not seen else seen
+    return True if held else seen
+
+
+#: T810 L (the review's findings 1 and 2): every covered keep row's kept-elsewhere sentence is on the table, with its
+#: number. False = the check is off (the mutation pin)
+A_ELSEWHERE_SAID_PROOF = True
+#: (the re-review of 3f273c172) a kept-elsewhere answer holds for EVERY fish its question covers, not for some one fish
+#: of the box. False = the pin (Qualcho's "Kept 1 at a lake? Keep 1 more here" passed: true of a lake trout only)
+A_ELSEWHERE_EVERY_FISH = True
+#: (the re-review of 5788a7914) EVERY kept-elsewhere line, same water and other water, named or not, holds for every fish
+#: it covers (unnamed: every trout and char). False = the pin (an unnamed same-water line held to the box's kinds, some
+#: one of them: Abies Creek's "Keep 3 more here" after 2 lake trout passed)
+A_ELSEWHERE_EVERY_LINE = True
+
+
+def elsewhere_said_problems(c: Cell, T: Table) -> List[str]:
+    """The kept-elsewhere SENTENCES (T810 L): the cutover dropped `elsewhere` from the rows the table covers, so the
+    table must say it. Held to the shipped rows frame (never to the words the builder read): each covered keep row
+    (`kind` keep: its `scope` says whose count it is) has its sentence on the table — "Your own limit, counted across
+    …" for a region's, an area's or B.C.'s count, "<whose> rule: N a day here …" with the row's own daily number for a
+    water's — and every sentence on the table stands for a covered keep row. A table that lost one fails."""
+    if not A_ELSEWHERE_SAID_PROOF:
+        return []
+    rows = c.today.get("rows") or []
+    keep = [rows[i] for i in c.cell["covers"] if i < len(rows) and rows[i].get("kind") == "keep"]
+    said = [p for _t, p in T.elsewhere_says]
+    probs: List[str] = []
+    # (owner 2026-11-17 23:29, "Yes, name the fish") the list's subjects: one per covered keep row's fish (its one fish,
+    # else the pool); more than one -> every line labelled with one of them, each subject's lines together; one -> none
+    subjects = list(dict.fromkeys(W.elsewhere_subject(r.get("members") or r.get("all_members") or ()) for r in keep))
+    labels = [W.split_subject(t)[0] for t in c.cell["table"]["elsewhere"]]
+    if len(subjects) > 1:
+        bad = [t for t, lb in zip(c.cell["table"]["elsewhere"], labels) if lb not in subjects]
+        if bad:
+            probs.append(f"the kept-elsewhere list speaks of {subjects}; a line without its subject: {bad[0]!r}")
+        runs = [lb for i, lb in enumerate(labels) if i == 0 or labels[i - 1] != lb]
+        if len(runs) != len(set(runs)):
+            probs.append(f"the kept-elsewhere list's subjects are not kept together: {runs}")
+    elif any(lb is not None for lb in labels):
+        probs.append(f"a kept-elsewhere list of one subject {subjects} carries a label")
+    for r in keep:
+        sc = r.get("scope") or {}
+        if sc.get("of") == "water" and not sc.get("share"):
+            if not any(p[0] == "rule" and p[2] == r.get("daily") for p in said):
+                probs.append(f"the covered keep row of {r.get('members')} (its own {r.get('daily')} a day) has no "
+                             "kept-elsewhere sentence on the table")
+        elif not any(p[0] == "own" for p in said):
+            probs.append(f"the covered keep row of {r.get('members')} ({sc.get('of')}'s count) has no kept-elsewhere "
+                         "sentence on the table")
+    dailies = {r.get("daily") for r in keep if (r.get("scope") or {}).get("of") == "water"}
+    for text, p in T.elsewhere_says:
+        if p[0] == "rule" and p[2] not in dailies:
+            probs.append(f"{text!r}: no covered keep row keeps {p[2]} a day by its water's own rule")
+        if p[0] == "own" and not any((r.get("scope") or {}).get("of") != "water" or (r.get("scope") or {}).get("share")
+                                     for r in keep):
+            probs.append(f"{text!r}: no covered keep row is counted by a region's, an area's or B.C.'s limit")
+    return probs
 
 
 def elsewhere_problems(c: Cell, T: Table) -> List[str]:
@@ -1020,8 +1268,28 @@ def elsewhere_problems(c: Cell, T: Table) -> List[str]:
     probs: List[str] = []
     other = "stream" if c.P.kind == "stream" else "lake"
     away = "lake" if c.P.kind == "stream" else "stream"
+    tc = sorted(TC)
+    named = {(q[1], q[2]): set(q[3]) for _t, (q, _a) in T.elsewhere if q[0] == "kept" and q[3] not in (None, "other")}
+    by_name = {W.fish_name(S): S for S in tc}
     for text, (q, a) in T.elsewhere:
         if q[0] == "kept":
+            # the fish the question covers (the re-review of 3f273c172): the fish it names; "other": every trout and char
+            # its sibling line does not name; its subject label's one fish ("Brook trout: Kept 2 …"); a line about the
+            # other kind of water ("Kept 1 at a lake?") every trout and char, EVERY one holding the answer; any other
+            # line the box's own kinds, as the card's worked line keeps them (SOME one, `_elsewhere_holds` every=False)
+            sub = by_name.get(W.split_subject(text)[0] or "")
+            every = True
+            if q[3] == "other":
+                covered = sorted(set(tc) - named.get((q[1], q[2]), set()))
+            elif q[3] is not None:
+                covered = list(q[3])
+            elif sub is not None:
+                covered = [sub]
+            elif q[2] in ("stream", "lake") and q[2] != c.P.kind and a[0] == "more_tally" \
+                    or A_ELSEWHERE_EVERY_LINE:
+                covered = tc
+            else:
+                covered, every = None, False
             if a[0] not in ("more", "more_but", "more_tally"):
                 probs.append(f"{text!r}: a count question with a size answer")
                 continue
@@ -1030,7 +1298,8 @@ def elsewhere_problems(c: Cell, T: Table) -> List[str]:
             for b in T.boxes:
                 if b["kind"] != "keep":
                     continue
-                got = _elsewhere_holds(E, q, a, sorted({r.fish for r in b["rows"]}), other, away)
+                kinds = sorted({r.fish for r in b["rows"]})
+                got = _elsewhere_holds(E, q, a, kinds, other, away, covered or kinds, every)
                 if got is None or got is True:
                     ok = True
                     break
@@ -1250,7 +1519,7 @@ def next_change(starts, moments, answers: Callable[[int], object], j: int) -> Op
 
 
 def _texts_by_row(T: Table) -> Dict[str, Tuple[str, str]]:
-    """Each row key -> (where, the date text that holds it) from the date set (one level each: the model's rule)."""
+    """Each row key -> (where, the date text that holds it) from the date set: the most specific level that says one."""
     d = T.cell["dates"] or {}
     out: Dict[str, Tuple[str, str]] = {}
     for r in T.rows:
@@ -1268,10 +1537,13 @@ def _texts_by_row(T: Table) -> Dict[str, Tuple[str, str]]:
                 got.append(("band", v))
         if f"{r.b}:{r.i}" in (d.get("row") or {}):
             got.append(("row", d["row"][f"{r.b}:{r.i}"]))
-        if len(got) > 1:
-            raise _Fail(f"row {r.key} has dates at {[g[0] for g in got]}")
+        levels = [g[0] for g in got]
+        if len(set(levels)) != len(levels) or {"card", "top"} <= set(levels):
+            raise _Fail(f"row {r.key} has dates at {levels}")
         if got:
-            out[r.key] = got[0]
+            # (owner 2026-11-18 00:52, "said once") the most specific level holds the row: its own, its band's, its box's,
+            # then the card line; each row's date is then proved against the following segments (`date_problems`)
+            out[r.key] = got[-1]
     return out
 
 
@@ -1373,7 +1645,7 @@ def possession_counts(T: Optional[Table], frame: dict, rule: Callable) -> Dict[s
     for r in T.keep_rows:
         if r.poss is None:
             continue
-        if r.poss[0] == "count":
+        if r.poss[0] in ("count", "same"):
             out[r.fish] = r.poss[1]
         else:
             fa = (frame.get("fish") or {}).get(r.fish) or {}
@@ -1422,9 +1694,10 @@ def check_key(cells, frames, displays, licences, starts, moments, rule: Callable
             got.append(f"covers {list(cell['covers'])}; the rows frame's trout rows are {covers_of(frames[j])}")
         try:
             for f in (law_problems, top_problems, possession_problems, origin_problems, sheet_problems,
-                      elsewhere_problems, src_problems):
+                      elsewhere_problems, elsewhere_said_problems, src_problems):
                 got += f(c, T)
             got += joint_problems(c, T, f"{seed}:{j}")
+            got += stated_cap_problems(c, T)
             if one and parts:
                 got += one_day_problems(T, parts(j), st_water)
             got += year_problems(c, T, frames, starts, moments)
@@ -1438,6 +1711,90 @@ def check_key(cells, frames, displays, licences, starts, moments, rule: Callable
     except (W.WordsError, _Fail) as e:
         probs.append(f"dates: {type(e).__name__}: {e}")
     return checked, probs
+
+
+# ============================================================================================
+# The rows 34 cutover (T810 L): every rows frame, every key — not only the trout tables
+# ============================================================================================
+
+#: T810 L (the review's findings 4 and 5): the page's possession row and the cut rows are proved over the shipped frames.
+#: False = each check is off (the mutation pins)
+A_PAGE_POSSESSION_PROOF = True
+A_CUT_PROOF = True
+
+
+def page_possession_expected(frame: dict, ids: Sequence[str], rule: Callable) -> Optional[dict]:
+    """The page's possession row the shipped rows frame must carry (F0, contract 2.11), derived again from what it ships:
+    the possession roles its decided answers give (fish by fish, hatchery then wild, each answer's roles in stored
+    order, as `card.possession_role_rules` walks them) over the bundle's rules — the lead `card.possession_lead` picks
+    with its sentence (`display.rule.rule_facts` `plain`) and its value words (`display.rule.possession_value`), and the
+    also-lines (every other multiplier of another number of days, then every count, less the trout- and char-only ones,
+    `card.trout_only`). The same choice functions; the inputs are the shipped bytes and the bundle."""
+    import types
+    from pipeline.deliver.answers.card import possession_lead, trout_only
+    from pipeline.deliver.answers.display.rule import possession_value, rule_facts
+    per: Dict[int, object] = {}
+    caps: Dict[int, object] = {}
+    for fa in (frame.get("fish") or {}).values():
+        for o in ("hatchery", "wild"):
+            d = fa.get(o)
+            for ix, role, _by in (d or {}).get("roles") or ():
+                if role in ("possession", "possession_cap"):
+                    (per if role == "possession" else caps).setdefault(
+                        ix, types.SimpleNamespace(key=ids[ix], f=rule(ix), ix=ix))
+    lead = possession_lead(list(per.values()))
+    if lead is None and not caps:
+        return None
+
+    def says(r) -> str:
+        w = rule_facts(r.f).get("plain")
+        if not w:
+            raise _Fail(f"the possession rule {r.key} has no sentence")
+        return w
+    also = [r for r in per.values() if r is not lead and float(r.f.get("per_daily") or 0) != float(lead.f["per_daily"])] \
+        if lead is not None else []
+    also = [{"says": says(r), "src": r.ix} for r in also + list(caps.values()) if not trout_only(r)]
+    out_lead = None if lead is None else {"says": says(lead), "value": possession_value(lead.f), "src": lead.ix}
+    if out_lead is None and not also:
+        return None
+    return {"lead": out_lead, "also": also}
+
+
+def page_possession_problems(frame: dict, ids: Sequence[str], rule: Callable) -> List[str]:
+    """F0's row as shipped against `page_possession_expected`: a wrong value word, a lost or extra also-line, a lead
+    that is not the pick, a row missing where one is owed (or the reverse) — each fails."""
+    if not A_PAGE_POSSESSION_PROOF:
+        return []
+    if "page_possession" not in frame:
+        return ["the rows frame has no `page_possession` (rows 34, F0)"]
+    try:
+        want = page_possession_expected(frame, ids, rule)
+    except _Fail as e:
+        return [str(e)]
+    got = frame["page_possession"]
+    if got != want:
+        return [f"page_possession {json.dumps(got, ensure_ascii=False)[:300]}; the frame's possession roles give "
+                f"{json.dumps(want, ensure_ascii=False)[:300]}"]
+    return []
+
+
+def cut_problems(frame: dict, cell: Optional[dict]) -> List[str]:
+    """The rows 34 cut (`answers.cut_over`, contract Q-D9) as shipped: a row the cell's table covers carries no `group`
+    and no `elsewhere` (the table says them); every other row is as the card made it — a keep row keeps its kept-
+    elsewhere line, on a NULL cell too (Q-D3: no table there, nothing covered)."""
+    if not A_CUT_PROOF:
+        return []
+    covers = set(cell["covers"]) if cell is not None else set()
+    probs: List[str] = []
+    for i, r in enumerate(frame.get("rows") or ()):
+        if i in covers:
+            if r.get("group") is not None or r.get("elsewhere") is not None:
+                probs.append(f"row {i} is covered by the table and still carries its "
+                             f"{'group' if r.get('group') is not None else 'kept-elsewhere line'}")
+        elif r.get("kind") == "keep" and r.get("scope") is not None and r.get("elsewhere") is None:
+            probs.append(f"row {i} ({r.get('members')}) is a keep row no table covers, and it lost its kept-elsewhere "
+                         "line")
+    return probs
 
 
 def check_model(model, bundle: str, data: dict, keys=None, log=print) -> dict:
@@ -1469,6 +1826,10 @@ def check_model(model, bundle: str, data: dict, keys=None, log=print) -> dict:
             continue
         tc = model.sections["trout"][k]
         cells += sum(1 for x in tc if x is not None)
+        # T810 L: every key's rows frames — the page's possession row (F0) and the cut — trout table or not
+        for j, f in enumerate(model.sections["rows"][k]):
+            probs += [f"key {k}: segment {j}: {p}" for p in page_possession_problems(f, ids, rule)
+                      + cut_problems(f, tc[j])]
         if all(x is None for x in tc) and all(not asked(f) for f in model.sections["rows"][k]):
             continue
         rk, kd = common.rule_key(key), common.key_dict(key)

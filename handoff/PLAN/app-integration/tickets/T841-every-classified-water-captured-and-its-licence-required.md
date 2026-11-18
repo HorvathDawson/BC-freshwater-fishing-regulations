@@ -1,6 +1,6 @@
 # T841 — Every classified water the book marks (by its symbol, or as "tributaries of …") is captured, bound and requires the Classified Waters Licence; a badge in the card header
 
-Status: OPEN (0.8.0; data audit first, then the app's badge).
+Status: IN PROGRESS (0.8.0; the app's badge landed c76ff33d4, 2026-11-18: look B, always with dates, in the name row; the data audit is the main chat's).
 
 Source: owner 2026-11-17 ~20:27, verbatim: "Also we need to make sure the classified water symbols are maintained properly and modify the license requirement. Also if a water is classified it should have a badge in the card I header I think. Make sure we capture all classified waters whether labeled by symbol or by tributary of something"
 

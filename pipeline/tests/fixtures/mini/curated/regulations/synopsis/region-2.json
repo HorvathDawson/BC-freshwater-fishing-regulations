@@ -161,7 +161,7 @@
    "name": "STUB CREEK",
    "display_name": "Stub Creek",
    "region": "2",
-   "regs_verbatim": "Trout/char catch and release\nExempt from July 15-Aug 31 summer closure",
+   "regs_verbatim": "Trout/char catch and release\nExempt from July 15-Aug 31 summer closure\nSteelhead and white sturgeon catch and release",
    "source_pages": [
     92
    ],
@@ -206,6 +206,22 @@
        "default_id": "summer_stream_closure"
       }
      ]
+    },
+    {
+     "rule_id": "stub_creek.r3",
+     "type": "retention_limit",
+     "verbatim": "Steelhead and white sturgeon catch and release",
+     "species": [
+      "ST",
+      "WSG"
+     ],
+     "take": 0,
+     "may_target": true,
+     "extents": [
+      {
+       "op": "whole"
+      }
+     ]
     }
    ]
   },
@@ -214,7 +230,7 @@
    "name": "SAMPLE LAKE",
    "display_name": "Sample Lake",
    "region": "2",
-   "regs_verbatim": "Trout/char daily quota = 1",
+   "regs_verbatim": "Trout/char daily quota = 1 (all cutthroat trout catch and release)",
    "source_pages": [
     92
    ],
@@ -235,6 +251,22 @@
       "TROUT_CHAR"
      ],
      "take": 1,
+     "extents": [
+      {
+       "op": "whole"
+      }
+     ]
+    },
+    {
+     "rule_id": "sample_lake.r2",
+     "type": "retention_limit",
+     "verbatim": "all cutthroat trout catch and release",
+     "species": [
+      "CT"
+     ],
+     "take": 0,
+     "within": "sample_lake.r1",
+     "may_target": true,
      "extents": [
       {
        "op": "whole"

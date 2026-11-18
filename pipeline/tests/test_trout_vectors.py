@@ -3,8 +3,8 @@
 (a) the committed vectors are the committed trout fixture's cells (`trout_vectors --check`), one per case of
 `trout_vectors.CASES`, in order, each a valid `TroutFrame` (or null exactly where Q-D3 says), the `{day}` slot filled
 once; a changed vector fails the check. (b) every hand case of `trout-hand.json` is refused by the model, for its own
-reason (the app's reader refuses the same file). (c) the chain on a side release built here (the mini world with
-`--trout-table`): the fixture cut twice is the same bytes, the vectors read off it twice are the same, and they are
+reason (the app's reader refuses the same file). (c) the chain on the mini chain's release (`mini_chain`: every
+release carries the section since the cutover, T810 L): the fixture cut twice is the same bytes, the vectors read off it twice are the same, and they are
 the side release's own cells. (d) the refresh script refuses a release without the section; the staging `side`
 scenario's pure half (`deploy/staging/test-updates.test.mjs`).
 """
@@ -72,13 +72,15 @@ def test_the_vectors_carry_the_fixed_bands():
     """J's last faults (T810 2026-11-17) as the vectors show them: Kaslo's Dolly Varden inside the 2 from streams; the
     Kitimat's wild rainbow inside Region 6's "1 trout from streams"."""
     by = {v["name"]: v["frame"]["table"] for v in _vectors()["cases"] if v["frame"]}
-    assert by["kaslo-jul15"]["top"]["lead"] == "Up to 2 {day}"
-    # G2 (owner 2026-11-17, "'counts toward the 5'"): a row inside the day's shared number says "counts toward the N" on its own band
+    assert by["kaslo-jul15"]["top"]["lead"] == "Keep 2 trout and char {day}"
+    # G2 (owner 2026-11-17, "'counts toward the 5'"): a row inside the day's shared number says "counts toward the N" on its own
+    # band; (owner 2026-11-18) the cutthroat and rainbow under the Region 4 size band, last
     kaslo = by["kaslo-jul15"]["boxes"][0]
     assert [r["key"] for r in kaslo["rows"]][0] == "DV"
-    assert [(b["text"], b["from"], b["to"]) for b in kaslo["bands"]] == [("counts toward the 2", i, i) for i in range(6)]
+    assert [(b["text"], b["from"], b["to"]) for b in kaslo["bands"]] == [("counts toward the 2", i, i) for i in range(4)] + [
+        ("counts toward the 2 · only 1 over 50 cm (20 in) between them", 4, 5)]
     kit = by["kitimat-jul15"]["boxes"][0]
-    band = next(b for b in kit["bands"] if b["text"] == "only 1 of these 3")
+    band = next(b for b in kit["bands"] if b["text"] == "counts toward the 5 · 1 total from these 3")
     assert {r["key"] for r in kit["rows"][band["from"]:band["to"] + 1]} == {"GB", "CT", "RB/wild"}
 
 
@@ -98,7 +100,7 @@ def test_the_fixture_keeps_exactly_the_case_waters():
 def test_a_changed_vector_fails_the_check(tmp_path):
     bad = copy.deepcopy(_vectors())
     v = next(x for x in bad["cases"] if x["frame"])
-    v["frame"]["table"]["top"]["lead"] = v["frame"]["table"]["top"]["lead"].replace("Up to", "Keep up to")
+    v["frame"]["table"]["top"]["lead"] = v["frame"]["table"]["top"]["lead"].replace("Keep", "Keep up to")
     out = tmp_path / "v.json"
     out.write_text(json.dumps(bad, ensure_ascii=False, indent=1, sort_keys=True) + "\n", encoding="utf-8")
     assert TV.main(["--check", "--out", str(out)]) == 1
@@ -112,7 +114,7 @@ REASON = {
     "band overlap": "the bands leave a gap or overlap",
     "a date key to a missing box": "a date names box 9, which does not exist",
     "a date key to a missing row": "a date names row 0:7, which does not exist",
-    "a row with dates at two levels": "carries a date at two levels",
+    "a row with dates at two levels": "carries one date at two levels",
     "a key used twice": "a row key twice",
     "a label on a box and its rows": "a label on a box and on its rows",
     "{day} twice": "the top line holds {day} more than once",
@@ -121,6 +123,15 @@ REASON = {
     "a top date on a keep table": "a top-line date only on a closed or release-every-one table",
     "a year bar on a keep table": "the year bar only on a table whose fish all share one state",
     "a reopening date in a keep box": "a reopening date in a keep box",
+    # (T810 L, trout 4-5: the app chat's S refusals, both readers)
+    "a nested band that is its whole band": "lies inside no band, or is one whole",
+    "a nested band across two bands": "lies inside no band, or is one whole",
+    "a nested band of one row": "a shared band spans two rows or more",
+    "overlapping nested bands": "nested bands overlap",
+    "a wrong nested kind": "a nested band is shared or size",
+    "a nested band on a release box": "a release box has no bands",
+    "a bad sub": "a table text has a leading or trailing space",
+    "a repeated date level": "carries one date at two levels",
 }
 
 
@@ -155,13 +166,11 @@ def test_the_dangling_rule_index_is_refused_by_the_rule_table():
 
 @pytest.fixture(scope="module")
 def side(tmp_path_factory):
-    """The mini world built WITH --trout-table (a side release) and, per one-part water with a table on a day that
-    reads the same every weekday, (item, its day): two lakes and two streams at most."""
+    """The mini chain's release (`mini_chain`) and, per one-part water with a table on a day that reads the same every
+    weekday, (item, its day): two lakes and two streams at most."""
     from pipeline.deliver.store.release import province_store
-    from pipeline.tools import mini_release as M
-    root = tmp_path_factory.mktemp("trout-vpy-side")
-    M.build(root / "b", trout_table=True)
-    rel = next((root / "b" / "release").glob("r-*"))
+    from pipeline.tests import mini_chain
+    rel = mini_chain.release(tmp_path_factory)
     st = province_store(rel)
     try:
         w = st.answers()
@@ -228,8 +237,15 @@ def test_the_chain_twice_is_a_no_op_and_the_vectors_are_the_side_releases_cells(
 
 # --------------------------------------------------------------------------- (d) the refresh script, the scenario
 
-def test_the_refresh_script_refuses_a_release_without_the_trout_section():
-    r = subprocess.run(["bash", str(REPO_ROOT / "scripts" / "trout-refresh.sh"), "--release", str(under_test.mini())],
+def test_the_refresh_script_refuses_a_release_without_the_trout_section(tmp_path):
+    """A release cut before the cutover (T810 L: every release since holds the section): the committed mini release's
+    manifest with its trout version taken out, which is all the script reads before it refuses."""
+    rel = tmp_path / under_test.mini().name
+    rel.mkdir()
+    m = json.loads((under_test.mini() / "manifest.json").read_text())
+    m["regulations"]["versions"].pop("trout")
+    (rel / "manifest.json").write_text(json.dumps(m))
+    r = subprocess.run(["bash", str(REPO_ROOT / "scripts" / "trout-refresh.sh"), "--release", str(rel)],
                        capture_output=True, text=True, cwd=REPO_ROOT)
     assert r.returncode != 0
     assert "holds no trout section" in r.stderr + r.stdout

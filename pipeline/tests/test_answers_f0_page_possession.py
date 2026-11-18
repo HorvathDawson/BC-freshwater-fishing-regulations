@@ -18,6 +18,7 @@ from __future__ import annotations
 
 import copy
 import json
+import re
 import types
 from pathlib import Path
 from typing import Dict, List
@@ -336,48 +337,57 @@ def rows34(monkeypatch):
     monkeypatch.setattr(RM, "ROWS_VERSION", 34)
 
 
-def _lines(out) -> dict:
-    from pipeline.deliver.answers.tree import walk
-    return {S: [d for d in n["duties"] if d.startswith("in your possession")]
-            for r in out["rows"] if r.get("group") for n, _p in walk(r["group"]["tree"]) if n["node"] == "kind"
-            for S in n["species"]}
+def _lines(out, P) -> dict:
+    """Each fish's own possession line (`card.possession_duty`: what the trout table's row says, ticket L — the card's
+    kinds say none since the cutover), [] where the page's line is the fish's."""
+    from pipeline.deliver.answers.rows.card_model import build_model
+    model = build_model(P)
+    return {S: [w] if (w := CD.possession_duty(P, model, S)) else [] for S in out["fish"]}
 
 
 PAGE_LEAD = {"says": "Possession: 2 days’ quota. Fish at home don’t count.", "value": "2 days’ quota",
              "src": "::".join(PAGE)}
 
 
-def test_rows_33_writes_no_page_possession():
+def test_rows_34_writes_page_possession_since_the_cutover():
+    """T810 ticket L: rows is 34, so every frame carries `page_possession`, the spec says it and the frame model holds it."""
     out, _P = _frame(LT1)
-    assert RM.ROWS_VERSION == 33 and not RM.page_possession_written()
-    assert "page_possession" not in out
+    assert RM.ROWS_VERSION == 34 and RM.page_possession_written()
+    assert "page_possession" in out
     assert A.SECTIONS[[s.name for s in A.SECTIONS].index("rows")].version == RM.ROWS_VERSION
     assert E.SPEC["sections"]["rows"]["version"] == str(RM.ROWS_VERSION)
-    assert "page_possession" not in E.SPEC["sections"]["rows"]["frames"]
-    assert "page_possession" not in json.dumps(TypeAdapter(RM.rows_frame_model()).json_schema())
+    assert "page_possession" in E.SPEC["sections"]["rows"]["frames"]
+    assert "page_possession" in json.dumps(TypeAdapter(RM.rows_frame_model()).json_schema())
+
+
+def test_rows_33_wrote_no_page_possession(monkeypatch):
+    monkeypatch.setattr(RM, "ROWS_VERSION", 33)
+    out, _P = _frame(LT1)
+    assert not RM.page_possession_written() and "page_possession" not in out
 
 
 def test_rows_34_another_number_of_days_on_the_row_and_the_page_keeps_its_lead(rows34):
-    out, _P = _frame(LT1)
+    out, P = _frame(LT1)
     assert out["page_possession"] == {"lead": PAGE_LEAD, "also": []}       # the lake trout's line is the table's
-    assert _lines(out)["LT"] == ["in your possession: 1 day’s limit, not 2 (fish at home don’t count)"]
-    assert _lines(out)["RB"] == []
+    assert _lines(out, P)["LT"] == ["in your possession: 1 day’s limit, not 2 (fish at home don’t count)"]
+    assert _lines(out, P)["RB"] == []
 
 
 def test_rows_34_the_same_number_as_the_page_says_nothing_anywhere(rows34):
-    out, _P = _frame(LT2)
+    out, P = _frame(LT2)
     assert out["page_possession"] == {"lead": PAGE_LEAD, "also": []}
-    assert _lines(out)["LT"] == []                   # F0: before, "in your possession: 2 days’ limits" was said here
+    assert _lines(out, P)["LT"] == []                   # F0: before, "in your possession: 2 days’ limits" was said here
 
 
 def test_rows_34_a_trout_and_char_count_leaves_the_page_row(rows34):
-    out, _P = _frame(BOWRON)
+    out, P = _frame(BOWRON)
     # the park's count displaces the region's multiplier for every trout and char (the fixture asks about no other
     # fish): nothing is left for the page row; the count is on the fish rows (on the table at the switch). The pike
     # and grayling counts that stay under the page line are pinned over the regs fixture's frames (Teslin, Morley,
     # Bennett Lakes; Zone 7B's grayling "1 daily quota")
     assert out["page_possession"] is None
-    assert _lines(out)["LT"] == ["in your possession: no more than 1 trout and char in all (fish at home don’t count)"]
+    assert _lines(out, P)["LT"] == ["in your possession: no more than 1 trout and char in all "
+                                    "(fish at home don’t count)"]
 
 
 LT1_RULE = "r2:f0_lt_one@2-12::f0_lt_one.r1"
@@ -386,7 +396,7 @@ LT1_RULE = "r2:f0_lt_one@2-12::f0_lt_one.r1"
 def _wire34():
     """The LT1 frame as shipped (rules by index, a year strip on every row), with one also-line planted (the lake
     trout's multiplier, a rule some answer gives the role `possession`), and the rule index."""
-    out, _P = _frame(LT1)
+    out, P = _frame(LT1)
     keys = sorted(f"{e}::{r}" for e, r in _bundle().rules)
     wire = refs(json.loads(json.dumps(out)), keys.index)
     for r in wire["rows"]:
@@ -433,8 +443,77 @@ def test_mutation_the_rows_34_model_refuses_a_wrong_page_possession(rows34):
 def test_mutation_without_the_same_number_guard_the_row_repeats_the_page(rows34, monkeypatch):
     # the guard blind (the lead never speaks for the fish): the row repeats the page's own number
     monkeypatch.setattr(CD, "lead_covers", lambda lead, S: False)
-    out, _P = _frame(LT2)
-    assert _lines(out)["LT"] == ["in your possession: 2 days’ limits (fish at home don’t count)"]
+    out, P = _frame(LT2)
+    assert _lines(out, P)["LT"] == ["in your possession: 2 days’ limits (fish at home don’t count)"]
+
+
+# ------------------------------------------------- the value words every shipped lead carries (the app's S reads them)
+
+#: the app's `possessionValue` (core/src/regs/standing.ts, deleted by S): the words it cut from the sentence, ported
+#: verbatim, so a lead's shipped `value` is shown to be what the page row said before the switch
+_APP_VALUE = (re.compile(r"^Possession\s*:\s*([^(.]+?)\s*(?:\(.*?\))?\.?\s*$"),
+              re.compile(r"^Possession\s*:\s*([^.]+?)\.\s*.*$"))
+
+
+def lead_value_problems(frames, rules) -> tuple:
+    """Every shipped frame's page lead (`page_possession.lead`, rules by index): its `value` is non-empty, inside its
+    sentence, the value words of ITS rule (`display.rule.possession_value`, the one function), and what the app's old
+    regex cut from the sentence (so S's swap changes no word). (problems, leads checked)."""
+    from pipeline.deliver.answers.display.rule import possession_value
+    problems, n = [], 0
+    for fid, fr in frames:
+        pp = fr.get("page_possession")
+        lead = None if pp is None else pp["lead"]
+        if lead is None:
+            continue
+        n += 1
+        v, says = lead["value"], lead["says"]
+        if not v or not v.strip():
+            problems.append(f"frame {fid}: empty value words")
+            continue
+        if v not in says:
+            problems.append(f"frame {fid}: value {v!r} is not in its sentence {says!r}")
+        want = possession_value(rules[lead["src"]].f)
+        if v != want:
+            problems.append(f"frame {fid}: value {v!r}, its rule's value words are {want!r}")
+        m = _APP_VALUE[0].match(says) or _APP_VALUE[1].match(says)
+        if m is None or m.group(1) != v:
+            problems.append(f"frame {fid}: the app's old cut of {says!r} is {m and m.group(1)!r}, the value {v!r}")
+    return problems, n
+
+
+def _shipped_mini():
+    """The committed mini release's rows frames as shipped (rows 34: each frame's sixth slot) and its rule table."""
+    rel = _Release(under_test.mini())
+    frames = [(fid, {"page_possession": fr[5]}) for fid, fr in sorted(rel.frames.items())]
+    assert all(len(fr) == 6 for fr in rel.frames.values()), "the committed mini release is not rows 34: re-cut it"
+    return frames, rel.rules
+
+
+def test_every_shipped_lead_has_its_rules_value_words():
+    """Contract 2.11 (agreed with the app chat): `page_possession.lead.value` is shipped so S deletes its
+    `possessionValue` regex; every lead of the committed mini release carries them, consistent with its sentence."""
+    frames, rules = _shipped_mini()
+    problems, n = lead_value_problems(frames, rules)
+    assert problems == [] and n > 0, (problems[:5], n)
+
+
+@pytest.mark.parametrize("bad,mark", [
+    ("", "empty value words"),
+    ("3 days’ quota", "is not in its sentence"),
+    ("2 days", "its rule's value words are"),
+], ids=["empty", "not-in-sentence", "not-the-rules"])
+def test_mutation_a_wrong_value_on_a_shipped_lead_fails(bad, mark):
+    frames, rules = _shipped_mini()
+    fid, fr = next((fid, fr) for fid, fr in frames if fr["page_possession"] and fr["page_possession"]["lead"])
+    planted = [(i, copy.deepcopy(f)) if i == fid else (i, f) for i, f in frames]
+    next(f for i, f in planted if i == fid)["page_possession"]["lead"]["value"] = bad
+    problems, _n = lead_value_problems(planted, rules)
+    assert any(mark in p for p in problems), problems
+    # and the rows-34 model refuses the first two on its own (`PossessionLead._value_is_said`)
+    if bad != "2 days":
+        with pytest.raises(Exception):
+            RM.PossessionLead.model_validate({**fr["page_possession"]["lead"], "value": bad})
 
 
 # ------------------------------------------------------------------------------------------------ (c) the live waters
@@ -457,20 +536,39 @@ def live(request):
     missing = [w for w in LIVE if w not in data["waters"]]
     if missing:
         pytest.fail(f"pinned waters missing from this export: {missing}")
-    mp = pytest.MonkeyPatch()
-    mp.setattr(RM, "ROWS_VERSION", 34)
-    try:
-        model = A.build(str(BUNDLE), EXPORT_DIR, workers=1, items=list(LIVE), sections=["rows"],
-                        export=(data, guide), log=lambda *_: None)
-    finally:
-        mp.undo()
-    return model
+    # (ticket L) with the trout section: each fish's own possession line is on the table's row, not the card's
+    return A.build(str(BUNDLE), EXPORT_DIR, workers=1, items=list(LIVE), sections=["rows", "trout"],
+                   export=(data, guide), log=lambda *_: None)
 
 
 def _live(model, item, md=JUL15):
     from pipeline.deliver import calendar as CAL
     k = model.parts[item][0]
     return model.sections["rows"][k][E.segment_index(model.segments[k], CAL.day_of(md))]
+
+
+def _cell(model, item, md=JUL15):
+    from pipeline.deliver import calendar as CAL
+    k = model.parts[item][0]
+    return model.sections["trout"][k][E.segment_index(model.segments[k], CAL.day_of(md))]
+
+
+def _table_lines(model, item) -> dict:
+    """Each fish's possession words on the trout table (ticket L), in the table's words: its row's line, the band that
+    covers it when that band is a possession band, and its quiet line saying what you may have with you; {} where the
+    cell holds no table."""
+    c = _cell(model, item)
+    if c is None:
+        return {}
+    out: dict = {}
+    for b in c["table"]["boxes"]:
+        for ri, r in enumerate(b["rows"]):
+            got = [x for x in r["lines"] if x.startswith("in your possession")]
+            got += [x["text"] for x in b["bands"] if x["kind"] == "possession" and x["from"] <= ri <= x["to"]]
+            got += [q for q in r["quiet"] if "with you" in q]
+            out.setdefault(r["fish"], [])
+            out[r["fish"]] += [x for x in got if x not in out[r["fish"]]]
+    return out
 
 
 def _page(frame) -> dict:
@@ -482,17 +580,21 @@ def _page(frame) -> dict:
 def test_bowron_park_istsi_creek(live):
     f = _live(live, ISTSI)
     assert _page(f) == {"lead": REGION_LEAD, "also": []}       # the park's "1 in all" is on the table, not here
-    ln = _lines(f)
-    assert ln["RB"] == ["in your possession: no more than 1 trout and char in all (fish at home don’t count)"]
-    assert ln["LT"] == ["in your possession: 1 day’s limit, not 2 (fish at home don’t count)"]
+    ln = _table_lines(live, ISTSI)
+    # (T810 L, owner 2026-11-18) the park's flat 1 and Region 7A's lake trout "1 daily quota" come to the day's 1: the
+    # box says it once, "In your possession: just 1, the same as the day"; no row says its own
+    assert ln["RB"] == ln["LT"] == []
+    c = _cell(live, ISTSI)
+    assert [b["possession"] for b in c["table"]["boxes"] if b["kind"] == "keep"] == [
+        "In your possession: just 1, the same as the day"]
 
 
 @pytest.mark.needs_bundle
 def test_region_7_lake_trout_takla_lake(live):
     f = _live(live, TAKLA)
     assert _page(f) == {"lead": REGION_LEAD, "also": []}
-    ln = _lines(f)
-    assert ln["LT"] == ln["DV"] == ["in your possession: 1 day’s limit, not 2 (fish at home don’t count)"]
+    ln = _table_lines(live, TAKLA)
+    assert ln["LT"] == ln["DV"] == ["in your possession: 1 day’s limit, not 2"]
     assert ln["RB"] == []
 
 
@@ -501,14 +603,15 @@ def test_region_7_lake_trout_takla_lake(live):
 def test_cunningham_and_nation_lakes(live, item):
     f = _live(live, item)
     assert _page(f) == {"lead": REGION_LEAD, "also": []}
-    ln = _lines(f)
-    assert ln["LT"] == ["in your possession: no more than 2 lake trout, only 1 over 50 cm (20 in) "
-                        "(fish at home don’t count)"]
-    assert ln["DV"] == ["in your possession: 1 day’s limit, not 2 (fish at home don’t count)"]
+    ln = _table_lines(live, item)
+    # below the day's number: a possession band and its quiet line (contract Q-D8)
+    assert ln["LT"] == ["only 2 in your possession", "3 a day, but never more than 2 lake trout with you, and only 1 of "
+                        "them over 50 cm (20 in)"]
+    assert ln["DV"] == ["in your possession: 1 day’s limit, not 2"]
     assert ln["RB"] == []
 
 
 @pytest.mark.needs_bundle
 def test_a_water_with_no_possession_rule_nitinat_lake(live):
     f = _live(live, NITINAT)
-    assert f["page_possession"] is None and _lines(f) == {}
+    assert f["page_possession"] is None and not any(_table_lines(live, NITINAT).values())
