@@ -58,3 +58,22 @@ read "unclear"; card rows and shared limits fall into the catch-all.
   winning rule or roles moved, 130 gear bait/decides refs, 57 water kind or steelhead presence, and 38 licence
   `holds.considered`.
 - Left on this ticket: the cutover diff itself (spec section 7 point 2, step 11).
+
+## 2026-11-17 22:30: review fixes (verdict FIX FIRST; `372bde554`)
+- **The keeping law** (`Keeping`, `joint_changes`) replaces the per-key shared facet. Each side's law (decided
+  answers, pooled rows, real-daily shared counts and caps, group total / most here / cap system, and from rows 34 the
+  trout table read by J's decoder) is compared by the baskets it accepts, with J's method. Across the cutover the
+  trout groups' numbers are now compared against the table (review M3: reported, and the mutation without it is
+  empty). Caps no longer collide. A structural cap change with the same law is "other", never "no change".
+- The cutover view splits mixed rows as L's `cut_over` does and drops by the cell's `covers`. A rows-34 release with
+  no trout section stops the run.
+- Possession `per_daily` multiplies the group total (`GroupPossession.of`). The skip applies only when the rules and
+  their numbers are equal (M1).
+- `card_only` refuses any path under `fish`, `group`, `conds`, `items`, `real_daily`, `daily` or `stamps` (Anahim's
+  stamp is now "other").
+- Gear: `clause` pairs and `specs` refs resolved, plus the count edges.
+- Proved on L's own pair: the c26f2a384 mini release against bfc3faba3's cutover mini (r-1e5210776d72) is empty. The
+  planted `_cut_over` fixture (real `compose_key` + `TroutCodec`) is empty both ways.
+- Real pair rerun (51 s, 3.1 GB): the same 125,974 / 153,387 sections. Shared limits went from 32 sections to 0;
+  those were artefacts already explained by the rainbow's own size change. Card rows went from 26 to 0 (now "other":
+  stamps). Regs "other" went from 1,327 to 1,369.
