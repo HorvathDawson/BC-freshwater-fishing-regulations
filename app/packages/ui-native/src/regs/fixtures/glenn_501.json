@@ -429,7 +429,7 @@
        "date": null,
        "from": 4,
        "kind": "upto",
-       "text": "any of the 5",
+       "text": "counts toward the 5",
        "to": 4
       }
      ],
@@ -616,7 +616,7 @@
        "sub": null
       },
       {
-       "a11y": "Rainbow trout. any of the 5",
+       "a11y": "Rainbow trout. counts toward the 5",
        "coming": [
         "From Nov 1 every one goes back."
        ],
@@ -701,6 +701,8 @@
     1
    ],
    "elsewhere": [
+    "Your own limit, counted across every Region 4 stream you fish.",
+    "The Duncan River’s rule: 5 a day here. Rainbow trout you kept anywhere else count toward those 5. They also count toward Region 4’s 5 trout and char a day.",
     "Kept 1 at a lake? Keep 4 more here. Fish from lakes count toward the 5 a day, not toward the 2 from streams.",
     "Kept cutthroat trout over 50 cm (20 in) elsewhere? It counts here too: at most 1 over 50 cm (20 in) a day in all."
    ],
@@ -1635,13 +1637,6 @@
        "howtell": false,
        "says": [],
        "tag": null
-      },
-      "pinLine": {
-       "cls": "g",
-       "n": 15,
-       "said": [],
-       "sub": null,
-       "text": "Whitefish · 15 a day"
       },
       "row": 3,
       "scope": "Region 4-wide",

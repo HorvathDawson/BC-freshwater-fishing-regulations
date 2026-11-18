@@ -358,35 +358,35 @@
        "date": null,
        "from": 0,
        "kind": "upto",
-       "text": "any of the 2",
+       "text": "counts toward the 2",
        "to": 0
       },
       {
        "date": null,
        "from": 1,
        "kind": "upto",
-       "text": "any of the 2",
+       "text": "counts toward the 2",
        "to": 1
       },
       {
        "date": null,
        "from": 2,
        "kind": "upto",
-       "text": "any of the 2",
+       "text": "counts toward the 2",
        "to": 2
       },
       {
        "date": null,
        "from": 3,
        "kind": "upto",
-       "text": "any of the 2",
+       "text": "counts toward the 2",
        "to": 3
       },
       {
        "date": null,
        "from": 4,
        "kind": "upto",
-       "text": "any of the 2",
+       "text": "counts toward the 2",
        "to": 4
       },
       {
@@ -404,7 +404,7 @@
      "possession": null,
      "rows": [
       {
-       "a11y": "Brook trout. any of the 2",
+       "a11y": "Brook trout. counts toward the 2",
        "coming": [],
        "date": null,
        "fish": "EB",
@@ -438,7 +438,7 @@
        "sub": null
       },
       {
-       "a11y": "Brown trout. any of the 2",
+       "a11y": "Brown trout. counts toward the 2",
        "coming": [],
        "date": null,
        "fish": "GB",
@@ -472,7 +472,7 @@
        "sub": null
       },
       {
-       "a11y": "Cutthroat trout. only 1 over 50 cm (20 in), counting any rainbow trout you keep. any of the 2",
+       "a11y": "Cutthroat trout. only 1 over 50 cm (20 in), counting any rainbow trout you keep. counts toward the 2",
        "coming": [],
        "date": null,
        "fish": "CT",
@@ -514,7 +514,7 @@
        "sub": null
       },
       {
-       "a11y": "Lake trout. any of the 2",
+       "a11y": "Lake trout. counts toward the 2",
        "coming": [],
        "date": null,
        "fish": "LT",
@@ -548,7 +548,7 @@
        "sub": null
       },
       {
-       "a11y": "Rainbow trout. only 1 over 50 cm (20 in), counting any cutthroat trout you keep. any of the 2",
+       "a11y": "Rainbow trout. only 1 over 50 cm (20 in), counting any cutthroat trout you keep. counts toward the 2",
        "coming": [],
        "date": null,
        "fish": "RB",
@@ -638,8 +638,10 @@
    "covers": [
     0
    ],
-   "elsewhere": [],
-   "elsewhereLink": null,
+   "elsewhere": [
+    "This lake’s rule: 2 a day here. Trout and char other than steelhead you kept anywhere else count toward those 2."
+   ],
+   "elsewhereLink": "Fished elsewhere today? ›",
    "fold": {
     "date": null,
     "name": "Trout and char",
@@ -1529,13 +1531,6 @@
        "says": [],
        "tag": null
       },
-      "pinLine": {
-       "cls": "g",
-       "n": 15,
-       "said": [],
-       "sub": null,
-       "text": "Whitefish · 15 a day"
-      },
       "row": 2,
       "scope": "Region 4-wide",
       "title": "Whitefish",
@@ -1689,13 +1684,6 @@
        "howtell": false,
        "says": [],
        "tag": null
-      },
-      "pinLine": {
-       "cls": "g",
-       "n": null,
-       "said": [],
-       "sub": null,
-       "text": "Bass · No daily limit on bass"
       },
       "row": 3,
       "scope": null,

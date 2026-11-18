@@ -414,42 +414,42 @@
        "date": null,
        "from": 0,
        "kind": "upto",
-       "text": "any of the 2",
+       "text": "counts toward the 2",
        "to": 0
       },
       {
        "date": null,
        "from": 1,
        "kind": "upto",
-       "text": "any of the 2",
+       "text": "counts toward the 2",
        "to": 1
       },
       {
        "date": null,
        "from": 2,
        "kind": "upto",
-       "text": "any of the 2",
+       "text": "counts toward the 2",
        "to": 2
       },
       {
        "date": null,
        "from": 3,
        "kind": "upto",
-       "text": "any of the 2",
+       "text": "counts toward the 2",
        "to": 3
       },
       {
        "date": null,
        "from": 4,
        "kind": "upto",
-       "text": "any of the 2",
+       "text": "counts toward the 2",
        "to": 4
       },
       {
        "date": null,
        "from": 5,
        "kind": "upto",
-       "text": "any of the 2",
+       "text": "counts toward the 2",
        "to": 5
       }
      ],
@@ -460,7 +460,7 @@
      "possession": null,
      "rows": [
       {
-       "a11y": "Brook trout. 30 cm (12 in) or longer. any of the 2",
+       "a11y": "Brook trout. 30 cm (12 in) or longer. counts toward the 2",
        "coming": [],
        "date": null,
        "fish": "EB",
@@ -510,7 +510,7 @@
        "sub": null
       },
       {
-       "a11y": "Brown trout. 30 cm (12 in) or longer. any of the 2",
+       "a11y": "Brown trout. 30 cm (12 in) or longer. counts toward the 2",
        "coming": [],
        "date": null,
        "fish": "GB",
@@ -560,7 +560,7 @@
        "sub": null
       },
       {
-       "a11y": "Cutthroat trout. 30 cm (12 in) or longer. any of the 2",
+       "a11y": "Cutthroat trout. 30 cm (12 in) or longer. counts toward the 2",
        "coming": [],
        "date": null,
        "fish": "CT",
@@ -610,7 +610,7 @@
        "sub": null
       },
       {
-       "a11y": "Dolly Varden/bull trout. 60 cm (24 in) or longer. uses the 1 over 50 cm (20 in). only 1, counting any lake trout you keep. any of the 2",
+       "a11y": "Dolly Varden/bull trout. 60 cm (24 in) or longer. uses the 1 over 50 cm (20 in). only 1, counting any lake trout you keep. counts toward the 2",
        "coming": [],
        "date": null,
        "fish": "DV",
@@ -671,7 +671,7 @@
        "sub": null
       },
       {
-       "a11y": "Lake trout. 60 cm (24 in) or longer. uses the 1 over 50 cm (20 in). only 1, counting any Dolly Varden/bull trout you keep. any of the 2",
+       "a11y": "Lake trout. 60 cm (24 in) or longer. uses the 1 over 50 cm (20 in). only 1, counting any Dolly Varden/bull trout you keep. counts toward the 2",
        "coming": [],
        "date": null,
        "fish": "LT",
@@ -732,7 +732,7 @@
        "sub": null
       },
       {
-       "a11y": "Rainbow trout. 30–50 cm (12–20 in). any of the 2",
+       "a11y": "Rainbow trout. 30–50 cm (12–20 in). counts toward the 2",
        "coming": [],
        "date": null,
        "fish": "RB",
@@ -832,6 +832,7 @@
     0
    ],
    "elsewhere": [
+    "Your own limit, counted across every Region 2 stream you fish.",
     "Kept 2 on another stream? None more here.",
     "Kept 1 at a lake? Keep 2 more here. Fish from lakes count toward the 4 a day, not toward the 2 from streams.",
     "Kept trout or char over 50 cm (20 in) elsewhere? It counts here too: at most 1 over 50 cm (20 in) a day in all."
@@ -1872,13 +1873,6 @@
        "says": [],
        "tag": null
       },
-      "pinLine": {
-       "cls": "g",
-       "n": 15,
-       "said": [],
-       "sub": null,
-       "text": "Whitefish · 15 a day"
-      },
       "row": 2,
       "scope": "Region 2-wide",
       "title": "Whitefish",
@@ -2032,13 +2026,6 @@
        "howtell": false,
        "says": [],
        "tag": null
-      },
-      "pinLine": {
-       "cls": "g",
-       "n": 20,
-       "said": [],
-       "sub": null,
-       "text": "Bass · 20 a day"
       },
       "row": 3,
       "scope": "Region 2-wide",

@@ -70,7 +70,7 @@ function closureProblems(db: Record<string, DatabaseSync>): string[] {
   }
   for (const [name, r] of Object.entries(db).filter(([n]) => /^regs-\d/.test(n)).sort()) {
     const have = Object.fromEntries(["ladder_frame", "ladder_verdict", "rows_frame", "rows_decided", "rows_row", "gear_frame",
-      "licence_frame", "licence_hold", "licence_doc", "licence_answer", "licence_u16", "display_frame"].map((t) => [t, ids(r, t)]));
+      "licence_frame", "licence_hold", "licence_doc", "licence_answer", "licence_u16", "licence_alien", "display_frame"].map((t) => [t, ids(r, t)]));
     const need = (t: string, i: number, from: string) => { if (!have[t]!.has(i)) out.push(`${name}: ${from} names ${t} ${i}, absent`); };
     for (const c of r.prepare("SELECT * FROM cell ORDER BY akey, s").all() as Record<string, number>[])
       for (const f of ["ladder", "rows", "gear", "licence", "display"]) need(`${f}_frame`, c[f]!, `cell ${c.akey}/${c.s}`);
@@ -85,9 +85,11 @@ function closureProblems(db: Record<string, DatabaseSync>): string[] {
       for (const x of rows) need("rows_row", x, `rows_frame ${id}`);
     }
     for (const { id, j } of r.prepare("SELECT id, j FROM licence_frame ORDER BY id").all() as { id: number; j: Uint8Array }[]) {
-      const [h, d, ...u] = val("licence_frame", j) as number[];
+      // [h, d, under_16?, alien_closures?] (T789 G8: the 4th slot names a licence_alien row; either may be null)
+      const [h, d, u16, alien] = val("licence_frame", j) as (number | null | undefined)[];
       need("licence_hold", h!, `licence_frame ${id}`); need("licence_doc", d!, `licence_frame ${id}`);
-      for (const x of u) need("licence_u16", x, `licence_frame ${id}`);
+      if (u16 != null) need("licence_u16", u16, `licence_frame ${id}`);
+      if (alien != null) need("licence_alien", alien, `licence_frame ${id}`);
     }
     for (const { id, j } of r.prepare("SELECT id, j FROM licence_doc ORDER BY id").all() as { id: number; j: Uint8Array }[])
       for (const a of val("licence_doc", j) as number[]) need("licence_answer", a, `licence_doc ${id}`);

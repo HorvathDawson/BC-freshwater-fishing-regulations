@@ -397,42 +397,42 @@
        "date": null,
        "from": 0,
        "kind": "upto",
-       "text": "any of the 2",
+       "text": "counts toward the 2",
        "to": 0
       },
       {
        "date": null,
        "from": 1,
        "kind": "upto",
-       "text": "any of the 2",
+       "text": "counts toward the 2",
        "to": 1
       },
       {
        "date": null,
        "from": 2,
        "kind": "upto",
-       "text": "any of the 2",
+       "text": "counts toward the 2",
        "to": 2
       },
       {
        "date": null,
        "from": 3,
        "kind": "upto",
-       "text": "any of the 2",
+       "text": "counts toward the 2",
        "to": 3
       },
       {
        "date": null,
        "from": 4,
        "kind": "upto",
-       "text": "any of the 2",
+       "text": "counts toward the 2",
        "to": 4
       },
       {
        "date": null,
        "from": 5,
        "kind": "upto",
-       "text": "any of the 2",
+       "text": "counts toward the 2",
        "to": 5
       }
      ],
@@ -443,7 +443,7 @@
      "possession": null,
      "rows": [
       {
-       "a11y": "Brook trout. 25 cm (10 in) or longer. any of the 2. until May 31, then only 1 measuring 25–50 cm (10–20 in)",
+       "a11y": "Brook trout. 25 cm (10 in) or longer. counts toward the 2. until May 31, then only 1 measuring 25–50 cm (10–20 in)",
        "coming": [
         "From Jun 1: only 1 measuring 25–50 cm (10–20 in)."
        ],
@@ -489,7 +489,7 @@
        "sub": null
       },
       {
-       "a11y": "Brown trout. 25 cm (10 in) or longer. any of the 2. until May 31, then only 1 measuring 25–50 cm (10–20 in)",
+       "a11y": "Brown trout. 25 cm (10 in) or longer. counts toward the 2. until May 31, then only 1 measuring 25–50 cm (10–20 in)",
        "coming": [
         "From Jun 1: only 1 measuring 25–50 cm (10–20 in)."
        ],
@@ -535,7 +535,7 @@
        "sub": null
       },
       {
-       "a11y": "Lake trout. 25 cm (10 in) or longer. any of the 2. until May 31, then only 1 measuring 25–50 cm (10–20 in)",
+       "a11y": "Lake trout. 25 cm (10 in) or longer. counts toward the 2. until May 31, then only 1 measuring 25–50 cm (10–20 in)",
        "coming": [
         "From Jun 1: only 1 measuring 25–50 cm (10–20 in)."
        ],
@@ -582,7 +582,7 @@
        "sub": null
       },
       {
-       "a11y": "Dolly Varden/bull trout. 25 cm (10 in) or longer. only 1. any of the 2. until May 31, then only 1 measuring 25–50 cm (10–20 in)",
+       "a11y": "Dolly Varden/bull trout. 25 cm (10 in) or longer. only 1. counts toward the 2. until May 31, then only 1 measuring 25–50 cm (10–20 in)",
        "coming": [
         "From Jun 1: only 1 measuring 25–50 cm (10–20 in)."
        ],
@@ -634,7 +634,7 @@
        "sub": null
       },
       {
-       "a11y": "Cutthroat trout. 25–33 cm (10–13 in). only 1, counting any rainbow trout you keep. any of the 2. until May 31, then only 1 measuring 25–33 cm (10–13 in)",
+       "a11y": "Cutthroat trout. 25–33 cm (10–13 in). only 1, counting any rainbow trout you keep. counts toward the 2. until May 31, then only 1 measuring 25–33 cm (10–13 in)",
        "coming": [
         "From Jun 1: only 1 measuring 25–33 cm (10–13 in)."
        ],
@@ -683,7 +683,7 @@
        "sub": null
       },
       {
-       "a11y": "Rainbow trout. 25–50 cm (10–20 in). only 1, counting any cutthroat trout you keep. any of the 2. until May 31, then only 1",
+       "a11y": "Rainbow trout. 25–50 cm (10–20 in). only 1, counting any cutthroat trout you keep. counts toward the 2. until May 31, then only 1",
        "coming": [
         "From Jun 1: only 1."
        ],
@@ -783,6 +783,7 @@
     0
    ],
    "elsewhere": [
+    "This river’s rule: 2 a day here. Trout and char other than steelhead you kept anywhere else count toward those 2. They also count toward Region 5’s 5 trout and char a day.",
     "Kept trout or char over 50 cm (20 in) elsewhere? It counts here too: at most 1 over 50 cm (20 in) a day in all."
    ],
    "elsewhereLink": "Fished elsewhere today? ›",
@@ -1769,13 +1770,6 @@
        "howtell": false,
        "says": [],
        "tag": null
-      },
-      "pinLine": {
-       "cls": "g",
-       "n": 15,
-       "said": [],
-       "sub": null,
-       "text": "Whitefish · 15 a day"
       },
       "row": 2,
       "scope": "Region 5-wide",

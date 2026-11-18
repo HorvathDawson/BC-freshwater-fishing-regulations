@@ -355,28 +355,28 @@
        "date": null,
        "from": 0,
        "kind": "upto",
-       "text": "any of the 2",
+       "text": "counts toward the 2",
        "to": 0
       },
       {
        "date": null,
        "from": 1,
        "kind": "upto",
-       "text": "any of the 2",
+       "text": "counts toward the 2",
        "to": 1
       },
       {
        "date": null,
        "from": 2,
        "kind": "upto",
-       "text": "any of the 2",
+       "text": "counts toward the 2",
        "to": 2
       },
       {
        "date": null,
        "from": 3,
        "kind": "upto",
-       "text": "any of the 2",
+       "text": "counts toward the 2",
        "to": 3
       }
      ],
@@ -387,7 +387,7 @@
      "possession": null,
      "rows": [
       {
-       "a11y": "Brown trout. any of the 2",
+       "a11y": "Brown trout. counts toward the 2",
        "coming": [],
        "date": null,
        "fish": "GB",
@@ -434,7 +434,7 @@
        "sub": null
       },
       {
-       "a11y": "Cutthroat trout. any of the 2",
+       "a11y": "Cutthroat trout. counts toward the 2",
        "coming": [],
        "date": null,
        "fish": "CT",
@@ -481,7 +481,7 @@
        "sub": null
       },
       {
-       "a11y": "Rainbow trout. any of the 2",
+       "a11y": "Rainbow trout. counts toward the 2",
        "coming": [],
        "date": null,
        "fish": "RB",
@@ -528,7 +528,7 @@
        "sub": null
       },
       {
-       "a11y": "Steelhead. Steelhead rules apply here; steelhead may not be present in this water. any of the 2",
+       "a11y": "Steelhead. Steelhead rules apply here; steelhead may not be present in this water. counts toward the 2",
        "coming": [],
        "date": null,
        "fish": "ST",
@@ -685,6 +685,7 @@
     1
    ],
    "elsewhere": [
+    "Your own limit, counted across every Region 1, excluding Haida Gwaii stream you fish.",
     "Kept 2 on another stream? None more here.",
     "Kept 1 at a lake? Keep 2 more here. Fish from lakes count toward the 4 a day, not toward the 2 from streams.",
     "Kept trout over 50 cm (20 in) elsewhere? It counts here too: at most 2 over 50 cm (20 in) a day in all — only 1 of them may be anything other than a steelhead."

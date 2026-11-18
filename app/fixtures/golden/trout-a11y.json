@@ -1,6 +1,6 @@
 {
  "skeena-sedan-mill-jul15": {
-  "EB": "Brook trout. 30 cm (12 in) or longer. any of the 5. until Dec 31, then closed to all fishing",
+  "EB": "Brook trout. 30 cm (12 in) or longer. counts toward the 5. until Dec 31, then closed to all fishing",
   "LT": "Lake trout. 30 cm (12 in) or longer. only 3. until Sep 14, then release",
   "GB": "Brown trout. 30 cm (12 in) or longer. only 1 of these 4. until Oct 31, then release",
   "CT": "Cutthroat trout. 30 cm (12 in) or longer. only 1 of these 4. until Oct 31, then release",
@@ -9,7 +9,7 @@
   "DV": "Dolly Varden/bull trout. until Dec 31, then closed to all fishing"
  },
  "skeena-sedan-mill-sep15": {
-  "EB": "Brook trout. 30 cm (12 in) or longer. any of the 5. until Dec 31, then closed to all fishing",
+  "EB": "Brook trout. 30 cm (12 in) or longer. counts toward the 5. until Dec 31, then closed to all fishing",
   "GB": "Brown trout. 30 cm (12 in) or longer. only 1 of these 4. until Oct 31, then release",
   "CT": "Cutthroat trout. 30 cm (12 in) or longer. only 1 of these 4. until Oct 31, then release",
   "ST": "Steelhead. Hatchery only. a rainbow over 50 cm (20 in). uses the 1 over 50 cm (20 in). after keeping 1, stop fishing this river today. Steelhead are known to be in this water. only 1 of these 4. until Oct 31, then release",
@@ -18,7 +18,7 @@
   "LT": "Lake trout. until Nov 30"
  },
  "skeena-sedan-mill-nov15": {
-  "EB": "Brook trout. 30 cm (12 in) or longer. only 1 over 50 cm (20 in). any of the 5",
+  "EB": "Brook trout. 30 cm (12 in) or longer. only 1 over 50 cm (20 in). counts toward the 5",
   "RB": "Rainbow trout. until Dec 31, then closed to all fishing",
   "ST": "Steelhead. Steelhead are known to be in this water. until Dec 31, then closed to all fishing",
   "CT": "Cutthroat trout. until Dec 31, then closed to all fishing",
@@ -27,36 +27,36 @@
   "LT": "Lake trout. until Nov 30"
  },
  "lois-jul15": {
-  "EB/hatchery": "Brook trout. hatchery. any of the 4",
-  "EB/wild": "Brook trout. wild. under 40 cm (16 in). any of the 4",
-  "GB/hatchery": "Brown trout. hatchery. any of the 4",
-  "GB/wild": "Brown trout. wild. under 40 cm (16 in). any of the 4",
-  "CT/hatchery": "Cutthroat trout. hatchery. any of the 4",
-  "CT/wild": "Cutthroat trout. wild. under 40 cm (16 in). any of the 4",
-  "DV": "Dolly Varden/bull trout. Hatchery only. 60 cm (24 in) or longer. uses the 1 over 50 cm (20 in). only 1, counting any lake trout you keep. any of the 4",
-  "LT": "Lake trout. Hatchery only. 60 cm (24 in) or longer. uses the 1 over 50 cm (20 in). only 1, counting any Dolly Varden/bull trout you keep. any of the 4",
-  "RB/hatchery": "Rainbow trout. hatchery. any of the 6",
-  "RB/wild": "Rainbow trout. wild. under 40 cm (16 in). any of the 6",
-  "ST": "Steelhead. Hatchery only. Steelhead are known to be in this water. any of the 6"
+  "EB/hatchery": "Brook trout. hatchery. counts toward the 4",
+  "EB/wild": "Brook trout. wild. under 40 cm (16 in). counts toward the 4",
+  "GB/hatchery": "Brown trout. hatchery. counts toward the 4",
+  "GB/wild": "Brown trout. wild. under 40 cm (16 in). counts toward the 4",
+  "CT/hatchery": "Cutthroat trout. hatchery. counts toward the 4",
+  "CT/wild": "Cutthroat trout. wild. under 40 cm (16 in). counts toward the 4",
+  "DV": "Dolly Varden/bull trout. Hatchery only. 60 cm (24 in) or longer. uses the 1 over 50 cm (20 in). only 1, counting any lake trout you keep. counts toward the 4",
+  "LT": "Lake trout. Hatchery only. 60 cm (24 in) or longer. uses the 1 over 50 cm (20 in). only 1, counting any Dolly Varden/bull trout you keep. counts toward the 4",
+  "RB/hatchery": "Rainbow trout. hatchery. counts toward the 6",
+  "RB/wild": "Rainbow trout. wild. under 40 cm (16 in). counts toward the 6",
+  "ST": "Steelhead. Hatchery only. Steelhead are known to be in this water. counts toward the 6"
  },
  "khartoum-jul15": {
-  "EB/hatchery": "Brook trout. hatchery. any of the 4",
-  "EB/wild": "Brook trout. wild. under 40 cm (16 in). any of the 4",
-  "GB/hatchery": "Brown trout. hatchery. any of the 4",
-  "GB/wild": "Brown trout. wild. under 40 cm (16 in). any of the 4",
-  "CT/hatchery": "Cutthroat trout. hatchery. any of the 4",
-  "CT/wild": "Cutthroat trout. wild. under 40 cm (16 in). any of the 4",
-  "DV": "Dolly Varden/bull trout. Hatchery only. 60 cm (24 in) or longer. uses the 1 over 50 cm (20 in). only 1, counting any lake trout you keep. any of the 4",
-  "LT": "Lake trout. Hatchery only. 60 cm (24 in) or longer. uses the 1 over 50 cm (20 in). only 1, counting any Dolly Varden/bull trout you keep. any of the 4",
-  "RB/hatchery": "Rainbow trout. hatchery. any of the 6",
-  "RB/wild": "Rainbow trout. wild. under 40 cm (16 in). any of the 6",
-  "ST": "Steelhead. Hatchery only. Steelhead are known to be in this water. any of the 6"
+  "EB/hatchery": "Brook trout. hatchery. counts toward the 4",
+  "EB/wild": "Brook trout. wild. under 40 cm (16 in). counts toward the 4",
+  "GB/hatchery": "Brown trout. hatchery. counts toward the 4",
+  "GB/wild": "Brown trout. wild. under 40 cm (16 in). counts toward the 4",
+  "CT/hatchery": "Cutthroat trout. hatchery. counts toward the 4",
+  "CT/wild": "Cutthroat trout. wild. under 40 cm (16 in). counts toward the 4",
+  "DV": "Dolly Varden/bull trout. Hatchery only. 60 cm (24 in) or longer. uses the 1 over 50 cm (20 in). only 1, counting any lake trout you keep. counts toward the 4",
+  "LT": "Lake trout. Hatchery only. 60 cm (24 in) or longer. uses the 1 over 50 cm (20 in). only 1, counting any Dolly Varden/bull trout you keep. counts toward the 4",
+  "RB/hatchery": "Rainbow trout. hatchery. counts toward the 6",
+  "RB/wild": "Rainbow trout. wild. under 40 cm (16 in). counts toward the 6",
+  "ST": "Steelhead. Hatchery only. Steelhead are known to be in this water. counts toward the 6"
  },
  "windsor-jul15": {
-  "EB/hatchery": "Brook trout. hatchery. any of the 4",
-  "GB/hatchery": "Brown trout. hatchery. any of the 4",
-  "CT/hatchery": "Cutthroat trout. hatchery. any of the 4",
-  "RB/hatchery": "Rainbow trout. hatchery. any of the 4",
+  "EB/hatchery": "Brook trout. hatchery. counts toward the 4",
+  "GB/hatchery": "Brown trout. hatchery. counts toward the 4",
+  "CT/hatchery": "Cutthroat trout. hatchery. counts toward the 4",
+  "RB/hatchery": "Rainbow trout. hatchery. counts toward the 4",
   "EB/wild": "Brook trout. wild. 40 cm (16 in) or less. only 2 wild in all",
   "GB/wild": "Brown trout. wild. 40 cm (16 in) or less. only 2 wild in all",
   "CT/wild": "Cutthroat trout. wild. 40 cm (16 in) or less. only 2 wild in all",
@@ -65,10 +65,10 @@
   "LT": "Lake trout. Hatchery only. 60 cm (24 in) or longer. uses the 1 over 50 cm (20 in). only 1 of these 2"
  },
  "dodd-jul15": {
-  "EB/hatchery": "Brook trout. hatchery. any of the 4",
-  "GB/hatchery": "Brown trout. hatchery. any of the 4",
-  "CT/hatchery": "Cutthroat trout. hatchery. any of the 4",
-  "RB/hatchery": "Rainbow trout. hatchery. any of the 4",
+  "EB/hatchery": "Brook trout. hatchery. counts toward the 4",
+  "GB/hatchery": "Brown trout. hatchery. counts toward the 4",
+  "CT/hatchery": "Cutthroat trout. hatchery. counts toward the 4",
+  "RB/hatchery": "Rainbow trout. hatchery. counts toward the 4",
   "EB/wild": "Brook trout. wild. 40 cm (16 in) or less. only 2 wild in all",
   "GB/wild": "Brown trout. wild. 40 cm (16 in) or less. only 2 wild in all",
   "CT/wild": "Cutthroat trout. wild. 40 cm (16 in) or less. only 2 wild in all",
@@ -77,10 +77,10 @@
   "LT": "Lake trout. Hatchery only. 60 cm (24 in) or longer. uses the 1 over 50 cm (20 in). only 1 of these 2"
  },
  "horseshoe-jul15": {
-  "EB/hatchery": "Brook trout. hatchery. any of the 4",
-  "GB/hatchery": "Brown trout. hatchery. any of the 4",
-  "CT/hatchery": "Cutthroat trout. hatchery. any of the 4",
-  "RB/hatchery": "Rainbow trout. hatchery. any of the 4",
+  "EB/hatchery": "Brook trout. hatchery. counts toward the 4",
+  "GB/hatchery": "Brown trout. hatchery. counts toward the 4",
+  "CT/hatchery": "Cutthroat trout. hatchery. counts toward the 4",
+  "RB/hatchery": "Rainbow trout. hatchery. counts toward the 4",
   "EB/wild": "Brook trout. wild. 40 cm (16 in) or less. only 2 wild in all",
   "GB/wild": "Brown trout. wild. 40 cm (16 in) or less. only 2 wild in all",
   "CT/wild": "Cutthroat trout. wild. 40 cm (16 in) or less. only 2 wild in all",
@@ -89,10 +89,10 @@
   "LT": "Lake trout. Hatchery only. 60 cm (24 in) or longer. uses the 1 over 50 cm (20 in). only 1 of these 2"
  },
  "nanton-jul15": {
-  "EB/hatchery": "Brook trout. hatchery. any of the 4",
-  "GB/hatchery": "Brown trout. hatchery. any of the 4",
-  "CT/hatchery": "Cutthroat trout. hatchery. any of the 4",
-  "RB/hatchery": "Rainbow trout. hatchery. any of the 4",
+  "EB/hatchery": "Brook trout. hatchery. counts toward the 4",
+  "GB/hatchery": "Brown trout. hatchery. counts toward the 4",
+  "CT/hatchery": "Cutthroat trout. hatchery. counts toward the 4",
+  "RB/hatchery": "Rainbow trout. hatchery. counts toward the 4",
   "EB/wild": "Brook trout. wild. 40 cm (16 in) or less. only 2 wild in all",
   "GB/wild": "Brown trout. wild. 40 cm (16 in) or less. only 2 wild in all",
   "CT/wild": "Cutthroat trout. wild. 40 cm (16 in) or less. only 2 wild in all",
@@ -101,10 +101,10 @@
   "LT": "Lake trout. Hatchery only. 60 cm (24 in) or longer. uses the 1 over 50 cm (20 in). only 1 of these 2"
  },
  "ireland-jul15": {
-  "EB/hatchery": "Brook trout. hatchery. any of the 4",
-  "GB/hatchery": "Brown trout. hatchery. any of the 4",
-  "CT/hatchery": "Cutthroat trout. hatchery. any of the 4",
-  "RB/hatchery": "Rainbow trout. hatchery. any of the 4",
+  "EB/hatchery": "Brook trout. hatchery. counts toward the 4",
+  "GB/hatchery": "Brown trout. hatchery. counts toward the 4",
+  "CT/hatchery": "Cutthroat trout. hatchery. counts toward the 4",
+  "RB/hatchery": "Rainbow trout. hatchery. counts toward the 4",
   "EB/wild": "Brook trout. wild. 40 cm (16 in) or less. only 2 wild in all",
   "GB/wild": "Brown trout. wild. 40 cm (16 in) or less. only 2 wild in all",
   "CT/wild": "Cutthroat trout. wild. 40 cm (16 in) or less. only 2 wild in all",
@@ -113,102 +113,102 @@
   "LT": "Lake trout. Hatchery only. 60 cm (24 in) or longer. uses the 1 over 50 cm (20 in). only 1 of these 2"
  },
  "shamrock-jul15": {
-  "EB": "Brook trout. 20–30 cm (8–12 in). any of the 2",
-  "GB": "Brown trout. 20–30 cm (8–12 in). any of the 2",
-  "CT": "Cutthroat trout. 20–30 cm (8–12 in). any of the 2",
-  "RB": "Rainbow trout. 20–30 cm (8–12 in). any of the 2",
+  "EB": "Brook trout. 20–30 cm (8–12 in). counts toward the 2",
+  "GB": "Brown trout. 20–30 cm (8–12 in). counts toward the 2",
+  "CT": "Cutthroat trout. 20–30 cm (8–12 in). counts toward the 2",
+  "RB": "Rainbow trout. 20–30 cm (8–12 in). counts toward the 2",
   "ST": "Steelhead. Steelhead rules apply here; steelhead may not be present in this water.",
   "DV": "Dolly Varden/bull trout",
   "LT": "Lake trout"
  },
  "kilgard-jul15": {
-  "EB": "Brook trout. 20–30 cm (8–12 in). any of the 2",
-  "GB": "Brown trout. 20–30 cm (8–12 in). any of the 2",
-  "CT": "Cutthroat trout. 20–30 cm (8–12 in). any of the 2",
-  "RB": "Rainbow trout. 20–30 cm (8–12 in). any of the 2",
+  "EB": "Brook trout. 20–30 cm (8–12 in). counts toward the 2",
+  "GB": "Brown trout. 20–30 cm (8–12 in). counts toward the 2",
+  "CT": "Cutthroat trout. 20–30 cm (8–12 in). counts toward the 2",
+  "RB": "Rainbow trout. 20–30 cm (8–12 in). counts toward the 2",
   "ST": "Steelhead. Steelhead rules apply here; steelhead may not be present in this water.",
   "DV": "Dolly Varden/bull trout",
   "LT": "Lake trout"
  },
  "echoes-jul15": {
-  "EB": "Brook trout. 50 cm (20 in) or longer. any of the 1",
-  "GB": "Brown trout. 50 cm (20 in) or longer. any of the 1",
-  "CT": "Cutthroat trout. 50 cm (20 in) or longer. any of the 1",
-  "DV": "Dolly Varden/bull trout. 50 cm (20 in) or longer. any of the 1",
-  "LT": "Lake trout. 50 cm (20 in) or longer. any of the 1",
-  "RB": "Rainbow trout. 50 cm (20 in) or longer. any of the 1"
+  "EB": "Brook trout. 50 cm (20 in) or longer. counts toward the 1",
+  "GB": "Brown trout. 50 cm (20 in) or longer. counts toward the 1",
+  "CT": "Cutthroat trout. 50 cm (20 in) or longer. counts toward the 1",
+  "DV": "Dolly Varden/bull trout. 50 cm (20 in) or longer. counts toward the 1",
+  "LT": "Lake trout. 50 cm (20 in) or longer. counts toward the 1",
+  "RB": "Rainbow trout. 50 cm (20 in) or longer. counts toward the 1"
  },
  "bowron-jul15": {
-  "EB": "Brook trout. any of the 2",
-  "GB": "Brown trout. any of the 2",
-  "CT": "Cutthroat trout. any of the 2",
-  "LT": "Lake trout. any of the 2. until Sep 30, then release",
-  "RB": "Rainbow trout. any of the 2",
+  "EB": "Brook trout. counts toward the 2",
+  "GB": "Brown trout. counts toward the 2",
+  "CT": "Cutthroat trout. counts toward the 2",
+  "LT": "Lake trout. counts toward the 2. until Sep 30, then release",
+  "RB": "Rainbow trout. counts toward the 2",
   "DV": "Dolly Varden/bull trout. only 1"
  },
  "istsi-jul15": {
-  "EB": "Brook trout. 30–50 cm (12–20 in). in your possession: no more than 1 trout and char in all. any of the 1. until Mar 31, then closed to all fishing",
-  "GB": "Brown trout. 30–50 cm (12–20 in). in your possession: no more than 1 trout and char in all. any of the 1. until Mar 31, then closed to all fishing",
-  "CT": "Cutthroat trout. 30–50 cm (12–20 in). in your possession: no more than 1 trout and char in all. any of the 1. until Mar 31, then closed to all fishing",
-  "RB": "Rainbow trout. 30–50 cm (12–20 in). in your possession: no more than 1 trout and char in all. any of the 1. until Mar 31, then closed to all fishing",
-  "LT": "Lake trout. 30–50 cm (12–20 in). in your possession: 1 day’s limit, not 2. any of the 1. until Sep 14, then release",
+  "EB": "Brook trout. 30–50 cm (12–20 in). in your possession: no more than 1 trout and char in all. counts toward the 1. until Mar 31, then closed to all fishing",
+  "GB": "Brown trout. 30–50 cm (12–20 in). in your possession: no more than 1 trout and char in all. counts toward the 1. until Mar 31, then closed to all fishing",
+  "CT": "Cutthroat trout. 30–50 cm (12–20 in). in your possession: no more than 1 trout and char in all. counts toward the 1. until Mar 31, then closed to all fishing",
+  "RB": "Rainbow trout. 30–50 cm (12–20 in). in your possession: no more than 1 trout and char in all. counts toward the 1. until Mar 31, then closed to all fishing",
+  "LT": "Lake trout. 30–50 cm (12–20 in). in your possession: 1 day’s limit, not 2. counts toward the 1. until Sep 14, then release",
   "DV": "Dolly Varden/bull trout. until Mar 31, then closed to all fishing"
  },
  "nation-lakes-jul15": {
-  "EB": "Brook trout. any of the 5. until Oct 31, then closed to all fishing",
-  "GB": "Brown trout. any of the 5. until Oct 31, then closed to all fishing",
-  "CT": "Cutthroat trout. any of the 5. until Oct 31, then closed to all fishing",
-  "RB": "Rainbow trout. any of the 5. until Oct 31, then closed to all fishing",
+  "EB": "Brook trout. counts toward the 5. until Oct 31, then closed to all fishing",
+  "GB": "Brown trout. counts toward the 5. until Oct 31, then closed to all fishing",
+  "CT": "Cutthroat trout. counts toward the 5. until Oct 31, then closed to all fishing",
+  "RB": "Rainbow trout. counts toward the 5. until Oct 31, then closed to all fishing",
   "LT": "Lake trout. 30 cm (12 in) or longer. 3 a day, but never more than 2 lake trout with you, and only 1 of them over 50 cm (20 in). only 2 in your possession. until Sep 14, then release",
   "DV": "Dolly Varden/bull trout. 30–50 cm (12–20 in). in your possession: 1 day’s limit, not 2. only 1. until Aug 14, then release"
  },
  "cunningham-jul15": {
-  "EB": "Brook trout. any of the 5. until Oct 31, then closed to all fishing",
-  "GB": "Brown trout. any of the 5. until Oct 31, then closed to all fishing",
-  "CT": "Cutthroat trout. any of the 5. until Oct 31, then closed to all fishing",
-  "RB": "Rainbow trout. any of the 5. until Oct 31, then closed to all fishing",
+  "EB": "Brook trout. counts toward the 5. until Oct 31, then closed to all fishing",
+  "GB": "Brown trout. counts toward the 5. until Oct 31, then closed to all fishing",
+  "CT": "Cutthroat trout. counts toward the 5. until Oct 31, then closed to all fishing",
+  "RB": "Rainbow trout. counts toward the 5. until Oct 31, then closed to all fishing",
   "LT": "Lake trout. 30 cm (12 in) or longer. 3 a day, but never more than 2 lake trout with you, and only 1 of them over 50 cm (20 in). only 2 in your possession. until Sep 14, then release",
   "DV": "Dolly Varden/bull trout. 30–50 cm (12–20 in). in your possession: 1 day’s limit, not 2. only 1. until Aug 14, then release"
  },
  "tagish-jul15": {
   "LT": "Lake trout. release over 60 cm (24 in) and under 90 cm (35 in). only 2. only 1 over 90 cm (35 in). only 3 between them",
   "DV": "Dolly Varden/bull trout. only 3 between them",
-  "EB": "Brook trout. any of the 5",
-  "GB": "Brown trout. any of the 5",
-  "CT": "Cutthroat trout. any of the 5",
-  "RB": "Rainbow trout. any of the 5"
+  "EB": "Brook trout. counts toward the 5",
+  "GB": "Brown trout. counts toward the 5",
+  "CT": "Cutthroat trout. counts toward the 5",
+  "RB": "Rainbow trout. counts toward the 5"
  },
  "takla-jul15": {
-  "EB": "Brook trout. any of the 5",
-  "GB": "Brown trout. any of the 5",
-  "CT": "Cutthroat trout. any of the 5",
-  "RB": "Rainbow trout. any of the 5",
+  "EB": "Brook trout. counts toward the 5",
+  "GB": "Brown trout. counts toward the 5",
+  "CT": "Cutthroat trout. counts toward the 5",
+  "RB": "Rainbow trout. counts toward the 5",
   "LT": "Lake trout. 30 cm (12 in) or longer. in your possession: 1 day’s limit, not 2. only 3. until Sep 14, then release",
   "DV": "Dolly Varden/bull trout. 30–50 cm (12–20 in). in your possession: 1 day’s limit, not 2. only 1. until Aug 14, then release"
  },
  "buckinghorse-jul15": {
-  "DV": "Dolly Varden/bull trout. 30–50 cm (12–20 in). only 1. any of the 2. until Aug 14, then release",
-  "EB": "Brook trout. any of the 2",
-  "GB": "Brown trout. any of the 2",
-  "CT": "Cutthroat trout. any of the 2",
-  "RB": "Rainbow trout. any of the 2. until Apr 30, then release",
-  "LT": "Lake trout. 30 cm (12 in) or longer. in your possession: 1 day’s limit, not 2. any of the 2. until Sep 14, then release"
+  "DV": "Dolly Varden/bull trout. 30–50 cm (12–20 in). only 1. counts toward the 2. until Aug 14, then release",
+  "EB": "Brook trout. counts toward the 2",
+  "GB": "Brown trout. counts toward the 2",
+  "CT": "Cutthroat trout. counts toward the 2",
+  "RB": "Rainbow trout. counts toward the 2. until Apr 30, then release",
+  "LT": "Lake trout. 30 cm (12 in) or longer. in your possession: 1 day’s limit, not 2. counts toward the 2. until Sep 14, then release"
  },
  "fraser-r2-mission-jul15": {
-  "EB": "Brook trout. 30 cm (12 in) or longer. any of the 2",
-  "GB": "Brown trout. 30 cm (12 in) or longer. any of the 2",
-  "CT": "Cutthroat trout. 30 cm (12 in) or longer. any of the 2",
-  "DV": "Dolly Varden/bull trout. 60 cm (24 in) or longer. uses the 1 over 50 cm (20 in). only 1, counting any lake trout you keep. any of the 2",
-  "LT": "Lake trout. 60 cm (24 in) or longer. uses the 1 over 50 cm (20 in). only 1, counting any Dolly Varden/bull trout you keep. any of the 2",
-  "ST": "Steelhead. a rainbow over 50 cm (20 in). after keeping 2, stop fishing this river today. Steelhead are known to be in this water. any of the 2. until Aug 14, then closed for steelhead",
-  "RB": "Rainbow trout. 30–50 cm (12–20 in). any of the 2"
+  "EB": "Brook trout. 30 cm (12 in) or longer. counts toward the 2",
+  "GB": "Brown trout. 30 cm (12 in) or longer. counts toward the 2",
+  "CT": "Cutthroat trout. 30 cm (12 in) or longer. counts toward the 2",
+  "DV": "Dolly Varden/bull trout. 60 cm (24 in) or longer. uses the 1 over 50 cm (20 in). only 1, counting any lake trout you keep. counts toward the 2",
+  "LT": "Lake trout. 60 cm (24 in) or longer. uses the 1 over 50 cm (20 in). only 1, counting any Dolly Varden/bull trout you keep. counts toward the 2",
+  "ST": "Steelhead. a rainbow over 50 cm (20 in). after keeping 2, stop fishing this river today. Steelhead are known to be in this water. counts toward the 2. until Aug 14, then closed for steelhead",
+  "RB": "Rainbow trout. 30–50 cm (12–20 in). counts toward the 2"
  },
  "fraser-r3-sep15": {
-  "EB": "Brook trout. any of the 2",
-  "GB": "Brown trout. any of the 2",
-  "CT": "Cutthroat trout. any of the 2",
-  "LT": "Lake trout. any of the 2",
-  "RB": "Rainbow trout. 50 cm (20 in) or less. any of the 2",
+  "EB": "Brook trout. counts toward the 2",
+  "GB": "Brown trout. counts toward the 2",
+  "CT": "Cutthroat trout. counts toward the 2",
+  "LT": "Lake trout. counts toward the 2",
+  "RB": "Rainbow trout. 50 cm (20 in) or less. counts toward the 2",
   "DV": "Dolly Varden/bull trout. until Sep 30, then closed to trout and char",
   "ST": "Steelhead. Steelhead are known to be in this water."
  },
@@ -222,11 +222,11 @@
   "EB": "Brook trout"
  },
  "fraser-r3-nov15": {
-  "EB": "Brook trout. any of the 2. until Sep 30, then closed to trout and char",
-  "GB": "Brown trout. any of the 2. until Sep 30, then closed to trout and char",
-  "CT": "Cutthroat trout. any of the 2. until Sep 30, then closed to trout and char",
-  "DV": "Dolly Varden/bull trout. only 1. any of the 2. until Jul 31, then release",
-  "RB": "Rainbow trout. 50 cm (20 in) or less. any of the 2. until Sep 30, then closed to trout and char",
+  "EB": "Brook trout. counts toward the 2. until Sep 30, then closed to trout and char",
+  "GB": "Brown trout. counts toward the 2. until Sep 30, then closed to trout and char",
+  "CT": "Cutthroat trout. counts toward the 2. until Sep 30, then closed to trout and char",
+  "DV": "Dolly Varden/bull trout. only 1. counts toward the 2. until Jul 31, then release",
+  "RB": "Rainbow trout. 50 cm (20 in) or less. counts toward the 2. until Sep 30, then closed to trout and char",
   "LT": "Lake trout",
   "ST": "Steelhead. Steelhead are known to be in this water."
  },
@@ -240,38 +240,38 @@
   "ST": "Steelhead. Steelhead are known to be in this water."
  },
  "adams-jul15": {
-  "DV": "Dolly Varden/bull trout. 80 cm (31 in) or longer. uses the 1 over 50 cm (20 in). only 1, counting any lake trout you keep. any of the 4. rule changes Jul 31",
-  "RB": "Rainbow trout. 30 cm (12 in) or longer. only 2. any of the 4. until Dec 31, then closed to all fishing",
-  "EB": "Brook trout. any of the 4. until Dec 31, then closed to all fishing",
-  "GB": "Brown trout. any of the 4. until Dec 31, then closed to all fishing",
-  "CT": "Cutthroat trout. any of the 4. until Dec 31, then closed to all fishing",
-  "LT": "Lake trout. 60 cm (24 in) or longer. uses the 1 over 50 cm (20 in). only 1, counting any Dolly Varden/bull trout you keep. any of the 4. until Oct 14, then release",
+  "DV": "Dolly Varden/bull trout. 80 cm (31 in) or longer. uses the 1 over 50 cm (20 in). only 1, counting any lake trout you keep. counts toward the 4. rule changes Jul 31",
+  "RB": "Rainbow trout. 30 cm (12 in) or longer. only 2. counts toward the 4. until Dec 31, then closed to all fishing",
+  "EB": "Brook trout. counts toward the 4. until Dec 31, then closed to all fishing",
+  "GB": "Brown trout. counts toward the 4. until Dec 31, then closed to all fishing",
+  "CT": "Cutthroat trout. counts toward the 4. until Dec 31, then closed to all fishing",
+  "LT": "Lake trout. 60 cm (24 in) or longer. uses the 1 over 50 cm (20 in). only 1, counting any Dolly Varden/bull trout you keep. counts toward the 4. until Oct 14, then release",
   "ST": "Steelhead. Steelhead rules apply here; steelhead may not be present in this water. until Dec 31, then closed to all fishing"
  },
  "adams-jul31": {
-  "RB": "Rainbow trout. 30 cm (12 in) or longer. only 2. any of the 4. until Dec 31, then closed to all fishing",
-  "EB": "Brook trout. any of the 4. until Dec 31, then closed to all fishing",
-  "GB": "Brown trout. any of the 4. until Dec 31, then closed to all fishing",
-  "CT": "Cutthroat trout. any of the 4. until Dec 31, then closed to all fishing",
-  "DV": "Dolly Varden/bull trout. 80 cm (31 in) or longer. uses the 1 over 50 cm (20 in). only 1, counting any lake trout you keep. any of the 4. until Jul 31, then release",
-  "LT": "Lake trout. 60 cm (24 in) or longer. uses the 1 over 50 cm (20 in). only 1, counting any Dolly Varden/bull trout you keep. any of the 4. until Oct 14, then release",
+  "RB": "Rainbow trout. 30 cm (12 in) or longer. only 2. counts toward the 4. until Dec 31, then closed to all fishing",
+  "EB": "Brook trout. counts toward the 4. until Dec 31, then closed to all fishing",
+  "GB": "Brown trout. counts toward the 4. until Dec 31, then closed to all fishing",
+  "CT": "Cutthroat trout. counts toward the 4. until Dec 31, then closed to all fishing",
+  "DV": "Dolly Varden/bull trout. 80 cm (31 in) or longer. uses the 1 over 50 cm (20 in). only 1, counting any lake trout you keep. counts toward the 4. until Jul 31, then release",
+  "LT": "Lake trout. 60 cm (24 in) or longer. uses the 1 over 50 cm (20 in). only 1, counting any Dolly Varden/bull trout you keep. counts toward the 4. until Oct 14, then release",
   "ST": "Steelhead. Steelhead rules apply here; steelhead may not be present in this water. until Dec 31, then closed to all fishing"
  },
  "kamloops-lake-jan15": {
   "DV": "Dolly Varden/bull trout. 60 cm (24 in) or longer. uses the 1 over 50 cm (20 in). only 1",
   "RB": "Rainbow trout. 50 cm (20 in) or less. only 2",
-  "EB": "Brook trout. any of the 5",
-  "GB": "Brown trout. any of the 5",
-  "CT": "Cutthroat trout. any of the 5",
+  "EB": "Brook trout. counts toward the 5",
+  "GB": "Brown trout. counts toward the 5",
+  "CT": "Cutthroat trout. counts toward the 5",
   "LT": "Lake trout"
  },
  "kamloops-lake-jul15": {
   "DV": "Dolly Varden/bull trout. 60 cm (24 in) or longer. uses the 1 over 50 cm (20 in). only 1 of these 2",
   "LT": "Lake trout. 60 cm (24 in) or longer. uses the 1 over 50 cm (20 in). only 1 of these 2. until Oct 14, then release",
   "RB": "Rainbow trout. 50 cm (20 in) or less. only 2",
-  "EB": "Brook trout. any of the 5",
-  "GB": "Brown trout. any of the 5",
-  "CT": "Cutthroat trout. any of the 5"
+  "EB": "Brook trout. counts toward the 5",
+  "GB": "Brown trout. counts toward the 5",
+  "CT": "Cutthroat trout. counts toward the 5"
  },
  "elk-nov15": {
   "RB": "Rainbow trout",
@@ -282,27 +282,27 @@
   "EB": "Brook trout"
  },
  "elk-jul15": {
-  "EB": "Brook trout. any size. any of the 1",
-  "GB": "Brown trout. any size. any of the 1",
-  "LT": "Lake trout. any size. any of the 1",
-  "RB": "Rainbow trout. any size. any of the 1",
-  "CT": "Cutthroat trout. 30 cm (12 in) or longer. any of the 1",
-  "DV": "Dolly Varden/bull trout. 75 cm (30 in) or longer. any of the 1"
+  "EB": "Brook trout. any size. counts toward the 1",
+  "GB": "Brown trout. any size. counts toward the 1",
+  "LT": "Lake trout. any size. counts toward the 1",
+  "RB": "Rainbow trout. any size. counts toward the 1",
+  "CT": "Cutthroat trout. 30 cm (12 in) or longer. counts toward the 1",
+  "DV": "Dolly Varden/bull trout. 75 cm (30 in) or longer. counts toward the 1"
  },
  "kootenay-main-nov15": {
-  "EB": "Brook trout. any of the 5",
-  "GB": "Brown trout. any of the 5",
-  "CT": "Cutthroat trout. only 1 over 50 cm (20 in). any of the 5",
-  "LT": "Lake trout. any of the 5",
-  "DV": "Dolly Varden/bull trout. only 1. any of the 5",
-  "RB": "Rainbow trout. any of the 10"
+  "EB": "Brook trout. counts toward the 5",
+  "GB": "Brown trout. counts toward the 5",
+  "CT": "Cutthroat trout. only 1 over 50 cm (20 in). counts toward the 5",
+  "LT": "Lake trout. counts toward the 5",
+  "DV": "Dolly Varden/bull trout. only 1. counts toward the 5",
+  "RB": "Rainbow trout. counts toward the 10"
  },
  "glenn-jul15": {
   "EB": "Brook trout. only 2 of these 4",
   "GB": "Brown trout. only 2 of these 4",
   "CT": "Cutthroat trout. only 1 over 50 cm (20 in). only 2 of these 4",
   "LT": "Lake trout. only 2 of these 4",
-  "RB": "Rainbow trout. any of the 5",
+  "RB": "Rainbow trout. counts toward the 5",
   "DV": "Dolly Varden/bull trout"
  },
  "madden-jul15": {
@@ -311,23 +311,23 @@
   "CT": "Cutthroat trout. only 1 over 50 cm (20 in). only 2 of these 4",
   "LT": "Lake trout. only 2 of these 4",
   "DV": "Dolly Varden/bull trout. only 2",
-  "RB": "Rainbow trout. any of the 5"
+  "RB": "Rainbow trout. counts toward the 5"
  },
  "kaslo-jul15": {
-  "DV": "Dolly Varden/bull trout. any of the 2",
-  "EB": "Brook trout. any of the 2",
-  "GB": "Brown trout. any of the 2",
-  "CT": "Cutthroat trout. only 1 over 50 cm (20 in), counting any rainbow trout you keep. any of the 2",
-  "LT": "Lake trout. any of the 2",
-  "RB": "Rainbow trout. only 1 over 50 cm (20 in), counting any cutthroat trout you keep. any of the 2"
+  "DV": "Dolly Varden/bull trout. counts toward the 2",
+  "EB": "Brook trout. counts toward the 2",
+  "GB": "Brown trout. counts toward the 2",
+  "CT": "Cutthroat trout. only 1 over 50 cm (20 in), counting any rainbow trout you keep. counts toward the 2",
+  "LT": "Lake trout. counts toward the 2",
+  "RB": "Rainbow trout. only 1 over 50 cm (20 in), counting any cutthroat trout you keep. counts toward the 2"
  },
  "keen-jul15": {
-  "DV": "Dolly Varden/bull trout. any of the 2",
-  "EB": "Brook trout. any of the 2",
-  "GB": "Brown trout. any of the 2",
-  "CT": "Cutthroat trout. only 1 over 50 cm (20 in), counting any rainbow trout you keep. any of the 2",
-  "LT": "Lake trout. any of the 2",
-  "RB": "Rainbow trout. only 1 over 50 cm (20 in), counting any cutthroat trout you keep. any of the 2"
+  "DV": "Dolly Varden/bull trout. counts toward the 2",
+  "EB": "Brook trout. counts toward the 2",
+  "GB": "Brown trout. counts toward the 2",
+  "CT": "Cutthroat trout. only 1 over 50 cm (20 in), counting any rainbow trout you keep. counts toward the 2",
+  "LT": "Lake trout. counts toward the 2",
+  "RB": "Rainbow trout. only 1 over 50 cm (20 in), counting any cutthroat trout you keep. counts toward the 2"
  },
  "vedder-jul15": {
   "EB": "Brook trout. 30 cm (12 in) or longer. only 2 of these 6. until May 31, then closed to all fishing",
@@ -336,30 +336,30 @@
   "DV": "Dolly Varden/bull trout. 60 cm (24 in) or longer. uses the 1 over 50 cm (20 in). only 1, counting any lake trout you keep. only 2 of these 6. until May 31, then closed to all fishing",
   "LT": "Lake trout. 60 cm (24 in) or longer. uses the 1 over 50 cm (20 in). only 1, counting any Dolly Varden/bull trout you keep. only 2 of these 6. until May 31, then closed to all fishing",
   "ST": "Steelhead. a rainbow over 50 cm (20 in). after keeping 2, stop fishing this river today. Steelhead are known to be in this water. only 2 of these 6. until May 31, then closed to all fishing",
-  "RB": "Rainbow trout. any length, 50 cm (20 in) or less. any of the 4. until Apr 30, then release"
+  "RB": "Rainbow trout. any length, 50 cm (20 in) or less. counts toward the 4. until Apr 30, then release"
  },
  "ross-lake-jul15": {
   "LT": "Lake trout. 60 cm (24 in) or longer. uses the 1 over 50 cm (20 in). only 1",
   "GB": "Brown trout. 40 cm (16 in) or longer. only 1 of these 3",
   "CT": "Cutthroat trout. 40 cm (16 in) or longer. only 1 of these 3",
   "RB": "Rainbow trout. 40 cm (16 in) or longer. only 1 of these 3",
-  "EB": "Brook trout. any of the 5",
+  "EB": "Brook trout. counts toward the 5",
   "DV": "Dolly Varden/bull trout"
  },
  "kitimat-jul15": {
   "ST": "Steelhead. Hatchery only. a rainbow over 50 cm (20 in). after keeping 2, stop fishing this river today. Steelhead are known to be in this water. only 2. until Oct 31, then release",
-  "EB": "Brook trout. 30 cm (12 in) or longer. any of the 5",
+  "EB": "Brook trout. 30 cm (12 in) or longer. counts toward the 5",
   "GB": "Brown trout. 30 cm (12 in) or longer. only 1 of these 3. until Oct 31, then release",
   "CT": "Cutthroat trout. 30 cm (12 in) or longer. only 1 of these 3. until Oct 31, then release",
   "RB/wild": "Rainbow trout. wild. 30 cm (12 in) or longer. only 1 of these 3. until Oct 31, then release",
-  "RB/hatchery": "Rainbow trout. hatchery. any of the 5",
+  "RB/hatchery": "Rainbow trout. hatchery. counts toward the 5",
   "LT": "Lake trout. 30 cm (12 in) or longer. only 3",
   "DV": "Dolly Varden/bull trout"
  },
  "kitimat-nov01": {
-  "EB": "Brook trout. 30 cm (12 in) or longer. any of the 5",
+  "EB": "Brook trout. 30 cm (12 in) or longer. counts toward the 5",
   "LT": "Lake trout. 30 cm (12 in) or longer. only 3",
-  "RB": "Rainbow trout. Hatchery only. any length, 50 cm (20 in) or less. any of the 5. rule changes Jul 1",
+  "RB": "Rainbow trout. Hatchery only. any length, 50 cm (20 in) or less. counts toward the 5. rule changes Jul 1",
   "ST": "Steelhead. Steelhead are known to be in this water. until May 14, then closed for steelhead",
   "CT": "Cutthroat trout. until Jun 30",
   "GB": "Brown trout. until Jun 30",
@@ -367,54 +367,54 @@
  },
  "humphrys-jul15": {
   "ST": "Steelhead. Hatchery only. a rainbow over 50 cm (20 in). after keeping 2, stop fishing this water today. Steelhead are known to be in this water. only 2. until Oct 31, then release",
-  "EB": "Brook trout. 30 cm (12 in) or longer. any of the 5. until Mar 15, then closed to all fishing",
+  "EB": "Brook trout. 30 cm (12 in) or longer. counts toward the 5. until Mar 15, then closed to all fishing",
   "GB": "Brown trout. 30 cm (12 in) or longer. only 1 of these 3. until Oct 31, then release",
   "CT": "Cutthroat trout. 30 cm (12 in) or longer. only 1 of these 3. until Oct 31, then release",
   "RB/wild": "Rainbow trout. wild. 30 cm (12 in) or longer. only 1 of these 3. until Oct 31, then release",
-  "RB/hatchery": "Rainbow trout. hatchery. any of the 5. until Mar 15, then closed to all fishing",
+  "RB/hatchery": "Rainbow trout. hatchery. counts toward the 5. until Mar 15, then closed to all fishing",
   "LT": "Lake trout. 30 cm (12 in) or longer. only 3. until Mar 15, then closed to all fishing",
   "DV": "Dolly Varden/bull trout. until Mar 15, then closed to all fishing"
  },
  "humphrys-nov01": {
-  "EB": "Brook trout. 30 cm (12 in) or longer. any of the 5",
+  "EB": "Brook trout. 30 cm (12 in) or longer. counts toward the 5",
   "LT": "Lake trout. 30 cm (12 in) or longer. only 3",
-  "RB": "Rainbow trout. Hatchery only. any length, 50 cm (20 in) or less. any of the 5",
+  "RB": "Rainbow trout. Hatchery only. any length, 50 cm (20 in) or less. counts toward the 5",
   "ST": "Steelhead. Steelhead are known to be in this water.",
   "CT": "Cutthroat trout",
   "GB": "Brown trout",
   "DV": "Dolly Varden/bull trout"
  },
  "ruby-jul15": {
-  "EB": "Brook trout. any of the 4",
-  "GB": "Brown trout. any of the 4",
-  "CT/hatchery": "Cutthroat trout. hatchery. any of the 4",
-  "CT/wild": "Cutthroat trout. wild. under 40 cm (16 in). only 2 wild. any of the 4",
-  "RB": "Rainbow trout. any of the 4",
+  "EB": "Brook trout. counts toward the 4",
+  "GB": "Brown trout. counts toward the 4",
+  "CT/hatchery": "Cutthroat trout. hatchery. counts toward the 4",
+  "CT/wild": "Cutthroat trout. wild. under 40 cm (16 in). only 2 wild. counts toward the 4",
+  "RB": "Rainbow trout. counts toward the 4",
   "DV": "Dolly Varden/bull trout. 60 cm (24 in) or longer. uses the 1 over 50 cm (20 in). only 1 of these 2",
   "LT": "Lake trout. 60 cm (24 in) or longer. uses the 1 over 50 cm (20 in). only 1 of these 2"
  },
  "cultus-jul15": {
   "DV": "Dolly Varden/bull trout. 60 cm (24 in) or longer. uses the 1 over 50 cm (20 in). only 1 of these 2",
   "LT": "Lake trout. 60 cm (24 in) or longer. uses the 1 over 50 cm (20 in). only 1 of these 2",
-  "EB": "Brook trout. any of the 4",
-  "GB/hatchery": "Brown trout. hatchery. any of the 4",
-  "GB/wild": "Brown trout. wild. 50 cm (20 in) or less. only 4 wild. any of the 4",
-  "CT/hatchery": "Cutthroat trout. hatchery. any of the 4",
-  "CT/wild": "Cutthroat trout. wild. 50 cm (20 in) or less. only 4 wild. any of the 4",
-  "RB/hatchery": "Rainbow trout. hatchery. any of the 4",
-  "RB/wild": "Rainbow trout. wild. 50 cm (20 in) or less. only 4 wild. any of the 4"
+  "EB": "Brook trout. counts toward the 4",
+  "GB/hatchery": "Brown trout. hatchery. counts toward the 4",
+  "GB/wild": "Brown trout. wild. 50 cm (20 in) or less. only 4 wild. counts toward the 4",
+  "CT/hatchery": "Cutthroat trout. hatchery. counts toward the 4",
+  "CT/wild": "Cutthroat trout. wild. 50 cm (20 in) or less. only 4 wild. counts toward the 4",
+  "RB/hatchery": "Rainbow trout. hatchery. counts toward the 4",
+  "RB/wild": "Rainbow trout. wild. 50 cm (20 in) or less. only 4 wild. counts toward the 4"
  },
  "bella-coola-mar15": {
-  "EB": "Brook trout. 25 cm (10 in) or longer. any of the 1. rule changes Apr 1",
-  "GB": "Brown trout. 25 cm (10 in) or longer. any of the 1. rule changes Apr 1",
-  "DV": "Dolly Varden/bull trout. 25 cm (10 in) or longer. any of the 1. rule changes Apr 1",
-  "LT": "Lake trout. 25 cm (10 in) or longer. any of the 1. rule changes Apr 1",
+  "EB": "Brook trout. 25 cm (10 in) or longer. counts toward the 1. rule changes Apr 1",
+  "GB": "Brown trout. 25 cm (10 in) or longer. counts toward the 1. rule changes Apr 1",
+  "DV": "Dolly Varden/bull trout. 25 cm (10 in) or longer. counts toward the 1. rule changes Apr 1",
+  "LT": "Lake trout. 25 cm (10 in) or longer. counts toward the 1. rule changes Apr 1",
   "CT": "Cutthroat trout. catch and release. only 0. until Mar 31, then 33 cm (13 in) or less",
-  "RB": "Rainbow trout. 25–50 cm (10–20 in). any of the 1. rule changes Apr 1",
+  "RB": "Rainbow trout. 25–50 cm (10–20 in). counts toward the 1. rule changes Apr 1",
   "ST": "Steelhead. Steelhead are known to be in this water."
  },
  "andi-jul15": {
-  "EB": "Brook trout. 30 cm (12 in) or longer. any of the 5. until Dec 31, then closed to all fishing",
+  "EB": "Brook trout. 30 cm (12 in) or longer. counts toward the 5. until Dec 31, then closed to all fishing",
   "LT": "Lake trout. 30 cm (12 in) or longer. only 3. until Sep 14, then release",
   "GB": "Brown trout. 30 cm (12 in) or longer. only 1 of these 4. until Oct 31, then release",
   "CT": "Cutthroat trout. 30 cm (12 in) or longer. only 1 of these 4. until Oct 31, then release",
@@ -423,26 +423,26 @@
   "DV": "Dolly Varden/bull trout. until Dec 31, then closed to all fishing"
  },
  "denetiah-jun30": {
-  "DV": "Dolly Varden/bull trout. 30–50 cm (12–20 in). only 1. any of the 2",
-  "EB": "Brook trout. any of the 2",
-  "GB": "Brown trout. any of the 2",
-  "CT": "Cutthroat trout. any of the 2",
-  "RB": "Rainbow trout. any of the 2",
-  "LT": "Lake trout. 30 cm (12 in) or longer. in your possession: 1 day’s limit, not 2. any of the 2"
+  "DV": "Dolly Varden/bull trout. 30–50 cm (12–20 in). only 1. counts toward the 2",
+  "EB": "Brook trout. counts toward the 2",
+  "GB": "Brown trout. counts toward the 2",
+  "CT": "Cutthroat trout. counts toward the 2",
+  "RB": "Rainbow trout. counts toward the 2",
+  "LT": "Lake trout. 30 cm (12 in) or longer. in your possession: 1 day’s limit, not 2. counts toward the 2"
  },
  "shuswap-jul15": {
   "EB": "Brook trout. 60 cm (24 in) or longer. uses the 1 over 50 cm (20 in). only 1 of these 4",
   "DV": "Dolly Varden/bull trout. 60 cm (24 in) or longer. uses the 1 over 50 cm (20 in). only 1 of these 4",
   "LT": "Lake trout. 60 cm (24 in) or longer. uses the 1 over 50 cm (20 in). only 1 of these 4. until Oct 14, then release",
   "RB": "Rainbow trout. 50 cm (20 in) or longer. uses the 1 over 50 cm (20 in). only 1 of these 4",
-  "GB": "Brown trout. any of the 5",
-  "CT": "Cutthroat trout. any of the 5"
+  "GB": "Brown trout. counts toward the 5",
+  "CT": "Cutthroat trout. counts toward the 5"
  },
  "bruer-jul15": {
-  "GB": "Brown trout. any of the 4",
-  "CT": "Cutthroat trout. any of the 4",
-  "LT": "Lake trout. any of the 4",
-  "EB": "Brook trout. any of the 20",
+  "GB": "Brown trout. counts toward the 4",
+  "CT": "Cutthroat trout. counts toward the 4",
+  "LT": "Lake trout. counts toward the 4",
+  "EB": "Brook trout. counts toward the 20",
   "RB": "Rainbow trout",
   "DV": "Dolly Varden/bull trout"
  },
@@ -452,7 +452,7 @@
   "CT": "Cutthroat trout. only 1 over 50 cm (20 in). only 2 of these 4. until Oct 31, then release",
   "LT": "Lake trout. only 2 of these 4. until Oct 31, then release",
   "DV": "Dolly Varden/bull trout. only 2",
-  "RB": "Rainbow trout. any of the 5. until Oct 31, then release"
+  "RB": "Rainbow trout. counts toward the 5. until Oct 31, then release"
  },
  "burnt-jan15": {
   "RB": "Rainbow trout",
@@ -463,10 +463,10 @@
   "EB": "Brook trout"
  },
  "nahwitti-jul15": {
-  "GB": "Brown trout. any of the 2",
-  "CT": "Cutthroat trout. any of the 2",
-  "ST": "Steelhead. a rainbow over 50 cm (20 in). Steelhead are known to be in this water. any of the 2",
-  "RB": "Rainbow trout. 50 cm (20 in) or less. any of the 2",
+  "GB": "Brown trout. counts toward the 2",
+  "CT": "Cutthroat trout. counts toward the 2",
+  "ST": "Steelhead. a rainbow over 50 cm (20 in). Steelhead are known to be in this water. counts toward the 2",
+  "RB": "Rainbow trout. 50 cm (20 in) or less. counts toward the 2",
   "DV": "Dolly Varden/bull trout",
   "LT": "Lake trout",
   "EB": "Brook trout"

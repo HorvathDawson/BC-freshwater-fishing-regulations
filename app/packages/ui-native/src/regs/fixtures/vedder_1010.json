@@ -462,7 +462,7 @@
        "date": null,
        "from": 6,
        "kind": "upto",
-       "text": "any of the 4",
+       "text": "counts toward the 4",
        "to": 6
       }
      ],
@@ -848,7 +848,7 @@
        "sub": "a rainbow over 50 cm (20 in)"
       },
       {
-       "a11y": "Rainbow trout. any length, 50 cm (20 in) or less. any of the 4. until Apr 30, then release",
+       "a11y": "Rainbow trout. any length, 50 cm (20 in) or less. counts toward the 4. until Apr 30, then release",
        "coming": [
         "From May 1 every one goes back."
        ],
@@ -904,6 +904,8 @@
     1
    ],
    "elsewhere": [
+    "Your own limit, counted across every Region 2 stream you fish.",
+    "This river’s rule: 4 a day here. Rainbow trout you kept anywhere else count toward those 4. They also count toward Region 2’s 4 trout and char a day.",
     "Kept 1 at a lake? Keep 3 more here. Fish from lakes count toward the 4 a day, not toward the 2 from streams.",
     "Kept trout or char over 50 cm (20 in) elsewhere? It counts here too: at most 2 over 50 cm (20 in) a day in all — only 1 of them may be anything other than a hatchery steelhead."
    ],
@@ -2034,13 +2036,6 @@
        "says": [],
        "tag": null
       },
-      "pinLine": {
-       "cls": "g",
-       "n": 15,
-       "said": [],
-       "sub": null,
-       "text": "Whitefish · 15 a day"
-      },
       "row": 3,
       "scope": "Region 2-wide",
       "title": "Whitefish",
@@ -2194,13 +2189,6 @@
        "howtell": false,
        "says": [],
        "tag": null
-      },
-      "pinLine": {
-       "cls": "g",
-       "n": 20,
-       "said": [],
-       "sub": null,
-       "text": "Bass · 20 a day"
       },
       "row": 4,
       "scope": "Region 2-wide",
