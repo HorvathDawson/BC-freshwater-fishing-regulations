@@ -59,6 +59,7 @@ BLOB_COLUMNS = {
     "rows_decided": "j", "rows_row": "j", "rows_frame": "j",
     "gear_frame": "j",
     "licence_hold": "j", "licence_answer": "j", "licence_doc": "j", "licence_frame": "j", "licence_u16": "j",
+    "licence_alien": "j",                                       # T789 G8
     "display_frame": "j", "display_rule": "j",
     # T810 ticket I: the trout section's tables (OPTIONAL: present only in a store of a `--trout-table` answers file)
     "trout_frame": "j", "trout_table": "j", "trout_dates": "j", "trout_sheet": "j",

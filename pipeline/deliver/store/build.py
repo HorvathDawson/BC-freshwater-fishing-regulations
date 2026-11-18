@@ -44,6 +44,7 @@ FAMILIES = {("ladder", "verdicts"): "ladder_verdict", ("ladder", "frames"): "lad
             ("licence", "holds"): "licence_hold", ("licence", "answers"): "licence_answer",
             ("licence", "documents"): "licence_doc", ("licence", "frames"): "licence_frame",
             ("licence", "under_16"): "licence_u16",                     # ROUND15 2
+            ("licence", "alien_weekend"): "licence_alien",              # T789 G8
             ("display", "frames"): "display_frame", ("display", "rules"): "display_rule",
             # T810 ticket I (contract 2.1): the trout section's four interned tables (`encode.TroutCodec`)
             ("trout", "frames"): "trout_frame", ("trout", "tables"): "trout_table", ("trout", "dates"): "trout_dates",

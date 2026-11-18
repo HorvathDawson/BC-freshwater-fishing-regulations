@@ -2,9 +2,12 @@
 // The answers/2 frames (pipeline/deliver/answers/model/), from their JSON Schema.
 
 export type Accompanied = { "holding": string; "who": Record<string, unknown> };
+export type AlienWater = { "name": string; "key": string };
+export type AlienWeekend = { "says": string; "waters": readonly (AlienWater)[] };
+export type Allowance = { "says": string; "by": readonly ([number, number])[] };
 export type AlsoCounts = { "tier": null | string; "by": null | number; "n": number; "over_cm": number; "then": readonly (TreeThen)[]; "species": readonly (string)[]; "says": string };
 export type Badge = { "of": "water" | "area" | "region" | "bc"; "entry": null | string; "share": boolean; "apart": boolean; "narrow_all": boolean; "both"?: null | string };
-export type BaitPick = { "element": "worms" | "roe" | "invertebrate" | "fin_fish"; "ok": boolean; "by": [number, number] | null; "why"?: null | string; "carry_kg"?: null | number; "also_allowed"?: null | readonly (Circumstance)[]; "excepted_from"?: ExceptedFrom | null };
+export type BaitPick = { "element": "worms" | "roe" | "invertebrate" | "fin_fish"; "ok": boolean; "by": [number, number] | null; "why"?: null | string; "carry_kg"?: null | number; "also_allowed"?: null | readonly (Circumstance)[]; "allowances"?: null | readonly (Allowance)[]; "excepted_from"?: ExceptedFrom | null };
 export type Band = { "from": number; "to": number; "text": string; "kind": "upto" | "own" | "shared" | "possession" };
 export type BookBox = { "pdf": number; "box": [number, number, number, number]; "size": [number, number] };
 export type Box = { "kind": "keep" | "release" | "closed"; "head": string; "label": null | string; "strip": null | string; "possession": null | string; "tag": null | string; "rows": readonly (TRow)[]; "bands": readonly (Band)[] };
@@ -157,7 +160,7 @@ export type DisplayStripValue = readonly (StripState)[];
 export type DisplayWatersValue = Record<string, WaterFacts>;
 export type GearValue = GearAnswer | TidalState;
 export type GearCountNounsValue = Record<string, [string, string]>;
-export type LicenceValue = { "holds": Holds | TidalHolds; "profiles": readonly (ProfileAnswer | TidalProfile)[]; "under_16"?: null | readonly (UnderSixteen)[] };
+export type LicenceValue = { "holds": Holds | TidalHolds; "profiles": readonly (ProfileAnswer | TidalProfile)[]; "under_16"?: null | readonly (UnderSixteen)[]; "alien_weekend"?: AlienWeekend | null };
 export type RowsValue = { "spp": readonly (string)[]; "fish": Record<string, FishAnswer>; "rows": readonly (Row)[]; "steelhead_line": "possible_with_rules" | "known_with_rules" | "known_no_rules" | null };
 export type TopGlossaryValue = { "version": number; "terms": readonly (GlossaryTerm)[] };
 export type TopMomentsValue = readonly (Moment)[];

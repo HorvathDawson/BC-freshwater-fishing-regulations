@@ -35,13 +35,13 @@ from pipeline.deliver.answers.model.rows import (
     RowsFrame34, rows_frame_model,
 )
 from pipeline.deliver.answers.model.gear import (
-    Circumstance, CountPick, ElementPick, ExceptedFrom, BaitPick, Device, Way, Vessel, Overruled,
+    Circumstance, CountPick, ElementPick, ExceptedFrom, Allowance, BaitPick, Device, Way, Vessel, Overruled,
     SummaryPart, SummaryChange, GearSummary, GearAnswer, TidalState, GearFrame,
 )
 from pipeline.deliver.answers.model.licence import (
     Length, When, Prices, DocumentOr, DocumentNeed, Accompanied, Path_, RequirementPath, Exempt,
     PrintedRequirement, ProfileAnswer, TidalProfile, Holds, TidalHolds, WithAdult, BuyOr, BuyDoc,
-    UnderSixteen, LicenceFrame,
+    UnderSixteen, AlienWater, AlienWeekend, LicenceFrame,
 )
 from pipeline.deliver.answers.model.display import (
     InheritedLift, StatusFrame, StripState, ReasonWords, TidalStatus, DisplayFrame, SubsetSay, RuleFacts,
