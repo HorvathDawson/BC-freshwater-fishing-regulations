@@ -2707,3 +2707,12 @@ More questions (recommended answer first):
   about or simialr in more it shouldnt take over the entire page iot should be a card that overlays that pops up which you
   can click off to close maybe?" -> T859 (desktop web only: More's pages open as a centred card over the page; a click
   outside, Escape or ✕ closes it; phones unchanged). Lands with T858, right after 0.8.1, web only (no Play/TestFlight build).
+- 2026-11-18 ~16:55, owner (to the main chat, relayed to the app chat), verbatim: "where it says this (Questions, corrections
+  and ideas are welcome. ) with email we should have also the or send it through the app with the report and issue
+  pathway? just word it well" -> T860; wording proposed: "Questions, corrections and ideas are welcome. Email us, or send a
+  note from the app with Report a problem. A water's regulations have their own Report a problem link, which names the
+  water for you." (Report a problem is a link to the form.)
+- 2026-11-18 ~16:58, owner (to the main chat, relayed), verbatim: "these can be in 0.8.1 web version? since it doesnt change
+  app it shouldnt effect release of app?" -> yes: T858, T859 and T860 go out with the 0.8.1 WEB release. Order: the 0.8.1
+  phone build (Play internal + TestFlight) is cut first with its benches as they are; then T858/T859/T860 land; then the
+  staging site redeploys from that commit. Phones get T860's words at their next build.

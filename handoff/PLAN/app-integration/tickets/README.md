@@ -291,6 +291,7 @@ reads both files; a ticket closed here moves there once its lane is finished wit
 | T857 | Revisit the Rust port of MapLibre Native (mln-rs) for the phones once it has phone SDKs (owner; future) | OPEN — FUTURE | app chat | owner 2026-11-18 |
 | T858 | Web: keyboard navigation in lists, starting with search (↑/↓ move the highlight, Enter opens; owner) | OPEN | app chat | owner 2026-11-18 |
 | T859 | Desktop web: the More tab's pages (About, Help, Glossary…) open as a card over the page, click outside to close (owner) | OPEN | app chat | owner 2026-11-18 |
+| T860 | More → Contact names Report a problem beside the email (owner wording ask) | OPEN | app chat | owner 2026-11-18 |
 
 ## Next after closed testing
 
