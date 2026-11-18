@@ -7,7 +7,7 @@ import { useCallback, useContext, type MutableRefObject } from "react";
 import { Platform, View } from "react-native";
 import { openProbe } from "@app/data";
 import type { ReleaseLoader } from "@app/data/release";
-import { mapPointTap, routeWhere, spotsMenu, tapOpensWater, useCueLit, type PressCueStore, type TapAhead, type Locate, type MyLocation, type MapRail, type MenuControls, type RegsPrefetch,
+import { mapPointTap, tabsAsRail, useLayoutClass, routeWhere, spotsMenu, tapOpensWater, useCueLit, type PressCueStore, type TapAhead, type Locate, type MyLocation, type MapRail, type MenuControls, type RegsPrefetch,
          mapError, InSeasonContext, type HeldLookStore, type SpotPhotos, type SyncState } from "@app/ui";
 import type { Spot } from "@app/data/spots";
 import type { Camera, MapSpots, TileEndpoints } from "@app/map";
@@ -85,6 +85,7 @@ export function BrowseHost({ nav, col, search, rail, palette, theme, themeName, 
   const { flowParam, mm, layers, imagery, cond, gauges, lakeFeed, salmonFeed, methodFeed, issueFeed, mapStatus, noteVisible, setZoomedOut,
           horizonChipsShown, pickDay, vintage } = col;
   const { searching, session, arrive, wideSearch, closeSearch } = search;
+  const layoutClass = useLayoutClass();
   /**
    * Tapping a map. A tile carries a `section_id`, and a section is not something a person asked about — they tapped a
    * river. `opener.tap` resolves it to the water and opens the water screen (`@app/ui` openWater.ts): with Regulations
@@ -158,7 +159,8 @@ export function BrowseHost({ nav, col, search, rail, palette, theme, themeName, 
     // (T367) the Runs tab's species moved into its bar at the foot (`RunsLegend`), with the rest of run timing
     : undefined;
 
-  const railExtra = regsDrawn && col.salmonOffered
+  // (T856) on a desktop-width window the switch is in the left nav rail (Shell), so not also here
+  const railExtra = regsDrawn && col.salmonOffered && !tabsAsRail(layoutClass)
     ? <RegsLayerToggle col={col} palette={palette} fishImages={fishImages} look={look} /> : undefined;
 
   return tab === "spots"

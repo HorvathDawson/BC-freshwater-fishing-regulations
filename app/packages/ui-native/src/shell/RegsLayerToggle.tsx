@@ -27,7 +27,18 @@ import { usePainting, type HeldLookStore } from "@app/ui";
 const SIZE = 44;
 const HIT = hitProps({ w: SIZE, h: SIZE });
 
-export function RegsLayerToggle({ col, palette, fishImages, look }: {
+/**
+ * (T856) WHERE THE SWITCH IS DRAWN, one rule for both homes: only on the Map tab, the day's regulations drawn and the
+ * Salmon file offered, search not over it. On a desktop-width window it is in the left rail under the Map button
+ * (`NavRail`'s `mapExtra`); anywhere narrower it is on the map's right rail (`MapRail` children). Never both.
+ */
+export function regsToggleShown(a: { tab: string; searching: boolean; col: Pick<MapColouring, "statusOk" | "layers" | "salmonOffered"> }): boolean {
+  return a.tab === "map" && !a.searching && a.col.statusOk && a.col.layers.water.drawn === "regulations" && !!a.col.salmonOffered;
+}
+
+export function RegsLayerToggle({ col, palette, fishImages, look, inRail = false }: {
+  /** (T856) in the desktop nav rail: centred under the Map button, no lift (the rail is the card) */
+  inRail?: boolean;
   col: Pick<MapColouring, "regsLayer" | "setRegsLayer"> & Partial<Pick<MapColouring, "salmonLoading" | "salmonOffered">>;
   palette: Palette; fishImages?: FishImages;
   /** (T566) the key held until the map draws the chosen colouring (`HeldLookStore`): meanwhile the chosen one is busy */
@@ -40,8 +51,8 @@ export function RegsLayerToggle({ col, palette, fishImages, look }: {
   const keys = (["standard", "salmon"] as const).filter((k) => k === "standard" || col.salmonOffered !== false);
   return (
     <View ref={target} collapsable={false} testID="regs-paint" accessibilityLabel={W.label} accessibilityRole="radiogroup"
-          style={{ backgroundColor: palette.card, borderWidth: 1, borderColor: palette.line2, borderRadius: palette.r.box,
-                   overflow: "hidden", ...palette.lift }}>
+          style={{ backgroundColor: palette.card, borderWidth: 1, borderColor: palette.line2, borderRadius: inRail ? 0 : palette.r.box,
+                   overflow: "hidden", ...(inRail ? { alignSelf: "center" as const, marginVertical: 8 } : palette.lift) }}>
       {keys.map((k, i) => {
         const on = col.regsLayer === k;
         const busy = (k === "salmon" && col.salmonLoading === true) || (on && painting);

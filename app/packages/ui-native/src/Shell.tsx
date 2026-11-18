@@ -49,6 +49,7 @@ import { WaterViewsContext } from "./ViewSwipe";
 import { SharePortContext } from "./SharePortContext";
 import { MenuContext } from "./menu/MenuContext";
 import { BrowseHost } from "./shell/BrowseHost";
+import { RegsLayerToggle, regsToggleShown } from "./shell/RegsLayerToggle";
 import { GaugeOnlyKey, MapLegend, PairBanner, RunsKey, RunsLegend } from "./shell/MapLegend";
 import { HeldKey } from "./shell/HeldKey";
 import { NetBanner } from "./NetBanner";
@@ -641,7 +642,9 @@ export function Shell(p: ShellProps) {
       </>
     ),
     tabs: bottomBarShown(route)
-      ? (tabsRail ? <NavRail active={tab} palette={palette} onChange={nav.toTab} />
+      ? (tabsRail ? <NavRail active={tab} palette={palette} onChange={nav.toTab}
+                       mapExtra={regsToggleShown({ tab, searching, col: look.col })
+                         ? <RegsLayerToggle inRail col={look.col} palette={palette} fishImages={p.fishImages} look={lookStore as HeldLookStore<unknown>} /> : undefined} />
                   : <TabBar active={tab} palette={palette} onChange={nav.toTab} />)
       : null,
   };
