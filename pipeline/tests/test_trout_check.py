@@ -319,9 +319,11 @@ def _shared_band(side):
     def change(c):
         b = next(b for b in c["table"]["boxes"] if b["kind"] == "keep" and
                  [x["kind"] for x in b["bands"][:2]] == ["upto", "upto"])
-        b["bands"] = [{"from": 0, "to": 1, "text": W.band_shared(1, 2), "kind": "shared"}, *b["bands"][2:]]
+        n = W.parse_head(b["head"])[1]
+        text = W.band_in(n, W.band_shared(1, 2)) if len(b["rows"]) > 2 else W.band_shared(1, 2)   # (R3: names the box)
+        b["bands"] = [{"from": 0, "to": 1, "text": text, "kind": "shared"}, *b["bands"][2:]]
         for r in b["rows"][:2]:
-            r["sheet"]["head"] = W.sheet_keep(W.band_shared(1, 2), W.parse_head(b["head"])[1])
+            r["sheet"]["head"] = W.sheet_keep(text, n)
     return _mutated(side, lambda c: any(b["kind"] == "keep" and [x["kind"] for x in b["bands"][:2]] == ["upto", "upto"]
                                         for b in c["table"]["boxes"]), change)
 

@@ -198,7 +198,7 @@ def test_q2_a_raised_boxs_first_number_is_any_of(fx, monkeypatch):
     """Canuck Lake (Region 4, T834): "Keep 5, brook trout up to 20": the other fish each "counts toward the 5"."""
     fr = fx.table("canuck-lake-jul15")
     b = _box(fr)
-    assert b["head"] == "Keep 5, brook trout up to 20"
+    assert b["head"] == "Keep 5 in all, or 20 if they’re brook trout"
     for i, r in enumerate(b["rows"]):
         x = next(y for y in b["bands"] if y["from"] <= i <= y["to"])
         # (owner 01:22, R2) a row's own cap in its band: the Dolly Varden's "counts toward the 5 · only 1"

@@ -566,8 +566,8 @@ EXPECTED.update({
     'khartoum-jul15': (
         'top: Keep 4 trout and char {day}\n'
         'sub: or 6 if they’re rainbow trout or steelhead\n'
-        'fold: Up to 4 or 6 (keep)\n'
-        '[Keep 4, rainbow trout or steelhead up to 6 · only 1 over 50 cm (20 in), not counting rainbow trout or steelhead; only 2 wild, each under 40 cm (16 in)]\n'
+        'fold: 4 or 6 a day (keep)\n'
+        '[Keep 4 in all, or 6 if they’re rainbow trout or steelhead · only 1 over 50 cm (20 in), not counting rainbow trout or steelhead; only 2 wild, each under 40 cm (16 in)]\n'
         '  Brook trout: under 40 cm (16 in) if wild  <counts toward the 4>\n'
         '  Brown trout: under 40 cm (16 in) if wild  <counts toward the 4>\n'
         '  Cutthroat trout: under 40 cm (16 in) if wild  <counts toward the 4>\n'
@@ -579,8 +579,8 @@ EXPECTED.update({
     'kootenay-main-nov15': (
         'top: Keep 5 trout and char {day}\n'
         'sub: or 10 if they’re rainbow trout\n'
-        'fold: Up to 5 or 10 (keep)\n'
-        '[Keep 5, rainbow trout up to 10]\n'
+        'fold: 5 or 10 a day (keep)\n'
+        '[Keep 5 in all, or 10 if they’re rainbow trout]\n'
         '  Brook trout:   <counts toward the 5>\n'
         '  Brown trout:   <counts toward the 5>\n'
         '  Cutthroat trout: only 1 over 50 cm (20 in)  <counts toward the 5>\n'
@@ -591,8 +591,8 @@ EXPECTED.update({
     'lois-jul15': (
         'top: Keep 4 trout and char {day}\n'
         'sub: or 6 if they’re rainbow trout or steelhead\n'
-        'fold: Up to 4 or 6 (keep)\n'
-        '[Keep 4, rainbow trout or steelhead up to 6 · only 1 over 50 cm (20 in), not counting rainbow trout or steelhead; only 2 wild, each under 40 cm (16 in)]\n'
+        'fold: 4 or 6 a day (keep)\n'
+        '[Keep 4 in all, or 6 if they’re rainbow trout or steelhead · only 1 over 50 cm (20 in), not counting rainbow trout or steelhead; only 2 wild, each under 40 cm (16 in)]\n'
         '  Brook trout: under 40 cm (16 in) if wild  <counts toward the 4>\n'
         '  Brown trout: under 40 cm (16 in) if wild  <counts toward the 4>\n'
         '  Cutthroat trout: under 40 cm (16 in) if wild  <counts toward the 4>\n'
@@ -666,7 +666,7 @@ EXPECTED.update({
     'vedder-jul15': (
         'top: Keep 2 trout and char {day}\n'
         'sub: or 4 if they’re hatchery rainbow trout 50 cm (20 in) or less\n'
-        'fold: Up to 2 or 4 (keep)\n'
+        'fold: 2 or 4 a day (keep)\n'
         'card: Until May 31, then closed to all fishing\n'
         '[Keep 4 in all · HATCHERY ONLY · only 1 over 50 cm (20 in), 2 if one is a hatchery steelhead]\n'
         '  Brook trout: 30 cm (12 in) or longer  <2 total from these 6>\n'

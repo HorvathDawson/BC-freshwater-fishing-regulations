@@ -199,7 +199,7 @@ def test_every_now_form_whole_and_read_back(got, whole, parse, back):
 def test_the_other_now_words_whole():
     assert W.fold_up_to(2) == "2 a day"                    # owner 23:35: the Other fish rows' form
     assert W.parse_fold("2 a day") == ("up_to", (2,))
-    assert W.fold_up_to(2, [5]) == "Up to 2 or 5"           # two numbers: no Other fish form yet (asked)
+    assert W.fold_up_to(2, [5]) == "2 or 5 a day"           # two numbers, the Other fish form (owner 2026-11-18)
     assert W.fold_apart([(6, W.short_fish("RB"))], 4) == "Up to 6 rainbow, 4 others"
     assert W.tag_of("This lake’s rule") == "Lake’s rule"
     assert W.strip_wild(2, "40 cm (16 in) or less") == "only 2 wild, each 40 cm (16 in) or less"

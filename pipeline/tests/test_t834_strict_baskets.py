@@ -237,7 +237,7 @@ def _tables(item, md, monkeypatch=None, **flags):
 def test_jewel_lake_is_one_box_5_or_20_if_brook_trout(built, monkeypatch):
     (tb,) = _tables(JEWEL, JUL15)
     assert tb["top"]["lead"] == "Up to 5 {day}, or 20 if they’re brook trout"
-    assert [b["head"] for b in tb["boxes"] if b["kind"] == "keep"] == ["Keep 5, brook trout up to 20"]
+    assert [b["head"] for b in tb["boxes"] if b["kind"] == "keep"] == ["Keep 5 in all, or 20 if they’re brook trout"]
     # MUTATION: two boxes that read as 25
     (tb,) = _tables(JEWEL, JUL15, monkeypatch, A_RAISED_TOTAL_IS_ONE_BOX=False)
     assert [b["kind"] for b in tb["boxes"]].count("keep") == 2
@@ -267,7 +267,7 @@ def test_the_box_head_leads_with_the_regions_number(built, monkeypatch):
 def test_the_excepted_head_reads_back():
     from pipeline.deliver.answers.trout import words as W
     h = W.head_keep_except(5, W.fish_words(["EB"]), 20)
-    assert h == "Keep 5, brook trout up to 20"
+    assert h == "Keep 5 in all, or 20 if they’re brook trout"
     assert W.parse_head(h) == ("keep", 20) and W.parse_head_except(h) == (5, ("EB",), 20)
     assert W.parse_head_except("Keep 5 in all") is None
 

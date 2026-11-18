@@ -474,7 +474,10 @@ def fold_up_to(n, alsos=()) -> str:
     — the Other fish rows have no two-number form (asked of the owner, not invented)."""
     if not alsos:
         return f"{_n(n)} a day"
-    return "Up to " + " or ".join(_n(k) for k in [n, *alsos])
+    # (owner 2026-11-18, "Make it match other rows in table", the app chat's finals) two numbers the same way: "2 or 4 a
+    # day" (the Vedder), "4 or 6 a day" (Lois)
+    ns = [_n(k) for k in [n, *alsos]]
+    return (", ".join(ns[:-1]) + " or " + ns[-1]) + " a day"
 
 
 def fold_apart(named, others_n: Optional[float]) -> str:
@@ -492,8 +495,9 @@ def head_keep(n) -> str:
 
 def head_keep_except(n, fish: str, most) -> str:
     """T834 (owner 13:15, "lead with 5"): a box whose region cap a water's own quota raised leads with the region's
-    number and names the exception: "Keep 5, brook trout up to 20" — never "Keep 20 in all"."""
-    return f"Keep {_n(n)}, {fish} up to {_n(most)}"
+    number and names the exception, as the top line does (owner 2026-11-18, "up to 2 what"): "Keep 5 in all, or 20 if
+    they’re brook trout" — never "Keep 20 in all" (and no longer "Keep 5, brook trout up to 20")."""
+    return f"Keep {_n(n)} in all, or {_n(most)} if they’re {fish}"
 
 
 def tag_of(whose: str) -> str:
@@ -1035,11 +1039,11 @@ def parse_head(text: str) -> Tuple[str, Optional[float]]:
 
 
 def parse_head_except(text: str) -> Optional[Tuple[float, Tuple[str, ...], float]]:
-    """"Keep 5, brook trout up to 20" -> (5, the excepted fish, 20); None for any other head."""
-    m = re.fullmatch(rf"Keep {_NUM}, (.+) up to {_NUM}", text or "")
+    """"Keep 5 in all, or 20 if they’re brook trout" -> (5, the excepted fish, 20); None for any other head."""
+    m = re.fullmatch(rf"Keep {_NUM} in all, or {_NUM} if they’re (.+)", text or "")
     if not m:
         return None
-    return _num(m[1]), parse_fish(m[2]), _num(m[3])
+    return _num(m[1]), parse_fish(m[3]), _num(m[2])
 
 
 def parse_strip_size(text: str) -> Tuple[float, float, Optional[float]]:
@@ -1381,9 +1385,9 @@ def parse_fold(text: str) -> Tuple[str, Tuple]:
     m = re.fullmatch(rf"{_NUM} a day", text)
     if m:
         return "up_to", (_num(m[1]),)
-    m = re.fullmatch(rf"Up to {_NUM}((?: or {_NUM})+)", text)
+    m = re.fullmatch(rf"{_NUM}((?:, {_NUM})*) or {_NUM} a day", text)
     if m:
-        return "up_to", (_num(m[1]), *(_num(x) for x in re.findall(_NUM, m[2])))
+        return "up_to", (_num(m[1]), *(_num(x) for x in re.findall(_NUM, m[2] or "")), _num(m[m.lastindex]))
     m = re.fullmatch(r"Up to (.+)", text)
     if m:
         parts = m[1].split(", ")
