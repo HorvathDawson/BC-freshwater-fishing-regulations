@@ -312,3 +312,6 @@ rainbow row LAST (V2). Char HATCHERY ONLY: leave as is. "in your possession": ke
 go (it is 2, as is the general limit); the main chat to answer whether the DV 2 sits outside the general 2.
 2026-11-18 01:29, owner: sweep every region for implied groups like Region 2's DV/LT (verbatim in OWNER-TODO); sent to
 the main chat's analyst on the live model.
+2026-11-18 01:42, owner: "uses your 1 over 50 cm" dropped everywhere, including the 1,387 tables where another fish in
+the box can pass 50 cm ("A: drop it everywhere"; verbatim in OWNER-TODO). All-regions sweep (L e88cb9991): the rest fit
+the approved rules and go into L.

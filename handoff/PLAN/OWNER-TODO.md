@@ -2613,3 +2613,6 @@ More questions (recommended answer first):
   Madden the DV count inside the 2 from streams ("Keep 2 trout and char today, or 5 if they're rainbow trout"; the DV
   clause goes). The live bundle predates T834; the next data build applies it. The book (p.3) is silent, so "ask a CO"
   is on the To-Do page (row ask-co-water-quota-inside-share).
+- 2026-11-18 01:42, owner (app chat dialog over fraser-over50 A no line | B "uses your 1 over 50 cm (20 in)" on DV/LT; the
+  main chat's sweep: 1,387 tables where a fish kept only over 50 cm sits beside fish that can also pass 50 cm), verbatim:
+  "A: drop it everywhere". (The box head's "only 1 over 50 cm" carries it; no per-row line anywhere.)
