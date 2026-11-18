@@ -2505,3 +2505,8 @@ More questions (recommended answer first):
   1' box (Recommended)" (one white "only 1" box in the right column spanning both rows, inside the box's "Keep 2 in
   all", replacing each row's "only 1, counting any … you keep" line). "any of the 2" is the pre-batch-2 wording; the
   re-cut brings "counts toward the 2".
+- 2026-11-17 23:35, owner (app chat), verbatim: "Up to 2 is just confusing because  it words weird. Like up to 2 what".
+  Top line picked: "Keep 2 trout and char today (Recommended)" (names the fish and the action; Kathie "Keep 5 trout and
+  char today, or 10 if they're brook trout", Elk in winter "Release every trout and char today"). Fold row's value,
+  verbatim: "Make it match other rows in table" (app chat's reading: the same form as the other fold/list rows beside it,
+  e.g. "10 a day", so "2 a day"; Python's words).
