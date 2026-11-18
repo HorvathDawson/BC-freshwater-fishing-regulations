@@ -2667,3 +2667,4 @@ More questions (recommended answer first):
   fixes can go in 0.8.1 / Which will release right after". So push (T822+T739) and T740 move from "after 0.8.0" into
   0.8.1, and 0.8.1 follows 0.8.0 straight away.
 - 2026-11-18 14:04, owner (app chat dialog), T852 loader line: "B: red rule, muted line" (a short coho-red rule above a smaller muted line).
+- 2026-11-18 14:08, owner (app chat dialog), on the Nass trout table (only lake trout keepable in November; headline "Keep 3 trout and char today"): "Keep \"trout and char\"". The headline stays; not a fault (the table keeps only lake trout, the rest release).
