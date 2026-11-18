@@ -2600,3 +2600,7 @@ More questions (recommended answer first):
      general? so it could be dropped from header line?" (open: the main chat answers whether the DV 2 sits outside the
      general 2; if it does, dropping it would hide that you may keep 2 more).
   4. Nation/Cunningham/Nakinilerak lake trout "only 2 in your possession": "Keep "in your possession" (Recommended)".
+- 2026-11-18 01:29, owner (app chat), verbatim: "similar to region 2 lake trout and bull /dolly simplification we should
+  look for other ones like that in other regions" (sent to the main chat's analyst: a sweep of every region for limits
+  implied but not stated as one shared line; fits of the round-4 rules go into L's build, new kinds come back to him
+  with pictures).

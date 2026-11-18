@@ -310,3 +310,5 @@ off the box head; ungrouped rows first, inner groups last; hatchery + wild as on
 Vedder: "Keep 2 trout and char today" + subline "or 4 if they're hatchery rainbow trout 50 cm (20 in) or less", the
 rainbow row LAST (V2). Char HATCHERY ONLY: leave as is. "in your possession": keep. Madden's DV clause: he asks if it can
 go (it is 2, as is the general limit); the main chat to answer whether the DV 2 sits outside the general 2.
+2026-11-18 01:29, owner: sweep every region for implied groups like Region 2's DV/LT (verbatim in OWNER-TODO); sent to
+the main chat's analyst on the live model.
