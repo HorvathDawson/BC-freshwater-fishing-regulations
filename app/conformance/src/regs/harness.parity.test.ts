@@ -29,8 +29,18 @@ it("7. states.json and taps.json are from one sync, and taps.json answers every 
   // (T115) 4 Fraser states' parts merged away and (T67) 2 closed states re-cut (taps.json `gone`), (T183) the West Road's
   // x27p1 merged into part 0, (2026-10-27) the Columbia's x18p3 split in two by its Mud Lake speed limit; T220 x13p2 + x9p2;
   // (T278) x15p3 + x37p1 tidal now (taps.json `tidal`): 121 tapped + 11 gone + 2 tidal = 134
+  // (0.8.0 release, 2026-11-18) the cut is named by its atlas (`section_handles`), so each map's count is declared and the
+  // push before the release's re-cut stays green: 55032563b98ee973 (the live atlas) 121 + 11 + 2; 4ae7b62955bc9990 (the
+  // 0.8.0 atlas) 118 tapped + 14 gone + 2 tidal — x22p6 (T794 item 1: dinosaur_lake.r1b closes it all year) and bc1_501 +
+  // bc1_1010 (T794 item 3: Atnarko r12 ends at its mouth, the side channel merges into part 0) gone; declarations 8391ff0ca
+  const COUNTS: Record<string, readonly [number, number, number, number]> = {
+    "55032563b98ee973": [121, 11, 2, 134],
+    "4ae7b62955bc9990": [118, 14, 2, 134],
+  };
+  const handles = (T.meta as unknown as { store: { section_handles: string } }).store.section_handles;
+  expect(COUNTS[handles], `no declared count for the cut of atlas ${handles}`).toBeDefined();
   expect([T.meta.golden, STATES.meta.version, ids.length, Object.keys(T.gone).length, Object.keys(T.tidal).length, Object.keys(STATES.states).length])
-    .toEqual(["d7b1ed353", "v38", 121, 11, 2, 134]);
+    .toEqual(["d7b1ed353", "v38", ...COUNTS[handles]!]);
   expect([...Object.keys(T.states), ...Object.keys(T.gone), ...Object.keys(T.tidal)].sort()).toEqual(Object.keys(STATES.states).sort());
 });
 
