@@ -2,8 +2,9 @@
 //
 // THE NATIVE SPLASH (T244): expo-splash-screen's plugin wants a literal ground colour per theme. The app's colours live
 // in the theme files and nowhere else (tools/check-colours.mjs), so the ground is read from them here: the boot screen's
-// own ground, `color.ui.card`, per theme. The picture is the loading fish's frame 0 (`pnpm splash`, tools/build-splash.mjs)
-// at the size the boot screen draws it, so the hand-off to the live FishSpinner has nothing to jump between.
+// own ground, `color.ui.card`, per theme. The picture is the boot loader's frame 0 (`pnpm splash`, tools/build-splash.mjs):
+// since T843 the coho (`CohoLoader`, 192 dp wide, `COHO_WIDTH`), at the size the boot screen draws it, so the hand-off to
+// the live loader has nothing to jump between.
 const { readFileSync } = require("node:fs");
 const { join } = require("node:path");
 
@@ -51,7 +52,7 @@ module.exports = ({ config }) => ({
     ["expo-splash-screen", {
       backgroundColor: ground("light"),
       image: "./assets/splash/splash-light.png",
-      imageWidth: 110,
+      imageWidth: 192,
       resizeMode: "contain",
       dark: { backgroundColor: ground("dark"), image: "./assets/splash/splash-dark.png" },
     }],

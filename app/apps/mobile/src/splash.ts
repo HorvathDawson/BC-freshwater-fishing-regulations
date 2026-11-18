@@ -1,7 +1,7 @@
 /**
- * (T244) THE NATIVE SPLASH'S HAND-OFF. The native splash (expo-splash-screen: the loading fish's frame 0 on the boot
- * screen's ground, `pnpm splash`) is held from the first instant (`holdSplash`, called from index.js before the app
- * mounts) and let go by `releaseSplash` once the boot screen's own spinner is on screen — drawn by `App` at the same size
+ * (T244) THE NATIVE SPLASH'S HAND-OFF. The native splash (expo-splash-screen: the boot loader's frame 0 on the boot
+ * screen's ground, `pnpm splash`; the coho since T843) is held from the first instant (`holdSplash`, called from index.js before the app
+ * mounts) and let go by `releaseSplash` once the boot screen's own loader is on screen — drawn by `App` at the same size
  * and the same centre, its first frame being the picture the native one shows — so there is no jump between them.
  *
  * Idempotent, and never forever: `holdSplash` arms a time limit, so a boot that never reaches the loading screen (a

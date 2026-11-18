@@ -280,6 +280,7 @@ reads both files; a ticket closed here moves there once its lane is finished wit
 | T838 | Drop the loose "Conditions: today" line above the estimate card (the switch names the day) | DONE | e40851285 | owner 2026-11-17 (app) |
 | T840 | A salmon verdict's short text carries its own condition (two verdicts with different quota trees never share one `t`; lands with the app dropping its T767 join) | OPEN | — | app chat T767 2026-11-17 (after 0.8.0) |
 | T842 | The walkthrough on a phone: the highlight lags a scroll, the keyboard hides the target, too many steps for a first look | IN PROGRESS (built on branch app-fix/t842-walkthrough) | — | owner 2026-11-17 (app) |
+| T843 | On opening the app the old circling fish shows before the new swimming coho (the native launch picture was never moved to the coho) | IN PROGRESS (built on branch app-fix/t842-walkthrough) | — | owner 2026-11-17 (app) |
 
 ## Next after closed testing
 
