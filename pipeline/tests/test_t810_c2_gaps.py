@@ -266,3 +266,40 @@ def test_j_holds_an_unnamed_same_water_line_for_every_fish(monkeypatch, on):
                               cell={"covers": [], "table": {"elsewhere": [text]}})
     probs = J.elsewhere_problems(c, T_)
     assert bool(probs) is on, probs
+
+
+def test_j_reads_an_unlabelled_line_as_any_fish_even_in_a_one_subject_table(monkeypatch):
+    """(The re-review of f34069a91, its Qualcho plant) a table whose one covered keep row holds lake trout only: the
+    unlabelled "Kept 1 at a lake? Keep 1 more here." still reads as any trout or char, and fails (2 more after any other
+    fish); the same line naming its fish holds."""
+    from pipeline.deliver.answers.trout import check as J
+
+    class _Qualcho(_Engine):
+        pass
+    monkeypatch.setattr(J, "_engine", lambda P: _Qualcho())
+
+    def problems(text):
+        T_ = types.SimpleNamespace(elsewhere=[(text, W.parse_elsewhere(text))],
+                                   boxes=[{"kind": "keep", "rows": [types.SimpleNamespace(fish="LT")]}])
+        c = types.SimpleNamespace(P=types.SimpleNamespace(kind="stream"),
+                                  today={"rows": [{"kind": "keep", "members": ["LT"]}]},
+                                  cell={"covers": [0], "table": {"elsewhere": [text]}})
+        return J.elsewhere_problems(c, T_)
+    assert problems("Kept 1 at a lake? Keep 1 more here. Fish from lakes count toward the 5 a day, not toward the 2 "
+                    "from streams.")
+    assert problems("Kept 1 lake trout at a lake? Keep 1 more here. Fish from lakes count toward the 5 a day, not "
+                    "toward the 2 from streams.") == []
+
+
+def test_a_one_fish_rows_line_names_its_fish_where_it_is_not_true_of_every_one(monkeypatch):
+    """A row of lake trout only (Abies): "Kept 2 elsewhere today? Keep 2 more here" is true of lake trout, not of every
+    trout and char (3 more after others): the line names its fish, "Kept 2 lake trout elsewhere today?"."""
+    from pipeline.deliver.answers import engine as EN
+    from pipeline.deliver.answers.rows import groups as G
+    monkeypatch.setattr(EN, "Engine", _Abies)
+    P = types.SimpleNamespace(cands=[types.SimpleNamespace(key="z6:total")], kind="stream")
+    model = {"R": {"LT": {"H": None, "W": {"status": "keep"}}}}
+    line = {"q": "Kept 2 elsewhere today?", "a": "Keep 2 more here", "kept": 2, "at": "elsewhere", "species": ["LT"],
+            "origin": "wild", "here": 2, "over_cm": None, "most": "exactly", "kind": "tally", "of": None}
+    got = G._exact_lines(P, model, {"members": ["LT"]}, {"kinds": ["LT"]}, [line])
+    assert [(x["q"], x["a"]) for x in got] == [("Kept 2 lake trout elsewhere today?", "Keep 2 more here")]
