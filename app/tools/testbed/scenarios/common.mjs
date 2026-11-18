@@ -117,5 +117,6 @@ export async function openWater(ctx, { q, row, view = 'regs' }) {
   ctx.flow('search', { Q: q });
   ctx.flow('open-result', { LINE: row });
   await ctx.until(() => ctx.hasId('water-view-regs'), { ms: 20_000, what: `the water screen of ${q} (water-view-regs)` });
-  if (view !== 'regs') ctx.flow('tap-id', { ID: `water-view-${view}` });
+  // the asked-for tab, always: a search result may open the water on its Map (bench 2026-11-18: trout-table landed on Map)
+  ctx.flow('tap-id', { ID: `water-view-${view}` });
 }
