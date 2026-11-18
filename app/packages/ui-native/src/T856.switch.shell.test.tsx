@@ -14,14 +14,15 @@ import type { SalmonFacts, StatusIndex } from "@app/core";
 import { parseManifest } from "@app/data";
 import { HOME, LayoutWidthContext, type PairingInput, type StatusSource } from "@app/ui";
 import { LIGHT } from "./theme";
+import { NAV_RAIL } from "./NavRail";
 
 vi.mock("./MapScreen", async () => {
   // (T566) a map says the look it was handed is drawn: the key under it follows that word
   const { useEffect } = await import("react");
   const Drawn = ({ k, on }: { k?: string; on?: (k: string) => void }) => { useEffect(() => { if (k !== undefined) on?.(k); }, [k, on]); return null; };
   return {
-    MapScreen: (p: { railExtra?: ReactNode; corner?: ReactNode; lookKey?: string; onLookDrawn?: (k: string) => void }) =>
-      <View testID="map-stub"><Drawn k={p.lookKey} on={p.onLookDrawn} /><Text>map</Text><View testID="stub-corner">{p.corner}</View><View testID="stub-rail">{p.railExtra}</View></View>,
+    MapScreen: (p: { railExtra?: ReactNode; corner?: ReactNode; insetLeft?: number; lookKey?: string; onLookDrawn?: (k: string) => void }) =>
+      <View testID="map-stub"><Drawn k={p.lookKey} on={p.onLookDrawn} /><Text>map</Text><Text testID="stub-inset">{String(p.insetLeft)}</Text><View testID="stub-corner">{p.corner}</View><View testID="stub-rail">{p.railExtra}</View></View>,
   };
 });
 vi.mock("./FishSpinner", () => ({ FishSpinner: () => null }));
@@ -79,6 +80,19 @@ describe("(T856) where the Trout / Salmon switch is", () => {
     expect(screen.getByTestId("stub-rail").contains(sw)).toBe(true);
     expect(screen.getByTestId("map-corner-row").contains(sw)).toBe(false);
     expect(screen.getAllByTestId("regs-paint")).toHaveLength(1);
+  });
+
+  it("the map's left inset (the floating rail's width): 92 at 1280, 0 at 1279 and 390", async () => {
+    mount(1280); await settle();
+    await waitFor(() => expect(screen.queryByTestId("stub-inset")).not.toBeNull());
+    expect(screen.getByTestId("stub-inset").textContent).toBe(String(NAV_RAIL.width));
+    cleanup();
+    for (const w of [1279, 390]) {
+      mount(w); await settle();
+      await waitFor(() => expect(screen.queryByTestId("stub-inset")).not.toBeNull());
+      expect(screen.getByTestId("stub-inset").textContent).toBe("0");
+      cleanup();
+    }
   });
 
   it("1280: flipping the switch in the top row changes the key", async () => {

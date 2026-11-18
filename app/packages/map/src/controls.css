@@ -29,6 +29,8 @@
 .maplibregl-ctrl-top-right { top: var(--map-inset-top); }
 /* (T275) the credits and the scale stay above a block drawn over the map's foot */
 .maplibregl-ctrl-bottom-right, .maplibregl-ctrl-bottom-left { bottom: var(--map-inset-bottom, 0px); }
+/* (T856) the desktop nav rail floats over the map's left edge: the scale bar sits right of it */
+.maplibregl-ctrl-bottom-left { left: var(--map-inset-left, 0px); }
 
 .maplibregl-ctrl-group {
   border-radius: 0;

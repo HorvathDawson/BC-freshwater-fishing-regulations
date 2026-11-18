@@ -369,6 +369,11 @@ export interface MapProps {
    */
   insetBottom?: number;
   /**
+   * (T856) How much of the map's left edge the desktop's floating nav rail covers, px: the web map's camera padding takes it
+   * off (centre, fit and fly-to frame the visible area) and its scale bar sits right of it. Web only; 0 on a phone.
+   */
+  insetLeft?: number;
+  /**
    * (T424) How a credit's link leaves the app (the app's one `openLink`, which reports a refused open). Absent: the credits card names
    * the licences without linking them — the map package cannot open a link itself (every link goes through that one way).
    */
