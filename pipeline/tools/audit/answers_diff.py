@@ -867,6 +867,8 @@ class Keeping:
     def __init__(self, fr: dict, trout: Optional[tuple] = None):
         from pipeline.deliver.answers.trout import check as CHK
         self.limits: List[Tuple[str, object, float]] = []
+        #: each cap as the signature reads it: its number and the kinds it counts (fish, origin, band)
+        self.cap_sig: List[str] = []
         self.cuts: set = set()
         self.T, self.T_limits = (trout[1], trout[2]) if trout else (None, None)
         self.table_fish = {r.fish for r in self.T.rows} if self.T else set()
@@ -914,6 +916,9 @@ class Keeping:
                     continue
                 self.limits.append((f"cap {i} {c.get('says') or ''}",
                                     lambda f, ids=ids: any(_in_kind(f, k) for k in ids), c.get("take")))
+                self.cap_sig.append(canon([c.get("take"), sorted(canon({x: k.get(x) for x in
+                                                                        ("species", "origin", "from", "to")})
+                                                                  for k in ids)]))
 
     def _put(self, name, fish: frozenset, n, over: Optional[float] = None) -> None:
         if n is None or n == "unlimited":
@@ -950,7 +955,7 @@ class Keeping:
         """What the acceptor is made of, without words: equal signatures accept the same baskets."""
         return canon([sorted([list(k), list(v) if v else None] for k, v in self.fish.items()),
                       sorted([n, v] for n, _p, v in self.limits if not n.startswith("cap ")),
-                      sorted(str(v) for n, _p, v in self.limits if n.startswith("cap ")),
+                      sorted(self.cap_sig),
                       None if self.T is None else self.T.t])
 
 

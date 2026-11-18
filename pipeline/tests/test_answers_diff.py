@@ -833,6 +833,21 @@ def test_review_m8_m12_a_binding_caps_number_is_a_shared_limit(pair):
     assert g["errs"] == "closed"
 
 
+def test_a_fish_dropped_from_a_cap_at_the_same_number_reads_looser(pair):
+    """(re-review) Cutthroat leaves the "1 over 50 cm" cap, its number the same: looser, not "other". MUTATION: a
+    signature holding only the caps' numbers skips the basket comparison and the change reads unclear."""
+    a, b = pair
+
+    def edit(cs):
+        i = next(i for i, c in enumerate(cs) if c["take"] == 1 and any(x.startswith("CT.") for x in c["kinds"]["here"]))
+        cs[i] = {**cs[i], "kinds": {**cs[i]["kinds"], "here": [x for x in cs[i]["kinds"]["here"]
+                                                             if not x.startswith("CT.")]}}
+    _plant_row(b, lambda r: _cap_row(r) and any(c["take"] == 1 and any(x.startswith("CT.") for x in c["kinds"]["here"])
+                                                for c in r["group"]["caps"]), _caps(edit))
+    g = _only(_diff(a, b), "shared_limit")
+    assert g["errs"] == "open" and g["block"] == "joint" and "Cutthroat trout" in list(g["subjects"])[0]
+
+
 def test_review_m9_a_cap_that_binds_nothing_here_is_other_never_no_change(pair):
     """(review M9) The Region's 4 raised to 5 where the streams' 2 binds: the same baskets, but the group's numbers
     differ — "other" (read it), never the card's layout. MUTATION: with `group` paths card-only it reads "none"."""
