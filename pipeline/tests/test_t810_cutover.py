@@ -713,6 +713,33 @@ def test_the_count_column_and_the_vedders_top_line(request, monkeypatch, flag):
     assert not forms(got)[flag]
 
 
+@pytest.mark.needs_bundle
+def test_hatchery_and_wild_twins_are_one_row(request, monkeypatch):
+    """Owner 2026-11-18 01:22: Chilliwack Lake's brown, cutthroat and rainbow trout are one row each, "50 cm (20 in) or
+    less if wild" (hatchery fish any size); Lois Lake's "under 40 cm (16 in) if wild". J proves the wild-only size; the
+    size said of every fish (the "if wild" dropped) fails. Mutation: the pin off draws the twin rows again."""
+    from pipeline.deliver.answers.trout import table as TT
+    got, m, bundle, data = _live_tables(request, ("Chilliwack Lake",))
+    t = got["Chilliwack Lake"]
+    b = next(b for b in t["table"]["boxes"] if b["kind"] == "keep")
+    rb = next(r for r in b["rows"] if r["fish"] == "RB")
+    assert (rb["key"], rb["origin"], rb["lines"][0]) == ("RB", None, "50 cm (20 in) or less if wild")
+    assert not any(r["origin"] for r in b["rows"])
+    k = next(k for k, cells in enumerate(m.sections["trout"]) if any(c is not None and c == t for c in cells))
+    assert J.check_model(m, bundle, data, keys=[k], log=lambda *_: None)["problems"] == []
+    cells = copy.deepcopy(m.sections["trout"][k])
+    jj = next(jj for jj, c in enumerate(cells) if c == t)
+    for r in next(b for b in cells[jj]["table"]["boxes"] if b["kind"] == "keep")["rows"]:
+        r["lines"] = tuple(x.replace(" if wild", "") for x in r["lines"])
+        r["sheet"]["here"] = tuple({**h, "t": h["t"].replace(" if wild", "")} for h in r["sheet"]["here"])
+    m.sections["trout"] = list(m.sections["trout"])
+    m.sections["trout"][k] = cells
+    assert J.check_model(m, bundle, data, keys=[k], log=lambda *_: None)["problems"]
+    monkeypatch.setattr(TT, "A_TWINS_ONE_ROW", False)
+    got, *_ = _live_tables(request, ("Chilliwack Lake",))
+    assert {"RB/wild", "RB/hatchery"} <= {r["key"] for b in got["Chilliwack Lake"]["table"]["boxes"] for r in b["rows"]}
+
+
 def _bowron(got):                                      # Istsi Creek, Jan 1-Mar 31: Bowron Lake Park's 1 trout/char
     return next(c for c in got["Istsi Creek (all parts)"] if c is not None)
 

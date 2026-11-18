@@ -148,9 +148,9 @@ EXPECTED = {
         'Only 1 over 50 cm (20 in).\n'
         'In your possession: no more than 2 trout and char in all (fish at home don’t count).'
     ),
-    ('lois-jul15', 'RB/wild'): (
+    ('lois-jul15', 'RB'): (
         'Keep · counts toward the 6\n'
-        'Size: under 40 cm (16 in).\n'
+        'Size: under 40 cm (16 in) if wild.\n'
         'Counts toward the 6 in all, together with brook trout, brown trout, cutthroat trout, Dolly Varden/bull trout, lake trout and steelhead.\n'
         'Only 2 wild, each under 40 cm (16 in).'
     ),

@@ -908,6 +908,13 @@ def sentence(text: str) -> str:
     return _sheet(t if t.endswith((".", "?", "!")) else t + ".")
 
 
+def size_if_wild(size: str) -> str:
+    """(Owner 2026-11-18 01:22) a fish's hatchery and wild twins as ONE row: the wild fish's own size, "50 cm (20 in) or
+    less if wild" (Chilliwack), "under 40 cm (16 in) if wild" (Lois, Windsor); hatchery fish any size."""
+    parse_size(size)
+    return f"{size} if wild"
+
+
 def sheet_size(detail: str) -> str:
     return _sheet("Any size." if detail in ("any size", "any length") else f"Size: {detail}.")
 
@@ -1299,6 +1306,9 @@ def parse_row_line(text: str) -> tuple:
     m = re.fullmatch(rf"only {_NUM} wild(?:, each (.+))?", text)
     if m:
         return ("wild", _num(m[1]), parse_size(m[2]) if m[2] else None)
+    m = re.fullmatch(r"(.+) if wild", text)
+    if m:
+        return ("size_wild", parse_size(m[1]))                 # `size_if_wild`: the wild fish's size only
     try:
         return ("size", parse_size(text))
     except WordsError:
@@ -1528,6 +1538,9 @@ def parse_sheet_line(text: str) -> tuple:
     _sheet(text)
     if text in ("Any size.",):
         return ("size", ((0, INF),))
+    m = re.fullmatch(r"Size: (.+) if wild\.", text)
+    if m:
+        return ("size_wild", parse_size(m[1]))
     m = re.fullmatch(r"Size: (.+)\.", text)
     if m:
         return ("size", parse_size(m[1]))

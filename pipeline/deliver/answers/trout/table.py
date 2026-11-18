@@ -191,6 +191,8 @@ A_TOP_SUBLINE = True
 #: (`Box.inner`), their "only 1, counting any …" lines gone; 01:28: a row its water's own rule raises comes last in its
 #: box. False = each pin
 A_NESTED_BANDS = True
+#: owner 2026-11-18 01:22: a fish's hatchery and wild twins are one row, "… if wild" (`_merge_twins`). False = the pin
+A_TWINS_ONE_ROW = True
 A_RAISED_ROW_LAST = True
 #: (the implied-limit sweep, approved R1/R2) a hatchery steelhead's own "only 2" beside its "after keeping 2, stop
 #: fishing this water today" is the box's "counts toward the 5": the stop line says the 2. False = the pin
@@ -583,7 +585,7 @@ class Body:
         self.together: Optional[dict] = None
         self.boxes: List[dict] = []
         self.inner_drawn = self.inner_left = self.inner_held = self.size_drawn = self.size_left = 0
-        self.order_split = self.nest_left = 0            # counts `_inner_bands` drew as a band, or left as lines
+        self.order_split = self.nest_left = self.twins_left = 0            # counts `_inner_bands` drew as a band, or left as lines
         self.placed: Dict[str, int] = {}
         self.extra_release: List[_Row] = []
 
@@ -633,6 +635,7 @@ class Body:
             self._inner_bands(b)
             if b["kind"] == "keep":
                 self._size_bands(b)
+                self._merge_twins(b)
                 self._order_rows(b)
                 self._nest_inner(b)
                 self._name_the_total(b)
@@ -1268,6 +1271,56 @@ class Body:
             out_bands.append({**x, "from": len(out_rows), "to": len(out_rows) + len(part) - 1})
             out_rows += part
         b["rows"], b["bands"] = out_rows, out_bands
+
+    def _merge_twins(self, b: dict) -> None:
+        """(Owner 2026-11-18 01:22) a fish's hatchery and wild twin rows are ONE row (`fish`, no origin): the wild fish's
+        own size says "if wild" ("50 cm (20 in) or less if wild"; "under 40 cm (16 in) if wild" at Lois and Windsor),
+        hatchery fish any size, one count. Only twins that read alike but for that: the same band (or each its own
+        under the same words), the hatchery row saying nothing of its own, the wild row its size and its wild lines
+        only. Any other pair stays two rows (`twins_left`)."""
+        if not A_TWINS_ONE_ROW:
+            return
+        rows, bands = b["rows"], b["bands"]
+        band_of = {i: k for k, x in enumerate(bands) for i in range(x["from"], x["to"] + 1)}
+        for S in list(dict.fromkeys(r.fish for r in rows if r.origin is not None)):
+            at = {r.origin: i for i, r in enumerate(rows) if r.fish == S and r.origin is not None}
+            if set(at) != {"hatchery", "wild"}:
+                continue
+            h, w = rows[at["hatchery"]], rows[at["wild"]]
+            bh, bw = bands[band_of[at["hatchery"]]], bands[band_of[at["wild"]]]
+            same = bh is bw or (bh["from"] == bh["to"] and bw["from"] == bw["to"]
+                                and (bh["kind"], bh["text"]) == (bw["kind"], bw["text"]))
+            h_size = h.size if h.size not in (None, "any size") else None
+            w_own = [t for t in w.lines if t != w.size_text and W.parse_row_line(t)[0] != "wild"]
+            if not same or h_size is not None or h.lines or w_own or h.quiet != w.quiet or h.sub or w.sub \
+                    or h.label or w.label or h.duties != w.duties or h.poss != w.poss \
+                    or (bh is bw and bh["kind"] == "size"):
+                self.twins_left += 1
+                continue
+            r = _Row(S, S, None)
+            for a in ("kind_n", "kind_ix", "chain", "detail", "duties", "also", "band", "poss", "sizes"):
+                setattr(r, a, getattr(h, a))
+            r.src = list(dict.fromkeys(h.src + w.src))
+            if w.size_text is not None:
+                r.size_text = W.size_if_wild(w.size_text)
+                r.lines = [r.size_text] + [t for t in w.lines if t != w.size_text]
+            else:
+                r.lines = list(w.lines)
+            r.quiet = list(h.quiet)
+            keep_i, drop_i = sorted((at["hatchery"], at["wild"]))
+            rows[keep_i] = r
+            del rows[drop_i]
+            out = []
+            for x in bands:
+                fr, to = x["from"], x["to"]
+                if fr == to == drop_i:
+                    continue
+                y = {**x, "from": fr - (1 if fr > drop_i else 0), "to": to - (1 if to >= drop_i else 0)}
+                if fr <= drop_i <= to and fr != to and x["kind"] == "shared" and W.band_wild_n(x["text"]) is None:
+                    y["text"] = W.band_shared(W.parse_band(x["text"])[1], y["to"] - y["from"] + 1)
+                out.append(y)
+            b["bands"] = bands = out
+            band_of = {i: k for k, x in enumerate(bands) for i in range(x["from"], x["to"] + 1)}
 
     def _nest_inner(self, b: dict) -> None:
         """(Owner 2026-11-18 01:22, R4/R5) a count some rows of one band share among themselves only — each saying it as

@@ -168,6 +168,7 @@ class Row:
         self.kind = box["kind"]
         self.label = bool(r["label"] or box["label"])
         self.ranges: Optional[Tuple[Tuple[float, float], ...]] = None
+        self.wild_ranges: Optional[Tuple[Tuple[float, float], ...]] = None   # "… if wild": the wild fish's own size
         self.lines = [(t, W.parse_row_line(t)) for t in r["lines"]]
         self.quiet = [(t, W.parse_quiet(t)) for t in r["quiet"]]
         self.band: Optional[tuple] = None          # (kind, n, m, from, to)
@@ -184,6 +185,10 @@ class Row:
                 if self.ranges is not None:
                     raise _Fail(f"row {self.key}: two sizes")
                 self.ranges = x[1]
+            elif x[0] == "size_wild":
+                if self.wild_ranges is not None or self.origin is not None or self.label:
+                    raise _Fail(f"row {self.key}: 'if wild' on a row of one origin, or twice")
+                self.wild_ranges = x[1]
 
     def origins(self) -> Tuple[str, ...]:
         if self.origin:
@@ -304,6 +309,8 @@ class Table:
             if r.fish != S or o not in r.origins():
                 continue
             rng = r.ranges if r.ranges is not None else ((0, INF),)
+            if o == "wild" and r.wild_ranges is not None:
+                rng = r.wild_ranges
             if any(a < L < b for a, b in rng):
                 return r
         return None
@@ -465,7 +472,7 @@ def _cms(x) -> List[float]:
                 walk(y)
     if isinstance(x, tuple):
         k = x[0]
-        if k in ("size",) and len(x) == 2:
+        if k in ("size", "size_wild") and len(x) == 2:
             for a, b in x[1]:
                 out.extend([a, b])
         elif k in ("uses",):
@@ -611,7 +618,7 @@ def law_problems(c: Cell, T: Table) -> List[str]:
                 if not keeps(lw["hatchery"]) or lw["wild"] is None or keeps(lw["wild"]):
                     probs.append(f"{S}: 'Hatchery only', but hatchery {lw['hatchery'] and lw['hatchery'][0]}, wild "
                                  f"{lw['wild'] and lw['wild'][0]}")
-            else:
+            elif r.wild_ranges is None:
                 if lw["hatchery"] is not None and lw["wild"] is not None and \
                         any(count_at(lw["hatchery"], L) != count_at(lw["wild"], L)
                             for L in mids(law_cuts(lw["hatchery"], lw["wild"]))):
@@ -927,7 +934,7 @@ def origin_problems(c: Cell, T: Table) -> List[str]:
         for r in by_fish.get(S, ()):
             if r.label or r.origin:
                 return True
-            if any(x[0] == "wild" or (x[0] == "also" and x[1][0] == "across") for _t, x in r.lines):
+            if any(x[0] in ("wild", "size_wild") or (x[0] == "also" and x[1][0] == "across") for _t, x in r.lines):
                 return True
             if any(p[0] == "wild" for p in T.boxes[r.b]["strip"]):
                 return True
@@ -1008,6 +1015,9 @@ def sheet_problems(c: Cell, T: Table) -> List[str]:
                 rng = r.ranges if r.ranges is not None else ((0, INF),)
                 if tuple(x[1]) != tuple(rng):
                     probs.append(f"{where}: {ln['t']!r}; the row keeps {rng}")
+            elif k == "size_wild":
+                if r.wild_ranges is None or tuple(x[1]) != tuple(r.wild_ranges):
+                    probs.append(f"{where}: {ln['t']!r}; the row's wild fish keep {r.wild_ranges}")
             elif k == "sub":
                 if r.fish != "ST" or r.ranges != ((x[1], INF),):
                     probs.append(f"{where}: {ln['t']!r} on row {r.key}")
