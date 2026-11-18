@@ -37,3 +37,5 @@ Kootenay's "no trout under 30 cm"). Answer, verbatim: "the species specific ones
 So this morning's ruling stands: a rule for ONE char on the same water is more specific and that char follows it (it
 still counts toward the group's quota: "2 bull trout … take 2/3 of our trout quota"); a rule that stands only in part
 of the region, or a count share of the group quota, takes no char out. As built.
+
+Then (14:36), verbatim: "i just meant trout means troutt and char unless the group char are explicitly listed on their own like 3 trout and 2 char per day" — the char-GROUP case of C2 (b) (Region 1's "All char", Alta Lake's "1 char"), as built.
