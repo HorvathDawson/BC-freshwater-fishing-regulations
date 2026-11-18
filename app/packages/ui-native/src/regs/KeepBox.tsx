@@ -90,18 +90,18 @@ function Label({ text, palette, outline = false, testID = "keep-label" }: { text
 const OriginBadge = ({ origin, palette }: { origin: string; palette: Palette }) =>
   <Label text={origin} palette={palette} outline={origin !== "hatchery"} testID="keep-origin" />;
 
-/** The row's picture on the ground it sits on (the palette gate's rule 8: a picture paints no surface of its own), or the
- *  group's mark. Not a press: the whole row is (`Row`). */
+/** The row's picture on its tint tile (the owner's look, R picture pack 21:33: palette ALLOW `keep-tile`), or the group's
+ *  mark. Not a press: the whole row is (`Row`). */
 function Tile({ pic, mark, faded, palette }: { pic: KeepPic | null; mark: { s: string; colour: string } | null; faded: boolean; palette: Palette }) {
   return (
     <View testID={pic?.testID} style={{ minHeight: 44, paddingTop: 4 }}>
-    <View style={{ width: TILE.w, height: TILE.h, alignItems: "center", justifyContent: "center" }}>
+    <View testID="keep-tile" style={{ width: TILE.w, height: TILE.h, backgroundColor: palette.tint, alignItems: "center", justifyContent: "center" }}>
       {pic?.source ? <Image testID="keep-look" source={pic.source} style={{ width: TILE.w, height: TILE.h, opacity: faded ? 0.6 : 1 }}
                             resizeMode="contain" accessibilityIgnoresInvertColors />
         : pic ? <View testID="keep-look" style={{ width: TILE.w, height: TILE.h, backgroundColor: palette.line2, opacity: faded ? 0.6 : 1 }} />
         : mark ? <Text aria-hidden style={{ ...TYPE.regsBodyBold, color: mark.colour }}>{mark.s}</Text> : null}
       {pic?.more && pic.onPress && (
-        <View style={{ position: "absolute", right: 0, bottom: 0, paddingHorizontal: 3 }}>
+        <View testID="keep-tile-more" style={{ position: "absolute", right: 0, bottom: 0, backgroundColor: palette.card, paddingHorizontal: 3 }}>
           <Text aria-hidden style={{ ...TYPE.metaSemi, color: palette.sub }}>{pic.more}</Text>
         </View>
       )}

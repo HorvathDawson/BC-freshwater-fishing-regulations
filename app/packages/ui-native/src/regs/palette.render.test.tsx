@@ -209,7 +209,7 @@ describe("each rule fails its mutant", () => {
     cleanup();
     expect(borderFaults(tree(<View testID="keep-caveat" style={rule}><Text testID="kicker:times" style={{ color: P.sub }}>Some times</Text></View>), P)).toEqual([]);
     expect(ALLOW.map((a) => [a.testID, a.rule, a.side ?? null])).toEqual([["keep-caveat", "border", "left"], ["keep-banner", "border", "top"], ["note:paper", "tint", null],
-      ["kicker:badge", "filled", null]]);
+      ["kicker:badge", "filled", null], ["keep-tile", "picture", null], ["keep-tile-more", "picture", null]]);
   });
 
   it("3 status (rules): a key excuses its own element and side only — never what it holds (P11: a closed rule on a banner chain row)", () => {
@@ -224,6 +224,15 @@ describe("each rule fails its mutant", () => {
     </>);
     expect(borderFaults(root, P)).toEqual([
       "a closed left rule on keep-banner “Closedchain row”", "a closed top rule on div “chain row”", "a open left rule on div “caveat item”"]);
+  });
+
+  it("8 picture: a keyed tile excuses its own ground only, never the picture or its parent", () => {
+    const pic = (ground: string | undefined, id: string) => tree(<View><View testID="pic:RB"><View testID={id} style={{ backgroundColor: ground }}><T c={P.sub} s="›" /></View></View></View>);
+    expect(pictureFaults(pic(P.tint, "keep-tile"))).toEqual([]);
+    cleanup();
+    expect(pictureFaults(pic(P.tint, "keep-somewhere"))).toEqual([`pic:RB: keep-somewhere paints ${rgbOf(P.tint)}`]);
+    cleanup();
+    expect(pictureFaults(tree(<View testID="keep-tile" style={{ backgroundColor: P.tint }}><View testID="pic:RB" /></View>))).toEqual([`pic:RB: its parent paints ${rgbOf(P.tint)}`]);
   });
 
   it("4 filled: card / onAccent text off a filled control", () => {

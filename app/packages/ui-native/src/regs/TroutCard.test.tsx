@@ -174,7 +174,7 @@ describe("(T810 O) the look: two text sizes, the filled label, the origin word, 
   it("today's rule bigger and in ink; a coming change smaller, regular, quiet", () => {
     mount(byName("elk-nov15"));
     const size = (e: HTMLElement) => parseFloat(getComputedStyle(e).fontSize);
-    expect([size(screen.getByTestId("trout-top")), size(screen.getByTestId("trout-top-date"))]).toEqual([TYPE.lead.fontSize, TYPE.meta.fontSize]);   // (T810 cutover) the page's lead size (style-tokens)
+    expect([size(screen.getByTestId("trout-top")), size(screen.getByTestId("trout-top-date"))]).toEqual([TYPE.screen.fontSize, TYPE.meta.fontSize]);   // the owner's 23 px top line (style-tokens SIZE_ALLOW)
     expect(getComputedStyle(screen.getByTestId("trout-top-date")).color).toBe(rgb(LIGHT.sub));
     cleanup();
     mount(byName("shamrock-jul15"));
@@ -271,7 +271,7 @@ describe("(T810 O) the look: two text sizes, the filled label, the origin word, 
     }
   });
 
-  it("(large text) the band folds into bold lines under the rows, and the top line is the page's lead size (as at 1×)", () => {
+  it("(large text) the band folds into bold lines under the rows, and the top line steps down a size", () => {
     vi.spyOn(PixelRatio, "getFontScale").mockReturnValue(2);
     mount(byName("skeena-sedan-mill-jul15"));
     expect(screen.queryAllByTestId("keep-band")).toEqual([]);

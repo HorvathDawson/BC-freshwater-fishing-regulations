@@ -39,7 +39,7 @@ export const STATUS_TOKENS: readonly (keyof Palette)[] = ["open", "closed", "res
  * element itself is excepted, never what it holds. Nothing else is excepted; a new entry needs a
  * reason the prototype gives (cite its CSS / check), never "the gate failed".
  */
-export const ALLOW: readonly { testID: string; rule: "border" | "tint" | "filled"; side?: "top" | "left"; reason: string }[] = [
+export const ALLOW: readonly { testID: string; rule: "border" | "tint" | "filled" | "picture"; side?: "top" | "left"; reason: string }[] = [
   { testID: "keep-caveat", rule: "border", side: "left",
     reason: "T42: the caveat block's 3 px left rule is `restricted` on purpose (prototype .caveats border-left: it marks "
       + "'restricted here at some times, sides or anglers'); its label (testID kicker:<kind>) stays sub" },
@@ -56,6 +56,11 @@ export const ALLOW: readonly { testID: string; rule: "border" | "tint" | "filled
       + "filled label in the same place in a row and in a strip'); and G2 Q9, 2026-11-17 ~15:50: '1: Badges + \"only 2 "
       + "wild in all\" (Recommended)' — filled HATCHERY, outlined WILD (the outlined one is ink on the ground: no "
       + "exception). Card on ink holds the contrast gates light / dark / CVD" },
+  { testID: "keep-tile", rule: "picture",
+    reason: "T810, the trout table's picture tile (KeepBox `Tile`): the fish sits on a tint tile, the look the owner signed "
+      + "off in the R picture pack (2026-11-17 21:33). Only the tile itself; the picture and its parent paint nothing" },
+  { testID: "keep-tile-more", rule: "picture",
+    reason: "T810, the card patch under the tile's corner \"›\" (the picture opens its sheet), the same signed-off look" },
 ];
 
 const ROLE_OF_PREFIX: readonly [string, Role][] = [["st:", "status"], ["n:", "number"], ["chip:", "chip"], ["btn:", "button"]];
@@ -150,7 +155,7 @@ export function census(root: HTMLElement, palette: Palette): CensusHit[] {
 const say = (h: CensusHit) => `“${h.text.slice(0, 40)}”`;
 /** A key excuses its OWN element (and, for a border, its one side) — never a descendant: a status rule on a banner chain
  *  row, or a tinted run inside the paper note, is still a fault. */
-const allowed = (el: Element, rule: "border" | "tint" | "filled", side?: string) =>
+const allowed = (el: Element, rule: "border" | "tint" | "filled" | "picture", side?: string) =>
   ALLOW.some((a) => a.rule === rule && testIdOf(el) === a.testID && (rule !== "border" || a.side === side));
 
 /**
@@ -234,7 +239,7 @@ export function pictureFaults(root: HTMLElement): string[] {
   for (const pic of root.querySelectorAll<HTMLElement>('[data-testid^="pic:"]')) {
     const id = testIdOf(pic)!;
     for (const el of [pic.parentElement, pic, ...pic.querySelectorAll<HTMLElement>("*")])
-      if (el && !clear(el.style.backgroundColor)) bad.push(`${id}: ${el === pic.parentElement ? "its parent" : testIdOf(el) ?? el.tagName.toLowerCase()} paints ${el.style.backgroundColor}`);
+      if (el && !clear(el.style.backgroundColor) && !(el !== pic.parentElement && el !== pic && allowed(el, "picture"))) bad.push(`${id}: ${el === pic.parentElement ? "its parent" : testIdOf(el) ?? el.tagName.toLowerCase()} paints ${el.style.backgroundColor}`);
   }
   return bad;
 }
