@@ -2604,3 +2604,8 @@ More questions (recommended answer first):
   look for other ones like that in other regions" (sent to the main chat's analyst: a sweep of every region for limits
   implied but not stated as one shared line; fits of the round-4 rules go into L's build, new kinds come back to him
   with pictures).
+- 2026-11-18 01:33, owner (app chat dialog; the main chat's answer that Madden/Lardeau bull trout's own "daily quota = 2"
+  (p.38) sits outside Region 4's "2 from streams" (p.34), so 2 trout/char + 2 DV, max 5), verbatim: "i thought we were
+  assuming those quotas still used uop the 2 a day regional quota? but that i would ask a CO about it". (He recalls the
+  standing assumption that a water's own per-fish quota still counts inside the region's 2 a day; open: the main chat
+  finds the recorded ruling; the question for a Conservation Officer is his.)
