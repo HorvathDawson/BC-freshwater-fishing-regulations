@@ -13,6 +13,7 @@ import type { RegsInputs } from "./inputs";
 import type { Weekday } from "../calendar.generated";
 import type { KeepEnv } from "./keep";
 import type { BookBox } from "../answers.generated";
+import type { ClassBadgeVM } from "./classBadge";
 
 export type { Weekday } from "../calendar.generated";
 /** The spec's weekday names, Monday first (THE CALENDAR SPEC). */
@@ -59,6 +60,8 @@ export interface HeaderVM {
   readonly place: { full: string; short: string } | null;  // two candidates; the component shows full if ≤2 lines else short (fitLabel)
   // no action: golden header.action (Map, Parts) is dropped — owner call 3 (T71 Map, T150 Parts); the Map view lists parts
   readonly tabs: readonly { tab: Tab; label: string }[];   // golden header.tabs; (T42) outside B.C. the Keep tab alone
+  /** (T841) the classified-water badge ("Class II"), `classBadge.ts`; absent: none (not classified, or look A out of period) */
+  readonly classed?: ClassBadgeVM;
 }
 
 // ── 2.2 Keep tab (prototype buildKeep) ─────────────────────────────────────────────────────────────────────────────

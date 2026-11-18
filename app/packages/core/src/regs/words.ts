@@ -449,6 +449,8 @@ export const LIC = Object.freeze({
   OTHER_TIME: (act: string) => `at any other time only if you ${act}`, EITHER: ". Either one does", ALSO_SEP: "; ",
   // designation classbox
   CLASS_HEAD: (c: string) => `Class ${c} Classified Water`, CLASS_TERM: "classified_waters",
+  /** (T841) the header's badge: "Class II"; with its period (look B), said "Class II, Jul 1–Dec 31" */
+  CLASS_BADGE: (c: string) => `Class ${c}`, CLASS_BADGE_ARIA: (cls: string, period: string) => `${cls}, ${period}`,
   UNIT: (u: string) => `Licence unit: ${u}`,
   STAMP_DURING: (dates: string) => `. Steelhead Stamp needed ${dates}, whatever you fish for`, IN_FORCE: " (in force today)",
   STAMP_OTHER_TIME: "; at any other time only to fish for steelhead",

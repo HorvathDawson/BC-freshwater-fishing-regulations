@@ -217,7 +217,7 @@ export function RegsScreen({ page, palette, images, adipose, actions, onDate,
   // (T227) a tab whose section is not drawn (Gear / Methods on a day nothing may be fished) is not offered
   const header = useMemo(() => ({ ...page.header, tabs: page.header.tabs.filter((t) =>
     (t.tab !== "gear" || !!gear) && (t.tab !== "methods" || !!methods)) }), [page.header, gear, methods]);
-  const head = <RegsHeader header={header} palette={palette} tabs={store} onDate={onDate} onTab={toTab}
+  const head = <RegsHeader header={header} palette={palette} tabs={store} onDate={onDate} onTab={toTab} onTerm={(id) => openSheet(`gl:${id}`)}
                            side={layout === "desktop"} nameSource={nameSource} sun={sun} />;
   const sec = (tab: "gear" | "methods" | "licence", slot: Slot) => {
     const node = typeof slot === "function" ? slot(keepActions) : slot;

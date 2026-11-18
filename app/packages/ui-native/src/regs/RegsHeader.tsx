@@ -15,7 +15,7 @@
 import { useState, useSyncExternalStore } from "react";
 import { View } from "react-native";
 import { Text } from "../Text";
-import { WORDS, type HeaderVM, type Tab } from "@app/core";
+import { WORDS, type ClassBadgeVM, type HeaderVM, type Tab } from "@app/core";
 import { CAPPED_SCALE, TYPE } from "../type";
 import { useCappedScale } from "../textScale";
 import { WaterTitle } from "../WaterFrame";
@@ -46,8 +46,10 @@ export function pickPlace(place: { full: string; short: string }, measuredHeight
  * NO ACTION IN THE NAME ROW (owner call 3): T71 dropped the Map button (the view strip is the one Map entry), T150 the
  * Parts button (the water's Map view lists the parts). The place label below keeps the part's name.
  */
-export function RegsHeader({ header: h, palette, tabs, onDate, onTab, side = false, nameSource = null, sun = null }: {
+export function RegsHeader({ header: h, palette, tabs, onDate, onTab, onTerm, side = false, nameSource = null, sun = null }: {
   header: HeaderVM; palette: Palette;
+  /** (T841) the classified-water badge's press: opens its glossary term (`gl:<id>`); absent, the badge opens nothing */
+  onTerm?: (id: string) => void;
   /** (T224) where the water's name came from when it is not the official one (`WaterTitle`'s `source`) */
   nameSource?: string | null;
   /** where the selected tab is read from (the pin store) */
@@ -67,6 +69,7 @@ export function RegsHeader({ header: h, palette, tabs, onDate, onTab, side = fal
     <View testID="regs-header" style={{ backgroundColor: palette.card, borderBottomWidth: 1.5, borderBottomColor: palette.ink }}>
       {/* THE NAME ROW is the water frame's (T44): the same box on every view of the water, the pill in it */}
       <WaterTitle name={h.name} palette={palette} source={nameSource}>
+        {h.classed && <ClassBadge b={h.classed} palette={palette} onTerm={onTerm} />}
         {!side && <DatePill h={h} palette={palette} onDate={onDate} />}
       </WaterTitle>
       <Place place={h.place} palette={palette} />
@@ -76,6 +79,28 @@ export function RegsHeader({ header: h, palette, tabs, onDate, onTab, side = fal
       )}
       {!side && <TabRow h={h} tabs={tabs} palette={palette} onTab={onTab} />}
     </View>
+  );
+}
+
+/**
+ * (T841) THE CLASSIFIED-WATER BADGE beside the name: "Class II" in the header's chip style (an outlined chip, the keep
+ * box's tag), the accent while a designation is in force; (look B) the period under it and, out of period, the badge in
+ * the secondary colour. A press opens the classified-waters term when the release has one. Draws `ClassBadgeVM` only.
+ */
+export function ClassBadge({ b, palette, onTerm }: { b: ClassBadgeVM; palette: Palette; onTerm?: (id: string) => void }) {
+  const c = b.inForce ? palette.accent : palette.sub;
+  const chip = (
+    <View style={{ borderWidth: 1, borderColor: c, paddingHorizontal: 5, alignItems: "center" }}>
+      <Text maxFontSizeMultiplier={CAPPED_SCALE} style={[TYPE.chip, { color: c }]}>{b.label}</Text>
+      {!!b.period && <Text maxFontSizeMultiplier={CAPPED_SCALE} style={[TYPE.metaSemi, { lineHeight: 14.98, color: palette.sub, marginTop: -2, paddingBottom: 2 }]}>{b.period}</Text>}
+    </View>
+  );
+  const term = b.term;
+  return term && onTerm ? (
+    <RegsPress testID="regs-class" onPress={() => onTerm(term)} accessibilityRole="button" accessibilityLabel={b.aria} box={{ w: 44, h: 44 }}
+               style={{ minHeight: 44, justifyContent: "center" }}>{chip}</RegsPress>
+  ) : (
+    <View testID="regs-class" accessible accessibilityLabel={b.aria} style={{ minHeight: 44, justifyContent: "center" }}>{chip}</View>
   );
 }
 

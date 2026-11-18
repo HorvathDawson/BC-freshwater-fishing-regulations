@@ -45,6 +45,7 @@ export * from "./yesno";
 export * from "./bait";
 export * from "./methods";
 export * from "./licence";
+export * from "./classBadge";
 export * from "./fish.generated";
 export * from "./credits";
 export * from "./finfish";
