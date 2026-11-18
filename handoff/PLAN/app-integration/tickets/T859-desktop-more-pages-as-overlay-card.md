@@ -1,7 +1,7 @@
 # T859 — Desktop web: the More tab's pages open as a card over the page, not a full-page takeover
 
 Status: OPEN (app chat; 0.8.1 WEB: lands after the 0.8.1 phone build is cut, then the staging site redeploys from that
-commit; owner 2026-11-18 ~16:58: "these can be in 0.8.1 web version? since it doesnt change app it shouldnt effect release
+commit; owner 2026-11-18 ~16:55: "these can be in 0.8.1 web version? since it doesnt change app it shouldnt effect release
 of app?").
 
 Owner 2026-11-18 ~16:52 (to the main chat, relayed to the app chat 16:53), verbatim: "on desktop webapp when you click

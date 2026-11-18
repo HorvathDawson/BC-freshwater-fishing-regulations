@@ -2712,7 +2712,7 @@ More questions (recommended answer first):
   pathway? just word it well" -> T860; wording proposed: "Questions, corrections and ideas are welcome. Email us, or send a
   note from the app with Report a problem. A water's regulations have their own Report a problem link, which names the
   water for you." (Report a problem is a link to the form.)
-- 2026-11-18 ~16:58, owner (to the main chat, relayed), verbatim: "these can be in 0.8.1 web version? since it doesnt change
+- 2026-11-18 ~16:55, owner (to the main chat, relayed), verbatim: "these can be in 0.8.1 web version? since it doesnt change
   app it shouldnt effect release of app?" -> yes: T858, T859 and T860 go out with the 0.8.1 WEB release. Order: the 0.8.1
   phone build (Play internal + TestFlight) is cut first with its benches as they are; then T858/T859/T860 land; then the
   staging site redeploys from that commit. Phones get T860's words at their next build.

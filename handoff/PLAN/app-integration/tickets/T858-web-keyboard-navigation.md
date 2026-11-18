@@ -1,7 +1,7 @@
 # T858 — Web: keyboard navigation in lists, starting with search (arrows move the highlight, Enter opens)
 
 Status: OPEN (app chat; 0.8.1 WEB: lands after the 0.8.1 phone build is cut, then the staging site redeploys from that
-commit; owner 2026-11-18 ~16:58: "these can be in 0.8.1 web version? since it doesnt change app it shouldnt effect release
+commit; owner 2026-11-18 ~16:55: "these can be in 0.8.1 web version? since it doesnt change app it shouldnt effect release
 of app?").
 
 Owner 2026-11-18 ~16:50 (to the main chat, relayed to the app chat), verbatim: "in the webapp we shopuld have keyboard
