@@ -435,21 +435,39 @@ def elsewhere_of(P: "Part", model: dict, row: dict, sc: dict, T: R,
             caps = [x["take"] for x in (grp or {}).get("subcaps", []) if x.get("water") is None
                     and x.get("over_cm") is None and x.get("take") is not None
                     and set(row["members"]) <= set(x.get("of") or ())]
+            capped = None
             if caps:
-                here2 = min(here2, max(0, min(caps) - 1))
+                capped = (here2, min(here2, max(0, min(caps) - 1)))       # (any other fish, one of the capped kinds)
         # RULINGS P41: the lake line says how many are left here after 1 kept there (the gate
         # proves `here`), then why: "Keep 2 more here. Fish from lakes count toward the 4 a day, not
         # toward the 2 from streams."
-        if tot == "unlimited":
+        else:
+            capped = None
+
+        def lake_words(k):
+            return (f"Keep {_js(k)} more here. Fish from {other}s count toward the {_js(tot)} a day, not "
+                    f"toward the {_js(n)} from {wk}s.")
+        if capped is not None and capped[1] < capped[0]:
+            # (the re-review of 3f273c172) the line names the fish: one of the capped kinds kept at a lake leaves the cap
+            # less 1 here; any other trout or char leaves the share's own number ("Kept 1 lake trout at a lake? Keep 1
+            # more here." / "Kept 1 other trout or char at a lake? Keep 2 more here.")
+            mine = list(row["members"])
+            rest = sorted(S for S in common.trout_char() if S not in mine)
+            lines = [_line(f"Kept {_js(n)} on another {wk}?", a1, model, held, n, wk, here1, kind="stream_tally"),
+                     _line(f"Kept 1 {common.lc_names(mine, ' or ')} at a {other}?", lake_words(capped[1]), model,
+                           mine, 1, other, capped[1]),
+                     {**_line(f"Kept 1 other trout or char at a {other}?", lake_words(capped[0]), model, mine, 1,
+                              other, capped[0]), "species": rest}]
+        elif tot == "unlimited":
             a2 = f"They don’t count toward the {_js(n)} from {wk}s"
         elif here2 is None:
             a2 = f"They count toward the {_js(tot)} a day, not toward the {_js(n)} from {wk}s"
         else:
-            a2 = (f"Keep {_js(here2)} more here. Fish from {other}s count toward the {_js(tot)} a day, not "
-                  f"toward the {_js(n)} from {wk}s.")
-        lines = [_line(f"Kept {_js(n)} on another {wk}?", a1, model, held, n, wk, here1, kind="stream_tally"),
-                 _line(f"Kept 1 at a {other}?" if here2 is not None else f"Kept some at a {other}?", a2,
-                       model, row["members"], 1, other, here2)]
+            a2 = lake_words(here2 if capped is None else capped[1])
+        if not (capped is not None and capped[1] < capped[0]):
+            lines = [_line(f"Kept {_js(n)} on another {wk}?", a1, model, held, n, wk, here1, kind="stream_tally"),
+                     _line(f"Kept 1 at a {other}?" if here2 is not None else f"Kept some at a {other}?", a2,
+                           model, row["members"], 1, other, here2)]
     elif s:
         # T810 L (Region 8 p.68 "And you may retain: 20 brook trout from streams"): a pool of ONE kind of water counts
         # only the fish kept today from that kind — said so (the share's own form, RULINGS P44), and its worked line

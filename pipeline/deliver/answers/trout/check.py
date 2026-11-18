@@ -1170,15 +1170,17 @@ def _licence_problems(c: Cell, r: Row, parts, docs, where) -> List[str]:
 
 # -- the kept-elsewhere lines ------------------------------------------------------------------------------
 
-def _elsewhere_holds(E, q, a, kinds: Sequence[str], other: str, away: str):
-    """Whether "Kept n <place>? Keep N more here." holds for a box of `kinds`: keeping n of SOME one fish of the box
-    there (the card's worked line kept its first kind, `card_check._check_elsewhere_line`; the words name none) leaves
-    exactly N here. True; None (no such basket can be kept today: nothing to prove); else the numbers the engine gives."""
+def _elsewhere_holds(E, q, a, kinds: Sequence[str], other: str, away: str, covered: Sequence[str],
+                     every: bool = True):
+    """Whether "Kept n [fish] <place>? Keep N more here." holds for a box of `kinds`: keeping n of EVERY fish the question
+    covers (`covered`: the fish it names, else every trout and char; the re-review of 3f273c172 — "the line reads as any
+    fish") there, each in turn, leaves exactly N here. True; None (no such basket can be kept today: nothing to prove);
+    else the numbers the engine gives."""
     n, place = q[1], q[2]
     places = (other, away) if place == "elsewhere" else (place,)
-    claim, seen = a[1], []
+    claim, seen, held, any_basket = a[1], [], False, False
     for p in places:
-        for S in kinds:
+        for S in covered:
             for o in common.ORIGINS:
                 got: list = []
                 for f in E.fish([S], (p,), (o,)):
@@ -1186,16 +1188,25 @@ def _elsewhere_holds(E, q, a, kinds: Sequence[str], other: str, away: str):
                         got.append(f)
                 if len(got) != n:
                     continue
+                any_basket = True
                 m = E.most(E.fish(list(kinds)), got, cap=int(claim) + 1)
                 if m == claim:
-                    return True
-                seen.append(m)
-    return seen or None
+                    held = True
+                else:
+                    seen.append(m)
+    if not any_basket:
+        return None
+    if A_ELSEWHERE_EVERY_FISH and every:
+        return True if not seen else seen
+    return True if held else seen
 
 
 #: T810 L (the review's findings 1 and 2): every covered keep row's kept-elsewhere sentence is on the table, with its
 #: number. False = the check is off (the mutation pin)
 A_ELSEWHERE_SAID_PROOF = True
+#: (the re-review of 3f273c172) a kept-elsewhere answer holds for EVERY fish its question covers, not for some one fish
+#: of the box. False = the pin (Qualcho's "Kept 1 at a lake? Keep 1 more here" passed: true of a lake trout only)
+A_ELSEWHERE_EVERY_FISH = True
 
 
 def elsewhere_said_problems(c: Cell, T: Table) -> List[str]:
@@ -1253,8 +1264,27 @@ def elsewhere_problems(c: Cell, T: Table) -> List[str]:
     probs: List[str] = []
     other = "stream" if c.P.kind == "stream" else "lake"
     away = "lake" if c.P.kind == "stream" else "stream"
+    tc = sorted(TC)
+    named = {(q[1], q[2]): set(q[3]) for _t, (q, _a) in T.elsewhere if q[0] == "kept" and q[3] not in (None, "other")}
+    by_name = {W.fish_name(S): S for S in tc}
     for text, (q, a) in T.elsewhere:
         if q[0] == "kept":
+            # the fish the question covers (the re-review of 3f273c172): the fish it names; "other": every trout and char
+            # its sibling line does not name; its subject label's one fish ("Brook trout: Kept 2 …"); a line about the
+            # other kind of water ("Kept 1 at a lake?") every trout and char, EVERY one holding the answer; any other
+            # line the box's own kinds, as the card's worked line keeps them (SOME one, `_elsewhere_holds` every=False)
+            sub = by_name.get(W.split_subject(text)[0] or "")
+            every = True
+            if q[3] == "other":
+                covered = sorted(set(tc) - named.get((q[1], q[2]), set()))
+            elif q[3] is not None:
+                covered = list(q[3])
+            elif sub is not None:
+                covered = [sub]
+            elif q[2] in ("stream", "lake") and q[2] != c.P.kind and a[0] == "more_tally":
+                covered = tc
+            else:
+                covered, every = None, False
             if a[0] not in ("more", "more_but", "more_tally"):
                 probs.append(f"{text!r}: a count question with a size answer")
                 continue
@@ -1263,7 +1293,8 @@ def elsewhere_problems(c: Cell, T: Table) -> List[str]:
             for b in T.boxes:
                 if b["kind"] != "keep":
                     continue
-                got = _elsewhere_holds(E, q, a, sorted({r.fish for r in b["rows"]}), other, away)
+                kinds = sorted({r.fish for r in b["rows"]})
+                got = _elsewhere_holds(E, q, a, kinds, other, away, covered or kinds, every)
                 if got is None or got is True:
                     ok = True
                     break

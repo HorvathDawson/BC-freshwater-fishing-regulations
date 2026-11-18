@@ -96,26 +96,34 @@ def _qualcho(monkeypatch, lifted=()):
     sc = {"of": "region", "share": True, "apart": False, "narrow_all": False}
     model = {"R": {"LT": {"H": None, "W": {"status": "keep"}}}}
     got = G.elsewhere_of(P, model, row, sc, T_, grp)
-    return next(x for x in got["lines"] if x["q"].startswith("Kept 1 at a lake"))
+    return [x for x in got["lines"] if x["q"].startswith("Kept 1 ") and x["q"].endswith("at a lake?")]
 
 
-@pytest.mark.parametrize("on", [True, False], ids=["the char cap less 1", "mutation: the share's own words"])
-def test_the_lake_line_counts_the_smaller_cap(monkeypatch, on):
-    """One lake trout kept at a lake uses one of the char cap's 2: "Keep 1 more here" (the engine's 1), not 2."""
+@pytest.mark.parametrize("on", [True, False], ids=["the fish named", "mutation: one line for any fish"])
+def test_the_lake_line_names_the_capped_fish(monkeypatch, on):
+    """One lake trout kept at a lake uses one of the char cap's 2: "Kept 1 lake trout at a lake? Keep 1 more here."; any
+    other trout or char kept there leaves the share's 2: "Kept 1 other trout or char at a lake? Keep 2 more here." (the
+    re-review of 3f273c172: one unnamed line read as any fish and understated). Each line reads back; off: one line, 2."""
     from pipeline.deliver.answers.rows import groups as G
     monkeypatch.setattr(G, "A_LAKE_LINE_UNDER_ITS_CAP", on)
-    line = _qualcho(monkeypatch)
-    assert line["here"] == (1 if on else 2), line
-    assert line["a"].startswith(f"Keep {1 if on else 2} more here"), line
+    lines = _qualcho(monkeypatch)
+    got = [(x["q"], x["here"]) for x in lines]
+    if on:
+        assert got == [("Kept 1 lake trout at a lake?", 1), ("Kept 1 other trout or char at a lake?", 2)], got
+        assert [W.parse_elsewhere(W.elsewhere_line(x["q"], x["a"]))[0] for x in lines] == [
+            ("kept", 1, "lake", ("LT",)), ("kept", 1, "lake", "other")]
+        assert lines[1]["species"] and "LT" not in lines[1]["species"]
+    else:
+        assert got == [("Kept 1 at a lake?", 2)], got
 
 
 def test_the_lake_line_leaves_a_lifted_kind_to_its_own_number(monkeypatch):
-    """A kind a water's own quota lifts past the share is worked out from that quota (the lifted lake trout's 3), never
-    cut to the smaller cap less 1."""
+    """A kind a water's own quota lifts past the share is worked out from that quota (the lifted lake trout's 3): one
+    line, never cut to the smaller cap less 1."""
     from pipeline.deliver.answers.rows import groups as G
     monkeypatch.setattr(G, "A_LAKE_LINE_UNDER_ITS_CAP", True)
-    line = _qualcho(monkeypatch, lifted=True)
-    assert line["here"] != 1, line
+    lines = _qualcho(monkeypatch, lifted=True)
+    assert len(lines) == 1 and lines[0]["here"] != 1, lines
 
 
 # --------------------------------------------------------------------------- the possession "measuring" clause (Bennett)
@@ -165,3 +173,29 @@ def test_a_water_quota_no_larger_than_its_pool_sits_inside_it(tmp_path_factory, 
     b["bands"] = tuple({**x, "kind": "own", "text": W.band_in(W.parse_head(b["head"])[1], W.band_own(2))}
                        if x["from"] == x["to"] == i else x for x in b["bands"])
     assert not t17(bad)
+
+
+class _Engine:
+    """A focused engine: after one lake trout kept at a lake, 1 more here; after any other fish, 2 (Qualcho)."""
+    def fish(self, kinds, places=("here",), origins=("hatchery", "wild")):
+        return [(S, o, 30.0, p) for S in kinds for p in places for o in origins]
+
+    def can_keep(self, got, f):
+        return True
+
+    def most(self, fish, base=(), cap=99):
+        return 1 if base and base[0][0] == "LT" else 2
+
+
+@pytest.mark.parametrize("on", [True, False], ids=["every fish", "mutation: some one fish"])
+def test_j_holds_a_lake_line_for_every_fish_it_covers(monkeypatch, on):
+    """J (no data, a focused engine): "Kept 1 at a lake? Keep 1 more here." covers every trout and char kept at a lake;
+    it holds for a lake trout only, so J fails it. Off: true of some one fish of the box passes it."""
+    from pipeline.deliver.answers.trout import check as J
+    monkeypatch.setattr(J, "A_ELSEWHERE_EVERY_FISH", on)
+    got = J._elsewhere_holds(_Engine(), ("kept", 1, "lake", None), ("more_tally", 1), ["LT"], "stream", "lake",
+                             ["LT", "RB", "CT"], every=True)
+    assert (got is True) is (not on), got
+    # a line that names the lake trout holds
+    assert J._elsewhere_holds(_Engine(), ("kept", 1, "lake", ("LT",)), ("more_tally", 1), ["LT"], "stream", "lake",
+                              ["LT"]) is True

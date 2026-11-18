@@ -1472,10 +1472,14 @@ def parse_elsewhere(text: str) -> tuple:
     if not m:
         raise WordsError(f"trout words: not a kept-elsewhere line {text!r}")
     q, a = m[1], m[2]
-    mm = re.fullmatch(rf"Kept {_NUM} (elsewhere|on another (stream|lake)|at a (stream|lake))\?", q)
+    mm = re.fullmatch(rf"Kept {_NUM} (?:(.+?) )?(elsewhere|on another (stream|lake)|at a (stream|lake))\?", q)
     if mm:
-        place = mm[3] or mm[4] or "elsewhere"
-        question = ("kept", _num(mm[1]), place)
+        place = mm[4] or mm[5] or "elsewhere"
+        # (the re-review of 3f273c172) the fish the question keeps there: named ("Kept 1 lake trout at a lake?"),
+        # "other" ("Kept 1 other trout or char at a lake?": every trout and char the table's other line names not), or
+        # None: any trout or char
+        fish = None if mm[2] is None else "other" if mm[2] == "other trout or char" else parse_fish(mm[2])
+        question = ("kept", _num(mm[1]), place, fish)
     else:
         mm = re.fullmatch(rf"Kept (.+) over {_CM} elsewhere\?", q)
         if not mm:

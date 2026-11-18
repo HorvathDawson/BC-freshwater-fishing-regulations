@@ -159,7 +159,7 @@ def test_the_grammar_reads_the_numbers_back():
     assert W.parse_top_full("Keep 2 trout and char {day}, plus 2 Dolly Varden/bull trout") == ("up_to", 2, (), (), ((2, ("DV",)),))
     assert W.parse_top_full("Keep 6 rainbow trout or steelhead and 4 other trout and char {day}") == \
         ("apart", ((6, ("RB", "ST")),), 4)
-    assert W.parse_elsewhere("Kept 2 on another stream? None more here.") == (("kept", 2, "stream"), ("more", 0))
+    assert W.parse_elsewhere("Kept 2 on another stream? None more here.") == (("kept", 2, "stream", None), ("more", 0))
     assert W.parse_sheet_line("1 total from these 4: this fish and brook trout, wild rainbow trout and lake trout.") == \
         ("shared", "1 total from these 4", (("EB", None), ("RB", "wild"), ("LT", None)))
 
