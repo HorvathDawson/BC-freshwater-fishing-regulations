@@ -33,7 +33,9 @@ already done for this release):
                a curated input it was built from (T547, `atlas.inputs.behind`: a cut, name, area, added water, tidal
                limit or slough call edited after the atlas build is named, and the run stops unless
                `--ship-stale-atlas REASON`); every review mark in
-               force landed in its curated file (T545, `review.apply --check`; not skipped by --no-fast-fail); HEAD pushed to
+               force landed in its curated file (T545, `review.apply --check`; not skipped by --no-fast-fail); no place's
+               latest review save is "wrong" / "unsure" with no extent fix (T786, `review.wrong_saves`; only a dated
+               WRONG_SAVE_OK row passes one; not skipped by --no-fast-fail); HEAD pushed to
                origin/redesign/stream-sections (T484: the staging upload starts a GitHub workflow that runs GitHub's
                copy — found only at stage 6 on 2026-11-07); CI (`app-ci`, `pipeline-ci`) not red on HEAD, nor on the
                newest finished run when HEAD has none (T533, `scripts/ci_status.py`; running / no run = a warning;
@@ -200,6 +202,15 @@ def marks_landed() -> tuple[bool, str]:
     if got.returncode not in (0, 1):
         raise RuntimeError(f"review.apply --check failed (rc={got.returncode}): {(got.stderr or got.stdout)[-800:]}")
     return got.returncode == 0, got.stdout.strip()
+
+
+def wrong_saves() -> tuple[bool, str]:
+    """(T786) Does any place's latest review save say "wrong" / "unsure" with no extent fix (`review.wrong_saves`,
+    read-only, instant)? (ok, what it says). fast-fail runs it too; preflight asks again itself so `--no-fast-fail`
+    cannot skip it. A store or allowance it cannot read raises: never a pass."""
+    from pipeline.regs.review import wrong_saves as W
+    rc, said = W.say(W.check())
+    return rc == 0, said
 
 
 def atlas_behind() -> list[str]:
@@ -741,6 +752,20 @@ def check_marks(ctx: Ctx) -> Finding:
     return Finding(True, said.splitlines()[-1] if said else "review marks: every mark in force has landed")
 
 
+def check_wrong_saves(ctx: Ctx) -> Finding:
+    try:
+        ok, said = wrong_saves()
+    except Exception as e:  # noqa: BLE001 — a gate that could not read is a stop, never a pass
+        return Finding(False, f"the wrong-saves gate could not run ({type(e).__name__}: {e})",
+                       "run `python -m pipeline.regs.review.wrong_saves --check` and fix what it says")
+    if not ok:
+        return Finding(False, "places whose latest review save is wrong (T786: owner 2026-11-17, no \"wrong\" place "
+                       "ships):\n" + said,
+                       "fix and re-save each place in the review app; a save that must ship as it is goes on "
+                       "WRONG_SAVE_OK (pipeline/regs/review/wrong_saves.py), dated, with its line and reason")
+    return Finding(True, said.splitlines()[-1])
+
+
 def check_pushed(ctx: Ctx) -> Finding:
     try:
         pushed = git_pushed()
@@ -896,7 +921,8 @@ def check_fresh_copy(ctx: Ctx) -> Finding:
 
 #: every preflight check, in order: (name, check). The instant ones first; then the two that take minutes: fast-fail,
 #: and last the fresh-copy test run (the whole no-data tier on a clean clone, once per release).
-PREFLIGHT = (("committed", check_committed), ("atlas", check_atlas), ("marks", check_marks), ("pushed", check_pushed),
+PREFLIGHT = (("committed", check_committed), ("atlas", check_atlas), ("marks", check_marks),
+             ("wrong-saves", check_wrong_saves), ("pushed", check_pushed),
              ("ci", check_ci), ("live", check_live), ("site", check_site), ("fast-fail", check_fast_fail),
              ("fresh-copy", check_fresh_copy))
 

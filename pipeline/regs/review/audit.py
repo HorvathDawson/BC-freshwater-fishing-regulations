@@ -15,7 +15,7 @@ The checks (each a section of the report; `SECTIONS` says each in plain words):
 
   A  places saved more than once: the file holds exactly the last save; leftovers of superseded saves (a link, a tidal
      call, a tributary flag), cuts made from marks that no place, rule or tidal limit uses any more
-  B  last save wrong / unsure while an extent is still in force — and it SHIPS (`SHIP_RULE`)
+  B  last save wrong / unsure while an extent is still in force (`SHIP_RULE`: the release refuses it, T786)
   C  tributaries: wording vs the extent (included, heading, mainstem, tributaries-only, blank)
   D  "rest of the water" / "all other places" extents and the siblings they depend on
   E  mouth / tidal ends that are not the stream's own tidal boundary; cuts near one
@@ -95,7 +95,9 @@ MARK_CUT_NOTE = "[T185 proposal"
 SHIP_RULE = ("`pipeline/atlas/reach/dfo_salmon.py` `resolve_all` binds EVERY place that has an extent (dormant places "
              "included; a variant with none rides its target's), and `pipeline/build.py` `NOT_BUILD_INPUTS` keeps "
              "`review.marks` out of every stage: a place ships the extent in its curated file whatever its last mark "
-             "says. A 'wrong' or 'unsure' save with no landed fix changes nothing that ships.")
+             "says. A 'wrong' or 'unsure' save with no extent fix therefore STOPS THE RELEASE (T786, owner 2026-11-17: "
+             "`pipeline/regs/review/wrong_saves.py`, run by the release preflight and fast-fail); one whose fix has not "
+             "landed stops it at `apply --check`.")
 
 #: (T755 follow-up) THE FLAG the review app shows on a checklist row and this audit's section B writes, one predicate
 #: (`old_extent_in_force`): the owner's last word is "wrong" / "unsure" with no fix, and an older extent still holds
@@ -105,7 +107,8 @@ OLD_EXTENT_FLAG = "old extent still in force"
 def old_extent_in_force(m: Optional[Mapping], extents: Iterable[Mapping]) -> bool:
     """Is the place's last save (`m`, the mark in force, as a dict) "wrong" or "unsure" with NO extent fix, while the
     place still has an extent (`extents`: the curated extents it ships — its own, or the one it rides)? That extent
-    is older than the owner's last word on it. A flag only: what ships does not change (`SHIP_RULE`). Pure."""
+    is older than the owner's last word on it. The flag the review app shows; the release gate on the same saves is
+    `wrong_saves` (T786: it refuses the release, `SHIP_RULE`). Pure."""
     return (m is not None and m.get("verdict") in ("wrong", "unsure") and not (m.get("extent_fix") or [])
             and bool(list(extents or [])))
 
