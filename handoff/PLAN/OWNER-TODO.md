@@ -2513,3 +2513,14 @@ More questions (recommended answer first):
 - 2026-11-17 23:36, owner (app chat), verbatim: "Also we should look for other things that should be grouped like the bull
   /lake trout there we missed" (a sweep of every trout table for limits shared across rows but written row by row; sent
   to the main chat's builder lane with the Fraser band).
+- 2026-11-18 ~00:00, owner (app chat dialog, the group sweep's four questions, verbatim):
+  1. Vedder nested DV+LT lines: "i need proper examples. but in an ideal world we simplify stuff. so for example if we can
+     only keep >60cm then 1 over 50cm implies only 1 of either a lake trout or bull and it uses your 1 over 50cm slot. this
+     type of simplification should happen everywhere because it makes stuff easier to understand." (A STANDING RULE: drop
+     any line another limit already implies, and say the implication once, everywhere; real before/after examples owed.)
+  2. R4 cutthroat + rainbow over 50 cm: "i think A but still has to mention the overall limit. follow rule i said abotu
+     simplifying" (one shared band, the box's overall number still stated).
+  3. Istsi/North Star/Sootheran/Rockbed possession: "why 1 days limit not 2? remember simplify also why does it end with
+     "in all" ??" (open: explain "1 day's limit, not 2" and simplify; drop or justify "in all").
+  4. Lakes' "only 4 wild" inside "Keep 4 in all": "i would need to see an example. to make sure it reads right" (open:
+     before/after pictures).
