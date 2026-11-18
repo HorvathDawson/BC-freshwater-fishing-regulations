@@ -1,6 +1,7 @@
 """T809: the changed-answers list between two built releases (`pipeline/tools/audit/answers_diff.py`).
 
-Anchor (b): the committed mini release (`under_test.mini()`), copied and ALTERED THROUGH THE REAL ENCODERS — the regs
+Anchor (b): the mini release as it was before the cutover (`PRE_CUTOVER_MINI`, frozen at the T810 L merge; the committed
+mini release is the cutover form now), copied and ALTERED THROUGH THE REAL ENCODERS — the regs
 store's own tables (reassembled by `province_store`, written back into the release's files, the store digest and the
 manifest renewed) and the salmon files (`salmon.encode_files`) — so the tool reads a release exactly as a built one.
 Each planted difference is reported once, in its group, on its days; an identical or re-encoded pair is empty.
@@ -19,14 +20,20 @@ import pytest
 from pipeline.deliver import salmon as SAL
 from pipeline.deliver.store.common import store_digest, unpack
 from pipeline.deliver.store.release import province_store
-from pipeline.tests import under_test
 from pipeline.tools.audit import answers_diff as AD
 
 
 # ------------------------------------------------------------------------------------------------------- helpers
 
+#: (T810 L) the K tool's anchor: the committed mini release as it was BEFORE the cutover (rows 33, no trout section, the
+#: trout groups on the rows), frozen from redesign/stream-sections at the merge — the committed mini release is now the
+#: cutover form, and these tests plant on the groups and cut a copy over themselves (`_cut_over`)
+PRE_CUTOVER_MINI = Path(__file__).resolve().parent / "fixtures" / "pre-cutover-mini-release"
+
+
 def _copy(tmp_path: Path, name: str) -> Path:
-    src = under_test.mini()
+    from pipeline.deliver.release.manifest import latest
+    src = latest(PRE_CUTOVER_MINI)
     dst = tmp_path / name / src.name
     shutil.copytree(src, dst)
     return dst
@@ -907,7 +914,7 @@ def _cut_over(rel: Path) -> None:
     from pipeline.deliver.answers.common import trout_char
     from pipeline.deliver.answers.encode import CODECS, TroutCodec
     from pipeline.deliver.answers.trout import table as TT
-    from pipeline.deliver.store.build import optional_schema
+    from pipeline.deliver.store.build import added_schema
     st = Store(rel)
     S = st.st
     w, sub = S.answers(), S.export_subset(check=False)
@@ -922,7 +929,7 @@ def _cut_over(rel: Path) -> None:
             cells[(k + 1, s)] = c
     order = sorted(cells)
     tsec, refs = TroutCodec().encode([cells[x] for x in order], None, None)
-    optional_schema(st.con, ["trout"])
+    added_schema(st.con, ["trout"])
     for part, tbl in (("frames", "trout_frame"), ("tables", "trout_table"), ("dates", "trout_dates"),
                       ("sheets", "trout_sheet")):
         for i, v in enumerate(tsec[part]):
@@ -1113,8 +1120,9 @@ def test_review_m4_m5_across_the_cutover_a_daily_and_a_pooled_number_are_found(p
     _plant_decided(b, lambda d: {**d, "daily": d["daily"] - 1})
     assert _only(_diff(a, b), "limit_lower")["errs"] == "closed"
     b2 = b.parent.parent / "b2" / b.name
-    shutil.copytree(under_test.mini(), b2)
+    from pipeline.deliver.release.manifest import latest
+    shutil.copytree(latest(PRE_CUTOVER_MINI), b2)
     _cut_over(b2)
     _plant_row(b2, lambda r: AD.is_trout_row(r) and r["kind"] == "keep" and len(set(r["all_members"])) > 1,
                lambda r: {**r, "daily": r["daily"] - 1})
-    assert {g["kind"] for g in _diff(under_test.mini(), b2)["groups"]} == {"shared_limit"}
+    assert {g["kind"] for g in _diff(latest(PRE_CUTOVER_MINI), b2)["groups"]} == {"shared_limit"}
