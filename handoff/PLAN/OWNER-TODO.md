@@ -2729,3 +2729,6 @@ More questions (recommended answer first):
   apople" -> T863: 0.8.1 internal first; owner promotes the data release to prod; production builds of 0.8.1 (owner runs
   deploy/prod/build-apk.sh; iOS build-ios-testflight.sh --production); then Play closed testing + TestFlight external
   (Test Information in handoff/PLAN/ios/store/testflight-external.md; Beta App Review about a day).
+- 2026-11-18 ~18:05, owner (app chat), verbatim: "we need to make sure a tester outside of british columbia doesnt have it
+  glitch out too with location. we could give a little note saying you are far away from bc location will not be usefull
+  etc etc" -> T864 (audit every location reader with far-away positions; a short note outside B.C.; before T863's testers).

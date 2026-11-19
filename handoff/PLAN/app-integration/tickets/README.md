@@ -295,6 +295,7 @@ reads both files; a ticket closed here moves there once its lane is finished wit
 | T861 | The Conditions map feels laggy like the Salmon map did (owner; same cause as T848/T855) | PARTIAL | app chat | fixed by 4c005321e (measured: Conditions/Run timing zoom-out ~1 s -> 0 long tasks); left (Claude): lands with the 0.8.1 merge |
 | T862 | Search finds a water by its other names (Baker Lake → Sixteen Mile Lake); audit the stocking/bathymetry name variations (owner) | OPEN | main chat + app chat | owner 2026-11-18, future (after 0.8.1) |
 | T863 | 0.8.1 to friends: production builds, Play closed testing and TestFlight external (owner) | OPEN | app chat + owner | owner 2026-11-18 |
+| T864 | A tester far from B.C.: location must not glitch; a plain note that it is not useful there (owner) | OPEN | app chat | owner 2026-11-18 |
 
 ## Next after closed testing
 
