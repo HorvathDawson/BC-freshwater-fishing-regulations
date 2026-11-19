@@ -3,7 +3,8 @@
  * `label-hold.render.test.tsx`).
  */
 import { describe, expect, it } from "vitest";
-import { HELD_WHILE_ZOOMING, heldLayers, HOLD_SOURCES, labelGroup, LabelHold, LOST_END_MS, SETTLE_MS, type HoldTimers } from "./label-hold";
+import { HELD_WHILE_ZOOMING, heldLayers, HOLD_SOURCES, labelGroup, LabelHold, LOST_END_MS, LOST_RESET_MS, SETTLE_MS,
+         type HoldTimers } from "./label-hold";
 import { LAB_DEFAULT, LABEL_SWITCH, labStyle } from "./lab";
 import { nativeStyle } from "./native-style";
 
@@ -15,9 +16,10 @@ const style = (p: Record<string, unknown> = {}) => nativeStyle({
 
 /** A clock the test turns by hand. */
 function clock() {
-  let t = 0, n = 0;
+  let t = 0, n = 0, sets = 0;
   const due = new Map<number, { at: number; fn: () => void }>();
-  const timers: HoldTimers = { set: (fn, ms) => { due.set(++n, { at: t + ms, fn }); return n; }, clear: (h) => { due.delete(h as number); } };
+  const timers: HoldTimers = { set: (fn, ms) => { sets++; due.set(++n, { at: t + ms, fn }); return n; },
+                               clear: (h) => { due.delete(h as number); }, now: () => t };
   const tick = (ms: number) => {
     const end = t + ms;
     for (;;) {
@@ -27,7 +29,7 @@ function clock() {
     }
     t = end;
   };
-  return { timers, tick, pending: () => due.size };
+  return { timers, tick, pending: () => due.size, sets: () => sets };
 }
 
 describe("the layers the hold takes", () => {
@@ -108,6 +110,17 @@ describe("the hold's state machine", () => {
     expect(pending()).toBe(0);
   });
 
+  it("a camera report every frame restarts the lost-end clock at most every LOST_RESET_MS", () => {
+    const { h, said, tick, sets } = machine();
+    h.start(9);
+    for (let i = 1; i <= 100; i++) { tick(10); h.moving(9 + i / 100); }   // a second of frames, 10 ms apart
+    expect(said).toEqual([true]);
+    expect(sets()).toBeLessThanOrEqual(1 + Math.ceil(1000 / LOST_RESET_MS));
+    // still never left hidden: back within LOST_END_MS of the last report
+    tick(LOST_END_MS);
+    expect(said).toEqual([true, false]);
+  });
+
   it("reset gives them back at once and cancels every timer", () => {
     const { h, said, pending } = machine();
     h.start(9); h.moving(10); h.rest();
@@ -116,6 +129,13 @@ describe("the hold's state machine", () => {
     expect(pending()).toBe(0);
     h.reset();
     expect(said).toEqual([true, false]);
+  });
+
+  it("camera frames with no gesture started (an app move) hold nothing", () => {
+    const { h, said, pending } = machine();
+    h.moving(9); h.moving(11); h.rest();
+    expect(said).toEqual([]);
+    expect(pending()).toBe(0);
   });
 
   it("a rest with nothing held arms nothing", () => {

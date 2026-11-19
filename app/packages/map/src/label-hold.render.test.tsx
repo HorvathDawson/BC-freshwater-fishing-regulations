@@ -68,7 +68,7 @@ const ALL_VISIBLE = HELD.map(() => "visible");
 const ALL_HIDDEN = HELD.map(() => "none");
 const later = (ms: number) => act(() => { vi.advanceTimersByTime(ms); });
 
-beforeEach(() => { vi.useFakeTimers({ toFake: ["setTimeout", "clearTimeout"] }); });
+beforeEach(() => { vi.useFakeTimers({ toFake: ["setTimeout", "clearTimeout", "Date"] }); });
 afterEach(() => {
   cleanup(); vi.useRealTimers(); setLab(LAB_DEFAULT);
   native.props = null; native.layers = {}; native.mounts = {}; native.unmounts = [];
@@ -115,6 +115,21 @@ describe("labels wait while the zoom moves, on a phone (T876)", () => {
     expect(shown()).toEqual(ALL_VISIBLE);
   });
 
+  it("a fit's glide keeps the labels (it runs behind a held pane; Android calls it user interaction)", async () => {
+    render(<NativeMap {...props({ fit: { key: "part", bbox: [-122.1, 48.9, -121.9, 49.1] } })} />);
+    await act(async () => {});
+    fire("onRegionWillChange", { zoom: 10, userInteraction: true });
+    fire("onRegionIsChanging", { zoom: 11.5 });
+    fire("onRegionIsChanging", { zoom: 13 });
+    expect(shown()).toEqual(ALL_VISIBLE);
+    // the next move after the fit is the reader's: held as any
+    later(2000);
+    fire("onRegionDidChange", { zoom: 13 });
+    fire("onRegionWillChange", { zoom: 13, userInteraction: true });
+    fire("onRegionIsChanging", { zoom: 12 });
+    expect(shown()).toEqual(ALL_HIDDEN);
+  });
+
   it("a pan that keeps its zoom keeps its labels", () => {
     render(<NativeMap {...props()} />);
     fire("onRegionWillChange", { zoom: 10, userInteraction: true });
@@ -145,7 +160,9 @@ describe("labels wait while the zoom moves, on a phone (T876)", () => {
     act(() => { setLab({ holdLabels: false }); });
     expect(shown()).toEqual(ALL_VISIBLE);
     fire("onRegionWillChange", { zoom: 10.6, userInteraction: true });
-    fire("onRegionIsChanging", { zoom: 12 });
+    expect(native.props!.onRegionIsChanging).toBeUndefined();
+    fire("onRegionDidChange", { zoom: 12 });
+    later(LOST_END_MS);
     expect(shown()).toEqual(ALL_VISIBLE);
     // unmounting an adopted layer removes it from the style: a re-render never does
     expect(native.unmounts).toEqual([]);
@@ -166,6 +183,60 @@ describe("labels wait while the zoom moves, on a phone (T876)", () => {
     expect(Object.keys(native.mounts).sort()).toEqual(ids);
     expect(Object.values(native.mounts).every((n) => n === 1)).toBe(true);
     expect(native.unmounts).toEqual([]);
+  });
+
+  it("a map opened dark adopts the light style's own labels when it turns light (the ids grow, none is dropped)", () => {
+    const r = render(<NativeMap {...props({ theme: "dark" })} />);
+    expect(native.layers.pois).toBeUndefined();
+    r.rerender(<NativeMap {...props({ theme: "light" })} />);
+    expect(vis("pois")).toBe("visible");
+    fire("onRegionWillChange", { zoom: 10, userInteraction: true });
+    fire("onRegionIsChanging", { zoom: 10.6 });
+    expect(vis("pois")).toBe("none");
+    r.rerender(<NativeMap {...props({ theme: "dark" })} />);
+    fire("onRegionDidChange", { zoom: 10.6 });
+    later(SETTLE_MS);
+    expect(vis("pois")).toBe("none");               // the dark style has none: kept, at none, never unmounted
+    expect(native.unmounts).toEqual([]);
+  });
+
+  it("with the hold off nothing reads a camera frame", () => {
+    render(<NativeMap {...props()} />);
+    expect(native.props!.onRegionIsChanging).toBeTypeOf("function");
+    act(() => { setLab({ holdLabels: false }); });
+    expect(native.props!.onRegionIsChanging).toBeUndefined();
+  });
+
+  it("the map is said drawn whole only once the labels are back (a test-bed shot on 'whole' has its names)", () => {
+    const drawn = vi.fn();
+    render(<NativeMap {...props({ onDrawn: drawn })} />);
+    const fully = () => act(() => { (native.props!.onDidFinishRenderingFrameFully as () => void)(); });
+    fire("onRegionWillChange", { zoom: 10, userInteraction: true });
+    fire("onRegionIsChanging", { zoom: 10.6 });
+    act(() => { (native.props!.onDidFinishRenderingMapFully as () => void)(); });
+    fire("onRegionDidChange", { zoom: 11 });
+    fully();
+    later(SETTLE_MS - 10);
+    fully();
+    expect(drawn).not.toHaveBeenCalled();
+    later(10);                                       // the labels come back …
+    expect(shown()).toEqual(ALL_VISIBLE);
+    fully();                                         // … and their full frame is the whole one
+    expect(drawn).toHaveBeenCalledTimes(1);
+  });
+
+  it("a release that draws no frame: the last full frame stands for it a moment later", () => {
+    const drawn = vi.fn();
+    render(<NativeMap {...props({ onDrawn: drawn })} />);
+    fire("onRegionWillChange", { zoom: 10, userInteraction: true });
+    fire("onRegionIsChanging", { zoom: 10.6 });
+    act(() => { (native.props!.onDidFinishRenderingMapFully as () => void)(); });
+    fire("onRegionDidChange", { zoom: 11 });
+    act(() => { (native.props!.onDidFinishRenderingFrameFully as () => void)(); });
+    later(SETTLE_MS);
+    expect(drawn).not.toHaveBeenCalled();
+    later(400);
+    expect(drawn).toHaveBeenCalledTimes(1);
   });
 
   it("unmounting the map leaves no timer behind", () => {

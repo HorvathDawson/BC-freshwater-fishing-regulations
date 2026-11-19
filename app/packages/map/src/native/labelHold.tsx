@@ -6,10 +6,10 @@
  * platforms) and sets only what it is given — here `visibility`, nothing else. Each sits under its own source element, so
  * after a style swap the source re-adopts it in the new style with the same visibility (`MLRNSource.addToMap`).
  *
- * NEVER UNMOUNTED WHILE THE MAP LIVES: unmounting an adopted layer REMOVES it from the style. So the ids are fixed at the
- * map's first style (`useAdoptedIds`), and a later style that lacks one gets it at `visibility: none` (the binding then
- * makes an empty layer of that id, drawn nowhere: the dark basemap has no `pois`). Only the store re-renders on a hold
- * change, never the map.
+ * NEVER UNMOUNTED WHILE THE MAP LIVES: unmounting an adopted layer REMOVES it from the style. So the ids only GROW: every
+ * style's held ids are added as they appear (`useAdoptedIds`: a map opened dark has no `pois` until it turns light), none
+ * is ever dropped, and a style that lacks one gets it at `visibility: none` (the binding then makes an empty layer of that
+ * id, drawn nowhere). Only the store re-renders on a hold change, never the map.
  */
 import { useRef, useSyncExternalStore } from "react";
 import { Layer } from "@maplibre/maplibre-react-native";
@@ -28,11 +28,17 @@ export function holdStore(): HoldStore {
   return { machine, subscribe: (l) => { ls.add(l); return () => { ls.delete(l); }; }, held: () => held };
 }
 
-/** The ids to adopt, per source: the first style's, for the life of the map. */
+/** The ids to adopt, per source: every style's so far, in the order they first appeared, never one dropped. */
 export function useAdoptedIds(now: Record<HoldSource, HeldLayer[]>): Record<HoldSource, string[]> {
   const ids = useRef<Record<HoldSource, string[]> | null>(null);
-  ids.current ??= Object.fromEntries(HOLD_SOURCES.map((s) => [s, now[s].map((l) => l.id)])) as Record<HoldSource, string[]>;
-  return ids.current;
+  const was = ids.current;
+  const grown = HOLD_SOURCES.some((s) => now[s].some((l) => !was?.[s].includes(l.id)));
+  if (!was || grown)
+    ids.current = Object.fromEntries(HOLD_SOURCES.map((s) => {
+      const kept = was?.[s] ?? [];
+      return [s, [...kept, ...now[s].map((l) => l.id).filter((id) => !kept.includes(id))]];
+    })) as Record<HoldSource, string[]>;
+  return ids.current!;
 }
 
 /** The adopted label layers of one source: the style's own visibility, or none while the hold is on. `source` is the

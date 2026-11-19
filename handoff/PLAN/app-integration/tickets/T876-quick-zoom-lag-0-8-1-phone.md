@@ -155,3 +155,14 @@ Tests: `label-hold.test.ts` (which layers, stable ids, the state machine), `labe
 restore after the settle, a pan keeps them, a run of pinches, a lost end, the lab switch, a style swap, no timer left),
 `lab.test.ts` (each kind's switch hides exactly that kind).
 
+**Review fixes (2026-11-18 ~22:55).**
+1. The adopted ids now GROW with each style, and none is ever dropped. A map opened dark gets `pois` when it turns light. A
+   first style without the route arrows is no longer missed.
+2. `onRegionIsChanging` is passed only while the hold is on. The lost-end clock restarts at most every 100 ms
+   (`LOST_RESET_MS`), not on every camera frame.
+3. "Drawn whole" (`onDrawn`, the pane reveal and the test bed's shots) is said only once the labels are back: on the next
+   full frame, or 400 ms after a release that draws none. A FIT never starts the hold: it glides behind a held pane, and
+   holding its labels would delay every water's opening by the settle. The gate is the map's own `fitMoving`, not the
+   binding's `userInteraction`, which on Android is true for the app's own camera animations and false for a double tap.
+   Pinches are unchanged, so the bench above stands.
+

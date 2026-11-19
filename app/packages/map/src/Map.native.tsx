@@ -97,6 +97,9 @@ const PREFETCH_ZOOM_DELTA = -1;
 /** (T317) a style-spec layer as the binding's `Layer` takes it (its source is the enclosing `GeoJSONSource`) */
 type LayerSpec = React.ComponentProps<typeof Layer>;
 
+/** (T876) After the labels come back with no frame drawn for it, how long until the last full frame counts as whole. */
+const RELEASE_WHOLE_MS = 400;
+
 /** An empty source, so the gauge layers exist before the first feed tick arrives (as on the web). */
 const EMPTY_FC = '{"type":"FeatureCollection","features":[]}';
 const EMPTY_FC_OBJ = { type: "FeatureCollection" as const, features: [] as unknown[] };
@@ -482,7 +485,9 @@ export function Map({ at, theme, view, modes, groups, hide, show, initial, data,
     // (test bed only, the open probe's build) why a full render was or was not the whole one
     const why = !styledNow.current || !rendered.current ? "unstyled"
       : highlight && litWritten.current !== `${litText}|${gen}` ? "unlit"
-      : fit && (fitted.current !== fit.key || fitMoving.current) ? "moving" : null;
+      : fit && (fitted.current !== fit.key || fitMoving.current) ? "moving"
+      // (T876) the labels wait while the zoom moves: not whole until they are back (the next full frame after it says so)
+      : hold.machine.isHeld() ? "labels" : null;
     if (drawnNow.current && (globalThis as { __openProbe?: boolean }).__openProbe)
       console.log(`[whole] ${JSON.stringify({ t: clockNow(), why: why ?? "whole", h: size.current.height })}`);
     if (why) return;
@@ -501,6 +506,18 @@ export function Map({ at, theme, view, modes, groups, hide, show, initial, data,
    */
   const wantWhole = !!onDrawn && wholeSaid.current !== wholeKey;
   const lastFull = useRef(false);
+  /*
+   * (T876) the labels back after a hold: their full frame says the map is whole (`onDidFinishRenderingFrameFully`); a
+   * release that changes nothing on screen draws no frame, so a short while later the last full frame stands for it
+   */
+  useEffect(() => {
+    let t: ReturnType<typeof setTimeout> | null = null;
+    const off = hold.subscribe(() => {
+      if (t) clearTimeout(t);
+      t = hold.held() ? null : setTimeout(() => { t = null; if (lastFull.current) whole.current(); }, RELEASE_WHOLE_MS);
+    });
+    return () => { off(); if (t) clearTimeout(t); };
+  }, [hold]);
   const onRendered = useCallback(() => {
     if (looks.current.waiting()) sayLook(looks.current.fullFrame());
     panProbe.src("idle");               // (T499) a full render (MapLibre's "map idle")
@@ -648,7 +665,8 @@ export function Map({ at, theme, view, modes, groups, hide, show, initial, data,
   const [callout, setCallout] = useState<{ title: string; x: number; y: number } | null>(null);
   const onRegionWillChange = useCallback((e: RegionEvent) => {
     const ne = e.nativeEvent;
-    if (holdOn.current) hold.machine.start(ne?.zoom);
+    // (T876) not for a fit: it glides behind a held pane, and the labels would only delay "drawn whole" (`label-hold.ts`)
+    if (holdOn.current && !fitMoving.current) hold.machine.start(ne?.zoom);
     if (ne?.userInteraction && meNow.current?.following) meNow.current.onRelease?.();
   }, [hold]);
   useEffect(() => {
@@ -1005,7 +1023,8 @@ export function Map({ at, theme, view, modes, groups, hide, show, initial, data,
         onRegionDidChange={onRegionDidChange as never}
         // (T876) always: the label hold starts on it
         onRegionWillChange={((e: RegionEvent) => { probe?.moving(); panProbe.moving(); onRegionWillChange(e); }) as never}
-        onRegionIsChanging={onRegionIsChanging as never}
+        // (T876) only while the hold is on: otherwise nothing reads a camera frame
+        onRegionIsChanging={lab.holdLabels ? onRegionIsChanging as never : undefined}
         onDidFinishRenderingFrame={probe || PAN_PROBE || wantWhole
           ? (() => { lastFull.current = false; probe?.frame(); if (PAN_PROBE) panProbe.frame(false); }) as never : undefined}
         // (T420/T401, test bed only) a frame with every tile in: the pan probe's "streams drawn"; (T508) and while someone

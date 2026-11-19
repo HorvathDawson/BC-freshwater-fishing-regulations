@@ -4,12 +4,15 @@
  *
  * On MapLibre Native every zoom crossing lays out and places the labels of every new tile on the map's render thread, and a
  * quick pinch crosses several (emulator bench, T876: the labels are half a pinch's render work). So while the camera's ZOOM
- * moves — a pinch, a double tap, a zoom button, a fit's glide — the label layers below are not drawn, and they come back a
- * moment after the camera rests (`SETTLE_MS`). A pan that keeps its zoom keeps its labels. The stream lines, their colours
- * and the gauge dots are never held.
+ * moves — a pinch and its carry, a double tap, a zoom button — the label layers below are not drawn, and they come back a
+ * moment after the camera rests (`SETTLE_MS`). A pan that keeps its zoom keeps its labels. A FIT never holds them (the map
+ * does not start the hold while its fit glides): a fit runs behind a held pane shown when the map is drawn whole, and
+ * waiting for labels there would only make opening a water slower. (Not the binding's `userInteraction`: on Android it is
+ * true for the app's own camera animations and false for a double tap.) The stream lines, their colours and the gauge dots
+ * are never held.
  *
  * NEVER LEFT HIDDEN: a camera that reports no rest (a lost "did change") gives the labels back `LOST_END_MS` after its
- * last report, whatever happened.
+ * last report (within `LOST_RESET_MS`: the clock is restarted at most that often), whatever happened.
  *
  * Platform-free (the state machine and which layers it holds); `Map.native.tsx` drives it from the binding's camera events
  * and draws the result by adopting the style's own label layers (`LabelHoldLayers`). The web map is unchanged: maplibre-gl
@@ -69,12 +72,16 @@ export const SETTLE_MS = 250;
 export const LOST_END_MS = 1500;
 /** A zoom change smaller than this is a pan's rounding, not a zoom. */
 export const ZOOM_EPS = 0.01;
+/** The lost-end clock is restarted at most this often: a camera report comes every frame, a timer swap need not. */
+export const LOST_RESET_MS = 100;
 
 export interface HoldTimers {
   set(fn: () => void, ms: number): unknown;
   clear(handle: unknown): void;
+  now(): number;
 }
-const REAL_TIMERS: HoldTimers = { set: (fn, ms) => setTimeout(fn, ms), clear: (h) => clearTimeout(h as never) };
+const REAL_TIMERS: HoldTimers = { set: (fn, ms) => setTimeout(fn, ms), clear: (h) => clearTimeout(h as never),
+                                  now: () => Date.now() };
 
 /**
  * The hold's state, fed the camera's reports: `start` (the binding's "will change"), `moving` (each "is changing"),
@@ -82,15 +89,20 @@ const REAL_TIMERS: HoldTimers = { set: (fn, ms) => setTimeout(fn, ms), clear: (h
  */
 export class LabelHold {
   private held = false;
+  /** a move the hold was started for (`start` … `rest`): only then do camera frames count */
+  private active = false;
   private from: number | null = null;
   private back: unknown = null;
   private lost: unknown = null;
+  private lostAt = 0;
   constructor(private readonly onChange: (held: boolean) => void, private readonly timers: HoldTimers = REAL_TIMERS) {}
 
   isHeld(): boolean { return this.held; }
 
-  /** The camera starts to move from `zoom` (undefined: not reported; the next zoom reported is the start). */
+  /** A camera move starts from `zoom` (undefined: not reported; the next zoom reported is the start). The caller does not
+   *  start the hold for a move it must not hold (a fit). */
   start(zoom: number | undefined): void {
+    this.active = true;
     this.cancel("back");
     if (!this.held) this.from = zoom ?? null;
     this.armLost();
@@ -98,7 +110,7 @@ export class LabelHold {
 
   /** The camera is at `zoom`, moving. The labels go once it has left the zoom it started at. */
   moving(zoom: number | undefined): void {
-    if (zoom === undefined) return;
+    if (!this.active || zoom === undefined) return;
     this.cancel("back");
     if (this.from === null) this.from = zoom;
     if (!this.held && Math.abs(zoom - this.from) > ZOOM_EPS) this.set(true);
@@ -107,6 +119,7 @@ export class LabelHold {
 
   /** The camera rests. The labels come back after `SETTLE_MS` unless it moves again first. */
   rest(): void {
+    this.active = false;
     this.from = null;
     this.cancel("lost");
     if (!this.held) return;
@@ -118,13 +131,17 @@ export class LabelHold {
   reset(): void { this.cancel("back"); this.release(); }
 
   private release(): void {
+    this.active = false;
     this.from = null;
     this.cancel("lost");
     this.set(false);
   }
 
   private armLost(): void {
+    const now = this.timers.now();
+    if (this.lost !== null && now - this.lostAt < LOST_RESET_MS) return;
     this.cancel("lost");
+    this.lostAt = now;
     this.lost = this.timers.set(() => { this.lost = null; this.cancel("back"); this.release(); }, LOST_END_MS);
   }
 
