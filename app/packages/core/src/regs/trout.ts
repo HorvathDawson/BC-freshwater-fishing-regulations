@@ -5,7 +5,7 @@
  * Owner rule 2026-11-16 16:50 (contract guarantees 1 to 5): Python decides every word, number and date, and which rows
  * exist; the app draws only. So this file states NO rule. It composes exactly two things (contract 2.12):
  * (1) the top line's one `{day}` slot, filled by `dayPhrase` ("today" / "on Jul 15", the strip's helper), and
- * (2) a row's screen-reader label: the row's payload texts in payload order (name, origin, label, sub, `lines`,
+ * (2) a row's screen-reader label: the row's payload texts in payload order (name, origin, label, down, sub, `lines`,
  *     `quiet`, the band text that covers it, then the nested band's (trout 4: nested after outer), then its date),
  *     joined by ". ", nothing else (contract 2.8).
  * Everything else is the payload, drawn unchanged; a date sits at the one level the frame names.
@@ -32,6 +32,8 @@ export const DAY_SLOT = "{day}";
 const REOPENS = "reopens ";
 /** A row key: a fish of `common.trout_char()`, or one origin of a twin pair (`model/trout.py` RowKey). */
 const ROW_KEY = /^(CT|DV|EB|GB|LT|RB|ST)(\/(wild|hatchery))?$/;
+/** (T892) `TRow.down`'s two forms (`model/trout.py` DOWN_FORM): a shape refusal, as the model's, never drawn. */
+const DOWN_FORM = /^\S.*’s? rule for its tributaries$|^\S.*’s? and \S.*’s? rules for their tributaries$/;
 
 /** A trout frame the app will not draw: reported once per read, with the contract's reason. */
 export class TroutRefused extends Error {
@@ -82,6 +84,8 @@ function box(x: Box, bi: number): void {
     if (r.origin !== null && r.label !== null) bad(`${rw}: a twin row carries its origin, never a label`);
     if (r.split && (r.origin !== null || r.label !== null)) bad(`${rw}: a merged hatchery and wild row has no origin and no label`);
     txt(r.name, `${rw} name`); opt(r.label, `${rw} label`); opt(r.sub, `${rw} sub`);
+    // (T892) the tributary line, optional (absent: none); its two forms as the model holds them (`model/trout.py` DOWN_FORM)
+    if (r.down != null) { txt(r.down, `${rw} down`); if (!DOWN_FORM.test(r.down)) bad(`${rw}: the tributary line ${r.down} is not one of its forms`); }
     r.lines.forEach((l) => txt(l, `${rw} line`)); r.quiet.forEach((l) => txt(l, `${rw} quiet`));
     txt(r.sheet.head, `${rw} sheet head`); r.sheet.here.forEach((l) => txt(l.t, `${rw} sheet line`));
     if (r.sheet.src.length > 4) bad(`${rw}: a sheet cites at most 4 rules`);
@@ -234,9 +238,10 @@ export function troutOf(inp: RegsInputs, day: Day, today: Day): TroutVM | TroutR
       const at = (y: TroutBandVM) => y.from <= i && i <= y.to;
       const by = bands.find(at) ?? null, nest = inner.find(at) ?? null, date = d?.row[`${b}:${i}`] ?? null;
       return {
-        key: r.key, fish: r.fish, name: r.name, origin: r.origin, label: r.label, split: r.split, sub: r.sub, lines: r.lines, quiet: r.quiet,
-        src: r.src, sheet: r.sheet, coming: d?.sheet[r.key] ?? [], date,
-        a11y: a11yOf([r.name, r.origin, r.label, r.sub, ...r.lines, ...r.quiet, by?.text, nest?.text, date ?? by?.date]),
+        key: r.key, fish: r.fish, name: r.name, origin: r.origin, label: r.label, split: r.split, down: r.down ?? null, sub: r.sub,
+        lines: r.lines, quiet: r.quiet, src: r.src, sheet: r.sheet, coming: d?.sheet[r.key] ?? [], date,
+        // (T892) the tributary line where it is drawn: under the name, before the sub
+        a11y: a11yOf([r.name, r.origin, r.label, r.down, r.sub, ...r.lines, ...r.quiet, by?.text, nest?.text, date ?? by?.date]),
       };
     });
     return { kind: x.kind, head: x.head, label: x.label, strip: x.strip, possession: x.possession, tag: x.tag, date: d?.box[String(b)] ?? null, rows, bands, inner };

@@ -247,9 +247,22 @@ def _trout_compose_key(values: Dict[str, list], starts: List[int], moments, ctx:
         data = ctx.cache["export"]
         rules = ctx.cache["trout_rules"] = TT.Rules.from_export(data, ctx.doc)
     rows, disp, lic = values["rows"], values["display"], values["licence"]
+    # (T892) each row's tributary line reads the rules as this key's rule set holds them (`key_trib`, filled per key
+    # below: a rule the set lists under `trib` ranks 1) and as its fish sheet's rail says them (the display title, kind)
+    from pipeline.deliver.answers.display.rule import kind_of, title
+    from pipeline.deliver.answers.trout import down as TD
+    facts = ctx.cache.setdefault("trout_down_facts", {})
+
+    def fact(key: str):
+        got = facts.get(key)
+        if got is None:
+            x = ctx.B.rules[tuple(key.split("::", 1))]
+            got = facts[key] = (kind_of(x), title(x))
+        return got
+    down = TD.reader(rules, ctx.cache["key_trib"], fact)
     # T810 G2 Q7: the stop duty's noun from the names of the key's waters (`key_names`, filled per key below)
     got = TT.compose_key(rows, disp, starts, moments, rules, licences=lic,
-                         noun=TT.stop_noun(ctx.cache.get("key_names") or ()))
+                         noun=TT.stop_noun(ctx.cache.get("key_names") or ()), down=down)
     out = [None if f is None else json.loads(json.dumps(f, ensure_ascii=False)) for f in got]
     for j in range(1, len(out)):
         same_in = rows[j] == rows[j - 1] and disp[j] == disp[j - 1] and lic[j] == lic[j - 1]
@@ -477,7 +490,9 @@ def _sections() -> Tuple[Section, ...]:
         # between them", Region 4's cutthroat and rainbow). trout 3 (owner 2026-11-18 00:52, "said once"): a date level
         # holds every row under it without one of its own (`DateSet`, the most specific wins). trout 4 (owner 01:22 /
         # 01:28): `TopLine.sub`, nested bands (`Box.inner`), one row for a fish's hatchery and wild twins. trout 5 (the
-        # app chat's S): `TRow.split` marks that merged row (the fish sheet's hatchery link)
+        # app chat's S): `TRow.split` marks that merged row (the fish sheet's hatchery link). (T892) `TRow.down`, a row's
+        # tributary line, is OPTIONAL and absent where none, so trout stays 5: the installed 0.8.2 app reads a table
+        # carrying it (it ignores the field) and the app reads a release without it (no line)
         Section("trout", 5, _no_scope, compose_from=("rows", "display", "licence"), compose_key=_trout_compose_key),
     )
 
@@ -765,6 +780,10 @@ def build(bundle: str, export_dir: Path, *, workers: int = 0, items: Optional[It
             continue
         for ki in range(len(keys)):
             ctx.cache["key_names"] = names_of.get(ki, ())
+            # (T892) the rules this key's rule set reached by the tributary walk (`trout/down.py`)
+            if keys[ki][0] not in B.sets:
+                raise AnswersError(f"answers: key {ki} names rule set {keys[ki][0]}, which the bundle does not hold")
+            ctx.cache["key_trib"] = frozenset(f"{e}::{r}" for e, r, v in B.sets[keys[ki][0]] if v == "trib")
             try:
                 out[s.name].append(s.compose_key({n: out[n][ki] for n in s.compose_from}, segs[ki], seg_moments[ki],
                                                  ctx))

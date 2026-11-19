@@ -44,6 +44,8 @@ WHAT IT PROVES, per (answer key, segment):
   year bar   shown exactly when every fish shares one state (release or closed) on an open water; its runs the page's
              year rule over the table's fish (`year.stamp_years`)
   src        every rule a table cites exists; each fish's deciding rule is in its row's `src`
+  down       (T892) a row's tributary line: every answer it speaks for set only by tributary rules here, and the line
+             names exactly their waters (`down_problems`)
   elsewhere  each kept-elsewhere line read back; its "Keep N more here" proved by the engine after the fish kept there;
              (T810 L) each covered keep row's kept-elsewhere SENTENCE on the table (whose limit, the row's own number),
              none standing for a row the table does not cover (`elsewhere_said_problems`)
@@ -1352,6 +1354,50 @@ def src_problems(c: Cell, T: Table) -> List[str]:
     return probs
 
 
+#: (T892) False = a row's tributary line is not read back (the mutation pin, `test_trout_down.py`)
+A_DOWN_PROOF = True
+
+
+def down_problems(c: Cell, T: Table) -> List[str]:
+    """(T892) A row's tributary line (`TRow.down`) read back against the stored answers it speaks for (its origin's,
+    else hatchery and wild: what its fish sheet's rail checks): each is won, and where its number was lowered
+    (`narrow`) each rule stored as narrowing it, only by rules this part reaches by the tributary walk (the reader's
+    Part: `via` "trib", not federal, no undrawn part), and the line is `words.row_down` of exactly those rules' waters,
+    in that order. A row WITHOUT a line is not proved here: whether its sheet draws a rail at all is the app's (the
+    whole-release check, `app/tools/release-tributary-lines.test.ts`, proves each such row partial against it)."""
+    probs: List[str] = []
+    if not A_DOWN_PROOF:
+        return probs
+    fish = c.today.get("fish") or {}
+    for r in T.rows:
+        text = r.r.get("down")
+        if text is None:
+            continue
+        if c.P is None or c.ids is None:
+            probs.append(f"row {r.key}: its tributary line {text!r} cannot be proved without the reader's part")
+            continue
+        fa = fish.get(r.fish) or {}
+        cells = [d for d in (fa.get(o) for o in ((r.origin,) if r.origin else common.ORIGINS)) if d is not None]
+        names: Dict[str, None] = {}
+        bad = None if cells else "no stored answer"
+        for d in cells:
+            sets = [d["win"]] + ([ix for ix, role, _ in d.get("roles") or () if role == "narrows"]
+                                 if d.get("narrow") is not None else [])
+            for ix in sets:
+                L = c.P.by_key.get(c.ids[ix])
+                if L is None or L.via != "trib" or L.x.get("_rank", 0) < 0 or L.f.get("undrawn_part"):
+                    bad = bad or f"rule {c.ids[ix]} sets it and is no tributary rule here"
+                else:
+                    names[(L.x.get("entry_name") or "").strip()] = None
+        if bad is None and not all(names):
+            bad = "a tributary rule with no entry name"
+        if bad is not None:
+            probs.append(f"row {r.key}: says {text!r} but {bad}")
+        elif not W.is_row_down(text, list(names)):
+            probs.append(f"row {r.key}: says {text!r}; its answers are set by {list(names)}'s tributary rules")
+    return probs
+
+
 # ============================================================================================
 # The dates (spec 3.3), against the following segments
 # ============================================================================================
@@ -1694,7 +1740,7 @@ def check_key(cells, frames, displays, licences, starts, moments, rule: Callable
             got.append(f"covers {list(cell['covers'])}; the rows frame's trout rows are {covers_of(frames[j])}")
         try:
             for f in (law_problems, top_problems, possession_problems, origin_problems, sheet_problems,
-                      elsewhere_problems, elsewhere_said_problems, src_problems):
+                      elsewhere_problems, elsewhere_said_problems, src_problems, down_problems):
                 got += f(c, T)
             got += joint_problems(c, T, f"{seed}:{j}")
             got += stated_cap_problems(c, T)

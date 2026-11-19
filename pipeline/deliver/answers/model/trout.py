@@ -7,7 +7,9 @@ the wire models are emitted beside it (`frames.TROUT_WIRE`, contract 2.3 "wire a
 row: the body, each row's `sheet` a `trout_sheet` id), `DateSet` (a `trout_dates` row) and `FishSheet` (a `trout_sheet`
 row), the same on both sides. The decoded and the wire table share their fields and validators (`_TRowFields`,
 `_BoxFields`, `_TableFields`); only a row's `sheet` differs. ANY CHANGE of a field, a validator or the wire layout bumps
-the `trout` section's version (`answers.SECTIONS`; contract 2.1), and the I0 pin then fails until the app moves too.
+the `trout` section's version (`answers.SECTIONS`; contract 2.1), and the I0 pin then fails until the app moves too —
+except an OPTIONAL field absent where unset that both apps read safely (T892 `TRow.down`: the 0.8.2 reader ignores it,
+this reader reads its absence as none), which keeps the version so an installed app keeps reading the release.
 
 Every field is required; a nullable one has no default and is paired, in a validator, with the condition that
 empties it (`model/__init__.py`). No number the app could count with: words, structure and rule indexes only (the one
@@ -16,6 +18,7 @@ unchanged (`Txt`): no leading or trailing space, no "{" or "}" except the one `{
 """
 from __future__ import annotations
 
+import re
 from typing import Annotated, Any, Dict, List, Literal, Optional, Tuple
 
 from pydantic import AfterValidator, Field, StrictBool, StrictInt, StrictStr, model_validator
@@ -49,6 +52,9 @@ def _lead(v: str) -> str:
         raise ValueError(f"the top line holds a brace outside its slot: {v!r}")
     return v
 
+
+#: (T892) `TRow.down`'s two forms (`trout/down.py` `line`; the app's Other fish rows say the same, `DECIDE.ROW_DOWN`)
+DOWN_FORM = re.compile(r"\S.*’s? rule for its tributaries|\S.*’s? and \S.*’s? rules for their tributaries")
 
 #: a whole phrase, drawn unchanged
 Txt = Annotated[StrictStr, Field(min_length=1), AfterValidator(_txt)]
@@ -116,6 +122,20 @@ class _TRowFields(Model):
     quiet: Tuple[Txt, ...]              # NOW, regular weight
     src: Src
     sheet: Any                          # `TRow`: the FishSheet; `TRowWire`: its `trout_sheet` id
+    #: (T892, owner 2026-11-19 "The table should say if it came from tributaries too..") the line under the name where
+    #: another water's row, carried down to its tributaries, sets this row ("Dutch Creek’s rule for its tributaries";
+    #: "A’s and B’s rules for their tributaries"), from the same stored answers its fish sheet's rail reads
+    #: (`trout/down.py`). OPTIONAL, ABSENT where none (never written as null): a reader of the trout 5 shape reads a
+    #: table carrying it, and the app reads a table without it (the release before T892). The one exception to "every
+    #: field required" above; the section's version stays 5 so an installed 0.8.2 app keeps reading the release.
+    down: Optional[Txt] = None
+
+    @model_validator(mode="after")
+    def _down(self):
+        if self.down is not None and not DOWN_FORM.fullmatch(self.down):
+            raise ValueError(f"row {self.key}: the tributary line {self.down!r} is not \"<water>’s rule for its "
+                             "tributaries\" or \"<A>’s and <B>’s rules for their tributaries\"")
+        return self
 
     @model_validator(mode="after")
     def _key(self):

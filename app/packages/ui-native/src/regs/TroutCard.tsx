@@ -35,7 +35,7 @@ const BIG_AT = 1.5;
 /** A table row as the keep box draws it: the payload's texts, its own date line, core's one label, the fish's picture. */
 function rowOf(r: TroutRowVM, actions: KeepActions, images: FishImages | undefined): KeepRowVM {
   return {
-    key: r.key, name: r.name, label: r.label, sub: r.sub, lines: r.lines, quiet: r.quiet, date: r.date, origin: r.origin, a11y: r.a11y,
+    key: r.key, name: r.name, label: r.label, down: r.down, sub: r.sub, lines: r.lines, quiet: r.quiet, date: r.date, origin: r.origin, a11y: r.a11y,
     pic: { source: images?.[r.fish]?.[0]?.thumb, more: TROUT_NAV.MORE, label: WORDS.LOOKS_LIKE(r.name), testID: `pic:${r.key}`,
            onPress: () => actions.onSheet(`tf:${r.key}`) },
   };

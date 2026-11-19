@@ -234,22 +234,37 @@ def decoded(side, tmp_path_factory):
     model = E.decode(json.loads(raw), data)
     rules = T.Rules({i: T.rule_of(sub["rules"][rid]) for i, rid in enumerate(sub["rule_ids"])})
     st.close()
-    return model, mini_chain.trout_inputs(tmp_path_factory), rules
+    return model, mini_chain.trout_inputs(tmp_path_factory), rules, down_readers(model, sub, rules)
+
+
+def down_readers(model, sub: dict, rules):
+    """(T892) per key, the rules as its rule set holds them for the rows' tributary lines (`trout/down.py` `reader`): the
+    set's `trib` list and each rule's display kind and title, as the release ships them."""
+    from pipeline.deliver.answers.trout import down as TD
+    ix = {rid: i for i, rid in enumerate(sub["rule_ids"])}
+    facts = model.statics["display"]["rules"]
+
+    def fact(key: str):
+        f = facts[ix[key]]
+        return f["kind"], f["title"]
+    return lambda k: TD.reader(rules, frozenset(sub["rulesets"][str(model.keys[k][0])].get("trib") or ()), fact)
 
 
 def test_every_trout_cell_decodes_to_the_model_and_is_the_builders(decoded):
     """Each shipped cell is the builder's table over the rows it read (before the cut: `mini_chain.trout_inputs`), NULL
     exactly per Q-D3, every fish said once. (That the shipped rows are those rows cut over is
     `test_t810_cutover.test_every_row_the_table_does_not_cover_is_the_cards_row`.)"""
-    model, pre, rules = decoded
+    model, pre, rules, down_of = decoded
     n = 0
     nulls = 0
+    lines = 0
     assert model.segments == pre.segments
     for k, starts in enumerate(model.segments):
         rows, disp, lic = (pre.sections[s][k] for s in ("rows", "display", "licence"))
         cells = model.sections["trout"][k]
         assert len(cells) == len(starts)
-        built = T.compose_key(rows, disp, starts, model.moments[k], rules, licences=lic)
+        built = T.compose_key(rows, disp, starts, model.moments[k], rules, licences=lic, down=down_of(k))
+        lines += sum(1 for f in built if f for b in f["table"]["boxes"] for r in b["rows"] if r.get("down"))
         want = [None if f is None else json.loads(json.dumps(f, ensure_ascii=False)) for f in built]
         assert cells == want, k
         for v in cells:
@@ -261,6 +276,7 @@ def test_every_trout_cell_decodes_to_the_model_and_is_the_builders(decoded):
         # NULL exactly per Q-D3, every trout and char fish said exactly once, covers whole rows
         assert check_key(rows, disp, built) == [], k
     assert n >= 15 and nulls >= 5, (n, nulls)                     # not vacuous: both kinds of cell
+    print(f"T892: {lines} trout rows of the mini chain carry a tributary line")
 
 
 def test_each_region_file_alone_reaches_every_trout_row_its_cells_name(side, tmp_path):
@@ -318,7 +334,7 @@ def test_a_whole_key_compose_that_adds_a_day_cut_stops_the_build(mini, monkeypat
     k, f, d, lic = _key_with_two_equal_segments(mini)
 
     class Ctx:
-        cache = {"trout_rules": mini.rules}
+        cache = {"trout_rules": mini.rules, "key_trib": frozenset()}      # (T892) no rule walked: no row line
     vals = {"rows": [f, copy.deepcopy(f)], "display": [d, d], "licence": [lic, lic]}
     assert len(A._trout_compose_key(vals, [1, 100], None, Ctx())) == 2
     real = T.compose_key
