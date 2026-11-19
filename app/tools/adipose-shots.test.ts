@@ -2,11 +2,11 @@
 /**
  * T38 — the owner's pictures of the "Hatchery or wild?" sheet (not a test: skipped unless `T38_SHOTS=1`). The hatch
  * sheet of the FROZEN vedder_1010 page (packages/ui-native/src/regs/fixtures), drawn by the real SheetHost with the
- * app's two drawings (apps/mobile/assets/fish/adipose-*.webp, tools/emit-adipose.mjs), laid out and photographed by
- * headless Chrome (`wide-measure.mjs`) at 390 (phone, light and dark), 1024 (tablet) and 1440 (desktop), into
- * handoff/PLAN/app-integration/T38-shots/ — beside the prototype's own (design/regs-v11/screens/59-sheet-how-to-tell.png).
+ * app's two drawings (T886: each theme's own, packages/ui-native/src/adipose/, tools/build-adipose.mjs), laid out and
+ * photographed by headless Chrome (`wide-measure.mjs`) at 390 (phone, light and dark), 1024 (tablet) and 1440 (desktop),
+ * into handoff/PLAN/app-integration/T38-shots/ (or `T38_OUT`).
  *
- *   T38_SHOTS=1 pnpm vitest run tools/adipose-shots.test.ts
+ *   T38_SHOTS=1 [T38_OUT=dir] pnpm vitest run tools/adipose-shots.test.ts
  */
 import "./render-setup.ts";
 import { createElement as h, type ReactNode } from "react";
@@ -25,10 +25,7 @@ import vedder1010 from "../packages/ui-native/src/regs/fixtures/vedder_1010.json
 import { snapshot } from "./wide-snapshot";
 
 const ON = process.env.T38_SHOTS === "1";
-const OUT = join(process.cwd(), "..", "handoff", "PLAN", "app-integration", "T38-shots");
-const ASSETS = join(process.cwd(), "apps", "mobile", "assets", "fish");
-const ADIPOSE = { wild: { uri: pathToFileURL(join(ASSETS, "adipose-wild.webp")).href },
-                  clipped: { uri: pathToFileURL(join(ASSETS, "adipose-clipped.webp")).href } };
+const OUT = process.env.T38_OUT ?? join(process.cwd(), "..", "handoff", "PLAN", "app-integration", "T38-shots");
 type Frozen = Omit<RegsPage, "sheet"> & { sheets: Record<string, SheetVM | null> };
 const PAGE = (() => { const p = vedder1010 as unknown as Frozen; return { ...p, sheet: (k: SheetKey) => p.sheets[k] ?? null } as RegsPage; })();
 const SIZES: [LayoutClass, number, number][] = [["phone", 390, 844], ["tablet", 1024, 768], ["desktop", 1440, 900]];
@@ -45,9 +42,12 @@ describe.skipIf(!ON)("T38 shots", () => {
         Object.defineProperty(document.documentElement, k, { value: v, configurable: true });
       act(() => { window.dispatchEvent(new Event("resize")); });
       render(h(SheetHost, { page: PAGE, open: "hatch" as SheetKey, onOpen() {}, onClose() {}, palette: dark ? DARK : LIGHT,
-                           adipose: ADIPOSE, layout }) as ReactNode);
+                           layout }) as ReactNode);
       const file = join(dir, `hatch-${layout}${dark ? "-dark" : ""}.html`);
-      writeFileSync(file, snapshot().replace("<body>", `<body style="background:${(dark ? DARK : LIGHT).card}">`));
+      // the drawings are imported beside the code (Vite serves them at /packages/…): the page is a file, so point at the files
+      const pkgs = pathToFileURL(join(process.cwd(), "packages")).href;
+      const html = snapshot().replaceAll('src="/packages/', `src="${pkgs}/`).replaceAll("url(&quot;/packages/", `url(&quot;${pkgs}/`);
+      writeFileSync(file, html.replace("<body>", `<body style="background:${(dark ? DARK : LIGHT).card}">`));
       cleanup();
       jobs.push({ page: file, size: [w, hgt], shot: join(OUT, `hatch-${w}${dark ? "-dark" : ""}.png`) });
     };

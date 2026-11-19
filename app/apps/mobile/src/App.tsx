@@ -64,7 +64,7 @@ import { APP_ENV, APP_VERSION, BUILT_CHANNEL, ENDPOINTS, IMAGERY_TILES, MENU_INF
  * stored or sent; uncaught errors go separately, scrubbed, under the Data switch (T242, below).
  */
 teeConsoleErrors(console);
-import { ADIPOSE_IMAGES, FISH_IMAGES } from "./fishImages.generated";
+import { FISH_IMAGES } from "./fishImages.generated";
 
 /**
  * (T41) THE WEB START LINK, read once (a test affordance; null on native and on a plain visit): the water, part, day,
@@ -741,7 +741,6 @@ export default function App() {
                status={data.status} pairing={data.pairing}
                spots={spots}
                fishImages={FISH_IMAGES}
-               adiposeImages={ADIPOSE_IMAGES}
                systemBack={systemBack}
                initialRoute={place.route ?? start?.route} onRoute={holdPlace} openRequest={openRequest} openUpdate={openUpdate}
                initialDay={place.address ? place.address.day : start?.day ?? null}

@@ -18,7 +18,7 @@ import { GUTTER, type Palette } from "../theme";
 import { GroupCard, Pictures } from "./GroupCard";
 import { LineText, type KeepActions } from "./LineText";
 import { openBook } from "./openBook";
-import type { AdiposeImages, FishImages } from "./types";
+import type { FishImages } from "./types";
 import { Fold } from "./sheet/Fold";
 import { Example, Head, List, Para, Quote } from "./sheet/Para";
 import { RuleRow } from "./sheet/RuleRow";
@@ -32,7 +32,6 @@ import { TermSection } from "./sheet/TermSection";
 
 export interface SheetBodyProps {
   palette: Palette; fish?: FishImages;
-  adipose?: AdiposeImages;                                   // T38: apps/mobile's ADIPOSE_IMAGES
   onOpen: (k: SheetKey) => void; onTab?: (t: Tab) => void;
   /** a Rule book page (default: open the synopsis at that page, D6 a) */
   onBook?: (pdf: number, box?: readonly SourceBox[]) => void;
@@ -67,7 +66,7 @@ export function SheetBlockView(p: { b: SheetBlock; layout?: LayoutClass;
       <SwipePages titles={b.pages.map((x) => x.title)} palette={palette}>
         {(i) => <SheetBody {...p} vm={b.pages[i]!} />}
       </SwipePages>);
-    case "adipose": return <AdiposeArt figures={b.figures} images={p.adipose} palette={palette} layout={p.layout} />;
+    case "adipose": return <AdiposeArt figures={b.figures} palette={palette} layout={p.layout} />;
     case "pages": case "source": case "link":
       return <View style={{ marginTop: 8 }}><LineText line={b.line} style={TYPE.meta} color={palette.sub} palette={palette} actions={actions} linkStyle={TYPE.metaBold} /></View>;
     case "group": return <View style={{ marginHorizontal: -GUTTER }}><GroupCard g={b.group} titled={b.titled} ruled={!p.first} palette={palette} actions={actions} images={p.fish} /></View>;

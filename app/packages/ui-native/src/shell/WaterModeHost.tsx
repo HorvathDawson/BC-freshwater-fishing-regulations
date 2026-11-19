@@ -10,7 +10,7 @@ import { crossAction, exitAction, mapPointTap, partAction, showRegsActions, wate
          mapError, type RegsStart } from "@app/ui";
 import type { Camera, MapSpots, TileEndpoints } from "@app/map";
 import { WaterScreen } from "../WaterScreen";
-import type { AdiposeImages, FishImages } from "../regs/types";
+import type { FishImages } from "../regs/types";
 import type { Palette } from "../theme";
 import type { ShellNav } from "./useShellNav";
 import type { MapColouring } from "./useMapColouring";
@@ -22,7 +22,7 @@ const WaterMap = part(() => import("../later").then((m) => m.WaterMap));
 const WaterMapView = part(() => import("../later").then((m) => m.WaterMapView));
 
 export function WaterModeHost({ frame, nav, col, source, palette, loader, tiles, theme, feed, rail, spotLayer, camera,
-                                waterCamera, fishImages, adiposeImages, mapDay, onDay, start, onStarted }: {
+                                waterCamera, fishImages, mapDay, onDay, start, onStarted }: {
   frame: NonNullable<ReturnType<typeof waterFrame>>; nav: ShellNav; col: MapColouring; source: WaterSource;
   palette: Palette; loader: ReleaseLoader | null; tiles: TileEndpoints; theme: string;
   feed?: import("@app/data").GaugeFeed; rail: MapRail; spotLayer: MapSpots | undefined;
@@ -32,7 +32,7 @@ export function WaterModeHost({ frame, nav, col, source, palette, loader, tiles,
    * the reader left it (APP-PREP §0 rule 1).
    */
   waterCamera: MutableRefObject<Camera | null>;
-  fishImages?: FishImages; adiposeImages?: AdiposeImages;
+  fishImages?: FishImages;
   mapDay: Date | null; onDay: (d: Date | null) => void;
   start: RegsStart | null; onStarted: () => void;
 }) {
@@ -81,7 +81,7 @@ export function WaterModeHost({ frame, nav, col, source, palette, loader, tiles,
                         // another water opens on top (back returns here), at the point tapped (its "you are here")
                         onOtherSection={(sid, at) => opener.tap(sid, at, "regs", item)} />
         </WaterMap>
-      : <WaterScreen source={source} item={item} palette={palette} fishImages={fishImages} adiposeImages={adiposeImages}
+      : <WaterScreen source={source} item={item} palette={palette} fishImages={fishImages}
                      // T01: what the Regulations page reads — the release, the ONE day (the map's), the part tapped
                      // (T53: an unnamed reach, item null, is answered by the tapped section itself)
                      loader={loader} day={mapDay} onDay={onDay} section={frame.tapSid} at={frame.at}

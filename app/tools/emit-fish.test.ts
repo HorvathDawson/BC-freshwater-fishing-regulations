@@ -70,8 +70,7 @@ describe("emit-fish: the credit lines (T43 FISH_CREDITS / FISH_CREDIT_OF)", () =
   it("one line per OUTSIDE picture, keyed by file — every one credited, none invented; the app's own drawings are not credits", () => {
     const outside = manifest.images.filter((i: { source: string }) => i.source !== "this app");
     expect(Object.keys(FISH_CREDIT_OF).sort()).toEqual(outside.map((i: { file: string }) => i.file).sort());
-    expect(manifest.images.length - outside.length).toBe(2);   // T38's adipose drawings
-    expect(["adipose-wild.webp", "adipose-clipped.webp"].map((f) => f in FISH_CREDIT_OF)).toEqual([false, false]);
+    expect(manifest.images.length - outside.length).toBe(0);   // (T886) the hatch drawings left the manifest for ui-native
     expect(Object.keys(FISH_CREDIT_OF).length).toBe(40);   // T505: + the signal crayfish
   });
   it("words a line \"<caption>[ · <phase>] — <credit> (<source>)\" (the pictured fish, a stand-in by its own caption)", () => {
@@ -104,7 +103,7 @@ describe("emit-fish: the look-for tips (T36, contracts §3 FISH_TIPS)", () => {
       "RB", "SMB", "ST", "WP", "WSG", "YP"]);
     expect(FISH_TIPS.RB).toEqual(["Pink or red band along the side", "Small black spots, mostly above the middle of the side",
       "Rows of black spots on the tail"]);
-    // page v36's own words (not app/fixtures/fishart.js, which an older copy says "…bright silver, 50 cm or longer")
+    // page v36's own words (not the retired fixtures/fishart.js, whose older copy said "…bright silver, 50 cm or longer")
     expect(FISH_TIPS.ST).toEqual(["A rainbow trout that went to sea: bright silver", "Faint spots, mostly on the back and tail",
       "Hatchery steelhead are missing this small fin (the adipose fin)"]);
   });
@@ -119,12 +118,12 @@ describe("emit-fish: the mobile require map", () => {
   const required = [...mobile.matchAll(/require\("\.\.\/assets\/fish\/([^"]+)"\)/g)].map((m) => m[1]!);
   const full = required.filter((f) => !f.startsWith("thumbs/")), thumbs = required.filter((f) => f.startsWith("thumbs/"));
 
-  it("requires every coded .webp in the folder exactly once, each one present (and T38's two hatch drawings)", () => {
+  it("requires every coded .webp in the folder exactly once, each one present", () => {
     const onDisk = readdirSync(assets).filter((f) => f.endsWith(".webp"));
     const coded = manifest.images.filter((i: { code: string | null }) => i.code !== null)
       .map((i: { file: string }) => i.file);
     for (const f of full) expect(onDisk).toContain(f);
-    expect([...full].sort()).toEqual([...coded, "adipose-wild.webp", "adipose-clipped.webp"].sort());
+    expect([...full].sort()).toEqual([...coded].sort());
     expect(new Set(full).size).toBe(full.length);
   });
 

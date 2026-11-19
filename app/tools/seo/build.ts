@@ -27,7 +27,7 @@ import { openRegsFixture, openReleaseDir, regsFixtureDir } from "@app/data/relea
 import { bcNow } from "@app/core";
 import type { ItemId } from "@app/data";
 import { makeReleaseSource } from "@app/data/release";
-import type { AdiposeImages, FishImages } from "@app/ui-native";
+import type { FishImages } from "@app/ui-native";
 import { readAppExport, type AppExport } from "./appExport";
 import { webFonts } from "./webFonts";
 import { BUDGET, checkBudget, lighthouseConfig, measure, type Measured } from "./budget";
@@ -78,7 +78,7 @@ export interface BuildArgs {
   readonly hubSplitAt?: number;
   /** (T269) the app the water pages are: its web export (template, faces, pictures); absent → a bare page (tests) */
   readonly app?: AppExport;
-  readonly images?: { readonly fish: FishImages; readonly adipose: AdiposeImages };
+  readonly images?: { readonly fish: FishImages };
   /**
    * (T279) the render threads: at most 4 (heavy jobs), each writing its pages compressed under `out` (`compressed.ts`);
    * absent → rendered here, kept in `files` (a test's few)
@@ -139,7 +139,7 @@ export async function buildAll(a: BuildArgs): Promise<Built> {
     cssParts = () => pool!.css();
   } else {
     const panes = new PaneRenderer({ source: makeReleaseSource(a.loader), loader: a.loader,
-                                     ...(a.images ? { fishImages: a.images.fish, adiposeImages: a.images.adipose } : {}) });
+                                     ...(a.images ? { fishImages: a.images.fish } : {}) });
     // one render at a time: a render owns the hooks' answers (site.ts asks for every page at once)
     let chain: Promise<unknown> = Promise.resolve();
     waterPage = (m, head) => {

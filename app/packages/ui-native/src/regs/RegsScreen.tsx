@@ -40,7 +40,7 @@ import { recallRegsScroll, rememberRegsScroll } from "./scrollMemory";
 import type { LayoutClass, RegsStart } from "@app/ui";
 import { AnchorContext, useAnchors } from "./useAnchors";
 import { InSeasonBanners } from "./InSeasonBanner";
-import type { AdiposeImages, FishImages } from "./types";
+import type { FishImages } from "./types";
 import { CoachScrollContext, useCoachScroller } from "../CoachMarks";
 
 declare const __DEV__: boolean | undefined;
@@ -61,8 +61,6 @@ export interface RegsScreenProps {
   /** (T224) where the water's name came from when it is not the official one ("City of Abbotsford stream layer") */
   nameSource?: string | null;
   images?: FishImages;
-  /** (T38) the hatch sheet's two drawings (apps/mobile `ADIPOSE_IMAGES`); absent → an empty ground of their size */
-  adipose?: AdiposeImages;
   /** what a Keep link does (the tab links are this screen's: they scroll to the section) */
   actions: Omit<KeepActions, "onTab">;
   /**
@@ -136,7 +134,7 @@ export interface RegsScreenProps {
   scrollKey?: string | null;
 }
 
-export function RegsScreen({ page, palette, images, adipose, actions, onDate,
+export function RegsScreen({ page, palette, images, actions, onDate,
                              gear, methods, licence, referenceOpen = false, footer, salmon, store: injected, layout = "phone", start = null, onStarted,
                              lapsed = null, access = [], inSeason = [], glance = null, salmonStrip = null,
                              nameSource = null, asOf = null, scrollKey = null, sun = null, daylight = null, waterBook = [] }: RegsScreenProps) {
@@ -310,7 +308,7 @@ export function RegsScreen({ page, palette, images, adipose, actions, onDate,
           {pageScroll}
         </View>
       ) : pageScroll}
-      <SheetHost page={page} open={sheet} onOpen={openSheet} onClose={() => setSheet(null)} palette={palette} fish={images} adipose={adipose}
+      <SheetHost page={page} open={sheet} onOpen={openSheet} onClose={() => setSheet(null)} palette={palette} fish={images}
                  onTab={(t) => { setSheet(null); toTab(t); }} onBook={actions.onBook} layout={layout} />
     </View>
     </TermTitles.Provider>

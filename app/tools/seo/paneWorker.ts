@@ -8,7 +8,7 @@ import type { MessagePort } from "node:worker_threads";
 import type { ItemId } from "@app/data";
 import { makeReleaseSource } from "@app/data/release";
 import { openReleaseDir } from "@app/data/release/node";
-import type { AdiposeImages, FishImages } from "@app/ui-native";
+import type { FishImages } from "@app/ui-native";
 import { readAppExport } from "./appExport";
 import { writeCompressed } from "./compressed";
 import { PaneRenderer } from "./pane";
@@ -32,7 +32,7 @@ export async function serve(port: MessagePort, d: ThreadData): Promise<void> {
   };
   const images = await import("../../apps/mobile/src/fishImages.generated");
   const panes = new PaneRenderer({ source: makeReleaseSource(loader), loader,
-                                   fishImages: images.FISH_IMAGES as FishImages, adiposeImages: images.ADIPOSE_IMAGES as AdiposeImages });
+                                   fishImages: images.FISH_IMAGES as FishImages });
   let chain = Promise.resolve();
   port.on("message", (m: ToThread) => {
     chain = chain.then(async () => {

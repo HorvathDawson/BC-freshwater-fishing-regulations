@@ -568,7 +568,7 @@ export function Shell(p: ShellProps) {
     : frame !== null
     ? <WaterModeHost frame={frame} nav={nav} col={col} source={source} palette={palette} loader={loader} tiles={tiles}
                      theme={theme} feed={feed} rail={rail} spotLayer={spotLayer} camera={camera}
-                     waterCamera={waterCamera} fishImages={p.fishImages} adiposeImages={p.adiposeImages}
+                     waterCamera={waterCamera} fishImages={p.fishImages}
                      mapDay={mapDay} onDay={setMapDay} start={start} onStarted={() => setStart(null)} />
     : null;
   /*

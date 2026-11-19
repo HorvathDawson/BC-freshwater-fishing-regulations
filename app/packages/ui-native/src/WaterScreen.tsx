@@ -33,7 +33,7 @@ import { InSeasonContext, mapDayOf, regsDay, useAccessNotices, useInSeasonBanner
          useDaylight, useFrameView, useInSeasonPage, useMapEntries, useRegsTarget, useRegulations, useSunLine, useWater, type LatLon, type RegsStart } from "@app/ui";
 import { LoadingState, useDelayedShow } from "./LoadingState";
 import { ViewSwipe, WaterViewsContext } from "./ViewSwipe";
-import type { AdiposeImages, FishImages } from "./regs/types";
+import type { FishImages } from "./regs/types";
 import { DaySheet } from "./regs/DaySheet";
 import { RegsScreen } from "./regs/RegsScreen";
 import { regsScrollKey } from "./regs/scrollMemory";
@@ -59,7 +59,7 @@ export function WaterScreen(p: Parameters<typeof WaterScreenBody>[0]) {
 }
 
 function WaterScreenBody({ source, item, palette, onBack, onRetry,
-                              loader = null, day = null, onDay, section = null, part = null, at = null, fishImages, adiposeImages,
+                              loader = null, day = null, onDay, section = null, part = null, at = null, fishImages,
                               start = null, onStarted, glance = false }: {
   /** The water; null for an unnamed reach (T53), which `section` then names — its regulations are that section's. */
   source: WaterSource; item: ItemId | null;
@@ -85,7 +85,6 @@ function WaterScreenBody({ source, item, palette, onBack, onRetry,
    */
   fishImages?: FishImages;
   /** (T38) the hatch sheet's two drawings, registered by the app. */
-  adiposeImages?: AdiposeImages;
   /** (T41) where the page starts (the web start link, a test affordance), handed on to the page once */
   start?: RegsStart | null;
   onStarted?: () => void;
@@ -253,7 +252,7 @@ function WaterScreenBody({ source, item, palette, onBack, onRetry,
     return (
       <>
       {frame(null, (
-      <RegsScreen page={page} palette={palette} nameSource={s?.nameSource ?? null} images={fishImages} adipose={adiposeImages} onDate={() => setDayOpen(true)} layout={layout} sun={sun} daylight={daylight} waterBook={waterBook}
+      <RegsScreen page={page} palette={palette} nameSource={s?.nameSource ?? null} images={fishImages} onDate={() => setDayOpen(true)} layout={layout} sun={sun} daylight={daylight} waterBook={waterBook}
                   start={start} onStarted={onStarted} scrollKey={regsScrollKey(item, part, section)}
                   // past the release's last day in force, the page leads with core's out-of-date sentence (none unstamped)
                   lapsed={regsLapsedNote(loader.manifest?.regulations?.valid_until, clockNow())}

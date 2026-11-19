@@ -4,6 +4,7 @@
 
     .venv/bin/python app/tools/fish-loader/sheet_facts.py SHEET.webp [SHEET.webp ...]   -> one JSON line per sheet
     .venv/bin/python app/tools/fish-loader/sheet_facts.py --frame0 W H SHEET.webp        -> frame 0, RGBA, base64 (T843)
+    .venv/bin/python app/tools/fish-loader/sheet_facts.py --counts FILE.webp "#HEX" ...   -> {hex: opaque pixels} (T886)
 
 `pnpm coho` (app/tools/build-coho.mjs --check) compares these with the colour tokens and the generated module, so a
 token changed without `pnpm coho:build` fails. Decoding a lossless WebP is exact on every machine, which re-rendering
@@ -38,7 +39,20 @@ def frame_zero(path, width, height):
     return base64.b64encode(im.convert("RGBA").crop((0, 0, width, height)).tobytes()).decode("ascii")
 
 
+def counts(path, hexes):
+    """(T886) How many fully opaque pixels are exactly each colour: the hatch sheet's drawings hold a third (the ring) that
+    is too thin to be among the two commonest (`tools/build-adipose.mjs --check`)."""
+    im = Image.open(path)
+    im.load()
+    rgba = im.convert("RGBA")
+    have = {"#%02X%02X%02X" % c[:3]: n for n, c in rgba.getcolors(rgba.width * rgba.height) if c[3] == 255}
+    return {h.upper(): have.get(h.upper(), 0) for h in hexes}
+
+
 if __name__ == "__main__":
+    if sys.argv[1:2] == ["--counts"]:
+        print(json.dumps(counts(sys.argv[2], sys.argv[3:])))
+        sys.exit(0)
     if sys.argv[1:2] == ["--frame0"]:
         _, _, w, h, sheet = sys.argv
         print(frame_zero(sheet, int(w), int(h)))
