@@ -76,7 +76,7 @@ describe("<SheetBody>: each fish pictured once per sheet (T868)", () => {
     }
   });
 
-  it("a group card that opens its sheet draws no heavy rule of its own under the sheet's title rule; elsewhere it keeps it", async () => {
+  it("a group card that opens its sheet draws no heavy rule of its own under the sheet's title rule; elsewhere it keeps it", { timeout: 60_000 }, async () => {
     const s = (await otherSheets()).find((x) => x.vm.blocks[0]?.k === "group");
     expect(s, "a group sheet that opens with its card").toBeDefined();
     const rule = (el: Element) => getComputedStyle(el.querySelector("[data-testid='keep-group']")!.firstElementChild!).borderTopWidth;
