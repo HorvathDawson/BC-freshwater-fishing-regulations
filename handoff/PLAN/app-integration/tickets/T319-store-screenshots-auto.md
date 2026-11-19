@@ -118,3 +118,27 @@ not the owner's go); not pushed. Owner command, from the repo: `.venv/bin/python
 
 Later (after 0.8.2 is on staging): render set 4, upload to Play and App Store Connect, retake the clip, send the contact
 sheet of what went up.
+
+### 2026-11-19 ~00:40: forecast on the chart, the new video, then upload
+Owner, verbatim: "can you take the new video for me to update it? also for what the rivers are doing it should be showing
+the forecast on the chart. ... when the conditions image is fixed then you can upload it. fix the width issue too so it
+matchs app stores rules too".
+- **Rivers split, forecast on the chart:** `11-cond-chart` now opens the Coquitlam at Port Coquitlam (`gnis:19986`):
+  on 11-19 its forecast rose clearly ahead of today (the Vedder's ran flat). Pane "Flow and forecast, against past years",
+  cropped per size to the gauge, the reading and the chart. T895 gives each model its own colour in 0.8.2: the final shot
+  waits for 0.8.2 on staging, and the water is re-picked then if the forecast has gone flat. Nit: on the 6.9" the change
+  map pane is mostly the grey south of the border (its camera is the Chilliwack watershed's).
+- **App Store clip:** `app/tools/store-video/appstore.mjs <in> <out>` re-encodes to 886x1920 (fit + pad, never stretched),
+  constant 30 fps, H.264 High 4.0, stereo AAC 256k (silent), and proves each rule with ffprobe. Today's Android clip passes
+  as `~/bcfish-session-backup-2026-11-12/store-t319-set4-layout/preview-appstore-886x1920-from-android.mp4` (video bit rate
+  4.8 Mbit/s: Apple's 10-12 is a target, a plain UI picture needs less). It is Android footage, so it is not sent:
+  `appstore-screenshots-push.py --preview <clip> --iphone-footage --commit` sends a clip only when the caller says it is iPhone
+  footage (appPreviewSets IPHONE_67, written, never run).
+- **iPhone footage:** the simulator records (`simctl io recordVideo`, proven 2026-11-19 on the 6e16c087f sim build: 1320x2868,
+  frames only on change, so the cutter makes it constant 30 fps). The Android clip's choreography (`store-video/drive.mjs`,
+  adb) has no iOS driver yet; each Maestro tap costs seconds, so the iOS take records per scene and is cut like the Android one.
+  Left (Claude): write that driver and take the clip on 0.8.2. The Play clip stays at its spec (864x1920); the owner uploads it
+  to YouTube and gives the link (`--video-url`).
+- **Upload** (owner allowed once the conditions image is fixed): after "0.8.2 is on staging": final render, then
+  `play-listing-push.py --commit` with shots + tablets (text included), `appstore-screenshots-push.py --commit` (+ the iPhone
+  preview if it passes). A permission check that blocks it: stop and say so.

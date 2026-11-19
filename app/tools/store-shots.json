@@ -14,21 +14,21 @@
     {
       "scene": "21-rivers",
       "title": "What the rivers are doing",
-      "line": "Flow against past years, and the next 10 days",
+      "line": "Flow against past years, with the forecast ahead, and the next 10 days",
       "compose": [
         {
           "scene": "11-cond-chart",
-          "from": 0.28,
-          "to": 0.73,
-          "label": "Flow against past years",
+          "from": 0.4,
+          "to": 0.85,
+          "label": "Flow and forecast, against past years",
           "at": {
             "iphone69": [
-              0.45,
-              0.9
+              0.5,
+              0.95
             ],
             "tablet7": [
-              0.47,
-              0.92
+              0.48,
+              0.93
             ],
             "tablet10": [
               0.52,

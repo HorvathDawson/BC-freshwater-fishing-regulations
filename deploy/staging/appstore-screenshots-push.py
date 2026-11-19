@@ -19,7 +19,8 @@ without alpha; a wrong one is refused by name, never resized. The locale must al
 primary language is English (Canada), en-CA); it is never created here.
 --preview FILE (T709 clip): checked against Apple's app-preview rules for the 6.9" slot (886x1920 portrait, 15-30 s, at most
 30 fps, H.264, stereo AAC; T709's spec list) and listed in the plan; a clip that misses any is named with what it misses and
-is never uploaded. (Uploading previews, appPreviewSets / appPreviews, is not written yet: no clip has passed.)
+is never uploaded. A clip that fits goes up (appPreviewSets IPHONE_67 / appPreviews, replacing the set's previews) only with
+--iphone-footage: Apple wants the app shown on the device the set is for, which no probe can see, so the caller says so.
 Key: asc-api-key.json {"key_id", "issuer_id", "key_path"} as build-ios-testflight.sh reads it (never printed). Needs
 requests, cryptography and Pillow (the repo .venv has them).
 """
@@ -138,6 +139,7 @@ def main():
     ap.add_argument("--bundle-id", default="ca.canifishthis.app")
     ap.add_argument("--key", default=os.path.expanduser("~/.canifishthis/asc-api-key.json"))
     ap.add_argument("--preview", type=Path, help="the app-preview clip (T709) to check against Apple's rules")
+    ap.add_argument("--iphone-footage", action="store_true", help="the clip was recorded from the iPhone app (uploads it on --commit)")
     mode = ap.add_mutually_exclusive_group()
     mode.add_argument("--check", action="store_true", help="read-only: compare with what App Store Connect holds")
     mode.add_argument("--commit", action="store_true", help="upload (replaces each changed set)")
@@ -158,6 +160,7 @@ def main():
             with Image.open(p) as im:
                 w, h = im.size
             print(f"    {i}. {p.relative_to(ROOT) if p.is_relative_to(ROOT) else p}  {w}x{h}  {p.stat().st_size // 1024} KB  md5 {md5(p)[:12]}")
+    send_preview = False
     if a.preview:
         bad = preview_problems(a.preview)
         if bad:
@@ -165,7 +168,9 @@ def main():
             for b in bad:
                 print(f"    - {b}")
         else:
-            print(f"  app preview: {a.preview} fits APP_IPHONE_67's rules (its upload is not written yet)")
+            send_preview = a.iphone_footage
+            print(f"  app preview (IPHONE_67): {a.preview} fits Apple's rules; "
+                  + ("replaces the set's previews" if send_preview else "NOT sent: not marked --iphone-footage (Apple wants iPhone footage)"))
     if not (a.check or a.commit):
         print("plan only: nothing sent. --check compares with App Store Connect (read-only); --commit uploads.")
         return
@@ -231,6 +236,39 @@ def main():
         asc.call("PATCH", f"/appScreenshotSets/{s['id']}/relationships/appScreenshots", f"appScreenshotSets.order {kind}",
                  json={"data": [{"type": "appScreenshots", "id": i} for i in ids]})
         print(f"  [{a.locale}] {kind}: {len(ids)} screenshots up, in order")
+    if send_preview:
+        psets = {x["attributes"]["previewType"]: x for x in
+                 asc.call("GET", f"/appStoreVersionLocalizations/{loc['id']}/appPreviewSets", "appPreviewSets.list").get("data", [])}
+        ps = psets.get("IPHONE_67")
+        have = asc.call("GET", f"/appPreviewSets/{ps['id']}/appPreviews", "appPreviews.list").get("data", []) if ps else []
+        same = [h["attributes"].get("sourceFileChecksum") for h in have] == [md5(a.preview)]
+        print(f"  [{a.locale}] app preview IPHONE_67: holds {len(have)} -> {'unchanged' if same else 'replace with 1'}")
+        if a.commit and not same:
+            if not ps:
+                ps = asc.call("POST", "/appPreviewSets", "appPreviewSets.create", json={"data": {
+                    "type": "appPreviewSets", "attributes": {"previewType": "IPHONE_67"},
+                    "relationships": {"appStoreVersionLocalization": {"data": {"type": "appStoreVersionLocalizations", "id": loc["id"]}}}}})["data"]
+            for h in have:
+                asc.call("DELETE", f"/appPreviews/{h['id']}", f"appPreviews.delete {h['id']}")
+            data = a.preview.read_bytes()
+            res = asc.call("POST", "/appPreviews", "appPreviews.create", json={"data": {
+                "type": "appPreviews", "attributes": {"fileName": a.preview.name, "fileSize": len(data), "mimeType": "video/mp4"},
+                "relationships": {"appPreviewSet": {"data": {"type": "appPreviewSets", "id": ps["id"]}}}}})["data"]
+            for op in res["attributes"]["uploadOperations"]:
+                r = requests.request(op["method"], op["url"], data=data[op["offset"]:op["offset"] + op["length"]], timeout=600,
+                                     headers={h["name"]: h["value"] for h in op.get("requestHeaders", [])})
+                if r.status_code >= 300:
+                    die(f"preview upload part {op['offset']}", r)
+            asc.call("PATCH", f"/appPreviews/{res['id']}", "appPreviews.commit", json={"data": {
+                "type": "appPreviews", "id": res["id"], "attributes": {"uploaded": True, "sourceFileChecksum": md5(a.preview)}}})
+            for _ in range(120):   # video processing takes longer than a screenshot's
+                st = asc.call("GET", f"/appPreviews/{res['id']}", "appPreviews.get")["data"]["attributes"].get("assetDeliveryState") or {}
+                if st.get("state") in ("COMPLETE", "FAILED"):
+                    break
+                time.sleep(10)
+            if st.get("state") != "COMPLETE":
+                die(f"app preview is {st.get('state')}: {st.get('errors')}")
+            print(f"  [{a.locale}] app preview IPHONE_67: {a.preview.name} up")
     print("committed" if a.commit else "check only: nothing changed")
 
 

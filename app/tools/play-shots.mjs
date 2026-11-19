@@ -99,7 +99,9 @@ Object.assign(SCENES, {
       p.scrollTop += e.getBoundingClientRect().top - 275; return 'ok'; })()`);
     if (at !== 'ok') throw new Error('19-regs-salmon: ' + at);
     await sleep(1500); },
-  // the gauge's chart with the forecast drawn on it (the model lines are the default on the chart: CLEVER, COFFEE, ELF)
+  // the gauge's chart with the forecast drawn on it (the model lines are the default on the chart: CLEVER, COFFEE, ELF).
+  // (T319, owner 2026-11-19 "it should be showing the forecast on the chart") the Coquitlam at Port Coquitlam (gnis:19986): on
+  // 2026-11-19 its forecast rose clearly ahead of today where the Vedder's ran flat. A forecast moves daily: look before the final
   '11-cond-chart': async (b) => { await until(b, `!!document.querySelector('[data-testid=gauge-card]')`, 120000); await sleep(6000);
     await until(b, `!!document.querySelector('[data-testid=chart-model-CLEVER]')`); await b.evaluate(`document.querySelector('[data-testid=chart-legend]').scrollIntoView({ block: 'end' })`); await sleep(2500); },
   '12-cond-change': async (b) => { await condMap(b); await click(b, `document.querySelector('[data-testid=map-horizons-change]')`); await sleep(7000); },
@@ -122,7 +124,7 @@ Object.assign(SCENES, {
 // (T319) the Vedder by the app's own link (`/?regs=`), not its /water/ page: that page is the SEO build's, so a bare web export
 // served locally (the commit under test) has none
 const URLS = { '02-regulations': '/?regs=gnis:3062', '03-conditions': '/?regs=gnis:3062&view=conditions',
-  '18-regs-trout': '/?regs=gnis:3062', '19-regs-salmon': '/?regs=gnis:3062', '11-cond-chart': '/?regs=gnis:3062&view=conditions', '14-split-map': '/water/chilliwack-river', '15-split-rules': '/water/chilliwack-river' };
+  '18-regs-trout': '/?regs=gnis:3062', '19-regs-salmon': '/?regs=gnis:3062', '11-cond-chart': '/?regs=gnis:19986&view=conditions', '14-split-map': '/water/chilliwack-river', '15-split-rules': '/water/chilliwack-river' };
 const SIZES = { phone: { width: 360, height: 640, dpr: 3, mobile: true, pre: '' }, tablet7: { width: 600, height: 960, dpr: 2, mobile: true, pre: 'tablet7-' }, tablet10: { width: 800, height: 1280, dpr: 2, mobile: true, pre: 'tablet10-' },
   // (T319) App Store: 6.7" iPhone 1290x2796 (430x932 @3), 5.5" 1242x2208 (414x736 @3), 13" iPad 2048x2732 (1024x1366 @2)
   // (T319, 2026-11-18) 6.9" iPhone 1320x2868 (440x956 @3), the App Store's required iPhone size; its 6.5" set is framed from it
