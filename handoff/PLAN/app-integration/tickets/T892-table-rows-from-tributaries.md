@@ -49,3 +49,9 @@ Scratchpad (session 699dcd1b) `t892-shots/`: `t892-laundry-keep-390-{light,dark}
 and Burbot from Dutch Creek), `t892-laundry-sheet-390-*` (its Burbot sheet, T883's "DUTCH CREEK · ITS TRIBUTARIES"),
 `t892-littlejohn-keep-390-*` (Bass and Yellow perch from Duck Lake; trout table open, partial: no line) and
 `t892-littlejohn-sheet-390-*` (its Bass sheet). Mamquam River has no such row.
+
+## Owner 2026-11-19 ~01:27: a row whose number is the tributary rule's keeps the line
+Case (review 3): Nygaard Creek's trout row — the number comes from Bella Coola River's rule for its tributaries, the
+"1 over 50 cm" size cap from Region 5. Asked whether the row keeps "Bella Coola River’s rule for its tributaries".
+Owner, on "Keep the line: it names the rule that sets the number you can keep; How this was decided shows both rules",
+verbatim: "this is good". So a region size cap does not remove the line (as built).

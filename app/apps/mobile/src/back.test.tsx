@@ -512,14 +512,16 @@ describe("Android's back, surface by surface (HANDOFF-ui 'Back, everywhere')", (
     expect(backs(3)).toEqual(["About page · tab More", "handled -> tab More", "handled -> tab Map", "ANDROID -> tab Map"]);
   });
 
+  // (T897, owner 2026-11-19: "should just be back") the ‹ reads plain "Back", and still returns to the tab it came from
   it("(owner 2026-10-22) More opened from Conditions: its ‹ and the system back return to Conditions, then the Map tab",
      async () => {
     await mount({ ...HOME, tab: "more", prev: "conditions" });
-    expect(screen.getByLabelText("Back to Conditions")).toBeTruthy();
+    expect(screen.getByLabelText("Back")).toBeTruthy();
+    expect(screen.queryByLabelText("Back to Conditions")).toBeNull();
     expect(backs(3)).toEqual(["tab More", "handled -> tab Conditions", "handled -> tab Map", "ANDROID -> tab Map"]);
     cleanup();
     await mount({ ...HOME, tab: "more", prev: "conditions" });
-    await click("Back to Conditions");
+    await click("Back");
     expect(backs(2)).toEqual(["tab Conditions", "handled -> tab Map", "ANDROID -> tab Map"]);
   });
 
