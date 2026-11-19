@@ -49,7 +49,14 @@ const PAYLOAD = {
     { r: ["3"], w: "Little River — the lake part", l: ["3:little-part"], sp: [closed, closed, [0, TBD], closed, closed], g: [0, -1], m: [0, 4],
       n: [0, 1] },
     { r: ["3"], w: "Little River", l: ["3:little"], u: ["3:little-part"], sp: [closed, closed, closed, closed, closed], g: [0, -1], m: [0, 3] },
+    // 7: Kamloops Lake read today (no held place): every species "To be determined"
+    { r: ["3"], w: "Kamloops Lake (read)", l: ["3:kamloops-read"], sp: [[0, TBD_PRINTED], [0, TBD_PRINTED], [0, TBD_PRINTED], [0, TBD_PRINTED], [0, TBD_PRINTED]],
+      g: [0, -1], m: [0, 4] },
+    // 8: a held place on the chain, but the answer is another place's (`a` names place 1, the region's, read today)
+    { r: ["3"], w: "Below Kamloops Lake", l: ["3:kamloops", "3:region"], sp: [closed, closed, [0, TBD], closed, closed], g: [0, -1], m: [0, 4],
+      a: [[0, 1], [0, 1], [0, 1], [0, 1], [0, 1]] },
   ],
+  p: { "3:kamloops": { r: "3", water: "Kamloops Lake" }, "3:region": { r: "3" } },
   unmapped: [{ items: ["gnis:little"], r: "3", w: "Little River — the lake part", chain: 5 }],
   held: ["3:kamloops"],
 };
@@ -68,7 +75,7 @@ function shard(region: string, runs: [number, number, number][]): Uint8Array {
   return new Uint8Array(out);
 }
 /** sid 100 the South Thompson (chain 1), 200 Unread River (2), 300 Kamloops Lake (3), 400 Mixed River (4), 600 Little River (6) */
-const facts = () => decodeSalmon(encode(PAYLOAD), HANDLES, [shard("3", [[100, 1, 1], [200, 1, 2], [300, 1, 3], [400, 1, 4], [600, 1, 6]])]);
+const facts = () => decodeSalmon(encode(PAYLOAD), HANDLES, [shard("3", [[100, 1, 1], [200, 1, 2], [300, 1, 3], [400, 1, 4], [600, 1, 6], [700, 1, 7], [800, 1, 8]])]);
 const card = (sid: number, on: Date, item: string | null = null) => salmonCard(facts(), { sids: [sid], item }, on);
 const rowsOf = (c: ReturnType<typeof card>) => c.rows.map((r) => `${r.label}: ${r.statusLabel}`);
 
@@ -90,10 +97,22 @@ describe("(T882) DFO's 'To be determined' says 'To be determined'", () => {
     expect(salmonStripOf(c, null)!.word).toBe("Open");
   });
 
-  it("every species 'To be determined' (as printed): the folded row says 'to be determined'; a held row keeps its own words", () => {
-    const c = card(300, NOV18);
+  it("every species 'To be determined' (as printed): the folded row says 'to be determined'", () => {
+    const c = card(700, NOV18);
     expect([c.headline, rowsOf(c), salmonGlance(c).value]).toEqual(["To be determined by DFO", ["Chinook · coho · sockeye · pink · chum: To be determined"], "to be determined"]);
+  });
+
+  it("a HELD place whose carried answer was 'To be determined' keeps 'Check DFO' and the held line (DFO has changed that row)", () => {
+    const c = card(300, NOV18);
+    expect([c.headline, rowsOf(c), salmonGlance(c).value]).toEqual(["Check DFO today", ["Chinook · coho · sockeye · pink · chum: Check DFO"], "check DFO"]);
+    const bar = c.year.bars[0]!;
+    expect([bar.todayWord, bar.todayTbd, bar.keyTbd]).toEqual(["check DFO", undefined, undefined]);
     expect(c.waterRules).toContain("DFO changed a row here that the app could not read, so its earlier answer is shown. Check DFO's page.");
+  });
+
+  it("a held place on the chain that does not answer leaves the answering place's 'To be determined' as it is", () => {
+    const c = card(800, NOV18);
+    expect([c.headline, rowsOf(c)]).toEqual(["To be determined by DFO", ["Chinook · coho · pink · chum: Closed", "Sockeye: To be determined"]]);
   });
 
   it("a row nobody could read keeps 'Check DFO' — alone, or beside a 'To be determined' in one verdict", () => {
@@ -117,7 +136,7 @@ describe("(T882) DFO's 'To be determined' says 'To be determined'", () => {
   it("the map key, its short form and the Help sentence (one entry covers 'To be determined' and an unread row)", () => {
     expect(salmonLegend().map((l) => l.label)).toEqual(["Salmon may be kept", "Salmon: release only", "Closed to salmon",
       "To be determined by DFO, or a DFO row the app could not read"]);
-    expect(MAP_KEY.salmon.check).toBe("TBD by DFO");
+    expect(MAP_KEY.salmon.check).toBe("TBD/unread");
     expect(HELP_WORDS.salmon.check).toBe("DFO has not set it yet (“To be determined”), or the app could not read DFO's row. Check DFO's notice for this water.");
     expect(SALMON_WORDS.status.check).toBe("Check DFO");
   });

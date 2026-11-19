@@ -666,10 +666,22 @@ function isTbd(v: Verdict | undefined): boolean {
   return v?.s === "check" && v.t.split("; ").every((b) => TBD_ROW.test(b.trim()));
 }
 
-/** (T882) a chain's day reads "check" only by DFO's "To be determined": every species verdict that is "check" is one */
+/** (T882) a species' "To be determined" on a chain's day, said only where its answer is DFO's row as read today: a HELD
+ *  place (`P.held`: DFO changed its row and the app could not read it, the earlier answer carried) keeps "Check DFO" and
+ *  the held line. The answering place is the chain's `a`; with none named (a release before T668 fix 4, or both regions'
+ *  words together), any held place of the chain holds it. */
+function tbdOn(P: Payload, chain: number, k: number, day: number): boolean {
+  const ch = P.chains[chain]!;
+  if (!isTbd(P.verdicts[at(ch.sp[k]!, day)])) return false;
+  if (!P.held?.length) return true;
+  const who = ch.a ? at(ch.a[k]!, day) : -1;
+  return who >= 0 ? !P.held.includes(ch.l[who]!) : !ch.l.some((l) => P.held!.includes(l));
+}
+
+/** (T882) a chain's day reads "check" only by DFO's "To be determined": every species that reads "check" is one (`tbdOn`) */
 function checkIsTbd(P: Payload, chain: number, day: number): boolean {
-  const vs = P.chains[chain]!.sp.map((runs) => P.verdicts[at(runs, day)]).filter((v) => v?.s === "check");
-  return vs.length > 0 && vs.every(isTbd);
+  const ks = SALMON_SPECIES.map((_, k) => k).filter((k) => P.verdicts[at(P.chains[chain]!.sp[k]!, day)]?.s === "check");
+  return ks.length > 0 && ks.every((k) => tbdOn(P, chain, k, day));
 }
 
 function dateWords(iso: string): string {
@@ -920,7 +932,8 @@ export function salmonBlock(f: SalmonFacts, chains: readonly number[], day: numb
     const st = statusOf(g.ixs);
     const quota = Object.fromEntries(g.sp.map((sp) => [sp, quotaOf(SALMON_SPECIES.indexOf(sp))]));
     return { key, species: g.sp, label: cap(g.sp.map((s) => SPECIES_NAME[s]).join(" · ")), status: st,
-             statusLabel: st === "check" && g.ixs.every((ix) => isTbd(verdictOf(ix))) ? SALMON_WORDS.tbd.status : SALMON_WORDS.status[st],
+             statusLabel: st === "check" && chains.every((c) => g.sp.every((sp) => tbdOn(P, c, SALMON_SPECIES.indexOf(sp), day)))
+               ? SALMON_WORDS.tbd.status : SALMON_WORDS.status[st],
              notes: st === "varies" ? [SALMON_WORDS.varies] : notesOf(g.ixs, g.sp.some((sp) => quota[sp] === null)), quota,
              ...(st === "varies" ? {} : repeatsOf(g.ixs, g.sp.every((sp) => !!quota[sp]?.tree && !quota[sp]?.u))) };
   });

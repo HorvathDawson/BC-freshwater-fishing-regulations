@@ -26,7 +26,7 @@ describe("(T759) the legend's issue entry", () => {
   it("Salmon key with issue waters: one entry, the stripe swatch, in the second row after the gear marks", () => {
     draw(col("salmon", FEED));
     const entries = screen.getAllByTestId("legend-entry").map((e) => e.textContent);
-    expect(entries).toEqual(["Keep salmon", "Release only", "Closed", "TBD by DFO", "Fly only", "Bait ban", "Check rule"]);
+    expect(entries).toEqual(["Keep salmon", "Release only", "Closed", "TBD/unread", "Fly only", "Bait ban", "Check rule"]);
     expect(screen.getAllByTestId("legend-row").length).toBe(2);
     expect(screen.getAllByTestId("swatch-issue").length).toBe(1);
   });

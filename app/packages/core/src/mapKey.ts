@@ -21,9 +21,10 @@ export const MAP_KEY = {
   issue: "Check rule",
   /** (T377) the regulations bar's fold: what its button does, whole (the key hidden, the switch stays) */
   fold: { hide: "Hide the map key", show: "Show the map key" },
-  /** (T882, proposal) "check" is DFO's "To be determined" (or a row the app could not read, the long label says both):
-   *  "TBD by DFO", since "To be determined" overflows the 390 dp key's second row by 28 dp (`legend-rows.test.ts`) */
-  salmon: { open: "Keep salmon", release: "Release only", closed: "Closed", check: "TBD by DFO" } satisfies Record<SalmonMapStatus, string>,
+  /** (T882, proposal) the check colour is DFO's "To be determined" OR a DFO row the app could not read (the card then says
+   *  "Check DFO"), so the short key names both: "TBD/unread". The 390 dp key's second row holds 366 dp
+   *  (`legend-rows.test.ts`): "To be determined" is 28 dp over, "TBD / check DFO" 27, "TBD or unread" 8 */
+  salmon: { open: "Keep salmon", release: "Release only", closed: "Closed", check: "TBD/unread" } satisfies Record<SalmonMapStatus, string>,
   stocked: { season: "This season", year: "This year", recent: "1–3 years ago", decade: "3–10 years ago", old: "Over 10 years ago" } satisfies Record<StockRecency, string>,
   stockedNone: "Not stocked",
   depth: { digitised: "Contours traced", sheet: "Sheet only", none: "Not surveyed" },
