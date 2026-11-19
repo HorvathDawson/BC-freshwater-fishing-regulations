@@ -328,7 +328,11 @@ export interface CaveatItemVM { readonly what: Line; readonly where: string | nu
    *  stays the rule's own words (the golden's); the component draws the tag before it and sets the item apart. `map`: the link to the synopsis page that shows it. */
   readonly area?: { readonly tag: string; readonly map: Line | null };
   /** (T372) a salmon caveat item's DFO words for its place (limits, sizes, notes, gear), each a line under it */
-  readonly detail?: readonly string[] }
+  readonly detail?: readonly string[];
+  /** (T898) a closure of every day from `after` minutes after sunset to `before` minutes before sunrise: the moment's stored
+   *  hours window (the pipeline's `solar` + `offset_min` ends), so a screen gives the day's real times without reading
+   *  `where`. Absent for any other item. */
+  readonly daylight?: { readonly after: number; readonly before: number } }
 
 export interface OtherFishKeyVM { readonly status: "release" | "closed"; readonly says: string; readonly term: string }
 export interface OtherFishRowVM{ readonly thumb: string | null; readonly name: string; readonly value: string;

@@ -24,7 +24,7 @@
  */
 import { Fragment, type ReactNode } from "react";
 import { View } from "react-native";
-import { daylightOffsets, groupGlance, troutGlance, dfoBlockStatus, SALMON_WORDS, SOURCE_WORDS, WORDS, type CaveatVM, type GlanceRowVM, type KeepVM, type SalmonStripVM } from "@app/core";
+import { daylightClosedText, daylightOffsets, groupGlance, troutGlance, dfoBlockStatus, SALMON_WORDS, SOURCE_WORDS, WORDS, type CaveatVM, type DaylightAt, type GlanceRowVM, type KeepVM, type SalmonStripVM } from "@app/core";
 import { GUTTER, type Palette } from "../theme";
 import { Text } from "../Text";
 import { TYPE } from "../type";
@@ -38,11 +38,14 @@ import { TaggedTitle } from "./SourceTag";
 import type { KeepActions } from "./LineText";
 import type { FishImages } from "./types";
 
-export function KeepTab({ keep, dateLabel, palette, actions, images, glance = null, salmonStrip = null, daylight = null }: {
+export function KeepTab({ keep, dateLabel, dayWord = null, palette, actions, images, glance = null, salmonStrip = null, daylight = null }: {
   keep: KeepVM; dateLabel: string; palette: Palette; actions: KeepActions; images?: FishImages;
+  /** (T898) the page's day as the date pill names it ("Today", else its weekday: `HeaderVM.dayWord`); absent: "Today" */
+  dayWord?: string | null;
   salmonStrip?: SalmonStripVM | null;
-  /** (T473) the open hours of a daylight-only closure on the day at the water, from the rule's own offsets; null: no point */
-  daylight?: ((after: number, before: number) => string | null) | null;
+  /** (T473, T898) the open and closed hours of a daylight-only closure on the day at the water, from the rule's own
+   *  offsets (`useDaylight`); null: no point */
+  daylight?: DaylightAt | null;
   glance?: { salmon: { row: GlanceRowVM; card: () => ReactNode } | null } | null;
 }) {
   // (T810 O, S) the trout and char table, as N built it (null: none drawn: no cell, a closed day, or a refused frame)
@@ -82,8 +85,10 @@ export function KeepTab({ keep, dateLabel, palette, actions, images, glance = nu
   const timed = timedAt >= 0 && keep.strip && keep.order.includes("strip") ? keep.caveats[(keep.order[timedAt] as { caveat: number }).caveat]! : null;
   // (T473) a daylight-only closure said as the day's real hours with the status; its rule words stay as a small line
   const off = timed ? [...timed.items, ...(timed.later ?? [])].map(daylightOffsets).find((o) => o !== null) ?? null : null;
-  const range = off && daylight ? daylight(off.after, off.before) : null;
+  const range = off && daylight ? daylight.open(off.after, off.before) : null;
   const hours = range ? WORDS.DAYLIGHT_HOURS(range) : null;
+  // (T898) and the day's closed hours under its rule line ("Today: closed 18:21 to 7:23"), from the same sun as the date line
+  const closedToday = off && daylight ? daylightClosedText(daylight.closed(off.after, off.before), dayWord ?? WORDS.TODAY, dateLabel) : null;
   // (T879) ONE list under both blocks: the Salmon fold first (DFO), then the B.C. rows, each tagged
   const oneList = home && (folds.length > 0 || (keep.otherFish ?? []).length > 0) && table(-2);
   const bareStatus = glance?.salmon ? dfoBlockStatus(glance.salmon.row) : null;
@@ -110,7 +115,7 @@ export function KeepTab({ keep, dateLabel, palette, actions, images, glance = nu
         const block = ((): ReactNode => {
         if (glance && (b === "otherFish" || b === "trout" || (typeof b === "object" && "group" in b))) return i === at && !home ? table(i) : null;
         if (b === "strip") return [salmonBar, <YearStrip key={i} strip={keep.strip!} dateLabel={dateLabel} palette={palette} title={tags ? SOURCE_WORDS.game : glance ? SALMON_WORDS.barGeneral : null} tag={tags ? SOURCE_WORDS.tag.bc : null} hours={hours} />,
-          timed && <TimedLines key="timed" caveat={timed} palette={palette} actions={actions} hoursSaid={!!hours} />, oneList];
+          timed && <TimedLines key="timed" caveat={timed} palette={palette} actions={actions} hoursSaid={!!hours} closedToday={closedToday} />, oneList];
         if (b === "inherited") return <InheritedLine key={i} inherited={keep.inherited!} palette={palette} actions={actions} />;
         if (b === "banner") return <ClosedBanner key={i} banner={keep.banner!} palette={palette} actions={actions} />;
         if (b === "otherFish") return <OtherFish key={i} rows={keep.otherFish!} keys={keep.otherFishKey} palette={palette} actions={actions} images={images} />;

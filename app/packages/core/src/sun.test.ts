@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { bcClockTime, bcNow, bcOffsetHours, bcToday, sunLine, sunTimes } from "./index";
+import { bcClockTime, bcNow, bcOffsetHours, bcToday, daylightAt, daylightClosed, daylightClosedText, daylightOfMoment, sunLine, sunTimes,
+         type Moment } from "./index";
 
 /** minutes past midnight at a fixed UTC offset */
 const at = (ms: number | null, off: number) => {
@@ -45,5 +46,48 @@ describe("the regulations' clock is B.C.'s, written in the app (not the device's
     expect(bcClockTime(Date.UTC(2026, 11, 21, 16, 5))).toBe("09:05 PT");
     const t = bcToday(Date.UTC(2026, 10, 5, 6, 30));                  // (T382) the same day, at its midnight
     expect([t.getFullYear(), t.getMonth() + 1, t.getDate(), t.getHours(), t.getMinutes()]).toEqual([2026, 11, 4, 0, 0]);
+  });
+});
+
+describe("(T898) a daylight-only closure's closed hours: the date line's sun, offset by the rule's own minutes", () => {
+  const MISSION = { lat: 49.133, lon: -122.31 }, NOV19 = { y: 2026, m: 11, d: 19 }, JUN21 = { y: 2026, m: 6, d: 21 };
+  it("Mission, Nov 19: 1 h after sunset to 1 h before sunrise, whole, beside the date line it is offset from", () => {
+    expect(sunLine(MISSION.lat, MISSION.lon, NOV19)!.text).toBe("8:25–17:24");
+    expect(daylightClosedText(daylightClosed(MISSION.lat, MISSION.lon, NOV19, 60, 60), "Today", "Nov 19"))
+      .toBe("Today: closed 18:24 to 7:25");
+    // another day is named as the date pill names it
+    expect(daylightClosedText(daylightAt(MISSION.lat, MISSION.lon, NOV19).closed(60, 60), "Fri", "Nov 20"))
+      .toBe("Fri Nov 20: closed 18:24 to 7:25");
+  });
+  it("each end takes its own offset (30 min after sunset, 45 before sunrise); a summer evening keeps its two-digit hour", () => {
+    expect(daylightClosedText(daylightClosed(MISSION.lat, MISSION.lon, NOV19, 30, 45), "Today", "Nov 19"))
+      .toBe("Today: closed 17:54 to 7:40");
+    expect(sunLine(MISSION.lat, MISSION.lon, JUN21)!.text).toBe("5:04–21:17");
+    expect(daylightClosedText(daylightClosed(MISSION.lat, MISSION.lon, JUN21, 60, 60), "Sun", "Jun 21"))
+      .toBe("Sun Jun 21: closed 22:17 to 4:04");
+    // the open hours (T473) from the same point and day are the complement
+    expect(daylightAt(MISSION.lat, MISSION.lon, NOV19).open(60, 60)).toBe("07:25–18:24 PT");
+  });
+  it("no hours, no line", () => {
+    expect(daylightClosedText(null, "Today", "Nov 19")).toBeNull();
+  });
+});
+
+describe("(T898) the offsets come from the moment's stored window, never its words", () => {
+  const ALL = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"] as const;
+  const m = (hours: Moment["hours"], weekdays: Moment["weekdays"] = ALL): Moment => ({ weekdays, hours });
+  const sun = (solar: "sunrise" | "sunset", offset_min: number) => ({ solar, offset_min });
+  it("sunset + N to sunrise − M, every day, inside the window: { after: N, before: M }", () => {
+    expect(daylightOfMoment(m({ start: sun("sunset", 60), end: sun("sunrise", -60), in: true }))).toEqual({ after: 60, before: 60 });
+    expect(daylightOfMoment(m({ start: sun("sunset", 30), end: sun("sunrise", -45), in: true }))).toEqual({ after: 30, before: 45 });
+  });
+  it("any other window is not one: outside it, some weekdays, a clock end, an end on the sun itself, no hours", () => {
+    expect(daylightOfMoment(m({ start: sun("sunset", 60), end: sun("sunrise", -60), in: false }))).toBeNull();
+    expect(daylightOfMoment(m({ start: sun("sunset", 60), end: sun("sunrise", -60), in: true }, ["Saturday", "Sunday"]))).toBeNull();
+    expect(daylightOfMoment(m({ start: { at: "21:00", offset_min: 0 }, end: sun("sunrise", -60), in: true }))).toBeNull();
+    expect(daylightOfMoment(m({ start: sun("sunset", 0), end: sun("sunrise", -60), in: true }))).toBeNull();
+    expect(daylightOfMoment(m({ start: sun("sunrise", -60), end: sun("sunset", 60), in: true }))).toBeNull();
+    expect(daylightOfMoment(m(null))).toBeNull();
+    expect(daylightOfMoment(null)).toBeNull();
   });
 });

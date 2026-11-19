@@ -226,7 +226,10 @@ export function timedOf(inp: RegsInputs, s: Settled, settledAtSeg: (seg: number)
     const all = cl.filter(([, fs]) => asked.every((S) => (fs as readonly string[]).includes(S)));
     const pick = (all.length ? all : [...cl].sort((a, b) => b[1].length - a[1].length).slice(0, 1)).map(([r]) => r);
     const whole = pick.filter((r) => !closing(cur).some(([ix]) => ix === r.rix));
-    for (const r of whole) items.push(item([text(describeShort(r, inp))], momentTxt(M[j]), r));
+    // (T898) a closure of every day's hours from sunset to sunrise carries its offsets, read from the stored window
+    const dl = daylightOfMoment(M[j]);
+    for (const r of whole) items.push(dl ? { ...item([text(describeShort(r, inp))], momentTxt(M[j]), r), daylight: dl }
+                                         : item([text(describeShort(r, inp))], momentTxt(M[j]), r));
     if (!whole.length) items.push(item([text(WORDS.MISSING_CLOSER(momentTxt(M[j])))], null, null));
   }
 
@@ -285,13 +288,34 @@ export function caveatsOf(inp: RegsInputs, s: Settled, settledAtSeg: (seg: numbe
 }
 
 /**
- * (T473) The offsets of a daylight-only closure, read from the item's own words ("60 min after sunset–60 min before
- * sunrise", the rule's `where`): minutes closed after sunset and before sunrise; null for any other timed item.
+ * (T898) A moment closed every day from some minutes after sunset to some before sunrise, read from its stored hours
+ * window (the pipeline's ClockTime ends: `solar` + `offset_min`, never the words): `{ after, before }` in minutes; null for
+ * any other moment (a clock-time end, a window of some weekdays, the hours outside the window, an end on the sun itself).
+ */
+export function daylightOfMoment(m: Moment | null | undefined): { after: number; before: number } | null {
+  const h = m?.hours;
+  if (!m || !h || !h.in || m.weekdays.length !== 7) return null;
+  const { start: s, end: e } = h;
+  if (s.at || e.at || s.solar !== "sunset" || e.solar !== "sunrise" || !(s.offset_min > 0) || !(e.offset_min < 0)) return null;
+  return { after: s.offset_min, before: -e.offset_min };
+}
+
+/**
+ * (T473) The offsets of a daylight-only closure: minutes closed after sunset and before sunrise; null for any other timed
+ * item. (T898) Read from the item's stored window (`daylight`, `timedOf`), no longer from its words.
  */
 export function daylightOffsets(x: CaveatItemVM): { after: number; before: number } | null {
-  const what = x.what.map((r) => (r.t === "text" ? r.s : "")).join("").trim();
-  const m = x.where ? /^(\d+) min after sunset\s*[–-]\s*(\d+) min before sunrise$/.exec(x.where.trim()) : null;
-  return m && /^no fishing/i.test(what) ? { after: +m[1]!, before: +m[2]! } : null;
+  return x.daylight ?? null;
+}
+
+/**
+ * (T898) The day's closed hours of a daylight-only closure, said under its rule line: "Today: closed 18:21 to 7:23", the
+ * day named as the date pill names it (`HeaderVM.dayWord`, `date`: "Fri Nov 20: closed …" on another day); null with no
+ * hours (no sun point, no rise or set).
+ */
+export function daylightClosedText(t: { from: string; to: string } | null, dayWord: string, date: string): string | null {
+  if (!t) return null;
+  return WORDS.DAYLIGHT_CLOSED(dayWord === WORDS.TODAY ? WORDS.TODAY : `${dayWord} ${date}`, t.from, t.to);
 }
 
 /**

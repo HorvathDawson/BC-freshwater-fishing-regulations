@@ -10,6 +10,9 @@
  *
  * (T694) An unread notice says so: "New · …" / "Updated · …" on the line (core `inSeasonSummary`) and a mark on its
  * card. (T700) Opened from the bell's inbox at a notice, the notices are open.
+ *
+ * (T899, owner 2026-11-19: "in season notices should default open") OPEN BY DEFAULT: every open of the page shows each
+ * notice under the line; a press on the line still folds them, a second opens them again.
  */
 import { useEffect, useState } from "react";
 import { View } from "react-native";
@@ -26,7 +29,7 @@ import { linkTo } from "../openLink";
 export function InSeasonBanners({ banners: all, palette }: { banners: readonly InSeasonBannerVM[]; palette: Palette }) {
   // (T318) a change with no words of its own is never drawn as an empty card with only its link (owner's phone, 0.3.0)
   const banners = all.filter((b) => b.text.trim());
-  const [open, setOpen] = useState(false);
+  const [open, setOpen] = useState(true);   // (T899) open on every open of the page
   const focused = useInSeasonFocus(banners.map((b) => b.id));
   useEffect(() => { if (focused) setOpen(true); }, [focused]);
   const summary = inSeasonSummary(banners);

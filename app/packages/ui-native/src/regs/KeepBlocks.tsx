@@ -3,7 +3,7 @@
  * block, "Where you can’t fish", the Possession row, the Other fish list, the outside-B.C. foot. tokens.md §5. No logic:
  * each draws its VM slice.
  */
-import { useState, type ReactNode } from "react";
+import { Fragment, useState, type ReactNode } from "react";
 import { Image, PixelRatio, View, useWindowDimensions, type StyleProp, type TextStyle } from "react-native";
 import { Text } from "../Text";
 import Svg, { Circle, Path } from "react-native-svg";
@@ -176,21 +176,30 @@ export function CaveatBlock({ caveat, palette, actions, inset = true }: { caveat
  * only: closed from 1 h after sunset to 1 h before sunrise", the rule-book link inline, the line opening its rule's sheet.
  * Core `timedLineText` words it.
  */
-export function TimedLines({ caveat, palette, actions, hoursSaid = false }: { caveat: CaveatVM; palette: Palette; actions: KeepActions;
+export function TimedLines({ caveat, palette, actions, hoursSaid = false, closedToday = null }: { caveat: CaveatVM; palette: Palette; actions: KeepActions;
   /** (T473) the daylight-only item's open hours are said with the status: its rule words drop to a small secondary line */
-  hoursSaid?: boolean }) {
+  hoursSaid?: boolean;
+  /** (T898) the day's closed hours of the daylight-only item ("Today: closed 18:21 to 7:23", core `daylightClosedText`),
+   *  a line right under its rule line; null: none (no sun point) */
+  closedToday?: string | null }) {
   return (
     <View testID="keep-timed" style={{ marginHorizontal: GUTTER, marginTop: 6, rowGap: 2 }}>
       {[...caveat.items, ...(caveat.later ?? [])].map((x, i) => {
-        const small = hoursSaid && !!daylightOffsets(x);
+        const daylit = !!daylightOffsets(x);
+        const small = hoursSaid && daylit;
         const words = <Text selectable testID="keep-timed-line" style={small ? [TYPE.meta, { color: palette.sub }] : [TYPE.metaSemi, { color: palette.ink }]}>{timedLineText(x)}</Text>;
         return (
-          <View key={i} testID="keep-timed-item" style={{ flexDirection: "row", flexWrap: "wrap", alignItems: "baseline", columnGap: 8 }}>
-            {x.rule ? (
-              <RegsPress accessibilityRole="button" onPress={() => actions.onSheet(`rule:${x.rule}`)} box={ROW} style={{ flexShrink: 1, minHeight: 32, justifyContent: "center" }}>{words}</RegsPress>
-            ) : words}
-            {x.book.length > 0 && <LineText line={x.book} style={TYPE.metaBold} color={palette.accent} palette={palette} actions={actions} />}
-          </View>
+          <Fragment key={i}>
+            <View testID="keep-timed-item" style={{ flexDirection: "row", flexWrap: "wrap", alignItems: "baseline", columnGap: 8 }}>
+              {x.rule ? (
+                <RegsPress accessibilityRole="button" onPress={() => actions.onSheet(`rule:${x.rule}`)} box={ROW} style={{ flexShrink: 1, minHeight: 32, justifyContent: "center" }}>{words}</RegsPress>
+              ) : words}
+              {x.book.length > 0 && <LineText line={x.book} style={TYPE.metaBold} color={palette.accent} palette={palette} actions={actions} />}
+            </View>
+            {daylit && !!closedToday && (
+              <Text selectable testID="keep-timed-today" style={[TYPE.metaSemi, { color: palette.ink }]}>{closedToday}</Text>
+            )}
+          </Fragment>
         );
       })}
     </View>

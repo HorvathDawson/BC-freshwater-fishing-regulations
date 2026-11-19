@@ -21,7 +21,7 @@ import { useCallback, useContext, useEffect, useLayoutEffect, useMemo, useRef, u
 import { openProbe } from "@app/data";
 import { AccessibilityInfo, Platform, ScrollView, View, type ScrollViewInstance, type ViewInstance } from "react-native";
 import { Text } from "../Text";
-import { LEGAL_WORDS, parseSheetKey, tabScrollY, type AccessNotice, type GlanceRowVM, type InSeasonBannerVM, type Line, type RegsPage, type SalmonStripVM, type SheetKey, type SunDay, type Tab } from "@app/core";
+import { LEGAL_WORDS, parseSheetKey, tabScrollY, type AccessNotice, type GlanceRowVM, type InSeasonBannerVM, type Line, type RegsPage, type SalmonStripVM, type SheetKey, type SunDay, type Tab, type DaylightAt } from "@app/core";
 import { AccessNoticeBlock } from "./AccessNoticeBlock";
 import { FreshDot } from "../menu/Fresh";
 import { WaterInset } from "../WaterFrame";
@@ -122,10 +122,11 @@ export interface RegsScreenProps {
   asOf?: string | null;
   /** (T382) the day's sunrise and sunset at the water (`useSunLine`); (T878) a small line under the date pill; absent: none. */
   sun?: SunDay | null;
-  /** (T473) a daylight-only closure's open hours on the day at the water, from its own offsets; null: no point known */
   /** (T474) the water's own entry in the rule book (core `waterBookOf`): "This water in the rule book p.N ↗"; empty: none */
   waterBook?: Line;
-  daylight?: ((after: number, before: number) => string | null) | null;
+  /** (T473, T898) a daylight-only closure's open and closed hours on the day at the water (`useDaylight`), from its own
+   *  offsets; null: no point known */
+  daylight?: DaylightAt | null;
   /**
    * (T50) the water as opened (`regsScrollKey`): the page remembers its scroll under it and, mounted again without a
    * start link (a view or tab switch, back / forward, a new day, an Android recreation), returns there once the page is
@@ -245,7 +246,7 @@ export function RegsScreen({ page, palette, images, actions, onDate,
           failed, is drawn here in its place (its pending / failed face) — never a silent gap */}
       {(!glance || !glance.salmon) && (typeof salmon === "function" ? salmon({ actions: keepActions, images }) : salmon)}
       <AnchorContext.Provider value={sink}>
-          <KeepTab keep={page.keep} daylight={daylight} dateLabel={page.header.date} palette={palette} actions={keepActions} images={images} salmonStrip={salmonStrip}
+          <KeepTab keep={page.keep} daylight={daylight} dateLabel={page.header.date} dayWord={page.header.dayWord} palette={palette} actions={keepActions} images={images} salmonStrip={salmonStrip}
                    glance={glance ? { salmon: glance.salmon && salmon
                      ? { row: glance.salmon, card: () => (typeof salmon === "function" ? salmon({ actions: keepActions, images }) : salmon) }
                      : null } : null} />

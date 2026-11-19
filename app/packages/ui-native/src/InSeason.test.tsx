@@ -17,24 +17,35 @@ const change = { id: "is-a", region: "8", water: "Okanagan River", from: "2026-1
                  text: "No fishing July 30 to September 15.", source: SRC, waters: null, words: {} };
 
 describe("in-season", () => {
-  it("<InSeasonBanners>: collapsed, one line with the dates and 'see'; the notice is not drawn (T472)", () => {
+  it("(T899) <InSeasonBanners>: OPEN on every open of the page — the line with the dates and 'see', each notice under it", () => {
     render(<InSeasonBanners banners={[inSeasonBanner(change, { where: null })]} palette={LIGHT} />);
     expect(screen.getByTestId("inseason-summary").textContent).toBe("In-season change (Oct 15–Nov 30) · see ›");
-    expect(screen.getByTestId("inseason-line").getAttribute("aria-expanded")).toBe("false");
+    expect(screen.getByTestId("inseason-line").getAttribute("aria-expanded")).toBe("true");
+    expect(screen.getAllByTestId("inseason-banner").map((e) => e.textContent)).toEqual([
+      "In-season change (Oct 15–Nov 30): No fishing July 30 to September 15."
+      + "Shown as posted; the answers on this page do not include it yet.source ›"]);
+    cleanup();
+    // a second open of the page is open again, whatever the reader did on the first
+    render(<InSeasonBanners banners={[inSeasonBanner(change, { where: null })]} palette={LIGHT} />);
+    fireEvent.click(screen.getByTestId("inseason-line"));
     expect(screen.queryByTestId("inseason-banner")).toBeNull();
+    cleanup();
+    render(<InSeasonBanners banners={[inSeasonBanner(change, { where: null })]} palette={LIGHT} />);
+    expect(screen.getAllByTestId("inseason-banner")).toHaveLength(1);
   });
-  it("<InSeasonBanners>: several changes say the count; a press opens every notice, a second closes them", () => {
+  it("<InSeasonBanners>: several changes say the count, every notice open; a press folds them, a second opens them", () => {
     const b = (id: string) => inSeasonBanner({ ...change, id }, { where: null });
     render(<InSeasonBanners banners={[b("a"), b("b"), b("c")]} palette={LIGHT} />);
     expect(screen.getByTestId("inseason-summary").textContent).toBe("3 in-season changes · see ›");
-    fireEvent.click(screen.getByTestId("inseason-line"));
     expect(screen.getAllByTestId("inseason-banner")).toHaveLength(3);
     fireEvent.click(screen.getByTestId("inseason-line"));
+    expect(screen.getByTestId("inseason-line").getAttribute("aria-expanded")).toBe("false");
     expect(screen.queryByTestId("inseason-banner")).toBeNull();
-  });
-  it("<InSeasonBanners>: expanded, the owner's line whole, then the note and the source link", () => {
-    render(<InSeasonBanners banners={[inSeasonBanner(change, { where: null })]} palette={LIGHT} />);
     fireEvent.click(screen.getByTestId("inseason-line"));
+    expect(screen.getAllByTestId("inseason-banner")).toHaveLength(3);
+  });
+  it("<InSeasonBanners>: open, the owner's line whole, then the note and the source link", () => {
+    render(<InSeasonBanners banners={[inSeasonBanner(change, { where: null })]} palette={LIGHT} />);
     expect(screen.getByTestId("inseason-line").getAttribute("aria-expanded")).toBe("true");
     expect(screen.getByTestId("inseason-banner").textContent).toBe(
       "In-season change (Oct 15–Nov 30): No fishing July 30 to September 15."
@@ -42,7 +53,6 @@ describe("in-season", () => {
   });
   it("(T518) <InSeasonBanners>: a change on part of the water says where, in its own ends", () => {
     render(<InSeasonBanners banners={[inSeasonBanner(change, { where: "From Hell's Gate to Spuzzum Creek confluence" })]} palette={LIGHT} />);
-    fireEvent.click(screen.getByTestId("inseason-line"));
     expect(screen.getByTestId("inseason-where").textContent).toBe("Where: From Hell's Gate to Spuzzum Creek confluence");
   });
   it("<InSeasonBanners>: nothing to draw, nothing drawn", () => {
@@ -52,7 +62,6 @@ describe("in-season", () => {
   it("(T694) <InSeasonBanners>: an unread notice's mark on the line and on its card", () => {
     render(<InSeasonBanners banners={[inSeasonBanner(change, { where: null }, "updated")]} palette={LIGHT} />);
     expect(screen.getByTestId("inseason-summary").textContent).toBe("Updated · In-season change (Oct 15–Nov 30) · see ›");
-    fireEvent.click(screen.getByTestId("inseason-line"));
     expect(screen.getByTestId("inseason-mark").textContent).toBe("Updated");
   });
   it("(T700) <InSeasonBanners>: opened from an inbox row at this notice, the notices are open", () => {

@@ -129,6 +129,9 @@ export const WORDS = Object.freeze({
   /** (T473) a daylight-only closure as today's real hours, under the status: "Daylight only · fishing 07:04–18:37 PT" */
   DAYLIGHT_HOURS: (range: string) => `Daylight only · fishing ${range}`,
   TIMED_H: (min: number) => (min % 60 === 0 ? `${min / 60} h` : `${min} min`),
+  /** (T898) the day's closed hours of a daylight-only closure, under its rule line, on the date line's clock: "Today: closed
+   *  18:21 to 7:23"; another day is named as the date pill names it ("Fri Nov 20: closed 18:20 to 7:24") */
+  DAYLIGHT_CLOSED: (day: string, from: string, to: string) => `${day}: closed ${from} to ${to}`,
   ANGLER_TITLE: "⚠ Closed to some anglers",
   TODAY_PAREN: (m: string) => "today (" + m + ")",
   NO_RULE: "no rule", ANSWER_NOLIMIT: "no limit", ANSWER_RELEASE: "release", ANSWER_CLOSED: "closed",
