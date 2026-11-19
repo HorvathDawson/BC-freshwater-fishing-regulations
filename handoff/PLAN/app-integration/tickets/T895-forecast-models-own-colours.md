@@ -1,6 +1,6 @@
 # T895 — Each flow forecast model draws in its own colour, so a toggled model can be told apart
 
-Status: IN PROGRESS — left (Claude): owner sees pictures, then merge into app/integrate-082
+Status: DONE (ac657a5fc, merged into 0.8.2; owner 2026-11-19 ~01:03 on the pictures: "all good"; review: nothing blocking, dark COFFEE moved off the donor pink, e1dfdef2c).
 
 Owner 2026-11-19 ~00:40 (app chat), verbatim: "also can we make the different models forecast have different colors so
 when they are toggled on or off you can tell which are which."

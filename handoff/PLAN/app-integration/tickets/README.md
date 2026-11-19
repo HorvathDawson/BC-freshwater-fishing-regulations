@@ -299,7 +299,7 @@ reads both files; a ticket closed here moves there once its lane is finished wit
 | T892 | "What you can keep" table: a row from another water's tributary rule says so (owner) | IN PROGRESS — left (Claude): owner sees pictures, then merge into app/integrate-082 | app chat | owner 2026-11-19 ~00:10; built ~00:33 |
 | T893 | Production Android builds carry the patched MapLibre too (owner) | DONE | 572d73fad | owner 2026-11-19 ~00:21 |
 | T894 | The app's version files per build and per version (Play: play/<versionCode>.json; iPhone: ios/<version>.json) | IN PROGRESS | app chat | review of T888, 2026-11-19 |
-| T895 | Each flow forecast model draws in its own colour, so a toggled model can be told apart (owner) | IN PROGRESS | app chat | owner 2026-11-19 ~00:40 |
+| T895 | Each flow forecast model draws in its own colour, so a toggled model can be told apart (owner) | DONE | ac657a5fc | owner 2026-11-19 ~00:40; approved ~01:03 |
 | T896 | The map key's fold button is useless on a wide screen: show the key, no button, where it fits (owner) | IN PROGRESS | app chat | owner 2026-11-19 ~00:51 |
 | T897 | The More tab's back says "Back", not a tab's name; its head stays put while it scrolls (owner) | IN PROGRESS | app chat | owner 2026-11-19 ~01:04 |
 | T882 | Salmon: DFO's "To be determined" says so instead of "Check DFO"; green whenever any salmon is open (owner) | DONE | b2a5f2522 | owner 2026-11-18 ~21:18 |
