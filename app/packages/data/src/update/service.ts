@@ -50,8 +50,11 @@ export interface ReleaseSpec {
    * Download and verify what `m` needs, beside the set in use. Throws on failure; otherwise says what it came to
    * (`StageOutcome`, T555): only `staged` and `waiting` (already installed for the next boot) are "ready" — a release
    * this device refused, one already in use, or one this app does not read is never reported as ready.
+   * (T912) `metered`: may its download use mobile data — this service's own rule (`maybeStage`: a download of up to
+   * `bigBytes`, or the reader's "Always"). A phone's system downloader carries it on after the app is closed, so the rule
+   * must travel with it: false, its jobs wait for Wi-Fi rather than go on over mobile data once the reader leaves Wi-Fi.
    */
-  stage(m: Manifest, onProgress: (bytes: number, of: number) => void): Promise<StageOutcome>;
+  stage(m: Manifest, onProgress: (bytes: number, of: number) => void, o: { metered: boolean }): Promise<StageOutcome>;
   /** The bytes this device would fetch for `m` (default: `installBytes`, the install's own count — changed files, tiles, mask,
    *  basemap AND the rule book; T555: one function for the mobile-data gate and the first install's). */
   need?(m: Manifest, held: Held): number;
@@ -356,7 +359,7 @@ export function createUpdateService(o: UpdateOptions): UpdateService {
 
   const metered = () => !!o.network?.metered?.();
 
-  function startStage(m: Manifest): void {
+  function startStage(m: Manifest, need: number): void {
     const spec = o.release!;
     if (staging || !release) return;
     release = { ...release, phase: "downloading", target: m.data_release, targetDate: manifestDate(m),
@@ -365,7 +368,7 @@ export function createUpdateService(o: UpdateOptions): UpdateService {
     const t0 = now(), from = spec.held()?.release ?? null;
     staging = spec.stage(m, (bytes, of) => {
       if (release?.phase === "downloading") { release = { ...release, progress: { bytes, of } }; publish(); }
-    }).then(
+    }, { metered: need <= P.bigBytes || allowMetered }).then(
       (out) => {
         const bytes = release!.progress?.of ?? 0, ms = now() - t0;
         if (out.kind === "staged" || out.kind === "waiting") {
@@ -430,7 +433,7 @@ export function createUpdateService(o: UpdateOptions): UpdateService {
       }
       return;
     }
-    startStage(pending);
+    startStage(pending, need);
   }
 
   async function checkRelease(): Promise<boolean> {

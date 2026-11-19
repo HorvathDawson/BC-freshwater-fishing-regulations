@@ -16,6 +16,10 @@
 //   node deploy/staging/test-updates.mjs big [tag]             (T255) a LARGE release: the basemap's id moves (same file,
 //                                                              same sha), so a phone re-downloads it whole (~270 MB) —
 //                                                              over the 20 MB line a metered connection holds for Wi-Fi
+//   node deploy/staging/test-updates.mjs data-big [tag]        (T912) `big` AND a changed data file: the live `climate`
+//                                                              file with its SQLite change counter moved (same tables and
+//                                                              rows, other bytes) under test/release/<id>/, so an update
+//                                                              downloads a data file as well as the ~270 MB basemap
 //   node deploy/staging/test-updates.mjs gauge <station> <flow|level> <value>   (T234) the gauge alerts' feed (the
 //                                                              background check reads test/feeds/live/obs.json on this
 //                                                              channel): that station's newest reading set to <value>, now
@@ -118,6 +122,53 @@ export const tiles = (tag = String(Date.now() % 100000)) => synthetic(`tiles${ta
   m.tiles = { ...m.tiles, current: { ...m.tiles.current, id: `${h}.${build}` } };
   return m;
 });
+/**
+ * (T912) THE SAME SQLITE FILE WITH OTHER BYTES: its file change counter (header offset 24) moved on, and the
+ * "version-valid-for" number (offset 92) with it, so SQLite still trusts the header's page count. Nothing a reader queries
+ * changes; the sha256 does, so a phone downloads it (an update's data file) instead of copying the one it holds.
+ */
+export function bumpSqlite(raw) {
+  if (new TextDecoder().decode(raw.subarray(0, 15)) !== 'SQLite format 3') throw new Error('not a SQLite file');
+  const out = new Uint8Array(raw), v = new DataView(out.buffer, out.byteOffset, out.byteLength);
+  const c = (v.getUint32(24) + 1) >>> 0;
+  v.setUint32(24, c); v.setUint32(92, c);
+  return out;
+}
+/** (T912) The `data-big` manifest: `live` with a new id, the basemap's id moved (`big`), and `name` replaced by `f`. */
+export function dataBigManifest(live, id, tag, name, f) {
+  if (!live.basemap) throw new Error('the live manifest names no basemap');
+  if (!live.files[name]) throw new Error(`the live manifest names no ${name}`);
+  const m = { ...structuredClone(live), data_release: id };
+  m.basemap = { ...m.basemap, id: `${m.basemap.id}-t${tag}` };
+  m.files[name] = { ...m.files[name], ...f };
+  return m;
+}
+export async function dataBig(tag = String(Date.now() % 100000)) {
+  const { createHash } = await import('node:crypto');
+  const { gzipSync, gunzipSync } = await import('node:zlib');
+  const fs = await import('node:fs'), os = await import('node:os'), path = await import('node:path');
+  const live = await liveManifest();
+  const name = 'climate', f = live.files[name];
+  const id = `${live.data_release}-data${tag}`;
+  const got = new Uint8Array(await (await fetch(`${ORIGIN}/release/${f.url}`, { cache: 'no-store' })).arrayBuffer());
+  const raw = bumpSqlite(got[0] === 0x1f && got[1] === 0x8b ? new Uint8Array(gunzipSync(got)) : got);
+  const sha256 = createHash('sha256').update(raw).digest('hex');
+  const gz = gzipSync(raw);
+  const file = `${id}/${name}-${sha256.slice(0, 12)}.sqlite.gz`, key = `${SIDE_PREFIX}${file}`;
+  if (!key.startsWith('test/')) throw new Error(`refusing to write ${key}`);
+  const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'test-updates-'));
+  try {
+    fs.writeFileSync(path.join(tmp, 'f.gz'), gz);
+    // as upload.sh ships a data file: stored gzip, served with Content-Encoding (see `side`)
+    rclone(['copyto', path.join(tmp, 'f.gz'), `${D}/${key}`, '--header-upload', 'Cache-Control: no-cache',
+            '--header-upload', 'Content-Encoding: gzip', '--header-upload', 'Content-Type: application/octet-stream']);
+  } finally { fs.rmSync(tmp, { recursive: true, force: true }); }
+  const m = dataBigManifest(live, id, tag, name, { url: `../${key}`, bytes: raw.length, gz: gz.length, sha256 });
+  if (keyOf(m.files[name].url) !== key) throw new Error(`${name}: ${m.files[name].url} resolves to ${keyOf(m.files[name].url)}`);
+  putManifest(m);
+  return { data_release: id, minAppVersion: m.minAppVersion ?? null, data: { [name]: m.files[name].url }, basemap: m.basemap.id };
+}
+
 export const minApp = (v) => {
   if (!/^\d+\.\d+\.\d+/.test(v ?? '')) throw new Error('min-app <semver>, e.g. min-app 99.0.0');
   return synthetic(`needs-${v}`, (m) => ({ ...m, minAppVersion: v }));
@@ -230,7 +281,7 @@ export async function clean() {
   return { cleaned: 'test/' };
 }
 
-const CMDS = { reset, gauge, 'app-version': appVersion, 'feed-bump': feedBump, 'feed-404': feed404, release, big, tiles, corrupt, missing, 'min-app': minApp, side, status, clean };
+const CMDS = { reset, gauge, 'app-version': appVersion, 'feed-bump': feedBump, 'feed-404': feed404, release, big, 'data-big': dataBig, tiles, corrupt, missing, 'min-app': minApp, side, status, clean };
 
 if (import.meta.url === `file://${process.argv[1]}`) {
   const [cmd, ...args] = process.argv.slice(2);

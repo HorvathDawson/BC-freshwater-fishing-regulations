@@ -329,6 +329,22 @@ export function bigFiles(m: Manifest, held: Held | null): BigFile[] {
   return big;
 }
 
+/** Where a data file of `m` is installed: its release folder, under its url's last segment without `.gz`. */
+export const dataPath = (m: Manifest, url: string): string => `${dirOf(m.data_release)}/${url.split("/").pop()!.replace(/\.gz$/, "")}`;
+
+/**
+ * (T912) The data files installing `m` beside `held` downloads (all of them when `held` is null): the ones whose bytes
+ * moved; the rest are copied from the held set. `url` is release-relative, `path` where `install` puts it.
+ */
+export function dataFiles(m: Manifest, held: Held | null): { name: string; url: string; path: string; e: { bytes: number; sha256: string } }[] {
+  const w = withoutSlices(m);
+  const names = held ? diff(held, w).files : Object.keys(w.files).sort();
+  return names.filter((k) => w.files[k]).map((k) => {
+    const e = w.files[k]!;
+    return { name: k, url: e.url, path: dataPath(w, e.url), e: { bytes: e.bytes, sha256: e.sha256 } };
+  });
+}
+
 /** (T298) What installing `m` beside `held` downloads, in bytes (copies from the held set cost nothing). */
 export function installBytes(m: Manifest, held: Held | null): number {
   const w = withoutSlices(m);
@@ -373,7 +389,6 @@ async function installNow(m: Manifest, fs: ReleaseFs, dl: Download, base: string
   const d = held ? diff(held, m) : { files: Object.keys(m.files).sort(), tiles: true, basemap: true, assets: true,
                                      synopsis: true };
   const names = Object.keys(m.files).sort();
-  const dir = dirOf(m.data_release);
   const big = bigFiles(m, held);
   const of = d.files.reduce((n, k) => n + (m.files[k]?.bytes ?? 0), 0) + big.reduce((n, b) => n + b.e.bytes, 0);
   let done = 0;
@@ -390,7 +405,7 @@ async function installNow(m: Manifest, fs: ReleaseFs, dl: Download, base: string
   });
   const dataFiles = async () => {
     for (const name of names) {
-      const e = m.files[name]!, path = `${dir}/${e.url.split("/").pop()!.replace(/\.gz$/, "")}`;
+      const e = m.files[name]!, path = dataPath(m, e.url);
       const from = !d.files.includes(name) && held?.release ? `${dirOf(held.release)}/${path.split("/").pop()}` : null;
       // unchanged: copied from the held set, never downloaded — unless the held copy is no longer the manifest's bytes
       // (T287) every hash here a slice at a time (`sha256HexAsync`): ~40 MB hashed in one go per file froze the app for
@@ -405,7 +420,7 @@ async function installNow(m: Manifest, fs: ReleaseFs, dl: Download, base: string
     }
     // every file of the new set, re-verified on disk before anything points at it
     for (const name of names) {
-      const e = m.files[name]!, path = `${dir}/${e.url.split("/").pop()!.replace(/\.gz$/, "")}`;
+      const e = m.files[name]!, path = dataPath(m, e.url);
       const b = await fs.read(path);
       // (T446) the report says HOW it differs, in words the crash scrubber keeps (it drops 5+ digit runs): a short file
       // is a cut write, the same size with other bytes a second writer or another release's file

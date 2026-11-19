@@ -403,10 +403,11 @@ export default function App() {
     release: {
       manifestUrl: ENDPOINTS.manifest,
       held: () => bootedRef.current?.held ?? null,
-      stage: async (m, on) => {
+      // (T912) the service's mobile-data rule goes with the download: a phone's system downloader carries it on closed
+      stage: async (m, on, o) => {
         const b = bootedRef.current;
         if (!b) throw new Error(UPDATE_WORDS.sheet.notOpen);
-        return b.stage(m, (p) => on(p.bytes, p.of));
+        return b.stage(m, (p) => on(p.bytes, p.of), o);
       },
     },
     store: openUpdateStore(),

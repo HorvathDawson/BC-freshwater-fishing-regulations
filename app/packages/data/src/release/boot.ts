@@ -29,7 +29,7 @@ import { compatible, loadManifest, ManifestError, parseManifest, readsRelease, t
 import { sha256Hex } from "../sha256";
 import type { WaterSource } from "../index";
 import type { SourceOptions } from "./source";
-import { bigFiles, heldFrom, heldManifest, heldPath, install, installBytes, pointerFor, POINTER as POINTER_PATH, prune, readHeld, sameSet,
+import { bigFiles, dataFiles, heldFrom, heldManifest, heldPath, install, installBytes, pointerFor, POINTER as POINTER_PATH, prune, readHeld, sameSet,
          synopsisPath, writeHeld, type LookBytes, type Progress, type ReleaseFs } from "./install";
 import { rawFetch } from "./assets";
 import type { BackgroundNative, BgItem, BgJob } from "./bgDownload";
@@ -176,10 +176,32 @@ export interface Booted {
    * use it, as an outcome (`StageOutcome`: staged, already waiting, already in use, refused, or a format this app does not
    * read) — never a bare "nothing", which the update service would take for ready (T555).
    */
-  stage(m: Manifest, onProgress?: (p: Progress) => void): Promise<StageOutcome>;
+  stage(m: Manifest, onProgress?: (p: Progress) => void, o?: StageOptions): Promise<StageOutcome>;
   /** (T231) The manifest this launch read from the server (the web's is `manifest`), or null (offline): the update
    *  service's first check (`seedRelease`), so a launch asks for the manifest once. */
   latest: Manifest | null;
+}
+
+/** (T912) How an update is downloaded on a phone. */
+export interface StageOptions {
+  /**
+   * May the system's downloader use mobile data for it (the update service's own rule: a small update, or the reader's
+   * "Always"); false: its jobs wait for Wi-Fi, also after the app is closed. Absent: true (it was allowed to start).
+   */
+  metered?: boolean;
+}
+
+/**
+ * (T912) EVERY FILE AN UPDATE DOWNLOADS, FOR THE SYSTEM'S DOWNLOADER: the data files that changed (first: they are small
+ * and the install reads them first) and the big files. Queued before the install starts, so an app closed a second later
+ * still downloads all of it; the next open claims what finished (T298 did this for the first install only, and an update
+ * downloaded its data files in the app and queued each big file only when the install reached it).
+ */
+export function updateItems(m: Manifest, held: Held, base: string): BgItem[] {
+  return [
+    ...dataFiles(m, held).map((f) => ({ url: `${base}${f.url}`, file: "data", bytes: f.e.bytes, path: f.path, whole: true })),
+    ...bigFiles(m, held).map((b) => ({ url: `${base}${b.url}`, file: b.file, bytes: b.e.bytes, path: b.path })),
+  ];
 }
 
 /**
@@ -522,7 +544,7 @@ export async function bootRelease(o: BootOptions): Promise<Booted> {
   let staging: Promise<Held> | null = null;
   // an update whenever ANY part of the set moved — data files, tiles, mask, basemap, assets — unless it was refused, or
   // is the set this launch rolled back from and will retry (already installed, still the pointer's)
-  const stage = async (next: Manifest, onProgress: (p: Progress) => void = () => {}): Promise<StageOutcome> => {
+  const stage = async (next: Manifest, onProgress: (p: Progress) => void = () => {}, so: StageOptions = {}): Promise<StageOutcome> => {
     if (staging) return { kind: "staged", held: await staging };
     const target = pointerFor(next);
     if (sameSet(target, now)) return { kind: "in-use" };
@@ -538,6 +560,10 @@ export async function bootRelease(o: BootOptions): Promise<Booted> {
       // (T418) the set an in-session apply kept for the map that was on screen: this set has been drawn since
       if (replaced) { await prune(dev.fs, replaced.h, replaced.m, now, set.m); replaced = null; }
       await checkRoom(next, now, dev.space, await jobsOf(o.background));
+      // (T912) everything it downloads handed to the system's downloader first: closing the app no longer stops it.
+      // A queue that fails is reported and the install goes on in the app (each file then has no job: `fetch`/`fill`)
+      await dev.background?.queue(updateItems(next, now, o.releaseBase), so.metered ?? true)
+        .catch((e: unknown) => { console.warn(`[download] queue failed: ${e instanceof Error ? e.message : String(e)}`); reportFailure(e); });
       const h = await install(next, dev.fs, dev.download, o.releaseBase, now, onProgress, dev.toDisk,
                               () => writeHeld(dev.fs, PREVIOUS, now), rawFetch(f), dev.look);
       // (T722 F6) after each install: what it made (a new tile folder, the new rule book) is marked with the rest

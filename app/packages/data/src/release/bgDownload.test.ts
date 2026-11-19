@@ -4,16 +4,18 @@
  * job tried again, the finished file claimed onto the `.part` and verified (sha256) before it is renamed into place.
  */
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { INSTALL_WORDS, now as clockNow } from "@app/core";
+import { gzipSync } from "fflate";
+import { INSTALL_WORDS, now as clockNow, setFailureSink } from "@app/core";
 import { sha256Hex } from "../sha256";
 import { background, type BackgroundNative, type BgJob } from "./bgDownload";
 import { partDownload, type PartFill, type PartFs } from "./install";
 
-function memFs(): PartFs & { files: Map<string, Uint8Array>; uri(p: string): string } {
+function memFs(): PartFs & { files: Map<string, Uint8Array>; uri(p: string): string; read(p: string): Promise<Uint8Array> } {
   const files = new Map<string, Uint8Array>();
   return {
     files,
     uri: (p) => `file:///doc/${p}`,
+    read: async (p) => { const b = files.get(p); if (!b) throw new Error(`no ${p}`); return b; },
     size: async (p) => files.get(p)?.length ?? 0,
     append: async () => { throw new Error("not used"); },
     chunks: async (p, each) => { each(files.get(p)!); },
@@ -330,5 +332,78 @@ describe("background (T760): a system job that does not move is queued again, a 
     const r = await run({ hold: (j) => ((j.reason = 4), true) }, { stuckMs: 3 * MIN, stuckTries: 0 });
     await expect(r.done).rejects.toThrow(INSTALL_WORDS.stuck);
     expect(r.said.at(-1)).toBe(`[download] ${URL}: not moved for 180 s (paused, reason 4, 0 of ${BODY.length} bytes) after 0 times queued again; the install fails`);
+  });
+});
+
+describe("background (T912): an update's data files go to the system's downloader too", () => {
+  afterEach(() => { vi.useRealTimers(); vi.restoreAllMocks(); });
+  const RAW = new TextEncoder().encode("the regulations, pretend (a sqlite file)");
+  const DATA = "https://r2.test/r-2/core-abc.sqlite.gz";
+  const expectRaw = { bytes: RAW.length, sha256: sha256Hex(RAW) };
+  const item = { url: DATA, file: "data", bytes: RAW.length, path: "release/r-2/core-abc.sqlite", whole: true };
+  const inAppLog = () => {
+    const asked: string[] = [];
+    return { asked, inApp: async (url: string) => { asked.push(url); return RAW; } };
+  };
+
+  it("queued with the notification's words, its job claimed beside the install path, unpacked and verified: the app downloads nothing", async () => {
+    vi.spyOn(console, "info").mockImplementation(() => {});
+    // the stored gzip as the host keeps it (a client asking for the bytes as they are may get these, or the decoded file)
+    for (const body of [gzipSync(RAW), RAW]) {
+      const fs = memFs(), { dm, log } = fakeDm(fs, { [DATA]: body });
+      const bg = background(dm, fs, never, { pollMs: 0 });
+      await bg.queue([item], false);
+      expect(log).toEqual([`enqueue ${DATA} wifi Downloading BC fishing rules / Regulations data · 0.0 MB (core-abc.sqlite.gz-${RAW.length})`]);
+      const { asked, inApp } = inAppLog();
+      expect(await bg.fetch(DATA, expectRaw, inApp)).toEqual(RAW);
+      expect(asked).toEqual([]);
+      expect(log.slice(1)).toEqual(["claim 1"]);
+      expect([...fs.files.keys()]).toEqual([]);                   // the claimed file is not left beside the install path
+    }
+  });
+
+  it("a file that was not queued (a first install's data file) is downloaded in the app, as before", async () => {
+    const fs = memFs(), { dm, log } = fakeDm(fs, {});
+    const { asked, inApp } = inAppLog();
+    expect(await background(dm, fs, never).fetch(DATA, expectRaw, inApp)).toEqual(RAW);
+    expect(asked).toEqual([DATA]);
+    expect(log).toEqual([]);
+  });
+
+  it("a job that failed, or brought other bytes, is given up for the app's own download, and the log says why (W46)", async () => {
+    const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
+    vi.spyOn(console, "info").mockImplementation(() => {});
+    const fs = memFs(), { dm, log } = fakeDm(fs, { [DATA]: RAW }, { failFirst: true });
+    const bg = background(dm, fs, never, { pollMs: 0 });
+    await bg.queue([item], true);
+    const { asked, inApp } = inAppLog();
+    expect(await bg.fetch(DATA, expectRaw, inApp)).toEqual(RAW);
+    expect(asked).toEqual([DATA]);
+    expect(log.slice(1)).toEqual(["remove 1"]);
+    expect(String(warn.mock.calls.at(-1)?.[0])).toBe(`[download] ${DATA}: its system download failed (reason 404); downloaded in the app instead`);
+
+    const other = memFs(), o = fakeDm(other, { [DATA]: new TextEncoder().encode("another file") });
+    const bg2 = background(o.dm, other, never, { pollMs: 0 });
+    await bg2.queue([item], true);
+    const b = inAppLog();
+    const reported: unknown[] = [];
+    const unsink = setFailureSink((e) => reported.push(e));
+    try { expect(await bg2.fetch(DATA, expectRaw, b.inApp)).toEqual(RAW); } finally { unsink(); }
+    expect(reported.map(String)).toEqual([expect.stringMatching(/^Error: .*core-abc\.sqlite\.gz: 12 bytes, the manifest says \d+$/)]);
+    expect(b.asked).toEqual([DATA]);
+    expect(String(warn.mock.calls.at(-1)?.[0])).toMatch(/its system download brought other bytes \(.*the manifest says \d+\); downloaded in the app instead$/);
+    expect([...other.files.keys()]).toEqual([]);
+  });
+
+  it("a job the system parks with no new byte for stuckMs is given up for the app's own download, never waited on for ever", async () => {
+    vi.useFakeTimers({ toFake: ["Date"] });
+    vi.spyOn(console, "warn").mockImplementation(() => {});
+    vi.spyOn(console, "info").mockImplementation(() => {});
+    const fs = memFs(), { dm } = fakeDm(fs, { [DATA]: RAW }, { still: () => true, tick: 60_000 });
+    const bg = background(dm, fs, never, { pollMs: 0 });
+    await bg.queue([item], true);
+    const { asked, inApp } = inAppLog();
+    expect(await bg.fetch(DATA, expectRaw, inApp)).toEqual(RAW);
+    expect(asked).toEqual([DATA]);
   });
 });
