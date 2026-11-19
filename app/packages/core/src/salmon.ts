@@ -603,10 +603,11 @@ export const SALMON_WORDS = {
   sourceHeader: (region: string, name: string) => `Region ${region.toUpperCase()} ${name}`.trim() + " · page header",
   /** (T870 item 2, owner 2026-11-18: "the bait ban here is confusing idk where it is from") each gear line says whose it
    *  is: DFO's row "— DFO"; where DFO's plain bait ban and the B.C. rules' bait ban both hold that day, the ban is said
-   *  ONCE with both ("Bait ban: no bait of any kind — DFO (all year) and B.C. rules") and the B.C. line leaves it out */
+   *  ONCE with both ("Bait ban: no bait of any kind — DFO (all year) and B.C. rules"; "… and B.C. rules on parts of this
+   *  water" where the B.C. ban holds on part of the page only) and the B.C. line leaves it out */
   gearDfo: (line: string) => `${line} — DFO`,
-  gearBaitBoth: (when: string | null) =>
-    `${METHOD_WORDS.says.bait.replace(/\.$/, "")} — DFO${when ? ` (${when})` : ""} and B.C. rules`,
+  gearBaitBoth: (when: string | null, parts: boolean) =>
+    `${METHOD_WORDS.says.bait.replace(/\.$/, "")} — DFO${when ? ` (${when})` : ""} and B.C. rules${parts ? ` ${SALMON_WORDS.gearParts}` : ""}`,
   /** (T869, owner 2026-11-18, wording A: "10 adult chinook a year from all fresh waters" and, where adult differs, "(here
    *  an adult is over 62 cm, Jul 1–Dec 31)") the annual chinook limit's line where an adult is another length on this
    *  water than the limit's own (DFO's scoped `adult` sizes, each with its window) */
@@ -1125,7 +1126,7 @@ export function salmonCard(f: SalmonFacts, page: { sids: readonly number[]; item
   // (T870 item 2) whose each gear line is; DFO's plain bait ban and the B.C. rules' bait ban on one day: said once, both
   // named, and the B.C. line leaves it out (only where the B.C. line would show: not on a closed card)
   const baitBoth = !block.allClosed && marks0.includes("bait") ? block.gear.findIndex((g) => DFO_BAIT.test(g)) : -1;
-  const gearLines = block.gear.map((g, i) => (i === baitBoth ? SALMON_WORDS.gearBaitBoth(DFO_BAIT.exec(g)![1] ?? null) : SALMON_WORDS.gearDfo(g)));
+  const gearLines = block.gear.map((g, i) => (i === baitBoth ? SALMON_WORDS.gearBaitBoth(DFO_BAIT.exec(g)![1] ?? null, gear.some((x) => x === "none")) : SALMON_WORDS.gearDfo(g)));
   const marks = baitBoth >= 0 ? marks0.filter((m) => m !== "bait") : marks0;
   const gearProvincial = block.allClosed || !marks.length ? null
     : `${SALMON_WORDS.gearLead}${gear.some((g) => g === "none") ? ` (${SALMON_WORDS.gearParts})` : ""}: `
@@ -1241,7 +1242,9 @@ function placeSources(P: Payload, chains: readonly number[]): SalmonSourceVM[] {
       const rows = P.pr?.[lid];
       const p = P.p?.[lid];
       if (!rows?.length || (p && isBook(p))) continue;
-      const from = p ? SALMON_WORDS.placeFrom(p.r, p.water, p.sec) : SALMON_WORDS.placeFrom(ch.r[0] ?? "", ch.w || undefined, undefined);
+      // (W46) a place with rows is named as DFO names it: one missing from `p` is a bad file, never named another way
+      if (!p) throw new SalmonError(`salmon: place ${lid} has rows (pr) and is not in p`);
+      const from = SALMON_WORDS.placeFrom(p.r, p.water, p.sec);
       const got = out.get(from) ?? [];
       for (const r of rows) if (!got.includes(r)) got.push(r);
       out.set(from, got);
