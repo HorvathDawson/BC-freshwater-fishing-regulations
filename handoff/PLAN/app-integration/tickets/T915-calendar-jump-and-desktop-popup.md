@@ -17,3 +17,7 @@ desktop (good for mobile but desktop doesnt like mobile popup)".
    bottom sheet. Phones and narrow web keep the sheet as it is. Web/native split by file (AGENTS 34a); keyboard and
    screen-reader behaviour kept (Escape closes, focus returns to the button).
 3. Pictures: 390 light/dark (January vs November, same size) and 1440 light/dark (popover) before/after.
+
+## Owner 2026-11-19 ~13:20 (main chat, after the before/after pictures)
+Asked "Put it in 0.8.3?", verbatim: "Yes, put in 0.8.3 (Recommended)". Merge app/t915-calendar (39763ceed) into the
+0.8.3 integration.

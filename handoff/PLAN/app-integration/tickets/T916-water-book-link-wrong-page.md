@@ -14,3 +14,11 @@ why: wrong data (an entry's pages wrong, or a general/regional rule sitting at r
 it where it is wrong (Python data / the rank, or the app line), never by hiding the line for this one water. Count every
 water in the live release where the line names a page that is not one of that water's own entries' pages, before and
 after. Pictures 390 light/dark before/after.
+
+## Owner 2026-11-19 ~13:20 (main chat, after the before/after pictures)
+- Asked "Put it in 0.8.3?", verbatim: "Ye sput to n 0?8.3 it was also the location that was awkward at the top". So yes,
+  in 0.8.3, and the line's place at the top of the page (above the first status card) is awkward too: round 2 moves
+  it down (pictures to the owner first).
+- Asked whether waters named only inside a zone rule (Rubble Creek p.21, Horne Lake p.13, the p.4 youth waters) should
+  get the line back, verbatim: "Keep it simple (Recommended)": the line is only for a water's own table row; zone-rule
+  pages stay linked on the rules themselves.
