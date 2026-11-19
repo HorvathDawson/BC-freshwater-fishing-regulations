@@ -23,7 +23,7 @@ import type { LadderStepVM, LadderVM, SheetBlock, SheetCtx, SheetVM } from "../m
 import { listRows, tableCovers } from "../others";
 import { plainRowOf, shortWindowsOf } from "../plainrow";
 import type { SheetKey } from "../sheetKey";
-import { fishNames, pictures } from "../tree";
+import { fishNames, pictures, picturedIn } from "../tree";
 import { WD3, WORDS } from "../words";
 import { WEEKDAYS } from "../../calendar.generated";
 import { cap } from "../names";
@@ -90,13 +90,17 @@ export function otherSheet(ctx: SheetCtx, key: SheetKey, i: number): SheetVM | n
   const row = card.rows[ix]!, seams = plainRowSeams(inp, env.fish), title = rowTitle(row, inp);
   const blocks: SheetBlock[] = [];
   const pics = pictures(row.members, env.fish, fishNames(inp, env.fish), inp.statics.exportSpecies.groups).filter((p) => !p.sil);
-  if (pics.length) blocks.push({ k: "pictures", pics });
   if (row.raw.group?.headline) {
     // sheetHtml other: drops the row title (`<span class="rtitle">` with no scope tag inside): the sheet's title says it
     const group = groupOf(ix, inp, env, drawnRows(card), seams);
+    // (T868, owner 2026-11-18 "Has duplicate images here too") each fish pictured ONCE per sheet: the card's keep line
+    // that names its count and size keeps the picture; the head row keeps only a fish the card does not picture
+    const shown = picturedIn(group), head = pics.filter((p) => !shown.has(p.code));
+    if (head.length) blocks.push({ k: "pictures", pics: head });
     blocks.push({ k: "group", group, titled: !!group.scope });
     return { key, title, sub: null, blocks };
   }
+  if (pics.length) blocks.push({ k: "pictures", pics });
 
   const vm = plainRowOf(ix, { inp, card, settled: env.settled, seams });
   const scope = scopeBadge(row, card, inp), week = row.raw.week, value = valueLine(row, inp);

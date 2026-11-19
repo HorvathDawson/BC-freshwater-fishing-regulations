@@ -30,7 +30,7 @@ import { bookIndex, BOOK_DAYS, runOf, stripOf } from "./strip";
 import { bannerOf } from "./banner";
 import { edgeKind, outsideKeep, tidalKeep } from "./edge";
 import { MORE, moreOf, notKeptOf, workedOf } from "./tail";
-import { fishNames, pictures, treeEnv, treeOf } from "./tree";
+import { fishNames, onePictureEach, pictures, treeEnv, treeOf } from "./tree";
 import { TroutRefused, troutOf } from "./trout";
 import { reportFailure } from "../failure";
 
@@ -59,11 +59,13 @@ export function plainRowSeams(inp: RegsInputs, fish: FishManifest): PlainRowSeam
 export function groupOf(rowIx: number, inp: RegsInputs, env: KeepEnv, drawn: ReadonlySet<number>, seams: PlainRowSeams): GroupVM {
   const ctx = headCtx(rowIx, env.card, inp)!, tenv = treeEnv(ctx, env.fish, drawn, env.tot);
   const head = groupHeadOf(ctx, { tot: env.tot });
+  // (T868) each fish pictured once in the card: on its first keep line
+  const { tree, notKept } = onePictureEach(treeOf(tenv), notKeptOf(ctx.g, tenv));
   return {
     row: rowIx, title: ctx.title, scope: ctx.scope, head,
     origin: originOf(ctx),
     year: yearWindowOf(ctx.row, inp, env.settled.day, seams),
-    tree: treeOf(tenv), notKept: notKeptOf(ctx.g, tenv), worked: workedOf(ctx.row, ctx.g),
+    tree, notKept, worked: workedOf(ctx.row, ctx.g),
     more: moreOf(rowIx),
   };
 }

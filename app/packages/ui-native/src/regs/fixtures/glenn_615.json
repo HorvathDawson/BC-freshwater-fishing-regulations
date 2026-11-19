@@ -1517,25 +1517,6 @@
   "other:o1": {
    "blocks": [
     {
-     "k": "pictures",
-     "pics": [
-      {
-       "caption": "Lake whitefish ›",
-       "code": "LW",
-       "name": "Lake whitefish",
-       "open": "sp:LW",
-       "sil": false
-      },
-      {
-       "caption": "Mountain whitefish ›",
-       "code": "MW",
-       "name": "Mountain whitefish",
-       "open": "sp:MW",
-       "sil": false
-      }
-     ]
-    },
-    {
      "group": {
       "head": {
        "exception": null,
