@@ -226,7 +226,13 @@ export function timedOf(inp: RegsInputs, s: Settled, settledAtSeg: (seg: number)
     const all = cl.filter(([, fs]) => asked.every((S) => (fs as readonly string[]).includes(S)));
     const pick = (all.length ? all : [...cl].sort((a, b) => b[1].length - a[1].length).slice(0, 1)).map(([r]) => r);
     const whole = pick.filter((r) => !closing(cur).some(([ix]) => ix === r.rix));
-    for (const r of whole) items.push(item([text(describeShort(r, inp))], momentTxt(M[j]), r));
+    // (T898) a closure of every day's hours from sunset to sunrise carries its offsets, read from the stored window — only
+    // a rule whose stored species are EVERY game fish, with none excepted (the water is closed to game fish those hours,
+    // which is what "Daylight only" says); a closure of some fish there keeps its own words. (Replaces T473's
+    // `^no fishing` test of the words, which also took "No fishing for steelhead".)
+    const dl = daylightOfMoment(M[j]), game = gameFish(sp(inp));
+    for (const r of whole) items.push(dl && namesEveryGameFish(r, game) ? { ...item([text(describeShort(r, inp))], momentTxt(M[j]), r), daylight: dl }
+                                                       : item([text(describeShort(r, inp))], momentTxt(M[j]), r));
     if (!whole.length) items.push(item([text(WORDS.MISSING_CLOSER(momentTxt(M[j])))], null, null));
   }
 
@@ -285,23 +291,42 @@ export function caveatsOf(inp: RegsInputs, s: Settled, settledAtSeg: (seg: numbe
 }
 
 /**
- * (T473) The offsets of a daylight-only closure, read from the item's own words ("60 min after sunset–60 min before
- * sunrise", the rule's `where`): minutes closed after sunset and before sunrise; null for any other timed item.
+ * (T898) A moment closed every day from some minutes after sunset to some before sunrise, read from its stored hours
+ * window (the pipeline's ClockTime ends: `solar` + `offset_min`, never the words): `{ after, before }` in minutes; null for
+ * any other moment (a clock-time end, a window of some weekdays, the hours outside the window, an end on the sun itself).
+ */
+export function daylightOfMoment(m: Moment | null | undefined): { after: number; before: number } | null {
+  const h = m?.hours;
+  if (!m || !h || !h.in || m.weekdays.length !== 7) return null;
+  const { start: s, end: e } = h;
+  if (s.at || e.at || s.solar !== "sunset" || e.solar !== "sunrise" || !(s.offset_min > 0) || !(e.offset_min < 0)) return null;
+  return { after: s.offset_min, before: -e.offset_min };
+}
+
+/** (T898) A rule whose stored species are every game fish, none excepted (`species` expanded from `ALL_GAME_FISH`); false
+ *  when the book has no game fish. */
+export function namesEveryGameFish(r: Pick<RuleView, "species" | "speciesExcept">, game: readonly string[]): boolean {
+  return game.length > 0 && !r.speciesExcept.length && game.every((S) => r.species.includes(S));
+}
+
+/**
+ * (T473) The offsets of a daylight-only closure: minutes closed after sunset and before sunrise; null for any other timed
+ * item. (T898) Read from the item's stored window (`daylight`, `timedOf`), no longer from its words.
  */
 export function daylightOffsets(x: CaveatItemVM): { after: number; before: number } | null {
-  const what = x.what.map((r) => (r.t === "text" ? r.s : "")).join("").trim();
-  const m = x.where ? /^(\d+) min after sunset\s*[–-]\s*(\d+) min before sunrise$/.exec(x.where.trim()) : null;
-  return m && /^no fishing/i.test(what) ? { after: +m[1]!, before: +m[2]! } : null;
+  return x.daylight ?? null;
 }
 
 /**
  * (T318, owner 2026-10-31) A TIMED ITEM AS ONE LINE under the year bar (not a boxed note): a closure of the hours around
  * sunset ("No fishing for any game fish" · "60 min after sunset–60 min before sunrise") reads "Daylight only: closed from
  * 1 h after sunset to 1 h before sunrise"; any other timed item reads its words and its moment, "<what>: <when>".
+ * (T898, owner 2026-11-19 pick "Times in the rule line") `at`: the day's closed hours at the water (`DaylightAt.closed`),
+ * each in brackets after its part: "… 1 h after sunset (18:21) to 1 h before sunrise (7:23)"; null: the words alone.
  */
-export function timedLineText(x: CaveatItemVM): string {
+export function timedLineText(x: CaveatItemVM, at: { from: string; to: string } | null = null): string {
   const what = x.what.map((r) => (r.t === "text" ? r.s : "")).join("").trim();
   const d = daylightOffsets(x);
-  if (d) return WORDS.TIMED_DAYLIGHT(WORDS.TIMED_H(d.after), WORDS.TIMED_H(d.before));
+  if (d) return WORDS.TIMED_DAYLIGHT(WORDS.TIMED_H(d.after), WORDS.TIMED_H(d.before), at);
   return x.where ? `${what}: ${x.where}` : what;
 }

@@ -7,10 +7,10 @@
 import { afterEach, describe, expect, it } from "vitest";
 import { cleanup, fireEvent, render, screen, within } from "@testing-library/react";
 import { Text } from "react-native";
-import { buildRegsPage, type RegsInputs, type RegsPage, type SheetKey } from "@app/core";
+import { buildRegsPage, daylightAt, type CaveatItemVM, type CaveatVM, type RegsInputs, type RegsPage, type SheetKey } from "@app/core";
 import { DARK, LIGHT } from "../theme";
 import { KeepTab } from "./KeepTab";
-import { CaveatBlock } from "./KeepBlocks";
+import { CaveatBlock, TimedLines } from "./KeepBlocks";
 import { RegsHeader } from "./RegsHeader";
 import { RegsScreen } from "./RegsScreen";
 import { createTabStore } from "./tabStore";
@@ -126,15 +126,49 @@ describe("11. the timed caveat (x15p2_1010, D10 a)", () => {
   });
 
   it("(T473) with the water's sun: the day's real hours under the status, the rule's words a small line after; no point, the plain rule", () => {
-    const range = (a: number, b: number) => (a === 60 && b === 60 ? "07:04–18:37 PT" : null);   // the offsets come from the rule's words
+    // (T898) the offsets come from the item's stored window (`daylight`), not its words
+    const range = { open: (a: number, b: number) => (a === 60 && b === 60 ? "7:04–18:37" : null), closed: () => null };
     render(<KeepTab keep={page.keep} dateLabel={page.header.date} palette={LIGHT} actions={{ ...NOOP, onTab() {} }} daylight={range} />);
     const strip = screen.getByTestId("keep-strip");
-    expect(within(strip).getByTestId("keep-daylight").textContent).toBe("Daylight only · fishing 07:04–18:37 PT");
+    expect(within(strip).getByTestId("keep-daylight").textContent).toBe("Daylight only · fishing 7:04–18:37");
     expect(screen.getByTestId("keep-timed-line").textContent).toBe("Daylight only: closed from 1 h after sunset to 1 h before sunrise");
     cleanup();
     render(<KeepTab keep={page.keep} dateLabel={page.header.date} palette={LIGHT} actions={{ ...NOOP, onTab() {} }} daylight={null} />);
     expect(screen.queryByTestId("keep-daylight")).toBeNull();
     expect(screen.getByTestId("keep-timed-line").textContent).toBe("Daylight only: closed from 1 h after sunset to 1 h before sunrise");
+  });
+
+  it("(T898) the day's times inside the rule line, from the water's sun on the picked day; a new day, its times", () => {
+    expect(caveat.items[0]!.daylight).toEqual({ after: 60, before: 60 });   // the stored window's offsets, on the VM
+    const MISSION = { lat: 49.133, lon: -122.31 };
+    const keepOn = (day: { y: number; m: number; d: number }, date: string) =>
+      <KeepTab keep={page.keep} dateLabel={date} palette={LIGHT} actions={{ ...NOOP, onTab() {} }}
+               daylight={daylightAt(MISSION.lat, MISSION.lon, day)} />;
+    const { rerender } = render(keepOn({ y: 2026, m: 11, d: 19 }, "Nov 19"));
+    const items = () => screen.getAllByTestId("keep-timed-item").map((e) => e.textContent);
+    expect(items()).toEqual(["Daylight only: closed from 1 h after sunset (18:24) to 1 h before sunrise (7:25)Rule book p.23 ↗"]);
+    expect(within(screen.getByTestId("keep-strip")).getByTestId("keep-daylight").textContent).toBe("Daylight only · fishing 7:25–18:24");
+    rerender(keepOn({ y: 2026, m: 6, d: 21 }, "Jun 21"));
+    expect(items()).toEqual(["Daylight only: closed from 1 h after sunset (22:17) to 1 h before sunrise (4:04)Rule book p.23 ↗"]);
+    expect(screen.getByTestId("keep-daylight").textContent).toBe("Daylight only · fishing 4:04–22:17");
+    // no point known: the rule's words alone, no hours line
+    rerender(<KeepTab keep={page.keep} dateLabel="Nov 19" palette={LIGHT} actions={{ ...NOOP, onTab() {} }} daylight={null} />);
+    expect(items()).toEqual(["Daylight only: closed from 1 h after sunset to 1 h before sunriseRule book p.23 ↗"]);
+    expect(screen.queryByTestId("keep-daylight")).toBeNull();
+  });
+
+  it("(T898 review) each daylight item takes its OWN window's times, and a window shared by two rules is timed once", () => {
+    const it_ = (after: number, before: number, s: string): CaveatItemVM => ({ what: [{ t: "text", s }], where: null, rule: null,
+      fish: null, book: [], daylight: { after, before } });
+    const cav: CaveatVM = { kind: "timed", hot: false, title: "", calm: null, later: null,
+      items: [it_(60, 60, "No fishing"), it_(60, 60, "No fishing"), it_(30, 45, "No fishing"),
+              { what: [{ t: "text", s: "No fishing for steelhead" }], where: "Sat, Sun", rule: null, fish: null, book: [] }] };
+    render(<TimedLines caveat={cav} palette={LIGHT} actions={{ ...NOOP, onTab() {} }} daylight={daylightAt(49.133, -122.31, { y: 2026, m: 11, d: 19 })} />);
+    expect(screen.getAllByTestId("keep-timed-line").map((e) => e.textContent)).toEqual([
+      "Daylight only: closed from 1 h after sunset (18:24) to 1 h before sunrise (7:25)",
+      "Daylight only: closed from 1 h after sunset to 1 h before sunrise",
+      "Daylight only: closed from 30 min after sunset (17:54) to 45 min before sunrise (7:40)",
+      "No fishing for steelhead: Sat, Sun"]);
   });
 
   /*

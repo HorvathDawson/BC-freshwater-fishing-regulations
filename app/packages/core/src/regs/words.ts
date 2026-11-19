@@ -124,9 +124,13 @@ export const WORDS = Object.freeze({
   SIDE_TITLE: "⚠ On one side of the channel only",
   HALF_ONLY: (side: string) => side + " half only",
   TIMED_TITLE: "⚠ At certain times",
-  /** (T318) a closure of some hours of every day, said under the year bar: "Daylight only: closed from 1 h after sunset to 1 h before sunrise" */
-  TIMED_DAYLIGHT: (after: string, before: string) => `Daylight only: closed from ${after} after sunset to ${before} before sunrise`,
-  /** (T473) a daylight-only closure as today's real hours, under the status: "Daylight only · fishing 07:04–18:37 PT" */
+  /** (T318) a closure of some hours of every day, said under the year bar: "Daylight only: closed from 1 h after sunset to 1 h
+   *  before sunrise"; (T898, owner 2026-11-19 pick "Times in the rule line") with the day's times known, each in brackets
+   *  after its part: "… 1 h after sunset (18:21) to 1 h before sunrise (7:23)" */
+  TIMED_DAYLIGHT: (after: string, before: string, at: { from: string; to: string } | null = null) => at
+    ? `Daylight only: closed from ${after} after sunset (${at.from}) to ${before} before sunrise (${at.to})`
+    : `Daylight only: closed from ${after} after sunset to ${before} before sunrise`,
+  /** (T473) a daylight-only closure as today's real hours, under the status: "Daylight only · fishing 7:04–18:37" */
   DAYLIGHT_HOURS: (range: string) => `Daylight only · fishing ${range}`,
   TIMED_H: (min: number) => (min % 60 === 0 ? `${min / 60} h` : `${min} min`),
   ANGLER_TITLE: "⚠ Closed to some anglers",

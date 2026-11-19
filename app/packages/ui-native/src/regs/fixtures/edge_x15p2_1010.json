@@ -238,6 +238,10 @@
         "t": "book"
        }
       ],
+      "daylight": {
+       "after": 60,
+       "before": 60
+      },
       "fish": null,
       "rule": "r2:fraser_river_upstream_of_the_cpr_bridge_at_mission@2-4::fraser_river_upstream_of_mission.r3",
       "what": [

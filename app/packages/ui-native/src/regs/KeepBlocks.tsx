@@ -7,7 +7,7 @@ import { useState, type ReactNode } from "react";
 import { Image, PixelRatio, View, useWindowDimensions, type StyleProp, type TextStyle } from "react-native";
 import { Text } from "../Text";
 import Svg, { Circle, Path } from "react-native-svg";
-import { GLANCE_WORDS, SALMON_ISSUE_WORDS, SOURCE_WORDS, WORDS, daylightOffsets, timedLineText, type BannerVM, type GlanceRowVM, type CaveatVM, type InheritedVM, type OtherFishKeyVM, type OtherFishRowVM, type PossessionVM, type WhereNotVM } from "@app/core";
+import { GLANCE_WORDS, SALMON_ISSUE_WORDS, SOURCE_WORDS, WORDS, daylightOffsets, timedLineText, type BannerVM, type DaylightAt, type GlanceRowVM, type CaveatVM, type InheritedVM, type OtherFishKeyVM, type OtherFishRowVM, type PossessionVM, type WhereNotVM } from "@app/core";
 import { Icon } from "../icons";
 import { TYPE } from "../type";
 import { GUTTER, type Palette } from "../theme";
@@ -176,14 +176,22 @@ export function CaveatBlock({ caveat, palette, actions, inset = true }: { caveat
  * only: closed from 1 h after sunset to 1 h before sunrise", the rule-book link inline, the line opening its rule's sheet.
  * Core `timedLineText` words it.
  */
-export function TimedLines({ caveat, palette, actions, hoursSaid = false }: { caveat: CaveatVM; palette: Palette; actions: KeepActions;
+export function TimedLines({ caveat, palette, actions, hoursSaid = false, daylight = null }: { caveat: CaveatVM; palette: Palette; actions: KeepActions;
   /** (T473) the daylight-only item's open hours are said with the status: its rule words drop to a small secondary line */
-  hoursSaid?: boolean }) {
+  hoursSaid?: boolean;
+  /** (T898) the day's sun at the water (`useDaylight`): each daylight-only item's closed hours, from ITS OWN offsets, said
+   *  inside its rule line (core `timedLineText`), once per window (a second rule on the same night window: its words
+   *  alone); null: the words alone (no sun point) */
+  daylight?: DaylightAt | null }) {
+  const said = new Set<string>();
   return (
     <View testID="keep-timed" style={{ marginHorizontal: GUTTER, marginTop: 6, rowGap: 2 }}>
       {[...caveat.items, ...(caveat.later ?? [])].map((x, i) => {
-        const small = hoursSaid && !!daylightOffsets(x);
-        const words = <Text selectable testID="keep-timed-line" style={small ? [TYPE.meta, { color: palette.sub }] : [TYPE.metaSemi, { color: palette.ink }]}>{timedLineText(x)}</Text>;
+        const off = daylightOffsets(x), win = off ? `${off.after}/${off.before}` : "";
+        const at = off && daylight && !said.has(win) ? daylight.closed(off.after, off.before) : null;
+        if (at) said.add(win);
+        const small = hoursSaid && !!off;
+        const words = <Text selectable testID="keep-timed-line" style={small ? [TYPE.meta, { color: palette.sub }] : [TYPE.metaSemi, { color: palette.ink }]}>{timedLineText(x, at)}</Text>;
         return (
           <View key={i} testID="keep-timed-item" style={{ flexDirection: "row", flexWrap: "wrap", alignItems: "baseline", columnGap: 8 }}>
             {x.rule ? (

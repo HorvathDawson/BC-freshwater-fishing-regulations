@@ -40,10 +40,23 @@ describe("useSunLine", () => {
   });
 });
 
-describe("useDaylight (T473)", () => {
+describe("useDaylight (T473, T898)", () => {
   it("the hours the rule's offsets leave open, at the point and on the day; no point, no function", () => {
     const { result } = renderHook(() => useDaylight(source, null, VEDDER, NOV4));
-    expect(result.current!(60, 60)).toBe("07:00–18:42 PT");
+    expect(result.current!.open(60, 60)).toBe("7:00–18:42");
+    // (T898) the hours it closes, on the date line's clock (that line: "8:00  17:42" on Nov 4 at the Vedder)
+    expect(result.current!.closed(60, 60)).toEqual({ from: "18:42", to: "7:00" });
     expect(renderHook(() => useDaylight(source, null, null, NOV4)).result.current).toBeNull();
+  });
+});
+
+describe("useDaylight (T898): the chosen day", () => {
+  it("a new day gives that day's hours, from the same sun as the date line", () => {
+    const { result, rerender } = renderHook(({ day }) => [useDaylight(source, null, VEDDER, day), useSunLine(source, null, VEDDER, day)] as const,
+                                            { initialProps: { day: NOV4 } });
+    const at = () => [result.current[0]!.closed(60, 60), result.current[1]!.text];
+    expect(at()).toEqual([{ from: "18:42", to: "7:00" }, "8:00–17:42"]);
+    rerender({ day: { y: 2026, m: 6, d: 21 } });
+    expect(at()).toEqual([{ from: "22:16", to: "4:03" }, "5:03–21:16"]);
   });
 });

@@ -81,7 +81,7 @@ function BarTitle({ text, palette, testID, tag = null }: { text: string; palette
 export function YearStrip({ strip, dateLabel, palette, title = null, hours = null, tag = null }: { strip: StripVM; dateLabel: string; palette: Palette; title?: string | null;
   /** whose rules the bar is, beside its name */
   tag?: string | null;
-  /** (T473) a daylight-only closure's real hours on the day, said with the status ("Daylight only · fishing 07:04–18:37 PT") */
+  /** (T473) a daylight-only closure's real hours on the day, said with the status ("Daylight only · fishing 7:04–18:37") */
   hours?: string | null }) {
   const bar = useBarWidth(), w = bar.at;
   const total = strip.runs.reduce((a, r) => a + r.days, 0) || 365;
