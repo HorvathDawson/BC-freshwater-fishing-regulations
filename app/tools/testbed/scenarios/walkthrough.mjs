@@ -167,7 +167,7 @@ export const walkthrough = {
     });
 
     let pausedChecked = false;
-    await ctx.step('steps 2–6: the primary button (Show me / Next / Start exploring), never a card over its ring, until the card closes', async () => {
+    await ctx.step('steps 2–6: the primary button (T874: Next / Start exploring), never a card over its ring, until the card closes', async () => {
       const seen = [];
       let last = null, same = 0, total = 0, reached = 0, closed = false;
       for (let i = 0; i < 40; i++) {
@@ -201,9 +201,9 @@ export const walkthrough = {
           checks.push(`${n0}/${n} back → paused → Resume → step ${at()}`);
           continue;
         }
-        // the primary button: Show me / Next / Done / Start exploring (its own view: guide-primary)
+        // the primary button: Next (T874: a DO step's move, then on) / Start exploring (its own view: guide-primary)
         ctx.flow('tap-id', { ID: 'guide-primary' });
-        await d.sleep(3500);                                                   // a Show me moves the route and the camera
+        await d.sleep(3500);                                                   // a Next moves the route and the camera
       }
       fs.writeFileSync(path.join(OUT, 'checks.txt'), `${checks.join('\n')}\n`);
       if (!seen.length) throw new Error('no walkthrough card was up');

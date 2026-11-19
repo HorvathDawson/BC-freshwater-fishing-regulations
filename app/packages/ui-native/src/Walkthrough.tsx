@@ -11,6 +11,12 @@
  * with a real tap and the walk moves on by itself once the app is there (the route, search, the open spot — `GuideFacts`).
  * "Show me" does a DO step for them (`GuideActs`). A SHOW step is read, then Next.
  *
+ * (T874, owner 2026-11-18 ~20:34: "The tour should have only next and back and every next should be show me logic. Person
+ * can skip if they want. Otherwise it is weird") BACK, NEXT, SKIP — NOTHING ELSE. Next on a DO step does the step through
+ * the app's own route move (`GuideActs`, what "Show me" did) and the walk moves on as soon as the app is there; on a SHOW
+ * step it moves on. The reader's own tap on the highlighted control still does the step too. Back steps back and puts the
+ * app as it was before that step's move (`bring`: the move undone, or the step's set-up run again).
+ *
  * (T456, owner 2026-11-06: "make it more interactive, so the user clicks it to go next, instead of it doing the normal
  * action under the hood then borking it") THE RINGED CONTROL MOVES THE WALK ON. Every step about a control asks the reader
  * to use it, and the walk moves on when they do; the card never covers the ring (`guideLayout`). The walk is NOT a back
@@ -76,7 +82,7 @@ export interface GuideFacts {
   readonly controls?: Readonly<Record<string, unknown>>;
 }
 
-/** What "Show me" and a step's set-up can do: each one the app's own route move. */
+/** What Next (T874; "Show me" before it) and a step's set-up can do: each one the app's own route move. */
 export interface GuideActs {
   search(): void;
   select(): void;
@@ -86,6 +92,8 @@ export interface GuideActs {
   toMap?(): void;
   /** (T456) the next day picked (the date pill's sheet's own move) */
   pickDay?(): void;
+  /** (T874) the day back to today (Back undoing "Pick another day": the date pill's sheet's Today) */
+  today?(): void;
   /** (T456) a screen's own control set, as the reader's tap sets it (`useGuideControl`); false: not drawn */
   control?(key: string, value: unknown): boolean;
 }
@@ -109,6 +117,12 @@ export interface Guide {
    * handler took): without `from` both advanced, and the next step was skipped unread.
    */
   next(from?: number): void;
+  /**
+   * (T874) THE CARD'S NEXT, on step `from`: a DO step not done yet is done through the app's own move, and the walk moves
+   * on once the app is there; a move that cannot be made here (no chosen water to open), a DO step already done, or a
+   * SHOW step: on at once. The last step: finished.
+   */
+  go(from: number): void;
   back(): void;
   /** (T456) the chip: the app put back where the step expects it, and the card up again */
   resume(): void;
@@ -124,13 +138,18 @@ const isWater = (f: GuideFacts, item: string | null | undefined) =>
   item != null && (f.water === null || item === f.water.item);
 
 /**
- * THE STEPS' BEHAVIOUR, by key: when a DO step counts as done, what "Show me" does, what a step needs on screen (`on`,
- * T456: off it, the walk pauses) and how the app is put there (`bring`: stepping back into it, a resume, the chip). The
- * words are core's (`guideSteps`).
+ * THE STEPS' BEHAVIOUR, by key: when a DO step counts as done, what Next does on it (`act`, T874; "Show me" before), what a
+ * step needs on screen (`on`, T456: off it, the walk pauses) and how the app is put there (`bring`: stepping back into it,
+ * a resume, the chip). The words are core's (`guideSteps`).
+ *
+ * (T874) A DO step's `bring` is the app as it was BEFORE the step's move, so Back undoes the move: back on "Search for it"
+ * the search is closed, on "Open its page" the water is closed and the search is up, on "Pick another day" the day is
+ * today again, on "How is the river?" the Regulations are in front.
  */
 interface StepRule {
   done?(f: GuideFacts): boolean;
-  show?(f: GuideFacts, a: GuideActs): void;
+  /** (T874) Next's move on a DO step: false when it cannot be made here (nothing done; Next moves on) */
+  act?(f: GuideFacts, a: GuideActs): boolean;
   /** the screen the step is about is in front (absent: any screen) */
   on?(f: GuideFacts): boolean;
   /** put the app where this step expects it (stepping back into it, a resume) */
@@ -142,32 +161,41 @@ const onWater = (view: "regs" | "conditions") => (f: GuideFacts, a: GuideActs) =
   else if (!f.open && f.water) a.openWater(view);
 };
 const regsOn = (f: GuideFacts) => f.open?.view === "regs";
-const condOn = (f: GuideFacts) => f.open?.view === "conditions";
 
+/** (T874) the conditions phase's one step keeps its own screen and set-up (`RULES.conditions`) */
 const PHASE: Partial<Record<GuidePhase, StepRule>> = {
   rules: { on: regsOn, bring: onWater("regs") },
-  conditions: { on: condOn, bring: onWater("conditions") },
 };
 
 const RULES: Readonly<Record<string, StepRule>> = {
   search: {
     done: (f) => (f.searching && f.query.trim().length >= 2) || isWater(f, f.open?.item),
-    show: (_f, a) => a.search(),
+    act: (_f, a) => { a.search(); return true; },
     on: (f) => f.onMap !== false || f.searching,
     bring: (_f, a) => a.toMap?.(),
   },
   // (T824) the row and its arrow, one step: it is done when the water's page is open
   pick: {
     done: (f) => isWater(f, f.open?.item),
-    show: (f, a) => { if (f.water) a.openWater("regs"); },
+    act: (f, a) => { if (!f.water) return false; a.openWater("regs"); return true; },
     on: (f) => f.searching || f.onMap !== false,
     bring: (_f, a) => a.search(),
   },
-  day: { done: (f) => !!f.dayPicked, show: (_f, a) => a.pickDay?.() },
+  day: {
+    done: (f) => !!f.dayPicked,
+    act: (_f, a) => { if (!a.pickDay) return false; a.pickDay(); return true; },
+    // (T874) back to it: its Regulations, on today (the day Next or the reader picked is undone)
+    bring: (f, a) => { onWater("regs")(f, a); if (f.dayPicked) a.today?.(); },
+  },
   conditions: {
     done: (f) => f.open?.view === "conditions",
-    show: (f, a) => { if (f.open) a.view("conditions"); else if (f.water) a.openWater("conditions"); },
+    act: (f, a) => {
+      if (f.open) a.view("conditions"); else if (f.water) a.openWater("conditions"); else return false;
+      return true;
+    },
     on: (f) => f.open !== null,
+    // (T874) back to it (or resumed): the Regulations in front, so Next's move is what opens Conditions
+    bring: onWater("regs"),
   },
   // (T842) "back to the map" and Trout / Salmon are the last card's words now, not taps (owner's pick)
 };
@@ -229,6 +257,15 @@ export function useGuide(store: WalkthroughStore | null, blocked: boolean, facts
       return j;
     });
   }, [finish]);
+  /** (T874) the step whose move Next made, waiting for the app to get there */
+  const acted = useRef<number | null>(null);
+  const go = useCallback((from: number) => {
+    if (from !== at) return;                              // (T455) a tap a stale handler took: that step is left
+    const s = STEPS[from]!, r = ruleOf(s), { facts: f, acts: a } = live.current;
+    // a DO step not done: its move, once (a second Next while the app gets there moves on, never moves twice)
+    if (doable(s) && !r.done?.(f) && acted.current !== from && r.act?.(f, a)) { acted.current = from; return; }
+    if (from >= STEPS.length - 1) finish(); else next(from);
+  }, [at, next, finish]);
   const back = useCallback(() => {
     how.current = "back";
     setAt((i) => {
@@ -260,7 +297,7 @@ export function useGuide(store: WalkthroughStore | null, blocked: boolean, facts
     if (s.keyboard === "closed") Keyboard.dismiss();
   }, [open, at]);   // eslint-disable-line react-hooks/exhaustive-deps -- once per step reached
 
-  // a DO step the reader has just done: a moment to see it ticked, then on
+  // a DO step the reader has just done: a moment to see it ticked, then on; (T874) done by Next: on at once
   const s = STEPS[at]!;
   const rule = ruleOf(s);
   const isDone = open && doable(s) && !!rule.done?.(facts);
@@ -268,7 +305,9 @@ export function useGuide(store: WalkthroughStore | null, blocked: boolean, facts
   useEffect(() => {
     const was = seen.current;
     seen.current = { at, isDone };
+    if (was.at !== at && acted.current !== at) acted.current = null;   // a step left: its move is no longer awaited
     if (!isDone || (was.at === at && was.isDone) || was.at !== at) return;
+    if (acted.current === at) { acted.current = null; next(at); return; }
     const t = setTimeout(() => next(at), 700);
     return () => clearTimeout(t);
   }, [at, isDone, next]);
@@ -281,7 +320,7 @@ export function useGuide(store: WalkthroughStore | null, blocked: boolean, facts
     return () => clearTimeout(t);
   }, [away, at]);
 
-  return { open, pending, at, paused, reopen, finish, next, back, resume, pass };
+  return { open, pending, at, paused, reopen, finish, next, go, back, resume, pass };
 }
 
 const RING = 2;
@@ -331,7 +370,7 @@ export function spotFollow(spot: GuideSpot | null): ReturnType<typeof Animated.s
 }
 
 /**
- * THE CARD: the step's phase and count, its title and words, Back · Skip · Next / Show me; and the accent ring round the
+ * THE CARD: the step's phase and count, its title and words, Skip, Back and Next (T874: no Show me; Next does the step); and the accent ring round the
  * control it is about, when that control is on screen. (T456) Placed beside the ring, never over it (`placeGuideCard`);
  * the page scrolled first when there is no room (`revealBy`). With the keyboard up the card keeps above it (T824).
  *
@@ -342,8 +381,8 @@ export function spotFollow(spot: GuideSpot | null): ReturnType<typeof Animated.s
  * the ring, rises and fades in for each step (fades only, under Reduce Motion), and shows once its ring is placed, so it
  * never appears in one place and jumps to another.
  */
-export function GuideCard({ guide, facts, acts, palette, registry, top, bottom, left = 0 }: {
-  guide: Guide; facts: GuideFacts; acts: GuideActs; palette: Palette; registry: CoachRegistry;
+export function GuideCard({ guide, facts, palette, registry, top, bottom, left = 0 }: {
+  guide: Guide; facts: GuideFacts; palette: Palette; registry: CoachRegistry;
   /** where a card docked at the top sits (under the search field) */
   top: number;
   /** room kept at the foot (the tab bar, when it is shown) */
@@ -359,9 +398,7 @@ export function GuideCard({ guide, facts, acts, palette, registry, top, bottom, 
   const body = guideText(step.body, water);
   const targets = step.targets;
   const rule = ruleOf(step);
-  const canDo = doable(step);
-  const done = canDo && !!rule.done?.(facts);
-  const showMe = canDo && !done && !!rule.show && (facts.water !== null || step.key !== "pick");
+  const done = doable(step) && !!rule.done?.(facts);
   const last = guide.at >= n - 1;
   const still = useReducedMotion();
 
@@ -517,17 +554,12 @@ export function GuideCard({ guide, facts, acts, palette, registry, top, bottom, 
     if (showing) announce(`${title}. ${body}`);
   }, [showing, guide.at]);   // eslint-disable-line react-hooks/exhaustive-deps -- once per step
 
-  const onPrimary = () => {
-    if (done) { guide.next(guide.at); return; }
-    if (showMe) { rule.show!(facts, acts); return; }
-    if (last) guide.finish(); else guide.next(guide.at);
-  };
+  // (T874) Next: the step's move (a DO step), then on; the last step's finishes the walk
   // (T455) A Pressable takes a new onPress only in a passive effect after the commit, so a tap landing between the two ran
-  // the step before's handler: its "Done", a second advance, skipped the step on screen. The buttons call through this
-  // ref, set at commit, so a tap always acts on the step the reader sees.
-  const taps = useRef({ primary: onPrimary, next: () => guide.next(guide.at) });
-  useLayoutEffect(() => { taps.current = { primary: onPrimary, next: () => guide.next(guide.at) }; });
-  const tapPrimary = useCallback(() => taps.current.primary(), []);
+  // the step before's handler: a second advance, skipped the step on screen. The button calls through this ref, set at
+  // commit, so a tap always acts on the step the reader sees.
+  const taps = useRef({ next: () => guide.go(guide.at) });
+  useLayoutEffect(() => { taps.current = { next: () => guide.go(guide.at) }; });
   const tapNext = useCallback(() => taps.current.next(), []);
   const follow = useMemo(() => spotFollow(spot), [spot]);
   if (!guide.open) return null;
@@ -564,7 +596,7 @@ export function GuideCard({ guide, facts, acts, palette, registry, top, bottom, 
   const pointer = ring && (pos.side === "below" || pos.side === "above")
     ? Math.max(SPACE.s3, Math.min(ring.x + ring.w / 2 - pos.left - ARROW / 2, width - ARROW - SPACE.s3)) : null;
 
-  const primary = done ? W.doneStep : showMe ? W.showMe : last ? W.done : W.next;
+  const primary = last ? W.done : W.next;
 
   return (
     <View ref={(v) => { origin.current = v as unknown as Measurable; }} collapsable={false} pointerEvents="box-none"
@@ -626,14 +658,9 @@ export function GuideCard({ guide, facts, acts, palette, registry, top, bottom, 
               <Text style={{ ...TYPE.bodyStrong, color: palette.accent }}>{W.back}</Text>
             </Pressable>
           )}
-          {showMe && (
-            <Pressable testID="guide-next" onPress={tapNext} accessibilityRole="button" accessibilityLabel={W.next}
-                       {...hitProps({ w: 44, h: 24 })}>
-              <Text style={{ ...TYPE.bodyStrong, color: palette.accent }}>{W.next}</Text>
-            </Pressable>
-          )}
+          {/* (T874) Next, the one forward button: the step's move, then on (the testbed taps it by this id) */}
           <View testID="guide-primary">
-            <Button palette={palette} grow={false} label={primary} onPress={tapPrimary}
+            <Button palette={palette} grow={false} label={primary} onPress={tapNext}
                     style={{ paddingVertical: 10, paddingHorizontal: 18 }} />
           </View>
         </View>
