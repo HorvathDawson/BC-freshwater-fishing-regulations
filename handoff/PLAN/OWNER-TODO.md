@@ -2785,3 +2785,21 @@ More questions (recommended answer first):
   main chat 20:46: `wrangler secret put RUN_TOKEN -c deploy/prod/feeds-placeholder.wrangler.toml` from
   app/workers/feeds/.run-token.prod, "Success! Uploaded secret RUN_TOKEN" on bc-fishing-feeds. That command only; every
   other production step stays the owner's.
+- 2026-11-18 ~20:49, owner (main chat), Babine Lake — Main Body page shot
+  (/Users/dawson.horvath/.claude/uploads/b8ddfca9-44eb-400e-a9bf-bd89b4b0f359/288abc3d-image.png), verbatim: "There seems
+  to be a ton of space used by the sunset/rise could we maybe move it to top of something? Where would be good?" Dialog
+  pick: "Under the date (Recommended)": a small line under the day picker on the right ("☀ 5:07–21:52"), freeing the
+  sunrise row and the empty row above it -> the app chat (ticket number theirs).
+- 2026-11-18 ~20:51, owner (main chat), verbatim: "Also the speed on this release is better so it wasn't this build it
+  was always a bit of an issue" -> T876 (app chat): the quick zoom lag is NOT a 0.8.1 regression (0.8.1 feels faster
+  to him); an old issue, so it does not hold the production phone builds.
+- 2026-11-18 ~20:53, owner (app chat dialog, after the pictures): T871 trout "counts toward" once: "Not this change"
+  (DROPPED, the table stays). T872 Conditions watershed fold, T873 short Help page, T874 walkthrough Back/Next/Skip:
+  "Help page OK, Conditions fold OK, Walkthrough OK" -> they land (after the production website's sha).
+- 2026-11-18 ~20:53, owner (main chat), Babine Lake — Main Body shot
+  (/Users/dawson.horvath/.claude/uploads/b8ddfca9-44eb-400e-a9bf-bd89b4b0f359/a6d620fa-image.png), verbatim: "I feel like
+  we could order this better to allow salmon to be in the table but still have the two timeline calendars and big words
+  easy to read and make sense/know it is different to between them and easily know which is which". Dialog pick: "Two
+  headers, one table (Recommended)": both status blocks first (SALMON · DFO and GAME FISH · B.C., each its big word and
+  its own year line, labelled), then ONE fish list with each row tagged DFO / B.C. -> the app chat (ticket number
+  theirs); real pictures to the owner before it lands.
