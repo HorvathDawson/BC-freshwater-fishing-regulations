@@ -114,9 +114,11 @@ export const zoomPinch = {
     const outward = [];
     for (let i = 0; i < 3; i++) outward.push(...pinch(cx, cy, w * 0.8, w * 0.2), 'pause');
 
-    for (const arm of ARMS) {
+    for (const [block, arm] of ARMS.entries()) {
       const lab = arm.startsWith('lab:') ? parseLab(arm.slice(4)) : {};
       const row = { arm, pinch: [], zoomOut: [] };
+      // (T903) an arm run in several blocks (interleaved A/B) names its traces by block, or the last block's overwrite the rest
+      const tag = `${arm.replace(/[^a-z0-9]+/gi, '-')}${ARMS.filter((a) => a === arm).length > 1 ? `-b${block}` : ''}`;
       out.arms.push(row);
       await ctx.step(`${arm}: the map up (cold start, camera probe on, ${MODE})${Object.keys(lab).length ? `, lab ${arm.slice(4)}` : ''}`, async () => {
         d.sh('setprop log.tag.CifCam D');
@@ -147,7 +149,7 @@ export const zoomPinch = {
         await ctx.step(`${arm}: six quick pinch in/out cycles at z10.5, ×${ROUNDS}`, async () => {
           for (let r = 0; r < ROUNDS; r++) {
             await camera(10.5);
-            row.pinch.push(await traced(`${arm.replace(/[^a-z0-9]+/gi, '-')}-pinch-${r}`, cycles, 250));
+            row.pinch.push(await traced(`${tag}-pinch-${r}`, cycles, 250));
             save();
           }
           return row.pinch.map((p) => `${p.frames} frames ${p.fps} fps, >100 ms ${p.over100}, >50 ms ${p.over50}, worst ${p.worst}`).join(' | ');
@@ -155,7 +157,7 @@ export const zoomPinch = {
         await ctx.step(`${arm}: a quick zoom-out z12 → ~z7, ×${ROUNDS}`, async () => {
           for (let r = 0; r < ROUNDS; r++) {
             await camera(12);
-            row.zoomOut.push(await traced(`${arm.replace(/[^a-z0-9]+/gi, '-')}-out-${r}`, outward, 250));
+            row.zoomOut.push(await traced(`${tag}-out-${r}`, outward, 250));
             save();
           }
           return row.zoomOut.map((p) => `${p.frames} frames ${p.fps} fps, >100 ms ${p.over100}, worst ${p.worst}`).join(' | ');

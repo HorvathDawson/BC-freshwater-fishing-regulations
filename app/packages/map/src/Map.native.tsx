@@ -274,7 +274,9 @@ export function Map({ at, theme, view, modes, groups, hide, show, initial, data,
   useEffect(() => { for (const e of look.errors) report(e); }, [look, report]);
   // (T420) a lab build's switches (`lab.ts`): today's style, the same object, unless one is flipped
   const lab = useLab();
-  const shown = useMemo(() => labStyle(look.style, lab), [look, lab]);
+  // (T903) keyed on the LOOK, never on `cv`'s object: equal values handed in new objects must not rebuild the style
+  // (the same rule as `valuesKey`, T287); `look` is rebuilt whenever the values' content changes, so `cv` here is its own
+  const shown = useMemo(() => labStyle(look.style, lab, cv), [look, lab]);  // eslint-disable-line react-hooks/exhaustive-deps
   /*
    * (T876) LABELS WAIT WHILE THE ZOOM MOVES (`label-hold.ts`): the camera's reports drive the hold; the style's label
    * layers are adopted under their sources below (`HeldLabels`) and only they re-render when it changes.

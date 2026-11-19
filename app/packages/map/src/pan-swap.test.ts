@@ -12,13 +12,15 @@ describe("swapTracker (T451)", () => {
     s.loaded(300); s.kept(true);
     s.frame(316); s.frame(332);
     s.acked(340);
-    expect(out).toEqual([{ t: 300, handed: 2, why: ["modes", "values"], loadMs: 200, bare: 2, bareMs: 40, kept: true }]);
+    expect(out).toEqual([]);                                     // (T903) the line waits for the painted frame
+    s.frame(348); s.frame(356, true);
+    expect(out).toEqual([{ t: 300, handed: 2, why: ["modes", "values"], loadMs: 200, bare: 2, bareMs: 40, kept: true, paintMs: 256 }]);
   });
   it("a load whose labels never land is closed by the next hand-over (bareMs null)", () => {
     const { out, log } = lines();
     const s = swapTracker(log);
     s.handed("modes", 0); s.loaded(50); s.frame(60);
     s.handed("values", 70);
-    expect(out).toEqual([{ t: 50, handed: 1, why: ["modes"], loadMs: 50, bare: 1, bareMs: null, kept: null }]);
+    expect(out).toEqual([{ t: 50, handed: 1, why: ["modes"], loadMs: 50, bare: 1, bareMs: null, kept: null, paintMs: null }]);
   });
 });
