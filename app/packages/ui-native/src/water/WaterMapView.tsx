@@ -40,6 +40,10 @@ export type WaterMapMapProps = Omit<ComponentProps<typeof MapScreen>,
 
 const NO_NEAR: readonly SectionId[] = [];
 
+/** (T875) ▼ / ▲'s height: two lines of their words (the most they draw) and the padding and border, so a one-line pair
+ *  ("Downstream" / "Upstream") is as tall as a pair that wraps ("Upstream into Chilliwack River"). 53 px at 1×. */
+const STEP_HEIGHT = 2 * TYPE.bodyStrong.lineHeight + 2 * 4 + 2 * 1.5;
+
 /** The place kept for the "Flows into" line: the 44 px target the line has when it is drawn. */
 const EXIT_SLOT = 44;
 
@@ -129,7 +133,7 @@ export function WaterMapView({ loader, item, part, tapSid, palette, map, onOpenW
   const kept = shown.kept;
   const d = shown.value;
   const dv = d.vm, dt = d.tidal;
-  // (T731) a step into another water keeps the bar's height (a one-part water has no parts row)
+  // (T731) a step into another water keeps the bar's height (an open parts list, a water with no exit: T875 holds the rest)
   const floor = useBarFloor(dv ? dv.regs.item : dt ? dt.regs.item : null);
 
   const mapPane = (
@@ -168,20 +172,43 @@ export function WaterMapView({ loader, item, part, tapSid, palette, map, onOpenW
         {!kept && vm?.pop && <MarkPop vm={vm} palette={palette} act={act} />}
       </View>
   );
+  /*
+   * (T875, owner 2026-11-18: "The ui shifts here when moving upstream in desktop too") THE ▼ / ▲ STEPS STAY PUT, part to
+   * part and water to water: they are measured from the edge the bar is anchored to, and only fixed-height rows lie
+   * between them and it. The desktop's text column hangs from the top of the split, so the steps head it; everything
+   * whose height a part decides (the parts row, the where line, the name, an open list) is below them. The phone's bar
+   * stands on the foot of the screen (the map takes what is left above it), so there the steps keep their place above
+   * "Show regulations" and the exit's place (both held at every part, T214), the bar's own content stands on its foot
+   * (`justifyContent: "flex-end"`: room the T731 floor adds goes above it, not under it), and a water of one part holds
+   * the parts row's place with a quiet line (`PartsOne`), so the bar and the map above it keep their size too.
+   */
+  const steps = (v: WaterMapVM) => (
+    <View style={{ flexDirection: "row", gap: SPACE.s2, ...(split ? { marginBottom: 12 } : { marginTop: 10 }) }}
+          testID="water-map-steps">
+      {([["down", v.down], ["up", v.up]] as const).map(([dir, st]) => (
+        <Step key={dir} dir={dir} palette={palette} label={st.label} aria={st.aria} disabled={st.disabled}
+              onPress={() => step(dir)} />
+      ))}
+    </View>
+  );
   const bar = (
       <>
       {/* THE BAR spans the canvas's width (the map is full-bleed under the water frame's header, T44); its words are on
           the frame's column, at the gutter every view's content starts at */}
       <View style={split ? { paddingTop: 14, paddingBottom: 14, backgroundColor: palette.card, flexShrink: 1, minHeight: 0 }
                          : { paddingTop: 10, paddingBottom: 14, borderTopWidth: 1.5, borderTopColor: palette.ink,
-                             backgroundColor: palette.card, minHeight: floor.minHeight }} testID="water-map-bar"
+                             backgroundColor: palette.card, minHeight: floor.minHeight, justifyContent: "flex-end" }}
+            testID="water-map-bar"
             onLayout={split ? undefined : floor.onLayout}
             // (T731) kept through a step's read: drawn as it was, taking no press, busy to a screen reader
             pointerEvents={kept ? "none" : "auto"} aria-busy={kept}>
         <BarInset split={split}>
         {dv ? (
           <>
-            {dv.list && <PartsList list={dv.list} palette={palette} act={d.act} tall={!!split} />}
+            {/* (T875) THE STEPS STAY PUT (`steps` above): on a desktop they head the text column, on a phone they sit
+                above "Show regulations" and the exit's place */}
+            {split && steps(dv)}
+            {!split && <Parts vm={dv} palette={palette} act={d.act} split={false} />}
             {/* (T582) which day the map's rules are for: a tab switch never changes the day silently */}
             <Text style={{ ...TYPE.metaBold, color: palette.ink }} testID="water-map-day">{DAY_LABELS.map(day, bcNow())}</Text>
             <Text style={{ ...TYPE.section, color: palette.faint }} testID="water-map-where">{dv.where}</Text>
@@ -189,12 +216,7 @@ export function WaterMapView({ loader, item, part, tapSid, palette, map, onOpenW
                 next must not move the steps when the reader steps between them (a longer name is cut; its full words are the label) */}
             <Text style={{ ...TYPE.name, fontSize: 19, lineHeight: 23, minHeight: 46, color: palette.ink, marginTop: 2 }}
                   testID="water-map-name" numberOfLines={2} accessibilityLabel={dv.current.name}>{dv.current.name}</Text>
-            <View style={{ flexDirection: "row", gap: SPACE.s2, marginTop: 10 }}>
-              {([["down", dv.down], ["up", dv.up]] as const).map(([dir, st]) => (
-                <Step key={dir} dir={dir} palette={palette} label={st.label} aria={st.aria} disabled={st.disabled}
-                      onPress={() => step(dir)} />
-              ))}
-            </View>
+            {!split && steps(dv)}
             <Pressable ref={regsRing} onPress={() => onShowRegs(dv.regs.item as ItemId, dv.regs.partIx)} accessibilityRole="button"
                        accessibilityLabel={dv.regs.label} testID="water-map-regs"
                        style={{ minHeight: 52, marginTop: 8, alignItems: "center", justifyContent: "center",
@@ -203,6 +225,7 @@ export function WaterMapView({ loader, item, part, tapSid, palette, map, onOpenW
                 {dv.regs.label}
               </Text>
             </Pressable>
+            {split && <Parts vm={dv} palette={palette} act={d.act} split />}
             {/* (T203, T214 item 4) LAST, in a place kept for it. The bar sits at the foot of the screen, so a line that
                 appears (only at the mouth part) grows it UPWARD and lifts every control above it, whatever its order
                 (T203's "last" was not enough: the steps and "Show regulations" still jumped). On a water whose mouth
@@ -275,14 +298,33 @@ function BarInset({ split, children }: { split: boolean; children: React.ReactNo
   return split ? <View style={{ flexShrink: 1, minHeight: 0 }}>{children}</View> : <WaterInset column>{children}</WaterInset>;
 }
 
+/** The parts row: the list's toggle on a water of many parts, the quiet one-part line on a water of one (T875). Under the
+ *  map on a phone; under "Show regulations" in the split (the steps head the text column there). */
+function Parts({ vm, palette, act, split }: { vm: WaterMapVM; palette: Palette; act: (a: WaterMapAction) => void; split: boolean }) {
+  const place = split ? { marginTop: 8 } : { marginTop: -4, marginBottom: 6 };
+  return vm.list ? <PartsList list={vm.list} palette={palette} act={act} tall={split} place={place} />
+    : vm.onePart ? <PartsOne label={vm.onePart} palette={palette} place={place} /> : null;
+}
+
+/** (T875) A water of one part: the toggle's 44 px place, held by its words in a quiet line (nothing to open, no chevron). */
+function PartsOne({ label, palette, place }: { label: string; palette: Palette; place: { marginTop: number; marginBottom?: number } }) {
+  return (
+    <View style={{ ...place, minHeight: 44, flexDirection: "row", alignItems: "center", gap: SPACE.s2 }} testID="water-map-parts-one">
+      <Icon name="parts" colour={palette.faint} size={18} />
+      <Text style={{ ...TYPE.body, flex: 1, color: palette.sub }}>{label}</Text>
+    </View>
+  );
+}
+
 /**
  * (T150) THE PARTS OF THIS WATER, under the map: one 44 px toggle (the list glyph the header's Parts button had, its
  * words "Show all 15 parts"), and open, every part by name — a radio group, the part shown checked (✓). The header's
  * Parts sheet moved here (owner 2026-10-23); tapping a part on the map still works. Normal weight throughout (T151: no
  * bold competing with the map's colours); the list scrolls inside a bounded box so the bar stays on screen.
  */
-function PartsList({ list, palette, act, tall }: {
+function PartsList({ list, palette, act, tall, place }: {
   list: NonNullable<WaterMapVM["list"]>; palette: Palette; act: (a: WaterMapAction) => void; tall: boolean;
+  place: { marginTop: number; marginBottom?: number };
 }) {
   // back closes the open list before it leaves the water (app/HANDOFF-ui.md "Back, everywhere")
   useBackLayer(list.open, () => act({ type: "list" }));
@@ -291,7 +333,7 @@ function PartsList({ list, palette, act, tall }: {
   const toggle = useRef<ViewInstance>(null);
   const pick = (ix: number) => { act({ type: "part", ix }); (toggle.current as { focus?: () => void } | null)?.focus?.(); };
   return (
-    <View style={{ marginTop: -4, marginBottom: 6, flexShrink: 1, minHeight: 0 }} testID="water-map-parts">
+    <View style={{ ...place, flexShrink: 1, minHeight: 0 }} testID="water-map-parts">
       <Pressable ref={toggle} onPress={() => act({ type: "list" })} accessibilityRole="button" accessibilityLabel={list.toggle}
                  aria-expanded={list.open} testID="water-map-parts-toggle"
                  style={{ minHeight: 44, flexDirection: "row", alignItems: "center", gap: SPACE.s2 }}>
@@ -321,7 +363,7 @@ function PartsList({ list, palette, act, tall }: {
   );
 }
 
-/** ▼ / ▲: a 52 px button; at an end it is disabled, dashed, and says so ("Lowest part" / "Highest part"). Into another
+/** ▼ / ▲: a `STEP_HEIGHT` (53 px) button; at an end it is disabled, dashed, and says so ("Lowest part" / "Highest part"). Into another
  *  water its words say where (owner 2026-10-21 late: "▲ Upstream into Chilliwack River"): half the bar at 390 px, so
  *  the words wrap, centred, to two lines at most and a longer name is cut with an ellipsis (the full words stay the
  *  button's accessible name). */
@@ -334,7 +376,7 @@ function Step({ dir, palette, label, aria, disabled, onPress }: {
   return (
     <Pressable ref={ring} onPress={disabled ? undefined : onPress} disabled={disabled} accessibilityRole="button"
                accessibilityLabel={aria} aria-disabled={disabled}
-               style={{ flex: 1, minWidth: 0, minHeight: 52, alignItems: "center", justifyContent: "center",
+               style={{ flex: 1, minWidth: 0, minHeight: STEP_HEIGHT, alignItems: "center", justifyContent: "center",
                         flexDirection: "row", gap: 4,
                         paddingHorizontal: SPACE.s2, paddingVertical: 4, borderWidth: 1.5,
                         borderColor: palette.ink, borderStyle: disabled ? "dashed" : "solid" }}>

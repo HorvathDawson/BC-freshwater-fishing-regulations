@@ -7,6 +7,8 @@ import type { LayoutChangeEvent } from "react-native";
  * into the Vedder made the bar 122 px shorter and the map above it grew by that much. `key` is the water drawn (null
  * while the next is read); when it changes the bar is floored at the height it last measured, so nothing under the map
  * moves while stepping. A water opened fresh has no floor (no empty row on a one-part water that was not stepped to).
+ * (T875) A one-part water now holds the parts row's place itself, and the bar's content stands on its foot, so the room a
+ * floor adds (a step taken with the parts list open, into a water with no exit) goes above the content: the steps stay.
  */
 export function useBarFloor(key: string | null): { minHeight: number | undefined; onLayout: (e: LayoutChangeEvent) => void } {
   const s = useRef<{ key: string | null; last: number; floor: number | undefined }>({ key: null, last: 0, floor: undefined });
