@@ -20,7 +20,7 @@
       "node": "tier",
       "over_cm": 50,
       "period": "annual",
-      "says": "The total annual limit for chinook salmon over 50 cm is 10 fish from all fresh waters combined.",
+      "says": "10 adult chinook a year from all fresh waters",
       "species": [
        "CH"
       ],
@@ -193,7 +193,7 @@
       "node": "tier",
       "over_cm": 50,
       "period": "annual",
-      "says": "The total annual limit for chinook salmon over 50 cm is 10 fish from all fresh waters combined.",
+      "says": "10 adult chinook a year from all fresh waters",
       "species": [
        "CH"
       ],
@@ -579,7 +579,7 @@
       "node": "tier",
       "over_cm": 50,
       "period": "annual",
-      "says": "The total annual limit for chinook salmon over 50 cm is 10 fish from all fresh waters combined.",
+      "says": "10 adult chinook a year from all fresh waters",
       "species": [
        "CH"
       ],
@@ -779,7 +779,7 @@
       "node": "tier",
       "over_cm": 50,
       "period": "annual",
-      "says": "The total annual limit for chinook salmon over 50 cm is 10 fish from all fresh waters combined.",
+      "says": "10 adult chinook a year from all fresh waters",
       "species": [
        "CH"
       ],
@@ -1006,7 +1006,7 @@
       "node": "tier",
       "over_cm": 50,
       "period": "annual",
-      "says": "The total annual limit for chinook salmon over 50 cm is 10 fish from all fresh waters combined.",
+      "says": "10 adult chinook a year from all fresh waters",
       "species": [
        "CH"
       ],

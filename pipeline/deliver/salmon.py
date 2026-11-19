@@ -63,6 +63,8 @@ little-endian, varints LEB128 (`pipeline.deliver.binary`):
     salmon       magic b"BCSA", version u8 = 4, handles 8 bytes (the bundle's section_handles digest, raw), u32 JSON
                  length, the UTF-8 payload: {credit, regions, verdicts, gears, chains, unmapped, scopes, shards, x?}
                  (T321) x: location id -> the rows its card shows in DFO's words, {k: new|unread|note, sp, d, t}
+                 (T870) pr: location id -> its DFO table rows as printed, the rows in force (`printed_rows`): the card's
+                 Source (DFO) lists them as the rows behind its answers (optional: an app before T870 ignores it)
     salmon-<r>   magic b"BCSR", version u8 = 1, handles 8 bytes, u8 region length + the region (ASCII), then a varint
                  run count and per run: sid gap (sid - previous run's end), count, chain index — the sections of bundle
                  region <r> (`release.shards.REGIONS`; a section in two regions is in both; `x`: a section in none)
@@ -324,7 +326,19 @@ def place_gear(rules: Sequence[dict], md: int) -> List[str]:
     other = [r for r in rules if _other_fish(r) and not _is_gear(r) and not _fish_closure(r)]
     held = {id(r) for r in (*_held(gear, md), *_held(other, md))}
     lines = [r for r in rules if id(r) in held] + [r for r in (*gear, *other) if r.get("check")]
-    return list(dict.fromkeys((f"{r['check']}: " if r.get("check") else "") + _text([r], {}) for r in lines))
+    return list(dict.fromkeys((f"{r['check']}: " if r.get("check") else "") + gear_text(r) for r in lines))
+
+
+def gear_text(rule: dict) -> str:
+    """(T870 item 3, owner 2026-11-18: "Why is the bait ban all year defined from that month to that month") a gear line's
+    words: DFO's row and its dates, where dates that hold EVERY day of the year ("Apr 1 to Mar 31") read "all year"
+    ("Bait ban (all year)", as `closure_line` and the provincial list's `BAIT.WHEN_ALL_YEAR` say it). A row printed with
+    no dates, or one whose season did not read, keeps its words as they were. The worker's `salmon.ts` `gearText` the same."""
+    w = rule.get("when") or {}
+    if w.get("dates") and not w.get("unparsed") and not w.get("open_ended") and not w.get("hours") \
+            and all(holds_on(rule, md) for md in DAYS):
+        return f"{rule.get('verbatim') or ''} (all year)"
+    return _text([rule], {})
 
 
 #: (T770, owner 2026-11-16 19:09: "As a closure line (Recommended)") a row CLOSING another fish ("All | No fishing for
@@ -779,6 +793,14 @@ def header_answers(notes: Sequence[dict]) -> dict:
             "sizes": sizes}
 
 
+def printed_rows(locator: Mapping) -> List[str]:
+    """(T870) A typed locator's DFO table rows AS PRINTED ("Species | Dates | Limits", `feed.row_text`; a page default's
+    sentence), the rows in force: a row from a table DFO commented out (`hidden`, T787) answers nothing and is left out.
+    Each once, in page order."""
+    hidden = set(locator.get("hidden") or ())
+    return list(dict.fromkeys(r for i, r in enumerate(locator.get("rows") or ()) if i not in hidden and r))
+
+
 def location_rules(loc, by_fp: Mapping[str, Sequence[dict]], closure: Sequence[dict]) -> List[dict]:
     """A curated place's rules from the typed feed (`by_fp`: fingerprint -> rules), as the release reads them: T349 /
     T358 a quota pooled across areas (`quota.mark_shared`); T320 the region header's closure (`quota.header_closure`)
@@ -827,6 +849,7 @@ def build(entry_files: Mapping[str, object], feeds: Mapping[str, dict], placed: 
     from pipeline.regs.dfo_salmon import quota as Q
     rules_of: Dict[str, List[dict]] = {}
     words_of: Dict[str, List[dict]] = {}
+    rows_by: Dict[str, List[str]] = {}
     locs: Dict[str, object] = {}
     regions: Dict[str, dict] = {}
     scopes: Dict[str, Dict[str, List[str]]] = {}
@@ -834,6 +857,7 @@ def build(entry_files: Mapping[str, object], feeds: Mapping[str, dict], placed: 
         feed = feeds.get(slug) or {}
         by_fp = {l["fingerprint"]: l["rules"] for l in feed.get("locators") or []}
         words_fp = {l["fingerprint"]: l.get("words") or [] for l in feed.get("locators") or []}
+        rows_fp = {l["fingerprint"]: printed_rows(l) for l in feed.get("locators") or []}
         notes = list((headers or {}).get(slug) or [])
         # the scopes are resolved for the release's notes AND the newest page's (`scope_headers`): the feed's notes
         # name waters by these keys, so a page newer than the release's rules still finds its waters here
@@ -863,6 +887,11 @@ def build(entry_files: Mapping[str, object], feeds: Mapping[str, dict], placed: 
                                      for fp in loc.fingerprints for w in words_fp.get(fp, [])]
             if ws:
                 words_of[loc.location_id] = ws
+            # T870: the place's DFO rows as printed, the rows behind its answers (the card's Source (DFO)) — not under a
+            # closure, as `x`
+            pr = [] if closure else list(dict.fromkeys(r for fp in loc.fingerprints for r in rows_fp.get(fp, [])))
+            if pr:
+                rows_by[loc.location_id] = pr
             locs[loc.location_id] = (slug, loc, ef)
 
     placed = list(placed)
@@ -1028,6 +1057,7 @@ def build(entry_files: Mapping[str, object], feeds: Mapping[str, dict], placed: 
     payload = {"format": FORMAT, "credit": CREDIT, "default": UNLISTED_CHAIN, "regions": regions, "verdicts": verdicts.items,
                "gears": gears.items, "chains": chains, "unmapped": unmapped, "scopes": scopes,
                **({"x": dict(sorted(words_of.items()))} if words_of else {}), **({"off": off} if off else {}),
+               **({"pr": dict(sorted(rows_by.items()))} if rows_by else {}),
                "p": places_named(locs, (l for c in chains for l in c["l"]))}
     # T573: a closed-area piece says so (`piece: 1`; `bound: 1` when it covers a section), so the app reads it without
     # parsing its id: where the live feed lacks a bound one, the answer is "not known, check the notice", never the

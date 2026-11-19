@@ -68,7 +68,7 @@ export const SALMON_STRADDLE_GOLDEN = {
   ],
   "gears": [
    [
-    "Barbless hooks only (Jan 1\u2013Dec 31)"
+    "Barbless hooks only (all year)"
    ]
   ],
   "chains": [
@@ -419,10 +419,10 @@ export const SALMON_STRADDLE_GOLDEN = {
   ],
   "gears": [
    [
-    "Barbless hooks only (Jan 1\u2013Dec 31)"
+    "Barbless hooks only (all year)"
    ],
    [
-    "No bait (Jan 1\u2013Dec 31)"
+    "No bait (all year)"
    ]
   ],
   "locs": {
@@ -922,14 +922,14 @@ export const SALMON_STRADDLE_GOLDEN = {
  ],
  "gears": [
   [
-   "Barbless hooks only (Jan 1\u2013Dec 31)"
+   "Barbless hooks only (all year)"
   ],
   [
-   "No bait (Jan 1\u2013Dec 31)"
+   "No bait (all year)"
   ],
   [
-   "Barbless hooks only (Jan 1\u2013Dec 31)",
-   "No bait (Jan 1\u2013Dec 31)"
+   "Barbless hooks only (all year)",
+   "No bait (all year)"
   ]
  ]
 };

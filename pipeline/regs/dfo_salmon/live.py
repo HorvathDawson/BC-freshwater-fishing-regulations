@@ -329,6 +329,24 @@ def words_by_location(ef, typed: dict, close: Optional[Mapping[str, object]] = N
     return out
 
 
+def rows_by_location(ef, typed: dict, close: Optional[Mapping[str, object]] = None) -> Dict[str, List[str]]:
+    """(T870, owner 2026-11-18: "It should have all the rows that apply in source") location id -> its DFO table rows
+    as printed ("Coho | Sep 15 to Jan 31 | 1 per day, hatchery marked only"; a page default's sentence), the rows in
+    force (`printed_rows`), its locators in page order — the feed's `locs[lid].pr`, the release's `payload.pr`
+    (`deliver.salmon.build`). The card's Source (DFO) lists them under the place that answers; (T759) a close-matched
+    row's on its close match, as `words_by_location`. The worker's `live.ts` `rowsByLocation` the same."""
+    from pipeline.deliver.salmon import printed_rows
+    index = {**(close or {}), **ef.by_fingerprint()}
+    out: Dict[str, List[str]] = {}
+    for loc in typed.get("locators") or []:
+        hit = index.get(loc["fingerprint"])
+        rows = printed_rows(loc) if hit is not None else []
+        if rows:
+            got = out.setdefault(hit.location_id, [])
+            got.extend(r for r in rows if r not in got)
+    return out
+
+
 def wording_notices(slug: str, ef, typed: dict) -> List[dict]:
     """(T321, owner 2026-10-31: "It should be urgent") a clause no saved page ever printed: one URGENT notice per new
     TEMPLATE (the key is the template, so a later run, or another region, never tells it again). What it says, where,
@@ -434,7 +452,8 @@ def _carry(prev: dict, slug: str, verdicts: S._Interner, gears: S._Interner, onl
     for lid, c in (prev.get("locs") or {}).items():
         if c.get("r") != slug or (only is not None and lid not in only):
             continue
-        out[lid] = {"r": slug, **_reindex(c, prev, verdicts, gears), **({"x": c["x"]} if c.get("x") else {})}
+        out[lid] = {"r": slug, **_reindex(c, prev, verdicts, gears), **({"x": c["x"]} if c.get("x") else {}),
+                    **({"pr": c["pr"]} if c.get("pr") else {})}
     return out
 
 
@@ -763,11 +782,13 @@ def run(out: Path, *, fetcher: Fetcher, regions: Optional[Sequence[str]] = None,
         from pipeline.regs.dfo_salmon.quota import header_closure
         closure = header_closure(reg.get("notes") or [], slug)     # T320: the header's closure wins
         words = {} if closure else words_by_location(ef, typed, close)    # T321: a closed page's rows are not in force
+        printed = {} if closure else rows_by_location(ef, typed, close)  # T870: the rows behind its answers, as printed
         notices.extend(wording_notices(slug, ef, typed))
         for lid, rs in sorted(rules.items()):
             if lid not in moved:
                 locs[lid] = {"r": slug, **location_calendar(closure if closure and rs else rs, verdicts, gears),
-                             **({"x": words[lid]} if words.get(lid) else {})}
+                             **({"x": words[lid]} if words.get(lid) else {}),
+                             **({"pr": printed[lid]} if printed.get(lid) else {})}
         if moved:
             locs.update(_carry(prev, slug, verdicts, gears, only=moved))
             for o in rep.outcomes:

@@ -269,8 +269,17 @@ function placeGear(loc: Loc, md: number): string[] {
   if (!lines.length) return [];
   const key = lines.map((r) => loc.rules.indexOf(r)).join(",");
   let out = loc.gears.get(key);
-  if (!out) loc.gears.set(key, (out = [...new Set(lines.map((r) => (r.check ? `${r.check}: ` : "") + loc.text([r])))]));
+  if (!out) loc.gears.set(key, (out = [...new Set(lines.map((r) => (r.check ? `${r.check}: ` : "") + gearText(loc, r)))]));
   return out;
+}
+
+/** salmon.gear_text (T870 item 3): a gear line's words — dates holding EVERY day of the year ("Apr 1 to Mar 31") read
+ *  "all year" ("Bait ban (all year)"); a row with no dates, an unread season, hours or "until further notice" as before */
+function gearText(loc: Loc, r: R): string {
+  const w = (r.when ?? {}) as { dates?: unknown[]; unparsed?: unknown[]; open_ended?: boolean; hours?: unknown };
+  if (w.dates && w.dates.length && !(w.unparsed && w.unparsed.length) && !w.open_ended && !w.hours && DAYS.every((md) => holdsOn(r, md)))
+    return `${r.verbatim || ""} (all year)`;
+  return loc.text([r]);
 }
 
 /** salmon.gear_on (T770, owner 2026-11-16: "Show both"): every place's lines that hold that day, narrowest place first,

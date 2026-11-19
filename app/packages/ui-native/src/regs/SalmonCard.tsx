@@ -20,7 +20,7 @@
 import { useState } from "react";
 import { View } from "react-native";
 import { Text } from "../Text";
-import { FISH, SALMON_WORDS, WORDS, salmonTable, type SalmonCardVM, type SalmonIssueVM, type SalmonRowVM, type SalmonSaysVM, type SalmonSpecies, type SalmonTableRowVM, type SalmonWordsRowVM } from "@app/core";
+import { FISH, SALMON_WORDS, WORDS, salmonTable, type SalmonCardVM, type SalmonIssueVM, type SalmonRowVM, type SalmonSaysVM, type SalmonSourceVM, type SalmonSpecies, type SalmonTableRowVM, type SalmonWordsRowVM } from "@app/core";
 import { TYPE } from "../type";
 import { RADIUS, SPACE, type Palette } from "../theme";
 import { WaterInset } from "../WaterFrame";
@@ -150,7 +150,8 @@ function Table({ card, palette, actions, images }: { card: SalmonCardVM; palette
       {/* (T828) DFO's rows as printed sit in the source fold; where every species is closed they ARE the card's one
           statement (the region's closure, the rule book's, "not opened"), so they stay here, said once */}
       {card.allClosed && <Says says={t.says} palette={palette} />}
-      {card.gear.map((g) => (
+      {/* (T870 item 2) DFO's gear lines as core says them: each names whose it is, a shared bait ban said once */}
+      {(card.gearLines ?? card.gear).map((g) => (
         <Text key={g} testID="salmon-card-block-gear" style={{ ...TYPE.meta, color: palette.sub, paddingTop: 6 }}>{g}</Text>
       ))}
     </View>
@@ -188,13 +189,16 @@ function SourceFold({ card, shown, palette }: {
           {/* (T828, owner 2026-11-16: "Fold into Source") DFO's rows as printed — each species' row words, in-season
               notice numbers, DFO's words for this water, the region's rules — closed by default; the wording DFO
               changed stays above the fold */}
+          {/* (T870, owner 2026-11-18: "It should have all the rows that apply in source") DFO's rows as printed for each
+              place of this water's chain, and the page header's notes the card's lines were read from */}
+          <Sources sources={card.sources ?? []} palette={palette} />
           <Says says={says} palette={palette} />
           {card.dfoWords && card.dfoWords.notes.length > 0 && (
             <Words testID="salmon-wording-notes" head={card.dfoWords.notesHead} rows={card.dfoWords.notes} palette={palette} />
           )}
           {card.regionRules.map((g) => <RegionRules key={g.label} group={g} palette={palette} />)}
           <Text testID="salmon-source" style={{ ...TYPE.metaBold, color: palette.accent,
-                                               ...(says.length || card.dfoWords?.notes.length || card.regionRules.length
+                                               ...(says.length || card.dfoWords?.notes.length || card.regionRules.length || card.sources?.length
                                                  ? { marginTop: SPACE.s3, paddingTop: SPACE.s2, borderTopWidth: 1, borderTopColor: palette.line } : {}) }}>{card.source}</Text>
           <Text testID="salmon-asof" style={{ ...TYPE.meta, color: palette.sub }}>{card.asOf}</Text>
           {card.checked && <Text testID="salmon-checked" style={{ ...TYPE.meta, color: palette.sub }}>{card.checked}</Text>}
@@ -203,6 +207,23 @@ function SourceFold({ card, shown, palette }: {
           <Text testID="salmon-note" style={{ ...TYPE.metaSemi, color: palette.ink, paddingTop: SPACE.s2 }}>{card.note}</Text>
         </View>
       )}
+    </View>
+  );
+}
+
+/** (T870) the DFO rows and header notes behind the card's answers: a head, then per place / page header its name and
+ *  DFO's words as printed. No words of its own (core `salmonCard` `sources`, SALMON_WORDS). */
+function Sources({ sources, palette }: { sources: readonly SalmonSourceVM[]; palette: Palette }) {
+  if (!sources.length) return null;
+  return (
+    <View testID="salmon-sources" style={{ paddingBottom: SPACE.s2 }}>
+      <Text accessibilityRole="header" style={{ ...TYPE.kicker, color: palette.sub }}>{SALMON_WORDS.sourcesHead}</Text>
+      {sources.map((g) => (
+        <View key={g.from} testID="salmon-sources-group" style={{ marginTop: 6 }}>
+          <Text testID="salmon-sources-from" style={{ ...TYPE.metaBold, color: palette.ink }}>{g.from}</Text>
+          {g.lines.map((l) => <Text selectable key={l} testID="salmon-sources-line" style={{ ...TYPE.meta, color: palette.ink, marginTop: 2 }}>{l}</Text>)}
+        </View>
+      ))}
     </View>
   );
 }

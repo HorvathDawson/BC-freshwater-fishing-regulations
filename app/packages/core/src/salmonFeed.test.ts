@@ -191,6 +191,28 @@ describe("(T321) the feed's rows in DFO's words", () => {
   });
 });
 
+describe("(T870) the feed's printed rows (`pr`)", () => {
+  it("a location the feed carries lists the feed's rows (none when the feed carries none); the others keep the release's", () => {
+    const r = release();
+    const f = feed();
+    const [carried, other] = [Object.keys(f.locs)[0]!, "zz:not-in-the-feed"];
+    const rel = { ...r, chainOf: r.chainOf, payload: { ...r.payload, pr: {
+      [carried]: ["Coho | Sep 1 to Dec 31 | 1 per day"], [other]: ["Chum | Oct 1 to Nov 30 | 2 per day"] } } } as SalmonFacts;
+    const fx = { ...f, locs: { ...f.locs, [carried]: { ...f.locs[carried]!, pr: ["Coho | Sep 1 to Dec 31 | 2 per day — FN1234"] } } } as typeof f;
+    expect(withSalmonFeed(rel, fx).payload.pr).toEqual({
+      [other]: ["Chum | Oct 1 to Nov 30 | 2 per day"], [carried]: ["Coho | Sep 1 to Dec 31 | 2 per day — FN1234"] });
+    // a feed before T870 carries no rows for its places: none, never the release's rows under the feed's answers
+    expect(withSalmonFeed(rel, f).payload.pr![carried]).toBeUndefined();
+  });
+  it("a feed whose rows are not a list of words is refused whole", () => {
+    const f = feed();
+    const l = Object.keys(f.locs)[0]!;
+    for (const pr of [[], [1], [""], "Coho | x"])
+      expect(parseSalmonFeed({ ...f, locs: { ...f.locs, [l]: { ...f.locs[l]!, pr } } }), JSON.stringify(pr)).toBeNull();
+    expect(parseSalmonFeed({ ...f, locs: { ...f.locs, [l]: { ...f.locs[l]!, pr: ["Coho | Sep 1 to Dec 31 | 1 per day"] } } })).not.toBeNull();
+  });
+});
+
 describe("(T356) a header closure from the feed: the pipeline's `c`, composed as `live.compose`", () => {
   const closed = () => parseSalmonFeed(G.closedFeed)!;
   it("every chain the closure answers every day carries the note ids; the card is the closure, in its words", () => {

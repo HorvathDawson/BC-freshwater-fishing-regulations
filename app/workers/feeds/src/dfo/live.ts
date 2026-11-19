@@ -512,7 +512,7 @@ function carry(prev: Json, slug: string, verdicts: Interner<unknown>, gears: Int
     const g = c.g.map((x: number, k: number) => (k % 2 === 0 || x < 0 ? x : gears.add(pg[x])));
     // (T770) another fish's closure lines `o` index the same gear table: carried with the place, never dropped
     const o = c.o ? { o: c.o.map((x: number, k: number) => (k % 2 === 0 || x < 0 ? x : gears.add(pg[x]))) } : {};
-    out[lid] = { r: slug, sp, g, ...o, ...(c.x && c.x.length ? { x: c.x } : {}) };
+    out[lid] = { r: slug, sp, g, ...o, ...(c.x && c.x.length ? { x: c.x } : {}), ...(c.pr && c.pr.length ? { pr: c.pr } : {}) };
   }
   return out;
 }
@@ -742,7 +742,9 @@ export async function runDfo(deps: DfoDeps): Promise<DfoResult> {
     const words = closure ? new Map<string, Json[]>() : wordsByLocation(ef, typed, close); // T321: a closed page's rows are not in force
     notices.push(...wordingNotices(slug, ef, typed, robust));
     const rowHolds = new Map<string, { fingerprint: string; why: string }>();
-    const xOf = (lid: string) => (words.get(lid)?.length ? { x: words.get(lid)! } : {});
+    const printed = closure ? new Map<string, string[]>() : rowsByLocation(ef, typed, close); // T870: the rows behind its answers
+    const xOf = (lid: string) => ({ ...(words.get(lid)?.length ? { x: words.get(lid)! } : {}),
+                                    ...(printed.get(lid)?.length ? { pr: printed.get(lid)! } : {}) });
     const [rules, held] = join(slug, ef, typed, found, rep, rowHolds, close);
     // T573 / T757: every closed area TODAY'S rows still name, its own rule (`closures.livePieces`, the Python's
     // `live_pieces`); one DFO dropped is NOT in the feed, so its place answers there (T759: a removal, nothing shown; a
@@ -878,6 +880,24 @@ async function rowDigest(slug: string, sha: string, typed: TypedFeed, ef: EntryF
     if (changes.length) notices.push(rowsNotice(slug, sha, typed.date_modified, changes));
   } else if (!broken) log(`region ${slug}: no rows baseline yet — this page (${typed.date_modified ?? "no date"}) is it; row changes are told from the next page on`);
   await priv.put(ROWS_KEY(slug), JSON.stringify({ sha256: sha, date_modified: typed.date_modified, rows: now } satisfies RowsBaseline));
+}
+
+/** live.rows_by_location (T870): location id → its DFO table rows as printed, the rows in force (a commented-out table's
+ *  `hidden` rows left out), its locators in page order, each once (`locs[lid].pr`); a close-matched row's on its match */
+export function rowsByLocation(ef: EntryFile, typed: TypedFeed, close: ReadonlyMap<string, EntryLocation> = new Map()): Map<string, string[]> {
+  const index = new Map<string, EntryLocation>([...close, ...byFingerprint(ef)]);
+  const out = new Map<string, string[]>();
+  for (const loc of typed.locators || []) {
+    const hit = index.get(loc.fingerprint);
+    if (!hit) continue;
+    const hidden = new Set(loc.hidden ?? []);
+    const rows = [...new Set(loc.rows.filter((r, i) => !hidden.has(i) && r))];
+    if (!rows.length) continue;
+    const l = out.get(hit.location_id) ?? [];
+    for (const r of rows) if (!l.includes(r)) l.push(r);
+    out.set(hit.location_id, l);
+  }
+  return out;
 }
 
 /** live.words_by_location (T321): location id → the rows its card shows in DFO's words, `{k, sp, d, t}` (`locs[lid].x`) */

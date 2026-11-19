@@ -59,6 +59,8 @@ export interface SalmonFeedLocation {
   readonly o?: readonly number[];
   /** (T321) the location's rows in DFO's words (new wording, an unread number, a note) */
   readonly x?: readonly SalmonWords[];
+  /** (T870) the location's DFO rows as printed, the rows in force (`live.rows_by_location`); absent: an older feed, or none */
+  readonly pr?: readonly string[];
 }
 /** (T757 item 6) WHAT A FEED STATES IT CARRIES (`index.json` `dfo`, the worker's `/status.json` value): `pieces` >= 1 —
  *  it emits T573's closed-area pieces as locations. Absent on an older feed. The next shape field is one more key here. */
@@ -133,6 +135,8 @@ export function parseSalmonFeed(x: unknown): SalmonFeed | null {
   }
   for (const l of Object.values(f.locs)) {
     if (!l || !Array.isArray(l.sp) || l.sp.length !== 5 || !Array.isArray(l.g) || (l.o !== undefined && !Array.isArray(l.o))) return null;
+    // (T870) the printed rows, when it carries them, are whole: strings
+    if (l.pr !== undefined && (!Array.isArray(l.pr) || !l.pr.length || l.pr.some((r) => typeof r !== "string" || !r))) return null;
     const lines = l.o ? [l.g, l.o] : [l.g];
     for (const runs of [...l.sp, ...lines]) for (let k = 1; k < runs.length; k += 2) {
       const v = runs[k]!;
@@ -335,6 +339,15 @@ function composeChainOn(daysOf: (runs: Iterable<readonly number[]>) => number[],
            ...(c.length ? { c } : {}), ...(n ? { n } : {}), ...(a ? { a } : {}) };
 }
 
+/** (T870) each place's printed rows: a place the feed carries has the feed's (none when it carries none: an older feed —
+ *  never the release's rows under the feed's answers); the rest keep the release's */
+function rowsWithFeed(release: Readonly<Record<string, readonly string[]>>, feed: SalmonFeed): Record<string, readonly string[]> {
+  const out: Record<string, readonly string[]> = {};
+  for (const [l, r] of Object.entries(release)) if (!feed.locs[l]) out[l] = r;
+  for (const [l, c] of Object.entries(feed.locs)) if (c.pr?.length) out[l] = c.pr;
+  return out;
+}
+
 function wordsWithFeed(release: Readonly<Record<string, readonly SalmonWords[]>>, feed: SalmonFeed): Record<string, readonly SalmonWords[]> {
   const out: Record<string, readonly SalmonWords[]> = {};
   for (const [l, w] of Object.entries(release)) if (!feed.locs[l]) out[l] = w;
@@ -438,6 +451,7 @@ function composeFeedPayload(P: Payload, feed: SalmonFeed): { payload: Payload; s
     ...P, regions, verdicts: tables.verdicts, gears: tables.gears,
     // (T321) a location the feed carries answers with the feed's rows in DFO's words; the rest keep the release's
     x: wordsWithFeed(P.x ?? {}, feed),
+    pr: rowsWithFeed(P.pr ?? {}, feed),
     chains,
     ...(Object.keys(offFeed).length ? { offFeed } : {}),
     ...(Object.keys(feedOnly).length ? { feedOnly } : {}),

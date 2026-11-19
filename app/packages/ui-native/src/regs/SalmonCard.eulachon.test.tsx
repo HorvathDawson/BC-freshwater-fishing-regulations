@@ -36,7 +36,8 @@ describe("(T770) the Kitsumkalum salmon card: the eulachon closure is a closure 
   it("Jan 10: the closure line under the species rows, the bait line alone among the gear lines", () => {
     render(<SalmonCard card={salmonCard(FACTS, { sids: [1], item: null }, new Date(2026, 0, 10))} palette={LIGHT} />);
     expect(closedRows()).toEqual(["Chinook", "Coho", "Sockeye", "Pink", "Chum", EULACHON]);
-    expect(screen.getAllByTestId("salmon-card-block-gear").map((e) => e.textContent)).toEqual([BAIT]);
+    // (T870 item 2) the gear line says whose it is
+    expect(screen.getAllByTestId("salmon-card-block-gear").map((e) => e.textContent)).toEqual([`${BAIT} — DFO`]);
     // right under the species rows, in their closed group: before the gear line, its picture the closed mark
     const group = screen.getByTestId("salmon-closed-group");
     expect(group.compareDocumentPosition(screen.getByTestId("salmon-card-block-gear")) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();

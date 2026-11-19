@@ -174,6 +174,11 @@ interface Payload {
   readonly shards?: readonly string[];
   /** (T321) location id → its rows the card shows in DFO's words (`pipeline/regs/dfo_salmon/wording.py`) */
   readonly x?: Readonly<Record<string, readonly SalmonWords[]>>;
+  /** (T870) location id → its DFO table rows AS PRINTED ("Coho | Sep 15 to Jan 31 | 1 per day, hatchery marked only"; a
+   *  page default's sentence), the rows in force (`deliver.salmon.printed_rows`; the live feed's `locs[lid].pr`): what the
+   *  card's Source (DFO) lists as the rows behind its answers. Absent: a release / feed before T870 — the fold then lists
+   *  no rows, as it did. */
+  readonly pr?: Readonly<Record<string, readonly string[]>>;
   /** (T521) the live feed's places no curated location knows (`feeds/dfo/unplaced.json`), each with the app items of
    *  the water it names: shown on that water's page, never painted. Absent in a release's own file. */
   readonly feedUnplaced?: readonly SalmonUnplacedPlace[];
@@ -282,6 +287,9 @@ function checkPayload(P: Payload): Payload {
   for (const [lid, o] of Object.entries(P.off ?? {}))
     if (!o || !SALMON_OFF_KINDS.includes(o.k) || typeof o.w !== "string" || typeof o.r !== "string" || !Array.isArray(o.items))
       bad(`off ${lid}: not {why, k, r, w, items}`);
+  // (T870) a place's printed rows are strings, never an empty list
+  for (const [lid, rows] of Object.entries(P.pr ?? {}))
+    if (!Array.isArray(rows) || !rows.length || rows.some((r) => typeof r !== "string" || !r)) bad(`pr ${lid}: not a list of rows`);
   return P;
 }
 
@@ -587,6 +595,24 @@ export const SALMON_WORDS = {
   noteTwoAuthorities: "Salmon are set by DFO, not the provincial regulations above. Both apply.",
   /** (T482, owner 2026-11-07: "the source of the regs should be collapsible") the source block's fold, closed by default */
   sourceFold: "Source (DFO)",
+  /** (T870, owner 2026-11-18: "It should have all the rows that apply in source") the fold's list of DFO's rows and header
+   *  notes behind the card's answers: its head, then one group per DFO place (`placeFrom`) with its rows as printed, and one
+   *  per region page header with the notes the card's lines (hours, the day total, the annual limit, the sizes, a water
+   *  system's limit) were read from */
+  sourcesHead: "DFO's rows behind these answers",
+  sourceHeader: (region: string, name: string) => `Region ${region.toUpperCase()} ${name}`.trim() + " · page header",
+  /** (T870 item 2, owner 2026-11-18: "the bait ban here is confusing idk where it is from") each gear line says whose it
+   *  is: DFO's row "— DFO"; where DFO's plain bait ban and the B.C. rules' bait ban both hold that day, the ban is said
+   *  ONCE with both ("Bait ban: no bait of any kind — DFO (all year) and B.C. rules") and the B.C. line leaves it out */
+  gearDfo: (line: string) => `${line} — DFO`,
+  gearBaitBoth: (when: string | null) =>
+    `${METHOD_WORDS.says.bait.replace(/\.$/, "")} — DFO${when ? ` (${when})` : ""} and B.C. rules`,
+  /** (T869, owner 2026-11-18, wording A: "10 adult chinook a year from all fresh waters" and, where adult differs, "(here
+   *  an adult is over 62 cm, Jul 1–Dec 31)") the annual chinook limit's line where an adult is another length on this
+   *  water than the limit's own (DFO's scoped `adult` sizes, each with its window) */
+  adultHere: (parts: readonly string[]) => `(here an adult is ${parts.join("; ")})`,
+  adultOver: (cm: number, when: string | null) => `over ${cm} cm${when ? `, ${when}` : ""}`,
+  adultRest: "the rest of the year",
   legendTitle: "Salmon, from DFO",
   toggle: {
     standard: "Trout & more", salmon: "Salmon",
@@ -779,8 +805,19 @@ export interface SalmonCardVM extends SalmonBlockVM {
   readonly regionRules: readonly { readonly label: string; readonly notes: readonly string[]; readonly rules: readonly SalmonRuleVM[] }[];
   /** header notes naming this water that no row took (DFO's words), e.g. an "adult chinook" length here */
   readonly waterRules: readonly string[];
-  /** (owner 2026-10-28) the provincial bait ban / fly only on the page that day — it applies to salmon too — else null */
+  /** (owner 2026-10-28) the provincial bait ban / fly only on the page that day — it applies to salmon too — else null.
+   *  (T870 item 2) a bait ban DFO's line already says with it (`gearLines`) is left out here: said once */
   readonly gearProvincial: string | null;
+  /** (T870 item 2) DFO's gear lines (`gear`) as the card says them, each naming whose it is ("Bait ban (all year) — DFO"),
+   *  a bait ban both DFO and the B.C. rules set said once with both. Absent on a hand-built card: `gear` as printed */
+  readonly gearLines?: readonly string[];
+  /** (T870, owner 2026-11-18) the DFO rows and header notes behind the card's answers, for the Source (DFO) fold: one
+   *  group per DFO place of the page's chains (its rows as printed, `pr`) and per region page header (the notes its lines
+   *  were read from). [] when the file carries none (a release before T870, a closed region) */
+  readonly sources?: readonly SalmonSourceVM[];
+  /** (T869) where an adult chinook is another length here than the annual limit's own: "(here an adult is over 62 cm,
+   *  Sep 1–Dec 31)", said after the bucket's annual chinook line (`salmonTable`); null where it is the same */
+  readonly adultHere?: string | null;
   /** (T343) the page's salmon fishing hours (DFO's daylight rule, e.g. "Salmon fishing in daylight only: one hour before
    *  sunrise to one hour after sunset"), null when the page prints none or every salmon is closed */
   readonly hours?: string | null;
@@ -804,6 +841,9 @@ export interface SalmonCardVM extends SalmonBlockVM {
    *  fishing is closed, trout included (`closeForFinfish` closes the page); [] none */
   readonly finfish: readonly string[];
 }
+/** (T870) one group of the Source (DFO) fold's rows: where from ("Region 2 · Mamquam River", "Region 2 Lower Mainland ·
+ *  page header") and DFO's words as printed */
+export interface SalmonSourceVM { readonly from: string; readonly lines: readonly string[] }
 /** (T796) one rule-book closure answering the page's salmon today: where it is from ("Rule book p.9 · National Parks
  *  and Ecological Reserves", `placeFromBook`) and its words — the book's page, its own line and its dates ("Closed to all
  *  fishing by the rule book (p.9): Fishing is prohibited in Ecological Reserves in B.C. (all year)") */
@@ -1081,7 +1121,12 @@ export function salmonCard(f: SalmonFacts, page: { sids: readonly number[]; item
     };
   }).filter((g) => g.notes.length);
   const gear = page.gear ?? [];
-  const marks = (["fly", "bait"] as const).filter((m) => gear.includes(m));
+  const marks0 = (["fly", "bait"] as const).filter((m) => gear.includes(m));
+  // (T870 item 2) whose each gear line is; DFO's plain bait ban and the B.C. rules' bait ban on one day: said once, both
+  // named, and the B.C. line leaves it out (only where the B.C. line would show: not on a closed card)
+  const baitBoth = !block.allClosed && marks0.includes("bait") ? block.gear.findIndex((g) => DFO_BAIT.test(g)) : -1;
+  const gearLines = block.gear.map((g, i) => (i === baitBoth ? SALMON_WORDS.gearBaitBoth(DFO_BAIT.exec(g)![1] ?? null) : SALMON_WORDS.gearDfo(g)));
+  const marks = baitBoth >= 0 ? marks0.filter((m) => m !== "bait") : marks0;
   const gearProvincial = block.allClosed || !marks.length ? null
     : `${SALMON_WORDS.gearLead}${gear.some((g) => g === "none") ? ` (${SALMON_WORDS.gearParts})` : ""}: `
       + marks.map((m) => METHOD_WORDS.says[m]).join(" ");
@@ -1104,15 +1149,38 @@ export function salmonCard(f: SalmonFacts, page: { sids: readonly number[]; item
   // (T882) the page's "check" rows are all DFO's "To be determined": the headline says so (its colour stays the check one)
   const headTbd = headlineStatus === "check" && rows.every((r) => r.status !== "check" || r.statusLabel === SALMON_WORDS.tbd.status);
   const inPart = inPartBlock(undrawnEntries(f, undrawn, unmapped, day), SALMON_WORDS.waterNoun);
+  const hours = block.allClosed ? null
+    // (T668 Z4a) a two-region chain's `h`: the regions whose hours line holds there (the tighter, or both)
+    : [...new Set([...new Set([...chains.flatMap((c) => P.chains[c]!.h ?? P.chains[c]!.r), ...unmapped.map((u) => u.r)])].sort()
+        .map((r) => P.regions[r]?.hours?.says).filter((x): x is string => !!x))].join(" · ") || null;
+  const waterBuckets = hn.water.filter((n) => n.k === "aggregate" && typeof n.n === "number"
+      && rows.some((r) => r.status === "open" && !!n.sp?.some((x) => r.species.includes(x as SalmonSpecies))));
+  // (T869) the bucket's annual chinook limit, and where an adult is another length here than the limit's own
+  const annual = buckets.length === 1 ? buckets[0]!.tree.children.find((c): c is TreeTier => c.node === "tier" && c.period === "annual"
+    && !!c.species?.includes("CH") && typeof c.over_cm === "number") : undefined;
+  const adultHere = annual ? adultHereOf(P, regionsUsed, page.item, annual.over_cm!) : null;
+  // (T870, owner 2026-11-18) the DFO rows and header notes behind the card's answers: none where the region's header
+  // closes it (its one statement is the row); the header notes only where a line of the card reads them
+  // the bucket's notes as `bucketOf` shows them: the day total while a species may be kept, a period limit while its
+  // species may be
+  const kept = new Set<string>(rows.filter((r) => r.status === "open").flatMap((r) => r.species));
+  const bucketShown = (n: SalmonNote) => buckets.length === 1 && kept.size > 0 && (!n.sp?.length || n.sp.some((x) => kept.has(x)));
+  const sharedShown = new Set(waterBuckets.map((n) => n.id));
+  const behind = (n: SalmonNote): boolean =>
+    n.fold === "hours" ? !!hours && !!P.regions[n.id.split(":")[0]!]?.hours
+      : n.fold === "bucket" ? bucketShown(n)
+        : n.fold === "sizes" ? !!n.sp?.some((x) => sizesShown.has(x))
+          : n.fold === "shared" ? sharedShown.has(n.id) : false;
+  const sources: SalmonSourceVM[] = regionClosed ? [] : [
+    ...placeSources(P, chains),
+    ...regionsUsed.map((r) => ({ from: SALMON_WORDS.sourceHeader(r, P.regions[r]?.name ?? ""),
+                                lines: [...new Set([...hn.region, ...hn.water].filter((n) => n.id.startsWith(`${r}:`) && behind(n)).map((n) => n.t))] }))
+      .filter((g) => g.lines.length)];
   return {
-    ...block, rows, regionRules, gearProvincial,
-    hours: block.allClosed ? null
-      // (T668 Z4a) a two-region chain's `h`: the regions whose hours line holds there (the tighter, or both)
-      : [...new Set([...new Set([...chains.flatMap((c) => P.chains[c]!.h ?? P.chains[c]!.r), ...unmapped.map((u) => u.r)])].sort()
-          .map((r) => P.regions[r]?.hours?.says).filter((x): x is string => !!x))].join(" · ") || null,
+    ...block, rows, regionRules, gearProvincial, gearLines, sources, adultHere,
+    hours,
     bucket: buckets.length === 1 ? buckets[0]! : null,
-    waterBuckets: hn.water.filter((n) => n.k === "aggregate" && typeof n.n === "number"
-        && rows.some((r) => r.status === "open" && !!n.sp?.some((x) => r.species.includes(x as SalmonSpecies))))
+    waterBuckets: waterBuckets
       .map((n) => {
         // (T349, T356) the store's aggregate tier over the note's waters: the region's `shared` (`quota.shared_buckets`)
         const sh = regionsUsed.flatMap((r) => P.regions[r]?.shared ?? []).find((x) => x.id === n.id);
@@ -1155,6 +1223,55 @@ export function salmonCard(f: SalmonFacts, page: { sids: readonly number[]; item
     closedOnly: regionClosed || (!undrawn.some((c) => speaks(f, c))
       && chains.every((c) => runsOf((i) => salmonDayStatus(f, c, i)).every((r) => r.status === "closed"))),
   };
+}
+
+/** (T870 item 2) a DFO gear line that is a plain bait ban, its dates (or "all year", `deliver.salmon.gear_text`) */
+const DFO_BAIT = /^Bait ban(?: \(([^()]+)\))?$/i;
+
+/**
+ * (T870, owner 2026-11-18: "It should have all the rows that apply in source") each DFO place of the page's chains with
+ * its rows as printed (`pr`), narrowest first, named as DFO's page names it (`placeFrom`); places named alike are one
+ * group, a row said once. The rule book's places are the fold's `book` lines, not here.
+ */
+function placeSources(P: Payload, chains: readonly number[]): SalmonSourceVM[] {
+  const out = new Map<string, string[]>();
+  for (const c of chains) {
+    const ch = P.chains[c]!;
+    for (const lid of ch.l) {
+      const rows = P.pr?.[lid];
+      const p = P.p?.[lid];
+      if (!rows?.length || (p && isBook(p))) continue;
+      const from = p ? SALMON_WORDS.placeFrom(p.r, p.water, p.sec) : SALMON_WORDS.placeFrom(ch.r[0] ?? "", ch.w || undefined, undefined);
+      const got = out.get(from) ?? [];
+      for (const r of rows) if (!got.includes(r)) got.push(r);
+      out.set(from, got);
+    }
+  }
+  return [...out].map(([from, lines]) => ({ from, lines }));
+}
+
+/**
+ * (T869, owner 2026-11-18, wording A) WHERE AN ADULT CHINOOK IS ANOTHER LENGTH HERE than the annual limit's own (`over`,
+ * DFO's "over 50 cm"): the water's scoped `adult` sizes (`regions[r].sizes` with `w` holding this item — the pipeline's
+ * `quota.sizes`, looked up as `sizeEntry` does, every window), each "over 62 cm, Sep 1–Dec 31"; where those windows leave
+ * days, the region's own adult length "the rest of the year" when it differs too; a water with no scoped length, the
+ * region's own (Region 6: over 65 cm). "(here an adult is …)", or null where an adult here is the limit's length.
+ */
+function adultHereOf(P: Payload, regions: readonly string[], item: string | null, over: number): string | null {
+  const rs = [...new Set(regions)].sort();
+  const all = rs.flatMap((r) => (P.regions[r]?.sizes ?? []).filter((e) => e.sp.includes("CH") && e.adult?.min_cm !== undefined)
+    .map((e) => ({ r, e })));
+  const own = item === null ? [] : all.filter(({ r, e }) => !!e.w?.length && e.w.some((k) => (P.scopes?.[r]?.[k] ?? []).includes(item)));
+  const region = all.find(({ e }) => !e.w?.length)?.e;
+  const window = (on: readonly (readonly number[])[]) =>
+    on.map(([a, b]) => `${bookDayWords(a! < 59 ? a! : a! - 1)}–${bookDayWords(b! < 59 ? b! : b! - 1)}`).join(", ");
+  const parts = own.filter(({ e }) => e.adult!.min_cm !== over)
+    .map(({ e }) => SALMON_WORDS.adultOver(e.adult!.min_cm!, e.on?.length ? window(e.on) : null));
+  const rest = own.every(({ e }) => !!e.on?.length) && region && region.adult!.min_cm !== over
+    ? [own.length ? `${SALMON_WORDS.adultOver(region.adult!.min_cm!, null)} ${SALMON_WORDS.adultRest}` : SALMON_WORDS.adultOver(region.adult!.min_cm!, null)]
+    : [];
+  const said = [...new Set([...parts, ...rest])];
+  return said.length ? SALMON_WORDS.adultHere(said) : null;
 }
 
 /**
@@ -1580,7 +1697,7 @@ const tableRows = (rows: readonly SalmonRowVM[]): SalmonTableRowVM[] =>
               ...(r.fromBy?.[code] ? { from: r.fromBy[code] } : {}) }];
   });
 /** (T320) the bucket line, when a species of the table may be kept today: its total tier by the trout presenter */
-const bucketOf = (b: SalmonBucket | null | undefined, rows: readonly SalmonRowVM[]): SalmonBucketVM | null => {
+const bucketOf = (b: SalmonBucket | null | undefined, rows: readonly SalmonRowVM[], adultHere: string | null = null): SalmonBucketVM | null => {
   if (!b || !rows.some((r) => r.status === "open")) return null;
   const runs: Line = [...tierWords(b.tree),
                       ...(b.possession ? [text(SALMON_WORDS.quota.sep + SALMON_WORDS.quota.possession(b.possession))] : [])];
@@ -1589,7 +1706,12 @@ const bucketOf = (b: SalmonBucket | null | undefined, rows: readonly SalmonRowVM
   const kept = new Set<string>(rows.filter((r) => r.status === "open").flatMap((r) => r.species));
   const tiers = b.tree.children.filter((c): c is TreeTier => c.node === "tier")
     .filter((c) => !c.species?.length || c.species.some((x) => kept.has(x)))
-    .map((c) => { const r = tierWords(c); return { line: lineText(r), runs: r }; });
+    // (T869) the annual chinook limit says where an adult is another length here (`adultHere`)
+    .map((c) => {
+      const w = tierWords(c);
+      const r = adultHere && c.period === "annual" && c.species?.includes("CH") ? [...w, text(` ${adultHere}`)] : w;
+      return { line: lineText(r), runs: r };
+    });
   return { line: lineText(runs), runs, words: [b.t, ...(b.tp ? [b.tp] : [])], ...(tiers.length ? { tiers } : {}) };
 };
 const tableSays = (rows: readonly SalmonRowVM[], allClosed: boolean): SalmonSaysVM[] =>
@@ -1605,7 +1727,7 @@ const tableSays = (rows: readonly SalmonRowVM[], allClosed: boolean): SalmonSays
 export function salmonTable(card: SalmonCardVM): SalmonTableVM {
   const b = card.bucket ?? null;
   return {
-    bucket: card.allClosed ? null : bucketOf(b, card.rows),
+    bucket: card.allClosed ? null : bucketOf(b, card.rows, card.adultHere ?? null),
     waterBuckets: card.allClosed ? [] : card.waterBuckets ?? [],
     species: tableRows(card.rows),
     says: tableSays(card.rows, card.allClosed),

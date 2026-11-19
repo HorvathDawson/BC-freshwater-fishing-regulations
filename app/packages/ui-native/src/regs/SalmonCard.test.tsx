@@ -111,7 +111,8 @@ describe("the Salmon card", () => {
     const co = within(el).getByTestId("pic:CO").closest("[data-testid='keep-row']")!;
     expect([co.getAttribute("role"), co.getAttribute("aria-label")!.split(". ")[0], within(el).getByTestId("pic:CO").textContent])
       .toEqual(["button", "Coho", "›"]);
-    expect(screen.getByTestId("salmon-card-block-gear").textContent).toBe("No natural bait allowed (Jan 1–Dec 31)");
+    // (T870 item 2) DFO's gear line names whose it is
+    expect(screen.getByTestId("salmon-card-block-gear").textContent).toBe("No natural bait allowed (Jan 1–Dec 31) — DFO");
     // (T482) DFO's source block is a fold, closed by default: its summary only, then everything on a press
     const summary = screen.getByTestId("salmon-source-summary");
     expect([summary.textContent, summary.getAttribute("aria-expanded"), screen.queryByTestId("salmon-source")])

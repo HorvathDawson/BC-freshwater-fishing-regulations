@@ -88,8 +88,9 @@ def test_todays_pages_join_every_location(tmp_path):
     assert json.loads((tmp_path / "index.json").read_text()) == ix
     # T332: the quota trees (game-fish TreeTier nodes) add ~22 kB to the ~74 kB of T320; gzip on the wire
     # T343: + each note's `fold`; T573: + 17 closed areas (~1.4 kB); T759: + `issues` (the 8 undrawn places' rows,
-    # ~2 kB) and an empty `gone` per region
-    assert (tmp_path / "index.json").stat().st_size < 112_000
+    # ~2 kB) and an empty `gone` per region; T870: + each place's DFO rows as printed (`pr`, the card's Source (DFO):
+    # ~21 kB raw, repeated words that gzip well)
+    assert (tmp_path / "index.json").stat().st_size < 135_000
 
 
 def _unseen() -> str:
