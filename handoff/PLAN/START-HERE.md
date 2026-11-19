@@ -3,8 +3,8 @@
 One page, one pointer (T437): a new chat reads, in order,
 
 1. `AGENTS.md` (every rule), then `CLAUDE.md`.
-2. The newest restart page: **`handoff/PLAN/NEXT-SESSION-2026-11-19-one-chat.md`** (written 2026-11-19 ~02:50: ONE chat
-   now does everything; tonight = all of 0.8.2 + data Part A onto staging, the owner releases to prod tomorrow).
+2. The newest restart page: **`handoff/PLAN/NEXT-SESSION-2026-11-19-morning.md`** (written 2026-11-19 ~06:20: 0.8.2 is
+   on staging; the owner tests, answers six questions, then runs production; ONE chat does everything).
 3. The top entry of `handoff/PLAN/STATUS.md` (what changed last), and `handoff/PLAN/OWNER-TODO.md` (what only the
    owner can do).
 4. The work list: `handoff/PLAN/app-integration/tickets/README.md` (the ledger; tickets are the sole source of work).

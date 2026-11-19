@@ -9,6 +9,39 @@ Plain summary for the owner, updated as work lands. Newest at the top. Ticket nu
 ---
 
 
+## 2026-11-19 morning (one chat, overnight): 0.8.2 with everything is on staging; production is yours after you test
+
+**What is on staging.** Data release r-379e72fc9524 (LATEST; staging smoke 18 pass, 0 fail), the staging website
+(https://staging.canifishthis.ca, app commit 3ab2b1b24, smoke 19 pass, 0 fail), the staging feeds worker (redeployed
+with the salmon changes) and Play INTERNAL 0.8.2 build 37 (staging data, patched MapLibre; the tester email went out).
+Nothing went to production.
+
+**What an angler sees that is new tonight.**
+- Salmon: the yearly line says "10 adult chinook a year from all fresh waters", and where an adult is bigger on that
+  river it says so ("(here an adult is over 62 cm, Sep 1–Dec 31)" on the Fraser) [T869]. The card's Source (DFO) lists
+  every DFO row behind its answers; each DFO gear line says it is DFO's; DFO's and B.C.'s bait bans are one line; a
+  whole-year DFO row reads "(all year)" [T870].
+- What you can keep: a trout row whose number comes from another water's rule for its tributaries says so under the
+  fish ("Duncan River’s rule for its tributaries"), on the app and the website [T892].
+- Gear and Methods: sources once per section, the sturgeon exception once, the banned ways on one line (your 03:25
+  approval) [T900].
+- The map: a braided river's side channels draw at half the main channel's width (new tiles) [T891 part one].
+
+**Checks.** Full tier green (pnpm check 7,812 tests, pytest 7,724, mini release); Android benches 5/5 (pinch ~57 fps,
+nothing over 100 ms); an independent review (no blockers; five fixes made and re-checked); the release's own tests on
+the candidate caught the website missing the new trout line, which was fixed with a cheap check added so it fails
+earlier next time.
+
+**Did not make it.** The map speed-up (paint only what differs) [T903]: under a stressed phone mode switches were
+11–22 % faster but panning on Salmon got worse, so it stays out; numbers in the ticket. Store screenshots [T319]: not
+uploaded (permission block). Braid simplification [T891 part two] waits for you.
+
+**What needs you.** OWNER-TODO "2026-11-19 morning": what to test (with links), six questions with defaults, and the
+production order (feeds worker FIRST, then data, phones, and your go for the website).
+
+---
+
+
 ## 2026-11-16 morning (chat 14): your labels are on staging, build 33 is on Play internal, the audit is in
 
 **What changed.** Your DFO labels are built into the app data and released to staging (release r-46e4355a7277; the

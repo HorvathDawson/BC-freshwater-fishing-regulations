@@ -1,6 +1,6 @@
 # T900 — Gear and Methods: cleaner, easier to read (next chat)
 
-Status: IN PROGRESS — owner approved the proposal 2026-11-19 ~03:25 ("T900 looks good"); merged into app/integrate-082-night for 0.8.2; left (Claude): full tier, review, push.
+Status: IN REVIEW — approved proposal on staging (a3a982a17); owner: OWNER-TODO "Test 0.8.2 on staging (2026-11-19 morning)".
 
 Owner 2026-11-19 ~01:12 (app chat), two desktop shots of a Fraser water's Gear and Methods
 (/Users/dawson.horvath/.claude/uploads/699dcd1b-ff73-4ed1-a69c-69feb621d839/9fe767d8-image.png and the one before it in that folder; if gone, re-shoot any Lower Fraser water's Gear/Methods),

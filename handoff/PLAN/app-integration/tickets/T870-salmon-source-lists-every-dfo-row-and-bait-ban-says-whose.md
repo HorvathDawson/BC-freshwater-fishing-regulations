@@ -1,6 +1,6 @@
 # T870 — the salmon card's Source (DFO) lists every DFO row behind its answers; each bait-ban line says whose it is
 
-Status: IN PROGRESS — built on lane data/t869-t870-salmon (c9dc6ba69); left (Claude): integrate (main chat), then the
+Status: IN REVIEW — on staging (release r-379e72fc9524, feeds worker, Play build 37; c9dc6ba69, a6f79b38a); owner: OWNER-TODO "Test 0.8.2 on staging (2026-11-19 morning)".
 data release + feeds worker deploy carry it; pictures not taken (see Built).
 
 Owner 2026-11-18 ~20:25 (via the app chat), Mamquam River, What you can keep, salmon card (screenshot

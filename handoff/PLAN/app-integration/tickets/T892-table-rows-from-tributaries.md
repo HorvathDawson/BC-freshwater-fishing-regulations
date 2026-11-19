@@ -1,6 +1,6 @@
 # T892 — "What you can keep" table: a row that comes from another water's tributary rule says so
 
-Status: IN PROGRESS — lane data/t892-trout-rows (2026-11-19 ~03:20): the trout rows' own line built (Python `TRow.down` + app); left (Claude): integrate (main chat), then the next data release carries it (pictures taken on scratch data).
+Status: IN REVIEW — trout rows carry their line, on staging (r-379e72fc9524; 2fe421dd7, 72b060088, 3ab2b1b24); owner: OWNER-TODO "Test 0.8.2 on staging (2026-11-19 morning)".
 
 Owner 2026-11-19 ~00:10 (app chat), verbatim: "The table should say if it came from tributaries too.."
 
