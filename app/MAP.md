@@ -71,7 +71,7 @@ The app decides nothing about a regulation: every answer is looked up in the rel
 | `fixtures/reference/` | page v36 (html, js) and its calendar copy, frozen: the parity tests' and the re-cut's oracle | `python -m pipeline.tools.emit.calendar` (calendar only) |
 | `fixtures/reader-states.json` | the reader tool's states | hand / prototype |
 | `apps/mobile/assets/fish/thumbs/` | (T405) a 240 px thumbnail per fish picture, drawn by every row and chip (the fish sheet alone draws the full picture); `thumbs.json` records what each was made from, and `pnpm fish` refuses a missing or stale one | `node tools/emit-fish-thumbs.mjs` (Chrome), then `pnpm fish:build` |
-| `tools/seo/fonts/` | (T409) the app's faces as WOFF2 (lossless), served to the water pages at `/assets/fonts/`; `fonts.json` records the TTF each was made from, and the SEO build (`webFonts.ts`) refuses a missing or stale one | `node tools/emit-web-fonts.mjs` (Python fontTools + brotli) |
+| `tools/seo/fonts/` | (T409) the app's faces as WOFF2 (lossless), served at `/assets/fonts/`: (T910) the web app draws them too (`apps/mobile` `fonts.web.ts` over `webFonts.generated.ts`; the phone keeps the TTF, `fonts.native.ts`), `tools/web-shell.mjs` copies them into the export and the water pages name the export's file; `fonts.json` records the TTF each was made from, and the SEO build (`webFonts.ts`) and web-shell refuse a missing or stale one | `node tools/emit-web-fonts.mjs` (Python fontTools + brotli; `--module` rewrites only the generated module) |
 
 The design prototype (`app/design/`) was deleted in T87 (2026-10-28); git keeps it (regs v38 @ 7fb6809f).
 

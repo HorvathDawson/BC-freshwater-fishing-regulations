@@ -23,7 +23,7 @@ if [[ -n $dirty ]]; then
   echo "site.sh (prod): SITE_DIRTY_OK: deploying from $SITE_COMMIT with $(wc -l <<<"$dirty" | tr -d ' ') uncommitted app/ path(s) - $SITE_DIRTY_OK"
   SITE_DIRTY=true
 else SITE_DIRTY=false; fi
-js=$(grep -o '/_expo/static/js/web/index-[0-9a-f]*\.js' "$W/index.html")
+js=$(grep -o '/_expo/static/js/web/index-[0-9a-f]*\.js' "$W/index.html" | sort -u)   # (T910) named three times: its preload and the after-paint loader
 one=$(find "$S/water" -name index.html.gz -print -quit)
 gunzip -c "$one" | grep -c "$js" >/dev/null || { echo "site.sh: $S's water pages were built against another app export (not $js): rebuild with --app $W" >&2; exit 1; }
 # (T304) the app focuses the region a water page names; a page without `cift:region` is from an older SEO build (every

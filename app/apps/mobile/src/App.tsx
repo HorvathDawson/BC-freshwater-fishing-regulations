@@ -15,16 +15,9 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { AppState, Platform, Share, StatusBar, Text, View, useColorScheme, useWindowDimensions } from "react-native";
 import { SafeAreaProvider, SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 import { useFonts } from "expo-font";
-// (T741) each face from its own weight's folder: a family's index `require`s every face it has, and Metro ships every
-// one required (41 faces, 3.9 MB, where these 8 are drawn). `tools/font-imports.test.ts` holds it.
-import { BricolageGrotesque_700Bold } from "@expo-google-fonts/bricolage-grotesque/700Bold";
-import { BricolageGrotesque_800ExtraBold } from "@expo-google-fonts/bricolage-grotesque/800ExtraBold";
-import { Archivo_400Regular } from "@expo-google-fonts/archivo/400Regular";
-import { Archivo_500Medium } from "@expo-google-fonts/archivo/500Medium";
-import { Archivo_600SemiBold } from "@expo-google-fonts/archivo/600SemiBold";
-import { Archivo_700Bold } from "@expo-google-fonts/archivo/700Bold";
-import { Archivo_800ExtraBold } from "@expo-google-fonts/archivo/800ExtraBold";
-import { JetBrainsMono_500Medium } from "@expo-google-fonts/jetbrains-mono/500Medium";
+// (T741, T910) the faces per platform: the phone's TTF, each from its own weight's folder (`fonts.native.ts`); the web's
+// WOFF2 from our own /assets/fonts/ (`fonts.web.ts`). `tools/font-imports.test.ts` holds both to the faces drawn.
+import { FONT_SOURCES } from "./fonts";
 import { applyLine, DOWNLOAD_NOTE_WORDS, downloadFraction, failedStartLine, restartsByItself, INSTALL_WORDS, stillLine, MAP_CREDITS, MOBILE_DATA_WORDS, mobileDataDecision, installLine, SETUP_WORDS, setupFraction, setupLine, netBanner, progressWords, rolledBackLine, splashLineFor, startStage, updatedToast, UPDATE_LOG_WORDS, UPDATE_WORDS, versionHeaders,
          versionLine, dataProvenanceLine, now as clockNow } from "@app/core";
 import { createNet, shareFetch, createReportOutbox, createUpdateLog, createUpdateService, phoneNetwork, versionedFetch, httpFeed, gaugeHistory, httpInSeason, httpRunTiming, httpSalmonFeed, manifestDate, noteHeld, followSavedItems, openRunTimingStore,
@@ -654,11 +647,7 @@ export default function App() {
   // The faces are named in @app/ui-native/type.ts and loaded here, so that package stays
   // free of platform imports. Until they land, hold the splash rather than paint the whole
   // app in the system face and reflow it a beat later.
-  const [fontsIn, fontError] = useFonts({
-    BricolageGrotesque_700Bold, BricolageGrotesque_800ExtraBold,
-    Archivo_400Regular, Archivo_500Medium, Archivo_600SemiBold, Archivo_700Bold, Archivo_800ExtraBold,
-    JetBrainsMono_500Medium,
-  });
+  const [fontsIn, fontError] = useFonts(FONT_SOURCES);
   // (T254) BUT NEVER FOREVER: on a slow line the web's font check gives up after 12 s (expo-font's FontObserver) and
   // `useFonts` reports an error, never ready — the app sat on "Loading type…" for good (measured: Slow 3G, a local
   // build). A failed check, or FONT_WAIT_MS with the data already open, draws the app in the system face; the faces swap

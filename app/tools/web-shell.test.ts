@@ -6,21 +6,26 @@
  * gate keeps node:fs out of the packages).
  */
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
-import { mkdirSync, mkdtempSync, readdirSync, readFileSync, rmSync, statSync, writeFileSync } from "node:fs";
+import { existsSync, mkdirSync, mkdtempSync, readdirSync, readFileSync, rmSync, statSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join, relative } from "node:path";
 import { fileURLToPath } from "node:url";
 import { JSDOM } from "jsdom";
 // @ts-expect-error a plain .mjs tool (no types)
-import { bootCoho, cohoFacts, MARKED, shellExport, withBootCoho } from "./web-shell.mjs";
+import { afterPaint as shellAfterPaint, bootCoho, cohoFacts, MARKED, paintFirst, shellExport, withBootCoho } from "./web-shell.mjs";
 import { COHO } from "../packages/ui-native/src/coho.generated";
 import { COHO_WEB } from "../packages/ui-native/src/cohoWeb.generated";
 import { COHO_GROUND_PAD, COHO_WIDTH, cohoHeight } from "../packages/ui-native/src/coho";
 import { THEMES } from "../packages/ui-native/src/theme";
 import { BARE_APP } from "./seo/build";
-import { appDocument, BOOT_COHO } from "./seo/prerender";
+import { afterPaint, appDocument, BOOT_COHO } from "./seo/prerender";
+import { WEB_FONTS } from "../apps/mobile/src/webFonts.generated";
 
 const at = (p: string) => fileURLToPath(new URL(`../${p}`, import.meta.url));
+/** an export's index.html as Expo writes it (the map's two stylesheets, the app's deferred script) */
+const EXPORT_APP = BARE_APP
+  .replace("</head>", `<link rel="preload" href="/_expo/static/css/m-1.css" as="style"><link rel="stylesheet" href="/_expo/static/css/m-1.css"></head>`)
+  .replace("</body>", `<script src="/_expo/static/js/web/index-1.js" defer></script></body>`);
 const F = cohoFacts();
 const URLS = { frame0: { light: "/assets/boot/f-light.png", dark: "/assets/boot/f-dark.png" } };
 const SHELL = bootCoho(F, URLS);
@@ -121,22 +126,55 @@ describe("the web's opening is the coho (T844)", () => {
     expect(BOOT_COHO.source).toBe(MARKED.source);
     const d = { head: "", critical: "", cssHref: "/c.css", preload: [], item: "gnis:1", region: "2", pane: "<p>pane</p>" };
     expect(appDocument(withBootCoho(BARE_APP, SHELL), d)).toBe(appDocument(BARE_APP, d));
+    // (T910) and the paint-first head (the map's stylesheets applied when in, the script preloaded and run after the
+    // first frame) makes no other water page: the same page as from the export before it
+    expect(appDocument(paintFirst(withBootCoho(EXPORT_APP, SHELL)), d)).toBe(appDocument(EXPORT_APP, d));
+  });
+
+  it("(T910) the first paint never waits for the app's script: stylesheets applied when in, the script preloaded and run after the first frame", () => {
+    const t = paintFirst(withBootCoho(EXPORT_APP, SHELL));
+    expect(t).toContain(`<link rel="preload" href="/_expo/static/css/m-1.css" as="style"><link rel="stylesheet" href="/_expo/static/css/m-1.css" media="print" onload="this.media='all'">`);
+    expect(t).not.toMatch(/<link rel="stylesheet" href="[^"]+" ?>|<script src="[^"]+" defer>/);
+    expect(t).toContain(`<link rel="preload" href="/_expo/static/js/web/index-1.js" as="script"></head>`);
+    expect(t).toContain(`${SHELL.body}${afterPaint("/_expo/static/js/web/index-1.js")}`);   // the watcher first (document order)
+    expect(shellAfterPaint("/x.js")).toBe(afterPaint("/x.js"));                            // the water pages' own hand-over
+    expect(paintFirst(t)).toBe(t);
+    expect(() => paintFirst(BARE_APP)).toThrow(/no app script/);
   });
 
   describe("an export put through it", () => {
     let dir = "";
     afterEach(() => { if (dir) rmSync(dir, { recursive: true, force: true }); dir = ""; });
-    it("serves frame 0 from `pnpm splash`'s files under a content hash, and the page points at them", () => {
+    /** an export: its index.html, and a bundle naming `faces` (default: every face the web app loads) */
+    const exported = (faces: Record<string, string> = WEB_FONTS) => {
       dir = mkdtempSync(join(tmpdir(), "web-shell-"));
       mkdirSync(join(dir, "assets"), { recursive: true });
-      writeFileSync(join(dir, "index.html"), BARE_APP);
-      const { frame0 } = shellExport(dir);
+      mkdirSync(join(dir, "_expo/static/js/web"), { recursive: true });
+      writeFileSync(join(dir, "index.html"), EXPORT_APP);
+      writeFileSync(join(dir, "_expo/static/js/web/index-1.js"), `var f=${JSON.stringify(faces)};`);
+      return dir;
+    };
+    it("(T910) carries frame 0 in the page: `pnpm splash`'s files byte for byte, no request", () => {
+      const { frame0 } = shellExport(exported());
       const html = readFileSync(join(dir, "index.html"), "utf8");
       for (const t of ["light", "dark"] as const) {
-        expect(frame0[t]).toMatch(new RegExp(`^/assets/boot/web-frame0-${t}\\.[0-9a-f]{32}\\.png$`));
-        expect(readFileSync(join(dir, frame0[t])).equals(readFileSync(at(`apps/mobile/assets/splash/web-frame0-${t}.png`)))).toBe(true);
+        const png = readFileSync(at(`apps/mobile/assets/splash/web-frame0-${t}.png`));
+        expect(frame0[t]).toBe(`data:image/png;base64,${png.toString("base64")}`);
         expect(html).toContain(`url(${frame0[t]})`);
       }
+      expect(existsSync(join(dir, "assets/boot"))).toBe(false);
+    });
+    it("(T910) puts each face's WOFF2 at the path the bundle names; refuses a bundle without it, and a phone TTF left in", () => {
+      const { fonts } = shellExport(exported());
+      expect(fonts).toEqual(WEB_FONTS);
+      for (const [face, path] of Object.entries(WEB_FONTS))
+        expect(readFileSync(join(dir, path)).equals(readFileSync(at(`tools/seo/fonts/${face}.woff2`)))).toBe(true);
+      rmSync(dir, { recursive: true, force: true });
+      const { Archivo_400Regular: _gone, ...fewer } = WEB_FONTS;
+      expect(() => shellExport(exported(fewer))).toThrow(/does not name \/assets\/fonts\/Archivo_400Regular\./);
+      rmSync(dir, { recursive: true, force: true });
+      exported(); mkdirSync(join(dir, "assets/x"), { recursive: true }); writeFileSync(join(dir, "assets/x/A.ttf"), "");
+      expect(() => shellExport(dir)).toThrow(/still carries 1 TTF/);
     });
   });
 

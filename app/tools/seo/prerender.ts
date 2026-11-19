@@ -216,6 +216,8 @@ export function appDocument(template: string, d: AppDocument): string {
   t = t.replace(/<html lang="[^"]*"/, `<html lang="en-CA"`)
     .replace(/<title>[^<]*<\/title>/, "")
     .replace(/<link rel="preload" href="([^"]+\.css)" as="style">/g, "")
+    // (T910) the export preloads its script (tools/web-shell.mjs `paintFirst`); a water page asks for it after its pane
+    .replace(/<link rel="preload" href="[^"]+\.js" as="script">/g, "")
     .replace(/<link rel="stylesheet" href="([^"]+\.css)">/g, `<link rel="stylesheet" href="$1" media="print" onload="this.media='all'">`)
     .replace(/<noscript>[\s\S]*?<\/noscript>/, "")
     .replace(/<script src="([^"]+)" defer><\/script>/g, (_, src: string) => afterPaint(src))

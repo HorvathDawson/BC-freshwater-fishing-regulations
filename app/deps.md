@@ -122,6 +122,9 @@ off as before; shrinking is a decision of its own (keep rules + a device walk), 
 - `@expo-google-fonts/jetbrains-mono` — figures: readings, percentiles, station ids. One
   weight, ~45 KB. A mono face is not decoration here — flow numbers are read down a column
   and have to align.
+  (T910) The three packages' TTF files are the PHONE's faces (`apps/mobile/src/fonts.native.ts`) and the source of the
+  web's: the web draws the WOFF2 made losslessly from them (`tools/seo/fonts/`, `fonts.web.ts`), from our own
+  `/assets/fonts/` — no TTF in the web export.
 - `maplibre-gl` — the web map renderer. **PINNED TO v5.** `pmtiles@4`'s protocol handler is
   written against maplibre 5's `addProtocol` signature; on maplibre 6 it fails SILENTLY —
   the archive header is fetched, no tile is ever requested, no error is raised, and the map

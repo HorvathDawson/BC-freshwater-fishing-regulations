@@ -366,6 +366,8 @@ describe("T198 hosting config (code half)", () => {
     expect(h).toContain(`Strict-Transport-Security: ${HSTS}`);
     // fixed by T198's hosting contract: one year (31536000 s), immutable, for the hashed assets
     expect(h).toMatch(/\/assets\/\*\n {2}Cache-Control: public, max-age=31536000, immutable/);
+    // (T910) and the web export's hashed script + stylesheets
+    expect(h).toMatch(/\/_expo\/static\/\*\n {2}Cache-Control: public, max-age=31536000, immutable/);
     expect(h).toBe(headersFile());
     expect(built.files.get("404.html")).toContain('content="noindex"');
     expect(built.files.get("404.html")).toContain('href="/region/');

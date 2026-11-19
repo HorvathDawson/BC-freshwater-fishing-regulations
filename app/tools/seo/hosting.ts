@@ -97,6 +97,9 @@ export function headersFile(): string {
   return [
     block("/*", ...all),
     block("/assets/*", "Cache-Control: public, max-age=31536000, immutable"),
+    // (T910) the web export's script and stylesheets: every name carries its content hash (index-<md5>.js), and a repeat
+    // visit revalidated all three (max-age=0, the host's default)
+    block("/_expo/static/*", "Cache-Control: public, max-age=31536000, immutable"),
     block("/share/*", "Cache-Control: public, max-age=86400"),
     block("/.well-known/assetlinks.json", "Content-Type: application/json", "Cache-Control: public, max-age=3600"),
     block("/.well-known/apple-app-site-association", "Content-Type: application/json", "Cache-Control: public, max-age=3600"),
