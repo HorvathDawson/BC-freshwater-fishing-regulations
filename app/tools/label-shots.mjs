@@ -45,6 +45,12 @@ export const PLACES = {
   "hicks-lake": [-121.71, 49.34],
   "stave-pitt": [-122.45, 49.45],
   "okanagan-lake": [-119.5, 49.9],
+  // (T891) braided rivers: the Lillooet at Tipella (the owner's staging shot, MU 2-9), the upper Lillooet above
+  // Pemberton, the lower Lillooet at Lillooet Lake, and the Fraser at Herrling Island — not in the default set
+  "lillooet-tipella": [-122.16, 49.755],
+  "lillooet-upper": [-123.13, 50.53],
+  "lillooet-pemberton": [-122.6, 50.32],
+  "fraser-herrling": [-121.67, 49.27],
 };
 const DEFAULT_PLACES = ["lower-mainland", "osoyoos", "blaine"];
 
