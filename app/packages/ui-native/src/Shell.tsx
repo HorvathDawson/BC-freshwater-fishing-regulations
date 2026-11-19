@@ -49,7 +49,7 @@ import { WaterViewsContext } from "./ViewSwipe";
 import { SharePortContext } from "./SharePortContext";
 import { MenuContext } from "./menu/MenuContext";
 import { BrowseHost } from "./shell/BrowseHost";
-import { GaugeOnlyKey, MapLegend, PairBanner, RunsKey, RunsLegend } from "./shell/MapLegend";
+import { GaugeOnlyKey, MapLegend, mapFootInset, PairBanner, RunsKey, RunsLegend } from "./shell/MapLegend";
 import { HeldKey } from "./shell/HeldKey";
 import { NetBanner } from "./NetBanner";
 import { ShellSheets } from "./shell/ShellSheets";
@@ -197,6 +197,12 @@ export function Shell(p: ShellProps) {
   const railOverLive = Platform.select({ web: true, default: false }) && tabsRail && bottomBarShown(route)
     && (tab === "map" || tab === "conditions" || tab === "runs");
   const tabsH = tabsRail ? 0 : tabsRowH;
+  /**
+   * (T904, owner 2026-11-19) the Conditions key is a CARD floating over the map at the desktop class (`LegendStrip` `card`),
+   * centred and narrow: the map's scale bar, attribution and the gauge-only chip stay at the map's own bottom corners, beside
+   * it, not lifted over it. Elsewhere the foot is a bar across the window and they sit above it.
+   */
+  const footInset = mapFootInset(tabsRail, tab, footH);
   const [runsAt, setRunsAt] = useState<number | null>(null);
   /** (T369 D15) where on that section the Runs tap landed: the water it opens is that tap's */
   const [runsPoint, setRunsPoint] = useState<{ lat: number; lon: number } | null>(null);
@@ -607,7 +613,7 @@ export function Shell(p: ShellProps) {
   const look = frame === null ? { col, lookKey } : browseLook.current ?? { col, lookKey };
   const browseLive = frame === null || (landed && warm) || browseKept
     ? <BrowseHost nav={nav} col={look.col} search={search} rail={rail} palette={palette} theme={theme}
-                  themeName={p.themeName} onTheme={p.onTheme} tiles={tiles} camera={camera} insetTop={barBottom} insetBottom={footH}
+                  themeName={p.themeName} onTheme={p.onTheme} tiles={tiles} camera={camera} insetTop={barBottom} insetBottom={footInset}
                   spots={spots} spotsShown={spotsShown} spotLayer={spotLayer} spotsError={p.spotsError}
                   onRefreshSpots={p.onRefreshSpots} refreshing={p.refreshing} locate={locate} me={me} photos={photos}
                   loader={loader} syncState={syncState} dfoCheckedAt={dfoCheckedAt} sync={sync} onSync={onSync} menu={menu} menuInfo={menuInfo} mapDay={mapDay} regsPrefetch={regsPrefetch}
@@ -670,10 +676,10 @@ export function Shell(p: ShellProps) {
             <MapLegend col={keyCol} conditions={keyTab === "conditions"} palette={palette} theme={theme} mapDay={mapDay} />
           )}
           {/* (T681) the ring's key is a card on the map, above the foot, not a line in the bar */}
-          {showLegendFor(keyTab, keyCol) && keyTab === "conditions" && <GaugeOnlyKey col={keyCol} palette={palette} theme={theme} bottom={footH} />}
+          {showLegendFor(keyTab, keyCol) && keyTab === "conditions" && <GaugeOnlyKey col={keyCol} palette={palette} theme={theme} bottom={footInset} />}
           {/* (T261) the Runs tab's foot: the date slider, the key, the run-size scale and the credit */}
           {/* (T566) held like the key above: leaving Runs, the run key stays until the map has drawn the Map tab's colours */}
-          {route.mode === "browse" && mapTabShown && keyTab === "runs" && !searching && <RunsKey theme={theme} palette={palette} bottom={footH} />}
+          {route.mode === "browse" && mapTabShown && keyTab === "runs" && !searching && <RunsKey theme={theme} palette={palette} bottom={footInset} />}
           {route.mode === "browse" && mapTabShown && keyTab === "runs" && !searching && <RunsLegend col={keyCol} palette={palette} theme={theme} fishImages={p.fishImages} />}
           </>}</HeldKey>
       </>

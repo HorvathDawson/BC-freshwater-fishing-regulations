@@ -17,15 +17,23 @@ import { useCoachTarget } from "../CoachMarks";
 import { View } from "react-native";
 import { Text } from "../Text";
 import { Pressable } from "../Pressable";
-import { useLayoutClass } from "@app/ui";
+import { tabsAsRail, useLayoutClass } from "@app/ui";
 import { RunDayCaption, RunDaySlider, RunSpeciesChips } from "../RunsControls";
 import type { FishImages } from "../regs/types";
-import { LEGEND_RAMP_MAX, LegendCount, LegendRamp, LegendRows, LegendStrip } from "../Chrome";
+import { LEGEND_RAMP_MAX, legendCard, LegendCount, LegendRamp, LegendRows, LegendStrip } from "../Chrome";
 import { BasinDays } from "../BasinDays";
 import { legendColour } from "../LayersSheet";
 import { LEGEND_TEXT, TYPE } from "../type";
 import { changeRampStops, flowRampStops, round, type Palette } from "../theme";
 import type { MapColouring } from "./useMapColouring";
+
+/**
+ * (T904) how far the map's scale bar, attribution and gauge-only chip sit above its bottom edge: the foot's height, except
+ * on the desktop class where every map tab's key is a card floating at the middle (`legendCard`), when they stay at the map's own corners.
+ */
+export function mapFootInset(tabsRail: boolean, tab: string, footH: number): number {
+  return tabsRail && (tab === "conditions" || tab === "map" || tab === "runs") ? 0 : footH;
+}
 
 export function MapLegend({ col, conditions, palette, theme, mapDay }: {
   col: MapColouring;
@@ -36,6 +44,8 @@ export function MapLegend({ col, conditions, palette, theme, mapDay }: {
   mapDay: Date | null;
 }) {
   const { flowParam, horizon, layers, mm, cond } = col;
+  // (T904) the desktop's Conditions key is a card over the map, not a bar under it; phones and narrow web keep the bar
+  const card = tabsAsRail(useLayoutClass());
   const onConditions = mm.onConditions;
   // The readings on screen, as positions on the legend's own scale (sentinels excluded: a state, not a point).
   const visibleMarks = cond.marks;
@@ -75,7 +85,7 @@ export function MapLegend({ col, conditions, palette, theme, mapDay }: {
     </Text>
   );
   const strip = (
-    <LegendStrip palette={palette} full={onConditions} wrap={!onConditions}>
+    <LegendStrip palette={palette} full={onConditions} wrap={!onConditions} card={card}>
       {/* NO QUANTITY SWITCH HERE (owner 2026-10-22): Flow · Level · Temperature is the Layers sheet's Show, one
           choice — a second switch in the strip would be two answers to "where do I change this". The ramp below
           names the quantity shown; the horizon control stays on the map (`horizons`). */}
@@ -166,6 +176,8 @@ export function MapLegend({ col, conditions, palette, theme, mapDay }: {
   if (!fishery) return strip;
   // (T896) NO HEAD, NO RESERVE: both modes are exactly T396's two rows (a phone) or one row (from `WIDE_LEGEND`); Salmon's checked
   // date is the last entry of its key, at the right end of the last row ("Checked Oct 29"; read as "DFO rules checked Oct 29")
+  // (T904) a desktop's card is the strip itself: no bar round it
+  if (card) return strip;
   return (
     <View testID="legend-fishery-bar" style={{ backgroundColor: palette.card, borderTopWidth: 1, borderTopColor: palette.line }}>
       {strip}
@@ -250,12 +262,16 @@ export function RunsLegend({ col, palette, theme, fishImages }: { col: MapColour
   })) : []), [r.facts, r.chosen, r.year, palette.sub]);
   const [open, setOpen] = useState(false);
   const layout = useLayoutClass();
+  // (T904) the desktop's Runs key is a card over the map, as the Map and Conditions keys are
+  const card = tabsAsRail(layout);
   // (T261) the walkthrough points at the species row by this key
   const speciesTarget = useCoachTarget("runs:species");
   const note = !r.problem && r.loading ? RUN_WORDS.loading : null;
   return (
-    <View testID="runs-legend" style={{ borderTopWidth: 1, borderTopColor: palette.line, backgroundColor: palette.card,
-                                        paddingHorizontal: 14, paddingTop: 8, paddingBottom: 8, gap: 6 }}>
+    <View testID={card ? "runs-legend-card" : "runs-legend"}
+          style={card ? { ...legendCard(palette), width: "100%", maxWidth: RUNS_PANEL_MAX[layout] + 28, paddingHorizontal: 14, paddingVertical: 8, gap: 6 }
+                      : { borderTopWidth: 1, borderTopColor: palette.line, backgroundColor: palette.card,
+                          paddingHorizontal: 14, paddingTop: 8, paddingBottom: 8, gap: 6 }}>
       <View style={{ width: "100%", maxWidth: RUNS_PANEL_MAX[layout], alignSelf: "center", gap: 6 }}>
         {/* (T367, owner 2026-11-04) THE SPECIES, in the bar with the rest of run timing (they sat over the map): tap to
             show or hide, long-press for one alone, All for every one; each chip's colour is its band in the histogram */}
