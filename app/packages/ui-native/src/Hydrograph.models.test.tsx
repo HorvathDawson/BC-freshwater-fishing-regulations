@@ -10,7 +10,7 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { CONDITIONS_WORDS } from "@app/core";
-import { buildHydrograph, FORECAST_DASH, OTHER_MODEL_DASH, type BuildInput } from "@app/ui";
+import { buildHydrograph, FORECAST_DASH, OTHER_MODEL_DASH, pickModel, type BuildInput, type ModelPick } from "@app/ui";
 import { Hydrograph, type LegendModel } from "./Hydrograph";
 import { CVD, DARK, LIGHT, type Palette } from "./theme";
 
@@ -78,6 +78,79 @@ describe.each([["light", LIGHT], ["dark", DARK], ["cvd", CVD]] as const)("(T895)
       expect(strokeOf(container, NO_COFFEE.alsoForecasts[0]!.line)).toEqual({ stroke: p.forecast.ELF, dash: FORECAST_DASH.ELF });
       expect(chipOf("ELF")).toEqual({ checked: "true", border: rgb(p.forecast.ELF), stroke: p.forecast.ELF, dash: FORECAST_DASH.ELF });
       expect(chipOf("CLEVER").stroke).toBe(p.forecast.CLEVER);
+    });
+  });
+
+/**
+ * (T895 review) THE SWITCHES DRIVEN THROUGH `pickModel`, as the Conditions panel drives them: the chart drawn from each
+ * pick the way `useChartView` draws it (the chosen model with its ribbon, the others' traces beside it). Switching off the
+ * CHOSEN model hands the ribbon to the next model drawn; the last one off is the measured line alone. At every step each
+ * drawn model wears exactly its own colour and dash, the ribbon wears the chosen model's colour, and a model off is grey.
+ */
+describe.each([["light", LIGHT], ["dark", DARK], ["cvd", CVD]] as const)("(T895) %s: switching off the chosen model",
+  (_name, p: Palette) => {
+    const RUNS: Record<string, { at: string[]; mid: number[] }> = { CLEVER: ahead(8, 14), COFFEE: ahead(8, 16), ELF: ahead(20, 9) };
+    const shapeOf = (pick: ModelPick) => buildHydrograph({
+      values: [10, 11, 12, 12, 13, 13], bands: Array.from({ length: 6 }, () => null), xLabels: [], at,
+      forecast: pick.on && pick.model
+        ? { key: pick.model, ...RUNS[pick.model]!, lo: RUNS[pick.model]!.mid.map((v) => v - 2), hi: RUNS[pick.model]!.mid.map((v) => v + 2) }
+        : null,
+      alsoForecasts: pick.on ? pick.also.map((m) => ({ key: m, ...RUNS[m]! })) : [],
+    });
+    /** What the chart says about each model, and where the ribbon is. */
+    const drawn = (pick: ModelPick) => {
+      cleanup();
+      const shape = shapeOf(pick);
+      const on = (m: string) => !!pick.on && (m === pick.model || pick.also.includes(m));
+      const { container } = render(<Hydrograph shape={shape} palette={p} colour={p.live}
+                                               models={["CLEVER", "COFFEE", "ELF"].map((m) => ({ key: m, label: m, on: on(m),
+                                                                                                onPress: () => {} }))}
+                                               realtime={{ on: !pick.on, onPress: () => {} }} />);
+      const lines = [...(shape.forecast ? [{ key: shape.forecast.key!, line: shape.forecast.line }] : []), ...shape.alsoForecasts];
+      const band = shape.forecast?.band
+        ? [...container.querySelectorAll("path")].find((q) => q.getAttribute("d") === shape.forecast!.band)!.getAttribute("fill") : null;
+      return { band, ribbon: shape.forecast?.key ?? null,
+               traces: Object.fromEntries(lines.map((l) => [l.key, strokeOf(container, l.line)])),
+               chips: Object.fromEntries(["CLEVER", "COFFEE", "ELF"].map((m) => [m, chipOf(m)])) };
+    };
+    const own = (m: "CLEVER" | "COFFEE" | "ELF") => ({ stroke: p.forecast[m], dash: FORECAST_DASH[m] });
+    const offChip = (m: "CLEVER" | "COFFEE" | "ELF") => ({ checked: "false", border: rgb(p.line2), stroke: p.sub, dash: FORECAST_DASH[m] });
+    const onChip = (m: "CLEVER" | "COFFEE" | "ELF") => ({ checked: "true", border: rgb(p.forecast[m]), stroke: p.forecast[m],
+                                                           dash: FORECAST_DASH[m] });
+
+    it("hands the ribbon to the next model drawn, then to none, every model keeping its colour and dash", () => {
+      let pick: ModelPick = { model: "CLEVER", also: ["COFFEE", "ELF"], on: true };
+      let d = drawn(pick);
+      expect(d).toEqual({ band: p.forecast.CLEVER, ribbon: "CLEVER",
+                          traces: { CLEVER: own("CLEVER"), COFFEE: own("COFFEE"), ELF: own("ELF") },
+                          chips: { CLEVER: onChip("CLEVER"), COFFEE: onChip("COFFEE"), ELF: onChip("ELF") } });
+
+      // CLEVER, the chosen one, off: COFFEE takes the ribbon in its own colour; ELF is untouched
+      pick = pickModel(pick, "CLEVER", "CLEVER", true);
+      expect(pick).toEqual({ model: "COFFEE", also: ["ELF"], on: true });
+      d = drawn(pick);
+      expect(d).toEqual({ band: p.forecast.COFFEE, ribbon: "COFFEE", traces: { COFFEE: own("COFFEE"), ELF: own("ELF") },
+                          chips: { CLEVER: offChip("CLEVER"), COFFEE: onChip("COFFEE"), ELF: onChip("ELF") } });
+
+      // COFFEE, now chosen, off: ELF alone, with the ribbon
+      pick = pickModel(pick, "COFFEE", "COFFEE", true);
+      expect(pick).toEqual({ model: "ELF", also: [], on: true });
+      d = drawn(pick);
+      expect(d).toEqual({ band: p.forecast.ELF, ribbon: "ELF", traces: { ELF: own("ELF") },
+                          chips: { CLEVER: offChip("CLEVER"), COFFEE: offChip("COFFEE"), ELF: onChip("ELF") } });
+
+      // the last one off: the measured line alone, no ribbon, no broken line, every switch grey in its own dash
+      pick = pickModel(pick, "ELF", "ELF", true);
+      expect(pick.on).toBe(false);
+      d = drawn(pick);
+      expect(d).toEqual({ band: null, ribbon: null, traces: {},
+                          chips: { CLEVER: offChip("CLEVER"), COFFEE: offChip("COFFEE"), ELF: offChip("ELF") } });
+      expect(screen.getByTestId("chart-model-off").getAttribute("aria-checked")).toBe("true");
+
+      // and back on: CLEVER alone, in its own colour again
+      pick = pickModel(pick, "CLEVER", "ELF", false);
+      d = drawn(pick);
+      expect(d).toMatchObject({ band: p.forecast.CLEVER, ribbon: "CLEVER", traces: { CLEVER: own("CLEVER") } });
     });
   });
 
