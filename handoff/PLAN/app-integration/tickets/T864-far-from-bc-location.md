@@ -2,7 +2,7 @@
 
 Status: OPEN (app chat; before T863's closed/external testing).
 
-Owner 2026-11-18 ~18:05, verbatim: "we need to make sure a tester outside of british columbia doesnt have it glitch out too
+Owner 2026-11-18 ~18:02, verbatim: "we need to make sure a tester outside of british columbia doesnt have it glitch out too
 with location. we could give a little note saying you are far away from bc location will not be usefull etc etc"
 
 Today: the camera is held to `CAMERA_BOUNDS` (core/src/ladder.ts, B.C. plus 8 degrees of slack), the basemap and atlas are
