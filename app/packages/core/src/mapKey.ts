@@ -19,8 +19,6 @@ export const MAP_KEY = {
   notFishing: "Not fishable",
   /** (T759) the issue stripe's entry (Salmon key only): the banner on the water's page says what the rule is */
   issue: "Check rule",
-  /** (T377) the regulations bar's fold: what its button does, whole (the key hidden, the switch stays) */
-  fold: { hide: "Hide the map key", show: "Show the map key" },
   /** (T882, the owner's pick 2026-11-18 ~22:50: "Check DFO") the check colour is DFO's "To be determined" OR a DFO row the
    *  app could not read, and "Check DFO" is true of both; the long label (`SALMON_WORDS.legend.check`) names the two */
   salmon: { open: "Keep salmon", release: "Release only", closed: "Closed", check: "Check DFO" } satisfies Record<SalmonMapStatus, string>,

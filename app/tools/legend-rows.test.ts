@@ -84,8 +84,6 @@ describe("(T396) the regulations key: two rows in both modes, Trout & more fitti
       render(h(MapLegend, { col: col(mode), conditions: false, palette: LIGHT, theme: "light", mapDay: null }));
       expect(screen.getAllByTestId("legend-row").length, mode).toBe(2);
       expect(screen.getAllByTestId("legend-entry").length, mode).toBe(mode === "standard" ? 7 : 6);
-      // (T896) the fold button is on the first key row, at its right end
-      expect(screen.getAllByTestId("legend-row")[0]!.parentElement!.contains(screen.getByTestId("legend-fold")), mode).toBe(true);
       cleanup();
     }
   });
@@ -93,10 +91,7 @@ describe("(T396) the regulations key: two rows in both modes, Trout & more fitti
   it("every row fits 390 dp in Archivo at the legend size — also with a day's date on Closed", () => {
     for (const [mode, day] of [["standard", null], ["standard", new Date("2026-09-30T12:00:00")], ["salmon", null]] as const) {
       render(h(MapLegend, { col: col(mode), conditions: false, palette: LIGHT, theme: "light", mapDay: day }));
-      const [first, ...rest] = rowWidths();
-      // (T896) the first row shares its line with the fold button (32 + the column gap)
-      expect(first!, `${mode} ${day ? "dated" : ""}`).toBeLessThanOrEqual(ROOM - 32 - LEGEND_ROWS.column);
-      for (const w of rest) expect(w, `${mode} ${day ? "dated" : ""}`).toBeLessThanOrEqual(ROOM);
+      for (const w of rowWidths()) expect(w, `${mode} ${day ? "dated" : ""}`).toBeLessThanOrEqual(ROOM);
       cleanup();
     }
   });
@@ -107,8 +102,6 @@ describe("(T759) the Salmon key with the issue stripe's entry added", () => {
     render(h(MapLegend, { col: col("salmon", { sections: new Set([1]) }), conditions: false, palette: LIGHT, theme: "light", mapDay: null }));
     expect(screen.getAllByTestId("legend-row").length).toBe(2);
     expect(screen.getAllByTestId("legend-entry").length).toBe(7);
-    const [first, ...rest] = rowWidths();
-    expect(first!).toBeLessThanOrEqual(ROOM - 32 - LEGEND_ROWS.column);
-    for (const w of rest) expect(w).toBeLessThanOrEqual(ROOM);
+    for (const w of rowWidths()) expect(w).toBeLessThanOrEqual(ROOM);
   });
 });

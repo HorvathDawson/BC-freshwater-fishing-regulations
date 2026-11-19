@@ -117,38 +117,24 @@ export const WIDE_LEGEND = 900;
  * lines tall at a phone's width and the bottom bar does not jump between them. A row too wide for a narrow screen still
  * wraps (nothing is cut).
  */
-export function LegendRows({ rows, oneRow, firstOnly, trailing }: {
-  /** (T896) a control at the right end of the FIRST row (the fold button); that row's entries get the width left of it */
-  trailing?: React.ReactNode;
-  rows: readonly React.ReactNode[];
-  /** (T896) true: the whole key on one row (it was measured to fit the bar); false: the fixed rows. Unset: a wide window */
-  oneRow?: boolean;
-  /** (T896) the folded key keeps its first row, so a folded bar is never blank */
-  firstOnly?: boolean;
-}) {
+export function LegendRows({ rows }: { rows: readonly React.ReactNode[] }) {
   // (T469) A WIDE SCREEN has room for the whole key on one row: the fixed split is for a phone's bar height
   const { width } = useWindowDimensions();
-  if (oneRow ?? width >= WIDE_LEGEND) rows = [rows.flat()];
-  if (firstOnly) rows = rows.slice(0, 1);
+  if (width >= WIDE_LEGEND) rows = [rows.flat()];
   return (
     <View testID="legend-rows" style={{ width: "100%", rowGap: 6 }}>
-      {rows.map((r, i) => {
-        const row = (
-          <View key={i} testID="legend-row" style={{ flexDirection: "row", flexWrap: "wrap", alignItems: "center",
-                                                     columnGap: LEGEND_ROWS.column, rowGap: 6, ...(i === 0 && trailing ? { flex: 1 } : {}) }}>
-            {r}
-          </View>
-        );
-        return i === 0 && trailing
-          ? <View key={i} style={{ flexDirection: "row", alignItems: "center", columnGap: LEGEND_ROWS.column }}>{row}{trailing}</View>
-          : row;
-      })}
+      {rows.map((r, i) => (
+        <View key={i} testID="legend-row" style={{ flexDirection: "row", flexWrap: "wrap", alignItems: "center",
+                                                   columnGap: LEGEND_ROWS.column, rowGap: 6 }}>
+          {r}
+        </View>
+      ))}
     </View>
   );
 }
 
 /** One "29 closed" entry. The count is the point — it says how much map is that colour. */
-export function LegendCount({ palette, colour, n, label, line, dotted, striped, issue, edge, cased, rim, ring, tight, onPress, alone, faded, ghost }:
+export function LegendCount({ palette, colour, n, label, line, dotted, striped, issue, edge, cased, rim, ring, tight, onPress, alone, faded }:
   { palette: Palette; colour: string; n?: number; label: string;
     /**
      * Draw the swatch as a LINE instead of a square — for a key to lines. Every line swatch is
@@ -177,9 +163,7 @@ export function LegendCount({ palette, colour, n, label, line, dotted, striped, 
     /** (T377) a TAPPABLE class: a tap shows it alone on the map (`isolate`), again shows every class */
     onPress?: () => void;
     /** (T377) this class is the one shown alone (its label in ink, the same width); `faded`: another one is (the entry dimmed, as its water) */
-    alone?: boolean; faded?: boolean;
-    /** (T896) a MEASURING COPY: same size, drawn invisibly, not an entry (no test id, hidden from a screen reader, not tappable) */
-    ghost?: boolean }) {
+    alone?: boolean; faded?: boolean }) {
   const lineW = tight ? LEGEND_ROWS.line : 20;
   const row = { flexDirection: "row" as const, alignItems: "center" as const, gap: tight ? LEGEND_ROWS.gap : 7,
                 opacity: faded ? 0.4 : 1 };
@@ -201,17 +185,6 @@ export function LegendCount({ palette, colour, n, label, line, dotted, striped, 
       )}
       <Text style={{ ...TYPE.small, fontSize: LEGEND_TEXT, lineHeight: 20, color: alone ? palette.ink : palette.sub }}>{label}</Text>
   </>);
-  if (ghost) {
-    // the same width, drawn as a blank (the swatch's own parts carry test ids; this is not an entry)
-    const swatchW = edge ? (tight ? LEGEND_ROWS.edge : 22) : line ? lineW : 12;
-    return (
-      <View aria-hidden style={{ ...row, flexShrink: 0 }}>
-        <View style={{ width: swatchW, height: 10 }} />
-        {n !== undefined && <Text style={{ ...TYPE.figure, fontSize: LEGEND_TEXT, color: palette.ink }}>{n}</Text>}
-        <Text style={{ ...TYPE.small, fontSize: LEGEND_TEXT, lineHeight: 20, color: palette.sub }}>{label}</Text>
-      </View>
-    );
-  }
   if (!onPress) return <View testID="legend-entry" style={row}>{body}</View>;
   return (
     <Pressable testID="legend-entry" onPress={onPress} accessibilityRole="button" aria-pressed={!!alone}
