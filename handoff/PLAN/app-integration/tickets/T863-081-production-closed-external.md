@@ -36,3 +36,11 @@ Owner ~18:20, verbatim: "We will also what to delete the old data for old app ve
 being over 10gb"; ~18:23: "That clean up should be automatic" (-> T865, app chat: upload.sh prunes to live + previous; the
 v1 layout goes once the new site is live); ~18:25: "when we flip the switch i will get you to clean that stuff up too"
 (Claude turns off bc-fishing-cron and main's three update workflows at the switch, on his word).
+
+## 2026-11-18 ~20:24: tracks decided (owner)
+Owner, picking option 2 ("iPhone closed, Android internal") in the app chat's dialog, verbatim: "2 for now until I test
+iPhone a bit more my self". So the first production builds go: Android -> Play INTERNAL testing; iPhone -> TestFlight
+INTERNAL (the owner's own testing). Play closed testing and TestFlight external (friends) come after he has tested the
+iPhone build more; ask again then.
+State 20:24: 0.8.1 staging on Play internal (versionCode 36, from d63d6417d); the 0.8.1 web on the staging site (from
+1a8832024, smoke 19/0/0 on r-fc137c4040fa). The TestFlight staging build is the owner's to run (the script says so).

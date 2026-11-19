@@ -18,3 +18,8 @@ Work:
    your location won't be much use here — the map and regulations still work." and keep the map on B.C. Proposal; the
    owner picks the words.
 3. Tests with fake positions; emulator / simulator / web shots for the owner.
+
+## 2026-11-18 ~20:24: wording kept (owner)
+Owner, in the app chat's dialog, picked "Yes, keep it" for: "You're outside British Columbia. This app only covers B.C.
+waters, so your location won't help here — the map and regulations still work." Built on app/t864-far-location
+(66901c3e1, 7f929431c, 44075496d), reviewed (no defects), in app/integrate-081-web.

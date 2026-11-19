@@ -2756,3 +2756,6 @@ More questions (recommended answer first):
   round on 12 north-coast rivers (Bella Coola, Skeena, Nass, Kitimat …). DFO's page defines it the same way. OWNER
   PICK: (A) reword DFO's line to "10 adult chinook … (here an adult is over 62 cm, Jul 1-Dec 31)" or (B) keep DFO's
   line and add "Adult chinook here: over 62 cm (Jul 1-Dec 31)". And: before production, or after?
+- 2026-11-18 ~20:24, owner (app chat dialog): T869 "Reword" + "Yes, before prod" (main chat records it in T869).
+  T863 tracks, verbatim: "2 for now until I test iPhone a bit more my self" -> first production builds go to Play
+  INTERNAL and TestFlight INTERNAL; closed / external testing after he tests the iPhone more. T864's note: "Yes, keep it".
