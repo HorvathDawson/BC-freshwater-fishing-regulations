@@ -129,6 +129,18 @@ export const WEB_SPOTS_WORDS = {
                body: "Hi, I'd like to join the Android test of the Can I Fish This? app. The email on my Google account is: " },
     iphone: { button: "Join the iPhone test", subject: "Join the iPhone test",
               body: "Hi, I'd like to join the iPhone test of the Can I Fish This? app. The email on my Apple ID is: " },
+    /**
+     * (T911, owner 2026-11-19: "a popup with either a straight to email button or a copy email option") what a Join the
+     * test press opens: one line in the owner's voice (T860: I / me) on how to join, "Email me" (the mailto above), "Copy
+     * email" (the address, then "Copied"), and where the clipboard is refused, the address to select, said plainly.
+     */
+    popup: {
+      android: "Email me the address of your Google account and I'll add you to the Android test.",
+      iphone: "Email me the address of your Apple ID and I'll add you to the iPhone test.",
+      email: "Email me", copy: "Copy email", copied: "Copied",
+      refused: "I couldn't copy it from here. Select the address and copy it yourself:",
+      close: "Close",
+    },
   },
   back: "Back to the map",
 } as const;

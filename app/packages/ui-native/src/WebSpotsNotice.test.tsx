@@ -38,19 +38,6 @@ describe("the web's spots notice (T302)", () => {
     expect(open).toHaveBeenLastCalledWith("https://apps.apple.com/app/id6835000455");
     sp.mockRestore(); sa.mockRestore();
   });
-  it("T901: Join the test: a mailto per store to the contact, with the subject and the ask for the account email", () => {
-    const open = vi.spyOn(Linking, "openURL").mockResolvedValue(true as never);
-    render(<WebSpotsNotice palette={LIGHT} contact="support@canifishthis.ca" />);
-    expect(screen.getByText(WEB_SPOTS_WORDS.join.lead)).toBeTruthy();
-    fireEvent.click(screen.getByText("Join the Android test"));
-    const a = open.mock.calls.at(-1)![0] as string;
-    expect(a.startsWith("mailto:support@canifishthis.ca?subject=Join%20the%20Android%20test&body=")).toBe(true);
-    expect(decodeURIComponent(a)).toContain("The email on my Google account is");
-    fireEvent.click(screen.getByText("Join the iPhone test"));
-    const i = open.mock.calls.at(-1)![0] as string;
-    expect(i).toContain("subject=Join%20the%20iPhone%20test");
-    expect(decodeURIComponent(i)).toContain("The email on my Apple ID is");
-  });
   it("T901: no contact address: the press opens Report with that subject; no address and no Report: no press at all", () => {
     const asks: string[] = [];
     render(<WebSpotsNotice palette={LIGHT} onReport={(t) => asks.push(t)} />);

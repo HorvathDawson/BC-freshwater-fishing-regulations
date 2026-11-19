@@ -39,7 +39,7 @@ const T = (theme: "light" | "dark", token: string): string => {
   return v;
 };
 const vars = (th: "light" | "dark"): string =>
-  `--ink:${T(th, "color.ui.ink")};--muted:${T(th, "color.ui.sub")};--line:${T(th, "color.ui.line2")};--accent:${T(th, "color.ui.accent")};` +
+  `--ink:${T(th, "color.ui.ink")};--card:${T(th, "color.ui.card")};--scrim:color-mix(in srgb,${T(th, "color.ui.shadow")} ${Math.round(Number((meta.themes as Record<string, Record<string, unknown>>)[th]?.["opacity.ui.scrim"]) * 100)}%,transparent);--muted:${T(th, "color.ui.sub")};--line:${T(th, "color.ui.line2")};--accent:${T(th, "color.ui.accent")};` +
   `--accent-ink:${T(th, "color.ui.on-accent")};--open:${T(th, "color.status.open")};--closed:${T(th, "color.status.closed")};--soft:${T(th, "color.ui.wash")}`;
 export const SHARE_GROUND = T("light", "color.ui.accent");
 /** (T406) the share card: its size (the size Facebook and X ask for a large-image card) and its face (share.ts loads it) */
@@ -65,6 +65,11 @@ ul{padding-left:1.1rem}li{margin:.25rem 0}li.sub{list-style:none;margin-left:-1.
 .legal{background:var(--soft);border-radius:.5rem;padding:.7rem 1rem;margin:1.5rem 0}
 .cols{columns:2 14rem;list-style:none;padding:0}.cols li{break-inside:avoid}
 .card{border:1px solid var(--line);padding:.8rem 1rem;margin:1rem 0}.card>p{margin:0 0 .5rem}.card .app{border-radius:0;margin:0}.opens{display:flex;flex-wrap:wrap;gap:.5rem}.opens .coming,.opens .joins{flex-basis:100%;margin:0}.opens .stores{flex-basis:100%;display:flex;flex-wrap:wrap;gap:.5rem}.opens .stores .app{flex:1 1 11rem;text-align:center}.card h2{margin-top:0}
+dialog.join{position:fixed;inset:0;margin:auto;width:min(26rem,calc(100vw - 2rem));max-height:calc(100vh - 2rem);overflow:auto;box-sizing:border-box;padding:1rem 1.2rem 1.2rem;border:1.5px solid var(--ink);background:var(--card);color:var(--ink)}
+dialog.join::backdrop{background:var(--scrim)}dialog.join h2{margin:0 2.5rem .6rem 0;font-size:1.15rem}dialog.join p{margin:.4rem 0}
+dialog.join .x{position:absolute;top:.4rem;right:.4rem;width:2.5rem;height:2.5rem;border:0;background:none;color:var(--ink);font-size:1.3rem;cursor:pointer}
+dialog.join .acts{display:flex;flex-wrap:wrap;gap:.5rem;margin:.8rem 0 .2rem}dialog.join .acts .app{flex:1 1 9rem;margin:0;text-align:center;border:0;font:inherit;font-weight:600;cursor:pointer;border-radius:0}
+dialog.join .addr{font-weight:600;user-select:all;word-break:break-all}
 .yb svg{display:block;width:100%;height:auto}.yb text{font-size:10px;fill:var(--muted)}.yb .o{fill:var(--open)}.yb .c{fill:var(--closed)}.yb ul{margin:.4rem 0 0}
 .gv .reading{font-size:1.15rem;margin:.2rem 0}.gv .reading b{font-size:1.9rem}.gv .standing{font-weight:600;margin:.1rem 0}
 .warn{border-left:3px solid var(--accent);padding:.3rem .7rem;background:var(--soft)}
