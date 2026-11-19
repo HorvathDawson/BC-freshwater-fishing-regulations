@@ -1,24 +1,24 @@
 #!/usr/bin/env node
-// STORE SCREENSHOTS (T319) — the store listing's images from the CURRENT staging app, in one command:
+// STORE SCREENSHOTS (T319) — the store listing's images from the web app, in one command:
 //   node tools/store-shots.mjs [--theme light|dark] [--only play-phone,appstore-6.9] [--no-shoot]
-// 1. play-shots.mjs takes the raw screenshots (headless Chrome on staging) for every raw size the targets need, into
-//    <store>/graphics/raw/ (skipped with --no-shoot: the raw shots already there are framed again).
+// 0. store-shots/pick-river.mjs picks the day's river for the conditions split (owner 2026-11-19), into <raw>/river-pick.json.
+// 1. play-shots.mjs takes the raw screenshots (headless Chrome at each store size's viewport and pixel ratio) for every raw
+//    size the targets need, into <store>/graphics/raw/ (skipped with --no-shoot: the raw shots already there are framed again).
+//    EVERY shot is the web app (owner 2026-11-19: "can all images be generated with the webapp?"): the site in
+//    STORE_SHOTS_SITE must be a web export built with EXPO_PUBLIC_STORE_SHOTS=1, which draws the phone's Spots and Help lines
+//    (`@app/ui-native` storeShots.ts); the checks refuse the website's own "get the app" notice.
 // 2. Each raw shot is framed at the store's exact pixel size: a title + one line in the app's own faces
 //    (tools/seo/fonts, the self-hosted WOFF2) and colours (the theme files, no colour literal here), the screen below in a
 //    rounded card. The page is drawn and captured by the same headless Chrome (a file:// page, dpr 1 = the store's pixels).
 // A shot with `compose` is two (or more) captures of the same size stacked into one picture, each a crop (from..to, fractions of
 // its height, summing to 1 so nothing is rescaled) with a label pill on the join: the Conditions map in Change over the map in
 // Forecast; a river's sections on the map over one section's rules. Each part is a real capture, none is drawn.
-// A shot with `"device": true` is a phone-only screen (spots, the app's Help page): it is not shot here but read from
-// <raw>/device-<scene>.png, which store-shots/device-ios.mjs writes from the iOS simulator; it is cropped (its status bar,
-// `cropTop` as a fraction of its height, then to each raw size's shape, from the top) so every card has the same shape.
 // A shot with `only` (target names) is in those targets' sets alone (Play takes at most 8 phone shots, the App Store 10); each
 // set is numbered in its own order.
 // The shot list (order, titles, lines) and the target sizes are tools/store-shots.json: the owner's to pick and reword.
 // Output: <store>/graphics/store/<theme>/<target>/<nn>-<scene>.png. Refuses a missing raw shot (no silent gap).
 import fs from 'node:fs'; import os from 'node:os'; import path from 'node:path';
 import { spawnSync } from 'node:child_process';
-import { PNG } from 'pngjs';
 import { open } from './regs-web/cdp.mjs';
 
 const HERE = path.dirname(new URL(import.meta.url).pathname), APP = path.resolve(HERE, '..');
@@ -37,32 +37,21 @@ const usedBy = (pairs) => shots.filter((s) => pairs.some(([name]) => listFor(nam
 const onRaw = (raw) => usedBy(use.filter(([, t]) => t.raw === raw));
 
 const RAW_PRE = { phone: '', tablet7: 'tablet7-', tablet10: 'tablet10-', iphone69: 'iphone69-', iphone67: 'iphone67-', iphone55: 'iphone55-', ipad13: 'ipad13-' };
-// each raw size's shape (width / height, play-shots.mjs SIZES): a device shot is cropped to it
-const RAW_SHAPE = { phone: 360 / 640, tablet7: 600 / 960, tablet10: 800 / 1280, iphone69: 440 / 956, iphone67: 430 / 932, iphone55: 414 / 736, ipad13: 1024 / 1366 };
 const rawFile = (raw, scene) => path.join(RAW, `${RAW_PRE[raw] ?? `${raw}-`}${scene}.png`);
 
-// every capture the list needs: a shot's own scene, or each part of a composed one; device shots are the simulator's
+// every capture the list needs: a shot's own scene, or each part of a composed one
 const parts = (shot) => (shot.compose ?? [{ scene: shot.scene }]).map((p) => p.scene);
-// a device capture is a whole shot (`device: true`) or one part of a composed one (the part's `device: true`)
-const deviceScenes = (list) => list.flatMap((s) => (s.device ? [s] : (s.compose ?? []).filter((p) => p.device)));
-const needed = [...new Set(usedBy(use).filter((s) => !s.device).flatMap((s) => (s.compose ?? [s]).filter((p) => !p.device).map((p) => p.scene)))];
-const deviceFile = (scene) => path.join(RAW, `device-${scene}.png`);
-// 1. the raw shots, one play-shots run for every raw size wanted
+const needed = [...new Set(usedBy(use).flatMap(parts))];
+// 0. the day's river (the chart and the change map open it), 1. the raw shots, one play-shots run for every raw size wanted
 if (!flag('--no-shoot')) {
+  if (needed.some((sc) => /^1[123]-cond-/.test(sc)) && !process.env.STORE_RIVER) {
+    const p = spawnSync(process.execPath, [path.join(HERE, 'store-shots/pick-river.mjs'), RAW], { stdio: 'inherit', cwd: APP });
+    if (p.status !== 0) throw new Error(`store-shots: pick-river failed (exit ${p.status}); nothing shot`);
+  }
   const sizes = [...new Set(use.map(([, t]) => t.raw))].join(',');
   const r = spawnSync(process.execPath, [path.join(HERE, 'play-shots.mjs'), RAW, '--only', needed.join(',')],
     { stdio: 'inherit', env: { ...process.env, SIZES: sizes }, cwd: APP });
   if (r.status !== 0) throw new Error(`store-shots: play-shots failed (exit ${r.status}); nothing framed`);
-}
-const missingDevice = deviceScenes(usedBy(use)).filter((s) => !fs.existsSync(deviceFile(s.scene))).map((s) => deviceFile(s.scene));
-if (missingDevice.length) throw new Error(`store-shots: device shots missing (store-shots/device-ios.mjs makes them):\n  ${missingDevice.join('\n  ')}`);
-// a device shot, cropped to each raw size's shape: its status bar off the top, then as tall as the shape allows
-for (const raw of new Set(use.map(([, t]) => t.raw))) for (const s of deviceScenes(onRaw(raw))) {
-  const src = PNG.sync.read(fs.readFileSync(deviceFile(s.scene)));
-  const top = Math.round((s.cropTop ?? 0) * src.height), h = Math.min(src.height - top, Math.round(src.width / RAW_SHAPE[raw]));
-  const out = new PNG({ width: src.width, height: h });
-  PNG.bitblt(src, out, 0, top, src.width, h, 0, 0);
-  fs.writeFileSync(rawFile(raw, s.scene), PNG.sync.write(out));
 }
 const missing = use.flatMap(([name, t]) => listFor(name).flatMap((s) => parts(s).map((sc) => rawFile(t.raw, sc)))).filter((f) => !fs.existsSync(f));
 if (missing.length) throw new Error(`store-shots: raw shots missing (run without --no-shoot):\n  ${missing.join('\n  ')}`);

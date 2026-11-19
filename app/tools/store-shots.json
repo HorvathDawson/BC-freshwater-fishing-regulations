@@ -1,5 +1,5 @@
 {
-  "_": "T319 store shots, SET 4 (owner 2026-11-19: ~00:15 \"We lost the split screen shots\", ~00:17 \"Couldn't we combine more together?\", ~00:19 \"The first ones should include one about conditions\"). The same 7 for Play and the App Store. Each `scene` is a play-shots.mjs scene from the web app; `device: true` (a shot or a compose part) is a phone-only screen read from <raw>/device-<scene>.png (store-shots/device-ios.mjs, the iOS simulator; `cropTop` = its status bar); `compose` stacks real captures under dark caption bars (crops from..to of each part's height, per raw size in `at`, plus the bands, sum to 1). `only` (target names) keeps a shot to those sets. Titles: plain words, about 6 at most, no \"we\". The optional 8th (the forecast map by day, 13-cond-forecast) is out: its scene does not find the day buttons on the current UI; recheck on 0.8.2.",
+  "_": "T319 store shots, SET 4 (owner 2026-11-19: ~00:15 \"We lost the split screen shots\", ~00:17 \"Couldn't we combine more together?\", ~00:19 \"The first ones should include one about conditions\"). The same 7 for Play and the App Store. Each `scene` is a play-shots.mjs scene from the web app; every capture is the web app (owner 2026-11-19 ~01:03 \"can all images be generated with the webapp?\": the Spots and Help scenes need a web export built with EXPO_PUBLIC_STORE_SHOTS=1); the rivers split opens the day's river (store-shots/pick-river.mjs); `compose` stacks real captures under dark caption bars (crops from..to of each part's height, per raw size in `at`, plus the bands, sum to 1). `only` (target names) keeps a shot to those sets. Titles: plain words, about 6 at most, no \"we\". The optional 8th (the forecast map by day, 13-cond-forecast) is out: its scene does not find the day buttons on the current UI; recheck on 0.8.2.",
   "shots": [
     {
       "scene": "01-map",
@@ -18,8 +18,8 @@
       "compose": [
         {
           "scene": "11-cond-chart",
-          "from": 0.4,
-          "to": 0.85,
+          "from": 0.36,
+          "to": 0.81,
           "label": "Flow and forecast, against past years",
           "at": {
             "iphone69": [
@@ -159,45 +159,41 @@
       "compose": [
         {
           "scene": "07-saved-spot",
-          "device": true,
-          "cropTop": 0.065,
-          "from": 0.01,
-          "to": 0.58,
+          "from": 0.03,
+          "to": 0.6,
           "label": "A saved spot",
           "at": {
             "iphone69": [
-              0.01,
-              0.58
+              0.03,
+              0.6
             ],
             "tablet7": [
-              0.04,
-              0.66
+              0.02,
+              0.57
             ],
             "tablet10": [
-              0.04,
-              0.66
+              0.02,
+              0.57
             ]
           }
         },
         {
           "scene": "20-help",
-          "device": true,
-          "cropTop": 0.065,
-          "from": 0.55,
-          "to": 0.88,
+          "from": 0.36,
+          "to": 0.69,
           "label": "Works with no signal",
           "at": {
             "iphone69": [
-              0.62,
-              0.95
+              0.46,
+              0.79
             ],
             "tablet7": [
-              0.69,
-              0.97
+              0.22,
+              0.57
             ],
             "tablet10": [
-              0.69,
-              0.97
+              0.42,
+              0.77
             ]
           }
         }

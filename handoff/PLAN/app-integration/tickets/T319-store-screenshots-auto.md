@@ -142,3 +142,38 @@ matchs app stores rules too".
 - **Upload** (owner allowed once the conditions image is fixed): after "0.8.2 is on staging": final render, then
   `play-listing-push.py --commit` with shots + tablets (text included), `appstore-screenshots-push.py --commit` (+ the iPhone
   preview if it passes). A permission check that blocks it: stop and say so.
+
+### 2026-11-19 ~01:03: the river picked from the day's data; every shot from the web app
+Owner, verbatim: "should make the store photo generator choose the stream automatically based on what rivers are doing"
+and "also can all images be generated with the webapp? might be quicker to get photos then without emulator".
+- **The day's river:** `app/tools/store-shots/pick-river.mjs <raw dir>` (run by `store-shots.mjs` before the shoot, or
+  `STORE_RIVER=<item id>` to name one) reads the data host's live gauge feed and the release's gauge table and ranks every
+  gauged WATER: score = move x models x band x near x named (its header says each factor; the swing is the drawn forecast
+  line, CLEVER + COFFEE, against today's flow; a water counts at its weakest gauge, because the card picks its own lead).
+  It writes `river-pick.json` (the pick and the top ten with their numbers) and prints the table. The chart scene opens the
+  pick with every model's chip on (T895 colours them); the 10-day change map is framed on it. Deterministic (ties by item
+  id); `pick-river.test.ts` on fixture data. 2026-11-19 08:05 feed: the Seymour River (gnis:6105, its gauge near North
+  Vancouver; flow 9.76 m3/s, forecast swing 2068 %, all three models, 11 km), then Kanaka Creek, Browns River. Out that day:
+  73 waters whose ELF line ran over 5x the rest (6,125 m3/s on Jump Creek flowing 7.3), 92 under 1 m3/s, 66 with a gauge
+  the feed has no forecast for.
+- **Every screenshot from the web app**, at each store size's viewport and pixel ratio (`play-shots.mjs`). Spots and the
+  app's Help lines come from a web export built with `EXPO_PUBLIC_STORE_SHOTS=1` (`@app/ui-native` `storeShots.ts`: the
+  web then draws the phone's Spots tab and the app's "Offline and updates" lines; never deployed; the checks refuse the
+  website's "get the app" notice). The simulator path for shots is gone (`device-ios.mjs` removed). No screen needed it.
+  The site to shoot is that build of the commit to ship, served locally (`STORE_SHOTS_SITE`); app links (`/?regs=`) replace
+  the `/water/` pages, which only the SEO build has.
+- **The iPhone app preview stays on the simulator.** Apple's rule for previews is footage of the app itself on the
+  device; a recording of the website would be a different product and risks rejection.
+
+### 2026-11-19 ~01:28: the video waits
+Owner, verbatim: "i think we should just ignore the video for now and we will make a much better one before real release."
+This round: no retake, no App Store preview, no change to Play's video. Screenshots (all from the web app, the river picked
+automatically) and the Play listing text still go up once 0.8.2 is on staging.
+
+Web-only set rendered 2026-11-19 ~01:40 from a store-shots web export of the branch (current UI, not 0.8.2), river picked
+automatically (the Seymour): `~/bcfish-session-backup-2026-11-12/store-t319-set4-web/` (`T319-set4-web-phone.png`,
+`T319-set4-web-all.png`, `river-pick.json`, both plans). Final render + upload wait for "0.8.2 is on staging".
+
+**Next chat:** a better preview video comes before the public release (T709). Kept for it: `app/tools/store-video/appstore.mjs`
+(the App Store cut and its rule check), `appstore-screenshots-push.py --preview ... --iphone-footage`, and the simulator
+notes above (recording works; the iOS driver is not written).

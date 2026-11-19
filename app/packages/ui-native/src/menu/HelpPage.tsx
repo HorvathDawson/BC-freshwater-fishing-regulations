@@ -7,6 +7,7 @@
  * the Offline maps and walkthrough buttons, then the refresh button, the bell and the badges. No intro.
  */
 import { Platform, View } from "react-native";
+import { phoneScreensOnWeb } from "../storeShots";
 import { Text } from "../Text";
 import { HELP_MAP_KEY, HELP_WORDS, WALKTHROUGH_WORDS, helpRowAloud, helpVM, type HelpRow, type HelpSection,
          type HelpSwatch } from "@app/core";
@@ -87,7 +88,8 @@ export function HelpPage({ palette, theme, onWalkthrough, onOffline }: {
   const sections = helpVM();
   const key = sections.filter((s) => HELP_MAP_KEY.includes(s.key));
   const rest = sections.filter((s) => !HELP_MAP_KEY.includes(s.key));
-  const where = Platform.OS === "web" ? "web" : "app";
+  // (T319) a store-shots web build shows the app's lines (`storeShots.ts`)
+  const where = Platform.OS === "web" && !phoneScreensOnWeb() ? "web" : "app";
   const F = HELP_WORDS.facts;
   return (
     <>
