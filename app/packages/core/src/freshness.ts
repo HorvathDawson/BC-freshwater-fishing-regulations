@@ -6,7 +6,7 @@
  * line, the menu's Data sources page, the Layers sheet's feed age (ui-native format.ts `ago`), "Like your visit?" and
  * the sync line all read it. There were two, with different wording ("3 h ago" under a reading, "3h ago" in the menu).
  */
-import { localStamp } from "./day";
+import { bcClockWords, bcDayWords, localStamp } from "./day";
 import { STALE_AFTER } from "./staleness";
 
 export type Freshness =
@@ -93,6 +93,16 @@ export function readingAgeParts(f: Freshness, observed: string | null): string[]
     : f.state === "live" ? `checked ${ageWords(f.ageMs)}`
     : `last checked ${ageWords(f.ageMs)}, ${MAY_BE_OLD}`);
   return parts;
+}
+
+/**
+ * (T908, owner 2026-11-19: "read 9:20 PM") THE SHORT AGE, for a line that carries more: when the reading was taken (the B.C. clock; with
+ * the day when it is not `now`'s) and, only when our copy is not live, how old it is. The unknown age says so, never live.
+ */
+export function readingAgeBrief(f: Freshness, observedMs: number | null, now: number): string {
+  const read = observedMs === null ? null : `read ${bcDayWords(observedMs) === bcDayWords(now) ? bcClockWords(observedMs) : `${bcDayWords(observedMs)}, ${bcClockWords(observedMs)}`}`;
+  const copy = f.state === "unknown" ? "age unknown" : f.state === "live" ? (read === null ? `checked ${ageWords(f.ageMs)}` : null) : `last checked ${ageWords(f.ageMs)}, ${MAY_BE_OLD}`;
+  return [read, copy].filter((x): x is string => x !== null).join(" · ");
 }
 
 /** (T585 F14) The line's lead when the reading is the phone's KEPT copy (offline) — the chart's "Offline — … saved on this phone", for the figure. */

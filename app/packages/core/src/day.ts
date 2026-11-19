@@ -126,9 +126,13 @@ export function bcDayWords(ms: number, weekday = false): string {
   return `${weekday ? `${weekdayAbbr(w.getUTCDay())}, ` : ""}${monthAbbr(w.getUTCMonth())} ${w.getUTCDate()}`;
 }
 export const bcWeekdayAbbr = (ms: number): string => weekdayAbbr(bcWall(ms).getUTCDay());
-export function bcStampWords(ms: number): string {
+/** (T908) "9:20 a.m. PT": the B.C. clock alone */
+export function bcClockWords(ms: number): string {
   const f = bcFields(ms);
-  return `${bcDayWords(ms)}, ${f.hour % 12 || 12}:${pad2(f.minute)} ${f.hour < 12 ? "a.m." : "p.m."} ${BC_TIME_LABEL}`;
+  return `${f.hour % 12 || 12}:${pad2(f.minute)} ${f.hour < 12 ? "a.m." : "p.m."} ${BC_TIME_LABEL}`;
+}
+export function bcStampWords(ms: number): string {
+  return `${bcDayWords(ms)}, ${bcClockWords(ms)}`;
 }
 /** "Mon, Nov 9": a CALENDAR day ("YYYY-MM-DD"), said as that day (parsed at B.C. noon, so no zone moves it). */
 export function bcIsoDayWords(isoDay: string): string {

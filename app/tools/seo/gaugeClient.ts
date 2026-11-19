@@ -17,7 +17,7 @@
  * needs (the weather URL, attributions, the sky words) arrives in the page's config.
  */
 import { BC_TIME_LABEL, bandOfWord, bcDayWords, daysNear, FLOW_LEGEND, FORECAST_MODEL_CONTROL, forecastDash, forecastDrawn, forecastModelOption, NORMAL_BAND, NO_MODEL_PICK, pickModel, realtimeOnly, REALTIME_ONLY, bcIsoDayWords, bcMidnight, bcStampWords, bcWeekdayAbbr, figure, freshness, layoutDayMarks, niceTicks,
-         normalRangeOf, observedTrend, readingAgeWords, standingNowLine } from "@app/core";
+         normalRangeOf, observedTrend, readingAgeBrief, gaugeSummaryLine, standingNowLine } from "@app/core";
 
 export interface GaugeConfig {
   readonly station: string;
@@ -66,37 +66,38 @@ export function readingHtml(f: Facts, now: number): string {
       `<p class="warn">${f.atText ? `This gauge last reported ${esc(f.atText)}.` : "The live feed has no reading for this gauge."} ` +
       "It may be down, seasonal, or late reporting.</p>";
   }
-  // (T622 G7, G8, G22, G24) THE APP'S LINE: the reading's time as the app says it, and how old OUR copy is, judged by core's
-  // `freshness` (the age of the feed's copy, not of the reading) -- "This gauge's own reading · observed … · checked 10 min ago"
+  // (T622 G7, G8, G22, G24) the reading's time and how old OUR copy is, judged by core's `freshness` (the age of the feed's copy,
+  // not of the reading). (T908, owner 2026-11-19) three rows: the headline with the figure, the colour bar, one small line
   const copy = freshness(f.fetchedAt ? Date.parse(f.fetchedAt) : null, now, f.staleAfterMs);
-  const what = f.parameter === "level" ? "water level" : "flow";
-  return nowLineHtml(f, now) +
-    `<p class="reading"><b>${esc(f.value)}</b> ${what}</p>` +
-    `<p class="${copy.state === "live" ? "asof" : "warn"}">${esc(readingAgeWords(copy, f.atText))}</p>`;
+  const summary = gaugeSummaryLine(rankOf(f), f.change, readingAgeBrief(copy, f.at ? Date.parse(f.at) : null, now));
+  return `<div class="headrow">${headlineHtml(f, now)}<p class="reading" aria-label="${f.parameter === "level" ? "water level" : "flow"}"><b>${esc(f.value)}</b></p></div>` +
+    colourBarHtml(f) + `<p class="${copy.state === "live" ? "asof" : "warn"} meta">${esc(summary)}</p>`;
 }
 
 const DAY = 86_400_000;
 
+/** core's rank half of the facts' standing line ("lower than 9 days in 10 for the date"), or null */
+function rankOf(f: Facts): string | null {
+  if (!f.standing) return null;
+  const lead = f.standing.split(" · ")[0]!;
+  return bandOfWord(lead) === null ? null : f.standing.slice(lead.length + 3) || null;
+}
+
 /**
- * (T908, owner 2026-11-19) THE FIRST THING ON THE PAGE: "Above normal for Nov 19 · rising", in the colour the map gives that
- * standing (the Flow vs. past years ramp; css `.b-<band>`). The band word is the one core said in the facts' standing line
- * (`bandOfWord` reads it back to its band); the day and the trend word are core's (`standingNowLine`, `observedTrend`); the
- * trend is the measured line over the last day. A standing that is none of the six bands is shown as core said it; no
- * standing, nothing. The forecast's expected change (core's words, in the facts) follows when there is one.
+ * (T908, owner 2026-11-19) THE HEADLINE: "Above normal for Nov 19 · rising", in the colour the map gives that standing (the Flow vs.
+ * past years ramp; css `.b-<band>`). The band word is the one core said in the facts' standing line (`bandOfWord` reads it back to its
+ * band); the day and the trend word are core's (`standingNowLine`, `observedTrend`); the trend is the measured line over the last
+ * day. A standing that is none of the six bands is shown as core said it; no standing, nothing.
  */
-export function nowLineHtml(f: Facts, now: number): string {
-  if (!f.standing) return "";
+export function headlineHtml(f: Facts, now: number): string {
+  if (!f.standing) return "<span></span>";
   const lead = f.standing.split(" · ")[0]!, band = bandOfWord(lead);
-  if (band === null) return `<p class="standing">${esc(f.standing)}</p>`;
+  if (band === null) return `<p class="standing nowline">${esc(f.standing)}</p>`;
   const last = f.week[f.week.length - 1];
   let before: [number, number] | undefined;
   if (last) for (const p of f.week) if (p[0] <= last[0] - DAY && (!before || p[0] > before[0])) before = p;
   const trend = last && before ? observedTrend(before[1], last[1]) : null;
-  const rank = f.standing.slice(lead.length + 3);
-  const bar = colourBarHtml(f);   // core's rank half of the standing line, kept beside the line
-  return `<p class="standing nowline b-${band}">${esc(standingNowLine(lead, bcDayWords(now), trend))}</p>` +
-    (rank ? `<p class="small rank">${esc(rank.charAt(0).toUpperCase() + rank.slice(1))}</p>` : "") +
-    bar + (f.change ? `<p class="small">Expected change: ${esc(f.change)}.</p>` : "");
+  return `<p class="standing nowline b-${band}">${esc(standingNowLine(lead, bcDayWords(now), trend))}</p>`;
 }
 
 /**
@@ -111,7 +112,6 @@ export function colourBarHtml(f: Facts): string {
   const title = FLOW_LEGEND.title[f.parameter === "level" ? "level" : "discharge"];
   const pct = (x: number) => `${Math.round(x * 1000) / 10}%`;
   return `<div class="ramp" role="img" aria-label="${esc(`${FLOW_LEGEND.scale(title, FLOW_LEGEND.low, FLOW_LEGEND.high, FLOW_LEGEND.mid)}. This gauge: ${daysNear(p)}`)}">` +
-    `<p class="small ramptitle">${esc(title)}</p>` +
     `<div class="rampbar"><span>${esc(FLOW_LEGEND.low)}</span><div class="bar"><i class="mark" style="left:${pct(p)}"></i></div><span>${esc(FLOW_LEGEND.high)}</span></div>` +
     `<div class="rampnormal"><div style="left:${pct(NORMAL_BAND[0])};width:${pct(NORMAL_BAND[1] - NORMAL_BAND[0])}">${esc(FLOW_LEGEND.mid)}</div></div></div>`;
 }

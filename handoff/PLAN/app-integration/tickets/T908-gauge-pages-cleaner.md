@@ -44,3 +44,10 @@ NEEDS THE FEEDS WORKER REDEPLOYED (main chat; never done here): `cardFacts` now 
 `horizonDays`) and `percentile` (CARD_REV 3 so every card is redrawn). Until then the page shows the one `forecast` it was given and NO colour bar
 (no percentile, nothing rendered). Pictures use a LOCAL facts file: live 08MH001 / 08MG013 facts plus the two new fields, with COFFEE
 SYNTHESIZED (0.9 x CLEVER, 5 days), because the live feed's cards carry one model. Pictures: /private/tmp/claude-502/-Users-dawson-horvath-dev-personal-BC-freshwater-fishing-regulations/1db4ea05-d81d-4b07-a925-fc0b9cdbe701/scratchpad/t908-shots/r2-contact-sheet-390.png, /private/tmp/claude-502/-Users-dawson-horvath-dev-personal-BC-freshwater-fishing-regulations/1db4ea05-d81d-4b07-a925-fc0b9cdbe701/scratchpad/t908-shots/r2-contact-sheet-1440.png.
+
+## Round 3 (owner 2026-11-19, verbatim: "a lot of text up in this area we coudl do better still")
+Header now three rows: (1) "Below normal for Nov 19 · steady" with the big "24.1 m3/s" on the same row (wraps under on a phone); (2) the colour bar, no
+visible title (its accessible name still says "Flow vs. past years, this date"); (3) ONE small grey line from core (`gaugeSummaryLine`, `readingAgeBrief`,
+standing.ts / freshness.ts): "Lower than 9 days in 10 for the date · rises to 2x (Fri 27 Nov) · read 9:20 a.m. PT" (a copy that is not live adds "last
+checked 3h ago, may be out of date"). Words stay core's, so it says "days in 10" and "(Fri 27 Nov)", not the owner's "years" / "by" (T598 rank wording; `changeShort`).
+"This gauge's own reading" dropped: this page's reading is always the gauge's own. Pinned whole in gaugeClient.test. Pictures: /private/tmp/claude-502/-Users-dawson-horvath-dev-personal-BC-freshwater-fishing-regulations/1db4ea05-d81d-4b07-a925-fc0b9cdbe701/scratchpad/t908-shots/r3-contact-sheet-390-header.png, /private/tmp/claude-502/-Users-dawson-horvath-dev-personal-BC-freshwater-fishing-regulations/1db4ea05-d81d-4b07-a925-fc0b9cdbe701/scratchpad/t908-shots/r3-contact-sheet-1440-header.png (and r3-*-full shots).

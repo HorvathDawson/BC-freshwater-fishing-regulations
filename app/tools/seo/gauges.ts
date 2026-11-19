@@ -74,13 +74,13 @@ export const CORE_INLINE: readonly (readonly [file: string, names: readonly stri
   ["flow.ts", ["KNOTS", "standing", "NORMAL_BAND"]],
   // (T908) the forecast options: the models' dashes and the app's own toggle logic (change.ts)
   ["conditions.ts", ["REALTIME_ONLY", "FORECAST_MODEL_CONTROL", "forecastModelOption", "FLOW_LEGEND"]],
-  ["day.ts", ["pad2", "HOUR_MS", "bcWall", "fromBcWall", "bcMidnight", "bcFields", "bcDayWords", "bcWeekdayAbbr", "bcStampWords", "bcIsoDayWords"]],
+  ["day.ts", ["pad2", "HOUR_MS", "bcWall", "fromBcWall", "bcMidnight", "bcFields", "bcDayWords", "bcWeekdayAbbr", "bcStampWords", "bcClockWords", "bcIsoDayWords"]],
   ["chartTicks.ts", ["niceTicks"]],
   ["chartMarks.ts", ["RULE_GAP", "LABEL_GAP", "IMPORTANCE", "MARK_ROWS", "markTextWidth", "meets", "layoutDayMarks"]],
   ["alerts.ts", ["normalRangeOf"]],
   ["change.ts", ["STEADY_RATIO", "OBSERVED_TREND", "observedTrend", "FORECAST_DASH", "OTHER_MODEL_DASH", "forecastDash", "NO_MODEL_PICK", "pickModel", "realtimeOnly", "forecastDrawn"]],
-  ["freshness.ts", ["AGO_WORDS", "ageWords", "freshness", "MAY_BE_OLD", "READING_LEAD", "readingAgeParts", "readingAgeWords"]],
-  ["standing.ts", ["figure", "BAND_WORDS", "bandOfWord", "standingNowLine", "side", "daysShort", "daysNear"]],
+  ["freshness.ts", ["AGO_WORDS", "ageWords", "freshness", "MAY_BE_OLD", "READING_LEAD", "readingAgeParts", "readingAgeWords", "readingAgeBrief"]],
+  ["standing.ts", ["figure", "BAND_WORDS", "bandOfWord", "standingNowLine", "gaugeSummaryLine", "side", "daysShort", "daysNear"]],
 ];
 const plain = (ts_: string): string =>
   ts.transpileModule(ts_, { compilerOptions: { target: ts.ScriptTarget.ES2020, module: ts.ModuleKind.ESNext, removeComments: true } }).outputText

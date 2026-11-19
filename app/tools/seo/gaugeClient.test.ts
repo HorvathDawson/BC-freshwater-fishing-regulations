@@ -4,7 +4,7 @@
  * its failure reports held to the feeds worker's own crash validator (wire parity).
  */
 import { describe, expect, it } from "vitest";
-import { FLOW_LEGEND, NORMAL_BAND, REALTIME_ONLY, forecastDash, bcDayWords, bcIsoDayWords, bcStampWords, CONDITIONS_WORDS, figure, freshness, readingAgeWords } from "@app/core";
+import { FLOW_LEGEND, NORMAL_BAND, REALTIME_ONLY, forecastDash, bcDayWords, bcIsoDayWords, bcStampWords, CONDITIONS_WORDS, figure, freshness, readingAgeBrief } from "@app/core";
 import { validateCrash } from "../../workers/feeds/src/crashes";
 import { chartSvg, colourBarHtml, crashReport, forecastHtml, gaugePage, isEnvironment, readingHtml, weatherHtml, type Facts } from "./gaugeClient";
 
@@ -25,18 +25,19 @@ const facts = (o: Partial<Facts> = {}): Facts => ({
 describe("T487 the gauge page's live half", () => {
   it("a fresh reading: value, standing, and the APP'S age line; a copy past its time says so in the app's words; no reading is said, never blank", () => {
     const fresh = text(readingHtml(facts(), NOW));
-    expect(fresh).toMatch(/Much below normal for Nov 8 · steady Lower than almost every day on record for the date Expected change: rises to 1\.8× \(Tue\)\. 22\.2 m³\/s flow This gauge's own reading · observed 2026-11-08 at 04:00 PT · checked 10 min ago/);
-    expect(readingHtml(facts(), NOW)).not.toContain("class=\"warn\"");
+    // (T908, owner 2026-11-19: "a lot of text up in this area") three rows: the headline with the figure; the bar; ONE small line, pinned whole
+    expect(fresh).toBe(" Much below normal for Nov 8 · steady 22.2 m³/s Lower than almost every day on record for the date · rises to 1.8× (Tue) · read 4:00 a.m. PT ");
+    expect(readingHtml(facts(), NOW)).not.toContain("class=\"warn");
     // (G7) the reading itself is old but OUR copy is not: the app's rule says nothing is wrong
-    expect(readingHtml(facts({ at: "2026-11-07T15:00:00Z" }), NOW)).not.toContain("class=\"warn\"");
+    expect(readingHtml(facts({ at: "2026-11-07T15:00:00Z" }), NOW)).not.toContain("class=\"warn");
     // our copy is 3 hours old: the app's words, "may be out of date"
     const old = readingHtml(facts({ fetchedAt: "2026-11-08T09:00:00Z" }), NOW);
-    expect(text(old)).toMatch(/observed 2026-11-08 at 04:00 PT · last checked 3h ago, may be out of date/);
-    expect(old).toContain('class="warn"');
+    expect(text(old)).toMatch(/read 4:00 a\.m\. PT · last checked 3h ago, may be out of date/);
+    expect(old).toContain('class="warn meta"');
     expect(text(readingHtml(facts({ fetchedAt: null }), NOW))).toMatch(/age unknown/);
     // the line IS core's, whatever the facts
     const f = facts({ fetchedAt: "2026-11-06T12:00:00Z" });
-    expect(text(readingHtml(f, NOW))).toContain(readingAgeWords(freshness(Date.parse(f.fetchedAt!), NOW, f.staleAfterMs), f.atText));
+    expect(text(readingHtml(f, NOW))).toContain(readingAgeBrief(freshness(Date.parse(f.fetchedAt!), NOW, f.staleAfterMs), Date.parse(f.at!), NOW));
     expect(text(readingHtml(f, NOW))).toContain("last checked 2d ago");   // G22: the app's "2d ago" / "1h ago", not "75 minutes ago"
     expect(text(readingHtml(facts({ value: null, reading: null, at: null, atText: null }), NOW))).toMatch(/No current reading The live feed has no reading for this gauge/);
     expect(readingHtml(facts(), NOW)).not.toMatch(/percentile/i);
@@ -44,7 +45,7 @@ describe("T487 the gauge page's live half", () => {
 
   it("the forecast: drawn and named; past its working-day line, out of date; none, said", () => {
     expect(text(forecastHtml(facts(), NOW))).toMatch(/CLEVER \(dashed\): issued 2026-11-07/);
-    expect(text(readingHtml(facts(), NOW))).toContain("Expected change: rises to 1.8× (Tue).");
+    expect(text(readingHtml(facts(), NOW))).toContain("rises to 1.8× (Tue)");
     expect(text(forecastHtml(facts(), NOW + 2 * 86_400_000))).toMatch(/likely out of date/);
     expect(text(forecastHtml(facts({ forecast: null }), NOW)).trim()).toBe("No flow forecast for this gauge.");
     expect(text(forecastHtml(facts({ forecast: null, forecastOld: { model: "ELF", issued: "Oct 30" } }), NOW))).toMatch(/latest ELF run \(issued Oct 30\) is likely out of date/);
@@ -108,7 +109,7 @@ describe("T487 the gauge page's live half", () => {
     };
     const ok = page(200);
     await ok.run();
-    expect(text(ok.dom.window.document.getElementById("gauge-now")!.innerHTML)).toMatch(/22\.2 m³\/s flow/);
+    expect(text(ok.dom.window.document.getElementById("gauge-now")!.innerHTML)).toMatch(/22\.2 m³\/s/);
     expect(ok.dom.window.document.getElementById("gauge-chart")!.innerHTML).toContain("<svg");
     expect(text(ok.dom.window.document.getElementById("gauge-weather")!.innerHTML)).toMatch(/5°C Cloud/);
     expect(ok.sent).toEqual([]);
