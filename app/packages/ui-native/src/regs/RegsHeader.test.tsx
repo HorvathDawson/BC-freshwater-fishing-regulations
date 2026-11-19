@@ -143,8 +143,10 @@ describe("<RegsHeader>", () => {
 });
 
 describe("(T878) the day's sun under the date pill", () => {
-  const SUN = { text: "05:07–21:52 PT", aria: "Sunrise 5:07, sunset 21:52 PT" };
-  const mountSun = (sun: { text: string; aria: string } | null, side = false) =>
+  const SUN = { text: "5:07–21:52", aria: "Sunrise 5:07, sunset 21:52 PT", rise: "5:07", set: "21:52" };
+  // (T878 look round) the line's words in whichever look SUN_LOOK picks: the range, or the two times as two parts
+  const WORDS_DRAWN = ["5:07–21:52", "5:0721:52"];
+  const mountSun = (sun: typeof SUN | null, side = false) =>
     render(<RegsHeader header={headerOf("vedder_1010")} palette={LIGHT} tabs={createTabStore()} onDate={() => {}} onTab={() => {}}
                        side={side} sun={sun} />);
   it("is right under the name row (never in it: it takes no width from the name), after the date pill, the sun icon and the whole line, its label the whole sentence", () => {
@@ -153,8 +155,9 @@ describe("(T878) the day's sun under the date pill", () => {
     expect(within(title).queryByTestId("regs-sun")).toBeNull();
     const sun = within(screen.getByTestId("regs-header")).getByTestId("regs-sun");
     expect(title.nextElementSibling).toBe(sun);
-    expect([sun.textContent, sun.getAttribute("aria-label")]).toEqual(["05:07–21:52 PT", "Sunrise 5:07, sunset 21:52 PT"]);
-    expect(within(sun).getByTestId("icon-sun")).toBeTruthy();
+    expect(sun.getAttribute("aria-label")).toBe("Sunrise 5:07, sunset 21:52 PT");
+    expect(WORDS_DRAWN).toContain(sun.textContent);
+    expect(within(sun).queryAllByTestId(/^icon-sun/).length).toBeGreaterThan(0);
     expect(screen.getByTestId("regs-date").compareDocumentPosition(sun) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
     // not inside the pill: the pill's own label stays the day's, a press on it still asks "Which day?"
     expect(screen.getByTestId("regs-date").contains(sun)).toBe(false);
@@ -168,7 +171,8 @@ describe("(T878) the day's sun under the date pill", () => {
   it("the desktop side column: the line right under its date pill", () => {
     render(<RegsSide header={headerOf("vedder_1010")} store={createTabStore()} palette={LIGHT} onDate={() => {}} onTab={() => {}} sun={SUN} />);
     const sun = screen.getByTestId("regs-sun");
-    expect([sun.textContent, sun.getAttribute("aria-label")]).toEqual(["05:07–21:52 PT", "Sunrise 5:07, sunset 21:52 PT"]);
+    expect(sun.getAttribute("aria-label")).toBe("Sunrise 5:07, sunset 21:52 PT");
+    expect(WORDS_DRAWN).toContain(sun.textContent);
     // after the pill, in the pill's own block (before the section list)
     expect(screen.getByTestId("regs-date").compareDocumentPosition(sun) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
     expect(sun.compareDocumentPosition(screen.getByTestId("regs-section-list")) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();

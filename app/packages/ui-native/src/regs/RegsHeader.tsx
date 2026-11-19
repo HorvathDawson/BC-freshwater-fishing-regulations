@@ -12,7 +12,7 @@
  * on every view of the water), so the name and the place label start at the gutter, not after a 44 px back (the
  * prototype's 56). The name row itself is the frame's `WaterTitle` (T44), the box every view's name sits in.
  */
-import { useState, useSyncExternalStore } from "react";
+import { useEffect, useState, useSyncExternalStore } from "react";
 import { View } from "react-native";
 import { Text } from "../Text";
 import { WORDS, type ClassBadgeVM, type HeaderVM, type SunDay, type Tab } from "@app/core";
@@ -65,14 +65,17 @@ export function RegsHeader({ header: h, palette, tabs, onDate, onTab, onTerm, si
    *  desktop the side column draws it under its pill); null: nothing drawn */
   sun?: SunDay | null;
 }) {
+  const [dateInset, setDateInset] = useState(6);   // (T878) until the pill has laid out: its padding (the column's edge)
   return (
     <View testID="regs-header" style={{ backgroundColor: palette.card, borderBottomWidth: 1.5, borderBottomColor: palette.ink }}>
       {/* THE NAME ROW is the water frame's (T44): the same box on every view of the water, the pill in it */}
       <WaterTitle name={h.name} palette={palette} source={nameSource}>
         {h.classed && <ClassBadge b={h.classed} palette={palette} onTerm={onTerm} />}
-        {!side && <DatePill h={h} palette={palette} onDate={onDate} />}
+        {!side && <DatePill h={h} palette={palette} onDate={onDate} onDateInset={setDateInset} />}
       </WaterTitle>
-      {!side && !!sun && <SunLine sun={sun} palette={palette} align="end" />}
+      {/* the name row's right padding (8) + the date's inset in the pill (measured whether or not the sun has come yet: the
+          point is read after the pill has laid out, and a layout fires once) */}
+      {!side && !!sun && <SunLine sun={sun} palette={palette} align="end" dateInset={8 + dateInset} />}
       {/* (T878) no place label (a water of one part, Babine Lake — Main Body): no empty slot under the name */}
       {!!h.place && <Place place={h.place} palette={palette} />}
       {!side && <TabRow h={h} tabs={tabs} palette={palette} onTab={onTab} />}
@@ -103,21 +106,56 @@ export function ClassBadge({ b, palette, onTerm }: { b: ClassBadgeVM; palette: P
 }
 
 /**
- * (T878, owner 2026-11-18: "There seems to be a ton of space used by the sunset/rise could we maybe move it to top of
- * something?", picked "Under the date") THE DAY'S SUN under the date pill: the sun icon and "05:07–21:52 PT" (core's
- * `SunDay`), read "Sunrise 5:07, sunset 21:52 PT". In the header it is its own short line right under the name row, its
- * right edge on the date's (`align` "end"): never in the name row itself, so it never takes width from the name (a
- * column as wide as the line cost a long name a line at 360 px). In the desktop side column, under the pill there,
- * its left edge on the pill's (`align` "start").
+ * (T878) THE LOOK of the day's sun under the date — the owner picks one (2026-11-18 ~22:58: "sunrise/set should be a bit
+ * better in same spot"); the pick is this one line, then the other two go:
+ *   1  the sun icon and "9:01–17:17" in the date's own colour and size, right edge on the date's
+ *   2  two small parts, the sunrise icon "9:01" and the sunset icon "17:17", the same alignment
+ *   3  a small rounded chip: the sun icon and "9:01–17:17", right edge on the date's
  */
-export function SunLine({ sun, palette, align }: { sun: SunDay; palette: Palette; align: "start" | "end" }) {
+const SUN_LOOK = 1 as 1 | 2 | 3;
+
+/**
+ * (T878, owner 2026-11-18: "There seems to be a ton of space used by the sunset/rise could we maybe move it to top of
+ * something?", picked "Under the date") THE DAY'S SUN under the date pill (core's `SunDay`, read "Sunrise 9:01, sunset
+ * 17:17 PT"). In the header it is its own short line right under the name row, its right edge on the date's ("Nov 18":
+ * `dateInset`, its distance from the row's right edge, measured by the pill), `align` "end": never in the name row itself,
+ * so it never takes width from the name (a column as wide as the line cost a long name a line at 360 px). In the desktop
+ * side column, under the pill there, its icon under the pill's dot (`align` "start").
+ */
+export function SunLine({ sun, palette, align, dateInset = 14 }: { sun: SunDay; palette: Palette; align: "start" | "end";
+                                                                   /** "end": the date's right edge from the row's (px) */
+                                                                   dateInset?: number }) {
+  const words = [TYPE.metaSemi, { lineHeight: 14.98, color: palette.sub }];
+  const look = SUN_LOOK;
+  const body = look === 2 ? (
+    <>
+      <View style={{ flexDirection: "row", alignItems: "center", gap: 2 }}>
+        <Icon name="sunrise" colour={palette.sub} size={12} />
+        <Text maxFontSizeMultiplier={CAPPED_SCALE} numberOfLines={1} style={words}>{sun.rise}</Text>
+      </View>
+      <View style={{ flexDirection: "row", alignItems: "center", gap: 2, marginLeft: 6 }}>
+        <Icon name="sunset" colour={palette.sub} size={12} />
+        <Text maxFontSizeMultiplier={CAPPED_SCALE} numberOfLines={1} style={words}>{sun.set}</Text>
+      </View>
+    </>
+  ) : (
+    <>
+      <Icon name="sun" colour={palette.sub} size={12} />
+      <Text maxFontSizeMultiplier={CAPPED_SCALE} numberOfLines={1} style={words}>{sun.text}</Text>
+    </>
+  );
+  const chip = look === 3
+    ? { backgroundColor: palette.card, borderWidth: 1, borderColor: palette.line, borderRadius: 999, paddingHorizontal: 7, paddingVertical: 1 }
+    : {};
+  // a chip's own padding and border sit outside the date's edge, so its words line up with the date's
+  const pad = look === 3 ? 8 : 0;
   return (
     <View testID="regs-sun" accessible accessibilityLabel={sun.aria}
-          style={{ flexDirection: "row", alignItems: "center", gap: 3, alignSelf: align === "end" ? "flex-end" : "flex-start",
-                   // "end": the name row's right padding (8) + the pill's (6), tucked up into the row's slack under the date
-                   ...(align === "end" ? { paddingRight: 14, marginTop: -4, paddingBottom: 4 } : { paddingHorizontal: 6, marginTop: -6 }) }}>
-      <Icon name="sun" colour={palette.sub} size={11} />
-      <Text maxFontSizeMultiplier={CAPPED_SCALE} numberOfLines={1} style={[TYPE.metaSemi, { lineHeight: 14.98, color: palette.sub }]}>{sun.text}</Text>
+          style={{ flexDirection: "row", alignItems: "center", gap: 3, alignSelf: align === "end" ? "flex-end" : "flex-start", ...chip,
+                   // "end": tucked up into the name row's slack under the date
+                   ...(align === "end" ? { marginRight: Math.max(0, dateInset - pad), marginTop: -4, marginBottom: 4 }
+                                       : { marginLeft: Math.max(0, 6 - pad), marginTop: -6 }) }}>
+      {body}
     </View>
   );
 }
@@ -126,19 +164,30 @@ export function SunLine({ sun, palette, align }: { sun: SunDay; palette: Palette
  * The date pill: the status dot, "Today" / the weekday and the set's chevron (`expand`, T186: the typed ▾ it replaced
  * was a glyph in a word) over the date; a press asks "Which day?" (T49).
  */
-export function DatePill({ h, palette, onDate }: { h: HeaderVM; palette: Palette; onDate: () => void }) {
+export function DatePill({ h, palette, onDate, onDateInset }: { h: HeaderVM; palette: Palette; onDate: () => void;
+  /** (T878) where the date's ("Nov 18") right edge is, in px from the pill's right edge — for the sun line under it */
+  onDateInset?: (px: number) => void;
+}) {
   const dot = h.dot === "open" ? palette.open : h.dot === "closed" ? palette.closed : palette.sub;
+  // (T878) layout only: the words column's width and the date's own box (it hugs its words), so the inset is the column's
+  // spare room right of the date plus the pill's own padding
+  const [col, setCol] = useState<number | null>(null);
+  const [date, setDate] = useState<{ x: number; w: number } | null>(null);
+  useEffect(() => {
+    if (onDateInset && col !== null && date !== null) onDateInset(6 + Math.max(0, col - (date.x + date.w)));
+  }, [col, date?.x, date?.w]);   // eslint-disable-line react-hooks/exhaustive-deps -- the measures
   return (
     <CoachSpot k="regs:date">
     <RegsPress testID="regs-date" onPress={onDate} accessibilityRole="button" accessibilityLabel={h.dateAria} box={{ w: 44, h: 44 }}
                style={{ minHeight: 44, paddingHorizontal: 6, gap: 6, flexDirection: "row", alignItems: "center" }}>
       <View testID="regs-dot" style={{ width: 8, height: 8, backgroundColor: dot }} />
-      <View>
+      <View onLayout={onDateInset ? (e) => setCol(e.nativeEvent.layout.width) : undefined}>
         <View style={{ flexDirection: "row", alignItems: "center", gap: 2 }}>
           <Text maxFontSizeMultiplier={CAPPED_SCALE} style={[TYPE.metaHeavy, { color: palette.accent }]}>{h.dayWord}</Text>
           <Icon name="expand" colour={palette.accent} size={12} />
         </View>
-        <Text maxFontSizeMultiplier={CAPPED_SCALE} style={[TYPE.metaSemi, { lineHeight: 14.98, color: palette.sub }]}>{h.date}</Text>
+        <Text maxFontSizeMultiplier={CAPPED_SCALE} style={[TYPE.metaSemi, { lineHeight: 14.98, color: palette.sub, alignSelf: "flex-start" }]}
+              onLayout={onDateInset ? (e) => setDate({ x: e.nativeEvent.layout.x, w: e.nativeEvent.layout.width }) : undefined}>{h.date}</Text>
       </View>
     </RegsPress>
     </CoachSpot>

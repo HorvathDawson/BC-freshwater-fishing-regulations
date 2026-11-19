@@ -24,3 +24,12 @@ Built (lane `app/t878-daylight-under-date`, from `app/integrate-081-web`, 21:08 
 
 Pictures (390 phone and 1280 desktop, dark; before / after): `t878-{before,after}-{390,1280}-dark-{babine,coquitlam}.png`
 in the lane's scratchpad, sent to the owner by the app chat.
+
+Look round. Owner 2026-11-18 ~22:58, verbatim: "sunrise/set should be a bit better in same spot". Same place (under the
+date), three looks behind one constant (`SUN_LOOK` in `app/packages/ui-native/src/regs/RegsHeader.tsx`; the pick is that
+line, then the other two go, with the sunrise/sunset icons if 2 is not picked):
+1. the sun icon and "9:01–17:17" in the date's own colour and size, right edge on "Nov 18"'s (measured by the pill);
+2. the sunrise icon "9:01" and the sunset icon "17:17" (Lucide sunrise / sunset), the same alignment;
+3. a small rounded chip (card fill, line border; the header is already the card colour), the sun icon and "9:01–17:17".
+All three drop the "PT" and a one-digit hour's leading 0 ("9:01", the app is B.C.-only); the spoken label keeps
+"Sunrise 9:01, sunset 17:17 PT". Pictures `t878-v{1,2,3}-390-{dark,light}-{babine,coquitlam}.png` (23:10 MST).

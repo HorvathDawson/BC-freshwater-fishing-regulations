@@ -19,19 +19,19 @@ describe("useSunLine", () => {
   it("the tapped point, never asking the water's", () => {
     asked.length = 0;
     const { result } = renderHook(() => useSunLine(source, "gnis:1" as ItemId, { lat: 49.2827, lon: -123.1207 }, NOV4));
-    expect(result.current).toEqual({ text: "08:05–17:46 PT", aria: "Sunrise 8:05, sunset 17:46 PT" });
+    expect(result.current).toEqual({ text: "8:05–17:46", aria: "Sunrise 8:05, sunset 17:46 PT", rise: "8:05", set: "17:46" });
     expect(asked).toEqual([]);
   });
   it("no tap: the water's own point, on the chosen day", async () => {
     asked.length = 0;
     const { result, rerender } = renderHook(({ day }) => useSunLine(source, "gnis:1" as ItemId, null, day), { initialProps: { day: NOV4 } });
-    await waitFor(() => expect(result.current).toEqual({ text: "08:00–17:42 PT", aria: "Sunrise 8:00, sunset 17:42 PT" }));
+    await waitFor(() => expect(result.current).toEqual({ text: "8:00–17:42", aria: "Sunrise 8:00, sunset 17:42 PT", rise: "8:00", set: "17:42" }));
     rerender({ day: { y: 2026, m: 6, d: 21 } });
-    expect(result.current).toEqual({ text: "05:03–21:16 PT", aria: "Sunrise 5:03, sunset 21:16 PT" });
+    expect(result.current).toEqual({ text: "5:03–21:16", aria: "Sunrise 5:03, sunset 21:16 PT", rise: "5:03", set: "21:16" });
     expect(asked).toEqual(["gnis:1"]);
   });
   it("an unnamed reach takes its tap; with no point known there is no line", async () => {
-    expect(renderHook(() => useSunLine(source, null, VEDDER, NOV4)).result.current).toEqual({ text: "08:00–17:42 PT", aria: "Sunrise 8:00, sunset 17:42 PT" });
+    expect(renderHook(() => useSunLine(source, null, VEDDER, NOV4)).result.current).toEqual({ text: "8:00–17:42", aria: "Sunrise 8:00, sunset 17:42 PT", rise: "8:00", set: "17:42" });
     expect(renderHook(() => useSunLine(source, null, null, NOV4)).result.current).toBeNull();
     expect(renderHook(() => useSunLine({}, "gnis:1" as ItemId, null, NOV4)).result.current).toBeNull();
     const none = renderHook(() => useSunLine(source, "gnis:2" as ItemId, null, NOV4));

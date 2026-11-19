@@ -19,9 +19,9 @@ describe("sunrise and sunset (owner 2026-11-04)", () => {
 
   it("said on B.C.'s clock: UTC−7 in winter too, so the December sunrise reads 09:05 PT", () => {
     // (T878) the line under the day pill and its spoken form, whole
-    expect(sunLine(49.2827, -123.1207, { y: 2026, m: 12, d: 21 })).toEqual({ text: "09:05–17:16 PT", aria: "Sunrise 9:05, sunset 17:16 PT" });
-    // a summer evening: the leading 0 is spoken off the hour only, never off a two-digit one
-    expect(sunLine(49.2827, -123.1207, { y: 2026, m: 6, d: 21 })).toEqual({ text: "05:06–21:21 PT", aria: "Sunrise 5:06, sunset 21:21 PT" });
+    expect(sunLine(49.2827, -123.1207, { y: 2026, m: 12, d: 21 })).toEqual({ text: "9:05–17:16", aria: "Sunrise 9:05, sunset 17:16 PT", rise: "9:05", set: "17:16" });
+    // a summer evening: the leading 0 comes off a one-digit hour only, never off a two-digit one; no "PT" drawn (B.C.-only)
+    expect(sunLine(49.2827, -123.1207, { y: 2026, m: 6, d: 21 })).toEqual({ text: "5:06–21:21", aria: "Sunrise 5:06, sunset 21:21 PT", rise: "5:06", set: "21:21" });
     const v = sunTimes(49.28, -123.12, 2026, 11, 4), c = sunTimes(49.51, -115.77, 2026, 11, 4);
     expect((v.rise! - c.rise!) / 60_000).toBeGreaterThan(25);          // Cranbrook is ~30 min east
   });
