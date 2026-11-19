@@ -49,3 +49,12 @@ Owner ~21:47, verbatim: "I wonder if we should do a final 0.8.2 before closed wi
 movement we just discussed wtc"; dialog pick "Yes, wait for 0.8.2 (Recommended)": the production website + data tonight;
 the first production phone builds for testers wait for 0.8.2 (T868, T877, T872-T875, T878/T879/T881/T882 after his
 yes on pictures, T876 smoother zoom). Data / feed fixes are not gated on it.
+
+## 2026-11-19 ~11:24: 0.8.2 staging build to TestFlight internal (owner)
+Owner, verbatim: "yes upload 0.8.2 to test flight" (after Claude's timing answer: external TestFlight = Beta App Review,
+separate from App Store review; submit the production build to App Store review with "Manually release" to start the
+real review early). Claude started `deploy/staging/build-ios-testflight.sh` (staging data, environment switch on) from
+928ac6cc9 (same app code as Play build 38). Next, after the owner's iPhone testing: the 0.8.2 (or 0.8.3) PRODUCTION
+iPhone build, then TestFlight external + App Store review (manual release) in parallel.
+Owner the same message: his Android 0.8.2 (Play build 38) reads staging data — expected: build 38 is the staging build;
+production phone builds come after `release --prod` (his).
