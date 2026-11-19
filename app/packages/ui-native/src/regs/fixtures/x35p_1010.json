@@ -1307,25 +1307,6 @@
   "other:o1": {
    "blocks": [
     {
-     "k": "pictures",
-     "pics": [
-      {
-       "caption": "Lake whitefish ›",
-       "code": "LW",
-       "name": "Lake whitefish",
-       "open": "sp:LW",
-       "sil": false
-      },
-      {
-       "caption": "Mountain whitefish ›",
-       "code": "MW",
-       "name": "Mountain whitefish",
-       "open": "sp:MW",
-       "sil": false
-      }
-     ]
-    },
-    {
      "group": {
       "head": {
        "exception": null,
@@ -1471,18 +1452,6 @@
   },
   "other:o2": {
    "blocks": [
-    {
-     "k": "pictures",
-     "pics": [
-      {
-       "caption": "Arctic grayling ›",
-       "code": "GR",
-       "name": "Arctic grayling",
-       "open": "sp:GR",
-       "sil": false
-      }
-     ]
-    },
     {
      "group": {
       "head": {
@@ -1756,18 +1725,6 @@
   },
   "other:o4": {
    "blocks": [
-    {
-     "k": "pictures",
-     "pics": [
-      {
-       "caption": "Northern pike ›",
-       "code": "NP",
-       "name": "Northern pike",
-       "open": "sp:NP",
-       "sil": false
-      }
-     ]
-    },
     {
      "group": {
       "head": {
