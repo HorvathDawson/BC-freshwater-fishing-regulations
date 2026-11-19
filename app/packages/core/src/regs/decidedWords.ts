@@ -96,6 +96,8 @@ export const DECIDE = Object.freeze({
   T_REPLACED: (who: string) => `Replaced by ${who}`,
   T_LIFTED: (who: string) => `Lifted by ${who}`,
   T_REPLACED_ABOVE: "Replaced by a rule above",
+  T_REPLACED_PLAIN: "Replaced",
+  T_LIFTED_PLAIN: "Lifted",
   T_SAME: "Says the same",
   T_ORIGIN: (origin: "hatchery" | "wild", tag: string | null) => `${origin === "wild" ? "Wild ones" : "Hatchery ones"}${tag ? `: ${tag}` : ""}`,
   T_RESTATES: (who: string) => `Restates ${who}’s rule`,

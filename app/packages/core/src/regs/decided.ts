@@ -33,6 +33,8 @@ export interface LadderItem {
   /** The rule that replaced / lifted / agrees with it (page v36 `by`, here the rule itself). */
   readonly by: RuleView | null;
   readonly spp: ReadonlySet<string>;
+  /** (T883) a trout rule whose stored role holds for one origin's fish only: the flow says which ("Wild ones: …") */
+  readonly origin?: "hatchery" | "wild";
 }
 
 /** The roles page v36 reads as deciding a row (WINS), and their reading order (QORDER). */

@@ -73,7 +73,11 @@ Built: core `regs/flow.ts` (FlowVM from the stored roles, no decision; `withWeek
   (or, with no lead, two different ones), the sheet keeps its old Sources list (`FishSheet.src`, a list that claims
   nothing). Release r-fc137c4040fa: 149 of 153 trout sheets on four test waters draw the rail. Mamquam rainbow now
   shows Region 2's "At most 2 hatchery trout and char a day from streams" (Lowers the number) — checked: `row.src`
-  holds it, the sheet's `src` (cut to 4) did not.
+  holds it, the sheet's `src` (cut to 4) did not. Re-review (23:5x): never one origin's role for both — a rule the
+  hatchery and wild answers give different roles, or only one of them holds, is a step per origin tagged "Hatchery
+  ones" / "Wild ones" (Lois EB's "2 over 50 cm" reads "Wild ones: A cap inside the total"); a head naming a number no
+  step carries ("counts toward the 4 and the 6") keeps the list. Over the 356 vector sheets: 298 rail, 58 list.
+  "Replaced by <X>" only when X is not the rule's own source, else "Replaced".
 
 Rail rules (independent review of c38c96e35, each fixed with a test): steps are named against the SHEET's water — a
 rule another water's row carries down to its tributaries reads "<that water> · its tributaries" (owner ~23:40, verbatim:

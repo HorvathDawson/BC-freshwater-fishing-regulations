@@ -441,8 +441,11 @@ describe("T810 P: the trout fish sheet over every vector", () => {
         if (flow) {
           rails++;
           expect(flow.result, at).toBe(`So: ${r.sheet.head}`);
-          const drawn = [...flow.steps, ...flow.other, ...flow.quiet].map((x) => x.rule);
-          expect(new Set(drawn).size, at).toBe(drawn.length);
+          const all = [...flow.steps, ...flow.other, ...flow.quiet], drawn = all.map((x) => x.rule);
+          // (re-review a) a rule twice only once per origin, each saying whose; never one origin's role for both
+          const whose = (x: (typeof all)[number]) => /^(Hatchery|Wild) ones/.exec(x.tag ?? "")?.[0] ?? "";
+          expect(new Set(all.map((x) => `${x.rule}|${whose(x)}`)).size, at).toBe(all.length);
+          expect(all.filter((x) => !whose(x)).every((x) => all.filter((y) => y.rule === x.rule).length === 1), at).toBe(true);
           expect(drawn.every((k) => k !== null && r.src.map(keyOf).includes(k)), at).toBe(true);
           expect(section(vm, TROUT_SHEET.SOURCES), at).toEqual([]);
         } else expect(sourceKeys(section(vm, TROUT_SHEET.SOURCES)), at).toEqual(r.sheet.src.map(keyOf));

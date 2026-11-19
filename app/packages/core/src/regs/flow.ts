@@ -63,8 +63,9 @@ function tagOf(it: LadderItem, water: string): string | null {
     case "possession": case "possession_cap": return null;   // its words say "Possession"
     case "season": return D.T_YEARLY;
     case "duty": return D.T_DUTY;
-    case "replaced": return by ? D.T_REPLACED(by) : D.T_REPLACED_ABOVE;
-    case "lifted": return by ? D.T_LIFTED(by) : D.T_REPLACED_ABOVE;
+    // (re-review) the winner named only when it is not the rule's own source ("Replaced by Region 4" on a Region 4 rule)
+    case "replaced": return by && by !== levelName(it.r, water) ? D.T_REPLACED(by) : by ? D.T_REPLACED_PLAIN : D.T_REPLACED_ABOVE;
+    case "lifted": return by && by !== levelName(it.r, water) ? D.T_LIFTED(by) : by ? D.T_LIFTED_PLAIN : D.T_REPLACED_ABOVE;
     case "agrees": return D.T_SAME;
     case "moot": return D.T_MOOT;
     case "falls": return D.T_UNNEEDED;
@@ -102,7 +103,7 @@ function unique(steps: readonly FlowStepVM[]): FlowStepVM[] {
  */
 export function flowOf(items: readonly LadderItem[], says: (it: LadderItem) => Line, water: string, answer: string | null): FlowVM {
   const step = (it: LadderItem): FlowStepVM => ({
-    kicker: kickerOf(it.r, water), says: says(it), tag: tagOf(it, water),
+    kicker: kickerOf(it.r, water), says: says(it), tag: it.origin ? D.T_ORIGIN(it.origin, tagOf(it, water)) : tagOf(it, water),
     tone: it.role === "replaced" || it.role === "lifted" ? "lost" : QUIET.includes(it.role) ? "quiet" : "won",
     book: bareBook(it.r), rule: it.r.missing ? null : it.r.key,
   });

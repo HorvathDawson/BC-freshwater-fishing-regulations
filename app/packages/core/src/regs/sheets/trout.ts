@@ -19,12 +19,11 @@ import { ruleBook } from "../book";
 import { FISH, FISH_TIPS, type FishManifest } from "../fish.generated";
 import { reportFailure } from "../../failure";
 import type { RuleIndex, RuleView } from "../inputs";
-import { text, type Run } from "../line";
-import type { FlowStepVM, FlowVM, SheetBlock, SheetVM, SourceRowVM, TroutBoxVM, TroutRowVM, TroutVM } from "../model";
+import { plain, text, type Run } from "../line";
+import type { FlowVM, SheetBlock, SheetVM, SourceRowVM, TroutBoxVM, TroutRowVM, TroutVM } from "../model";
 import type { Decided, FishAnswer } from "../../answers.generated";
 import type { LadderItem } from "../decided";
 import { flowOf } from "../flow";
-import { DECIDE } from "../decidedWords";
 import { clean } from "../names";
 import { imageBlocks } from "./fish";
 import type { SheetKey } from "../sheetKey";
@@ -89,30 +88,34 @@ export function troutFishSheet(key: SheetKey, t: TroutVM, rowKey: string, rules:
 export type TroutAnswers = (fish: string) => FishAnswer | null;
 
 /**
- * (T883) A trout row's rail: each rule of `row.src` (uncut, Python's list) with its role in this fish's stored answer —
- * the row's origin's, else the answer's `lead` (the one the row says); a rule only the other origin's answer holds keeps
- * that role, tagged with that origin ("Wild ones: …"); a rule held by neither, or (no origin to lead) by both with
- * different roles, means the roles do not cover the list: null, and the sheet keeps its Sources list. The answer under
- * the rail is the sheet's own head, whole.
+ * (T883) A trout row's rail: each rule of `row.src` (uncut, Python's list) with its stored role in this fish's answer.
+ * Never one origin's role for both (re-review a): where the sheet covers both origins, a rule both answers give the same
+ * role is one step; a rule they give different roles, or only one of them holds, is a step per origin with its own
+ * role, tagged "Hatchery ones" / "Wild ones". A rule neither answer holds: null, and the sheet keeps its Sources list.
+ * The answer under the rail is the sheet's own head, whole — and only where every number it names is carried by a step
+ * (re-review b: "counts toward the 4 and the 6" with no step saying 6 keeps the list).
  */
 export function troutFlow(row: TroutRowVM, a: FishAnswer | null, rules: Pick<RuleIndex, "get">, water: string): FlowVM | null {
   if (!a || !row.src.length) return null;
-  const lead = row.origin ?? a.lead;
   const rolesOf = (d: Decided | null) => new Map((d?.roles ?? []).map(([ix, role, by]) => [ix, { role, by: by ?? null }] as const));
-  const h = rolesOf(a.hatchery), w = rolesOf(a.wild);
-  const items: LadderItem[] = [], other = new Map<string, "hatchery" | "wild">();
+  const h = rolesOf(a.hatchery), w = rolesOf(a.wild), both = !!a.hatchery && !!a.wild;
+  const items: LadderItem[] = [];
+  const add = (ix: number, p: { role: string; by: number | null }, origin?: "hatchery" | "wild") =>
+    items.push({ r: rules.get(ix), role: p.role, by: p.by == null ? null : rules.get(p.by), spp: new Set(), ...(origin ? { origin } : {}) });
   for (const ix of row.src) {
     const ph = h.get(ix), pw = w.get(ix);
-    let pick = lead === "hatchery" ? ph ?? pw : lead === "wild" ? pw ?? ph : null;
-    if (!lead) { if (ph && pw && (ph.role !== pw.role || ph.by !== pw.by)) return null; pick = ph ?? pw; }
-    if (!pick) return null;
-    const r = rules.get(ix);
-    if (lead && pick === (lead === "hatchery" ? pw : ph) && !(lead === "hatchery" ? ph : pw)) other.set(r.key, lead === "hatchery" ? "wild" : "hatchery");
-    items.push({ r, role: pick.role, by: pick.by == null ? null : rules.get(pick.by), spp: new Set() });
+    if (!ph && !pw) return null;
+    if (ph && pw && ph.role === pw.role && ph.by === pw.by) add(ix, ph);
+    else {
+      if (ph) add(ix, ph, both ? "hatchery" : undefined);
+      if (pw) add(ix, pw, both ? "wild" : undefined);
+    }
   }
   const f = flowOf(items, (it) => [text(it.r.facts?.title || clean(it.r.export.verbatim))], water, row.sheet.head);
-  const tag = (x: FlowStepVM): FlowStepVM => (x.rule && other.has(x.rule) ? { ...x, tag: DECIDE.T_ORIGIN(other.get(x.rule)!, x.tag) } : x);
-  return { ...f, steps: f.steps.map(tag), other: f.other.map(tag), quiet: f.quiet.map(tag) };
+  const said = f.steps.map((x) => plain(x.says)).join(" ");
+  const carried = (n: string) => new RegExp(`(^|\\D)${n}(\\D|$)`).test(said);
+  if (!(row.sheet.head.match(/\d+/g) ?? []).every(carried)) return null;
+  return f;
 }
 
 /** The table's every-rule sheet: `TroutTable.src`, first-cited order as Python gave it. `sub`: the water and the day. */

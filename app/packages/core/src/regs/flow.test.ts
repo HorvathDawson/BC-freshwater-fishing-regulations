@@ -120,16 +120,36 @@ describe("troutFlow (T883: a trout row's rail from its whole list and the fish's
   const ans = (lead: "hatchery" | "wild" | null, h: [number, string, number | null][], w: [number, string, number | null][]) =>
     ({ lead, hatchery: { roles: h }, wild: { roles: w } }) as unknown as FishAnswer;
   const a = ans("hatchery", [[1, "governs", null], [2, "narrows", null], [4, "possession", null]], [[3, "governs", null], [1, "moot", 3], [4, "possession", null]]);
-  it("every rule of row.src with its role (the lead's, else the other origin's, tagged); the answer is the sheet's head, whole", () => {
+  it("every rule of row.src with its role; a rule only one origin holds, or holds differently, says whose; the answer is the head", () => {
     const f = troutFlow(row([1, 3, 4, 2]), a, rules, "Mamquam River")!;
     expect(f.result).toBe("So: Keep · counts toward the 2");
-    expect(f.steps.map((s) => [plain(s.says), s.tag])).toEqual([["Keep up to 4 trout and char a day", null],
-      ["Release wild trout and char from streams", "Wild ones"], ["At most 2 hatchery trout and char a day from streams", "Lowers the number"]]);
-    expect(f.other.map((s) => s.rule)).toEqual(["r2pos"]);
+    expect(f.steps.map((s) => [plain(s.says), s.tag])).toEqual([["Keep up to 4 trout and char a day", "Hatchery ones"],
+      ["Release wild trout and char from streams", "Wild ones"], ["At most 2 hatchery trout and char a day from streams", "Hatchery ones: Lowers the number"]]);
+    expect(f.other.map((s) => [s.rule, s.tag])).toEqual([["r2pos", null]]);   // the same role for both: said once, no origin
   });
-  it("a rule with no stored role, or no lead and two different roles: no rail (the sheet keeps its Sources list)", () => {
+  it("re-review a: a rule the two origins give different roles is never drawn with one origin's role for both", () => {
+    const CAP = rule("cap", 3, "Region 4", "4", "At most 2 trout over 50 cm a day", 34), ONE = rule("one", 3, "Region 4", "4", "At most 1 trout over 50 cm a day", 34);
+    const R = new Map([[1, HK], [6, CAP], [7, ONE]]);
+    const f = troutFlow({ src: [1, 6, 7], origin: null, sheet: { head: "Keep" } } as unknown as TroutRowVM,
+      ans("hatchery", [[1, "governs", null], [6, "replaced", 7], [7, "limit", null]], [[1, "governs", null], [6, "limit", null]]),
+      { get: (ix: number) => R.get(ix)! } as never, "Lois River")!;
+    const capSteps = [...f.steps, ...f.quiet].filter((s) => s.rule === "cap");
+    expect(capSteps.length).toBeGreaterThan(0);
+    expect(capSteps.every((s) => /^(Hatchery|Wild) ones/.test(s.tag ?? ""))).toBe(true);
+    expect(capSteps.map((s) => s.tag)).toContain("Wild ones: A cap inside the total");
+  });
+  it("re-review b: a head naming a number no step carries keeps the plain list", () => {
+    const head = (h: string) => ({ src: [1, 2, 4], origin: null, sheet: { head: h } }) as unknown as TroutRowVM;
+    expect(troutFlow(head("Keep · counts toward the 2"), a, rules, "")).not.toBeNull();
+    expect(troutFlow(head("Keep · counts toward the 4 and the 6"), a, rules, "")).toBeNull();
+  });
+  it("re-review minor: a rule replaced by its own source's rule says 'Replaced', never 'Replaced by' its own level", () => {
+    const R4A = rule("r4a", 3, "Region 4", "4", "Keep 5.", 34), R4B = rule("r4b", 3, "Region 4", "4", "Keep 2.", 34);
+    const f = flowOf([item(R4A, "replaced", R4B), item(R4B, "governs")], says, "Glenn Lake", null);
+    expect(f.steps.map((s) => s.tag)).toEqual(["Replaced", null]);
+  });
+  it("a rule with no stored role, or no answer: no rail (the sheet keeps its Sources list)", () => {
     expect(troutFlow(row([1, 2, 5 as number]), a, { get: (ix: number) => RS.get(ix) ?? rule("x", 3, "Region 2", "2", "x", 21) } as never, "")).toBeNull();
-    expect(troutFlow(row([1, 3]), ans(null, [[1, "governs", null]], [[1, "moot", 3], [3, "governs", null]]), rules, "")).toBeNull();
     expect(troutFlow(row([1]), null, rules, "")).toBeNull();
   });
 });
