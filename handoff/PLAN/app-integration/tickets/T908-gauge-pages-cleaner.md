@@ -16,3 +16,10 @@ So, in this order:
 3. Waters it serves, short: the main waters only; the "rough guide" creeks folded or dropped.
 4. Drop "Browse by region" (it leads to the hidden site map). The day strip was NOT picked.
 Weather: not picked either; fold it or drop it (say which in the pictures).
+
+## Owner 2026-11-19 ~10:50, on the before/after pictures
+Verbatim: "the gauge page picture should have the same color bar at the top. like we have in condition tab. gauge page
+should have clever and coffee forecast options". So: (1) at the top, the Conditions tab's "Flow vs. past years" colour
+bar (Low → High ramp with the Normal band) with this gauge's reading marked on it, same tokens and same component logic
+as the app's key; (2) the CLEVER and COFFEE flow forecasts as options on the chart (where the gauge has them), each in
+its own colour (T895) and toggled as in the app.
