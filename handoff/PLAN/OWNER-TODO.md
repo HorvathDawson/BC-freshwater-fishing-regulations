@@ -2694,3 +2694,25 @@ More questions (recommended answer first):
   the day strip" (a Trout | Salmon pair right after < Today > on desktop; phones unchanged).
   15:06, owner: "the side bar should have some opacity to it too in desktop will look cleaner i think" (T856: a see-through
   side bar on desktop, the map running under it).
+- 2026-11-18 16:50 (main chat) Cranberry River Canyon cuts. Owner, verbatim: "the top point is confident the lower point of canyon less so" -> the falls (top) cut is now HIGH confidence; the canyon bottom estimate stays LOW. Shows from the next data release (after r-86d43303bee2).
+- 2026-11-18 ~16:50, owner (to the main chat, relayed to the app chat 16:51), verbatim: "in the webapp we shopuld have keyboard
+  navigation like in search bar using arrows to move highlight etc." -> T858 (web only: ↑/↓ move a highlight through the
+  search results, Enter opens, Escape closes as today; then the same in other lists where it fits). After 0.8.1: the
+  web site can carry it as soon as it is built, without a Play or TestFlight build.
+- 2026-11-18 16:55 (app chat) Review: the 0.8.1 "What's new" lines are a draft (app/packages/core/src/changelog.ts on
+  app/integrate-081): faster map (Salmon zoom-out most), route-map gauge dots + you-are-here on phones, sharper coho
+  loader + its line, desktop Trout/Salmon switch beside the day + see-through side bar, iPhone stale colour fixed. Clear
+  them or note changes (To-Do page row "Clear the 0.8.1 'What's new' lines").
+- 2026-11-18 ~16:52, owner (to the main chat, relayed to the app chat 16:53), verbatim: "on desktop webapp when you click
+  about or simialr in more it shouldnt take over the entire page iot should be a card that overlays that pops up which you
+  can click off to close maybe?" -> T859 (desktop web only: More's pages open as a centred card over the page; a click
+  outside, Escape or ✕ closes it; phones unchanged). Lands with T858, right after 0.8.1, web only (no Play/TestFlight build).
+- 2026-11-18 ~16:55, owner (to the main chat, relayed to the app chat), verbatim: "where it says this (Questions, corrections
+  and ideas are welcome. ) with email we should have also the or send it through the app with the report and issue
+  pathway? just word it well" -> T860; wording proposed: "Questions, corrections and ideas are welcome. Email us, or send a
+  note from the app with Report a problem. A water's regulations have their own Report a problem link, which names the
+  water for you." (Report a problem is a link to the form.)
+- 2026-11-18 ~16:55, owner (to the main chat, relayed), verbatim: "these can be in 0.8.1 web version? since it doesnt change
+  app it shouldnt effect release of app?" -> yes: T858, T859 and T860 go out with the 0.8.1 WEB release. Order: the 0.8.1
+  phone build (Play internal + TestFlight) is cut first with its benches as they are; then T858/T859/T860 land; then the
+  staging site redeploys from that commit. Phones get T860's words at their next build.
