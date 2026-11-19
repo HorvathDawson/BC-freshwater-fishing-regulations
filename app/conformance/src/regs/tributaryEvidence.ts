@@ -37,10 +37,20 @@ export function railSetters(flow: FlowVM | null, origin: "hatchery" | "wild" | n
 
 /**
  * (T892) A stored answer (one fish × origin, as Python decided it) set by a rule that is not another water's tributary
- * one: the rule that wins it, or — where its number was lowered (`narrow`) — a rule stored as narrowing it. Read straight
- * off the rows frame, for the sweep's proof that a row with no line is partial.
+ * one: the rule that wins it; where its number was lowered (`narrow`), a rule stored as narrowing it; or (review 3) a rule
+ * stored as lowering the number ("narrows", or "limit" on a subcap) that the rail draws as deciding (`railKeys`, the
+ * won steps' rule keys). Read straight off the rows frame, for the sweep's proof that a row with no line is partial.
  */
-export function storedElsewhere(d: Pick<Decided, "win" | "narrow" | "roles">, rules: Pick<RuleIndex, "get">): boolean {
+export function storedElsewhere(d: Pick<Decided, "win" | "narrow" | "roles">, rules: Pick<RuleIndex, "get">,
+  railKeys: ReadonlySet<string>): boolean {
   const sets = [d.win, ...(d.narrow != null ? d.roles.filter(([, r]) => r === "narrows").map(([ix]) => ix) : [])];
-  return sets.some((ix) => rules.get(ix).rank !== 1);
+  if (sets.some((ix) => rules.get(ix).rank !== 1)) return true;
+  return d.roles.some(([ix, role]) => {
+    const r = rules.get(ix);
+    return (role === "narrows" || (role === "limit" && r.kind === "subcap")) && railKeys.has(r.key) && r.rank !== 1;
+  });
 }
+
+/** The rule keys of the steps a rail draws as deciding. */
+export const railKeys = (flow: FlowVM | null): ReadonlySet<string> =>
+  new Set((flow?.steps ?? []).filter((s) => s.tone === "won" && s.rule).map((s) => s.rule!));
