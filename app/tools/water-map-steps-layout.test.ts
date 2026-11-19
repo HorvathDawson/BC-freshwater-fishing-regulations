@@ -3,11 +3,11 @@
  * (T875, owner 2026-11-18: "The ui shifts here when moving upstream in desktop too") THE ▼ / ▲ STEPS STAY PUT. The water's
  * Map tab is mounted through the real Shell on the fixture at a phone (390) and a desktop (1280) window: on a water of one
  * part (the Vedder), on the Chilliwack's part with the longest name (two lines, cut there) and on its part with the
- * shortest; and, on the phone, on the Vedder reached by a step, its bar floored (`useBarFloor`) at the Chilliwack's height
+ * shortest, and on a water with no exit (the Cowichan), each at 1×, 150 % and the OS's 200 % text; and, on the phone, on the Vedder reached by a step, its bar floored (`useBarFloor`) at the Chilliwack's height
  * and at a taller one (how the owner met it: ▼ into the Vedder, then ▲ back into the Chilliwack). The DOM react-native-web
  * drew is laid out by headless Chrome (`wide-measure.mjs`, the app's web fonts) and the step buttons' top is measured: it
- * is the same pixel (within half of one) in every case at each width. On the phone the bar's top (the map's foot) does not
- * move either: a part's words never resize the map under the reader (T731).
+ * is the same pixel (within half of one) in every case at each width and text size. On the phone at 1× the bar's top (the
+ * map's foot) does not move either: a part's words never resize the map under the reader (T731).
  *
  * The Vedder is cut to one part (the mock below says why). Only the map canvas is a stub (no WebGL here): a plain box.
  * T875_SHOTS=<dir> also saves each laid-out page as a PNG there, t875-<T875_TAG>-<width>-<case>.png (the pictures), and
@@ -21,6 +21,29 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { afterAll, describe, expect, it, vi } from "vitest";
 import { act, cleanup, render, screen, waitFor } from "@testing-library/react";
+
+/**
+ * (T875 review) THE READER'S TEXT SIZE, as `salmon-keep-layout.test.ts` (T40) has it: react-native-web drops
+ * `maxFontSizeMultiplier` and never scales, so this file's `react-native` Text scales size and line height by `SCALE.v`
+ * (held to a Text's own cap), and `PixelRatio.getFontScale()` reports it.
+ */
+const SCALE = vi.hoisted(() => ({ v: 1 }));
+vi.mock("react-native", async (importOriginal) => {
+  const rn = await importOriginal<typeof import("react-native")>();
+  const { forwardRef } = await import("react");
+  type P = React.ComponentProps<typeof rn.Text>;
+  const Text = forwardRef<unknown, P>(function Text(p, ref) {
+    const m = p.allowFontScaling === false ? 1 : Math.min(SCALE.v, p.maxFontSizeMultiplier ?? Infinity);
+    const flat = (rn.StyleSheet.flatten(p.style) ?? {}) as { fontSize?: number; lineHeight?: number };
+    const scaled = m === 1 ? p.style : [p.style, {
+      ...(flat.fontSize != null ? { fontSize: flat.fontSize * m } : {}),
+      ...(flat.lineHeight != null ? { lineHeight: flat.lineHeight * m } : {}),
+    }];
+    return h(rn.Text as never, { ...p, ref, style: scaled });
+  });
+  vi.spyOn(rn.PixelRatio, "getFontScale").mockImplementation(() => SCALE.v);
+  return { ...rn, Text };
+});
 
 /** The bar's floor, as `useBarFloor` would hand it after a step from a taller bar (undefined: a fresh open). */
 const FLOOR = vi.hoisted(() => ({ v: undefined as number | undefined }));
@@ -56,7 +79,7 @@ const { Shell } = await import("../packages/ui-native/src/Shell");
 const { DARK } = await import("../packages/ui-native/src/theme");
 const { snapshot } = await import("./wide-snapshot");
 
-const VEDDER = "gnis:3062", CHILLIWACK = "gnis:8634";
+const VEDDER = "gnis:3062", CHILLIWACK = "gnis:8634", COWICHAN = "gnis:12227";
 const SIZES = { phone: [390, 844], desktop: [1280, 800] } as const;
 /** A floor taller than any closed bar draws (a step from a bar whose parts list was open is ~230 px taller still). */
 const TALL_FLOOR = 520;
@@ -78,12 +101,14 @@ afterAll(() => rmSync(dir, { recursive: true, force: true }));
 writeFileSync(join(dir, "measure.js"), MEASURE);
 
 type M = { fonts: string; step: number | null; bar: number | null; barHeight: number; lines: number };
-type Case = { key: string; item: string; part: number; floor?: number };
+type Case = { key: string; item: string; part: number; floor?: number; scale?: number };
 
 /** The Chilliwack's parts with the longest and the shortest name: read from its own group, never typed. */
 async function cases(): Promise<Case[]> {
   const st = await openRegsStore(openRegsFixtureWithLines());
   const ved = await loadRawWaterGroup(st, VEDDER), chw = await loadRawWaterGroup(st, CHILLIWACK);
+  const cow = await loadRawWaterGroup(st, COWICHAN);
+  if (cow.exit) throw new Error(`the Cowichan is the case of a water with no exit, but it flows into ${cow.exit.name}`);
   if (ved.parts.length !== 1 || !ved.prev) throw new Error(`the Vedder is the one-part case below the Chilliwack: ${ved.parts.length} parts`);
   const names = chw.parts.map((_, i) => partName(chw, i).length);
   const long = names.indexOf(Math.max(...names)), short = names.indexOf(Math.min(...names));
@@ -91,14 +116,22 @@ async function cases(): Promise<Case[]> {
     { key: "vedder", item: VEDDER, part: ved.parts[0]!.partIx },
     { key: "chilliwack-long", item: CHILLIWACK, part: chw.parts[long]!.partIx },
     { key: "chilliwack-short", item: CHILLIWACK, part: chw.parts[short]!.partIx },
+    // a middle part: "Downstream" / "Upstream", the pair that stays on one line where the text is small enough
+    { key: "chilliwack-middle", item: CHILLIWACK, part: chw.parts[Math.floor(chw.parts.length / 2)]!.partIx },
+    // (T875 review) a water whose mouth flows into no other: no exit line on any part
+    { key: "no-exit", item: COWICHAN, part: cow.parts[0]!.partIx },
   ];
 }
+
+/** A case's width and text size: "390", "390@2x". */
+const at = (w: number, c: Case) => `${w}${c.scale && c.scale !== 1 ? `@${c.scale}x` : ""}`;
 
 async function draw(w: number, hgt: number, c: Case): Promise<string> {
   Object.defineProperty(document.documentElement, "clientWidth", { configurable: true, value: w });
   Object.defineProperty(document.documentElement, "clientHeight", { configurable: true, value: hgt });
   window.dispatchEvent(new Event("resize"));
   FLOOR.v = c.floor;
+  SCALE.v = c.scale ?? 1;
   render(h(LayoutWidthContext.Provider, { value: w }, h(GestureHandlerRootView, { style: { flex: 1 } } as never,
     h(Shell, { source: makeFixtureSource(), loader: openRegsFixtureWithLines(), palette: DARK, theme: "dark", themeName: "dark",
                onTheme: () => {}, tiles: { atlas: "a", basemap: "b" }, systemBack: () => ({ sync: () => {}, dispose: () => {} }),
@@ -107,10 +140,11 @@ async function draw(w: number, hgt: number, c: Case): Promise<string> {
                initialRoute: reduce(HOME, openWater({ item: c.item as never, part: c.part, view: "map" })) } as never))) as ReactNode);
   await waitFor(() => expect(screen.queryByTestId("water-map-where")).not.toBeNull(), { timeout: 20_000 });
   await act(async () => { await new Promise((r) => setTimeout(r, 400)); });
-  const file = join(dir, `${w}-${c.key}.html`);
+  const file = join(dir, `${at(w, c)}-${c.key}.html`);
   writeFileSync(file, snapshot());
   cleanup();
   FLOOR.v = undefined;
+  SCALE.v = 1;
   return file;
 }
 
@@ -121,9 +155,9 @@ async function lay(list: readonly (readonly [number, number, Case])[]): Promise<
   for (const [w, hgt, c] of list) {
     const page = await draw(w, hgt, c);
     const shot = process.env.T875_SHOTS
-      ? { shot: join(process.env.T875_SHOTS, `t875-${process.env.T875_TAG ?? "now"}-${w}-${c.key}.png`) } : {};
+      ? { shot: join(process.env.T875_SHOTS, `t875-${process.env.T875_TAG ?? "now"}-${at(w, c)}-${c.key}.png`) } : {};
     jobs.push({ page, size: [w, hgt], measure: join(dir, "measure.js"), ...shot });
-    keys.push(`${w} ${c.key}`);
+    keys.push(`${at(w, c)} ${c.key}`);
   }
   const out = execFileSync(process.execPath, [join(process.cwd(), "tools", "wide-measure.mjs"), JSON.stringify({ jobs })],
                            { encoding: "utf8", timeout: 170_000 });
@@ -138,7 +172,9 @@ async function lay(list: readonly (readonly [number, number, Case])[]): Promise<
  */
 async function measure(): Promise<Record<string, M>> {
   const all = await cases();
-  const fresh = await lay(Object.values(SIZES).flatMap(([w, hgt]) => all.map((c) => [w, hgt, c] as const)));
+  // at 1×, at 150 % (a one-line pair still fits, beside one that wraps) and at the OS's 200 % text
+  const fresh = await lay(Object.values(SIZES).flatMap(([w, hgt]) =>
+    [1, 1.5, 2].flatMap((scale) => all.map((c) => [w, hgt, { ...c, scale }] as const))));
   const [pw, ph] = SIZES.phone, chw = fresh[`${pw} chilliwack-long`]!;
   const stepped = await lay([
     [pw, ph, { ...all[0]!, key: "vedder-from-chilliwack", floor: chw.barHeight }],
@@ -150,28 +186,27 @@ async function measure(): Promise<Record<string, M>> {
   return m;
 }
 
-/** Every case whose steps (or, on the phone, whose bar) sit anywhere but where the Vedder's do, in words. */
+/** Every case whose steps (or, on the phone, whose bar) sit anywhere but where the Vedder's do at its width and text
+ *  size, in words. */
 function moved(m: Record<string, M>): string[] {
   const out: string[] = [];
-  for (const [w] of Object.values(SIZES)) {
-    const ref = m[`${w} vedder`]!;
-    for (const [k, v] of Object.entries(m)) {
-      if (!k.startsWith(`${w} `)) continue;
-      if (!/Archivo/.test(v.fonts)) out.push(`${k}: the app's faces did not load (${v.fonts})`);
-      if (v.step === null || Math.abs(v.step - ref.step!) > 0.5) out.push(`${k}: steps at ${v.step} ≠ the Vedder's ${ref.step}`);
-      // the tall floor IS a taller bar (T731 keeps the one just left, its list open): its top is where that bar's was
-      if (w === SIZES.phone[0] && !k.endsWith("floored-tall") && (v.bar === null || Math.abs(v.bar - ref.bar!) > 0.5))
-        out.push(`${k}: the bar (the map's foot) at ${v.bar} ≠ the Vedder's ${ref.bar}`);
-    }
+  for (const [k, v] of Object.entries(m)) {
+    const [where] = k.split(" "), ref = m[`${where} vedder`]!;
+    if (!/Archivo/.test(v.fonts)) out.push(`${k}: the app's faces did not load (${v.fonts})`);
+    if (v.step === null || Math.abs(v.step - ref.step!) > 0.5) out.push(`${k}: steps at ${v.step} ≠ the Vedder's ${ref.step}`);
+    // the map's foot on the phone, at 1×: the tall floor IS a taller bar (T731 keeps the one just left, its list open),
+    // and at 200 % text a name or where line that wraps takes room from the map (above the steps: they stay)
+    if (where === `${SIZES.phone[0]}` && !k.endsWith("floored-tall") && (v.bar === null || Math.abs(v.bar - ref.bar!) > 0.5))
+      out.push(`${k}: the bar (the map's foot) at ${v.bar} ≠ the Vedder's ${ref.bar}`);
   }
   return out;
 }
 
 describe("(T875) the ▼ / ▲ steps stay at one place on screen, part to part and water to water", () => {
-  it("at 390 and 1280: one part, five parts, a two-line name and a floored bar all put the steps on the same pixel", async () => {
+  it("at 390 and 1280, 1× to 200 % text: one part, five parts, a two-line name, no exit and a floored bar put the steps on one pixel", async () => {
     const m = await measure();
     // the cases are what they say: the Vedder's name is one line and the Chilliwack's longest two (cut there), at both widths
-    expect(Object.fromEntries(Object.entries(m).filter(([k]) => / (vedder|chilliwack-long)$/.test(k)).map(([k, v]) => [k, v.lines])))
+    expect(Object.fromEntries(Object.entries(m).filter(([k]) => /^\d+ (vedder|chilliwack-long)$/.test(k)).map(([k, v]) => [k, v.lines])))
       .toEqual({ "390 vedder": 1, "390 chilliwack-long": 2, "1280 vedder": 1, "1280 chilliwack-long": 2 });
     expect(moved(m)).toEqual([]);
   }, 240_000);

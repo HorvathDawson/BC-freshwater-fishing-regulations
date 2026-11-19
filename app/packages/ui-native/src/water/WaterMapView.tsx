@@ -27,7 +27,8 @@ import { MapScreen } from "../MapScreen";
 import { useSplitReport, useWaterMapSplit, WaterInset, WaterSplit } from "../WaterFrame";
 import { Icon } from "../icons";
 import { useTestbedFlag } from "../testbedFlag";
-import { TYPE } from "../type";
+import { CAPPED_SCALE, TYPE } from "../type";
+import { useCappedScale } from "../textScale";
 import { SPACE, type Palette } from "../theme";
 import { useCoachTarget } from "../CoachMarks";
 import { useGuideControl } from "../guideControls";
@@ -40,11 +41,13 @@ export type WaterMapMapProps = Omit<ComponentProps<typeof MapScreen>,
 
 const NO_NEAR: readonly SectionId[] = [];
 
-/** (T875) ▼ / ▲'s height: two lines of their words (the most they draw) and the padding and border, so a one-line pair
- *  ("Downstream" / "Upstream") is as tall as a pair that wraps ("Upstream into Chilliwack River"). 53 px at 1×. */
-const STEP_HEIGHT = 2 * TYPE.bodyStrong.lineHeight + 2 * 4 + 2 * 1.5;
+/** (T875) ▼ / ▲'s height: two lines of their words (the most they draw) at the reader's text size (capped at
+ *  `CAPPED_SCALE`, as the words are), and the padding and border, so a one-line pair ("Downstream" / "Upstream") is as
+ *  tall as a pair that wraps ("Upstream into Chilliwack River"). 53 px at 1×, 95 px at 2×. */
+const stepHeight = (scale: number) => 2 * TYPE.bodyStrong.lineHeight * scale + 2 * 4 + 2 * 1.5;
 
-/** The place kept for the "Flows into" line: the 44 px target the line has when it is drawn. */
+/** The place kept for the "Flows into" line: the 44 px target the line has when it is drawn (its words capped at
+ *  `CAPPED_SCALE`: one line of them, 42 px at 2×, fits). */
 const EXIT_SLOT = 44;
 
 export function WaterMapView({ loader, item, part, tapSid, palette, map, onOpenWater, onShowRegs, onOtherSection,
@@ -178,7 +181,7 @@ export function WaterMapView({ loader, item, part, tapSid, palette, map, onOpenW
    * between them and it. The desktop's text column hangs from the top of the split, so the steps head it; everything
    * whose height a part decides (the parts row, the where line, the name, an open list) is below them. The phone's bar
    * stands on the foot of the screen (the map takes what is left above it), so there the steps keep their place above
-   * "Show regulations" and the exit's place (both held at every part, T214), the bar's own content stands on its foot
+   * "Show regulations" and the exit's place (held at every part of every water), the bar's own content stands on its foot
    * (`justifyContent: "flex-end"`: room the T731 floor adds goes above it, not under it), and a water of one part holds
    * the parts row's place with a quiet line (`PartsOne`), so the bar and the map above it keep their size too.
    */
@@ -229,20 +232,22 @@ export function WaterMapView({ loader, item, part, tapSid, palette, map, onOpenW
             {/* (T203, T214 item 4) LAST, in a place kept for it. The bar sits at the foot of the screen, so a line that
                 appears (only at the mouth part) grows it UPWARD and lifts every control above it, whatever its order
                 (T203's "last" was not enough: the steps and "Show regulations" still jumped). On a water whose mouth
-                flows into another the place is held at every part, empty or not, so nothing moves under a finger. */}
-            {dv.exitHeld && (
+                flows into another the place is held at every part, empty or not, so nothing moves under a finger.
+                (T875 review) On the phone it is held on EVERY water: it lies between the steps and the foot the bar stands
+                on, so a step into a water with no exit (a headwater, the Cowichan) would drop the steps by its height. */}
+            {(dv.exitHeld || !split) && (
               <View style={{ minHeight: EXIT_SLOT, marginTop: 8 }} testID="water-map-exit-slot">
                 {/* (T345) the mouth meets tidal water: the line is said, with no way into it */}
                 {dv.exit?.tidal && (
                   <View style={{ minHeight: EXIT_SLOT, justifyContent: "center" }} testID="water-map-exit">
-                    <Text numberOfLines={1} style={{ ...TYPE.body, color: palette.faint }}>{dv.exit.label}</Text>
+                    <Text numberOfLines={1} maxFontSizeMultiplier={CAPPED_SCALE} style={{ ...TYPE.body, color: palette.faint }}>{dv.exit.label}</Text>
                   </View>
                 )}
                 {dv.exit && !dv.exit.tidal && (
                   <Pressable onPress={() => onOpenWater(dv.exit!.item as ItemId, dv.exit!.part)} accessibilityRole="link"
                              accessibilityLabel={dv.exit.label} testID="water-map-exit"
                              style={{ minHeight: EXIT_SLOT, justifyContent: "center" }}>
-                    <Text numberOfLines={1} style={{ ...TYPE.bodyStrong, color: palette.accent }}>{dv.exit.label}</Text>
+                    <Text numberOfLines={1} maxFontSizeMultiplier={CAPPED_SCALE} style={{ ...TYPE.bodyStrong, color: palette.accent }}>{dv.exit.label}</Text>
                   </Pressable>
                 )}
               </View>
@@ -363,7 +368,7 @@ function PartsList({ list, palette, act, tall, place }: {
   );
 }
 
-/** ▼ / ▲: a `STEP_HEIGHT` (53 px) button; at an end it is disabled, dashed, and says so ("Lowest part" / "Highest part"). Into another
+/** ▼ / ▲: a `stepHeight` (53 px at 1×) button; at an end it is disabled, dashed, and says so ("Lowest part" / "Highest part"). Into another
  *  water its words say where (owner 2026-10-21 late: "▲ Upstream into Chilliwack River"): half the bar at 390 px, so
  *  the words wrap, centred, to two lines at most and a longer name is cut with an ellipsis (the full words stay the
  *  button's accessible name). */
@@ -373,15 +378,16 @@ function Step({ dir, palette, label, aria, disabled, onPress }: {
   // (T186, Q162) the way's chevron is the icon set's — up `collapse`, down `expand` — beside the words, never a typed
   // ▲ / ▼; an end ("Lowest part") goes nowhere and draws none
   const ring = useCoachTarget(dir === "up" ? "map:up" : undefined);   // (T466) the walkthrough's "Walk upstream"
+  const scale = useCappedScale();   // (T875 review) the reader's text size: two lines of it, whatever it is
   return (
     <Pressable ref={ring} onPress={disabled ? undefined : onPress} disabled={disabled} accessibilityRole="button"
                accessibilityLabel={aria} aria-disabled={disabled}
-               style={{ flex: 1, minWidth: 0, minHeight: STEP_HEIGHT, alignItems: "center", justifyContent: "center",
+               style={{ flex: 1, minWidth: 0, minHeight: stepHeight(scale), alignItems: "center", justifyContent: "center",
                         flexDirection: "row", gap: 4,
                         paddingHorizontal: SPACE.s2, paddingVertical: 4, borderWidth: 1.5,
                         borderColor: palette.ink, borderStyle: disabled ? "dashed" : "solid" }}>
       {!disabled && <Icon name={dir === "up" ? "collapse" : "expand"} colour={palette.ink} size={18} />}
-      <Text numberOfLines={2} ellipsizeMode="tail" testID={`water-map-step-${dir}`}
+      <Text numberOfLines={2} ellipsizeMode="tail" maxFontSizeMultiplier={CAPPED_SCALE} testID={`water-map-step-${dir}`}
             style={{ ...TYPE.bodyStrong, fontFamily: disabled ? TYPE.bodyStrong.fontFamily : TYPE.metaBold.fontFamily,
                      flexShrink: 1, textAlign: "center", color: disabled ? palette.sub : palette.ink }}>{label}</Text>
     </Pressable>
