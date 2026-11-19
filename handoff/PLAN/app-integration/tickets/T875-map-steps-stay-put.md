@@ -1,7 +1,7 @@
 # T875 — The water Map tab's ▼ / ▲ steps stay put, part to part and water to water (phone and desktop)
 
-Status: PARTIAL — fixed by 1c0911f91 (lane app/t875-parts-steady, off app/integrate-081-web); left (Claude): an independent
-review, then the merge into app/integrate-081-web.
+Status: PARTIAL — fixed by 1c0911f91 + 93efeda60 (review fixes) (lane app/t875-parts-steady, off app/integrate-081-web); left (Claude): the merge into
+app/integrate-081-web.
 
 Owner 2026-11-18 ~20:33, verbatim: "The ui shifts here when moving upstream in desktop too".
 
@@ -31,7 +31,15 @@ The steps are measured from the edge the bar is anchored to, with only fixed-hei
   content stands on its foot (`justifyContent: "flex-end"`), so the T731 floor's room goes above it. A water of one part
   holds the parts row's place with a quiet line, "This river is one part" (`WATER_MAP_WORDS.partsOne`, composed in core),
   so the bar — and the map above it — keep their size from water to water.
-- ▼ / ▲ are always two lines tall (`STEP_HEIGHT`, 53 px).
+- ▼ / ▲ are always two lines tall at the reader's text size (`stepHeight`, 53 px at 1×; their words capped at 2×).
+
+Independent review (2026-11-18), fixed in 93efeda60:
+1. (medium) On the phone the exit's place was held only on a water WITH an exit (T214 `exitHeld`), so a step into a
+   water with none (the Cowichan, a headwater) dropped the steps 52 px. It is now held on every water on the phone.
+2. (low) The step height assumed 1× text: at 150 % a one-line pair was shorter than a wrapping one. It now follows the
+   text size (`useCappedScale`); the exit line is capped at 2× so one line always fits its 44 px place.
+Known, not fixed: at 200 % text a name or where line that wraps takes room from the map on the phone (above the steps,
+which stay put).
 
 Why not the steps directly under the map on the phone too: there the map takes whatever the bar leaves, so the map's
 foot moves whenever the bar's height does; steps at the bar's top would move with every row that changes below them
@@ -46,8 +54,9 @@ line is `water-map-parts-one`, the step row `water-map-steps`).
 
 - `app/tools/water-map-steps-layout.test.ts` (new): the real Shell on the fixture at 390 and 1280, laid out in headless
   Chrome; the Vedder (cut to one part, as the live release has it), the Chilliwack's longest-named part (two lines, cut)
-  and its shortest, and on the phone the Vedder reached by a step (floored at the Chilliwack's height, and at a taller
-  floor). The steps' top is one pixel in every case (390: 613; 1280: 156), and on the phone the map's foot too. On the
-  unfixed code it fails 7 ways (above).
+  and its shortest and a middle part, the Cowichan (no exit), each at 1×, 150 % and 200 % text, and on the phone the
+  Vedder reached by a step (floored at the Chilliwack's height, and at a taller floor). The steps' top is one pixel in
+  every case at each width and text size (1×: 390 → 613, 1280 → 156), and on the phone at 1× the map's foot too. It
+  fails 7 ways on the unfixed code and 6 ways on 1c0911f91.
 - Pictures (scratchpad of the 2026-11-18 app chat): `t875-390.png`, `t875-1280.png` (before / after, a red line at the
   first water's steps).
