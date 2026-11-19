@@ -24,6 +24,7 @@
     "deps": "node tools/check-deps.mjs",
     "knip": "knip --no-progress",
     "tickets": "node tools/check-tickets.mjs",
+    "store-pages": "node tools/check-store-pages.mjs",
     "anchors": "node tools/check-test-anchors.mjs --strict",
     "changelog": "node ../scripts/check-changelog.mjs",
     "platform": "node tools/check-platform.mjs",

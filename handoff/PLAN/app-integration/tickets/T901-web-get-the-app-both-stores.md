@@ -30,3 +30,11 @@ both states in the pictures.
   now be baked in by build-ios-testflight.sh; note the page 404s until public).
 - Tests: WebSpotsNotice.test.tsx (Play URL, coming state disabled and no open, App Store live state), tools/seo/appLinks.test.ts
   (both controls, addresses), gauges.test.ts updated. Pictures: scratchpad/t901-shots/ (390 and 1440, light, coming + live).
+
+### Follow-up (coordinator, 2026-11-19): Play 404s too
+
+The Play listing also answers 404 (closed testing only). `storeLinks.ts` now has `PLAY_PUBLIC` (false) beside `APP_STORE_PUBLIC`
+(false); each button is a disabled "Android app coming soon" / "iPhone app coming soon" until its flag is true. The old
+`OPEN_IN_APP_URL` (share.ts) is gone: the gauge pages read `playStoreLink()`. **At launch flip both: `PLAY_PUBLIC = true` and
+`APP_STORE_PUBLIC = true`.** `pnpm run store-pages` (app/tools/check-store-pages.mjs, by hand, needs the network) curls both pages
+and fails if a flag is true over a non-200 page, and reports a page that is live while its flag is false.

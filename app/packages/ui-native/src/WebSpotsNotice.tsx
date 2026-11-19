@@ -5,7 +5,7 @@
  */
 import { Platform, ScrollView, View } from "react-native";
 import { Text } from "./Text";
-import { appStoreLink, PLAY_STORE_URL, WEB_SPOTS_WORDS as W } from "@app/core";
+import { appStoreLink, playStoreLink, WEB_SPOTS_WORDS as W } from "@app/core";
 import { Button } from "./Button";
 import { TYPE } from "./type";
 import { GUTTER, SPACE, type Palette } from "./theme";
@@ -27,6 +27,7 @@ export function WebSpotsNotice({ palette, onDone }: {
   onDone?: () => void;
 }) {
   const appStore = appStoreLink();
+  const play = playStoreLink();
   return (
     <View testID="web-spots-notice" style={{ flex: 1, backgroundColor: palette.card }}>
       <View style={{ paddingHorizontal: GUTTER, paddingTop: 16, paddingBottom: 12, borderBottomWidth: 1.5, borderBottomColor: palette.ink }}>
@@ -38,10 +39,12 @@ export function WebSpotsNotice({ palette, onDone }: {
         <Text accessibilityRole="header" style={{ ...TYPE.name, color: palette.ink, textAlign: "center" }}>{W.lead}</Text>
         {W.body.map((t, i) => <Text key={i} style={{ ...TYPE.body, color: palette.ink, textAlign: "center" }}>{t}</Text>)}
         <View style={{ gap: SPACE.s2, marginTop: SPACE.s2, alignItems: "center" }}>
-          {/* (T901) one button per store; the App Store's is a disabled "coming" until its page is public (core storeLinks) */}
+          {/* (T901) one button per store; each is a disabled "coming" until its page is public (core storeLinks) */}
           <Text style={{ ...TYPE.body, color: palette.ink, textAlign: "center" }}>{W.getApp}</Text>
           <View testID="web-spots-get-app" style={{ flexDirection: "row", flexWrap: "wrap", gap: SPACE.s2, justifyContent: "center" }}>
-            <Button palette={palette} label={W.playButton} grow={false} testID="web-spots-play" onPress={linkTo(PLAY_STORE_URL)} />
+            {play
+              ? <Button palette={palette} label={W.playButton} grow={false} testID="web-spots-play" onPress={linkTo(play)} />
+              : <Button palette={palette} label={W.playSoon} grow={false} testID="web-spots-play-soon" />}
             {appStore
               ? <Button palette={palette} label={W.appStoreButton} grow={false} testID="web-spots-app-store" onPress={linkTo(appStore)} />
               : <Button palette={palette} label={W.appStoreSoon} grow={false} testID="web-spots-app-store-soon" />}

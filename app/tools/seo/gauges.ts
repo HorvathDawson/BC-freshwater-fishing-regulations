@@ -22,7 +22,7 @@ import { OPEN_METEO_ATTRIBUTION, weatherPlace } from "../../packages/data/src/sp
 import { crashUrlFor, ORIGINS, REPORT_URLS } from "../../apps/mobile/src/env";
 import { clip, esc, SHARE_FONT, SHARE_GROUND, SHARE_H, SHARE_INK, SHARE_W, type Site } from "./html";
 import type { GaugeConfig } from "./gaugeClient";
-import { appStoreLink, bestServes, gaugePath, OPEN_IN_APP_URL, STALE_AFTER_MS, TRUST_RANK, type GaugeRows, type ServesTrust } from "@app/core";
+import { appStoreLink, bestServes, gaugePath, playStoreLink, STALE_AFTER_MS, TRUST_RANK, type GaugeRows, type ServesTrust } from "@app/core";
 import { readGaugeRows } from "@app/data/release";
 
 export { readGaugeRows, type GaugeRows };
@@ -136,10 +136,10 @@ export function gaugeDescription(g: GaugeModel): string {
 
 /**
  * (T514, T901) the page's two store buttons, "Google Play" and "App Store" (owner 2026-11-19: one button per store). Each
- * is greyed "coming soon" until its page is public: Play while `OPEN_IN_APP_URL` is null, the App Store while core's
+ * is greyed "coming soon" until its page is public: Play while core's `PLAY_PUBLIC` is false, the App Store while core's
  * `APP_STORE_PUBLIC` is false (`appStoreLink()` null); then its link. A phone with the app installed opens the app (T625).
  */
-export function openInAppControl(play: string | null = OPEN_IN_APP_URL, appStore: string | null = appStoreLink()): string {
+export function openInAppControl(play: string | null = playStoreLink(), appStore: string | null = appStoreLink()): string {
   const one = (name: string, url: string | null, soon: string) => url === null
     ? `<span class="app soon" aria-disabled="true">${soon}</span>`
     : `<a class="app" href="${esc(url)}">${name}</a>`;

@@ -115,6 +115,8 @@ export const WEB_SPOTS_WORDS = {
   /** (T901) one button per store; the addresses are core's storeLinks.ts */
   playButton: "Google Play",
   appStoreButton: "App Store",
+  /** (T901) the Google Play button while its listing is not public */
+  playSoon: "Android app coming soon",
   /** (T901) the App Store button while the page is not public yet: said plainly, not a link to a 404 */
   appStoreSoon: "iPhone app coming soon",
   back: "Back to the map",

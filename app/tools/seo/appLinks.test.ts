@@ -5,7 +5,7 @@
  */
 import { readFileSync } from "node:fs";
 import { beforeAll, describe, expect, it } from "vitest";
-import { APP_LINK_HOSTS, APP_PACKAGE, APP_STORE_URL, appStoreLink, PLAY_SIGNING_SHA256, PLAY_STORE_URL } from "@app/core";
+import { APP_LINK_HOSTS, APP_PACKAGE, APP_STORE_URL, appStoreLink, playStoreLink, PLAY_SIGNING_SHA256, PLAY_STORE_URL } from "@app/core";
 import { openRegsFixture } from "@app/data/release/node";
 import { buildAll, readIosTeamId, type Built } from "./build";
 import { TODAY } from "./fixture";
@@ -86,6 +86,7 @@ describe("T514 / T901 share page store buttons", () => {
     expect(openInAppControl()).toContain("Google Play · coming soon");
     expect(openInAppControl()).toContain("iPhone app coming soon");
     expect(appStoreLink()).toBeNull();                            // the App Store page 404s today (TestFlight only)
+    expect(playStoreLink()).toBeNull();                           // and so does Play's (closed testing)
   });
   it("each store has its own button and its own address", () => {
     expect(openInAppControl(PLAY_STORE_URL, "https://apps.apple.com/app/id6835000455")).toBe(
