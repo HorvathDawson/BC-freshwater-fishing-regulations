@@ -164,7 +164,7 @@ export function privacyBody(site: Site, asOf: string): string {
     `the map colouring, the map’s layer, forecast day, zoom and centre (the middle of the map you were looking at, to about 100 m; if the map was centred on you, that is about where you were), the app version, data release, platform, ` +
     `the install id described below, and recent app errors);</li>` +
     `<li>your email address, only if you type one. It is used only to reply, and only if you tick “You may contact me”.</li></ul>` +
-    `<p>Reports are stored privately on Cloudflare, are read only by the people who run the app, and are not published. ` +
+    `<p>Reports are stored privately on Cloudflare, are read only by me, and are not published. ` +
     `I do not store your IP address with a report: to limit abuse I keep only a salted one-way hash of it, which cannot be turned back into an address. ` +
     `Reports are deleted automatically 180 days after they are received, including any email in them. ` +
     `To have your report or email deleted sooner, write to ${mail}.</p>` +
