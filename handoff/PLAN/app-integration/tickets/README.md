@@ -305,7 +305,7 @@ reads both files; a ticket closed here moves there once its lane is finished wit
 | T898 | A daylight-only rule shows today's actual closed times for the section (owner) | IN PROGRESS | app chat | owner 2026-11-19 ~01:10 |
 | T899 | In-season notices on a water open by default (owner) | IN PROGRESS | app chat | owner 2026-11-19 ~01:10 |
 | T900 | Gear and Methods: cleaner, easier to read (owner; next chat) | OPEN | app chat | owner 2026-11-19 ~01:12 |
-| T901 | The web's "Get the app": a Google Play button and an App Store button (owner) | IN PROGRESS | app chat | owner 2026-11-19 ~01:14 |
+| T901 | The web's "Get the app": a Google Play button and an App Store button (owner) | DONE | 2d3e89299 | owner 2026-11-19 ~01:14 |
 | T902 | Desktop Runs: every fish chip shows, no sideways scroll (owner) | DONE | cd5740b21 | owner 2026-11-19 ~01:16 |
 | T903 | Map modes paint only what differs from a default (Salmon red, Conditions/Runs grey) (owner) | IN PROGRESS | app chat | owner 2026-11-19 ~01:33 |
 | T882 | Salmon: DFO's "To be determined" says so instead of "Check DFO"; green whenever any salmon is open (owner) | DONE | b2a5f2522 | owner 2026-11-18 ~21:18 |
