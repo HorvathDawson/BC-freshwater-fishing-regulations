@@ -2895,3 +2895,20 @@ More questions (recommended answer first):
   T881 … T883 … T886 … ) except sunrise/set should be a bit better in same spot" -> T879 two headers one table, T881 gauge
   map, T883 "How this was decided", T886 hatchery drawing: approved for 0.8.2. T878: keep the spot under the date, make
   the line look better (variants to him). Also ~22:50 (dialog): the salmon map key's short label is "Check DFO" (T882).
+- 2026-11-18 ~23:14-23:16, owner (app chat): T878 sun line look 2 ("i like 2": sunrise/sunset icons "9:01  17:17" under
+  the date); T887 salmon keep in light: option B ("this is good too Option B": bright green with a thin dark casing).
+- 2026-11-18 ~23:05, owner (main chat), on the GitHub clean-up, verbatim: "yes and use same branch but then we need to
+  eventually swithc to a standard main, staging and feature branch structure or whatever good structure we have" ->
+  DONE 23:05-23:21 by the main chat: main = ca7c0cce7 (tree = redesign/stream-sections 21acbf78a, main's history kept;
+  the old update-hydro / update-in-season / update-stocking workflows gone from GitHub's list); 28 merged remote branches
+  deleted; archive/* tags for feat/mobile-offline-download-gate, feat/land-ownership-layer, staging, ios/next,
+  ios/staging-worker; ios/t739-push kept (open T822). MISTAKE: redesign/stream-sections was deleted on origin for about a
+  minute (a keep-filter failed) and restored at 21acbf78a; nothing lost (the app chat confirmed). THE SWITCH: bc-fishing-cron's
+  schedules removed (its workers.dev address off too); deploy/prod/drop-v1.sh freed 20,019 objects / 8.57 GB of the v1
+  layout; smoke --production http 8/0/0 after. Later ticket: the branch structure (main / staging / feature branches),
+  with the working branch protected like main.
+- 2026-11-18 ~23:35, owner (app chat), verbatim: "Like tributary rules ... yes label as from tributarie inheritance" -> T883:
+  a rule reaching a water through its parent's tributaries/parts is labelled that way, never "this water's rule".
+  "I want you to add the screenshots to the stores you can give them titles." -> T319: Claude picks the shots and titles
+  and uploads them to Play and the App Store once the 0.8.2 UI is final (prepared as a dry run first).
+  "You can do clean ups" -> the five 11-14 clean-up calls with their defaults (Claude, tonight).

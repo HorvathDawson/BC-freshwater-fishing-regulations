@@ -455,3 +455,11 @@ card, and Ross Lake's headline 2 against a daily total of 4 (both from the trout
   Pre-existing stale pins (read the on-disk bundle; re-pin later): test_part_geo Cowichan 6 vs 5, unlabelled marks 25 vs 110, test_part_names_unnamed_lake 482 > 500, test_answers_v22 b (R6 stream cap), test_rulings_pinned f6 Peace, test_trout_check x2, test_trout_sheets Skeena x2.
   NEXT (mine, 0.8.1): T846, T840 (with the app chat's T767 join drop).
 - 20:16 RELEASE STATE: r-fc137c4040fa = LATEST and on staging (smoke 19/0/0; site 0.8.1 web from 1a8832024 by the app chat, SEO on r-fc137c4040fa). Carries T846 (Bella Coola cutthroat decided release; app chat's province audit: keep_engine_none 144 -> 0, nothing else) on top of T850 + T854. It replaces r-86d43303bee2 as the prod candidate. Prod (owner's): CONFIRM_PROD=r-fc137c4040fa python -m pipeline release --prod r-fc137c4040fa, as part of the first transition (PRODUCTION.md; T863 order: prod data -> prod site 0.8.1 web -> prod phone builds 0.8.2). T840 moved after 0.8.1 (lands with the app chat's T767 join drop).
+- 23:30 STATE: PRODUCTION LIVE since 22:30 (data r-fc137c4040fa; feeds + data workers; website 0.8.1 from d0b7bf863 via
+  worktree /Users/dawson.horvath/dev/personal/BC-prod-web; smoke --production green). The switch done 23:21 (bc-fishing-cron
+  schedules off, drop-v1 8.57 GB, main = ca7c0cce7 = redesign tree). Standing: Claude deploys the prod WEBSITE with each
+  app version (owner 21:49-21:50; memory prod-web-deploy-allowed); prod DATA stays the owner's (`release --prod` refuses
+  agents). Next (0.8.2, one data release with the app's 0.8.2): mine T869 (adult chinook wording), T870 (DFO sources /
+  bait / "all year"), T880 (Two Mile Creek + Suskwa walk_past), T885 (every DFO place mapped), T891 (braid tiles),
+  T883 only if the full `decided` contract is wanted (held; the trout rail is app-only from row.src, 5 rules on
+  Mamquam). Later: T862 part 2, T840 (with the app's T767), branch structure (main/staging/feature, owner 23:05).
