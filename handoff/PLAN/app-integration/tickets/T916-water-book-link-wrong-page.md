@@ -81,3 +81,6 @@ copy of the release with `row` patched in, `t916/patch_release.py`).
   r2alt-end-of-keep-390-light.png.
 - Seen, not changed (dedupe kept as is): on Elaho the Gear section's own sources also link p.23; `waterBookOf` reads only
   the Regulations page model, not the Gear section's links, so p.23 shows twice on that page.
+## Owner 2026-11-19 ~13:29 (main chat, after the round 2 pictures of Elaho River)
+Asked where the line goes; options were A, the page's foot; B, the end of What you can keep; or drop it. Verbatim:
+"A: page foot (Recommended)". Merge app/t916-water-book (eaf71c64b) into the 0.8.3 integration; the release carries `row`.
