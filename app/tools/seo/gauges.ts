@@ -6,7 +6,7 @@
  * facts the feeds worker writes beside each gauge's share card (`feeds/cards/<station>.json`) and the weather at the
  * gauge (Open-Meteo). What the build writes here is what does not move between feed runs: the gauge's name and number,
  * the waters it serves (one line each to that water's regulations page — never an open/closed word on this page), and
- * "Open on the website" (the web app on that water's Conditions view) beside a greyed "Open in the app · coming soon"
+ * "Open on the website" (the web app on that water's Conditions view) beside the "Get the app" block (`getAppBlock`)
  * (the phone app takes no links yet, D1; T514).
  *
  * WHICH GAUGES: every station in the release that serves at least one water with a page — its own water (`gauge.item_id`),
@@ -22,7 +22,7 @@ import { OPEN_METEO_ATTRIBUTION, weatherPlace } from "../../packages/data/src/sp
 import { crashUrlFor, ORIGINS, REPORT_URLS } from "../../apps/mobile/src/env";
 import { clip, esc, SHARE_FONT, SHARE_GROUND, SHARE_H, SHARE_INK, SHARE_W, type Site } from "./html";
 import type { GaugeConfig } from "./gaugeClient";
-import { bestServes, gaugePath, OPEN_IN_APP_URL, STALE_AFTER_MS, TRUST_RANK, type GaugeRows, type ServesTrust } from "@app/core";
+import { appStoreLink, bestServes, gaugePath, getAppBlock, playStoreLink, type GetAppSlot, STALE_AFTER_MS, TRUST_RANK, type GaugeRows, type ServesTrust } from "@app/core";
 import { readGaugeRows } from "@app/data/release";
 
 export { readGaugeRows, type GaugeRows };
@@ -135,17 +135,21 @@ export function gaugeDescription(g: GaugeModel): string {
 }
 
 /**
- * (T514) the page's "Open in the app": greyed "coming soon" while the Play listing is not public (`OPEN_IN_APP_URL` null), the
- * listing's link once it is. The one config value is `@app/core` share.ts; a phone with the app opens the app (T625).
+ * (T514, T901) the page's two store buttons, "Google Play" and "App Store" (owner 2026-11-19: one button per store). Each
+ * is greyed "coming soon" until its page is public: Play while core's `PLAY_PUBLIC` is false, the App Store while core's
+ * `APP_STORE_PUBLIC` is false (`appStoreLink()` null); then its link. A phone with the app installed opens the app (T625).
  */
-export function openInAppControl(listing: string | null = OPEN_IN_APP_URL): string {
-  return listing === null
-    ? `<span class="app soon" aria-disabled="true">Open in the app · coming soon</span>`
-    : `<a class="app" href="${esc(listing)}">Open in the app</a>`;
+export function openInAppControl(play: string | null = playStoreLink(), appStore: string | null = appStoreLink(),
+                                 contact: string | null = null): string {
+  const blk = getAppBlock(play, appStore, contact, false);
+  const slot = (x: GetAppSlot) => `<a class="app" href="${esc(x.kind === "store" ? x.url : x.ask.mailto!)}">${esc(x.label)}</a>`;
+  return (blk.coming ? `<p class="small coming">${esc(blk.coming)}</p>` : "") +
+    (blk.lead ? `<p class="small joins">${esc(blk.lead)}</p>` : "") +
+    (blk.slots.length ? `<div class="stores">${blk.slots.map(slot).join("")}</div>` : "");
 }
 
 /** the page body: everything that does not move between feed runs; the live sections are filled by gaugeClient.ts */
-export function gaugeBody(g: GaugeModel, release: string, clientHref: string, asOf: string): string {
+export function gaugeBody(g: GaugeModel, release: string, clientHref: string, asOf: string, contact: string | null = null): string {
   const first = g.close[0] ?? g.rough[0]!;
   const line = (w: WaterLink) => `<li><a href="${esc(w.path)}">${esc(w.name)} fishing regulations</a></li>`;
   const cfg = JSON.stringify(gaugeConfig(g, release)).replace(/</g, "\\u003c");
@@ -164,7 +168,7 @@ export function gaugeBody(g: GaugeModel, release: string, clientHref: string, as
     `<div class="card"><p>See this gauge with the map, alerts and every other gauge in the app.</p>` +
     // (owner 2026-11-08) the website now; the phone app greyed until its store listing is public (T514)
     `<div class="opens"><a class="app" href="${esc(`${first.path}?view=conditions`)}">Open on the website</a>` +
-    `${openInAppControl()}</div></div></div>` +
+    `${openInAppControl(undefined, undefined, contact)}</div></div></div>` +
     `<script type="application/json" id="gauge-config">${cfg}</script><script src="${esc(clientHref)}" defer></script>`;
 }
 

@@ -5,7 +5,7 @@
  */
 import { readFileSync } from "node:fs";
 import { beforeAll, describe, expect, it } from "vitest";
-import { APP_LINK_HOSTS, APP_PACKAGE, PLAY_SIGNING_SHA256 } from "@app/core";
+import { APP_LINK_HOSTS, APP_PACKAGE, APP_STORE_URL, appStoreLink, playStoreLink, PLAY_SIGNING_SHA256, PLAY_STORE_URL } from "@app/core";
 import { openRegsFixture } from "@app/data/release/node";
 import { buildAll, readIosTeamId, type Built } from "./build";
 import { TODAY } from "./fixture";
@@ -79,11 +79,35 @@ describe("T724 apple-app-site-association", () => {
   });
 });
 
-describe("T514 share page 'Open in the app'", () => {
-  it("is the greyed 'coming soon' until a listing address is set; one value turns it into the listing's link", () => {
-    expect(openInAppControl(null)).toBe(`<span class="app soon" aria-disabled="true">Open in the app · coming soon</span>`);
-    expect(openInAppControl("https://play.google.com/store/apps/details?id=ca.canifishthis.app"))
-      .toBe(`<a class="app" href="https://play.google.com/store/apps/details?id=ca.canifishthis.app">Open in the app</a>`);
-    expect(openInAppControl()).toContain("coming soon");     // the shipped default: the config value is null
+describe("T514 / T901 share page 'Get the app' block", () => {
+  const C = "support@canifishthis.ca", A = "https://apps.apple.com/app/id6835000455";
+  it("neither public (the shipped default): one plain line, a lead, and a mailto button per platform; no span, no disabled control", () => {
+    const html = openInAppControl(null, null, C);
+    expect(html).toContain(`<p class="small coming">Coming soon to Google Play and the App Store.</p>`);
+    expect(html).toContain(`<p class="small joins">Want to try it early?</p>`);
+    expect(html).toContain(`<a class="app" href="mailto:${C}?subject=Join%20the%20Android%20test&amp;body=`);
+    expect(html).toContain(`<a class="app" href="mailto:${C}?subject=Join%20the%20iPhone%20test&amp;body=`);
+    expect(html).toContain("The%20email%20on%20my%20Google%20account%20is");
+    expect(html).toContain("The%20email%20on%20my%20Apple%20ID%20is");
+    expect(html).not.toContain("<span");
+    expect(appStoreLink()).toBeNull(); expect(playStoreLink()).toBeNull();      // both pages 404 today
+  });
+  it("no contact: the line, and no button", () => {
+    expect(openInAppControl(null, null, null)).toBe(`<p class="small coming">Coming soon to Google Play and the App Store.</p>`);
+  });
+  it("a store going live: its link in the join button's spot, the line and the lead name only what is left", () => {
+    const html = openInAppControl(PLAY_STORE_URL, null, C);
+    expect(html).toContain(`<a class="app" href="${PLAY_STORE_URL}">Google Play</a>`);
+    expect(html).toContain("Coming soon to the App Store.");
+    expect(html).not.toContain("Android test");
+    expect(html).toContain("Join the iPhone test");
+  });
+  it("both live: two store links, no line", () => {
+    expect(openInAppControl(PLAY_STORE_URL, A, C)).toBe(
+      `<div class="stores"><a class="app" href="${PLAY_STORE_URL}">Google Play</a><a class="app" href="${A}">App Store</a></div>`);
+  });
+  it("the addresses are core's: Play by package, the App Store by the Apple ID", () => {
+    expect(PLAY_STORE_URL).toBe(`https://play.google.com/store/apps/details?id=${APP_PACKAGE}`);
+    expect(APP_STORE_URL).toMatch(/^https:\/\/apps\.apple\.com\/app\/id\d+$/);
   });
 });

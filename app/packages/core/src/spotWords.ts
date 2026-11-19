@@ -112,8 +112,24 @@ export const WEB_SPOTS_WORDS = {
     "Spots don't show up on the website yet. Accounts are coming, so your spots will be on your phone and here.",
   ],
   getApp: "Get the app",
-  /** the Play listing (the app's own store link); spelled here so the web has one place for it */
-  appUrl: "https://play.google.com/store/apps/details?id=ca.canifishthis.app",
+  /** (T901) one button per store; the addresses are core's storeLinks.ts */
+  playButton: "Google Play",
+  appStoreButton: "App Store",
+  /** (T901) one plain line naming only the stores still coming (none left: no line) */
+  coming: { both: "Coming soon to Google Play and the App Store.", play: "Coming soon to Google Play.",
+            appStore: "Coming soon to the App Store." },
+  /**
+   * (T901, owner 2026-11-19: "we could add a contact to get into testing maybe?") under a store that is not public yet:
+   * one line and one press per store, an email to the app's contact (More → Contact), or the in-app Report form where
+   * no address is set. The body asks for what the store's tester list needs. The app speaks as "I".
+   */
+  join: {
+    lead: "Want to try it early?",
+    android: { button: "Join the Android test", subject: "Join the Android test",
+               body: "Hi, I'd like to join the Android test of the Can I Fish This? app. The email on my Google account is: " },
+    iphone: { button: "Join the iPhone test", subject: "Join the iPhone test",
+              body: "Hi, I'd like to join the iPhone test of the Can I Fish This? app. The email on my Apple ID is: " },
+  },
   back: "Back to the map",
 } as const;
 

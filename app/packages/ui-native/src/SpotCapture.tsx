@@ -54,6 +54,8 @@ const PREV: Record<Step, Step | null> = { water: null, point: "water", when: "po
 const AT_ZOOM = 14;
 
 export interface SpotCaptureProps {
+  /** (T901) the web notice's "Join the test" emails this contact address */
+  contact?: string | null;
   /**
    * The live index, so the ESTIMATE is frozen as the reader saw it.
    *
@@ -84,7 +86,7 @@ export interface SpotCaptureProps {
 
 /** (T302) On the web a spot is not saved here: the notice that spots live in the phone app, and the way back. */
 export function SpotCapture(props: SpotCaptureProps) {
-  return webSpotsNotice() ? <WebSpotsNotice palette={props.palette} onDone={props.onCancel} /> : <SpotCaptureFlow {...props} />;
+  return webSpotsNotice() ? <WebSpotsNotice palette={props.palette} onDone={props.onCancel} contact={props.contact ?? null} /> : <SpotCaptureFlow {...props} />;
 }
 
 function SpotCaptureFlow(props: SpotCaptureProps) {

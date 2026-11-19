@@ -21,14 +21,12 @@
  * The store package is loaded only on the first Play / App Store call, never for the APK page.
  */
 import { Platform } from "react-native";
-import { apkIsNewer, appUpdateChannel, reportFailure, storeUpdateCheck, type AppVersion, type AppVersionFile } from "@app/core";
+import { apkIsNewer, appUpdateChannel, PLAY_STORE_URL, reportFailure, storeUpdateCheck, type AppVersion, type AppVersionFile } from "@app/core";
 import type { AppUpdatePort } from "@app/ui";
 import { openLinkShown } from "@app/ui-native";
 import { ENDPOINTS } from "./config";
 
 const store = () => import("expo-in-app-updates");
-/** app.json `android.package` */
-const PLAY_PACKAGE = "ca.canifishthis.app";
 /** (T894) the store build's own version file, read on our data origin; a failed read is reported (core storeUpdateCheck) */
 const STORE_FILES = {
   dataBase: ENDPOINTS.base, reportFailure,
@@ -71,7 +69,7 @@ export function makeAppUpdater(own: AppVersion): AppUpdatePort | null {
       };
     }
     case "play": {
-      const listing = `https://play.google.com/store/apps/details?id=${PLAY_PACKAGE}`;
+      const listing = PLAY_STORE_URL;
       return {
         channel, installed: own.version,
         // (T894) Play decides; app/android/play/<the versionCode Play offers>.json names that build's version and bullets

@@ -5,7 +5,7 @@
  */
 import { Platform, ScrollView, View } from "react-native";
 import { Text } from "./Text";
-import { WEB_SPOTS_WORDS as W } from "@app/core";
+import { appStoreLink, getAppBlock, playStoreLink, WEB_SPOTS_WORDS as W } from "@app/core";
 import { Button } from "./Button";
 import { TYPE } from "./type";
 import { GUTTER, SPACE, type Palette } from "./theme";
@@ -22,11 +22,19 @@ export const webSpotsNotice = (): boolean =>
 /** (tests) draw the web's notice, or (null) as the platform says */
 export const showWebSpotsNotice = (on: boolean | null) => { forced = on; };
 
-export function WebSpotsNotice({ palette, onDone }: {
+/** equal-width slots: side by side where two fit, else each the full width */
+const SLOT = { flexBasis: 200, minWidth: 200 } as const;
+
+export function WebSpotsNotice({ palette, onDone, contact = null, onReport }: {
   palette: Palette;
+  /** (T901) the app's contact value (More → Contact): "Join the test" emails it */
+  contact?: string | null;
+  /** (T901) no contact address: "Join the test" opens the Report form with this text in it (absent: no such press) */
+  onReport?: (ask: string) => void;
   /** shown where a spot was being added: the way back to the map; absent (the Spots tab): no such button */
   onDone?: () => void;
 }) {
+  const block = getAppBlock(playStoreLink(), appStoreLink(), contact, onReport !== undefined);
   return (
     <View testID="web-spots-notice" style={{ flex: 1, backgroundColor: palette.card }}>
       <View style={{ paddingHorizontal: GUTTER, paddingTop: 16, paddingBottom: 12, borderBottomWidth: 1.5, borderBottomColor: palette.ink }}>
@@ -38,9 +46,17 @@ export function WebSpotsNotice({ palette, onDone }: {
         <Text accessibilityRole="header" style={{ ...TYPE.name, color: palette.ink, textAlign: "center" }}>{W.lead}</Text>
         {W.body.map((t, i) => <Text key={i} style={{ ...TYPE.body, color: palette.ink, textAlign: "center" }}>{t}</Text>)}
         <View style={{ gap: SPACE.s2, marginTop: SPACE.s2, alignItems: "center" }}>
-          <View testID="web-spots-get-app">
-            <Button palette={palette} label={W.getApp}
-                    onPress={linkTo(W.appUrl)} />
+          {/* (T901, owner 2026-11-19) one plain line for what is still coming, then one button per platform in the same
+              spot: its store link once public, else "Join the test" (an email, or the Report form) */}
+          <Text style={{ ...TYPE.name, color: palette.ink, textAlign: "center" }}>{W.getApp}</Text>
+          {block.coming && <Text testID="web-spots-coming" style={{ ...TYPE.body, color: palette.sub, textAlign: "center" }}>{block.coming}</Text>}
+          {block.lead && <Text style={{ ...TYPE.small, color: palette.sub, textAlign: "center" }}>{block.lead}</Text>}
+          <View testID="web-spots-get-app" style={{ width: "100%", maxWidth: 440, flexDirection: "row", flexWrap: "wrap", gap: SPACE.s2 }}>
+            {block.slots.map((x) => x.kind === "store"
+              ? <Button key={x.store} palette={palette} label={x.label} style={SLOT} testID={x.store === "android" ? "web-spots-play" : "web-spots-app-store"}
+                        onPress={linkTo(x.url)} />
+              : <Button key={x.store} palette={palette} label={x.label} style={SLOT} testID={`web-spots-join-${x.store}`}
+                        onPress={x.ask.mailto !== null ? linkTo(x.ask.mailto) : () => onReport?.(`${x.ask.subject}\n\n${x.ask.body}`)} />)}
           </View>
           {onDone && <Button palette={palette} kind="ghost" label={W.back} onPress={onDone} />}
         </View>
