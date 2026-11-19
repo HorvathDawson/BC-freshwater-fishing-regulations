@@ -27,3 +27,7 @@ edge), verbatim: "also could we make the conditions menu have map in backgroudn 
 - Test: `packages/ui-native/src/T904.legend-card.test.tsx` (card at 1280, bar at 1279).
 - Pictures: /private/tmp/claude-502/-Users-dawson-horvath-dev-personal-BC-freshwater-fishing-regulations/1db4ea05-d81d-4b07-a925-fc0b9cdbe701/scratchpad/t904-shots/ before-1440-light|dark.png, after-1440-light|dark.png, before/after-390-light.png, contact-light.png,
   contact-dark.png, contact-phone.png (before | after).
+- Owner 2026-11-19: the scale bar, attribution and "Gauge reports level only" chip stay at the map's own bottom corners on desktop Conditions
+  (`mapFootInset`, Shell.tsx: inset 0 when the key is the card); they clear the card at 1280 px (chip ends ~298 px, card starts ~393).
+  Other tabs and narrower windows keep them above the bar. Pictures: t904-shots/after2-1440-light|dark.png, after2-1280-light.png,
+  contact2-light.png, contact2-dark.png.
