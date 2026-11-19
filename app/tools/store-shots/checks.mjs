@@ -11,7 +11,8 @@ export const STATE = `(() => {
     vis: Object.fromEntries(['map-day', 'keep-strip', 'keep-trout', 'salmon-block', 'gauge-card', 'water-map-step-up', 'water-title', 'chart-model-CLEVER'].map((id) => [id, vis(q(id))])),
     keepTop: q('keep-strip')?.getBoundingClientRect().top ?? null, salmonHeadTop: sal?.getBoundingClientRect().top ?? null, salmonBlockTop: q('salmon-block')?.getBoundingClientRect().top ?? null,
     clever: pressed('chart-model-CLEVER'), canvas: !!document.querySelector('canvas.maplibregl-canvas'), scale: document.querySelector('.maplibregl-ctrl-scale')?.textContent.replace(/\\s+/g, ' ').trim() ?? null,
-    waterTitle: q('water-title')?.innerText.trim() ?? '' }; })()`;
+    waterTitle: q('water-title')?.innerText.trim() ?? '',
+    modelsOff: ['CLEVER', 'COFFEE', 'ELF'].filter((m) => q('chart-model-' + m)?.getAttribute('aria-checked') === 'false') }; })()`;
 
 const BAD = /still loading|something went wrong|couldn.t load|could not load|no data to show/i;
 const need = (cond, msg) => (cond ? [] : [msg]);
@@ -26,7 +27,7 @@ export const CHECKS = {
   '19-regs-salmon': (s) => [...need(s.salmonHeadTop !== null, 'no "Salmon (DFO)" block on the Vedder'), ...need(s.keepTop !== null, 'no game-fish calendar on the page'),
     ...need(s.salmonHeadTop !== null && s.keepTop !== null && s.salmonHeadTop < s.keepTop, `salmon is not above the game-fish calendar (salmon top ${s.salmonHeadTop}, game fish top ${s.keepTop}): the site serving the shots predates 0cba57a73`),
     ...need(/Open|Closed/.test(s.text), 'no open/closed answer on the page')],
-  '11-cond-chart': (s) => [...need(s.vis['gauge-card'], 'no gauge card'), ...need(s.clever, 'the CLEVER forecast is not switched on the chart (no forecast series; off season or feed empty)'),
+  '11-cond-chart': (s) => [...need(s.vis['gauge-card'], 'no gauge card'), ...need(!(s.modelsOff ?? []).length, `forecast models left off on the chart: ${(s.modelsOff ?? []).join(', ')}`), ...need(s.clever, 'the CLEVER forecast is not switched on the chart (no forecast series; off season or feed empty)'),
     ...need(/\d+(\.\d+)?\s*\n?\s*m³\/s/.test(s.text) || /m³\/s/.test(s.text), 'no flow reading on the card')],
   '12-cond-change': (s) => [...need(s.scale === '10 km', `map scale ${s.scale}, not 10 km`), ...need(/reaches coloured/.test(s.text), 'no coloured reaches (watershed days not loaded)'), ...need(s.ids.includes('map-horizons-change'), 'no Change control on the map')],
   '13-cond-forecast': (s) => [...need(s.scale === '10 km', `map scale ${s.scale}, not 10 km`), ...need(/reaches coloured/.test(s.text), 'no coloured reaches (watershed days not loaded)'), ...need(s.ids.includes('map-horizons-days') && /(Mon|Tue|Wed|Thu|Fri|Sat|Sun) \d+/.test(s.text), 'no forecast days on the map')],
@@ -35,6 +36,13 @@ export const CHECKS = {
   '15-split-rules': (s, facts) => [...need((facts.parts ?? 0) > 1, `the river has ${facts.parts ?? 'no readable number of'} parts, need more than one`), ...need(s.vis['keep-strip'], "the part's rules (keep-strip) are not showing")],
   '04-salmon': (s) => [...need(s.vis['map-day'] && s.canvas, 'the map is not showing')],
   '05-runs': (s) => [...need(/Runs/.test(s.text), 'the Runs tab is not showing')],
+  // (T319) the phone's screens, drawn by the store-shots web build (EXPO_PUBLIC_STORE_SHOTS=1): never the website's own
+  '07-saved-spot': (s) => [...need(!s.ids.includes('web-spots-notice'), 'the website\'s "get the app" notice is up: the web export was not built with EXPO_PUBLIC_STORE_SHOTS=1'),
+    ...need(/Bridge pool/.test(s.text) && /tail-out below the bridge/.test(s.text), 'the sample spot (Bridge pool, its notes) is not showing')],
+  '20-help': (s) => [...need(/Offline and updates/i.test(s.text), 'no "Offline and updates" lines on the Help page'),
+    ...need(/work with no signal/.test(s.text), 'the Help page shows the website\'s lines, not the app\'s: the web export was not built with EXPO_PUBLIC_STORE_SHOTS=1')],
+  // (T319) search: the typed name's waters listed
+  '06-search': (s) => [...need(/Vedder River/.test(s.text) && /named waters/i.test(s.text), 'no search results for "Vedder" (Vedder River, the named-waters list)')],
   // (T703/T704) the More data list: each source with its date, the whole rows in view (the Settings screen has no offline control on the web)
   '09-offline': (s) => [...need(/Synopsis/.test(s.text) && /Freshwater Atlas/.test(s.text) && /Map tiles/.test(s.text), 'the More data list (Synopsis, Freshwater Atlas, Map tiles) is not showing'),
     ...need(/Valid to [A-Z][a-z]{2} \d{1,2}, \d{4}/.test(s.text) && /[A-Z][a-z]{2} \d{1,2}, \d{4}/.test(s.text.replace(/Valid to [^\n]*/, '')), 'the sources are not showing their dates')],

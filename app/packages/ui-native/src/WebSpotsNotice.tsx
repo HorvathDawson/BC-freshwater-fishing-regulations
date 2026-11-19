@@ -10,6 +10,7 @@ import { Button } from "./Button";
 import { TYPE } from "./type";
 import { GUTTER, SPACE, type Palette } from "./theme";
 import { linkTo } from "./openLink";
+import { phoneScreensOnWeb } from "./storeShots";
 
 /**
  * Does this build show the notice in place of spots? The web app does; the phone app never. The unit tests run on
@@ -17,7 +18,7 @@ import { linkTo } from "./openLink";
  */
 let forced: boolean | null = null;
 export const webSpotsNotice = (): boolean =>
-  forced ?? (Platform.OS === "web" && !(typeof process !== "undefined" && process.env?.VITEST));
+  forced ?? (Platform.OS === "web" && !phoneScreensOnWeb() && !(typeof process !== "undefined" && process.env?.VITEST));
 /** (tests) draw the web's notice, or (null) as the platform says */
 export const showWebSpotsNotice = (on: boolean | null) => { forced = on; };
 

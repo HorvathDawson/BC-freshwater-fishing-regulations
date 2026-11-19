@@ -9,7 +9,7 @@
   "includeEntryExports": true,
   // (T814/T821) ffmpeg: the iOS test bed (tools/testbed/scenarios-ios/build36.mjs) cuts a screen recording into frames
   // with the machine's ffmpeg, as the Python frame tools beside it do; a system tool, not a package.
-  "ignoreBinaries": ["ffmpeg"],
+  "ignoreBinaries": ["ffmpeg", "ffprobe"],
   "workspaces": {
     ".": {
       // tools/: the `pnpm check` gates (node scripts) and the tools test suites vitest runs.

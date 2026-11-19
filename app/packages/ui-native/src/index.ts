@@ -55,3 +55,5 @@ export * from "./theme";
 export { preloadParts } from "./part";
 export { openLinkShown, setLinkFailedSink } from "./openLink";
 export { platformLine } from "./platformLine";
+// (T319) the store-shots web build draws the phone's Spots and Help lines
+export { drawPhoneScreensOnWeb } from "./storeShots";
