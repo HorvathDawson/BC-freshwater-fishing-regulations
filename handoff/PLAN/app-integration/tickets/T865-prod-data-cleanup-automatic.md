@@ -1,7 +1,8 @@
 # T865 — Production data clean-up is automatic (stay under R2's free 10 GB)
 
-Status: PARTIAL — built 4f4b5c8 (lane app/t865-prod-prune, not merged); left (Claude): at the switch, on the owner's
-word, turn off `bc-fishing-cron` and `main`'s three update workflows (PRODUCTION.md step 12).
+Status: PARTIAL — built 4f4b5c8 + review fixes 8b279ce (lane app/t865-prod-prune, not merged); left (Claude): at the
+switch, on the owner's word, turn off `bc-fishing-cron` + `main`'s three update workflows and run
+`deploy/prod/drop-v1.sh` (PRODUCTION.md step 11).
 
 Owner 2026-11-18, verbatim:
 - ~18:20: "We will also what to delete the old data for old app version once everything is settled to avoid being over 10gb"
@@ -17,17 +18,18 @@ Work:
    of release-scoped prefixes, never "everything else"; refuse (and say so) when a manifest cannot be read or parsed, or
    a file a kept manifest names is missing. Prints what it deleted and the bytes freed; runs under `--dry-run` and
    against a `--bucket` rehearsal.
-2. The v1 layout goes automatically once canifishthis.ca serves the new site (a marker the new web export has and the
-   old Vite site lacks); without it, v1 is kept and the output says why. Run by `upload.sh` and `deploy/prod/site.sh`.
+2. The v1 layout goes by its own command, `deploy/prod/drop-v1.sh`, which Claude runs at the switch on the owner's
+   word (review 2026-11-18: dropped automatically, a site rollback to the Vite build would load with no data). It
+   fails closed on a marker the new web export has and the old Vite site lacks.
 3. Tests with no network; one proven to fail when the guard is broken.
-4. PRODUCTION.md: step 11's delete becomes automatic. Turning off the old `bc-fishing-cron` worker and `main`'s
-   `update-hydro.yml`, `update-in-season.yml`, `update-stocking.yml` is CLAUDE's step at the switch, on the owner's
-   word (owner ~18:25), not before.
+4. PRODUCTION.md step 11: CLAUDE's step at the switch, on the owner's word (owner ~18:25), not before: turn off the
+   old `bc-fishing-cron` worker and `main`'s `update-hydro.yml`, `update-in-season.yml`, `update-stocking.yml`, then
+   `deploy/prod/drop-v1.sh`.
 
 ## Built (2026-11-18, 4f4b5c8)
 
-- `pipeline/deliver/release/prod_prune.py` (`releases`, `v1`), run by `deploy/prod/upload.sh` after the pointer and
-  (`v1`) by `deploy/prod/site.sh` after a real deploy (its `--dry-run` reads no production bucket).
+- `pipeline/deliver/release/prod_prune.py` (`releases`, `v1`): `releases` run by `deploy/prod/upload.sh` after the
+  pointer; `v1` only by `deploy/prod/drop-v1.sh` (see the review fixes below).
 - Layout map (module docstring): PRUNED = `release/r-*/`, `release/tiles/*/`, `release/basemap/*/` not named by
   `release/manifest.json` / `release/manifest.previous.json` (a kept manifest's folders kept whole). NEVER = the two
   pointers, `map-assets/v1/`, `*.wasm`, `runtiming/` (own publisher, own pointer), `feeds/`, `private/`,
@@ -48,3 +50,16 @@ Work:
   "everything else" (listing + unit together). Rehearsed through real rclone on a local remote
   (`RCLONE_CONFIG_R2_TYPE=local`, `r2:<dir>`): keep/delete, dry run, refusals, v1 kept (canifishthis.ca) / deleted
   (staging site as the marker).
+
+## Review fixes (2026-11-18, 8b279ce; independent review: 4 defects)
+
+1. v1 no longer goes from `upload.sh` / `site.sh`: `CONFIRM_PROD=canifishthis.ca deploy/prod/drop-v1.sh [--dry-run]`,
+   Claude at the switch on the owner's word; no marker = nothing deleted, exit 1.
+2. `--bucket` is compared bare in every `deploy/prod` script that takes it (`deploy/lib/bucket.sh`: remote prefix and
+   slashes dropped, lower-cased, a path refused): `bc-fishing-regulations/` no longer skips `CONFIRM_PROD`.
+3. Each key is printed once rclone reports it deleted (`-v --use-json-log`, streamed); a delete that stops part way
+   says how many objects and bytes went, never "nothing deleted".
+4. A release-scoped folder whose newest object went up under 24 h ago (`lsjson --use-server-modtime`) is kept and
+   said: a web tab open across two promotes the same day keeps reading its region files.
+Tests: 63 in `test_prod_prune.py` (stub-tree runs of the four scripts for the bucket guard); each fix's guard broken
+fails them.
