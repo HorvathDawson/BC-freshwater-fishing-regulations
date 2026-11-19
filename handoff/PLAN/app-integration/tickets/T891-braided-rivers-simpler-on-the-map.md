@@ -20,3 +20,8 @@ DRAWN. Every FWA side channel is a full-width line. T699 (trim tiles; simplifica
    its width.
 3. Pictures to the owner (Lillooet at Pemberton, the lower Fraser, the Squamish, the Skeena) before it lands.
 Tiles and bundle share a vintage: this needs a tiles build with the next data release.
+
+## Tile attribute (main chat, 2026-11-19, for the app chat's style)
+Stream features carry `sc: 1` on side-channel pieces only (absent = the main channel). Test = `is_side_channel_piece`
+(pipeline/deliver/tiles/export.py: FWA secondary flow, not a canal, never a river's own line); add `sc` to layers.py's
+prop list. Style filters on `["has","sc"]`. Ships with the next tiles build.
