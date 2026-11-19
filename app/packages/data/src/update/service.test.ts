@@ -392,6 +392,26 @@ describe("the release", () => {
     s2.stop();
   });
 
+  it("(T912) the stage carries the mobile-data rule to the system's downloader: a big update on Wi-Fi without Always is Wi-Fi only; small, or Always, may use mobile data", async () => {
+    const m1 = manifest("r1", { tiles: "v1" });
+    const run = async (next: Manifest, always: boolean) => {
+      const asked: boolean[] = [];
+      const s = createUpdateService({ feeds: [], fetch: origin({ [M]: JSON.stringify(next) }).fetch,
+        network: { online: () => true, metered: () => false },
+        release: { manifestUrl: M, held: () => heldOf(m1), stage: async (_m, _on, o) => { asked.push(o.metered); return OK; } } });
+      if (always) s.allowMetered(true);
+      await s.check(); await flush();
+      return asked;
+    };
+    const big = manifest("r1", { tiles: "v2", tileBytes: 500_000_000 });
+    const small = manifest("r2", { files: { core: [1_000_000, "c2"], paint: [10, "p1"] }, tiles: "v1" });
+    // MUTATION PIN: `true` for the big one is what the lazy enqueue did before T912 (a closed app's download then went
+    // on over mobile data once the reader left Wi-Fi, against the setting)
+    expect(await run(big, false)).toEqual([false]);
+    expect(await run(big, true)).toEqual([true]);
+    expect(await run(small, false)).toEqual([true]);
+  });
+
   it("T298: the three-way mobile-data setting — Ask until answered, kept, and an older allowMetered read as Always", () => {
     const fresh = createUpdateService({ feeds: [], store: memStore() });
     expect(fresh.snapshot()).toMatchObject({ mobileData: "ask", mobileDataAnswered: false, allowMetered: false });

@@ -16,6 +16,7 @@ import { satellite } from './satellite.mjs';
 import { regsOpen } from './regs-open.mjs';
 import { updateFreeze } from './update-freeze.mjs';
 import { bgInstall } from './bg-install.mjs';
+import { bgUpdate } from './bg-update.mjs';
 import { locate } from './locate.mjs';
 import { gestures } from './gestures.mjs';
 import { walkthrough } from './walkthrough.mjs';
@@ -46,4 +47,4 @@ import { openRace } from './open-race.mjs';
 import { troutTable } from './trout-table.mjs';
 import { oldAppGate } from './old-app-gate.mjs';
 
-export const SCENARIOS = [install, feeds, bigUpdate, offline, spots, savedSpots, twoDays, routeScroll, report, crash, crashBed, nearCold, satellite, pan, perf, regsOpen, updateFreeze, bgInstall, locate, gestures, walkthrough, gaugeOffline, gaugeLevel, memory, waterNav, heapprof, edge, feel, partSteps, tabSwitch, glide, photoZoom, stepShots, paneOpen, mapIdle, switchPan, regsSwitch, retireSwap, zoomFlick, zoomPinch, tapStalls, backFlash, openRace, troutTable, oldAppGate];
+export const SCENARIOS = [install, feeds, bigUpdate, offline, spots, savedSpots, twoDays, routeScroll, report, crash, crashBed, nearCold, satellite, pan, perf, regsOpen, updateFreeze, bgInstall, bgUpdate, locate, gestures, walkthrough, gaugeOffline, gaugeLevel, memory, waterNav, heapprof, edge, feel, partSteps, tabSwitch, glide, photoZoom, stepShots, paneOpen, mapIdle, switchPan, regsSwitch, retireSwap, zoomFlick, zoomPinch, tapStalls, backFlash, openRace, troutTable, oldAppGate];

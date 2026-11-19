@@ -31,6 +31,8 @@ import { fetchVerified, sha256Hex, type ItemId, type Manifest } from "@app/data"
 import { assetsDigest, bootRelease, bootSaid, heldPath, POINTER, releaseTiles, SpaceError, UnreadableError, type ReleaseFs, type ReleasePlatform }
   from "@app/data/release";
 import { readsRelease } from "../packages/data/src/manifest";
+import { background, type BackgroundNative, type BgJob } from "../packages/data/src/release/bgDownload";
+import { partDownload, type PartFs } from "../packages/data/src/release/install";
 import { PACK_FILES } from "../packages/data/src/pack.generated";
 import { releaseCache } from "../packages/data/src/release/drivers/cache.web";
 import { releaseSource } from "../packages/data/src/release/drivers/source.web";
@@ -214,6 +216,10 @@ function withTiles(fx: FixtureRelease, v: string, assets?: { id: string; body: R
   return at;
 }
 
+/** (T912) A data file's url in a manifest folder (`withTiles`'s), without its release id: `core-<sha12>.sqlite.gz`. */
+const r2Url = (at: string, name: string): string =>
+  (JSON.parse(readFileSync(join(at, "manifest.json"), "utf8")) as Manifest).files[name]!.url.split("/").pop()!;
+
 const tileFiles = (fs: ReturnType<typeof memFs>, v: string) =>
   [...fs.files.keys()].filter((k) => k.startsWith(`release/tiles/${v}/`)).sort();
 
@@ -248,6 +254,71 @@ function phone(fs: ReturnType<typeof memFs>, disk: ReleaseFs = fs,
   };
 }
 const offline = (async () => { throw new TypeError("Network request failed"); }) as unknown as typeof fetch;
+
+/**
+ * (T912) THE SYSTEM'S DOWNLOADER, faked: a job waits until `run()` (the system downloading it, the app open or not), which
+ * fetches it from `serve` as the downloader asks for it (the bytes as stored: a `.gz` stays gzip, the rest unencoded).
+ * `st.closed`: the app's process is gone — every call from it throws, so a stage it had under way ends there.
+ */
+function systemDm(fs: ReturnType<typeof memFs>, serve: typeof fetch) {
+  const jobs = new Map<number, BgJob & { body?: Uint8Array }>();
+  const log: string[] = [], st = { closed: false };
+  let next = 1;
+  const alive = () => { if (st.closed) throw new Error("the app was closed"); };
+  const path = (uri: string) => uri.replace("file:///doc/", "");
+  const native: BackgroundNative = {
+    jobs: async () => { alive(); return [...jobs.values()].map(({ body: _b, ...j }) => ({ ...j })); },
+    enqueue: async (url, _name, _title, text, metered) => {
+      alive();
+      log.push(`enqueue ${url.slice(BASE.length)} ${metered ? "metered" : "wifi"} ${text.split(" · ")[0]}`);
+      jobs.set(next, { id: next, url, status: "pending", reason: 0, bytes: 0, total: -1, metered });
+      return next++;
+    },
+    remove: async (id) => { alive(); log.push(`remove ${id}`); jobs.delete(id); },
+    claim: async (id, to) => {
+      alive();
+      const j = jobs.get(id)!;
+      await fs.write(path(to), j.body!);
+      jobs.delete(id);
+      log.push(`claim ${j.url.slice(BASE.length)}`);
+    },
+    sha256: async (uri) => sha256Hex(await fs.read(path(uri))),
+  };
+  const run = async () => {
+    for (const j of jobs.values()) {
+      const got = new Uint8Array(await (await serve(j.url)).arrayBuffer());
+      j.body = j.url.endsWith(".gz") ? got : new Uint8Array(gunzipSync(got));
+      j.status = "done"; j.bytes = j.total = j.body.length;
+    }
+  };
+  return { native, jobs, log, st, run };
+}
+
+/** Let the event loop run until `ok()` (at most 500 turns). */
+const settle = async (ok: () => boolean) => { for (let i = 0; i < 500 && !ok(); i++) await new Promise((r) => setTimeout(r, 0)); };
+
+/** (T912) The phone with its system downloader: install.native.ts's wiring (`background`) over the in-memory disk. */
+function phoneBg(fs: ReturnType<typeof memFs>, bg: BackgroundNative): ReleasePlatform {
+  const part: PartFs = {
+    size: async (p) => fs.files.get(p)?.length ?? 0,
+    append: async (p, b) => { const a = fs.files.get(p) ?? new Uint8Array(0); const c = new Uint8Array(a.length + b.length); c.set(a); c.set(b, a.length); fs.files.set(p, c); },
+    chunks: async (p, each) => { each(fs.files.get(p)!); },
+    rename: fs.rename, remove: fs.remove,
+  };
+  return {
+    ...phone(fs),
+    device: (f) => {
+      const sys = background(bg, { ...part, uri: (p) => `file:///doc/${p}`, read: fs.read },
+                             async () => { throw new Error("no .part to resume here"); }, { pollMs: 0 });
+      return {
+        fs, download: (url, e) => sys.fetch(url, e, (u, x) => fetchVerified(u, x, undefined, f)),
+        toDisk: partDownload({ ...part, hash: async (p) => sha256Hex(await fs.read(p)) }, sys.fill),
+        background: { queue: sys.queue },
+        dirUri: (p) => `file:///doc/${p}`, fileUri: (p) => `file:///doc/${p}`,
+      };
+    },
+  };
+}
 
 describe("native: always offline, updated by diff, swapped at the next launch", () => {
   /** A fixture release's data_release id, as its manifest states it. */
@@ -298,6 +369,72 @@ describe("native: always offline, updated by diff, swapped at the next launch", 
     expect([...fs.files.keys()].some((k) => k.startsWith(`release/${first.held.release}/`))).toBe(false);
     expect(fourth.locate("tiles/x/atlas-x.pmtiles")).toBe("file:///doc/release/tiles/x/atlas-x.pmtiles");
   });
+
+  it("(T912) the FIRST INSTALL takes the same path as an update: its data files are queued with the system's downloader too, and claimed from it (none fetched in the app)",
+    async () => {
+      const r1 = fixtureRelease("plain"), id1 = await idOf(r1);
+      const m = JSON.parse(readFileSync(join(r1.dir, "manifest.json"), "utf8")) as Manifest;
+      const names = Object.keys(m.files).sort();
+      const fs = memFs(), dm = systemDm(fs, releaseFetch(BASE, r1.dir, []));
+      const app: string[] = [];
+      const booting = bootRelease({ manifestUrl: `${BASE}manifest.json`, releaseBase: BASE, wasmBase: "", manifestTimeoutMs: 1000,
+                                    platform: phoneBg(fs, dm.native), fetch: releaseFetch(BASE, r1.dir, app), background: dm.native });
+      await settle(() => dm.jobs.size === names.length);
+      // MUTATION PIN: T298's first install queued its big files only (`bigFiles(latest, null)`): this fixture has none,
+      // so nothing was queued and every data file was fetched in the app
+      expect(dm.log).toEqual(names.map((n) => `enqueue ${m.files[n]!.url} metered Regulations data`));
+      await dm.run();                                                 // the system downloads them (the app open or not)
+      const b = await booting;
+      expect(b.held.release).toBe(id1);
+      expect(app).toEqual([`${BASE}manifest.json`]);
+      expect(dm.log.slice(names.length).sort()).toEqual(names.map((n) => `claim ${m.files[n]!.url}`).sort());
+      expect(dm.jobs.size).toBe(0);
+      expect(await b.source.water("gnis:8634" as ItemId)).not.toBeNull();
+    });
+
+  it("(T912) an update hands EVERY file it downloads to the system's downloader before the app fetches any: closed mid-update, they go on downloading, and the next open claims them (none fetched in the app) and applies the set",
+    async () => {
+      const r1 = fixtureRelease("plain"), r2 = fixtureRelease("lakeGauged");
+      const v1 = tileVersion(r1, "aaaaaaaaaaaa"), v2 = tileVersion(r2, "bbbbbbbbbbbb");
+      const at1 = withTiles(r1, v1), at2 = withTiles(r2, v2), id2 = await idOf(r2);
+      const fs = memFs(), dm = systemDm(fs, releaseFetch(BASE, at2, []));
+      const app: string[] = [];                                       // what the APP fetched itself
+      const boot = (f: typeof fetch, platform: ReleasePlatform) => bootRelease({ manifestUrl: `${BASE}manifest.json`,
+        releaseBase: BASE, wasmBase: "", platform, fetch: f, manifestTimeoutMs: 1000, deferUpdate: true, background: dm.native });
+      await boot(releaseFetch(BASE, at1, []), phone(fs));               // installed (r1, tiles v1)
+
+      // the service stages r2 (data files and tiles changed) on Wi-Fi, a big update without "Always": Wi-Fi only
+      const session = await boot(releaseFetch(BASE, at2, app), phoneBg(fs, dm.native));
+      const staging = session.stage(session.latest!, undefined, { metered: false });
+      await settle(() => dm.jobs.size === 4);
+      // MUTATION PIN: before T912 the app fetched conditions and core itself first, and queued each big file only when
+      // the install reached it — a reader who closed the app here stopped the whole update
+      expect(dm.log).toEqual([`enqueue ${id2}/${r2Url(at2, "conditions")} wifi Regulations data`,
+                              `enqueue ${id2}/${r2Url(at2, "core")} wifi Regulations data`,
+                              `enqueue tiles/${v2}/atlas-${v2}.pmtiles wifi Map of the waters`,
+                              `enqueue tiles/${v2}/bc_outside.geojson wifi Map outline`]);
+      expect(app).toEqual([`${BASE}manifest.json`]);
+
+      // the app is CLOSED (its process gone, the stage with it); the system downloads every file meanwhile
+      dm.st.closed = true;
+      await expect(staging).rejects.toThrow("the app was closed");
+      await dm.run();
+
+      // the next open: the service stages r2 again; every file is claimed from its finished job, none fetched in the app
+      dm.st.closed = false; app.length = 0;
+      const reopened = await boot(releaseFetch(BASE, at2, app), phoneBg(fs, dm.native));
+      expect(await reopened.stage(reopened.latest!, undefined, { metered: false }))
+        .toMatchObject({ kind: "staged", held: { release: id2, tiles: v2 } });
+      expect(app).toEqual([`${BASE}manifest.json`]);
+      expect(dm.log.slice(4).sort()).toEqual([`claim ${id2}/${r2Url(at2, "conditions")}`, `claim ${id2}/${r2Url(at2, "core")}`,
+                                              `claim tiles/${v2}/atlas-${v2}.pmtiles`, `claim tiles/${v2}/bc_outside.geojson`]);
+      expect(dm.jobs.size).toBe(0);
+      expect([...fs.files.keys()].filter((k) => k.endsWith(".dl") || k.endsWith(".part"))).toEqual([]);
+      // and the launch after applies it
+      const cold = await boot(offline, phone(fs));
+      expect([cold.manifest.data_release, cold.held.tiles, cold.applied?.from]).toEqual([id2, v2, await idOf(r1)]);
+      expect(await cold.source.water("gnis:8634" as ItemId)).not.toBeNull();
+    });
 
   it("(T585 F12) a set staged earlier is APPLIED by the cold start that opens it — said once — and web and phone end on one data_release",
     async () => {

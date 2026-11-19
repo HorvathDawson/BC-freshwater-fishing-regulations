@@ -311,7 +311,7 @@ reads both files; a ticket closed here moves there once its lane is finished wit
 | T909 | Web app: no bell and no reload in the search bar (owner) | IN PROGRESS | main chat | owner 2026-11-19 ~07:20 |
 | T910 | Web first load: Lighthouse performance 46 on staging; make the first visit fast (owner) | IN PROGRESS (lane app/t910-web-speed: paint-first shell, inline frame 0, WOFF2 faces, immutable /_expo/static; owner's three built — rules worker, quiet spell, lazy Regulations page — and the home description; left (Claude): review, then staging) | main chat | owner 2026-11-19 ~07:40 |
 | T911 | "Join the test" opens a small popup: email me, or copy the address (owner) | IN PROGRESS | main chat | owner 2026-11-19 ~07:55 |
-| T912 | A regulations data update stops downloading when the app is closed (owner) | IN PROGRESS | main chat | owner 2026-11-19 ~10:50 |
+| T912 | A regulations data update stops downloading when the app is closed (owner) | IN PROGRESS | b45e97b31, 7edc90484, 9defa2447, 32c6378a7, f02307630, 062052af6 | left (Claude): integrate (0.8.3 batch) · owner 2026-11-19 ~10:50 |
 | T913 | Play refuses review: the portrait lock declares a required hardware feature (owner) | IN PROGRESS | main chat | owner 2026-11-19 ~11:05 |
 | T907 | "Species and limits" table: no B.C./DFO tag on rows, one value column, where each answer comes from (owner) | IN PROGRESS | lane app/t907-species-table; left (Claude): owner sees pictures, then integrate + data release | owner 2026-11-19 ~06:50 |
 | T882 | Salmon: DFO's "To be determined" says so instead of "Check DFO"; green whenever any salmon is open (owner) | DONE | b2a5f2522 | owner 2026-11-18 ~21:18 |

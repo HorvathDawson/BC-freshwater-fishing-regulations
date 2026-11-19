@@ -18,9 +18,20 @@
  *             log says so: it would otherwise wait for a Wi-Fi the reader no longer asked it to wait for.
  *             (T760) A job pending, or paused for anything but a wait for a network, with no new byte for `stuckMs` is
  *             queued again (said in the log, its bytes lost); after `stuckTries` the install fails with words.
+ *   fetch     (T912) AN UPDATE'S DATA FILES go to the system too (`BgItem.whole`): an update that changes only the
+ *             regulations is nothing but data files, and an update that also moves the map fetched them first, in the app,
+ *             before any big file was queued — so a reader who closed the app while an update downloaded stopped all of
+ *             it. `fetch` waits on such a file's job, claims it beside its install path, and verifies it (gzip or not:
+ *             the data host decodes a stored gzip for a client that asks for the bytes as they are) before the install
+ *             places it. A file with no job, or whose job failed, vanished, stopped moving or brought other bytes, is
+ *             downloaded in the app instead, and the log says why (W46). So is one whose job paused part way for anything
+ *             but a wait for a network: the system's downloader must ask for the bytes unencoded, which the data host
+ *             sends decoded with no length and no ETag, so a cut transfer cannot be resumed (seen on the emulator: parked
+ *             "waiting to retry" at 93 % for good); the small file is fetched by the waiting app rather than waited on.
  */
-import { DOWNLOAD_NOTE_WORDS, INSTALL_WORDS, now as clockNow } from "@app/core";
-import type { PartFill, PartFs } from "./install";
+import { DOWNLOAD_NOTE_WORDS, INSTALL_WORDS, now as clockNow, reportFailure } from "@app/core";
+import { verifyAsync, VerifyError } from "../fetchVerified";
+import type { Download, PartFill, PartFs } from "./install";
 
 /** One of this app's downloads, as the platform's downloader reports it. `total` is -1 until the server said. */
 export interface BgJob {
@@ -59,8 +70,11 @@ export interface BackgroundNative {
   askNotifications?(): Promise<boolean>;
 }
 
-/** A big file to queue: its absolute url, what it is (the notification says), its size and where it is installed. */
-export interface BgItem { url: string; file: string; bytes: number; path: string }
+/**
+ * A file to queue: its absolute url, what it is (the notification says), its size and where it is installed. `whole`:
+ * (T912) a data file — fetched whole by `fetch` (its body may come gzip or decoded, so its length is not known ahead).
+ */
+export interface BgItem { url: string; file: string; bytes: number; path: string; whole?: boolean }
 
 /** The notification's second line for a file ("Map of the waters · 185 MB"). */
 function noteFor(file: string | undefined, bytes: number): { title: string; text: string } {
@@ -86,10 +100,12 @@ const serves = (job: BgJob, allowMetered: boolean) =>
   job.metered === allowMetered || (allowMetered && !job.metered && (job.status === "running" || job.bytes > 0));
 
 export interface Background {
-  /** Enqueue every big file not yet in place; `metered`: may they use mobile data (false: they wait for Wi-Fi). */
+  /** Enqueue every file not yet in place; `metered`: may they use mobile data (false: they wait for Wi-Fi). */
   queue(items: BgItem[], metered: boolean): Promise<void>;
   /** The `PartFill` that waits on (or starts) a file's job and claims it onto the `.part`. */
   fill: PartFill;
+  /** (T912) A data file's verified bytes: from its queued job when there is one, else (or when the job fails) `inApp`. */
+  fetch(url: string, expect: { bytes: number; sha256: string }, inApp: Download): Promise<Uint8Array>;
 }
 
 /**
@@ -122,12 +138,15 @@ interface BackgroundOptions {
   stuckTries?: number;
 }
 
-export function background(bg: BackgroundNative, fs: PartFs & { uri(path: string): string }, fallback: PartFill,
+export function background(bg: BackgroundNative, fs: PartFs & { uri(path: string): string; read(path: string): Promise<Uint8Array> },
+                           fallback: PartFill,
                            o: BackgroundOptions = {}): Background {
   const pollMs = o.pollMs ?? 500, tries = o.tries ?? 4, wifiWaitMs = o.wifiWaitMs ?? 20_000;
   const stuckMs = o.stuckMs ?? STUCK_MS, stuckTries = o.stuckTries ?? STUCK_TRIES;
   /** what each url is (for a job started by `fill` itself: an update's file, or one whose job vanished) */
   const kinds = new Map<string, string>();
+  /** (T912) the data files queued (`whole`), by url: where each is installed (its job is claimed beside it) */
+  const wholes = new Map<string, string>();
   /** the last mobile-data choice (`queue`'s); an update's job started by `fill` uses it too */
   let metered = true;
 
@@ -142,10 +161,11 @@ export function background(bg: BackgroundNative, fs: PartFs & { uri(path: string
       const jobs = await bg.jobs();
       for (const it of items) {
         kinds.set(it.url, it.file);
+        if (it.whole) wholes.set(it.url, it.path);
         const job = jobs.find((j) => j.url === it.url) ?? null;
         if (job?.status === "done" && !stale(job)) continue;                      // claimed when the install reaches it
         if (await fs.size(it.path) === it.bytes) continue;                        // in place (verified by the install)
-        if (!job && await fs.size(`${it.path}.part`) > 0) continue;               // an older app's .part: resumed as before
+        if (!it.whole && !job && await fs.size(`${it.path}.part`) > 0) continue;  // an older app's .part: resumed as before
         if (job && job.status !== "failed" && !stale(job) && serves(job, allowMetered)) continue;
         if (job) {
           // (T756 / T760, W46) never a silent restart: what is thrown away, and why (the bench reads this line)
@@ -221,6 +241,60 @@ export function background(bg: BackgroundNative, fs: PartFs & { uri(path: string
         }
         const now = job!.status === "paused" ? `paused (reason ${job!.reason})` : job!.status;
         if (now !== said) { console.info(`[download] ${url}: ${now}, ${job!.bytes} of ${total} bytes`); said = now; }
+        await wait(pollMs);
+      }
+    },
+
+    async fetch(url, expect, inApp) {
+      const to = wholes.get(url);
+      let job = to ? (await bg.jobs()).find((j) => j.url === url) ?? null : null;
+      if (!to || !job) return inApp(url, expect);                 // not queued (a first install's data file): as before
+      // (W46) never a silent switch: why the system's download was given up, then the app's own download
+      const instead = async (why: string) => {
+        console.warn(`[download] ${url}: ${why}; downloaded in the app instead`);
+        if (job) await bg.remove(job.id);
+        job = null;
+        return inApp(url, expect);
+      };
+      let movedAt = clockNow(), lastBytes = -1, pausedAt = 0, said = "";
+      for (;;) {
+        const id: number = job!.id;
+        job = (await bg.jobs()).find((j) => j.id === id) ?? null;
+        if (!job) return instead("its system download is gone");
+        if (job.status === "failed") return instead(`its system download failed (reason ${job.reason})`);
+        if (stale(job)) return instead("its system download finished, but its file is gone (the app's data was cleared)");
+        if (job.status === "done") {
+          const at = `${to}.dl`;
+          await bg.claim(job.id, fs.uri(at));
+          job = null;                                             // claimed: the system has forgotten it
+          let body: Uint8Array;
+          try { body = await fs.read(at); } finally { await fs.remove(at); }
+          let raw: Uint8Array;
+          try { raw = await verifyAsync(url, body, expect); }
+          catch (e) {
+            // not the manifest's bytes (or a gzip body cut short): reported (the system's downloader brought a file the
+            // host did not serve as it should), and the app's own download decides
+            reportFailure(e);
+            const why = e instanceof VerifyError ? e.message : `it would not unpack: ${e instanceof Error ? e.message : String(e)}`;
+            return instead(`its system download brought other bytes (${why})`);
+          }
+          console.info(`[download] ${url}: done (system download manager), ${expect.bytes} bytes`);
+          return raw;
+        }
+        // cut part way (not waiting for a network): it cannot resume (see the top), so the app downloads it now
+        if (job.status === "paused" && !NETWORK_WAITS.has(job.reason))
+          return instead(`its system download stopped part way (paused, reason ${job.reason}, ${Math.max(0, job.bytes)} bytes) and cannot resume (the host sends a data file to it with no length)`);
+        // the same waits as `fill`: a Wi-Fi-only job paused while mobile data is allowed, or one parked with no new byte
+        if (job.status === "paused" && !job.metered && metered) {
+          pausedAt ||= clockNow();
+          if (clockNow() - pausedAt >= wifiWaitMs) return instead(`a Wi-Fi-only download paused (reason ${job.reason}) while mobile data is allowed`);
+        } else pausedAt = 0;
+        const parked = job.status === "pending" || (job.status === "paused" && !NETWORK_WAITS.has(job.reason));
+        if (!parked || job.bytes !== lastBytes) { lastBytes = job.bytes; movedAt = clockNow(); }
+        else if (clockNow() - movedAt >= stuckMs)
+          return instead(`its system download has not moved for ${Math.round((clockNow() - movedAt) / 1000)} s (${job.status}, reason ${job.reason})`);
+        const now = job.status === "paused" ? `paused (reason ${job.reason})` : job.status;
+        if (now !== said) { console.info(`[download] ${url}: ${now}, ${Math.max(0, job.bytes)} bytes (system download manager)`); said = now; }
         await wait(pollMs);
       }
     },
