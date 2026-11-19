@@ -398,7 +398,7 @@ interface WidthStop { at: number; w: unknown; f: number }
 
 /** (T891) The factor a side channel's width takes — `["case", ["has", "sc"], factor, 1]` — or null where the width has none. */
 function sideChannelFactor(spec: WidthSpec, tokens: Tokens): unknown | null {
-  const sc = "sideChannel" in spec ? spec.sideChannel : undefined;
+  const sc = (spec as { sideChannel?: { has: string; token: string } }).sideChannel;
   if (sc === undefined) return null;
   const f = Number(tokens[sc.token]);
   if (!(f > 0 && f <= 1)) throw new Error(`the side-channel width token ${sc.token} is ${String(tokens[sc.token])}, not a factor in (0, 1]`);
