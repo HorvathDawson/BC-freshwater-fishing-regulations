@@ -94,3 +94,9 @@ interval while the camera moved. Render = MapLibre's `RenderThread NN` CPU over 
    is the fix.
 3. A slow-CPU run (`TESTBED_EMU_ECORES=1`) to bring the > 100 ms stalls into the emulator; the Salmon map
    (`PINCH_MODE=salmon`) not yet measured.
+
+## 2026-11-18 ~21:40: the owner's priority
+Owner (to the main chat), verbatim: "We care number one about the streams and colors and smoothness then labels can be a
+little behind etc." Direction: stream lines, colours and smooth motion first; labels may lag. Hide or freeze labels while
+a pinch/zoom gesture runs and draw them when it settles, or thin them while moving, whichever the per-layer label
+measurement shows is cheapest. After launch.
