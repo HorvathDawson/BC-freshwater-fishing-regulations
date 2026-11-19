@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { WEEKDAYS } from "./calendar.generated";
 import { bcClockTime, bcNow, bcOffsetHours, bcToday, daylightAt, daylightClosed, daylightOfMoment, namesEveryGameFish, sunLine, sunTimes, timedLineText,
          type CaveatItemVM, type Moment } from "./index";
 
@@ -77,7 +78,7 @@ describe("(T898) a daylight-only closure's times in its rule line: the date line
 });
 
 describe("(T898) the offsets come from the moment's stored window, never its words", () => {
-  const ALL = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"] as const;
+  const ALL = WEEKDAYS;   // the one calendar spec (gate 4): never a hand-typed weekday list
   const m = (hours: Moment["hours"], weekdays: Moment["weekdays"] = ALL): Moment => ({ weekdays, hours });
   const sun = (solar: "sunrise" | "sunset", offset_min: number) => ({ solar, offset_min });
   it("sunset + N to sunrise − M, every day, inside the window: { after: N, before: M }", () => {
