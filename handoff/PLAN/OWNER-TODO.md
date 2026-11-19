@@ -2775,3 +2775,9 @@ More questions (recommended answer first):
   value was made on the Mac (app/workers/feeds/.run-token.prod, gitignored, 600); the owner's list sets it on the
   worker as its first step: npx --prefix app wrangler secret put RUN_TOKEN -c deploy/prod/feeds-placeholder.wrangler.toml
   < app/workers/feeds/.run-token.prod
+- 2026-11-18 ~20:46, owner (main chat), two phone shots of the day picker on Babine Lake — Main Body
+  (/Users/dawson.horvath/.claude/uploads/b8ddfca9-44eb-400e-a9bf-bd89b4b0f359/069827ef-image.png August,
+  /Users/dawson.horvath/.claude/uploads/b8ddfca9-44eb-400e-a9bf-bd89b4b0f359/277b9b7a-image.png July), verbatim: "The
+  calendar shifts around" -> the app chat (ticket number theirs). Seen in the shots: the sheet's height changes with the
+  month (August has six week rows, July five), and the last week's days are spread across the row instead of sitting
+  under their weekdays (Aug 30-31 under Sun and Tue; Jul 26-31 spaced evenly).
