@@ -2716,3 +2716,6 @@ More questions (recommended answer first):
   app it shouldnt effect release of app?" -> yes: T858, T859 and T860 go out with the 0.8.1 WEB release. Order: the 0.8.1
   phone build (Play internal + TestFlight) is cut first with its benches as they are; then T858/T859/T860 land; then the
   staging site redeploys from that commit. Phones get T860's words at their next build.
+- 2026-11-18 ~17:05, owner (to the main chat, relayed 17:08), on whether the app should speak as him (a solo project:
+  "I read every message. Email me…"), verbatim: "yes change all" -> T860 grows: every user-facing "we / us / our" for
+  the project becomes "I / me / my" (no name) across the app, the web site pages and the store listings; 0.8.1 web.
