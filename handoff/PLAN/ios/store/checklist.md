@@ -32,7 +32,7 @@ T86 = needs production data and hosting live; OTHER LANE = being made by another
 | 15 | Marketing URL (optional) | https://canifishthis.ca | OWNER |
 | 16 | What's New | for a first version, proposal: "First release for iPhone." Check later versions against `app/packages/core/src/changelog.ts` | OWNER |
 | 17 | Copyright | proposal: the year and the name of the seller entered at enrolment (not mine to choose) | OWNER |
-| 18 | Screenshots, iPhone 6.9" and 6.5": STILL TO TAKE | none taken yet; to be made from the simulator by another lane (`app/tools/store-shots.mjs`, `iphone67` and `iphone55`) | OTHER LANE |
+| 18 | Screenshots, iPhone 6.9" and 6.5" | made 2026-11-19 (T319 set 3: 8 shots, 1320x2868 and 1242x2688, `app/tools/store-shots.mjs`); uploaded by `deploy/staging/appstore-screenshots-push.py --commit` once the 0.8.2 UI is final (plan run, nothing sent yet) | CLAUDE (T319) |
 | 19 | App preview video | `app/tools/store-video` run on iOS (T709 step 2) | OTHER LANE |
 | 20 | iPad screenshots | none: `supportsTablet: false` (`app.json:37`) | n/a |
 | 21 | App icon 1024: NO ALPHA CHANNEL | `app/apps/mobile/assets/icon/icon-1024.png` (the Play icon, `app.json:6`) is 1024 x 1024 but has alpha; Apple rejects that. A flattened copy (onto the icon ground) is made at upload time and is never committed; the repo file stays as it is | OWNER, at upload |

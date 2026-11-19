@@ -119,10 +119,14 @@ Object.assign(SCENES, {
     await click(b, `document.querySelector('[data-testid=water-map-regs]')`);
     await until(b, `!!document.querySelector('[data-testid=keep-strip]')`, 60000); await sleep(3000); await scrollTo(b, 'keep-strip'); await sleep(1500); },
 });
-const URLS = { '02-regulations': '/water/vedder-river', '03-conditions': '/?regs=gnis:3062&view=conditions',
-  '18-regs-trout': '/water/vedder-river', '19-regs-salmon': '/water/vedder-river', '11-cond-chart': '/?regs=gnis:3062&view=conditions', '14-split-map': '/water/chilliwack-river', '15-split-rules': '/water/chilliwack-river' };
+// (T319) the Vedder by the app's own link (`/?regs=`), not its /water/ page: that page is the SEO build's, so a bare web export
+// served locally (the commit under test) has none
+const URLS = { '02-regulations': '/?regs=gnis:3062', '03-conditions': '/?regs=gnis:3062&view=conditions',
+  '18-regs-trout': '/?regs=gnis:3062', '19-regs-salmon': '/?regs=gnis:3062', '11-cond-chart': '/?regs=gnis:3062&view=conditions', '14-split-map': '/water/chilliwack-river', '15-split-rules': '/water/chilliwack-river' };
 const SIZES = { phone: { width: 360, height: 640, dpr: 3, mobile: true, pre: '' }, tablet7: { width: 600, height: 960, dpr: 2, mobile: true, pre: 'tablet7-' }, tablet10: { width: 800, height: 1280, dpr: 2, mobile: true, pre: 'tablet10-' },
   // (T319) App Store: 6.7" iPhone 1290x2796 (430x932 @3), 5.5" 1242x2208 (414x736 @3), 13" iPad 2048x2732 (1024x1366 @2)
+  // (T319, 2026-11-18) 6.9" iPhone 1320x2868 (440x956 @3), the App Store's required iPhone size; its 6.5" set is framed from it
+  iphone69: { width: 440, height: 956, dpr: 3, mobile: true, pre: 'iphone69-' },
   iphone67: { width: 430, height: 932, dpr: 3, mobile: true, pre: 'iphone67-' }, iphone55: { width: 414, height: 736, dpr: 3, mobile: true, pre: 'iphone55-' },
   ipad13: { width: 1024, height: 1366, dpr: 2, mobile: true, pre: 'ipad13-' } };
 const sizeNames = (process.env.SIZES ?? 'phone').split(',');
