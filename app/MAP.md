@@ -11,7 +11,7 @@ The one current map of `app/` (T63). Why the layers are shaped this way is
 | `packages/core` | every answer and every sentence: status, regs presenters (`src/regs/`), conditions, search, menu words, freshness, the generated vocabularies (`*.generated.ts`) | nothing platform, no React |
 | `packages/data` | the data seam: the release loader + install (`src/release/`), the regs store reader (`src/regs/`), `WaterSource` over the release (`src/release/source.ts`), SQL drivers (`src/sql/`), spots (`src/spots/`), the gauge feed (`src/feed/`) | core |
 | `packages/ui` | headless React hooks — data, never elements: boot, search session, water/regs/route hooks, layout class | core, data, react |
-| `packages/ui-native` | every component (RN primitives) and every layout: `Shell.tsx` + `shell/`, water screen, regs screen (`src/regs/`), sheets, panels | core, data, ui, map |
+| `packages/ui-native` | every component (RN primitives) and every layout: `Shell.tsx` + `shell/`, water screen, regs screen (`src/regs/`), sheets, panels (T910: on the web the water's Regulations page is a `part` in the later chunk, `later.ts`, drawn as `WaterPageLoading` while its code comes; a phone has it at once) | core, data, ui, map |
 | `packages/map` | the ONE `<Map/>` (`Map.web.tsx` / `Map.native.tsx`; T409: the web map is built when first seen, `web/firstSeen.ts` — the warm map behind a water's page waits until shown, at every width), the generated style (`style/`, from `layers.source.json`) | core |
 | `apps/mobile` | the one shell for native and web (Expo + react-native-web): `src/App.tsx`, config (`config.ts` + `env.ts`: the data environment local / staging / production, T232; `eas.json` profiles), platform glue | all |
 | `conformance` | suites run against every `WaterSource` and the regs store: the fixture releases, the live release, the oracle parities (`src/regs/`) | all |
@@ -21,7 +21,8 @@ The one current map of `app/` (T63). Why the layers are shaped this way is
 ```
 data/release/r-*/ (R2 in production)
   └─ manifest ─▶ @app/data release loader (bootRelease; phone: install to disk; web: fetch on first need, and
-                   after first paint prefetch the region in view's regs file + core/sql-wasm on idle — T186,
+                   after first paint prefetch the region in view's regs file + core/sql-wasm on idle — T186; T910: the idle tier
+                   waits first for the load event + 5 s with no long task, ui-native `shell/settle.web.ts` —
                    `release/prefetch.ts`, `@app/ui` `useReleasePrefetch`, the map's `onRegion`)
                    ├─ WaterSource (release/source.ts): core, near, paint, conditions, flow-area …
                    ├─ answer slices (T256, `release/focus.ts`): web only — core / water read ROUTED: a read the map's
@@ -35,6 +36,8 @@ data/release/r-*/ (R2 in production)
                    ├─ offline (T238, `release/offline.ts`): More → Offline maps — the regulations for all of B.C. (never
                    │    per region; web: what the release cache holds), the province map, `@app/ui` `useOfflineMaps`
                    └─ RegsStore (regs/store.ts): water + regs-<region> + regs-sid
+                         (T910: the rules, `reads.rules()`, are inflated in a worker on the web — `regs/rulesDecode.web.ts`
+                         over fflate's own UMD build, `fflateWorker.generated.ts`; the phone's `rulesDecode.native.ts` as before)
                          └─▶ @app/ui hooks ─▶ @app/ui-native screens ─▶ apps/mobile App.tsx
 gauge feed (index.json, per-station) ─▶ data/src/feed/http.ts ─▶ panels / conditions
 in-season feed + links (feeds/inseason/, T230) ─▶ data/src/feed/inseason.ts ─▶ ui inseason.ts ─▶ banners, notice
@@ -71,7 +74,7 @@ The app decides nothing about a regulation: every answer is looked up in the rel
 | `fixtures/reference/` | page v36 (html, js) and its calendar copy, frozen: the parity tests' and the re-cut's oracle | `python -m pipeline.tools.emit.calendar` (calendar only) |
 | `fixtures/reader-states.json` | the reader tool's states | hand / prototype |
 | `apps/mobile/assets/fish/thumbs/` | (T405) a 240 px thumbnail per fish picture, drawn by every row and chip (the fish sheet alone draws the full picture); `thumbs.json` records what each was made from, and `pnpm fish` refuses a missing or stale one | `node tools/emit-fish-thumbs.mjs` (Chrome), then `pnpm fish:build` |
-| `tools/seo/fonts/` | (T409) the app's faces as WOFF2 (lossless), served to the water pages at `/assets/fonts/`; `fonts.json` records the TTF each was made from, and the SEO build (`webFonts.ts`) refuses a missing or stale one | `node tools/emit-web-fonts.mjs` (Python fontTools + brotli) |
+| `tools/seo/fonts/` | (T409) the app's faces as WOFF2 (lossless), served at `/assets/fonts/`: (T910) the web app draws them too (`apps/mobile` `fonts.web.ts` over `webFonts.generated.ts`; the phone keeps the TTF, `fonts.native.ts`), `tools/web-shell.mjs` copies them into the export and the water pages name the export's file; `fonts.json` records the TTF each was made from, and the SEO build (`webFonts.ts`) and web-shell refuse a missing or stale one | `node tools/emit-web-fonts.mjs` (Python fontTools + brotli; `--module` rewrites only the generated module) |
 
 The design prototype (`app/design/`) was deleted in T87 (2026-10-28); git keeps it (regs v38 @ 7fb6809f).
 

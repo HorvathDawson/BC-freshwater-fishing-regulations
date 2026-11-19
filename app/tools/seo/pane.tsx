@@ -15,7 +15,7 @@ import "./globals";
 import { createElement, type ReactElement } from "react";
 import { renderToStaticMarkup, renderToString } from "react-dom/server";
 import { AppRegistry, View } from "react-native";
-import { FACES_REQUIRED, Shell, StripWidthHint, THEMES, type FishImages } from "@app/ui-native";
+import { FACES_REQUIRED, preloadParts, Shell, StripWidthHint, THEMES, type FishImages } from "@app/ui-native";
 // react-native-web's record of pictures already loaded: a server render draws a picture only when it is in there
 import { ImageUriCache } from "react-native-web/dist/modules/ImageLoader";
 import { HOME, LayoutWidthContext, openWater, reduce, setPrerenderAnswers, type Async, type LayoutClass } from "@app/ui";
@@ -109,6 +109,9 @@ export class PaneRenderer {
   /** One render, as react-native-web's own server render makes it (its app container, its class names). */
   private async render(item: ItemId, layout: LayoutClass, theme: "light" | "dark"): Promise<string> {
     const el = tree(this.p, item, layout, theme);
+    // (T910) the water's Regulations page is a lazy part on the web (ui-native `part`, later.ts): the server render asks
+    // for it first, so the pane is the page, never its loading face
+    await preloadParts();
     await this.settle(el);
     drawn = el;
     const app = registry.getApplication(APP_KEY, {});

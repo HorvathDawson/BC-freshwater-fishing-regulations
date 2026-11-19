@@ -248,7 +248,7 @@ export async function openRegsStore(loader: RegsLoader, expect: RegsExpect = {})
       return opened(loader.db("geo"), false);
     },
   };
-  const { clear, ...reads } = makeReads({ ...files, val, optional });
+  const { clear, ...reads } = makeReads({ ...files, val, dict, optional });
   return {
     meta, ...files, ...reads, dict, val,
     refused: () => refusal,

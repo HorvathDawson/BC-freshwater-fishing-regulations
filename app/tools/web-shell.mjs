@@ -22,11 +22,22 @@
  * the hand-over is the same picture. Light or dark by the system's scheme, as the start screen reads it. Without script
  * the page says it needs one, uncovered (`<noscript>`).
  * The water pages (tools/seo `appDocument`) take it out: their prerendered pane is the first paint there.
+ *
+ * (T910, owner's Lighthouse run 2026-11-19: mobile 46, FCP 7.1 s) THE FIRST PAINT NEVER WAITS FOR THE APP'S SCRIPT. The
+ * coho was the first paint only when its frame (then a file asked for once the map's stylesheets were in) landed and was
+ * drawn before the 1.1 MB script arrived and ran; when the script won, nothing was drawn until it had run (~1 s of main
+ * thread on a slow phone) and Lighthouse's mobile run read FCP/LCP 6-7.5 s instead of 1.7 s: measured on production and
+ * staging alike, one run in three. So: frame 0 is IN the page (a data: URI, ~10 KB each scheme: no request), the map's two
+ * stylesheets load without holding the paint (preloaded, applied when in: the map is drawn long after), and the app's
+ * script downloads at once (a preload) but runs only after the first frame is up (`afterPaint`, the water pages' own
+ * hand-over, T269). And the faces (`shellFonts`): the web app draws the WOFF2 files at `/assets/fonts/` (apps/mobile
+ * `fonts.web.ts`), copied in here from `tools/seo/fonts/`, checked against `fonts.json` and against the bundle.
  */
-import { copyFileSync, existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
+import { existsSync, mkdirSync, readdirSync, readFileSync, writeFileSync } from "node:fs";
 import { createHash } from "node:crypto";
 import { join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
+import { FONT_DIR, FONTS_RECORD, servedPath } from "./emit-web-fonts.mjs";
 
 const here = (p) => fileURLToPath(new URL(p, import.meta.url));
 export const THEMES = ["light", "dark"];
@@ -60,7 +71,7 @@ export function cohoFacts() {
 
 /**
  * The shell: `head` (its style) and `body` (the picture and its watcher, placed right after `#root`), each between the
- * marks. `frame0` is the served URL per theme.
+ * marks. `frame0` is the picture's URL per theme (T910: its data: URI, `frame0Uri`).
  */
 export function bootCoho(f, { frame0 }) {
   const w = f.width, h = (w * f.frame.height) / f.frame.width;
@@ -99,26 +110,96 @@ export function withBootCoho(html, shell) {
   return t.replace(/<\/head>/, `${shell.head}</head>`).replace(/<div id="root"><\/div>/, `<div id="root"></div>${shell.body}`);
 }
 
-/** Put the shell into a web export in place: frame 0 (`pnpm splash`'s files) copied in under a content hash. */
+/** (T910) frame 0 as a data: URI: the first paint asks for nothing (`pnpm splash`'s file, byte for byte). */
+export function frame0Uri(t) {
+  const src = here(`../apps/mobile/assets/splash/web-frame0-${t}.png`);
+  if (!existsSync(src)) throw new Error(`web-shell: no ${src} (pnpm splash)`);
+  return `data:image/png;base64,${readFileSync(src).toString("base64")}`;
+}
+
+/**
+ * (T910) The app's script after the first frame: a module script that adds it once a frame is up (at once in a hidden
+ * tab). The SAME text as the water pages' (tools/seo/prerender.ts `afterPaint`; web-shell.test holds the two equal), so
+ * a water page made from this index.html is the page it was.
+ */
+export const afterPaint = (src) => `<script type="module">` +
+  `const g=()=>{if(document.querySelector('script[src="${src}"]'))return;const s=document.createElement("script");s.src="${src}";document.body.append(s)};` +
+  `document.visibilityState==="hidden"?g():requestAnimationFrame(()=>setTimeout(g))` +
+  `</script>`;
+
+/**
+ * (T910) The export's head and script made not to hold the first paint: each stylesheet applied when in (its preload
+ * stays, so it comes as early as before), the app's script preloaded and run after the first frame. A second run is a
+ * no-op. The stylesheet line is the water pages' own (`appDocument`), so their pages are unchanged.
+ */
+export function paintFirst(html) {
+  const scripts = [...html.matchAll(/<script src="([^"]+)" defer><\/script>/g)];
+  if (scripts.length > 1) throw new Error(`web-shell: the export's index.html has ${scripts.length} app scripts, expected one`);
+  let t = html.replace(/<link rel="stylesheet" href="([^"]+\.css)">/g, `<link rel="stylesheet" href="$1" media="print" onload="this.media='all'">`);
+  if (scripts.length) {
+    const [tag, src] = scripts[0];
+    if (!/<\/head>/.test(t)) throw new Error("web-shell: the export's index.html has no </head>");
+    t = t.replace(tag, afterPaint(src)).replace(/<\/head>/, `<link rel="preload" href="${src}" as="script"></head>`);
+  } else if (!/<link rel="preload" href="[^"]+\.js" as="script">/.test(t)) {
+    throw new Error("web-shell: the export's index.html has no app script");
+  }
+  return t;
+}
+
+const sha256 = (b) => createHash("sha256").update(b).digest("hex");
+const walkFiles = (d) => readdirSync(d, { withFileTypes: true }).flatMap((e) => e.isDirectory() ? walkFiles(join(d, e.name)) : [join(d, e.name)]);
+
+/**
+ * (T910) THE WEB APP'S FACES, into the export: each face's WOFF2 (`tools/seo/fonts/`, checked against `fonts.json`) at its
+ * served path, `/assets/fonts/<Face>.<sha12>.woff2` (the water pages' path, T409). Refused: a file not the one recorded,
+ * a bundle that does not name a face's path (a stale `webFonts.generated.ts`), and any TTF of the phone's left in the
+ * export (the web would fetch it as well).
+ */
+export function shellFonts(root) {
+  const record = JSON.parse(readFileSync(FONTS_RECORD, "utf8"));
+  const jsDir = join(root, "_expo/static/js/web");
+  const js = existsSync(jsDir) ? walkFiles(jsDir).filter((f) => f.endsWith(".js")).map((f) => readFileSync(f, "utf8")).join("\n") : "";
+  const ttf = existsSync(join(root, "assets")) ? walkFiles(join(root, "assets")).filter((f) => f.endsWith(".ttf")) : [];
+  if (ttf.length) throw new Error(`web-shell: the export still carries ${ttf.length} TTF face(s) (${ttf[0]}): the web draws the WOFF2 (apps/mobile fonts.web.ts)`);
+  mkdirSync(join(root, "assets/fonts"), { recursive: true });
+  return Object.fromEntries(Object.entries(record).map(([face, made]) => {
+    const b = readFileSync(`${FONT_DIR}${face}.woff2`);
+    if (sha256(b) !== made.woff2_sha256) throw new Error(`web-shell: ${face}.woff2 is not the file fonts.json records (rerun node tools/emit-web-fonts.mjs)`);
+    const path = servedPath(face, made.woff2_sha256);
+    if (!js.includes(`"${path}"`)) throw new Error(`web-shell: the app's bundle does not name ${path} (node tools/emit-web-fonts.mjs --module, then export again)`);
+    writeFileSync(join(root, path), b);
+    return [face, path];
+  }));
+}
+
+/**
+ * (T910, owner 2026-11-19 ~11:40) THE HOME PAGE'S DESCRIPTION: `/` had none, the one SEO loss on production (Lighthouse
+ * 92). The owner's store words (handoff/PLAN/play/store-description.md), under 155 characters as the site's pages are.
+ * The water pages take it out: their own description is the page's (tools/seo `appDocument`).
+ */
+export const HOME_DESCRIPTION = "Your pocket guide to BC fishing regulations: tap any lake, river or stream on an interactive map " +
+  "to view its fishing regulations and river conditions.";
+export const HOME_DESCRIPTION_TAG = `<meta name="description" content="${HOME_DESCRIPTION}">`;
+
+/** The export's index.html with the home description after its title (a second run: the same page). */
+export function withHomeHead(html) {
+  if (!/<\/title>/.test(html)) throw new Error("web-shell: the export's index.html has no <title>");
+  return html.replace(HOME_DESCRIPTION_TAG, "").replace(/<\/title>/, `</title>${HOME_DESCRIPTION_TAG}`);
+}
+
+/** Put the shell into a web export in place: frame 0 inlined, the paint first, the faces. */
 export function shellExport(dir, f = cohoFacts()) {
   const root = resolve(dir);
-  mkdirSync(join(root, "assets/boot"), { recursive: true });
-  const frame0 = Object.fromEntries(THEMES.map((t) => {
-    const src = here(`../apps/mobile/assets/splash/web-frame0-${t}.png`);
-    if (!existsSync(src)) throw new Error(`web-shell: no ${src} (pnpm splash)`);
-    const hash = createHash("md5").update(readFileSync(src)).digest("hex");
-    const to = `assets/boot/web-frame0-${t}.${hash}.png`;
-    copyFileSync(src, join(root, to));
-    return [t, `/${to}`];
-  }));
+  const frame0 = Object.fromEntries(THEMES.map((t) => [t, frame0Uri(t)]));
+  const fonts = shellFonts(root);
   const index = join(root, "index.html");
-  writeFileSync(index, withBootCoho(readFileSync(index, "utf8"), bootCoho(f, { frame0 })));
-  return { frame0 };
+  writeFileSync(index, withHomeHead(paintFirst(withBootCoho(readFileSync(index, "utf8"), bootCoho(f, { frame0 })))));
+  return { frame0, fonts };
 }
 
 if (import.meta.url === `file://${process.argv[1]}`) {
   const dir = process.argv[2];
   if (!dir) { console.error("usage: node tools/web-shell.mjs <web export dir>"); process.exit(2); }
-  const { frame0 } = shellExport(dir);
-  console.log(`web-shell: the coho opening is in ${join(resolve(dir), "index.html")} (${frame0.light}, ${frame0.dark})`);
+  const { fonts } = shellExport(dir);
+  console.log(`web-shell: the coho opening (frame 0 inlined), the paint first, ${Object.keys(fonts).length} faces in ${join(resolve(dir), "index.html")}`);
 }

@@ -9,7 +9,7 @@ cd "$(dirname "$0")/../.."
 W=app/dist/web-staging; S=app/dist/seo; O=app/dist/staging-site; K=app/dist/staging-site-worker
 # (T269) a water page is the app's own index.html with its pane prerendered: it must be built against THIS export
 # (`build-seo.mjs --app app/dist/web-staging`), or its script tag names a bundle the site does not have
-js=$(grep -o '/_expo/static/js/web/index-[0-9a-f]*\.js' "$W/index.html")
+js=$(grep -o '/_expo/static/js/web/index-[0-9a-f]*\.js' "$W/index.html" | sort -u)   # (T910) named three times: its preload and the after-paint loader
 # (T279: a water page is stored compressed only — index.html.gz / .br — and served by the worker)
 one=$(find "$S/water" -name index.html.gz -print -quit)
 gunzip -c "$one" | grep -c "$js" >/dev/null || { echo "site.sh: $S's water pages were built against another app export (not $js): rebuild with --app $W" >&2; exit 1; }

@@ -121,7 +121,7 @@ export async function buildAll(a: BuildArgs): Promise<Built> {
   // the water pages: the app's document, its pane prerendered; one stylesheet for all of them, named before any is made
   // (a page is written as soon as it is made) by what decides its content: the release, the app, the day
   const template = a.app?.template ?? BARE_APP;
-  // (T409) the faces as WOFF2 at /assets/fonts/ (webFonts.ts), checked against the app's own TTF
+  // (T409) the faces as WOFF2 at /assets/fonts/ (webFonts.ts), checked against the app's own TTF; (T910) the export's files
   const web = a.app ? webFonts(a.app, FACES_REQUIRED) : null;
   const fonts = fontFaceCss((f) => (a.app?.font(f) ? web!.url(f) : null));
   const paneHref = `/assets/pane.${sha(`${PANE_CSS_VERSION}|${store.meta.release}|${template}|${a.on.iso}`)}.css`;
@@ -170,7 +170,6 @@ export async function buildAll(a: BuildArgs): Promise<Built> {
   }
   // drawn with a turn between cards (share.ts: a synchronous loop held every card's native pixmap, 59 GB)
   await drawSharePngs(toDraw, (name, png) => binary.set(name, png));
-  for (const [name, bytes] of web?.files ?? []) binary.set(name, bytes);
   const paneCss = paneCss_(fonts.css, parts);
   const unmerged = parts.flatMap((p) => p.unmerged);
   files.set(paneHref.slice(1), paneCss);

@@ -35,6 +35,7 @@ import { PACK_OPTIONAL_SECTION_TABLES } from "../pack.generated";
 import type { Cell, Db, Row } from "../sql/db";
 import { CROSS } from "../release/queries";
 import { RegsStoreError } from "./errors";
+import { decodeRules } from "./rulesDecode";
 
 export interface ItemRow {
   readonly ord: number; readonly id: string; readonly name: string; readonly kind: string;
@@ -183,6 +184,8 @@ export interface ReadBase {
   /** (T182) the file holding `part_geo`: geo. */
   geo(): Promise<Db>;
   val<T = unknown>(table: string, blob: Cell): T;
+  /** (T910) a table's preset dictionary (what `val` inflates with): the web's rules worker is handed it */
+  dict?(table: string): Uint8Array | null;
   /** (T810 M0) the optional sections the store holds (`RegsMeta.optional`); absent: none */
   readonly optional?: { readonly [K in OptionalSectionName]?: number };
 }
@@ -215,9 +218,6 @@ const STATICS: Readonly<Record<keyof StoreStatics, string>> = {
 type YearStrip = RowsValue["rows"][number]["year"];
 /** (T286) The test bed's "before" build: batching off (apps/mobile index.js, `EXPO_PUBLIC_REGS_ONE_BY_ONE=1`). */
 const ONE_BY_ONE = (): boolean => (globalThis as { __regsOneByOne?: boolean }).__regsOneByOne === true;
-/** (T287) Rules inflated per turn of the JS thread, and the turn (a macrotask: the screen draws between). */
-const RULES_SLICE = 250;
-const turnOf = () => new Promise<void>((r) => setTimeout(r, 0));
 /** (T286) The most keys one batched read names (SQLite's bound-parameter limit is far above it). */
 const BATCH = 500;
 /**
@@ -547,17 +547,9 @@ export function makeReads(base: ReadBase): RegsReads & { clear(): void } {
     rules: () => once("rules", 0, async () => {
       const rs = await (await base.water()).all(
         "SELECT r.rix AS rix, r.j AS e, d.j AS f FROM rule r LEFT JOIN display_rule d ON d.id = r.rix ORDER BY r.rix");
-      const out = new Map<number, StoredRule>();
-      // (T286/T287) every rule is inflated and parsed here, once: a few hundred at a time with the screen's turn between,
-      // never one long hold of the JS thread (all at once it was a ~0.3 s freeze on the emulator)
-      for (let i = 0; i < rs.length; i++) {
-        if (i && i % RULES_SLICE === 0) await turnOf();
-        const r = rs[i]!;
-        if (n(r.rix) !== i) throw damaged(`the rules are out of sequence at ${i}`);
-        if (r.f === null || r.f === undefined) throw damaged(`rule ${i} has no display_rule`);
-        out.set(i, { rix: i, export: base.val<ExportRule>("rule", r.e), facts: base.val<RuleFacts>("display_rule", r.f) });
-      }
-      return out as ReadonlyMap<number, StoredRule>;
+      // (T286/T287) every rule is inflated and parsed once, a few hundred at a time with the screen's turn between;
+      // (T910) on the web the inflating runs in a worker (rulesDecode.web.ts), the phone as before (rulesDecode.native.ts)
+      return decodeRules(rs, base);
     }),
 
     lics: () => once("lics", 0, async () => {

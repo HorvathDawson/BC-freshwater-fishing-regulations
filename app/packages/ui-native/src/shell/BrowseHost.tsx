@@ -23,8 +23,12 @@ import type { ShellSearch } from "./useShellSearch";
 import { part } from "../part";
 import { RegsLayerToggle, RegsLayerStrip } from "./RegsLayerToggle";
 
+// (T910) the map is the first screen of every start but a water's page, and maplibre-gl is in the first script anyway
+// (`@app/map`): MapScreen's own few KiB are too, so a start on the map no longer waits for the later chunk — that chunk
+// (the Regulations page since T910, More, Spots, Conditions…) then comes once the line is quiet and the browser idle
+import { MapScreen } from "../MapScreen";
+
 // (T282) loaded later on the web (`part`): not on the first screen's path
-const MapScreen = part(() => import("../later").then((m) => m.MapScreen));
 const SpotsScreen = part(() => import("../later").then((m) => m.SpotsScreen));
 const MoreScreen = part(() => import("../later").then((m) => m.MoreScreen));
 

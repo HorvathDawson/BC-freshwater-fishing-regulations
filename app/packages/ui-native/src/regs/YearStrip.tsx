@@ -3,7 +3,10 @@
  * (the stored strip bits: open, closed hatch, release, fly-only, artificial flies, bait ban), the selected day's marker,
  * the month initials and the legend. tokens.md §5 YearStrip. No logic: runs, marker and words are the StripVM's.
  */
-import { createContext, useContext, useState } from "react";
+import { useContext, useState } from "react";
+// (T910) the context lives in its own file, so the app's first script (index.ts) carries it without this strip
+import { StripWidthHint } from "./stripWidth";
+export { StripWidthHint };
 import { View } from "react-native";
 import { Text } from "../Text";
 import { TaggedTitle } from "./SourceTag";
@@ -15,13 +18,6 @@ import { useCoachTarget } from "../CoachMarks";
 
 export const GAP = 2, H = 10;
 
-/**
- * (T269) THE BAR'S WIDTH BEFORE IT IS MEASURED. In the app: 0 — the bar waits for its layout, as it always has. The SEO
- * build's server render never lays out, so it hands the width its layout class draws the bar at (`tools/seo/pane.tsx`),
- * and the bar is drawn at that width scaled to its box (a viewBox; the day's marker placed by percent): the same bar at
- * that width, and within a few pixels of it on any other, until the app's own pane replaces it.
- */
-export const StripWidthHint = createContext(0);
 
 /** The bar's drawing: measured (the app), else the hint scaled to the box (the prerender). */
 export function useBarWidth() {

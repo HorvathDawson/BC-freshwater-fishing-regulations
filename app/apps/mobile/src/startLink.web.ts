@@ -44,9 +44,10 @@ export function startLink(): StartLink | null {
     // route is the map until the place is resolved in the release)
     const water = link?.route.mode === "water" || !!link?.place;
     setRegsFirstStart(water);
-    // (T282) the map's code is in the later chunk (`@app/ui-native` later.ts): any start but a water's own page asks for
-    // it now, beside the release's first files; a water's page is handed to the app without it (fetched once idle)
-    if (!water) void preloadParts();
+    // (T910) the Regulations page's code is in the later chunk (`@app/ui-native` later.ts): a start on a water's page asks
+    // for it now, beside the release's first files (its pane is the first screen there); any other start draws the map,
+    // whose code is in the first script, and the chunk comes once the line is quiet and the browser idle (the Shell)
+    if (water) void preloadParts();
     return link;
   }
   catch (e) { console.error(e instanceof Error ? e.message : String(e)); return null; }

@@ -13,6 +13,10 @@
  * every file an unnamed-stream tap reads, the region in view first, then its neighbours, then the province) and feeds it
  * the browser's word on the network, the tab's visibility and the battery; `useReleasePrefetch` starts it
  * `BACKGROUND_DELAY_MS` after the idle tier and tells it each region the map settles in.
+ *
+ * (T910) `settle`: on the web the idle tier (core, and so the background tier) waits first for the page's load and a quiet
+ * spell (ui-native `shell/settle.web.ts`, 5 s with no long task). Not held: the region's own regs file (what the first tap
+ * there reads) and `onIdle` (the map's colourings, drawn on the first screen: their first idle moment, as before).
  */
 import { useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
 import { createBackgroundPrefetch, othersAhead, prefetchPlan, readerDownloading, regionOfTile, runPrefetch, LOW_BATTERY,
@@ -49,7 +53,10 @@ export const BACKGROUND_DELAY_MS = 1000;
 export function useReleasePrefetch(loader: ReleaseLoader | null, onIdle?: () => void,
                                    background?: BackgroundPrefetch | null,
                                    /** (T254) low-bandwidth mode now: nothing unasked but the region's file */
-                                   lowData?: () => boolean): ((regionId: unknown) => void) | undefined {
+                                   lowData?: () => boolean,
+                                   /** (T910) when the idle tier may start looking for an idle moment (the web: after
+                                    *  load and a quiet spell, ui-native `shell/settle`); absent: at once. Returns the cancel. */
+                                   settle?: (go: () => void) => () => void): ((regionId: unknown) => void) | undefined {
   const s = useRef<{ painted: boolean; idle: boolean; region: PrefetchSignals["region"] }>(
     { painted: false, idle: false, region: null });
   const cancel = useRef<(() => void) | null>(null);
@@ -57,6 +64,8 @@ export function useReleasePrefetch(loader: ReleaseLoader | null, onIdle?: () => 
   idleCb.current = onIdle;
   const low = useRef(lowData);
   low.current = lowData;
+  const settleRef = useRef(settle);
+  settleRef.current = settle;
   const bg = useRef(background ?? null);
   bg.current = background ?? null;
   const bgTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -79,17 +88,29 @@ export function useReleasePrefetch(loader: ReleaseLoader | null, onIdle?: () => 
     if (!s.current.painted) {
       s.current.painted = true;
       const g = globalThis as typeof globalThis & IdleHost;
-      const idle = () => {
-        s.current.idle = true; cancel.current = null; run(); idleCb.current?.();
+      const idle = (colourings: boolean) => {
+        s.current.idle = true; cancel.current = null; run(); if (colourings) idleCb.current?.();
         // (T253) the background tier, once the idle tier has had the network to itself
         bgTimer.current = setTimeout(() => { bgTimer.current = null; bg.current?.start(); }, BACKGROUND_DELAY_MS);
       };
-      if (typeof g.requestIdleCallback === "function") {
-        const h = g.requestIdleCallback(idle);
-        cancel.current = () => g.cancelIdleCallback?.(h);
-      } else {
-        const t = setTimeout(idle, IDLE_FALLBACK_MS);
-        cancel.current = () => clearTimeout(t);
+      /** `f` at the browser's next idle moment; returns the cancel */
+      const whenIdle = (f: () => void): (() => void) => {
+        if (typeof g.requestIdleCallback === "function") {
+          const h = g.requestIdleCallback(f);
+          return () => g.cancelIdleCallback?.(h);
+        }
+        const t = setTimeout(f, IDLE_FALLBACK_MS);
+        return () => clearTimeout(t);
+      };
+      const settle = settleRef.current;
+      if (!settle) cancel.current = whenIdle(() => idle(true));
+      else {
+        // (T910) the web: the map's colourings (`onIdle`: Salmon / Bait & fly, drawn on the first screen) keep their idle
+        // moment after first paint; the unasked files (core, then the background tier) wait for load + a quiet spell
+        let tierCancel: () => void = () => {};
+        const colourCancel = whenIdle(() => idleCb.current?.());
+        const settleCancel = settle(() => { tierCancel = whenIdle(() => idle(false)); });
+        cancel.current = () => { colourCancel(); settleCancel(); tierCancel(); };
       }
     }
     run();
