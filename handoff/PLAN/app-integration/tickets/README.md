@@ -296,6 +296,7 @@ reads both files; a ticket closed here moves there once its lane is finished wit
 | T883 | Every fish's "How this was decided" sheet: one readable layout (answer, then the steps that made it, each with its source), trout and other fish alike (owner) | PARTIAL — left (Claude): pipeline steps[] with the main chat; merged into 0.8.2 | app chat | owner 2026-11-18 ~21:30; approved ~22:58 |
 | T890 | Word density: measure every page, then cut the over-dense ones (pictures first) (owner) | OPEN | app chat + main chat | owner 2026-11-18 ~21:43 |
 | T891 | Braided rivers drawn simpler: side channels thinner than the main channel; braids simplified in the tile build (owner) | OPEN | main chat + app chat | owner 2026-11-18 ~22:02 |
+| T892 | "What you can keep" table: a row from another water's tributary rule says so (owner) | OPEN | app chat | owner 2026-11-19 ~00:10 |
 | T882 | Salmon: DFO's "To be determined" says so instead of "Check DFO"; green whenever any salmon is open (owner) | IN PROGRESS | app chat (lane app/t882-to-be-determined) | owner 2026-11-18 ~21:18 |
 | T884 | A fish sheet's big "20 a day" is cut off at the top on an iPhone (owner) | IN PROGRESS | app chat, lane app/t884-t886-clip-hatchery-art | owner 2026-11-18 ~21:30 |
 | T886 | "How to tell a hatchery fish": a natural fish (the loader's coho), not a smiling one (owner) | IN PROGRESS | app chat, lane app/t884-t886-clip-hatchery-art | owner 2026-11-18 ~21:30 |
