@@ -532,7 +532,6 @@
         "From Jun 1 the water is closed to all fishing."
        ],
        "date": null,
-       "down": null,
        "fish": "EB",
        "key": "EB",
        "label": null,
@@ -582,7 +581,8 @@
         3088,
         3085
        ],
-       "sub": null
+       "sub": null,
+       "tag": null
       },
       {
        "a11y": "Brown trout. 30 cm (12 in) or longer. 2 total from these 6",
@@ -590,7 +590,6 @@
         "From Jun 1 the water is closed to all fishing."
        ],
        "date": null,
-       "down": null,
        "fish": "GB",
        "key": "GB",
        "label": null,
@@ -640,7 +639,8 @@
         3088,
         3085
        ],
-       "sub": null
+       "sub": null,
+       "tag": null
       },
       {
        "a11y": "Cutthroat trout. 30 cm (12 in) or longer. 2 total from these 6. until Apr 30, then release",
@@ -648,7 +648,6 @@
         "From May 1 every one goes back."
        ],
        "date": "until Apr 30, then release",
-       "down": null,
        "fish": "CT",
        "key": "CT",
        "label": null,
@@ -698,7 +697,8 @@
         3088,
         3085
        ],
-       "sub": null
+       "sub": null,
+       "tag": null
       },
       {
        "a11y": "Steelhead. a rainbow over 50 cm (20 in). after keeping 2, stop fishing this river today. Steelhead are known to be in this water. 2 total from these 6",
@@ -706,7 +706,6 @@
         "From Jun 1 the water is closed to all fishing."
        ],
        "date": null,
-       "down": null,
        "fish": "ST",
        "key": "ST",
        "label": null,
@@ -773,7 +772,8 @@
         3085,
         3083
        ],
-       "sub": "a rainbow over 50 cm (20 in)"
+       "sub": "a rainbow over 50 cm (20 in)",
+       "tag": null
       },
       {
        "a11y": "Dolly Varden/bull trout. 60 cm (24 in) or longer. 2 total from these 6. only 1 between them",
@@ -781,7 +781,6 @@
         "From Jun 1 the water is closed to all fishing."
        ],
        "date": null,
-       "down": null,
        "fish": "DV",
        "key": "DV",
        "label": null,
@@ -836,7 +835,8 @@
         3088,
         3085
        ],
-       "sub": null
+       "sub": null,
+       "tag": null
       },
       {
        "a11y": "Lake trout. 60 cm (24 in) or longer. 2 total from these 6. only 1 between them",
@@ -844,7 +844,6 @@
         "From Jun 1 the water is closed to all fishing."
        ],
        "date": null,
-       "down": null,
        "fish": "LT",
        "key": "LT",
        "label": null,
@@ -899,7 +898,8 @@
         3088,
         3085
        ],
-       "sub": null
+       "sub": null,
+       "tag": null
       },
       {
        "a11y": "Rainbow trout. 50 cm (20 in) or less. counts toward the 4. until Apr 30, then release",
@@ -907,7 +907,6 @@
         "From May 1 every one goes back."
        ],
        "date": "until Apr 30, then release",
-       "down": null,
        "fish": "RB",
        "key": "RB",
        "label": null,
@@ -947,7 +946,8 @@
         3095,
         3088
        ],
-       "sub": null
+       "sub": null,
+       "tag": null
       }
      ],
      "strip": "only 1 over 50 cm (20 in), 2 if one is a hatchery steelhead",

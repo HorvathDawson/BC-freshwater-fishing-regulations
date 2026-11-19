@@ -421,7 +421,6 @@
        "a11y": "Brook trout. counts toward the 2",
        "coming": [],
        "date": null,
-       "down": null,
        "fish": "EB",
        "key": "EB",
        "label": null,
@@ -451,13 +450,13 @@
         1363,
         3144
        ],
-       "sub": null
+       "sub": null,
+       "tag": null
       },
       {
        "a11y": "Brown trout. counts toward the 2",
        "coming": [],
        "date": null,
-       "down": null,
        "fish": "GB",
        "key": "GB",
        "label": null,
@@ -487,13 +486,13 @@
         1363,
         3144
        ],
-       "sub": null
+       "sub": null,
+       "tag": null
       },
       {
        "a11y": "Lake trout. counts toward the 2",
        "coming": [],
        "date": null,
-       "down": null,
        "fish": "LT",
        "key": "LT",
        "label": null,
@@ -523,13 +522,13 @@
         1363,
         3144
        ],
-       "sub": null
+       "sub": null,
+       "tag": null
       },
       {
        "a11y": "Dolly Varden/bull trout. counts toward the 2 · only 1",
        "coming": [],
        "date": null,
-       "down": null,
        "fish": "DV",
        "key": "DV",
        "label": null,
@@ -565,13 +564,13 @@
         1364,
         3144
        ],
-       "sub": null
+       "sub": null,
+       "tag": null
       },
       {
        "a11y": "Cutthroat trout. counts toward the 2 · only 1 over 50 cm (20 in) between them",
        "coming": [],
        "date": null,
-       "down": null,
        "fish": "CT",
        "key": "CT",
        "label": null,
@@ -607,13 +606,13 @@
         3136,
         3144
        ],
-       "sub": null
+       "sub": null,
+       "tag": null
       },
       {
        "a11y": "Rainbow trout. counts toward the 2 · only 1 over 50 cm (20 in) between them",
        "coming": [],
        "date": null,
-       "down": null,
        "fish": "RB",
        "key": "RB",
        "label": null,
@@ -649,7 +648,8 @@
         3136,
         3144
        ],
-       "sub": null
+       "sub": null,
+       "tag": null
       }
      ],
      "strip": null,

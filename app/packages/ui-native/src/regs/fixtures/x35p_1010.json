@@ -410,7 +410,6 @@
        "a11y": "Brook trout. counts toward the 5",
        "coming": [],
        "date": null,
-       "down": null,
        "fish": "EB",
        "key": "EB",
        "label": null,
@@ -446,13 +445,13 @@
         3186,
         3199
        ],
-       "sub": null
+       "sub": null,
+       "tag": null
       },
       {
        "a11y": "Brown trout. counts toward the 5",
        "coming": [],
        "date": null,
-       "down": null,
        "fish": "GB",
        "key": "GB",
        "label": null,
@@ -488,13 +487,13 @@
         3186,
         3199
        ],
-       "sub": null
+       "sub": null,
+       "tag": null
       },
       {
        "a11y": "Cutthroat trout. counts toward the 5",
        "coming": [],
        "date": null,
-       "down": null,
        "fish": "CT",
        "key": "CT",
        "label": null,
@@ -530,13 +529,13 @@
         3186,
         3199
        ],
-       "sub": null
+       "sub": null,
+       "tag": null
       },
       {
        "a11y": "Rainbow trout. counts toward the 5",
        "coming": [],
        "date": null,
-       "down": null,
        "fish": "RB",
        "key": "RB",
        "label": null,
@@ -572,13 +571,13 @@
         3186,
         3199
        ],
-       "sub": null
+       "sub": null,
+       "tag": null
       },
       {
        "a11y": "Dolly Varden/bull trout. counts toward the 5 · only 3 between them",
        "coming": [],
        "date": null,
-       "down": null,
        "fish": "DV",
        "key": "DV",
        "label": null,
@@ -620,13 +619,13 @@
         3186,
         3199
        ],
-       "sub": null
+       "sub": null,
+       "tag": null
       },
       {
        "a11y": "Lake trout. release over 60 cm (24 in) and under 90 cm (35 in). only 2. only 1 over 90 cm (35 in). in your possession: no more than 2 lake trout, only 1 measuring 90 cm (35 in) or longer. counts toward the 5 · only 3 between them",
        "coming": [],
        "date": null,
-       "down": null,
        "fish": "LT",
        "key": "LT",
        "label": null,
@@ -683,7 +682,8 @@
         2124,
         2125
        ],
-       "sub": null
+       "sub": null,
+       "tag": null
       }
      ],
      "strip": "only 1 over 50 cm (20 in), not counting lake trout",

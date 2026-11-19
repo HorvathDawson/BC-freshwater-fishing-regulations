@@ -528,7 +528,6 @@
        "a11y": "Brook trout. 30 cm (12 in) or longer. counts toward the 2",
        "coming": [],
        "date": null,
-       "down": null,
        "fish": "EB",
        "key": "EB",
        "label": null,
@@ -574,13 +573,13 @@
         3088,
         3085
        ],
-       "sub": null
+       "sub": null,
+       "tag": null
       },
       {
        "a11y": "Brown trout. 30 cm (12 in) or longer. counts toward the 2",
        "coming": [],
        "date": null,
-       "down": null,
        "fish": "GB",
        "key": "GB",
        "label": null,
@@ -626,13 +625,13 @@
         3088,
         3085
        ],
-       "sub": null
+       "sub": null,
+       "tag": null
       },
       {
        "a11y": "Cutthroat trout. 30 cm (12 in) or longer. counts toward the 2",
        "coming": [],
        "date": null,
-       "down": null,
        "fish": "CT",
        "key": "CT",
        "label": null,
@@ -678,13 +677,13 @@
         3088,
         3085
        ],
-       "sub": null
+       "sub": null,
+       "tag": null
       },
       {
        "a11y": "Rainbow trout. 30–50 cm (12–20 in). counts toward the 2",
        "coming": [],
        "date": null,
-       "down": null,
        "fish": "RB",
        "key": "RB",
        "label": null,
@@ -725,13 +724,13 @@
         3088,
         3085
        ],
-       "sub": null
+       "sub": null,
+       "tag": null
       },
       {
        "a11y": "Dolly Varden/bull trout. 60 cm (24 in) or longer. counts toward the 2 · only 1 between them",
        "coming": [],
        "date": null,
-       "down": null,
        "fish": "DV",
        "key": "DV",
        "label": null,
@@ -782,13 +781,13 @@
         3088,
         3085
        ],
-       "sub": null
+       "sub": null,
+       "tag": null
       },
       {
        "a11y": "Lake trout. 60 cm (24 in) or longer. counts toward the 2 · only 1 between them",
        "coming": [],
        "date": null,
-       "down": null,
        "fish": "LT",
        "key": "LT",
        "label": null,
@@ -839,7 +838,8 @@
         3088,
         3085
        ],
-       "sub": null
+       "sub": null,
+       "tag": null
       }
      ],
      "strip": "only 1 over 50 cm (20 in)",
@@ -860,7 +860,6 @@
         "It reopens on Jan 1."
        ],
        "date": null,
-       "down": null,
        "fish": "ST",
        "key": "ST",
        "label": null,
@@ -888,7 +887,8 @@
         578,
         3095
        ],
-       "sub": null
+       "sub": null,
+       "tag": null
       }
      ],
      "strip": null,

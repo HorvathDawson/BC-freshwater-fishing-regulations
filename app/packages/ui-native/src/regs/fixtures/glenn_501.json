@@ -488,7 +488,6 @@
         "From Nov 1 every one goes back."
        ],
        "date": null,
-       "down": null,
        "fish": "EB",
        "key": "EB",
        "label": null,
@@ -524,7 +523,8 @@
         3144,
         3137
        ],
-       "sub": null
+       "sub": null,
+       "tag": null
       },
       {
        "a11y": "Brown trout. 2 total from these 4",
@@ -532,7 +532,6 @@
         "From Nov 1 every one goes back."
        ],
        "date": null,
-       "down": null,
        "fish": "GB",
        "key": "GB",
        "label": null,
@@ -568,7 +567,8 @@
         3144,
         3137
        ],
-       "sub": null
+       "sub": null,
+       "tag": null
       },
       {
        "a11y": "Lake trout. 2 total from these 4",
@@ -576,7 +576,6 @@
         "From Nov 1 every one goes back."
        ],
        "date": null,
-       "down": null,
        "fish": "LT",
        "key": "LT",
        "label": null,
@@ -612,7 +611,8 @@
         3144,
         3137
        ],
-       "sub": null
+       "sub": null,
+       "tag": null
       },
       {
        "a11y": "Cutthroat trout. only 1 over 50 cm (20 in). 2 total from these 4",
@@ -620,7 +620,6 @@
         "From Nov 1 every one goes back."
        ],
        "date": null,
-       "down": null,
        "fish": "CT",
        "key": "CT",
        "label": null,
@@ -664,15 +663,15 @@
         3144,
         3137
        ],
-       "sub": null
+       "sub": null,
+       "tag": null
       },
       {
-       "a11y": "Rainbow trout. Duncan River’s rule for its tributaries. counts toward the 5",
+       "a11y": "Rainbow trout. counts toward the 5",
        "coming": [
         "From Nov 1 every one goes back."
        ],
        "date": null,
-       "down": "Duncan River’s rule for its tributaries",
        "fish": "RB",
        "key": "RB",
        "label": null,
@@ -704,7 +703,8 @@
         3135,
         3144
        ],
-       "sub": null
+       "sub": null,
+       "tag": null
       }
      ],
      "strip": null,
@@ -720,10 +720,9 @@
      "possession": null,
      "rows": [
       {
-       "a11y": "Dolly Varden/bull trout. Trout Lake’s rule for its tributaries",
+       "a11y": "Dolly Varden/bull trout",
        "coming": [],
        "date": null,
-       "down": "Trout Lake’s rule for its tributaries",
        "fish": "DV",
        "key": "DV",
        "label": null,
@@ -744,7 +743,8 @@
         1569,
         3144
        ],
-       "sub": null
+       "sub": null,
+       "tag": null
       }
      ],
      "strip": null,
