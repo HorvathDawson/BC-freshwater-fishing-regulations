@@ -629,7 +629,7 @@
        "tag": null
       },
       {
-       "a11y": "Rainbow trout. counts toward the 5",
+       "a11y": "Rainbow trout. Duncan River’s tributaries. counts toward the 5",
        "coming": [
         "From Nov 1 every one goes back."
        ],
@@ -666,7 +666,7 @@
         3144
        ],
        "sub": null,
-       "tag": null
+       "tag": "Duncan River’s tributaries"
       }
      ],
      "strip": null,
@@ -682,7 +682,7 @@
      "possession": null,
      "rows": [
       {
-       "a11y": "Dolly Varden/bull trout",
+       "a11y": "Dolly Varden/bull trout. Trout Lake’s tributaries",
        "coming": [],
        "date": null,
        "fish": "DV",
@@ -706,7 +706,7 @@
         3144
        ],
        "sub": null,
-       "tag": null
+       "tag": "Trout Lake’s tributaries"
       }
      ],
      "strip": null,
