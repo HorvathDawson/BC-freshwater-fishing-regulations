@@ -117,7 +117,9 @@ export interface DownScope { readonly cells: readonly Pick<Decided, "win" | "nar
  * narrowing it, is a rule the part's ruleset holds `via` trib (rank 1). And each such rule is a deciding step the rail
  * keeps (`won`), named as its kicker names it (`levelName`), so the table and the sheet agree by construction. A rule
  * that only sets one origin's size or cap, or decides some fish only (a Bass row whose largemouth are the region's),
- * labels nothing. [] for none.
+ * labels nothing. (Review 3) Nor does a row where another rule stored as lowering the number — "narrows", or "limit" on
+ * a subcap (rows/evaluate.py lowers `daily` through both without setting `narrow`) — is a deciding step the rail keeps.
+ * A size cap ("limit" on a sizecap, Nygaard Creek's "1 over 50 cm" from Region 5) is left as it is (owner's call). [] for none.
  */
 function downNames(won: readonly LadderItem[], scope: DownScope | undefined, water: string): readonly string[] {
   if (!scope?.cells.length) return [];
@@ -128,6 +130,12 @@ function downNames(won: readonly LadderItem[], scope: DownScope | undefined, wat
       const r = scope.rules.get(ix) as RuleView | undefined;   // (a hand-built index may not hold it)
       if (!r || r.missing || r.part || r.rank !== 1 || !shown.has(r.key)) return [];
       names.add(levelName(r, water));
+    }
+    for (const [ix, role] of d.roles) {
+      if (role !== "narrows" && role !== "limit") continue;
+      const r = scope.rules.get(ix) as RuleView | undefined;
+      if (!r || (role === "limit" && r.kind !== "subcap")) continue;
+      if (shown.has(r.key) && (r.part || r.rank !== 1)) return [];
     }
   }
   return [...names];

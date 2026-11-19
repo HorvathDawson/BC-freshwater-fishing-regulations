@@ -226,6 +226,20 @@ describe("(T892) the table's row says when its answer comes down from another wa
     expect(down(flowOf([item(WIN, "governs"), item(LOW, "narrows")], says, "Shamrock Creek", null,
       sc([[WIN, "governs"], [LOW, "narrows"]], [[WIN, "governs"], [LOW, "narrows"]])))).toBe("Lonzo Creek’s rule for its tributaries");
   });
+  it("review 3: a region rule stored as lowering the number with `narrow` unset (a subcap's narrows or limit) on the rail: no line; a size cap or one off the rail: the line", () => {
+    const SUB = { ...rule("r4sub", 3, "Region 4", "4", "At most 2 from streams.", 34), kind: "subcap" } as unknown as RuleView;
+    const CAP = { ...rule("r4cap", 3, "Region 4", "4", "Only 1 over 50 cm.", 34), kind: "sizecap" } as unknown as RuleView;
+    IX.push(SUB, CAP);
+    const cell = (role: string, r: RuleView) => ({ ...decided([[ix(TRIB), "governs"], [ix(r), role]]), narrow: null }) as DownScope["cells"][number];
+    const sc = (role: string, r: RuleView): DownScope => ({ cells: [cell(role, r)], rules: { get: (i: number) => IX[i]! } });
+    const onRail = (role: string, r: RuleView) => flowOf([item(TRIB, "governs"), item(r, role)], says, "Anchor Creek", null, sc(role, r));
+    expect(down(onRail("narrows", SUB))).toBeNull();
+    expect(down(onRail("limit", SUB))).toBeNull();
+    expect(down(onRail("limit", CAP))).toBe("Kootenay River’s rule for its tributaries");
+    // a trout row's rail is its whole list (`row.src`): a narrowing rule not on it (Nygaard Creek's Region 5 "2 from
+    // streams", the number Bella Coola's 1) is not a deciding step
+    expect(down(flowOf([item(TRIB, "governs")], says, "Nygaard Creek", null, sc("narrows", SUB)))).toBe("Kootenay River’s rule for its tributaries");
+  });
   it("two waters: both named, once each; review 5: a name ending in s takes only ’", () => {
     expect(down(flowOf([item(TRIB, "governs"), item(ELK, "narrows")], says, "Anchor Creek", null,
       scope([[TRIB, "governs"]], [[TRIB, "governs"], [ELK, "narrows"]])))).toBe("Kootenay River’s and Elk River’s rules for their tributaries");

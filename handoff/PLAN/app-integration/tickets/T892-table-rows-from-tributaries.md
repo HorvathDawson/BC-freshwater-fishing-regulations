@@ -21,7 +21,9 @@ water with such a row, before it lands.
   lowered (`narrow`), each rule stored as narrowing it is a rule the part's ruleset holds `via` trib (rank 1) and a
   deciding step the rail keeps; the line names those waters as the kicker does. So a step that only sets one origin's
   size or cap (Lonzo Creek's hatchery size rule on Shamrock and Kilgard Creeks, review 2) or decides some fish only (a
-  Bass row whose largemouth are the region's) labels nothing. `OtherFishRowVM.from`, `GroupVM.from` (a quota group's
+  Bass row whose largemouth are the region's) labels nothing; nor does a row where another rule stored as lowering the
+  number ("narrows", or "limit" on a subcap; `narrow` can stay unset) is a deciding step on the rail (review 3). A
+  region size cap beside a tributary rule (Nygaard Creek's "1 over 50 cm") still gets the line: the owner's call. `OtherFishRowVM.from`, `GroupVM.from` (a quota group's
   Details fold, set in `groupOf`); a name ending in s takes only ’ ("Twin Lakes’ rule").
 - Trout and char: the fold row says it when EVERY trout row's `FlowVM.down` names the same waters
   (`KeepVM.troutFrom`, sheets/trout.ts `troutFrom`). The trout table's own rows get no app words (T810 contract, guarded
@@ -33,14 +35,14 @@ water with such a row, before it lands.
   tributary ones for every origin; no line while the rail names one ⇒ proved partial (the rail or the stored answer shows
   another rule setting some fish × origin), else it fails. r-fc137c4040fa, 20,959 parts: lines on 708 Other fish rows and
   171 trout folds (Shamrock and Kilgard Creeks dropped); proved partial: 84 Other fish rows, 1,777 trout tables; 0 failures;
-  no quota group in this release has a line.
+  each quota group checked against its own rail too (none in this release has a line or a tributary step).
 - Tests: `flow.test.ts` (FlowVM.down / downLine whole strings: the half-Bass row, a hatchery-only size step, won vs
   lowered, a rail-dropped tributary rule, "Twin Lakes’"; troutFrom incl. a twin row), `others.test.ts` (one inherited
   row, one own row), `keep.test.ts` (`groupOf` with a group decided by a tributary rule; fails without the wiring),
   `KeepTab.test.tsx` (Other fish row, trout fold, quota-group fold: drawn, spoken once), `trout.release.test.ts` (keepOf's
   `troutFrom` over every vector; none on Shamrock Creek, whose rows' sheets name Lonzo Creek). No frozen fixture changed.
-- Review of 8bdb9cbf0 (five findings) and review 2 of 2b0c80429 (the trout origin blocker, the group wiring test, the
-  sweep's partial bucket): all fixed.
+- Review of 8bdb9cbf0 (five findings), review 2 of 2b0c80429 (the trout origin blocker, the group wiring test, the
+  sweep's partial bucket) and review 3 of c33e06d91 (an unset `narrow`, the groups in the sweep): all fixed.
 
 ## Pictures (390, light + dark; staging-data release r-fc137c4040fa, Nov 19)
 Scratchpad (session 699dcd1b) `t892-shots/`: `t892-laundry-keep-390-{light,dark}.png` (Laundry Creek: the trout fold
