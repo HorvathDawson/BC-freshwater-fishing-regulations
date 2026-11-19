@@ -1,6 +1,6 @@
 # T869 — the chinook annual limit counts ADULT chinook, and "adult" differs by river
 
-Status: OPEN (main chat; DFO salmon header). Waits on the owner's wording pick (below).
+Status: OPEN (main chat; DFO salmon header). Wording (A) picked; after production (owner 20:34).
 
 Owner 2026-11-18 ~20:22 (via the app chat), verbatim: "For salmon  It is 10 max adult Chinook not over 50cm because some
 rivers adult is defined differently". His screenshot: Coquitlam River, What you can keep, the salmon block's header:
@@ -31,3 +31,11 @@ B. Keep DFO's sentence as printed and add a line under it: "Adult chinook here: 
 Either way: the chinook row's "adult chinook over 50 cm" size words follow the same scoped length. A test over the
 live feed: no water bound by a 62/65 cm adult note says "over 50 cm" for adults. Ships in the feed (live) and in the
 next data release (fallback).
+
+## Owner's picks (2026-11-18)
+- Wording: (A), reword. Picked in the main chat's dialog ~20:30 ("Reword the line (Recommended)") and in the app chat's
+  dialog ("Reword"): "10 adult chinook a year from all fresh waters" and where adult differs "(here an adult is over
+  62 cm, Jul 1–Dec 31)". Our words, not DFO's.
+- Timing: AFTER production. The two chats got different answers (main chat ~20:30 "After launch", app chat "Yes,
+  before prod"); asked again at 20:34, the owner picked "After production". Lands in the feeds worker + the next data
+  release after the switch.
