@@ -28,3 +28,9 @@ With a browser user agent, both https://canifishthis.ca/ and staging carry
 advertising or analytics services". Owner asked "this seems fine to have?" — answered: fine for speed; but keep it ⇒
 reword the privacy page, or turn it off in Cloudflare (his dashboard). Waiting on his pick (To-Do page row). Source maps
 stay unpublished on purpose (crash symbolication keeps them private). The extension rows are his browser's React DevTools.
+
+## Owner 2026-11-19 ~11:40: build all three on the web app
+Asked whether to build the proposal's three (gunzip off the main thread on the web; start the background prefetch after
+load plus a quiet spell of 5 s; split web/index.js so the regulations screens load when first opened) for 0.8.3; owner,
+verbatim: "yes build all 3 on webapp". Web only (phones unchanged; split by file, AGENTS 34a). Also: the home page's
+meta description (the only SEO loss on production).
