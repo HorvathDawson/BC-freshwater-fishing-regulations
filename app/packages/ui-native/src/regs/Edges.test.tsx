@@ -127,33 +127,34 @@ describe("11. the timed caveat (x15p2_1010, D10 a)", () => {
 
   it("(T473) with the water's sun: the day's real hours under the status, the rule's words a small line after; no point, the plain rule", () => {
     // (T898) the offsets come from the item's stored window (`daylight`), not its words
-    const range = { open: (a: number, b: number) => (a === 60 && b === 60 ? "07:04–18:37 PT" : null), closed: () => null };
+    const range = { open: (a: number, b: number) => (a === 60 && b === 60 ? "7:04–18:37" : null), closed: () => null };
     render(<KeepTab keep={page.keep} dateLabel={page.header.date} palette={LIGHT} actions={{ ...NOOP, onTab() {} }} daylight={range} />);
     const strip = screen.getByTestId("keep-strip");
-    expect(within(strip).getByTestId("keep-daylight").textContent).toBe("Daylight only · fishing 07:04–18:37 PT");
+    expect(within(strip).getByTestId("keep-daylight").textContent).toBe("Daylight only · fishing 7:04–18:37");
     expect(screen.getByTestId("keep-timed-line").textContent).toBe("Daylight only: closed from 1 h after sunset to 1 h before sunrise");
     cleanup();
     render(<KeepTab keep={page.keep} dateLabel={page.header.date} palette={LIGHT} actions={{ ...NOOP, onTab() {} }} daylight={null} />);
     expect(screen.queryByTestId("keep-daylight")).toBeNull();
     expect(screen.getByTestId("keep-timed-line").textContent).toBe("Daylight only: closed from 1 h after sunset to 1 h before sunrise");
-    expect(screen.queryByTestId("keep-timed-today")).toBeNull();
   });
 
-  it("(T898) the day's closed hours right under the rule line, from the water's sun on the picked day; a new day, its hours", () => {
+  it("(T898) the day's times inside the rule line, from the water's sun on the picked day; a new day, its times", () => {
     expect(caveat.items[0]!.daylight).toEqual({ after: 60, before: 60 });   // the stored window's offsets, on the VM
     const MISSION = { lat: 49.133, lon: -122.31 };
-    const keepOn = (day: { y: number; m: number; d: number }, dayWord: string, date: string) =>
-      <KeepTab keep={page.keep} dateLabel={date} dayWord={dayWord} palette={LIGHT} actions={{ ...NOOP, onTab() {} }}
+    const keepOn = (day: { y: number; m: number; d: number }, date: string) =>
+      <KeepTab keep={page.keep} dateLabel={date} palette={LIGHT} actions={{ ...NOOP, onTab() {} }}
                daylight={daylightAt(MISSION.lat, MISSION.lon, day)} />;
-    const { rerender } = render(keepOn({ y: 2026, m: 11, d: 19 }, "Today", "Nov 19"));
-    const lines = () => [...screen.getByTestId("keep-timed").children].map((e) => e.textContent);
-    expect(lines()).toEqual(["Daylight only: closed from 1 h after sunset to 1 h before sunriseRule book p.23 ↗", "Today: closed 18:24 to 7:25"]);
-    expect(within(screen.getByTestId("keep-strip")).getByTestId("keep-daylight").textContent).toBe("Daylight only · fishing 07:25–18:24 PT");
-    rerender(keepOn({ y: 2026, m: 6, d: 21 }, "Sun", "Jun 21"));
-    expect(screen.getByTestId("keep-timed-today").textContent).toBe("Sun Jun 21: closed 22:17 to 4:04");
-    // no point known: no hours, the rule line alone
-    rerender(<KeepTab keep={page.keep} dateLabel="Nov 19" dayWord="Today" palette={LIGHT} actions={{ ...NOOP, onTab() {} }} daylight={null} />);
-    expect(screen.queryByTestId("keep-timed-today")).toBeNull();
+    const { rerender } = render(keepOn({ y: 2026, m: 11, d: 19 }, "Nov 19"));
+    const items = () => screen.getAllByTestId("keep-timed-item").map((e) => e.textContent);
+    expect(items()).toEqual(["Daylight only: closed from 1 h after sunset (18:24) to 1 h before sunrise (7:25)Rule book p.23 ↗"]);
+    expect(within(screen.getByTestId("keep-strip")).getByTestId("keep-daylight").textContent).toBe("Daylight only · fishing 7:25–18:24");
+    rerender(keepOn({ y: 2026, m: 6, d: 21 }, "Jun 21"));
+    expect(items()).toEqual(["Daylight only: closed from 1 h after sunset (22:17) to 1 h before sunrise (4:04)Rule book p.23 ↗"]);
+    expect(screen.getByTestId("keep-daylight").textContent).toBe("Daylight only · fishing 4:04–22:17");
+    // no point known: the rule's words alone, no hours line
+    rerender(<KeepTab keep={page.keep} dateLabel="Nov 19" palette={LIGHT} actions={{ ...NOOP, onTab() {} }} daylight={null} />);
+    expect(items()).toEqual(["Daylight only: closed from 1 h after sunset to 1 h before sunriseRule book p.23 ↗"]);
+    expect(screen.queryByTestId("keep-daylight")).toBeNull();
   });
 
   /*

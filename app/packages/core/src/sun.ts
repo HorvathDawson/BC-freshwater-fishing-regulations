@@ -35,7 +35,7 @@ export function sunTimes(lat: number, lon: number, y: number, m: number, d: numb
 }
 
 export const SUN_WORDS = {
-  /** "07:04–18:37 PT" */
+  /** "7:04–18:37" */
   range: (from: string, to: string) => `${from}–${to}`,
   /** (T878) the day's sun under the date: "9:01–17:17" — no "PT" (the app is B.C.-only; owner 2026-11-18 look round) */
   day: (rise: string, set: string) => `${rise}–${set}`,
@@ -66,12 +66,13 @@ export function sunLine(lat: number, lon: number, day: { y: number; m: number; d
 
 /**
  * (T473) The hours a "daylight only" closure leaves open on a day at a point: from `beforeMin` before sunrise to `afterMin`
- * after sunset ("07:04–18:37 PT"), the offsets the rule's own words carry; null with no rise or set.
+ * after sunset ("7:04–18:37"), the rule's stored offsets; null with no rise or set. (T898, owner 2026-11-19) On the date
+ * line's clock (`sunLine`: no leading 0, no "PT"), so the page says every time one way.
  */
 export function daylightRange(lat: number, lon: number, day: { y: number; m: number; d: number }, afterMin: number, beforeMin: number): string | null {
   const t = sunTimes(lat, lon, day.y, day.m, day.d);
   if (t.rise === null || t.set === null) return null;
-  return SUN_WORDS.range(bare(t.rise - beforeMin * 60_000), bcClockTime(t.set + afterMin * 60_000));
+  return SUN_WORDS.range(short(t.rise - beforeMin * 60_000), short(t.set + afterMin * 60_000));
 }
 
 /**

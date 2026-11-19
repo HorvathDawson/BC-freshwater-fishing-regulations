@@ -43,7 +43,7 @@ describe("useSunLine", () => {
 describe("useDaylight (T473, T898)", () => {
   it("the hours the rule's offsets leave open, at the point and on the day; no point, no function", () => {
     const { result } = renderHook(() => useDaylight(source, null, VEDDER, NOV4));
-    expect(result.current!.open(60, 60)).toBe("07:00–18:42 PT");
+    expect(result.current!.open(60, 60)).toBe("7:00–18:42");
     // (T898) the hours it closes, on the date line's clock (that line: "8:00  17:42" on Nov 4 at the Vedder)
     expect(result.current!.closed(60, 60)).toEqual({ from: "18:42", to: "7:00" });
     expect(renderHook(() => useDaylight(source, null, null, NOV4)).result.current).toBeNull();

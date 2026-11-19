@@ -309,23 +309,15 @@ export function daylightOffsets(x: CaveatItemVM): { after: number; before: numbe
 }
 
 /**
- * (T898) The day's closed hours of a daylight-only closure, said under its rule line: "Today: closed 18:21 to 7:23", the
- * day named as the date pill names it (`HeaderVM.dayWord`, `date`: "Fri Nov 20: closed …" on another day); null with no
- * hours (no sun point, no rise or set).
- */
-export function daylightClosedText(t: { from: string; to: string } | null, dayWord: string, date: string): string | null {
-  if (!t) return null;
-  return WORDS.DAYLIGHT_CLOSED(dayWord === WORDS.TODAY ? WORDS.TODAY : `${dayWord} ${date}`, t.from, t.to);
-}
-
-/**
  * (T318, owner 2026-10-31) A TIMED ITEM AS ONE LINE under the year bar (not a boxed note): a closure of the hours around
  * sunset ("No fishing for any game fish" · "60 min after sunset–60 min before sunrise") reads "Daylight only: closed from
  * 1 h after sunset to 1 h before sunrise"; any other timed item reads its words and its moment, "<what>: <when>".
+ * (T898, owner 2026-11-19 pick "Times in the rule line") `at`: the day's closed hours at the water (`DaylightAt.closed`),
+ * each in brackets after its part: "… 1 h after sunset (18:21) to 1 h before sunrise (7:23)"; null: the words alone.
  */
-export function timedLineText(x: CaveatItemVM): string {
+export function timedLineText(x: CaveatItemVM, at: { from: string; to: string } | null = null): string {
   const what = x.what.map((r) => (r.t === "text" ? r.s : "")).join("").trim();
   const d = daylightOffsets(x);
-  if (d) return WORDS.TIMED_DAYLIGHT(WORDS.TIMED_H(d.after), WORDS.TIMED_H(d.before));
+  if (d) return WORDS.TIMED_DAYLIGHT(WORDS.TIMED_H(d.after), WORDS.TIMED_H(d.before), at);
   return x.where ? `${what}: ${x.where}` : what;
 }

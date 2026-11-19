@@ -246,7 +246,7 @@ export function RegsScreen({ page, palette, images, actions, onDate,
           failed, is drawn here in its place (its pending / failed face) — never a silent gap */}
       {(!glance || !glance.salmon) && (typeof salmon === "function" ? salmon({ actions: keepActions, images }) : salmon)}
       <AnchorContext.Provider value={sink}>
-          <KeepTab keep={page.keep} daylight={daylight} dateLabel={page.header.date} dayWord={page.header.dayWord} palette={palette} actions={keepActions} images={images} salmonStrip={salmonStrip}
+          <KeepTab keep={page.keep} daylight={daylight} dateLabel={page.header.date} palette={palette} actions={keepActions} images={images} salmonStrip={salmonStrip}
                    glance={glance ? { salmon: glance.salmon && salmon
                      ? { row: glance.salmon, card: () => (typeof salmon === "function" ? salmon({ actions: keepActions, images }) : salmon) }
                      : null } : null} />

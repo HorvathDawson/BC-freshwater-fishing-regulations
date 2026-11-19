@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { bcClockTime, bcNow, bcOffsetHours, bcToday, daylightAt, daylightClosed, daylightClosedText, daylightOfMoment, sunLine, sunTimes,
-         type Moment } from "./index";
+import { bcClockTime, bcNow, bcOffsetHours, bcToday, daylightAt, daylightClosed, daylightOfMoment, sunLine, sunTimes, timedLineText,
+         type CaveatItemVM, type Moment } from "./index";
 
 /** minutes past midnight at a fixed UTC offset */
 const at = (ms: number | null, off: number) => {
@@ -49,27 +49,30 @@ describe("the regulations' clock is B.C.'s, written in the app (not the device's
   });
 });
 
-describe("(T898) a daylight-only closure's closed hours: the date line's sun, offset by the rule's own minutes", () => {
+describe("(T898) a daylight-only closure's times in its rule line: the date line's sun, offset by the rule's own minutes", () => {
   const MISSION = { lat: 49.133, lon: -122.31 }, NOV19 = { y: 2026, m: 11, d: 19 }, JUN21 = { y: 2026, m: 6, d: 21 };
-  it("Mission, Nov 19: 1 h after sunset to 1 h before sunrise, whole, beside the date line it is offset from", () => {
+  const rule = (after: number, before: number): CaveatItemVM => ({ what: [{ t: "text", s: "No fishing for any game fish" }],
+    where: `${after} min after sunset–${before} min before sunrise`, rule: null, fish: null, book: [], daylight: { after, before } });
+  it("Mission, Nov 19: 1 h after sunset to 1 h before sunrise, each time after its part, beside the date line", () => {
     expect(sunLine(MISSION.lat, MISSION.lon, NOV19)!.text).toBe("8:25–17:24");
-    expect(daylightClosedText(daylightClosed(MISSION.lat, MISSION.lon, NOV19, 60, 60), "Today", "Nov 19"))
-      .toBe("Today: closed 18:24 to 7:25");
-    // another day is named as the date pill names it
-    expect(daylightClosedText(daylightAt(MISSION.lat, MISSION.lon, NOV19).closed(60, 60), "Fri", "Nov 20"))
-      .toBe("Fri Nov 20: closed 18:24 to 7:25");
+    expect(timedLineText(rule(60, 60), daylightClosed(MISSION.lat, MISSION.lon, NOV19, 60, 60)))
+      .toBe("Daylight only: closed from 1 h after sunset (18:24) to 1 h before sunrise (7:25)");
+    expect(timedLineText(rule(60, 60), daylightAt(MISSION.lat, MISSION.lon, NOV19).closed(60, 60)))
+      .toBe("Daylight only: closed from 1 h after sunset (18:24) to 1 h before sunrise (7:25)");
+    // (T473) the open hours under the verdict, on the same clock as the date line (owner 2026-11-19)
+    expect(daylightAt(MISSION.lat, MISSION.lon, NOV19).open(60, 60)).toBe("7:25–18:24");
   });
   it("each end takes its own offset (30 min after sunset, 45 before sunrise); a summer evening keeps its two-digit hour", () => {
-    expect(daylightClosedText(daylightClosed(MISSION.lat, MISSION.lon, NOV19, 30, 45), "Today", "Nov 19"))
-      .toBe("Today: closed 17:54 to 7:40");
+    expect(timedLineText(rule(30, 45), daylightClosed(MISSION.lat, MISSION.lon, NOV19, 30, 45)))
+      .toBe("Daylight only: closed from 30 min after sunset (17:54) to 45 min before sunrise (7:40)");
     expect(sunLine(MISSION.lat, MISSION.lon, JUN21)!.text).toBe("5:04–21:17");
-    expect(daylightClosedText(daylightClosed(MISSION.lat, MISSION.lon, JUN21, 60, 60), "Sun", "Jun 21"))
-      .toBe("Sun Jun 21: closed 22:17 to 4:04");
-    // the open hours (T473) from the same point and day are the complement
-    expect(daylightAt(MISSION.lat, MISSION.lon, NOV19).open(60, 60)).toBe("07:25–18:24 PT");
+    expect(timedLineText(rule(60, 60), daylightClosed(MISSION.lat, MISSION.lon, JUN21, 60, 60)))
+      .toBe("Daylight only: closed from 1 h after sunset (22:17) to 1 h before sunrise (4:04)");
+    expect(daylightAt(MISSION.lat, MISSION.lon, JUN21).open(60, 60)).toBe("4:04–22:17");
   });
-  it("no hours, no line", () => {
-    expect(daylightClosedText(null, "Today", "Nov 19")).toBeNull();
+  it("no times known: the rule's words alone", () => {
+    expect(timedLineText(rule(60, 60), null)).toBe("Daylight only: closed from 1 h after sunset to 1 h before sunrise");
+    expect(timedLineText(rule(60, 60))).toBe("Daylight only: closed from 1 h after sunset to 1 h before sunrise");
   });
 });
 
