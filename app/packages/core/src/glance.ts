@@ -55,6 +55,9 @@ export interface GlanceRowVM {
    *  (`fold` false) that is the rule book's closure: each closure's words (page, line, dates) and where it is from,
    *  said under the row — the card behind it is never drawn there */
   readonly book?: readonly SalmonBookVM[];
+  /** (T892, owner 2026-11-19 "The table should say if it came from tributaries too..") the row's answer rests on another
+   *  water's row carried down to its tributaries: one line under the name, the words core's (flow.ts `downLine`). Absent: none. */
+  readonly from?: string;
 }
 
 /** The first picture a group's tree shows — a rainbow trout where the group has one (the picture anglers know it by). */
@@ -80,12 +83,12 @@ export function groupGlance(g: GroupVM): GlanceRowVM {
  * exactly as Python ships them (`Fold.value` "Up to 5", `Fold.tone`, `DateSet.fold`). The 2026-10-28 "a folded row says
  * no count" rule is lifted for the trout fold only (owner 2026-11-16 15:47: "the better text like 2 or 4 with expand
  * arrow"): the count is the table's own words, not a group's number. The picture: a rainbow trout where the table holds
- * one, else its first fish.
+ * one, else its first fish. (T892) `from`: `KeepVM.troutFrom`, the fold's tributary line.
  */
-export function troutGlance(t: TroutVM): GlanceRowVM {
+export function troutGlance(t: TroutVM, from?: string): GlanceRowVM {
   const fish = t.boxes.flatMap((b) => b.rows.map((r) => r.fish));
   return { source: "bc", thumb: fish.includes("RB") ? "RB" : fish[0] ?? null, name: t.fold.name, value: t.fold.value, tone: t.fold.tone,
-           ...(t.fold.date !== null ? { date: t.fold.date } : {}) };
+           ...(t.fold.date !== null ? { date: t.fold.date } : {}), ...(from ? { from } : {}) };
 }
 
 /**

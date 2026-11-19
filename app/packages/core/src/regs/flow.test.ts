@@ -6,11 +6,11 @@
  */
 import { describe, expect, it } from "vitest";
 import type { LadderItem } from "./decided";
-import { flowOf, partStep, restateStep, withNotes, withWeek } from "./flow";
+import { downLine, downOf, flowOf, partStep, restateStep, withNotes, withWeek } from "./flow";
 import type { RuleIndex, RuleView } from "./inputs";
-import type { TroutRowVM } from "./model";
+import type { TroutRowVM, TroutVM } from "./model";
 import type { FishAnswer } from "../answers.generated";
-import { troutFlow } from "./sheets/trout";
+import { troutFlow, troutFrom } from "./sheets/trout";
 import { plain, text } from "./line";
 
 const rule = (key: string, rank: number, entry: string, region: string | null, says: string, page: number): RuleView => ({
@@ -151,5 +151,47 @@ describe("troutFlow (T883: a trout row's rail from its whole list and the fish's
   it("a rule with no stored role, or no answer: no rail (the sheet keeps its Sources list)", () => {
     expect(troutFlow(row([1, 2, 5 as number]), a, { get: (ix: number) => RS.get(ix) ?? rule("x", 3, "Region 2", "2", "x", 21) } as never, "")).toBeNull();
     expect(troutFlow(row([1]), null, rules, "")).toBeNull();
+  });
+});
+
+describe("(T892) the table's row says when its answer comes down from another water's row to its tributaries", () => {
+  const TRIB = { ...rule("koot", 1, "Kootenay River", "4", "Release every burbot.", 36), via: "trib", baseRank: 0 } as unknown as RuleView;
+  const ELK = { ...rule("elk", 1, "Elk River", "4", "Keep 1 bull trout.", 36), via: "trib", baseRank: 0 } as unknown as RuleView;
+  const R4 = rule("r4", 3, "Region 4", "4", "Keep up to 5 burbot a day.", 34);
+  const OWN = rule("own", 0, "Anchor Creek", "4", "Release every burbot.", 36);
+  it("downOf + downLine: the deciding rule's water, the same one the sheet's kicker names; a water's own or region row says nothing", () => {
+    const inherited = [item(TRIB, "governs"), item(R4, "replaced", TRIB)];
+    expect(flowOf(inherited, says, "Anchor Creek", null).steps.filter((s) => s.tone === "won").map((s) => s.kicker))
+      .toEqual(["Kootenay River · its tributaries"]);
+    expect(downLine(downOf(inherited))).toBe("Kootenay River’s rule for its tributaries");
+    expect(downLine(downOf([item(OWN, "governs"), item(R4, "replaced", OWN)]))).toBeNull();
+    expect(downLine(downOf([item(R4, "governs")]))).toBeNull();
+  });
+  it("a tributary rule that was replaced, or only a possession rule, decides nothing here: no line", () => {
+    expect(downLine(downOf([item(R4, "governs"), item(TRIB, "replaced", R4)]))).toBeNull();
+    expect(downLine(downOf([item(R4, "governs"), item(TRIB, "possession")]))).toBeNull();
+  });
+  it("two waters: both named, once each", () => {
+    expect(downLine(downOf([item(TRIB, "governs"), item(ELK, "narrows"), item(TRIB, "also")])))
+      .toBe("Kootenay River’s and Elk River’s rules for their tributaries");
+  });
+});
+
+describe("(T892) troutFrom: the trout fold's tributary line", () => {
+  const DOWN = { ...rule("bc", 1, "Bella Coola River", "5", "Release wild trout and char.", 50), via: "trib", baseRank: 0 } as unknown as RuleView;
+  const R5 = rule("r5", 3, "Region 5", "5", "Keep up to 4 trout and char a day", 48);
+  const RS = new Map([[1, DOWN], [2, R5]]);
+  const rules = { get: (ix: number) => RS.get(ix)! } as unknown as Pick<RuleIndex, "get">;
+  const trow = (key: string, src: number[]) => ({ key, fish: key, src, origin: null, sheet: { head: "Release" } }) as unknown as TroutRowVM;
+  const table = (...rows: TroutRowVM[]) => ({ boxes: [{ rows }] }) as unknown as TroutVM;
+  const ans = (roles: [number, string, number | null][]) => ({ lead: "wild", hatchery: null, wild: { roles } }) as unknown as FishAnswer;
+  const down = ans([[1, "governs", null], [2, "replaced", 1]]), own = ans([[2, "governs", null]]);
+  it("every row from the same water's tributary rule: the fold says it, whole", () => {
+    expect(troutFrom(table(trow("RB", [1, 2]), trow("CT", [1, 2])), () => down, rules, "Nygaard Creek"))
+      .toBe("Bella Coola River’s rule for its tributaries");
+  });
+  it("only some rows (the others the region's): no fold line — the table's rows are Python's words (T810)", () => {
+    expect(troutFrom(table(trow("DV", [1, 2]), trow("RB", [2])), (f) => (f === "DV" ? down : own), rules, "Bryce Creek")).toBeNull();
+    expect(troutFrom(table(trow("RB", [2])), () => own, rules, "Mamquam River")).toBeNull();
   });
 });

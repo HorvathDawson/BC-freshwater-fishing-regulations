@@ -56,7 +56,7 @@ export function KeepTab({ keep, dateLabel, palette, actions, images, glance = nu
                            ...(salmonStrip ? { tag: SOURCE_WORDS.salmonTag[salmonStrip.by] } : {}) }] : []),
     // (T810 O) ONE trout fold for the table (owner 15:47: the existing entry, its short line, the expand arrow); the other
     // fish's quota groups keep their own folds, unchanged
-    ...keep.order.flatMap((b): GlanceFold[] => b === "trout" && trout ? [{ key: "trout", row: troutGlance(trout), body: () => troutCard(false), arrow: true }]
+    ...keep.order.flatMap((b): GlanceFold[] => b === "trout" && trout ? [{ key: "trout", row: troutGlance(trout, keep.troutFrom), body: () => troutCard(false), arrow: true }]
       : typeof b === "object" && "group" in b ? [{
       key: `group:${b.group}`, row: groupGlance(keep.groups[b.group]!),
       body: () => <GroupCard g={keep.groups[b.group]!} palette={palette} actions={actions} images={images} />,

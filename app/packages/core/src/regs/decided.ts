@@ -101,6 +101,15 @@ export function rowSources(row: HydRow, card: CardModel, settled: Settled, inp: 
   return [...best.values()].sort((a, b) => wins(b.role) - wins(a.role) || a.r.rank - b.r.rank);
 }
 
+const winItem = (r: RuleView): LadderItem => ({ r, role: "governs", by: null, spp: new Set() });
+
+/** (T892) A row's items as its fish sheet's flow reads them (`ladderOf` with no `members`): `rowSources`, else the row's
+ *  stored winner as the one deciding rule. The Keep tab's table reads its rows' tributary line from these (flow.ts `downOf`). */
+export function rowItems(row: HydRow, card: CardModel, settled: Settled, inp: RegsInputs): readonly LadderItem[] {
+  const items = rowSources(row, card, settled, inp);
+  return items.length || !row.win ? items : [winItem(row.win)];
+}
+
 /** page v36 byName: the replacing rule named by its level (its own rank, not the part's). */
 function byName(b: RuleView | null, inp: RegsInputs): string {
   if (!b || b.missing) return WORDS.BY_ABOVE;
@@ -126,7 +135,7 @@ export function ladderOf(row: HydRow, env: LadderEnv, members?: readonly string[
   const title = seams.rowTitle(row, inp);
   const items: LadderItem[] = rowSources(row, card, settled, inp)
     .filter((it) => !members || !it.spp.size || [...it.spp].some((S) => members.includes(S)));
-  if (!items.length && row.win) items.push({ r: row.win, role: "governs", by: null, spp: new Set() });
+  if (!items.length && row.win) items.push(winItem(row.win));
   // No role is re-classified here (owner rule 2026-10-21): page v36 moved a deciding record_retention rule to "duty"; the
   // pipeline stores it so since rows 31 (`rows.stored_role`), so it is read under "Other rules" as stored.
   // `fields.record_retention` only words the tag.

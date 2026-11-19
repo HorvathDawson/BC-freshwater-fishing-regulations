@@ -97,6 +97,29 @@ function unique(steps: readonly FlowStepVM[]): FlowStepVM[] {
   });
 }
 
+/** A rule replaced by one of the other rules (B.C.'s possession, replaced by the region's) is not a step of the answer. */
+function asideOf(items: readonly LadderItem[]): (i: LadderItem) => boolean {
+  const otherKeys = new Set(items.filter((i) => OTHER.includes(i.role)).map((i) => i.r.key));
+  return (i) => (i.role === "replaced" || i.role === "lifted") && !!i.by && otherKeys.has(i.by.key);
+}
+
+/**
+ * (T892, owner 2026-11-19 ~00:10 "The table should say if it came from tributaries too..") The waters whose row carries a
+ * rule that decides this row down to their tributaries: each step `flowOf` draws as deciding ("won") whose kicker is
+ * "<that water> · its tributaries" (`kickerOf`: the part's ruleset holds the rule `via` trib, rank 1), its water named
+ * once, in the items' order. The same items and the same test as the sheet's rail: nothing re-derived. [] for none.
+ */
+export function downOf(items: readonly LadderItem[]): readonly string[] {
+  const aside = asideOf(items);
+  const names = items.filter((i) => !OTHER.includes(i.role) && !QUIET.includes(i.role) && !aside(i)
+    && i.role !== "replaced" && i.role !== "lifted" && !i.r.part && i.r.rank === 1 && !!i.r.export.prov.entry_name)
+    .map((i) => i.r.export.prov.entry_name!);
+  return [...new Set(names)];
+}
+
+/** (T892) The table row's line for `downOf`'s waters ("Kootenay River’s rule for its tributaries"); null for none. */
+export const downLine = (names: readonly string[]): string | null => (names.length ? D.ROW_DOWN(names) : null);
+
 /**
  * The flow of one row: `items` its stored rules and roles (rowSources), `says` each one's line (the ladder's words),
  * `water` the sheet's water, `answer` the row's result line.
@@ -107,9 +130,7 @@ export function flowOf(items: readonly LadderItem[], says: (it: LadderItem) => L
     tone: it.role === "replaced" || it.role === "lifted" ? "lost" : QUIET.includes(it.role) ? "quiet" : "won",
     book: bareBook(it.r), rule: it.r.missing ? null : it.r.key,
   });
-  // a rule replaced by one of the other rules (B.C.'s possession, replaced by the region's) is not a step of the answer
-  const otherKeys = new Set(items.filter((i) => OTHER.includes(i.role)).map((i) => i.r.key));
-  const aside = (i: LadderItem): boolean => (i.role === "replaced" || i.role === "lifted") && !!i.by && otherKeys.has(i.by.key);
+  const aside = asideOf(items);
   const main = items.filter((i) => !OTHER.includes(i.role) && !QUIET.includes(i.role) && !aside(i))
     .sort((a, b) => layerOf(a.r, water) - layerOf(b.r, water) || orderOf(a.role) - orderOf(b.role)).map(step);
   const steps = once(ordered(unique(main)));

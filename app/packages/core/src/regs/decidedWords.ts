@@ -82,6 +82,9 @@ export const DECIDE = Object.freeze({
   K_AREA: (name: string) => `${name} · area rule`,
   // (owner 2026-11-18 ~23:40) a rule another water's row carries down to its tributaries says so, never "this water's"
   K_DOWN: (name: string) => `${name} · its tributaries`,
+  // (T892) the same fact on the "What you can keep" table's row: under the fish's name, one line
+  ROW_DOWN: (names: readonly string[]) => names.length === 1 ? `${names[0]}’s rule for its tributaries`
+    : `${names.slice(0, -1).map((n) => `${n}’s`).join(", ")} and ${names[names.length - 1]}’s rules for their tributaries`,
   K_WATER: (name: string) => `${name} · this water’s rule`,
   K_LISTED: (name: string) => `${name} · listed water`,
   K_FEDERAL: "Federal law",

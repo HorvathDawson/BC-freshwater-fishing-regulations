@@ -82,6 +82,10 @@ export interface KeepVM {
   /** (T810 N, S) the trout and char table (`trout.ts` `troutOf`), or its refusal; null: the cell has none, or the day is
    *  closed. ABSENT only on the two edges with no card (outside B.C., tidal water). The one trout path (no old card). */
   readonly trout?: TroutVM | TroutRefusedVM | null;
+  /** (T892) the trout fold row's line in the one table when EVERY row of today's trout table rests on the same waters'
+   *  rows carried down to their tributaries ("Bella Coola River’s rule for its tributaries", sheets/trout.ts `troutFrom`).
+   *  Kept beside the table, never in it: the table's words are Python's (T810). Absent: none, or only some rows. */
+  readonly troutFrom?: string;
 }
 export type KeepBlock = "strip" | "inherited" | "banner" | { caveat: number } | { group: number } | { plain: number } | "otherFish" | "possession" | "whereNot"
   | "outside" | "trout";
@@ -328,7 +332,11 @@ export interface OtherFishRowVM{ readonly thumb: string | null; readonly name: s
   readonly stamps: readonly Line[];
   /** (T670 K2) the row's fish its number does not hold for — released or closed by their own rule (the store's "back"
    *  conditions), each in the rule's stored sentence; drawn under the row, in the status colour. [] for none */
-  readonly back: readonly { readonly status: "release" | "closed"; readonly says: string; readonly rule: RuleKey }[] }
+  readonly back: readonly { readonly status: "release" | "closed"; readonly says: string; readonly rule: RuleKey }[];
+  /** (T892) the row's answer rests on another water's row carried down to its tributaries — the sheet's "<that water> ·
+   *  its tributaries" step — said under the name ("Kootenay River’s rule for its tributaries", flow.ts `downLine`).
+   *  Absent: the water's own rules, its region's, or B.C.'s. */
+  readonly from?: string }
 export interface WhereNotVM { readonly heading: string; readonly scope: string | null; readonly items: readonly { text: Line; rule: RuleKey }[] }
 
 // ── 2.3 Gear tab (prototype buildGear; page v36 gearParts) ─────────────────────────────────────────────────────────

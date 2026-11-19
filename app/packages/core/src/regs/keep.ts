@@ -32,6 +32,7 @@ import { edgeKind, outsideKeep, tidalKeep } from "./edge";
 import { MORE, moreOf, notKeptOf, workedOf } from "./tail";
 import { fishNames, onePictureEach, pictures, treeEnv, treeOf } from "./tree";
 import { TroutRefused, troutOf } from "./trout";
+import { troutFrom } from "./sheets/trout";
 import { reportFailure } from "../failure";
 
 /** What the Keep composition reads besides the inputs (page.ts builds it once per page). */
@@ -120,6 +121,14 @@ export function sectionNotesOf(inp: RegsInputs): CaveatVM[] {
  *   headline, else a plain row. A closed day (the stored display status) draws no caveats, rows, Other fish or Possession —
  *   (T623 F4) the part-closed warning leads the tab on every open day; (T796) the section's notes lead it on every day.
  */
+/** (T892) the trout fold's tributary line (sheets/trout.ts `troutFrom`), read from the same rows frame as the trout
+ *  sheets' rails (sheets.ts `tf:`); null: none. */
+function troutFromOf(t: ReturnType<typeof troutOf>, inp: RegsInputs, card: CardModel): string | null {
+  if (t?.kind !== "table") return null;
+  const f = card.ctx.s >= 0 ? inp.year?.rowsBySeg[card.ctx.s] ?? null : null;
+  return f ? troutFrom(t, (S) => f.fish[S] ?? null, inp.rules, inp.item?.name || inp.place?.name || "") : null;
+}
+
 export function keepOf(inp: RegsInputs, env: KeepEnv): KeepVM {
   const edge = edgeKind(inp);                                       // (T42) the two edges with no card
   if (edge === "outside") return outsideKeep();
@@ -138,6 +147,7 @@ export function keepOf(inp: RegsInputs, env: KeepEnv): KeepVM {
   const covered = new Set(covers.flatMap((i) => card.rows[i]?.allMembers ?? []));
   if (!open && inp.trout) reportFailure(new TroutRefused("a table on a day the store calls closed (Q-D3)"));
   const trout = open ? troutOf(inp, settled.day, env.today) : null;
+  const foldFrom = troutFromOf(trout, inp, card);
   const caveats = [...sectionNotesOf(inp), ...(partClosed ? [partClosed] : []),
                    ...(open ? caveatsOf(inp, settled, (j) => settleAt(inp, env.place, j, settled.day), covered) : [])];
 
@@ -153,11 +163,11 @@ export function keepOf(inp: RegsInputs, env: KeepEnv): KeepVM {
       // the compact list (others.ts `looseRows`)
     }
   }
-  const otherFish = open ? otherFishOf(card, inp, env.fish, covers) : null;
+  const otherFish = open ? otherFishOf(card, inp, env.fish, covers, settled) : null;
   const possession = open ? possessionOf(inp, settled) : null;
   const whereNot = whereNotOf(settled);
   const order = keepOrder({ strip: !!strip, inherited: !!inherited, banner: !!banner, caveats, rows,
     otherFish: !!otherFish, possession: !!possession, whereNot: !!whereNot, ...(trout ? { trout: true } : {}) });
   return { order, strip, inherited, banner, groups, plainRows, otherFish, otherFishKey: otherFishKeyOf(otherFish, inp), caveats,
-           possession, whereNot, outside: null, trout };
+           possession, whereNot, outside: null, trout, ...(foldFrom ? { troutFrom: foldFrom } : {}) };
 }
