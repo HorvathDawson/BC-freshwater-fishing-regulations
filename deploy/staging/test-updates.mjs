@@ -16,10 +16,12 @@
 //   node deploy/staging/test-updates.mjs big [tag]             (T255) a LARGE release: the basemap's id moves (same file,
 //                                                              same sha), so a phone re-downloads it whole (~270 MB) —
 //                                                              over the 20 MB line a metered connection holds for Wi-Fi
-//   node deploy/staging/test-updates.mjs data-big [tag]        (T912) `big` AND a changed data file: the live `climate`
-//                                                              file with its SQLite change counter moved (same tables and
-//                                                              rows, other bytes) under test/release/<id>/, so an update
-//                                                              downloads a data file as well as the ~270 MB basemap
+//   node deploy/staging/test-updates.mjs data-book [tag]       (T912) an update that really DOWNLOADS a data file and a big
+//                                                              file: the live `climate` with its SQLite change counter moved
+//                                                              (same rows, other bytes) and the rule book with a PDF comment
+//                                                              after its end (same pages, other bytes), both under
+//                                                              test/release/<id>/. (`big` moves only the basemap's id: the
+//                                                              phone keeps the file it holds at that path, nothing downloads)
 //   node deploy/staging/test-updates.mjs gauge <station> <flow|level> <value>   (T234) the gauge alerts' feed (the
 //                                                              background check reads test/feeds/live/obs.json on this
 //                                                              channel): that station's newest reading set to <value>, now
@@ -134,39 +136,55 @@ export function bumpSqlite(raw) {
   v.setUint32(24, c); v.setUint32(92, c);
   return out;
 }
-/** (T912) The `data-big` manifest: `live` with a new id, the basemap's id moved (`big`), and `name` replaced by `f`. */
-export function dataBigManifest(live, id, tag, name, f) {
-  if (!live.basemap) throw new Error('the live manifest names no basemap');
+/** (T912) The same PDF with other bytes: a comment line after its end (readers ignore it); the sha256 moves. */
+export function bumpPdf(pdf) {
+  if (new TextDecoder().decode(pdf.subarray(0, 5)) !== '%PDF-') throw new Error('not a PDF');
+  const tail = new TextEncoder().encode('\n% test-updates data-book\n');
+  const out = new Uint8Array(pdf.length + tail.length);
+  out.set(pdf); out.set(tail, pdf.length);
+  return out;
+}
+/** (T912) The `data-book` manifest: `live` with a new id, data file `name` replaced by `f`, and the rule book by `book`. */
+export function dataBookManifest(live, id, name, f, book) {
+  if (!live.synopsis) throw new Error('the live manifest names no rule book (synopsis)');
   if (!live.files[name]) throw new Error(`the live manifest names no ${name}`);
   const m = { ...structuredClone(live), data_release: id };
-  m.basemap = { ...m.basemap, id: `${m.basemap.id}-t${tag}` };
   m.files[name] = { ...m.files[name], ...f };
+  m.synopsis = { ...m.synopsis, ...book };
   return m;
 }
-export async function dataBig(tag = String(Date.now() % 100000)) {
+export async function dataBook(tag = String(Date.now() % 100000)) {
   const { createHash } = await import('node:crypto');
   const { gzipSync, gunzipSync } = await import('node:zlib');
   const fs = await import('node:fs'), os = await import('node:os'), path = await import('node:path');
   const live = await liveManifest();
   const name = 'climate', f = live.files[name];
-  const id = `${live.data_release}-data${tag}`;
+  const id = `${live.data_release}-book${tag}`;
   const got = new Uint8Array(await (await fetch(`${ORIGIN}/release/${f.url}`, { cache: 'no-store' })).arrayBuffer());
   const raw = bumpSqlite(got[0] === 0x1f && got[1] === 0x8b ? new Uint8Array(gunzipSync(got)) : got);
   const sha256 = createHash('sha256').update(raw).digest('hex');
   const gz = gzipSync(raw);
   const file = `${id}/${name}-${sha256.slice(0, 12)}.sqlite.gz`, key = `${SIDE_PREFIX}${file}`;
-  if (!key.startsWith('test/')) throw new Error(`refusing to write ${key}`);
+  const pdf = bumpPdf(new Uint8Array(await (await fetch(`${ORIGIN}/release/${live.synopsis.url}`, { cache: 'no-store' })).arrayBuffer()));
+  const bookSha = createHash('sha256').update(pdf).digest('hex');
+  const bookKey = `${SIDE_PREFIX}${id}/synopsis-${bookSha.slice(0, 12)}.pdf`;
+  for (const k of [key, bookKey]) if (!k.startsWith('test/')) throw new Error(`refusing to write ${k}`);
   const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'test-updates-'));
   try {
     fs.writeFileSync(path.join(tmp, 'f.gz'), gz);
+    fs.writeFileSync(path.join(tmp, 'b.pdf'), pdf);
     // as upload.sh ships a data file: stored gzip, served with Content-Encoding (see `side`)
     rclone(['copyto', path.join(tmp, 'f.gz'), `${D}/${key}`, '--header-upload', 'Cache-Control: no-cache',
             '--header-upload', 'Content-Encoding: gzip', '--header-upload', 'Content-Type: application/octet-stream']);
+    rclone(['copyto', path.join(tmp, 'b.pdf'), `${D}/${bookKey}`, '--header-upload', 'Cache-Control: no-cache',
+            '--header-upload', 'Content-Type: application/pdf']);
   } finally { fs.rmSync(tmp, { recursive: true, force: true }); }
-  const m = dataBigManifest(live, id, tag, name, { url: `../${key}`, bytes: raw.length, gz: gz.length, sha256 });
-  if (keyOf(m.files[name].url) !== key) throw new Error(`${name}: ${m.files[name].url} resolves to ${keyOf(m.files[name].url)}`);
+  const m = dataBookManifest(live, id, name, { url: `../${key}`, bytes: raw.length, gz: gz.length, sha256 },
+                             { url: `../${bookKey}`, bytes: pdf.length, sha256: bookSha });
+  for (const [u, k] of [[m.files[name].url, key], [m.synopsis.url, bookKey]])
+    if (keyOf(u) !== k) throw new Error(`${u} resolves to ${keyOf(u)}`);
   putManifest(m);
-  return { data_release: id, minAppVersion: m.minAppVersion ?? null, data: { [name]: m.files[name].url }, basemap: m.basemap.id };
+  return { data_release: id, minAppVersion: m.minAppVersion ?? null, data: m.files[name].url, book: m.synopsis.url, bytes: raw.length + pdf.length };
 }
 
 export const minApp = (v) => {
@@ -281,7 +299,7 @@ export async function clean() {
   return { cleaned: 'test/' };
 }
 
-const CMDS = { reset, gauge, 'app-version': appVersion, 'feed-bump': feedBump, 'feed-404': feed404, release, big, 'data-big': dataBig, tiles, corrupt, missing, 'min-app': minApp, side, status, clean };
+const CMDS = { reset, gauge, 'app-version': appVersion, 'feed-bump': feedBump, 'feed-404': feed404, release, big, 'data-book': dataBook, tiles, corrupt, missing, 'min-app': minApp, side, status, clean };
 
 if (import.meta.url === `file://${process.argv[1]}`) {
   const [cmd, ...args] = process.argv.slice(2);

@@ -1,22 +1,22 @@
 // (T912) AN UPDATE GOES ON WITH THE APP CLOSED (owner 2026-11-19, Play 0.8.2: "if i close app it doesnt continue to
 // download the regulation data updates"). The app holds the live release; the test channel names one that changes a data
-// file AND the basemap (`test-updates.mjs data-big`, ~270 MB). Check now starts the update; the moment it is downloading
+// file AND the rule book (`test-updates.mjs data-book`, ~14 MB: the files a phone really downloads; `big`'s basemap id
+// move downloads nothing, the file at its path is kept). Check now starts the update; the moment it is downloading
 // the app is closed (Home, its process killed, as a swipe away does). With the app dead the system's DownloadManager must
 // download every file of it (its jobs start and finish); the next open must claim them — nothing downloaded again, the
 // data file from its system job too — stage the update, and apply it at the next pause. Before T912 an update fetched
 // its data files in the app first and queued each big file only when the install reached it, so a close in that window
 // stopped the whole update and the next open started it again.
-// Leaves the app on the live release (the last step resets the channel and applies it: a second basemap download, on the
-// full line).
+// Leaves the app on the live release (the last step resets the channel and applies it, on the full line).
 import fs from 'node:fs';
 import path from 'node:path';
 import { appUp, checkNow, coldStart, logStatus, openLog, toBackground, toMap } from './common.mjs';
 import { downloadJobs } from '../lib/ui-nodes.mjs';
 import { startThrottleProxy } from '../lib/throttle-proxy.mjs';
 
-// the line the phone is held to while the app is closed (as bg-install): 270 MB then take ~90 s, so the system's download
-// is still running well after the kill
-const SLOW_BPS = 3_000_000;
+// the line the phone is held to while the app is closed (the bench's proxy, as bg-install): the ~14 MB then take ~55 s, so
+// the system's downloads are still running well after the kill
+const SLOW_BPS = 250_000;
 
 export const bgUpdate = {
   id: 'bg-update',
@@ -50,14 +50,14 @@ export const bgUpdate = {
       return `live ${live} · ${st.split('\n').find((l) => /Release/.test(l)) ?? st}`;
     }, { stop: true });
 
-    await ctx.step('an update that changes a data file and the basemap (data-big); the line held to 3 MB/s', async () => {
-      const r = ctx.updates('data-big');
+    await ctx.step('an update that changes a data file and the rule book (data-book); the line held to 250 kB/s', async () => {
+      const r = ctx.updates('data-book');
       target = r.data_release;
-      urls = { data: Object.values(r.data)[0].split('/').pop(), basemap: r.basemap };
+      urls = { data: r.data.split('/').pop(), book: r.book.split('/').pop() };
       try { d.adb(['logcat', '-G', '16M']); } catch { /* kept as is */ }
       d.logcatClear();
       d.sh(`settings put global http_proxy 10.0.2.2:${proxy.port}`);
-      return `${target} · data file ${urls.data} · basemap ${r.basemap}`;
+      return `${target} · data file ${urls.data} · rule book ${urls.book} · ${(r.bytes / 1e6).toFixed(1)} MB`;
     }, { stop: true });
 
     await ctx.step('Check now: the update starts downloading, and the app is CLOSED at once (Home, process killed)', async () => {
@@ -87,14 +87,16 @@ export const bgUpdate = {
           d.sh('cmd statusbar expand-notifications'); await d.sleep(1200);
           shot('2-notification-closed'); d.sh('cmd statusbar collapse'); noted = true;
         }
-        // the data file and the basemap: two jobs, both finished, none still running
+        // the data file and the rule book: two jobs, both finished, none still running
         if (j.started.length >= 2 && !j.running.length) {
           if (proxy.bytes < 1e6) throw new Error(`BENCH: the phone did not use the bench's slow proxy (${proxy.bytes} bytes through it)`);
           return `${j.started.length} system download(s) started (first ${j.startedAt}) and finished (last ${j.finishedAt}) with the app closed at ${killedAt.slice(6)}${alive() ? ' (the app process was started meanwhile, by the system)' : ', the app not running'}`;
         }
-        if (Date.now() - t0 > FIRST && !j.started.length) {
+        if (Date.now() - t0 > FIRST && j.started.length < 2) {
           keepLogs('T912-nothing-downloads.txt', killedAt);
-          throw new Error(`nothing downloads with the app closed: no system download started in ${FIRST / 1000} s after the kill (the app had queued none of the update's files before it was closed)`);
+          throw new Error(j.started.length
+            ? `only ${j.started.length} of the update's 2 files downloads with the app closed (${FIRST / 1000} s after the kill)`
+            : `nothing downloads with the app closed: no system download started in ${FIRST / 1000} s after the kill (the app had queued none of the update's files before it was closed)`);
         }
         if (Date.now() - t0 > CAP) {
           keepLogs('T912-not-finished.txt', killedAt);
@@ -117,13 +119,13 @@ export const bgUpdate = {
       const claimed = (u) => lines.some((l) => l.includes(u) && /done \(system download manager\)/.test(l));
       const bad = [
         ...(claimed(urls.data) ? [] : [`the data file ${urls.data} was not claimed from its system download`]),
-        ...(lines.some((l) => /basemap/.test(l) && /done \(system download manager\)/.test(l)) ? [] : ['the basemap was not claimed from its system download']),
+        ...(claimed(urls.book) ? [] : [`the rule book ${urls.book} was not claimed from its system download`]),
         ...(again.length ? [`${again.length} system download(s) started again after the reopen`] : []),
         ...lines.filter((l) => /downloaded in the app instead|queued again from zero/.test(l)),
       ];
       shot('3-staged');
       if (bad.length) throw new Error(`the next open did not take what the closed app's downloads brought: ${bad.join(' ; ')}`);
-      return `staged ${target}; claimed from the system downloader: ${urls.data} and the basemap; no download started again`;
+      return `staged ${target}; claimed from the system downloader: ${urls.data} and ${urls.book}; no download started again`;
     }, { stop: true });
 
     await ctx.step('next pause (background → foreground) → applied; the new release in use', async () => {
@@ -139,7 +141,7 @@ export const bgUpdate = {
       return `${toast ? `toast "${toast}"` : 'no toast seen'} · ${head}`;
     });
 
-    await ctx.step('reset: back to the live release (its basemap id and data file differ again: downloaded on the full line)', async () => {
+    await ctx.step('reset: back to the live release (its data file and rule book differ again: downloaded on the full line)', async () => {
       ctx.updates('reset');
       openLog(ctx);
       await checkNow(ctx, /Release, changed/);

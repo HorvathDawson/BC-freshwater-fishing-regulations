@@ -6,7 +6,7 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import worker from './data-worker.js';
-import { bumpSqlite, dataBigManifest, keyOf, sideManifest, sideUploads, SIDE_PREFIX } from './test-updates.mjs';
+import { bumpPdf, bumpSqlite, dataBookManifest, keyOf, sideManifest, sideUploads, SIDE_PREFIX } from './test-updates.mjs';
 
 const man = (trout = true) => ({
   format: 'app-manifest/2', data_release: 'r-0123456789ab',
@@ -53,8 +53,8 @@ test('the staging data worker reads the dot-segment url as the test/ key, whatev
   assert.deepEqual(keyed, ['test/release/r-1/f.gz']);
 });
 
-// (T912) `data-big`: one data file with other bytes and the same rows; the basemap moved as `big` moves it
-test('data-big: the SQLite change counter moves (bytes differ, the header stays trusted); the manifest names the test/ copy', () => {
+// (T912) `data-book`: one data file and the rule book with other bytes, the same content
+test('data-book: the SQLite change counter moves (the header stays trusted); the PDF gains a comment; the manifest names the test/ copies', () => {
   const head = new Uint8Array(100);
   head.set(new TextEncoder().encode('SQLite format 3\0'));
   new DataView(head.buffer).setUint32(24, 7); new DataView(head.buffer).setUint32(92, 7);
@@ -62,10 +62,17 @@ test('data-big: the SQLite change counter moves (bytes differ, the header stays 
   assert.deepEqual([v.getUint32(24), v.getUint32(92)], [8, 8]);
   assert.equal(new DataView(head.buffer).getUint32(24), 7);                          // the input is not changed
   assert.throws(() => bumpSqlite(new Uint8Array(100)), /not a SQLite file/);
-  const live = { ...man(), basemap: { id: 'basemap-1', url: 'basemap/b.pmtiles' }, files: { ...man().files, climate: { url: 'r-0123456789ab/climate-cccc.sqlite.gz', sha256: 'c', bytes: 1 } } };
-  const m = dataBigManifest(live, 'r-0123456789ab-data5', '5', 'climate', { url: '../test/release/r-0123456789ab-data5/climate-dddd.sqlite.gz', sha256: 'd', bytes: 2 });
-  assert.equal(m.basemap.id, 'basemap-1-t5');
-  assert.equal(keyOf(m.files.climate.url), 'test/release/r-0123456789ab-data5/climate-dddd.sqlite.gz');
+  const pdf = new TextEncoder().encode('%PDF-1.7\n...%%EOF\n');
+  const b = bumpPdf(pdf);
+  assert.deepEqual(b.subarray(0, pdf.length), pdf);
+  assert.ok(b.length > pdf.length);
+  assert.throws(() => bumpPdf(new Uint8Array(10)), /not a PDF/);
+  const live = { ...man(), synopsis: { url: 'r-0123456789ab/synopsis-eeee.pdf', sha256: 'e', bytes: 1 },
+                 files: { ...man().files, climate: { url: 'r-0123456789ab/climate-cccc.sqlite.gz', sha256: 'c', bytes: 1 } } };
+  const m = dataBookManifest(live, 'r-x-book5', 'climate', { url: '../test/release/r-x-book5/climate-dddd.sqlite.gz', sha256: 'd', bytes: 2 },
+                             { url: '../test/release/r-x-book5/synopsis-ffff.pdf', sha256: 'f', bytes: 3 });
+  assert.equal(keyOf(m.files.climate.url), 'test/release/r-x-book5/climate-dddd.sqlite.gz');
+  assert.equal(keyOf(m.synopsis.url), 'test/release/r-x-book5/synopsis-ffff.pdf');
   assert.deepEqual(m.files.water, live.files.water);                                 // every other file: the live one
-  assert.equal(live.basemap.id, 'basemap-1');                                        // the live manifest is not changed
+  assert.equal(live.synopsis.sha256, 'e');                                           // the live manifest is not changed
 });
