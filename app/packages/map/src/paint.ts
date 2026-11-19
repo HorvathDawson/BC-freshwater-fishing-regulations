@@ -268,6 +268,27 @@ export function gearPaint(layerId: "stream" | "lake", mode: string, mark: GearMa
 }
 
 /**
+ * (T887 option B, owner 2026-11-18: "Should be bright green for keep in light I think too?") THE KEEP LINE'S CASING: a
+ * thin ink edge each side of a Salmon-view stream section DFO lets you keep from, drawn UNDER the line, so a bright green
+ * (light) still stands off the light basemap — the casing meets the ground at 3:1, the green meets the casing. The theme
+ * switches it: `width.salmon.casing` 0 is no casing (option A, dark, colour-blind). Its own runtime layer (a line has no
+ * stroke of its own); its width is the stream's base width (no feature-state), shown only on the day's `open` labels.
+ */
+export const SALMON_CASING_LAYER = "stream-salmon-casing";
+
+export function salmonCasingPaint(mode: string, tokens: Tokens, values: ChannelValues | null = NO_VALUES,
+                                  streamWidth?: unknown): Record<string, unknown> {
+  const px = Number(tokens["width.salmon.casing"] ?? 0);
+  const open = (values ?? NO_VALUES).salmon?.open ?? [];
+  const w = streamWidth ?? ["interpolate", ["linear"], ["zoom"], 6, 1.2, 10, 2, 14, 3.2];
+  return {
+    "line-color": tokens["color.salmon.casing"],
+    "line-width": withinZoomCurve(w, (v) => ["+", v, 2 * px]),
+    "line-opacity": mode === "salmon" && px > 0 && open.length ? ["case", salmonLabelIn(open), 1, 0] : 0,
+  };
+}
+
+/**
  * (T199) A PASSING RUN IS A DASH (Q144, owner 2026-10-28: "spawning reaches + passage reaches dashed"). `line-dasharray`
  * cannot vary per feature, so — like the no-access dots — the dash is its own runtime layer over every stream, shown
  * only where the stream's mode is `runs` and its label `rt` is `pass`; the `stream` layer paints that section the quiet
@@ -489,7 +510,7 @@ export function markWidth(mark: StreamMark, mode: string, sw: StreamWidths): unk
  * layer's visibility: that re-lays out every tile). A mark outside them is `visibility: none`: no bucket, no
  * feature-state work. `nobaseline` / `noaccess` / `runs` / `issue` / `gear` / `closed` as their paint functions read them.
  */
-export type ModalMark = "nobaseline" | "noaccess" | "gear" | "closed" | "runs" | "issue";
+export type ModalMark = "nobaseline" | "noaccess" | "gear" | "closed" | "runs" | "issue" | "salmonCasing";
 export function markShownIn(mark: ModalMark, mode: string, layerId: "stream" | "lake" = "stream"): boolean {
   const m = STYLE_META.colorModes[layerId]?.[mode];
   const cats = m && "categories" in m ? m.categories : {};
@@ -500,6 +521,7 @@ export function markShownIn(mark: ModalMark, mode: string, layerId: "stream" | "
     case "closed": return cats["closed"] !== undefined && (m?.scale === "profile" || m?.scale === "categorical");
     case "runs": return mode === "runs";
     case "issue": return issueShown(mode) !== null;
+    case "salmonCasing": return mode === "salmon";
   }
 }
 

@@ -20,7 +20,7 @@ import { ATLAS_MAX_ZOOM, BASEMAP_MAX_ZOOM, GEAR_LEGEND } from "@app/core";
 import { MAP_STYLE, NO_VALUES, STYLE_META, defaultView, resolveTheme, withFollowers, type Tokens } from "./style";
 import { NO_ASSETS, type TileEndpoints } from "./endpoints";
 import { gaugeLayers, gaugeSource } from "./gaugeDots";
-import { ISSUE_LAYERS, issuePaint, CLOSED_CUE_LAYER, closedCuePaint, casingPaint, glowPaint, hasGlow, copyFillPaint, copyLinePaint, GEAR_LAYERS, gearPaint, markShownIn, markWidth, NOACCESS_LAYER, noaccessPaint, nobaselineOpacity, paintFor, ringPaint, RUNS_PASS_LAYER, runsPassPaint, SELECTION_CASING, SELECTION_GLOW, SELECTION_RINGS, splitStream, STREAM_HEAVY, streamWidths } from "./paint";
+import { SALMON_CASING_LAYER, salmonCasingPaint, ISSUE_LAYERS, issuePaint, CLOSED_CUE_LAYER, closedCuePaint, casingPaint, glowPaint, hasGlow, copyFillPaint, copyLinePaint, GEAR_LAYERS, gearPaint, markShownIn, markWidth, NOACCESS_LAYER, noaccessPaint, nobaselineOpacity, paintFor, ringPaint, RUNS_PASS_LAYER, runsPassPaint, SELECTION_CASING, SELECTION_GLOW, SELECTION_RINGS, splitStream, STREAM_HEAVY, streamWidths } from "./paint";
 import { traceLayers, traceSources } from "./trace-overlay";
 import { COPY_CASING, COPY_FILL, COPY_LINE, COPY_SOURCE, EMPTY_COPY, copyFilter } from "./water-copy";
 import { BASEMAP_LABELS, basemapLabelPaint, placesByImportance, WATER_NAMES } from "./labels";
@@ -253,6 +253,10 @@ export function runtimeStyle(at: TileEndpoints, theme: string,
     return [...copied, ...(hasGlow(tk) ? [glow] : []), casing,
       // (T213) the gear edges: under the line (its colour stays the read), over the selection casing
       ...gear("stream", markWidth("gear", sMode, sw)),
+      // (T887) the keep casing: under the line, built with no day (nothing is kept until a day is installed)
+      { id: SALMON_CASING_LAYER, type: "line" as const, source: "atlas", "source-layer": "stream",
+        layout: shownIn(markShownIn("salmonCasing", sMode), { "line-cap": "round" as const, "line-join": "round" as const }),
+        paint: salmonCasingPaint(sMode, tk, NO_VALUES, sw.base) },
       stream, heavy,
     /*
      * "MEASURED HERE, BUT NOTHING TO COMPARE IT TO" — DRAWN AS A DASH.

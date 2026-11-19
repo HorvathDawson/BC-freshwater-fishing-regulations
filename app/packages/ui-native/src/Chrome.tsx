@@ -134,7 +134,7 @@ export function LegendRows({ rows }: { rows: readonly React.ReactNode[] }) {
 }
 
 /** One "29 closed" entry. The count is the point — it says how much map is that colour. */
-export function LegendCount({ palette, colour, n, label, line, dotted, striped, issue, edge, rim, ring, tight, onPress, alone, faded }:
+export function LegendCount({ palette, colour, n, label, line, dotted, striped, issue, edge, cased, rim, ring, tight, onPress, alone, faded }:
   { palette: Palette; colour: string; n?: number; label: string;
     /**
      * Draw the swatch as a LINE instead of a square — for a key to lines. Every line swatch is
@@ -152,6 +152,8 @@ export function LegendCount({ palette, colour, n, label, line, dotted, striped, 
      * a hollow line, solid for fly fishing only, dashed for a bait ban. No fill: the mark rides on every status.
      */
     edge?: "solid" | "dashed";
+    /** (T887) the line CASED in this colour, as the map draws option B's bright keep */
+    cased?: string;
     /** (T292) a DASHED RIM round the square in this colour, as the map draws not-fishing water's edge */
     rim?: string;
     /** (T636) a round DOT in `colour` with a RING in this colour, as the map draws a gauge reporting only the other quantity */
@@ -174,7 +176,7 @@ export function LegendCount({ palette, colour, n, label, line, dotted, striped, 
         : line && striped ? <StripedSwatch colour={colour} stripe={striped} width={lineW} />
         : ring ? <View testID="legend-ring" style={{ width: 12, height: 12, borderRadius: round(12), backgroundColor: colour,
                                                      borderWidth: 2.5, borderColor: ring }} /> : <View style={line
-        ? { width: lineW, height: 4, backgroundColor: colour }
+        ? { width: lineW, height: cased ? 6 : 4, backgroundColor: colour, ...(cased ? { borderWidth: 1, borderColor: cased } : {}) }
         : { width: 12, height: 12, borderRadius: palette.r.chip, backgroundColor: colour,
             ...(rim ? { borderWidth: 1, borderColor: rim, borderStyle: "dashed" as const } : {}) }}
         {...(rim ? { testID: "legend-rim" } : {})} />}

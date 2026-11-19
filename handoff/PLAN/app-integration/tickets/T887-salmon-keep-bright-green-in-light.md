@@ -39,3 +39,16 @@ Light keep `#016890` (deep teal-blue) -> `#007E33` (a saturated green on dark ke
 Pictures (scratchpad): t887-compare-cowichan.png (keep / release / closed, Jun 15 2027 — release exists only on the
 Cowichan in DFO's data), t887-compare-kamloops.png (keep / check / closed, Sep 15 2027), t887-compare-yearbar.png.
 No place carries all four at once at a readable zoom.
+
+## Option B (built after A's pictures: A's #007E33 sinks into the light map's green land)
+Light keep `#22C55E` (bright, hue 147 — dark mint's family) in a thin ink casing (`color.salmon.casing` = the gear ink
+#0A1116, 1.25 px each side, under the line; runtime layer `stream-salmon-casing`, Salmon view, the day's keep labels).
+- dE2000 vs release 69.0, closed 79.8, check 45.4; luminance vs closed 4.25:1.
+- Casing on the light grounds 11.1-15.4:1; the green on its casing 8.3:1. Deuteranopia vs closed 32.0 (Vienot) / 35.3
+  (Machado) — far better than A's 9.3, because B's green is light and closed is dark. Weakest pair: keep vs check under
+  deuteranopia 10.3 (both light).
+- Cards: a bright green cannot carry white words (2.3:1), so the Salmon card's chips, the year bar and its status word
+  use `color.ui.salmon-keep` (A's #007E33 in light; the map's keep elsewhere). Legend and Help keys draw the cased line.
+- THE SWITCH: light.json `color.salmon.open` + `width.salmon.casing` — A: #007E33 + 0; B: #22C55E + 1.25. Dark and cvd 0.
+  Every test passes in both. The branch is on B.
+- Lakes: a keep lake's fill and shoreline are the bright green with no casing (not built for B).

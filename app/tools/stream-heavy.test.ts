@@ -14,7 +14,7 @@ import { describe, expect, it } from "vitest";
 import { createPropertyExpression, latest } from "@maplibre/maplibre-gl-style-spec";
 import type { DayProfiles, MethodDay } from "@app/core";
 import { baseAdapter, type MapHandle } from "../packages/map/src/adapters/contract";
-import { CLOSED_CUE_LAYER, GEAR_LAYERS, ISSUE_LAYERS, NOACCESS_LAYER, NOBASELINE_LAYER, RUNS_PASS_LAYER, SELECTION_CASING, SELECTION_GLOW,
+import { CLOSED_CUE_LAYER, GEAR_LAYERS, ISSUE_LAYERS, SALMON_CASING_LAYER, NOACCESS_LAYER, NOBASELINE_LAYER, RUNS_PASS_LAYER, SELECTION_CASING, SELECTION_GLOW,
          STREAM_HEAVY, casingPaint, closedCuePaint, gearPaint, issuePaint, markShownIn, markWidth, paintFor, runsPassPaint,
          splitStream, streamWidths, type StreamMark } from "../packages/map/src/paint";
 import { runtimeStyle } from "../packages/map/src/runtime-style";
@@ -123,7 +123,8 @@ describe("(T848) what the adapter hands the map", () => {
     const want = (mode: string) => ({
       [NOBASELINE_LAYER]: mode === "standing", [NOACCESS_LAYER]: mode === "profile",
       [GEAR_LAYERS.stream.fly]: mode === "profile" || mode === "salmon", [RUNS_PASS_LAYER]: mode === "runs",
-      [CLOSED_CUE_LAYER]: mode === "profile" || mode === "salmon", [ISSUE_LAYERS.stripe]: mode === "salmon" });
+      [CLOSED_CUE_LAYER]: mode === "profile" || mode === "salmon", [ISSUE_LAYERS.stripe]: mode === "salmon",
+      [SALMON_CASING_LAYER]: mode === "salmon" });
     for (const mode of ["profile", "salmon", "runs", "standing", "plain"]) {
       const { shown } = painted(mode);
       const got = Object.fromEntries(Object.keys(want(mode)).map((l) => [l, shown[l]]));

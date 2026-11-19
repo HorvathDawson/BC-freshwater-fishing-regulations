@@ -13,7 +13,7 @@ import { describe, expect, it } from "vitest";
 import { namedFlavor } from "@protomaps/basemaps";
 import { SALMON_MAP_STATUSES } from "@app/core";
 import { resolveTheme } from "@app/map";
-import { salmonStatusColour } from "@app/map/colours";
+import { salmonCasingColour, salmonStatusColour } from "@app/map/colours";
 import { contrast, DEFICIENCIES, deltaE, MODELS, simulate } from "./cvd";
 import { CVD, DARK, LIGHT } from "../packages/ui-native/src/theme";
 
@@ -46,7 +46,9 @@ describe("(T759) the closed colour fails as the stripe's colour", () => {
       expect(contrast(closed, closed)).toBe(1);
       expect(worstDE(closed, closed)).toBe(0);
       // and where it does not vanish it is under 3:1 on the open and release lines of the light themes
-      if (th !== "dark") for (const s of ["open", "release"] as const) expect(contrast(closed, salmonStatusColour(th, s)), `${th} ${s}`).toBeLessThan(NON_TEXT);
+      // (T887 option B: a bright keep drawn in an ink casing is light, so closed would read on it; release still fails)
+      if (th !== "dark") for (const s of (salmonCasingColour(th) ? ["release"] as const : ["open", "release"] as const))
+        expect(contrast(closed, salmonStatusColour(th, s)), `${th} ${s}`).toBeLessThan(NON_TEXT);
     });
 });
 

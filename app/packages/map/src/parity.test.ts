@@ -388,8 +388,8 @@ describe("the style adapter (platform-free: one implementation, tested for what 
     const at = (id: string) => ids.indexOf(id);
     // under the stream line (its colour on top), over the lakes; each ring over its own polygons' last layer (the lake's
     // is its shoreline, drawn over the boundaries since T83)
-    // (T213) with the gear marks between: the stream's edges over the casing, the lake's rings under the selection ring
-    expect([at(SELECTION_CASING) === at("stream") - 3, at(SELECTION_CASING) > at("lake__edge"),
+    // (T213) with the gear marks between: the stream's edges over the casing (and T887's keep casing over them), the lake's rings under the selection ring
+    expect([at(SELECTION_CASING) === at("stream") - 4, at(SELECTION_CASING) > at("lake__edge"),
             at(SELECTION_RINGS.lake) === at("lake__edge") + 3, at(SELECTION_RINGS.wetland) === at("wetland_flowing") + 1])
       .toEqual([true, true, true, true]);
     const layer = (id: string) => style.layers.find((l: { id: string }) => l.id === id) as unknown as

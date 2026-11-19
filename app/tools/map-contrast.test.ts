@@ -25,7 +25,7 @@ import { describe, expect, it } from "vitest";
 import { namedFlavor } from "@protomaps/basemaps";
 import { SALMON_MAP_STATUSES, WATER_STATUSES } from "@app/core";
 import { resolveTheme, waterStatusColour } from "@app/map";
-import { salmonStatusColour } from "@app/map/colours";
+import { salmonCasingColour, salmonStatusColour } from "@app/map/colours";
 import { CVD, DARK, LIGHT, type Palette } from "../packages/ui-native/src/theme";
 import { contrast, deltaE, lch, worstSeparation } from "./cvd";
 
@@ -56,7 +56,9 @@ function marks(th: Theme): [string, string][] {
   return [
     ...WATER_STATUSES.map((s): [string, string] => [`status ${s}`, waterStatusColour(th, s)]),
     ["status missing", t["color.water.unmapped"]!],
-    ...SALMON_MAP_STATUSES.map((s): [string, string] => [`salmon ${s}`, salmonStatusColour(th, s)]),
+    // (T887 option B) a keep line drawn in an ink casing meets the ground with its casing (the green is held to the casing)
+    ...SALMON_MAP_STATUSES.map((s): [string, string] =>
+      [`salmon ${s}`, s === "open" ? salmonCasingColour(th) ?? salmonStatusColour(th, s) : salmonStatusColour(th, s)]),
     ["selection", t["color.highlight"]!],
   ];
 }
@@ -158,6 +160,13 @@ describe("the Salmon view's keep (T887)", () => {
     const keep = salmonStatusColour("light", "open");
     expect(Math.abs(lch(keep).h - lch(salmonStatusColour("dark", "open")).h)).toBeLessThan(10);
     for (const [s, c] of others("light")) expect([s, deltaE(keep, c) >= 40]).toEqual([s, true]);
+  });
+  it("a cased keep (option B) stands 3:1 off its own casing, and only light has one", () => {
+    for (const th of ["light", "dark", "cvd"] as const) {
+      const casing = salmonCasingColour(th);
+      if (th !== "light") expect([th, casing]).toEqual([th, null]);
+      if (casing) expect([th, contrast(salmonStatusColour(th, "open"), casing) >= NON_TEXT]).toEqual([th, true]);
+    }
   });
   it("the colour-blind keep stays at least 20 from the other three for the worst reader (both models)", () => {
     const keep = salmonStatusColour("cvd", "open");
