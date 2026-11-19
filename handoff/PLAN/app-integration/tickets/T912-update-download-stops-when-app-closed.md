@@ -142,3 +142,9 @@ the header (not `cf.clientAcceptEncoding`) → fails. `pnpm -C app check:fast` g
 **Not verified:** the edge's behaviour live (no deploy): that `cf.clientAcceptEncoding` holds DownloadManager's
 `identity` as the docs say, and that the edge then passes the unencoded octet-stream with its length and ETag; a cut system
 download actually resuming on the 250 kB/s bench line (needs the staging deploy + an emulator run).
+## Staging data worker deployed (main chat, 2026-11-19 ~12:52; version 66203663, from the 0.8.3 integration branch)
+Live check on data-staging, `access-859b43cb2641.bin.gz`: before, `Accept-Encoding: identity` got the decoded body with
+no Content-Length and a weak ETag; after, it gets the stored 201,515 gzip bytes with Content-Length and the strong ETag,
+and `Range: bytes=1000-` gets 206 `bytes 1000-201514/201515`. `Accept-Encoding: gzip` is unchanged. The first requests
+in the seconds after the deploy still came from the old version. Production's data worker (same file) is the owner's
+deploy: `npx --prefix app wrangler deploy -c deploy/prod/data.wrangler.toml`, with his 0.8.3 production steps.

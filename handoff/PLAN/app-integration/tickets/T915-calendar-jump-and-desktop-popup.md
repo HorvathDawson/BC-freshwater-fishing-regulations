@@ -1,6 +1,6 @@
 # T915 — Day calendar: no size jump in January; a desktop-shaped popup on wide web
 
-Status: IN PROGRESS — built on lane app/t915-calendar; left (Claude): owner sees pictures, then integrate (0.8.3).
+Status: IN PROGRESS — owner OK, merged into the 0.8.3 integration (app/int-083); left (Claude): ship with 0.8.3.
 
 Owner 2026-11-19 ~12:45 (main chat), verbatim: "calendar still jumpy in size from january to other dates because of
 "Only days in 2026 can be chosen: the regulations here are one calendar year." make calendar popup look better on
@@ -33,3 +33,6 @@ desktop (good for mobile but desktop doesnt like mobile popup)".
    once). A missing button is reported (`reportFailure`) and the card is still drawn.
 3. Tests: `regs/DaySheet.test.tsx` (new), `DayCalendar.test.tsx`, `regs/SheetWide.test.tsx`, `core dayPicker.test.ts`,
    `tools/back-layers.test.ts` inventories. Pictures: scratchpad `t915-shots/T915-contact-sheet.png`.
+## Owner 2026-11-19 ~13:20 (main chat, after the before/after pictures)
+Asked "Put it in 0.8.3?", verbatim: "Yes, put in 0.8.3 (Recommended)". Merge app/t915-calendar (39763ceed) into the
+0.8.3 integration.
