@@ -136,7 +136,7 @@ describe("(T882) DFO's 'To be determined' says 'To be determined'", () => {
   it("the map key, its short form and the Help sentence (one entry covers 'To be determined' and an unread row)", () => {
     expect(salmonLegend().map((l) => l.label)).toEqual(["Salmon may be kept", "Salmon: release only", "Closed to salmon",
       "To be determined by DFO, or a DFO row the app could not read"]);
-    expect(MAP_KEY.salmon.check).toBe("TBD/unread");
+    expect(MAP_KEY.salmon.check).toBe("Check DFO");
     expect(HELP_WORDS.salmon.check).toBe("DFO has not set it yet (“To be determined”), or the app could not read DFO's row. Check DFO's notice for this water.");
     expect(SALMON_WORDS.status.check).toBe("Check DFO");
   });

@@ -22,9 +22,8 @@ determined".
    direction: a row whose words are not "To be determined" but whose date cell is ("… (as printed: To be determined)")
    reads "Check DFO".
 2. The map key (one entry covers both kinds, proposal): "To be determined by DFO, or a DFO row the app could not
-   read" (long: the Layers / Help key's name), "TBD/unread" (the short key on the map, review fix: it colours unread rows too,
-   which the card calls "Check DFO"; the 390 dp row holds 366 dp, `legend-rows.test.ts`: "To be determined" is 28 dp
-   over, "TBD / check DFO" 27, "TBD or unread" 8; "Check DFO" alone would also fit and be honest); the Help key's sentence says both. When T873's short Help
+   read" (long: the Layers / Help key's name), "Check DFO" (the short key on the map; owner's pick in the dialog,
+   2026-11-18 ~22:50: "Check DFO"; it is true of both kinds and fits the 390 dp row); the Help key's sentence says both. When T873's short Help
    lands, its `HELP_WORDS.salmon.check: null` wins the merge (the key's name carries the words).
 3. Colour: already the owner's rule (pipeline `deliver.salmon.map_status`, app `salmonFeed` `mapStatus` and the card's
    `headlineStatus`: open, then release, then check, then closed). Checked over every chain and day of the staging
