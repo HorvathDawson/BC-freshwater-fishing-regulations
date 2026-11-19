@@ -2912,3 +2912,5 @@ More questions (recommended answer first):
   "I want you to add the screenshots to the stores you can give them titles." -> T319: Claude picks the shots and titles
   and uploads them to Play and the App Store once the 0.8.2 UI is final (prepared as a dry run first).
   "You can do clean ups" -> the five 11-14 clean-up calls with their defaults (Claude, tonight).
+- 2026-11-18 ~23:50, owner (app chat), on the T888 update-popup pictures, verbatim: "It looks right." -> T888 lands in 0.8.2
+  (first shown when 0.8.3 is out). The five draft 0.8.2 What's new lines in the shot stand unless he rewords them.
