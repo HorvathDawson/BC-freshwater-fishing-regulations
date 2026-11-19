@@ -2750,3 +2750,18 @@ More questions (recommended answer first):
   ~18:25, verbatim: "when we flip the switch i will get you to clean that stuff up too" -> at the switch, on his word,
   Claude turns off the bc-fishing-cron worker and main's update-hydro / update-in-season / update-stocking workflows
   (PRODUCTION.md step 11); no longer an owner hand step.
+- 2026-11-18 ~20:22, owner (app chat), verbatim: "For salmon  It is 10 max adult Chinook not over 50cm because some rivers
+  adult is defined differently" -> T869 (main chat). Book p.77: adult = over 50 cm in most waters; over 62 cm on the
+  lower Fraser / Harrison (Sep 5-Dec 31), Chilliwack/Vedder below Slesse and Sumas (Jul 1-Dec 31); over 65 cm year
+  round on 12 north-coast rivers (Bella Coola, Skeena, Nass, Kitimat …). DFO's page defines it the same way. OWNER
+  PICK: (A) reword DFO's line to "10 adult chinook … (here an adult is over 62 cm, Jul 1-Dec 31)" or (B) keep DFO's
+  line and add "Adult chinook here: over 62 cm (Jul 1-Dec 31)". And: before production, or after?
+- 2026-11-18 ~20:24, owner (app chat dialog): T869 "Reword" + "Yes, before prod" (main chat records it in T869).
+  T863 tracks, verbatim: "2 for now until I test iPhone a bit more my self" -> first production builds go to Play
+  INTERNAL and TestFlight INTERNAL; closed / external testing after he tests the iPhone more. T864's note: "Yes, keep it".
+- 2026-11-18 ~20:30 + 20:34, owner (main chat dialogs) -> T869: wording (A) "Reword the line" (the app chat got the
+  same pick); timing "After production" (asked again at 20:34 because the app chat had been told "Yes, before prod").
+- 2026-11-18 ~20:25, owner (app chat), Mamquam salmon card, verbatim: "The source dfo here doesn't show the rows that
+  actually produce the results above. It should have all the rows that apply in source  Also the bait ban here is
+  confusing idk where it is from for example." ~20:27: "Why is the bait ban all year defined from that month to that
+  month too" -> T870 (main chat + app chat render).
