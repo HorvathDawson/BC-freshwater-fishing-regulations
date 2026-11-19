@@ -48,6 +48,9 @@ background check (T234, phone only: apps/mobile notify.native.ts, expo-backgroun
                    AlertMe.tsx `AlertEditor`)
 changelog (T234 v1.1): core changelog.ts (the one source) ─▶ About → What's new (`changelogVM`); build-apk.sh copies a
                    version's bullets into latest.json / play.json ─▶ the bell's App update "What's new in …"
+                   and (T888, phone only) the popup on opening: core `updatePopupVM` ─▶ ui `useAppUpdate` `popup` ─▶
+                   ui-native AppUpdatePopup.tsx (the coho, the bullets, Update / Not now; once per version, after the
+                   first-run notice and the walkthrough; then the bell)
 tiles (atlas.pmtiles + basemap) ─▶ @app/map
 ```
 

@@ -64,6 +64,7 @@ import { useResumed } from "./shell/useResumed";
 import { useEscapeBack } from "./escapeBack";
 import { useShellSearch } from "./shell/useShellSearch";
 import { FirstRunNotice, useFirstRun } from "./FirstRunNotice";
+import { AppUpdatePopup } from "./AppUpdatePopup";
 import { GuideCard, useGuide, type GuideActs, type GuideFacts } from "./Walkthrough";
 import { CoachContext, CoachItemContext, useCoachRegistry } from "./CoachMarks";
 import { GuideControlContext, useGuideControlHost } from "./guideControls";
@@ -349,11 +350,7 @@ export function Shell(p: ShellProps) {
    */
   // (T605 item 3) the same return also tells the shared clock: every "today" is re-read at once (`useResumed`)
   const resumed = useResumed();
-  const appUpdate = useAppUpdate(p.appUpdater ?? null, p.appUpdateStore ?? null,
-                                 { offline: netState.mode.offline, tooOld: syncState.updates?.release?.phase === "app-too-old",
-                                   ask: p.openUpdate ?? 0, resume: resumed });
-  const appVM = appUpdate?.vm ?? null;
-  const releaseCount = (releaseVM?.counts ? 1 : 0) + (appVM?.counts ? 1 : 0);
+  // (the hook itself is called below, once the first-run notice and the walkthrough it waits for are known: T888)
   const onReleaseAction = (kind: "download" | "apply") => {
     if (kind === "download") syncState.allowMetered?.(true);
     else p.onSafeToApply?.();
@@ -446,6 +443,17 @@ export function Shell(p: ShellProps) {
     control: guideCtl.set,
   };
   const guide = useGuide(p.walkthrough ?? null, firstRun.open || !onMapTab, guideFacts, guideActs);
+  /*
+   * (T888) THE POPUP ON OPENING (a newer version, once; then the bell) waits behind the first-run notice, the walkthrough
+   * (due or under way), the bell's sheet (open, or opening by itself for an in-season notice) and the applying curtain.
+   */
+  const appUpdate = useAppUpdate(p.appUpdater ?? null, p.appUpdateStore ?? null,
+                                 { offline: netState.mode.offline, tooOld: syncState.updates?.release?.phase === "app-too-old",
+                                   ask: p.openUpdate ?? 0, resume: resumed,
+                                   held: firstRun.open || guide.open || guide.pending || bellOpen || inbox.open
+                                     || !!p.applyCurtain?.applying });
+  const appVM = appUpdate?.vm ?? null;
+  const releaseCount = (releaseVM?.counts ? 1 : 0) + (appVM?.counts ? 1 : 0);
   useEffect(() => { if (guide.open || guide.pending) setGuideWanted(true); }, [guide.open, guide.pending]);
   // from the start, on the Map tab, with no water open and nothing typed in search
   const replayTour = () => { go({ type: "close" }); nav.toTab("map"); search.searchType(""); guide.reopen(); };
@@ -792,6 +800,9 @@ export function Shell(p: ShellProps) {
       <FirstRunNotice state={{ ...firstRun, open: firstRun.open && menu.state.page === null }} palette={palette}
                       onSources={() => menu.show("sources")} />
       {!layersOpen && !(dropUp && guide.open) && guideCard}
+      {/* (T888) a newer version, said once on opening: the coho, its bullets, Update / Not now (the bell keeps it) */}
+      {appUpdate && <AppUpdatePopup popup={appUpdate.popup} palette={palette} onUpdate={appUpdate.popupUpdate}
+                                    onDismiss={appUpdate.dismiss} />}
       {/* (T231) the sync icon's red badge: what could not be updated, when each last succeeded, Retry */}
       <SyncErrorSheet open={syncErrorOpen && syncState.failed.length > 0} failed={syncState.failed} palette={palette}
                       checking={syncState.checking} onRetry={syncState.refresh} onClose={() => setSyncErrorOpen(false)} />

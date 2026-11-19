@@ -9,11 +9,14 @@
  * this one state. (2026-11-05: a once-a-day cap here is why 0.6.0 did not notice 0.6.1.)
  * FAILURES (T368): a check or a start that fails is said in the section and reported; the environment's (offline, a
  * dropped line) and a phone with no Play service (T595) are said and never reported, and an offline check says nothing at all.
+ * (T888) THE POPUP ON OPENING reads the same state (`@app/core` `updatePopupVM`): `held` while the first-run notice or the
+ * walkthrough is up (the Shell says), once per version — Not now (`dismiss`) or a started update keeps the version in the
+ * same file (`popped`), so it does not come back; the bell keeps the update as before.
  */
 import { useCallback, useEffect, useRef, useState } from "react";
-import { appUpdateVM, isEnvironment, isNoPlayService, now, readAppUpdateSaved, reportFailure, shouldCheckAppUpdate, wallIso,
-         type AppUpdateChannel, type AppUpdateCheck, type AppUpdateSaved, type AppUpdateStart,
-         type AppUpdateVM } from "@app/core";
+import { appUpdateVM, isEnvironment, isNoPlayService, NEEDED_KEY, now, readAppUpdateSaved, reportFailure, shouldCheckAppUpdate,
+         updatePopupVM, wallIso, type AppUpdateChannel, type AppUpdateCheck, type AppUpdateSaved, type AppUpdateStart,
+         type AppUpdateVM, type UpdatePopupVM } from "@app/core";
 
 /** The platform's way to a newer app. */
 export interface AppUpdatePort {
@@ -34,6 +37,12 @@ export interface AppUpdateControl {
   readonly vm: AppUpdateVM | null;
   /** the button */
   update(): void;
+  /** (T888) the popup on opening, or null (none due, held, answered) */
+  readonly popup: UpdatePopupVM | null;
+  /** (T888) the popup's Update: the same start; once it is under way the popup's version is answered */
+  popupUpdate(): void;
+  /** (T888) Not now (or the popup closed any other way): its version is answered, the bell keeps the update */
+  dismiss(): void;
 }
 
 /** The device's own day ("today" is the device's, owner 2026-11-03). */
@@ -54,17 +63,27 @@ export function useAppUpdate(port: AppUpdatePort | null, store: AppUpdateStore |
                                   /** (T234 v1.1) a new-version notification was tapped: ask now */
                                   ask?: number;
                                   /** (T390) bumped on each return to the app: ask again */
-                                  resume?: number }): AppUpdateControl | null {
+                                  resume?: number;
+                                  /** (T888) the popup waits (the first-run notice, the walkthrough, a sheet already up) */
+                                  held?: boolean }): AppUpdateControl | null {
   const channel = port?.channel ?? "none";
-  const [check, setCheck] = useState<AppUpdateCheck>(() => asCheck(readSaved(store)));
+  const [saved0] = useState(() => readSaved(store));
+  const [check, setCheck] = useState<AppUpdateCheck>(() => asCheck(saved0));
   const [start, setStart] = useState<AppUpdateStart>("idle");
+  /** (T888) the version whose popup was answered (kept in the file), and the key answered in this run */
+  const popped = useRef<string | null>(saved0?.popped ?? null);
+  /** what the file holds now (the popup's answer is written into it) */
+  const kept = useRef<AppUpdateSaved | null>(saved0);
+  const [dismissed, setDismissed] = useState<string | null>(null);
   const asking = useRef(false);
   const today = deviceDay();
   useEffect(() => {
     if (!port || asking.current || !shouldCheckAppUpdate({ channel, offline: o.offline })) return;
     asking.current = true;
     port.check().then((r) => {
-      const next: AppUpdateSaved = { day: today, available: r.available, version: r.version, notes: r.notes ?? null };
+      const next: AppUpdateSaved = { day: today, available: r.available, version: r.version, notes: r.notes ?? null,
+                                     popped: popped.current };
+      kept.current = next;
       try { store?.write(JSON.stringify(next)); } catch (e) { reportFailure(e); }   // asked again next opening
       setCheck(asCheck(next));
     }, (e: unknown) => {
@@ -77,17 +96,30 @@ export function useAppUpdate(port: AppUpdatePort | null, store: AppUpdateStore |
     }).finally(() => { asking.current = false; });
   }, [port, store, channel, today, o.offline, o.ask, o.resume]);
 
-  const update = useCallback(() => {
+  /** (T888) a popup answered: its key for this run, and a version kept in the file (the strong prompt's never is) */
+  const answer = useCallback((key: string) => {
+    setDismissed(key);
+    if (key === NEEDED_KEY || popped.current === key) return;
+    popped.current = key;
+    // a popup comes only from a check, kept in the file (`kept`), so there is always a file to write it into
+    if (!kept.current) return;
+    kept.current = { ...kept.current, popped: key };
+    try { store?.write(JSON.stringify(kept.current)); }
+    catch (e) { reportFailure(e); }   // not kept: it pops up once more on the next opening
+  }, [store]);
+  const run = useCallback((answered: string | null) => {
     if (!port) return;
     setStart("working");
-    port.start({ immediate: o.tooOld }).then((r) => setStart(r), (e: unknown) => {
+    port.start({ immediate: o.tooOld }).then((r) => { setStart(r); if (answered !== null) answer(answered); }, (e: unknown) => {
       reportFailure(e);   // the environment's is not sent (failure.ts)
       setStart(isEnvironment(e) ? "offline" : "failed");
     });
-  }, [port, o.tooOld]);
+  }, [port, o.tooOld, answer]);
+  const update = useCallback(() => run(null), [run]);
 
   if (!port && !o.tooOld) return null;
   // offline says nothing (owner): only the strong prompt stays, since the data it holds back is still held back
-  if (o.offline && !o.tooOld) return { vm: null, update };
-  return { vm: appUpdateVM({ channel, check, tooOld: o.tooOld, start }), update };
+  const vm = o.offline && !o.tooOld ? null : appUpdateVM({ channel, check, tooOld: o.tooOld, start });
+  const popup = updatePopupVM({ vm, channel, check, popped: popped.current, dismissed, held: !!o.held });
+  return { vm, update, popup, popupUpdate: () => run(popup?.key ?? null), dismiss: () => { if (popup) answer(popup.key); } };
 }

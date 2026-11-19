@@ -3,8 +3,8 @@
  * gentle for a newer version, strong for a release refused by `minAppVersion`, nothing offline, failures said.
  */
 import { describe, expect, it } from "vitest";
-import { APP_UPDATE_WORDS as W, apkIsNewer, appUpdateChannel, appUpdateVM, appVersionToTell, changelogVM, notesFor,
-         readAppUpdateSaved, shouldCheckAppUpdate, type AppUpdateCheck } from "./appUpdate";
+import { APP_UPDATE_WORDS as W, apkIsNewer, appUpdateChannel, appUpdateOs, appUpdateVM, appVersionToTell, changelogVM, notesFor,
+         readAppUpdateSaved, shouldCheckAppUpdate, updatePopupVM, type AppUpdateChannel, type AppUpdateCheck } from "./appUpdate";
 import { CHANGELOG, type ChangelogEntry } from "./changelog";
 import { compareSemver } from "./appVersion";
 import { bellLabel } from "./updates";
@@ -39,7 +39,10 @@ describe("every opening and return, never offline", () => {
   });
   it("the kept file: read whole, anything else is nothing kept", () => {
     expect(readAppUpdateSaved(JSON.stringify({ day: "2026-11-04", available: true, version: "0.6.0" })))
-      .toEqual({ day: "2026-11-04", available: true, version: "0.6.0", notes: null });
+      .toEqual({ day: "2026-11-04", available: true, version: "0.6.0", notes: null, popped: null });
+    // (T888) the version whose popup was answered
+    expect(readAppUpdateSaved(JSON.stringify({ day: "2026-11-04", available: true, version: "0.6.0", popped: "0.6.0" }))!.popped)
+      .toBe("0.6.0");
     expect(readAppUpdateSaved(JSON.stringify({ day: "2026-11-04", available: true, version: "0.6.0", notes: ["a", 3] }))!.notes)
       .toEqual(["a"]);
     expect(readAppUpdateSaved("{")).toBeNull();
@@ -187,5 +190,70 @@ describe("(T234 v1.1) the new-app-version notice: once per version", () => {
   });
   it("a file naming no version is a defect (thrown, reported by the caller)", () => {
     expect(() => appVersionToTell(on, { build: 3 }, own)).toThrow(/no app version/);
+  });
+});
+
+describe("(T888) the popup on opening", () => {
+  const avail = (v: string | null, notes: readonly string[] | null = null): AppUpdateCheck => ({ state: "available", version: v, notes });
+  const popup = (channel: AppUpdateChannel, check: AppUpdateCheck, o: { tooOld?: boolean; popped?: string | null;
+                                                                       dismissed?: string | null; held?: boolean } = {}) =>
+    updatePopupVM({ vm: appUpdateVM({ channel, check, tooOld: !!o.tooOld, start: "idle" }), channel, check,
+                    popped: o.popped ?? null, dismissed: o.dismissed ?? null, held: !!o.held });
+  const notes = ["The map draws faster", "A swimming coho greets you"];
+  it("a newer version: the whole popup, composed — the version, its bullets, Update, Not now, the bell", () => {
+    expect(popup("play", avail("0.8.2", notes))).toEqual({
+      key: "0.8.2", strength: "gentle", title: "Version 0.8.2 is out", sub: null,
+      whatsNew: { title: "What's new", notes, missing: null },
+      button: { label: "Update", immediate: false }, said: null, failed: false,
+      notNow: "Not now", later: "If you wait, I keep it under the bell.",
+    });
+    // the staging APK page: the bell's own button word
+    expect(popup("apk-page", avail("0.8.2", notes))!.button!.label).toBe("Get the new test build");
+    // iOS: the App Store's version, the bundled notes when the app has them, else said missing
+    expect(popup("app-store", avail("9.9.9"))!.whatsNew).toEqual(
+      { title: "What's new", notes: null, missing: "No notes were published for version 9.9.9." });
+  });
+  it("once per version: answered (kept or this run) it stays shut; a newer version comes up again", () => {
+    expect(popup("play", avail("0.8.2"), { popped: "0.8.2" })).toBeNull();
+    expect(popup("play", avail("0.8.2"), { dismissed: "0.8.2" })).toBeNull();
+    expect(popup("play", avail("0.8.3"), { popped: "0.8.2", dismissed: "0.8.2" })!.key).toBe("0.8.3");
+  });
+  it("never when current, unchecked, failed, offline (no vm), named by a code only, held, or on the web", () => {
+    expect(popup("play", { state: "current" })).toBeNull();
+    expect(popup("play", { state: "unknown" })).toBeNull();
+    expect(popup("play", { state: "failed", offline: false })).toBeNull();
+    expect(popup("play", { state: "failed", offline: false, noPlay: true })).toBeNull();
+    expect(updatePopupVM({ vm: null, channel: "play", check: avail("0.8.2"), popped: null, dismissed: null, held: false })).toBeNull();
+    expect(popup("play", avail("57"))).toBeNull();   // Play's version code with no version file: the bell only
+    expect(popup("play", avail("0.8.2"), { held: true })).toBeNull();
+    expect(popup("none", avail("0.8.2"))).toBeNull();
+    expect(popup("none", avail("0.8.2"), { tooOld: true })).toBeNull();   // the web: the site updates itself
+    expect([appUpdateOs("play"), appUpdateOs("apk-page"), appUpdateOs("app-store"), appUpdateOs("none")])
+      .toEqual(["android", "android", "ios", null]);
+  });
+  it("the strong prompt keeps its rule: every opening, Not now for this run only, whatever the check said", () => {
+    for (const check of [{ state: "current" } as const, { state: "unknown" } as const, avail("0.8.2")]) {
+      expect(popup("play", check, { tooOld: true, popped: "0.8.2" })).toMatchObject({
+        key: "needed", strength: "strong", title: "New data needs the latest app",
+        sub: "The app keeps using the data it has until it is updated.", button: { immediate: true } });
+    }
+    expect(popup("play", avail("0.8.2"), { tooOld: true })!.whatsNew!.title).toBe("What's new in 0.8.2");
+    expect(popup("play", { state: "current" }, { tooOld: true, dismissed: "needed" })).toBeNull();
+    expect(popup("play", { state: "current" }, { tooOld: true, held: true })).toBeNull();
+  });
+  it("Android-only notes only on Android: the version file's list and the bundled one alike", () => {
+    const log: ChangelogEntry[] = [{ version: "0.8.2", date: null, notes: ["Both", "Play only"], only: { "Play only": "android" } }];
+    expect(notesFor("0.8.2", ["Both", "Play only"], log, "android")).toEqual(["Both", "Play only"]);
+    expect(notesFor("0.8.2", ["Both", "Play only"], log, "ios")).toEqual(["Both"]);
+    expect(notesFor("0.8.2", null, log, "ios")).toEqual(["Both"]);
+    expect(notesFor("0.8.2", null, log, "android")).toEqual(["Both", "Play only"]);
+    expect(notesFor("0.8.2", null, [{ ...log[0]!, notes: ["Play only"] }], "ios")).toBeNull();
+    expect(notesFor("0.8.2", ["Both", "Play only"], log)).toEqual(["Both", "Play only"]);   // no platform: every note
+    // through the popup, on the shipped log: an entry's Android-only note reaches Android, never an iPhone
+    const tagged = CHANGELOG.find((e) => Object.keys(e.only ?? {}).length > 0)!;
+    const only = Object.keys(tagged.only!)[0]!;
+    expect(popup("play", avail(tagged.version))!.whatsNew!.notes).toContain(only);
+    expect(popup("app-store", avail(tagged.version))!.whatsNew!.notes ?? []).not.toContain(only);
+    expect(popup("app-store", avail(tagged.version, [...tagged.notes]))!.whatsNew!.notes ?? []).not.toContain(only);
   });
 });
