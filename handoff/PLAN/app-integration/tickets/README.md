@@ -307,7 +307,6 @@ reads both files; a ticket closed here moves there once its lane is finished wit
 | T904 | Desktop Conditions: the map fills the window behind; no white bars (owner) | IN PROGRESS | main chat | owner 2026-11-19 ~06:40 |
 | T905 | Shrink the live salmon feed back under its old size (owner) | OPEN | main chat | owner 2026-11-19 ~06:40, later |
 | T906 | The map buttery smooth: measure more speed-ups beside T903 (owner) | IN PROGRESS | main chat | owner 2026-11-19 ~06:50 |
-| T907 | "Species and limits" table: no B.C./DFO tag on rows, one value column, where each answer comes from (owner) | IN PROGRESS | main chat | owner 2026-11-19 ~06:50 |
 | T908 | Gauge (forecast) pages: cleaner, answering how the river is now (owner) | IN PROGRESS | main chat | owner 2026-11-19 ~07:00 |
 | T909 | Web app: no bell and no reload in the search bar (owner) | IN PROGRESS | main chat | owner 2026-11-19 ~07:20 |
 | T910 | Web first load: Lighthouse performance 46 on staging; make the first visit fast (owner) | IN PROGRESS (lane app/t910-web-speed: paint-first shell, inline frame 0, WOFF2 faces, immutable /_expo/static; owner's three built — rules worker, quiet spell, lazy Regulations page — and the home description; left (Claude): review, then staging) | main chat | owner 2026-11-19 ~07:40 |
