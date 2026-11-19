@@ -260,6 +260,31 @@ export interface LadderVM {                                           // "How th
   readonly lost: readonly { text: string; status: string; rule: RuleKey; book: Line }[];
   /** (T216) the angler's explanation, in layers (base → this water → exceptions); the Keep form only (story.ts) */
   readonly story?: DecidedStoryVM;
+  /** (T883, proposal) the fish sheet's "How this was decided": the steps in order, then the answer (flow.ts) */
+  readonly flow?: FlowVM;
+}
+/** (T883, proposal) one step of a fish's "How this was decided": who says it (kicker), the rule's words, what it did
+ *  (none for the rule that sets the answer: the answer line says it), and its printed page ("p.21 ↗"). */
+export interface FlowStepVM {
+  readonly kicker: string; readonly says: Line; readonly tag: string | null;
+  /** won: it holds; lost: replaced or lifted (greyed); quiet: changed nothing (folded); note: a restatement (review 6) */
+  readonly tone: "won" | "lost" | "quiet" | "note"; readonly book: Line; readonly rule: RuleKey | null;
+  /** the same kicker as the step before: drawn once (the page moves to the words' line) */
+  readonly repeat?: true;
+  /** a weekday part in force on the viewed day: its tag ("Today" / the weekday) in the accent, the word never colour alone */
+  readonly today?: true;
+  /** the data's restates notes under the step (the combined-quota note) */
+  readonly notes?: readonly string[];
+}
+/** (T883, proposal) every fish sheet's "How this was decided", trout and other fish alike: the steps that made the
+ *  answer in reading order (base → this water → what narrows it, a replaced rule in its place, quietly), the answer, the
+ *  other rules (possession, duties) one line each, and the rules that changed nothing (folded). */
+export interface FlowVM {
+  readonly steps: readonly FlowStepVM[];
+  /** the answer line at the rail's end, whole ("So: Release every one here.") */
+  readonly result: string | null;
+  readonly other: readonly FlowStepVM[]; readonly otherHead: string;
+  readonly quiet: readonly FlowStepVM[]; readonly quietHead: string;
 }
 /** (T216) "How this was decided" for an angler: which rules applied today, layer by layer, what each did and why. */
 export interface DecidedStoryVM {
@@ -380,6 +405,8 @@ export type SheetBlock =
   | { k: "value"; text: Line }
   | { k: "weekBox"; day: string; scope: string | null; status: string; says: string }
   | { k: "ladder"; q: string | null; result: string | null; steps: readonly LadderStepVM[] }
+  /** (T883, proposal) "How this was decided" as one flow, the same on every fish sheet */
+  | { k: "flow"; flow: FlowVM }
   | { k: "sources"; groups: readonly { where: string; rows: readonly SourceRowVM[] }[];
       /** (T36) the "Overruled (N)" cards: drawn as page v36 srcCard (quoted words, then whose, then the role), one group per card */
       overruled?: true }
@@ -394,7 +421,9 @@ export type SheetBlock =
   /** (T36) an other-fish row drawn as its Keep group (prototype g28 article): T37 draws it with the Keep tab's group component */
   | { k: "group"; group: GroupVM;
       /** false: the group's title is not drawn (the sheet's title says it) — the prototype drops a head title with no scope tag */
-      titled: boolean }
+      titled: boolean;
+      /** (T883) false: the card does not draw its "See every regulation line ›"; the sheet draws it after its flow */
+      more?: false }
   /** (T36) the row's title with its scope tag run on (page v36 .rtitle + .scope: "Black crappie" "Region 2-wide") */
   | { k: "rowTitle"; title: string; scope: string | null };
 export interface LadderStepVM { readonly level: string;

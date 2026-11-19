@@ -24,6 +24,7 @@ import { Example, Head, List, Para, Quote } from "./sheet/Para";
 import { RuleRow } from "./sheet/RuleRow";
 import { LadderView } from "./sheet/LadderView";
 import { SourcesView } from "./sheet/SourcesView";
+import { FlowView } from "./sheet/FlowView";
 import { WeekBox } from "./sheet/WeekBox";
 import { FishImage, FishLooks } from "./sheet/FishImage";
 import { AdiposeArt } from "./AdiposeArt";
@@ -58,6 +59,7 @@ export function SheetBlockView(p: { b: SheetBlock; layout?: LayoutClass;
     case "value": return <View style={{ marginTop: 8 }}><LineText line={b.text} style={TYPE.regsBodyBold} color={palette.ink} palette={palette} actions={actions} /></View>;
     case "weekBox": return <WeekBox day={b.day} scope={b.scope} status={b.status} says={b.says} palette={palette} />;
     case "ladder": return <LadderView q={b.q} result={b.result} steps={b.steps} palette={palette} actions={actions} />;
+    case "flow": return <FlowView flow={b.flow} palette={palette} actions={actions} />;
     case "sources": return <SourcesView groups={b.groups} overruled={b.overruled} palette={palette} actions={actions} />;
     case "pictures": return <Pictures pics={b.pics} palette={palette} actions={actions} images={p.fish} />;
     case "image": return <FishImage code={b.code} file={b.file} alt={b.alt} credit={b.credit} width={b.width} height={b.height} fish={p.fish} palette={palette} />;
@@ -69,7 +71,7 @@ export function SheetBlockView(p: { b: SheetBlock; layout?: LayoutClass;
     case "adipose": return <AdiposeArt figures={b.figures} palette={palette} layout={p.layout} />;
     case "pages": case "source": case "link":
       return <View style={{ marginTop: 8 }}><LineText line={b.line} style={TYPE.meta} color={palette.sub} palette={palette} actions={actions} linkStyle={TYPE.metaBold} /></View>;
-    case "group": return <View style={{ marginHorizontal: -GUTTER }}><GroupCard g={b.group} titled={b.titled} ruled={!p.first} palette={palette} actions={actions} images={p.fish} /></View>;
+    case "group": return <View style={{ marginHorizontal: -GUTTER }}><GroupCard g={b.group} titled={b.titled} ruled={!p.first} more={b.more !== false} palette={palette} actions={actions} images={p.fish} /></View>;
     case "rowTitle":
       return (
         <Text style={[TYPE.lead, { color: palette.ink, marginTop: 8 }]}>

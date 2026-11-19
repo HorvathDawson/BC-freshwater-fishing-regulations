@@ -1,6 +1,9 @@
 # T883 — every fish's "How this was decided": one readable layout, trout and every other fish alike
 
-Status: OPEN (app chat). Proposal; lands only on the owner's yes.
+Status: PARTIAL (app chat) — left (Claude): merge into 0.8.2; pipeline steps[] (main chat) after.
+
+Owner 2026-11-18 ~22:58 (app chat), on the re-sent proposal pictures, verbatim: "all are good ( T878 … T879 … T881 …
+T883 … T886 … ) except sunrise/set should be a bit better in same spot" — T883 approved for 0.8.2.
 
 Owner 2026-11-18 ~21:30, two fish sheets on Cultus Lake (Kokanee "Release"; Black crappie "20 a day"), verbatim:
 "We need to make the individual sources for each fish be formatted better in the source page for the species … These
@@ -8,8 +11,8 @@ pages are super clunky and ideally we want to make it nice and readable showing 
 to pair well with the trout ones too. All generated the same way (sources) and the way they are displayed should be the
 same."
 
-Lane: app/t883-fish-sources (worktree, not pushed, not merged). Built app-side over today's data (2026-11-18 21:50);
-waits for the owner's yes before it merges.
+Lane: app/t883-fish-sources (worktree, not pushed). Proposal built 2026-11-18 21:50; finished for 0.8.2 at 23:17
+(every fish sheet, over today's data); merges into 0.8.2 next.
 
 ## What each sheet shows today (r-fc137c4040fa)
 - **Other fish** (`other:oN`, core `sheets/other.ts` → decided.ts `ladderOf`, drawn by `LadderView`): the answer
@@ -51,17 +54,46 @@ decided** as a rail:
 The trout sheet draws the same rail from `FishSheet.src`, moved up under "Here, today" (above "How to tell it") so
 both families read answer → how it was decided → the fish.
 
-Built: core `regs/flow.ts` (FlowVM from the stored roles, no decision), `LadderVM.flow`, SheetBlock `flow`,
-ui-native `sheet/FlowView.tsx`; `other.ts` draws it for every plain row except a weekday row (its day-parts ladder
-stays); `trout.ts` draws it from `src`. Tests: `flow.test.ts` (whole strings), SheetHost + conformance trout pins moved
-to the new head. Not built: the g28 group sheets (Whitefish, Bass: their own group card, untouched), weekday rows,
-the desktop (wide) sheet look, light theme pictures.
+Built: core `regs/flow.ts` (FlowVM from the stored roles, no decision; `withWeek`, `withNotes`, `partStep`, `restateStep`),
+`LadderEnv.flow` / `PlainRowEnv.flow` (only the other: sheet builds it; the Keep tab does not), SheetBlock `flow`,
+`sheetLines` reads it, ui-native `sheet/FlowView.tsx`. EVERY fish sheet draws it:
+- a plain row (Kokanee, Black crappie, White sturgeon …);
+- a group sheet (Whitefish, Bass) — owner 2026-11-18 ~23:25, verbatim: "The white fish repeats a lot at the top. The
+  15 quota etc. feels like a waste of space kokanee is better." The card is now the answer once (its kinds, sizes,
+  pictures and the examples fold); its head (title, scope, "15 a day per angler across Region 2"), a tier line that is
+  only a Rule book link and an origin's book link are dropped (`answerOnly`); then the flow; then "Fishing more than
+  one water today? ›" and "See every regulation line ›" last;
+- a weekday row (Kootenay Lake — Lower West Arm kokanee): the stored day-parts stand where their rule stood, each
+  "Sat–Sun: Keep up to 5"; the part holding on the VIEWED day is tagged ("Today", else its weekday) in the accent; the
+  restatement is its own quiet step ("Restates …'s rule", hollow ink ring); the answer is the week's status line;
+- a plain row's restates notes sit under the rule they restate;
+- trout (`tf:`): the rail from the row's WHOLE list (`row.src`, uncut, Python's order) with each rule's role from that
+  fish's rows-frame answer (the row's origin, else the answer's `lead`; a rule only the other origin holds is tagged
+  "Wild ones" / "Hatchery ones"); "So:" is the sheet's own head, whole. Where any rule of the list has no stored role
+  (or, with no lead, two different ones), the sheet keeps its old Sources list (`FishSheet.src`, a list that claims
+  nothing). Release r-fc137c4040fa: 149 of 153 trout sheets on four test waters draw the rail. Mamquam rainbow now
+  shows Region 2's "At most 2 hatchery trout and char a day from streams" (Lowers the number) — checked: `row.src`
+  holds it, the sheet's `src` (cut to 4) did not. Re-review (23:5x): never one origin's role for both — a rule the
+  hatchery and wild answers give different roles, or only one of them holds, is a step per origin tagged "Hatchery
+  ones" / "Wild ones" (Lois EB's "2 over 50 cm" reads "Wild ones: A cap inside the total"); a head naming a number no
+  step carries ("counts toward the 4 and the 6") keeps the list. Over the 356 vector sheets: 298 rail, 58 list.
+  "Replaced by <X>" only when X is not the rule's own source, else "Replaced".
 
-## Pictures (390, dark, real clock Nov 18, staging data)
-Scratchpad (session 699dcd1b): `t883-before-390-dark-cultus-kokanee.png`, `t883-after-390-dark-cultus-kokanee.png`,
-`t883-after-390-dark-cultus-kokanee-folds-open.png`, `t883-before-390-dark-cultus-crappie.png`,
-`t883-after-390-dark-cultus-crappie.png`, `t883-before-390-dark-mamquam-rainbow.png`,
-`t883-after-390-dark-mamquam-rainbow.png`.
+Rail rules (independent review of c38c96e35, each fixed with a test): steps are named against the SHEET's water — a
+rule another water's row carries down to its tributaries reads "<that water> · its tributaries" (owner ~23:40, verbatim:
+"Like tributary rules (rule from a different water labelled 'this water's rule';) yes label as from tributarie
+inheritance."), another water's own row "<X> · listed water", never "this water's rule" (the "all its parts" wording
+waits for `part_of` in the inputs, not carried today); replaced steps first, the deciding ones last above "So:";
+repeated words drawn once; a step's tag read once by a screen reader.
+Desktop (1280, the centred sheet) and the light theme checked: same rail, tokens only. A long kicker wraps and its
+page stays on the right (fixed after the Kootenay picture). Tests: `flow.test.ts` (whole strings: kokanee, kicker once,
+trout list, week, notes); SheetHost + conformance trout pins moved; the frozen VM fixtures re-cut
+(`UPDATE_REGS_FIXTURES=1`, only `other:oN` sheets changed). Gates: vitest core + ui-native + conformance + surfaces,
+check-colours, check-platform, boundaries, anchors, knip, `tsc -b`.
+
+## Pictures (real clock Nov 18, staging data)
+Scratchpad (session 699dcd1b), `t883-{before,after}-…png`: 390 dark Cultus kokanee, crappie, whitefish (group);
+Mamquam rainbow (trout); Kootenay West Arm kokanee (weekday); 390 light Cultus kokanee; 1280 dark Cultus kokanee.
 
 ## Data spec for the main chat (so both families are "generated the same way")
 Today the app builds the other-fish steps from `rows_decided.roles` + the rule's provenance, and the trout steps from
@@ -84,6 +116,14 @@ Step: {
   by:     int | null           # the rule that replaced / lifted it
 }
 ```
+What improves once that data arrives (the app then draws `decided` as given, and `flow.ts` stops reading roles):
+- the app stops pairing `row.src` with the rows frame's roles (`troutFlow`) and the 4 sheets that fall back to the
+  plain Sources list draw the rail too;
+- (done app-side 23:35 from `row.src`: Mamquam rainbow's "At most 2 hatchery trout and char a day from streams");
+- the trout answer reads as a sentence ("So: Keep 2 a day here, hatchery only.") instead of the head;
+- the kicker words ("Region 2 · base rule") and the effect words come from Python, so the two families cannot drift;
+- a weekday row's parts come as steps with their own rule and "today" mark, not stitched in by `withWeek`.
+
 Gaps this would close: (1) the trout `src` has no role, so no trout step can say "replaced" or "lowers"; (2) the
 trout `src` cut to 4 can drop the rule that set the answer — Mamquam's rainbow sheet lists Region 2's "Keep up to 4"
 but not Region 2's "At most 2 hatchery trout and char a day from streams", the rule that makes it 2 (it is 6th in

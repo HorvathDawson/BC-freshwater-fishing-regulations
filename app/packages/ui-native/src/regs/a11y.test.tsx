@@ -251,7 +251,8 @@ describe("6. font scaling", () => {
       return out;
     });
     const numbers = [...keep.filter((t) => t.id.startsWith("n:")), ...sheetNumbers];
-    expect(numbers.length).toBeGreaterThan(3);
+    // (T883) the sheets' group cards say their number once (the kind line's "Up to 15"), not again in a head
+    expect(numbers.length).toBeGreaterThan(1);
     expect(numbers.filter((t) => t.mfm !== "2")).toEqual([]);
     // the header: the name (the frame's WaterTitle) and every word of the regs header
     const header = scaleOf(screen.getByTestId("regs-header"));

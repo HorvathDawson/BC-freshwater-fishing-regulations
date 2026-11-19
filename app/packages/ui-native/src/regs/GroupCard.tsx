@@ -205,16 +205,20 @@ function Worked({ w, palette }: { w: NonNullable<GroupVM["worked"]>; palette: Pa
   );
 }
 
-export function GroupCard({ g, palette, actions, images, titled = true, ruled = true }: { g: GroupVM; palette: Palette; actions: KeepActions; images?: FishImages;
+export function GroupCard({ g, palette, actions, images, titled = true, ruled = true, more = true }: { g: GroupVM; palette: Palette; actions: KeepActions; images?: FishImages;
+  /** (T883) false: no "See every regulation line ›" (a fish sheet draws it after its "How this was decided") */
+  more?: boolean;
   /** (T37) false: the head draws no title line (in an other-fish sheet, whose title says it — SheetBlock group.titled) */
   titled?: boolean;
   /** (T868) false: the card opens its sheet, right under the sheet's title rule — no heavy rule of its own over the head
    *  (two rules a line apart once the head row of pictures left) */
   ruled?: boolean }) {
   const h = g.head;
+  // (T883) a fish sheet's answer-only card (other.ts answerOnly) has no head left to draw: no empty tinted band
+  const head = titled || !!h.exception || !!h.lead || h.words.length > 0 || !!h.whyHere || !!h.shareOf || !!h.multi;
   return (
     <View testID="keep-group" style={{ paddingHorizontal: GUTTER, paddingBottom: 12, marginTop: ruled ? 12 : 0 }}>
-      <View style={{ marginHorizontal: -GUTTER, paddingHorizontal: GUTTER, paddingVertical: 8, borderTopWidth: ruled ? 1.5 : 0, borderTopColor: palette.ink, backgroundColor: palette.card }}>
+      {head && <View style={{ marginHorizontal: -GUTTER, paddingHorizontal: GUTTER, paddingVertical: 8, borderTopWidth: ruled ? 1.5 : 0, borderTopColor: palette.ink, backgroundColor: palette.card }}>
         {titled && (
           <Text accessibilityRole="header" style={[TYPE.lead, { color: palette.ink }]}>
             {g.title}{g.scope ? <Text testID="kicker:scope" style={[TYPE.kicker, { color: palette.sub }]}>{`  ${g.scope}`}</Text> : null}
@@ -228,7 +232,7 @@ export function GroupCard({ g, palette, actions, images, titled = true, ruled = 
         {h.shareOf && <LineText line={h.shareOf} style={TYPE.metaSemi} num={TYPE.metaBold} numColor={palette.ink} color={palette.sub} palette={palette} actions={actions} />}
         {/* (T481) under the region's total, where it is first shown: how it holds across waters (the row's multi: sheet) */}
         {h.multi && <View testID="multi-link" style={{ minHeight: 32, justifyContent: "center", marginTop: 2 }}><LineText line={h.multi} style={TYPE.metaBold} color={palette.accent} palette={palette} actions={actions} /></View>}
-      </View>
+      </View>}
       {g.origin && (
         <View style={{ paddingTop: 8, paddingBottom: 4 }}>
           {(g.origin.tag || g.origin.says.length > 0) && (
@@ -253,9 +257,11 @@ export function GroupCard({ g, palette, actions, images, titled = true, ruled = 
       {g.tree && <Nodes nodes={g.tree} inBand={false} palette={palette} actions={actions} images={images} />}
       {g.notKept.map((x, i) => <NotKept key={i} x={x} palette={palette} actions={actions} images={images} />)}
       {g.worked && <Worked w={g.worked} palette={palette} />}
-      <RegsPress accessibilityRole="link" onPress={() => actions.onSheet(g.more.open)} box={{ w: 44, h: 44 }} style={{ minHeight: 44, justifyContent: "center", marginTop: 8 }}>
-        <Text style={[TYPE.regsBodyBold, { color: palette.accent }]}>{g.more.text}</Text>
-      </RegsPress>
+      {more && (
+        <RegsPress accessibilityRole="link" onPress={() => actions.onSheet(g.more.open)} box={{ w: 44, h: 44 }} style={{ minHeight: 44, justifyContent: "center", marginTop: 8 }}>
+          <Text style={[TYPE.regsBodyBold, { color: palette.accent }]}>{g.more.text}</Text>
+        </RegsPress>
+      )}
     </View>
   );
 }

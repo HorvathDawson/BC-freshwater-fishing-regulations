@@ -25,6 +25,7 @@ import type { Settled } from "./settle";
 import { ruleBook } from "./book";
 import { LADDER_Q, LEVEL_HEAD, LOSES, SAYS, WORDS, pageWaterNoun } from "./words";
 import { storyOf } from "./story";
+import { flowOf } from "./flow";
 
 /** One rule's place in a row's ladder (page v36 rowSources item): its role and what it lost to, for which fish. */
 export interface LadderItem {
@@ -32,6 +33,8 @@ export interface LadderItem {
   /** The rule that replaced / lifted / agrees with it (page v36 `by`, here the rule itself). */
   readonly by: RuleView | null;
   readonly spp: ReadonlySet<string>;
+  /** (T883) a trout rule whose stored role holds for one origin's fish only: the flow says which ("Wild ones: …") */
+  readonly origin?: "hatchery" | "wild";
 }
 
 /** The roles page v36 reads as deciding a row (WINS), and their reading order (QORDER). */
@@ -46,7 +49,9 @@ export interface LadderSeams {
   /** T17 grouphead.ts `scopeOf` (page v36 scopeOf) — read for a pool row's result line only. */
   readonly scopeOf?: (row: HydRow, inp: RegsInputs) => string | null;
 }
-export interface LadderEnv { readonly card: CardModel; readonly settled: Settled; readonly inp: RegsInputs; readonly seams: LadderSeams }
+export interface LadderEnv { readonly card: CardModel; readonly settled: Settled; readonly inp: RegsInputs; readonly seams: LadderSeams;
+  /** (T883) build the fish sheet's flow too (the other: sheet asks; the Keep tab does not draw it) */
+  readonly flow?: true }
 
 /** page v36 say: a rule's plain sentence (answers display.rules[].plain), "" for none. */
 export const say = (r: RuleView): string => r.facts?.plain ?? "";
@@ -188,8 +193,10 @@ export function ladderOf(row: HydRow, env: LadderEnv, members?: readonly string[
     && !(i.by && !i.by.missing && shortLabel(i.by.export.label, title) === shortLabel(i.r.export.label, title)));
   // (T216) the angler's explanation, every stored item in layers (the Keep form only; the other: sheet keeps the ladder)
   const story = members ? null : storyOf(items, (it) => words(it).text, inp, keepResult);
+  // (T883, proposal) the fish sheet's one flow: the same items, in reading order, with the row's answer last
+  const flow = members || !env.flow ? null : flowOf(items, (it) => words(it).text, inp.item?.name || inp.place?.name || "", keepResult);
   return {
-    label: WORDS.DECIDED, sections, ...(story ? { story } : {}),
+    label: WORDS.DECIDED, sections, ...(story ? { story } : {}), ...(flow ? { flow } : {}),
     lost: lost.map((it) => {
       const w = words(it);
       return w.missing ? { text: w.text.map((r) => (r.t === "text" ? r.s : "")).join(""), status: "", rule: it.r.key, book: [] }

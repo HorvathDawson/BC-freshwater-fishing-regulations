@@ -412,7 +412,7 @@ const ascending = (xs: readonly number[]) => xs.every((x, i) => i === 0 || xs[i 
 
 describe("T810 P: the trout fish sheet over every vector", () => {
   it("every fish of every vector opens its sheet, built only from the payload, every rule list in Python's order", async () => {
-    let rows = 0, unsortedSheet = 0, unsortedTable = 0, twins = 0;
+    let rows = 0, unsortedSheet = 0, unsortedTable = 0, twins = 0, rails = 0;
     for (const c of V.cases) {
       if (!c.frame) continue;
       const inp = await inputsOfCase(c), page = pageOf(inp);
@@ -434,8 +434,21 @@ describe("T810 P: the trout fish sheet over every vector", () => {
         expect(tell.filter((x) => x.k === "image").length, at).toBe(FISH[r.fish]!.length);
         expect(tell.flatMap((x) => (x.k === "list" ? x.items.map((i) => lineOf({ k: "para", text: i.line })) : [])), at).toEqual(FISH_TIPS[r.fish]);
         expect(linksOf(vm).includes("hatch"), at).toBe(r.origin !== null || r.label !== null || r.split || b.label !== null);
-        // Sources: `FishSheet.src` exactly, then "All sources ›" (the table's every rule)
-        expect(sourceKeys(section(vm, TROUT_SHEET.SOURCES)), at).toEqual(r.sheet.src.map(keyOf));
+        // (T883) How this was decided where the fish's stored roles cover the row's whole list: every rule of `row.src` once
+        // (a step, an other rule or a folded one), the answer the sheet's own head; else Sources: `FishSheet.src` exactly.
+        // Then "All sources ›" (the table's every rule)
+        const flow = vm.blocks.find((x): x is Extract<SheetBlock, { k: "flow" }> => x.k === "flow")?.flow;
+        if (flow) {
+          rails++;
+          expect(flow.result, at).toBe(`So: ${r.sheet.head}`);
+          const all = [...flow.steps, ...flow.other, ...flow.quiet], drawn = all.map((x) => x.rule);
+          // (re-review a) a rule twice only once per origin, each saying whose; never one origin's role for both
+          const whose = (x: (typeof all)[number]) => /^(Hatchery|Wild) ones/.exec(x.tag ?? "")?.[0] ?? "";
+          expect(new Set(all.map((x) => `${x.rule}|${whose(x)}`)).size, at).toBe(all.length);
+          expect(all.filter((x) => !whose(x)).every((x) => all.filter((y) => y.rule === x.rule).length === 1), at).toBe(true);
+          expect(drawn.every((k) => k !== null && r.src.map(keyOf).includes(k)), at).toBe(true);
+          expect(section(vm, TROUT_SHEET.SOURCES), at).toEqual([]);
+        } else expect(sourceKeys(section(vm, TROUT_SHEET.SOURCES)), at).toEqual(r.sheet.src.map(keyOf));
         expect(r.sheet.src.length, at).toBeLessThanOrEqual(4);
         expect(linksOf(vm).at(-1), at).toBe(TROUT_SOURCES_KEY);
         if (!ascending(r.sheet.src)) unsortedSheet++;
@@ -453,6 +466,7 @@ describe("T810 P: the trout fish sheet over every vector", () => {
       expect([off.sheet(`tf:${f.boxes[0]!.rows[0]!.key}`), off.sheet(TROUT_SOURCES_KEY)], c.name).toEqual([null, null]);
     }
     expect(rows).toBeGreaterThan(100);
+    expect(rails, "(T883) rows whose stored roles cover their list draw the rail").toBeGreaterThan(0);
     expect(twins).toBeGreaterThan(0);
     // the order guard bites: Python's order is not ascending somewhere, so an app that sorted would fail above
     expect([unsortedSheet > 0, unsortedTable > 0]).toEqual([true, true]);

@@ -19,13 +19,14 @@ import { RegsScreen } from "./RegsScreen";
 import { LIGHT } from "../theme";
 import vedder1010 from "./fixtures/vedder_1010.json";
 import klwa1010 from "./fixtures/klwa_1010.json";
+import klwa1012 from "./fixtures/klwa_1012.json";
 
 afterEach(cleanup);
 
 type Frozen = Omit<RegsPage, "sheet"> & { sheets: Record<string, SheetVM | null> };
 /** a RegsPage whose sheet() is the frozen one (fixtures.ts freezePage's inverse) */
 const sheetPage = (f: unknown): RegsPage => { const p = f as Frozen; return { ...p, sheet: (k: SheetKey) => p.sheets[k] ?? null } as RegsPage; };
-const VEDDER = sheetPage(vedder1010), KLWA = sheetPage(klwa1010);
+const VEDDER = sheetPage(vedder1010), KLWA = sheetPage(klwa1010), KLWA12 = sheetPage(klwa1012);
 
 // (T810 P) the trout sheets over the shared vectors: N's view model, P's builders, a rule index of stand-ins ("Rule <ix>")
 interface TroutCase { readonly name: string; readonly day: string; readonly frame: TroutValue | null }
@@ -147,7 +148,36 @@ describe("<SheetHost> over the frozen vedder_1010 page", () => {
 
   it("the weekday sheet (klwa_1010 other:o0): today's part is marked with the visible word Today", () => {
     host("other:o0", KLWA);
-    expect(screen.getByTestId("sheet-body").textContent).toContain("Sat–Sun Keep up to 5 Today");
+    // (T883) the part is a step of the flow: its words, then its tag "Today" on the line under them
+    expect(screen.getByTestId("sheet-body").textContent).toContain("Sat–Sun: Keep up to 5p.37 ↗Today");
+  });
+
+  it("(T883 review 3) the weekday part is marked from the VIEWED day: Monday Oct 12 tags Mon–Fri, not the stored day's part", () => {
+    host("other:o0", KLWA12);
+    const tags = screen.getAllByTestId("flow:tag").map((e) => e.textContent);
+    const text = screen.getByTestId("sheet-body").textContent!;
+    expect(text).toContain("Mon–Fri: Release every onep.37 ↗Mon");
+    expect(text).not.toMatch(/Sat–Sun: Keep up to 5(p\.37 ↗)?(Today|Mon(?!–))/);
+    expect(tags.filter((t) => t === "Today" || t === "Mon")).toEqual(["Mon"]);
+  });
+
+  it("(T883 review 7) a step's tag is read once: the rule's press is named by its words alone", () => {
+    host("other:o0", KLWA12);
+    const press = screen.getByRole("button", { name: "Mon–Fri: Release every one" });
+    expect(press.getAttribute("aria-label")).toBe("Mon–Fri: Release every one");
+    expect(screen.getAllByTestId("flow:tag").filter((e) => e.textContent === "Mon")).toHaveLength(1);
+  });
+
+  it("(T883, owner 23:25 'The white fish repeats a lot at the top') a group sheet says its answer once: no head, no lone Rule book line; the multi-water link goes last", () => {
+    host("other:o1", KLWA12);
+    const body = screen.getByTestId("sheet-body"), text = body.textContent!;
+    expect(screen.queryByTestId("kicker:scope")).toBeNull();
+    expect(text).not.toMatch(/a day per angler across/);
+    expect(text).toMatch(/Up to 15.*whitefish combined/);
+    expect(text.indexOf("How this was decided")).toBeLessThan(text.indexOf("Fishing more than one water today?"));
+    expect(text.trim().endsWith("See every regulation line ›")).toBe(true);
+    // the only book links left are the rail's
+    expect(text.match(/Rule book p\.\d+/g)).toBeNull();
   });
 
   it("(T810 P) a trout row's fish sheet: header, Here today (bold where bold), how to tell it, Sources in order; it closes as every sheet", () => {
@@ -161,6 +191,10 @@ describe("<SheetHost> over the frozen vedder_1010 page", () => {
     const body = screen.getByTestId("sheet-body");
     for (const s of [r.sheet.head, TROUT_SHEET.HERE, TROUT_SHEET.TELL, TROUT_SHEET.SOURCES, ...r.sheet.here.map((l) => l.t), ...r.coming])
       expect(body.textContent, s).toContain(s);
+    // (T883 review 1) a trout sheet with no stored roles for its rules keeps `src` (at most 4 rules) as a list that claims
+    // nothing: never the decided rail, no "So:" answer
+    expect(within(body).queryByTestId("flow")).toBeNull();
+    expect(body.textContent).not.toContain("So: ");
     // bold where the payload says bold, and only there
     const face = (s: string) => getComputedStyle(within(body).getByText(s)).fontFamily;
     const bold = face(r.sheet.head);

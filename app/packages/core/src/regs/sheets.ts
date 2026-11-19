@@ -17,7 +17,7 @@
 import { ruleBook, ruleBookLine } from "./book";
 import type { GlossaryTerm, RegsInputs, RuleView, Statics } from "./inputs";
 import { plain, squash, text, type Line, type Run } from "./line";
-import type { GroupVM, SheetBlock, SheetCtx, SheetVM } from "./model";
+import type { FlowStepVM, GroupVM, SheetBlock, SheetCtx, SheetVM } from "./model";
 import { parseSheetKey, type SheetKey } from "./sheetKey";
 import { WORDS } from "./words";
 import { ruleSub } from "./level";
@@ -171,7 +171,10 @@ export function sheetOf(ctx: SheetCtx, key: SheetKey): SheetVM | null {
     const t = ctx.page.keep.trout;
     if (t?.kind !== "table") return null;
     if (key === TROUT_SOURCES_KEY) return troutSourcesSheet(key, t, ctx.inp.rules, `${ctx.page.header.name}${WORDS.DOT}${fmtDay(ctx.page.day)}`);
-    return troutFishSheet(key, t, key.slice(3), ctx.inp.rules, ctx.env?.fish);
+    // (T883) the fish's stored answer in this segment's rows frame: its roles let the sheet show how it was decided
+    const f = ctx.env && ctx.env.card.ctx.s >= 0 ? ctx.inp.year?.rowsBySeg[ctx.env.card.ctx.s] ?? null : null;
+    return troutFishSheet(key, t, key.slice(3), ctx.inp.rules, ctx.env?.fish, f ? (S) => f.fish[S] ?? null : undefined,
+      ctx.inp.item?.name || ctx.inp.place?.name || "");
   }
   // (T810 S) a row's own sheets are the other fish's: a row the trout table covers opens none (its sheets are `tf:`)
   const rowOf = (at: number): number | null => { const ix = +key.slice(at); return tableCovers(ctx.inp).includes(ix) ? null : ix; };
@@ -282,6 +285,26 @@ export function sheetLines(vm: SheetVM, opts: SheetLinesOpts = {}): SheetLines {
             }
           }
           break;
+        case "flow": {
+          // (T883) a step: its kicker (once), its words, what it did and its page on one line; then the answer; the other
+          // rules (words, then whose and page); the folded ones
+          const step = (s: FlowStepVM, rail: boolean) => {
+            if (rail) {
+              if (!s.repeat) parts(s.kicker, s.book);
+              parts(s.says, s.tag, s.repeat ? s.book : null);
+            } else { parts(s.says); parts(s.kicker, s.tag, s.book); }
+            keysOf(s.says, nested);
+            if (s.rule) nested.push(`rule:${s.rule}`);
+            (s.notes ?? []).forEach(str);
+          };
+          b.flow.steps.forEach((s) => step(s, true));
+          if (b.flow.result) str(WORDS.CHECK + b.flow.result);
+          if (b.flow.other.length) { str(b.flow.otherHead); b.flow.other.forEach((s) => step(s, false)); }
+          if (b.flow.quiet.length) {
+            out.folds.push({ summary: b.flow.quietHead, open: false }); str(b.flow.quietHead); b.flow.quiet.forEach((s) => step(s, false));
+          }
+          break;
+        }
         case "sources":
           for (const g of b.groups) {
             if (!b.overruled) str(g.where);

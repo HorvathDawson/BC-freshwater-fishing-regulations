@@ -19,7 +19,7 @@ import { DECIDE as D } from "./decidedWords";
 import { QORDER } from "./decided";
 
 /** A region code as a name ("3" → "Region 3", "7a" → "Region 7A"); a zone keeps its own name (T190). */
-const regionName = (r: RuleView): string => {
+export const regionName = (r: RuleView): string => {
   const ent = r.export.prov.entry_name || "";
   if (/^(Region|Zone) /.test(ent)) return ent;
   const code = r.export.prov.region;
@@ -62,7 +62,7 @@ const WON: Readonly<Record<string, readonly [string, string]>> = Object.freeze({
 });
 /** A step's reading order inside its layer: the deciding roles (QORDER), then lifted, replaced, moot, not needed, same. */
 const LOST = ["lifted", "replaced", "moot", "falls", "agrees"];
-const orderOf = (role: string): number => {
+export const orderOf = (role: string): number => {
   const i = QORDER.indexOf(role), j = LOST.indexOf(role);   // read at call time: decided.ts imports this file
   return i >= 0 ? i : j >= 0 ? QORDER.length + j : QORDER.length + LOST.length;
 };

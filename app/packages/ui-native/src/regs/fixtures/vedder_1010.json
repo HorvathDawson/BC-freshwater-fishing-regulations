@@ -1847,110 +1847,109 @@
      "text": "How this was decided"
     },
     {
-     "k": "ladder",
-     "q": "What you can keep",
-     "result": "Release every one here.",
-     "steps": [
-      {
-       "level": "Region 2",
-       "lines": [
-        {
-         "applies": [
-          "From the Region 2 table — all of Region 2."
-         ],
-         "book": [
-          {
-           "pdf": 23,
-           "printed": 21,
-           "t": "book"
-          }
-         ],
-         "rule": "z2:daily_quotas::species_quotas.r5",
-         "tag": "Release",
-         "text": [
-          {
-           "s": "In streams, release every kokanee.",
-           "t": "text"
-          }
-         ],
-         "won": true
-        }
-       ]
-      }
-     ]
-    },
-    {
-     "k": "ladder",
-     "q": "Other rules",
-     "result": null,
-     "steps": [
-      {
-       "level": "Region 2",
-       "lines": [
-        {
-         "applies": [
-          "From the Region 2 table — all of Region 2."
-         ],
-         "book": [
-          {
-           "pdf": 23,
-           "printed": 21,
-           "t": "book"
-          }
-         ],
-         "rule": "z2:possession_quota::possession_quota.r1",
-         "tag": "Carry limit",
-         "text": [
-          {
-           "s": "Possession: 2 days’ quota. Fish at home don’t count.",
-           "t": "text"
-          }
-         ],
-         "won": true
-        }
-       ]
-      }
-     ]
-    },
-    {
-     "body": [
-      {
-       "k": "ladder",
-       "q": null,
-       "result": null,
-       "steps": [
-        {
-         "level": "",
-         "lines": [
-          {
-           "applies": [
-            "From the Region 2 table — all of Region 2."
-           ],
-           "book": [
-            {
-             "pdf": 23,
-             "printed": 21,
-             "t": "book"
-            }
-           ],
-           "rule": "z2:daily_quotas::species_quotas.r4",
-           "tag": "Replaced by the Region 2 rule",
-           "text": [
-            {
-             "s": "Keep up to 5 kokanee a day.",
-             "t": "text"
-            }
-           ],
-           "won": false
-          }
-         ]
-        }
-       ]
-      }
-     ],
-     "k": "fold",
-     "open": false,
-     "summary": "Rules that don’t apply here (1)"
+     "flow": {
+      "other": [
+       {
+        "book": [
+         {
+          "bare": true,
+          "pdf": 23,
+          "printed": 21,
+          "t": "book"
+         }
+        ],
+        "kicker": "Region 2 · base rule",
+        "rule": "z2:possession_quota::possession_quota.r1",
+        "says": [
+         {
+          "s": "Possession: 2 days’ quota. Fish at home don’t count.",
+          "t": "text"
+         }
+        ],
+        "tag": null,
+        "tone": "won"
+       }
+      ],
+      "otherHead": "Other rules",
+      "quiet": [
+       {
+        "book": [
+         {
+          "bare": true,
+          "pdf": 11,
+          "printed": 9,
+          "t": "book"
+         },
+         {
+          "s": " ",
+          "t": "text"
+         },
+         {
+          "bare": true,
+          "pdf": 86,
+          "printed": 80,
+          "t": "book"
+         }
+        ],
+        "kicker": "All of B.C.",
+        "rule": "zp:quota_defaults::quota_defaults.r1",
+        "says": [
+         {
+          "s": "Possession: 2 days’ quota. Fish at home don’t count.",
+          "t": "text"
+         }
+        ],
+        "tag": "Replaced by Region 2",
+        "tone": "lost"
+       }
+      ],
+      "quietHead": "Rules that don’t apply here (1)",
+      "result": "So: Release every one here.",
+      "steps": [
+       {
+        "book": [
+         {
+          "bare": true,
+          "pdf": 23,
+          "printed": 21,
+          "t": "book"
+         }
+        ],
+        "kicker": "Region 2 · base rule",
+        "rule": "z2:daily_quotas::species_quotas.r4",
+        "says": [
+         {
+          "s": "Keep up to 5 kokanee a day.",
+          "t": "text"
+         }
+        ],
+        "tag": "Replaced",
+        "tone": "lost"
+       },
+       {
+        "book": [
+         {
+          "bare": true,
+          "pdf": 23,
+          "printed": 21,
+          "t": "book"
+         }
+        ],
+        "kicker": "Region 2 · base rule",
+        "repeat": true,
+        "rule": "z2:daily_quotas::species_quotas.r5",
+        "says": [
+         {
+          "s": "In streams, release every kokanee.",
+          "t": "text"
+         }
+        ],
+        "tag": null,
+        "tone": "won"
+       }
+      ]
+     },
+     "k": "flow"
     },
     {
      "k": "link",
@@ -1976,54 +1975,23 @@
        "form": null,
        "lead": null,
        "leadN": null,
-       "multi": [
-        {
-         "open": "multi:r3",
-         "s": "Fishing more than one water today? ›",
-         "t": "link"
-        }
-       ],
+       "multi": null,
        "nolimit": false,
        "ofTotal": false,
        "rootTier": "t1",
        "shareOf": null,
        "terms": [],
        "whyHere": null,
-       "words": [
-        {
-         "s": "15",
-         "size": "big",
-         "t": "num"
-        },
-        {
-         "s": " ",
-         "t": "text"
-        },
-        {
-         "s": "a day per angler across Region 2",
-         "t": "text"
-        }
-       ]
+       "words": []
       },
       "more": {
        "open": "src:r3",
        "text": "See every regulation line ›"
       },
       "notKept": [],
-      "origin": {
-       "book": [
-        {
-         "pdf": 23,
-         "printed": 21,
-         "t": "book"
-        }
-       ],
-       "howtell": false,
-       "says": [],
-       "tag": null
-      },
+      "origin": null,
       "row": 3,
-      "scope": "Region 2-wide",
+      "scope": null,
       "title": "Whitefish",
       "tree": [
        {
@@ -2095,7 +2063,116 @@
       "year": null
      },
      "k": "group",
-     "titled": true
+     "more": false,
+     "titled": false
+    },
+    {
+     "k": "head",
+     "text": "How this was decided"
+    },
+    {
+     "flow": {
+      "other": [
+       {
+        "book": [
+         {
+          "bare": true,
+          "pdf": 23,
+          "printed": 21,
+          "t": "book"
+         }
+        ],
+        "kicker": "Region 2 · base rule",
+        "rule": "z2:possession_quota::possession_quota.r1",
+        "says": [
+         {
+          "s": "Possession: 2 days’ quota. Fish at home don’t count.",
+          "t": "text"
+         }
+        ],
+        "tag": null,
+        "tone": "won"
+       }
+      ],
+      "otherHead": "Other rules",
+      "quiet": [
+       {
+        "book": [
+         {
+          "bare": true,
+          "pdf": 11,
+          "printed": 9,
+          "t": "book"
+         },
+         {
+          "s": " ",
+          "t": "text"
+         },
+         {
+          "bare": true,
+          "pdf": 86,
+          "printed": 80,
+          "t": "book"
+         }
+        ],
+        "kicker": "All of B.C.",
+        "rule": "zp:quota_defaults::quota_defaults.r1",
+        "says": [
+         {
+          "s": "Possession: 2 days’ quota. Fish at home don’t count.",
+          "t": "text"
+         }
+        ],
+        "tag": "Replaced by Region 2",
+        "tone": "lost"
+       }
+      ],
+      "quietHead": "Rules that don’t apply here (1)",
+      "result": "So: 15 a day here, for all of Region 2 together.",
+      "steps": [
+       {
+        "book": [
+         {
+          "bare": true,
+          "pdf": 23,
+          "printed": 21,
+          "t": "book"
+         }
+        ],
+        "kicker": "Region 2 · base rule",
+        "rule": "z2:daily_quotas::species_quotas.r6",
+        "says": [
+         {
+          "s": "Keep up to 15 whitefish a day, all kinds together.",
+          "t": "text"
+         }
+        ],
+        "tag": null,
+        "tone": "won"
+       }
+      ]
+     },
+     "k": "flow"
+    },
+    {
+     "k": "link",
+     "line": [
+      {
+       "open": "multi:r3",
+       "s": "Fishing more than one water today? ›",
+       "t": "link"
+      }
+     ]
+    },
+    {
+     "k": "link",
+     "line": [
+      {
+       "open": "src:r3",
+       "s": "See every regulation line ›",
+       "t": "link"
+      }
+     ]
     }
    ],
    "key": "other:o1",
@@ -2111,54 +2188,23 @@
        "form": null,
        "lead": null,
        "leadN": null,
-       "multi": [
-        {
-         "open": "multi:r4",
-         "s": "Fishing more than one water today? ›",
-         "t": "link"
-        }
-       ],
+       "multi": null,
        "nolimit": false,
        "ofTotal": false,
        "rootTier": "t1",
        "shareOf": null,
        "terms": [],
        "whyHere": null,
-       "words": [
-        {
-         "s": "20",
-         "size": "big",
-         "t": "num"
-        },
-        {
-         "s": " ",
-         "t": "text"
-        },
-        {
-         "s": "a day per angler across Region 2",
-         "t": "text"
-        }
-       ]
+       "words": []
       },
       "more": {
        "open": "src:r4",
        "text": "See every regulation line ›"
       },
       "notKept": [],
-      "origin": {
-       "book": [
-        {
-         "pdf": 23,
-         "printed": 21,
-         "t": "book"
-        }
-       ],
-       "howtell": false,
-       "says": [],
-       "tag": null
-      },
+      "origin": null,
       "row": 4,
-      "scope": "Region 2-wide",
+      "scope": null,
       "title": "Bass",
       "tree": [
        {
@@ -2230,7 +2276,116 @@
       "year": null
      },
      "k": "group",
-     "titled": true
+     "more": false,
+     "titled": false
+    },
+    {
+     "k": "head",
+     "text": "How this was decided"
+    },
+    {
+     "flow": {
+      "other": [
+       {
+        "book": [
+         {
+          "bare": true,
+          "pdf": 23,
+          "printed": 21,
+          "t": "book"
+         }
+        ],
+        "kicker": "Region 2 · base rule",
+        "rule": "z2:possession_quota::possession_quota.r1",
+        "says": [
+         {
+          "s": "Possession: 2 days’ quota. Fish at home don’t count.",
+          "t": "text"
+         }
+        ],
+        "tag": null,
+        "tone": "won"
+       }
+      ],
+      "otherHead": "Other rules",
+      "quiet": [
+       {
+        "book": [
+         {
+          "bare": true,
+          "pdf": 11,
+          "printed": 9,
+          "t": "book"
+         },
+         {
+          "s": " ",
+          "t": "text"
+         },
+         {
+          "bare": true,
+          "pdf": 86,
+          "printed": 80,
+          "t": "book"
+         }
+        ],
+        "kicker": "All of B.C.",
+        "rule": "zp:quota_defaults::quota_defaults.r1",
+        "says": [
+         {
+          "s": "Possession: 2 days’ quota. Fish at home don’t count.",
+          "t": "text"
+         }
+        ],
+        "tag": "Replaced by Region 2",
+        "tone": "lost"
+       }
+      ],
+      "quietHead": "Rules that don’t apply here (1)",
+      "result": "So: 20 a day here, for all of Region 2 together.",
+      "steps": [
+       {
+        "book": [
+         {
+          "bare": true,
+          "pdf": 23,
+          "printed": 21,
+          "t": "book"
+         }
+        ],
+        "kicker": "Region 2 · base rule",
+        "rule": "z2:daily_quotas::species_quotas.r1",
+        "says": [
+         {
+          "s": "Keep up to 20 bass a day, all kinds together.",
+          "t": "text"
+         }
+        ],
+        "tag": null,
+        "tone": "won"
+       }
+      ]
+     },
+     "k": "flow"
+    },
+    {
+     "k": "link",
+     "line": [
+      {
+       "open": "multi:r4",
+       "s": "Fishing more than one water today? ›",
+       "t": "link"
+      }
+     ]
+    },
+    {
+     "k": "link",
+     "line": [
+      {
+       "open": "src:r4",
+       "s": "See every regulation line ›",
+       "t": "link"
+      }
+     ]
     }
    ],
    "key": "other:o2",
@@ -2284,70 +2439,88 @@
      "text": "How this was decided"
     },
     {
-     "k": "ladder",
-     "q": "What you can keep",
-     "result": "20 a day here, for all of Region 2 together.",
-     "steps": [
-      {
-       "level": "Region 2",
-       "lines": [
-        {
-         "applies": [
-          "From the Region 2 table — all of Region 2."
-         ],
-         "book": [
-          {
-           "pdf": 23,
-           "printed": 21,
-           "t": "book"
-          }
-         ],
-         "rule": "z2:daily_quotas::species_quotas.r2",
-         "tag": "Daily limit",
-         "text": [
-          {
-           "s": "Keep up to 20 black crappie a day.",
-           "t": "text"
-          }
-         ],
-         "won": true
-        }
-       ]
-      }
-     ]
-    },
-    {
-     "k": "ladder",
-     "q": "Other rules",
-     "result": null,
-     "steps": [
-      {
-       "level": "Region 2",
-       "lines": [
-        {
-         "applies": [
-          "From the Region 2 table — all of Region 2."
-         ],
-         "book": [
-          {
-           "pdf": 23,
-           "printed": 21,
-           "t": "book"
-          }
-         ],
-         "rule": "z2:possession_quota::possession_quota.r1",
-         "tag": "Carry limit",
-         "text": [
-          {
-           "s": "Possession: 2 days’ quota. Fish at home don’t count.",
-           "t": "text"
-          }
-         ],
-         "won": true
-        }
-       ]
-      }
-     ]
+     "flow": {
+      "other": [
+       {
+        "book": [
+         {
+          "bare": true,
+          "pdf": 23,
+          "printed": 21,
+          "t": "book"
+         }
+        ],
+        "kicker": "Region 2 · base rule",
+        "rule": "z2:possession_quota::possession_quota.r1",
+        "says": [
+         {
+          "s": "Possession: 2 days’ quota. Fish at home don’t count.",
+          "t": "text"
+         }
+        ],
+        "tag": null,
+        "tone": "won"
+       }
+      ],
+      "otherHead": "Other rules",
+      "quiet": [
+       {
+        "book": [
+         {
+          "bare": true,
+          "pdf": 11,
+          "printed": 9,
+          "t": "book"
+         },
+         {
+          "s": " ",
+          "t": "text"
+         },
+         {
+          "bare": true,
+          "pdf": 86,
+          "printed": 80,
+          "t": "book"
+         }
+        ],
+        "kicker": "All of B.C.",
+        "rule": "zp:quota_defaults::quota_defaults.r1",
+        "says": [
+         {
+          "s": "Possession: 2 days’ quota. Fish at home don’t count.",
+          "t": "text"
+         }
+        ],
+        "tag": "Replaced by Region 2",
+        "tone": "lost"
+       }
+      ],
+      "quietHead": "Rules that don’t apply here (1)",
+      "result": "So: 20 a day here, for all of Region 2 together.",
+      "steps": [
+       {
+        "book": [
+         {
+          "bare": true,
+          "pdf": 23,
+          "printed": 21,
+          "t": "book"
+         }
+        ],
+        "kicker": "Region 2 · base rule",
+        "rule": "z2:daily_quotas::species_quotas.r2",
+        "says": [
+         {
+          "s": "Keep up to 20 black crappie a day.",
+          "t": "text"
+         }
+        ],
+        "tag": null,
+        "tone": "won"
+       }
+      ]
+     },
+     "k": "flow"
     },
     {
      "k": "link",
@@ -2411,110 +2584,108 @@
      "text": "How this was decided"
     },
     {
-     "k": "ladder",
-     "q": "What you can keep",
-     "result": "Release every one here.",
-     "steps": [
-      {
-       "level": "Vedder River",
-       "lines": [
-        {
-         "applies": [
-          "A B.C. rule for Fraser River."
-         ],
-         "book": [
-          {
-           "pdf": 9,
-           "printed": 7,
-           "t": "book"
-          }
-         ],
-         "rule": "zp:white_sturgeon_licence::white_sturgeon_licence.r2",
-         "tag": "Release",
-         "text": [
-          {
-           "s": "Release every white sturgeon.",
-           "t": "text"
-          }
-         ],
-         "won": true
-        }
-       ]
-      }
-     ]
-    },
-    {
-     "k": "ladder",
-     "q": "Other rules",
-     "result": null,
-     "steps": [
-      {
-       "level": "Region 2",
-       "lines": [
-        {
-         "applies": [
-          "From the Region 2 table — all of Region 2."
-         ],
-         "book": [
-          {
-           "pdf": 23,
-           "printed": 21,
-           "t": "book"
-          }
-         ],
-         "rule": "z2:possession_quota::possession_quota.r1",
-         "tag": "Carry limit",
-         "text": [
-          {
-           "s": "Possession: 2 days’ quota. Fish at home don’t count.",
-           "t": "text"
-          }
-         ],
-         "won": true
-        }
-       ]
-      }
-     ]
-    },
-    {
-     "body": [
-      {
-       "k": "ladder",
-       "q": null,
-       "result": null,
-       "steps": [
-        {
-         "level": "",
-         "lines": [
-          {
-           "applies": [
-            "A B.C.-wide rule — Fraser watershed, Mission to Williams Lake River."
-           ],
-           "book": [
-            {
-             "pdf": 9,
-             "printed": 7,
-             "t": "book"
-            }
-           ],
-           "rule": "zp:white_sturgeon_licence::white_sturgeon_licence.r4",
-           "tag": "Replaced by this river’s rule",
-           "text": [
-            {
-             "s": "No fishing for white sturgeon: every non-tidal water of the province; lifted on the licensed Fraser watershed (r4x)",
-             "t": "text"
-            }
-           ],
-           "won": false
-          }
-         ]
-        }
-       ]
-      }
-     ],
-     "k": "fold",
-     "open": false,
-     "summary": "Rules that don’t apply here (1)"
+     "flow": {
+      "other": [
+       {
+        "book": [
+         {
+          "bare": true,
+          "pdf": 23,
+          "printed": 21,
+          "t": "book"
+         }
+        ],
+        "kicker": "Region 2 · base rule",
+        "rule": "z2:possession_quota::possession_quota.r1",
+        "says": [
+         {
+          "s": "Possession: 2 days’ quota. Fish at home don’t count.",
+          "t": "text"
+         }
+        ],
+        "tag": null,
+        "tone": "won"
+       }
+      ],
+      "otherHead": "Other rules",
+      "quiet": [
+       {
+        "book": [
+         {
+          "bare": true,
+          "pdf": 11,
+          "printed": 9,
+          "t": "book"
+         },
+         {
+          "s": " ",
+          "t": "text"
+         },
+         {
+          "bare": true,
+          "pdf": 86,
+          "printed": 80,
+          "t": "book"
+         }
+        ],
+        "kicker": "All of B.C.",
+        "rule": "zp:quota_defaults::quota_defaults.r1",
+        "says": [
+         {
+          "s": "Possession: 2 days’ quota. Fish at home don’t count.",
+          "t": "text"
+         }
+        ],
+        "tag": "Replaced by Region 2",
+        "tone": "lost"
+       }
+      ],
+      "quietHead": "Rules that don’t apply here (1)",
+      "result": "So: Release every one here.",
+      "steps": [
+       {
+        "book": [
+         {
+          "bare": true,
+          "pdf": 9,
+          "printed": 7,
+          "t": "book"
+         }
+        ],
+        "kicker": "All of B.C.",
+        "rule": "zp:white_sturgeon_licence::white_sturgeon_licence.r4",
+        "says": [
+         {
+          "s": "No fishing for white sturgeon: every non-tidal water of the province; lifted on the licensed Fraser watershed (r4x)",
+          "t": "text"
+         }
+        ],
+        "tag": "Lifted by Fraser watershed, Mission to Williams Lake River",
+        "tone": "lost"
+       },
+       {
+        "book": [
+         {
+          "bare": true,
+          "pdf": 9,
+          "printed": 7,
+          "t": "book"
+         }
+        ],
+        "kicker": "Fraser watershed, Mission to Williams Lake River · listed water",
+        "rule": "zp:white_sturgeon_licence::white_sturgeon_licence.r2",
+        "says": [
+         {
+          "s": "Release every white sturgeon.",
+          "t": "text"
+         }
+        ],
+        "tag": null,
+        "tone": "won"
+       }
+      ]
+     },
+     "k": "flow"
     },
     {
      "k": "link",
@@ -2578,70 +2749,88 @@
      "text": "How this was decided"
     },
     {
-     "k": "ladder",
-     "q": "What you can keep",
-     "result": "25 a day here, for all of Region 2 together.",
-     "steps": [
-      {
-       "level": "Region 2",
-       "lines": [
-        {
-         "applies": [
-          "From the Region 2 table — all of Region 2."
-         ],
-         "book": [
-          {
-           "pdf": 23,
-           "printed": 21,
-           "t": "book"
-          }
-         ],
-         "rule": "z2:daily_quotas::species_quotas.r3",
-         "tag": "Daily limit",
-         "text": [
-          {
-           "s": "Keep up to 25 crayfish a day.",
-           "t": "text"
-          }
-         ],
-         "won": true
-        }
-       ]
-      }
-     ]
-    },
-    {
-     "k": "ladder",
-     "q": "Other rules",
-     "result": null,
-     "steps": [
-      {
-       "level": "Region 2",
-       "lines": [
-        {
-         "applies": [
-          "From the Region 2 table — all of Region 2."
-         ],
-         "book": [
-          {
-           "pdf": 23,
-           "printed": 21,
-           "t": "book"
-          }
-         ],
-         "rule": "z2:possession_quota::possession_quota.r1",
-         "tag": "Carry limit",
-         "text": [
-          {
-           "s": "Possession: 2 days’ quota. Fish at home don’t count.",
-           "t": "text"
-          }
-         ],
-         "won": true
-        }
-       ]
-      }
-     ]
+     "flow": {
+      "other": [
+       {
+        "book": [
+         {
+          "bare": true,
+          "pdf": 23,
+          "printed": 21,
+          "t": "book"
+         }
+        ],
+        "kicker": "Region 2 · base rule",
+        "rule": "z2:possession_quota::possession_quota.r1",
+        "says": [
+         {
+          "s": "Possession: 2 days’ quota. Fish at home don’t count.",
+          "t": "text"
+         }
+        ],
+        "tag": null,
+        "tone": "won"
+       }
+      ],
+      "otherHead": "Other rules",
+      "quiet": [
+       {
+        "book": [
+         {
+          "bare": true,
+          "pdf": 11,
+          "printed": 9,
+          "t": "book"
+         },
+         {
+          "s": " ",
+          "t": "text"
+         },
+         {
+          "bare": true,
+          "pdf": 86,
+          "printed": 80,
+          "t": "book"
+         }
+        ],
+        "kicker": "All of B.C.",
+        "rule": "zp:quota_defaults::quota_defaults.r1",
+        "says": [
+         {
+          "s": "Possession: 2 days’ quota. Fish at home don’t count.",
+          "t": "text"
+         }
+        ],
+        "tag": "Replaced by Region 2",
+        "tone": "lost"
+       }
+      ],
+      "quietHead": "Rules that don’t apply here (1)",
+      "result": "So: 25 a day here, for all of Region 2 together.",
+      "steps": [
+       {
+        "book": [
+         {
+          "bare": true,
+          "pdf": 23,
+          "printed": 21,
+          "t": "book"
+         }
+        ],
+        "kicker": "Region 2 · base rule",
+        "rule": "z2:daily_quotas::species_quotas.r3",
+        "says": [
+         {
+          "s": "Keep up to 25 crayfish a day.",
+          "t": "text"
+         }
+        ],
+        "tag": null,
+        "tone": "won"
+       }
+      ]
+     },
+     "k": "flow"
     },
     {
      "k": "link",
@@ -2709,37 +2898,36 @@
      "text": "How this was decided"
     },
     {
-     "k": "ladder",
-     "q": "What you can keep",
-     "result": "Closed here.",
-     "steps": [
-      {
-       "level": "Federal law",
-       "lines": [
-        {
-         "applies": [
-          "Set by a federal or park authority — Region 2."
-         ],
-         "book": [
-          {
-           "pdf": 23,
-           "printed": 21,
-           "t": "book"
-          }
-         ],
-         "rule": "z2:protected_species::protected_species.r1",
-         "tag": "Closed",
-         "text": [
-          {
-           "s": "No fishing for Nooksack dace, Salish sucker, green sturgeon and Cultus Lake sculpin.",
-           "t": "text"
-          }
-         ],
-         "won": true
-        }
-       ]
-      }
-     ]
+     "flow": {
+      "other": [],
+      "otherHead": "Other rules",
+      "quiet": [],
+      "quietHead": "Rules that don’t apply here (0)",
+      "result": "So: Closed here.",
+      "steps": [
+       {
+        "book": [
+         {
+          "bare": true,
+          "pdf": 23,
+          "printed": 21,
+          "t": "book"
+         }
+        ],
+        "kicker": "Federal law",
+        "rule": "z2:protected_species::protected_species.r1",
+        "says": [
+         {
+          "s": "No fishing for Nooksack dace, Salish sucker, green sturgeon and Cultus Lake sculpin.",
+          "t": "text"
+         }
+        ],
+        "tag": null,
+        "tone": "won"
+       }
+      ]
+     },
+     "k": "flow"
     },
     {
      "k": "link",

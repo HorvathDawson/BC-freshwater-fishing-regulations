@@ -79,9 +79,15 @@ describe("<SheetBody>: each fish pictured once per sheet (T868)", () => {
   it("a group card that opens its sheet draws no heavy rule of its own under the sheet's title rule; elsewhere it keeps it", { timeout: 60_000 }, async () => {
     const s = (await otherSheets()).find((x) => x.vm.blocks[0]?.k === "group");
     expect(s, "a group sheet that opens with its card").toBeDefined();
-    const rule = (el: Element) => getComputedStyle(el.querySelector("[data-testid='keep-group']")!.firstElementChild!).borderTopWidth;
-    expect(rule(render(<SheetBody vm={s!.vm} palette={LIGHT} onOpen={() => {}} />).container)).toBe("0px");
+    const heavy = (el: Element) => [...el.querySelectorAll("[data-testid='keep-group'] *")].filter((e) => getComputedStyle(e).borderTopWidth === "1.5px").length;
+    // (T883, owner ~23:25) in its sheet the card is the answer alone: no head band, so none of its rule (the examples
+    // fold keeps its own line); a card with its head (titled, not first in a sheet) draws the band's rule on top of that
+    const inSheet = heavy(render(<SheetBody vm={s!.vm} palette={LIGHT} onOpen={() => {}} />).container);
     cleanup();
-    expect(rule(render(<SheetBlockView b={s!.vm.blocks[0]!} palette={LIGHT} onOpen={() => {}} />).container)).toBe("1.5px");
+    const b = s!.vm.blocks[0]!;
+    if (b.k !== "group") throw new Error("not a group block");
+    const first = render(<SheetBlockView b={{ ...b, titled: true }} palette={LIGHT} onOpen={() => {}} />).container;
+    expect(heavy(first)).toBe(inSheet + 1);
+    expect(getComputedStyle(first.querySelector("[data-testid='keep-group']")!.firstElementChild!).borderTopWidth).toBe("1.5px");
   });
 });
