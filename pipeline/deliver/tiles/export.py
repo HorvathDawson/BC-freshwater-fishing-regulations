@@ -321,6 +321,8 @@ def export_streams(build_dir: Path, out_dir: Path, *, limit: int | None = None,
             # identity, search and containment are the bundle's (`item_section`, `alias`,
             # `area:` items) — and `_writer` drops what `layers.py` does not list.
             "ord": node.stream_order,
+            # (T891) `sc: 1` on a braid's side channel, ABSENT on the main channel: the style draws it thinner.
+            **side_channel_flag(node),
         }, run_zoom.get(sec) or ladder.zoom_for_magnitude(node.stream_magnitude, spec.minzoom), sec)
     # (T493 reopened) NO HOLE INSIDE ONE WATER: a piece hidden at a zoom its own water is drawn at on both sides of it
     # is drawn from that zoom (Nicomen Slough z7-z10, Camp Slough z11). Then every stream feature is written.
@@ -688,6 +690,14 @@ def is_side_channel_piece(node) -> bool:
     from pipeline.common import fwa_edge_types as et
     return (_kind(node) == "stream" and bool(node.edge_types) and not et.is_main_flow(node)
             and not et.is_manmade_secondary_only(node))
+
+
+def side_channel_flag(node) -> dict:
+    """(T891, owner 2026-11-18: "side channels should be less bold") The stream feature's side-channel mark:
+    `{"sc": 1}` on a side-channel piece (`is_side_channel_piece`), `{}` on every other line. Only the flag, and
+    only where it is true: absence is the main channel, so the tiles grow by one small key on the side channels
+    alone. The app's style filters on `["has", "sc"]`."""
+    return {"sc": 1} if is_side_channel_piece(node) else {}
 
 
 def side_channel_run_zooms(graph, drawn, zoom_of) -> dict[str, int]:

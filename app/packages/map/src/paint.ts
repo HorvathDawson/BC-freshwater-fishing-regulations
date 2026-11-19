@@ -396,10 +396,24 @@ type WidthSpec = Exclude<(typeof STYLE_META.widths)[string], string>;
 /** One stop of a "linear" width: its zoom, the width there (zoom and the tile's order only), the T470 closed factor. */
 interface WidthStop { at: number; w: unknown; f: number }
 
-function linearStops(spec: WidthSpec, scale: number): WidthStop[] {
+/** (T891) The factor a side channel's width takes — `["case", ["has", "sc"], factor, 1]` — or null where the width has none. */
+function sideChannelFactor(spec: WidthSpec, tokens: Tokens): unknown | null {
+  const sc = (spec as { sideChannel?: { has: string; token: string } }).sideChannel;
+  if (sc === undefined) return null;
+  const f = Number(tokens[sc.token]);
+  if (!(f > 0 && f <= 1)) throw new Error(`the side-channel width token ${sc.token} is ${String(tokens[sc.token])}, not a factor in (0, 1]`);
+  return f === 1 ? null : ["case", ["has", sc.has], f, 1];
+}
+
+function linearStops(spec: WidthSpec, tokens: Tokens): WidthStop[] {
+  const scale = Number(tokens[spec.token] ?? 1);
   const attr = ["coalesce", ["to-number", ["get", spec.by]], 1];
-  return spec.ramp.map(([at, base, slope]) => ({
-    at, w: ["*", scale, ["+", base, ["*", attr, slope]]], f: spec.closed ? rampAt(spec.closed, at) : 1 }));
+  // (T891) a braid's side channel (`sc`) is drawn thinner, in every stop: the main channel keeps its width
+  const side = sideChannelFactor(spec, tokens);
+  return spec.ramp.map(([at, base, slope]) => {
+    const w = ["*", scale, ["+", base, ["*", attr, slope]]];
+    return { at, w: side === null ? w : ["*", side, w], f: spec.closed ? rampAt(spec.closed, at) : 1 };
+  });
 }
 
 /** A stop's width with the T470 factor on the sections `closed` holds (the stop itself where there is none). */
@@ -456,7 +470,7 @@ export function streamWidths(mode: string, tokens: Tokens, given: ChannelValues 
   const spec = STYLE_META.widths["stream"];
   if (spec === undefined || typeof spec === "string" || (spec.mode ?? "linear") !== "linear")
     throw new Error("streamWidths: the stream's width is no longer a linear ramp over order");
-  const stops = linearStops(spec, Number(tokens[spec.token] ?? 1));
+  const stops = linearStops(spec, tokens);
   const closed = spec.closed ? closedShown("stream", eff, values) : null;
   const floor = highlightFloor(tokens);
   const lit = floor === null ? null : tokens["width.stream.water"] !== undefined ? ["any", SELECTED, PART, WATER] : SELECTED;
@@ -605,7 +619,7 @@ export function paintFor(layerId: string, mode: string, tokens: Tokens,
       } else {
         // (T470) `closed`: a section the day paints closed is drawn this much heavier, short of the factor's last zoom
         const closed = spec.closed ? closedShown(layerId, mode, values) : null;
-        for (const s of linearStops(spec, scale)) z.push(s.at, closedPart(s, closed));
+        for (const s of linearStops(spec, tokens)) z.push(s.at, closedPart(s, closed));
       }
       out[widthKey] = z;
     }

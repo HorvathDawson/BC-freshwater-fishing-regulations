@@ -320,7 +320,7 @@ def test_every_waterbody_becomes_a_node_so_zone_rules_can_reach_it():
 #: compatibility key) and the administrative geography; `name` is for map labels only. Adding a property, above all a
 #: status, a rule or anything a data release changes, must be a decision made here, so it fails until this list moves.
 TILE_INVENTORY = {
-    "stream": ("section_id", "name", "ord"), "stream_name": ("name", "ord"), "lake": ("section_id", "name", "water", "area_m2"), "under_lake": (),
+    "stream": ("section_id", "name", "ord", "sc"), "stream_name": ("name", "ord"), "lake": ("section_id", "name", "water", "area_m2"), "under_lake": (),
     "wetland": ("section_id", "name", "water"), "not_fishing_water": ("kind",), "contour": ("item", "depth_m", "index"),
     "park": ("area_id", "name", "kind"), "eco_reserve": ("area_id", "name"), "sign_zone": ("area_id", "name", "cuts"),
     "wma": ("area_id", "name"), "indigenous_land": ("area_id", "name", "name_indigenous", "group"),
@@ -510,6 +510,42 @@ def test_a_side_channel_run_draws_whole_from_its_biggest_pieces_zoom():
     assert out["S1"] == out["S2"] == out["S3"] == zoom("S1") < zoom("S2")
     assert "M" not in out and "C" not in out            # main flow keeps the ladder's own zoom
     assert out["X"] == zoom("X")                          # a separate run (joined only through M)
+
+
+def test_a_side_channel_carries_sc_1_and_the_main_channel_carries_nothing(tmp_path):
+    """T891 (owner 2026-11-18: "side channels should be less bold"): a stream feature carries `sc: 1` on a braid's side
+    channel only — FWA secondary flow, not a canal, never a river's own line — and NO `sc` key on any other line, so
+    the tiles grow only where the flag says something. It survives the layer file AND the tile cut; the style filters
+    on `["has", "sc"]`."""
+    import inspect
+
+    from pipeline.common.models import NodeKind, StreamNode
+    from pipeline.deliver.tiles import export
+    from pipeline.deliver.tiles.tippe import _tile_props
+
+    def n(nid, *et, kind=NodeKind.stream):
+        return StreamNode(node_id=nid, kind=kind, blk=nid, edge_types=tuple(et))
+
+    side = [n("S1", "1350"), n("S2", "1100"), n("S3", "1450")]
+    main = [n("M", "1250"), n("M2", "1000"), n("MS", "1000", "1350"),      # a piece carrying a main line is main
+            n("C", "2300"), n("A"),                                          # a canal; an added stream (no types)
+            n("L", "1350", kind=NodeKind.lake)]                              # never on a polygon's route
+    assert [export.side_channel_flag(x) for x in side] == [{"sc": 1}] * 3
+    assert [export.side_channel_flag(x) for x in main] == [{}] * len(main)
+
+    spec = BY_NAME["stream"]
+    write, close = export._writer(tmp_path, spec)
+    for x in side[:1] + main[:1]:
+        write({"type": "LineString", "coordinates": [[0, 0], [1, 1]]},
+              {"section_id": 7, "name": "Lillooet River", "ord": 6, **export.side_channel_flag(x)}, 10)
+    close()
+    rows = [json.loads(l) for l in (tmp_path / "stream.geojsonl").read_text().splitlines()]
+    tiled = [_tile_props(spec, r["properties"]) for r in rows]
+    assert tiled == [{"name": "Lillooet River", "ord": 6, "sc": 1}, {"name": "Lillooet River", "ord": 6}]
+    contract = json.loads((ROOT / "pipeline/deliver/tiles/tile-contract.json").read_text())
+    assert "sc" in contract["layers"]["stream"]["attrs"]
+    # the stream LINE writer stamps it (a polygon's route and a lake link never do: neither is a side channel)
+    assert "side_channel_flag(node)" in inspect.getsource(export.export_streams)
 
 
 def test_the_temp_dir_tippecanoe_records_never_reaches_the_tile_version():

@@ -2269,6 +2269,11 @@
           ]
         ],
         "$comment_t470": "(T470 B, owner 2026-11-07) THINNER AT MID ZOOM, today's from z12: the z8-z11 stops were [8, .6, .15], [11, .75, .75] (ord 5: 1.35 / 3.45 / 4.5 px at z8 / z10 / z11, now 1.0 / 1.95 / 3.25). The same curve drives the closed stripe, the gear edges and the selection casing. `closed`: a closed section's width times this factor, so closed is the heaviest line on the mid-zoom map (1.3 from z7 to z11, back to 1 at z12).",
+        "sideChannel": {
+          "token": "width.stream.side",
+          "has": "sc",
+          "$comment": "(T891, owner 2026-11-18: \"side channels should be less bold too\") A braid's SIDE CHANNEL (the tile's `sc`, present only there: pipeline export.is_side_channel_piece) is drawn at this factor of the width its order gives, in the SAME colour (one water); the main channel, which carries no `sc`, keeps its width. Inside every stop of this curve, so the closed stripe, the gear edges, the casings and the heavy layer all follow it with no layer added; a selected or lit side channel still takes the highlight's floor (`width.stream.highlight` / `.water`), so selection reads the same on it."
+        },
         "closed": [
           [
             6,

@@ -94,13 +94,16 @@ WATER: tuple[LayerSpec, ...] = (
     LayerSpec(
         name="stream", geometry="line", ladder="magnitude", mvt_id=True,
         flows="mouth_to_source",
-        attrs=("section_id", "name", "ord"),
+        attrs=("section_id", "name", "ord", "sc"),
         why="Every flowing reach, and the route through a polygon that is a STREAM's own (a "
             "river's wide reach, a slough: the registry's kind) under that polygon's section id, "
             "so the river has no hole at the zooms its polygon is not drawn at. `section_id` is "
             "the feature id the app sets state on. `name` is the REGISTRY owner's name (the "
             "water a tap opens) and is DRAWN — the along-the-line label at z11+. `ord` is "
             "Strahler order and sets line weight; it is read by the style, not by app code. "
+            "`sc` (T891) is `1` on a braid's SIDE CHANNEL only (`export.is_side_channel_piece`: FWA secondary "
+            "flow, not a canal, never a river's own line) and ABSENT on the main channel, so it costs nothing "
+            "where it says nothing; the style draws a side channel thinner, in the same colour (one water). "
             "(`alt`, `mus` and `areas` were carried and read by nothing — search is the "
             "bundle's — so they are gone, 2026-10-03; containment is the bundle's `area:` items.)",
     ),
