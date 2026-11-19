@@ -301,6 +301,7 @@ reads both files; a ticket closed here moves there once its lane is finished wit
 | T867 | Notifications inbox: since install only, read once seen, short, with data and app updates (owner) | OPEN | app chat | owner 2026-11-18, after the 0.8.1 releases |
 | T869 | The chinook annual limit says "over 50 cm" where it counts ADULT chinook, which is over 62 or 65 cm on some rivers (owner) | OPEN | main chat | owner 2026-11-18 ~20:22 |
 | T870 | Salmon card: Source (DFO) lists every DFO row behind its answers; each bait-ban line says whose, once; a whole-year window reads "all year" (owner) | OPEN | main chat | owner 2026-11-18 ~20:25 |
+| T876 | Quick zoom in and out lags more on the phone in 0.8.1 (owner trace 20:35); suspect the 4c005321e stream split on native | OPEN | app chat | owner 2026-11-18 20:37 |
 
 ## Next after closed testing
 
