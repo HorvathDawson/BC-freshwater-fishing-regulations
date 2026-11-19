@@ -2722,3 +2722,4 @@ More questions (recommended answer first):
 - 2026-11-18 ~17:10, owner (to the main chat, relayed 17:12), verbatim: "conditions seems like it was laggy like salmon map
   was maybe it had same issue?" -> T861: measure the Conditions map against 0.8.0 and the 0.8.1 build (which has the
   T848/T855 fix); fix it if the Conditions map was left out.
+- 2026-11-18 ~17:20, owner (relayed), verbatim: "also check run timing to while at it" -> T861 measures the Run timing map too.
