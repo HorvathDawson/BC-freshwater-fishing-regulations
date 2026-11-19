@@ -6,7 +6,7 @@
  */
 import { describe, expect, it } from "vitest";
 import type { LadderItem } from "./decided";
-import { downLine, flowOf, partStep, restateStep, withNotes, withWeek } from "./flow";
+import { downLine, flowOf, type DownScope, partStep, restateStep, withNotes, withWeek } from "./flow";
 import type { RuleIndex, RuleView } from "./inputs";
 import type { TroutRowVM, TroutVM } from "./model";
 import type { FishAnswer } from "../answers.generated";
@@ -154,43 +154,82 @@ describe("troutFlow (T883: a trout row's rail from its whole list and the fish's
   });
 });
 
+/** (T892) a stored answer as Python writes it: its roles, the rule that wins it (the governing one) and whether a narrowing
+ *  lowered its number */
+const decided = (roles: [number, string][]): DownScope["cells"][number] =>
+  ({ win: roles.find(([, r]) => r === "governs")?.[0] ?? -1, narrow: roles.some(([, r]) => r === "narrows") ? 1 : null,
+     roles: roles.map(([i, r]) => [i, r, null]) }) as DownScope["cells"][number];
+
 describe("(T892) the table's row says when its answer comes down from another water's row to its tributaries", () => {
   const TRIB = { ...rule("koot", 1, "Kootenay River", "4", "Release every burbot.", 36), via: "trib", baseRank: 0 } as unknown as RuleView;
   const ELK = { ...rule("elk", 1, "Elk River", "4", "Keep 1 bull trout.", 36), via: "trib", baseRank: 0 } as unknown as RuleView;
   const TWIN = { ...rule("twin", 1, "Twin Lakes", "4", "Keep 2 bull trout.", 36), via: "trib", baseRank: 0 } as unknown as RuleView;
+  const DUCK = { ...rule("duck", 1, "Duck Lake", "4", "Keep up to 3 smallmouth bass.", 36), via: "trib", baseRank: 0 } as unknown as RuleView;
   const R4 = rule("r4", 3, "Region 4", "4", "Keep up to 5 burbot a day.", 34);
   const OWN = rule("own", 0, "Anchor Creek", "4", "Release every burbot.", 36);
+  // the stored answers: one roles list per fish × origin, over these rules by index
+  const IX = [TRIB, ELK, TWIN, DUCK, R4, OWN];
+  const ix = (r: RuleView) => IX.indexOf(r);
+  const scope = (...cells: [RuleView, string][][]): DownScope =>
+    ({ cells: cells.map((c) => decided(c.map(([r, role]) => [ix(r), role]))), rules: { get: (i: number) => IX[i]! } });
   const down = (f: ReturnType<typeof flowOf>) => downLine(f.down ?? []);
   it("FlowVM.down + downLine: the water the sheet's deciding kicker names; a water's own or region row says nothing", () => {
-    const f = flowOf([item(TRIB, "governs"), item(R4, "replaced", TRIB)], says, "Anchor Creek", null);
+    const f = flowOf([item(TRIB, "governs"), item(R4, "replaced", TRIB)], says, "Anchor Creek", null,
+      scope([[TRIB, "governs"], [R4, "replaced"]], [[TRIB, "governs"], [R4, "replaced"]]));
     expect(f.steps.filter((s) => s.tone === "won").map((s) => s.kicker)).toEqual(["Kootenay River · its tributaries"]);
     expect(down(f)).toBe("Kootenay River’s rule for its tributaries");
-    expect(down(flowOf([item(OWN, "governs"), item(R4, "replaced", OWN)], says, "Anchor Creek", null))).toBeNull();
-    expect(down(flowOf([item(R4, "governs")], says, "Anchor Creek", null))).toBeNull();
+    expect(down(flowOf([item(OWN, "governs"), item(R4, "replaced", OWN)], says, "Anchor Creek", null, scope([[OWN, "governs"]])))).toBeNull();
+    expect(down(flowOf([item(R4, "governs")], says, "Anchor Creek", null, scope([[R4, "governs"]])))).toBeNull();
+    // no stored answers to check against: no line
+    expect(down(flowOf([item(TRIB, "governs")], says, "Anchor Creek", null))).toBeNull();
   });
   it("a tributary rule that was replaced, or only a possession rule, decides nothing here: no line", () => {
-    expect(down(flowOf([item(R4, "governs"), item(TRIB, "replaced", R4)], says, "Anchor Creek", null))).toBeNull();
-    expect(down(flowOf([item(R4, "governs"), item(TRIB, "possession")], says, "Anchor Creek", null))).toBeNull();
+    expect(down(flowOf([item(R4, "governs"), item(TRIB, "replaced", R4)], says, "Anchor Creek", null,
+      scope([[R4, "governs"], [TRIB, "replaced"]])))).toBeNull();
+    expect(down(flowOf([item(R4, "governs"), item(TRIB, "possession")], says, "Anchor Creek", null,
+      scope([[R4, "governs"], [TRIB, "possession"]])))).toBeNull();
   });
   it("review 3: a tributary rule the rail drops (a region rule with the same words decides) is not named on the row either", () => {
     const SAME = rule("r4same", 3, "Region 4", "4", "Release every burbot.", 34);
-    const f = flowOf([item(SAME, "governs"), item(TRIB, "governs")], says, "Anchor Creek", null);
+    const f = flowOf([item(SAME, "governs"), item(TRIB, "governs")], says, "Anchor Creek", null, scope([[TRIB, "governs"]]));
     expect(f.steps.map((s) => s.kicker)).toEqual(["Region 4 · base rule"]);
     expect(down(f)).toBeNull();
   });
   it("review 1: a Bass row whose smallmouth come down from Duck Lake and whose largemouth are the region's: no line", () => {
-    const DUCK = { ...rule("duck", 1, "Duck Lake", "4", "Keep up to 3 smallmouth bass.", 36), via: "trib", baseRank: 0 } as unknown as RuleView;
-    const forFish = (r: RuleView, role: string, spp: string[]): LadderItem => ({ r, role, by: null, spp: new Set(spp) });
-    const half = flowOf([forFish(DUCK, "governs", ["SMB"]), forFish(R4, "governs", ["LMB"])], says, "Cory Creek", null, ["LMB", "SMB"]);
+    const items = [item(DUCK, "governs"), item(R4, "governs")];
+    const half = flowOf(items, says, "Cory Creek", null, scope([[DUCK, "governs"]], [[R4, "governs"]]));
     expect(half.steps.map((s) => s.kicker)).toContain("Duck Lake · its tributaries");   // the sheet says it, for the smallmouth
     expect(down(half)).toBeNull();
-    const whole = flowOf([forFish(DUCK, "governs", ["SMB", "LMB"])], says, "Cory Creek", null, ["LMB", "SMB"]);
+    const whole = flowOf([item(DUCK, "governs")], says, "Cory Creek", null, scope([[DUCK, "governs"]], [[DUCK, "governs"]]));
     expect(down(whole)).toBe("Duck Lake’s rule for its tributaries");
   });
+  it("review 2-1: a tributary step that only sets the hatchery ones' size (Lonzo Creek on Shamrock Creek): no line; one that lowers every answer's number: the line", () => {
+    const SIZE = { ...rule("lonzo", 1, "Lonzo Creek", "2", "No hatchery trout under 30 cm.", 22), via: "trib", baseRank: 0 } as unknown as RuleView;
+    const R2 = rule("r2", 3, "Region 2", "2", "Keep up to 2 trout a day.", 21), R2W = rule("r2w", 3, "Region 2", "2", "Release wild trout.", 21);
+    const IX2 = [SIZE, R2, R2W], at = (r: RuleView) => IX2.indexOf(r);
+    const sc = (...cells: [RuleView, string][][]): DownScope =>
+      ({ cells: cells.map((c) => decided(c.map(([r, role]) => [at(r), role]))), rules: { get: (i: number) => IX2[i]! } });
+    const f = flowOf([item(R2, "governs"), item(SIZE, "floor"), item(R2W, "governs")], says, "Shamrock Creek", null,
+      sc([[R2, "governs"], [SIZE, "floor"]], [[R2W, "governs"]]));
+    expect(f.steps.map((s) => s.kicker)).toContain("Lonzo Creek · its tributaries");
+    expect(down(f)).toBeNull();
+    // the answer is won by the region's rule even where a tributary rule lowers the number: no line; won by the tributary
+    // rule and lowered by the region's: no line; won and lowered by tributary rules: the line
+    const LOW = { ...rule("lonzo2", 1, "Lonzo Creek", "2", "At most 1 trout a day.", 22), via: "trib", baseRank: 0 } as unknown as RuleView;
+    const WIN = { ...rule("lonzo3", 1, "Lonzo Creek", "2", "Keep up to 2 trout a day.", 22), via: "trib", baseRank: 0 } as unknown as RuleView;
+    const R2N = rule("r2n", 3, "Region 2", "2", "At most 1 trout a day from streams.", 21);
+    IX2.push(LOW, WIN, R2N);
+    expect(down(flowOf([item(R2, "governs"), item(LOW, "narrows")], says, "Shamrock Creek", null,
+      sc([[R2, "governs"], [LOW, "narrows"]])))).toBeNull();
+    expect(down(flowOf([item(WIN, "governs"), item(R2N, "narrows")], says, "Shamrock Creek", null,
+      sc([[WIN, "governs"], [R2N, "narrows"]])))).toBeNull();
+    expect(down(flowOf([item(WIN, "governs"), item(LOW, "narrows")], says, "Shamrock Creek", null,
+      sc([[WIN, "governs"], [LOW, "narrows"]], [[WIN, "governs"], [LOW, "narrows"]])))).toBe("Lonzo Creek’s rule for its tributaries");
+  });
   it("two waters: both named, once each; review 5: a name ending in s takes only ’", () => {
-    expect(down(flowOf([item(TRIB, "governs"), item(ELK, "narrows")], says, "Anchor Creek", null)))
-      .toBe("Kootenay River’s and Elk River’s rules for their tributaries");
-    expect(down(flowOf([item(TWIN, "governs")], says, "Twin Creek", null))).toBe("Twin Lakes’ rule for its tributaries");
+    expect(down(flowOf([item(TRIB, "governs"), item(ELK, "narrows")], says, "Anchor Creek", null,
+      scope([[TRIB, "governs"]], [[TRIB, "governs"], [ELK, "narrows"]])))).toBe("Kootenay River’s and Elk River’s rules for their tributaries");
+    expect(down(flowOf([item(TWIN, "governs")], says, "Twin Creek", null, scope([[TWIN, "governs"]])))).toBe("Twin Lakes’ rule for its tributaries");
   });
 });
 
@@ -201,7 +240,8 @@ describe("(T892) troutFrom: the trout fold's tributary line", () => {
   const rules = { get: (ix: number) => RS.get(ix)! } as unknown as Pick<RuleIndex, "get">;
   const trow = (key: string, src: number[]) => ({ key, fish: key, src, origin: null, sheet: { head: "Release" } }) as unknown as TroutRowVM;
   const table = (...rows: TroutRowVM[]) => ({ boxes: [{ rows }] }) as unknown as TroutVM;
-  const ans = (roles: [number, string, number | null][]) => ({ lead: "wild", hatchery: null, wild: { roles } }) as unknown as FishAnswer;
+  const dec = (roles: [number, string, number | null][]) => decided(roles.map(([i, r]) => [i, r]));
+  const ans = (roles: [number, string, number | null][]) => ({ lead: "wild", hatchery: null, wild: dec(roles) }) as unknown as FishAnswer;
   const down = ans([[1, "governs", null], [2, "replaced", 1]]), own = ans([[2, "governs", null]]);
   it("every row from the same water's tributary rule: the fold says it, whole", () => {
     expect(troutFrom(table(trow("RB", [1, 2]), trow("CT", [1, 2])), () => down, rules, "Nygaard Creek"))
@@ -210,5 +250,15 @@ describe("(T892) troutFrom: the trout fold's tributary line", () => {
   it("only some rows (the others the region's): no fold line — the table's rows are Python's words (T810)", () => {
     expect(troutFrom(table(trow("DV", [1, 2]), trow("RB", [2])), (f) => (f === "DV" ? down : own), rules, "Bryce Creek")).toBeNull();
     expect(troutFrom(table(trow("RB", [2])), () => own, rules, "Mamquam River")).toBeNull();
+  });
+  it("review 2-1: every row's only tributary step is the hatchery ones' size rule, the number and the wild release the region's: no line", () => {
+    const both = { lead: "hatchery", hatchery: dec([[2, "governs", null], [1, "floor", null]]), wild: dec([[2, "governs", null]]) } as unknown as FishAnswer;
+    expect(troutFrom(table(trow("RB", [2, 1]), trow("CT", [2, 1])), () => both, rules, "Shamrock Creek")).toBeNull();
+    // the tributary rule sets the hatchery number but the wild ones are the region's: still no line
+    const half = { lead: "hatchery", hatchery: dec([[1, "governs", null]]), wild: dec([[2, "governs", null]]) } as unknown as FishAnswer;
+    expect(troutFrom(table(trow("RB", [1, 2])), () => half, rules, "Shamrock Creek")).toBeNull();
+    // a twin row covers its own origin only
+    const twin = { ...trow("RB/hatchery", [1]), origin: "hatchery" } as TroutRowVM;
+    expect(troutFrom(table(twin), () => half, rules, "Shamrock Creek")).toBe("Bella Coola River’s rule for its tributaries");
   });
 });

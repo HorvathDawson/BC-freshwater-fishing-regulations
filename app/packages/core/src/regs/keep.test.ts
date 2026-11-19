@@ -5,13 +5,15 @@
  * conformance/src/regs/keep.parity.test.ts (retired, T439).
  */
 import { describe, expect, it } from "vitest";
-import { keepOf, keepOrder, plainRowSeams, sectionNotesOf, type KeepEnv } from "./keep";
+import { groupOf, keepOf, keepOrder, plainRowSeams, sectionNotesOf, type KeepEnv } from "./keep";
+import { drawnRows } from "./grouphead";
+import { cardOf, INP, RIX, rv, TROUT_ROW } from "./testing/keepFixtures";
 import { closeForFinfish } from "./finfish";
 import { otherFishKeyOf } from "./others";
 import { runOf } from "./strip";
 import { FISH } from "./fish.generated";
 import type { CaveatVM, KeepVM, OtherFishRowVM, RegsPage } from "./model";
-import type { RegsInputs } from "./inputs";
+import type { RegsInputs, RuleView } from "./inputs";
 
 const none = { strip: false, inherited: false, banner: false, caveats: [], rows: [], otherFish: false, possession: false, whereNot: false };
 
@@ -124,5 +126,26 @@ describe("plainRowSeams: T19b's seams bound to the merged presenters", () => {
   it("the fish names and pictures: the species book's name first; a fish with no picture is a silhouette", () => {
     expect([seams.fishName("RB"), seams.hasFish("RB"), seams.hasFish("ZZ"), seams.more]).toEqual(["Rainbow trout", true, false, "See every regulation line ›"]);
     expect(seams.pictures(["ZZ"])).toEqual([{ code: "ZZ", name: "ZZ", sil: true }]);
+  });
+});
+
+describe("(T892, review 2-2) groupOf: a quota group decided by another water's tributary rule carries its fold's line", () => {
+  // keepFixtures' Vedder-like trout group; rule 10 is the Chilliwack River's row reaching this part by its tributaries
+  const TRIB = { ...rv(10), missing: false, rank: 1, baseRank: 0, via: "trib", part: null, export: { prov: { rank: 0, entry_name: "Chilliwack River" } } } as unknown as RuleView;
+  const rules = { ...RIX, get: (i: number) => (i === 10 ? TRIB : rv(i)), has: (i: number) => i === 10 || RIX.has(i) };
+  const fish = TROUT_ROW.all_members;
+  const groupWith = (roles: (S: string) => [number, string, null][]) => {
+    const base = cardOf([TROUT_ROW], { R: Object.fromEntries(fish.map((S) => [S, {}])) as never });
+    const card = { ...base, ctx: { ...base.ctx, s: 0 } } as typeof base;
+    const inp = { ...INP(), rules, year: { rowsBySeg: [{ fish: Object.fromEntries(fish.map((S) =>
+      [S, { lead: "hatchery", hatchery: { win: roles(S)[0]![0], narrow: null, roles: roles(S) }, wild: { win: roles(S)[0]![0], narrow: null, roles: roles(S) } }])) }] } } as unknown as RegsInputs;
+    const env = { card, settled: { lifted: new Map(), day: { month: 10, day: 10 } }, fish: FISH, today: { month: 10, day: 10 }, tot: "a" } as unknown as KeepEnv;
+
+    return groupOf(0, inp, env, drawnRows(card), plainRowSeams(inp, FISH));
+  };
+  it("every fish and origin decided by the tributary rule: the line, whole; the region's rows: none", () => {
+    expect(groupWith(() => [[10, "governs", null], [1, "replaced", null]]).from).toBe("Chilliwack River’s rule for its tributaries");
+    expect(groupWith(() => [[1, "governs", null]]).from).toBeUndefined();
+    expect(groupWith((S) => (S === "RB" ? [[10, "governs", null]] : [[1, "governs", null]])).from).toBeUndefined();
   });
 });

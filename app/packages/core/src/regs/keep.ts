@@ -64,7 +64,10 @@ export function groupOf(rowIx: number, inp: RegsInputs, env: KeepEnv, drawn: Rea
   const head = groupHeadOf(ctx, { tot: env.tot });
   // (T868) each fish pictured once in the card: on its first keep line
   const { tree, notKept } = onePictureEach(treeOf(tenv), notKeptOf(ctx.g, tenv));
+  // (T892) the group's fold in the one table says when its answer is another water's tributary rule (its sheet's flow)
+  const from = downLine(rowDown(env.card.rows[rowIx]!, { card: env.card, settled: env.settled, inp, seams }));
   return {
+    ...(from ? { from } : {}),
     row: rowIx, title: ctx.title, scope: ctx.scope, head,
     origin: originOf(ctx),
     year: yearWindowOf(ctx.row, inp, env.settled.day, seams),
@@ -131,9 +134,6 @@ function troutFromOf(t: ReturnType<typeof troutOf>, inp: RegsInputs, card: CardM
   return f ? troutFrom(t, (S) => f.fish[S] ?? null, inp.rules, inp.item?.name || inp.place?.name || "") : null;
 }
 
-/** (T892) a quota group with its fold's tributary line (the group sheet's own flow, `rowDown`); null: none. */
-const withFrom = (g: GroupVM, from: string | null): GroupVM => (from ? { ...g, from } : g);
-
 export function keepOf(inp: RegsInputs, env: KeepEnv): KeepVM {
   const edge = edgeKind(inp);                                       // (T42) the two edges with no card
   if (edge === "outside") return outsideKeep();
@@ -163,7 +163,7 @@ export function keepOf(inp: RegsInputs, env: KeepEnv): KeepVM {
     for (const i of splitRows(card, covers).main) {
       if (!drawn.has(i)) continue;                                  // page v36 draws no article for a parent row
       const row = card.rows[i]!;
-      if (row.raw.group?.headline) { rows.push({ group: groups.length }); groups.push(withFrom(groupOf(i, inp, env, drawn, seams), downLine(rowDown(row, { card, settled, inp, seams })))); }
+      if (row.raw.group?.headline) { rows.push({ group: groups.length }); groups.push(groupOf(i, inp, env, drawn, seams)); }
       else if (isPlainRow(row)) { rows.push({ plain: plainRows.length }); plainRows.push(plainRowOf(i, { inp, card, settled, seams })); }
       // else: a pooled row with no stored headline — page v36's legacy card path, not ported. (T670 K4/K5) It is a line of
       // the compact list (others.ts `looseRows`)

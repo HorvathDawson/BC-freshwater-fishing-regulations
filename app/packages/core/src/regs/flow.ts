@@ -13,7 +13,8 @@
 import { ruleBook } from "./book";
 import type { LadderItem } from "./decided";
 import { DECIDE as D } from "./decidedWords";
-import type { RuleView } from "./inputs";
+import type { RuleIndex, RuleView } from "./inputs";
+import type { Decided } from "../answers.generated";
 import { plain, type Line, type Run } from "./line";
 import type { FlowStepVM, FlowVM } from "./model";
 import { orderOf, regionName } from "./story";
@@ -104,16 +105,32 @@ function asideOf(items: readonly LadderItem[]): (i: LadderItem) => boolean {
 }
 
 /**
- * (T892, owner 2026-11-19 ~00:10 "The table should say if it came from tributaries too..") The waters the sheet's rail
- * names "<that water> · its tributaries" on a DECIDING step (`kickerOf`: the part's ruleset holds the rule `via` trib,
- * rank 1): read off the very steps `flowOf` keeps, so the table and the sheet agree by construction. Only when those
- * steps hold for every fish of the row (`members`; a rule with no fish of its own holds for all): a Bass row whose
- * smallmouth come down from Duck Lake and whose largemouth are the region's says nothing on the row. [] for none.
+ * (T892) What the table row's line is checked against: the row's stored answers, one per fish × origin it covers (each
+ * fish's hatchery and wild answer in the rows frame; a trout row's origin, else both), as Python decided them.
  */
-function downNames(won: readonly LadderItem[], members: readonly string[] | undefined): readonly string[] {
-  const down = won.filter((i) => !i.r.part && i.r.rank === 1 && !!i.r.export.prov.entry_name);
-  const all = !members?.length || down.some((i) => !i.spp.size) || members.every((m) => down.some((i) => i.spp.has(m)));
-  return down.length && all ? [...new Set(down.map((i) => i.r.export.prov.entry_name!))] : [];
+export interface DownScope { readonly cells: readonly Pick<Decided, "win" | "narrow" | "roles">[]; readonly rules: Pick<RuleIndex, "get"> }
+
+/**
+ * (T892, owner 2026-11-19 ~00:10 "The table should say if it came from tributaries too..") The waters whose row, carried
+ * down to their tributaries, DECIDES this row's answer — for every fish and every origin the row covers: in each stored
+ * answer (`scope.cells`) the rule that wins it (`win`) and, where the number was lowered (`narrow`), each rule stored as
+ * narrowing it, is a rule the part's ruleset holds `via` trib (rank 1). And each such rule is a deciding step the rail
+ * keeps (`won`), named as its kicker names it (`levelName`), so the table and the sheet agree by construction. A rule
+ * that only sets one origin's size or cap, or decides some fish only (a Bass row whose largemouth are the region's),
+ * labels nothing. [] for none.
+ */
+function downNames(won: readonly LadderItem[], scope: DownScope | undefined, water: string): readonly string[] {
+  if (!scope?.cells.length) return [];
+  const shown = new Set(won.map((i) => i.r.key)), names = new Set<string>();
+  for (const d of scope.cells) {
+    const sets = [d.win, ...(d.narrow != null ? d.roles.filter(([, role]) => role === "narrows").map(([ix]) => ix) : [])];
+    for (const ix of sets) {
+      const r = scope.rules.get(ix) as RuleView | undefined;   // (a hand-built index may not hold it)
+      if (!r || r.missing || r.part || r.rank !== 1 || !shown.has(r.key)) return [];
+      names.add(levelName(r, water));
+    }
+  }
+  return [...names];
 }
 
 /** (T892) The table row's line for `FlowVM.down`'s waters ("Kootenay River’s rule for its tributaries"); null for none. */
@@ -124,7 +141,7 @@ export const downLine = (names: readonly string[]): string | null => (names.leng
  * `water` the sheet's water, `answer` the row's result line.
  */
 export function flowOf(items: readonly LadderItem[], says: (it: LadderItem) => Line, water: string, answer: string | null,
-  members?: readonly string[]): FlowVM {
+  scope?: DownScope): FlowVM {
   const step = (it: LadderItem): FlowStepVM => ({
     kicker: kickerOf(it.r, water), says: says(it), tag: it.origin ? D.T_ORIGIN(it.origin, tagOf(it, water)) : tagOf(it, water),
     tone: it.role === "replaced" || it.role === "lifted" ? "lost" : QUIET.includes(it.role) ? "quiet" : "won",
@@ -137,7 +154,7 @@ export function flowOf(items: readonly LadderItem[], says: (it: LadderItem) => L
     .sort((a, b) => layerOf(a.r, water) - layerOf(b.r, water) || orderOf(a.role) - orderOf(b.role))
     .map((it) => { const s = step(it); of.set(s, it); return s; });
   const kept = ordered(unique(main));
-  const down = downNames(kept.filter((s) => s.tone === "won").map((s) => of.get(s)!), members);
+  const down = downNames(kept.filter((s) => s.tone === "won").map((s) => of.get(s)!), scope, water);
   const steps = once(kept);
   const wonWords = new Set(steps.filter((s) => s.tone === "won").map((s) => plain(s.says)));
   const quiet = items.filter((i) => QUIET.includes(i.role) || aside(i)).map(step).filter((s) => !wonWords.has(plain(s.says)));

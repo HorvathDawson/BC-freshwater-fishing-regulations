@@ -98,7 +98,10 @@ export type TroutAnswers = (fish: string) => FishAnswer | null;
 export function troutFlow(row: TroutRowVM, a: FishAnswer | null, rules: Pick<RuleIndex, "get">, water: string): FlowVM | null {
   const items = troutItems(row, a, rules);
   if (!items) return null;
-  const f = flowOf(items, (it) => [text(it.r.facts?.title || clean(it.r.export.verbatim))], water, row.sheet.head);
+  // (T892) the answers the row covers: its origin's, else both (a "Hatchery only" row's wild ones go back by a rule too)
+  const cells = (row.origin === "hatchery" ? [a!.hatchery] : row.origin === "wild" ? [a!.wild] : [a!.hatchery, a!.wild])
+    .flatMap((d) => (d ? [d] : []));
+  const f = flowOf(items, (it) => [text(it.r.facts?.title || clean(it.r.export.verbatim))], water, row.sheet.head, { cells, rules });
   const said = f.steps.map((x) => plain(x.says)).join(" ");
   const carried = (n: string) => new RegExp(`(^|\\D)${n}(\\D|$)`).test(said);
   if (!(row.sheet.head.match(/\d+/g) ?? []).every(carried)) return null;

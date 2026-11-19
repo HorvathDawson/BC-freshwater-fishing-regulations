@@ -123,8 +123,8 @@ describe("(T892) otherFishOf: a row from another water's row carried down to its
   const card = { ...base, ctx: { ...base.ctx, s: 0 } } as typeof base;
   const inp = { ...INP({ name: "Anchor Creek" }), rules: { get: (i: number) => RS[i]!, has: (i: number) => !!RS[i], size: 3 },
     year: { rowsBySeg: [{ fish: {
-      BB: { lead: null, hatchery: { roles: [[11, "replaced", 10], [10, "governs", null]] }, wild: null },
-      MW: { lead: null, hatchery: { roles: [[11, "replaced", 12], [12, "governs", null]] }, wild: null },
+      BB: { lead: null, hatchery: { win: 10, narrow: null, roles: [[11, "replaced", 10], [10, "governs", null]] }, wild: null },
+      MW: { lead: null, hatchery: { win: 12, narrow: null, roles: [[11, "replaced", 12], [12, "governs", null]] }, wild: null },
     } }] } } as unknown as RegsInputs;
   it("the inherited row: whole line; the water's own row: none", () => {
     expect(otherFishOf(card, inp, FISH, [0], NONE, SEAMS)!.map((o) => [o.name, o.value, o.from ?? null])).toEqual([
