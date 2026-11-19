@@ -63,8 +63,11 @@ Before: the release is on staging and the owner has checked it there (phone + we
    HYDAT / run-timing starts fail and say so by email (it asks for `target: production`, never staging's bucket).
 6. **Claude builds, owner deploys — the site** (one vintage with the data; the SEO build is heavy):
    ```bash
-   EXPO_PUBLIC_CONTACT=support@canifishthis.ca EXPO_PUBLIC_APP_ENV=production \
-     pnpm -C app --filter @app/mobile exec expo export --clear --platform web --output-dir ../../dist/web-prod
+   # (T910) the same three steps as `export:web:staging`: export with maps, then the font + paint-first shell, then the
+   # maps moved out (a plain `expo export` fails build-seo at the END: "the app's web export has no file for the face(s)")
+   (cd app/apps/mobile && EXPO_PUBLIC_CONTACT=support@canifishthis.ca EXPO_PUBLIC_APP_ENV=production \
+     pnpm exec expo export --clear --platform web --output-dir ../../dist/web-prod --source-maps \
+     && node ../../tools/web-shell.mjs ../../dist/web-prod && node ../../tools/sourcemaps.mjs keep-web ../../dist/web-prod)
    scripts/heavy.sh seo-prod 30 -- node app/tools/build-seo.mjs --release-dir data/release/<r-id> \
      --app app/dist/web-prod --threads 4 --out app/dist/seo-prod
    CONFIRM_PROD=canifishthis.ca deploy/prod/site.sh                 # owner
