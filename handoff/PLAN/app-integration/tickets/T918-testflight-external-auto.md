@@ -26,10 +26,15 @@ Testers' phones: TestFlight's per-app "Automatic Updates" (on by default, as far
   submitted when `buildBetaDetail.externalBuildState` is READY_FOR_BETA_SUBMISSION (an existing submission is reported,
   never resubmitted). Last line: waiting for review / in review / approved / testers can install. Any failure: Apple's own
   error text, exit 1. `--dry-run` reads only (GET) and prints each write it would make.
+- Review fixes (2026-11-19): the external state is allow-listed (READY_FOR_BETA_SUBMISSION submits; WAITING/IN_BETA_REVIEW,
+  BETA_APPROVED, IN_BETA_TESTING, READY_FOR_BETA_TESTING are reported; PROCESSING / IN_EXPORT_COMPLIANCE_REVIEW /
+  MISSING_EXPORT_COMPLIANCE are re-read every 30 s up to 5 min, also covering Apple's lag after the compliance answer;
+  any other state, or none, stops it, named). `--max-wait-min` / `--poll-s` must be positive numbers. The "What to Test"
+  text used is logged, with a warning naming why when it fell back to the plain line.
 - `deploy/staging/build-ios-testflight.sh` runs it after the upload and the version files (`--no-distribute` skips;
   `--no-upload`/`--unsigned`/`--dry-run` never run it; the dry run prints the step). A failure exits 1 after the upload is
   recorded, printing the rerun command.
-- Tests: `node --test deploy/staging/testflight-distribute.test.mjs` (10, HTTP mocked, throwaway key), run from pytest by
+- Tests: `node --test deploy/staging/testflight-distribute.test.mjs` (16, HTTP mocked, throwaway key), run from pytest by
   `pipeline/tests/test_deploy_node_scripts.py`. Documented in the script headers and `handoff/PLAN/ios/START-HERE-ios.md`
   ("Commands you will need").
 

@@ -24,7 +24,8 @@
 //   5. the build is added to the external group (already in it: nothing done);
 //   6. Beta App Review: when the build's external state is READY_FOR_BETA_SUBMISSION (Apple wants a review: the first
 //      build of a version; later builds of a version are usually approved at once) it is submitted; a submission that
-//      exists is only reported. The last line says where it stands: waiting for review / in review / approved / testing.
+//      exists is only reported. A state still settling (PROCESSING, IN_EXPORT_COMPLIANCE_REVIEW, MISSING_EXPORT_COMPLIANCE
+//      just after the answer) is re-read every 30 s up to 5 min; a state it does not know stops it, named. The last line says where it stands: waiting for review / in review / approved / testing.
 //
 // The key: ~/.canifishthis/asc-api-key.json {"key_id", "issuer_id", "key_path"} (build-ios-testflight.sh's header), read at
 // run time only. Any failure prints Apple's own message and exits 1 (no silent fallback); rerun the same command: every
@@ -118,17 +119,27 @@ export function pickGroup(groups, name) {
   throw new AscError(`several external TestFlight groups (${ext.map((g) => `"${g.attributes.name}"`).join(', ')}): name one with --group "<name>" or one line in ~/.canifishthis/testflight-external-group`);
 }
 
-/** This version's iPhone notes as "What to Test" (core notesOn), else a plain line. */
+/**
+ * This version's iPhone notes as "What to Test" (core notesOn), else a plain line. Returns {text, fallback}: `fallback`
+ * names why the plain line was used (no changelog file / no entry for the version / no iPhone notes), null otherwise.
+ */
 export async function whatToTestFor(version, build, changelogPath = join(REPO, 'app/packages/core/src/changelog.ts')) {
-  let notes = [];
-  if (existsSync(changelogPath)) {
+  let notes = [], fallback = null;
+  if (!existsSync(changelogPath)) fallback = `no changelog file ${changelogPath}`;
+  else {
     const m = await import(pathToFileURL(changelogPath).href);
     const e = m.CHANGELOG.find((x) => x.version === version);
-    if (e) notes = [...m.notesOn(e, 'ios')];
+    if (!e) fallback = `the changelog has no entry for ${version}`;
+    else notes = [...m.notesOn(e, 'ios')];
+    if (e && !notes.length) fallback = `the changelog entry for ${version} has no iPhone notes`;
   }
   const text = notes.length ? `Version ${version} (build ${build}):\n${notes.map((n) => `• ${n}`).join('\n')}` : `Version ${version} (build ${build})`;
-  return text.slice(0, 4000);   // Apple's limit for whatToTest
+  return { text: text.slice(0, 4000), fallback };   // 4000: Apple's limit for whatToTest
 }
+
+// buildBetaDetail.externalBuildState: what each one means for this step (anything not listed stops it, named)
+const EXT_DONE = new Set(['WAITING_FOR_BETA_REVIEW', 'IN_BETA_REVIEW', 'BETA_APPROVED', 'IN_BETA_TESTING', 'READY_FOR_BETA_TESTING']);
+const EXT_SETTLING = new Set(['PROCESSING', 'IN_EXPORT_COMPLIANCE_REVIEW', 'MISSING_EXPORT_COMPLIANCE']);
 
 const REVIEW_SAYS = {
   WAITING_FOR_REVIEW: 'submitted: waiting for Beta App Review (testers get it once Apple approves; often within a day)',
@@ -142,7 +153,7 @@ const REVIEW_SAYS = {
  * {build, group, added, submitted, reviewState, externalState}; throws AscError on any failure.
  */
 export async function distribute({ asc, version, build, groupName = null, dryRun = false, usesNonExemptEncryption,
-  whatToTest, maxWaitMs = 45 * 60_000, pollMs = 30_000, now = () => Date.now(),
+  whatToTest, maxWaitMs = 45 * 60_000, pollMs = 30_000, settleMs = 5 * 60_000, now = () => Date.now(),
   sleep = (ms) => new Promise((r) => setTimeout(r, ms)), log = console.log }) {
   const would = (s) => log(`  [dry-run] would ${s}`);
   const apps = await asc.get(`/v1/apps?filter[bundleId]=${encodeURIComponent(BUNDLE_ID)}&limit=2`);
@@ -192,7 +203,9 @@ export async function distribute({ asc, version, build, groupName = null, dryRun
   // 4. What to Test
   const locs = (await asc.get(`/v1/builds/${buildId}/betaBuildLocalizations?limit=50`))?.data ?? [];
   if (!locs.some((l) => (l.attributes?.whatToTest ?? '').trim())) {
-    const text = await whatToTest();
+    const { text, fallback } = await whatToTest();
+    if (fallback) log(`  WARNING: "What to Test" falls back to the plain line (${fallback})`);
+    log(`  "What to Test": ${JSON.stringify(text)}`);
     if (locs.length) {
       if (dryRun) would(`set "What to Test" (${locs[0].attributes.locale}): ${JSON.stringify(text)}`);
       else await asc.patch(`/v1/betaBuildLocalizations/${locs[0].id}`, { data: { type: 'betaBuildLocalizations', id: locs[0].id, attributes: { whatToTest: text } } });
@@ -202,7 +215,7 @@ export async function distribute({ asc, version, build, groupName = null, dryRun
       else await asc.post('/v1/betaBuildLocalizations', { data: { type: 'betaBuildLocalizations', attributes: { locale, whatToTest: text },
         relationships: { build: { data: { type: 'builds', id: buildId } } } } });
     }
-    if (!dryRun) log('"What to Test" set from the changelog');
+    if (!dryRun) log(`"What to Test" set${fallback ? ' (plain line)' : ' from the changelog'}`);
   }
 
   // 5. the group
@@ -216,9 +229,22 @@ export async function distribute({ asc, version, build, groupName = null, dryRun
     log(`added to "${group.attributes.name}"`);
   }
 
-  // 6. Beta App Review
+  // 6. Beta App Review, decided by the external state (allow-listed). A state still settling (processing, export
+  // compliance just answered) is re-read every pollMs up to settleMs; the dry run reads it once and reports.
   const detail = async () => (await asc.get(`/v1/builds/${buildId}/buildBetaDetail`))?.data?.attributes ?? {};
-  let ext = (await detail()).externalBuildState;
+  const t1 = now();
+  let ext;
+  for (;;) {
+    ext = (await detail()).externalBuildState;
+    if (!EXT_SETTLING.has(ext) || dryRun) break;
+    const mins = ((now() - t1) / 60_000).toFixed(1);
+    if (now() - t1 + pollMs > settleMs)
+      throw new AscError(`build ${version} (${build}) still ${ext} after ${mins} min`
+        + (ext === 'PROCESSING' ? '' : ': answer export compliance in App Store Connect → TestFlight → the build')
+        + `; then rerun: node deploy/staging/testflight-distribute.mjs --version ${version} --build ${build}${groupName ? ` --group "${groupName}"` : ''}`);
+    log(`  ${mins} min: external state ${ext}; next look in ${Math.round(pollMs / 1000)} s`);
+    await sleep(pollMs);
+  }
   const subs = (await asc.get(`/v1/betaAppReviewSubmissions?filter[build]=${buildId}&limit=1`))?.data ?? [];
   let reviewState = subs[0]?.attributes?.betaReviewState ?? null;
   let submitted = false;
@@ -230,11 +256,13 @@ export async function distribute({ asc, version, build, groupName = null, dryRun
         relationships: { build: { data: { type: 'builds', id: buildId } } } } });
       reviewState = r?.data?.attributes?.betaReviewState ?? 'WAITING_FOR_REVIEW';
       submitted = true;
+      log(`submitted for Beta App Review: ${reviewState}`);
       ext = (await detail()).externalBuildState ?? ext;
     }
-  } else if (ext === 'MISSING_EXPORT_COMPLIANCE' && !dryRun) {
-    throw new AscError(`build ${version} (${build}) is still MISSING_EXPORT_COMPLIANCE: answer it in App Store Connect → TestFlight, then rerun`);
-  }
+  } else if (EXT_DONE.has(ext)) { /* reported below */ }
+  else if (dryRun && EXT_SETTLING.has(ext)) log(`  [dry-run] external state ${ext}: a real run waits up to ${Math.round(settleMs / 60_000)} min for it to settle, then decides`);
+  else if (ext !== 'BETA_REJECTED')   // rejected: thrown below, after the report line
+    throw new AscError(`build ${version} (${build}) has external TestFlight state ${ext ?? '(none given)'}, which this script does not handle; look in App Store Connect → TestFlight`);
   const where = reviewState ? REVIEW_SAYS[reviewState] ?? reviewState : 'no Beta App Review needed';
   log(`${dryRun ? '[dry-run] ' : ''}${version} (${build}) → "${group.attributes.name}": ${where}; external state ${ext ?? 'unknown'}`
     + (ext === 'IN_BETA_TESTING' || ext === 'BETA_APPROVED' ? ' — testers can install it (Automatic Updates installs it on their phones)' : ''));
@@ -250,7 +278,9 @@ export function parseArgs(argv) {
     if (a === '--dry-run') o.dryRun = true;
     else if (['--version', '--build', '--group', '--max-wait-min', '--poll-s'].includes(a)) {
       if (argv[i + 1] == null) throw new AscError(`${a} needs a value`);
-      o[a.slice(2)] = argv[++i];
+      const v = (o[a.slice(2)] = argv[++i]);
+      if ((a === '--max-wait-min' || a === '--poll-s') && !(Number.isFinite(Number(v)) && Number(v) > 0))
+        throw new AscError(`${a} needs a positive number (got "${v}")`);
     } else if (a === '-h' || a === '--help') o.help = true;
     else throw new AscError(`unknown argument ${a} (see the header of deploy/staging/testflight-distribute.mjs)`);
   }

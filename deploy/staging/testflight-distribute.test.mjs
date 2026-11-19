@@ -3,7 +3,7 @@
 import assert from 'node:assert/strict';
 import { generateKeyPairSync, verify } from 'node:crypto';
 import { test } from 'node:test';
-import { ascClient, AscError, distribute, makeJwt, parseArgs, pickGroup } from './testflight-distribute.mjs';
+import { ascClient, AscError, distribute, makeJwt, parseArgs, pickGroup, whatToTestFor } from './testflight-distribute.mjs';
 
 const dec = (s) => JSON.parse(Buffer.from(s, 'base64url').toString());
 
@@ -44,13 +44,17 @@ test('arguments', () => {
     { dryRun: true, version: '0.8.3', build: '39', group: 'Test ers' });
   assert.throws(() => parseArgs(['--build']), /needs a value/);
   assert.throws(() => parseArgs(['--bild', '3']), /unknown argument/);
+  for (const bad of ['0', '-1', 'abc', 'NaN', 'Infinity'])
+    for (const flag of ['--max-wait-min', '--poll-s']) assert.throws(() => parseArgs([flag, bad]), /needs a positive number/, `${flag} ${bad}`);
+  assert.equal(parseArgs(['--poll-s', '5', '--max-wait-min', '0.5'])['max-wait-min'], '0.5');
 });
 
 /** A fake App Store Connect: routes by method + path; records every call. */
-function fakeAsc({ processing = ['VALID'], inGroup = false, review = null, ext = 'READY_FOR_BETA_SUBMISSION', locs = [],
+function fakeAsc({ processing = ['VALID'], inGroup = false, review = null, ext = 'READY_FOR_BETA_SUBMISSION', afterSubmit = 'WAITING_FOR_BETA_REVIEW', locs = [],
   encryption = false, groups = [grp('i1', 'Me', true), grp('e1', 'Testers', false)] } = {}) {
   const calls = [];
-  let poll = 0;
+  let poll = 0, extPoll = 0;
+  const exts = Array.isArray(ext) ? [...ext] : [ext];   // buildBetaDetail answers in order, the last one repeats
   const fetchImpl = async (url, init) => {
     const path = url.replace('https://api.appstoreconnect.apple.com', '');
     const method = init.method;
@@ -65,11 +69,12 @@ function fakeAsc({ processing = ['VALID'], inGroup = false, review = null, ext =
     }
     if (method === 'GET' && path.includes('/betaBuildLocalizations')) return ok({ data: locs });
     if (method === 'GET' && path.includes('/relationships/builds')) return ok({ data: inGroup ? [{ type: 'builds', id: 'b39' }] : [], links: {} });
-    if (method === 'GET' && path.endsWith('/buildBetaDetail')) return ok({ data: { attributes: { externalBuildState: ext } } });
+    if (method === 'GET' && path.endsWith('/buildBetaDetail')) return ok({ data: { attributes: { externalBuildState: exts[Math.min(extPoll++, exts.length - 1)] } } });
     if (method === 'GET' && path.startsWith('/v1/betaAppReviewSubmissions?'))
       return ok({ data: review ? [{ id: 's1', attributes: { betaReviewState: review } }] : [] });
     if (method === 'POST' && path === '/v1/betaAppReviewSubmissions') {
-      ext = 'WAITING_FOR_BETA_REVIEW';
+      exts.splice(0, exts.length, afterSubmit);
+      extPoll = 0;
       return ok({ data: { id: 's1', attributes: { betaReviewState: 'WAITING_FOR_REVIEW' } } }, 201);
     }
     if (method === 'POST' || method === 'PATCH') return { ok: true, status: method === 'PATCH' ? 200 : 204, text: async () => '' };
@@ -80,7 +85,7 @@ function fakeAsc({ processing = ['VALID'], inGroup = false, review = null, ext =
 
 const run = (asc, extra = {}) => {
   const lines = [];
-  return distribute({ asc, version: '0.8.3', build: '39', usesNonExemptEncryption: false, whatToTest: async () => 'Version 0.8.3 (build 39)',
+  return distribute({ asc, version: '0.8.3', build: '39', usesNonExemptEncryption: false, whatToTest: async () => ({ text: 'Version 0.8.3 (build 39):\n• x', fallback: null }),
     pollMs: 30_000, sleep: async () => {}, log: (l) => lines.push(l), ...extra }).then((r) => ({ r, lines }));
 };
 const writes = (calls) => calls.filter((c) => c.method !== 'GET').map((c) => `${c.method} ${c.path}`);
@@ -152,4 +157,54 @@ test('a failed build stops at once; Apple\'s error text is shown', async () => {
   const asc = ascClient({ token: () => 'T', sleep: async () => {}, fetchImpl: async () => ({ ok: false, status: 409, text: async () =>
     JSON.stringify({ errors: [{ status: '409', code: 'STATE_ERROR', title: 'Missing info', detail: 'Beta App Review contact is required' }] }) }) });
   await assert.rejects(asc.post('/v1/betaAppReviewSubmissions', {}), /409 STATE_ERROR: Missing info — Beta App Review contact is required/);
+});
+
+test('external state still PROCESSING: re-read until READY_FOR_BETA_SUBMISSION, then submitted', async () => {
+  const f = fakeAsc({ ext: ['PROCESSING', 'PROCESSING', 'READY_FOR_BETA_SUBMISSION'] });
+  const { r, lines } = await run(f.asc);
+  assert.equal(r.submitted, true);
+  assert.equal(f.calls.filter((c) => c.path.endsWith('/buildBetaDetail')).length, 4);   // 3 polls + the read after submitting
+  assert.ok(lines.some((l) => /external state PROCESSING; next look in 30 s/.test(l)));
+});
+
+test('export compliance answered but Apple still says MISSING_EXPORT_COMPLIANCE for a while: waits, not refused', async () => {
+  const f = fakeAsc({ encryption: null, ext: ['MISSING_EXPORT_COMPLIANCE', 'READY_FOR_BETA_SUBMISSION'] });
+  const { r } = await run(f.asc);
+  assert.ok(writes(f.calls).includes('PATCH /v1/builds/b39'));
+  assert.equal(r.submitted, true);
+});
+
+test('a settling state that never settles: bounded (5 min) and named', async () => {
+  const f = fakeAsc({ ext: ['MISSING_EXPORT_COMPLIANCE'] });
+  let t = 0;
+  await assert.rejects(run(f.asc, { now: () => t, sleep: async (ms) => { t += ms; } }),
+    /still MISSING_EXPORT_COMPLIANCE after [45]\.\d min: answer export compliance.*rerun: node deploy\/staging\/testflight-distribute\.mjs --version 0\.8\.3 --build 39/);
+  assert.equal(writes(f.calls).filter((w) => w.includes('betaAppReviewSubmissions')).length, 0);
+});
+
+test('an external state the script does not know (or none) stops it, named; nothing submitted', async () => {
+  for (const ext of ['PROCESSING_EXCEPTION', 'EXPIRED', null]) {
+    const f = fakeAsc({ ext });
+    await assert.rejects(run(f.asc), new RegExp(`external TestFlight state ${ext ?? '\\(none given\\)'}, which this script does not handle`));
+    assert.ok(!writes(f.calls).includes('POST /v1/betaAppReviewSubmissions'));
+  }
+});
+
+test('a later build of a version that comes back READY_FOR_BETA_SUBMISSION: submitted, then its state reported', async () => {
+  const f = fakeAsc({ ext: 'READY_FOR_BETA_SUBMISSION', afterSubmit: 'BETA_APPROVED',
+    locs: [{ id: 'l1', attributes: { locale: 'en-CA', whatToTest: 'Version 0.8.3 (build 38)' } }] });
+  const { r, lines } = await run(f.asc);
+  assert.deepEqual(writes(f.calls), ['POST /v1/betaGroups/e1/relationships/builds', 'POST /v1/betaAppReviewSubmissions']);
+  assert.equal(r.submitted, true);
+  assert.equal(r.externalState, 'BETA_APPROVED');
+  assert.match(lines.at(-1), /external state BETA_APPROVED — testers can install it/);
+});
+
+test('What to Test: the text used is logged; a fallback warns why', async () => {
+  const f = fakeAsc();
+  const { lines } = await run(f.asc, { whatToTest: async () => ({ text: 'Version 0.8.3 (build 39)', fallback: 'the changelog has no entry for 0.8.3' }) });
+  assert.ok(lines.some((l) => /WARNING: "What to Test" falls back to the plain line \(the changelog has no entry for 0\.8\.3\)/.test(l)));
+  assert.ok(lines.some((l) => l.includes('"What to Test": "Version 0.8.3 (build 39)"')));
+  const w = await whatToTestFor('0.0.0-none', '1', '/nonexistent/changelog.ts');
+  assert.deepEqual(w, { text: 'Version 0.0.0-none (build 1)', fallback: 'no changelog file /nonexistent/changelog.ts' });
 });
