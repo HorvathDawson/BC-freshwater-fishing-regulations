@@ -2855,3 +2855,6 @@ More questions (recommended answer first):
   his words: "Claude can deploy prod web when tested" -> standing: once a batch is on staging and its checks pass,
   Claude deploys the PRODUCTION WEBSITE (deploy/prod/site.sh) and tells him. Production data, feeds worker, data worker,
   phone builds and Cloudflare stay his.
+- 2026-11-18 ~21:50, owner (main chat), verbatim: "They should deploy with same cadence ish as app. Like versions should
+  match" -> the production website moves with the app versions: tonight's site is 0.8.1 (with T868/T877/T872-T875);
+  the next prod web deploy is 0.8.2, when the phones' 0.8.2 releases. Not every batch.
