@@ -4,7 +4,7 @@
  */
 import { describe, expect, it } from "vitest";
 import {
-  aboutEnvVM, aboutVM, dataProvenanceLine, contactVM, diagnosticRows, regsLapsed, regsLapsedNote, sourceFreshness, glossaryRows, glossarySections, markedRuns, editDistance, isoDayWords,
+  aboutEnvVM, aboutVM, dataProvenanceLine, contactVM, introLink, diagnosticRows, regsLapsed, regsLapsedNote, sourceFreshness, glossaryRows, glossarySections, markedRuns, editDistance, isoDayWords,
   mailtoUrl, regsReportWhere, waterReportWhere, reportMessage, reportPayload, emailProblem, REPORT_REASONS, sourcesVM, whereLines, type Diagnostics, type SourceDateKey, type SourcesInput,
 } from "./menu";
 import { FISH_CREDITS } from "./regs/fish.generated";
@@ -462,18 +462,31 @@ describe("freshness: each source against its own cadence (owner 2026-10-22)", ()
 });
 
 describe("contact", () => {
+  // (T860, owner 2026-11-18) the intro names the report form beside the email, its first "Report a problem" the link
+  const INTRO = "Questions, corrections and ideas are welcome. Email us, or send a note from the app with Report a problem. "
+    + "A water's regulations have their own Report a problem link, which names the water for you.";
+  const LINK = { before: "Questions, corrections and ideas are welcome. Email us, or send a note from the app with ",
+                 link: "Report a problem",
+                 after: ". A water's regulations have their own Report a problem link, which names the water for you." };
+
   it("is a placeholder until the owner supplies one", () => {
-    expect(contactVM(null)).toEqual({ kind: "none", intro: "Questions, corrections and ideas are welcome.",
+    expect(contactVM(null)).toEqual({ kind: "none", intro: INTRO, introLink: LINK,
       text: "Contact details are coming soon. Until then, use Report a problem to share a note from your device." });
     expect(contactVM("  ").kind).toBe("none");
     expect(contactVM("not an address").kind).toBe("none");
   });
 
   it("reads an email address or a web link from the one config value", () => {
-    expect(contactVM("hello@example.org")).toEqual({ kind: "email", intro: "Questions, corrections and ideas are welcome.",
+    expect(contactVM("hello@example.org")).toEqual({ kind: "email", intro: INTRO, introLink: LINK,
       label: "Email", value: "hello@example.org", url: "mailto:hello@example.org" });
-    expect(contactVM("https://example.org/contact")).toEqual({ kind: "link", intro: "Questions, corrections and ideas are welcome.",
+    expect(contactVM("https://example.org/contact")).toEqual({ kind: "link", intro: INTRO, introLink: LINK,
       label: "Website", value: "https://example.org/contact", url: "https://example.org/contact" });
+  });
+
+  it("(T860) the intro's link splits it at its first mention, the words unchanged; no mention: no link", () => {
+    const l = contactVM(null).introLink;
+    expect(`${l.before}${l.link}${l.after}`).toBe(INTRO);
+    expect(introLink("Write to us.", "Report a problem")).toEqual({ before: "Write to us.", link: "", after: "" });
   });
 });
 

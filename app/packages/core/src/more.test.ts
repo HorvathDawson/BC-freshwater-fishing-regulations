@@ -272,7 +272,12 @@ describe("the More tab, top to bottom", () => {
         { k: "about", label: "About", hint: "What this app is, and what it is not" },
         { k: "report", label: "Report a problem", hint: "Something wrong, missing or confusing" },
       ],
-      contact: { title: "Contact", vm: { kind: "none", intro: "Questions, corrections and ideas are welcome.",
+      contact: { title: "Contact", vm: { kind: "none",
+        intro: "Questions, corrections and ideas are welcome. Email us, or send a note from the app with Report a problem. "
+          + "A water's regulations have their own Report a problem link, which names the water for you.",
+        introLink: { before: "Questions, corrections and ideas are welcome. Email us, or send a note from the app with ",
+                     link: "Report a problem",
+                     after: ". A water's regulations have their own Report a problem link, which names the water for you." },
         text: "Contact details are coming soon. Until then, use Report a problem to share a note from your device." } },
     });
   });

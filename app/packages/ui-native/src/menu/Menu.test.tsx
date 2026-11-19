@@ -210,11 +210,30 @@ describe("the More tab (T48; owner 2026-10-22 refinement; T167)", () => {
 
   it("Contact, inline at the bottom: a placeholder until the owner supplies the one value; then that address", () => {
     render(<App out={{}} />);
-    expect(text("more-contact")).toBe("Questions, corrections and ideas are welcome."
+    expect(text("more-contact")).toBe("Questions, corrections and ideas are welcome. Email us, or send a note from the "
+      + "app with Report a problem. A water's regulations have their own Report a problem link, which names the water "
+      + "for you."
       + "Contact details are coming soon. Until then, use Report a problem to share a note from your device.");
     cleanup();
     render(<App out={{}} info={{ appBuild: null, contact: "hello@example.org" }} />);
     expect(screen.getByLabelText("Email: hello@example.org")).toBeTruthy();
+  });
+
+  it("(T860) Contact names Report a problem beside the email, and those words open the report form (About's entry)", () => {
+    const out: { back?: Back } = {};
+    render(<App out={out} info={{ appBuild: null, contact: "hello@example.org" }} />);
+    const link = screen.getByTestId("contact-report");
+    expect([text("contact-intro"), link.textContent, link.getAttribute("role"), said("contact-report")]).toEqual([
+      "Questions, corrections and ideas are welcome. Email us, or send a note from the app with Report a problem. "
+        + "A water's regulations have their own Report a problem link, which names the water for you.",
+      "Report a problem", "link", MENU_WORDS.report.fromAbout]);
+    expect(screen.queryByTestId("menu-page-report")).toBeNull();
+    pick("contact-report");
+    expect(screen.getByTestId("menu-page-report")).toBeTruthy();
+    // a back layer like every page: back closes it to the tab
+    act(() => { out.back!.back(); });
+    settle();
+    expect(screen.queryByTestId("menu-page-report")).toBeNull();
   });
 });
 

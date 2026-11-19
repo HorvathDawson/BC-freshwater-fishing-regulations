@@ -150,7 +150,11 @@ export const MENU_WORDS = {
   },
   contact: {
     title: "Contact",
-    intro: "Questions, corrections and ideas are welcome.",
+    /** (T860, owner 2026-11-18) the intro names the report form beside the email; its first `report` is the form's link */
+    intro: "Questions, corrections and ideas are welcome. Email us, or send a note from the app with Report a problem. "
+      + "A water's regulations have their own Report a problem link, which names the water for you.",
+    /** (T860) the intro's link to the report form (the same entry as About's `report.fromAbout`) */
+    report: "Report a problem",
     placeholder: "Contact details are coming soon. Until then, use Report a problem to share a note from your device.",
     email: "Email",
     link: "Website",
