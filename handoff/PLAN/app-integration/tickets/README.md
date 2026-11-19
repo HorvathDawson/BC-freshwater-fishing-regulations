@@ -299,10 +299,16 @@ reads both files; a ticket closed here moves there once its lane is finished wit
 | T865 | Production data clean-up is automatic: old releases and the v1 layout (owner) | PARTIAL — 4f4b5c8 + 8b279ce; left (Claude): at the switch, on the owner's word, turn off bc-fishing-cron + main's 3 update workflows, then deploy/prod/drop-v1.sh | lane app/t865-prod-prune | owner 2026-11-18 |
 | T866 | Trim the test suites: combine overlapping tests, remove true duplicates (owner) | OPEN | app chat + main chat | owner 2026-11-18, after the 0.8.1 releases |
 | T867 | Notifications inbox: since install only, read once seen, short, with data and app updates (owner) | OPEN | app chat | owner 2026-11-18, after the 0.8.1 releases |
+| T877 | "Which day?" calendar: six weeks every month, every day under its weekday (owner) | IN PROGRESS — left (Claude): merge into app/integrate-081-web, then the look on a phone build | lane app/t877-calendar-grid | owner 2026-11-18 ~20:46 |
 | T869 | The chinook annual limit says "over 50 cm" where it counts ADULT chinook, which is over 62 or 65 cm on some rivers (owner) | OPEN | main chat | owner 2026-11-18 ~20:22 |
 | T870 | Salmon card: Source (DFO) lists every DFO row behind its answers; each bait-ban line says whose, once; a whole-year window reads "all year" (owner) | OPEN | main chat | owner 2026-11-18 ~20:25 |
+| T868 | Each fish's picture once per sheet: the Whitefish sheet drew them twice (owner) | PARTIAL — 7b0738a3f + 940dde702; left (Claude): merge lane app/fix-dup-pics into app/integrate-081-web | app chat | owner 2026-11-18 |
 | T871 | Trout table: say "counts toward the N" once per box (owner) | DROPPED | app chat | owner 2026-11-18 ~20:53: "Not this change" |
 | T876 | Quick pinch-zoom lags on the phone (owner trace 20:35); an old issue, not a 0.8.1 regression (owner 20:51) | OPEN | app chat | owner 2026-11-18, after launch |
+| T872 | Conditions: the watershed "by day" card folded unless someone opens it (owner) | OPEN — proposal; lands only on the owner's yes | lane app/t872-watershed-fold | owner 2026-11-18 |
+| T873 | A much shorter Help page: the map's key first, short labels, one-line facts (owner) | OPEN — proposal; lands only on the owner's yes | lane app/t873-help-short | owner 2026-11-18 ~20:32 |
+| T874 | The walkthrough has only Back and Next (and Skip); Next does what Show me did (owner) | OPEN | app chat | proposal; lands only on the owner's yes (branch app/t874-tour-next) |
+| T875 | The water Map tab's ▼ / ▲ steps stay put, part to part and water to water, on phone and desktop (owner) | PARTIAL — 1c0911f91; left (Claude): independent review, then merge into app/integrate-081-web | app chat (lane app/t875-parts-steady) | owner 2026-11-18 ~20:33 |
 | T880 | A DFO exception printed without "and tributaries" leaves out that stream only (Bulkley: Two Mile Creek; the Suskwa on the chinook row) (owner) | OPEN | main chat | owner 2026-11-18 ~20:59 |
 | T885 | DFO's lake parts on the map (Babine's 12 creek-mouth circles, Mabel north, Osoyoos north basin); said in words until then (owner) | OPEN | main chat | owner 2026-11-18 ~21:13 |
 

@@ -205,13 +205,16 @@ function Worked({ w, palette }: { w: NonNullable<GroupVM["worked"]>; palette: Pa
   );
 }
 
-export function GroupCard({ g, palette, actions, images, titled = true }: { g: GroupVM; palette: Palette; actions: KeepActions; images?: FishImages;
+export function GroupCard({ g, palette, actions, images, titled = true, ruled = true }: { g: GroupVM; palette: Palette; actions: KeepActions; images?: FishImages;
   /** (T37) false: the head draws no title line (in an other-fish sheet, whose title says it — SheetBlock group.titled) */
-  titled?: boolean }) {
+  titled?: boolean;
+  /** (T868) false: the card opens its sheet, right under the sheet's title rule — no heavy rule of its own over the head
+   *  (two rules a line apart once the head row of pictures left) */
+  ruled?: boolean }) {
   const h = g.head;
   return (
-    <View testID="keep-group" style={{ paddingHorizontal: GUTTER, paddingBottom: 12, marginTop: 12 }}>
-      <View style={{ marginHorizontal: -GUTTER, paddingHorizontal: GUTTER, paddingVertical: 8, borderTopWidth: 1.5, borderTopColor: palette.ink, backgroundColor: palette.card }}>
+    <View testID="keep-group" style={{ paddingHorizontal: GUTTER, paddingBottom: 12, marginTop: ruled ? 12 : 0 }}>
+      <View style={{ marginHorizontal: -GUTTER, paddingHorizontal: GUTTER, paddingVertical: 8, borderTopWidth: ruled ? 1.5 : 0, borderTopColor: palette.ink, backgroundColor: palette.card }}>
         {titled && (
           <Text accessibilityRole="header" style={[TYPE.lead, { color: palette.ink }]}>
             {g.title}{g.scope ? <Text testID="kicker:scope" style={[TYPE.kicker, { color: palette.sub }]}>{`  ${g.scope}`}</Text> : null}

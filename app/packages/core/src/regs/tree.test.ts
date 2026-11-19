@@ -6,9 +6,9 @@ import { describe, expect, it } from "vitest";
 import type { FishManifest } from "./fish.generated";
 import { headCtx } from "./grouphead";
 import { plain, type Line } from "./line";
-import type { KindVM, TierVM } from "./model";
+import type { FishPicVM, KindVM, NotKeptVM, TierVM, TreeNodeVM } from "./model";
 import type { TreeTier } from "../answers.generated";
-import { dutyWords, kindRow, pictures, presOf, sizeOf, stampSTOf, subcapLead, tierNode, tierWords, treeEnv, treeOf } from "./tree";
+import { dutyWords, kindRow, onePictureEach, pictures, picturedIn, presOf, sizeOf, stampSTOf, subcapLead, tierNode, tierWords, treeEnv, treeOf } from "./tree";
 import { cardOf, GROUP, INP, kind, OWN, ROOT, rowOf, SHARE, tier, TROUT_ROW } from "./testing/keepFixtures";
 
 const FISH: FishManifest = {
@@ -197,5 +197,36 @@ describe("tierNode / treeOf", () => {
   it("stampST reads the licence answer's documents only", () => {
     expect([stampSTOf(INP({ licence: LIC_ST })), stampSTOf(INP()),
       stampSTOf(INP({ licence: { holds: {}, profiles: [{ documents: [], exempt: { by: [97], from: ["steelhead_stamp"] } }] } }))]).toEqual([true, false, false]);
+  });
+});
+
+describe("(T868) each fish pictured once in a group card", () => {
+  const pic = (code: string): FishPicVM => ({ code, name: code, caption: `${code} ›`, open: `sp:${code}`, sil: false });
+  const sil = (code: string): FishPicVM => ({ code, name: code, sil: true });
+  const k = (pics: FishPicVM[]): KindVM => ({ t: "kind", kind: "k", species: pics.map((p) => p.code), folded: false, zero: false,
+    says: null, size: null, qualifiers: null, pictures: pics, also: [], duty: null, stamps: [], presence: null });
+  const nk = (pics: FishPicVM[]): NotKeptVM => ({ status: "release", says: "", term: null, whose: [], mark: null, presence: null, pictures: pics, stamps: [] });
+  const t = (children: TreeNodeVM[]): TierVM => ({ t: "tier", tier: "size", tid: "s", kicker: null, exception: null, line: [], folded: false,
+    relation: null, sub: null, origin: null, band: true, children });
+  const codes = (ps: readonly FishPicVM[]) => ps.map((p) => p.code + (p.sil ? "~" : ""));
+
+  it("the first keep line keeps a fish's picture; a later kind, release row or not-kept line drops it", () => {
+    // a release row drawn BEFORE the keep line still yields to it: keep lines first, then release rows, then not-kept
+    const tree: TreeNodeVM[] = [{ t: "release", names: "Rainbow trout", pictures: [pic("RB"), pic("CT")] },
+      t([k([pic("RB"), pic("EB")]), k([pic("RB"), sil("XX")])])];
+    const out = onePictureEach(tree, [nk([pic("RB"), pic("ST"), sil("XX")])]);
+    const [rel, box] = out.tree as [Extract<TreeNodeVM, { t: "release" }>, TierVM];
+    expect(codes(rel.pictures)).toEqual(["CT"]);
+    expect((box.children as KindVM[]).map((x) => codes(x.pictures))).toEqual([["RB", "EB"], ["XX~"]]);
+    expect(codes(out.notKept[0]!.pictures)).toEqual(["ST", "XX~"]);
+    expect([...picturedIn(out)].sort()).toEqual(["CT", "EB", "RB", "ST"]);
+  });
+
+  it("a card with nothing doubled is handed back unchanged", () => {
+    const kinds = [k([pic("LW"), pic("MW")])], notKept = [nk([pic("ST")])];
+    const out = onePictureEach(kinds, notKept);
+    expect((out.tree![0] as KindVM).pictures).toBe(kinds[0]!.pictures);
+    expect(out.notKept[0]!.pictures).toBe(notKept[0]!.pictures);
+    expect(onePictureEach(null, []).tree).toBeNull();
   });
 });

@@ -42,9 +42,11 @@ export interface SheetBodyProps {
 const actionsOf = (p: SheetBodyProps): KeepActions =>
   ({ onSheet: p.onOpen, onDay() {}, onTab: (t) => p.onTab?.(t), onBook: p.onBook ?? ((pdf, box) => { void openBook(pdf, box); }) });
 
-export function SheetBlockView(p: { b: SheetBlock; layout?: LayoutClass } & SheetBodyProps) {
+export function SheetBlockView(p: { b: SheetBlock; layout?: LayoutClass;
+  /** (T868) the sheet's first block: a group card there sits under the sheet's title rule and draws no rule of its own */
+  first?: boolean } & SheetBodyProps) {
   const { b, palette } = p, actions = actionsOf(p);
-  const body = (bs: readonly SheetBlock[]) => bs.map((x, i) => <SheetBlockView key={i} {...p} b={x} />);
+  const body = (bs: readonly SheetBlock[]) => bs.map((x, i) => <SheetBlockView key={i} {...p} first={false} b={x} />);
   switch (b.k) {
     case "para": return <Para text={b.text} tone={b.tone} palette={palette} actions={actions} />;
     case "example": return <Example text={b.text} palette={palette} actions={actions} />;
@@ -68,7 +70,7 @@ export function SheetBlockView(p: { b: SheetBlock; layout?: LayoutClass } & Shee
     case "adipose": return <AdiposeArt figures={b.figures} images={p.adipose} palette={palette} layout={p.layout} />;
     case "pages": case "source": case "link":
       return <View style={{ marginTop: 8 }}><LineText line={b.line} style={TYPE.meta} color={palette.sub} palette={palette} actions={actions} linkStyle={TYPE.metaBold} /></View>;
-    case "group": return <View style={{ marginHorizontal: -GUTTER }}><GroupCard g={b.group} titled={b.titled} palette={palette} actions={actions} images={p.fish} /></View>;
+    case "group": return <View style={{ marginHorizontal: -GUTTER }}><GroupCard g={b.group} titled={b.titled} ruled={!p.first} palette={palette} actions={actions} images={p.fish} /></View>;
     case "rowTitle":
       return (
         <Text style={[TYPE.lead, { color: palette.ink, marginTop: 8 }]}>
@@ -96,7 +98,7 @@ export function SheetBody(p: { vm: SheetVM; layout?: LayoutClass } & SheetBodyPr
     <View testID="sheet-body">
       {grouped(vm.blocks).map((b, i) => Array.isArray(b)
         ? <FishLooks key={i} looks={b} layout={layout} fish={rest.fish} palette={rest.palette} />
-        : <SheetBlockView key={i} {...rest} layout={layout} b={b} />)}
+        : <SheetBlockView key={i} {...rest} layout={layout} b={b} first={i === 0} />)}
     </View>
   );
 }
