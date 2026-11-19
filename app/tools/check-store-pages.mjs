@@ -7,6 +7,7 @@
  * still false: flip that flag. At launch both flags go true.
  */
 import { readFileSync } from "node:fs";
+import { pathToFileURL } from "node:url";
 
 const SRC = new URL("../packages/core/src/storeLinks.ts", import.meta.url);
 
@@ -19,7 +20,7 @@ export function judge(rows) {
   return { failures, flips };
 }
 
-if (import.meta.url === `file://${process.argv[1]}`) {
+if (import.meta.url === pathToFileURL(process.argv[1]).href) {
   const src = readFileSync(SRC, "utf8");
   const val = (n) => src.match(new RegExp(`export const ${n} = ([^;]+);`))?.[1].trim();
   const rows = [];
@@ -27,7 +28,8 @@ if (import.meta.url === `file://${process.argv[1]}`) {
     const u = val(url)?.replace(/^"|"$/g, "");
     if (!u || !["true", "false"].includes(val(flag))) { console.error(`cannot read ${url}/${flag} from storeLinks.ts`); process.exit(2); }
     let status = 0;
-    try { status = (await fetch(u, { redirect: "follow", headers: { "User-Agent": "Mozilla/5.0 (Macintosh) AppleWebKit/537.36 Chrome/124 Safari/537.36" } })).status; } catch { /* offline: 0 */ }
+    try { status = (await fetch(u, { redirect: "follow", headers: { "User-Agent": "Mozilla/5.0 (Macintosh) AppleWebKit/537.36 Chrome/124 Safari/537.36" } })).status; } catch { /* unreachable: 0 */ }
+    if (status === 0) { console.error(`FAIL cannot reach ${u} (offline?): ${name} not checked`); process.exit(1); }
     rows.push({ name, flag: val(flag) === "true", status, url: u });
     console.log(`${name}: ${u} -> ${status}; flag ${val(flag)}`);
   }

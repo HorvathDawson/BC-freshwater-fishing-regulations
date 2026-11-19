@@ -126,9 +126,9 @@ export const WEB_SPOTS_WORDS = {
   join: {
     lead: "Want to try it early?",
     android: { button: "Join the Android test", subject: "Join the Android test",
-               body: "Hi, I'd like to join the Android test of Can I Fish This?. The email on my Google account is: " },
+               body: "Hi, I'd like to join the Android test of the Can I Fish This? app. The email on my Google account is: " },
     iphone: { button: "Join the iPhone test", subject: "Join the iPhone test",
-              body: "Hi, I'd like to join the iPhone test of Can I Fish This?. The email on my Apple ID is: " },
+              body: "Hi, I'd like to join the iPhone test of the Can I Fish This? app. The email on my Apple ID is: " },
   },
   back: "Back to the map",
 } as const;
