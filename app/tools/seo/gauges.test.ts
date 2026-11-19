@@ -9,7 +9,7 @@ import { buildAll, type Built } from "./build";
 import { TODAY } from "./fixture";
 import { checkJsonLd } from "./jsonld";
 import { pngSize } from "./share";
-import { gaugeModels, gaugePath, gaugeTitle, LIVE, type GaugeRows } from "./gauges";
+import { gaugeModels, gaugePath, gaugeTitle, LIVE, moreSummary, type GaugeRows } from "./gauges";
 import { readConfig } from "./build";
 
 const site = readConfig();
@@ -141,5 +141,16 @@ describe("T487 the site worker's /gauge routes", () => {
     expect(old.status).toBe(301);
     expect(await (await w.fetch(new Request("https://canifishthis.ca/gauge/08MH001/chilliwack-river-at-vedder-crossing"), e, c)).text()).toBe("asset");
     expect(await (await w.fetch(new Request("https://canifishthis.ca/gauge/99XX999/card.png"), e, c)).text()).toBe("asset");
+  });
+});
+
+describe("(T908) the fold's summary names the guides it holds", () => {
+  const w = (id: string) => ({ id, name: id, path: `/water/${id}` });
+  const a = w("a"), b = w("b"), c = w("c");
+  it("rough only when every folded water is a weak guide; a fair one is never called rough", () => {
+    expect(moreSummary({ main: [a], more: [b], rough: [] })).toBe("Also a guide for 1 more water");
+    expect(moreSummary({ main: [], more: [b, c], rough: [b, c] })).toBe("A rough guide for 2 more waters");
+    expect(moreSummary({ main: [], more: [b, c], rough: [c] })).toBe("A guide for 2 more waters");
+    expect(moreSummary({ main: [], more: [b], rough: [] })).toBe("A guide for 1 more water");
   });
 });

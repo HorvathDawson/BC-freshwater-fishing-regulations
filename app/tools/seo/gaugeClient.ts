@@ -265,10 +265,12 @@ export function weatherHtml(m: Meteo, sky: Readonly<Record<string, string>>, att
     `<p class="small">${esc(attribution)}, fetched ${esc(bcStampWords(fetchedAt))}.</p></details>`;
 }
 
-/** the reader's own line (offline, dropped): shown, never reported — core failure.ts `isEnvironment`, the same words */
+/** the reader's own line (offline, dropped) or a failure marked the environment's (`environment: true`, a permission the
+ *  reader refused): shown, never reported — core failure.ts `isEnvironment`, the same words */
 export function isEnvironment(e: unknown): boolean {
-  const x = e as { name?: unknown; message?: unknown } | null;
+  const x = e as { environment?: unknown; name?: unknown; message?: unknown } | null;
   if (!x || typeof x !== "object") return false;
+  if (x.environment === true) return true;
   if (x.name === "AbortError") return true;
   return x.name === "TypeError" && typeof x.message === "string" &&
     /^(?:Network request failed|Failed to fetch|Load failed|NetworkError when attempting to fetch resource\.?)$/.test(x.message);
@@ -285,6 +287,20 @@ export function crashReport(e: unknown, cfg: Pick<GaugeConfig, "env" | "release"
   };
 }
 
+/**
+ * THE PAGE'S ONE REPORTER: a failure the page caught is posted to the crash endpoint (crash/2), once per call, unless it is
+ * the environment's (shown, not reported) or reports are off (`crash` null). The gauge page's live half and its Join the
+ * test card (joinClient.ts, T911; gauges.ts `joinScript` writes this into that script too) both report through it.
+ */
+export function pageReporter(cfg: Pick<GaugeConfig, "crash" | "env" | "release">, fetchImpl: typeof fetch, now: () => number): (e: unknown) => void {
+  const install = Array.from({ length: 16 }, () => "0123456789abcdef"[Math.floor(Math.random() * 16)]).join("");
+  return (e: unknown) => {
+    if (!cfg.crash || isEnvironment(e)) return;
+    void fetchImpl(cfg.crash, { method: "POST", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(crashReport(e, cfg, new Date(now()), install)) }).catch(() => { /* the report itself is best effort */ });
+  };
+}
+
 async function readJson(fetchImpl: typeof fetch, url: string): Promise<unknown> {
   const r = await fetchImpl(url, { cache: "no-cache" });
   if (!r.ok) throw new Error(`${url}: HTTP ${r.status}`);
@@ -296,12 +312,7 @@ export async function gaugePage(doc: Document, now: () => number, fetchImpl: typ
   const cfgEl = doc.getElementById("gauge-config");
   if (!cfgEl?.textContent) throw new Error("gauge page: no #gauge-config");
   const cfg = JSON.parse(cfgEl.textContent) as GaugeConfig;
-  const install = Array.from({ length: 16 }, () => "0123456789abcdef"[Math.floor(Math.random() * 16)]).join("");
-  const report = (e: unknown) => {
-    if (!cfg.crash || isEnvironment(e)) return;
-    void fetchImpl(cfg.crash, { method: "POST", headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(crashReport(e, cfg, new Date(now()), install)) }).catch(() => { /* the report itself is best effort */ });
-  };
+  const report = pageReporter(cfg, fetchImpl, now);
   const put = (id: string, html: string) => { const el = doc.getElementById(id); if (el) el.innerHTML = html; };
   const failed = (id: string, what: string, e: unknown) => {
     put(id, `<p class="warn">${esc(what)} could not be read${isEnvironment(e) ? " (no connection)" : ""}. Try again later.</p>`);

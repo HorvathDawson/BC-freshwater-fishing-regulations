@@ -85,8 +85,8 @@ export const CORE_INLINE: readonly (readonly [file: string, names: readonly stri
 const plain = (ts_: string): string =>
   ts.transpileModule(ts_, { compilerOptions: { target: ts.ScriptTarget.ES2020, module: ts.ModuleKind.ESNext, removeComments: true } }).outputText
     .replace(/^export /gm, "");
-function inlineCore(file: string, names: readonly string[]): string {
-  const path = join(CORE, file), src = readFileSync(path, "utf8");
+function inlineCore(file: string, names: readonly string[], dir: string = CORE): string {
+  const path = join(dir, file), src = readFileSync(path, "utf8");
   const sf = ts.createSourceFile(path, src, ts.ScriptTarget.ES2020, true);
   const found = new Set<string>(), out: string[] = [];
   for (const st of sf.statements) {
@@ -97,7 +97,7 @@ function inlineCore(file: string, names: readonly string[]): string {
     out.push(src.slice(st.getStart(sf), st.end));
   }
   const missing = names.filter((n) => !found.has(n));
-  if (missing.length) throw new Error(`seo: core/${file} has no top-level ${missing.join(", ")} to write into the gauge page's script`);
+  if (missing.length) throw new Error(`seo: ${dir === CORE ? "core/" : ""}${file} has no top-level ${missing.join(", ")} to write into the gauge page's script`);
   return plain(out.join("\n"));
 }
 /** gaugeClient.ts as one plain script (TypeScript's own transpile), core's functions written in from their source, calling itself on load */
@@ -110,11 +110,18 @@ export function clientScript(): string {
   return `(function(){"use strict";\nconst STALE_AFTER_MS=${STALE_AFTER_MS};\n${core}\n${js}\ngaugePage(document,Date.now,window.fetch.bind(window)).catch(function(e){console.error(e)});\n})();\n`;
 }
 
-/** (T911) joinClient.ts as one plain, self-hosted script, calling itself on load */
+/** (T911) joinClient.ts as one plain, self-hosted script, calling itself on load. It reports through the gauge page's own
+ *  reporter (gaugeClient.ts `pageReporter` and what it calls, written in from their source) at the page's #gauge-config. */
+const JOIN_REPORTER: readonly string[] = ["isEnvironment", "crashReport", "pageReporter"];
 export function joinScript(): string {
   const js = plain(readFileSync(join(HERE, "joinClient.ts"), "utf8"));
   if (/^\s*import\b/m.test(js)) throw new Error("seo: joinClient.ts must not import anything (it ships as one plain script)");
-  return `(function(){"use strict";\n${js}\njoinPopup(document,function(){return window.navigator.clipboard;});\n})();\n`;
+  const reporter = inlineCore("gaugeClient.ts", JOIN_REPORTER, HERE);
+  // the card is drawn on gauge pages only, each with its #gauge-config; one without it is a build defect, thrown (the
+  // mailto links still work)
+  const start = `var c=document.getElementById("gauge-config");if(!c||!c.textContent)throw new Error("join card: no #gauge-config on this page");` +
+    `joinPopup(document,function(){return window.navigator.clipboard;},pageReporter(JSON.parse(c.textContent),window.fetch.bind(window),Date.now));`;
+  return `(function(){"use strict";\n${reporter}\n${js}\n${start}\n})();\n`;
 }
 
 /** the production hosts the page names; deploy/staging/site.sh points a staging copy at staging's */
@@ -180,6 +187,17 @@ export function openInAppControl(play: string | null = playStoreLink(), appStore
     (blk.slots.length ? `<div class="stores">${blk.slots.map(slot).join("")}</div>` + blk.slots.map(card).join("") : "");
 }
 
+/**
+ * (T908) the fold's summary: "Also" after the main waters; with none, "rough" only when every folded water is a weak
+ * guide (the fold holds fair guides too, and a fair guide is never called rough).
+ */
+export function moreSummary(g: Pick<GaugeModel, "main" | "more" | "rough">): string {
+  const n = `${g.more.length} more ${g.more.length === 1 ? "water" : "waters"}`;
+  if (g.main.length) return `Also a guide for ${n}`;
+  const rough = new Set(g.rough.map((w) => w.id));
+  return g.more.every((w) => rough.has(w.id)) ? `A rough guide for ${n}` : `A guide for ${n}`;
+}
+
 /** the page body: everything that does not move between feed runs; the live sections are filled by gaugeClient.ts */
 export function gaugeBody(g: GaugeModel, release: string, clientHref: string, asOf: string, contact: string | null = null,
                           joinHref: string | null = null): string {
@@ -196,7 +214,7 @@ export function gaugeBody(g: GaugeModel, release: string, clientHref: string, as
     `<h2>Waters this gauge serves</h2>` +
     (g.main.length ? `<ul>${g.main.map(line).join("")}</ul>` : "") +
     // (T908) the fair and weak guides are one fold, never the page's body
-    (g.more.length ? `<details><summary>${g.main.length ? "Also a guide for" : "A rough guide for"} ${g.more.length} more ${g.more.length === 1 ? "water" : "waters"}</summary>` +
+    (g.more.length ? `<details><summary>${esc(moreSummary(g))}</summary>` +
       `<ul class="cols">${g.more.map(line).join("")}</ul></details>` : "") +
     `<p class="small">Waters as of <time datetime="${esc(asOf)}">${esc(asOf)}</time>, from release ${esc(release)}.</p>` +
     `<div class="card"><p>See this gauge with the map, alerts and every other gauge in the app.</p>` +
