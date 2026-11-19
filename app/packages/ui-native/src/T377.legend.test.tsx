@@ -69,7 +69,8 @@ describe("(T377) the regulations bar folds", () => {
       expect(fold.getAttribute("aria-label")).toBe(MAP_KEY.fold.hide);
       expect(screen.getAllByTestId("legend-row")).toHaveLength(2);
       fireEvent.click(fold);
-      expect(screen.queryByTestId("legend-rows")).toBeNull();
+      // (T896) folded keeps the key's first row: never a blank strip with only the button
+      expect(screen.getAllByTestId("legend-row")).toHaveLength(1);
       expect(screen.getByTestId("legend-fishery-head")).toBeTruthy();
       expect(fold.getAttribute("aria-expanded")).toBe("false");
       expect(fold.getAttribute("aria-label")).toBe(MAP_KEY.fold.show);
