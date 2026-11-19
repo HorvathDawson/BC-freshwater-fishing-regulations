@@ -2694,3 +2694,41 @@ More questions (recommended answer first):
   the day strip" (a Trout | Salmon pair right after < Today > on desktop; phones unchanged).
   15:06, owner: "the side bar should have some opacity to it too in desktop will look cleaner i think" (T856: a see-through
   side bar on desktop, the map running under it).
+- 2026-11-18 16:50 (main chat) Cranberry River Canyon cuts. Owner, verbatim: "the top point is confident the lower point of canyon less so" -> the falls (top) cut is now HIGH confidence; the canyon bottom estimate stays LOW. Shows from the next data release (after r-86d43303bee2).
+- 2026-11-18 ~16:50, owner (to the main chat, relayed to the app chat 16:51), verbatim: "in the webapp we shopuld have keyboard
+  navigation like in search bar using arrows to move highlight etc." -> T858 (web only: ↑/↓ move a highlight through the
+  search results, Enter opens, Escape closes as today; then the same in other lists where it fits). After 0.8.1: the
+  web site can carry it as soon as it is built, without a Play or TestFlight build.
+- 2026-11-18 16:55 (app chat) Review: the 0.8.1 "What's new" lines are a draft (app/packages/core/src/changelog.ts on
+  app/integrate-081): faster map (Salmon zoom-out most), route-map gauge dots + you-are-here on phones, sharper coho
+  loader + its line, desktop Trout/Salmon switch beside the day + see-through side bar, iPhone stale colour fixed. Clear
+  them or note changes (To-Do page row "Clear the 0.8.1 'What's new' lines").
+- 2026-11-18 ~16:52, owner (to the main chat, relayed to the app chat 16:53), verbatim: "on desktop webapp when you click
+  about or simialr in more it shouldnt take over the entire page iot should be a card that overlays that pops up which you
+  can click off to close maybe?" -> T859 (desktop web only: More's pages open as a centred card over the page; a click
+  outside, Escape or ✕ closes it; phones unchanged). Lands with T858, right after 0.8.1, web only (no Play/TestFlight build).
+- 2026-11-18 ~16:55, owner (to the main chat, relayed to the app chat), verbatim: "where it says this (Questions, corrections
+  and ideas are welcome. ) with email we should have also the or send it through the app with the report and issue
+  pathway? just word it well" -> T860; wording proposed: "Questions, corrections and ideas are welcome. Email us, or send a
+  note from the app with Report a problem. A water's regulations have their own Report a problem link, which names the
+  water for you." (Report a problem is a link to the form.)
+- 2026-11-18 ~16:55, owner (to the main chat, relayed), verbatim: "these can be in 0.8.1 web version? since it doesnt change
+  app it shouldnt effect release of app?" -> yes: T858, T859 and T860 go out with the 0.8.1 WEB release. Order: the 0.8.1
+  phone build (Play internal + TestFlight) is cut first with its benches as they are; then T858/T859/T860 land; then the
+  staging site redeploys from that commit. Phones get T860's words at their next build.
+- 2026-11-18 ~17:05, owner (to the main chat, relayed 17:08), on whether the app should speak as him (a solo project:
+  "I read every message. Email me…"), verbatim: "yes change all" -> T860 grows: every user-facing "we / us / our" for
+  the project becomes "I / me / my" (no name) across the app, the web site pages and the store listings; 0.8.1 web.
+- 2026-11-18 ~17:10, owner (to the main chat, relayed 17:12), verbatim: "conditions seems like it was laggy like salmon map
+  was maybe it had same issue?" -> T861: measure the Conditions map against 0.8.0 and the 0.8.1 build (which has the
+  T848/T855 fix); fix it if the Conditions map was left out.
+- 2026-11-18 ~17:15, owner (relayed), verbatim: "also check run timing to while at it" -> T861 measures the Run timing map too.
+- 2026-11-18 17:30 (main chat, T862) Owner, verbatim: "tyhe search doesnt show this? (… stocking records call Sixteen Mile Lake "Baker Lake", and Tranquille Lake "Lake #355". ) if searching one the other doesnt come up? this is a future ticket i think? it will also involve auditing the name vairations especially stocking/bathy maps" -> T862 (future, after 0.8.1): search by every name (app chat) + name-variation audit, stocking/bathymetry first (main chat). The names do ship in the release; the search does not use them.
+- 2026-11-18 ~18:00, owner (app chat), asked "can i open external iphone testing to send to a few friends to help me test?",
+  then, verbatim: "lets wait for 0.8.1 then do the prod build then full closed release and external release for andorid and
+  apople" -> T863: 0.8.1 internal first; owner promotes the data release to prod; production builds of 0.8.1 (owner runs
+  deploy/prod/build-apk.sh; iOS build-ios-testflight.sh --production); then Play closed testing + TestFlight external
+  (Test Information in handoff/PLAN/ios/store/testflight-external.md; Beta App Review about a day).
+- 2026-11-18 ~18:02, owner (app chat), verbatim: "we need to make sure a tester outside of british columbia doesnt have it
+  glitch out too with location. we could give a little note saying you are far away from bc location will not be usefull
+  etc etc" -> T864 (audit every location reader with far-away positions; a short note outside B.C.; before T863's testers).
