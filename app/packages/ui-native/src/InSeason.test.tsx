@@ -1,7 +1,10 @@
 /**
  * (T230) The in-season banner draws core's line whole; the notice lists the unmatched rows; the bell carries the count.
  */
-import { afterEach, describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
+
+// (T909) the bell and the refresh button are the phone bar's (`BarControls.native`); the web twin draws neither
+vi.mock("./BarControls", async () => await import("./BarControls.native"));
 import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { appUpdateVM, bellLabel, inSeasonBanner, inboxDetail, inboxMerge, inboxRead, inboxVM, joinInSeason, releaseNoticeVM,
          type InSeasonFeed, type InSeasonRow } from "@app/core";

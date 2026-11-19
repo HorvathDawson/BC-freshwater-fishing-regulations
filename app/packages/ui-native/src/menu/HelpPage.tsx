@@ -90,11 +90,11 @@ export function HelpPage({ palette, theme, onWalkthrough, onOffline }: {
   /** (T293) open Offline maps (the app's); absent: no button */
   onOffline?: () => void;
 }) {
-  const sections = helpVM();
-  const key = sections.filter((s) => HELP_MAP_KEY.includes(s.key));
-  const rest = sections.filter((s) => !HELP_MAP_KEY.includes(s.key));
   // (T319) a store-shots web build shows the app's lines (`storeShots.ts`)
   const where = Platform.OS === "web" && !phoneScreensOnWeb() ? "web" : "app";
+  const sections = helpVM(where);
+  const key = sections.filter((s) => HELP_MAP_KEY.includes(s.key));
+  const rest = sections.filter((s) => !HELP_MAP_KEY.includes(s.key));
   const F = HELP_WORDS.facts;
   return (
     <>
