@@ -50,7 +50,8 @@ describe("the native map applies the gesture policy and feature-state by id", ()
             // only where a phone has an id: the section source-layers (MVT ids); area values go into the style
             adapter.includes("SECTION_SOURCE_LAYERS.includes(t.sourceLayer)"),
             src.includes("areaLayer(layerId) ? area : sec"),
-            src.includes('<VectorSource id="atlas" ref={atlasAttached} />'),
+            // (T876) the atlas source element now holds the adopted label layers: the same source by id, the same ref
+            /<VectorSource id="atlas" ref=\{atlasAttached\}\s*\/?>/.test(src),
             src.includes("nativeStyle({")]).toEqual([true, true, true, true, true, true, true, true, true]);
   });
   it("draws the web's metric scale bar, not the binding's", () => {
