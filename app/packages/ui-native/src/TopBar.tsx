@@ -36,7 +36,7 @@ import { TextInput, View, useWindowDimensions, type TextInputInstance } from "re
 import { Pressable } from "./Pressable";
 import { SEARCH_BAR, type SyncVM } from "@app/core";
 import { Icon } from "./icons";
-import { BarControls, BAR_HAS_CONTROLS } from "./BarControls";
+import { BarControls, barHasControls } from "./BarControls";
 import { TOP_BAR } from "./barParts";
 
 export { TOP_BAR, BellGlyph, SyncButton, SyncGlyph } from "./barParts";
@@ -143,7 +143,7 @@ export const TopBar: ForwardRefExoticComponent<TopBarProps & RefAttributes<TextI
                      // the field's own edge (accent while open) is its focus mark: no second browser ring inside it
                      style={{ ...TYPE.body, fontSize: 16, lineHeight: 21, color: palette.ink, flex: 1, minWidth: 0,
                               outlineWidth: 0, outlineStyle: "solid",
-                              paddingVertical: 0, paddingRight: query.length > 0 || (!open && BAR_HAS_CONTROLS && (sync || notices)) ? 0 : 12,
+                              paddingVertical: 0, paddingRight: query.length > 0 || (!open && barHasControls() && (sync || notices)) ? 0 : 12,
                               height: TOP_BAR.field }} />
           {query.length > 0 ? (
             <Pressable {...hitProps({ w: TOP_BAR.slot, h: TOP_BAR.field })} onPress={() => onQuery("")} accessibilityRole="button" accessibilityLabel={SEARCH_BAR.clear}
@@ -151,7 +151,7 @@ export const TopBar: ForwardRefExoticComponent<TopBarProps & RefAttributes<TextI
               <Icon name="close" colour={palette.sub} size={18} />
             </Pressable>
           ) : null}
-          {/* (T909) the bell and the refresh button: the phone's (`BarControls.native.tsx`); the web's bar has neither */}
+          {/* (T909) the bell and the refresh button: the phone's (`BarControls.native.tsx`); the web's bar has neither, but a store-shots build's (T319) */}
           {query.length === 0 && !open && <BarControls palette={palette} notices={notices} sync={sync} onSync={onSync} />}
         </View>
       </View>

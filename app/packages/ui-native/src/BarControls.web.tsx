@@ -1,14 +1,13 @@
-/** (T909) The browser's bar: no bell, no refresh button. See `BarControls.d.ts`. */
-import type { ReactNode } from "react";
-import type { Palette } from "./theme";
-import type { SyncVM } from "@app/core";
+/**
+ * (T909) The browser's bar: no bell, no refresh button — except in a store-shots build (T319, `storeShots.ts`), which
+ * draws the phone's screens for the store's pictures and so the phone's bar. See `BarControls.d.ts`.
+ */
+import { PhoneBarControls } from "./barParts";
+import { phoneScreensOnWeb } from "./storeShots";
+import type { BarControlsProps } from "./BarControls";
 
-export const BAR_HAS_CONTROLS = false;
-export function BarControls(_props: {
-  palette: Palette;
-  notices: { count: number; label: string; onPress: () => void } | null;
-  sync: SyncVM | null;
-  onSync?: () => void;
-}): ReactNode {
-  return null;
+/** the website's bar draws neither; a store-shots build draws the phone's */
+export const barHasControls = (): boolean => phoneScreensOnWeb();
+export function BarControls(props: BarControlsProps) {
+  return phoneScreensOnWeb() ? <PhoneBarControls {...props} /> : null;
 }

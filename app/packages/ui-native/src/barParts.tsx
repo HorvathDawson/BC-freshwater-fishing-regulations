@@ -1,8 +1,10 @@
 /**
- * (T909) THE TOP BAR'S PARTS that the phone's bar controls (`BarControls.native.tsx`) and the Help page share with it: the
- * bar's measures, the bell's and the refresh button's pictures and the refresh button. They live apart from `TopBar.tsx`
- * so the platform file does not import the bar that imports it. `TopBar.tsx` re-exports them.
+ * (T909) THE TOP BAR'S PARTS that the bar controls (`BarControls.native.tsx` / `.web.tsx`) and the Help page share with it:
+ * the bar's measures, the bell's and the refresh button's pictures, the refresh button and the phone's pair of controls
+ * (`PhoneBarControls`). They live apart from `TopBar.tsx` so the platform file does not import the bar that imports it.
+ * `TopBar.tsx` re-exports the pictures and the measures.
  */
+import type { ReactNode } from "react";
 import { LoadingState } from "./LoadingState";
 import { useCoachTarget } from "./CoachMarks";
 import { View } from "react-native";
@@ -14,6 +16,7 @@ import { SyncRing } from "./SyncRing";
 import { TYPE } from "./type";
 import { round, type Palette } from "./theme";
 import { hitProps } from "./regs/hit";
+import type { BarControlsProps } from "./BarControls";
 
 /** The bar's measures: inset from the screen's edges, the field, the slab under it, the sync slot and its dot. */
 export const TOP_BAR = { top: 10, side: 14, field: 44, slab: 3, wide: 720, panel: 440, slot: 40, dot: 8,
@@ -109,5 +112,35 @@ export function SyncGlyph({ palette, sync }: { palette: Palette; sync: SyncVM })
         </View>
       )}
     </View>
+  );
+}
+
+/**
+ * (T230) THE BELL: the provincial in-season changes not placed on the map yet, the updates that failed and the data
+ * update's state — a bell with their count, in `attention` (never a water-status colour); its tap opens the notice.
+ * (owner 2026-10-29) ALWAYS DRAWN beside the sync button: with nothing pending it has no badge and opens "No notifications".
+ */
+function NoticeButton({ palette, count, label, onPress }: { palette: Palette; count: number; label: string; onPress: () => void }) {
+  const target = useCoachTarget("bell");   // (T257) the first-run tour points at it
+  return (
+    <Pressable {...hitProps({ w: TOP_BAR.slot + 4, h: TOP_BAR.field })} ref={target} testID="inseason-bell" onPress={onPress} accessibilityRole="button" accessibilityLabel={label}
+               style={({ pressed }) => ({ width: TOP_BAR.slot + 4, alignSelf: "stretch", alignItems: "center",
+                                          justifyContent: "center", borderLeftWidth: 1, borderLeftColor: palette.line,
+                                          backgroundColor: pressed ? palette.wash : "transparent" })}>
+      <BellGlyph palette={palette} count={count} />
+    </Pressable>
+  );
+}
+
+/**
+ * (T909) THE PHONE'S BAR CONTROLS: the bell and the refresh button at the field's right end. `BarControls.native.tsx` is
+ * this; `BarControls.web.tsx` draws it only in a store-shots build (T319), which photographs the phone's screens.
+ */
+export function PhoneBarControls({ palette, notices, sync, onSync }: BarControlsProps): ReactNode {
+  return (
+    <>
+      {notices && <NoticeButton palette={palette} count={notices.count} label={notices.label} onPress={notices.onPress} />}
+      {sync && <SyncButton palette={palette} sync={sync} onPress={onSync} />}
+    </>
   );
 }
