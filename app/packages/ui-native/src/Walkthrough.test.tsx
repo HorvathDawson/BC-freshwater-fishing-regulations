@@ -573,7 +573,8 @@ describe("the Help page (T248)", () => {
       .toEqual(helpVM().map((s) => `help-section-${s.key}`));
     expect(screen.getAllByTestId(/^help-row-/).map((e) => e.getAttribute("data-testid")))
       .toEqual(helpVM().flatMap((s) => s.rows.map((r) => `help-row-${r.key}`)));
-    expect(screen.getByText(HELP_WORDS.lead)).toBeTruthy();
+    // (T873) no intro paragraph: the page opens on the map's key
+    expect(screen.getAllByRole("heading")[0]!.textContent).toBe(HELP_WORDS.sections.colours);
   });
 
   it("swatches wear the map's own colours in each theme — resolved, not copied", () => {
@@ -589,13 +590,13 @@ describe("the Help page (T248)", () => {
     }
   });
 
-  it("(T293) has short pages first: the walkthrough, syncing and updates, offline (the web's words here)", () => {
+  it("(T873) the map's key, then offline and updates as one-line facts, then the rest (the web's words here)", () => {
     let off = 0;
     render(<HelpPage palette={LIGHT} theme="light" onOffline={() => { off++; }} />);
-    expect(screen.getAllByTestId(/^help-page-/).map((e) => e.getAttribute("data-testid")))
-      .toEqual(["help-page-walkthrough", "help-page-updates", "help-page-offline"]);
-    expect(screen.getByText(HELP_WORDS.updates.web[0]!)).toBeTruthy();
-    expect(screen.getByText(HELP_WORDS.offline.web[0]!)).toBeTruthy();
+    const order = screen.getAllByTestId(/^help-(section-|facts$)/).map((e) => e.getAttribute("data-testid"));
+    expect(order).toEqual(["help-section-colours", "help-section-lines", "help-section-salmon", "help-section-runs",
+                           "help-facts", "help-section-sync", "help-section-bell", "help-section-badges"]);
+    for (const t of HELP_WORDS.facts.web) expect(screen.getByText(t)).toBeTruthy();
     expect(screen.queryByTestId("help-offline")).toBeNull();            // a browser has no Offline maps page
     expect(screen.queryByTestId(/^help-tour-/)).toBeNull();               // (owner 2026-11-08) the old mode hints are gone
     expect(off).toBe(0);
