@@ -37,6 +37,9 @@ The data must go before or with the phones (0.8.3 reads the new trout row fields
 Claude: step 1 (feeds worker, version 0a3205f6; gauges, dfo, inseason jobs ok) and step 2 (data worker, version 3c598244).
 Step 3 stays yours: `release --prod` refuses any agent and needs a real terminal, by design. Play's production track is
 empty (no production access yet), so the production Android build goes to Closed testing, replacing staging build 38.
+Owner ~15:42: "apple is now in testing still waiting on android approval" (0.8.2 iPhone approved for external testing;
+Play closed build 38 still in Google's review). Asked whether 0.8.3 production should replace 38 on Closed now (likely
+restarts the review) or wait for 38's approval: owner picked "Replace 38 now".
 
 ## 2026-11-19 morning: test 0.8.2 on staging, then production
 
