@@ -34,7 +34,8 @@ when their files don't collide (Opus for data/pipeline/review, Sonnet for UI/mec
    Google Play email). Apple testers next.
 2. **T917** website page build speed (owner asked twice). Baseline measured on the 0.8.3 production build: numbers in
    the T917 ticket ("Baseline"). First lever: the 4-thread cap (it used ~4 of 18 cores).
-3. **T919** 0.8.3 leftovers (near-duplicate tributary labels, Elaho p.23 twice, in-app map assets, T912 resume check).
+3. **T920** Conditions: gauge map below the chart (owner's last ask; check the white map box in dark mode).
+   **T919** 0.8.3 leftovers (near-duplicate tributary labels, Elaho p.23 twice, in-app map assets, T912 resume check).
 4. **T914** web start (mobile Lighthouse), **T906** map smoothness (symbol trace), **T905** salmon feed size,
    **T901** store buttons/app links, T880, T885, T319 store shots; then `handoff/PLAN/PARKED-TICKETS.md`.
 5. Owner's open decisions: OWNER-TODO.md and the To-Do page (claude.ai/artifact/Lh2ougAwfxx1wNmCV18m8f).
