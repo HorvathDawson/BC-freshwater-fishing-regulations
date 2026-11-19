@@ -150,3 +150,9 @@ cost JS time). `paint-default.test.ts`: MapLibre's own evaluator over every move
 can hold plus "" (not labelled yet), zooms, orders and flags, in all five views and both themes — same width, colour
 and opacity; a mutant (the "" dropped from the rest) fails it. The `mode-switch` scenario keeps the fixed pan reading.
 Not verified: a phone; the web map is untouched (native only).
+
+## 2026-11-19 ~11:20: `labelMatch` on top of `paintDefault` — the owner's go, if it wins
+
+Owner 2026-11-19 (on benching `labelMatch` next), verbatim: "yes include it please if a win". Same landing rule as
+`paintDefault`: zoom/pinch must win clearly, pans and mode switches must not get worse beyond the noise. Clean
+interleaved A/B on one APK of app/t903-land: base (= `paintDefault`, today's default) vs `lab:labelMatch=true`.
