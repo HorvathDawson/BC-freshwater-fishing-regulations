@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState, type RefObject } from "react";
-import { leavesSearch, stepStop, stopDomId, type FieldA11y, type ListKeys } from "./keys";
+import { leavesSearch, stepStop, stopDomId, type FieldA11y, type KeyMods, type ListKeys } from "./keys";
 
 
 /** The results panel's id: what the field's `aria-controls` names. */
@@ -21,12 +21,15 @@ export function useListKeys({ open, stops, query, field }: {
 }): ListKeys {
   const [active, setActive] = useState<string | null>(null);
   useEffect(() => { setActive(null); }, [query, open]);
-  // a highlight whose stop is gone (the list changed under it) is no highlight
+  // a highlight whose stop is gone (the list changed under it) is no highlight — and is forgotten, so the stop coming
+  // back (a town picked, then "← All results") does not bring the old highlight back with it
   const live = open && active !== null && stops.includes(active) ? active : null;
+  useEffect(() => { if (active !== null && live === null) setActive(null); }, [active, live]);
   const now = useRef({ stops, live });
   now.current = { stops, live };
-  const onKey = useCallback((key: string): boolean => {
-    if (!open) return false;
+  const onKey = useCallback((key: string, mods?: KeyMods): boolean => {
+    // with a modifier the key is the field's own (Shift+↑ selects to the start, Cmd+↓ jumps to the end)
+    if (!open || mods?.shiftKey || mods?.metaKey || mods?.ctrlKey || mods?.altKey) return false;
     if (key === "ArrowDown" || key === "ArrowUp") {
       setActive(stepStop(now.current.stops, now.current.live, key === "ArrowDown" ? "down" : "up"));
       return true;                              // the caret stays where it is

@@ -103,12 +103,12 @@ export function SheetRow({ r, palette, pick, act, onOpenWater, statusIndex, toda
                      paddingTop: 12, paddingBottom: 14, gap: 10 }}>
         <Text style={{ ...TYPE.body, color: palette.ink }}>{r.line}</Text>
         <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8 }}>
-          {r.see.filter((t) => t.item !== null).map((t) => (
-            <Pressable {...hitProps({ w: 80, h: 44 })} key={`${t.item}:${t.name}`} onPress={() => onOpenWater(t.item!)}
+          {r.see.map((t, at) => t.item === null ? null : (
+            <Pressable {...hitProps({ w: 80, h: 44 })} key={`${at}:${t.item}`} onPress={() => onOpenWater(t.item!)}
                        accessibilityRole="button" accessibilityLabel={SEARCH_BAR.open(t.name)}
-                       {...stopProps(seeStop(r.key, t.item!))}
+                       {...stopProps(seeStop(r.key, at))}
                        style={({ pressed }) => ({
-                         ...(active === seeStop(r.key, t.item!) ? ring(palette.ink, 2) : null),
+                         ...(active === seeStop(r.key, at) ? ring(palette.ink, 2) : null),
                          flexDirection: "row", alignItems: "center", gap: 2, minHeight: 44,
                          paddingLeft: 12, paddingRight: 6, borderWidth: 1.5,
                          borderColor: palette.accent, borderRadius: palette.r.box,

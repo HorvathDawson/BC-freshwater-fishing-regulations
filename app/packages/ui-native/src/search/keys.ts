@@ -21,7 +21,8 @@ export function stopRow(rows: readonly Row[], pick: SearchPick, stop: string): n
 function stopsAt(rows: readonly Row[], pick: SearchPick): { stop: string; row: number }[] {
   const stops: { stop: string; row: number }[] = [];
   rows.forEach((r, row) => {
-    const add = (stop: string) => stops.push({ stop, row });
+    // each stop once: a repeat would share its element id and trap ↓ (`stepStop` finds the first)
+    const add = (stop: string) => { if (!stops.some((s) => s.stop === stop)) stops.push({ stop, row }); };
     if (r.t === "head") { if (r.back) add(r.key); }
     else if (r.t === "place") add(r.key);
     else if (r.t === "water" || r.t === "near") {
@@ -30,7 +31,7 @@ function stopsAt(rows: readonly Row[], pick: SearchPick): { stop: string; row: n
       const name = r.t === "water" ? r.hit.name : r.near.name;
       if (isSelected(pick, { kind: "water", item, name })) add(goStop(r.key));
     } else if (r.t === "see") {
-      for (const s of r.see) if (s.item !== null) add(seeStop(r.key, s.item));
+      r.see.forEach((s, i) => { if (s.item !== null) add(seeStop(r.key, i)); });
     } else if (r.t === "recents") {
       for (const q of r.list) add(recentStop(q));
     }
@@ -39,7 +40,8 @@ function stopsAt(rows: readonly Row[], pick: SearchPick): { stop: string; row: n
 }
 
 export const goStop = (rowKey: string): string => `go:${rowKey}`;
-export const seeStop = (rowKey: string, item: string): string => `see:${rowKey}:${item}`;
+/** A pointer's water by its place in the pointer's list: two names in one pointer may lead to the same water. */
+export const seeStop = (rowKey: string, at: number): string => `see:${rowKey}:${at}`;
 export const recentStop = (q: string): string => `recent:${q}`;
 /** A stop that opens a water: the page moves on, so the focus is not handed back to the field after it. */
 export const leavesSearch = (stop: string): boolean => stop.startsWith("go:") || stop.startsWith("see:");
@@ -70,7 +72,10 @@ export interface FieldA11y {
 export interface ListKeys {
   /** The highlighted stop (`keyStops`), or null: the field itself. Always null on a phone. */
   active: string | null;
-  /** A key pressed in the field while search is open: true when it was the list's (the field then leaves it alone). */
-  onKey: (key: string) => boolean;
+  /** A key pressed in the field while search is open: true when it was the list's (the field then leaves it alone). A
+   *  key with a modifier held is always the field's. */
+  onKey: (key: string, mods?: KeyMods) => boolean;
   field: FieldA11y;
 }
+/** The modifier keys held with a key (a DOM keyboard event's own fields). */
+export interface KeyMods { shiftKey?: boolean; metaKey?: boolean; ctrlKey?: boolean; altKey?: boolean }

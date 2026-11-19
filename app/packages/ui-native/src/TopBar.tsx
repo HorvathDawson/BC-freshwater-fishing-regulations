@@ -43,7 +43,7 @@ import { CLOSE_KEEPS_FOCUS, closedFieldClick } from "./searchFocus";
 import { TYPE, CAPPED_SCALE } from "./type";
 import { round, type Palette } from "./theme";
 import { hitProps } from "./regs/hit";
-import type { FieldA11y } from "./search/keys";
+import type { FieldA11y, KeyMods } from "./search/keys";
 
 /** The bar's measures: inset from the screen's edges, the field, the slab under it, the sync slot and its dot. */
 export const TOP_BAR = { top: 10, side: 14, field: 44, slab: 3, wide: 720, panel: 440, slot: 40, dot: 8,
@@ -81,7 +81,7 @@ export interface TopBarProps {
   onClose: () => void;
   /** (T858) a key pressed in the field while search is open: true when the results' keyboard took it (web: ↓ ↑ Enter,
    *  `listKeys.web.ts`); absent or false, the field's own keys as before */
-  onListKey?: (key: string) => boolean;
+  onListKey?: (key: string, mods?: KeyMods) => boolean;
   /** (T858) the field's combobox attributes (web), naming the highlighted result; none on a phone */
   fieldA11y?: FieldA11y;
 }
@@ -128,7 +128,7 @@ export const TopBar: ForwardRefExoticComponent<TopBarProps & RefAttributes<TextI
                      // so the caret does not move and Enter submits nothing
                      onKeyPress={(e) => {
                        const key = e.nativeEvent.key;
-                       if (open && onListKey?.(key)) e.preventDefault();
+                       if (open && onListKey?.(key, e.nativeEvent as KeyMods)) e.preventDefault();
                        else if (open && key === "Escape") onClose();
                        else if (!open && (key === "Enter" || key === "ArrowDown")) onOpen();
                      }}

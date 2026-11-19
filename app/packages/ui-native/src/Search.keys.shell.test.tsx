@@ -6,11 +6,12 @@
  *   b. Enter presses the highlighted stop by its own click: a water row frames it (the sheet drops to half), the
  *      selected water's open action (›) is the next stop and Enter on it opens the water; a town shows its waters;
  *   c. typing forgets the highlight; Escape still closes search;
- *   d. a phone has none of it (listKeys.native.ts: no highlight, no key taken), and the stops are pure (`keyStops`).
+ *   d. a highlight whose row went away does not come back with it; a key with a modifier is the field's;
+ *   e. the stops are pure (`keyStops`), each once. A phone has none of it: Search.keys.native.shell.test.tsx.
  * The map renderer is the stub Search.shell.test.tsx uses (no WebGL in jsdom).
  */
 import { afterEach, beforeAll, describe, expect, it, vi } from "vitest";
-import { act, cleanup, fireEvent, render, renderHook, screen, waitFor } from "@testing-library/react";
+import { act, cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { useRef } from "react";
 import { Text, View } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
@@ -21,7 +22,6 @@ import { HOME, NO_SEARCH, type SystemBack } from "@app/ui";
 import { LIGHT } from "./theme";
 import { goStop, keyStops, recentStop, stepStop, stopDomId } from "./search/keys";
 import type { Row } from "./search/rows";
-import * as phone from "./search/listKeys.native";
 
 const BACK = /^Back( to .+)?$/;
 type Fit = { key: string } | null | undefined;
@@ -60,7 +60,11 @@ const settle = () => act(async () => { await new Promise((r) => setTimeout(r, 26
 const typeIn = async (q: string) => { fireEvent.change(field(), { target: { value: q } }); await settle(); await settle(); };
 const sheet = () => screen.queryByTestId("search-sheet-full") ? "full" : screen.queryByTestId("search-sheet-half") ? "half" : "no sheet";
 /** A key pressed in the field: whether the field let it do its own thing (false: the list took it). */
-const key = (k: string) => { let free = true; act(() => { free = fireEvent.keyDown(field(), { key: k }); }); return free; };
+const key = (k: string, mods: { shiftKey?: boolean; metaKey?: boolean; ctrlKey?: boolean; altKey?: boolean } = {}) => {
+  let free = true;
+  act(() => { free = fireEvent.keyDown(field(), { key: k, ...mods }); });
+  return free;
+};
 /** The highlight, by the spoken name of what the field names (`aria-activedescendant`); "field" when none. */
 const lit = () => {
   const id = field().getAttribute("aria-activedescendant");
@@ -172,7 +176,37 @@ describe("(T858) Enter presses the highlighted stop, by the same path as a click
   });
 });
 
-describe("(T858) the stops, and a phone", () => {
+describe("(T858) review fixes: a stale highlight, modifier keys", () => {
+  it("a highlight whose row went away is forgotten: a town picked, then ← All results, starts again from the field",
+     async () => {
+    mount();
+    act(() => { field().focus(); });
+    await typeIn("chilliwack");
+    key("ArrowDown");
+    const town = lit();
+    key("Enter");
+    await waitFor(() => expect(screen.queryByLabelText(SEARCH_BAR.backToAll)).not.toBeNull());
+    await settle();
+    fireEvent.click(screen.getByLabelText(SEARCH_BAR.backToAll));   // the mouse: the town's row is drawn again
+    await settle();
+    expect([town, sheet(), lit(), field().getAttribute("aria-activedescendant")]).toEqual([PLACE, "full", "field", null]);
+  });
+
+  it("an arrow or Enter with Shift, Cmd, Ctrl or Alt held is the field's (select to the start, jump to the end)",
+     async () => {
+    mount();
+    act(() => { field().focus(); });
+    await typeIn("chilliwack");
+    const fromField = (["shiftKey", "metaKey", "ctrlKey", "altKey"] as const).map((m) => [key("ArrowDown", { [m]: true }), lit()]);
+    key("ArrowDown"); key("ArrowDown");
+    const held = [key("ArrowUp", { shiftKey: true }), lit(), key("Enter", { metaKey: true }), sheet()];
+    expect([fromField, held]).toEqual([
+      [[true, "field"], [true, "field"], [true, "field"], [true, "field"]],
+      [true, RIVER, true, "full"]]);
+  });
+});
+
+describe("(T858) the stops", () => {
   const water = (item: string, name: string): Row =>
     ({ t: "water", key: `w:${item}`, hit: { item: item as ItemId, name } as NameHit, dup: false });
   const rows: Row[] = [
@@ -180,15 +214,25 @@ describe("(T858) the stops, and a phone", () => {
     { t: "place", key: "p:12", place: { place: "12", name: "Chilliwack" } as unknown as PlaceHit },
     { t: "head", key: "wh", label: "Waters" },
     water("gnis:1", "A River"), water("gnis:2", "B Creek"),
-    { t: "see", key: "s:9", line: "see", see: [{ name: "C Lake", item: "gnis:3" as ItemId }, { name: "none", item: null }] },
+    { t: "see", key: "s:9", line: "see", see: [{ name: "C Lake", item: "gnis:3" as ItemId }, { name: "none", item: null },
+                                                { name: "C Lake (upper)", item: "gnis:3" as ItemId }] },
     { t: "note", key: "none", text: "…" },
     { t: "recents", key: "recents", list: ["vedder", "cultus lake"] },
   ];
   it("every control the list draws is a stop, in reading order; the selected water's › follows its row", () => {
     const picked = { ...NO_SEARCH.pick, selected: { kind: "water" as const, item: "gnis:2" as ItemId, name: "B Creek" } };
     expect([keyStops(rows, NO_SEARCH.pick), keyStops(rows, picked)]).toEqual([
-      ["p:12", "w:gnis:1", "w:gnis:2", "see:s:9:gnis:3", "recent:vedder", "recent:cultus lake"],
-      ["p:12", "w:gnis:1", "w:gnis:2", goStop("w:gnis:2"), "see:s:9:gnis:3", "recent:vedder", "recent:cultus lake"]]);
+      ["p:12", "w:gnis:1", "w:gnis:2", "see:s:9:0", "see:s:9:2", "recent:vedder", "recent:cultus lake"],
+      ["p:12", "w:gnis:1", "w:gnis:2", goStop("w:gnis:2"), "see:s:9:0", "see:s:9:2", "recent:vedder", "recent:cultus lake"]]);
+  });
+  it("each stop once, even where the data repeats (two names in a pointer for one water, a repeated recent): ↓ walks " +
+     "past every one", () => {
+    const repeated: Row[] = [{ t: "recents", key: "recents", list: ["vedder", "vedder", "cultus"] }, ...rows.slice(5, 6)];
+    const s = keyStops(repeated, NO_SEARCH.pick);
+    const walk: (string | null)[] = [];
+    for (let at: string | null = null, i = 0; i < s.length + 1; i++) walk.push(at = stepStop(s, at, "down"));
+    const once = ["recent:vedder", "recent:cultus", "see:s:9:0", "see:s:9:2"];
+    expect([s, walk]).toEqual([once, [...once, "see:s:9:2"]]);
   });
   it("↓ from the field to the first, down to the last and no further; ↑ back up and out to the field", () => {
     const s = ["a", "b"];
@@ -198,11 +242,5 @@ describe("(T858) the stops, and a phone", () => {
   });
   it("a stop's element id holds no space (an id reference is one word)", () => {
     expect(stopDomId(recentStop("cultus lake"))).toBe("search-stop-recent%3Acultus%20lake");
-  });
-  it("a phone: no highlight, no key taken, no ids", () => {
-    const { result } = renderHook(() => phone.useListKeys({ open: true, stops: ["a"], query: "x", field: { current: null } }));
-    expect([result.current.active, result.current.onKey("ArrowDown"), result.current.onKey("Enter"), result.current.field,
-            phone.stopProps("a"), phone.resultsProps(), phone.revealStop("a")])
-      .toEqual([null, false, false, {}, {}, {}, false]);
   });
 });
