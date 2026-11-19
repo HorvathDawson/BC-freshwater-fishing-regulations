@@ -6,7 +6,7 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 // the checked line, as the feed's fetch time would say it (the line's own wording is salmonFeed.test.ts's)
-vi.mock("@app/core", async (orig) => ({ ...(await orig<Record<string, unknown>>()), salmonCheckedLine: () => "DFO rules checked Oct 29" }));
+vi.mock("@app/core", async (orig) => ({ ...(await orig<Record<string, unknown>>()), salmonChecked: () => ({ short: "Checked Oct 29", label: "DFO rules checked Oct 29" }) }));
 vi.mock("@app/map", async (orig) => ({ ...(await orig<Record<string, unknown>>()), Map: () => null }));
 import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { KEY_ISOLATE_WORDS, MAP_KEY } from "@app/core";

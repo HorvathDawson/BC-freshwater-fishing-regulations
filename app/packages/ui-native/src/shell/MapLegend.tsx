@@ -8,7 +8,7 @@
  */
 import { CHANGE_LEGEND, changeMarkWords, FLOW_LEGEND, OTHER_QUANTITY_WORDS, TEMP_LEGEND, unprovenLine,
          WATER_STATUS_LINE, WATER_STATUSES, waterLegend, salmonLegend, GEAR_LEGEND,
-         RUN_WORDS, salmonCheckedLine, slotsFor, MAP_KEY, closedKey, waterKeyWords, OBSTACLE_ICON_KINDS }
+         RUN_WORDS, salmonChecked, slotsFor, MAP_KEY, closedKey, waterKeyWords, OBSTACLE_ICON_KINDS }
   from "@app/core";
 import { closedCueColour, gaugeOnlyColours, issueStripeColours, gearEdgeColour, notFishingColours, runStateColour, salmonCasingColour, salmonStatusColour } from "@app/map/colours";
 import { ObstacleIcon } from "../icons";
@@ -41,7 +41,7 @@ export function MapLegend({ col, conditions, palette, theme, mapDay }: {
   // (T367, T425) THE FISHERY HEADS THE KEY IT CHANGES: the Map tab's legend, with (in Salmon, whose rules these are) DFO's
   // source line and the fold above it. The Trout | Salmon switch itself is on the map's rail (`RegsLayerToggle`)
   const fishery = !conditions && col.salmonOffered && col.statusOk && col.layers.water.drawn === "regulations";
-  const checked = fishery && col.regsLayer === "salmon" ? salmonCheckedLine(col.salmonFacts) : null;
+  const checked = fishery && col.regsLayer === "salmon" ? salmonChecked(col.salmonFacts) : null;
   // (T396) the regulations key's entries, laid in two rows below (`LegendRows`)
   const gearRows = col.gearMarked ? GEAR_LEGEND.map((m) => (
     <LegendCount key={m} palette={palette} colour={gearEdgeColour(theme)} edge={m === "fly" ? "solid" : "dashed"} tight
@@ -68,9 +68,9 @@ export function MapLegend({ col, conditions, palette, theme, mapDay }: {
   ));
   // (T896) Salmon's checked date: the key's last word, right-aligned on its last row
   const checkedNote = checked && (
-    <Text key="checked" testID="salmon-legend-source" accessibilityLabel={checked} numberOfLines={1}
+    <Text key="checked" testID="salmon-legend-source" accessibilityLabel={checked.label} numberOfLines={1}
           style={{ ...TYPE.meta, color: palette.sub, marginLeft: "auto" }}>
-      {checked.replace(/^DFO rules c/, "C")}
+      {checked.short}
     </Text>
   );
   const strip = (
