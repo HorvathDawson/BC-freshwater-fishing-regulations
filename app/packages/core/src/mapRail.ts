@@ -28,6 +28,13 @@ export const MY_LOCATION = {
   denied: "Location is off for this app. Turn it on in your device settings, then tap again.",
   /** a fix did not arrive (no signal, timed out) */
   noFix: "Your location could not be found. Try again outside, or check location is on.",
+  /**
+   * (T864, owner 2026-11-18; PROPOSAL, the owner picks the words) the fix is outside B.C. and its ~50 km margin (`nearBC`):
+   * not used — the map stays on B.C. — and said once per press (once per open for the open's own centring). Also the
+   * Spots tab's "At my location" and a spot's "Parking: here", which start nothing from a far fix.
+   */
+  far: "You're outside British Columbia. This app only covers B.C. waters, so your location won't help here — the map " +
+       "and regulations still work.",
 } as const;
 
 /** The Spots tab (T48; the rail's Spots menu before it): your saved spots, and the ways to add one. */

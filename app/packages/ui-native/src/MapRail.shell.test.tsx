@@ -214,6 +214,17 @@ describe("spots and the rail, through the Shell (T48)", () => {
     ]);
   });
 
+  it("(T864) At my location from Toronto: nothing starts, the far line is said, and no Open Settings under it", async () => {
+    const { MY_LOCATION } = await import("@app/core");
+    const locate: Locate = { permission: async () => "granted", here: async () => ({ lat: 43.65, lon: -79.38 }) };
+    const saved = mount({ locate, spots: [] });
+    tab("Spots");
+    await waitFor(() => expect(screen.queryByLabelText("At my location")).not.toBeNull());
+    await act(async () => { fireEvent.click(screen.getByLabelText("At my location")); });
+    expect([look(), screen.getByRole("alert").textContent, screen.queryByText("Open Settings"), saved]).toEqual([
+      `${BAR} (Spots) | no map | spots tab`, MY_LOCATION.far, null, []]);
+  });
+
   it("At my location: the permission is asked on the tap, and refused there it is said and nothing starts; with no " +
      "location module (native today) it is not offered and the tab says so", async () => {
     const locate: Locate = { permission: async () => "prompt", here: async () => { throw new Error("denied"); } };
