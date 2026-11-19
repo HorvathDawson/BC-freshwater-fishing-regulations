@@ -3,7 +3,8 @@
  * only the layers it names.
  */
 import { describe, expect, it } from "vitest";
-import { LAB_DEFAULT, labStyle, type Lab } from "./lab";
+import { LAB_DEFAULT, LABEL_SWITCH, labStyle, type Lab } from "./lab";
+import { LABEL_GROUPS, labelGroup } from "./label-hold";
 import { nativeStyle } from "./native-style";
 
 type L = { id: string; type: string; source?: string; "source-layer"?: string; filter?: unknown;
@@ -73,5 +74,17 @@ describe("the map lab", () => {
     expect(named.length).toBeGreaterThan(0);
     expect(s.layers.filter(pick).every((l) => l.layout?.visibility === "none")).toBe(true);
     expect(moved(t, s).sort()).toEqual(named.filter((id) => t.layers.find((l) => l.id === id)!.layout?.visibility !== "none").sort());
+  });
+
+  it.each(LABEL_GROUPS)("(T876) the %s labels off hides exactly that kind", (kind) => {
+    const t = labStyle(today(), LAB_DEFAULT), s = lab({ [LABEL_SWITCH[kind]]: false });
+    const named = t.layers.filter((l) => labelGroup(l) === kind && visible(l)).map((l) => l.id);
+    expect(named.length).toBeGreaterThan(0);
+    expect(moved(t, s).sort()).toEqual(named.sort());
+  });
+
+  it("(T876) the hold switch never touches the style (it is the phone's camera, not a look)", () => {
+    const s = today(), off = { ...LAB_DEFAULT, hideInvisible: false };
+    expect(labStyle(s, { ...off, holdLabels: false })).toBe(s);
   });
 });

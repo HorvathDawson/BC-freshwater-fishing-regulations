@@ -74,6 +74,8 @@ import { metricScale } from "./scale";
 import { GEOMETRY, SHOW_SCALE } from "./chrome";
 import { MapCredits } from "./MapCredits";
 import { LAB_ON, labStyle, useLab } from "./lab";
+import { heldLayers } from "./label-hold";
+import { HeldLabels, holdStore, useAdoptedIds } from "./native/labelHold";
 import type { MapProps } from "./map-props";
 import { COPY_LINE, COPY_SOURCE, COPY_UNTIL, WaterCopy, copyIds, pieceGridZoom, probeZoom, zoomAround, type CopyTarget } from "./water-copy";
 import { cameraMs, setReducedMotion } from "./motion";
@@ -270,6 +272,20 @@ export function Map({ at, theme, view, modes, groups, hide, show, initial, data,
   // (T420) a lab build's switches (`lab.ts`): today's style, the same object, unless one is flipped
   const lab = useLab();
   const shown = useMemo(() => labStyle(look.style, lab), [look, lab]);
+  /*
+   * (T876) LABELS WAIT WHILE THE ZOOM MOVES (`label-hold.ts`): the camera's reports drive the hold; the style's label
+   * layers are adopted under their sources below (`HeldLabels`) and only they re-render when it changes.
+   */
+  const hold = useMemo(() => holdStore(), []);
+  const holdOn = useRef(lab.holdLabels);
+  holdOn.current = lab.holdLabels;
+  useEffect(() => { if (!lab.holdLabels) hold.machine.reset(); }, [lab.holdLabels, hold]);
+  useEffect(() => () => hold.machine.reset(), [hold]);
+  const heldNow = useMemo(() => heldLayers(shown as unknown as Parameters<typeof heldLayers>[0]), [shown]);
+  const adopted = useAdoptedIds(heldNow);
+  const onRegionIsChanging = useCallback((e: RegionEvent) => {
+    if (holdOn.current) hold.machine.moving(e.nativeEvent?.zoom);
+  }, [hold]);
   /*
    * (T566) THE CALLER'S LOOK, SAID WHEN DRAWN (`MapProps.lookKey`, `look-drawn.ts`): a key handed with a new style waits
    * for that style to load and then for a full frame — the frame the binding's held picture lifts at (T451) — so the
@@ -632,8 +648,9 @@ export function Map({ at, theme, view, modes, groups, hide, show, initial, data,
   const [callout, setCallout] = useState<{ title: string; x: number; y: number } | null>(null);
   const onRegionWillChange = useCallback((e: RegionEvent) => {
     const ne = e.nativeEvent;
+    if (holdOn.current) hold.machine.start(ne?.zoom);
     if (ne?.userInteraction && meNow.current?.following) meNow.current.onRelease?.();
-  }, []);
+  }, [hold]);
   useEffect(() => {
     // (T443) not before the map's first style has loaded: a fit sent while the native map was still being made was lost
     // to its initial camera (test bed: a water's map opened on the last water's place, its fit and refit both dropped)
@@ -864,6 +881,7 @@ export function Map({ at, theme, view, modes, groups, hide, show, initial, data,
   useEffect(() => { void shiftMarks(); }, [JSON.stringify(marks ?? []), shiftMarks, drawn]);  // eslint-disable-line react-hooks/exhaustive-deps
 
   const onRegionDidChange = useCallback((e: RegionEvent) => {
+    hold.machine.rest();
     // (T508) the fit's glide at its end (not the camera it started from), and the last frame drawn had every tile in
     if (fitMoving.current && clockNow() - fitSentAt.current >= fitGlide.current * 0.8) fitMoving.current = false;
     if (lastFull.current) whole.current();
@@ -903,7 +921,7 @@ export function Map({ at, theme, view, modes, groups, hide, show, initial, data,
     }, SETTLE_ASK_MS);
     // (T175) the reader's own pan or pinch: the copy never steps in against it (T443: nor does a refit)
     if (ne?.userInteraction) { copyTouched.current = true; fitTouched.current = true; }
-  }, [shiftMarks, reportVisible, report]);
+  }, [shiftMarks, reportVisible, report, hold]);
 
   // a new style dropped every feature-state (`forget`: send them all again) and may draw other features
   const onStyle = useCallback(() => {
@@ -985,7 +1003,9 @@ export function Map({ at, theme, view, modes, groups, hide, show, initial, data,
         onTapUp={onPressStart && onPressFeature ? onTapUp as never : undefined}
         onLongPress={onLongPress ? onLongPressed as never : undefined}
         onRegionDidChange={onRegionDidChange as never}
-        onRegionWillChange={probe || me?.on || PAN_PROBE ? ((e: RegionEvent) => { probe?.moving(); panProbe.moving(); onRegionWillChange(e); }) as never : undefined}
+        // (T876) always: the label hold starts on it
+        onRegionWillChange={((e: RegionEvent) => { probe?.moving(); panProbe.moving(); onRegionWillChange(e); }) as never}
+        onRegionIsChanging={onRegionIsChanging as never}
         onDidFinishRenderingFrame={probe || PAN_PROBE || wantWhole
           ? (() => { lastFull.current = false; probe?.frame(); if (PAN_PROBE) panProbe.frame(false); }) as never : undefined}
         // (T420/T401, test bed only) a frame with every tile in: the pan probe's "streams drawn"; (T508) and while someone
@@ -1000,10 +1020,17 @@ export function Map({ at, theme, view, modes, groups, hide, show, initial, data,
       >
         <Camera ref={camRef} initialViewState={camera0.current} minZoom={MIN_ZOOM} maxZoom={CAMERA_MAX_ZOOM}
                 maxBounds={MAX_BOUNDS} />
-        <VectorSource id="atlas" ref={atlasAttached} />
+        <VectorSource id="atlas" ref={atlasAttached}>
+          <HeldLabels store={hold} ids={adopted.atlas} now={heldNow.atlas} />
+        </VectorSource>
+        {/* (T876) the basemap's and the units' names, adopted by id for the hold (the style's own sources) */}
+        <VectorSource id="basemap"><HeldLabels store={hold} ids={adopted.basemap} now={heldNow.basemap} /></VectorSource>
+        <VectorSource id="mus"><HeldLabels store={hold} ids={adopted.mus} now={heldNow.mus} /></VectorSource>
         {/* (T74) the hatches, the gauge pill and the route's pin, in this theme */}
         <Images images={images as never} />
-        <GeoJSONSource id="gauges" data={gaugeData} />
+        <GeoJSONSource id="gauges" data={gaugeData}>
+          <HeldLabels store={hold} ids={adopted.gauges} now={heldNow.gauges} />
+        </GeoJSONSource>
         {/* (T831) the route map's lines, gauge dots and "you are here" pin: the style's own sources by id, as `gauges`.
             Handed only once a style has loaded: what changes before then is in the style itself, and a change after it
             is pushed to the source the binding adopted (it never pushes what it was mounted with) */}

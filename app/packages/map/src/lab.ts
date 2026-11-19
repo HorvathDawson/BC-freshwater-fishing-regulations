@@ -13,6 +13,7 @@
  * the layers it names.
  */
 import { useSyncExternalStore } from "react";
+import { labelGroup, LABEL_GROUPS, type LabelGroup } from "./label-hold";
 
 export interface Lab {
   /** (T448) draw at most 2 device pixels per dp (today's map: on) */
@@ -32,10 +33,25 @@ export interface Lab {
   /** hide a layer whose every opacity is the constant 0: it draws nothing, but MapLibre Native still re-applies every
    *  stored feature-state to it each frame (T420 correction) */
   hideInvisible: boolean;
+  /** (T876) each kind of label drawn (today: on), to find which kind costs a quick pinch (`label-hold.ts` LabelGroup) */
+  waterNames: boolean;
+  placeNames: boolean;
+  roadNames: boolean;
+  areaNames: boolean;
+  gaugePills: boolean;
+  marks: boolean;
+  /** (T876) the labels wait while the zoom moves and come back at rest (today: on; native only) */
+  holdLabels: boolean;
 }
+
+/** (T876) The lab switch of each kind of label. */
+export const LABEL_SWITCH: Readonly<Record<LabelGroup, keyof Lab>> = {
+  water: "waterNames", places: "placeNames", roads: "roadNames", areas: "areaNames", gauges: "gaugePills", marks: "marks",
+};
 
 export const LAB_DEFAULT: Readonly<Lab> = Object.freeze({
   pixelCap: true, prefetch: 4, streamsOneBucket: false, roads: true, landuse: true, labels: true, stateGapMs: 0, hideInvisible: true,
+  waterNames: true, placeNames: true, roadNames: true, areaNames: true, gaugePills: true, marks: true, holdLabels: true,
 });
 
 /** Read once: Metro inlines `EXPO_PUBLIC_*` at build time. */
@@ -80,10 +96,13 @@ const drawsNothing = (l: Layer & { paint?: Record<string, unknown> }): boolean =
 /** The style with the lab's switches applied; the SAME object when every style switch is at its default. */
 export function labStyle<S>(style: S, lab: Readonly<Lab>): S {
   const s = style as unknown as Style;
-  if (!lab.streamsOneBucket && lab.roads && lab.landuse && lab.labels && !lab.hideInvisible) return style;
+  const kindsOff = LABEL_GROUPS.filter((g) => !lab[LABEL_SWITCH[g]]);
+  if (!lab.streamsOneBucket && lab.roads && lab.landuse && lab.labels && !lab.hideInvisible && !kindsOff.length) return style;
   const layers = s.layers.map((l) => {
     if (lab.hideInvisible && drawsNothing(l)) return hidden(l);
     if (!lab.labels && l.type === "symbol") return hidden(l);
+    const kind = labelGroup(l);
+    if (kind && kindsOff.includes(kind)) return hidden(l);
     if (!lab.roads && l.source === "basemap" && l["source-layer"] === "roads") return hidden(l);
     if (!lab.landuse && l.source === "basemap" && l["source-layer"] === "landuse") return hidden(l);
     if (lab.streamsOneBucket && l.type === "line" && l.source === "atlas" && l["source-layer"] === "stream") {
