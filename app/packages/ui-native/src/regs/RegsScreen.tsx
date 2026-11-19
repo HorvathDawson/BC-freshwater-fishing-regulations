@@ -21,7 +21,7 @@ import { useCallback, useContext, useEffect, useLayoutEffect, useMemo, useRef, u
 import { openProbe } from "@app/data";
 import { AccessibilityInfo, Platform, ScrollView, View, type ScrollViewInstance, type ViewInstance } from "react-native";
 import { Text } from "../Text";
-import { LEGAL_WORDS, parseSheetKey, tabScrollY, type AccessNotice, type GlanceRowVM, type InSeasonBannerVM, type Line, type RegsPage, type SalmonStripVM, type SheetKey, type Tab } from "@app/core";
+import { LEGAL_WORDS, parseSheetKey, tabScrollY, type AccessNotice, type GlanceRowVM, type InSeasonBannerVM, type Line, type RegsPage, type SalmonStripVM, type SheetKey, type SunDay, type Tab } from "@app/core";
 import { AccessNoticeBlock } from "./AccessNoticeBlock";
 import { FreshDot } from "../menu/Fresh";
 import { WaterInset } from "../WaterFrame";
@@ -120,8 +120,8 @@ export interface RegsScreenProps {
    * drawn at the page's foot under the "not legal advice" line (`LEGAL_WORDS.footer`, always drawn). Absent: that line only.
    */
   asOf?: string | null;
-  /** (T382) the day's sunrise and sunset at the water (`useSunLine`), a small line in the page's header; absent: none. */
-  sun?: string | null;
+  /** (T382) the day's sunrise and sunset at the water (`useSunLine`); (T878) a small line under the date pill; absent: none. */
+  sun?: SunDay | null;
   /** (T473) a daylight-only closure's open hours on the day at the water, from its own offsets; null: no point known */
   /** (T474) the water's own entry in the rule book (core `waterBookOf`): "This water in the rule book p.N ↗"; empty: none */
   waterBook?: Line;
@@ -304,7 +304,7 @@ export function RegsScreen({ page, palette, images, actions, onDate,
       <AccessNoticeBlock notices={access} palette={palette} />
       {layout === "desktop" ? (
         <View testID="regs-columns" style={{ flex: 1, flexDirection: "row" }}>
-          <RegsSide header={header} store={store} palette={palette} onDate={onDate} onTab={toTab} />
+          <RegsSide header={header} store={store} palette={palette} onDate={onDate} onTab={toTab} sun={sun} />
           {pageScroll}
         </View>
       ) : pageScroll}

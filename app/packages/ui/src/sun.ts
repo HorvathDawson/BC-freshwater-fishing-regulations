@@ -9,7 +9,7 @@
  * failed `useAsync`, reported there.
  */
 import { useMemo } from "react";
-import { daylightRange, sunLine } from "@app/core";
+import { daylightRange, sunLine, type SunDay } from "@app/core";
 import type { ItemId, WaterSource } from "@app/data";
 import { useAsync } from "./async";
 import type { LatLon } from "./route";
@@ -21,9 +21,10 @@ export function useSunPoint(source: Pick<WaterSource, "waterPoint">, item: ItemI
   return at ?? own.value ?? null;
 }
 
-/** The day's sun line at the water ("Sunrise 07:44 PT · Sunset 17:41 PT"), or null with no point (or no rise/set). */
+/** The day's sun at the water (T878: "05:07–21:52 PT", aria "Sunrise 5:07, sunset 21:52 PT"), or null with no point (or no
+ *  rise/set). */
 export function useSunLine(source: Pick<WaterSource, "waterPoint">, item: ItemId | null, at: LatLon | null,
-                           day: { y: number; m: number; d: number }): string | null {
+                           day: { y: number; m: number; d: number }): SunDay | null {
   const p = useSunPoint(source, item, at);
   return useMemo(() => (p ? sunLine(p.lat, p.lon, day) : null), [p?.lat, p?.lon, day.y, day.m, day.d]);   // eslint-disable-line react-hooks/exhaustive-deps -- the point and the day
 }

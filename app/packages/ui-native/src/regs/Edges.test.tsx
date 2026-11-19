@@ -83,20 +83,20 @@ describe("10. an unnamed section (D11 a)", () => {
     expect(within(screen.getByTestId("regs-header")).getByRole("heading").textContent).toBe(h.name);
     expect(screen.queryByRole("button", { name: /map|parts/i })).toBeNull();
     expect(screen.queryByTestId("regs-action")).toBeNull();
-    expect(screen.getByTestId("regs-place").textContent).toBe("");
+    // (T878) no label: no place row
+    expect(screen.queryByTestId("regs-place")).toBeNull();
   });
-  it("header-one-shape: the empty label slot is the height of a named water's", () => {
+  it("(T878, owner 2026-11-18: \"a ton of space\") no empty label slot: a named water's row, none for the unnamed one", () => {
     const style = (header: RegsPage["header"]) => {
       render(<RegsHeader header={header} palette={LIGHT} tabs={createTabStore()} onDate={() => {}} onTab={() => {}} />);
-      const s = getComputedStyle(screen.getByTestId("regs-place")).height;
+      const p = screen.queryByTestId("regs-place");
+      const s = p ? getComputedStyle(p).height : null;
       cleanup();
       return s;
     };
-    // a named water whose name fits one line ("Mouth → Source"; the Vedder's part name now wraps: T517)
+    // a named water whose name fits one line ("Mouth → Source"; the Vedder's part name now wraps: T517): its one line
     const named = style(asPage(glenn501).header), none = style(h);
-    // (owner 2026-10-27) one line when the name fits: the empty slot is a named water's one line
-    expect(named).toBe(none);
-    expect(named).not.toBe("");
+    expect([named, none]).toEqual(["16.22px", null]);
   });
 });
 

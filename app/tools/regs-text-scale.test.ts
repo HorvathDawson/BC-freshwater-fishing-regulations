@@ -212,7 +212,7 @@ describe("T40 the Regulations view at 200 % text, laid out in Chrome", () => {
     // the evidence: the header's name row and place row grow with the text (two lines each at 2×), and how many line boxes
     // (T517) the Vedder's part is named by its own two ends ("Mouth → Cable car crossing (200 m downstream of Vedder
     // Crossing bridge)"): its place row takes the lines the name needs, from the length guess in this static layout
-    // (two at 1×, four at 2×) — never cut
+    // (two at 1×, four at 2×) — never cut; (T878) the Lower West Arm (no label) has no place row at all
     expect(Object.fromEntries(Object.entries(m).filter(([k]) => !k.startsWith("sheet ")).map(([k, v]) => [k, `title ${v.title} place ${v.place}`])))
       .toMatchInlineSnapshot(`
         {
@@ -220,10 +220,10 @@ describe("T40 the Regulations view at 200 % text, laid out in Chrome", () => {
           "glenn_501 desktop 2×": "title 48 place 32",
           "glenn_501 phone 1×": "title 48 place 16",
           "glenn_501 phone 2×": "title 60 place 32",
-          "klwa_1010 desktop 1×": "title 48 place 16",
-          "klwa_1010 desktop 2×": "title 48 place 32",
-          "klwa_1010 phone 1×": "title 48 place 16",
-          "klwa_1010 phone 2×": "title 117 place 32",
+          "klwa_1010 desktop 1×": "title 48 place 0",
+          "klwa_1010 desktop 2×": "title 48 place 0",
+          "klwa_1010 phone 1×": "title 48 place 0",
+          "klwa_1010 phone 2×": "title 117 place 0",
           "vedder_1010 desktop 1×": "title 48 place 32",
           "vedder_1010 desktop 2×": "title 48 place 130",
           "vedder_1010 phone 1×": "title 48 place 32",

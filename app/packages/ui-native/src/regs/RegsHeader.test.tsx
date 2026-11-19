@@ -12,6 +12,7 @@ import type { HeaderVM } from "@app/core";
 import { LIGHT } from "../theme";
 import { pickPlace, RegsHeader, type TabSource } from "./RegsHeader";
 import { createTabStore } from "./tabStore";
+import { RegsSide } from "./RegsWide";
 import bc1501 from "./fixtures/bc1_501.json";
 import glenn501 from "./fixtures/glenn_501.json";
 import glenn615 from "./fixtures/glenn_615.json";
@@ -47,7 +48,8 @@ const drawn = () => {
     name: within(root).getByRole("heading").textContent,
     pill: [screen.getByTestId("regs-date").getAttribute("aria-label"), screen.getByTestId("regs-date").textContent],
     buttons: within(root).queryAllByRole("button").filter((b) => b.getAttribute("data-testid") !== "regs-date").length,
-    place: screen.getByTestId("regs-place").textContent,
+    // (T878) no label: no place row at all (null), never an empty slot
+    place: screen.queryByTestId("regs-place")?.textContent ?? null,
     tabs: screen.getAllByRole("tab").map((t) => [t.textContent, t.getAttribute("aria-selected")]),
   };
 };
@@ -60,7 +62,7 @@ describe("<RegsHeader> over every frozen page's header", () => {
       name: h.name,
       pill: [h.dateAria, `${h.dayWord}${h.date}`],
       buttons: 0,
-      place: h.place?.full ?? "",
+      place: h.place?.full ?? null,
       tabs: h.tabs.map((x, i) => [x.label, i === 0 ? "true" : "false"]),
     });
   });
@@ -87,20 +89,21 @@ describe("<RegsHeader>", () => {
     expect(screen.getByTestId("regs-dot").style.backgroundColor).toBe(rgb(LIGHT.closed));
   });
 
-  it("(T150) bc1_501, a water of many parts: no Parts button; (T517) its side channels have no ends, so the part is said as its water — the label slot is empty", () => {
+  it("(T150) bc1_501, a water of many parts: no Parts button; (T517) its side channels have no ends, so the part is said as its water — (T878) no place row", () => {
     mount(headerOf("bc1_501"));
-    expect(drawn().place).toBe("");
+    expect(drawn().place).toBeNull();
     expect([screen.queryByRole("button", { name: /parts/i }), drawn().buttons]).toEqual([null, 0]);
   });
 
-  it("header-one-shape: klwa_1010 (no label) has the same rows and test ids as vedder_1010, the label slot empty", () => {
+  it("(T878, owner 2026-11-18) klwa_1010 (no label) has vedder_1010's rows and test ids but the place row: no empty slot under the name", () => {
     const shape = () => [...screen.getByTestId("regs-header").querySelectorAll("[data-testid]")].map((e) => e.getAttribute("data-testid"));
     mount(headerOf("vedder_1010"));
     const vedder = { rows: screen.getByTestId("regs-header").children.length, ids: shape() };
     cleanup();
     mount(headerOf("klwa_1010"));
-    expect({ rows: screen.getByTestId("regs-header").children.length, ids: shape() }).toEqual(vedder);
-    expect(screen.getByTestId("regs-place").textContent).toBe("");
+    expect({ rows: screen.getByTestId("regs-header").children.length, ids: shape() })
+      .toEqual({ rows: vedder.rows - 1, ids: vedder.ids.filter((id) => id !== "regs-place") });
+    expect(screen.queryByTestId("regs-place")).toBeNull();
   });
 
   it("(T71 / T150) no action slot on any water: the name row is the frame's title and the pill, so it never reflows", () => {
@@ -139,25 +142,45 @@ describe("<RegsHeader>", () => {
   });
 });
 
-describe("the sun line in the header (T471)", () => {
-  const LINE = "Sunrise 08:04 PT · Sunset 17:37 PT";
-  const mountSun = (sun: string | null, side = false) =>
+describe("(T878) the day's sun under the date pill", () => {
+  const SUN = { text: "5:07–21:52", aria: "Sunrise 5:07, sunset 21:52 PT", rise: "5:07", set: "21:52" };
+  // (T878 look round) the line's words in whichever look SUN_LOOK picks: the range, or the two times as two parts
+  const WORDS_DRAWN = ["5:07–21:52", "5:0721:52"];
+  const mountSun = (sun: typeof SUN | null, side = false) =>
     render(<RegsHeader header={headerOf("vedder_1010")} palette={LIGHT} tabs={createTabStore()} onDate={() => {}} onTab={() => {}}
                        side={side} sun={sun} />);
-  it("is a secondary line inside the header, under the place label, the whole line", () => {
-    mountSun(LINE);
-    const header = screen.getByTestId("regs-header");
-    const sun = within(header).getByTestId("regs-sun");
-    expect(sun.textContent).toBe(LINE);
-    expect(screen.getByTestId("regs-place").compareDocumentPosition(sun) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+  it("is right under the name row (never in it: it takes no width from the name), after the date pill, the sun icon and the whole line, its label the whole sentence", () => {
+    mountSun(SUN);
+    const title = screen.getByTestId("water-title");
+    expect(within(title).queryByTestId("regs-sun")).toBeNull();
+    const sun = within(screen.getByTestId("regs-header")).getByTestId("regs-sun");
+    expect(title.nextElementSibling).toBe(sun);
+    expect(sun.getAttribute("aria-label")).toBe("Sunrise 5:07, sunset 21:52 PT");
+    expect(WORDS_DRAWN).toContain(sun.textContent);
+    expect(within(sun).queryAllByTestId(/^icon-sun/).length).toBeGreaterThan(0);
+    expect(screen.getByTestId("regs-date").compareDocumentPosition(sun) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    // not inside the pill: the pill's own label stays the day's, a press on it still asks "Which day?"
+    expect(screen.getByTestId("regs-date").contains(sun)).toBe(false);
+    // and no longer its own row under the place label (T471's)
+    expect(screen.getByTestId("regs-place").compareDocumentPosition(sun) & Node.DOCUMENT_POSITION_FOLLOWING).toBeFalsy();
   });
-  it("is drawn in the desktop header too", () => {
-    mountSun(LINE, true);
-    expect(within(screen.getByTestId("regs-header")).getByTestId("regs-sun").textContent).toBe(LINE);
+  it("the desktop header has no pill, so no sun: it is the side column's (RegsSide)", () => {
+    mountSun(SUN, true);
+    expect(screen.queryByTestId("regs-sun")).toBeNull();
   });
-  it("null: nothing is drawn", () => {
+  it("the desktop side column: the line right under its date pill", () => {
+    render(<RegsSide header={headerOf("vedder_1010")} store={createTabStore()} palette={LIGHT} onDate={() => {}} onTab={() => {}} sun={SUN} />);
+    const sun = screen.getByTestId("regs-sun");
+    expect(sun.getAttribute("aria-label")).toBe("Sunrise 5:07, sunset 21:52 PT");
+    expect(WORDS_DRAWN).toContain(sun.textContent);
+    // after the pill, in the pill's own block (before the section list)
+    expect(screen.getByTestId("regs-date").compareDocumentPosition(sun) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    expect(sun.compareDocumentPosition(screen.getByTestId("regs-section-list")) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+  });
+  it("null: the pill alone", () => {
     mountSun(null);
     expect(screen.queryByTestId("regs-sun")).toBeNull();
+    expect(screen.getByTestId("regs-date")).toBeTruthy();
   });
 });
 

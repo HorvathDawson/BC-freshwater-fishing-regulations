@@ -22,12 +22,12 @@
  * 2026-11-17 23:29 "Remove it (Recommended)") The pin bar, over the column and in the side, is gone.
  */
 import { View } from "react-native";
-import type { HeaderVM, Tab } from "@app/core";
+import type { HeaderVM, SunDay, Tab } from "@app/core";
 import type { LayoutClass } from "@app/ui";
 import { REGS_WIDE, type Palette } from "../theme";
 import { WaterInset } from "../WaterFrame";
 import type { TabStore } from "./tabStore";
-import { DatePill, SectionList } from "./RegsHeader";
+import { DatePill, SectionList, SunLine } from "./RegsHeader";
 
 /** The page's lines held to the reading measure, centred; a phone: the children as they are (nothing wraps them). */
 export function ReadingColumn({ layout, testID, children }: { layout: LayoutClass; testID?: string; children: React.ReactNode }) {
@@ -41,13 +41,16 @@ export function ReadingColumn({ layout, testID, children }: { layout: LayoutClas
  * reader reaches for while reading, so the main column is just the page. Outside the page's
  * scroll, so it stays put while the page moves.
  */
-export function RegsSide({ header, store, palette, onDate, onTab }: {
+export function RegsSide({ header, store, palette, onDate, onTab, sun = null }: {
   header: HeaderVM; store: TabStore; palette: Palette; onDate: () => void; onTab: (t: Tab) => void;
+  /** (T878) the picked day's sun at the water, under the date pill; null: the pill alone */
+  sun?: SunDay | null;
 }) {
   return (
     <View testID="regs-side" style={{ width: REGS_WIDE.side, borderRightWidth: 1, borderRightColor: palette.line }}>
       <WaterInset style={{ paddingTop: 12, paddingBottom: 12, alignItems: "flex-start" }}>
         <DatePill h={header} palette={palette} onDate={onDate} />
+        {!!sun && <SunLine sun={sun} palette={palette} align="start" />}
       </WaterInset>
       <WaterInset style={{ paddingBottom: 12 }}>
         <SectionList h={header} tabs={store} palette={palette} onTab={onTab} />
