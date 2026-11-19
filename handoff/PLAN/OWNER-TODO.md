@@ -2750,3 +2750,9 @@ More questions (recommended answer first):
   ~18:25, verbatim: "when we flip the switch i will get you to clean that stuff up too" -> at the switch, on his word,
   Claude turns off the bc-fishing-cron worker and main's update-hydro / update-in-season / update-stocking workflows
   (PRODUCTION.md step 11); no longer an owner hand step.
+- 2026-11-18 ~20:22, owner (app chat), verbatim: "For salmon  It is 10 max adult Chinook not over 50cm because some rivers
+  adult is defined differently" -> T869 (main chat). Book p.77: adult = over 50 cm in most waters; over 62 cm on the
+  lower Fraser / Harrison (Sep 5-Dec 31), Chilliwack/Vedder below Slesse and Sumas (Jul 1-Dec 31); over 65 cm year
+  round on 12 north-coast rivers (Bella Coola, Skeena, Nass, Kitimat …). DFO's page defines it the same way. OWNER
+  PICK: (A) reword DFO's line to "10 adult chinook … (here an adult is over 62 cm, Jul 1-Dec 31)" or (B) keep DFO's
+  line and add "Adult chinook here: over 62 cm (Jul 1-Dec 31)". And: before production, or after?
