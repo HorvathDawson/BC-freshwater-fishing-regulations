@@ -150,7 +150,8 @@ export const MENU_WORDS = {
   },
   contact: {
     title: "Contact",
-    /** (T860, owner 2026-11-18) the intro names the report form beside the email; its first `report` is the form's link */
+    /** (T860, owner 2026-11-18) the intro names the report form beside the email (words only: the Report a problem row sits just
+     *  above it on the same page, T60 one surface per action) */
     intro: "Questions, corrections and ideas are welcome. I read every message. Email me, or send a note from the app with "
       + "Report a problem. "
       + "A water's regulations have their own Report a problem link, which names the water for you.",
@@ -158,8 +159,6 @@ export const MENU_WORDS = {
     introNoEmail: "Questions, corrections and ideas are welcome. I read every message. Send a note from the app with "
       + "Report a problem. "
       + "A water's regulations have their own Report a problem link, which names the water for you.",
-    /** (T860) the intro's link to the report form (the same entry as About's `report.fromAbout`) */
-    report: "Report a problem",
     placeholder: "Contact details are coming soon. Until then, use Report a problem to share a note from your device.",
     email: "Email",
     link: "Website",

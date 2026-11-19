@@ -23,13 +23,13 @@ import { ScrollView, View } from "react-native";
 import { Text } from "../Text";
 import { Pressable } from "../Pressable";
 import { useLayoutClass, useNotifications } from "@app/ui";
-import { MENU_WORDS, menuVM, syncRowWords, WORDS, type DataInput, type MenuPageKey, type MoreVM, type SyncVM } from "@app/core";
+import { menuVM, syncRowWords, WORDS, type DataInput, type MenuPageKey, type MoreVM, type SyncVM } from "@app/core";
 import { SyncButton, TOP_BAR } from "../TopBar";
 import { TYPE } from "../type";
 import { GUTTER, MORE_WIDE, SPACE, type Palette, type ThemeName } from "../theme";
 import { FreshDot, FreshBadge } from "./Fresh";
 import { Icon } from "../icons";
-import { hitProps, lineRun } from "../regs/hit";
+import { hitProps } from "../regs/hit";
 import { linkTo } from "../openLink";
 import { SettingsPage, type MobileDataControl } from "./SettingsPage";
 
@@ -72,7 +72,7 @@ export function MoreScreen({ palette, data, back, onBack, contact, theme, onThem
   const rest = (
     <>
       <Pages vm={vm} palette={palette} onPick={onPick} onSettings={() => setSettings(true)} />
-      <ContactBlock vm={vm.contact} palette={palette} onReport={() => onPick("report")} />
+      <ContactBlock vm={vm.contact} palette={palette} />
     </>
   );
   return (
@@ -282,25 +282,17 @@ function Pages({ vm, palette, onPick, onSettings }: { vm: MoreVM; palette: Palet
 
 /**
  * CONTACT, inline at the bottom (owner: "contact could just be at the bottom not in a nested tab"). (T860, owner
- * 2026-11-18) Its intro names Report a problem beside the email, and those words are the link to the form: the same
- * entry as the Report a problem row (`onPick("report")`) and About's link.
+ * 2026-11-18) Its intro names Report a problem beside the email, in words: the Report a problem row is on this same
+ * page, and one action has one surface here (T60).
  */
-function ContactBlock({ vm, palette, onReport }: { vm: MoreVM["contact"]; palette: Palette; onReport: () => void }) {
+function ContactBlock({ vm, palette }: { vm: MoreVM["contact"]; palette: Palette }) {
   const c = vm.vm;
-  const l = c.introLink;
   return (
     <>
       <Kicker palette={palette}>{vm.title}</Kicker>
       <Group palette={palette} testID="more-contact">
         <View style={{ paddingHorizontal: GUTTER, paddingVertical: SPACE.s3, gap: SPACE.s2 }}>
-          <Text testID="contact-intro" style={{ ...TYPE.body, color: palette.ink }}>
-            {l.before}
-            {l.link
-              ? <Text testID="contact-report" accessibilityRole="link" accessibilityLabel={MENU_WORDS.report.fromAbout}
-                      onPress={onReport} {...lineRun} style={{ ...TYPE.bodyStrong, color: palette.accent }}>{l.link}</Text>
-              : null}
-            {l.after}
-          </Text>
+          <Text testID="contact-intro" style={{ ...TYPE.body, color: palette.ink }}>{c.intro}</Text>
           {c.kind === "none"
             ? <Text testID="contact-placeholder" style={{ ...TYPE.small, color: palette.sub }}>{c.text}</Text>
             : (

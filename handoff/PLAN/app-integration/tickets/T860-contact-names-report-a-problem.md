@@ -26,3 +26,8 @@ pages (app/tools/seo), and the store listing texts. "Our" stays only where it me
 Contact intro now: "Questions, corrections and ideas are welcome. I read every message. Email me, or send a note from
 the app with Report a problem. A water's regulations have their own Report a problem link, which names the water for
 you." Still 0.8.1 web.
+
+## 2026-11-18 ~18:44: words, not a second link
+The full tier's T60 check (`apps/mobile/src/surfaces.test.tsx`, one surface per action) caught the Contact intro's
+"Report a problem" link: it is a second way to the same form on the same More page, where the Report a problem row sits
+just above. The intro keeps its words exactly; "Report a problem" in it is plain text, and the row is the one way in.

@@ -235,25 +235,14 @@ describe("the More tab (T48; owner 2026-10-22 refinement; T167)", () => {
     expect(screen.getByLabelText("Email: hello@example.org")).toBeTruthy();
   });
 
-  it("(T860) Contact names Report a problem beside the email, and those words open the report form (About's entry)", () => {
-    const out: { back?: Back } = {};
-    render(<App out={out} info={{ appBuild: null, contact: "hello@example.org" }} />);
-    const link = screen.getByTestId("contact-report");
-    expect([text("contact-intro"), link.textContent, link.getAttribute("role"), said("contact-report")]).toEqual([
+  it("(T860) Contact names Report a problem beside the email, in words: the row on the same page is the one way in (T60)", () => {
+    render(<App out={{}} info={{ appBuild: null, contact: "hello@example.org" }} />);
+    expect(text("contact-intro")).toBe(
       "Questions, corrections and ideas are welcome. I read every message. Email me, or send a note from the app with Report a problem. "
-        + "A water's regulations have their own Report a problem link, which names the water for you.",
-      "Report a problem", "link", MENU_WORDS.report.fromAbout]);
-    expect(screen.queryByTestId("menu-page-report")).toBeNull();
-    pick("contact-report");
-    expect(screen.getByTestId("menu-page-report")).toBeTruthy();
-    // a back layer like every page: back closes it to the tab
-    act(() => { out.back!.back(); });
-    settle();
-    expect(screen.queryByTestId("menu-page-report")).toBeNull();
+        + "A water's regulations have their own Report a problem link, which names the water for you.");
+    expect(screen.queryByTestId("contact-report")).toBeNull();
+    expect(screen.getAllByRole("button", { name: "Report a problem" })).toHaveLength(1);
   });
-});
-
-describe("Settings (T703)", () => {
   it("the first row of More opens it: Data / Privacy / Display headings over square cards, the Display tiles as before", () => {
     const picked: string[] = [];
     render(<App out={{}} theme="dark" onTheme={(t) => picked.push(t)} />);
