@@ -106,15 +106,6 @@ export function ClassBadge({ b, palette, onTerm }: { b: ClassBadgeVM; palette: P
 }
 
 /**
- * (T878) THE LOOK of the day's sun under the date — the owner picks one (2026-11-18 ~22:58: "sunrise/set should be a bit
- * better in same spot"); the pick is this one line, then the other two go:
- *   1  the sun icon and "9:01–17:17" in the date's own colour and size, right edge on the date's
- *   2  two small parts, the sunrise icon "9:01" and the sunset icon "17:17", the same alignment
- *   3  a small rounded chip: the sun icon and "9:01–17:17", right edge on the date's
- */
-const SUN_LOOK = 2 as 1 | 2 | 3;   // owner 2026-11-18 ~23:14: "i like 2"
-
-/**
  * (T878, owner 2026-11-18: "There seems to be a ton of space used by the sunset/rise could we maybe move it to top of
  * something?", picked "Under the date") THE DAY'S SUN under the date pill (core's `SunDay`, read "Sunrise 9:01, sunset
  * 17:17 PT"). In the header it is its own short line right under the name row, its right edge on the date's ("Nov 18":
@@ -126,8 +117,8 @@ export function SunLine({ sun, palette, align, dateInset = 14 }: { sun: SunDay; 
                                                                    /** "end": the date's right edge from the row's (px) */
                                                                    dateInset?: number }) {
   const words = [TYPE.metaSemi, { lineHeight: 14.98, color: palette.sub }];
-  const look = SUN_LOOK;
-  const body = look === 2 ? (
+  // (T878, owner 2026-11-18 ~23:14, of three looks: "i like 2") the sunrise icon "9:01", the sunset icon "17:17"
+  const body = (
     <>
       <View style={{ flexDirection: "row", alignItems: "center", gap: 2 }}>
         <Icon name="sunrise" colour={palette.sub} size={12} />
@@ -138,23 +129,13 @@ export function SunLine({ sun, palette, align, dateInset = 14 }: { sun: SunDay; 
         <Text maxFontSizeMultiplier={CAPPED_SCALE} numberOfLines={1} style={words}>{sun.set}</Text>
       </View>
     </>
-  ) : (
-    <>
-      <Icon name="sun" colour={palette.sub} size={12} />
-      <Text maxFontSizeMultiplier={CAPPED_SCALE} numberOfLines={1} style={words}>{sun.text}</Text>
-    </>
   );
-  const chip = look === 3
-    ? { backgroundColor: palette.card, borderWidth: 1, borderColor: palette.line, borderRadius: 999, paddingHorizontal: 7, paddingVertical: 1 }
-    : {};
-  // a chip's own padding and border sit outside the date's edge, so its words line up with the date's
-  const pad = look === 3 ? 8 : 0;
   return (
     <View testID="regs-sun" accessible accessibilityLabel={sun.aria}
-          style={{ flexDirection: "row", alignItems: "center", gap: 3, alignSelf: align === "end" ? "flex-end" : "flex-start", ...chip,
+          style={{ flexDirection: "row", alignItems: "center", gap: 3, alignSelf: align === "end" ? "flex-end" : "flex-start",
                    // "end": tucked up into the name row's slack under the date
-                   ...(align === "end" ? { marginRight: Math.max(0, dateInset - pad), marginTop: -4, marginBottom: 4 }
-                                       : { marginLeft: Math.max(0, 6 - pad), marginTop: -6 }) }}>
+                   ...(align === "end" ? { marginRight: dateInset, marginTop: -4, marginBottom: 4 }
+                                       : { marginLeft: 6, marginTop: -6 }) }}>
       {body}
     </View>
   );
