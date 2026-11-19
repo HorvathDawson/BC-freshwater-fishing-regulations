@@ -188,7 +188,7 @@ const TODAY_WORDS: Record<Status, string> = {
   closed: "Closed to fishing today.",
   tidal: "Tidal water: the tidal rules apply.",
   outside: "Outside British Columbia.",
-  unknown: "We could not tell whether this water is open today. Check the synopsis.",
+  unknown: "I could not tell whether this water is open today. Check the synopsis.",
 };
 
 /** (T406 part 2) The strip's year runs folded to closed / open (bit 1 = closed; null stays null); null: no strip. */

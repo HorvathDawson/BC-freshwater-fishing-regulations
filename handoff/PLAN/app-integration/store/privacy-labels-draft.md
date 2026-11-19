@@ -7,12 +7,12 @@ changes, change these. Where the honest answer is a judgement call it is marked 
 ## What leaves the device (the facts the answers rest on)
 | Request | Goes to | Carries | Optional |
 |---|---|---|---|
-| Release, map, tiles, glyphs/sprites, gauge feed, salmon/in-season notices, HYDAT day flow | our servers (Cloudflare R2/worker) | app version header, IP (as any request); nothing of the user's | no (app function) |
-| Problem report | our server (Cloudflare) | reason, text typed, switched-on context rows (water viewed, screen, version, release, platform, map layer/forecast day/zoom/**centre to 3 decimals ≈ 100 m**, the install id, recent errors), email only if typed | yes, user presses Send; each row can be switched off |
-| Crash report | our server (Cloudflare) | app version, env, OS name/version, data release, kind of screen, scrubbed error + code trace, fatal flag, time, the open water's id, the random **install id** (T352). No location/spots/searches/device or ad ids | on by default, switch in More → Settings → Privacy → "Send crash reports" (T703) |
+| Release, map, tiles, glyphs/sprites, gauge feed, salmon/in-season notices, HYDAT day flow | my servers (Cloudflare R2/worker) | app version header, IP (as any request); nothing of the user's | no (app function) |
+| Problem report | my server (Cloudflare) | reason, text typed, switched-on context rows (water viewed, screen, version, release, platform, map layer/forecast day/zoom/**centre to 3 decimals ≈ 100 m**, the install id, recent errors), email only if typed | yes, user presses Send; each row can be switched off |
+| Crash report | my server (Cloudflare) | app version, env, OS name/version, data release, kind of screen, scrubbed error + code trace, fatal flag, time, the open water's id, the random **install id** (T352). No location/spots/searches/device or ad ids | on by default, switch in More → Settings → Privacy → "Send crash reports" (T703) |
 | Weather for a saved spot | Open-Meteo (third party) | the spot's coordinates + date (+ the device IP to them) | only when the user opens a spot's weather |
 | Satellite imagery | Esri (third party) | tile requests for the viewed area + IP | opt-in layer, online only |
-| Location | never sent to us; used on-device (see weather row for a pinned spot) | — | permission, while-in-use only |
+| Location | never sent to me; used on-device (see weather row for a pinned spot) | — | permission, while-in-use only |
 | Photos / camera | on-device only | — | permission |
 Not present: accounts, advertising IDs, analytics SDKs, third-party crash SDKs, cookies (site), background location, purchases.
 
