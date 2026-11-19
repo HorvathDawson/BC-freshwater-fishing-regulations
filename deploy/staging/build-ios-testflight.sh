@@ -9,13 +9,14 @@
 # goes straight to App Store Connect, where it appears in TestFlight after Apple's processing (~5–30 min).
 # HEAVY: wrapped in scripts/heavy.sh (waits for the machine lock).
 #
-# Usage: deploy/staging/build-ios-testflight.sh [--production] [--no-upload | --unsigned] [--dry-run]
+# Usage: deploy/staging/build-ios-testflight.sh [--production] [--no-upload | --unsigned] [--no-distribute] [--dry-run]
 #   (default)     staging data, the environment switch on — the build internal testers get (as the Play internal track)
 #   --production  production data, no switch — the build that is later submitted for App Review (needs
 #                 CONFIRM_PROD=canifishthis.ca, T433)
 #   --no-upload   export the signed .ipa to app/dist/ios/ instead of uploading (Transporter or `xcrun altool` by hand)
 #   --unsigned    a device (arm64, iphoneos) Release archive with NO signing, team or upload: proves the device build
 #                 compiles and links without the account (Claude's check); the archive cannot be installed or uploaded
+#   --no-distribute  (T918) upload only: the build is NOT added to the External TestFlight group (below)
 #   --dry-run     print the steps and the secrets it would read; builds nothing, needs no account
 #
 # Secrets (never committed), in ~/.canifishthis/:
@@ -23,6 +24,8 @@
 #   asc-api-key.json      {"key_id": "…", "issuer_id": "…", "key_path": "/Users/…/AuthKey_<key_id>.p8"} — App Store Connect →
 #                         Users and Access → Integrations → App Store Connect API → a Team key with the "Admin" role (an "App Manager" key archives but cannot sign for the store: "Cloud signing permission error", seen 2026-11-14)
 #   testflight-last-build (written here) the last CFBundleVersion uploaded; each upload must be higher
+#   testflight-external-group (T918, optional) one line: the External TestFlight group's name; without it the app's only
+#                         external group is used (several: refused, naming them)
 #   app-store-url         (T888, optional) the app's App Store page, https://apps.apple.com/app/id<number> (App Store
 #                         Connect → the app → App Information → Apple ID). Baked in as EXPO_PUBLIC_APP_STORE_URL: without
 #                         it the iPhone build has NO update check (no "Version X is out" popup, no App update in the bell).
@@ -41,6 +44,14 @@
 # play/<versionCode>.json. A failed put says so and exits 1 (the build IS uploaded): redo both with
 #   for f in <version>.json appstore.json; do npx --prefix app wrangler r2 object put --remote <bucket>/app/ios/$f \
 #     --file app/dist/ios/appstore.json --content-type application/json --cache-control no-cache; done
+#
+# (T918) THE EXTERNAL GROUP, after the version files: deploy/staging/testflight-distribute.mjs waits for Apple's processing
+# (every 30 s, up to 45 min, printed), answers export compliance from app.json, sets "What to Test" from this version's
+# iPhone notes, adds the build to the External group and submits it for Beta App Review when Apple asks for one (the first
+# build of a version); the last line says review pending / approved. Skipped with --no-distribute (and for --no-upload,
+# --unsigned, --dry-run). A failure says so and exits 1 (the build IS uploaded and its files published): rerun with
+#   node deploy/staging/testflight-distribute.mjs --version <version> --build <build> [--group "<name>"]
+# (every step is a no-op when already done). It holds the heavy lane while it waits (light work: a poll every 30 s).
 set -euo pipefail
 cd "$(dirname "$0")/../.."
 REPO=$PWD
@@ -94,6 +105,8 @@ if [[ -n $DRY ]]; then
   echo "[dry-run] xcodebuild -exportArchive (method app-store-connect, destination $(has --no-upload && echo 'export → app/dist/ios/' || echo 'upload → App Store Connect / TestFlight'))"
   echo "[dry-run] update check: ${EXPO_PUBLIC_APP_STORE_URL:-NONE (no $STORE_FILE)}"
   has --no-upload || echo "[dry-run] after the upload: put $BUCKET/app/ios/$VER.json, then $BUCKET/app/ios/appstore.json, with notes $(ios_notes "$REPO" "$VER")"
+  if has --no-upload || has --no-distribute; then echo "[dry-run] TestFlight External group: skipped ($(has --no-upload && echo --no-upload || echo --no-distribute))"
+  else echo "[dry-run] then (T918) node deploy/staging/testflight-distribute.mjs --version $VER --build $BUILD_NO: wait for processing, add to the External group, Beta App Review if Apple asks"; fi
   exit 0
 fi
 if has --unsigned; then
@@ -165,9 +178,17 @@ if [[ $DEST == upload ]]; then
   for f in "$VER.json" appstore.json; do
     (cd "$REPO" && npx --prefix app wrangler r2 object put --remote "$BUCKET/app/ios/$f" --file "$OUT/appstore.json" \
        --content-type "application/json" --cache-control "no-cache") \
-      || { echo "build-ios-testflight: app/ios/$f was NOT published (the build IS uploaded): redo the puts in the header" >&2; exit 1; }
+      || { echo "build-ios-testflight: app/ios/$f was NOT published (the build IS uploaded): redo the puts in the header$(has --no-distribute || echo ", then: node deploy/staging/testflight-distribute.mjs --version $VER --build $BUILD_NO")" >&2; exit 1; }
   done
   echo "published $BUCKET/app/ios/$VER.json and $BUCKET/app/ios/appstore.json"
+  # (T918) the External TestFlight group (the header)
+  if has --no-distribute; then
+    echo "TestFlight External group: skipped (--no-distribute); later: node deploy/staging/testflight-distribute.mjs --version $VER --build $BUILD_NO"
+  else
+    node "$WT/deploy/staging/testflight-distribute.mjs" --version "$VER" --build "$BUILD_NO" \
+      || { echo "build-ios-testflight: the build was NOT given to the External TestFlight group (it IS uploaded and its version files are published): rerun" >&2
+           echo "  node deploy/staging/testflight-distribute.mjs --version $VER --build $BUILD_NO" >&2; exit 1; }
+  fi
 else
   echo "exported $(ls "$OUT"/export/*.ipa) in $(( $(date +%s) - t0 )) s (not uploaded; testflight-last-build unchanged)"
 fi
