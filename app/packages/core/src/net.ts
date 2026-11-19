@@ -31,7 +31,7 @@ export const NET_WORDS = Object.freeze({
     unknown: "connection not measured yet",
   },
   banner: {
-    slow: "Slow connection — showing what we have",
+    slow: "Slow connection — showing what I have",
     offline: "Offline — showing what’s saved on this device",
     a11ySettings: "Data settings",
     settingsLink: "Data settings ›",

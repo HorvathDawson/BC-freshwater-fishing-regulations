@@ -154,6 +154,10 @@ export const MENU_WORDS = {
     intro: "Questions, corrections and ideas are welcome. I read every message. Email me, or send a note from the app with "
       + "Report a problem. "
       + "A water's regulations have their own Report a problem link, which names the water for you.",
+    /** (T860) the same with no email address to offer (none configured yet, or a web link): the report form alone */
+    introNoEmail: "Questions, corrections and ideas are welcome. I read every message. Send a note from the app with "
+      + "Report a problem. "
+      + "A water's regulations have their own Report a problem link, which names the water for you.",
     /** (T860) the intro's link to the report form (the same entry as About's `report.fromAbout`) */
     report: "Report a problem",
     placeholder: "Contact details are coming soon. Until then, use Report a problem to share a note from your device.",
@@ -197,7 +201,7 @@ export const MENU_WORDS = {
     sending: "Sending…",
     sent: "Thank you — your report was sent.",
     queued: "You are offline. Your report is saved on this device and will be sent when you are back online.",
-    queuedRetry: "Couldn't reach my server. Your report is saved on this device and will be sent automatically.",
+    queuedRetry: "I could not reach my server. Your report is saved on this device and will be sent automatically.",
     refused: (why: string) => `The report was not accepted: ${why}`,
     another: "Report something else",
     /** the privacy line under the form */

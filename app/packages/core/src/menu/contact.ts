@@ -23,8 +23,10 @@ export function introLink(intro: string, link: string): ContactIntroLink {
 export function contactVM(contact: string | null | undefined): ContactVM {
   const w = MENU_WORDS.contact;
   const c = (contact ?? "").trim();
-  const intro = { intro: w.intro, introLink: introLink(w.intro, w.report) };
-  if (/^https?:\/\/\S+$/i.test(c)) return { kind: "link", ...intro, label: w.link, value: c, url: c };
-  if (/^[^\s@/:]+@[^\s@/:]+\.[^\s@/:]+$/.test(c)) return { kind: "email", ...intro, label: w.email, value: c, url: `mailto:${c}` };
-  return { kind: "none", ...intro, text: w.placeholder };
+  // (T860) "Email me" only where there is an address to email
+  const intro = (t: string) => ({ intro: t, introLink: introLink(t, w.report) });
+  if (/^https?:\/\/\S+$/i.test(c)) return { kind: "link", ...intro(w.introNoEmail), label: w.link, value: c, url: c };
+  if (/^[^\s@/:]+@[^\s@/:]+\.[^\s@/:]+$/.test(c))
+    return { kind: "email", ...intro(w.intro), label: w.email, value: c, url: `mailto:${c}` };
+  return { kind: "none", ...intro(w.introNoEmail), text: w.placeholder };
 }

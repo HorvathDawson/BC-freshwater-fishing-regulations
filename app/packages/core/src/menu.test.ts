@@ -462,30 +462,37 @@ describe("freshness: each source against its own cadence (owner 2026-10-22)", ()
 });
 
 describe("contact", () => {
-  // (T860, owner 2026-11-18) the intro names the report form beside the email, its first "Report a problem" the link
-  const INTRO = "Questions, corrections and ideas are welcome. I read every message. Email me, or send a note from the app with Report a problem. "
-    + "A water's regulations have their own Report a problem link, which names the water for you.";
-  const LINK = { before: "Questions, corrections and ideas are welcome. I read every message. Email me, or send a note from the app with ",
-                 link: "Report a problem",
-                 after: ". A water's regulations have their own Report a problem link, which names the water for you." };
+  // (T860, owner 2026-11-18) the intro names the report form beside the email, its first "Report a problem" the link;
+  // "Email me" only where there is an address to email
+  const TAIL = "A water's regulations have their own Report a problem link, which names the water for you.";
+  const INTRO = "Questions, corrections and ideas are welcome. I read every message. Email me, or send a note from the app "
+    + `with Report a problem. ${TAIL}`;
+  const NO_EMAIL = "Questions, corrections and ideas are welcome. I read every message. Send a note from the app with "
+    + `Report a problem. ${TAIL}`;
+  const LINK = { before: "Questions, corrections and ideas are welcome. I read every message. Email me, or send a note "
+                   + "from the app with ", link: "Report a problem", after: `. ${TAIL}` };
+  const LINK_NO_EMAIL = { before: "Questions, corrections and ideas are welcome. I read every message. Send a note from "
+                            + "the app with ", link: "Report a problem", after: `. ${TAIL}` };
 
-  it("is a placeholder until the owner supplies one", () => {
-    expect(contactVM(null)).toEqual({ kind: "none", intro: INTRO, introLink: LINK,
+  it("is a placeholder until the owner supplies one, and then says nothing of email", () => {
+    expect(contactVM(null)).toEqual({ kind: "none", intro: NO_EMAIL, introLink: LINK_NO_EMAIL,
       text: "Contact details are coming soon. Until then, use Report a problem to share a note from your device." });
     expect(contactVM("  ").kind).toBe("none");
     expect(contactVM("not an address").kind).toBe("none");
   });
 
-  it("reads an email address or a web link from the one config value", () => {
+  it("reads an email address or a web link from the one config value: only an address says \"Email me\"", () => {
     expect(contactVM("hello@example.org")).toEqual({ kind: "email", intro: INTRO, introLink: LINK,
       label: "Email", value: "hello@example.org", url: "mailto:hello@example.org" });
-    expect(contactVM("https://example.org/contact")).toEqual({ kind: "link", intro: INTRO, introLink: LINK,
+    expect(contactVM("https://example.org/contact")).toEqual({ kind: "link", intro: NO_EMAIL, introLink: LINK_NO_EMAIL,
       label: "Website", value: "https://example.org/contact", url: "https://example.org/contact" });
   });
 
   it("(T860) the intro's link splits it at its first mention, the words unchanged; no mention: no link", () => {
-    const l = contactVM(null).introLink;
-    expect(`${l.before}${l.link}${l.after}`).toBe(INTRO);
+    for (const c of [null, "hello@example.org"]) {
+      const v = contactVM(c);
+      expect(`${v.introLink.before}${v.introLink.link}${v.introLink.after}`).toBe(v.intro);
+    }
     expect(introLink("Write to us.", "Report a problem")).toEqual({ before: "Write to us.", link: "", after: "" });
   });
 });
