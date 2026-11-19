@@ -19,6 +19,8 @@
  * places labels off the main work and a pinch there is smooth.
  */
 
+import { now as clockNow } from "@app/core";
+
 /** The kinds of name and mark on the map: the per-kind lab switches (`lab.ts`) and what the hold takes. */
 export type LabelGroup = "water" | "places" | "roads" | "areas" | "gauges" | "marks";
 export const LABEL_GROUPS: readonly LabelGroup[] = ["water", "places", "roads", "areas", "gauges", "marks"];
@@ -81,7 +83,7 @@ export interface HoldTimers {
   now(): number;
 }
 const REAL_TIMERS: HoldTimers = { set: (fn, ms) => setTimeout(fn, ms), clear: (h) => clearTimeout(h as never),
-                                  now: () => Date.now() };
+                                  now: clockNow };
 
 /**
  * The hold's state, fed the camera's reports: `start` (the binding's "will change"), `moving` (each "is changing"),
