@@ -1,6 +1,6 @@
 # T876 — Quick zoom in and out lags more on the phone (0.8.1)
 
-Status: OPEN, AFTER LAUNCH (app chat). Owner 2026-11-18 ~20:51: "Also the speed on this release is better so it wasn't this build it was always a bit of an issue" — a performance ticket, not a 0.8.1 blocker. Bench 21:00–21:34: the split is not the cause and no fix lands; labels are the lead (below).
+Status: IN PROGRESS (app chat). Fix on lane app/t876-zoom-lag (b7c24e218): on a phone the labels wait while the zoom moves and come back 250 ms after the camera rests (owner 21:40: streams, colours, smoothness first). Emulator: quick pinch 42 → 57 fps, render 21.6 → 10.7 ms/frame; zoom-out not worse. Left (Claude): into the 0.8.2 phone build; the owner's feel on his Pixel.
 
 Owner 2026-11-18 20:37, verbatim: "More laggy quick zoom in and out."
 Trace: his Pixel 9 ("tokay", Android CP3A.261005.005), System Tracing, captured 20:35:
@@ -106,3 +106,52 @@ Owner (to the main chat), verbatim: "We care number one about the streams and co
 little behind etc." Direction: stream lines, colours and smooth motion first; labels may lag. Hide or freeze labels while
 a pinch/zoom gesture runs and draw them when it settles, or thin them while moving, whichever the per-layer label
 measurement shows is cheapest. After launch.
+
+## 2026-11-18 22:00–22:40: which labels, and the fix (b7c24e218)
+
+**Per kind of label** (lab switch per kind, the hold off; same emulator, release and scenario as the bench above; 2 rounds,
+medians; one session, so compare within the table — the hold-off row is that session's 0.8.1):
+
+| labels off | pinch fps | > 50 ms gaps | render ms/frame |
+|---|---|---|---|
+| none (0.8.1) | 35.2 | 38.5 | 26.4 |
+| **water names** (`lake__label`, `stream__label`) | **51.7** | **10.5** | **14.5** |
+| place names (basemap towns, islands, sea) | 47.0 | 15.0 | 17.2 |
+| road / POI names (basemap) | 47.5 | 15.5 | 17.2 |
+| area names (parks, reserves, closures, units) | 45.6 | 17.0 | 18.5 |
+| water marks (`route-arrows` on every stream, flow arrows, obstacles) | 45.6 | 17.0 | 19.6 |
+| gauge pills | 43.0 | 21.0 | 20.5 |
+
+Our water names are most of it: with only those off a pinch is about where every label off was (11.6 ms/frame). Each of the
+others is a few ms and within this session's run-to-run spread (the bench's two 0.8.1 sessions were 19.3 and 22.6).
+
+**The fix: labels wait while the zoom moves** (`app/packages/map/src/label-hold.ts`, `native/labelHold.tsx`, wired in
+`Map.native.tsx`). The phone's map adopts the style's own label layers by id under their sources (the binding's `Layer` with
+an id the style already has takes that layer over and sets only `visibility`), so hiding them is no style swap and keeps every
+feature-state. Once the camera's zoom leaves where it started (`onRegionIsChanging`, > 0.01) — a pinch, a double tap, a zoom
+button, a fit — the water, place, road and area names and the water marks are not drawn; they come back `SETTLE_MS` = 250 ms
+after the camera rests, and a next pinch inside that keeps them away (a quick run of pinches does not flash them). A pan that
+keeps its zoom keeps its labels. Never left hidden: with no camera report for `LOST_END_MS` = 1500 ms they come back whatever
+happened. The gauge pills are not held (a reading, and cheap). The adopted layers are fixed at the map's first style and never
+unmounted while it lives (unmounting one removes it from the style); a style swap re-adopts them in the new style. Android and
+iOS share it (`Map.native.tsx`); the web is unchanged (maplibre-gl places labels off the frame there). Lab: "Labels wait while
+zooming" (on) and one switch per kind of label, for the owner's phone A/B.
+
+**Before / after** (one session, ABBA: hold off, on, on, off; 3 rounds each, medians; render from `pinch.py`):
+
+| | pinch fps | > 50 ms gaps | worst gap | render busy | render ms/frame | zoom-out fps | zoom-out render ms/frame |
+|---|---|---|---|---|---|---|---|
+| hold off (0.8.1's map), 1st | 42.2 | 23 | 98 | 83 % | 21.6 | 52.6 | 13.0 |
+| **hold on**, 1st | **56.6** | **11** | 75 | 59 % | **10.7** | 55.5 | 10.5 |
+| **hold on**, 2nd | **56.6** | **5** | 80 | 59 % | **10.9** | 56.7 | 9.6 |
+| hold off, 2nd | 39.9 | 27 | 101 | 82 % | 21.5 | 53.2 | 13.9 |
+
+A quick pinch halves the map's render work and runs at ~57 fps (the emulator's ceiling is ~60); the zoom-out is no worse
+(slightly better). After the gestures the labels are all back (the step's screenshot, `run-H/011-…png`). Not verified: the
+owner's Pixel 9 (its > 100 ms stalls never show on the emulator), iOS on a device, and the Salmon map.
+
+Runs: scratchpad `t876/run-P` (per kind) and `t876/run-H` (before/after), `an-P.jsonl` / `an-H.jsonl` from `pinch.py`.
+Tests: `label-hold.test.ts` (which layers, stable ids, the state machine), `label-hold.render.test.tsx` (hide on a zoom move,
+restore after the settle, a pan keeps them, a run of pinches, a lost end, the lab switch, a style swap, no timer left),
+`lab.test.ts` (each kind's switch hides exactly that kind).
+
