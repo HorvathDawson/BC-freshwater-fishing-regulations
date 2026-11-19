@@ -5,7 +5,7 @@
  */
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { act, cleanup, render } from "@testing-library/react";
-import { environmentError, setFailureSink } from "@app/core";
+import { MY_LOCATION, environmentError, setFailureSink } from "@app/core";
 import type { Spot } from "@app/data/spots";
 import { mapPointTap, spotsMenu, useMapRail, type Locate, type LocatePermission, type MapRail } from "./mapRail";
 import { HOME, reduce, type Route, type RouteAction } from "./route";
@@ -157,6 +157,21 @@ describe("useMapRail", () => {
     undo();
     expect([text(), reported]).toEqual([
       "drop:- perm:granted err:Location is off for this app. Turn it on in your device settings, then tap again. fly:-", []]);
+  });
+
+  it("(T864) At my location far outside B.C. (Toronto, null island): no spot starts there; the far line is said", async () => {
+    const reported: unknown[] = [];
+    const undo = setFailureSink((e) => reported.push(e));
+    const fixes = [{ lat: 43.65, lon: -79.38 }, { lat: 0, lon: 0 }, { lat: 48.75, lon: -122.48 }];
+    const locate: Locate = { permission: async () => "granted", here: async () => fixes.shift()! };
+    const { acts, out, text } = rig(locate, SPOTS);
+    const said: string[] = [];
+    for (let i = 0; i < 3; i++) { await act(async () => { await out.r!.addMine(); }); said.push(text()); }
+    undo();
+    const far = `drop:- perm:granted err:${MY_LOCATION.far} fly:-`;
+    // a border town (Bellingham) still starts one, as before
+    expect([said, acts, reported]).toEqual([[far, far, "drop:- perm:granted err:- fly:-"],
+                                            [{ type: "addSpot", at: { lat: 48.75, lon: -122.48 } }], []]);
   });
 
   it("Show goes to the Map tab, frames the spot, and moves again each time", () => {

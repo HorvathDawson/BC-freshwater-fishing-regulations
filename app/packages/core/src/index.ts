@@ -82,6 +82,8 @@ export * from "./spotWords";
 export * from "./linkFailed";
 export * from "./permissions";
 export * from "./approxFix";
+// (T864) is the device near enough to B.C. for its position to mean anything here
+export * from "./nearBc";
 export * from "./uiWords";
 export * from "./ends";
 export * from "./waterNav";

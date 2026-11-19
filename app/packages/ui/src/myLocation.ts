@@ -15,9 +15,14 @@
  * at once. Never asked: asked once on the first open (kept in `LocationAskStore`, written before the ask) — the map is
  * drawn at today's default meanwhile, never held for it. Refused, no fix, offline: the default stays, and the press's
  * line says why (a refused permission is the environment's: shown, never reported — core failure.ts).
+ *
+ * (T864) FAR FROM B.C. (`nearBC`: Toronto, London, the far side of the date line, a broken GPS's 0,0) a fix is not used:
+ * no dot, no centring (the camera would be pinned against `CAMERA_BOUNDS` over a blank screen) — the map stays where it
+ * is, on B.C., and the notice says so once (`MY_LOCATION.far`), per press, or per open for the open's centring. While the
+ * dot is on, a far reading from the watch (a GPS glitch) is dropped and the dot stays at the last good one.
  */
 import { useCallback, useEffect, useRef, useState } from "react";
-import { MY_LOCATION, reportFailure, type LatLon } from "@app/core";
+import { MY_LOCATION, nearBC, reportFailure, type LatLon } from "@app/core";
 import type { Locate } from "./mapRail";
 import type { Route } from "./route";
 
@@ -68,7 +73,7 @@ export function useMyLocation(locate: Locate | null): MyLocation | null {
   const unwatch = () => { stop.current?.(); stop.current = null; };
   const watchNow = () => {
     unwatch();
-    stop.current = locate?.watch?.((f) => { if (alive.current) setFix(f); },
+    stop.current = locate?.watch?.((f) => { if (alive.current && nearBC(f)) setFix(f); },
                                    // a missed reading while following is not worth a line (the dot stays at the last one); a refusal is
                                    (e) => { if (alive.current && refusedLine(e) === MY_LOCATION.denied) setNotice(MY_LOCATION.denied); }) ?? null;
   };
@@ -79,6 +84,8 @@ export function useMyLocation(locate: Locate | null): MyLocation | null {
     setBusy(true);
     locate.here().then((f) => {
       if (!alive.current) return;
+      // (T864) nowhere this app can show: said, and nothing moves (the dot stays off, the button can try again)
+      if (!nearBC(f)) { setOn(false); setFollowing(false); setBusy(false); setNotice(MY_LOCATION.far); return; }
       setFix(f); setOn(true); setZoom(z); setCentre((n) => n + 1); setBusy(false);
       watchNow(); // (T308) the dot keeps moving with every fix while shown, following or not
     }, (e) => {
