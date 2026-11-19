@@ -2827,3 +2827,15 @@ More questions (recommended answer first):
   still show green if any salmon there are open only yellow if closed other then the to be determined" -> T885 (every
   DFO place mapped, dormant ones too) + the app chat (the "Check DFO" word becomes "To be determined" where DFO printed
   that; colour: green if any salmon open, the to-be-determined colour only when nothing is open; already the map's order).
+- 2026-11-18 ~21:30, owner (main chat), two fish sheets on Cultus Lake (Kokanee "Release"; Black crappie "20 a day",
+  the "20 a day" highlighted) (/Users/dawson.horvath/.claude/uploads/b8ddfca9-44eb-400e-a9bf-bd89b4b0f359/7dcd1404-image.png,
+  /Users/dawson.horvath/.claude/uploads/b8ddfca9-44eb-400e-a9bf-bd89b4b0f359/0308a124-image.png), verbatim: "We need to
+  make the individual sources for each fish be formatted better in the source page for the species / Also on Apple the
+  part highlighted is cut off weird because of row sizes / These pages are super clunky and ideally we want to make it
+  nice and readable showing how the result was achieved. We want it to pair well with the trout ones too. All generated
+  the same way (sources) and the way they are displayed should be the same. / Also the how to tell hatchery fish is very
+  smile creepy we want to make it more realistic I think. Better shape more natural smile. Could use the salmon general
+  shape from loading maybe?" -> the app chat (tickets theirs): (1) the species source sheet redesigned, readable, one
+  shape for every fish and the trout sheets, generated the same way (main chat: the sources' data side); (2) iOS: the
+  big "20 a day" clipped by its row height; (3) the "how to tell a hatchery fish" picture: a natural fish shape (the
+  loading screen's salmon outline), not the smiling one. Pictures before anything lands.
