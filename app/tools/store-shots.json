@@ -1,5 +1,5 @@
 {
-  "_": "T319 store shots, THIRD SET (2026-11-18: the owner delegated the order and titles to Claude, \"you can give them titles\"). Each `scene` is a play-shots.mjs scene shot from the web app; `device: true` is a phone-only screen read from <raw>/device-<scene>.png (store-shots/device-ios.mjs, the iOS simulator; `cropTop` = its status bar as a fraction of its height); `compose` stacks real captures (crops from..to plus label bands summing to 1). `title` is the big line, `line` the small one: plain words, B.C. spelled so, no \"we\", nothing the app cannot keep, nothing that reads as official. Earlier sets are in this file's git history.",
+  "_": "T319 store shots, SET 4 (owner 2026-11-19: ~00:15 \"We lost the split screen shots\", ~00:17 \"Couldn't we combine more together?\", ~00:19 \"The first ones should include one about conditions\"). The same 7 for Play and the App Store. Each `scene` is a play-shots.mjs scene from the web app; `device: true` (a shot or a compose part) is a phone-only screen read from <raw>/device-<scene>.png (store-shots/device-ios.mjs, the iOS simulator; `cropTop` = its status bar); `compose` stacks real captures under dark caption bars (crops from..to of each part's height, per raw size in `at`, plus the bands, sum to 1). `only` (target names) keeps a shot to those sets. Titles: plain words, about 6 at most, no \"we\". The optional 8th (the forecast map by day, 13-cond-forecast) is out: its scene does not find the day buttons on the current UI; recheck on 0.8.2.",
   "shots": [
     {
       "scene": "01-map",
@@ -8,42 +8,205 @@
     },
     {
       "scene": "18-regs-trout",
-      "title": "Know what you can keep, on every B.C. water",
+      "title": "Know what you can keep",
       "line": "How many, what size, and until when, from the rule book"
     },
     {
-      "scene": "04-salmon",
-      "title": "Salmon openings, on the map",
-      "line": "DFO's freshwater salmon notices, river by river"
+      "scene": "21-rivers",
+      "title": "What the rivers are doing",
+      "line": "Flow against past years, and the next 10 days",
+      "compose": [
+        {
+          "scene": "11-cond-chart",
+          "from": 0.28,
+          "to": 0.73,
+          "label": "Flow against past years",
+          "at": {
+            "iphone69": [
+              0.45,
+              0.9
+            ],
+            "tablet7": [
+              0.47,
+              0.92
+            ],
+            "tablet10": [
+              0.52,
+              0.97
+            ]
+          }
+        },
+        {
+          "scene": "12-cond-change",
+          "from": 0.35,
+          "to": 0.8,
+          "label": "Change, next 10 days",
+          "at": {
+            "iphone69": [
+              0.42,
+              0.87
+            ],
+            "tablet7": [
+              0.35,
+              0.8
+            ],
+            "tablet10": [
+              0.12,
+              0.57
+            ]
+          }
+        }
+      ]
     },
     {
-      "scene": "11-cond-chart",
-      "title": "River flow, and where it is heading",
-      "line": "The gauge against past years, with the forecast drawn on it"
+      "scene": "16-split-and-rules",
+      "title": "Rules for each stretch",
+      "line": "A river split into its sections, with the rules of each",
+      "compose": [
+        {
+          "scene": "14-split-map",
+          "from": 0.1,
+          "to": 0.55,
+          "label": "The river's sections on the map",
+          "at": {
+            "iphone69": [
+              0.08,
+              0.53
+            ],
+            "tablet7": [
+              0.08,
+              0.53
+            ],
+            "tablet10": [
+              0.05,
+              0.5
+            ]
+          }
+        },
+        {
+          "scene": "15-split-rules",
+          "from": 0.15,
+          "to": 0.6,
+          "label": "One section's rules",
+          "at": {
+            "iphone69": [
+              0.1,
+              0.55
+            ],
+            "tablet7": [
+              0.05,
+              0.5
+            ],
+            "tablet10": [
+              0.05,
+              0.5
+            ]
+          }
+        }
+      ]
     },
     {
-      "scene": "05-runs",
-      "title": "When the runs come",
-      "line": "Run timing by species and river"
+      "scene": "22-salmon-runs",
+      "title": "Salmon openings and run timing",
+      "line": "DFO's freshwater salmon notices, and when each run comes",
+      "compose": [
+        {
+          "scene": "04-salmon",
+          "from": 0.08,
+          "to": 0.53,
+          "label": "Salmon openings on the map",
+          "at": {
+            "iphone69": [
+              0.05,
+              0.5
+            ],
+            "tablet7": [
+              0.05,
+              0.5
+            ],
+            "tablet10": [
+              0.05,
+              0.5
+            ]
+          }
+        },
+        {
+          "scene": "05-runs",
+          "from": 0.45,
+          "to": 0.9,
+          "label": "When the runs come",
+          "at": {
+            "iphone69": [
+              0.49,
+              0.94
+            ],
+            "tablet7": [
+              0.49,
+              0.94
+            ],
+            "tablet10": [
+              0.5,
+              0.95
+            ]
+          }
+        }
+      ]
     },
     {
-      "scene": "07-saved-spot",
-      "device": true,
-      "cropTop": 0.065,
-      "title": "Keep your spots",
-      "line": "Your notes, with the flow and weather from that day"
-    },
-    {
-      "scene": "20-help",
-      "device": true,
-      "cropTop": 0.065,
-      "title": "Works with no signal",
-      "line": "Rules, the map and your spots stay on your phone. The map key is one tap away"
+      "scene": "23-spots-offline",
+      "title": "Your spots, even with no signal",
+      "line": "Notes, flow and weather saved on your phone; rules and the map work offline",
+      "compose": [
+        {
+          "scene": "07-saved-spot",
+          "device": true,
+          "cropTop": 0.065,
+          "from": 0.01,
+          "to": 0.58,
+          "label": "A saved spot",
+          "at": {
+            "iphone69": [
+              0.01,
+              0.58
+            ],
+            "tablet7": [
+              0.04,
+              0.66
+            ],
+            "tablet10": [
+              0.04,
+              0.66
+            ]
+          }
+        },
+        {
+          "scene": "20-help",
+          "device": true,
+          "cropTop": 0.065,
+          "from": 0.55,
+          "to": 0.88,
+          "label": "Works with no signal",
+          "at": {
+            "iphone69": [
+              0.62,
+              0.95
+            ],
+            "tablet7": [
+              0.69,
+              0.97
+            ],
+            "tablet10": [
+              0.69,
+              0.97
+            ]
+          }
+        }
+      ]
     },
     {
       "scene": "06-search",
       "title": "Find any water",
-      "line": "Search every named lake and stream by name, or a town near you"
+      "line": "Search every named lake and stream, or a town near you"
     }
   ],
   "targets": {

@@ -17,11 +17,15 @@ writes them): appstore-6.9 -> APP_IPHONE_67 (Apple's 6.9" slot, 1320x2868 / 1290
 APP_IPHONE_65 (1242x2688 / 1284x2778). No iPad set: app.json has supportsTablet false. Each set takes 1-10 PNG/JPEG files
 without alpha; a wrong one is refused by name, never resized. The locale must already exist on the version (the app's
 primary language is English (Canada), en-CA); it is never created here.
+--preview FILE (T709 clip): checked against Apple's app-preview rules for the 6.9" slot (886x1920 portrait, 15-30 s, at most
+30 fps, H.264, stereo AAC; T709's spec list) and listed in the plan; a clip that misses any is named with what it misses and
+is never uploaded. (Uploading previews, appPreviewSets / appPreviews, is not written yet: no clip has passed.)
 Key: asc-api-key.json {"key_id", "issuer_id", "key_path"} as build-ios-testflight.sh reads it (never printed). Needs
 requests, cryptography and Pillow (the repo .venv has them).
 """
 import argparse
 import base64
+import subprocess
 import hashlib
 import json
 import os
@@ -69,6 +73,40 @@ def check(folder: str, files: list, sizes: set) -> None:
             die(f"{folder}/{p.name} has an alpha channel; Apple refuses screenshots with transparency")
 
 
+def preview_problems(clip: Path) -> list:
+    """What the clip misses of Apple's app-preview rules (iPhone 6.9" slot), from ffprobe; [] = fits."""
+    if not clip.is_file():
+        return [f"no file at {clip}"]
+    r = subprocess.run(["ffprobe", "-v", "error", "-show_entries", "stream=codec_type,codec_name,width,height,r_frame_rate,"
+                        "channels,sample_rate,bit_rate:format=duration,size", "-of", "json", str(clip)], capture_output=True, text=True)
+    if r.returncode:
+        return [f"ffprobe could not read it: {r.stderr.strip()[:200]}"]
+    info = json.loads(r.stdout)
+    v = next((x for x in info["streams"] if x["codec_type"] == "video"), None)
+    a = next((x for x in info["streams"] if x["codec_type"] == "audio"), None)
+    dur, size = float(info["format"]["duration"]), int(info["format"]["size"])
+    out = []
+    if not v:
+        return ["no video stream"]
+    if (v["width"], v["height"]) != (886, 1920):
+        out.append(f"size {v['width']}x{v['height']}, the 6.9\" slot takes 886x1920")
+    if v["codec_name"] != "h264":
+        out.append(f"video codec {v['codec_name']}, Apple takes H.264 (or ProRes 422 HQ)")
+    n, d = (int(x) for x in v["r_frame_rate"].split("/"))
+    if n / d > 30:
+        out.append(f"{n / d:.0f} fps, at most 30")
+    if not 15 <= dur <= 30:
+        out.append(f"{dur:.1f} s, Apple takes 15-30 s")
+    if size > 500 * 1024 * 1024:
+        out.append("over 500 MB")
+    if not a or a["codec_name"] != "aac" or a.get("channels") != 2:
+        out.append("needs a stereo AAC track (a silent one will do)")
+    elif int(a.get("bit_rate") or 0) < 200_000:
+        out.append(f"audio at {int(a.get('bit_rate') or 0) // 1000} kbps, Apple's spec says AAC 256 kbps (a silent track encoded "
+                   "at 256k is the safe form)")
+    return out
+
+
 def token(key_file: str) -> str:
     """An App Store Connect API token (ES256 JWT, 20 minutes)."""
     k = json.loads(Path(key_file).read_text())
@@ -99,6 +137,7 @@ def main():
     ap.add_argument("--locale", default="en-CA")
     ap.add_argument("--bundle-id", default="ca.canifishthis.app")
     ap.add_argument("--key", default=os.path.expanduser("~/.canifishthis/asc-api-key.json"))
+    ap.add_argument("--preview", type=Path, help="the app-preview clip (T709) to check against Apple's rules")
     mode = ap.add_mutually_exclusive_group()
     mode.add_argument("--check", action="store_true", help="read-only: compare with what App Store Connect holds")
     mode.add_argument("--commit", action="store_true", help="upload (replaces each changed set)")
@@ -119,6 +158,14 @@ def main():
             with Image.open(p) as im:
                 w, h = im.size
             print(f"    {i}. {p.relative_to(ROOT) if p.is_relative_to(ROOT) else p}  {w}x{h}  {p.stat().st_size // 1024} KB  md5 {md5(p)[:12]}")
+    if a.preview:
+        bad = preview_problems(a.preview)
+        if bad:
+            print(f"  app preview: NOT in the plan; {a.preview} misses Apple's rules:")
+            for b in bad:
+                print(f"    - {b}")
+        else:
+            print(f"  app preview: {a.preview} fits APP_IPHONE_67's rules (its upload is not written yet)")
     if not (a.check or a.commit):
         print("plan only: nothing sent. --check compares with App Store Connect (read-only); --commit uploads.")
         return

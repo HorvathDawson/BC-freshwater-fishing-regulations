@@ -14,6 +14,7 @@ print what would change, then DELETE the edit; nothing reaches the listing. --co
   is refused before anything is sent.
 - Phone screenshots: every PNG/JPEG in --shots (default ~/bcfish-session-backup-2026-11-12/store-auto), in file-name
   order, REPLACE the listing's phone screenshots (skipped when Play already holds the same files in the same order).
+- --no-shots (T319): text, icon and feature graphic only; every screenshot set on Play is left as it is.
 - Tablet screenshots (T319): --tablet7 / --tablet10 folders, the same way (7-inch and 10-inch sets); none = left as is.
 - Icon + feature graphic: handoff/PLAN/app-integration/store/graphics/{app-icon-512,feature-graphic-1024x500}.png,
   uploaded only when Play holds none or a different file (sha256).
@@ -114,6 +115,7 @@ def main():
     ap.add_argument("--key", default=os.path.expanduser("~/.canifishthis/play-service-account.json"))
     ap.add_argument("--tablet7", type=Path, help="7-inch tablet screenshots (T319); none = left as is")
     ap.add_argument("--tablet10", type=Path, help="10-inch tablet screenshots (T319); none = left as is")
+    ap.add_argument("--no-shots", action="store_true", help="text, icon and feature graphic only; screenshots left as they are")
     mode = ap.add_mutually_exclusive_group()
     mode.add_argument("--commit", action="store_true", help="commit the edit (default: validate, then delete it)")
     mode.add_argument("--plan", action="store_true", help="send nothing: check the files, print what would be sent")
@@ -122,10 +124,14 @@ def main():
     if a.video_url and not re.match(r"^https://(www\.)?(youtube\.com/watch\?v=|youtu\.be/)[\w-]+", a.video_url):
         die(f"--video-url {a.video_url!r} is not a YouTube video URL")
     text = read_text()
-    shots = sorted(p for p in a.shots.glob("*") if p.suffix.lower() in (".png", ".jpg", ".jpeg"))
-    if not 2 <= len(shots) <= 8:
+    shots = [] if a.no_shots else sorted(p for p in a.shots.glob("*") if p.suffix.lower() in (".png", ".jpg", ".jpeg"))
+    if not a.no_shots and not 2 <= len(shots) <= 8:
         die(f"{a.shots} holds {len(shots)} screenshots; Play takes 2-8 phone screenshots")
-    images = {"icon": [a.icon], "featureGraphic": [a.feature], "phoneScreenshots": shots}
+    if a.no_shots and (a.tablet7 or a.tablet10):
+        die("--no-shots leaves every screenshot set alone; drop --tablet7 / --tablet10")
+    images = {"icon": [a.icon], "featureGraphic": [a.feature]}
+    if not a.no_shots:
+        images["phoneScreenshots"] = shots
     for kind, d in (("sevenInchScreenshots", a.tablet7), ("tenInchScreenshots", a.tablet10)):
         if d:
             tab = sorted(p for p in d.glob("*") if p.suffix.lower() in (".png", ".jpg", ".jpeg"))
@@ -139,7 +145,9 @@ def main():
         langs = a.language or ["en-CA and/or en-US: whichever listings Play has (read at run time)"]
         print(f"\nPLAN (nothing sent): package {a.package}, listing {', '.join(langs)}")
         print(f"  text: title {text['title']!r}, short + full description from {DESCRIPTION.relative_to(ROOT)}"
-              f"{', video ' + a.video_url if a.video_url else ''} (sent only where Play's differ)")
+              " (sent only where Play's differ)")
+        print(f"  promo video: {a.video_url} (the listing's video field)" if a.video_url else
+              "  promo video: none given, the listing's is left as it is (Play takes a YouTube URL: --video-url)")
         for kind, paths in images.items():
             print(f"  {kind}: {len(paths)} (replaces Play's when the files or their order differ)")
             for i, p in enumerate(paths, 1):

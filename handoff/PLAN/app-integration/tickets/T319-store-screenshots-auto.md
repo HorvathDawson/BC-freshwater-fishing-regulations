@@ -29,7 +29,7 @@ Depends: T240, T244, T313. Size: M. Owner: picks the shot list/captions.
 - **Left:** the saved-spot shot (the web Spots tab is a "get the app" notice → the emulator test bed, heavy); dark set;
   the feature graphic's text; the owner's pick of shots and titles.
 
-## Set 3, 2026-11-18 (owner delegated order and titles; Claude's pick)
+## Set 3, 2026-11-18 (owner delegated order and titles; Claude's pick) — REPLACED by set 4 below
 Order and titles (`app/tools/store-shots.json`; big title, then the small line):
 1. `01-map` — **Can I fish here today?** Every B.C. lake and stream, coloured by today's rules
 2. `18-regs-trout` — **Know what you can keep, on every B.C. water** How many, what size, and until when, from the rule book
@@ -79,3 +79,42 @@ tablets the device shots are phone pages on a tablet canvas (Play's tablet sets 
 (App Store Connect API, appScreenshotSets / appScreenshots; locale en-CA, the app's primary language; never run beyond
 its plan yet). `play-listing-push.py` gained `--plan` (its old dry run uploads into an edit and deletes it) and the
 tablet folders.
+
+## Set 4, 2026-11-19 (owner: split screens back, more of them, conditions early, the video too)
+Owner, verbatim (relayed by the coordinator; times off the clock): ~00:15 "We lost the split screen shots"; ~00:17
+"Couldn't we combine more together?" (more features paired into split screens so every feature fits in Play's 8);
+~00:19 "The first ones should include one about conditions also the preview we added for video ?"; ~00:28 "did you
+upload the google play photos and description etc for me?"; ~00:30 "i think the screen shots you take with splits etc are
+fine?" (so the split set goes up without another look, once 0.8.2 is on staging).
+
+Seven shots, the same for Play (phone, 7", 10") and the App Store (6.9", 6.5"); a split = two real captures stacked, each
+cropped to its useful part (per raw size, `at` in store-shots.json) under a dark caption bar, the 11-13 style:
+1. **Can I fish here today?** — the map
+2. **Know what you can keep** — the fish table
+3. **What the rivers are doing** — Flow against past years | Change, next 10 days
+4. **Rules for each stretch** — The river's sections on the map | One section's rules
+5. **Salmon openings and run timing** — Salmon openings on the map | When the runs come
+6. **Your spots, even with no signal** — A saved spot | Works with no signal (both from the iOS simulator)
+7. **Find any water** — search
+The optional 8th (the forecast map by day, `13-cond-forecast`) is out for now: on the current UI the scene finds no day
+buttons. Recheck it on 0.8.2 and add it only if it reads at thumbnail size.
+
+Layout rendered on the current staging for the owner (not the final set): `~/bcfish-session-backup-2026-11-12/store-t319-set4-layout/`
+(`T319-set4-phone.png`, `T319-set4-all.png`, every framed image, `play-plan.txt`, `asc-plan.txt`). Nits for the final
+crops: the spot's notes are cut at the pane's foot; the 6.9" change map is mostly the grey south of the border.
+
+Preview video (T709): `~/bcfish-session-backup-2026-11-12/store-video/preview.mp4`, retaken on 0.8.2 with the shots
+(`node app/tools/store-video/run.mjs`). Play: the listing already holds a video (youtube Qq_aptl3wJ8, seen on Play
+2026-11-19); a new clip goes to YouTube by the owner (unlisted is fine), then `play-listing-push.py --video-url <link>`.
+App Store: `appstore-screenshots-push.py --preview <clip>` checks it; today's clip misses Apple's rules (864x1920, the
+6.9" slot takes 886x1920; its silent AAC track is 2 kbps, the spec says 256 kbps) and it is an Android recording (the
+owner's reading of Apple's page is footage from the iOS app). No preview is in the ASC plan.
+
+Play listing text (coordinator relayed the go, 2026-11-19): `store-description.md` checked: "we recommend" -> "I
+recommend" (owner 2026-11-18 "yes change all"); every feature it names is in the 0.8.2 code. `play-listing-push.py
+--no-shots` (new: text, icon, feature graphic only) validated on Play: en-US only, the change is the full description;
+icon and feature graphic unchanged. The `--commit` was refused by this session's permission check (an agent's relay is
+not the owner's go); not pushed. Owner command, from the repo: `.venv/bin/python deploy/staging/play-listing-push.py --no-shots --commit`.
+
+Later (after 0.8.2 is on staging): render set 4, upload to Play and App Store Connect, retake the clip, send the contact
+sheet of what went up.

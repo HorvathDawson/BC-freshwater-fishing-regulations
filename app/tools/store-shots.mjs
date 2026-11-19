@@ -12,6 +12,8 @@
 // A shot with `"device": true` is a phone-only screen (spots, the app's Help page): it is not shot here but read from
 // <raw>/device-<scene>.png, which store-shots/device-ios.mjs writes from the iOS simulator; it is cropped (its status bar,
 // `cropTop` as a fraction of its height, then to each raw size's shape, from the top) so every card has the same shape.
+// A shot with `only` (target names) is in those targets' sets alone (Play takes at most 8 phone shots, the App Store 10); each
+// set is numbered in its own order.
 // The shot list (order, titles, lines) and the target sizes are tools/store-shots.json: the owner's to pick and reword.
 // Output: <store>/graphics/store/<theme>/<target>/<nn>-<scene>.png. Refuses a missing raw shot (no silent gap).
 import fs from 'node:fs'; import os from 'node:os'; import path from 'node:path';
@@ -28,6 +30,11 @@ const ONLY = val('--only', null)?.split(',');
 const { shots, targets } = JSON.parse(fs.readFileSync(path.join(HERE, 'store-shots.json'), 'utf8'));
 const use = Object.entries(targets).filter(([k]) => !ONLY || ONLY.includes(k));
 if (!use.length) throw new Error(`store-shots: no target named ${ONLY}; targets: ${Object.keys(targets).join(', ')}`);
+for (const s of shots) for (const t of s.only ?? []) if (!targets[t]) throw new Error(`store-shots: ${s.scene}: only names no target ${t}`);
+// each target's set, in the list's order; the shots any chosen target (or any target on one raw size) uses
+const listFor = (name) => shots.filter((s) => !s.only || s.only.includes(name));
+const usedBy = (pairs) => shots.filter((s) => pairs.some(([name]) => listFor(name).includes(s)));
+const onRaw = (raw) => usedBy(use.filter(([, t]) => t.raw === raw));
 
 const RAW_PRE = { phone: '', tablet7: 'tablet7-', tablet10: 'tablet10-', iphone69: 'iphone69-', iphone67: 'iphone67-', iphone55: 'iphone55-', ipad13: 'ipad13-' };
 // each raw size's shape (width / height, play-shots.mjs SIZES): a device shot is cropped to it
@@ -36,7 +43,9 @@ const rawFile = (raw, scene) => path.join(RAW, `${RAW_PRE[raw] ?? `${raw}-`}${sc
 
 // every capture the list needs: a shot's own scene, or each part of a composed one; device shots are the simulator's
 const parts = (shot) => (shot.compose ?? [{ scene: shot.scene }]).map((p) => p.scene);
-const needed = [...new Set(shots.filter((s) => !s.device).flatMap(parts))];
+// a device capture is a whole shot (`device: true`) or one part of a composed one (the part's `device: true`)
+const deviceScenes = (list) => list.flatMap((s) => (s.device ? [s] : (s.compose ?? []).filter((p) => p.device)));
+const needed = [...new Set(usedBy(use).filter((s) => !s.device).flatMap((s) => (s.compose ?? [s]).filter((p) => !p.device).map((p) => p.scene)))];
 const deviceFile = (scene) => path.join(RAW, `device-${scene}.png`);
 // 1. the raw shots, one play-shots run for every raw size wanted
 if (!flag('--no-shoot')) {
@@ -45,17 +54,17 @@ if (!flag('--no-shoot')) {
     { stdio: 'inherit', env: { ...process.env, SIZES: sizes }, cwd: APP });
   if (r.status !== 0) throw new Error(`store-shots: play-shots failed (exit ${r.status}); nothing framed`);
 }
-const missingDevice = shots.filter((s) => s.device && !fs.existsSync(deviceFile(s.scene))).map((s) => deviceFile(s.scene));
+const missingDevice = deviceScenes(usedBy(use)).filter((s) => !fs.existsSync(deviceFile(s.scene))).map((s) => deviceFile(s.scene));
 if (missingDevice.length) throw new Error(`store-shots: device shots missing (store-shots/device-ios.mjs makes them):\n  ${missingDevice.join('\n  ')}`);
 // a device shot, cropped to each raw size's shape: its status bar off the top, then as tall as the shape allows
-for (const raw of new Set(use.map(([, t]) => t.raw))) for (const s of shots.filter((x) => x.device)) {
+for (const raw of new Set(use.map(([, t]) => t.raw))) for (const s of deviceScenes(onRaw(raw))) {
   const src = PNG.sync.read(fs.readFileSync(deviceFile(s.scene)));
   const top = Math.round((s.cropTop ?? 0) * src.height), h = Math.min(src.height - top, Math.round(src.width / RAW_SHAPE[raw]));
   const out = new PNG({ width: src.width, height: h });
   PNG.bitblt(src, out, 0, top, src.width, h, 0, 0);
   fs.writeFileSync(rawFile(raw, s.scene), PNG.sync.write(out));
 }
-const missing = use.flatMap(([, t]) => shots.flatMap((s) => parts(s).map((sc) => rawFile(t.raw, sc)))).filter((f) => !fs.existsSync(f));
+const missing = use.flatMap(([name, t]) => listFor(name).flatMap((s) => parts(s).map((sc) => rawFile(t.raw, sc)))).filter((f) => !fs.existsSync(f));
 if (missing.length) throw new Error(`store-shots: raw shots missing (run without --no-shoot):\n  ${missing.join('\n  ')}`);
 
 // 2. the frame: the app's colours and faces
@@ -90,10 +99,12 @@ async function composeRaw(raw, shot) {
   // stacked top to bottom, each part under a label band (`label`); crops are fractions of a part's height, so the crops plus
   // the bands (`band`, a fraction of the height each) must sum to 1 and nothing is rescaled
   const band = shot.band ?? 0.05, bandPx = Math.round(band * H);
-  if (Math.abs(cs.reduce((a, c) => a + (c.to - c.from), 0) + band * cs.length - 1) > 0.001) throw new Error(`store-shots: ${shot.scene}: the compose crops plus the bands must sum to 1`);
+  // (T319) a part's crop may differ per raw size (`at: { phone: [from, to], ... }`): the layouts differ between a phone and a tablet
+  const fr = (p) => p.at?.[raw] ?? [p.from, p.to];
+  if (Math.abs(cs.reduce((a, c) => a + (fr(c)[1] - fr(c)[0]), 0) + band * cs.length - 1) > 0.001) throw new Error(`store-shots: ${shot.scene}: the compose crops plus the bands must sum to 1`);
   let y = 0;
-  const divs = cs.map((p, i) => { const last = i === cs.length - 1, n = last ? H - y - bandPx : Math.round((p.to - p.from) * H), top = y + bandPx; y = top + n;
-    return `<div class="band" style="top:${top - bandPx}px">${esc(p.label ?? '')}</div><div style="position:absolute;left:0;top:${top}px;width:${W}px;height:${n}px;overflow:hidden"><img src="file://${files[i]}" style="position:absolute;left:0;top:${-Math.round(p.from * H)}px;width:${W}px;height:${H}px"></div>`; });
+  const divs = cs.map((p, i) => { const last = i === cs.length - 1, n = last ? H - y - bandPx : Math.round((fr(p)[1] - fr(p)[0]) * H), top = y + bandPx; y = top + n;
+    return `<div class="band" style="top:${top - bandPx}px">${esc(p.label ?? '')}</div><div style="position:absolute;left:0;top:${top}px;width:${W}px;height:${n}px;overflow:hidden"><img src="file://${files[i]}" style="position:absolute;left:0;top:${-Math.round(fr(p)[0] * H)}px;width:${W}px;height:${H}px"></div>`; });
   const html = `<!doctype html><meta charset="utf-8"><style>
 @font-face { font-family: Body; src: url("file://${font('Archivo_500Medium')}") format("woff2"); }
 html, body { margin: 0; width: ${W}px; height: ${H}px; overflow: hidden; background: ${wash}; position: relative; }
@@ -112,10 +123,11 @@ html, body { margin: 0; width: ${W}px; height: ${H}px; overflow: hidden; backgro
 const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'store-shots-'));
 let n = 0;
 try {
-  for (const raw of new Set(use.map(([, t]) => t.raw))) for (const shot of shots) if (shot.compose) await composeRaw(raw, shot);
+  for (const raw of new Set(use.map(([, t]) => t.raw))) for (const shot of onRaw(raw)) if (shot.compose) await composeRaw(raw, shot);
   for (const [name, t] of use) {
     const out = path.join(STORE, 'store', THEME, name); fs.mkdirSync(out, { recursive: true });
-    for (const [i, shot] of shots.entries()) {
+    fs.rmSync(out, { recursive: true, force: true }); fs.mkdirSync(out, { recursive: true });   // a shot left out of a set must not linger
+    for (const [i, shot] of listFor(name).entries()) {
       const html = path.join(tmp, `${name}-${i}.html`); fs.writeFileSync(html, page(t, shot, rawFile(t.raw, shot.scene)));
       const b = await open(`file://${html}`, { width: t.w, height: t.h, dpr: 1 });
       try {

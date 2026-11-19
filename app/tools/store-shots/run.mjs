@@ -25,18 +25,19 @@ const bcToday = new Intl.DateTimeFormat('en-CA', { timeZone: 'America/Vancouver'
 const AT = val('--at', `${bcToday}T12:00:00-07:00`);
 if (Number.isNaN(Date.parse(AT))) throw new Error(`store-shots/run: --at ${AT} is not a date`);
 
-const { shots } = JSON.parse(fs.readFileSync(path.join(APP, 'tools/store-shots.json'), 'utf8'));
-if (shots.length !== 8) throw new Error(`store-shots/run: the approved set is 8 shots, store-shots.json lists ${shots.length}`);
+// (T319) the Play phone set: the list without the shots `only` other targets take; Play takes at most 8
+const shots = JSON.parse(fs.readFileSync(path.join(APP, 'tools/store-shots.json'), 'utf8')).shots.filter((s) => !s.only || s.only.includes('play-phone'));
+if (shots.length < 2 || shots.length > 8) throw new Error(`store-shots/run: Play takes 2-8 phone shots, the play-phone set in store-shots.json has ${shots.length}`);
 
 // the working folder is DIR/work (raw captures, framed output, the play-shots report); DIR itself ends holding only the 8 shots + report.json
 const WORK = path.join(OUT, 'work');
 fs.rmSync(OUT, { recursive: true, force: true }); fs.mkdirSync(path.join(WORK, 'raw'), { recursive: true });
-for (const s of shots.filter((x) => x.device)) {
+for (const s of shots.flatMap((x) => (x.device ? [x] : (x.compose ?? []).filter((p) => p.device)))) {
   const f = path.join(DEVICE, `device-${s.scene}.png`);
   if (!fs.existsSync(f)) throw new Error(`store-shots/run: no ${f} (store-shots/device-ios.mjs makes it on the iOS simulator)`);
   fs.copyFileSync(f, path.join(WORK, 'raw', `device-${s.scene}.png`));
 }
-console.log(`store-shots/run: site ${SITE}, clock pinned to ${AT}, light theme, phone 1080x1920 -> ${OUT}`);
+console.log(`store-shots/run: site ${SITE}, clock pinned to ${AT}, light theme, phone 1080x1920, ${shots.length} shots -> ${OUT}`);
 const r = spawnSync(process.execPath, [path.join(APP, 'tools/store-shots.mjs'), '--only', 'play-phone', '--theme', 'light'],
   { stdio: 'inherit', cwd: APP, env: { ...process.env, STORE_SHOTS_DIR: WORK, STORE_SHOTS_SITE: SITE, PIN_AT: AT } });
 const readReport = () => { try { return JSON.parse(fs.readFileSync(path.join(WORK, 'raw/play-shots-report.json'), 'utf8')); } catch { return null; } };
