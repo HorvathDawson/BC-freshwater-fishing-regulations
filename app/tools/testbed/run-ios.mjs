@@ -493,7 +493,10 @@ const SCENARIOS = [
         await ctx.waitText(/Regulations/, 30_000);
         return measure('water page');
       });
-      const LINK = process.env.BOOK_LINK ?? '.*[Rr]ule book p\\.[0-9]+ ↗.*';   // (T718) Cultus's link reads "This water in the rule book p.7 ↗" on 0.7.9
+      // (T718) the water's rule-book link, "This water in the rule book p.N ↗". Cultus's "p.7" (0.7.9) was the licences page,
+      // which T916 removed: the line is now only for a water's own table row, at the page's foot — Cultus may have none,
+      // so BOOK_LINK (or the water opened above) must name a water that has one
+      const LINK = process.env.BOOK_LINK ?? '.*[Rr]ule book p\\.[0-9]+ ↗.*';
       const book = async (label) => {
         ctx.flow('scroll-to', { TEXT: LINK });
         const t0 = Date.now();
