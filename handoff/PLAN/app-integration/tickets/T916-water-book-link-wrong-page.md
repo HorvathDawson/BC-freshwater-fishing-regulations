@@ -1,6 +1,6 @@
 # T916 — "This water in the rule book p.7" on Sweltzer River points at the wrong page
 
-Status: IN PROGRESS (lane app/t916-water-book built 2026-11-19 13:13; left (Claude): owner sees pictures, then integrate (0.8.3)).
+Status: IN PROGRESS (lane app/t916-water-book: round 1 approved for 0.8.3; round 2 (the line moved to the page's foot) built 2026-11-19 13:28; left (Claude): owner sees pictures, then integrate (0.8.3)).
 
 Owner 2026-11-19 ~12:55 (main chat, phone screenshot of Sweltzer River, Regulations, What you can keep, 0.8.2 on
 staging), verbatim: "Has page 7 link at top (which is wrong) with real page 26 at bottom. Should remove top one...".
@@ -14,6 +14,14 @@ why: wrong data (an entry's pages wrong, or a general/regional rule sitting at r
 it where it is wrong (Python data / the rank, or the app line), never by hiding the line for this one water. Count every
 water in the live release where the line names a page that is not one of that water's own entries' pages, before and
 after. Pictures 390 light/dark before/after.
+
+## Owner 2026-11-19 ~13:20 (main chat, after the before/after pictures)
+- Asked "Put it in 0.8.3?", verbatim: "Ye sput to n 0?8.3 it was also the location that was awkward at the top". So yes,
+  in 0.8.3, and the line's place at the top of the page (above the first status card) is awkward too: round 2 moves
+  it down (pictures to the owner first).
+- Asked whether waters named only inside a zone rule (Rubble Creek p.21, Horne Lake p.13, the p.4 youth waters) should
+  get the line back, verbatim: "Keep it simple (Recommended)": the line is only for a water's own table row; zone-rule
+  pages stay linked on the rules themselves.
 
 ## Cause (lane, 2026-11-19)
 Printed p.7 (PDF p.9) is the 2025-27 synopsis's LICENCES page: conservation surcharge stamps (salmon, Kootenay Lake
@@ -57,3 +65,19 @@ against the main checkout's bundle); vitest core/regs, ui-native regs, WaterScre
 conformance/regs: 2281 passed (fixture), and 2472 passed with the live release.
 Pictures (390, Sweltzer, Regulations top): scratchpad t916-shots/{before,after}-390-{light,dark}.png (after = scratch
 copy of the release with `row` patched in, `t916/patch_release.py`).
+
+## Round 2 (lane, 2026-11-19 13:28): the line moves to the page's foot
+- Built: "This water in the rule book p.N ↗" is the last line of the page's foot block (`regs-legal`), under "Not legal
+  advice — the B.C. synopsis and DFO notices are the authority." and "Regulations as of …", just above "Report a problem
+  with this page"; small accent type like that link. Why: it is a reference for the whole page (the synopsis the foot
+  already names as the authority), not a fact about today, so it no longer sits above the first status card, and the
+  page's two quiet links end up together. One place per page; T474/T60 dedupe unchanged (`waterBookOf` untouched).
+- The SEO water pages render the app's own Shell (`tools/seo/pane.tsx`), so they move with the app; no second template.
+- Alternative pictured, not built: the end of "Species and limits" (after "Where you can't fish", before Gear).
+- Tests: `WaterBook.test.tsx` pins the foot (failed on the old placement first); vitest ui-native regs + WaterScreen +
+  core waterbook + tools/seo 773 passed (12 skipped: live release); `pnpm -C app check:fast` passed.
+- Pictures (Elaho River, gnis:10716, own row p.23; patched scratch release): scratchpad t916-shots/
+  r2before-{390-light,390-dark,1440-light}.png, r2after-{390-light,390-dark,1440-light}.png (scrolled to the foot),
+  r2alt-end-of-keep-390-light.png.
+- Seen, not changed (dedupe kept as is): on Elaho the Gear section's own sources also link p.23; `waterBookOf` reads only
+  the Regulations page model, not the Gear section's links, so p.23 shows twice on that page.

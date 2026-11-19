@@ -316,7 +316,7 @@ reads both files; a ticket closed here moves there once its lane is finished wit
 | T913 | Play refuses review: the portrait lock declares a required hardware feature (owner) | IN PROGRESS | main chat | owner 2026-11-19 ~11:05 |
 | T914 | Web start: break up the first script's evaluation and the first screen's build (mobile Lighthouse) (owner) | OPEN | after 0.8.3 | owner 2026-11-19 ~12:00 |
 | T915 | Day calendar: no size jump in January; a desktop-shaped popup on wide web (owner) | IN PROGRESS | main chat; lane app/t915-calendar | owner 2026-11-19 ~12:45 |
-| T916 | "This water in the rule book p.7" on Sweltzer River points at the wrong page (owner) | IN PROGRESS | lane app/t916-water-book built (only a water table row is the water's page; 5,533 -> 12 waters); left (Claude): owner sees pictures, then integrate (0.8.3) | owner 2026-11-19 ~12:55 |
+| T916 | "This water in the rule book p.7" on Sweltzer River points at the wrong page (owner) | IN PROGRESS | lane app/t916-water-book: round 1 (only a water table row is the water's page; 5,533 -> 12 waters) approved; round 2 moves the line to the page's foot; left (Claude): owner sees pictures, then integrate (0.8.3) | owner 2026-11-19 ~12:55 |
 | T882 | Salmon: DFO's "To be determined" says so instead of "Check DFO"; green whenever any salmon is open (owner) | DONE | b2a5f2522 | owner 2026-11-18 ~21:18 |
 | T884 | A fish sheet's big "20 a day" is cut off at the top on an iPhone (owner) | DONE | 1d19ef12b, fcc3ce3a8 | owner 2026-11-18 ~21:30 |
 | T886 | "How to tell a hatchery fish": a natural fish (the loader's coho), not a smiling one (owner) | DONE | 7a13d8671, 0e4f21738 | owner 2026-11-18 ~21:30 |

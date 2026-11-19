@@ -122,7 +122,8 @@ export interface RegsScreenProps {
   asOf?: string | null;
   /** (T382) the day's sunrise and sunset at the water (`useSunLine`); (T878) a small line under the date pill; absent: none. */
   sun?: SunDay | null;
-  /** (T474) the water's own entry in the rule book (core `waterBookOf`): "This water in the rule book p.N ↗"; empty: none */
+  /** (T474) the water's own entry in the rule book (core `waterBookOf`): "This water in the rule book p.N ↗", (T916) drawn in
+   *  the page's foot under the "as of" line; empty: none */
   waterBook?: Line;
   /** (T473, T898) a daylight-only closure's open and closed hours on the day at the water (`useDaylight`), from its own
    *  offsets; null: no point known */
@@ -233,11 +234,6 @@ export function RegsScreen({ page, palette, images, actions, onDate,
           <Text accessibilityRole="alert" style={{ ...TYPE.metaBold, color: palette.ink, flex: 1 }}>{lapsed}</Text>
         </WaterInset>
       )}
-      {waterBook.length > 0 && (
-        <WaterInset testID="regs-water-book" style={{ paddingTop: 10 }}>
-          <LineText line={waterBook} style={TYPE.metaBold} color={palette.accent} palette={palette} actions={keepActions} />
-        </WaterInset>
-      )}
       {/* (T565, owner 2026-11-09) an in-season change is B.C. Fish and Wildlife's notice for the WATER, not a salmon or a
           species thing: first on the page, above the salmon card and every calendar and species block (T472: collapsed to one line) */}
       <InSeasonBanners banners={inSeason} palette={palette} />
@@ -266,6 +262,14 @@ export function RegsScreen({ page, palette, images, actions, onDate,
       <WaterInset testID="regs-legal" style={{ marginTop: 20, paddingTop: 10, gap: 2, borderTopWidth: 1, borderTopColor: palette.line }}>
         <Text style={{ ...TYPE.caption, lineHeight: 15, color: palette.sub }}>{LEGAL_WORDS.footer}</Text>
         {asOf && <Text testID="regs-as-of" style={{ ...TYPE.caption, lineHeight: 15, color: palette.sub }}>{asOf}</Text>}
+        {/* (T474) the water's own rule-book page, (T916, owner 2026-11-19: "the location that was awkward at the top") here
+            in the foot beside the synopsis it cites: a reference for the whole page, not a fact about today, so it no
+            longer sits above the first status card. Once per page; empty: none (T60: a page its lines already link) */}
+        {waterBook.length > 0 && (
+          <View testID="regs-water-book" style={{ marginTop: 8 }}>
+            <LineText line={waterBook} style={TYPE.small} color={palette.accent} palette={palette} actions={keepActions} />
+          </View>
+        )}
       </WaterInset>
       {/* (T41 Q3) once, at the page's foot: the report is about the whole page (it names no tab) */}
       <ReportLink page={page} palette={palette} />
