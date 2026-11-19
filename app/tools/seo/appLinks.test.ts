@@ -5,7 +5,7 @@
  */
 import { readFileSync } from "node:fs";
 import { beforeAll, describe, expect, it } from "vitest";
-import { APP_LINK_HOSTS, APP_PACKAGE, APP_STORE_URL, appStoreLink, playStoreLink, PLAY_SIGNING_SHA256, PLAY_STORE_URL } from "@app/core";
+import { APP_LINK_HOSTS, APP_PACKAGE, APP_STORE_URL, appStoreLink, playStoreLink, PLAY_SIGNING_SHA256, PLAY_STORE_URL, WEB_SPOTS_WORDS } from "@app/core";
 import { openRegsFixture } from "@app/data/release/node";
 import { buildAll, readIosTeamId, type Built } from "./build";
 import { TODAY } from "./fixture";
@@ -80,10 +80,11 @@ describe("T724 apple-app-site-association", () => {
 });
 
 describe("T514 / T901 share page store buttons", () => {
-  const SOON = (t: string) => `<span class="app soon" aria-disabled="true">${t}</span>`;
-  it("both are greyed 'coming soon' until their listings are public (the shipped default)", () => {
-    expect(openInAppControl(null, null)).toBe(SOON("Google Play · coming soon") + SOON("App Store · iPhone app coming soon"));
-    expect(openInAppControl()).toContain("Google Play · coming soon");
+  const SOON = (t: string) => `<span class="app soon">${t}</span>`;
+  const PS = SOON("Google Play · Android app coming soon") + SOON("App Store · iPhone app coming soon");
+  it("both are plain 'coming soon' text until their listings are public (the shipped default)", () => {
+    expect(openInAppControl(null, null)).toBe(PS);
+    expect(openInAppControl()).toContain("Android app coming soon");
     expect(openInAppControl()).toContain("iPhone app coming soon");
     expect(appStoreLink()).toBeNull();                            // the App Store page 404s today (TestFlight only)
     expect(playStoreLink()).toBeNull();                           // and so does Play's (closed testing)
@@ -92,6 +93,19 @@ describe("T514 / T901 share page store buttons", () => {
     expect(openInAppControl(PLAY_STORE_URL, "https://apps.apple.com/app/id6835000455")).toBe(
       `<a class="app" href="${PLAY_STORE_URL}">Google Play</a><a class="app" href="https://apps.apple.com/app/id6835000455">App Store</a>`);
     expect(openInAppControl(PLAY_STORE_URL, null)).toBe(`<a class="app" href="${PLAY_STORE_URL}">Google Play</a>` + SOON("App Store · iPhone app coming soon"));
+  });
+  it("T901: under 'coming soon', one mailto per unpublished store to the site's contact; none without a contact; gone once public", () => {
+    const html = openInAppControl(null, null, "support@canifishthis.ca");
+    expect(html).toContain(WEB_SPOTS_WORDS.join.line);
+    expect(html).toContain(`<a href="mailto:support@canifishthis.ca?subject=Join%20the%20Android%20test&amp;body=`);
+    expect(html).toContain(`mailto:support@canifishthis.ca?subject=Join%20the%20iPhone%20test&amp;body=`);
+    expect(html).toContain("The%20email%20on%20my%20Google%20account%20is");
+    expect(html).toContain("The%20email%20on%20my%20Apple%20ID%20is");
+    expect(openInAppControl(null, null, null)).toBe(PS);
+    const half = openInAppControl(PLAY_STORE_URL, null, "support@canifishthis.ca");
+    expect(half).not.toContain("Android test");
+    expect(half).toContain("Join the iPhone test");
+    expect(openInAppControl(PLAY_STORE_URL, "https://apps.apple.com/app/id1", "support@canifishthis.ca")).not.toContain("Join the");
   });
   it("the addresses are core's: Play by package, the App Store by the Apple ID", () => {
     expect(PLAY_STORE_URL).toBe(`https://play.google.com/store/apps/details?id=${APP_PACKAGE}`);

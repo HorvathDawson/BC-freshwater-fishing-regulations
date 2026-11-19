@@ -22,7 +22,7 @@ import { OPEN_METEO_ATTRIBUTION, weatherPlace } from "../../packages/data/src/sp
 import { crashUrlFor, ORIGINS, REPORT_URLS } from "../../apps/mobile/src/env";
 import { clip, esc, SHARE_FONT, SHARE_GROUND, SHARE_H, SHARE_INK, SHARE_W, type Site } from "./html";
 import type { GaugeConfig } from "./gaugeClient";
-import { appStoreLink, bestServes, gaugePath, playStoreLink, STALE_AFTER_MS, TRUST_RANK, type GaugeRows, type ServesTrust } from "@app/core";
+import { appStoreLink, bestServes, gaugePath, joinStores, joinTestAsk, playStoreLink, WEB_SPOTS_WORDS, STALE_AFTER_MS, TRUST_RANK, type GaugeRows, type ServesTrust } from "@app/core";
 import { readGaugeRows } from "@app/data/release";
 
 export { readGaugeRows, type GaugeRows };
@@ -139,15 +139,19 @@ export function gaugeDescription(g: GaugeModel): string {
  * is greyed "coming soon" until its page is public: Play while core's `PLAY_PUBLIC` is false, the App Store while core's
  * `APP_STORE_PUBLIC` is false (`appStoreLink()` null); then its link. A phone with the app installed opens the app (T625).
  */
-export function openInAppControl(play: string | null = playStoreLink(), appStore: string | null = appStoreLink()): string {
+export function openInAppControl(play: string | null = playStoreLink(), appStore: string | null = appStoreLink(),
+                                 contact: string | null = null): string {
+  const w = WEB_SPOTS_WORDS;
   const one = (name: string, url: string | null, soon: string) => url === null
-    ? `<span class="app soon" aria-disabled="true">${soon}</span>`
-    : `<a class="app" href="${esc(url)}">${name}</a>`;
-  return one("Google Play", play, "Google Play · coming soon") + one("App Store", appStore, "App Store · iPhone app coming soon");
+    ? `<span class="app soon">${esc(soon)}</span>` : `<a class="app" href="${esc(url)}">${esc(name)}</a>`;
+  const joins = joinStores(play !== null, appStore !== null).map((s) => joinTestAsk(s, contact)).filter((j) => j.mailto !== null);
+  return one(w.site.play, play, w.site.playSoon) + one(w.site.appStore, appStore, w.site.appStoreSoon) +
+    (joins.length ? `<p class="small joins">${esc(w.join.line)} ` +
+      joins.map((j) => `<a href="${esc(j.mailto!)}">${esc(j.button)}</a>`).join(" · ") + `</p>` : "");
 }
 
 /** the page body: everything that does not move between feed runs; the live sections are filled by gaugeClient.ts */
-export function gaugeBody(g: GaugeModel, release: string, clientHref: string, asOf: string): string {
+export function gaugeBody(g: GaugeModel, release: string, clientHref: string, asOf: string, contact: string | null = null): string {
   const first = g.close[0] ?? g.rough[0]!;
   const line = (w: WaterLink) => `<li><a href="${esc(w.path)}">${esc(w.name)} fishing regulations</a></li>`;
   const cfg = JSON.stringify(gaugeConfig(g, release)).replace(/</g, "\\u003c");
@@ -166,7 +170,7 @@ export function gaugeBody(g: GaugeModel, release: string, clientHref: string, as
     `<div class="card"><p>See this gauge with the map, alerts and every other gauge in the app.</p>` +
     // (owner 2026-11-08) the website now; the phone app greyed until its store listing is public (T514)
     `<div class="opens"><a class="app" href="${esc(`${first.path}?view=conditions`)}">Open on the website</a>` +
-    `${openInAppControl()}</div></div></div>` +
+    `${openInAppControl(undefined, undefined, contact)}</div></div></div>` +
     `<script type="application/json" id="gauge-config">${cfg}</script><script src="${esc(clientHref)}" defer></script>`;
 }
 

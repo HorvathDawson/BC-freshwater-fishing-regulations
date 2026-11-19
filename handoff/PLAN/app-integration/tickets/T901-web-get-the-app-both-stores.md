@@ -38,3 +38,15 @@ The Play listing also answers 404 (closed testing only). `storeLinks.ts` now has
 `OPEN_IN_APP_URL` (share.ts) is gone: the gauge pages read `playStoreLink()`. **At launch flip both: `PLAY_PUBLIC = true` and
 `APP_STORE_PUBLIC = true`.** `pnpm run store-pages` (app/tools/check-store-pages.mjs, by hand, needs the network) curls both pages
 and fails if a flag is true over a non-200 page, and reports a page that is live while its flag is false.
+
+### Owner addition 2026-11-19 ~01:22, verbatim: "we could add a contact to get into testing maybe?"
+
+Built: under the two coming-soon buttons, "Want to try it early? Ask to join the test." and a press per store, "Join the
+Android test" / "Join the iPhone test" (words: `WEB_SPOTS_WORDS.join`, core spotWords.ts). Each opens an email to the app's
+contact (More → Contact: `menuInfo.contact`, EXPO_PUBLIC_CONTACT; `joinTestAsk` in core joinTest.ts) with that subject and a
+body asking for the email on the Google account (Android) / Apple ID (iPhone). With no contact address (staging) the press opens
+the in-app Report form with the subject and ask already in "What happened" (`ReportWhere.ask`); where neither exists (the capture
+notice with no contact) no press is drawn, never a dead one. When `PLAY_PUBLIC` / `APP_STORE_PUBLIC` is true that store's join
+press goes away and its store button is a real link. The website's gauge pages carry the same line as plain mailto links
+(site contact), the "coming soon" spans are plain text (no aria-disabled), their words moved to `WEB_SPOTS_WORDS.site`.
+Reviewer notes folded in: the website reads `playStoreLink()` (the flag), not OPEN_IN_APP_URL (removed).

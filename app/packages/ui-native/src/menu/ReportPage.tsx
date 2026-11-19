@@ -36,7 +36,7 @@ export function ReportPage({ diagnostics, contact, palette, sender = null }: {
   // (owner 2026-10-29) "You may contact me": only with an email, off by default, cleared with the email
   const [mayContact, setMayContact] = useState(false);
   const tx = useReportSend(sender);
-  const [what, setWhat] = useState("");
+  const [what, setWhat] = useState(diagnostics.where.ask ?? "");
   const [off, setOff] = useState<Partial<Record<DiagKey, boolean>>>({});
   const [shareFailed, setShareFailed] = useState(false);
   const rows = useMemo(() => diagnosticRows(diagnostics), [diagnostics]);

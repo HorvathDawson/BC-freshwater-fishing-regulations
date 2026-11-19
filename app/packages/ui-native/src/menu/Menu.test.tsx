@@ -501,6 +501,13 @@ describe("(T859) a menu page at desktop width is a card over the page", () => {
     expect(screen.getByTestId("menu-page-about")).toBeTruthy();
   });
 
+  it("(T901) Report opened with an `ask` (Join the test, no contact address) starts with that text in What happened", () => {
+    const out: { menu?: ReturnType<typeof useMenu> } = {};
+    render(<App out={out} />);
+    act(() => { out.menu!.report({ ask: "Join the Android test\n\nHi" }); }); settle();
+    expect((screen.getByTestId("report-what") as HTMLTextAreaElement).value).toBe("Join the Android test\n\nHi");
+  });
+
   it("one tree across the breakpoint: a report's typed draft survives the window crossing 1280 px both ways", () => {
     const { rerender } = render(<App out={{}} width={1279} />);
     pick("menu-item-report");

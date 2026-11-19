@@ -297,7 +297,7 @@ export async function buildSite(o: BuildOpts): Promise<SiteBuild> {
       const title = gaugeTitle(g), description = gaugeDescription(g);
       unique(titles, title, g.path); unique(descriptions, description, g.path);
       // lastmod moves with what the build wrote (name, waters, place), not with the release id the live half names
-      add("gauge", g.path, shellOf(g.path, title, description, gaugeBody(g, release.id, clientHref, asOf), pageLd(site, g.path, title, asOf, gaugeCrumbs(g)),
+      add("gauge", g.path, shellOf(g.path, title, description, gaugeBody(g, release.id, clientHref, asOf, site.contact), pageLd(site, g.path, title, asOf, gaugeCrumbs(g)),
           `/gauge/${g.station}/card.png`), sha(JSON.stringify(g)));
     }
     const title = clip(`River gauges in BC: live flow and weather — ${site.name}`, 60);

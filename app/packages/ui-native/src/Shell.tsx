@@ -559,7 +559,7 @@ export function Shell(p: ShellProps) {
 
   if (adding && onSaveSpot)
     return layered(withGuide(
-      <SpotCapture source={source} weather={weather} tiles={tiles} palette={palette} photos={photos}
+      <SpotCapture contact={menuInfo?.contact ?? null} source={source} weather={weather} tiles={tiles} palette={palette} photos={photos}
                    // started at a point (a long press, a tap in pick mode, your location): the pin is already down
                    at={adding.at}
                    // So the spot freezes the ESTIMATE the reader was looking at,

@@ -5,7 +5,7 @@
  */
 import { Platform, ScrollView, View } from "react-native";
 import { Text } from "./Text";
-import { appStoreLink, playStoreLink, WEB_SPOTS_WORDS as W } from "@app/core";
+import { appStoreLink, joinStores, joinTestAsk, playStoreLink, WEB_SPOTS_WORDS as W } from "@app/core";
 import { Button } from "./Button";
 import { TYPE } from "./type";
 import { GUTTER, SPACE, type Palette } from "./theme";
@@ -21,13 +21,20 @@ export const webSpotsNotice = (): boolean =>
 /** (tests) draw the web's notice, or (null) as the platform says */
 export const showWebSpotsNotice = (on: boolean | null) => { forced = on; };
 
-export function WebSpotsNotice({ palette, onDone }: {
+export function WebSpotsNotice({ palette, onDone, contact = null, onReport }: {
   palette: Palette;
+  /** (T901) the app's contact value (More → Contact): "Join the test" emails it */
+  contact?: string | null;
+  /** (T901) no contact address: "Join the test" opens the Report form with this text in it (absent: no such press) */
+  onReport?: (ask: string) => void;
   /** shown where a spot was being added: the way back to the map; absent (the Spots tab): no such button */
   onDone?: () => void;
 }) {
   const appStore = appStoreLink();
   const play = playStoreLink();
+  // (T901) a press per store whose page is not public, each with a way to act: an email, else the Report form, else none
+  const joins = joinStores(play !== null, appStore !== null).map((s) => ({ s, ask: joinTestAsk(s, contact) }))
+    .filter((j) => j.ask.mailto !== null || onReport !== undefined);
   return (
     <View testID="web-spots-notice" style={{ flex: 1, backgroundColor: palette.card }}>
       <View style={{ paddingHorizontal: GUTTER, paddingTop: 16, paddingBottom: 12, borderBottomWidth: 1.5, borderBottomColor: palette.ink }}>
@@ -49,6 +56,17 @@ export function WebSpotsNotice({ palette, onDone }: {
               ? <Button palette={palette} label={W.appStoreButton} grow={false} testID="web-spots-app-store" onPress={linkTo(appStore)} />
               : <Button palette={palette} label={W.appStoreSoon} grow={false} testID="web-spots-app-store-soon" />}
           </View>
+          {joins.length > 0 && (
+            <View testID="web-spots-join" style={{ gap: SPACE.s2, alignItems: "center" }}>
+              <Text style={{ ...TYPE.body, color: palette.ink, textAlign: "center" }}>{W.join.line}</Text>
+              <View style={{ flexDirection: "row", flexWrap: "wrap", gap: SPACE.s2, justifyContent: "center" }}>
+                {joins.map(({ s, ask }) => (
+                  <Button key={s} palette={palette} kind="ghost" grow={false} label={ask.button} testID={`web-spots-join-${s}`}
+                          onPress={ask.mailto !== null ? linkTo(ask.mailto) : () => onReport?.(`${ask.subject}\n\n${ask.body}`)} />
+                ))}
+              </View>
+            </View>
+          )}
           {onDone && <Button palette={palette} kind="ghost" label={W.back} onPress={onDone} />}
         </View>
        </View>

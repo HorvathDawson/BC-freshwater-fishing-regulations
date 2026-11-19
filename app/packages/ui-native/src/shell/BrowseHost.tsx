@@ -169,7 +169,8 @@ export function BrowseHost({ nav, col, search, rail, palette, theme, themeName, 
 
   return tab === "spots"
     // (T48) THE SPOTS TAB: the list, open one, Show it on the map, add one — the long press on the maps stays
-    ? <SpotsScreen palette={palette}
+    ? <SpotsScreen palette={palette} contact={menuInfo?.contact ?? null}
+                   onReport={(ask) => menu.report({ ...routeWhere(route, mapDay ? dayLabel(mapDay) : null), ask })}
                    // no location module (native today): "unavailable", so the tab says why it is not offered
                    vm={spotsMenu(spots, { error: spotsError, canAdd: !!onSaveSpot, canRefresh: !!onRefreshSpots,
                                           permission: locate ? rail.permission : "unavailable" })}

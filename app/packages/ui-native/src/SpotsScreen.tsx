@@ -27,7 +27,9 @@ import { hitProps } from "./regs/hit";
 import { CoachSpot } from "./CoachMarks";
 import { OpenSettings } from "./OpenSettings";
 
-export function SpotsScreen({ palette, vm, onOpen, onShow, onAdd, onRefresh, refreshing, error, photoStore, backupLine }: {
+export function SpotsScreen({ palette, vm, onOpen, onShow, onAdd, onRefresh, refreshing, error, photoStore, backupLine, contact, onReport }: {
+  /** (T901) the web notice's "Join the test": the contact address, or the Report form */
+  contact?: string | null; onReport?: (ask: string) => void;
   palette: Palette; vm: SpotsMenuVM;
   onOpen: (id: string) => void;
   /** The Map tab, framed on the spot with its pin. */
@@ -47,7 +49,7 @@ export function SpotsScreen({ palette, vm, onOpen, onShow, onAdd, onRefresh, ref
   const showAdds = addOpen || vm.rows.length === 0;
   // back (Android, the browser, the iOS edge) closes the ways to add first, as the header's Add does
   useBackLayer(addOpen && vm.rows.length > 0, () => setAddOpen(false));
-  if (webSpotsNotice()) return <WebSpotsNotice palette={palette} />;
+  if (webSpotsNotice()) return <WebSpotsNotice palette={palette} contact={contact ?? null} {...(onReport ? { onReport } : {})} />;
   return (
     <View testID="spots-screen" style={{ flex: 1, backgroundColor: palette.card }}>
       <View style={{ paddingHorizontal: GUTTER, paddingTop: 16, paddingBottom: 12, flexDirection: "row", alignItems: "center",
