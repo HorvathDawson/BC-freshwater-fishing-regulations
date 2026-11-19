@@ -31,7 +31,8 @@
       "expo-background-task",
       "./plugins/with-upload-signing",
       "./plugins/with-no-minify",
-      "./plugins/with-backup-rules"
+      "./plugins/with-backup-rules",
+      "./plugins/with-optional-portrait"
     ],
     "ios": {
       "bundleIdentifier": "ca.canifishthis.app",
