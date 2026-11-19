@@ -8,7 +8,7 @@
  */
 import { useState } from "react";
 import { Modal, View } from "react-native";
-import { SHEET_WORDS, WEB_SPOTS_WORDS as W, type JoinAsk, type JoinStore } from "@app/core";
+import { environmentError, reportFailure, SHEET_WORDS, WEB_SPOTS_WORDS as W, type JoinAsk, type JoinStore } from "@app/core";
 import { useBackLayer } from "@app/ui";
 import { Text } from "./Text";
 import { Button } from "./Button";
@@ -21,11 +21,20 @@ import { GUTTER, SPACE, type Palette } from "./theme";
 
 const SCRIM_HIT = hitProps({ w: 320, h: 200 });
 
-/** the browser's clipboard; false when it is absent or refuses (not a secure page, no permission) */
+/**
+ * The browser's clipboard; false when it is absent or refuses (not a secure page, no permission) — the card then SAYS so
+ * and shows the address, and the failure is REPORTED: a missing clipboard or a refusal is a defect, except a permission
+ * the reader refused (`NotAllowedError`), which is the environment's (core failure.ts: shown, never reported).
+ */
 export async function copyToClipboard(text: string): Promise<boolean> {
   const clip = (globalThis as { navigator?: { clipboard?: { writeText(t: string): Promise<void> } } }).navigator?.clipboard;
-  if (!clip) return false;
-  try { await clip.writeText(text); return true; } catch { return false; }
+  if (!clip) { reportFailure(new Error("join card: this browser has no clipboard (navigator.clipboard)")); return false; }
+  try { await clip.writeText(text); return true; } catch (e) {
+    // (a DOMException: not every engine's is an `Error` instance, so it is told by its name)
+    const refusedByReader = !!e && typeof e === "object" && (e as { name?: unknown }).name === "NotAllowedError";
+    reportFailure(refusedByReader ? environmentError(e as Error) : e);
+    return false;
+  }
 }
 
 export function JoinTestCard({ store, ask, palette, onClose, copy = copyToClipboard }: {

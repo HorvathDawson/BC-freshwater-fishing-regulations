@@ -2,7 +2,7 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { act, cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { Linking } from "react-native";
-import { joinTestAsk, WEB_SPOTS_WORDS } from "@app/core";
+import { joinTestAsk, setFailureSink, WEB_SPOTS_WORDS } from "@app/core";
 import { WebSpotsNotice } from "./WebSpotsNotice";
 import { JoinTestCard } from "./JoinTestCard";
 import { LIGHT } from "./theme";
@@ -53,17 +53,25 @@ describe("the Join the test card (T911)", () => {
     expect(screen.getByText(P.refused)).toBeTruthy();
     expect(screen.getByTestId("join-test-address").textContent).toBe(C);
   });
-  it("the real clipboard: a rejection is the refusal, and no clipboard at all is too", async () => {
+  it("the real clipboard: a rejection is the refusal, and no clipboard at all is too; both reported (not only said)", async () => {
     const { copyToClipboard } = await import("./JoinTestCard");
     const nav = globalThis.navigator;
-    Object.defineProperty(nav, "clipboard", { value: { writeText: () => Promise.reject(new Error("denied")) }, configurable: true });
-    expect(await copyToClipboard(C)).toBe(false);
-    Object.defineProperty(nav, "clipboard", { value: undefined, configurable: true });
-    expect(await copyToClipboard(C)).toBe(false);
-    const w = vi.fn().mockResolvedValue(undefined);
-    Object.defineProperty(nav, "clipboard", { value: { writeText: w }, configurable: true });
-    expect(await copyToClipboard(C)).toBe(true);
-    expect(w).toHaveBeenCalledWith(C);
+    const seen: unknown[] = [];
+    const undo = setFailureSink((e) => seen.push(e));
+    try {
+      Object.defineProperty(nav, "clipboard", { value: { writeText: () => Promise.reject(new Error("denied")) }, configurable: true });
+      expect(await copyToClipboard(C)).toBe(false);
+      Object.defineProperty(nav, "clipboard", { value: undefined, configurable: true });
+      expect(await copyToClipboard(C)).toBe(false);
+      // a permission the reader refused is the environment's (core failure.ts): the refusal is said, never reported
+      Object.defineProperty(nav, "clipboard", { value: { writeText: () => Promise.reject(new DOMException("no", "NotAllowedError")) }, configurable: true });
+      expect(await copyToClipboard(C)).toBe(false);
+      const w = vi.fn().mockResolvedValue(undefined);
+      Object.defineProperty(nav, "clipboard", { value: { writeText: w }, configurable: true });
+      expect(await copyToClipboard(C)).toBe(true);
+      expect(w).toHaveBeenCalledWith(C);
+      expect(seen.map((e) => (e as Error).message)).toEqual(["denied", expect.stringContaining("no clipboard")]);
+    } finally { undo(); }
   });
   it("closes by the ✕, the scrim and Escape", async () => {
     render(<WebSpotsNotice palette={LIGHT} contact={C} />);

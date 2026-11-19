@@ -132,7 +132,6 @@ const W_STATE = "the worker's own kept state in R2: unreadable → started fresh
 const W_TORN = "a torn or unreadable stored object or line is skipped (the next write replaces it)";
 const W_ABSENT = "a station or source that did not answer is absent this run (the run's source health counts it)";
 export const FINE: Record<string, { n: number; why: string }> = {
-  "packages/ui-native/src/JoinTestCard.tsx": { n: 1, why: "(T911) the browser refused the clipboard: SAID on the card (the refusal line and the address to select), not silent; the browser's own permission, nothing to report" },
   "apps/mobile/src/App.tsx": { n: 3, why: `the Updates-log tools' cache delete / copy (shown: copyFailed; ${ENV}); a spots refresh shown by spotsHook.error, reported in ui/spots.ts` },
   "apps/mobile/src/envStore.native.ts": { n: 2, why: PREF },
   "apps/mobile/src/envStore.web.ts": { n: 2, why: PREF },
