@@ -6,7 +6,7 @@
  * facts the feeds worker writes beside each gauge's share card (`feeds/cards/<station>.json`) and the weather at the
  * gauge (Open-Meteo). What the build writes here is what does not move between feed runs: the gauge's name and number,
  * the waters it serves (one line each to that water's regulations page — never an open/closed word on this page), and
- * "Open on the website" (the web app on that water's Conditions view) beside a greyed "Google Play · coming soon" and "App Store · iPhone app coming soon"
+ * "Open on the website" (the web app on that water's Conditions view) beside the "Get the app" block (`getAppBlock`)
  * (the phone app takes no links yet, D1; T514).
  *
  * WHICH GAUGES: every station in the release that serves at least one water with a page — its own water (`gauge.item_id`),
@@ -22,7 +22,7 @@ import { OPEN_METEO_ATTRIBUTION, weatherPlace } from "../../packages/data/src/sp
 import { crashUrlFor, ORIGINS, REPORT_URLS } from "../../apps/mobile/src/env";
 import { clip, esc, SHARE_FONT, SHARE_GROUND, SHARE_H, SHARE_INK, SHARE_W, type Site } from "./html";
 import type { GaugeConfig } from "./gaugeClient";
-import { appStoreLink, bestServes, gaugePath, joinStores, joinTestAsk, playStoreLink, WEB_SPOTS_WORDS, STALE_AFTER_MS, TRUST_RANK, type GaugeRows, type ServesTrust } from "@app/core";
+import { appStoreLink, bestServes, gaugePath, getAppBlock, playStoreLink, type GetAppSlot, STALE_AFTER_MS, TRUST_RANK, type GaugeRows, type ServesTrust } from "@app/core";
 import { readGaugeRows } from "@app/data/release";
 
 export { readGaugeRows, type GaugeRows };
@@ -141,13 +141,11 @@ export function gaugeDescription(g: GaugeModel): string {
  */
 export function openInAppControl(play: string | null = playStoreLink(), appStore: string | null = appStoreLink(),
                                  contact: string | null = null): string {
-  const w = WEB_SPOTS_WORDS;
-  const one = (name: string, url: string | null, soon: string) => url === null
-    ? `<span class="app soon">${esc(soon)}</span>` : `<a class="app" href="${esc(url)}">${esc(name)}</a>`;
-  const joins = joinStores(play !== null, appStore !== null).map((s) => joinTestAsk(s, contact)).filter((j) => j.mailto !== null);
-  return one(w.site.play, play, w.site.playSoon) + one(w.site.appStore, appStore, w.site.appStoreSoon) +
-    (joins.length ? `<p class="small joins">${esc(w.join.line)} ` +
-      joins.map((j) => `<a href="${esc(j.mailto!)}">${esc(j.button)}</a>`).join(" · ") + `</p>` : "");
+  const blk = getAppBlock(play, appStore, contact, false);
+  const slot = (x: GetAppSlot) => `<a class="app" href="${esc(x.kind === "store" ? x.url : x.ask.mailto!)}">${esc(x.label)}</a>`;
+  return (blk.coming ? `<p class="small coming">${esc(blk.coming)}</p>` : "") +
+    (blk.lead ? `<p class="small joins">${esc(blk.lead)}</p>` : "") +
+    (blk.slots.length ? `<div class="stores">${blk.slots.map(slot).join("")}</div>` : "");
 }
 
 /** the page body: everything that does not move between feed runs; the live sections are filled by gaugeClient.ts */

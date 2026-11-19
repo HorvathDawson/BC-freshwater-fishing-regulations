@@ -50,3 +50,11 @@ notice with no contact) no press is drawn, never a dead one. When `PLAY_PUBLIC` 
 press goes away and its store button is a real link. The website's gauge pages carry the same line as plain mailto links
 (site contact), the "coming soon" spans are plain text (no aria-disabled), their words moved to `WEB_SPOTS_WORDS.site`.
 Reviewer notes folded in: the website reads `playStoreLink()` (the flag), not OPEN_IN_APP_URL (removed).
+
+### Redo, owner 2026-11-19 ~01:32: "the buttons for join test suck"
+
+The block is now: "Get the app", one plain line naming only the stores still coming ("Coming soon to Google Play and the App Store."),
+"Want to try it early?", then one primary button per platform, equal width (side by side where they fit, stacked full width on a
+phone). No disabled buttons. When a flag goes true that platform's join button becomes its store button ("Google Play" /
+"App Store") in the same spot and style; both public: no line, no lead. Decided once in core `getAppBlock` (joinTest.ts) for the
+app and the website (gauge pages: plain text + two `a.app` links in `.stores`). Words: `WEB_SPOTS_WORDS.coming`, `.join.lead`.

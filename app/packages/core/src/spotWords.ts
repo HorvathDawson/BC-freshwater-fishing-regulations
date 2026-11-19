@@ -115,25 +115,21 @@ export const WEB_SPOTS_WORDS = {
   /** (T901) one button per store; the addresses are core's storeLinks.ts */
   playButton: "Google Play",
   appStoreButton: "App Store",
-  /** (T901) the Google Play button while its listing is not public */
-  playSoon: "Android app coming soon",
-  /** (T901) the website's gauge pages: the same two stores as plain controls (tools/seo gauges.ts) */
-  site: { play: "Google Play", appStore: "App Store", playSoon: "Google Play · Android app coming soon",
-          appStoreSoon: "App Store · iPhone app coming soon" },
+  /** (T901) one plain line naming only the stores still coming (none left: no line) */
+  coming: { both: "Coming soon to Google Play and the App Store.", play: "Coming soon to Google Play.",
+            appStore: "Coming soon to the App Store." },
   /**
    * (T901, owner 2026-11-19: "we could add a contact to get into testing maybe?") under a store that is not public yet:
    * one line and one press per store, an email to the app's contact (More → Contact), or the in-app Report form where
    * no address is set. The body asks for what the store's tester list needs. The app speaks as "I".
    */
   join: {
-    line: "Want to try it early? Ask to join the test.",
+    lead: "Want to try it early?",
     android: { button: "Join the Android test", subject: "Join the Android test",
                body: "Hi, I'd like to join the Android test of Can I Fish This?. The email on my Google account is: " },
     iphone: { button: "Join the iPhone test", subject: "Join the iPhone test",
               body: "Hi, I'd like to join the iPhone test of Can I Fish This?. The email on my Apple ID is: " },
   },
-  /** (T901) the App Store button while the page is not public yet: said plainly, not a link to a 404 */
-  appStoreSoon: "iPhone app coming soon",
   back: "Back to the map",
 } as const;
 

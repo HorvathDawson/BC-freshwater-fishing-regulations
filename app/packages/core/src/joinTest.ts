@@ -5,7 +5,6 @@
 import { contactVM } from "./menu/contact";
 import { mailtoUrl } from "./menu/report";
 import { WEB_SPOTS_WORDS } from "./spotWords";
-import { APP_STORE_PUBLIC, PLAY_PUBLIC } from "./storeLinks";
 
 export type JoinStore = "android" | "iphone";
 export interface JoinAsk { readonly subject: string; readonly body: string; readonly button: string;
@@ -19,7 +18,26 @@ export function joinTestAsk(store: JoinStore, contact: string | null | undefined
            mailto: to.kind === "email" ? mailtoUrl(to.value, { subject: j.subject, body: j.body }) : null };
 }
 
-/** The stores whose test can still be asked for: those whose page is not public. */
-export function joinStores(play: boolean = PLAY_PUBLIC, appStore: boolean = APP_STORE_PUBLIC): JoinStore[] {
-  return [...(play ? [] : ["android" as const]), ...(appStore ? [] : ["iphone" as const])];
+/** One of the two places a store gets in the "Get the app" block: its store link once public, else its "Join the test". */
+export type GetAppSlot =
+  | { readonly kind: "store"; readonly store: JoinStore; readonly label: string; readonly url: string }
+  | { readonly kind: "join"; readonly store: JoinStore; readonly label: string; readonly ask: JoinAsk };
+
+/**
+ * (T901, owner 2026-11-19) THE "GET THE APP" BLOCK, decided once for the app and the website: a plain line naming only the
+ * stores still coming (`coming`), a small lead (`lead`, only above join buttons), and per platform one button in the same
+ * spot, Android then iPhone: the store's link once its page is public, else "Join the test" where there is a way to act on
+ * it (an email to the contact, or the Report form: `canReport`). No way to act: no button (never a dead one).
+ */
+export function getAppBlock(play: string | null, appStore: string | null, contact: string | null | undefined, canReport: boolean):
+  { coming: string | null; lead: string | null; slots: GetAppSlot[] } {
+  const W = WEB_SPOTS_WORDS;
+  const slots: GetAppSlot[] = [];
+  for (const [store, url, label] of [["android", play, W.playButton], ["iphone", appStore, W.appStoreButton]] as const) {
+    if (url !== null) { slots.push({ kind: "store", store, label, url }); continue; }
+    const ask = joinTestAsk(store, contact);
+    if (ask.mailto !== null || canReport) slots.push({ kind: "join", store, label: ask.button, ask });
+  }
+  const coming = play === null && appStore === null ? W.coming.both : play === null ? W.coming.play : appStore === null ? W.coming.appStore : null;
+  return { coming, lead: slots.some((s) => s.kind === "join") ? W.join.lead : null, slots };
 }

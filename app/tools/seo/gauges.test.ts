@@ -54,7 +54,7 @@ describe("T487 gauge pages", () => {
     const links = [...p.html.matchAll(/<a href="(\/water\/[^"?]+)">([^<]*) fishing regulations<\/a>/g)].map((x) => x[1]);
     expect(links).toEqual([path(ids[0]!), path(ids[1]!)]);                 // own water first, then the fair one; the weak duplicate folded
     expect(p.html).toContain(`<a class="app" href="${path(ids[0]!)}?view=conditions">Open on the website</a>`);
-    expect(p.html).toContain(`<span class="app soon">Google Play · Android app coming soon</span><span class="app soon">App Store · iPhone app coming soon</span>`);
+    expect(p.html).toContain(`<p class="small coming">Coming soon to Google Play and the App Store.</p>`);
     const q = gaugePages().find((x) => x.path.startsWith("/gauge/08MH016"))!;
     expect(q.html).toMatch(/<details><summary>A rough guide for 2 more waters<\/summary>/);
     for (const g of gaugePages()) {

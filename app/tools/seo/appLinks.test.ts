@@ -5,7 +5,7 @@
  */
 import { readFileSync } from "node:fs";
 import { beforeAll, describe, expect, it } from "vitest";
-import { APP_LINK_HOSTS, APP_PACKAGE, APP_STORE_URL, appStoreLink, playStoreLink, PLAY_SIGNING_SHA256, PLAY_STORE_URL, WEB_SPOTS_WORDS } from "@app/core";
+import { APP_LINK_HOSTS, APP_PACKAGE, APP_STORE_URL, appStoreLink, playStoreLink, PLAY_SIGNING_SHA256, PLAY_STORE_URL } from "@app/core";
 import { openRegsFixture } from "@app/data/release/node";
 import { buildAll, readIosTeamId, type Built } from "./build";
 import { TODAY } from "./fixture";
@@ -79,33 +79,32 @@ describe("T724 apple-app-site-association", () => {
   });
 });
 
-describe("T514 / T901 share page store buttons", () => {
-  const SOON = (t: string) => `<span class="app soon">${t}</span>`;
-  const PS = SOON("Google Play · Android app coming soon") + SOON("App Store · iPhone app coming soon");
-  it("both are plain 'coming soon' text until their listings are public (the shipped default)", () => {
-    expect(openInAppControl(null, null)).toBe(PS);
-    expect(openInAppControl()).toContain("Android app coming soon");
-    expect(openInAppControl()).toContain("iPhone app coming soon");
-    expect(appStoreLink()).toBeNull();                            // the App Store page 404s today (TestFlight only)
-    expect(playStoreLink()).toBeNull();                           // and so does Play's (closed testing)
-  });
-  it("each store has its own button and its own address", () => {
-    expect(openInAppControl(PLAY_STORE_URL, "https://apps.apple.com/app/id6835000455")).toBe(
-      `<a class="app" href="${PLAY_STORE_URL}">Google Play</a><a class="app" href="https://apps.apple.com/app/id6835000455">App Store</a>`);
-    expect(openInAppControl(PLAY_STORE_URL, null)).toBe(`<a class="app" href="${PLAY_STORE_URL}">Google Play</a>` + SOON("App Store · iPhone app coming soon"));
-  });
-  it("T901: under 'coming soon', one mailto per unpublished store to the site's contact; none without a contact; gone once public", () => {
-    const html = openInAppControl(null, null, "support@canifishthis.ca");
-    expect(html).toContain(WEB_SPOTS_WORDS.join.line);
-    expect(html).toContain(`<a href="mailto:support@canifishthis.ca?subject=Join%20the%20Android%20test&amp;body=`);
-    expect(html).toContain(`mailto:support@canifishthis.ca?subject=Join%20the%20iPhone%20test&amp;body=`);
+describe("T514 / T901 share page 'Get the app' block", () => {
+  const C = "support@canifishthis.ca", A = "https://apps.apple.com/app/id6835000455";
+  it("neither public (the shipped default): one plain line, a lead, and a mailto button per platform; no span, no disabled control", () => {
+    const html = openInAppControl(null, null, C);
+    expect(html).toContain(`<p class="small coming">Coming soon to Google Play and the App Store.</p>`);
+    expect(html).toContain(`<p class="small joins">Want to try it early?</p>`);
+    expect(html).toContain(`<a class="app" href="mailto:${C}?subject=Join%20the%20Android%20test&amp;body=`);
+    expect(html).toContain(`<a class="app" href="mailto:${C}?subject=Join%20the%20iPhone%20test&amp;body=`);
     expect(html).toContain("The%20email%20on%20my%20Google%20account%20is");
     expect(html).toContain("The%20email%20on%20my%20Apple%20ID%20is");
-    expect(openInAppControl(null, null, null)).toBe(PS);
-    const half = openInAppControl(PLAY_STORE_URL, null, "support@canifishthis.ca");
-    expect(half).not.toContain("Android test");
-    expect(half).toContain("Join the iPhone test");
-    expect(openInAppControl(PLAY_STORE_URL, "https://apps.apple.com/app/id1", "support@canifishthis.ca")).not.toContain("Join the");
+    expect(html).not.toContain("<span");
+    expect(appStoreLink()).toBeNull(); expect(playStoreLink()).toBeNull();      // both pages 404 today
+  });
+  it("no contact: the line, and no button", () => {
+    expect(openInAppControl(null, null, null)).toBe(`<p class="small coming">Coming soon to Google Play and the App Store.</p>`);
+  });
+  it("a store going live: its link in the join button's spot, the line and the lead name only what is left", () => {
+    const html = openInAppControl(PLAY_STORE_URL, null, C);
+    expect(html).toContain(`<a class="app" href="${PLAY_STORE_URL}">Google Play</a>`);
+    expect(html).toContain("Coming soon to the App Store.");
+    expect(html).not.toContain("Android test");
+    expect(html).toContain("Join the iPhone test");
+  });
+  it("both live: two store links, no line", () => {
+    expect(openInAppControl(PLAY_STORE_URL, A, C)).toBe(
+      `<div class="stores"><a class="app" href="${PLAY_STORE_URL}">Google Play</a><a class="app" href="${A}">App Store</a></div>`);
   });
   it("the addresses are core's: Play by package, the App Store by the Apple ID", () => {
     expect(PLAY_STORE_URL).toBe(`https://play.google.com/store/apps/details?id=${APP_PACKAGE}`);

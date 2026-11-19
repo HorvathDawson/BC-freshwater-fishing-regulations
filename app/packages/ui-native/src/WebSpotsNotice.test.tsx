@@ -15,28 +15,23 @@ describe("the web's spots notice (T302)", () => {
     for (const t of [WEB_SPOTS_WORDS.lead, ...WEB_SPOTS_WORDS.body]) expect(screen.getByText(t)).toBeTruthy();
     expect(screen.queryByText(WEB_SPOTS_WORDS.back)).toBeNull();      // the tab: no way back needed
   });
-  it("T901: while neither store page is public both buttons are disabled 'coming soon' words, with no link", () => {
-    const open = vi.spyOn(Linking, "openURL").mockResolvedValue(true as never);
-    render(<WebSpotsNotice palette={LIGHT} />);
-    for (const [id, words] of [["web-spots-play-soon", WEB_SPOTS_WORDS.playSoon], ["web-spots-app-store-soon", WEB_SPOTS_WORDS.appStoreSoon]] as const) {
-      const soon = screen.getByTestId(id);
-      expect(soon.textContent).toBe(words);
-      expect(soon.getAttribute("aria-disabled")).toBe("true");
-      fireEvent.click(soon);
-    }
-    expect(WEB_SPOTS_WORDS.playSoon).toBe("Android app coming soon");
+  it("T901: neither store public: one plain 'coming soon' line, no disabled buttons, a join button per platform", () => {
+    render(<WebSpotsNotice palette={LIGHT} contact="support@canifishthis.ca" />);
+    expect(screen.getByTestId("web-spots-coming").textContent).toBe("Coming soon to Google Play and the App Store.");
+    expect(screen.getByText(WEB_SPOTS_WORDS.join.lead)).toBeTruthy();
     expect(screen.queryByText(WEB_SPOTS_WORDS.playButton)).toBeNull();
     expect(screen.queryByText(WEB_SPOTS_WORDS.appStoreButton)).toBeNull();
-    expect(open).not.toHaveBeenCalled();
+    for (const b of screen.getAllByRole("button")) expect(b.getAttribute("aria-disabled")).not.toBe("true");
     expect(PLAY_STORE_URL).toBe("https://play.google.com/store/apps/details?id=ca.canifishthis.app");
   });
-  it("T901: once each page is public (its flag), its button opens its own address", async () => {
+  it("T901: once each page is public (its flag), its button is the store link, in the join button's place", async () => {
     const core = await import("@app/core");
     const sp = vi.spyOn(core, "playStoreLink").mockReturnValue(core.PLAY_STORE_URL);
     const sa = vi.spyOn(core, "appStoreLink").mockReturnValue(core.APP_STORE_URL);
     const open = vi.spyOn(Linking, "openURL").mockResolvedValue(true as never);
-    render(<WebSpotsNotice palette={LIGHT} />);
-    expect(screen.queryByTestId("web-spots-play-soon")).toBeNull();
+    render(<WebSpotsNotice palette={LIGHT} contact="support@canifishthis.ca" />);
+    expect(screen.queryByTestId("web-spots-coming")).toBeNull();
+    expect(screen.queryByText(/Join the/)).toBeNull();
     fireEvent.click(screen.getByText(WEB_SPOTS_WORDS.playButton));
     expect(open).toHaveBeenLastCalledWith(PLAY_STORE_URL);
     fireEvent.click(screen.getByText(WEB_SPOTS_WORDS.appStoreButton));
@@ -46,7 +41,7 @@ describe("the web's spots notice (T302)", () => {
   it("T901: Join the test: a mailto per store to the contact, with the subject and the ask for the account email", () => {
     const open = vi.spyOn(Linking, "openURL").mockResolvedValue(true as never);
     render(<WebSpotsNotice palette={LIGHT} contact="support@canifishthis.ca" />);
-    expect(screen.getByText(WEB_SPOTS_WORDS.join.line)).toBeTruthy();
+    expect(screen.getByText(WEB_SPOTS_WORDS.join.lead)).toBeTruthy();
     fireEvent.click(screen.getByText("Join the Android test"));
     const a = open.mock.calls.at(-1)![0] as string;
     expect(a.startsWith("mailto:support@canifishthis.ca?subject=Join%20the%20Android%20test&body=")).toBe(true);
@@ -65,14 +60,15 @@ describe("the web's spots notice (T302)", () => {
     expect(asks[1]!.startsWith("Join the iPhone test")).toBe(true);
     cleanup();
     render(<WebSpotsNotice palette={LIGHT} />);
-    expect(screen.queryByTestId("web-spots-join")).toBeNull();
+    expect(screen.queryByText(/Join the/)).toBeNull();
   });
-  it("T901: a store's join press goes away once its page is public (its flag)", async () => {
+  it("T901: one store live: only the other platform keeps its join button, and the line names only it", async () => {
     const core = await import("@app/core");
     const sp = vi.spyOn(core, "playStoreLink").mockReturnValue(core.PLAY_STORE_URL);
     render(<WebSpotsNotice palette={LIGHT} contact="support@canifishthis.ca" />);
     expect(screen.queryByText("Join the Android test")).toBeNull();
     expect(screen.getByText("Join the iPhone test")).toBeTruthy();
+    expect(screen.getByTestId("web-spots-coming").textContent).toBe("Coming soon to the App Store.");
     sp.mockRestore();
   });
   it("where a spot was being added, a way back to the map", () => {
