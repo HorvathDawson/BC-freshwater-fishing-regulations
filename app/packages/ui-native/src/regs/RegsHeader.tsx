@@ -112,7 +112,7 @@ export function ClassBadge({ b, palette, onTerm }: { b: ClassBadgeVM; palette: P
  *   2  two small parts, the sunrise icon "9:01" and the sunset icon "17:17", the same alignment
  *   3  a small rounded chip: the sun icon and "9:01–17:17", right edge on the date's
  */
-const SUN_LOOK = 1 as 1 | 2 | 3;
+const SUN_LOOK = 2 as 1 | 2 | 3;   // owner 2026-11-18 ~23:14: "i like 2"
 
 /**
  * (T878, owner 2026-11-18: "There seems to be a ton of space used by the sunset/rise could we maybe move it to top of

@@ -33,3 +33,6 @@ line, then the other two go, with the sunrise/sunset icons if 2 is not picked):
 3. a small rounded chip (card fill, line border; the header is already the card colour), the sun icon and "9:01–17:17".
 All three drop the "PT" and a one-digit hour's leading 0 ("9:01", the app is B.C.-only); the spoken label keeps
 "Sunrise 9:01, sunset 17:17 PT". Pictures `t878-v{1,2,3}-390-{dark,light}-{babine,coquitlam}.png` (23:10 MST).
+
+## 2026-11-18 ~23:14: look 2 (owner)
+Shown the three looks side by side (t878-looks-sheet.png), the owner, verbatim: "i like 2". Sunrise and sunset icons, "9:01  17:17", under the date; no "PT" on screen (the spoken label keeps it).
