@@ -293,7 +293,7 @@ reads both files; a ticket closed here moves there once its lane is finished wit
 | T868 | Each fish's picture once per sheet: the Whitefish sheet drew them twice (owner) | PARTIAL — 7b0738a3f + 940dde702; left (Claude): merge lane app/fix-dup-pics into app/integrate-081-web | app chat | owner 2026-11-18 |
 | T880 | A DFO exception printed without "and tributaries" leaves out that stream only (Bulkley: Two Mile Creek; the Suskwa on the chinook row) (owner) | OPEN | main chat | owner 2026-11-18 ~20:59 |
 | T885 | DFO's lake parts on the map (Babine's 12 creek-mouth circles, Mabel north, Osoyoos north basin); said in words until then (owner) | OPEN | main chat | owner 2026-11-18 ~21:13 |
-| T883 | Every fish's "How this was decided" sheet: one readable layout (answer, then the steps that made it, each with its source), trout and other fish alike (owner) | PARTIAL — left (Claude): merge into 0.8.2; pipeline steps[] (main chat) after | app chat | owner 2026-11-18 ~21:30; approved ~22:58 |
+| T883 | Every fish's "How this was decided" sheet: one readable layout (answer, then the steps that made it, each with its source), trout and other fish alike (owner) | PARTIAL — left (Claude): pipeline steps[] with the main chat; merged into 0.8.2 | app chat | owner 2026-11-18 ~21:30; approved ~22:58 |
 | T890 | Word density: measure every page, then cut the over-dense ones (pictures first) (owner) | OPEN | app chat + main chat | owner 2026-11-18 ~21:43 |
 | T891 | Braided rivers drawn simpler: side channels thinner than the main channel; braids simplified in the tile build (owner) | OPEN | main chat + app chat | owner 2026-11-18 ~22:02 |
 | T882 | Salmon: DFO's "To be determined" says so instead of "Check DFO"; green whenever any salmon is open (owner) | IN PROGRESS | app chat (lane app/t882-to-be-determined) | owner 2026-11-18 ~21:18 |
@@ -301,7 +301,6 @@ reads both files; a ticket closed here moves there once its lane is finished wit
 | T886 | "How to tell a hatchery fish": a natural fish (the loader's coho), not a smiling one (owner) | IN PROGRESS | app chat, lane app/t884-t886-clip-hatchery-art | owner 2026-11-18 ~21:30 |
 | T878 | Sunrise/sunset moves to a small line under the date; the empty place slot collapses (owner) | OPEN | app chat | owner 2026-11-18 ~20:49; built, lands after the owner sees the pictures |
 | T881 | Conditions: the gauge map only where it draws a gauge (none on Babine Lake — Main Body); one map size, the larger, fitted, no Fit / Larger map (owner) | OPEN — built; lands after the owner sees the pictures | lane app/t881-gauge-map | owner 2026-11-18 ~21:05 |
-| T883 | Every fish's "How this was decided" sheet: one readable layout (answer, then the steps that made it, each with its source), trout and other fish alike (owner) | OPEN — proposal; lands only on the owner's yes | app chat | owner 2026-11-18 ~21:30 |
 | T887 | Salmon map, light mode: keep is a bright green, clearly apart from release, closed and check (owner) | OPEN | app chat | owner 2026-11-18 ~22:33 |
 
 ## Next after closed testing

@@ -1,6 +1,6 @@
 # T883 — every fish's "How this was decided": one readable layout, trout and every other fish alike
 
-Status: PARTIAL (app chat) — left (Claude): merge into 0.8.2; pipeline steps[] (main chat) after.
+Status: PARTIAL (app chat) — left (Claude): pipeline steps[] with the main chat. Merged into 0.8.2 (app/integrate-082, 2026-11-19 ~00:06).
 
 Owner 2026-11-18 ~22:58 (app chat), on the re-sent proposal pictures, verbatim: "all are good ( T878 … T879 … T881 …
 T883 … T886 … ) except sunrise/set should be a bit better in same spot" — T883 approved for 0.8.2.
