@@ -1,6 +1,6 @@
 # T900 — Gear and Methods: cleaner, easier to read (next chat)
 
-Status: OPEN (app chat → the next planning chat; owner: "this can be a future ticket for next chat").
+Status: IN PROGRESS — owner approved the proposal 2026-11-19 ~03:25 ("T900 looks good"); merged into app/integrate-082-night for 0.8.2; left (Claude): full tier, review, push.
 
 Owner 2026-11-19 ~01:12 (app chat), two desktop shots of a Fraser water's Gear and Methods
 (/Users/dawson.horvath/.claude/uploads/699dcd1b-ff73-4ed1-a69c-69feb621d839/9fe767d8-image.png and the one before it in that folder; if gone, re-shoot any Lower Fraser water's Gear/Methods),
@@ -28,3 +28,7 @@ What changed:
 3. Methods: Angling's conditions one per line (was one grey run joined with " · "); the bare ✕ ways (Set lines, Spear or bow, Nets, Snagging, Chumming) draw as one wrapped line (`YesNoVM[].inline`, set in core `yesNo` for 3+ bare ✕ names); Ways keeps its one source line.
 Not changed (for the owner to weigh): the two bold Hooks lines, the Allowed / Not allowed heads, the Vessel restrictions section, the day line, the Bait notes' wording, the data's own words (T890 pipeline side).
 Tests: typecheck clean; vitest core/regs + ui-native + conformance/regs (fixtures regenerated with UPDATE_REGS_FIXTURES=1: only the new `gear.src` and `inline` fields). Not run: full tier, Android/iOS, native render.
+
+
+## Owner 2026-11-19 ~03:25: approved
+Owner, verbatim (main chat): "T900 looks good you can add side channels style too". The proposal (a3a982a17) lands in 0.8.2 as built.

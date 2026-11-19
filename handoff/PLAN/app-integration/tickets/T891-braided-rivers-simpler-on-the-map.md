@@ -49,3 +49,7 @@ prop list. Style filters on `["has","sc"]`. Ships with the next tiles build.
   `label-shots.mjs` gained places `lillooet-tipella`, `lillooet-upper`, `lillooet-pemberton`, `fraser-herrling`.
 - Release: needs a tiles build (the live tiles carry no `sc`; with them the new style draws exactly as today). The
   style + tiles ship together (tiles and bundle share a vintage).
+
+
+## Owner 2026-11-19 ~03:25: the side-channel style approved
+Owner, verbatim (main chat), on the night's pictures: "T900 looks good you can add side channels style too". Part one (tiles `sc` + thinner style) ships in 0.8.2 with tonight's tiles build. Still open for him: whether the ~9.8k small non-braid lines that pass `is_side_channel_piece` (FWA types 1400/1410/2000/1425/6010) should also draw thinner, and part two.

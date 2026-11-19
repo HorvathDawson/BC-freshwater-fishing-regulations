@@ -2861,7 +2861,7 @@ More questions (recommended answer first):
 - 2026-11-18 ~22:02, owner (main chat), Lillooet braids near Pemberton on staging
   (/Users/dawson.horvath/.claude/uploads/b8ddfca9-44eb-400e-a9bf-bd89b4b0f359/8b47b3ee-image.png): "Isn't braiding like
   this supposed to be simplified more ?"; dialog, his words: "We could simplify these even more in tile building? Yes
-  side channels should be less bold too." -> T891 (tiles: main chat; style: app chat; pictures first).
+  side channels should be less bold too." -> T891 (tiles: main chat; style: app chat; pictures first). ANSWERED 2026-11-19 ~03:25: style approved ("you can add side channels style too"), in 0.8.2; T900 Gear and Methods proposal approved too ("T900 looks good"), in 0.8.2.
 - 2026-11-18 ~22:13, owner (main chat), on the numbered production list, verbatim: "I give you permission to run them.
   For me" -> the main chat runs, tonight, one at a time with a check after each: the data worker deploy, the feeds
   worker (deploy/prod/feeds.sh + purge-reports), the data (`release --prod r-fc137c4040fa`), the website (site.sh), the
