@@ -2769,3 +2769,9 @@ More questions (recommended answer first):
   (/Users/dawson.horvath/.claude/uploads/b8ddfca9-44eb-400e-a9bf-bd89b4b0f359/88da0716-trace-tokay-CP3A.261005.005-2026-11-18-20-35-10.perfetto-trace,
   Pixel "tokay", 20:35), verbatim: "More laggy quick zoom in and out." -> the app chat (map performance; ticket number
   theirs).
+- 2026-11-18 20:44, owner (main chat), verbatim: "I don't remember making a password? I don't think it had one" (the
+  production feeds RUN_TOKEN). Checked: the prod worker bc-fishing-feeds has RUN_TOKEN set (with GITHUB_DISPATCH_TOKEN,
+  REPORT_SALT, NOTIFY_EMAIL_TO; feeds-placeholder.sh, 11-05), and nothing else reads it but our local scripts. So a NEW
+  value was made on the Mac (app/workers/feeds/.run-token.prod, gitignored, 600); the owner's list sets it on the
+  worker as its first step: npx --prefix app wrangler secret put RUN_TOKEN -c deploy/prod/feeds-placeholder.wrangler.toml
+  < app/workers/feeds/.run-token.prod
