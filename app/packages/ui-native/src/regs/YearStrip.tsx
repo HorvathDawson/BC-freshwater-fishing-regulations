@@ -73,13 +73,13 @@ export function Patterns({ id, palette }: { id: string; palette: Palette }) {
 
 /** (T227) The bar's name above its status line when a second (salmon) bar is drawn under it: "Game fish (B.C. rules)". */
 function BarTitle({ text, palette, testID, tag = null }: { text: string; palette: Palette; testID: string; tag?: string | null }) {
-  // (T879, proposal) a block's name and whose rules it is, the tag its rows wear
+  // a block's name and whose rules it is, the tag its rows wear
   if (tag) return <TaggedTitle text={text} tag={tag} palette={palette} testID={testID} />;
   return <Text testID={testID} accessibilityRole="header" style={[TYPE.kicker, { color: palette.sub, marginBottom: 2 }]}>{text}</Text>;
 }
 
 export function YearStrip({ strip, dateLabel, palette, title = null, hours = null, tag = null }: { strip: StripVM; dateLabel: string; palette: Palette; title?: string | null;
-  /** (T879, proposal) whose rules the bar is, beside its name */
+  /** whose rules the bar is, beside its name */
   tag?: string | null;
   /** (T473) a daylight-only closure's real hours on the day, said with the status ("Daylight only · fishing 07:04–18:37 PT") */
   hours?: string | null }) {
@@ -152,7 +152,7 @@ function SalmonRect({ x, w, drawn, palette, id }: { x: number; w: number; drawn:
  */
 export function SalmonYearStrip({ strip, todayAt, months, dateLabel, palette, head = null }: {
   strip: SalmonStripVM; todayAt: number; months: readonly string[]; dateLabel: string; palette: Palette;
-  /** (T879, proposal) the block's name and tag in place of the bar's title */
+  /** the block's name and tag in place of the bar's title */
   head?: { readonly text: string; readonly tag: string } | null }) {
   const bar = useBarWidth(), w = bar.at;
   const total = strip.runs.reduce((a, r) => a + r.days, 0) || 365;

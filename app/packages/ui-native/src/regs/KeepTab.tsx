@@ -14,12 +14,9 @@
  * drawn; the game-fish calendar and its rows follow. This is the order of the T531 mockup the owner approved 2026-11-09
  * (the owner's own sketch); cb1e01549 had kept game fish first, which put salmon under the trout table.
  *
- * (T531, owner 2026-11-09) With the glance table, each calendar owns its species: heading, status, year bar and legend, then
- * ITS rows — Game fish (B.C. rules) the quota groups and Other fish, Salmon (DFO) the Salmon row. Which block a row sits
- * under is its rule source (core `speciesBlocks`), and the separate "Species and limits" list is drawn only where no
- * game-fish calendar is (a water the strip does not govern).
+ * (T531, owner 2026-11-09; replaced by T879) Each calendar owned its species' rows.
  *
- * (T879, owner 2026-11-18 ~20:53 — a PROPOSAL, "Two headers, one table") Both status blocks first — SALMON [DFO] (its big
+ * (T879, owner 2026-11-18 ~20:53 "Two headers, one table", approved ~22:58) Both status blocks first — SALMON [DFO] (its big
  * word and year bar), then GAME FISH [B.C.] (its big word, year bar and timed lines) — then ONE species list under
  * "Species and limits": the Salmon fold first, then trout and char, the quota groups and the other fish, each row wearing
  * its block's tag (`SourceTag`). The salmon card's extras (hours, gear lead, Source (DFO) fold) stay in the Salmon row's

@@ -1,7 +1,9 @@
 # T879 — "What you can keep": two headers, one table (salmon in the fish list, each row says whose rule)
 
-Status: OPEN — proposal; lands only on the owner's yes. Pictures taken 2026-11-18 ~21:05 MST; lane
-`app/t879-two-headers-one-table` (from `app/integrate-081-web`), not merged, not pushed.
+Status: PARTIAL — built, tests moved; left (Claude): merge into 0.8.2. Lane `app/t879-two-headers-one-table`.
+
+Owner 2026-11-18 ~22:58 (app chat), on the re-sent proposal pictures, verbatim: "all are good ( T878 … T879 … T881 …
+T883 … T886 … ) except sunrise/set should be a bit better in same spot" — T879 approved for 0.8.2 as pictured.
 
 Owner 2026-11-18 ~20:53, with a shot of Babine Lake — Main Body
 (/Users/dawson.horvath/.claude/uploads/b8ddfca9-44eb-400e-a9bf-bd89b4b0f359/a6d620fa-image.png), verbatim: "I feel like
@@ -41,9 +43,14 @@ No contract change: `GlanceRowVM.source` (T531) already says whose each row is. 
 before/after: Babine Lake — Main Body, Coquitlam River, Mamquam River, Charlie Lake; after only: Mamquam with the Salmon
 row open, Babine at 1280.
 
-## Left (Claude), on the owner's yes
-- Tests: KeepTab (T531 block placement), SalmonCard, a11y, palette/style-token and walkthrough (CoachSpot "regs:keep",
-  "regs:salmon") pins move with the order; `speciesBlocks` becomes unused (knip) — delete it with its test.
-- `SALMON_WORDS.barSalmon` / `barGeneral` stay for the untagged case only; check the wording tests.
-- Native check on the emulator (the tag's outline, a long name wrapping its tag under it at 200 % text).
-- Gear tab's "For salmon (DFO)" heads could wear the same tag (not in this proposal).
+## Done after the yes (2026-11-18 ~23:05 MST)
+- Tests moved: KeepTab.test (T531 "each calendar owns its species" → T879 both blocks first, one list, each row tagged;
+  the tag's word matches its block's, "DFO + rule book" too; no tags without a DFO block), the arrow fold's spoken name
+  now holds its tag (its visible words, WCAG 2.5.3), salmonBook/SalmonYearStrip fixtures carry `by`.
+- `speciesBlocks` deleted with its test (knip clean).
+- Walkthrough: its only Keep-tab target is `regs:answer` (the game-fish year bar, still drawn); `regs:keep`, `regs:salmon`,
+  `regs:trout`, `regs:both` all still have their controls (the one list, the Salmon and trout folds, the Source fold).
+
+## Left (Claude)
+- Merge into 0.8.2.
+- Later, not in 0.8.2: the Gear tab's "For salmon (DFO)" heads could wear the same tag.

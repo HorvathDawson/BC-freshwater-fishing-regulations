@@ -19,7 +19,7 @@ export const GLANCE_WORDS = {
 } as const;
 
 /**
- * (T879, owner 2026-11-18 ~20:53 — a PROPOSAL) "Two headers, one table": both status blocks first, each named by the fish
+ * (T879, owner 2026-11-18 ~20:53, approved ~22:58) "Two headers, one table": both status blocks first, each named by the fish
  * it speaks for and tagged with whose rules they are, then ONE species list whose every row wears the same tag. The tag
  * words are these; a block's tag and its rows' tag are the same word, so a row is matched to its block by eye.
  */
@@ -38,7 +38,7 @@ export type SpeciesSource = "dfo" | "bc";
 
 /** One folded row: the picture's code, the name, the status word true for the whole card (null: none) and its tone. */
 export interface GlanceRowVM {
-  /** (T531) whose rule answers this row: DFO's salmon feed, or the B.C. synopsis rules. It decides the calendar the row sits under. */
+  /** (T531) whose rule answers this row: DFO's salmon feed, or the B.C. synopsis rules. (T879) The tag the row wears in the one list. */
   readonly source: SpeciesSource;
   readonly thumb: string | null;
   readonly name: string;
@@ -104,17 +104,6 @@ export function salmonGlance(card: SalmonCardVM): GlanceRowVM {
   const word = SALMON_WORDS.status[s];
   return { source: "dfo", thumb: "CO", name: card.title, value: s === "check" ? word.replace(/^Check/, "check") : word.toLowerCase(),
            tone: s === "closed" ? "closed" : s === "release" ? "release" : "keep", ...mark };
-}
-
-/**
- * (T531, owner 2026-11-09) WHICH SPECIES SIT UNDER WHICH CALENDAR. Each row goes under the block of the rule source that
- * answers it (`GlanceRowVM.source`): a DFO row under the Salmon (DFO) calendar, a B.C. row under the Game fish (B.C.
- * rules) one — never a list kept by hand. `dfoBlock` false (no salmon calendar is drawn: DFO has no rules for the
- * water) leaves a DFO row without a block of its own, so it stays with the rest. Order inside a block is the input's.
- */
-export function speciesBlocks<T extends { readonly row: GlanceRowVM }>(rows: readonly T[], dfoBlock: boolean): { dfo: T[]; rest: T[] } {
-  const dfo = rows.filter((x) => dfoBlock && x.row.source === "dfo");
-  return { dfo, rest: rows.filter((x) => !dfo.includes(x)) };
 }
 
 /** (T531) The status a DFO block says when it has no year bar (a salmon row with no DFO calendar): the row's word, capital first; null: none. */

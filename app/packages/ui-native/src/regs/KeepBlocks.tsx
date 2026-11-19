@@ -253,7 +253,7 @@ export interface GlanceFold {
   /** (T810 O, owner about 17:15 "Salmon + trout folds") the row's end is the expand / collapse arrow
    *  beside its value words, not the "Details" / "Hide" button; the Other fish list's own folds never set it */
   readonly arrow?: boolean;
-  /** (T879, proposal) the row's whose-rule tag where it is not its source's plain word: the Salmon row wears its block's
+  /** the row's whose-rule tag where it is not its source's plain word: the Salmon row wears its block's
    *  ("DFO + rule book"), so a row and its block read the same */
   readonly tag?: string;
 }
@@ -272,7 +272,7 @@ function IssueMark({ palette }: { palette: Palette }) {
   );
 }
 
-/** (T879, proposal) a row's name, with its whose-rule tag after it where the page has two rule sources (`tag` null: none) */
+/** a row's name, with its whose-rule tag after it where the page has two rule sources (`tag` null: none) */
 function Named({ name, tag, style, palette, grow = false }: { name: string; tag: string | null; style: StyleProp<TextStyle>; palette: Palette; grow?: boolean }) {
   if (!tag) return <Text style={[style, grow ? { flex: 1 } : null]}>{name}</Text>;
   return (
@@ -370,7 +370,7 @@ function ArrowFold({ f, open, setOpen, ring, tone, palette, images, tag = null }
   return (
     <View testID={`glance:${f.key}`}>
       <View ref={ring} collapsable={false} style={{ paddingHorizontal: GUTTER }}>
-        <RegsPress accessibilityRole="button" aria-expanded={open} accessibilityLabel={[f.row.name, f.row.value, f.row.date].filter(Boolean).join(" ")}
+        <RegsPress accessibilityRole="button" aria-expanded={open} accessibilityLabel={[f.row.name, tag, f.row.value, f.row.date].filter(Boolean).join(" ")}
                    onPress={() => setOpen(!open)} box={ROW}
                    style={(st) => {
                      const lit = st.pressed || !!(st as { hovered?: boolean }).hovered || !!(st as { focused?: boolean }).focused;
@@ -400,7 +400,7 @@ function ArrowFold({ f, open, setOpen, ring, tone, palette, images, tag = null }
 export function SpeciesRows({ rows, keys, palette, actions, images, folds = [], tags = false }: {
   rows: readonly OtherFishRowVM[]; keys: readonly OtherFishKeyVM[]; palette: Palette; actions: KeepActions; images?: FishImages;
   folds?: readonly GlanceFold[];
-  /** (T879, proposal) each row wears its whose-rule tag (the page has both DFO and B.C. blocks) */
+  /** each row wears its whose-rule tag (the page has both DFO and B.C. blocks) */
   tags?: boolean;
 }) {
   const tone = (t: OtherFishRowVM["tone"]) => (t === "release" ? palette.restricted : t === "closed" ? palette.closed : palette.ink);
@@ -416,7 +416,7 @@ export function SpeciesRows({ rows, keys, palette, actions, images, folds = [], 
                    style={{ flexDirection: "row", alignItems: "center", gap: 10, minHeight: 44, paddingVertical: 9, borderTopWidth: 1, borderTopColor: palette.line }}>
           <Thumb code={o.thumb} images={images} palette={palette} />
           <View style={{ flex: 1 }}>
-            {/* (T879, proposal) the Other fish are the B.C. rules' */}
+            {/* the Other fish are the B.C. rules' */}
             <Named name={o.name} tag={tags ? SOURCE_WORDS.tag.bc : null} style={[TYPE.regsBody, { color: palette.ink }]} palette={palette} />
             {o.week && <Text style={[TYPE.metaSemi, { color: palette.sub, marginTop: 2 }]}>{o.week}</Text>}
             {/* (T670 K2) the row's fish its number does not hold for: said on the row, in the status colour, never only in the sheet */}
@@ -456,7 +456,7 @@ export function OtherFish({ rows, keys, palette, actions, images, folds = [], ta
   rows: readonly OtherFishRowVM[]; keys: readonly OtherFishKeyVM[]; palette: Palette; actions: KeepActions; images?: FishImages;
   /** (T221) the at-a-glance table's folded rows (Salmon, the quota groups), drawn first; then the table heads "Species and limits" */
   folds?: readonly GlanceFold[];
-  /** (T879, proposal) each row wears its whose-rule tag */
+  /** each row wears its whose-rule tag */
   tags?: boolean;
 }) {
   return (

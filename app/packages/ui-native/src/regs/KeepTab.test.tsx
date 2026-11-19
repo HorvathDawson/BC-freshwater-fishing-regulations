@@ -83,7 +83,7 @@ describe("<KeepTab> over the frozen pages", () => {
 });
 
 describe("(T227, owner 2026-10-28) the salmon bar at the top, and the glance rows", () => {
-  const STRIP = { title: "Salmon (DFO)", status: "release", mark: "✓ ", word: "Release only", when: "today", soon: null,
+  const STRIP = { title: "Salmon (DFO)", by: "dfo", status: "release", mark: "✓ ", word: "Release only", when: "today", soon: null,
     generalTitle: "Game fish (B.C. rules)", legend: [{ drawn: "release", label: "release only" }, { drawn: "closed", label: "✕ closed" }],
     runs: [{ drawn: "release", days: 300 }, { drawn: "closed", days: 65 }] } as const;
   const actions: KeepActions = { onSheet() {}, onDay() {}, onTab() {}, onBook() {} };
@@ -94,8 +94,9 @@ describe("(T227, owner 2026-10-28) the salmon bar at the top, and the glance row
     const ids = [...r.container.querySelectorAll("[data-testid='keep-strip'],[data-testid='salmon-strip'],[data-testid='keep-trout']")]
       .map((e) => e.getAttribute("data-testid"));
     expect(ids).toEqual(["salmon-strip", "keep-strip", "keep-trout"]);   // (T810 cutover) the trout table, where the group was
-    expect([screen.getByTestId("keep-strip-title").textContent, screen.getByTestId("salmon-strip-title").textContent])
-      .toEqual(["Game fish (B.C. rules)", "Salmon (DFO)"]);
+    // (T879) each block named with whose rules it is, the tag its rows wear
+    expect(["keep-strip-title", "keep-strip-title:tag", "salmon-strip-title", "salmon-strip-title:tag"].map((t) => screen.getByTestId(t).textContent))
+      .toEqual(["Game fish", "B.C.", "Salmon", "DFO"]);
     expect(screen.getByTestId("salmon-strip-st:release").textContent).toBe("✓ Release only");
     cleanup();
     render(<KeepTab keep={keep} dateLabel="Oct 10" palette={LIGHT} actions={actions} />);
@@ -124,47 +125,50 @@ describe("(T227, owner 2026-10-28) the salmon bar at the top, and the glance row
                     glance={{ salmon: { row: { source: "dfo", thumb: "CO", name: SALMON_WORDS.title, value: "closed", tone: "closed", fold: false }, card: () => <span>x</span> } }} />);
     const plain = screen.getByTestId("glance:salmon");
     expect([plain.querySelector("[role=button]"), plain.querySelector("[data-testid=glance-toggle]"), plain.textContent])
-      .toEqual([null, null, "Salmonclosed"]);
+      .toEqual([null, null, "SalmonDFOclosed"]);   // (T879) its tag: the page has a DFO block
   });
 });
 
-describe("(T531, owner 2026-11-09) each calendar owns its species", () => {
-  const STRIP = { title: "Salmon (DFO)", status: "release", mark: "✓ ", word: "Release only", when: "today", soon: null,
+describe("(T879, owner 2026-11-18 \"Two headers, one table\") both blocks first, then ONE list, each row tagged", () => {
+  const STRIP = { title: "Salmon (DFO)", by: "dfo", status: "release", mark: "✓ ", word: "Release only", when: "today", soon: null,
     generalTitle: "Game fish (B.C. rules)", legend: [{ drawn: "release", label: "Release only" }, { drawn: "closed", label: "✕ Closed" }],
     runs: [{ drawn: "release", days: 300 }, { drawn: "closed", days: 65 }] } as const;
   const actions: KeepActions = { onSheet() {}, onDay() {}, onTab() {}, onBook() {} };
   const salmon = { row: { source: "dfo", thumb: "CO", name: SALMON_WORDS.title, value: null, tone: "keep" }, card: () => <span>salmon card</span> } as const;
   const group = (r: ReturnType<typeof render>) => r.container.querySelector("[data-testid='keep-tab']") as HTMLElement;
 
-  it("Vedder: Salmon (bar, its Salmon row) on top, then game fish (strip, its trout fold and Other fish rows); no 'Species and limits' list", () => {
+  it("Vedder: both blocks first — Salmon (bar), then game fish (strip) — then ONE 'Species and limits' list: Salmon first, then trout", () => {
     const keep = keepOf(vedder1010);
     const r = render(<KeepTab keep={keep} dateLabel="Oct 10" palette={LIGHT} actions={actions} salmonStrip={STRIP as never} glance={{ salmon }} />);
-    const ids = [...group(r).querySelectorAll("[data-testid='keep-strip'],[data-testid='glance:trout'],[data-testid='keep-species'],[data-testid='species-rows'],[data-testid='salmon-block'],[data-testid='salmon-strip'],[data-testid='glance:salmon']")]
+    const ids = [...group(r).querySelectorAll("[data-testid='keep-strip'],[data-testid='glance:trout'],[data-testid='keep-otherfish'],[data-testid='salmon-block'],[data-testid='salmon-strip'],[data-testid='glance:salmon']")]
       .map((e) => e.getAttribute("data-testid"));
-    expect(ids).toEqual(["salmon-block", "salmon-strip", "species-rows", "glance:salmon", "keep-strip", "species-rows", "glance:trout"]);
-    expect(screen.queryByTestId("keep-otherfish")).toBeNull();
-    expect(screen.queryByText("Species and limits")).toBeNull();
+    expect(ids).toEqual(["salmon-block", "salmon-strip", "keep-strip", "keep-otherfish", "glance:salmon", "glance:trout"]);
+    expect(within(screen.getByTestId("keep-otherfish")).getByText(GLANCE_WORDS.head)).toBeTruthy();
+    expect(screen.getAllByTestId("keep-otherfish")).toHaveLength(1);
   });
 
-  it("a species appears only under its own source's block", () => {
-    const keep = keepOf(vedder1010);
-    render(<KeepTab keep={keep} dateLabel="Oct 10" palette={LIGHT} actions={actions} salmonStrip={STRIP as never} glance={{ salmon }} />);
-    const dfo = screen.getByTestId("salmon-block"), strip = screen.getByTestId("keep-strip");
-    expect(within(dfo).getByTestId("glance:salmon")).toBeTruthy();                       // the DFO row: under the salmon block
-    expect(within(dfo).queryByTestId("glance:trout")).toBeNull();                      // no B.C. trout fold in it
-    expect(within(dfo).queryByText("Kokanee")).toBeNull();                               // no B.C. Other fish row in it
-    const bc = strip.nextElementSibling as HTMLElement | null;
-    if (!bc) throw new Error("no rows under the game-fish calendar");                                  // the rows right under the game-fish calendar
-    expect(within(bc).getByTestId("glance:trout")).toBeTruthy();
-    expect(within(bc).getByText("Kokanee")).toBeTruthy();
-    expect(within(bc).queryByTestId("glance:salmon")).toBeNull();                        // and no salmon row among them
+  it("each row of the one list wears its block's tag: the Salmon row DFO, the B.C. rows B.C.; the blocks hold no rows", () => {
+    render(<KeepTab keep={keepOf(vedder1010)} dateLabel="Oct 10" palette={LIGHT} actions={actions} salmonStrip={STRIP as never} glance={{ salmon }} />);
+    expect(within(screen.getByTestId("salmon-block")).queryByTestId("species-rows")).toBeNull();
+    expect(within(screen.getByTestId("glance:salmon")).getByTestId("row-tag:DFO").textContent).toBe("DFO");
+    expect(within(screen.getByTestId("glance:trout")).getByTestId("row-tag:B.C.").textContent).toBe("B.C.");
+    const list = screen.getByTestId("keep-otherfish");
+    expect(within(list).getAllByTestId(/^row-tag:/).map((e) => e.textContent).filter((t) => t === "DFO")).toEqual(["DFO"]);
+    expect(within(list).getByText("Kokanee").parentElement!.textContent).toBe("KokaneeB.C.");
     expect(screen.getAllByTestId("glance:salmon")).toHaveLength(1);
   });
 
-  it("a water with only B.C. rules has one block: the game-fish heading, its rows, no salmon block", () => {
+  it("the Salmon row's tag is its block's word: a bar some of whose days are the rule book's says so on both", () => {
+    render(<KeepTab keep={keepOf(vedder1010)} dateLabel="Oct 10" palette={LIGHT} actions={actions} salmonStrip={{ ...STRIP, by: "both" } as never} glance={{ salmon }} />);
+    expect([screen.getByTestId("salmon-strip-title:tag").textContent, within(screen.getByTestId("glance:salmon")).getByTestId(/^row-tag:/).textContent])
+      .toEqual(["DFO + rule book", "DFO + rule book"]);
+  });
+
+  it("a water with only B.C. rules: no salmon block, no tags, the game-fish heading as before, then the one list", () => {
     const r = render(<KeepTab keep={keepOf(vedder1010)} dateLabel="Oct 10" palette={LIGHT} actions={actions} glance={{ salmon: null }} />);
     expect(screen.getByTestId("keep-strip-title").textContent).toBe("Game fish (B.C. rules)");
-    expect([screen.queryByTestId("salmon-block"), screen.queryByTestId("keep-otherfish")]).toEqual([null, null]);
+    expect([screen.queryByTestId("salmon-block"), screen.queryAllByTestId(/^row-tag:/).length]).toEqual([null, 0]);
+    expect(within(screen.getByTestId("keep-otherfish")).getByText("Kokanee")).toBeTruthy();
     expect(within(group(r)).getByText("Kokanee")).toBeTruthy();
   });
 
@@ -179,17 +183,22 @@ describe("(T531, owner 2026-11-09) each calendar owns its species", () => {
     expect(sheets.length).toBe(2);
   });
 
-  it("STRICT: across the fixture waters, every DFO row sits under the Salmon (DFO) heading — with a DFO calendar and without one (Glenn Creek)", () => {
+  it("STRICT: across the fixture waters, the Salmon block is named Salmon [DFO] and holds no row; the Salmon row is the one list's first, after both blocks — with a DFO calendar and without one (Glenn Creek)", () => {
     const closed = { source: "dfo", thumb: "CO", name: SALMON_WORDS.title, value: "closed", tone: "closed", fold: false } as const;
     for (const [fx, strip] of [[vedder1010, STRIP], [glenn501, null], [glenn501, STRIP], [klwa1010, null], [bc1501, null], [x35p1010, null]] as const) {
       for (const sal of [salmon, { row: closed, card: () => <span>x</span> }] as const) {
         const r = render(<KeepTab keep={keepOf(fx)} dateLabel="Oct 10" palette={LIGHT} actions={actions} salmonStrip={strip as never} glance={{ salmon: sal as never }} />);
         const block = within(group(r)).getByTestId("salmon-block");
-        expect(within(block).getByTestId("salmon-strip-title").textContent).toBe("Salmon (DFO)");
-        expect(within(block).getAllByTestId("glance:salmon")).toHaveLength(1);
-        expect(group(r).querySelectorAll("[data-testid='glance:salmon']")).toHaveLength(1);          // and nowhere else
-        const bc = group(r).querySelector("[data-testid='keep-strip']")?.nextElementSibling;
-        if (bc) expect(within(bc as HTMLElement).queryByTestId("glance:salmon")).toBeNull();           // never under the B.C. block
+        expect([within(block).getByTestId("salmon-strip-title").textContent, within(block).getByTestId("salmon-strip-title:tag").textContent]).toEqual(["Salmon", "DFO"]);
+        expect(within(block).queryByTestId("glance:salmon")).toBeNull();                                // the block holds no row
+        const rows = group(r).querySelectorAll("[data-testid='glance:salmon']");
+        expect(rows).toHaveLength(1);
+        const list = rows[0]!.closest("[data-testid='keep-otherfish']") as HTMLElement;
+        expect(list).not.toBeNull();                                                                    // it is in the one list
+        expect(list.querySelector("[data-testid^='glance:']")).toBe(rows[0]);                          // and first in it
+        expect(block.compareDocumentPosition(list) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+        const bc = group(r).querySelector("[data-testid='keep-strip']");
+        if (bc) expect(bc.compareDocumentPosition(list) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();  // after the B.C. block too
         if (!strip) expect(within(block).queryByTestId("salmon-strip-bar")).toBeNull();                // no calendar: no bar, no legend
         cleanup();
       }
@@ -268,8 +277,8 @@ describe("(T810 O, S; owner about 17:15 \"Salmon + trout folds\") the trout tabl
     tab(withTrout());
     const press = within(screen.getByTestId("glance:trout")).getByRole("button");
     expect([press.getAttribute("aria-label"), press.getAttribute("aria-expanded"), hitArea(press.getAttribute("data-hitslop")!)!.h >= 44])
-      .toEqual(["Trout and char 2 a day", "false", true]);
-    expect(press.textContent).toBe("Trout and char2 a day");
+      .toEqual(["Trout and char B.C. 2 a day", "false", true]);   // (T879) its tag is a visible word
+    expect(press.textContent).toBe("Trout and charB.C.2 a day");
     fireEvent.click(press);
     expect(press.getAttribute("aria-expanded")).toBe("true");
     expect(within(screen.getByTestId("glance-body:trout")).getByTestId("keep-trout")).toBeTruthy();
@@ -278,17 +287,17 @@ describe("(T810 O, S; owner about 17:15 \"Salmon + trout folds\") the trout tabl
     // a fold's date (the Elk in winter) is a visible word, so in the name too
     tab(withTrout("elk-nov15"));
     const elk = within(screen.getByTestId("glance:trout")).getByRole("button");
-    expect(elk.getAttribute("aria-label")).toBe("Trout and char Release until Mar 31, then closed to all fishing");
+    expect(elk.getAttribute("aria-label")).toBe("Trout and char B.C. Release until Mar 31, then closed to all fishing");
     expect(within(elk).getByTestId("glance-date").textContent).toBe("until Mar 31, then closed to all fishing");
     const s = within(screen.getByTestId("glance:salmon")).getByRole("button");
-    expect([s.getAttribute("aria-label"), s.getAttribute("aria-expanded")]).toEqual(["Salmon closed", "false"]);
+    expect([s.getAttribute("aria-label"), s.getAttribute("aria-expanded")]).toEqual(["Salmon DFO closed", "false"]);
   });
 
   it("(2× text) the value goes under the name, the arrow stays at the end", () => {
     vi.spyOn(PixelRatio, "getFontScale").mockReturnValue(2);
     tab(withTrout());
     const press = within(screen.getByTestId("glance:trout")).getByRole("button");
-    expect(within(press).getByTestId("glance-value").parentElement!.textContent).toBe("Trout and char2 a day");   // the name's column
+    expect(within(press).getByTestId("glance-value").parentElement!.textContent).toBe("Trout and charB.C.2 a day");   // the name's column
     expect(press.lastElementChild!.getAttribute("data-testid")).toBe("glance-arrow");
   });
 

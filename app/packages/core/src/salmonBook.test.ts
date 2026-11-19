@@ -394,7 +394,7 @@ const REGION_4 = {
 };
 /** (T820) a page closed every day: one bar, every day closed; its strip (no provincial bar: no when, no marker) */
 const ALL_CLOSED_BAR = { label: null, unmapped: false, today: "closed", todayWord: "closed", runs: [{ status: "closed", days: 365 }] };
-const STRIP_ALL_CLOSED = (title: string) => ({ title, status: "closed", mark: "✕", word: "Closed", when: null, soon: null,
+const STRIP_ALL_CLOSED = (title: string, by: "dfo" | "both" | "book") => ({ title, by, status: "closed", mark: "✕", word: "Closed", when: null, soon: null,
   runs: [{ drawn: "closed", days: 365 }], generalTitle: "Game fish (B.C. rules)", legend: [{ drawn: "closed", label: "✕ Closed" }] });
 const r4Facts = (): SalmonFacts => ({ ...facts(REGION_4), chains: 4, chainOf: (sid) => (sid >= 1 && sid <= 3 ? sid : 0) });
 /** Region 4's page today: the header's closure every day, its own verdict table (other indices) */
@@ -416,7 +416,7 @@ describe("(T796 X1) a region closed by its DFO page keeps its one closed stateme
       expect([julBefore.year, jul.year]).toEqual([{ bars: [ALL_CLOSED_BAR], by: "dfo" }, { bars: [ALL_CLOSED_BAR], by: "both" }]);
       expect([jul.badge, jul.rows.map((r) => [r.label, r.statusLabel, r.notes, r.from ?? null]), jul.closedOnly,
               salmonStripOf(jul, null), salmonGlance(jul)]).toEqual(["DFO", [["Salmon", "Closed", [R4_WORDS], null]], true,
-        STRIP_ALL_CLOSED("Salmon (DFO and rule book)"), { source: "dfo", thumb: "CO", name: "Salmon", value: "closed", tone: "closed", fold: false }]);
+        STRIP_ALL_CLOSED("Salmon (DFO and rule book)", "both"), { source: "dfo", thumb: "CO", name: "Salmon", value: "closed", tone: "closed", fold: false }]);
       // a book day: still the region's one statement (no per-species rows), and the book names its closure — source,
       // page, line, dates — on the row, in the source fold, on the plain Keep row and in the badge; the same full bar
       const book = { from: "Rule book p.34 · Every stream in Region 4", words: SPRING_WORDS };
@@ -424,7 +424,7 @@ describe("(T796 X1) a region closed by its DFO page keeps its one closed stateme
       expect(may).toEqual({ ...before, badge: "Rule book · DFO", rows: [{ ...before.rows[0]!, notes: [R4_WORDS, SPRING_WORDS] }], book: [book],
                             sourceTitle: "Sources (rule book and DFO)", note: FOLD_BOOK.note, year: { bars: [ALL_CLOSED_BAR], by: "both" } });
       expect([may.closedOnly, may.year.bars, salmonStripOf(may, null), salmonGlance(may)]).toEqual([true, [ALL_CLOSED_BAR],
-        STRIP_ALL_CLOSED("Salmon (DFO and rule book)"), { source: "dfo", thumb: "CO", name: "Salmon", value: "closed", tone: "closed", fold: false, book: [book] }]);
+        STRIP_ALL_CLOSED("Salmon (DFO and rule book)", "both"), { source: "dfo", thumb: "CO", name: "Salmon", value: "closed", tone: "closed", fold: false, book: [book] }]);
       expect([salmonChainStatus(F, 2, salmonDayIndex(on(5, 1))), salmonChainStatus(F, 2, salmonDayIndex(on(7, 1)))]).toEqual(["closed", "closed"]);
     });
 

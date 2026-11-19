@@ -1334,7 +1334,7 @@ const DRAWN: Readonly<Record<SalmonBarStatus, SalmonDrawn>> = { open: "open", re
  *  the Salmon row's details. */
 export interface SalmonStripVM {
   readonly title: string;
-  /** (T879, proposal) whose rules the bar is: DFO's, the rule book's, or both — the block's source tag */
+  /** (T879) whose rules the bar is: DFO's, the rule book's, or both — the block's source tag */
   readonly by: SalmonSourceBy;
   /** the selected day: its status, mark ("✓ " / "✕" / none) and word ("Release only", "Check DFO" …) */
   readonly status: SalmonBarStatus;
