@@ -144,8 +144,8 @@ export async function buildSite(o: BuildOpts): Promise<SiteBuild> {
     pages.push({ path, kind, html, hash, title, description, size: pageSize(path, html) });
     files.set(outFile(path), html);
   };
-  const shellOf = (path: string, title: string, description: string, body: string, ld: string, image?: string) =>
-    shell({ title, description, path, body: body + regionFooter(), jsonld: ld, cssHref, ...(image ? { image } : {}) }, site);
+  const shellOf = (path: string, title: string, description: string, body: string, ld: string, image?: string, regionNav = true) =>
+    shell({ title, description, path, body: body + (regionNav ? regionFooter() : ""), jsonld: ld, cssHref, ...(image ? { image } : {}) }, site);
   /** the build date is shown (the JSON-LD `dateModified` must be on the page); it is a date, never "today" */
   const built = () => `Rules from release ${esc(release.id)}, built <time datetime="${asOf}">${asOf}</time>.`;
   const regionFooter = () => regions.length
@@ -298,7 +298,7 @@ export async function buildSite(o: BuildOpts): Promise<SiteBuild> {
       unique(titles, title, g.path); unique(descriptions, description, g.path);
       // lastmod moves with what the build wrote (name, waters, place), not with the release id the live half names
       add("gauge", g.path, shellOf(g.path, title, description, gaugeBody(g, release.id, clientHref, asOf, site.contact), pageLd(site, g.path, title, asOf, gaugeCrumbs(g)),
-          `/gauge/${g.station}/card.png`), sha(JSON.stringify(g)));
+          `/gauge/${g.station}/card.png`, false), sha(JSON.stringify(g)));   // (T908, owner 2026-11-19) no "Browse by region": it leads to the hidden site map
     }
     const title = clip(`River gauges in BC: live flow and weather — ${site.name}`, 60);
     const description = clip(`Live flow, the last 7 days, flow forecasts and the weather at ${gauges.length} BC river gauges on waters with fishing regulations.`);

@@ -35,7 +35,11 @@ describe("the gauge page shows what the app shows for one station", () => {
   it("the reading and its standing are the app's words", () => {
     const t = text(readingHtml(facts, NOW));
     expect(t).toContain(`${figure(22.2)} m³/s flow`);
-    expect(t).toContain(standingLong(0.2, standing(0.2)));
+    // (T908, owner 2026-11-19: "Now vs normal + trend" first, one line like "Above normal for Nov 19 · rising") the band leads the
+    // line and core's rank follows it; the whole card line is no longer one run of text
+    const [band, rank] = standingLong(0.2, standing(0.2)).split(" · ");
+    expect(t).toContain(`${band} for Nov 8`);
+    expect(t.toLowerCase()).toContain(rank!.toLowerCase());
   });
 
   it("the usual range is the app's: the p25-p75 of the very bands that word the standing", () => {

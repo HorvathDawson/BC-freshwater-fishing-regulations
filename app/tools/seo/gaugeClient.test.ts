@@ -25,7 +25,7 @@ const facts = (o: Partial<Facts> = {}): Facts => ({
 describe("T487 the gauge page's live half", () => {
   it("a fresh reading: value, standing, and the APP'S age line; a copy past its time says so in the app's words; no reading is said, never blank", () => {
     const fresh = text(readingHtml(facts(), NOW));
-    expect(fresh).toMatch(/22\.2 m³\/s flow Much below normal · lower than almost every day on record for the date This gauge's own reading · observed 2026-11-08 at 04:00 PT · checked 10 min ago/);
+    expect(fresh).toMatch(/Much below normal for Nov 8 · steady Lower than almost every day on record for the date Expected change: rises to 1\.8× \(Tue\)\. 22\.2 m³\/s flow This gauge's own reading · observed 2026-11-08 at 04:00 PT · checked 10 min ago/);
     expect(readingHtml(facts(), NOW)).not.toContain("class=\"warn\"");
     // (G7) the reading itself is old but OUR copy is not: the app's rule says nothing is wrong
     expect(readingHtml(facts({ at: "2026-11-07T15:00:00Z" }), NOW)).not.toContain("class=\"warn\"");
@@ -44,7 +44,7 @@ describe("T487 the gauge page's live half", () => {
 
   it("the forecast: drawn and named; past its working-day line, out of date; none, said", () => {
     expect(text(forecastHtml(facts(), NOW))).toMatch(/Dashed: the CLEVER flow forecast, issued 2026-11-07/);
-    expect(text(forecastHtml(facts(), NOW))).toContain("Expected change: rises to 1.8× (Tue).");
+    expect(text(readingHtml(facts(), NOW))).toContain("Expected change: rises to 1.8× (Tue).");
     expect(text(forecastHtml(facts(), NOW + 2 * 86_400_000))).toMatch(/likely out of date/);
     expect(text(forecastHtml(facts({ forecast: null }), NOW)).trim()).toBe("No flow forecast for this gauge.");
     expect(text(forecastHtml(facts({ forecast: null, forecastOld: { model: "ELF", issued: "Oct 30" } }), NOW))).toMatch(/latest ELF run \(issued Oct 30\) is likely out of date/);
@@ -58,8 +58,8 @@ describe("T487 the gauge page's live half", () => {
   it("(T564) the chart is drawn at the width it is shown at, tall on a phone, with a mark for today and the usual range behind the line", () => {
     const f = facts({ normal: [[NOW - 7 * 86_400_000, 10, 20, 30, 40, 50], [NOW + 5 * 86_400_000, 10, 20, 30, 40, 50]] });
     const phone = chartSvg(f, NOW, 380)!, wide = chartSvg(f, NOW, 900)!;
-    expect(phone).toMatch(/viewBox="0 0 380 323" width="380" height="323"/);     // 1 drawing unit = 1 px: 13 px text stays 13 px
-    expect(wide).toMatch(/viewBox="0 0 900 405"/);
+    expect(phone).toMatch(/viewBox="0 0 380 228" width="380" height="228"/);     // 1 drawing unit = 1 px: 13 px text stays 13 px; (T908) a smaller chart
+    expect(wide).toMatch(/viewBox="0 0 900 270"/);
     for (const svg of [phone, wide]) {
       expect(svg).toContain('class="today"');
       expect(svg).toContain('class="bandn"');

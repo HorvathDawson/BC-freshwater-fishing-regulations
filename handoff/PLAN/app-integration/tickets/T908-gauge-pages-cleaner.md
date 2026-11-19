@@ -1,6 +1,6 @@
 # T908 — Gauge (forecast) pages: cleaner, answering how the river is now
 
-Status: IN PROGRESS (main chat; lane app/t908-gauge-page; pictures to the owner before it lands; web only).
+Status: IN PROGRESS (main chat; lane app/t908-gauge-page; pictures to the owner before it lands; web only). left (Claude): owner sees pictures, then integrate.
 
 Owner 2026-11-19 ~07:00 (main chat), on https://canifishthis.ca/gauge/08MG013/harrison-river-near-harrison-hot-springs,
 verbatim: "can we clean up the forecast pages? … right now it feels very busy and liek it doesnt provide the info we want?"
@@ -16,3 +16,19 @@ So, in this order:
 3. Waters it serves, short: the main waters only; the "rough guide" creeks folded or dropped.
 4. Drop "Browse by region" (it leads to the hidden site map). The day strip was NOT picked.
 Weather: not picked either; fold it or drop it (say which in the pictures).
+
+## Built (lane app/t908-gauge-page, 2026-11-19)
+Order as picked: (1) one line first, "Above normal for Nov 19 · steady", in the map's Flow vs. past years colours (tokens
+color.flow.f1/f3/f4/f5/f7, one per band), core's rank under it, today's flow, the reading's age. Words from core, none retyped:
+`bandOfWord`, `standingNowLine` (standing.ts), `observedTrend` / `OBSERVED_TREND` (change.ts, the forecast's 1.25x "little change"
+factor over the last ~day), all written into the page script by `CORE_INLINE`. The forecast's expected change sits under it when
+there is one. Level: the card facts carry one quantity per gauge (the lead one), so only that is shown; nothing for the other.
+(2) one chart, smaller (0.6 x width on a phone, 0.3 on desktop), the key and the day-by-day table folded. The page has no model
+toggle (one forecast model per gauge), so nothing to fold there. (3) "Waters this gauge serves": own / lake / good gauges listed
+open; fair + weak guides are ONE fold ("Also a guide for N more waters"), kept in the HTML (internal links), not dropped.
+(4) "Browse by region" dropped on gauge pages only (site.ts `shellOf(..., regionNav=false)`). Still shown on: water pages' shell,
+region hubs, letter, topic, changes, about, privacy and the /gauges index (not changed). Weather: FOLDED into one line
+("Weather at the gauge: 8C Clear"), not dropped.
+Tests changed with the owner's words as the reason: gaugeClient.test (reading block text, chart sizes), gaugePage.parity.test
+(the standing is the band line + core's rank, not one run), gauges.test (+ no Browse by region, main vs fold). SEO tests 150 pass;
+check:fast green. Pictures: /private/tmp/claude-502/-Users-dawson-horvath-dev-personal-BC-freshwater-fishing-regulations/1db4ea05-d81d-4b07-a925-fc0b9cdbe701/scratchpad/t908-shots/contact-sheet-390.png, /private/tmp/claude-502/-Users-dawson-horvath-dev-personal-BC-freshwater-fishing-regulations/1db4ea05-d81d-4b07-a925-fc0b9cdbe701/scratchpad/t908-shots/contact-sheet-1440.png (before | after; Harrison + Chilliwack at Vedder).

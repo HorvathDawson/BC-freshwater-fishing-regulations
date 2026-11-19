@@ -16,8 +16,8 @@
  * a value differently from the app (T622; `gauges.test.ts` holds the names and the output to core's). Everything else it
  * needs (the weather URL, attributions, the sky words) arrives in the page's config.
  */
-import { BC_TIME_LABEL, bcDayWords, bcIsoDayWords, bcMidnight, bcStampWords, bcWeekdayAbbr, figure, freshness, layoutDayMarks, niceTicks,
-         normalRangeOf, readingAgeWords } from "@app/core";
+import { BC_TIME_LABEL, bandOfWord, bcDayWords, bcIsoDayWords, bcMidnight, bcStampWords, bcWeekdayAbbr, figure, freshness, layoutDayMarks, niceTicks,
+         normalRangeOf, observedTrend, readingAgeWords, standingNowLine } from "@app/core";
 
 export interface GaugeConfig {
   readonly station: string;
@@ -64,9 +64,32 @@ export function readingHtml(f: Facts, now: number): string {
   // `freshness` (the age of the feed's copy, not of the reading) -- "This gauge's own reading · observed … · checked 10 min ago"
   const copy = freshness(f.fetchedAt ? Date.parse(f.fetchedAt) : null, now, f.staleAfterMs);
   const what = f.parameter === "level" ? "water level" : "flow";
-  return `<p class="reading"><b>${esc(f.value)}</b> ${what}</p>` +
-    (f.standing ? `<p class="standing">${esc(f.standing)}</p>` : "") +
+  return nowLineHtml(f, now) +
+    `<p class="reading"><b>${esc(f.value)}</b> ${what}</p>` +
     `<p class="${copy.state === "live" ? "asof" : "warn"}">${esc(readingAgeWords(copy, f.atText))}</p>`;
+}
+
+const DAY = 86_400_000;
+
+/**
+ * (T908, owner 2026-11-19) THE FIRST THING ON THE PAGE: "Above normal for Nov 19 · rising", in the colour the map gives that
+ * standing (the Flow vs. past years ramp; css `.b-<band>`). The band word is the one core said in the facts' standing line
+ * (`bandOfWord` reads it back to its band); the day and the trend word are core's (`standingNowLine`, `observedTrend`); the
+ * trend is the measured line over the last day. A standing that is none of the six bands is shown as core said it; no
+ * standing, nothing. The forecast's expected change (core's words, in the facts) follows when there is one.
+ */
+export function nowLineHtml(f: Facts, now: number): string {
+  if (!f.standing) return "";
+  const lead = f.standing.split(" · ")[0]!, band = bandOfWord(lead);
+  if (band === null) return `<p class="standing">${esc(f.standing)}</p>`;
+  const last = f.week[f.week.length - 1];
+  let before: [number, number] | undefined;
+  if (last) for (const p of f.week) if (p[0] <= last[0] - DAY && (!before || p[0] > before[0])) before = p;
+  const trend = last && before ? observedTrend(before[1], last[1]) : null;
+  const rank = f.standing.slice(lead.length + 3);   // core's rank half of the standing line, kept beside the line
+  return `<p class="standing nowline b-${band}">${esc(standingNowLine(lead, bcDayWords(now), trend))}</p>` +
+    (rank ? `<p class="small rank">${esc(rank.charAt(0).toUpperCase() + rank.slice(1))}</p>` : "") +
+    (f.change ? `<p class="small">Expected change: ${esc(f.change)}.</p>` : "");
 }
 
 /** the forecast line under the chart */
@@ -74,8 +97,7 @@ export function forecastHtml(f: Facts, now: number): string {
   if (f.forecast) {
     const old = now > f.forecast.dueBy;
     return `<p class="small">Dashed: the ${esc(f.forecast.model)} flow forecast, issued ${esc(f.forecast.issued)}` +
-      (old ? ` — <b>${esc(f.runOld)}</b> (no newer run since)` : "") + `.</p>` +
-      (f.change ? `<p class="small">Expected change: ${esc(f.change)}.</p>` : "");
+      (old ? ` — <b>${esc(f.runOld)}</b> (no newer run since)` : "") + `.</p>`;
   }
   if (f.forecastOld) return `<p class="small">No current flow forecast: the latest ${esc(f.forecastOld.model)} run (issued ${esc(f.forecastOld.issued)}) is ${esc(f.runOld)}, so it is not drawn.</p>`;
   return `<p class="small">No flow forecast for this gauge.</p>`;
@@ -83,8 +105,6 @@ export function forecastHtml(f: Facts, now: number): string {
 
 // `figure`, the B.C. day and stamp words and the age line are core's: clientScript() writes their source into the shipped
 // script, so none is typed twice
-
-const DAY = 86_400_000;
 
 /** the usual range on a day from the facts' normal rows (the row nearest `t`, within a day); null: none */
 export function usualAt(f: Facts, t: number): { lo: number; hi: number } | null {
@@ -100,7 +120,7 @@ export function usualAt(f: Facts, t: number): { lo: number; hi: number } | null 
  * (core `layoutDayMarks`, T604). The last 7 days and the forecast's dashes; null when there is nothing to draw.
  */
 export function chartSvg(f: Facts, now: number, width = 640): string | null {
-  const W = Math.round(Math.min(900, Math.max(280, width))), H = W < 520 ? Math.round(W * 0.85) : Math.round(W * 0.45);
+  const W = Math.round(Math.min(900, Math.max(280, width))), H = W < 520 ? Math.round(W * 0.6) : Math.round(W * 0.3);
   const L = 48, R = 12, T = 30, B = 30, FS = 13;
   const obs = f.week, fc = f.forecast?.points ?? [];
   if (obs.length + fc.length < 2) return null;
@@ -118,7 +138,7 @@ export function chartSvg(f: Facts, now: number, width = 640): string | null {
   const rows = (f.normal ?? []).filter((r) => r[0] >= t0 - DAY && r[0] <= t1 + DAY);
   const band = (a: number, b: number) => rows.length < 2 ? "" :
     `<path d="${rows.map((r, i) => `${i ? "L" : "M"}${n(x(r[0]))} ${n(y(r[b]!))}`).join("")}${[...rows].reverse().map((r) => `L${n(x(r[0]))} ${n(y(r[a]!))}`).join("")}Z" class="${a === 1 ? "bandw" : "bandn"}"/>`;
-  const ticks = niceTicks(lo, hi, H < 300 ? 4 : 5);
+  const ticks = niceTicks(lo, hi, H < 300 ? 3 : 4);
   // a mark for every B.C. day (a weekday), thinned so two words never meet
   const days: number[] = [];
   for (let d = bcMidnight(new Date(t0 + DAY).toISOString().slice(0, 10)); d <= t1; d += DAY) if (d >= t0) days.push(d);
@@ -147,11 +167,11 @@ export function chartSvg(f: Facts, now: number, width = 640): string | null {
 export function chartKeyHtml(f: Facts): string {
   const item = (cls: string, words: string) => `<li><svg width="26" height="12" viewBox="0 0 26 12" aria-hidden="true"><${cls}</svg> ${esc(words)}</li>`;
   const usual = (f.normal?.length ?? 0) >= 2;
-  return `<ul class="key"><li class="k-head">${esc(f.parameter === "level" ? "Water level" : "Flow")}, ${esc(f.unit ?? "")}</li>` +
+  return `<details class="keyfold"><summary>What the lines and shading are</summary><ul class="key"><li class="k-head">${esc(f.parameter === "level" ? "Water level" : "Flow")}, ${esc(f.unit ?? "")}</li>` +
     item('line x1="0" y1="6" x2="26" y2="6" class="obs"/>', "measured") +
     (f.forecast ? item('line x1="0" y1="6" x2="26" y2="6" class="fc"/>', "forecast") : "") +
     (usual ? item('rect x="0" y="1" width="26" height="10" class="bandn"/>', "usual range for the date: half of past years") +
-             item('rect x="0" y="1" width="26" height="10" class="bandw"/>', "8 years in 10") : "") + `</ul>`;
+             item('rect x="0" y="1" width="26" height="10" class="bandw"/>', "8 years in 10") : "") + `</ul></details>`;
 }
 
 /** the forecast, a day at a time: the expected figure and the usual range for that day (the same rows the chart shades) */
@@ -168,7 +188,7 @@ export function forecastDaysHtml(f: Facts, now: number): string {
     rows.push(`<tr><th scope="row">${esc(label)}</th><td>${esc(figure(v))} ${esc(f.unit ?? "")}</td><td>${u ? `${esc(figure(u.lo))}–${esc(figure(u.hi))}` : "—"}</td></tr>`);
   }
   if (!rows.length) return "";
-  return `<table class="wx fd"><caption>The forecast, day by day</caption><thead><tr><th>Day</th><th>Expected</th><th>Usual for the date</th></tr></thead><tbody>${rows.join("")}</tbody></table>`;
+  return `<details class="fdfold"><summary>The forecast, day by day</summary><table class="wx fd"><thead><tr><th>Day</th><th>Expected</th><th>Usual for the date</th></tr></thead><tbody>${rows.join("")}</tbody></table></details>`;
 }
 
 interface Meteo {
@@ -183,14 +203,14 @@ export function weatherHtml(m: Meteo, sky: Readonly<Record<string, string>>, att
   if (!c && !d?.time?.length) throw new Error("weather: Open-Meteo answered with no current or daily rows");
   const n = (v: number | undefined, unit: string, digits = 0) => (typeof v === "number" && Number.isFinite(v) ? `${v.toFixed(digits)}${unit}` : "—");
   const word = (code: number | undefined) => (typeof code === "number" ? sky[String(code)] ?? "—" : "—");
-  const now = c ? `<p class="reading"><b>${n(c.temperature_2m, "°C")}</b> ${esc(word(c.weather_code))}</p>` +
-    `<p class="small">Wind ${n(c.wind_speed_10m, " km/h")} · precipitation ${n(c.precipitation, " mm", 1)}${c.time ? ` · as of ${esc(c.time.replace("T", " "))} ${BC_TIME_LABEL}` : ""}</p>` : "";
+  const head = c ? `Weather at the gauge: ${n(c.temperature_2m, "°C")} ${word(c.weather_code)}` : "Weather at the gauge";
+  const now = c ? `<p class="small">Wind ${n(c.wind_speed_10m, " km/h")} · precipitation ${n(c.precipitation, " mm", 1)}${c.time ? ` · as of ${esc(c.time.replace("T", " "))} ${BC_TIME_LABEL}` : ""}</p>` : "";
   const rows = (d?.time ?? []).map((day, i) => {
     return `<tr><th scope="row">${esc(bcIsoDayWords(day))}</th><td>${esc(word(d!.weather_code?.[i]))}</td><td>${n(d!.temperature_2m_max?.[i], "°")} / ${n(d!.temperature_2m_min?.[i], "°")}</td>` +
       `<td>${n(d!.precipitation_sum?.[i], " mm", 1)}</td><td>${n(d!.wind_speed_10m_max?.[i], " km/h")}</td></tr>`;
   }).join("");
-  return now + (rows ? `<table class="wx"><thead><tr><th>Day</th><th>Sky</th><th>High / low</th><th>Rain</th><th>Wind</th></tr></thead><tbody>${rows}</tbody></table>` : "") +
-    `<p class="small">${esc(attribution)}, fetched ${esc(bcStampWords(fetchedAt))}.</p>`;
+  return `<details class="wxfold"><summary>${esc(head)}</summary>` + now + (rows ? `<table class="wx"><thead><tr><th>Day</th><th>Sky</th><th>High / low</th><th>Rain</th><th>Wind</th></tr></thead><tbody>${rows}</tbody></table>` : "") +
+    `<p class="small">${esc(attribution)}, fetched ${esc(bcStampWords(fetchedAt))}.</p></details>`;
 }
 
 /** the reader's own line (offline, dropped): shown, never reported — core failure.ts `isEnvironment`, the same words */
@@ -245,7 +265,7 @@ export async function gaugePage(doc: Document, now: () => number, fetchImpl: typ
       const svg = chartSvg(f, now(), box?.clientWidth || 640);
       return svg ? svg + chartKeyHtml(f) : `<p class="small">No readings in the last 7 days.</p>`;
     };
-    put("gauge-chart", draw() + forecastDaysHtml(f, t) + forecastHtml(f, t) +
+    put("gauge-chart", `<h2>Last 7 days and the forecast</h2>` + draw() + forecastHtml(f, t) + forecastDaysHtml(f, t) +
       `<p class="small">Readings: Water Survey of Canada real-time data (Environment and Climate Change Canada), provisional.` +
       `${f.forecast ? ` ${esc(f.forecast.attribution)}` : ""}</p>`);
     // the chart is drawn at the width it is shown at: a turned phone draws it again

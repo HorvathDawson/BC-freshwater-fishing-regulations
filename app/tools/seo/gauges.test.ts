@@ -63,6 +63,10 @@ describe("T487 gauge pages", () => {
       expect(checkJsonLd(g.html, site.origin), g.path).toEqual([]);
       expect(g.title.length).toBeLessThanOrEqual(60);
     }
+    // (T908, owner 2026-11-19) no "Browse by region" on a gauge page (it leads to the hidden site map); the fair guides are in the fold, the main waters above it
+    for (const g of gaugePages()) expect(g.html, g.path).not.toContain("Browse by region");
+    expect(p.html).toMatch(/<h2>Waters this gauge serves<\/h2><ul><li><a href="[^"]*">[^<]*<\/a><\/li><\/ul><details><summary>Also a guide for 1 more water<\/summary>/);
+    expect(built.build.pages.find((x) => x.kind === "region")!.html).toContain("Browse by region");
     expect(m.length).toBeGreaterThan(4);
   });
 
