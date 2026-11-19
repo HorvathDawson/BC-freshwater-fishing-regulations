@@ -27,6 +27,7 @@ import { auditFixes } from './scenarios-ios/audit-fixes.mjs';
 import { build36Ios, t814BgIos } from './scenarios-ios/build36.mjs';
 import { conditionsIos } from './scenarios-ios/conditions.mjs';
 import { nullClearsIos } from './scenarios-ios/null-clears.mjs';
+import { t884Ios } from './scenarios-ios/t884.mjs';
 
 process.env.TESTBED_PLATFORM = 'ios';
 const HERE = path.dirname(new URL(import.meta.url).pathname);
@@ -633,6 +634,8 @@ const SCENARIOS = [
   conditionsIos,
   // (T832) a river that loses its standing at a horizon change shows none on iOS (the null-clear fix), pixels read
   nullClearsIos,
+  // (T884) the fish sheet's big number on iOS (Cultus Lake, Black crappie) at three text sizes
+  t884Ios,
 ];
 
 // ---------- the runner (as run.mjs, without the Android-only crash buffer and test channel) ----------

@@ -1,6 +1,6 @@
 /**
  * One `Line` (core regs/line.ts) drawn as ONE outer Text with nested runs (tokens.md §2.4: a big numeral is a nested Text
- * with no lineHeight of its own, so it never makes its line taller). No logic: every word is the VM's; a link only says
+ * with no lineHeight of its own; T884: the line it sits in is at least the numeral's size, `lineBox`). No logic: every word is the VM's; a link only says
  * where it goes (`KeepActions`).
  */
 import { createContext, useContext } from "react";
@@ -41,6 +41,20 @@ export function TermText({ ids, palette, actions }: { ids: readonly string[]; pa
     </Text>);
 }
 
+/**
+ * (T884, owner 2026-11-18: "on Apple the part highlighted is cut off weird because of row sizes") The line box of a line
+ * that holds a big number: at least the number's own size (line-height 1, the prototype's `.kn` / `.tn`). A nested Text
+ * sets no lineHeight of its own, so the number sits in the OUTER line's box, and iOS cuts what that box lacks off the
+ * top of the glyphs (T816, `type.ts` FACE_METRICS): Black crappie's 26 px "20" in `regsBodySemi`'s 20.25 px box lost its
+ * top 4 px on an iPhone, as did every tier line's ("5 a day", "Up to 15": `tier` 21.25, `tierSmall` 18.75). 26 px holds
+ * the digits whole (their tops reach 0.677 em, above the 0.66 cap height, plus the 0.27 descent: 24.6 px). A line with no
+ * big number, or no lineHeight, keeps its own.
+ */
+export function lineBox(line: Line, style: TextStyle, num: TextStyle, inlineBig: boolean): number | undefined {
+  const big = line.some((r) => r.t === "num" && (r.size !== "inline" || inlineBig));
+  return big && style.lineHeight !== undefined ? Math.max(style.lineHeight, num.fontSize) : style.lineHeight;
+}
+
 export function LineText({ line, style, color, palette, actions, num = TYPE.numeral, numColor, linkStyle, testID, numberOfLines, inlineBig = false }: {
   line: Line; style: TextStyle; color: string; palette: Palette; actions: KeepActions;
   /** the face of a "big" num run (tier / head: TYPE.numeral; the group's total line: numeralMid) */
@@ -49,7 +63,7 @@ export function LineText({ line, style, color, palette, actions, num = TYPE.nume
   inlineBig?: boolean;
 }) {
   return (
-    <Text selectable style={[style, { color }]} testID={testID} numberOfLines={numberOfLines}>
+    <Text selectable style={[style, { color, lineHeight: lineBox(line, style, num, inlineBig) }]} testID={testID} numberOfLines={numberOfLines}>
       {line.map((r, i) => {
         switch (r.t) {
           case "text": return <Text key={i}>{r.s}</Text>;
