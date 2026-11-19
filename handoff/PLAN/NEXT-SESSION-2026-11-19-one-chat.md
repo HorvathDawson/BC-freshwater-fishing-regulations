@@ -119,4 +119,11 @@ anywhere. Prod web 0.8.2 was stopped at 02:43 before it deployed.
   lookups); the look is unchanged (0 of 6.48M evaluations differ). Medians of 3: Trout→Salmon 319 → 306 → 298 ms;
   Salmon→Conditions 414 → 345 → 337 ms; Salmon pinch 53.0 fps/44 gaps → 55.6/30 → 53.3/39; pinch worker CPU 2,692 →
   2,390 → 1,780 ms (base → default → +match). The stressed rerun failed on app setup: rerun it.
-- T319 store upload: (pending)
+- T319 store shots (agent, ~03:00): the final set is rendered from 0.8.2 against staging data (the river picked itself:
+  Seymour near North Vancouver); all 35 images passed the content checks; contact sheet
+  `~/bcfish-session-backup-2026-11-12/store-t319-final-082/T319-final-phone.png`, every image in that folder. Code on its
+  own branch (commit 9748fdd33), not merged. **NOTHING WAS UPLOADED:** the session's permission check blocked the
+  Play push, so App Store was never tried. Don't work around it: the owner either runs these himself or approves the
+  prompt when you run them. From a worktree at 0.8.2, with `F=~/bcfish-session-backup-2026-11-12/store-t319-final-082`:
+  `.venv/bin/python deploy/staging/play-listing-push.py --commit --shots $F/play-phone --tablet7 $F/play-tablet7 --tablet10 $F/play-tablet10`
+  and `.venv/bin/python deploy/staging/appstore-screenshots-push.py --commit --shots $F`.
