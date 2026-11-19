@@ -1,6 +1,6 @@
 # T892 — "What you can keep" table: a row that comes from another water's tributary rule says so
 
-Status: IN PROGRESS — lane data/t892-trout-rows (2026-11-19 ~03:20): the trout rows' own line built (Python `TRow.down` + app); left (Claude): integrate (main chat), then the next data release carries it; pictures from that release.
+Status: IN PROGRESS — lane data/t892-trout-rows (2026-11-19 ~03:20): the trout rows' own line built (Python `TRow.down` + app); left (Claude): integrate (main chat), then the next data release carries it (pictures taken on scratch data).
 
 Owner 2026-11-19 ~00:10 (app chat), verbatim: "The table should say if it came from tributaries too.."
 
@@ -80,7 +80,12 @@ verbatim: "this is good". So a region size cap does not remove the line (as buil
   date (33,368 rows): 921 lines and 32,447 none, 0 differences; J's read-back on the 372 cells with a line: 0 problems;
   the whole-release check with Python's lines injected into the decoded inputs: 3,312 trout rows (over parts) with a
   line, all proved against their rails, 60 rows proved partial, 0 missing; a dropped and a wrong line each fail it.
-  NOT verified: a built release (the field through encode/store/shards) and the pictures — both wait for the release.
+  NOT verified: a built release (the field through the answers build, encode, store and shards): waits for the release.
+- Pictures (390, light + dark), Expo web on a SCRATCH copy of r-fc137c4040fa whose trout table bodies carry Python's
+  lines (patched for the picture only, never a release): Littlejohn Creek, Nov 19, the Dolly Varden row says "Kootenay
+  Lake — Main Body’s rule for its tributaries" under its name; its row label reads "Dolly Varden/bull trout. Kootenay
+  Lake — Main Body’s rule for its tributaries". Scratchpad (session 1db4ea05) `trib-lane/shots/`:
+  `t892-littlejohn-trout-row-390-{light,dark}.png`, `t892-littlejohn-trout-top-390-{light,dark}.png`.
 - Tests: `pipeline/tests/test_trout_down.py` (16: words, Nygaard, Shamrock, a lowered number, review 3 with its mutation,
   no rail with its mutation, a twin, a repeat the rail drops, federal / part, no entry name, absent-not-null, the
   model's forms, J with its mutation, the build's wiring); `test_trout_section` passes `down`; the mini chain has no
