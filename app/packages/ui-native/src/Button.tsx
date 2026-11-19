@@ -32,7 +32,7 @@ import type { Palette } from "./theme";
 
 export type ButtonKind = "solid" | "ghost" | "danger" | "small" | "link";
 
-export function Button({ palette, label, onPress, kind = "solid", grow, style, busy = false, icon, size = "body", testID, a11yLabel }: {
+export function Button({ palette, label, onPress, kind = "solid", grow, style, busy = false, icon, size = "body", testID, a11yLabel, nativeID }: {
   palette: Palette;
   label: string;
   /** Omitted -> disabled. */
@@ -50,13 +50,15 @@ export function Button({ palette, label, onPress, kind = "solid", grow, style, b
   testID?: string;
   /** (T257) said aloud when it says more than the words shown ("Refresh this spot" for "Refresh") */
   a11yLabel?: string;
+  /** (T858) its element id on the web page, for a keyboard that names and presses it from elsewhere (search's list) */
+  nativeID?: string;
 }) {
   const off = onPress === undefined || busy;
   if (kind === "small" || kind === "link") {
     const small = kind === "small";
     const words = small ? { ...TYPE.micro, fontSize: 12.5 } : size === "meta" ? TYPE.metaBold : TYPE.bodyStrong;
     return (
-      <Pressable testID={testID} onPress={onPress} disabled={off} accessibilityRole="button" accessibilityLabel={a11yLabel ?? label}
+      <Pressable testID={testID} nativeID={nativeID} onPress={onPress} disabled={off} accessibilityRole="button" accessibilityLabel={a11yLabel ?? label}
                  aria-disabled={off} aria-busy={busy || undefined}
                  // (T243) small: 8 + 8 padding round a 14 px line; link: its 44 px row
                  {...hitProps(small ? { w: 60, h: 30 } : { w: 60, h: 44 })}
@@ -72,7 +74,7 @@ export function Button({ palette, label, onPress, kind = "solid", grow, style, b
   const bg = ghost ? "transparent" : kind === "danger" ? palette.closed : palette.accent;
   const ink = ghost ? palette.accent : palette.onAccent;
   return (
-    <Pressable testID={testID} onPress={onPress} disabled={off} accessibilityRole="button"
+    <Pressable testID={testID} nativeID={nativeID} onPress={onPress} disabled={off} accessibilityRole="button"
                accessibilityLabel={a11yLabel ?? label} aria-disabled={off} aria-busy={busy || undefined}
                // (T243) 14 + 14 padding round a 21 px line
                {...hitProps({ w: 44, h: 49 })}

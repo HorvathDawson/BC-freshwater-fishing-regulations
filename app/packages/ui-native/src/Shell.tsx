@@ -622,7 +622,9 @@ export function Shell(p: ShellProps) {
                   open={searching}
                   query={searchMemory.q} onQuery={search.searchType}
                   onOpen={search.onFieldFocus}
-                  onClose={search.closeToField} />
+                  onClose={search.closeToField}
+                  // (T858) the web's arrows and Enter in the list; nothing on a phone
+                  onListKey={search.keys.onKey} fieldA11y={search.keys.field} />
         )}
         {topBar && (
           <SearchSheet open={searching} top={barBottom} palette={palette} session={session} pick={searchMemory.pick}
@@ -632,7 +634,8 @@ export function Shell(p: ShellProps) {
                        onOpenWater={search.openSearched}
                        onClose={search.closeToField}
                        statusIndex={col.statusIndex} day={mapDay} total={counts?.waters}
-                       recents={search.recents.list} onRecent={search.pickRecent} onClearRecents={search.recents.clear} />
+                       recents={search.recents.list} onRecent={search.pickRecent} onClearRecents={search.recents.clear}
+                       active={search.keys.active} />
         )}
       </>
     ),

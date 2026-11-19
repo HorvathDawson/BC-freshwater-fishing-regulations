@@ -23,6 +23,10 @@
  * edge says so — and typing, Enter or ↓ there opens search again, as does focusing it afresh. Enter never blurs the
  * field on a wide screen (it would drop the focus on the page body); a phone's Enter still drops the keyboard.
  *
+ * (T858) OPEN, ON THE WEB, THE FIELD DRIVES THE RESULTS: ↓ / ↑ move a highlight through them and back to the field, and
+ * Enter presses the highlighted one (`onListKey`, `listKeys.web.ts`); the focus stays here, and the field is a combobox
+ * naming the highlight (`fieldA11y`). A phone's field is as before.
+ *
  * The placeholder is ONE line per opening of the app (`placeholderFor`), never cycled while on screen; the field is
  * always called "Search waters and towns" aloud, whatever the line says.
  */
@@ -39,6 +43,7 @@ import { CLOSE_KEEPS_FOCUS, closedFieldClick } from "./searchFocus";
 import { TYPE, CAPPED_SCALE } from "./type";
 import { round, type Palette } from "./theme";
 import { hitProps } from "./regs/hit";
+import type { FieldA11y, KeyMods } from "./search/keys";
 
 /** The bar's measures: inset from the screen's edges, the field, the slab under it, the sync slot and its dot. */
 export const TOP_BAR = { top: 10, side: 14, field: 44, slab: 3, wide: 720, panel: 440, slot: 40, dot: 8,
@@ -74,10 +79,15 @@ export interface TopBarProps {
   onOpen: () => void;
   /** ‹ or Escape: close search (the Shell restores the map). */
   onClose: () => void;
+  /** (T858) a key pressed in the field while search is open: true when the results' keyboard took it (web: ↓ ↑ Enter,
+   *  `listKeys.web.ts`); absent or false, the field's own keys as before */
+  onListKey?: (key: string, mods?: KeyMods) => boolean;
+  /** (T858) the field's combobox attributes (web), naming the highlighted result; none on a phone */
+  fieldA11y?: FieldA11y;
 }
 
 export const TopBar: ForwardRefExoticComponent<TopBarProps & RefAttributes<TextInputInstance>> = forwardRef<TextInputInstance, TopBarProps>(function TopBar(
-  { palette, placeholder, sync, onSync, notices = null, open, query, onQuery, onOpen, onClose }, ref) {
+  { palette, placeholder, sync, onSync, notices = null, open, query, onQuery, onOpen, onClose, onListKey, fieldA11y }, ref) {
   const panel = searchPanelWidth(useWindowDimensions().width);
   // the field holds the focus (open, or focused but closed): its edge turns accent either way — its one focus mark
   const [focused, setFocused] = useState(false);
@@ -114,9 +124,12 @@ export const TopBar: ForwardRefExoticComponent<TopBarProps & RefAttributes<TextI
                      // Escape typed IN the field is the field's on every screen: react-native-web's input stops its
                      // keys at the field, so the wide panel's window-wide Escape (`SearchSheet`) never hears it.
                      // Focused but closed (T69), Enter or ↓ opens it again: the keys a list box opens on
+                     // (T858) open, ↓ / ↑ move the results' highlight and Enter presses it (web): the key is the list's,
+                     // so the caret does not move and Enter submits nothing
                      onKeyPress={(e) => {
                        const key = e.nativeEvent.key;
-                       if (open && key === "Escape") onClose();
+                       if (open && onListKey?.(key, e.nativeEvent as KeyMods)) e.preventDefault();
+                       else if (open && key === "Escape") onClose();
                        else if (!open && (key === "Enter" || key === "ArrowDown")) onOpen();
                      }}
                      // a wide screen's Enter keeps the focus in the field on the web (a blur would drop it on the page
@@ -127,6 +140,7 @@ export const TopBar: ForwardRefExoticComponent<TopBarProps & RefAttributes<TextI
                      placeholder={placeholder}
                      placeholderTextColor={palette.faint}
                      accessibilityLabel={SEARCH_BAR.label}
+                     {...fieldA11y}
                      // (T243) the field is a fixed 44 px row: its words follow the OS text size to 2× (a 42 px line)
                      maxFontSizeMultiplier={CAPPED_SCALE}
                      autoCorrect={false} autoCapitalize="none" returnKeyType="search"
