@@ -18,7 +18,7 @@ afterEach(cleanup);
 
 /** core `salmonStripOf` over a region-closed / unlisted card (pinned there): every day closed */
 const ALL_CLOSED: SalmonStripVM = {
-  title: "Salmon (DFO)", status: "closed", mark: "✕", word: "Closed", when: "today", soon: null,
+  title: "Salmon (DFO)", by: "dfo", status: "closed", mark: "✕", word: "Closed", when: "today", soon: null,
   runs: [{ drawn: "closed", days: 365 }], generalTitle: "Game fish (B.C. rules)", legend: [{ drawn: "closed", label: "✕ Closed" }],
 };
 

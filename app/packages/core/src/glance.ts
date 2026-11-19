@@ -18,6 +18,21 @@ export const GLANCE_WORDS = {
   hide: "Hide",
 } as const;
 
+/**
+ * (T879, owner 2026-11-18 ~20:53 — a PROPOSAL) "Two headers, one table": both status blocks first, each named by the fish
+ * it speaks for and tagged with whose rules they are, then ONE species list whose every row wears the same tag. The tag
+ * words are these; a block's tag and its rows' tag are the same word, so a row is matched to its block by eye.
+ */
+export const SOURCE_WORDS = {
+  /** a row's or a block's tag, by its rule source */
+  tag: { dfo: "DFO", bc: "B.C." },
+  /** a salmon bar some of whose days are the rule book's (core `SalmonSourceBy`) */
+  salmonTag: { dfo: "DFO", both: "DFO + rule book", book: "Rule book" },
+  /** the two blocks' names, the tag beside each */
+  salmon: "Salmon",
+  game: "Game fish",
+} as const;
+
 /** (T531) the rule source a species row's answer comes from. */
 export type SpeciesSource = "dfo" | "bc";
 

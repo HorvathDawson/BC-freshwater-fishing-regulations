@@ -299,6 +299,7 @@ reads both files; a ticket closed here moves there once its lane is finished wit
 | T865 | Production data clean-up is automatic: old releases and the v1 layout (owner) | PARTIAL — 4f4b5c8 + 8b279ce; left (Claude): at the switch, on the owner's word, turn off bc-fishing-cron + main's 3 update workflows, then deploy/prod/drop-v1.sh | lane app/t865-prod-prune | owner 2026-11-18 |
 | T866 | Trim the test suites: combine overlapping tests, remove true duplicates (owner) | OPEN | app chat + main chat | owner 2026-11-18, after the 0.8.1 releases |
 | T867 | Notifications inbox: since install only, read once seen, short, with data and app updates (owner) | OPEN | app chat | owner 2026-11-18, after the 0.8.1 releases |
+| T879 | "What you can keep": two headers, one table — salmon in the one fish list, each row tagged DFO / B.C. (owner) | OPEN | app chat | owner 2026-11-18 ~20:53; proposal (lane app/t879-two-headers-one-table), lands only on the owner's yes |
 | T869 | The chinook annual limit says "over 50 cm" where it counts ADULT chinook, which is over 62 or 65 cm on some rivers (owner) | OPEN | main chat | owner 2026-11-18 ~20:22 |
 | T870 | Salmon card: Source (DFO) lists every DFO row behind its answers; each bait-ban line says whose, once; a whole-year window reads "all year" (owner) | OPEN | main chat | owner 2026-11-18 ~20:25 |
 | T868 | Each fish's picture once per sheet: the Whitefish sheet drew them twice (owner) | PARTIAL — 7b0738a3f + 940dde702; left (Claude): merge lane app/fix-dup-pics into app/integrate-081-web | app chat | owner 2026-11-18 |

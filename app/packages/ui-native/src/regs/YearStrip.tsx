@@ -6,6 +6,7 @@
 import { createContext, useContext, useState } from "react";
 import { View } from "react-native";
 import { Text } from "../Text";
+import { TaggedTitle } from "./SourceTag";
 import Svg, { Defs, Line as SvgLine, Pattern, Rect } from "react-native-svg";
 import { WORDS, legendText, type SalmonDrawn, type SalmonStripVM, type StripVM } from "@app/core";
 import { TYPE } from "../type";
@@ -71,11 +72,15 @@ export function Patterns({ id, palette }: { id: string; palette: Palette }) {
 }
 
 /** (T227) The bar's name above its status line when a second (salmon) bar is drawn under it: "Game fish (B.C. rules)". */
-function BarTitle({ text, palette, testID }: { text: string; palette: Palette; testID: string }) {
+function BarTitle({ text, palette, testID, tag = null }: { text: string; palette: Palette; testID: string; tag?: string | null }) {
+  // (T879, proposal) a block's name and whose rules it is, the tag its rows wear
+  if (tag) return <TaggedTitle text={text} tag={tag} palette={palette} testID={testID} />;
   return <Text testID={testID} accessibilityRole="header" style={[TYPE.kicker, { color: palette.sub, marginBottom: 2 }]}>{text}</Text>;
 }
 
-export function YearStrip({ strip, dateLabel, palette, title = null, hours = null }: { strip: StripVM; dateLabel: string; palette: Palette; title?: string | null;
+export function YearStrip({ strip, dateLabel, palette, title = null, hours = null, tag = null }: { strip: StripVM; dateLabel: string; palette: Palette; title?: string | null;
+  /** (T879, proposal) whose rules the bar is, beside its name */
+  tag?: string | null;
   /** (T473) a daylight-only closure's real hours on the day, said with the status ("Daylight only · fishing 07:04–18:37 PT") */
   hours?: string | null }) {
   const bar = useBarWidth(), w = bar.at;
@@ -88,7 +93,7 @@ export function YearStrip({ strip, dateLabel, palette, title = null, hours = nul
   const coach = useCoachTarget("regs:answer");   // (T293) the walkthrough: today's answer and the year
   return (
     <View ref={coach} collapsable={false} style={{ paddingTop: 10, paddingHorizontal: GUTTER, paddingBottom: 2 }} testID="keep-strip">
-      {title && <BarTitle text={title} palette={palette} testID="keep-strip-title" />}
+      {title && <BarTitle text={title} palette={palette} testID="keep-strip-title" tag={tag} />}
       <View style={{ flexDirection: "row", alignItems: "baseline", flexWrap: "wrap", columnGap: 8 }}>
         <Text testID={`st:${strip.status}`} style={[TYPE.answer, { color: tone }]}>{(strip.status === "open" ? WORDS.CHECK.trim() : WORDS.CLOSED_MARK) + (status?.text ?? "")}</Text>
         {rest.map((l, i) => l.kind === "when"
@@ -145,8 +150,10 @@ function SalmonRect({ x, w, drawn, palette, id }: { x: number; w: number; drawn:
  * the day's marker and date, the month initials and the legend. Nothing else: the breakdown is the Salmon row's. No
  * logic: everything is core `salmonStripOf`'s.
  */
-export function SalmonYearStrip({ strip, todayAt, months, dateLabel, palette }: {
-  strip: SalmonStripVM; todayAt: number; months: readonly string[]; dateLabel: string; palette: Palette }) {
+export function SalmonYearStrip({ strip, todayAt, months, dateLabel, palette, head = null }: {
+  strip: SalmonStripVM; todayAt: number; months: readonly string[]; dateLabel: string; palette: Palette;
+  /** (T879, proposal) the block's name and tag in place of the bar's title */
+  head?: { readonly text: string; readonly tag: string } | null }) {
   const bar = useBarWidth(), w = bar.at;
   const total = strip.runs.reduce((a, r) => a + r.days, 0) || 365;
   const room = Math.max(0, w - GAP * (strip.runs.length - 1));
@@ -156,7 +163,7 @@ export function SalmonYearStrip({ strip, todayAt, months, dateLabel, palette }: 
     : strip.status === "closed" ? palette.closed : palette.sub;
   return (
     <View style={{ paddingTop: 10, paddingHorizontal: GUTTER, paddingBottom: 2 }} testID="salmon-strip">
-      <BarTitle text={strip.title} palette={palette} testID="salmon-strip-title" />
+      <BarTitle text={head?.text ?? strip.title} tag={head?.tag ?? null} palette={palette} testID="salmon-strip-title" />
       <View style={{ flexDirection: "row", alignItems: "baseline", flexWrap: "wrap", columnGap: 8 }}>
         <Text testID={`salmon-strip-st:${strip.status}`} style={[TYPE.answer, { color: tone }]}>{strip.mark + strip.word}</Text>
         {strip.when && <Text style={[TYPE.meta, { color: palette.sub }]}>{strip.when}</Text>}
