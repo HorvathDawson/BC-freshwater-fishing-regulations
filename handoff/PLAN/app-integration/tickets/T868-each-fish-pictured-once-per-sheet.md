@@ -36,7 +36,7 @@ sheet the page can open):
   table's grid (owner 2026-11-17 "Keep the tile"), not a second picture of a line already drawn.
 
 Tests: `ui-native/src/regs/OnePicture.test.tsx` (every Other fish sheet of the committed regs fixture, built by core and
-drawn by SheetBody: no `pic:` twice, a group sheet's pictures sit in the card's keep row; failed before the fix with 13
+drawn by SheetBody: no `pic:` twice, a group sheet's pictures sit in the card's keep row; failed before the fix with 84
 sheets, Wilkes Creek LW/MW first; and the card under the title rule draws no rule of its own),
 `core/src/regs/tree.test.ts` "(T868) each fish pictured once in a group card".
 
