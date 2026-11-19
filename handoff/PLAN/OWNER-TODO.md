@@ -2723,3 +2723,4 @@ More questions (recommended answer first):
   was maybe it had same issue?" -> T861: measure the Conditions map against 0.8.0 and the 0.8.1 build (which has the
   T848/T855 fix); fix it if the Conditions map was left out.
 - 2026-11-18 ~17:15, owner (relayed), verbatim: "also check run timing to while at it" -> T861 measures the Run timing map too.
+- 2026-11-18 17:30 (main chat, T862) Owner, verbatim: "tyhe search doesnt show this? (… stocking records call Sixteen Mile Lake "Baker Lake", and Tranquille Lake "Lake #355". ) if searching one the other doesnt come up? this is a future ticket i think? it will also involve auditing the name vairations especially stocking/bathy maps" -> T862 (future, after 0.8.1): search by every name (app chat) + name-variation audit, stocking/bathymetry first (main chat). The names do ship in the release; the search does not use them.
