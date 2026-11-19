@@ -1011,6 +1011,26 @@ it("no listener, no long press: the binding is handed no handler (its long press
     expect(native.props!.onDidFinishRenderingFrameFully).toBeUndefined();
     clock.mockRestore();
   });
+  it("(T848 follow-up) the test bed's copy probe queries nothing either: a camera at rest before the first full render " +
+     "(the 0.8.1 bench's route map, app gone with SIGSEGV in MapRenderer::actor())", async () => {
+    native.holdRender = true;
+    const g = globalThis as { __panProbe?: boolean };
+    g.__panProbe = true;                               // the test bed's probe build: the settle schedules `copyDraw`
+    const say = vi.spyOn(console, "log").mockImplementation(() => {});
+    try {
+      render(<NativeMap {...base({ data: undefined })} />);       // a lit water: the copy has ids to look for
+      await waitFor(() => expect(native.props).toBeTruthy());
+      act(() => {
+        (native.props!.onRegionDidChange as (e: unknown) => void)({ nativeEvent: { center: [-122, 49], zoom: 12.5 } });
+      });
+      // the settle's ask (700 ms), then the copy probe 400 ms after it — no full render in between
+      await act(async () => { await new Promise((r) => setTimeout(r, 1300)); });
+      expect(log.filter((l) => l.startsWith("query"))).toEqual([]);
+    } finally {
+      delete g.__panProbe;
+      say.mockRestore();
+    }
+  });
   it("queries nothing until the map has drawn (Android SIGSEGVs in MapRenderer::actor() before that)", async () => {
     native.holdRender = true;
     const press = vi.fn();
