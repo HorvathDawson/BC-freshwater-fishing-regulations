@@ -196,8 +196,6 @@ describe("donorView", () => {
     expect(vm.map.pins.map((p) => p.label))
       .toEqual(["60%", "reporting, not ranked", "0%", "you are here"]);
     expect(vm.map.bbox).toEqual([-122, 49.0, -121.5, 49.2]);
-    expect(vm.map.words).toEqual({ fit: "Fit", fitLabel: "Fit the map to you and the gauges",
-                                   larger: "Larger map", smaller: "Smaller map" });
   });
 
   it("has no map until the routes are in", () => {

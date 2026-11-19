@@ -2,9 +2,10 @@
  * The words ON and UNDER the route map — how the gauges reach the place being read.
  *
  * Owner 2026-10-21: upstream and downstream gauges drawn apart, with a key that says which
- * is which; each gauge's share of the estimate on the map itself; a map you can zoom, pan
- * and fit back. The shares are `donorShare` — the panel's own words for the same number —
- * so the map and the rows under it cannot disagree about what a gauge contributed.
+ * is which; each gauge's share of the estimate on the map itself; a map you can zoom and pan
+ * (T881, owner 2026-11-18: one size, opened fitted — no Fit or Larger map button). The shares
+ * are `donorShare` — the panel's own words for the same number — so the map and the rows
+ * under it cannot disagree about what a gauge contributed.
  */
 import { CONDITIONS_WORDS, DIVERSION_WORDS, donorShare, donorState, OTHER_QUANTITY_WORDS, type DonorAsk, type DonorFacts, type DonorReading }
   from "./conditions";
@@ -32,10 +33,6 @@ export const ROUTE_MAP_WORDS = {
   noRecord: "no record to compare with",
   /** (T817) A gauged lake's own station, in the key: it reads the lake itself, nothing is estimated from it. */
   ownGauge: "this lake's own gauge",
-  fit: "Fit",
-  fitLabel: "Fit the map to you and the gauges",
-  larger: "Larger map",
-  smaller: "Smaller map",
 } as const;
 
 /** What a gauge's dot says on the map: its share of the estimate, or its state. */

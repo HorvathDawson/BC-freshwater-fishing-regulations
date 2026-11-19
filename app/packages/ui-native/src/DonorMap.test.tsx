@@ -4,10 +4,10 @@
  * The renderer is stubbed — MapLibre needs WebGL — and the stub RECORDS its props, because
  * the claims under test are claims about what the map is asked to draw: each route with its
  * role and its gauge's tone, the spot as a pin and the gauges as dots with their shares, and
- * a fit that is sent on a press and at no other time.
+ * (T881) one size and no Fit or Larger map button: the camera it opens on is the fit.
  */
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { cleanup, fireEvent, render, screen } from "@testing-library/react";
+import { cleanup, render, screen } from "@testing-library/react";
 import type { MapProps } from "@app/map";
 import { donorView, type DonorRow, type PanelAnswer } from "@app/ui";
 import { LIGHT } from "./theme";
@@ -56,10 +56,9 @@ function vmOf() {
 const toneOf = (i: number | null) =>
   i === null ? LIGHT.accent : i === 1 ? LIGHT.quiet : LIGHT.donor[i % LIGHT.donor.length]!;
 
-const draw = (larger = false, onLarger = () => {}) =>
+const draw = () =>
   render(<DonorMap vm={vmOf()} at={{ atlas: "a", basemap: "b" }} theme="light"
-                   palette={LIGHT} toneOf={toneOf} height={routeMapHeight(360, larger)}
-                   larger={larger} onLarger={onLarger} />);
+                   palette={LIGHT} toneOf={toneOf} height={routeMapHeight(360)} />);
 
 describe("<DonorMap>", () => {
   it("asks the map for each route, with its role and its gauge's tone", () => {
@@ -101,29 +100,16 @@ describe("<DonorMap>", () => {
     expect(seen.at(-1)!.zoomControls).toBe(true);
   });
 
-  it("sends the camera back to everything only when Fit is pressed", () => {
+  it("(T881) has no Fit or Larger map button: one size, opened on the camera that frames the water and its gauges", () => {
     draw();
-    expect(seen.at(-1)!.fit).toBeNull();
-    fireEvent.click(screen.getByRole("button", { name: "Fit the map to you and the gauges" }));
-    expect(seen.at(-1)!.fit).toEqual({ key: "fit:1", bbox: [-122, 49, -121.5, 49.2] });
-    fireEvent.click(screen.getByRole("button", { name: "Fit the map to you and the gauges" }));
-    expect(seen.at(-1)!.fit!.key).toBe("fit:2");
+    expect(screen.queryAllByRole("button")).toEqual([]);
+    expect(screen.queryByText("Fit")).toBeNull();
+    expect(screen.queryByText("Larger map")).toBeNull();
+    expect(seen.at(-1)!.fit).toBeUndefined();
+    expect(seen.at(-1)!.initial).toEqual(vmOf().camera);
   });
 
-  it("offers a larger map, and says when it is showing one", () => {
-    const onLarger = vi.fn();
-    draw(false, onLarger);
-    fireEvent.click(screen.getByRole("button", { name: "Larger map" }));
-    expect(onLarger).toHaveBeenCalledWith(true);
-    cleanup();
-    draw(true, onLarger);
-    fireEvent.click(screen.getByRole("button", { name: "Smaller map" }));
-    expect(onLarger).toHaveBeenLastCalledWith(false);
-  });
-
-  it("is about square when larger, and never a letterbox", () => {
-    expect([routeMapHeight(358, false), routeMapHeight(358, true)]).toEqual([220, 380]);
-    expect([routeMapHeight(640, false), routeMapHeight(640, true)]).toEqual([340, 608]);
-    expect([routeMapHeight(1000, false), routeMapHeight(1000, true)]).toEqual([340, 620]);
+  it("(T881) is drawn at the one large size: about square, and never a letterbox", () => {
+    expect([routeMapHeight(358), routeMapHeight(640), routeMapHeight(1000)]).toEqual([380, 608, 620]);
   });
 });

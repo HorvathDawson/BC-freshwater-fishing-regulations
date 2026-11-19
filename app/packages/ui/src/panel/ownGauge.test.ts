@@ -4,9 +4,10 @@
  * map pins it, says where its reading stands, draws it live and frames it with the place.
  *
  * MUTATION: drop `...ownAt` from the camera's points in `donorView` -> the camera is the tap's alone (zoom unchanged).
+ * (T881) Without its own station the lake's map would draw no gauge, so there is none (`no-gauge-map.test.ts`).
  */
 import { describe, expect, it } from "vitest";
-import { ownGaugeMap } from "@app/core";
+import { ownGaugeMap, panelCamera } from "@app/core";
 import { donorView } from "./donor";
 
 const DAY = new Date(2026, 10, 16, 12);
@@ -22,8 +23,9 @@ describe("a gauged lake's route map (T817)", () => {
                   ...ownGaugeMap("08MG012", { percentile: 0.9, observedAt: "2026-11-16T11:30:00-08:00" }, { ref: DAY.getTime() }) };
     const before = donorView(lake, opts);
     const after = donorView(lake, { ...opts, own });
-    if (!before.map || !after.map) throw new Error("expected a map");
-    expect(before.map.pins.map((p) => p.kind)).toEqual(["here"]);
+    if (!after.map) throw new Error("expected a map");
+    // (T881) without its own station it would hold "you are here" alone: no map
+    expect(before.map).toBeNull();
     expect(after.map.pins.map((p) => [p.kind, p.row, p.title, p.label])).toEqual([
       ["gauge", 0, "Harrison Lake Near Harrison Hot Springs", "Much above normal"],
       ["here", null, "you are here", "you are here"],
@@ -32,7 +34,7 @@ describe("a gauged lake's route map (T817)", () => {
     expect(after.map.liveRow).toBe(0);
     expect(after.map.bbox).toEqual([HERE.lon, GAUGE.lat, GAUGE.lon, HERE.lat]);
     // the frame reaches the gauge: wider than the tap alone
-    expect(after.map.camera.zoom).toBeLessThan(before.map.camera.zoom);
+    expect(after.map.camera.zoom).toBeLessThan(panelCamera([], HERE, opts.size)!.zoom);
   });
 
   it("a lake gauge with no reading is drawn quiet", () => {

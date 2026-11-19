@@ -38,7 +38,7 @@ describe("the route map frames the water when no tap says where the reader is", 
     expect(vm.map.camera.zoom).toBe(12.5);
   });
 
-  it("no tap, the water's box: the gauge AND the creek, and Fit returns to both", () => {
+  it("no tap, the water's box: the gauge AND the creek, and the frame holds both", () => {
     const vm = view({ place: CREEK });
     if (!vm.ok || !vm.map) throw new Error("expected a map");
     expect(vm.map.camera).toEqual(panelCamera(
