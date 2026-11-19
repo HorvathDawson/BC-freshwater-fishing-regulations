@@ -5,10 +5,12 @@
  */
 import { afterEach, describe, expect, it, vi } from "vitest";
 
+// the checked line, as the feed's fetch time would say it (the line's own wording is salmonFeed.test.ts's)
+vi.mock("@app/core", async (orig) => ({ ...(await orig<Record<string, unknown>>()), salmonCheckedLine: () => "DFO rules checked Oct 29" }));
 vi.mock("@app/map", async (orig) => ({ ...(await orig<Record<string, unknown>>()), Map: () => null }));
 import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { KEY_ISOLATE_WORDS, MAP_KEY } from "@app/core";
-import { MapLegend } from "./shell/MapLegend";
+import { MapLegend, SOURCE_ROOM } from "./shell/MapLegend";
 import { LIGHT } from "./theme";
 
 afterEach(cleanup);
@@ -88,5 +90,24 @@ describe("(T896) the key is visible at a phone's width", () => {
     expect(screen.queryByTestId("legend-fold")).toBeNull();
     expect(screen.getAllByTestId("legend-row")).toHaveLength(2);
     expect(screen.getAllByTestId("legend-entry")).toHaveLength(7);
+  });
+});
+
+describe("(T396, T896) both modes' bars stand the same height on a phone", () => {
+  it("Salmon's source head and Trout's two margins reserve the same room (declared in style: jsdom cannot measure)", () => {
+    const facts = null;
+    const room = (mode: "standard" | "salmon") => {
+      show({ ...(col(mode, null) as object), salmonFacts: facts } as never);
+      const parts = [...screen.queryAllByTestId("legend-fishery-head"), ...screen.queryAllByTestId("legend-reserve")];
+      const sum = parts.reduce((a, e) => a + (parseFloat(e.style.minHeight) || parseFloat(e.style.height) || 0), 0);
+      const said = screen.queryByTestId("salmon-legend-source")?.textContent ?? null;
+      cleanup();
+      return { sum, said };
+    };
+    const t = room("standard"), s = room("salmon");
+    expect(s.said).toBe("DFO rules checked Oct 29");
+    expect(t.said).toBeNull();
+    expect(t.sum).toBe(SOURCE_ROOM);
+    expect(s.sum).toBe(SOURCE_ROOM);
   });
 });

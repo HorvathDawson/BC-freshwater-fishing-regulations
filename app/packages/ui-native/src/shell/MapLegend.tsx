@@ -14,17 +14,21 @@ import { closedCueColour, gaugeOnlyColours, issueStripeColours, gearEdgeColour, 
 import { ObstacleIcon } from "../icons";
 import { useMemo, useState } from "react";
 import { useCoachTarget } from "../CoachMarks";
-import { View } from "react-native";
+import { useWindowDimensions, View } from "react-native";
 import { Text } from "../Text";
 import { Pressable } from "../Pressable";
 import { RunDayCaption, RunDaySlider, RunSpeciesChips } from "../RunsControls";
 import type { FishImages } from "../regs/types";
-import { LEGEND_RAMP_MAX, LEGEND_ROWS, LegendCount, LegendRamp, LegendRows, LegendStrip } from "../Chrome";
+import { LEGEND_RAMP_MAX, LEGEND_ROWS, WIDE_LEGEND, LegendCount, LegendRamp, LegendRows, LegendStrip } from "../Chrome";
 import { BasinDays } from "../BasinDays";
 import { legendColour } from "../LayersSheet";
 import { LEGEND_TEXT, TYPE } from "../type";
 import { changeRampStops, flowRampStops, round, type Palette } from "../theme";
 import type { MapColouring } from "./useMapColouring";
+
+/** (T396) the room Salmon's source line takes above its key on a phone: 9 px over two lines of 15 px */
+const SOURCE_PAD = 9;
+export const SOURCE_ROOM = SOURCE_PAD + 2 * 15;
 
 export function MapLegend({ col, conditions, palette, theme, mapDay }: {
   col: MapColouring;
@@ -163,12 +167,19 @@ export function MapLegend({ col, conditions, palette, theme, mapDay }: {
     </Text>
   );
   // (T896, owner 2026-11-19: "this button is useless?", then "does mobile even need the button?") NO FOLD: the key is always
-  // shown whole, and the map's bar is the key (a phone's two rows are 44 px; folding saved one row and cost a control).
-  // Salmon's "DFO rules checked …" heads it. One row from `WIDE_LEGEND` (T469), T396's two fixed rows below it.
+  // shown whole (a phone's two rows are 44 px; folding saved one row and cost a control). One row from `WIDE_LEGEND` (T469),
+  // T396's two fixed rows below it.
+  // (T396) ON A PHONE BOTH MODES' BARS STAND THE SAME HEIGHT: Salmon's "DFO rules checked …" (up to two lines) heads its key
+  // in `SOURCE_ROOM`; Trout & more has no such line, so the same room is split above and below its key (an even margin, not a
+  // strip of its own) and switching modes does not move the bar.
+  const narrow = useWindowDimensions().width < WIDE_LEGEND;
   return (
     <View testID="legend-fishery-bar" style={{ backgroundColor: palette.card, borderTopWidth: 1, borderTopColor: palette.line }}>
-      {source && <View testID="legend-fishery-head" style={{ paddingHorizontal: LEGEND_ROWS.padX, paddingTop: 9 }}>{source}</View>}
+      {source ? (
+        <View testID="legend-fishery-head" style={{ paddingHorizontal: LEGEND_ROWS.padX, paddingTop: SOURCE_PAD, minHeight: narrow ? SOURCE_ROOM : 0 }}>{source}</View>
+      ) : narrow && <View testID="legend-reserve" style={{ height: SOURCE_ROOM / 2 }} />}
       {strip}
+      {!source && narrow && <View testID="legend-reserve" style={{ height: SOURCE_ROOM / 2 }} />}
     </View>
   );
 }
