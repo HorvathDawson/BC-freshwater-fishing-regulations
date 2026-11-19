@@ -106,7 +106,8 @@ export function troutWords(t: TroutVM): (Item | null)[] {
   for (const b of t.boxes) {
     out.push(item(b.head), item(b.label), item(b.strip), item(b.tag), item(b.possession), item(b.date));
     for (const r of b.rows) {
-      out.push(item(r.name), item(r.origin), item(r.label), item(r.sub), ...r.lines.map((l) => item(l)), ...r.quiet.map((q) => item(q)),
+      // (T892) the row's tributary line, under its name as the app draws it ("Duncan River’s rule for its tributaries")
+      out.push(item(r.name), item(r.origin), item(r.label), item(r.down), item(r.sub), ...r.lines.map((l) => item(l)), ...r.quiet.map((q) => item(q)),
                item(r.date), ...r.coming.map((c) => item(c)));
     }
     for (const y of b.bands) out.push(item(y.text), item(y.date));
