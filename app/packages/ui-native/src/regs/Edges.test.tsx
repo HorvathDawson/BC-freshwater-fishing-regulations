@@ -7,10 +7,10 @@
 import { afterEach, describe, expect, it } from "vitest";
 import { cleanup, fireEvent, render, screen, within } from "@testing-library/react";
 import { Text } from "react-native";
-import { buildRegsPage, daylightAt, type RegsInputs, type RegsPage, type SheetKey } from "@app/core";
+import { buildRegsPage, daylightAt, type CaveatItemVM, type CaveatVM, type RegsInputs, type RegsPage, type SheetKey } from "@app/core";
 import { DARK, LIGHT } from "../theme";
 import { KeepTab } from "./KeepTab";
-import { CaveatBlock } from "./KeepBlocks";
+import { CaveatBlock, TimedLines } from "./KeepBlocks";
 import { RegsHeader } from "./RegsHeader";
 import { RegsScreen } from "./RegsScreen";
 import { createTabStore } from "./tabStore";
@@ -155,6 +155,20 @@ describe("11. the timed caveat (x15p2_1010, D10 a)", () => {
     rerender(<KeepTab keep={page.keep} dateLabel="Nov 19" palette={LIGHT} actions={{ ...NOOP, onTab() {} }} daylight={null} />);
     expect(items()).toEqual(["Daylight only: closed from 1 h after sunset to 1 h before sunriseRule book p.23 ↗"]);
     expect(screen.queryByTestId("keep-daylight")).toBeNull();
+  });
+
+  it("(T898 review) each daylight item takes its OWN window's times, and a window shared by two rules is timed once", () => {
+    const it_ = (after: number, before: number, s: string): CaveatItemVM => ({ what: [{ t: "text", s }], where: null, rule: null,
+      fish: null, book: [], daylight: { after, before } });
+    const cav: CaveatVM = { kind: "timed", hot: false, title: "", calm: null, later: null,
+      items: [it_(60, 60, "No fishing"), it_(60, 60, "No fishing"), it_(30, 45, "No fishing"),
+              { what: [{ t: "text", s: "No fishing for steelhead" }], where: "Sat, Sun", rule: null, fish: null, book: [] }] };
+    render(<TimedLines caveat={cav} palette={LIGHT} actions={{ ...NOOP, onTab() {} }} daylight={daylightAt(49.133, -122.31, { y: 2026, m: 11, d: 19 })} />);
+    expect(screen.getAllByTestId("keep-timed-line").map((e) => e.textContent)).toEqual([
+      "Daylight only: closed from 1 h after sunset (18:24) to 1 h before sunrise (7:25)",
+      "Daylight only: closed from 1 h after sunset to 1 h before sunrise",
+      "Daylight only: closed from 30 min after sunset (17:54) to 45 min before sunrise (7:40)",
+      "No fishing for steelhead: Sat, Sun"]);
   });
 
   /*

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { bcClockTime, bcNow, bcOffsetHours, bcToday, daylightAt, daylightClosed, daylightOfMoment, sunLine, sunTimes, timedLineText,
+import { bcClockTime, bcNow, bcOffsetHours, bcToday, daylightAt, daylightClosed, daylightOfMoment, namesEveryGameFish, sunLine, sunTimes, timedLineText,
          type CaveatItemVM, type Moment } from "./index";
 
 /** minutes past midnight at a fixed UTC offset */
@@ -92,5 +92,15 @@ describe("(T898) the offsets come from the moment's stored window, never its wor
     expect(daylightOfMoment(m({ start: sun("sunrise", -60), end: sun("sunset", 60), in: true }))).toBeNull();
     expect(daylightOfMoment(m(null))).toBeNull();
     expect(daylightOfMoment(null)).toBeNull();
+  });
+});
+
+describe("(T898) only a rule that names every game fish reads \"Daylight only\" (the old `^no fishing` word test is gone)", () => {
+  const GAME = ["RB", "ST", "CT", "CRA"];
+  it("every game fish, none excepted: yes; some fish, or an exception: no; no game fish in the book: no", () => {
+    expect(namesEveryGameFish({ species: ["RB", "ST", "CT", "CRA", "KO"], speciesExcept: [] }, GAME)).toBe(true);
+    expect(namesEveryGameFish({ species: ["ST"], speciesExcept: [] }, GAME)).toBe(false);                 // "No fishing for steelhead"
+    expect(namesEveryGameFish({ species: ["RB", "ST", "CT", "CRA"], speciesExcept: ["ST"] }, GAME)).toBe(false);
+    expect(namesEveryGameFish({ species: ["RB"], speciesExcept: [] }, [])).toBe(false);
   });
 });

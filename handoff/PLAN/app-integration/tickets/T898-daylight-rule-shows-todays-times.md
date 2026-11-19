@@ -43,3 +43,11 @@ Asked by the app chat, the owner picked "Times in the rule line (Recommended): d
 carries the times; the hours under GAME FISH stay". Brief from the app chat: the rule's own words with each time in brackets
 after its part, only where the day's window exists at the section (else the words alone); T473's line kept; one time
 format in both places, the header's ("8:23", "17:21"), the header unchanged. Built as above.
+
+## Review fixes (2026-11-19 01:37 MST)
+- Each daylight item's times come from its own stored window (`TimedLines` gets `DaylightAt`); a window two rules share is
+  timed once (the second rule's words alone).
+- Guard restored as data: an item carries `daylight` only when its rule's stored species are every game fish, none excepted
+  (`namesEveryGameFish`); T473's `^no fishing` word test is gone (it also passed "No fishing for steelhead"). The frozen
+  Fraser page is unchanged under it.
+- `InSeasonBanner.tsx`: the stale "collapsed by default" doc text removed (T899).

@@ -85,9 +85,6 @@ export function KeepTab({ keep, dateLabel, palette, actions, images, glance = nu
   const off = timed ? [...timed.items, ...(timed.later ?? [])].map(daylightOffsets).find((o) => o !== null) ?? null : null;
   const range = off && daylight ? daylight.open(off.after, off.before) : null;
   const hours = range ? WORDS.DAYLIGHT_HOURS(range) : null;
-  // (T898) and the day's closed hours inside its rule line ("… after sunset (18:21) to … before sunrise (7:23)"), from the
-  // same sun as the date line
-  const closed = off && daylight ? daylight.closed(off.after, off.before) : null;
   // (T879) ONE list under both blocks: the Salmon fold first (DFO), then the B.C. rows, each tagged
   const oneList = home && (folds.length > 0 || (keep.otherFish ?? []).length > 0) && table(-2);
   const bareStatus = glance?.salmon ? dfoBlockStatus(glance.salmon.row) : null;
@@ -114,7 +111,7 @@ export function KeepTab({ keep, dateLabel, palette, actions, images, glance = nu
         const block = ((): ReactNode => {
         if (glance && (b === "otherFish" || b === "trout" || (typeof b === "object" && "group" in b))) return i === at && !home ? table(i) : null;
         if (b === "strip") return [salmonBar, <YearStrip key={i} strip={keep.strip!} dateLabel={dateLabel} palette={palette} title={tags ? SOURCE_WORDS.game : glance ? SALMON_WORDS.barGeneral : null} tag={tags ? SOURCE_WORDS.tag.bc : null} hours={hours} />,
-          timed && <TimedLines key="timed" caveat={timed} palette={palette} actions={actions} hoursSaid={!!hours} closed={closed} />, oneList];
+          timed && <TimedLines key="timed" caveat={timed} palette={palette} actions={actions} hoursSaid={!!hours} daylight={daylight} />, oneList];
         if (b === "inherited") return <InheritedLine key={i} inherited={keep.inherited!} palette={palette} actions={actions} />;
         if (b === "banner") return <ClosedBanner key={i} banner={keep.banner!} palette={palette} actions={actions} />;
         if (b === "otherFish") return <OtherFish key={i} rows={keep.otherFish!} keys={keep.otherFishKey} palette={palette} actions={actions} images={images} />;

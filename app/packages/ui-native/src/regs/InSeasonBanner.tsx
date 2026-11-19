@@ -4,9 +4,9 @@
  * (core `inSeasonBanner`); which changes, from `@app/ui` `useInSeasonBanners`. INFORMATIONAL: drawn above the rules,
  * never changing them; the attention bar is not a water-status colour.
  *
- * (T472, owner 2026-11-07: "a big wall of text to get when you open a regulation page") COLLAPSED BY DEFAULT: one card
- * line just above the species table ("In-season change (since May 16, 2025) · see ›", or "3 in-season changes · see ›"),
- * the Access notice strip's pattern — a press opens the full notices under it, a second closes them. Never hidden.
+ * (T472, owner 2026-11-07) One card line just above the species table ("In-season change (since May 16, 2025) · see ›", or
+ * "3 in-season changes · see ›"), the Access notice strip's pattern — a press on it folds or opens the notices under it.
+ * Never hidden.
  *
  * (T694) An unread notice says so: "New · …" / "Updated · …" on the line (core `inSeasonSummary`) and a mark on its
  * card. (T700) Opened from the bell's inbox at a notice, the notices are open.
