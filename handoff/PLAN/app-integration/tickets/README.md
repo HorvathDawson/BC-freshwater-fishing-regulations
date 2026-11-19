@@ -321,6 +321,7 @@ reads both files; a ticket closed here moves there once its lane is finished wit
 | T884 | A fish sheet's big "20 a day" is cut off at the top on an iPhone (owner) | IN PROGRESS | app chat, lane app/t884-t886-clip-hatchery-art | owner 2026-11-18 ~21:30 |
 | T886 | "How to tell a hatchery fish": a natural fish (the loader's coho), not a smiling one (owner) | IN PROGRESS | app chat, lane app/t884-t886-clip-hatchery-art | owner 2026-11-18 ~21:30 |
 | T887 | Salmon map, light mode: keep is a bright green, clearly apart from release, closed and check (owner) | OPEN | app chat | owner 2026-11-18 ~22:33 |
+| T888 | A newer app version: one popup on opening (the swimming coho, "Version X.Y.Z is out", what's new, Update / Not now), then the bell; Android and iOS (owner) | IN PROGRESS | app chat, lane app/t888-update-popup | owner 2026-11-18 ~23:25; lands after the owner sees the pictures |
 
 ## Next after closed testing
 
