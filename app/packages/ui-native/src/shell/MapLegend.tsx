@@ -75,6 +75,21 @@ export function MapLegend({ col, conditions, palette, theme, mapDay }: {
                  cased={r.status === "open" ? salmonCasingColour(theme) ?? undefined : undefined}
                  label={MAP_KEY.salmon[r.status]} {...tap(r.status)} />
   ));
+  const fold = folded ? MAP_KEY.fold.show : MAP_KEY.fold.hide;
+  const button = (
+    <Pressable testID="legend-fold" onPress={() => setFolded((f) => !f)} accessibilityRole="button"
+               aria-expanded={!folded} accessibilityLabel={fold} {...hitProps({ w: 32, h: 32 })}
+               style={{ marginLeft: "auto", width: 32, height: 32, alignItems: "center", justifyContent: "center",
+                        borderWidth: 1, borderColor: palette.line, borderRadius: palette.r.chip }}>
+      <Icon name={folded ? "collapse" : "expand"} colour={palette.ink} size={18} />
+    </Pressable>
+  );
+  const source = checked && (
+    <Text testID="salmon-legend-source" numberOfLines={2}
+          style={{ ...TYPE.caption, lineHeight: 15, color: palette.sub, flexShrink: 1 }}>
+      {checked}
+    </Text>
+  );
   // (T396) the regulations key's rows: the statuses a reader fishes by, then the rest (the gear marks, not-fishable water)
   const keyRows: ReactElement[][] | null = layers.water.drawn !== "regulations" || conditions ? null
     : col.regsLayer === "salmon"
@@ -140,7 +155,7 @@ export function MapLegend({ col, conditions, palette, theme, mapDay }: {
                        label={waterKeyWords(layers.water.drawn)[i] ?? r.label} />
         ))
       ) : (
-        <LegendRows rows={keyRows!} oneRow={fitsBar} firstOnly={foldedNow} />
+        <LegendRows rows={keyRows!} oneRow={fitsBar} firstOnly={foldedNow} trailing={fishery && !fitsBar ? button : undefined} />
       )}
       {/* (T377) THE CENTRE GROUP'S DAYS, under the ramp in the bottom bar: a tap on a day is the horizon chips' pick */}
       {conditions && col.basinDays && (
@@ -163,21 +178,6 @@ export function MapLegend({ col, conditions, palette, theme, mapDay }: {
     </LegendStrip>
   );
   if (!fishery) return strip;
-  const fold = folded ? MAP_KEY.fold.show : MAP_KEY.fold.hide;
-  const button = (
-    <Pressable testID="legend-fold" onPress={() => setFolded((f) => !f)} accessibilityRole="button"
-               aria-expanded={!folded} accessibilityLabel={fold} {...hitProps({ w: 32, h: 32 })}
-               style={{ marginLeft: "auto", width: 32, height: 32, alignItems: "center", justifyContent: "center",
-                        borderWidth: 1, borderColor: palette.line, borderRadius: palette.r.chip }}>
-      <Icon name={folded ? "collapse" : "expand"} colour={palette.ink} size={18} />
-    </Pressable>
-  );
-  const source = checked && (
-    <Text testID="salmon-legend-source" numberOfLines={2}
-          style={{ ...TYPE.caption, lineHeight: 15, color: palette.sub, flexShrink: 1 }}>
-      {checked}
-    </Text>
-  );
   // (T896) THE MEASURING COPY: every entry on one row that cannot wrap, invisible, never an entry; its width is the key's
   const ghost = keyRows && (
     <View aria-hidden pointerEvents="none" style={{ position: "absolute", top: 0, left: 0, width: 4000, opacity: 0 }}>
@@ -203,16 +203,15 @@ export function MapLegend({ col, conditions, palette, theme, mapDay }: {
   return (
     <View testID="legend-fishery-bar" onLayout={onBar} style={{ backgroundColor: palette.card, overflow: "hidden" }}>
       {ghost}
-      {/* (T396, T425) ONE ROW, 32 px tall in both modes: Salmon's "DFO rules checked …" (up to two lines) beside the fold
-          button, which Trout & more has alone — so switching modes does not move the bar */}
-      <View testID="legend-fishery-head"
-            style={{ flexDirection: "row", alignItems: "center", gap: 10, paddingHorizontal: LEGEND_ROWS.padX,
-                     paddingTop: 9, minHeight: 41, borderTopWidth: 1, borderTopColor: palette.line }}>
-        {source}
-        {/* (T377) THE KEY FOLDS AWAY where it does not fit: the head stays, and the key's FIRST ROW (T896: never a blank
-            strip); the choice holds across both modes, so switching never moves the bar */}
-        {button}
-      </View>
+      {/* (T396, T425) Salmon's "DFO rules checked …" heads the key; Trout has no head. THE FOLD BUTTON IS AT THE RIGHT END OF THE
+          KEY'S FIRST ROW (T896), so a folded bar is that one row, never a strip with only a button; the key's rows
+          do not move when it folds (only the second row goes) */}
+      {source && (
+        <View testID="legend-fishery-head"
+              style={{ paddingHorizontal: LEGEND_ROWS.padX, paddingTop: 9, borderTopWidth: 1, borderTopColor: palette.line }}>
+          {source}
+        </View>
+      )}
       {strip}
     </View>
   );

@@ -117,7 +117,9 @@ export const WIDE_LEGEND = 900;
  * lines tall at a phone's width and the bottom bar does not jump between them. A row too wide for a narrow screen still
  * wraps (nothing is cut).
  */
-export function LegendRows({ rows, oneRow, firstOnly }: {
+export function LegendRows({ rows, oneRow, firstOnly, trailing }: {
+  /** (T896) a control at the right end of the FIRST row (the fold button); that row's entries get the width left of it */
+  trailing?: React.ReactNode;
   rows: readonly React.ReactNode[];
   /** (T896) true: the whole key on one row (it was measured to fit the bar); false: the fixed rows. Unset: a wide window */
   oneRow?: boolean;
@@ -130,12 +132,17 @@ export function LegendRows({ rows, oneRow, firstOnly }: {
   if (firstOnly) rows = rows.slice(0, 1);
   return (
     <View testID="legend-rows" style={{ width: "100%", rowGap: 6 }}>
-      {rows.map((r, i) => (
-        <View key={i} testID="legend-row" style={{ flexDirection: "row", flexWrap: "wrap", alignItems: "center",
-                                                   columnGap: LEGEND_ROWS.column, rowGap: 6 }}>
-          {r}
-        </View>
-      ))}
+      {rows.map((r, i) => {
+        const row = (
+          <View key={i} testID="legend-row" style={{ flexDirection: "row", flexWrap: "wrap", alignItems: "center",
+                                                     columnGap: LEGEND_ROWS.column, rowGap: 6, ...(i === 0 && trailing ? { flex: 1 } : {}) }}>
+            {r}
+          </View>
+        );
+        return i === 0 && trailing
+          ? <View key={i} style={{ flexDirection: "row", alignItems: "center", columnGap: LEGEND_ROWS.column }}>{row}{trailing}</View>
+          : row;
+      })}
     </View>
   );
 }

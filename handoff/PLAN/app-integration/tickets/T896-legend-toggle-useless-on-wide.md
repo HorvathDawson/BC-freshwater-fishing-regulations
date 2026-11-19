@@ -26,3 +26,6 @@ in the bottom bar). Pictures at 1440 px and 390 px, before it lands.
   not an entry; `keyFits`); T377's fold test now expects the first row to stay.
 - Pictures (real MapLegend in Chrome at the measured widths, over a stand-in for the map; the Shell's map is not paired in a
   fixture): scratchpad `t896-shots/`: `trout-1440-fits.png` (key whole, no button), `trout-390-open.png`, `trout-390-folded.png`.
+- Revised (coordinator): where the key does not fit, the fold button sits at the right end of the key's FIRST row (`LegendRows
+  trailing`; that row gets the width left of the button), so folded is that one row, with no strip of its own. Salmon's source
+  line, when present, still heads the key above. Pictures re-rendered.
