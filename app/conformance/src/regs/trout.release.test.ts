@@ -41,7 +41,15 @@ let st: RegsStore;
 beforeAll(async () => { st = await openRegsStore(openTroutFixture()); });
 
 let reports: unknown[] = [], undo: () => void = () => {};
-beforeEach(() => { reports = []; undo = setFailureSink((e) => reports.push(e)); });
+/**
+ * (T910) This runs the WEB's store code in node, which has no Web Worker: the web's rules decoder says so once per process
+ * (`rulesDecode.web.ts`, reportOnce "regs-rules-worker"), in whichever case first reads rules. That is the test host, not
+ * the store or the trout view; `tools/rules-worker.test.ts` holds that report (a browser with no worker is still reported).
+ * Only that one report, and only where `Worker` is absent, is left out; every other report counts.
+ */
+const hostHasNoWorker = (e: unknown) => typeof Worker === "undefined" && e instanceof Error
+  && /^regs rules: this browser has no Web Worker;/.test(e.message);
+beforeEach(() => { reports = []; undo = setFailureSink((e) => { if (!hostHasNoWorker(e)) reports.push(e); }); });
 afterEach(() => undo());
 
 /** The case's section, inside its own water (as inputs.release.test.ts finds it). */
