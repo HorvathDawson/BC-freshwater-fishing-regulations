@@ -23,7 +23,7 @@ worker and data worker on both (prod: 0a3205f6, 3c598244). Production website ca
 release r-6258ffded676; smoke 18/0); staging website 09985e595 (19/0). Play: Closed = 39 (0.8.3 production, replaced
 staging 38 on the owner's pick, so Google reviews 39), Internal = 40 (0.8.3 staging). Android benches before the builds:
 44/44 (open 340-360 ms, pinch 55-57 fps). iPhone: 0.8.2 build 39 approved for External; 0.8.3 production build to
-TestFlight with T918 (adds itself to the External group, sends itself to Beta App Review).
+TestFlight with T918 (adds itself to the External group, sends itself to Beta App Review). Done 16:26: build 41 is in "testers ext", WAITING_FOR_BETA_REVIEW (run by hand: the build had started before T918 merged; Apple wanted `whatsNew`, fixed).
 
 **New tickets:** T917 (website page build ~17.6 min; baseline measured: 3.4 of 18 cores, 31 % of each render thread in
 synchronous compression, 153 s of share PNGs on the main thread), T918 (done here, its first real run is the 0.8.3

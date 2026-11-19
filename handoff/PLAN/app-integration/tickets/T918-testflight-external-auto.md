@@ -1,6 +1,6 @@
 # T918 — TestFlight: a new iPhone build goes to the External group by itself
 
-Status: IN PROGRESS (owner 2026-11-19 ~15:49; built on lane app/t918-testflight-external, tested with App Store Connect
+Status: DONE — merged 98b66c7e4, fixed f030e3938 (first real run 2026-11-19: 0.8.3 build 41 added to "testers ext" and submitted for Beta App Review).
 mocked; left (Claude/main chat): the first real run against App Store Connect, then merge).
 
 Owner 2026-11-19 (main chat), verbatim: "when we push new apple one will it update the version automatically for testers"
@@ -47,3 +47,10 @@ Commands:
 Unsure of Apple's behaviour (to confirm on the first real run): whether the app-level Beta App Review details (contact,
 "Beta App Information") are already filled (a submission without them is refused with Apple's message); whether Apple
 creates the build's en-CA beta localization itself (the script patches it, or creates one in the app's primary locale).
+
+
+## First real run (2026-11-19 ~16:26)
+The 0.8.3 production build started before the merge, so its bash ran the old script (upload only). Run alone:
+`node deploy/staging/testflight-distribute.mjs --version 0.8.3 --build 41` -> group "testers ext", What to Test set, added, submitted
+(WAITING_FOR_BETA_REVIEW). Apple refused `whatToTest` (409 unknown attribute): the API field is `whatsNew`; fixed in f030e3938
+with a test pinning the attribute name. The dry-run summary now says "would submit" instead of "no review needed".
