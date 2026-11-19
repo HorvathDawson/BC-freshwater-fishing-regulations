@@ -16,7 +16,7 @@ import {
   MAP_STYLE, NO_VALUES, STYLE_META, followerMode, followersOf, isRuntimeLayer, profileChannel,
   resolveTheme, type ChannelValues, type Tokens,
 } from "../style";
-import { ISSUE_LAYERS, issuePaint, CLOSED_CUE_LAYER, closedCuePaint, casingPaint, glowPaint, focusTheOthers, hideTheOthers, copyFillPaint, copyLinePaint, GEAR_LAYERS, gearPaint, NOACCESS_LAYER, noaccessPaint, NOBASELINE_LAYER, nobaselineOpacity, RUNS_PASS_LAYER, runsPassPaint,
+import { SALMON_CASING_LAYER, salmonCasingPaint, ISSUE_LAYERS, issuePaint, CLOSED_CUE_LAYER, closedCuePaint, casingPaint, glowPaint, focusTheOthers, hideTheOthers, copyFillPaint, copyLinePaint, GEAR_LAYERS, gearPaint, NOACCESS_LAYER, noaccessPaint, NOBASELINE_LAYER, nobaselineOpacity, RUNS_PASS_LAYER, runsPassPaint,
          paintFor, ringPaint, SELECTION_CASING, SELECTION_GLOW, SELECTION_RINGS, type SelectionCue,
          markShownIn, markWidth, splitStream, STREAM_HEAVY, streamWidths } from "../paint";
 import { openedPaint, waterOnImagery } from "../on-imagery";
@@ -249,6 +249,10 @@ export function baseAdapter(platform: "native" | "web"): MapAdapter {
         for (const [prop, value] of Object.entries(onGround(quiet(gearPaint("stream", mode, mark, tokens, values, gw)), gw, tokens)))
           h.setPaint(GEAR_LAYERS.stream[mark], prop, value);
       }
+      // (T887) the keep casing: the stream's mode (Salmon only), the salmon day and the stream's base width
+      h.setVisibility(SALMON_CASING_LAYER, markShownIn("salmonCasing", mode));
+      for (const [prop, value] of Object.entries(onGround(quiet(salmonCasingPaint(mode, tokens, values, sw.base)), sw.base, tokens)))
+        h.setPaint(SALMON_CASING_LAYER, prop, value);
       // (T199) a passing run's dash: the stream's mode and width
       const rw = markWidth("runs", mode, sw);
       h.setVisibility(RUNS_PASS_LAYER, markShownIn("runs", mode));

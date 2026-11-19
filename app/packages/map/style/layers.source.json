@@ -1254,7 +1254,7 @@
           "enum": "salmon_status",
           "categories": {
             "open": {
-              "token": "color.salmon.open"
+              "token": "color.salmon.open-area"
             },
             "release": {
               "token": "color.salmon.release"
@@ -1505,7 +1505,7 @@
           "enum": "salmon_status",
           "categories": {
             "open": {
-              "token": "color.salmon.open"
+              "token": "color.salmon.open-area"
             },
             "release": {
               "token": "color.salmon.release"
@@ -1817,7 +1817,7 @@
           "enum": "salmon_status",
           "categories": {
             "open": {
-              "token": "color.salmon.open"
+              "token": "color.salmon.open-area"
             },
             "release": {
               "token": "color.salmon.release"

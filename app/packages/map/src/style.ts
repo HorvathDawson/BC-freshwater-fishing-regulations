@@ -356,6 +356,13 @@ export function salmonStatusColour(theme: string, status: SalmonMapStatus): stri
   return hex;
 }
 
+/** (T887) The keep line's casing in one theme (option B: an ink edge round a bright keep), or null where it has none. */
+export function salmonCasingColour(theme: string): string | null {
+  const t = resolveTheme(theme);
+  const px = Number(t["width.salmon.casing"] ?? 0), hex = t["color.salmon.casing"];
+  return px > 0 && typeof hex === "string" ? hex : null;
+}
+
 /** (T199) The colour the Run timing mode paints a run state (or no run: `none`) in one theme — its legend swatch. */
 export function runStateColour(theme: string, state: "spawn" | "pass" | "off" | "none"): string {
   const hex = resolveTheme(theme)[`color.run.${state}`];

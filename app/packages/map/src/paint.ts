@@ -252,8 +252,14 @@ export function gearPaint(layerId: "stream" | "lake", mode: string, mark: GearMa
                           values: ChannelValues | null = NO_VALUES, streamWidth?: unknown): Record<string, unknown> {
   const shown = gearShown(layerId, mode, mark, values);
   const ramp = GEAR_RAMPS[GEAR_RAMP];
+  // (T887) on a Salmon keep section drawn in its casing, the edge sits OUTSIDE the casing, so the mark is never under it
+  const casingPx = mode === "salmon" ? Number(tokens["width.salmon.casing"] ?? 0) : 0;
+  const kept = casingPx > 0 ? (values ?? NO_VALUES).salmon?.open ?? [] : [];
+  const edge = (z: number) => 2 * GEAR_EDGE_PX * rampAt(ramp.edge, z);
   const width = layerId === "stream" && streamWidth !== undefined
-    ? withinZoomCurve(streamWidth, (w, z) => ["+", w, 2 * GEAR_EDGE_PX * rampAt(ramp.edge, z)])
+    ? withinZoomCurve(streamWidth, (w, z) => kept.length
+      ? ["+", w, ["case", salmonLabelIn(kept), edge(z) + 2 * casingPx, edge(z)]]
+      : ["+", w, edge(z)])
     : ["interpolate", ["linear"], ["zoom"],
        ...ramp.edge.flatMap(([z, f]) => [z, GEAR_RING_PX * f])];
   return {
@@ -264,6 +270,27 @@ export function gearPaint(layerId: "stream" | "lake", mode: string, mark: GearMa
     // zoom may only be the input of a top-level interpolate, so the day's test sits inside each stop
     "line-opacity": shown === null ? 0
       : ["interpolate", ["linear"], ["zoom"], ...ramp.opacity.flatMap(([z, o]) => [z, ["case", shown, o, 0]])],
+  };
+}
+
+/**
+ * (T887 option B, owner 2026-11-18: "Should be bright green for keep in light I think too?") THE KEEP LINE'S CASING: a
+ * thin ink edge each side of a Salmon-view stream section DFO lets you keep from, drawn UNDER the line, so a bright green
+ * (light) still stands off the light basemap — the casing meets the ground at 3:1, the green meets the casing. The theme
+ * switches it: `width.salmon.casing` 0 is no casing (option A, dark, colour-blind). Its own runtime layer (a line has no
+ * stroke of its own); its width is the stream's base width (no feature-state), shown only on the day's `open` labels.
+ */
+export const SALMON_CASING_LAYER = "stream-salmon-casing";
+
+export function salmonCasingPaint(mode: string, tokens: Tokens, values: ChannelValues | null = NO_VALUES,
+                                  streamWidth?: unknown): Record<string, unknown> {
+  const px = Number(tokens["width.salmon.casing"] ?? 0);
+  const open = (values ?? NO_VALUES).salmon?.open ?? [];
+  const w = streamWidth ?? ["interpolate", ["linear"], ["zoom"], 6, 1.2, 10, 2, 14, 3.2];
+  return {
+    "line-color": tokens["color.salmon.casing"],
+    "line-width": withinZoomCurve(w, (v) => ["+", v, 2 * px]),
+    "line-opacity": mode === "salmon" && px > 0 && open.length ? ["case", salmonLabelIn(open), 1, 0] : 0,
   };
 }
 
@@ -489,7 +516,7 @@ export function markWidth(mark: StreamMark, mode: string, sw: StreamWidths): unk
  * layer's visibility: that re-lays out every tile). A mark outside them is `visibility: none`: no bucket, no
  * feature-state work. `nobaseline` / `noaccess` / `runs` / `issue` / `gear` / `closed` as their paint functions read them.
  */
-export type ModalMark = "nobaseline" | "noaccess" | "gear" | "closed" | "runs" | "issue";
+export type ModalMark = "nobaseline" | "noaccess" | "gear" | "closed" | "runs" | "issue" | "salmonCasing";
 export function markShownIn(mark: ModalMark, mode: string, layerId: "stream" | "lake" = "stream"): boolean {
   const m = STYLE_META.colorModes[layerId]?.[mode];
   const cats = m && "categories" in m ? m.categories : {};
@@ -500,6 +527,7 @@ export function markShownIn(mark: ModalMark, mode: string, layerId: "stream" | "
     case "closed": return cats["closed"] !== undefined && (m?.scale === "profile" || m?.scale === "categorical");
     case "runs": return mode === "runs";
     case "issue": return issueShown(mode) !== null;
+    case "salmonCasing": return mode === "salmon";
   }
 }
 

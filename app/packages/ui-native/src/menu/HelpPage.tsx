@@ -10,7 +10,7 @@ import { Platform, View } from "react-native";
 import { Text } from "../Text";
 import { HELP_MAP_KEY, HELP_WORDS, WALKTHROUGH_WORDS, helpRowAloud, helpVM, type HelpRow, type HelpSection,
          type HelpSwatch } from "@app/core";
-import { gearEdgeColour, notFishingColours, runStateColour, salmonStatusColour, tidalColours } from "@app/map/colours";
+import { gearEdgeColour, notFishingColours, runStateColour, salmonCasingColour, salmonStatusColour, tidalColours } from "@app/map/colours";
 import { Button } from "../Button";
 import { DottedSwatch } from "../Chrome";
 import { BellGlyph, SyncGlyph } from "../TopBar";
@@ -39,7 +39,12 @@ export function HelpSwatchView({ swatch, palette, theme }: { swatch: HelpSwatch;
       const t = notFishingColours(theme);
       return <View testID="help-notfishing" style={{ width: W, height: 16, backgroundColor: t.fill, borderWidth: 1, borderColor: t.edge, borderStyle: "dashed" }} />;
     }
-    case "salmon": return line(salmonStatusColour(theme, swatch.status));
+    case "salmon": {
+      // (T887) option B's keep: the bright line in its ink casing, as the map draws it
+      const cased = swatch.status === "open" ? salmonCasingColour(theme) : null;
+      return cased ? <View style={{ width: W, height: 6, backgroundColor: salmonStatusColour(theme, swatch.status), borderWidth: 1, borderColor: cased }} />
+        : line(salmonStatusColour(theme, swatch.status));
+    }
     case "run": {
       const c = runStateColour(theme, swatch.state);
       return swatch.dotted ? <DottedSwatch colour={c} width={W} /> : line(c);

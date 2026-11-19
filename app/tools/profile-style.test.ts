@@ -99,8 +99,9 @@ describe("the profile colour mode", () => {
         // T377's closed stripe (`stream-closed`, on with the day's `closed` labels), and T735's glow under the part's
         // casing (`selection-glow`, look C: dark only; a theme with no glow has no such layer), and T759's issue stripe
         // (`stream-issue-casing` + `stream-issue-stripe`, off outside `salmon`), and T848's heavy line (`stream-heavy`: the
-        // stream's lit and closed sections over it) — all validated with the real paint
-        expect(patched, theme).toBe(theme === "dark" ? 24 : 23);
+        // stream's lit and closed sections over it), and T887's keep casing (`stream-salmon-casing`, off outside `salmon`) — all
+        // validated with the real paint
+        expect(patched, theme).toBe(theme === "dark" ? 25 : 24);
         for (const e of validateStyleMin(style as never)) problems.push(`${theme}: ${e.message}`);
       }
     expect(problems).toEqual([]);

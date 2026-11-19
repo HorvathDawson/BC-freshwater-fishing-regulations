@@ -1,6 +1,6 @@
 # T887 — Salmon map, light mode: keep is a bright green, clearly apart from release, closed and check
 
-Status: OPEN — built; lands after the owner sees the pictures (app chat).
+Status: OPEN — built; the owner picked option B (2026-11-18 ~23:16, "Option B"); lands after the review fixes are seen (app chat).
 
 Owner 2026-11-18 ~22:33, verbatim: "Light mode keep salmon vs closed or release has very little contrast. Should be
 bright green for keep in light I think too?"
@@ -39,3 +39,27 @@ Light keep `#016890` (deep teal-blue) -> `#007E33` (a saturated green on dark ke
 Pictures (scratchpad): t887-compare-cowichan.png (keep / release / closed, Jun 15 2027 — release exists only on the
 Cowichan in DFO's data), t887-compare-kamloops.png (keep / check / closed, Sep 15 2027), t887-compare-yearbar.png.
 No place carries all four at once at a readable zoom.
+
+## Option B (built after A's pictures: A's #007E33 sinks into the light map's green land)
+Light keep `#22C55E` (bright, hue 147 — dark mint's family) in a thin ink casing (`color.salmon.casing` = the gear ink
+#0A1116, 1.25 px each side, under the line; runtime layer `stream-salmon-casing`, Salmon view, the day's keep labels).
+- dE2000 vs release 69.0, closed 79.8, check 45.4; luminance vs closed 4.25:1.
+- Casing on the light grounds 11.1-15.4:1; the green on its casing 8.3:1. Deuteranopia vs closed 32.0 (Vienot) / 35.3
+  (Machado) — far better than A's 9.3, because B's green is light and closed is dark. Weakest pair: keep vs check under
+  deuteranopia 10.3 (both light).
+- Cards: a bright green cannot carry white words (2.3:1), so the Salmon card's chips, the year bar and its status word
+  use `color.ui.salmon-keep` (A's #007E33 in light; the map's keep elsewhere). Legend and Help keys draw the cased line.
+- THE SWITCH: light.json `color.salmon.open` + `width.salmon.casing` — A: #007E33 + 0; B: #22C55E + 1.25. Dark and cvd 0.
+  Every test passes in both. The branch is on B.
+- Lakes: a keep lake's fill and shoreline are the bright green with no casing (not built for B).
+
+## 2026-11-18 ~23:16: option B (owner)
+Shown A (#007E33) vs B (#22C55E with a 1.25 px dark casing) on the Cowichan, the owner picked B: "this is good too Option B". The branch is on B. Card chips and the year bar keep the deeper green (white text needs it).
+
+## Owner's pick and the review's two fixes (2026-11-18 ~23:16, "Option B")
+1. The keep casing hid the fly-only / bait-ban edges below about z13 (drawn over them). Now: selection casing, KEEP
+   CASING, gear edges, line — and on a kept section the edge is pushed outside the casing (`gearPaint`), so every zoom
+   shows it (src/salmon-casing.test.ts). The casing is a deep green (#004D2A: 5.9:1 or more on the ground, the green 4.4:1
+   on it, dE 27.9 from the gear ink) so a fly-only edge outside it reads as its own mark, not a thicker casing.
+2. Lakes and wetlands (fill + shoreline) had the bright green with no casing (about 2.3:1 on the ground). They now read
+   `color.salmon.open-area` (light #007E33, 3.05:1 worst ground; dark and cvd alias the keep). map-contrast checks it.
