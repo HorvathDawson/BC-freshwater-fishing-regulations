@@ -292,7 +292,7 @@ reads both files; a ticket closed here moves there once its lane is finished wit
 | T858 | Web: keyboard navigation in lists, starting with search (↑/↓ move the highlight, Enter opens; owner) | OPEN | app chat | owner 2026-11-18 |
 | T859 | Desktop web: the More tab's pages (About, Help, Glossary…) open as a card over the page, click outside to close (owner) | OPEN | app chat | owner 2026-11-18 |
 | T860 | More → Contact names Report a problem beside the email (owner wording ask) | OPEN | app chat | owner 2026-11-18 |
-| T861 | The Conditions map feels laggy like the Salmon map did (owner; same cause as T848/T855?) | OPEN | app chat | owner 2026-11-18 |
+| T861 | The Conditions map feels laggy like the Salmon map did (owner; same cause as T848/T855) | DONE in 0.8.1 | app chat | measured 2026-11-18: Conditions/Run timing zoom-out ~1 s -> 0 long tasks |
 | T862 | Search finds a water by its other names (Baker Lake → Sixteen Mile Lake); audit the stocking/bathymetry name variations (owner) | OPEN | main chat + app chat | owner 2026-11-18, future (after 0.8.1) |
 
 ## Next after closed testing
