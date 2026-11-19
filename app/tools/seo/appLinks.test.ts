@@ -5,7 +5,7 @@
  */
 import { readFileSync } from "node:fs";
 import { beforeAll, describe, expect, it } from "vitest";
-import { APP_LINK_HOSTS, APP_PACKAGE, PLAY_SIGNING_SHA256 } from "@app/core";
+import { APP_LINK_HOSTS, APP_PACKAGE, APP_STORE_URL, appStoreLink, PLAY_SIGNING_SHA256, PLAY_STORE_URL } from "@app/core";
 import { openRegsFixture } from "@app/data/release/node";
 import { buildAll, readIosTeamId, type Built } from "./build";
 import { TODAY } from "./fixture";
@@ -79,11 +79,21 @@ describe("T724 apple-app-site-association", () => {
   });
 });
 
-describe("T514 share page 'Open in the app'", () => {
-  it("is the greyed 'coming soon' until a listing address is set; one value turns it into the listing's link", () => {
-    expect(openInAppControl(null)).toBe(`<span class="app soon" aria-disabled="true">Open in the app · coming soon</span>`);
-    expect(openInAppControl("https://play.google.com/store/apps/details?id=ca.canifishthis.app"))
-      .toBe(`<a class="app" href="https://play.google.com/store/apps/details?id=ca.canifishthis.app">Open in the app</a>`);
-    expect(openInAppControl()).toContain("coming soon");     // the shipped default: the config value is null
+describe("T514 / T901 share page store buttons", () => {
+  const SOON = (t: string) => `<span class="app soon" aria-disabled="true">${t}</span>`;
+  it("both are greyed 'coming soon' until their listings are public (the shipped default)", () => {
+    expect(openInAppControl(null, null)).toBe(SOON("Google Play · coming soon") + SOON("App Store · iPhone app coming soon"));
+    expect(openInAppControl()).toContain("Google Play · coming soon");
+    expect(openInAppControl()).toContain("iPhone app coming soon");
+    expect(appStoreLink()).toBeNull();                            // the App Store page 404s today (TestFlight only)
+  });
+  it("each store has its own button and its own address", () => {
+    expect(openInAppControl(PLAY_STORE_URL, "https://apps.apple.com/app/id6835000455")).toBe(
+      `<a class="app" href="${PLAY_STORE_URL}">Google Play</a><a class="app" href="https://apps.apple.com/app/id6835000455">App Store</a>`);
+    expect(openInAppControl(PLAY_STORE_URL, null)).toBe(`<a class="app" href="${PLAY_STORE_URL}">Google Play</a>` + SOON("App Store · iPhone app coming soon"));
+  });
+  it("the addresses are core's: Play by package, the App Store by the Apple ID", () => {
+    expect(PLAY_STORE_URL).toBe(`https://play.google.com/store/apps/details?id=${APP_PACKAGE}`);
+    expect(APP_STORE_URL).toMatch(/^https:\/\/apps\.apple\.com\/app\/id\d+$/);
   });
 });

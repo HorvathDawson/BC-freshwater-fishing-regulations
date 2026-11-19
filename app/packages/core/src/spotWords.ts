@@ -112,8 +112,11 @@ export const WEB_SPOTS_WORDS = {
     "Spots don't show up on the website yet. Accounts are coming, so your spots will be on your phone and here.",
   ],
   getApp: "Get the app",
-  /** the Play listing (the app's own store link); spelled here so the web has one place for it */
-  appUrl: "https://play.google.com/store/apps/details?id=ca.canifishthis.app",
+  /** (T901) one button per store; the addresses are core's storeLinks.ts */
+  playButton: "Google Play",
+  appStoreButton: "App Store",
+  /** (T901) the App Store button while the page is not public yet: said plainly, not a link to a 404 */
+  appStoreSoon: "iPhone app coming soon",
   back: "Back to the map",
 } as const;
 
