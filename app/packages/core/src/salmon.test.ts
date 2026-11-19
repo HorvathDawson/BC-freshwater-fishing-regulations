@@ -231,7 +231,9 @@ describe("the Salmon card", () => {
     const map = (v: number) => (v === CHECK ? 4 : v === OPEN ? 1 : 2);
     const place = (v: number) => ({ sp: [[0, 0], [0, 0, 244, v, 305, 0], [0, 0], [0, 0], [0, 0]], m: [0, 3, 244, map(v), 305, 3] });
     const p = { ...PAYLOAD,
-      verdicts: [...PAYLOAD.verdicts, { s: "check", t: "To be determined (Sep 1–Oct 31)" }, { s: "open", t: "2 per day (Sep 1–Oct 31)" }],
+      // (T882) a "check" nobody could read (a DFO "To be determined" reads its own words: salmonTbd.test.ts)
+      verdicts: [...PAYLOAD.verdicts, { s: "check", t: "Dates unparsed — check DFO: 2 per day (as printed: Sept 1st to Oct 31th)" },
+                 { s: "open", t: "2 per day (Sep 1–Oct 31)" }],
       chains: [PAYLOAD.chains[0]!, { ...PAYLOAD.chains[1]!, u: ["1:cowichan", "1:other"] }, { ...PAYLOAD.chains[2]!, ...place(a) },
                { r: ["1"], w: "Other River", l: ["1:other"], g: [0, -1], n: [0, 0, 244, 1, 305, 0], ...place(b) }],
       unmapped: [...PAYLOAD.unmapped, { items: ["gnis:4674"], r: "1", w: "Kispiox River — at the other signs", chain: 3 }] };

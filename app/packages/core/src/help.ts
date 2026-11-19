@@ -303,7 +303,9 @@ export const HELP_WORDS = {
   gear: { fly: null, bait: null } satisfies Record<GearMark, string | null>,
   tidal: "DFO's tidal rules apply here.",
   notFishing: null,
-  salmon: { open: null, release: null, closed: null, check: null } satisfies Record<SalmonMapStatus, string | null>,
+  salmon: { open: null, release: null, closed: null,
+    // (T882) DFO's own "To be determined", or a DFO row the app could not read
+    check: "To be determined by DFO, or a DFO row the app couldn't read." } satisfies Record<SalmonMapStatus, string | null>,
   runs: {
     spawn: null, pass: null, off: null,
     none: "Not the same as no fish.",

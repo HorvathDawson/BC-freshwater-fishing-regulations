@@ -124,7 +124,7 @@ export function MapLegend({ col, conditions, palette, theme, mapDay }: {
       ) : col.regsLayer === "salmon" ? (
         // (T211) DFO's salmon: the salmon key in the salmon colours, and whose rules they are. The switch is under the
         // Layers button and the day in the map's corner (T213)
-        // (T396) two rows, as Trout & more's: three statuses, then Check DFO with the gear marks
+        // (T396) two rows, as Trout & more's: three statuses, then Check DFO (T882: the owner's pick) with the gear marks
         <LegendRows rows={[salmonRows.slice(0, 3), [...salmonRows.slice(3), ...gearRows, ...issueRow]]} />
       ) : (
         // The three statuses, in the words and colours every surface uses (@app/core

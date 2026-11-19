@@ -525,6 +525,18 @@ export const SALMON_WORDS = {
   releaseInPartCalm: "DFO allows catch and release of salmon in a part of this water the map can’t draw yet: check DFO for where. Everywhere else, follow this page.",
   closedCheckInPart: "Closed today · check DFO for part",
   checkInPartCalm: "DFO’s salmon rules for a part of this water the map can’t draw yet could not be read here: check DFO for where and what. Everywhere else, follow this page.",
+  /** (T882, owner 2026-11-18 ~21:18: "To be determined I think we could change to actually say to be determined") a
+   *  "check" whose every row is DFO's own "To be determined" (`isTbd`) says so, never "Check DFO": the row, the headline,
+   *  the folded row and the bar's day, the year bar's key, an undrawn place's in-part line. Its colour stays the check
+   *  colour (a row nobody could read keeps "Check DFO") */
+  tbd: {
+    status: "To be determined",
+    headline: "To be determined by DFO",
+    day: "to be determined",
+    key: "To be determined",
+    closedInPart: "Closed today · to be determined in part",
+    inPartCalm: "DFO has not set its salmon rules yet (“To be determined”) for a part of this water the map can’t draw yet: check DFO for where. Everywhere else, follow this page.",
+  },
   /** (T372) the caveat's water noun (only a boat rule's calm line says it; salmon has none) */
   waterNoun: "water",
   agency: "Fisheries and Oceans Canada",
@@ -591,7 +603,9 @@ export const SALMON_WORDS = {
   credit: (credit: string) => `Source: ${credit}. Check DFO's page before you fish.`,
   asOf: (iso: string | null) => (iso ? `DFO page dated ${dateWords(iso)}` : "DFO page date not stated"),
   legend: { open: "Salmon may be kept", release: "Salmon: release only", closed: "Closed to salmon",
-            check: "Check DFO (not mapped yet, or season not set)" } satisfies Record<SalmonMapStatus, string>,
+            /** (T882, proposal) the map's check colour is DFO's "To be determined" (the only one in the data, 2026-11-18)
+             *  or a DFO row the app could not read; a place not drawn yet never paints it (T679 D2) */
+            check: "To be determined by DFO, or a DFO row the app could not read" } satisfies Record<SalmonMapStatus, string>,
   /** PARTIAL COVERAGE (owner 2026-10-28): the water has DFO places not drawn yet */
   /** (owner 2026-10-28) the region page's header, compact */
   regionRules: "Region rules (DFO)",
@@ -640,6 +654,35 @@ export const SALMON_WORDS = {
   gearSalmonOnly: "Gear for salmon fishing: the B.C. gear rules below, and DFO's conditions",
   barDay: { open: "open", release: "release only", check: "check DFO", closed: "closed", varies: "differs along this part" } satisfies Record<SalmonBarStatus, string>,
 } as const;
+
+/**
+ * (T882) DFO'S OWN "TO BE DETERMINED": a "check" verdict whose every row is DFO's "To be determined" cell — the pipeline's
+ * `typed.py` TBD advisory, its words as printed then its window ("To be determined (Apr 1–Mar 31)", "To be determined (as
+ * printed: To be determined)"), rows joined by "; " (`deliver.salmon._text`). A row nobody could read (dates or wording:
+ * `DATES_UNPARSED` / `ROW_UNREAD` lead its words) is not one, nor a verdict mixing the two.
+ */
+const TBD_ROW = /^to be determined\b/i;
+function isTbd(v: Verdict | undefined): boolean {
+  return v?.s === "check" && v.t.split("; ").every((b) => TBD_ROW.test(b.trim()));
+}
+
+/** (T882) a species' "To be determined" on a chain's day, said only where its answer is DFO's row as read today: a HELD
+ *  place (`P.held`: DFO changed its row and the app could not read it, the earlier answer carried) keeps "Check DFO" and
+ *  the held line. The answering place is the chain's `a`; with none named (a release before T668 fix 4, or both regions'
+ *  words together), any held place of the chain holds it. */
+function tbdOn(P: Payload, chain: number, k: number, day: number): boolean {
+  const ch = P.chains[chain]!;
+  if (!isTbd(P.verdicts[at(ch.sp[k]!, day)])) return false;
+  if (!P.held?.length) return true;
+  const who = ch.a ? at(ch.a[k]!, day) : -1;
+  return who >= 0 ? !P.held.includes(ch.l[who]!) : !ch.l.some((l) => P.held!.includes(l));
+}
+
+/** (T882) a chain's day reads "check" only by DFO's "To be determined": every species that reads "check" is one (`tbdOn`) */
+function checkIsTbd(P: Payload, chain: number, day: number): boolean {
+  const ks = SALMON_SPECIES.map((_, k) => k).filter((k) => P.verdicts[at(P.chains[chain]!.sp[k]!, day)]?.s === "check");
+  return ks.length > 0 && ks.every((k) => tbdOn(P, chain, k, day));
+}
 
 function dateWords(iso: string): string {
   const [y, m, d] = iso.split("-").map(Number);
@@ -786,6 +829,11 @@ export interface SalmonBarVM {
   readonly today: SalmonBarStatus;
   readonly todayWord: string;
   readonly runs: readonly { readonly status: SalmonBarStatus; readonly days: number }[];
+  /** (T882) today's "check" is DFO's "To be determined" on every chain of the bar (absent otherwise) */
+  readonly todayTbd?: true;
+  /** (T882) every "check" day of the year is DFO's "To be determined" and no day differs along the part: the bar's key
+   *  for its uncertain days says "To be determined" (absent otherwise) */
+  readonly keyTbd?: true;
 }
 export interface SalmonYearVM {
   /** ONE bar for the viewed part / section, always (T820: a page closed every day draws the full closed bar) */
@@ -884,7 +932,8 @@ export function salmonBlock(f: SalmonFacts, chains: readonly number[], day: numb
     const st = statusOf(g.ixs);
     const quota = Object.fromEntries(g.sp.map((sp) => [sp, quotaOf(SALMON_SPECIES.indexOf(sp))]));
     return { key, species: g.sp, label: cap(g.sp.map((s) => SPECIES_NAME[s]).join(" · ")), status: st,
-             statusLabel: SALMON_WORDS.status[st],
+             statusLabel: st === "check" && chains.every((c) => g.sp.every((sp) => tbdOn(P, c, SALMON_SPECIES.indexOf(sp), day)))
+               ? SALMON_WORDS.tbd.status : SALMON_WORDS.status[st],
              notes: st === "varies" ? [SALMON_WORDS.varies] : notesOf(g.ixs, g.sp.some((sp) => quota[sp] === null)), quota,
              ...(st === "varies" ? {} : repeatsOf(g.ixs, g.sp.every((sp) => !!quota[sp]?.tree && !quota[sp]?.u))) };
   });
@@ -1046,9 +1095,14 @@ export function salmonCard(f: SalmonFacts, page: { sids: readonly number[]; item
   // DFO for part". More than one kind on the page-day: open, then catch and release, then check.
   const partKind = headlineStatus !== "closed" ? null
     : (["open", "release", "check"] as const).find((k) => undrawn.some((c) => salmonDayStatus(f, c, day) === k)) ?? null;
+  // (T882) "check" there only by DFO's "To be determined": "to be determined in part"
+  const partTbd = partKind === "check" && undrawn.every((c) => salmonDayStatus(f, c, day) !== "check" || checkIsTbd(P, c, day));
   const part = partKind === "open" ? { headline: SALMON_WORDS.closedOpenInPart, calm: SALMON_WORDS.openInPartCalm }
     : partKind === "release" ? { headline: SALMON_WORDS.closedReleaseInPart, calm: SALMON_WORDS.releaseInPartCalm }
-      : partKind === "check" ? { headline: SALMON_WORDS.closedCheckInPart, calm: SALMON_WORDS.checkInPartCalm } : null;
+      : partTbd ? { headline: SALMON_WORDS.tbd.closedInPart, calm: SALMON_WORDS.tbd.inPartCalm }
+        : partKind === "check" ? { headline: SALMON_WORDS.closedCheckInPart, calm: SALMON_WORDS.checkInPartCalm } : null;
+  // (T882) the page's "check" rows are all DFO's "To be determined": the headline says so (its colour stays the check one)
+  const headTbd = headlineStatus === "check" && rows.every((r) => r.status !== "check" || r.statusLabel === SALMON_WORDS.tbd.status);
   const inPart = inPartBlock(undrawnEntries(f, undrawn, unmapped, day), SALMON_WORDS.waterNoun);
   return {
     ...block, rows, regionRules, gearProvincial,
@@ -1077,7 +1131,7 @@ export function salmonCard(f: SalmonFacts, page: { sids: readonly number[]; item
                  ...(chains.some((c) => P.chains[c]!.l.some((l) => P.held?.includes(l))) ? [SALMON_WORDS.heldRow] : [])],
     title: SALMON_WORDS.title,
     badge: todayBy === "book" ? SALMON_WORDS.badgeBook : todayBy === "both" ? SALMON_WORDS.badgeBoth : SALMON_WORDS.badge,
-    headline: part ? part.headline : SALMON_WORDS.headline[headlineStatus], headlineStatus,
+    headline: part ? part.headline : headTbd ? SALMON_WORDS.tbd.headline : SALMON_WORDS.headline[headlineStatus], headlineStatus,
     notListed: listed || unmapped.length || unplaced.length || offs.length ? null : SALMON_WORDS.notListedLine,
     caveat: part && inPart ? { ...inPart, title: part.headline, calm: part.calm } : inPart,
     dfoWords: regionClosed ? null : wordsOf(P, [...chains.flatMap((c) => [...P.chains[c]!.l, ...(P.chains[c]!.u ?? [])]),
@@ -1231,7 +1285,17 @@ function salmonYear(f: SalmonFacts, chains: readonly number[], day: number): Sal
     return ss.size === 1 ? [...ss][0]! : "varies";
   };
   const st = own(day);
-  return { bars: [{ label: null, unmapped: false, today: st, todayWord: SALMON_WORDS.barDay[st], runs: runsOf(own) }], by };
+  // (T882) a "check" day said by DFO's "To be determined" on every chain of the part
+  const tbdOn = (i: number) => chains.every((c) => salmonDayStatus(f, c, i) !== "check" || checkIsTbd(f.payload, c, i));
+  const todayTbd = st === "check" && tbdOn(day);
+  let keyTbd = false;
+  for (let i = 0; i < BOOK_YEAR_DAYS; i++) {
+    const s = own(fileDay(i));
+    if (s === "varies" || (s === "check" && !tbdOn(fileDay(i)))) { keyTbd = false; break; }
+    if (s === "check") keyTbd = true;
+  }
+  return { bars: [{ label: null, unmapped: false, today: st, todayWord: todayTbd ? SALMON_WORDS.tbd.day : SALMON_WORDS.barDay[st],
+                    runs: runsOf(own), ...(todayTbd ? { todayTbd: true as const } : {}), ...(keyTbd ? { keyTbd: true as const } : {}) }], by };
 }
 
 /** The chains of the DFO places on the page's water not drawn yet (not dormant): the item's own, and those the page's
@@ -1334,7 +1398,7 @@ const DRAWN: Readonly<Record<SalmonBarStatus, SalmonDrawn>> = { open: "open", re
  *  the Salmon row's details. */
 export interface SalmonStripVM {
   readonly title: string;
-  /** the selected day: its status, mark ("✓ " / "✕" / none) and word ("Release only", "Check DFO" …) */
+  /** the selected day: its status, mark ("✓ " / "✕" / none) and word ("Release only", "Check DFO", "To be determined" …) */
   readonly status: SalmonBarStatus;
   readonly mark: string;
   readonly word: string;
@@ -1390,12 +1454,12 @@ export function salmonStripOf(card: SalmonCardVM, general: {
       Record<SalmonSourceBy, string>)[card.year.by],
     status: bar.today,
     mark: bar.today === "open" || bar.today === "release" ? "✓ " : bar.today === "closed" ? "✕" : "",
-    word: SALMON_WORDS.status[bar.today],
+    word: bar.today === "check" && bar.todayTbd ? SALMON_WORDS.tbd.status : SALMON_WORDS.status[bar.today],
     when: general?.line.find((l) => l.kind === "when")?.text ?? null,
     soon, runs,
     generalTitle: SALMON_WORDS.barGeneral,
     legend: (["open", "release", "unknown", "closed"] as const).filter((d) => present.has(d))
-      .map((d) => ({ drawn: d, label: SALMON_WORDS.barLegend[d] })),
+      .map((d) => ({ drawn: d, label: d === "unknown" && bar.keyTbd ? SALMON_WORDS.tbd.key : SALMON_WORDS.barLegend[d] })),
   };
 }
 

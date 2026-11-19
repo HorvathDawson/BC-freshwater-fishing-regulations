@@ -130,6 +130,7 @@ describe("the Help page (T248)", () => {
       "status-base": "Only the region's rules apply.",
       "status-no_access": "Regulations still apply; check access first.",
       tidal: "DFO's tidal rules apply here.",
+      "salmon-check": "To be determined by DFO, or a DFO row the app couldn't read.",
       "run-none": "Not the same as no fish.",
       "sync-stale": "Tap it, or restart the app.",
       "sync-error": "Tap the red mark to retry.",

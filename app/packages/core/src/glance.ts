@@ -74,7 +74,7 @@ export function troutGlance(t: TroutVM): GlanceRowVM {
 }
 
 /**
- * The Salmon card's folded row: its title, and its status word ("closed", "check DFO" …) only when every row of the
+ * The Salmon card's folded row: its title, and its status word ("closed", "check DFO", "to be determined" …) only when every row of the
  * card has that status; else none. (T372, the trout way) an undrawn DFO place is the card's caveat, not its answer.
  */
 export function salmonGlance(card: SalmonCardVM): GlanceRowVM {
@@ -87,7 +87,10 @@ export function salmonGlance(card: SalmonCardVM): GlanceRowVM {
   const s = all.length && all.every((x) => x === all[0]) ? all[0]! : null;
   if (s === null || s === "varies") return { source: "dfo", thumb: "CO", name: card.title, value: null, tone: "keep", ...mark };
   const word = SALMON_WORDS.status[s];
-  return { source: "dfo", thumb: "CO", name: card.title, value: s === "check" ? word.replace(/^Check/, "check") : word.toLowerCase(),
+  // (T882) every row DFO's own "To be determined": the row says so, never "check DFO"
+  const tbd = s === "check" && card.rows.every((r) => r.statusLabel === SALMON_WORDS.tbd.status);
+  return { source: "dfo", thumb: "CO", name: card.title,
+           value: tbd ? SALMON_WORDS.tbd.day : s === "check" ? word.replace(/^Check/, "check") : word.toLowerCase(),
            tone: s === "closed" ? "closed" : s === "release" ? "release" : "keep", ...mark };
 }
 
