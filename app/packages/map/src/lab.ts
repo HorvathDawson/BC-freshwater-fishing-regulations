@@ -9,8 +9,9 @@
  *
  * AT ITS DEFAULTS IT IS TODAY'S MAP: the one default that is not "off" is `hideInvisible` (owner 2026-11-06, after the
  * stressed A/B and a phone check: ON for every build) — it hides only layers drawing nothing, so the picture is the same.
- * (T903, 2026-11-19, after an interleaved A/B on the emulator) `paintDefault` is ON for every build too: the label tests
- * written against the day's default draw exactly the same picture (`paint-default.test.ts` evaluates it).
+ * (T903, 2026-11-19, after interleaved A/Bs on the emulator) `paintDefault` and `labelMatch` are ON for every build too:
+ * the label tests written against the day's default, as hashed `match`es, draw exactly the same picture
+ * (`tools/paint-default.test.ts` evaluates both forms).
  * `lab.test.ts` pins that, that with it off the style comes back as the very object, and that each switch moves only
  * the layers it names.
  */
@@ -60,7 +61,7 @@ export const LABEL_SWITCH: Readonly<Record<LabelGroup, keyof Lab>> = {
 export const LAB_DEFAULT: Readonly<Lab> = Object.freeze({
   pixelCap: true, prefetch: 4, streamsOneBucket: false, roads: true, landuse: true, labels: true, stateGapMs: 0, hideInvisible: true,
   waterNames: true, placeNames: true, roadNames: true, areaNames: true, gaugePills: true, marks: true, holdLabels: true,
-  paintDefault: true, labelMatch: false,
+  paintDefault: true, labelMatch: true,
 });
 
 /** Read once: Metro inlines `EXPO_PUBLIC_*` at build time. */

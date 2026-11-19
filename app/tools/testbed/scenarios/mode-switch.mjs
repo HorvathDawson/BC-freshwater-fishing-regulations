@@ -5,7 +5,7 @@
 // `pan`). Arms are map-lab settings, each a cold start, so before / after run on the SAME build. A measurement, no budget.
 //
 //   node app/tools/testbed/run.mjs mode-switch
-//     MS_ARMS=a;b       arms: `base`, or `lab:<k=v,…>` (default base;lab:paintDefault=true;lab:paintDefault=true,labelMatch=true)
+//     MS_ARMS=a;b       arms: `base`, or `lab:<k=v,…>` (default base;lab:labelMatch=false;lab:paintDefault=false: today, then each T903 switch off)
 //     MS_ROUNDS=n       rounds per arm (default 3)
 //     MS_AT=lon,lat,z   (default -121.95,49.17,11: the Fraser Valley)
 //
@@ -19,7 +19,7 @@ import { cameraTo } from './perf.mjs';
 import { mapFrames, mapLayer, presents } from './pan.mjs';
 import { applyLab, parseLab } from '../lib/lab.mjs';
 
-const ARMS = (process.env.MS_ARMS ?? 'base;lab:paintDefault=true;lab:paintDefault=true,labelMatch=true')
+const ARMS = (process.env.MS_ARMS ?? 'base;lab:labelMatch=false;lab:paintDefault=false')
   .split(';').map((s) => s.trim()).filter(Boolean);
 const ROUNDS = Number(process.env.MS_ROUNDS ?? 3);
 const AT = (process.env.MS_AT ?? '-121.95,49.17,11').split(',').map(Number);

@@ -1,8 +1,9 @@
 /**
  * (T903, owner 2026-11-19: "maybe it should default stream color to red then only paint things different then that?")
  * PAINT ONLY WHAT DIFFERS FROM A DEFAULT — the map-lab switch `paintDefault` (`lab.ts`), ON for every build since the
- * interleaved emulator A/B of 2026-11-19 (mode switches faster, pans the same, the same look: `paint-default.test.ts`).
- * `labelMatch` stays a lab switch, off.
+ * interleaved emulator A/B of 2026-11-19 (mode switches faster, pans the same, the same look: `tools/paint-default.test.ts`).
+ * `labelMatch` is ON for every build too since the stressed A/B of 2026-11-19 ~13:00 on top of it (quick pinch and
+ * zoom-out draw +61 / +78 % frames, map workers −18 / −20 %, pans and mode switches not worse; T903).
  *
  * Where the time goes on the Salmon map is not the feature-state WRITES (one per section whatever the mode: the status,
  * salmon and method labels ride ONE state call per section, so a mode with a default would save ~10 % of them) but the

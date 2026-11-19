@@ -120,9 +120,11 @@ describe("(T903) paint against the day's default", () => {
     for (const match of [false, true]) expect(JSON.stringify(paintDefaultStyle(today, VALUES, { match })).length).toBeLessThan(JSON.stringify(today).length);
   });
 
-  it("is on by default: the map is handed the default-painted style; with no day it is today's very object", () => {
+  it("is on by default, hashed: the map is handed the default-painted style; with no day it is today's very object", () => {
     expect(LAB_DEFAULT.paintDefault).toBe(true);
-    expect(LAB_DEFAULT.labelMatch).toBe(false);
+    expect(LAB_DEFAULT.labelMatch).toBe(true);
+    // (T903, stressed A/B 2026-11-19) hashed by default: the map is handed no feature-state label scan
+    expect(JSON.stringify(labStyle(style("salmon", "light"), LAB_DEFAULT, VALUES))).not.toMatch(/\["in",\["coalesce",\["feature-state"/);
     const today = style("salmon", "light");
     expect(JSON.stringify(labStyle(today, LAB_DEFAULT, VALUES)))
       .toBe(JSON.stringify(labStyle(paintDefaultStyle(today, VALUES, { match: LAB_DEFAULT.labelMatch }), { ...LAB_DEFAULT, paintDefault: false })));
