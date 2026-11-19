@@ -26,6 +26,7 @@ import { modalBackIos } from './scenarios-ios/modal-back.mjs';
 import { auditFixes } from './scenarios-ios/audit-fixes.mjs';
 import { build36Ios, t814BgIos } from './scenarios-ios/build36.mjs';
 import { conditionsIos } from './scenarios-ios/conditions.mjs';
+import { nullClearsIos } from './scenarios-ios/null-clears.mjs';
 
 process.env.TESTBED_PLATFORM = 'ios';
 const HERE = path.dirname(new URL(import.meta.url).pathname);
@@ -630,6 +631,8 @@ const SCENARIOS = [
   t814BgIos,
   // (T826) the Conditions tab on iOS: gauge markers, the flow bar, the Chehalis, the highlight after back
   conditionsIos,
+  // (T832) a river that loses its standing at a horizon change shows none on iOS (the null-clear fix), pixels read
+  nullClearsIos,
 ];
 
 // ---------- the runner (as run.mjs, without the Android-only crash buffer and test channel) ----------
