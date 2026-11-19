@@ -296,6 +296,7 @@ reads both files; a ticket closed here moves there once its lane is finished wit
 | T862 | Search finds a water by its other names (Baker Lake → Sixteen Mile Lake); audit the stocking/bathymetry name variations (owner) | OPEN | main chat + app chat | owner 2026-11-18, future (after 0.8.1) |
 | T863 | 0.8.1 to friends: production builds, Play closed testing and TestFlight external (owner) | OPEN | app chat + owner | owner 2026-11-18 |
 | T864 | A tester far from B.C.: location must not glitch; a plain note that it is not useful there (owner) | OPEN | app chat | owner 2026-11-18 |
+| T866 | Trim the test suites: combine overlapping tests, remove true duplicates (owner) | OPEN | app chat + main chat | owner 2026-11-18, after the 0.8.1 releases |
 
 ## Next after closed testing
 
