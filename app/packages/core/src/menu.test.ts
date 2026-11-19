@@ -463,9 +463,9 @@ describe("freshness: each source against its own cadence (owner 2026-10-22)", ()
 
 describe("contact", () => {
   // (T860, owner 2026-11-18) the intro names the report form beside the email, its first "Report a problem" the link
-  const INTRO = "Questions, corrections and ideas are welcome. Email us, or send a note from the app with Report a problem. "
+  const INTRO = "Questions, corrections and ideas are welcome. I read every message. Email me, or send a note from the app with Report a problem. "
     + "A water's regulations have their own Report a problem link, which names the water for you.";
-  const LINK = { before: "Questions, corrections and ideas are welcome. Email us, or send a note from the app with ",
+  const LINK = { before: "Questions, corrections and ideas are welcome. I read every message. Email me, or send a note from the app with ",
                  link: "Report a problem",
                  after: ". A water's regulations have their own Report a problem link, which names the water for you." };
 
@@ -591,7 +591,7 @@ describe("report a problem, sent (T237)", () => {
     expect(reportPayload({ ...base, email: "a@b.ca", on: {} }).contact).toBe(false);
     expect(reportPayload({ ...base, email: "nope", contact: true, on: {} }).contact).toBe(false);
     expect(reportPayload({ ...base, email: "", contact: true, on: {} }).contact).toBe(false);
-    expect(MENU_WORDS.report.privacy).toBe("We use your report only to fix the app's data. It holds what you wrote and "
+    expect(MENU_WORDS.report.privacy).toBe("I use your report only to fix the app's data. It holds what you wrote and "
       + "the details you left switched on; your email, if you give one, is used only to reply — and only if you tick "
       + "‘You may contact me’.");
     expect(emailProblem("")).toBeNull();

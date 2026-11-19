@@ -151,7 +151,8 @@ export const MENU_WORDS = {
   contact: {
     title: "Contact",
     /** (T860, owner 2026-11-18) the intro names the report form beside the email; its first `report` is the form's link */
-    intro: "Questions, corrections and ideas are welcome. Email us, or send a note from the app with Report a problem. "
+    intro: "Questions, corrections and ideas are welcome. I read every message. Email me, or send a note from the app with "
+      + "Report a problem. "
       + "A water's regulations have their own Report a problem link, which names the water for you.",
     /** (T860) the intro's link to the report form (the same entry as About's `report.fromAbout`) */
     report: "Report a problem",
@@ -160,14 +161,14 @@ export const MENU_WORDS = {
     link: "Website",
   },
   report: {
-    intro: "Tell us what is wrong. Nothing leaves this device until you send it yourself, and only what you can see below.",
+    intro: "Tell me what is wrong. Nothing leaves this device until you send it yourself, and only what you can see below.",
     what: "What's wrong?",
     whatHint: "For example: the closure dates on this river do not match the Synopsis.",
     diagnostics: "Include with your report",
     diagnosticsHint: "Switch off anything you would rather not share.",
     send: "Send by email",
     share: "Share…",
-    noShare: "Sharing is not available here. Copy the report below and send it to us.",
+    noShare: "Sharing is not available here. Copy the report below and send it to me.",
     empty: "Write a few words about the problem first.",
     preview: "This is what will be sent",
     subject: `${APP_NAME} problem report`,
@@ -196,11 +197,11 @@ export const MENU_WORDS = {
     sending: "Sending…",
     sent: "Thank you — your report was sent.",
     queued: "You are offline. Your report is saved on this device and will be sent when you are back online.",
-    queuedRetry: "We could not reach our server. Your report is saved on this device and will be sent automatically.",
+    queuedRetry: "Couldn't reach my server. Your report is saved on this device and will be sent automatically.",
     refused: (why: string) => `The report was not accepted: ${why}`,
     another: "Report something else",
     /** the privacy line under the form */
-    privacy: "We use your report only to fix the app's data. It holds what you wrote and the details you left switched on; "
+    privacy: "I use your report only to fix the app's data. It holds what you wrote and the details you left switched on; "
       + "your email, if you give one, is used only to reply — and only if you tick ‘You may contact me’.",
     /** (owner 2026-10-29) shown only once an email is given; off by default */
     contact: "You may contact me about this report",
@@ -258,7 +259,7 @@ export const CRASH_WORDS = {
   on: "On",
   off: "Off",
   hint: "When the app hits an error it sends the error, the app version, the kind of screen, the id of the water you had open "
-    + "and a random id made on this device to our own server. Never your location, spots or photos. Nothing else.",
+    + "and a random id made on this device to my own server. Never your location, spots or photos. Nothing else.",
 } as const;
 
 /**

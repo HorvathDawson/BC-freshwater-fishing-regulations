@@ -211,7 +211,7 @@ describe("the More tab (T48; owner 2026-10-22 refinement; T167)", () => {
 
   it("Contact, inline at the bottom: a placeholder until the owner supplies the one value; then that address", () => {
     render(<App out={{}} />);
-    expect(text("more-contact")).toBe("Questions, corrections and ideas are welcome. Email us, or send a note from the "
+    expect(text("more-contact")).toBe("Questions, corrections and ideas are welcome. I read every message. Email me, or send a note from the "
       + "app with Report a problem. A water's regulations have their own Report a problem link, which names the water "
       + "for you."
       + "Contact details are coming soon. Until then, use Report a problem to share a note from your device.");
@@ -225,7 +225,7 @@ describe("the More tab (T48; owner 2026-10-22 refinement; T167)", () => {
     render(<App out={out} info={{ appBuild: null, contact: "hello@example.org" }} />);
     const link = screen.getByTestId("contact-report");
     expect([text("contact-intro"), link.textContent, link.getAttribute("role"), said("contact-report")]).toEqual([
-      "Questions, corrections and ideas are welcome. Email us, or send a note from the app with Report a problem. "
+      "Questions, corrections and ideas are welcome. I read every message. Email me, or send a note from the app with Report a problem. "
         + "A water's regulations have their own Report a problem link, which names the water for you.",
       "Report a problem", "link", MENU_WORDS.report.fromAbout]);
     expect(screen.queryByTestId("menu-page-report")).toBeNull();
@@ -525,7 +525,7 @@ describe("report a problem", () => {
     // the diagnostics, each visible with its switch
     expect(screen.getAllByTestId(/^report-diag-/).map((e) => e.getAttribute("data-testid"))).toEqual(
       ["report-diag-app", "report-diag-platform", "report-diag-tiles", "report-diag-where", "report-diag-errors"]);
-    expect(screen.getByText("Tell us what is wrong. Nothing leaves this device until you send it yourself, and only "
+    expect(screen.getByText("Tell me what is wrong. Nothing leaves this device until you send it yourself, and only "
       + "what you can see below.")).toBeTruthy();
     expect(text("report-empty")).toBe("Write a few words about the problem first.");
     press("Share…");                                   // inert while empty
@@ -557,7 +557,7 @@ describe("report a problem", () => {
     pick("menu-item-report");
     act(() => { fireEvent.change(screen.getByTestId("report-what"), { target: { value: "x" } }); });
     await act(async () => { fireEvent.click(screen.getByLabelText("Share…")); });
-    expect(text("report-noshare")).toBe("Sharing is not available here. Copy the report below and send it to us.");
+    expect(text("report-noshare")).toBe("Sharing is not available here. Copy the report below and send it to me.");
   });
 });
 
