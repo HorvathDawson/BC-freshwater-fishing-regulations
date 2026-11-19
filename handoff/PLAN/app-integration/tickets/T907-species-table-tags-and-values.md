@@ -21,3 +21,10 @@ Asked whether every table row should name its source, only tributary rows, or on
 "i meant in the trout table. simialr to how it has "this water" ". So: the TROUT table's rows say a tributary source
 the way the trout table already marks "this water" (same slot, same style, the sheet's kicker words: "Trout Lake’s
 tributaries"), rather than a separate grey sentence under the fish. The other fish rows are not asked about here.
+
+## Owner 2026-11-19 ~12:27 (dialog, with the Glenn Creek picture)
+- Shared tag (Moyie River: every row the same tag): verbatim "each row is good but the tag neds to be improved... the
+  baddly formattred double line tag is nasty looking...". So: keep the tag on each row (no hoist, no section change);
+  redo the tag's LOOK so a long name doesn't wrap into a two-line outlined box (round 2, pictures before integrating).
+- Names already ending in "Tributaries" ("Lake Revelstoke's Tributaries' tributaries"): picked "Drop the repeat" →
+  "Lake Revelstoke's tributaries".

@@ -23,3 +23,7 @@ should have clever and coffee forecast options". So: (1) at the top, the Conditi
 bar (Low → High ramp with the Normal band) with this gauge's reading marked on it, same tokens and same component logic
 as the app's key; (2) the CLEVER and COFFEE flow forecasts as options on the chart (where the gauge has them), each in
 its own colour (T895) and toggled as in the app.
+
+## Owner 2026-11-19 ~12:27 (dialog, with the r3 header pictures)
+Grey line wording: picked "App's words, as built" ("Lower than 9 days in 10 for the date · rises to 2× (Fri 27 Nov) ·
+read 9:20 a.m. PT"), so web and phone match. Settled; no change.
