@@ -17,6 +17,7 @@ import { useCoachTarget } from "../CoachMarks";
 import { View } from "react-native";
 import { Text } from "../Text";
 import { Pressable } from "../Pressable";
+import { useLayoutClass } from "@app/ui";
 import { RunDayCaption, RunDaySlider, RunSpeciesChips } from "../RunsControls";
 import type { FishImages } from "../regs/types";
 import { LEGEND_RAMP_MAX, LegendCount, LegendRamp, LegendRows, LegendStrip } from "../Chrome";
@@ -233,6 +234,11 @@ export function RunsKey({ theme, palette, bottom }: { theme: string; palette: Pa
  * line below appears only while loading — never the routine offline line. Tap it for the whole text. (T367) What is
  * WRONG (stale, failed) is the bar over the map (`PairBanner`), not a grey line here.
  */
+/**
+ * (T902) the Runs bar's column: 760 px on a phone; from the tablet class (900 px) up it widens to 960 (the window less its 14 px margins, if narrower) so the species chips
+ * (six species and All, each with its fish) sit on one line, with no sideways scroll (RunSpeciesChips wraps if ever more).
+ */
+const RUNS_PANEL_MAX = { phone: 760, tablet: 960, desktop: 960 } as const;
 export function RunsLegend({ col, palette, theme, fishImages }: { col: MapColouring; palette: Palette; theme: string;
                                                                       fishImages?: FishImages }) {
   const r = col.runs;
@@ -243,13 +249,14 @@ export function RunsLegend({ col, palette, theme, fishImages }: { col: MapColour
     name: s.name, colour: palette.runSpecies[s.name] ?? palette.sub, season: r.facts!.season(slotsFor(r.facts!, [s], r.year)),
   })) : []), [r.facts, r.chosen, r.year, palette.sub]);
   const [open, setOpen] = useState(false);
+  const layout = useLayoutClass();
   // (T261) the walkthrough points at the species row by this key
   const speciesTarget = useCoachTarget("runs:species");
   const note = !r.problem && r.loading ? RUN_WORDS.loading : null;
   return (
     <View testID="runs-legend" style={{ borderTopWidth: 1, borderTopColor: palette.line, backgroundColor: palette.card,
                                         paddingHorizontal: 14, paddingTop: 8, paddingBottom: 8, gap: 6 }}>
-      <View style={{ width: "100%", maxWidth: 760, alignSelf: "center", gap: 6 }}>
+      <View style={{ width: "100%", maxWidth: RUNS_PANEL_MAX[layout], alignSelf: "center", gap: 6 }}>
         {/* (T367, owner 2026-11-04) THE SPECIES, in the bar with the rest of run timing (they sat over the map): tap to
             show or hide, long-press for one alone, All for every one; each chip's colour is its band in the histogram */}
         {r.species.length > 0 && (
