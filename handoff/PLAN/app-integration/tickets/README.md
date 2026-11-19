@@ -303,7 +303,7 @@ reads both files; a ticket closed here moves there once its lane is finished wit
 | T877 | "Which day?" calendar: six weeks every month, every day under its weekday (owner) | IN PROGRESS — left (Claude): merge into app/integrate-081-web, then the look on a phone build | lane app/t877-calendar-grid | owner 2026-11-18 ~20:46 |
 | T869 | The chinook annual limit says "over 50 cm" where it counts ADULT chinook, which is over 62 or 65 cm on some rivers (owner) | OPEN | main chat | owner 2026-11-18 ~20:22 |
 | T870 | Salmon card: Source (DFO) lists every DFO row behind its answers; each bait-ban line says whose, once; a whole-year window reads "all year" (owner) | OPEN | main chat | owner 2026-11-18 ~20:25 |
-| T876 | Quick pinch-zoom lags on the phone (owner trace 20:35); an old issue, not a 0.8.1 regression (owner 20:51) | OPEN | app chat | owner 2026-11-18, after launch |
+| T876 | Quick pinch-zoom lags on the phone (owner trace 20:35); an old issue, not a 0.8.1 regression (owner 20:51) | IN PROGRESS | app chat | owner 2026-11-18, after launch |
 | T868 | Each fish's picture once per sheet: the Whitefish sheet drew them twice (owner) | PARTIAL — 7b0738a3f + 940dde702; left (Claude): merge lane app/fix-dup-pics into app/integrate-081-web | app chat | owner 2026-11-18 |
 | T871 | Trout table: say "counts toward the N" once per box (owner) | DROPPED | app chat | owner 2026-11-18 ~20:53: "Not this change" |
 | T872 | Conditions: the watershed "by day" card folded unless someone opens it (owner) | DONE | 3abb3dc4e | app chat; owner 2026-11-18 (T872–T874 approved ~20:53) |
