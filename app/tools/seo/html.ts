@@ -119,7 +119,7 @@ export function aboutBody(site: Site, asOf: string): string {
     `stocking records from the Freshwater Fisheries Society of BC. Their terms of use are respected.</p>` +
     `<p>Every page on this site is built from the same release as the app, so the two never disagree.</p>` +
     `<div class="legal"><p>${esc(NOT_LEGAL)} <a href="${esc(SYNOPSIS_PDF)}" rel="noopener">Official synopsis (PDF)</a>.</p></div>` +
-    `<p>If a rule looks wrong, tell us; every report gets a reply and a fix.</p>${contact}` +
+    `<p>If a rule looks wrong, tell me; every report gets a reply and a fix.</p>${contact}` +
     `<p><a class="app" href="${esc(site.origin)}/">Open the app</a></p>`;
 }
 
@@ -135,27 +135,27 @@ export function privacyBody(site: Site, asOf: string): string {
     `<p>${esc(site.name)} is a free, non-profit app and website that shows BC freshwater fishing regulations. ` +
     `It has no accounts, no ads and no tracking. This page says what the app and this website do with your information.</p>` +
     `<h2>The short version</h2><ul>` +
-    `<li>Your photos and the spots you save stay on your device, and the app never sends us your GPS position. Two things that can show roughly where you were do leave it, both explained below: a saved spot’s place, rounded to about 1 km, goes to a weather service, and a problem report you choose to send includes the middle of the map you were looking at.</li>` +
-    `<li>The app sends us two things: a problem report, only when you press Send, and, unless you switch it off, a short error report when the app itself fails.</li>` +
-    `<li>We do not sell or share your information, and we use no advertising or analytics services.</li></ul>` +
+    `<li>Your photos and the spots you save stay on your device, and the app never sends me your GPS position. Two things that can show roughly where you were do leave it, both explained below: a saved spot’s place, rounded to about 1 km, goes to a weather service, and a problem report you choose to send includes the middle of the map you were looking at.</li>` +
+    `<li>The app sends me two things: a problem report, only when you press Send, and, unless you switch it off, a short error report when the app itself fails.</li>` +
+    `<li>I do not sell or share your information, and I use no advertising or analytics services.</li></ul>` +
     `<h2>Location</h2><p>If you allow it, the app uses your location while it is open, to show where you are on the map, ` +
-    `to show what is near you, and to pin a spot where you are standing. It is used on your device and is not sent to us. Two things described below can show roughly where you were: the weather request for a spot you pinned where you stood, and the map centre in a problem report you choose to send. ` +
+    `to show what is near you, and to pin a spot where you are standing. It is used on your device and is not sent to me. Two things described below can show roughly where you were: the weather request for a spot you pinned where you stood, and the map centre in a problem report you choose to send. ` +
     `The app never uses your location in the background. You can turn the permission off in your phone settings; the map still works.</p>` +
     `<h2>Camera and photos</h2><p>The app asks for the camera or your photos only so you can attach a picture to a spot you saved. ` +
     `The pictures stay on your device and are not uploaded.</p>` +
     `<h2>Saved spots</h2><p>Spots, notes and photos are stored only on your device, and there is no account. ` +
-    `If you delete the app or clear its data, they are gone; we cannot recover them.</p>` +
+    `If you delete the app or clear its data, they are gone; I cannot recover them.</p>` +
     `<h2>Weather for a spot</h2><p>To show the weather at a spot you saved, the app sends that spot’s coordinates, rounded to about 1 km, and the date to ` +
     `<a href="https://open-meteo.com" rel="noopener">Open-Meteo</a>, a weather service, and shows what comes back. ` +
     `If you pinned the spot where you were standing, that is roughly where you were. ` +
-    `Open-Meteo’s servers see your device’s IP address as any website would; we do not control their records. ` +
+    `Open-Meteo’s servers see your device’s IP address as any website would; I do not control their records. ` +
     `Nothing else about you is sent with the request.</p>` +
-    `<h2>Downloads from our servers</h2><p>The app downloads the regulations, the map and river-gauge readings (including past days’ flow) and salmon notices from our servers, ` +
-    `which run on Cloudflare. Each request carries the app’s version (so we can tell old versions from new) ` +
+    `<h2>Downloads from my servers</h2><p>The app downloads the regulations, the map and river-gauge readings (including past days’ flow) and salmon notices from my servers, ` +
+    `which run on Cloudflare. Each request carries the app’s version (so I can tell old versions from new) ` +
     `and, as with any web request, your IP address, which Cloudflare handles to serve the request. ` +
     `These downloads are the same for everyone and do not include your location, your spots or any identifier. ` +
-    `Our servers, not the app, fetch the underlying data from Environment and Climate Change Canada and Fisheries and Oceans Canada.</p>` +
-    `<h2>Map and satellite imagery</h2><p>The map is drawn from files on our servers. Its fonts and symbols come from our servers too. When you turn satellite imagery on, the app asks Esri for the picture tiles of the area ` +
+    `My servers, not the app, fetch the underlying data from Environment and Climate Change Canada and Fisheries and Oceans Canada.</p>` +
+    `<h2>Map and satellite imagery</h2><p>The map is drawn from files on my servers. Its fonts and symbols come from my servers too. When you turn satellite imagery on, the app asks Esri for the picture tiles of the area ` +
     `you are looking at, so Esri sees those tile requests and your IP address. Imagery is shown only while online and is not stored.</p>` +
     `<h2>Sharing and directions</h2><p>Share makes a link to the water you are viewing (the water, the view, the place on the map and the day) and hands it to the app you pick. Directions opens Google Maps with a spot’s parking point. Both happen only when you tap them, and what the other app does with what it receives follows that app’s own policy.</p>` +
     `<h2>Reporting a problem</h2><p>Sending a report is your choice, and the form shows exactly what will go. A report holds:</p><ul>` +
@@ -165,16 +165,16 @@ export function privacyBody(site: Site, asOf: string): string {
     `the install id described below, and recent app errors);</li>` +
     `<li>your email address, only if you type one. It is used only to reply, and only if you tick “You may contact me”.</li></ul>` +
     `<p>Reports are stored privately on Cloudflare, are read only by the people who run the app, and are not published. ` +
-    `We do not store your IP address with a report: to limit abuse we keep only a salted one-way hash of it, which cannot be turned back into an address. ` +
+    `I do not store your IP address with a report: to limit abuse I keep only a salted one-way hash of it, which cannot be turned back into an address. ` +
     `Reports are deleted automatically 180 days after they are received, including any email in them. ` +
     `To have your report or email deleted sooner, write to ${mail}.</p>` +
-    `<h2>App errors (crash reports)</h2><p>When the app hits an error it did not expect, it sends one short report to our own server on Cloudflare. ` +
-    `We use no third-party crash-reporting service. This is on by default and you can turn it off at any time in More → Settings → Privacy → “Send crash reports”; ` +
+    `<h2>App errors (crash reports)</h2><p>When the app hits an error it did not expect, it sends one short report to my own server on Cloudflare. ` +
+    `I use no third-party crash-reporting service. This is on by default and you can turn it off at any time in More → Settings → Privacy → “Send crash reports”; ` +
     `when it is off nothing is sent. An error report holds only:</p><ul>` +
     `<li>the app version, whether it is a test or live build, your phone’s system name and version (or “web”), and the data release the app was using;</li>` +
-    `<li>the kind of screen you were on — map, conditions, runs, spots, menu or a water page — and, when a water was open, that water’s id number in our data ` +
+    `<li>the kind of screen you were on — map, conditions, runs, spots, menu or a water page — and, when a water was open, that water’s id number in my data ` +
     `and how its page was set (which view and part, whether the whole water was shown, whether a search or a spot was open); never the water’s name, where you were or what you searched for;</li>` +
-    `<li>an install id: a random number the app makes once on your device, so we can tell whether several errors came from one install or from many. ` +
+    `<li>an install id: a random number the app makes once on your device, so I can tell whether several errors came from one install or from many. ` +
     `It is not your device’s identifier or advertising identifier and is made from nothing about you or your device; the same id goes with a problem report you send. ` +
     `Uninstalling the app (or clearing its data) deletes it, and a new one is made;</li>` +
     `<li>the error itself: its type, its message with any quoted text, web address, e-mail address, coordinates and long numbers removed, and the app’s own code trace (file names and line numbers);</li>` +
@@ -190,11 +190,11 @@ export function privacyBody(site: Site, asOf: string): string {
     `<p>It never includes your location, spots, photos, notes, searches, e-mail address or any device or advertising identifier (only the random install id above). ` +
     `Each different error is sent once per time the app runs, and only while you are online; an error that happens offline is not saved to send later, ` +
     `except one that stops the app, which is kept on your device and sent the next time the app starts (and deleted from your device if you have switched crash reports off). ` +
-    `We keep one stored record per kind of error, with a count, the app versions and the install ids it was seen in; we do not store your IP address, ` +
-    `and to limit abuse we keep only a salted one-way hash of it for a day’s counting. Error records are deleted automatically 90 days after the error was last seen.</p>` +
+    `I keep one stored record per kind of error, with a count, the app versions and the install ids it was seen in; I do not store your IP address, ` +
+    `and to limit abuse I keep only a salted one-way hash of it for a day’s counting. Error records are deleted automatically 90 days after the error was last seen.</p>` +
     `<h2>This website</h2><p>The website serves plain pages. It sets no cookies and runs no analytics, advertising or tracking scripts. ` +
     `Cloudflare, which hosts it, sees ordinary request information such as your IP address.</p>` +
-    `<h2>No selling, no sharing</h2><p>We do not sell your information, and we do not share it for advertising. ` +
+    `<h2>No selling, no sharing</h2><p>I do not sell your information, and I do not share it for advertising. ` +
     `The services named above (Cloudflare, Open-Meteo, Esri) receive only the requests described here.</p>` +
     `<h2>Children</h2><p>The app is not aimed at children under 13 and does not knowingly collect their information. ` +
     `It asks for none beyond the optional report.</p>` +
@@ -203,9 +203,9 @@ export function privacyBody(site: Site, asOf: string): string {
     `<h2 id="delete">Deleting your data (Can I Fish This?)</h2>` +
     `<p>Spots, photos, notes and settings live only on your device: delete them in the app, or uninstall the app, and they are gone.</p>` +
     `<p>To delete a problem report you sent (and any email address in it): write to ${mail} from that address, or with the date ` +
-    `and the words of the report, and ask for it to be deleted. We delete it within 30 days and reply to confirm.</p>` +
-    `<p>Crash reports hold no name, email or place, only the random install id, which we cannot connect to a person; they are deleted automatically 90 days after the error was last seen. ` +
-    `Problem reports we are not asked to delete are deleted automatically 180 days after they are received. We keep nothing else about you.</p>` +
+    `and the words of the report, and ask for it to be deleted. I delete it within 30 days and reply to confirm.</p>` +
+    `<p>Crash reports hold no name, email or place, only the random install id, which I cannot connect to a person; they are deleted automatically 90 days after the error was last seen. ` +
+    `Problem reports I am not asked to delete are deleted automatically 180 days after they are received. I keep nothing else about you.</p>` +
     `<h2>Contact</h2><p>Questions, or a request to delete a report: ${mail}.</p>` +
     `<p><a class="app" href="${esc(site.origin)}/">Open the app</a></p>`;
 }

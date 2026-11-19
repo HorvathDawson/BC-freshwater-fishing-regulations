@@ -63,7 +63,7 @@ function madeOf(text: string, leaves: ReadonlySet<string>, longest: number): boo
 
 const rollup = (ss: readonly RegsPage["status"][]): WaterStatus => (new Set(ss).size === 1 ? ss[0]! : "mixed");
 const OPENS: Record<WaterStatus, RegExp> = {
-  open: /^Open/, closed: /^Closed/, tidal: /^Tidal/, outside: /^Outside/, unknown: /^We could not/, mixed: /^Open in some parts/,
+  open: /^Open/, closed: /^Closed/, tidal: /^Tidal/, outside: /^Outside/, unknown: /^I could not/, mixed: /^Open in some parts/,
 };
 
 /** The ways `model` differs from the app's own pages for its parts; [] = agrees. */
