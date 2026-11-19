@@ -7,7 +7,8 @@
  * error log. Nothing here is fetched for the menu except the glossary, read from the regs
  * store only while its page is open.
  *
- * Each open level is a back layer (G1): back closes a glossary term, then the page.
+ * Each open level is a back layer (G1): back closes a glossary term, then the page. (T859) At desktop width each page is a
+ * card over the page (`MenuPage`): its ✕ and the scrim close the page outright, a term with it (`onClose`).
  */
 import { useMemo } from "react";
 import { platformLine } from "../platformLine";
@@ -112,7 +113,7 @@ export function MenuHost({ menu, palette, theme = "light", onWalkthrough, loader
   return (
     <>
       <MenuPage open={s.page === "glossary"} title={term?.term ?? MENU_WORDS.items.glossary.label}
-                onBack={term ? menu.closeTerm : menu.closePage} palette={palette} scroll={false}
+                onBack={term ? menu.closeTerm : menu.closePage} onClose={menu.closePage} palette={palette} scroll={false}
                 backLabel={term ? MENU_WORDS.items.glossary.label : undefined} testID="menu-page-glossary">
         {s.page === "glossary" && (
           <GlossaryPage glossary={glossary} term={s.term} onTerm={menu.openTerm} onCloseTerm={menu.closeTerm}

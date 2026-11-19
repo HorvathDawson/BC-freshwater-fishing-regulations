@@ -20,6 +20,7 @@ import { GlossaryPage } from "./GlossaryPage";
 import { MenuContext } from "./MenuContext";
 import { MoreScreen, type MobileDataControl } from "./MoreScreen";
 import { MenuHost, type MenuInfo } from "./MenuHost";
+import { MenuPage } from "./MenuPage";
 import { ReportLink, WaterReportLink } from "./ReportLink";
 import { RegsScreen } from "../regs/RegsScreen";
 import { createTabStore } from "../regs/tabStore";
@@ -381,9 +382,9 @@ describe("a page", () => {
       + "All other copyright (c) for Lucide are held by Lucide Contributors 2022."]);
   });
 
-  it("(T167) a menu page on a wide screen reads in a centred column; a phone's is the full width", () => {
+  it("(T167) a menu page on a tablet reads in a centred column; a phone's is the full width (desktop: a card, T859)", () => {
     const widths: (string | null)[] = [];
-    for (const width of [390, 1280]) {
+    for (const width of [390, 1279]) {
       render(<App out={{}} width={width} />);
       pick("menu-item-sources");
       const col = screen.getByTestId("source-synopsis").parentElement!.parentElement as HTMLElement;
@@ -391,6 +392,126 @@ describe("a page", () => {
       cleanup();
     }
     expect(widths).toEqual([null, "680px"]);
+  });
+});
+
+describe("(T859) a menu page at desktop width is a card over the page", () => {
+  const keyUp = (key: string) => { act(() => { fireEvent.keyUp(document, { key }); }); settle(); };
+
+  it("1280 px: About opens as a card (✕, the scrim) with no ‹ Back; 1279 px: the full-window page as before", () => {
+    const seen: Record<number, unknown> = {};
+    for (const width of [390, 1279, 1280]) {
+      render(<App out={{}} width={width} />);
+      pick("menu-item-about");
+      const page = screen.getByTestId("menu-page-about");
+      seen[width] = {
+        card: screen.queryByTestId("menu-card-close") !== null,
+        scrim: screen.queryByTestId("menu-card-scrim") !== null,
+        back: screen.queryByLabelText("Back") !== null,
+        width: page.style.maxWidth || null,
+        title: screen.getAllByRole("heading").map((e) => e.textContent).includes("About"),
+      };
+      cleanup();
+    }
+    expect(seen).toEqual({
+      390: { card: false, scrim: false, back: true, width: null, title: true },
+      1279: { card: false, scrim: false, back: true, width: null, title: true },
+      1280: { card: true, scrim: true, back: false, width: "680px", title: true },
+    });
+  });
+
+  it("the card's ✕, the scrim, Escape and the one back each close it", () => {
+    const closes: Record<string, () => void> = {
+      close: () => pick("menu-card-close"),
+      scrim: () => pick("menu-card-scrim"),
+      escape: () => keyUp("Escape"),
+      back: () => { act(() => { out.back!.back(); }); settle(); },
+    };
+    const out: { back?: Back } = {};
+    const shut: Record<string, boolean> = {};
+    for (const [k, close] of Object.entries(closes)) {
+      render(<App out={out} width={1280} />);
+      pick("menu-item-about");
+      expect(screen.getByTestId("menu-page-about")).toBeTruthy();
+      close();
+      shut[k] = screen.queryByTestId("menu-page-about") === null;
+      // nothing left open: a further back has nothing to close
+      let r = true;
+      act(() => { r = out.back!.back(); });
+      shut[`${k} then back`] = !r;
+      cleanup();
+    }
+    expect(shut).toEqual({ close: true, "close then back": true, scrim: true, "scrim then back": true,
+                           escape: true, "escape then back": true, back: true, "back then back": true });
+  });
+
+  it("the scrim is under the card and takes no keyboard focus; a press inside the card does not close it", () => {
+    render(<App out={{}} width={1280} />);
+    pick("menu-item-about");
+    const scrim = screen.getByTestId("menu-card-scrim");
+    expect([scrim.getAttribute("tabindex"), scrim.style.zIndex, scrim.style.backgroundColor !== ""]).toEqual(["-1", "0", true]);
+    act(() => { fireEvent.click(screen.getByText("About", { selector: "[role=heading]" })); });
+    settle();
+    expect(screen.getByTestId("menu-page-about")).toBeTruthy();
+  });
+
+  it("focus moves into the card (its ✕) when it opens and back to the More row that opened it when it closes", () => {
+    render(<App out={{}} width={1280} />);
+    const row = screen.getByTestId("menu-item-about");
+    act(() => { row.focus(); });
+    pick("menu-item-about");
+    expect(document.activeElement).toBe(screen.getByTestId("menu-card-close"));
+    keyUp("Escape");
+    expect([screen.queryByTestId("menu-page-about"), document.activeElement]).toEqual([null, row]);
+  });
+
+  it("a glossary term inside the card: Escape / back close the term, then the page; the ✕ closes both at once", () => {
+    const terms: GlossaryTerm[] = [
+      { id: "bait", term: "Bait", says: "Anything an angler offers a fish to eat.", pages: [80], quote: "", source: "" }];
+    const ready = { state: "ready", value: { terms, pdfPages: { 80: 82 } }, error: null } as const;
+    // MenuHost's glossary wiring, over a glossary already read (the host reads it from a release)
+    function Glossary({ out }: { out: { back?: Back; menu?: MenuControls } }) {
+      const [route, go] = useRoute();
+      const b = useBack(route, go, null);
+      const menu = useMenu();
+      out.back = b; out.menu = menu;
+      const s = menu.state;
+      const term = s.page === "glossary" && s.term ? terms.find((t) => t.id === s.term) ?? null : null;
+      return (
+        <LayoutWidthContext.Provider value={1280}>
+          <BackLayerContext.Provider value={b.layers}>
+            <MenuPage open={s.page === "glossary"} title={term?.term ?? "Glossary"} palette={LIGHT} scroll={false}
+                      onBack={term ? menu.closeTerm : menu.closePage} onClose={menu.closePage}
+                      backLabel={term ? "Glossary" : undefined} testID="menu-page-glossary">
+              {s.page === "glossary" && <GlossaryPage glossary={ready} term={s.term} onTerm={menu.openTerm}
+                                                      onCloseTerm={menu.closeTerm} palette={LIGHT} />}
+            </MenuPage>
+          </BackLayerContext.Provider>
+        </LayoutWidthContext.Provider>
+      );
+    }
+    const out: { back?: Back; menu?: MenuControls } = {};
+    const at = () => [screen.queryByTestId("menu-page-glossary") ? "glossary" : "closed",
+                      screen.queryByTestId("glossary-term") ? "term" : "-"];
+    const steps: string[][] = [];
+    for (const close of [() => keyUp("Escape"), () => { act(() => { out.back!.back(); }); settle(); }]) {
+      render(<Glossary out={out} />);
+      act(() => { out.menu!.show("glossary"); }); settle();
+      act(() => { out.menu!.openTerm("bait"); }); settle();
+      steps.push(at()); close(); steps.push(at()); close(); steps.push(at());
+      cleanup();
+    }
+    render(<Glossary out={out} />);
+    act(() => { out.menu!.show("glossary"); }); settle();
+    act(() => { out.menu!.openTerm("bait"); }); settle();
+    pick("menu-card-close");
+    steps.push(at());
+    let r = true;
+    act(() => { r = out.back!.back(); });
+    expect([steps, r]).toEqual([[
+      ["glossary", "term"], ["glossary", "-"], ["closed", "-"],
+      ["glossary", "term"], ["glossary", "-"], ["closed", "-"],
+      ["closed", "-"]], false]);
   });
 });
 
