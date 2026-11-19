@@ -2858,3 +2858,7 @@ More questions (recommended answer first):
 - 2026-11-18 ~21:50, owner (main chat), verbatim: "They should deploy with same cadence ish as app. Like versions should
   match" -> the production website moves with the app versions: tonight's site is 0.8.1 (with T868/T877/T872-T875);
   the next prod web deploy is 0.8.2, when the phones' 0.8.2 releases. Not every batch.
+- 2026-11-18 ~22:02, owner (main chat), Lillooet braids near Pemberton on staging
+  (/Users/dawson.horvath/.claude/uploads/b8ddfca9-44eb-400e-a9bf-bd89b4b0f359/8b47b3ee-image.png): "Isn't braiding like
+  this supposed to be simplified more ?"; dialog, his words: "We could simplify these even more in tile building? Yes
+  side channels should be less bold too." -> T891 (tiles: main chat; style: app chat; pictures first).
