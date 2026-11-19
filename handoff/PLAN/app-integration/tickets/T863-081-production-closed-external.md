@@ -58,3 +58,4 @@ real review early). Claude started `deploy/staging/build-ios-testflight.sh` (sta
 iPhone build, then TestFlight external + App Store review (manual release) in parallel.
 Owner the same message: his Android 0.8.2 (Play build 38) reads staging data — expected: build 38 is the staging build;
 production phone builds come after `release --prod` (his).
+**Uploaded 11:29:** 0.8.2 as iOS build 39 (staging data) to App Store Connect; version files app/ios/0.8.2.json + appstore.json on the staging bucket. Owner: add 39 to the internal group.
