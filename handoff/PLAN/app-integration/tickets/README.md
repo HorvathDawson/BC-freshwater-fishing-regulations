@@ -301,7 +301,7 @@ reads both files; a ticket closed here moves there once its lane is finished wit
 | T894 | The app's version files per build and per version (Play: play/<versionCode>.json; iPhone: ios/<version>.json) | IN PROGRESS | app chat | review of T888, 2026-11-19 |
 | T895 | Each flow forecast model draws in its own colour, so a toggled model can be told apart (owner) | IN PROGRESS | app chat | owner 2026-11-19 ~00:40 |
 | T896 | The map key's fold button is useless on a wide screen: show the key, no button, where it fits (owner) | IN PROGRESS | app chat | owner 2026-11-19 ~00:51 |
-| T897 | The More tab has no "‹ <previous tab>" link; its pages keep ‹ More (owner) | IN PROGRESS | app chat | owner 2026-11-19 ~01:04 |
+| T897 | The More tab's back says "Back", not a tab's name; its head stays put while it scrolls (owner) | IN PROGRESS | app chat | owner 2026-11-19 ~01:04 |
 | T882 | Salmon: DFO's "To be determined" says so instead of "Check DFO"; green whenever any salmon is open (owner) | DONE | b2a5f2522 | owner 2026-11-18 ~21:18 |
 | T884 | A fish sheet's big "20 a day" is cut off at the top on an iPhone (owner) | DONE | 1d19ef12b, fcc3ce3a8 | owner 2026-11-18 ~21:30 |
 | T886 | "How to tell a hatchery fish": a natural fish (the loader's coho), not a smiling one (owner) | DONE | 7a13d8671, 0e4f21738 | owner 2026-11-18 ~21:30 |
