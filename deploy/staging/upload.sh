@@ -118,9 +118,10 @@ deploy/staging/sync-inputs.sh
 cp_ "$M" release/manifest.json --header-upload "Cache-Control: no-cache" --header-upload "Content-Type: application/json"
 # (T433) THE CLEAR COMES AFTER THE POINTER: everything this release does not name goes now, so a failure anywhere above
 # leaves the old manifest + release live. Spared: (T199/T412) runtiming/ (feeds-runtiming.yml, its only publisher),
-# (T251) test/ (the update-test channel), feeds/ + private/ (the worker's), app/android/, and this release's own keys.
-echo "clear $D of what $REL does not name (except feeds/, private/, runtiming/, test/, app/android/)"
-rclone delete "$D" --s3-no-check-bucket --exclude "feeds/**" --exclude "private/**" --exclude "runtiming/**" --exclude "test/**" --exclude "app/android/**" \
+# (T251) test/ (the update-test channel), feeds/ + private/ (the worker's), app/android/, (T894) app/ios/ (the iPhone's
+# version files: appstore.json + one per version), and this release's own keys.
+echo "clear $D of what $REL does not name (except feeds/, private/, runtiming/, test/, app/android/, app/ios/)"
+rclone delete "$D" --s3-no-check-bucket --exclude "feeds/**" --exclude "private/**" --exclude "runtiming/**" --exclude "test/**" --exclude "app/android/**" --exclude "app/ios/**" \
   --exclude "release/manifest.json" --exclude "release/tiles/$TILES/**" --exclude "release/$REL/**" --exclude "release/$BM" \
   --exclude "release/$SYN" --exclude "map-assets/v1/**" --exclude "/*.wasm"
 # (T442) test/ is spared, but its manifest names the release just cleared: pointed at this one, or a test-channel

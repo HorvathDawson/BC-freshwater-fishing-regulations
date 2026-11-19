@@ -30,3 +30,8 @@ Built (lane `app/t894-version-files`, from app/integrate-082 57be9eb3b, 2026-11-
    default, bc-fishing-regulations with --production), one file per version with the redo hint, Play's own file
    before play.json in both paths.
 No build command changes: the same scripts write the new files. The pruner (prod_prune) never touches `app/`.
+
+## Review of 7bc81d896 (2026-11-19 ~00:58): nothing blocks; two older holes fixed in 0.8.2
+- deploy/staging/upload.sh's staging clear now spares `app/ios/**` (it wiped appstore.json and the per-version files).
+- build-apk.sh writes the build's environment (`env`) into play.json; `--publish-only` refuses a file of another (or no)
+  environment before reading the published file or putting anything. Tests in test_staging_scripts_fail_safe.py.

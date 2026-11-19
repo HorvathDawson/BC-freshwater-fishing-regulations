@@ -177,6 +177,9 @@ if [[ -n $PUBLISH_ONLY ]]; then
   # never put back an OLDER build's file over what Play builds read now (play.json; the per-build file is its own)
   LOCALB=$(python3 -c 'import json,sys;print(json.load(open(sys.argv[1]))["build"])' "$PJ")
   [[ $LOCALB =~ ^[1-9][0-9]*$ ]] || { echo "build-apk --publish-only: $PJ names no versionCode ('$LOCALB'); refused" >&2; exit 1; }
+  # (T894 review) the build's environment is in its file: a staging build's file never goes to production, nor the reverse
+  PJENV=$(python3 -c 'import json,sys;print(json.load(open(sys.argv[1])).get("env",""))' "$PJ")
+  [[ $PJENV == "$ENVWORD" ]] || { echo "build-apk --publish-only: $PJ is a ${PJENV:-unmarked} build, this is $ENVWORD; refused" >&2; exit 1; }
   PUBB=$(curl -fsS -A bc-fishing-build-apk "$BASE/play.json" | python3 -c 'import json,sys;print(json.load(sys.stdin)["build"])') \
     || { echo "build-apk --publish-only: cannot read the published $BASE/play.json; refused" >&2; exit 1; }
   (( LOCALB >= PUBB )) || { echo "build-apk --publish-only: $PJ is build $LOCALB, older than the published build $PUBB; refused" >&2; exit 1; }
@@ -424,7 +427,7 @@ if [[ -n $PLAY ]]; then
   PNOTES=$OUT/notes-$CODE.txt; { echo "$NOTES_HEAD $VER ($CODE)"; echo "$CH" | sed 's/^/- /'; } | cut -c1-500 > "$PNOTES"
   # (T234 v1.1) what a Play build reads to learn of this version (its background check + the bell's "What's new");
   # written BEFORE the upload so --publish-only can redo the put + email if a later step fails
-  python3 -c 'import json,sys;v=json.loads(sys.argv[1]);v["maplibre"]=sys.argv[2];print(json.dumps(v))' "$VERSION_JSON" "$MLN_GOT" > "$OUT/play.json"
+  python3 -c 'import json,sys;v=json.loads(sys.argv[1]);v["maplibre"]=sys.argv[2];v["env"]=sys.argv[3];print(json.dumps(v))' "$VERSION_JSON" "$MLN_GOT" "$ENVWORD" > "$OUT/play.json"
   "$REPO/.venv/bin/python" "$REPO/deploy/staging/play-upload.py" --aab "$OUT/$NAME" --package $PKG --track "$TRACK" --notes-file "$PNOTES"
   echo "$SHA_FULL" > "$REPO/app/dist/apk/last-play-sha"   # (T533) the FAST_FAIL_BASE of the next --play build
   # (T894) the build's own file first: a Play build reads the file of the versionCode Play offers it (any track, after a

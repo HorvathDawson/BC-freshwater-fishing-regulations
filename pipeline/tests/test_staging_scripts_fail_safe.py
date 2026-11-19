@@ -39,7 +39,8 @@ def test_upload_clears_after_the_pointer_and_spares_the_release():
     assert clear and all(i > pointer for i in clear), "the clear must come after the pointer flip"
     cmd = " ".join(run[clear[0]:clear[0] + 3])
     for spared in ('"release/manifest.json"', '"release/tiles/$TILES/**"', '"release/$REL/**"', '"release/$BM"',
-                   '"release/$SYN"', '"feeds/**"', '"private/**"', '"runtiming/**"', '"test/**"'):
+                   '"release/$SYN"', '"feeds/**"', '"private/**"', '"runtiming/**"', '"test/**"', '"app/android/**"',
+                   '"app/ios/**"'):   # (T894 review) the iPhone's version files survive a staging release
         assert f"--exclude {spared}" in cmd, spared
 
 
@@ -422,3 +423,15 @@ def test_both_uploaders_run_the_one_format_check():
         assert "status.json" not in body, rel                       # no second copy of the question
     staging = (ROOT / "deploy/staging/sync-inputs.sh").read_text()
     assert "FEEDS_WORKER_NOT_LIVE" not in staging and "\nNO_WORKER_YET=\n" in staging   # staging never claims it
+
+
+def test_publish_only_refuses_a_build_of_the_other_environment():
+    """(T894 review) a staging build's play.json never goes to the production bucket by --publish-only, nor the reverse:
+    the build writes its environment into the file, and --publish-only refuses a file of another (or no) environment
+    before any read of the published file or any put."""
+    sh = (ROOT / "deploy/staging/build-apk.sh").read_text()
+    assert 'v["env"]=sys.argv[3]' in sh and '"$MLN_GOT" "$ENVWORD" > "$OUT/play.json"' in sh
+    block = sh[sh.index("if [[ -n $PUBLISH_ONLY ]]; then"):]
+    block = block[:block.index("\nfi\n")]
+    refuse = block.index('[[ $PJENV == "$ENVWORD" ]] || {')
+    assert refuse < block.index('PUBB=$(curl') < block.index("r2 object put")
