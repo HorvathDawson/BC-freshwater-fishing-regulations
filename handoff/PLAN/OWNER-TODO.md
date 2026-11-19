@@ -2886,3 +2886,12 @@ More questions (recommended answer first):
   gear), KEEP Web Analytics (no beacon on the pages today), Robots sync OFF (Bot Preference Sync / managed robots: only
   our robots.txt, AI assistants may read the site), KEEP AI Labyrinth. Bot fight mode already off. The main chat checks
   robots.txt and the page scripts after he flips them.
+- 2026-11-18 ~22:58, owner (main chat): Bot Preference Sync turned OFF (checked: canifishthis.ca/robots.txt is ours
+  only); "cant find javascript detections … it isnt in the gear with 1. i have paid worker plan". The zone's plan has no
+  JavaScript-detections switch (Workers Paid is not a zone plan); the jsd script stays on the pages for now (harmless,
+  costs page-speed score). Later, not urgent: find another way to keep it off the water pages if search ranking needs
+  it. Cloudflare steps DONE. Left: his word "switched" (old cron + workflows off, drop-v1.sh).
+- 2026-11-18 ~22:58, owner (app chat), on the five re-sent proposal pictures, verbatim: "all are good ( T878 … T879 …
+  T881 … T883 … T886 … ) except sunrise/set should be a bit better in same spot" -> T879 two headers one table, T881 gauge
+  map, T883 "How this was decided", T886 hatchery drawing: approved for 0.8.2. T878: keep the spot under the date, make
+  the line look better (variants to him). Also ~22:50 (dialog): the salmon map key's short label is "Check DFO" (T882).
