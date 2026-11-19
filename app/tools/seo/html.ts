@@ -69,6 +69,7 @@ dialog.join{position:fixed;inset:0;margin:auto;width:min(26rem,calc(100vw - 2rem
 dialog.join::backdrop{background:var(--scrim)}dialog.join h2{margin:0 2.5rem .6rem 0;font-size:1.15rem}dialog.join p{margin:.4rem 0}
 dialog.join .x{position:absolute;top:.4rem;right:.4rem;width:2.5rem;height:2.5rem;border:0;background:none;color:var(--ink);font-size:1.3rem;cursor:pointer}
 dialog.join .acts{display:flex;flex-wrap:wrap;gap:.5rem;margin:.8rem 0 .2rem}dialog.join .acts .app{flex:1 1 9rem;margin:0;text-align:center;border:0;font:inherit;font-weight:600;cursor:pointer;border-radius:0}
+dialog.join .acts .app.alt{background:transparent;color:var(--accent);border:1.5px solid var(--ink);padding:calc(.65rem - 1.5px) calc(1rem - 1.5px)}
 dialog.join .addr{font-weight:600;user-select:all;word-break:break-all}
 .yb svg{display:block;width:100%;height:auto}.yb text{font-size:10px;fill:var(--muted)}.yb .o{fill:var(--open)}.yb .c{fill:var(--closed)}.yb ul{margin:.4rem 0 0}
 .gv .reading{font-size:1.15rem;margin:.2rem 0}.gv .reading b{font-size:1.9rem}.gv .standing{font-weight:600;margin:.1rem 0}

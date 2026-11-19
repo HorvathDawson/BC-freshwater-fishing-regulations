@@ -161,7 +161,7 @@ export function openInAppControl(play: string | null = playStoreLink(), appStore
       `<button type="button" class="x" data-close aria-label="${esc(P.close)}">\u2715</button>` +
       `<h2 id="${id}-h">${esc(x.label)}</h2><p>${esc(P[x.store])}</p>` +
       `<div class="acts"><a class="app" href="${esc(x.ask.mailto!)}">${esc(P.email)}</a>` +
-      (addr ? `<button type="button" class="app" data-copy="${esc(addr)}">${esc(P.copy)}</button>` : "") + `</div>` +
+      (addr ? `<button type="button" class="app alt" data-copy="${esc(addr)}">${esc(P.copy)}</button>` : "") + `</div>` +
       `<p class="small" role="status" data-said></p>` + (addr ? `<p class="addr" data-addr hidden>${esc(addr)}</p>` : "") + `</dialog>`;
   };
   return (blk.coming ? `<p class="small coming">${esc(blk.coming)}</p>` : "") +
