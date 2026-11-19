@@ -1,6 +1,6 @@
 # T899 — In-season notices on a water open by default
 
-Status: IN PROGRESS — left (Claude): owner sees pictures, review, merge into app/integrate-082
+Status: DONE (18044af55, merged into 0.8.2; review: nothing blocking, lows fixed in a316547e9; owner picked the times in the rule line ~01:30).
 
 Owner 2026-11-19 ~01:10 (app chat), shot of a Fraser water's "2 in-season changes · see ›" fold with its two notices,
 verbatim: "in season notices should default open".

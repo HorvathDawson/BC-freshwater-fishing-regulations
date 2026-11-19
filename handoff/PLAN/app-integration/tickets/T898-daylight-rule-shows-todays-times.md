@@ -1,6 +1,6 @@
 # T898 — A daylight-only rule shows today's actual times for the section
 
-Status: IN PROGRESS — left (Claude): owner sees pictures, review, merge into app/integrate-082
+Status: DONE (18044af55, merged into 0.8.2; review: nothing blocking, lows fixed in a316547e9; owner picked the times in the rule line ~01:30).
 
 Owner 2026-11-19 ~01:10 (app chat), verbatim: "stuff like this (Daylight only: closed from 1 h after sunset to 1 h
 before sunrise Rule book p.23 ↗) could give you the times for it on the section you are currently on (average time for

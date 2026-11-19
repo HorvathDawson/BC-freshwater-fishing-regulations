@@ -302,8 +302,8 @@ reads both files; a ticket closed here moves there once its lane is finished wit
 | T895 | Each flow forecast model draws in its own colour, so a toggled model can be told apart (owner) | DONE | ac657a5fc | owner 2026-11-19 ~00:40; approved ~01:03 |
 | T896 | The map key's fold button is useless on a wide screen: show the key, no button, where it fits (owner) | DONE | 214f18f8c | owner 2026-11-19 ~00:51; fold removed everywhere ~00:59 |
 | T897 | The More tab's back says "Back", not a tab's name; its head stays put while it scrolls (owner) | DONE | 1468f8bf0 | owner 2026-11-19 ~01:04, ~01:05 |
-| T898 | A daylight-only rule shows today's actual closed times for the section (owner) | IN PROGRESS — left (Claude): owner sees pictures, review, merge into app/integrate-082 | app chat | owner 2026-11-19 ~01:10 |
-| T899 | In-season notices on a water open by default (owner) | IN PROGRESS — left (Claude): owner sees pictures, review, merge into app/integrate-082 | app chat | owner 2026-11-19 ~01:10 |
+| T898 | A daylight-only rule shows today's actual closed times for the section (owner) | DONE | 18044af55 | owner 2026-11-19 ~01:10 |
+| T899 | In-season notices on a water open by default (owner) | DONE | 18044af55 | owner 2026-11-19 ~01:10 |
 | T900 | Gear and Methods: cleaner, easier to read (owner; next chat) | OPEN | app chat | owner 2026-11-19 ~01:12 |
 | T901 | The web's "Get the app": a Google Play button and an App Store button (owner) | DONE | 2d3e89299 | owner 2026-11-19 ~01:14 |
 | T902 | Desktop Runs: every fish chip shows, no sideways scroll (owner) | DONE | cd5740b21 | owner 2026-11-19 ~01:16 |
