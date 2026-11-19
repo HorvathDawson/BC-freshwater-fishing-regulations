@@ -1,6 +1,6 @@
 # T894 — The app's version files per track and per version (after 0.8.2)
 
-Status: OPEN (app chat; before the closed and production tracks run side by side).
+Status: IN PROGRESS (app chat; lane app/t894-version-files; in 0.8.2: owner 2026-11-19 ~00:40 "we want all the in flight tickets in 0.8.2 and small bugs found").
 
 From the second independent review of T888 (2026-11-19 ~00:27):
 1. Medium, Play: play.json names whatever was uploaded last, on any track (appUpdater.native.ts ~L89). With 0.8.3 in
