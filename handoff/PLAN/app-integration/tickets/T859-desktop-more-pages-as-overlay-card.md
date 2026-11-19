@@ -1,6 +1,6 @@
 # T859 — Desktop web: the More tab's pages open as a card over the page, not a full-page takeover
 
-Status: OPEN (app chat; 0.8.1 WEB: lands after the 0.8.1 phone build is cut, then the staging site redeploys from that
+Status: DONE (0123342e5, 6aaf95262; in 0.8.2 on app/integrate-082, ledger closed 2026-11-19 night).
 commit; owner 2026-11-18 ~16:55: "these can be in 0.8.1 web version? since it doesnt change app it shouldnt effect release
 of app?").
 

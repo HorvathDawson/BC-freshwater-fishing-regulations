@@ -601,3 +601,7 @@ any row here that is not DONE or DROPPED. A reopened ticket's row moves back to 
 | T873 | A much shorter Help page: the map's key first, short labels, one-line facts (owner) | DONE | c369c225a | app chat; owner 2026-11-18 (T872–T874 approved ~20:53) |
 | T874 | The walkthrough has only Back and Next (and Skip); Next does what Show me did (owner) | DONE | 53c8399ee, 172636aa2 | app chat; owner 2026-11-18 (T872–T874 approved ~20:53) |
 | T875 | The water Map tab's ▼ / ▲ steps stay put, part to part and water to water, on phone and desktop (owner) | DONE | 1c0911f91, 93efeda60 | app chat; owner 2026-11-18 (T872–T874 approved ~20:53) |
+| T859 | Desktop web: the More tab's pages (About, Help, Glossary…) open as a card over the page, click outside to close (owner) | DONE | 0123342e5, 6aaf95262 | in 0.8.2 (app/integrate-082); ledger closed 2026-11-19 night |
+| T860 | More → Contact names Report a problem beside the email (owner wording ask) | DONE | d1e1f854b, dea59dca2, 845994f67, d20d7ba63, 902425f66, 0e35d7727, ab5c86008 | in 0.8.2 (app/integrate-082); ledger closed 2026-11-19 night |
+| T864 | A tester far from B.C.: location must not glitch; a plain note that it is not useful there (owner) | DONE | 66901c3e1, 7f929431c, 44075496d | in 0.8.2 (app/integrate-082); ledger closed 2026-11-19 night |
+| T894 | The app's version files per build and per version (Play: play/<versionCode>.json; iPhone: ios/<version>.json) | DONE | 7bc81d896, 8e433846a | in 0.8.2 (app/integrate-082); ledger closed 2026-11-19 night |

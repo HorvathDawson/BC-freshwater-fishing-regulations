@@ -276,12 +276,9 @@ reads both files; a ticket closed here moves there once its lane is finished wit
 | T856 | Desktop: the Trout / Salmon map switch moves to the left side bar, under the Map button (owner) | OPEN | app chat | owner 2026-11-18 |
 | T857 | Revisit the Rust port of MapLibre Native (mln-rs) for the phones once it has phone SDKs (owner; future) | OPEN — FUTURE | app chat | owner 2026-11-18 |
 | T858 | Web: keyboard navigation in lists, starting with search (↑/↓ move the highlight, Enter opens; owner) | OPEN | app chat | owner 2026-11-18 |
-| T859 | Desktop web: the More tab's pages (About, Help, Glossary…) open as a card over the page, click outside to close (owner) | OPEN | app chat | owner 2026-11-18 |
-| T860 | More → Contact names Report a problem beside the email (owner wording ask) | OPEN | app chat | owner 2026-11-18 |
 | T861 | The Conditions map feels laggy like the Salmon map did (owner; same cause as T848/T855) | DONE | 4c005321e | fixed by 4c005321e (measured: Conditions/Run timing zoom-out ~1 s -> 0 long tasks); left (Claude): lands with the 0.8.1 merge |
 | T862 | Search finds a water by its other names (Baker Lake → Sixteen Mile Lake); audit the stocking/bathymetry name variations (owner) | OPEN | main chat + app chat | owner 2026-11-18, future (after 0.8.1) |
 | T863 | 0.8.1 to friends: production builds, Play closed testing and TestFlight external (owner) | OPEN | app chat + owner | owner 2026-11-18 |
-| T864 | A tester far from B.C.: location must not glitch; a plain note that it is not useful there (owner) | OPEN | app chat | owner 2026-11-18 |
 | T865 | Production data clean-up is automatic: old releases and the v1 layout (owner) | PARTIAL — 4f4b5c8 + 8b279ce; left (Claude): at the switch, on the owner's word, turn off bc-fishing-cron + main's 3 update workflows, then deploy/prod/drop-v1.sh | lane app/t865-prod-prune | owner 2026-11-18 |
 | T866 | Trim the test suites: combine overlapping tests, remove true duplicates (owner) | OPEN | app chat + main chat | owner 2026-11-18, after the 0.8.1 releases |
 | T867 | Notifications inbox: since install only, read once seen, short, with data and app updates (owner) | OPEN | app chat | owner 2026-11-18, after the 0.8.1 releases |
@@ -298,7 +295,6 @@ reads both files; a ticket closed here moves there once its lane is finished wit
 | T892 | "What you can keep" table: a row from another water's tributary rule says so (owner) | IN PROGRESS — lane data/t892-trout-rows: trout rows' own line (`TRow.down`, optional) built; left (Claude): integrate (main chat), next data release carries it | app chat | owner 2026-11-19 ~00:10; built ~00:33; trout rows ~03:20 |
 | T891 | Braided rivers drawn simpler: side channels thinner than the main channel; braids simplified in the tile build (owner) | PARTIAL — part one built on data/t891-side-channels (tile `sc` flag + thinner side channels in the style); left (Claude): integrate (main chat) + next tiles build; part two waits for the owner | main chat + app chat | owner 2026-11-18 ~22:02 |
 | T893 | Production Android builds carry the patched MapLibre too (owner) | DONE | 572d73fad | owner 2026-11-19 ~00:21 |
-| T894 | The app's version files per build and per version (Play: play/<versionCode>.json; iPhone: ios/<version>.json) | IN PROGRESS | app chat | review of T888, 2026-11-19 |
 | T895 | Each flow forecast model draws in its own colour, so a toggled model can be told apart (owner) | DONE | ac657a5fc | owner 2026-11-19 ~00:40; approved ~01:03 |
 | T896 | The map key's fold button is useless on a wide screen: show the key, no button, where it fits (owner) | DONE | 214f18f8c | owner 2026-11-19 ~00:51; fold removed everywhere ~00:59 |
 | T897 | The More tab's back says "Back", not a tab's name; its head stays put while it scrolls (owner) | DONE | 1468f8bf0 | owner 2026-11-19 ~01:04, ~01:05 |

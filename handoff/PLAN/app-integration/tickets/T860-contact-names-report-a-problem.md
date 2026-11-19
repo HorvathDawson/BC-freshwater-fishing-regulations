@@ -1,6 +1,6 @@
 # T860 — More → Contact names Report a problem beside the email
 
-Status: OPEN (app chat; 0.8.1 web, after the phone build is cut; phones take it at their next build).
+Status: DONE (d1e1f854b, dea59dca2, 845994f67, d20d7ba63, 902425f66, 0e35d7727, ab5c86008; in 0.8.2 on app/integrate-082, ledger closed 2026-11-19 night).
 
 Owner 2026-11-18 ~16:55 (to the main chat, relayed to the app chat), verbatim: "where it says this (Questions, corrections
 and ideas are welcome. ) with email we should have also the or send it through the app with the report and issue pathway?

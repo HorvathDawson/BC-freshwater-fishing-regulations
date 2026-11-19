@@ -1,6 +1,6 @@
 # T864 — A tester far from B.C.: location must not glitch; say plainly it is not useful there
 
-Status: OPEN (app chat; before T863's closed/external testing).
+Status: DONE (66901c3e1, 7f929431c, 44075496d; in 0.8.2 on app/integrate-082, ledger closed 2026-11-19 night).
 
 Owner 2026-11-18 ~18:02, verbatim: "we need to make sure a tester outside of british columbia doesnt have it glitch out too
 with location. we could give a little note saying you are far away from bc location will not be usefull etc etc"
