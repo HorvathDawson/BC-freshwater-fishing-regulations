@@ -54,3 +54,10 @@ next data release (fallback).
   `conformance/src/regs/salmonAdult.release.test.ts` (every scoped / region adult length over the release under test,
   never "over 50 cm" there; mutation-checked), `t356_header.json` and the dfo vectors re-cut.
 - Ships: the live feed when the feeds worker is deployed (bucket tiers), the release copy with the next data release.
+
+
+## Timing changed 2026-11-19 02:41 (owner)
+"After production" (11-18 20:34) is superseded by the owner's 02:41 ask to the retiring chats, verbatim: "i think all these items plus the map speed up idea and other loose ends being finished should all go into the release on staging while i sleep and i can test and release to prod tomorrow". T869 ships in tonight's staging release; he tests it before production.
+
+## Open for the owner (2026-11-19 night review)
+The Vedder: DFO's own scoped adult note carries no dates, so the card says "(here an adult is over 62 cm)" all year; the book (p.77) limits the 62 cm adult to Jul 1–Dec 31. As built the card follows DFO (the salmon authority). In the morning list.

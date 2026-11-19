@@ -2761,6 +2761,7 @@ More questions (recommended answer first):
   INTERNAL and TestFlight INTERNAL; closed / external testing after he tests the iPhone more. T864's note: "Yes, keep it".
 - 2026-11-18 ~20:30 + 20:34, owner (main chat dialogs) -> T869: wording (A) "Reword the line" (the app chat got the
   same pick); timing "After production" (asked again at 20:34 because the app chat had been told "Yes, before prod").
+  SUPERSEDED 2026-11-19 02:41: the owner asked for "all these items plus the map speed up idea and other loose ends" in the staging release overnight, then prod next day; T869 + T870 ride tonight's data release and 0.8.2 (staging first, he tests before prod).
 - 2026-11-18 ~20:25, owner (app chat), Mamquam salmon card, verbatim: "The source dfo here doesn't show the rows that
   actually produce the results above. It should have all the rows that apply in source  Also the bait ban here is
   confusing idk where it is from for example." ~20:27: "Why is the bait ban all year defined from that month to that
