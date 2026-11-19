@@ -11,5 +11,5 @@ The staging site the owner is testing runs 0.8.0, which does not have that split
 tab's map layers get the same split, measure its zoom-out and pan the same way (long tasks, staging 0.8.0 vs the 0.8.1
 web build), and fix it if it is left out.
 
-Owner 2026-11-18 ~17:20 (relayed), verbatim: "also check run timing to while at it". So the Run timing map is measured
+Owner 2026-11-18 ~17:15 (relayed), verbatim: "also check run timing to while at it". So the Run timing map is measured
 and checked the same way; any fix rides the 0.8.1 web release.
