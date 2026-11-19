@@ -1,6 +1,6 @@
 # T884 — a fish sheet's big "20 a day" is cut off at the top on an iPhone
 
-Status: IN PROGRESS (app chat lane app/t884-t886-clip-hatchery-art). Pictures to the owner before it lands.
+Status: DONE (1d19ef12b, fcc3ce3a8; in 0.8.2 on app/integrate-082, ledger brought up to date 2026-11-19). Was: IN PROGRESS (app chat lane app/t884-t886-clip-hatchery-art). Pictures to the owner before it lands.
 
 Owner 2026-11-18 ~21:30, on his shot of Cultus Lake → Black crappie (the big "20 a day" highlighted), verbatim: "Also on
 Apple the part highlighted is cut off weird because of row sizes".

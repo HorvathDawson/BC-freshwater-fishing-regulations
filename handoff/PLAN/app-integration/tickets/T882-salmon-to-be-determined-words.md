@@ -1,6 +1,6 @@
 # T882 — salmon: DFO's "To be determined" says "To be determined", not "Check DFO"; green whenever any salmon is open
 
-Status: IN PROGRESS (app chat, lane app/t882-to-be-determined).
+Status: DONE (b2a5f2522; in 0.8.2 on app/integrate-082, ledger brought up to date 2026-11-19). Was: IN PROGRESS (app chat, lane app/t882-to-be-determined).
 
 Owner 2026-11-18 ~21:18, verbatim: "To be determined I think we could change to actually say to be determined /
 However they should still show green if any salmon there are open only yellow if closed other then the to be

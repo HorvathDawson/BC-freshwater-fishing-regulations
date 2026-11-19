@@ -1,6 +1,6 @@
 # T877 — the "Which day?" calendar: six weeks every month, every day under its weekday
 
-Status: IN PROGRESS (lane app/t877-calendar-grid, worktree wt-t877; left (Claude): merge into app/integrate-081-web, then
+Status: DONE (a0bf4876c; in 0.8.2 on app/integrate-082, ledger brought up to date 2026-11-19). Was: IN PROGRESS (lane app/t877-calendar-grid, worktree wt-t877; left (Claude): merge into app/integrate-081-web, then
 the look on a phone build).
 
 Owner 2026-11-18 ~20:46, verbatim: "The calendar shifts around". Phone shots of the Regulations page's "Which day?" sheet

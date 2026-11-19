@@ -1,6 +1,6 @@
 # T887 — Salmon map, light mode: keep is a bright green, clearly apart from release, closed and check
 
-Status: OPEN — built; the owner picked option B (2026-11-18 ~23:16, "Option B"); lands after the review fixes are seen (app chat).
+Status: DONE (a35c0f72f; in 0.8.2 on app/integrate-082, ledger brought up to date 2026-11-19). Was: OPEN — built; the owner picked option B (2026-11-18 ~23:16, "Option B"); lands after the review fixes are seen (app chat).
 
 Owner 2026-11-18 ~22:33, verbatim: "Light mode keep salmon vs closed or release has very little contrast. Should be
 bright green for keep in light I think too?"

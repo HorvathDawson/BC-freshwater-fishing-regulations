@@ -1,6 +1,6 @@
 # T768 — App follow tests pin part counts and names by hand, and three got weaker on 2026-11-16
 
-Status: IN PROGRESS (built on branch app-fix/t765-t768; not merged; the made-up-part-end proof is NOT met, see below) (filed 2026-11-16 by the app chat from the general audit; the app chat's own commit 39918037e).
+Status: PARTIAL — merged (ac3eb388f, in 0.8.2); left (Claude): the made-up-part-end proof is NOT met, see below.
 
 Source: `handoff/PLAN/audit-2026-11-16/guards.md` and `code.md`. Area: app tests.
 

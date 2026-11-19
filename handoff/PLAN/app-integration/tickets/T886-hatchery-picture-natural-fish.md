@@ -1,6 +1,6 @@
 # T886 — "How to tell a hatchery fish": a natural fish, not a smiling one
 
-Status: IN PROGRESS (app chat lane app/t884-t886-clip-hatchery-art). Pictures to the owner before it lands.
+Status: DONE (7a13d8671, 0e4f21738; in 0.8.2 on app/integrate-082, ledger brought up to date 2026-11-19). Was: IN PROGRESS (app chat lane app/t884-t886-clip-hatchery-art). Pictures to the owner before it lands.
 
 Owner 2026-11-18 ~21:30, verbatim: "Also the how to tell hatchery fish is very smile creepy we want to make it more
 realistic I think. Better shape more natural smile. Could use the salmon general shape from loading maybe?"

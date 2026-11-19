@@ -1,6 +1,6 @@
 # T881 — Conditions: the gauge map only where it draws a gauge; one map size, fitted
 
-Status: OPEN (built; lands after the owner sees the pictures). Lane `app/t881-gauge-map`, from `app/integrate-081-web`.
+Status: DONE (dc413cf44; in 0.8.2 on app/integrate-082, ledger brought up to date 2026-11-19). Was: OPEN (built; lands after the owner sees the pictures). Lane `app/t881-gauge-map`, from `app/integrate-081-web`.
 
 Owner 2026-11-18 ~21:05, verbatim, with a shot of Babine Lake — Main Body → Conditions: "Lakes or other things without
 a meaningful map here don't need to include gauge map.. Also we should choose one map size maybe larger fit only"

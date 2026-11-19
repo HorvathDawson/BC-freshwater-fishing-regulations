@@ -1,6 +1,6 @@
 # T878 — The day's sunrise/sunset moves from its own header row to a small line under the date
 
-Status: OPEN (app chat; built; lands after the owner sees the pictures).
+Status: DONE (df294e791, 717813def; in 0.8.2 on app/integrate-082, ledger brought up to date 2026-11-19). Was: OPEN (app chat; built; lands after the owner sees the pictures).
 
 Owner 2026-11-18 ~20:49, with a shot of Babine Lake — Main Body, verbatim: "There seems to be a ton of space used by the
 sunset/rise could we maybe move it to top of something? Where would be good?"

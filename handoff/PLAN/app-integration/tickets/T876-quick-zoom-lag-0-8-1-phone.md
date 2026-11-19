@@ -1,6 +1,6 @@
 # T876 — Quick zoom in and out lags more on the phone (0.8.1)
 
-Status: IN PROGRESS (app chat). Fix on lane app/t876-zoom-lag (b7c24e218): on a phone the labels wait while the zoom moves and come back 250 ms after the camera rests (owner 21:40: streams, colours, smoothness first). Emulator: quick pinch 42 → 57 fps, render 21.6 → 10.7 ms/frame; zoom-out not worse. Left (Claude): into the 0.8.2 phone build; the owner's feel on his Pixel.
+Status: DONE (b7c24e218, 9b12cdbe3; in 0.8.2 on app/integrate-082, ledger brought up to date 2026-11-19). Was: IN PROGRESS (app chat). Fix on lane app/t876-zoom-lag (b7c24e218): on a phone the labels wait while the zoom moves and come back 250 ms after the camera rests (owner 21:40: streams, colours, smoothness first). Emulator: quick pinch 42 → 57 fps, render 21.6 → 10.7 ms/frame; zoom-out not worse. Left (Claude): into the 0.8.2 phone build; the owner's feel on his Pixel.
 
 Owner 2026-11-18 20:37, verbatim: "More laggy quick zoom in and out."
 Trace: his Pixel 9 ("tokay", Android CP3A.261005.005), System Tracing, captured 20:35:
