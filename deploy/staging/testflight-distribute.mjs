@@ -134,7 +134,7 @@ export async function whatToTestFor(version, build, changelogPath = join(REPO, '
     if (e && !notes.length) fallback = `the changelog entry for ${version} has no iPhone notes`;
   }
   const text = notes.length ? `Version ${version} (build ${build}):\n${notes.map((n) => `• ${n}`).join('\n')}` : `Version ${version} (build ${build})`;
-  return { text: text.slice(0, 4000), fallback };   // 4000: Apple's limit for whatToTest
+  return { text: text.slice(0, 4000), fallback };   // 4000: Apple's limit for whatsNew (the API's name for TestFlight's "What to Test")
 }
 
 // buildBetaDetail.externalBuildState: what each one means for this step (anything not listed stops it, named)
@@ -202,17 +202,17 @@ export async function distribute({ asc, version, build, groupName = null, dryRun
 
   // 4. What to Test
   const locs = (await asc.get(`/v1/builds/${buildId}/betaBuildLocalizations?limit=50`))?.data ?? [];
-  if (!locs.some((l) => (l.attributes?.whatToTest ?? '').trim())) {
+  if (!locs.some((l) => (l.attributes?.whatsNew ?? '').trim())) {
     const { text, fallback } = await whatToTest();
     if (fallback) log(`  WARNING: "What to Test" falls back to the plain line (${fallback})`);
     log(`  "What to Test": ${JSON.stringify(text)}`);
     if (locs.length) {
       if (dryRun) would(`set "What to Test" (${locs[0].attributes.locale}): ${JSON.stringify(text)}`);
-      else await asc.patch(`/v1/betaBuildLocalizations/${locs[0].id}`, { data: { type: 'betaBuildLocalizations', id: locs[0].id, attributes: { whatToTest: text } } });
+      else await asc.patch(`/v1/betaBuildLocalizations/${locs[0].id}`, { data: { type: 'betaBuildLocalizations', id: locs[0].id, attributes: { whatsNew: text } } });
     } else {
       const locale = app.attributes?.primaryLocale || 'en-US';
       if (dryRun) would(`add "What to Test" (${locale}): ${JSON.stringify(text)}`);
-      else await asc.post('/v1/betaBuildLocalizations', { data: { type: 'betaBuildLocalizations', attributes: { locale, whatToTest: text },
+      else await asc.post('/v1/betaBuildLocalizations', { data: { type: 'betaBuildLocalizations', attributes: { locale, whatsNew: text },
         relationships: { build: { data: { type: 'builds', id: buildId } } } } });
     }
     if (!dryRun) log(`"What to Test" set${fallback ? ' (plain line)' : ' from the changelog'}`);
@@ -263,7 +263,8 @@ export async function distribute({ asc, version, build, groupName = null, dryRun
   else if (dryRun && EXT_SETTLING.has(ext)) log(`  [dry-run] external state ${ext}: a real run waits up to ${Math.round(settleMs / 60_000)} min for it to settle, then decides`);
   else if (ext !== 'BETA_REJECTED')   // rejected: thrown below, after the report line
     throw new AscError(`build ${version} (${build}) has external TestFlight state ${ext ?? '(none given)'}, which this script does not handle; look in App Store Connect → TestFlight`);
-  const where = reviewState ? REVIEW_SAYS[reviewState] ?? reviewState : 'no Beta App Review needed';
+  const where = reviewState ? REVIEW_SAYS[reviewState] ?? reviewState
+    : dryRun && ext === 'READY_FOR_BETA_SUBMISSION' ? 'would submit for Beta App Review' : 'no Beta App Review needed';
   log(`${dryRun ? '[dry-run] ' : ''}${version} (${build}) → "${group.attributes.name}": ${where}; external state ${ext ?? 'unknown'}`
     + (ext === 'IN_BETA_TESTING' || ext === 'BETA_APPROVED' ? ' — testers can install it (Automatic Updates installs it on their phones)' : ''));
   if (reviewState === 'REJECTED' || ext === 'BETA_REJECTED') throw new AscError(`Beta App Review rejected ${version} (${build})`);

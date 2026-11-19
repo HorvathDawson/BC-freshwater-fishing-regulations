@@ -108,7 +108,7 @@ test('a fresh build: waits for processing, adds What to Test, joins the external
 });
 
 test('already in the group, review already submitted, What to Test already there: nothing written', async () => {
-  const f = fakeAsc({ inGroup: true, review: 'APPROVED', ext: 'IN_BETA_TESTING', locs: [{ id: 'l1', attributes: { locale: 'en-CA', whatToTest: 'x' } }] });
+  const f = fakeAsc({ inGroup: true, review: 'APPROVED', ext: 'IN_BETA_TESTING', locs: [{ id: 'l1', attributes: { locale: 'en-CA', whatsNew: 'x' } }] });
   const { r, lines } = await run(f.asc);
   assert.deepEqual(writes(f.calls), []);
   assert.equal(r.added, false);
@@ -119,14 +119,17 @@ test('already in the group, review already submitted, What to Test already there
 });
 
 test('a later build of the version Apple needs no review for: added, not submitted', async () => {
-  const f = fakeAsc({ ext: 'IN_BETA_TESTING', locs: [{ id: 'l1', attributes: { locale: 'en-CA', whatToTest: '' } }] });
+  const f = fakeAsc({ ext: 'IN_BETA_TESTING', locs: [{ id: 'l1', attributes: { locale: 'en-CA', whatsNew: '' } }] });
   const { r } = await run(f.asc);
   assert.deepEqual(writes(f.calls), ['PATCH /v1/betaBuildLocalizations/l1', 'POST /v1/betaGroups/e1/relationships/builds']);
   assert.equal(r.submitted, false);
+  // (2026-11-19, first real run) the API names TestFlight's "What to Test" `whatsNew`; `whatToTest` was refused with 409
+  const patch = f.calls.find((c) => c.method === 'PATCH' && c.path === '/v1/betaBuildLocalizations/l1');
+  assert.deepEqual(Object.keys(patch.body.data.attributes), ['whatsNew']);
 });
 
 test('export compliance unanswered: set from app.json; app.json without it is refused', async () => {
-  const f = fakeAsc({ encryption: null, inGroup: true, review: 'APPROVED', locs: [{ id: 'l1', attributes: { whatToTest: 'x' } }] });
+  const f = fakeAsc({ encryption: null, inGroup: true, review: 'APPROVED', locs: [{ id: 'l1', attributes: { whatsNew: 'x' } }] });
   await run(f.asc);
   const p = f.calls.find((c) => c.method === 'PATCH' && c.path === '/v1/builds/b39');
   assert.deepEqual(p.body.data.attributes, { usesNonExemptEncryption: false });
@@ -192,7 +195,7 @@ test('an external state the script does not know (or none) stops it, named; noth
 
 test('a later build of a version that comes back READY_FOR_BETA_SUBMISSION: submitted, then its state reported', async () => {
   const f = fakeAsc({ ext: 'READY_FOR_BETA_SUBMISSION', afterSubmit: 'BETA_APPROVED',
-    locs: [{ id: 'l1', attributes: { locale: 'en-CA', whatToTest: 'Version 0.8.3 (build 38)' } }] });
+    locs: [{ id: 'l1', attributes: { locale: 'en-CA', whatsNew: 'Version 0.8.3 (build 38)' } }] });
   const { r, lines } = await run(f.asc);
   assert.deepEqual(writes(f.calls), ['POST /v1/betaGroups/e1/relationships/builds', 'POST /v1/betaAppReviewSubmissions']);
   assert.equal(r.submitted, true);
