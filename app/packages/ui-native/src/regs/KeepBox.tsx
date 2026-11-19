@@ -90,14 +90,27 @@ function Label({ text, palette, outline = false, testID = "keep-label" }: { text
   );
 }
 
-/** (T907) WHOSE RULE, AS A TAG: the box's own-water tag ("Lake’s rule", in the strip) and a row's tributary source
- *  ("Trout Lake’s tributaries", beside the row's name) are one look: the kicker face in the accent colour, a 1 px accent
- *  outline, so a row's source reads as the box's does (owner 2026-11-19 ~06:55: "simialr to how it has "this water"").
- *  The word is the payload's, drawn as is. */
+/** (T907) WHOSE RULE, AS A TAG: the box's own-water tag ("Lake’s rule", in the strip): the kicker face in the accent
+ *  colour, a 1 px accent outline. A row's tributary source is `RowTag` (round 2). The word is the payload's, drawn as is. */
 function Tag({ text, palette, testID }: { text: string; palette: Palette; testID: string }) {
   return (
     <View testID={testID} style={{ borderWidth: 1, borderColor: palette.accent, paddingHorizontal: 5, flexShrink: 1 }}>
       <Text testID="kicker:tag" style={{ ...TYPE.kicker, color: palette.accent }}>{text}</Text>
+    </View>
+  );
+}
+
+/** (T907 round 2, owner 2026-11-19 ~12:27: "the tag neds to be improved... the baddly formattred double line tag is nasty
+ *  looking"; ~12:50 on the round-2 pictures: "muted grey not purple idea same size as the dates text") A ROW'S TRIBUTARY
+ *  SOURCE ("Trout Lake’s tributaries"), its own line under the fish's name, in the row's date line's face and muted
+ *  colour (`NEXT`, `palette.sub`, as `keep-row-date` "until Mar 31") with a short rule of that colour on its left: no
+ *  capitals, no tracking, no box, so a typical name reads on one line beside the picture at 390 px and a long one wraps
+ *  as plain lines on the one rule. The box head's own-water tag ("Lake’s rule") stays the outlined kicker (`Tag`). The
+ *  word is the payload's, drawn as is. */
+function RowTag({ text, palette }: { text: string; palette: Palette }) {
+  return (
+    <View testID="keep-row-tag" style={{ alignSelf: "flex-start", marginTop: 2, borderLeftWidth: 2, borderLeftColor: palette.sub, paddingLeft: 6 }}>
+      <Text testID="keep-row-tag-text" style={{ ...NEXT, color: palette.sub }}>{text}</Text>
     </View>
   );
 }
@@ -145,9 +158,9 @@ function Row({ r, palette, faded, mark, first, under, band, testID }: {
           <Text testID="keep-name" style={{ ...NAME, ...(faded ? { fontFamily: TYPE.regsBody.fontFamily } : {}), color: palette.ink }}>{r.name}</Text>
           {r.origin && <OriginBadge origin={r.origin} palette={palette} />}
           {r.label && <Label text={r.label} palette={palette} />}
-          {/* (T907) another water's row carried down to its tributaries sets this row: its tag beside the name, as the box's */}
-          {r.tag && <Tag text={r.tag} palette={palette} testID="keep-row-tag" />}
         </View>
+        {/* (T907) another water's row carried down to its tributaries sets this row: its source on a line of its own */}
+        {r.tag && <RowTag text={r.tag} palette={palette} />}
         {r.sub && <Text selectable testID="keep-sub" style={{ ...NEXT, color: palette.sub }}>{r.sub}</Text>}
         {r.lines.map((l) => <Text selectable key={l} testID="keep-line" style={{ ...NOW, color: palette.ink }}>{l}</Text>)}
         {r.quiet.map((l) => <Text selectable key={l} testID="keep-quiet" style={{ ...NEXT, color: palette.sub }}>{l}</Text>)}

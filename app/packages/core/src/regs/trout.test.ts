@@ -215,4 +215,13 @@ describe("(T892, T907) a row's tributary source: `TRow.down` (the line, no longe
     expect(why(withDown(LINE, ` ${TAG}`))).toMatch(/row 0:2 tag: a leading or trailing space/);
     expect(why(withDown(null, TAG))).toMatch(/row 0:2: a tributary tag without its line/);
   });
+  it("(T907 round 2, owner \"Drop the repeat\") a name already ending in Tributaries is said once; the doubled words are refused", () => {
+    expect(why(withDown("Lake Revelstoke’s rule for its tributaries", "Lake Revelstoke’s tributaries"))).toBeNull();
+    expect(why(withDown("Lake Revelstoke's Tributaries’ rule for its tributaries", "Lake Revelstoke’s tributaries")))
+      .toMatch(/row 0:2: the tributary line .* says "tributaries" twice/);
+    expect(why(withDown("Lake Revelstoke’s rule for its tributaries", "Lake Revelstoke Tributaries’ tributaries")))
+      .toMatch(/row 0:2: the tributary tag .* says "tributaries" twice/);
+    expect(why(withDown("Duck Lake’s rule for its tributaries", "Lake Revelstoke Tributaries’ and Duck Lake’s tributaries")))
+      .toMatch(/says "tributaries" twice/);
+  });
 });

@@ -47,10 +47,15 @@ const REL = namedRelease();
 const BEFORE_T892 = new Set(["r-86d43303bee2", "r-fc137c4040fa"]);
 /** (T907) the releases cut before trout rows carried their tag (`TRow.tag`): their rows have none */
 const BEFORE_T907 = new Set([...BEFORE_T892, "r-379e72fc9524"]);
-/** (T907) Python's `words.row_tag` for these waters, in order: "Trout Lake’s tributaries", "A’s and B’s tributaries" */
+/** (T907) Python's `words.row_tag` for these waters, in order: "Trout Lake’s tributaries", "A’s and B’s tributaries" — the
+ *  line's possessives with "tributaries" (so a name ending in "Tributaries" is said once there too, round 2) */
+const tagOf = (names: readonly string[]) => downLine(names)!.replace(/ (?:rule for its|rules for their) tributaries$/, " tributaries");
+/** (T907 round 2) a release cut before "Drop the repeat" (owner 2026-11-19 ~12:27) says a name ending in "Tributaries"
+ *  twice in its trout rows' lines ("Lake Revelstoke's Tributaries’ rule for its tributaries"): read those with the old
+ *  possessive; the app's own words (`downLine`) say it once */
 const poss = (n: string) => (/s$/i.test(n) ? `${n}’` : `${n}’s`);
-const tagOf = (names: readonly string[]) =>
-  `${names.length > 1 ? `${names.slice(0, -1).map(poss).join(", ")} and ` : ""}${poss(names[names.length - 1]!)} tributaries`;
+const oldLine = (names: readonly string[]) => names.length === 1 ? `${poss(names[0]!)} rule for its tributaries`
+  : `${names.slice(0, -1).map(poss).join(", ")} and ${poss(names[names.length - 1]!)} rules for their tributaries`;
 const TIER2 = process.env.TIER2 === "1";
 const DAY = { month: 11, day: 19 };
 
@@ -151,7 +156,7 @@ describe.skipIf(!REL && !TIER2)("Tier 2 (T892): every table row's tributary line
             if (r.down) {
               rowLines++;
               if (!ev.setByDown || !ev.names.every((x) => down.includes(x)) || !down.every((x) => ev.mentions.includes(x))
-                  || r.down !== downLine(down) || troutElsewhere(inp, [r], [f]))
+                  || r.down !== (untagged ? oldLine(down) : downLine(down)) || troutElsewhere(inp, [r], [f]))
                 bad.push(`${at} trout row ${r.key}: "${r.down}" vs rail setters ${ev.setByDown ? ev.names.join(", ") : "(not all tributary)"}`);
             } else if (ev.mentions.length) {
               if (ev.setByDown && !troutElsewhere(inp, [r], [f])) missing.push(`${at} trout row ${r.key}: no line, rail set by ${ev.names.join(", ")}`);

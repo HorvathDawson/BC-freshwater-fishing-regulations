@@ -5,6 +5,15 @@
  */
 /** (T892) a water's possessive: "Twin Lakes’", "Kootenay River’s" */
 const poss = (name: string): string => (/s$/i.test(name) ? `${name}’` : `${name}’s`);
+/** (T907 round 2, owner 2026-11-19 ~12:27 "Drop the repeat") the water a tributary line names: `poss`, except a name
+ *  already ending in "Tributaries" says it once ("Lake Revelstoke's Tributaries" -> "Lake Revelstoke’s"), Python's
+ *  `trout/words.py` `whose_tributaries` word for word */
+const whoseTribs = (name: string): string => {
+  const base = name.replace(/(?:^|\s+)tributaries$/i, "");
+  if (base === name || !base.trim()) return poss(name);
+  const m = /(?:['’]s|s['’])$/.exec(base);
+  return m ? base.slice(0, m.index) + (m[0].endsWith("s") ? "’s" : "s’") : poss(base);
+};
 
 export const DECIDE = Object.freeze({
   INTRO: "Rules stack in layers: the region’s base rules first, then this water’s own rules, then any exceptions. A later layer can change an earlier one.",
@@ -86,8 +95,8 @@ export const DECIDE = Object.freeze({
   // (owner 2026-11-18 ~23:40) a rule another water's row carries down to its tributaries says so, never "this water's"
   K_DOWN: (name: string) => `${name} · its tributaries`,
   // (T892) the same fact on the "What you can keep" table's row: under the fish's name, one line
-  ROW_DOWN: (names: readonly string[]) => names.length === 1 ? `${poss(names[0]!)} rule for its tributaries`
-    : `${names.slice(0, -1).map(poss).join(", ")} and ${poss(names[names.length - 1]!)} rules for their tributaries`,
+  ROW_DOWN: (names: readonly string[]) => names.length === 1 ? `${whoseTribs(names[0]!)} rule for its tributaries`
+    : `${names.slice(0, -1).map(whoseTribs).join(", ")} and ${whoseTribs(names[names.length - 1]!)} rules for their tributaries`,
   K_WATER: (name: string) => `${name} · this water’s rule`,
   K_LISTED: (name: string) => `${name} · listed water`,
   K_FEDERAL: "Federal law",

@@ -183,6 +183,11 @@ describe("(T892) the table's row says when its answer comes down from another wa
     // no stored answers to check against: no line
     expect(down(flowOf([item(TRIB, "governs")], says, "Anchor Creek", null))).toBeNull();
   });
+  it("(T907 round 2, owner \"Drop the repeat\") a water already named \"… Tributaries\" is said once, as Python's row_down", () => {
+    expect(downLine(["Lake Revelstoke's Tributaries"])).toBe("Lake Revelstoke’s rule for its tributaries");
+    expect(downLine(["Duck Lake", "Lake Revelstoke Tributaries"])).toBe("Duck Lake’s and Lake Revelstoke’s rules for their tributaries");
+    expect(downLine(["Bass Lakes Tributaries", "Tributary Creek"])).toBe("Bass Lakes’ and Tributary Creek’s rules for their tributaries");
+  });
   it("a tributary rule that was replaced, or only a possession rule, decides nothing here: no line", () => {
     expect(down(flowOf([item(R4, "governs"), item(TRIB, "replaced", R4)], says, "Anchor Creek", null,
       scope([[R4, "governs"], [TRIB, "replaced"]])))).toBeNull();
