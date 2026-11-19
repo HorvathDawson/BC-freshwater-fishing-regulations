@@ -178,3 +178,30 @@ describe("troutOf (trout 4): the sub, the nested bands and the row labels", () =
     expect(vm.boxes[0]!.rows[4]!.origin).toBeNull();
   });
 });
+
+describe("(T892) a row's tributary line (`TRow.down`): optional, drawn as given, read once in its place", () => {
+  const inputs = (f: TroutValue) => ({ trout: f, rules: { has: (i: number) => i === 0 }, frames: { rows: { rows: [{}] } } }) as unknown as RegsInputs;
+  const day = { month: 4, day: 2 };
+  const LINE = "Kootenay Lake — Main Body’s rule for its tributaries";
+  const withDown = (down: string, at = 2): TroutValue => {
+    const f = vedder(), b = f.table.boxes[0]!;
+    return { ...f, table: { ...f.table, boxes: [{ ...b, rows: b.rows.map((r, i) => (i === at ? { ...r, down } : r)) }] } };
+  };
+  it("absent (a release from before T892): null on every row, the label unchanged", () => {
+    const vm = troutOf(inputs(vedder()), day, day) as TroutVM;
+    expect(vm.boxes[0]!.rows.map((r) => r.down)).toEqual([null, null, null, null, null]);
+    expect(vm.boxes[0]!.rows[2]!.a11y).toBe("Dolly Varden/bull trout. 2 total from these 4. only 1 between them");
+  });
+  it("set: on its row only, the payload's words; the label reads it after the name, before the band", () => {
+    const vm = troutOf(inputs(withDown(LINE)), day, day) as TroutVM;
+    expect(vm.boxes[0]!.rows.map((r) => r.down)).toEqual([null, null, LINE, null, null]);
+    expect(vm.boxes[0]!.rows[2]!.a11y).toBe(`Dolly Varden/bull trout. ${LINE}. 2 total from these 4. only 1 between them`);
+    expect(vm.boxes[0]!.rows[2]!.a11y.split(LINE)).toHaveLength(2);                      // read once
+  });
+  it("two waters, and a name ending in s, are the model's forms; any other text is refused as the model refuses it", () => {
+    expect(why(withDown("Duck Lake’s and Twin Lakes’ rules for their tributaries"))).toBeNull();
+    expect(why(withDown("Twin Lakes’ rule for its tributaries"))).toBeNull();
+    expect(why(withDown("from Dutch Creek"))).toMatch(/row 0:2: the tributary line from Dutch Creek is not one of its forms/);
+    expect(why(withDown(" Dutch Creek’s rule for its tributaries"))).toMatch(/row 0:2 down: a leading or trailing space/);
+  });
+});

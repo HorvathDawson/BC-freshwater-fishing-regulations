@@ -338,3 +338,31 @@ function rgb(hex: string): string {
   const [r, g, b] = [0, 2, 4].map((i) => parseInt(h.slice(i, i + 2), 16));
   return `rgb(${r}, ${g}, ${b})`;
 }
+
+describe("(T892) a row's tributary line: under the name, the meta face in the sub colour, read once by its row", () => {
+  const LINE = "Kootenay Lake — Main Body’s rule for its tributaries";
+  /** the first vector's table with Python's line on its first row (the field a T892 release carries) */
+  function withLine(): TroutVM {
+    const c = CASES[0]!, f = c.frame!, b0 = f.table.boxes[0]!;
+    const frame = { ...f, table: { ...f.table, boxes: [{ ...b0, rows: b0.rows.map((r, i) => (i === 0 ? { ...r, down: LINE } : r)) },
+      ...f.table.boxes.slice(1)] } } as TroutValue;
+    return vmOf({ ...c, frame });
+  }
+  it("drawn on its row only, as given, in every palette's sub colour; its row's label says it once", () => {
+    for (const p of [LIGHT, DARK, CVD]) {
+      const t = withLine();
+      mount(t, p);
+      const got = screen.getAllByTestId("keep-down");
+      expect(got.map((e) => e.textContent)).toEqual([LINE]);
+      expect([parseFloat(getComputedStyle(got[0]!).fontSize), getComputedStyle(got[0]!).color]).toEqual([TYPE.meta.fontSize, rgb(p.sub)]);
+      const row = screen.getAllByTestId("keep-row")[0]!;
+      expect(row.contains(got[0]!)).toBe(true);
+      expect(row.getAttribute("aria-label")!.split(LINE)).toHaveLength(2);
+      cleanup();
+    }
+  });
+  it("no line on any vector row (the release before T892): nothing drawn", () => {
+    mount(vmOf(CASES[0]!));
+    expect(screen.queryAllByTestId("keep-down")).toEqual([]);
+  });
+});

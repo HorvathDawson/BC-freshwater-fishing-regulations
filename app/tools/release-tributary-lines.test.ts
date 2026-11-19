@@ -9,11 +9,20 @@
  *   setting some origin's answer, or (an Other fish row, whose rail merges its fish) the stored answers show some fish ×
  *   origin set by a rule that is not a tributary one (its winner, or a rule that lowered its number: `storedElsewhere`).
  *   Anything else fails (e.g. a line lost to an empty entry name).
+ * - (T892, the trout rows) each row of the trout table against its own `tf:` sheet's rail, the same two ways: a row WITH
+ *   Python's line (`TRow.down`) — its rail's setting steps, for the origins the row covers, are all tributary ones naming
+ *   exactly the line's waters, the line is the Other fish rows' words for them (`downLine`), and no answer of the row is
+ *   set or lowered by another rule the rail draws; a row WITHOUT one whose rail names a deciding tributary step — proved
+ *   partial, else it fails (a line Python missed). And a trout fold with a line ⇒ every row carries the same line.
+ *   A release from before T892 carries no row line: it is named in `BEFORE_T892` (and must then carry none), and its
+ *   missing row lines are counted, not failed.
  *
  * DATA, so Tier 2 (`scripts/test-full.sh` runs it with TIER2=1):
  *   RELEASE_DIR=data/release/r-… TIER2=1 pnpm -C app exec vitest run release-tributary-lines
  * Under TIER2 a missing release FAILS; in `pnpm check` (no data, no TIER2) it is skipped, by name.
  */
+import { readFileSync } from "node:fs";
+import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 import { buildRegsPage, type FlowVM, type RegsInputs, type RegsPage, type SheetKey } from "@app/core";
 import { loadRegsInputs } from "@app/data/regs";
@@ -31,6 +40,8 @@ import { plainRowSeams } from "../packages/core/src/regs/keep";
 import { FISH } from "../packages/core/src/regs/fish.generated";
 
 const REL = namedRelease();
+/** (T892) the releases cut before trout rows carried their line (`TRow.down`): their rows say none, by construction */
+const BEFORE_T892 = new Set(["r-86d43303bee2", "r-fc137c4040fa"]);
 const TIER2 = process.env.TIER2 === "1";
 const DAY = { month: 11, day: 19 };
 
@@ -75,6 +86,10 @@ describe.skipIf(!REL && !TIER2)("Tier 2 (T892): every table row's tributary line
     const items = await (await st.core()).all("SELECT item_id, name FROM item ORDER BY ord");
     const bad: string[] = [];
     let parts = 0, other = 0, otherPartial = 0, folds = 0, troutPartial = 0, groups = 0, groupPartial = 0;
+    let rowLines = 0, rowPartial = 0;
+    const missing: string[] = [];                                     // (T892) a trout row the rail sets with no line
+    const id = (JSON.parse(readFileSync(join(REL!, "manifest.json"), "utf8")) as { data_release?: string }).data_release ?? "";
+    const before = BEFORE_T892.has(id);
     for (const it of items) {
       const ord = await st.itemOrd(String(it.item_id));
       if (ord === null) continue;
@@ -114,6 +129,21 @@ describe.skipIf(!REL && !TIER2)("Tier 2 (T892): every table row's tributary line
         if (t) {
           const trows = t.boxes.flatMap((b) => b.rows);
           const rows = trows.map((r) => railSetters(flowOf(page, `tf:${r.key}`), r.origin));
+          // (T892) each trout row's own line (Python's) against its own sheet's rail
+          trows.forEach((r, k) => {
+            const f = flowOf(page, `tf:${r.key}`), ev = rows[k]!, down = f?.down ?? [];
+            if (r.down) {
+              rowLines++;
+              if (!ev.setByDown || !ev.names.every((x) => down.includes(x)) || !down.every((x) => ev.mentions.includes(x))
+                  || r.down !== downLine(down) || troutElsewhere(inp, [r], [f]))
+                bad.push(`${at} trout row ${r.key}: "${r.down}" vs rail setters ${ev.setByDown ? ev.names.join(", ") : "(not all tributary)"}`);
+            } else if (ev.mentions.length) {
+              if (ev.setByDown && !troutElsewhere(inp, [r], [f])) missing.push(`${at} trout row ${r.key}: no line, rail set by ${ev.names.join(", ")}`);
+              else rowPartial++;
+            }
+          });
+          if (page.keep.troutFrom && !before && !trows.every((r) => r.down === page.keep.troutFrom))
+            bad.push(`${at} trout fold: "${page.keep.troutFrom}" but rows say ${trows.map((r) => r.down ?? "-").join(" | ")}`);
           const all = rows.length > 0 && rows.every((x) => x.setByDown && same(x.names, rows[0]!.names));
           if (page.keep.troutFrom) {
             folds++;
@@ -127,8 +157,14 @@ describe.skipIf(!REL && !TIER2)("Tier 2 (T892): every table row's tributary line
         }
       }
     }
-    console.log(`T892 sweep: ${parts} parts; lines on ${other} Other fish rows, ${groups} groups, ${folds} trout folds; `
-      + `proved partial: ${otherPartial} Other fish rows, ${groupPartial} groups, ${troutPartial} trout tables`);
+    console.log(`T892 sweep: ${parts} parts; lines on ${other} Other fish rows, ${groups} groups, ${folds} trout folds, `
+      + `${rowLines} trout rows; proved partial: ${otherPartial} Other fish rows, ${groupPartial} groups, ${troutPartial} trout `
+      + `tables, ${rowPartial} trout rows`);
+    if (before) {
+      // a release named as cut before T892: its rows carry no line (else the name is stale), its missing ones are counted
+      console.log(`T892 sweep: ${id} predates the trout rows' line; ${missing.length} rows its rails set by tributary rules say none`);
+      expect(rowLines, `${id} is named in BEFORE_T892 but its trout rows carry lines`).toBe(0);
+    } else bad.push(...missing);
     expect(parts).toBeGreaterThan(1000);
     expect(bad.slice(0, 20)).toEqual([]);
   });

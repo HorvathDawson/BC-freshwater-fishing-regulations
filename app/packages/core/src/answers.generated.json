@@ -9371,6 +9371,19 @@
     "TRow": {
      "additionalProperties": false,
      "properties": {
+      "down": {
+       "anyOf": [
+        {
+         "minLength": 1,
+         "type": "string"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "default": null,
+       "title": "Down"
+      },
       "fish": {
        "enum": [
         "RB",
@@ -10037,6 +10050,19 @@
     "TRowWire": {
      "additionalProperties": false,
      "properties": {
+      "down": {
+       "anyOf": [
+        {
+         "minLength": 1,
+         "type": "string"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "default": null,
+       "title": "Down"
+      },
       "fish": {
        "enum": [
         "RB",

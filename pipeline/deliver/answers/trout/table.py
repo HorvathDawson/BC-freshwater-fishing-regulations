@@ -1897,11 +1897,15 @@ def _hours_guard(frames, displays, starts, moments) -> None:
 
 def compose_key(rows: Sequence[dict], displays: Sequence[dict], starts: Sequence[int],
                 moments: Optional[Sequence[dict]], rules: Rules, *, licences: Sequence[dict],
-                validate: bool = True, noun: Optional[str] = None) -> List[Optional[dict]]:
+                validate: bool = True, noun: Optional[str] = None,
+                down: Optional[Callable] = None) -> List[Optional[dict]]:
     """THE WHOLE-KEY COMPOSE (contract 2.2): one answer key's post-pass rows, display and licence frames (one per
     segment), its segment starts and moments -> per segment the `TroutFrame` (as a dict, validated by
     `model.trout.TroutFrame`) or None (Q-D3). Adds no day cut: its value is a function of the rows, display and licence
-    values (the licence answer's only for the fish sheets' stamps, ticket H)."""
+    values (the licence answer's only for the fish sheets' stamps, ticket H).
+    `down` (T892, `trout/down.py` `reader`): the key's rules as its rule set holds them; each row a tributary rule sets
+    then carries `down`, its line. The release build always passes it; None (a caller with no rule set: the audit over
+    a built release, the builder's own tests) leaves every row without one."""
     from pipeline.deliver.answers.model.trout import TroutFrame
     n = len(starts)
     if not (len(rows) == len(displays) == len(licences) == n):
@@ -1943,6 +1947,9 @@ def compose_key(rows: Sequence[dict], displays: Sequence[dict], starts: Sequence
                                                               {"t": W.sentence(W.CLOSED_ALL_YEAR), "bold": False},)}}
                                                          if r["key"] in all_year else r for r in b["rows"])}
                                      for b in t["boxes"])}
+        if down is not None:
+            from pipeline.deliver.answers.trout import down as TD
+            t = TD.with_down(t, rows[j], down)
         frame = {"table": t, "dates": dates, "covers": tuple(split[j][1])}
         if validate:
             TroutFrame.model_validate(frame)

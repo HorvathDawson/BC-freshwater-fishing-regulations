@@ -1,6 +1,6 @@
 # T892 — "What you can keep" table: a row that comes from another water's tributary rule says so
 
-Status: PARTIAL — in 0.8.2 (8caa80c99, three reviews); left (Claude): the trout table's own rows need a per-row line from the pipeline (main chat), 1,777 tables partial.
+Status: IN PROGRESS — lane data/t892-trout-rows (2026-11-19 ~03:20): the trout rows' own line built (Python `TRow.down` + app); left (Claude): integrate (main chat), then the next data release carries it; pictures from that release.
 
 Owner 2026-11-19 ~00:10 (app chat), verbatim: "The table should say if it came from tributaries too.."
 
@@ -55,3 +55,34 @@ Case (review 3): Nygaard Creek's trout row — the number comes from Bella Coola
 "1 over 50 cm" size cap from Region 5. Asked whether the row keeps "Bella Coola River’s rule for its tributaries".
 Owner, on "Keep the line: it names the rule that sets the number you can keep; How this was decided shows both rules",
 verbatim: "this is good". So a region size cap does not remove the line (as built).
+
+## The trout table's own rows (lane data/t892-trout-rows, 2026-11-19 ~03:20)
+- Python carries it PER ROW: `TRow.down` (model/trout.py), OPTIONAL and absent where none (never null), so the trout
+  section stays 5: the installed 0.8.2 app reads a table carrying it (it ignores the field) and this app reads the
+  current release without it (no line). Words: `trout/words.py` `row_down` (the Other fish rows' `DECIDE.ROW_DOWN`, word
+  for word; "Twin Lakes’"); shape: `DOWN_FORM` on both sides (model + app `checkTrout`).
+- Computed once, in the build, from the same input as the row's `tf:` rail (`answers/trout/down.py`, called by
+  `table.compose_key(down=…)`; `answers._trout_compose_key` hands it the key's rule set's `trib` list and the rules'
+  display title and kind): the row's `src`, the rows frame's stored answers (`win`, `narrow`, `roles`), a `trib` rule
+  ranks 1 — the app's `troutItems` / `flowOf` / `downNames` / `troutFlow` head check, nothing decided again. A size cap
+  beside it keeps the line (Nygaard, the owner's call).
+- J (`trout/check.py` `down_problems`) reads every line back against the stored answers through the reader's Part
+  (`via` "trib"); the card gate runs it in the build.
+- App: `TroutRowVM.down`, drawn under the name (KeepBox `keep-down`: meta face, sub colour, tokens only), read once in the
+  row's label after the name and label (`a11yOf`). The trout fold's line (`troutFrom`) is unchanged.
+- Whole-release check (`app/tools/release-tributary-lines.test.ts`): a trout row WITH a line ⇒ its rail's setting steps,
+  for the origins it covers, are tributary ones naming exactly those waters, the words are `downLine`'s, no answer set
+  or lowered elsewhere; a row WITHOUT one whose rail names a tributary step ⇒ proved partial, else it fails; a fold with a
+  line ⇒ every row says the same. Releases cut before it are named (`BEFORE_T892`: r-86d43303bee2, r-fc137c4040fa) and
+  must carry no row line; there the missing ones are counted, not failed.
+- VERIFIED ON r-fc137c4040fa without a new release: Python's `down.py` over every trout cell (38,633 rows; 1,188 get a
+  line, 53 distinct) against the app's own per-row line (`troutFlow(...).down`) on every segment the app reaches by
+  date (33,368 rows): 921 lines and 32,447 none, 0 differences; J's read-back on the 372 cells with a line: 0 problems;
+  the whole-release check with Python's lines injected into the decoded inputs: 3,312 trout rows (over parts) with a
+  line, all proved against their rails, 60 rows proved partial, 0 missing; a dropped and a wrong line each fail it.
+  NOT verified: a built release (the field through encode/store/shards) and the pictures — both wait for the release.
+- Tests: `pipeline/tests/test_trout_down.py` (16: words, Nygaard, Shamrock, a lowered number, review 3 with its mutation,
+  no rail with its mutation, a twin, a repeat the rail drops, federal / part, no entry name, absent-not-null, the
+  model's forms, J with its mutation, the build's wiring); `test_trout_section` passes `down`; the mini chain has no
+  tributary trout row (0 lines), so the committed mini and app fixture releases do not move. App: core `trout.test.ts`
+  (absent, set, a11y once, forms), ui-native `TroutCard.test.tsx` (drawn in LIGHT/DARK/CVD sub colour, label once).

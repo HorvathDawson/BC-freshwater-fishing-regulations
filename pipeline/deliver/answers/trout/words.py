@@ -361,6 +361,36 @@ def parse_sheet_sentence(text: str) -> Parsed:
 
 DAY_SLOT = "{day}"
 HATCHERY_ONLY = "Hatchery only"
+
+
+# ============================================================================================
+# (T892) A row another water's tributary rule sets: `TRow.down`
+# ============================================================================================
+
+def possessive(name: str) -> str:
+    """"Kootenay River’s", "Twin Lakes’": a name ending in s takes only the apostrophe (the app's Other fish rows say
+    the same, `decidedWords.ts` `poss`)."""
+    if not name or name != name.strip():
+        raise WordsError(f"trout words: a water's name to say is empty or padded: {name!r}")
+    return f"{name}’" if re.search(r"s$", name, re.I) else f"{name}’s"
+
+
+def row_down(names) -> str:
+    """The line under a row's name naming the waters whose rows, carried down to their tributaries, set it: "Dutch
+    Creek’s rule for its tributaries"; "A’s and B’s rules for their tributaries" (the app's `DECIDE.ROW_DOWN`, the
+    Other fish rows' line, word for word)."""
+    names = list(names)
+    if not names:
+        raise WordsError("trout words: a tributary line names a water")
+    if len(names) == 1:
+        return f"{possessive(names[0])} rule for its tributaries"
+    return f"{', '.join(possessive(n) for n in names[:-1])} and {possessive(names[-1])} rules for their tributaries"
+
+
+def is_row_down(text: str, names) -> bool:
+    """`text` is the tributary line of exactly these waters, in this order (J reads a row's `down` back against the
+    waters the stored answers name; the line alone cannot be split, a name may hold " and ")."""
+    return bool(names) and text == row_down(names)
 YEAR_TITLE = "Trout and char through the year"
 HEAD_RELEASE, HEAD_CLOSED = "Release", "Closed"
 SHEET_RELEASE, SHEET_CLOSED = "Put it back", "Closed · do not fish for it"
