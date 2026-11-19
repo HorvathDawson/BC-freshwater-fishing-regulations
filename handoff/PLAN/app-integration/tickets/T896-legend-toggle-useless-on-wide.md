@@ -1,6 +1,6 @@
 # T896 — The map key's fold button is useless on a wide screen
 
-Status: IN PROGRESS — left (Claude): owner sees pictures, review, merge into app/integrate-082
+Status: DONE (214f18f8c, merged into 0.8.2; three reviews; owner saw the pictures 2026-11-19 ~01:0x).
 
 Owner 2026-11-19 ~00:51 (app chat), two desktop web shots of the Trout map bottom bar (folded: an empty white bar with
 only the ^ button; open: the one-line key "Closed · Own rules · Base rules · No access · Fly only · Bait ban · Not
