@@ -1,6 +1,6 @@
 # T912 — A regulations data update stops downloading when the app is closed
 
-Status: IN PROGRESS (lane app/t912-bg-download: fixed + emulator walk; left (Claude): integrate (0.8.3 batch)).
+Status: IN PROGRESS (lane app/t912-bg-download: fixed + emulator walk; round 3 data worker fix 395779f2d, not deployed; left (Claude): integrate (0.8.3), staging data worker deploy).
 
 Owner 2026-11-19 ~10:50 (main chat), verbatim: "also iff i close app it doesnt continue to downlaod the regulation data
 updates." (He is on Android, Play 0.8.2 build 37; promoting it to closed testing for himself the same minute.)
@@ -103,3 +103,42 @@ Accept-Encoding does not allow gzip gets the stored gzip bytes WITHOUT the Conte
 edge passes them with their length and ETag (resumable); the app already unpacks a gzip body (`verifyAsync`). Both data
 workers (staging, and production's — owner deploys prod). Browsers and the app's own fetch send gzip: unchanged.
 Run dirs (lane scratchpad `t912/`): `r2-android`, `r2-ios4`, `r2-ios7`.
+
+## Round 3 (2026-11-19 ~12:50): the data worker serves a cut data file resumably — NOT DEPLOYED
+**Done** (395779f2d, `deploy/staging/data-worker.js`; production's `deploy/prod/data.wrangler.toml` runs the SAME file
+(`main = "../staging/data-worker.js"`), so the two cannot differ). A gzip-stored file (`Content-Encoding: gzip` on the R2
+object: the release's `*.gz` data files, the run-timing feed) asked for by a client that does NOT take gzip is sent as the
+stored bytes WITHOUT `Content-Encoding`: `Content-Type: application/octet-stream`, `Content-Length` = stored size (the
+slice's on a 206), the R2 ETag, `Accept-Ranges`, Range → 206 + `Content-Range`, `Vary: Accept-Encoding`; HEAD the same.
+**Which Accept-Encoding:** on the edge a worker sees `Accept-Encoding: br, gzip` on EVERY request; the client's own value is
+`request.cf.clientAcceptEncoding` (Cloudflare docs, fundamentals/reference/http-headers). The worker reads that, the header
+only where `cf` does not carry it (tests, wrangler dev); none at all = no gzip (as the edge treats curl). gzip / x-gzip /
+`*` with q > 0 takes gzip. A client that takes gzip (browsers = the web, the app's own fetch on Android (OkHttp sends gzip),
+iOS URLSession) gets exactly what it got before: no header changed, no Vary added. Files not stored gzip: untouched.
+**The app needs no change.** Both phone paths end in `verifyAsync` (`packages/data/src/fetchVerified.ts`): `ungzipAsync`
+unpacks a body that starts with the gzip magic and passes a decoded one through, then length + sha256 against the manifest.
+The system download is claimed and read whole into it (`bgDownload.ts` `fetch`); the in-app fetch (`fetchVerifiedResilient`)
+verifies the same way and resumes only a body that arrived still gzip (`isGzip(head)`), which is now the consistent case for
+a Range request. The web: the browser takes gzip, unchanged. Python readers: `pipeline/runtiming/feed/diff.py` already
+unpacks a gzip body; the others read JSON that is not stored gzip.
+**Not changed (follow-up, optional):** `bgDownload.ts` `fetch` still gives up at once on a data-file job paused for anything
+but a network wait and fetches the file in the app (said in the log); with this worker live on BOTH hosts, that job could be
+left to resume like `fill`'s big files. Not done now: the Play build reads production's data host until the owner deploys
+prod's worker, and there a cut job still cannot resume. The comments there ("the host sends a data file to it with no
+length") describe the hosts until the deploy.
+**Tests.** `app/tools/data-worker.test.ts` (4 new): gzip taken (cf `gzip, deflate, br, zstd` / `gzip` / `*`, header-only
+`gzip`) → encoded as before, no Vary, no worker-set length; not taken (cf `identity`, `""`, `gzip;q=0, identity`, `br`,
+header `identity`, none) → stored bytes, no Content-Encoding, Content-Length 100, ETag, Vary; Range `bytes=40-` → 206,
+`bytes 40-99/100`, length 60, the slice; `bytes=10-19` → 206 the slice; HEAD → 100 unencoded; a JSON file untouched.
+Mutation checks: the old worker → 3 of the 4 new tests fail (the gzip-taken one passes, as it must); a worker reading only
+the header (not `cf.clientAcceptEncoding`) → fails. `pnpm -C app check:fast` green (no data/release link).
+**Release step (not run by the lane; neither worker deployed):**
+- Staging (main chat): `npx --prefix app wrangler deploy -c deploy/staging/data.wrangler.toml`; then check with
+  `curl -sS -D- -o /dev/null -H 'Accept-Encoding: identity' https://data-staging.canifishthis.ca/release/<rid>/climate-<hash>.sqlite.gz`
+  (expect no Content-Encoding, Content-Length = the object's size, an ETag) and the same with `-H 'Range: bytes=1000-'`
+  (expect 206); with `-H 'Accept-Encoding: gzip'` the headers as before (Content-Encoding: gzip).
+- Production (THE OWNER): `npx --prefix app wrangler deploy -c deploy/prod/data.wrangler.toml` (rehearse with
+  `--dry-run --outdir <tmp>`), then the same curls against `https://data.canifishthis.ca`.
+**Not verified:** the edge's behaviour live (no deploy): that `cf.clientAcceptEncoding` holds DownloadManager's
+`identity` as the docs say, and that the edge then passes the unencoded octet-stream with its length and ETag; a cut system
+download actually resuming on the 250 kB/s bench line (needs the staging deploy + an emulator run).
