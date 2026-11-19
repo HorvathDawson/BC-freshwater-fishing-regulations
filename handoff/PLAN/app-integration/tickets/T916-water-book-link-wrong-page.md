@@ -23,6 +23,6 @@ after. Pictures 390 light/dark before/after.
   get the line back, verbatim: "Keep it simple (Recommended)": the line is only for a water's own table row; zone-rule
   pages stay linked on the rules themselves.
 
-## Owner 2026-11-19 ~13:45 (main chat, after the round 2 pictures of Elaho River)
+## Owner 2026-11-19 ~13:29 (main chat, after the round 2 pictures of Elaho River)
 Asked where the line goes; options were A, the page's foot; B, the end of What you can keep; or drop it. Verbatim:
 "A: page foot (Recommended)". Merge app/t916-water-book (eaf71c64b) into the 0.8.3 integration; the release carries `row`.
