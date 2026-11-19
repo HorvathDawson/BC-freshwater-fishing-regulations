@@ -10,8 +10,8 @@
  * or `buildHydrograph`'s; this holds the state and hands the component actions that only take measurements.
  */
 import { useEffect, useMemo, useRef, useState } from "react";
-import { bcHour, isForecastModel, localDate, reportFailure, CHART_ZOOM, CONDITIONS_WORDS, chartReadoutLine, fitDomain, isZoomed, monthAbbr, pad2,
-         panDomain, timeAt, zoomChanges, zoomDomain, type ChartSpan, type Domain, type ForecastModel } from "@app/core";
+import { bcHour, FORECAST_DASH, forecastDash, OTHER_MODEL_DASH, localDate, reportFailure, CHART_ZOOM, CONDITIONS_WORDS, chartReadoutLine, fitDomain, isZoomed, monthAbbr, pad2,
+         panDomain, timeAt, zoomChanges, zoomDomain, type ChartSpan, type Domain } from "@app/core";
 import { draftSeriesOf, type GaugeFeed, type Parameter, type WaterSource, type Series, type StationId } from "@app/data";
 import { useAsync, type Async } from "./async";
 import { askOnce, cardParameters, chartParameter, peekAnswer, seriesKey } from "./answers";
@@ -30,9 +30,7 @@ const NO_MODELS: readonly string[] = [];
  * measured line is solid); drawn with round caps, so a `0.1` dash is a dot. A run of a model the app has no token for
  * (the publisher added one) is drawn in the chart's own trace colour with `OTHER_MODEL_DASH`, never as a named model.
  */
-export const FORECAST_DASH: Readonly<Record<ForecastModel, string>> = { CLEVER: "7,4", COFFEE: "0.1,4", ELF: "9,3.5,0.1,3.5" };
-export const OTHER_MODEL_DASH = "3,3";
-export const forecastDash = (model: string): string => (isForecastModel(model) ? FORECAST_DASH[model] : OTHER_MODEL_DASH);
+export { FORECAST_DASH, forecastDash, OTHER_MODEL_DASH };
 
 /** How tall the chart is for a width: a phone keeps the old proportion; a wide column does not become a banner. */
 export function chartHeight(width: number): number {

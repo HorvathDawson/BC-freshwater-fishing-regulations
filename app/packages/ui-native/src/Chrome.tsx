@@ -4,7 +4,7 @@
  * Separated from the screens because all four tabs use the same shapes, and because the
  * map itself must never be asked to draw UI — everything here sits above it.
  */
-import { FLOW_LEGEND, KEY_ISOLATE_WORDS, legendCount, legendTickLabel, standing } from "@app/core";
+import { FLOW_LEGEND, KEY_ISOLATE_WORDS, legendCount, legendTickLabel, NORMAL_BAND } from "@app/core";
 import { ScrollView, useWindowDimensions, View } from "react-native";
 import { Text } from "./Text";
 import { Pressable } from "./Pressable";
@@ -195,14 +195,7 @@ export function LegendCount({ palette, colour, n, label, line, dotted, striped, 
 }
 
 
-/**
- * WHERE "NORMAL" IS ON THE SCALE: the percentiles core's `standing` calls normal (the middle half of the record, 25–75),
- * read from that function rather than restated, so the legend's bracket and every "NORMAL" word agree.
- */
-const NORMAL: readonly [number, number] = (() => {
-  const at = Array.from({ length: 101 }, (_, i) => i / 100).filter((p) => standing(p) === "normal");
-  return [at[0] ?? 0.25, Math.min(1, (at.at(-1) ?? 0.74) + 0.01)];
-})();
+const NORMAL = NORMAL_BAND;
 /** the legend's widest: past this a ramp across a desktop window is a stripe, not a scale (centred in the strip) */
 export const LEGEND_RAMP_MAX = 560;
 const BAR = 10, TICKS = 14;

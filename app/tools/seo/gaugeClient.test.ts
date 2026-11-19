@@ -4,9 +4,9 @@
  * its failure reports held to the feeds worker's own crash validator (wire parity).
  */
 import { describe, expect, it } from "vitest";
-import { bcDayWords, bcIsoDayWords, bcStampWords, CONDITIONS_WORDS, figure, freshness, readingAgeWords } from "@app/core";
+import { FLOW_LEGEND, NORMAL_BAND, REALTIME_ONLY, forecastDash, bcDayWords, bcIsoDayWords, bcStampWords, CONDITIONS_WORDS, figure, freshness, readingAgeWords } from "@app/core";
 import { validateCrash } from "../../workers/feeds/src/crashes";
-import { chartSvg, crashReport, forecastHtml, gaugePage, isEnvironment, readingHtml, weatherHtml, type Facts } from "./gaugeClient";
+import { chartSvg, colourBarHtml, crashReport, forecastHtml, gaugePage, isEnvironment, readingHtml, weatherHtml, type Facts } from "./gaugeClient";
 
 const text = (html: string) => html.replace(/<[^>]+>/g, " ").replace(/\s+/g, " ");
 // ── the live half ────────────────────────────────────────────────────────────────────────────────────────────────────
@@ -43,15 +43,15 @@ describe("T487 the gauge page's live half", () => {
   });
 
   it("the forecast: drawn and named; past its working-day line, out of date; none, said", () => {
-    expect(text(forecastHtml(facts(), NOW))).toMatch(/Dashed: the CLEVER flow forecast, issued 2026-11-07/);
+    expect(text(forecastHtml(facts(), NOW))).toMatch(/CLEVER \(dashed\): issued 2026-11-07/);
     expect(text(readingHtml(facts(), NOW))).toContain("Expected change: rises to 1.8× (Tue).");
     expect(text(forecastHtml(facts(), NOW + 2 * 86_400_000))).toMatch(/likely out of date/);
     expect(text(forecastHtml(facts({ forecast: null }), NOW)).trim()).toBe("No flow forecast for this gauge.");
     expect(text(forecastHtml(facts({ forecast: null, forecastOld: { model: "ELF", issued: "Oct 30" } }), NOW))).toMatch(/latest ELF run \(issued Oct 30\) is likely out of date/);
     const svg = chartSvg(facts(), NOW)!;
     expect(svg).toContain('class="obs"');
-    expect(svg).toContain('class="fc"');
-    expect(chartSvg(facts({ forecast: null }), NOW)).not.toContain('class="fc"');
+    expect(svg).toContain('class="fc m-CLEVER"');
+    expect(chartSvg(facts({ forecast: null }), NOW)).not.toContain('class="fc');
     expect(chartSvg(facts({ week: [], forecast: null }), NOW)).toBeNull();
   });
 
@@ -127,5 +127,37 @@ describe("T487 the gauge page's live half", () => {
 
   it("the shipped script's core functions are written from core's own source, and run (see gauges.test.ts for the parity)", () => {
     expect(figure(0.123)).toBe("0.12");
+  });
+
+  it("(T908) the colour bar: the Conditions key with this gauge's reading marked, from core's Normal band; no rank, no bar", () => {
+    const bar = colourBarHtml(facts({ percentile: 0.2 }));
+    expect(text(bar)).toContain(`${FLOW_LEGEND.low} ${FLOW_LEGEND.high}`);
+    expect(bar).toContain('class="mark" style="left:20%"');
+    expect(bar).toContain(`left:${NORMAL_BAND[0] * 100}%;width:${Math.round((NORMAL_BAND[1] - NORMAL_BAND[0]) * 1000) / 10}%`);
+    expect(colourBarHtml(facts())).toBe("");
+  });
+
+  it("(T908) the CLEVER and COFFEE options: each a switch in the app's pick logic, its own dash; Real-time only draws neither", async () => {
+    const run = (model: string, d: number) => ({ model, issuedAt: "2026-11-07T18:32:00Z", issued: "x", dueBy: NOW + 86_400_000, attribution: "a",
+      points: [[NOW, 23], [NOW + d * 86_400_000, 40]] as [number, number][], horizonDays: d });
+    const both = facts({ forecasts: [run("CLEVER", 10), run("COFFEE", 5)] });
+    const doc = document.implementation.createHTMLDocument("g");
+    doc.body.innerHTML = `<div id="gauge-now"></div><div id="gauge-chart"></div><div id="gauge-weather"></div>` +
+      `<script type="application/json" id="gauge-config">${JSON.stringify({ station: "08MH001", facts: "https://d/f.json", weather: null, weatherAttribution: "", sky: {}, crash: null, env: "staging", release: "r1" })}</script>`;
+    await gaugePage(doc, () => NOW, (async () => new Response(JSON.stringify(both))) as typeof fetch);
+    const chart = () => doc.getElementById("gauge-chart")!;
+    const drawn = () => [...chart().querySelectorAll("path.fc")].map((x) => x.getAttribute("class")!.split(" ")[1]);
+    expect(chart().querySelectorAll("button[data-model]").length).toBe(3);
+    expect(text(chart().innerHTML)).toContain("CLEVER · 10d");
+    expect(text(chart().innerHTML)).toContain("COFFEE · 5d");
+    expect(drawn()).toEqual(["m-CLEVER"]);                                                          // the lead alone, as in the app
+    (chart().querySelector('button[data-model="COFFEE"]') as HTMLElement).click();
+    expect(drawn()).toEqual(["m-CLEVER", "m-COFFEE"]);
+    expect(chart().querySelector("path.fc.m-COFFEE")!.getAttribute("stroke-dasharray")).toBe(forecastDash("COFFEE"));
+    (chart().querySelector('button[data-model=""]') as HTMLElement).click();
+    expect(drawn()).toEqual([]);
+    expect(chart().querySelector('button[data-model=""]')!.getAttribute("aria-pressed")).toBe("true");
+    expect(text(chart().innerHTML)).toContain(REALTIME_ONLY);
+    expect(text(forecastHtml(facts({ forecast: null }), NOW)).trim()).toBe("No flow forecast for this gauge.");   // neither: one line
   });
 });

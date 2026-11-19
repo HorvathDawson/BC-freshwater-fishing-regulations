@@ -158,6 +158,16 @@ export type BandPlace = number | "below" | "above";
 /** The percentiles of the five knots of a `Band`: the climatology's PCTILES (generated, T125 item 6). */
 const KNOTS = PERCENTILE_KNOTS;
 
+/**
+ * (T908, moved from the Conditions legend, ui-native Chrome.tsx) WHERE "NORMAL" IS ON THE SCALE: the percentiles `standing` calls
+ * normal (the middle half of the record, 25–75), read from that function rather than restated, so the legend's bracket, the
+ * gauge page's colour bar and every "normal" word agree.
+ */
+export const NORMAL_BAND: readonly [number, number] = (() => {
+  const at = Array.from({ length: 101 }, (_, i) => i / 100).filter((p) => standing(p) === "normal");
+  return [at[0] ?? 0.25, Math.min(1, (at.at(-1) ?? 0.74) + 0.01)];
+})();
+
 /** What `percentileInBand` reports at or past an edge of the envelope: "the bottom tenth", "the top tenth". */
 export const BELOW_BAND = 0.05;
 export const ABOVE_BAND = 0.95;

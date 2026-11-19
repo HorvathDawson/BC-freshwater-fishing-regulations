@@ -53,13 +53,13 @@ describe("the gauge page shows what the app shows for one station", () => {
     const t = text(forecastDaysHtml(facts, NOW));
     for (const [d, v] of [[0, 23], [1, 31], [2, 40], [3, 36]] as const)
       expect(t).toContain(`${bcDayWords(NOW + d * D, true)} ${figure(v)} m³/s ${figure(20)}–${figure(40)}`);
-    expect(forecastDaysHtml({ ...facts, forecast: null }, NOW)).toBe("");
+    expect(forecastDaysHtml({ ...facts, forecast: null, forecasts: [] }, NOW)).toBe("");
     expect(forecastDaysHtml(facts, NOW + 3 * D)).toBe("");     // a run past its working-day line is not listed as a forecast
   });
 
   it("the chart draws the same forecast and band", () => {
     const svg = chartSvg(facts, NOW, 380)!;
-    expect(svg).toContain('class="fc"');
+    expect(svg).toContain('class="fc m-CLEVER"');
     expect(svg).toContain('class="bandn"');
     expect(svg).toContain('class="bandw"');
   });

@@ -16,7 +16,7 @@
  * a value differently from the app (T622; `gauges.test.ts` holds the names and the output to core's). Everything else it
  * needs (the weather URL, attributions, the sky words) arrives in the page's config.
  */
-import { BC_TIME_LABEL, bandOfWord, bcDayWords, bcIsoDayWords, bcMidnight, bcStampWords, bcWeekdayAbbr, figure, freshness, layoutDayMarks, niceTicks,
+import { BC_TIME_LABEL, bandOfWord, bcDayWords, daysNear, FLOW_LEGEND, FORECAST_MODEL_CONTROL, forecastDash, forecastDrawn, forecastModelOption, NORMAL_BAND, NO_MODEL_PICK, pickModel, realtimeOnly, REALTIME_ONLY, bcIsoDayWords, bcMidnight, bcStampWords, bcWeekdayAbbr, figure, freshness, layoutDayMarks, niceTicks,
          normalRangeOf, observedTrend, readingAgeWords, standingNowLine } from "@app/core";
 
 export interface GaugeConfig {
@@ -34,6 +34,8 @@ export interface GaugeConfig {
   readonly release: string;
 }
 
+export interface Run { model: string; issuedAt: string; issued: string; dueBy: number; points: [number, number][]; attribution: string; horizonDays?: number }
+
 export interface Facts {
   format: string; station: string; name: string; drawnAt: string;
   parameter: "discharge" | "level" | null; unit: string | null; reading: number | null; value: string | null; standing: string | null;
@@ -47,7 +49,11 @@ export interface Facts {
   week: [number, number][];
   /** the climatology's normal range a day over the chart's window: [epoch ms, p10, p25, p50, p75, p90]; null: none for this gauge */
   normal?: [number, number, number, number, number, number][] | null;
-  forecast: { model: string; issuedAt: string; issued: string; dueBy: number; points: [number, number][]; attribution: string } | null;
+  forecast: Run | null;
+  /** (T908) every model with a current run, the station's own order (the page's forecast options); absent in a file the worker wrote before T908 */
+  forecasts?: Run[];
+  /** (T908) the reading's rank 0-1, what the standing was worded from; absent: no marker on the colour bar */
+  percentile?: number | null;
   forecastOld: { model: string; issued: string } | null;
 }
 
@@ -86,21 +92,67 @@ export function nowLineHtml(f: Facts, now: number): string {
   let before: [number, number] | undefined;
   if (last) for (const p of f.week) if (p[0] <= last[0] - DAY && (!before || p[0] > before[0])) before = p;
   const trend = last && before ? observedTrend(before[1], last[1]) : null;
-  const rank = f.standing.slice(lead.length + 3);   // core's rank half of the standing line, kept beside the line
+  const rank = f.standing.slice(lead.length + 3);
+  const bar = colourBarHtml(f);   // core's rank half of the standing line, kept beside the line
   return `<p class="standing nowline b-${band}">${esc(standingNowLine(lead, bcDayWords(now), trend))}</p>` +
     (rank ? `<p class="small rank">${esc(rank.charAt(0).toUpperCase() + rank.slice(1))}</p>` : "") +
-    (f.change ? `<p class="small">Expected change: ${esc(f.change)}.</p>` : "");
+    bar + (f.change ? `<p class="small">Expected change: ${esc(f.change)}.</p>` : "");
 }
 
-/** the forecast line under the chart */
-export function forecastHtml(f: Facts, now: number): string {
-  if (f.forecast) {
-    const old = now > f.forecast.dueBy;
-    return `<p class="small">Dashed: the ${esc(f.forecast.model)} flow forecast, issued ${esc(f.forecast.issued)}` +
-      (old ? ` — <b>${esc(f.runOld)}</b> (no newer run since)` : "") + `.</p>`;
+/**
+ * (T908, owner 2026-11-19: "the same color bar ... like we have in condition tab") THE CONDITIONS TAB'S "Flow vs. past years" BAR,
+ * with this gauge's reading marked on it: the map's ramp (css `--flow-ramp`, built from the style's own stops), Low and High at the
+ * ends, the bracket over the middle half marked Normal (core's `NORMAL_BAND`), and the reading at its percentile. No percentile in
+ * the facts (a file from before T908, or no record to rank by): no bar.
+ */
+export function colourBarHtml(f: Facts): string {
+  const p = f.percentile;
+  if (typeof p !== "number" || !Number.isFinite(p) || p < 0 || p > 1) return "";
+  const title = FLOW_LEGEND.title[f.parameter === "level" ? "level" : "discharge"];
+  const pct = (x: number) => `${Math.round(x * 1000) / 10}%`;
+  return `<div class="ramp" role="img" aria-label="${esc(`${FLOW_LEGEND.scale(title, FLOW_LEGEND.low, FLOW_LEGEND.high, FLOW_LEGEND.mid)}. This gauge: ${daysNear(p)}`)}">` +
+    `<p class="small ramptitle">${esc(title)}</p>` +
+    `<div class="rampbar"><span>${esc(FLOW_LEGEND.low)}</span><div class="bar"><i class="mark" style="left:${pct(p)}"></i></div><span>${esc(FLOW_LEGEND.high)}</span></div>` +
+    `<div class="rampnormal"><div style="left:${pct(NORMAL_BAND[0])};width:${pct(NORMAL_BAND[1] - NORMAL_BAND[0])}">${esc(FLOW_LEGEND.mid)}</div></div></div>`;
+}
+
+/**
+ * (T908, owner 2026-11-19: "gauge page should have clever and coffee forecast options") THE MODELS A GAUGE HAS: every current run
+ * (`forecasts`, the station's own order), or the one `forecast` of a facts file written before T908; the lead is the first.
+ * `horizonDays` is what the options say ("CLEVER · 10d"): the days to the run's last point when the file does not name it.
+ */
+export function runsOf(f: Facts, now: number): Run[] {
+  const runs = f.forecasts ?? (f.forecast ? [f.forecast] : []);
+  return runs.map((r) => ({ ...r, horizonDays: r.horizonDays ?? Math.max(1, Math.round((r.points[r.points.length - 1]![0] - now) / DAY)) }));
+}
+/** the models drawn for a pick, the app's own rule (`pickModel`, `forecastDrawn`): the chosen one first, then the others on */
+export function drawnRuns(runs: readonly Run[], pick: ModelPickLike): Run[] {
+  if (!forecastDrawn(pick.on, runs)) return [];
+  const lead = pick.model ?? runs[0]?.model;
+  return [lead, ...pick.also].flatMap((m) => runs.filter((r) => r.model === m));
+}
+type ModelPickLike = { readonly model: string | null; readonly also: readonly string[]; readonly on: boolean | null };
+
+/** the forecast lines under the chart, one per model drawn; a gauge with no run says so in one line */
+export function forecastHtml(f: Facts, now: number, drawn: readonly Run[] = drawnRuns(runsOf(f, now), NO_MODEL_PICK)): string {
+  const runs = runsOf(f, now);
+  if (runs.length) {
+    return drawn.map((r) => `<p class="small">${esc(r.model)} (dashed): issued ${esc(r.issued)}` +
+      (now > r.dueBy ? ` — <b>${esc(f.runOld)}</b> (no newer run since)` : "") + `.</p>`).join("");
   }
   if (f.forecastOld) return `<p class="small">No current flow forecast: the latest ${esc(f.forecastOld.model)} run (issued ${esc(f.forecastOld.issued)}) is ${esc(f.runOld)}, so it is not drawn.</p>`;
   return `<p class="small">No flow forecast for this gauge.</p>`;
+}
+
+/** the forecast options, the app's own: one switch per model (its colour and dash) and "Real-time only" (`pickModel`, `realtimeOnly`) */
+export function modelsHtml(runs: readonly Run[], drawn: readonly Run[], realtime: boolean): string {
+  if (!runs.length) return "";
+  const on = (m: string) => drawn.some((r) => r.model === m);
+  const chip = (r: Run) => `<button type="button" class="chip m-${esc(r.model)}" data-model="${esc(r.model)}" aria-pressed="${on(r.model)}">` +
+    `<svg width="26" height="8" viewBox="0 0 26 8" aria-hidden="true"><line x1="1" y1="4" x2="25" y2="4" stroke-dasharray="${forecastDash(r.model)}"/></svg> ` +
+    `${esc(forecastModelOption({ model: r.model, horizonDays: r.horizonDays! }))}</button>`;
+  return `<div class="models" role="group" aria-label="${esc(FORECAST_MODEL_CONTROL)}">${runs.map(chip).join("")}` +
+    `<button type="button" class="chip" data-model="" aria-pressed="${realtime}">${esc(REALTIME_ONLY)}</button></div>`;
 }
 
 // `figure`, the B.C. day and stamp words and the age line are core's: clientScript() writes their source into the shipped
@@ -119,12 +171,12 @@ export function usualAt(f: Facts, t: number): { lo: number; hi: number } | null 
  * usual range for the date behind the line (dark: the middle half of past years, light: 8 in 10) and TODAY as the strong mark
  * (core `layoutDayMarks`, T604). The last 7 days and the forecast's dashes; null when there is nothing to draw.
  */
-export function chartSvg(f: Facts, now: number, width = 640): string | null {
+export function chartSvg(f: Facts, now: number, width = 640, drawn: readonly Run[] = drawnRuns(runsOf(f, now), NO_MODEL_PICK)): string | null {
   const W = Math.round(Math.min(900, Math.max(280, width))), H = W < 520 ? Math.round(W * 0.6) : Math.round(W * 0.3);
   const L = 48, R = 12, T = 30, B = 30, FS = 13;
-  const obs = f.week, fc = f.forecast?.points ?? [];
+  const obs = f.week, fc = drawn.flatMap((r) => r.points);
   if (obs.length + fc.length < 2) return null;
-  const t0 = now - 7 * DAY, t1 = Math.max(now, fc.length ? fc[fc.length - 1]![0] : now);
+  const t0 = now - 7 * DAY, t1 = Math.max(now, ...fc.map((p) => p[0]));
   const vals = [...obs, ...fc].map((p) => p[1]);
   let lo = Math.min(...vals), hi = Math.max(...vals);
   if (hi - lo < 1e-9) { lo -= 1; hi += 1; }
@@ -154,7 +206,7 @@ export function chartSvg(f: Facts, now: number, width = 640): string | null {
     `<line x1="${L}" y1="${H - B}" x2="${W - R}" y2="${H - B}" class="axis"/>`,
     obs.length >= 2 ? `<path d="${path(obs)}L${n(x(last![0]))} ${H - B}L${n(x(obs[0]![0]))} ${H - B}Z" class="area"/>` : "",
     obs.length >= 2 ? `<path d="${path(obs)}" class="obs"/>` : "",
-    fc.length ? `<path d="${path(last ? [last, ...fc] : fc)}" class="fc"/>` : "",
+    ...drawn.map((r) => `<path d="${path(last ? [last, ...r.points] : r.points)}" class="fc m-${esc(r.model)}" stroke-dasharray="${forecastDash(r.model)}"/>`),
     `<line x1="${n(x(now))}" y1="${T - 6}" x2="${n(x(now))}" y2="${H - B}" class="now"/>`,
     last ? `<circle cx="${n(x(last[0]))}" cy="${n(y(last[1]))}" r="5" class="dot"/>` : "",
     marks.placed ? `<text x="${n(marks.tx)}" y="${n(marks.ty)}" class="today" text-anchor="${marks.anchor}">Today</text>` : "",
@@ -169,18 +221,18 @@ export function chartKeyHtml(f: Facts): string {
   const usual = (f.normal?.length ?? 0) >= 2;
   return `<details class="keyfold"><summary>What the lines and shading are</summary><ul class="key"><li class="k-head">${esc(f.parameter === "level" ? "Water level" : "Flow")}, ${esc(f.unit ?? "")}</li>` +
     item('line x1="0" y1="6" x2="26" y2="6" class="obs"/>', "measured") +
-    (f.forecast ? item('line x1="0" y1="6" x2="26" y2="6" class="fc"/>', "forecast") : "") +
     (usual ? item('rect x="0" y="1" width="26" height="10" class="bandn"/>', "usual range for the date: half of past years") +
              item('rect x="0" y="1" width="26" height="10" class="bandw"/>', "8 years in 10") : "") + `</ul></details>`;
 }
 
 /** the forecast, a day at a time: the expected figure and the usual range for that day (the same rows the chart shades) */
-export function forecastDaysHtml(f: Facts, now: number): string {
-  if (!f.forecast || f.week.length + f.forecast.points.length < 2) return "";
-  if (now > f.forecast.dueBy) return "";
+export function forecastDaysHtml(f: Facts, now: number, drawn: readonly Run[] = drawnRuns(runsOf(f, now), NO_MODEL_PICK)): string {
+  const lead = drawn[0];
+  if (!lead || f.week.length + lead.points.length < 2) return "";
+  if (now > lead.dueBy) return "";
   const seen = new Set<string>();
   const rows: string[] = [];
-  for (const [t, v] of f.forecast.points) {
+  for (const [t, v] of lead.points) {
     const label = bcDayWords(t, true);
     if (t < now - 12 * 3600_000 || seen.has(label)) continue;
     seen.add(label);
@@ -261,21 +313,34 @@ export async function gaugePage(doc: Document, now: () => number, fetchImpl: typ
     const t = now();
     put("gauge-now", readingHtml(f, t));
     const box = doc.getElementById("gauge-chart");
-    const draw = () => {
-      const svg = chartSvg(f, now(), box?.clientWidth || 640);
-      return svg ? svg + chartKeyHtml(f) : `<p class="small">No readings in the last 7 days.</p>`;
+    // (T908) the forecast options: the app's own pick (`pickModel`, `realtimeOnly`), redrawn on a tap
+    const runs = runsOf(f, t);
+    let pick: ModelPickLike & { readonly model: string | null; readonly also: readonly string[]; readonly on: boolean | null } = NO_MODEL_PICK;
+    const render = () => {
+      const tn = now(), drawn = drawnRuns(runs, pick);
+      const svg = chartSvg(f, tn, box?.clientWidth || 640, drawn);
+      put("gauge-chart", `<h2>Last 7 days and the forecast</h2>` + modelsHtml(runs, drawn, drawn.length === 0) +
+        (svg ? svg + chartKeyHtml(f) : `<p class="small">No readings in the last 7 days.</p>`) + forecastHtml(f, tn, drawn) + forecastDaysHtml(f, tn, drawn) +
+        `<p class="small">Readings: Water Survey of Canada real-time data (Environment and Climate Change Canada), provisional.` +
+        `${runs[0] ? ` ${esc(runs[0].attribution)}` : ""}</p>`);
     };
-    put("gauge-chart", `<h2>Last 7 days and the forecast</h2>` + draw() + forecastHtml(f, t) + forecastDaysHtml(f, t) +
-      `<p class="small">Readings: Water Survey of Canada real-time data (Environment and Climate Change Canada), provisional.` +
-      `${f.forecast ? ` ${esc(f.forecast.attribution)}` : ""}</p>`);
+    render();
+    box?.addEventListener("click", (ev) => {
+      const b = (ev.target as Element | null)?.closest?.("button[data-model]");
+      if (!b) return;
+      const m = b.getAttribute("data-model") ?? "";
+      const drawing = drawnRuns(runs, pick).length > 0, lead = pick.model ?? runs[0]?.model ?? null;
+      pick = m === "" ? realtimeOnly(pick) : pickModel(pick, m, drawing ? lead : null, drawing);
+      render();
+    });
     // the chart is drawn at the width it is shown at: a turned phone draws it again
     let drawnAt = box?.clientWidth ?? 0;
     doc.defaultView?.addEventListener("resize", () => {
       const w = box?.clientWidth ?? 0;
       if (!box || Math.abs(w - drawnAt) < 24) return;
       drawnAt = w;
-      const first = box.querySelector("svg");
-      if (first) first.outerHTML = chartSvg(f, now(), w) ?? "";
+      const first = box.querySelector("svg:not([aria-hidden])");
+      if (first) first.outerHTML = chartSvg(f, now(), w, drawnRuns(runs, pick)) ?? "";
     });
   }).catch((e) => { failed("gauge-now", "The latest reading", e); put("gauge-chart", ""); });
   const weather = cfg.weather === null

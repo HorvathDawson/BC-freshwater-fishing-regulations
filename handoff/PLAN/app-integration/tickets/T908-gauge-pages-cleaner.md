@@ -32,3 +32,15 @@ region hubs, letter, topic, changes, about, privacy and the /gauges index (not c
 Tests changed with the owner's words as the reason: gaugeClient.test (reading block text, chart sizes), gaugePage.parity.test
 (the standing is the band line + core's rank, not one run), gauges.test (+ no Browse by region, main vs fold). SEO tests 150 pass;
 check:fast green. Pictures: /private/tmp/claude-502/-Users-dawson-horvath-dev-personal-BC-freshwater-fishing-regulations/1db4ea05-d81d-4b07-a925-fc0b9cdbe701/scratchpad/t908-shots/contact-sheet-390.png, /private/tmp/claude-502/-Users-dawson-horvath-dev-personal-BC-freshwater-fishing-regulations/1db4ea05-d81d-4b07-a925-fc0b9cdbe701/scratchpad/t908-shots/contact-sheet-1440.png (before | after; Harrison + Chilliwack at Vedder).
+
+## Round 2 (owner 2026-11-19 10:50, verbatim: "the gauge page picture should have the same color bar at the top. like we have in condition tab. gauge page should have clever and coffee forecast options")
+Built: (1) the Conditions tab's "Flow vs. past years, this date" bar under the now line: the map's ramp (css `--flow-ramp` from the style's
+own standing stops), Low / High, the bracket marked Normal from core's new `NORMAL_BAND` (moved from ui-native Chrome.tsx, which now imports
+it), this gauge's reading marked at its percentile. (2) One switch per model the gauge has (CLEVER, COFFEE, ELF) plus "Real-time only", in
+the app's own logic (`pickModel`, `realtimeOnly`, `forecastDrawn`, `forecastModelOption`, moved to core change.ts / conditions.ts and
+re-exported by @app/ui), each model's own colour token (color.ui.forecast.*) and dash (`FORECAST_DASH`, moved to core); the lead model is on
+as in the app; a gauge with no run says "No flow forecast for this gauge." All written into the page script by `CORE_INLINE`.
+NEEDS THE FEEDS WORKER REDEPLOYED (main chat; never done here): `cardFacts` now also writes `forecasts` (every current run, with
+`horizonDays`) and `percentile` (CARD_REV 3 so every card is redrawn). Until then the page shows the one `forecast` it was given and NO colour bar
+(no percentile, nothing rendered). Pictures use a LOCAL facts file: live 08MH001 / 08MG013 facts plus the two new fields, with COFFEE
+SYNTHESIZED (0.9 x CLEVER, 5 days), because the live feed's cards carry one model. Pictures: /private/tmp/claude-502/-Users-dawson-horvath-dev-personal-BC-freshwater-fishing-regulations/1db4ea05-d81d-4b07-a925-fc0b9cdbe701/scratchpad/t908-shots/r2-contact-sheet-390.png, /private/tmp/claude-502/-Users-dawson-horvath-dev-personal-BC-freshwater-fishing-regulations/1db4ea05-d81d-4b07-a925-fc0b9cdbe701/scratchpad/t908-shots/r2-contact-sheet-1440.png.
