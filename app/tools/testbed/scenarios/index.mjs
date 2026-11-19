@@ -39,10 +39,11 @@ import { savedSpots } from './saved-spots.mjs';
 import { twoDays } from './two-days.mjs';
 import { routeScroll } from './route-scroll.mjs';
 import { zoomFlick } from './zoom-flick.mjs';
+import { zoomPinch } from './zoom-pinch.mjs';
 import { tapStalls } from './stalls.mjs';
 import { backFlash } from './back-flash.mjs';
 import { openRace } from './open-race.mjs';
 import { troutTable } from './trout-table.mjs';
 import { oldAppGate } from './old-app-gate.mjs';
 
-export const SCENARIOS = [install, feeds, bigUpdate, offline, spots, savedSpots, twoDays, routeScroll, report, crash, crashBed, nearCold, satellite, pan, perf, regsOpen, updateFreeze, bgInstall, locate, gestures, walkthrough, gaugeOffline, gaugeLevel, memory, waterNav, heapprof, edge, feel, partSteps, tabSwitch, glide, photoZoom, stepShots, paneOpen, mapIdle, switchPan, regsSwitch, retireSwap, zoomFlick, tapStalls, backFlash, openRace, troutTable, oldAppGate];
+export const SCENARIOS = [install, feeds, bigUpdate, offline, spots, savedSpots, twoDays, routeScroll, report, crash, crashBed, nearCold, satellite, pan, perf, regsOpen, updateFreeze, bgInstall, locate, gestures, walkthrough, gaugeOffline, gaugeLevel, memory, waterNav, heapprof, edge, feel, partSteps, tabSwitch, glide, photoZoom, stepShots, paneOpen, mapIdle, switchPan, regsSwitch, retireSwap, zoomFlick, zoomPinch, tapStalls, backFlash, openRace, troutTable, oldAppGate];

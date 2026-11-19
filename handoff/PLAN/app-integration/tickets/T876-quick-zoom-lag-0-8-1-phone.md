@@ -1,6 +1,6 @@
 # T876 — Quick zoom in and out lags more on the phone (0.8.1)
 
-Status: OPEN (app chat). Trace read 2026-11-18 ~20:45; cause not proven yet, bench next.
+Status: OPEN, AFTER LAUNCH (app chat). Owner 2026-11-18 ~20:51: "Also the speed on this release is better so it wasn't this build it was always a bit of an issue" — a performance ticket, not a 0.8.1 blocker. Bench 21:00–21:34: the split is not the cause and no fix lands; labels are the lead (below).
 
 Owner 2026-11-18 20:37, verbatim: "More laggy quick zoom in and out."
 Trace: his Pixel 9 ("tokay", Android CP3A.261005.005), System Tracing, captured 20:35:
@@ -56,3 +56,41 @@ the route map.
    (a style filter, not a feature-state opacity). Check the look on pictures before landing.
 3. Cheap try either way: the T420 lab send gap (`stateGapMs`, `lab.ts`: 0 today, 250 the other setting), so a
    pinch sends a few feature-state batches instead of one per tile burst.
+
+## Bench (2026-11-18 21:00–21:34, emulator `n1_pixel`, patched MapLibre, release r-fc137c4040fa, Trout map)
+
+Scenario `zoom-pinch` (new): at -121.95,49.17, six quick two-finger pinch in/out cycles from z10.5 (~6 s), and a quick
+zoom-out z12 → ~z7 (three squeezes), each under a Perfetto trace. Frames are the camera probe's `f` lines; a gap is a frame
+interval while the camera moved. Render = MapLibre's `RenderThread NN` CPU over the gesture (+1.5 s), from
+`app/tools/perfetto/pinch.py <run dir>`. Medians of 3 rounds (lab arms: 2).
+
+| build | pinch: gaps > 100 / > 50 ms | fps | render busy | render ms/frame | zoom-out: gaps > 100 | fps | render ms/frame |
+|---|---|---|---|---|---|---|---|
+| A 0.8.0 (7ed1598e6) | 0 / 34 (one round 29 / 30, 3.6 fps) | 37.4 | 80 % | 23.8 | **10** | **8** | **100.7** |
+| B 0.8.1 (84b1eb4f5) | 0 / 18 | 44.8 | 77 % | 19.3 | 0 | 51.4 | 11.7 |
+| C B, split off (46da85a46, bench only) | 0 / 20 | 44.9 | 76 % | 19.0 | 0 | 52.2 | 12.1 |
+| D B + lab stateGapMs=250 | 2 / 37 (one round 35 gaps) | 34.8 | 85 % | 25.1 | 0 | 43.5 | 18.8 |
+| B again, 2nd session | 1 / 27 | 38.9 | 76 % | 22.6 | 0 | 54.5 | 11.4 |
+| B + lab labels=false | 0 / 8 | **55.5** | 58 % | **11.6** | 5.5 (one round 11) | 33.6 | 35.6 |
+| B + lab prefetch=2 | 2 / 31 | 38.5 | 80 % | 22.9 | 0 | 51.9 | 11.6 |
+| B + lab streamsOneBucket | 18 / 50 | 20.1 | 89 % | 51.7 | 11 | 13.1 | 68.6 |
+
+- **0.8.1 is better than 0.8.0**, as the owner says: zoom-out 100.7 → 11.7 ms of render work a frame (8 → 51 fps), pinch
+  23.8 → 19.3. The split itself is neutral on the phone (C ≈ B): the gain is the rest of 4c005321e (fix 2, marks hidden by
+  mode) and the busy layers' width. Nothing to undo; the web gain stands.
+- **stateGapMs=250 is worse** (bigger batches, longer stalls). streamsOneBucket is far worse. prefetch=2 does nothing.
+- **Labels are the lead**: with the labels off a quick pinch costs half the render work (11.6 vs 22.6 ms a frame, 55 vs
+  39 fps, > 50 ms gaps 8 vs 27). Symbol placement / label buckets on each zoom crossing are where the render thread goes.
+- The emulator never shows the phone's > 100 ms stalls on a pinch (its CPU is the Mac's): compare shares, not counts.
+- `linux.perf` samples work on the emulator but the render thread's leaves are `write`/`read` (gfxstream's pipe to the
+  host GPU) and libmaplibre.so is stripped: no function names.
+
+## Next (after launch)
+
+1. Labels on a pinch: which layers (water names, basemap places, gauge pills), at what zooms; try fewer symbol layers
+   between z9 and z12, `symbol-sort-key`/collision padding, or labels held still while a pinch runs. Same scenario,
+   `PINCH_ARMS='base;lab:labels=false'`, plus a per-layer lab switch if one is added.
+2. On the phone, the owner's own trace again with the labels lab switch off (Developer card, Lab): if the stalls go, (1)
+   is the fix.
+3. A slow-CPU run (`TESTBED_EMU_ECORES=1`) to bring the > 100 ms stalls into the emulator; the Salmon map
+   (`PINCH_MODE=salmon`) not yet measured.
