@@ -47,7 +47,26 @@ export function allowanceRules(g: GearAnswer): readonly (readonly number[])[] {
  *  rules), each label once. */
 export function noteWithAllowances(note: string, rixs: readonly number[], rules: GearCtx["rules"]): string {
   const said = [...new Set(rixs.filter((ix) => rules.has(ix)).map((ix) => clean(rules.get(ix).export.label)))];
-  return [note, ...said].filter(Boolean).join(BAIT.SEP);
+  return [note, ...labelsOnce(said)].filter(Boolean).join(BAIT.SEP);
+}
+
+/**
+ * (T900) rule labels of the same exception said once: two rules worded "<head> — <where>" (white sturgeon's dead fin fish,
+ * one rule per entry of the book: "upstream of the CPR Bridge at Mission", "Fraser River; Pitt River, …") print the head
+ * once and each rule's own "— <where>" (with any tail it carries) after it, "·" between them. A label without a
+ * " — <where>" part, or with a head no other label shares, stands as it is. Every word of every label stays.
+ */
+export function labelsOnce(labels: readonly string[]): string[] {
+  const cut = (l: string): [string, string | null] => { const i = l.indexOf(BAIT.DASH); return i < 0 ? [l, null] : [l.slice(0, i), l.slice(i + BAIT.DASH.length)]; };
+  const out: string[] = [], at = new Map<string, number>(), where: string[][] = [];
+  for (const l of labels) {
+    const [head, w] = cut(l);
+    const j = w === null ? undefined : at.get(head);
+    if (j !== undefined) { where[j]!.push(w!); continue; }
+    if (w !== null) { at.set(head, out.length); where[out.length] = [w]; } else where[out.length] = [];
+    out.push(head);
+  }
+  return out.map((head, i) => (where[i]!.length ? head + BAIT.DASH + where[i]!.join(BAIT.SEP) : head));
 }
 
 /** prototype buildGear.note2: a note that only repeats its column ("allowed", "banned", "bait ban") loses that word. */

@@ -11,6 +11,7 @@
     {
      "col": "ok",
      "head": "Allowed",
+     "inline": false,
      "items": [
       {
        "mark": "✓",
@@ -29,6 +30,7 @@
     {
      "col": "no",
      "head": "Not allowed",
+     "inline": false,
      "items": [
       {
        "mark": "✕",
@@ -146,7 +148,26 @@
     ]
    }
   ],
-  "mode": null
+  "mode": null,
+  "src": {
+   "aria": "Sources: Province",
+   "keys": [
+    "zp:terminal_tackle::terminal_tackle.r1",
+    "zp:terminal_tackle::terminal_tackle.r6",
+    "zp:terminal_tackle::terminal_tackle.r4",
+    "zp:bait::bait.r5",
+    "zp:bait::bait.r1",
+    "zp:bait::bait.r2"
+   ],
+   "open": "srcs:gear",
+   "pages": [
+    {
+     "pdf": 10,
+     "printed": 8
+    }
+   ],
+   "who": "Province ›"
+  }
  },
  "header": {
   "date": "Oct 10",
@@ -945,23 +966,24 @@
     {
      "col": "ok",
      "head": "Allowed",
+     "inline": false,
      "items": [
       {
        "mark": "✓",
        "name": "Angling (rod and line)",
-       "note": "with a downrigger: attached to your line by a quick-release · with a light: submerged, attached to the line, within 1 m of the hook",
+       "note": "with a downrigger: attached to your line by a quick-release\nwith a light: submerged, attached to the line, within 1 m of the hook",
        "terms": []
       },
       {
        "mark": "✓",
        "name": "Ice fishing",
-       "note": "lines: 1 · hook, lure or fly per line: 1 · Remove your ice hut before breakup · Warn others of your ice hole",
+       "note": "lines: 1\nhook, lure or fly per line: 1\nRemove your ice hut before breakup\nWarn others of your ice hole",
        "terms": []
       },
       {
        "mark": "✓",
        "name": "Set lines",
-       "note": "lines: 1 · hooks per line: 1 · hook gap: at least 3 cm · Mark your set line with your name, address and telephone number · All game fish other than burbot — release all, from lakes, taken on a set line · All game fish other than burbot — release all, taken on a set line",
+       "note": "lines: 1\nhooks per line: 1\nhook gap: at least 3 cm\nMark your set line with your name, address and telephone number\nAll game fish other than burbot — release all, from lakes, taken on a set line\nAll game fish other than burbot — release all, taken on a set line",
        "terms": [
         "set_line"
        ]
@@ -969,7 +991,7 @@
       {
        "mark": "✓",
        "name": "Spear or bow — not for trout or other game fish",
-       "note": "not for game fish, salmon or protected species · burbot allowed",
+       "note": "not for game fish, salmon or protected species\nburbot allowed",
        "terms": []
       },
       {
@@ -983,6 +1005,7 @@
     {
      "col": "no",
      "head": "Not allowed",
+     "inline": true,
      "items": [
       {
        "mark": "✕",

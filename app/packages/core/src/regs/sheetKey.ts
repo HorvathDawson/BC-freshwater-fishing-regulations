@@ -8,7 +8,7 @@ import type { RuleKey } from "./line";
 export type SheetKey =
   | `rule:${RuleKey}` | `gl:${string}`            // gl: one id, or ids joined by "," (multi-term sheet)
   | `sp:${string}` | "hatch"
-  | `srcs:${"bait" | "ways" | "always" | "boats"}` | `srcs:gl|${"mode" | "lines" | "hook" | "weight"}`
+  | `srcs:${"bait" | "ways" | "always" | "boats" | "gear"}` | `srcs:gl|${"mode" | "lines" | "hook" | "weight"}`
   | `other:o${number}` | "pos:pos" | `src:r${number}`
   /** (T475) a card row's share ⓘ: how the headline's share stands to the regional total (`headline.info`) */
   | `share:r${number}`
@@ -20,7 +20,7 @@ export type SheetKey =
   | "src:trout";
 /** (T810 P) a trout row key after `tf:` (trout.ts ROW_KEY): the "/" of a twin row is part of the key */
 const TF = /^tf:(?:CT|DV|EB|GB|LT|RB|ST)(?:\/(?:wild|hatchery))?$/;
-const SRCS = /^srcs:(?:bait|ways|always|boats|gl\|(?:mode|lines|hook|weight))$/;
+const SRCS = /^srcs:(?:bait|ways|always|boats|gear|gl\|(?:mode|lines|hook|weight))$/;
 
 /** A sheet key the app knows, or null (an unknown shape is refused — the date sheet is D7's, not a SheetKey). */
 export function parseSheetKey(k: string): SheetKey | null {

@@ -1,7 +1,7 @@
 /**
  * T34 — the Gear tab's lines (prototype buildGear → `.gmodew` + `ul.glines`): an optional mode line ("Fly fishing only"
- * with its ⓘ, its changes, its source), then Lines · Hooks · Weight on the line — the label left, the values big right
- * (each with its own ⓘ), then the row's changes (full width) and its source line (under the values). Order fixed by round
+ * with its ⓘ and its changes), then Lines · Hooks · Weight on the line — the label left, the values big right
+ * (each with its own ⓘ), then the row's changes (full width). (T900) No source line per row: the tab draws ONE under the section (`GearVM.src`). Order fixed by round
  * 20g. No logic: every word, term and key is the GearVM's.
  */
 import { View } from "react-native";
@@ -11,7 +11,6 @@ import { TYPE, type TextStyle } from "../type";
 import { SPACE, type Palette } from "../theme";
 import { ChangesLine } from "./ChangesLine";
 import { TermText, type KeepActions } from "./LineText";
-import { SourceLine } from "./SourceLine";
 
 /** `.gline` grid: the label column (7.4em of the 15 px body) and its 8 px gap — the source line sits under the values. */
 const LABEL_W = 111, GAP = 8;
@@ -36,7 +35,6 @@ export function GearLines({ mode, lines, palette, actions }: {
         <View testID="gear-mode" style={{ marginBottom: SPACE.s2 }}>
           <Value text={mode.value} terms={mode.terms} style={TYPE.lead} palette={palette} actions={actions} />
           {mode.changes.map((c, i) => <ChangesLine key={i} change={c} palette={palette} />)}
-          {mode.src && <SourceLine src={mode.src} palette={palette} actions={actions} spaced />}
         </View>
       )}
       {lines.map((l, i) => (
@@ -49,7 +47,6 @@ export function GearLines({ mode, lines, palette, actions }: {
             </View>
           </View>
           {l.changes.map((c, j) => <ChangesLine key={j} change={c} palette={palette} />)}
-          {l.src && <View style={{ marginLeft: LABEL_W + GAP }}><SourceLine src={l.src} palette={palette} actions={actions} /></View>}
         </View>
       ))}
     </View>

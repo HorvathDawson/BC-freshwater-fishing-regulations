@@ -35,7 +35,7 @@ describe("<GearTab> vedder_1010 (open, Oct 10)", () => {
     expect(["lines", "hook", "weight"].map((k) => domLines(screen.getByTestId(`gear-line-${k}`))[0])).toEqual([
       "Lines 1 line", "Hooks One hook, lure or fly", "Weight on the line Up to 1 kg (2.2 lb) ⓘ"]);
     expect(domLines(screen.getByTestId("gear-line-hook"))).toEqual(["Hooks One hook, lure or fly", "Single barbless hook, no trebles ⓘ",
-      "Next May 1–31: fly fishing only", "Province · Region 2 · This water’s › Rule book p.8 ↗ Rule book p.21 ↗ Rule book p.22 ↗"]);
+      "Next May 1–31: fly fishing only"]);   // (T900) no source line per row: the section draws one (gear-src)
   });
 
   it("the Hooks change is quiet: chip + dates + the data's words, no link inside; the chip is the tinted caps label", () => {
@@ -48,29 +48,30 @@ describe("<GearTab> vedder_1010 (open, Oct 10)", () => {
     expect([chip.textContent, chip.style.textTransform, chip.style.backgroundColor !== ""]).toEqual(["Next", "uppercase", true]);
   });
 
-  it("the Hooks source line opens srcs:gl|hook; a Rule book link says its PDF page", () => {
+  it("(T900) ONE source line under the section opens srcs:gear; a Rule book link says its PDF page; no row draws its own", () => {
     const { sheets, books } = mount(vm);
-    const hook = within(screen.getByTestId("gear-line-hook"));
-    const btn = hook.getByRole("button", { name: vm.lines[1]!.src!.aria });
-    expect([btn.textContent, vm.lines[1]!.src!.aria]).toEqual(["Province · Region 2 · This water’s ›", "Sources: Province, Region 2, This water’s"]);
-    expect(hook.getAllByRole("link").map((a) => a.textContent)).toEqual(["Rule book p.8 ↗", "Rule book p.21 ↗", "Rule book p.22 ↗"]);
+    const src = within(screen.getByTestId("gear-src")), v = vm.src!;
+    expect(screen.getAllByTestId("regs-src")).toHaveLength(1);
+    const btn = src.getByRole("button", { name: v.aria });
+    expect([btn.textContent, v.open]).toEqual([v.who, "srcs:gear"]);
+    expect(src.getAllByRole("link").map((a) => a.textContent)).toEqual(v.pages.map((p) => `Rule book p.${p.printed} ↗`));
+    // every row's pages are in it (nothing a row said is lost)
+    for (const l of vm.lines) for (const p of l.src?.pages ?? []) expect(v.pages.map((x) => x.printed)).toContain(p.printed);
     fireEvent.click(btn);
-    fireEvent.click(hook.getByText("Rule book p.21 ↗"));
-    fireEvent.click(hook.getByText("ⓘ"));
-    expect([sheets, books]).toEqual([["srcs:gl|hook", "gl:single_barbless_hook"], [23]]);
+    fireEvent.click(within(screen.getByTestId("gear-line-hook")).getByText("ⓘ"));
+    expect([sheets, books]).toEqual([["srcs:gear", "gl:single_barbless_hook"], []]);
   });
 
   it("Bait: ✓ rows with their notes, ✕ Fish or fish parts, the dated ban, Province ›", () => {
     const { sheets } = mount(vm);
     expect(domLines(screen.getByTestId("gear-bait"))).toEqual(["Bait", "Bait ban May 1–31 · not today ⓘ", "Allowed", "✓ Worms",
       "✓ Roe (fish eggs) the fish or fish parts ban excepts it", "✓ Water insects and crayfish on streams", "Not allowed",
-      "✕ Fish or fish parts", "Province › Rule book p.8 ↗"]);
+      "✕ Fish or fish parts"]);
     // (T40) no row label (it would hide the row's words and its ⓘ from a screen reader): the column head is read as text,
     // then each row's own words; the ✓ / ✕ that repeats the head is hidden
     expect(screen.queryByLabelText("Allowed: Roe (fish eggs), the fish or fish parts ban excepts it")).toBeNull();
     expect([...screen.getByTestId("gear-bait").querySelectorAll('[aria-hidden="true"]')].map((e) => e.textContent)).toEqual(["✓", "✓", "✓", "✕"]);
-    fireEvent.click(within(screen.getByTestId("gear-bait")).getByRole("button", { name: "Sources: Province" }));
-    expect(sheets).toEqual(["srcs:bait"]);
+    expect(sheets).toEqual([]);   // (T900) its source is the section's one
   });
 
 });
@@ -79,8 +80,7 @@ describe("<GearTab> other states", () => {
   it("vedder_515: the fly-only mode line with its one ⓘ (fly_fishing); bait ban Now, in force today; Weight has no source", () => {
     const { sheets } = mount(gearOf(vedder515));
     const mode = screen.getByTestId("gear-mode");
-    expect(domLines(mode)).toEqual(["Fly fishing only ⓘ", "Next Jul 1–Apr 30: one hook, lure or fly and weight on the line up to 1 kg (2.2 lb)",
-      "This water’s · Province › Rule book p.8 ↗ Rule book p.22 ↗"]);
+    expect(domLines(mode)).toEqual(["Fly fishing only ⓘ", "Next Jul 1–Apr 30: one hook, lure or fly and weight on the line up to 1 kg (2.2 lb)"]);
     fireEvent.click(within(mode).getByText("ⓘ"));
     expect(sheets).toEqual(["gl:fly_fishing"]);
     expect(domLines(screen.getByTestId("gear-bait"))).toContain("No natural bait May 1–31 · in force today ⓘ");

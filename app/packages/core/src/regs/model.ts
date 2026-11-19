@@ -358,6 +358,9 @@ export interface GearVM {
   readonly mode: { value: string; terms: readonly string[]; changes: readonly ChangeVM[]; src: SourceLineVM | null } | null;
   readonly lines: readonly GearLineVM[];    // Lines · Hooks · Weight on the line, only parts the summary sentence names
   readonly bait: BaitVM | null;
+  /** (T900) the section's ONE source line: every row's and the Bait item's rules together, drawn once under the section
+   *  instead of under each row (`srcs:gear` opens the Sources sheet of all of them); null on a day with no items */
+  readonly src: SourceLineVM | null;
 }
 export interface GearLineVM { readonly k: "lines" | "hook" | "weight"; readonly label: string; readonly values: readonly string[]; readonly terms: readonly string[]; readonly changes: readonly ChangeVM[]; readonly src: SourceLineVM | null;
   /** (T30) the ⓘ after each value (`terms` is their union): one id an ⓘ, two or more one "What these words mean" */
@@ -374,6 +377,8 @@ export interface SourceLineVM {
 export interface BaitVM { readonly label: string; readonly notes: readonly Line[];
   readonly list: YesNoVM; readonly src: SourceLineVM | null }
 export type YesNoVM = readonly { col: "ok" | "no"; head: "Allowed" | "Not allowed";
+  /** (T900) a "Not allowed" column of bare names (no note, no ⓘ; three or more) is drawn as one wrapped line, not a row each */
+  inline: boolean;
   /** (T35) terms: glossary ids for an ⓘ after the name (the set_line ⓘ on an allowed "Set lines"); [] for none */
   items: readonly { mark: "✓" | "✕"; name: string; note: string | null; terms: readonly string[] }[] }[];
 

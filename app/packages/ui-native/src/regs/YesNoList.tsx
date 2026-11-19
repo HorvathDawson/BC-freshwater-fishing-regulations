@@ -19,7 +19,16 @@ export function YesNoList({ list, palette, actions }: { list: YesNoVM; palette: 
       {list.map((c, ci) => (
         <View key={c.col} style={{ marginTop: ci ? SPACE.s2 : 0 }}>
           <Text style={[TYPE.metaBold, { color: palette.sub, marginBottom: 2 }]}>{c.head}</Text>
-          {c.items.map((it, i) => (
+          {c.inline ? (
+            // (T900) bare ✕ names (Set lines, Nets …): one wrapped line, not a row each
+            <View testID="yesno-inline" style={{ flexDirection: "row", flexWrap: "wrap", columnGap: 14, rowGap: 2, paddingVertical: 3 }}>
+              {c.items.map((it, i) => (
+                <Text key={i} testID="yesno-item" style={[TYPE.regsBodySemi, { lineHeight: NAME_LH, color: palette.ink }]}>
+                  <Text aria-hidden testID="st:closed" style={{ color: palette.closed }}>{it.mark} </Text>{it.name}
+                </Text>
+              ))}
+            </View>
+          ) : c.items.map((it, i) => (
             // (T40) no label on the row: it would hide the name, the note and the ⓘ inside it from a screen reader. The column's
             // head ("Allowed" / "Not allowed") is read first, as text; the ✓ / ✕ only repeats it, so it is hidden. Its column is
             // at LEAST 20 wide: at 2× text the mark is 30, and a fixed 20 drew it over the name

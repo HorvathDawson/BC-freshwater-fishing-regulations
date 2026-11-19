@@ -10,7 +10,7 @@
 import { buildModel } from "./card";
 import { buildBait } from "./bait";
 import { boatsLine } from "./boats";
-import { buildGearTop, gearAnswer, gearCtxOf } from "./gear";
+import { buildGearTop, gearAnswer, gearCtxOf, mergedSource } from "./gear";
 import { buildMethods } from "./methods";
 import { edgeKind } from "./edge";
 import { FISH, type FishManifest } from "./fish.generated";
@@ -42,6 +42,12 @@ export interface RegsPageOpts {
 }
 
 
+/** (T900) the Gear tab: the top block, Bait, and the ONE source line over both (the rows' own stay in the VM for their sheets). */
+function gearOf(inp: RegsInputs, gctx: ReturnType<typeof gearCtxOf>, anyway: boolean): NonNullable<RegsPage["gear"]> {
+  const top = buildGearTop(inp, gctx, anyway), bait = buildBait(inp, gctx, anyway);
+  return { ...top, bait, src: mergedSource("srcs:gear", [top.mode?.src ?? null, ...top.lines.map((l) => l.src), bait?.src ?? null]) };
+}
+
 /** The whole page for one tap (T21: header + Keep). */
 export function buildRegsPage(inp: RegsInputs, opts: RegsPageOpts): RegsPage {
   const place = makePlace(inp), settled = settle(inp, place), card = buildModel(inp, place, settled);
@@ -52,7 +58,7 @@ export function buildRegsPage(inp: RegsInputs, opts: RegsPageOpts): RegsPage {
   const status: RegsPage["status"] = edge === "outside" || edge === "tidal" ? edge : keep.strip ? keep.strip.status : "unknown";
   // (T30–T32) the Gear and Methods tabs: none where there is no key (outside B.C.; T672 a key-less tidal piece): no frame
   const gctx = inp.key == null ? null : gearCtxOf(inp, { today: opts.today, banner: keep.banner });
-  const gear = gctx && { ...buildGearTop(inp, gctx), bait: buildBait(inp, gctx) };
+  const gear = gctx && gearOf(inp, gctx, false);
   const methods = gctx && buildMethods(inp, gctx);
   const page: Omit<RegsPage, "sheet"> = {
     version: "regs-v38",
@@ -79,7 +85,7 @@ export function gearIfFished(inp: RegsInputs, today: Day): { readonly gear: Regs
   const edge = edgeKind(inp);
   if (edge === "outside" || edge === "tidal" || !gearAnswer(inp)) return null;
   const gctx = gearCtxOf(inp, { today, banner: null });
-  return { gear: { ...buildGearTop(inp, gctx, true), bait: buildBait(inp, gctx, true) }, methods: buildMethods(inp, gctx, true) };
+  return { gear: gearOf(inp, gctx, true), methods: buildMethods(inp, gctx, true) };
 }
 
 /**
