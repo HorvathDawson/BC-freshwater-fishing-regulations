@@ -311,6 +311,7 @@ reads both files; a ticket closed here moves there once its lane is finished wit
 | T875 | The water Map tab's ▼ / ▲ steps stay put, part to part and water to water, on phone and desktop (owner) | DONE | 1c0911f91, 93efeda60 | app chat; owner 2026-11-18 (T872–T874 approved ~20:53) |
 | T880 | A DFO exception printed without "and tributaries" leaves out that stream only (Bulkley: Two Mile Creek; the Suskwa on the chinook row) (owner) | OPEN | main chat | owner 2026-11-18 ~20:59 |
 | T885 | DFO's lake parts on the map (Babine's 12 creek-mouth circles, Mabel north, Osoyoos north basin); said in words until then (owner) | OPEN | main chat | owner 2026-11-18 ~21:13 |
+| T890 | Word density: measure every page, then cut the over-dense ones (pictures first) (owner) | OPEN | app chat + main chat | owner 2026-11-18 ~21:43 |
 
 ## Next after closed testing
 

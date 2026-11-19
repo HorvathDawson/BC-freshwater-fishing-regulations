@@ -2843,3 +2843,5 @@ More questions (recommended answer first):
   "Does that mean labels render after. We care number one about the streams and colors and smoothness then labels can
   be a little behind etc." -> T876 (app chat): priority order streams + colours + smooth motion first; labels may lag
   (e.g. hidden or frozen during a pinch and drawn when it settles).
+- 2026-11-18 ~21:43, owner (main chat), verbatim: "Another thing we should add a ticket for is checking every page for
+  word density then try to reduce the over dense ones" -> T890 (app chat leads; main chat for the pipeline's words).
