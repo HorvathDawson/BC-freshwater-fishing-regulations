@@ -316,7 +316,8 @@ export const HELP_WORDS = {
     open: "Salmon may be kept here under DFO's rules.",
     release: "Salmon may be caught here but must be released.",
     closed: "Closed to salmon fishing.",
-    check: "The map cannot say. Check DFO's notice for this water.",
+    // (T882) DFO's own "To be determined" (the only one in the data, 2026-11-18), or a DFO row the app could not read
+    check: "DFO has not set it yet (“To be determined”), or the app could not read DFO's row. Check DFO's notice for this water.",
   } satisfies Record<SalmonMapStatus, string>,
   runs: {
     spawn: "Fish are in this water, spawning or counted here.",

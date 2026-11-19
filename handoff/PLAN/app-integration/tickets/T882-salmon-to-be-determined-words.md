@@ -19,7 +19,17 @@ determined".
    "To be determined" (year bar's key), "Closed today · to be determined in part" (an undrawn place). A row the app
    could not read (dates or wording) keeps "Check DFO"; a held row keeps its own words.
 2. The map key (one entry covers both kinds, proposal): "To be determined by DFO, or a DFO row the app could not
-   read" (long), "To be determined" (short key on the map); the Help key's sentence the same.
+   read" (long: the Layers / Help key's name), "TBD by DFO" (the short key on the map: "To be determined" overflows the
+   390 dp key's second row by 28 dp, `legend-rows.test.ts`); the Help key's sentence says both. When T873's short Help
+   lands, its `HELP_WORDS.salmon.check: null` wins the merge (the key's name carries the words).
 3. Colour: already the owner's rule (pipeline `deliver.salmon.map_status`, app `salmonFeed` `mapStatus` and the card's
    `headlineStatus`: open, then release, then check, then closed). Checked over every chain and day of the staging
-   release: no chain-day paints yellow while any salmon is open. Pinned by tests.
+   release (400,770 chain-days): none paints the check colour while any salmon is open. Pinned by tests
+   (`salmonTbd.test.ts`, `test_salmon_file.py::test_t882_green_whenever_any_salmon_is_open`).
+   - Today (Nov 18): Thompson River closed everywhere (rule book, Oct 1–May 31, plus the DFO closed areas); South
+     Thompson below Campbell Creek closed, above it check (sockeye TBD); Kamloops Lake check.
+   - Sep 1: Thompson Gold Pan → Skihist green (chinook open Aug 28–Sep 22, sockeye TBD); Kamloops Lake outlet → Gold Pan
+     check (chinook + sockeye TBD Jul 1–Sep 30, nothing open); South Thompson above Campbell Creek and Kamloops Lake
+     green (chinook open Aug 16 / Aug 28 – Sep 22).
+4. SEO pages and the share: the water pages prerender the app's own Shell (`tools/seo/pane.tsx`), so they take core's
+   words; the share sends a link only (no salmon text).
