@@ -13,7 +13,7 @@
  */
 import { useId, useMemo, useRef } from "react";
 import { withWebProps } from "./gestureWeb";
-import { CONDITIONS_WORDS, wheelFactor } from "@app/core";
+import { CONDITIONS_WORDS, isForecastModel, wheelFactor } from "@app/core";
 import { forecastDash, MARK_FONT, type ChartView, type Hydrograph as Shape } from "@app/ui";
 import { View, type ViewInstance } from "react-native";
 import { Text } from "./Text";
@@ -34,10 +34,20 @@ const TICK = 11;
 export type ChartActions = Pick<ChartView, "zoomed" | "readout" | "zoomIn" | "zoomOut" | "fit" | "zoomAt" | "zooms" | "panBy"
                                 | "probeAt">;
 
-/** (T367) a forecast model in the legend: tap to draw it; (T377) several are drawn at once, a tap on one drawn hides it */
-export interface LegendModel { readonly key: string; readonly label: string; readonly on: boolean; readonly onPress: () => void;
-  /** (T377) the dash its trace wears when drawn (`forecastDash`), so the swatch draws the same */
-  readonly dash?: string }
+/**
+ * (T367) a forecast model in the legend: tap to draw it; (T377) several are drawn at once, a tap on one drawn hides it.
+ * (T895) Its colour and dash are the MODEL's (`modelLook`, from `key`), the same as its trace's, never handed in.
+ */
+export interface LegendModel { readonly key: string; readonly label: string; readonly on: boolean; readonly onPress: () => void }
+
+/**
+ * (T895) HOW A MODEL IS DRAWN: its own colour token (`Palette.forecast`) and its own dash (`forecastDash`), for its trace,
+ * its ribbon, its end dot and its legend switch alike, so a line and its entry cannot disagree. A model with no token of
+ * its own (one the publisher added after this build) is drawn in the chart's trace colour with the "other" dash.
+ */
+function modelLook(palette: Palette, model: string | null, colour: string): { colour: string; dash: string } {
+  return { colour: model !== null && isForecastModel(model) ? palette.forecast[model] : colour, dash: forecastDash(model ?? "") };
+}
 
 export function Hydrograph({ shape, palette, colour, label, unit,
                              forecastLabel, models, realtime, view }:
@@ -57,6 +67,8 @@ export function Hydrograph({ shape, palette, colour, label, unit,
   const clip = `plot${useId().replace(/[^a-zA-Z0-9]/g, "")}`;
   const windowed = !!view?.zoomed;
   const readout = view?.readout ?? null;
+  const fc = shape.forecast;
+  const fcLook = fc ? modelLook(palette, fc.key, colour) : null;
   const svg = (
       <Svg width="100%" height={box.height} viewBox={`0 0 ${box.width} ${box.height}`}>
         {/* THE PLOT'S RECTANGLE: a zoomed window's lines run on past its edges and are cut there. */}
@@ -120,28 +132,32 @@ export function Hydrograph({ shape, palette, colour, label, unit,
             </G>
           );
         })}
-        {shape.forecast && (
-          <G>
-            {shape.forecast.band !== "" && (
-              <Path d={shape.forecast.band} fill={colour} fillOpacity={0.13} />
+        {/* (T895) the chosen model in ITS colour and dash: its ribbon, trace and end dot */}
+        {fc && (
+          <G testID={`chart-forecast-${fc.key ?? "model"}`}>
+            {fc.band !== "" && (
+              <Path d={fc.band} fill={fcLook!.colour} fillOpacity={0.13} />
             )}
-            <Path d={shape.forecast.line} fill="none" stroke={colour} strokeWidth={1.8}
-                  strokeDasharray={forecastDash(0)} strokeLinecap="round" strokeLinejoin="round" />
-            {shape.forecast.end && (
-              <Circle cx={shape.forecast.end.x} cy={shape.forecast.end.y} r={2.6}
-                      fill={palette.card} stroke={colour} strokeWidth={1.6} />
+            <Path d={fc.line} fill="none" stroke={fcLook!.colour} strokeWidth={1.8}
+                  strokeDasharray={fcLook!.dash} strokeLinecap="round" strokeLinejoin="round" />
+            {fc.end && (
+              <Circle cx={fc.end.x} cy={fc.end.y} r={2.6}
+                      fill={palette.card} stroke={fcLook!.colour} strokeWidth={1.6} />
             )}
           </G>
         )}
-        {/* (T377) THE OTHER MODELS DRAWN AT ONCE: each its trace alone, thinner, in its own dash (the ribbon is the
-            chosen model's) */}
-        {shape.alsoForecasts.map((a, i) => (
-          <G key={a.key} testID={`chart-also-${a.key}`}>
-            <Path d={a.line} fill="none" stroke={colour} strokeWidth={1.4} strokeDasharray={forecastDash(i + 1)}
-                  strokeLinecap="round" strokeLinejoin="round" />
-            {a.end && <Circle cx={a.end.x} cy={a.end.y} r={2.2} fill={palette.card} stroke={colour} strokeWidth={1.3} />}
-          </G>
-        ))}
+        {/* (T377) THE OTHER MODELS DRAWN AT ONCE: each its trace alone, thinner (the ribbon is the chosen model's);
+            (T895) each in its own colour and dash */}
+        {shape.alsoForecasts.map((a) => {
+          const look = modelLook(palette, a.key, colour);
+          return (
+            <G key={a.key} testID={`chart-also-${a.key}`}>
+              <Path d={a.line} fill="none" stroke={look.colour} strokeWidth={1.4} strokeDasharray={look.dash}
+                    strokeLinecap="round" strokeLinejoin="round" />
+              {a.end && <Circle cx={a.end.x} cy={a.end.y} r={2.2} fill={palette.card} stroke={look.colour} strokeWidth={1.3} />}
+            </G>
+          );
+        })}
         {shape.now && (
           <Circle cx={shape.now.x} cy={shape.now.y} r={4}
                   fill={colour} stroke={palette.card} strokeWidth={2} />
@@ -209,15 +225,19 @@ export function Hydrograph({ shape, palette, colour, label, unit,
             selector they replace was a third row of controls); one model running is a plain entry */}
         {models && (models.length > 1 || realtime) ? (
           <>
-            {models.map((m) => (
-              <Pressable key={m.key} testID={`chart-model-${m.key}`} onPress={m.onPress} accessibilityRole="checkbox"
-                         aria-checked={m.on} accessibilityLabel={CONDITIONS_WORDS.key.model(m.label, m.on)}
-                         {...hitProps({ w: 60, h: 26 })}
-                         style={{ paddingVertical: 3, paddingHorizontal: 6, borderRadius: palette.r.pill, borderWidth: 1,
-                                  borderColor: m.on ? colour : palette.line2, opacity: m.on ? 1 : 0.6 }}>
-                <Key palette={palette} label={m.label} swatch="dash" dash={m.dash} colour={m.on ? colour : palette.sub} />
-              </Pressable>
-            ))}
+            {models.map((m) => {
+              // (T895) on: the model's own colour, on its border and its swatch, as its trace; off: grey, in its own dash
+              const look = modelLook(palette, m.key, colour);
+              return (
+                <Pressable key={m.key} testID={`chart-model-${m.key}`} onPress={m.onPress} accessibilityRole="checkbox"
+                           aria-checked={m.on} accessibilityLabel={CONDITIONS_WORDS.key.model(m.label, m.on)}
+                           {...hitProps({ w: 60, h: 26 })}
+                           style={{ paddingVertical: 3, paddingHorizontal: 6, borderRadius: palette.r.pill, borderWidth: 1,
+                                    borderColor: m.on ? look.colour : palette.line2, opacity: m.on ? 1 : 0.6 }}>
+                  <Key palette={palette} label={m.label} swatch="dash" dash={look.dash} colour={m.on ? look.colour : palette.sub} />
+                </Pressable>
+              );
+            })}
             {/* (T398) the forecast fully off: the measured line alone */}
             {realtime && (
               <Pressable testID="chart-model-off" onPress={realtime.onPress} accessibilityRole="radio"
@@ -230,9 +250,9 @@ export function Hydrograph({ shape, palette, colour, label, unit,
               </Pressable>
             )}
           </>
-        ) : shape.forecast && (
-          <Key palette={palette} label={forecastLabel ?? "forecast"} swatch="dash"
-               colour={colour} />
+        ) : fcLook && (
+          <Key palette={palette} label={forecastLabel ?? "forecast"} swatch="dash" dash={fcLook.dash}
+               colour={fcLook.colour} />
         )}
       </View>
 
@@ -381,10 +401,11 @@ function Key({ palette, label, swatch, colour, dash }: {
 }) {
   return (
     <View style={{ flexDirection: "row", alignItems: "center", gap: 5 }}>
-      <View style={{ width: 16, height: 9, justifyContent: "center" }}>
+      <View style={{ width: dash ? 24 : 16, height: 9, justifyContent: "center" }}>
         {swatch === "dash" && dash ? (
-          <Svg testID="key-dash" width={16} height={4}>
-            <Line x1={0} y1={2} x2={16} y2={2} stroke={colour} strokeWidth={2} strokeDasharray={dash} />
+          // (T895) as the trace is drawn: round caps (a 0.1 dash is a dot), wide enough to show the whole pattern once
+          <Svg testID="key-dash" width={24} height={4}>
+            <Line x1={1} y1={2} x2={23} y2={2} stroke={colour} strokeWidth={2} strokeDasharray={dash} strokeLinecap="round" />
           </Svg>
         ) : swatch === "fill" || swatch === "faintfill" ? (
           <View style={{ height: 9, backgroundColor: colour,

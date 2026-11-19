@@ -1,5 +1,6 @@
 import { colour, salmonStatusColour, tempBandColour, translucent, waterStatusColour, STYLE_META } from "@app/map/colours";
-import { SALMON_MAP_STATUSES, TEMP_BANDS, WATER_STATUSES, type SalmonMapStatus, type TempBand, type WaterStatus } from "@app/core";
+import { FORECAST_MODELS, SALMON_MAP_STATUSES, TEMP_BANDS, WATER_STATUSES, type ForecastModel, type SalmonMapStatus, type TempBand,
+         type WaterStatus } from "@app/core";
 /**
  * The palette the phone components paint with.
  *
@@ -121,6 +122,12 @@ export interface Palette {
   /** (T367) one colour per run species (by its name, "Chinook"…), for the Runs bar's chips and stacked histogram:
    *  `color.ui.run-species.*` — Okabe-Ito, colour-blind safe, the same in every theme (they sit on the card) */
   runSpecies: Readonly<Record<string, string>>;
+  /**
+   * (T895, owner 2026-11-19) ONE COLOUR PER FLOW FORECAST MODEL — `color.ui.forecast.<model>` (CLEVER, COFFEE, ELF): its
+   * trace, ribbon, end dot and legend switch on the Conditions chart, beside its own dash (`FORECAST_DASH`, @app/ui), so a
+   * model switched on or off is told by colour and by pattern. Identity, not magnitude; held by forecast-models-cvd.test.ts.
+   */
+  forecast: Readonly<Record<ForecastModel, string>>;
   /** The plain basemap's own colours, for the basemap chooser's preview. */
   water: readonly [string, string];
   /** The flow ramp's low, normal and high (`color.flow.f1/f4/f7`), for the Layers sheet's Show preview. */
@@ -323,6 +330,8 @@ export function paletteFor(theme: string): Palette {
             c("color.ui.donor.4")],
     survey: [c("color.survey.digitised"), c("color.survey.sheet")],
     runSpecies: Object.fromEntries(RUN_SPECIES.map((n) => [n, c(`color.ui.run-species.${n.toLowerCase()}`)])),
+    forecast: Object.fromEntries(FORECAST_MODELS.map((m) => [m, c(`color.ui.forecast.${m.toLowerCase()}`)])) as
+      Record<ForecastModel, string>,
     water: [c("color.lake.fill"), c("color.water.mapped")],
     flow: [c("color.flow.f1"), c("color.flow.f4"), c("color.flow.f7")],
     imagery: [c("color.ui.imagery.water"), c("color.ui.imagery.forest"),

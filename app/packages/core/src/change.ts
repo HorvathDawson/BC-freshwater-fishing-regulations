@@ -18,6 +18,12 @@ import { normCdf, probit } from "./trust";
 
 export { CHANGE_POLICY };
 
+/** (T895) A flow forecast model the publisher runs (`CHANGE_POLICY.order`): each has its own colour token and dash. */
+export type ForecastModel = (typeof CHANGE_POLICY.order)[number];
+export const FORECAST_MODELS: readonly ForecastModel[] = CHANGE_POLICY.order;
+/** Is a run's model one the publisher names (and so one with a colour and a dash of its own)? */
+export const isForecastModel = (m: string): m is ForecastModel => (FORECAST_MODELS as readonly string[]).includes(m);
+
 /**
  * WITHIN THIS FACTOR EITHER WAY IS "LITTLE CHANGE" in words, and the legend's middle bracket. App-side only: the
  * publisher's thresholds say what is BIG (2x, half, a quarter of the record); this says what is not worth a word.
