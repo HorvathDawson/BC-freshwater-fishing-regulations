@@ -12,8 +12,8 @@
  *  2. THE HELP PAGE (More): what the colours, line styles, badges, the bell and the sync icon mean. It is GENERATED, not
  *     written out: every swatch is a token reference (`HelpSwatch`) over the same lists the map's legend draws
  *     (`WATER_STATUSES`, `GEAR_LEGEND`, `SALMON_MAP_STATUSES`, `RUN_STATES`) and the sync icon's states are `syncVM`'s own
- *     labels. A line's NAME is the legend's word; this file adds only the sentence that explains it. A test fails when a
- *     status, gear mark, salmon status, run state or sync state is added without a sentence here (`help.test.ts`).
+ *     labels. A line's NAME is the legend's word; this file adds only a short note where the name needs one (T873). A test
+ *     fails when a status, gear mark, salmon status, run state or sync state is added without its entry here (`help.test.ts`).
  *
  * Pure, and no hex anywhere: the colour of each swatch is resolved by the surface through the map's theme.
  */
@@ -236,113 +236,94 @@ export interface HelpRow {
   readonly swatch: HelpSwatch;
   /** the legend's own word for it */
   readonly name: string;
-  /** what it means, one sentence */
-  readonly text: string;
+  /**
+   * (T873) a few words more, ONLY where the name alone would mislead or leave out what to do ("Check access first");
+   * null: the name says it
+   */
+  readonly note: string | null;
 }
 
-/** A row said whole, aloud: its name, then what it means. */
-export const helpRowAloud = (r: { name: string; text: string }): string => `${r.name}. ${r.text}`;
+/** A row said whole, aloud: its name, then its note when it has one. */
+export const helpRowAloud = (r: { name: string; note: string | null }): string => (r.note ? `${r.name}. ${r.note}` : r.name);
 
 export interface HelpSection {
   readonly key: "colours" | "lines" | "salmon" | "runs" | "badges" | "bell" | "sync";
   readonly title: string;
-  readonly intro: string | null;
   readonly rows: readonly HelpRow[];
 }
 
+/** (T873) the sections that are the MAP's key: drawn first, then the facts and buttons, then the app's own symbols */
+export const HELP_MAP_KEY: readonly HelpSection["key"][] = ["colours", "lines", "salmon", "runs"];
+
+/**
+ * (T873, owner 2026-11-18: "This help page is way way to verbose it is not helpful...") A PAGE READ IN TEN SECONDS: the
+ * map's key first, each swatch with the legend's own name and a note only where the name alone would mislead; then two
+ * or three one-line facts and the buttons. No intro, no section intros, one speaker ("I/me", never "we", T860). The long
+ * words this replaces are in `git show ee0e2ce46:app/packages/core/src/help.ts`.
+ */
 export const HELP_WORDS = {
   title: "Help",
-  lead: "How the app keeps itself current, what works offline, and what the map and the symbols mean. Every swatch below is drawn the way the map draws it.",
   /**
-   * (T293) THE SHORT PAGES at the top of Help: the walkthrough (replay), syncing and updates, and offline — each a heading
-   * and a few sentences. The app's and the web's differ where the platform does: a browser keeps no offline copy.
+   * (T873) syncing, updates and offline in one-line facts, then the buttons (Offline maps, the walkthrough). The app's
+   * and the web's differ where the platform does: a browser keeps no offline copy.
    */
-  guide: { title: "Walkthrough", text: "A hands-on walk on a real water: find it, read its rules and conditions, save a spot." },
-  updates: {
-    title: "Syncing and updates",
+  facts: {
+    title: "Offline and updates",
     app: [
-      "The app checks for new regulations, in-season changes and gauge readings whenever you are online. The refresh "
-        + "button at the top checks now; its look says whether everything is current (the refresh button, below).",
-      "A large regulations update waits for Wi-Fi unless you allow mobile data, and is applied when you are not reading "
-        + "anything, so nothing changes under you.",
-      "The bell beside it lists the Province's in-season changes the map does not show yet, and anything that could not "
-        + "update, with Retry.",
+      "Regulations, the map and your spots work with no signal.",
+      "Gauges and weather need a connection.",
+      "Big updates wait for Wi-Fi.",
     ],
     web: [
-      "The page checks for new regulations, in-season changes and gauge readings as you use it. The refresh button at the "
-        + "top checks now; its look says whether everything is current (the refresh button, below).",
-      "The bell beside it lists the Province's in-season changes the map does not show yet, and anything that could not "
-        + "update, with Retry.",
-    ],
-  },
-  offline: {
-    title: "Offline",
-    app: [
-      "The regulations for the whole province, the map's colours and your spots are kept on this phone, so the map and "
-        + "every regulations page work with no signal.",
-      "Gauge readings, forecasts and weather need a connection; the last ones fetched stay, with how old they are. "
-        + "Detailed map tiles are kept region by region: see Offline maps.",
-    ],
-    web: [
-      "A browser keeps no offline copy: the page reads the regulations and the map as you go. To fish without signal, "
-        + "use the app, which keeps everything on the phone.",
-      "Fishing spots are saved in the phone app only, for now. Accounts are coming, so your spots will show here too.",
+      "This page needs a signal; the phone app works without one.",
+      "Spots are saved in the phone app only.",
     ],
     /** the button to the Offline maps page (the app only) */
-    open: "Offline maps",
+    offlineMaps: "Offline maps",
   },
   sections: {
-    colours: { title: "Line colours", intro: "A line's colour is the regulation answer for the day the map shows." },
-    lines: { title: "Line styles and areas", intro: "Marks drawn on top of the colours, and areas the regulations do not cover." },
-    salmon: { title: "Salmon colours", intro: "In Salmon mode the lines show DFO's salmon rules instead." },
-    runs: { title: "Runs", intro: "On the Runs tab the map shows when the species you choose are in the water: slide the date through the year, zoom out for each watershed group, tap a stream for its runs and counts." },
-    badges: { title: "Badges", intro: "On the More tab, each source of data wears a badge for how current it is." },
-    bell: { title: "The bell", intro: "Opens the in-season changes the map does not draw yet, and anything that could not update." },
-    sync: { title: "The refresh button", intro: "Checks for new data. Its look says what state the data is in." },
-  },
-  /** one sentence per thing; keys are held exhaustive by help.test.ts */
+    colours: "Map colours (the day shown)",
+    lines: "Marks and areas",
+    salmon: "Salmon mode",
+    runs: "Runs tab",
+    badges: "Data badges (More tab)",
+    bell: "The bell",
+    sync: "The refresh button",
+  } satisfies Record<HelpSection["key"], string>,
+  /** a note per thing, or null (the name says it); keys are held exhaustive by help.test.ts */
   status: {
-    closed: "No fishing on this water on the day shown.",
-    own: "The synopsis has regulations written for this water.",
-    base: "Only the regional rules apply; the synopsis names nothing special for it.",
-    no_access: "Mostly inside land the public may not enter. The water's own regulations still apply; check access first.",
-  } satisfies Record<WaterStatus, string>,
-  gear: {
-    fly: "An edge round the line: only fly fishing is allowed, and the line's colour still shows through.",
-    bait: "A dashed edge round the line: no bait of any kind.",
-  } satisfies Record<GearMark, string>,
-  tidal: "Tidal water. The provincial regulations stop here and DFO's tidal rules apply.",
-  salmon: {
-    open: "Salmon may be kept here under DFO's rules.",
-    release: "Salmon may be caught here but must be released.",
-    closed: "Closed to salmon fishing.",
-    check: "The map cannot say. Check DFO's notice for this water.",
-  } satisfies Record<SalmonMapStatus, string>,
+    closed: null,
+    own: null,
+    base: "Only the region's rules apply.",
+    no_access: "Regulations still apply; check access first.",
+  } satisfies Record<WaterStatus, string | null>,
+  gear: { fly: null, bait: null } satisfies Record<GearMark, string | null>,
+  tidal: "DFO's tidal rules apply here.",
+  notFishing: null,
+  salmon: { open: null, release: null, closed: null, check: null } satisfies Record<SalmonMapStatus, string | null>,
   runs: {
-    spawn: "Fish are in this water, spawning or counted here.",
-    pass: "Fish pass through on their way upstream.",
-    off: "A run uses this water, but not in the month shown.",
-    none: "No run recorded. That is not the same as no fish.",
-  } satisfies Record<RunState | "none", string>,
+    spawn: null, pass: null, off: null,
+    none: "Not the same as no fish.",
+  } satisfies Record<RunState | "none", string | null>,
   fresh: {
-    fresh: "Checked recently enough for its kind of data.",
-    stale: "Older than expected. Refresh, or check the source before you rely on it.",
-    unknown: "No date recorded for this source.",
-    live: "Fetched when needed, so it has no age.",
-    dated: "Base map data (the Freshwater Atlas, the basemap). Only its date is shown; its age does not make it out of date.",
-  } satisfies Record<SourceFreshness, string>,
+    fresh: null,
+    stale: "Refresh before relying on it.",
+    unknown: "No date recorded.",
+    live: null,
+    dated: "Map base data: age doesn't matter.",
+  } satisfies Record<SourceFreshness, string | null>,
   bell: {
     name: MENU_WORDS.sources.names.inseason,
-    text: "A count on the bell is how many changes the Province announced that the map does not show yet.",
+    note: "Changes not on the map yet.",
   },
   sync: {
-    fresh: "Everything checked is current.",
-    stale: "Something needs a refresh: a tap checks again, or a newer release is waiting for a restart.",
-    checking: "A check is under way.",
-    downloading: "An update is downloading; the ring shows how far along it is.",
-    done: "A check you asked for finished, and everything is current.",
-    error: "A check or download failed. A red mark appears; tap it to see what and to retry.",
-  } satisfies Record<SyncKind, string>,
+    fresh: null,
+    stale: "Tap it, or restart the app.",
+    checking: null,
+    downloading: null,
+    done: null,
+    error: "Tap the red mark to retry.",
+  } satisfies Record<SyncKind, string | null>,
 } as const;
 
 /** The refresh button's states as the icon itself says them: `syncVM` over a representative input, never new words. */
@@ -370,39 +351,40 @@ const SYNC_NAME: Readonly<Record<SyncKind, string>> = {
 const FRESH_KINDS: readonly SourceFreshness[] = ["fresh", "stale", "unknown", "live", "dated"];
 
 /**
- * THE HELP PAGE, whole: sections in reading order, each row a swatch token, the legend's word for it and one sentence.
+ * THE HELP PAGE, whole: sections in reading order, each row a swatch token, the legend's word for it and (T873) a note
+ * only where that word needs one.
  * The Run timing and Salmon sections are the legends those modes draw; the colours section is the Standard map's.
  */
 export function helpVM(): readonly HelpSection[] {
-  const S = HELP_WORDS.sections;
   const sec = (key: HelpSection["key"], rows: readonly HelpRow[]): HelpSection =>
-    ({ key, title: S[key].title, intro: S[key].intro, rows });
+    ({ key, title: HELP_WORDS.sections[key], rows });
   const closedAndOthers = WATER_STATUSES.filter((s) => s !== "no_access");
   return [
     sec("colours", closedAndOthers.map((s) => ({
       key: `status-${s}`, swatch: { kind: "status", status: s, dotted: WATER_STATUS_LINE[s] === "dotted" },
-      name: WATER_STATUS[s].label, text: HELP_WORDS.status[s] }))),
+      name: WATER_STATUS[s].label, note: HELP_WORDS.status[s] }))),
     sec("lines", [
       ...GEAR_LEGEND.map((m): HelpRow => ({
         key: `gear-${m}`, swatch: { kind: "gear", mark: m, edge: m === "fly" ? "solid" : "dashed" },
-        name: METHOD_WORDS.legend[m], text: HELP_WORDS.gear[m] })),
+        name: METHOD_WORDS.legend[m], note: HELP_WORDS.gear[m] })),
       { key: "status-no_access", swatch: { kind: "status", status: "no_access", dotted: WATER_STATUS_LINE.no_access === "dotted" },
-        name: ACCESS_WORDS.legend, text: HELP_WORDS.status.no_access },
-      { key: "tidal", swatch: { kind: "tidal" }, name: "Tidal water", text: HELP_WORDS.tidal },
+        name: ACCESS_WORDS.legend, note: HELP_WORDS.status.no_access },
+      { key: "tidal", swatch: { kind: "tidal" }, name: "Tidal water", note: HELP_WORDS.tidal },
       // (T292) sewage lagoons, tailings ponds, dumps: the muted fill, no regulations
-      { key: "not-fishing", swatch: { kind: "notfishing" }, name: NOT_FISHING_WORDS.legend, text: NOT_FISHING_WORDS.help },
+      { key: "not-fishing", swatch: { kind: "notfishing" }, name: NOT_FISHING_WORDS.legend, note: HELP_WORDS.notFishing },
     ]),
     sec("salmon", SALMON_MAP_STATUSES.map((s) => ({
-      key: `salmon-${s}`, swatch: { kind: "salmon", status: s }, name: SALMON_WORDS.legend[s], text: HELP_WORDS.salmon[s] }))),
+      key: `salmon-${s}`, swatch: { kind: "salmon", status: s }, name: SALMON_WORDS.legend[s], note: HELP_WORDS.salmon[s] }))),
     sec("runs", [
       ...RUN_STATES.map((s): HelpRow => ({
-        key: `run-${s}`, swatch: { kind: "run", state: s, dotted: s === "pass" }, name: RUN_WORDS.legend[s], text: HELP_WORDS.runs[s] })),
-      { key: "run-none", swatch: { kind: "run", state: "none", dotted: false }, name: RUN_WORDS.legend.none, text: HELP_WORDS.runs.none },
+        key: `run-${s}`, swatch: { kind: "run", state: s, dotted: s === "pass" }, name: RUN_WORDS.legend[s], note: HELP_WORDS.runs[s] })),
+      { key: "run-none", swatch: { kind: "run", state: "none", dotted: false }, name: RUN_WORDS.legend.none, note: HELP_WORDS.runs.none },
     ]),
-    sec("badges", FRESH_KINDS.map((k) => ({
-      key: `fresh-${k}`, swatch: { kind: "fresh", fresh: k }, name: FRESHNESS_WORDS[k], text: HELP_WORDS.fresh[k] }))),
-    sec("bell", [{ key: "bell", swatch: { kind: "bell" }, name: HELP_WORDS.bell.name, text: HELP_WORDS.bell.text }]),
+    // (T873) the top bar's two, then the More tab's badges
     sec("sync", SYNC_KINDS.map((k) => ({
-      key: `sync-${k}`, swatch: { kind: "sync", sync: SYNC_EXAMPLE[k]() }, name: SYNC_NAME[k], text: HELP_WORDS.sync[k] }))),
+      key: `sync-${k}`, swatch: { kind: "sync", sync: SYNC_EXAMPLE[k]() }, name: SYNC_NAME[k], note: HELP_WORDS.sync[k] }))),
+    sec("bell", [{ key: "bell", swatch: { kind: "bell" }, name: HELP_WORDS.bell.name, note: HELP_WORDS.bell.note }]),
+    sec("badges", FRESH_KINDS.map((k) => ({
+      key: `fresh-${k}`, swatch: { kind: "fresh", fresh: k }, name: FRESHNESS_WORDS[k], note: HELP_WORDS.fresh[k] }))),
   ];
 }
