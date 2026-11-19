@@ -4,7 +4,7 @@
  * any time zone the suite runs in.
  */
 import { describe, expect, it } from "vitest";
-import { chooseDay, DAY_PICKER, dayButtonVM, dayRange, inRange, monthVM, showingLine, stepDay } from "./dayPicker";
+import { chooseDay, DAY_PICKER, dayButtonVM, dayRange, guideDay, inRange, monthVM, showingLine, stepDay } from "./dayPicker";
 
 const NOW = new Date(2026, 9, 21, 9, 30);            // Wed Oct 21 2026, local
 const YEAR = dayRange(NOW, null);
@@ -55,6 +55,7 @@ describe("the month grid", () => {
       " 11  12  13  14  15  16  17",
       " 18  19  20 [21]  22  23  24",
       " 25  26  27  28  29  30  31",
+      "  .   .   .   .   .   .   .",
     ]);
     const cells = m.weeks.flat().filter((c) => c !== null);
     expect([cells[0]!.label, cells[20]!.label, cells[30]!.label, cells[20]!.iso])
@@ -81,8 +82,37 @@ describe("the month grid", () => {
       " 15  16  17  18  19  20 -21",
       "-22 -23 -24 -25 -26 -27 -28",
       "-29 -30   .   .   .   .   .",
+      "  .   .   .   .   .   .   .",
     ]);
     expect(m.weeks[2]![6]!.label).toBe("Saturday, November 21, not available");
+  });
+});
+
+describe("T877 (owner 2026-11-18: \"The calendar shifts around\"): six weeks every month, each day under its weekday", () => {
+  // Feb 2026 fills exactly 4 weeks (Feb 1 is a Sunday), Jul 2026 5, Aug 2026 6: the sheet's height may not follow them
+  const MONTHS_2026 = Array.from({ length: 12 }, (_, i) => i);
+  it("the grid is six weeks of seven cells in every month, blanks before the 1st and after the last", () => {
+    expect(MONTHS_2026.map((mo) => monthVM(2026, mo, null, NOW, YEAR).weeks.map((w) => w.length).join("")))
+      .toEqual(MONTHS_2026.map(() => "777777"));
+    expect(draw(monthVM(2026, 1, null, NOW, YEAR))).toEqual([
+      "  1   2   3   4   5   6   7",
+      "  8   9  10  11  12  13  14",
+      " 15  16  17  18  19  20  21",
+      " 22  23  24  25  26  27  28",
+      "  .   .   .   .   .   .   .",
+      "  .   .   .   .   .   .   .",
+    ]);
+  });
+  it("every day's column is its weekday (Feb, Jul and Aug 2026 among every month of the year)", () => {
+    const off: string[] = [];
+    for (const mo of MONTHS_2026) monthVM(2026, mo, null, NOW, YEAR).weeks.forEach((w) => w.forEach((c, col) => {
+      if (c && new Date(2026, mo, c.n, 12).getDay() !== col) off.push(`${c.iso} in column ${col}`);
+    }));
+    expect(off).toEqual([]);
+    expect(draw(monthVM(2026, 7, null, NOW, YEAR))[0]).toBe("  .   .   .   .   .   .   1");
+    expect(draw(monthVM(2026, 7, null, NOW, YEAR))[5]).toBe(" 30  31   .   .   .   .   .");
+    expect(draw(monthVM(2026, 6, null, NOW, YEAR))[0]).toBe("  .   .   .   1   2   3   4");
+    expect(draw(monthVM(2026, 6, null, NOW, YEAR)).slice(4)).toEqual([" 26  27  28  29  30  31   .", "  .   .   .   .   .   .   ."]);
   });
 });
 
@@ -97,6 +127,11 @@ describe("choosing and stepping", () => {
     expect(iso(stepDay(new Date(2026, 0, 31, 12), 1, NOW, YEAR, true))).toBe("2026-2-28 12h");
     expect(iso(stepDay(new Date(2026, 11, 31, 12), 1, NOW, YEAR))).toBe("undefined");
     expect(iso(stepDay(new Date(2026, 0, 1, 12), -1, NOW, YEAR))).toBe("undefined");
+  });
+  it("(T874) guideDay, the walkthrough's Next: the day after; on the range's last day the day before, never nothing", () => {
+    expect(iso(guideDay(null, NOW, YEAR))).toBe("2026-10-22 12h");
+    const last = new Date(2026, 11, 31, 9, 30);                       // the data's last day is today
+    expect(iso(guideDay(null, last, dayRange(last, null)))).toBe("2026-12-30 12h");
   });
   it("the words are one table", () => {
     expect([DAY_PICKER.today, DAY_PICKER.earlierLabel, DAY_PICKER.laterLabel, DAY_PICKER.prevMonth, DAY_PICKER.nextMonth,

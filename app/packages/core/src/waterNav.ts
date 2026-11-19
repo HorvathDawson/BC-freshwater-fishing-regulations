@@ -473,6 +473,9 @@ export const WATER_MAP_WORDS = {
   /** (T150) The list's toggle, closed / open, with the count: "Show all 15 parts" / "Hide the list of parts". */
   partsShow: (n: number) => `Show all ${n} parts`,
   partsHide: "Hide the list of parts",
+  /** (T875) A water of one part: the toggle's place held by a quiet line, so the bar is the same height on every water
+   *  ("This river is one part"; the noun is `waterNoun`'s, as ⤢'s). */
+  partsOne: (noun: string) => `This ${noun} is one part`,
   /** (T150) A row's mark: the part the map (and the Regulations view) is on. */
   partsHere: "✓",
   /** The mouth's link into the water it flows into: "Flows into Vedder River ›". */
@@ -506,6 +509,11 @@ export function wholeLabel(g: WaterGroup, i: number, whole: boolean): string {
 export function wholeAria(g: WaterGroup, i: number, whole: boolean): string {
   if (whole) return WATER_MAP_WORDS.thisPart;
   return WATER_MAP_WORDS.whole(waterNoun(entry(g, i).kind, "page"));
+}
+
+/** (T875) The parts row of a water of one part: "This river is one part", "This lake is one part". */
+export function onePartLabel(g: WaterGroup, i: number): string {
+  return WATER_MAP_WORDS.partsOne(waterNoun(entry(g, i).kind, "page"));
 }
 
 /** Up / down into another water, on the button and to a screen reader alike: "Upstream into Chilliwack River". */

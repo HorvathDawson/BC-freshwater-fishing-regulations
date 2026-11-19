@@ -195,6 +195,8 @@ describe("(T150) the parts of this water, listed under the map — the header's 
     const g = await loadWaterGroup(st, "gnis:8634");
     const one = { ...g, parts: g.parts.slice(0, 1) } as WaterGroup;
     expect([view(one, waterMapStart(0)).list, run(one, waterMapStart(0), { type: "list" })]).toEqual([null, waterMapStart(0)]);
+    // (T875) the list's place is held by a quiet line, so the bar is as tall as a water of many parts; never on one of many
+    expect([view(one, waterMapStart(0)).onePart, view(g, waterMapStart(0)).onePart]).toEqual(["This river is one part", null]);
   });
 });
 
