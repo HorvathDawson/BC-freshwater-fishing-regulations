@@ -196,8 +196,8 @@ export function BrowseHost({ nav, col, search, rail, palette, theme, themeName, 
                     onBack={back}
                     contact={menuInfo?.contact ?? null} sync={sync} onSync={onSync}
                     theme={themeName} onTheme={onTheme}
-                    onPick={(k) => (k === "report" ? menu.report(routeWhere(route, mapDay ? dayLabel(mapDay) : null))
-                                    : menu.show(k))} />
+                    onPick={(k) => (k === "report" ? menu.report(routeWhere(route, mapDay ? dayLabel(mapDay) : null), "more")
+                                    : menu.show(k, "more"))} />
       : tab === "map" || tab === "conditions" || tab === "runs"
         ? <MapScreen at={tiles} palette={palette} insetLeft={railOver ? NAV_RAIL.width : 0} theme={theme} me={me} railExtra={railExtra} lookKey={lookKey} onLookDrawn={look?.drawn}
                      camera={camera.current}

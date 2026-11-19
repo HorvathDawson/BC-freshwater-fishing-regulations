@@ -57,20 +57,21 @@ const DATA: DataInput = {
 /** The Shell's wiring, and nothing else: the one back, the menu, the More tab and the host — at a window width. */
 function App({ info = INFO, loader = null, out, data = DATA, theme = "light", onTheme = () => {}, width = null, metered = null }: {
   metered?: MobileDataControl | null;
-  info?: MenuInfo; loader?: RegsLoader | null; out: { back?: Back }; data?: DataInput;
+  info?: MenuInfo; loader?: RegsLoader | null; out: { back?: Back; menu?: ReturnType<typeof useMenu> }; data?: DataInput;
   theme?: ThemeName; onTheme?: (t: ThemeName) => void; width?: number | null;
 }) {
   const [route, go] = useRoute();
   const b = useBack(route, go, null);
   out.back = b;
   const menu = useMenu();
+  out.menu = menu;
   return (
     <LayoutWidthContext.Provider value={width}>
       <BackLayerContext.Provider value={b.layers}>
         <MenuContext.Provider value={menu}>
           <MoreScreen palette={LIGHT} data={data} onBack={b.back} contact={info.contact}
                       theme={theme} onTheme={onTheme} metered={metered}
-                      onPick={(k) => (k === "report" ? menu.report(routeWhere(route, null)) : menu.show(k))} />
+                      onPick={(k) => (k === "report" ? menu.report(routeWhere(route, null), "more") : menu.show(k, "more"))} />
           <MenuHost menu={menu} palette={LIGHT} loader={loader} info={info} tiles="d768d6e135e62b99.c9f9604f12bf"
                     route={route} day={null} />
         </MenuContext.Provider>
@@ -131,6 +132,25 @@ describe("the More tab (T48; owner 2026-10-22 refinement; T167)", () => {
     const back = screen.getByRole("button", { name: "Back to More" });
     expect(back.textContent).toBe("More");
     expect(screen.getByTestId("more-back").getAttribute("aria-label")).toBe("Back");
+  });
+
+  it("(T897) a page opened from anywhere but More reads plain Back; from About it follows where Back goes", () => {
+    const out: { menu?: ReturnType<typeof useMenu> } = {};
+    render(<App out={out} />);
+    act(() => { out.menu!.report({ mode: "water" } as never); }); settle();      // a water's Report link
+    const names = () => screen.getAllByRole("button").map((e) => e.getAttribute("aria-label")).filter((n) => n?.startsWith("Back"));
+    expect(names()).toEqual(["Back", "Back"]);                                    // the tab's own, and the page's
+    act(() => { out.menu!.show("sources"); }); settle();                         // the first-run notice's Sources
+    expect(names()).toEqual(["Back", "Back"]);
+    // opened from More, then on from About: Back returns to More, so both say "More"
+    act(() => { out.menu!.show("about", "more"); }); settle();
+    expect(names()).toContain("Back to More");
+    act(() => { out.menu!.show("sources", "more"); }); settle();
+    expect(names()).toContain("Back to More");
+    // opened from elsewhere, About then Sources: plain Back
+    act(() => { out.menu!.show("about"); }); settle();
+    act(() => { out.menu!.show("sources", undefined); }); settle();
+    expect(names()).toEqual(["Back", "Back"]);
   });
 
   it("(T167) the Data block: one summary badge, the in-season warning, then EVERY source as one row — drawn compact, " +
