@@ -38,7 +38,7 @@ export const CHANGELOG: readonly ChangelogEntry[] = [
   {
     version: "0.8.2", date: null, draft: true, notes: [
       "Smoother pinch-zoom on the map, and a braided river's side channels draw thinner than its main channel",
-      "What you can keep: one table for every fish, each row marked DFO or B.C. or naming the tributary rule it comes from, and How this was decided names every rule behind it",
+      "What you can keep: one table for every fish, each row marked DFO or B.C. or naming the tributary rule it comes from; Gear and Methods are easier to read, each source said once",
       "Salmon: the yearly limit counts adult chinook (with the size an adult is on that river), and Source lists every DFO row behind the card",
       "Sunrise and sunset sit under the date, daylight-only rules show that day's times, and each river forecast model has its own colour",
       "When a new version is out, a note says what's new, then waits under the bell",
