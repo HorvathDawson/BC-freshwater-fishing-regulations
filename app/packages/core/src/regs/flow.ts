@@ -95,7 +95,40 @@ export function flowOf(items: readonly LadderItem[], says: (it: LadderItem) => L
 
 /** A kicker said once: a step under the same one as the step before it draws only its page. */
 const once = (steps: readonly FlowStepVM[]): FlowStepVM[] =>
-  steps.map((s, i) => (i > 0 && steps[i - 1]!.kicker === s.kicker ? { ...s, kicker: "" } : s));
+  steps.map((s, i) => {
+    const { repeat: _r, ...x } = s;
+    return i > 0 && steps[i - 1]!.kicker === s.kicker ? { ...x, repeat: true } : x;
+  });
+
+/** One rule as a plain step (a weekday part, a restatement, a trout `src` entry): who says it, the words, its page. */
+export const ruleStep = (r: RuleView, says: Line, tag: string | null = null, today = false): FlowStepVM =>
+  ({ kicker: kickerOf(r, r.export.prov.entry_name || ""), says, tag, tone: "won", book: bareBook(r), rule: r.missing ? null : r.key,
+     ...(today ? { today: true as const } : {}) });
+
+/**
+ * A weekday row's flow: its stored day-parts and restatements (`week`) stand where the rules they cite stood (the
+ * first of them), each part its days and words, today's tagged; the answer is the week's status line.
+ */
+export function withWeek(f: FlowVM, week: readonly FlowStepVM[], answer: string | null): FlowVM {
+  const keys = new Set(week.map((s) => s.rule).filter((k): k is string => !!k));
+  const at = f.steps.findIndex((s) => !!s.rule && keys.has(s.rule));
+  const rest = f.steps.filter((s) => !(s.rule && keys.has(s.rule)));
+  const i = at < 0 ? rest.length : f.steps.slice(0, at).filter((s) => !(s.rule && keys.has(s.rule))).length;
+  return { ...f, steps: once([...rest.slice(0, i), ...week, ...rest.slice(i)]), result: answer ? D.RESULT + answer : null,
+    other: f.other.filter((s) => !(s.rule && keys.has(s.rule))) };
+}
+
+/** The data's restates notes (`row.restates[]`: a note and the rule it restates) under that rule's first step. */
+export function withNotes(f: FlowVM, notes: ReadonlyMap<string, readonly string[]>): FlowVM {
+  if (!notes.size) return f;
+  const done = new Set<string>();
+  const put = (s: FlowStepVM): FlowStepVM => {
+    if (!s.rule || done.has(s.rule) || !notes.has(s.rule)) return s;
+    done.add(s.rule);
+    return { ...s, notes: [...(s.notes ?? []), ...notes.get(s.rule)!] };
+  };
+  return { ...f, steps: f.steps.map(put), other: f.other.map(put) };
+}
 
 /** A flow with no roles (the trout sheet's `FishSheet.src`): its steps as given, the answer, nothing else. */
 export const plainFlow = (steps: readonly FlowStepVM[], answer: string | null): FlowVM =>

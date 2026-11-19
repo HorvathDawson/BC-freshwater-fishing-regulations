@@ -19,7 +19,10 @@ import { groupOf, plainRowSeams } from "../keep";
 import { drawnRows, rowTitle, scopeBadge, scopeOf } from "../grouphead";
 import type { RegsInputs } from "../inputs";
 import { plain, text, type Line, type Run } from "../line";
-import type { LadderStepVM, LadderVM, SheetBlock, SheetCtx, SheetVM } from "../model";
+import type { FlowStepVM, LadderStepVM, LadderVM, SheetBlock, SheetCtx, SheetVM } from "../model";
+import { ladderOf } from "../decided";
+import { plainFlow, ruleStep, withNotes, withWeek } from "../flow";
+import { DECIDE } from "../decidedWords";
 import { listRows, tableCovers } from "../others";
 import { plainRowOf, shortWindowsOf } from "../plainrow";
 import type { SheetKey } from "../sheetKey";
@@ -72,6 +75,25 @@ function weekLines(row: HydRow, inp: RegsInputs): StepLine[] {
   ];
 }
 
+/** (T883) a weekday row's flow steps: the stored day-parts (each its days and words, today's tagged) and then the row's
+ *  restatements (the combined-quota note), each a step of the rule it cites. A part with no rule is not a step. */
+function weekSteps(row: HydRow, inp: RegsInputs): FlowStepVM[] {
+  const w = row.raw.week!;
+  return [
+    ...(w.parts ?? []).filter((p) => p.says && p.rules?.[0] != null).map((p) =>
+      ruleStep(inp.rules.get(p.rules![0]!), [text(DECIDE.W_DAYS(p.days)), text(cap(p.says))], p.today ? WORDS.TODAY : null, !!p.today)),
+    ...(row.raw.restates ?? []).map((x) => ruleStep(inp.rules.get(x.r), [text(x.says)])),
+  ];
+}
+
+/** (T883) a plain row's restatements as notes under the rule each restates (prototype buildKeep rnote). */
+function restateNotes(row: HydRow, inp: RegsInputs): Map<string, string[]> {
+  const m = new Map<string, string[]>();
+  if (row.raw.week) return m;
+  for (const x of row.raw.restates ?? []) { const k = inp.rules.get(x.of).key; m.set(k, [...(m.get(k) ?? []), x.says]); }
+  return m;
+}
+
 /** The ladder as the other: sheet draws it: per section the question, the result, each step's lines (with where they
  *  apply), de-duplicated; a weekday row's first step is its day-parts. */
 function sheetLadder(l: LadderVM, row: HydRow, inp: RegsInputs): SheetBlock[] {
@@ -97,12 +119,15 @@ export function otherSheet(ctx: SheetCtx, key: SheetKey, i: number): SheetVM | n
     // that names its count and size keeps the picture; the head row keeps only a fish the card does not picture
     const shown = picturedIn(group), head = pics.filter((p) => !shown.has(p.code));
     if (head.length) blocks.push({ k: "pictures", pics: head });
-    blocks.push({ k: "group", group, titled: !!group.scope });
+    // (T883) the group's "How this was decided": the same flow as every fish sheet, then the card's link last
+    const flow = withNotes(ladderOf(row, { card, settled: env.settled, inp, seams, flow: true }).flow ?? plainFlow([], null), restateNotes(row, inp));
+    blocks.push({ k: "group", group, titled: !!group.scope, ...(flow.steps.length ? { more: false as const } : {}) });
+    if (flow.steps.length) blocks.push({ k: "head", text: WORDS.DECIDED }, { k: "flow", flow }, { k: "link", line: [{ t: "link", s: group.more.text, open: group.more.open }] });
     return { key, title, sub: null, blocks };
   }
   if (pics.length) blocks.push({ k: "pictures", pics });
 
-  const vm = plainRowOf(ix, { inp, card, settled: env.settled, seams });
+  const vm = plainRowOf(ix, { inp, card, settled: env.settled, seams, flow: true });
   const scope = scopeBadge(row, card, inp), week = row.raw.week, value = valueLine(row, inp);
   if (week) {
     const wd = WD3[WEEKDAYS.indexOf(ctx.page.weekday)] ?? "";
@@ -124,9 +149,11 @@ export function otherSheet(ctx: SheetCtx, key: SheetKey, i: number): SheetVM | n
   const short = row.pool ? null : shortWindowsOf(row, inp, seams);
   if (short) blocks.push(para([text(short)]));
 
-  // (T883, proposal) the one "How this was decided" every fish sheet draws; a weekday row keeps its day-parts ladder
-  if (vm.ladder.flow && !week) {
-    blocks.push({ k: "head", text: vm.ladder.label }, { k: "flow", flow: vm.ladder.flow });
+  // (T883) the one "How this was decided" every fish sheet draws; a weekday row's day-parts stand in its flow
+  if (vm.ladder.flow) {
+    const wk = week && (week.parts ?? []).some((p) => p.says) ? weekSteps(row, inp) : null;
+    const flow = wk ? withWeek(vm.ladder.flow, wk, week!.status ?? plain(value)) : withNotes(vm.ladder.flow, restateNotes(row, inp));
+    blocks.push({ k: "head", text: vm.ladder.label }, { k: "flow", flow });
     blocks.push({ k: "link", line: [{ t: "link", s: vm.more.text, open: vm.more.open }] });
     return { key, title, sub: null, blocks };
   }

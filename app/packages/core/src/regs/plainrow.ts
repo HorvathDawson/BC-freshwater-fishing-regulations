@@ -50,7 +50,9 @@ export interface PlainRowSeams extends LadderSeams {
   /** T19 words MORE: "See every regulation line ›". */
   readonly more: string;
 }
-export interface PlainRowEnv { readonly inp: RegsInputs; readonly card: CardModel; readonly settled: Settled; readonly seams: PlainRowSeams }
+export interface PlainRowEnv { readonly inp: RegsInputs; readonly card: CardModel; readonly settled: Settled; readonly seams: PlainRowSeams;
+  /** (T883) the other: sheet asks for the fish sheet's flow (decided.ts LadderEnv.flow) */
+  readonly flow?: true }
 
 /** A row page v36 draws without a quota card and without its legacy pooled path: no pool, no group headline. */
 export const isPlainRow = (row: HydRow): boolean => !row.pool && !row.raw.group?.headline;
@@ -200,7 +202,7 @@ export function plainRowOf(rowIx: number, env: PlainRowEnv): PlainRowVM {
   const release = !row.raw.group?.headline && row.kind === "release" && cs.length
     ? { names: cs.map(seams.fishName).join(WORDS.NAMES_SEP), pictures: seams.pictures(cs) } : null;
   const p = row.raw.presence;
-  let ladder: LadderVM = withRestates(ladderOf(row, { card, settled, inp, seams }), row, inp);
+  let ladder: LadderVM = withRestates(ladderOf(row, { card, settled, inp, seams, ...(env.flow ? { flow: true as const } : {}) }), row, inp);
   if (row.raw.week) ladder = { ...ladder, sections: ladder.sections.map((s) => ({ ...s, result: null })) };   // prototype: a week row drops .lres
   return {
     row: rowIx, title: seams.rowTitle(row, inp),

@@ -147,7 +147,8 @@ describe("<SheetHost> over the frozen vedder_1010 page", () => {
 
   it("the weekday sheet (klwa_1010 other:o0): today's part is marked with the visible word Today", () => {
     host("other:o0", KLWA);
-    expect(screen.getByTestId("sheet-body").textContent).toContain("Sat–Sun Keep up to 5 Today");
+    // (T883) the part is a step of the flow: its words, then its tag "Today" on the line under them
+    expect(screen.getByTestId("sheet-body").textContent).toContain("Sat–Sun: Keep up to 5Today");
   });
 
   it("(T810 P, T883 proposal) a trout row's fish sheet: header, Here today (bold where bold), how this was decided (Sources in order), how to tell it; it closes as every sheet", () => {

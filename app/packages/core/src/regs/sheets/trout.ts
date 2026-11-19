@@ -20,8 +20,8 @@ import { FISH, FISH_TIPS, type FishManifest } from "../fish.generated";
 import { reportFailure } from "../../failure";
 import type { RuleIndex, RuleView } from "../inputs";
 import { text, type Run } from "../line";
-import type { FlowStepVM, FlowVM, SheetBlock, SheetVM, SourceRowVM, TroutBoxVM, TroutRowVM, TroutVM } from "../model";
-import { bareBook, kickerOf, plainFlow } from "../flow";
+import type { FlowVM, SheetBlock, SheetVM, SourceRowVM, TroutBoxVM, TroutRowVM, TroutVM } from "../model";
+import { plainFlow, ruleStep } from "../flow";
 import { clean } from "../names";
 import { imageBlocks } from "./fish";
 import type { SheetKey } from "../sheetKey";
@@ -82,12 +82,7 @@ export function troutFishSheet(key: SheetKey, t: TroutVM, rowKey: string, rules:
  *  here), each its title, who says it and its page. The payload carries no role, so no step says what it did; T883's
  *  data spec asks Python for the steps whole (role and order), as the other fish's rows store them. */
 export function troutFlow(src: readonly number[], rules: Pick<RuleIndex, "get">, head: string): FlowVM {
-  const steps = src.map((ix): FlowStepVM => {
-    const r = rules.get(ix);
-    return { kicker: kickerOf(r, r.export.prov.entry_name || ""), says: [text(r.facts?.title || clean(r.export.verbatim))], tag: null,
-      tone: "won", book: bareBook(r), rule: r.missing ? null : r.key };
-  });
-  return plainFlow(steps, head);
+  return plainFlow(src.map((ix) => { const r = rules.get(ix); return ruleStep(r, [text(r.facts?.title || clean(r.export.verbatim))]); }), head);
 }
 
 /** The table's every-rule sheet: `TroutTable.src`, first-cited order as Python gave it. `sub`: the water and the day. */

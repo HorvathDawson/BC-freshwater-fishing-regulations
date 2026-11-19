@@ -311,7 +311,7 @@ reads both files; a ticket closed here moves there once its lane is finished wit
 | T875 | The water Map tab's ▼ / ▲ steps stay put, part to part and water to water, on phone and desktop (owner) | DONE | 1c0911f91, 93efeda60 | app chat; owner 2026-11-18 (T872–T874 approved ~20:53) |
 | T880 | A DFO exception printed without "and tributaries" leaves out that stream only (Bulkley: Two Mile Creek; the Suskwa on the chinook row) (owner) | OPEN | main chat | owner 2026-11-18 ~20:59 |
 | T885 | DFO's lake parts on the map (Babine's 12 creek-mouth circles, Mabel north, Osoyoos north basin); said in words until then (owner) | OPEN | main chat | owner 2026-11-18 ~21:13 |
-| T883 | Every fish's "How this was decided" sheet: one readable layout (answer, then the steps that made it, each with its source), trout and other fish alike (owner) | OPEN — proposal; lands only on the owner's yes | app chat | owner 2026-11-18 ~21:30 |
+| T883 | Every fish's "How this was decided" sheet: one readable layout (answer, then the steps that made it, each with its source), trout and other fish alike (owner) | PARTIAL — left (Claude): merge into 0.8.2; pipeline steps[] (main chat) after | app chat | owner 2026-11-18 ~21:30; approved ~22:58 |
 | T890 | Word density: measure every page, then cut the over-dense ones (pictures first) (owner) | OPEN | app chat + main chat | owner 2026-11-18 ~21:43 |
 | T891 | Braided rivers drawn simpler: side channels thinner than the main channel; braids simplified in the tile build (owner) | OPEN | main chat + app chat | owner 2026-11-18 ~22:02 |
 

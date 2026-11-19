@@ -205,7 +205,9 @@ function Worked({ w, palette }: { w: NonNullable<GroupVM["worked"]>; palette: Pa
   );
 }
 
-export function GroupCard({ g, palette, actions, images, titled = true, ruled = true }: { g: GroupVM; palette: Palette; actions: KeepActions; images?: FishImages;
+export function GroupCard({ g, palette, actions, images, titled = true, ruled = true, more = true }: { g: GroupVM; palette: Palette; actions: KeepActions; images?: FishImages;
+  /** (T883) false: no "See every regulation line ›" (a fish sheet draws it after its "How this was decided") */
+  more?: boolean;
   /** (T37) false: the head draws no title line (in an other-fish sheet, whose title says it — SheetBlock group.titled) */
   titled?: boolean;
   /** (T868) false: the card opens its sheet, right under the sheet's title rule — no heavy rule of its own over the head
@@ -253,9 +255,11 @@ export function GroupCard({ g, palette, actions, images, titled = true, ruled = 
       {g.tree && <Nodes nodes={g.tree} inBand={false} palette={palette} actions={actions} images={images} />}
       {g.notKept.map((x, i) => <NotKept key={i} x={x} palette={palette} actions={actions} images={images} />)}
       {g.worked && <Worked w={g.worked} palette={palette} />}
-      <RegsPress accessibilityRole="link" onPress={() => actions.onSheet(g.more.open)} box={{ w: 44, h: 44 }} style={{ minHeight: 44, justifyContent: "center", marginTop: 8 }}>
-        <Text style={[TYPE.regsBodyBold, { color: palette.accent }]}>{g.more.text}</Text>
-      </RegsPress>
+      {more && (
+        <RegsPress accessibilityRole="link" onPress={() => actions.onSheet(g.more.open)} box={{ w: 44, h: 44 }} style={{ minHeight: 44, justifyContent: "center", marginTop: 8 }}>
+          <Text style={[TYPE.regsBodyBold, { color: palette.accent }]}>{g.more.text}</Text>
+        </RegsPress>
+      )}
     </View>
   );
 }

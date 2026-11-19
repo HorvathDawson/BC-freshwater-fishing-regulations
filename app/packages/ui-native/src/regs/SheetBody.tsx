@@ -72,7 +72,7 @@ export function SheetBlockView(p: { b: SheetBlock; layout?: LayoutClass;
     case "adipose": return <AdiposeArt figures={b.figures} images={p.adipose} palette={palette} layout={p.layout} />;
     case "pages": case "source": case "link":
       return <View style={{ marginTop: 8 }}><LineText line={b.line} style={TYPE.meta} color={palette.sub} palette={palette} actions={actions} linkStyle={TYPE.metaBold} /></View>;
-    case "group": return <View style={{ marginHorizontal: -GUTTER }}><GroupCard g={b.group} titled={b.titled} ruled={!p.first} palette={palette} actions={actions} images={p.fish} /></View>;
+    case "group": return <View style={{ marginHorizontal: -GUTTER }}><GroupCard g={b.group} titled={b.titled} ruled={!p.first} more={b.more !== false} palette={palette} actions={actions} images={p.fish} /></View>;
     case "rowTitle":
       return (
         <Text style={[TYPE.lead, { color: palette.ink, marginTop: 8 }]}>

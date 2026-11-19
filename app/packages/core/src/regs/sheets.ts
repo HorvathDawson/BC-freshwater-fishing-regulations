@@ -17,7 +17,7 @@
 import { ruleBook, ruleBookLine } from "./book";
 import type { GlossaryTerm, RegsInputs, RuleView, Statics } from "./inputs";
 import { plain, squash, text, type Line, type Run } from "./line";
-import type { GroupVM, SheetBlock, SheetCtx, SheetVM } from "./model";
+import type { FlowStepVM, GroupVM, SheetBlock, SheetCtx, SheetVM } from "./model";
 import { parseSheetKey, type SheetKey } from "./sheetKey";
 import { WORDS } from "./words";
 import { ruleSub } from "./level";
@@ -282,6 +282,26 @@ export function sheetLines(vm: SheetVM, opts: SheetLinesOpts = {}): SheetLines {
             }
           }
           break;
+        case "flow": {
+          // (T883) a step: its kicker (once), its words, what it did and its page on one line; then the answer; the other
+          // rules (words, then whose and page); the folded ones
+          const step = (s: FlowStepVM, rail: boolean) => {
+            if (rail) {
+              if (!s.repeat) parts(s.kicker, s.book);
+              parts(s.says, s.tag, s.repeat ? s.book : null);
+            } else { parts(s.says); parts(s.kicker, s.tag, s.book); }
+            keysOf(s.says, nested);
+            if (s.rule) nested.push(`rule:${s.rule}`);
+            (s.notes ?? []).forEach(str);
+          };
+          b.flow.steps.forEach((s) => step(s, true));
+          if (b.flow.result) str(WORDS.CHECK + b.flow.result);
+          if (b.flow.other.length) { str(b.flow.otherHead); b.flow.other.forEach((s) => step(s, false)); }
+          if (b.flow.quiet.length) {
+            out.folds.push({ summary: b.flow.quietHead, open: false }); str(b.flow.quietHead); b.flow.quiet.forEach((s) => step(s, false));
+          }
+          break;
+        }
         case "sources":
           for (const g of b.groups) {
             if (!b.overruled) str(g.where);

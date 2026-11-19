@@ -31,7 +31,8 @@ function Kicker({ s, palette, actions }: { s: FlowStepVM; palette: Palette; acti
   return (
     <View style={{ flexDirection: "row", alignItems: "baseline", gap: 8 }}>
       <Text testID="flow:kicker" style={[TYPE.kicker, { color: palette.sub, flexShrink: 1, flexGrow: 1 }]}>{s.kicker}</Text>
-      {s.book.length > 0 && <LineText line={s.book} style={TYPE.meta} color={palette.sub} palette={palette} actions={actions} />}
+      {/* the page never wraps under a long kicker ("KOOTENAY LAKE — LOWER WEST ARM · …") */}
+      {s.book.length > 0 && <View style={{ flexShrink: 0 }}><LineText line={s.book} style={TYPE.meta} color={palette.sub} palette={palette} actions={actions} /></View>}
     </View>
   );
 }
@@ -42,9 +43,10 @@ function Other({ s, palette, actions }: { s: FlowStepVM; palette: Palette; actio
     <View testID="flow:other" style={{ paddingBottom: 10 }}>
       <Says s={s} palette={palette} actions={actions} />
       <Text style={[TYPE.meta, { color: palette.sub }]}>
-        {s.kicker}{s.tag ? ` · ${s.tag}` : ""}{s.book.length > 0 ? "  " : ""}
+        {s.kicker}{s.tag ? WORDS.DOT + s.tag : ""}{s.book.length > 0 ? "  " : ""}
         {s.book.length > 0 && <LineText line={s.book} style={TYPE.meta} color={palette.sub} palette={palette} actions={actions} />}
       </Text>
+      {(s.notes ?? []).map((n, i) => <Text key={i} style={[TYPE.meta, { color: palette.ink, marginTop: 2 }]}>{n}</Text>)}
     </View>
   );
 }
@@ -53,22 +55,23 @@ function Step({ s, rail, last, palette, actions }: { s: FlowStepVM; rail: boolea
   if (!rail) return <Other s={s} palette={palette} actions={actions} />;
   const body = (
     <View style={{ flex: 1, paddingBottom: 14 }}>
-      {s.kicker ? <Kicker s={s} palette={palette} actions={actions} /> : null}
-      {s.kicker
+      {!s.repeat ? <Kicker s={s} palette={palette} actions={actions} /> : null}
+      {!s.repeat
         ? <View style={{ marginTop: 2 }}><Says s={s} palette={palette} actions={actions} /></View>
         // the same kicker as the step above: the words, and the page at the right on their line
         : <View style={{ flexDirection: "row", alignItems: "flex-start", gap: 8 }}>
             <View style={{ flex: 1 }}><Says s={s} palette={palette} actions={actions} /></View>
-            {s.book.length > 0 && <View style={{ paddingTop: 3 }}><LineText line={s.book} style={TYPE.meta} color={palette.sub} palette={palette} actions={actions} /></View>}
+            {s.book.length > 0 && <View style={{ paddingTop: 3, flexShrink: 0 }}><LineText line={s.book} style={TYPE.meta} color={palette.sub} palette={palette} actions={actions} /></View>}
           </View>}
-      {s.tag ? <Text style={[TYPE.metaBold, { color: s.tone === "won" ? palette.ink : palette.sub, marginTop: 1 }]}>{s.tag}</Text> : null}
+      {s.tag ? <Text style={[TYPE.metaBold, { color: s.today ? palette.accent : s.tone === "won" ? palette.ink : palette.sub, marginTop: 1 }]}>{s.tag}</Text> : null}
+      {(s.notes ?? []).map((n, i) => <Text key={i} style={[TYPE.meta, { color: palette.ink, marginTop: 2 }]}>{n}</Text>)}
     </View>
   );
   const hollow = s.tone !== "won";
   return (
     <View testID="flow:step" style={{ flexDirection: "row" }}>
       <View style={{ width: RAIL, alignItems: "center" }}>
-        <View style={{ width: DOT, height: DOT, borderRadius: DOT / 2, marginTop: s.kicker ? 4 : 7, borderWidth: 1.5,
+        <View style={{ width: DOT, height: DOT, borderRadius: DOT / 2, marginTop: s.repeat ? 7 : 4, borderWidth: 1.5,
                        borderColor: hollow ? palette.faint : palette.ink, backgroundColor: hollow ? "transparent" : palette.ink }} />
         {!last && <View style={{ flex: 1, width: 1.5, marginTop: 3, backgroundColor: palette.line2 }} />}
       </View>

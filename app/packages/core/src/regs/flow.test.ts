@@ -6,7 +6,7 @@
  */
 import { describe, expect, it } from "vitest";
 import type { LadderItem } from "./decided";
-import { flowOf, plainFlow } from "./flow";
+import { flowOf, plainFlow, ruleStep, withNotes, withWeek } from "./flow";
 import type { RuleView } from "./inputs";
 import { plain, text } from "./line";
 
@@ -46,9 +46,9 @@ describe("flowOf", () => {
   it("a step under the same kicker as the one before draws only its page; a lost rule repeating a won one is dropped", () => {
     const R2_B = rule("r2b", 3, "Region 2", "2", "No bait.", 22), R2_DUP = rule("r2dup", 3, "Region 2", "2", "Release every kokanee.", 21);
     const f = flowOf([item(R2_KO, "governs"), item(R2_B, "also"), item(R2_DUP, "replaced", LAKE)], says, "Cultus Lake", null);
-    expect(f.steps.map((s) => [s.kicker, plain(s.says), s.tag])).toEqual([
-      ["Region 2 · base rule", "Keep up to 5 kokanee a day.", null], ["", "No bait.", "Also applies"],
-      ["", "Release every kokanee.", "Replaced by Cultus Lake"],
+    expect(f.steps.map((s) => [s.kicker, s.repeat ?? false, plain(s.says), s.tag])).toEqual([
+      ["Region 2 · base rule", false, "Keep up to 5 kokanee a day.", null], ["Region 2 · base rule", true, "No bait.", "Also applies"],
+      ["Region 2 · base rule", true, "Release every kokanee.", "Replaced by Cultus Lake"],
     ]);
     expect(f.result).toBeNull();
   });
@@ -56,7 +56,25 @@ describe("flowOf", () => {
   it("plainFlow (the trout payload's list): kept in its order, kicker once, the answer whole", () => {
     const step = (k: string, s: string) => ({ kicker: k, says: [text(s)], tag: null, tone: "won" as const, book: [], rule: null });
     const f = plainFlow([step("Region 2 · base rule", "A"), step("Region 2 · base rule", "B"), step("Mamquam River · this water’s rule", "C")], "Keep 2");
-    expect(f.steps.map((s) => [s.kicker, plain(s.says)])).toEqual([["Region 2 · base rule", "A"], ["", "B"], ["Mamquam River · this water’s rule", "C"]]);
+    expect(f.steps.map((s) => [s.repeat ?? false, plain(s.says)])).toEqual([[false, "A"], [true, "B"], [false, "C"]]);
     expect(f.result).toBe("So: Keep 2");
+  });
+
+  it("withWeek: the day-parts stand where the rules they cite stood, today's tagged; the answer is the week's status", () => {
+    const WK = rule("wk", 0, "Cultus Lake", "2", "Keep 5 on weekends.", 23);
+    const f = flowOf([item(R2_KO, "replaced", WK), item(WK, "governs"), item(R2_POS, "possession")], says, "Cultus Lake", "Keep 5 a day here.");
+    const parts = [ruleStep(WK, [text("Sat–Sun: "), text("Keep up to 5")], "Today", true), ruleStep(WK, [text("Mon–Fri: "), text("Release every one")])];
+    const w = withWeek(f, parts, "Weekends: keep 5 · Weekdays: release");
+    expect(w.steps.map((s) => [s.kicker, s.repeat ?? false, plain(s.says), s.tag, s.today ?? false])).toEqual([
+      ["Region 2 · base rule", false, "Keep up to 5 kokanee a day.", "Replaced by Cultus Lake", false],
+      ["Cultus Lake · this water’s rule", false, "Sat–Sun: Keep up to 5", "Today", true],
+      ["Cultus Lake · this water’s rule", true, "Mon–Fri: Release every one", null, false],
+    ]);
+    expect([w.result, w.other.length]).toEqual(["So: Weekends: keep 5 · Weekdays: release", 1]);
+  });
+
+  it("withNotes: a restates note under the first step of the rule it restates, once", () => {
+    const f = withNotes(flowOf([item(LAKE, "governs")], says, "Cultus Lake", null), new Map([["lake", ["Counts toward the 5 for both arms."]]]));
+    expect(f.steps.map((s) => s.notes)).toEqual([["Counts toward the 5 for both arms."]]);
   });
 });

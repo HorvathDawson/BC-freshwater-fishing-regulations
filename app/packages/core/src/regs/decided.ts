@@ -47,7 +47,9 @@ export interface LadderSeams {
   /** T17 grouphead.ts `scopeOf` (page v36 scopeOf) — read for a pool row's result line only. */
   readonly scopeOf?: (row: HydRow, inp: RegsInputs) => string | null;
 }
-export interface LadderEnv { readonly card: CardModel; readonly settled: Settled; readonly inp: RegsInputs; readonly seams: LadderSeams }
+export interface LadderEnv { readonly card: CardModel; readonly settled: Settled; readonly inp: RegsInputs; readonly seams: LadderSeams;
+  /** (T883) build the fish sheet's flow too (the other: sheet asks; the Keep tab does not draw it) */
+  readonly flow?: true }
 
 /** page v36 say: a rule's plain sentence (answers display.rules[].plain), "" for none. */
 export const say = (r: RuleView): string => r.facts?.plain ?? "";
@@ -190,7 +192,7 @@ export function ladderOf(row: HydRow, env: LadderEnv, members?: readonly string[
   // (T216) the angler's explanation, every stored item in layers (the Keep form only; the other: sheet keeps the ladder)
   const story = members ? null : storyOf(items, (it) => words(it).text, inp, keepResult);
   // (T883, proposal) the fish sheet's one flow: the same items, in reading order, with the row's answer last
-  const flow = members ? null : flowOf(items, (it) => words(it).text, inp.item?.name || inp.place?.name || "", keepResult);
+  const flow = members || !env.flow ? null : flowOf(items, (it) => words(it).text, inp.item?.name || inp.place?.name || "", keepResult);
   return {
     label: WORDS.DECIDED, sections, ...(story ? { story } : {}), ...(flow ? { flow } : {}),
     lost: lost.map((it) => {

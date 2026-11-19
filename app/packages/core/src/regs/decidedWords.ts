@@ -99,6 +99,7 @@ export const DECIDE = Object.freeze({
   T_MOOT: "Doesn’t matter today",
   T_UNNEEDED: "Not needed here",
   RESULT: "So: ",
+  W_DAYS: (days: string) => `${days}: `,
   OTHER: "Other rules",
   QUIET: (n: number) => `Rules that don’t apply here (${n})`,
 });

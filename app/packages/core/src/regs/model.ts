@@ -268,6 +268,12 @@ export interface LadderVM {                                           // "How th
 export interface FlowStepVM {
   readonly kicker: string; readonly says: Line; readonly tag: string | null;
   readonly tone: "won" | "lost" | "quiet"; readonly book: Line; readonly rule: RuleKey | null;
+  /** the same kicker as the step before: drawn once (the page moves to the words' line) */
+  readonly repeat?: true;
+  /** a weekday part in force today: its tag ("Today") is drawn in the accent, with the word, never colour alone */
+  readonly today?: true;
+  /** the data's restates notes under the step (the combined-quota note) */
+  readonly notes?: readonly string[];
 }
 /** (T883, proposal) every fish sheet's "How this was decided", trout and other fish alike: the steps that made the
  *  answer in reading order (base → this water → what narrows it, a replaced rule in its place, quietly), the answer, the
@@ -414,7 +420,9 @@ export type SheetBlock =
   /** (T36) an other-fish row drawn as its Keep group (prototype g28 article): T37 draws it with the Keep tab's group component */
   | { k: "group"; group: GroupVM;
       /** false: the group's title is not drawn (the sheet's title says it) — the prototype drops a head title with no scope tag */
-      titled: boolean }
+      titled: boolean;
+      /** (T883) false: the card does not draw its "See every regulation line ›"; the sheet draws it after its flow */
+      more?: false }
   /** (T36) the row's title with its scope tag run on (page v36 .rtitle + .scope: "Black crappie" "Region 2-wide") */
   | { k: "rowTitle"; title: string; scope: string | null };
 export interface LadderStepVM { readonly level: string;

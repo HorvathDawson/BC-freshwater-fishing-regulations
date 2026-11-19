@@ -1224,70 +1224,88 @@
      "text": "How this was decided"
     },
     {
-     "k": "ladder",
-     "q": "What you can keep",
-     "result": "10 a day here, for all of Region 6 together.",
-     "steps": [
-      {
-       "level": "Region 6",
-       "lines": [
-        {
-         "applies": [
-          "From the Region 6 table — all of Region 6."
-         ],
-         "book": [
-          {
-           "pdf": 55,
-           "printed": 49,
-           "t": "book"
-          }
-         ],
-         "rule": "z6:daily_quotas::species_quotas.r4",
-         "tag": "Daily limit",
-         "text": [
-          {
-           "s": "Keep up to 10 kokanee a day.",
-           "t": "text"
-          }
-         ],
-         "won": true
-        }
-       ]
-      }
-     ]
-    },
-    {
-     "k": "ladder",
-     "q": "Other rules",
-     "result": null,
-     "steps": [
-      {
-       "level": "Region 6",
-       "lines": [
-        {
-         "applies": [
-          "From the Region 6 table — all of Region 6."
-         ],
-         "book": [
-          {
-           "pdf": 55,
-           "printed": 49,
-           "t": "book"
-          }
-         ],
-         "rule": "z6:possession_quota::possession_quota.r1",
-         "tag": "Carry limit",
-         "text": [
-          {
-           "s": "Possession: 2 days’ quota. Fish at home don’t count.",
-           "t": "text"
-          }
-         ],
-         "won": true
-        }
-       ]
-      }
-     ]
+     "flow": {
+      "other": [
+       {
+        "book": [
+         {
+          "bare": true,
+          "pdf": 55,
+          "printed": 49,
+          "t": "book"
+         }
+        ],
+        "kicker": "Region 6 · base rule",
+        "rule": "z6:possession_quota::possession_quota.r1",
+        "says": [
+         {
+          "s": "Possession: 2 days’ quota. Fish at home don’t count.",
+          "t": "text"
+         }
+        ],
+        "tag": null,
+        "tone": "won"
+       }
+      ],
+      "otherHead": "Other rules",
+      "quiet": [
+       {
+        "book": [
+         {
+          "bare": true,
+          "pdf": 11,
+          "printed": 9,
+          "t": "book"
+         },
+         {
+          "s": " ",
+          "t": "text"
+         },
+         {
+          "bare": true,
+          "pdf": 86,
+          "printed": 80,
+          "t": "book"
+         }
+        ],
+        "kicker": "All of B.C.",
+        "rule": "zp:quota_defaults::quota_defaults.r1",
+        "says": [
+         {
+          "s": "Possession: 2 days’ quota. Fish at home don’t count.",
+          "t": "text"
+         }
+        ],
+        "tag": "Replaced by Region 6",
+        "tone": "lost"
+       }
+      ],
+      "quietHead": "Rules that don’t apply here (1)",
+      "result": "So: 10 a day here, for all of Region 6 together.",
+      "steps": [
+       {
+        "book": [
+         {
+          "bare": true,
+          "pdf": 55,
+          "printed": 49,
+          "t": "book"
+         }
+        ],
+        "kicker": "Region 6 · base rule",
+        "rule": "z6:daily_quotas::species_quotas.r4",
+        "says": [
+         {
+          "s": "Keep up to 10 kokanee a day.",
+          "t": "text"
+         }
+        ],
+        "tag": null,
+        "tone": "won"
+       }
+      ]
+     },
+     "k": "flow"
     },
     {
      "k": "link",
@@ -1443,7 +1461,141 @@
       "year": null
      },
      "k": "group",
+     "more": false,
      "titled": true
+    },
+    {
+     "k": "head",
+     "text": "How this was decided"
+    },
+    {
+     "flow": {
+      "other": [
+       {
+        "book": [
+         {
+          "bare": true,
+          "pdf": 55,
+          "printed": 49,
+          "t": "book"
+         }
+        ],
+        "kicker": "Region 6 · base rule",
+        "rule": "z6:possession_quota::possession_quota.r1",
+        "says": [
+         {
+          "s": "Possession: 2 days’ quota. Fish at home don’t count.",
+          "t": "text"
+         }
+        ],
+        "tag": null,
+        "tone": "won"
+       }
+      ],
+      "otherHead": "Other rules",
+      "quiet": [
+       {
+        "book": [
+         {
+          "bare": true,
+          "pdf": 11,
+          "printed": 9,
+          "t": "book"
+         },
+         {
+          "s": " ",
+          "t": "text"
+         },
+         {
+          "bare": true,
+          "pdf": 86,
+          "printed": 80,
+          "t": "book"
+         }
+        ],
+        "kicker": "All of B.C.",
+        "rule": "zp:quota_defaults::quota_defaults.r1",
+        "says": [
+         {
+          "s": "Possession: 2 days’ quota. Fish at home don’t count.",
+          "t": "text"
+         }
+        ],
+        "tag": "Replaced by Region 6",
+        "tone": "lost"
+       }
+      ],
+      "quietHead": "Rules that don’t apply here (1)",
+      "result": "So: 5 a day here.",
+      "steps": [
+       {
+        "book": [
+         {
+          "bare": true,
+          "pdf": 55,
+          "printed": 49,
+          "t": "book"
+         }
+        ],
+        "kicker": "Region 6 · base rule",
+        "rule": "z6:daily_quotas::species_quotas.r7",
+        "says": [
+         {
+          "s": "Keep up to 15 whitefish a day, all kinds together.",
+          "t": "text"
+         }
+        ],
+        "tag": "Replaced by Bennett Lake",
+        "tone": "lost"
+       },
+       {
+        "book": [
+         {
+          "bare": true,
+          "box": [
+           {
+            "box": [
+             36,
+             316.32,
+             540,
+             359.04
+            ],
+            "pdf": 56,
+            "size": [
+             576,
+             756
+            ]
+           }
+          ],
+          "pdf": 56,
+          "printed": 50,
+          "t": "book"
+         }
+        ],
+        "kicker": "Bennett Lake · this water’s rule",
+        "rule": "r6:bennett_lake@6-28::bennett_lake.r13",
+        "says": [
+         {
+          "s": "Keep up to 5 whitefish a day, all kinds together.",
+          "t": "text"
+         }
+        ],
+        "tag": null,
+        "tone": "won"
+       }
+      ]
+     },
+     "k": "flow"
+    },
+    {
+     "k": "link",
+     "line": [
+      {
+       "open": "src:r3",
+       "s": "See every regulation line ›",
+       "t": "link"
+      }
+     ]
     }
    ],
    "key": "other:o1",
@@ -1589,7 +1741,248 @@
       "year": null
      },
      "k": "group",
+     "more": false,
      "titled": true
+    },
+    {
+     "k": "head",
+     "text": "How this was decided"
+    },
+    {
+     "flow": {
+      "other": [
+       {
+        "book": [
+         {
+          "bare": true,
+          "box": [
+           {
+            "box": [
+             36,
+             316.32,
+             540,
+             359.04
+            ],
+            "pdf": 56,
+            "size": [
+             576,
+             756
+            ]
+           }
+          ],
+          "pdf": 56,
+          "printed": 50,
+          "t": "book"
+         }
+        ],
+        "kicker": "Bennett Lake · this water’s rule",
+        "rule": "r6:bennett_lake@6-28::bennett_lake.r7",
+        "says": [
+         {
+          "s": "Have no more than 4 Arctic grayling in possession. Fish at home don’t count.",
+          "t": "text"
+         }
+        ],
+        "tag": null,
+        "tone": "won"
+       }
+      ],
+      "otherHead": "Other rules",
+      "quiet": [
+       {
+        "book": [
+         {
+          "bare": true,
+          "pdf": 55,
+          "printed": 49,
+          "t": "book"
+         }
+        ],
+        "kicker": "Region 6 · base rule",
+        "rule": "z6:possession_quota::possession_quota.r1",
+        "says": [
+         {
+          "s": "Possession: 2 days’ quota. Fish at home don’t count.",
+          "t": "text"
+         }
+        ],
+        "tag": "Replaced by Bennett Lake",
+        "tone": "lost"
+       },
+       {
+        "book": [
+         {
+          "bare": true,
+          "pdf": 11,
+          "printed": 9,
+          "t": "book"
+         },
+         {
+          "s": " ",
+          "t": "text"
+         },
+         {
+          "bare": true,
+          "pdf": 86,
+          "printed": 80,
+          "t": "book"
+         }
+        ],
+        "kicker": "All of B.C.",
+        "rule": "zp:quota_defaults::quota_defaults.r1",
+        "says": [
+         {
+          "s": "Possession: 2 days’ quota. Fish at home don’t count.",
+          "t": "text"
+         }
+        ],
+        "tag": "Replaced by Bennett Lake",
+        "tone": "lost"
+       }
+      ],
+      "quietHead": "Rules that don’t apply here (2)",
+      "result": "So: 4 a day here.",
+      "steps": [
+       {
+        "book": [
+         {
+          "bare": true,
+          "pdf": 55,
+          "printed": 49,
+          "t": "book"
+         }
+        ],
+        "kicker": "Region 6 · base rule",
+        "rule": "z6:daily_quotas::species_quotas.r1",
+        "says": [
+         {
+          "s": "Keep up to 3 Arctic grayling a day.",
+          "t": "text"
+         }
+        ],
+        "tag": "Replaced by Bennett Lake",
+        "tone": "lost"
+       },
+       {
+        "book": [
+         {
+          "bare": true,
+          "box": [
+           {
+            "box": [
+             36,
+             316.32,
+             540,
+             359.04
+            ],
+            "pdf": 56,
+            "size": [
+             576,
+             756
+            ]
+           }
+          ],
+          "pdf": 56,
+          "printed": 50,
+          "t": "book"
+         }
+        ],
+        "kicker": "Bennett Lake · this water’s rule",
+        "rule": "r6:bennett_lake@6-28::bennett_lake.r5",
+        "says": [
+         {
+          "s": "Keep up to 4 Arctic grayling a day.",
+          "t": "text"
+         }
+        ],
+        "tag": null,
+        "tone": "won"
+       },
+       {
+        "book": [
+         {
+          "bare": true,
+          "box": [
+           {
+            "box": [
+             36,
+             316.32,
+             540,
+             359.04
+            ],
+            "pdf": 56,
+            "size": [
+             576,
+             756
+            ]
+           }
+          ],
+          "pdf": 56,
+          "printed": 50,
+          "t": "book"
+         }
+        ],
+        "kicker": "Bennett Lake · this water’s rule",
+        "repeat": true,
+        "rule": "r6:bennett_lake@6-28::bennett_lake.r6",
+        "says": [
+         {
+          "s": "Only 1 Arctic grayling over 44 cm (17 in) a day; release any between 36 cm (14 in) and 44 cm (17 in).",
+          "t": "text"
+         }
+        ],
+        "tag": "A cap inside the total",
+        "tone": "won"
+       },
+       {
+        "book": [
+         {
+          "bare": true,
+          "box": [
+           {
+            "box": [
+             36,
+             316.32,
+             540,
+             359.04
+            ],
+            "pdf": 56,
+            "size": [
+             576,
+             756
+            ]
+           }
+          ],
+          "pdf": 56,
+          "printed": 50,
+          "t": "book"
+         }
+        ],
+        "kicker": "Bennett Lake · this water’s rule",
+        "repeat": true,
+        "rule": "r6:bennett_lake@6-28::bennett_lake.r8",
+        "says": [
+         {
+          "s": "Only 1 Arctic grayling over 44 cm (17 in) a day; release any between 36 cm (14 in) and 44 cm (17 in).",
+          "t": "text"
+         }
+        ],
+        "tag": "A cap inside the total",
+        "tone": "won"
+       }
+      ]
+     },
+     "k": "flow"
+    },
+    {
+     "k": "link",
+     "line": [
+      {
+       "open": "src:r4",
+       "s": "See every regulation line ›",
+       "t": "link"
+      }
+     ]
     }
    ],
    "key": "other:o2",
@@ -1643,70 +2036,88 @@
      "text": "How this was decided"
     },
     {
-     "k": "ladder",
-     "q": "What you can keep",
-     "result": "1 a day here, for all of Region 6 together.",
-     "steps": [
-      {
-       "level": "Region 6",
-       "lines": [
-        {
-         "applies": [
-          "From the Region 6 table — all of Region 6."
-         ],
-         "book": [
-          {
-           "pdf": 55,
-           "printed": 49,
-           "t": "book"
-          }
-         ],
-         "rule": "z6:daily_quotas::species_quotas.r3",
-         "tag": "Daily limit",
-         "text": [
-          {
-           "s": "Keep up to 1 inconnu a day.",
-           "t": "text"
-          }
-         ],
-         "won": true
-        }
-       ]
-      }
-     ]
-    },
-    {
-     "k": "ladder",
-     "q": "Other rules",
-     "result": null,
-     "steps": [
-      {
-       "level": "Region 6",
-       "lines": [
-        {
-         "applies": [
-          "From the Region 6 table — all of Region 6."
-         ],
-         "book": [
-          {
-           "pdf": 55,
-           "printed": 49,
-           "t": "book"
-          }
-         ],
-         "rule": "z6:possession_quota::possession_quota.r1",
-         "tag": "Carry limit",
-         "text": [
-          {
-           "s": "Possession: 2 days’ quota. Fish at home don’t count.",
-           "t": "text"
-          }
-         ],
-         "won": true
-        }
-       ]
-      }
-     ]
+     "flow": {
+      "other": [
+       {
+        "book": [
+         {
+          "bare": true,
+          "pdf": 55,
+          "printed": 49,
+          "t": "book"
+         }
+        ],
+        "kicker": "Region 6 · base rule",
+        "rule": "z6:possession_quota::possession_quota.r1",
+        "says": [
+         {
+          "s": "Possession: 2 days’ quota. Fish at home don’t count.",
+          "t": "text"
+         }
+        ],
+        "tag": null,
+        "tone": "won"
+       }
+      ],
+      "otherHead": "Other rules",
+      "quiet": [
+       {
+        "book": [
+         {
+          "bare": true,
+          "pdf": 11,
+          "printed": 9,
+          "t": "book"
+         },
+         {
+          "s": " ",
+          "t": "text"
+         },
+         {
+          "bare": true,
+          "pdf": 86,
+          "printed": 80,
+          "t": "book"
+         }
+        ],
+        "kicker": "All of B.C.",
+        "rule": "zp:quota_defaults::quota_defaults.r1",
+        "says": [
+         {
+          "s": "Possession: 2 days’ quota. Fish at home don’t count.",
+          "t": "text"
+         }
+        ],
+        "tag": "Replaced by Region 6",
+        "tone": "lost"
+       }
+      ],
+      "quietHead": "Rules that don’t apply here (1)",
+      "result": "So: 1 a day here, for all of Region 6 together.",
+      "steps": [
+       {
+        "book": [
+         {
+          "bare": true,
+          "pdf": 55,
+          "printed": 49,
+          "t": "book"
+         }
+        ],
+        "kicker": "Region 6 · base rule",
+        "rule": "z6:daily_quotas::species_quotas.r3",
+        "says": [
+         {
+          "s": "Keep up to 1 inconnu a day.",
+          "t": "text"
+         }
+        ],
+        "tag": null,
+        "tone": "won"
+       }
+      ]
+     },
+     "k": "flow"
     },
     {
      "k": "link",
@@ -1862,7 +2273,248 @@
       "year": null
      },
      "k": "group",
+     "more": false,
      "titled": true
+    },
+    {
+     "k": "head",
+     "text": "How this was decided"
+    },
+    {
+     "flow": {
+      "other": [
+       {
+        "book": [
+         {
+          "bare": true,
+          "box": [
+           {
+            "box": [
+             36,
+             316.32,
+             540,
+             359.04
+            ],
+            "pdf": 56,
+            "size": [
+             576,
+             756
+            ]
+           }
+          ],
+          "pdf": 56,
+          "printed": 50,
+          "t": "book"
+         }
+        ],
+        "kicker": "Bennett Lake · this water’s rule",
+        "rule": "r6:bennett_lake@6-28::bennett_lake.r11",
+        "says": [
+         {
+          "s": "Have no more than 4 northern pike in possession. Fish at home don’t count.",
+          "t": "text"
+         }
+        ],
+        "tag": null,
+        "tone": "won"
+       }
+      ],
+      "otherHead": "Other rules",
+      "quiet": [
+       {
+        "book": [
+         {
+          "bare": true,
+          "pdf": 55,
+          "printed": 49,
+          "t": "book"
+         }
+        ],
+        "kicker": "Region 6 · base rule",
+        "rule": "z6:possession_quota::possession_quota.r1",
+        "says": [
+         {
+          "s": "Possession: 2 days’ quota. Fish at home don’t count.",
+          "t": "text"
+         }
+        ],
+        "tag": "Replaced by Bennett Lake",
+        "tone": "lost"
+       },
+       {
+        "book": [
+         {
+          "bare": true,
+          "pdf": 11,
+          "printed": 9,
+          "t": "book"
+         },
+         {
+          "s": " ",
+          "t": "text"
+         },
+         {
+          "bare": true,
+          "pdf": 86,
+          "printed": 80,
+          "t": "book"
+         }
+        ],
+        "kicker": "All of B.C.",
+        "rule": "zp:quota_defaults::quota_defaults.r1",
+        "says": [
+         {
+          "s": "Possession: 2 days’ quota. Fish at home don’t count.",
+          "t": "text"
+         }
+        ],
+        "tag": "Replaced by Bennett Lake",
+        "tone": "lost"
+       }
+      ],
+      "quietHead": "Rules that don’t apply here (2)",
+      "result": "So: 4 a day here.",
+      "steps": [
+       {
+        "book": [
+         {
+          "bare": true,
+          "pdf": 55,
+          "printed": 49,
+          "t": "book"
+         }
+        ],
+        "kicker": "Region 6 · base rule",
+        "rule": "z6:daily_quotas::species_quotas.r6",
+        "says": [
+         {
+          "s": "Keep up to 5 northern pike a day.",
+          "t": "text"
+         }
+        ],
+        "tag": "Replaced by Bennett Lake",
+        "tone": "lost"
+       },
+       {
+        "book": [
+         {
+          "bare": true,
+          "box": [
+           {
+            "box": [
+             36,
+             316.32,
+             540,
+             359.04
+            ],
+            "pdf": 56,
+            "size": [
+             576,
+             756
+            ]
+           }
+          ],
+          "pdf": 56,
+          "printed": 50,
+          "t": "book"
+         }
+        ],
+        "kicker": "Bennett Lake · this water’s rule",
+        "rule": "r6:bennett_lake@6-28::bennett_lake.r9",
+        "says": [
+         {
+          "s": "Keep up to 4 northern pike a day.",
+          "t": "text"
+         }
+        ],
+        "tag": null,
+        "tone": "won"
+       },
+       {
+        "book": [
+         {
+          "bare": true,
+          "box": [
+           {
+            "box": [
+             36,
+             316.32,
+             540,
+             359.04
+            ],
+            "pdf": 56,
+            "size": [
+             576,
+             756
+            ]
+           }
+          ],
+          "pdf": 56,
+          "printed": 50,
+          "t": "book"
+         }
+        ],
+        "kicker": "Bennett Lake · this water’s rule",
+        "repeat": true,
+        "rule": "r6:bennett_lake@6-28::bennett_lake.r10",
+        "says": [
+         {
+          "s": "Only 1 northern pike over 100 cm (39 in) a day; release any between 70 cm (28 in) and 100 cm (39 in).",
+          "t": "text"
+         }
+        ],
+        "tag": "A cap inside the total",
+        "tone": "won"
+       },
+       {
+        "book": [
+         {
+          "bare": true,
+          "box": [
+           {
+            "box": [
+             36,
+             316.32,
+             540,
+             359.04
+            ],
+            "pdf": 56,
+            "size": [
+             576,
+             756
+            ]
+           }
+          ],
+          "pdf": 56,
+          "printed": 50,
+          "t": "book"
+         }
+        ],
+        "kicker": "Bennett Lake · this water’s rule",
+        "repeat": true,
+        "rule": "r6:bennett_lake@6-28::bennett_lake.r12",
+        "says": [
+         {
+          "s": "Only 1 northern pike over 100 cm (39 in) a day; release any between 70 cm (28 in) and 100 cm (39 in).",
+          "t": "text"
+         }
+        ],
+        "tag": "A cap inside the total",
+        "tone": "won"
+       }
+      ]
+     },
+     "k": "flow"
+    },
+    {
+     "k": "link",
+     "line": [
+      {
+       "open": "src:r6",
+       "s": "See every regulation line ›",
+       "t": "link"
+      }
+     ]
     }
    ],
    "key": "other:o4",
@@ -1916,70 +2568,88 @@
      "text": "How this was decided"
     },
     {
-     "k": "ladder",
-     "q": "What you can keep",
-     "result": "5 a day here, for all of Region 6 together.",
-     "steps": [
-      {
-       "level": "Region 6",
-       "lines": [
-        {
-         "applies": [
-          "From the Region 6 table — all of Region 6."
-         ],
-         "book": [
-          {
-           "pdf": 55,
-           "printed": 49,
-           "t": "book"
-          }
-         ],
-         "rule": "z6:daily_quotas::species_quotas.r2",
-         "tag": "Daily limit",
-         "text": [
-          {
-           "s": "Keep up to 5 burbot a day.",
-           "t": "text"
-          }
-         ],
-         "won": true
-        }
-       ]
-      }
-     ]
-    },
-    {
-     "k": "ladder",
-     "q": "Other rules",
-     "result": null,
-     "steps": [
-      {
-       "level": "Region 6",
-       "lines": [
-        {
-         "applies": [
-          "From the Region 6 table — all of Region 6."
-         ],
-         "book": [
-          {
-           "pdf": 55,
-           "printed": 49,
-           "t": "book"
-          }
-         ],
-         "rule": "z6:possession_quota::possession_quota.r1",
-         "tag": "Carry limit",
-         "text": [
-          {
-           "s": "Possession: 2 days’ quota. Fish at home don’t count.",
-           "t": "text"
-          }
-         ],
-         "won": true
-        }
-       ]
-      }
-     ]
+     "flow": {
+      "other": [
+       {
+        "book": [
+         {
+          "bare": true,
+          "pdf": 55,
+          "printed": 49,
+          "t": "book"
+         }
+        ],
+        "kicker": "Region 6 · base rule",
+        "rule": "z6:possession_quota::possession_quota.r1",
+        "says": [
+         {
+          "s": "Possession: 2 days’ quota. Fish at home don’t count.",
+          "t": "text"
+         }
+        ],
+        "tag": null,
+        "tone": "won"
+       }
+      ],
+      "otherHead": "Other rules",
+      "quiet": [
+       {
+        "book": [
+         {
+          "bare": true,
+          "pdf": 11,
+          "printed": 9,
+          "t": "book"
+         },
+         {
+          "s": " ",
+          "t": "text"
+         },
+         {
+          "bare": true,
+          "pdf": 86,
+          "printed": 80,
+          "t": "book"
+         }
+        ],
+        "kicker": "All of B.C.",
+        "rule": "zp:quota_defaults::quota_defaults.r1",
+        "says": [
+         {
+          "s": "Possession: 2 days’ quota. Fish at home don’t count.",
+          "t": "text"
+         }
+        ],
+        "tag": "Replaced by Region 6",
+        "tone": "lost"
+       }
+      ],
+      "quietHead": "Rules that don’t apply here (1)",
+      "result": "So: 5 a day here, for all of Region 6 together.",
+      "steps": [
+       {
+        "book": [
+         {
+          "bare": true,
+          "pdf": 55,
+          "printed": 49,
+          "t": "book"
+         }
+        ],
+        "kicker": "Region 6 · base rule",
+        "rule": "z6:daily_quotas::species_quotas.r2",
+        "says": [
+         {
+          "s": "Keep up to 5 burbot a day.",
+          "t": "text"
+         }
+        ],
+        "tag": null,
+        "tone": "won"
+       }
+      ]
+     },
+     "k": "flow"
     },
     {
      "k": "link",
@@ -2043,70 +2713,108 @@
      "text": "How this was decided"
     },
     {
-     "k": "ladder",
-     "q": "What you can keep",
-     "result": "Closed here.",
-     "steps": [
-      {
-       "level": "Region 6",
-       "lines": [
-        {
-         "applies": [
-          "From the Region 6 table — all of Region 6."
-         ],
-         "book": [
-          {
-           "pdf": 55,
-           "printed": 49,
-           "t": "book"
-          }
-         ],
-         "rule": "z6:daily_quotas::species_quotas.r8",
-         "tag": "Closed",
-         "text": [
-          {
-           "s": "No fishing for white sturgeon.",
-           "t": "text"
-          }
-         ],
-         "won": true
-        }
-       ]
-      }
-     ]
-    },
-    {
-     "k": "ladder",
-     "q": "Other rules",
-     "result": null,
-     "steps": [
-      {
-       "level": "Region 6",
-       "lines": [
-        {
-         "applies": [
-          "From the Region 6 table — all of Region 6."
-         ],
-         "book": [
-          {
-           "pdf": 55,
-           "printed": 49,
-           "t": "book"
-          }
-         ],
-         "rule": "z6:possession_quota::possession_quota.r1",
-         "tag": "Carry limit",
-         "text": [
-          {
-           "s": "Possession: 2 days’ quota. Fish at home don’t count.",
-           "t": "text"
-          }
-         ],
-         "won": true
-        }
-       ]
-      }
-     ]
+     "flow": {
+      "other": [
+       {
+        "book": [
+         {
+          "bare": true,
+          "pdf": 55,
+          "printed": 49,
+          "t": "book"
+         }
+        ],
+        "kicker": "Region 6 · base rule",
+        "rule": "z6:possession_quota::possession_quota.r1",
+        "says": [
+         {
+          "s": "Possession: 2 days’ quota. Fish at home don’t count.",
+          "t": "text"
+         }
+        ],
+        "tag": null,
+        "tone": "won"
+       }
+      ],
+      "otherHead": "Other rules",
+      "quiet": [
+       {
+        "book": [
+         {
+          "bare": true,
+          "pdf": 11,
+          "printed": 9,
+          "t": "book"
+         },
+         {
+          "s": " ",
+          "t": "text"
+         },
+         {
+          "bare": true,
+          "pdf": 86,
+          "printed": 80,
+          "t": "book"
+         }
+        ],
+        "kicker": "All of B.C.",
+        "rule": "zp:quota_defaults::quota_defaults.r1",
+        "says": [
+         {
+          "s": "Possession: 2 days’ quota. Fish at home don’t count.",
+          "t": "text"
+         }
+        ],
+        "tag": "Replaced by Region 6",
+        "tone": "lost"
+       },
+       {
+        "book": [
+         {
+          "bare": true,
+          "pdf": 9,
+          "printed": 7,
+          "t": "book"
+         }
+        ],
+        "kicker": "All of B.C.",
+        "rule": "zp:white_sturgeon_licence::white_sturgeon_licence.r4",
+        "says": [
+         {
+          "s": "No fishing for white sturgeon: every non-tidal water of the province; lifted on the licensed Fraser watershed (r4x)",
+          "t": "text"
+         }
+        ],
+        "tag": "Says the same",
+        "tone": "quiet"
+       }
+      ],
+      "quietHead": "Rules that don’t apply here (2)",
+      "result": "So: Closed here.",
+      "steps": [
+       {
+        "book": [
+         {
+          "bare": true,
+          "pdf": 55,
+          "printed": 49,
+          "t": "book"
+         }
+        ],
+        "kicker": "Region 6 · base rule",
+        "rule": "z6:daily_quotas::species_quotas.r8",
+        "says": [
+         {
+          "s": "No fishing for white sturgeon.",
+          "t": "text"
+         }
+        ],
+        "tag": null,
+        "tone": "won"
+       }
+      ]
+     },
+     "k": "flow"
     },
     {
      "k": "link",
@@ -2174,37 +2882,36 @@
      "text": "How this was decided"
     },
     {
-     "k": "ladder",
-     "q": "What you can keep",
-     "result": "Closed here.",
-     "steps": [
-      {
-       "level": "Federal law",
-       "lines": [
-        {
-         "applies": [
-          "Set by a federal or park authority — everywhere in B.C."
-         ],
-         "book": [
-          {
-           "pdf": 11,
-           "printed": 9,
-           "t": "book"
-          }
-         ],
-         "rule": "zp:protected_species::protected_species.r1",
-         "tag": "Closed",
-         "text": [
-          {
-           "s": "No fishing for Cultus Lake sculpin, Enos Lake stickleback, Misty Lake stickleback, Nooksack dace, Paxton Lake stickleback, Rocky Mountain sculpin, shorthead sculpin, Salish sucker, Vananda Creek stickleback, vancouver lamprey, western brook lamprey (Morrison Creek population) and white sturgeon (Nechako, Upper Fraser, Kootenay and Columbia populations).",
-           "t": "text"
-          }
-         ],
-         "won": true
-        }
-       ]
-      }
-     ]
+     "flow": {
+      "other": [],
+      "otherHead": "Other rules",
+      "quiet": [],
+      "quietHead": "Rules that don’t apply here (0)",
+      "result": "So: Closed here.",
+      "steps": [
+       {
+        "book": [
+         {
+          "bare": true,
+          "pdf": 11,
+          "printed": 9,
+          "t": "book"
+         }
+        ],
+        "kicker": "Federal law",
+        "rule": "zp:protected_species::protected_species.r1",
+        "says": [
+         {
+          "s": "No fishing for Cultus Lake sculpin, Enos Lake stickleback, Misty Lake stickleback, Nooksack dace, Paxton Lake stickleback, Rocky Mountain sculpin, shorthead sculpin, Salish sucker, Vananda Creek stickleback, vancouver lamprey, western brook lamprey (Morrison Creek population) and white sturgeon (Nechako, Upper Fraser, Kootenay and Columbia populations).",
+          "t": "text"
+         }
+        ],
+        "tag": null,
+        "tone": "won"
+       }
+      ]
+     },
+     "k": "flow"
     },
     {
      "k": "link",
