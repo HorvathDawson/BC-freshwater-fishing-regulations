@@ -24,7 +24,7 @@ Owner 2026-11-19 ~01:00, looking at the phone pictures, verbatim: "does mobile e
 - Tests: T377.legend.test.tsx "(T896)": no fold button in either mode, and at 390 the whole key in two rows (the one-row desktop key is in trout-1440.png).
 - Pictures: scratchpad `t896-shots/`: `trout-390.png`, `trout-1440.png`, `salmon-390.png` (the real MapLegend in Chrome over a
   stand-in for the map).
-- Review fix (T396 kept): on a phone both bars now stand 105 px (measured, 390 px): Salmon's "DFO rules checked …" heads its key in
-  `SOURCE_ROOM` (39 px), and Trout & more splits the same room as an even margin above and below its key. From `WIDE_LEGEND`
-  nothing is reserved (as before T896). Pinned by T377.legend.test.tsx (declared heights, jsdom cannot measure). A 200 % font
-  scale render check was not added (the head is a minHeight, so a larger caption grows it rather than being cut).
+- Review fix 2 (T396 kept, no strip): the reserved head is gone. Salmon's checked date is the key's last word, at the right end of
+  its last row ("Checked Oct 29", TYPE.meta, sub; its a11y label stays "DFO rules checked Oct 29"); from `WIDE_LEGEND` it ends the
+  one row. Both modes are exactly two rows on a phone (66 px at 390 in both), nothing reserved. On a 360 dp phone the date wraps
+  under (one line taller there only, 90 px). Pinned by T377.legend.test.tsx.

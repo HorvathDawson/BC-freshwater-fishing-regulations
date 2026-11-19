@@ -10,7 +10,7 @@ vi.mock("@app/core", async (orig) => ({ ...(await orig<Record<string, unknown>>(
 vi.mock("@app/map", async (orig) => ({ ...(await orig<Record<string, unknown>>()), Map: () => null }));
 import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { KEY_ISOLATE_WORDS, MAP_KEY } from "@app/core";
-import { MapLegend, SOURCE_ROOM } from "./shell/MapLegend";
+import { MapLegend } from "./shell/MapLegend";
 import { LIGHT } from "./theme";
 
 afterEach(cleanup);
@@ -93,21 +93,21 @@ describe("(T896) the key is visible at a phone's width", () => {
   });
 });
 
-describe("(T396, T896) both modes' bars stand the same height on a phone", () => {
-  it("Salmon's source head and Trout's two margins reserve the same room (declared in style: jsdom cannot measure)", () => {
-    const facts = null;
-    const room = (mode: "standard" | "salmon") => {
-      show({ ...(col(mode, null) as object), salmonFacts: facts } as never);
-      const parts = [...screen.queryAllByTestId("legend-fishery-head"), ...screen.queryAllByTestId("legend-reserve")];
-      const sum = parts.reduce((a, e) => a + (parseFloat(e.style.minHeight) || parseFloat(e.style.height) || 0), 0);
-      const said = screen.queryByTestId("salmon-legend-source")?.textContent ?? null;
+describe("(T396, T896) both modes' bars are the same two rows on a phone, nothing reserved", () => {
+  it("Trout and Salmon: two rows each, no head or reserve; Salmon's checked date ends its last row", () => {
+    for (const mode of ["standard", "salmon"] as const) {
+      show(col(mode, null));
+      expect(screen.getAllByTestId("legend-row"), mode).toHaveLength(2);
+      expect(screen.queryByTestId("legend-fishery-head"), mode).toBeNull();
+      expect(screen.queryByTestId("legend-reserve"), mode).toBeNull();
+      const note = screen.queryByTestId("salmon-legend-source");
+      if (mode === "standard") expect(note).toBeNull();
+      else {
+        expect(note!.textContent).toBe("Checked Oct 29");
+        expect(note!.getAttribute("aria-label")).toBe("DFO rules checked Oct 29");
+        expect(screen.getAllByTestId("legend-row")[1]!.contains(note)).toBe(true);
+      }
       cleanup();
-      return { sum, said };
-    };
-    const t = room("standard"), s = room("salmon");
-    expect(s.said).toBe("DFO rules checked Oct 29");
-    expect(t.said).toBeNull();
-    expect(t.sum).toBe(SOURCE_ROOM);
-    expect(s.sum).toBe(SOURCE_ROOM);
+    }
   });
 });

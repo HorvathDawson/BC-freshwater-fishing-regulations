@@ -14,21 +14,17 @@ import { closedCueColour, gaugeOnlyColours, issueStripeColours, gearEdgeColour, 
 import { ObstacleIcon } from "../icons";
 import { useMemo, useState } from "react";
 import { useCoachTarget } from "../CoachMarks";
-import { useWindowDimensions, View } from "react-native";
+import { View } from "react-native";
 import { Text } from "../Text";
 import { Pressable } from "../Pressable";
 import { RunDayCaption, RunDaySlider, RunSpeciesChips } from "../RunsControls";
 import type { FishImages } from "../regs/types";
-import { LEGEND_RAMP_MAX, LEGEND_ROWS, WIDE_LEGEND, LegendCount, LegendRamp, LegendRows, LegendStrip } from "../Chrome";
+import { LEGEND_RAMP_MAX, LegendCount, LegendRamp, LegendRows, LegendStrip } from "../Chrome";
 import { BasinDays } from "../BasinDays";
 import { legendColour } from "../LayersSheet";
 import { LEGEND_TEXT, TYPE } from "../type";
 import { changeRampStops, flowRampStops, round, type Palette } from "../theme";
 import type { MapColouring } from "./useMapColouring";
-
-/** (T396) the room Salmon's source line takes above its key on a phone: 9 px over two lines of 15 px */
-const SOURCE_PAD = 9;
-export const SOURCE_ROOM = SOURCE_PAD + 2 * 15;
 
 export function MapLegend({ col, conditions, palette, theme, mapDay }: {
   col: MapColouring;
@@ -70,6 +66,13 @@ export function MapLegend({ col, conditions, palette, theme, mapDay }: {
                  cased={r.status === "open" ? salmonCasingColour(theme) ?? undefined : undefined}
                  label={MAP_KEY.salmon[r.status]} {...tap(r.status)} />
   ));
+  // (T896) Salmon's checked date: the key's last word, right-aligned on its last row
+  const checkedNote = checked && (
+    <Text key="checked" testID="salmon-legend-source" accessibilityLabel={checked} numberOfLines={1}
+          style={{ ...TYPE.meta, color: palette.sub, marginLeft: "auto" }}>
+      {checked.replace(/^DFO rules c/, "C")}
+    </Text>
+  );
   const strip = (
     <LegendStrip palette={palette} full={onConditions} wrap={!onConditions}>
       {/* NO QUANTITY SWITCH HERE (owner 2026-10-22): Flow · Level · Temperature is the Layers sheet's Show, one
@@ -126,7 +129,7 @@ export function MapLegend({ col, conditions, palette, theme, mapDay }: {
         // (T211) DFO's salmon: the salmon key in the salmon colours, and whose rules they are. The switch is under the
         // Layers button and the day in the map's corner (T213)
         // (T396) two rows, as Trout & more's: three statuses, then Check DFO (T882: the owner's pick) with the gear marks
-        <LegendRows rows={[salmonRows.slice(0, 3), [...salmonRows.slice(3), ...gearRows, ...issueRow]]} />
+        <LegendRows rows={[salmonRows.slice(0, 3), [...salmonRows.slice(3), ...gearRows, ...issueRow, ...(checkedNote ? [checkedNote] : [])]]} />
       ) : (
         // The three statuses, in the words and colours every surface uses (@app/core
         // WATER_STATUS through the map's theme) — for the day shown. (T213) Then the gear marks drawn ON them: an ink
@@ -160,26 +163,11 @@ export function MapLegend({ col, conditions, palette, theme, mapDay }: {
     </LegendStrip>
   );
   if (!fishery) return strip;
-  const source = checked && (
-    <Text testID="salmon-legend-source" numberOfLines={2}
-          style={{ ...TYPE.caption, lineHeight: 15, color: palette.sub, flexShrink: 1 }}>
-      {checked}
-    </Text>
-  );
-  // (T896, owner 2026-11-19: "this button is useless?", then "does mobile even need the button?") NO FOLD: the key is always
-  // shown whole (a phone's two rows are 44 px; folding saved one row and cost a control). One row from `WIDE_LEGEND` (T469),
-  // T396's two fixed rows below it.
-  // (T396) ON A PHONE BOTH MODES' BARS STAND THE SAME HEIGHT: Salmon's "DFO rules checked …" (up to two lines) heads its key
-  // in `SOURCE_ROOM`; Trout & more has no such line, so the same room is split above and below its key (an even margin, not a
-  // strip of its own) and switching modes does not move the bar.
-  const narrow = useWindowDimensions().width < WIDE_LEGEND;
+  // (T896) NO HEAD, NO RESERVE: both modes are exactly T396's two rows (a phone) or one row (from `WIDE_LEGEND`); Salmon's checked
+  // date is the last entry of its key, at the right end of the last row ("Checked Oct 29"; read as "DFO rules checked Oct 29")
   return (
     <View testID="legend-fishery-bar" style={{ backgroundColor: palette.card, borderTopWidth: 1, borderTopColor: palette.line }}>
-      {source ? (
-        <View testID="legend-fishery-head" style={{ paddingHorizontal: LEGEND_ROWS.padX, paddingTop: SOURCE_PAD, minHeight: narrow ? SOURCE_ROOM : 0 }}>{source}</View>
-      ) : narrow && <View testID="legend-reserve" style={{ height: SOURCE_ROOM / 2 }} />}
       {strip}
-      {!source && narrow && <View testID="legend-reserve" style={{ height: SOURCE_ROOM / 2 }} />}
     </View>
   );
 }
