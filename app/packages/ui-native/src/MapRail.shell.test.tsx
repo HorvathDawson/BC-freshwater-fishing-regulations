@@ -320,7 +320,7 @@ describe("the rail's My location button (T303)", () => {
     const { MapRail } = await import("./MapRail");
     const me = { on: true, following: true, busy: false, notice: null as string | null, press: vi.fn(), dismiss: vi.fn() };
     render(<MapRail palette={LIGHT} onLayers={() => {}} me={me} />);
-    const b = screen.getAllByRole("button")[0];   // My location sits above Layers; its name follows its state
+    const b = screen.getAllByRole("button")[0]!;   // My location sits above Layers; its name follows its state
     expect(b.getAttribute("aria-pressed")).toBe("true");
     expect(b.hasAttribute("aria-selected")).toBe(false);
     cleanup();
