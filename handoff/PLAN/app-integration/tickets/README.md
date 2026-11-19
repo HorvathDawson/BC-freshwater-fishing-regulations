@@ -301,7 +301,7 @@ reads both files; a ticket closed here moves there once its lane is finished wit
 | T894 | The app's version files per build and per version (Play: play/<versionCode>.json; iPhone: ios/<version>.json) | IN PROGRESS | app chat | review of T888, 2026-11-19 |
 | T895 | Each flow forecast model draws in its own colour, so a toggled model can be told apart (owner) | DONE | ac657a5fc | owner 2026-11-19 ~00:40; approved ~01:03 |
 | T896 | The map key's fold button is useless on a wide screen: show the key, no button, where it fits (owner) | DONE | 214f18f8c | owner 2026-11-19 ~00:51; fold removed everywhere ~00:59 |
-| T897 | The More tab's back says "Back", not a tab's name; its head stays put while it scrolls (owner) | IN PROGRESS | app chat | owner 2026-11-19 ~01:04 |
+| T897 | The More tab's back says "Back", not a tab's name; its head stays put while it scrolls (owner) | DONE | 1468f8bf0 | owner 2026-11-19 ~01:04, ~01:05 |
 | T898 | A daylight-only rule shows today's actual closed times for the section (owner) | IN PROGRESS | app chat | owner 2026-11-19 ~01:10 |
 | T899 | In-season notices on a water open by default (owner) | IN PROGRESS | app chat | owner 2026-11-19 ~01:10 |
 | T900 | Gear and Methods: cleaner, easier to read (owner; next chat) | OPEN | app chat | owner 2026-11-19 ~01:12 |
