@@ -5,12 +5,15 @@
  * (`useSearchSession`) feeds both the sheet's rows and what the main map frames, lights and pins (T62 3.4: out of the
  * Shell, unchanged).
  */
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Keyboard, useWindowDimensions, type TextInputInstance } from "react-native";
 import type { ItemId, WaterSource } from "@app/data";
 import { NO_SEARCH, reportFailure, searchStep, useRecentSearches, useSearchSession, type SearchAction, type SearchMemory } from "@app/ui";
 import { searchPanelWidth } from "../TopBar";
 import { CLOSE_KEEPS_FOCUS } from "../searchFocus";
+import { sheetRows } from "../search/rows";
+import { keyStops } from "../search/keys";
+import { useListKeys } from "../search/listKeys";
 import type { ShellNav } from "./useShellNav";
 
 /** (T250) the search field's handle. RN 0.88's `TextInputInstance` is an alias of a class its types do not export, so a
@@ -133,8 +136,16 @@ export function useShellSearch({ source, nav, recentStore }: {
   const onFieldFocus = () => { if (!quiet.current) go({ type: "search", open: true }); };
   /** (T247) a recent search tapped: it becomes the query again */
   const pickRecent = useCallback((q: string) => searchType(q), [searchType]);
+  /*
+   * (T858) THE KEYBOARD IN THE LIST, on the web: ↓ / ↑ from the field move a highlight through what the sheet draws
+   * (`keyStops` over the very rows it draws), Enter presses it (listKeys.web.ts). A phone has none of it (the native
+   * twin: no highlight, no key taken).
+   */
+  const stops = useMemo(() => searching ? keyStops(sheetRows(searchMemory.pick, session, recents.list), searchMemory.pick) : [],
+                        [searching, searchMemory.pick, session, recents.list]);
+  const keys = useListKeys({ open: searching, stops, query: searchMemory.q, field });
   return { searching, searchMemory, recents, pickRecent, session, field, arrive, openSearched, landOn, searchAct, searchType, closeSearch,
-           closeToField, wideSearch, onFieldFocus };
+           closeToField, wideSearch, onFieldFocus, keys };
 }
 
 export type ShellSearch = ReturnType<typeof useShellSearch>;

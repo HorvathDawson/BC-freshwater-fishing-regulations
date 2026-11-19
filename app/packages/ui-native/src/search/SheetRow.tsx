@@ -15,14 +15,18 @@ import { Hit } from "./Hit";
 import type { Row } from "./rows";
 import { hitProps } from "../regs/hit";
 import { CoachItemContext } from "../CoachMarks";
+import { goStop, recentStop, seeStop } from "./keys";
+import { stopProps } from "./listKeys";
 
-export function SheetRow({ r, palette, pick, act, onOpenWater, statusIndex, today, onRecent, onClearRecents }: {
+export function SheetRow({ r, palette, pick, act, onOpenWater, statusIndex, today, onRecent, onClearRecents, active = null }: {
   r: Row; palette: Palette; pick: SearchPick; act: (a: SearchAction) => void; onOpenWater: (item: ItemId) => void;
   statusIndex: StatusIndex | null; today: Date;
   /** (T247) a recent search tapped: search it again */
   onRecent?: (q: string) => void;
   /** (T247) the recents' Clear */
   onClearRecents?: () => void;
+  /** (T858) the stop the web's keyboard highlights (`keyStops`); null: none */
+  active?: string | null;
 }) {
   const guideItem = useContext(CoachItemContext);   // (T456) the walkthrough's water: its row is what the steps ring
   if (r.t === "head")
@@ -34,7 +38,8 @@ export function SheetRow({ r, palette, pick, act, onOpenWater, statusIndex, toda
                      backgroundColor: r.band ? palette.placeBand : undefined }}>
         {r.back ? (
           <Pressable {...hitProps({ w: 80, h: 14 })} onPress={() => act({ t: "back" })} accessibilityRole="button"
-                     accessibilityLabel={SEARCH_BAR.backToAll}>
+                     accessibilityLabel={SEARCH_BAR.backToAll} {...stopProps(r.key)}
+                     style={active === r.key ? ring(palette.accent, 3) : undefined}>
             <IconText name="back" text={r.label} size={14} gap={2}
                       style={{ ...TYPE.section, color: palette.accent }} />
           </Pressable>
@@ -80,7 +85,8 @@ export function SheetRow({ r, palette, pick, act, onOpenWater, statusIndex, toda
         <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8 }}>
           {r.list.map((q) => (
             <Button key={q} palette={palette} kind="small" icon="search" label={q} testID={`search-recent-${q}`}
-                    a11yLabel={SEARCH_FIND.again(q)} onPress={() => onRecent?.(q)} />
+                    a11yLabel={SEARCH_FIND.again(q)} onPress={() => onRecent?.(q)} nativeID={stopProps(recentStop(q)).nativeID}
+                    style={active === recentStop(q) ? ring(palette.accent, 2) : undefined} />
           ))}
         </View>
       </View>
@@ -100,7 +106,9 @@ export function SheetRow({ r, palette, pick, act, onOpenWater, statusIndex, toda
           {r.see.filter((t) => t.item !== null).map((t) => (
             <Pressable {...hitProps({ w: 80, h: 44 })} key={`${t.item}:${t.name}`} onPress={() => onOpenWater(t.item!)}
                        accessibilityRole="button" accessibilityLabel={SEARCH_BAR.open(t.name)}
+                       {...stopProps(seeStop(r.key, t.item!))}
                        style={({ pressed }) => ({
+                         ...(active === seeStop(r.key, t.item!) ? ring(palette.ink, 2) : null),
                          flexDirection: "row", alignItems: "center", gap: 2, minHeight: 44,
                          paddingLeft: 12, paddingRight: 6, borderWidth: 1.5,
                          borderColor: palette.accent, borderRadius: palette.r.box,
@@ -118,7 +126,8 @@ export function SheetRow({ r, palette, pick, act, onOpenWater, statusIndex, toda
       <Hit palette={palette} tone={palette.place} bar band name={r.place.name}
            sub={SEARCH_BAR.placeSub(cap(r.place.kind))}
            label={SEARCH_BAR.show(r.place.name)}
-           onPress={() => act({ t: "select", target: t })} />
+           onPress={() => act({ t: "select", target: t })}
+           stop={r.key} highlight={active === r.key ? "row" : null} />
     );
   }
   if (r.t === "near") {
@@ -131,7 +140,8 @@ export function SheetRow({ r, palette, pick, act, onOpenWater, statusIndex, toda
            label={SEARCH_BAR.show(r.near.name)}
            goLabel={SEARCH_BAR.open(r.near.name)}
            onPress={() => act({ t: "select", target: t })}
-           onGo={() => onOpenWater(r.near.item)} coach={guideItem === r.near.item} />
+           onGo={() => onOpenWater(r.near.item)} coach={guideItem === r.near.item}
+           stop={r.key} highlight={highlightOf(r.key, active)} />
     );
   }
   const h = r.hit;
@@ -148,7 +158,8 @@ export function SheetRow({ r, palette, pick, act, onOpenWater, statusIndex, toda
          label={SEARCH_BAR.show(named)}
          goLabel={SEARCH_BAR.open(named)}
          onPress={() => act({ t: "select", target: t })}
-         onGo={() => onOpenWater(h.item)} coach={guideItem === h.item} />
+         onGo={() => onOpenWater(h.item)} coach={guideItem === h.item}
+         stop={r.key} highlight={highlightOf(r.key, active)} />
   );
 }
 
@@ -162,5 +173,13 @@ export function nameLine(h: { matchedAs: string | null; matchedSource?: string |
   if (h.matchedAs !== null) return `also ${h.matchedAs}${h.matchedSource ? ` · ${h.matchedSource}` : ""}`;
   return h.nameSource ? `name: ${h.nameSource}` : null;
 }
+
+/** (T858) which of a result's two controls the keyboard highlights: the row, its open action, or neither. */
+const highlightOf = (key: string, active: string | null): "row" | "go" | null =>
+  active === key ? "row" : active === goStop(key) ? "go" : null;
+
+/** (T858) the keyboard's highlight on a control: the ring its own keyboard focus draws (web outline; never on a phone). */
+const ring = (colour: string, offset: number) =>
+  ({ outlineWidth: 2, outlineStyle: "solid" as const, outlineColor: colour, outlineOffset: offset });
 
 const cap = (s: string) => (s ? s[0]!.toUpperCase() + s.slice(1) : s);

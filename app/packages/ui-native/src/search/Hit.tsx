@@ -9,6 +9,8 @@ import { TYPE } from "../type";
 import { round, type Palette } from "../theme";
 import { hitProps } from "../regs/hit";
 import { useCoachTarget } from "../CoachMarks";
+import { goStop } from "./keys";
+import { stopProps } from "./listKeys";
 
 /**
  * One result. SELECT, THEN GO (`searchStep`): a tap (or Enter) on the row selects it — the main map frames and lights
@@ -22,7 +24,7 @@ import { useCoachTarget } from "../CoachMarks";
  * down its edge so the two groups cannot be mistaken for each other at a glance.
  */
 export function Hit({ palette, tone, bar, band, name, alias, sub, strongSub, selected, label, onPress,
-               goLabel, onGo, status = null, coach = false }: {
+               goLabel, onGo, status = null, coach = false, stop, highlight = null }: {
   palette: Palette; tone: string; bar?: boolean;
   /**
    * On the places band. The row takes the band's warm ground, and its secondary line is drawn in the place colour,
@@ -40,6 +42,13 @@ export function Hit({ palette, tone, bar, band, name, alias, sub, strongSub, sel
   status?: WaterStatus | null;
   /** (T456) the walkthrough's water: the row and its open arrow are what its steps ring */
   coach?: boolean;
+  /** (T858) the row's stop for the web's keyboard (`keyStops`): its element ids; its open action's is `goStop(stop)` */
+  stop?: string;
+  /**
+   * (T858) the web keyboard's highlight, moved by ↓ / ↑ from the field: the row or its open action wears the ring its
+   * keyboard focus wears (and the row the wash), so the highlight reads as where the keyboard is. Null on a phone.
+   */
+  highlight?: "row" | "go" | null;
 }) {
   const rowRef = useCoachTarget(coach ? "search:hit" : undefined), goRef = useCoachTarget(coach ? "search:go" : undefined);
   const [focus, setFocus] = useState<"row" | "go" | null>(null);
@@ -64,11 +73,12 @@ export function Hit({ palette, tone, bar, band, name, alias, sub, strongSub, sel
                  aria-pressed={!!selected}
                  onPressIn={press}
                  onFocus={onFocusOf("row")} onBlur={blur}
+                 {...(stop !== undefined ? stopProps(stop) : null)}
                  style={({ pressed }) => ({
                    flex: 1, minWidth: 0,
                    paddingLeft: 14, paddingRight: 8, paddingTop: 13, paddingBottom: 14, gap: 4,
-                   backgroundColor: pressed ? palette.tint : "transparent",
-                   ...(focus === "row" ? ring : null),
+                   backgroundColor: pressed ? palette.tint : highlight === "row" && !selected && !band ? palette.wash : "transparent",
+                   ...(focus === "row" || highlight === "row" ? ring : null),
                  })}>
         <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
           <Text style={{ ...TYPE.name, fontSize: 20, lineHeight: 23, color: palette.ink, flexShrink: 1 }}>
@@ -97,11 +107,12 @@ export function Hit({ palette, tone, bar, band, name, alias, sub, strongSub, sel
           <Pressable {...hitProps({ w: 44, h: 44 })} onPress={onGo} accessibilityRole="button" accessibilityLabel={goLabel}
                      onPressIn={press}
                      onFocus={onFocusOf("go")} onBlur={blur}
+                     {...(stop !== undefined ? stopProps(goStop(stop)) : null)}
                      style={({ pressed }) => ({
                        width: 44, height: 44, alignItems: "center", justifyContent: "center",
                        borderWidth: 1.5, borderColor: tone, borderRadius: palette.r.box,
                        backgroundColor: pressed ? tone : palette.card,
-                       ...(focus === "go" ? { ...ring, outlineColor: palette.ink, outlineOffset: 2 } : null),
+                       ...(focus === "go" || highlight === "go" ? { ...ring, outlineColor: palette.ink, outlineOffset: 2 } : null),
                      })}>
             {({ pressed }) => <Icon name="next" colour={pressed ? palette.card : tone} size={24} />}
           </Pressable>
