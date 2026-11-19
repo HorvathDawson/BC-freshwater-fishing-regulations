@@ -97,6 +97,11 @@ export interface WalkthroughCard {
  * (`GUIDE_WATER`). Each step is either SHOW (read it, Next) or DO (the reader does it with a real tap; it moves on by
  * itself once done, and "Show me" does it for them).
  *
+ * (T874, owner 2026-11-18 ~20:34: "The tour should have only next and back and every next should be show me logic. Person
+ * can skip if they want. Otherwise it is weird") THE CARD HAS BACK, NEXT AND SKIP, NOTHING ELSE: Next on a DO step does the
+ * step for the reader (what "Show me" did), then moves on; on a SHOW step it moves on. So a DO step's words say what Next
+ * will do, and that the reader may tap the highlighted control instead. "Show me" is gone.
+ *
  * (T824, owner 2026-11-16: "the tutorial should be much much small 41 is way to many cut it down to like 8 or 10 items
  * and make it super clean") ten steps; the longer walk's words are in `git show ed61d5de4`.
  *
@@ -151,17 +156,19 @@ const MAP_BACK = `${V.map} at the top left returns to the map; ${RAIL.standard} 
 
 const GUIDE_STEPS: readonly GuideStepWords[] = [
   // (T842) the welcome folded into the first step: it still says how the walk works
+  // (T874) a DO step's words say what Next does; the reader may still tap the highlighted control
   step("search", "find", "do", ["search"], "Search for it",
-    "Let's find the {water}: tap the search bar and type “{letters}”. Each step highlights what to tap: tap it, or tap Show me."),
+    "I'll walk you through the {water}: Next searches for it, or tap the search bar and type “{letters}” yourself. "
+      + "On every step, Next does what is highlighted."),
   step("pick", "find", "do", ["search:hit", "search:go"], "Open its page",
-    "Tap {water} in the list, then the arrow beside it.", { keyboard: "closed" }),
+    "Next opens its page, or tap {water} in the list yourself.", { keyboard: "closed" }),
   step("answer", "rules", "show", ["regs:answer"], "Open or closed",
     "The big word is the answer for the day shown; the bar under it is the whole year."),
   step("day", "rules", "do", ["regs:date"], "Pick another day",
-    "Tap the date and pick a day you plan to go."),
+    "Next picks tomorrow, or tap the date and pick the day you plan to go."),
   // (T842) the old "Higher or lower than usual" folded in: the dot is named here
   step("conditions", "conditions", "do", ["view:conditions"], "How is the river?",
-    `Tap ${V.conditions} to see how high it runs; its dot says low, normal or high for this date.`,
+    `Next opens ${V.conditions}, how high the river runs; its dot says low, normal or high for this date.`,
     { names: [V.conditions] }),
   // (T842) said in words, no taps: what the 10-step walk's last three steps had the reader do
   step("done", "end", "show", [], "You're all set",
@@ -183,10 +190,6 @@ export const WALKTHROUGH_WORDS = {
   done: "Start exploring",
   /** before a DO step's title once the reader has done it */
   tick: "✓",
-  /** a DO step not done yet: the app does it for the reader */
-  showMe: "Show me",
-  /** a DO step done: said before it moves on */
-  doneStep: "Done",
   step: (i: number, n: number) => `${i} of ${n}`,
   /** each phase's name, over its steps */
   phases: { find: "Find a water", rules: "Read the rules", conditions: "Conditions",

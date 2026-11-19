@@ -312,6 +312,7 @@ reads both files; a ticket closed here moves there once its lane is finished wit
 | T880 | A DFO exception printed without "and tributaries" leaves out that stream only (Bulkley: Two Mile Creek; the Suskwa on the chinook row) (owner) | OPEN | main chat | owner 2026-11-18 ~20:59 |
 | T872 | Conditions: the watershed "by day" card folded unless someone opens it (owner) | OPEN — proposal; lands only on the owner's yes | lane app/t872-watershed-fold | owner 2026-11-18 |
 | T873 | A much shorter Help page: the map's key first, short labels, one-line facts (owner) | OPEN — proposal; lands only on the owner's yes | lane app/t873-help-short | owner 2026-11-18 ~20:32 |
+| T874 | The walkthrough has only Back and Next (and Skip); Next does what Show me did (owner) | OPEN | app chat | proposal; lands only on the owner's yes (branch app/t874-tour-next) |
 
 ## Next after closed testing
 

@@ -1,6 +1,6 @@
 /**
  * (T293) The guided walkthrough — one hands-on walk on a real water: once per device, skippable at any step, resumed where
- * it was left, re-openable; DO steps move on when the app gets there and "Show me" does them; Back steps back and out;
+ * it was left, re-openable; DO steps move on when the app gets there and (T874) Next does them; Back steps back and out;
  * and (T248) the Help page drawn from the legend tokens, with its short pages.
  *
  * (T456) The rework: the highlighted control moves the walk on (the page's own "‹ Map" included, never a back of the
@@ -13,6 +13,9 @@
  * (T842, owner on 0.7.12) Six steps (the "Back to the map" and Trout / Salmon tests went with theirs: the last card says
  * them); the highlight rides its page's scroll (an Animated value), never a re-measure a step behind; the pick step
  * closes the keyboard (`Walkthrough.t842.test.tsx` has the card against the row with real card sizes).
+ *
+ * (T874, owner 2026-11-18: "only next and back and every next should be show me logic") The card's buttons are Skip,
+ * Back and Next; Next on a DO step makes the step's move and moves on at once; Back undoes the step's move.
  */
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { useState, type ReactNode } from "react";
@@ -78,13 +81,14 @@ function Harness({ store, start = BROWSE, blocked = false, reg, log, out }: {
     openWater: (v) => { log.push(`open:${v}`); setF((x) => ({ ...x, away: false, searching: false, open: { item: WATER.item, view: v } })); },
     view: (v) => { log.push(`view:${v}`); setF((x) => ({ ...x, open: x.open && { ...x.open, view: v } })); },
     toMap: () => { log.push("toMap"); setF((x) => ({ ...x, away: false, open: null, searching: false })); },
-    pickDay: () => { log.push("day"); setF((x) => ({ ...x, dayPicked: true })); },
+    pickDay: () => { log.push("day"); setF((x) => ({ ...x, dayPicked: true })); return true; },
+    today: () => { log.push("today"); setF((x) => ({ ...x, dayPicked: false })); },
     control: (k, v) => { log.push(`${k}=${String(v)}`); setF((x) => ({ ...x, controls: { ...x.controls, [k]: v } })); return true; },
   };
   const facts: GuideFacts = { ...f, onMap: !f.away && !f.open && !f.searching };
   const guide = useGuide(store, blocked, facts, acts);
   out.guide = guide; out.set = setF;
-  return <GuideCard guide={guide} facts={facts} acts={acts} palette={LIGHT} registry={reg} top={60} bottom={64} />;
+  return <GuideCard guide={guide} facts={facts} palette={LIGHT} registry={reg} top={60} bottom={64} />;
 }
 
 describe("the guided walkthrough (T293, T456, T824, T842)", { timeout: 30_000 }, () => {
@@ -104,7 +108,7 @@ describe("the guided walkthrough (T293, T456, T824, T842)", { timeout: 30_000 },
     for (const s of GUIDE_STEPS) for (const n of s.names ?? []) expect(s.body, `${s.key}: ${n}`).toContain(n);
   });
 
-  it("opens on a new device once nothing blocks it, names the water, and walks to the end with real taps and Show me", async () => {
+  it("opens on a new device once nothing blocks it, names the water, and walks to the end with Next alone", async () => {
     const store = memory(), log: string[] = [], out: { guide?: Guide } = {};
     const reg = useRegistry(EVERY);
     const { rerender } = render(<Harness store={store} blocked reg={reg} log={log} out={out} />);
@@ -112,22 +116,20 @@ describe("the guided walkthrough (T293, T456, T824, T842)", { timeout: 30_000 },
     rerender(<Harness store={store} reg={reg} log={log} out={out} />);
     expect(keyAt()).toBe("search");
     expect(screen.getByTestId("guide-body").textContent).toContain("the Vedder River");
-    expect(screen.getByTestId("guide-body").textContent).toContain("highlights what to tap");
+    expect(screen.getByTestId("guide-body").textContent).toContain("Next does what is highlighted");
     expect(screen.getByTestId("guide-count").textContent).toBe(`${w.phases.find} · ${w.step(1, GUIDE_STEPS.length)}`);
     const seen: string[] = [];
     for (let k = 0; k < 30 && screen.queryByTestId("guide"); k++) {
-      await act(async () => {});                                          // settle the last move's effects first: under load a DO step read early offers Next, not Show me
+      await act(async () => {});                                          // settle the last move's effects first
       const key = keyAt(), s = stepOf(key);
       seen.push(key);
-      const label = screen.queryByText(w.showMe) ? w.showMe : screen.queryByText(w.done) ? w.done : w.next;
-      press(label);
-      if (label === w.showMe) await waitFor(() => expect(keyAt()).not.toBe(key), { timeout: WAIT });
-      else if (s.key !== "done") expect(keyAt()).not.toBe(key);
+      press(s.key === "done" ? w.done : w.next);
+      if (s.key !== "done") expect(keyAt()).not.toBe(key);               // (T874) on at once: no wait after the move
     }
     expect(screen.queryByTestId("guide")).toBeNull();
     expect(store.v).toBe(WALKTHROUGH_VERSION);                           // seen, and no resume line left
     expect(seen).toEqual(GUIDE_STEPS.map((s) => s.key));                 // every one of the six, none passed
-    // each DO step done by Show me, through the app's own moves
+    // (T874) each DO step done by Next, through the app's own moves
     // (T842) the first step is the search itself: the walk starts with the map in front for it
     expect(log).toEqual(["toMap", "search", "open:regs", "day", "view:conditions"]);
   }, 40_000);
@@ -162,6 +164,148 @@ describe("the guided walkthrough (T293, T456, T824, T842)", { timeout: 30_000 },
     } finally { dismiss.mockRestore(); }
   });
 
+  it("(T874, owner: \"only next and back\") the card's buttons are Skip, Back and Next: no Show me, no Done", () => {
+    const buttons = () => within(screen.getByTestId(/^guide-step-/)).getAllByRole("button").map((b) => b.textContent);
+    render(<Harness store={memory()} reg={useRegistry()} log={[]} out={{}} />);
+    expect([keyAt(), buttons()]).toEqual(["search", [w.skip, w.next]]);          // the first step has nothing to go back to
+    cleanup();
+    render(<Harness store={memory(atStep("day"))} reg={useRegistry()} log={[]} out={{}} start={REGS} />);
+    expect([keyAt(), buttons()]).toEqual(["day", [w.skip, w.back, w.next]]);
+    cleanup();
+    render(<Harness store={memory(atStep("done"))} reg={useRegistry()} log={[]} out={{}} start={COND} />);
+    expect([keyAt(), buttons()]).toEqual(["done", [w.back, w.done]]);            // the last: Next is "Start exploring"
+    expect(screen.queryByText(/show me/i)).toBeNull();
+  });
+
+  it("(T874) Next on a DO step makes the step's move and moves on at once; on a SHOW step it only moves on", () => {
+    const log: string[] = [];
+    render(<Harness store={memory(atStep("answer"))} reg={useRegistry()} log={log} out={{}} start={REGS} />);
+    press(w.next);                                                        // "Open or closed": read, then on
+    expect([keyAt(), log]).toEqual(["day", []]);
+    press(w.next);                                                        // "Pick another day": Next picks it
+    expect([keyAt(), log]).toEqual(["conditions", ["day"]]);
+    press(w.next);                                                        // "How is the river?": Next opens Conditions
+    expect([keyAt(), log]).toEqual(["done", ["day", "view:conditions"]]);
+  });
+
+  it("(T874) a DO step the reader has just done: Next (before it moves on by itself) moves on with no second move", () => {
+    const log: string[] = [], out: { set?: (f: (x: Pretend) => Pretend) => void } = {};
+    render(<Harness store={memory(atStep("day"))} reg={useRegistry()} log={log} out={out} start={REGS} />);
+    act(() => out.set!((x) => ({ ...x, dayPicked: true })));             // the reader's own pick on the date sheet
+    expect(screen.getByText(`${w.tick} ${stepOf("day").title}`)).toBeTruthy();
+    press(w.next);
+    expect([keyAt(), log]).toEqual(["conditions", []]);
+  });
+
+  it("(T874) a move still on its way when Next is tapped again: on, never a second move or a skipped step", () => {
+    // the app takes its time (a water still opening): the move is made, the step stays until the app is there
+    const log: string[] = [], out: { set?: (f: (x: Pretend) => Pretend) => void } = {};
+    const store = memory(atStep("day")), reg = useRegistry();
+    const acts: GuideActs = { search() {}, select() {}, openWater() {}, view() {}, pickDay: () => { log.push("day"); return true; } };
+    function Slow() {
+      const [f, setF] = useState<Pretend>(REGS);
+      out.set = setF;
+      const facts: GuideFacts = { ...f, onMap: false };
+      const guide = useGuide(store, false, facts, acts);
+      return <GuideCard guide={guide} facts={facts} palette={LIGHT} registry={reg} top={60} bottom={64} />;
+    }
+    render(<Slow />);
+    press(w.next);
+    expect([keyAt(), log]).toEqual(["day", ["day"]]);                    // moved; waiting for the app
+    press(w.next);
+    expect([keyAt(), log]).toEqual(["conditions", ["day"]]);             // on, the move not made twice
+    act(() => out.set!((x) => ({ ...x, dayPicked: true })));             // the app gets there late: no second advance
+    expect(keyAt()).toBe("conditions");
+  });
+
+  it("(T874, review) Back never undoes a day the walk did not pick: the reader's own day stays", () => {
+    // replayed from Help with a day already picked: "Pick another day" is passed going forward, and Back lands on it
+    const log: string[] = [];
+    render(<Harness store={memory(atStep("answer"))} reg={useRegistry()} log={log} out={{}} start={{ ...REGS, dayPicked: true }} />);
+    press(w.next);
+    expect(keyAt()).toBe("conditions");                                   // the day step passed: already done
+    press(w.back);
+    expect([keyAt(), log]).toEqual(["day", []]);                          // no "today": the reader's day kept
+    expect(screen.getByText(`${w.tick} ${stepOf("day").title}`)).toBeTruthy();
+  });
+
+  it("(T874, review) no day Next can pick (pickDay false): Next moves on, never a dead tap", () => {
+    const log: string[] = [];
+    const acts: GuideActs = { search() {}, select() {}, openWater() {}, view() {}, pickDay: () => { log.push("day"); return false; } };
+    const store = memory(atStep("day")), reg = useRegistry();
+    function NoDay() {
+      const facts: GuideFacts = { ...REGS, onMap: false };
+      return <GuideCard guide={useGuide(store, false, facts, acts)} facts={facts} palette={LIGHT} registry={reg} top={60} bottom={64} />;
+    }
+    render(<NoDay />);
+    press(w.next);
+    expect([keyAt(), log]).toEqual(["conditions", ["day"]]);
+  });
+
+  it("(T874, review) Next on \"Open its page\", then Back before the water opens: the late open is put back, no jump", async () => {
+    const log: string[] = [], out: { set?: (f: (x: Pretend) => Pretend) => void } = {};
+    const store = memory(atStep("pick")), reg = useRegistry();
+    const acts: GuideActs = {
+      search: () => { log.push("search"); out.set!((x) => ({ ...x, open: null, searching: true, query: WATER.name })); },
+      select() {}, view() {},
+      openWater: (v) => { log.push(`open:${v}`); },                       // the water opens later (below)
+      toMap: () => { log.push("toMap"); out.set!((x) => ({ ...x, open: null, searching: false })); },
+    };
+    function Late() {
+      const [f, setF] = useState<Pretend>({ ...BROWSE, searching: true, query: "ved" });
+      out.set = setF;
+      const facts: GuideFacts = { ...f, onMap: !f.open && !f.searching };
+      return <GuideCard guide={useGuide(store, false, facts, acts)} facts={facts} palette={LIGHT} registry={reg} top={60} bottom={64} />;
+    }
+    render(<Late />);
+    log.length = 0;
+    press(w.next);
+    expect([keyAt(), log]).toEqual(["pick", ["open:regs"]]);             // on its way
+    press(w.back);
+    expect([keyAt(), log]).toEqual(["search", ["open:regs", "toMap"]]);
+    act(() => out.set!((x) => ({ ...x, searching: false, open: { item: WATER.item, view: "regs" } })));   // it lands now
+    expect(log).toEqual(["open:regs", "toMap", "toMap"]);               // put back: the map, as "Search for it" expects
+    await sleep(900);                                                     // past the 0.7 s a done step waits
+    expect(keyAt()).toBe("search");                                       // no step moved on by itself
+  });
+
+  it("(T874) a move that cannot be made here (no chosen water to open): Next moves on, nothing done", () => {
+    const log: string[] = [];
+    render(<Harness store={memory(atStep("pick"))} reg={useRegistry()} log={log} out={{}}
+                    start={{ ...BROWSE, water: null, searching: true, query: "ved" }} />);
+    log.length = 0;                                                       // the step's set-up (the search up)
+    press(w.next);
+    expect([keyAt(), log]).toEqual(["answer", []]);
+  });
+
+  it("(T874) Back undoes each step's move, all the way to the first: the app as it was before that step", async () => {
+    const log: string[] = [], out: { guide?: Guide } = {};
+    render(<Harness store={memory()} reg={useRegistry()} log={log} out={out} />);
+    for (const k of ["search", "pick", "answer", "day", "conditions"]) { expect(keyAt()).toBe(k); press(w.next); }
+    expect([keyAt(), log]).toEqual(["done", ["toMap", "search", "open:regs", "day", "view:conditions"]]);
+    log.length = 0;
+    const back = (to: string, undone: string[]) => {
+      press(w.back);
+      expect([keyAt(), log.splice(0)], to).toEqual([to, undone]);
+      // the step is not done: the reader sees it as before its move, and Next would make it again
+      expect(screen.queryByText(`${w.tick} ${stepOf(to).title}`), to).toBeNull();
+    };
+    back("conditions", ["view:regs"]);                                   // Conditions closed: the Regulations in front
+    back("day", ["today"]);                                              // the day picked by Next: today again
+    back("answer", []);                                                  // a reading step: its Regulations already there
+    back("pick", ["search"]);                                            // the water closed, the search back up
+    back("search", ["toMap"]);                                           // the search closed: the map
+    await sleep(800);                                                    // and no step moves on by itself
+    expect(keyAt()).toBe("search");
+  });
+
+  it("(T874) Skip ends the walk from a DO step not yet done, with no move made", () => {
+    const store = memory(atStep("day")), log: string[] = [];
+    render(<Harness store={store} reg={useRegistry()} log={log} out={{}} start={REGS} />);
+    act(() => { fireEvent.click(screen.getByTestId("guide-skip")); });
+    expect([screen.queryByTestId("guide"), store.v, log]).toEqual([null, WALKTHROUGH_VERSION, []]);
+  });
+
   it("is skippable at any step; a skip counts as seen and forgets the step", () => {
     const store = memory(atStep("answer"));
     render(<Harness store={store} reg={useRegistry()} log={[]} out={{}} start={REGS} />);
@@ -193,10 +337,10 @@ describe("the guided walkthrough (T293, T456, T824, T842)", { timeout: 30_000 },
     expect(keyAt()).toBe("done");
     press(w.back);
     expect(keyAt()).toBe("conditions");
-    expect(screen.getByText(`${w.tick} ${stepOf("conditions").title}`)).toBeTruthy();   // done already
+    // (T874) the step's move undone: its Regulations in front again, so Next is what opens Conditions
+    expect([screen.queryByText(`${w.tick} ${stepOf("conditions").title}`), log]).toEqual([null, ["view:regs"]]);
     press(w.back);
     expect(keyAt()).toBe("day");
-    expect(log).toEqual(["view:regs"]);                                 // its Regulations back in front
     cleanup();
     const first = memory();
     const out2: { guide?: Guide } = {};
@@ -525,7 +669,7 @@ describe("(T456) the words name only controls drawn inside the highlight", { tim
     }
     expect(checked).toEqual(["conditions"]);
   });
-  it("the walk sees a screen's own control, and Show me sets it the reader's way", () => {
+  it("the walk sees a screen's own control, and the walk sets it the reader's way", () => {
     const host = renderHook(() => useGuideControlHost());
     const reg = renderHook(() => useCoachRegistry()).result.current;
     render(<GuideControlContext.Provider value={host.result.current.sink}><Coached reg={reg}>

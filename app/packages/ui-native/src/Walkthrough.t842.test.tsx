@@ -67,7 +67,7 @@ describe("(T842) the pick step: the keyboard closed, the row in view, the card o
       function Walk() {
         const [f] = useState(facts);
         const guide = useGuide(store, false, f, acts);
-        return <GuideCard guide={guide} facts={f} acts={acts} palette={LIGHT} registry={reg} top={68} bottom={0} />;
+        return <GuideCard guide={guide} facts={f} palette={LIGHT} registry={reg} top={68} bottom={0} />;
       }
       render(<Walk />);
       expect(screen.getByTestId("guide-step-pick")).toBeTruthy();

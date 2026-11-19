@@ -4,7 +4,7 @@
  * any time zone the suite runs in.
  */
 import { describe, expect, it } from "vitest";
-import { chooseDay, DAY_PICKER, dayButtonVM, dayRange, inRange, monthVM, showingLine, stepDay } from "./dayPicker";
+import { chooseDay, DAY_PICKER, dayButtonVM, dayRange, guideDay, inRange, monthVM, showingLine, stepDay } from "./dayPicker";
 
 const NOW = new Date(2026, 9, 21, 9, 30);            // Wed Oct 21 2026, local
 const YEAR = dayRange(NOW, null);
@@ -127,6 +127,11 @@ describe("choosing and stepping", () => {
     expect(iso(stepDay(new Date(2026, 0, 31, 12), 1, NOW, YEAR, true))).toBe("2026-2-28 12h");
     expect(iso(stepDay(new Date(2026, 11, 31, 12), 1, NOW, YEAR))).toBe("undefined");
     expect(iso(stepDay(new Date(2026, 0, 1, 12), -1, NOW, YEAR))).toBe("undefined");
+  });
+  it("(T874) guideDay, the walkthrough's Next: the day after; on the range's last day the day before, never nothing", () => {
+    expect(iso(guideDay(null, NOW, YEAR))).toBe("2026-10-22 12h");
+    const last = new Date(2026, 11, 31, 9, 30);                       // the data's last day is today
+    expect(iso(guideDay(null, last, dayRange(last, null)))).toBe("2026-12-30 12h");
   });
   it("the words are one table", () => {
     expect([DAY_PICKER.today, DAY_PICKER.earlierLabel, DAY_PICKER.laterLabel, DAY_PICKER.prevMonth, DAY_PICKER.nextMonth,

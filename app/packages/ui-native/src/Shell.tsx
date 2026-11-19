@@ -24,7 +24,7 @@
  * The Shell holds only the state more than one of these needs (the camera, the day, which sheet is open) and hands it
  * down. Every answer on every screen comes from a hook (rule 25).
  */
-import { GUIDE_WATER, WATER_SCREEN_WORDS, bellLabel, releaseNoticeVM, dayRange, placeholderFor, runSheet, stepDay, syncVM, type NotFishingKind, bcNow, now as clockNow, reportFailure } from "@app/core";
+import { GUIDE_WATER, WATER_SCREEN_WORDS, bellLabel, releaseNoticeVM, dayRange, placeholderFor, runSheet, guideDay, syncVM, type NotFishingKind, bcNow, now as clockNow, reportFailure } from "@app/core";
 import { openProbe, type ItemId, type SectionId } from "@app/data";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Platform, View } from "react-native";
@@ -386,8 +386,9 @@ export function Shell(p: ShellProps) {
    * (T293) THE GUIDED WALKTHROUGH comes SECOND: held while the notice is up, and the in-season notice waits for it. It
    * starts on the Map tab (where its first step, search, is) and, once started, follows the reader wherever its steps
    * take them — a water, its Conditions, back to the map. It reads what is on screen (`guideFacts`) and does a step on
-   * request ("Show me", `guideActs`) through the route, search and the opener: nothing of its own. More → Help replays it
-   * from the Map tab. (T824) Ten steps, then (T842) six: back to the map and Trout / Salmon are the last card's words, not acts.
+   * request (the card's Next, T874; "Show me" before it: `guideActs`) through the route, search and the opener: nothing of
+   * its own. More → Help replays it from the Map tab. (T824) Ten steps, then (T842) six: back to the map and Trout / Salmon
+   * are the last card's words, not acts.
    */
   const coach = useCoachRegistry();
   const onMapTab = route.mode === "browse" && tab === "map" && !rail.picking;
@@ -434,10 +435,14 @@ export function Shell(p: ShellProps) {
     view: (v) => go({ type: "view", view: v }),
     toMap: () => { setLayersOpen(false); go({ type: "close" }); if (searching) { go({ type: "search", open: false }); search.searchType(""); }
                    if (tab !== "map") nav.toTab("map"); },
+    // (T874) the day after; the day before on the data's last day (`guideDay`); false: no day to pick (Next moves on)
     pickDay: () => {
-      const d = stepDay(mapDay, 1, bcNow(), dayRange(bcNow(), loader?.manifest?.regulations?.valid_until ?? null));
-      if (d !== undefined) setMapDay(d);
+      const d = guideDay(mapDay, bcNow(), dayRange(bcNow(), loader?.manifest?.regulations?.valid_until ?? null));
+      if (d === undefined) return false;
+      setMapDay(d);
+      return true;
     },
+    today: () => setMapDay(null),
     control: guideCtl.set,
   };
   const guide = useGuide(p.walkthrough ?? null, firstRun.open || !onMapTab, guideFacts, guideActs);
@@ -448,7 +453,7 @@ export function Shell(p: ShellProps) {
   const dropUp = route.mode === "browse" && rail.drop !== null;
   /** the walkthrough's card, over whatever is on screen (a spot and the capture included) */
   const guideCard = (
-    <GuideCard guide={guide} facts={guideFacts} acts={guideActs} palette={palette} registry={coach}
+    <GuideCard guide={guide} facts={guideFacts} palette={palette} registry={coach}
                top={(route.mode === "browse" && !adding && !openSpot ? topBarBottom() : 0) + 8}
                bottom={bottomBarShown(route) && !tabsRail ? TAB_BAR_ROOM : 0}
                left={tabsRail && bottomBarShown(route) ? NAV_RAIL.width : 0} />

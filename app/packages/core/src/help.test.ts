@@ -27,9 +27,10 @@ describe("the walkthrough (T293)", () => {
     for (const s of app) { expect(s.title.length, s.key).toBeGreaterThan(3); expect(s.body.length, s.key).toBeGreaterThan(20); }
     expect(new Set(app.map((s) => s.key)).size).toBe(app.length);
   });
-  it("(T824) the first card says each step HIGHLIGHTS what to tap; no card says ring", () => {
+  it("(T824, T874) the first card says how the walk goes (Next does what is highlighted); no card says ring", () => {
     expect(guideText(guideSteps("app")[0]!.body, { name: GUIDE_WATER.name, letters: GUIDE_WATER.letters }))
-      .toBe("Let's find the Vedder River: tap the search bar and type “ved”. Each step highlights what to tap: tap it, or tap Show me.");
+      .toBe("I'll walk you through the Vedder River: Next searches for it, or tap the search bar and type “ved” yourself. "
+        + "On every step, Next does what is highlighted.");
     const all = [...guideSteps("app"), ...guideSteps("web")].flatMap((s) => [s.title, s.body]);
     for (const t of [...all, ...(Object.values(WALKTHROUGH_WORDS) as unknown[]).filter((v): v is string => typeof v === "string")])
       expect(t, t).not.toMatch(/\bring(s|ed)?\b/i);
@@ -40,6 +41,21 @@ describe("the walkthrough (T293)", () => {
       expect(sentences.length, s.key).toBeLessThanOrEqual(["search", "done"].includes(s.key) ? 2 : 1);
       for (const t of sentences) expect(t.split(/\s+/).length, t).toBeLessThanOrEqual(20);
     }
+  });
+  it("(T874, owner: \"every next should be show me logic\") each DO step's words say what Next does; no word says Show me", () => {
+    const water = { name: GUIDE_WATER.name, letters: GUIDE_WATER.letters };
+    const said = Object.fromEntries(guideSteps("app").filter((s) => s.kind === "do").map((s) => [s.key, guideText(s.body, water)]));
+    expect(said).toEqual({
+      search: "I'll walk you through the Vedder River: Next searches for it, or tap the search bar and type “ved” yourself. "
+        + "On every step, Next does what is highlighted.",
+      pick: "Next opens its page, or tap Vedder River in the list yourself.",
+      day: "Next picks tomorrow, or tap the date and pick the day you plan to go.",
+      conditions: "Next opens Conditions, how high the river runs; its dot says low, normal or high for this date.",
+    });
+    const all = [...guideSteps("app"), ...guideSteps("web")].flatMap((s) => [s.title, s.body]);
+    for (const t of [...all, ...(Object.values(WALKTHROUGH_WORDS) as unknown[]).filter((v): v is string => typeof v === "string")])
+      expect(t, t).not.toMatch(/show me/i);
+    expect(Object.keys(WALKTHROUGH_WORDS)).not.toContain("showMe");
   });
   it("the web's walk is the same walk (T302: spots are the phone app's): its last card names Help alone", () => {
     const web = guideSteps("web"), app = guideSteps("app");

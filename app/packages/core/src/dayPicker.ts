@@ -97,6 +97,15 @@ export function stepDay(day: Date | null, n: number, now: Date, range: DayRange,
   return inRange(range, next) ? chooseDay(next, now) : undefined;
 }
 
+/**
+ * (T874) The day the walkthrough's Next picks on "Pick another day": the day after the one shown, or, on the range's last
+ * day, the day before (so Next always picks one); undefined only when neither is in the range.
+ */
+export function guideDay(day: Date | null, now: Date, range: DayRange): Date | null | undefined {
+  const after = stepDay(day, 1, now, range);
+  return after !== undefined ? after : stepDay(day, -1, now, range);
+}
+
 export interface DayCell {
   readonly iso: string;
   readonly n: number;
