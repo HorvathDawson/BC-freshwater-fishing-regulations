@@ -153,7 +153,8 @@ if [[ $DEST == upload ]]; then
   echo "$BUILD_NO" > "$LAST_FILE"
   echo "uploaded $VER ($BUILD_NO) to App Store Connect in $(( $(date +%s) - t0 )) s — TestFlight shows it after Apple's processing"
   # (T888) the iPhone's version file (the header): this version's iPhone bullets, read once the App Store offers it
-  NOTES=$(ios_notes "$WT" "$VER")
+  NOTES=$(ios_notes "$WT" "$VER") \
+    || { echo "build-ios-testflight: could not read $VER's iPhone notes; appstore.json was NOT published (the build IS uploaded): redo the put in the header" >&2; exit 1; }
   [[ $NOTES == "[]" ]] && echo "build-ios-testflight: no changelog entry for $VER — appstore.json has no notes (the app says none were published)" >&2
   printf '{"version":"%s","build":%s,"sha":"%s","date":"%s","notes":%s}\n' "$VER" "$BUILD_NO" "${SHA_FULL:0:7}" "$(date -u +%F)" "$NOTES" \
     > "$OUT/appstore.json"

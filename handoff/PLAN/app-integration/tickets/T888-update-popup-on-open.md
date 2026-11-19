@@ -1,6 +1,6 @@
 # T888 — A newer app version: one popup on opening, with the swimming coho and what's new, then the bell
 
-Status: IN PROGRESS (app chat, lane `app/t888-update-popup`; built, lands after the owner sees the pictures).
+Status: DONE (app chat; merged into 0.8.2 at de20dba04 after two independent reviews; follow-ups in T894).
 
 Owner 2026-11-18 ~23:25, verbatim: "When a user opens the app and a new app version is available it should give a popup
 with the swimming fish and the new update list. That they need to dismiss (then it goes to Bell) for both apple and
