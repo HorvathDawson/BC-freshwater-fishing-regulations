@@ -57,6 +57,8 @@ export interface Envelope {
  * low-flow one), and `at` is where the observations stop and the model starts.
  */
 export interface ForecastShape {
+  /** (T895) the model's name, for its colour token and its dash; null when the caller did not say which model ran */
+  key: string | null;
   /** The model's published bounds, as a filled ribbon. Empty when it published none. */
   band: string;
   /** The forecast trace itself — every step, never two points. */
@@ -182,7 +184,8 @@ export interface BuildInput {
    * their own hindcast, and a model's opinion about yesterday laid over the measurement of
    * yesterday is two lines claiming the same thing.
    */
-  forecast?: { at: readonly string[];
+  forecast?: { key?: string | null;
+               at: readonly string[];
                mid: readonly (number | null)[];
                lo: readonly (number | null)[];
                hi: readonly (number | null)[] } | null;
@@ -390,6 +393,7 @@ export function buildHydrograph(input: BuildInput): Hydrograph {
     const bottom = withBounds.map((p) => `${xAt(p.t).toFixed(1)},${y(p.lo!).toFixed(1)}`);
     const lastPoint = fc[fc.length - 1]!;
     return {
+      key: rawFc!.key ?? null,
       band: top.length > 1
         ? `M${x0.toFixed(1)},${y0.toFixed(1)}L${top.join("L")}` +
           `L${[...bottom].reverse().join("L")}Z`

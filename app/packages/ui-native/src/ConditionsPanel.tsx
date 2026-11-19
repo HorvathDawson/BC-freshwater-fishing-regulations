@@ -19,7 +19,7 @@ import { CHANGE_LEGEND, CHANGE_LOW_WATER, chartLabel, figureIn, CONDITIONS_WORDS
          forecastRunLine, noChartSentence, OTHER_QUANTITY_WORDS, readingRanked, standingRankedIn, waterReportWhere, dayLabel, regsDayLink, bcNow, type ChartSpan } from "@app/core";
 import type { Parameter, WaterSource, SectionId, StationId } from "@app/data";
 import type { TileEndpoints } from "@app/map";
-import { cardParameters, cardQuantity, changeChartModel, changeView, chartParameter, currentFigure, forecastDash, forecastDrawn, pickModel, realtimeOnly,
+import { cardParameters, cardQuantity, changeChartModel, changeView, chartParameter, currentFigure, forecastDrawn, pickModel, realtimeOnly,
          useChartPrefs, useChartView, useConditionsView, useForecastAttribution, useGaugeParameters,
          noRecordLine, useGaugeShare, usePrefetchGauges, useSeries, type ChangeVM, type ShareControl, type GaugeChoiceVM, type GaugeGroupVM, type Horizon,
          type PanelFeed, DataProvenanceContext } from "@app/ui";
@@ -343,10 +343,10 @@ export function ConditionsPanel({ source, section, palette, tiles, theme, colour
                       unit={UNIT[shown]} view={view}
                       forecastLabel={run && forecast ? forecastChartLabel(run) : undefined}
                       models={runs.length > 0 ? runs.map((f) => {
-                        // (T377) several at once: each entry says whether its trace is on the chart, in the dash it wears
-                        const also = view.shape.alsoForecasts.findIndex((a) => a.key === f.model);
-                        return { key: f.model, label: forecastModelOption(f), on: f.model === run?.model || also >= 0,
-                                 dash: forecastDash(f.model === run?.model ? 0 : also >= 0 ? also + 1 : 0),
+                        // (T377) several at once: each entry says whether its trace is on the chart; (T895) its colour and
+                        // dash are the model's own (`modelLook`, in the Hydrograph), whichever others are on
+                        const also = view.shape.alsoForecasts.some((a) => a.key === f.model);
+                        return { key: f.model, label: forecastModelOption(f), on: f.model === run?.model || also,
                                  onPress: () => setPick((p) => pickModel(p, f.model, run?.model ?? null, drawsForecast)) };
                       }) : undefined}
                       realtime={runs.length > 0 ? { on: !drawsForecast, onPress: () => setPick(realtimeOnly) } : undefined}

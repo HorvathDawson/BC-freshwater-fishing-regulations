@@ -3087,6 +3087,9 @@
       "color.ui.donor.2": "#670848",
       "color.ui.donor.3": "#D77782",
       "color.ui.donor.4": "#797000",
+      "color.ui.forecast.clever": "#DD6600",
+      "color.ui.forecast.coffee": "#AA66EE",
+      "color.ui.forecast.elf": "#5C4A00",
       "color.ui.shadow": "#15181C",
       "color.ui.imagery.water": "#2A333B",
       "color.ui.imagery.forest": "#3C5A2E",
@@ -3293,6 +3296,9 @@
       "color.ui.donor.2": "#FF9B54",
       "color.ui.donor.3": "#FF7BB8",
       "color.ui.donor.4": "#4ADE80",
+      "color.ui.forecast.clever": "#D75A09",
+      "color.ui.forecast.coffee": "#FF6FA8",
+      "color.ui.forecast.elf": "#EEE070",
       "color.ui.shadow": "#000000",
       "color.ui.imagery.water": "#2A333B",
       "color.ui.imagery.forest": "#3C5A2E",
@@ -3499,6 +3505,9 @@
       "color.ui.donor.2": "#B5480B",
       "color.ui.donor.3": "#A81E6B",
       "color.ui.donor.4": "#0E7A3D",
+      "color.ui.forecast.clever": "#D9631A",
+      "color.ui.forecast.coffee": "#B04FC0",
+      "color.ui.forecast.elf": "#5E5A00",
       "color.ui.shadow": "#15181C",
       "color.ui.imagery.water": "#2A333B",
       "color.ui.imagery.forest": "#3C5A2E",
@@ -4189,6 +4198,19 @@
       "themeable": true
     },
     "color.ui.donor.4": {
+      "type": "color",
+      "themeable": true
+    },
+    "color.ui.forecast.clever": {
+      "type": "color",
+      "themeable": true,
+      "$comment": "(T895, owner 2026-11-19: \"make the different models forecast have different colors so when they are toggled on or off you can tell which are which\") IDENTITY, NOT MAGNITUDE — one colour per flow forecast model on the Conditions chart (CLEVER, COFFEE, ELF: `CHANGE_POLICY.order`, the publisher's models), worn by the model's trace, its ribbon, its end dot and its legend switch alike, so a line and its entry are matched by colour AND by the model's own dash (`FORECAST_DASH` in @app/ui `chart.ts`): colour is never the only cue. Kept off the observed line (`color.ui.live`), the earlier years and median (`color.ui.sub`), the ink and the accent, and off each other, under every dichromacy in the colour-blind theme: tools/forecast-models-cvd.test.ts holds the separations and the 3:1 a mark needs on the card."
+    },
+    "color.ui.forecast.coffee": {
+      "type": "color",
+      "themeable": true
+    },
+    "color.ui.forecast.elf": {
       "type": "color",
       "themeable": true
     },

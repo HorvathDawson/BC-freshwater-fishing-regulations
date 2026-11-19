@@ -10,8 +10,8 @@
  * or `buildHydrograph`'s; this holds the state and hands the component actions that only take measurements.
  */
 import { useEffect, useMemo, useRef, useState } from "react";
-import { bcHour, localDate, reportFailure, CHART_ZOOM, CONDITIONS_WORDS, chartReadoutLine, fitDomain, isZoomed, monthAbbr, pad2, panDomain, timeAt,
-         zoomChanges, zoomDomain, type ChartSpan, type Domain } from "@app/core";
+import { bcHour, isForecastModel, localDate, reportFailure, CHART_ZOOM, CONDITIONS_WORDS, chartReadoutLine, fitDomain, isZoomed, monthAbbr, pad2,
+         panDomain, timeAt, zoomChanges, zoomDomain, type ChartSpan, type Domain, type ForecastModel } from "@app/core";
 import { draftSeriesOf, type GaugeFeed, type Parameter, type WaterSource, type Series, type StationId } from "@app/data";
 import { useAsync, type Async } from "./async";
 import { askOnce, cardParameters, chartParameter, peekAnswer, seriesKey } from "./answers";
@@ -22,11 +22,17 @@ import { buildHydrograph, DEFAULT_BOX, type Box, type Hydrograph } from "./hydro
 const NO_MODELS: readonly string[] = [];
 
 /**
- * (T377) EACH MODEL DRAWN AT ONCE WEARS ITS OWN DASH, in the order drawn: the chosen model's (with its ribbon) first,
- * then the others' — so two traces in one colour are told apart by shape, and the legend's swatch draws the same.
+ * (T377, T895) EACH MODEL WEARS ITS OWN DASH, KEYED BY THE MODEL. T377 handed dashes out in the order drawn (the chosen
+ * model's first), all in one colour, so a model's pattern changed whenever another was switched on or off (owner
+ * 2026-11-19: "make the different models forecast have different colors so when they are toggled on or off you can tell
+ * which are which"). Now a model keeps its pattern and its colour token (`Palette.forecast`, `color.ui.forecast.<model>`)
+ * wherever it is drawn: its trace, its ribbon's edge and its legend switch. Every pattern is broken, as a forecast is (the
+ * measured line is solid); drawn with round caps, so a `0.1` dash is a dot. A run of a model the app has no token for
+ * (the publisher added one) is drawn in the chart's own trace colour with `OTHER_MODEL_DASH`, never as a named model.
  */
-export const FORECAST_DASHES: readonly string[] = ["4,3", "1,2.5", "8,2,1.5,2"];
-export const forecastDash = (i: number): string => FORECAST_DASHES[Math.min(i, FORECAST_DASHES.length - 1)]!;
+export const FORECAST_DASH: Readonly<Record<ForecastModel, string>> = { CLEVER: "7,4", COFFEE: "0.1,4", ELF: "9,3.5,0.1,3.5" };
+export const OTHER_MODEL_DASH = "3,3";
+export const forecastDash = (model: string): string => (isForecastModel(model) ? FORECAST_DASH[model] : OTHER_MODEL_DASH);
 
 /** How tall the chart is for a width: a phone keeps the old proportion; a wide column does not become a banner. */
 export function chartHeight(width: number): number {
@@ -247,7 +253,8 @@ export function useChartView(source: WaterSource, station: StationId | null, spa
       values: s.values, bands, at: s.at, xLabels: [],
       nowIndex: s.now?.index ?? -1, nowValue: s.now?.value ?? null, priorYears: s.priorYears,
       forecast: s.forecast?.series
-        ? { at: s.forecast.series.at, mid: s.forecast.series.mid, lo: s.forecast.series.lo, hi: s.forecast.series.hi }
+        ? { key: s.forecast.model, at: s.forecast.series.at, mid: s.forecast.series.mid, lo: s.forecast.series.lo,
+            hi: s.forecast.series.hi }
         : null,
       alsoForecasts: drawForecast ? alsoRuns : [],
       log: span === "year" && s.parameter === "discharge",
