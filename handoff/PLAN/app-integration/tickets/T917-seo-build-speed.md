@@ -12,6 +12,23 @@ So ~100 s of start-up, then ~40 ms a page on `--threads 4`. The render threads a
 T279); this Mac has 18 cores. Every page is rebuilt every time, even when the release and the app export are unchanged
 for it.
 
+## Baseline (measured 2026-11-19 on the 0.8.3 PRODUCTION web build, commit 32a56ab20, release r-6258ffded676)
+Owner ~15:58: "could we add meassuring on this build?" Run alone on the machine (heavy lock), `--threads 4`, Node CPU
+profiles at 10 ms (output unchanged; deployed to canifishthis.ca after). Script: `/usr/bin/time -l` per phase + a 5 s
+CPU/RSS sampler of the process tree.
+- **Phases:** expo export 8.6 s; web-shell 0.07 s; sourcemaps 0.09 s; **build-seo 1,055 s** (17.6 min; 20,340 pages,
+  19,610 waters; 1.75 GB raw, 204 MB gzip, 165 MB br written).
+- **CPU:** build-seo 3,499 s user + 85 s sys over 1,055 s wall = **3.4 cores of 18** (sampler median 408 %, max 568 %).
+  Peak RSS 9.8 GB (sampler: ~6.7 GB steady), so ~1.6 GB per render thread.
+- **Render threads (each ~890 s profiled, 4 alike):** **31 % synchronous zlib** (`processChunkSync`: each page's gzip +
+  brotli compressed on the render thread), 13 % idle (waiting on the main thread), ~20 % react-native-web/React render
+  (`createDOMProps` 7 %, `createElement` 4 %, renderWithHooks 2 %), `client.mjs get` 3 %, GC ~1.3 %.
+- **Main thread:** 73 % idle, but **`sharePng` 119 s + `Resvg` 34 s = 153 s of share-image PNG rendering done serially
+  on the main thread**, plus `ladder.ts at` 47 s.
+- So, cheapest first: (a) compression off the render threads or cheaper (brotli quality / a compression pool, the same
+  bytes if the quality is unchanged), (b) share PNGs on the threads (or cached by input hash: they rarely change),
+  (c) more threads (8 at ~1.6 GB each fits), (d) start-up (~100 s before page 1,000).
+
 ## Work, in order, each measured (wall time of a full build, same release, nothing else heavy running)
 0. **Profile one thread:** where a page's ~160 ms of thread time goes (runner start, data reads, React render, gzip,
    writes). Report before changing anything.

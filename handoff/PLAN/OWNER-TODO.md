@@ -40,6 +40,10 @@ empty (no production access yet), so the production Android build goes to Closed
 Owner ~15:42: "apple is now in testing still waiting on android approval" (0.8.2 iPhone approved for external testing;
 Play closed build 38 still in Google's review). Asked whether 0.8.3 production should replace 38 on Closed now (likely
 restarts the review) or wait for 38's approval: owner picked "Replace 38 now".
+**DONE 2026-11-19 ~16:20:** steps 1-4 and 6. Feeds + data workers (Claude), data (you, release --prod; production smoke
+18/0), Android production build on Closed testing in place of 38 (Google reviewing it), staging 0.8.3 on Internal, the
+production website (Claude; smoke 18/0). Step 5 (iPhone) is uploading; T918 adds it to your External group and sends it
+to Apple's review by itself. Yours now: nothing, unless that step reports a problem (then STATUS says what).
 
 ## 2026-11-19 morning: test 0.8.2 on staging, then production
 

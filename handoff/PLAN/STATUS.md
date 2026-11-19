@@ -9,6 +9,28 @@ Plain summary for the owner, updated as work lands. Newest at the top. Ticket nu
 ---
 
 
+## 2026-11-19 evening: 0.8.3 is on production (web, data, workers, Play closed); iPhone 0.8.3 sent to TestFlight
+
+**What changed for anglers (0.8.3):** smoother pinch-zoom and zoom-out (T903: +61 % / +78 % frames on the stressed
+bench); a data update keeps downloading after the app is closed (T912); a simpler trout table, one value per fish, with
+a quiet tributary note (T907); gauge pages that answer "how is the river now" (T908); a steady day calendar and a
+desktop popup (T915); the rule-book link goes to the water's own page, at the page foot (T916); desktop Conditions keys
+as cards (T904); no bell or reload on the web (T909); "Join the test" popup (T911); privacy wording and a faster first
+web load (T910, SEO 91 -> 100, 9.4 -> 6.7 MiB).
+
+**Where it is.** Data r-6258ffded676 on staging and production (owner ran `release --prod`; prod smoke 18/0). Feeds
+worker and data worker on both (prod: 0a3205f6, 3c598244). Production website canifishthis.ca from 32a56ab20 (clean,
+release r-6258ffded676; smoke 18/0); staging website 09985e595 (19/0). Play: Closed = 39 (0.8.3 production, replaced
+staging 38 on the owner's pick, so Google reviews 39), Internal = 40 (0.8.3 staging). Android benches before the builds:
+44/44 (open 340-360 ms, pinch 55-57 fps). iPhone: 0.8.2 build 39 approved for External; 0.8.3 production build to
+TestFlight with T918 (adds itself to the External group, sends itself to Beta App Review).
+
+**New tickets:** T917 (website page build ~17.6 min; baseline measured: 3.4 of 18 cores, 31 % of each render thread in
+synchronous compression, 153 s of share PNGs on the main thread), T918 (done here, its first real run is the 0.8.3
+upload), T919 (0.8.3 leftovers). Fixed on the way: PRODUCTION.md's production web export lacked T910's font shell.
+
+---
+
 ## 2026-11-19 morning (one chat, overnight): 0.8.2 with everything is on staging; production is yours after you test
 
 **What is on staging.** Data release r-379e72fc9524 (LATEST; staging smoke 18 pass, 0 fail), the staging website
