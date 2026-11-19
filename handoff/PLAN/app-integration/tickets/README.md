@@ -303,6 +303,8 @@ reads both files; a ticket closed here moves there once its lane is finished wit
 | T895 | Each flow forecast model draws in its own colour, so a toggled model can be told apart (owner) | IN PROGRESS | app chat | owner 2026-11-19 ~00:40 |
 | T896 | The map key's fold button is useless on a wide screen: show the key, no button, where it fits (owner) | IN PROGRESS | app chat | owner 2026-11-19 ~00:51 |
 | T897 | The More tab's back says "Back", not a tab's name; its head stays put while it scrolls (owner) | IN PROGRESS | app chat | owner 2026-11-19 ~01:04 |
+| T898 | A daylight-only rule shows today's actual closed times for the section (owner) | IN PROGRESS | app chat | owner 2026-11-19 ~01:10 |
+| T899 | In-season notices on a water open by default (owner) | IN PROGRESS | app chat | owner 2026-11-19 ~01:10 |
 | T882 | Salmon: DFO's "To be determined" says so instead of "Check DFO"; green whenever any salmon is open (owner) | IN PROGRESS | app chat (lane app/t882-to-be-determined) | owner 2026-11-18 ~21:18 |
 | T883 | Every fish's "How this was decided" sheet: one readable layout (answer, then the steps that made it, each with its source), trout and other fish alike (owner) | OPEN — proposal; lands only on the owner's yes | app chat | owner 2026-11-18 ~21:30 |
 | T884 | A fish sheet's big "20 a day" is cut off at the top on an iPhone (owner) | IN PROGRESS | app chat, lane app/t884-t886-clip-hatchery-art | owner 2026-11-18 ~21:30 |
