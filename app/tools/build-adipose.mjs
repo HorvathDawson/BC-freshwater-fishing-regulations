@@ -7,16 +7,18 @@
  *
  * The owner, on the rainbow trout they replace: "the how to tell hatchery fish is very smile creepy we want to make it
  * more realistic I think. Better shape more natural smile. Could use the salmon general shape from loading maybe?" The
- * drawing is `tools/fish-loader/adipose_art.py`: the owner's coho (`fish_loader.build()`) at rest, its mouth closed; the
- * wild fish with its adipose fin, the clipped one with a healed scar where it was; the spot ringed on both.
+ * drawing is `tools/fish-loader/adipose_art.py`: the owner's coho (`fish_loader.build()`) at rest, its face plain (a
+ * straight closed mouth, a plain eye, one gill arc); the wild fish with a clear adipose fin, the clipped one with a bare
+ * back and a small healed scar; the spot ringed on both and drawn again 2.5x in a close-up circle.
  *
  * COLOURS from the tokens, as the loader's (`tools/build-coho.mjs`): the fish in `color.ui.coho.ink` + `.red`, the ring in
  * `color.ui.accent`, per theme (never typed here: `tools/check-colours.mjs`). One pair of drawings per distinct trio,
  * named after the first theme that wears it (light first); the module maps every theme to its pair. Transparent ground: the
  * sheet's card shows through.
  *
- * SIZE: 1200 x 450 px (8:3, the picture box `AdiposeArt` draws). The picture is at most `FISH_PICTURE.maxWidth` (360 dp)
- * wide: 3.3 px per dp, at or above every phone's density. Lossless WebP.
+ * SIZE: 1200 x 600 px (2:1: the fish along the bottom, a 2.5x close-up of the spot over its back; `AdiposeArt`'s box keeps
+ * the aspect). The picture is at most `FISH_PICTURE.maxWidth` (360 dp) wide: 3.3 px per dp, at or above every phone's
+ * density. Lossless WebP.
  *
  * --check does not re-draw (the T814 lesson, `build-coho.mjs`: the drawing is floating point, the Mac and CI's Linux were
  * never compared). It reads the COMMITTED files back (`fish-loader/sheet_facts.py`) and holds them to the tokens and the
@@ -35,7 +37,7 @@ const DIR = here("../packages/ui-native/src/adipose/");
 const MODULE = here("../packages/ui-native/src/adipose.generated.ts");
 const META = here("../packages/map/style/style.meta.json");
 
-export const WIDTH = 1200, HEIGHT = 450;
+export const WIDTH = 1200, HEIGHT = 600;
 const VARIANTS = ["wild", "clipped"];
 /** the fewest pixels of exactly the ring's colour a drawing must hold (the ring's solid core: ~550 at 1200 px) */
 const RING_MIN = 200;

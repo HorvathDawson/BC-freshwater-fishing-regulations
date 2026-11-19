@@ -125,11 +125,11 @@ describe("T38 How to tell: the hatch sheet", () => {
     }
   });
 
-  it("each figure keeps the drawing's own proportions (1200×450, 8:3) and the fish picture's measure", () => {
+  it("each figure keeps the drawing's own proportions (1200×600, 2:1) and the fish picture's measure", () => {
     hatch();
-    expect(ADIPOSE.size).toEqual({ width: 1200, height: 450 });
+    expect(ADIPOSE.size).toEqual({ width: 1200, height: 600 });
     const boxes = screen.getAllByTestId("adipose-picture").map((b) => [b.style.aspectRatio, b.parentElement!.style.maxWidth]);
-    expect(boxes).toEqual([[`${1200 / 450} / 1`, "360px"], [`${1200 / 450} / 1`, "360px"]]);
+    expect(boxes).toEqual([["2 / 1", "360px"], ["2 / 1", "360px"]]);
   });
 
   it("(T886) each theme draws the pair printed in its own tokens: dark its own, light and the colour-blind theme the light one", () => {
