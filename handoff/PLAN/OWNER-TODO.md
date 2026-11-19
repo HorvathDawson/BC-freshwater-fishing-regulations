@@ -2850,3 +2850,8 @@ More questions (recommended answer first):
   the production website + data go live tonight; the first PRODUCTION phone builds for testers (Android closed / iPhone
   TestFlight) are 0.8.2: T868, T877, T872-T875, plus T878/T879/T881/T882 once he approves their pictures, plus T876's
   smoother zoom (labels may lag). Data / feed fixes (T869, T870, T880, T885) ship as data updates, not gated on it.
+- 2026-11-18 ~21:48, owner (main chat), verbatim: "We can release prod on we first before / Web should still move to prod
+  asap" and "Web should get updates as they come too. When apps release etc. Low user count right now". Dialog ~21:49,
+  his words: "Claude can deploy prod web when tested" -> standing: once a batch is on staging and its checks pass,
+  Claude deploys the PRODUCTION WEBSITE (deploy/prod/site.sh) and tells him. Production data, feeds worker, data worker,
+  phone builds and Cloudflare stay his.
