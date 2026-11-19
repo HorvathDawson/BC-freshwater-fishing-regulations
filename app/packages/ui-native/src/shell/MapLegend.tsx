@@ -27,6 +27,14 @@ import { LEGEND_TEXT, TYPE } from "../type";
 import { changeRampStops, flowRampStops, round, type Palette } from "../theme";
 import type { MapColouring } from "./useMapColouring";
 
+/**
+ * (T904) how far the map's scale bar, attribution and gauge-only chip sit above its bottom edge: the foot's height, except
+ * where the Conditions key is a card floating at the middle (desktop class), when they stay at the map's own corners.
+ */
+export function mapFootInset(tabsRail: boolean, tab: string, footH: number): number {
+  return tabsRail && tab === "conditions" ? 0 : footH;
+}
+
 export function MapLegend({ col, conditions, palette, theme, mapDay }: {
   col: MapColouring;
   /** The Conditions tab's legend (a ramp), else the Map tab's (the status key or the water colouring's). */

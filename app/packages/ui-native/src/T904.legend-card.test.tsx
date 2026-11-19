@@ -8,7 +8,8 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 vi.mock("@app/map", async (orig) => ({ ...(await orig<Record<string, unknown>>()), Map: () => null }));
 import { cleanup, render, screen } from "@testing-library/react";
 import { LayoutWidthContext } from "@app/ui";
-import { MapLegend } from "./shell/MapLegend";
+import { MapLegend, mapFootInset } from "./shell/MapLegend";
+import { tabsAsRail } from "@app/ui";
 import { LIGHT } from "./theme";
 
 afterEach(cleanup);
@@ -37,5 +38,13 @@ describe("(T904) the Conditions key at the desktop breakpoint", () => {
   it("1279 px: the bar, as before (no card)", () => {
     at(1279);
     expect(screen.queryByTestId("legend-card")).toBeNull();
+  });
+
+  it("the scale bar, attribution and gauge chip drop to the map's bottom at 1280 px; lifted over the bar at 1279 and on other tabs", () => {
+    const inset = (w: number, tab: string) => mapFootInset(tabsAsRail(w >= 1280 ? "desktop" : "tablet"), tab, 140);
+    expect(inset(1280, "conditions")).toBe(0);
+    expect(inset(1279, "conditions")).toBe(140);
+    expect(inset(1280, "map")).toBe(140);
+    expect(inset(1280, "runs")).toBe(140);
   });
 });
