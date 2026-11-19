@@ -1,6 +1,6 @@
 # T902 — Desktop Runs: every fish chip shows, no sideways scroll
 
-Status: IN PROGRESS — left (Claude): owner sees pictures, review, merge into app/integrate-082
+Status: DONE (cd5740b21, merged into 0.8.2; review: no blockers; the panel fills the window from 900 px so every chip fits one line).
 
 Owner 2026-11-19 ~01:16 (app chat), desktop web shot of the Runs map's bottom panel (All · Steelhead · Chinook · Chum ·
 Coho · Pink · Sock… cut off at the panel's right edge, a sideways-scrolling row inside a centred column with empty space
