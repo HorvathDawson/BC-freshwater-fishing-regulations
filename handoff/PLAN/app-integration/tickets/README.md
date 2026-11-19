@@ -297,6 +297,8 @@ reads both files; a ticket closed here moves there once its lane is finished wit
 | T863 | 0.8.1 to friends: production builds, Play closed testing and TestFlight external (owner) | OPEN | app chat + owner | owner 2026-11-18 |
 | T864 | A tester far from B.C.: location must not glitch; a plain note that it is not useful there (owner) | OPEN | app chat | owner 2026-11-18 |
 | T865 | Production data clean-up is automatic: old releases and the v1 layout (owner) | PARTIAL — 4f4b5c8 + 8b279ce; left (Claude): at the switch, on the owner's word, turn off bc-fishing-cron + main's 3 update workflows, then deploy/prod/drop-v1.sh | lane app/t865-prod-prune | owner 2026-11-18 |
+| T866 | Trim the test suites: combine overlapping tests, remove true duplicates (owner) | OPEN | app chat + main chat | owner 2026-11-18, after the 0.8.1 releases |
+| T867 | Notifications inbox: since install only, read once seen, short, with data and app updates (owner) | OPEN | app chat | owner 2026-11-18, after the 0.8.1 releases |
 
 ## Next after closed testing
 
