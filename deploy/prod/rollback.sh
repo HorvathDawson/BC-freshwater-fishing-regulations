@@ -1,18 +1,19 @@
 #!/bin/bash
 # PRODUCTION — THE OWNER RUNS THIS (T404). ROLL THE DATA BACK one release: release/manifest.previous.json (kept by
 # deploy/prod/upload.sh) becomes release/manifest.json again. Every file it names is still in the bucket (a promote
-# clears nothing). Apps pick it up on their next check; a phone that already installed the newer release keeps it until
+# prunes only what neither pointer names, T865; checked below all the same). Apps pick it up on their next check; a phone that already installed the newer release keeps it until
 # then (the manifest decides, T231). Then set data/release/LATEST back one line on the Mac so the next build agrees.
 #   CONFIRM_PROD=canifishthis.ca deploy/prod/rollback.sh [--dry-run]
 #   deploy/prod/rollback.sh --bucket <a non-production bucket> [--dry-run]      (a rehearsal: no confirmation needed)
 set -euo pipefail
 cd "$(dirname "$0")/../.."
+source deploy/lib/bucket.sh   # (T865) --bucket is compared bare: no slash or remote prefix slips past CONFIRM_PROD
 PROD_BUCKET=bc-fishing-regulations
 BUCKET=$PROD_BUCKET; DRY=()
 while [[ $# -gt 0 ]]; do
   case $1 in
     --dry-run) DRY=(--dry-run) ;;
-    --bucket) BUCKET=${2:?--bucket needs a name}; shift ;;
+    --bucket) BUCKET=$(bucket_name "${2:?--bucket needs a name}") || exit 2; shift ;;
     *) echo "rollback (prod): unknown argument $1" >&2; exit 2 ;;
   esac; shift
 done
