@@ -31,3 +31,6 @@ edge), verbatim: "also could we make the conditions menu have map in backgroudn 
   (`mapFootInset`, Shell.tsx: inset 0 when the key is the card); they clear the card at 1280 px (chip ends ~298 px, card starts ~393).
   Other tabs and narrower windows keep them above the bar. Pictures: t904-shots/after2-1440-light|dark.png, after2-1280-light.png,
   contact2-light.png, contact2-dark.png.
+- Owner 2026-11-19 round 3, verbatim: "the legend on desktop feels like it should be more like the run legend a seperate overlay on map. also run page can have same bottom bar clean up on desktop as conditions". Built: one card pattern on desktop (>= 1280 px) for Map, Conditions and Runs
+  (`legendCard` in Chrome.tsx; the Map key's strip and the Runs legend are cards, the fishery bar wrapper is dropped; `mapFootInset` is 0 on all three tabs so scale, attribution, chips and the runs key sit at the map's corners). Phones and narrow web unchanged.
+  Pictures: /private/tmp/claude-502/-Users-dawson-horvath-dev-personal-BC-freshwater-fishing-regulations/1db4ea05-d81d-4b07-a925-fc0b9cdbe701/scratchpad/wt-t904/../t904-shots/before3-|after3-{map,runs}-1440-{light,dark}.png, contact3-{map,runs}-{light,dark}.png.

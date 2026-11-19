@@ -33,6 +33,15 @@ export function LegendStrip({ palette, children, full, wrap, card }:
      * every entry is on screen at any width; a second row is the price.
      */
     wrap?: boolean }) {
+  if (wrap && card) {
+    return (
+      <View testID="legend-card"
+            style={{ ...legendCard(palette), flexDirection: "row", flexWrap: "wrap", alignItems: "center", columnGap: 16, rowGap: 6,
+                     paddingVertical: 9, paddingHorizontal: LEGEND_ROWS.padX }}>
+        {children}
+      </View>
+    );
+  }
   if (wrap) {
     return (
       <View testID="legend-strip"
@@ -55,8 +64,7 @@ export function LegendStrip({ palette, children, full, wrap, card }:
   if (full && card) {
     return (
       <View testID="legend-card"
-            style={{ flexGrow: 0, alignSelf: "center", width: "100%", maxWidth: LEGEND_RAMP_MAX + 2 * LEGEND_CARD_PAD, marginBottom: LEGEND_CARD_GAP,
-                     borderWidth: 1, borderColor: palette.line, borderRadius: palette.r.box, backgroundColor: palette.card,
+            style={{ ...legendCard(palette), width: "100%", maxWidth: LEGEND_RAMP_MAX + 2 * LEGEND_CARD_PAD,
                      paddingHorizontal: LEGEND_CARD_PAD, paddingVertical: 10 }}>
         {children}
       </View>
@@ -224,6 +232,14 @@ export const LEGEND_RAMP_MAX = 560;
 /** (T904) the desktop card's side padding and its gap above the window's bottom edge */
 const LEGEND_CARD_PAD = 14;
 const LEGEND_CARD_GAP = 12;
+/**
+ * (T904) THE DESKTOP'S ONE KEY CARD (Map, Conditions and Runs alike): centred over the map's bottom, square-cornered, bordered
+ * all round, 12 px above the window's edge. The bar's rules (a top border only, the full width) are for a phone's foot.
+ */
+export function legendCard(palette: Palette) {
+  return { flexGrow: 0, alignSelf: "center", maxWidth: "100%", marginBottom: LEGEND_CARD_GAP, borderWidth: 1, borderColor: palette.line,
+           borderRadius: palette.r.box, backgroundColor: palette.card } as const;
+}
 const BAR = 10, TICKS = 14;
 /** (T427) the width of Low / High ("Falling" is the longest) beside the ramp, and the gap to it */
 const LABEL_W = 44, LABEL_GAP = 6;
