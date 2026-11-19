@@ -84,8 +84,6 @@ describe("(T396) the regulations key: two rows in both modes, Trout & more fitti
       render(h(MapLegend, { col: col(mode), conditions: false, palette: LIGHT, theme: "light", mapDay: null }));
       expect(screen.getAllByTestId("legend-row").length, mode).toBe(2);
       expect(screen.getAllByTestId("legend-entry").length, mode).toBe(mode === "standard" ? 7 : 6);
-      // the head is one row (no wrap): Salmon's checked line sits beside the switch, never under it
-      expect(getComputedStyle(screen.getByTestId("legend-fishery-head")).flexWrap).not.toBe("wrap");
       cleanup();
     }
   });

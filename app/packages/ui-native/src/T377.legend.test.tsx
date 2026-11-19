@@ -5,6 +5,8 @@
  */
 import { afterEach, describe, expect, it, vi } from "vitest";
 
+// the checked line, as the feed's fetch time would say it (the line's own wording is salmonFeed.test.ts's)
+vi.mock("@app/core", async (orig) => ({ ...(await orig<Record<string, unknown>>()), salmonChecked: () => ({ short: "Checked Oct 29", label: "DFO rules checked Oct 29" }) }));
 vi.mock("@app/map", async (orig) => ({ ...(await orig<Record<string, unknown>>()), Map: () => null }));
 import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { KEY_ISOLATE_WORDS, MAP_KEY } from "@app/core";
@@ -60,21 +62,12 @@ describe("(T377) the tappable key", () => {
   });
 });
 
-describe("(T377) the regulations bar folds", () => {
-  it("the fold hides the key's rows and keeps the head; again shows them; the same in both modes", () => {
+describe("(T896) the regulations key is always shown, with no fold", () => {
+  it("no fold button in either mode, and the whole key is there", () => {
     for (const mode of ["standard", "salmon"] as const) {
       show(col(mode, null));
-      const fold = screen.getByTestId("legend-fold");
-      expect(fold.getAttribute("aria-expanded")).toBe("true");
-      expect(fold.getAttribute("aria-label")).toBe(MAP_KEY.fold.hide);
-      expect(screen.getAllByTestId("legend-row")).toHaveLength(2);
-      fireEvent.click(fold);
-      expect(screen.queryByTestId("legend-rows")).toBeNull();
-      expect(screen.getByTestId("legend-fishery-head")).toBeTruthy();
-      expect(fold.getAttribute("aria-expanded")).toBe("false");
-      expect(fold.getAttribute("aria-label")).toBe(MAP_KEY.fold.show);
-      fireEvent.click(fold);
-      expect(screen.getAllByTestId("legend-row")).toHaveLength(2);
+      expect(screen.queryByTestId("legend-fold")).toBeNull();
+      expect(screen.getAllByTestId("legend-entry")).toHaveLength(mode === "standard" ? 7 : 6);
       cleanup();
     }
   });
@@ -86,6 +79,34 @@ describe("(T425) the legend bar holds the legend only", () => {
       show(col(mode, null));
       expect(screen.queryByTestId("regs-paint")).toBeNull();
       expect(screen.queryByTestId("regs-paint-salmon")).toBeNull();
+      cleanup();
+    }
+  });
+});
+
+describe("(T896) the key is visible at a phone's width", () => {
+  it("390: no fold button, T396's two rows and all seven entries (the one-row desktop key is pictured, trout-1440.png)", () => {
+    show(col("standard", null));
+    expect(screen.queryByTestId("legend-fold")).toBeNull();
+    expect(screen.getAllByTestId("legend-row")).toHaveLength(2);
+    expect(screen.getAllByTestId("legend-entry")).toHaveLength(7);
+  });
+});
+
+describe("(T396, T896) both modes' bars are the same two rows on a phone, nothing reserved", () => {
+  it("Trout and Salmon: two rows each, no head or reserve; Salmon's checked date ends its last row", () => {
+    for (const mode of ["standard", "salmon"] as const) {
+      show(col(mode, null));
+      expect(screen.getAllByTestId("legend-row"), mode).toHaveLength(2);
+      expect(screen.queryByTestId("legend-fishery-head"), mode).toBeNull();
+      expect(screen.queryByTestId("legend-reserve"), mode).toBeNull();
+      const note = screen.queryByTestId("salmon-legend-source");
+      if (mode === "standard") expect(note).toBeNull();
+      else {
+        expect(note!.textContent).toBe("Checked Oct 29");
+        expect(note!.getAttribute("aria-label")).toBe("DFO rules checked Oct 29");
+        expect(screen.getAllByTestId("legend-row")[1]!.contains(note)).toBe(true);
+      }
       cleanup();
     }
   });

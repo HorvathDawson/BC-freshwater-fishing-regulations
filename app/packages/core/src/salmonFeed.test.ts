@@ -6,7 +6,7 @@
 import { describe, expect, it } from "vitest";
 import { SALMON_FEED_GOLDEN } from "./salmonFeed.golden";
 import { salmonCard, salmonChainStatus, salmonNotes, type SalmonFacts } from "./salmon";
-import { composeChain, dfoNoticeRows, feedFinfishOn, feedTables, parseDfoUnplaced, parseSalmonFeed, pickSalmon, salmonFeedLine, salmonCheckedLine, salmonFeedOf, withSalmonFeed } from "./salmonFeed";
+import { composeChain, dfoNoticeRows, feedFinfishOn, feedTables, parseDfoUnplaced, parseSalmonFeed, pickSalmon, salmonFeedLine, salmonChecked, salmonCheckedLine, salmonFeedOf, withSalmonFeed } from "./salmonFeed";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any -- the golden is the pipeline's JSON, read as data
 const G = SALMON_FEED_GOLDEN as any;
@@ -157,6 +157,8 @@ describe("the line by the mode switch (T276)", () => {
   it("says when the feed was fetched, in the feed's own time; nothing for the release's own file", () => {
     const f = feed();
     expect(salmonCheckedLine(withSalmonFeed(release(), { ...f, at: "2026-10-29T09:11:27Z" }))).toBe("DFO rules checked Oct 29");
+    expect(salmonChecked(withSalmonFeed(release(), { ...f, at: "2026-10-29T09:11:27Z" }))).toEqual({ short: "Checked Oct 29", label: "DFO rules checked Oct 29" });
+    expect(salmonChecked(release())).toBeNull();
     expect(salmonCheckedLine(release())).toBeNull();
     expect(salmonCheckedLine(null)).toBeNull();
   });

@@ -21,6 +21,7 @@
 import { MONTHS } from "./calendar.generated";
 import { BC_TIME_LABEL } from "./clock";
 import { bcFields } from "./day";
+import { MAP_KEY } from "./mapKey";
 import { FEED_FORMATS } from "./feedFormats.generated";
 import { reportFailure, reportOnce } from "./failure";
 import { isSalmonIssues, unknownIssueKinds, type SalmonIssues } from "./salmonIssues";
@@ -492,13 +493,16 @@ function staticLocs(P: Payload, feed: SalmonFeed, tables: SalmonFeedTables): Rec
  * (T276, owner 2026-10-29) THE ONE LINE BY THE MODE SWITCH: when we last fetched DFO's pages — the feed's own time (`at`),
  * not the pages' dates. Null when the salmon file is the release's own (no feed read: the bundle holds no fetch time).
  */
-export function salmonCheckedLine(f: SalmonFacts | null): string | null {
+export function salmonChecked(f: SalmonFacts | null): { short: string; label: string } | null {
   const at = salmonFeedOf(f)?.at;
   const d = at ? new Date(at) : null;
   if (!d || Number.isNaN(d.getTime())) return null;
   const b = bcFields(d.getTime());      // (T551) the B.C. day, the same one the card's line below says
-  return `DFO rules checked ${MONTHS[b.month - 1]} ${b.day}`;   // the calendar spec's month names (gate 4)
+  const on = `${MONTHS[b.month - 1]} ${b.day}`;   // the calendar spec's month names (gate 4)
+  return { short: MAP_KEY.checked.short(on), label: MAP_KEY.checked.label(on) };
 }
+/** the long form alone (the line the mode switch's tests read) */
+export const salmonCheckedLine = (f: SalmonFacts | null): string | null => salmonChecked(f)?.label ?? null;
 
 /** The feed a salmon file was read through, or null (the release's own). */
 export const salmonFeedOf = (f: SalmonFacts | null): SalmonFeedFacts | null => (f as WithFeed | null)?.[FEED] ?? null;
