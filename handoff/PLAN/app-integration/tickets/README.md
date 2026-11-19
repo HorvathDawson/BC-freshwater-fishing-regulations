@@ -311,6 +311,7 @@ reads both files; a ticket closed here moves there once its lane is finished wit
 | T875 | The water Map tab's ▼ / ▲ steps stay put, part to part and water to water, on phone and desktop (owner) | PARTIAL — 1c0911f91; left (Claude): independent review, then merge into app/integrate-081-web | app chat (lane app/t875-parts-steady) | owner 2026-11-18 ~20:33 |
 | T880 | A DFO exception printed without "and tributaries" leaves out that stream only (Bulkley: Two Mile Creek; the Suskwa on the chinook row) (owner) | OPEN | main chat | owner 2026-11-18 ~20:59 |
 | T885 | DFO's lake parts on the map (Babine's 12 creek-mouth circles, Mabel north, Osoyoos north basin); said in words until then (owner) | OPEN | main chat | owner 2026-11-18 ~21:13 |
+| T882 | Salmon: DFO's "To be determined" says so instead of "Check DFO"; green whenever any salmon is open (owner) | IN PROGRESS | app chat (lane app/t882-to-be-determined) | owner 2026-11-18 ~21:18 |
 
 ## Next after closed testing
 
