@@ -34,3 +34,9 @@ Asked whether to build the proposal's three (gunzip off the main thread on the w
 load plus a quiet spell of 5 s; split web/index.js so the regulations screens load when first opened) for 0.8.3; owner,
 verbatim: "yes build all 3 on webapp". Web only (phones unchanged; split by file, AGENTS 34a). Also: the home page's
 meta description (the only SEO loss on production).
+## Owner 2026-11-19 ~07:55: keep the beacon, reword the privacy page; and the "My location" aria
+Owner, verbatim: "just rewoird the page it is all internal for me". The privacy page now says the website counts visits
+with Cloudflare Web Analytics (no cookies, no identifier; the phone app does not use it) and that Cloudflare may run a
+bot check; effective date 2026-11-19. His Lighthouse accessibility shot: "[aria-*] attributes do not match their roles"
+on the map rail's My location (role=button with aria-selected): now aria-pressed, as the app's other toggle buttons
+(BasinDays, RunsControls); pinned in MapRail.shell.test.tsx (fails with aria-selected).

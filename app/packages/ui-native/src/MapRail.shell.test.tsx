@@ -316,6 +316,15 @@ describe("the rail's Layers badge (layers menu B)", () => {
 });
 
 describe("the rail's My location button (T303)", () => {
+  it("(T910) is a toggle button: aria-pressed says it follows, never aria-selected (Lighthouse: not allowed on role=button)", async () => {
+    const { MapRail } = await import("./MapRail");
+    const me = { on: true, following: true, busy: false, notice: null as string | null, press: vi.fn(), dismiss: vi.fn() };
+    render(<MapRail palette={LIGHT} onLayers={() => {}} me={me} />);
+    const b = screen.getAllByRole("button")[0]!;   // My location sits above Layers; its name follows its state
+    expect(b.getAttribute("aria-pressed")).toBe("true");
+    expect(b.hasAttribute("aria-selected")).toBe(false);
+    cleanup();
+  });
   it("sits above Layers, is named for its state, presses, and shows why it failed", async () => {
     const { MapRail } = await import("./MapRail");
     const { MY_LOCATION } = await import("@app/core");
