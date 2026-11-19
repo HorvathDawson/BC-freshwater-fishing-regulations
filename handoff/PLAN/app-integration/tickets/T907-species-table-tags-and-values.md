@@ -15,3 +15,9 @@ liek release (look image) and the bc/dfo tag in the table can go i think. the ta
    "release" on Kokanee today; the trout fold's ⌄ shifts its value left of the others' ›).
 3. "Something similar in the table" to the species sheet's "How this was decided": see the owner's pick below.
 Pictures 390 light + dark and desktop before it lands. Related: T879, T892, T883, T890.
+
+## Owner 2026-11-19 ~06:55: which line (dialog)
+Asked whether every table row should name its source, only tributary rows, or only non-region rows; owner, verbatim:
+"i meant in the trout table. simialr to how it has "this water" ". So: the TROUT table's rows say a tributary source
+the way the trout table already marks "this water" (same slot, same style, the sheet's kicker words: "Trout Lake’s
+tributaries"), rather than a separate grey sentence under the fish. The other fish rows are not asked about here.
