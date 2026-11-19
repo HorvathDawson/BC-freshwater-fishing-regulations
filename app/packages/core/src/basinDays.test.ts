@@ -3,7 +3,7 @@
  * name as sourced with core's word around it, and a day no gauge reads said — never blank.
  */
 import { describe, expect, it } from "vitest";
-import { BASIN_DAYS_WORDS, basinDaysVM } from "./basinDays";
+import { BASIN_DAYS_WORDS, basinDaysSummary, basinDaysVM } from "./basinDays";
 import { DAY_HORIZONS, type DayHorizon } from "./conditions";
 
 const TUE = new Date(2026, 10, 3, 12);   // Tue 3 Nov 2026
@@ -48,5 +48,45 @@ describe("basinDaysVM", () => {
 
   it("Change lights no day", () => {
     expect(basinDaysVM("X", st, "change", "discharge", TUE).days.some((d) => d.on)).toBe(false);
+  });
+
+  describe("(T872) the folded line: the first day, then only the days the standing changes", () => {
+    const WED18 = new Date(2026, 10, 18, 20);   // Wed 18 Nov 2026: Now, Thu 19 … Sat 28
+    const run = (ps: readonly (number | null)[]) =>
+      basinDaysVM("Squamish River", new Map(ps.map((p, i) => [DAY_HORIZONS[i]!, p] as const)), 0, "discharge", WED18);
+
+    it("the owner's Mamquam card: seven days Normal, three Much above normal, one with no reading", () => {
+      const vm = run([0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.95, 0.95, 0.95, null]);
+      expect(vm.days.map((d) => d.chip)).toEqual(["Now", "Thu 19", "Fri 20", "Sat 21", "Sun 22", "Mon 23", "Tue 24",
+                                                   "Wed 25", "Thu 26", "Fri 27", "Sat 28"]);
+      expect(vm.summary).toBe("Now: Normal · Much above normal from Wed 25 · No gauge reading from Sat 28");
+      expect(vm.toggle)
+        .toBe("Squamish River watershed, by day: Now: Normal · Much above normal from Wed 25 · No gauge reading from Sat 28");
+    });
+
+    it("one standing all the way says so, to the last day", () => {
+      expect(run(Array(11).fill(0.5)).summary).toBe("Now: Normal · the same through Sat 28");
+      expect(run(Array(11).fill(null)).summary).toBe("Now: No gauge reading · the same through Sat 28");
+    });
+
+    it("no reading now is said first; a return to an earlier band is a change of its own", () => {
+      expect(run([null, 0.2, 0.2, 0.5, 0.5, 0.2, 0.2, 0.2, 0.2, 0.2, 0.2]).summary)
+        .toBe("Now: No gauge reading · Below normal from Thu 19 · Normal from Sat 21 · Below normal from Mon 23");
+    });
+
+    it("past three changes the rest are counted, never listed", () => {
+      expect(run([0.5, 0.95, 0.5, 0.95, 0.5, 0.95, 0.5, 0.5, 0.5, 0.5, 0.5]).summary)
+        .toBe("Now: Normal · Much above normal from Thu 19 · Normal from Fri 20 · Much above normal from Sat 21 · 3 more changes");
+      expect(run([0.5, 0.95, 0.5, 0.95, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5]).summary)
+        .toBe("Now: Normal · Much above normal from Thu 19 · Normal from Fri 20 · Much above normal from Sat 21 · 1 more change");
+    });
+
+    it("the folded line does not move with the day shown", () => {
+      const st = new Map(DAY_HORIZONS.map((d, i) => [d, i < 7 ? 0.5 : 0.95] as const));
+      const a = basinDaysVM("X", st, 0, "discharge", WED18).summary;
+      expect(basinDaysVM("X", st, 8, "discharge", WED18).summary).toBe(a);
+      expect(basinDaysVM("X", st, "change", "discharge", WED18).summary).toBe(a);
+      expect(basinDaysSummary([])).toBe("");
+    });
   });
 });

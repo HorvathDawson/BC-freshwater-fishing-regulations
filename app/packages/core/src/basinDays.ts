@@ -28,7 +28,25 @@ export const BASIN_DAYS_WORDS = {
   part: "Watershed days",
   /** the row's name aloud */
   list: (name: string) => `${name} watershed, standing by day`,
+  /**
+   * (T872, owner 2026-11-18: "These section should be collapsed in conditions I think unless someone expands") THE FOLDED
+   * CARD'S ONE LINE: the first day, then only the days the standing CHANGES ("Now: Normal · Much above normal from Wed 25
+   * · No gauge reading from Sat 28"); one standing all the way is said as such; past `SUMMARY_CHANGES` changes the rest
+   * are counted, never listed.
+   */
+  summary: {
+    first: (chip: string, word: string) => `${chip}: ${word}`,
+    from: (word: string, chip: string) => `${word} from ${chip}`,
+    same: (chip: string) => `the same through ${chip}`,
+    more: (n: number) => `${n} more ${n === 1 ? "change" : "changes"}`,
+    join: " · ",
+  },
+  /** (T872) the fold's button aloud — its expanded / collapsed state is the button's own (`aria-expanded`) */
+  toggle: (name: string, summary: string) => `${name} watershed, by day: ${summary}`,
 } as const;
+
+/** (T872) how many change points the folded line names before it counts the rest */
+export const SUMMARY_CHANGES = 3;
 
 /** One day of the list. */
 export interface BasinDayVM {
@@ -53,6 +71,10 @@ export interface BasinDaysVM {
   /** (T427) the day shown, in words ("Now · much below normal"); null when no day is lit (Change) */
   readonly verdict: string | null;
   readonly list: string;
+  /** (T872) the folded card's one line: the first day, then each day the standing changes (`basinDaysSummary`) */
+  readonly summary: string;
+  /** (T872) the fold's button aloud: the name and the summary */
+  readonly toggle: string;
   readonly days: readonly BasinDayVM[];
   /** a key for the dash, when a day has none; null otherwise */
   readonly noneKey: string | null;
@@ -75,8 +97,31 @@ export function basinDaysVM(name: string, standings: ReadonlyMap<DayHorizon, num
              label: `${HORIZON_LABELS[d].accessible}: ${word.toLowerCase()}${lit ? ", showing" : ""}`, on: lit };
   });
   const lit = days.find((d) => d.on);
+  const summary = basinDaysSummary(days);
   return { title: BASIN_DAYS_WORDS.title(name), scale: BASIN_DAYS_WORDS.scale[quantity],
            verdict: lit ? BASIN_DAYS_WORDS.verdict(lit.chip, lit.word) : null,
-           list: BASIN_DAYS_WORDS.list(name), days,
+           list: BASIN_DAYS_WORDS.list(name), summary, toggle: BASIN_DAYS_WORDS.toggle(name, summary), days,
            noneKey: days.some((d) => d.standing === null) ? BASIN_DAYS_WORDS.noneKey : null };
+}
+
+/**
+ * (T872) THE FOLDED LINE: the days as RUNS of one word (a band, or no reading — a day no gauge reads is a change like any
+ * other, never skipped). The first run is said with its day ("Now: Normal"); each later run by the day it starts
+ * ("Much above normal from Wed 25"); a single run says it holds to the last day; past `SUMMARY_CHANGES` changes the rest
+ * are counted.
+ */
+export function basinDaysSummary(days: readonly Pick<BasinDayVM, "chip" | "word">[]): string {
+  const W = BASIN_DAYS_WORDS.summary;
+  const first = days[0];
+  if (!first) return "";
+  const starts = days.filter((d, i) => i > 0 && d.word !== days[i - 1]!.word);
+  const parts = [W.first(first.chip, first.word)];
+  if (starts.length === 0) {
+    const last = days[days.length - 1]!;
+    if (last !== first) parts.push(W.same(last.chip));
+  } else {
+    for (const d of starts.slice(0, SUMMARY_CHANGES)) parts.push(W.from(d.word, d.chip));
+    if (starts.length > SUMMARY_CHANGES) parts.push(W.more(starts.length - SUMMARY_CHANGES));
+  }
+  return parts.join(W.join);
 }
