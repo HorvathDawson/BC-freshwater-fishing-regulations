@@ -36,6 +36,15 @@ export function notesOn(e: ChangelogEntry, os: "android" | "ios" | "web"): reado
 
 export const CHANGELOG: readonly ChangelogEntry[] = [
   {
+    version: "0.8.3", date: null, draft: true, notes: [
+      "Smoother pinch-zoom and zoom-out on the map",
+      "Data updates keep downloading after you leave the app",
+      "What you can keep: a simpler trout table, one value per fish, with a quiet note where a tributary rule applies",
+      "The day calendar keeps one size from month to month",
+      "The rule-book page link for a water goes to that water's own page",
+    ],
+  },
+  {
     version: "0.8.2", date: null, draft: true, notes: [
       "Smoother pinch-zoom on the map, and a braided river's side channels draw thinner than its main channel",
       "What you can keep: one table for every fish, each row marked DFO or B.C. or naming the tributary rule it comes from; Gear and Methods are easier to read, each source said once",
