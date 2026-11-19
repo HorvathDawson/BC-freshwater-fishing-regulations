@@ -1,6 +1,6 @@
 # T846 — A decided fish answer says "keep" where a take-0 sub-cap over part of the pool releases that fish (Bella Coola cutthroat)
 
-Status: IN PROGRESS (main chat): fixed in code 2026-11-18; DONE when the data release carrying it is on staging (T863).
+Status: DONE 2026-11-18 (71284eac6, 459b96e0f; data release r-fc137c4040fa on staging 20:16, smoke 19/0/0).
 
 Source: T810 L re-review 2026-11-18. On the Bella Coola tributaries (Ape, Assanany, Burnt Bridge Creeks, Atnarko River;
 79 cells, 35 waters) `atnarko_bella_coola_rivers.r4` ("all cutthroat trout catch and release") is a take-0 sub-cap holding

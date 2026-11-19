@@ -1,6 +1,6 @@
 # T854 — Region 6 streams kept lake trout Nov 1-June 30 (book: released, like every trout and char)
 
-Status: PARTIAL — fix built 2026-11-18 (below); left (Claude): the new 0.8.0 data release to staging (rides with T850).
+Status: DONE 6f91a86dd, 2e36c8934 (in r-86d43303bee2 and r-fc137c4040fa, on staging 2026-11-18).
 Found by the app chat's Nass check 2026-11-18 (the Nass trout table kept lake trout in November); main chat's area.
 
 ## The owner (2026-11-18, verbatim)
