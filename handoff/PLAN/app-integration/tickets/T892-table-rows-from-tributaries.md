@@ -58,7 +58,7 @@ verbatim: "this is good". So a region size cap does not remove the line (as buil
 
 ## The trout table's own rows (lane data/t892-trout-rows, 2026-11-19 ~03:20)
 - Python carries it PER ROW: `TRow.down` (model/trout.py), OPTIONAL and absent where none (never null), so the trout
-  section stays 5: the installed 0.8.2 app reads a table carrying it (it ignores the field) and this app reads the
+  section stays 5: the phones' installed 0.8.0 / 0.8.1 apps read a table carrying it (they ignore the field) and this app reads the
   current release without it (no line). Words: `trout/words.py` `row_down` (the Other fish rows' `DECIDE.ROW_DOWN`, word
   for word; "Twin Lakes’"); shape: `DOWN_FORM` on both sides (model + app `checkTrout`).
 - Computed once, in the build, from the same input as the row's `tf:` rail (`answers/trout/down.py`, called by
