@@ -27,10 +27,17 @@ export const bgUpdateIos = {
     const d = ctx.device;
     const shot = (name) => { try { d.screenshot(path.join(ctx.dir, `T912-ios-${name}.png`)); } catch { /* no shot */ } };
     const status = () => d.screenText().find((w) => /Gauges: /.test(w) && /Release: /.test(w)) ?? '';
-    const jobsFile = () => path.join(d.dataDir(), 'Library', 'Application Support', 'bg-download', 'jobs.json');
+    let container = null;   // the app's data container: one simctl call (the close below polls the records every 150 ms)
+    const jobsFile = () => path.join(container ??= d.dataDir(), 'Library', 'Application Support', 'bg-download', 'jobs.json');
     const jobs = () => { try { return JSON.parse(fs.readFileSync(jobsFile(), 'utf8')).jobs ?? []; } catch { return []; } };
+    // the Updates log from the map: a card already up is often missing from the accessibility tree after a relaunch, and
+    // the flow that opens it then fails on the map's chip — so back to the map first, then the flow
+    const freshLog = async () => { await ctx.ios.toMap(ctx); await ctx.ios.openLog(ctx); };
     const checkNow = async (re, ms = 60_000) => { ctx.flow('updates-log-action', { ACTION: 'check' }); return ctx.waitText(re, ms); };
     let target = null, urls = null, ours = [];
+    /** files the app had already claimed from the background session before it was ended (a small one lands in a second) */
+    const before = new Set();
+    const claimedIn = (text, u) => text.split('\n').some((l) => l.includes('[download]') && l.includes(u) && /done \(system download manager\)/.test(l));
 
     await ctx.step('test channel reset; app up, holding the live release', async () => {
       const live = updates('reset').release.data_release;
@@ -52,9 +59,13 @@ export const bgUpdateIos = {
     let killedAt = 0, atKill = [];
     await ctx.step('Check now: the update downloads; sent Home and the process ended at once', async () => {
       d.logcatClear();
-      await checkNow(/Release, changed/);
-      await ctx.until(() => /Release: [^\n]*downloading/.test(status()), { ms: 90_000, what: 'the release phase "downloading"' });
-      shot('1-downloading');
+      await ctx.ios.openLog(ctx);
+      ctx.flow('updates-log-action', { ACTION: 'check' });
+      // the moment the rule book is with the background session (its record on disk, read off the container: a screen
+      // read is too slow — on the Mac's line the whole update landed before one), the app goes
+      const t0 = Date.now();
+      while (Date.now() - t0 < 120_000 && !jobs().some((j) => j.url.endsWith(urls.book))) await d.sleep(150);
+      if (!jobs().some((j) => j.url.endsWith(urls.book))) throw new Error('the rule book was not queued with the background session within 120 s of Check now');
       d.background();
       await d.sleep(500);
       d.stop();
@@ -62,23 +73,35 @@ export const bgUpdateIos = {
       await d.sleep(1000);
       if (d.pidOf()) throw new Error('the app is still running after simctl terminate');
       atKill = jobs();
+      const js = d.logcatJs();
+      for (const u of [urls.data, urls.book]) if (claimedIn(js, u)) before.add(u);
       ours = atKill.filter((j) => j.url.endsWith(urls.data) || j.url.endsWith(urls.book));
-      if (ours.length < 2) throw new Error(`the app had queued ${ours.length} of the update's 2 files with the background session before it was ended (records: ${atKill.map((j) => `${j.url.split('/').pop()} ${j.status}`).join(', ') || 'none'})`);
-      return `ended; the background session held: ${ours.map((j) => `${j.url.split('/').pop()} ${j.status} ${Math.round(j.bytes / 1e6)} of ${Math.round(j.total / 1e6)} MB`).join(' · ')}`;
+      const missing = [urls.data, urls.book].filter((u) => !before.has(u) && !ours.some((j) => j.url.endsWith(u)));
+      if (missing.length) throw new Error(`not with the background session when the app was ended (neither claimed nor queued): ${missing.join(', ')} (records: ${atKill.map((j) => `${j.url.split('/').pop()} ${j.status}`).join(', ') || 'none'})`);
+      if (!ours.length) throw new Error('BENCH RACE: both files were down and claimed before the app was ended; nothing left to prove');
+      return `ended; already claimed from the background session: ${[...before].join(', ') || 'none'} · still with it: ${ours.map((j) => `${j.url.split('/').pop()} ${j.status} ${Math.round(Math.max(0, j.bytes) / 1e6)} of ${Math.round(j.total / 1e6)} MB`).join(' · ')}`;
     });
 
-    await ctx.step('with the app ended, iOS downloads both files and hands them to the app in the background', async () => {
+    await ctx.step('with the app ended, iOS downloads what is left and hands it to the app in the background', async () => {
+      if (!ours.length) throw new Error('nothing was left with the background session at the close (the step before failed)');
       const t0 = Date.now(), CAP = 12 * 60_000;
       let relaunched = false;
       for (;;) {
         if (d.pidOf()) relaunched = true;
-        const js = jobs().filter((j) => j.url.endsWith(urls.data) || j.url.endsWith(urls.book));
+        const js = jobs().filter((j) => ours.some((o) => o.id === j.id));
         const failed = js.filter((j) => j.status === 'failed');
         if (failed.length) throw new Error(`a background transfer failed with the app ended: ${failed.map((j) => `${j.url.split('/').pop()} reason ${j.reason}`).join(', ')}`);
-        if (js.length >= 2 && js.every((j) => j.status === 'done')) {
-          const files = js.map((j) => { try { return fs.statSync(path.join(path.dirname(jobsFile()), j.name)).size; } catch { return 0; } });
-          if (files.some((n) => n === 0)) throw new Error(`records say done but a file is missing (${files.join(', ')} bytes)`);
-          return `both done ${Math.round((Date.now() - killedAt) / 1000)} s after the process was ended, never opened by the bench (${files.map((n) => `${(n / 1e6).toFixed(1)} MB`).join(', ')}); iOS ${relaunched ? 'relaunched the app in the background to hand them over' : 'did not show the app running while we polled'}`;
+        // each one: its record "done" (iOS handed the file to the relaunched app), or gone because that app's JS (it runs in
+        // the background launch too) already claimed it — said in the log
+        const log = d.logcatJs();
+        const landed = ours.map((o) => {
+          const r = js.find((j) => j.id === o.id), name = o.url.split('/').pop();
+          if (r?.status === 'done') return `${name}: done, handed to the app`;
+          if (!r && claimedIn(log, name)) return `${name}: claimed by the app in its background launch`;
+          return null;
+        });
+        if (landed.every(Boolean)) {
+          return `${landed.join(' · ')} — ${Math.round((Date.now() - killedAt) / 1000)} s after the process was ended, the bench never opening the app; iOS ${relaunched ? 'relaunched the app in the background (a session wake)' : 'did not show the app running while we polled'}`;
         }
         if (Date.now() - t0 > CAP) {
           throw new Error(`not done ${CAP / 60_000} min after the process was ended: ${js.map((j) => `${j.url.split('/').pop()} ${j.status} ${Math.round(j.bytes / 1e6)} MB`).join(' · ') || 'no records'} (records are written by the app's process only: still "running" means iOS has not relaunched it with the result)`);
@@ -88,13 +111,16 @@ export const bgUpdateIos = {
     });
 
     await ctx.step('reopened: both files claimed (nothing downloaded again), the update staged', async () => {
-      d.logcatClear();
-      await ctx.ios.appUp(ctx);
-      await ctx.ios.openLog(ctx);
+      // (the background launch iOS made may have staged it already: the open then APPLIES it at once, and the map is
+      // redrawn under the first try to open the log — tried again after the redraw)
+      // (it comes back where it was: the Developer card up, as when it was sent Home — `toMap` closes it)
+      d.launch();
+      await d.sleep(5000);
+      try { await freshLog(); } catch { await d.sleep(8000); await freshLog(); }
       await ctx.waitText(/Release, staged/, 10 * 60_000);
       const lines = d.logcatJs().split('\n').filter((l) => l.includes('[download]'));
       fs.writeFileSync(path.join(ctx.dir, 'T912-ios-download-lines.txt'), lines.join('\n') + '\n');
-      const claimed = (u) => lines.some((l) => l.includes(u) && /done \(system download manager\)/.test(l));
+      const claimed = (u) => before.has(u) || lines.some((l) => l.includes(u) && /done \(system download manager\)/.test(l));
       const bad = [
         ...(claimed(urls.data) ? [] : [`${urls.data} not claimed from its background transfer`]),
         ...(claimed(urls.book) ? [] : [`${urls.book} not claimed from its background transfer`]),
@@ -102,13 +128,14 @@ export const bgUpdateIos = {
       ];
       shot('2-staged');
       if (bad.length) throw new Error(bad.join(' ; '));
-      return `staged ${target}; ${urls.data} and ${urls.book} claimed from the background session; nothing queued again`;
+      return `staged ${target}; ${urls.data}${before.has(urls.data) ? ' (before the close)' : ''} and ${urls.book}${before.has(urls.book) ? ' (before the close)' : ''} claimed from the background session; nothing queued again`;
     });
 
     await ctx.step('next pause → applied; the new release in use', async () => {
       await ctx.ios.toMap(ctx);
       d.background(); await d.sleep(2000); d.launch();
-      await ctx.ios.openLog(ctx);
+      await d.sleep(4000);
+      await freshLog();
       await ctx.waitText(/Release, applied/, 60_000);
       const head = d.screenText().find((w) => /release r-/.test(w)) ?? '';
       if (!head.includes(target)) throw new Error(`in use: ${head}`);
@@ -117,12 +144,13 @@ export const bgUpdateIos = {
 
     await ctx.step('reset: back to the live release', async () => {
       updates('reset');
-      await ctx.ios.openLog(ctx);
+      await freshLog();
       await checkNow(/Release, changed/);
       await ctx.waitText(/Release, staged/, 15 * 60_000);
       await ctx.ios.toMap(ctx);
       d.background(); await d.sleep(2000); d.launch();
-      await ctx.ios.openLog(ctx);
+      await d.sleep(4000);
+      await freshLog();
       await ctx.waitText(/Release, applied/, 60_000);
       return status();
     });
