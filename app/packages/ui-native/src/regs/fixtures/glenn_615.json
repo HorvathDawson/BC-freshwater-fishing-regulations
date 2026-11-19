@@ -629,12 +629,12 @@
        "sub": null
       },
       {
-       "a11y": "Rainbow trout. counts toward the 5",
+       "a11y": "Rainbow trout. Duncan River’s rule for its tributaries. counts toward the 5",
        "coming": [
         "From Nov 1 every one goes back."
        ],
        "date": null,
-       "down": null,
+       "down": "Duncan River’s rule for its tributaries",
        "fish": "RB",
        "key": "RB",
        "label": null,
@@ -682,10 +682,10 @@
      "possession": null,
      "rows": [
       {
-       "a11y": "Dolly Varden/bull trout",
+       "a11y": "Dolly Varden/bull trout. Trout Lake’s rule for its tributaries",
        "coming": [],
        "date": null,
-       "down": null,
+       "down": "Trout Lake’s rule for its tributaries",
        "fish": "DV",
        "key": "DV",
        "label": null,
