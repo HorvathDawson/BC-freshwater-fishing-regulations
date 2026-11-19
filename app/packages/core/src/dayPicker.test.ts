@@ -88,6 +88,21 @@ describe("the month grid", () => {
   });
 });
 
+describe("T915 (owner 2026-11-19: \"calendar still jumpy in size from january\"): the note's room", () => {
+  const ALL = Array.from({ length: 12 }, (_, i) => i);
+  it("is the longest reason any month says, the same in every month, whether or not this month has one", () => {
+    const year = ALL.map((mo) => monthVM(2026, mo, null, NOW, YEAR));
+    expect(new Set(year.map((m) => m.reasonRoom))).toEqual(new Set(["Only days in 2026 can be chosen: the regulations here are one calendar year."]));
+    expect(year.map((m) => m.reason !== null)).toEqual([true, ...Array(10).fill(false), true]);
+  });
+  it("a cut in January: both reasons in one month, so the room holds both", () => {
+    const r = dayRange(new Date(2026, 0, 10), "2026-01-20");
+    const m = monthVM(2026, 0, null, new Date(2026, 0, 10), r);
+    expect(m.reason).toBe("Only days in 2026 can be chosen: the regulations here are one calendar year. Days after January 20 can't be chosen: these regulations end then.");
+    expect(m.reasonRoom).toBe(m.reason);
+  });
+});
+
 describe("T877 (owner 2026-11-18: \"The calendar shifts around\"): six weeks every month, each day under its weekday", () => {
   // Feb 2026 fills exactly 4 weeks (Feb 1 is a Sunday), Jul 2026 5, Aug 2026 6: the sheet's height may not follow them
   const MONTHS_2026 = Array.from({ length: 12 }, (_, i) => i);

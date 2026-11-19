@@ -57,3 +57,7 @@ visible title (its accessible name still says "Flow vs. past years, this date");
 standing.ts / freshness.ts): "Lower than 9 days in 10 for the date · rises to 2x (Fri 27 Nov) · read 9:20 a.m. PT" (a copy that is not live adds "last
 checked 3h ago, may be out of date"). Words stay core's, so it says "days in 10" and "(Fri 27 Nov)", not the owner's "years" / "by" (T598 rank wording; `changeShort`).
 "This gauge's own reading" dropped: this page's reading is always the gauge's own. Pinned whole in gaugeClient.test. Pictures: /private/tmp/claude-502/-Users-dawson-horvath-dev-personal-BC-freshwater-fishing-regulations/1db4ea05-d81d-4b07-a925-fc0b9cdbe701/scratchpad/t908-shots/r3-contact-sheet-390-header.png, /private/tmp/claude-502/-Users-dawson-horvath-dev-personal-BC-freshwater-fishing-regulations/1db4ea05-d81d-4b07-a925-fc0b9cdbe701/scratchpad/t908-shots/r3-contact-sheet-1440-header.png (and r3-*-full shots).
+
+## Owner 2026-11-19 ~12:27 (dialog, with the r3 header pictures)
+Grey line wording: picked "App's words, as built" ("Lower than 9 days in 10 for the date · rises to 2× (Fri 27 Nov) ·
+read 9:20 a.m. PT"), so web and phone match. Settled; no change.

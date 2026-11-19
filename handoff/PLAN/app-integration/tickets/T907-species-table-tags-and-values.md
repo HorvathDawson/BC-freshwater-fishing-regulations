@@ -98,3 +98,5 @@ date line ("until Mar 31": `TYPE.meta`, `palette.sub`), the rule in the same gre
   (Glenn Creek; Nicolum River every row tagged — no water named Moyie River has tagged rows in r-379e72fc9524, its
   tributaries carry 2 of 6; Anderson Creek the long Kootenay Lake — Main Body name; Kelly Creek the dropped repeat).
   The first round-2 look (accent purple) is in `t907r2/shots-r2a/`.
+- Round 2 pictures (tag as its own purple line under the fish name, left rule, no box): owner ~12:40, verbatim "muted
+  grey not purple idea same size as the dates text." So: same layout, the date line's muted grey and size.

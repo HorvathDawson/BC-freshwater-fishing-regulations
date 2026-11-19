@@ -139,7 +139,7 @@ const STATES_T258: [string, (width: number) => Promise<void>, RegExp][] = [
   ["the day calendar sheet", async () => {
     const { DaySheet } = await import("./regs/DaySheet");
     const { dayRange } = await import("@app/core");
-    render(<DaySheet open onClose={() => {}} palette={LIGHT} day={null} onDay={() => {}} range={dayRange(new Date(2026, 8, 4), null)} now={new Date(2026, 8, 4, 12)} />);
+    render(<DaySheet open onClose={() => {}} palette={LIGHT} day={null} onDay={() => {}} range={dayRange(new Date(2026, 8, 4), null)} now={new Date(2026, 8, 4, 12)} anchor="regs-date" />);
     await settle();
   }, /Showing /],
   ["the sync error sheet", async () => {

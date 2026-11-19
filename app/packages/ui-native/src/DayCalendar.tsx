@@ -2,13 +2,13 @@
  * THE DAY CALENDAR (T49, owner 2026-10-21: "we need to fix date picker on regs map. could just be a calendar icon.").
  *
  * ONE component, two entry points: the map's day strip's calendar segment (`MapDayStrip`, in the Map tab's corner) and the
- * Regulations page's date pill both open a sheet (`regs/DaySheet`) holding this. It moves THE day — the Shell's
+ * Regulations page's date pill both open a sheet (`regs/DaySheet`; a popover on a desktop browser, T915) holding this. It moves THE day — the Shell's
  * `mapDay`, null = today (decisions D7) — through `onDay` and keeps no day of its own, so the map's colours and the
  * page never disagree. It keeps only which MONTH it is showing.
  *
  * A month grid (today ringed, the chosen day filled; always six weeks of fixed sevenths, T877), ‹ › months, "Today", and the quick ‹ › day steps for tomorrow and
  * yesterday. Days outside the data's calendar year (`@app/core` `dayRange`) are disabled, and the reason is said under
- * the grid — never a silently wrong day. Every control is a 44 px target, every day cell says its day in words
+ * the grid — never a silently wrong day — in a room the calendar always keeps, so it is one size in every month (T915). Every control is a 44 px target, every day cell says its day in words
  * ("Saturday, June 15"), and on the web the grid takes the arrow keys (roving focus: only the chosen day is in the tab
  * order). The words and the grid are `@app/core` `dayPicker.ts`; this only draws them.
  */
@@ -191,8 +191,22 @@ export function DayCalendar({ palette, day, onDay, range, now: nowProp }: {
           </View>
         ))}
       </View>
-      {m.reason && (
-        <Text testID="day-reason" style={{ ...TYPE.small, color: palette.sub, textAlign: "center" }}>{m.reason}</Text>
+      {/*
+        (T915, owner 2026-11-19: "calendar still jumpy in size from january to other dates") THE NOTE HOLDS ITS ROOM. The
+        reason came and went (January's "Only days in 2026 …", the release's cut), two lines on a phone, so the sheet
+        grew and shrank between months. The room is the longest reason any month says (`reasonRoom`), drawn unseen and
+        unread, so it wraps as the real words would at this width and text size; this month's reason, if any, is drawn
+        over it and is the one a screen reader hears.
+      */}
+      {m.reasonRoom !== "" && (
+        <View testID="day-reason-room">
+          <Text aria-hidden importantForAccessibility="no-hide-descendants" selectable={false}
+                style={{ ...TYPE.small, textAlign: "center", opacity: 0 }}>{m.reasonRoom}</Text>
+          {m.reason && (
+            <Text testID="day-reason" style={{ ...TYPE.small, color: palette.sub, textAlign: "center",
+                                               position: "absolute", top: 0, left: 0, right: 0 }}>{m.reason}</Text>
+          )}
+        </View>
       )}
       <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginTop: 4 }}>
         <Btn palette={palette} text={DAY_PICKER.earlier} label={DAY_PICKER.earlierLabel} onPress={() => step(-1)} enabled={canEarlier} />

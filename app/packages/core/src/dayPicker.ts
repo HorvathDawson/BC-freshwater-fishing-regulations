@@ -130,6 +130,12 @@ export interface MonthVM {
   readonly weeks: readonly (readonly (DayCell | null)[])[];
   /** why days near here are greyed out, or null when the whole month and both neighbours are open */
   readonly reason: string | null;
+  /**
+   * (T915, owner 2026-11-19: "calendar still jumpy in size from january to other dates") THE NOTE'S ROOM: the longest
+   * `reason` any month of the range says. The calendar always holds the room this takes (drawn unseen, unread) and draws
+   * this month's reason in it, so the note coming and going never changes the calendar's height.
+   */
+  readonly reasonRoom: string;
 }
 
 /** (T877) the grid's weeks in every month: the most any month spans, so the grid's height never changes between months */
@@ -140,14 +146,11 @@ export function monthVM(year: number, month: number, chosen: Date | null, now: D
   const days = new Date(year, month + 1, 0).getDate();
   const cells: (DayCell | null)[] = Array.from({ length: firstOf.getDay() }, () => null);
   const shown = chosen ?? now;
-  let offBefore = false, offAfter = false;
   for (let n = 1; n <= days; n++) {
     const d = new Date(year, month, n, 12);
     const iso = isoOf(d);
     const today = sameDate(d, now), isChosen = sameDate(d, shown);
     const disabled = iso < range.first || iso > range.last;
-    if (iso < range.first) offBefore = true;
-    if (iso > range.last) offAfter = true;
     cells.push({ iso, n, today, chosen: isChosen, disabled,
                  label: fullDay(d) + (today ? DAY_PICKER.cellToday : "") + (isChosen ? DAY_PICKER.cellChosen : "")
                         + (disabled ? DAY_PICKER.cellOff : "") });
@@ -156,8 +159,21 @@ export function monthVM(year: number, month: number, chosen: Date | null, now: D
   // followed it changed the sheet's height (and moved the page behind it) on every step between months
   while (cells.length < WEEKS_SHOWN * 7) cells.push(null);
   const weeks = Array.from({ length: WEEKS_SHOWN }, (_, w) => cells.slice(w * 7, w * 7 + 7));
+  const { prev, next, reason } = monthEdges(year, month, range);
+  return {
+    year, month, title: `${DAY_PICKER.months[month]} ${year}`, prev, next,
+    weekdays: DAY_PICKER.weekdays.map(([short, long]) => ({ short, long })),
+    weeks, reason, reasonRoom: reasonRoom(range),
+  };
+}
+
+/** Whether a month has a neighbour in the range each way, and why days near it are greyed out (null: none are). */
+function monthEdges(year: number, month: number, range: DayRange): { prev: boolean; next: boolean; reason: string | null } {
   const prev = isoOf(new Date(year, month, 0, 12)) >= range.first;
   const next = isoOf(new Date(year, month + 1, 1, 12)) <= range.last;
+  // a day of the month before the range / after it (the 1st and the last day are the month's earliest and latest)
+  const offBefore = isoOf(new Date(year, month, 1, 12)) < range.first;
+  const offAfter = isoOf(new Date(year, month + 1, 0, 12)) > range.last;
   const reasons: string[] = [];
   if (offBefore || !prev) reasons.push(DAY_PICKER.outsideYear(range.year));
   if (offAfter || !next) {
@@ -165,9 +181,16 @@ export function monthVM(year: number, month: number, chosen: Date | null, now: D
     const r = range.until ? DAY_PICKER.afterUntil(`${DAY_PICKER.months[m! - 1]} ${d}`) : DAY_PICKER.outsideYear(range.year);
     if (!reasons.includes(r)) reasons.push(r);
   }
-  return {
-    year, month, title: `${DAY_PICKER.months[month]} ${year}`, prev, next,
-    weekdays: DAY_PICKER.weekdays.map(([short, long]) => ({ short, long })),
-    weeks, reason: reasons.length ? reasons.join(" ") : null,
-  };
+  return { prev, next, reason: reasons.length ? reasons.join(" ") : null };
+}
+
+/** (T915) the longest reason any month the calendar can show says: the range's year's twelve and the one each side */
+function reasonRoom(range: DayRange): string {
+  let room = "";
+  for (let mo = -1; mo <= 12; mo++) {
+    const at = new Date(range.year, mo, 1, 12);
+    const r = monthEdges(at.getFullYear(), at.getMonth(), range).reason ?? "";
+    if (r.length > room.length) room = r;
+  }
+  return room;
 }

@@ -783,7 +783,7 @@ export function Shell(p: ShellProps) {
         * release's last day (`dayRange`), the same range the page's sheet is handed by `WaterScreen`.
         */}
       <DaySheet open={dayOpen && route.mode === "browse"} onClose={() => setDayOpen(false)} palette={palette}
-                day={mapDay} onDay={setMapDay}
+                day={mapDay} onDay={setMapDay} anchor="map-day-pick"
                 range={dayRange(bcNow(), loader?.manifest?.regulations?.valid_until ?? null)} />
       {/* (T173) a tapped fish obstacle mark: what it is (Map tab, while browsing) */}
       <ObstacleSheet props={route.mode === "browse" ? obstacle : null} palette={palette} onClose={() => setObstacle(null)} />

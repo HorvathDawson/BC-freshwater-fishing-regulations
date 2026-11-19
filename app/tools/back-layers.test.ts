@@ -194,6 +194,8 @@ describe("back, everywhere: one mechanism", () => {
       "packages/map/src/MapCredits.tsx",
       // (T476, T420) the Developer card, in a development or staging build only
       "packages/ui-native/src/DeveloperModal.tsx", "packages/ui-native/src/JoinTestCard.tsx", "packages/ui-native/src/Sheet.tsx", "packages/ui-native/src/menu/MenuPage.tsx",
+      // (T915) the day calendar's popover on a desktop browser
+      "packages/ui-native/src/regs/DaySheet.web.tsx",
       // (T354) the rule book in the app, full screen
       "packages/ui-native/src/regs/PdfViewer.native.tsx",
       // (T284) a spot photograph, full screen
@@ -288,7 +290,10 @@ describe("back, everywhere: every surface registers a back layer", () => {
       "packages/ui-native/src/menu/SettingsPage.tsx#SettingsPage: draws SettingsPage",
       "packages/ui-native/src/menu/UpdatesLogPage.tsx#ChannelPicker: draws ChannelPicker",
       "packages/ui-native/src/menu/UpdatesLogPage.tsx#UpdatesLogPage: draws UpdatesLogPage",
-      "packages/ui-native/src/regs/DaySheet.tsx#DaySheet: takes onClose",
+      // (T915) "Which day?": the phone's <Sheet> (registered); the browser's draws that sheet, or at desktop width a popover
+      // in its own Modal, registered (useBackLayer)
+      "packages/ui-native/src/regs/DaySheet.native.tsx#DaySheet: draws DaySheet",
+      "packages/ui-native/src/regs/DaySheet.web.tsx#DaySheet: a Modal",
       // (T354) the rule book in the app, full screen (native); the web's draws nothing (COVERED)
       "packages/ui-native/src/regs/PdfViewer.native.tsx#PdfViewer: a Modal",
       "packages/ui-native/src/regs/PdfViewer.web.tsx#PdfViewer: draws PdfViewer",
