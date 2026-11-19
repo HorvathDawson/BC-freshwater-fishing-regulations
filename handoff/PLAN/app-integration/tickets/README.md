@@ -305,10 +305,10 @@ reads both files; a ticket closed here moves there once its lane is finished wit
 | T868 | Each fish's picture once per sheet: the Whitefish sheet drew them twice (owner) | PARTIAL — 7b0738a3f + 940dde702; left (Claude): merge lane app/fix-dup-pics into app/integrate-081-web | app chat | owner 2026-11-18 |
 | T871 | Trout table: say "counts toward the N" once per box (owner) | DROPPED | app chat | owner 2026-11-18 ~20:53: "Not this change" |
 | T876 | Quick pinch-zoom lags on the phone (owner trace 20:35); an old issue, not a 0.8.1 regression (owner 20:51) | OPEN | app chat | owner 2026-11-18, after launch |
-| T872 | Conditions: the watershed "by day" card folded unless someone opens it (owner) | DONE — 3abb3dc4e (owner OK 2026-11-18 ~20:53) | lane app/t872-watershed-fold | owner 2026-11-18 |
-| T873 | A much shorter Help page: the map's key first, short labels, one-line facts (owner) | DONE — c369c225a (owner OK 2026-11-18 ~20:53) | lane app/t873-help-short | owner 2026-11-18 ~20:32 |
-| T874 | The walkthrough has only Back and Next (and Skip); Next does what Show me did (owner) | DONE — 53c8399ee + 172636aa2 review fixes (owner OK 2026-11-18 ~20:53) | app chat | proposal; lands only on the owner's yes (branch app/t874-tour-next) |
-| T875 | The water Map tab's ▼ / ▲ steps stay put, part to part and water to water, on phone and desktop (owner) | DONE — 1c0911f91 + 93efeda60 review fixes | app chat (lane app/t875-parts-steady) | owner 2026-11-18 ~20:33; 1c0911f91, 93efeda60 |
+| T872 | Conditions: the watershed "by day" card folded unless someone opens it (owner) | DONE | 3abb3dc4e | app chat; owner 2026-11-18 (T872–T874 approved ~20:53) |
+| T873 | A much shorter Help page: the map's key first, short labels, one-line facts (owner) | DONE | c369c225a | app chat; owner 2026-11-18 (T872–T874 approved ~20:53) |
+| T874 | The walkthrough has only Back and Next (and Skip); Next does what Show me did (owner) | DONE | 53c8399ee, 172636aa2 | app chat; owner 2026-11-18 (T872–T874 approved ~20:53) |
+| T875 | The water Map tab's ▼ / ▲ steps stay put, part to part and water to water, on phone and desktop (owner) | DONE | 1c0911f91, 93efeda60 | app chat; owner 2026-11-18 (T872–T874 approved ~20:53) |
 | T880 | A DFO exception printed without "and tributaries" leaves out that stream only (Bulkley: Two Mile Creek; the Suskwa on the chinook row) (owner) | OPEN | main chat | owner 2026-11-18 ~20:59 |
 
 ## Next after closed testing
