@@ -1,6 +1,6 @@
 # T892 — "What you can keep" table: a row that comes from another water's tributary rule says so
 
-Status: IN PROGRESS — left (Claude): owner sees pictures, then merge into app/integrate-082. Lane app/t892-table-tributary (built 2026-11-19 ~00:33).
+Status: PARTIAL — in 0.8.2 (8caa80c99, three reviews); left (Claude): the trout table's own rows need a per-row line from the pipeline (main chat), 1,777 tables partial.
 
 Owner 2026-11-19 ~00:10 (app chat), verbatim: "The table should say if it came from tributaries too.."
 
@@ -50,7 +50,7 @@ and Burbot from Dutch Creek), `t892-laundry-sheet-390-*` (its Burbot sheet, T883
 `t892-littlejohn-keep-390-*` (Bass and Yellow perch from Duck Lake; trout table open, partial: no line) and
 `t892-littlejohn-sheet-390-*` (its Bass sheet). Mamquam River has no such row.
 
-## Owner 2026-11-19 ~01:27: a row whose number is the tributary rule's keeps the line
+## Owner 2026-11-19 ~01:25: a row whose number is the tributary rule's keeps the line
 Case (review 3): Nygaard Creek's trout row — the number comes from Bella Coola River's rule for its tributaries, the
 "1 over 50 cm" size cap from Region 5. Asked whether the row keeps "Bella Coola River’s rule for its tributaries".
 Owner, on "Keep the line: it names the rule that sets the number you can keep; How this was decided shows both rules",
