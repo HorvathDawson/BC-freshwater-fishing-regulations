@@ -27,7 +27,7 @@ import { SALMON_MAP_STATUSES, WATER_STATUSES } from "@app/core";
 import { resolveTheme, waterStatusColour } from "@app/map";
 import { salmonStatusColour } from "@app/map/colours";
 import { CVD, DARK, LIGHT, type Palette } from "../packages/ui-native/src/theme";
-import { contrast } from "./cvd";
+import { contrast, deltaE, lch, worstSeparation } from "./cvd";
 
 /** Encoded colours (`~` for the hash), so this file holds no colour literal for the one-palette gate (check-colours). */
 const de = (s: string) => s.replace(/~/g, "#");
@@ -143,4 +143,30 @@ describe("the legend (WCAG 1.4.11 for its swatches, 1.4.3 for its words)", () =>
       }
       expect(bad).toEqual([]);
     });
+});
+
+/**
+ * (T887, owner 2026-11-18: "Light mode keep salmon vs closed or release has very little contrast. Should be bright green
+ * for keep in light I think too?") THE SALMON VIEW'S KEEP, LIGHT: a green on dark's own hue, far off release, closed and
+ * check in normal vision — the light theme's reader — while the 3:1 above still holds it on every ground. The colour-blind
+ * theme keeps its blue keep, held off the other three for every reader (a green against the closed red is the pair a
+ * deuteranope cannot separate, so the green is not offered there).
+ */
+describe("the Salmon view's keep (T887)", () => {
+  const others = (th: Theme) => (["release", "closed", "check"] as const).map((s) => [s, salmonStatusColour(th, s)] as const);
+  it("light keep is a green on dark keep's hue, at least 40 (CIEDE2000) from release, closed and check", () => {
+    const keep = salmonStatusColour("light", "open");
+    expect(Math.abs(lch(keep).h - lch(salmonStatusColour("dark", "open")).h)).toBeLessThan(10);
+    for (const [s, c] of others("light")) expect([s, deltaE(keep, c) >= 40]).toEqual([s, true]);
+  });
+  it("the colour-blind keep stays at least 20 from the other three for the worst reader (both models)", () => {
+    const keep = salmonStatusColour("cvd", "open");
+    for (const [s, c] of others("cvd"))
+      expect([s, worstSeparation(keep, c, ["vienot", "machado"]).dE >= 20]).toEqual([s, true]);
+  });
+  it("fails the light keep before T887 (mutation pin: a deep teal-blue, 35.7 from release)", () => {
+    const before = de("~016890");
+    expect(lch(before).h).toBeGreaterThan(200);
+    expect(deltaE(before, salmonStatusColour("light", "release"))).toBeLessThan(40);
+  });
 });

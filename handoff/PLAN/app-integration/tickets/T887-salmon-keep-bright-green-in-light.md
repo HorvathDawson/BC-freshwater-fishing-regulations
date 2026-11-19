@@ -16,3 +16,26 @@ release and closed read alike. Dark mode's keep is already a bright mint green.
 2. The water page's salmon parts (the Salmon card's chips, the salmon year bar) read the salmon tokens, so they match
    the map; the Salmon legend and the Help key already do.
 3. Pictures (Salmon map at 390: light before/after, dark for comparison; the salmon year bar in light) before it lands.
+
+## Built (branch app/t887-salmon-light-green; not merged)
+Light keep `#016890` (deep teal-blue) -> `#007E33` (a saturated green on dark keep's own hue, 146). Dark and cvd unchanged.
+
+| light, keep vs | dE2000 before | after | luminance ratio before | after |
+|---|---|---|---|---|
+| release `#421652` | 35.7 | 50.9 | 2.30 | 2.75 |
+| closed `#8F0006` | 49.6 | 64.4 | 1.56 | 1.86 |
+| check `#D08404` | 53.4 | 44.2 | 2.06 | 1.73 |
+
+- On the light basemap the green is as light as it can go: worst ground 3.05:1 (scrub; land 3.92, water 3.36), WCAG 1.4.11
+  still met, no new exception. A paler "bright" green would sink into the basemap's greens.
+- Colour-blind readers: in LIGHT the green sits 9.3 from closed under deuteranopia (was 41) — the red/green pair; that
+  is what the colour-blind theme is for, and it keeps its blue keep (worst reader, Vienot + Machado: 20.2 from release,
+  45.0 from closed, 49.2 from check).
+- The Salmon card's chips and the salmon year bar now read the salmon tokens (theme.ts `salmon`); the Salmon legend
+  and Help key already did. The game-fish bar's "Open" stays `status.open` (teal-blue in light), so a water page shows a
+  green salmon bar over a blue game-fish bar in light.
+- Pinned: tools/map-contrast.test.ts "the Salmon view's keep (T887)", mutation-checked (the old alias fails it).
+
+Pictures (scratchpad): t887-compare-cowichan.png (keep / release / closed, Jun 15 2027 — release exists only on the
+Cowichan in DFO's data), t887-compare-kamloops.png (keep / check / closed, Sep 15 2027), t887-compare-yearbar.png.
+No place carries all four at once at a readable zoom.

@@ -1,5 +1,5 @@
-import { colour, tempBandColour, translucent, waterStatusColour, STYLE_META } from "@app/map/colours";
-import { TEMP_BANDS, WATER_STATUSES, type TempBand, type WaterStatus } from "@app/core";
+import { colour, salmonStatusColour, tempBandColour, translucent, waterStatusColour, STYLE_META } from "@app/map/colours";
+import { SALMON_MAP_STATUSES, TEMP_BANDS, WATER_STATUSES, type SalmonMapStatus, type TempBand, type WaterStatus } from "@app/core";
 /**
  * The palette the phone components paint with.
  *
@@ -36,6 +36,11 @@ export interface Palette {
   waterStatus: Readonly<Record<WaterStatus, string>>;
   /** A TEMPERATURE BAND's colour, as the map paints its gauge dot (`tempBandColour`): the Conditions legend's swatches. */
   temp: Readonly<Record<TempBand, string>>;
+  /**
+   * (T887) A SALMON STATUS's colour, as the Salmon map paints it (`salmonStatusColour`): the water page's salmon chips and
+   * year bar wear the map line's colour. Light keep is its own bright green, not `open` (owner 2026-11-18).
+   */
+  salmon: Readonly<Record<SalmonMapStatus, string>>;
   accent: string; onAccent: string;
   /** Live-feed accent. Distinct from `accent`, which means "you chose this". */
   live: string;
@@ -280,6 +285,7 @@ const statusColours = (theme: string) => ({
   waterStatus: Object.fromEntries(WATER_STATUSES.map((s) => [s, waterStatusColour(theme, s)])) as
     Record<WaterStatus, string>,
   temp: Object.fromEntries(TEMP_BANDS.map(([b]) => [b, tempBandColour(theme, b)])) as Record<TempBand, string>,
+  salmon: Object.fromEntries(SALMON_MAP_STATUSES.map((s) => [s, salmonStatusColour(theme, s)])) as Record<SalmonMapStatus, string>,
 });
 
 /** (T367, owner 2026-11-04: "differentiate the different species in [the histogram] by color") the run species with a

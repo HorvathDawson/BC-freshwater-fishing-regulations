@@ -136,7 +136,9 @@ export function YearStrip({ strip, dateLabel, palette, title = null, hours = nul
 /** A salmon run's fill: the game-fish bar's own (open, release stripes, closed hatch); `unknown` a plain neutral fill. */
 function SalmonRect({ x, w, drawn, palette, id }: { x: number; w: number; drawn: SalmonDrawn; palette: Palette; id: string }) {
   if (drawn === "unknown") return <Rect x={x} y={0} width={w} height={H} fill={palette.line2} />;
-  return <RunRect x={x} w={w} bits={drawn === "closed" ? 1 : drawn === "release" ? 2 : 0} palette={palette} id={id} />;
+  // (T887) keep wears the Salmon map's keep colour (light: its own green); release and closed are the shared patterns
+  if (drawn === "open") return <Rect x={x} y={0} width={w} height={H} fill={palette.salmon.open} />;
+  return <RunRect x={x} w={w} bits={drawn === "closed" ? 1 : 2} palette={palette} id={id} />;
 }
 
 /**
@@ -152,8 +154,8 @@ export function SalmonYearStrip({ strip, todayAt, months, dateLabel, palette }: 
   const room = Math.max(0, w - GAP * (strip.runs.length - 1));
   let x = 0;
   const rects = strip.runs.map((r, i) => { const rw = (room * r.days) / total, at = x; x += rw + GAP; return { at, rw, drawn: r.drawn, i }; });
-  const tone = strip.status === "open" ? palette.open : strip.status === "release" ? palette.restricted
-    : strip.status === "closed" ? palette.closed : palette.sub;
+  const tone = strip.status === "open" ? palette.salmon.open : strip.status === "release" ? palette.salmon.release
+    : strip.status === "closed" ? palette.salmon.closed : palette.sub;
   return (
     <View style={{ paddingTop: 10, paddingHorizontal: GUTTER, paddingBottom: 2 }} testID="salmon-strip">
       <BarTitle text={strip.title} palette={palette} testID="salmon-strip-title" />
@@ -162,8 +164,8 @@ export function SalmonYearStrip({ strip, todayAt, months, dateLabel, palette }: 
         {strip.when && <Text style={[TYPE.meta, { color: palette.sub }]}>{strip.when}</Text>}
         {strip.soon && (
           <Text style={[TYPE.metaBold, { marginLeft: "auto", paddingVertical: 2, paddingHorizontal: 8, borderWidth: 1.5,
-            color: strip.soon.kind === "soonOpen" ? palette.open : palette.closed,
-            borderColor: strip.soon.kind === "soonOpen" ? palette.open : palette.closed }]}>{strip.soon.text}</Text>
+            color: strip.soon.kind === "soonOpen" ? palette.salmon.open : palette.salmon.closed,
+            borderColor: strip.soon.kind === "soonOpen" ? palette.salmon.open : palette.salmon.closed }]}>{strip.soon.text}</Text>
         )}
       </View>
       {/* (T820, owner 2026-11-16 21:37: "empty with no color on the calendar bar") a bar is its days: no runs, no track —

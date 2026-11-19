@@ -34,7 +34,7 @@ import { CoachSpot } from "../CoachMarks";
 import { Icon } from "../icons";
 
 const chipColour = (p: Palette, s: SalmonRowVM["status"]): string =>
-  s === "open" ? p.open : s === "release" ? p.restricted : s === "closed" ? p.closed : p.sub;
+  s === "open" ? p.salmon.open : s === "release" ? p.salmon.release : s === "closed" ? p.salmon.closed : p.sub;
 
 function Chip({ status, label, palette }: { status: SalmonRowVM["status"]; label: string; palette: Palette }) {
   return (
