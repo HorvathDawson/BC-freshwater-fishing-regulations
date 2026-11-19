@@ -1398,6 +1398,8 @@ const DRAWN: Readonly<Record<SalmonBarStatus, SalmonDrawn>> = { open: "open", re
  *  the Salmon row's details. */
 export interface SalmonStripVM {
   readonly title: string;
+  /** (T879) whose rules the bar is: DFO's, the rule book's, or both — the block's source tag */
+  readonly by: SalmonSourceBy;
   /** the selected day: its status, mark ("✓ " / "✕" / none) and word ("Release only", "Check DFO", "To be determined" …) */
   readonly status: SalmonBarStatus;
   readonly mark: string;
@@ -1452,6 +1454,7 @@ export function salmonStripOf(card: SalmonCardVM, general: {
     // (T796) a bar some of whose days are the rule book's closure is not named DFO's alone
     title: ({ dfo: SALMON_WORDS.barSalmon, both: SALMON_WORDS.barSalmonBoth, book: SALMON_WORDS.barSalmonBook } satisfies
       Record<SalmonSourceBy, string>)[card.year.by],
+    by: card.year.by,
     status: bar.today,
     mark: bar.today === "open" || bar.today === "release" ? "✓ " : bar.today === "closed" ? "✕" : "",
     word: bar.today === "check" && bar.todayTbd ? SALMON_WORDS.tbd.status : SALMON_WORDS.status[bar.today],
