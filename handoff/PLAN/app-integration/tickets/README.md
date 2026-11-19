@@ -308,6 +308,7 @@ reads both files; a ticket closed here moves there once its lane is finished wit
 | T905 | Shrink the live salmon feed back under its old size (owner) | OPEN | main chat | owner 2026-11-19 ~06:40, later |
 | T906 | The map buttery smooth: measure more speed-ups beside T903 (owner) | IN PROGRESS | main chat | owner 2026-11-19 ~06:50 |
 | T907 | "Species and limits" table: no B.C./DFO tag on rows, one value column, where each answer comes from (owner) | IN PROGRESS | main chat | owner 2026-11-19 ~06:50 |
+| T908 | Gauge (forecast) pages: cleaner, answering how the river is now (owner) | IN PROGRESS | main chat | owner 2026-11-19 ~07:00 |
 | T882 | Salmon: DFO's "To be determined" says so instead of "Check DFO"; green whenever any salmon is open (owner) | DONE | b2a5f2522 | owner 2026-11-18 ~21:18 |
 | T884 | A fish sheet's big "20 a day" is cut off at the top on an iPhone (owner) | DONE | 1d19ef12b, fcc3ce3a8 | owner 2026-11-18 ~21:30 |
 | T886 | "How to tell a hatchery fish": a natural fish (the loader's coho), not a smiling one (owner) | DONE | 7a13d8671, 0e4f21738 | owner 2026-11-18 ~21:30 |
