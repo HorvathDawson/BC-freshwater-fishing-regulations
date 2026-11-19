@@ -24,11 +24,15 @@ data, patched MapLibre). Nothing went to production. What to look at:
 **Questions from the night (each built with the default named):**
 - Q1 [T869] The Vedder: DFO's own note says an adult is over 62 cm with NO dates; the rule book (p.77) says Jul 1–Dec 31.
   Built: follow DFO (the card says "over 62 cm" all year). Or use the book's dates?
+  ANSWERED 2026-11-19 ~06:40: "good" — keep following DFO.
 - Q2 [T891] About 9,800 small lines that are not braids (FWA types 1400/1410/2000/1425/6010, mostly small unnamed lines)
   pass the existing side-channel test and also draw thinner. Built: keep. Or narrow to braids only (1100/1350/1150)?
+  ANSWERED 2026-11-19 ~06:40: "probably okay" — keep.
 - Q3 [T870] The live salmon feed's size check was raised from 112 kB to 135 kB (the DFO rows add ~34 kB raw, 15.7 kB
   gzipped). Built: raised. OK?
+  ANSWERED 2026-11-19 ~06:40: "okay we will work to shrink it down later" -> T905.
 - Q4 [T892] The trout rows use the same words as the Other fish rows ("X’s rule for its tributaries"). OK on the table?
+  2026-11-19 ~06:40: "i dont see this anywhere give example" — example sent (Glenn Creek, Littlejohn Creek); still open.
 - Q5 [T903] The map speed-up (paint only what differs) did NOT land: under a stressed phone, mode switches were 11–22 %
   faster but panning on Salmon got worse (p95 116 → 154 ms). Numbers in the ticket; next chat retries the safer half.
 - Q6 [T319] Store screenshots: nothing was uploaded (a permission block). Run the two commands in the T319 ticket, or

@@ -46,3 +46,7 @@ FN1167 notice.
   live feed's size budget (`test_dfo_live`) 112 kB -> 135 kB for `pr` (~21 kB raw).
 - Pictures: NOT taken — the live release has neither `pr` nor the new words, so a 390 px shot now would not show the
   change; take them on staging after the data release (Mamquam, Coquitlam).
+
+
+## Owner 2026-11-19 ~06:40: the feed size budget
+On the 112 -> 135 kB raise, verbatim: "okay we will work to shrink it down later." -> T905.

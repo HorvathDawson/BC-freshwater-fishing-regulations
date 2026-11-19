@@ -53,3 +53,7 @@ prop list. Style filters on `["has","sc"]`. Ships with the next tiles build.
 
 ## Owner 2026-11-19 ~03:25: the side-channel style approved
 Owner, verbatim (main chat), on the night's pictures: "T900 looks good you can add side channels style too". Part one (tiles `sc` + thinner style) ships in 0.8.2 with tonight's tiles build. Still open for him: whether the ~9.8k small non-braid lines that pass `is_side_channel_piece` (FWA types 1400/1410/2000/1425/6010) should also draw thinner, and part two.
+
+
+## Owner 2026-11-19 ~06:40: the small non-braid lines stay thinner
+On the ~9,800 small lines that also draw thinner, verbatim: "probably okay". Kept as built.

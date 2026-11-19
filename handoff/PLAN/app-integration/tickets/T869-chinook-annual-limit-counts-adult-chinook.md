@@ -61,3 +61,7 @@ next data release (fallback).
 
 ## Open for the owner (2026-11-19 night review)
 The Vedder: DFO's own scoped adult note carries no dates, so the card says "(here an adult is over 62 cm)" all year; the book (p.77) limits the 62 cm adult to Jul 1–Dec 31. As built the card follows DFO (the salmon authority). In the morning list.
+
+
+## Owner 2026-11-19 ~06:40: the Vedder follows DFO
+On "Built: follow DFO (the card says over 62 cm all year). Or use the book's dates?", verbatim: "good". Kept as built.
