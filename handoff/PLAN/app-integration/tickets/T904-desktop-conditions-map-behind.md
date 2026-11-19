@@ -13,3 +13,7 @@ edge), verbatim: "also could we make the conditions menu have map in backgroudn 
   other modes' bottom card. No white bar at the bottom or the right.
 - Same in light and dark; the card never covers the map's own controls or attribution.
 - Render test at 1280 / 1279 px; pictures (1440 light + dark, before/after) to the owner before it lands.
+
+## Owner 2026-11-19 ~07:15
+Shown the before/after pictures; owner, verbatim: "yes we can add stuff to staging a okay as we work". So T904 goes to
+the staging website as soon as its checks pass.
