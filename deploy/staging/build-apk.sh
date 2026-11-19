@@ -21,8 +21,8 @@
 # uploading: the Cloudflare (wrangler) login; emailing: the run token; the patched MapLibre AAR (exactly one) and
 # llvm-readelf to prove it; `--play`: app.json clean; uncommitted app/ paths (a build is a clean worktree of HEAD: they
 # are LEFT OUT) refuse unless `--uncommitted=<reason>`. Then CI (T533) and fast-fail, then the lock.
-# (T538) `--play --publish-only`: redo only play.json + the email for the build already uploaded (app/dist/aab/play.json),
-# e.g. after an expired Cloudflare login stopped it after the Play upload.
+# (T538) `--play --publish-only`: redo only the version files (play/<versionCode>.json, play.json) + the email for the build
+# already uploaded (app/dist/aab/play.json), e.g. after an expired Cloudflare login stopped it after the Play upload.
 #
 # (T267) --play: Google Play INTERNAL TESTING instead of the sideload page. Bumps android.versionCode (= ios.buildNumber)
 # in app.json past max(app.json, ~/.canifishthis/play-last-version-code, the highest code Play holds) and commits ONLY
@@ -41,7 +41,10 @@
 # VERSION FILE our server publishes for the build's channel, which the app reads to tell a reader a newer version is out
 # and to show "What's new in <version>" before it is installed:
 #   sideload  app/android/latest.json  {version, build, sha, date, notes}  (beside the APK page, as before + notes)
-#   --play    app/android/play.json    {version, build, sha, date, notes}  (after the Play upload; the Play build reads it)
+#   --play    app/android/play/<versionCode>.json  {version, build, sha, date, notes}  (T894: after the Play upload; a
+#             Play build from 0.8.2 on reads the file of the versionCode Play OFFERS it, so a build promoted in Play
+#             Console to another track keeps its own file) + app/android/play.json, the same content (the last upload, any
+#             track: what 0.8.1 / 0.8.2-before-T894 installs read, and this script's precheck / --publish-only guard)
 # (T538) A version with no entry is REFUSED before the lock (`--no-notes=<reason>` goes on; the app then says "No notes
 # were published for version …").
 #
@@ -165,18 +168,21 @@ done
 notes_json() { node -e 'import(process.argv[1]).then((m)=>{const e=m.CHANGELOG.find((x)=>x.version===process.argv[2]);process.stdout.write(JSON.stringify(e?m.notesOn(e,"android"):[]))})' "$1/app/packages/core/src/changelog.ts" "$2"; }
 WR="npx --prefix app wrangler"
 
-# (T538) --publish-only: redo only play.json + the email for the Play build already uploaded
+# (T538) --publish-only: redo only the version files + the email for the Play build already uploaded
 if [[ -n $PUBLISH_ONLY ]]; then
   [[ -n $PLAY ]] || { echo "build-apk: --publish-only is for a --play build (play.json + email)" >&2; exit 2; }
   PJ=app/dist/aab/play.json
   [[ -f $PJ ]] || { echo "build-apk --publish-only: no $PJ (the build writes it before the upload); nothing to publish" >&2; exit 1; }
   echo "build-apk --publish-only: $(cat "$PJ")"
-  # never put back an OLDER build's file over what Play builds read now
+  # never put back an OLDER build's file over what Play builds read now (play.json; the per-build file is its own)
   LOCALB=$(python3 -c 'import json,sys;print(json.load(open(sys.argv[1]))["build"])' "$PJ")
+  [[ $LOCALB =~ ^[1-9][0-9]*$ ]] || { echo "build-apk --publish-only: $PJ names no versionCode ('$LOCALB'); refused" >&2; exit 1; }
   PUBB=$(curl -fsS -A bc-fishing-build-apk "$BASE/play.json" | python3 -c 'import json,sys;print(json.load(sys.stdin)["build"])') \
     || { echo "build-apk --publish-only: cannot read the published $BASE/play.json; refused" >&2; exit 1; }
   (( LOCALB >= PUBB )) || { echo "build-apk --publish-only: $PJ is build $LOCALB, older than the published build $PUBB; refused" >&2; exit 1; }
-  if [[ -n $DRY ]]; then echo "[dry-run] put $BUCKET/app/android/play.json; email via $FEEDS/notify/apk${EMAIL:+}"; exit 0; fi
+  if [[ -n $DRY ]]; then echo "[dry-run] put $BUCKET/app/android/play/$LOCALB.json, then $BUCKET/app/android/play.json; email via $FEEDS/notify/apk${EMAIL:+}"; exit 0; fi
+  # (T894) the build's own file first (what a Play build reads, by the versionCode Play offers), then the last-upload file
+  $WR r2 object put --remote "$BUCKET/app/android/play/$LOCALB.json" --file "$PJ" --content-type "application/json" --cache-control "no-cache"
   $WR r2 object put --remote "$BUCKET/app/android/play.json" --file "$PJ" --content-type "application/json" --cache-control "no-cache"
   if [[ -n $EMAIL ]]; then
     TEST_URL=$(tr -d '\n' < "$SECRETS/play-test-url" 2>/dev/null || echo "$PLAY_STORE_URL")
@@ -374,7 +380,7 @@ if [[ -n $DRY && -n $PLAY ]]; then
   echo "[dry-run] $ENVWORD build: EXPO_PUBLIC_APP_ENV=$EXPO_PUBLIC_APP_ENV, switch ${EXPO_PUBLIC_ENV_SWITCH:-off}, map lab ${EXPO_PUBLIC_MAP_LAB:-off}"
   echo "[dry-run] commit the versionCode $NEXT bump (app.json only) once the AAB passed both checks"
   echo "[dry-run] upload to Play track $TRACK with this version's changelog bullets as notes (unless --no-upload); email the same + the build id via $FEEDS/notify/apk (unless --no-email)"
-  echo "[dry-run] publish $BUCKET/app/android/play.json (read at $BASE/play.json): $VERSION_JSON"
+  echo "[dry-run] publish $BUCKET/app/android/play/$NEXT.json (read at $BASE/play/$NEXT.json by a Play build Play offers versionCode $NEXT), then $BUCKET/app/android/play.json (the last upload, read by 0.8.1 installs): $VERSION_JSON"
   exit 0
 fi
 if [[ -n $DRY ]]; then
@@ -421,6 +427,11 @@ if [[ -n $PLAY ]]; then
   python3 -c 'import json,sys;v=json.loads(sys.argv[1]);v["maplibre"]=sys.argv[2];print(json.dumps(v))' "$VERSION_JSON" "$MLN_GOT" > "$OUT/play.json"
   "$REPO/.venv/bin/python" "$REPO/deploy/staging/play-upload.py" --aab "$OUT/$NAME" --package $PKG --track "$TRACK" --notes-file "$PNOTES"
   echo "$SHA_FULL" > "$REPO/app/dist/apk/last-play-sha"   # (T533) the FAST_FAIL_BASE of the next --play build
+  # (T894) the build's own file first: a Play build reads the file of the versionCode Play offers it (any track, after a
+  # promotion too); then play.json, the last upload (0.8.1 installs read it; the precheck and --publish-only compare with it)
+  $WR r2 object put --remote "$BUCKET/app/android/play/$CODE.json" --file "$OUT/play.json" \
+    --content-type "application/json" --cache-control "no-cache" \
+    || { echo "build-apk: play/$CODE.json was NOT published (the build IS on Play): fix wrangler, then build-apk.sh --play --publish-only" >&2; exit 1; }
   $WR r2 object put --remote "$BUCKET/app/android/play.json" --file "$OUT/play.json" \
     --content-type "application/json" --cache-control "no-cache" \
     || { echo "build-apk: play.json was NOT published (the build IS on Play): fix wrangler, then build-apk.sh --play --publish-only" >&2; exit 1; }

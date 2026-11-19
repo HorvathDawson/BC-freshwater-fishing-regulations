@@ -47,8 +47,10 @@ background check (T234, phone only: apps/mobile notify.native.ts, expo-backgroun
                    (a plain list; Add an alert: gauge → condition → value), a gauge card's "Alert me" (ui-native
                    AlertMe.tsx `AlertEditor`)
 changelog (T234 v1.1): core changelog.ts (the one source) ─▶ About → What's new (`changelogVM`); build-apk.sh copies a
-                   version's Android bullets (`notesOn`) into latest.json / play.json, build-ios-testflight.sh the
-                   iPhone's into app/ios/appstore.json ─▶ the bell's App update "What's new in …"
+                   version's Android bullets (`notesOn`) into latest.json / play/<versionCode>.json (+ play.json),
+                   build-ios-testflight.sh the iPhone's into app/ios/<version>.json (+ appstore.json); a store build
+                   reads the file of what the store offers (T894, core `storeUpdateCheck`) ─▶ the bell's App update
+                   "What's new in …"
                    and (T888, phone only) the popup on opening: core `updatePopupVM` ─▶ ui `useAppUpdate` `popup` ─▶
                    ui-native AppUpdatePopup.tsx (the coho, the bullets, Update / Not now; once per version above the
                    installed one, after the first-run notice, the walkthrough and any sheet; then the bell)

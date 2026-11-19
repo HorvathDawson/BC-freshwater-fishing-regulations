@@ -13,7 +13,8 @@ THE BUCKET'S LAYOUT (who writes what; `deploy/prod/upload.sh`, `app/workers/feed
     map-assets/v1/**, sql-wasm*.wasm   fixed keys, overwritten each promote   never
     runtiming/**               feeds-runtiming.yml's feed (its own index.json pointer; prod copies staging's)   never
     feeds/**, private/**       the feeds worker's (seeds go up with --ignore-existing)                          never
-    app/android/play.json      build-apk.sh                                                                     never
+    app/android/play.json, app/android/play/<versionCode>.json   build-apk.sh (T894)                                never
+    app/ios/appstore.json, app/ios/<version>.json                build-ios-testflight.sh (T894)                     never
     feedback/**                the v1 worker's stored user reports: content, not layout (kept; the owner decides) never
     everything else            not ours to judge                                                                never
 

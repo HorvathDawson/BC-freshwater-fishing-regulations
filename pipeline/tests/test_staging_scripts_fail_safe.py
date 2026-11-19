@@ -6,7 +6,11 @@
   hydat         fetch_data's hydat layer downloads through the checked scripts/hydat-fetch.sh and raises on an
                 unreadable listing
   check-public  a failed secret read is not swallowed (a secret it cannot read is one it cannot look for)
-  testflight    --production needs CONFIRM_PROD, before the heavy queue (run)
+  testflight    --production needs CONFIRM_PROD, before the heavy queue (run); (T894) the version files go to the
+                bucket of the build's environment (staging by default, production only with --production, run as a
+                dry run), one per version, and a failed put stops with the redo hint
+  play          (T894) a Play build's own app/android/play/<versionCode>.json goes up before play.json, both stopping on a
+                failed put
 """
 from __future__ import annotations
 
@@ -173,6 +177,52 @@ def test_testflight_production_needs_confirm_prod():
                        capture_output=True, text=True, timeout=30)
     assert r.returncode == 2
     assert "set CONFIRM_PROD=canifishthis.ca" in r.stderr
+
+
+def _no_comments(rel: str) -> str:
+    return "\n".join(ln for ln in (ROOT / rel).read_text().splitlines() if not ln.lstrip().startswith("#"))
+
+
+def test_testflight_dry_run_puts_the_version_files_in_its_environments_bucket():
+    """(T894) staging by default; bc-fishing-regulations only with --production (and its confirmation)."""
+    import json
+    ver = json.loads((ROOT / "app/apps/mobile/app.json").read_text())["expo"]["version"]
+    env = {k: v for k, v in os.environ.items() if k not in ("CONFIRM_PROD", "BUILD_IOS_INNER")}
+    script = str(ROOT / "deploy/staging/build-ios-testflight.sh")
+    r = subprocess.run(["bash", script, "--dry-run"], env=env, capture_output=True, text=True, timeout=60)
+    assert r.returncode == 0, r.stderr
+    put = next(ln for ln in r.stdout.splitlines() if "after the upload: put" in ln)
+    assert put.startswith(f"[dry-run] after the upload: put bc-fishing-regulations-staging/app/ios/{ver}.json, then "
+                          "bc-fishing-regulations-staging/app/ios/appstore.json, with notes ["), put
+    assert "bc-fishing-regulations/" not in r.stdout
+    r = subprocess.run(["bash", script, "--production", "--dry-run"], env={**env, "CONFIRM_PROD": "canifishthis.ca"},
+                       capture_output=True, text=True, timeout=60)
+    assert r.returncode == 0, r.stderr
+    put = next(ln for ln in r.stdout.splitlines() if "after the upload: put" in ln)
+    assert put.startswith(f"[dry-run] after the upload: put bc-fishing-regulations/app/ios/{ver}.json, then "
+                          "bc-fishing-regulations/app/ios/appstore.json, with notes ["), put
+    assert "bc-fishing-regulations-staging" not in r.stdout
+
+
+def test_testflight_publishes_one_file_per_version_and_a_failed_put_stops():
+    code = _no_comments("deploy/staging/build-ios-testflight.sh")
+    loop = code[code.index('for f in "$VER.json" appstore.json; do'):code.index("done", code.index('for f in "$VER.json"'))]
+    assert 'put --remote "$BUCKET/app/ios/$f" --file "$OUT/appstore.json"' in loop
+    assert "was NOT published (the build IS uploaded): redo the puts in the header\" >&2; exit 1; }" in loop
+    assert "app/ios/appstore.json\" --file" not in code           # appstore.json only through the loop, after <ver>.json
+
+
+def test_play_build_publishes_its_own_versioncode_file_before_play_json():
+    code = _no_comments("deploy/staging/build-apk.sh")
+    own = code.index('put --remote "$BUCKET/app/android/play/$CODE.json" --file "$OUT/play.json"')
+    last = code.index('put --remote "$BUCKET/app/android/play.json" --file "$OUT/play.json"')
+    assert own < last
+    for at in (own, last):
+        tail = code[at:code.index("\n", code.index("|| {", at))]
+        assert "the build IS on Play): fix wrangler, then build-apk.sh --play --publish-only\" >&2; exit 1; }" in tail
+    # --publish-only redoes both, the build's own file first
+    assert code.index('put --remote "$BUCKET/app/android/play/$LOCALB.json" --file "$PJ"') \
+        < code.index('put --remote "$BUCKET/app/android/play.json" --file "$PJ"')
 
 
 def test_production_apk_refuses_the_stock_maplibre():
