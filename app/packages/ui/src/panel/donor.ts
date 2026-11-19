@@ -4,7 +4,7 @@ import { type DonorRow, type Horizon, type PanelAnswer, type Quantity, type Wate
 import { changeLowWaterNote, donorState, CONDITIONS_WORDS, disagreeNote, donorBecause, donorCounted, donorFacts, donorRelation, donorLastReport,
          donorPinTitle, donorReads, donorReason, donorRowLabel, donorSilent, donorVotes, donorWeightLine,
          estimateHeadline, estimateRange, estimateSentence, gaugeChoiceLabel, HORIZON_LABELS, isAhead, metresApart,
-         panelCamera, refusalIsAboutTheDay, regulatedNote, SAME_PLACE_M, shortRecordNote, silentLine, sizeApart, tidalNote,
+         panelCamera, ROUTE_MARK_PX, refusalIsAboutTheDay, regulatedNote, SAME_PLACE_M, shortRecordNote, silentLine, sizeApart, tidalNote,
          throughLakeNote, interval,
          backwaterNote, diversionNote, unplacedNote, type SectionKey } from "@app/core";
 import { donorMapKey, donorMapLabel, hereMapLabel, joinMapLabel, routeLegend } from "@app/core";
@@ -258,8 +258,11 @@ export function donorView(value: PanelAnswer, o: DonorViewOptions): DonorVM {
    */
   const own = o.own ?? null;
   const ownAt = own ? [{ lat: own.lat, lon: own.lon }] : [];
-  const camera = panelCamera([...framed.map((r) => ({ lat: r.route!.lat!, lon: r.route!.lon! })), ...ownAt, ...corners],
-                             o.from, o.size);
+  // (T881) each mark framed whole — a gauge with room for its share pill, the spot with its pin and words
+  const gaugePx = { px: ROUTE_MARK_PX.gauge };
+  const camera = panelCamera([...framed.map((r) => ({ lat: r.route!.lat!, lon: r.route!.lon!, ...gaugePx })),
+                              ...ownAt.map((p) => ({ ...p, ...gaugePx })), ...corners,
+                              ...(o.from ? [{ ...o.from, px: ROUTE_MARK_PX.here }] : [])], null, o.size);
   // On a refusal no member speaks, yet the map stays: its pins are the members, each with its state.
   const pinned = answer.ok ? shown : framed;
   const placed = pinned.filter(located);

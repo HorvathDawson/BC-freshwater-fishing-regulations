@@ -28,8 +28,14 @@ old default, kept in `ROUTE_MAP_SIZES` so going back is one word. The Fit and La
 on the camera that frames the water (or the tap) and its gauges, as before. +/- zoom, pinch and pan stay. The words
 (`ROUTE_MAP_WORDS` fit / fitLabel / larger / smaller) and MiniMap's `fit` prop (no other caller) are removed.
 
-Note for the owner: the frame fits the tighter axis. On an east–west valley (Vedder) the zoom is the same as the small
-map's and the extra height is map below the routes.
+FITTED TO WHAT IS DRAWN (review 2026-11-18: the Vedder's east "10%" pill was cut by the map's edge). `panelCamera`
+(core `trace.ts`) now frames each mark WHOLE: a point may carry `px`, the pixels its drawing takes beyond it
+(`ROUTE_MARK_PX`: a gauge has room for a "100%" share pill on any side, since MapLibre picks the side; the spot for its
+pin and "you are here"), at the map's laid-out size, centred on the marks' box with 10 px left at the tight axis's
+edges. A fixed allowance, not the label's own words, so Flow / Level does not move the frame (T568). A long state
+label ("not reporting") can still reach past the edge. The frame fits the tighter axis: on an east–west valley
+(Vedder) the extra height is map above and below the marks, there the grey south of the border, where the basemap
+stops.
 
 Kept: the walkthrough's Conditions step points at the headline, horizons, reading, quantity, span and chart, never at
 this map; the test bed's route map scenarios (`route-scroll`, `gestures`) find the map as a MapLibre view under 60 % of
@@ -43,7 +49,8 @@ Scratchpad: `t881-before-390-dark-babine.png` / `t881-after-390-dark-babine.png`
 
 ## Tests
 
-`ui/panel/noGaugeMap.test.ts` (the three no-gauge cases and the one-gauge control; mutation: drop `&& drawsAGauge` →
+`ui/panel/fitMarks.test.ts` (Vedder-like: every gauge's pill box and the spot's inside the map at three sizes, even
+10 px margins, a wider map opens closer; mutation: drop the gauges' `px` → three fail), `ui/panel/noGaugeMap.test.ts` (the three no-gauge cases and the one-gauge control; mutation: drop `&& drawsAGauge` →
 three fail), `ui/panel/ownGauge.test.ts` (a lake without its own station: no map), `ui-native/DonorMap.test.tsx` (no
 buttons, opened on the VM's camera, the one size), `core/routeMap.test.ts`, `ui/conditions.render.test.tsx`,
 `ui/panel.place.test.ts`.

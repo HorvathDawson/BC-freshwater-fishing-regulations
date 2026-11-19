@@ -5,7 +5,7 @@
  * for the place when no tap does.
  */
 import { describe, expect, it } from "vitest";
-import { panelCamera } from "@app/core";
+import { panelCamera, ROUTE_MARK_PX } from "@app/core";
 import type { Panel } from "@app/data";
 import { answerFrom, donorView, type PanelAnswer } from "./panel";
 
@@ -41,8 +41,9 @@ describe("the route map frames the water when no tap says where the reader is", 
   it("no tap, the water's box: the gauge AND the creek, and the frame holds both", () => {
     const vm = view({ place: CREEK });
     if (!vm.ok || !vm.map) throw new Error("expected a map");
+    // (T881) the gauge framed with room for its share pill
     expect(vm.map.camera).toEqual(panelCamera(
-      [GAUGE, { lat: CREEK[1], lon: CREEK[0] }, { lat: CREEK[3], lon: CREEK[2] }], null, SIZE));
+      [{ ...GAUGE, px: ROUTE_MARK_PX.gauge }, { lat: CREEK[1], lon: CREEK[0] }, { lat: CREEK[3], lon: CREEK[2] }], null, SIZE));
     expect(vm.map.bbox).toEqual([GAUGE.lon, CREEK[1], CREEK[2], GAUGE.lat]);
     // no "you are here" is invented for a box
     expect(vm.map.pins.map((p) => p.kind)).toEqual(["gauge"]);
@@ -52,7 +53,8 @@ describe("the route map frames the water when no tap says where the reader is", 
     const at = { lat: 49.066, lon: -121.719 };
     const vm = view({ from: at, place: CREEK });
     if (!vm.ok || !vm.map) throw new Error("expected a map");
-    expect(vm.map.camera).toEqual(panelCamera([GAUGE], at, SIZE));
+    expect(vm.map.camera).toEqual(panelCamera([{ ...GAUGE, px: ROUTE_MARK_PX.gauge }, { ...at, px: ROUTE_MARK_PX.here }],
+                                              null, SIZE));
     expect(vm.map.pins.map((p) => p.kind)).toEqual(["gauge", "here"]);
   });
 });
