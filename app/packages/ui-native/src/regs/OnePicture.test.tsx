@@ -13,7 +13,7 @@ import { buildRegsPage, type RegsInputs, type SheetVM } from "@app/core";
 import { loadRegsInputs, targetFor } from "@app/data/regs";
 import { openRegsFixture } from "@app/data/release/node";
 import { loadRegsStore } from "@app/ui";
-import { SheetBody } from "./SheetBody";
+import { SheetBlockView, SheetBody } from "./SheetBody";
 import { LIGHT } from "../theme";
 
 afterEach(cleanup);
@@ -74,5 +74,14 @@ describe("<SheetBody>: each fish pictured once per sheet (T868)", () => {
         expect(p.closest("[data-testid='krow']"), `${s.key} ${p.getAttribute("data-testid")}`).not.toBeNull();
       cleanup();
     }
+  });
+
+  it("a group card that opens its sheet draws no heavy rule of its own under the sheet's title rule; elsewhere it keeps it", async () => {
+    const s = (await otherSheets()).find((x) => x.vm.blocks[0]?.k === "group");
+    expect(s, "a group sheet that opens with its card").toBeDefined();
+    const rule = (el: Element) => getComputedStyle(el.querySelector("[data-testid='keep-group']")!.firstElementChild!).borderTopWidth;
+    expect(rule(render(<SheetBody vm={s!.vm} palette={LIGHT} onOpen={() => {}} />).container)).toBe("0px");
+    cleanup();
+    expect(rule(render(<SheetBlockView b={s!.vm.blocks[0]!} palette={LIGHT} onOpen={() => {}} />).container)).toBe("1.5px");
   });
 });

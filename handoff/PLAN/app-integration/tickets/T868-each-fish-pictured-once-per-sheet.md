@@ -19,6 +19,9 @@ Fix (core; the components draw what they are handed):
 - Inside a group card, each fish pictured once (`tree.ts` `onePictureEach`, applied in `keep.ts` `groupOf`): the first
   keep line keeps it; a later kind row, a release row in the tree, or a not-kept line drops it. No live page has such a
   card today (measured below); it is the guard for the same pattern.
+- (ui-native) With the head row gone, the card's heavy rule sat one line under the sheet's title rule: a group card
+  that opens its sheet (`SheetBody` first block) draws no rule of its own (`GroupCard` `ruled={false}`); anywhere else it
+  keeps it.
 
 Sweep (every water of release r-fc137c4040fa, its first part, on Nov 18, Jun 15, Apr 1, Jan 10 and Sep 10: every Other
 fish sheet, the Keep tab's group cards, plain rows and trout table; on Nov 18 also every src:, share:, multi:, sp: and tf:
@@ -33,4 +36,8 @@ sheet the page can open):
 
 Tests: `ui-native/src/regs/OnePicture.test.tsx` (every Other fish sheet of the committed regs fixture, built by core and
 drawn by SheetBody: no `pic:` twice, a group sheet's pictures sit in the card's keep row; failed before the fix with 13
-sheets, Wilkes Creek LW/MW first), `core/src/regs/tree.test.ts` "(T868) each fish pictured once in a group card".
+sheets, Wilkes Creek LW/MW first; and the card under the title rule draws no rule of its own),
+`core/src/regs/tree.test.ts` "(T868) each fish pictured once in a group card".
+
+Pictures (390 wide, dark, the Coquitlam River's Whitefish sheet from release r-fc137c4040fa, drawn by the real SheetHost
+in headless Chrome): `t868-shots/coquitlam-whitefish-390-dark-before.png` and `-after.png` in the app chat's scratchpad.
