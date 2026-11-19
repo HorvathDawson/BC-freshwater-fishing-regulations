@@ -55,9 +55,12 @@ describe("<WaterScreen> regulations", () => {
     expect([screen.queryByTestId("gear-tab"), screen.queryByTestId("methods-tab")]).toEqual([null, null]);
     // (owner 2026-11-04) on a closed day there is no Licence section: nothing would be said under its heading
     expect(screen.queryByTestId("licence-tab")).toBeNull();
-    // (T474) the water's own rule-book page heads the content
+    // (T474) the water's own rule-book page heads the content only when the page's lines do not already link it (T60).
+    // (T916) this part's line said "p.7" until 0.8.3: the B.C. White Sturgeon Conservation Licence (the licences page,
+    // bound to the Fraser watershed at rank 0) is no row of the Chilliwack's; its own row (p.22) is linked by its rules
+    expect(screen.getByTestId("keep-tab").textContent).toMatch(/p\.22/);
     expect([...screen.getByTestId("regs-content").children].map((e) => e.getAttribute("data-testid")))
-      .toEqual(["regs-water-book", "keep-tab", "regs-legal"]);
+      .toEqual(["keep-tab", "regs-legal"]);
   }, 30_000);
 
   it("a release past its valid_until: the page leads with core's out-of-date sentence (none on an unstamped release)", async () => {

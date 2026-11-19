@@ -5,6 +5,11 @@
  * entries the book prints for THIS water are those whose rules sit at rank 0 (`baseRank`: the water's own level, not the
  * region's general pages such as p.23). Nothing is computed or guessed: the pages are the store's; a water with no entry of
  * its own has no such rule and so no line.
+ * (T916, owner 2026-11-19 on Sweltzer River: "Has page 7 link at top (which is wrong)") rank 0 is the ladder's place of ANY
+ * rule bound to a water, a B.C. or zone table's line too: the White Sturgeon Conservation Licence (p.7, the licences page)
+ * binds the whole Fraser watershed at rank 0. Only a WATER TABLE'S ROW is the water's entry: the display fact `row`
+ * (Python `add_sources`, the export's entry kind), read as stored, never re-derived from an id. A release without the fact
+ * has no row, and so no line.
  */
 import type { RegsInputs } from "./inputs";
 import { text, type Line, type Run } from "./line";
@@ -30,7 +35,7 @@ export function waterBookOf(inp: RegsInputs, page?: unknown): Line {
   const pages = new Map<number, number>();
   for (const ix of inp.ruleset?.reach ?? []) {
     const r = inp.rules.get(ix);
-    if (r.missing || r.baseRank !== 0) continue;
+    if (r.missing || r.baseRank !== 0 || r.facts?.row !== true) continue;
     for (const [printed, pdf] of r.facts?.book ?? []) pages.set(printed, pdf);
   }
   if (page) for (const printed of linkedPages(page, new Set())) pages.delete(printed);

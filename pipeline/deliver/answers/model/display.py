@@ -139,6 +139,12 @@ class RuleFacts(Model):
     applies_trib: Optional[StrictStr] = None
     #: T215: the entry's row on the PDF page, to highlight (absent: the entry is no table row, or no sidecar)
     book_box: Optional[Tuple[BookBox, ...]] = Field(default=None, min_length=1)
+    #: T916: the rule's entry is a ROW OF A REGION'S WATER TABLE (the export's entry kind "water", what `applies` words as
+    #: "This water’s own row in the …"); absent: a province or zone table's line, even one bound to a water (the White
+    #: Sturgeon Conservation Licence on p.7, bound to the Fraser watershed, sits at rank 0 like a row). The app's
+    #: "This water in the rule book" line links only a row's pages (core `waterBookOf`). Optional within display 20 (T892's
+    #: precedent): a release before it has no row, and the line is then empty, never a province page.
+    row: Optional[Literal[True]] = None
 
     @model_validator(mode="after")
     def _closure_is_a_gate(self):

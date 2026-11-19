@@ -537,6 +537,19 @@
        "default": null,
        "title": "Plain"
       },
+      "row": {
+       "anyOf": [
+        {
+         "const": true,
+         "type": "boolean"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "default": null,
+       "title": "Row"
+      },
       "subsets": {
        "anyOf": [
         {
