@@ -24,7 +24,7 @@
  * The Shell holds only the state more than one of these needs (the camera, the day, which sheet is open) and hands it
  * down. Every answer on every screen comes from a hook (rule 25).
  */
-import { GUIDE_WATER, WATER_SCREEN_WORDS, bellLabel, releaseNoticeVM, dayRange, placeholderFor, runSheet, stepDay, syncVM, type NotFishingKind, bcNow, now as clockNow, reportFailure } from "@app/core";
+import { GUIDE_WATER, WATER_SCREEN_WORDS, bellLabel, releaseNoticeVM, dayRange, placeholderFor, runSheet, guideDay, syncVM, type NotFishingKind, bcNow, now as clockNow, reportFailure } from "@app/core";
 import { openProbe, type ItemId, type SectionId } from "@app/data";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Platform, View } from "react-native";
@@ -435,9 +435,12 @@ export function Shell(p: ShellProps) {
     view: (v) => go({ type: "view", view: v }),
     toMap: () => { setLayersOpen(false); go({ type: "close" }); if (searching) { go({ type: "search", open: false }); search.searchType(""); }
                    if (tab !== "map") nav.toTab("map"); },
+    // (T874) the day after; the day before on the data's last day (`guideDay`); false: no day to pick (Next moves on)
     pickDay: () => {
-      const d = stepDay(mapDay, 1, bcNow(), dayRange(bcNow(), loader?.manifest?.regulations?.valid_until ?? null));
-      if (d !== undefined) setMapDay(d);
+      const d = guideDay(mapDay, bcNow(), dayRange(bcNow(), loader?.manifest?.regulations?.valid_until ?? null));
+      if (d === undefined) return false;
+      setMapDay(d);
+      return true;
     },
     today: () => setMapDay(null),
     control: guideCtl.set,

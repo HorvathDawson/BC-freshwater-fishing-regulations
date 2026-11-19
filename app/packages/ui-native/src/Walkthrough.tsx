@@ -90,8 +90,8 @@ export interface GuideActs {
   view(v: "regs" | "conditions" | "map"): void;
   /** (T456) the Map tab's map in front: any water, search, spot or sheet closed */
   toMap?(): void;
-  /** (T456) the next day picked (the date pill's sheet's own move) */
-  pickDay?(): void;
+  /** (T456) the next day picked (the date pill's sheet's own move); (T874) false: no day could be picked */
+  pickDay?(): boolean;
   /** (T874) the day back to today (Back undoing "Pick another day": the date pill's sheet's Today) */
   today?(): void;
   /** (T456) a screen's own control set, as the reader's tap sets it (`useGuideControl`); false: not drawn */
@@ -152,8 +152,11 @@ interface StepRule {
   act?(f: GuideFacts, a: GuideActs): boolean;
   /** the screen the step is about is in front (absent: any screen) */
   on?(f: GuideFacts): boolean;
-  /** put the app where this step expects it (stepping back into it, a resume) */
-  bring?(f: GuideFacts, a: GuideActs): void;
+  /**
+   * put the app where this step expects it (stepping back into it, a resume); (T874) `undo`: Back has arrived here and the
+   * walk itself made this step's move, so that move is undone (only ever what the walk did, never the reader's own)
+   */
+  bring?(f: GuideFacts, a: GuideActs, undo: boolean): void;
 }
 
 const onWater = (view: "regs" | "conditions") => (f: GuideFacts, a: GuideActs) => {
@@ -183,9 +186,11 @@ const RULES: Readonly<Record<string, StepRule>> = {
   },
   day: {
     done: (f) => !!f.dayPicked,
-    act: (_f, a) => { if (!a.pickDay) return false; a.pickDay(); return true; },
-    // (T874) back to it: its Regulations, on today (the day Next or the reader picked is undone)
-    bring: (f, a) => { onWater("regs")(f, a); if (f.dayPicked) a.today?.(); },
+    act: (_f, a) => a.pickDay?.() ?? false,
+    // (T874) back to it: its Regulations; the day Next picked is undone. Next picks only when no day is picked (else the
+    // step is done), so the day before the walk's pick was today, and today is exactly what is restored. A day the reader
+    // picked (before the walk, or on this step) is never touched.
+    bring: (f, a, undo) => { onWater("regs")(f, a); if (undo) a.today?.(); },
   },
   conditions: {
     done: (f) => f.open?.view === "conditions",
@@ -210,6 +215,8 @@ const passOnArrival = (s: GuideStepWords, f: GuideFacts) => doable(s) && !!ruleO
 
 /** (T456) How long the step's screen may be gone before the walk pauses: a route move in flight is not a leaving. */
 export const PAUSE_AFTER_MS = 1500;
+/** (T874) how long a move Next made on a step that Back then left may still land, and be put back */
+export const LATE_MOVE_MS = 5000;
 
 /**
  * The walk: open by itself until seen (stored), never while `blocked` (the first-run notice is up, or the Map tab is not
@@ -245,9 +252,18 @@ export function useGuide(store: WalkthroughStore | null, blocked: boolean, facts
     write((s) => withGuideAt(withSeen(s, WALKTHROUGH_VERSION), null));
     setPending(false); setOpen(false); setPaused(false);
   }, [write]);
-  const reopen = useCallback(() => { how.current = "start"; setAt(0); setPaused(false); setOpen(true); }, []);
+  /** (T874) the steps whose move the walk itself made (Back undoes only these) */
+  const made = useRef(new Set<string>());
+  /** (T874) a move Next made on a step Back left before the app got there: put back if it lands */
+  const late = useRef<{ key: string; until: number } | null>(null);
+  /** (T874) the step whose "done" a late move caused: not a reason to move on */
+  const ignore = useRef<number | null>(null);
+  const reopen = useCallback(() => {
+    how.current = "start"; made.current.clear(); late.current = null; setAt(0); setPaused(false); setOpen(true);
+  }, []);
   const next = useCallback((from?: number) => {
     how.current = "fwd";
+    late.current = null;
     setAt((i) => {
       if (from !== undefined && from !== i) return i;     // (T455) that step is already left: not a second advance
       // forward onto a DO step the app is already past: passed (e.g. the water opened straight on its Regulations)
@@ -263,16 +279,24 @@ export function useGuide(store: WalkthroughStore | null, blocked: boolean, facts
     if (from !== at) return;                              // (T455) a tap a stale handler took: that step is left
     const s = STEPS[from]!, r = ruleOf(s), { facts: f, acts: a } = live.current;
     // a DO step not done: its move, once (a second Next while the app gets there moves on, never moves twice)
-    if (doable(s) && !r.done?.(f) && acted.current !== from && r.act?.(f, a)) { acted.current = from; return; }
+    if (doable(s) && !r.done?.(f) && acted.current !== from && r.act?.(f, a)) {
+      acted.current = from; made.current.add(s.key);
+      return;
+    }
     if (from >= STEPS.length - 1) finish(); else next(from);
   }, [at, next, finish]);
   const back = useCallback(() => {
     how.current = "back";
+    // (T874) Back while the step's move is still on its way: the move is not the walk's any more, and is put back if it lands
+    if (acted.current === at) {
+      const key = STEPS[at]!.key;
+      acted.current = null; made.current.delete(key); late.current = { key, until: now() + LATE_MOVE_MS };
+    }
     setAt((i) => {
       if (i <= 0) { finish(); return i; }
       return i - 1;
     });
-  }, [finish]);
+  }, [finish, at]);
   const pass = useCallback((from: number) => {
     if (how.current === "back") setAt((i) => (i !== from ? i : i <= 0 ? 0 : i - 1));
     else next(from);
@@ -280,7 +304,7 @@ export function useGuide(store: WalkthroughStore | null, blocked: boolean, facts
   const resume = useCallback(() => {
     const { facts: f, acts: a } = live.current;
     const s = STEPS[at]!;
-    ruleOf(s).bring?.(f, a);
+    ruleOf(s).bring?.(f, a, false);
     if (s.keyboard === "closed") Keyboard.dismiss();
     setPaused(false);
   }, [at]);
@@ -292,7 +316,9 @@ export function useGuide(store: WalkthroughStore | null, blocked: boolean, facts
     const s = STEPS[at]!;
     if (pending) write((stored) => withGuideAt(stored, s.key));
     const { facts: f, acts: a } = live.current;
-    if (how.current !== "fwd" || s.kind === "show") ruleOf(s).bring?.(f, a);
+    // (T874) stepping back onto a step whose move the walk made: that move undone
+    const undo = how.current === "back" && made.current.delete(s.key);
+    if (how.current !== "fwd" || s.kind === "show") ruleOf(s).bring?.(f, a, undo);
     // (T842, owner: "the keyboard covers vedder in the walk through") a step about a list row closes the keyboard first
     if (s.keyboard === "closed") Keyboard.dismiss();
   }, [open, at]);   // eslint-disable-line react-hooks/exhaustive-deps -- once per step reached
@@ -302,11 +328,24 @@ export function useGuide(store: WalkthroughStore | null, blocked: boolean, facts
   const rule = ruleOf(s);
   const isDone = open && doable(s) && !!rule.done?.(facts);
   const seen = useRef({ at, isDone });
+  // (T874) A MOVE THAT LANDS AFTER BACK LEFT ITS STEP (a water still opening): the step on screen is set up again (its
+  // `bring`), and the "done" the late move gave it moves nothing on
+  useEffect(() => {
+    const l = late.current;
+    if (!l) return;
+    if (!open || now() > l.until) { late.current = null; return; }
+    if (!ruleOf(STEPS.find((x) => x.key === l.key)!).done?.(facts)) return;
+    late.current = null;
+    if (isDone) ignore.current = at;
+    ruleOf(STEPS[at]!).bring?.(facts, live.current.acts, false);
+  });
   useEffect(() => {
     const was = seen.current;
     seen.current = { at, isDone };
     if (was.at !== at && acted.current !== at) acted.current = null;   // a step left: its move is no longer awaited
+    if (ignore.current !== null && (ignore.current !== at || !isDone)) ignore.current = null;
     if (!isDone || (was.at === at && was.isDone) || was.at !== at) return;
+    if (ignore.current === at) { ignore.current = null; return; }
     if (acted.current === at) { acted.current = null; next(at); return; }
     const t = setTimeout(() => next(at), 700);
     return () => clearTimeout(t);
