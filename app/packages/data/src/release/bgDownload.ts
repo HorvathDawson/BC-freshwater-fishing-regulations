@@ -24,7 +24,10 @@
  *             it. `fetch` waits on such a file's job, claims it beside its install path, and verifies it (gzip or not:
  *             the data host decodes a stored gzip for a client that asks for the bytes as they are) before the install
  *             places it. A file with no job, or whose job failed, vanished, stopped moving or brought other bytes, is
- *             downloaded in the app instead, and the log says why (W46).
+ *             downloaded in the app instead, and the log says why (W46). So is one whose job paused part way for anything
+ *             but a wait for a network: the system's downloader must ask for the bytes unencoded, which the data host
+ *             sends decoded with no length and no ETag, so a cut transfer cannot be resumed (seen on the emulator: parked
+ *             "waiting to retry" at 93 % for good); the small file is fetched by the waiting app rather than waited on.
  */
 import { DOWNLOAD_NOTE_WORDS, INSTALL_WORDS, now as clockNow, reportFailure } from "@app/core";
 import { verifyAsync, VerifyError } from "../fetchVerified";
@@ -278,6 +281,9 @@ export function background(bg: BackgroundNative, fs: PartFs & { uri(path: string
           console.info(`[download] ${url}: done (system download manager), ${expect.bytes} bytes`);
           return raw;
         }
+        // cut part way (not waiting for a network): it cannot resume (see the top), so the app downloads it now
+        if (job.status === "paused" && !NETWORK_WAITS.has(job.reason))
+          return instead(`its system download stopped part way (paused, reason ${job.reason}, ${Math.max(0, job.bytes)} bytes) and cannot resume (the host sends a data file to it with no length)`);
         // the same waits as `fill`: a Wi-Fi-only job paused while mobile data is allowed, or one parked with no new byte
         if (job.status === "paused" && !job.metered && metered) {
           pausedAt ||= clockNow();
