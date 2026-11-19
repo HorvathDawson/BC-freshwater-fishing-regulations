@@ -304,6 +304,7 @@ reads both files; a ticket closed here moves there once its lane is finished wit
 | T871 | Trout table: say "counts toward the N" once per box (owner) | DROPPED | app chat | owner 2026-11-18 ~20:53: "Not this change" |
 | T876 | Quick pinch-zoom lags on the phone (owner trace 20:35); an old issue, not a 0.8.1 regression (owner 20:51) | OPEN | app chat | owner 2026-11-18, after launch |
 | T880 | A DFO exception printed without "and tributaries" leaves out that stream only (Bulkley: Two Mile Creek; the Suskwa on the chinook row) (owner) | OPEN | main chat | owner 2026-11-18 ~20:59 |
+| T885 | DFO's lake parts on the map (Babine's 12 creek-mouth circles, Mabel north, Osoyoos north basin); said in words until then (owner) | OPEN | main chat | owner 2026-11-18 ~21:13 |
 
 ## Next after closed testing
 
