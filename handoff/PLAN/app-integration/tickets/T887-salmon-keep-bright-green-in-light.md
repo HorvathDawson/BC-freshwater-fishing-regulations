@@ -52,3 +52,6 @@ Light keep `#22C55E` (bright, hue 147 — dark mint's family) in a thin ink casi
 - THE SWITCH: light.json `color.salmon.open` + `width.salmon.casing` — A: #007E33 + 0; B: #22C55E + 1.25. Dark and cvd 0.
   Every test passes in both. The branch is on B.
 - Lakes: a keep lake's fill and shoreline are the bright green with no casing (not built for B).
+
+## 2026-11-18 ~23:16: option B (owner)
+Shown A (#007E33) vs B (#22C55E with a 1.25 px dark casing) on the Cowichan, the owner picked B: "this is good too Option B". The branch is on B. Card chips and the year bar keep the deeper green (white text needs it).
