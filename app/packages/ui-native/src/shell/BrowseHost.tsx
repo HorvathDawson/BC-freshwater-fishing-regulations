@@ -13,7 +13,6 @@ import type { Spot } from "@app/data/spots";
 import type { Camera, MapSpots, TileEndpoints } from "@app/map";
 import { hiddenLayers, shownLayers } from "@app/map/colours";
 import { MapDayStrip } from "../DayCalendar";
-import { TABS } from "../TabBar";
 import { NAV_RAIL } from "../NavRail";
 import type { MenuInfo } from "../menu/MenuHost";
 import type { Palette, ThemeName } from "../theme";
@@ -84,7 +83,7 @@ export function BrowseHost({ nav, col, search, rail, palette, theme, themeName, 
   /** (T716) a tap's open, started at the lift and shown at the click (the Shell's, `@app/ui` pressCue.ts `tapAhead`) */
   tap: TapAhead;
 }) {
-  const { route, go, browse, tab, back } = nav;
+  const { route, go, tab, back } = nav;
   const { flowParam, mm, layers, imagery, cond, gauges, lakeFeed, salmonFeed, methodFeed, issueFeed, mapStatus, noteVisible, setZoomedOut,
           horizonChipsShown, pickDay, vintage } = col;
   const { searching, session, arrive, wideSearch, closeSearch } = search;
@@ -183,7 +182,7 @@ export function BrowseHost({ nav, col, search, rail, palette, theme, themeName, 
                    photoStore={photos?.store} backupLine={photos?.backupLine ?? null} />
     : tab === "more"
       // (T48) THE MORE TAB: the data's freshness, the display options, the pages (each opens over it: MenuHost, a back
-      // layer) and Contact; its ‹ returns to the tab it was opened from (the route's `prev`) — the one back
+      // layer) and Contact; its plain ‹ Back returns to the tab it was opened from (the route's `prev`, T897) — the one back
       ? <MoreScreen palette={palette}
                     data={{ ...dataFacts, newRelease: syncState.newRelease,
                             // (T231) the update service's sources and download, for the Updates row
@@ -194,11 +193,11 @@ export function BrowseHost({ nav, col, search, rail, palette, theme, themeName, 
                     // (T231, T298) a phone downloads whole sets: the mobile-data setting (Always / Ask / Wi-Fi only)
                     metered={syncState.updates && syncState.setMobileData && Platform.OS !== "web"
                       ? { value: syncState.updates.mobileData, set: syncState.setMobileData } : null}
-                    back={TABS.find((t) => t.k === (browse.prev ?? "map"))!.t} onBack={back}
+                    onBack={back}
                     contact={menuInfo?.contact ?? null} sync={sync} onSync={onSync}
                     theme={themeName} onTheme={onTheme}
-                    onPick={(k) => (k === "report" ? menu.report(routeWhere(route, mapDay ? dayLabel(mapDay) : null))
-                                    : menu.show(k))} />
+                    onPick={(k) => (k === "report" ? menu.report(routeWhere(route, mapDay ? dayLabel(mapDay) : null), "more")
+                                    : menu.show(k, "more"))} />
       : tab === "map" || tab === "conditions" || tab === "runs"
         ? <MapScreen at={tiles} palette={palette} insetLeft={railOver ? NAV_RAIL.width : 0} theme={theme} me={me} railExtra={railExtra} lookKey={lookKey} onLookDrawn={look?.drawn}
                      camera={camera.current}

@@ -57,20 +57,21 @@ const DATA: DataInput = {
 /** The Shell's wiring, and nothing else: the one back, the menu, the More tab and the host — at a window width. */
 function App({ info = INFO, loader = null, out, data = DATA, theme = "light", onTheme = () => {}, width = null, metered = null }: {
   metered?: MobileDataControl | null;
-  info?: MenuInfo; loader?: RegsLoader | null; out: { back?: Back }; data?: DataInput;
+  info?: MenuInfo; loader?: RegsLoader | null; out: { back?: Back; menu?: ReturnType<typeof useMenu> }; data?: DataInput;
   theme?: ThemeName; onTheme?: (t: ThemeName) => void; width?: number | null;
 }) {
   const [route, go] = useRoute();
   const b = useBack(route, go, null);
   out.back = b;
   const menu = useMenu();
+  out.menu = menu;
   return (
     <LayoutWidthContext.Provider value={width}>
       <BackLayerContext.Provider value={b.layers}>
         <MenuContext.Provider value={menu}>
-          <MoreScreen palette={LIGHT} data={data} back="Map" onBack={b.back} contact={info.contact}
+          <MoreScreen palette={LIGHT} data={data} onBack={b.back} contact={info.contact}
                       theme={theme} onTheme={onTheme} metered={metered}
-                      onPick={(k) => (k === "report" ? menu.report(routeWhere(route, null)) : menu.show(k))} />
+                      onPick={(k) => (k === "report" ? menu.report(routeWhere(route, null), "more") : menu.show(k, "more"))} />
           <MenuHost menu={menu} palette={LIGHT} loader={loader} info={info} tiles="d768d6e135e62b99.c9f9604f12bf"
                     route={route} day={null} />
         </MenuContext.Provider>
@@ -93,14 +94,14 @@ const text = (id: string) => screen.getByTestId(id).textContent;
 const said = (id: string) => screen.getByTestId(id).getAttribute("aria-label");
 
 describe("the More tab (T48; owner 2026-10-22 refinement; T167)", () => {
-  it("top to bottom: back to the previous tab, the title, Data, Settings and the pages as rows, Contact — the only list", () => {
+  it("top to bottom: Back, the title, Data, Settings and the pages as rows, Contact — the only list", () => {
     render(<App out={{}} />);
     expect({
       back: [text("more-back"), said("more-back")],
       headings: screen.getAllByRole("heading").map((e) => e.textContent),
       rows: screen.getAllByTestId(/^menu-item-/).map((e) => e.textContent),
     }).toEqual({
-      back: ["Map", "Back to Map"],
+      back: ["Back", "Back"],
       headings: ["More", "Data", "Contact"],
       rows: [
         "SettingsDownloads, crash reports and display",
@@ -112,6 +113,44 @@ describe("the More tab (T48; owner 2026-10-22 refinement; T167)", () => {
         "Report a problemSomething wrong, missing or confusing",
       ],
     });
+  });
+
+  it("(T897) the head is plain Back whatever tab More was opened from, and it sits OUTSIDE the scroll view (sticky)", () => {
+    render(<App out={{}} />);
+    const back = screen.getByTestId("more-back");
+    const scroll = screen.getByTestId("more-scroll");
+    expect([back.textContent, back.getAttribute("aria-label")]).toEqual(["Back", "Back"]);
+    expect(scroll.contains(back)).toBe(false);
+    expect(scroll.contains(screen.getByRole("heading", { name: "More" }))).toBe(false);
+    // the page's own parts scroll
+    expect(scroll.contains(screen.getByTestId("more-data"))).toBe(true);
+  });
+
+  it("(T897) a page opened from More reads ‹ More (said \"Back to More\"), apart from the tab's own Back", () => {
+    render(<App out={{}} />);
+    pick("menu-item-about");
+    const back = screen.getByRole("button", { name: "Back to More" });
+    expect(back.textContent).toBe("More");
+    expect(screen.getByTestId("more-back").getAttribute("aria-label")).toBe("Back");
+  });
+
+  it("(T897) a page opened from anywhere but More reads plain Back; from About it follows where Back goes", () => {
+    const out: { menu?: ReturnType<typeof useMenu> } = {};
+    render(<App out={out} />);
+    act(() => { out.menu!.report({ mode: "water" } as never); }); settle();      // a water's Report link
+    const names = () => screen.getAllByRole("button").map((e) => e.getAttribute("aria-label")).filter((n) => n?.startsWith("Back"));
+    expect(names()).toEqual(["Back", "Back"]);                                    // the tab's own, and the page's
+    act(() => { out.menu!.show("sources"); }); settle();                         // the first-run notice's Sources
+    expect(names()).toEqual(["Back", "Back"]);
+    // opened from More, then on from About: Back returns to More, so both say "More"
+    act(() => { out.menu!.show("about", "more"); }); settle();
+    expect(names()).toContain("Back to More");
+    act(() => { out.menu!.show("sources", "more"); }); settle();
+    expect(names()).toContain("Back to More");
+    // opened from elsewhere, About then Sources: plain Back
+    act(() => { out.menu!.show("about"); }); settle();
+    act(() => { out.menu!.show("sources", undefined); }); settle();
+    expect(names()).toEqual(["Back", "Back"]);
   });
 
   it("(T167) the Data block: one summary badge, the in-season warning, then EVERY source as one row — drawn compact, " +
@@ -411,7 +450,7 @@ describe("(T859) a menu page at desktop width is a card over the page", () => {
       seen[width] = {
         card: screen.queryByTestId("menu-card-close") !== null,
         scrim: screen.queryByTestId("menu-card-scrim") !== null,
-        back: screen.queryByLabelText("Back") !== null,
+        back: screen.queryByLabelText("Back to More") !== null,
         width: page.style.maxWidth || null,
         title: screen.getAllByRole("heading").map((e) => e.textContent).includes("About"),
       };

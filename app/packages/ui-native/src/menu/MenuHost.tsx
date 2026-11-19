@@ -105,7 +105,7 @@ export function MenuHost({ menu, palette, theme = "light", onWalkthrough, loader
 
   const page = (k: "offline" | "notifications" | "help" | "sources" | "about" | "report" | "changelog", node: React.ReactNode) => (
     <MenuPage open={s.page === k} title={MENU_WORDS.items[k].label} onBack={menu.closePage} palette={palette}
-              testID={`menu-page-${k}`}>
+              from={s.from === "more" ? MENU_WORDS.title : undefined} testID={`menu-page-${k}`}>
       {s.page === k ? node : null}
     </MenuPage>
   );
@@ -114,7 +114,7 @@ export function MenuHost({ menu, palette, theme = "light", onWalkthrough, loader
     <>
       <MenuPage open={s.page === "glossary"} title={term?.term ?? MENU_WORDS.items.glossary.label}
                 onBack={term ? menu.closeTerm : menu.closePage} onClose={menu.closePage} palette={palette} scroll={false}
-                backLabel={term ? MENU_WORDS.items.glossary.label : undefined} testID="menu-page-glossary">
+                backLabel={term ? MENU_WORDS.items.glossary.label : undefined} from={s.from === "more" ? MENU_WORDS.title : undefined} testID="menu-page-glossary">
         {s.page === "glossary" && (
           <GlossaryPage glossary={glossary} term={s.term} onTerm={menu.openTerm} onCloseTerm={menu.closeTerm}
                         palette={palette} />
@@ -125,15 +125,15 @@ export function MenuHost({ menu, palette, theme = "light", onWalkthrough, loader
       {page("help", <HelpPage palette={palette} theme={theme}
                               onWalkthrough={onWalkthrough ? () => { menu.closePage(); onWalkthrough(); } : undefined}
                               // (T293) Help's Offline section opens Offline maps (the app's page: none on the web)
-                              onOffline={offline ? () => menu.show("offline") : undefined} />)}
+                              onOffline={offline ? () => menu.show("offline", s.from) : undefined} />)}
       {page("sources", <SourcesPage palette={palette} vm={sourcesVM({
         edition: m?.sources?.synopsis?.title ?? null, tiles })} />)}
       {page("about", <AboutPage palette={palette} vm={aboutVM({
         appBuild: info.appBuild, release: loader?.release ?? null, tiles, dataEnv,
         edition: m?.sources?.synopsis?.title ?? null }, getSynopsisSource()?.url ?? SYNOPSIS_PDF)}
-                                   onChangelog={() => menu.show("changelog")}
-                                   onReport={() => menu.report(where)}
-                                   onSources={() => menu.show("sources")} />)}   {/* (owner 2026-10-28) our release's copy, gov.bc.ca only when it names none */}
+                                   onChangelog={() => menu.show("changelog", s.from)}
+                                   onReport={() => menu.report(where, s.from)}
+                                   onSources={() => menu.show("sources", s.from)} />)}   {/* (owner 2026-10-28) our release's copy, gov.bc.ca only when it names none */}
       {page("report", <ReportPage palette={palette} contact={info.contact} diagnostics={diagnostics}
                                   sender={info.report ?? null} />)}
       {page("changelog", <ChangelogPage palette={palette} installed={info.appVersion ?? null} />)}

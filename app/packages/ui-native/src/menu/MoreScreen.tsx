@@ -4,7 +4,8 @@
  * (T703, owner 2026-11-13) A short list: every control moved into the Settings screen, and the update lines above the
  * table that repeated it are gone. Top to bottom:
  *
- *   back <tab>  back to the tab More was opened from (the route's `prev`; the system back does the same)
+ *   Back        (T897) plain "‹ Back" to the tab More was opened from (the route's `prev`; the system back does the same);
+ *               the head (Back, "More", its rule) is STICKY: outside the scroll, it stays while the page scrolls
  *   DATA        ALWAYS SHOWN, compact, under ONE summary badge: the refresh button (its state in words only when it asks
  *               something), what is NOT in the table below (a newer release, a release this app cannot use, a source that
  *               failed), the in-season changes' warning (not read by this app) with the Province's link, then ONE ROW PER
@@ -39,8 +40,7 @@ export interface MoreScreenProps {
   palette: Palette;
   /** what the Data block reads: the release's dates, the tiles' pair, the feed's age, a newer release */
   data: DataInput;
-  /** the name of the tab the ‹ returns to, and the one back */
-  back: string;
+  /** the ‹ Back: returns to the tab More was opened from (the one back) */
   onBack: () => void;
   /** the app's ONE contact value (config), or null */
   contact: string | null;
@@ -62,9 +62,9 @@ export interface MoreScreenProps {
 /** A wide screen: the blocks are boxed cards in columns, not edge-to-edge bands. */
 const Wide = createContext(false);
 
-export function MoreScreen({ palette, data, back, onBack, contact, theme, onTheme, onPick, metered = null, sync = null, onSync }: MoreScreenProps) {
+export function MoreScreen({ palette, data, onBack, contact, theme, onTheme, onPick, metered = null, sync = null, onSync }: MoreScreenProps) {
   // (T234) a phone that can notify lists More → Notifications
-  const vm = menuVM({ data, back, contact, notifications: useNotifications() !== null });
+  const vm = menuVM({ data, contact, notifications: useNotifications() !== null });
   const wide = useLayoutClass() !== "phone";
   // (T703) the Settings screen: opened here (it holds no state the Shell needs); a back layer while open (MenuPage)
   const [settings, setSettings] = useState(false);
@@ -78,8 +78,8 @@ export function MoreScreen({ palette, data, back, onBack, contact, theme, onThem
   return (
     <Wide.Provider value={wide}>
       <View testID="more-screen" style={{ flex: 1, backgroundColor: palette.wash }}>
-        <ScrollView contentContainerStyle={{ paddingBottom: SPACE.s4 * 2 }}>
-          <Head vm={vm} palette={palette} onBack={onBack} />
+        <Head vm={vm} palette={palette} onBack={onBack} />
+        <ScrollView testID="more-scroll" contentContainerStyle={{ paddingBottom: SPACE.s4 * 2 }}>
           {wide
             ? (
               <View testID="more-columns"
@@ -98,7 +98,7 @@ export function MoreScreen({ palette, data, back, onBack, contact, theme, onThem
   );
 }
 
-/** "‹ Map" over the tab's title — the menu pages' head shape (MenuPage); on a wide screen its words sit on the columns' edge. */
+/** "‹ Back" over the tab's title — the menu pages' head shape (MenuPage); on a wide screen its words sit on the columns' edge. */
 function Head({ vm, palette, onBack }: { vm: MoreVM; palette: Palette; onBack: () => void }) {
   const wide = useContext(Wide);
   return (

@@ -82,7 +82,7 @@ describe("More → Notifications (T234, T527)", () => {
     const more = (ctl: NotifyControls | null) => (
       <LayoutWidthContext.Provider value={null}>
         <NotifyRoot controls={ctl}>
-          <MoreScreen palette={LIGHT} data={DATA} back="Map" onBack={() => {}} contact={null} theme="light" onTheme={() => {}} onPick={() => {}} />
+          <MoreScreen palette={LIGHT} data={DATA} onBack={() => {}} contact={null} theme="light" onTheme={() => {}} onPick={() => {}} />
         </NotifyRoot>
       </LayoutWidthContext.Provider>
     );

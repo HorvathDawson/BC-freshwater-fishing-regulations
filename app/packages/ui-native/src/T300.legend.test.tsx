@@ -71,7 +71,7 @@ describe("the More tab's sync button (T300)", () => {
   const sync = syncVM({ feed: true, feedFetchedAt: DATA.feedFetchedAt!, checkedAt: null, checking: false, newRelease: null, now: NOW });
   const more = (onSync: () => void, s = sync) => render(
     <LayoutWidthContext.Provider value={null}>
-      <MoreScreen palette={LIGHT} data={DATA} back="Map" onBack={() => {}} contact={null} theme="light" onTheme={() => {}}
+      <MoreScreen palette={LIGHT} data={DATA} onBack={() => {}} contact={null} theme="light" onTheme={() => {}}
                   onPick={() => {}} sync={s} onSync={onSync} />
     </LayoutWidthContext.Provider>);
   it("is the map's own button in the same state, and a press checks now", () => {
@@ -90,7 +90,7 @@ describe("the More tab's sync button (T300)", () => {
   it("is not drawn with nothing to sync", () => {
     render(
       <LayoutWidthContext.Provider value={null}>
-        <MoreScreen palette={LIGHT} data={DATA} back="Map" onBack={() => {}} contact={null} theme="light" onTheme={() => {}} onPick={() => {}} />
+        <MoreScreen palette={LIGHT} data={DATA} onBack={() => {}} contact={null} theme="light" onTheme={() => {}} onPick={() => {}} />
       </LayoutWidthContext.Provider>);
     expect(screen.queryByTestId("more-sync-button")).toBeNull();
   });
