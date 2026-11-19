@@ -714,9 +714,9 @@ describe("the Help page (T248)", () => {
   it("draws every section and row of helpVM, in order", () => {
     render(<HelpPage palette={LIGHT} theme="light" />);
     expect(screen.getAllByTestId(/^help-section-/).map((e) => e.getAttribute("data-testid")))
-      .toEqual(helpVM().map((s) => `help-section-${s.key}`));
+      .toEqual(helpVM("web").map((s) => `help-section-${s.key}`));
     expect(screen.getAllByTestId(/^help-row-/).map((e) => e.getAttribute("data-testid")))
-      .toEqual(helpVM().flatMap((s) => s.rows.map((r) => `help-row-${r.key}`)));
+      .toEqual(helpVM("web").flatMap((s) => s.rows.map((r) => `help-row-${r.key}`)));
     // (T873) no intro paragraph: the page opens on the map's key
     expect(screen.getAllByRole("heading")[0]!.textContent).toBe(HELP_WORDS.sections.colours);
   });
@@ -739,7 +739,7 @@ describe("the Help page (T248)", () => {
     render(<HelpPage palette={LIGHT} theme="light" onOffline={() => { off++; }} />);
     const order = screen.getAllByTestId(/^help-(section-|facts$)/).map((e) => e.getAttribute("data-testid"));
     expect(order).toEqual(["help-section-colours", "help-section-lines", "help-section-salmon", "help-section-runs",
-                           "help-facts", "help-section-sync", "help-section-bell", "help-section-badges"]);
+                           "help-facts", "help-section-sync", "help-section-badges"]);
     for (const t of HELP_WORDS.facts.web) expect(screen.getByText(t)).toBeTruthy();
     expect(screen.queryByTestId("help-offline")).toBeNull();            // a browser has no Offline maps page
     expect(screen.queryByTestId(/^help-tour-/)).toBeNull();               // (owner 2026-11-08) the old mode hints are gone

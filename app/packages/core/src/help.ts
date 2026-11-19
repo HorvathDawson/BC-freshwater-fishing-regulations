@@ -358,7 +358,7 @@ const FRESH_KINDS: readonly SourceFreshness[] = ["fresh", "stale", "unknown", "l
  * only where that word needs one.
  * The Run timing and Salmon sections are the legends those modes draw; the colours section is the Standard map's.
  */
-export function helpVM(): readonly HelpSection[] {
+export function helpVM(platform: "web" | "app" = "app"): readonly HelpSection[] {
   const sec = (key: HelpSection["key"], rows: readonly HelpRow[]): HelpSection =>
     ({ key, title: HELP_WORDS.sections[key], rows });
   const closedAndOthers = WATER_STATUSES.filter((s) => s !== "no_access");
@@ -386,7 +386,8 @@ export function helpVM(): readonly HelpSection[] {
     // (T873) the top bar's two, then the More tab's badges
     sec("sync", SYNC_KINDS.map((k) => ({
       key: `sync-${k}`, swatch: { kind: "sync", sync: SYNC_EXAMPLE[k]() }, name: SYNC_NAME[k], note: HELP_WORDS.sync[k] }))),
-    sec("bell", [{ key: "bell", swatch: { kind: "bell" }, name: HELP_WORDS.bell.name, note: HELP_WORDS.bell.note }]),
+    // (T909) the web's search bar draws no bell, so its Help names none
+    ...(platform === "web" ? [] : [sec("bell", [{ key: "bell", swatch: { kind: "bell" }, name: HELP_WORDS.bell.name, note: HELP_WORDS.bell.note }])]),
     sec("badges", FRESH_KINDS.map((k) => ({
       key: `fresh-${k}`, swatch: { kind: "fresh", fresh: k }, name: FRESHNESS_WORDS[k], note: HELP_WORDS.fresh[k] }))),
   ];
