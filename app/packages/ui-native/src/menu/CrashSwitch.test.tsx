@@ -33,7 +33,7 @@ describe("Send crash reports (T242)", () => {
     expect(screen.getByTestId("data-crash").textContent).toContain(CRASH_WORDS.hint);
     expect(screen.getByTestId("settings-privacy").contains(screen.getByTestId("data-crash"))).toBe(true);
     // the explanation, word for word
-    expect(CRASH_WORDS.hint).toBe("When the app hits an error it sends the error, the app version, the kind of screen, the id of the water you had open and a random id made on this device to our own server. Never your location, spots or photos. Nothing else.");
+    expect(CRASH_WORDS.hint).toBe("When the app hits an error it sends the error, the app version, the kind of screen, the id of the water you had open and a random id made on this device to my own server. Never your location, spots or photos. Nothing else.");
     act(() => { fireEvent.click(sw); });
     expect(screen.getByRole("switch", { name: CRASH_WORDS.label }).getAttribute("aria-checked")).toBe("false");
     expect(setting.get()).toBe(false);

@@ -4,7 +4,7 @@
  */
 import { describe, expect, it } from "vitest";
 import {
-  aboutEnvVM, aboutVM, dataProvenanceLine, contactVM, diagnosticRows, regsLapsed, regsLapsedNote, sourceFreshness, glossaryRows, glossarySections, markedRuns, editDistance, isoDayWords,
+  aboutEnvVM, aboutVM, dataProvenanceLine, contactVM, introLink, diagnosticRows, regsLapsed, regsLapsedNote, sourceFreshness, glossaryRows, glossarySections, markedRuns, editDistance, isoDayWords,
   mailtoUrl, regsReportWhere, waterReportWhere, reportMessage, reportPayload, emailProblem, REPORT_REASONS, sourcesVM, whereLines, type Diagnostics, type SourceDateKey, type SourcesInput,
 } from "./menu";
 import { FISH_CREDITS } from "./regs/fish.generated";
@@ -462,18 +462,38 @@ describe("freshness: each source against its own cadence (owner 2026-10-22)", ()
 });
 
 describe("contact", () => {
-  it("is a placeholder until the owner supplies one", () => {
-    expect(contactVM(null)).toEqual({ kind: "none", intro: "Questions, corrections and ideas are welcome.",
+  // (T860, owner 2026-11-18) the intro names the report form beside the email, its first "Report a problem" the link;
+  // "Email me" only where there is an address to email
+  const TAIL = "A water's regulations have their own Report a problem link, which names the water for you.";
+  const INTRO = "Questions, corrections and ideas are welcome. I read every message. Email me, or send a note from the app "
+    + `with Report a problem. ${TAIL}`;
+  const NO_EMAIL = "Questions, corrections and ideas are welcome. I read every message. Send a note from the app with "
+    + `Report a problem. ${TAIL}`;
+  const LINK = { before: "Questions, corrections and ideas are welcome. I read every message. Email me, or send a note "
+                   + "from the app with ", link: "Report a problem", after: `. ${TAIL}` };
+  const LINK_NO_EMAIL = { before: "Questions, corrections and ideas are welcome. I read every message. Send a note from "
+                            + "the app with ", link: "Report a problem", after: `. ${TAIL}` };
+
+  it("is a placeholder until the owner supplies one, and then says nothing of email", () => {
+    expect(contactVM(null)).toEqual({ kind: "none", intro: NO_EMAIL, introLink: LINK_NO_EMAIL,
       text: "Contact details are coming soon. Until then, use Report a problem to share a note from your device." });
     expect(contactVM("  ").kind).toBe("none");
     expect(contactVM("not an address").kind).toBe("none");
   });
 
-  it("reads an email address or a web link from the one config value", () => {
-    expect(contactVM("hello@example.org")).toEqual({ kind: "email", intro: "Questions, corrections and ideas are welcome.",
+  it("reads an email address or a web link from the one config value: only an address says \"Email me\"", () => {
+    expect(contactVM("hello@example.org")).toEqual({ kind: "email", intro: INTRO, introLink: LINK,
       label: "Email", value: "hello@example.org", url: "mailto:hello@example.org" });
-    expect(contactVM("https://example.org/contact")).toEqual({ kind: "link", intro: "Questions, corrections and ideas are welcome.",
+    expect(contactVM("https://example.org/contact")).toEqual({ kind: "link", intro: NO_EMAIL, introLink: LINK_NO_EMAIL,
       label: "Website", value: "https://example.org/contact", url: "https://example.org/contact" });
+  });
+
+  it("(T860) the intro's link splits it at its first mention, the words unchanged; no mention: no link", () => {
+    for (const c of [null, "hello@example.org"]) {
+      const v = contactVM(c);
+      expect(`${v.introLink.before}${v.introLink.link}${v.introLink.after}`).toBe(v.intro);
+    }
+    expect(introLink("Write to us.", "Report a problem")).toEqual({ before: "Write to us.", link: "", after: "" });
   });
 });
 
@@ -578,7 +598,7 @@ describe("report a problem, sent (T237)", () => {
     expect(reportPayload({ ...base, email: "a@b.ca", on: {} }).contact).toBe(false);
     expect(reportPayload({ ...base, email: "nope", contact: true, on: {} }).contact).toBe(false);
     expect(reportPayload({ ...base, email: "", contact: true, on: {} }).contact).toBe(false);
-    expect(MENU_WORDS.report.privacy).toBe("We use your report only to fix the app's data. It holds what you wrote and "
+    expect(MENU_WORDS.report.privacy).toBe("I use your report only to fix the app's data. It holds what you wrote and "
       + "the details you left switched on; your email, if you give one, is used only to reply — and only if you tick "
       + "‘You may contact me’.");
     expect(emailProblem("")).toBeNull();

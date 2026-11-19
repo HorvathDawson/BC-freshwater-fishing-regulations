@@ -229,6 +229,17 @@ export const SHEET_DIALOG = { maxWidth: 640, inset: 24, maxHeight: 0.82 } as con
 export const MORE_WIDE = { maxWidth: 1040, gap: 24, data: 1.15, page: 680 } as const;
 
 /**
+ * T859 — A MENU PAGE AT DESKTOP WIDTH is a card over the page, not a takeover (owner 2026-11-18: "it shouldnt take over
+ * the entire page it should be a card that overlays … which you can click off to close"):
+ *
+ *   maxWidth   the card's width: the menu page's reading column (`MORE_WIDE.page`)
+ *   inset      the least room left around it, every side
+ *   maxHeight  its tallest, as a share of the window (its body scrolls past that)
+ *   phone / tablet  nothing: the full-window page, as before
+ */
+export const MENU_CARD = { maxWidth: MORE_WIDE.page, inset: 24, maxHeight: 0.85 } as const;
+
+/**
  * T46 — A FISH PICTURE never scales with the window (owner: "on desktop … they become hugeeee"):
  *
  *   maxWidth   the most a picture is ever drawn (a phone's sheet is 358 px across, so a phone never reaches it)

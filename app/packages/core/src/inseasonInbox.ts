@@ -183,7 +183,7 @@ export const INBOX_WORDS = {
   back: "‹ All notifications",
   backLabel: "Back to all notifications",
   badge: (n: number) => `${n} unread in-season ${n === 1 ? "notice" : "notices"}`,
-  notOnMapNote: "We have not placed this change on the map yet. Check it before you fish.",
+  notOnMapNote: "I have not placed this change on the map yet. Check it before you fish.",
   endedNote: (day: string) => `This change ended ${day}.`,
   manyWaters: (n: number) => `Shown on the Regulations page of each of the ${n} waters it applies to.`,
   /** the inbox's line when the feed could not be read (the failure itself is reported by the source) */

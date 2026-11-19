@@ -236,7 +236,7 @@ describe("T700: the bell's in-season inbox", () => {
     const seen = draw({ detail: "is-b" });
     expect(screen.queryByTestId("inbox")).toBeNull();
     expect(screen.getByTestId("inbox-detail-text").textContent).toBe("No fishing on Okanagan River");
-    expect(screen.getByTestId("inbox-detail-note").textContent).toBe("We have not placed this change on the map yet. Check it before you fish.");
+    expect(screen.getByTestId("inbox-detail-note").textContent).toBe("I have not placed this change on the map yet. Check it before you fish.");
     fireEvent.click(screen.getByLabelText("Back to all notifications"));
     expect(seen).toEqual(["back"]);
   });

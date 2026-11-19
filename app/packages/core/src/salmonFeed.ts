@@ -605,7 +605,7 @@ export function salmonCardLive(f: SalmonFacts, page: { sids: readonly number[]; 
 /** (T521) The bell's DFO section words. */
 export const DFO_NOTICE_WORDS = {
   title: "New DFO waters",
-  intro: "DFO has posted salmon rules for waters we have not placed on the map yet. Check each one before you fish.",
+  intro: "DFO has posted salmon rules for waters I have not placed on the map yet. Check each one before you fish.",
   badge: (n: number) => `${n} DFO ${n === 1 ? "water" : "waters"} not on the map yet`,
   where: (region: string, name: string, water: string) => [`DFO Region ${region.toUpperCase()} ${name}`.trim(), water].filter(Boolean).join(" · "),
   unread: (n: number) => `${n} DFO place${n === 1 ? "" : "s"} not yet on the map could not be read. They will show when the next check reads them.`,
