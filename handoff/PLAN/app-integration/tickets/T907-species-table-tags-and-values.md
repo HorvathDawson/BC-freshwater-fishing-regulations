@@ -28,5 +28,5 @@ tributaries"), rather than a separate grey sentence under the fish. The other fi
   redo the tag's LOOK so a long name doesn't wrap into a two-line outlined box (round 2, pictures before integrating).
 - Names already ending in "Tributaries" ("Lake Revelstoke's Tributaries' tributaries"): picked "Drop the repeat" →
   "Lake Revelstoke's tributaries".
-- Round 2 pictures (tag as its own purple line under the fish name, left rule, no box): owner ~12:50, verbatim "muted
+- Round 2 pictures (tag as its own purple line under the fish name, left rule, no box): owner ~12:40, verbatim "muted
   grey not purple idea same size as the dates text." So: same layout, the date line's muted grey and size.

@@ -2,7 +2,7 @@
 
 Status: IN PROGRESS (main chat; lane app/t915-calendar; 0.8.3 batch).
 
-Owner 2026-11-19 ~13:00 (main chat), verbatim: "calendar still jumpy in size from january to other dates because of
+Owner 2026-11-19 ~12:45 (main chat), verbatim: "calendar still jumpy in size from january to other dates because of
 "Only days in 2026 can be chosen: the regulations here are one calendar year." make calendar popup look better on
 desktop (good for mobile but desktop doesnt like mobile popup)".
 
