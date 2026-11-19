@@ -20505,6 +20505,10 @@
        "Eulachon closed all year: No fishing for eulachon"
       ]
      ],
+     "pr": [
+      "Coho | Jul 1 to Aug 31 | 2 per day",
+      "All | Apr 1 to Mar 31 | No natural bait allowed"
+     ],
      "r": "6",
      "sp": [
       [
@@ -20608,6 +20612,10 @@
       "o": [
        0,
        1
+      ],
+      "pr": [
+       "Coho | Jul 1 to Aug 31 | 2 per day",
+       "All | Apr 1 to Mar 31 | No natural bait allowed"
       ],
       "r": "6",
       "sp": [

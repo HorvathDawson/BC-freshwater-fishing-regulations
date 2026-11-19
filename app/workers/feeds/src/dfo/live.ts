@@ -502,7 +502,9 @@ function carryIssues(prev: Json, slug: string, prevUnplaced: Json[]): [Map<strin
   return [waters, ((iss.no_water || []) as Issue[]).filter((i) => fps.has(i.fingerprint))];
 }
 
-function carry(prev: Json, slug: string, verdicts: Interner<unknown>, gears: Interner<unknown>, only: Set<string> | null = null): Record<string, Json> {
+/** live._carry: the last feed's answers for a region (or some of its places), re-indexed into this run's tables — with
+ *  their rows in DFO's words (`x`) and (T870) as printed (`pr`). Exported for the vectors' `carry` case. */
+export function carry(prev: Json, slug: string, verdicts: Interner<unknown>, gears: Interner<unknown>, only: Set<string> | null = null): Record<string, Json> {
   const pv = prev.verdicts || [];
   const pg = prev.gears || [];
   const out: Record<string, Json> = {};

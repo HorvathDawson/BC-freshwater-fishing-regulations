@@ -94,6 +94,18 @@ describe("(T870 items 2 and 3) each bait-ban line says whose it is, the same ban
     expect([c.gearLines, c.gearProvincial]).toEqual([["Bait ban: no bait of any kind — DFO (all year) and B.C. rules"], null]);
     expect(c.gear).toEqual(["Bait ban (all year)"]);                      // the data line itself is DFO's, unchanged
   });
+  it("the B.C. ban on part of the page only: the one line keeps where the B.C. rules hold", () => {
+    const c = card(facts(), "gnis:M", ["bait", "none"]);
+    expect([c.gearLines, c.gearProvincial]).toEqual([["Bait ban: no bait of any kind — DFO (all year) and B.C. rules on parts of this water"], null]);
+  });
+  it("a place with rows missing from the file's places is a bad file: an error, never named another way", () => {
+    const f = facts();
+    // (a chain naming its answering places, `a`, is refused on decode without them; one without `a` reaches the fold)
+    const { a: _a, ...chain } = f.payload.chains[1]!;
+    const bad = { ...f, payload: { ...f.payload, chains: [f.payload.chains[0]!, chain],
+                                   p: { "2:default:areas-28-29": f.payload.p!["2:default:areas-28-29"]! } } } as SalmonFacts;
+    expect(() => card(bad, "gnis:M")).toThrow("salmon: place 2:mamquam-river:whole has rows (pr) and is not in p");
+  });
   it("DFO's alone: its line says DFO; the B.C. rules' alone: their line as before", () => {
     expect(card(facts(), "gnis:M").gearLines).toEqual(["Bait ban (all year) — DFO"]);
     const bc = card(facts({ gear: "Single barbless hook (all year)" }), "gnis:M", ["bait"]);

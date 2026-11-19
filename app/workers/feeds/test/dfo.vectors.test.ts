@@ -18,7 +18,7 @@ import { readDates } from "../src/dfo/dates";
 import { byFingerprint, loadEntryFile, reconcile } from "../src/dfo/entries";
 import { digest, parseHeader, resolve } from "../src/dfo/header";
 import { build } from "../src/dfo/feed";
-import { QUEUE_ACTION, ROW_HELD_VERDICT, typePage } from "../src/dfo/live";
+import { carry, QUEUE_ACTION, ROW_HELD_VERDICT, typePage } from "../src/dfo/live";
 import { fingerprint, landmarks, normalize } from "../src/dfo/locations";
 import { key } from "../src/dfo/names";
 import { dumps } from "../src/dfo/pyjson";
@@ -240,7 +240,7 @@ describe("the shared hand rows (dfo-rows.json): typed rules and calendar == Pyth
 // tables its own way), the rows in DFO's words; the issues (T759), the feed shape `dfo`, each region's `gone`, and the
 // notices of the kinds the Python's case pins (key and text, word for word). No exception list.
 describe("the live feed: the worker's runDfo == the Python's live.run", () => {
-  type Feed = { locs: Record<string, { r: string; sp: number[][]; g: number[]; o?: number[]; x?: unknown }>; verdicts: unknown[]; gears: unknown[]; unplaced: number;
+  type Feed = { locs: Record<string, { r: string; sp: number[][]; g: number[]; o?: number[]; x?: unknown; pr?: string[] }>; verdicts: unknown[]; gears: unknown[]; unplaced: number;
                 issues: unknown; dfo: unknown; gone: Record<string, unknown[]>; notices: [string, string][] };
   type Case = Feed & { name: string; slug: string; edits: [string, string][]; page?: string; fail?: boolean; first?: string[]; entries?: Record<string, unknown>[] };
   const L = V.live as Feed & { cases: Record<string, Case> };
@@ -249,7 +249,9 @@ describe("the live feed: the worker's runDfo == the Python's live.run", () => {
   // (T770) `o`, another fish's closure lines, by the lines themselves too (absent where none, on both sides)
   const named = (f: Pick<Feed, "locs" | "verdicts" | "gears">) => Object.fromEntries(Object.entries(f.locs).map(([lid, c]) => [lid, {
     r: c.r, sp: c.sp.map((runs) => runs.map((x, k) => (k % 2 ? (x >= 0 ? f.verdicts[x] : null) : x))),
-    g: lines(f, c.g), ...(c.o ? { o: lines(f, c.o) } : {}), ...(c.x ? { x: c.x } : {}) }]));
+    g: lines(f, c.g), ...(c.o ? { o: lines(f, c.o) } : {}), ...(c.x ? { x: c.x } : {}),
+    // (T870) each place's DFO rows as printed (`live.rows_by_location` == `rowsByLocation`)
+    ...(c.pr ? { pr: c.pr } : {}) }]));
   /** the case's entry-file edits (the emitter's `_edit_entries`, the same ops) */
   const editEntries = (doc: { locations: Record<string, any>[] }, ops: Record<string, any>[]) => { // eslint-disable-line @typescript-eslint/no-explicit-any
     for (const op of ops) {
@@ -332,6 +334,14 @@ describe("the live feed: the worker's runDfo == the Python's live.run", () => {
     expect(und.map((i) => i.why)).toEqual(["undrawn"]);
     expect([C.unread_held, C.unread_stale, C.unread_not_asked].map((c) => (c!.issues as any).unread)).toEqual([{ "1": "held" }, { "1": "stale" }, { "8": "not asked" }]); // eslint-disable-line @typescript-eslint/no-explicit-any
     expect(L.dfo).toEqual({ pieces: 1 });
+  });
+  // (T770, T870) a carried place (`live._carry`): its year in words, its closure lines, its rows in DFO's words and as printed
+  it("carry: the worker's carried places are the Python's, words for words, `pr` included", () => {
+    const C = (V.live as { carry: { prev: Feed; slug: string; locs: Feed["locs"] } }).carry;
+    const v = new Interner<unknown>(), g = new Interner<unknown>();
+    const got = carry(C.prev, C.slug, v, g);
+    expect(named({ locs: got as Feed["locs"], verdicts: v.items, gears: g.items })).toEqual(C.locs);
+    expect(Object.values(C.locs).some((l) => l.pr?.length)).toBe(true);
   });
   it("the 7 page defaults are there, each closed every day in its page's own sentence; Region 2's two each its own", () => {
     const got = named(L);

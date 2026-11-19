@@ -356,7 +356,9 @@ CARRY_PREV = {
     "verdicts": [{"s": "closed", "t": "Not opened by DFO", "d": 1}, {"s": "open", "t": "2 per day (Jul 1–Aug 31)"}],
     "gears": [["No natural bait allowed"], ["Eulachon closed all year: No fishing for eulachon"]],
     "locs": {"6:lakelse:whole": {"r": "6", "sp": [[0, 0], [0, 0, 182, 1, 244, 0], [0, 0], [0, 0], [0, 0]],
-                                 "g": [0, 0], "o": [0, 1]},
+                                 "g": [0, 0], "o": [0, 1],
+                                 # (T870) the place's rows as printed ride with it
+                                 "pr": ["Coho | Jul 1 to Aug 31 | 2 per day", "All | Apr 1 to Mar 31 | No natural bait allowed"]},
              "5b:other:whole": {"r": "5b", "sp": [[0, 0]] * 5, "g": [0, -1]}},
 }
 
@@ -369,7 +371,8 @@ def _carry_case() -> dict:
     words = lambda runs, items: [x if k % 2 == 0 or x < 0 else items[x] for k, x in enumerate(runs)]  # noqa: E731
     return {"prev": CARRY_PREV, "slug": "6",
             "locs": {lid: {"r": c["r"], "sp": [words(r, v.items) for r in c["sp"]], "g": words(c["g"], g.items),
-                           **({"o": words(c["o"], g.items)} if c.get("o") else {})}
+                           **({"o": words(c["o"], g.items)} if c.get("o") else {}),
+                           **({"x": c["x"]} if c.get("x") else {}), **({"pr": c["pr"]} if c.get("pr") else {})}
                      for lid, c in sorted(got.items())}}
 
 
