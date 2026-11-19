@@ -30,7 +30,10 @@ describe("<DayCalendar>", () => {
     mount(new Date(2026, 9, 10, 12));
     expect(screen.getByTestId("day-calendar").textContent).toBe(
       "Showing Saturday, October 10" + "October 2026" + "SunMonTueWedThuFriSat"
-      + Array.from({ length: 31 }, (_, i) => i + 1).join("") + "‹ Day beforeTodayDay after ›");
+      + Array.from({ length: 31 }, (_, i) => i + 1).join("")
+      // (T915) the note's room, drawn unseen and unread (aria-hidden) in every month: the calendar's one size
+      + "Only days in 2026 can be chosen: the regulations here are one calendar year." + "‹ Day beforeTodayDay after ›");
+    expect(screen.getByTestId("day-reason-room").firstElementChild!.getAttribute("aria-hidden")).toBe("true");
     expect([...cells()].map((c) => c.getAttribute("aria-label")).slice(8, 11))
       .toEqual(["Friday, October 9", "Saturday, October 10, chosen", "Sunday, October 11"]);
     expect(btn("Saturday, October 10, chosen").getAttribute("aria-selected")).toBe("true");
@@ -120,6 +123,27 @@ describe("<DayCalendar>", () => {
   it("no reason line in a month with every day open", () => {
     mount(null);
     expect(screen.queryByTestId("day-reason")).toBeNull();
+  });
+
+  it("T915 (owner 2026-11-19: \"calendar still jumpy in size from january\"): the note's room is the same in every month", () => {
+    // the room is the longest reason a month can say, unseen; the month's own reason is drawn over it, out of the flow
+    const rooms: string[] = [];
+    for (const [d, range] of [[new Date(2026, 0, 15, 12), YEAR], [new Date(2026, 10, 19, 12), YEAR], [new Date(2026, 6, 4, 12), YEAR]] as const) {
+      mount(d, range);
+      const room = screen.getByTestId("day-reason-room");
+      rooms.push(room.firstElementChild!.textContent!);
+      expect(room.firstElementChild!.getAttribute("aria-hidden")).toBe("true");
+      expect((room.firstElementChild as HTMLElement).style.opacity).toBe("0");
+      const reason = screen.queryByTestId("day-reason");
+      if (reason) expect([reason.parentElement, reason.style.position]).toEqual([room, "absolute"]);
+      cleanup();
+    }
+    expect(new Set(rooms).size).toBe(1);
+    // a release cut: the room is the longer of January's and the cut's, in every month too
+    const CUT = dayRange(NOW, "2026-11-20");
+    mount(new Date(2026, 6, 4, 12), CUT);
+    expect(screen.getByTestId("day-reason-room").firstElementChild!.textContent)
+      .toBe("Only days in 2026 can be chosen: the regulations here are one calendar year.");
   });
 
   it("the keyboard (web): arrows move a day or a week, Page Up/Down a month, Home back to today", () => {

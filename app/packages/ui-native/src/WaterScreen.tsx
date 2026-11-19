@@ -180,7 +180,7 @@ function WaterScreenBody({ source, item, palette, onBack, onRetry,
    */
   const [dayOpen, setDayOpen] = useState(false);
   const daySheet = loader && (
-    <DaySheet open={dayOpen} onClose={() => setDayOpen(false)} palette={palette} day={day} onDay={(x) => onDay?.(x)}
+    <DaySheet open={dayOpen} onClose={() => setDayOpen(false)} palette={palette} day={day} onDay={(x) => onDay?.(x)} anchor="regs-date"
               // the same days the map's date sheet offers: this calendar year, cut at the release's last day
               range={dayRange(bcNow(), loader.manifest?.regulations?.valid_until ?? null)} />
   );
