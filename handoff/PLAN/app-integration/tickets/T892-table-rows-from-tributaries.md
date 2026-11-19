@@ -1,6 +1,6 @@
 # T892 — "What you can keep" table: a row that comes from another water's tributary rule says so
 
-Status: OPEN (app chat; lane app/t892-table-tributary; pictures to the owner before it lands; candidate for 0.8.2).
+Status: IN PROGRESS — left (Claude): owner sees pictures, then merge into app/integrate-082. Lane app/t892-table-tributary (built 2026-11-19 ~00:33).
 
 Owner 2026-11-19 ~00:10 (app chat), verbatim: "The table should say if it came from tributaries too.."
 
@@ -10,3 +10,33 @@ the table: a row (or its DFO / B.C. mark) whose rule is another water's row carr
 ("from <that water>'s tributary rule" or the shortest wording that reads right), from the same input T883 reads, never
 re-derived. Rows from the water's own rules and region rules are unchanged. Pictures at 390 px, light and dark, of a
 water with such a row, before it lands.
+
+## What was built (2026-11-19 ~00:33, lane app/t892-table-tributary)
+- Wording: one line under the row's name, sub colour, tokens only: **"Dutch Creek’s rule for its tributaries"** (two
+  waters: "A’s and B’s rules for their tributaries"); the B.C. tag is unchanged. Read once: in the row's text (an Other
+  fish row) or in the fold's spoken name (the trout fold).
+- Same input as T883, by construction: the row's line is the sheet's own flow (`ladderOf` → `flowOf` → `FlowVM.down`):
+  the waters of the DECIDING steps the rail keeps whose rule the part's ruleset holds `via` trib (rank 1), i.e. exactly
+  the steps kicked "<that water> · its tributaries". Only when those steps hold for every fish of the row (a Bass row
+  whose smallmouth come down from Duck Lake and whose largemouth are the region's says nothing). `OtherFishRowVM.from`,
+  `GroupVM.from` (a quota group's Details fold), a name ending in s takes only ’ ("Twin Lakes’ rule").
+- Trout and char: the fold row says it when EVERY trout row's rail (`troutFlow` → `FlowVM.down`) names the same waters
+  (`KeepVM.troutFrom`, sheets/trout.ts `troutFrom`). The trout table's own rows get no app words (T810 contract, guarded
+  by `trout.release.test.ts`): a table only some of whose rows come down from tributaries (1,775 of 1,948 tables in
+  r-fc137c4040fa, e.g. Littlejohn Creek's Dolly Varden from Kootenay Lake — Main Body) says it on those fish sheets only.
+  To say it on the table's rows, Python would carry it per row (the T883 data spec's `steps[].level`, or a `TRow` line).
+- Checked over the whole release by `app/tools/release-tributary-lines.test.ts` (Tier 2, `scripts/test-full.sh`;
+  r-fc137c4040fa, 20,959 parts): every line equals its sheet's deciding tributary kickers, 0 mismatches; lines on 708
+  Other fish rows and 173 trout folds; 84 rows named on the sheet for some of their fish only carry none; no quota group
+  in this release has one. Water's own and region rows unchanged.
+- Tests: `flow.test.ts` (FlowVM.down / downLine whole strings: the half-Bass row, a rail-dropped tributary rule, "Twin
+  Lakes’"; troutFrom), `others.test.ts` (one inherited row, one own row), `KeepTab.test.tsx` (Other fish row, trout fold,
+  quota-group fold: drawn, spoken once), `trout.release.test.ts` (keepOf's `troutFrom` over every vector; Shamrock Creek
+  whole). No frozen fixture changed.
+- Review of 8bdb9cbf0 (2026-11-19 ~00:40): all five findings fixed (above).
+
+## Pictures (390, light + dark; staging-data release r-fc137c4040fa, Nov 19)
+Scratchpad (session 699dcd1b) `t892-shots/`: `t892-laundry-keep-390-{light,dark}.png` (Laundry Creek: the trout fold
+and Burbot from Dutch Creek), `t892-laundry-sheet-390-*` (its Burbot sheet, T883's "DUTCH CREEK · ITS TRIBUTARIES"),
+`t892-littlejohn-keep-390-*` (Bass and Yellow perch from Duck Lake; trout table open, partial: no line) and
+`t892-littlejohn-sheet-390-*` (its Bass sheet). Mamquam River has no such row.

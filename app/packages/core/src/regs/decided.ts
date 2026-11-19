@@ -101,6 +101,14 @@ export function rowSources(row: HydRow, card: CardModel, settled: Settled, inp: 
   return [...best.values()].sort((a, b) => wins(b.role) - wins(a.role) || a.r.rank - b.r.rank);
 }
 
+const winItem = (r: RuleView): LadderItem => ({ r, role: "governs", by: null, spp: new Set() });
+
+/** (T892) The waters the row's fish sheet names "<that water> · its tributaries" on a deciding step, for every fish of
+ *  the row (`FlowVM.down`): the sheet's own flow (`ladderOf` with `flow`), so the Keep tab's row says what the sheet says. */
+export function rowDown(row: HydRow, env: Omit<LadderEnv, "flow">): readonly string[] {
+  return ladderOf(row, { ...env, flow: true }).flow?.down ?? [];
+}
+
 /** page v36 byName: the replacing rule named by its level (its own rank, not the part's). */
 function byName(b: RuleView | null, inp: RegsInputs): string {
   if (!b || b.missing) return WORDS.BY_ABOVE;
@@ -126,7 +134,7 @@ export function ladderOf(row: HydRow, env: LadderEnv, members?: readonly string[
   const title = seams.rowTitle(row, inp);
   const items: LadderItem[] = rowSources(row, card, settled, inp)
     .filter((it) => !members || !it.spp.size || [...it.spp].some((S) => members.includes(S)));
-  if (!items.length && row.win) items.push({ r: row.win, role: "governs", by: null, spp: new Set() });
+  if (!items.length && row.win) items.push(winItem(row.win));
   // No role is re-classified here (owner rule 2026-10-21): page v36 moved a deciding record_retention rule to "duty"; the
   // pipeline stores it so since rows 31 (`rows.stored_role`), so it is read under "Other rules" as stored.
   // `fields.record_retention` only words the tag.
@@ -194,7 +202,8 @@ export function ladderOf(row: HydRow, env: LadderEnv, members?: readonly string[
   // (T216) the angler's explanation, every stored item in layers (the Keep form only; the other: sheet keeps the ladder)
   const story = members ? null : storyOf(items, (it) => words(it).text, inp, keepResult);
   // (T883, proposal) the fish sheet's one flow: the same items, in reading order, with the row's answer last
-  const flow = members || !env.flow ? null : flowOf(items, (it) => words(it).text, inp.item?.name || inp.place?.name || "", keepResult);
+  const flow = members || !env.flow ? null
+    : flowOf(items, (it) => words(it).text, inp.item?.name || inp.place?.name || "", keepResult, row.allMembers);
   return {
     label: WORDS.DECIDED, sections, ...(story ? { story } : {}), ...(flow ? { flow } : {}),
     lost: lost.map((it) => {

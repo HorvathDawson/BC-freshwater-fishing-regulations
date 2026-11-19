@@ -82,6 +82,10 @@ export interface KeepVM {
   /** (T810 N, S) the trout and char table (`trout.ts` `troutOf`), or its refusal; null: the cell has none, or the day is
    *  closed. ABSENT only on the two edges with no card (outside B.C., tidal water). The one trout path (no old card). */
   readonly trout?: TroutVM | TroutRefusedVM | null;
+  /** (T892) the trout fold row's line in the one table when EVERY row of today's trout table rests on the same waters'
+   *  rows carried down to their tributaries ("Bella Coola River’s rule for its tributaries", sheets/trout.ts `troutFrom`).
+   *  Kept beside the table, never in it: the table's words are Python's (T810). Absent: none, or only some rows. */
+  readonly troutFrom?: string;
 }
 export type KeepBlock = "strip" | "inherited" | "banner" | { caveat: number } | { group: number } | { plain: number } | "otherFish" | "possession" | "whereNot"
   | "outside" | "trout";
@@ -163,6 +167,9 @@ export interface BannerVM {
 /** prototype per-article block; page v36 cardBlock / treeBlock / rowTitle / scopeBadge */
 export interface GroupVM {
   readonly row: number;                     // index into rows frame rows[]
+  /** (T892) the group's sheet names a deciding step "<that water> · its tributaries" for all its fish: its fold row in
+   *  the one table says so ("Duck Lake’s rule for its tributaries", flow.ts `downLine`). Absent: none. */
+  readonly from?: string;
   readonly title: string;                   // page v36 rowTitle(row)
   readonly scope: string | null;            // head kicker, null when moved to the share (moveTag)
   readonly head: GroupHeadVM;
@@ -285,6 +292,9 @@ export interface FlowVM {
   readonly result: string | null;
   readonly other: readonly FlowStepVM[]; readonly otherHead: string;
   readonly quiet: readonly FlowStepVM[]; readonly quietHead: string;
+  /** (T892) the waters a deciding step names "<that water> · its tributaries", when they hold for every fish of the row:
+   *  what the Keep tab's table row says (flow.ts `downLine`). Absent: none. */
+  readonly down?: readonly string[];
 }
 /** (T216) "How this was decided" for an angler: which rules applied today, layer by layer, what each did and why. */
 export interface DecidedStoryVM {
@@ -328,7 +338,11 @@ export interface OtherFishRowVM{ readonly thumb: string | null; readonly name: s
   readonly stamps: readonly Line[];
   /** (T670 K2) the row's fish its number does not hold for — released or closed by their own rule (the store's "back"
    *  conditions), each in the rule's stored sentence; drawn under the row, in the status colour. [] for none */
-  readonly back: readonly { readonly status: "release" | "closed"; readonly says: string; readonly rule: RuleKey }[] }
+  readonly back: readonly { readonly status: "release" | "closed"; readonly says: string; readonly rule: RuleKey }[];
+  /** (T892) the row's answer rests on another water's row carried down to its tributaries — the sheet's "<that water> ·
+   *  its tributaries" step — said under the name ("Kootenay River’s rule for its tributaries", flow.ts `downLine`).
+   *  Absent: the water's own rules, its region's, or B.C.'s. */
+  readonly from?: string }
 export interface WhereNotVM { readonly heading: string; readonly scope: string | null; readonly items: readonly { text: Line; rule: RuleKey }[] }
 
 // ── 2.3 Gear tab (prototype buildGear; page v36 gearParts) ─────────────────────────────────────────────────────────

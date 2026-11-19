@@ -489,3 +489,21 @@ describe("T810 P: the trout fish sheet over every vector", () => {
     expect(reports.map((e) => [(e as TroutLooksMissing).fish, (e as TroutLooksMissing).what])).toEqual([[r.fish, "picture"]]);
   });
 });
+
+describe("T892: the trout fold's tributary line (keepOf → KeepVM.troutFrom) over every vector", () => {
+  it("set exactly where every row's sheet names the same deciding '<water> · its tributaries'; whole on Shamrock Creek", async () => {
+    const DOWN = " · its tributaries", set: string[] = [];
+    for (const c of V.cases) {
+      const inp = await inputsOfCase(c), page = pageOf(inp), t = page.keep.trout;
+      const rows = t?.kind === "table" ? t.boxes.flatMap((b) => b.rows) : [];
+      const named = rows.map((r) => {
+        const flow = page.sheet(`tf:${r.key}`)?.blocks.find((x): x is Extract<SheetBlock, { k: "flow" }> => x.k === "flow")?.flow;
+        return [...new Set((flow?.steps ?? []).filter((x) => x.tone === "won" && x.kicker.endsWith(DOWN)).map((x) => x.kicker.slice(0, -DOWN.length)))].join("|");
+      });
+      const all = rows.length > 0 && named.every((n) => n !== "" && n === named[0]);
+      expect(!!page.keep.troutFrom, c.name).toBe(all);
+      if (page.keep.troutFrom) set.push(`${c.name}: ${page.keep.troutFrom}`);
+    }
+    expect(set).toContain("shamrock-jul15: Lonzo Creek’s rule for its tributaries");
+  });
+});

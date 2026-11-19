@@ -23,7 +23,7 @@ import { plain, text, type Run } from "../line";
 import type { FlowVM, SheetBlock, SheetVM, SourceRowVM, TroutBoxVM, TroutRowVM, TroutVM } from "../model";
 import type { Decided, FishAnswer } from "../../answers.generated";
 import type { LadderItem } from "../decided";
-import { flowOf } from "../flow";
+import { downLine, flowOf } from "../flow";
 import { clean } from "../names";
 import { imageBlocks } from "./fish";
 import type { SheetKey } from "../sheetKey";
@@ -96,6 +96,18 @@ export type TroutAnswers = (fish: string) => FishAnswer | null;
  * (re-review b: "counts toward the 4 and the 6" with no step saying 6 keeps the list).
  */
 export function troutFlow(row: TroutRowVM, a: FishAnswer | null, rules: Pick<RuleIndex, "get">, water: string): FlowVM | null {
+  const items = troutItems(row, a, rules);
+  if (!items) return null;
+  const f = flowOf(items, (it) => [text(it.r.facts?.title || clean(it.r.export.verbatim))], water, row.sheet.head);
+  const said = f.steps.map((x) => plain(x.says)).join(" ");
+  const carried = (n: string) => new RegExp(`(^|\\D)${n}(\\D|$)`).test(said);
+  if (!(row.sheet.head.match(/\d+/g) ?? []).every(carried)) return null;
+  return f;
+}
+
+/** (T883) A trout row's rail items: each rule of `row.src` with its stored role in this fish's answer (`troutFlow`); null
+ *  where a rule has none (the sheet keeps its Sources list). */
+function troutItems(row: TroutRowVM, a: FishAnswer | null, rules: Pick<RuleIndex, "get">): LadderItem[] | null {
   if (!a || !row.src.length) return null;
   const rolesOf = (d: Decided | null) => new Map((d?.roles ?? []).map(([ix, role, by]) => [ix, { role, by: by ?? null }] as const));
   const h = rolesOf(a.hatchery), w = rolesOf(a.wild), both = !!a.hatchery && !!a.wild;
@@ -111,11 +123,18 @@ export function troutFlow(row: TroutRowVM, a: FishAnswer | null, rules: Pick<Rul
       if (pw) add(ix, pw, both ? "wild" : undefined);
     }
   }
-  const f = flowOf(items, (it) => [text(it.r.facts?.title || clean(it.r.export.verbatim))], water, row.sheet.head);
-  const said = f.steps.map((x) => plain(x.says)).join(" ");
-  const carried = (n: string) => new RegExp(`(^|\\D)${n}(\\D|$)`).test(said);
-  if (!(row.sheet.head.match(/\d+/g) ?? []).every(carried)) return null;
-  return f;
+  return items;
+}
+
+/**
+ * (T892) The trout fold's tributary line: where EVERY row of today's table draws its rail (`troutFlow`) and every rail's
+ * deciding steps name the same waters "<that water> · its tributaries" (`FlowVM.down`), the fold row of the one table
+ * says so once ("Bella Coola River’s rule for its tributaries"); else null. A table only some of whose rows rest on such
+ * a rule says it on those rows' own sheets only: the table's rows are Python's words (T810), the app adds none to them.
+ */
+export function troutFrom(t: TroutVM, answers: TroutAnswers, rules: Pick<RuleIndex, "get">, water: string): string | null {
+  const lines = t.boxes.flatMap((b) => b.rows).map((row) => downLine(troutFlow(row, answers(row.fish), rules, water)?.down ?? []));
+  return lines.length && lines.every((x) => x !== null && x === lines[0]) ? lines[0]! : null;
 }
 
 /** The table's every-rule sheet: `TroutTable.src`, first-cited order as Python gave it. `sub`: the water and the day. */

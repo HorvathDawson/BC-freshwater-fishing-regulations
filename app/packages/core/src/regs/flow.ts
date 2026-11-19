@@ -97,26 +97,53 @@ function unique(steps: readonly FlowStepVM[]): FlowStepVM[] {
   });
 }
 
+/** A rule replaced by one of the other rules (B.C.'s possession, replaced by the region's) is not a step of the answer. */
+function asideOf(items: readonly LadderItem[]): (i: LadderItem) => boolean {
+  const otherKeys = new Set(items.filter((i) => OTHER.includes(i.role)).map((i) => i.r.key));
+  return (i) => (i.role === "replaced" || i.role === "lifted") && !!i.by && otherKeys.has(i.by.key);
+}
+
+/**
+ * (T892, owner 2026-11-19 ~00:10 "The table should say if it came from tributaries too..") The waters the sheet's rail
+ * names "<that water> · its tributaries" on a DECIDING step (`kickerOf`: the part's ruleset holds the rule `via` trib,
+ * rank 1): read off the very steps `flowOf` keeps, so the table and the sheet agree by construction. Only when those
+ * steps hold for every fish of the row (`members`; a rule with no fish of its own holds for all): a Bass row whose
+ * smallmouth come down from Duck Lake and whose largemouth are the region's says nothing on the row. [] for none.
+ */
+function downNames(won: readonly LadderItem[], members: readonly string[] | undefined): readonly string[] {
+  const down = won.filter((i) => !i.r.part && i.r.rank === 1 && !!i.r.export.prov.entry_name);
+  const all = !members?.length || down.some((i) => !i.spp.size) || members.every((m) => down.some((i) => i.spp.has(m)));
+  return down.length && all ? [...new Set(down.map((i) => i.r.export.prov.entry_name!))] : [];
+}
+
+/** (T892) The table row's line for `FlowVM.down`'s waters ("Kootenay River’s rule for its tributaries"); null for none. */
+export const downLine = (names: readonly string[]): string | null => (names.length ? D.ROW_DOWN(names) : null);
+
 /**
  * The flow of one row: `items` its stored rules and roles (rowSources), `says` each one's line (the ladder's words),
  * `water` the sheet's water, `answer` the row's result line.
  */
-export function flowOf(items: readonly LadderItem[], says: (it: LadderItem) => Line, water: string, answer: string | null): FlowVM {
+export function flowOf(items: readonly LadderItem[], says: (it: LadderItem) => Line, water: string, answer: string | null,
+  members?: readonly string[]): FlowVM {
   const step = (it: LadderItem): FlowStepVM => ({
     kicker: kickerOf(it.r, water), says: says(it), tag: it.origin ? D.T_ORIGIN(it.origin, tagOf(it, water)) : tagOf(it, water),
     tone: it.role === "replaced" || it.role === "lifted" ? "lost" : QUIET.includes(it.role) ? "quiet" : "won",
     book: bareBook(it.r), rule: it.r.missing ? null : it.r.key,
   });
-  // a rule replaced by one of the other rules (B.C.'s possession, replaced by the region's) is not a step of the answer
-  const otherKeys = new Set(items.filter((i) => OTHER.includes(i.role)).map((i) => i.r.key));
-  const aside = (i: LadderItem): boolean => (i.role === "replaced" || i.role === "lifted") && !!i.by && otherKeys.has(i.by.key);
+  const aside = asideOf(items);
+  // (T892) each step knows its item, so the rail's own deciding steps name the waters (`down`)
+  const of = new Map<FlowStepVM, LadderItem>();
   const main = items.filter((i) => !OTHER.includes(i.role) && !QUIET.includes(i.role) && !aside(i))
-    .sort((a, b) => layerOf(a.r, water) - layerOf(b.r, water) || orderOf(a.role) - orderOf(b.role)).map(step);
-  const steps = once(ordered(unique(main)));
+    .sort((a, b) => layerOf(a.r, water) - layerOf(b.r, water) || orderOf(a.role) - orderOf(b.role))
+    .map((it) => { const s = step(it); of.set(s, it); return s; });
+  const kept = ordered(unique(main));
+  const down = downNames(kept.filter((s) => s.tone === "won").map((s) => of.get(s)!), members);
+  const steps = once(kept);
   const wonWords = new Set(steps.filter((s) => s.tone === "won").map((s) => plain(s.says)));
   const quiet = items.filter((i) => QUIET.includes(i.role) || aside(i)).map(step).filter((s) => !wonWords.has(plain(s.says)));
   const other = items.filter((i) => OTHER.includes(i.role)).map(step);
-  return { steps, result: answer ? D.RESULT + answer : null, other, otherHead: D.OTHER, quiet, quietHead: D.QUIET(quiet.length) };
+  return { steps, result: answer ? D.RESULT + answer : null, other, otherHead: D.OTHER, quiet, quietHead: D.QUIET(quiet.length),
+           ...(down.length ? { down } : {}) };
 }
 
 /** A kicker said once: a step under the same one as the step before it draws only its page. */

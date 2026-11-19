@@ -319,3 +319,50 @@ describe("(T810 O, S; owner about 17:15 \"Salmon + trout folds\") the trout tabl
     expect(screen.getByTestId("kicker:trout").textContent).toBe("Trout and char");
   });
 });
+
+describe("(T892, owner 2026-11-19 \"The table should say if it came from tributaries too..\") a row from another water's tributary rule says so", () => {
+  const actions: KeepActions = { onSheet() {}, onDay() {}, onTab() {}, onBook() {} };
+  const salmon = { row: { source: "dfo", thumb: "CO", name: SALMON_WORDS.title, value: null, tone: "keep" }, card: () => <span>salmon card</span> } as const;
+  const LINE = "Kootenay River’s rule for its tributaries";
+  const count = (s: string, x: string) => s.split(x).length - 1;
+
+  it("an Other fish row: the line under its name, in the row's spoken name once; the water's own rows say nothing", () => {
+    const keep = keepOf(vedder1010);
+    const k = { ...keep, otherFish: keep.otherFish!.map((o, i) => (i === 0 ? { ...o, from: LINE } : o)) };
+    render(<KeepTab keep={k} dateLabel="Oct 10" palette={LIGHT} actions={actions} glance={{ salmon }} />);
+    expect(screen.getAllByTestId("row-from").map((e) => e.textContent)).toEqual([LINE]);
+    const press = screen.getByText("Kokanee").closest("[role=button]")!;
+    expect(press.textContent).toBe(`KokaneeB.C.${LINE}${keep.otherFish![0]!.value}›`);
+    expect(count(press.textContent!, LINE)).toBe(1);
+    expect(screen.getByText("Whitefish").closest("[role=button]")!.querySelector("[data-testid=row-from]")).toBeNull();
+  });
+
+  it("the trout fold: every row from the same water's rule — the line under 'Trout and char', in its spoken name once", () => {
+    render(<KeepTab keep={{ ...keepOf(vedder1010), troutFrom: LINE }} dateLabel="Oct 10" palette={LIGHT} actions={actions} glance={{ salmon }} />);
+    const fold = within(screen.getByTestId("glance:trout"));
+    expect(fold.getByTestId("row-from").textContent).toBe(LINE);
+    const name = fold.getByRole("button").getAttribute("aria-label")!;
+    expect([name.startsWith(`Trout and char B.C. ${LINE} `), count(name, LINE)]).toEqual([true, 1]);
+    // the table under it gets no app words (T810): its rows say nothing of it
+    fireEvent.click(fold.getByRole("button"));
+    expect(within(screen.getByTestId("keep-trout")).queryByText(LINE)).toBeNull();
+  });
+
+  it("review 2: a quota group's fold (Details) says it under its name, in the row's spoken words once", () => {
+    const keep = keepOf(vedder1010), DUCK = "Duck Lake’s rule for its tributaries";
+    const order = keep.order.flatMap((b): KeepVM["order"][number][] => (b === "otherFish" ? [{ group: 0 }, b] : [b]));
+    render(<KeepTab keep={{ ...keep, order, groups: [{ title: "Bass", tree: [], from: DUCK } as never] }} dateLabel="Oct 10" palette={LIGHT}
+                    actions={actions} glance={{ salmon }} />);
+    const fold = within(screen.getByTestId("glance:group:0"));
+    expect(fold.getByTestId("row-from").textContent).toBe(DUCK);
+    expect(fold.getByRole("button").textContent).toBe(`BassB.C.${DUCK}${GLANCE_WORDS.show}`);
+  });
+
+  it("no line on any frozen fixture water's fold (none rests wholly on another water's tributary rule)", () => {
+    for (const f of [vedder1010, glenn501, bc1501, klwa1010]) {
+      render(<KeepTab keep={keepOf(f)} dateLabel="Oct 10" palette={LIGHT} actions={actions} glance={{ salmon }} />);
+      expect(screen.queryAllByTestId("row-from")).toEqual([]);
+      cleanup();
+    }
+  });
+});

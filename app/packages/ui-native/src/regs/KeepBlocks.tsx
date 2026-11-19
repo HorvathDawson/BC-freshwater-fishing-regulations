@@ -330,7 +330,13 @@ function FoldRow({ f, palette, images, coach, tags = false }: { f: GlanceFold; p
                               borderTopColor: palette.line, backgroundColor: lit ? palette.tint : "transparent" };
                    }}>
           <Thumb code={f.row.thumb} images={images} palette={palette} />
-          <Named name={f.row.name} tag={tag} style={[TYPE.regsBodySemi, { color: palette.ink }]} palette={palette} grow />
+          {f.row.from ? (
+            // (T892) a quota group from another water's tributary rule: said under its name, in the row's spoken words once
+            <View style={{ flex: 1 }}>
+              <Named name={f.row.name} tag={tag} style={[TYPE.regsBodySemi, { color: palette.ink }]} palette={palette} />
+              <Text testID="row-from" style={[TYPE.meta, { color: palette.sub, marginTop: 2 }]}>{f.row.from}</Text>
+            </View>
+          ) : <Named name={f.row.name} tag={tag} style={[TYPE.regsBodySemi, { color: palette.ink }]} palette={palette} grow />}
           {f.row.issue && <IssueMark palette={palette} />}
           {f.row.value && <Text testID={`st:${f.row.tone}`} style={[TYPE.regsBodyBold, { color: tone }]}>{f.row.value}</Text>}
           <View testID="glance-toggle" style={{ flexDirection: "row", alignItems: "center", justifyContent: "center", minWidth: 84, gap: 4, paddingVertical: 4, paddingHorizontal: 8,
@@ -370,7 +376,7 @@ function ArrowFold({ f, open, setOpen, ring, tone, palette, images, tag = null }
   return (
     <View testID={`glance:${f.key}`}>
       <View ref={ring} collapsable={false} style={{ paddingHorizontal: GUTTER }}>
-        <RegsPress accessibilityRole="button" aria-expanded={open} accessibilityLabel={[f.row.name, tag, f.row.value, f.row.date].filter(Boolean).join(" ")}
+        <RegsPress accessibilityRole="button" aria-expanded={open} accessibilityLabel={[f.row.name, tag, f.row.from, f.row.value, f.row.date].filter(Boolean).join(" ")}
                    onPress={() => setOpen(!open)} box={ROW}
                    style={(st) => {
                      const lit = st.pressed || !!(st as { hovered?: boolean }).hovered || !!(st as { focused?: boolean }).focused;
@@ -381,6 +387,8 @@ function ArrowFold({ f, open, setOpen, ring, tone, palette, images, tag = null }
           {/* the name keeps its own width (up to half the row); a long value or date wraps under itself, not the name */}
           <View style={stack ? { flex: 1, minWidth: 0 } : { flexShrink: 0, maxWidth: tag ? "60%" : "50%" }}>
             <Named name={f.row.name} tag={tag} style={[TYPE.regsBodySemi, { color: palette.ink }]} palette={palette} />
+            {/* (T892) every row of the table rests on another water's row carried down to its tributaries: said once, here */}
+            {f.row.from && <Text testID="row-from" style={[TYPE.meta, { color: palette.sub, marginTop: 2 }]}>{f.row.from}</Text>}
             {stack && value}
           </View>
           {f.row.issue && <IssueMark palette={palette} />}
@@ -419,6 +427,8 @@ export function SpeciesRows({ rows, keys, palette, actions, images, folds = [], 
             {/* the Other fish are the B.C. rules' */}
             <Named name={o.name} tag={tags ? SOURCE_WORDS.tag.bc : null} style={[TYPE.regsBody, { color: palette.ink }]} palette={palette} />
             {o.week && <Text style={[TYPE.metaSemi, { color: palette.sub, marginTop: 2 }]}>{o.week}</Text>}
+            {/* (T892) another water's row carried down to its tributaries answers this row: said under the name */}
+            {o.from && <Text testID="row-from" style={[TYPE.meta, { color: palette.sub, marginTop: 2 }]}>{o.from}</Text>}
             {/* (T670 K2) the row's fish its number does not hold for: said on the row, in the status colour, never only in the sheet */}
             {o.back.map((b, i) => (
               <Text key={i} testID={`otherfish-back:${b.status}`} style={[TYPE.metaSemi, { color: tone(b.status), marginTop: 2 }]}>{b.says}</Text>
