@@ -1,5 +1,5 @@
 """PRUNE THE PRODUCTION BUCKET (T865, owner 2026-11-18: "That clean up should be automatic"; R2's free tier is 10 GB).
-`deploy/prod/upload.sh` runs both steps after the pointer moves; `deploy/prod/site.sh` runs `v1` after a deploy.
+`deploy/prod/upload.sh` runs `releases` after every pointer move; `deploy/prod/drop-v1.sh` runs `v1`, once, at the switch.
 
     python -m pipeline.deliver.release.prod_prune releases --remote r2:<bucket> [--dry-run --pending <manifest.json>]
     python -m pipeline.deliver.release.prod_prune v1 --remote r2:<bucket> [--site https://canifishthis.ca/] [--dry-run]
@@ -19,20 +19,24 @@ THE BUCKET'S LAYOUT (who writes what; `deploy/prod/upload.sh`, `app/workers/feed
 
 `releases`: every object under the three release-scoped prefixes whose folder neither `release/manifest.json` (live) nor
 `release/manifest.previous.json` (what deploy/prod/rollback.sh goes back to) names is deleted. An ALLOWLIST: a key
-outside those prefixes is never a candidate, whatever it is. A kept manifest's folders are kept whole. Refused, nothing
-deleted, exit 1: a pointer that cannot be read or parsed, a file a kept manifest names that is not in the bucket, both
-pointers naming the same release (a rollback would have nowhere to go). No previous pointer yet (the first promote):
-nothing pruned, said, exit 0. `--dry-run --pending <manifest>` (upload.sh's dry run, whose pointer was not written):
-the pending manifest stands in for the live one and the bucket's current pointer for the previous one, as the pointer
-step would leave them; the pending release's files are not checked (nothing was uploaded).
+outside those prefixes is never a candidate, whatever it is. A kept manifest's folders are kept whole, and so is any
+folder whose newest object went up less than RECENT ago (server time, `--use-server-modtime`): a web tab opened on a
+release promoted earlier the same day still reads its files (app boot.ts). Refused, nothing deleted, exit 1: a
+pointer that cannot be read or parsed, a file a kept manifest names that is not in the bucket, both pointers naming
+the same release (a rollback would have nowhere to go). No previous pointer yet (the first promote): nothing pruned,
+said, exit 0. `--dry-run --pending <manifest>` (upload.sh's dry run, whose pointer was not written): the pending
+manifest stands in for the live one and the bucket's current pointer for the previous one, as the pointer step would
+leave them; the pending release's files are not checked (nothing was uploaded).
 
 `v1`: the old Vite site's data (the v1 layout, read from `main`: scripts/seed-r2.sh uploads output/pipeline/deploy whole,
 pipeline/enrichment/builder.py + tile_exporter write it, the three cron workflows write cron/**, the old webapp reads
-it) is deleted ONLY once `--site` serves the new web export: its index.html loads `/_expo/static/js/web/index-<hash>.js`
-(the Expo export; deploy/prod/site.sh greps the same path) and lacks the old build's `<!-- build: webapp UI fixes`
-comment. Without the marker: v1 kept, the reason printed, exit 0. A site that cannot be read: v1 kept, exit 1.
+it). Never automatic: a site rollback to the Vite build would load with no data. `deploy/prod/drop-v1.sh` runs it at the
+switch, on the owner's word, and it still fails closed: deleted ONLY when `--site` serves the new web export (its
+index.html loads `/_expo/static/js/web/index-<hash>.js`, the Expo export deploy/prod/site.sh greps, and lacks the old
+build's `<!-- build: webapp UI fixes` comment). Without the marker: v1 kept, the reason printed, exit 1.
 
-Both print every key deleted (or that a dry run would delete) and the bytes freed.
+Both print each key once it IS deleted (or that a dry run would delete) and the bytes freed; a delete that fails part
+way says how many objects and bytes went before it stopped.
 """
 from __future__ import annotations
 
@@ -43,14 +47,17 @@ import subprocess
 import sys
 import tempfile
 import urllib.request
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
-from typing import Callable, Dict, Iterable, List, Optional, Protocol, Set, Tuple
+from typing import Callable, Dict, Iterable, List, NamedTuple, Optional, Protocol, Set, Tuple
 
 LIVE = "release/manifest.json"
 PREVIOUS = "release/manifest.previous.json"
 #: the release-scoped prefixes, and the one folder (unit) of each that a manifest keeps or drops whole
 RELEASE_UNIT = re.compile(r"^release/(?:r-[^/]+|tiles/[^/]+|basemap/[^/]+)/")
 RELEASE_INCLUDES = ("/release/r-*/**", "/release/tiles/**", "/release/basemap/**")
+#: a folder uploaded more recently than this is kept even when no pointer names it (a web tab open across two promotes)
+RECENT = timedelta(hours=24)
 
 #: the v1 layout, from `main` (git show main:<path>): root files and whole folders
 V1_FILES = (
@@ -84,10 +91,36 @@ class Refused(Exception):
     """A prune that must not go ahead; the message says why."""
 
 
+class PartialDelete(Exception):
+    """A delete that stopped part way: `deleted` are the keys that did go."""
+
+    def __init__(self, deleted: List[str], why: str):
+        super().__init__(why)
+        self.deleted = deleted
+
+
+class Obj(NamedTuple):
+    size: int
+    mtime: datetime          # when it went up (the server's time)
+
+
 class Bucket(Protocol):
-    def list(self, includes: Iterable[str]) -> Dict[str, int]: ...    # key -> bytes, for keys matching an include
+    def list(self, includes: Iterable[str]) -> Dict[str, Obj]: ...    # for keys matching an include
     def cat(self, key: str) -> Optional[bytes]: ...                   # None: no such object; raises on a failed read
-    def delete(self, keys: List[str], dry: bool) -> None: ...
+    def delete(self, keys: List[str], on_deleted: Callable[[str], None]) -> None: ...   # raises PartialDelete
+
+
+def deleted_key(line: str) -> Optional[str]:
+    """The key a `rclone delete -v --use-json-log` line reports deleted, else None."""
+    try:
+        rec = json.loads(line)
+    except ValueError:
+        return None
+    return rec.get("object") if isinstance(rec, dict) and rec.get("msg") == "Deleted" else None
+
+
+def _when(s: str) -> datetime:
+    return datetime.fromisoformat(re.sub(r"(\.\d{6})\d+", r"\1", s.replace("Z", "+00:00"))).astimezone(timezone.utc)
 
 
 class Rclone:
@@ -105,24 +138,37 @@ class Rclone:
 
     def list(self, includes):
         inc = [a for i in includes for a in ("--include", i)]
-        rows = json.loads(self._run("lsjson", "-R", "--files-only", "--no-mimetype", "--no-modtime", self.remote, *inc)
-                          or "[]")
-        return {r["Path"]: int(r["Size"]) for r in rows}
+        rows = json.loads(self._run("lsjson", "-R", "--files-only", "--no-mimetype", "--use-server-modtime",
+                                    self.remote, *inc) or "[]")
+        return {r["Path"]: Obj(int(r["Size"]), _when(r["ModTime"])) for r in rows}
 
     def cat(self, key):
         if key not in self.list([f"/{key}"]):
             return None
         return self._run("cat", f"{self.remote}/{key}").encode()
 
-    def delete(self, keys, dry):
-        if not keys:
-            return
+    def delete(self, keys, on_deleted):
         with tempfile.NamedTemporaryFile("w", suffix=".txt", delete=False) as f:
             f.write("".join(k + "\n" for k in keys))
+        done: List[str] = []
+        tail: List[str] = []
         try:
-            self._run("delete", self.remote, "--files-from-raw", f.name, *(["--dry-run"] if dry else []))
+            p = subprocess.Popen(["rclone", "delete", self.remote, "--files-from-raw", f.name, "-v", "--use-json-log",
+                                  "--stats", "0", "--s3-no-check-bucket"],
+                                 stdout=subprocess.DEVNULL, stderr=subprocess.PIPE, text=True)
+            assert p.stderr is not None
+            for line in p.stderr:                    # each key reported as it goes, never ahead of rclone
+                k = deleted_key(line)
+                if k is not None:
+                    done.append(k)
+                    on_deleted(k)
+                else:
+                    tail = (tail + [line.strip()])[-5:]
+            rc = p.wait()
         finally:
             Path(f.name).unlink()
+        if rc != 0:
+            raise PartialDelete(done, f"rclone delete failed (exit {rc}): {' | '.join(tail)[-500:]}")
 
 
 def _manifest(bucket: Bucket, key: str) -> Optional[dict]:
@@ -168,8 +214,10 @@ def _unit(key: str) -> Optional[str]:
     return hit.group(0) if hit else None
 
 
-def plan_releases(bucket: Bucket, pending: Optional[dict] = None) -> Tuple[List[str], Dict[str, int], List[str]]:
-    """(kept release ids, {key: bytes} to delete, notes). Raises Refused."""
+def plan_releases(bucket: Bucket, pending: Optional[dict] = None, now: Optional[datetime] = None
+                  ) -> Tuple[List[str], Dict[str, Obj], List[str]]:
+    """(kept release ids, {key: Obj} to delete, notes). Raises Refused."""
+    now = now or datetime.now(timezone.utc)
     notes: List[str] = []
     current = _manifest(bucket, LIVE)
     if pending is not None:                           # the dry run: as the pointer step would leave the two pointers
@@ -204,12 +252,22 @@ def plan_releases(bucket: Bucket, pending: Optional[dict] = None) -> Tuple[List[
                 ok = bool(bucket.list([f"/{k}**" if k.endswith("/") else f"/{k}"]))
             if not ok:
                 raise Refused(f"{k}, named by {m['data_release']}'s manifest, is not in the bucket")
-    gone = {k: n for k, n in sorted(listing.items()) if _unit(k) and _unit(k) not in kept}
+    newest: Dict[str, datetime] = {}
+    for k, o in listing.items():
+        u = _unit(k)
+        if u and u not in kept:
+            newest[u] = max(newest.get(u, o.mtime), o.mtime)
+    for u, t in sorted(newest.items()):
+        if now - t < RECENT:
+            kept.add(u)
+            notes.append(f"keep {u}: no pointer names it, but it went up {t:%Y-%m-%d %H:%M} UTC, under "
+                         f"{RECENT.total_seconds() / 3600:.0f} h ago (a web tab opened on it may still read it)")
+    gone = {k: o for k, o in sorted(listing.items()) if _unit(k) and _unit(k) not in kept}
     return [live["data_release"], prev["data_release"]], gone, notes
 
 
-def plan_v1(bucket: Bucket, site: str, fetch: Callable[[str], str]) -> Tuple[Optional[str], Dict[str, int]]:
-    """(why v1 is kept or None, {key: bytes} to delete). A site that cannot be read raises Refused."""
+def plan_v1(bucket: Bucket, site: str, fetch: Callable[[str], str]) -> Tuple[Optional[str], Dict[str, Obj]]:
+    """(why v1 is kept or None, {key: Obj} to delete). A site that cannot be read raises Refused."""
     try:
         html = fetch(site)
     except Exception as e:                            # noqa: BLE001 — any failure keeps v1, and is shown + exit 1
@@ -233,14 +291,31 @@ def _gb(n: int) -> str:
     return f"{n:,} B ({n / 1e9:.2f} GB)"
 
 
-def _delete(bucket: Bucket, gone: Dict[str, int], dry: bool, what: str) -> None:
-    for k, n in gone.items():
-        print(f"{'would delete' if dry else 'delete'} {k}  ({n:,} B)")
-    bucket.delete(list(gone), dry)
-    print(f"{what}: {len(gone)} object(s), {_gb(sum(gone.values()))} {'would be freed (dry run)' if dry else 'freed'}")
+def _delete(bucket: Bucket, gone: Dict[str, Obj], dry: bool, what: str) -> None:
+    if dry:
+        for k, o in gone.items():
+            print(f"would delete {k}  ({o.size:,} B)")
+        print(f"{what}: {len(gone)} object(s), {_gb(sum(o.size for o in gone.values()))} would be freed (dry run)")
+        return
+    done: List[str] = []
+
+    def said(k: str) -> None:
+        done.append(k)
+        print(f"deleted {k}  ({gone[k].size if k in gone else 0:,} B)", flush=True)
+    try:
+        if gone:
+            bucket.delete(list(gone), said)
+    except PartialDelete as e:
+        n = sum(gone[k].size for k in e.deleted if k in gone)
+        raise PartialDelete(e.deleted, f"{what}: the delete stopped part way, {len(e.deleted)} of {len(gone)} "
+                                       f"object(s), {_gb(n)} deleted before it did: {e}") from None
+    n = sum(gone[k].size for k in done if k in gone)
+    print(f"{what}: {len(done)} object(s), {_gb(n)} freed"
+          + (f" ({len(gone) - len(done)} listed were already gone)" if len(done) != len(gone) else ""))
 
 
-def main(argv=None, bucket: Optional[Bucket] = None, fetch: Callable[[str], str] = _fetch) -> int:
+def main(argv=None, bucket: Optional[Bucket] = None, fetch: Callable[[str], str] = _fetch,
+         now: Optional[datetime] = None) -> int:
     ap = argparse.ArgumentParser(description=__doc__.split("\n\n")[0])
     ap.add_argument("step", choices=("releases", "v1"))
     ap.add_argument("--remote", required=bucket is None, help="r2:<bucket> (or any rclone remote for a rehearsal)")
@@ -260,7 +335,7 @@ def main(argv=None, bucket: Optional[Bucket] = None, fetch: Callable[[str], str]
                     pending["data_release"]
                 except (OSError, ValueError, KeyError, TypeError) as e:
                     raise Refused(f"{a.pending} could not be read ({type(e).__name__}: {e})") from None
-            kept, gone, notes = plan_releases(b, pending)
+            kept, gone, notes = plan_releases(b, pending, now)
             for n in notes:
                 print(f"prune: {n}")
             print(f"prune: keep {', '.join(kept)} (live{' + previous' if len(kept) > 1 else ''})")
@@ -268,12 +343,16 @@ def main(argv=None, bucket: Optional[Bucket] = None, fetch: Callable[[str], str]
         else:
             why, gone = plan_v1(b, a.site, fetch)
             if why:
-                print(f"v1 kept: {why}. It goes once the new site is live (deploy/prod/site.sh, or the next promote).")
-                return 0
+                print(f"v1 kept, nothing deleted: {why}. Deploy the new site first (deploy/prod/site.sh).",
+                      file=sys.stderr)
+                return 1
             print(f"v1: {a.site} serves the new web export: the v1 layout goes")
             _delete(b, gone, a.dry_run, "v1 layout")
     except Refused as e:
         print(f"prune REFUSED, nothing deleted: {e}", file=sys.stderr)
+        return 1
+    except PartialDelete as e:
+        print(f"prune FAILED: {e}", file=sys.stderr)
         return 1
     return 0
 

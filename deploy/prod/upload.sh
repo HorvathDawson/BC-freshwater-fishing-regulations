@@ -10,17 +10,18 @@
 #     the owner enables its production option);
 #   - the previous release stays whole, and its pointer is kept as release/manifest.previous.json, so
 #     deploy/prod/rollback.sh is one copy back; (T865) AFTER the pointer, every release-scoped object neither pointer
-#     names is deleted, and the v1 layout once canifishthis.ca serves the new site (pipeline.deliver.release.prod_prune);
+#     names is deleted (pipeline.deliver.release.prod_prune; the v1 layout only by deploy/prod/drop-v1.sh);
 #   - no test/ channel, no smoke run here: run `node app/tools/smoke-staging.mjs --production` after.
 set -euo pipefail
 cd "$(dirname "$0")/../.."
+source deploy/lib/bucket.sh   # (T865) --bucket is compared bare: no slash or remote prefix slips past CONFIRM_PROD
 PROD_BUCKET=bc-fishing-regulations
 STAGING=r2:bc-fishing-regulations-staging
 BUCKET=$PROD_BUCKET; DRY=(); REL=
 while [[ $# -gt 0 ]]; do
   case $1 in
     --dry-run) DRY=(--dry-run) ;;
-    --bucket) BUCKET=${2:?--bucket needs a name}; shift ;;
+    --bucket) BUCKET=$(bucket_name "${2:?--bucket needs a name}") || exit 2; shift ;;
     r-*) REL=$1 ;;
     *) echo "upload (prod): unknown argument $1" >&2; exit 2 ;;
   esac; shift
@@ -117,11 +118,9 @@ echo "promoted $REL to $D${DRY[*]:+ (dry run: nothing was written)}. Next: node 
 
 # 6. (T865, owner 2026-11-18: "That clean up should be automatic") AFTER the pointer, so a failure anywhere above leaves
 # everything in place. Old releases: every object under release/r-*, release/tiles/*, release/basemap/* that neither
-# release/manifest.json nor release/manifest.previous.json names (an allowlist; feeds/, private/, runtiming/, app/,
-# map-assets/ and the rest are never candidates). Refused, nothing deleted (exit 1), when a pointer cannot be read or a
-# file a kept one names is missing. A dry run prunes as the pointer step would have left the two pointers.
+# release/manifest.json nor release/manifest.previous.json names, and that went up over 24 h ago (an allowlist; feeds/,
+# private/, runtiming/, app/, map-assets/ and the rest are never candidates). Refused, nothing deleted (exit 1), when a
+# pointer cannot be read or a file a kept one names is missing. A dry run prunes as the pointer step would leave the
+# two pointers. The v1 layout is NOT dropped here (a site rollback would load with no data): deploy/prod/drop-v1.sh.
 PRUNE=(); [[ ${#DRY[@]} -gt 0 ]] && PRUNE=(--dry-run --pending "$M")
 .venv/bin/python -m pipeline.deliver.release.prod_prune releases --remote "$D" ${PRUNE[@]+"${PRUNE[@]}"}
-# the v1 layout (the old Vite site's data) only once canifishthis.ca serves the new web export; else kept, and said why
-if [[ $BUCKET == "$PROD_BUCKET" ]]; then V1_SITE=https://canifishthis.ca/; else V1_SITE=${SITE_URL:-https://canifishthis.ca/}; fi
-.venv/bin/python -m pipeline.deliver.release.prod_prune v1 --remote "$D" --site "$V1_SITE" ${DRY[@]+"${DRY[@]}"}

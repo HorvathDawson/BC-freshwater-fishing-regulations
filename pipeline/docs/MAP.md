@@ -28,7 +28,7 @@ re-cut and the tests that read the release, all on the candidate) → LATEST →
 lists every failure at once; `--dry-run` rehearses every stage's checks. Its ledger is `data/generated/release/ledger.json`;
 `--prod <r-id>` (human-only) re-uploads that same release through `deliver/release/publish.py`. After the production pointer moves,
 `deploy/prod/upload.sh` prunes the bucket (T865, `deliver/release/prod_prune.py`): release-scoped objects neither pointer
-names, and the v1 layout once canifishthis.ca serves the new site.
+names (the v1 layout only by `deploy/prod/drop-v1.sh`, at the switch).
 
 ## Stages and where they live
 

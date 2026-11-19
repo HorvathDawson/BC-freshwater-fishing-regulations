@@ -245,7 +245,7 @@ PLACEHOLDER = "feeds (production) is not live yet"
 
 @pytest.fixture
 def prod_tree(tmp_path):
-    for rel in ("deploy/prod/sync-inputs.sh", "deploy/lib/input-formats.sh"):
+    for rel in ("deploy/prod/sync-inputs.sh", "deploy/lib/input-formats.sh", "deploy/lib/bucket.sh"):
         (tmp_path / rel).parent.mkdir(parents=True, exist_ok=True)
         shutil.copy(ROOT / rel, tmp_path / rel)
     return tmp_path

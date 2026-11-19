@@ -50,8 +50,8 @@ Before: the release is on staging and the owner has checked it there (phone + we
    CONFIRM_PROD=<r-id> .venv/bin/python -m pipeline release --prod <r-id>   # runs CONFIRM_PROD=canifishthis.ca deploy/prod/upload.sh <r-id>
    ```
    It refuses unless staging's live manifest is byte-identical to `data/release/<r-id>/manifest.json`. After the pointer
-   it prunes (T865, below): the first promote has no previous pointer, so no release is pruned; the v1 layout is kept,
-   because canifishthis.ca still serves the old site.
+   it prunes old releases (T865, below): the first promote has no previous pointer, so none is pruned. The v1 layout
+   stays until step 11.
 5. **Owner — the feeds worker** (deploys over the placeholder; the secrets stay):
    ```bash
    CONFIRM_PROD=bc-fishing-feeds deploy/prod/feeds.sh
@@ -67,7 +67,7 @@ Before: the release is on staging and the owner has checked it there (phone + we
      pnpm -C app --filter @app/mobile exec expo export --clear --platform web --output-dir ../../dist/web-prod
    scripts/heavy.sh seo-prod 30 -- node app/tools/build-seo.mjs --release-dir data/release/<r-id> \
      --app app/dist/web-prod --threads 4 --out app/dist/seo-prod
-   CONFIRM_PROD=canifishthis.ca deploy/prod/site.sh                 # owner; then deletes the v1 layout (T865)
+   CONFIRM_PROD=canifishthis.ca deploy/prod/site.sh                 # owner
    ```
    Cloudflare (owner): Managed robots.txt OFF; Bot Fight Mode / JS detections and Web Analytics OFF on the site zone.
 7. **Owner — the www redirect keeps the path.** Today `www.canifishthis.ca/water/vedder-river` → 301 to the home page.
@@ -86,24 +86,25 @@ Before: the release is on staging and the owner has checked it there (phone + we
    Install from internal on the phone (About shows no environment badge), then promote the same build to Closed testing
    in Play Console (T371). From now on every Play build is production; staging stays on the sideload APK page (Q173).
 10. **Owner — search.** Search Console Domain property (DNS TXT) + Bing import; submit `https://canifishthis.ca/sitemap.xml`.
-11. **The v1 layout goes by itself (T865).** Once canifishthis.ca serves the new web export, `deploy/prod/site.sh`
-    (right after its deploy) and every later `deploy/prod/upload.sh` delete the old Vite site's data from the bucket:
-    `cron/**` (hydro `stations.json`, `gauges.geojson`, `gauge_matches.json`, `recent/`, `history/`, `climatology/`;
-    in-season; stocking incl. `anglerinfo.db`), `shards/**`, `mobile/**`, `row_images/**`, `bathymetry/**` and the root
-    files (`tier0.json`, `data_version.json`, `layer_manifest.json`, `match_table.json`, the `*.pmtiles` it read, ...;
-    the list is `V1_FILES` / `V1_DIRS` in `pipeline/deliver/release/prod_prune.py`, read from `main`). The marker: the
-    page loads `/_expo/static/js/web/index-<hash>.js` and lacks the old `<!-- build: webapp UI fixes` comment; without
-    it the output says "v1 kept" and why. `feedback/**` (the old worker's stored reports) is kept: content, not layout.
-12. **Claude — at the switch, on the owner's word** (owner 2026-11-18 ~18:25: "when we flip the switch i will get you to
-    clean that stuff up too"; never before he says so): turn off the old crons, which would otherwise keep writing
-    `cron/**` back (each later prune deletes it again):
+11. **Claude — at the switch, on the owner's word** (T865; owner 2026-11-18 ~18:25: "when we flip the switch i will get
+    you to clean that stuff up too"; never before he says so). Once the prod app reads `feeds/` and the new site is
+    live, in one go: turn off the old crons, then drop the v1 layout (never automatic: once it is gone a site rollback to
+    the Vite build loads with no data):
     ```bash
     gh workflow disable update-hydro.yml -R HorvathDawson/BC-freshwater-fishing-regulations
     gh workflow disable update-in-season.yml -R HorvathDawson/BC-freshwater-fishing-regulations
     gh workflow disable update-stocking.yml -R HorvathDawson/BC-freshwater-fishing-regulations
     npx --prefix app wrangler delete --name bc-fishing-cron    # main's cron-runner/ (dispatches update-hydro.yml)
+    CONFIRM_PROD=canifishthis.ca deploy/prod/drop-v1.sh --dry-run   # the list and the bytes
+    CONFIRM_PROD=canifishthis.ca deploy/prod/drop-v1.sh
     ```
-    Then check the bucket after the next promote: no `cron/` key, `rclone size r2:bc-fishing-regulations` well under 10 GB.
+    `drop-v1.sh` fails closed: it deletes nothing unless canifishthis.ca loads `/_expo/static/js/web/index-<hash>.js` and
+    lacks the old `<!-- build: webapp UI fixes` comment. The v1 layout (`V1_FILES` / `V1_DIRS` in
+    `pipeline/deliver/release/prod_prune.py`, read from `main`): `cron/**` (hydro `stations.json`, `gauges.geojson`,
+    `gauge_matches.json`, `recent/`, `history/`, `climatology/`; in-season; stocking incl. `anglerinfo.db`), `shards/**`,
+    `mobile/**`, `row_images/**`, `bathymetry/**` and the root files (`tier0.json`, `data_version.json`,
+    `layer_manifest.json`, `match_table.json`, the `*.pmtiles` the old site read, ...). `feedback/**` (the old worker's
+    stored reports) is kept: content, not layout. Then `rclone size r2:bc-fishing-regulations`: well under 10 GB.
 
 ## Every later release
 
@@ -144,8 +145,12 @@ R2's free tier is 10 GB. After every promote, `deploy/prod/upload.sh` runs `pipe
   `release/manifest.json` nor `release/manifest.previous.json` names is deleted (an allowlist: `feeds/`, `private/`,
   `runtiming/`, `map-assets/`, `app/`, `*.wasm`, `feedback/` are never candidates). Refused, nothing deleted, exit 1:
   a pointer it cannot read or parse, a file a kept manifest names that is missing, both pointers naming one release.
-  It prints each key and the bytes freed; `--dry-run` prints the plan as the pointer step would leave it.
-- **v1**: step 11 above.
+  A folder no pointer names but that went up under 24 h ago (server time) is kept, and said: a web tab opened on a
+  release promoted earlier the same day still reads its files. It prints each key once deleted and the bytes freed
+  (a delete that stops part way says how many went); `--dry-run` prints the plan as the pointer step would leave it.
+- **v1**: not automatic; step 11 above (`deploy/prod/drop-v1.sh`, Claude, at the switch, on the owner's word).
+- Every `deploy/prod` script compares `--bucket` bare (`deploy/lib/bucket.sh`): `bc-fishing-regulations/` or
+  `r2:bc-fishing-regulations` still needs `CONFIRM_PROD`.
 `runtiming/` is not pruned: its own publisher's content-named files (a few MB a refresh, `pipeline/runtiming/feed/publish.py`).
 
 ## Not yet (tickets)

@@ -7,12 +7,13 @@
 #   deploy/prod/rollback.sh --bucket <a non-production bucket> [--dry-run]      (a rehearsal: no confirmation needed)
 set -euo pipefail
 cd "$(dirname "$0")/../.."
+source deploy/lib/bucket.sh   # (T865) --bucket is compared bare: no slash or remote prefix slips past CONFIRM_PROD
 PROD_BUCKET=bc-fishing-regulations
 BUCKET=$PROD_BUCKET; DRY=()
 while [[ $# -gt 0 ]]; do
   case $1 in
     --dry-run) DRY=(--dry-run) ;;
-    --bucket) BUCKET=${2:?--bucket needs a name}; shift ;;
+    --bucket) BUCKET=$(bucket_name "${2:?--bucket needs a name}") || exit 2; shift ;;
     *) echo "rollback (prod): unknown argument $1" >&2; exit 2 ;;
   esac; shift
 done

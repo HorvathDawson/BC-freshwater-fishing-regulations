@@ -6,8 +6,6 @@
 #   CONFIRM_PROD=canifishthis.ca deploy/prod/site.sh
 #   deploy/prod/site.sh --dry-run     (T404: assembles app/dist/prod-site and runs `wrangler deploy --dry-run`, which
 #                                      uploads nothing — no confirmation needed)
-# After a real deploy it deletes the v1 layout from bc-fishing-regulations once the site serves the new export (T865,
-# pipeline.deliver.release.prod_prune v1; needs the rclone remote `r2:`).
 set -euo pipefail
 cd "$(dirname "$0")/../.."
 DRY=; [[ " $* " == *" --dry-run "* ]] && DRY=1
@@ -49,8 +47,4 @@ fs.writeFileSync(O + "/site-release.json", JSON.stringify({ release, commit: C, 
 console.log("site-release.json: " + release + ", commit " + C + (D === "true" ? " DIRTY" : " clean"));' "$S" "$O" "$SITE_COMMIT" "$SITE_DIRTY"
 echo "files: $(find "$O" -type f | wc -l)"
 npx --prefix app wrangler deploy -c deploy/prod/site.wrangler.toml "$@"
-# (T865) the v1 layout (the old Vite site's data) goes once canifishthis.ca serves the new web export — the deploy above
-# is what makes it so (deploy/prod/upload.sh runs the same step after every promote). A dry run reads no production bucket.
-if [[ -n $DRY ]]; then echo "v1 layout: not checked (dry run: the production bucket is not read)"
-else .venv/bin/python -m pipeline.deliver.release.prod_prune v1 --remote r2:bc-fishing-regulations --site https://canifishthis.ca/; fi
 echo "deployed. Optional host redirect (see deploy/prod/host.wrangler.toml): npx --prefix app wrangler deploy -c deploy/prod/host.wrangler.toml"
