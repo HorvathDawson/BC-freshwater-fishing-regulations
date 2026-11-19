@@ -33,3 +33,9 @@ determined".
      green (chinook open Aug 16 / Aug 28 – Sep 22).
 4. SEO pages and the share: the water pages prerender the app's own Shell (`tools/seo/pane.tsx`), so they take core's
    words; the share sends a link only (no salmon text).
+
+## Pictures (390 dark, staging data, web build of this branch)
+Before / after: `/private/tmp/claude-502/-Users-dawson-horvath-dev-personal-BC-freshwater-fishing-regulations/699dcd1b-ff73-4ed1-a69c-69feb621d839/scratchpad/t882/t882-{before,after}-390-dark-south-thompson-nov18.png`, `…-thompson-goldpan-sep1.png`,
+`…-thompson-kamloops-sep1.png`; the maps: `/private/tmp/claude-502/-Users-dawson-horvath-dev-personal-BC-freshwater-fishing-regulations/699dcd1b-ff73-4ed1-a69c-69feb621d839/scratchpad/t882/maps/`.
+
+Left (Claude): an independent review, then merge (lane app/t882-to-be-determined); the owner's yes on the key words.
