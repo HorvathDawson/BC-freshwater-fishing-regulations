@@ -2803,3 +2803,15 @@ More questions (recommended answer first):
   headers, one table (Recommended)": both status blocks first (SALMON · DFO and GAME FISH · B.C., each its big word and
   its own year line, labelled), then ONE fish list with each row tagged DFO / B.C. -> the app chat (ticket number
   theirs); real pictures to the owner before it lands.
+- 2026-11-18 ~20:59, owner (main chat), DFO Region 6 Bulkley bait row shot
+  (/Users/dawson.horvath/.claude/uploads/b8ddfca9-44eb-400e-a9bf-bd89b4b0f359/8d922a2e-image.png), verbatim: "Make sure
+  this rule is correct. Like the with tributaries part for each exception except the one" -> T880. Found: Two Mile Creek
+  is excepted with its tributaries (wrong by the words). Dialog picks ~21:02: "Yes, follow the words" (an exception
+  without "and tributaries" leaves out only that stream; the Suskwa's tributaries stay in the chinook row too); "After
+  production (Recommended)".
+- 2026-11-18 ~21:05, owner (main chat), Babine Lake — Main Body, Conditions tab shot
+  (/Users/dawson.horvath/.claude/uploads/b8ddfca9-44eb-400e-a9bf-bd89b4b0f359/3733b516-image.png: "No estimate", then
+  the gauge map showing only "you are here"), verbatim: "Lakes or other things without a meaningful map here don't need
+  to include gauge map.. Also we should choose one map size maybe larger fit only" -> the app chat (ticket number
+  theirs): no gauge map where it shows nothing useful (no gauge drawn, only the water's pin); one map size, the larger
+  one, fitted, instead of the Fit / Larger map buttons.
