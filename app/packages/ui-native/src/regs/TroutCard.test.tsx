@@ -339,7 +339,7 @@ function rgb(hex: string): string {
   return `rgb(${r}, ${g}, ${b})`;
 }
 
-describe("(T907) a row's tributary source: a tag beside the name in the box tag's look, read once by its row", () => {
+describe("(T907) a row's tributary source: its own line under the name, read once by its row", () => {
   const LINE = "Kootenay Lake — Main Body’s rule for its tributaries";
   const TAG = "Kootenay Lake — Main Body’s tributaries";
   /** the first vector's table with Python's line (T892) and, unless `line only`, its tag (T907) on its first row */
@@ -350,19 +350,31 @@ describe("(T907) a row's tributary source: a tag beside the name in the box tag'
       ...f.table.boxes.slice(1)] } } as TroutValue;
     return vmOf({ ...c, frame });
   }
-  it("drawn on its row only, beside the name, as given, in every palette's accent with an accent outline; its row's label says it once", () => {
+  it("drawn on its row only, under the name, as given; its row's label says it once", () => {
     for (const p of [LIGHT, DARK, CVD]) {
       mount(withSource(), p);
       const got = screen.getAllByTestId("keep-row-tag");
       expect(got.map((e) => e.textContent)).toEqual([TAG]);
-      const word = within(got[0]!).getByTestId("kicker:tag");
-      expect([parseFloat(getComputedStyle(word).fontSize), getComputedStyle(word).color, getComputedStyle(got[0]!).borderTopColor])
-        .toEqual([TYPE.kicker.fontSize, rgb(p.accent), rgb(p.accent)]);
       const row = screen.getAllByTestId("keep-row")[0]!;
-      // beside the name: the name's own line holds it
-      expect(within(row).getByTestId("keep-name").parentElement!.contains(got[0]!)).toBe(true);
+      // its own line: in the row's text column, not inside the name's line (which wraps the name and its badges)
+      expect(within(row).getByTestId("keep-name").parentElement!.contains(got[0]!)).toBe(false);
+      expect(within(row).getByTestId("keep-name").parentElement!.parentElement!.contains(got[0]!)).toBe(true);
       expect(row.getAttribute("aria-label")!.split(TAG)).toHaveLength(2);
       expect(row.textContent!.includes(LINE)).toBe(false);                                  // the grey line is gone
+      cleanup();
+    }
+  });
+  it("(round 2, owner ~12:27 \"the baddly formattred double line tag\", ~12:50 \"muted grey not purple idea same size as the dates text\") no box to break: the date line's face and muted colour, no capitals or tracking, a rule of that colour on its left only", () => {
+    for (const p of [LIGHT, DARK, CVD]) {
+      mount(withSource(), p);
+      const tag = screen.getByTestId("keep-row-tag"), word = within(tag).getByTestId("keep-row-tag-text");
+      const t = getComputedStyle(word), b = getComputedStyle(tag);
+      expect([parseFloat(t.fontSize), t.color, t.textTransform, t.letterSpacing])
+        .toEqual([TYPE.meta.fontSize, rgb(p.sub), "none", "normal"]);            // the kicker: uppercase, 1px
+      expect([b.borderLeftWidth, b.borderLeftColor, b.borderTopWidth || "0px", b.borderRightWidth || "0px", b.alignSelf])
+        .toEqual(["2px", rgb(p.sub), "0px", "0px", "flex-start"]);                       // hugs its text: no column-wide box
+      // the box head's own-water tag keeps its outlined kicker
+      expect(within(tag).queryByTestId("kicker:tag")).toBeNull();
       cleanup();
     }
   });

@@ -375,6 +375,27 @@ def possessive(name: str) -> str:
     return f"{name}’" if re.search(r"s$", name, re.I) else f"{name}’s"
 
 
+#: (T907 round 2) a source entry whose own name already ends in "Tributaries" ("Lake Revelstoke's Tributaries")
+_OWN_TRIBUTARIES = re.compile(r"(?:^|\s+)tributaries$", re.I)
+_SAYS_WHOSE = re.compile(r"(?:['’]s|s['’])$")
+
+
+def whose_tributaries(name: str) -> str:
+    """The possessive a tributary line or tag names its source water by: `possessive`, except (T907 round 2, owner
+    2026-11-19 ~12:27, "Drop the repeat") a name that already ends in "Tributaries" says it once: "Lake Revelstoke's
+    Tributaries" -> "Lake Revelstoke’s" (its own possessive kept, its mark set as every possessive here is, ’, which
+    the installed apps' `DOWN_FORM` reads), "Lake Revelstoke Tributaries" -> "Lake Revelstoke’s", so the words read
+    "Lake Revelstoke’s tributaries", never "… Tributaries’ tributaries"."""
+    possessive(name)                                    # refuses an empty or padded name, as before
+    base = _OWN_TRIBUTARIES.sub("", name)
+    if base == name:
+        return possessive(name)
+    if not base.strip():
+        raise WordsError(f"trout words: a water's name is only \"tributaries\": {name!r}")
+    m = _SAYS_WHOSE.search(base)
+    return possessive(base) if not m else base[: m.start()] + ("’s" if m[0].endswith("s") else "s’")
+
+
 def row_down(names) -> str:
     """The line under a row's name naming the waters whose rows, carried down to their tributaries, set it: "Dutch
     Creek’s rule for its tributaries"; "A’s and B’s rules for their tributaries" (the app's `DECIDE.ROW_DOWN`, the
@@ -383,8 +404,9 @@ def row_down(names) -> str:
     if not names:
         raise WordsError("trout words: a tributary line names a water")
     if len(names) == 1:
-        return f"{possessive(names[0])} rule for its tributaries"
-    return f"{', '.join(possessive(n) for n in names[:-1])} and {possessive(names[-1])} rules for their tributaries"
+        return f"{whose_tributaries(names[0])} rule for its tributaries"
+    return (f"{', '.join(whose_tributaries(n) for n in names[:-1])} and {whose_tributaries(names[-1])} rules for their "
+            "tributaries")
 
 
 def is_row_down(text: str, names) -> bool:
@@ -402,8 +424,8 @@ def row_tag(names) -> str:
     if not names:
         raise WordsError("trout words: a tributary tag names a water")
     if len(names) == 1:
-        return f"{possessive(names[0])} tributaries"
-    return f"{', '.join(possessive(n) for n in names[:-1])} and {possessive(names[-1])} tributaries"
+        return f"{whose_tributaries(names[0])} tributaries"
+    return f"{', '.join(whose_tributaries(n) for n in names[:-1])} and {whose_tributaries(names[-1])} tributaries"
 
 
 def is_row_tag(text: str, names) -> bool:

@@ -58,6 +58,9 @@ def _lead(v: str) -> str:
 DOWN_FORM = re.compile(r"\S.*’s? rule for its tributaries|\S.*’s? and \S.*’s? rules for their tributaries")
 #: (T907) `TRow.tag`'s form (`trout/words.py` `row_tag`): "Trout Lake’s tributaries", "A’s and B’s tributaries"
 TAG_FORM = re.compile(r"\S.*’s? tributaries")
+#: (T907 round 2, owner "Drop the repeat") neither form names a water by "… Tributaries’": a source entry whose name ends
+#: in "Tributaries" says it once (`words.whose_tributaries`), "Lake Revelstoke's tributaries"
+DOUBLED = re.compile(r"tributaries[’'][ ,]", re.I)
 
 #: a whole phrase, drawn unchanged
 Txt = Annotated[StrictStr, Field(min_length=1), AfterValidator(_txt)]
@@ -148,6 +151,9 @@ class _TRowFields(Model):
                              "tributaries\" or \"<A>’s and <B>’s rules for their tributaries\"")
         if self.tag is not None and not TAG_FORM.fullmatch(self.tag):
             raise ValueError(f"row {self.key}: the tributary tag {self.tag!r} is not \"<water>’s tributaries\"")
+        for f, v in (("line", self.down), ("tag", self.tag)):
+            if v is not None and DOUBLED.search(v):
+                raise ValueError(f"row {self.key}: the tributary {f} {v!r} says \"tributaries\" twice")
         if self.tag is not None and self.down is None:
             raise ValueError(f"row {self.key}: a tributary tag {self.tag!r} without its line")
         return self

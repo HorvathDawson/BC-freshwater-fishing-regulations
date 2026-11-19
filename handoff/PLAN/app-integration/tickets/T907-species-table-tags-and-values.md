@@ -1,6 +1,6 @@
 # T907 — "Species and limits" table: no B.C./DFO tag on rows, one value column, where each answer comes from
 
-Status: IN PROGRESS — built on lane app/t907-species-table (2026-11-19 ~10:30); left (Claude): owner sees pictures, then integrate (main chat) + a new staging data release.
+Status: IN PROGRESS — round 1 built on lane app/t907-species-table (2026-11-19 ~10:30), round 2 (row tag look, doubled "Tributaries") ~12:55; left (Claude): owner sees round-2 pictures, then integrate (main chat) + a new staging data release.
 
 Owner 2026-11-19 ~06:50 (main chat), on a dark staging shot of the "Species and limits" table (Salmon DFO closed;
 Trout and char B.C. Release ⌄; Kokanee B.C. release ›; Whitefish 15 a day; …), verbatim: "for 4. in the menu for each
@@ -57,3 +57,44 @@ tributaries"), rather than a separate grey sentence under the fish. The other fi
 - Pictures (Glenn Creek, Nov 19; BEFORE: base app on r-379e72fc9524; AFTER: lane app on a SCRATCH copy of
   r-379e72fc9524 whose trout tables carry what this build writes — tag + lowered fold, patched for the picture only):
   scratchpad (session 1db4ea05) `t907-shots/t907-contact.png`, singles `{before,after}-{390-light,390-dark,1440-light}.png`.
+
+## Owner 2026-11-19 ~12:27 (dialog, with the Glenn Creek picture)
+- Shared tag (Moyie River: every row the same tag): verbatim "each row is good but the tag neds to be improved... the
+  baddly formattred double line tag is nasty looking...". So: keep the tag on each row (no hoist, no section change);
+  redo the tag's LOOK so a long name doesn't wrap into a two-line outlined box (round 2, pictures before integrating).
+- Names already ending in "Tributaries" ("Lake Revelstoke's Tributaries' tributaries"): picked "Drop the repeat" →
+  "Lake Revelstoke's tributaries".
+
+## Owner 2026-11-19 ~12:50 (on the round-2 pictures, first look: accent colour, left rule)
+Verbatim: "muted grey not purple idea same size as the dates text". So the row tag keeps the round-2 layout (its own line
+under the fish name, a rule on its left, sentence case, no box) in the muted grey and the size and face of the row's
+date line ("until Mar 31": `TYPE.meta`, `palette.sub`), the rule in the same grey.
+
+## What was built, round 2 (2026-11-19 ~12:55, lane app/t907-species-table)
+- **The row tag's look** (app, `KeepBox` `RowTag`, testID `keep-row-tag` / `keep-row-tag-text`): its own line under the
+  fish's name (no longer in the name's wrapping line), the row date line's face and muted grey (`NEXT` = `TYPE.meta`,
+  `palette.sub`), a 2 px rule of the same grey on its left, `alignSelf: flex-start` (hugs its text), no outline, no
+  capitals, no tracking. At 390 px: "Trout Lake’s tributaries" 132 px, "Coquihalla River’s tributaries" 166 px, "Lake
+  Revelstoke’s tributaries" 165 px, all one line in a 184 px column; "Kootenay Lake — Main Body’s tributaries" wraps to
+  two plain lines on the one rule. The box head's own-water tag ("Lake’s rule", `Tag`, kicker + accent outline) is
+  unchanged. Native and web share the component; native checked by the react-native-web render tests only.
+- **Drop the repeat** (Python `words.whose_tributaries`, used by `row_tag` AND the old grey line `row_down`, which
+  doubled too: "Lake Revelstoke's Tributaries’ rule for its tributaries"): a source name ending in "Tributaries" says it
+  once, its own possessive kept with the typographic mark the installed apps' `DOWN_FORM` reads ("Lake Revelstoke’s
+  tributaries", "Lake Revelstoke’s rule for its tributaries"). Model `DOUBLED` refuses "…Tributaries’ " in `down` or
+  `tag`; the app's `checkTrout` refuses it the same way; J (`down_problems`) reads back through the same words. The app's
+  Other fish line (`DECIDE.ROW_DOWN`, `downLine`, which also feeds the trout fold's line) drops it the same way, word for
+  word. `release-tributary-lines.test.ts` reads releases cut before this (r-379e72fc9524) with the old possessive.
+  NOT changed: the sheet kicker `K_DOWN` ("Lake Revelstoke's Tributaries · its tributaries") and the parallel
+  "Chilko Lake's tributary streams’ tributaries" (1 table, 0 waters at part 0) — ask the owner if he wants those too.
+- **Count, live release r-379e72fc9524 (read-only):** 363 trout rows (53 distinct lines) carry a tributary line; the
+  drop applies to 2 rows (2 tables, one name: "Lake Revelstoke's Tributaries"), shown on 74 waters at part 0 (Kelly,
+  Belcher, Fuller, Craw, Standard, Pelkey, Stitt, Murder, Argonaut, Graham, Granite, Hiram Creek, …).
+- No section-version change, no new field; the change reaches anglers with the next staging data release (words) and
+  the next app (look). The mini release is unchanged by the words (its regs files rebuild identical).
+- Pictures (Nov 19; round 1 = lane app at af57161af on the round-1 scratch release; round 2 = this build on a SCRATCH
+  copy of r-379e72fc9524 whose trout rows carry this build's line + tag, picture only): scratchpad (session 1db4ea05)
+  `t907r2/shots/t907r2-contact-grey.png`, singles `{before,after}-{glenn,nicolum,anderson,kelly}-{390-light,390-dark,1440-light}.png`
+  (Glenn Creek; Nicolum River every row tagged — no water named Moyie River has tagged rows in r-379e72fc9524, its
+  tributaries carry 2 of 6; Anderson Creek the long Kootenay Lake — Main Body name; Kelly Creek the dropped repeat).
+  The first round-2 look (accent purple) is in `t907r2/shots-r2a/`.

@@ -79,6 +79,34 @@ def test_t907_the_tag_says_the_same_waters_in_the_sheets_kicker_words():
             W.row_tag(bad)
 
 
+def test_t907_round2_a_name_ending_in_tributaries_says_it_once():
+    """(T907 round 2, owner 2026-11-19 ~12:27, "Drop the repeat") a source entry already named "… Tributaries" (r-379e72fc9524:
+    "Lake Revelstoke's Tributaries", 2 rows) gives "Lake Revelstoke’s tributaries", never "… Tributaries’ tributaries";
+    the old grey line the same; the possessive mark set as every other (’, the installed apps' DOWN_FORM)."""
+    REV = "Lake Revelstoke's Tributaries"
+    assert [W.whose_tributaries(n) for n in (REV, "Lake Revelstoke Tributaries", "Bass Lakes Tributaries",
+                                              "Lake Revelstoke tributaries", "Trout Lake", "Twin Lakes")] == [
+        "Lake Revelstoke’s", "Lake Revelstoke’s", "Bass Lakes’", "Lake Revelstoke’s", "Trout Lake’s", "Twin Lakes’"]
+    assert W.row_tag([REV]) == "Lake Revelstoke’s tributaries"
+    assert W.row_down([REV]) == "Lake Revelstoke’s rule for its tributaries"
+    assert W.row_tag(["Lake Revelstoke Tributaries", "Duck Lake"]) == "Lake Revelstoke’s and Duck Lake’s tributaries"
+    assert W.row_down(["Duck Lake", REV]) == "Duck Lake’s and Lake Revelstoke’s rules for their tributaries"
+    assert W.is_row_tag("Lake Revelstoke’s tributaries", [REV]) and W.is_row_down("Lake Revelstoke’s rule for its tributaries", [REV])
+    assert not W.is_row_tag("Lake Revelstoke's Tributaries’ tributaries", [REV])               # the old doubled words
+    assert W.row_tag(["Tributary Creek"]) == "Tributary Creek’s tributaries"                  # only a trailing word
+    for bad in ("Tributaries", " Lake Revelstoke Tributaries"):
+        with pytest.raises(W.WordsError):
+            W.row_tag([bad])
+    # what a build writes passes the model, and the old doubled words are refused there (and by the app, `checkTrout`)
+    assert _valid(down=W.row_down([REV]), tag=W.row_tag([REV])).tag == "Lake Revelstoke’s tributaries"
+    for down, tag in (("Lake Revelstoke's Tributaries’ rule for its tributaries", "Lake Revelstoke’s tributaries"),
+                      ("Lake Revelstoke’s rule for its tributaries", "Lake Revelstoke Tributaries’ tributaries"),
+                      ("Lake Revelstoke Tributaries’ and Duck Lake’s rules for their tributaries", "Duck Lake’s tributaries"),
+                      ("Duck Lake’s rule for its tributaries", "Lake Revelstoke Tributaries’, A’s and Duck Lake’s tributaries")):
+        with pytest.raises(ValidationError):
+            _valid(down=down, tag=tag)
+
+
 # ------------------------------------------------------------------------------------------------------------ the names
 
 def test_a_row_every_answer_of_which_a_tributary_rule_wins_names_its_water():
@@ -220,6 +248,11 @@ def test_j_reads_the_line_back_against_the_stored_answers(monkeypatch):
     assert CHK.down_problems(c, T)                                                        # never passed unproved
     assert CHK.down_problems(*_cell(ok, 0, tag="Duck Lake’s tributaries"))               # (T907) a tag naming another
     assert CHK.down_problems(*_cell(ok, 0, tag=None))                                     # (T907) a line without its tag
+    rev = "Lake Revelstoke's Tributaries"                                                  # (T907 round 2) said once
+    assert CHK.down_problems(*_cell("Lake Revelstoke’s rule for its tributaries", 0, name=rev,
+                                    tag="Lake Revelstoke’s tributaries")) == []
+    assert CHK.down_problems(*_cell("Lake Revelstoke's Tributaries’ rule for its tributaries", 0, name=rev,
+                                    tag="Lake Revelstoke's Tributaries’ tributaries"))
     monkeypatch.setattr(CHK, "A_DOWN_PROOF", False)
     assert CHK.down_problems(*_cell("Duck Lake’s rule for its tributaries", 0)) == []     # the mutation
 

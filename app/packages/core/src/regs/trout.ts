@@ -36,6 +36,9 @@ const ROW_KEY = /^(CT|DV|EB|GB|LT|RB|ST)(\/(wild|hatchery))?$/;
 const DOWN_FORM = /^\S.*’s? rule for its tributaries$|^\S.*’s? and \S.*’s? rules for their tributaries$/;
 /** (T907) `TRow.tag`'s form (`model/trout.py` TAG_FORM): "Trout Lake’s tributaries", "A’s and B’s tributaries". */
 const TAG_FORM = /^\S.*’s? tributaries$/;
+/** (T907 round 2, owner "Drop the repeat") neither names a water by "… Tributaries’" (`model/trout.py` DOUBLED): a source
+ *  entry already named "… Tributaries" says it once, "Lake Revelstoke’s tributaries" */
+const DOUBLED = /tributaries[’'][ ,]/i;
 
 /** A trout frame the app will not draw: reported once per read, with the contract's reason. */
 export class TroutRefused extends Error {
@@ -88,6 +91,8 @@ function box(x: Box, bi: number): void {
     txt(r.name, `${rw} name`); opt(r.label, `${rw} label`); opt(r.sub, `${rw} sub`);
     // (T892) the tributary line, optional (absent: none); its two forms as the model holds them (`model/trout.py` DOWN_FORM)
     if (r.down != null) { txt(r.down, `${rw} down`); if (!DOWN_FORM.test(r.down)) bad(`${rw}: the tributary line ${r.down} is not one of its forms`); }
+    for (const [f, v] of [["line", r.down], ["tag", r.tag]] as const)
+      if (v != null && DOUBLED.test(v)) bad(`${rw}: the tributary ${f} ${v} says "tributaries" twice`);
     // (T907) the tributary tag, optional; never without the line (`model/trout.py` `_down`)
     if (r.tag != null) {
       txt(r.tag, `${rw} tag`);
