@@ -4,7 +4,8 @@
  */
 import { describe, expect, it } from "vitest";
 import { APP_UPDATE_WORDS as W, apkIsNewer, appUpdateChannel, appUpdateOs, appUpdateVM, appVersionFileUrl, appVersionToTell, changelogVM, notesFor,
-         readAppUpdateSaved, shouldCheckAppUpdate, updatePopupVM, type AppUpdateChannel, type AppUpdateCheck } from "./appUpdate";
+         readAppUpdateSaved, shouldCheckAppUpdate, storeUpdateCheck, storeVersionFileUrl, updatePopupVM, type AppUpdateChannel,
+         type AppUpdateCheck } from "./appUpdate";
 import { CHANGELOG, notesOn, type ChangelogEntry } from "./changelog";
 import { compareSemver } from "./appVersion";
 import { bellLabel } from "./updates";
@@ -284,5 +285,74 @@ describe("(T888) the popup on opening", () => {
     expect([appVersionFileUrl("apk-page", i), appVersionFileUrl("play", i), appVersionFileUrl("app-store", i),
             appVersionFileUrl("none", i)]).toEqual(["https://data-staging.example/app/android/latest.json",
       "https://data.example/app/android/play.json", "https://data.example/app/ios/appstore.json", null]);
+  });
+});
+
+describe("(T894) the store channels read the version file of the build the store OFFERS", () => {
+  const BASE = "https://data.example/";
+  // the bucket as the review found it: play.json / appstore.json name the LAST upload (0.8.3, closed testing / TestFlight)
+  // while the store offers this phone 0.8.2 (production: versionCode 30, App Store 0.8.2)
+  const BUCKET: Record<string, unknown> = {
+    "https://data.example/app/android/play.json": { version: "0.8.3", build: 31, sha: "b", date: null, notes: ["Three"] },
+    "https://data.example/app/android/play/30.json": { version: "0.8.2", build: 30, sha: "a", date: null, notes: ["Two"] },
+    "https://data.example/app/android/play/31.json": { version: "0.8.3", build: 31, sha: "b", date: null, notes: ["Three"] },
+    "https://data.example/app/ios/appstore.json": { version: "0.8.3", build: 40, sha: "b", date: null, notes: ["Three"] },
+    "https://data.example/app/ios/0.8.2.json": { version: "0.8.2", build: 39, sha: "a", date: null, notes: ["Two"] },
+  };
+  const run = async (channel: "play" | "app-store", u: { updateAvailable: boolean; storeVersion?: string | null },
+                     bucket: Record<string, unknown> = BUCKET) => {
+    const read: string[] = [], reported: unknown[] = [];
+    const r = await storeUpdateCheck(channel, u, { dataBase: BASE, reportFailure: (e) => reported.push(e),
+      readJson: async (url) => { read.push(url); if (!(url in bucket)) throw new Error(`HTTP 404 for ${url}`); return bucket[url]; } });
+    return { r, read, reported };
+  };
+
+  it("Play: offered versionCode 30 says 0.8.2 and its bullets, never play.json's 0.8.3 (the popup's once-key is 0.8.2)", async () => {
+    const { r, read, reported } = await run("play", { updateAvailable: true, storeVersion: "30" });
+    expect(r).toEqual({ available: true, version: "0.8.2", notes: ["Two"] });
+    expect(read).toEqual(["https://data.example/app/android/play/30.json"]);
+    expect(reported).toEqual([]);
+    // the popup pops 0.8.2 (what Update installs), so a later 0.8.3 still pops
+    const check: AppUpdateCheck = { state: "available", version: r.version, notes: r.notes };
+    const p = updatePopupVM({ vm: appUpdateVM({ channel: "play", check, tooOld: false, start: "idle" }), channel: "play", check,
+                              installed: "0.8.1", popped: null, dismissed: null, held: false });
+    expect([p?.key, p?.title]).toEqual(["0.8.2", W.popup.title("0.8.2")]);
+  });
+  it("Play: a file naming another build than the offered code is reported; the notice stands with no version (bell only)", async () => {
+    const { r, reported } = await run("play", { updateAvailable: true, storeVersion: "30" },
+      { "https://data.example/app/android/play/30.json": { version: "0.8.3", build: 31, notes: ["Three"] } });
+    expect(r).toEqual({ available: true, version: null });
+    expect(String(reported[0])).toContain("names build 31 (version 0.8.3), not the offered 30");
+  });
+  it("Play: a missing file is reported, the notice stands; an update in progress (no code) reads nothing", async () => {
+    const miss = await run("play", { updateAvailable: true, storeVersion: "32" });
+    expect(miss.r).toEqual({ available: true, version: null });
+    expect(String(miss.reported[0])).toContain("HTTP 404 for https://data.example/app/android/play/32.json");
+    const busy = await run("play", { updateAvailable: true });
+    expect(busy).toEqual({ r: { available: true, version: null }, read: [], reported: [] });
+    expect((await run("play", { updateAvailable: false, storeVersion: "30" })).r).toEqual({ available: false, version: null });
+  });
+  it("App Store: the store's 0.8.2 reads app/ios/0.8.2.json, not appstore.json (a TestFlight 0.8.3 ahead of it)", async () => {
+    const { r, read, reported } = await run("app-store", { updateAvailable: true, storeVersion: "0.8.2" });
+    expect(r).toEqual({ available: true, version: "0.8.2", notes: ["Two"] });
+    expect(read).toEqual(["https://data.example/app/ios/0.8.2.json"]);
+    expect(reported).toEqual([]);
+  });
+  it("App Store: the version-equality guard — a file naming another version gives no bullets (reported), the store's version stands", async () => {
+    const { r, reported } = await run("app-store", { updateAvailable: true, storeVersion: "0.8.2" },
+      { "https://data.example/app/ios/0.8.2.json": { version: "0.8.3", build: 40, notes: ["Three"] } });
+    expect(r).toEqual({ available: true, version: "0.8.2" });
+    expect(String(reported[0])).toContain("names version 0.8.3, not the App Store's 0.8.2");
+    const miss = await run("app-store", { updateAvailable: true, storeVersion: "0.9.0" });
+    expect(miss.r).toEqual({ available: true, version: "0.9.0" });
+    expect(miss.reported).toHaveLength(1);
+  });
+  it("the store's word becomes a path only when it is plain digits / x.y.z", () => {
+    expect(storeVersionFileUrl("play", BASE, "30")).toBe("https://data.example/app/android/play/30.json");
+    expect(storeVersionFileUrl("app-store", BASE, "0.8.2")).toBe("https://data.example/app/ios/0.8.2.json");
+    for (const bad of [null, undefined, "", "0", "../x", "30/../31", "1.2.3-beta", "1.2.3/x"]) {
+      expect(storeVersionFileUrl("play", BASE, bad)).toBeNull();
+      expect(storeVersionFileUrl("app-store", BASE, bad)).toBeNull();
+    }
   });
 });

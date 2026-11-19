@@ -135,8 +135,9 @@ export function changelogVM(installed: string | null, log: readonly ChangelogEnt
  *   play      `<data origin>/app/android/play.json` (build-apk.sh --play writes it after the Play upload)
  *   app-store `<data origin>/app/ios/appstore.json` (T888: build-ios-testflight.sh writes it after the upload)
  *   none: no file (a local build, the web) — null.
- * The background check reads it for the new-version notice (the sideloaded APK only: the stores tell their own installs);
- * the foreground check for Play and the App Store reads it for the bullets, when it names the version the store offers.
+ * The background check reads it for the new-version notice (the sideloaded APK only: the stores tell their own installs).
+ * (T894) play.json / appstore.json name the LAST UPLOAD, on any track: a store build from 0.8.2 on reads the file of the
+ * build the store offers instead (`storeVersionFileUrl`); the scripts still write these two for 0.8.1 / 0.8.2 installs.
  */
 export function appVersionFileUrl(channel: AppUpdateChannel, i: { apkPage: string | null; dataBase: string }): string | null {
   if (channel === "apk-page" && i.apkPage) return new URL("latest.json", i.apkPage).toString();
@@ -149,6 +150,57 @@ export function appVersionFileUrl(channel: AppUpdateChannel, i: { apkPage: strin
 /** The version file our server publishes beside the app (`latest.json` sideload / `play.json` Play, build-apk.sh;
  *  `appstore.json` iPhone, build-ios-testflight.sh). */
 export interface AppVersionFile extends ApkLatest { readonly notes?: readonly string[] | null }
+
+/**
+ * (T894) THE STORE BUILD'S OWN VERSION FILE, named by what the store OFFERS this phone — never "the last upload":
+ *   play       `<data origin>/app/android/play/<versionCode>.json` (Play's `availableVersionCode`; build-apk.sh --play
+ *              writes one per upload). A build uploaded to internal and promoted in Play Console keeps its code, so the
+ *              file follows it to every track; a per-track file would not (the owner promotes, the script never knows).
+ *   app-store  `<data origin>/app/ios/<version>.json` (the App Store lookup's version; build-ios-testflight.sh writes one
+ *              per upload), so a TestFlight upload ahead of the store's version never hides the store version's notes.
+ * Null when the store names nothing usable (Play's in-progress update reports no code; a code or version that is not
+ * plain digits / x.y.z never becomes a path).
+ */
+export function storeVersionFileUrl(channel: "play" | "app-store", dataBase: string, offered: string | null | undefined): string | null {
+  const base = dataBase.replace(/\/+$/, "");
+  const o = (offered ?? "").trim();
+  if (channel === "play") return /^[1-9]\d{0,9}$/.test(o) ? `${base}/app/android/play/${o}.json` : null;
+  return /^\d+\.\d+(\.\d+)?$/.test(o) ? `${base}/app/ios/${o}.json` : null;
+}
+
+/** What the store's own update check says (expo-in-app-updates `checkForUpdate`): on Android `storeVersion` is the
+ *  versionCode Play offers, on iOS the App Store's version string. */
+export interface StoreUpdateInfo { readonly updateAvailable: boolean; readonly storeVersion?: string | null }
+
+/**
+ * (T894) THE STORE CHANNELS' CHECK: the store decides whether a newer build is there; the version file of THE BUILD IT
+ * OFFERS gives the version said (Play: the file's version, only when its `build` is the offered code; the App Store: its
+ * own version) and the bullets (only when the file names that build / version). The popup's once-key is this version,
+ * so it is always the version Update installs. A failed read, or a file naming another build, is reported and the
+ * notice still stands: on Play without a version (the bell only, no popup), on the App Store with no notes.
+ */
+export async function storeUpdateCheck(channel: "play" | "app-store", u: StoreUpdateInfo,
+                                       i: { dataBase: string; readJson: (url: string) => Promise<unknown>;
+                                                /** core `reportFailure` (the app passes it; a test collects) */ reportFailure: (e: unknown) => void }):
+  Promise<{ available: boolean; version: string | null; notes?: readonly string[] | null }> {
+  if (!u.updateAvailable) return { available: false, version: null };
+  const offered = (u.storeVersion ?? "").trim() || null;
+  const said = channel === "app-store" ? offered : null;
+  const url = storeVersionFileUrl(channel, i.dataBase, offered);
+  if (!url) return { available: true, version: said };
+  try {
+    const l = await i.readJson(url) as Partial<AppVersionFile> | null;
+    const v = l && typeof l.version === "string" && parseSemver(l.version) ? l.version : null;
+    const notes = Array.isArray(l?.notes) ? l.notes : null;
+    if (channel === "play") {
+      if (v && typeof l?.build === "number" && String(l.build) === offered) return { available: true, version: v, notes };
+      throw new Error(`${url} names build ${String(l?.build)} (version ${String(l?.version)}), not the offered ${offered}`);
+    }
+    if (v === offered) return { available: true, version: offered, notes };
+    throw new Error(`${url} names version ${String(l?.version)}, not the App Store's ${offered}`);
+  } catch (e) { i.reportFailure(e); }
+  return { available: true, version: said };
+}
 
 /**
  * (T234 v1.1) THE NEW-APP-VERSION NOTICE: the key of a version to tell now, or null. Only with notifications and the

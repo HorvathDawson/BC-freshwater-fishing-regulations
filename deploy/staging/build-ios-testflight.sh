@@ -32,14 +32,15 @@
 # The build number: max(app.json ios.buildNumber, testflight-last-build) + 1, set in the WORKTREE's app.json only (never
 # committed: Play's versionCode keeps its own count); the version (CFBundleShortVersionString) is app.json's expo.version.
 #
-# (T888) THE iPHONE'S VERSION FILE, after a successful upload: app/ios/appstore.json {version, build, sha, date, notes} in
-# the bucket of the build's environment (staging: bc-fishing-regulations-staging, --production: bc-fishing-regulations),
-# read at <data origin>/app/ios/appstore.json. `notes` = this version's changelog bullets for the iPhone (core `notesOn`:
-# an Android-only note is left out). The app shows them in "Version X is out" and the bell once the App Store offers that
-# version (the file is written at upload, before review; the app uses it only when it names the store's version). The
-# twin of build-apk.sh's play.json. A failed put says so and exits 1 (the build IS uploaded): redo it with
-#   npx --prefix app wrangler r2 object put --remote <bucket>/app/ios/appstore.json --file app/dist/ios/appstore.json \
-#     --content-type application/json --cache-control no-cache
+# (T888, T894) THE iPHONE'S VERSION FILES, after a successful upload: app/ios/<version>.json {version, build, sha, date,
+# notes} — ONE PER VERSION — then app/ios/appstore.json (the same content: the last upload, what 0.8.1 / 0.8.2-before-T894
+# installs read), in the bucket of the build's environment (staging: bc-fishing-regulations-staging, --production:
+# bc-fishing-regulations). `notes` = this version's changelog bullets for the iPhone (core `notesOn`: an Android-only note
+# is left out). The app reads <data origin>/app/ios/<the version the App Store offers>.json (core storeVersionFileUrl), so a
+# TestFlight upload ahead of the store's version never hides the store version's notes. The twin of build-apk.sh's
+# play/<versionCode>.json. A failed put says so and exits 1 (the build IS uploaded): redo both with
+#   for f in <version>.json appstore.json; do npx --prefix app wrangler r2 object put --remote <bucket>/app/ios/$f \
+#     --file app/dist/ios/appstore.json --content-type application/json --cache-control no-cache; done
 set -euo pipefail
 cd "$(dirname "$0")/../.."
 REPO=$PWD
@@ -80,6 +81,8 @@ APP_BUILD=$(node -p "require('./$M/app.json').expo.ios.buildNumber")
 LAST=$( [[ -s $LAST_FILE ]] && cat "$LAST_FILE" || echo 0 )
 BUILD_NO=$(( (APP_BUILD > LAST ? APP_BUILD : LAST) + 1 ))
 VER=$(node -p "require('./$M/app.json').expo.version")
+# (T894) the version names its file (app/ios/<version>.json): only a plain x.y.z, the form the app reads (storeVersionFileUrl)
+[[ $VER =~ ^[0-9]+\.[0-9]+(\.[0-9]+)?$ ]] || { echo "build-ios-testflight: app.json's version '$VER' is not x.y.z" >&2; exit 2; }
 SHA_FULL=$(git rev-parse HEAD)
 if [[ -n $DRY ]]; then
   echo "[dry-run] $ENV build of committed HEAD $SHA_FULL: version $VER, build $BUILD_NO (app.json $APP_BUILD, last uploaded $LAST)"
@@ -90,7 +93,7 @@ if [[ -n $DRY ]]; then
   echo "          DEVELOPMENT_TEAM=<team> CODE_SIGN_STYLE=Automatic -allowProvisioningUpdates -authenticationKey{Path,ID,IssuerID}"
   echo "[dry-run] xcodebuild -exportArchive (method app-store-connect, destination $(has --no-upload && echo 'export → app/dist/ios/' || echo 'upload → App Store Connect / TestFlight'))"
   echo "[dry-run] update check: ${EXPO_PUBLIC_APP_STORE_URL:-NONE (no $STORE_FILE)}"
-  has --no-upload || echo "[dry-run] after the upload: put $BUCKET/app/ios/appstore.json with notes $(ios_notes "$REPO" "$VER")"
+  has --no-upload || echo "[dry-run] after the upload: put $BUCKET/app/ios/$VER.json, then $BUCKET/app/ios/appstore.json, with notes $(ios_notes "$REPO" "$VER")"
   exit 0
 fi
 if has --unsigned; then
@@ -158,10 +161,13 @@ if [[ $DEST == upload ]]; then
   [[ $NOTES == "[]" ]] && echo "build-ios-testflight: no changelog entry for $VER — appstore.json has no notes (the app says none were published)" >&2
   printf '{"version":"%s","build":%s,"sha":"%s","date":"%s","notes":%s}\n' "$VER" "$BUILD_NO" "${SHA_FULL:0:7}" "$(date -u +%F)" "$NOTES" \
     > "$OUT/appstore.json"
-  (cd "$REPO" && npx --prefix app wrangler r2 object put --remote "$BUCKET/app/ios/appstore.json" --file "$OUT/appstore.json" \
-     --content-type "application/json" --cache-control "no-cache") \
-    || { echo "build-ios-testflight: appstore.json was NOT published (the build IS uploaded): redo the put in the header" >&2; exit 1; }
-  echo "published $BUCKET/app/ios/appstore.json"
+  # (T894) this version's own file first (what the app reads, by the version the App Store offers), then appstore.json
+  for f in "$VER.json" appstore.json; do
+    (cd "$REPO" && npx --prefix app wrangler r2 object put --remote "$BUCKET/app/ios/$f" --file "$OUT/appstore.json" \
+       --content-type "application/json" --cache-control "no-cache") \
+      || { echo "build-ios-testflight: app/ios/$f was NOT published (the build IS uploaded): redo the puts in the header" >&2; exit 1; }
+  done
+  echo "published $BUCKET/app/ios/$VER.json and $BUCKET/app/ios/appstore.json"
 else
   echo "exported $(ls "$OUT"/export/*.ipa) in $(( $(date +%s) - t0 )) s (not uploaded; testflight-last-build unchanged)"
 fi

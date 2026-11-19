@@ -25,7 +25,8 @@ export interface AppUpdatePort {
   readonly channel: AppUpdateChannel;
   /** (T888) this app's own version (`AppVersion.version`): a kept or checked version not above it is never popped up */
   readonly installed: string;
-  /** Is a newer version there? `version`: what the store says (a semver, a Play version code), or null. */
+  /** Is a newer version there? `version`: the semver of the build the store offers (T894: on Play from that build's own
+   *  version file), or null (the bell only, no popup). */
   check(): Promise<{ available: boolean; version: string | null; notes?: readonly string[] | null }>;
   /**
    * Start it: Play's in-app update (`immediate`: the full-screen flow, for data that needs the app; else the flexible
