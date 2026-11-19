@@ -89,6 +89,10 @@ done
 # APK, --play, and (T893, owner 2026-11-19 ~00:20: "Can't we make it use the patched one?") --production too:
 # MLN_LOCAL_MAVEN defaults to the kept lean repo; --stock-maplibre="<reason>" is the only way to the stock SDK
 if [[ -z $STOCK_MLN && -z ${MLN_LOCAL_MAVEN:-} ]]; then export MLN_LOCAL_MAVEN="$REPO/cache/maplibre/fslean-m2"; fi
+# (T893, owner 2026-11-19 ~00:26: "It has to use patched one") a production build never takes the stock SDK
+if [[ -n $PROD && -n $STOCK_MLN ]]; then
+  echo "build-apk --production: production always carries the patched MapLibre (T893); --stock-maplibre is refused" >&2; exit 2
+fi
 if [[ -n $STOCK_MLN ]]; then
   [[ -z ${MLN_LOCAL_MAVEN:-} ]] || { echo "build-apk: --stock-maplibre with MLN_LOCAL_MAVEN set: pick one" >&2; exit 2; }
   echo "build-apk: STOCK MapLibre (--stock-maplibre): $STOCK_MLN"

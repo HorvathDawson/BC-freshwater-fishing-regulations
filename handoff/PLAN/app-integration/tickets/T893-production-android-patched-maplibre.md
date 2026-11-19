@@ -16,3 +16,6 @@ Done:
 - app/apps/mobile/app.config.js: the production refusal of MLN_LOCAL_MAVEN removed (the map lab and R8 refusals stay).
 - app/tools/r8-config.test.ts: a production config with MLN_LOCAL_MAVEN is made and names the local SDK version.
 - iPhone: unchanged (the patch is Android's; iOS uses MapLibre's iOS SDK).
+
+Owner 2026-11-19 ~00:23, verbatim: "It has to use patched one". So `--production` now REFUSES `--stock-maplibre` (exit 2,
+before any build); test_staging_scripts_fail_safe.py::test_production_apk_refuses_the_stock_maplibre (fails without it).
