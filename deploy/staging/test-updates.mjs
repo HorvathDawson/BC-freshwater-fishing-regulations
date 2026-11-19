@@ -16,12 +16,15 @@
 //   node deploy/staging/test-updates.mjs big [tag]             (T255) a LARGE release: the basemap's id moves (same file,
 //                                                              same sha), so a phone re-downloads it whole (~270 MB) —
 //                                                              over the 20 MB line a metered connection holds for Wi-Fi
-//   node deploy/staging/test-updates.mjs data-book [tag]       (T912) an update that really DOWNLOADS a data file and a big
+//   node deploy/staging/test-updates.mjs data-book [tag] [padMB]  (T912) an update that really DOWNLOADS a data file and a big
 //                                                              file: the live `climate` with its SQLite change counter moved
 //                                                              (same rows, other bytes) and the rule book with a PDF comment
 //                                                              after its end (same pages, other bytes), both under
 //                                                              test/release/<id>/. (`big` moves only the basemap's id: the
-//                                                              phone keeps the file it holds at that path, nothing downloads)
+//                                                              phone keeps the file it holds at that path, nothing downloads).
+//                                                              padMB: the rule book grows by that many MB of PDF comment
+//                                                              (a download that outlasts a kill on a line the bench cannot
+//                                                              slow: the iOS simulator)
 //   node deploy/staging/test-updates.mjs gauge <station> <flow|level> <value>   (T234) the gauge alerts' feed (the
 //                                                              background check reads test/feeds/live/obs.json on this
 //                                                              channel): that station's newest reading set to <value>, now
@@ -136,12 +139,17 @@ export function bumpSqlite(raw) {
   v.setUint32(24, c); v.setUint32(92, c);
   return out;
 }
-/** (T912) The same PDF with other bytes: a comment line after its end (readers ignore it); the sha256 moves. */
-export function bumpPdf(pdf) {
+/**
+ * (T912) The same PDF with other bytes: a comment line after its end (readers ignore it); the sha256 moves. `pad`: that
+ * many more bytes of comment lines (`%` + spaces), for a download that takes a while.
+ */
+export function bumpPdf(pdf, pad = 0) {
   if (new TextDecoder().decode(pdf.subarray(0, 5)) !== '%PDF-') throw new Error('not a PDF');
   const tail = new TextEncoder().encode('\n% test-updates data-book\n');
-  const out = new Uint8Array(pdf.length + tail.length);
+  const out = new Uint8Array(pdf.length + tail.length + pad);
   out.set(pdf); out.set(tail, pdf.length);
+  const line = new TextEncoder().encode(`%${' '.repeat(1022)}\n`);
+  for (let at = pdf.length + tail.length; at < out.length; at += line.length) out.set(line.subarray(0, Math.min(line.length, out.length - at)), at);
   return out;
 }
 /** (T912) The `data-book` manifest: `live` with a new id, data file `name` replaced by `f`, and the rule book by `book`. */
@@ -153,7 +161,7 @@ export function dataBookManifest(live, id, name, f, book) {
   m.synopsis = { ...m.synopsis, ...book };
   return m;
 }
-export async function dataBook(tag = String(Date.now() % 100000)) {
+export async function dataBook(tag = String(Date.now() % 100000), padMB = '0') {
   const { createHash } = await import('node:crypto');
   const { gzipSync, gunzipSync } = await import('node:zlib');
   const fs = await import('node:fs'), os = await import('node:os'), path = await import('node:path');
@@ -165,7 +173,8 @@ export async function dataBook(tag = String(Date.now() % 100000)) {
   const sha256 = createHash('sha256').update(raw).digest('hex');
   const gz = gzipSync(raw);
   const file = `${id}/${name}-${sha256.slice(0, 12)}.sqlite.gz`, key = `${SIDE_PREFIX}${file}`;
-  const pdf = bumpPdf(new Uint8Array(await (await fetch(`${ORIGIN}/release/${live.synopsis.url}`, { cache: 'no-store' })).arrayBuffer()));
+  const pdf = bumpPdf(new Uint8Array(await (await fetch(`${ORIGIN}/release/${live.synopsis.url}`, { cache: 'no-store' })).arrayBuffer()),
+                      Math.round(Number(padMB) * 1e6));
   const bookSha = createHash('sha256').update(pdf).digest('hex');
   const bookKey = `${SIDE_PREFIX}${id}/synopsis-${bookSha.slice(0, 12)}.pdf`;
   for (const k of [key, bookKey]) if (!k.startsWith('test/')) throw new Error(`refusing to write ${k}`);

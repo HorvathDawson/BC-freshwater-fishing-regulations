@@ -67,6 +67,10 @@ test('data-book: the SQLite change counter moves (the header stays trusted); the
   assert.deepEqual(b.subarray(0, pdf.length), pdf);
   assert.ok(b.length > pdf.length);
   assert.throws(() => bumpPdf(new Uint8Array(10)), /not a PDF/);
+  const padded = bumpPdf(pdf, 5000);
+  assert.equal(padded.length, b.length + 5000);
+  assert.deepEqual(padded.subarray(0, b.length), b);
+  assert.ok(new TextDecoder().decode(padded.subarray(b.length)).split('\n').every((l) => l === '' || l.startsWith('%')));
   const live = { ...man(), synopsis: { url: 'r-0123456789ab/synopsis-eeee.pdf', sha256: 'e', bytes: 1 },
                  files: { ...man().files, climate: { url: 'r-0123456789ab/climate-cccc.sqlite.gz', sha256: 'c', bytes: 1 } } };
   const m = dataBookManifest(live, 'r-x-book5', 'climate', { url: '../test/release/r-x-book5/climate-dddd.sqlite.gz', sha256: 'd', bytes: 2 },

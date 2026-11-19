@@ -28,6 +28,7 @@ import { build36Ios, t814BgIos } from './scenarios-ios/build36.mjs';
 import { conditionsIos } from './scenarios-ios/conditions.mjs';
 import { nullClearsIos } from './scenarios-ios/null-clears.mjs';
 import { t884Ios } from './scenarios-ios/t884.mjs';
+import { bgUpdateIos } from './scenarios-ios/bg-update.mjs';
 
 process.env.TESTBED_PLATFORM = 'ios';
 const HERE = path.dirname(new URL(import.meta.url).pathname);
@@ -636,6 +637,8 @@ const SCENARIOS = [
   nullClearsIos,
   // (T884) the fish sheet's big number on iOS (Cultus Lake, Black crappie) at three text sizes
   t884Ios,
+  // (T912) an update goes on with the app closed (Home, then the process ended): the T722 background session
+  bgUpdateIos,
 ];
 
 // ---------- the runner (as run.mjs, without the Android-only crash buffer and test channel) ----------
@@ -664,7 +667,7 @@ function makeCtx(sc) {
   const ctx = {
     device, rec, dir,
     // (T719) the iOS steps the twins in scenarios-ios/ share with the scenarios here
-    ios: { appUp, coldStart, toMap, back, pageBack, onPage, hasTabs },
+    ios: { appUp, coldStart, toMap, back, pageBack, onPage, hasTabs, openLog },
     // (T542 waits) until / timer as Android's; hasId off Maestro's tree; settle's frame look a simulator screenshot
     ...makeWaits(device),
     hasId: (id) => device.hasId(id),
