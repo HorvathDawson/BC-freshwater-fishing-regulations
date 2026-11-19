@@ -2845,3 +2845,8 @@ More questions (recommended answer first):
   (e.g. hidden or frozen during a pinch and drawn when it settles).
 - 2026-11-18 ~21:43, owner (main chat), verbatim: "Another thing we should add a ticket for is checking every page for
   word density then try to reduce the over dense ones" -> T890 (app chat leads; main chat for the pipeline's words).
+- 2026-11-18 ~21:47, owner (main chat), verbatim: "I wonder if we should do a final 0.8.2 before closed with everything
+  including the smoother movement we just discussed wtc". Dialog pick: "Yes, wait for 0.8.2 (Recommended)" -> T863:
+  the production website + data go live tonight; the first PRODUCTION phone builds for testers (Android closed / iPhone
+  TestFlight) are 0.8.2: T868, T877, T872-T875, plus T878/T879/T881/T882 once he approves their pictures, plus T876's
+  smoother zoom (labels may lag). Data / feed fixes (T869, T870, T880, T885) ship as data updates, not gated on it.
