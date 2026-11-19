@@ -61,8 +61,8 @@ export function RegsHeader({ header: h, palette, tabs, onDate, onTab, onTerm, si
    * keeps the name row and the place label. false (a phone, a tablet): the header as it always was.
    */
   side?: boolean;
-  /** (T878) the picked day's sun at the water (`useSunLine`), a small line under the date pill (`DayControl`; on the
-   *  desktop the side column's); null: nothing drawn */
+  /** (T878) the picked day's sun at the water (`useSunLine`), a small line under the date pill (`SunLine`; on the
+   *  desktop the side column draws it under its pill); null: nothing drawn */
   sun?: SunDay | null;
 }) {
   return (
@@ -70,8 +70,9 @@ export function RegsHeader({ header: h, palette, tabs, onDate, onTab, onTerm, si
       {/* THE NAME ROW is the water frame's (T44): the same box on every view of the water, the pill in it */}
       <WaterTitle name={h.name} palette={palette} source={nameSource}>
         {h.classed && <ClassBadge b={h.classed} palette={palette} onTerm={onTerm} />}
-        {!side && <DayControl h={h} palette={palette} onDate={onDate} sun={sun} align="end" />}
+        {!side && <DatePill h={h} palette={palette} onDate={onDate} />}
       </WaterTitle>
+      {!side && !!sun && <SunLine sun={sun} palette={palette} align="end" />}
       {/* (T878) no place label (a water of one part, Babine Lake — Main Body): no empty slot under the name */}
       {!!h.place && <Place place={h.place} palette={palette} />}
       {!side && <TabRow h={h} tabs={tabs} palette={palette} onTab={onTab} />}
@@ -103,25 +104,20 @@ export function ClassBadge({ b, palette, onTerm }: { b: ClassBadgeVM; palette: P
 
 /**
  * (T878, owner 2026-11-18: "There seems to be a ton of space used by the sunset/rise could we maybe move it to top of
- * something?", picked "Under the date") THE DAY CONTROL: the date pill and, under it, the picked day's sun at the water
- * (`SunDay`, core's words: the sun icon and "05:07–21:52 PT", read "Sunrise 5:07, sunset 21:52 PT"), its right edge on the
- * date's (`align` "end", the name row) or its left on the pill's (`align` "start", the desktop side column). No sun: the pill
- * alone, as before.
+ * something?", picked "Under the date") THE DAY'S SUN under the date pill: the sun icon and "05:07–21:52 PT" (core's
+ * `SunDay`), read "Sunrise 5:07, sunset 21:52 PT". In the header it is its own short line right under the name row, its
+ * right edge on the date's (`align` "end"): never in the name row itself, so it never takes width from the name (a
+ * column as wide as the line cost a long name a line at 360 px). In the desktop side column, under the pill there,
+ * its left edge on the pill's (`align` "start").
  */
-export function DayControl({ h, palette, onDate, sun, align }: {
-  h: HeaderVM; palette: Palette; onDate: () => void; sun: SunDay | null; align: "start" | "end";
-}) {
-  const pill = <DatePill h={h} palette={palette} onDate={onDate} />;
-  if (!sun) return pill;
+export function SunLine({ sun, palette, align }: { sun: SunDay; palette: Palette; align: "start" | "end" }) {
   return (
-    <View style={{ alignItems: align === "end" ? "flex-end" : "flex-start" }}>
-      {pill}
-      {/* tucked into the pill's own slack under the date (its 44 px box is taller than its two lines) */}
-      <View testID="regs-sun" accessible accessibilityLabel={sun.aria}
-            style={{ flexDirection: "row", alignItems: "center", gap: 3, marginTop: -6, paddingHorizontal: 6 }}>
-        <Icon name="sun" colour={palette.sub} size={11} />
-        <Text maxFontSizeMultiplier={CAPPED_SCALE} numberOfLines={1} style={[TYPE.metaSemi, { lineHeight: 14.98, color: palette.sub }]}>{sun.text}</Text>
-      </View>
+    <View testID="regs-sun" accessible accessibilityLabel={sun.aria}
+          style={{ flexDirection: "row", alignItems: "center", gap: 3, alignSelf: align === "end" ? "flex-end" : "flex-start",
+                   // "end": the name row's right padding (8) + the pill's (6), tucked up into the row's slack under the date
+                   ...(align === "end" ? { paddingRight: 14, marginTop: -4, paddingBottom: 4 } : { paddingHorizontal: 6, marginTop: -6 }) }}>
+      <Icon name="sun" colour={palette.sub} size={11} />
+      <Text maxFontSizeMultiplier={CAPPED_SCALE} numberOfLines={1} style={[TYPE.metaSemi, { lineHeight: 14.98, color: palette.sub }]}>{sun.text}</Text>
     </View>
   );
 }

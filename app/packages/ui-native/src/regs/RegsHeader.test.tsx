@@ -12,6 +12,7 @@ import type { HeaderVM } from "@app/core";
 import { LIGHT } from "../theme";
 import { pickPlace, RegsHeader, type TabSource } from "./RegsHeader";
 import { createTabStore } from "./tabStore";
+import { RegsSide } from "./RegsWide";
 import bc1501 from "./fixtures/bc1_501.json";
 import glenn501 from "./fixtures/glenn_501.json";
 import glenn615 from "./fixtures/glenn_615.json";
@@ -146,10 +147,12 @@ describe("(T878) the day's sun under the date pill", () => {
   const mountSun = (sun: { text: string; aria: string } | null, side = false) =>
     render(<RegsHeader header={headerOf("vedder_1010")} palette={LIGHT} tabs={createTabStore()} onDate={() => {}} onTab={() => {}}
                        side={side} sun={sun} />);
-  it("is in the name row, right after the date pill, the sun icon and the whole line, its label the whole sentence", () => {
+  it("is right under the name row (never in it: it takes no width from the name), after the date pill, the sun icon and the whole line, its label the whole sentence", () => {
     mountSun(SUN);
     const title = screen.getByTestId("water-title");
-    const sun = within(title).getByTestId("regs-sun");
+    expect(within(title).queryByTestId("regs-sun")).toBeNull();
+    const sun = within(screen.getByTestId("regs-header")).getByTestId("regs-sun");
+    expect(title.nextElementSibling).toBe(sun);
     expect([sun.textContent, sun.getAttribute("aria-label")]).toEqual(["05:07–21:52 PT", "Sunrise 5:07, sunset 21:52 PT"]);
     expect(within(sun).getByTestId("icon-sun")).toBeTruthy();
     expect(screen.getByTestId("regs-date").compareDocumentPosition(sun) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
@@ -161,6 +164,14 @@ describe("(T878) the day's sun under the date pill", () => {
   it("the desktop header has no pill, so no sun: it is the side column's (RegsSide)", () => {
     mountSun(SUN, true);
     expect(screen.queryByTestId("regs-sun")).toBeNull();
+  });
+  it("the desktop side column: the line right under its date pill", () => {
+    render(<RegsSide header={headerOf("vedder_1010")} store={createTabStore()} palette={LIGHT} onDate={() => {}} onTab={() => {}} sun={SUN} />);
+    const sun = screen.getByTestId("regs-sun");
+    expect([sun.textContent, sun.getAttribute("aria-label")]).toEqual(["05:07–21:52 PT", "Sunrise 5:07, sunset 21:52 PT"]);
+    // after the pill, in the pill's own block (before the section list)
+    expect(screen.getByTestId("regs-date").compareDocumentPosition(sun) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    expect(sun.compareDocumentPosition(screen.getByTestId("regs-section-list")) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
   });
   it("null: the pill alone", () => {
     mountSun(null);

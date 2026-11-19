@@ -27,7 +27,7 @@ import type { LayoutClass } from "@app/ui";
 import { REGS_WIDE, type Palette } from "../theme";
 import { WaterInset } from "../WaterFrame";
 import type { TabStore } from "./tabStore";
-import { DayControl, SectionList } from "./RegsHeader";
+import { DatePill, SectionList, SunLine } from "./RegsHeader";
 
 /** The page's lines held to the reading measure, centred; a phone: the children as they are (nothing wraps them). */
 export function ReadingColumn({ layout, testID, children }: { layout: LayoutClass; testID?: string; children: React.ReactNode }) {
@@ -49,7 +49,8 @@ export function RegsSide({ header, store, palette, onDate, onTab, sun = null }: 
   return (
     <View testID="regs-side" style={{ width: REGS_WIDE.side, borderRightWidth: 1, borderRightColor: palette.line }}>
       <WaterInset style={{ paddingTop: 12, paddingBottom: 12, alignItems: "flex-start" }}>
-        <DayControl h={header} palette={palette} onDate={onDate} sun={sun} align="start" />
+        <DatePill h={header} palette={palette} onDate={onDate} />
+        {!!sun && <SunLine sun={sun} palette={palette} align="start" />}
       </WaterInset>
       <WaterInset style={{ paddingBottom: 12 }}>
         <SectionList h={header} tabs={store} palette={palette} onTab={onTab} />
