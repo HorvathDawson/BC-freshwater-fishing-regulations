@@ -1,7 +1,7 @@
 #!/bin/bash
 # PRODUCTION — THE OWNER RUNS THIS (T404). ROLL THE DATA BACK one release: release/manifest.previous.json (kept by
 # deploy/prod/upload.sh) becomes release/manifest.json again. Every file it names is still in the bucket (a promote
-# clears nothing). Apps pick it up on their next check; a phone that already installed the newer release keeps it until
+# prunes only what neither pointer names, T865; checked below all the same). Apps pick it up on their next check; a phone that already installed the newer release keeps it until
 # then (the manifest decides, T231). Then set data/release/LATEST back one line on the Mac so the next build agrees.
 #   CONFIRM_PROD=canifishthis.ca deploy/prod/rollback.sh [--dry-run]
 #   deploy/prod/rollback.sh --bucket <a non-production bucket> [--dry-run]      (a rehearsal: no confirmation needed)

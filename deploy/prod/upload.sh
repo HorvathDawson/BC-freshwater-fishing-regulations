@@ -8,8 +8,9 @@
 # tiles, map assets, basemap, data files, synopsis, feed seeds, inputs, sql.js — then the pointer LAST. Unlike staging:
 #   - run timing is COPIED from staging (same tiles = same output; feeds-runtiming.yml stays staging's publisher until
 #     the owner enables its production option);
-#   - nothing is cleared: the previous release stays whole, and its pointer is kept as release/manifest.previous.json,
-#     so deploy/prod/rollback.sh is one copy back (old releases are pruned by hand, PRODUCTION.md);
+#   - the previous release stays whole, and its pointer is kept as release/manifest.previous.json, so
+#     deploy/prod/rollback.sh is one copy back; (T865) AFTER the pointer, every release-scoped object neither pointer
+#     names is deleted, and the v1 layout once canifishthis.ca serves the new site (pipeline.deliver.release.prod_prune);
 #   - no test/ channel, no smoke run here: run `node app/tools/smoke-staging.mjs --production` after.
 set -euo pipefail
 cd "$(dirname "$0")/../.."
@@ -98,8 +99,13 @@ done
 obj() { local o; o=$(rclone lsjson --stat "$1" --s3-no-check-bucket) || return 2; [[ $o == *'"IsDir": false'* ]] || return 1; }
 set +e; obj "$D/release/manifest.json"; rc=$?; set -e
 case $rc in
-  0) say "keep the current pointer as release/manifest.previous.json"
-     rclone copyto "$D/release/manifest.json" "$D/release/manifest.previous.json" --s3-no-check-bucket ${DRY[@]+"${DRY[@]}"} ;;
+  0) NOW=$(rclone cat "$D/release/manifest.json" --s3-no-check-bucket | python3 -c "import json,sys;print(json.load(sys.stdin)['data_release'])")
+     # (T865) promoting the live release again keeps the previous pointer as it is: copied over, it would name the live
+     # release, the prune below would then delete the real previous one, and a rollback would have nowhere to go
+     if [[ $NOW == "$REL" ]]; then say "$REL is already live: release/manifest.previous.json stays as it is"
+     else say "keep the current pointer ($NOW) as release/manifest.previous.json"
+       rclone copyto "$D/release/manifest.json" "$D/release/manifest.previous.json" --s3-no-check-bucket ${DRY[@]+"${DRY[@]}"}
+     fi ;;
   1) echo "== no current pointer in $D (the first promote): nothing to keep for a rollback" ;;
   *) echo "upload (prod): could not read $D/release/manifest.json (rclone exit $rc) — the pointer was NOT written" >&2; exit 1 ;;
 esac
@@ -108,3 +114,14 @@ cp_ "$M" release/manifest.json --header-upload "Cache-Control: no-cache" --heade
 # (T72) what production serves: the local prune never removes it (pipeline/deliver/release/prune.py)
 [[ ${#DRY[@]} -gt 0 || $BUCKET != "$PROD_BUCKET" ]] || echo "$REL" > "$R/PUBLISHED"
 echo "promoted $REL to $D${DRY[*]:+ (dry run: nothing was written)}. Next: node app/tools/smoke-staging.mjs --production"
+
+# 6. (T865, owner 2026-11-18: "That clean up should be automatic") AFTER the pointer, so a failure anywhere above leaves
+# everything in place. Old releases: every object under release/r-*, release/tiles/*, release/basemap/* that neither
+# release/manifest.json nor release/manifest.previous.json names (an allowlist; feeds/, private/, runtiming/, app/,
+# map-assets/ and the rest are never candidates). Refused, nothing deleted (exit 1), when a pointer cannot be read or a
+# file a kept one names is missing. A dry run prunes as the pointer step would have left the two pointers.
+PRUNE=(); [[ ${#DRY[@]} -gt 0 ]] && PRUNE=(--dry-run --pending "$M")
+.venv/bin/python -m pipeline.deliver.release.prod_prune releases --remote "$D" ${PRUNE[@]+"${PRUNE[@]}"}
+# the v1 layout (the old Vite site's data) only once canifishthis.ca serves the new web export; else kept, and said why
+if [[ $BUCKET == "$PROD_BUCKET" ]]; then V1_SITE=https://canifishthis.ca/; else V1_SITE=${SITE_URL:-https://canifishthis.ca/}; fi
+.venv/bin/python -m pipeline.deliver.release.prod_prune v1 --remote "$D" --site "$V1_SITE" ${DRY[@]+"${DRY[@]}"}
