@@ -27,6 +27,16 @@ export interface ChangelogEntry {
 
 export const CHANGELOG: readonly ChangelogEntry[] = [
   {
+    version: "0.8.2", date: null, draft: true, notes: [
+      "Smoother pinch-zoom on the map",
+      "What you can keep: one table for every fish, each row marked DFO or B.C.",
+      "How this was decided lists the rules each answer comes from, and marks those a water takes from its tributaries",
+      "Sunrise and sunset sit under the date, and the day calendar keeps every day under its weekday",
+      "A shorter Help page, and a walkthrough with just Back and Next",
+      "Conditions shows the gauge map only where it has a gauge to draw",
+    ],
+  },
+  {
     version: "0.8.1", date: null, draft: true, notes: [
       "The map draws faster, most of all the Salmon map when you zoom out",
       "Route maps on the phone show the gauge dots and where you are",
