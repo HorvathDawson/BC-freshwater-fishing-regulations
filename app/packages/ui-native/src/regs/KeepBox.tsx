@@ -59,9 +59,9 @@ export type KeepRowVM = Pick<TroutRow, "key" | "name" | "label" | "sub" | "lines
   readonly origin?: string | null;
   /** (T810 O) the row's screen-reader label as core joined it (`TroutRowVM.a11y`, N's golden); absent: joined here */
   readonly a11y?: string;
-  /** (T892) the row's tributary line (`TRow.down`), under the name in the sub colour, as the Other fish rows say it;
-   *  absent or null: none */
-  readonly down?: string | null;
+  /** (T907) the row's tributary source (`TRow.tag`, "Trout Lake’s tributaries"), a tag beside the name in the box tag's
+   *  look ("Lake’s rule"); absent or null: none */
+  readonly tag?: string | null;
 };
 /** One band of the right column, with its DateSet band text. */
 export type KeepBandVM = Pick<TroutBand, "from" | "to" | "text" | "kind"> & { readonly date?: string | null };
@@ -72,10 +72,10 @@ function useFolded(): boolean {
   return (PixelRatio.getFontScale() || 1) >= FOLD_AT;
 }
 
-/** a row's one label, its texts in payload order (contract 2.8): name, label, down, sub, lines, quiet, band text, date — each
+/** a row's one label, its texts in payload order (contract 2.8): name, label, tag, sub, lines, quiet, band text, date — each
  *  text a pause of its own (". " between, a text's own closing stop kept) */
 const rowLabel = (r: KeepRowVM, band: readonly string[]) =>
-  [r.name, r.label, r.down, r.sub, ...r.lines, ...r.quiet, ...band, r.date].filter((x): x is string => !!x)
+  [r.name, r.label, r.tag, r.sub, ...r.lines, ...r.quiet, ...band, r.date].filter((x): x is string => !!x)
     .reduce((out, x) => (out ? `${out}${/[.!?]$/.test(out) ? " " : ". "}${x}` : x), "");
 
 /** The filled label ("Hatchery only"), or (`outline`) the same badge drawn as an outline. Both carry a 1 px border in
@@ -86,6 +86,18 @@ function Label({ text, palette, outline = false, testID = "keep-label" }: { text
     <View testID={testID} style={{ backgroundColor: outline ? "transparent" : palette.ink, borderWidth: 1, borderColor: palette.ink,
                                    paddingHorizontal: 5, paddingVertical: 1, alignSelf: "center" }}>
       <Text testID="kicker:badge" style={{ ...TYPE.kicker, color: outline ? palette.ink : palette.card }}>{text}</Text>
+    </View>
+  );
+}
+
+/** (T907) WHOSE RULE, AS A TAG: the box's own-water tag ("Lake’s rule", in the strip) and a row's tributary source
+ *  ("Trout Lake’s tributaries", beside the row's name) are one look: the kicker face in the accent colour, a 1 px accent
+ *  outline, so a row's source reads as the box's does (owner 2026-11-19 ~06:55: "simialr to how it has "this water"").
+ *  The word is the payload's, drawn as is. */
+function Tag({ text, palette, testID }: { text: string; palette: Palette; testID: string }) {
+  return (
+    <View testID={testID} style={{ borderWidth: 1, borderColor: palette.accent, paddingHorizontal: 5, flexShrink: 1 }}>
+      <Text testID="kicker:tag" style={{ ...TYPE.kicker, color: palette.accent }}>{text}</Text>
     </View>
   );
 }
@@ -133,9 +145,9 @@ function Row({ r, palette, faded, mark, first, under, band, testID }: {
           <Text testID="keep-name" style={{ ...NAME, ...(faded ? { fontFamily: TYPE.regsBody.fontFamily } : {}), color: palette.ink }}>{r.name}</Text>
           {r.origin && <OriginBadge origin={r.origin} palette={palette} />}
           {r.label && <Label text={r.label} palette={palette} />}
+          {/* (T907) another water's row carried down to its tributaries sets this row: its tag beside the name, as the box's */}
+          {r.tag && <Tag text={r.tag} palette={palette} testID="keep-row-tag" />}
         </View>
-        {/* (T892) another water's row carried down to its tributaries sets this row: said under the name, as the Other fish rows */}
-        {r.down && <Text selectable testID="keep-down" style={{ ...NEXT, color: palette.sub, marginTop: 2 }}>{r.down}</Text>}
         {r.sub && <Text selectable testID="keep-sub" style={{ ...NEXT, color: palette.sub }}>{r.sub}</Text>}
         {r.lines.map((l) => <Text selectable key={l} testID="keep-line" style={{ ...NOW, color: palette.ink }}>{l}</Text>)}
         {r.quiet.map((l) => <Text selectable key={l} testID="keep-quiet" style={{ ...NEXT, color: palette.sub }}>{l}</Text>)}
@@ -242,7 +254,7 @@ export function KeepBox({ head, label, strip, possession = null, tag, notes = []
             {head && <Text selectable testID="keep-head" style={{ ...NOW, color: palette.ink }}>{head}</Text>}
             {label && <Label text={label} palette={palette} />}
             {strip && <Text selectable testID="keep-strip-text" style={{ ...NOW, color: palette.ink }}>{strip}</Text>}
-            {tag && <View testID="keep-tag" style={{ borderWidth: 1, borderColor: palette.accent, paddingHorizontal: 5 }}><Text testID="kicker:tag" style={{ ...TYPE.kicker, color: palette.accent }}>{tag}</Text></View>}
+            {tag && <Tag text={tag} palette={palette} testID="keep-tag" />}
           </View>
           {possession && <Text selectable testID="keep-possession" style={{ ...NOW, color: palette.ink, marginTop: 2 }}>{possession}</Text>}
           {notes.map((l) => <Text selectable key={l} testID="keep-strip-note" style={{ ...NOW, color: palette.ink, marginTop: 2 }}>{l}</Text>)}

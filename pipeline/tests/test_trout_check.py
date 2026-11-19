@@ -123,7 +123,8 @@ def test_every_text_of_the_side_release_reads_back(side):
 
 
 #: one text of every form the tables of a full side build say (`fixtures/trout_texts.json`: [reader, text]; built from
-#: r-46e4355a7277's bundle with `--trout-table`, ticket J), each read by G's grammar
+#: r-46e4355a7277's bundle with `--trout-table`, ticket J; T907: the fold's words lowered as the build now says them),
+#: each read by G's grammar
 TEXTS = json.loads((Path(__file__).parent / "fixtures" / "trout_texts.json").read_text())
 READERS = {"top": W.parse_top_full, "fold": W.parse_fold, "together": W.parse_together, "elsewhere": W.parse_elsewhere,
            "strip": W.parse_strip, "line": W.parse_row_line, "quiet": W.parse_quiet, "head": W.parse_sheet_head,

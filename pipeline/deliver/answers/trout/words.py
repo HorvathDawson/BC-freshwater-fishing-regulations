@@ -343,8 +343,8 @@ def parse_sheet_sentence(text: str) -> Parsed:
 # THE TOP LINE carries ONE `{day}` slot (contract Q-D2): "Up to 5 {day}", "Up to 2 {day}, or 5 if they’re rainbow
 #   trout", "Up to 2 {day}, plus 2 Dolly Varden/bull trout", "Up to 6 rainbow trout or steelhead and 4 other trout and
 #   char {day}", "Release every one {day}", "Closed for trout and char {day}", "Nothing to keep {day}".
-# THE FOLD (the "Trout and char" entry's short line): "Up to 5", "Up to 2 or 5", "Up to 6 rainbow, 4 others",
-#   "Release", "Closed", "None to keep".
+# THE FOLD (the "Trout and char" entry's short line, T907 in the species table's lower case): "5 a day", "2 or 5 a day",
+#   "up to 6 rainbow, 4 others", "release", "closed", "none to keep".
 # THE BOX: head "Keep 5 in all" / "Release" / "Closed"; label "Hatchery only"; strip parts joined by "; " ("any size",
 #   "only 1 over 50 cm (20 in)", "only 1 over 50 cm (20 in), 2 if one is a hatchery steelhead", "only 1 over 50 cm
 #   (20 in), not counting lake trout", "only 2 wild, each 40 cm (16 in) or less"); possession on its own line
@@ -391,10 +391,31 @@ def is_row_down(text: str, names) -> bool:
     """`text` is the tributary line of exactly these waters, in this order (J reads a row's `down` back against the
     waters the stored answers name; the line alone cannot be split, a name may hold " and ")."""
     return bool(names) and text == row_down(names)
+
+
+def row_tag(names) -> str:
+    """(T907, owner 2026-11-19 ~06:55: "i meant in the trout table. simialr to how it has "this water"") the row's
+    tributary source as a TAG beside its name, in the box tag's place and look ("Lake’s rule", `tag_of`), in the fish
+    sheet's kicker words ("Trout Lake · its tributaries"): "Trout Lake’s tributaries"; "A’s and B’s tributaries". The
+    same waters as `row_down`, in the same order."""
+    names = list(names)
+    if not names:
+        raise WordsError("trout words: a tributary tag names a water")
+    if len(names) == 1:
+        return f"{possessive(names[0])} tributaries"
+    return f"{', '.join(possessive(n) for n in names[:-1])} and {possessive(names[-1])} tributaries"
+
+
+def is_row_tag(text: str, names) -> bool:
+    """`text` is the tributary tag of exactly these waters, in this order (J, as `is_row_down`)."""
+    return bool(names) and text == row_tag(names)
 YEAR_TITLE = "Trout and char through the year"
 HEAD_RELEASE, HEAD_CLOSED = "Release", "Closed"
 SHEET_RELEASE, SHEET_CLOSED = "Put it back", "Closed · do not fish for it"
-FOLD_RELEASE, FOLD_CLOSED, FOLD_NONE = "Release", "Closed", "None to keep"
+#: (T907, owner 2026-11-19 ~06:50: "the trable is weird spacing with the same words liek release") the fold's words in the
+#: species table's own case, as its other rows say them (the app's `WORDS.RELEASE_LC` / `CLOSED_LC`, "15 a day")
+FOLD_RELEASE, FOLD_CLOSED, FOLD_NONE = "release", "closed", "none to keep"
+FOLD_UP_TO = "up to"
 #: (owner 2026-11-17 23:35, "Keep 2 trout and char today (Recommended)": "Up to 2 is just confusing … up to 2 what") every
 #: top line names the fish and the action
 TOP_FISH = "trout and char"
@@ -513,7 +534,7 @@ def fold_apart(named, others_n: Optional[float]) -> str:
     parts = [f"{_n(k)} {w}" for k, w in named]
     if others_n is not None:
         parts.append(f"{_n(others_n)} others")
-    return "Up to " + ", ".join(parts)
+    return f"{FOLD_UP_TO} " + ", ".join(parts)
 
 
 # -- the box -----------------------------------------------------------------------------------
@@ -1417,7 +1438,7 @@ def parse_fold(text: str) -> Tuple[str, Tuple]:
     m = re.fullmatch(rf"{_NUM}((?:, {_NUM})*) or {_NUM} a day", text)
     if m:
         return "up_to", (_num(m[1]), *(_num(x) for x in re.findall(_NUM, m[2] or "")), _num(m[m.lastindex]))
-    m = re.fullmatch(r"Up to (.+)", text)
+    m = re.fullmatch(rf"{FOLD_UP_TO} (.+)", text)
     if m:
         parts = m[1].split(", ")
         nums = []

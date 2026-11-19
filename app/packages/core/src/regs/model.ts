@@ -97,12 +97,13 @@ export interface TroutBandVM { readonly from: number; readonly to: number; reado
   readonly kind: "upto" | "own" | "shared" | "possession" | "size"; readonly date: string | null }
 /** One fish row. `split` (trout 5): a merged hatchery+wild row ("… if wild"), never with an origin or a label. `origin` null on a plain row AND on a merged twin (trout 4: key = the fish, its first line "<size> if
  *  wild"); `date`: its own last line (`DateSet.row`); `coming`: its sheet's coming-change sentences (`DateSet.sheet`);
- *  `a11y`: its screen-reader label (payload texts in payload order, joined by ". "). `down` (T892): the row's tributary
- *  line under its name, Python's words (`TRow.down`, "Dutch Creek’s rule for its tributaries"); null: none (or a release
- *  from before T892, whose rows carry none). */
+ *  `a11y`: its screen-reader label (payload texts in payload order, joined by ". "). `tag` (T907): the row's tributary
+ *  source as a tag beside its name, in the box tag's look ("Lake’s rule"), Python's words (`TRow.tag`, "Trout Lake’s
+ *  tributaries"); null: none (or a release from before T907, whose rows carry only `TRow.down`, which this app no longer
+ *  draws: owner 2026-11-19 ~06:55, "simialr to how it has "this water"", instead of the grey line). */
 export interface TroutRowVM {
   readonly key: string; readonly fish: string; readonly name: string; readonly origin: "hatchery" | "wild" | null;
-  readonly label: string | null; readonly split: boolean; readonly down: string | null; readonly sub: string | null; readonly lines: readonly string[]; readonly quiet: readonly string[];
+  readonly label: string | null; readonly split: boolean; readonly tag: string | null; readonly sub: string | null; readonly lines: readonly string[]; readonly quiet: readonly string[];
   readonly src: readonly number[]; readonly sheet: FishSheet; readonly coming: readonly string[]; readonly date: string | null;
   readonly a11y: string;
 }

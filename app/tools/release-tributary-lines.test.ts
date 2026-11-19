@@ -15,7 +15,10 @@
  *   set or lowered by another rule the rail draws; a row WITHOUT one whose rail names a deciding tributary step — proved
  *   partial, else it fails (a line Python missed). And a trout fold with a line ⇒ every row carries the same line.
  *   A release from before T892 carries no row line: it is named in `BEFORE_T892` (and must then carry none), and its
- *   missing row lines are counted, not failed.
+ *   missing row lines are counted, not failed. (T907) Each row's line is read from the payload (`TRow.down`, no longer
+ *   drawn); a row with a line carries its tag (`TRow.tag`, drawn beside the name) naming the same waters ("Trout Lake’s
+ *   tributaries"), and a row without one none — except in a release cut before T907 (`BEFORE_T907`), whose rows carry
+ *   no tag at all.
  *
  * DATA, so Tier 2 (`scripts/test-full.sh` runs it with TIER2=1):
  *   RELEASE_DIR=data/release/r-… TIER2=1 pnpm -C app exec vitest run release-tributary-lines
@@ -42,6 +45,12 @@ import { FISH } from "../packages/core/src/regs/fish.generated";
 const REL = namedRelease();
 /** (T892) the releases cut before trout rows carried their line (`TRow.down`): their rows say none, by construction */
 const BEFORE_T892 = new Set(["r-86d43303bee2", "r-fc137c4040fa"]);
+/** (T907) the releases cut before trout rows carried their tag (`TRow.tag`): their rows have none */
+const BEFORE_T907 = new Set([...BEFORE_T892, "r-379e72fc9524"]);
+/** (T907) Python's `words.row_tag` for these waters, in order: "Trout Lake’s tributaries", "A’s and B’s tributaries" */
+const poss = (n: string) => (/s$/i.test(n) ? `${n}’` : `${n}’s`);
+const tagOf = (names: readonly string[]) =>
+  `${names.length > 1 ? `${names.slice(0, -1).map(poss).join(", ")} and ` : ""}${poss(names[names.length - 1]!)} tributaries`;
 const TIER2 = process.env.TIER2 === "1";
 const DAY = { month: 11, day: 19 };
 
@@ -89,7 +98,8 @@ describe.skipIf(!REL && !TIER2)("Tier 2 (T892): every table row's tributary line
     let rowLines = 0, rowPartial = 0;
     const missing: string[] = [];                                     // (T892) a trout row the rail sets with no line
     const id = (JSON.parse(readFileSync(join(REL!, "manifest.json"), "utf8")) as { data_release?: string }).data_release ?? "";
-    const before = BEFORE_T892.has(id);
+    const before = BEFORE_T892.has(id), untagged = BEFORE_T907.has(id);
+    let tags = 0;
     for (const it of items) {
       const ord = await st.itemOrd(String(it.item_id));
       if (ord === null) continue;
@@ -127,11 +137,17 @@ describe.skipIf(!REL && !TIER2)("Tier 2 (T892): every table row's tributary line
         }
         const t = page.keep.trout?.kind === "table" ? page.keep.trout : null;
         if (t) {
-          const trows = t.boxes.flatMap((b) => b.rows);
+          // (T907) the payload's rows, in the table's order: the line (`down`) is no longer on the drawn row
+          const trows = (inp.trout?.table.boxes ?? []).flatMap((b) => b.rows);
+          expect(trows.map((r) => r.key)).toEqual(t.boxes.flatMap((b) => b.rows).map((r) => r.key));
           const rows = trows.map((r) => railSetters(flowOf(page, `tf:${r.key}`), r.origin));
           // (T892) each trout row's own line (Python's) against its own sheet's rail
           trows.forEach((r, k) => {
             const f = flowOf(page, `tf:${r.key}`), ev = rows[k]!, down = f?.down ?? [];
+            if (r.tag) tags++;
+            if (r.down && !untagged && r.tag !== tagOf(down))
+              bad.push(`${at} trout row ${r.key}: line "${r.down}" but tag ${JSON.stringify(r.tag ?? null)}`);
+            if (!r.down && r.tag) bad.push(`${at} trout row ${r.key}: tag "${r.tag}" without its line`);
             if (r.down) {
               rowLines++;
               if (!ev.setByDown || !ev.names.every((x) => down.includes(x)) || !down.every((x) => ev.mentions.includes(x))
@@ -159,7 +175,8 @@ describe.skipIf(!REL && !TIER2)("Tier 2 (T892): every table row's tributary line
     }
     console.log(`T892 sweep: ${parts} parts; lines on ${other} Other fish rows, ${groups} groups, ${folds} trout folds, `
       + `${rowLines} trout rows; proved partial: ${otherPartial} Other fish rows, ${groupPartial} groups, ${troutPartial} trout `
-      + `tables, ${rowPartial} trout rows`);
+      + `tables, ${rowPartial} trout rows; ${tags} trout row tags`);
+    if (untagged) expect(tags, `${id} is named in BEFORE_T907 but its trout rows carry tags`).toBe(0);
     if (before) {
       // a release named as cut before T892: its rows carry no line (else the name is stale), its missing ones are counted
       console.log(`T892 sweep: ${id} predates the trout rows' line; ${missing.length} rows its rails set by tributary rules say none`);

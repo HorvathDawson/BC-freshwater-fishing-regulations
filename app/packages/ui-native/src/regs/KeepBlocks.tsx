@@ -4,10 +4,10 @@
  * each draws its VM slice.
  */
 import { useState, type ReactNode } from "react";
-import { Image, PixelRatio, View, useWindowDimensions, type StyleProp, type TextStyle } from "react-native";
+import { Image, PixelRatio, View, useWindowDimensions } from "react-native";
 import { Text } from "../Text";
 import Svg, { Circle, Path } from "react-native-svg";
-import { GLANCE_WORDS, SALMON_ISSUE_WORDS, SOURCE_WORDS, WORDS, daylightOffsets, timedLineText, type BannerVM, type DaylightAt, type GlanceRowVM, type CaveatVM, type InheritedVM, type OtherFishKeyVM, type OtherFishRowVM, type PossessionVM, type WhereNotVM } from "@app/core";
+import { GLANCE_WORDS, SALMON_ISSUE_WORDS, WORDS, daylightOffsets, timedLineText, type BannerVM, type DaylightAt, type GlanceRowVM, type CaveatVM, type InheritedVM, type OtherFishKeyVM, type OtherFishRowVM, type PossessionVM, type WhereNotVM } from "@app/core";
 import { Icon } from "../icons";
 import { TYPE } from "../type";
 import { GUTTER, type Palette } from "../theme";
@@ -16,10 +16,16 @@ import { RegsPress } from "./RegsPress";
 import type { FishImages } from "./types";
 import { useCoachTarget } from "../CoachMarks";
 import { useGuideControl } from "../guideControls";
-import { SourceTag } from "./SourceTag";
 
 /** (T40) a full-width press row at least 44 tall (`minHeight: 44`): its known box */
 const ROW = { w: 44, h: 44 } as const;
+/** (T907, owner 2026-11-19 ~06:50: "the trable is weird spacing with the same words liek release") every row of the
+ *  species table ends in ONE slot this wide — the Other fish rows' ›, the trout and salmon folds' ⌄ / ⌃, or nothing on a
+ *  plain row — so each row's value ends on the same right edge, whatever its mark */
+const END_W = 18;
+/** the row's end slot: its mark centred in `END_W` */
+const End = ({ children }: { children?: ReactNode }) =>
+  <View testID="row-end" style={{ width: END_W, alignItems: "center", justifyContent: "center" }}>{children}</View>;
 
 export function ClosedBanner({ banner, palette, actions }: { banner: BannerVM; palette: Palette; actions: KeepActions }) {
   const tone = palette.closed;   // the prototype draws the tidal banner in the closed rule too (.banner)
@@ -261,9 +267,6 @@ export interface GlanceFold {
   /** (T810 O, owner about 17:15 "Salmon + trout folds") the row's end is the expand / collapse arrow
    *  beside its value words, not the "Details" / "Hide" button; the Other fish list's own folds never set it */
   readonly arrow?: boolean;
-  /** the row's whose-rule tag where it is not its source's plain word: the Salmon row wears its block's
-   *  ("DFO + rule book"), so a row and its block read the same */
-  readonly tag?: string;
 }
 
 /**
@@ -280,38 +283,28 @@ function IssueMark({ palette }: { palette: Palette }) {
   );
 }
 
-/** a row's name, with its whose-rule tag after it where the page has two rule sources (`tag` null: none) */
-function Named({ name, tag, style, palette, grow = false }: { name: string; tag: string | null; style: StyleProp<TextStyle>; palette: Palette; grow?: boolean }) {
-  if (!tag) return <Text style={[style, grow ? { flex: 1 } : null]}>{name}</Text>;
-  return (
-    <View style={{ flexDirection: "row", flexWrap: "wrap", alignItems: "center", columnGap: 8, rowGap: 2, ...(grow ? { flex: 1 } : {}) }}>
-      <Text style={style}>{name}</Text>
-      <SourceTag text={tag} palette={palette} testID={`row-tag:${tag}`} />
-    </View>
-  );
-}
-
 /**
  * (T221, owner 2026-10-28) A FOLDED ROW: drawn as an Other fish row — picture, name, a status word only where the whole
  * card has it (no count) — but its end is a "Details" button with the set's expand mark (not the sheet's ›), and a press opens its full
  * card in place under it (pressed again, "Hide", folds it). (T227) The whole row is the press, the button its visible mark.
  */
-function FoldRow({ f, palette, images, coach, tags = false }: { f: GlanceFold; palette: Palette; images?: FishImages; tags?: boolean;
+function FoldRow({ f, palette, images, coach }: { f: GlanceFold; palette: Palette; images?: FishImages;
   /** (T456) the walkthrough's key for this row: its Details is a step's control, and the walk sees it open */
   coach?: string }) {
   const [open, setOpen] = useState(false);
   const ring = useCoachTarget(coach);
   useGuideControl(coach, open, setOpen);
   const tone = f.row.tone === "release" ? palette.restricted : f.row.tone === "closed" ? palette.closed : palette.ink;
-  const tag = tags ? f.tag ?? SOURCE_WORDS.tag[f.row.source] : null;
   // (T227) nothing more to see: a plain row, its word and no "Details"
   if (f.row.fold === false) return (
     <View testID={`glance:${f.key}`} style={{ paddingHorizontal: GUTTER }}>
       <View style={{ flexDirection: "row", alignItems: "center", gap: 10, minHeight: 44, paddingVertical: 9, borderTopWidth: 1,
                      borderTopColor: palette.line }}>
         <Thumb code={f.row.thumb} images={images} palette={palette} />
-        <Named name={f.row.name} tag={tag} style={[TYPE.regsBodySemi, { color: palette.ink }]} palette={palette} grow />
+        <Text style={[TYPE.regsBodySemi, { color: palette.ink, flex: 1 }]}>{f.row.name}</Text>
         {f.row.value && <Text testID={`st:${f.row.tone}`} style={[TYPE.regsBodyBold, { color: tone }]}>{f.row.value}</Text>}
+        {/* (T907) no mark: the slot stays, so the value ends where the other rows' do */}
+        <End />
       </View>
       {/* (T796) a rule-book closure says where it is from under the row: its words (page, line, dates), then its place */}
       {f.row.book?.map((b) => (
@@ -322,7 +315,7 @@ function FoldRow({ f, palette, images, coach, tags = false }: { f: GlanceFold; p
       ))}
     </View>
   );
-  if (f.arrow) return <ArrowFold f={f} open={open} setOpen={setOpen} ring={ring} tone={tone} palette={palette} images={images} tag={tag} />;
+  if (f.arrow) return <ArrowFold f={f} open={open} setOpen={setOpen} ring={ring} tone={tone} palette={palette} images={images} />;
   return (
     <View testID={`glance:${f.key}`}>
       <View ref={ring} collapsable={false} style={{ paddingHorizontal: GUTTER }}>
@@ -341,10 +334,10 @@ function FoldRow({ f, palette, images, coach, tags = false }: { f: GlanceFold; p
           {f.row.from ? (
             // (T892) a quota group from another water's tributary rule: said under its name, in the row's spoken words once
             <View style={{ flex: 1 }}>
-              <Named name={f.row.name} tag={tag} style={[TYPE.regsBodySemi, { color: palette.ink }]} palette={palette} />
+              <Text style={[TYPE.regsBodySemi, { color: palette.ink }]}>{f.row.name}</Text>
               <Text testID="row-from" style={[TYPE.meta, { color: palette.sub, marginTop: 2 }]}>{f.row.from}</Text>
             </View>
-          ) : <Named name={f.row.name} tag={tag} style={[TYPE.regsBodySemi, { color: palette.ink }]} palette={palette} grow />}
+          ) : <Text style={[TYPE.regsBodySemi, { color: palette.ink, flex: 1 }]}>{f.row.name}</Text>}
           {f.row.issue && <IssueMark palette={palette} />}
           {f.row.value && <Text testID={`st:${f.row.tone}`} style={[TYPE.regsBodyBold, { color: tone }]}>{f.row.value}</Text>}
           <View testID="glance-toggle" style={{ flexDirection: "row", alignItems: "center", justifyContent: "center", minWidth: 84, gap: 4, paddingVertical: 4, paddingHorizontal: 8,
@@ -370,9 +363,9 @@ const FOLD_STACK_AT = 1.5;
  * open or folded by aria-expanded; its spoken name is exactly its visible words (WCAG 2.5.3), the arrow being a picture.
  * At large text the value goes under the name, so nothing scrolls sideways.
  */
-function ArrowFold({ f, open, setOpen, ring, tone, palette, images, tag = null }: {
+function ArrowFold({ f, open, setOpen, ring, tone, palette, images }: {
   f: GlanceFold; open: boolean; setOpen: (v: boolean) => void; ring: ReturnType<typeof useCoachTarget>; tone: string;
-  palette: Palette; images?: FishImages; tag?: string | null }) {
+  palette: Palette; images?: FishImages }) {
   useWindowDimensions();
   const stack = (PixelRatio.getFontScale() || 1) >= FOLD_STACK_AT;
   const value = (f.row.value || f.row.date) ? (
@@ -384,7 +377,7 @@ function ArrowFold({ f, open, setOpen, ring, tone, palette, images, tag = null }
   return (
     <View testID={`glance:${f.key}`}>
       <View ref={ring} collapsable={false} style={{ paddingHorizontal: GUTTER }}>
-        <RegsPress accessibilityRole="button" aria-expanded={open} accessibilityLabel={[f.row.name, tag, f.row.from, f.row.value, f.row.date].filter(Boolean).join(" ")}
+        <RegsPress accessibilityRole="button" aria-expanded={open} accessibilityLabel={[f.row.name, f.row.from, f.row.value, f.row.date].filter(Boolean).join(" ")}
                    onPress={() => setOpen(!open)} box={ROW}
                    style={(st) => {
                      const lit = st.pressed || !!(st as { hovered?: boolean }).hovered || !!(st as { focused?: boolean }).focused;
@@ -393,15 +386,15 @@ function ArrowFold({ f, open, setOpen, ring, tone, palette, images, tag = null }
                    }}>
           <Thumb code={f.row.thumb} images={images} palette={palette} />
           {/* the name keeps its own width (up to half the row); a long value or date wraps under itself, not the name */}
-          <View style={stack ? { flex: 1, minWidth: 0 } : { flexShrink: 0, maxWidth: tag ? "60%" : "50%" }}>
-            <Named name={f.row.name} tag={tag} style={[TYPE.regsBodySemi, { color: palette.ink }]} palette={palette} />
+          <View style={stack ? { flex: 1, minWidth: 0 } : { flexShrink: 0, maxWidth: "50%" }}>
+            <Text style={[TYPE.regsBodySemi, { color: palette.ink }]}>{f.row.name}</Text>
             {/* (T892) every row of the table rests on another water's row carried down to its tributaries: said once, here */}
             {f.row.from && <Text testID="row-from" style={[TYPE.meta, { color: palette.sub, marginTop: 2 }]}>{f.row.from}</Text>}
             {stack && value}
           </View>
           {f.row.issue && <IssueMark palette={palette} />}
           {!stack && (value ?? <View style={{ flex: 1 }} />)}
-          <View testID="glance-arrow"><Icon name={open ? "collapse" : "expand"} colour={palette.ink} size={18} /></View>
+          <End><View testID="glance-arrow"><Icon name={open ? "collapse" : "expand"} colour={palette.ink} size={END_W} /></View></End>
         </RegsPress>
       </View>
       {open && <View testID={`glance-body:${f.key}`} style={{ paddingBottom: 12 }}>{f.body()}</View>}
@@ -413,16 +406,14 @@ function ArrowFold({ f, open, setOpen, ring, tone, palette, images, tag = null }
  * (T531) A block's species: its folded rows, then the Other fish rows and their status key — no heading, no rule of its own,
  * so it sits under the calendar it belongs to (or, in `OtherFish`, under "Species and limits").
  */
-export function SpeciesRows({ rows, keys, palette, actions, images, folds = [], tags = false }: {
+export function SpeciesRows({ rows, keys, palette, actions, images, folds = [] }: {
   rows: readonly OtherFishRowVM[]; keys: readonly OtherFishKeyVM[]; palette: Palette; actions: KeepActions; images?: FishImages;
   folds?: readonly GlanceFold[];
-  /** each row wears its whose-rule tag (the page has both DFO and B.C. blocks) */
-  tags?: boolean;
 }) {
   const tone = (t: OtherFishRowVM["tone"]) => (t === "release" ? palette.restricted : t === "closed" ? palette.closed : palette.ink);
   return (
     <View testID="species-rows">
-      {folds.map((f) => <FoldRow key={f.key} f={f} palette={palette} images={images} tags={tags}
+      {folds.map((f) => <FoldRow key={f.key} f={f} palette={palette} images={images}
                                  coach={f.key === "salmon" ? "regs:salmon"
                                    // (T810 O) the trout table's one fold where it is drawn, else the first group's
                                    : f === (folds.find((x) => x.key === "trout") ?? folds.find((x) => x.key.startsWith("group:"))) ? "regs:trout" : undefined} />)}
@@ -432,8 +423,8 @@ export function SpeciesRows({ rows, keys, palette, actions, images, folds = [], 
                    style={{ flexDirection: "row", alignItems: "center", gap: 10, minHeight: 44, paddingVertical: 9, borderTopWidth: 1, borderTopColor: palette.line }}>
           <Thumb code={o.thumb} images={images} palette={palette} />
           <View style={{ flex: 1 }}>
-            {/* the Other fish are the B.C. rules' */}
-            <Named name={o.name} tag={tags ? SOURCE_WORDS.tag.bc : null} style={[TYPE.regsBody, { color: palette.ink }]} palette={palette} />
+            {/* (T907, owner 2026-11-19 ~06:50) no B.C. / DFO tag on a row: the calendar heads carry it */}
+            <Text style={[TYPE.regsBody, { color: palette.ink }]}>{o.name}</Text>
             {o.week && <Text style={[TYPE.metaSemi, { color: palette.sub, marginTop: 2 }]}>{o.week}</Text>}
             {/* (T892) another water's row carried down to its tributaries answers this row: said under the name */}
             {o.from && <Text testID="row-from" style={[TYPE.meta, { color: palette.sub, marginTop: 2 }]}>{o.from}</Text>}
@@ -445,7 +436,7 @@ export function SpeciesRows({ rows, keys, palette, actions, images, folds = [], 
           <Text testID={`st:${o.tone}`} style={[TYPE.regsBodyBold, { color: tone(o.tone) }]}>
             {o.value}{o.sizeHint ? <Text style={[TYPE.metaSemi, { color: palette.sub }]}>{` ${o.sizeHint}`}</Text> : null}
           </Text>
-          <Text style={[TYPE.regsBody, { color: palette.sub }]}>›</Text>
+          <End><Text style={[TYPE.regsBody, { color: palette.sub }]}>›</Text></End>
         </RegsPress>,
         // prototype .ostamps (rows 32): the row's stored licence documents under it, each "You need <document ›> <when>"
         ...o.stamps.map((s, i) => (
@@ -470,19 +461,17 @@ export function SpeciesRows({ rows, keys, palette, actions, images, folds = [], 
   );
 }
 
-export function OtherFish({ rows, keys, palette, actions, images, folds = [], tags = false }: {
+export function OtherFish({ rows, keys, palette, actions, images, folds = [] }: {
   rows: readonly OtherFishRowVM[]; keys: readonly OtherFishKeyVM[]; palette: Palette; actions: KeepActions; images?: FishImages;
   /** (T221) the at-a-glance table's folded rows (Salmon, the quota groups), drawn first; then the table heads "Species and limits" */
   folds?: readonly GlanceFold[];
-  /** each row wears its whose-rule tag */
-  tags?: boolean;
 }) {
   return (
     <View testID="keep-otherfish" style={{ paddingTop: 18, paddingBottom: 4, marginTop: 14, borderTopWidth: 1.5, borderTopColor: palette.ink }}>
       <Text accessibilityRole="header" style={[TYPE.sectionHead, { color: palette.ink, marginBottom: 8, paddingHorizontal: GUTTER }]}>
         {folds.length ? GLANCE_WORDS.head : WORDS.OTHER_FISH}
       </Text>
-      <SpeciesRows rows={rows} keys={keys} palette={palette} actions={actions} images={images} folds={folds} tags={tags} />
+      <SpeciesRows rows={rows} keys={keys} palette={palette} actions={actions} images={images} folds={folds} />
     </View>
   );
 }

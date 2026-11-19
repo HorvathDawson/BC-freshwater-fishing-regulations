@@ -18,8 +18,9 @@
  *
  * (T879, owner 2026-11-18 ~20:53 "Two headers, one table", approved ~22:58) Both status blocks first — SALMON [DFO] (its big
  * word and year bar), then GAME FISH [B.C.] (its big word, year bar and timed lines) — then ONE species list under
- * "Species and limits": the Salmon fold first, then trout and char, the quota groups and the other fish, each row wearing
- * its block's tag (`SourceTag`). The salmon card's extras (hours, gear lead, Source (DFO) fold) stay in the Salmon row's
+ * "Species and limits": the Salmon fold first, then trout and char, the quota groups and the other fish. (T907, owner
+ * 2026-11-19 ~06:50: "the bc/dfo tag in the table can go … the tag next to the calendar … are fine still") the rows wear
+ * no tag; the two block heads keep theirs (`TaggedTitle`, `SourceTag`). The salmon card's extras (hours, gear lead, Source (DFO) fold) stay in the Salmon row's
  * fold. A page with no DFO block draws no tags and keeps its "Game fish (B.C. rules)" title.
  */
 import { Fragment, type ReactNode } from "react";
@@ -53,8 +54,7 @@ export function KeepTab({ keep, dateLabel, palette, actions, images, glance = nu
                todayAt={keep.strip?.todayAt ?? null} months={keep.strip?.months ?? []} />
   );
   const folds: GlanceFold[] = !glance ? [] : [
-    ...(glance.salmon ? [{ key: "salmon", row: glance.salmon.row, body: glance.salmon.card, arrow: true,
-                           ...(salmonStrip ? { tag: SOURCE_WORDS.salmonTag[salmonStrip.by] } : {}) }] : []),
+    ...(glance.salmon ? [{ key: "salmon", row: glance.salmon.row, body: glance.salmon.card, arrow: true }] : []),
     // (T810 O) ONE trout fold for the table (owner 15:47: the existing entry, its short line, the expand arrow); the other
     // fish's quota groups keep their own folds, unchanged
     ...keep.order.flatMap((b): GlanceFold[] => b === "trout" && trout ? [{ key: "trout", row: troutGlance(trout, keep.troutFrom), body: () => troutCard(false), arrow: true }]
@@ -65,14 +65,14 @@ export function KeepTab({ keep, dateLabel, palette, actions, images, glance = nu
   ];
   const home = !!(glance && keep.strip && keep.order.includes("strip"));   // a game-fish calendar to hang the B.C. species under
   const salmonHome = !!(glance && glance.salmon);   // a DFO block (with or without a calendar) to hang the DFO row under
-  // (T879) a DFO block on the page: the two blocks are named with their tags, and every row of the one list wears its own
+  // (T879) a DFO block on the page: the two blocks are named with their tags (T907: the rows of the one list wear none)
   const tags = !!(salmonStrip || salmonHome);
   const at = keep.order.findIndex((b) => b === "otherFish" || (b === "trout" && !!trout) || (typeof b === "object" && "group" in b));
   // (T293) the walkthrough's "what you can keep" points at the species table
   const table = (key: number) => (
     <CoachSpot key={key} k="regs:keep">
       <OtherFish rows={keep.otherFish ?? []} keys={keep.otherFishKey} palette={palette} actions={actions} images={images}
-                 folds={folds} tags={tags} />
+                 folds={folds} />
     </CoachSpot>
   );
   // no row for the table: it goes after the leading blocks (strip, inherited line, banner, caveats), never above the bar
