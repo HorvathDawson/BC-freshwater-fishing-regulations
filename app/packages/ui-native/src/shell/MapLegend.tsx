@@ -17,7 +17,7 @@ import { useCoachTarget } from "../CoachMarks";
 import { View } from "react-native";
 import { Text } from "../Text";
 import { Pressable } from "../Pressable";
-import { useLayoutClass } from "@app/ui";
+import { tabsAsRail, useLayoutClass } from "@app/ui";
 import { RunDayCaption, RunDaySlider, RunSpeciesChips } from "../RunsControls";
 import type { FishImages } from "../regs/types";
 import { LEGEND_RAMP_MAX, LegendCount, LegendRamp, LegendRows, LegendStrip } from "../Chrome";
@@ -36,6 +36,8 @@ export function MapLegend({ col, conditions, palette, theme, mapDay }: {
   mapDay: Date | null;
 }) {
   const { flowParam, horizon, layers, mm, cond } = col;
+  // (T904) the desktop's Conditions key is a card over the map, not a bar under it; phones and narrow web keep the bar
+  const card = tabsAsRail(useLayoutClass());
   const onConditions = mm.onConditions;
   // The readings on screen, as positions on the legend's own scale (sentinels excluded: a state, not a point).
   const visibleMarks = cond.marks;
@@ -75,7 +77,7 @@ export function MapLegend({ col, conditions, palette, theme, mapDay }: {
     </Text>
   );
   const strip = (
-    <LegendStrip palette={palette} full={onConditions} wrap={!onConditions}>
+    <LegendStrip palette={palette} full={onConditions} wrap={!onConditions} card={onConditions && card}>
       {/* NO QUANTITY SWITCH HERE (owner 2026-10-22): Flow · Level · Temperature is the Layers sheet's Show, one
           choice — a second switch in the strip would be two answers to "where do I change this". The ramp below
           names the quantity shown; the horizon control stays on the map (`horizons`). */}
