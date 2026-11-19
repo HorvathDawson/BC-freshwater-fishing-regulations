@@ -20,3 +20,11 @@ production. The Cloudflare beacon is the zone's Web Analytics setting (owner's C
    the rest lazy; drop unused weights), render-blocking CSS (inline or defer), fetchpriority on the LCP resource.
 3. Bigger: what the first visit downloads (only what the first screen needs; the rest after first paint or on demand),
    code splitting of web/index.js. Proposal with numbers before anything that changes data loading lands.
+
+## 2026-11-19 ~07:50: the Cloudflare beacon is on production too; the privacy page says "no analytics"
+With a browser user agent, both https://canifishthis.ca/ and staging carry
+`static.cloudflareinsights.com/beacon.min.js` (Cloudflare Web Analytics, edge-injected) and `/cdn-cgi/challenge-platform`
+(Cloudflare's bot check: the source of Lighthouse's two "deprecated API" warnings). The privacy page says "I use no
+advertising or analytics services". Owner asked "this seems fine to have?" — answered: fine for speed; but keep it ⇒
+reword the privacy page, or turn it off in Cloudflare (his dashboard). Waiting on his pick (To-Do page row). Source maps
+stay unpublished on purpose (crash symbolication keeps them private). The extension rows are his browser's React DevTools.
