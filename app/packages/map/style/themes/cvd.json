@@ -172,6 +172,7 @@
     "color.ui.salmon-keep": "@color.salmon.open",
     "color.salmon.casing": "@color.gear.edge",
     "width.salmon.casing": 0,
+    "color.salmon.open-area": "@color.salmon.open",
     "color.salmon.release": "@color.status.restricted",
     "color.salmon.closed": "@color.status.closed",
     "color.salmon.check": "@color.status.own",

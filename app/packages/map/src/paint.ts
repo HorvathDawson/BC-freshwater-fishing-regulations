@@ -252,8 +252,14 @@ export function gearPaint(layerId: "stream" | "lake", mode: string, mark: GearMa
                           values: ChannelValues | null = NO_VALUES, streamWidth?: unknown): Record<string, unknown> {
   const shown = gearShown(layerId, mode, mark, values);
   const ramp = GEAR_RAMPS[GEAR_RAMP];
+  // (T887) on a Salmon keep section drawn in its casing, the edge sits OUTSIDE the casing, so the mark is never under it
+  const casingPx = mode === "salmon" ? Number(tokens["width.salmon.casing"] ?? 0) : 0;
+  const kept = casingPx > 0 ? (values ?? NO_VALUES).salmon?.open ?? [] : [];
+  const edge = (z: number) => 2 * GEAR_EDGE_PX * rampAt(ramp.edge, z);
   const width = layerId === "stream" && streamWidth !== undefined
-    ? withinZoomCurve(streamWidth, (w, z) => ["+", w, 2 * GEAR_EDGE_PX * rampAt(ramp.edge, z)])
+    ? withinZoomCurve(streamWidth, (w, z) => kept.length
+      ? ["+", w, ["case", salmonLabelIn(kept), edge(z) + 2 * casingPx, edge(z)]]
+      : ["+", w, edge(z)])
     : ["interpolate", ["linear"], ["zoom"],
        ...ramp.edge.flatMap(([z, f]) => [z, GEAR_RING_PX * f])];
   return {

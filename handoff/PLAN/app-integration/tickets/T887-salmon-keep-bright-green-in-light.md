@@ -1,6 +1,6 @@
 # T887 — Salmon map, light mode: keep is a bright green, clearly apart from release, closed and check
 
-Status: OPEN — built; lands after the owner sees the pictures (app chat).
+Status: OPEN — built; the owner picked option B (2026-11-18 ~23:16, "Option B"); lands after the review fixes are seen (app chat).
 
 Owner 2026-11-18 ~22:33, verbatim: "Light mode keep salmon vs closed or release has very little contrast. Should be
 bright green for keep in light I think too?"
@@ -55,3 +55,11 @@ Light keep `#22C55E` (bright, hue 147 — dark mint's family) in a thin ink casi
 
 ## 2026-11-18 ~23:16: option B (owner)
 Shown A (#007E33) vs B (#22C55E with a 1.25 px dark casing) on the Cowichan, the owner picked B: "this is good too Option B". The branch is on B. Card chips and the year bar keep the deeper green (white text needs it).
+
+## Owner's pick and the review's two fixes (2026-11-18 ~23:16, "Option B")
+1. The keep casing hid the fly-only / bait-ban edges below about z13 (drawn over them). Now: selection casing, KEEP
+   CASING, gear edges, line — and on a kept section the edge is pushed outside the casing (`gearPaint`), so every zoom
+   shows it (src/salmon-casing.test.ts). The casing is a deep green (#004D2A: 5.9:1 or more on the ground, the green 4.4:1
+   on it, dE 27.9 from the gear ink) so a fly-only edge outside it reads as its own mark, not a thicker casing.
+2. Lakes and wetlands (fill + shoreline) had the bright green with no casing (about 2.3:1 on the ground). They now read
+   `color.salmon.open-area` (light #007E33, 3.05:1 worst ground; dark and cvd alias the keep). map-contrast checks it.

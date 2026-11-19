@@ -59,6 +59,8 @@ function marks(th: Theme): [string, string][] {
     // (T887 option B) a keep line drawn in an ink casing meets the ground with its casing (the green is held to the casing)
     ...SALMON_MAP_STATUSES.map((s): [string, string] =>
       [`salmon ${s}`, s === "open" ? salmonCasingColour(th) ?? salmonStatusColour(th, s) : salmonStatusColour(th, s)]),
+    // (T887) and keep on a lake or wetland (fill and shoreline): a polygon has no casing, so its own colour meets the ground
+    ["salmon open area", t["color.salmon.open-area"]!],
     ["selection", t["color.highlight"]!],
   ];
 }
@@ -160,6 +162,10 @@ describe("the Salmon view's keep (T887)", () => {
     const keep = salmonStatusColour("light", "open");
     expect(Math.abs(lch(keep).h - lch(salmonStatusColour("dark", "open")).h)).toBeLessThan(10);
     for (const [s, c] of others("light")) expect([s, deltaE(keep, c) >= 40]).toEqual([s, true]);
+  });
+  it("light keep on a lake or wetland is the deeper green, at least 40 from release, closed and check", () => {
+    const area = (resolveTheme("light") as Record<string, string>)["color.salmon.open-area"]!;
+    for (const [s, c] of others("light")) expect([s, deltaE(area, c) >= 40]).toEqual([s, true]);
   });
   it("a cased keep (option B) stands 3:1 off its own casing, and only light has one", () => {
     for (const th of ["light", "dark", "cvd"] as const) {

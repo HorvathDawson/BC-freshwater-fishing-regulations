@@ -777,7 +777,7 @@
         "enum": "salmon_status",
         "categories": {
           "open": {
-            "token": "color.salmon.open"
+            "token": "color.salmon.open-area"
           },
           "release": {
             "token": "color.salmon.release"
@@ -1015,7 +1015,7 @@
         "enum": "salmon_status",
         "categories": {
           "open": {
-            "token": "color.salmon.open"
+            "token": "color.salmon.open-area"
           },
           "release": {
             "token": "color.salmon.release"
@@ -1198,7 +1198,7 @@
         "enum": "salmon_status",
         "categories": {
           "open": {
-            "token": "color.salmon.open"
+            "token": "color.salmon.open-area"
           },
           "release": {
             "token": "color.salmon.release"
@@ -1875,7 +1875,7 @@
         "enum": "salmon_status",
         "categories": {
           "open": {
-            "token": "color.salmon.open"
+            "token": "color.salmon.open-area"
           },
           "release": {
             "token": "color.salmon.release"
@@ -3107,6 +3107,7 @@
       "color.ui.salmon-keep": "#4361D1",
       "color.salmon.casing": "#0A1116",
       "width.salmon.casing": 0,
+      "color.salmon.open-area": "#4361D1",
       "color.salmon.release": "#451F60",
       "color.salmon.closed": "#8F0006",
       "color.salmon.check": "#D08404",
@@ -3312,6 +3313,7 @@
       "color.ui.salmon-keep": "#A7FBB2",
       "color.salmon.casing": "#F4F8F5",
       "width.salmon.casing": 0,
+      "color.salmon.open-area": "#A7FBB2",
       "color.salmon.release": "#BE8DC2",
       "color.salmon.closed": "#FF3B6D",
       "color.salmon.check": "#FFD307",
@@ -3515,8 +3517,9 @@
       "color.label.minor": "#7F7C79",
       "color.salmon.open": "#22C55E",
       "color.ui.salmon-keep": "#007E33",
-      "color.salmon.casing": "#0A1116",
+      "color.salmon.casing": "#004D2A",
       "width.salmon.casing": 1.25,
+      "color.salmon.open-area": "#007E33",
       "color.salmon.release": "#421652",
       "color.salmon.closed": "#8F0006",
       "color.salmon.check": "#D08404",
@@ -4280,12 +4283,17 @@
     "color.salmon.casing": {
       "type": "color",
       "themeable": true,
-      "$comment": "(T887 option B) THE KEEP LINE'S CASING: a thin ink edge each side of a Salmon-view stream section DFO lets you keep from, under the line (paint.ts `salmonCasingPaint`), so a bright green line still stands 3:1 off the light basemap (WCAG 1.4.11): the casing meets the ground, the green meets the casing. The gear ink (an alias): no hue."
+      "$comment": "(T887 option B) THE KEEP LINE'S CASING: a thin deep-green edge each side of a Salmon-view stream section DFO lets you keep from, under the line (paint.ts `salmonCasingPaint`), so a bright green line still stands 3:1 off the light basemap (WCAG 1.4.11): the casing meets the ground, the green meets the casing. Deep green, not the gear ink: a fly-only or bait-ban edge (ink) drawn outside it on a kept section must read as its own mark (`gearPaint`)."
     },
     "width.salmon.casing": {
       "type": "number",
       "themeable": true,
       "$comment": "(T887) THE OPTION SWITCH: the keep casing's width each side of the line, px. 0: no casing (option A, a mid green that clears 3:1 alone; dark and colour-blind). Above 0: option B, light's bright green cased. Pick A or B by this and light's `color.salmon.open` (A #007E33, B #22C55E)."
+    },
+    "color.salmon.open-area": {
+      "type": "color",
+      "themeable": true,
+      "$comment": "(T887) KEEP ON A LAKE OR WETLAND in the Salmon view: the fill and its shoreline. A polygon has no keep casing, so where the keep line is option B's bright cased green (light) the area keeps the deeper green that clears 3:1 on the light ground by itself (tools/map-contrast.test.ts); everywhere else it is the keep line's own colour (an alias)."
     },
     "color.salmon.release": {
       "type": "color",

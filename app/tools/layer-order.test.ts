@@ -69,9 +69,8 @@ describe("boundaries sit under the water's status lines and over its fills (T83)
          // (T735) dark only: look C's glow, directly under the casing
          ...(theme === "dark" ? [SELECTION_GLOW] : []),
          // (T213) the gear edges: over the selection casing, under the line whose colour stays the read
-         SELECTION_CASING, GEAR_LAYERS.stream.fly, GEAR_LAYERS.stream.bait,
-         // (T887) the Salmon keep casing, directly under the line it edges
-         SALMON_CASING_LAYER, "stream",
+         // (T887) the Salmon keep casing under the gear edges (which a kept section pushes outside it), over the selection's
+         SELECTION_CASING, SALMON_CASING_LAYER, GEAR_LAYERS.stream.fly, GEAR_LAYERS.stream.bait, "stream",
          // (T848) the stream's lit and closed sections, at their own width, directly over it
          "stream-heavy",
          "stream-nobaseline", "stream-noaccess"]]);

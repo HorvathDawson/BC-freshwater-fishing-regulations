@@ -251,12 +251,14 @@ export function runtimeStyle(at: TileEndpoints, theme: string,
       layout: { "line-cap": "round" as const, "line-join": "round" as const },
       paint: glowPaint(markWidth("glow", sMode, sw), tk) };
     return [...copied, ...(hasGlow(tk) ? [glow] : []), casing,
-      // (T213) the gear edges: under the line (its colour stays the read), over the selection casing
-      ...gear("stream", markWidth("gear", sMode, sw)),
-      // (T887) the keep casing: under the line, built with no day (nothing is kept until a day is installed)
+      // (T887) the keep casing: under the gear edges and the line, built with no day (nothing is kept until a day is
+      // installed). Under the gear edges, which a cased keep section pushes outside it (`gearPaint`), so a fly-only or
+      // bait-ban mark is never hidden by it.
       { id: SALMON_CASING_LAYER, type: "line" as const, source: "atlas", "source-layer": "stream",
         layout: shownIn(markShownIn("salmonCasing", sMode), { "line-cap": "round" as const, "line-join": "round" as const }),
         paint: salmonCasingPaint(sMode, tk, NO_VALUES, sw.base) },
+      // (T213) the gear edges: under the line (its colour stays the read), over the selection casing
+      ...gear("stream", markWidth("gear", sMode, sw)),
       stream, heavy,
     /*
      * "MEASURED HERE, BUT NOTHING TO COMPARE IT TO" — DRAWN AS A DASH.
