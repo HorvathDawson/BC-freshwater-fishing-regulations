@@ -2867,3 +2867,13 @@ More questions (recommended answer first):
   worker (deploy/prod/feeds.sh + purge-reports), the data (`release --prod r-fc137c4040fa`), the website (site.sh), the
   production smoke. The Cloudflare dashboard settings (robots, bot fight, analytics, the www redirect) stay his (no API
   token here).
+- 2026-11-18 22:13-22:30, PRODUCTION IS LIVE (main chat on the owner's go, except the data step): data worker
+  bc-fishing-r2 deployed (22:13); backup bucket bc-fishing-regulations-backup created with staging's lifecycle (owner's
+  "Yes, create it"); feeds worker bc-fishing-feeds deployed on feeds.canifishthis.ca; inputs synced; dfo + gauges +
+  in-season jobs ok; DATA r-fc137c4040fa published BY THE OWNER (release --prod refuses an agent, by design; 22:21);
+  website 0.8.1 from d0b7bf863 (clean worktree /Users/dawson.horvath/dev/personal/BC-prod-web) on canifishthis.ca;
+  smoke --production 17 pass / 1 warn (backup not yet run) / 0 fail; first backup run ok (62 objects). LEFT FOR THE
+  OWNER: Cloudflare settings (Managed robots.txt OFF, Bot Fight Mode / JS detections OFF, Web Analytics OFF; the www
+  redirect rule to Dynamic concat("https://canifishthis.ca", http.request.uri.path), 301); then his word "switched" ->
+  Claude turns off bc-fishing-cron + main's update-hydro / update-in-season / update-stocking and runs
+  deploy/prod/drop-v1.sh (T865). Later: GitHub production option + PROD_R2 secrets for feeds-hydat / feeds-runtiming.
