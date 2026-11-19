@@ -2765,3 +2765,7 @@ More questions (recommended answer first):
   actually produce the results above. It should have all the rows that apply in source  Also the bait ban here is
   confusing idk where it is from for example." ~20:27: "Why is the bait ban all year defined from that month to that
   month too" -> T870 (main chat + app chat render).
+- 2026-11-18 ~20:40, owner (main chat), with a phone trace
+  (/Users/dawson.horvath/.claude/uploads/b8ddfca9-44eb-400e-a9bf-bd89b4b0f359/88da0716-trace-tokay-CP3A.261005.005-2026-11-18-20-35-10.perfetto-trace,
+  Pixel "tokay", 20:35), verbatim: "More laggy quick zoom in and out." -> the app chat (map performance; ticket number
+  theirs).
