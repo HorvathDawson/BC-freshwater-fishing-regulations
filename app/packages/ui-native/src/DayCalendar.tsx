@@ -6,7 +6,7 @@
  * `mapDay`, null = today (decisions D7) — through `onDay` and keeps no day of its own, so the map's colours and the
  * page never disagree. It keeps only which MONTH it is showing.
  *
- * A month grid (today ringed, the chosen day filled), ‹ › months, "Today", and the quick ‹ › day steps for tomorrow and
+ * A month grid (today ringed, the chosen day filled; always six weeks of fixed sevenths, T877), ‹ › months, "Today", and the quick ‹ › day steps for tomorrow and
  * yesterday. Days outside the data's calendar year (`@app/core` `dayRange`) are disabled, and the reason is said under
  * the grid — never a silently wrong day. Every control is a 44 px target, every day cell says its day in words
  * ("Saturday, June 15"), and on the web the grid takes the arrow keys (roving focus: only the chosen day is in the tab
@@ -25,6 +25,14 @@ import { hitProps } from "./regs/hit";
 
 /** A thumb's target: every button here is at least this tall and wide. */
 const TARGET = 44;
+
+/**
+ * (T877, owner 2026-11-18: "The calendar shifts around") ONE CELL of the month grid and of its week heads: a FIXED seventh
+ * of the row, blank or day alike, never `flex: 1`. With `flex: 1` and a 44 px `minWidth` on the days only, Yoga (the
+ * native layout) grew each day from 44 and each blank from 0, so a short first or last week spread its days across the
+ * row (Aug 31, a Monday, drew under Tue). Every cell the same seventh puts each day under its weekday by construction.
+ */
+const CELL = { width: `${100 / 7}%`, minWidth: TARGET } as const;
 
 /**
  * (T213; T367, owner 2026-11-04: the Today · Tomorrow · Date strip was "really ugly") THE MAP'S DAY PILL, in the
@@ -151,16 +159,16 @@ export function DayCalendar({ palette, day, onDay, range, now: nowProp }: {
         <Text accessibilityRole="header" style={{ ...TYPE.bodyStrong, fontSize: 16, color: palette.ink }}>{m.title}</Text>
         <Btn palette={palette} icon="next" label={DAY_PICKER.nextMonth} onPress={() => moveMonth(1)} enabled={m.next} />
       </View>
-      <View style={{ flexDirection: "row" }} importantForAccessibility="no-hide-descendants" aria-hidden>
+      <View testID="day-heads" style={{ flexDirection: "row" }} importantForAccessibility="no-hide-descendants" aria-hidden>
         {m.weekdays.map((w) => (
-          <Text key={w.long} style={{ ...TYPE.micro, flex: 1, textAlign: "center", color: palette.sub }}>{w.short}</Text>
+          <Text key={w.long} style={{ ...TYPE.micro, ...CELL, textAlign: "center", color: palette.sub }}>{w.short}</Text>
         ))}
       </View>
       <View testID="day-grid" role="group" accessibilityLabel={DAY_PICKER.gridLabel(m.title)} {...keys}>
         {m.weeks.map((w, wi) => (
           <View key={wi} style={{ flexDirection: "row" }}>
             {w.map((c, ci) => c === null
-              ? <View key={`b${ci}`} style={{ flex: 1, minHeight: TARGET }} />
+              ? <View key={`b${ci}`} style={{ ...CELL, minHeight: TARGET }} />
               : (
                 <Pressable {...hitProps({ w: TARGET, h: TARGET })} key={c.iso} ref={(el) => { cellRefs.current.set(c.iso, el as never); }}
                            onPress={() => onDay(chooseDay(new Date(shownView.year, shownView.month, c.n, 12), now))}
@@ -168,7 +176,7 @@ export function DayCalendar({ palette, day, onDay, range, now: nowProp }: {
                            aria-selected={c.chosen} aria-disabled={c.disabled}
                            tabIndex={c.iso === tabStop ? 0 : -1}
                            style={({ pressed }) => ({
-                             flex: 1, minHeight: TARGET, minWidth: TARGET, alignItems: "center",
+                             ...CELL, minHeight: TARGET, alignItems: "center",
                              justifyContent: "center",
                              backgroundColor: c.chosen ? palette.accent : pressed ? palette.tint : "transparent",
                              borderWidth: c.today ? 1.5 : 0, borderColor: c.chosen ? palette.ink : palette.accent,
