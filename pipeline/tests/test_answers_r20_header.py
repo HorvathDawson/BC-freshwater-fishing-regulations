@@ -51,14 +51,21 @@ def test_1_the_header_is_the_tree_root():
 
 
 def test_1_a_waters_own_total_says_per_angler():
+    g, _o, _P = _g(F.COUNT)
+    (root,) = g["tree"]
+    assert root["says"] == "This creek’s rule: up to 2 a day per angler"
+    assert g["header"]["says"] == root["says"]
+    # T846: the Bella Coola's cutthroat is released at the source, so every fish its 1 holds also counts toward Region
+    # 2's 4: the river's rule is the own tier under that total (the shape of its Apr 1-May 31 row), by the walk too
     g, _o, _P = _g(F.BELLA)
     (root,) = g["tree"]
-    assert root["says"] == "This river’s rule: up to 1 a day per angler"
-    assert g["header"]["says"] == root["says"]
+    assert root["says"] == "4 a day per angler across Region 2, lakes included"
+    assert [c["says"] for c in root["children"] if c.get("tier") == "own"] == [
+        "This river’s rule: up to 1 a day (part of the 4)"]
     g, _o, _P = _g(F.BELLA_TRIB)                # the Bella Coola's row by the tributary walk (Ape Creek's shape)
-    (root,) = g["tree"]
-    assert root["says"] == "The Bella Coola River’s rule: up to 1 a day per angler"
-    assert root["line"] == "The Bella Coola River’s rule (its row covers its tributaries, so it applies here)"
+    (own,) = [c for c in g["tree"][0]["children"] if c.get("tier") == "own"]
+    assert own["says"] == "The Bella Coola River’s rule: up to 1 a day (part of the 4)"
+    assert own["line"] == "The Bella Coola River’s rule (its row covers its tributaries, so it applies here)"
 
 
 # 2 ---------------------------------------------------------------------------------------------
@@ -105,3 +112,4 @@ def test_the_gate_refuses_a_header_that_is_not_the_root():
         return CC.check_card(P, o2)
     assert any("header" in p for p in mutated(lambda g: g["header"].__setitem__("says", "2 a day per angler from this stream")))
     assert any("header" in p for p in mutated(lambda g: g["header"].__setitem__("tier", "t2")))
+

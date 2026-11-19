@@ -14,3 +14,25 @@ Order:
 4. The owner, in the consoles: Play closed testing track (testers by email list or Google Group) with the production
    build; TestFlight Test Information (handoff/PLAN/ios/store/testflight-external.md, "What to Test" in the owner's
    voice) + an External group + Beta App Review (about a day for 0.8.1's first build), then a public link or emails.
+
+Owner 2026-11-18 ~18:05, verbatim: "okay so first step will be converting the website from staging to prod".
+Owner 2026-11-18 ~18:12, verbatim: "we need to get webapp and bucket released to prod them also cut first prod releases for
+iPhone and android which will then be closed testing and internal testing respectively. So let's work towards this. I'm
+gone for a little bit but then will be back to do my items."
+
+Revised order (main chat + app chat, 18:10):
+1. Main chat: the T846 data release (with the province-wide keep audit's findings) to staging.
+2. App chat: 0.8.1 web (app/integrate-081-web: 0.8.1 + T858/T859/T860, T864 to follow) to the staging site. The owner checks
+   both on staging.
+3. Main chat: rehearse every production script (--dry-run; PRODUCTION.md "first transition" step 1) and build the step-6
+   pair (web-prod export + SEO on that r-id) from a clean worktree at the app chat's named commit.
+4. Owner, the numbered list the main chat hands over: data worker, data (`release --prod`), feeds worker, site, www
+   redirect, smoke.
+5. App chat: the first production phone builds from the prod web's commit, as 0.8.2 (= 0.8.1 + web changes + T864);
+   Tracks: at ~18:00 the owner said Android closed testing + iPhone external; at ~18:12 "closed testing and internal
+   testing respectively" for iPhone and Android. Confirm which track each phone goes to before the consoles step.
+
+Owner ~18:20, verbatim: "We will also what to delete the old data for old app version once everything is settled to avoid
+being over 10gb"; ~18:23: "That clean up should be automatic" (-> T865, app chat: upload.sh prunes to live + previous; the
+v1 layout goes once the new site is live); ~18:25: "when we flip the switch i will get you to clean that stuff up too"
+(Claude turns off bc-fishing-cron and main's three update workflows at the switch, on his word).

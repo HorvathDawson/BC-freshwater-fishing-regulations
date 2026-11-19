@@ -133,4 +133,5 @@ def test_6_a_group_is_said_with_its_members():
     g, _o, _P = _group(F.BELLA_TRIB, OCT10)
     assert [(x["species"], x["says"]) for x in g["not_kept"]] == [
         (["ST"], "Steelhead: closed, no catch and release"),
+        (["CT"], "Cutthroat trout: release every one"),                                                    # T846
         (["DV", "LT", "EB"], "Char (Dolly Varden/bull trout, lake trout and brook trout): release every one")]

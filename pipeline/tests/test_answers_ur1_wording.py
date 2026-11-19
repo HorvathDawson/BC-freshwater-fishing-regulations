@@ -73,7 +73,7 @@ def test_d_a_count_tier_says_how_many_in_all():
 # F ---------------------------------------------------------------------------------------------
 def test_f_a_species_closure_says_not_even_to_release():
     g, _o, _P = _g(F.BELLA)
-    (nk,) = g["not_kept"]
+    (nk,) = [x for x in g["not_kept"] if x["species"] == ["ST"]]          # T846: the cutthroat's release is the other
     assert nk["says"] == "Steelhead: closed, no catch and release"
 
 
