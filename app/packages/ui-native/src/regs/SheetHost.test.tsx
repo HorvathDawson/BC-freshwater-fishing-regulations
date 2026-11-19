@@ -8,7 +8,7 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { act, cleanup, fireEvent, render, screen, within } from "@testing-library/react";
 import {
-  TROUT_NAV, TROUT_SHEET, TROUT_SOURCES_KEY, troutFishSheet, troutOf, troutSourcesSheet,
+  TROUT_NAV, TROUT_SHEET, TROUT_SOURCES_KEY, WORDS, troutFishSheet, troutOf, troutSourcesSheet,
   type RegsInputs, type RegsPage, type RuleIndex, type SheetKey, type SheetVM, type TroutValue, type TroutVM,
 } from "@app/core";
 import vectors from "../../../../fixtures/trout/trout-vectors.generated.json";
@@ -37,7 +37,7 @@ function troutVmOf(c: TroutCase): TroutVM {
   if (vm?.kind !== "table") throw new Error(`${c.name}: no table`);
   return vm;
 }
-const RULES = { get: (ix: number) => ({ rix: ix, key: `k${ix}`, missing: false, export: { verbatim: `words of ${ix}` },
+const RULES = { get: (ix: number) => ({ rix: ix, key: `k${ix}`, missing: false, rank: 3, export: { verbatim: `words of ${ix}`, prov: { entry_name: "Region 2", region: "2" } },
   facts: { title: `Rule ${ix}`, book: [[40, 42]] } }) } as unknown as RuleIndex;
 const troutPage = (t: TroutVM): RegsPage => ({ ...VEDDER, sheet: (k: SheetKey) =>
   (k === TROUT_SOURCES_KEY ? troutSourcesSheet(k, t, RULES, null) : k.startsWith("tf:") ? troutFishSheet(k, t, k.slice(3), RULES) : null) });
@@ -150,7 +150,7 @@ describe("<SheetHost> over the frozen vedder_1010 page", () => {
     expect(screen.getByTestId("sheet-body").textContent).toContain("Sat–Sun Keep up to 5 Today");
   });
 
-  it("(T810 P) a trout row's fish sheet: header, Here today (bold where bold), how to tell it, Sources in order; it closes as every sheet", () => {
+  it("(T810 P, T883 proposal) a trout row's fish sheet: header, Here today (bold where bold), how this was decided (Sources in order), how to tell it; it closes as every sheet", () => {
     // a hatchery-only steelhead row with its bold stop line, from the shared vectors, through N's troutOf and P's builder
     const pick = TROUT_CASES.flatMap((c) => { const t = troutVmOf(c); return t.boxes.flatMap((b) => b.rows.map((r) => ({ t, b, r }))); })
       .find(({ b, r }) => (b.label ?? r.label) !== null && r.sheet.here.some((l) => l.bold) && r.sheet.here.some((l) => !l.bold) && r.sheet.src.length > 1)!;
@@ -159,7 +159,7 @@ describe("<SheetHost> over the frozen vedder_1010 page", () => {
     expect(screen.getByRole("heading", { name: r.name })).toBeTruthy();
     expect(screen.getByTestId("sheet-sub").textContent).toBe(r.label ?? b.label);
     const body = screen.getByTestId("sheet-body");
-    for (const s of [r.sheet.head, TROUT_SHEET.HERE, TROUT_SHEET.TELL, TROUT_SHEET.SOURCES, ...r.sheet.here.map((l) => l.t), ...r.coming])
+    for (const s of [r.sheet.head, TROUT_SHEET.HERE, TROUT_SHEET.TELL, WORDS.DECIDED, ...r.sheet.here.map((l) => l.t), ...r.coming])
       expect(body.textContent, s).toContain(s);
     // bold where the payload says bold, and only there
     const face = (s: string) => getComputedStyle(within(body).getByText(s)).fontFamily;

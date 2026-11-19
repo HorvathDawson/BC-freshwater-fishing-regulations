@@ -25,6 +25,7 @@ import type { Settled } from "./settle";
 import { ruleBook } from "./book";
 import { LADDER_Q, LEVEL_HEAD, LOSES, SAYS, WORDS, pageWaterNoun } from "./words";
 import { storyOf } from "./story";
+import { flowOf } from "./flow";
 
 /** One rule's place in a row's ladder (page v36 rowSources item): its role and what it lost to, for which fish. */
 export interface LadderItem {
@@ -188,8 +189,10 @@ export function ladderOf(row: HydRow, env: LadderEnv, members?: readonly string[
     && !(i.by && !i.by.missing && shortLabel(i.by.export.label, title) === shortLabel(i.r.export.label, title)));
   // (T216) the angler's explanation, every stored item in layers (the Keep form only; the other: sheet keeps the ladder)
   const story = members ? null : storyOf(items, (it) => words(it).text, inp, keepResult);
+  // (T883, proposal) the fish sheet's one flow: the same items, in reading order, with the row's answer last
+  const flow = members ? null : flowOf(items, (it) => words(it).text, inp.item?.name || inp.place?.name || "", keepResult);
   return {
-    label: WORDS.DECIDED, sections, ...(story ? { story } : {}),
+    label: WORDS.DECIDED, sections, ...(story ? { story } : {}), ...(flow ? { flow } : {}),
     lost: lost.map((it) => {
       const w = words(it);
       return w.missing ? { text: w.text.map((r) => (r.t === "text" ? r.s : "")).join(""), status: "", rule: it.r.key, book: [] }

@@ -17,7 +17,7 @@ import { afterEach, beforeAll, beforeEach, describe, expect, it } from "vitest";
 import {
   buildModel, buildRegsPage, drawnRows, listRows, makePlace, segmentIndex, setFailureSink, settle, tableCovers, tapDay, troutOf,
   TROUT_NAV, TroutRefused, type RegsInputs, type RegsPage, type RuleIndex, type TroutValue, type TroutVM,
-  FISH, FISH_TIPS, TROUT_SHEET, TROUT_SOURCES_KEY, troutFishSheet, TroutLooksMissing, type SheetBlock, type SheetVM,
+  FISH, FISH_TIPS, TROUT_SHEET, TROUT_SOURCES_KEY, WORDS, troutFishSheet, TroutLooksMissing, type SheetBlock, type SheetVM,
 } from "@app/core";
 import { openTroutFixture, TROUT_FIXTURE_ROOT } from "@app/data/release/node";
 import { loadRegsInputs, openRegsStore, targetFor, type RegsStore } from "@app/data/regs";
@@ -405,7 +405,7 @@ function section(vm: SheetVM, from: string): SheetBlock[] {
 const lineOf = (b: SheetBlock): string => ("text" in b && Array.isArray(b.text) ? b.text.map((r) => ("s" in r ? r.s : "")).join("") : "");
 /** The rule keys a sheet's Sources block lists, in its order. */
 const sourceKeys = (bs: readonly SheetBlock[]): (string | null)[] =>
-  bs.flatMap((b) => (b.k === "sources" ? b.groups.flatMap((g) => g.rows.map((r) => r.key)) : []));
+  bs.flatMap((b) => (b.k === "sources" ? b.groups.flatMap((g) => g.rows.map((r) => r.key)) : b.k === "flow" ? b.flow.steps.map((x) => x.rule) : []));
 const linksOf = (vm: SheetVM): string[] =>
   vm.blocks.flatMap((b) => (b.k === "source" ? b.line.flatMap((r) => (r.t === "link" && typeof r.open === "string" ? [r.open] : [])) : []));
 const ascending = (xs: readonly number[]) => xs.every((x, i) => i === 0 || xs[i - 1]! < x);
@@ -434,8 +434,8 @@ describe("T810 P: the trout fish sheet over every vector", () => {
         expect(tell.filter((x) => x.k === "image").length, at).toBe(FISH[r.fish]!.length);
         expect(tell.flatMap((x) => (x.k === "list" ? x.items.map((i) => lineOf({ k: "para", text: i.line })) : [])), at).toEqual(FISH_TIPS[r.fish]);
         expect(linksOf(vm).includes("hatch"), at).toBe(r.origin !== null || r.label !== null || r.split || b.label !== null);
-        // Sources: `FishSheet.src` exactly, then "All sources ›" (the table's every rule)
-        expect(sourceKeys(section(vm, TROUT_SHEET.SOURCES)), at).toEqual(r.sheet.src.map(keyOf));
+        // (T883 proposal) How this was decided: `FishSheet.src` exactly, one step each; then "All sources ›" (the table's every rule)
+        expect(sourceKeys(section(vm, WORDS.DECIDED)), at).toEqual(r.sheet.src.map(keyOf));
         expect(r.sheet.src.length, at).toBeLessThanOrEqual(4);
         expect(linksOf(vm).at(-1), at).toBe(TROUT_SOURCES_KEY);
         if (!ascending(r.sheet.src)) unsortedSheet++;

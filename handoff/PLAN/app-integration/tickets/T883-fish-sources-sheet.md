@@ -8,4 +8,85 @@ pages are super clunky and ideally we want to make it nice and readable showing 
 to pair well with the trout ones too. All generated the same way (sources) and the way they are displayed should be the
 same."
 
-Lane: app/t883-fish-sources (worktree). Findings, design, data spec and pictures follow.
+Lane: app/t883-fish-sources (worktree, not pushed, not merged). Built app-side over today's data (2026-11-18 21:50);
+waits for the owner's yes before it merges.
+
+## What each sheet shows today (r-fc137c4040fa)
+- **Other fish** (`other:oN`, core `sheets/other.ts` → decided.ts `ladderOf`, drawn by `LadderView`): the answer
+  ("↩ Release ⓘ" / "20 a day" + its sentence), then "How this was decided" as page v36's ladder: a question head
+  ("What you can keep"), a ticked result, a step per LEVEL (kicker "CULTUS LAKE"), each rule as its sentence + a role
+  word glued on ("Release every kokanee. Release"), the whole "This water’s own row in the 2025–2027 BC Freshwater
+  Fishing Regulations Synopsis: Cultus Lake." / "From the Region 2 table — all of Region 2." line, then "Rule book
+  p.23 ↗" on its own line; then a second question ("Other rules") in the same form; then "Rules that don’t apply here
+  (1)" folded — which is where the rule the answer REPLACED sits (Region 2's "Keep up to 5 kokanee a day").
+- **Trout** (`tf:<row>`, core `sheets/trout.ts`, payload `FishSheet {head, here[], src[]}`): bold head, "Here, today"
+  (Python's lines), "How to tell it", then "Sources": each rule's title bold, the book's words quoted, "Rule book
+  p.21 ↗" — a flat list, no level, no role, cut to 4 by Python.
+
+## Why the other-fish sheet reads as clunky
+1. Four lines per rule, three of them boilerplate: the role word repeats the sentence ("Release every kokanee.
+   Release"), the "applies" sentence restates the kicker, the page link takes its own line.
+2. The story is split: the base rule that was replaced is folded away under "Rules that don’t apply here", so the
+   sheet never shows base → this water → answer; the angler sees only the winner.
+3. Question heads ("What you can keep", "Other rules") and the result line sit between the section head and the
+   steps, so the answer is said three times (value, sentence, ✓ result) before the first rule.
+4. It shares nothing with the trout sheet: a different list (ladder vs Sources), different line anatomy, different
+   order, so the two fish families look like two apps.
+
+## Design (one layout, every fish)
+Answer first (unchanged: the value and its sentence, or the trout head + "Here, today"). Then **How this was
+decided** as a rail:
+- one step per rule, in reading order: All of B.C. → the region's base rule → an area → this water's own rule →
+  what narrows it → federal / part of the water (story.ts's level order; within a level, the stored role order);
+- each step: a kicker naming who says it and what kind of rule ("REGION 2 · BASE RULE", "CULTUS LAKE · THIS
+  WATER’S RULE") with its page at the right ("p.21 ↗"); the rule's one sentence (opens the rule sheet); a tag only
+  when it adds something ("Replaced by Cultus Lake", "Lowers the number", "Counts toward this total"); none on the
+  rule that sets the answer;
+- a replaced rule stays in its place, quietly: sub colour, hollow dot, "Replaced by …";
+- a step under the same kicker as the one before drops the kicker and keeps its page at the right of its line;
+- the rail ends in the answer, ticked: "✓ So: Release every one here.";
+- **Other rules** (possession, duties, yearly): one line each, "Region 2 · base rule  p.21 ↗" under it;
+- rules that changed nothing (says the same, moot, not needed, and a possession rule replaced by another) folded:
+  "Rules that don’t apply here (N)"; then "See every regulation line ›" (other fish) / "All sources ›" (trout).
+The trout sheet draws the same rail from `FishSheet.src`, moved up under "Here, today" (above "How to tell it") so
+both families read answer → how it was decided → the fish.
+
+Built: core `regs/flow.ts` (FlowVM from the stored roles, no decision), `LadderVM.flow`, SheetBlock `flow`,
+ui-native `sheet/FlowView.tsx`; `other.ts` draws it for every plain row except a weekday row (its day-parts ladder
+stays); `trout.ts` draws it from `src`. Tests: `flow.test.ts` (whole strings), SheetHost + conformance trout pins moved
+to the new head. Not built: the g28 group sheets (Whitefish, Bass: their own group card, untouched), weekday rows,
+the desktop (wide) sheet look, light theme pictures.
+
+## Pictures (390, dark, real clock Nov 18, staging data)
+Scratchpad (session 699dcd1b): `t883-before-390-dark-cultus-kokanee.png`, `t883-after-390-dark-cultus-kokanee.png`,
+`t883-after-390-dark-cultus-kokanee-folds-open.png`, `t883-before-390-dark-cultus-crappie.png`,
+`t883-after-390-dark-cultus-crappie.png`, `t883-before-390-dark-mamquam-rainbow.png`,
+`t883-after-390-dark-mamquam-rainbow.png`.
+
+## Data spec for the main chat (so both families are "generated the same way")
+Today the app builds the other-fish steps from `rows_decided.roles` + the rule's provenance, and the trout steps from
+`FishSheet.src` alone. For the clean version, Python emits ONE list per fish answer, the same shape for a rows-frame
+row and a trout row (`FishSheet.decided`, and the rows frame's per-row equivalent):
+
+```
+decided: {
+  answer:  str                 # "Release every one here." / "Keep 2 a day here, hatchery only." — a sentence, not the head
+  steps:   [Step]              # reading order, Python's; the app draws one line per entry, never sorts or cuts
+  other:   [Step]              # possession, duties, yearly limit
+  aside:   [Step]              # agrees / moot / falls / a replaced possession rule (folded)
+}
+Step: {
+  rule:   int                  # rule index (opens the rule sheet; pages from facts.book)
+  role:   "base"|"sets"|"narrows"|"counts"|"caps"|"size"|"also"|"replaced"|"lifted"|"possession"|"duty"|"yearly"|...
+  level:  str                  # "Region 2 · base rule", "Mamquam River · this water's rule" (who says it)
+  words:  str                  # the rule's one plain sentence for THIS fish (subset sentence where it holds for fewer)
+  effect: str | null           # "Replaced by Cultus Lake", "Lowers the number" — null on the rule that sets the answer
+  by:     int | null           # the rule that replaced / lifted it
+}
+```
+Gaps this would close: (1) the trout `src` has no role, so no trout step can say "replaced" or "lowers"; (2) the
+trout `src` cut to 4 can drop the rule that set the answer — Mamquam's rainbow sheet lists Region 2's "Keep up to 4"
+but not Region 2's "At most 2 hatchery trout and char a day from streams", the rule that makes it 2 (it is 6th in
+the table's "All sources"); `steps` should hold every step of the answer, uncut; (3) the trout head ("Keep ·
+counts toward the 2") is not a sentence, so "So: …" reads oddly — `answer` should be one; (4) one shape lets one
+check prove both families (each step's rule holds for the fish; the answer equals the last deciding step's).

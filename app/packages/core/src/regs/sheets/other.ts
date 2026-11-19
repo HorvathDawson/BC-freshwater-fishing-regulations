@@ -124,6 +124,12 @@ export function otherSheet(ctx: SheetCtx, key: SheetKey, i: number): SheetVM | n
   const short = row.pool ? null : shortWindowsOf(row, inp, seams);
   if (short) blocks.push(para([text(short)]));
 
+  // (T883, proposal) the one "How this was decided" every fish sheet draws; a weekday row keeps its day-parts ladder
+  if (vm.ladder.flow && !week) {
+    blocks.push({ k: "head", text: vm.ladder.label }, { k: "flow", flow: vm.ladder.flow });
+    blocks.push({ k: "link", line: [{ t: "link", s: vm.more.text, open: vm.more.open }] });
+    return { key, title, sub: null, blocks };
+  }
   blocks.push({ k: "head", text: vm.ladder.label }, ...sheetLadder(vm.ladder, row, inp));
   if (vm.ladder.lost.length) blocks.push({ k: "fold", summary: WORDS.RULES_NOT_APPLY(vm.ladder.lost.length), open: false,
     body: [{ k: "ladder", q: null, result: null, steps: [{ level: "", lines: vm.ladder.lost.map((x) => withApplies(inp,
