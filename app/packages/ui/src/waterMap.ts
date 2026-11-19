@@ -24,7 +24,7 @@
 import { useMemo, useRef, useState } from "react";
 import {
   reportOnce, crossLabel, crossDown, crossUp, entryNames, entryPieces, exitLabel, groupBounds, mergeNav, itemNote, markA11y, markLabel, navSections, partAt, partBounds,
-  partName, partOfSection, partRowAria, partWhere, stepDown, stepUp, TIDAL_SHEET_WORDS, WATER_MAP_WORDS, wholeAria, wholeLabel, type Bbox,
+  onePartLabel, partName, partOfSection, partRowAria, partWhere, stepDown, stepUp, TIDAL_SHEET_WORDS, WATER_MAP_WORDS, wholeAria, wholeLabel, type Bbox,
   type NavCross, type NavExit, type WaterGroup,
 } from "@app/core";
 import type { ItemId, SectionId } from "@app/data";
@@ -168,6 +168,9 @@ export interface WaterMapVM {
     readonly open: boolean;
     readonly rows: readonly (WaterMapPartVM & { readonly aria: string; readonly here: boolean })[];
   } | null;
+  /** (T875) A water of one part (`list` null): the quiet line that holds the list toggle's place ("This river is one
+   *  part"), so the bar is as tall on a water of one part as on one of many and a step between them moves nothing. */
+  readonly onePart: string | null;
 }
 
 /**
@@ -272,6 +275,7 @@ export function waterMapView(g: WaterGroup, s: WaterMapState): WaterMapVM | null
           rows: g.parts.map((_, i) => ({ ...partVM(g, i), ...(oneWater ? { note: "" } : {}), aria: partRowAria(g, i),
                                          here: i === at })) }
       : null,
+    onePart: g.parts.length > 1 ? null : onePartLabel(g, at),
   };
 }
 
