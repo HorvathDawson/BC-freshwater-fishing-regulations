@@ -70,7 +70,7 @@ export const panProbe = {
     start();
     // (T499) `frames`: the binding's every-frame event; `full`: its fully-drawn one (counted apart: they are two events)
     if (full) w.full += 1; else w.frames += 1;
-    const t = clockNow(); drawn.frame(full, t); swaps.frame(t);
+    const t = clockNow(); drawn.frame(full, t); swaps.frame(t, full);
   },
   /** (T499) a write the map made: a source's new data, the highlight or pushed data sent again */
   src(what: string): void { if (!on()) return; start(); w.src[what] = (w.src[what] ?? 0) + 1; },
@@ -91,25 +91,34 @@ export const panProbe = {
  *   bare      frames drawn between the load and the first labels' acknowledgement (drawn without the engine's colours)
  *   bareMs    load → acknowledgement
  *   kept      a section labelled before the load still wore its state after it (feature-state survived the swap)
+ *   paintMs   (T903) first hand-over → the first FULL frame after the labels' acknowledgement: the switch painted
+ *             (null: no full frame within 4 s of the load)
  */
 export function swapTracker(log: (line: string) => void = (l) => console.log(l)) {
   let why: string[] = [], firstAt = -1, loadAt = -1, bare = 0, kept: boolean | null = null, open = false;
+  let ackAt: number | null = null;
   let timer: ReturnType<typeof setTimeout> | null = null;
-  const done = (ackAt: number | null) => {
+  const done = (fullAt: number | null) => {
     if (timer) { clearTimeout(timer); timer = null; }
     log(`[swap] ${JSON.stringify({ t: loadAt, handed: why.length, why, loadMs: firstAt >= 0 ? loadAt - firstAt : null, bare,
-                                   bareMs: ackAt === null ? null : ackAt - loadAt, kept })}`);
-    open = false; why = []; firstAt = -1; kept = null;
+                                   bareMs: ackAt === null ? null : ackAt - loadAt, kept,
+                                   paintMs: fullAt === null || firstAt < 0 ? null : fullAt - firstAt })}`);
+    open = false; why = []; firstAt = -1; kept = null; ackAt = null;
   };
   return {
     handed(w: string, t: number): void { if (open) done(null); if (firstAt < 0) firstAt = t; why.push(w); },
     loaded(t: number): void {
       if (open) done(null);
-      loadAt = t; bare = 0; open = true;
+      loadAt = t; bare = 0; open = true; ackAt = null;
       timer = setTimeout(() => { if (open) done(null); }, 4000);
     },
-    frame(_t: number): void { if (open) bare += 1; },
-    acked(t: number): void { if (open) done(t); },
+    /** a frame: before the labels land it is bare; after, the first full one is the switch painted (T903) */
+    frame(t: number, full = false): void {
+      if (!open) return;
+      if (ackAt === null) bare += 1;
+      else if (full) done(t);
+    },
+    acked(t: number): void { if (open && ackAt === null) ackAt = t; },
     kept(h: boolean | null): void { kept = h; },
   };
 }

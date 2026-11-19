@@ -9,7 +9,9 @@ import * as device from './device.mjs';
 /** The switch each key's value means ON (MapLab.tsx's ROWS). */
 const ON = { pixelCap: true, prefetch: 2, stateGapMs: 250, streamsOneBucket: true, roads: true, landuse: true, labels: true, hideInvisible: true,
              // (T876) each kind of label, and the hold while zooming
-             waterNames: true, placeNames: true, roadNames: true, areaNames: true, gaugePills: true, marks: true, holdLabels: true };
+             waterNames: true, placeNames: true, roadNames: true, areaNames: true, gaugePills: true, marks: true, holdLabels: true,
+             // (T903) the label tests against the day's default, and hashed
+             paintDefault: true, labelMatch: true };
 export const LAB_KEYS = Object.keys(ON);
 
 /** `k=v,k=v` → { k: v } (numbers and booleans read as such). */

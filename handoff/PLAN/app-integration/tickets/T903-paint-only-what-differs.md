@@ -1,6 +1,6 @@
 # T903 — Map modes paint only what differs from a default (Salmon red, Conditions/Runs grey)
 
-Status: OPEN — stressed bench done 2026-11-19 03:51: not a clear win (switches into Salmon faster, pans slower); next chat (branch app/t903-paint-default, prototype behind map-lab switches, not merged).
+Status: IN PROGRESS — clean A/B rerun 2026-11-19 ~10:40: pans the same, `paintDefault` ON by default on branch app/t903-land; left (Claude): integrate (main chat)
 
 Owner 2026-11-19 ~01:33 (app chat), verbatim: "i feel like salmon painting is still slow. maybe it should default stream
 color to red then only paint things different then that? might reduce the load when on salmon view? then goes back to
@@ -107,3 +107,46 @@ what a phone does. Next chat: `paintDefault` ALONE is the promising half — a b
 only (base not first, ≥ 6 rounds, the pans watched), e.g. `MS_ARMS='lab:paintDefault=true;base'`, and the pan
 regression explained before anything lands. Runs in the lane scratchpad (`t903/stress`, `t903/stress2`, `t903/agg.py`).
 
+## 2026-11-19 ~10:40: the CLEAN rerun — "pans worse" was the measurement; `paintDefault` lands ON (branch app/t903-land)
+
+Owner 06:40: "how was panning worse??? it seems like an obvious win?" **It was not worse. The old pan number mostly
+measured the mode switch, not the pan:** the scenario reads SurfaceFlinger's last ~128 frames after each fling, so the
+first read also holds the frames that repainted the map after the tap — 97–115 of the ~190 frames per "pan" record came
+BEFORE the first fling (checked on the raw times). And `mapFrames` drops every gap over 250 ms as "map at rest", which
+on the stressed emulator throws away the worst real frames. Both bias against the faster arm: an arm that repaints the
+switch in more, shorter frames gets more of them counted as slow "pan" frames. Fixed in the scenario: each fling is
+marked on the device's monotonic clock and the pan is read from the raw frames inside each fling's window, uncapped;
+the [drawn] (pop-in), style-swap and JS-stall lines during the flings are kept beside it.
+
+**Run.** APK of b66b1e58d (patched MapLibre, build id 7bf3dc29…), Fraser Valley z11, `install mode-switch`, arms
+INTERLEAVED pD, base, base, pD, pD, base (each a cold start, 2 rounds) = 6 rounds per arm, 24 flings per mode per arm
+(48 on Salmon). Stressed (`-cores 2`, 1 core) then unstressed, one emulator after the other. Runs:
+`scratchpad/t903/rerun/{stress,plain}`, `agg2.py`, `blocks.py`, `trend.py`.
+
+| stressed (n = 6 rounds/arm) | base | paintDefault |
+|---|---|---|
+| whole cycle (5 switches), mean / trend-adjusted | 6,308 ms | 6,070 ms, −4 % (±15 %) |
+| … into Conditions / back to Map (Salmon) / to Trout | 1,205 / 1,482 / 1,373 | −9 % / −15 % / −9 % (±20–26 %) |
+| … into Salmon / into Runs | 1,299 / 948 | +10 % / +10 % (±23–29 %) |
+| Salmon pans: frames > 50 ms, p95, stuck ms per fling | 32 %, 120 ms, 606 | 35 %, 121 ms, 623 (+2 % ±15 %) |
+| Trout / Conditions / Runs pans: stuck ms per fling | 576 / 468 / 421 | 641 / 502 / 456 (+5 to +8 %, ±17–48 %) |
+| style swaps during flings; JS stalls per Salmon fling | 0; ~30 ms | 0; ~27 ms |
+
+Unstressed: the emulator kept warming up after the install (every metric falls 8–20 % PER ROUND across the batch; the
+first block, paintDefault, was the slowest of all). With that trend taken out, every arm difference is inside its noise
+(cycle +2 % ±30 %, Salmon pans −15 % ±75 %). Its raw medians are not a fair reading.
+
+**Reading.** Pans: the same, stressed and not (no style swaps, JS stalls ~30 ms against ~600 ms of slow frames per
+fling: pan jank on this emulator is MapLibre's render thread and tile workers, not our JS). Mode switches: about the
+same to slightly faster (−4 % whole cycle, not significant at n = 6). The zoom gestures carry the measured win, from the
+two earlier runs whose orders were opposite (base first in one, last in the other): stressed pinch 3.1 → 5.2 fps,
+zoom-out 3.6 → 6.7 fps, map workers −18 / −23 %; unstressed workers −11 / −17 %. The look is unchanged by construction
+and by test. `labelMatch` was not rerun (its earlier pan "regression" is the same artefact; it stays a lab switch, off).
+
+**Landed on app/t903-land (not merged):** `LAB_DEFAULT.paintDefault = true` (so every build, production included, gets
+it: `useLab` hands the defaults where the lab is off). The style is now keyed on the LOOK, not on `cv`'s object (the
+prototype rebuilt the 0.5 MB style whenever equal values came in a new object — T287's rule; no swaps were seen, but it
+cost JS time). `paint-default.test.ts`: MapLibre's own evaluator over every moved layer's paint, every label each key
+can hold plus "" (not labelled yet), zooms, orders and flags, in all five views and both themes — same width, colour
+and opacity; a mutant (the "" dropped from the rest) fails it. The `mode-switch` scenario keeps the fixed pan reading.
+Not verified: a phone; the web map is untouched (native only).

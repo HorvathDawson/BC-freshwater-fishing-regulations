@@ -26,6 +26,8 @@ const ROWS: readonly { key: keyof Lab; label: string; hint: string; on: Lab[keyo
   { key: "areaNames", label: "Area names", hint: "test only: off hides parks, reserves, closures, units", on: true, off: false },
   { key: "gaugePills", label: "Gauge pills", hint: "test only: off hides the gauges' readings", on: true, off: false },
   { key: "marks", label: "Water marks", hint: "test only: off hides route arrows, flow arrows, obstacles", on: true, off: false },
+  { key: "paintDefault", label: "Paint against the default", hint: "label tests list only what differs (same look; T903)", on: true, off: false },
+  { key: "labelMatch", label: "Label tests hashed", hint: "with the default: a lookup, not a scan (same look; T903)", on: true, off: false },
 ];
 
 export function MapLab({ chrome }: { chrome: MapChrome }) {
