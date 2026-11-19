@@ -83,4 +83,4 @@ def test_cranberry_canyon_binds_between_its_two_cuts():
     assert not [f for f in P.prechecks(e, binds=True) if f["rule_id"] == "cranberry_river.r1" and f["code"] == "undrawn_part"]
     splits = {s["id"]: s for wb in json.loads(under_test.curated().waters.cuts.read_text())["waterbodies"] for s in wb["splits"]}
     assert (splits["cranberry_river__falls_top_of_canyon"]["confidence"],
-            splits["cranberry_river__canyon_bottom_estimate"]["confidence"]) == ("medium", "low")
+            splits["cranberry_river__canyon_bottom_estimate"]["confidence"]) == ("high", "low")   # 7d4c0e079, owner 11-18
