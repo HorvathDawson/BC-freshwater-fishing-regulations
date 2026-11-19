@@ -22,6 +22,7 @@ import {
 import { openTroutFixture, TROUT_FIXTURE_ROOT } from "@app/data/release/node";
 import { loadRegsInputs, openRegsStore, targetFor, type RegsStore } from "@app/data/regs";
 import { ADULT_RESIDENT, REPO } from "./golden";
+import { railSetters } from "./tributaryEvidence";
 
 interface Vector { readonly name: string; readonly item: string; readonly day: string; readonly weekday: string; readonly s: number;
                    readonly anchor: { readonly stream: number; readonly m: number } | { readonly lake: string };
@@ -491,19 +492,19 @@ describe("T810 P: the trout fish sheet over every vector", () => {
 });
 
 describe("T892: the trout fold's tributary line (keepOf → KeepVM.troutFrom) over every vector", () => {
-  it("set exactly where every row's sheet names the same deciding '<water> · its tributaries'; whole on Shamrock Creek", async () => {
-    const DOWN = " · its tributaries", set: string[] = [];
+  it("set only where every row's rail is set, for every origin, by the same waters' tributary rules; none on Shamrock Creek", async () => {
+    const lines: Record<string, string | null> = {}, named: Record<string, string[]> = {};
     for (const c of V.cases) {
       const inp = await inputsOfCase(c), page = pageOf(inp), t = page.keep.trout;
-      const rows = t?.kind === "table" ? t.boxes.flatMap((b) => b.rows) : [];
-      const named = rows.map((r) => {
-        const flow = page.sheet(`tf:${r.key}`)?.blocks.find((x): x is Extract<SheetBlock, { k: "flow" }> => x.k === "flow")?.flow;
-        return [...new Set((flow?.steps ?? []).filter((x) => x.tone === "won" && x.kicker.endsWith(DOWN)).map((x) => x.kicker.slice(0, -DOWN.length)))].join("|");
-      });
-      const all = rows.length > 0 && named.every((n) => n !== "" && n === named[0]);
-      expect(!!page.keep.troutFrom, c.name).toBe(all);
-      if (page.keep.troutFrom) set.push(`${c.name}: ${page.keep.troutFrom}`);
+      const rows = (t?.kind === "table" ? t.boxes.flatMap((b) => b.rows) : []).map((r) => railSetters(
+        page.sheet(`tf:${r.key}`)?.blocks.find((x): x is Extract<SheetBlock, { k: "flow" }> => x.k === "flow")?.flow ?? null, r.origin));
+      const all = rows.length > 0 && rows.every((x) => x.setByDown && x.names.join("|") === rows[0]!.names.join("|"));
+      if (page.keep.troutFrom) expect(all, c.name).toBe(true);   // a line: every row's rail set by those waters (the sweep proves the rest)
+      lines[c.name] = page.keep.troutFrom ?? null;
+      named[c.name] = [...new Set(rows.flatMap((x) => x.mentions))];
     }
-    expect(set).toContain("shamrock-jul15: Lonzo Creek’s rule for its tributaries");
+    // (review 2-1) Lonzo Creek's only step on Shamrock Creek's rows is the hatchery ones' size rule; the number and the
+    // wild release are Region 2's: its rows' sheets name Lonzo Creek, the fold says nothing
+    expect([lines["shamrock-jul15"], lines["kilgard-jul15"], named["shamrock-jul15"]]).toEqual([null, null, ["Lonzo Creek"]]);
   });
 });

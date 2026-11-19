@@ -25,7 +25,7 @@ import type { Settled } from "./settle";
 import { ruleBook } from "./book";
 import { LADDER_Q, LEVEL_HEAD, LOSES, SAYS, WORDS, pageWaterNoun } from "./words";
 import { storyOf } from "./story";
-import { flowOf } from "./flow";
+import { flowOf, type DownScope } from "./flow";
 
 /** One rule's place in a row's ladder (page v36 rowSources item): its role and what it lost to, for which fish. */
 export interface LadderItem {
@@ -102,6 +102,17 @@ export function rowSources(row: HydRow, card: CardModel, settled: Settled, inp: 
 }
 
 const winItem = (r: RuleView): LadderItem => ({ r, role: "governs", by: null, spp: new Set() });
+
+/** (T892) A row's stored answers, one per fish × origin it covers (the rows frame's hatchery and wild answer of each of
+ *  its fish, as rowSources reads them): what the table row's tributary line is checked against (flow.ts `DownScope`). */
+function rowScope(row: HydRow, card: CardModel, inp: RegsInputs): DownScope {
+  const f = card.ctx.s >= 0 ? inp.year?.rowsBySeg[card.ctx.s] ?? null : null;
+  const cells = row.allMembers.filter((S) => card.R[S]).flatMap((S) => {
+    const a = f?.fish[S];
+    return [a?.hatchery, a?.wild].flatMap((d) => (d ? [d] : []));
+  });
+  return { cells, rules: inp.rules };
+}
 
 /** (T892) The waters the row's fish sheet names "<that water> · its tributaries" on a deciding step, for every fish of
  *  the row (`FlowVM.down`): the sheet's own flow (`ladderOf` with `flow`), so the Keep tab's row says what the sheet says. */
@@ -203,7 +214,7 @@ export function ladderOf(row: HydRow, env: LadderEnv, members?: readonly string[
   const story = members ? null : storyOf(items, (it) => words(it).text, inp, keepResult);
   // (T883, proposal) the fish sheet's one flow: the same items, in reading order, with the row's answer last
   const flow = members || !env.flow ? null
-    : flowOf(items, (it) => words(it).text, inp.item?.name || inp.place?.name || "", keepResult, row.allMembers);
+    : flowOf(items, (it) => words(it).text, inp.item?.name || inp.place?.name || "", keepResult, rowScope(row, card, inp));
   return {
     label: WORDS.DECIDED, sections, ...(story ? { story } : {}), ...(flow ? { flow } : {}),
     lost: lost.map((it) => {
