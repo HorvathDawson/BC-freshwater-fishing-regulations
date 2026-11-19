@@ -117,11 +117,14 @@ export interface MonthVM {
   readonly prev: boolean;
   readonly next: boolean;
   readonly weekdays: readonly { short: string; long: string }[];
-  /** Sunday-first weeks; null is a blank before the 1st or after the last */
+  /** Sunday-first weeks, always `WEEKS_SHOWN` of seven (a cell's index is its weekday); null is a blank before the 1st or after the last */
   readonly weeks: readonly (readonly (DayCell | null)[])[];
   /** why days near here are greyed out, or null when the whole month and both neighbours are open */
   readonly reason: string | null;
 }
+
+/** (T877) the grid's weeks in every month: the most any month spans, so the grid's height never changes between months */
+const WEEKS_SHOWN = 6;
 
 export function monthVM(year: number, month: number, chosen: Date | null, now: Date, range: DayRange): MonthVM {
   const firstOf = new Date(year, month, 1, 12);
@@ -140,8 +143,10 @@ export function monthVM(year: number, month: number, chosen: Date | null, now: D
                  label: fullDay(d) + (today ? DAY_PICKER.cellToday : "") + (isChosen ? DAY_PICKER.cellChosen : "")
                         + (disabled ? DAY_PICKER.cellOff : "") });
   }
-  while (cells.length % 7) cells.push(null);
-  const weeks = Array.from({ length: cells.length / 7 }, (_, w) => cells.slice(w * 7, w * 7 + 7));
+  // (T877, owner 2026-11-18: "The calendar shifts around") ALWAYS six weeks: a month spans 4 to 6, and a grid that
+  // followed it changed the sheet's height (and moved the page behind it) on every step between months
+  while (cells.length < WEEKS_SHOWN * 7) cells.push(null);
+  const weeks = Array.from({ length: WEEKS_SHOWN }, (_, w) => cells.slice(w * 7, w * 7 + 7));
   const prev = isoOf(new Date(year, month, 0, 12)) >= range.first;
   const next = isoOf(new Date(year, month + 1, 1, 12)) <= range.last;
   const reasons: string[] = [];
