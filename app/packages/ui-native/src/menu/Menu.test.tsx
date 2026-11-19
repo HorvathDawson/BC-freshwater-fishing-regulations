@@ -68,7 +68,7 @@ function App({ info = INFO, loader = null, out, data = DATA, theme = "light", on
     <LayoutWidthContext.Provider value={width}>
       <BackLayerContext.Provider value={b.layers}>
         <MenuContext.Provider value={menu}>
-          <MoreScreen palette={LIGHT} data={data} back="Map" onBack={b.back} contact={info.contact}
+          <MoreScreen palette={LIGHT} data={data} onBack={b.back} contact={info.contact}
                       theme={theme} onTheme={onTheme} metered={metered}
                       onPick={(k) => (k === "report" ? menu.report(routeWhere(route, null)) : menu.show(k))} />
           <MenuHost menu={menu} palette={LIGHT} loader={loader} info={info} tiles="d768d6e135e62b99.c9f9604f12bf"
@@ -93,14 +93,14 @@ const text = (id: string) => screen.getByTestId(id).textContent;
 const said = (id: string) => screen.getByTestId(id).getAttribute("aria-label");
 
 describe("the More tab (T48; owner 2026-10-22 refinement; T167)", () => {
-  it("top to bottom: back to the previous tab, the title, Data, Settings and the pages as rows, Contact — the only list", () => {
+  it("top to bottom: Back, the title, Data, Settings and the pages as rows, Contact — the only list", () => {
     render(<App out={{}} />);
     expect({
       back: [text("more-back"), said("more-back")],
       headings: screen.getAllByRole("heading").map((e) => e.textContent),
       rows: screen.getAllByTestId(/^menu-item-/).map((e) => e.textContent),
     }).toEqual({
-      back: ["Map", "Back to Map"],
+      back: ["Back", "Back"],
       headings: ["More", "Data", "Contact"],
       rows: [
         "SettingsDownloads, crash reports and display",
@@ -112,6 +112,25 @@ describe("the More tab (T48; owner 2026-10-22 refinement; T167)", () => {
         "Report a problemSomething wrong, missing or confusing",
       ],
     });
+  });
+
+  it("(T897) the head is plain Back whatever tab More was opened from, and it sits OUTSIDE the scroll view (sticky)", () => {
+    render(<App out={{}} />);
+    const back = screen.getByTestId("more-back");
+    const scroll = screen.getByTestId("more-scroll");
+    expect([back.textContent, back.getAttribute("aria-label")]).toEqual(["Back", "Back"]);
+    expect(scroll.contains(back)).toBe(false);
+    expect(scroll.contains(screen.getByRole("heading", { name: "More" }))).toBe(false);
+    // the page's own parts scroll
+    expect(scroll.contains(screen.getByTestId("more-data"))).toBe(true);
+  });
+
+  it("(T897) a page opened from More reads ‹ More (said \"Back to More\"), apart from the tab's own Back", () => {
+    render(<App out={{}} />);
+    pick("menu-item-about");
+    const back = screen.getByRole("button", { name: "Back to More" });
+    expect(back.textContent).toBe("More");
+    expect(screen.getByTestId("more-back").getAttribute("aria-label")).toBe("Back");
   });
 
   it("(T167) the Data block: one summary badge, the in-season warning, then EVERY source as one row — drawn compact, " +
@@ -411,7 +430,7 @@ describe("(T859) a menu page at desktop width is a card over the page", () => {
       seen[width] = {
         card: screen.queryByTestId("menu-card-close") !== null,
         scrim: screen.queryByTestId("menu-card-scrim") !== null,
-        back: screen.queryByLabelText("Back") !== null,
+        back: screen.queryByLabelText("Back to More") !== null,
         width: page.style.maxWidth || null,
         title: screen.getAllByRole("heading").map((e) => e.textContent).includes("About"),
       };

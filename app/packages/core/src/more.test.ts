@@ -253,13 +253,13 @@ describe("the Data block: always on More, compact — every source, one row each
 });
 
 describe("the More tab, top to bottom", () => {
-  it("back to the previous tab, the Data block, Display, the pages as rows (Sources and credits once), Contact inline", () => {
-    const vm = menuVM({ data: LIVE, back: "Conditions", contact: null });
+  it("plain Back (T897), the Data block, Display, the pages as rows (Sources and credits once), Contact inline", () => {
+    const vm = menuVM({ data: LIVE, contact: null });
     expect({
       title: vm.title, back: vm.back, data: vm.data.title, display: vm.display, rows: vm.rows, contact: vm.contact,
     }).toEqual({
       title: "More",
-      back: { to: "Conditions", label: "Back to Conditions" },
+      back: { to: "Back", label: "Back" },
       data: "Data",
       display: { title: "Display", palette: "Colours",
                  note: "The colour-blind palette changes the hues and nothing else. It has a light ground only.",
@@ -336,7 +336,7 @@ describe("(T703) the sync row's words on More: its name while all is well, its s
     expect(syncRowWords(syncVM({ ...base, checking: true }))).toBe("Refresh data: checking now");
   });
   it("Settings is a row of its own, first, with the headings of its screen", () => {
-    const vm = menuVM({ data: { sources: null, validUntil: null, tiles: null, feedFetchedAt: null, now: 0, newRelease: null }, back: "Map", contact: null });
+    const vm = menuVM({ data: { sources: null, validUntil: null, tiles: null, feedFetchedAt: null, now: 0, newRelease: null }, contact: null });
     expect([vm.settings.label, vm.settings.hint, vm.settings.sections]).toEqual(
       ["Settings", "Downloads, crash reports and display", { data: "Data", privacy: "Privacy", display: "Display" }]);
   });

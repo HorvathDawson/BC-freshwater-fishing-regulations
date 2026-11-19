@@ -37,6 +37,8 @@ interface MenuPageProps {
   onClose?: () => void;
   /** where the ‹ goes, when not simply back (a glossary term: "Glossary") */
   backLabel?: string;
+  /** (T897) a page opened from the More tab: its ‹ reads "More" (said "Back to More"), so it is never a second "Back" beside the tab's own */
+  from?: string;
   /** false: the page scrolls itself (a long list) */
   scroll?: boolean;
   testID?: string;
@@ -45,7 +47,7 @@ interface MenuPageProps {
 /** (T859) the scrim is a press (it closes the page): as large as the window it covers */
 const SCRIM_HIT = hitProps({ w: 320, h: 200 });
 
-export function MenuPage({ open, title, onBack, onClose = onBack, palette, children, scroll = true, testID, backLabel }: MenuPageProps) {
+export function MenuPage({ open, title, onBack, onClose = onBack, palette, children, scroll = true, testID, backLabel, from }: MenuPageProps) {
   const requestClose = useBackLayer(open, onBack);
   const layout = useLayoutClass();
   const card = CARD_PLATFORM && layout === "desktop";
@@ -73,7 +75,7 @@ export function MenuPage({ open, title, onBack, onClose = onBack, palette, child
                     backgroundColor: palette.card, borderWidth: 1.5, borderColor: palette.ink, zIndex: 1 }
                 : { flex: 1 }}>
           <MenuPageHead title={title} onBack={onBack} onClose={card ? onClose : null} palette={palette}
-                        backLabel={backLabel} column={column} />
+                        backLabel={backLabel} from={from} column={column} />
           {scroll
             // (T243) focusable: a page with nothing to press (the web's Offline maps) still scrolls from the keyboard (axe
             // scrollable-region-focusable)
@@ -106,19 +108,20 @@ export function MenuPage({ open, title, onBack, onClose = onBack, palette, child
  * desktop card (`onClose` given) the title shares its row with the card's ✕, and the ‹ is drawn only where it goes
  * somewhere other than out (a term's "‹ Glossary"): the ✕ is the way out.
  */
-function MenuPageHead({ title, onBack, onClose, palette, backLabel, column }: {
-  title: string; onBack: () => void; onClose: (() => void) | null; palette: Palette; backLabel?: string;
+function MenuPageHead({ title, onBack, onClose, palette, backLabel, from, column }: {
+  title: string; onBack: () => void; onClose: (() => void) | null; palette: Palette; backLabel?: string; from?: string;
   column: { width: "100%"; maxWidth: number; alignSelf: "center" } | null;
 }) {
   const back = onClose === null || backLabel !== undefined;
-  const label = backLabel ?? MENU_WORDS.back;
+  const label = backLabel ?? from ?? MENU_WORDS.back;
+  const said = backLabel === undefined && from !== undefined ? `${MENU_WORDS.back} to ${from}` : label;
   return (
     <View style={{ borderBottomWidth: 1.5, borderBottomColor: palette.ink }}>
       <View style={{ paddingHorizontal: GUTTER, paddingTop: SPACE.s3, paddingBottom: SPACE.s3, flexDirection: "row",
                      alignItems: "flex-start", gap: SPACE.s3, ...column }}>
         <View style={{ flex: 1, gap: SPACE.s1, justifyContent: "center", minHeight: 40 }}>
           {back
-            ? <Pressable {...hitProps({ w: 60, h: 40 })} onPress={onBack} accessibilityRole="button" accessibilityLabel={label}
+            ? <Pressable {...hitProps({ w: 60, h: 40 })} onPress={onBack} accessibilityRole="button" accessibilityLabel={said}
                          style={{ alignSelf: "flex-start", minHeight: 40, justifyContent: "center" }}>
                 <IconText name="back" text={label} style={{ ...TYPE.metaBold, fontSize: 13, color: palette.accent }} />
               </Pressable>

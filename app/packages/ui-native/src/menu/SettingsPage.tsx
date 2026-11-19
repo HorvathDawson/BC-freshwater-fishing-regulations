@@ -54,7 +54,7 @@ export function SettingsPage({ open, onBack, palette, theme, onTheme, metered = 
   // large downloads are the "Download over mobile data" setting's
   const low = !!net && Platform.OS === "web";
   return (
-    <MenuPage open={open} title={W.label} onBack={onBack} palette={palette} testID="menu-page-settings">
+    <MenuPage open={open} title={W.label} onBack={onBack} palette={palette} from="More" testID="menu-page-settings">
       {open ? (
         <View style={{ gap: SPACE.s4 }}>
           {(metered || low) && (

@@ -16,7 +16,7 @@ const DATA: DataInput = {
 const screenWith = (setting: ReturnType<typeof createCrashSetting> | null) => (
   <LayoutWidthContext.Provider value={null}>
     <CrashSettingRoot setting={setting}>
-      <MoreScreen palette={LIGHT} data={DATA} back="Map" onBack={() => {}} contact={null} theme="light" onTheme={() => {}} onPick={() => {}} />
+      <MoreScreen palette={LIGHT} data={DATA} onBack={() => {}} contact={null} theme="light" onTheme={() => {}} onPick={() => {}} />
     </CrashSettingRoot>
   </LayoutWidthContext.Provider>
 );

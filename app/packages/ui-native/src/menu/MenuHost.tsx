@@ -105,7 +105,7 @@ export function MenuHost({ menu, palette, theme = "light", onWalkthrough, loader
 
   const page = (k: "offline" | "notifications" | "help" | "sources" | "about" | "report" | "changelog", node: React.ReactNode) => (
     <MenuPage open={s.page === k} title={MENU_WORDS.items[k].label} onBack={menu.closePage} palette={palette}
-              testID={`menu-page-${k}`}>
+              from={MENU_WORDS.title} testID={`menu-page-${k}`}>
       {s.page === k ? node : null}
     </MenuPage>
   );
@@ -114,7 +114,7 @@ export function MenuHost({ menu, palette, theme = "light", onWalkthrough, loader
     <>
       <MenuPage open={s.page === "glossary"} title={term?.term ?? MENU_WORDS.items.glossary.label}
                 onBack={term ? menu.closeTerm : menu.closePage} onClose={menu.closePage} palette={palette} scroll={false}
-                backLabel={term ? MENU_WORDS.items.glossary.label : undefined} testID="menu-page-glossary">
+                backLabel={term ? MENU_WORDS.items.glossary.label : undefined} from={MENU_WORDS.title} testID="menu-page-glossary">
         {s.page === "glossary" && (
           <GlossaryPage glossary={glossary} term={s.term} onTerm={menu.openTerm} onCloseTerm={menu.closeTerm}
                         palette={palette} />

@@ -49,7 +49,7 @@ describe("More → Data: the low-bandwidth setting", () => {
   it("three choices, the one in force checked; a press sets it; the line says what it is doing", () => {
     const set = vi.fn();
     render(<NetContext.Provider value={state(createNet(), SLOW, { setting: "auto", setSetting: set })}>
-      <MoreScreen palette={LIGHT} data={DATA} back="Map" onBack={() => {}} contact={null} theme="light" onTheme={() => {}} onPick={() => {}} />
+      <MoreScreen palette={LIGHT} data={DATA} onBack={() => {}} contact={null} theme="light" onTheme={() => {}} onPick={() => {}} />
     </NetContext.Provider>);
     fireEvent.click(screen.getByTestId("menu-item-settings"));  // (T703) the controls live in Settings
     const checked = ["auto", "on", "off"].map((k) => screen.getByTestId(`data-low-${k}`).getAttribute("aria-checked"));
@@ -59,7 +59,7 @@ describe("More → Data: the low-bandwidth setting", () => {
     expect(set).toHaveBeenCalledWith("off");
   });
   it("no Net (a screen alone): no row", () => {
-    render(<MoreScreen palette={LIGHT} data={DATA} back="Map" onBack={() => {}} contact={null} theme="light" onTheme={() => {}} onPick={() => {}} />);
+    render(<MoreScreen palette={LIGHT} data={DATA} onBack={() => {}} contact={null} theme="light" onTheme={() => {}} onPick={() => {}} />);
     fireEvent.click(screen.getByTestId("menu-item-settings"));  // (T703) the controls live in Settings
     expect(screen.queryByTestId("data-low")).toBeNull();
   });

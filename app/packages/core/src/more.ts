@@ -27,8 +27,6 @@ import { byCadence } from "./staleness";
 import { offlineDataLine, updateSourcesVM, type UpdateReleaseInput, type UpdateSourceInput, type UpdatesVM } from "./updates";
 
 export const MORE_WORDS = {
-  /** the back control at the top: where it goes, aloud */
-  back: (tab: string) => `Back to ${tab}`,
   data: {
     title: "Data",
     summary: {
@@ -188,7 +186,7 @@ export interface MenuItemVM { readonly k: MenuPageKey; readonly label: string; r
 
 export interface MoreVM {
   readonly title: string;
-  /** the back control at the top: the tab it returns to, and what it says aloud */
+  /** (T897) the back control at the top: plain "Back" (never a tab's name) — it still returns to the tab More was opened from */
   readonly back: { readonly to: string; readonly label: string };
   readonly data: DataBlockVM;
   /** (T703) the Settings row, first in the list: its label, hint and the headings of the screen it opens */
@@ -200,16 +198,16 @@ export interface MoreVM {
 }
 
 /**
- * THE MORE TAB, whole. `back`: the name of the tab the back control returns to (the route's `prev`, else the Map tab).
+ * THE MORE TAB, whole. The back control is plain "Back" (T897).
  * Drawn ONLY by the More tab (tools/one-menu.test.ts: one list of the menu's pages in the app).
  */
-export function menuVM(i: { data: DataInput; back: string; contact: string | null;
+export function menuVM(i: { data: DataInput; contact: string | null;
                              /** (T234) the app can notify (a phone): the Notifications row is listed */
                              notifications?: boolean }): MoreVM {
   const d = MENU_WORDS.display;
   return {
     title: MENU_WORDS.title,
-    back: { to: i.back, label: MORE_WORDS.back(i.back) },
+    back: { to: MENU_WORDS.back, label: MENU_WORDS.back },
     data: dataVM(i.data),
     settings: MENU_WORDS.settings,
     display: { title: d.title, palette: d.palette, note: d.cvd, options: d.options },
