@@ -1,6 +1,6 @@
 # T872 — Conditions: the watershed "by day" card is folded unless someone opens it
 
-Status: OPEN (proposal; lands only on the owner's yes). Lane `app/t872-watershed-fold`, from `app/integrate-081-web`.
+Status: DONE — 3abb3dc4e (owner OK 2026-11-18 ~20:53). Landed on redesign/stream-sections with app/integrate-081-web after the full tier.
 
 Owner 2026-11-18 ~20:30, verbatim, looking at Mamquam River → Conditions, the "Squamish watershed · Flow vs. past years,
 by day" card: "These section should be collapsed in conditions I think unless someone expands"

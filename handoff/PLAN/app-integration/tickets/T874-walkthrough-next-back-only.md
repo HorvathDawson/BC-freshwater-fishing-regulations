@@ -1,7 +1,6 @@
 # T874 — The walkthrough has only Back and Next (and Skip); Next does what "Show me" did
 
-Status: OPEN (proposal; lands only on the owner's yes). Built on branch `app/t874-tour-next` (from
-`app/integrate-081-web`), not merged.
+Status: DONE — 53c8399ee + 172636aa2 review fixes (owner OK 2026-11-18 ~20:53). Landed on redesign/stream-sections with app/integrate-081-web after the full tier.
 
 Source: owner, 2026-11-18 ~20:34, verbatim: "The tour should have only next and back and every next should be show me
 logic. Person can skip if they want. Otherwise it is weird".
@@ -30,11 +29,6 @@ without doing it, Show me did it (`GuideActs`), and the words said "tap it, or t
    `WALKTHROUGH_WORDS.showMe` and `doneStep` removed. `WALKTHROUGH_VERSION` not bumped: same steps, so a device that saw
    the walk is not shown it again.
 
-<<<<<<< HEAD
-What does not fit cleanly:
-- "Pick another day" undone sets today, even if the reader had a day picked before the walk began (that step is then
-  passed going forward, so this needs Back from the step after it).
-=======
 Independent review (after the owner's "Walkthrough OK"), three defects fixed with tests:
 1. Back undid a day the walk never picked (a day set before a replay from Help: the day step is passed, Back landed on it
    and set today). Back now undoes only a move the walk itself made (`made`); the walk picks only when no day is picked,
@@ -46,7 +40,6 @@ Independent review (after the owner's "Walkthrough OK"), three defects fixed wit
    moves nothing on.
 
 What does not fit cleanly:
->>>>>>> app/t874-tour-next
 - "Open its page" with no chosen water (a release without the Vedder River): there is nothing for Next to open, so Next
   moves on and the next step pauses behind "Resume walkthrough" until a water is open (as Next did before).
 - The brief named a Conditions toggle step and a spot step; T842 cut both, so the pictures show the six-step walk's

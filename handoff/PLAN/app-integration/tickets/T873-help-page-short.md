@@ -1,6 +1,6 @@
 # T873 — A much shorter Help page: the map's key first, short labels, one-line facts
 
-Status: OPEN (proposal; lands only on the owner's yes. Lane `app/t873-help-short`, off `app/integrate-081-web`.)
+Status: DONE — c369c225a (owner OK 2026-11-18 ~20:53). Landed on redesign/stream-sections with app/integrate-081-web after the full tier.
 
 Owner 2026-11-18 ~20:32, on More → Help, verbatim: "This help page is way way to verbose it is not helpful..."
 
