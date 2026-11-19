@@ -2862,3 +2862,8 @@ More questions (recommended answer first):
   (/Users/dawson.horvath/.claude/uploads/b8ddfca9-44eb-400e-a9bf-bd89b4b0f359/8b47b3ee-image.png): "Isn't braiding like
   this supposed to be simplified more ?"; dialog, his words: "We could simplify these even more in tile building? Yes
   side channels should be less bold too." -> T891 (tiles: main chat; style: app chat; pictures first).
+- 2026-11-18 ~22:13, owner (main chat), on the numbered production list, verbatim: "I give you permission to run them.
+  For me" -> the main chat runs, tonight, one at a time with a check after each: the data worker deploy, the feeds
+  worker (deploy/prod/feeds.sh + purge-reports), the data (`release --prod r-fc137c4040fa`), the website (site.sh), the
+  production smoke. The Cloudflare dashboard settings (robots, bot fight, analytics, the www redirect) stay his (no API
+  token here).
