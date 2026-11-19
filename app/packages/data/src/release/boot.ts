@@ -192,12 +192,13 @@ export interface StageOptions {
 }
 
 /**
- * (T912) EVERY FILE AN UPDATE DOWNLOADS, FOR THE SYSTEM'S DOWNLOADER: the data files that changed (first: they are small
- * and the install reads them first) and the big files. Queued before the install starts, so an app closed a second later
- * still downloads all of it; the next open claims what finished (T298 did this for the first install only, and an update
- * downloaded its data files in the app and queued each big file only when the install reached it).
+ * (T912) EVERY FILE AN INSTALL DOWNLOADS, FOR THE SYSTEM'S DOWNLOADER — one list for the first install (`held` null: every
+ * file) and an update (what changed beside `held`): the data files (first: they are small and the install reads them
+ * first) and the big files. Queued before the install starts, so an app closed a second later still downloads all of it;
+ * the next open claims what finished. (T298 queued the first install's big files only, and an update downloaded its data
+ * files in the app and queued each big file only when the install reached it.)
  */
-export function updateItems(m: Manifest, held: Held, base: string): BgItem[] {
+export function queueItems(m: Manifest, held: Held | null, base: string): BgItem[] {
   return [
     ...dataFiles(m, held).map((f) => ({ url: `${base}${f.url}`, file: "data", bytes: f.e.bytes, path: f.path, whole: true })),
     ...bigFiles(m, held).map((b) => ({ url: `${base}${b.url}`, file: b.file, bytes: b.e.bytes, path: b.path })),
@@ -380,6 +381,13 @@ export async function bootRelease(o: BootOptions): Promise<Booted> {
 
   // THE PHONE: the held set first; the network only to install it once and to look for a newer one
   let held = await heldFrom(dev.fs);
+  /**
+   * (T912) THE ONE WAY A PHONE'S INSTALL STARTS ITS DOWNLOADS — the first install, an older app's set installed over, an
+   * update: every file it downloads (`queueItems`) handed to the system's downloader first. A queue that fails is said and
+   * reported, and the install goes on in the app (a file with no job: `fetch` / `fill`).
+   */
+  const handOver = (m: Manifest, from: Held | null, metered: boolean) => dev.background?.queue(queueItems(m, from, o.releaseBase), metered)
+    .catch((e: unknown) => { console.warn(`[download] queue failed: ${e instanceof Error ? e.message : String(e)}`); reportFailure(e); });
   /** (T272) A first run's last install progress, and its second stage's open steps (none on a later launch). */
   let last: Progress | null = null;
   let openStep: (done: number) => void = () => {};
@@ -405,10 +413,12 @@ export async function bootRelease(o: BootOptions): Promise<Booted> {
     if (!fresh.ok) throw new UnreadableError(`${stale.reason}; and the manifest's ${fresh.reason}`);
     const old = held;
     await checkRoom(latest, old, dev.space, await jobsOf(o.background));
+    let metered = true;
     if (o.mobileData && await o.mobileData.decide(installBytes(latest, old)) === "wifi") {
       o.onStage?.("wifi");
-      await o.mobileData.untilAllowed();
+      metered = await o.mobileData.untilAllowed() === "now";   // Wi-Fi came: the jobs keep to Wi-Fi, as the reader chose
     }
+    await handOver(latest, old, metered);
     o.onStage?.("install");
     held = await install(latest, dev.fs, dev.download, o.releaseBase, old, (p) => o.onProgress?.(p), dev.toDisk,
                          () => writeHeld(dev.fs, PREVIOUS, old), rawFetch(f), dev.look);
@@ -420,12 +430,10 @@ export async function bootRelease(o: BootOptions): Promise<Booted> {
     if (!fresh.ok) throw new UnreadableError(fresh.reason);
     // (T722 F9) before anything is queued or downloaded: a download that will not fit says so
     await checkRoom(latest, null, dev.space, await jobsOf(o.background));
-    // (T298) every big file handed to the system's downloader BEFORE anything else downloads, so closing the app a moment
-    // later still fetches all of them; on mobile data the reader's setting decides first (ask / go / wait for Wi-Fi)
-    const big: BgItem[] = bigFiles(latest, null).map((b) => ({ url: `${o.releaseBase}${b.url}`, file: b.file,
-                                                                 bytes: b.e.bytes, path: b.path }));
-    const queue = (metered: boolean) => dev.background?.queue(big, metered)
-      .catch((e: unknown) => { console.warn(`[download] queue failed: ${e instanceof Error ? e.message : String(e)}`); reportFailure(e); });
+    // (T298, T912) every file handed to the system's downloader BEFORE anything downloads, so closing the app a moment
+    // later still fetches all of them (the data files too, T912: one path with an update's); on mobile data the reader's
+    // setting decides first (ask / go / wait for Wi-Fi)
+    const queue = (metered: boolean) => handOver(latest, null, metered);
     if (dev.background) await o.beforeBackground?.().catch(() => {});
     let metered = true;
     const choice = o.mobileData ? await o.mobileData.decide(installBytes(latest, null)) : "go";
@@ -560,10 +568,8 @@ export async function bootRelease(o: BootOptions): Promise<Booted> {
       // (T418) the set an in-session apply kept for the map that was on screen: this set has been drawn since
       if (replaced) { await prune(dev.fs, replaced.h, replaced.m, now, set.m); replaced = null; }
       await checkRoom(next, now, dev.space, await jobsOf(o.background));
-      // (T912) everything it downloads handed to the system's downloader first: closing the app no longer stops it.
-      // A queue that fails is reported and the install goes on in the app (each file then has no job: `fetch`/`fill`)
-      await dev.background?.queue(updateItems(next, now, o.releaseBase), so.metered ?? true)
-        .catch((e: unknown) => { console.warn(`[download] queue failed: ${e instanceof Error ? e.message : String(e)}`); reportFailure(e); });
+      // (T912) everything it downloads handed to the system's downloader first: closing the app no longer stops it
+      await handOver(next, now, so.metered ?? true);
       const h = await install(next, dev.fs, dev.download, o.releaseBase, now, onProgress, dev.toDisk,
                               () => writeHeld(dev.fs, PREVIOUS, now), rawFetch(f), dev.look);
       // (T722 F6) after each install: what it made (a new tile folder, the new rule book) is marked with the rest

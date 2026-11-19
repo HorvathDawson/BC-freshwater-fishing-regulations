@@ -294,6 +294,9 @@ function systemDm(fs: ReturnType<typeof memFs>, serve: typeof fetch) {
   return { native, jobs, log, st, run };
 }
 
+/** Let the event loop run until `ok()` (at most 500 turns). */
+const settle = async (ok: () => boolean) => { for (let i = 0; i < 500 && !ok(); i++) await new Promise((r) => setTimeout(r, 0)); };
+
 /** (T912) The phone with its system downloader: install.native.ts's wiring (`background`) over the in-memory disk. */
 function phoneBg(fs: ReturnType<typeof memFs>, bg: BackgroundNative): ReleasePlatform {
   const part: PartFs = {
@@ -367,6 +370,28 @@ describe("native: always offline, updated by diff, swapped at the next launch", 
     expect(fourth.locate("tiles/x/atlas-x.pmtiles")).toBe("file:///doc/release/tiles/x/atlas-x.pmtiles");
   });
 
+  it("(T912) the FIRST INSTALL takes the same path as an update: its data files are queued with the system's downloader too, and claimed from it (none fetched in the app)",
+    async () => {
+      const r1 = fixtureRelease("plain"), id1 = await idOf(r1);
+      const m = JSON.parse(readFileSync(join(r1.dir, "manifest.json"), "utf8")) as Manifest;
+      const names = Object.keys(m.files).sort();
+      const fs = memFs(), dm = systemDm(fs, releaseFetch(BASE, r1.dir, []));
+      const app: string[] = [];
+      const booting = bootRelease({ manifestUrl: `${BASE}manifest.json`, releaseBase: BASE, wasmBase: "", manifestTimeoutMs: 1000,
+                                    platform: phoneBg(fs, dm.native), fetch: releaseFetch(BASE, r1.dir, app), background: dm.native });
+      await settle(() => dm.jobs.size === names.length);
+      // MUTATION PIN: T298's first install queued its big files only (`bigFiles(latest, null)`): this fixture has none,
+      // so nothing was queued and every data file was fetched in the app
+      expect(dm.log).toEqual(names.map((n) => `enqueue ${m.files[n]!.url} metered Regulations data`));
+      await dm.run();                                                 // the system downloads them (the app open or not)
+      const b = await booting;
+      expect(b.held.release).toBe(id1);
+      expect(app).toEqual([`${BASE}manifest.json`]);
+      expect(dm.log.slice(names.length).sort()).toEqual(names.map((n) => `claim ${m.files[n]!.url}`).sort());
+      expect(dm.jobs.size).toBe(0);
+      expect(await b.source.water("gnis:8634" as ItemId)).not.toBeNull();
+    });
+
   it("(T912) an update hands EVERY file it downloads to the system's downloader before the app fetches any: closed mid-update, they go on downloading, and the next open claims them (none fetched in the app) and applies the set",
     async () => {
       const r1 = fixtureRelease("plain"), r2 = fixtureRelease("lakeGauged");
@@ -377,7 +402,6 @@ describe("native: always offline, updated by diff, swapped at the next launch", 
       const boot = (f: typeof fetch, platform: ReleasePlatform) => bootRelease({ manifestUrl: `${BASE}manifest.json`,
         releaseBase: BASE, wasmBase: "", platform, fetch: f, manifestTimeoutMs: 1000, deferUpdate: true, background: dm.native });
       await boot(releaseFetch(BASE, at1, []), phone(fs));               // installed (r1, tiles v1)
-      const settle = async (ok: () => boolean) => { for (let i = 0; i < 500 && !ok(); i++) await new Promise((r) => setTimeout(r, 0)); };
 
       // the service stages r2 (data files and tiles changed) on Wi-Fi, a big update without "Always": Wi-Fi only
       const session = await boot(releaseFetch(BASE, at2, app), phoneBg(fs, dm.native));
