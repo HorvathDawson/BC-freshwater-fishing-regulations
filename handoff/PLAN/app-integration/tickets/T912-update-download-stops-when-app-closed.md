@@ -13,7 +13,7 @@ the downloader's logs) and whether the next open picks up the finished files or 
 tied to the app process (JS-side fetch instead of the system downloader, a foreground-only task, a job cancelled on
 destroy) and fix it so a closed app keeps downloading and the next open applies it. Tests + an emulator walk.
 
-## Staging data worker deployed (main chat, 2026-11-19 ~13:05; version 66203663, from the 0.8.3 integration branch)
+## Staging data worker deployed (main chat, 2026-11-19 ~12:52; version 66203663, from the 0.8.3 integration branch)
 Live check on data-staging, `access-859b43cb2641.bin.gz`: before, `Accept-Encoding: identity` got the decoded body with
 no Content-Length and a weak ETag; after, it gets the stored 201,515 gzip bytes with Content-Length and the strong ETag,
 and `Range: bytes=1000-` gets 206 `bytes 1000-201514/201515`. `Accept-Encoding: gzip` is unchanged. The first requests
