@@ -313,6 +313,7 @@ reads both files; a ticket closed here moves there once its lane is finished wit
 | T885 | DFO's lake parts on the map (Babine's 12 creek-mouth circles, Mabel north, Osoyoos north basin); said in words until then (owner) | OPEN | main chat | owner 2026-11-18 ~21:13 |
 | T890 | Word density: measure every page, then cut the over-dense ones (pictures first) (owner) | OPEN | app chat + main chat | owner 2026-11-18 ~21:43 |
 | T891 | Braided rivers drawn simpler: side channels thinner than the main channel; braids simplified in the tile build (owner) | OPEN | main chat + app chat | owner 2026-11-18 ~22:02 |
+| T887 | Salmon map, light mode: keep is a bright green, clearly apart from release, closed and check (owner) | OPEN | app chat | owner 2026-11-18 ~22:33 |
 
 ## Next after closed testing
 
