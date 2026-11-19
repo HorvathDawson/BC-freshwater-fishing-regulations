@@ -486,6 +486,19 @@ for (const l of src.layers ?? []) {
       err(`${where}: a width ramp with no "by" must declare mode "zoom" — otherwise it is ` +
           `a ramp over an attribute that was never named, which reads as null everywhere.`);
   }
+  /*
+   * (T891) A SIDE CHANNEL DRAWN THINNER: the linear width times a factor (a number token in (0, 1]) on the features
+   * that carry the tile attribute `has` (`sc`), inside each stop of the order curve — so every mark sized from the stream's
+   * width follows it with no layer added.
+   */
+  if (l.width?.sideChannel !== undefined) {
+    const sc = l.width.sideChannel, w = `${where} width.sideChannel`;
+    if (l.geometry !== "line" || !l.width.by || (l.width.mode ?? "linear") !== "linear")
+      err(`${w}: a line's linear width over an attribute ("by") only`);
+    if (typeof sc.has !== "string" || !sc.has) err(`${w}: needs "has", the tile attribute that marks a side channel`);
+    const f = tokenValue(sc, w);
+    if (typeof f !== "number" || !(f > 0 && f <= 1)) err(`${w}: the factor token must be a number in (0, 1], got ${f}`);
+  }
   if (l.width?.closed !== undefined) {
     if (l.geometry !== "line") err(`${where}: width.closed is a line's (a closed stream drawn heavier)`);
     recedeRamp(l.width.closed, `${where} width.closed`, 2);
@@ -1071,7 +1084,8 @@ const meta = {
       .map((l) => [l.id, (l.width.by || l.width.mode === "zoom")
         ? { token: l.width.token, ...(l.width.by ? { by: l.width.by } : {}),
             mode: l.width.mode ?? "linear", ramp: l.width.ramp,
-            ...(l.width.closed ? { closed: l.width.closed } : {}) }
+            ...(l.width.closed ? { closed: l.width.closed } : {}),
+            ...(l.width.sideChannel ? { sideChannel: { has: l.width.sideChannel.has, token: l.width.sideChannel.token } } : {}) }
         : l.width.token]),
     ...[...edges].filter(([, l]) => l.outline.width)
       .map(([id, l]) => [id, (l.outline.width.by || l.outline.width.mode === "zoom")

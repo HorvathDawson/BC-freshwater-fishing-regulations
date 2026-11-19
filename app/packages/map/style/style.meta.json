@@ -2339,7 +2339,11 @@
           12,
           1
         ]
-      ]
+      ],
+      "sideChannel": {
+        "has": "sc",
+        "token": "width.stream.side"
+      }
     },
     "parcel_private__edge": "width.parcel.edge",
     "indigenous_land__edge": "width.admin.edge",
@@ -2949,6 +2953,7 @@
       "width.stream.base": 1,
       "width.stream.highlight": 3.2,
       "width.stream.water": 2.4,
+      "width.stream.side": 0.5,
       "width.imagery.edge": 1.5,
       "opacity.imagery.edge": 1,
       "opacity.imagery.fill": 0.2,
@@ -3154,6 +3159,7 @@
       "width.stream.base": 1,
       "width.stream.highlight": 3.2,
       "width.stream.water": 2.4,
+      "width.stream.side": 0.5,
       "width.imagery.edge": 1.5,
       "opacity.imagery.edge": 1,
       "opacity.imagery.fill": 0.2,
@@ -3367,6 +3373,7 @@
       "width.stream.base": 1,
       "width.stream.highlight": 3.2,
       "width.stream.water": 2.4,
+      "width.stream.side": 0.5,
       "width.imagery.edge": 1.5,
       "opacity.imagery.edge": 1,
       "opacity.imagery.fill": 0.2,
@@ -3665,6 +3672,11 @@
     "width.stream.water": {
       "type": "number",
       "themeable": false
+    },
+    "width.stream.side": {
+      "type": "number",
+      "themeable": false,
+      "$comment": "(T891) A braid's side channel (tile `sc`) is drawn at this factor of its order's width; the main channel keeps 1. A factor, not px: the stream width is linear in order and zoom."
     },
     "width.imagery.edge": {
       "type": "number",

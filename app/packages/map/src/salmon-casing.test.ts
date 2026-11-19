@@ -42,6 +42,7 @@ function evaluate(e: unknown, state: Record<string, string>, zoom: number): unkn
     case "coalesce": { for (const x of a) { const v = ev(x); if (v !== null && v !== undefined) return v; } return null; }
     case "feature-state": return state[a[0] as string] ?? null;
     case "get": return a[0] === "ord" ? 4 : undefined;   // a mid-order stream
+    case "has": return false;                             // (T891) the main channel: no `sc`
     case "to-number": { const v = ev(a[0]); return v === null || v === undefined ? Number(ev(a[1]) ?? 0) : Number(v); }
     case "!": return !ev(a[0]);
     case "all": return a.every((x) => ev(x));
