@@ -2897,3 +2897,13 @@ More questions (recommended answer first):
   the line look better (variants to him). Also ~22:50 (dialog): the salmon map key's short label is "Check DFO" (T882).
 - 2026-11-18 ~23:14-23:16, owner (app chat): T878 sun line look 2 ("i like 2": sunrise/sunset icons "9:01  17:17" under
   the date); T887 salmon keep in light: option B ("this is good too Option B": bright green with a thin dark casing).
+- 2026-11-18 ~23:05, owner (main chat), on the GitHub clean-up, verbatim: "yes and use same branch but then we need to
+  eventually swithc to a standard main, staging and feature branch structure or whatever good structure we have" ->
+  DONE 23:05-23:21 by the main chat: main = ca7c0cce7 (tree = redesign/stream-sections 21acbf78a, main's history kept;
+  the old update-hydro / update-in-season / update-stocking workflows gone from GitHub's list); 28 merged remote branches
+  deleted; archive/* tags for feat/mobile-offline-download-gate, feat/land-ownership-layer, staging, ios/next,
+  ios/staging-worker; ios/t739-push kept (open T822). MISTAKE: redesign/stream-sections was deleted on origin for about a
+  minute (a keep-filter failed) and restored at 21acbf78a; nothing lost (the app chat confirmed). THE SWITCH: bc-fishing-cron's
+  schedules removed (its workers.dev address off too); deploy/prod/drop-v1.sh freed 20,019 objects / 8.57 GB of the v1
+  layout; smoke --production http 8/0/0 after. Later ticket: the branch structure (main / staging / feature branches),
+  with the working branch protected like main.
