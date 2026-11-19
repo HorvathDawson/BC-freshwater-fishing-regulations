@@ -2719,3 +2719,6 @@ More questions (recommended answer first):
 - 2026-11-18 ~17:05, owner (to the main chat, relayed 17:08), on whether the app should speak as him (a solo project:
   "I read every message. Email me…"), verbatim: "yes change all" -> T860 grows: every user-facing "we / us / our" for
   the project becomes "I / me / my" (no name) across the app, the web site pages and the store listings; 0.8.1 web.
+- 2026-11-18 ~17:10, owner (to the main chat, relayed 17:12), verbatim: "conditions seems like it was laggy like salmon map
+  was maybe it had same issue?" -> T861: measure the Conditions map against 0.8.0 and the 0.8.1 build (which has the
+  T848/T855 fix); fix it if the Conditions map was left out.
