@@ -12,7 +12,8 @@ import { join, relative } from "node:path";
 import { fileURLToPath } from "node:url";
 import { JSDOM } from "jsdom";
 // @ts-expect-error a plain .mjs tool (no types)
-import { afterPaint as shellAfterPaint, bootCoho, cohoFacts, MARKED, paintFirst, shellExport, withBootCoho } from "./web-shell.mjs";
+import { afterPaint as shellAfterPaint, bootCoho, cohoFacts, HOME_DESCRIPTION, HOME_DESCRIPTION_TAG, MARKED, paintFirst, shellExport, withBootCoho,
+         withHomeHead } from "./web-shell.mjs";
 import { COHO } from "../packages/ui-native/src/coho.generated";
 import { COHO_WEB } from "../packages/ui-native/src/cohoWeb.generated";
 import { COHO_GROUND_PAD, COHO_WIDTH, cohoHeight } from "../packages/ui-native/src/coho";
@@ -128,7 +129,16 @@ describe("the web's opening is the coho (T844)", () => {
     expect(appDocument(withBootCoho(BARE_APP, SHELL), d)).toBe(appDocument(BARE_APP, d));
     // (T910) and the paint-first head (the map's stylesheets applied when in, the script preloaded and run after the
     // first frame) makes no other water page: the same page as from the export before it
-    expect(appDocument(paintFirst(withBootCoho(EXPORT_APP, SHELL)), d)).toBe(appDocument(EXPORT_APP, d));
+    expect(appDocument(withHomeHead(paintFirst(withBootCoho(EXPORT_APP, SHELL))), d)).toBe(appDocument(EXPORT_APP, d));
+  });
+
+  it("(T910) the home page has a description (the owner's store words, the site's 155-character limit), once", () => {
+    const t = withHomeHead(EXPORT_APP);
+    expect(t).toContain(`</title>${HOME_DESCRIPTION_TAG}`);
+    expect(HOME_DESCRIPTION.length).toBeLessThanOrEqual(155);
+    expect(HOME_DESCRIPTION).not.toMatch(/["<>&]/);
+    expect(withHomeHead(t)).toBe(t);
+    expect(t.match(/<meta name="description"/g)).toHaveLength(1);
   });
 
   it("(T910) the first paint never waits for the app's script: stylesheets applied when in, the script preloaded and run after the first frame", () => {
@@ -157,6 +167,7 @@ describe("the web's opening is the coho (T844)", () => {
     it("(T910) carries frame 0 in the page: `pnpm splash`'s files byte for byte, no request", () => {
       const { frame0 } = shellExport(exported());
       const html = readFileSync(join(dir, "index.html"), "utf8");
+      expect(html).toContain(HOME_DESCRIPTION_TAG);
       for (const t of ["light", "dark"] as const) {
         const png = readFileSync(at(`apps/mobile/assets/splash/web-frame0-${t}.png`));
         expect(frame0[t]).toBe(`data:image/png;base64,${png.toString("base64")}`);

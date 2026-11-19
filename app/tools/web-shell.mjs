@@ -172,13 +172,28 @@ export function shellFonts(root) {
   }));
 }
 
+/**
+ * (T910, owner 2026-11-19 ~11:40) THE HOME PAGE'S DESCRIPTION: `/` had none, the one SEO loss on production (Lighthouse
+ * 92). The owner's store words (handoff/PLAN/play/store-description.md), under 155 characters as the site's pages are.
+ * The water pages take it out: their own description is the page's (tools/seo `appDocument`).
+ */
+export const HOME_DESCRIPTION = "Your pocket guide to BC fishing regulations: tap any lake, river or stream on an interactive map " +
+  "to view its fishing regulations and river conditions.";
+export const HOME_DESCRIPTION_TAG = `<meta name="description" content="${HOME_DESCRIPTION}">`;
+
+/** The export's index.html with the home description after its title (a second run: the same page). */
+export function withHomeHead(html) {
+  if (!/<\/title>/.test(html)) throw new Error("web-shell: the export's index.html has no <title>");
+  return html.replace(HOME_DESCRIPTION_TAG, "").replace(/<\/title>/, `</title>${HOME_DESCRIPTION_TAG}`);
+}
+
 /** Put the shell into a web export in place: frame 0 inlined, the paint first, the faces. */
 export function shellExport(dir, f = cohoFacts()) {
   const root = resolve(dir);
   const frame0 = Object.fromEntries(THEMES.map((t) => [t, frame0Uri(t)]));
   const fonts = shellFonts(root);
   const index = join(root, "index.html");
-  writeFileSync(index, paintFirst(withBootCoho(readFileSync(index, "utf8"), bootCoho(f, { frame0 }))));
+  writeFileSync(index, withHomeHead(paintFirst(withBootCoho(readFileSync(index, "utf8"), bootCoho(f, { frame0 })))));
   return { frame0, fonts };
 }
 

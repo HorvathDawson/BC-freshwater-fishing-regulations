@@ -9,7 +9,8 @@ import type { ReleaseLoader } from "@app/data/release";
 import { crossAction, exitAction, mapPointTap, partAction, showRegsActions, waterFrame, type MapRail,
          mapError, type RegsStart } from "@app/ui";
 import type { Camera, MapSpots, TileEndpoints } from "@app/map";
-import { WaterScreen } from "../WaterScreen";
+import type { WaterScreen as WaterScreenType } from "../WaterScreen";
+import { WaterPageLoading } from "../WaterPageLoading";
 import type { FishImages } from "../regs/types";
 import type { Palette } from "../theme";
 import type { ShellNav } from "./useShellNav";
@@ -20,6 +21,15 @@ import { part } from "../part";
 const WaterConditions = part(() => import("../later").then((m) => m.WaterConditions));
 const WaterMap = part(() => import("../later").then((m) => m.WaterMap));
 const WaterMapView = part(() => import("../later").then((m) => m.WaterMapView));
+/**
+ * (T910, owner 2026-11-19 "build all 3 on webapp") THE REGULATIONS PAGE, loaded later on the web too: its code (the page,
+ * the Keep / Gear / Licence / Methods tabs, the Salmon card: ~150 KiB of the first script) is in the later chunk. Until it
+ * is in, the page's own loading face (`WaterPageLoading`, the one it draws while its water's sheet comes) — never an empty
+ * box. Asked at once by a start on a water's page (apps/mobile startLink.web: `preloadParts`), when first drawn, or once
+ * the browser is idle after the first screen; a phone has it at once (one bundle).
+ */
+const WaterScreen = part<React.ComponentProps<typeof WaterScreenType>>(() => import("../later").then((m) => m.WaterScreen), undefined,
+                                                                       (p) => <WaterPageLoading palette={p.palette} />);
 
 export function WaterModeHost({ frame, nav, col, source, palette, loader, tiles, theme, feed, rail, spotLayer, camera,
                                 waterCamera, fishImages, mapDay, onDay, start, onStarted }: {

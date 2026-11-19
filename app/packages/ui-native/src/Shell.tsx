@@ -57,6 +57,7 @@ import { useSpotEdit } from "./shell/useSpotEdit";
 import { WaterModeHost } from "./shell/WaterModeHost";
 import { PaneReadyContext, useBrowseKept, usePaneHold } from "./shell/paneReveal";
 import { holdsView } from "./shell/holdViews";
+import { afterLoadQuiet } from "./shell/settle";
 import type { ShellProps } from "./shell/props";
 import { HOME, useMapColouring } from "./shell/useMapColouring";
 import { useShellNav } from "./shell/useShellNav";
@@ -148,8 +149,9 @@ export function Shell(p: ShellProps) {
   const lowNow = useRef(netState.mode.low);
   lowNow.current = netState.mode.low;
   useEffect(() => { background.scheduler?.signals({ lowData: netState.mode.low }); }, [background.scheduler, netState.mode.low]);
+  // (T910) the web's unasked downloads wait for the page's load and a quiet spell (`shell/settle`)
   const onRegion = useReleasePrefetch(p.prefetch ? loader : null, () => setSettled(true), background.scheduler,
-                                      () => lowNow.current);
+                                      () => lowNow.current, afterLoadQuiet);
   const quietLine = useNetQuiet(GEAR_QUIET_MS);
   // (T282) the parts loaded later (`part`): fetched once the line is quiet and the browser idle — so a later tap on
   // More, Conditions or a spot finds its code here. Not sooner: on a water's own page the chunk would compete with the

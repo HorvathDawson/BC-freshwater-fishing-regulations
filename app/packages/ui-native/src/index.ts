@@ -7,10 +7,9 @@
  * here to duplicate — every one of these takes data from a hook and draws it.
  *
  * (T282) Metro does not tree-shake: whatever this file exports is in the web's first bundle. The parts loaded later
- * (`part.tsx`: menu pages, More, Spots, a spot, Conditions charts, the water's map, the rarer sheets) are NOT exported
- * here — import them by path.
+ * (`part.tsx`: menu pages, More, Spots, a spot, Conditions charts, the water's map, the rarer sheets, T910 the water's
+ * Regulations page) are NOT exported here — import them by path.
  */
-export { WaterScreen } from "./WaterScreen";
 export { Shell, type ShellProps } from "./Shell";
 export { SearchSheet } from "./SearchSheet";
 export { TopBar, TOP_BAR, topBarBottom } from "./TopBar";
@@ -34,9 +33,8 @@ export { Icon, IconText, ICONS, ICON_STROKE, LUCIDE_NAME, type IconName } from "
 export * from "./type";
 export type { FishImages } from "./regs/types";
 export { setSynopsisSource, setSynopsisNet } from "./regs/synopsisSource";
-export { SheetHost, type SheetHostProps } from "./regs/SheetHost";
 // (T269) the SEO prerender's width for the year bars (it never lays out); 0 in the app
-export { StripWidthHint } from "./regs/YearStrip";
+export { StripWidthHint } from "./regs/stripWidth";
 export { Credits } from "./Credits";
 export { LoadingState, useDelayedShow, SPINNER_TIMING } from "./LoadingState";
 export { COHO_WIDTH, cohoHeight } from "./coho";

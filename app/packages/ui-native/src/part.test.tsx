@@ -66,6 +66,52 @@ describe("part()", () => {
     expect(g.ErrorUtils).toBe(eu);
   });
 
+  it("(T910) a part with a loading face: that face while its code comes, then the part — never an empty frame", async () => {
+    const { part } = await fresh();
+    let arrive!: (c: typeof Hello) => void;
+    const P = part(() => new Promise<typeof Hello>((r) => { arrive = r; }), undefined,
+                   ({ who }) => <Text testID="part-loading">loading {who}</Text>);
+    const { container } = render(<P who="you" />);
+    // every DOM change: the loading face or the part, never neither
+    const frames: string[] = [];
+    const look = () => frames.push(container.textContent ?? "");
+    const o = new MutationObserver(look);
+    o.observe(container, { childList: true, subtree: true, characterData: true });
+    look();
+    expect(screen.getByTestId("part-loading").textContent).toBe("loading you");
+    await flush();
+    expect(screen.getByTestId("part-loading")).toBeTruthy();     // still coming
+    arrive(Hello);
+    await flush();
+    o.disconnect();
+    expect(screen.queryByTestId("part-loading")).toBeNull();
+    expect(screen.getByText("hello you")).toBeTruthy();
+    expect(frames.length).toBeGreaterThan(1);
+    expect(frames.filter((f) => f !== "loading you" && f !== "hello you")).toEqual([]);
+    expect(reported).toEqual([]);
+  });
+
+  it("(T910) a part already in draws itself at once, its loading face never", async () => {
+    const { part } = await fresh();
+    const P = part(() => Promise.resolve(Hello), undefined, () => <Text testID="part-loading">loading</Text>);
+    await P.preload();
+    render(<P who="me" />);
+    expect(screen.queryByTestId("part-loading")).toBeNull();
+    expect(screen.getByText("hello me")).toBeTruthy();
+  });
+
+  it("(T910) a wanted part whose code failed shows the error, not its loading face; an unwanted one draws nothing", async () => {
+    const { part } = await fresh();
+    const P = part<{ open: boolean }>(() => Promise.reject(new Error("x")), (p) => p.open, () => <Text testID="part-loading">loading</Text>);
+    const { rerender } = render(<P open={false} />);
+    expect(screen.queryByTestId("part-loading")).toBeNull();
+    rerender(<P open />);
+    expect(screen.getByTestId("part-loading")).toBeTruthy();
+    await flush();
+    expect(screen.queryByTestId("part-loading")).toBeNull();
+    expect(screen.getByTestId("part-failed")).toBeTruthy();
+  });
+
   it("a closed sheet that failed draws nothing until it is opened", async () => {
     const { part } = await fresh();
     const P = part<{ open: boolean }>(() => Promise.reject(new Error("x")), (p) => p.open);

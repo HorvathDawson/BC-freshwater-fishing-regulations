@@ -215,6 +215,8 @@ export function appDocument(template: string, d: AppDocument): string {
   need(/<title>[^<]*<\/title>/, "<title>"); need(/<div id="root"><\/div>/, `<div id="root"></div>`); need(/<\/head>/, "</head>");
   t = t.replace(/<html lang="[^"]*"/, `<html lang="en-CA"`)
     .replace(/<title>[^<]*<\/title>/, "")
+    // (T910) the home page's description (tools/web-shell.mjs `withHomeHead`): a water page has its own, in `d.head`
+    .replace(/<meta name="description" content="[^"]*">/, "")
     .replace(/<link rel="preload" href="([^"]+\.css)" as="style">/g, "")
     // (T910) the export preloads its script (tools/web-shell.mjs `paintFirst`); a water page asks for it after its pane
     .replace(/<link rel="preload" href="[^"]+\.js" as="script">/g, "")

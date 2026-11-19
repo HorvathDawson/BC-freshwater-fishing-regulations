@@ -1,6 +1,6 @@
 # T910 — Web first load: Lighthouse performance 46 on staging; make the first visit fast
 
-Status: IN PROGRESS (lane app/t910-web-speed: cheap wins committed, measured; bigger items proposed below; left (Claude): review, then staging).
+Status: IN PROGRESS (lane app/t910-web-speed: cheap wins + the owner's three (11:40) + home description committed, measured; left (Claude): review, then staging).
 
 Owner 2026-11-19 ~07:40 (main chat), a Lighthouse run on staging (mobile): Performance 46, Accessibility 95, Best
 Practices 81, SEO 58; FCP 7.1 s, LCP 7.9 s, TBT 530 ms, Speed Index 7.1 s, CLS 0.011; verbatim: "staging got this??"
@@ -143,3 +143,53 @@ regs blob inflate 81 ms, `map/obstacle-icons` 75 ms, salmon/method building ~100
   intended noindex). Not changed here (brief: report only).
 - Accessibility 95 on both: `aria-allowed-attr` — the map's "My location" button carries `aria-selected`, which a button
   may not have (aria-pressed would be the toggle form). Not part of T910; worth a small ticket.
+
+## 5. Built: the owner's three + the home description (lane, 2026-11-19 ~11:00–12:00)
+
+Web only; the phone's paths are the same code as before, each difference in a `.web` / `.native` pair (AGENTS 34a).
+1. **Off the main thread.** The profile's fflate was NOT the release files' gunzip (that is the browser's own
+   `DecompressionStream` already, T409): it was `reads.rules()`, 3,404 `rule` + 3,404 `display_rule` blobs, raw DEFLATE
+   with each table's preset dictionary (which `DecompressionStream` cannot take: tried, the stored-block trick decodes
+   right but is 6–8x slower per blob). So: `regs/rulesDecode.web.ts` inflates them all in one Web Worker made from
+   fflate's own UMD build (`fflateWorker.generated.ts`, base64, held to the installed fflate by
+   `tools/rules-worker.test.ts`), parsing stays on the page a slice per turn; same rules, refusals and order as the
+   phone's `rulesDecode.native.ts` (the T287 loop, moved unchanged to `rulesShared.ts`). No Worker / a worker that fails:
+   said and reported (`reportOnce`), decoded on the page. Real Chrome: one extra (blob) worker, index.js main-thread
+   self time 3.72 → 3.07 s (4x CPU profile, first visit).
+2. **The unasked downloads wait for a quiet page.** `ui-native/src/shell/settle.web.ts` `afterLoadQuiet`: the load event,
+   then `QUIET_MS` = 5000 with no long task (each long task restarts it; no long-task entries in the browser: 5 s after
+   load; at the latest 30 s after load). The idle tier (core + sql-wasm) and so the background tier wait for it
+   (`@app/ui` `useReleasePrefetch(…, settle)`). Not held: the region's regs file (a first tap's) and the map's
+   colourings (Salmon / Bait & fly, on the first screen — a first build held them too and the legend lost "Fly only /
+   Bait ban" in the 6 s shot; fixed, the shots now match). A tap, search or start link fetches at once as before.
+3. **The Regulations page loads later on the web** (`WaterScreen` a `part` in the later chunk; `WaterPageLoading`, the
+   page's own sheet-wait face, while its code comes — never an empty box; a water page's start asks for the chunk at
+   once; MapScreen moved INTO the first script, so a `/` start no longer waits for the later chunk). The SEO render loads
+   the part first (`tools/seo/pane.tsx`). index.js 3,900 → 3,812 KB raw / 972 → 965 KB br (−135 KB raw of regs code,
+   +44 KB for item 1's worker copy of fflate); later chunk 202 → 338 KB.
+4. **Home description** on `/` (web-shell `withHomeHead`, the owner's store words, 150 characters; water pages drop it
+   for their own): SEO 91 → **100**.
+
+Measured the same way (local, latency-emulated host, interleaved, clean profile), 5 mobile runs each, median:
+
+| mobile | Perf | FCP | LCP | TBT | SI | TTI | bytes in window | SEO | Perf range |
+|---|---|---|---|---|---|---|---|---|---|
+| base (cheap wins, 6496f1413) | 78 | 0.79 s | 0.79 s | 686 ms | 5.2 s | 9.9 s | 9.4 MiB | 91 | 75–81 |
+| + 1 rules worker | 78 | 0.79 s | 0.79 s | 728 ms | 5.2 s | 9.7 s | 8.8 MiB | 100 | 75–80 |
+| + 2 quiet spell | 78 | 0.79 s | 0.79 s | 688 ms | 5.2 s | 9.9 s | 6.7 MiB | 100 | 76–80 |
+| + 3 lazy Regulations page (all) | 78 | 0.79 s | 0.79 s | 733 ms | 5.1 s | 9.6 s | 6.7 MiB | 100 | 77–81 |
+| desktop base / all (3 runs) | 97 / 98 | 0.24 / 0.24 s | | 39 / 18 ms | 1.8 / 1.7 s | | 10.1 / 6.9 MiB | 90 / 100 | |
+
+An earlier batch (same builds before the colourings fix) read 80 → 82 → 83; this one is flat: **the three do not move the
+mobile score beyond run-to-run noise (other lanes ran on the machine).** What they do: −2.7 MiB in the first visit's
+window, −0.65 s of 4x main thread off the page, SEO 100. Why not TBT: the long tasks that make it are the first
+script's own evaluation (~350 ms simulated at ~8.2 s) and the first screen's build (~170–260 ms tasks around 9–10 s); the
+rules decode was already sliced under 50 ms a task, and the downloads moved were not on the main thread. Next lever, if
+the owner wants the score: what index.js does on evaluation (3.8 MB raw: maplibre 1 MB, react-native-web, gesture
+handler, core) and the first screen's render; a separate measurement.
+
+Shots (scratchpad t910/shots2/): before/after × {first screen, `?regs=gnis:15333`} × 390/1440 × light/dark —
+the Regulations pages pixel-identical, the first screen identical but for the search box's random pun.
+Tests: tools/rules-worker (5), shell/settle.web (7), prefetch.render (+1, 16), part (+3, 8), WaterPageLoading (2),
+tools/water-page-lazy (2), web-shell (+1), seo site/prerender; packages ui, ui-native, data + tools/seo: 3,561 passed;
+`pnpm -C app check:fast` green.

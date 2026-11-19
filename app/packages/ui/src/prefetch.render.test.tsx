@@ -36,9 +36,9 @@ function fakeLoader() {
   return { loader, asked };
 }
 
-function Probe({ loader, out, onIdle }: { loader: ReleaseLoader | null; out: { cb?: ((r: unknown) => void) | undefined };
-                onIdle?: () => void }) {
-  out.cb = useReleasePrefetch(loader, onIdle);
+function Probe({ loader, out, onIdle, settle }: { loader: ReleaseLoader | null; out: { cb?: ((r: unknown) => void) | undefined };
+                onIdle?: () => void; settle?: (go: () => void) => () => void }) {
+  out.cb = useReleasePrefetch(loader, onIdle, undefined, undefined, settle);
   return null;
 }
 
@@ -94,6 +94,33 @@ describe("useReleasePrefetch", () => {
         if (!("saveData" in connection)) expect(asked.indexOf("idle")).toBeGreaterThan(asked.indexOf("open core"));
       });
     }
+  });
+
+  it("(T910) with `settle` (the web: load + a quiet spell), core waits for it; the region's file and the colourings do not", () => {
+    const idle: (() => void)[] = [], settled: (() => void)[] = [];
+    let cancelled = 0;
+    withGlobals(idle, { effectiveType: "4g" }, () => {
+      const { loader, asked } = fakeLoader(), out: { cb?: (r: unknown) => void } = {};
+      const { unmount } = render(<Probe loader={loader} out={out} onIdle={() => asked.push("idle")}
+                                        settle={(go) => { settled.push(go); return () => { cancelled++; }; }} />);
+      out.cb!("2");
+      expect([asked, idle.length, settled.length]).toEqual([["fetch regs-2"], 1, 1]);   // the tap's region file at once
+      idle[0]!();                                                                         // the first idle moment:
+      expect(asked).toEqual(["fetch regs-2", "idle"]);                                    // the colourings, not core
+      settled[0]!();                                                                      // loaded, then quiet
+      expect([asked, idle.length]).toEqual([["fetch regs-2", "idle"], 2]);               // now an idle moment for core
+      idle[1]!();
+      expect(asked).toEqual(["fetch regs-2", "idle", "fetch core"]);
+      unmount();
+    });
+    // a page left before it went quiet: the wait is cancelled
+    withGlobals([], { effectiveType: "4g" }, () => {
+      const { loader } = fakeLoader(), out: { cb?: (r: unknown) => void } = {};
+      const { unmount } = render(<Probe loader={loader} out={out} settle={() => () => { cancelled++; }} />);
+      out.cb!("2");
+      unmount();
+    });
+    expect(cancelled).toBe(1);
   });
 
   it("a phone (no loader handed): no callback, so the map is never asked", () => {

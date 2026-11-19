@@ -164,6 +164,7 @@ export const FINE: Record<string, { n: number; why: string }> = {
   "packages/data/src/release/drivers/install.native.ts": { n: 1, why: "a bounded retry, thrown at the end" },
   "packages/data/src/release/drivers/open.web.ts": { n: 1, why: UNCACHE },
   "packages/data/src/release/drivers/serial.ts": { n: 2, why: "the queue's tail: the caller holds the job's own promise" },
+  "packages/data/src/regs/rulesDecode.web.ts": { n: 2, why: "(T910) the worker's own code (a string) answers a corrupt blob with null, which the page refuses as `a blob is not JSON`; a cell's refusal is kept and thrown where the phone's loop meets it" },
   "packages/data/src/release/drivers/source.web.ts": { n: 1, why: "a priority raise (the original promise carries the outcome); (T409) cached bytes that fail verification are fetched again, any other error is rethrown" },
   "packages/data/src/release/install.ts": { n: 3, why: "the follower hash falls back to the authoritative check; a held manifest costs only a download; the assets failure is thrown at the end" },
   "packages/data/src/release/lane.ts": { n: 1, why: "(T737) a download stopped for the reader goes back in the lane (the same promise, started again later); any other failure is handed to its caller's promise as it was (`it.fail`)" },
