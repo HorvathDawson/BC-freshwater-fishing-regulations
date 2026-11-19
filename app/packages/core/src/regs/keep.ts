@@ -22,6 +22,8 @@ import { drawnRows, groupHeadOf, headCtx, originOf, rowTitle, scopeOf } from "./
 import type { RegsInputs } from "./inputs";
 import type { CaveatVM, Day, GroupVM, KeepBlock, KeepVM, PlainRowVM, StripVM } from "./model";
 import { otherFishKeyOf, otherFishOf, splitRows, tableCovers } from "./others";
+import { rowDown } from "./decided";
+import { downLine } from "./flow";
 import type { RegsPlace } from "./place";
 import { isPlainRow, plainRowOf, yearWindowOf, type PlainRowSeams } from "./plainrow";
 import { settleAt, type Settled } from "./settle";
@@ -129,6 +131,9 @@ function troutFromOf(t: ReturnType<typeof troutOf>, inp: RegsInputs, card: CardM
   return f ? troutFrom(t, (S) => f.fish[S] ?? null, inp.rules, inp.item?.name || inp.place?.name || "") : null;
 }
 
+/** (T892) a quota group with its fold's tributary line (the group sheet's own flow, `rowDown`); null: none. */
+const withFrom = (g: GroupVM, from: string | null): GroupVM => (from ? { ...g, from } : g);
+
 export function keepOf(inp: RegsInputs, env: KeepEnv): KeepVM {
   const edge = edgeKind(inp);                                       // (T42) the two edges with no card
   if (edge === "outside") return outsideKeep();
@@ -152,18 +157,19 @@ export function keepOf(inp: RegsInputs, env: KeepEnv): KeepVM {
                    ...(open ? caveatsOf(inp, settled, (j) => settleAt(inp, env.place, j, settled.day), covered) : [])];
 
   const groups: GroupVM[] = [], plainRows: PlainRowVM[] = [], rows: KeepRowBlock[] = [];
+  const seams = plainRowSeams(inp, env.fish);
   if (open) {
-    const drawn = drawnRows(card), seams = plainRowSeams(inp, env.fish);
+    const drawn = drawnRows(card);
     for (const i of splitRows(card, covers).main) {
       if (!drawn.has(i)) continue;                                  // page v36 draws no article for a parent row
       const row = card.rows[i]!;
-      if (row.raw.group?.headline) { rows.push({ group: groups.length }); groups.push(groupOf(i, inp, env, drawn, seams)); }
+      if (row.raw.group?.headline) { rows.push({ group: groups.length }); groups.push(withFrom(groupOf(i, inp, env, drawn, seams), downLine(rowDown(row, { card, settled, inp, seams })))); }
       else if (isPlainRow(row)) { rows.push({ plain: plainRows.length }); plainRows.push(plainRowOf(i, { inp, card, settled, seams })); }
       // else: a pooled row with no stored headline — page v36's legacy card path, not ported. (T670 K4/K5) It is a line of
       // the compact list (others.ts `looseRows`)
     }
   }
-  const otherFish = open ? otherFishOf(card, inp, env.fish, covers, settled) : null;
+  const otherFish = open ? otherFishOf(card, inp, env.fish, covers, settled, seams) : null;
   const possession = open ? possessionOf(inp, settled) : null;
   const whereNot = whereNotOf(settled);
   const order = keepOrder({ strip: !!strip, inherited: !!inherited, banner: !!banner, caveats, rows,

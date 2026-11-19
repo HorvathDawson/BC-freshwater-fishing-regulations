@@ -73,9 +73,10 @@ function thumbOf(nodes: readonly TreeNodeVM[]): string | null {
   return codes.includes("RB") ? "RB" : codes[0] ?? null;
 }
 
-/** A quota group's folded row: its title and picture, no count (owner 2026-10-28: a group's number misleads). */
+/** A quota group's folded row: its title and picture, no count (owner 2026-10-28: a group's number misleads); (T892) its
+ *  tributary line (`GroupVM.from`). */
 export function groupGlance(g: GroupVM): GlanceRowVM {
-  return { source: "bc", thumb: thumbOf(g.tree ?? []), name: g.title, value: null, tone: "keep" };
+  return { source: "bc", thumb: thumbOf(g.tree ?? []), name: g.title, value: null, tone: "keep", ...(g.from ? { from: g.from } : {}) };
 }
 
 /**

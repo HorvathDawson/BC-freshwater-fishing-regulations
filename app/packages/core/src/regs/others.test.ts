@@ -7,13 +7,14 @@ import type { HydRow } from "./card";
 import type { FishManifest } from "./fish.generated";
 import type { Settled } from "./settle";
 import type { RegsInputs, RuleView } from "./inputs";
-import { drawnRows } from "./grouphead";
+import { drawnRows, rowTitle } from "./grouphead";
 import { plain } from "./line";
 import { backOf, groupRows, listRows, looseRows, otherFishOf, shortValue, splitRows } from "./others";
 import { cardOf, GROUP, INP, kind, rowOf, TROUT_ROW } from "./testing/keepFixtures";
 
 /** a day with nothing lifted (the rows' items come from the stored roles alone) */
 const NONE = { lifted: new Map() } as unknown as Settled;
+const SEAMS = { rowTitle };
 const FISH: FishManifest = {
   KO: [{ file: "k.webp", caption: "Kokanee", credit: "", type: "", source: "", phase: null, standInFor: null, width: 2, height: 1 }],
 };
@@ -36,7 +37,7 @@ describe("splitRows (page v36 rowsHtml; T810 S: by the trout table's `covers`, n
   });
   it("a closed day draws no rows: no groups, no list", () => {
     const shut = cardOf([TROUT_ROW, KO, BASS], { status: "closed" });
-    expect([splitRows(shut, [0]), groupRows(shut, drawnRows(shut), [0]), otherFishOf(shut, INP(), FISH, [0], NONE)]).toEqual([{ main: [], rest: null }, [], null]);
+    expect([splitRows(shut, [0]), groupRows(shut, drawnRows(shut), [0]), otherFishOf(shut, INP(), FISH, [0], NONE, SEAMS)]).toEqual([{ main: [], rest: null }, [], null]);
   });
   it("groups are the drawn full rows whose stored group has a headline", () => {
     const card = cardOf([GR, KO, BASS, { ...GR, group: GROUP({ headline: null as never }) }]);
@@ -48,7 +49,7 @@ describe("splitRows (page v36 rowsHtml; T810 S: by the trout table's `covers`, n
 
 describe("otherFishOf", () => {
   it("each row's title and one-word answer; the weekday split under its name; the first pictured fish; the size hint", () => {
-    expect(otherFishOf(cardOf([TROUT_ROW, KO, BASS, GR, PROT]), INP(), FISH, [0], NONE)).toEqual([
+    expect(otherFishOf(cardOf([TROUT_ROW, KO, BASS, GR, PROT]), INP(), FISH, [0], NONE, SEAMS)).toEqual([
       { thumb: "KO", name: "Kokanee", value: "5 a day", tone: "keep", week: "Weekends: keep 5 · Weekdays: release", sizeHint: null, open: "other:o0", stamps: [], back: [] },
       { thumb: null, name: "Bass", value: "no limit", tone: "nolimit", week: null, sizeHint: null, open: "other:o1", stamps: [], back: [] },
       { thumb: null, name: "GR", value: "4 a day", tone: "keep", week: null, sizeHint: "· size limit", open: "other:o2", stamps: [], back: [] },
@@ -57,15 +58,15 @@ describe("otherFishOf", () => {
   it("(rows 32) a row's stored stamps, each worded as a stamp line under it — the store's words, never chosen here", () => {
     const WSG = rowOf({ kind: "release", win: 3, members: ["WSG"], all_members: ["WSG"], stamps: [{ doc: "white_sturgeon_licence",
       act: "targeting", name: "White Sturgeon Conservation Licence", when: "Only if you fish for white sturgeon, even to release them" }] });
-    const o = otherFishOf(cardOf([TROUT_ROW, KO, WSG]), INP(), FISH, [0], NONE)!;
+    const o = otherFishOf(cardOf([TROUT_ROW, KO, WSG]), INP(), FISH, [0], NONE, SEAMS)!;
     expect(o.map((x) => x.stamps.map(plain))).toEqual([[],
       ["You need White Sturgeon Conservation Licence › only if you fish for white sturgeon, even to release them"]]);
     // mutation: other stored words come out as they are (the app adds no document and drops none)
     const mut = rowOf({ ...WSG, stamps: [{ doc: "x", act: "targeting", name: "MUT-DOC", when: "MUT-WHEN" }] });
-    expect(otherFishOf(cardOf([TROUT_ROW, KO, mut]), INP(), FISH, [0], NONE)![1]!.stamps.map(plain)).toEqual(["You need MUT-DOC › mUT-WHEN"]);
+    expect(otherFishOf(cardOf([TROUT_ROW, KO, mut]), INP(), FISH, [0], NONE, SEAMS)![1]!.stamps.map(plain)).toEqual(["You need MUT-DOC › mUT-WHEN"]);
   });
   it("the size hint rides only a keep count (prototype: it wraps the .k-keep value)", () => {
-    const o = otherFishOf(cardOf([TROUT_ROW, { ...GR, kind: "no_limit", daily: null }, { ...GR, kind: "release", daily: null }]), INP(), FISH, [0], NONE)!;
+    const o = otherFishOf(cardOf([TROUT_ROW, { ...GR, kind: "no_limit", daily: null }, { ...GR, kind: "release", daily: null }]), INP(), FISH, [0], NONE, SEAMS)!;
     expect(o.map((x) => [x.value, x.sizeHint])).toEqual([["no limit", null], ["release", null]]);
   });
   it("shortValue: the stored kind in one word", () => {
@@ -80,7 +81,7 @@ describe("(T670 K4/K5) a full row nothing draws is a line of the list", () => {
   it("with no table: the loose rows are the list (`other:oN` counts them); a row with a headline is a card, not listed", () => {
     const card = cardOf([KO, BASS, GR]);
     expect([splitRows(card, []).main, looseRows(card, []), listRows(card, [])]).toEqual([[0, 1, 2], [0, 1], [0, 1]]);
-    expect(otherFishOf(card, INP(), FISH, [], NONE)!.map((o) => [o.name, o.value, o.open])).toEqual([
+    expect(otherFishOf(card, INP(), FISH, [], NONE, SEAMS)!.map((o) => [o.name, o.value, o.open])).toEqual([
       ["Kokanee", "5 a day", "other:o0"], ["Bass", "no limit", "other:o1"]]);
   });
   it("beside a table, a lone other fish is drawn in full and, loose, still listed; the table's rows never are", () => {
@@ -93,7 +94,7 @@ describe("(T670 K4/K5) a full row nothing draws is a line of the list", () => {
   });
   it("a loose row's size limit is hinted from its stored bands (never read as any size)", () => {
     const BB = rowOf({ kind: "keep", pool: 3, daily: 1, members: ["BB"], all_members: ["BB"], items: [{ members: ["BB"], bands: [[60, null, 1]], back: false, xref: false, sub: null, conds: [] }] });
-    expect(otherFishOf(cardOf([TROUT_ROW, BB]), INP(), FISH, [0], NONE)![0]!.sizeHint).toBe("· size limit");
+    expect(otherFishOf(cardOf([TROUT_ROW, BB]), INP(), FISH, [0], NONE, SEAMS)![0]!.sizeHint).toBe("· size limit");
   });
 });
 
@@ -126,7 +127,7 @@ describe("(T892) otherFishOf: a row from another water's row carried down to its
       MW: { lead: null, hatchery: { roles: [[11, "replaced", 12], [12, "governs", null]] }, wild: null },
     } }] } } as unknown as RegsInputs;
   it("the inherited row: whole line; the water's own row: none", () => {
-    expect(otherFishOf(card, inp, FISH, [0], NONE)!.map((o) => [o.name, o.value, o.from ?? null])).toEqual([
+    expect(otherFishOf(card, inp, FISH, [0], NONE, SEAMS)!.map((o) => [o.name, o.value, o.from ?? null])).toEqual([
       ["BB", "release", "Kootenay River’s rule for its tributaries"],
       ["MW", "15 a day", null],
     ]);

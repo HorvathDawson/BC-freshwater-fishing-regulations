@@ -15,18 +15,25 @@ water with such a row, before it lands.
 - Wording: one line under the row's name, sub colour, tokens only: **"Dutch Creek’s rule for its tributaries"** (two
   waters: "A’s and B’s rules for their tributaries"); the B.C. tag is unchanged. Read once: in the row's text (an Other
   fish row) or in the fold's spoken name (the trout fold).
-- Same input as T883, nothing re-derived: core `flow.ts` `downOf` takes the row's items (`decided.ts` `rowItems` =
-  `rowSources`, the rows frame's stored roles) and names each deciding step whose rule the part's ruleset holds `via`
-  trib (rank 1) — exactly the steps the sheet's rail kicks "<that water> · its tributaries". `OtherFishRowVM.from`.
-- Trout and char: the fold row says it when EVERY trout row's rail (`troutFlow`) names the same waters
+- Same input as T883, by construction: the row's line is the sheet's own flow (`ladderOf` → `flowOf` → `FlowVM.down`):
+  the waters of the DECIDING steps the rail keeps whose rule the part's ruleset holds `via` trib (rank 1), i.e. exactly
+  the steps kicked "<that water> · its tributaries". Only when those steps hold for every fish of the row (a Bass row
+  whose smallmouth come down from Duck Lake and whose largemouth are the region's says nothing). `OtherFishRowVM.from`,
+  `GroupVM.from` (a quota group's Details fold), a name ending in s takes only ’ ("Twin Lakes’ rule").
+- Trout and char: the fold row says it when EVERY trout row's rail (`troutFlow` → `FlowVM.down`) names the same waters
   (`KeepVM.troutFrom`, sheets/trout.ts `troutFrom`). The trout table's own rows get no app words (T810 contract, guarded
   by `trout.release.test.ts`): a table only some of whose rows come down from tributaries (1,775 of 1,948 tables in
   r-fc137c4040fa, e.g. Littlejohn Creek's Dolly Varden from Kootenay Lake — Main Body) says it on those fish sheets only.
   To say it on the table's rows, Python would carry it per row (the T883 data spec's `steps[].level`, or a `TRow` line).
-- Checked over the whole release (20,963 parts): every row line equals its sheet's kickers, 0 mismatches; 792 Other fish
-  rows and 173 trout folds carry a line. Water's own and region rows unchanged.
-- Tests: `flow.test.ts` (downOf / downLine / troutFrom whole strings), `others.test.ts` (one inherited row, one own row),
-  `KeepTab.test.tsx` (the line drawn, spoken once, none on the fixture waters). No frozen fixture changed.
+- Checked over the whole release by `app/tools/release-tributary-lines.test.ts` (Tier 2, `scripts/test-full.sh`;
+  r-fc137c4040fa, 20,959 parts): every line equals its sheet's deciding tributary kickers, 0 mismatches; lines on 708
+  Other fish rows and 173 trout folds; 84 rows named on the sheet for some of their fish only carry none; no quota group
+  in this release has one. Water's own and region rows unchanged.
+- Tests: `flow.test.ts` (FlowVM.down / downLine whole strings: the half-Bass row, a rail-dropped tributary rule, "Twin
+  Lakes’"; troutFrom), `others.test.ts` (one inherited row, one own row), `KeepTab.test.tsx` (Other fish row, trout fold,
+  quota-group fold: drawn, spoken once), `trout.release.test.ts` (keepOf's `troutFrom` over every vector; Shamrock Creek
+  whole). No frozen fixture changed.
+- Review of 8bdb9cbf0 (2026-11-19 ~00:40): all five findings fixed (above).
 
 ## Pictures (390, light + dark; staging-data release r-fc137c4040fa, Nov 19)
 Scratchpad (session 699dcd1b) `t892-shots/`: `t892-laundry-keep-390-{light,dark}.png` (Laundry Creek: the trout fold

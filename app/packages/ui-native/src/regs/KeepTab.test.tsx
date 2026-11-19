@@ -348,6 +348,16 @@ describe("(T892, owner 2026-11-19 \"The table should say if it came from tributa
     expect(within(screen.getByTestId("keep-trout")).queryByText(LINE)).toBeNull();
   });
 
+  it("review 2: a quota group's fold (Details) says it under its name, in the row's spoken words once", () => {
+    const keep = keepOf(vedder1010), DUCK = "Duck Lake’s rule for its tributaries";
+    const order = keep.order.flatMap((b): KeepVM["order"][number][] => (b === "otherFish" ? [{ group: 0 }, b] : [b]));
+    render(<KeepTab keep={{ ...keep, order, groups: [{ title: "Bass", tree: [], from: DUCK } as never] }} dateLabel="Oct 10" palette={LIGHT}
+                    actions={actions} glance={{ salmon }} />);
+    const fold = within(screen.getByTestId("glance:group:0"));
+    expect(fold.getByTestId("row-from").textContent).toBe(DUCK);
+    expect(fold.getByRole("button").textContent).toBe(`BassB.C.${DUCK}${GLANCE_WORDS.show}`);
+  });
+
   it("no line on any frozen fixture water's fold (none rests wholly on another water's tributary rule)", () => {
     for (const f of [vedder1010, glenn501, bc1501, klwa1010]) {
       render(<KeepTab keep={keepOf(f)} dateLabel="Oct 10" palette={LIGHT} actions={actions} glance={{ salmon }} />);

@@ -103,11 +103,10 @@ export function rowSources(row: HydRow, card: CardModel, settled: Settled, inp: 
 
 const winItem = (r: RuleView): LadderItem => ({ r, role: "governs", by: null, spp: new Set() });
 
-/** (T892) A row's items as its fish sheet's flow reads them (`ladderOf` with no `members`): `rowSources`, else the row's
- *  stored winner as the one deciding rule. The Keep tab's table reads its rows' tributary line from these (flow.ts `downOf`). */
-export function rowItems(row: HydRow, card: CardModel, settled: Settled, inp: RegsInputs): readonly LadderItem[] {
-  const items = rowSources(row, card, settled, inp);
-  return items.length || !row.win ? items : [winItem(row.win)];
+/** (T892) The waters the row's fish sheet names "<that water> · its tributaries" on a deciding step, for every fish of
+ *  the row (`FlowVM.down`): the sheet's own flow (`ladderOf` with `flow`), so the Keep tab's row says what the sheet says. */
+export function rowDown(row: HydRow, env: Omit<LadderEnv, "flow">): readonly string[] {
+  return ladderOf(row, { ...env, flow: true }).flow?.down ?? [];
 }
 
 /** page v36 byName: the replacing rule named by its level (its own rank, not the part's). */
@@ -203,7 +202,8 @@ export function ladderOf(row: HydRow, env: LadderEnv, members?: readonly string[
   // (T216) the angler's explanation, every stored item in layers (the Keep form only; the other: sheet keeps the ladder)
   const story = members ? null : storyOf(items, (it) => words(it).text, inp, keepResult);
   // (T883, proposal) the fish sheet's one flow: the same items, in reading order, with the row's answer last
-  const flow = members || !env.flow ? null : flowOf(items, (it) => words(it).text, inp.item?.name || inp.place?.name || "", keepResult);
+  const flow = members || !env.flow ? null
+    : flowOf(items, (it) => words(it).text, inp.item?.name || inp.place?.name || "", keepResult, row.allMembers);
   return {
     label: WORDS.DECIDED, sections, ...(story ? { story } : {}), ...(flow ? { flow } : {}),
     lost: lost.map((it) => {

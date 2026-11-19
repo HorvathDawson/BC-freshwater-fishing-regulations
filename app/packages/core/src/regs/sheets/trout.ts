@@ -23,7 +23,7 @@ import { plain, text, type Run } from "../line";
 import type { FlowVM, SheetBlock, SheetVM, SourceRowVM, TroutBoxVM, TroutRowVM, TroutVM } from "../model";
 import type { Decided, FishAnswer } from "../../answers.generated";
 import type { LadderItem } from "../decided";
-import { downLine, downOf, flowOf } from "../flow";
+import { downLine, flowOf } from "../flow";
 import { clean } from "../names";
 import { imageBlocks } from "./fish";
 import type { SheetKey } from "../sheetKey";
@@ -128,15 +128,12 @@ function troutItems(row: TroutRowVM, a: FishAnswer | null, rules: Pick<RuleIndex
 
 /**
  * (T892) The trout fold's tributary line: where EVERY row of today's table draws its rail (`troutFlow`) and every rail's
- * deciding steps name the same waters "<that water> · its tributaries" (flow.ts `downOf`), the fold row of the one table
+ * deciding steps name the same waters "<that water> · its tributaries" (`FlowVM.down`), the fold row of the one table
  * says so once ("Bella Coola River’s rule for its tributaries"); else null. A table only some of whose rows rest on such
  * a rule says it on those rows' own sheets only: the table's rows are Python's words (T810), the app adds none to them.
  */
 export function troutFrom(t: TroutVM, answers: TroutAnswers, rules: Pick<RuleIndex, "get">, water: string): string | null {
-  const lines = t.boxes.flatMap((b) => b.rows).map((row) => {
-    const a = answers(row.fish), items = troutItems(row, a, rules);
-    return items && troutFlow(row, a, rules, water) ? downLine(downOf(items)) : null;
-  });
+  const lines = t.boxes.flatMap((b) => b.rows).map((row) => downLine(troutFlow(row, answers(row.fish), rules, water)?.down ?? []));
   return lines.length && lines.every((x) => x !== null && x === lines[0]) ? lines[0]! : null;
 }
 

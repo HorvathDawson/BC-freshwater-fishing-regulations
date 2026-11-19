@@ -167,6 +167,9 @@ export interface BannerVM {
 /** prototype per-article block; page v36 cardBlock / treeBlock / rowTitle / scopeBadge */
 export interface GroupVM {
   readonly row: number;                     // index into rows frame rows[]
+  /** (T892) the group's sheet names a deciding step "<that water> · its tributaries" for all its fish: its fold row in
+   *  the one table says so ("Duck Lake’s rule for its tributaries", flow.ts `downLine`). Absent: none. */
+  readonly from?: string;
   readonly title: string;                   // page v36 rowTitle(row)
   readonly scope: string | null;            // head kicker, null when moved to the share (moveTag)
   readonly head: GroupHeadVM;
@@ -289,6 +292,9 @@ export interface FlowVM {
   readonly result: string | null;
   readonly other: readonly FlowStepVM[]; readonly otherHead: string;
   readonly quiet: readonly FlowStepVM[]; readonly quietHead: string;
+  /** (T892) the waters a deciding step names "<that water> · its tributaries", when they hold for every fish of the row:
+   *  what the Keep tab's table row says (flow.ts `downLine`). Absent: none. */
+  readonly down?: readonly string[];
 }
 /** (T216) "How this was decided" for an angler: which rules applied today, layer by layer, what each did and why. */
 export interface DecidedStoryVM {

@@ -3,6 +3,9 @@
  * today, and why — in plain words. Verbatim, frozen; spread into ALL_WORDS (words.ts) so the no-hand-facts test knows
  * them. No imports: words.ts imports this file.
  */
+/** (T892) a water's possessive: "Twin Lakes’", "Kootenay River’s" */
+const poss = (name: string): string => (/s$/i.test(name) ? `${name}’` : `${name}’s`);
+
 export const DECIDE = Object.freeze({
   INTRO: "Rules stack in layers: the region’s base rules first, then this water’s own rules, then any exceptions. A later layer can change an earlier one.",
   ANSWER: "Today’s answer: ",
@@ -83,8 +86,8 @@ export const DECIDE = Object.freeze({
   // (owner 2026-11-18 ~23:40) a rule another water's row carries down to its tributaries says so, never "this water's"
   K_DOWN: (name: string) => `${name} · its tributaries`,
   // (T892) the same fact on the "What you can keep" table's row: under the fish's name, one line
-  ROW_DOWN: (names: readonly string[]) => names.length === 1 ? `${names[0]}’s rule for its tributaries`
-    : `${names.slice(0, -1).map((n) => `${n}’s`).join(", ")} and ${names[names.length - 1]}’s rules for their tributaries`,
+  ROW_DOWN: (names: readonly string[]) => names.length === 1 ? `${poss(names[0]!)} rule for its tributaries`
+    : `${names.slice(0, -1).map(poss).join(", ")} and ${poss(names[names.length - 1]!)} rules for their tributaries`,
   K_WATER: (name: string) => `${name} · this water’s rule`,
   K_LISTED: (name: string) => `${name} · listed water`,
   K_FEDERAL: "Federal law",

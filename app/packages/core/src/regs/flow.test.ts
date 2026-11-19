@@ -6,7 +6,7 @@
  */
 import { describe, expect, it } from "vitest";
 import type { LadderItem } from "./decided";
-import { downLine, downOf, flowOf, partStep, restateStep, withNotes, withWeek } from "./flow";
+import { downLine, flowOf, partStep, restateStep, withNotes, withWeek } from "./flow";
 import type { RuleIndex, RuleView } from "./inputs";
 import type { TroutRowVM, TroutVM } from "./model";
 import type { FishAnswer } from "../answers.generated";
@@ -157,23 +157,40 @@ describe("troutFlow (T883: a trout row's rail from its whole list and the fish's
 describe("(T892) the table's row says when its answer comes down from another water's row to its tributaries", () => {
   const TRIB = { ...rule("koot", 1, "Kootenay River", "4", "Release every burbot.", 36), via: "trib", baseRank: 0 } as unknown as RuleView;
   const ELK = { ...rule("elk", 1, "Elk River", "4", "Keep 1 bull trout.", 36), via: "trib", baseRank: 0 } as unknown as RuleView;
+  const TWIN = { ...rule("twin", 1, "Twin Lakes", "4", "Keep 2 bull trout.", 36), via: "trib", baseRank: 0 } as unknown as RuleView;
   const R4 = rule("r4", 3, "Region 4", "4", "Keep up to 5 burbot a day.", 34);
   const OWN = rule("own", 0, "Anchor Creek", "4", "Release every burbot.", 36);
-  it("downOf + downLine: the deciding rule's water, the same one the sheet's kicker names; a water's own or region row says nothing", () => {
-    const inherited = [item(TRIB, "governs"), item(R4, "replaced", TRIB)];
-    expect(flowOf(inherited, says, "Anchor Creek", null).steps.filter((s) => s.tone === "won").map((s) => s.kicker))
-      .toEqual(["Kootenay River · its tributaries"]);
-    expect(downLine(downOf(inherited))).toBe("Kootenay River’s rule for its tributaries");
-    expect(downLine(downOf([item(OWN, "governs"), item(R4, "replaced", OWN)]))).toBeNull();
-    expect(downLine(downOf([item(R4, "governs")]))).toBeNull();
+  const down = (f: ReturnType<typeof flowOf>) => downLine(f.down ?? []);
+  it("FlowVM.down + downLine: the water the sheet's deciding kicker names; a water's own or region row says nothing", () => {
+    const f = flowOf([item(TRIB, "governs"), item(R4, "replaced", TRIB)], says, "Anchor Creek", null);
+    expect(f.steps.filter((s) => s.tone === "won").map((s) => s.kicker)).toEqual(["Kootenay River · its tributaries"]);
+    expect(down(f)).toBe("Kootenay River’s rule for its tributaries");
+    expect(down(flowOf([item(OWN, "governs"), item(R4, "replaced", OWN)], says, "Anchor Creek", null))).toBeNull();
+    expect(down(flowOf([item(R4, "governs")], says, "Anchor Creek", null))).toBeNull();
   });
   it("a tributary rule that was replaced, or only a possession rule, decides nothing here: no line", () => {
-    expect(downLine(downOf([item(R4, "governs"), item(TRIB, "replaced", R4)]))).toBeNull();
-    expect(downLine(downOf([item(R4, "governs"), item(TRIB, "possession")]))).toBeNull();
+    expect(down(flowOf([item(R4, "governs"), item(TRIB, "replaced", R4)], says, "Anchor Creek", null))).toBeNull();
+    expect(down(flowOf([item(R4, "governs"), item(TRIB, "possession")], says, "Anchor Creek", null))).toBeNull();
   });
-  it("two waters: both named, once each", () => {
-    expect(downLine(downOf([item(TRIB, "governs"), item(ELK, "narrows"), item(TRIB, "also")])))
+  it("review 3: a tributary rule the rail drops (a region rule with the same words decides) is not named on the row either", () => {
+    const SAME = rule("r4same", 3, "Region 4", "4", "Release every burbot.", 34);
+    const f = flowOf([item(SAME, "governs"), item(TRIB, "governs")], says, "Anchor Creek", null);
+    expect(f.steps.map((s) => s.kicker)).toEqual(["Region 4 · base rule"]);
+    expect(down(f)).toBeNull();
+  });
+  it("review 1: a Bass row whose smallmouth come down from Duck Lake and whose largemouth are the region's: no line", () => {
+    const DUCK = { ...rule("duck", 1, "Duck Lake", "4", "Keep up to 3 smallmouth bass.", 36), via: "trib", baseRank: 0 } as unknown as RuleView;
+    const forFish = (r: RuleView, role: string, spp: string[]): LadderItem => ({ r, role, by: null, spp: new Set(spp) });
+    const half = flowOf([forFish(DUCK, "governs", ["SMB"]), forFish(R4, "governs", ["LMB"])], says, "Cory Creek", null, ["LMB", "SMB"]);
+    expect(half.steps.map((s) => s.kicker)).toContain("Duck Lake · its tributaries");   // the sheet says it, for the smallmouth
+    expect(down(half)).toBeNull();
+    const whole = flowOf([forFish(DUCK, "governs", ["SMB", "LMB"])], says, "Cory Creek", null, ["LMB", "SMB"]);
+    expect(down(whole)).toBe("Duck Lake’s rule for its tributaries");
+  });
+  it("two waters: both named, once each; review 5: a name ending in s takes only ’", () => {
+    expect(down(flowOf([item(TRIB, "governs"), item(ELK, "narrows")], says, "Anchor Creek", null)))
       .toBe("Kootenay River’s and Elk River’s rules for their tributaries");
+    expect(down(flowOf([item(TWIN, "governs")], says, "Twin Creek", null))).toBe("Twin Lakes’ rule for its tributaries");
   });
 });
 

@@ -330,7 +330,13 @@ function FoldRow({ f, palette, images, coach, tags = false }: { f: GlanceFold; p
                               borderTopColor: palette.line, backgroundColor: lit ? palette.tint : "transparent" };
                    }}>
           <Thumb code={f.row.thumb} images={images} palette={palette} />
-          <Named name={f.row.name} tag={tag} style={[TYPE.regsBodySemi, { color: palette.ink }]} palette={palette} grow />
+          {f.row.from ? (
+            // (T892) a quota group from another water's tributary rule: said under its name, in the row's spoken words once
+            <View style={{ flex: 1 }}>
+              <Named name={f.row.name} tag={tag} style={[TYPE.regsBodySemi, { color: palette.ink }]} palette={palette} />
+              <Text testID="row-from" style={[TYPE.meta, { color: palette.sub, marginTop: 2 }]}>{f.row.from}</Text>
+            </View>
+          ) : <Named name={f.row.name} tag={tag} style={[TYPE.regsBodySemi, { color: palette.ink }]} palette={palette} grow />}
           {f.row.issue && <IssueMark palette={palette} />}
           {f.row.value && <Text testID={`st:${f.row.tone}`} style={[TYPE.regsBodyBold, { color: tone }]}>{f.row.value}</Text>}
           <View testID="glance-toggle" style={{ flexDirection: "row", alignItems: "center", justifyContent: "center", minWidth: 84, gap: 4, paddingVertical: 4, paddingHorizontal: 8,

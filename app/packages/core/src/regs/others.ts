@@ -13,8 +13,8 @@
  * prototype buildKeep Other fish (owk, the v33 size hint), thumb.
  */
 import type { CardModel, CardStatus, HydRow } from "./card";
-import { rowItems } from "./decided";
-import { downLine, downOf } from "./flow";
+import { rowDown, type LadderSeams } from "./decided";
+import { downLine } from "./flow";
 import type { Settled } from "./settle";
 import type { FishManifest } from "./fish.generated";
 import { parentRow, rowTitle } from "./grouphead";
@@ -106,14 +106,16 @@ export function backOf(r: HydRow): OtherFishRowVM["back"] {
 }
 
 /** prototype Other fish: one compact row per list row (`listRows`), opening its full row as a sheet; null when there is no list.
- *  (T892) `from`: the row's sheet names a deciding step "<that water> · its tributaries" (the same items, `rowItems`). */
-export function otherFishOf(card: CardModel, inp: RegsInputs, fish: FishManifest, covers: TableCovers, settled: Settled): readonly OtherFishRowVM[] | null {
+ *  (T892) `from`: the row's sheet names a deciding step "<that water> · its tributaries" for all its fish (`rowDown`: the
+ *  sheet's own flow, built with the same `seams`). */
+export function otherFishOf(card: CardModel, inp: RegsInputs, fish: FishManifest, covers: TableCovers, settled: Settled,
+  seams: LadderSeams): readonly OtherFishRowVM[] | null {
   const list = listRows(card, covers);
   if (!list) return null;
   return list.map((ix, i): OtherFishRowVM => {
     const r = card.rows[ix]!, g = r.raw.group;
     const hasSize = g ? SIZE_IN_GROUP.test(JSON.stringify(g.tree ?? g.kinds ?? [])) : sizeInItems(r);
-    const from = downLine(downOf(rowItems(r, card, settled, inp)));
+    const from = downLine(rowDown(r, { card, settled, inp, seams }));
     return {
       thumb: r.members.find((c) => (fish[c]?.length ?? 0) > 0) ?? null,
       name: rowTitle(r, inp), value: shortValue(r.kind, r.daily), tone: r.kind,
