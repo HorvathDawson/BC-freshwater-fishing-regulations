@@ -4,6 +4,7 @@
  * where it goes (`KeepActions`).
  */
 import { createContext, useContext } from "react";
+import { useWindowDimensions } from "react-native";
 import { Text } from "../Text";
 import { WORDS, type Line, type SourceBox, type SheetKey, type Day, type Tab } from "@app/core";
 import { CAPPED_SCALE, TYPE, type TextStyle } from "../type";
@@ -49,10 +50,17 @@ export function TermText({ ids, palette, actions }: { ids: readonly string[]; pa
  * top 4 px on an iPhone, as did every tier line's ("5 a day", "Up to 15": `tier` 21.25, `tierSmall` 18.75). 26 px holds
  * the digits whole (their tops reach 0.677 em, above the 0.66 cap height, plus the 0.27 descent: 24.6 px). A line with no
  * big number, or no lineHeight, keeps its own.
+ *
+ * THE READER'S TEXT SIZE (`fontScale`). The outer line follows it all the way and the platform multiplies the box given
+ * here by it; the number stops at CAPPED_SCALE (2×). So the floor is the number's CAPPED size, divided back by the scale:
+ * the drawn line is max(line × scale, number × min(scale, 2)) — at iOS's largest size (3.1×) the line's own 63 px, not
+ * the 81 px an uncapped 26 px floor would grow to.
  */
-export function lineBox(line: Line, style: TextStyle, num: TextStyle, inlineBig: boolean): number | undefined {
+export function lineBox(line: Line, style: TextStyle, num: TextStyle, inlineBig: boolean, fontScale = 1): number | undefined {
   const big = line.some((r) => r.t === "num" && (r.size !== "inline" || inlineBig));
-  return big && style.lineHeight !== undefined ? Math.max(style.lineHeight, num.fontSize) : style.lineHeight;
+  if (!big || style.lineHeight === undefined) return style.lineHeight;
+  const scale = fontScale > 0 ? fontScale : 1;
+  return Math.max(style.lineHeight, (num.fontSize * Math.min(scale, CAPPED_SCALE)) / scale);
 }
 
 export function LineText({ line, style, color, palette, actions, num = TYPE.numeral, numColor, linkStyle, testID, numberOfLines, inlineBig = false }: {
@@ -62,8 +70,9 @@ export function LineText({ line, style, color, palette, actions, num = TYPE.nume
   /** a kind sentence: its "inline" number is set big too (prototype .kt .ks .kn: --t1 800) */
   inlineBig?: boolean;
 }) {
+  const { fontScale } = useWindowDimensions();
   return (
-    <Text selectable style={[style, { color, lineHeight: lineBox(line, style, num, inlineBig) }]} testID={testID} numberOfLines={numberOfLines}>
+    <Text selectable style={[style, { color, lineHeight: lineBox(line, style, num, inlineBig, fontScale) }]} testID={testID} numberOfLines={numberOfLines}>
       {line.map((r, i) => {
         switch (r.t) {
           case "text": return <Text key={i}>{r.s}</Text>;

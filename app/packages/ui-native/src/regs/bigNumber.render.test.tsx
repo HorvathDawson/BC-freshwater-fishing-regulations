@@ -18,7 +18,7 @@ import { afterEach, describe, expect, it } from "vitest";
 import { cleanup, render } from "@testing-library/react";
 import type { Line, RegsPage, SheetKey, SheetVM } from "@app/core";
 import { LIGHT } from "../theme";
-import { FACE_METRICS, TYPE, type TextStyle } from "../type";
+import { CAPPED_SCALE, FACE_METRICS, TYPE, type TextStyle } from "../type";
 import { KeepTab } from "./KeepTab";
 import { LineText, lineBox, NO_ACTIONS } from "./LineText";
 import { SheetBody } from "./SheetBody";
@@ -121,6 +121,18 @@ describe("each base style a big number is set in", () => {
     expect(lineBox(INLINE, TYPE.regsBodySemi, TYPE.numeral, false)).toBe(TYPE.regsBodySemi.lineHeight);
     expect(lineBox(INLINE, TYPE.regsBodySemi, TYPE.numeral, true)).toBe(TYPE.numeral.fontSize);
     expect(lineBox(LINE, TYPE.lead, TYPE.numeralMid, false)).toBe(TYPE.lead.lineHeight);   // already taller
+  });
+  it("at every text size the drawn line holds the number and is no taller than it or the line's own (iOS's largest, 3.1×, too)", () => {
+    const drawn = (base: TextStyle, s: number) => s * lineBox(LINE, base, TYPE.numeral, false, s)!;   // the platform scales the box
+    for (const [, base] of BASES) {
+      for (const s of [1, 1.35, 1.79, 2, 2.14, 2.64, 3.1, 3.57]) {
+        const number = TYPE.numeral.fontSize * Math.min(s, CAPPED_SCALE);                          // the number stops at 2×
+        expect(drawn(base, s)).toBeGreaterThanOrEqual(need(number));
+        expect(drawn(base, s)).toBeCloseTo(Math.max(s * base.lineHeight!, number), 6);
+      }
+    }
+    // the review's case: regsBodySemi at 3.1× draws its own 62.8 px line, not 26 × 3.1 = 80.6
+    expect(drawn(TYPE.regsBodySemi, 3.1)).toBeCloseTo(62.775, 3);
   });
   it("the near-miss fails: a 26 px number in regsBodySemi's own 20.25 px box (the build the owner saw)", () => {
     expect(short([{ text: "20", size: TYPE.numeral.fontSize, box: TYPE.regsBodySemi.lineHeight }])).toHaveLength(1);
