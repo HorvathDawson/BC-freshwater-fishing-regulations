@@ -6,6 +6,9 @@
  *   - (T814) a `CohoLoader` the same way, and the coho asked of `LoadingState` anywhere but the start screen
  *     (apps/mobile `App.tsx` `BootScreen`) and the applying curtain (`ApplyCurtain.tsx`): owner 2026-11-17, the coho
  *     "will replace the loading circle on the splash page or curtain (it will still be used for all other loading)";
+ *     (T888) and one place the coho is a PICTURE, not a wait (`COHO_PICTURE`): the newer-version popup on opening, owner
+ *     2026-11-18, "it should give a popup with the swimming fish and the new update list" — drawn there directly, hidden
+ *     from a screen reader, never as a loading state;
  *   - (T844) the web's opening, before the app's script has run, not being the coho: the web export's index.html carries
  *     the start screen's coho's frame 0 (tools/web-shell.mjs, chained into both web exports; `pnpm splash` draws it from the
  *     coho sheet) until the app's own coho is in: owner 2026-11-17, "loading on webapp should use the new one too like
@@ -38,6 +41,8 @@ const SPINNER_HOME = new Set(["packages/ui-native/src/LoadingState.tsx", "packag
                               "packages/ui-native/src/CohoLoader.web.tsx", "packages/ui-native/src/CohoLoader.native.tsx"]);
 /** (T814) the only places the coho loader stands in for the circling fish */
 const COHO_HOME = ["apps/mobile/src/App.tsx", "packages/ui-native/src/ApplyCurtain.tsx"];
+/** (T888) the only place the coho is a picture rather than a wait: the newer-version popup (owner 2026-11-18) */
+const COHO_PICTURE = new Set(["packages/ui-native/src/AppUpdatePopup.tsx"]);
 
 describe("one spinner (T257)", () => {
   it("has sources", () => expect(files.length).toBeGreaterThan(50));
@@ -51,7 +56,13 @@ describe("one spinner (T257)", () => {
   });
 
   it("the CohoLoader is drawn only through LoadingState, and asked for only by the start screen and the curtain (T814)", () => {
-    for (const [f, s] of files) if (!SPINNER_HOME.has(f)) expect([f, /<CohoLoader\b/.test(s)]).toEqual([f, false]);
+    for (const [f, s] of files)
+      if (!SPINNER_HOME.has(f) && !COHO_PICTURE.has(f)) expect([f, /<CohoLoader\b/.test(s)]).toEqual([f, false]);
+    // (T888) the picture's place draws it, hidden from a screen reader (it is no wait to announce)
+    for (const f of COHO_PICTURE) {
+      const s = files.find(([g]) => g === f)?.[1] ?? "";
+      expect([f, /aria-hidden[^>]*>\s*<CohoLoader\b/.test(s)]).toEqual([f, true]);
+    }
     const asking = files.filter(([, s]) => /<LoadingState\b[^>]*\bcoho\b/.test(s)).map(([f]) => f).sort();
     expect(asking).toEqual(COHO_HOME);
   });

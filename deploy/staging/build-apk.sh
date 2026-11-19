@@ -159,8 +159,10 @@ for a in "$@"; do
   esac
 done
 # (T538) this version's changelog bullets as JSON (node strips the file's types; the file has no imports): the version
-# file's `notes`, the Play release notes and the email, from one place
-notes_json() { node -e 'import(process.argv[1]).then((m)=>{const e=m.CHANGELOG.find((x)=>x.version===process.argv[2]);process.stdout.write(JSON.stringify(e?e.notes:[]))})' "$1/app/packages/core/src/changelog.ts" "$2"; }
+# file's `notes`, the Play release notes and the email, from one place. (T888) Android's own (core `notesOn`: a note the
+# changelog tags `only` for the iPhone is left out): the app shows the file's list as it is, since a newer version is
+# never in its bundled changelog to filter by. build-ios-testflight.sh writes the iPhone's into app/ios/appstore.json.
+notes_json() { node -e 'import(process.argv[1]).then((m)=>{const e=m.CHANGELOG.find((x)=>x.version===process.argv[2]);process.stdout.write(JSON.stringify(e?m.notesOn(e,"android"):[]))})' "$1/app/packages/core/src/changelog.ts" "$2"; }
 WR="npx --prefix app wrangler"
 
 # (T538) --publish-only: redo only play.json + the email for the Play build already uploaded

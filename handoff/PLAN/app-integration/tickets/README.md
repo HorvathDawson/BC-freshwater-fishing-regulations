@@ -304,6 +304,7 @@ reads both files; a ticket closed here moves there once its lane is finished wit
 | T878 | Sunrise/sunset moves to a small line under the date; the empty place slot collapses (owner) | OPEN | app chat | owner 2026-11-18 ~20:49; built, lands after the owner sees the pictures |
 | T881 | Conditions: the gauge map only where it draws a gauge (none on Babine Lake — Main Body); one map size, the larger, fitted, no Fit / Larger map (owner) | OPEN — built; lands after the owner sees the pictures | lane app/t881-gauge-map | owner 2026-11-18 ~21:05 |
 | T887 | Salmon map, light mode: keep is a bright green, clearly apart from release, closed and check (owner) | OPEN | app chat | owner 2026-11-18 ~22:33 |
+| T888 | A newer app version: one popup on opening (the swimming coho, "Version X.Y.Z is out", what's new, Update / Not now), then the bell; Android and iOS (owner) | IN PROGRESS | app chat, lane app/t888-update-popup | owner 2026-11-18 ~23:25; lands after the owner sees the pictures |
 
 ## Next after closed testing
 

@@ -15,7 +15,7 @@
  *               just opens the app, which applies the update as it always does; (v1.1) "a new version of the app" opens
  *               the bell on its App update (what's new + Update, T390).
  *   versions    (v1.1) the new-version notice reads the version file OUR server publishes for this build's channel
- *               (core `appVersionFileUrl`: `latest.json` beside the staging APK page, `play.json` for a Play build).
+ *               (core `appVersionFileUrl`: `latest.json` beside the staging APK page; a store build has none).
  *               Never Play's own check: Play's in-app update API needs the app in the foreground.
  */
 import { Linking, Platform } from "react-native";
@@ -44,8 +44,10 @@ const OWN_CHANNEL = appUpdateChannel({ os: Platform.OS, env: process.env.EXPO_PU
 const OWN_VERSION_FILE = appVersionFileUrl(OWN_CHANNEL,
   { apkPage: process.env.EXPO_PUBLIC_DEV_APK_URL || null, dataBase: ENDPOINTS.base });
 /** (owner 2026-11-06) a Play build tells a new version only once Play offers it, and only the foreground check can ask
- *  Play (an Activity), so a Play build has no background new-version notice: Play notifies its own installs. */
-const VERSION_FILE = OWN_CHANNEL === "play" ? null : OWN_VERSION_FILE && ENDPOINTS.channel === "test"
+ *  Play (an Activity), so a Play build has no background new-version notice: Play notifies its own installs. (T888) The
+ *  same for an App Store build: its `appstore.json` is written at the TestFlight upload, before the store has the
+ *  version, and the App Store tells its own installs. */
+const VERSION_FILE = OWN_CHANNEL === "play" || OWN_CHANNEL === "app-store" ? null : OWN_VERSION_FILE && ENDPOINTS.channel === "test"
   ? `${ENDPOINTS.base}/test/app/android/${OWN_VERSION_FILE.split("/").pop()}` : OWN_VERSION_FILE;
 const FETCH = versionedFetch((u, i) => fetch(u, i),
                              versionHeaders(APP_VERSION, { platform: platformLine(), ua: true }));
