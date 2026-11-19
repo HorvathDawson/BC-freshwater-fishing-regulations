@@ -1,6 +1,6 @@
 # T869 — the chinook annual limit counts ADULT chinook, and "adult" differs by river
 
-Status: OPEN (main chat; DFO salmon header). Wording (A) picked; after production (owner 20:34).
+Status: IN PROGRESS — built on lane data/t869-t870-salmon (c9dc6ba69); left (Claude): integrate (main chat), then the data release + feeds worker deploy carry it.
 
 Owner 2026-11-18 ~20:22 (via the app chat), verbatim: "For salmon  It is 10 max adult Chinook not over 50cm because some
 rivers adult is defined differently". His screenshot: Coquitlam River, What you can keep, the salmon block's header:
@@ -39,3 +39,18 @@ next data release (fallback).
 - Timing: AFTER production. The two chats got different answers (main chat ~20:30 "After launch", app chat "Yes,
   before prod"); asked again at 20:34, the owner picked "After production". Lands in the feeds worker + the next data
   release after the switch.
+
+## Built (lane data/t869-t870-salmon, c9dc6ba69, 2026-11-19)
+- Pipeline `regs/dfo_salmon/quota.py` `period_says` + worker `quota.ts` `periodSays`: the bucket's annual chinook tier says
+  "10 adult chinook a year from all fresh waters" (DFO's sentence names "all fresh waters"; else "10 adult chinook a
+  year"). Every other period limit (Region 8's monthly "4 chinook over 50 cm") keeps DFO's words — not in the pick.
+- Core `salmon.ts` `adultHereOf`: where the water's adult chinook is another length than the limit's 50 cm (DFO's scoped
+  `adult` sizes, every window; else the region's own), the line ends "(here an adult is over 62 cm, Sep 1–Dec 31)";
+  Vedder / Capilano "(here an adult is over 62 cm)", Skeena (R6) and Bella Coola "(here an adult is over 65 cm)"; R6's
+  Fraser watershed none. A dated scoped length in a region whose own adult differs adds "; over 65 cm the rest of the
+  year". DFO's scoped notes carry no Jul 1 date for the Vedder (the book's p.77 does): the card says DFO's (none).
+- The chinook row's sizes already follow the scoped length per day (`sizeEntry`): pinned.
+- Tests: `pipeline/tests/test_salmon_t869_t870.py`, core `salmonSources.test.ts`, release conformance
+  `conformance/src/regs/salmonAdult.release.test.ts` (every scoped / region adult length over the release under test,
+  never "over 50 cm" there; mutation-checked), `t356_header.json` and the dfo vectors re-cut.
+- Ships: the live feed when the feeds worker is deployed (bucket tiers), the release copy with the next data release.
