@@ -2815,3 +2815,15 @@ More questions (recommended answer first):
   to include gauge map.. Also we should choose one map size maybe larger fit only" -> the app chat (ticket number
   theirs): no gauge map where it shows nothing useful (no gauge drawn, only the water's pin); one map size, the larger
   one, fitted, instead of the Fit / Larger map buttons.
+- 2026-11-18 ~21:11, owner (main chat), Thompson River shot
+  (/Users/dawson.horvath/.claude/uploads/b8ddfca9-44eb-400e-a9bf-bd89b4b0f359/2ef8c8e4-image.png): "Why do we have some
+  check DFO" -> answered: DFO's own "To be determined" (Thompson chinook + sockeye, Kamloops Lake to Gold Pan). Offered
+  a wording change ("To be decided by DFO"); no answer yet. ~21:13: "There are some more check DFO too"; dialog, his
+  words: "We should have had no unmapped stream items???! For lakes the parts should say in words in the salmon section
+  for now? We do try to map them if possible tho" -> T885. Checked: no ACTIVE stream place is unmapped (the 12 stream
+  rows are dormant); the 14 active ones are lake parts.
+- 2026-11-18 ~21:18, owner (main chat), verbatim: "But all of these should not exist / Those 12 should still be mapped
+  even if retired / To be determined I think we could change to actually say to be determined / However they should
+  still show green if any salmon there are open only yellow if closed other then the to be determined" -> T885 (every
+  DFO place mapped, dormant ones too) + the app chat (the "Check DFO" word becomes "To be determined" where DFO printed
+  that; colour: green if any salmon open, the to-be-determined colour only when nothing is open; already the map's order).

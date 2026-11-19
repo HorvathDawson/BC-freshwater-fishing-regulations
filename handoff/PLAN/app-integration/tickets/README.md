@@ -310,6 +310,7 @@ reads both files; a ticket closed here moves there once its lane is finished wit
 | T874 | The walkthrough has only Back and Next (and Skip); Next does what Show me did (owner) | DONE | 53c8399ee, 172636aa2 | app chat; owner 2026-11-18 (T872–T874 approved ~20:53) |
 | T875 | The water Map tab's ▼ / ▲ steps stay put, part to part and water to water, on phone and desktop (owner) | DONE | 1c0911f91, 93efeda60 | app chat; owner 2026-11-18 (T872–T874 approved ~20:53) |
 | T880 | A DFO exception printed without "and tributaries" leaves out that stream only (Bulkley: Two Mile Creek; the Suskwa on the chinook row) (owner) | OPEN | main chat | owner 2026-11-18 ~20:59 |
+| T885 | DFO's lake parts on the map (Babine's 12 creek-mouth circles, Mabel north, Osoyoos north basin); said in words until then (owner) | OPEN | main chat | owner 2026-11-18 ~21:13 |
 
 ## Next after closed testing
 
