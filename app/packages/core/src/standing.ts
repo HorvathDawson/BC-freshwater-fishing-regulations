@@ -43,6 +43,19 @@ const BAND_WORDS: Record<Standing, { band: string; headline: string }> = {
   "no-record":  { band: "No record",         headline: "No record to compare against" },
 };
 
+/** (T908) the band a band word names ("Above normal" -> "above"), or null for a word that is none of the six. */
+export function bandOfWord(word: string): Standing | null {
+  for (const k of Object.keys(BAND_WORDS) as Standing[]) if (BAND_WORDS[k].band === word) return k;
+  return null;
+}
+
+/** (T908) THE GAUGE PAGE'S ONE LINE, "Above normal for Nov 19 · rising": the band word, the day, and (when there is one) the trend word. */
+export const standingNowLine = (band: string, day: string, trend: string | null): string => `${band} for ${day}${trend ? ` · ${trend}` : ""}`;
+
+/** (T908) THE GAUGE PAGE'S ONE SMALL LINE under its headline: the rank, the expected change, the reading's age (each as core said it; none: left out). */
+export const gaugeSummaryLine = (rank: string | null, change: string | null, age: string): string =>
+  [rank ? rank.charAt(0).toUpperCase() + rank.slice(1) : null, change, age].filter((x): x is string => !!x).join(" · ");
+
 /** "Below normal" — the band alone. */
 export const bandWord = (s: Standing): string => BAND_WORDS[s].band;
 

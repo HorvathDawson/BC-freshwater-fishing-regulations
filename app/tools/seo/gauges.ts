@@ -32,6 +32,10 @@ export interface GaugeModel {
   readonly station: string; readonly name: string; readonly path: string; readonly lat: number | null; readonly lon: number | null;
   /** its own water, lakes it gauges, sections it is a good / fair gauge for — by best trust, then name */
   readonly close: readonly WaterLink[];
+  /** (T908) the main waters, the only ones listed open: its own water, lakes it gauges, sections it is a good gauge for */
+  readonly main: readonly WaterLink[];
+  /** (T908) the rest, folded: fair guides, then the weak (rough) ones */
+  readonly more: readonly WaterLink[];
   /** waters it is only a weak (rough) guide for */
   readonly rough: readonly WaterLink[];
 }
@@ -46,7 +50,8 @@ export function gaugeModels(rows: GaugeRows, water: (item: string) => WaterLink 
     if (!links.length) continue;
     links.sort((a, b) => TRUST_RANK[a.t] - TRUST_RANK[b.t] || a.w.name.localeCompare(b.w.name) || a.w.id.localeCompare(b.w.id));
     out.push({ station: g.station, name: g.name, path: gaugePath(g.station, g.name), lat: g.lat, lon: g.lon,
-               close: links.filter((l) => l.t !== "weak").map((l) => l.w), rough: links.filter((l) => l.t === "weak").map((l) => l.w) });
+               close: links.filter((l) => l.t !== "weak").map((l) => l.w),
+               main: links.filter((l) => TRUST_RANK[l.t] <= TRUST_RANK.good).map((l) => l.w), more: links.filter((l) => TRUST_RANK[l.t] > TRUST_RANK.good).map((l) => l.w), rough: links.filter((l) => l.t === "weak").map((l) => l.w) });
   }
   return out.sort((a, b) => a.name.localeCompare(b.name) || a.station.localeCompare(b.station));
 }
@@ -64,12 +69,18 @@ const CORE = join(HERE, "../../packages/core/src");
 export const CORE_INLINE: readonly (readonly [file: string, names: readonly string[]])[] = [
   ["clock.ts", ["BC_PERMANENT_FROM", "BC_TIME_LABEL", "bcOffsetHours"]],
   ["flow.ts", ["MONTHS", "monthAbbr", "WEEKDAY_NAMES", "weekdayAbbr"]],
-  ["day.ts", ["pad2", "HOUR_MS", "bcWall", "fromBcWall", "bcMidnight", "bcFields", "bcDayWords", "bcWeekdayAbbr", "bcStampWords", "bcIsoDayWords"]],
+  // (T908) the Conditions legend's "Normal" band, and where a percentile sits on the colour bar
+  ["gauge-policy.generated.ts", ["PERCENTILE_KNOTS"]],
+  ["flow.ts", ["KNOTS", "standing", "NORMAL_BAND"]],
+  // (T908) the forecast options: the models' dashes and the app's own toggle logic (change.ts)
+  ["conditions.ts", ["REALTIME_ONLY", "FORECAST_MODEL_CONTROL", "forecastModelOption", "FLOW_LEGEND"]],
+  ["day.ts", ["pad2", "HOUR_MS", "bcWall", "fromBcWall", "bcMidnight", "bcFields", "bcDayWords", "bcWeekdayAbbr", "bcStampWords", "bcClockWords", "bcIsoDayWords"]],
   ["chartTicks.ts", ["niceTicks"]],
   ["chartMarks.ts", ["RULE_GAP", "LABEL_GAP", "IMPORTANCE", "MARK_ROWS", "markTextWidth", "meets", "layoutDayMarks"]],
   ["alerts.ts", ["normalRangeOf"]],
-  ["freshness.ts", ["AGO_WORDS", "ageWords", "freshness", "MAY_BE_OLD", "READING_LEAD", "readingAgeParts", "readingAgeWords"]],
-  ["standing.ts", ["figure"]],
+  ["change.ts", ["STEADY_RATIO", "OBSERVED_TREND", "observedTrend", "FORECAST_DASH", "OTHER_MODEL_DASH", "forecastDash", "NO_MODEL_PICK", "pickModel", "realtimeOnly", "forecastDrawn"]],
+  ["freshness.ts", ["AGO_WORDS", "ageWords", "freshness", "MAY_BE_OLD", "READING_LEAD", "readingAgeParts", "readingAgeWords", "readingAgeBrief"]],
+  ["standing.ts", ["figure", "BAND_WORDS", "bandOfWord", "standingNowLine", "gaugeSummaryLine", "side", "daysShort", "daysNear"]],
 ];
 const plain = (ts_: string): string =>
   ts.transpileModule(ts_, { compilerOptions: { target: ts.ScriptTarget.ES2020, module: ts.ModuleKind.ESNext, removeComments: true } }).outputText
@@ -155,15 +166,16 @@ export function gaugeBody(g: GaugeModel, release: string, clientHref: string, as
   const cfg = JSON.stringify(gaugeConfig(g, release)).replace(/</g, "\\u003c");
   return `<div class="gv"><nav class="crumbs"><a href="/">Home</a> › <a href="/gauges">River gauges</a> › ${esc(g.name)}</nav>` +
     `<h1>${esc(g.name)}</h1>` +
-    `<p class="small">Water Survey of Canada gauge ${esc(g.station)} · live river conditions, read each time this page opens.</p>` +
-    `<h2>Now</h2><div id="gauge-now"><p class="small">Reading the latest from the gauge…</p></div>` +
+    `<p class="small">Water Survey of Canada gauge ${esc(g.station)} · read each time this page opens.</p>` +
+    `<div id="gauge-now" class="now-card"><p class="small">Reading the latest from the gauge…</p></div>` +
     `<noscript><p class="warn">The live reading, chart and weather need JavaScript.</p></noscript>` +
-    `<h2>Last 7 days and the forecast</h2><div id="gauge-chart"></div>` +
-    `<h2>Weather at the gauge</h2><div id="gauge-weather"><p class="small">Reading the forecast…</p></div>` +
-    `<h2>Regulations</h2>` +
-    (g.close.length ? `<p>The waters this gauge serves:</p><ul>${g.close.map(line).join("")}</ul>` : "") +
-    (g.rough.length ? `<details><summary>${g.close.length ? "Also a rough guide for" : "A rough guide for"} ${g.rough.length} more ${g.rough.length === 1 ? "water" : "waters"}</summary>` +
-      `<ul class="cols">${g.rough.map(line).join("")}</ul></details>` : "") +
+    `<div id="gauge-chart"></div>` +
+    `<div id="gauge-weather"><p class="small">Reading the forecast…</p></div>` +
+    `<h2>Waters this gauge serves</h2>` +
+    (g.main.length ? `<ul>${g.main.map(line).join("")}</ul>` : "") +
+    // (T908) the fair and weak guides are one fold, never the page's body
+    (g.more.length ? `<details><summary>${g.main.length ? "Also a guide for" : "A rough guide for"} ${g.more.length} more ${g.more.length === 1 ? "water" : "waters"}</summary>` +
+      `<ul class="cols">${g.more.map(line).join("")}</ul></details>` : "") +
     `<p class="small">Waters as of <time datetime="${esc(asOf)}">${esc(asOf)}</time>, from release ${esc(release)}.</p>` +
     `<div class="card"><p>See this gauge with the map, alerts and every other gauge in the app.</p>` +
     // (owner 2026-11-08) the website now; the phone app greyed until its store listing is public (T514)

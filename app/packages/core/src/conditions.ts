@@ -261,6 +261,11 @@ export const FLOW_LEGEND = {
     + "past years",
 } as const;
 
+/** (T398; a const of its own for the gauge page, T908) the legend entry that turns the forecast off */
+export const REALTIME_ONLY = "Real-time only";
+/** the model switches' group name, aloud */
+export const FORECAST_MODEL_CONTROL = "Forecast model";
+
 export const CONDITIONS_WORDS = {
   /** after a forecast run past `STALE_AFTER.forecast` — the Data block's "Likely out of date", in a line */
   runOld: "likely out of date",
@@ -283,7 +288,7 @@ export const CONDITIONS_WORDS = {
   keptAsOf: (fetchedAt: number | null) => (fetchedAt !== null && Number.isFinite(fetchedAt)
     ? `Offline — measured line as of ${localStamp(fetchedAt)}, saved on this phone`
     : "Offline — measured line saved on this phone, age unknown"),
-  controls: { quantity: "Quantity", span: "Span", model: "Forecast model", gauge: "Gauge" },
+  controls: { quantity: "Quantity", span: "Span", model: FORECAST_MODEL_CONTROL, gauge: "Gauge" },
   /** The gauge switcher's kicker, right above the chart it switches (owner 2026-10-21). */
   chartGauge: "CHART THIS GAUGE",
   /** The chart's zoom controls (owner 2026-10-21: "look at data better"). */
@@ -304,7 +309,7 @@ export const CONDITIONS_WORDS = {
          /** (T367) a model's legend entry: tap to draw it */
          model: (label: string, on: boolean) => `${label} forecast${on ? ", drawn. Tap to hide it" : ". Tap to draw it"}`,
          /** (T398) the legend entry that turns the forecast off: the measured line alone */
-         realtime: "Real-time only",
+         realtime: REALTIME_ONLY,
          realtimeLabel: (on: boolean) => (on ? "Real-time only, no forecast drawn" : "Real-time only. Tap to hide the forecast") },
   /** (T367) the gauge card: its title opens the list of gauges */
   card: { pick: (name: string) => `${name}. Choose another gauge`, list: "Gauges behind this estimate" },

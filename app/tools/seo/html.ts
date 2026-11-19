@@ -38,9 +38,18 @@ const T = (theme: "light" | "dark", token: string): string => {
   if (typeof v !== "string") throw new Error(`theme "${theme}" has no colour ${token}`);
   return v;
 };
+/** (T908) the map's flow ramp as a css gradient: the style's own `standing` stops, each colour at its percentile (ui-native theme.ts `flowRampStops`) */
+const rampOf = (th: "light" | "dark"): string => {
+  const mode = (meta as unknown as { colorModes: { stream: { standing: { stops: [number, { token: string }][] } } } }).colorModes.stream.standing;
+  return `linear-gradient(90deg,${mode.stops.filter(([at]) => at >= 0 && at <= 100).map(([at, ref]) => `${T(th, ref.token)} ${at}%`).join(",")})`;
+};
 const vars = (th: "light" | "dark"): string =>
   `--ink:${T(th, "color.ui.ink")};--muted:${T(th, "color.ui.sub")};--line:${T(th, "color.ui.line2")};--accent:${T(th, "color.ui.accent")};` +
-  `--accent-ink:${T(th, "color.ui.on-accent")};--open:${T(th, "color.status.open")};--closed:${T(th, "color.status.closed")};--soft:${T(th, "color.ui.wash")}`;
+  `--accent-ink:${T(th, "color.ui.on-accent")};--open:${T(th, "color.status.open")};--closed:${T(th, "color.status.closed")};--soft:${T(th, "color.ui.wash")};` +
+  // (T908) the gauge page's standing colours: the map's "Flow vs. past years" ramp (layers.source.json `standing`, p0 f1 ... p100 f7), one stop per band
+  `--b-much-below:${T(th, "color.flow.f1")};--b-below:${T(th, "color.flow.f3")};--b-normal:${T(th, "color.flow.f4")};--b-above:${T(th, "color.flow.f5")};--b-much-above:${T(th, "color.flow.f7")};--flow-ramp:${rampOf(th)};` +
+  // (T908) each forecast model's colour (the app's `Palette.forecast`, color.ui.forecast.<model>)
+  `--m-CLEVER:${T(th, "color.ui.forecast.clever")};--m-COFFEE:${T(th, "color.ui.forecast.coffee")};--m-ELF:${T(th, "color.ui.forecast.elf")}`;
 export const SHARE_GROUND = T("light", "color.ui.accent");
 /** (T406) the share card: its size (the size Facebook and X ask for a large-image card) and its face (share.ts loads it) */
 export const SHARE_W = 1200, SHARE_H = 630, SHARE_FONT = "Archivo";
@@ -66,7 +75,17 @@ ul{padding-left:1.1rem}li{margin:.25rem 0}li.sub{list-style:none;margin-left:-1.
 .cols{columns:2 14rem;list-style:none;padding:0}.cols li{break-inside:avoid}
 .card{border:1px solid var(--line);padding:.8rem 1rem;margin:1rem 0}.card>p{margin:0 0 .5rem}.card .app{border-radius:0;margin:0}.opens{display:flex;flex-wrap:wrap;gap:.5rem}.opens .coming,.opens .joins{flex-basis:100%;margin:0}.opens .stores{flex-basis:100%;display:flex;flex-wrap:wrap;gap:.5rem}.opens .stores .app{flex:1 1 11rem;text-align:center}.card h2{margin-top:0}
 .yb svg{display:block;width:100%;height:auto}.yb text{font-size:10px;fill:var(--muted)}.yb .o{fill:var(--open)}.yb .c{fill:var(--closed)}.yb ul{margin:.4rem 0 0}
-.gv .reading{font-size:1.15rem;margin:.2rem 0}.gv .reading b{font-size:1.9rem}.gv .standing{font-weight:600;margin:.1rem 0}
+.gv .reading{font-size:1.1rem;margin:.2rem 0}.gv .reading b{font-size:1.6rem}.gv .standing{font-weight:600;margin:.1rem 0}
+.gv .headrow{display:flex;flex-wrap:wrap;align-items:baseline;justify-content:space-between;gap:.2rem 1rem;margin:.8rem 0 .2rem}.gv .headrow .reading{margin:0}.gv .headrow .reading b{font-size:1.5rem}.gv .meta{margin:.2rem 0 .6rem}
+.gv .nowline{font-size:1.25rem;line-height:1.25;border-left:8px solid var(--band,var(--line));padding:.25rem .7rem;margin:0}
+.gv .b-much-below{--band:var(--b-much-below)}.gv .b-below{--band:var(--b-below)}.gv .b-normal{--band:var(--b-normal)}.gv .b-above{--band:var(--b-above)}.gv .b-much-above{--band:var(--b-much-above)}
+.gv details{margin:.5rem 0}.gv summary{cursor:pointer;font-weight:600}.gv .wxfold,.gv .keyfold,.gv .fdfold{border-top:1px solid var(--line);padding-top:.4rem}.gv .keyfold summary,.gv .fdfold summary{font-weight:400;font-size:.9rem;color:var(--muted)}
+.gv h2{font-size:1.1rem;margin:1.2rem 0 .3rem}
+.gv .ramp{margin:.3rem 0 .6rem}.gv .ramptitle{margin:.2rem 0}.gv .rampbar{display:flex;align-items:center;gap:.4rem;font-size:.8rem;color:var(--muted)}.gv .rampbar span{flex:0 0 2.6rem}.gv .rampbar span:last-child{text-align:left}.gv .rampbar span:first-child{text-align:right}
+.gv .bar{position:relative;flex:1;height:12px;background:var(--flow-ramp);margin-top:6px}.gv .mark{position:absolute;top:-6px;bottom:-4px;width:4px;margin-left:-2px;background:var(--ink);box-shadow:0 0 0 2px var(--soft)}
+.gv .rampnormal{position:relative;height:1.3rem;margin:2px 3rem 0}.gv .rampnormal div{position:absolute;top:0;height:100%;box-sizing:border-box;border:1px solid var(--muted);border-top:0;text-align:center;font-size:.8rem;color:var(--muted);line-height:1.1rem}
+.gv .models{display:flex;flex-wrap:wrap;gap:.4rem;margin:.3rem 0}.gv .chip{font:inherit;font-size:.85rem;border:1px solid var(--line);background:transparent;color:var(--ink);padding:.3rem .55rem;display:inline-flex;align-items:center;gap:.4rem;cursor:pointer}.gv .chip[aria-pressed=true]{border-color:var(--ink);font-weight:600}.gv .chip svg{display:inline-block}.gv .chip line{stroke:var(--muted);stroke-width:3;stroke-linecap:round}
+.gv .chip.m-CLEVER line,.gv .fc.m-CLEVER{stroke:var(--m-CLEVER)}.gv .chip.m-COFFEE line,.gv .fc.m-COFFEE{stroke:var(--m-COFFEE)}.gv .chip.m-ELF line,.gv .fc.m-ELF{stroke:var(--m-ELF)}.gv .fc{stroke-linecap:round;opacity:1}
 .warn{border-left:3px solid var(--accent);padding:.3rem .7rem;background:var(--soft)}
 .gv svg{display:block;max-width:100%;height:auto}.gv .axis{stroke:var(--muted);stroke-width:1}.gv .grid{stroke:var(--line);stroke-width:1}.gv .tick{font-size:13px;fill:var(--muted)}.gv .today{font-size:13px;font-weight:700;fill:var(--ink)}
 .gv .obs{fill:none;stroke:var(--accent);stroke-width:2.5}.gv .area{fill:var(--accent);opacity:.12}.gv .fc{fill:none;stroke:var(--accent);stroke-width:2;stroke-dasharray:7 5;opacity:.75}

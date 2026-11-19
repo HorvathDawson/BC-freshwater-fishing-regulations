@@ -1,6 +1,6 @@
 # T908 — Gauge (forecast) pages: cleaner, answering how the river is now
 
-Status: IN PROGRESS (main chat; lane app/t908-gauge-page; pictures to the owner before it lands; web only).
+Status: IN PROGRESS (main chat; lane app/t908-gauge-page; pictures to the owner before it lands; web only). left (Claude): owner sees pictures, then integrate.
 
 Owner 2026-11-19 ~07:00 (main chat), on https://canifishthis.ca/gauge/08MG013/harrison-river-near-harrison-hot-springs,
 verbatim: "can we clean up the forecast pages? … right now it feels very busy and liek it doesnt provide the info we want?"
@@ -23,3 +23,37 @@ should have clever and coffee forecast options". So: (1) at the top, the Conditi
 bar (Low → High ramp with the Normal band) with this gauge's reading marked on it, same tokens and same component logic
 as the app's key; (2) the CLEVER and COFFEE flow forecasts as options on the chart (where the gauge has them), each in
 its own colour (T895) and toggled as in the app.
+## Built (lane app/t908-gauge-page, 2026-11-19)
+Order as picked: (1) one line first, "Above normal for Nov 19 · steady", in the map's Flow vs. past years colours (tokens
+color.flow.f1/f3/f4/f5/f7, one per band), core's rank under it, today's flow, the reading's age. Words from core, none retyped:
+`bandOfWord`, `standingNowLine` (standing.ts), `observedTrend` / `OBSERVED_TREND` (change.ts, the forecast's 1.25x "little change"
+factor over the last ~day), all written into the page script by `CORE_INLINE`. The forecast's expected change sits under it when
+there is one. Level: the card facts carry one quantity per gauge (the lead one), so only that is shown; nothing for the other.
+(2) one chart, smaller (0.6 x width on a phone, 0.3 on desktop), the key and the day-by-day table folded. The page has no model
+toggle (one forecast model per gauge), so nothing to fold there. (3) "Waters this gauge serves": own / lake / good gauges listed
+open; fair + weak guides are ONE fold ("Also a guide for N more waters"), kept in the HTML (internal links), not dropped.
+(4) "Browse by region" dropped on gauge pages only (site.ts `shellOf(..., regionNav=false)`). Still shown on: water pages' shell,
+region hubs, letter, topic, changes, about, privacy and the /gauges index (not changed). Weather: FOLDED into one line
+("Weather at the gauge: 8C Clear"), not dropped.
+Tests changed with the owner's words as the reason: gaugeClient.test (reading block text, chart sizes), gaugePage.parity.test
+(the standing is the band line + core's rank, not one run), gauges.test (+ no Browse by region, main vs fold). SEO tests 150 pass;
+check:fast green. Pictures: /private/tmp/claude-502/-Users-dawson-horvath-dev-personal-BC-freshwater-fishing-regulations/1db4ea05-d81d-4b07-a925-fc0b9cdbe701/scratchpad/t908-shots/contact-sheet-390.png, /private/tmp/claude-502/-Users-dawson-horvath-dev-personal-BC-freshwater-fishing-regulations/1db4ea05-d81d-4b07-a925-fc0b9cdbe701/scratchpad/t908-shots/contact-sheet-1440.png (before | after; Harrison + Chilliwack at Vedder).
+
+## Round 2 (owner 2026-11-19 10:50, verbatim: "the gauge page picture should have the same color bar at the top. like we have in condition tab. gauge page should have clever and coffee forecast options")
+Built: (1) the Conditions tab's "Flow vs. past years, this date" bar under the now line: the map's ramp (css `--flow-ramp` from the style's
+own standing stops), Low / High, the bracket marked Normal from core's new `NORMAL_BAND` (moved from ui-native Chrome.tsx, which now imports
+it), this gauge's reading marked at its percentile. (2) One switch per model the gauge has (CLEVER, COFFEE, ELF) plus "Real-time only", in
+the app's own logic (`pickModel`, `realtimeOnly`, `forecastDrawn`, `forecastModelOption`, moved to core change.ts / conditions.ts and
+re-exported by @app/ui), each model's own colour token (color.ui.forecast.*) and dash (`FORECAST_DASH`, moved to core); the lead model is on
+as in the app; a gauge with no run says "No flow forecast for this gauge." All written into the page script by `CORE_INLINE`.
+NEEDS THE FEEDS WORKER REDEPLOYED (main chat; never done here): `cardFacts` now also writes `forecasts` (every current run, with
+`horizonDays`) and `percentile` (CARD_REV 3 so every card is redrawn). Until then the page shows the one `forecast` it was given and NO colour bar
+(no percentile, nothing rendered). Pictures use a LOCAL facts file: live 08MH001 / 08MG013 facts plus the two new fields, with COFFEE
+SYNTHESIZED (0.9 x CLEVER, 5 days), because the live feed's cards carry one model. Pictures: /private/tmp/claude-502/-Users-dawson-horvath-dev-personal-BC-freshwater-fishing-regulations/1db4ea05-d81d-4b07-a925-fc0b9cdbe701/scratchpad/t908-shots/r2-contact-sheet-390.png, /private/tmp/claude-502/-Users-dawson-horvath-dev-personal-BC-freshwater-fishing-regulations/1db4ea05-d81d-4b07-a925-fc0b9cdbe701/scratchpad/t908-shots/r2-contact-sheet-1440.png.
+
+## Round 3 (owner 2026-11-19, verbatim: "a lot of text up in this area we coudl do better still")
+Header now three rows: (1) "Below normal for Nov 19 · steady" with the big "24.1 m3/s" on the same row (wraps under on a phone); (2) the colour bar, no
+visible title (its accessible name still says "Flow vs. past years, this date"); (3) ONE small grey line from core (`gaugeSummaryLine`, `readingAgeBrief`,
+standing.ts / freshness.ts): "Lower than 9 days in 10 for the date · rises to 2x (Fri 27 Nov) · read 9:20 a.m. PT" (a copy that is not live adds "last
+checked 3h ago, may be out of date"). Words stay core's, so it says "days in 10" and "(Fri 27 Nov)", not the owner's "years" / "by" (T598 rank wording; `changeShort`).
+"This gauge's own reading" dropped: this page's reading is always the gauge's own. Pinned whole in gaugeClient.test. Pictures: /private/tmp/claude-502/-Users-dawson-horvath-dev-personal-BC-freshwater-fishing-regulations/1db4ea05-d81d-4b07-a925-fc0b9cdbe701/scratchpad/t908-shots/r3-contact-sheet-390-header.png, /private/tmp/claude-502/-Users-dawson-horvath-dev-personal-BC-freshwater-fishing-regulations/1db4ea05-d81d-4b07-a925-fc0b9cdbe701/scratchpad/t908-shots/r3-contact-sheet-1440-header.png (and r3-*-full shots).
