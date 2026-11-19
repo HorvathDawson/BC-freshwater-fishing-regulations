@@ -2877,3 +2877,6 @@ More questions (recommended answer first):
   redirect rule to Dynamic concat("https://canifishthis.ca", http.request.uri.path), 301); then his word "switched" ->
   Claude turns off bc-fishing-cron + main's update-hydro / update-in-season / update-stocking and runs
   deploy/prod/drop-v1.sh (T865). Later: GitHub production option + PROD_R2 secrets for feeds-hydat / feeds-runtiming.
+- 2026-11-18 ~22:33, owner (main chat), verbatim: "Light mode keep salmon vs closed or release has very little
+  contrast. Should be bright green for keep in light I think too?" -> the app chat (ticket theirs): the Salmon map's
+  light-mode colours: keep (open) a bright green like dark mode, clearly apart from closed and release; pictures first.
