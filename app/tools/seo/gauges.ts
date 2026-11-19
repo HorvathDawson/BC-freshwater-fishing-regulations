@@ -22,7 +22,7 @@ import { OPEN_METEO_ATTRIBUTION, weatherPlace } from "../../packages/data/src/sp
 import { crashUrlFor, ORIGINS, REPORT_URLS } from "../../apps/mobile/src/env";
 import { clip, esc, SHARE_FONT, SHARE_GROUND, SHARE_H, SHARE_INK, SHARE_W, type Site } from "./html";
 import type { GaugeConfig } from "./gaugeClient";
-import { appStoreLink, bestServes, gaugePath, getAppBlock, playStoreLink, type GetAppSlot, STALE_AFTER_MS, TRUST_RANK, type GaugeRows, type ServesTrust } from "@app/core";
+import { appStoreLink, WEB_SPOTS_WORDS, bestServes, gaugePath, getAppBlock, playStoreLink, type GetAppSlot, STALE_AFTER_MS, TRUST_RANK, type GaugeRows, type ServesTrust } from "@app/core";
 import { readGaugeRows } from "@app/data/release";
 
 export { readGaugeRows, type GaugeRows };
@@ -110,6 +110,13 @@ export function clientScript(): string {
   return `(function(){"use strict";\nconst STALE_AFTER_MS=${STALE_AFTER_MS};\n${core}\n${js}\ngaugePage(document,Date.now,window.fetch.bind(window)).catch(function(e){console.error(e)});\n})();\n`;
 }
 
+/** (T911) joinClient.ts as one plain, self-hosted script, calling itself on load */
+export function joinScript(): string {
+  const js = plain(readFileSync(join(HERE, "joinClient.ts"), "utf8"));
+  if (/^\s*import\b/m.test(js)) throw new Error("seo: joinClient.ts must not import anything (it ships as one plain script)");
+  return `(function(){"use strict";\n${js}\njoinPopup(document,function(){return window.navigator.clipboard;});\n})();\n`;
+}
+
 /** the production hosts the page names; deploy/staging/site.sh points a staging copy at staging's */
 export const LIVE = {
   data: ORIGINS.production,
@@ -153,14 +160,29 @@ export function gaugeDescription(g: GaugeModel): string {
 export function openInAppControl(play: string | null = playStoreLink(), appStore: string | null = appStoreLink(),
                                  contact: string | null = null): string {
   const blk = getAppBlock(play, appStore, contact, false);
-  const slot = (x: GetAppSlot) => `<a class="app" href="${esc(x.kind === "store" ? x.url : x.ask.mailto!)}">${esc(x.label)}</a>`;
+  const P = WEB_SPOTS_WORDS.join.popup;
+  // (T911) a Join the test link still is the mailto (it works with no script); joinClient.ts opens its card over it
+  const slot = (x: GetAppSlot) => x.kind === "store"
+    ? `<a class="app" href="${esc(x.url)}">${esc(x.label)}</a>`
+    : `<a class="app" href="${esc(x.ask.mailto!)}" data-join="join-${x.store}">${esc(x.label)}</a>`;
+  const card = (x: GetAppSlot) => {
+    if (x.kind !== "join") return "";
+    const id = `join-${x.store}`, addr = x.ask.address;
+    return `<dialog id="${id}" class="join" aria-labelledby="${id}-h" data-copied="${esc(P.copied)}" data-refused="${esc(P.refused)}">` +
+      `<button type="button" class="x" data-close aria-label="${esc(P.close)}">\u2715</button>` +
+      `<h2 id="${id}-h">${esc(x.label)}</h2><p>${esc(P[x.store])}</p>` +
+      `<div class="acts"><a class="app" href="${esc(x.ask.mailto!)}">${esc(P.email)}</a>` +
+      (addr ? `<button type="button" class="app alt" data-copy="${esc(addr)}">${esc(P.copy)}</button>` : "") + `</div>` +
+      `<p class="small" role="status" data-said></p>` + (addr ? `<p class="addr" data-addr hidden>${esc(addr)}</p>` : "") + `</dialog>`;
+  };
   return (blk.coming ? `<p class="small coming">${esc(blk.coming)}</p>` : "") +
     (blk.lead ? `<p class="small joins">${esc(blk.lead)}</p>` : "") +
-    (blk.slots.length ? `<div class="stores">${blk.slots.map(slot).join("")}</div>` : "");
+    (blk.slots.length ? `<div class="stores">${blk.slots.map(slot).join("")}</div>` + blk.slots.map(card).join("") : "");
 }
 
 /** the page body: everything that does not move between feed runs; the live sections are filled by gaugeClient.ts */
-export function gaugeBody(g: GaugeModel, release: string, clientHref: string, asOf: string, contact: string | null = null): string {
+export function gaugeBody(g: GaugeModel, release: string, clientHref: string, asOf: string, contact: string | null = null,
+                          joinHref: string | null = null): string {
   const first = g.close[0] ?? g.rough[0]!;
   const line = (w: WaterLink) => `<li><a href="${esc(w.path)}">${esc(w.name)} fishing regulations</a></li>`;
   const cfg = JSON.stringify(gaugeConfig(g, release)).replace(/</g, "\\u003c");
@@ -181,7 +203,8 @@ export function gaugeBody(g: GaugeModel, release: string, clientHref: string, as
     // (owner 2026-11-08) the website now; the phone app greyed until its store listing is public (T514)
     `<div class="opens"><a class="app" href="${esc(`${first.path}?view=conditions`)}">Open on the website</a>` +
     `${openInAppControl(undefined, undefined, contact)}</div></div></div>` +
-    `<script type="application/json" id="gauge-config">${cfg}</script><script src="${esc(clientHref)}" defer></script>`;
+    `<script type="application/json" id="gauge-config">${cfg}</script><script src="${esc(clientHref)}" defer></script>` +
+    (joinHref ? `<script src="${esc(joinHref)}" defer></script>` : "");
 }
 
 export function gaugesIndexBody(gs: readonly GaugeModel[], asOf: string): string {

@@ -17,7 +17,7 @@ import { assignSlugs, type SlugMap, type Steps } from "./slug";
 import { verifyAgainstApp } from "./verify";
 import { regionYear, yearCardHtml } from "./regionYear";
 import { pageSize, type PageSize } from "./budget";
-import { clientScript, gaugeBody, gaugeDescription, gaugeModels, gaugesIndexBody, gaugeTitle, siteGaugeCardSvg, stationsFile, type GaugeModel, type GaugeRows } from "./gauges";
+import { clientScript, joinScript, gaugeBody, gaugeDescription, gaugeModels, gaugesIndexBody, gaugeTitle, siteGaugeCardSvg, stationsFile, type GaugeModel, type GaugeRows } from "./gauges";
 
 export interface PageRec {
   readonly path: string; readonly kind: "water" | "region" | "letter" | "topic" | "changes" | "about" | "privacy" | "gauge" | "gauges";
@@ -292,12 +292,14 @@ export async function buildSite(o: BuildOpts): Promise<SiteBuild> {
   if (gauges.length) {
     const client = clientScript(), clientHref = `/assets/gauge.${sha(client, 10)}.js`;
     files.set(clientHref.slice(1), client);
+    const join = joinScript(), joinHref = `/assets/join.${sha(join, 10)}.js`;       // (T911) the Join the test card's script
+    files.set(joinHref.slice(1), join);
     const gaugeCrumbs = (g: GaugeModel): [string, string][] => [["Home", "/"], ["River gauges", "/gauges"], [g.name, g.path]];
     for (const g of gauges) {
       const title = gaugeTitle(g), description = gaugeDescription(g);
       unique(titles, title, g.path); unique(descriptions, description, g.path);
       // lastmod moves with what the build wrote (name, waters, place), not with the release id the live half names
-      add("gauge", g.path, shellOf(g.path, title, description, gaugeBody(g, release.id, clientHref, asOf, site.contact), pageLd(site, g.path, title, asOf, gaugeCrumbs(g)),
+      add("gauge", g.path, shellOf(g.path, title, description, gaugeBody(g, release.id, clientHref, asOf, site.contact, joinHref), pageLd(site, g.path, title, asOf, gaugeCrumbs(g)),
           `/gauge/${g.station}/card.png`, false), sha(JSON.stringify(g)));   // (T908, owner 2026-11-19) no "Browse by region": it leads to the hidden site map
     }
     const title = clip(`River gauges in BC: live flow and weather — ${site.name}`, 60);

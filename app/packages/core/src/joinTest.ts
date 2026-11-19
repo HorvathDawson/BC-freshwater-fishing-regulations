@@ -8,13 +8,15 @@ import { WEB_SPOTS_WORDS } from "./spotWords";
 
 export type JoinStore = "android" | "iphone";
 export interface JoinAsk { readonly subject: string; readonly body: string; readonly button: string;
+                           /** (T911) the contact address itself, for the popup's "Copy email"; null where the contact is not an email */
+                           readonly address: string | null;
                            /** an email to the contact address; null where none is set (the app's Report form is the way then) */
                            readonly mailto: string | null }
 
 export function joinTestAsk(store: JoinStore, contact: string | null | undefined): JoinAsk {
   const j = WEB_SPOTS_WORDS.join[store];
   const to = contactVM(contact);
-  return { subject: j.subject, body: j.body, button: j.button,
+  return { subject: j.subject, body: j.body, button: j.button, address: to.kind === "email" ? to.value : null,
            mailto: to.kind === "email" ? mailtoUrl(to.value, { subject: j.subject, body: j.body }) : null };
 }
 

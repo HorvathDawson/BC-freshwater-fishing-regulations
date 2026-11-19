@@ -193,7 +193,7 @@ describe("back, everywhere: one mechanism", () => {
       // (T729) the map's credits card, opened from the © chip (its back is the app's, handed down as MapProps.useBackLayer)
       "packages/map/src/MapCredits.tsx",
       // (T476, T420) the Developer card, in a development or staging build only
-      "packages/ui-native/src/DeveloperModal.tsx", "packages/ui-native/src/Sheet.tsx", "packages/ui-native/src/menu/MenuPage.tsx",
+      "packages/ui-native/src/DeveloperModal.tsx", "packages/ui-native/src/JoinTestCard.tsx", "packages/ui-native/src/Sheet.tsx", "packages/ui-native/src/menu/MenuPage.tsx",
       // (T354) the rule book in the app, full screen
       "packages/ui-native/src/regs/PdfViewer.native.tsx",
       // (T284) a spot photograph, full screen
@@ -239,6 +239,8 @@ describe("back, everywhere: every surface registers a back layer", () => {
       // (T700) a notice opened in the bell's inbox: back steps back to the list
       "packages/ui-native/src/InSeasonInbox.tsx#InSeasonInboxDetail: takes onBack",
       "packages/ui-native/src/InSeasonNotice.tsx#InSeasonNotice: takes onClose",
+      // (T911) the Join the test card on the web's Spots notice: its own Modal, registered (useBackLayer)
+      "packages/ui-native/src/JoinTestCard.tsx#JoinTestCard: a Modal",
       "packages/ui-native/src/LayersSheet.tsx#LayersSheet: takes onClose",
       // (T303) the rail's one-line location notice (why there is no dot): a tap puts it away; not a surface (COVERED)
       "packages/ui-native/src/MapRail.tsx#MapRail: takes dismiss",

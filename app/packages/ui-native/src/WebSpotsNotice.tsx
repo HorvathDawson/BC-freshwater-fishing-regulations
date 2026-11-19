@@ -3,10 +3,12 @@
  * saved in the phone app, they don't show on the website yet, accounts are coming — with a link to the app. The phone
  * app never draws this. Spots a browser saved earlier stay where they are, unshown. Words: `@app/core` WEB_SPOTS_WORDS.
  */
+import { useState } from "react";
 import { Platform, ScrollView, View } from "react-native";
 import { Text } from "./Text";
-import { appStoreLink, getAppBlock, playStoreLink, WEB_SPOTS_WORDS as W } from "@app/core";
+import { appStoreLink, getAppBlock, type JoinStore, playStoreLink, WEB_SPOTS_WORDS as W } from "@app/core";
 import { Button } from "./Button";
+import { JoinTestCard } from "./JoinTestCard";
 import { TYPE } from "./type";
 import { GUTTER, SPACE, type Palette } from "./theme";
 import { linkTo } from "./openLink";
@@ -34,6 +36,8 @@ export function WebSpotsNotice({ palette, onDone, contact = null, onReport }: {
   /** shown where a spot was being added: the way back to the map; absent (the Spots tab): no such button */
   onDone?: () => void;
 }) {
+  // (T911) a Join the test press with an address opens the card (email me / copy email); without one it is the Report form
+  const [joining, setJoining] = useState<JoinStore | null>(null);
   const block = getAppBlock(playStoreLink(), appStoreLink(), contact, onReport !== undefined);
   return (
     <View testID="web-spots-notice" style={{ flex: 1, backgroundColor: palette.card }}>
@@ -56,8 +60,13 @@ export function WebSpotsNotice({ palette, onDone, contact = null, onReport }: {
               ? <Button key={x.store} palette={palette} label={x.label} style={SLOT} testID={x.store === "android" ? "web-spots-play" : "web-spots-app-store"}
                         onPress={linkTo(x.url)} />
               : <Button key={x.store} palette={palette} label={x.label} style={SLOT} testID={`web-spots-join-${x.store}`}
-                        onPress={x.ask.mailto !== null ? linkTo(x.ask.mailto) : () => onReport?.(`${x.ask.subject}\n\n${x.ask.body}`)} />)}
+                        onPress={x.ask.mailto !== null ? () => setJoining(x.store) : () => onReport?.(`${x.ask.subject}\n\n${x.ask.body}`)} />)}
           </View>
+          {joining !== null && (() => {
+            const slot = block.slots.find((x) => x.kind === "join" && x.store === joining);
+            return slot && slot.kind === "join"
+              ? <JoinTestCard store={joining} ask={slot.ask} palette={palette} onClose={() => setJoining(null)} /> : null;
+          })()}
           {onDone && <Button palette={palette} kind="ghost" label={W.back} onPress={onDone} />}
         </View>
        </View>
