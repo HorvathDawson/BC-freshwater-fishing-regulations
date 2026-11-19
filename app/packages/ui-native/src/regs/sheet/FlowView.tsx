@@ -1,7 +1,8 @@
 /**
  * (T883, PROPOSAL) Every fish sheet's "How this was decided" (core flow.ts), trout and other fish alike: a rail of
  * steps — each its kicker (who says it) with its page at the right, the rule's words as one button to the rule's
- * sheet, and what it did — a replaced rule in its place in the sub colour with a hollow dot; then the answer, ticked,
+ * sheet, and what it did — a replaced rule first, in the sub colour with a hollow dot; a restatement a hollow ink ring
+ * with its tag; the deciding steps last; then the answer, ticked,
  * at the rail's end. Under it "Other rules", one line each, and the rules that changed nothing, folded. No logic: every
  * word is the VM's.
  */
@@ -19,9 +20,10 @@ const LINE = { w: 44, h: TYPE.regsBody.lineHeight } as const;
 const RAIL = 18, DOT = 9;
 
 function Says({ s, palette, actions }: { s: FlowStepVM; palette: Palette; actions: KeepActions }) {
-  const words = <LineText line={s.says} style={TYPE.regsBody} color={s.tone === "won" ? palette.ink : palette.sub} palette={palette} actions={actions} />;
+  // a deciding step and a restatement in ink; a replaced or quiet one in the sub colour
+  const words = <LineText line={s.says} style={TYPE.regsBody} color={s.tone === "won" || s.tone === "note" ? palette.ink : palette.sub} palette={palette} actions={actions} />;
   return s.rule
-    ? <RegsPress accessibilityRole="button" accessibilityLabel={[plain(s.says), s.tag].filter(Boolean).join(" · ")} box={LINE}
+    ? <RegsPress accessibilityRole="button" accessibilityLabel={plain(s.says)} box={LINE}
                  onPress={() => actions.onSheet(`rule:${s.rule}`)}>{words}</RegsPress>
     : words;
 }
@@ -63,16 +65,18 @@ function Step({ s, rail, last, palette, actions }: { s: FlowStepVM; rail: boolea
             <View style={{ flex: 1 }}><Says s={s} palette={palette} actions={actions} /></View>
             {s.book.length > 0 && <View style={{ paddingTop: 3, flexShrink: 0 }}><LineText line={s.book} style={TYPE.meta} color={palette.sub} palette={palette} actions={actions} /></View>}
           </View>}
-      {s.tag ? <Text style={[TYPE.metaBold, { color: s.today ? palette.accent : s.tone === "won" ? palette.ink : palette.sub, marginTop: 1 }]}>{s.tag}</Text> : null}
+      {/* (review 7) the tag is read once, here; the press's name is the words alone */}
+      {s.tag ? <Text testID="flow:tag" style={[TYPE.metaBold, { color: s.today ? palette.accent : s.tone === "won" ? palette.ink : palette.sub, marginTop: 1 }]}>{s.tag}</Text> : null}
       {(s.notes ?? []).map((n, i) => <Text key={i} style={[TYPE.meta, { color: palette.ink, marginTop: 2 }]}>{n}</Text>)}
     </View>
   );
-  const hollow = s.tone !== "won";
+  // a filled dot holds; a restatement a hollow ink ring; a replaced or quiet one a hollow faint ring
+  const hollow = s.tone !== "won", ring = s.tone === "note" ? palette.ink : palette.faint;
   return (
     <View testID="flow:step" style={{ flexDirection: "row" }}>
       <View style={{ width: RAIL, alignItems: "center" }}>
         <View style={{ width: DOT, height: DOT, borderRadius: DOT / 2, marginTop: s.repeat ? 7 : 4, borderWidth: 1.5,
-                       borderColor: hollow ? palette.faint : palette.ink, backgroundColor: hollow ? "transparent" : palette.ink }} />
+                       borderColor: hollow ? ring : palette.ink, backgroundColor: hollow ? "transparent" : palette.ink }} />
         {!last && <View style={{ flex: 1, width: 1.5, marginTop: 3, backgroundColor: palette.line2 }} />}
       </View>
       <View style={{ flex: 1, paddingLeft: 8 }}>{body}</View>

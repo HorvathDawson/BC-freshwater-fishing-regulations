@@ -96,6 +96,7 @@ export const DECIDE = Object.freeze({
   T_LIFTED: (who: string) => `Lifted by ${who}`,
   T_REPLACED_ABOVE: "Replaced by a rule above",
   T_SAME: "Says the same",
+  T_RESTATES: (who: string) => `Restates ${who}’s rule`,
   T_MOOT: "Doesn’t matter today",
   T_UNNEEDED: "Not needed here",
   RESULT: "So: ",

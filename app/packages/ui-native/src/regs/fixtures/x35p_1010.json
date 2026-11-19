@@ -1338,64 +1338,16 @@
        "shareOf": null,
        "terms": [],
        "whyHere": null,
-       "words": [
-        {
-         "s": "This lake’s rule: up to",
-         "t": "text"
-        },
-        {
-         "s": " ",
-         "t": "text"
-        },
-        {
-         "s": "5",
-         "size": "big",
-         "t": "num"
-        },
-        {
-         "s": " ",
-         "t": "text"
-        },
-        {
-         "s": "a day per angler",
-         "t": "text"
-        }
-       ]
+       "words": []
       },
       "more": {
        "open": "src:r3",
        "text": "See every regulation line ›"
       },
       "notKept": [],
-      "origin": {
-       "book": [
-        {
-         "box": [
-          {
-           "box": [
-            36,
-            316.32,
-            540,
-            359.04
-           ],
-           "pdf": 56,
-           "size": [
-            576,
-            756
-           ]
-          }
-         ],
-         "pdf": 56,
-         "printed": 50,
-         "t": "book"
-        }
-       ],
-       "howtell": false,
-       "says": [],
-       "tag": null
-      },
+      "origin": null,
       "row": 3,
-      "scope": "This water",
+      "scope": null,
       "title": "Whitefish",
       "tree": [
        {
@@ -1462,7 +1414,7 @@
      },
      "k": "group",
      "more": false,
-     "titled": true
+     "titled": false
     },
     {
      "k": "head",
@@ -1618,64 +1570,16 @@
        "shareOf": null,
        "terms": [],
        "whyHere": null,
-       "words": [
-        {
-         "s": "This lake’s rule: up to",
-         "t": "text"
-        },
-        {
-         "s": " ",
-         "t": "text"
-        },
-        {
-         "s": "4",
-         "size": "big",
-         "t": "num"
-        },
-        {
-         "s": " ",
-         "t": "text"
-        },
-        {
-         "s": "a day per angler",
-         "t": "text"
-        }
-       ]
+       "words": []
       },
       "more": {
        "open": "src:r4",
        "text": "See every regulation line ›"
       },
       "notKept": [],
-      "origin": {
-       "book": [
-        {
-         "box": [
-          {
-           "box": [
-            36,
-            316.32,
-            540,
-            359.04
-           ],
-           "pdf": 56,
-           "size": [
-            576,
-            756
-           ]
-          }
-         ],
-         "pdf": 56,
-         "printed": 50,
-         "t": "book"
-        }
-       ],
-       "howtell": false,
-       "says": [],
-       "tag": null
-      },
+      "origin": null,
       "row": 4,
-      "scope": "This water",
+      "scope": null,
       "title": "Arctic grayling",
       "tree": [
        {
@@ -1742,7 +1646,7 @@
      },
      "k": "group",
      "more": false,
-     "titled": true
+     "titled": false
     },
     {
      "k": "head",
@@ -1933,42 +1837,6 @@
         ],
         "tag": "A cap inside the total",
         "tone": "won"
-       },
-       {
-        "book": [
-         {
-          "bare": true,
-          "box": [
-           {
-            "box": [
-             36,
-             316.32,
-             540,
-             359.04
-            ],
-            "pdf": 56,
-            "size": [
-             576,
-             756
-            ]
-           }
-          ],
-          "pdf": 56,
-          "printed": 50,
-          "t": "book"
-         }
-        ],
-        "kicker": "Bennett Lake · this water’s rule",
-        "repeat": true,
-        "rule": "r6:bennett_lake@6-28::bennett_lake.r8",
-        "says": [
-         {
-          "s": "Only 1 Arctic grayling over 44 cm (17 in) a day; release any between 36 cm (14 in) and 44 cm (17 in).",
-          "t": "text"
-         }
-        ],
-        "tag": "A cap inside the total",
-        "tone": "won"
        }
       ]
      },
@@ -2150,64 +2018,16 @@
        "shareOf": null,
        "terms": [],
        "whyHere": null,
-       "words": [
-        {
-         "s": "This lake’s rule: up to",
-         "t": "text"
-        },
-        {
-         "s": " ",
-         "t": "text"
-        },
-        {
-         "s": "4",
-         "size": "big",
-         "t": "num"
-        },
-        {
-         "s": " ",
-         "t": "text"
-        },
-        {
-         "s": "a day per angler",
-         "t": "text"
-        }
-       ]
+       "words": []
       },
       "more": {
        "open": "src:r6",
        "text": "See every regulation line ›"
       },
       "notKept": [],
-      "origin": {
-       "book": [
-        {
-         "box": [
-          {
-           "box": [
-            36,
-            316.32,
-            540,
-            359.04
-           ],
-           "pdf": 56,
-           "size": [
-            576,
-            756
-           ]
-          }
-         ],
-         "pdf": 56,
-         "printed": 50,
-         "t": "book"
-        }
-       ],
-       "howtell": false,
-       "says": [],
-       "tag": null
-      },
+      "origin": null,
       "row": 6,
-      "scope": "This water",
+      "scope": null,
       "title": "Northern pike",
       "tree": [
        {
@@ -2274,7 +2094,7 @@
      },
      "k": "group",
      "more": false,
-     "titled": true
+     "titled": false
     },
     {
      "k": "head",
@@ -2457,42 +2277,6 @@
         "kicker": "Bennett Lake · this water’s rule",
         "repeat": true,
         "rule": "r6:bennett_lake@6-28::bennett_lake.r10",
-        "says": [
-         {
-          "s": "Only 1 northern pike over 100 cm (39 in) a day; release any between 70 cm (28 in) and 100 cm (39 in).",
-          "t": "text"
-         }
-        ],
-        "tag": "A cap inside the total",
-        "tone": "won"
-       },
-       {
-        "book": [
-         {
-          "bare": true,
-          "box": [
-           {
-            "box": [
-             36,
-             316.32,
-             540,
-             359.04
-            ],
-            "pdf": 56,
-            "size": [
-             576,
-             756
-            ]
-           }
-          ],
-          "pdf": 56,
-          "printed": 50,
-          "t": "book"
-         }
-        ],
-        "kicker": "Bennett Lake · this water’s rule",
-        "repeat": true,
-        "rule": "r6:bennett_lake@6-28::bennett_lake.r12",
         "says": [
          {
           "s": "Only 1 northern pike over 100 cm (39 in) a day; release any between 70 cm (28 in) and 100 cm (39 in).",

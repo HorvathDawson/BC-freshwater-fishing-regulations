@@ -7,8 +7,8 @@
  *
  * Owner rule 2026-10-21: every role is the PIPELINE's (`rows_decided.roles`, gathered by decided.ts rowSources). This
  * file decides nothing: it groups the stored items by the level their rule speaks at (as story.ts does), orders a level's
- * items by role (story.ts orderOf), and words them. The trout sheet's steps are `FishSheet.src`, in Python's order.
- * T883's data spec asks the pipeline for this list whole (`steps[]`), so that both sheets read one stored list.
+ * items by role (story.ts orderOf), and words them. The trout sheet does NOT draw it (review 1): its `FishSheet.src` has
+ * no roles; it keeps its Sources list until the pipeline's `steps[]` (T883 data spec) carry them.
  */
 import { ruleBook } from "./book";
 import type { LadderItem } from "./decided";
@@ -72,8 +72,32 @@ function tagOf(it: LadderItem, water: string): string | null {
 }
 
 /**
+ * The rail's reading order (T883 review 4): the replaced and quiet steps first, then a restatement, then the steps that
+ * decide — so the step just above "So:" is always one that holds. Stable: each group keeps its level order.
+ */
+const ORDER = { lost: 0, quiet: 0, note: 1, won: 2 } as const;
+const ordered = (steps: readonly FlowStepVM[]): FlowStepVM[] => [...steps].sort((a, b) => ORDER[a.tone] - ORDER[b.tone]);
+
+/**
+ * (T883 review 5) Each rule and each sentence drawn once: a repeat of a deciding step's rule or words is dropped, a
+ * deciding one as well as a lost one (the first stays).
+ */
+function unique(steps: readonly FlowStepVM[]): FlowStepVM[] {
+  const wonWords = new Set(steps.filter((s) => s.tone === "won").map((s) => plain(s.says)));
+  const seen = new Set<string>();
+  return steps.filter((s) => {
+    const w = plain(s.says), won = s.tone === "won";
+    if (!won && wonWords.has(w)) return false;          // a lost rule that says what a deciding one says
+    const key = `${won ? "won" : "lost"}|${w}`;
+    if (seen.has(key)) return false;                    // a second rule with the same words
+    seen.add(key);
+    return true;
+  });
+}
+
+/**
  * The flow of one row: `items` its stored rules and roles (rowSources), `says` each one's line (the ladder's words),
- * `answer` the row's result line. A lost or quiet rule whose words repeat a deciding one is not drawn twice.
+ * `water` the sheet's water, `answer` the row's result line.
  */
 export function flowOf(items: readonly LadderItem[], says: (it: LadderItem) => Line, water: string, answer: string | null): FlowVM {
   const step = (it: LadderItem): FlowStepVM => ({
@@ -86,8 +110,8 @@ export function flowOf(items: readonly LadderItem[], says: (it: LadderItem) => L
   const aside = (i: LadderItem): boolean => (i.role === "replaced" || i.role === "lifted") && !!i.by && otherKeys.has(i.by.key);
   const main = items.filter((i) => !OTHER.includes(i.role) && !QUIET.includes(i.role) && !aside(i))
     .sort((a, b) => layerOf(a.r, water) - layerOf(b.r, water) || orderOf(a.role) - orderOf(b.role)).map(step);
-  const wonWords = new Set(main.filter((s) => s.tone === "won").map((s) => plain(s.says)));
-  const steps = once(main.filter((s) => s.tone === "won" || !wonWords.has(plain(s.says))));
+  const steps = once(ordered(unique(main)));
+  const wonWords = new Set(steps.filter((s) => s.tone === "won").map((s) => plain(s.says)));
   const quiet = items.filter((i) => QUIET.includes(i.role) || aside(i)).map(step).filter((s) => !wonWords.has(plain(s.says)));
   const other = items.filter((i) => OTHER.includes(i.role)).map(step);
   return { steps, result: answer ? D.RESULT + answer : null, other, otherHead: D.OTHER, quiet, quietHead: D.QUIET(quiet.length) };
@@ -100,21 +124,30 @@ const once = (steps: readonly FlowStepVM[]): FlowStepVM[] =>
     return i > 0 && steps[i - 1]!.kicker === s.kicker ? { ...x, repeat: true } : x;
   });
 
-/** One rule as a plain step (a weekday part, a restatement, a trout `src` entry): who says it, the words, its page. */
-export const ruleStep = (r: RuleView, says: Line, tag: string | null = null, today = false): FlowStepVM =>
-  ({ kicker: kickerOf(r, r.export.prov.entry_name || ""), says, tag, tone: "won", book: bareBook(r), rule: r.missing ? null : r.key,
-     ...(today ? { today: true as const } : {}) });
+/**
+ * One stored day-part as a step (`water` the sheet's water, review 2): who says it, the words, its page; `day` the
+ * viewed day's tag ("Today", or the weekday) when the part holds on it (review 3: from the viewed day, never stored).
+ */
+export const partStep = (r: RuleView, says: Line, water: string, day: string | null): FlowStepVM =>
+  ({ kicker: kickerOf(r, water), says, tag: day, tone: "won", book: bareBook(r), rule: r.missing ? null : r.key,
+     ...(day ? { today: true as const } : {}) });
+
+/** (review 6) A restatement as its own quiet step: the data's words, tagged with the rule it restates. */
+export const restateStep = (r: RuleView, of: RuleView, says: Line, water: string): FlowStepVM =>
+  ({ kicker: kickerOf(r, water), says, tag: D.T_RESTATES(levelName(of, water)), tone: "note", book: bareBook(r),
+     rule: r.missing ? null : r.key });
 
 /**
  * A weekday row's flow: its stored day-parts and restatements (`week`) stand where the rules they cite stood (the
- * first of them), each part its days and words, today's tagged; the answer is the week's status line.
+ * first of them); the rail is re-read (replaced first, then restatements, then the deciding parts); the answer is the
+ * week's status line.
  */
 export function withWeek(f: FlowVM, week: readonly FlowStepVM[], answer: string | null): FlowVM {
   const keys = new Set(week.map((s) => s.rule).filter((k): k is string => !!k));
   const at = f.steps.findIndex((s) => !!s.rule && keys.has(s.rule));
   const rest = f.steps.filter((s) => !(s.rule && keys.has(s.rule)));
   const i = at < 0 ? rest.length : f.steps.slice(0, at).filter((s) => !(s.rule && keys.has(s.rule))).length;
-  return { ...f, steps: once([...rest.slice(0, i), ...week, ...rest.slice(i)]), result: answer ? D.RESULT + answer : null,
+  return { ...f, steps: once(ordered([...rest.slice(0, i), ...week, ...rest.slice(i)])), result: answer ? D.RESULT + answer : null,
     other: f.other.filter((s) => !(s.rule && keys.has(s.rule))) };
 }
 
@@ -129,7 +162,3 @@ export function withNotes(f: FlowVM, notes: ReadonlyMap<string, readonly string[
   };
   return { ...f, steps: f.steps.map(put), other: f.other.map(put) };
 }
-
-/** A flow with no roles (the trout sheet's `FishSheet.src`): its steps as given, the answer, nothing else. */
-export const plainFlow = (steps: readonly FlowStepVM[], answer: string | null): FlowVM =>
-  ({ steps: once(steps), result: answer ? D.RESULT + answer : null, other: [], otherHead: D.OTHER, quiet: [], quietHead: D.QUIET(0) });

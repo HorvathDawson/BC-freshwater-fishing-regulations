@@ -1330,6 +1330,42 @@
          }
         ],
         "kicker": "Kootenay Lake — Lower West Arm · this water’s rule",
+        "rule": "r4:kootenay_lake_lower_west_arm_for_location_see_map_on_page_34@4-7::kootenay_lake_lower_west_arm.r5",
+        "says": [
+         {
+          "s": "Kokanee from the Lower and Upper West Arms together: no more than 5 a day.",
+          "t": "text"
+         }
+        ],
+        "tag": "Restates Kootenay Lake — Lower West Arm’s rule",
+        "tone": "note"
+       },
+       {
+        "book": [
+         {
+          "bare": true,
+          "box": [
+           {
+            "box": [
+             36,
+             530.4,
+             540,
+             556.8
+            ],
+            "pdf": 39,
+            "size": [
+             576,
+             756
+            ]
+           }
+          ],
+          "pdf": 39,
+          "printed": 37,
+          "t": "book"
+         }
+        ],
+        "kicker": "Kootenay Lake — Lower West Arm · this water’s rule",
+        "repeat": true,
         "rule": "r4:kootenay_lake_lower_west_arm_for_location_see_map_on_page_34@4-7::kootenay_lake_lower_west_arm.r3",
         "says": [
          {
@@ -1384,42 +1420,6 @@
         ],
         "tag": null,
         "tone": "won"
-       },
-       {
-        "book": [
-         {
-          "bare": true,
-          "box": [
-           {
-            "box": [
-             36,
-             530.4,
-             540,
-             556.8
-            ],
-            "pdf": 39,
-            "size": [
-             576,
-             756
-            ]
-           }
-          ],
-          "pdf": 39,
-          "printed": 37,
-          "t": "book"
-         }
-        ],
-        "kicker": "Kootenay Lake — Lower West Arm · this water’s rule",
-        "repeat": true,
-        "rule": "r4:kootenay_lake_lower_west_arm_for_location_see_map_on_page_34@4-7::kootenay_lake_lower_west_arm.r5",
-        "says": [
-         {
-          "s": "Kokanee from the Lower and Upper West Arms together: no more than 5 a day.",
-          "t": "text"
-         }
-        ],
-        "tag": null,
-        "tone": "won"
        }
       ]
      },
@@ -1449,54 +1449,23 @@
        "form": null,
        "lead": null,
        "leadN": null,
-       "multi": [
-        {
-         "open": "multi:r2",
-         "s": "Fishing more than one water today? ›",
-         "t": "link"
-        }
-       ],
+       "multi": null,
        "nolimit": false,
        "ofTotal": false,
        "rootTier": "t1",
        "shareOf": null,
        "terms": [],
        "whyHere": null,
-       "words": [
-        {
-         "s": "15",
-         "size": "big",
-         "t": "num"
-        },
-        {
-         "s": " ",
-         "t": "text"
-        },
-        {
-         "s": "a day per angler across Region 4",
-         "t": "text"
-        }
-       ]
+       "words": []
       },
       "more": {
        "open": "src:r2",
        "text": "See every regulation line ›"
       },
       "notKept": [],
-      "origin": {
-       "book": [
-        {
-         "pdf": 36,
-         "printed": 34,
-         "t": "book"
-        }
-       ],
-       "howtell": false,
-       "says": [],
-       "tag": null
-      },
+      "origin": null,
       "row": 2,
-      "scope": "Region 4-wide",
+      "scope": null,
       "title": "Whitefish",
       "tree": [
        {
@@ -1569,7 +1538,7 @@
      },
      "k": "group",
      "more": false,
-     "titled": true
+     "titled": false
     },
     {
      "k": "head",
@@ -1663,6 +1632,16 @@
      "k": "link",
      "line": [
       {
+       "open": "multi:r2",
+       "s": "Fishing more than one water today? ›",
+       "t": "link"
+      }
+     ]
+    },
+    {
+     "k": "link",
+     "line": [
+      {
        "open": "src:r2",
        "s": "See every regulation line ›",
        "t": "link"
@@ -1690,45 +1669,14 @@
        "shareOf": null,
        "terms": [],
        "whyHere": null,
-       "words": [
-        {
-         "s": "No daily limit on bass",
-         "t": "text"
-        }
-       ]
+       "words": []
       },
       "more": {
        "open": "src:r3",
        "text": "See every regulation line ›"
       },
       "notKept": [],
-      "origin": {
-       "book": [
-        {
-         "box": [
-          {
-           "box": [
-            36,
-            439.68,
-            540,
-            465.12
-           ],
-           "pdf": 39,
-           "size": [
-            576,
-            756
-           ]
-          }
-         ],
-         "pdf": 39,
-         "printed": 37,
-         "t": "book"
-        }
-       ],
-       "howtell": false,
-       "says": [],
-       "tag": null
-      },
+      "origin": null,
       "row": 3,
       "scope": null,
       "title": "Bass",

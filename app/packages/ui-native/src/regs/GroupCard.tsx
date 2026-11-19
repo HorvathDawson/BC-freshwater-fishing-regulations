@@ -214,9 +214,11 @@ export function GroupCard({ g, palette, actions, images, titled = true, ruled = 
    *  (two rules a line apart once the head row of pictures left) */
   ruled?: boolean }) {
   const h = g.head;
+  // (T883) a fish sheet's answer-only card (other.ts answerOnly) has no head left to draw: no empty tinted band
+  const head = titled || !!h.exception || !!h.lead || h.words.length > 0 || !!h.whyHere || !!h.shareOf || !!h.multi;
   return (
     <View testID="keep-group" style={{ paddingHorizontal: GUTTER, paddingBottom: 12, marginTop: ruled ? 12 : 0 }}>
-      <View style={{ marginHorizontal: -GUTTER, paddingHorizontal: GUTTER, paddingVertical: 8, borderTopWidth: ruled ? 1.5 : 0, borderTopColor: palette.ink, backgroundColor: palette.card }}>
+      {head && <View style={{ marginHorizontal: -GUTTER, paddingHorizontal: GUTTER, paddingVertical: 8, borderTopWidth: ruled ? 1.5 : 0, borderTopColor: palette.ink, backgroundColor: palette.card }}>
         {titled && (
           <Text accessibilityRole="header" style={[TYPE.lead, { color: palette.ink }]}>
             {g.title}{g.scope ? <Text testID="kicker:scope" style={[TYPE.kicker, { color: palette.sub }]}>{`  ${g.scope}`}</Text> : null}
@@ -230,7 +232,7 @@ export function GroupCard({ g, palette, actions, images, titled = true, ruled = 
         {h.shareOf && <LineText line={h.shareOf} style={TYPE.metaSemi} num={TYPE.metaBold} numColor={palette.ink} color={palette.sub} palette={palette} actions={actions} />}
         {/* (T481) under the region's total, where it is first shown: how it holds across waters (the row's multi: sheet) */}
         {h.multi && <View testID="multi-link" style={{ minHeight: 32, justifyContent: "center", marginTop: 2 }}><LineText line={h.multi} style={TYPE.metaBold} color={palette.accent} palette={palette} actions={actions} /></View>}
-      </View>
+      </View>}
       {g.origin && (
         <View style={{ paddingTop: 8, paddingBottom: 4 }}>
           {(g.origin.tag || g.origin.says.length > 0) && (

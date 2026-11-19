@@ -267,10 +267,11 @@ export interface LadderVM {                                           // "How th
  *  (none for the rule that sets the answer: the answer line says it), and its printed page ("p.21 ↗"). */
 export interface FlowStepVM {
   readonly kicker: string; readonly says: Line; readonly tag: string | null;
-  readonly tone: "won" | "lost" | "quiet"; readonly book: Line; readonly rule: RuleKey | null;
+  /** won: it holds; lost: replaced or lifted (greyed); quiet: changed nothing (folded); note: a restatement (review 6) */
+  readonly tone: "won" | "lost" | "quiet" | "note"; readonly book: Line; readonly rule: RuleKey | null;
   /** the same kicker as the step before: drawn once (the page moves to the words' line) */
   readonly repeat?: true;
-  /** a weekday part in force today: its tag ("Today") is drawn in the accent, with the word, never colour alone */
+  /** a weekday part in force on the viewed day: its tag ("Today" / the weekday) in the accent, the word never colour alone */
   readonly today?: true;
   /** the data's restates notes under the step (the combined-quota note) */
   readonly notes?: readonly string[];

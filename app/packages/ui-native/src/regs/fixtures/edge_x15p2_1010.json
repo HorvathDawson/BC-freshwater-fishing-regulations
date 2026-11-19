@@ -1760,15 +1760,15 @@
          }
         ],
         "kicker": "Region 2 · base rule",
-        "rule": "z2:daily_quotas::species_quotas.r5",
+        "rule": "z2:daily_quotas::species_quotas.r4",
         "says": [
          {
-          "s": "In streams, release every kokanee.",
+          "s": "Keep up to 5 kokanee a day.",
           "t": "text"
          }
         ],
-        "tag": null,
-        "tone": "won"
+        "tag": "Replaced by Region 2",
+        "tone": "lost"
        },
        {
         "book": [
@@ -1781,15 +1781,15 @@
         ],
         "kicker": "Region 2 · base rule",
         "repeat": true,
-        "rule": "z2:daily_quotas::species_quotas.r4",
+        "rule": "z2:daily_quotas::species_quotas.r5",
         "says": [
          {
-          "s": "Keep up to 5 kokanee a day.",
+          "s": "In streams, release every kokanee.",
           "t": "text"
          }
         ],
-        "tag": "Replaced by Region 2",
-        "tone": "lost"
+        "tag": null,
+        "tone": "won"
        }
       ]
      },
@@ -1819,54 +1819,23 @@
        "form": null,
        "lead": null,
        "leadN": null,
-       "multi": [
-        {
-         "open": "multi:r2",
-         "s": "Fishing more than one water today? ›",
-         "t": "link"
-        }
-       ],
+       "multi": null,
        "nolimit": false,
        "ofTotal": false,
        "rootTier": "t1",
        "shareOf": null,
        "terms": [],
        "whyHere": null,
-       "words": [
-        {
-         "s": "15",
-         "size": "big",
-         "t": "num"
-        },
-        {
-         "s": " ",
-         "t": "text"
-        },
-        {
-         "s": "a day per angler across Region 2",
-         "t": "text"
-        }
-       ]
+       "words": []
       },
       "more": {
        "open": "src:r2",
        "text": "See every regulation line ›"
       },
       "notKept": [],
-      "origin": {
-       "book": [
-        {
-         "pdf": 23,
-         "printed": 21,
-         "t": "book"
-        }
-       ],
-       "howtell": false,
-       "says": [],
-       "tag": null
-      },
+      "origin": null,
       "row": 2,
-      "scope": "Region 2-wide",
+      "scope": null,
       "title": "Whitefish",
       "tree": [
        {
@@ -1939,7 +1908,7 @@
      },
      "k": "group",
      "more": false,
-     "titled": true
+     "titled": false
     },
     {
      "k": "head",
@@ -2033,6 +2002,16 @@
      "k": "link",
      "line": [
       {
+       "open": "multi:r2",
+       "s": "Fishing more than one water today? ›",
+       "t": "link"
+      }
+     ]
+    },
+    {
+     "k": "link",
+     "line": [
+      {
        "open": "src:r2",
        "s": "See every regulation line ›",
        "t": "link"
@@ -2053,54 +2032,23 @@
        "form": null,
        "lead": null,
        "leadN": null,
-       "multi": [
-        {
-         "open": "multi:r3",
-         "s": "Fishing more than one water today? ›",
-         "t": "link"
-        }
-       ],
+       "multi": null,
        "nolimit": false,
        "ofTotal": false,
        "rootTier": "t1",
        "shareOf": null,
        "terms": [],
        "whyHere": null,
-       "words": [
-        {
-         "s": "20",
-         "size": "big",
-         "t": "num"
-        },
-        {
-         "s": " ",
-         "t": "text"
-        },
-        {
-         "s": "a day per angler across Region 2",
-         "t": "text"
-        }
-       ]
+       "words": []
       },
       "more": {
        "open": "src:r3",
        "text": "See every regulation line ›"
       },
       "notKept": [],
-      "origin": {
-       "book": [
-        {
-         "pdf": 23,
-         "printed": 21,
-         "t": "book"
-        }
-       ],
-       "howtell": false,
-       "says": [],
-       "tag": null
-      },
+      "origin": null,
       "row": 3,
-      "scope": "Region 2-wide",
+      "scope": null,
       "title": "Bass",
       "tree": [
        {
@@ -2173,7 +2121,7 @@
      },
      "k": "group",
      "more": false,
-     "titled": true
+     "titled": false
     },
     {
      "k": "head",
@@ -2262,6 +2210,16 @@
       ]
      },
      "k": "flow"
+    },
+    {
+     "k": "link",
+     "line": [
+      {
+       "open": "multi:r3",
+       "s": "Fishing more than one water today? ›",
+       "t": "link"
+      }
+     ]
     },
     {
      "k": "link",

@@ -1480,27 +1480,6 @@
          }
         ],
         "kicker": "Region 4 · base rule",
-        "rule": "z4:daily_quotas::species_quotas.r5",
-        "says": [
-         {
-          "s": "In streams, release every kokanee.",
-          "t": "text"
-         }
-        ],
-        "tag": null,
-        "tone": "won"
-       },
-       {
-        "book": [
-         {
-          "bare": true,
-          "pdf": 36,
-          "printed": 34,
-          "t": "book"
-         }
-        ],
-        "kicker": "Region 4 · base rule",
-        "repeat": true,
         "rule": "z4:spring_stream_closure::spring_stream_closure.r1",
         "says": [
          {
@@ -1552,6 +1531,27 @@
         ],
         "tag": "Replaced by Region 4",
         "tone": "lost"
+       },
+       {
+        "book": [
+         {
+          "bare": true,
+          "pdf": 36,
+          "printed": 34,
+          "t": "book"
+         }
+        ],
+        "kicker": "Region 4 · base rule",
+        "repeat": true,
+        "rule": "z4:daily_quotas::species_quotas.r5",
+        "says": [
+         {
+          "s": "In streams, release every kokanee.",
+          "t": "text"
+         }
+        ],
+        "tag": null,
+        "tone": "won"
        }
       ]
      },
@@ -1581,54 +1581,23 @@
        "form": null,
        "lead": null,
        "leadN": null,
-       "multi": [
-        {
-         "open": "multi:r3",
-         "s": "Fishing more than one water today? ›",
-         "t": "link"
-        }
-       ],
+       "multi": null,
        "nolimit": false,
        "ofTotal": false,
        "rootTier": "t1",
        "shareOf": null,
        "terms": [],
        "whyHere": null,
-       "words": [
-        {
-         "s": "15",
-         "size": "big",
-         "t": "num"
-        },
-        {
-         "s": " ",
-         "t": "text"
-        },
-        {
-         "s": "a day per angler across Region 4",
-         "t": "text"
-        }
-       ]
+       "words": []
       },
       "more": {
        "open": "src:r3",
        "text": "See every regulation line ›"
       },
       "notKept": [],
-      "origin": {
-       "book": [
-        {
-         "pdf": 36,
-         "printed": 34,
-         "t": "book"
-        }
-       ],
-       "howtell": false,
-       "says": [],
-       "tag": null
-      },
+      "origin": null,
       "row": 3,
-      "scope": "Region 4-wide",
+      "scope": null,
       "title": "Whitefish",
       "tree": [
        {
@@ -1701,7 +1670,7 @@
      },
      "k": "group",
      "more": false,
-     "titled": true
+     "titled": false
     },
     {
      "k": "head",
@@ -1777,15 +1746,15 @@
          }
         ],
         "kicker": "Region 4 · base rule",
-        "rule": "z4:daily_quotas::species_quotas.r10",
+        "rule": "z4:spring_stream_closure::spring_stream_closure.r1",
         "says": [
          {
-          "s": "Keep up to 15 whitefish a day, all kinds together.",
+          "s": "In streams, no fishing, Apr 1–Jun 14.",
           "t": "text"
          }
         ],
-        "tag": null,
-        "tone": "won"
+        "tag": "Lifted by Duncan River",
+        "tone": "lost"
        },
        {
         "book": [
@@ -1798,19 +1767,29 @@
         ],
         "kicker": "Region 4 · base rule",
         "repeat": true,
-        "rule": "z4:spring_stream_closure::spring_stream_closure.r1",
+        "rule": "z4:daily_quotas::species_quotas.r10",
         "says": [
          {
-          "s": "In streams, no fishing, Apr 1–Jun 14.",
+          "s": "Keep up to 15 whitefish a day, all kinds together.",
           "t": "text"
          }
         ],
-        "tag": "Lifted by Duncan River",
-        "tone": "lost"
+        "tag": null,
+        "tone": "won"
        }
       ]
      },
      "k": "flow"
+    },
+    {
+     "k": "link",
+     "line": [
+      {
+       "open": "multi:r3",
+       "s": "Fishing more than one water today? ›",
+       "t": "link"
+      }
+     ]
     },
     {
      "k": "link",
@@ -1943,15 +1922,15 @@
          }
         ],
         "kicker": "Region 4 · base rule",
-        "rule": "z4:daily_quotas::species_quotas.r2",
+        "rule": "z4:spring_stream_closure::spring_stream_closure.r1",
         "says": [
          {
-          "s": "Keep up to 2 burbot a day.",
+          "s": "In streams, no fishing, Apr 1–Jun 14.",
           "t": "text"
          }
         ],
-        "tag": null,
-        "tone": "won"
+        "tag": "Lifted by Duncan River",
+        "tone": "lost"
        },
        {
         "book": [
@@ -1964,15 +1943,15 @@
         ],
         "kicker": "Region 4 · base rule",
         "repeat": true,
-        "rule": "z4:spring_stream_closure::spring_stream_closure.r1",
+        "rule": "z4:daily_quotas::species_quotas.r2",
         "says": [
          {
-          "s": "In streams, no fishing, Apr 1–Jun 14.",
+          "s": "Keep up to 2 burbot a day.",
           "t": "text"
          }
         ],
-        "tag": "Lifted by Duncan River",
-        "tone": "lost"
+        "tag": null,
+        "tone": "won"
        }
       ]
      },
@@ -2217,15 +2196,15 @@
          }
         ],
         "kicker": "Region 4 · base rule",
-        "rule": "z4:invasive_species_notice::invasive_species_notice.r1",
+        "rule": "z4:spring_stream_closure::spring_stream_closure.r1",
         "says": [
          {
-          "s": "No fishing for bass, yellow perch, northern pike and walleye: the Kootenay Region, except waters listed in the tables",
+          "s": "In streams, no fishing, Apr 1–Jun 14.",
           "t": "text"
          }
         ],
-        "tag": null,
-        "tone": "won"
+        "tag": "Lifted by Duncan River",
+        "tone": "lost"
        },
        {
         "book": [
@@ -2238,15 +2217,15 @@
         ],
         "kicker": "Region 4 · base rule",
         "repeat": true,
-        "rule": "z4:spring_stream_closure::spring_stream_closure.r1",
+        "rule": "z4:invasive_species_notice::invasive_species_notice.r1",
         "says": [
          {
-          "s": "In streams, no fishing, Apr 1–Jun 14.",
+          "s": "No fishing for bass, yellow perch, northern pike and walleye: the Kootenay Region, except waters listed in the tables",
           "t": "text"
          }
         ],
-        "tag": "Lifted by Duncan River",
-        "tone": "lost"
+        "tag": null,
+        "tone": "won"
        }
       ]
      },
@@ -2403,15 +2382,15 @@
          }
         ],
         "kicker": "Region 4 · base rule",
-        "rule": "z4:daily_quotas::species_quotas.r9",
+        "rule": "z4:spring_stream_closure::spring_stream_closure.r1",
         "says": [
          {
-          "s": "No fishing for white sturgeon.",
+          "s": "In streams, no fishing, Apr 1–Jun 14.",
           "t": "text"
          }
         ],
-        "tag": null,
-        "tone": "won"
+        "tag": "Lifted by Duncan River",
+        "tone": "lost"
        },
        {
         "book": [
@@ -2424,15 +2403,15 @@
         ],
         "kicker": "Region 4 · base rule",
         "repeat": true,
-        "rule": "z4:spring_stream_closure::spring_stream_closure.r1",
+        "rule": "z4:daily_quotas::species_quotas.r9",
         "says": [
          {
-          "s": "In streams, no fishing, Apr 1–Jun 14.",
+          "s": "No fishing for white sturgeon.",
           "t": "text"
          }
         ],
-        "tag": "Lifted by Duncan River",
-        "tone": "lost"
+        "tag": null,
+        "tone": "won"
        }
       ]
      },
@@ -2569,15 +2548,15 @@
          }
         ],
         "kicker": "Region 4 · base rule",
-        "rule": "z4:daily_quotas::species_quotas.r3",
+        "rule": "z4:spring_stream_closure::spring_stream_closure.r1",
         "says": [
          {
-          "s": "Keep up to 25 crayfish a day.",
+          "s": "In streams, no fishing, Apr 1–Jun 14.",
           "t": "text"
          }
         ],
-        "tag": null,
-        "tone": "won"
+        "tag": "Lifted by Duncan River",
+        "tone": "lost"
        },
        {
         "book": [
@@ -2590,15 +2569,15 @@
         ],
         "kicker": "Region 4 · base rule",
         "repeat": true,
-        "rule": "z4:spring_stream_closure::spring_stream_closure.r1",
+        "rule": "z4:daily_quotas::species_quotas.r3",
         "says": [
          {
-          "s": "In streams, no fishing, Apr 1–Jun 14.",
+          "s": "Keep up to 25 crayfish a day.",
           "t": "text"
          }
         ],
-        "tag": "Lifted by Duncan River",
-        "tone": "lost"
+        "tag": null,
+        "tone": "won"
        }
       ]
      },

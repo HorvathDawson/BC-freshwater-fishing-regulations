@@ -19,9 +19,9 @@ import { groupOf, plainRowSeams } from "../keep";
 import { drawnRows, rowTitle, scopeBadge, scopeOf } from "../grouphead";
 import type { RegsInputs } from "../inputs";
 import { plain, text, type Line, type Run } from "../line";
-import type { FlowStepVM, LadderStepVM, LadderVM, SheetBlock, SheetCtx, SheetVM } from "../model";
+import type { FlowStepVM, GroupVM, LadderStepVM, LadderVM, OriginVM, SheetBlock, SheetCtx, SheetVM, TreeNodeVM } from "../model";
 import { ladderOf } from "../decided";
-import { plainFlow, ruleStep, withNotes, withWeek } from "../flow";
+import { partStep, restateStep, withNotes, withWeek } from "../flow";
 import { DECIDE } from "../decidedWords";
 import { listRows, tableCovers } from "../others";
 import { plainRowOf, shortWindowsOf } from "../plainrow";
@@ -75,14 +75,31 @@ function weekLines(row: HydRow, inp: RegsInputs): StepLine[] {
   ];
 }
 
+/** (T883) a group card as a fish sheet's answer: the head's own facts kept (an exception to the regional quota, why it
+ *  holds here, the share it is of), its number line and multi-water link dropped (the rail and the links say them); a
+ *  tier line that is only a Rule book link is dropped (the rail carries the page). Kinds, sizes, pictures, examples stay. */
+function answerOnly(g: GroupVM): GroupVM {
+  const onlyBook = (l: Line) => l.every((r) => r.t === "book" || (r.t === "text" && !r.s.trim()));
+  // an origin line keeps its words and How to tell; its Rule book page is the rail's, and with nothing else it goes
+  const org = (o: OriginVM | null): OriginVM | null => (!o ? null : !plain(o.says) && !o.howtell ? null : { ...o, book: [] });
+  const tier = (n: TreeNodeVM): TreeNodeVM =>
+    (n.t === "tier" ? { ...n, line: n.folded || onlyBook(n.line) ? [] : n.line, origin: org(n.origin), children: n.children.map(tier) } : n);
+  return { ...g, scope: null, head: { ...g.head, lead: null, leadN: null, words: [], ofTotal: false, multi: null },
+    origin: org(g.origin), tree: g.tree ? g.tree.map(tier) : null };
+}
+
 /** (T883) a weekday row's flow steps: the stored day-parts (each its days and words, today's tagged) and then the row's
  *  restatements (the combined-quota note), each a step of the rule it cites. A part with no rule is not a step. */
-function weekSteps(row: HydRow, inp: RegsInputs): FlowStepVM[] {
-  const w = row.raw.week!;
+function weekSteps(row: HydRow, inp: RegsInputs, page: SheetCtx["page"]): FlowStepVM[] {
+  const w = row.raw.week!, water = inp.item?.name || inp.place?.name || "";
+  // (review 3) the part that holds on the VIEWED day, from its weekdays (the stored `today` is the build's day); its tag
+  // says "Today" when the viewed day is today, else that weekday
+  const day = page.today ? WORDS.TODAY : WD3[WEEKDAYS.indexOf(page.weekday)] ?? null;
   return [
     ...(w.parts ?? []).filter((p) => p.says && p.rules?.[0] != null).map((p) =>
-      ruleStep(inp.rules.get(p.rules![0]!), [text(DECIDE.W_DAYS(p.days)), text(cap(p.says))], p.today ? WORDS.TODAY : null, !!p.today)),
-    ...(row.raw.restates ?? []).map((x) => ruleStep(inp.rules.get(x.r), [text(x.says)])),
+      partStep(inp.rules.get(p.rules![0]!), [text(DECIDE.W_DAYS(p.days)), text(cap(p.says))], water,
+        p.weekdays.includes(page.weekday) ? day : null)),
+    ...(row.raw.restates ?? []).map((x) => restateStep(inp.rules.get(x.r), inp.rules.get(x.of), [text(x.says)], water)),
   ];
 }
 
@@ -120,9 +137,16 @@ export function otherSheet(ctx: SheetCtx, key: SheetKey, i: number): SheetVM | n
     const shown = picturedIn(group), head = pics.filter((p) => !shown.has(p.code));
     if (head.length) blocks.push({ k: "pictures", pics: head });
     // (T883) the group's "How this was decided": the same flow as every fish sheet, then the card's link last
-    const flow = withNotes(ladderOf(row, { card, settled: env.settled, inp, seams, flow: true }).flow ?? plainFlow([], null), restateNotes(row, inp));
-    blocks.push({ k: "group", group, titled: !!group.scope, ...(flow.steps.length ? { more: false as const } : {}) });
-    if (flow.steps.length) blocks.push({ k: "head", text: WORDS.DECIDED }, { k: "flow", flow }, { k: "link", line: [{ t: "link", s: group.more.text, open: group.more.open }] });
+    const lf = ladderOf(row, { card, settled: env.settled, inp, seams, flow: true }).flow;
+    const flow = lf ? withNotes(lf, restateNotes(row, inp)) : null;
+    if (!flow?.steps.length) { blocks.push({ k: "group", group, titled: !!group.scope }); return { key, title, sub: null, blocks }; }
+    // (T883, owner 2026-11-18 ~23:25 "The white fish repeats a lot at the top … kokanee is better") the card says the
+    // answer once — its kinds, sizes and pictures — and the rail says the rest: no head (title, "15 a day per angler
+    // across Region 2"), no tier line that is only a Rule book link; "Fishing more than one water today? ›" goes last
+    blocks.push({ k: "group", group: answerOnly(group), titled: false, more: false },
+      { k: "head", text: WORDS.DECIDED }, { k: "flow", flow });
+    if (group.head.multi) blocks.push({ k: "link", line: group.head.multi });
+    blocks.push({ k: "link", line: [{ t: "link", s: group.more.text, open: group.more.open }] });
     return { key, title, sub: null, blocks };
   }
   if (pics.length) blocks.push({ k: "pictures", pics });
@@ -151,7 +175,7 @@ export function otherSheet(ctx: SheetCtx, key: SheetKey, i: number): SheetVM | n
 
   // (T883) the one "How this was decided" every fish sheet draws; a weekday row's day-parts stand in its flow
   if (vm.ladder.flow) {
-    const wk = week && (week.parts ?? []).some((p) => p.says) ? weekSteps(row, inp) : null;
+    const wk = week && (week.parts ?? []).some((p) => p.says) ? weekSteps(row, inp, ctx.page) : null;
     const flow = wk ? withWeek(vm.ladder.flow, wk, week!.status ?? plain(value)) : withNotes(vm.ladder.flow, restateNotes(row, inp));
     blocks.push({ k: "head", text: vm.ladder.label }, { k: "flow", flow });
     blocks.push({ k: "link", line: [{ t: "link", s: vm.more.text, open: vm.more.open }] });

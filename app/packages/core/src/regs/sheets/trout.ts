@@ -20,12 +20,11 @@ import { FISH, FISH_TIPS, type FishManifest } from "../fish.generated";
 import { reportFailure } from "../../failure";
 import type { RuleIndex, RuleView } from "../inputs";
 import { text, type Run } from "../line";
-import type { FlowVM, SheetBlock, SheetVM, SourceRowVM, TroutBoxVM, TroutRowVM, TroutVM } from "../model";
-import { plainFlow, ruleStep } from "../flow";
+import type { SheetBlock, SheetVM, SourceRowVM, TroutBoxVM, TroutRowVM, TroutVM } from "../model";
 import { clean } from "../names";
 import { imageBlocks } from "./fish";
 import type { SheetKey } from "../sheetKey";
-import { TROUT_NAV, TROUT_SHEET, WORDS } from "../words";
+import { TROUT_NAV, TROUT_SHEET } from "../words";
 
 /** The key of the table's every-rule sheet. */
 export const TROUT_SOURCES_KEY = "src:trout" as const satisfies SheetKey;
@@ -63,8 +62,6 @@ export function troutFishSheet(key: SheetKey, t: TroutVM, rowKey: string, rules:
   blocks.push({ k: "head", text: TROUT_SHEET.HERE });
   for (const l of s.here) blocks.push(l.bold ? { k: "value", text: [text(l.t)] } : { k: "para", text: [text(l.t)] });
   for (const c of row.coming) blocks.push({ k: "para", text: [text(c)], tone: "small" });
-  // (T883, proposal) How this was decided: this fish's rules as Python gave them, drawn as every fish sheet's flow
-  if (s.src.length) blocks.push({ k: "head", text: WORDS.DECIDED }, { k: "flow", flow: troutFlow(s.src, rules, s.head) });
   // How to tell it (app content)
   blocks.push({ k: "head", text: TROUT_SHEET.TELL });
   const pics = fish[row.fish] ?? [], tips = FISH_TIPS[row.fish] ?? [];
@@ -73,16 +70,10 @@ export function troutFishSheet(key: SheetKey, t: TroutVM, rowKey: string, rules:
   blocks.push(...imageBlocks(row.fish, pics));
   if (tips.length) blocks.push({ k: "list", items: tips.map((x) => ({ line: [text(x)], strong: null })) });
   if (row.origin !== null || row.label !== null || row.split || box.label !== null) blocks.push(link(TROUT_NAV.HATCH, "hatch"));
-  // the table's every rule
+  // Sources: this fish's rules as Python gave them, then the table's every rule
+  if (s.src.length) blocks.push({ k: "head", text: TROUT_SHEET.SOURCES }, { k: "sources", groups: [{ where: "", rows: sourceRows(s.src, rules) }] });
   blocks.push(link(TROUT_SHEET.ALL_SOURCES, TROUT_SOURCES_KEY));
   return { key, title: row.name, sub: row.label ?? box.label ?? row.origin, blocks };
-}
-
-/** (T883, proposal) A trout fish's flow: one step per rule of `FishSheet.src`, in Python's order (never sorted or cut
- *  here), each its title, who says it and its page. The payload carries no role, so no step says what it did; T883's
- *  data spec asks Python for the steps whole (role and order), as the other fish's rows store them. */
-export function troutFlow(src: readonly number[], rules: Pick<RuleIndex, "get">, head: string): FlowVM {
-  return plainFlow(src.map((ix) => { const r = rules.get(ix); return ruleStep(r, [text(r.facts?.title || clean(r.export.verbatim))]); }), head);
 }
 
 /** The table's every-rule sheet: `TroutTable.src`, first-cited order as Python gave it. `sub`: the water and the day. */

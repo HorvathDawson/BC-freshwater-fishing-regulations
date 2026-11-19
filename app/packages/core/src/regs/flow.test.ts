@@ -6,7 +6,7 @@
  */
 import { describe, expect, it } from "vitest";
 import type { LadderItem } from "./decided";
-import { flowOf, plainFlow, ruleStep, withNotes, withWeek } from "./flow";
+import { flowOf, partStep, restateStep, withNotes, withWeek } from "./flow";
 import type { RuleView } from "./inputs";
 import { plain, text } from "./line";
 
@@ -47,23 +47,19 @@ describe("flowOf", () => {
     const R2_B = rule("r2b", 3, "Region 2", "2", "No bait.", 22), R2_DUP = rule("r2dup", 3, "Region 2", "2", "Release every kokanee.", 21);
     const f = flowOf([item(R2_KO, "governs"), item(R2_B, "also"), item(R2_DUP, "replaced", LAKE)], says, "Cultus Lake", null);
     expect(f.steps.map((s) => [s.kicker, s.repeat ?? false, plain(s.says), s.tag])).toEqual([
-      ["Region 2 · base rule", false, "Keep up to 5 kokanee a day.", null], ["Region 2 · base rule", true, "No bait.", "Also applies"],
-      ["Region 2 · base rule", true, "Release every kokanee.", "Replaced by Cultus Lake"],
+      ["Region 2 · base rule", false, "Release every kokanee.", "Replaced by Cultus Lake"],
+      ["Region 2 · base rule", true, "Keep up to 5 kokanee a day.", null], ["Region 2 · base rule", true, "No bait.", "Also applies"],
     ]);
+    // a lost rule saying what a deciding one says is not drawn
+    const same = flowOf([item(R2_KO, "governs"), item(rule("r2same", 3, "Region 2", "2", "Keep up to 5 kokanee a day.", 21), "replaced", LAKE)], says, "Cultus Lake", null);
+    expect(same.steps.map((s) => s.tone)).toEqual(["won"]);
     expect(f.result).toBeNull();
   });
 
-  it("plainFlow (the trout payload's list): kept in its order, kicker once, the answer whole", () => {
-    const step = (k: string, s: string) => ({ kicker: k, says: [text(s)], tag: null, tone: "won" as const, book: [], rule: null });
-    const f = plainFlow([step("Region 2 · base rule", "A"), step("Region 2 · base rule", "B"), step("Mamquam River · this water’s rule", "C")], "Keep 2");
-    expect(f.steps.map((s) => [s.repeat ?? false, plain(s.says)])).toEqual([[false, "A"], [true, "B"], [false, "C"]]);
-    expect(f.result).toBe("So: Keep 2");
-  });
-
-  it("withWeek: the day-parts stand where the rules they cite stood, today's tagged; the answer is the week's status", () => {
+  it("withWeek: the day-parts stand where the rules they cite stood, the viewed day's tagged; the answer is the week's status", () => {
     const WK = rule("wk", 0, "Cultus Lake", "2", "Keep 5 on weekends.", 23);
     const f = flowOf([item(R2_KO, "replaced", WK), item(WK, "governs"), item(R2_POS, "possession")], says, "Cultus Lake", "Keep 5 a day here.");
-    const parts = [ruleStep(WK, [text("Sat–Sun: "), text("Keep up to 5")], "Today", true), ruleStep(WK, [text("Mon–Fri: "), text("Release every one")])];
+    const parts = [partStep(WK, [text("Sat–Sun: "), text("Keep up to 5")], "Cultus Lake", "Today"), partStep(WK, [text("Mon–Fri: "), text("Release every one")], "Cultus Lake", null)];
     const w = withWeek(f, parts, "Weekends: keep 5 · Weekdays: release");
     expect(w.steps.map((s) => [s.kicker, s.repeat ?? false, plain(s.says), s.tag, s.today ?? false])).toEqual([
       ["Region 2 · base rule", false, "Keep up to 5 kokanee a day.", "Replaced by Cultus Lake", false],
@@ -76,5 +72,31 @@ describe("flowOf", () => {
   it("withNotes: a restates note under the first step of the rule it restates, once", () => {
     const f = withNotes(flowOf([item(LAKE, "governs")], says, "Cultus Lake", null), new Map([["lake", ["Counts toward the 5 for both arms."]]]));
     expect(f.steps.map((s) => s.notes)).toEqual([["Counts toward the 5 for both arms."]]);
+  });
+
+  // ── the independent review of c38c96e35, one test per defect ──
+  const UPPER = rule("upper", 0, "Kootenay Lake — Upper West Arm", "4", "No more than 5 from both arms.", 37);
+  const LOWER = rule("lower", 0, "Kootenay Lake — Lower West Arm", "4", "Keep up to 5.", 37);
+  it("review 2: a step is named against the SHEET's water — another water's own rule is a listed water, never 'this water'", () => {
+    expect(partStep(UPPER, [text("x")], "Kootenay Lake — Lower West Arm", null).kicker).toBe("Kootenay Lake — Upper West Arm · listed water");
+    expect(restateStep(UPPER, LOWER, [text("x")], "Kootenay Lake — Lower West Arm").kicker).toBe("Kootenay Lake — Upper West Arm · listed water");
+    expect(partStep(LOWER, [text("x")], "Kootenay Lake — Lower West Arm", null).kicker).toBe("Kootenay Lake — Lower West Arm · this water’s rule");
+  });
+  it("review 4: within one level the replaced rule reads first and the deciding one last, just above the answer", () => {
+    const OLD = rule("old", 0, "Cultus Lake", "2", "Keep up to 2 kokanee.", 23);
+    const f = flowOf([item(LAKE, "governs"), item(OLD, "replaced", LAKE)], says, "Cultus Lake", "Release every one here.");
+    expect(f.steps.map((s) => [plain(s.says), s.tone])).toEqual([["Keep up to 2 kokanee.", "lost"], ["Release every kokanee.", "won"]]);
+  });
+  it("review 5: two deciding rules with the same words are drawn once", () => {
+    const TWIN = rule("twin", 3, "Region 2", "2", "Keep up to 5 kokanee a day.", 21);
+    const f = flowOf([item(R2_KO, "governs"), item(TWIN, "governs")], says, "Cultus Lake", null);
+    expect(f.steps.map((s) => plain(s.says))).toEqual(["Keep up to 5 kokanee a day."]);
+  });
+  it("review 6: a restatement is its own quiet step, tagged with the rule it restates, never a deciding dot", () => {
+    const s = restateStep(UPPER, LOWER, [text("No more than 5 from both arms.")], "Kootenay Lake — Lower West Arm");
+    expect([s.tone, s.tag]).toEqual(["note", "Restates Kootenay Lake — Lower West Arm’s rule"]);
+    const w = withWeek(flowOf([item(LOWER, "governs")], says, "Kootenay Lake — Lower West Arm", null),
+      [partStep(LOWER, [text("Sat–Sun: Keep up to 5")], "Kootenay Lake — Lower West Arm", null), s], null);
+    expect(w.steps.map((x) => x.tone)).toEqual(["note", "won"]);   // the deciding part last, above the answer
   });
 });
