@@ -339,30 +339,38 @@ function rgb(hex: string): string {
   return `rgb(${r}, ${g}, ${b})`;
 }
 
-describe("(T892) a row's tributary line: under the name, the meta face in the sub colour, read once by its row", () => {
+describe("(T907) a row's tributary source: a tag beside the name in the box tag's look, read once by its row", () => {
   const LINE = "Kootenay Lake — Main Body’s rule for its tributaries";
-  /** the first vector's table with Python's line on its first row (the field a T892 release carries) */
-  function withLine(): TroutVM {
+  const TAG = "Kootenay Lake — Main Body’s tributaries";
+  /** the first vector's table with Python's line (T892) and, unless `line only`, its tag (T907) on its first row */
+  function withSource(lineOnly = false): TroutVM {
     const c = CASES[0]!, f = c.frame!, b0 = f.table.boxes[0]!;
-    const frame = { ...f, table: { ...f.table, boxes: [{ ...b0, rows: b0.rows.map((r, i) => (i === 0 ? { ...r, down: LINE } : r)) },
+    const put = { down: LINE, ...(lineOnly ? {} : { tag: TAG }) };
+    const frame = { ...f, table: { ...f.table, boxes: [{ ...b0, rows: b0.rows.map((r, i) => (i === 0 ? { ...r, ...put } : r)) },
       ...f.table.boxes.slice(1)] } } as TroutValue;
     return vmOf({ ...c, frame });
   }
-  it("drawn on its row only, as given, in every palette's sub colour; its row's label says it once", () => {
+  it("drawn on its row only, beside the name, as given, in every palette's accent with an accent outline; its row's label says it once", () => {
     for (const p of [LIGHT, DARK, CVD]) {
-      const t = withLine();
-      mount(t, p);
-      const got = screen.getAllByTestId("keep-down");
-      expect(got.map((e) => e.textContent)).toEqual([LINE]);
-      expect([parseFloat(getComputedStyle(got[0]!).fontSize), getComputedStyle(got[0]!).color]).toEqual([TYPE.meta.fontSize, rgb(p.sub)]);
+      mount(withSource(), p);
+      const got = screen.getAllByTestId("keep-row-tag");
+      expect(got.map((e) => e.textContent)).toEqual([TAG]);
+      const word = within(got[0]!).getByTestId("kicker:tag");
+      expect([parseFloat(getComputedStyle(word).fontSize), getComputedStyle(word).color, getComputedStyle(got[0]!).borderTopColor])
+        .toEqual([TYPE.kicker.fontSize, rgb(p.accent), rgb(p.accent)]);
       const row = screen.getAllByTestId("keep-row")[0]!;
-      expect(row.contains(got[0]!)).toBe(true);
-      expect(row.getAttribute("aria-label")!.split(LINE)).toHaveLength(2);
+      // beside the name: the name's own line holds it
+      expect(within(row).getByTestId("keep-name").parentElement!.contains(got[0]!)).toBe(true);
+      expect(row.getAttribute("aria-label")!.split(TAG)).toHaveLength(2);
+      expect(row.textContent!.includes(LINE)).toBe(false);                                  // the grey line is gone
       cleanup();
     }
   });
-  it("no line on any vector row (the release before T892): nothing drawn", () => {
+  it("a release from T892 to T907 (the line alone) and the vectors (neither): nothing drawn", () => {
+    mount(withSource(true));
+    expect([screen.queryAllByTestId("keep-row-tag").length, document.body.textContent!.includes(LINE)]).toEqual([0, false]);
+    cleanup();
     mount(vmOf(CASES[0]!));
-    expect(screen.queryAllByTestId("keep-down")).toEqual([]);
+    expect(screen.queryAllByTestId("keep-row-tag")).toEqual([]);
   });
 });

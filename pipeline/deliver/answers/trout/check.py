@@ -1363,14 +1363,18 @@ def down_problems(c: Cell, T: Table) -> List[str]:
     else hatchery and wild: what its fish sheet's rail checks): each is won, and where its number was lowered
     (`narrow`) each rule stored as narrowing it, only by rules this part reaches by the tributary walk (the reader's
     Part: `via` "trib", not federal, no undrawn part), and the line is `words.row_down` of exactly those rules' waters,
-    in that order. A row WITHOUT a line is not proved here: whether its sheet draws a rail at all is the app's (the
-    whole-release check, `app/tools/release-tributary-lines.test.ts`, proves each such row partial against it)."""
+    in that order; (T907) its tag is `words.row_tag` of the same waters, set exactly where the line is. A row WITHOUT
+    a line is not proved here: whether its sheet draws a rail at all is the app's (the whole-release check,
+    `app/tools/release-tributary-lines.test.ts`, proves each such row partial against it)."""
     probs: List[str] = []
     if not A_DOWN_PROOF:
         return probs
     fish = c.today.get("fish") or {}
     for r in T.rows:
-        text = r.r.get("down")
+        text, tag = r.r.get("down"), r.r.get("tag")
+        if (text is None) != (tag is None):
+            probs.append(f"row {r.key}: a tributary line {text!r} and tag {tag!r} come together")
+            continue
         if text is None:
             continue
         if c.P is None or c.ids is None:
@@ -1395,6 +1399,8 @@ def down_problems(c: Cell, T: Table) -> List[str]:
             probs.append(f"row {r.key}: says {text!r} but {bad}")
         elif not W.is_row_down(text, list(names)):
             probs.append(f"row {r.key}: says {text!r}; its answers are set by {list(names)}'s tributary rules")
+        elif not W.is_row_tag(tag, list(names)):
+            probs.append(f"row {r.key}: tagged {tag!r}; its answers are set by {list(names)}'s tributary rules")
     return probs
 
 

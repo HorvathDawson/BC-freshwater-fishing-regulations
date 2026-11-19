@@ -125,7 +125,7 @@ describe("(T227, owner 2026-10-28) the salmon bar at the top, and the glance row
                     glance={{ salmon: { row: { source: "dfo", thumb: "CO", name: SALMON_WORDS.title, value: "closed", tone: "closed", fold: false }, card: () => <span>x</span> } }} />);
     const plain = screen.getByTestId("glance:salmon");
     expect([plain.querySelector("[role=button]"), plain.querySelector("[data-testid=glance-toggle]"), plain.textContent])
-      .toEqual([null, null, "SalmonDFOclosed"]);   // (T879) its tag: the page has a DFO block
+      .toEqual([null, null, "Salmonclosed"]);   // (T907) no tag on the row: its block head carries it
   });
 });
 
@@ -147,21 +147,41 @@ describe("(T879, owner 2026-11-18 \"Two headers, one table\") both blocks first,
     expect(screen.getAllByTestId("keep-otherfish")).toHaveLength(1);
   });
 
-  it("each row of the one list wears its block's tag: the Salmon row DFO, the B.C. rows B.C.; the blocks hold no rows", () => {
+  it("(T907) the rows of the one list wear NO tag; the two block heads keep theirs (Salmon DFO, Game fish B.C.)", () => {
     render(<KeepTab keep={keepOf(vedder1010)} dateLabel="Oct 10" palette={LIGHT} actions={actions} salmonStrip={STRIP as never} glance={{ salmon }} />);
     expect(within(screen.getByTestId("salmon-block")).queryByTestId("species-rows")).toBeNull();
-    expect(within(screen.getByTestId("glance:salmon")).getByTestId("row-tag:DFO").textContent).toBe("DFO");
-    expect(within(screen.getByTestId("glance:trout")).getByTestId("row-tag:B.C.").textContent).toBe("B.C.");
     const list = screen.getByTestId("keep-otherfish");
-    expect(within(list).getAllByTestId(/^row-tag:/).map((e) => e.textContent).filter((t) => t === "DFO")).toEqual(["DFO"]);
-    expect(within(list).getByText("Kokanee").parentElement!.textContent).toBe("KokaneeB.C.");
+    expect(within(list).queryAllByText(/^(DFO|B\.C\.|DFO \+ rule book|Rule book)$/).length).toBe(0);
+    expect(within(list).getByText("Kokanee").parentElement!.textContent).toBe("Kokanee");
+    expect(["keep-strip-title:tag", "salmon-strip-title:tag"].map((t) => screen.getByTestId(t).textContent)).toEqual(["B.C.", "DFO"]);
     expect(screen.getAllByTestId("glance:salmon")).toHaveLength(1);
   });
 
-  it("the Salmon row's tag is its block's word: a bar some of whose days are the rule book's says so on both", () => {
+  it("(T907) a bar some of whose days are the rule book's says so on its block head only", () => {
     render(<KeepTab keep={keepOf(vedder1010)} dateLabel="Oct 10" palette={LIGHT} actions={actions} salmonStrip={{ ...STRIP, by: "both" } as never} glance={{ salmon }} />);
-    expect([screen.getByTestId("salmon-strip-title:tag").textContent, within(screen.getByTestId("glance:salmon")).getByTestId(/^row-tag:/).textContent])
-      .toEqual(["DFO + rule book", "DFO + rule book"]);
+    expect([screen.getByTestId("salmon-strip-title:tag").textContent, within(screen.getByTestId("glance:salmon")).queryAllByText("DFO + rule book").length])
+      .toEqual(["DFO + rule book", 0]);
+  });
+
+  it("(T907) one value column: every row of the list ends in ONE end slot of one width (›, the folds' arrow, or none)", () => {
+    render(<KeepTab keep={keepOf(vedder1010)} dateLabel="Oct 10" palette={LIGHT} actions={actions} salmonStrip={STRIP as never} glance={{ salmon }} />);
+    const list = screen.getByTestId("keep-otherfish");
+    // the rows' values (the status key under the list also wears st: words, but is no row)
+    const values = within(list).getAllByTestId(/^st:/).filter((v) => v.closest("[role='button']"));
+    expect(values.length).toBeGreaterThan(3);
+    for (const v of values) {
+      // the value's row: the nearest ancestor holding an end slot; its one slot is the row's last thing, 18 px wide
+      let row = v.parentElement!;
+      while (!row.querySelector("[data-testid='row-end']")) row = row.parentElement!;
+      const ends = row.querySelectorAll("[data-testid='row-end']");
+      expect(ends).toHaveLength(1);
+      expect(getComputedStyle(ends[0]!).width).toBe("18px");
+      expect(row.lastElementChild).toBe(ends[0]);
+    }
+    // the trout fold's arrow and an Other fish row's › sit in the same slot
+    const trout = within(screen.getByTestId("glance:trout"));
+    expect(trout.getByTestId("row-end").contains(trout.getByTestId("glance-arrow"))).toBe(true);
+    expect(within(list).getAllByText("›").every((e) => e.parentElement!.getAttribute("data-testid") === "row-end")).toBe(true);
   });
 
   it("a water with only B.C. rules: no salmon block, no tags, the game-fish heading as before, then the one list", () => {
@@ -277,8 +297,8 @@ describe("(T810 O, S; owner about 17:15 \"Salmon + trout folds\") the trout tabl
     tab(withTrout());
     const press = within(screen.getByTestId("glance:trout")).getByRole("button");
     expect([press.getAttribute("aria-label"), press.getAttribute("aria-expanded"), hitArea(press.getAttribute("data-hitslop")!)!.h >= 44])
-      .toEqual(["Trout and char B.C. 2 a day", "false", true]);   // (T879) its tag is a visible word
-    expect(press.textContent).toBe("Trout and charB.C.2 a day");
+      .toEqual(["Trout and char 2 a day", "false", true]);   // (T907) no tag on the row
+    expect(press.textContent).toBe("Trout and char2 a day");
     fireEvent.click(press);
     expect(press.getAttribute("aria-expanded")).toBe("true");
     expect(within(screen.getByTestId("glance-body:trout")).getByTestId("keep-trout")).toBeTruthy();
@@ -287,18 +307,19 @@ describe("(T810 O, S; owner about 17:15 \"Salmon + trout folds\") the trout tabl
     // a fold's date (the Elk in winter) is a visible word, so in the name too
     tab(withTrout("elk-nov15"));
     const elk = within(screen.getByTestId("glance:trout")).getByRole("button");
-    expect(elk.getAttribute("aria-label")).toBe("Trout and char B.C. Release until Mar 31, then closed to all fishing");
+    expect(elk.getAttribute("aria-label")).toBe("Trout and char Release until Mar 31, then closed to all fishing");
     expect(within(elk).getByTestId("glance-date").textContent).toBe("until Mar 31, then closed to all fishing");
     const s = within(screen.getByTestId("glance:salmon")).getByRole("button");
-    expect([s.getAttribute("aria-label"), s.getAttribute("aria-expanded")]).toEqual(["Salmon DFO closed", "false"]);
+    expect([s.getAttribute("aria-label"), s.getAttribute("aria-expanded")]).toEqual(["Salmon closed", "false"]);   // (T907) no tag on the row
   });
 
   it("(2× text) the value goes under the name, the arrow stays at the end", () => {
     vi.spyOn(PixelRatio, "getFontScale").mockReturnValue(2);
     tab(withTrout());
     const press = within(screen.getByTestId("glance:trout")).getByRole("button");
-    expect(within(press).getByTestId("glance-value").parentElement!.textContent).toBe("Trout and charB.C.2 a day");   // the name's column
-    expect(press.lastElementChild!.getAttribute("data-testid")).toBe("glance-arrow");
+    expect(within(press).getByTestId("glance-value").parentElement!.textContent).toBe("Trout and char2 a day");   // the name's column
+    expect(press.lastElementChild!.getAttribute("data-testid")).toBe("row-end");          // (T907) the one end slot …
+    expect(within(press.lastElementChild as HTMLElement).getByTestId("glance-arrow")).toBeTruthy();   // … holding the arrow
   });
 
   it("(S, no dev switch) a page with no table: the salmon fold still ends in the arrow; the Other fish rows are drawn as before", () => {
@@ -332,7 +353,7 @@ describe("(T892, owner 2026-11-19 \"The table should say if it came from tributa
     render(<KeepTab keep={k} dateLabel="Oct 10" palette={LIGHT} actions={actions} glance={{ salmon }} />);
     expect(screen.getAllByTestId("row-from").map((e) => e.textContent)).toEqual([LINE]);
     const press = screen.getByText("Kokanee").closest("[role=button]")!;
-    expect(press.textContent).toBe(`KokaneeB.C.${LINE}${keep.otherFish![0]!.value}›`);
+    expect(press.textContent).toBe(`Kokanee${LINE}${keep.otherFish![0]!.value}›`);
     expect(count(press.textContent!, LINE)).toBe(1);
     expect(screen.getByText("Whitefish").closest("[role=button]")!.querySelector("[data-testid=row-from]")).toBeNull();
   });
@@ -342,7 +363,7 @@ describe("(T892, owner 2026-11-19 \"The table should say if it came from tributa
     const fold = within(screen.getByTestId("glance:trout"));
     expect(fold.getByTestId("row-from").textContent).toBe(LINE);
     const name = fold.getByRole("button").getAttribute("aria-label")!;
-    expect([name.startsWith(`Trout and char B.C. ${LINE} `), count(name, LINE)]).toEqual([true, 1]);
+    expect([name.startsWith(`Trout and char ${LINE} `), count(name, LINE)]).toEqual([true, 1]);
     // the table under it gets no app words (T810): its rows say nothing of it
     fireEvent.click(fold.getByRole("button"));
     expect(within(screen.getByTestId("keep-trout")).queryByText(LINE)).toBeNull();
@@ -355,7 +376,7 @@ describe("(T892, owner 2026-11-19 \"The table should say if it came from tributa
                     actions={actions} glance={{ salmon }} />);
     const fold = within(screen.getByTestId("glance:group:0"));
     expect(fold.getByTestId("row-from").textContent).toBe(DUCK);
-    expect(fold.getByRole("button").textContent).toBe(`BassB.C.${DUCK}${GLANCE_WORDS.show}`);
+    expect(fold.getByRole("button").textContent).toBe(`Bass${DUCK}${GLANCE_WORDS.show}`);
   });
 
   it("no line on any frozen fixture water's fold (none rests wholly on another water's tributary rule)", () => {

@@ -194,13 +194,14 @@ def names_of(row: Mapping, fa: Optional[Mapping], rule: Callable[[int], DownRule
 
 
 def with_down(table: dict, frame: Mapping, rule: Callable[[int], DownRule]) -> dict:
-    """The table with `down` on each row a tributary rule sets (absent on the others: the field is optional)."""
+    """The table with `down` and (T907) `tag` on each row a tributary rule sets (absent on the others: both optional)."""
     fish = frame.get("fish") or {}
     boxes = []
     for b in table["boxes"]:
         rows = []
         for r in b["rows"]:
-            said = line(names_of(r, fish.get(r["fish"]), rule))
-            rows.append({**r, "down": said} if said else r)
+            names = names_of(r, fish.get(r["fish"]), rule)
+            # (T907) the same waters as a tag beside the name ("Trout Lake’s tributaries"), for the apps from T907
+            rows.append({**r, "down": line(names), "tag": W.row_tag(names)} if names else r)
         boxes.append({**b, "rows": tuple(rows)})
     return {**table, "boxes": tuple(boxes)}

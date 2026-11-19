@@ -401,7 +401,7 @@ EXPECTED.update({
     ),
     'bish-may20': (
         'top: Keep no trout and char {day}\n'
-        'fold: None to keep (none)\n'
+        'fold: none to keep (none)\n'
         '[Release]\n'
         '  Rainbow trout: \n'
         '  Cutthroat trout: \n'
@@ -425,7 +425,7 @@ EXPECTED.update({
     ),
     'burnt-jan15': (
         'top: Release every trout and char {day}\n'
-        'fold: Release (release)\n'
+        'fold: release (release)\n'
         '[Release]\n'
         '  Rainbow trout: \n'
         '  Cutthroat trout: \n'
@@ -475,7 +475,7 @@ EXPECTED.update({
     ),
     'elk-nov15': (
         'top: Release every trout and char {day}\n'
-        'fold: Release (release)\n'
+        'fold: release (release)\n'
         'under top: until Mar 31, then closed to all fishing\n'
         '[Release]\n'
         '  Rainbow trout: \n'
@@ -514,7 +514,7 @@ EXPECTED.update({
     ),
     'fraser-r3-oct15': (
         'top: Closed for trout and char {day}\n'
-        'fold: Closed (closed)\n'
+        'fold: closed (closed)\n'
         'under top: reopens Nov 1\n'
         '[Closed]\n'
         '  Rainbow trout: \n'

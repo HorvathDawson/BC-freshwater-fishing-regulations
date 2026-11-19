@@ -56,6 +56,8 @@ def _lead(v: str) -> str:
 
 #: (T892) `TRow.down`'s two forms (`trout/down.py` `line`; the app's Other fish rows say the same, `DECIDE.ROW_DOWN`)
 DOWN_FORM = re.compile(r"\S.*’s? rule for its tributaries|\S.*’s? and \S.*’s? rules for their tributaries")
+#: (T907) `TRow.tag`'s form (`trout/words.py` `row_tag`): "Trout Lake’s tributaries", "A’s and B’s tributaries"
+TAG_FORM = re.compile(r"\S.*’s? tributaries")
 
 #: a whole phrase, drawn unchanged
 Txt = Annotated[StrictStr, Field(min_length=1), AfterValidator(_txt)]
@@ -131,12 +133,23 @@ class _TRowFields(Model):
     #: field required" above; the section's version stays 5 so the phones' installed 0.8.0 / 0.8.1
     #: apps (which ignore the field) keep reading the release.
     down: Optional[Txt] = None
+    #: (T907, owner 2026-11-19 ~06:55: "i meant in the trout table. simialr to how it has "this water"") the same
+    #: waters as `down`, as a TAG beside the row's name in the box tag's look ("Lake’s rule"): "Trout Lake’s tributaries"
+    #: (`trout/words.py` `row_tag`). Never without `down`; a build sets it exactly where `down` is (J, `down_problems`),
+    #: a release cut before T907 carries `down` alone. OPTIONAL and ABSENT where none, as `down` (the section stays 5):
+    #: the installed apps that draw `down` ignore it, and the release still carries `down` for them; an app from T907
+    #: draws the tag and no longer the line.
+    tag: Optional[Txt] = None
 
     @model_validator(mode="after")
     def _down(self):
         if self.down is not None and not DOWN_FORM.fullmatch(self.down):
             raise ValueError(f"row {self.key}: the tributary line {self.down!r} is not \"<water>’s rule for its "
                              "tributaries\" or \"<A>’s and <B>’s rules for their tributaries\"")
+        if self.tag is not None and not TAG_FORM.fullmatch(self.tag):
+            raise ValueError(f"row {self.key}: the tributary tag {self.tag!r} is not \"<water>’s tributaries\"")
+        if self.tag is not None and self.down is None:
+            raise ValueError(f"row {self.key}: a tributary tag {self.tag!r} without its line")
         return self
 
     @model_validator(mode="after")

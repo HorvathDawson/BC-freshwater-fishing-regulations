@@ -66,6 +66,19 @@ def test_the_words_are_the_other_fish_rows_words():
         W.row_down([" Dutch Creek"])
 
 
+def test_t907_the_tag_says_the_same_waters_in_the_sheets_kicker_words():
+    """(T907, owner 2026-11-19 ~06:55) the tag beside the name: "Trout Lake’s tributaries", the same waters, same order."""
+    assert [W.row_tag(["Trout Lake"]), W.row_tag(["Twin Lakes"]), W.row_tag(["Kootenay River", "Duck Lake"]),
+            W.row_tag(["A Creek", "Bass Lakes", "C River"])] == [
+        "Trout Lake’s tributaries", "Twin Lakes’ tributaries", "Kootenay River’s and Duck Lake’s tributaries",
+        "A Creek’s, Bass Lakes’ and C River’s tributaries"]
+    assert W.is_row_tag("Trout Lake’s tributaries", ["Trout Lake"])
+    assert not W.is_row_tag("Trout Lake’s tributaries", ["Duck Lake"]) and not W.is_row_tag("Trout Lake’s tributaries", [])
+    for bad in ([], [" Trout Lake"]):
+        with pytest.raises(W.WordsError):
+            W.row_tag(bad)
+
+
 # ------------------------------------------------------------------------------------------------------------ the names
 
 def test_a_row_every_answer_of_which_a_tributary_rule_wins_names_its_water():
@@ -146,7 +159,8 @@ def test_with_down_writes_the_line_only_where_there_is_one():
     frame = {"fish": {"RB": both(dec(1, (1, "governs", None))), "CT": both(dec(3, (3, "governs", None)))}}
     got = D.with_down(t, frame, rule)["boxes"][0]["rows"]
     assert [r.get("down") for r in got] == ["Bella Coola River’s rule for its tributaries", None]
-    assert "down" not in got[1]                                         # absent, never null: a pre-T892 table's bytes
+    assert [r.get("tag") for r in got] == ["Bella Coola River’s tributaries", None]           # (T907) beside it
+    assert "down" not in got[1] and "tag" not in got[1]                 # absent, never null: a pre-T892 table's bytes
 
 
 # ------------------------------------------------------------------------------------------------------------ the shape
@@ -162,23 +176,34 @@ def _valid(**kw):
 
 
 def test_the_model_takes_the_field_optional_and_refuses_another_form():
-    assert _valid().down is None
-    assert _valid(down="Twin Lakes’ rule for its tributaries").down
-    assert _valid(down="A’s and B’s rules for their tributaries").down
+    assert _valid().down is None and _valid().tag is None
+    assert _valid(down="Twin Lakes’ rule for its tributaries", tag="Twin Lakes’ tributaries").down
+    assert _valid(down="A’s and B’s rules for their tributaries", tag="A’s and B’s tributaries").tag
     for bad in ("from Dutch Creek", "Dutch Creek’s rule", " Dutch Creek’s rule for its tributaries", ""):
         with pytest.raises(ValidationError):
-            _valid(down=bad)
+            _valid(down=bad, tag="Dutch Creek’s tributaries")
+    # (T907) the tag: its one form, and only beside the line
+    for bad in ("Dutch Creek’s rule for its tributaries", "Dutch Creek", " Dutch Creek’s tributaries", ""):
+        with pytest.raises(ValidationError):
+            _valid(down="Dutch Creek’s rule for its tributaries", tag=bad)
+    with pytest.raises(ValidationError):
+        _valid(tag="Dutch Creek’s tributaries")                          # never without its line
+    assert _valid(down="Dutch Creek’s rule for its tributaries").tag is None   # a release cut before T907 still reads
 
 
 # ------------------------------------------------------------------------------------------------------------ J's read
 
-def _cell(text, win, via="trib", rank=0, name="Dutch Creek", narrows=()):
+_SAME = object()
+
+
+def _cell(text, win, via="trib", rank=0, name="Dutch Creek", narrows=(), tag=_SAME):
     roles = [[0, "governs", None]] + [[i, "narrows", None] for i in narrows]
     frame = {"fish": {"RB": both({"win": win, "narrow": 1 if narrows else None, "roles": roles})}}
     by_key = {"dutch::r1": SimpleNamespace(via=via, f={}, x={"_rank": rank, "entry_name": name}),
               "z5::sub": SimpleNamespace(via="reach", f={}, x={"_rank": 3, "entry_name": "Region 5"})}
     c = SimpleNamespace(today=frame, P=SimpleNamespace(by_key=by_key), ids=["dutch::r1", "z5::sub"])
-    T = SimpleNamespace(rows=[SimpleNamespace(key="RB", fish="RB", origin=None, r={"down": text})])
+    tag = text.replace(" rule for its tributaries", " tributaries") if tag is _SAME else tag
+    T = SimpleNamespace(rows=[SimpleNamespace(key="RB", fish="RB", origin=None, r={"down": text, "tag": tag})])
     return c, T
 
 
@@ -193,6 +218,8 @@ def test_j_reads_the_line_back_against_the_stored_answers(monkeypatch):
     c, T = _cell(ok, 0)
     c.P = None
     assert CHK.down_problems(c, T)                                                        # never passed unproved
+    assert CHK.down_problems(*_cell(ok, 0, tag="Duck Lake’s tributaries"))               # (T907) a tag naming another
+    assert CHK.down_problems(*_cell(ok, 0, tag=None))                                     # (T907) a line without its tag
     monkeypatch.setattr(CHK, "A_DOWN_PROOF", False)
     assert CHK.down_problems(*_cell("Duck Lake’s rule for its tributaries", 0)) == []     # the mutation
 
