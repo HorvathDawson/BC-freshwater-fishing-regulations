@@ -20,11 +20,15 @@ import { FISH, FISH_TIPS, type FishManifest } from "../fish.generated";
 import { reportFailure } from "../../failure";
 import type { RuleIndex, RuleView } from "../inputs";
 import { text, type Run } from "../line";
-import type { SheetBlock, SheetVM, SourceRowVM, TroutBoxVM, TroutRowVM, TroutVM } from "../model";
+import type { FlowStepVM, FlowVM, SheetBlock, SheetVM, SourceRowVM, TroutBoxVM, TroutRowVM, TroutVM } from "../model";
+import type { Decided, FishAnswer } from "../../answers.generated";
+import type { LadderItem } from "../decided";
+import { flowOf } from "../flow";
+import { DECIDE } from "../decidedWords";
 import { clean } from "../names";
 import { imageBlocks } from "./fish";
 import type { SheetKey } from "../sheetKey";
-import { TROUT_NAV, TROUT_SHEET } from "../words";
+import { TROUT_NAV, TROUT_SHEET, WORDS } from "../words";
 
 /** The key of the table's every-rule sheet. */
 export const TROUT_SOURCES_KEY = "src:trout" as const satisfies SheetKey;
@@ -53,7 +57,8 @@ function rowAt(t: TroutVM, rowKey: string): { box: TroutBoxVM; row: TroutRowVM }
  * The fish sheet of row `rowKey` of today's table, or null when the table holds no such row. `rules` resolves the rule
  * indexes (N's check has held each to the store); `fish` is the picture manifest (the page's, else the app's).
  */
-export function troutFishSheet(key: SheetKey, t: TroutVM, rowKey: string, rules: Pick<RuleIndex, "get">, fish: FishManifest = FISH): SheetVM | null {
+export function troutFishSheet(key: SheetKey, t: TroutVM, rowKey: string, rules: Pick<RuleIndex, "get">, fish: FishManifest = FISH,
+  answers?: TroutAnswers, water = ""): SheetVM | null {
   const at = rowAt(t, rowKey);
   if (!at) return null;
   const { box, row } = at, s = row.sheet;
@@ -70,10 +75,44 @@ export function troutFishSheet(key: SheetKey, t: TroutVM, rowKey: string, rules:
   blocks.push(...imageBlocks(row.fish, pics));
   if (tips.length) blocks.push({ k: "list", items: tips.map((x) => ({ line: [text(x)], strong: null })) });
   if (row.origin !== null || row.label !== null || row.split || box.label !== null) blocks.push(link(TROUT_NAV.HATCH, "hatch"));
-  // Sources: this fish's rules as Python gave them, then the table's every rule
-  if (s.src.length) blocks.push({ k: "head", text: TROUT_SHEET.SOURCES }, { k: "sources", groups: [{ where: "", rows: sourceRows(s.src, rules) }] });
+  // (T883) How this was decided, where every rule of the row's whole list (`row.src`, uncut) has its stored role for this
+  // fish; else Sources: this fish's rules as Python gave them (cut to 4), a list that claims nothing. Then the table's
+  const flow = answers ? troutFlow(row, answers(row.fish), rules, water) : null;
+  if (flow) blocks.push({ k: "head", text: WORDS.DECIDED }, { k: "flow", flow });
+  else if (s.src.length) blocks.push({ k: "head", text: TROUT_SHEET.SOURCES }, { k: "sources", groups: [{ where: "", rows: sourceRows(s.src, rules) }] });
   blocks.push(link(TROUT_SHEET.ALL_SOURCES, TROUT_SOURCES_KEY));
   return { key, title: row.name, sub: row.label ?? box.label ?? row.origin, blocks };
+}
+
+/** (T883) The rows frame's stored answer for a fish (the same one the other fish's sheets read): its hatchery and wild
+ *  answers, each with its roles, and which leads. */
+export type TroutAnswers = (fish: string) => FishAnswer | null;
+
+/**
+ * (T883) A trout row's rail: each rule of `row.src` (uncut, Python's list) with its role in this fish's stored answer —
+ * the row's origin's, else the answer's `lead` (the one the row says); a rule only the other origin's answer holds keeps
+ * that role, tagged with that origin ("Wild ones: …"); a rule held by neither, or (no origin to lead) by both with
+ * different roles, means the roles do not cover the list: null, and the sheet keeps its Sources list. The answer under
+ * the rail is the sheet's own head, whole.
+ */
+export function troutFlow(row: TroutRowVM, a: FishAnswer | null, rules: Pick<RuleIndex, "get">, water: string): FlowVM | null {
+  if (!a || !row.src.length) return null;
+  const lead = row.origin ?? a.lead;
+  const rolesOf = (d: Decided | null) => new Map((d?.roles ?? []).map(([ix, role, by]) => [ix, { role, by: by ?? null }] as const));
+  const h = rolesOf(a.hatchery), w = rolesOf(a.wild);
+  const items: LadderItem[] = [], other = new Map<string, "hatchery" | "wild">();
+  for (const ix of row.src) {
+    const ph = h.get(ix), pw = w.get(ix);
+    let pick = lead === "hatchery" ? ph ?? pw : lead === "wild" ? pw ?? ph : null;
+    if (!lead) { if (ph && pw && (ph.role !== pw.role || ph.by !== pw.by)) return null; pick = ph ?? pw; }
+    if (!pick) return null;
+    const r = rules.get(ix);
+    if (lead && pick === (lead === "hatchery" ? pw : ph) && !(lead === "hatchery" ? ph : pw)) other.set(r.key, lead === "hatchery" ? "wild" : "hatchery");
+    items.push({ r, role: pick.role, by: pick.by == null ? null : rules.get(pick.by), spp: new Set() });
+  }
+  const f = flowOf(items, (it) => [text(it.r.facts?.title || clean(it.r.export.verbatim))], water, row.sheet.head);
+  const tag = (x: FlowStepVM): FlowStepVM => (x.rule && other.has(x.rule) ? { ...x, tag: DECIDE.T_ORIGIN(other.get(x.rule)!, x.tag) } : x);
+  return { ...f, steps: f.steps.map(tag), other: f.other.map(tag), quiet: f.quiet.map(tag) };
 }
 
 /** The table's every-rule sheet: `TroutTable.src`, first-cited order as Python gave it. `sub`: the water and the day. */

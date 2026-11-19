@@ -7,7 +7,10 @@
 import { describe, expect, it } from "vitest";
 import type { LadderItem } from "./decided";
 import { flowOf, partStep, restateStep, withNotes, withWeek } from "./flow";
-import type { RuleView } from "./inputs";
+import type { RuleIndex, RuleView } from "./inputs";
+import type { TroutRowVM } from "./model";
+import type { FishAnswer } from "../answers.generated";
+import { troutFlow } from "./sheets/trout";
 import { plain, text } from "./line";
 
 const rule = (key: string, rank: number, entry: string, region: string | null, says: string, page: number): RuleView => ({
@@ -82,6 +85,12 @@ describe("flowOf", () => {
     expect(restateStep(UPPER, LOWER, [text("x")], "Kootenay Lake — Lower West Arm").kicker).toBe("Kootenay Lake — Upper West Arm · listed water");
     expect(partStep(LOWER, [text("x")], "Kootenay Lake — Lower West Arm", null).kicker).toBe("Kootenay Lake — Lower West Arm · this water’s rule");
   });
+  it("review 2 / owner ~23:40: a rule that comes down from another water's row to its tributaries is named that way", () => {
+    const TRIB = { ...rule("chill", 1, "Chilliwack River", "2", "No fishing Jun 1–Jun 30.", 22), via: "trib", baseRank: 0 } as unknown as RuleView;
+    const f = flowOf([item(TRIB, "governs")], says, "Foley Creek", null);
+    expect(f.steps.map((s) => s.kicker)).toEqual(["Chilliwack River · its tributaries"]);
+    expect(partStep(TRIB, [text("x")], "Foley Creek", null).kicker).toBe("Chilliwack River · its tributaries");
+  });
   it("review 4: within one level the replaced rule reads first and the deciding one last, just above the answer", () => {
     const OLD = rule("old", 0, "Cultus Lake", "2", "Keep up to 2 kokanee.", 23);
     const f = flowOf([item(LAKE, "governs"), item(OLD, "replaced", LAKE)], says, "Cultus Lake", "Release every one here.");
@@ -98,5 +107,29 @@ describe("flowOf", () => {
     const w = withWeek(flowOf([item(LOWER, "governs")], says, "Kootenay Lake — Lower West Arm", null),
       [partStep(LOWER, [text("Sat–Sun: Keep up to 5")], "Kootenay Lake — Lower West Arm", null), s], null);
     expect(w.steps.map((x) => x.tone)).toEqual(["note", "won"]);   // the deciding part last, above the answer
+  });
+});
+
+describe("troutFlow (T883: a trout row's rail from its whole list and the fish's stored roles)", () => {
+  const HK = rule("hk", 3, "Region 2", "2", "Keep up to 4 trout and char a day", 21);
+  const H2 = rule("h2", 3, "Region 2", "2", "At most 2 hatchery trout and char a day from streams", 21);
+  const WR = rule("wr", 3, "Region 2", "2", "Release wild trout and char from streams", 21);
+  const RS = new Map([[1, HK], [2, H2], [3, WR], [4, R2_POS]]);
+  const rules = { get: (ix: number) => RS.get(ix)! } as unknown as Pick<RuleIndex, "get">;
+  const row = (src: number[]) => ({ src, origin: null, sheet: { head: "Keep · counts toward the 2" } }) as unknown as TroutRowVM;
+  const ans = (lead: "hatchery" | "wild" | null, h: [number, string, number | null][], w: [number, string, number | null][]) =>
+    ({ lead, hatchery: { roles: h }, wild: { roles: w } }) as unknown as FishAnswer;
+  const a = ans("hatchery", [[1, "governs", null], [2, "narrows", null], [4, "possession", null]], [[3, "governs", null], [1, "moot", 3], [4, "possession", null]]);
+  it("every rule of row.src with its role (the lead's, else the other origin's, tagged); the answer is the sheet's head, whole", () => {
+    const f = troutFlow(row([1, 3, 4, 2]), a, rules, "Mamquam River")!;
+    expect(f.result).toBe("So: Keep · counts toward the 2");
+    expect(f.steps.map((s) => [plain(s.says), s.tag])).toEqual([["Keep up to 4 trout and char a day", null],
+      ["Release wild trout and char from streams", "Wild ones"], ["At most 2 hatchery trout and char a day from streams", "Lowers the number"]]);
+    expect(f.other.map((s) => s.rule)).toEqual(["r2pos"]);
+  });
+  it("a rule with no stored role, or no lead and two different roles: no rail (the sheet keeps its Sources list)", () => {
+    expect(troutFlow(row([1, 2, 5 as number]), a, { get: (ix: number) => RS.get(ix) ?? rule("x", 3, "Region 2", "2", "x", 21) } as never, "")).toBeNull();
+    expect(troutFlow(row([1, 3]), ans(null, [[1, "governs", null]], [[1, "moot", 3], [3, "governs", null]]), rules, "")).toBeNull();
+    expect(troutFlow(row([1]), null, rules, "")).toBeNull();
   });
 });

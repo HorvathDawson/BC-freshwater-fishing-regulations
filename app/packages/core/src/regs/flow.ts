@@ -33,8 +33,9 @@ export function kickerOf(r: RuleView, water: string): string {
   if (r.part || r.rank === -1 || r.rank === 4) return n;
   if (r.rank === 3) return D.K_BASE(n);
   if (r.rank === 2) return D.K_AREA(n);
+  // rank 1: the rule reached this water through the tributaries of the water whose row it is (`via` trib)
   if (r.rank === 1) return D.K_DOWN(n);
-  return !water || n === water ? D.K_WATER(n) : D.K_LISTED(n);
+  return water && n === water ? D.K_WATER(n) : D.K_LISTED(n);   // no water to compare: the neutral word
 }
 
 /** The level order of story.ts (province, region, area, downstream, a listed water, this water, federal, part). */

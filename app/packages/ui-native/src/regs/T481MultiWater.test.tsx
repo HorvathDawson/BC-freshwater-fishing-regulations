@@ -7,7 +7,8 @@
  */
 import { afterEach, describe, expect, it } from "vitest";
 import { cleanup, fireEvent, render, screen } from "@testing-library/react";
-import type { GroupVM, SheetKey } from "@app/core";
+import type { GroupVM, SheetKey, SheetVM } from "@app/core";
+import { SheetBody } from "./SheetBody";
 import { GroupCard } from "./GroupCard";
 import { LIGHT } from "../theme";
 import vedder1010 from "./fixtures/vedder_1010.json";
@@ -25,10 +26,19 @@ function mount(g: GroupVM = G) {
 }
 
 describe("T481 the region's total, said once", () => {
-  it("the link under it opens the row's multi sheet", () => {
-    const { opened } = mount();
-    const link = screen.getByRole("link", { name: /Fishing more than one water today\?/ });
-    fireEvent.click(link);
+  it("(T883) in the fish sheet the link sits with the sheet's links, after How this was decided, and opens the row's multi sheet", () => {
+    const opened: SheetKey[] = [];
+    const vm = (vedder1010 as unknown as { sheets: Record<string, SheetVM> }).sheets["other:o1"]!;
+    const { container } = render(<SheetBody vm={vm} palette={LIGHT} onOpen={(k) => opened.push(k)} onBook={() => {}} />);
+    const text = container.textContent!;
+    expect(text.indexOf("How this was decided")).toBeLessThan(text.indexOf("Fishing more than one water today?"));
+    expect(screen.queryByTestId("multi-link"), "not inside the card any more").toBeNull();
+    fireEvent.click(screen.getByText(/Fishing more than one water today\?/));
+    expect(opened).toEqual([`multi:r${G.row}`]);
+  });
+  it("a card that keeps its head draws the link under the region's total", () => {
+    const { opened } = mount({ ...G, head: { ...G.head, multi: [{ t: "link", s: "Fishing more than one water today? ›", open: `multi:r${G.row}` }] } });
+    fireEvent.click(screen.getByRole("link", { name: /Fishing more than one water today\?/ }));
     expect(opened).toEqual([`multi:r${G.row}`]);
   });
   it("no link where the head has none", () => {

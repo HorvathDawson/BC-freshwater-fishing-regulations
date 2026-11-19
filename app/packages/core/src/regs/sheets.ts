@@ -171,7 +171,10 @@ export function sheetOf(ctx: SheetCtx, key: SheetKey): SheetVM | null {
     const t = ctx.page.keep.trout;
     if (t?.kind !== "table") return null;
     if (key === TROUT_SOURCES_KEY) return troutSourcesSheet(key, t, ctx.inp.rules, `${ctx.page.header.name}${WORDS.DOT}${fmtDay(ctx.page.day)}`);
-    return troutFishSheet(key, t, key.slice(3), ctx.inp.rules, ctx.env?.fish);
+    // (T883) the fish's stored answer in this segment's rows frame: its roles let the sheet show how it was decided
+    const f = ctx.env && ctx.env.card.ctx.s >= 0 ? ctx.inp.year?.rowsBySeg[ctx.env.card.ctx.s] ?? null : null;
+    return troutFishSheet(key, t, key.slice(3), ctx.inp.rules, ctx.env?.fish, f ? (S) => f.fish[S] ?? null : undefined,
+      ctx.inp.item?.name || ctx.inp.place?.name || "");
   }
   // (T810 S) a row's own sheets are the other fish's: a row the trout table covers opens none (its sheets are `tf:`)
   const rowOf = (at: number): number | null => { const ix = +key.slice(at); return tableCovers(ctx.inp).includes(ix) ? null : ix; };

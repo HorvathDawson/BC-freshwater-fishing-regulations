@@ -191,8 +191,8 @@ describe("<SheetHost> over the frozen vedder_1010 page", () => {
     const body = screen.getByTestId("sheet-body");
     for (const s of [r.sheet.head, TROUT_SHEET.HERE, TROUT_SHEET.TELL, TROUT_SHEET.SOURCES, ...r.sheet.here.map((l) => l.t), ...r.coming])
       expect(body.textContent, s).toContain(s);
-    // (T883 review 1) trout's `src` (at most 4 rules, no roles) is a list that claims nothing: never the decided rail,
-    // no "So:" answer, until the pipeline's steps[] carry the roles
+    // (T883 review 1) a trout sheet with no stored roles for its rules keeps `src` (at most 4 rules) as a list that claims
+    // nothing: never the decided rail, no "So:" answer
     expect(within(body).queryByTestId("flow")).toBeNull();
     expect(body.textContent).not.toContain("So: ");
     // bold where the payload says bold, and only there

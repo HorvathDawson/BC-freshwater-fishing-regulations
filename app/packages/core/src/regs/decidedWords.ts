@@ -80,7 +80,8 @@ export const DECIDE = Object.freeze({
   K_BC: "All of B.C.",
   K_BASE: (name: string) => `${name} · base rule`,
   K_AREA: (name: string) => `${name} · area rule`,
-  K_DOWN: (name: string) => `${name} · covers its streams`,
+  // (owner 2026-11-18 ~23:40) a rule another water's row carries down to its tributaries says so, never "this water's"
+  K_DOWN: (name: string) => `${name} · its tributaries`,
   K_WATER: (name: string) => `${name} · this water’s rule`,
   K_LISTED: (name: string) => `${name} · listed water`,
   K_FEDERAL: "Federal law",
@@ -96,6 +97,7 @@ export const DECIDE = Object.freeze({
   T_LIFTED: (who: string) => `Lifted by ${who}`,
   T_REPLACED_ABOVE: "Replaced by a rule above",
   T_SAME: "Says the same",
+  T_ORIGIN: (origin: "hatchery" | "wild", tag: string | null) => `${origin === "wild" ? "Wild ones" : "Hatchery ones"}${tag ? `: ${tag}` : ""}`,
   T_RESTATES: (who: string) => `Restates ${who}’s rule`,
   T_MOOT: "Doesn’t matter today",
   T_UNNEEDED: "Not needed here",
