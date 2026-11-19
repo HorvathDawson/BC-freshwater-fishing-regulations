@@ -340,6 +340,8 @@ export const ELEM: Readonly<Record<string, string>> = Object.freeze({ roe: "Roe 
   spear_fishing: "Spear or bow", crayfish_trapping: "Crayfish traps", netting: "Nets", snagging: "Snagging",
   chumming: "Chumming", downrigger: "Downrigger", light: "Light to attract fish" });
 export const BAIT = Object.freeze({
+  /** (T900) a rule label's "head — where" join (the pipeline's) */
+  DASH: " — ",
   LABEL: "Bait",
   /** (T515) the heading over the list: what is banned + WHEN, then the status, then the bait_ban ⓘ as its own run (after a space) */
   BAN_ALL: "No natural bait", BAN_SOME: "Bait ban",

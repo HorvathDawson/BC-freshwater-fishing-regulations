@@ -120,6 +120,28 @@ export function sourceLine(open: SheetKey, rixs: readonly number[], ctx: Pick<Ge
   };
 }
 
+/**
+ * (T900) ONE source line for a whole section: the rules of every line given, each level word once (in order), every Rule book
+ * page once (ascending, its boxes joined). It opens `open`'s Sources sheet, which lists all their rules. Null when none has one.
+ */
+export function mergedSource(open: SheetKey, lines: readonly (SourceLineVM | null)[]): SourceLineVM | null {
+  const ls = lines.filter((l): l is SourceLineVM => l !== null);
+  if (!ls.length) return null;
+  const arrow = ` ${GEAR.SRC_ARROW}`;
+  const who = [...new Set(ls.flatMap((l) => l.who.replace(arrow, "").split(GEAR.SUB_SEP)))].filter((w) => w && w !== GEAR.SOURCES);
+  const pages = new Map<number, { printed: number; pdf: number; box: BookBox[] }>();
+  for (const l of ls) for (const p of l.pages) {
+    const at = pages.get(p.printed) ?? { printed: p.printed, pdf: p.pdf, box: [] };
+    for (const b of p.box ?? []) if (!at.box.some((x) => JSON.stringify(x) === JSON.stringify(b))) at.box.push(b);
+    pages.set(p.printed, at);
+  }
+  return {
+    who: `${who.join(GEAR.SUB_SEP) || GEAR.SOURCES}${arrow}`, aria: GEAR.SOURCES_ARIA + (who.join(", ") || GEAR.SOURCES_RULES), open,
+    keys: [...new Set(ls.flatMap((l) => l.keys))],
+    pages: [...pages.values()].sort((a, b) => a.printed - b.printed).map((p) => (p.box.length ? p : { printed: p.printed, pdf: p.pdf })),
+  };
+}
+
 // ── the day ──────────────────────────────────────────────────────────────────────────────────────────────────────────
 
 /** prototype dayLine: "Today, Oct 10" | "Fri, May 15". */
@@ -231,7 +253,7 @@ export function gearLines(g: GearAnswer, ctx: GearCtx): { mode: GearVM["mode"]; 
 }
 
 /** The Gear tab without Bait (T31 adds it; `buildRegsPage` composes). */
-export function buildGearTop(inp: RegsInputs, ctx: GearCtx, anyway = false): Omit<GearVM, "bait"> {
+export function buildGearTop(inp: RegsInputs, ctx: GearCtx, anyway = false): Omit<GearVM, "bait" | "src"> {
   // (T227) `anyway`: the day's gear even on a day the game-fish rules close (salmon may be fished there)
   const foot = anyway ? null : closedFoot(inp, ctx), g = gearAnswer(inp);
   if (foot || !g) return { closed: foot?.[0] ?? null, closedMore: foot?.slice(1) ?? [], day: null, mode: null, lines: [] };

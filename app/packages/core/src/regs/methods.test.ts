@@ -71,10 +71,10 @@ describe("wayChips + waysVM (page v36 gearParts ways, prototype WAYS)", () => {
     const v = waysVM(wayChips(g, ctx), ctx)!;
     expect(v.label).toBe("Ways to fish");
     expect(v.list.map((c) => [c.col, c.items.map((i) => `${i.mark} ${i.name}${i.note ? ` | ${i.note}` : ""}`)])).toEqual([
-      ["ok", ["✓ Spear or bow — not for trout or other game fish | not for game fish, salmon or protected species · kokanee allowed",
-        "✓ Ice fishing | lines: 1 · must be attached to your line by a quick-release, tied on · Remove your ice hut before breakup · other",
-        "✓ Crayfish traps | release anything in the trap that isn’t a crayfish · Set lines only in winter",
-        "✓ Angling (rod and line) | with a light: submerged, within 1 m of the hook · with a downrigger: attached to your line by a quick-release",
+      ["ok", ["✓ Spear or bow — not for trout or other game fish | not for game fish, salmon or protected species\nkokanee allowed",
+        "✓ Ice fishing | lines: 1\nmust be attached to your line by a quick-release, tied on\nRemove your ice hut before breakup\nother",
+        "✓ Crayfish traps | release anything in the trap that isn’t a crayfish\nSet lines only in winter",
+        "✓ Angling (rod and line) | with a light: submerged, within 1 m of the hook\nwith a downrigger: attached to your line by a quick-release",
         "✓ Angling (rod and line) | fly fishing only: nothing but the fly on the line, no float, sinker or attractor"]],
       ["no", ["✕ Nets", "✕ Snagging"]],
     ]);

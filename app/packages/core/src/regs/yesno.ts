@@ -13,6 +13,8 @@ type Item = readonly [string, string] | readonly [string, string, readonly strin
 export function yesNo(ok: readonly Item[], no: readonly Item[]): YesNoVM {
   const col = (k: "ok" | "no", xs: readonly Item[]) => ({
     col: k, head: k === "ok" ? YESNO.OK : YESNO.NO,
+    // (T900) three or more bare ✕ names read as one line
+    inline: k === "no" && xs.length >= 3 && xs.every(([, note, terms]) => !note && !(terms ?? []).length),
     items: xs.map(([name, note, terms]) => ({ mark: k === "ok" ? YESNO.OK_MARK : YESNO.NO_MARK, name, note: note || null, terms: terms ?? [] })),
   });
   return [...(ok.length ? [col("ok", ok)] : []), ...(no.length ? [col("no", no)] : [])];

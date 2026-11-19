@@ -1595,7 +1595,7 @@ export interface GearTabsVM {
   readonly salmonGear: { readonly lead: string; readonly lines: readonly string[] } | null;
 }
 
-const EMPTY_GEAR: GearVM = { closed: null, closedMore: [], day: null, mode: null, lines: [], bait: null };
+const EMPTY_GEAR: GearVM = { closed: null, closedMore: [], day: null, mode: null, lines: [], bait: null, src: null };
 
 /**
  * (T227, owner 2026-10-28) THE GEAR AND METHODS TABS STATE NO CLOSURE. They show gear and method rules only, and only

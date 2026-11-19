@@ -11,6 +11,7 @@
     {
      "col": "no",
      "head": "Not allowed",
+     "inline": true,
      "items": [
       {
        "mark": "✕",
@@ -228,6 +229,48 @@
     "fly_fishing"
    ],
    "value": "Fly fishing only"
+  },
+  "src": {
+   "aria": "Sources: This water’s, Province, Region 2",
+   "keys": [
+    "r2:chilliwack_vedder_rivers_does_not_include_sumas_river_see_ma@2-4::chilliwack_vedder_rivers.r4",
+    "zp:terminal_tackle::terminal_tackle.r6",
+    "zp:terminal_tackle::terminal_tackle.r4",
+    "zp:terminal_tackle::terminal_tackle.r1",
+    "z2:single_barbless_hook::single_barbless_hook.r1",
+    "r2:chilliwack_vedder_rivers_does_not_include_sumas_river_see_ma@2-4::chilliwack_vedder_rivers.r5"
+   ],
+   "open": "srcs:gear",
+   "pages": [
+    {
+     "pdf": 10,
+     "printed": 8
+    },
+    {
+     "pdf": 23,
+     "printed": 21
+    },
+    {
+     "box": [
+      {
+       "box": [
+        36.25,
+        554.4,
+        540.25,
+        627.36
+       ],
+       "pdf": 24,
+       "size": [
+        576,
+        756
+       ]
+      }
+     ],
+     "pdf": 24,
+     "printed": 22
+    }
+   ],
+   "who": "This water’s · Province · Region 2 ›"
   }
  },
  "header": {
@@ -1176,6 +1219,7 @@
     {
      "col": "ok",
      "head": "Allowed",
+     "inline": false,
      "items": [
       {
        "mark": "✓",
@@ -1188,6 +1232,7 @@
     {
      "col": "no",
      "head": "Not allowed",
+     "inline": true,
      "items": [
       {
        "mark": "✕",

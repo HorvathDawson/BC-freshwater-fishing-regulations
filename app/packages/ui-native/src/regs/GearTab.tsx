@@ -1,6 +1,6 @@
 /**
  * T34 — the Gear tab drawn from `GearVM` (prototype buildGear): on a day with no fishing, only its sentence (and, on tidal
- * water, the Keep banner's paragraphs); otherwise the "Gear" section — the day line, the gear lines, the Bait item. No
+ * water, the Keep banner's paragraphs); otherwise the "Gear" section — the day line, the gear lines, the Bait item, then (T900) the section's one source line. No
  * logic: which blocks and every word are core's (gear.ts, bait.ts).
  */
 import { View } from "react-native";
@@ -12,6 +12,7 @@ import { BaitList } from "./BaitList";
 import { ClosedNote } from "./ClosedNote";
 import { GearLines } from "./GearLines";
 import type { KeepActions } from "./LineText";
+import { SourceLine } from "./SourceLine";
 import { TabSection } from "./TabSection";
 
 export function GearTab({ vm, palette, actions, salmonGear = null }: { vm: GearVM; palette: Palette; actions: KeepActions;
@@ -35,6 +36,7 @@ export function GearTab({ vm, palette, actions, salmonGear = null }: { vm: GearV
         {vm.day !== null && <Text style={[TYPE.metaBold, { color: palette.sub, marginBottom: 4 }]}>{vm.day}</Text>}
         <GearLines mode={vm.mode} lines={vm.lines} palette={palette} actions={actions} />
         {vm.bait && <View style={{ marginTop: SPACE.s2, borderTopWidth: 1, borderTopColor: palette.line2 }}><BaitList vm={vm.bait} palette={palette} actions={actions} /></View>}
+        {vm.src && <View testID="gear-src" style={{ marginTop: SPACE.s1 }}><SourceLine src={vm.src} palette={palette} actions={actions} /></View>}
       </TabSection>
     </View>
   );
