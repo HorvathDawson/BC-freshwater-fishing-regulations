@@ -60,3 +60,46 @@ is swiped away in the app switcher and the next open resumes them (resume data).
 **Not done / open.** Jobs of an update that is abandoned before it is claimed (a newer release supersedes it) stay in the
 downloader's folder until the next update of the same file (pre-existing for big files, T298). A cut data file is
 fetched again from zero by the app (small).
+
+## Round 2 (owner 2026-11-19 ~11:31, via the main chat): one download path
+Owner, verbatim: "pleasse unify these" — the first install's data files still downloading in the app, and the big files
+going to the phone's downloader.
+
+**Done (round 2).** `queueItems(m, held | null)` (was `updateItems`) is the one list for every phone install, through one
+`handOver` in `boot.ts`: the first install (its data files now go to the system's downloader too, `held` null), an older
+app's set installed over (T403: queued after its mobile-data gate, Wi-Fi only when the reader waited for Wi-Fi), and an
+update. checkRoom / mobile-data order unchanged. Pinned in `tools/release-boot.test.ts` ("the FIRST INSTALL takes the same
+path"): a big-only first-install queue (the T298 list) fails it. Map assets (776 glyph/sprite files) still come in the app
+(not part of this; ~35–160 s on the benches, paced by the host). Commits 32c6378a7 (code), f02307630 / 062052af6 (iOS bench).
+
+**Android** (emulator lane 2, APK of f02307630, dirty only in a host-side iOS bench file): `bg-update` 7/7 — 2 jobs queued
+before the kill, finished with the app dead, claimed at reopen, applied (the data file's job was cut part way once more on
+the 250 kB/s bench line and fetched by the app, said — note below). `bg-install` 5/7: a clean first install on Wi-Fi started
+8 system jobs at once, data files included; every data file and big file "done (system download manager)"; app killed,
+"4 files downloading", notification tap opened it, nothing queued again from zero, map up. The 2 failures are the bench's
+screen read coming back empty while the mobile-data prompt was on screen (screenshot 001 shows it; the app's log has
+"mobile data: wifi" then "go"), not the app.
+
+**iPhone** (simulator, iPhone 17 / iOS 26.5, build of 32c6378a7, lane 3; Home then `simctl terminate`, NOT a swipe away —
+iOS cancels a force-quit app's transfers by design): `bg-update` steps 1–4 passed on runs 4–7. The data file went through
+the background URLSession and was claimed in ~1 s (before the close); the rule book (padded to 312 MB) was at 106–144 MB
+when the app was ended; 4–12 s later iOS relaunched the app in the background for its session ("client was launched for
+background session"), the transfer finished there and the app's JS claimed, verified and STAGED it in that background
+launch (log: staged 313.8 MB, then applied at the next open: run 4 11:55:12 / 11:55:16, run 7 12:31:49 / 12:31:53), with
+no file downloaded in the app and nothing queued again. The scripted reopen/apply/reset steps (5–7) fail on a bench
+navigation problem, not the app: the Developer card left open at the close comes back up and is missing from the
+accessibility tree, so the flow that opens the Updates log fails on the map's chip. The screenshots (`r2-ios4/005`,
+`r2-ios7/005`) show the log with "Release staged" and "applied" for the test release. The first install on the simulator
+also took its data files from the background session ("water…: done (system download manager)").
+
+**Note, not fixed (main chat, 2026-11-19): a data file's system download cannot resume after a cut.** Android's
+DownloadManager always asks `Accept-Encoding: identity`. The data worker passes a gzip-stored file through as stored, with
+`Content-Encoding: gzip` (`encodeBody: "manual"`, deploy/staging/data-worker.js), and Cloudflare's EDGE then decodes it for
+that client and sends it chunked, with no Content-Length and no ETag (checked with curl: identity → chunked, no length;
+gzip → `Content-Length` + ETag, and Range works). So the length is dropped at the edge, not in R2's headers. A cut job then
+parks "waiting to retry" for good; the app fetches that file itself (9defa2447). Seen on the bench's 250 kB/s line at
+~94 % twice; never on the full line or on iOS. Fix (~1–2 h with a worker test): in the data worker, a request whose
+Accept-Encoding does not allow gzip gets the stored gzip bytes WITHOUT the Content-Encoding header (octet-stream), so the
+edge passes them with their length and ETag (resumable); the app already unpacks a gzip body (`verifyAsync`). Both data
+workers (staging, and production's — owner deploys prod). Browsers and the app's own fetch send gzip: unchanged.
+Run dirs (lane scratchpad `t912/`): `r2-android`, `r2-ios4`, `r2-ios7`.
