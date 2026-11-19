@@ -517,8 +517,6 @@ def test_a_side_channel_carries_sc_1_and_the_main_channel_carries_nothing(tmp_pa
     channel only — FWA secondary flow, not a canal, never a river's own line — and NO `sc` key on any other line, so
     the tiles grow only where the flag says something. It survives the layer file AND the tile cut; the style filters
     on `["has", "sc"]`."""
-    import inspect
-
     from pipeline.common.models import NodeKind, StreamNode
     from pipeline.deliver.tiles import export
     from pipeline.deliver.tiles.tippe import _tile_props
@@ -544,8 +542,47 @@ def test_a_side_channel_carries_sc_1_and_the_main_channel_carries_nothing(tmp_pa
     assert tiled == [{"name": "Lillooet River", "ord": 6, "sc": 1}, {"name": "Lillooet River", "ord": 6}]
     contract = json.loads((ROOT / "pipeline/deliver/tiles/tile-contract.json").read_text())
     assert "sc" in contract["layers"]["stream"]["attrs"]
-    # the stream LINE writer stamps it (a polygon's route and a lake link never do: neither is a side channel)
-    assert "side_channel_flag(node)" in inspect.getsource(export.export_streams)
+
+
+def test_export_streams_writes_sc_on_the_side_channel_line_only(tmp_path):
+    """T891, THROUGH THE REAL WRITER: `export_streams` over a tiny build (a main stem M, its side channel S, a canal C)
+    writes `sc: 1` on S's feature and no `sc` on M's or C's — so a flag computed but wired to the wrong node, or not
+    passed to the writer, fails here."""
+    import pickle
+
+    from shapely.geometry import LineString
+
+    from pipeline.common.models import FlowEdge, NodeKind, StreamGraph, StreamNode
+    from pipeline.common.section_handles import FILENAME
+    from pipeline.deliver.tiles import export
+
+    def n(nid, et, mag):
+        return StreamNode(node_id=nid, kind=NodeKind.stream, blk=nid, edge_types=(et,), stream_order=5,
+                          stream_magnitude=mag, mus=("2-9",))
+
+    g = StreamGraph()
+    for x in (n("M", "1250", 900), n("S", "1350", 900), n("C", "2300", 900)):
+        g.nodes[x.node_id] = x
+    for a, b in (("M", "S"), ("S", "M"), ("C", "M")):
+        g.edges.append(FlowEdge(from_node=a, to_node=b, at_measure=0.0))
+    for i, e in enumerate(g.edges):
+        g.up_adj.setdefault(e.to_node, []).append(i)
+        g.down_adj.setdefault(e.from_node, []).append(i)
+    x0, y0 = 1_250_000, 600_000                                          # BC Albers, near Pemberton
+    geoms = {k: LineString([(x0 + dx, y0), (x0 + dx + 500, y0 + 500)]) for k, dx in (("M", 0), ("S", 50), ("C", 900))}
+    (tmp_path / "graph.pkl").write_bytes(pickle.dumps(g))
+    (tmp_path / "geometries.pkl").write_bytes(pickle.dumps(geoms))
+    (tmp_path / "waterbody_polys.pkl").write_bytes(pickle.dumps({}))
+    (tmp_path / FILENAME).write_text("M\nS\nC\n", encoding="utf-8")
+    (tmp_path / "registry.json").write_text(json.dumps({"items": [
+        {"id": "gnis:1", "kind": "stream", "name": "Lillooet River", "section_ids": ["M", "S", "C"]}]}))
+    out = tmp_path / "layers"
+    out.mkdir()
+    export.export_streams(tmp_path, out)
+    rows = [json.loads(l) for l in (out / "stream.geojsonl").read_text().splitlines()]
+    sc = {r["properties"]["section_id"]: r["properties"].get("sc") for r in rows}
+    assert sc == {1: None, 2: 1, 3: None}                                # M, S, C by handle
+    assert all("sc" not in r["properties"] for r in rows if r["properties"]["section_id"] != 2)
 
 
 def test_the_temp_dir_tippecanoe_records_never_reaches_the_tile_version():
