@@ -47,9 +47,12 @@ def _kinds(g):
 
 # Z ---------------------------------------------------------------------------------------------
 def test_z_a_kind_keeping_none_says_no_size():
+    """T846: the Bella Coola's cutthroat ("all cutthroat trout catch and release", a take-0 share of the 1) is answered
+    release at the source, so it is no kind of the group at all: it is said as not kept, never as "25 cm or longer"."""
     g, _o, _P = _group(F.BELLA)
-    ct = _kinds(g)["Cutthroat trout"]
-    assert (ct["n"], ct["detail"]) == (0, "catch and release")
+    assert "Cutthroat trout" not in _kinds(g)
+    (ct,) = [x for x in g["not_kept"] if x["species"] == ["CT"]]
+    assert (ct["status"], ct["says"]) == ("release", "Cutthroat trout: release every one")
 
 
 def test_z_a_kind_keeping_some_keeps_its_size_words():
@@ -62,7 +65,8 @@ def test_z_a_kind_keeping_some_keeps_its_size_words():
 # S ---------------------------------------------------------------------------------------------
 def test_s_an_undated_species_closure_is_said_on_the_card():
     g, _o, _P = _group(F.BELLA)
-    assert g["not_kept"] == [{"species": ["ST"], "status": "closed", "says": "Steelhead: closed, no catch and release",
+    # CT (release, T846) is the other not-kept line
+    assert [x for x in g["not_kept"] if x["species"] != ["CT"]] == [{"species": ["ST"], "status": "closed", "says": "Steelhead: closed, no catch and release",
                               "by": F.BELLA_ST, "rules": [F.BELLA_ST], "whose": "this river’s rule",
                               "term": "no_fishing_for", "presence": KNOWN}]                                   # ROUND14 4/6
 

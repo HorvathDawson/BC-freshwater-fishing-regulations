@@ -278,14 +278,14 @@ reads both files; a ticket closed here moves there once its lane is finished wit
 | T838 | Drop the loose "Conditions: today" line above the estimate card (the switch names the day) | DONE | e40851285 | owner 2026-11-17 (app) |
 | T840 | A salmon verdict's short text carries its own condition (two verdicts with different quota trees never share one `t`; lands with the app dropping its T767 join) | OPEN | — | app chat T767 2026-11-17 (after 0.8.0) |
 | T841 | Every classified water the book marks (symbol or "tributaries of …") is captured, bound and requires the Classified Waters Licence; Class badge in the card header | IN PROGRESS (app badge landed c76ff33d4: look B, in the name row; the data audit is the main chat's) | c76ff33d4 | owner 2026-11-17 (`handoff/PLAN/OWNER-TODO.md`) |
-| T846 | A decided fish answer says "keep" where a take-0 sub-cap over part of the pool releases it (Bella Coola cutthroat, 35 waters; the trout table is right) | OPEN | — | T810 L re-review 2026-11-18 |
+| T846 | A decided fish answer says "keep" where a take-0 sub-cap over part of the pool releases it (Bella Coola cutthroat, 35 waters; the trout table is right) | DONE | 71284eac6, 459b96e0f (r-fc137c4040fa) | T810 L re-review 2026-11-18; fixed at source (rows/evaluate `_subcap_released`), province audit found no other water |
 | T848 | The web map lags zooming out over Intata Reach (Chrome, staging web; owner's trace) | OPEN | app chat | owner 2026-11-18 |
 | T849 | WaterMode's cross-water test waits for the ▲ before it taps (CI flake on d6cbad35d) | OPEN | app chat | CI 2026-11-18 |
-| T850 | A part ending at a gauge cut is named for a landmark up to 18 km away (Nass: "Canyon City bridge → Canyon City bridge"; 69 of 236) | PARTIAL | main chat | fix built (topology.gauge_near along the stem); left (Claude): the new 0.8.0 data release to staging |
+| T850 | A part ending at a gauge cut is named for a landmark up to 18 km away (Nass: "Canyon City bridge → Canyon City bridge"; 69 of 236) | DONE | bf22da0c2 (r-86d43303bee2) | owner 2026-11-18 (Nass names) |
 | T851 | The DFO salmon feed reads "stale" for every region after one failed daily fetch (owner: big issue) | OPEN | app chat | owner 2026-11-18 13:43 |
 | T852 | The coho loader drawn sharp (sheet baked at 1.5 px/dp; phones draw ~2.6), and the line under it set nicer (0.8.1) | IN PROGRESS (built on branch worktree-agent-aa579d9bb6fd2ca09: 2.5 px/dp sheets + the owner's line B; waits to be merged) | dc6a19b13, 0f3ada780 | owner 2026-11-18 |
 | T853 | One command draws the Nass-style rules map for any water, salmon or freshwater (owner) | OPEN | app chat | owner 2026-11-18 |
-| T854 | Region 6 streams kept lake trout Nov 1-June 30 (book: released like every trout and char; owner) | PARTIAL | main chat | fix built (catalogue trout_char_excluded + R6 r4/r7); left (Claude): the new 0.8.0 data release to staging |
+| T854 | Region 6 streams kept lake trout Nov 1-June 30 (book: released like every trout and char; owner) | DONE | 6f91a86dd, 2e36c8934 (r-86d43303bee2) | owner 2026-11-18 |
 | T855 | The Salmon map draws noticeably slower than the Trout map on 0.8.0 (owner) | OPEN | app chat | owner 2026-11-18 |
 | T856 | Desktop: the Trout / Salmon map switch moves to the left side bar, under the Map button (owner) | OPEN | app chat | owner 2026-11-18 |
 | T857 | Revisit the Rust port of MapLibre Native (mln-rs) for the phones once it has phone SDKs (owner; future) | OPEN — FUTURE | app chat | owner 2026-11-18 |

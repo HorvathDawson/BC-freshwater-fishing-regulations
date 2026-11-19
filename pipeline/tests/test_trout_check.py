@@ -361,25 +361,87 @@ def _zero_band(side):
 # ------------------------------------------------- (T810 L, the re-review's FIX FIRST) each new J check pinned, no data
 
 def _released_ct(side):
-    """(key, segment) of the mini world's Sample Lake: its rows frame answers cutthroat keep, its "all cutthroat trout
-    catch and release" (take 0 inside the lake's 1) keeps none — the table stands it under Release."""
+    """(key, segment) of the mini world's Sample Lake: its "all cutthroat trout catch and release" (take 0 inside the
+    lake's 1) keeps no cutthroat; the rows frame answers release (T846) and the table stands it under Release."""
     for k in side.keys_with_tables():
         for j, c in enumerate(side.model.sections["trout"][k]):
             if c is None:
                 continue
             rel = [r["fish"] for b in c["table"]["boxes"] if b["kind"] == "release" for r in b["rows"]]
-            if "CT" in rel and J.asked(side.model.sections["rows"][k][j]).get("CT") == "keep":
-                return k, j
+            f = side.model.sections["rows"][k][j]
+            ct = ((f.get("fish") or {}).get("CT") or {}).get("wild") or {}
+            if "CT" in rel and J.asked(f).get("CT") == "release" \
+                    and any(x[1] == "moot" and x[2] == ct.get("win") for x in ct.get("roles") or ()):
+                return k, j                     # the share governs; the lake's quota of 1 is moot for the cutthroat
     raise AssertionError("the mini world has no cutthroat held to 0 (Sample Lake's sample_lake.r2)")
 
 
+def _ct_answered_keep(side, k):
+    """Key `k`'s rows frames with the cutthroat answered keep, 1 a day, as the frame read before T846."""
+    frames = copy.deepcopy(side.model.sections["rows"][k])
+    for f in frames:
+        for o, dec in ((f or {}).get("fish") or {}).get("CT", {}).items():
+            if isinstance(dec, dict) and "status" in dec:
+                dec.update(status="keep", daily=1, lines=[])
+    return frames
+
+
 def test_a_fish_held_to_zero_stands_under_release_and_j_holds_it(side, monkeypatch):
-    """The zero -> Release guard: J accepts a fish its frame answers keep under Release only where the engine keeps none
-    of it. Mutation: the guard off (A_NONE_KEPT_IS_RELEASE) and the same table fails."""
+    """The zero -> Release guard (a backstop since T846 answers such a fish release at the source): J accepts a fish its
+    frame answers keep under Release only where the engine keeps none of it. Mutation: the guard off
+    (A_NONE_KEPT_IS_RELEASE) and the same table fails."""
     k, _j = _released_ct(side)
+    old = _ct_answered_keep(side, k)
     assert side.prove(k) == []
+    assert side.prove(k, frames=old) == []
     monkeypatch.setattr(J, "A_NONE_KEPT_IS_RELEASE", False)
-    assert any("CT sits in the release box" in p for p in side.prove(k))
+    assert any("CT sits in the release box" in p for p in side.prove(k, frames=old))
+
+
+_T846_OFF = """
+import pickle, sys
+from pathlib import Path
+from pipeline.deliver.answers import answers as A
+from pipeline.deliver.answers import common as C
+from pipeline.deliver.answers.rows import evaluate as V
+from pipeline.deliver.export.claims import load
+d, claims, out = Path(sys.argv[1]), Path(sys.argv[2]), Path(sys.argv[3])
+c = load(claims)
+data, guide = C.load_export(d)
+V.A_ZERO_SHARE_RELEASES = False
+m = A.build(str(d / "bundle.sqlite"), d, workers=1, export=(data, guide), verdicts=str(d / "verdicts.sqlite"),
+            book=(c.synopsis, c.row_boxes), log=lambda *_: None)
+out.write_bytes(pickle.dumps(m.sections["rows"]))
+"""
+
+
+def _ct_status(frame):
+    return {o: dec["status"] for o, dec in (frame.get("fish") or {}).get("CT", {}).items()
+            if isinstance(dec, dict) and "status" in dec}
+
+
+def test_t846_a_take_0_share_of_the_quota_releases_its_fish_in_the_decided_answer(side, tmp_path_factory):
+    """T846 (Bella Coola cutthroat, atnarko_bella_coola_rivers.r4): the mini world's Sample Lake, "Trout/char daily
+    quota = 1 (all cutthroat trout catch and release)": the decided cutthroat answer is release, governed by the
+    take-0 share (sample_lake.r2), its rainbow still keep 1. Mutation: A_ZERO_SHARE_RELEASES off answers the
+    cutthroat keep again (built in a child process under the mini chain's own environment)."""
+    import pickle
+    import subprocess
+    import sys
+    from pipeline.tests import mini_chain
+    from pipeline.tools import mini_release as M
+    k, j = _released_ct(side)
+    f = side.model.sections["rows"][k][j]
+    st = _ct_status(f)
+    assert st and set(st.values()) == {"release"}, st
+    assert J.asked(f).get("RB") == "keep"
+    b = mini_chain.built(tmp_path_factory)
+    out = b / "t846-off.pickle"
+    r = subprocess.run([sys.executable, "-c", _T846_OFF, str(b / "deliver"), str(b / "fed" / "claims.json"), str(out)],
+                       cwd=M.REPO_ROOT, env=M._env(), capture_output=True, text=True)
+    assert r.returncode == 0, r.stderr[-3000:]
+    off = pickle.loads(out.read_bytes())[k][j]
+    assert set(_ct_status(off).values()) == {"keep"}, _ct_status(off)
 
 
 def _keepable_under_release(side):
@@ -880,10 +942,12 @@ def found(request):
     models: dict = {}
 
     def of(item):
-        if item not in models:
-            models[item] = A.build(str(BUNDLE), EXPORT_DIR, workers=1, items=[item], sections=["rows", "display"],
-                                   export=(data, guide), log=lambda *_: None)
-        return models[item], data, rules, str(BUNDLE)
+        from pipeline.deliver.answers.rows import evaluate as V
+        key = (item, V.A_ZERO_SHARE_RELEASES)                  # T846: a pin that turns the source fix off builds afresh
+        if key not in models:
+            models[key] = A.build(str(BUNDLE), EXPORT_DIR, workers=1, items=[item], sections=["rows", "display"],
+                                  export=(data, guide), log=lambda *_: None)
+        return models[key], data, rules, str(BUNDLE)
     return of
 
 
@@ -911,6 +975,11 @@ def test_each_fault_the_full_side_build_found_is_fixed_and_pinned(found, monkeyp
         # (round 4, R2) a lone row's own cap now sits in its band, which also holds the law here: the fault shows
         # through the row's own line, as it was found
         monkeypatch.setattr(T, "A_OWN_CAP_IN_THE_BAND", False)
+    if flag == "A_ZERO_COUNT_IS_RELEASE":
+        # T846 answers the Bella Coola's cutthroat release at the source, so the table's backstop shows its fault only
+        # with the source fix off too
+        from pipeline.deliver.answers.rows import evaluate as V
+        monkeypatch.setattr(V, "A_ZERO_SHARE_RELEASES", False)
     if flag == "A_APART_SAYS_THE_BOX_MOST":
         # T810 G2 Q1 also brings a box's number down to what it holds here, which hides this fault: pin it alone
         monkeypatch.setattr(T, "A_HEAD_SAYS_WHAT_IS_KEPT_HERE", False)

@@ -157,7 +157,9 @@ def test_t203_a_size_cap_splits_the_count_tier_it_crosses():
 def test_8_a_waters_own_total_reached_by_the_walk_says_why_too():
     g, _o, _P = _tree(F.BELLA_TRIB)                # Ape Creek's shape: the Bella Coola River's row by the walk
     (total,) = g["tree"]
-    assert total["says"] == "The Bella Coola River’s rule: up to 1 a day per angler"      # ROUND20 1: per angler
-    assert total["line"] == "The Bella Coola River’s rule (its row covers its tributaries, so it applies here)"
+    # T846: its cutthroat released at the source, the river's 1 is the own tier under Region 2's 4; it still says why
+    (own,) = [c for c in total["children"] if c.get("tier") == "own"]
+    assert own["says"] == "The Bella Coola River’s rule: up to 1 a day (part of the 4)"
+    assert own["line"] == "The Bella Coola River’s rule (its row covers its tributaries, so it applies here)"
     out, P = F.card(F.BELLA_TRIB, OCT10)
     assert CC.check_card(P, out) == []

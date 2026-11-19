@@ -10,7 +10,7 @@ from pipeline.deliver.answers import common
 from pipeline.deliver.answers.common import AnswersError
 from pipeline.deliver.answers.display import is_closure_gate
 from pipeline.common import entry_id as EID
-from pipeline.deliver.answers.rows.rule import INF, R, _bands, _ge, _js, _keepish, size_lines
+from pipeline.deliver.answers.rows.rule import INF, R, _bands, _covers, _ge, _js, _keepish, size_lines
 
 
 def _stable_sort(xs, key):
@@ -96,6 +96,8 @@ def eval_sp(P: "Part", S: str, o: str) -> Optional[dict]:
     if win is None:
         return None
     shut = _range_released(P, S, A) if win.k == "pool" else None     # decision F16
+    if shut is None and win.k == "pool":
+        shut = _subcap_released(S, A, partly)                          # T846
     if shut is not None:
         win = shut
     if win.k == "gate":
@@ -131,7 +133,7 @@ def eval_sp(P: "Part", S: str, o: str) -> Optional[dict]:
         also.remove(p)
     for p in also:
         setr(p, "also")
-    if win.k == "gate":
+    if win.k == "gate" or (shut is not None and shut.k == "subcap"):
         for p in pools:
             setr(p, "moot", win.key)
     res = {"S": S, "o": o, "status": status, "win": win, "daily": None, "lines": [],
@@ -439,6 +441,23 @@ def _range_released(P: "Part", S: str, A: List[R]) -> Optional[R]:
     if at < hi:
         return None
     return min((r for a, b, r in rel if b > lo and a < hi), key=lambda r: r.rank)
+
+
+#: T846 (T810 L re-review, 2026-11-18): a take-0 share of a quota (`subcap`) naming the fish releases it, whatever the
+#: quota keeps of the rest. The Bella Coola tributaries' "all cutthroat trout catch and release" sits inside the
+#: rivers' own trout quota (atnarko_bella_coola_rivers.r4): the decided answer said keep, daily 1, where the book and the
+#: engine keep no cutthroat. False = the mutation pin (keep again).
+A_ZERO_SHARE_RELEASES = True
+
+
+def _subcap_released(S: str, A: List[R], partly: List[R]) -> Optional[R]:
+    """T846: the lowest-ranked speaking take-0 `subcap` covering fish `S` whole (no sizes, not only part of the day),
+    or None."""
+    if not A_ZERO_SHARE_RELEASES:
+        return None
+    zero = [r for r in A if r.k == "subcap" and r.f.get("take") == 0 and not r.f.get("lengths")
+            and _covers(r, S) and r not in partly]
+    return min(zero, key=lambda r: (r.rank, r.key)) if zero else None
 
 
 def _size_release(P: "Part", S: str, A: List[R]) -> Optional[R]:

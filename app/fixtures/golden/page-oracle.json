@@ -8923,7 +8923,6 @@
       "members": [
        "EB",
        "GB",
-       "CT",
        "RB"
       ]
      },
@@ -9019,15 +9018,15 @@
      },
      "CT": {
       "H": {
-       "status": "keep",
-       "daily": 1,
-       "win": "r5:atnarko_bella_coola_rivers_includes_tributaries_except_burnt@5-11+5-6+5-8::atnarko_bella_coola_rivers.r3",
+       "status": "release",
+       "daily": null,
+       "win": "r5:atnarko_bella_coola_rivers_includes_tributaries_except_burnt@5-11+5-6+5-8::atnarko_bella_coola_rivers.r4",
        "narrow": null
       },
       "W": {
-       "status": "keep",
-       "daily": 1,
-       "win": "r5:atnarko_bella_coola_rivers_includes_tributaries_except_burnt@5-11+5-6+5-8::atnarko_bella_coola_rivers.r3",
+       "status": "release",
+       "daily": null,
+       "win": "r5:atnarko_bella_coola_rivers_includes_tributaries_except_burnt@5-11+5-6+5-8::atnarko_bella_coola_rivers.r4",
        "narrow": null
       }
      },
@@ -9385,7 +9384,6 @@
       "narrow": null,
       "members": [
        "GB",
-       "CT",
        "RB"
       ]
      },
@@ -9565,15 +9563,15 @@
      },
      "CT": {
       "H": {
-       "status": "keep",
-       "daily": 1,
-       "win": "r5:atnarko_bella_coola_rivers_includes_tributaries_except_burnt@5-11+5-6+5-8::atnarko_bella_coola_rivers.r3",
+       "status": "release",
+       "daily": null,
+       "win": "r5:atnarko_bella_coola_rivers_includes_tributaries_except_burnt@5-11+5-6+5-8::atnarko_bella_coola_rivers.r4",
        "narrow": null
       },
       "W": {
-       "status": "keep",
-       "daily": 1,
-       "win": "r5:atnarko_bella_coola_rivers_includes_tributaries_except_burnt@5-11+5-6+5-8::atnarko_bella_coola_rivers.r3",
+       "status": "release",
+       "daily": null,
+       "win": "r5:atnarko_bella_coola_rivers_includes_tributaries_except_burnt@5-11+5-6+5-8::atnarko_bella_coola_rivers.r4",
        "narrow": null
       }
      },
@@ -9847,7 +9845,6 @@
       "narrow": null,
       "members": [
        "GB",
-       "CT",
        "RB"
       ]
      },
@@ -10027,15 +10024,15 @@
      },
      "CT": {
       "H": {
-       "status": "keep",
-       "daily": 1,
-       "win": "r5:atnarko_bella_coola_rivers_includes_tributaries_except_burnt@5-11+5-6+5-8::atnarko_bella_coola_rivers.r3",
+       "status": "release",
+       "daily": null,
+       "win": "r5:atnarko_bella_coola_rivers_includes_tributaries_except_burnt@5-11+5-6+5-8::atnarko_bella_coola_rivers.r4",
        "narrow": null
       },
       "W": {
-       "status": "keep",
-       "daily": 1,
-       "win": "r5:atnarko_bella_coola_rivers_includes_tributaries_except_burnt@5-11+5-6+5-8::atnarko_bella_coola_rivers.r3",
+       "status": "release",
+       "daily": null,
+       "win": "r5:atnarko_bella_coola_rivers_includes_tributaries_except_burnt@5-11+5-6+5-8::atnarko_bella_coola_rivers.r4",
        "narrow": null
       }
      },

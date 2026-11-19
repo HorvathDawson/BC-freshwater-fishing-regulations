@@ -2732,3 +2732,21 @@ More questions (recommended answer first):
 - 2026-11-18 ~18:02, owner (app chat), verbatim: "we need to make sure a tester outside of british columbia doesnt have it
   glitch out too with location. we could give a little note saying you are far away from bc location will not be usefull
   etc etc" -> T864 (audit every location reader with far-away positions; a short note outside B.C.; before T863's testers).
+- 2026-11-18 ~18:05, owner (app chat), verbatim: "okay so first step will be converting the website from staging to prod"
+  -> T863: the production website first (0.8.1 web on staging, checked, then prod), before any production app build.
+- 2026-11-18 ~18:05, owner (app chat), verbatim: "please make sure no other item has the same issue as bella coola did. do
+  a general check across everything" -> T846: the app chat's independent audit across the whole release (every decided
+  keep the engine or the book allows none of); findings fixed in the same data release, before production.
+- 2026-11-18 ~18:12, owner (app chat), verbatim: "we need to get webapp and bucket released to prod them also cut first prod
+  releases for iPhone and android which will then be closed testing and internal testing respectively. So let's work
+  towards this. I'm gone for a little bit but then will be back to do my items." -> T863: the T846 data release on
+  staging, 0.8.1 web on staging, then the owner's numbered production list (data worker, data, feeds worker, site,
+  www redirect, smoke); then first production phone builds (0.8.2 = 0.8.1 + web changes + T864).
+- 2026-11-18 ~18:20, owner (app chat; he asked whether the prod data release overwrites the current app's data: no, prod
+  has no new-layout data yet, the upload clears nothing, no prod phone app exists), verbatim: "We will also what to delete
+  the old data for old app version once everything is settled to avoid being over 10gb". ~18:23, verbatim: "That clean up
+  should be automatic" -> T865 (app chat): deploy/prod/upload.sh prunes release objects neither manifest.json nor
+  manifest.previous.json names; the v1 layout deleted automatically once canifishthis.ca serves the new site (marker).
+  ~18:25, verbatim: "when we flip the switch i will get you to clean that stuff up too" -> at the switch, on his word,
+  Claude turns off the bc-fishing-cron worker and main's update-hydro / update-in-season / update-stocking workflows
+  (PRODUCTION.md step 11); no longer an owner hand step.
