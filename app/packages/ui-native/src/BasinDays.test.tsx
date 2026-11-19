@@ -52,11 +52,64 @@ describe("BasinDays", () => {
 
   it("each day wears the map ramp's colour; a day no gauge reads is a dash, and the key says so", () => {
     render(<BasinDays state={ready} palette={LIGHT} theme="light" layout="rows" />);
+    fireEvent.click(screen.getByTestId("basin-days-toggle"));
     const swatch = (d: number) => screen.getByTestId(`basin-days-day-${d}`).querySelectorAll("div")[1] as HTMLElement;
     expect(swatch(0).style.backgroundColor).toBe(rgb(rampAt(flowRampStops("light"), 0.05)));
     expect(swatch(1).style.backgroundColor).toBe(rgb(rampAt(flowRampStops("light"), 0.5)));
     expect(screen.getByTestId("basin-days-day-2").textContent).toBe("Thu 5—No gauge reading");
     expect(screen.getByText("— no gauge in this watershed reads that day")).toBeTruthy();
+  });
+
+  it("(T872) rows: folded by default — the name and the change points; a tap opens the days and says so", () => {
+    const onPick = vi.fn();
+    render(<BasinDays state={ready} palette={LIGHT} theme="light" onPick={onPick} layout="rows" />);
+    const toggle = screen.getByTestId("basin-days-toggle");
+    expect(toggle.getAttribute("role")).toBe("button");
+    expect(toggle.getAttribute("aria-expanded")).toBe("false");
+    expect(toggle.getAttribute("aria-label"))
+      .toBe("Chilliwack River watershed, by day: Now: Much below normal · Normal from Wed 4 · No gauge reading from Thu 5");
+    expect(toggle.textContent)
+      .toBe("Chilliwack River watershedNow: Much below normal · Normal from Wed 4 · No gauge reading from Thu 5");
+    // shut: no day rows, no scale, no dash key — the card is two lines
+    expect(screen.queryAllByRole("button")).toHaveLength(1);
+    expect(screen.queryByText("Flow vs. past years, by day")).toBeNull();
+    expect(screen.queryByText("— no gauge in this watershed reads that day")).toBeNull();
+    fireEvent.click(toggle);
+    expect(toggle.getAttribute("aria-expanded")).toBe("true");
+    expect(screen.getByTestId("basin-days-scale").textContent).toBe("Flow vs. past years, by day");
+    expect(screen.queryByTestId("basin-days-summary")).toBeNull();
+    expect(screen.getAllByRole("button")).toHaveLength(12);
+    expect(screen.getByText("— no gauge in this watershed reads that day")).toBeTruthy();
+    // a day is still the horizon pick when open
+    fireEvent.click(screen.getByRole("button", { name: "Forecast 2 days ahead: no gauge reading" }));
+    expect(onPick).toHaveBeenCalledWith(2);
+    fireEvent.click(toggle);
+    expect(toggle.getAttribute("aria-expanded")).toBe("false");
+    expect(screen.queryAllByRole("button")).toHaveLength(1);
+  });
+
+  it("(T872) the web: the fold is a real <button> in the tab order, so Enter and Space work as on any button", () => {
+    // react-native-web draws role=button as a native <button>: the browser turns Enter / Space into its click (jsdom
+    // does not synthesise that click, so the key is proven by the element; the staging walk pressed Enter for real)
+    render(<BasinDays state={ready} palette={LIGHT} theme="light" layout="rows" />);
+    const toggle = screen.getByTestId("basin-days-toggle");
+    expect(toggle.tagName).toBe("BUTTON");
+    expect(toggle.getAttribute("tabindex")).toBe("0");
+    expect(toggle.getAttribute("type")).toBe("button");
+  });
+
+  it("(T872) another watershed group opens shut, however it was reached", () => {
+    const { rerender } = render(<BasinDays state={ready} palette={LIGHT} theme="light" layout="rows" />);
+    fireEvent.click(screen.getByTestId("basin-days-toggle"));
+    expect(screen.getByTestId("basin-days-toggle").getAttribute("aria-expanded")).toBe("true");
+    // the same group again (a refreshed feed, another day lit): stays open
+    rerender(<BasinDays state={{ ...ready, vm: basinDaysVM("Chilliwack River", st, 0, "discharge", TUE) }} palette={LIGHT}
+                        theme="light" layout="rows" />);
+    expect(screen.getByTestId("basin-days-toggle").getAttribute("aria-expanded")).toBe("true");
+    rerender(<BasinDays state={{ state: "ready", basin: { id: "SQUA", name: "Squamish River" },
+                                 vm: basinDaysVM("Squamish River", st, 0, "discharge", TUE) }}
+                        palette={LIGHT} theme="light" layout="rows" />);
+    expect(screen.getByTestId("basin-days-toggle").getAttribute("aria-expanded")).toBe("false");
   });
 
   it("the place in no group is said; a failure is the failure face", () => {

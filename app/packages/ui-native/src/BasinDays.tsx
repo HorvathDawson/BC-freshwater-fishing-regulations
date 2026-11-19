@@ -7,10 +7,14 @@
  *
  * Two arrangements of one card (the VM is @app/ui `useBasinDays` → core `basinDaysVM`):
  *   strip  the Conditions map's bottom bar (under the legend's ramp): the days side by side, the day shown in words
- *   rows   a water's Conditions view (with its other cards): a row per day, each with its words
+ *   rows   a water's Conditions view (with its other cards): a row per day, each with its words — FOLDED by default
+ *          (T872, owner 2026-11-18: "These section should be collapsed in conditions I think unless someone expands"):
+ *          the name and core's one line (`vm.summary`, the change points), a chevron; a tap (or Enter / Space on the web)
+ *          opens the day rows. The fold is shut again for another watershed group, whatever the way in.
  */
 import { BASIN_DAYS_WORDS, type DayHorizon, type Horizon } from "@app/core";
 import type { BasinDaysState } from "@app/ui";
+import { useState } from "react";
 import { ScrollView, View } from "react-native";
 import { Text } from "./Text";
 import { Pressable } from "./Pressable";
@@ -19,6 +23,7 @@ import { rampAt } from "./DonorPanel";
 import { flowRampStops, SPACE, ungaugedColour, type Palette } from "./theme";
 import { TYPE } from "./type";
 import { hitProps, MIN_HIT } from "./regs/hit";
+import { Icon } from "./icons";
 
 /** a day's width in the strip: the press floor, so eleven days fit a desktop bar and scroll on a phone */
 const DAY_W = MIN_HIT;
@@ -31,6 +36,8 @@ export function BasinDays({ state, palette, theme, onPick, layout, testID = "bas
   layout: "strip" | "rows";
   testID?: string;
 }) {
+  // (T872) the rows' fold: open for ONE group — another group (another water, another way in) opens shut
+  const [openFor, setOpenFor] = useState<string | null>(null);
   const card = { gap: SPACE.s2, padding: SPACE.s3, borderWidth: 1, borderColor: palette.line2,
                  borderRadius: palette.r.box, backgroundColor: palette.card } as const;
   // (T427) in the bottom bar the bar is the card: no border or padding of its own, a rule line from the key above
@@ -46,6 +53,7 @@ export function BasinDays({ state, palette, theme, onPick, layout, testID = "bas
       </View>
     );
   const { vm } = state;
+  const open = openFor === state.basin.id;
   const stops = flowRampStops(theme);
   const none = ungaugedColour(theme);
   const fill = (p: number | null) => (p === null ? none : rampAt(stops, p));
@@ -96,10 +104,19 @@ export function BasinDays({ state, palette, theme, onPick, layout, testID = "bas
           )}
         </View>
       ) : (
-        <View style={{ gap: 1 }}>
-          <Text numberOfLines={1} style={{ ...TYPE.bodyStrong, fontSize: 13, lineHeight: 18, color: palette.ink }}>{vm.title}</Text>
-          <Text style={{ ...TYPE.caption, lineHeight: 15, color: palette.sub }}>{vm.scale}</Text>
-        </View>
+        // (T872) THE FOLD'S BUTTON: the name, then the summary (shut) or the scale (open); the chevron says which
+        <Pressable testID={`${testID}-toggle`} accessibilityRole="button" accessibilityLabel={vm.toggle} aria-expanded={open}
+                   onPress={() => setOpenFor(open ? null : state.basin.id)} {...hitProps({ w: 200, h: MIN_HIT })}
+                   style={{ flexDirection: "row", alignItems: "center", gap: SPACE.s2, minHeight: MIN_HIT }}>
+          <View style={{ gap: 1, flex: 1 }}>
+            <Text numberOfLines={1} style={{ ...TYPE.bodyStrong, fontSize: 13, lineHeight: 18, color: palette.ink }}>{vm.title}</Text>
+            <Text testID={`${testID}-${open ? "scale" : "summary"}`}
+                  style={{ ...TYPE.caption, lineHeight: 15, color: open ? palette.sub : palette.ink }}>
+              {open ? vm.scale : vm.summary}
+            </Text>
+          </View>
+          <Icon name={open ? "collapse" : "expand"} colour={palette.sub} size={16} />
+        </Pressable>
       )}
       {/* ONE LINE in the bottom bar: the eleven days scroll sideways where the bar is narrower than they are (a phone) */}
       {layout === "strip" ? (
@@ -107,10 +124,10 @@ export function BasinDays({ state, palette, theme, onPick, layout, testID = "bas
                     contentContainerStyle={{ gap: 2 }}>
           {buttons}
         </ScrollView>
-      ) : (
+      ) : open && (
         <View role="group" accessibilityLabel={vm.list} style={{ gap: 2 }}>{buttons}</View>
       )}
-      {vm.noneKey && <Text style={{ ...TYPE.caption, lineHeight: 15, color: palette.sub }}>{vm.noneKey}</Text>}
+      {vm.noneKey && (layout === "strip" || open) && <Text style={{ ...TYPE.caption, lineHeight: 15, color: palette.sub }}>{vm.noneKey}</Text>}
     </View>
   );
 }
