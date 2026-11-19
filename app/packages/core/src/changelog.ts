@@ -4,7 +4,8 @@
  *   - More → About → "What's new" (every version, newest first: `changelogVM`, appUpdate.ts), bundled with the app;
  *   - the update prompt (the bell's "App update", T390) and the new-version notification's tap: the INCOMING version's
  *     bullets travel in the version file our server publishes (`deploy/staging/build-apk.sh` copies this version's entry
- *     into `latest.json` / `play.json`), so a prompt shows them before the update is installed.
+ *     into `latest.json` / `play.json`, `build-ios-testflight.sh` into `appstore.json`), so a prompt shows them before the
+ *     update is installed.
  * A RELEASE ADDS ITS ENTRY HERE before its build (build-apk.sh warns when app.json's version has none).
  *
  * NO IMPORTS: build-apk.sh reads this file with node (`node -e "import('./…/changelog.ts')"`, type stripping).
@@ -19,18 +20,25 @@ export interface ChangelogEntry {
   readonly draft?: boolean;
   /**
    * (T723 G11) A note true on ONE platform only, keyed by its exact text. Every other note is every platform's. What's new
-   * shows a reader only their own (`changelogVM`: an iPhone is not told about Google Play); `notes` is unchanged: the
-   * Play release notes and `latest.json` (build-apk.sh) still read it whole, and Android's list is byte for byte as it was.
+   * shows a reader only their own (`changelogVM`: an iPhone is not told about Google Play); `notes` is unchanged.
+   * (T888) The VERSION FILES carry the platform's own list (`notesOn`): build-apk.sh writes Android's into `latest.json`,
+   * `play.json` and the Play notes, build-ios-testflight.sh writes the iPhone's into `appstore.json`. A newer version is
+   * never in the bundled log, so this tag must travel in the file's list, not be looked up here.
    */
   readonly only?: Readonly<Record<string, "android" | "ios">>;
+}
+
+/** (T723 G11, T888) The notes a reader on `os` is shown: every note but one tagged for another platform (the web: untagged
+ *  only). The one filter: What's new (`changelogVM`), the prompt's bundled fallback, and both build scripts' version files. */
+export function notesOn(e: ChangelogEntry, os: "android" | "ios" | "web"): readonly string[] {
+  return e.notes.filter((n) => { const o = e.only?.[n]; return !o || o === os; });
 }
 
 export const CHANGELOG: readonly ChangelogEntry[] = [
   {
     version: "0.8.2", date: null, draft: true, notes: [
       "Smoother pinch-zoom on the map",
-      "What you can keep: one table for every fish, each row marked DFO or B.C.",
-      "How this was decided lists the rules each answer comes from, and marks those a water takes from its tributaries",
+      "What you can keep: one table for every fish, each row marked DFO or B.C., and How this was decided names every rule behind it",
       "Sunrise and sunset sit under the date, and the day calendar keeps every day under its weekday",
       "A shorter Help page, and a walkthrough with just Back and Next",
       "Conditions shows the gauge map only where it has a gauge to draw",

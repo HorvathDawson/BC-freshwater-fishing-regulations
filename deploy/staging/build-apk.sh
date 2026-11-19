@@ -85,22 +85,25 @@ for a in "$@"; do
       [[ -n ${STOCK_MLN// /} ]] || { echo "build-apk: --stock-maplibre= needs a reason" >&2; exit 2; } ;;
   esac
 done
-# (owner 2026-11-09) EVERY non-production build carries the patched MapLibre until the fix is in a MapLibre release — the
-# staging-page APK too, not only --play: MLN_LOCAL_MAVEN defaults to the kept lean repo
-if [[ -z $PROD && -z $STOCK_MLN && -z ${MLN_LOCAL_MAVEN:-} ]]; then export MLN_LOCAL_MAVEN="$REPO/cache/maplibre/fslean-m2"; fi
-if [[ -z $PROD ]]; then
-  if [[ -n $STOCK_MLN ]]; then
-    [[ -z ${MLN_LOCAL_MAVEN:-} ]] || { echo "build-apk: --stock-maplibre with MLN_LOCAL_MAVEN set: pick one" >&2; exit 2; }
-    echo "build-apk: STOCK MapLibre (--stock-maplibre): $STOCK_MLN"
-  else
-    [[ -n ${MLN_LOCAL_MAVEN:-} ]] || { echo "build-apk: every non-production build carries the patched MapLibre (T420, T512): set" \
-      "MLN_LOCAL_MAVEN=$REPO/cache/maplibre/fslean-m2 (made by app/tools/maplibre-patch/build.sh with the lean patch)," \
-      "or say why not with --stock-maplibre=\"<reason>\"" >&2; exit 2; }
-    MLN_AAR=$(find "$MLN_LOCAL_MAVEN" -name 'android-sdk-vulkan-*.aar' 2>/dev/null)
-    [[ -n $MLN_AAR && $(echo "$MLN_AAR" | wc -l) -eq 1 ]] || {
-      echo "build-apk: MLN_LOCAL_MAVEN=$MLN_LOCAL_MAVEN must hold exactly one android-sdk-vulkan AAR (found: ${MLN_AAR:-none})" >&2; exit 2; }
-    echo "build-apk: patched MapLibre from $MLN_AAR"
-  fi
+# (owner 2026-11-09) EVERY build carries the patched MapLibre until the fix is in a MapLibre release — the staging-page
+# APK, --play, and (T893, owner 2026-11-19 ~00:20: "Can't we make it use the patched one?") --production too:
+# MLN_LOCAL_MAVEN defaults to the kept lean repo; --stock-maplibre="<reason>" is the only way to the stock SDK
+if [[ -z $STOCK_MLN && -z ${MLN_LOCAL_MAVEN:-} ]]; then export MLN_LOCAL_MAVEN="$REPO/cache/maplibre/fslean-m2"; fi
+# (T893, owner 2026-11-19 ~00:23: "It has to use patched one") a production build never takes the stock SDK
+if [[ -n $PROD && -n $STOCK_MLN ]]; then
+  echo "build-apk --production: production always carries the patched MapLibre (T893); --stock-maplibre is refused" >&2; exit 2
+fi
+if [[ -n $STOCK_MLN ]]; then
+  [[ -z ${MLN_LOCAL_MAVEN:-} ]] || { echo "build-apk: --stock-maplibre with MLN_LOCAL_MAVEN set: pick one" >&2; exit 2; }
+  echo "build-apk: STOCK MapLibre (--stock-maplibre): $STOCK_MLN"
+else
+  [[ -n ${MLN_LOCAL_MAVEN:-} ]] || { echo "build-apk: every build carries the patched MapLibre (T420, T512, T893): set" \
+    "MLN_LOCAL_MAVEN=$REPO/cache/maplibre/fslean-m2 (made by app/tools/maplibre-patch/build.sh with the lean patch)," \
+    "or say why not with --stock-maplibre=\"<reason>\"" >&2; exit 2; }
+  MLN_AAR=$(find "$MLN_LOCAL_MAVEN" -name 'android-sdk-vulkan-*.aar' 2>/dev/null)
+  [[ -n $MLN_AAR && $(echo "$MLN_AAR" | wc -l) -eq 1 ]] || {
+    echo "build-apk: MLN_LOCAL_MAVEN=$MLN_LOCAL_MAVEN must hold exactly one android-sdk-vulkan AAR (found: ${MLN_AAR:-none})" >&2; exit 2; }
+  echo "build-apk: patched MapLibre from $MLN_AAR"
 fi
 NOCI=; NONOTES=; SAMEVER=; UNCOMMITTED=; PRECHECK_ONLY=; PUBLISH_ONLY=
 for a in "$@"; do
@@ -156,8 +159,10 @@ for a in "$@"; do
   esac
 done
 # (T538) this version's changelog bullets as JSON (node strips the file's types; the file has no imports): the version
-# file's `notes`, the Play release notes and the email, from one place
-notes_json() { node -e 'import(process.argv[1]).then((m)=>{const e=m.CHANGELOG.find((x)=>x.version===process.argv[2]);process.stdout.write(JSON.stringify(e?e.notes:[]))})' "$1/app/packages/core/src/changelog.ts" "$2"; }
+# file's `notes`, the Play release notes and the email, from one place. (T888) Android's own (core `notesOn`: a note the
+# changelog tags `only` for the iPhone is left out): the app shows the file's list as it is, since a newer version is
+# never in its bundled changelog to filter by. build-ios-testflight.sh writes the iPhone's into app/ios/appstore.json.
+notes_json() { node -e 'import(process.argv[1]).then((m)=>{const e=m.CHANGELOG.find((x)=>x.version===process.argv[2]);process.stdout.write(JSON.stringify(e?m.notesOn(e,"android"):[]))})' "$1/app/packages/core/src/changelog.ts" "$2"; }
 WR="npx --prefix app wrangler"
 
 # (T538) --publish-only: redo only play.json + the email for the Play build already uploaded
@@ -365,7 +370,7 @@ if [[ -n $DRY && -n $PLAY ]]; then
   echo "[dry-run] keep the Hermes map: data/sourcemaps/$VER-b$CODE-${SHA:0:7}/android/"
   if [[ ${CANIFISHTHIS_R8:-} == 1 ]]; then echo "[dry-run] (T749) R8 ON: keep R8's mapping.txt there too (r8-mapping.txt), or stop"; fi
   echo "[dry-run] check the AAB is signed by $SECRETS/upload_certificate.pem; copy -> $OUT/$NAME"
-  echo "[dry-run] check the AAB's libmaplibre.so build id: ${MLN_AAR:+the patched AAR ($MLN_AAR)}${STOCK_MLN:+stock (--stock-maplibre)}${PROD:+stock (production)}"
+  echo "[dry-run] check the AAB's libmaplibre.so build id: ${MLN_AAR:+the patched AAR ($MLN_AAR)}${STOCK_MLN:+stock (--stock-maplibre)}"
   echo "[dry-run] $ENVWORD build: EXPO_PUBLIC_APP_ENV=$EXPO_PUBLIC_APP_ENV, switch ${EXPO_PUBLIC_ENV_SWITCH:-off}, map lab ${EXPO_PUBLIC_MAP_LAB:-off}"
   echo "[dry-run] commit the versionCode $NEXT bump (app.json only) once the AAB passed both checks"
   echo "[dry-run] upload to Play track $TRACK with this version's changelog bullets as notes (unless --no-upload); email the same + the build id via $FEEDS/notify/apk (unless --no-email)"

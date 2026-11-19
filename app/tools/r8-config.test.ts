@@ -147,3 +147,22 @@ describe("T749: the keep rules reach proguard-rules.pro", () => {
     expect(minify(plugin.setMinify(tmpl, true))).toEqual([{ type: "property", key: plugin.KEY, value: "true" }]);
   });
 });
+
+describe("T893: a production build carries the patched MapLibre (owner 2026-11-19)", () => {
+  it("production with MLN_LOCAL_MAVEN is made, and MapLibre's plugin is told the local SDK version", async () => {
+    const { mkdtempSync, mkdirSync, writeFileSync } = await import("node:fs");
+    const { tmpdir } = await import("node:os");
+    const { join } = await import("node:path");
+    const repo = mkdtempSync(join(tmpdir(), "t893-m2-"));
+    const dir = join(repo, "org", "maplibre", "gl", "android-sdk-vulkan", "11.99.0-t893");
+    mkdirSync(dir, { recursive: true });
+    writeFileSync(join(dir, "android-sdk-vulkan-11.99.0-t893.aar"), "");
+    const prod = spawnSync(EXPO, ["config", "--type", "introspect", "--json"], {
+      cwd: MOBILE, encoding: "utf8",
+      env: envFor({ MLN_LOCAL_MAVEN: repo, EXPO_PUBLIC_APP_ENV: "production", EXPO_PUBLIC_CONTACT: "support@canifishthis.ca" }),
+    });
+    expect(prod.stderr).not.toMatch(/MLN_LOCAL_MAVEN/);
+    expect(prod.status).toBe(0);
+    expect(prod.stdout).toContain("11.99.0-t893");
+  });
+});

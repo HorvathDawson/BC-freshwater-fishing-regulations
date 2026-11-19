@@ -175,6 +175,15 @@ def test_testflight_production_needs_confirm_prod():
     assert "set CONFIRM_PROD=canifishthis.ca" in r.stderr
 
 
+def test_production_apk_refuses_the_stock_maplibre():
+    """(T893, owner 2026-11-19: "It has to use patched one") --production never takes --stock-maplibre."""
+    env = {k: v for k, v in os.environ.items() if k not in ("CONFIRM_PROD", "MLN_LOCAL_MAVEN")}
+    r = subprocess.run(["bash", str(ROOT / "deploy/staging/build-apk.sh"), "--play", "--production", "--dry-run",
+                        "--stock-maplibre=a test"], env=env, capture_output=True, text=True, timeout=30, cwd=ROOT)
+    assert r.returncode == 2
+    assert "production always carries the patched MapLibre (T893); --stock-maplibre is refused" in r.stderr
+
+
 def test_upload_puts_the_pointer_coupled_group_last_and_a_failed_test_reset_stops():
     """(T537) run timing done -> inputs (sync-inputs.sh) -> the pointer, as one last group; the test/ reset was a WARNING."""
     up = (ROOT / "deploy/staging/upload.sh").read_text()

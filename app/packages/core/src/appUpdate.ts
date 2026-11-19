@@ -1,6 +1,9 @@
 /**
  * (T390, owner 2026-11-04) A NEWER APP, IN WORDS AND DECISIONS: the app notices a newer version of itself and offers ONE
- * Update button, in the bell's sheet (never a modal on open).
+ * Update button, in the bell's sheet. (T888, owner 2026-11-18: "When a user opens the app and a new app version is
+ * available it should give a popup with the swimming fish and the new update list. That they need to dismiss (then it
+ * goes to Bell) for both apple and android .") On a phone the version is ALSO said once in a popup (`updatePopupVM`): the
+ * same view model, its own words (`APP_UPDATE_WORDS.popup`), once per version; the bell keeps it as before.
  *
  *   gentle   a newer version exists (Play's in-app update check, the App Store lookup, or the staging APK page's
  *            `latest.json`): "A new version of the app is available." — a flexible update on Play; it counts too
@@ -16,7 +19,7 @@
  * (`@app/ui` `useAppUpdate`, T368).
  */
 import { compareSemver, parseSemver, type AppVersion } from "./appVersion";
-import { CHANGELOG, type ChangelogEntry } from "./changelog";
+import { CHANGELOG, notesOn, type ChangelogEntry } from "./changelog";
 
 export type AppUpdateChannel = "play" | "app-store" | "apk-page" | "none";
 
@@ -50,6 +53,15 @@ export const APP_UPDATE_WORDS = {
   /** (T234 v1.1) the incoming version's bullets under the prompt */
   whatsNew: (v: string) => `What's new in ${v}`,
   whatsNewMissing: (v: string) => `No notes were published for version ${v}.`,
+  /** (T888) the popup on opening: the version, its bullets, Update and Not now (then the bell keeps it) */
+  popup: {
+    title: (v: string) => `Version ${v} is out`,
+    /** the strong prompt's title (a release this app is too old for), with or without a version named */
+    neededTitle: "New data needs the latest app",
+    whatsNew: "What's new",
+    notNow: "Not now",
+    later: "If you wait, I keep it under the bell.",
+  },
 } as const;
 
 /** (T234 v1.1) The changelog page (More → About → What's new). */
@@ -71,13 +83,22 @@ export const APP_VERSION_NOTE = {
 } as const;
 
 /** The bullets for a version: the version file's own (it travels with a version not installed yet), else the bundled
- *  changelog's; null when neither has any (shown as missing, never blank). */
+ *  changelog's; null when neither has any (shown as missing, never blank). (T888) The file's list is already its
+ *  platform's own (the build scripts write it with `notesOn`: Android's in `latest.json` / `play.json`, the iPhone's in
+ *  `appstore.json`), since a newer version is never in the bundled log; `os` filters the bundled fallback the same way. */
 export function notesFor(version: string | null, fromFile: readonly string[] | null | undefined,
-                         log: readonly ChangelogEntry[] = CHANGELOG): readonly string[] | null {
+                         log: readonly ChangelogEntry[] = CHANGELOG, os?: "android" | "ios"): readonly string[] | null {
   const own = (fromFile ?? []).filter((n) => typeof n === "string" && n.trim());
   if (own.length) return own;
   const e = version ? log.find((x) => x.version === version) : undefined;
-  return e && e.notes.length ? e.notes : null;
+  const logged = e ? (os ? notesOn(e, os) : e.notes) : [];
+  return logged.length ? logged : null;
+}
+
+/** (T888) The phone a channel serves: Play and the staging APK page are Android's, the App Store iOS's; none (the web, a
+ *  local build) has no popup and no platform notes. */
+export function appUpdateOs(channel: AppUpdateChannel): "android" | "ios" | null {
+  return channel === "play" || channel === "apk-page" ? "android" : channel === "app-store" ? "ios" : null;
 }
 
 export interface ChangelogRowVM {
@@ -96,7 +117,7 @@ export function changelogVM(installed: string | null, log: readonly ChangelogEnt
                             os: "android" | "ios" | "web" = "android"): readonly ChangelogRowVM[] {
   const W = CHANGELOG_WORDS;
   // (T723 G11) a note tagged for the other platform is not shown; a version whose every note was the other's is not listed
-  const mine = (e: ChangelogEntry): readonly string[] => e.notes.filter((n) => { const o = e.only?.[n]; return !o || o === os; });
+  const mine = (e: ChangelogEntry): readonly string[] => notesOn(e, os);
   return [...log].filter((e) => parseSemver(e.version) && (e.notes.length === 0 || mine(e).length > 0))
     .sort((a, b) => compareSemver(b.version, a.version)).map((e) => {
       const notes = mine(e);
@@ -112,16 +133,21 @@ export function changelogVM(installed: string | null, log: readonly ChangelogEnt
  * (T234 v1.1) WHERE THIS BUILD LEARNS OF A NEWER VERSION OF ITSELF, ON OUR OWN SERVER (owner: self-host everything):
  *   apk-page  `latest.json` beside the staging APK page (build-apk.sh writes it with the APK)
  *   play      `<data origin>/app/android/play.json` (build-apk.sh --play writes it after the Play upload)
- *   app-store / none: no file (iOS waits for T88; a local build has no channel) — null.
- * The background check reads it for the new-version notice; the foreground check for Play reads it for the bullets.
+ *   app-store `<data origin>/app/ios/appstore.json` (T888: build-ios-testflight.sh writes it after the upload)
+ *   none: no file (a local build, the web) — null.
+ * The background check reads it for the new-version notice (the sideloaded APK only: the stores tell their own installs);
+ * the foreground check for Play and the App Store reads it for the bullets, when it names the version the store offers.
  */
 export function appVersionFileUrl(channel: AppUpdateChannel, i: { apkPage: string | null; dataBase: string }): string | null {
   if (channel === "apk-page" && i.apkPage) return new URL("latest.json", i.apkPage).toString();
-  if (channel === "play") return `${i.dataBase.replace(/\/+$/, "")}/app/android/play.json`;
+  const base = i.dataBase.replace(/\/+$/, "");
+  if (channel === "play") return `${base}/app/android/play.json`;
+  if (channel === "app-store") return `${base}/app/ios/appstore.json`;
   return null;
 }
 
-/** The version file our server publishes beside the app (`latest.json` sideload / `play.json` Play, build-apk.sh). */
+/** The version file our server publishes beside the app (`latest.json` sideload / `play.json` Play, build-apk.sh;
+ *  `appstore.json` iPhone, build-ios-testflight.sh). */
 export interface AppVersionFile extends ApkLatest { readonly notes?: readonly string[] | null }
 
 /**
@@ -163,6 +189,8 @@ export interface AppUpdateSaved {
   readonly version: string | null;
   /** (T234 v1.1) the incoming version's bullets, from the version file */
   readonly notes?: readonly string[] | null;
+  /** (T888) the version whose popup was answered (Not now, or Update started): it does not pop up again */
+  readonly popped?: string | null;
 }
 
 /** The kept check, or null for anything else (nothing kept, an old shape). */
@@ -172,7 +200,8 @@ export function readAppUpdateSaved(text: string | null): AppUpdateSaved | null {
     const o = JSON.parse(text) as Partial<AppUpdateSaved>;
     if (typeof o.day !== "string" || typeof o.available !== "boolean") return null;
     return { day: o.day, available: o.available, version: typeof o.version === "string" ? o.version : null,
-             notes: Array.isArray(o.notes) ? o.notes.filter((n): n is string => typeof n === "string") : null };
+             notes: Array.isArray(o.notes) ? o.notes.filter((n): n is string => typeof n === "string") : null,
+             popped: typeof o.popped === "string" ? o.popped : null };
   } catch { return null; }
 }
 
@@ -254,7 +283,7 @@ export function appUpdateVM(i: { channel: AppUpdateChannel; check: AppUpdateChec
   if (!vm) return null;
   const v = i.check.state === "available" && i.check.version && parseSemver(i.check.version) ? i.check.version : null;
   if (!v) return { ...vm, whatsNew: null };
-  const notes = notesFor(v, i.check.state === "available" ? i.check.notes : null);
+  const notes = notesFor(v, i.check.state === "available" ? i.check.notes : null, CHANGELOG, appUpdateOs(i.channel) ?? undefined);
   return { ...vm, whatsNew: { title: APP_UPDATE_WORDS.whatsNew(v), notes, missing: notes ? null : APP_UPDATE_WORDS.whatsNewMissing(v) } };
 }
 
@@ -289,4 +318,62 @@ function appUpdateVMBare(i: { channel: AppUpdateChannel; check: AppUpdateCheck; 
              button: null, said: null, failed: true };
   }
   return null;
+}
+
+/** (T888) The popup on opening. */
+export interface UpdatePopupVM {
+  /** what Not now records: the version (gentle); the strong prompt's is `NEEDED_KEY`, kept for this run only */
+  readonly key: string;
+  readonly strength: "gentle" | "strong";
+  readonly title: string;
+  /** the strong prompt's second line (the data in use is kept) */
+  readonly sub: string | null;
+  /** the version's bullets ("What's new"), or said missing; null: no version named */
+  readonly whatsNew: { readonly title: string; readonly notes: readonly string[] | null; readonly missing: string | null } | null;
+  /** the bell's one button and what it did, as the bell has them */
+  readonly button: AppUpdateVM["button"];
+  readonly said: string | null;
+  readonly failed: boolean;
+  readonly notNow: string;
+  /** under Not now: the bell keeps it */
+  readonly later: string;
+}
+
+/** (T888) the strong prompt's key: never written down, so it pops up again on the next opening */
+export const NEEDED_KEY = "needed";
+
+/**
+ * (T888) THE POPUP ON OPENING, or null. Built from the bell's own view model (`appUpdateVM`), so the two say the same
+ * version, bullets and button. Rules:
+ *   - a phone only: a channel with a platform (`appUpdateOs`); never the web, which updates itself, or a local build;
+ *   - `held`: never over the first-run notice, the walkthrough (due or under way) or another sheet that opened by itself;
+ *     it waits, and comes up once they are done (the first download is before the app is up at all);
+ *   - gentle (a newer version): only a version the check NAMES (a semver) ABOVE the `installed` one, once per version:
+ *     `popped` (kept on the device) or `dismissed` (this run) equal to it hides it; a newer version later pops up again.
+ *     The title and the once-key are that version, so what pops is what the title says: a newer build of the SAME version
+ *     (the staging page, `apkIsNewer`) is the bell's only, and a kept check for the version now installed (updated from
+ *     the bell, or by the store itself) never says "Version 0.8.2 is out" on 0.8.2. A check that failed, or one that names
+ *     no version (Play's code with no version file): the bell only;
+ *   - strong (a release this app is too old for, T251): its rule is unchanged — it stands until the app is updated — so
+ *     it pops up on every opening; Not now hides it for this run (`dismissed` = `NEEDED_KEY`), never for good.
+ */
+export function updatePopupVM(i: { vm: AppUpdateVM | null; channel: AppUpdateChannel; check: AppUpdateCheck;
+                                   /** this app's own version (`AppVersion.version`) */
+                                   installed: string;
+                                   popped: string | null; dismissed: string | null; held: boolean }): UpdatePopupVM | null {
+  const P = APP_UPDATE_WORDS.popup;
+  const vm = i.vm;
+  if (!vm || i.held || appUpdateOs(i.channel) === null) return null;
+  const v = i.check.state === "available" && i.check.version && parseSemver(i.check.version) ? i.check.version : null;
+  const base = { sub: vm.sub, button: vm.button, said: vm.said, failed: vm.failed, notNow: P.notNow, later: P.later };
+  if (vm.strength === "strong") {
+    if (i.dismissed === NEEDED_KEY) return null;
+    // the reason is the title; the version, when the check names one, heads its bullets ("What's new in 0.8.2")
+    return { key: NEEDED_KEY, strength: "strong", title: P.neededTitle, whatsNew: vm.whatsNew, ...base };
+  }
+  if (i.check.state !== "available" || !v || i.popped === v || i.dismissed === v) return null;
+  if (!parseSemver(i.installed) || compareSemver(v, i.installed) <= 0) return null;
+  // the version is the title; its bullets are headed "What's new"
+  return { key: v, strength: "gentle", title: P.title(v), whatsNew: vm.whatsNew ? { ...vm.whatsNew, title: P.whatsNew } : null,
+           ...base };
 }

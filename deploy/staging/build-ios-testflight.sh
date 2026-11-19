@@ -23,11 +23,23 @@
 #   asc-api-key.json      {"key_id": "…", "issuer_id": "…", "key_path": "/Users/…/AuthKey_<key_id>.p8"} — App Store Connect →
 #                         Users and Access → Integrations → App Store Connect API → a Team key with the "Admin" role (an "App Manager" key archives but cannot sign for the store: "Cloud signing permission error", seen 2026-11-14)
 #   testflight-last-build (written here) the last CFBundleVersion uploaded; each upload must be higher
+#   app-store-url         (T888, optional) the app's App Store page, https://apps.apple.com/app/id<number> (App Store
+#                         Connect → the app → App Information → Apple ID). Baked in as EXPO_PUBLIC_APP_STORE_URL: without
+#                         it the iPhone build has NO update check (no "Version X is out" popup, no App update in the bell).
 # Before the first run, in App Store Connect: My Apps → + → New App, platform iOS, bundle id ca.canifishthis.app (register
 # it at developer.apple.com → Identifiers if it is not offered), the name, primary language English (Canada), SKU any.
 #
 # The build number: max(app.json ios.buildNumber, testflight-last-build) + 1, set in the WORKTREE's app.json only (never
 # committed: Play's versionCode keeps its own count); the version (CFBundleShortVersionString) is app.json's expo.version.
+#
+# (T888) THE iPHONE'S VERSION FILE, after a successful upload: app/ios/appstore.json {version, build, sha, date, notes} in
+# the bucket of the build's environment (staging: bc-fishing-regulations-staging, --production: bc-fishing-regulations),
+# read at <data origin>/app/ios/appstore.json. `notes` = this version's changelog bullets for the iPhone (core `notesOn`:
+# an Android-only note is left out). The app shows them in "Version X is out" and the bell once the App Store offers that
+# version (the file is written at upload, before review; the app uses it only when it names the store's version). The
+# twin of build-apk.sh's play.json. A failed put says so and exits 1 (the build IS uploaded): redo it with
+#   npx --prefix app wrangler r2 object put --remote <bucket>/app/ios/appstore.json --file app/dist/ios/appstore.json \
+#     --content-type application/json --cache-control no-cache
 set -euo pipefail
 cd "$(dirname "$0")/../.."
 REPO=$PWD
@@ -45,10 +57,19 @@ fi
 SECRETS=$HOME/.canifishthis
 M=app/apps/mobile
 if has --production; then
-  export EXPO_PUBLIC_APP_ENV=production; unset EXPO_PUBLIC_ENV_SWITCH; ENV=production
+  export EXPO_PUBLIC_APP_ENV=production; unset EXPO_PUBLIC_ENV_SWITCH; ENV=production; BUCKET=bc-fishing-regulations
 else
   export EXPO_PUBLIC_APP_ENV=staging EXPO_PUBLIC_ENV_SWITCH=1 EXPO_PUBLIC_MAP_LAB=1; ENV=staging
+  BUCKET=bc-fishing-regulations-staging
 fi
+# (T888) the App Store page: the iPhone's update channel (core appUpdateChannel); none without it
+STORE_FILE=$SECRETS/app-store-url
+if [[ -s $STORE_FILE ]]; then export EXPO_PUBLIC_APP_STORE_URL=$(tr -d '[:space:]' < "$STORE_FILE")
+else unset EXPO_PUBLIC_APP_STORE_URL
+  echo "build-ios-testflight: no $STORE_FILE — this build has NO update check (no new-version popup or bell row; see the header)" >&2
+fi
+# (T888) this version's changelog bullets for the iPhone, as JSON (build-apk.sh's notes_json, the iPhone's list)
+ios_notes() { node -e 'import(process.argv[1]).then((m)=>{const e=m.CHANGELOG.find((x)=>x.version===process.argv[2]);process.stdout.write(JSON.stringify(e?m.notesOn(e,"ios"):[]))})' "$1/app/packages/core/src/changelog.ts" "$2"; }
 export EXPO_PUBLIC_CONTACT=${EXPO_PUBLIC_CONTACT:-support@canifishthis.ca}
 # a store build never carries the test bed's switches
 unset EXPO_PUBLIC_PAN_PROBE EXPO_PUBLIC_TEST_REPORTS EXPO_PUBLIC_UPDATE_CHANNEL
@@ -68,6 +89,8 @@ if [[ -n $DRY ]]; then
   echo "[dry-run] xcodebuild archive -workspace ios/<Name>.xcworkspace -scheme <Name> -configuration Release -destination generic/platform=iOS"
   echo "          DEVELOPMENT_TEAM=<team> CODE_SIGN_STYLE=Automatic -allowProvisioningUpdates -authenticationKey{Path,ID,IssuerID}"
   echo "[dry-run] xcodebuild -exportArchive (method app-store-connect, destination $(has --no-upload && echo 'export → app/dist/ios/' || echo 'upload → App Store Connect / TestFlight'))"
+  echo "[dry-run] update check: ${EXPO_PUBLIC_APP_STORE_URL:-NONE (no $STORE_FILE)}"
+  has --no-upload || echo "[dry-run] after the upload: put $BUCKET/app/ios/appstore.json with notes $(ios_notes "$REPO" "$VER")"
   exit 0
 fi
 if has --unsigned; then
@@ -129,6 +152,16 @@ SYM=$REPO/data/sourcemaps/$VER-b$BUILD_NO-${SHA_FULL:0:7}/ios; mkdir -p "$SYM"; 
 if [[ $DEST == upload ]]; then
   echo "$BUILD_NO" > "$LAST_FILE"
   echo "uploaded $VER ($BUILD_NO) to App Store Connect in $(( $(date +%s) - t0 )) s — TestFlight shows it after Apple's processing"
+  # (T888) the iPhone's version file (the header): this version's iPhone bullets, read once the App Store offers it
+  NOTES=$(ios_notes "$WT" "$VER") \
+    || { echo "build-ios-testflight: could not read $VER's iPhone notes; appstore.json was NOT published (the build IS uploaded): redo the put in the header" >&2; exit 1; }
+  [[ $NOTES == "[]" ]] && echo "build-ios-testflight: no changelog entry for $VER — appstore.json has no notes (the app says none were published)" >&2
+  printf '{"version":"%s","build":%s,"sha":"%s","date":"%s","notes":%s}\n' "$VER" "$BUILD_NO" "${SHA_FULL:0:7}" "$(date -u +%F)" "$NOTES" \
+    > "$OUT/appstore.json"
+  (cd "$REPO" && npx --prefix app wrangler r2 object put --remote "$BUCKET/app/ios/appstore.json" --file "$OUT/appstore.json" \
+     --content-type "application/json" --cache-control "no-cache") \
+    || { echo "build-ios-testflight: appstore.json was NOT published (the build IS uploaded): redo the put in the header" >&2; exit 1; }
+  echo "published $BUCKET/app/ios/appstore.json"
 else
   echo "exported $(ls "$OUT"/export/*.ipa) in $(( $(date +%s) - t0 )) s (not uploaded; testflight-last-build unchanged)"
 fi
