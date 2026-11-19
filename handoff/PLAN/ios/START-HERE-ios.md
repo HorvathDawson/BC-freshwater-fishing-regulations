@@ -130,6 +130,15 @@ the marker's name and shape arrives.
   (without it they are skipped, by name). Live staging release: r-46e4355a7277. Staging answers 429 when runs are
   less than about 60 s apart.
 - App tests fill `$TMPDIR` over time (T764 fixed most): if the disk fills, look there first.
+- (T918, 2026-11-19) **TestFlight External group, automatic.** `deploy/staging/build-ios-testflight.sh` now ends, after the
+  upload and the version files, with `deploy/staging/testflight-distribute.mjs`: waits for Apple's processing (every
+  30 s, up to 45 min), answers export compliance from app.json, sets "What to Test" from the version's iPhone notes, adds
+  the build to the External group, submits Beta App Review when Apple asks (first build of a version) and prints where
+  review stands. `--no-distribute` skips it. Alone, for a build already uploaded (default build = `~/.canifishthis/testflight-last-build`,
+  group = `~/.canifishthis/testflight-external-group` or the only external group):
+  `node deploy/staging/testflight-distribute.mjs --version 0.8.3 [--build N] [--group "<name>"] [--dry-run]`
+  (`--dry-run` only reads App Store Connect). Rerunning is safe: every step is a no-op once done. Tests (HTTP mocked):
+  `node --test deploy/staging/testflight-distribute.test.mjs`.
 
 ### BENCH FIX RESULT (merge 3's `bg-install`; state at 13:04, the lane's last session was still running)
 Sessions on the reworked bench (logs `S/m3b-bg1.log` to `m3b-bg3.log` = before a74ea4aa0, `S/m3c-bg1.log` = with it):
