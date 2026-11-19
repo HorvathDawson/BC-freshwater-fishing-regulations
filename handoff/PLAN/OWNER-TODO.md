@@ -2839,3 +2839,59 @@ More questions (recommended answer first):
   shape for every fish and the trout sheets, generated the same way (main chat: the sources' data side); (2) iOS: the
   big "20 a day" clipped by its row height; (3) the "how to tell a hatchery fish" picture: a natural fish shape (the
   loading screen's salmon outline), not the smiling one. Pictures before anything lands.
+- 2026-11-18 ~21:40, owner (main chat), on T876's finding (labels cost half the render work on a quick pinch), verbatim:
+  "Does that mean labels render after. We care number one about the streams and colors and smoothness then labels can
+  be a little behind etc." -> T876 (app chat): priority order streams + colours + smooth motion first; labels may lag
+  (e.g. hidden or frozen during a pinch and drawn when it settles).
+- 2026-11-18 ~21:43, owner (main chat), verbatim: "Another thing we should add a ticket for is checking every page for
+  word density then try to reduce the over dense ones" -> T890 (app chat leads; main chat for the pipeline's words).
+- 2026-11-18 ~21:47, owner (main chat), verbatim: "I wonder if we should do a final 0.8.2 before closed with everything
+  including the smoother movement we just discussed wtc". Dialog pick: "Yes, wait for 0.8.2 (Recommended)" -> T863:
+  the production website + data go live tonight; the first PRODUCTION phone builds for testers (Android closed / iPhone
+  TestFlight) are 0.8.2: T868, T877, T872-T875, plus T878/T879/T881/T882 once he approves their pictures, plus T876's
+  smoother zoom (labels may lag). Data / feed fixes (T869, T870, T880, T885) ship as data updates, not gated on it.
+- 2026-11-18 ~21:48, owner (main chat), verbatim: "We can release prod on we first before / Web should still move to prod
+  asap" and "Web should get updates as they come too. When apps release etc. Low user count right now". Dialog ~21:49,
+  his words: "Claude can deploy prod web when tested" -> standing: once a batch is on staging and its checks pass,
+  Claude deploys the PRODUCTION WEBSITE (deploy/prod/site.sh) and tells him. Production data, feeds worker, data worker,
+  phone builds and Cloudflare stay his.
+- 2026-11-18 ~21:50, owner (main chat), verbatim: "They should deploy with same cadence ish as app. Like versions should
+  match" -> the production website moves with the app versions: tonight's site is 0.8.1 (with T868/T877/T872-T875);
+  the next prod web deploy is 0.8.2, when the phones' 0.8.2 releases. Not every batch.
+- 2026-11-18 ~22:02, owner (main chat), Lillooet braids near Pemberton on staging
+  (/Users/dawson.horvath/.claude/uploads/b8ddfca9-44eb-400e-a9bf-bd89b4b0f359/8b47b3ee-image.png): "Isn't braiding like
+  this supposed to be simplified more ?"; dialog, his words: "We could simplify these even more in tile building? Yes
+  side channels should be less bold too." -> T891 (tiles: main chat; style: app chat; pictures first).
+- 2026-11-18 ~22:13, owner (main chat), on the numbered production list, verbatim: "I give you permission to run them.
+  For me" -> the main chat runs, tonight, one at a time with a check after each: the data worker deploy, the feeds
+  worker (deploy/prod/feeds.sh + purge-reports), the data (`release --prod r-fc137c4040fa`), the website (site.sh), the
+  production smoke. The Cloudflare dashboard settings (robots, bot fight, analytics, the www redirect) stay his (no API
+  token here).
+- 2026-11-18 22:13-22:30, PRODUCTION IS LIVE (main chat on the owner's go, except the data step): data worker
+  bc-fishing-r2 deployed (22:13); backup bucket bc-fishing-regulations-backup created with staging's lifecycle (owner's
+  "Yes, create it"); feeds worker bc-fishing-feeds deployed on feeds.canifishthis.ca; inputs synced; dfo + gauges +
+  in-season jobs ok; DATA r-fc137c4040fa published BY THE OWNER (release --prod refuses an agent, by design; 22:21);
+  website 0.8.1 from d0b7bf863 (clean worktree /Users/dawson.horvath/dev/personal/BC-prod-web) on canifishthis.ca;
+  smoke --production 17 pass / 1 warn (backup not yet run) / 0 fail; first backup run ok (62 objects). LEFT FOR THE
+  OWNER: Cloudflare settings (Managed robots.txt OFF, Bot Fight Mode / JS detections OFF, Web Analytics OFF; the www
+  redirect rule to Dynamic concat("https://canifishthis.ca", http.request.uri.path), 301); then his word "switched" ->
+  Claude turns off bc-fishing-cron + main's update-hydro / update-in-season / update-stocking and runs
+  deploy/prod/drop-v1.sh (T865). Later: GitHub production option + PROD_R2 secrets for feeds-hydat / feeds-runtiming.
+- 2026-11-18 ~22:33, owner (main chat), verbatim: "Light mode keep salmon vs closed or release has very little
+  contrast. Should be bright green for keep in light I think too?" -> the app chat (ticket theirs): the Salmon map's
+  light-mode colours: keep (open) a bright green like dark mode, clearly apart from closed and release; pictures first.
+- 2026-11-18 ~22:40, owner (main chat): did the www redirect rule (checked: www.canifishthis.ca/water/vedder-river ->
+  301 to the same path); "what if i dont want all of these off? web analyics is good." Dialog picks: JS detections OFF
+  (the 2.6 s injected script; in Security -> Settings -> Bot traffic, below what he saw, or under Bot fight mode's
+  gear), KEEP Web Analytics (no beacon on the pages today), Robots sync OFF (Bot Preference Sync / managed robots: only
+  our robots.txt, AI assistants may read the site), KEEP AI Labyrinth. Bot fight mode already off. The main chat checks
+  robots.txt and the page scripts after he flips them.
+- 2026-11-18 ~22:58, owner (main chat): Bot Preference Sync turned OFF (checked: canifishthis.ca/robots.txt is ours
+  only); "cant find javascript detections … it isnt in the gear with 1. i have paid worker plan". The zone's plan has no
+  JavaScript-detections switch (Workers Paid is not a zone plan); the jsd script stays on the pages for now (harmless,
+  costs page-speed score). Later, not urgent: find another way to keep it off the water pages if search ranking needs
+  it. Cloudflare steps DONE. Left: his word "switched" (old cron + workflows off, drop-v1.sh).
+- 2026-11-18 ~22:58, owner (app chat), on the five re-sent proposal pictures, verbatim: "all are good ( T878 … T879 …
+  T881 … T883 … T886 … ) except sunrise/set should be a bit better in same spot" -> T879 two headers one table, T881 gauge
+  map, T883 "How this was decided", T886 hatchery drawing: approved for 0.8.2. T878: keep the spot under the date, make
+  the line look better (variants to him). Also ~22:50 (dialog): the salmon map key's short label is "Check DFO" (T882).

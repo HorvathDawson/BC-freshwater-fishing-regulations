@@ -31,7 +31,7 @@ const SLUG = opt('--slug', 'vedder-river');
 const ONLY = opt('--only', 'http,browser,desktop').split(',');
 const SHOTS = opt('--shots', null) ?? fs.mkdtempSync(path.join(os.tmpdir(), 'smoke-staging-'));
 fs.mkdirSync(SHOTS, { recursive: true });
-const PROD_HOST = /^https:\/\/(canifishthis\.ca|data\.canifishthis\.ca|bc-fishing-feeds\.horvath-dawson\.workers\.dev)$/;
+const PROD_HOST = /^https:\/\/(canifishthis\.ca|data\.canifishthis\.ca|feeds\.canifishthis\.ca|bc-fishing-feeds\.horvath-dawson\.workers\.dev)$/;   // T404: the prod feeds custom domain (its default)
 for (const u of [SITE, DATA, FEEDS])
   if (PROD) { if (!PROD_HOST.test(u)) { console.error(`smoke-staging --production: ${u} is not a production host — refusing`); process.exit(2); } }
   else if (!/^https:\/\/([a-z0-9-]+\.)*(staging\.canifishthis\.ca|data-staging\.canifishthis\.ca|[a-z0-9-]+-staging\.[a-z0-9-]+\.workers\.dev)$/.test(u)
