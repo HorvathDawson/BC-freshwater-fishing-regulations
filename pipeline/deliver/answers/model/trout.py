@@ -8,8 +8,9 @@ row: the body, each row's `sheet` a `trout_sheet` id), `DateSet` (a `trout_dates
 row), the same on both sides. The decoded and the wire table share their fields and validators (`_TRowFields`,
 `_BoxFields`, `_TableFields`); only a row's `sheet` differs. ANY CHANGE of a field, a validator or the wire layout bumps
 the `trout` section's version (`answers.SECTIONS`; contract 2.1), and the I0 pin then fails until the app moves too —
-except an OPTIONAL field absent where unset that both apps read safely (T892 `TRow.down`: the 0.8.2 reader ignores it,
-this reader reads its absence as none), which keeps the version so an installed app keeps reading the release.
+except an OPTIONAL field absent where unset that both apps read safely (T892 `TRow.down`: the phones' 0.8.0 / 0.8.1
+readers ignore it — rows are JSON in column `j`, `checkTrout` ignores unknown keys, KNOWN_VERSIONS trout 5 — and this
+reader reads its absence as none), which keeps the version so the installed apps keep reading the release.
 
 Every field is required; a nullable one has no default and is paired, in a validator, with the condition that
 empties it (`model/__init__.py`). No number the app could count with: words, structure and rule indexes only (the one
@@ -127,7 +128,8 @@ class _TRowFields(Model):
     #: "A’s and B’s rules for their tributaries"), from the same stored answers its fish sheet's rail reads
     #: (`trout/down.py`). OPTIONAL, ABSENT where none (never written as null): a reader of the trout 5 shape reads a
     #: table carrying it, and the app reads a table without it (the release before T892). The one exception to "every
-    #: field required" above; the section's version stays 5 so an installed 0.8.2 app keeps reading the release.
+    #: field required" above; the section's version stays 5 so the phones' installed 0.8.0 / 0.8.1
+    #: apps (which ignore the field) keep reading the release.
     down: Optional[Txt] = None
 
     @model_validator(mode="after")

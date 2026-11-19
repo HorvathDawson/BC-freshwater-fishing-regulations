@@ -491,8 +491,8 @@ def _sections() -> Tuple[Section, ...]:
         # holds every row under it without one of its own (`DateSet`, the most specific wins). trout 4 (owner 01:22 /
         # 01:28): `TopLine.sub`, nested bands (`Box.inner`), one row for a fish's hatchery and wild twins. trout 5 (the
         # app chat's S): `TRow.split` marks that merged row (the fish sheet's hatchery link). (T892) `TRow.down`, a row's
-        # tributary line, is OPTIONAL and absent where none, so trout stays 5: the installed 0.8.2 app reads a table
-        # carrying it (it ignores the field) and the app reads a release without it (no line)
+        # tributary line, is OPTIONAL and absent where none, so trout stays 5: the phones' installed 0.8.0 / 0.8.1
+        # apps read a table carrying it (rows are JSON in column `j`, `checkTrout` ignores unknown keys) and the app reads a release without it (no line)
         Section("trout", 5, _no_scope, compose_from=("rows", "display", "licence"), compose_key=_trout_compose_key),
     )
 
