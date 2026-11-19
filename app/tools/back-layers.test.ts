@@ -169,8 +169,6 @@ const COVERED: Record<string, string> = {
   "packages/ui-native/src/ModalBack.native.tsx#ModalBack: takes onBack": "(T723 F7) not a surface: the iOS left-edge strip inside a Modal that registers; every user hands it that Modal's own useBackLayer requestClose (Sheet, MenuPage, PdfViewer, PhotoViewer)",
   "packages/ui-native/src/ModalBack.web.tsx#ModalBack: takes onBack": "(T723 F7) the web's half draws its children untouched (the browser owns that edge); the Modal it sits in registers",
   "packages/ui-native/src/menu/MenuPage.tsx#MenuPageHead: takes onBack": "the page header's ‹ button; its MenuPage registers (useBackLayer)",
-  "packages/ui-native/src/menu/MenuPage.tsx#MenuCard: takes onBack (MenuPageProps)": "(T859) the desktop card's half of MenuPage: MenuPage registers (useBackLayer) before it draws the card, and hands it that requestClose",
-  "packages/ui-native/src/menu/MenuPage.tsx#MenuCard: a Modal": "(T859) the desktop card's Modal: its onRequestClose is the requestClose MenuPage got from useBackLayer",
   "packages/ui-native/src/menu/MoreScreen.tsx#MoreScreen: takes onBack (MoreScreenProps)": "owner 2026-10-22: the More TAB's ‹ to the tab it came from — a route tab (`prev`), not a layer: the Shell hands it the ONE back (`useBack`), which the system back also takes",
   "packages/ui-native/src/menu/MoreScreen.tsx#Head: takes onBack": "the More tab's ‹ button; MoreScreen hands it the Shell's one back",
 };
@@ -276,7 +274,6 @@ describe("back, everywhere: every surface registers a back layer", () => {
       "packages/ui-native/src/menu/InfoPages.tsx#SourcesPage: draws SourcesPage",
       "packages/ui-native/src/menu/InfoPages.tsx#ChangelogPage: draws ChangelogPage",
       "packages/ui-native/src/menu/MenuPage.tsx#MenuPage: a Modal",
-      "packages/ui-native/src/menu/MenuPage.tsx#MenuCard: a Modal",
       "packages/ui-native/src/menu/MenuPage.tsx#MenuPageHead: takes onBack",
       "packages/ui-native/src/menu/MoreScreen.tsx#Head: takes onBack",
       "packages/ui-native/src/menu/NotificationsPage.tsx#PickedGauge: takes onCancel",

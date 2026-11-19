@@ -9,7 +9,7 @@
  * the Map tab is the route's tab rule: apps/mobile back.test.tsx.)
  */
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { act, cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { act, cleanup, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { Linking, Share, Text } from "react-native";
 import { FISH_CREDITS, MENU_WORDS, regsReportWhere, waterReportWhere, type DataInput, type GlossaryTerm, type RegsPage } from "@app/core";
 import type { RegsLoader } from "@app/data/regs";
@@ -20,13 +20,28 @@ import { GlossaryPage } from "./GlossaryPage";
 import { MenuContext } from "./MenuContext";
 import { MoreScreen, type MobileDataControl } from "./MoreScreen";
 import { MenuHost, type MenuInfo } from "./MenuHost";
-import { MenuPage } from "./MenuPage";
 import { ReportLink, WaterReportLink } from "./ReportLink";
 import { RegsScreen } from "../regs/RegsScreen";
 import { createTabStore } from "../regs/tabStore";
 import vedder1010 from "../regs/fixtures/vedder_1010.json";
 
 afterEach(() => { cleanup(); vi.restoreAllMocks(); ERROR_LOG.clear(); });
+
+/**
+ * (T859) A release that holds a glossary, for the real MenuHost: `useGlossary` answers this one loader with its terms
+ * (reading a real store is the regs tests' business); every other loader, null included, goes to the real hook.
+ */
+const GLOSSARY_LOADER = { release: "r-glossary", manifest: null } as unknown as RegsLoader;
+vi.mock("@app/ui", async (orig) => {
+  const ui = await orig<typeof import("@app/ui")>();
+  const terms = [{ id: "bait", term: "Bait", says: "Anything an angler offers a fish to eat.", pages: [80], quote: "", source: "" }];
+  return {
+    ...ui,
+    useGlossary: (loader: RegsLoader | null, on: boolean) => (loader === GLOSSARY_LOADER
+      ? (on ? { state: "ready", value: { terms, pdfPages: { 80: 82 } }, error: null } : { state: "loading", value: null, error: null })
+      : ui.useGlossary(loader, on)),
+  };
+});
 
 const INFO: MenuInfo = { appBuild: "1.2.0 (34)", contact: null };
 const NOW = Date.now();
@@ -211,7 +226,7 @@ describe("the More tab (T48; owner 2026-10-22 refinement; T167)", () => {
 
   it("Contact, inline at the bottom: a placeholder until the owner supplies the one value; then that address", () => {
     render(<App out={{}} />);
-    expect(text("more-contact")).toBe("Questions, corrections and ideas are welcome. I read every message. Email me, or send a note from the "
+    expect(text("more-contact")).toBe("Questions, corrections and ideas are welcome. I read every message. Send a note from the "
       + "app with Report a problem. A water's regulations have their own Report a problem link, which names the water "
       + "for you."
       + "Contact details are coming soon. Until then, use Report a problem to share a note from your device.");
@@ -445,65 +460,52 @@ describe("(T859) a menu page at desktop width is a card over the page", () => {
                            escape: true, "escape then back": true, back: true, "back then back": true });
   });
 
-  it("the scrim is under the card and takes no keyboard focus; a press inside the card does not close it", () => {
+  it("the scrim is the card's last sibling, under it, with no tab stop: a press inside the card never reaches its close", () => {
     render(<App out={{}} width={1280} />);
     pick("menu-item-about");
     const scrim = screen.getByTestId("menu-card-scrim");
-    expect([scrim.getAttribute("tabindex"), scrim.style.zIndex, scrim.style.backgroundColor !== ""]).toEqual(["-1", "0", true]);
-    act(() => { fireEvent.click(screen.getByText("About", { selector: "[role=heading]" })); });
+    const card = screen.getByTestId("menu-page-about");
+    // a click bubbles to its ancestors only: the card is not inside the scrim, so the scrim's onPress never hears it
+    expect([scrim.contains(card), card.contains(scrim), card.nextElementSibling === scrim,
+            scrim.getAttribute("tabindex"), scrim.style.zIndex, card.style.zIndex]).toEqual([false, false, true, "-1", "0", "1"]);
+    act(() => { fireEvent.click(within(card).getByText(/reads British Columbia's freshwater fishing regulations/)); });
     settle();
     expect(screen.getByTestId("menu-page-about")).toBeTruthy();
   });
 
-  it("focus moves into the card (its ✕) when it opens and back to the More row that opened it when it closes", () => {
-    render(<App out={{}} width={1280} />);
-    const row = screen.getByTestId("menu-item-about");
-    act(() => { row.focus(); });
-    pick("menu-item-about");
-    expect(document.activeElement).toBe(screen.getByTestId("menu-card-close"));
-    keyUp("Escape");
-    expect([screen.queryByTestId("menu-page-about"), document.activeElement]).toEqual([null, row]);
+  it("one tree across the breakpoint: a report's typed draft survives the window crossing 1280 px both ways", () => {
+    const { rerender } = render(<App out={{}} width={1279} />);
+    pick("menu-item-report");
+    act(() => { fireEvent.change(screen.getByTestId("report-what"), { target: { value: "The closure is wrong." } }); });
+    const field = screen.getByTestId("report-what");
+    const seen: [boolean, string, boolean][] = [];
+    for (const width of [1280, 1279, 1440]) {
+      rerender(<App out={{}} width={width} />);
+      settle();
+      const now = screen.getByTestId("report-what") as HTMLTextAreaElement;
+      seen.push([screen.queryByTestId("menu-card-close") !== null, now.value, now === field]);
+    }
+    expect(seen).toEqual([[true, "The closure is wrong.", true], [false, "The closure is wrong.", true],
+                          [true, "The closure is wrong.", true]]);
   });
 
-  it("a glossary term inside the card: Escape / back close the term, then the page; the ✕ closes both at once", () => {
-    const terms: GlossaryTerm[] = [
-      { id: "bait", term: "Bait", says: "Anything an angler offers a fish to eat.", pages: [80], quote: "", source: "" }];
-    const ready = { state: "ready", value: { terms, pdfPages: { 80: 82 } }, error: null } as const;
-    // MenuHost's glossary wiring, over a glossary already read (the host reads it from a release)
-    function Glossary({ out }: { out: { back?: Back; menu?: MenuControls } }) {
-      const [route, go] = useRoute();
-      const b = useBack(route, go, null);
-      const menu = useMenu();
-      out.back = b; out.menu = menu;
-      const s = menu.state;
-      const term = s.page === "glossary" && s.term ? terms.find((t) => t.id === s.term) ?? null : null;
-      return (
-        <LayoutWidthContext.Provider value={1280}>
-          <BackLayerContext.Provider value={b.layers}>
-            <MenuPage open={s.page === "glossary"} title={term?.term ?? "Glossary"} palette={LIGHT} scroll={false}
-                      onBack={term ? menu.closeTerm : menu.closePage} onClose={menu.closePage}
-                      backLabel={term ? "Glossary" : undefined} testID="menu-page-glossary">
-              {s.page === "glossary" && <GlossaryPage glossary={ready} term={s.term} onTerm={menu.openTerm}
-                                                      onCloseTerm={menu.closeTerm} palette={LIGHT} />}
-            </MenuPage>
-          </BackLayerContext.Provider>
-        </LayoutWidthContext.Provider>
-      );
-    }
-    const out: { back?: Back; menu?: MenuControls } = {};
+  it("a glossary term inside the card (the real MenuHost): Escape / back close the term, then the page; the ✕ closes " +
+     "both at once", () => {
     const at = () => [screen.queryByTestId("menu-page-glossary") ? "glossary" : "closed",
                       screen.queryByTestId("glossary-term") ? "term" : "-"];
+    const out: { back?: Back } = {};
+    const openTerm = () => {
+      render(<App out={out} width={1280} loader={GLOSSARY_LOADER} />);
+      pick("menu-item-glossary");
+      pick("glossary-row-bait");
+    };
     const steps: string[][] = [];
     for (const close of [() => keyUp("Escape"), () => { act(() => { out.back!.back(); }); settle(); }]) {
-      render(<Glossary out={out} />);
-      act(() => { out.menu!.show("glossary"); }); settle();
-      act(() => { out.menu!.openTerm("bait"); }); settle();
+      openTerm();
       steps.push(at()); close(); steps.push(at()); close(); steps.push(at());
       cleanup();
     }
-    render(<Glossary out={out} />);
-    act(() => { out.menu!.show("glossary"); }); settle();
-    act(() => { out.menu!.openTerm("bait"); }); settle();
+    openTerm();
     pick("menu-card-close");
     steps.push(at());
     let r = true;
