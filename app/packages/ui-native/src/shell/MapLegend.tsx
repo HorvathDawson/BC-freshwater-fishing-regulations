@@ -235,10 +235,10 @@ export function RunsKey({ theme, palette, bottom }: { theme: string; palette: Pa
  * WRONG (stale, failed) is the bar over the map (`PairBanner`), not a grey line here.
  */
 /**
- * (T902) the Runs bar's column: 760 px on a phone and tablet; at the desktop class it widens to 960 so the species chips
+ * (T902) the Runs bar's column: 760 px on a phone; from the tablet class (900 px) up it widens to 960 (the window less its 14 px margins, if narrower) so the species chips
  * (six species and All, each with its fish) sit on one line, with no sideways scroll (RunSpeciesChips wraps if ever more).
  */
-const RUNS_PANEL_MAX = { phone: 760, tablet: 760, desktop: 960 } as const;
+const RUNS_PANEL_MAX = { phone: 760, tablet: 960, desktop: 960 } as const;
 export function RunsLegend({ col, palette, theme, fishImages }: { col: MapColouring; palette: Palette; theme: string;
                                                                       fishImages?: FishImages }) {
   const r = col.runs;

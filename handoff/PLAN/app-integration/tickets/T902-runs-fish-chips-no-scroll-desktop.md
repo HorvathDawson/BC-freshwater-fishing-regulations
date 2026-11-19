@@ -13,7 +13,7 @@ rendered), 390 unchanged. Pictures before it lands.
 
 ## What was built (lane app/t902-runs-chips)
 
-Both of the owner's options, one each way: the PANEL WIDENS at desktop (760 -> 960 px, `RUNS_PANEL_MAX` in
+Both of the owner's options, one each way: the PANEL WIDENS from the tablet class, 900 px up (760 -> 960 px, window-capped; at 1000 it fills the window and the chips fit one line, `RUNS_PANEL_MAX` in
 `shell/MapLegend.tsx`, by `useLayoutClass()`), so the six species + All sit on ONE line; and the chip row itself WRAPS
 (`flexWrap`) from the tablet class up, so a seventh chip would drop to a second line, never scroll. Widening alone left
 a lone "Sockeye" orphaned on line two at 760, so it reads cleaner widened. Phones keep the sideways ScrollView exactly as
