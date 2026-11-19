@@ -13,6 +13,9 @@ import { LIGHT } from "./theme";
 
 vi.mock("@app/map", async (orig) => ({ ...(await orig<Record<string, unknown>>()), Map: () => null }));
 vi.mock("./FishSpinner", () => ({ FishSpinner: () => null }));
+// (T909) the app update is the phone's (the web has no updater), and so is the bell that keeps it: the phone's bar
+// controls, as InSeason.test does (the website's bar draws no bell, BarControls.test.tsx)
+vi.mock("./BarControls", async () => await import("./BarControls.native"));
 const { Shell } = await import("./Shell");
 afterEach(cleanup);
 

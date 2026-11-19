@@ -16,13 +16,14 @@ import type { Spot } from "@app/data/spots";
 import { clearPanelCache, HOME, LayoutWidthContext, type Route } from "@app/ui";
 import type { Panel, SectionId, WaterSource } from "@app/data";
 import { LIGHT } from "./theme";
+import { drawPhoneScreensOnWeb } from "./storeShots";
 import { labelAudit, shellPressAudit } from "./regs/testing/a11yAudit";
 import { hitProps } from "./regs/hit";
 
 vi.mock("@app/map", async (orig) => ({ ...(await orig<Record<string, unknown>>()), Map: () => null }));
 vi.mock("./FishSpinner", () => ({ FishSpinner: () => null }));
 const { Shell } = await import("./Shell");
-afterEach(cleanup);
+afterEach(() => { cleanup(); drawPhoneScreensOnWeb(false); });
 
 const VISIT = new Date(2026, 7, 30, 23, 30).getTime();
 const TAMIHI: Spot = {
@@ -126,8 +127,13 @@ async function coachRegistry() {
 
 /** state, how it is put on screen, and the words that prove it is there */
 const STATES_T258: [string, (width: number) => Promise<void>, RegExp][] = [
-  // (T909) the bell sheet (Notifications) is gone from this list: the web bar has no bell, so a browser never opens it
-  // (the bell is the phone's, BarControls.native.tsx).
+  // (T909) the bell is the phone's (the website's bar has none): its sheet is opened from the phone's bar controls, drawn
+  // the way the store-shots web build draws them (T319, `storeShots.ts`; reset after each test)
+  ["the bell sheet (Notifications)", async (w) => {
+    drawPhoneScreensOnWeb(true);
+    mount(HOME, w); await settle();
+    act(() => { fireEvent.click(screen.getByTestId("inseason-bell")); }); await settle();
+  }, /Notifications/],
   ["the first-run notice", async (w) => { mount(HOME, w, { firstRun: memory(null) }); await settle(); }, /Before you fish/],
   ["(T888) the newer-version popup on opening", async (w) => {
     mount(HOME, w, { appUpdateStore: memory(), appUpdater: { channel: "play", installed: "0.8.1", start: async () => "downloading",

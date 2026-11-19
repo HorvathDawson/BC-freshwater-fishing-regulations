@@ -7,7 +7,7 @@
  * The map renderer is replaced by a stub that counts its mounts and writes down every framing the Shell sends it (no
  * WebGL in jsdom). Everything else is the app's, on the fixture.
  */
-import { afterEach, beforeAll, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
 import { act, cleanup, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { useEffect, useRef } from "react";
 import { Text, View } from "react-native";
@@ -17,6 +17,7 @@ import { makeFixtureSource } from "@app/data/fixture";
 import type { ItemId, WaterSource } from "@app/data";
 import { HOME, type Route, type SystemBack } from "@app/ui";
 import { LIGHT } from "./theme";
+import { drawPhoneScreensOnWeb } from "./storeShots";
 /** (T405) the water's ‹: "Back" inside a water, "Back to <where it goes>" for the first one (`waterBackName`) */
 const BACK = /^Back( to .+)?$/;
 
@@ -90,6 +91,19 @@ const where = () => `${screen.queryByLabelText(SEARCH_BAR.close) ? "search open"
 const back = () => { let h = false; act(() => { h = androidBack(); }); return h; };
 
 describe("the top bar (T48): the search field alone, always open, the sync icon at its end", () => {
+  // (T909) the bell and the sync icon are the PHONE's bar's (the website's bar has neither, below): these draw the phone's
+  // controls the way the store-shots web build does (T319, `storeShots.ts`), the same `PhoneBarControls` the phone draws
+  beforeEach(() => drawPhoneScreensOnWeb(true));
+  afterEach(() => drawPhoneScreensOnWeb(false));
+
+  it("(T909) the website's bar draws neither the sync icon nor the bell", async () => {
+    drawPhoneScreensOnWeb(false);
+    mount();
+    await settle();
+    expect([!!screen.queryByTestId("search-field"), screen.queryByTestId("sync-button"), screen.queryByTestId("inseason-bell")])
+      .toEqual([true, null, null]);
+  });
+
   it("the field is drawn on both maps, called the same aloud, with ONE placeholder from the list that never cycles", async () => {
     mount();
     await settle();
