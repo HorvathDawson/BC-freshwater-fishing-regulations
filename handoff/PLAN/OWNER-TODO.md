@@ -2781,3 +2781,7 @@ More questions (recommended answer first):
   calendar shifts around" -> the app chat (ticket number theirs). Seen in the shots: the sheet's height changes with the
   month (August has six week rows, July five), and the last week's days are spread across the row instead of sitting
   under their weekdays (Aug 30-31 under Sun and Tue; Jul 26-31 spaced evenly).
+- 2026-11-18 20:46, owner (main chat), verbatim: "You can run that command" (the RUN_TOKEN secret put) -> DONE by the
+  main chat 20:46: `wrangler secret put RUN_TOKEN -c deploy/prod/feeds-placeholder.wrangler.toml` from
+  app/workers/feeds/.run-token.prod, "Success! Uploaded secret RUN_TOKEN" on bc-fishing-feeds. That command only; every
+  other production step stays the owner's.
