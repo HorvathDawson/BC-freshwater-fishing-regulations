@@ -1,6 +1,6 @@
 # T916 — "This water in the rule book p.7" on Sweltzer River points at the wrong page
 
-Status: IN PROGRESS — owner OK (round 1 + the foot placement), merged into the 0.8.3 integration (app/int-083); left (Claude): ship with 0.8.3 (the release carries `row`).
+Status: DONE — shipped in 0.8.3 (merged de2cb25bb; staging + production 2026-11-19).
 
 Owner 2026-11-19 ~12:55 (main chat, phone screenshot of Sweltzer River, Regulations, What you can keep, 0.8.2 on
 staging), verbatim: "Has page 7 link at top (which is wrong) with real page 26 at bottom. Should remove top one...".

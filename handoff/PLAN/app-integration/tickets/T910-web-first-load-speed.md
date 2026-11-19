@@ -1,6 +1,6 @@
 # T910 — Web first load: Lighthouse performance 46 on staging; make the first visit fast
 
-Status: IN PROGRESS (lane app/t910-web-speed: cheap wins + the owner's three (11:40) + home description committed, measured; left (Claude): review, then staging).
+Status: DONE — shipped in 0.8.3 (merged e45dc6957, 398577e51; staging + production 2026-11-19).
 
 Owner 2026-11-19 ~07:40 (main chat), a Lighthouse run on staging (mobile): Performance 46, Accessibility 95, Best
 Practices 81, SEO 58; FCP 7.1 s, LCP 7.9 s, TBT 530 ms, Speed Index 7.1 s, CLS 0.011; verbatim: "staging got this??"

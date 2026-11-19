@@ -1,6 +1,6 @@
 # T903 — Map modes paint only what differs from a default (Salmon red, Conditions/Runs grey)
 
-Status: IN PROGRESS — `paintDefault` (clean A/B ~10:40) and `labelMatch` (stressed A/B ~13:00: zoom +61/+78 % fps, pans and switches not worse) ON by default on branch app/t903-land; left (Claude): integrate (main chat)
+Status: DONE — shipped in 0.8.3 (merged 6106a9fd8; staging + production 2026-11-19).
 
 Owner 2026-11-19 ~01:33 (app chat), verbatim: "i feel like salmon painting is still slow. maybe it should default stream
 color to red then only paint things different then that? might reduce the load when on salmon view? then goes back to

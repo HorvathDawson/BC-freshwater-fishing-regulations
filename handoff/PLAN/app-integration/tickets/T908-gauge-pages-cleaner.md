@@ -1,6 +1,6 @@
 # T908 — Gauge (forecast) pages: cleaner, answering how the river is now
 
-Status: IN PROGRESS (main chat; lane app/t908-gauge-page; pictures to the owner before it lands; web only). left (Claude): owner sees pictures, then integrate.
+Status: DONE — shipped in 0.8.3 (merged bcb7d775e; staging + production 2026-11-19).
 
 Owner 2026-11-19 ~07:00 (main chat), on https://canifishthis.ca/gauge/08MG013/harrison-river-near-harrison-hot-springs,
 verbatim: "can we clean up the forecast pages? … right now it feels very busy and liek it doesnt provide the info we want?"

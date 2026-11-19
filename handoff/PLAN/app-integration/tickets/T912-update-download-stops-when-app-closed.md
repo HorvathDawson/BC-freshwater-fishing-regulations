@@ -1,6 +1,6 @@
 # T912 — A regulations data update stops downloading when the app is closed
 
-Status: IN PROGRESS (lane app/t912-bg-download: fixed + emulator walk; round 3 data worker fix 395779f2d, not deployed; left (Claude): integrate (0.8.3), staging data worker deploy).
+Status: DONE — shipped in 0.8.3 (merged 6a0545499, 4ebd13ecc; staging + production 2026-11-19).
 
 Owner 2026-11-19 ~10:50 (main chat), verbatim: "also iff i close app it doesnt continue to downlaod the regulation data
 updates." (He is on Android, Play 0.8.2 build 37; promoting it to closed testing for himself the same minute.)

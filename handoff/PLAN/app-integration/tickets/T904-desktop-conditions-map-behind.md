@@ -1,6 +1,6 @@
 # T904 — Desktop Conditions: the map fills the window behind; no white bars
 
-Status: IN PROGRESS (lane app/t904-conditions-desktop; left (Claude): owner sees pictures, then integrate).
+Status: DONE — shipped in 0.8.3 (merged 97b80400f; staging + production 2026-11-19).
 
 Owner 2026-11-19 ~06:40 (main chat), on a desktop staging shot of Conditions (Harrison River watershed: the "Flow vs.
 past years" key and the day strip sit on a full-width white bar under the map, and a white strip runs down the right

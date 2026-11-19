@@ -1,6 +1,6 @@
 # T913 — Play refuses review: the portrait lock declares a required hardware feature
 
-Status: IN PROGRESS (main chat; lane app/t913-portrait-optional; then 0.8.2 build 38 to Play internal).
+Status: DONE — shipped in 0.8.3 (merged 0813cc2b1; staging + production 2026-11-19).
 
 Owner 2026-11-19 ~11:05 (main chat), promoting 0.8.2 (37) to closed testing, pasted Play Console's stop: "We found
 some common issues that are preventing your app from being sent for review … Required hardware feature declarations

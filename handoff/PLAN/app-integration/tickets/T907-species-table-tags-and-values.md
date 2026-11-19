@@ -1,6 +1,6 @@
 # T907 — "Species and limits" table: no B.C./DFO tag on rows, one value column, where each answer comes from
 
-Status: IN PROGRESS — round 1 built on lane app/t907-species-table (2026-11-19 ~10:30), round 2 (row tag look, doubled "Tributaries") ~12:55; left (Claude): owner sees round-2 pictures, then integrate (main chat) + a new staging data release.
+Status: DONE — shipped in 0.8.3 (merged 07342f70b, 4adce2db0; staging + production 2026-11-19).
 
 Owner 2026-11-19 ~06:50 (main chat), on a dark staging shot of the "Species and limits" table (Salmon DFO closed;
 Trout and char B.C. Release ⌄; Kokanee B.C. release ›; Whitefish 15 a day; …), verbatim: "for 4. in the menu for each

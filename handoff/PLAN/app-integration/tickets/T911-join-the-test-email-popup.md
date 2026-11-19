@@ -1,6 +1,6 @@
 # T911 — "Join the test" opens a small popup: email me, or copy the address
 
-Status: IN PROGRESS (built on app/t911-join-test; left (Claude): owner sees pictures, then staging).
+Status: DONE — shipped in 0.8.3 (merged e57342a5b; staging + production 2026-11-19).
 
 Owner 2026-11-19 ~07:55 (main chat), verbatim: "on the join the test buttons it should have a popup with either a
 straight to email button or a copy email option?"
