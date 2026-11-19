@@ -96,7 +96,17 @@ describe("T915: the day calendar on the web", () => {
     try {
       mount(1440);
       expect(screen.getByTestId("day-popover")).toBeTruthy();
-      expect(String(seen[0])).toContain('day popover: its button "regs-date" is not on the page');
+      // a resize while it is open measures again: still one report, not one per resize
+      // (react-native-web's window size is the root element's client box)
+      const size = (w: number) => act(() => {
+        Object.defineProperty(document.documentElement, "clientWidth", { configurable: true, value: w });
+        window.dispatchEvent(new Event("resize"));
+      });
+      try { size(1500); size(1600); } finally {
+        delete (document.documentElement as { clientWidth?: number }).clientWidth;   // jsdom's own again
+        window.dispatchEvent(new Event("resize"));
+      }
+      expect(seen.map(String)).toEqual([expect.stringContaining('day popover: its button "regs-date" is not on the page')]);
     } finally { undo(); }
   });
 });

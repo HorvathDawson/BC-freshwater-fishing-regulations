@@ -10,7 +10,7 @@
  */
 import { useId, useLayoutEffect, useRef, useState } from "react";
 import { Modal, View, useWindowDimensions } from "react-native";
-import { SHEET_WORDS, WORDS, reportFailure } from "@app/core";
+import { SHEET_WORDS, WORDS, reportOnce } from "@app/core";
 import { tabsAsRail, useBackLayer, useLayoutClass } from "@app/ui";
 import { DayCalendar } from "../DayCalendar";
 import { Pressable } from "../Pressable";
@@ -49,8 +49,9 @@ export function DaySheet({ open, onClose, palette, day, onDay, range, now, ancho
     setView({ width: window.innerWidth, height: window.innerHeight });
     const el = anchorEl(anchor);
     if (!el) {
-      // a shown failure, reported: the card is still drawn (at the window's top), never a calendar that does not open
-      reportFailure(new Error(`day popover: its button "${anchor}" is not on the page`));
+      // a shown failure, reported: the card is still drawn (at the window's top), never a calendar that does not open.
+      // Once per button for the run: a resize while it is open measures again, and a missing button stays missing
+      reportOnce(`day-popover-anchor:${anchor}`, new Error(`day popover: its button "${anchor}" is not on the page`));
       setAt(null);
       return;
     }
