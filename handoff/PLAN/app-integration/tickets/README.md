@@ -303,7 +303,7 @@ reads both files; a ticket closed here moves there once its lane is finished wit
 | T900 | Gear and Methods: cleaner, easier to read (owner) | IN REVIEW — approved proposal on staging (a3a982a17); owner: OWNER-TODO "Test 0.8.2 on staging (2026-11-19 morning)" | main chat | owner 2026-11-19 ~01:12; proposal approved ~03:25, in 0.8.2 |
 | T901 | The web's "Get the app": a Google Play button and an App Store button (owner) | DONE | 2d3e89299 | owner 2026-11-19 ~01:14 |
 | T902 | Desktop Runs: every fish chip shows, no sideways scroll (owner) | DONE | cd5740b21 | owner 2026-11-19 ~01:16 |
-| T903 | Map modes paint only what differs from a default (Salmon red, Conditions/Runs grey) (owner) | IN PROGRESS — clean rerun: pans the same (old pan number measured the switch), zoom faster; paintDefault ON on app/t903-land; left (Claude): integrate (main chat) | app chat | owner 2026-11-19 ~01:33 |
+| T903 | Map modes paint only what differs from a default (Salmon red, Conditions/Runs grey) (owner) | IN PROGRESS — clean rerun: pans the same (old pan number measured the switch), zoom faster; paintDefault ON, and labelMatch ON after its stressed A/B (zoom +61/+78 % fps), on app/t903-land; left (Claude): integrate (main chat) | app chat | owner 2026-11-19 ~01:33 |
 | T904 | Desktop Conditions: the map fills the window behind; no white bars (owner) | IN PROGRESS | main chat | owner 2026-11-19 ~06:40 |
 | T905 | Shrink the live salmon feed back under its old size (owner) | OPEN | main chat | owner 2026-11-19 ~06:40, later |
 | T906 | The map buttery smooth: measure more speed-ups beside T903 (owner) | IN PROGRESS | main chat | owner 2026-11-19 ~06:50 |
