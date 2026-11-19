@@ -2895,3 +2895,5 @@ More questions (recommended answer first):
   T881 … T883 … T886 … ) except sunrise/set should be a bit better in same spot" -> T879 two headers one table, T881 gauge
   map, T883 "How this was decided", T886 hatchery drawing: approved for 0.8.2. T878: keep the spot under the date, make
   the line look better (variants to him). Also ~22:50 (dialog): the salmon map key's short label is "Check DFO" (T882).
+- 2026-11-18 ~23:14-23:16, owner (app chat): T878 sun line look 2 ("i like 2": sunrise/sunset icons "9:01  17:17" under
+  the date); T887 salmon keep in light: option B ("this is good too Option B": bright green with a thin dark casing).
