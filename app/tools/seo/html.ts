@@ -125,7 +125,7 @@ export function aboutBody(site: Site, asOf: string): string {
 
 /** where privacy questions go: a placeholder until the owner sets the mailbox up (OWNER-TODO) */
 export const PRIVACY_EMAIL = "privacy@canifishthis.ca";
-export const PRIVACY_EFFECTIVE = "2026-11-14";
+export const PRIVACY_EFFECTIVE = "2026-11-19";
 
 /** (owner 2026-10-29) THE PRIVACY POLICY. Every claim here is checked against the code (see T268): change the app, change this. */
 export function privacyBody(site: Site, asOf: string): string {
@@ -137,7 +137,7 @@ export function privacyBody(site: Site, asOf: string): string {
     `<h2>The short version</h2><ul>` +
     `<li>Your photos and the spots you save stay on your device, and the app never sends me your GPS position. Two things that can show roughly where you were do leave it, both explained below: a saved spot’s place, rounded to about 1 km, goes to a weather service, and a problem report you choose to send includes the middle of the map you were looking at.</li>` +
     `<li>The app sends me two things: a problem report, only when you press Send, and, unless you switch it off, a short error report when the app itself fails.</li>` +
-    `<li>I do not sell or share your information, and I use no advertising or analytics services.</li></ul>` +
+    `<li>I do not sell or share your information, and I use no advertising. The website counts visits with Cloudflare Web Analytics, which sets no cookies and records no identifier; the phone app does not use it.</li></ul>` +
     `<h2>Location</h2><p>If you allow it, the app uses your location while it is open, to show where you are on the map, ` +
     `to show what is near you, and to pin a spot where you are standing. It is used on your device and is not sent to me. Two things described below can show roughly where you were: the weather request for a spot you pinned where you stood, and the map centre in a problem report you choose to send. ` +
     `The app never uses your location in the background. You can turn the permission off in your phone settings; the map still works.</p>` +
@@ -155,6 +155,9 @@ export function privacyBody(site: Site, asOf: string): string {
     `and, as with any web request, your IP address, which Cloudflare handles to serve the request. ` +
     `These downloads are the same for everyone and do not include your location, your spots or any identifier. ` +
     `My servers, not the app, fetch the underlying data from Environment and Climate Change Canada and Fisheries and Oceans Canada.</p>` +
+    `<h2>Visit counts on the website</h2><p>The website (not the phone app) loads Cloudflare Web Analytics, which counts page visits so I can see how the site is used. ` +
+    `It sets no cookies, stores nothing on your device and records no identifier; Cloudflare sees your IP address as it does for any request. ` +
+    `Cloudflare may also run a short bot check on the website to keep automated traffic away.</p>` +
     `<h2>Map and satellite imagery</h2><p>The map is drawn from files on my servers. Its fonts and symbols come from my servers too. When you turn satellite imagery on, the app asks Esri for the picture tiles of the area ` +
     `you are looking at, so Esri sees those tile requests and your IP address. Imagery is shown only while online and is not stored.</p>` +
     `<h2>Sharing and directions</h2><p>Share makes a link to the water you are viewing (the water, the view, the place on the map and the day) and hands it to the app you pick. Directions opens Google Maps with a spot’s parking point. Both happen only when you tap them, and what the other app does with what it receives follows that app’s own policy.</p>` +

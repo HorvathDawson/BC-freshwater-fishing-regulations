@@ -28,3 +28,10 @@ With a browser user agent, both https://canifishthis.ca/ and staging carry
 advertising or analytics services". Owner asked "this seems fine to have?" — answered: fine for speed; but keep it ⇒
 reword the privacy page, or turn it off in Cloudflare (his dashboard). Waiting on his pick (To-Do page row). Source maps
 stay unpublished on purpose (crash symbolication keeps them private). The extension rows are his browser's React DevTools.
+
+## Owner 2026-11-19 ~07:55: keep the beacon, reword the privacy page; and the "My location" aria
+Owner, verbatim: "just rewoird the page it is all internal for me". The privacy page now says the website counts visits
+with Cloudflare Web Analytics (no cookies, no identifier; the phone app does not use it) and that Cloudflare may run a
+bot check; effective date 2026-11-19. His Lighthouse accessibility shot: "[aria-*] attributes do not match their roles"
+on the map rail's My location (role=button with aria-selected): now aria-pressed, as the app's other toggle buttons
+(BasinDays, RunsControls); pinned in MapRail.shell.test.tsx (fails with aria-selected).

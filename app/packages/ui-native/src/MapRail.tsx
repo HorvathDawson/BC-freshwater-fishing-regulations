@@ -73,7 +73,7 @@ export function MapRail({ palette, onLayers, layersChanged = 0, top = 0, me, chi
                    ...palette.lift }}>
       {buttons.map((b, i) => (
         <Pressable {...hitProps({ w: SIZE, h: SIZE })} key={b.k} ref={coach(b.k)} onPress={b.onPress} accessibilityRole="button" accessibilityLabel={b.label}
-                   aria-selected={"selected" in b ? b.selected : undefined}
+                   aria-pressed={"selected" in b ? b.selected : undefined}
                    style={({ pressed }) => ({
                      width: SIZE, height: SIZE, alignItems: "center", justifyContent: "center",
                      backgroundColor: pressed || ("selected" in b && b.selected) ? palette.tint : palette.card,
