@@ -2793,3 +2793,13 @@ More questions (recommended answer first):
 - 2026-11-18 ~20:51, owner (main chat), verbatim: "Also the speed on this release is better so it wasn't this build it
   was always a bit of an issue" -> T876 (app chat): the quick zoom lag is NOT a 0.8.1 regression (0.8.1 feels faster
   to him); an old issue, so it does not hold the production phone builds.
+- 2026-11-18 ~20:53, owner (app chat dialog, after the pictures): T871 trout "counts toward" once: "Not this change"
+  (DROPPED, the table stays). T872 Conditions watershed fold, T873 short Help page, T874 walkthrough Back/Next/Skip:
+  "Help page OK, Conditions fold OK, Walkthrough OK" -> they land (after the production website's sha).
+- 2026-11-18 ~20:53, owner (main chat), Babine Lake — Main Body shot
+  (/Users/dawson.horvath/.claude/uploads/b8ddfca9-44eb-400e-a9bf-bd89b4b0f359/a6d620fa-image.png), verbatim: "I feel like
+  we could order this better to allow salmon to be in the table but still have the two timeline calendars and big words
+  easy to read and make sense/know it is different to between them and easily know which is which". Dialog pick: "Two
+  headers, one table (Recommended)": both status blocks first (SALMON · DFO and GAME FISH · B.C., each its big word and
+  its own year line, labelled), then ONE fish list with each row tagged DFO / B.C. -> the app chat (ticket number
+  theirs); real pictures to the owner before it lands.
