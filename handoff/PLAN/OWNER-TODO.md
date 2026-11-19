@@ -2907,3 +2907,8 @@ More questions (recommended answer first):
   schedules removed (its workers.dev address off too); deploy/prod/drop-v1.sh freed 20,019 objects / 8.57 GB of the v1
   layout; smoke --production http 8/0/0 after. Later ticket: the branch structure (main / staging / feature branches),
   with the working branch protected like main.
+- 2026-11-18 ~23:40, owner (app chat), verbatim: "Like tributary rules ... yes label as from tributarie inheritance" -> T883:
+  a rule reaching a water through its parent's tributaries/parts is labelled that way, never "this water's rule".
+  "I want you to add the screenshots to the stores you can give them titles." -> T319: Claude picks the shots and titles
+  and uploads them to Play and the App Store once the 0.8.2 UI is final (prepared as a dry run first).
+  "You can do clean ups" -> the five 11-14 clean-up calls with their defaults (Claude, tonight).
