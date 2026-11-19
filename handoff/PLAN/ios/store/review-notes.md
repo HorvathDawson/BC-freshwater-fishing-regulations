@@ -11,9 +11,10 @@ rivers and streams, coloured by what the regulations allow on the chosen day, an
 
 LOGIN: none. There are no accounts and no sign-in. Every feature is open when the app starts.
 
-FIRST OPEN: the app downloads its data (regulations, map tiles and basemap), about 480 MB, once, so it works offline
-afterwards. A progress screen shows while this happens; it takes a few minutes on Wi-Fi. Please review on Wi-Fi. After it
-finishes, all rules and the map work without a connection.
+FIRST OPEN: the app downloads its data (regulations, map tiles and basemap), about 500 MB, once, so it works offline
+afterwards. A progress screen shows while this happens; it takes a few minutes on Wi-Fi and keeps going if you switch to
+another app (iOS background transfer). Please review on Wi-Fi. After it finishes, all rules and the map work without a
+connection.
 
 WHERE THE DATA COMES FROM: government information. The rules are compiled from the BC Freshwater Fishing Regulations
 Synopsis and the Province of BC's in-season changes (Province of BC), federal salmon notices (Fisheries and Oceans Canada),
@@ -40,11 +41,13 @@ PRIVACY: no tracking, no ads, no analytics SDK. Crash reports (on by default; sw
 reports (sent only when the user presses Send) go to our own server. Satellite tiles come from Esri only if the user picks Satellite. Policy: https://canifishthis.ca/privacy
 
 HOW TO REACH EACH FEATURE:
-- Map and regulations: tap any water on the map; its rules open in a panel.
-- Day: the day picker on the map changes the date the colours and rules apply to.
-- Search: the search box on the map, by water name.
-- Conditions: on a water's panel, the Conditions view (river flow and level).
-- Salmon and run timing: the map mode control (Salmon, Run timing).
+The bottom bar has five tabs: Map, Conditions, Runs, Spots, More.
+- Map and regulations: Map tab; tap any water; its rules open in a panel. The Trout / Salmon switch changes which rules
+  colour the map.
+- Day: the day picker at the top of the map changes the date the colours and rules apply to.
+- Search: the search box at the top of the map, by water name.
+- Conditions: the Conditions tab (river flow and level against normal), or Conditions on a water's panel.
+- Salmon run timing: the Runs tab.
 - Saved spots: the Spots tab; add a spot, a note and a photo.
 - Gauge alerts and notifications: More, Notifications.
 - Glossary, About, Legal, Privacy policy, Contact, Report a problem: More.
@@ -52,6 +55,15 @@ HOW TO REACH EACH FEATURE:
 
 CONTACT: support@canifishthis.ca
 ---
+
+## Add for a STAGING test build (TestFlight Beta App Review of a staging build only)
+"This is a test build. It reads our test data server and has tester switches (an environment switch and Simulate offline,
+under More); please ignore them. The App Store build has neither."
+
+## Licence agreement (App Store Connect, App Information > License Agreement)
+Claude's recommendation 2026-11-19: keep Apple's STANDARD EULA (the default; enter nothing). The app has no accounts,
+purchases or user content to govern; the "not the official regulations" disclaimer is in the app (More, Legal), the
+description and the review notes. A custom EULA would be a legal document to write and keep; the owner decides.
 
 ## Things to check before pasting (outside the block)
 1. Every tap path in "How to reach each feature" is from the fact sheet (`handoff/PLAN/play/listing.md`) and the store
