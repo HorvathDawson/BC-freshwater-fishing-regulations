@@ -97,6 +97,15 @@ export function stepDay(day: Date | null, n: number, now: Date, range: DayRange,
   return inRange(range, next) ? chooseDay(next, now) : undefined;
 }
 
+/**
+ * (T874) The day the walkthrough's Next picks on "Pick another day": the day after the one shown, or, on the range's last
+ * day, the day before (so Next always picks one); undefined only when neither is in the range.
+ */
+export function guideDay(day: Date | null, now: Date, range: DayRange): Date | null | undefined {
+  const after = stepDay(day, 1, now, range);
+  return after !== undefined ? after : stepDay(day, -1, now, range);
+}
+
 export interface DayCell {
   readonly iso: string;
   readonly n: number;
@@ -117,11 +126,14 @@ export interface MonthVM {
   readonly prev: boolean;
   readonly next: boolean;
   readonly weekdays: readonly { short: string; long: string }[];
-  /** Sunday-first weeks; null is a blank before the 1st or after the last */
+  /** Sunday-first weeks, always `WEEKS_SHOWN` of seven (a cell's index is its weekday); null is a blank before the 1st or after the last */
   readonly weeks: readonly (readonly (DayCell | null)[])[];
   /** why days near here are greyed out, or null when the whole month and both neighbours are open */
   readonly reason: string | null;
 }
+
+/** (T877) the grid's weeks in every month: the most any month spans, so the grid's height never changes between months */
+const WEEKS_SHOWN = 6;
 
 export function monthVM(year: number, month: number, chosen: Date | null, now: Date, range: DayRange): MonthVM {
   const firstOf = new Date(year, month, 1, 12);
@@ -140,8 +152,10 @@ export function monthVM(year: number, month: number, chosen: Date | null, now: D
                  label: fullDay(d) + (today ? DAY_PICKER.cellToday : "") + (isChosen ? DAY_PICKER.cellChosen : "")
                         + (disabled ? DAY_PICKER.cellOff : "") });
   }
-  while (cells.length % 7) cells.push(null);
-  const weeks = Array.from({ length: cells.length / 7 }, (_, w) => cells.slice(w * 7, w * 7 + 7));
+  // (T877, owner 2026-11-18: "The calendar shifts around") ALWAYS six weeks: a month spans 4 to 6, and a grid that
+  // followed it changed the sheet's height (and moved the page behind it) on every step between months
+  while (cells.length < WEEKS_SHOWN * 7) cells.push(null);
+  const weeks = Array.from({ length: WEEKS_SHOWN }, (_, w) => cells.slice(w * 7, w * 7 + 7));
   const prev = isoOf(new Date(year, month, 0, 12)) >= range.first;
   const next = isoOf(new Date(year, month + 1, 1, 12)) <= range.last;
   const reasons: string[] = [];

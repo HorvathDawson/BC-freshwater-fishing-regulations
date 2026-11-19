@@ -76,9 +76,8 @@ describe("(T839) the walkthrough card keeps clear of the rail", () => {
     const { useCoachRegistry } = await import("./CoachMarks");
     const { renderHook } = await import("@testing-library/react");
     const reg = renderHook(() => useCoachRegistry()).result.current;
-    render(<GuideCard guide={{ open: true, pending: true, at: 1, paused, reopen: noop, finish: noop, next: noop, back: noop, resume: noop, pass: noop }}
+    render(<GuideCard guide={{ open: true, pending: true, at: 1, paused, reopen: noop, finish: noop, next: noop, go: noop, back: noop, resume: noop, pass: noop }}
       facts={{ water: null, searching: false, query: "", selected: null, open: null }}
-      acts={{ search: noop, select: noop, openWater: noop, view: noop }}
       palette={LIGHT} registry={reg} top={60} bottom={0} {...(left === undefined ? {} : { left })} />);
     return getComputedStyle(screen.getByTestId("guide")).left;
   }

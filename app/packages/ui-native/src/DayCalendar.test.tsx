@@ -45,6 +45,31 @@ describe("<DayCalendar>", () => {
     expect(new Set(sizes.map((s) => s.join(" ")))).toEqual(new Set(["44px 44px"]));
   });
 
+  it("T877 (owner 2026-11-18: \"The calendar shifts around\"): six weeks every month, every cell a fixed seventh, so each day sits under its weekday", () => {
+    // jsdom has no layout, so the column is read off the styles: every cell of a row (blank or day) is the same fixed
+    // seventh of the row and none grows, so a cell's left edge is its index × a seventh — its column is its index
+    const WEEK = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+    const seen = (y: number, mo: number) => {
+      mount(new Date(y, mo, 15, 12));
+      const rows = [...screen.getByTestId("day-grid").children] as HTMLElement[];
+      const off: string[] = [];
+      rows.forEach((row) => [...row.children].forEach((c, col) => {
+        const st = (c as HTMLElement).style, label = c.getAttribute("aria-label");
+        if (Math.abs(parseFloat(st.width) - 100 / 7) > 0.01 || !st.width.endsWith("%")) off.push(`${label ?? "blank"}: width ${st.width || "none"}`);
+        if (st.flexGrow && st.flexGrow !== "0") off.push(`${label ?? "blank"}: grows ${st.flexGrow}`);
+        if (label && WEEK.indexOf(label.split(",")[0]!) !== col) off.push(`${label} in column ${col}`);
+      }));
+      cleanup();
+      return [rows.length, rows.map((r) => r.children.length).join(""), off];
+    };
+    expect([seen(2026, 1), seen(2026, 6), seen(2026, 7), seen(2026, 9)]).toEqual([
+      [6, "777777", []], [6, "777777", []], [6, "777777", []], [6, "777777", []]]);
+    // the week heads are the same fixed sevenths, so a column's head sits over its days
+    mount(null);
+    const heads = [...screen.getByTestId("day-heads").children].map((h) => (h as HTMLElement).style.width);
+    expect([heads.length, new Set(heads).size, Math.abs(parseFloat(heads[0]!) - 100 / 7) < 0.01]).toEqual([7, 1, true]);
+  });
+
   it("picking a day moves THE day (local noon); picking today, or Today, is null", () => {
     const { picked } = mount(new Date(2026, 9, 10, 12));
     fireEvent.click(btn("Thursday, October 15"));

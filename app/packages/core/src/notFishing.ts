@@ -21,7 +21,6 @@ export const NOT_FISHING_WORDS = {
   } satisfies Record<NotFishingKind, string>,
   /** a tile without a `kind` (an older atlas): the three together */
   anyAtlas: "a sewage lagoon, mine tailings pond or dump",
-  help: "Sewage lagoons, mine tailings ponds and dumps: man-made water nobody fishes. No regulations; tap one to see what it is.",
 } as const;
 
 export interface NotFishingSheetVM {

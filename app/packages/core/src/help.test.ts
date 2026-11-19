@@ -7,7 +7,7 @@ import { GEAR_LEGEND } from "./method";
 import { RUN_STATES } from "./runTiming";
 import { SALMON_MAP_STATUSES } from "./salmon";
 import { WATER_STATUSES } from "./status";
-import { GUIDE_WATER, HELP_WORDS, SYNC_KINDS, WALKTHROUGH_VERSION, guideResumeAt, guideSteps, guideText, helpVM,
+import { GUIDE_WATER, HELP_MAP_KEY, HELP_WORDS, SYNC_KINDS, WALKTHROUGH_VERSION, guideResumeAt, guideSteps, guideText, helpVM,
          walkthroughSeen, withGuideAt, withSeen, WALKTHROUGH_WORDS, type GuideStepWords } from "./help";
 
 describe("the walkthrough (T293)", () => {
@@ -27,9 +27,10 @@ describe("the walkthrough (T293)", () => {
     for (const s of app) { expect(s.title.length, s.key).toBeGreaterThan(3); expect(s.body.length, s.key).toBeGreaterThan(20); }
     expect(new Set(app.map((s) => s.key)).size).toBe(app.length);
   });
-  it("(T824) the first card says each step HIGHLIGHTS what to tap; no card says ring", () => {
+  it("(T824, T874) the first card says how the walk goes (Next does what is highlighted); no card says ring", () => {
     expect(guideText(guideSteps("app")[0]!.body, { name: GUIDE_WATER.name, letters: GUIDE_WATER.letters }))
-      .toBe("Let's find the Vedder River: tap the search bar and type “ved”. Each step highlights what to tap: tap it, or tap Show me.");
+      .toBe("I'll walk you through the Vedder River: Next searches for it, or tap the search bar and type “ved” yourself. "
+        + "On every step, Next does what is highlighted.");
     const all = [...guideSteps("app"), ...guideSteps("web")].flatMap((s) => [s.title, s.body]);
     for (const t of [...all, ...(Object.values(WALKTHROUGH_WORDS) as unknown[]).filter((v): v is string => typeof v === "string")])
       expect(t, t).not.toMatch(/\bring(s|ed)?\b/i);
@@ -40,6 +41,21 @@ describe("the walkthrough (T293)", () => {
       expect(sentences.length, s.key).toBeLessThanOrEqual(["search", "done"].includes(s.key) ? 2 : 1);
       for (const t of sentences) expect(t.split(/\s+/).length, t).toBeLessThanOrEqual(20);
     }
+  });
+  it("(T874, owner: \"every next should be show me logic\") each DO step's words say what Next does; no word says Show me", () => {
+    const water = { name: GUIDE_WATER.name, letters: GUIDE_WATER.letters };
+    const said = Object.fromEntries(guideSteps("app").filter((s) => s.kind === "do").map((s) => [s.key, guideText(s.body, water)]));
+    expect(said).toEqual({
+      search: "I'll walk you through the Vedder River: Next searches for it, or tap the search bar and type “ved” yourself. "
+        + "On every step, Next does what is highlighted.",
+      pick: "Next opens its page, or tap Vedder River in the list yourself.",
+      day: "Next picks tomorrow, or tap the date and pick the day you plan to go.",
+      conditions: "Next opens Conditions, how high the river runs; its dot says low, normal or high for this date.",
+    });
+    const all = [...guideSteps("app"), ...guideSteps("web")].flatMap((s) => [s.title, s.body]);
+    for (const t of [...all, ...(Object.values(WALKTHROUGH_WORDS) as unknown[]).filter((v): v is string => typeof v === "string")])
+      expect(t, t).not.toMatch(/show me/i);
+    expect(Object.keys(WALKTHROUGH_WORDS)).not.toContain("showMe");
   });
   it("the web's walk is the same walk (T302: spots are the phone app's): its last card names Help alone", () => {
     const web = guideSteps("web"), app = guideSteps("app");
@@ -104,9 +120,33 @@ describe("the Help page (T248)", () => {
     expect([said("status-closed"), said("gear-bait"), said("gear-fly"), said("status-no_access"), said("tidal")])
       .toEqual(["Closed", "Bait ban", "Fly fishing only", "No public access", "Tidal water"]);
   });
-  it("every row has a name and a sentence; no swatch carries a hex colour (tokens only)", () => {
-    for (const r of rows) { expect(r.name.length, r.key).toBeGreaterThan(1); expect(r.text.length, r.key).toBeGreaterThan(10); }
+  it("every row has a name; no swatch carries a hex colour (tokens only)", () => {
+    for (const r of rows) expect(r.name.length, r.key).toBeGreaterThan(1);
     expect(JSON.stringify(helpVM())).not.toMatch(/#[0-9a-fA-F]{3,8}\b/);
+  });
+  it("(T873, owner 2026-11-18: \"way way to verbose\") a page read in ten seconds: no intro, few short notes, short facts", () => {
+    // a note only where the name alone would mislead or leave out what to do: these, word for word
+    expect(Object.fromEntries(rows.filter((r) => r.note).map((r) => [r.key, r.note]))).toEqual({
+      "status-base": "Only the region's rules apply.",
+      "status-no_access": "Regulations still apply; check access first.",
+      tidal: "DFO's tidal rules apply here.",
+      "run-none": "Not the same as no fish.",
+      "sync-stale": "Tap it, or restart the app.",
+      "sync-error": "Tap the red mark to retry.",
+      bell: "Changes not on the map yet.",
+      "fresh-stale": "Refresh before relying on it.",
+      "fresh-unknown": "No date recorded.",
+      "fresh-dated": "Map base data: age doesn't matter.",
+    });
+    expect(HELP_WORDS.facts.app).toEqual(["Regulations, the map and your spots work with no signal.",
+                                          "Gauges and weather need a connection.", "Big updates wait for Wi-Fi."]);
+    for (const t of [...HELP_WORDS.facts.app, ...HELP_WORDS.facts.web]) expect(t.split(/\s+/).length, t).toBeLessThanOrEqual(12);
+    // the map's key leads the page; every section title is short
+    expect(helpVM().slice(0, HELP_MAP_KEY.length).map((s) => s.key)).toEqual([...HELP_MAP_KEY]);
+    for (const s of helpVM()) expect(s.title.split(/\s+/).length, s.title).toBeLessThanOrEqual(5);
+    // (T860) one speaker: the app is "I", never "we"
+    const all = JSON.stringify([HELP_WORDS, helpVM().map((s) => s.rows.map((r) => [r.name, r.note]))]);
+    expect(all).not.toMatch(/\b(we|we're|we've|our|us)\b/i);
   });
   it("the sync rows carry the icon's own label, kind for kind", () => {
     const sync = rows.filter((r) => r.swatch.kind === "sync").map((r) => r.swatch.kind === "sync" ? r.swatch.sync.kind : null);
