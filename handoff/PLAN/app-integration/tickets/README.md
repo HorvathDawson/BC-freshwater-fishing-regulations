@@ -318,12 +318,8 @@ reads both files; a ticket closed here moves there once its lane is finished wit
 | T884 | A fish sheet's big "20 a day" is cut off at the top on an iPhone (owner) | IN PROGRESS | app chat, lane app/t884-t886-clip-hatchery-art | owner 2026-11-18 ~21:30 |
 | T886 | "How to tell a hatchery fish": a natural fish (the loader's coho), not a smiling one (owner) | IN PROGRESS | app chat, lane app/t884-t886-clip-hatchery-art | owner 2026-11-18 ~21:30 |
 | T878 | Sunrise/sunset moves to a small line under the date; the empty place slot collapses (owner) | OPEN | app chat | owner 2026-11-18 ~20:49; built, lands after the owner sees the pictures |
-| T879 | "What you can keep": two headers, one table — salmon in the one fish list, each row tagged DFO / B.C. (owner) | PARTIAL — left (Claude): merge into 0.8.2 | app chat | owner 2026-11-18 ~20:53; approved ~22:58 ("all are good"); lane app/t879-two-headers-one-table |
 | T881 | Conditions: the gauge map only where it draws a gauge (none on Babine Lake — Main Body); one map size, the larger, fitted, no Fit / Larger map (owner) | OPEN — built; lands after the owner sees the pictures | lane app/t881-gauge-map | owner 2026-11-18 ~21:05 |
-| T882 | Salmon: DFO's "To be determined" says so instead of "Check DFO"; green whenever any salmon is open (owner) | IN PROGRESS | app chat (lane app/t882-to-be-determined) | owner 2026-11-18 ~21:18 |
 | T883 | Every fish's "How this was decided" sheet: one readable layout (answer, then the steps that made it, each with its source), trout and other fish alike (owner) | OPEN — proposal; lands only on the owner's yes | app chat | owner 2026-11-18 ~21:30 |
-| T884 | A fish sheet's big "20 a day" is cut off at the top on an iPhone (owner) | IN PROGRESS | app chat, lane app/t884-t886-clip-hatchery-art | owner 2026-11-18 ~21:30 |
-| T886 | "How to tell a hatchery fish": a natural fish (the loader's coho), not a smiling one (owner) | IN PROGRESS | app chat, lane app/t884-t886-clip-hatchery-art | owner 2026-11-18 ~21:30 |
 | T887 | Salmon map, light mode: keep is a bright green, clearly apart from release, closed and check (owner) | OPEN | app chat | owner 2026-11-18 ~22:33 |
 
 ## Next after closed testing

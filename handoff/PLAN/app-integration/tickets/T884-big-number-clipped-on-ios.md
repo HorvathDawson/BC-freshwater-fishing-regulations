@@ -15,8 +15,6 @@ Apple the part highlighted is cut off weird because of row sizes".
 - Large numerals never clip on iOS or Android, at 1× and 200 % text.
 - A render test pins it (the line's height at or above what the numeral's face needs, or no fixed height).
 - Before / after on the iOS simulator: Cultus Lake → Black crappie.
-<<<<<<< HEAD
-=======
 
 ## Done (lane app/t884-t886-clip-hatchery-art, 1d19ef12b)
 - Cause: a big number is a nested Text with no lineHeight (LineText), so it sits in the OUTER line's box. Black
@@ -31,4 +29,3 @@ Apple the part highlighted is cut off weird because of row sizes".
 - iOS simulator, Cultus Lake → Black crappie, dark, text at default / 1.79× / 2.14× (test-bed scenario `t884`): before
   (the 0.8.1 simulator build, 447e7dff) shows the "20" cut at all three; after (a simulator build of 7a13d8671) shows it
   whole at all three. Pictures: scratchpad t884/T884-{before,after}-ios-{large,accessibility-medium,accessibility-large}.png.
->>>>>>> origin/redesign/stream-sections

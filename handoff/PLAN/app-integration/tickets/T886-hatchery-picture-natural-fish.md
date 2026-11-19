@@ -11,8 +11,6 @@ realistic I think. Better shape more natural smile. Could use the salmon general
   healed scar where it was on the clipped one, the spot ringed on both, so the comparison still teaches.
 - Colours only from tokens (check-colours); right in light, dark and the colour-blind theme.
 - Before / after pictures at 390 wide, dark and light.
-<<<<<<< HEAD
-=======
 
 ## Done (lane app/t884-t886-clip-hatchery-art, 7a13d8671)
 - The two drawings are the loader's coho (`tools/fish-loader/adipose_art.py` over the owner's `fish_loader.build()`), at
@@ -30,4 +28,3 @@ realistic I think. Better shape more natural smile. Could use the salmon general
 - Each drawing is 2:1 with a 2.5x close-up circle of the spot over the back, joined to the ring on the fish.
 - The face: the loader's jaw tab, gill swirl, plate, brow and cheek lines replaced by a plain eye, a straight closed mouth
   line and one gill arc.
->>>>>>> origin/redesign/stream-sections
