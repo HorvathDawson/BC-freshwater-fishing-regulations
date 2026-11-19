@@ -39,9 +39,9 @@ export const CHANGELOG: readonly ChangelogEntry[] = [
     version: "0.8.2", date: null, draft: true, notes: [
       "Smoother pinch-zoom on the map",
       "What you can keep: one table for every fish, each row marked DFO or B.C., and How this was decided names every rule behind it",
-      "Sunrise and sunset sit under the date, and the day calendar keeps every day under its weekday",
-      "A shorter Help page, and a walkthrough with just Back and Next",
-      "Conditions shows the gauge map only where it has a gauge to draw",
+      "Sunrise and sunset sit under the date, and daylight-only rules show that day's times",
+      "Each river forecast model has its own colour, and the map key always shows in full",
+      "When a new version is out, a note says what's new, then waits under the bell",
     ],
   },
   {
