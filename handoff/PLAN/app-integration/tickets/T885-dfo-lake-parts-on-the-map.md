@@ -22,7 +22,7 @@ section for now? We do try to map them if possible tho".
    lake is known), Mabel's and Osoyoos' lines from DFO's sign / bridge descriptions. Lake parts were deferred
    (memory: lake splits deferred); a radius circle is an area on the lake, not a split of it.
 
-Owner 2026-11-18 ~21:20, verbatim: "But all of these should not exist / Those 12 should still be mapped even if retired /
+Owner 2026-11-18 ~21:18, verbatim: "But all of these should not exist / Those 12 should still be mapped even if retired /
 To be determined I think we could change to actually say to be determined / However they should still show green if any
 salmon there are open only yellow if closed other then the to be determined". So: EVERY DFO place gets an extent, the
 17 dormant ones too (the day DFO prints one again it must already be on the map), and the 14 active lake parts. The

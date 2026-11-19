@@ -2822,7 +2822,7 @@ More questions (recommended answer first):
   words: "We should have had no unmapped stream items???! For lakes the parts should say in words in the salmon section
   for now? We do try to map them if possible tho" -> T885. Checked: no ACTIVE stream place is unmapped (the 12 stream
   rows are dormant); the 14 active ones are lake parts.
-- 2026-11-18 ~21:20, owner (main chat), verbatim: "But all of these should not exist / Those 12 should still be mapped
+- 2026-11-18 ~21:18, owner (main chat), verbatim: "But all of these should not exist / Those 12 should still be mapped
   even if retired / To be determined I think we could change to actually say to be determined / However they should
   still show green if any salmon there are open only yellow if closed other then the to be determined" -> T885 (every
   DFO place mapped, dormant ones too) + the app chat (the "Check DFO" word becomes "To be determined" where DFO printed
