@@ -2790,3 +2790,6 @@ More questions (recommended answer first):
   to be a ton of space used by the sunset/rise could we maybe move it to top of something? Where would be good?" Dialog
   pick: "Under the date (Recommended)": a small line under the day picker on the right ("☀ 5:07–21:52"), freeing the
   sunrise row and the empty row above it -> the app chat (ticket number theirs).
+- 2026-11-18 ~20:51, owner (main chat), verbatim: "Also the speed on this release is better so it wasn't this build it
+  was always a bit of an issue" -> T876 (app chat): the quick zoom lag is NOT a 0.8.1 regression (0.8.1 feels faster
+  to him); an old issue, so it does not hold the production phone builds.
