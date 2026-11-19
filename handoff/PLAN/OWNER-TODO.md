@@ -2839,3 +2839,7 @@ More questions (recommended answer first):
   shape for every fish and the trout sheets, generated the same way (main chat: the sources' data side); (2) iOS: the
   big "20 a day" clipped by its row height; (3) the "how to tell a hatchery fish" picture: a natural fish shape (the
   loading screen's salmon outline), not the smiling one. Pictures before anything lands.
+- 2026-11-18 ~21:40, owner (main chat), on T876's finding (labels cost half the render work on a quick pinch), verbatim:
+  "Does that mean labels render after. We care number one about the streams and colors and smoothness then labels can
+  be a little behind etc." -> T876 (app chat): priority order streams + colours + smooth motion first; labels may lag
+  (e.g. hidden or frozen during a pinch and drawn when it settles).
