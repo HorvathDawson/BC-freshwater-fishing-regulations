@@ -26,7 +26,7 @@ import type { Palette } from "./theme";
 const OWN_TOUCHES = (Platform.OS === "web" ? { touchAction: "none" } : {}) as object;
 
 export function MiniMap({ at, palette, theme, camera, height = 190, view = "plain",
-                          hint, standing, highlight, marker, pins, bare, groups, fit,
+                          hint, standing, highlight, marker, pins, bare, groups,
                           basemap, style, trace, zoomControls, waterLine }: {
   at: TileEndpoints; palette: Palette; theme: string; camera: Camera;
   height?: number; view?: string; hint?: string;
@@ -40,8 +40,6 @@ export function MiniMap({ at, palette, theme, camera, height = 190, view = "plai
   bare?: boolean;
   /** Which layer groups to draw. Omitted, the style's own defaults apply. */
   groups?: Record<string, boolean>;
-  /** Send the camera to a subject — the search map opens on the best match. */
-  fit?: MapProps["fit"];
   basemap?: MapProps["basemap"];
   /** The route overlay — see MapProps.trace. */
   trace?: MapProps["trace"];
@@ -61,7 +59,7 @@ export function MiniMap({ at, palette, theme, camera, height = 190, view = "plai
                   { backgroundColor: palette.tint, overflow: "hidden" }, OWN_TOUCHES, style]}>
       <Map at={at} theme={theme} view={view} initial={camera} standing={standing}
            highlight={highlight} marker={marker} pins={pins} bare={bare} groups={groups}
-           fit={fit} basemap={basemap} trace={trace} zoomControls={zoomControls} waterLine={waterLine} onDrawn={onDrawn} />
+           basemap={basemap} trace={trace} zoomControls={zoomControls} waterLine={waterLine} onDrawn={onDrawn} />
       {hint && (
         <View style={{ position: "absolute", left: 12, bottom: 12, borderRadius: palette.r.pill,
                        paddingVertical: 7, paddingHorizontal: 13,

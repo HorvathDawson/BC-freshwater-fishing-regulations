@@ -68,10 +68,6 @@ describe("the route map's words", () => {
       flowOnly: "flow forecast only",
       noRecord: "no record to compare with",
       ownGauge: "this lake's own gauge",
-      fit: "Fit",
-      fitLabel: "Fit the map to you and the gauges",
-      larger: "Larger map",
-      smaller: "Smaller map",
     });
   });
 });

@@ -152,9 +152,8 @@ export function DonorPanel({ palette, value, day, askedAt, at, theme, from, sele
    */
   const [mapWidth, setMapWidth] = useState(360);
   // The route map's height, read by the camera as well as by the map so they agree — see
-  // `routeMapHeight` (the conditions map owns it, with the "Larger map" switch).
-  const [larger, setLarger] = useState(false);
-  const mapH = routeMapHeight(mapWidth, larger);
+  // `routeMapHeight` (one size, T881).
+  const mapH = routeMapHeight(mapWidth);
   const onMapLayout = (e: LayoutChangeEvent) => {
     const w = Math.round(e.nativeEvent.layout.width);
     if (w > 0 && w !== mapWidth) setMapWidth(w);
@@ -195,12 +194,13 @@ export function DonorPanel({ palette, value, day, askedAt, at, theme, from, sele
    * answered and not at all when it did not, so the Flow / Level toggle moved the whole map across the chart. It waits
    * for the routes (`map` is null until they are in): a MapLibre map reads its opening camera once, on mount, and a map
    * mounted early stays framed on the tap alone. Keyed on the camera for the same reason.
+   * (T881) `map` is null, too, where it would draw no gauge (`donorView`): no map then, only the measuring view.
    */
   const mapBlock = at && theme && map ? (
     <Block palette={palette}>
       <View onLayout={onMapLayout} />
       <DonorMap vm={map} at={at} theme={theme} palette={palette} toneOf={toneOf}
-                height={mapH} larger={larger} onLarger={setLarger}
+                height={mapH}
                 highlight={chainProp ?? map.chain} selected={selected ?? null} standing={standing}
                 waterLine={waterLine?.length ? { sections: waterLine, at: from ?? placeMid(place) } : undefined} />
     </Block>

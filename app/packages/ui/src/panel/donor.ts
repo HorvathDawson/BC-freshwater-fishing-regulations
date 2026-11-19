@@ -4,10 +4,10 @@ import { type DonorRow, type Horizon, type PanelAnswer, type Quantity, type Wate
 import { changeLowWaterNote, donorState, CONDITIONS_WORDS, disagreeNote, donorBecause, donorCounted, donorFacts, donorRelation, donorLastReport,
          donorPinTitle, donorReads, donorReason, donorRowLabel, donorSilent, donorVotes, donorWeightLine,
          estimateHeadline, estimateRange, estimateSentence, gaugeChoiceLabel, HORIZON_LABELS, isAhead, metresApart,
-         panelCamera, refusalIsAboutTheDay, regulatedNote, SAME_PLACE_M, shortRecordNote, silentLine, sizeApart, tidalNote,
+         panelCamera, ROUTE_MARK_PX, refusalIsAboutTheDay, regulatedNote, SAME_PLACE_M, shortRecordNote, silentLine, sizeApart, tidalNote,
          throughLakeNote, interval,
          backwaterNote, diversionNote, unplacedNote, type SectionKey } from "@app/core";
-import { donorMapKey, donorMapLabel, hereMapLabel, joinMapLabel, ROUTE_MAP_WORDS, routeLegend } from "@app/core";
+import { donorMapKey, donorMapLabel, hereMapLabel, joinMapLabel, routeLegend } from "@app/core";
 import { gaugeSides, groupGauges, isDonorSide, stateAt, type GaugeGroup, type GaugeSide } from "@app/core";
 import { useAsync } from "../async";
 import { horizonChips, type HorizonChipVM } from "./horizon";
@@ -102,9 +102,8 @@ export interface DonorMapVM {
   keyGroups: readonly GaugeGroupVM<DonorKeyVM>[] | null;
   /** The key's line samples: only the roles drawn. */
   legend: readonly { role: "up" | "down"; label: string }[];
-  /** Every mark's extent [w, s, e, n] — what "fit" returns to. */
+  /** Every mark's extent [w, s, e, n] — what the opening camera frames (T881: it is the only frame; no Fit button). */
   bbox: readonly [number, number, number, number];
-  words: { fit: string; fitLabel: string; larger: string; smaller: string };
   /** (T817) The tone row of a gauged lake's own station that has a reading: drawn live, not as a quiet member; else null. */
   liveRow: number | null;
 }
@@ -259,8 +258,11 @@ export function donorView(value: PanelAnswer, o: DonorViewOptions): DonorVM {
    */
   const own = o.own ?? null;
   const ownAt = own ? [{ lat: own.lat, lon: own.lon }] : [];
-  const camera = panelCamera([...framed.map((r) => ({ lat: r.route!.lat!, lon: r.route!.lon! })), ...ownAt, ...corners],
-                             o.from, o.size);
+  // (T881) each mark framed whole — a gauge with room for its share pill, the spot with its pin and words
+  const gaugePx = { px: ROUTE_MARK_PX.gauge };
+  const camera = panelCamera([...framed.map((r) => ({ lat: r.route!.lat!, lon: r.route!.lon!, ...gaugePx })),
+                              ...ownAt.map((p) => ({ ...p, ...gaugePx })), ...corners,
+                              ...(o.from ? [{ ...o.from, px: ROUTE_MARK_PX.here }] : [])], null, o.size);
   // On a refusal no member speaks, yet the map stays: its pins are the members, each with its state.
   const pinned = answer.ok ? shown : framed;
   const placed = pinned.filter(located);
@@ -291,7 +293,16 @@ export function donorView(value: PanelAnswer, o: DonorViewOptions): DonorVM {
   const keyOrder = placedGroups ? placedGroups.flatMap((g) => g.shown) : placed;
   const rankOf = new Map(keyOrder.map((r, i) => [r, i]));
   const keyOf = (r: DonorRow): DonorKeyVM => ({ row: toneOf(r), label: donorMapKey(r, ask) });
-  const map: DonorMapVM | null = value.routesReady && camera ? {
+  /*
+   * (T881, owner 2026-11-18, on Babine Lake — Main Body: "Lakes or other things without a meaningful map here don't need to
+   * include gauge map..") A ROUTE MAP DRAWS A GAUGE OR IS NOT DRAWN. Its only other mark is "you are here", which says
+   * nothing the sheet's own heading has not: the map is null then, as it is with nothing to frame. That is a water with no
+   * member at all (a lake or creek no gauge is near enough to: "No gauge on this water is close enough"), a refusal whose
+   * every member is not reporting or not real-time (those are not framed, so not pinned), and an answer whose members
+   * have no known place (the rows under it still name each one). A gauged lake's own station is a gauge on the map (T817).
+   */
+  const drawsAGauge = placed.length > 0 || own !== null;
+  const map: DonorMapVM | null = value.routesReady && camera && drawsAGauge ? {
     camera,
     key: `${camera.lon.toFixed(3)},${camera.lat.toFixed(3)},${camera.zoom.toFixed(1)}`,
     pins: [
@@ -330,8 +341,6 @@ export function donorView(value: PanelAnswer, o: DonorViewOptions): DonorVM {
     legend: routeLegend(drawn.map((r) => r.role)),
     bbox: [Math.min(...pts.map((p) => p.lon)), Math.min(...pts.map((p) => p.lat)),
            Math.max(...pts.map((p) => p.lon)), Math.max(...pts.map((p) => p.lat))],
-    words: { fit: ROUTE_MAP_WORDS.fit, fitLabel: ROUTE_MAP_WORDS.fitLabel,
-             larger: ROUTE_MAP_WORDS.larger, smaller: ROUTE_MAP_WORDS.smaller },
     liveRow: own?.live ? 0 : null,
   } : null;
 
