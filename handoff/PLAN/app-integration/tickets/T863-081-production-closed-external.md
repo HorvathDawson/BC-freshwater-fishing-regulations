@@ -44,3 +44,8 @@ INTERNAL (the owner's own testing). Play closed testing and TestFlight external 
 iPhone build more; ask again then.
 State 20:24: 0.8.1 staging on Play internal (versionCode 36, from d63d6417d); the 0.8.1 web on the staging site (from
 1a8832024, smoke 19/0/0 on r-fc137c4040fa). The TestFlight staging build is the owner's to run (the script says so).
+
+Owner ~21:47, verbatim: "I wonder if we should do a final 0.8.2 before closed with everything including the smoother
+movement we just discussed wtc"; dialog pick "Yes, wait for 0.8.2 (Recommended)": the production website + data tonight;
+the first production phone builds for testers wait for 0.8.2 (T868, T877, T872-T875, T878/T879/T881/T882 after his
+yes on pictures, T876 smoother zoom). Data / feed fixes are not gated on it.

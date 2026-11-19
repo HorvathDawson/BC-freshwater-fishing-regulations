@@ -22,7 +22,7 @@ import { leadSaysOrigin, pagesOf, type HeadCtx } from "./grouphead";
 import { ruleBookLine } from "./book";
 import type { RegsInputs } from "./inputs";
 import { boldN, nbsp, text, type Line, type Run } from "./line";
-import type { FishPicVM, KindVM, OriginVM, SizeVM, TierVM, TreeNodeVM } from "./model";
+import type { FishPicVM, KindVM, NotKeptVM, OriginVM, SizeVM, TierVM, TreeNodeVM } from "./model";
 import { WORDS } from "./words";
 import { cap, lc, type SpeciesBook } from "./names";
 
@@ -287,4 +287,36 @@ export function treeOf(env: TreeEnv): readonly TreeNodeVM[] | null {
 /** The tree environment of one group (`drawn`: the rows page v36 draws an article for). */
 export function treeEnv(ctx: HeadCtx, fish: FishManifest, drawn: ReadonlySet<number>, tot: "a" | "b" = "a"): TreeEnv {
   return { inp: ctx.inp, card: ctx.card, fish, drawn, stampST: stampSTOf(ctx.inp), ctx, tot };
+}
+
+/**
+ * (T868, owner 2026-11-18 "Has duplicate images here too") EACH FISH PICTURED ONCE in a group card: a fish's picture stays
+ * where it means most — the first keep line (kind row) that names its count and size — and every later place that would
+ * draw the same fish again (a second kind row, a release row in the tree, a not-kept line) drops it, in draw order. Only
+ * pictures move; every line and its words stay. A picture that is a silhouette (no image) is never a duplicate.
+ */
+export function onePictureEach(tree: readonly TreeNodeVM[] | null, notKept: readonly NotKeptVM[]):
+  { tree: readonly TreeNodeVM[] | null; notKept: readonly NotKeptVM[] } {
+  const seen = new Set<string>();
+  const keepFirst = (ps: readonly FishPicVM[]): readonly FishPicVM[] => {
+    const out = ps.filter((p) => p.sil || !seen.has(p.code));
+    for (const p of out) if (!p.sil) seen.add(p.code);
+    return out.length === ps.length ? ps : out;
+  };
+  // the keep lines first, in draw order (depth first), then the release rows, then the not-kept lines
+  const walk = (ns: readonly TreeNodeVM[], t: TreeNodeVM["t"]): readonly TreeNodeVM[] => ns.map((n): TreeNodeVM =>
+    n.t === "tier" ? { ...n, children: walk(n.children, t) }
+      : n.t !== t ? n : { ...n, pictures: keepFirst(n.pictures) });
+  const t = tree && walk(walk(tree, "kind"), "release");
+  return { tree: t, notKept: notKept.map((x) => ({ ...x, pictures: keepFirst(x.pictures) })) };
+}
+
+/** (T868) The fish a group card pictures (codes with an image), anywhere in its tree or its not-kept lines. */
+export function picturedIn(g: { readonly tree: readonly TreeNodeVM[] | null; readonly notKept: readonly NotKeptVM[] }): ReadonlySet<string> {
+  const out = new Set<string>();
+  const add = (ps: readonly FishPicVM[]) => { for (const p of ps) if (!p.sil) out.add(p.code); };
+  const walk = (ns: readonly TreeNodeVM[]): void => { for (const n of ns) if (n.t === "tier") walk(n.children); else add(n.pictures); };
+  walk(g.tree ?? []);
+  for (const x of g.notKept) add(x.pictures);
+  return out;
 }

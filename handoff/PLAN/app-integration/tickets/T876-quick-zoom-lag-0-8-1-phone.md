@@ -57,6 +57,12 @@ the route map.
 3. Cheap try either way: the T420 lab send gap (`stateGapMs`, `lab.ts`: 0 today, 250 the other setting), so a
    pinch sends a few feature-state batches instead of one per tile burst.
 
+## 2026-11-18 ~20:51: not a 0.8.1 regression (owner)
+Owner (to the main chat), verbatim: "Also the speed on this release is better so it wasn't this build it was always a bit
+of an issue". So this is an after-launch performance ticket, not a blocker for the production phone builds. The emulator
+A/B (0.8.0 / 0.8.1 / split off on native / stateGapMs=250) runs bounded; a fix that helps quick pinch-zoom without losing
+the zoom-out gains lands as an ordinary change after launch.
+
 ## Bench (2026-11-18 21:00–21:34, emulator `n1_pixel`, patched MapLibre, release r-fc137c4040fa, Trout map)
 
 Scenario `zoom-pinch` (new): at -121.95,49.17, six quick two-finger pinch in/out cycles from z10.5 (~6 s), and a quick

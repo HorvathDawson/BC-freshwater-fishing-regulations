@@ -232,7 +232,7 @@ export function Sheet({ open, onClose, title, palette, children, scroll = false,
           Square, a 1.5px rule in ink, and the grabber is a flat bar rather than a lozenge.
         */}
         {/* (T336) `accessibilityViewIsModal` hides the panel's SIBLINGS from VoiceOver / XCUITest on iOS — the walkthrough card
-            drawn over it (`overlay`) is one, so it was drawn but unreachable (no Skip / Next / Show me). The Modal is its own
+            drawn over it (`overlay`) is one, so it was drawn but unreachable (no Skip / Back / Next). The Modal is its own
             window already (the app behind is out of reach either way); with an overlay up, the panel is not modal. */}
         <Animated.View testID="sheet-panel" onLayout={(e) => { height.current = e.nativeEvent.layout.height; }} accessibilityViewIsModal={!overlay}
                        style={{ backgroundColor: palette.card,

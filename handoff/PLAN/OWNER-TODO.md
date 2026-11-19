@@ -2775,3 +2775,78 @@ More questions (recommended answer first):
   value was made on the Mac (app/workers/feeds/.run-token.prod, gitignored, 600); the owner's list sets it on the
   worker as its first step: npx --prefix app wrangler secret put RUN_TOKEN -c deploy/prod/feeds-placeholder.wrangler.toml
   < app/workers/feeds/.run-token.prod
+- 2026-11-18 ~20:46, owner (main chat), two phone shots of the day picker on Babine Lake — Main Body
+  (/Users/dawson.horvath/.claude/uploads/b8ddfca9-44eb-400e-a9bf-bd89b4b0f359/069827ef-image.png August,
+  /Users/dawson.horvath/.claude/uploads/b8ddfca9-44eb-400e-a9bf-bd89b4b0f359/277b9b7a-image.png July), verbatim: "The
+  calendar shifts around" -> the app chat (ticket number theirs). Seen in the shots: the sheet's height changes with the
+  month (August has six week rows, July five), and the last week's days are spread across the row instead of sitting
+  under their weekdays (Aug 30-31 under Sun and Tue; Jul 26-31 spaced evenly).
+- 2026-11-18 20:46, owner (main chat), verbatim: "You can run that command" (the RUN_TOKEN secret put) -> DONE by the
+  main chat 20:46: `wrangler secret put RUN_TOKEN -c deploy/prod/feeds-placeholder.wrangler.toml` from
+  app/workers/feeds/.run-token.prod, "Success! Uploaded secret RUN_TOKEN" on bc-fishing-feeds. That command only; every
+  other production step stays the owner's.
+- 2026-11-18 ~20:49, owner (main chat), Babine Lake — Main Body page shot
+  (/Users/dawson.horvath/.claude/uploads/b8ddfca9-44eb-400e-a9bf-bd89b4b0f359/288abc3d-image.png), verbatim: "There seems
+  to be a ton of space used by the sunset/rise could we maybe move it to top of something? Where would be good?" Dialog
+  pick: "Under the date (Recommended)": a small line under the day picker on the right ("☀ 5:07–21:52"), freeing the
+  sunrise row and the empty row above it -> the app chat (ticket number theirs).
+- 2026-11-18 ~20:51, owner (main chat), verbatim: "Also the speed on this release is better so it wasn't this build it
+  was always a bit of an issue" -> T876 (app chat): the quick zoom lag is NOT a 0.8.1 regression (0.8.1 feels faster
+  to him); an old issue, so it does not hold the production phone builds.
+- 2026-11-18 ~20:53, owner (app chat dialog, after the pictures): T871 trout "counts toward" once: "Not this change"
+  (DROPPED, the table stays). T872 Conditions watershed fold, T873 short Help page, T874 walkthrough Back/Next/Skip:
+  "Help page OK, Conditions fold OK, Walkthrough OK" -> they land (after the production website's sha).
+- 2026-11-18 ~20:53, owner (main chat), Babine Lake — Main Body shot
+  (/Users/dawson.horvath/.claude/uploads/b8ddfca9-44eb-400e-a9bf-bd89b4b0f359/a6d620fa-image.png), verbatim: "I feel like
+  we could order this better to allow salmon to be in the table but still have the two timeline calendars and big words
+  easy to read and make sense/know it is different to between them and easily know which is which". Dialog pick: "Two
+  headers, one table (Recommended)": both status blocks first (SALMON · DFO and GAME FISH · B.C., each its big word and
+  its own year line, labelled), then ONE fish list with each row tagged DFO / B.C. -> the app chat (ticket number
+  theirs); real pictures to the owner before it lands.
+- 2026-11-18 ~20:59, owner (main chat), DFO Region 6 Bulkley bait row shot
+  (/Users/dawson.horvath/.claude/uploads/b8ddfca9-44eb-400e-a9bf-bd89b4b0f359/8d922a2e-image.png), verbatim: "Make sure
+  this rule is correct. Like the with tributaries part for each exception except the one" -> T880. Found: Two Mile Creek
+  is excepted with its tributaries (wrong by the words). Dialog picks ~21:02: "Yes, follow the words" (an exception
+  without "and tributaries" leaves out only that stream; the Suskwa's tributaries stay in the chinook row too); "After
+  production (Recommended)".
+- 2026-11-18 ~21:05, owner (main chat), Babine Lake — Main Body, Conditions tab shot
+  (/Users/dawson.horvath/.claude/uploads/b8ddfca9-44eb-400e-a9bf-bd89b4b0f359/3733b516-image.png: "No estimate", then
+  the gauge map showing only "you are here"), verbatim: "Lakes or other things without a meaningful map here don't need
+  to include gauge map.. Also we should choose one map size maybe larger fit only" -> the app chat (ticket number
+  theirs): no gauge map where it shows nothing useful (no gauge drawn, only the water's pin); one map size, the larger
+  one, fitted, instead of the Fit / Larger map buttons.
+- 2026-11-18 ~21:11, owner (main chat), Thompson River shot
+  (/Users/dawson.horvath/.claude/uploads/b8ddfca9-44eb-400e-a9bf-bd89b4b0f359/2ef8c8e4-image.png): "Why do we have some
+  check DFO" -> answered: DFO's own "To be determined" (Thompson chinook + sockeye, Kamloops Lake to Gold Pan). Offered
+  a wording change ("To be decided by DFO"); no answer yet. ~21:13: "There are some more check DFO too"; dialog, his
+  words: "We should have had no unmapped stream items???! For lakes the parts should say in words in the salmon section
+  for now? We do try to map them if possible tho" -> T885. Checked: no ACTIVE stream place is unmapped (the 12 stream
+  rows are dormant); the 14 active ones are lake parts.
+- 2026-11-18 ~21:18, owner (main chat), verbatim: "But all of these should not exist / Those 12 should still be mapped
+  even if retired / To be determined I think we could change to actually say to be determined / However they should
+  still show green if any salmon there are open only yellow if closed other then the to be determined" -> T885 (every
+  DFO place mapped, dormant ones too) + the app chat (the "Check DFO" word becomes "To be determined" where DFO printed
+  that; colour: green if any salmon open, the to-be-determined colour only when nothing is open; already the map's order).
+- 2026-11-18 ~21:30, owner (main chat), two fish sheets on Cultus Lake (Kokanee "Release"; Black crappie "20 a day",
+  the "20 a day" highlighted) (/Users/dawson.horvath/.claude/uploads/b8ddfca9-44eb-400e-a9bf-bd89b4b0f359/7dcd1404-image.png,
+  /Users/dawson.horvath/.claude/uploads/b8ddfca9-44eb-400e-a9bf-bd89b4b0f359/0308a124-image.png), verbatim: "We need to
+  make the individual sources for each fish be formatted better in the source page for the species / Also on Apple the
+  part highlighted is cut off weird because of row sizes / These pages are super clunky and ideally we want to make it
+  nice and readable showing how the result was achieved. We want it to pair well with the trout ones too. All generated
+  the same way (sources) and the way they are displayed should be the same. / Also the how to tell hatchery fish is very
+  smile creepy we want to make it more realistic I think. Better shape more natural smile. Could use the salmon general
+  shape from loading maybe?" -> the app chat (tickets theirs): (1) the species source sheet redesigned, readable, one
+  shape for every fish and the trout sheets, generated the same way (main chat: the sources' data side); (2) iOS: the
+  big "20 a day" clipped by its row height; (3) the "how to tell a hatchery fish" picture: a natural fish shape (the
+  loading screen's salmon outline), not the smiling one. Pictures before anything lands.
+- 2026-11-18 ~21:40, owner (main chat), on T876's finding (labels cost half the render work on a quick pinch), verbatim:
+  "Does that mean labels render after. We care number one about the streams and colors and smoothness then labels can
+  be a little behind etc." -> T876 (app chat): priority order streams + colours + smooth motion first; labels may lag
+  (e.g. hidden or frozen during a pinch and drawn when it settles).
+- 2026-11-18 ~21:43, owner (main chat), verbatim: "Another thing we should add a ticket for is checking every page for
+  word density then try to reduce the over dense ones" -> T890 (app chat leads; main chat for the pipeline's words).
+- 2026-11-18 ~21:47, owner (main chat), verbatim: "I wonder if we should do a final 0.8.2 before closed with everything
+  including the smoother movement we just discussed wtc". Dialog pick: "Yes, wait for 0.8.2 (Recommended)" -> T863:
+  the production website + data go live tonight; the first PRODUCTION phone builds for testers (Android closed / iPhone
+  TestFlight) are 0.8.2: T868, T877, T872-T875, plus T878/T879/T881/T882 once he approves their pictures, plus T876's
+  smoother zoom (labels may lag). Data / feed fixes (T869, T870, T880, T885) ship as data updates, not gated on it.

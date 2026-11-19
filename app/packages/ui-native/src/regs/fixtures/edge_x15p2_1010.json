@@ -1814,25 +1814,6 @@
   "other:o1": {
    "blocks": [
     {
-     "k": "pictures",
-     "pics": [
-      {
-       "caption": "Lake whitefish ›",
-       "code": "LW",
-       "name": "Lake whitefish",
-       "open": "sp:LW",
-       "sil": false
-      },
-      {
-       "caption": "Mountain whitefish ›",
-       "code": "MW",
-       "name": "Mountain whitefish",
-       "open": "sp:MW",
-       "sil": false
-      }
-     ]
-    },
-    {
      "group": {
       "head": {
        "exception": null,
@@ -1967,25 +1948,6 @@
   },
   "other:o2": {
    "blocks": [
-    {
-     "k": "pictures",
-     "pics": [
-      {
-       "caption": "Largemouth bass ›",
-       "code": "LMB",
-       "name": "Largemouth bass",
-       "open": "sp:LMB",
-       "sil": false
-      },
-      {
-       "caption": "Smallmouth bass ›",
-       "code": "SMB",
-       "name": "Smallmouth bass",
-       "open": "sp:SMB",
-       "sil": false
-      }
-     ]
-    },
     {
      "group": {
       "head": {
