@@ -126,10 +126,8 @@ async function coachRegistry() {
 
 /** state, how it is put on screen, and the words that prove it is there */
 const STATES_T258: [string, (width: number) => Promise<void>, RegExp][] = [
-  ["the bell sheet (Notifications)", async (w) => {
-    mount(HOME, w); await settle();
-    act(() => { fireEvent.click(screen.getByTestId("inseason-bell")); }); await settle();
-  }, /Notifications/],
+  // (T909) the bell sheet (Notifications) is gone from this list: the web bar has no bell, so a browser never opens it
+  // (the bell is the phone's, BarControls.native.tsx).
   ["the first-run notice", async (w) => { mount(HOME, w, { firstRun: memory(null) }); await settle(); }, /Before you fish/],
   ["(T888) the newer-version popup on opening", async (w) => {
     mount(HOME, w, { appUpdateStore: memory(), appUpdater: { channel: "play", installed: "0.8.1", start: async () => "downloading",
