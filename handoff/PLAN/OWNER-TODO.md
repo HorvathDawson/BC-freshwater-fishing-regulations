@@ -2880,3 +2880,9 @@ More questions (recommended answer first):
 - 2026-11-18 ~22:33, owner (main chat), verbatim: "Light mode keep salmon vs closed or release has very little
   contrast. Should be bright green for keep in light I think too?" -> the app chat (ticket theirs): the Salmon map's
   light-mode colours: keep (open) a bright green like dark mode, clearly apart from closed and release; pictures first.
+- 2026-11-18 ~22:40, owner (main chat): did the www redirect rule (checked: www.canifishthis.ca/water/vedder-river ->
+  301 to the same path); "what if i dont want all of these off? web analyics is good." Dialog picks: JS detections OFF
+  (the 2.6 s injected script; in Security -> Settings -> Bot traffic, below what he saw, or under Bot fight mode's
+  gear), KEEP Web Analytics (no beacon on the pages today), Robots sync OFF (Bot Preference Sync / managed robots: only
+  our robots.txt, AI assistants may read the site), KEEP AI Labyrinth. Bot fight mode already off. The main chat checks
+  robots.txt and the page scripts after he flips them.
