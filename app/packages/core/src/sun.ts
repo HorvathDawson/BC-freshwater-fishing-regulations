@@ -35,16 +35,26 @@ export function sunTimes(lat: number, lon: number, y: number, m: number, d: numb
 }
 
 export const SUN_WORDS = {
-  /** "Sunrise 08:02 PT · Sunset 17:41 PT" */
-  line: (rise: string, set: string) => `Sunrise ${rise} · Sunset ${set}`,
   /** "07:04–18:37 PT" */
   range: (from: string, to: string) => `${from}–${to}`,
+  /** (T878) what a screen reader says for the day's sun: "Sunrise 5:07, sunset 21:52 PT" (the hour spoken without its 0) */
+  aria: (rise: string, set: string) => `Sunrise ${rise.replace(/^0(?=\d:)/, "")}, sunset ${set.replace(/^0(?=\d:)/, "")}`,
 } as const;
 
-/** The day's line at a point, on the B.C. clock: "Sunrise 08:02 PT · Sunset 17:41 PT"; null with no rise or set. */
-export function sunLine(lat: number, lon: number, day: { y: number; m: number; d: number }): string | null {
+/** The day's sun as a screen draws it: the line's words and its accessible label. */
+export interface SunDay { text: string; aria: string }
+
+/** The B.C. clock time without its zone word: "05:07" of "05:07 PT". */
+const bare = (ms: number) => bcClockTime(ms).replace(/ \S+$/, "");
+
+/**
+ * (T878, owner 2026-11-18) THE DAY'S SUN at a point, on the B.C. clock: the small line under the day pill ("05:07–21:52 PT",
+ * beside the sun icon) and what a screen reader says for it ("Sunrise 5:07, sunset 21:52 PT"); null with no rise or set.
+ */
+export function sunLine(lat: number, lon: number, day: { y: number; m: number; d: number }): SunDay | null {
   const t = sunTimes(lat, lon, day.y, day.m, day.d);
-  return t.rise === null || t.set === null ? null : SUN_WORDS.line(bcClockTime(t.rise), bcClockTime(t.set));
+  if (t.rise === null || t.set === null) return null;
+  return { text: SUN_WORDS.range(bare(t.rise), bcClockTime(t.set)), aria: SUN_WORDS.aria(bare(t.rise), bcClockTime(t.set)) };
 }
 
 /**
@@ -54,5 +64,5 @@ export function sunLine(lat: number, lon: number, day: { y: number; m: number; d
 export function daylightRange(lat: number, lon: number, day: { y: number; m: number; d: number }, afterMin: number, beforeMin: number): string | null {
   const t = sunTimes(lat, lon, day.y, day.m, day.d);
   if (t.rise === null || t.set === null) return null;
-  return SUN_WORDS.range(bcClockTime(t.rise - beforeMin * 60_000).replace(/ \S+$/, ""), bcClockTime(t.set + afterMin * 60_000));
+  return SUN_WORDS.range(bare(t.rise - beforeMin * 60_000), bcClockTime(t.set + afterMin * 60_000));
 }

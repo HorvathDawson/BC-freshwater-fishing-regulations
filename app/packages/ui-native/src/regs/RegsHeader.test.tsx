@@ -47,7 +47,8 @@ const drawn = () => {
     name: within(root).getByRole("heading").textContent,
     pill: [screen.getByTestId("regs-date").getAttribute("aria-label"), screen.getByTestId("regs-date").textContent],
     buttons: within(root).queryAllByRole("button").filter((b) => b.getAttribute("data-testid") !== "regs-date").length,
-    place: screen.getByTestId("regs-place").textContent,
+    // (T878) no label: no place row at all (null), never an empty slot
+    place: screen.queryByTestId("regs-place")?.textContent ?? null,
     tabs: screen.getAllByRole("tab").map((t) => [t.textContent, t.getAttribute("aria-selected")]),
   };
 };
@@ -60,7 +61,7 @@ describe("<RegsHeader> over every frozen page's header", () => {
       name: h.name,
       pill: [h.dateAria, `${h.dayWord}${h.date}`],
       buttons: 0,
-      place: h.place?.full ?? "",
+      place: h.place?.full ?? null,
       tabs: h.tabs.map((x, i) => [x.label, i === 0 ? "true" : "false"]),
     });
   });
@@ -87,20 +88,21 @@ describe("<RegsHeader>", () => {
     expect(screen.getByTestId("regs-dot").style.backgroundColor).toBe(rgb(LIGHT.closed));
   });
 
-  it("(T150) bc1_501, a water of many parts: no Parts button; (T517) its side channels have no ends, so the part is said as its water — the label slot is empty", () => {
+  it("(T150) bc1_501, a water of many parts: no Parts button; (T517) its side channels have no ends, so the part is said as its water — (T878) no place row", () => {
     mount(headerOf("bc1_501"));
-    expect(drawn().place).toBe("");
+    expect(drawn().place).toBeNull();
     expect([screen.queryByRole("button", { name: /parts/i }), drawn().buttons]).toEqual([null, 0]);
   });
 
-  it("header-one-shape: klwa_1010 (no label) has the same rows and test ids as vedder_1010, the label slot empty", () => {
+  it("(T878, owner 2026-11-18) klwa_1010 (no label) has vedder_1010's rows and test ids but the place row: no empty slot under the name", () => {
     const shape = () => [...screen.getByTestId("regs-header").querySelectorAll("[data-testid]")].map((e) => e.getAttribute("data-testid"));
     mount(headerOf("vedder_1010"));
     const vedder = { rows: screen.getByTestId("regs-header").children.length, ids: shape() };
     cleanup();
     mount(headerOf("klwa_1010"));
-    expect({ rows: screen.getByTestId("regs-header").children.length, ids: shape() }).toEqual(vedder);
-    expect(screen.getByTestId("regs-place").textContent).toBe("");
+    expect({ rows: screen.getByTestId("regs-header").children.length, ids: shape() })
+      .toEqual({ rows: vedder.rows - 1, ids: vedder.ids.filter((id) => id !== "regs-place") });
+    expect(screen.queryByTestId("regs-place")).toBeNull();
   });
 
   it("(T71 / T150) no action slot on any water: the name row is the frame's title and the pill, so it never reflows", () => {
@@ -139,25 +141,31 @@ describe("<RegsHeader>", () => {
   });
 });
 
-describe("the sun line in the header (T471)", () => {
-  const LINE = "Sunrise 08:04 PT · Sunset 17:37 PT";
-  const mountSun = (sun: string | null, side = false) =>
+describe("(T878) the day's sun under the date pill", () => {
+  const SUN = { text: "05:07–21:52 PT", aria: "Sunrise 5:07, sunset 21:52 PT" };
+  const mountSun = (sun: { text: string; aria: string } | null, side = false) =>
     render(<RegsHeader header={headerOf("vedder_1010")} palette={LIGHT} tabs={createTabStore()} onDate={() => {}} onTab={() => {}}
                        side={side} sun={sun} />);
-  it("is a secondary line inside the header, under the place label, the whole line", () => {
-    mountSun(LINE);
-    const header = screen.getByTestId("regs-header");
-    const sun = within(header).getByTestId("regs-sun");
-    expect(sun.textContent).toBe(LINE);
-    expect(screen.getByTestId("regs-place").compareDocumentPosition(sun) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+  it("is in the name row, right after the date pill, the sun icon and the whole line, its label the whole sentence", () => {
+    mountSun(SUN);
+    const title = screen.getByTestId("water-title");
+    const sun = within(title).getByTestId("regs-sun");
+    expect([sun.textContent, sun.getAttribute("aria-label")]).toEqual(["05:07–21:52 PT", "Sunrise 5:07, sunset 21:52 PT"]);
+    expect(within(sun).getByTestId("icon-sun")).toBeTruthy();
+    expect(screen.getByTestId("regs-date").compareDocumentPosition(sun) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    // not inside the pill: the pill's own label stays the day's, a press on it still asks "Which day?"
+    expect(screen.getByTestId("regs-date").contains(sun)).toBe(false);
+    // and no longer its own row under the place label (T471's)
+    expect(screen.getByTestId("regs-place").compareDocumentPosition(sun) & Node.DOCUMENT_POSITION_FOLLOWING).toBeFalsy();
   });
-  it("is drawn in the desktop header too", () => {
-    mountSun(LINE, true);
-    expect(within(screen.getByTestId("regs-header")).getByTestId("regs-sun").textContent).toBe(LINE);
+  it("the desktop header has no pill, so no sun: it is the side column's (RegsSide)", () => {
+    mountSun(SUN, true);
+    expect(screen.queryByTestId("regs-sun")).toBeNull();
   });
-  it("null: nothing is drawn", () => {
+  it("null: the pill alone", () => {
     mountSun(null);
     expect(screen.queryByTestId("regs-sun")).toBeNull();
+    expect(screen.getByTestId("regs-date")).toBeTruthy();
   });
 });
 

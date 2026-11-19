@@ -144,8 +144,8 @@ describe("(T53) <WaterScreen> for an unnamed reach: the store's page for the tap
     // banner, and the strip reads open on the day). Either way the page is the store's, whole.
     const b = page.keep.banner;
     expect([within(screen.getByTestId("regs-header")).getByRole("heading").textContent,
-            screen.getByTestId("regs-place").textContent, screen.queryByTestId("keep-banner")?.textContent ?? null])
-      .toEqual([page.header.name, "",
+            screen.queryByTestId("regs-place")?.textContent ?? null, screen.queryByTestId("keep-banner")?.textContent ?? null])
+      .toEqual([page.header.name, null,   // (T878) no label: no place row
                 b ? b.big.join("") + b.paras.join("") + b.chain.map((c) => `${c.text} ${c.scope}${WORDS.SOURCE}${plain(c.book)}`).join("") : null]);
     // a banner here is only ever a province or zone rule's (the page is the base alone)
     if (b) expect(b.chain.every((c) => /^z[^:]*:/.test(c.rule))).toBe(true);

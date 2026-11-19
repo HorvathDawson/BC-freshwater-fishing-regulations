@@ -15,7 +15,7 @@
 import { useState, useSyncExternalStore } from "react";
 import { View } from "react-native";
 import { Text } from "../Text";
-import { WORDS, type ClassBadgeVM, type HeaderVM, type Tab } from "@app/core";
+import { WORDS, type ClassBadgeVM, type HeaderVM, type SunDay, type Tab } from "@app/core";
 import { CAPPED_SCALE, TYPE } from "../type";
 import { useCappedScale } from "../textScale";
 import { WaterTitle } from "../WaterFrame";
@@ -61,22 +61,19 @@ export function RegsHeader({ header: h, palette, tabs, onDate, onTab, onTerm, si
    * keeps the name row and the place label. false (a phone, a tablet): the header as it always was.
    */
   side?: boolean;
-  /** (T471) the day's sun line at the water ("Sunrise 08:04 PT · Sunset 17:37 PT", `useSunLine`), a small secondary line
-   *  under the place label; null: nothing drawn */
-  sun?: string | null;
+  /** (T878) the picked day's sun at the water (`useSunLine`), a small line under the date pill (`DayControl`; on the
+   *  desktop the side column's); null: nothing drawn */
+  sun?: SunDay | null;
 }) {
   return (
     <View testID="regs-header" style={{ backgroundColor: palette.card, borderBottomWidth: 1.5, borderBottomColor: palette.ink }}>
       {/* THE NAME ROW is the water frame's (T44): the same box on every view of the water, the pill in it */}
       <WaterTitle name={h.name} palette={palette} source={nameSource}>
         {h.classed && <ClassBadge b={h.classed} palette={palette} onTerm={onTerm} />}
-        {!side && <DatePill h={h} palette={palette} onDate={onDate} />}
+        {!side && <DayControl h={h} palette={palette} onDate={onDate} sun={sun} align="end" />}
       </WaterTitle>
-      <Place place={h.place} palette={palette} />
-      {!!sun && (
-        <Text testID="regs-sun" maxFontSizeMultiplier={CAPPED_SCALE}
-              style={[TYPE.metaSemi, { paddingLeft: GUTTER, paddingRight: 12, paddingBottom: 6, color: palette.sub }]}>{sun}</Text>
-      )}
+      {/* (T878) no place label (a water of one part, Babine Lake — Main Body): no empty slot under the name */}
+      {!!h.place && <Place place={h.place} palette={palette} />}
       {!side && <TabRow h={h} tabs={tabs} palette={palette} onTab={onTab} />}
     </View>
   );
@@ -105,6 +102,31 @@ export function ClassBadge({ b, palette, onTerm }: { b: ClassBadgeVM; palette: P
 }
 
 /**
+ * (T878, owner 2026-11-18: "There seems to be a ton of space used by the sunset/rise could we maybe move it to top of
+ * something?", picked "Under the date") THE DAY CONTROL: the date pill and, under it, the picked day's sun at the water
+ * (`SunDay`, core's words: the sun icon and "05:07–21:52 PT", read "Sunrise 5:07, sunset 21:52 PT"), its right edge on the
+ * date's (`align` "end", the name row) or its left on the pill's (`align` "start", the desktop side column). No sun: the pill
+ * alone, as before.
+ */
+export function DayControl({ h, palette, onDate, sun, align }: {
+  h: HeaderVM; palette: Palette; onDate: () => void; sun: SunDay | null; align: "start" | "end";
+}) {
+  const pill = <DatePill h={h} palette={palette} onDate={onDate} />;
+  if (!sun) return pill;
+  return (
+    <View style={{ alignItems: align === "end" ? "flex-end" : "flex-start" }}>
+      {pill}
+      {/* tucked into the pill's own slack under the date (its 44 px box is taller than its two lines) */}
+      <View testID="regs-sun" accessible accessibilityLabel={sun.aria}
+            style={{ flexDirection: "row", alignItems: "center", gap: 3, marginTop: -6, paddingHorizontal: 6 }}>
+        <Icon name="sun" colour={palette.sub} size={11} />
+        <Text maxFontSizeMultiplier={CAPPED_SCALE} numberOfLines={1} style={[TYPE.metaSemi, { lineHeight: 14.98, color: palette.sub }]}>{sun.text}</Text>
+      </View>
+    </View>
+  );
+}
+
+/**
  * The date pill: the status dot, "Today" / the weekday and the set's chevron (`expand`, T186: the typed ▾ it replaced
  * was a glyph in a word) over the date; a press asks "Which day?" (T49).
  */
@@ -128,7 +150,8 @@ export function DatePill({ h, palette, onDate }: { h: HeaderVM; palette: Palette
 }
 
 /**
- * The place row: ALWAYS present (an empty one-line slot when there is no label). One line, two when the label wraps. At the reader's text size (T40: the slot and the fit's line height grow with the scale, so a label at 2× is not
+ * The place row: one line, two when the label wraps (T878: the header draws it only when there is a label; the Conditions
+ * view too). At the reader's text size (T40: the slot and the fit's line height grow with the scale, so a label at 2× is not
  * cut to one line); the measuring twin lays out again at the new size and the fit re-runs on its new height.
  */
 /** The part's place row; (T367) also the Conditions view's, under its name, so both views say where alike. */
