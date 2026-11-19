@@ -1,6 +1,7 @@
 # T875 — The water Map tab's ▼ / ▲ steps stay put, part to part and water to water (phone and desktop)
 
-Status: IN PROGRESS (app chat; lane app/t875-parts-steady, off app/integrate-081-web).
+Status: PARTIAL — fixed by 1c0911f91 (lane app/t875-parts-steady, off app/integrate-081-web); left (Claude): an independent
+review, then the merge into app/integrate-081-web.
 
 Owner 2026-11-18 ~20:33, verbatim: "The ui shifts here when moving upstream in desktop too".
 
