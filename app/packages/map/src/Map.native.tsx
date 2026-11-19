@@ -436,10 +436,15 @@ export function Map({ at, theme, view, modes, groups, hide, show, initial, data,
    */
   const settleAsk = useRef<ReturnType<typeof setTimeout> | null>(null);
   useEffect(() => () => { if (settleAsk.current) clearTimeout(settleAsk.current); }, []);
-  /** (T411, test bed only) which of the water's sections the copy AND the atlas both draw now (`camProbe.copy`) */
+  /**
+   * (T411, test bed only) which of the water's sections the copy AND the atlas both draw now (`camProbe.copy`).
+   * (T848 follow-up) Behind the `rendered` gate like every other query: the settle's timer schedules it, and a route map
+   * whose camera rests before its first full render (a slow pane, 0.8.1 bench) was asked here with no renderer — SIGSEGV
+   * in `MapRenderer::actor()`, the app gone under the test bed's Conditions-map tap.
+   */
   const copyDraw = useRef(async () => {
     const m = mapRef.current;
-    if (!camProbe.on() || !m || !copy.current.ids.size) return;
+    if (!camProbe.on() || !m || !rendered.current || !copy.current.ids.size) return;
     const ids = new Set(copy.current.ids);
     const drawn = async (layers: string[]) => new Set(visibleSections(
       await m.queryRenderedFeatures({ layers }).catch((e: unknown) => { report(e); return []; })).filter((id) => ids.has(id)));
