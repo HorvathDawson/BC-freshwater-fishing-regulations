@@ -1,6 +1,6 @@
 # T893 — Production Android builds carry the patched MapLibre too
 
-Status: IN PROGRESS (app chat, 2026-11-19 ~00:23, on app/integrate-082 for 0.8.2).
+Status: DONE (app chat, 572d73fad, 2026-11-19 ~00:23, on app/integrate-082 for 0.8.2).
 
 Owner 2026-11-19 ~00:21 (app chat), verbatim: "Can't we make it use the patched one?" — after the app chat noted that
 `--production` stayed on the stock MapLibre SDK (app.config.js refused MLN_LOCAL_MAVEN in production; build-apk.sh only
