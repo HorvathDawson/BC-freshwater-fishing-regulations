@@ -450,6 +450,7 @@
         "From Nov 1 every one goes back."
        ],
        "date": null,
+       "down": null,
        "fish": "EB",
        "key": "EB",
        "label": null,
@@ -493,6 +494,7 @@
         "From Nov 1 every one goes back."
        ],
        "date": null,
+       "down": null,
        "fish": "GB",
        "key": "GB",
        "label": null,
@@ -536,6 +538,7 @@
         "From Nov 1 every one goes back."
        ],
        "date": null,
+       "down": null,
        "fish": "LT",
        "key": "LT",
        "label": null,
@@ -579,6 +582,7 @@
         "From Nov 1 every one goes back."
        ],
        "date": null,
+       "down": null,
        "fish": "CT",
        "key": "CT",
        "label": null,
@@ -630,6 +634,7 @@
         "From Nov 1 every one goes back."
        ],
        "date": null,
+       "down": null,
        "fish": "RB",
        "key": "RB",
        "label": null,
@@ -680,6 +685,7 @@
        "a11y": "Dolly Varden/bull trout",
        "coming": [],
        "date": null,
+       "down": null,
        "fish": "DV",
        "key": "DV",
        "label": null,

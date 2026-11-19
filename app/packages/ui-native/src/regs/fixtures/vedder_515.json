@@ -552,6 +552,7 @@
         "From Jun 1 the water is closed to all fishing."
        ],
        "date": null,
+       "down": null,
        "fish": "EB",
        "key": "EB",
        "label": null,
@@ -605,6 +606,7 @@
         "From Jun 1 the water is closed to all fishing."
        ],
        "date": null,
+       "down": null,
        "fish": "GB",
        "key": "GB",
        "label": null,
@@ -658,6 +660,7 @@
         "From Jun 1 the water is closed to all fishing."
        ],
        "date": null,
+       "down": null,
        "fish": "ST",
        "key": "ST",
        "label": null,
@@ -728,6 +731,7 @@
         "From Jun 1 the water is closed to all fishing."
        ],
        "date": null,
+       "down": null,
        "fish": "DV",
        "key": "DV",
        "label": null,
@@ -786,6 +790,7 @@
         "From Jun 1 the water is closed to all fishing."
        ],
        "date": null,
+       "down": null,
        "fish": "LT",
        "key": "LT",
        "label": null,
@@ -857,6 +862,7 @@
         "From Jun 1 the water is closed to all fishing."
        ],
        "date": null,
+       "down": null,
        "fish": "RB",
        "key": "RB",
        "label": null,
@@ -887,6 +893,7 @@
         "From Jun 1 the water is closed to all fishing."
        ],
        "date": null,
+       "down": null,
        "fish": "CT",
        "key": "CT",
        "label": null,
