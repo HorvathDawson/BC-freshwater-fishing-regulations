@@ -33,6 +33,11 @@ bell on the web (T909), Join the test (T911), privacy + speed (T910).
 6. Say go: Claude deploys the production website from the same commit.
 The data must go before or with the phones (0.8.3 reads the new trout row fields).
 
+**Owner 2026-11-19 ~15:25, verbatim: "Can you do as much of the prod release as you can? I give permission".** Done by
+Claude: step 1 (feeds worker, version 0a3205f6; gauges, dfo, inseason jobs ok) and step 2 (data worker, version 3c598244).
+Step 3 stays yours: `release --prod` refuses any agent and needs a real terminal, by design. Play's production track is
+empty (no production access yet), so the production Android build goes to Closed testing, replacing staging build 38.
+
 ## 2026-11-19 morning: test 0.8.2 on staging, then production
 
 **Test 0.8.2 on staging (2026-11-19 morning).** Everything from last night is on staging: data release r-379e72fc9524,
