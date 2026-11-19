@@ -132,7 +132,7 @@ const STATES_T258: [string, (width: number) => Promise<void>, RegExp][] = [
   }, /Notifications/],
   ["the first-run notice", async (w) => { mount(HOME, w, { firstRun: memory(null) }); await settle(); }, /Before you fish/],
   ["(T888) the newer-version popup on opening", async (w) => {
-    mount(HOME, w, { appUpdateStore: memory(), appUpdater: { channel: "play", start: async () => "downloading",
+    mount(HOME, w, { appUpdateStore: memory(), appUpdater: { channel: "play", installed: "0.8.1", start: async () => "downloading",
                      check: async () => ({ available: true, version: "0.8.2", notes: ["The map draws faster"] }) } });
     await settle();
   }, /Version 0\.8\.2 is out/],

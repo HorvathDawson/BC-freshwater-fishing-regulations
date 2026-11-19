@@ -18,9 +18,9 @@ afterEach(cleanup);
 
 const NOTES = ["The map draws faster", "A swimming coho greets you"];
 const memory = (v: string | null = null) => ({ v, read() { return this.v; }, write(t: string) { this.v = t; } });
-const port = (version: string | null = "0.8.2"): AppUpdatePort => ({
-  channel: "play",
-  check: async () => (version ? { available: true, version, notes: NOTES } : { available: false, version: null }),
+const port = (version: string | null = "0.8.2", check?: AppUpdatePort["check"]): AppUpdatePort => ({
+  channel: "play", installed: "0.8.1",
+  check: check ?? (async () => (version ? { available: true, version, notes: NOTES } : { available: false, version: null })),
   start: async () => "downloading",
 });
 
@@ -93,5 +93,36 @@ describe("(T888) the popup on opening", () => {
     mount({ appUpdater: null, appUpdateStore: memory(JSON.stringify({ day: "2026-11-18", available: true, version: "0.8.2" })) });
     await settle();
     expect(popup()).toBeNull();
+  });
+
+  it("(finding 3) opened from the new-version notification: the bell shows it, and closing the bell pops nothing", async () => {
+    const store = memory();
+    mount({ appUpdater: port(), appUpdateStore: store, openUpdate: 1 });
+    await settle();
+    // the bell is up on its App update; the popup is held behind it, and the version is read there
+    expect(screen.getByTestId("notice-app")).toBeTruthy();
+    expect(popup()).toBeNull();
+    expect(JSON.parse(store.v!).popped).toBe("0.8.2");
+    act(() => { fireEvent.click(screen.getByText("Got it")); });
+    await settle();
+    expect(screen.queryByTestId("notice-app")).toBeNull();
+    expect(popup()).toBeNull();
+  });
+
+  it("(finding 4) a late check never stacks the popup over an open sheet (Layers): it waits until the sheet is closed", async () => {
+    let answer!: (r: { available: boolean; version: string | null; notes: readonly string[] }) => void;
+    mount({ appUpdater: port("0.8.2", () => new Promise((r) => { answer = r; })), appUpdateStore: memory() });
+    await settle();
+    act(() => { fireEvent.click(screen.getAllByLabelText(/^Choose layers/)[0]!); });
+    await settle();
+    expect(screen.getByTestId("water-legend")).toBeTruthy();
+    await act(async () => { answer({ available: true, version: "0.8.2", notes: NOTES }); });
+    await settle();
+    expect(popup()).toBeNull();
+    // the sheet closed: the popup comes up
+    act(() => { fireEvent.click(screen.getByLabelText("Done")); });
+    await settle();
+    expect(screen.queryByTestId("water-legend")).toBeNull();
+    expect(popup()).toBeTruthy();
   });
 });

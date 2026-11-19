@@ -40,3 +40,23 @@ Pictures (390 px, light and dark; the real Shell on the fixture with the map stu
 five draft bullets drafted from the 0.8.2 tickets; no 0.8.2 changelog entry exists on this branch yet):
 `t888-popup-390-{light,dark}.png`, in the lane's scratchpad (`t888-shots/`).
 
+
+Review fixes (2026-11-19 ~00:20 BC time, UTC-7; independent review, five findings):
+1. iPhone list + platform filter: a newer version is never in the bundled changelog, so the filter moved to the build
+   scripts (core `notesOn`, changelog.ts): build-apk.sh writes Android's list into latest.json / play.json (and the Play
+   notes); build-ios-testflight.sh now writes the iPhone's into `app/ios/appstore.json` after a successful upload (staging
+   or production bucket), and bakes `EXPO_PUBLIC_APP_STORE_URL` from `~/.canifishthis/app-store-url`. The iOS check reads
+   appstore.json and uses its bullets when it names the App Store's version. `notesFor` shows the file's list as is.
+   OWNER: create `~/.canifishthis/app-store-url` (https://apps.apple.com/app/id<Apple ID>) — without it an iPhone build
+   has no update check at all (no popup, no bell row); the script warns.
+2. A kept "available 0.8.2" on an installed 0.8.2 is dropped on opening (ui `stillNewer`), and the popup needs a version
+   ABOVE the installed one (`port.installed`).
+3. The bell's sheet shown while a version is due (opened from the new-version notification, say) answers it (`bell`):
+   closing the bell pops nothing.
+4. The popup is also held while anything else is up: a water / spot / search / pin being added (the release's `safe`),
+   a More page, Layers, the date sheet, a tapped mark's sheet, the drop sheet, picking a point, the sync error sheet.
+5. Same-version newer builds (staging) are the bell's only: the popup's title and once-key are the version, and only a
+   version above the installed one pops.
+Tests: core appUpdate.test.ts (logs WITHOUT the incoming version), ui appUpdate.render.test.tsx, ui-native
+AppUpdatePopup.shell.test.tsx (bell from the notification; a late check while Layers is open); each new test fails with
+its fix removed.

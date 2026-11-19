@@ -9,18 +9,22 @@
  * this one state. (2026-11-05: a once-a-day cap here is why 0.6.0 did not notice 0.6.1.)
  * FAILURES (T368): a check or a start that fails is said in the section and reported; the environment's (offline, a
  * dropped line) and a phone with no Play service (T595) are said and never reported, and an offline check says nothing at all.
- * (T888) THE POPUP ON OPENING reads the same state (`@app/core` `updatePopupVM`): `held` while the first-run notice or the
- * walkthrough is up (the Shell says), once per version — Not now (`dismiss`) or a started update keeps the version in the
- * same file (`popped`), so it does not come back; the bell keeps the update as before.
+ * (T888) THE POPUP ON OPENING reads the same state (`@app/core` `updatePopupVM`): `held` while the first-run notice, the
+ * walkthrough or any sheet or page is up (the Shell says), only for a version above the installed one (`port.installed`),
+ * once per version — Not now (`dismiss`), a started update, or the bell's sheet shown while it is due (`bell`: the reader
+ * has read it there) keeps the version in the same file (`popped`), so it does not come back; the bell keeps the update.
+ * A kept check naming a version that is not above the installed one (the app was updated since) is dropped on opening.
  */
 import { useCallback, useEffect, useRef, useState } from "react";
-import { appUpdateVM, isEnvironment, isNoPlayService, NEEDED_KEY, now, readAppUpdateSaved, reportFailure, shouldCheckAppUpdate,
-         updatePopupVM, wallIso, type AppUpdateChannel, type AppUpdateCheck, type AppUpdateSaved, type AppUpdateStart,
+import { appUpdateVM, compareSemver, isEnvironment, isNoPlayService, NEEDED_KEY, now, parseSemver, readAppUpdateSaved,
+         reportFailure, shouldCheckAppUpdate, updatePopupVM, wallIso, type AppUpdateChannel, type AppUpdateCheck, type AppUpdateSaved, type AppUpdateStart,
          type AppUpdateVM, type UpdatePopupVM } from "@app/core";
 
 /** The platform's way to a newer app. */
 export interface AppUpdatePort {
   readonly channel: AppUpdateChannel;
+  /** (T888) this app's own version (`AppVersion.version`): a kept or checked version not above it is never popped up */
+  readonly installed: string;
   /** Is a newer version there? `version`: what the store says (a semver, a Play version code), or null. */
   check(): Promise<{ available: boolean; version: string | null; notes?: readonly string[] | null }>;
   /**
@@ -58,17 +62,27 @@ function asCheck(s: AppUpdateSaved | null): AppUpdateCheck {
     : { state: "current" };
 }
 
+/** (T888) The kept check as it stands on this install: one naming a version not above the installed one is from before
+ *  an update (the bell's Update, the store's own) — dropped (unknown until asked again), so neither the bell nor the popup
+ *  says it. Its answered version (`popped`) stays kept. */
+function stillNewer(s: AppUpdateSaved | null, installed: string | null): AppUpdateSaved | null {
+  if (!s?.available || !s.version || !installed || !parseSemver(s.version) || !parseSemver(installed)) return s;
+  return compareSemver(s.version, installed) > 0 ? s : null;
+}
+
 export function useAppUpdate(port: AppUpdatePort | null, store: AppUpdateStore | null,
                              o: { offline: boolean; tooOld: boolean;
                                   /** (T234 v1.1) a new-version notification was tapped: ask now */
                                   ask?: number;
                                   /** (T390) bumped on each return to the app: ask again */
                                   resume?: number;
-                                  /** (T888) the popup waits (the first-run notice, the walkthrough, a sheet already up) */
-                                  held?: boolean }): AppUpdateControl | null {
+                                  /** (T888) the popup waits (the first-run notice, the walkthrough, a sheet or page up) */
+                                  held?: boolean;
+                                  /** (T888) the bell's sheet is up, its App update section in it: the due version is read */
+                                  bell?: boolean }): AppUpdateControl | null {
   const channel = port?.channel ?? "none";
   const [saved0] = useState(() => readSaved(store));
-  const [check, setCheck] = useState<AppUpdateCheck>(() => asCheck(saved0));
+  const [check, setCheck] = useState<AppUpdateCheck>(() => asCheck(stillNewer(saved0, port?.installed ?? null)));
   const [start, setStart] = useState<AppUpdateStart>("idle");
   /** (T888) the version whose popup was answered (kept in the file), and the key answered in this run */
   const popped = useRef<string | null>(saved0?.popped ?? null);
@@ -117,9 +131,14 @@ export function useAppUpdate(port: AppUpdatePort | null, store: AppUpdateStore |
   }, [port, o.tooOld, answer]);
   const update = useCallback(() => run(null), [run]);
 
-  if (!port && !o.tooOld) return null;
   // offline says nothing (owner): only the strong prompt stays, since the data it holds back is still held back
   const vm = o.offline && !o.tooOld ? null : appUpdateVM({ channel, check, tooOld: o.tooOld, start });
-  const popup = updatePopupVM({ vm, channel, check, popped: popped.current, dismissed, held: !!o.held });
+  /** the popup that is due, held or not: the bell answers it as the popup would (read there, or Update pressed there) */
+  const due = updatePopupVM({ vm, channel, check, installed: port?.installed ?? "", popped: popped.current, dismissed,
+                              held: false });
+  const dueKey = due?.key ?? null;
+  useEffect(() => { if (o.bell && dueKey !== null) answer(dueKey); }, [o.bell, dueKey, answer]);
+  if (!port && !o.tooOld) return null;
+  const popup = o.held ? null : due;
   return { vm, update, popup, popupUpdate: () => run(popup?.key ?? null), dismiss: () => { if (popup) answer(popup.key); } };
 }

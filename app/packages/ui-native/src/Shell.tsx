@@ -443,15 +443,25 @@ export function Shell(p: ShellProps) {
     control: guideCtl.set,
   };
   const guide = useGuide(p.walkthrough ?? null, firstRun.open || !onMapTab, guideFacts, guideActs);
+  /** (T230, T700) the bell's sheet is up: from the bell, or by itself once for an in-season notice not on the map yet
+   *  (the same expression as `InSeasonNotice`'s `open`, below) */
+  const bellUp = (inbox.open && !firstRun.open && !guide.open) || bellOpen;
   /*
    * (T888) THE POPUP ON OPENING (a newer version, once; then the bell) waits behind the first-run notice, the walkthrough
-   * (due or under way), the bell's sheet (open, or opening by itself for an in-season notice) and the applying curtain.
+   * (due or under way), the bell's sheet (open, or opening by itself for an in-season notice), the applying curtain, and
+   * anything else up — as the release's safe moment (`safe`: a water, a spot, search, a pin being added), a More page,
+   * Layers, the date sheet, a tapped mark's sheet (obstacle, not-fishing, runs), the drop sheet, the sync error sheet — so
+   * a late check or a return to the app never stacks its window over another. The bell's sheet shown while it is due
+   * (`bell`: opened from the new-version notification, say) answers that version: closing the bell pops nothing.
    */
+  const sheetUp = !safe || menu.state.page !== null || layersOpen || dayOpen || syncErrorOpen || obstacle !== null
+    || notFishing !== undefined || runsAt !== null || rail.drop !== null || rail.picking;
   const appUpdate = useAppUpdate(p.appUpdater ?? null, p.appUpdateStore ?? null,
                                  { offline: netState.mode.offline, tooOld: syncState.updates?.release?.phase === "app-too-old",
                                    ask: p.openUpdate ?? 0, resume: resumed,
                                    held: firstRun.open || guide.open || guide.pending || bellOpen || inbox.open
-                                     || !!p.applyCurtain?.applying });
+                                     || !!p.applyCurtain?.applying || sheetUp,
+                                   bell: bellUp });
   const appVM = appUpdate?.vm ?? null;
   const releaseCount = (releaseVM?.counts ? 1 : 0) + (appVM?.counts ? 1 : 0);
   useEffect(() => { if (guide.open || guide.pending) setGuideWanted(true); }, [guide.open, guide.pending]);
@@ -789,6 +799,7 @@ export function Shell(p: ShellProps) {
                    // own map while it is in front, else the browse map's
                    camera={frame?.view === "map" ? waterCamera.current ?? camera.current : camera.current} />
       {/* (T230, T700) the bell's sheet: from the bell, and by itself once for an in-season notice not on the map yet */}
+      {/* (`bellUp` above is this same expression: the popup's `bell`; spelled out here for tools/back-layers.test.ts) */}
       <InSeasonNotice open={(inbox.open && !firstRun.open && !guide.open) || bellOpen} dfo={dfoNotice}
                       inbox={inbox}
                       palette={palette} onClose={() => { setBellOpen(false); inbox.close(); }}

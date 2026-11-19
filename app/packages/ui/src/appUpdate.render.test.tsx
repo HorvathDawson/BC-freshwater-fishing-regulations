@@ -17,20 +17,21 @@ const today = wallIso(new Date());
 const flush = () => act(async () => { await new Promise((r) => setTimeout(r, 0)); });
 
 function port(o: { check?: () => Promise<{ available: boolean; version: string | null }>;
-                   start?: (x: { immediate: boolean }) => Promise<"downloading" | "opened" | "listing" | "none"> } = {}) {
+                   start?: (x: { immediate: boolean }) => Promise<"downloading" | "opened" | "listing" | "none">;
+                   installed?: string } = {}) {
   const calls = { check: 0, start: [] as boolean[] };
   const p: AppUpdatePort = {
-    channel: "play",
+    channel: "play", installed: o.installed ?? "0.5.0",
     check: () => { calls.check++; return o.check ? o.check() : Promise.resolve({ available: true, version: "0.6.0" }); },
     start: (x) => { calls.start.push(x.immediate); return o.start ? o.start(x) : Promise.resolve("downloading"); },
   };
   return { p, calls };
 }
 
-function Probe({ p, store, offline = false, tooOld = false, resume = 0, held = false, out }: {
+function Probe({ p, store, offline = false, tooOld = false, resume = 0, held = false, bell = false, out }: {
   p: AppUpdatePort | null; store: ReturnType<typeof mem>; offline?: boolean; tooOld?: boolean; resume?: number;
-  held?: boolean; out: { c?: AppUpdateControl | null } }) {
-  out.c = useAppUpdate(p, store, { offline, tooOld, resume, held });
+  held?: boolean; bell?: boolean; out: { c?: AppUpdateControl | null } }) {
+  out.c = useAppUpdate(p, store, { offline, tooOld, resume, held, bell });
   return null;
 }
 
@@ -126,7 +127,8 @@ describe("useAppUpdate", () => {
 });
 
 describe("(T888) the popup on opening", () => {
-  const versions = (v: string) => port({ check: () => Promise.resolve({ available: true, version: v }) });
+  const versions = (v: string, installed?: string) =>
+    port({ check: () => Promise.resolve({ available: true, version: v }), ...(installed ? { installed } : {}) });
   it("shows once per version: Not now keeps it answered across openings, and the bell keeps the update", async () => {
     const store = mem(), out: { c?: AppUpdateControl | null } = {};
     const { p } = versions("0.8.2");
@@ -206,5 +208,47 @@ describe("(T888) the popup on opening", () => {
     first.unmount();
     render(<Probe p={p} store={store} tooOld out={out} />);
     expect(out.c!.popup?.strength).toBe("strong");
+  });
+  it("(finding 2) a kept check for the version now installed never pops, before or after the new check", async () => {
+    // 0.8.2 was kept as available (no popup answered: updated from the bell, or by the store itself); 0.8.2 is installed now
+    const store = mem(JSON.stringify({ day: today, available: true, version: "0.8.2", notes: null, popped: null }));
+    const out: { c?: AppUpdateControl | null } = {};
+    let done!: (r: { available: boolean; version: string | null }) => void;
+    const { p } = port({ installed: "0.8.2", check: () => new Promise((r) => { done = r; }) });
+    render(<Probe p={p} store={store} out={out} />);
+    await flush();
+    // the check has not answered yet: the kept 0.8.2 is dropped, neither the popup nor the bell says it
+    expect([out.c!.popup, out.c!.vm]).toEqual([null, null]);
+    await act(async () => { done({ available: false, version: null }); });
+    expect([out.c!.popup, out.c!.vm]).toEqual([null, null]);
+    // a kept check for a version still above the installed one is shown at once, as before
+    cleanup();
+    render(<Probe p={port({ installed: "0.8.1", check: () => new Promise(() => {}) }).p}
+                  store={mem(JSON.stringify({ day: today, available: true, version: "0.8.2" }))} out={out} />);
+    expect(out.c!.popup).toMatchObject({ key: "0.8.2", title: "Version 0.8.2 is out" });
+  });
+  it("(finding 3) the bell's sheet shown while the version is due answers it: closing the bell pops nothing", async () => {
+    const store = mem(), out: { c?: AppUpdateControl | null } = {};
+    const { p, calls } = versions("0.8.2");
+    // opened from the new-version notification: the bell is up (the popup is held behind it) and shows the update
+    const r = render(<Probe p={p} store={store} held bell out={out} />);
+    await flush();
+    expect(out.c!.popup).toBeNull();
+    expect(JSON.parse(store.read()!).popped).toBe("0.8.2");
+    // the bell's Update, then the bell closes: no popup (it would say "Downloading…" with no button)
+    act(() => out.c!.update());
+    await flush();
+    expect(calls.start).toEqual([false]);
+    r.rerender(<Probe p={p} store={store} out={out} />);
+    expect(out.c!.popup).toBeNull();
+    expect(out.c!.vm).toMatchObject({ said: "Downloading the update. The app restarts when it is ready." });
+  });
+  it("(finding 5) a newer build of the SAME version: the bell says it, the popup never (its title is the version)", async () => {
+    const store = mem(), out: { c?: AppUpdateControl | null } = {};
+    render(<Probe p={versions("0.8.2", "0.8.2").p} store={store} out={out} />);
+    await flush();
+    expect(out.c!.popup).toBeNull();
+    expect(out.c!.vm).toMatchObject({ counts: true, text: "Version 0.8.2 of the app is available." });
+    expect(JSON.parse(store.read()!).popped).toBeNull();
   });
 });

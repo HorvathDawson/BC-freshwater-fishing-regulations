@@ -5,12 +5,15 @@
  *              offers it to this phone (owner 2026-11-06: our `play.json` announced 0.6.4 at upload, before Play had
  *              it); `play.json` gives only its "What's new" bullets. The button is Play's in-app update: the flexible
  *              download, or the immediate, full-screen flow when new data needs the app.
- *   app-store  iOS, once the listing exists (T88: `EXPO_PUBLIC_APP_STORE_URL`): the store lookup for the version, the
- *              button opens the listing. Until then there is no channel (STUB until T88).
+ *   app-store  iOS, once the listing exists (T88: `EXPO_PUBLIC_APP_STORE_URL`, which build-ios-testflight.sh sets from
+ *              ~/.canifishthis/app-store-url): the App Store lookup names the version; (T888) our `appstore.json`
+ *              (build-ios-testflight.sh, after the upload) gives its bullets when it names that same version. The button
+ *              opens the listing. Without the URL there is no channel.
  *   apk-page   a sideloaded staging APK: `latest.json` beside the APK page (`deploy/staging/build-apk.sh`) for the
  *              version, the button opens the page.
  * (T234 v1.1) The incoming version's "What's new" bullets come from the version file on our server (`latest.json` /
- * `play.json`, core `appVersionFileUrl`), read by the check itself on both channels.
+ * `play.json` / `appstore.json`, core `appVersionFileUrl`), read by the check itself on every channel: a newer version is
+ * never in the bundled changelog, and each file holds its own platform's notes (the build scripts write them).
  *
  * The store package is loaded only on the first Play / App Store call, never for the APK page.
  */
@@ -37,7 +40,7 @@ export function makeAppUpdater(own: AppVersion): AppUpdatePort | null {
       const page = apkPage!;
       const latest = new URL("latest.json", page).toString();
       return {
-        channel,
+        channel, installed: own.version,
         check: async () => {
           const r = await fetch(latest, { cache: "no-store" });
           if (!r.ok) throw new Error(`HTTP ${r.status} for ${latest}`);
@@ -47,20 +50,33 @@ export function makeAppUpdater(own: AppVersion): AppUpdatePort | null {
         start: () => open(page),
       };
     }
-    case "app-store":
+    case "app-store": {
+      const file = appVersionFileUrl("app-store", { apkPage: null, dataBase: ENDPOINTS.base })!;
       return {
-        channel,
+        channel, installed: own.version,
         check: async () => {
           const u = await (await store()).checkForUpdate();
-          return { available: u.updateAvailable, version: u.storeVersion ?? null };
+          const version = u.storeVersion ?? null;
+          if (!u.updateAvailable) return { available: false, version: null };
+          // (T888) the App Store names the version; our appstore.json gives its bullets when it names the same one (a
+          // TestFlight upload ahead of the store's does not); a failed read is reported and the notice still stands
+          // (it says no notes were published)
+          try {
+            const r = await fetch(file, { cache: "no-store" });
+            if (!r.ok) throw new Error(`HTTP ${r.status} for ${file}`);
+            const l = await r.json() as Partial<AppVersionFile>;
+            if (version && l.version === version) return { available: true, version, notes: l.notes ?? null };
+          } catch (e) { reportFailure(e); }
+          return { available: true, version };
         },
         start: () => open(appStoreUrl!),
       };
+    }
     case "play": {
       const file = appVersionFileUrl("play", { apkPage: null, dataBase: ENDPOINTS.base })!;
       const listing = `https://play.google.com/store/apps/details?id=${PLAY_PACKAGE}`;
       return {
-        channel,
+        channel, installed: own.version,
         check: async () => {
           const u = await (await store()).checkForUpdate();
           if (!u.updateAvailable) return { available: false, version: null };
