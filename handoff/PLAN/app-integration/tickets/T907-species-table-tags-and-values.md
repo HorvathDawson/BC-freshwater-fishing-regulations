@@ -30,3 +30,4 @@ tributaries"), rather than a separate grey sentence under the fish. The other fi
   "Lake Revelstoke's tributaries".
 - Round 2 pictures (tag as its own purple line under the fish name, left rule, no box): owner ~12:40, verbatim "muted
   grey not purple idea same size as the dates text." So: same layout, the date line's muted grey and size.
+- Round 2 grey pictures (ce535ba98): owner, verbatim "yes good to put in 0.8.3". Into the 0.8.3 integration.
