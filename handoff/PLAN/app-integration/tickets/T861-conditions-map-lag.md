@@ -1,6 +1,6 @@
 # T861 — The Conditions map feels laggy like the Salmon map did (same cause as T848/T855?)
 
-Status: PARTIAL — fixed by 4c005321e (T848/T855 split, already covers Conditions + Run timing); left: lands with the 0.8.1 merge (app chat).
+Status: PARTIAL — fixed by 4c005321e (T848/T855 split, already covers Conditions + Run timing); left (Claude): lands with the 0.8.1 merge (app chat).
 
 Owner 2026-11-18 ~17:10 (to the main chat, relayed 17:12), verbatim: "conditions seems like it was laggy like salmon map
 was maybe it had same issue?"
