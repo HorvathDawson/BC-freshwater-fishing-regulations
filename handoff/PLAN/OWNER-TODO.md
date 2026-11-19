@@ -2891,3 +2891,7 @@ More questions (recommended answer first):
   JavaScript-detections switch (Workers Paid is not a zone plan); the jsd script stays on the pages for now (harmless,
   costs page-speed score). Later, not urgent: find another way to keep it off the water pages if search ranking needs
   it. Cloudflare steps DONE. Left: his word "switched" (old cron + workflows off, drop-v1.sh).
+- 2026-11-18 ~22:58, owner (app chat), on the five re-sent proposal pictures, verbatim: "all are good ( T878 … T879 …
+  T881 … T883 … T886 … ) except sunrise/set should be a bit better in same spot" -> T879 two headers one table, T881 gauge
+  map, T883 "How this was decided", T886 hatchery drawing: approved for 0.8.2. T878: keep the spot under the date, make
+  the line look better (variants to him). Also ~22:50 (dialog): the salmon map key's short label is "Check DFO" (T882).
