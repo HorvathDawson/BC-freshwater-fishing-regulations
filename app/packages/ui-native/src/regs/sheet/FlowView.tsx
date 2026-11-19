@@ -70,8 +70,8 @@ function Step({ s, rail, last, palette, actions }: { s: FlowStepVM; rail: boolea
       {(s.notes ?? []).map((n, i) => <Text key={i} style={[TYPE.meta, { color: palette.ink, marginTop: 2 }]}>{n}</Text>)}
     </View>
   );
-  // a filled dot holds; a restatement a hollow ink ring; a replaced or quiet one a hollow faint ring
-  const hollow = s.tone !== "won", ring = s.tone === "note" ? palette.ink : palette.faint;
+  // a filled dot holds; a restatement a hollow ink ring; a replaced or quiet one a hollow sub ring (T22: no folded colours in regs)
+  const hollow = s.tone !== "won", ring = s.tone === "note" ? palette.ink : palette.sub;
   return (
     <View testID="flow:step" style={{ flexDirection: "row" }}>
       <View style={{ width: RAIL, alignItems: "center" }}>
