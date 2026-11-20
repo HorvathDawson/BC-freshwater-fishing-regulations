@@ -1,6 +1,6 @@
 # T760 — First install waits for ever, without a word, on a system download that is paused and never moves; and the bench does not clear the downloader
 
-Status: IN PROGRESS (merged onto `redesign/stream-sections` 2026-11-16 in merge 3 (c62c1fa51) with T756; keep trying e600c5dc1; bench settled 076ff72ad / b4c1a72d9: three bg-install sessions 8/8; left (Claude): the iPhone twin run (work 4))
+Status: IN REVIEW — merged c62c1fa51 (Android, 2026-11-16); iPhone half 455ced856 (lane L6, a Wi-Fi-only job held on mobile data is an honest wait, reason 3) with the iPhone twin run 3 of 3 (6fdb3d8db); owner: OWNER-TODO "a first install on mobile data with" (optional phone check)
 
 Source: 2026-11-15, the R8 bench (T749). Traced on the emulator, not inferred.
 
@@ -207,3 +207,41 @@ merge 3 is ready to land.
 Left for later (bench time only, no result depends on it): unsetting the proxy at the reopen step seems to make the
 system downloader drop and retry its connections, so the rest took about 4 min; lifting the rate without unsetting
 until the end would shorten a session.
+
+## iPhone: a Wi-Fi-only job waiting on mobile data was called stuck (lane L6, 2026-11-20, commit 455ced856)
+- **Cause (read in the code).** The iOS background session holds a Wi-Fi-only task (`allowsCellularAccess` /
+  `allowsExpensiveNetworkAccess` / `allowsConstrainedNetworkAccess` false) on mobile data without a word: the task
+  stays running with no bytes, so `BgDownloadModule.swift` `list` reported it `pending` (reason 0). `fill` read any
+  pending job as parked (T760 work 2): after 10 minutes it was removed and queued again, twice, then the install failed
+  "stuck" (~30 min). Android does not hit this: DownloadManager says PAUSED with reason 3 (an honest wait).
+- **Fix.** The module now gives every live job Android's numbers from the phone's current network path
+  (`NWPathMonitor`): reason 2 when there is no network, 3 when the job is Wi-Fi only and the path is expensive (mobile
+  data, a hotspot) or constrained (Low Data Mode), else 0. `bgDownload.ts` `waitsForNetwork(job)`: any pending, paused
+  or running job with reason 2 / 3 is an honest wait, never parked; T756's later-pause rule reads it too, so an iPhone
+  job still "running" but held back for Wi-Fi while mobile data is now allowed is queued to use it (as Android's paused
+  one). The log line names it ("pending, waiting for a network (reason 3)"). Android: its running and pending jobs carry
+  reason 0 (DownloadManager's `getReason`), so nothing changes there.
+- **Tests** (`bgDownload.test.ts`, 3 new): a Wi-Fi-only job pending with reason 3, Wi-Fi only asked, two hours: never
+  queued again, claimed as it was (FAILS on the old code: queued again); a kept Wi-Fi-only job running with reason 3
+  while mobile data is allowed: queued again to use it, its line whole (FAILS on the old code: waits for ever); the
+  control: the same pending job with reason 0 (on Wi-Fi) is still queued again after `stuckMs`.
+- **Not provable on the simulator:** it shares the Mac's network (always Wi-Fi), so the path is never expensive there.
+  The Swift half compiled in the simulator build (see the run below). The real check is the owner's optional phone
+  check (lane plan item 6: a first install on mobile data with "Wait for Wi-Fi").
+- **Android benches on the change** (APK tag `l6`, commit c682a5af5, R8, patched MapLibre, `--no-r2`, lane 1, 08:00-08:08):
+  `install` PASS (up 72 s after launch). `bg-install` 6 of 9 steps: the app asked "Download about 480.8 MB using mobile
+  data?" (shot), but the bench's screen read came back empty twice ("no text … (saw: )", uiautomator dumps failing beside
+  "dumpsys connectivity: Broken pipe"), so the ask and "Wait for Wi-Fi" steps failed in the bench; the notification tap
+  failed on the known race (the system's downloads were done 5 s after the app was closed, the shade empty). The steps
+  this change touches passed: "Wi-Fi back: the download starts by itself", "app CLOSED mid-download", "reopened
+  mid-download: no running download is thrown away … no download queued again from zero", map up 110 s later. The app
+  log has no "stuck" and no "waiting for a network" line (Android's running / pending jobs carry reason 0). The 0-byte
+  Wi-Fi-only data-file jobs were queued again on the reopen, as T756 designed (nothing down, nothing lost).
+- **iPhone twin run (work 4)** (`scenarios-ios/first-relaunch.mjs`, build 6fdb3d8db `--testbed`, iPhone 17e, iOS 26.5,
+  a FRESH install via `session-ios.sh --fresh`, 2026-11-20 12:14-12:20): 3 of 3 PASS. The process was ended at the bar's
+  157.3 of 480.8 MB (the background session held 148 MB in 4 jobs: atlas 64.2 MB and basemap 72.5 MB pending, two small
+  files done); opened again at once, the bar's first figure was 307.9 MB at +5.3 s (never under what was held; 9 looks,
+  never down); the install ended on the map, all 4 jobs held at the kill claimed as they were, nothing queued again from
+  zero, nothing called stuck. The same run is T738's relaunch proof on iOS (the bar never goes down after a reopen) and
+  T756's "no running download is thrown away" on iOS.
+- Left: the owner's optional phone check (OWNER-TODO 2026-11-20 12:15, "a first install on mobile data with").
