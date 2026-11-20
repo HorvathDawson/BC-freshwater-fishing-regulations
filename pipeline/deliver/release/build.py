@@ -118,6 +118,8 @@ SIZE_GATES = {"paint": 1_000_000, "access": 300_000, "core": 1_650_000, "lakes":
               "flow-small": 32_000,
               # (T679 #8) `flow-own`: one bitmask varint per paint section, as flow-small (measured below when built)
               "flow-own": 40_000,
+              # (T973) `cw-through`: the carried "may need" units, a few thousand sections (measured below when built)
+              "cw-through": 60_000,
               # (T369) `lines`: ~0.99-1.08 MB gz estimated 2026-11-03 on the atlas's handles (ends proxied from the FWA
               # stream extents; the build measures the real one); (T386) phone-held too since 2026-11-04 (in the offline
               # total), fetched once a page is drawn (its place in the address) or when a link with a place is opened
@@ -405,6 +407,34 @@ def display_ends(store: sqlite3.Connection) -> Dict[str, List[str]]:
         raise ReleaseError("release: the regs store has no static display.ends — the cut places cannot be named")
     zd = dict(store.execute("SELECT tbl, d FROM zdict"))
     return json.loads(unpack(row[0], zd.get("static")))
+
+
+def cw_through(con: sqlite3.Connection, schema: str = "b") -> None:
+    """(T973, owner 2026-11-20 12:11) `cw-through/1`: the bundle's `designation_carried`, as the app draws it — per
+    section (`section_cw`) one note (`cw_note`): the carried designation's licence unit name and class, its classified
+    period (the record's `when`, JSON; NULL all year) and the rowed no-unit waters passed (`through`, JSON
+    [[item_id, name], …] up from the classified water). Python resolves; the app words the "may need" note
+    (`@app/core` regs/licence.ts). A bundle without the table is refused."""
+    if not con.execute(f"SELECT 1 FROM {schema}.sqlite_master WHERE type = 'table' AND name = 'designation_carried'"
+                       ).fetchone():
+        raise ValueError("cw-through: the bundle has no designation_carried table (T973); rebuild it: "
+                         "python -m pipeline.deliver bundle")
+    con.execute("CREATE TABLE cw_note (ix INTEGER PRIMARY KEY, unit_name TEXT NOT NULL, classified TEXT NOT NULL, "
+                "dates TEXT, through TEXT NOT NULL)")
+    con.execute("CREATE TABLE section_cw (sid INTEGER PRIMARY KEY, ix INTEGER NOT NULL) WITHOUT ROWID")
+    rows = con.execute(
+        f"SELECT c.sid, d.unit_name, d.classified, json_extract(d.record, '$.when'), c.through "
+        f"FROM {schema}.designation_carried c JOIN {schema}.designation d "
+        f"ON d.entry_id = c.entry_id AND d.designation_id = c.designation_id ORDER BY c.sid").fetchall()
+    (n,) = con.execute(f"SELECT count(*) FROM {schema}.designation_carried").fetchone()
+    if len(rows) != n:
+        raise ValueError(f"cw-through: {n - len(rows)} carried unit(s) name a designation the bundle does not hold")
+    notes: Dict[tuple, int] = {}
+    for sid, unit_name, cls, when, through in rows:
+        key = (unit_name, cls, when if when not in ("{}", "null") else None, through)
+        ix = notes.setdefault(key, len(notes))
+        con.execute("INSERT INTO section_cw VALUES (?, ?)", (sid, ix))
+    con.executemany("INSERT INTO cw_note VALUES (?, ?, ?, ?, ?)", [(ix, *k) for k, ix in notes.items()])
 
 
 def lake_section(con: sqlite3.Connection, schema: str = "b") -> None:
@@ -785,6 +815,10 @@ def bundle_files(work: Path, bundle: Path, b: sqlite3.Connection, base: Dict[str
         p = work / "flow-own.bin"
         p.write_bytes(PAINT.encode_own(b))
         files["flow-own"] = p
+    # (T973) the Classified Waters units carried through a rowed no-unit water: app 0.8.4's "may need" note (OPTIONAL in
+    # the contract: an older app knows no such file and reads nothing new)
+    files["cw-through"] = copy_file(work / "cw-through.sqlite", {"b": bundle}, [],
+                                    {**base, "format": formats()["cw-through"]}, extra=cw_through)
     files["conditions"] = copy_file(work / "conditions.sqlite", {"b": bundle},
                                     [("b", t, None) for t in COND_TABLES],
                                     {**base, "format": formats()["conditions"], META_TEXT_KEY: SMALL_WATER_TEXT,

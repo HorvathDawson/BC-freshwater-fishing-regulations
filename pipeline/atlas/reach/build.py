@@ -36,7 +36,7 @@ from pipeline.atlas.reach.outside import (
 from pipeline.regs.parsing.catalogue import Designation
 from pipeline.atlas.reach.licensing import (
     PLACED_KINDS, LicensingPlacement, as_rule, carve_out_orphans, carve_outs_to_owner,
-    first_classified_downstream, national_park_sections, on_designations,
+    CarriedUnit, carried_units, first_classified_downstream, national_park_sections, on_designations,
     place_record, without_national_parks,
 )
 
@@ -60,6 +60,9 @@ class ReachResult:
     #: `tidal.jsonl`, `outside_bc.jsonl`) so the bundle reads them instead of computing them again.
     tidal: dict[str, str] = field(default_factory=dict)
     outside: frozenset[str] = frozenset()
+    #: (T973) THE UNITS CARRIED THROUGH A ROWED NO-UNIT WATER (`licensing.CarriedUnit`), one per section, beside the
+    #: placements: never in `licensing`, never in `licensing_digest` (`io.write_run`: `licensing_carried.jsonl`).
+    licensing_carried: list = field(default_factory=list)
 
 
 def build_reaches(entries, registry, graph, *, build: str = "", handles: str = "",
@@ -94,6 +97,7 @@ def build_reaches(entries, registry, graph, *, build: str = "", handles: str = "
     claims: dict[str, list[str]] = {}
     carved: dict[tuple, tuple[set[str], set[str]]] = {}
     designations: dict = {}
+    on_tribs: set = set()                   # (T973) the designations whose row reaches its tributaries
     report = BuildReport(build=build, handles=handles)
     ents = sorted(iter_entries(entries), key=lambda x: x["entry_id"])
     # A LAKE CUT INTO PARTS IS NOT A PLACE A RECORD MAY NAME. Refused here as well as at ingest
@@ -204,6 +208,11 @@ def build_reaches(entries, registry, graph, *, build: str = "", handles: str = "
             licensing.append(placed)
             if rec.get("kind") == "designation":
                 designations[(entry_id, rec["id"])] = Designation.model_validate(rec)
+                # (T973) a designation whose row reaches its tributaries (its own flag, else its entry's; a
+                # tributaries-only row) — only these claim a walked section above them
+                it = rec.get("includes_tributaries")
+                if rec.get("tributaries_only") or (it if it is not None else e.get("includes_tributaries")) is True:
+                    on_tribs.add((entry_id, rec["id"]))
             lic_diags.extend(diags)
             # What a designation's carve-out removes, for the check below.
             if (rec.get("kind") == "designation" and rec.get("tributary_excludes")
@@ -240,10 +249,11 @@ def build_reaches(entries, registry, graph, *, build: str = "", handles: str = "
     # ONE UNIT PER SECTION, ONE PASS (T679 #10): a walked section takes the designation of the first classified
     # water it flows into, a water's own designation included; a rowed tributary printing no designation is not
     # classified (user rulings 2026-10-03, `licensing.first_classified_downstream`).
+    carried: list[CarriedUnit] = []         # (T973) the units LI-2's drops keep as a "may need", beside the placements
     licensing, homed = first_classified_downstream(
         licensing, designations, graph, registry, owned,
         lambda s: _resolve._kind_of(graph, s, registry),
-        matched_of={e["entry_id"]: list(e.get("matched") or ()) for e in ents})
+        matched_of={e["entry_id"]: list(e.get("matched") or ()) for e in ents}, carried=carried, claims=on_tribs)
     lic_diags.extend(homed)
     for d in homed:
         k = f"designation:{d.kind}"
@@ -267,6 +277,10 @@ def build_reaches(entries, registry, graph, *, build: str = "", handles: str = "
               for x in (e.get("licensing") or []) if isinstance(x, dict)}
     licensing, narrowed = on_designations(licensing, rec_of, designations)
     lic_diags.extend(narrowed)
+    # (T973) one carried unit per section, none where a final designation holds the section
+    carried, report.licensing_carried = carried_units(
+        carried, licensing, lambda k: (designations[k].unit, designations[k].classified) if k in designations else k)
+    report.licensing_carried["sections"] = len(carried)
     for d in narrowed:
         k = f"requirement:{d.kind}"
         report.licensing[k] = report.licensing.get(k, 0) + 1
@@ -309,7 +323,7 @@ def build_reaches(entries, registry, graph, *, build: str = "", handles: str = "
     lic_diags.sort(key=lambda d: (d.entry_id, d.rule_id, d.kind))
     steelhead, report.steelhead = presence.finish(bindings, twins)
     return ReachResult(bindings, diagnostics, report, licensing, lic_diags, steelhead,
-                       tidal=tidal_of, outside=outside)
+                       tidal=tidal_of, outside=outside, licensing_carried=carried)
 
 
 def tidal_limit(entry: dict, tidal):

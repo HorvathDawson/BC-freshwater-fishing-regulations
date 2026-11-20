@@ -13,11 +13,11 @@
  */
 import {
   broadOf, ruleIndex, segmentIndex, tapDay, viaOf, yearSegments,
-  type AkeyRow, type CellSection, type Day, type DisplayFrame, type LadderFrameWire, type MergedPart, type Moment, type Picker,
+  type AkeyRow, type CellSection, type Day, type MayNeed, type DisplayFrame, type LadderFrameWire, type MergedPart, type Moment, type Picker,
   type RegsInputs, type RegsTarget, type RegsYear, type RowsValue, type RuleIndex, type Statics, type Weekday,
 } from "@app/core";
 import { RegsStoreError } from "./errors";
-import type { PartRow, RegsReads, StoreStatics, StoredCell, StoredRule } from "./reads";
+import type { CarriedNote, PartRow, RegsReads, StoreStatics, StoredCell, StoredRule } from "./reads";
 
 /** A tap the store cannot answer: no such water, no such part, an unnamed section the store names no place for. */
 export class RegsInputsError extends Error {
@@ -72,7 +72,8 @@ async function keyed(store: InputsStore, key: AkeyRow, day: Day, weekday: Weekda
  *  refused / damaged store, a `TapError` for a date that does not exist. */
 export async function loadRegsInputs(store: InputsStore, target: RegsTarget, day: Day, weekday: Weekday,
                                      calendarYear: number): Promise<RegsInputs> {
-  const [st, stored, lics, allNotes] = await Promise.all([store.statics(), store.rules(), store.lics(), store.sectionNotes()]);
+  const [st, stored, lics, allNotes, carried] = await Promise.all([store.statics(), store.rules(), store.lics(), store.sectionNotes(),
+                                                                  store.carriedUnits()]);
   const statics = staticsOf(st), sp = st.exportSpecies;
   const base = { target, day, weekday, calendarYear, lics, statics };
   const outside = (rules: RuleIndex) =>
@@ -81,9 +82,10 @@ export async function loadRegsInputs(store: InputsStore, target: RegsTarget, day
   if (target.kind === "section") {
     const a = await store.sectionAkey(target.handle);
     const notes = notesOfSections(allNotes, [target.handle]);              // (T796) a section handle is its sid
+    const mayNeed = mayNeedOf(carried, [target.handle]);                   // (T973)
     // (T672 1b) a key-less section is outside B.C., or tidal water: regs-sid `section_tidal` says which (a release cut
     // before the table cannot say, and reads as outside, as it always did)
-    if (a === 0) return { ...base, notes, item: null, partIx: 0, place: null, ...outside(ruleIndex(stored, new Map(), sp)),
+    if (a === 0) return { ...base, notes, mayNeed, item: null, partIx: 0, place: null, ...outside(ruleIndex(stored, new Map(), sp)),
                           tidalPart: (await store.sectionTidal(target.handle)) === true };
     const pl = await store.sectionPlace(target.handle);
     if (pl === null) throw new RegsInputsError(`regs: section ${target.handle} has a key (${a}) but no place`);
@@ -91,7 +93,7 @@ export async function loadRegsInputs(store: InputsStore, target: RegsTarget, day
     const name = (placeRow.names as Readonly<Record<string, string>>)[key.kind];
     if (name === undefined) throw new RegsInputsError(`regs: place ${pl} has no name for a ${key.kind}`);
     const k = await keyed(store, key, day, weekday, calendarYear);
-    return { ...base, notes, item: null, partIx: 0, place: { label: placeRow.label, name }, key, s: k.s, cell: k.cell,
+    return { ...base, notes, mayNeed, item: null, partIx: 0, place: { label: placeRow.label, name }, key, s: k.s, cell: k.cell,
              frames: k.frames, year: k.year, ruleset: k.ruleset, rules: ruleIndex(stored, viaOf(k.ruleset), sp), mergedParts: null,
              ...k.trout };
   }
@@ -107,16 +109,26 @@ export async function loadRegsInputs(store: InputsStore, target: RegsTarget, day
                  parts: parts.map((p) => p.facts), partSections: parts.map((p) => p.sections), picker, steelhead: it.steelhead };
   const part = parts[partIx]!;
   // (T796) a part's notes are its sections' (water `part_section`): read only when the release has any note
-  const notes = allNotes.size ? notesOfSections(allNotes, [...(await store.partLengths(ord, partIx)).keys()]) : [];
+  const partSids = allNotes.size || carried.size ? [...(await store.partLengths(ord, partIx)).keys()] : [];
+  const notes = allNotes.size ? notesOfSections(allNotes, partSids) : [];
+  const mayNeed = carried.size ? mayNeedOf(carried, partSids) : [];          // (T973) the part's sections'
   if (part.akey === null)
     // (T672) a key-less part is outside B.C., or the release's tidal piece: the store says which (`part.tidal`)
-    return { ...base, notes, item, partIx, place: null, ...outside(ruleIndex(stored, new Map(), sp)), tidalPart: part.tidal };
+    return { ...base, notes, mayNeed, item, partIx, place: null, ...outside(ruleIndex(stored, new Map(), sp)), tidalPart: part.tidal };
 
   const key = await store.akey(part.akey);
   const k = await keyed(store, key, day, weekday, calendarYear);
-  return { ...base, notes, item, partIx, place: null, key, s: k.s, cell: k.cell, frames: k.frames, year: k.year, ruleset: k.ruleset,
+  return { ...base, notes, mayNeed, item, partIx, place: null, key, s: k.s, cell: k.cell, frames: k.frames, year: k.year, ruleset: k.ruleset,
            ...k.trout, rules: ruleIndex(stored, viaOf(k.ruleset), sp),
            mergedParts: await mergedParts(store, stored, sp, parts, picker, partIx, day, weekday, calendarYear) };
+}
+
+/** (T973) The carried units of these sections (release `cw-through`), each note once, in section order; `part` where the
+ *  note holds on only some of them. */
+export function mayNeedOf(all: ReadonlyMap<number, CarriedNote>, sids: readonly number[]): readonly MayNeed[] {
+  const got = new Map<CarriedNote, number>();
+  for (const s of [...sids].sort((x, y) => x - y)) { const c = all.get(s); if (c) got.set(c, (got.get(c) ?? 0) + 1); }
+  return [...got].map(([c, k]) => ({ ...c, part: k < sids.length }));
 }
 
 /** (T796) The notes of these sections (core `section_note`), each sentence once, in section order. */

@@ -27,7 +27,7 @@
  */
 import type {
   AkeyRow, AnswersPlace, CellIds, Confidence, ContinueRow, DateSet, DisplayFrame, ExportRule, FishSheet, GearValue,
-  LadderFrameWire, LicenceValue, Moment, OptionalSectionName, PartFacts, Picker, RowsValue, RuleFacts, Statics, TroutFrameWire,
+  LadderFrameWire, LicenceValue, Moment, OptionalSectionName, PartFacts, Picker, RowsValue, RuleFacts, RuleWhen, Statics, TroutFrameWire,
   TroutTableWire, TroutValue, VerdictWire,
 } from "@app/core";
 import { CELL_COLUMNS, CELL_NULLABLE, CELL_SECTIONS, isConfidence } from "@app/core";
@@ -126,6 +126,10 @@ export interface RegsReads {
    *  book p.9) does not apply here."), read whole once. Empty: none — or a core cut before the table (ADDITIVE in core/1),
    *  asked of the file's own `sqlite_master`, never inferred from a failed read. */
   sectionNotes(): Promise<ReadonlyMap<number, string>>;
+  /** (T973) Every section's carried Classified Waters unit (release `cw-through`: Python's answer, one per section),
+   *  read whole once. Empty: none — or a release without the file (OPTIONAL: said by the manifest, never by a failed
+   *  read). Sections sharing a note share one object. */
+  carriedUnits(): Promise<ReadonlyMap<number, CarriedNote>>;
   /** An unnamed section's whole name ("Unnamed stream · Region 5"); null outside B.C. */
   unnamedName(handle: number): Promise<string | null>;
   /** The part of item `itemOrd` section `sid` belongs to (water `part_section`, P09; its `ord` is the item_ord);
@@ -175,6 +179,12 @@ export interface NavRows {
   readonly continuesFrom: ContinueRow | null;
 }
 
+/** (T973) One `cw-through` note: the carried designation's unit name, class and classified period (null: all year), and
+ *  the names of the waters with their own line and no unit it passed, up from the classified water. */
+export interface CarriedNote {
+  readonly unitName: string; readonly classified: string; readonly when: RuleWhen | null; readonly through: readonly string[];
+}
+
 /** What the reads stand on (store.ts hands them its own). */
 export interface ReadBase {
   water(): Promise<Db>;
@@ -183,6 +193,9 @@ export interface ReadBase {
   core(): Promise<Db>;
   /** (T182) the file holding `part_geo`: geo. */
   geo(): Promise<Db>;
+  /** (T973) the carried units' file (`cw-through`), held to water's atlas; null: the release has none. Optional so a
+   *  hand-built base need not carry it (none). */
+  cw?(): Promise<Db | null>;
   val<T = unknown>(table: string, blob: Cell): T;
   /** (T910) a table's preset dictionary (what `val` inflates with): the web's rules worker is handed it */
   dict?(table: string): Uint8Array | null;
@@ -603,6 +616,25 @@ export function makeReads(base: ReadBase): RegsReads & { clear(): void } {
       return new Map(rows.map((r) => {
         if (typeof r.note !== "string" || !r.note) throw damaged(`core section_note ${String(r.sid)} has no note`);
         return [n(r.sid), r.note] as const;
+      }));
+    }),
+
+    carriedUnits: () => once("carriedUnits", 0, async () => {
+      const d = base.cw ? await base.cw() : null;
+      if (!d) return new Map<number, CarriedNote>();
+      const notes = new Map<number, CarriedNote>();
+      for (const r of await d.all("SELECT ix, unit_name, classified, dates, through FROM cw_note ORDER BY ix")) {
+        const through = json<[string, string][]>(r.through);
+        if (typeof r.unit_name !== "string" || typeof r.classified !== "string" || !Array.isArray(through) || !through.length)
+          throw damaged(`cw-through note ${String(r.ix)} is incomplete`);
+        notes.set(n(r.ix), { unitName: r.unit_name, classified: r.classified,
+                             when: r.dates === null || r.dates === undefined ? null : json<RuleWhen>(r.dates),
+                             through: through.map((w) => w[1]) });
+      }
+      return new Map((await d.all("SELECT sid, ix FROM section_cw ORDER BY sid")).map((r) => {
+        const note = notes.get(n(r.ix));
+        if (!note) throw damaged(`cw-through section ${String(r.sid)} names no note ${String(r.ix)}`);
+        return [n(r.sid), note] as const;
       }));
     }),
 

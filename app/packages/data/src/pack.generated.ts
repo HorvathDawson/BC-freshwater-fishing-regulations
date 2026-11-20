@@ -717,6 +717,27 @@ export const PACK_FILES: Record<string, PackFile> = {
       ]
     }
   },
+  "cw-through": {
+    "format": "cw-through/1",
+    "kind": "sqlite",
+    "tables": {
+      "cw_note": [
+        "ix",
+        "unit_name",
+        "classified",
+        "dates",
+        "through"
+      ],
+      "meta": [
+        "k",
+        "v"
+      ],
+      "section_cw": [
+        "sid",
+        "ix"
+      ]
+    }
+  },
   "down": {
     "format": "down/2",
     "kind": "sqlite",
@@ -2726,7 +2747,7 @@ export const PACK_FILES: Record<string, PackFile> = {
 };
 
 /** (T403) The files a release may omit (contract OPTIONAL); every other file is in every published release. */
-export const PACK_OPTIONAL: readonly string[] = ["flow-own", "flow-small", "lakes"];
+export const PACK_OPTIONAL: readonly string[] = ["cw-through", "flow-own", "flow-small", "lakes"];
 
 /**
  * (T810 ticket I, trout table contract 2.1) THE OPTIONAL ANSWERS SECTIONS: per section, the `cell` columns and the tables

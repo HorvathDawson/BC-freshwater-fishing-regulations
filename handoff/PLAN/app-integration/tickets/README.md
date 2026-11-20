@@ -247,10 +247,11 @@ reads both files; a ticket closed here moves there once its lane is finished wit
 | T944 | Shea Creek dead-end piece 773423 carries both the Bulkley's and the Morice's Classified Waters units | IN PROGRESS — left (Claude): main chat review + merge; next reach run + bundle (9 sections' licensing, 0 rules) | d23bbc9b6 | lane/t936-t931 2026-11-20 (T931 B refused pin) |
 | T945 | Committed unnamed-tributary sweep result stale against the live bundle (41 streams) | IN PROGRESS — left (Claude): main chat review + merge (41 = atlas: T796 names, Sheldens Creek, Lakelse cut) | 3f8cddad8 | lane/t936-t931 2026-11-20 test-full |
 | T946 | Tier 2 tributary lines: 20 parts (Lake Revelstoke tributaries DV, Iverson Creek) not what their rail sets | IN PROGRESS — left (Claude): main chat review + merge (the sweep's rail reader missed T919 a's bare kicker) | 67ed64d77 | lane/t936-t931 2026-11-20 test-full |
-| T973 | Classified Waters: does a unit carry up through a tributary whose own row prints no unit (LI-2)? Ask a CO | BLOCKED (owner) | | owner 2026-11-20 11:44 (T944 changes); release keeps LI-2 |
+| T973 | Classified Waters carried through a tributary whose own row prints no unit, with its path (class, source, through); "may need" note; CO question open | IN PROGRESS — left (Claude): main chat review + merge (lane/l10-cw-through; 7,080 sections carry a note) | 9475cfdb0, e04d6d87b, bf28dbc76, 28eaf73e9 | owner 2026-11-20 11:44 + 12:11 + 12:24 (this release) |
 | T970 | Photo viewer: the buttons stay at full strength while the photo is dragged down to close | OPEN | | L4 Android looks 2026-11-20 |
 | T971 | Conditions: picking Level in the gauge card also re-ranks the estimate card above it | IN PROGRESS | 2a2aa0e75 (lane/t971-flow-leads) | L4 Android looks 2026-11-20 |
 | T972 | Search for "Thompson" lists "Thompson Plateau" locality five times, identical lines | OPEN | | L4 Android looks 2026-11-20 |
+| T974 | Classified Waters "may need" note: clean up (firm unit or drop, remove the optional file and note) once a CO answers T973 | BLOCKED (owner) | | owner 2026-11-20 12:38 |
 
 ## Next after closed testing
 
@@ -290,7 +291,7 @@ and records them; T81 records them in decisions.md). Answer here or in decisions
 | Q174 | T404 | The prod data worker replaces v1's `bc-fishing-r2` in place (deploy/prod/data.wrangler.toml; it serves the v1 keys only until switch day)? | yes — check its name + route first; v1 keys deleted the same day (PRODUCTION.md step 11) | owner 2026-11-08 |
 | Q175 | T404 | Share links and the privacy page are `canifishthis.ca` in every environment (the staging site is noindex)? | yes | owner 2026-11-08: yes |
 | Q177 | T540 | Move AGENTS.md "Reading the regulations" (53 % of the file) into a file read only for regulation work? | no — AGENTS.md unchanged | owner |
-| Q181 | T973 | Ask a CO: is a tributary with its own no-unit row (Grave Creek under the Elk, Gosnell under the Morice, the Endako under the Stellako) inside the river's Classified Waters "[Includes Tributaries]"? | LI-2 as shipped: not classified, nor anything above it | owner (ask a CO) |
+| Q181 | T973 | Ask a CO: is a tributary with its own no-unit row (Grave Creek under the Elk, Gosnell under the Morice, the Endako under the Stellako) inside the river's Classified Waters "[Includes Tributaries]"? | built 12:11: carried with its path, shown as a "may need" note until the CO answers | owner (ask a CO) |
 
 ### Shipped on default (reverse any)
 

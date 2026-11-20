@@ -6,9 +6,9 @@
  */
 import { describe, expect, it } from "vitest";
 import type { LicenceValue, ProfileAnswer } from "../answers.generated";
-import type { RegsInputs, RuleView } from "./inputs";
+import type { MayNeed, RegsInputs, RuleView } from "./inputs";
 import {
-  actTxt, buildLicence, licenceBlockLines, lx, needLine, patchNeeds, priceTxt, profileOf, whoTxt,
+  actTxt, buildLicence, licenceBlockLines, lx, mayNeedTxt, needLine, patchNeeds, priceTxt, profileOf, whoTxt,
 } from "./licence";
 import type { NeedItemVM, Who } from "./model";
 import type { SpeciesBook } from "./names";
@@ -349,5 +349,30 @@ describe("T789 G8 (owner 2026-11-17 'Yes, ship it'): the closures to the non-res
     expect(notes(vmOf(WHO.adult_alien!))).toEqual([]);
     expect(lines(vmOf(WHO.adult_alien!, null))).toEqual(before);
     expect(lines(vmOf(WHO.adult_alien!, []))).toEqual(before);
+  });
+});
+
+describe("T973 (owner 2026-11-20 12:11, '\"May need\" note'): a unit carried through a water with its own line and no unit", () => {
+  const STELLAKO: MayNeed = { unitName: "Stellako River", classified: "II", when: null, through: ["Endako River"], part: false };
+  const MORICE: MayNeed = { unitName: "Morice River", classified: "II", through: ["Gosnell Creek", "Hidden Creek"], part: true,
+    when: { dates: [{ from_month: 9, from_day: 1, to_month: 10, to_day: 31 }] } };
+  const vmOf = (mayNeed?: readonly MayNeed[], who: Who = WHO.adult!) =>
+    buildLicence({ ...INP({ paper: [] }), ...(mayNeed === undefined ? {} : { mayNeed }) } as RegsInputs, who, { closed: false, glossary: GLOSS })!;
+  it("the whole note, in plain words, as a flag before the 'You need' list — never a class box or a document", () => {
+    expect(lines(vmOf([STELLAKO]))[0]).toEqual(["flag",
+      "? Stellako River Class II may apply here: Endako River has its own line without Classified Waters. Check with a CO."]);
+    expect(mayNeedTxt(MORICE)).toBe("On part of this water: Morice River Class II (Sep 1–Oct 31) may apply here: Gosnell Creek and "
+      + "Hidden Creek have their own lines without Classified Waters. Check with a CO.");
+    const vm = vmOf([STELLAKO]);
+    expect(vm.blocks.filter((b) => b.cls === "classbox")).toEqual([]);
+    expect(JSON.stringify(vm.blocks.filter((b) => b.cls === "needs"))).not.toContain("Classified");
+  });
+  it("every angler sees it (it is about the water, as the class box is)", () => {
+    for (const w of Object.values(WHO)) expect(lines(vmOf([STELLAKO], w)).some((l) => l[0] === "flag")).toBe(true);
+  });
+  it("no carried unit (absent or empty): the tab exactly as before", () => {
+    const before = lines(vmOf());
+    expect(lines(vmOf([]))).toEqual(before);
+    expect(before.some((l) => l[0] === "flag")).toBe(false);
   });
 });

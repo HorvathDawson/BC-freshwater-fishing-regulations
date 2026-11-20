@@ -40,6 +40,10 @@ TABLES = ("rule_section", "rule_unresolved", "rule_extent", "rule_diagnostic")
 #: rule — its id is unique within its entry among LICENSING records, not among rules — and a
 #: reader that joined the two on (entry_id, id) would be joining different namespaces.
 LICENSING_TABLES = ("licensing_placement", "licensing_section", "licensing_diagnostic")
+#: (T973) the units carried through a rowed no-unit water (`licensing.CarriedUnit`): one row per section — {section_id,
+#: entry_id, record_id, through: [[item_id, name], …] up from the classified water}. Beside the licensing tables, never
+#: in them, with a digest of its own (`licensing_carried_digest`), so `licensing_digest` is what it was.
+CARRIED_TABLE = "licensing_carried"
 #: `steelhead: known | possible` per section (`pipeline.atlas.reach.steelhead`): one row per section
 #: that has the attribute — the steelhead row that binds it (or `curated list`, or `zp:steelhead` for
 #: possible), whether the book (`regulations`) or the curated list (`listed`) makes it known, and
@@ -242,6 +246,10 @@ def write_run(out_dir: str | Path, result, entries=None, *,
          "payload": json.dumps(d.payload, sort_keys=True)}
         for d in result.licensing_diagnostics),
         key=lambda r: (r["entry_id"], r["record_id"], r["kind"], r["payload"]))
+    tables[CARRIED_TABLE] = [
+        {"section_id": c.section, "entry_id": c.entry_id, "record_id": c.record_id,
+         "through": [list(w) for w in c.through]}
+        for c in sorted(getattr(result, "licensing_carried", None) or (), key=lambda c: c.section)]
     tables[STEELHEAD_TABLE] = list(getattr(result, "steelhead", None) or [])
     tables[TIDAL_TABLE] = [{"section_id": s, "entry_id": e}
                            for s, e in sorted((getattr(result, "tidal", None) or {}).items())]
@@ -258,6 +266,7 @@ def write_run(out_dir: str | Path, result, entries=None, *,
     report["digest"] = digest(result)
     report["licensing_digest"] = licensing_digest(result)
     report["steelhead_digest"] = _table_digest(tables[STEELHEAD_TABLE])
+    report["licensing_carried_digest"] = _table_digest(tables[CARRIED_TABLE])
     report["tidal_digest"] = _table_digest(tables[TIDAL_TABLE])
     report["outside_digest"] = _table_digest(tables[OUTSIDE_TABLE])
     if isinstance(entries, dict):           # the corpus the run was made from (P2)

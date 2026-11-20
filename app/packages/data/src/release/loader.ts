@@ -25,7 +25,7 @@ import { covers, routedDb, sliceKeys, type SliceKeys, type Sliced } from "./focu
 export type SalmonSlice = `salmon-${Region}` | "salmon-x";
 type BinName = "salmon" | SalmonSlice | "method";
 
-export type FileName = "paint" | "flow-area" | "flow-small" | "flow-own" | "lakes" | "access" | "core" | "near" | "water" | `regs-${Region}` | "regs-sid"
+export type FileName = "paint" | "flow-area" | "flow-small" | "flow-own" | "lakes" | "access" | "core" | "near" | "water" | `regs-${Region}` | "regs-sid" | "cw-through"
   | `core-${Region}` | `water-${Region}` | "water-shared"
   | BinName
   | "conditions" | "down" | "climate" | "geo" | "lines";
