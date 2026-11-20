@@ -141,3 +141,11 @@ the map + key stay open.
 Round 3 accepted. Left (Claude): drop the now-unread `DataProvenanceContext` (and the dropped DonorRowVM-era leftovers
 if any), Android benches (Year ↔ 72 h, Flow ↔ Level, the white map box in dark), tier + independent review, then land
 with T919 (a, b), T921 and T917.
+
+## Android benches 2026-11-19 21:29 (lane 2)
+44/44 PASS at 1f989bb48 (patched MapLibre, same build id as 0.8.3): map tap → page 341–377 ms (one 648 ms), quick pinch
+56–57.5 fps, zoom-out 48–56.7 fps, no pinch gap > 100 ms (report `app/tools/testbed/out/runs/2026-11-20T02-59-17/`). Dark
+checks at 16d81f6b6 (Vedder, Capilano): order, Year ↔ 72 h, Flow ↔ Level, the gauges fold all pass. The white map box was
+NOT reproduced (near-white share 0.5–2.4% across bursts; repeated tab-back and cold open untested). Follow-up, not in this
+landing: give `MLMap` (`Map.native.tsx` ~1005) and the `DonorMap` box a `palette.tint` background so a fresh mount (every
+`vm.key` change) never shows a bare surface; bench it when made.
