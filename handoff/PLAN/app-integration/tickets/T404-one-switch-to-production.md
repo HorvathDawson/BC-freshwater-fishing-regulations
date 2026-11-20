@@ -109,3 +109,10 @@ check its name first); Q175 share links + privacy page are `canifishthis.ca` for
 
 ## L3 2026-11-20: `--bucket` (d63416d48, branch lane/l3-tools)
 `pipeline/runtiming/feed/publish.py` takes `--bucket` (default the staging bucket; only the staging and production bucket names are accepted, anything else exits); `base.py --upload` takes the same. `feeds-runtiming.yml` step 7 passes `--bucket "$BUCKET"`, the value the workflow already computes from `target`. The workflow's production option and the PROD_R2 secrets block stay COMMENTED: the owner uncomments both. Test `test_t404_publish_honours_the_bucket`. Nothing uploaded or dispatched.
+
+## L3 2026-11-20, after the independent review
+- The production bucket needs `CONFIRM_PROD=canifishthis.ca` in `publish.py` and `base.py` (shared `publish.checked_bucket`: bare lower-cased name, plan or send alike; same value as `deploy/lib/bucket.sh` users). Test `test_t404_the_production_bucket_needs_confirm_prod`.
+- The workflow derives the guard, `DATA` (production: `https://data.canifishthis.ca`, staging: data-staging) and `CONFIRM_PROD` from `target`; before, the guard refused every non-staging bucket and `DATA` was staging's, so a production run would have diffed against staging's feed. The production option itself is still commented.
+- THE OWNER'S EDITS (also in the workflow header): (1) uncomment `- production` in the `target` options; (2) swap the two `AWS_*` env lines for the two commented prod lines; (3) add the secrets `PROD_R2_ACCESS_KEY_ID` / `PROD_R2_SECRET_ACCESS_KEY` (an R2 token scoped to `bc-fishing-regulations`). A production run also needs the production release live and its binding base at `bc-fishing-regulations/private/runtiming/base/<handles>.json.gz` (`deploy/prod/upload.sh` puts it there).
+- Stale comments fixed in `base.py` and `runtiming/feed/__init__.py`.
+

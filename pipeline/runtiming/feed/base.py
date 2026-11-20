@@ -41,7 +41,7 @@ from pipeline.common.names import key as the_name_key
 FORMAT = "runtiming-base/1"
 MIN_ORDER = 3
 LAYERS = ("stream", "lake")
-BUCKET = "bc-fishing-regulations-staging"       # STAGING ONLY: this module never names a production bucket
+BUCKET = "bc-fishing-regulations-staging"       # the default; (T404) `--bucket` may name the production one, only under CONFIRM_PROD (publish.checked_bucket)
 KEY = "private/runtiming/base/{handles}.json.gz"
 
 
@@ -297,15 +297,15 @@ def main(argv=None) -> int:
     ap.add_argument("--out", type=Path, default=None)
     ap.add_argument("--upload", action="store_true", help="put it on the STAGING bucket's private/runtiming/base/")
     ap.add_argument("--bucket", default=BUCKET, help="(T404) with --upload: the bucket (default: staging; the production "
-                    "bucket is accepted, nothing else)")
+                    "bucket only with CONFIRM_PROD=canifishthis.ca, nothing else)")
     ap.add_argument("--yes", action="store_true", help="with --upload: send it (without: print the plan)")
     ap.add_argument("--add-basins", type=Path, default=None, metavar="BASE",
                     help="add (or replace) the wg column on an existing base, no atlas; written to --out (default: "
                          "beside it, same name)")
     ap.add_argument("--gpkg", type=Path, default=None, help="with --add-basins: the FWA gpkg (default: SOURCE's)")
     a = ap.parse_args(argv)
-    if a.bucket not in (BUCKET, "bc-fishing-regulations"):
-        raise SystemExit(f"base: --bucket {a.bucket!r} is not the staging or the production bucket")
+    from pipeline.runtiming.feed.publish import checked_bucket
+    a.bucket = checked_bucket(a.bucket, "base")
     if a.add_basins is not None:
         base = add_basins(read(a.add_basins), a.gpkg)
         p = write(base, a.out or a.add_basins.parent)

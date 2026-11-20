@@ -15,7 +15,7 @@ timings for the local test bed only (`data/generated/runtiming/feed/out`, never 
     python -m pipeline.runtiming.parse --out <work>/timing.json --polygons <work>/cu_polygons.geojson
     python -m pipeline.runtiming.feed.build --timing <work>/timing.json --polygons <work>/cu_polygons.geojson \\
         --base <base-<handles>.json.gz> --out <work>/out
-    python -m pipeline.runtiming.feed.publish --dir <work>/out --via wrangler|aws [--yes]   # staging only
+    python -m pipeline.runtiming.feed.publish --dir <work>/out --via wrangler|aws [--bucket B] [--yes]   # staging by default; production only with --bucket + CONFIRM_PROD=canifishthis.ca
 
 THE BASE (`base.py`, `runtiming-base/1`) is the atlas reduced to what the binding reads — per section: kind, Strahler
 order, length, FWA watershed code, blue line and measures, lake key, names, the sections it flows into, its water's

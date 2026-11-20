@@ -2,7 +2,7 @@
 
     python -m pipeline.runtiming.feed.publish --dir <out>/runtiming --via wrangler|aws [--bucket NAME] [--yes]
 
-(T404) `--bucket` names the target and defaults to STAGING; only the two known buckets are accepted. The workflow passes
+(T404) `--bucket` names the target and defaults to STAGING; only the two known buckets are accepted, and the production one only with CONFIRM_PROD=canifishthis.ca (the other prod writers' guard). The workflow passes
 the BUCKET it computed from its `target` input; its production option stays commented until the owner enables it.
 
 ORDER IS THE CONTRACT (as the release's `publish.py`): the content-named files first (immutable, stored gzipped and
@@ -28,6 +28,17 @@ from typing import List, NamedTuple, Optional
 BUCKET = "bc-fishing-regulations-staging"       # the default target
 PROD_BUCKET = "bc-fishing-regulations"          # (T404) only on an explicit --bucket
 BUCKETS = (BUCKET, PROD_BUCKET)
+
+
+def checked_bucket(name: str, who: str = "publish") -> str:
+    """The bare bucket name, or exit. (T404 review) The production bucket needs CONFIRM_PROD=canifishthis.ca, as every
+    deploy/prod script (deploy/lib/bucket.sh): checked on the bare, lower-cased name, plan or send alike."""
+    b = name.split(":", 1)[-1].strip("/").lower()
+    if b not in BUCKETS:
+        raise SystemExit(f"{who}: --bucket {name!r} is not one of {', '.join(BUCKETS)}")
+    if b == PROD_BUCKET and os.environ.get("CONFIRM_PROD") != "canifishthis.ca":
+        raise SystemExit(f"{who}: set CONFIRM_PROD=canifishthis.ca to use the production bucket {PROD_BUCKET}")
+    return b
 PREFIX = "runtiming"
 IMMUTABLE = "public, max-age=31536000, immutable"
 
@@ -71,8 +82,7 @@ def main(argv=None) -> int:
     ap.add_argument("--bucket", default=BUCKET, help=f"target bucket, one of {', '.join(BUCKETS)} (default: staging)")
     ap.add_argument("--yes", action="store_true", help="send it (without: print the plan)")
     a = ap.parse_args(argv)
-    if a.bucket not in BUCKETS:
-        raise SystemExit(f"publish: --bucket {a.bucket!r} is not one of {', '.join(BUCKETS)}")
+    a.bucket = checked_bucket(a.bucket)
     puts = plan(a.dir)
     for p in puts:
         cmd = command(p, a.via, a.bucket)
