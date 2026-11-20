@@ -127,7 +127,7 @@ between (1,060 of 12,306 own labels; list sent as `app-integration/T679-shots/ow
 
 Pictures: `handoff/PLAN/app-integration/L4-android-shots-2026-11-20/` (per ticket folders).
 
-- [ ] **T971, Conditions: should Level in the gauge card change the estimate card above it?** Coquitlam River: the estimate card reads
+- [x] **T971 (settled 11:11 by the Flow-leads ruling, not asked), Conditions: should Level in the gauge card change the estimate card above it?** Coquitlam River: the estimate card reads
   "Normal for the time of year"; pick Level in the gauge card and it flips to "Below normal for the time of year" (and its Change button
   says "Flow only"). Default Claude would use: the estimate card stays on Flow whatever the gauge card shows ("Flow leads"). Shots
   `T728/T728-1-card-opens.png` (Flow) and `T728/T728-2-card-level.png` (Level).
