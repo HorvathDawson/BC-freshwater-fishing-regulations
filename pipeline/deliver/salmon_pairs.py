@@ -12,6 +12,10 @@ the live release, every species and day where both regions' places (read from th
 places, as the release reads them) open with different verdicts, `[a, b, stricter_opening(a, b)]` in the chain's fold
 order (regions by number). A pair is keyed by the two verdicts' whole content, so a limit DFO changes in season is a
 pair the table does not hold, and the app keeps both regions' words for it (never looser) until the next sync.
+(T669 item 3, LF) A mixed answer names each number's region, so where the same two openings meet in two region pairs
+the table also holds `named`: the answer per region pair, keyed by the two groups' regions (`deliver.salmon.region_label`;
+the app's `regionLabel`), asked first — the release, the feed reference and the app then say the same names. Additive:
+an app before 0.8.4 reads `pairs` alone, which holds the numbers with no names there.
 
 Staged by `pipeline.deliver.sync_inputs` (`dfo-pairs` -> R2 `private/feeds/dfo/pairs.json`); the feeds worker carries
 it into the feed (`feeds/dfo/index.json` `pairs`); the app reads it there.
@@ -64,12 +68,18 @@ def place_rules(entry_files: dict, feeds: dict, headers: dict) -> Dict[str, List
 
 
 def pairs(chains: List[dict], rules_of: Dict[str, List[dict]], static: Optional[Dict[str, dict]] = None,
-          verdicts: Optional[List[dict]] = None) -> Tuple[List[list], List[str]]:
-    """([[a, b, answer]] sorted by content, the place ids a two-region chain names that no curated place is). Only
-    chains with `s` (two regions); per species and day each group's first place with an answer (else `NOT_LISTED`),
-    exactly as `live.compose` folds them; a pair is two OPENINGS that differ. (T796 A5) A release-side place (payload
-    `static[id]`, a rule-book closure `book:...`: the live feed never carries it, the app composes it from the release)
-    answers from its own year, its verdict indices into the payload's `verdicts`."""
+          verdicts: Optional[List[dict]] = None) -> Tuple[List[list], List[list], List[str]]:
+    """([[a, b, answer]] sorted by content, `named` rows, the place ids a two-region chain names that no curated place
+    is). Only chains with `s` (two regions); per species and day each group's first place with an answer (else
+    `NOT_LISTED`), exactly as `live.compose` folds them; a pair is two OPENINGS that differ. (T796 A5) A release-side
+    place (payload `static[id]`, a rule-book closure `book:...`: the live feed never carries it, the app composes it
+    from the release) answers from its own year, its verdict indices into the payload's `verdicts`.
+
+    (T669 item 3, LF) ONE ANSWER PER REGION PAIR. A mixed answer names each number's region (owner "Name the region"),
+    so the same two openings in two region pairs have two answers. Such a pair is in `named` — `[a, b, region of a,
+    region of b, answer]` per region pair, each exactly what `live.compose` and `chain_calendar` say there — and in the
+    content-keyed rows with the numbers and no names (what an app before 0.8.4, which reads only those, shows: never a
+    wrong name). A pair with one region pair is a content-keyed row only, labelled."""
     from pipeline.regs.dfo_salmon import live as L
     V, G = S._Interner(), S._Interner()
     V(S.NOT_LISTED)
@@ -80,7 +90,7 @@ def pairs(chains: List[dict], rules_of: Dict[str, List[dict]], static: Optional[
     for lid, year in static.items():
         cal[lid] = {"sp": [[x if i % 2 == 0 else (V(verdicts[x]) if x >= 0 else -1) for i, x in enumerate(runs)]
                            for runs in year["sp"]]}
-    got: Dict[Tuple[str, str], list] = {}
+    got: Dict[Tuple[str, str], Dict[Tuple[str, str], list]] = {}
     missing: set = set()
     for c in chains:
         groups = c.get("s")
@@ -102,17 +112,20 @@ def pairs(chains: List[dict], rules_of: Dict[str, List[dict]], static: Optional[
                 best, rb = ans[0], labels[0]
                 for v, r in zip(ans[1:], labels[1:]):
                     if v["s"] == best["s"] == "open" and v != best:
-                        key = (_key(best), _key(v))
-                        said = S.stricter_opening(best, v, rb, r)
-                        if key not in got:
-                            got[key] = [best, v, said]
-                        elif got[key][2] != said:
-                            # (T669 item 3) the same two openings in another region pair name other regions: the
-                            # table keys by content, so it holds the numbers without names (never a wrong name)
-                            got[key] = [best, v, S.stricter_opening(best, v)]
+                        got.setdefault((_key(best), _key(v)), {}).setdefault(
+                            (rb, r), [best, v, S.stricter_opening(best, v, rb, r)])
                     nxt = S.strictest([best, v], [rb, r])
                     best, rb = nxt, (rb if nxt is best else r if nxt is v else "")
-    return [got[k] for k in sorted(got)], sorted(missing)
+    rows, named = [], []
+    for k in sorted(got):
+        by = got[k]
+        a, b, said = next(iter(by.values()))
+        if len({_key(x[2]) for x in by.values()}) == 1:
+            rows.append([a, b, said])
+        else:
+            rows.append([a, b, S.stricter_opening(a, b)])
+            named.extend([a, b, ra, rv, by[(ra, rv)][2]] for ra, rv in sorted(by))
+    return rows, named, sorted(missing)
 
 
 def table(rel: Path, *, entries_dir: Optional[Path] = None, feed_dir: Optional[Path] = None) -> dict:
@@ -131,11 +144,11 @@ def table(rel: Path, *, entries_dir: Optional[Path] = None, feed_dir: Optional[P
         if not p.exists():
             raise S.SalmonError(f"salmon_pairs: no typed DFO feed {p} — write it:\n    python -m pipeline.regs.dfo_salmon.feed")
         feeds[s] = json.loads(p.read_text(encoding="utf-8"))
-    rows, missing = pairs(payload["chains"], place_rules(files, feeds, S.load_headers(feeds)),
-                          payload.get("static") or {}, payload["verdicts"])
+    rows, named, missing = pairs(payload["chains"], place_rules(files, feeds, S.load_headers(feeds)),
+                                 payload.get("static") or {}, payload["verdicts"])
     if missing:
         raise S.SalmonError(f"salmon_pairs: release {rel.name} chains name places no curated file holds: {missing}")
-    return {"format": FORMAT, "release": rel.name, "pairs": rows}
+    return {"format": FORMAT, "release": rel.name, "pairs": rows, **({"named": named} if named else {})}
 
 
 def main(argv: Optional[List[str]] = None) -> int:
@@ -149,7 +162,7 @@ def main(argv: Optional[List[str]] = None) -> int:
     words = sum(1 for _, _, r in t["pairs"] if r.get("u"))
     sys.stderr.write(f"salmon_pairs: {t['release']}: {len(t['pairs'])} pairs, {one} resolve to one region's opening, "
                      f"{len(t['pairs']) - one - words} to one quota of both regions' caps (T669 item 3), "
-                     f"{words} to both regions' words\n")
+                     f"{words} to both regions' words; {len(t.get('named') or [])} named per region pair\n")
     return 0
 
 

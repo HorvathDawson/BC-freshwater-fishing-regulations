@@ -579,31 +579,64 @@ def _feeders(ctx: "Reach", start, seen) -> set[str]:
 #: mutation pin.
 A_DEAD_END_FLOWS_WHERE_ITS_WATER_FLOWS = True
 
+#: (T944 review, LF 2026-11-20) A MOUTH NEVER FLOWS BACK UP. A sink on its code's MAIN FLOW (`fwa_edge_types.is_main_flow`:
+#: the river's own line ends there — the Fraser's mouth, the Columbia and the Taku at the border, Tofino Creek) is no
+#: dead end: where its code also leaves itself UPSTREAM of it (a distributary or braid into another code, a lake beside
+#: the river), that edge is not where its water goes, so it is no outlet of the mouth. A dead end (a side channel — Shea
+#: Creek's 1100 piece) keeps its outlets. MEASURED on the live atlas: 8 sinks of 1,353 lose their outlets (all of them).
+#: False = the mutation pin.
+A_MOUTH_NEVER_FLOWS_BACK_UP = True
+
+
+def _flows_down_to(graph: StreamGraph, n: str, sink: frozenset[str]) -> bool:
+    """Whether water at `n` reaches a node of `sink` going downstream (any path)."""
+    if n in sink:
+        return True
+    seen, stack = {n}, [n]
+    while stack:
+        x = stack.pop()
+        for ei in graph.down_adj.get(x, ()):
+            y = graph.edges[ei].to_node
+            if y in sink:
+                return True
+            if y not in seen and y in graph.nodes:
+                seen.add(y)
+                stack.append(y)
+    return False
+
 
 def dead_end_outlets(graph: StreamGraph) -> dict[str, tuple[str, ...]]:
     """`{node of a sink: the nodes its WATER flows into}` (`A_DEAD_END_FLOWS_WHERE_ITS_WATER_FLOWS`): for every sink
     of `dead_ends`, where the other pieces of its watershed code leave that code — each edge from a node of the code
     to a node of another, the main flow first (`MAINSTEM_EDGE_KINDS`, then `lake_in`/`outlet`, then the rest; edge
-    order within a kind). A sink whose code never leaves itself (a river's mouth) is absent. Once per graph object."""
+    order within a kind). A sink whose code never leaves itself (a river's mouth) is absent, and so is a MOUTH whose code
+    leaves itself only upstream of it (`A_MOUTH_NEVER_FLOWS_BACK_UP`). Once per graph object."""
     cached = getattr(graph, "_dead_end_outlets_cache", None)
     if cached is not None and cached[0] is graph.edges:
         return cached[1]
     by_code, nodes_of = dead_ends(graph)
     rank = {k: 0 for k in MAINSTEM_EDGE_KINDS} | {"lake_in": 1, "outlet": 1}
-    leaves: dict[str, tuple[str, ...]] = {}
+    leaves: dict[str, tuple[int, ...]] = {}
     out: dict[str, tuple[str, ...]] = {}
     for c, sinks in by_code.items():
         if c not in leaves:
             edges = sorted((rank.get(graph.edges[ei].kind, 2), ei) for n in nodes_of.get(c, ())
                            for ei in graph.down_adj.get(n, ())
                            if (t := graph.nodes.get(graph.edges[ei].to_node)) is not None and t.wsc != c)
-            leaves[c] = tuple(dict.fromkeys(graph.edges[ei].to_node for _r, ei in edges))
+            leaves[c] = tuple(ei for _r, ei in edges)
         if not leaves[c]:
             continue
         for s in sinks:
+            eis = leaves[c]
+            if A_MOUTH_NEVER_FLOWS_BACK_UP and any(fwa_edge_types.is_main_flow(graph.nodes[x]) for x in s):
+                sink = frozenset(s)
+                eis = tuple(ei for ei in eis if not _flows_down_to(graph, graph.edges[ei].from_node, sink))
+            to = tuple(dict.fromkeys(graph.edges[ei].to_node for ei in eis))
+            if not to:
+                continue
             for x in s:
                 if graph.nodes[x].wsc == c:
-                    out[x] = leaves[c]
+                    out[x] = to
     try:
         setattr(graph, "_dead_end_outlets_cache", (graph.edges, out))
     except (AttributeError, TypeError):

@@ -11,6 +11,7 @@ import { REGISTRY_TEXT } from "./dfo.scenario";
 /** an R2 bucket in memory, with etags and `onlyIf` like R2's (a failed condition answers null) */
 class MemBucket implements R2BucketLike {
   m = new Map<string, string>();
+  async head(k: string) { return this.m.has(k) ? {} : null; }
   ver = new Map<string, number>();
   failGet = new Set<string>();
   async get(k: string) {

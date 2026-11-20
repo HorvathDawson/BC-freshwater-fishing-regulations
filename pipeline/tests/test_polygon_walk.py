@@ -174,6 +174,23 @@ def test_t679_8_a_river_cut_by_an_ownerless_pond_keeps_its_own_gauge_a_named_lak
     assert own_distances(line, ownerless, donors, kind_of=KINDS) == {"above": {"H": 0.0}}
 
 
+def test_t679_8_only_an_ownerless_lake_polygon_is_walked_through_never_a_wetland_or_a_not_fishing_polygon():
+    """(T679 #8 review, LF) The pass-through is `ownerless_pond`, the test `river_widenings` reads: an ownerless LAKE
+    polygon. An ownerless wetland and an ownerless not-fishing polygon (T152) still end the walk.
+    MUTATION: the old test (`not is_stream and water_of.get is None`) walks through both and fails here."""
+    donors = [("H", "above", 40, False)]
+    ownerless = {"above": UPPER, "below": UPPER}
+    wetland = N("pond", stream_magnitude=100, kind="wetland", blk="", length_m=0.0, wsc=RIVER_WSC)
+    closed = poly("pond")
+    closed.not_fishing = "ecological reserve"
+    for pond in (wetland, closed):
+        graph = g([N("above", 100, blk="H", length_m=2_000.0), pond, N("below", 100, blk="H", length_m=3_000.0)],
+                  [E("above", "pond"), E("pond", "below")])
+        assert own_distances(graph, ownerless, donors, kind_of=KINDS) == {"above": {"H": 0.0}}, pond.kind
+    assert bp.ownerless_pond(poly("pond"), "pond", ownerless)
+    assert not bp.ownerless_pond(poly("pond"), "pond", {"pond": LAKE})
+
+
 # ------------------------------------------------------------------ mutation pin
 
 def test_the_water_kind_gate_is_what_holds_these_tests():

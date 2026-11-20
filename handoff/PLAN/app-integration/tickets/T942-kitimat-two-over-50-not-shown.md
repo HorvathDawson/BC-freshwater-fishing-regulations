@@ -51,3 +51,9 @@ taken as said by the share count, and the steelhead sit in the river's own tier,
   so a refresh here would carry unrelated drift. The kitimat-jul15 / humphrys-jul15 cases pick up the strip at the
   next `scripts/trout-refresh.sh`.
 - Shots: `T942-shots/kitimat-aug15-before.png`, `kitimat-aug15-after.png`.
+
+## Review leftover (lane LF, 2026-11-20, ed6aca171)
+The card gate's T942 shelter (`card_check`, ROUND19 3) excused a kind sitting in ANY own tier, including an own tier the
+size tier itself is inside. Now an own tier shelters only when the size tier is not inside it. Test: the Kitimat pin
+adds a "size tier moved inside the own tier" mutation; the gate refuses it (it passed before the fix). The Kitimat case
+still passes. Measure: `check_shipped` on the l9-strictest side release, 0 problems (9,264 groups); no data changes.

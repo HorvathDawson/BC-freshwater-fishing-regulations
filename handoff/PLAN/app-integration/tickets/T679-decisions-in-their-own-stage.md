@@ -294,3 +294,18 @@ Owner kept #10, #13, #15, #17 (#17 is lane L8's, with #8/#16); #14 was already d
    change to #1 (sections newly outside: the regionless count in `step10_report.json`), #6 (labels only), T926 / T780 and
    the curated edits since the live atlas (tidal_limits.json, name_variants.json are ahead of it).
 4. Tiles: the drawn set against `undrawn.json` (#1 drops the regionless slivers from the stream layer).
+
+## Review leftover, test hygiene (lane LF, 2026-11-20, 0043ad017)
+`test_export_codec.py::test_the_files_on_disk_are_the_bundles_pair` compared the 6 MB one-line export with a bare
+`assert`; on a mismatch pytest's assertion rewrite ran difflib over it for hours. It now uses `_same`: equality, and on
+a mismatch the lengths, short digests and the first differing offset with the text around it. Test:
+`test_a_mismatch_of_two_big_exports_fails_in_seconds_and_says_where` (a plain assert fails it).
+
+## #8 review leftover (lane LF, 2026-11-20, fe5dbbe7d)
+`own_distances` walked through ANY ownerless non-stream polygon, ownerless wetlands and not-fishing polygons included,
+which `river_widenings` excludes. Now one test serves both (`panels.ownerless_pond`: a LAKE polygon no registry water
+owns, not a not-fishing polygon), so per the owner's "Named lakes only" only unnamed ponds and lakes are walked through.
+Test: `test_t679_8_only_an_ownerless_lake_polygon_is_walked_through_never_a_wetland_or_a_not_fishing_polygon` (fails
+with the old test, and with the not-fishing check dropped). Measured on the live atlas via heavy.sh (the bundle's gauge
+pass, dev be924cbf3 against this lane): moved (section, gauge) pairs 611 -> 611 (118 gauges, 78 waters), lead sets
+changed 0, `section_own` rows changed 0. No bundle output changes; no POLICY_VERSION bump.

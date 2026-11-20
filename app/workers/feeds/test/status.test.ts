@@ -92,6 +92,9 @@ describe("the Worker's /status routes", () => {
       async get(k: string) {
         return m.has(k) ? { text: async () => m.get(k)! } : null;
       },
+      async head(k: string) {
+        return m.has(k) ? {} : null;
+      },
       async put(k: string, b: string) {
         m.set(k, b);
       },

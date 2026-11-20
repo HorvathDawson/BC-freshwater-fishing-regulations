@@ -151,6 +151,7 @@ describe('the "50 * * * *" cron', () => {
 
   class Bucket implements R2BucketLike {
     m = new Map<string, string>();
+    async head(k: string) { return this.m.has(k) ? {} : null; }
     async get(k: string) { const v = this.m.get(k); return v === undefined ? null : { text: async () => v, etag: String(v.length) }; }
     async put(k: string, b: string) { this.m.set(k, b); return {}; }
     async delete(k: string) { this.m.delete(k); }

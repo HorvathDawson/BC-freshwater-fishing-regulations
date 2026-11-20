@@ -73,6 +73,25 @@ describe("(T668) a two-region chain under the live feed: `live.compose`, pinned"
     expect(row.notes.filter((n) => !row.repeats?.includes(n))).toEqual([]);
   });
 
+  it("(T669 item 3, LF) the same two openings in two region pairs: each chain takes its own region pair's named answer", () => {
+    // the pair table's `named` (`salmon_pairs.pairs`): one answer per region pair, each naming its regions as `live.compose`
+    // does on that chain; `pairs` holds the numbers with no names (what an app before 0.8.4 shows)
+    const [a, b] = G.feed.pairs.pairs[0];
+    const said = (who: string) => ({ s: "open", t: `${a.t}; ${b.t}`, tree: { node: "tier", id: "t1", tier: "count", n: 2, says: `2 a day (${who})`,
+      by: 0, species: ["CO"], children: [] } });
+    const plain = { s: "open", t: `${a.t}; ${b.t}`, tree: { node: "tier", id: "t1", tier: "count", n: 2, says: "2 a day", by: 0, species: ["CO"], children: [] } };
+    const table = { ...G.feed.pairs, pairs: [[a, b, plain]],
+                    named: [[a, b, "Region 5B", "Region 6", said("Region 5B")], [a, b, "Region 6", "Region 7", said("Region 7")]] };
+    const quota = (f: ReturnType<typeof parseSalmonFeed>) => salmonTable(salmonCard(withSalmonFeed(release(), f!), { sids: [67], item: null }, JUL))
+      .species.find((r) => r.code === "CO")!.quota?.replace(/ /g, " ");
+    // sid 67 is Region 6 E beside Region 7: its region pair's answer, never the other pair's, never the unnamed one
+    expect(quota(parseSalmonFeed({ ...G.feed, pairs: table }))).toBe("2 a day (Region 7)");
+    // MUTATION: no answer for this region pair (only another's) — the content-keyed row, the numbers with no names
+    expect(quota(parseSalmonFeed({ ...G.feed, pairs: { ...table, named: [table.named[0]] } }))).toBe("2 a day");
+    // a `named` that is not whole is no feed at all
+    expect(parseSalmonFeed({ ...G.feed, pairs: { ...table, named: [[a, b, "Region 6", said("x")]] } })).toBeNull();
+  });
+
   it("a merge with no tables to add it to stops, never a guess", () => {
     const c = G.release.chains[2];
     expect(() => composeChain(c.l, feed(), [], false, c.s)).toThrow("two regions' openings need a merged verdict");

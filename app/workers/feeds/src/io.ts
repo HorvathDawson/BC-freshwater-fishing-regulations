@@ -134,6 +134,8 @@ export function r2Store(bucket: R2BucketLike, prefix: string): VersionedStore & 
 /** The slice of the R2 binding used here (keeps @cloudflare/workers-types out of the build). */
 export interface R2BucketLike {
   get(key: string): Promise<{ text(): Promise<string>; etag?: string } | null>;
+  /** whether a key is kept, its body unread (R2 `head`: the object's metadata, null when there is none) */
+  head(key: string): Promise<object | null>;
   /** (T558) with `onlyIf`, R2 answers null when the condition failed */
   put(key: string, body: string, opts?: { httpMetadata?: { contentType?: string; cacheControl?: string }; onlyIf?: { etagMatches: string } }): Promise<unknown>;
   delete(key: string): Promise<void>;

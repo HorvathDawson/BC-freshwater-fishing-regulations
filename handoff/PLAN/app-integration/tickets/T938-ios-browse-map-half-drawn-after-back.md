@@ -61,3 +61,8 @@ colour, and its left strip (0-25 % across, 30-80 % down) is not one flat colour 
   goes away with the water page, so nothing was left standing. Not changed.
 - Left (Claude): the same walk on the Android emulator (EdgeBack is iOS-only, so the sideways case cannot happen there;
   the grey-band check is still owed).
+
+## Review leftover (lane LF, 2026-11-20, 4df30d481)
+`ViewSwipe.tsx` has the same native spring + `setValue` pattern, but homes only by a spring (whose end re-renders the
+view), so there is no live defect. A comment at its `home` now points at EdgeBack's `homeNow` / `sync()`: a hard home
+added there must re-render too. Comment only; no behaviour change, no test.

@@ -152,6 +152,13 @@ def flowing(graph, water_of: dict[str, str] | None = None, kind_of: dict[str, st
 RIVER_WIDENINGS = False
 
 
+def ownerless_pond(node, sec: str, water_of: dict[str, str]) -> bool:
+    """A LAKE polygon no registry water owns, and not a not-fishing polygon (T152) — the ponds `river_widenings` may
+    take as a river's widening and `own_distances` walks through (T679 #8). One test for both: an ownerless wetland, a
+    line or a not-fishing polygon is never one."""
+    return _kind(node) == "lake" and water_of.get(sec) is None and not getattr(node, "not_fishing", "")
+
+
 def river_widenings(graph, water_of: dict[str, str]) -> frozenset[str]:
     """Unowned polygons (no water item) that a stream ENTERS and LEAVES on the polygon's own watershed code — an
     unnamed FWA lake polygon the river runs through (T174, Q154). The atlas has no double-line river polygons: these
@@ -164,7 +171,7 @@ def river_widenings(graph, water_of: dict[str, str]) -> frozenset[str]:
         downs[e.from_node].append(e.to_node)
     out = set()
     for sec, node in graph.nodes.items():
-        if _kind(node) != "lake" or sec in water_of or getattr(node, "not_fishing", "") or not node.wsc:
+        if not ownerless_pond(node, sec, water_of) or not node.wsc:
             continue
         on_code = lambda xs: any(_kind(graph.nodes.get(x)) == "stream" and graph.nodes[x].wsc == node.wsc  # noqa: E731
                                  for x in xs if x in graph.nodes)
@@ -902,7 +909,8 @@ def own_distances(graph, water_of: dict[str, str],
     NAMED LAKES ONLY (T679 #8, owner 2026-11-20 11:02: "Named lakes only"). A pond that belongs to NO registry water (a
     lake polygon with no `water_of` entry: the fold of T679 D1 did not take it) is walked THROUGH, at any size, at its
     graph length (0); it is never itself reached (it is no section of the water). A lake that is a registry item still
-    ends the walk, and so does an ownerless LINE. Measured on the live atlas before the change: 448 of the 1,060
+    ends the walk, and so does an ownerless LINE, an ownerless wetland and a not-fishing polygon (`ownerless_pond`, the
+    test `river_widenings` reads: only a LAKE polygon is a pond). Measured on the live atlas before the change: 448 of the 1,060
     (section, gauge) pairs the heading called own were cut by such a pond, most of them under 1 ha. The panel walk
     (`candidates`) is not changed: it asks which stations may speak, not whose they are.
 
@@ -947,7 +955,9 @@ def own_distances(graph, water_of: dict[str, str],
                     node = graph.nodes.get(nxt)
                     if node is None:
                         continue
-                    pond = not is_stream(nxt) and water_of.get(nxt) is None       # an ownerless pond: walked through
+                    # an ownerless LAKE polygon (`ownerless_pond`): walked through; an ownerless wetland, line or
+                    # not-fishing polygon is not one (T679 #8 review: as `river_widenings` excludes them)
+                    pond = not is_stream(nxt) and ownerless_pond(node, nxt, water_of)
                     if not pond and (not is_stream(nxt) or system_of(water_of.get(nxt)) != system):
                         continue
                     if pond:

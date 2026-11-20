@@ -13,6 +13,7 @@ const SALT = "test-salt";
 
 class MemBucket implements R2BucketLike {
   m = new Map<string, string>();
+  async head(k: string) { return this.m.has(k) ? {} : null; }
   async get(k: string) { const v = this.m.get(k); return v === undefined ? null : { text: async () => v }; }
   async put(k: string, b: string) { this.m.set(k, b); }
   async delete(k: string) { this.m.delete(k); }

@@ -553,9 +553,11 @@ export const SALMON_WORDS = {
   unplacedRule: (dfoWords: string) => `Location not yet on the map: ${dfoWords}`,
   /** (T668 fix 4, owner 2026-11-11) where a row's answer comes from, as DFO's page names the place: "Region 6 · Skeena
    *  River · B(ii)" — the region, the water (none on a region or section default), the page's lettered section as
-   *  printed (none where the page has no sections) */
+   *  printed (none where the page has no sections). (LF) A page default's scope "region" (Region 4's and 5B's page
+   *  defaults in a release cut before `salmon_who.places_named` dropped it, still on phones) is no section: "Region 5B",
+   *  never "Region 5B · region" */
   placeFrom: (region: string, water: string | undefined, sec: string | undefined) =>
-    [`Region ${region.toUpperCase()}`, water, sec].filter(Boolean).join(" · "),
+    [`Region ${region.toUpperCase()}`, water, sec === "region" ? undefined : sec].filter(Boolean).join(" · "),
   /** (T796 A5, owner 2026-11-16) where a row's answer is the rule book's full closure of the stretch (book p.77: a water
    *  closed to fishing is closed for salmon too): "Rule book p.9 · Skeena River" — the book's printed page(s), its row */
   placeFromBook: (pages: readonly number[], water: string | undefined) =>

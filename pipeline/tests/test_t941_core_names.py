@@ -14,6 +14,7 @@ from pipeline.deliver.bundle import place_names as P
 
 
 def _core(rows, sources=()):
+    """`sources`: (item_id, name) or (item_id, name, src)."""
     con = sqlite3.connect(":memory:")
     con.executescript("CREATE TABLE item (ord INTEGER PRIMARY KEY, item_id TEXT NOT NULL UNIQUE, name TEXT NOT NULL,"
                       " name_key TEXT);"
@@ -21,7 +22,8 @@ def _core(rows, sources=()):
                       " label TEXT NOT NULL, PRIMARY KEY (item_id, name)) WITHOUT ROWID;")
     con.executemany("INSERT INTO item (item_id, name, name_key) VALUES (?, ?, ?)",
                     [(i, n, stored_key(n)) for i, n in rows])
-    con.executemany("INSERT INTO name_source VALUES (?, ?, 'override', 'Project curation')", sources)
+    con.executemany("INSERT INTO name_source VALUES (?, ?, ?, 'Project curation')",
+                    [(*x, "override") if len(x) == 2 else x for x in sources])
     return con
 
 
@@ -47,3 +49,16 @@ def test_mutation_a_caser_that_rewrites_words_is_refused(monkeypatch):
     monkeypatch.setattr(P, "display_case", lambda n: n.replace("L.", "Lake").title())
     with pytest.raises(ValueError, match="search key"):
         P.case_core_names(_core([("a", "TEANOOK L.")]))
+
+
+def test_an_item_holding_both_spellings_keeps_one_row_its_names():
+    """(LF, review of T941) an item with a `name_source` row for "X" and another for display_case("X") (an alias that is
+    the name re-cased) would hit the (item_id, name) key when the name's row moves. The name's own row takes the shown
+    spelling and the other row goes; an item with only the re-cased row keeps it.
+    MUTATION: without the delete, the UPDATE raises an IntegrityError here."""
+    con = _core([("a", "KITWANGA MILL POND"), ("b", "MABEL LAKE")],
+                [("a", "KITWANGA MILL POND", "gnis"), ("a", "Kitwanga Mill Pond", "book"), ("a", "Mill Pond", "book"),
+                 ("b", "Mabel Lake", "book")])
+    P.case_core_names(con)
+    assert sorted(con.execute("SELECT item_id, name, src FROM name_source")) == [
+        ("a", "Kitwanga Mill Pond", "gnis"), ("a", "Mill Pond", "book"), ("b", "Mabel Lake", "book")]

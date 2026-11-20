@@ -84,9 +84,12 @@ export interface SalmonFeed {
   readonly unplacedRows?: readonly SalmonUnplacedPlace[];
   /** (T668 option 2, owner 2026-11-12) THE STRADDLER PAIR TABLE (`pipeline/deliver/salmon_pairs.py`, carried by the
    *  worker): for two regions' differing openings on a two-region chain, [a, b, the Python's answer] in fold order.
-   *  Absent: no table (a pair not held keeps both regions' words). */
+   *  Absent: no table (a pair not held keeps both regions' words). (T669 item 3, LF) `named`: for two openings whose
+   *  answer names other regions in another region pair, [a, b, region of a, region of b, the answer] per region pair
+   *  (`salmon_pairs.pairs`); `pairs` then holds the numbers with no names, for an app before 0.8.4. */
   readonly pairs?: { readonly format: typeof SALMON_PAIRS_FORMAT; readonly release: string;
-                     readonly pairs: readonly (readonly [Verdict, Verdict, Verdict])[] };
+                     readonly pairs: readonly (readonly [Verdict, Verdict, Verdict])[];
+                     readonly named?: readonly (readonly [Verdict, Verdict, string, string, Verdict])[] };
 }
 export const SALMON_PAIRS_FORMAT = FEED_FORMATS.dfoPairs;   // (T556) generated: pipeline/common/feed_formats.py
 
@@ -131,6 +134,10 @@ export function parseSalmonFeed(x: unknown): SalmonFeed | null {
     const verdict = (v: unknown) => !!v && typeof v === "object" && typeof (v as Verdict).s === "string" && typeof (v as Verdict).t === "string";
     if (!p || p.format !== SALMON_PAIRS_FORMAT || typeof p.release !== "string" || !Array.isArray(p.pairs)
         || !p.pairs.every((x) => Array.isArray(x) && x.length === 3 && x.every(verdict) && x[0]!.s === "open" && x[1]!.s === "open")) return null;
+    // (T669 item 3, LF) the named answers per region pair, when it carries them, are whole too
+    if (p.named !== undefined && (!Array.isArray(p.named) || !p.named.every((x) => Array.isArray(x) && x.length === 5
+        && verdict(x[0]) && verdict(x[1]) && x[0]!.s === "open" && x[1]!.s === "open" && typeof x[2] === "string"
+        && typeof x[3] === "string" && verdict(x[4])))) return null;
   }
   for (const l of Object.values(f.locs)) {
     if (!l || !Array.isArray(l.sp) || l.sp.length !== 5 || !Array.isArray(l.g) || (l.o !== undefined && !Array.isArray(l.o))) return null;
@@ -192,16 +199,29 @@ export interface SalmonFeedTables {
   readonly verdicts: Verdict[]; readonly gears: string[][];
   /** (T668 option 2) the feed's pair table by `pairKey(a, b)`: the Python's answer for two differing openings */
   readonly pairs?: ReadonlyMap<string, Verdict>;
+  /** (T669 item 3, LF) its answers per region pair, by `namedKey(a, b, region of a, region of b)`: asked first */
+  readonly named?: ReadonlyMap<string, Verdict>;
 }
 
 /** (T668) The tables a composition over `feed` adds to: copies of the feed's, never the feed's. */
 export function feedTables(feed: SalmonFeed): SalmonFeedTables {
   return { verdicts: [...feed.verdicts], gears: feed.gears.map((g) => [...g]),
-           ...(feed.pairs ? { pairs: new Map(feed.pairs.pairs.map(([a, b, r]) => [pairKey(a, b), r] as const)) } : {}) };
+           ...(feed.pairs ? { pairs: new Map(feed.pairs.pairs.map(([a, b, r]) => [pairKey(a, b), r] as const)) } : {}),
+           ...(feed.pairs?.named ? { named: new Map(feed.pairs.named.map(([a, b, ra, rb, r]) => [namedKey(a, b, ra, rb), r] as const)) } : {}) };
 }
 
 /** (T668 option 2) a pair of openings as the table keys it: both verdicts' whole content, in fold order */
 const pairKey = (a: Verdict, b: Verdict): string => `${stable(a)}\n${stable(b)}`;
+/** (T669 item 3, LF) and with the regions of the two groups (`regionLabel`), as `named` keys it */
+const namedKey = (a: Verdict, b: Verdict, ra: string, rb: string): string => `${pairKey(a, b)}\n${ra}\n${rb}`;
+
+/** (T669 item 3, LF) a group's region as a merged line names it, from its places' ids: the pipeline's
+ *  `deliver.salmon.region_label` ("5b:region:section" -> "Region 5B"; a rule-book place, `book:…`, names none; "" none).
+ *  Only the key of the pair table's `named` answers: the words themselves are the Python's. */
+const regionLabel = (lids: readonly string[]): string => {
+  const slugs = [...new Set(lids.filter((l) => !l.startsWith("book:")).map((l) => l.split(":")[0]!))].sort();
+  return slugs.length ? `Region ${slugs.map((x) => x.toUpperCase()).join(", ")}` : "";
+};
 
 /** (T668 D2/D3, RULINGS Z4a) how strict a verdict is, most strict first — the pipeline's `deliver.salmon.STRICT` */
 const STRICT = ["closed", "release", "check", "open"] as const;
@@ -227,17 +247,22 @@ function intern<T>(items: T[], x: T): number {
  * hold (a limit changed since the last sync, or no table) shows both regions' words, no number (`u`) — never looser.
  * The app holds no copy of the ladder (the cascade is resolved in Python).
  */
-function strictestIx(ixs: readonly number[], t: SalmonFeedTables | undefined, V: readonly Verdict[]): number {
-  let best = ixs[0]!;
-  for (const j of ixs.slice(1)) {
+function strictestIx(ixs: readonly number[], t: SalmonFeedTables | undefined, V: readonly Verdict[],
+                     labels: readonly string[] = []): number {
+  let best = ixs[0]!, rb = labels[0] ?? "";
+  for (let k = 1; k < ixs.length; k++) {
+    const j = ixs[k]!, r = labels[k] ?? "";
     const a = V[best]!, b = V[j]!;
-    if (STRICT.indexOf(b.s) < STRICT.indexOf(a.s)) best = j;
+    if (STRICT.indexOf(b.s) < STRICT.indexOf(a.s)) { best = j; rb = r; }
     else if (a.s === "open" && b.s === "open" && stable(a) !== stable(b)) {
       if (!t) throw new Error("salmon feed: two regions' openings need a merged verdict and no tables were given");
-      const said = t.pairs?.get(pairKey(a, b));
-      if (said) { best = intern(t.verdicts, said); continue; }
+      // (T669 item 3, LF) the answer for THIS region pair first (it names its regions), then the pair's own
+      const said = t.named?.get(namedKey(a, b, rb, r)) ?? t.pairs?.get(pairKey(a, b));
+      // the fold's region after a merge, as `salmon_pairs.pairs` folds it: the region whose opening it is, else none
+      if (said) { best = intern(t.verdicts, said); rb = stable(said) === stable(a) ? rb : stable(said) === stable(b) ? r : ""; continue; }
       const n = [...new Set([a, b].flatMap((v) => (v.n ? v.n.split(", ") : [])).filter(Boolean))].sort();
       best = intern(t.verdicts, { s: "open", t: [...new Set([a.t, b.t].filter(Boolean))].join("; "), u: 1, ...(n.length ? { n: n.join(", ") } : {}) } as Verdict);
+      rb = "";
     }
   }
   return best;
@@ -306,6 +331,8 @@ function composeChainOn(daysOf: (runs: Iterable<readonly number[]>) => number[],
                         who = false): Pick<Chain, "sp" | "g" | "o" | "m" | "c" | "n" | "a"> {
   const V = tables?.verdicts ?? feed.verdicts, G = tables?.gears ?? feed.gears;
   const subs = (groups ?? [lids.map((_, i) => i)]).map((g) => g.map((i) => feed.locs[lids[i]!]).filter((c): c is SalmonFeedLocation => !!c));
+  // (T669 item 3, LF) each group's region, the key of the pair table's `named` answers (`live.compose` `labels`)
+  const labels = groups ? groups.map((g) => regionLabel(g.map((i) => lids[i]!))) : [];
   const first = (xs: Iterable<number>, none: number) => { for (const v of xs) if (v >= 0) return v; return none; };
   const sp: number[][] = [[], [], [], [], []].map(() => new Array<number>(DAYS)), g = new Array<number>(DAYS),
         o = new Array<number>(DAYS), m = new Array<number>(DAYS);
@@ -315,7 +342,7 @@ function composeChainOn(daysOf: (runs: Iterable<readonly number[]>) => number[],
     const ss: string[] = [];
     for (let k = 0; k < 5; k++) {
       const ixs = subs.map((cals) => first(cals.map((c) => at(c.sp[k]!, day)), 0));
-      const ix = ixs.length === 1 ? ixs[0]! : strictestIx(ixs, tables, V);
+      const ix = ixs.length === 1 ? ixs[0]! : strictestIx(ixs, tables, V, labels);
       sp[k]!.fill(ix, day, to);
       ss.push(V[ix]!.s);          // every feed index checked by parseSalmonFeed; a merged one is ours
     }
