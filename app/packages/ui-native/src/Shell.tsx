@@ -663,6 +663,8 @@ export function Shell(p: ShellProps) {
                        // the one way out of search into a water: the one opener, with the view this map puts in front;
                        // it consumes the search, so back lands on the map at the water (owner 2026-10-22 late)
                        onOpenWater={search.openSearched}
+                       // (T927) a boundary place: its water, opened at the part holding the place
+                       onOpenPlace={search.openSearched}
                        onClose={search.closeToField}
                        statusIndex={col.statusIndex} day={mapDay} total={counts?.waters}
                        recents={search.recents.list} onRecent={search.pickRecent} onClearRecents={search.recents.clear}

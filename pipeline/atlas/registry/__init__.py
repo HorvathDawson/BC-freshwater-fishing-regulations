@@ -8,7 +8,8 @@ Import from the package root: `from pipeline.atlas.registry import build_registr
 """
 
 from pipeline.atlas.registry.build import (
-    add_boundary_confidence, add_curated_wbk_items, add_lake_parts, add_mu_sets, add_waterbody_items, build_registry,
+    add_boundary_confidence, add_curated_wbk_items, add_lake_parts, add_mu_sets, add_waterbody_items, attach_wbk_variants,
+    build_registry,
     item_id, outside_area_items,
 )
 from pipeline.atlas.registry.io import (
@@ -21,6 +22,7 @@ __all__ = [
     "add_boundary_confidence",
     "add_curated_wbk_items",
     "add_lake_parts",
+    "attach_wbk_variants",
     "add_mu_sets",
     "add_waterbody_items",
     "build_registry",

@@ -516,6 +516,21 @@ def _is_braid_row(r: dict) -> bool:
     return str(r.get("concern") or "").startswith("braid cut across")
 
 
+def cut_place_rows(resolved: list[dict]) -> list[tuple]:
+    """(T927) The `cut_place` table: (split_id, blk, m) for every CURATED cut (`source: curated`), at its HOST row — the
+    first by (braid row last, blk, measure), as `split_rows` takes it — `m` the route measure in whole metres (the
+    section ids' rule, `int`). A place on a blue line, never a section (AGENTS 5)."""
+    by_id: dict[str, list[dict]] = defaultdict(list)
+    for r in resolved:
+        if r.get("source") == "curated":
+            by_id[r["split_id"]].append(r)
+    out = []
+    for sid in sorted(by_id):
+        host = sorted(by_id[sid], key=lambda r: (_is_braid_row(r), str(r["blk"]), r["route_measure"]))[0]
+        out.append((sid, int(host["blk"]), int(float(host["route_measure"]))))
+    return out
+
+
 def split_rows(resolved: list[dict], stems: dict[str, list[tuple[str, int]]],
                f: NameFacts | None = None, lake_items: dict | None = None) -> list[tuple]:
     """The `split` table: every cut the atlas resolved, once per id — (split_id, name, kind, at,
@@ -709,6 +724,9 @@ def write(db: sqlite3.Connection, graph, build_dir: Path, cov, *, ends: dict[int
     db.executemany("INSERT INTO split (split_id, name, kind, at, official_name, same_place_as, "
                    "lake_id, confidence) VALUES (?,?,?,?,?,?,?,?)", srows)
     cov.filled("split", len(srows))
+    cuts = cut_place_rows(resolved)
+    db.executemany("INSERT INTO cut_place (split_id, blk, m) VALUES (?,?,?)", cuts)
+    cov.filled("cut_place", len(cuts))
     return lake_edges
 
 

@@ -130,6 +130,12 @@ export const CROSS = {
     "WHERE p.lat IS NOT NULL ORDER BY n.ord, n.ckm, p.place_id" },
   INDEX_AREA: { file: "core", sql: "SELECT ord, regions, mus FROM item_area" },
   INDEX_NAME_SOURCES: { file: "core", sql: "SELECT item_id, name, label FROM name_source" },
+  /** (T927) core: whether this release carries `cut_place` (ADDITIVE in core/1: a core cut before it finds no places). */
+  HAS_CUT_PLACE: { file: "core", sql: "SELECT 1 AS x FROM sqlite_master WHERE type = 'table' AND name = 'cut_place'" },
+  /** (T927) core, whole: the book's boundary places on their waters (`build.core_cut_place`, ~500 rows). */
+  INDEX_CUTS: { file: "core", sql:
+    "SELECT i.item_id, c.words, c.alt, c.generic, c.blk, c.m, c.lon, c.lat FROM cut_place c JOIN item i ON i.ord = c.ord " +
+    "WHERE i.pieces > 0 ORDER BY c.ord, c.m, c.words" },
   /** (T224) core: whether this release carries `name_source` (a core cut before it shows no name's source). */
   HAS_NAME_SOURCE: { file: "core", sql: "SELECT 1 AS x FROM sqlite_master WHERE type = 'table' AND name = 'name_source'" },
   /** (T796) core: whether this release carries `section_note` (ADDITIVE in core/1: a core cut before it has no notes). */

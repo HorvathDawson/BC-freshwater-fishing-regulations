@@ -31,7 +31,7 @@ from pipeline.gauges.consume import bundle_tables as _gauge_tables
 from pipeline.common.curated import CURATED, GENERATED, REPO_ROOT, SOURCE
 from pipeline.deliver.bundle import rules as _rules
 from pipeline.common.registry_kinds import is_water
-from pipeline.common.search_key import stored_key
+from pipeline.common.search_key import search_key, stored_key
 
 HERE = Path(__file__).parent
 _ROOT = REPO_ROOT
@@ -61,6 +61,28 @@ def name_source_rows(items, alias_pairs: set) -> list[tuple]:
                 continue
             out.append((i["id"], nm, r["source"], r.get("label") or label_of(r["source"])))
     return out
+
+def alias_rows(items) -> list[tuple]:
+    """(item_id, alias, alias_key) for every variant whose SEARCH KEY (`search_key`, the app's `searchKey`) is new for
+    its water. The registry carries both cases of many strings ("EAST WHITE RIVER" and "East White River"); the key
+    folds them, so ~3,000 shouting duplicates stay out (it once compared raw).
+
+    (T926, owner 2026-11-19 23:59: every entry of `name_variants.json`, as it stands, finds its water) The key is the
+    one search compares, never `tiles.names.normalise`: that one turns punctuation into spaces, so "SNOW LAKE *",
+    "Pigeon Lake # 2" and "WEST EVERETT LAKE *" were folded into a sibling spelling here and the name typed as the file
+    gives it matched nothing. A variant search would type differently is a row of its own. A variant with no letter or
+    digit (a stocking record's lone ".") is no name anyone types, and stays out as it always did."""
+    out = []
+    for i in items:
+        seen = {search_key(i["name"])}
+        for v in i.get("variants", []):
+            key = search_key(v)
+            if not any(c.isalnum() for c in key) or key in seen:
+                continue
+            seen.add(key)
+            out.append((i["id"], v, stored_key(v)))
+    return out
+
 
 def schema_sha256() -> str:
     """`meta.schema_sha256`: the digest of the DDL the bundle was written with (schema.sql + indexes.sql). The old
@@ -200,23 +222,7 @@ def _items(db: sqlite3.Connection, build_dir: Path, registry_items: list[dict],
                     for i in items))
     cov.filled("item", len(ords))
 
-    # A variant is a NEW alias only when its name key (`names.key`, through `tiles.names.normalise`)
-    # is new. The registry carries both cases of many strings ("EAST WHITE RIVER" and "East White
-    # River"); the key folds them, and this used to compare raw,
-    # so the tile dropped ~3,000 shouting duplicates and the bundle kept them. Two search
-    # paths that disagree about what a distinct name is will return different results for
-    # the same query, which is the one thing a search index may not do.
-    from pipeline.deliver.tiles.names import normalise
-
-    aliases = []
-    for i in items:
-        seen = {normalise(i["name"])}
-        for v in i.get("variants", []):
-            key = normalise(v)
-            if not key or key in seen:
-                continue
-            seen.add(key)
-            aliases.append((i["id"], v, stored_key(v)))
+    aliases = alias_rows(items)
     db.executemany("INSERT INTO alias (item_id, alias, alias_key) VALUES (?,?,?)", aliases)
     cov.filled("alias", len(aliases))
     # T224: where each shown name and alias came from, when it is not the official one

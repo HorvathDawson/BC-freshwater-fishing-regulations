@@ -10,7 +10,7 @@ import type { ReleaseLoader } from "@app/data/release";
 import { carryRoute, frameViews, loadRegsStore, regsGroupOf, regsPartOf, reportFailure, useOpenWater, warmedFirst, warmUnnamedPage, warmWaterPage,
          useRoute, waterFrame, type BrowseTab, type Route } from "@app/ui";
 import { backDepth, edgeBackDepth, useBack, useEdgeBack, useViewSwipe, type SystemBack } from "@app/ui";
-import { placeReads } from "@app/ui/place";
+import { placePartOf, placeReads } from "@app/ui/place";
 import { TABS, type TabKey } from "../TabBar";
 import type { WaterViews } from "../ViewSwipe";
 import { isTouchDevice } from "../touchDevice";
@@ -70,7 +70,10 @@ export function useShellNav({ source, loader, systemBack, initialRoute, onRoute 
   const partOf = useMemo(() => (loader ? warmedFirst(warm, regsPartOf(loader)) : undefined), [loader, warm]);
   // (T737) an unnamed reach's tap: what its page waits on (regs-sid, down, its region's water slice, access), together
   const unnamed = useMemo(() => (loader ? warmUnnamedPage(loader) : undefined), [loader]);
-  const opener = useOpenWater(source, go, { now, group: groupOf, partOf, unnamed, warm });
+  // (T927) a boundary place picked in search opens its water on the part holding it (the named link's own lookup)
+  const placePart = useMemo(() => (loader ? placePartOf(async () => placeReads(await loadRegsStore(loader), loader)) : undefined),
+                            [loader]);
+  const opener = useOpenWater(source, go, { now, group: groupOf, partOf, unnamed, warm, placePart });
   /*
    * (T369 D8, owner 2026-11-04) A NEW RELEASE WITH A WATER OPEN is applied at once, and the open stack is CARRIED to the
    * same place on the water in it (`carryRoute`: by item and point, never by the old part index). Until it is, the water

@@ -656,6 +656,55 @@ def add_curated_wbk_items(registry: dict[str, RegistryItem], name_variants: list
     return registry
 
 
+def attach_wbk_variants(registry: dict[str, RegistryItem], name_variants: list[dict]) -> dict[str, RegistryItem]:
+    """(T926, owner 2026-11-19 23:59: every entry of `name_variants.json`, as it stands, finds its water) Every name of a
+    whole-feature `wbks` entry is a VARIANT of that waterbody's item. `apply_name_variants` attaches names to GRAPH NODES
+    and runs before the isolated waterbodies are minted (`build.py`), so a lake with no stream through it — Lilypad Lake's
+    "LAKE #905", Teanook Lake's "TEANOOK L.", Big Horn Reservoir's "BIGHORN RESERVOIR", 23 names on 18 lakes — kept only
+    its gazetted name, and search never found it by the name the stocking record or the bathymetry sheet gives it.
+
+    ONLY ADDS: a name the item lacks joins `variants` and `name_sources` (its file source, `name_records`); the shown name,
+    the kind, the sections and every other field stay. A wbk an item absorbed (`aliases`) names that item. Reach-scoped
+    entries are a stream's and stay `apply_name_variants`'s. Idempotent: the atlas build and `pipeline.atlas.sidecars` run
+    it last on the registry they write."""
+    from pipeline.common.models import NameTuple
+    owner = {iid: iid for iid in registry}
+    for iid, it in registry.items():
+        for a in it.aliases:
+            owner.setdefault(a, iid)
+    add: dict[str, list[NameTuple]] = defaultdict(list)
+    for e in name_variants:
+        t = e.get("target") or {}
+        if e.get("reach") or t.get("reach"):
+            continue
+        wbks = list(t.get("wbks", [])) + ([t["wbk"]] if t.get("wbk") else [])
+        for w in wbks:
+            iid = owner.get(f"wbk:{w}")
+            if iid is None:
+                continue
+            for n in e.get("names") or ():
+                if not n.get("name"):
+                    continue
+                try:
+                    src = NameSource(n.get("source", "regulation"))
+                except ValueError:
+                    src = NameSource.alias
+                add[iid].append(NameTuple(n["name"], src, n.get("note", ""), label=n.get("source_label") or "",
+                                          ref=n.get("source_ref") or ""))
+    for iid in sorted(add):
+        it = registry[iid]
+        have = {it.name, *it.variants}
+        new = [t for t in add[iid] if t.name not in have]
+        if not new:
+            continue
+        names = tuple(dict.fromkeys(t.name for t in new))
+        got = {r.name for r in it.name_sources}
+        recs = tuple(r for r in name_records(names, new) if r.name not in got)
+        registry[iid] = replace(it, variants=tuple(sorted({*it.variants, *names})),
+                                name_sources=(*it.name_sources, *recs))
+    return registry
+
+
 def add_lake_parts(registry: dict[str, RegistryItem],
                    part_of: dict[str, str]) -> dict[str, RegistryItem]:
     """`RegistryItem.part_of` for every curated lake PART: `part_of` is {part wbk: parent wbk}, the

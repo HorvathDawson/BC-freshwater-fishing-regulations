@@ -8,6 +8,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Keyboard, useWindowDimensions, type TextInputInstance } from "react-native";
 import type { ItemId, WaterSource } from "@app/data";
+import type { StreamPlace } from "@app/data/regs/place";
 import { NO_SEARCH, reportFailure, searchStep, useRecentSearches, useSearchSession, type SearchAction, type SearchMemory } from "@app/ui";
 import { searchPanelWidth } from "../TopBar";
 import { CLOSE_KEEPS_FOCUS } from "../searchFocus";
@@ -87,7 +88,8 @@ export function useShellSearch({ source, nav, recentStore }: {
     if (arrivedAt.current === null) { if (route.mode === "browse") arrivedAt.current = route; }
     else if (arrivedAt.current !== route) { arrivedAt.current = null; setArrive(null); }
   }, [route, arrive]);
-  const openSearched = (id: ItemId) => {
+  /** A water picked from the results — (T927) a boundary place too: its water, at the part holding the place. */
+  const openSearched = (id: ItemId, at: StreamPlace | null = null) => {
     const n = ++arrivals.current;
     const key = `arrive:${id}:${n}`;
     const f = session.focus?.key === `item:${id}` ? session.focus : null;
@@ -102,7 +104,7 @@ export function useShellSearch({ source, nav, recentStore }: {
     // before, the browse screen drew one more screen between the results and the pane (the field
     // emptied, the recent searches, the water's outline gone), and only then was the opened pane held over it
     const q = searchMemory.q;
-    void opener.searched(id).then(() => { recents.push(q); setSearchMemory(NO_SEARCH); }, reportFailure);
+    void opener.searched(id, at).then(() => { recents.push(q); setSearchMemory(NO_SEARCH); }, reportFailure);
   };
   /**
    * (T269, owner 2026-10-29) THE PAGE STARTED ON A WATER (a `/water/<slug>` page, a start link) or at one (`?show=`):

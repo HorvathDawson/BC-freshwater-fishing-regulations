@@ -45,6 +45,7 @@ import { Text } from "./Text";
 import { Pressable } from "./Pressable";
 import { SEARCH_BAR, type StatusIndex, bcNow } from "@app/core";
 import type { ItemId } from "@app/data";
+import type { StreamPlace } from "@app/data/regs/place";
 import { useBackLayer, useSheetDrag, type SearchAction, type SearchPick, type SearchSession } from "@app/ui";
 import { LoadingState } from "./LoadingState";
 import { Icon } from "./icons";
@@ -65,7 +66,7 @@ export const HALF_DROP = 0.45;
 /** The transition's length, ms (F2–F3 of the approved frames: the dim and the rise together). */
 export const SHEET_MS = 240;
 
-export function SearchSheet({ open, top, palette, session, pick, onAct, onOpenWater, onClose, statusIndex, day = null, total, recents = [], onRecent, onClearRecents, active = null }: {
+export function SearchSheet({ open, top, palette, session, pick, onAct, onOpenWater, onOpenPlace, onClose, statusIndex, day = null, total, recents = [], onRecent, onClearRecents, active = null }: {
   /** Search is open (route `search`). Closed: the sheet slides (or fades) away and its rows go. */
   open: boolean;
   /**
@@ -83,6 +84,8 @@ export function SearchSheet({ open, top, palette, session, pick, onAct, onOpenWa
   onAct: (a: SearchAction) => void;
   /** The selected water row's open action: the water screen, through `openWater`. */
   onOpenWater: (item: ItemId) => void;
+  /** (T927) a boundary place's open action: its water, at the part holding the place */
+  onOpenPlace?: (item: ItemId, at: StreamPlace) => void;
   /** The day's status of each water (the index the map colours by); null: no row carries a status. */
   statusIndex: StatusIndex | null;
   /** The day the map is on (the picked day), null = today: the rows' status dots answer for THE SAME day (T620 G1). */
@@ -256,7 +259,7 @@ export function SearchSheet({ open, top, palette, session, pick, onAct, onOpenWa
                 // (T858) a highlighted row past what is drawn: near it by the rows' average height, then drawn and revealed
                 onScrollToIndexFailed={(f) => list.current?.scrollToOffset({ offset: f.averageItemLength * f.index, animated: false })}
                 renderItem={({ item: r }) => (
-                  <SheetRow r={r} palette={palette} pick={pick} act={act} onOpenWater={onOpenWater}
+                  <SheetRow r={r} palette={palette} pick={pick} act={act} onOpenWater={onOpenWater} onOpenPlace={onOpenPlace}
                             statusIndex={statusIndex} today={today} onRecent={onRecent}
                             onClearRecents={onClearRecents} active={active} />
                 )}

@@ -155,6 +155,9 @@ def write_sidecars(build: Path, out: Path | None = None, *, log=print) -> Path:
     _nv = load_name_variants(CURATED.waters.name_variants)
     registry = merge_one_waters(registry, one_water_names(_nv), owrep, one_water_takes(_nv))
     (dest / "one_water_report.json").write_text(json.dumps(owrep, indent=1) + "\n", encoding="utf-8")
+    # (T926) the same pass the atlas build runs: every whole-feature wbk name of `name_variants.json` on its item
+    from pipeline.atlas.registry import attach_wbk_variants
+    registry = attach_wbk_variants(registry, _nv)
     write_registry(registry, dest / "registry.json")
     log(f"  registry.json: {n_parts} lake part(s) carry part_of; their lakes own no section")
     pins_path = build / "item_points.json"

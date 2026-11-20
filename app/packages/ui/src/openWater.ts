@@ -16,6 +16,7 @@
 import { useMemo } from "react";
 import { reported } from "@app/core";
 import { openProbe, type ItemId, type WaterSource, type SectionId } from "@app/data";
+import type { StreamPlace } from "@app/data/regs/place";
 import { frameViews, type LatLon, type Route, type RouteAction, type View } from "./route";
 
 export interface WaterOpen {
@@ -98,7 +99,7 @@ export interface WaterOpener {
    * A water picked from search's results: the search is consumed, so back lands on the map (route `fromSearch`). It
    * opens on its Map (T203), framed on its part (T747) — (T925) a water of one part too: the map shows what it covers.
    */
-  searched(item: ItemId): Promise<void>;
+  searched(item: ItemId, at?: StreamPlace | null): Promise<void>;
   /** (T716) Drop any open still being looked up (a tap's lift whose click never came): it dispatches nothing. */
   cancel(): void;
 }
@@ -128,6 +129,12 @@ export interface OpenerOptions {
    * (`regs.ts` `warmUnnamedPage`) — a hint, it decides nothing. Absent: nothing asked.
    */
   unnamed?: (sid: SectionId) => void;
+  /**
+   * (T927) The part of a water holding a PLACE on it (a boundary place picked in search: the FWA stream key and metres,
+   * AGENTS 5) — the link's own lookup (`place.ts` `resolvePartPlace`). null: no part of it holds the place (the water
+   * opens on its own part). Absent: a place opens the water as a name would.
+   */
+  placePart?: (item: ItemId, at: StreamPlace) => Promise<number | null>;
   /**
    * (T925, from T737) A water opened by its id (a search result, a spot, a link) is known at once: what its page reads
    * beside its rules (`regs.ts` `warmWaterPage`: geo) is asked now — a hint, it decides nothing. T221's solo question did
@@ -165,14 +172,24 @@ export function waterOpener(source: Pick<WaterSource, "itemForSection">, go: (a:
     // fully zoomed out instead of on the first section") framed on THE PART ITS BAR NAMES (the frame's part,
     // `useFrameView`), never the whole water: T203 opened it whole while the bar said "Part 1 of 18", and on the wide
     // desktop strip (243 px tall) the whole Skeena read as the province. ⤢ "Whole river" is one press away.
-    searched: (item) => { latest += 1; o.warm?.(item); go(openWater({ item, view: "map", fromSearch: true })); return Promise.resolve(); },
+    searched: (item, at = null) => {
+      if (at && o.placePart) {
+        // (T927) a boundary place: the water opens on the part holding it (a failed lookup opens it on its own part,
+        // reported); a later open overtakes it, as any open that waits
+        o.warm?.(item);
+        const part = o.placePart;
+        return settle(async () => openWater({ item, view: "map", fromSearch: true,
+                                              part: await part(item, at).catch(reported(null)) })).then(() => undefined);
+      }
+      latest += 1; o.warm?.(item); go(openWater({ item, view: "map", fromSearch: true })); return Promise.resolve();
+    },
   };
 }
 
 /** The Shell's handle on `openWater` / `openTap`, dispatching to the route. */
 export function useOpenWater(source: Pick<WaterSource, "itemForSection">, go: (a: RouteAction) => void,
                              o: OpenerOptions = {}): WaterOpener {
-  const { now, group, partOf, unnamed, warm } = o;
-  return useMemo(() => waterOpener(source, go, { now, group, partOf, unnamed, warm }),
-                 [source, go, now, group, partOf, unnamed, warm]);
+  const { now, group, partOf, unnamed, warm, placePart } = o;
+  return useMemo(() => waterOpener(source, go, { now, group, partOf, unnamed, warm, placePart }),
+                 [source, go, now, group, partOf, unnamed, warm, placePart]);
 }

@@ -5,6 +5,7 @@
 import { useMemo } from "react";
 import type { ItemId, NameHit, PlaceHit, PointerHit, WaterSource, SectionId, Water } from "@app/data";
 import { buildSearchIndex, queryIndex, type AreaAsk, type IndexWater, type SearchIndex } from "@app/core";
+import type { StreamPlace } from "@app/data/regs/place";
 import { useAsync, useDebounced, type Async } from "../async";
 import { askOnce, peekAnswer } from "../answers";
 
@@ -54,9 +55,27 @@ export function useWaterBox(source: WaterSource, item: ItemId | null):
   return b.state === "ready" ? b.value ?? null : null;
 }
 
+/**
+ * (T927) A boundary place found by search: where a water's rules change ("Greendale Trestle" on the Cowichan River). `at`
+ * is THE PLACE (stream key + metres, AGENTS 5) its water opens at; `point` where its map mark stands (null: none).
+ */
+export interface CutHit {
+  item: ItemId;
+  /** the water's name */
+  water: string;
+  /** the place's words */
+  words: string;
+  /** the other name of the place the query matched (null: its words) */
+  matchedAs: string | null;
+  at: StreamPlace;
+  point: { lat: number; lon: number } | null;
+}
+
 export interface SearchResults {
   waters: readonly NameHit[];
   places: readonly PlaceHit[];
+  /** (T927) the book's boundary places the query names (absent: none asked) */
+  cuts?: readonly CutHit[];
   /** Group names that only point ("Tee Pee Lakes: see Friday Lake, …"), each leading to the waters it names. */
   pointers: readonly PointerHit[];
   /** (T247) the management unit or region the query named ("2-8", "region 2"): the waters are that area's */
@@ -97,6 +116,9 @@ function indexHits(ix: WaterIndex, q: string, limit: number, placeLimit: number)
       nameSource: w.nameSource ?? null, pieces: w.pieces, size: w.size, areaHa: w.areaHa, near: w.near,
       regions: w.regions, mus: w.mus })),
     places: a.places, area: a.area, fuzzy: a.fuzzy,
+    cuts: a.cuts.map((c): CutHit => ({
+      item: c.item as ItemId, water: c.water.name, words: c.words, matchedAs: c.matchedAs, at: { blk: c.blk, m: c.m },
+      point: c.lat !== null && c.lon !== null ? { lat: c.lat, lon: c.lon } : null })),
   };
 }
 

@@ -30,6 +30,9 @@ function stopsAt(rows: readonly Row[], pick: SearchPick): { stop: string; row: n
       const item = r.t === "water" ? r.hit.item : r.near.item;
       const name = r.t === "water" ? r.hit.name : r.near.name;
       if (isSelected(pick, { kind: "water", item, name })) add(goStop(r.key));
+    } else if (r.t === "cut") {
+      add(r.key);
+      if (isSelected(pick, { kind: "cut", cut: r.cut })) add(goStop(r.key));
     } else if (r.t === "see") {
       r.see.forEach((s, i) => { if (s.item !== null) add(seeStop(r.key, i)); });
     } else if (r.t === "recents") {

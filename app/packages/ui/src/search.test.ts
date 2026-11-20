@@ -5,6 +5,7 @@ import {
   NO_PICK, focusFor, isSelected, resultGroups, searchSheet, searchStep, subjectOf, targetKey,
   type Located, type SearchPick, type SearchTarget, type TownView,
 } from "./search";
+import type { CutHit } from "./hooks";
 
 const sid = (n: number) => n as SectionId;
 const chilliwack: Located = {
@@ -163,16 +164,16 @@ describe("what the pinned map is about", () => {
   const water: SearchTarget = { kind: "water", item: "gnis:1" as ItemId, name: "Bulkley River" };
 
   it("a tapped row is the subject", () => {
-    expect(subjectOf({ selected: water, town: null })).toEqual({ item: "gnis:1", place: null, pin: null });
+    expect(subjectOf({ selected: water, town: null })).toEqual({ item: "gnis:1", place: null, pin: null, cut: null });
     expect(subjectOf({ selected: { kind: "place", place: smithers.place }, town: null }))
-      .toEqual({ item: null, place: smithers.place, pin: null });
+      .toEqual({ item: null, place: smithers.place, pin: null, cut: null });
   });
 
   it("an open town is the subject until one of its waters is tapped, which keeps it pinned", () => {
     const inTown: SearchPick = { selected: null, town: smithers.place };
-    expect(subjectOf(inTown)).toEqual({ item: null, place: smithers.place, pin: null });
+    expect(subjectOf(inTown)).toEqual({ item: null, place: smithers.place, pin: null, cut: null });
     expect(subjectOf({ ...inTown, selected: water }))
-      .toEqual({ item: "gnis:1", place: null, pin: smithers.place });
+      .toEqual({ item: "gnis:1", place: null, pin: smithers.place, cut: null });
   });
 
   it("a water shown with its town pinned marks the town", () => {
@@ -236,6 +237,44 @@ describe("(T48) the results sheet over the main map: full while typing, half whi
   });
 
   it("the main map follows what the reader PICKED, never the typing (the full sheet covers it): no auto subject", () => {
-    expect(subjectOf(NO_PICK)).toEqual({ item: null, place: null, pin: null });
+    expect(subjectOf(NO_PICK)).toEqual({ item: null, place: null, pin: null, cut: null });
+  });
+});
+
+describe("(T927) the book's boundary places", () => {
+  const trestle: CutHit = { item: "gnis:12227" as ItemId, water: "Cowichan River", words: "Greendale Trestle",
+                            matchedAs: null, at: { blk: 354155148, m: 48408 }, point: { lat: 48.83, lon: -124.05 } };
+  const cut: SearchTarget = { kind: "cut", cut: trestle };
+  const water = (item: string, name: string): NameHit => ({ item: item as ItemId, name, kind: "stream", matchedAs: null,
+    pieces: 1, size: null, areaHa: null, near: null } as NameHit);
+
+  it("come after the names as typed, and before the waters found only by a close spelling", () => {
+    const typed = resultGroups({ waters: [water("a", "Greendale Creek")], places: [smithers.place], cuts: [trestle] });
+    expect(typed.map((g) => [g.kind, g.title])).toEqual(
+      [["places", "Place"], ["waters", "1 named water"], ["cuts", "Where rules change"]]);
+    const fuzzy = resultGroups({ waters: [water("a", "Greendale Creek")], places: [], cuts: [trestle], fuzzy: true });
+    expect(fuzzy.map((g) => g.kind)).toEqual(["cuts", "waters"]);
+    expect(resultGroups({ waters: [], places: [], cuts: [trestle] }).map((g) => g.kind)).toEqual(["cuts"]);
+  });
+
+  it("a tap selects it: its water is the subject, the map opens on its mark, marks it and lights the water", () => {
+    const pick = searchStep(NO_PICK, { t: "select", target: cut });
+    expect(pick.leave).toBeNull();
+    expect(targetKey(cut)).toBe("cut:gnis:12227:354155148:48408");
+    const s = subjectOf(pick.pick);
+    expect([s.item, s.cut]).toEqual(["gnis:12227", trestle]);
+    const f = focusFor({ town: null, best: { ...chilliwack, item: trestle.item, name: "Cowichan River" },
+                         spot: { key: targetKey(cut), point: trestle.point, words: trestle.words } })!;
+    expect([f.key, f.marker, f.highlight, f.refine, f.caption]).toEqual(
+      [targetKey(cut), trestle.point, [1, 2, 3], false, "Greendale Trestle, on the Cowichan River"]);
+    expect(f.bbox![0]).toBeLessThan(-124.05);
+    expect(f.bbox![2]).toBeGreaterThan(-124.05);
+    // go on the selected place leaves for its water
+    expect(searchStep(pick.pick, { t: "go", target: cut }).leave).toBe("gnis:12227");
+  });
+
+  it("a place with no mark frames its water, unmarked", () => {
+    const f = focusFor({ town: null, best: chilliwack, spot: { key: "cut:x", point: null, words: "Lower falls" } })!;
+    expect([f.bbox, f.marker]).toEqual([chilliwack.extent!.bbox, null]);
   });
 });

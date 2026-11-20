@@ -122,6 +122,20 @@ export async function resolvePartPlace(store: PlaceReads, item: ItemId, ord: num
   return { sid: mid as SectionId, item, part: run.partIx };
 }
 
+/**
+ * (T927) THE PART OF A WATER HOLDING A PLACE — a boundary place picked in search — by the named link's own lookup
+ * (`resolvePartPlace`: the part whose run holds the stream key + metres). null: the water is not in this release, or no
+ * part of it holds the place. `reads`: the open release's place reads, asked when a place is first opened.
+ */
+export function placePartOf(reads: () => Promise<PlaceReads>): (item: ItemId, p: StreamPlace) => Promise<number | null> {
+  return async (item, p) => {
+    const store = await reads();
+    const ord = await store.itemOrd(item);
+    if (ord === null) return null;
+    return (await resolvePartPlace(store, item, ord, await store.partLines(ord), p))?.part ?? null;
+  };
+}
+
 /** Where a link's place falls: on the link's own water through its `part_line` (T388), or — an unnamed reach's link —
  *  through `lines` (`resolvePlace`). A named link whose water this release does not hold: nowhere (its notice), never
  *  another water. */
