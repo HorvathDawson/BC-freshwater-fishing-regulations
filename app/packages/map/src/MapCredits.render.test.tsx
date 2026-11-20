@@ -3,6 +3,7 @@
  * corners kept apart. The renderers' own attribution controls are off, so the two cannot list or look different; the
  * scale bar is bottom-left and the credits bottom-right, at the narrowest width and with Esri's badge showing.
  */
+import type { ReactNode } from "react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { act, cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { GEOMETRY, ESRI_BADGE, mapChrome } from "./chrome";
@@ -138,6 +139,22 @@ describe("the open card's back is the app's one back (T729)", () => {
     act(() => { close(); });
     expect(screen.queryByTestId("map-credits-card")).toBeNull();
     expect(calls.at(-1)).toBe(false);
+  });
+
+  it("(T723) the card sits inside the platform back it is handed (the iOS left-edge swipe), whose back is the card's one back", () => {
+    const backs: (() => void)[] = [];
+    function EdgeBack({ onBack, children }: { onBack: () => void; children: ReactNode }) {
+      backs.push(onBack);
+      return <div data-testid="edge-back">{children}</div>;
+    }
+    const calls: boolean[] = [];
+    const layer = (open: boolean, c: () => void) => { calls.push(open); return c; };
+    render(<MapCredits look={PLAIN} chrome={mapChrome("light")} useBackLayer={layer} modalBack={EdgeBack} />);
+    expect(screen.queryByTestId("edge-back")).toBeNull();                     // nothing of it while the card is shut
+    fireEvent.click(screen.getByTestId("map-credits-chip"));
+    expect(screen.getByTestId("edge-back").contains(screen.getByTestId("map-credits-card"))).toBe(true);
+    act(() => { backs.at(-1)!(); });                                         // the swipe in from the edge
+    expect([screen.queryByTestId("map-credits-card"), calls.at(-1)]).toEqual([null, false]);
   });
 });
 

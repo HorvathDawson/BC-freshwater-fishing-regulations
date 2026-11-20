@@ -5,6 +5,7 @@
 // A feature id on our own layers IS a section handle — an integer. `SectionKey` keeps
 // this honest without `map` having to know which artifact minted it.
 import type { NotFishingKind, SectionKey, SpotPoint } from "@app/core";
+import type { ComponentType, ReactNode } from "react";
 import type { ViewStyle } from "react-native";
 import type { TileEndpoints } from "./endpoints";
 import type { TraceProp } from "./trace-overlay";
@@ -383,6 +384,13 @@ export interface MapProps {
    * the browser's and the system's back close it before leaving the screen. Absent (the map alone): the card's own close.
    */
   useBackLayer?: (open: boolean, close: () => void) => () => void;
+  /**
+   * (T723, T729 follow-up) What wraps the open credits card inside its Modal for the platform's own way back: the app's
+   * `ModalBack` (@app/ui-native: on iOS a drag in from the left edge calls `onBack`, the card's one back; elsewhere it
+   * draws its children untouched). A Modal is a window of its own, so the Shell's edge-back does not reach it. Absent
+   * (the map alone): no wrapper.
+   */
+  modalBack?: ComponentType<{ onBack: () => void; children: ReactNode }>;
   /**
    * The ground under the water: the drawn basemap, or satellite imagery.
    *

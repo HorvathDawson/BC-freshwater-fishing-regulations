@@ -12,6 +12,7 @@ import { useState, type ReactNode } from "react";
 import { View } from "react-native";
 import { LAB_ON, Map, type Camera, type MapProps, type TileEndpoints } from "@app/map";
 import { DeveloperModal } from "./DeveloperModal";
+import { ModalBack } from "./ModalBack";
 import type { MenuInfo } from "./menu/MenuHost";
 import { mapError, useBackLayer, type Horizon, type HorizonChipVM, type MyLocation } from "@app/ui";
 import { HorizonPicker } from "./HorizonPicker";
@@ -134,7 +135,7 @@ export function MapScreen({ at, palette, theme, view, modes, groups, hide, show,
       <Map at={at} theme={theme} me={me ? { on: me.on, fix: me.fix, following: me.following, centre: me.centre, zoom: me.zoom, onRelease: me.release } : null} view={view} modes={modes} groups={groups} hide={hide} show={show}
            initial={camera}
            onPressFeature={onPressFeature} onPressStart={onPressStart} onPressObstacle={onPressObstacle} onPressNotFishing={onPressNotFishing} onMoved={onMoved} onMapPoint={onMapPoint} onLongPress={onLongPress}
-           highlight={highlight} inSeason={inSeason} pins={pins} spots={spots} insetTop={insetTop} insetBottom={insetBottom} insetLeft={insetLeft} onOpenLink={openLink} useBackLayer={useBackLayer} water={water} waterLine={waterLine} selection={selection} focus={focus} near={near} marks={marks} onPressMark={onPressMark} marker={marker} status={status} standing={standing} lakes={lakes} salmon={salmon} method={method} issue={issue} runs={runs}
+           highlight={highlight} inSeason={inSeason} pins={pins} spots={spots} insetTop={insetTop} insetBottom={insetBottom} insetLeft={insetLeft} onOpenLink={openLink} useBackLayer={useBackLayer} modalBack={ModalBack} water={water} waterLine={waterLine} selection={selection} focus={focus} near={near} marks={marks} onPressMark={onPressMark} marker={marker} status={status} standing={standing} lakes={lakes} salmon={salmon} method={method} issue={issue} runs={runs}
            gauges={gauges}
            onVisible={onVisible} onError={onError ?? mapError} fit={fit} basemap={basemap} onImageryError={onImageryError}
            onRegion={onRegion} onDrawn={onDrawn} lookKey={lookKey} onLookDrawn={onLookDrawn} onOpenLab={LAB_ON && developer ? () => setDevOpen(true) : undefined} />

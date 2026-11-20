@@ -439,7 +439,11 @@ export function ConditionsPanel({ source, section, palette, tiles, theme, colour
   // and minimap inside are shielded so their own drags stay theirs.
   const pad = { paddingHorizontal: GUTTER, paddingTop: SPACE.s3, paddingBottom: SPACE.s4 * 3, gap: SPACE.s4 };
   const scrolled = <CoachScrollContext.Provider value={coachScroll.scroller}>{body}</CoachScrollContext.Provider>;
+  // (T723) the gauge card's Alert me value takes a decimal pad: on iOS the scroll is inset by the keyboard and brings the
+  // focused field above it (iOS only; Android resizes its window), and a tap on a control with the keyboard up acts at
+  // once instead of only closing the keyboard (both), as the menu pages and the spot page do
   const follow = { ref: coachScroll.ref, scrollEventThrottle: 16,
+                   automaticallyAdjustKeyboardInsets: true, keyboardShouldPersistTaps: "handled" as const,
                    onScroll: (e: { nativeEvent: { contentOffset: { y: number } } }) => coachScroll.track(e.nativeEvent.contentOffset.y) };
   const page = scroll
     ? bodySwipe

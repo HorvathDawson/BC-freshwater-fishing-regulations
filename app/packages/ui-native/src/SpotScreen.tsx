@@ -46,6 +46,7 @@ import { RateBlock, VisitsBlock } from "./spot/Visits";
 import { ParkingBlock } from "./spot/Parking";
 import { hitProps } from "./regs/hit";
 import { CoachSpot } from "./CoachMarks";
+import { KeyboardBar } from "./KeyboardBar";
 
 
 export type SpotMode = "draft" | "view" | "edit";
@@ -127,6 +128,8 @@ export interface SpotScreenProps {
  */
 const MEASURE = { width: "100%", maxWidth: 760, alignSelf: "center" } as const;
 const MEASURE_WIDE = { width: "100%", maxWidth: 1120, alignSelf: "center" } as const;
+/** (T723) the iOS keyboard's bar that carries the Save button while the title or the notes are typed (`KeyboardBar`) */
+const SPOT_SAVE_BAR = "spot-save-bar";
 
 export function SpotScreen(p: SpotScreenProps) {
   const { spot, palette, mode = "view" } = p;
@@ -143,6 +146,8 @@ export function SpotScreen(p: SpotScreenProps) {
   // (T819 item 5) the draft's record starts folded to one card
   const [recordOpen, setRecordOpen] = useState(false);
   const pe = editable ? p.photoEdit : undefined;
+  // (T723) a field with the keyboard up carries the Save button on the keyboard's bar (iOS), so Save is never under it
+  const saveBar = editable && p.onSave ? SPOT_SAVE_BAR : undefined;
   const photos = pe ? pe.refs : spot.photos;
   const uris = usePhotoUris(p.photoStore, photos);
   const df = p.dayFlow?.view ?? null;
@@ -183,7 +188,7 @@ export function SpotScreen(p: SpotScreenProps) {
     <Section palette={palette} title={W.added} testID="spot-added">
     <Block palette={palette} title={W.notes}>
       {editable && p.onNotes ? (
-        <TextInput value={p.notes ?? ""} onChangeText={p.onNotes} multiline
+        <TextInput value={p.notes ?? ""} onChangeText={p.onNotes} multiline inputAccessoryViewID={saveBar}
                    placeholder={W.notesHint}
                    placeholderTextColor={palette.faint} accessibilityLabel={W.notes}
                    style={{ ...TYPE.body, color: palette.ink, minHeight: 96,
@@ -302,7 +307,7 @@ export function SpotScreen(p: SpotScreenProps) {
           {editable && p.onTitle ? (
             // (T466) the walkthrough's "Name it" rings the name (a draft's)
             <CoachSpot k={mode === "draft" ? "capture:title" : "spot:title"}>
-            <TextInput value={p.title ?? ""} onChangeText={p.onTitle}
+            <TextInput value={p.title ?? ""} onChangeText={p.onTitle} inputAccessoryViewID={saveBar}
                        placeholder={W.name} placeholderTextColor={palette.faint}
                        accessibilityLabel={W.name}
                        style={{ ...TYPE.title, color: palette.ink }} />
@@ -374,6 +379,15 @@ export function SpotScreen(p: SpotScreenProps) {
                     label={mode === "draft" ? W.save : W.saveChanges} onPress={p.onSave} />
           </CoachSpot>
         </View>
+      )}
+      {/* (T723, owner 2026-11-16: the Save row is lifted above the keyboard) iOS draws no page padding for the keyboard
+          (the scroll's own insets keep the field in view), so the row above sat under it while a field was typed: the
+          same Save rides on the keyboard instead (one action: the row under the keyboard is the same button, out of reach) */}
+      {saveBar && p.onSave && (
+        <KeyboardBar id={saveBar} palette={palette}>
+          <Button palette={palette} testID={`${saveBar}-save`}
+                  label={mode === "draft" ? W.save : W.saveChanges} onPress={p.onSave} />
+        </KeyboardBar>
       )}
     </KeyboardAvoidingView>
     </Selectable>

@@ -153,3 +153,11 @@ describe("<MapScreen> rail (owner 2026-10-21, Fish Washington style; T48: Layers
     expect([given === held, mapProps.last!.onLongPress]).toEqual([true, undefined]);
   });
 });
+
+describe("<MapScreen> the credits card's way back (T723, T729 follow-up)", () => {
+  it("hands the map the app's ModalBack, so the iOS edge swipe is the open credits card's one back", async () => {
+    const { ModalBack } = await import("./ModalBack");
+    render(<MapScreen {...BASE} />);
+    expect(mapProps.last!.modalBack).toBe(ModalBack);
+  });
+});
