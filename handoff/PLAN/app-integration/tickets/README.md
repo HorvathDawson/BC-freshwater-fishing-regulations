@@ -330,7 +330,7 @@ reads both files; a ticket closed here moves there once its lane is finished wit
 | T927 | Search finds the book's boundary places (477 placed cuts: "Vedder Crossing", "Greendale Trestle") (owner) | OPEN | | owner 2026-11-19 "search a cut location from book" |
 | T928 | iPhone: the main map fills only 2/3 of the screen after tab changes (tester via owner) | OPEN | | tester 2026-11-19 via owner |
 | T929 | Water map: boundary labels don't line up with the place they name; the part looks mis-framed (Chilliwack) (tester via owner) | OPEN | | tester 2026-11-19 via owner |
-| T930 | First Nations names as search names in name_variants.json (hand list of big waters, then BC Geographical Names), future (owner) | OPEN | | owner 2026-11-19 "add to name_variants JSON in future" |
+| T930 | First Nations names as search names in name_variants.json (hand list of big waters, then BC Geographical Names) (owner) | POSTPONED (deferred, owner 2026-11-19: after bathy map, stocked lakes, charts; T200/T201/T634) | | owner 2026-11-19 "add to name_variants JSON in future" |
 | T882 | Salmon: DFO's "To be determined" says so instead of "Check DFO"; green whenever any salmon is open (owner) | DONE | b2a5f2522 | owner 2026-11-18 ~21:18 |
 | T884 | A fish sheet's big "20 a day" is cut off at the top on an iPhone (owner) | DONE | 1d19ef12b, fcc3ce3a8 | owner 2026-11-18 ~21:30 |
 | T886 | "How to tell a hatchery fish": a natural fish (the loader's coho), not a smiling one (owner) | DONE | 7a13d8671, 0e4f21738 | owner 2026-11-18 ~21:30 |

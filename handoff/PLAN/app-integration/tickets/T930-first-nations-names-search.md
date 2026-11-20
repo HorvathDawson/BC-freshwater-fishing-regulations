@@ -1,6 +1,6 @@
 # T930 — First Nations names in search, added to name_variants.json (future)
 
-Status: OPEN (future; not in the current batch).
+Status: POSTPONED (deferred, owner 2026-11-19: after the bathymetry map, stocked lakes, charts etc.; T200/T201/T634).
 
 Source: owner 2026-11-19 20:34 (main chat). After T926 (4) was dropped (the curated file holds no First Nations names), asked
 "How would we get the first Nations names otherwise?"; offered four sources (BC Geographical Names; OpenStreetMap
@@ -24,3 +24,7 @@ Each added name finds its water in the top results (the T926 probe); `searchInde
 and one BCGNIS name; no ranking change for exact English names; owner reviews the proposals before they are accepted.
 
 Depends: T926 (search folding of "'", ":" and combining marks). Size: S (list) + M (BCGNIS). Owner: reviews the proposals.
+
+## Owner 2026-11-19 20:38 (main chat)
+Verbatim: "We will make t930 defered until after bathy map and stocky and charts etc..". Starts after T200 (stocked
+lakes), T201 / T634 (depth maps and charts) ship.
