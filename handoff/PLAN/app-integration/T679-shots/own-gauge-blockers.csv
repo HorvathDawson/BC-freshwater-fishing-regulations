@@ -1,0 +1,161 @@
+water,water_name,gauge,sections,blocker_id,blocker_name,blocker_kind,area_ha
+gnis:7551,Pitt River,08MH035,24,wbk:329291806,Pitt Lake,lake,5339
+gnis:14038,Moberly River,07FB008,20,wbk:329657307,Moberly Lake,lake,2910
+gnis:10313,Lillooet River,08MG027,18,wbk:329303445,Little Lillooet Lake,lake,359
+gnis:24882,Osilinka River,07EC004,17,wbk:329325659,Uslika Lake,lake,165
+gnis:28488,Trout River,10BE007,17,wbk:329299081,Muncho Lake,lake,1540
+gnis:13744,Chilcotin River,08MB012,15,wbk:329595989,Cheẑich'ed Biny,lake,353
+gnis:9100,Bowron River,08KD007,15,wbk:329058703,Bowron Lake,lake,1022
+gnis:23935,Taseko River,08MA003,14,wbk:329554393,Taseko Lakes,lake,2142
+gnis:25478,Shuswap River,08LC002,14,wbk:329663955,Mabel Lake,lake,5964
+gnis:15430,Stikine River,08CE001,13,wbk:329671427,Laslui Lake,lake,510
+gnis:4945,Bridge River,08ME029,13,wbk:329505192,Downton Lake,lake,2242
+gnis:10313,Lillooet River,08MG027,12,wbk:329303443,Lillooet Lake,lake,3222
+gnis:39257,Adams River,08LD001,12,wbk:329014384,Adams Lake,lake,13229
+gnis:12999,Cheakamus River,08GA072,11,wbk:329532433,Cheakamus Lake,lake,558
+gnis:25922,Toad River,10BE004,11,wbk:329565730,Moose Lake,lake,243
+gnis:36111,Halfway River,07FA003,11,(none),,no flow path: the gauge is neither up- nor downstream (a tributary or another branch: the walk never turns),
+gnis:36111,Halfway River,07FA006,11,(none),,no flow path: the gauge is neither up- nor downstream (a tributary or another branch: the walk never turns),
+gnis:26104,West Road (Blackwater) River,08KG001,10,wbk:329047266,Kluskoil Lake,lake,467
+gnis:39400,Nicola River,08LG028,10,wbk:329451884,Douglas Lake,lake,653
+gnis:23229,Pinkut Creek,08EC004,9,wbk:329026677,Taltapin Lake,lake,2145
+gnis:25478,Shuswap River,08LC018,9,wbk:329663956,Sugar Lake,lake,2175
+gnis:2728,Swift River,09AE003,8,wbk:329544318,Swan Lake,lake,892
+gnis:8540,Mesilinka River,07EC003,8,wbk:329368819,Aiken Lake,lake,234
+gnis:14619,Peace River,07FD010,7,(none),,no flow path: the gauge is neither up- nor downstream (a tributary or another branch: the walk never turns),
+gnis:2728,Swift River,09AE003,7,wbk:329544319,Swift Lake,lake,448
+gnis:37414,Columbia River,08NA002,7,gnis:8203,Hotsprings Channel,other water's stream (stream),
+gnis:37414,Columbia River,08NB005,7,gnis:8203,Hotsprings Channel,other water's stream (stream),
+gnis:17065,Clearwater River,08LA001,6,wbk:329086711,Clearwater Lake,lake,3412
+gnis:21141,Nimpkish River,08HF005,6,wbk:328985674,Nimpkish Lake,lake,3814
+gnis:39325,Fraser River,08KA004,6,wbk:329619001,Moose Lake,lake,1412
+gnis:39325,Fraser River,08KA005,6,wbk:329619001,Moose Lake,lake,1412
+gnis:39325,Fraser River,08KA007,6,wbk:329619001,Moose Lake,lake,1412
+gnis:39325,Fraser River,08KB001,6,wbk:329619001,Moose Lake,lake,1412
+gnis:10313,Lillooet River,08MG027,5,(none),,no flow path: the gauge is neither up- nor downstream (a tributary or another branch: the walk never turns),
+gnis:15430,Stikine River,08CE001,5,(none),,no flow path: the gauge is neither up- nor downstream (a tributary or another branch: the walk never turns),
+gnis:17161,Ash River,08HB023,5,wbk:329016208,Dickson Lake,lake,113
+gnis:17532,Clowhom River,08GB013,5,wbk:329197072,Phantom Lake,lake,108
+gnis:19986,Coquitlam River,08MH002,5,wbk:329291808,Coquitlam Lake,lake,1200
+gnis:22255,Duncan River,08NH118,5,wbk:329120714,Duncan Lake,lake,7299
+gnis:22255,Duncan River,08NH126,5,wbk:329120714,Duncan Lake,lake,7299
+gnis:3273,Klinaklini River,08GE002,5,wbk:329238148,Klinaklini Lake,lake,85
+gnis:37414,Columbia River,08NA002,5,(none),,no flow path: the gauge is neither up- nor downstream (a tributary or another branch: the walk never turns),
+gnis:37414,Columbia River,08NB005,5,(none),,no flow path: the gauge is neither up- nor downstream (a tributary or another branch: the walk never turns),
+gnis:39325,Fraser River,08KB001,5,(none),,no flow path: the gauge is neither up- nor downstream (a tributary or another branch: the walk never turns),
+gnis:10765,Iskut River,08CG001,4,(none),,no flow path: the gauge is neither up- nor downstream (a tributary or another branch: the walk never turns),
+gnis:17209,Atnarko River,08FB006,4,wbk:329021798,Stillwater Lake,lake,104
+gnis:17209,Atnarko River,08FB011,4,wbk:329021798,Stillwater Lake,lake,104
+gnis:25478,Shuswap River,08LC003,4,wbk:329663956,Sugar Lake,lake,2175
+gnis:25530,McGregor River,08KB003,4,(none),,no flow path: the gauge is neither up- nor downstream (a tributary or another branch: the walk never turns),
+gnis:29933,Tutshi River,09AA013,4,wbk:329579427,Tutshi Lake,lake,5250
+gnis:39325,Fraser River,08KA004,4,(none),,no flow path: the gauge is neither up- nor downstream (a tributary or another branch: the walk never turns),
+gnis:39325,Fraser River,08KA005,4,(none),,no flow path: the gauge is neither up- nor downstream (a tributary or another branch: the walk never turns),
+gnis:6105,Seymour River,08GA030,4,wbk:329532435,Seymour Lake,lake,263
+gnis:15913,Muskwa River,10CD001,3,(none),,no flow path: the gauge is neither up- nor downstream (a tributary or another branch: the walk never turns),
+gnis:27883,Quinsam River,08HD005,3,wbk:329069972,Quinsam Lake,lake,145
+gnis:27883,Quinsam River,08HD027,3,wbk:329069972,Quinsam Lake,lake,145
+gnis:2918,Whatshan River,08NE130,3,wbk:329262633,Whatshan Lake,lake,1764
+gnis:3137,Zymoetz River,08EF005,3,wbk:329682393,McDonell Lake,lake,225
+gnis:37414,Columbia River,08NA002,3,356557551:0,,no water: an unowned line,
+gnis:37414,Columbia River,08NA002,3,wbk:329093898,Windermere Lake,lake,1628
+gnis:37414,Columbia River,08NB005,3,356557551:0,,no water: an unowned line,
+gnis:37414,Columbia River,08NB005,3,wbk:329093898,Windermere Lake,lake,1628
+gnis:39492,Thompson River,08LF033,3,wbk:329563838,Kamloops Lake,lake,4975
+gnis:39492,Thompson River,08LF051,3,wbk:329563838,Kamloops Lake,lake,4975
+gnis:8018,Finlay River,07EA005,3,(none),,no flow path: the gauge is neither up- nor downstream (a tributary or another branch: the walk never turns),
+gnis:12999,Cheakamus River,08GA043,2,wbk:329532434,Daisy Lake,lake,378
+gnis:14097,Kootenay River,08NG065,2,(none),,no flow path: the gauge is neither up- nor downstream (a tributary or another branch: the walk never turns),
+gnis:16075,Dean River,08FC003,2,(none),,no flow path: the gauge is neither up- nor downstream (a tributary or another branch: the walk never turns),
+gnis:16075,Dean River,08FC003,2,wbk:329601585,Abuntlet Lake,lake,219
+gnis:21687,Theodosia River,08GC008,2,(none),,no flow path: the gauge is neither up- nor downstream (a tributary or another branch: the walk never turns),
+gnis:21993,Seymour River,08LE027,2,(none),,no flow path: the gauge is neither up- nor downstream (a tributary or another branch: the walk never turns),
+gnis:2463,Murray River,07FB002,2,wbk:329397729,Lower Blue Lake,lake,153
+gnis:2463,Murray River,07FB006,2,wbk:329397729,Lower Blue Lake,lake,153
+gnis:25591,McKinley Creek,08KH020,2,wbk:329184475,McKinley Lake,lake,520
+gnis:26476,Southgate River,08GD010,2,(none),,no flow path: the gauge is neither up- nor downstream (a tributary or another branch: the walk never turns),
+gnis:27060,Puntledge River,08HB006,2,wbk:329095500,Comox Lake,lake,2118
+gnis:27060,Puntledge River,08HB084,2,wbk:329095500,Comox Lake,lake,2118
+gnis:30165,Tuya River,08CD001,2,wbk:329581788,Tuya Lake,lake,3134
+gnis:3273,Klinaklini River,08GE002,2,(none),,no flow path: the gauge is neither up- nor downstream (a tributary or another branch: the walk never turns),
+gnis:39325,Fraser River,08MH028,2,(none),,no flow path: the gauge is neither up- nor downstream (a tributary or another branch: the walk never turns),
+gnis:39532,Campbell River,08HD022,2,wbk:329069971,John Hart Lake,lake,322
+gnis:39532,Campbell River,08HD024,2,wbk:329069971,John Hart Lake,lake,322
+gnis:39532,Campbell River,08HD035,2,wbk:329069971,John Hart Lake,lake,322
+gnis:5922,Capilano River,08GA031,2,wbk:329532436,Capilano Lake,lake,243
+gnis:6291,Seton River,08ME003,2,(none),,no flow path: the gauge is neither up- nor downstream (a tributary or another branch: the walk never turns),
+gnis:6291,Seton River,08ME003,2,wbk:329505191,Seton Lake,lake,2504
+gnis:7930,Goldstream River,08ND012,2,(none),,no flow path: the gauge is neither up- nor downstream (a tributary or another branch: the walk never turns),
+gnis:8515,Pallant Creek,08OB002,2,wbk:329381137,Mosquito Lake,lake,604
+(no named water),,08JA013,1,(none),,path passes every test (gated elsewhere),
+gnis:10313,Lillooet River,08MG005,1,wbk:329303454,Silt Lake,lake,65
+gnis:13744,Chilcotin River,08MB012,1,(none),,no flow path: the gauge is neither up- nor downstream (a tributary or another branch: the walk never turns),
+gnis:15430,Stikine River,08CE001,1,360214684:29,,no water: an unowned line,
+gnis:15913,Muskwa River,10CD001,1,359564743:0,,no water: an unowned line,
+gnis:16605,Nechako River,08JC002,1,(none),,no flow path: the gauge is neither up- nor downstream (a tributary or another branch: the walk never turns),
+gnis:16880,Elk River,08NK002,1,(none),,no flow path: the gauge is neither up- nor downstream (a tributary or another branch: the walk never turns),
+gnis:16880,Elk River,08NK016,1,(none),,no flow path: the gauge is neither up- nor downstream (a tributary or another branch: the walk never turns),
+gnis:16880,Elk River,08NK030,1,(none),,no flow path: the gauge is neither up- nor downstream (a tributary or another branch: the walk never turns),
+gnis:17065,Clearwater River,08LA001,1,(none),,no flow path: the gauge is neither up- nor downstream (a tributary or another branch: the walk never turns),
+gnis:18766,Graham River,07FA005,1,(none),,no flow path: the gauge is neither up- nor downstream (a tributary or another branch: the walk never turns),
+gnis:20525,Salmon River,08KC001,1,(none),,no flow path: the gauge is neither up- nor downstream (a tributary or another branch: the walk never turns),
+gnis:2195,Bulkley River,08EE004,1,(none),,no flow path: the gauge is neither up- nor downstream (a tributary or another branch: the walk never turns),
+gnis:2195,Bulkley River,08EE005,1,(none),,no flow path: the gauge is neither up- nor downstream (a tributary or another branch: the walk never turns),
+gnis:2286,Guichon Creek,08LG041,1,wbk:329176279,Mamit Lake,lake,202
+gnis:2287,Gun Creek,08ME030,1,wbk:329505210,Hummingbird Lake,lake,39
+gnis:2307,Kiskatinaw River,07FD001,1,(none),,no flow path: the gauge is neither up- nor downstream (a tributary or another branch: the walk never turns),
+gnis:2307,Kiskatinaw River,07FD019,1,(none),,no flow path: the gauge is neither up- nor downstream (a tributary or another branch: the walk never turns),
+gnis:24531,Horsefly River,08KH010,1,(none),,no flow path: the gauge is neither up- nor downstream (a tributary or another branch: the walk never turns),
+gnis:24531,Horsefly River,08KH031,1,(none),,no flow path: the gauge is neither up- nor downstream (a tributary or another branch: the walk never turns),
+gnis:2463,Murray River,07FB002,1,359571371:0,,no water: an unowned line,
+gnis:2463,Murray River,07FB006,1,359571371:0,,no water: an unowned line,
+gnis:2479,Sukunka River,07FB003,1,359496966:0,,no water: an unowned line,
+gnis:25478,Shuswap River,08LC002,1,356299296:0,,no water: an unowned line,
+gnis:25671,Squamish River,08GA022,1,blk:360219234,Squamish Powerhouse Channel,other water's stream (stream),
+gnis:25922,Toad River,10BE004,1,(none),,no flow path: the gauge is neither up- nor downstream (a tributary or another branch: the walk never turns),
+gnis:27360,Smith River,10BE013,1,(none),,no flow path: the gauge is neither up- nor downstream (a tributary or another branch: the walk never turns),
+gnis:2936,Skeena River,08EF001,1,(none),,no flow path: the gauge is neither up- nor downstream (a tributary or another branch: the walk never turns),
+gnis:3225,Kitimat River,08FF001,1,(none),,no flow path: the gauge is neither up- nor downstream (a tributary or another branch: the walk never turns),
+gnis:33206,Big Creek,08MB006,1,wbk:329043296,Rushes Lake,lake,33
+gnis:33206,Big Creek,08MB007,1,wbk:329043296,Rushes Lake,lake,33
+gnis:3485,Yakoun River,08OA002,1,(none),,no flow path: the gauge is neither up- nor downstream (a tributary or another branch: the walk never turns),
+gnis:36111,Halfway River,07FA006,1,359436143:0,,no water: an unowned line,
+gnis:37414,Columbia River,08NA002,1,gnis:7958,Baldy Channel,other water's stream (stream),
+gnis:37414,Columbia River,08NA002,1,gnis:21732,Templeton River,other water's stream (stream),
+gnis:37414,Columbia River,08NA002,1,356566905:0,,no water: an unowned line,
+gnis:37414,Columbia River,08NB005,1,gnis:7958,Baldy Channel,other water's stream (stream),
+gnis:37414,Columbia River,08NB005,1,gnis:21732,Templeton River,other water's stream (stream),
+gnis:37414,Columbia River,08NB005,1,gnis:8668,McBeath Creek,other water's stream (stream),
+gnis:37414,Columbia River,08NB005,1,356566905:0,,no water: an unowned line,
+gnis:37414,Columbia River,08NE126,1,wbk:328961720,Lower Arrow Lake,lake,19251
+gnis:39325,Fraser River,08KA004,1,gnis:10494,Annacis Channel,other water's stream (stream),
+gnis:39325,Fraser River,08KA005,1,gnis:10494,Annacis Channel,other water's stream (stream),
+gnis:39325,Fraser River,08KB001,1,gnis:10494,Annacis Channel,other water's stream (stream),
+gnis:39325,Fraser River,08KE018,1,(none),,no flow path: the gauge is neither up- nor downstream (a tributary or another branch: the walk never turns),
+gnis:39325,Fraser River,08MC018,1,(none),,no flow path: the gauge is neither up- nor downstream (a tributary or another branch: the walk never turns),
+gnis:39325,Fraser River,08MD013,1,(none),,no flow path: the gauge is neither up- nor downstream (a tributary or another branch: the walk never turns),
+gnis:39325,Fraser River,08MF005,1,gnis:10494,Annacis Channel,other water's stream (stream),
+gnis:39325,Fraser River,08MF035,1,gnis:10494,Annacis Channel,other water's stream (stream),
+gnis:39325,Fraser River,08MF038,1,gnis:11629,Bell Slough,other water's stream (stream),
+gnis:39325,Fraser River,08MF040,1,gnis:10494,Annacis Channel,other water's stream (stream),
+gnis:39325,Fraser River,08MF073,1,gnis:10494,Annacis Channel,other water's stream (stream),
+gnis:39325,Fraser River,08MF073,1,(none),,no flow path: the gauge is neither up- nor downstream (a tributary or another branch: the walk never turns),
+gnis:39325,Fraser River,08MH024,1,gnis:10494,Annacis Channel,other water's stream (stream),
+gnis:39325,Fraser River,08MH024,1,gnis:11629,Bell Slough,other water's stream (stream),
+gnis:39325,Fraser River,08MH044,1,gnis:10494,Annacis Channel,other water's stream (stream),
+gnis:39325,Fraser River,08MH044,1,(none),,no flow path: the gauge is neither up- nor downstream (a tributary or another branch: the walk never turns),
+gnis:39325,Fraser River,08MH053,1,(none),,no flow path: the gauge is neither up- nor downstream (a tributary or another branch: the walk never turns),
+gnis:39325,Fraser River,08MH126,1,gnis:10494,Annacis Channel,other water's stream (stream),
+gnis:39325,Fraser River,08MH126,1,gnis:11629,Bell Slough,other water's stream (stream),
+gnis:39325,Fraser River,08MH126,1,(none),,no flow path: the gauge is neither up- nor downstream (a tributary or another branch: the walk never turns),
+gnis:4945,Bridge River,08ME023,1,(none),,no flow path: the gauge is neither up- nor downstream (a tributary or another branch: the walk never turns),
+gnis:4945,Bridge River,08ME028,1,(none),,no flow path: the gauge is neither up- nor downstream (a tributary or another branch: the walk never turns),
+gnis:5156,Sikanni Chief River,10CB001,1,(none),,no flow path: the gauge is neither up- nor downstream (a tributary or another branch: the walk never turns),
+gnis:7551,Pitt River,08MH035,1,gnis:27696,Widgeon Slough,other water's stream (stream),
+gnis:7893,Nation River,07ED001,1,wbk:329424458,Nation Lakes,lake,4561
+gnis:7893,Nation River,07ED003,1,wbk:329424458,Nation Lakes,lake,4561
+gnis:8127,Parsnip River,07EE007,1,(none),,no flow path: the gauge is neither up- nor downstream (a tributary or another branch: the walk never turns),
+gnis:8173,Homathko River,08GD004,1,(none),,no flow path: the gauge is neither up- nor downstream (a tributary or another branch: the walk never turns),
+gnis:8264,Omineca River,07EC002,1,359535489:0,,no water: an unowned line,
+gnis:8560,Ryan River,08MG028,1,(none),,no flow path: the gauge is neither up- nor downstream (a tributary or another branch: the walk never turns),
+gnis:9100,Bowron River,08KD007,1,(none),,no flow path: the gauge is neither up- nor downstream (a tributary or another branch: the walk never turns),

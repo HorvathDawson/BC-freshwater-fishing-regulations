@@ -899,6 +899,13 @@ def own_distances(graph, water_of: dict[str, str],
     same join `gauge.item_id` is made from). The walk keeps to stream sections of that water, so a lake on the way
     (a different item) ends it, as it ends the panel walk.
 
+    NAMED LAKES ONLY (T679 #8, owner 2026-11-20 11:02: "Named lakes only"). A pond that belongs to NO registry water (a
+    lake polygon with no `water_of` entry: the fold of T679 D1 did not take it) is walked THROUGH, at any size, at its
+    graph length (0); it is never itself reached (it is no section of the water). A lake that is a registry item still
+    ends the walk, and so does an ownerless LINE. Measured on the live atlas before the change: 448 of the 1,060
+    (section, gauge) pairs the heading called own were cut by such a pond, most of them under 1 ha. The panel walk
+    (`candidates`) is not changed: it asks which stations may speak, not whose they are.
+
     THE DISTANCE is to the NEARER END of the target section, the shortest way along the water, walking up or down
     and never both. The gauge stands at the downstream end of its own section ("the section that begins at the gauge
     and runs upstream", `nodes_for`), so its own section is 0, the section below begins at the gauge (0), and the
@@ -921,6 +928,7 @@ def own_distances(graph, water_of: dict[str, str],
     system_of = lambda w: joined.get(w, w)  # noqa: E731
 
     out: dict[str, dict[str, float]] = collections.defaultdict(dict)
+    ponds: set[str] = set()                     # ownerless ponds the walk crossed: never a section it reaches
     for station, sec, _years, _reg in donors:
         water = water_of.get(sec)
         if water is None or sec not in graph.nodes:
@@ -937,13 +945,18 @@ def own_distances(graph, water_of: dict[str, str],
                 step = 0.0 if (going_down and cur == sec) else length(cur)
                 for nxt in adj[cur]:
                     node = graph.nodes.get(nxt)
-                    if node is None or not is_stream(nxt) or system_of(water_of.get(nxt)) != system:
+                    if node is None:
                         continue
+                    pond = not is_stream(nxt) and water_of.get(nxt) is None       # an ownerless pond: walked through
+                    if not pond and (not is_stream(nxt) or system_of(water_of.get(nxt)) != system):
+                        continue
+                    if pond:
+                        ponds.add(nxt)
                     if d + step < best.get(nxt, math.inf):
                         best[nxt] = d + step
                         heapq.heappush(heap, (d + step, nxt))
             for nxt, d in best.items():
-                if nxt != sec and d < out[nxt].get(station, math.inf):
+                if nxt != sec and nxt not in ponds and d < out[nxt].get(station, math.inf):
                     out[nxt][station] = d
     return out
 

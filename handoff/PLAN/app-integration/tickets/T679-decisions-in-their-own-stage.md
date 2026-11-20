@@ -199,3 +199,48 @@ Owner 2026-11-20 11:02 (dialog), after the blocker measure (`T679-shots/own-gaug
   - Measured ON, on the live bundle: 3,597 sections, the same set the summed rows give; +282 B gz.
 
 Owner 2026-11-20 11:11 (dialog): #1 and #6 **"Turn both on (Recommended)"** in the wave-4 rebuild, diff first (stop if anything unexpected moves). #12 not asked: lane L7's default stands (lists stay in code).
+
+## #8 follow-up: what ends the ranking's walk (2026-11-20 ~11:05, lane L8, read-only)
+The owner asked whether tiny lakes block "own". For each of the 1,060 moved (section, gauge) pairs, I found the first node
+that ends `own_distances`' walk on the flow path between the gauge and the section. The run used dev's gauge pass on the
+live atlas via heavy.sh, and its panels equal the live bundle's. Results are in `app-integration/T679-shots/own-gauge-blockers.csv`
+(water, gauge, sections, blocker id / name / kind, area_ha; pond areas from FWA `lakes` / `wetlands` AREA_HA).
+- **A lake or pond ends 881 of the 1,060.** By area: under 1 ha 354, under 5 ha 414, under 10 ha 433, under 50 ha
+  443, under 100 ha 450.
+- **448 of the 881 are UNOWNED ponds:** 223 `lake:<waterbody key>` polygons that are in no registry water. They are
+  NOT folded ponds (T679 D1): a folded pond belongs to its river's item, so the walk passes through it. These are ponds
+  the fold did not take. The biggest is 163 ha; most are under 1 ha.
+- **The other 433 are named lakes,** e.g. Pitt, Bowron, Lillooet / Little Lillooet, Laslui, Windermere.
+- **Not a lake (179):**
+  - 127: no flow path. The gauge is neither upstream nor downstream of the section (another branch or a tributary); the
+    walk never turns.
+  - 36: another water's stream piece in between (Hotsprings Channel on the Columbia, Widgeon Slough on the Pitt).
+  - 15: an unowned line.
+  - 1: the path passes every test.
+- **Per river (sections):**
+  - Halfway: ponds under 1 ha 80, ponds of 1 ha or more 10, no path 22. The pond is lake:329626214, 0.44 ha.
+  - Stikine: ponds under 1 ha 23, Laslui Lake 13, no path 5.
+  - Lillooet: Little Lillooet 18, Lillooet Lake 12, no path 5.
+  - Columbia: Hotsprings Channel 21, ponds 20, no path 10, Windermere 6.
+  - Pitt: Pitt Lake 24.
+  - Bowron: Bowron Lake 15, ponds 8.
+
+## #8 "Named lakes only" built (2026-11-20 11:16, lane L8, `lane/l8-blockers`; owner 11:02)
+- **The change.** `panels.own_distances` now walks THROUGH a pond that belongs to no registry water, at any size and at
+  its graph length (0). The pond is never itself reached. A named lake (a registry item) still ends the walk, and so does
+  an ownerless line. The panel-membership walk (`candidates`) is unchanged: the lead ranking and `section_own` both read
+  `own_distances`.
+- **The test.** `test_polygon_walk.py::test_t679_8_a_river_cut_by_an_ownerless_pond_keeps_its_own_gauge_a_named_lake_still_cuts`.
+  It fails on the old walk (checked).
+- **D1 folded ponds:** unchanged by construction. A folded pond belongs to its river's item, so it is never "ownerless".
+  None of the 223 pond blockers was a folded pond.
+- **Re-measured** on the live atlas (read-only, heavy.sh), with the two CSVs regenerated
+  (`T679-shots/own-gauge-moves.csv`, `own-gauge-blockers.csv`):
+  - Moved pairs: 611, down from 1,060. That is 118 gauges on 78 waters, all own → donor.
+  - What still blocks them: named lakes 433 (none under 10 ha; 3 under 50 ha, 9 under 100 ha); no flow path 127;
+    another water's stream 34; an ownerless line 16; other gates 1.
+  - Lead gauges changed by this rule, against dev's code without it: 0 sections. The 267 pairs that became own were
+    already leads (an adopted side channel takes its river's panel and leads), so the heading now agrees with the lead.
+  - The same run differs from the live bundle in 7 lake sections: Sproat Lake 2, Moat Lake 2, Tatlatui Lake 2 and
+    Nanika Lake 1 have no panel. That difference comes from dev's other merged work, not from this rule: the baseline
+    without it gives the same 7.
