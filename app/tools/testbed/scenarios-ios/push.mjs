@@ -7,8 +7,10 @@
 //   PUSH_STUB=http://127.0.0.1:<port> node app/tools/testbed/run-ios.mjs push --out <dir>
 //
 // Pass: turning "New regulations data" on stores exactly one {platform: "ios", env: "sandbox", token: hex} at the stub and
-// the line says "registered"; turning Notifications off empties the stub and the line says so. Shots `T739-*.png` and the
-// screen's words beside each (`.txt`) to `--out`.
+// the line says "registered"; a cold start registers the same token again (still one); turning Notifications off empties
+// the stub and the line says so, and a restart brings no token back. Shots `T739-*.png` and the screen's words beside
+// each (`.txt`) to `--out`. The appearance is set before a cold start: the app reads it at start (a switch under a
+// running app left the 2026-11-20 first try's "dark" shot light).
 import fs from 'node:fs';
 import path from 'node:path';
 import { menuPage } from './keyboard.mjs';
@@ -19,6 +21,7 @@ async function stubTokens() {
   if (!r.ok) throw new Error(`stub ${STUB}/__stub/push: HTTP ${r.status}`);
   return r.json();
 }
+const PUSH_INTRO = /our server sends this phone a silent signal to check now/;
 
 export const pushIos = {
   id: 'push',
@@ -28,11 +31,28 @@ export const pushIos = {
     if (!STUB) throw new Error('PUSH_STUB is not set (the crash stub\'s address, e.g. http://127.0.0.1:39261)');
     const { coldStart } = ctx.ios;
     const d = ctx.device, sleep = d.sleep;
-    const save = (name) => {
+    /** the screen's words; Maestro now and then answers with an empty tree (or a stale system alert): asked again */
+    const words = async () => {
+      for (let i = 0; i < 4; i++) {
+        const w = d.screenText();
+        if (w.some((x) => /^Notifications are made on this phone/.test(x))) return w;
+        await sleep(1500);
+      }
+      return d.screenText();
+    };
+    const save = async (name) => {
       d.screenshot(path.join(ctx.dir, `T739-${name}.png`));
-      const w = d.screenText();
+      const w = await words();
       fs.writeFileSync(path.join(ctx.dir, `T739-${name}.txt`), [...w, '--- ids', ...(w.ids ?? [])].join('\n'));
       return w;
+    };
+    /** the app in `mode`, started cold (it reads the appearance at start), on More → Notifications */
+    const openIn = async (mode) => {
+      d.appearance(mode);
+      await sleep(1000);
+      await coldStart(ctx, { ms: 600_000 });
+      await sleep(2000);
+      await menuPage(ctx, 'notifications');
     };
     /** the system's notification prompt, answered as a reader would (it is SpringBoard's, not the app's) */
     const allow = async () => {
@@ -45,14 +65,11 @@ export const pushIos = {
     const line = (w) => w.find((x) => /^Server wake-ups/.test(x)) ?? '(no line)';
     try {
       await ctx.step('light: cold start, More → Notifications, before', async () => {
-        d.appearance('light');
-        await coldStart(ctx, { ms: 600_000 });
-        await sleep(2000);
-        await menuPage(ctx, 'notifications');
+        await openIn('light');
         const before = await stubTokens();
         if (before.length) throw new Error(`the stub already holds ${before.length} token(s)`);
-        const w = save('0-off-light');
-        return `stub tokens 0; words: ${w.slice(0, 10).join(' | ').slice(0, 300)}`;
+        const w = await save('0-off-light');
+        return `stub tokens 0; line: "${line(w)}"`;
       });
       await ctx.step('register: "New regulations data" on → one iOS token at the stub, the line says registered', async () => {
         ctx.flow('scroll-to-id', { ID: 'notify-update-ready' });
@@ -64,28 +81,29 @@ export const pushIos = {
         const t = toks[0];
         if (t.platform !== 'ios' || t.env !== 'sandbox' || !/^[0-9a-f]{64,200}$/.test(t.token)) throw new Error(`stored ${JSON.stringify(t)}`);
         if (Object.keys(t).sort().join(',') !== 'at,env,format,key,platform,token') throw new Error(`stored fields ${Object.keys(t)}`);
-        ctx.flow('scroll-to-id', { ID: 'notify-push-status' });
-        await ctx.until(() => /registered/.test(line(d.screenText())), { ms: 30_000, what: 'the line says registered' });
-        const w = save('1-on-light');
-        if (!w.some((x) => /our server sends this phone a silent signal to check now/.test(x))) throw new Error('the push intro is not shown');
+        await ctx.until(async () => /registered/.test(line(await words())), { ms: 30_000, what: 'the line says registered' });
+        const w = await save('1-on-light');
+        if (!w.some((x) => PUSH_INTRO.test(x))) throw new Error('the push intro is not shown');
         return `${said}; stub: {platform: ios, env: sandbox, token: ${t.token.length} hex}; line: "${line(w)}"`;
       });
-      await ctx.step('dark: the same page', async () => {
-        d.appearance('dark');
-        await sleep(2500);
-        const w = save('2-on-dark');
-        return `line: "${line(w)}"`;
+      await ctx.step('dark: a cold start registers the same token again (once per app start), the same page', async () => {
+        await openIn('dark');
+        await ctx.until(async () => /registered/.test(line(await words())), { ms: 30_000, what: 'the line says registered' });
+        const toks = await stubTokens();
+        if (toks.length !== 1) throw new Error(`${toks.length} tokens at the stub after a restart, want 1`);
+        const w = await save('2-on-dark');
+        if (!w.some((x) => PUSH_INTRO.test(x))) throw new Error('the push intro is not shown');
+        return `stub tokens 1; line: "${line(w)}"`;
       });
       await ctx.step('unregister: Notifications off → the stub holds no token, the line says so', async () => {
-        ctx.flow('scroll-to-id', { ID: 'notify-master' });
         ctx.flow('tap-id', { ID: 'notify-master' });
         await ctx.until(async () => (await stubTokens()).length === 0, { ms: 60_000, what: 'the stub emptied' });
-        await sleep(1500);
-        const dark = save('3-off-dark');
-        d.appearance('light');
-        await sleep(2500);
-        const light = save('4-off-light');
-        return `stub tokens 0; line (dark): "${line(dark)}"; line (light): "${line(light)}"`;
+        await ctx.until(async () => /^Server wake-ups: off/.test(line(await words())), { ms: 30_000, what: 'the line says off' });
+        const dark = await save('3-off-dark');
+        await openIn('light');
+        const light = await save('4-off-light');
+        if ((await stubTokens()).length) throw new Error('a token came back after a restart with notifications off');
+        return `stub tokens 0 (also after a restart); line (dark): "${line(dark)}"; line (light, restarted): "${line(light)}"`;
       });
     } finally {
       d.appearance('light');

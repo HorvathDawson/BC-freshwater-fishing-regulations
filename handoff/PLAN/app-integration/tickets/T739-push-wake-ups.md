@@ -390,3 +390,33 @@ filtered on `/push`, would say whether a register (and its status) arrived befor
 `ios/next` + this branch); no worker or DNS change. On the phone: More → Notifications → the "Server wake-ups" line.
 "registered (time)" → `POST /run/push` should count `ios.tokens: 1`. "not registered: …" → the words say which path
 (no token from iOS; HTTP n; no connection), and a defect also lands in the staging `/crashes`.
+
+### Merge into the shared branch (2026-11-20, lane L5, branch `lane/l5-push`)
+- Pushed `app-fix/t822-push-register` (f4598b112, the T822 fix on top of `ios/t739-push`) to origin; branched
+  `lane/l5-push` from it and merged redesign/stream-sections 27e98e4eb INTO it (485dcb2fd). Conflicts: `notify.native.ts`
+  (the one `CHECK` for the periodic task and the push wake now uses T741's conditional GETs + kept copies and T676's
+  per-run feed gate), `alerts.ts` NOTIFY_WORDS (both word sets), `notify/check.ts`, `notify/index.ts`,
+  `spots/index.ts` (both import / export sets), `workers/feeds/src/index.ts` (`/status.json` carries `push` and T759's
+  `dfo` / `dfoIssues`), the ledger (stream-sections' copy) and this ticket (results kept, the owner's 11-15 / 11-16
+  answers placed above them). App.tsx, config / env, app.config.js, failures.test.ts and build-ios-testflight.sh merged
+  clean.
+- **Android push removed** (owner 2026-11-16, above), 2102890de: the worker refuses `platform: "android"` (400 "no push
+  on Android"), the FCM sender / OAuth assertion / `FCM_SERVICE_ACCOUNT` / the android status row are gone, and a stored
+  record that is not an iPhone's is a counted fault (deleted, never sent to). In the app `pushToken.android.ts` is
+  `null` always (it stays as a file only because `check-platform` wants a whole ios + android set), `EXPO_PUBLIC_FCM`,
+  `google-services.json` and `plugins/with-fcm-no-analytics.js` are gone, and `introPushAndroid` with them. So the
+  "What was built" Android lines above are history.
+- **Privacy line**: the owner-approved paragraph, as written, is a "Push token" section of `app/tools/seo/html.ts`
+  (pinned whole in `site.test.ts`); it goes live with a production release. Its words still name Google / Android: a
+  wording question is in OWNER-TODO (2026-11-20 07:33), default "leave as approved".
+- Checks: `pnpm -C app check` green (763 files, 9004 tests); worker suite 555 green; the push / notify / alerts /
+  Notifications / failures / site tests green.
+- **iOS simulator** (iPhone 17, iOS 26.5, `build-ios-sim.sh --testbed` of 2102890de with `EXPO_PUBLIC_REPORT_URL` on the
+  crash stub, heavy lane 2; scenario `scenarios-ios/push.mjs`, run-ios `push`): PASS. "New regulations data" on → the
+  stub held one `{platform: ios, env: sandbox, token: 160 hex}` (body: platform, token, env, nothing else), the line
+  "Server wake-ups: this phone is registered (2026-11-20 at 07:50 PT)"; a cold start in dark registered the same token
+  again (still one record; once per app start); Notifications off → `/push/unregister`, the stub empty, the line "Server
+  wake-ups: off (no notification is on); our server keeps no push token for this phone.", and a restart brought no token
+  back. Shots `../T739-shots/ios-notifications-{1-on-light,2-on-dark,3-off-dark,4-off-light}.png`. (Seen: with
+  notifications off the intro still reads in the present tense, "our server sends this phone a silent signal"; the line
+  under it says off. Not changed.)
