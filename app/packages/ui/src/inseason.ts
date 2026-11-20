@@ -37,6 +37,8 @@ export interface InSeasonNow {
   readonly release: string | null;
   /** (T700) why the newest feed could not be read (the source's `failure()`, also reported), or null */
   readonly failure?: string | null;
+  /** (T548 L5) that failure was the feed's ROWS (more than half unreadable): how many of how many, for the inbox line */
+  readonly failureRows?: { readonly unread: number; readonly of: number } | null;
 }
 
 const NONE: InSeasonNow = { matched: [], unmatched: [], data: null, release: null };
@@ -58,6 +60,7 @@ export function useInSeason(source: InSeasonSource | null | undefined, epoch = 0
   const tick = usePoll(INSEASON_POLL_MS, !!source);
   const [data, setData] = useState<InSeasonData | null>(null);
   const [failure, setFailure] = useState<string | null>(null);
+  const [failureRows, setFailureRows] = useState<InSeasonNow["failureRows"]>(null);
   // (T520) the device's release changed (a data update applied): the links are asked again (T673: the same file is
   // read on any release, but which waters it holds and their section lines are the new release's)
   const heldRelease = useRef(release);
@@ -70,6 +73,7 @@ export function useInSeason(source: InSeasonSource | null | undefined, epoch = 0
       if (!live) return;
       if (d) setData(d);
       setFailure(source.failure?.() ?? null);
+      setFailureRows(source.failureRows?.() ?? null);
     }, reportFailure);
     return () => { live = false; };
     // (T231) `epoch`: bumped when the update service sees the feed move (the source was told to forget it)
@@ -87,9 +91,9 @@ export function useInSeason(source: InSeasonSource | null | undefined, epoch = 0
   }, key, !!holds && waters.length > 0);
   const absent = asked.state === "ready" && asked.value.size ? asked.value : null;
   const out = useMemo(() => (data && base
-    ? { ...(absent ? joinInSeason(data.feed, data.links, today, absent) : base), data, release, failure }
-    : failure ? { ...NONE, failure } : NONE),
-    [data, base, absent, today, release, failure]);
+    ? { ...(absent ? joinInSeason(data.feed, data.links, today, absent) : base), data, release, failure, failureRows }
+    : failure ? { ...NONE, failure, failureRows } : NONE),
+    [data, base, absent, today, release, failure, failureRows]);
   useEffect(() => {
     if (!absent) return;
     for (const c of base?.matched ?? []) {
@@ -358,7 +362,8 @@ export function useInSeasonInbox(now: InSeasonNow, store: InSeasonSeenStore | nu
   return {
     vm, detail: detail ? inboxDetail(state, detail, today) : null,
     // (T548 item 4) rows of the feed in use that could not be read: said, as the feed whole is when it cannot be read
-    failure: now.failure ? INBOX_WORDS.failure
+    // (T548 L5) refused for its rows: the line says how many of how many
+    failure: now.failure ? (now.failureRows ? INBOX_WORDS.failureRows(now.failureRows.unread, now.failureRows.of) : INBOX_WORDS.failure)
       : now.data?.feed.unread ? INBOX_WORDS.unreadRows(now.data.feed.unread) : null,
     count, label: count ? INBOX_WORDS.badge(count) : null,
     open: opened, pick, back: () => setDetail(null), readAll: () => update(inboxReadAll), close, reads,

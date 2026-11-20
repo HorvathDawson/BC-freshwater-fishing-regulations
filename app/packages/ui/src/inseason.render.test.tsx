@@ -115,8 +115,8 @@ describe("useInSeasonInbox (T700)", () => {
       }
       render(<Both />);
       await waitFor(() => expect(out.s!.failure).toBe(INBOX_WORDS.failure));
-      expect(out.now!.failure).toBe("in-season index.json: not a readable inseason-feed/1 feed — refused");
-      expect(seen.map(String)).toEqual(["Error: in-season index.json: not a readable inseason-feed/1 feed — refused"]);
+      expect(out.now!.failure).toBe("in-season index.json: not a readable inseason-feed/1 feed (format inseason-feed/2) — refused");
+      expect(seen.map(String)).toEqual(["Error: in-season index.json: not a readable inseason-feed/1 feed (format inseason-feed/2) — refused"]);
     } finally { undo(); }
   });
 
@@ -149,8 +149,10 @@ describe("useInSeasonInbox (T700)", () => {
       seen.length = 0;
       // most rows unreadable: refused whole, the feed's own failure line, the capture (none here) answers
       const most = mount([A, bad, { ...bad, id: "is-bad2" }]);
-      await waitFor(() => expect(most.s!.failure).toBe(INBOX_WORDS.failure));
-      expect(seen.map(String)).toEqual(["Error: in-season index.json: not a readable inseason-feed/1 feed — refused"]);
+      // (T548 L5) and both say it was the rows: the inbox line how many of how many, the report which
+      await waitFor(() => expect(most.s!.failure).toBe(INBOX_WORDS.failureRows(2, 3)));
+      expect(most.s!.failure).toBe("The latest in-season notices could not be read by this version of the app (2 of 3 could not be read). Shown: the last ones it read.");
+      expect(seen.map(String)).toEqual(["Error: in-season index.json: not a readable inseason-feed/1 feed: 2 of 3 rows could not be read (is-bad, is-bad2), more than half — refused"]);
     } finally { undo(); }
   });
 });

@@ -7,7 +7,9 @@
  * given this gate checks an index BEFORE it reads it: an app older than the index asks for refuses it — no report (a
  * known state, as the release gate's `app-too-old`), its LAST CAPTURE answers, and the update service's snapshot says
  * which version is needed (`needsApp`), which raises the release gate's own update prompt ("New data needs the latest
- * app"). A newer index that passes clears that feed's need.
+ * app"). A newer index that passes clears that feed's need. (T676 L3) A FILE under an index (a gauge station file,
+ * `obs.json`) refused for its own stamp holds its need under its own name until that file reads: the index passing
+ * never clears it, so the More row and the prompt do not flicker while the file is still refused.
  *
  * The same rule as the release (`releaseAllowed`): no `minAppVersion` passes; one that is not a semver refuses (the app
  * cannot check it, and keeping what it has is the safe answer). No app version (the web, whose code is deployed with
@@ -37,21 +39,26 @@ export function isFeedTooNew(e: unknown): e is FeedNeedsNewerApp {
 }
 
 export interface FeedGate {
-  /** Throws `FeedNeedsNewerApp` when `index` asks for a newer app than this one; otherwise clears `feed`'s need. */
+  /** Throws `FeedNeedsNewerApp` when `index` asks for a newer app than this one; otherwise clears `feed`'s INDEX need
+   *  (a file's own hold stands: see `checkFile`). */
   check(index: unknown, feed: GatedFeed): void;
   /**
-   * A FILE UNDER a feed's index (a gauge station file, `obs.json`): throws `FeedNeedsNewerApp` when it asks for a newer
-   * app (holding the need). It never clears the need: only the index speaks for the feed.
+   * A FILE UNDER a feed's index (a gauge station file, `obs.json`), named by `file` (its url): throws `FeedNeedsNewerApp`
+   * when it asks for a newer app, and HOLDS that need under the file's name; a readable copy of the same file clears its
+   * own hold. (T676 L3) A file's hold is the file's: the index passing, or a 304 of it (`note(feed, null)`), never
+   * clears it, so the More row and the prompt stay steady while that file is still refused.
    */
-  checkFile(doc: unknown, feed: GatedFeed): void;
-  /** Set a feed's need from outside a read (the update service: a kept refusal after a restart; a 304 of the index
-   *  this app reads); null clears it. */
+  checkFile(doc: unknown, feed: GatedFeed, file?: string): void;
+  /** (T676 L2) Forget a file's hold without reading it (the origin no longer has the file: a 404). */
+  clearFile(feed: GatedFeed, file: string): void;
+  /** Set a feed's INDEX need from outside a read (the update service: a kept refusal after a restart; a 304 of the
+   *  index this app reads); null clears it. A file's hold is not touched. */
   note(feed: GatedFeed, need: string | null): void;
-  /** The highest version a refused feed asks for, or null (every feed this app was offered, it reads). */
+  /** The highest version a refused index or file asks for, or null (everything this app was offered, it reads). */
   needs(): string | null;
-  /** Each refused feed and what it asks for. */
+  /** Each refused feed and the highest version it asks for: its index's need and its files' holds together. */
   refused(): Readonly<Partial<Record<GatedFeed, string>>>;
-  /** Told when `needs()` may have moved. */
+  /** Told when `needs()` or `refused()` may have moved. */
   subscribe(on: () => void): () => void;
 }
 
@@ -60,37 +67,59 @@ const minOf = (index: unknown): unknown =>
 
 /** The gate for this app's version; `null` (the web): every index passes. */
 export function createFeedGate(app: AppVersion | null): FeedGate {
-  const refused: Partial<Record<GatedFeed, string>> = {};
+  /** each feed's INDEX need (set and cleared by the index: `check`, `note`) */
+  const index: Partial<Record<GatedFeed, string>> = {};
+  /** (T676 L3) each feed's FILE holds, by file name: set by a refused file, cleared only by that file */
+  const files: Partial<Record<GatedFeed, Map<string, string>>> = {};
   const listeners = new Set<() => void>();
-  const set = (feed: GatedFeed, need: string | null) => {
-    if ((refused[feed] ?? null) === need) return;
-    if (need === null) delete refused[feed];
-    else refused[feed] = need;
+  const highest = (vs: readonly string[]): string | null => (vs.length ? vs.reduce((a, b) => (higher(a, b) ? a : b)) : null);
+  const all = (): Partial<Record<GatedFeed, string>> => {
+    const out: Partial<Record<GatedFeed, string>> = {};
+    for (const f of new Set([...Object.keys(index), ...Object.keys(files)]) as Set<GatedFeed>) {
+      const n = highest([...(index[f] ? [index[f]!] : []), ...(files[f]?.values() ?? [])].sort());
+      if (n) out[f] = n;
+    }
+    return out;
+  };
+  /** run `change`; tell the listeners when what a reader sees (`refused()`) moved */
+  const changing = (change: () => void) => {
+    const before = JSON.stringify(all());
+    change();
+    if (JSON.stringify(all()) === before) return;
     // a listener that throws never breaks a read: it is reported (T368), the others still told
     for (const l of [...listeners]) { try { l(); } catch (e) { reportFailure(e); } }
   };
+  const setIndex = (feed: GatedFeed, need: string | null) => changing(() => {
+    if (need === null) delete index[feed];
+    else index[feed] = need;
+  });
+  const setFile = (feed: GatedFeed, file: string, need: string | null) => changing(() => {
+    const m = files[feed] ?? (files[feed] = new Map());
+    if (need === null) m.delete(file);
+    else m.set(file, need);
+    if (!m.size) delete files[feed];
+  });
   return {
-    check(index, feed) {
-      const g = app ? releaseAllowed(minOf(index), app) : ({ ok: true } as const);
-      if (!g.ok) {
-        set(feed, g.need);
-        throw new FeedNeedsNewerApp(feed, g.need);
-      }
-      set(feed, null);
-    },
-    checkFile(doc, feed) {
+    check(doc, feed) {
       const g = app ? releaseAllowed(minOf(doc), app) : ({ ok: true } as const);
       if (!g.ok) {
-        set(feed, refused[feed] && higher(refused[feed]!, g.need) ? refused[feed]! : g.need);
+        setIndex(feed, g.need);
         throw new FeedNeedsNewerApp(feed, g.need);
       }
+      setIndex(feed, null);
     },
-    note(feed, need) { set(feed, app ? need : null); },
-    needs() {
-      const all = Object.values(refused).filter((v): v is string => !!v).sort();
-      return all.length ? all.reduce((a, b) => (higher(a, b) ? a : b)) : null;
+    checkFile(doc, feed, file = "") {
+      const g = app ? releaseAllowed(minOf(doc), app) : ({ ok: true } as const);
+      if (!g.ok) {
+        setFile(feed, file, g.need);
+        throw new FeedNeedsNewerApp(feed, g.need);
+      }
+      setFile(feed, file, null);
     },
-    refused: () => ({ ...refused }),
+    clearFile(feed, file) { setFile(feed, file, null); },
+    note(feed, need) { setIndex(feed, app ? need : null); },
+    needs: () => highest(Object.values(all()).filter((v): v is string => !!v).sort()),
+    refused: all,
     subscribe(on) { listeners.add(on); return () => { listeners.delete(on); }; },
   };
 }

@@ -37,7 +37,7 @@ import { neverSeen } from "./gauges/publish";
 import { READING_MAX_AGE_HOURS } from "../../../packages/core/src/gauge-policy.generated";
 import { checkToken, dispatchOnce, OVERDUE_MS, unfinished, type Dispatch, type DispatchEnv } from "./dispatch";
 import { checkRunTiming } from "./runtiming";
-import { dfoAnswersChanged, handlePush, newRelease, pushMissing, PUSH_STATUS_KEY, sendWake, wakePhones, wakeReason, writePushFailure, type PushEnv } from "./push";
+import { dfoAnswersChanged, handlePush, newRelease, pushMissing, PUSH_CARRY_KEY, PUSH_STATUS_KEY, sendWake, wakePhones, wakeReason, writePushFailure, type PushEnv } from "./push";
 import { capEvents, CORS as REPORT_CORS, handleReport, listReportsCounted, purgeLimits, purgeReports, purgeTestReports, reportEvents, RETENTION_DAYS, RETENTION_STATUS_KEY, type ReportEnv } from "./reports";
 
 /** (T739) PushEnv: the APNs secrets (APNS_KEY, APNS_KEY_ID, APNS_TEAM_ID; src/push.ts; iPhone only, no FCM) */
@@ -555,8 +555,15 @@ async function run(job: Job, env: Env, opts: { regions?: string[]; limit?: numbe
       catch (e) { logErr(`push: the release manifest was not read (${String((e as Error)?.message ?? e)})`); }
     }
     const why = reasons.filter(Boolean).join(", ");
-    if (why) {
-      const w = await wakePhones(env, (u, i) => fetch(u, i), new Date(), why, rel, logErr);
+    // (T739 L3) a wake too big for one run left a carry-over: this run tells the next phones, reason or not (a carry
+    // that cannot be read is sendWake's to say: it is looked for here only by its presence)
+    let carried = false;
+    if (!why) {
+      try { carried = !!(await env.BUCKET.get(PUSH_CARRY_KEY)); }
+      catch (e) { logErr(`push: the carry-over was not looked for (${String((e as Error)?.message ?? e)})`); }
+    }
+    if (why || carried) {
+      const w = await wakePhones(env, (u, i) => fetch(u, i), new Date(), why || null, rel, logErr);
       push = w.push;
       pushStatusLost = w.statusLost;
     }
