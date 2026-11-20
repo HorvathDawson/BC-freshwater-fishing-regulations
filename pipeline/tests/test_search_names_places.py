@@ -57,6 +57,31 @@ def test_t926_every_wbk_name_reaches_its_item_and_nothing_else_moves():
     assert attach_wbk_variants(dict(out), nv) == out                     # idempotent
 
 
+def test_t926_a_name_whose_matcher_key_names_another_water_is_not_attached_and_is_listed():
+    """(T926 review) The matchers' name index (`matcher.build_name_index`) must never see a key that named one water come
+    to name two: "SCOTT #2" stays off Lilypad Lake while Scott #2 Lake answers to "scott 2" — listed, not dropped
+    silently. A key the water already answers to ("LILYPAD LAKE" beside "Lilypad Lake") is no change, and attaches."""
+    import pytest
+
+    from pipeline.regs.matching.matcher import build_name_index
+    reg = {"wbk:1": _lake("wbk:1", "Lilypad Lake", ["Lilypad Lake"]),
+           "wbk:2": _lake("wbk:2", "Scott #2", ["Scott #2"])}
+    before = build_name_index(reg)
+    rep: dict = {}
+    nv = [{"target": {"wbks": ["1", "404"]}, "names": [{"name": "SCOTT #2", "source": "stocking"},
+                                                        {"name": "LILYPAD LAKE", "source": "stocking"},
+                                                        {"name": "LAKE #905", "source": "stocking"}]}]
+    out = attach_wbk_variants(dict(reg), nv, rep)
+    assert out["wbk:1"].variants == ("LAKE #905", "LILYPAD LAKE", "Lilypad Lake")
+    assert rep == {"skipped": [{"item": "wbk:1", "name": "SCOTT #2", "key": "scott 2", "names": ["wbk:2"]}],
+                   "no_item": ["wbk:404"]}
+    after = build_name_index(out)
+    assert all(set(after[k]) == set(v) for k, v in before.items())          # no key gains or loses a water
+    assert after["lake 905"] == ["wbk:1"]
+    with pytest.raises(ValueError, match="no NameSource"):
+        attach_wbk_variants(dict(reg), [{"target": {"wbks": ["1"]}, "names": [{"name": "X", "source": "rumour"}]}])
+
+
 def test_t926_an_alias_is_new_by_the_search_key():
     items = [{"id": "wbk:1", "name": "Iver Lake",
               "variants": ["IVER LAKE", "SNOW LAKE", "SNOW LAKE *", "Snow Lake", ".", "Pigeon Lake # 2"]}]

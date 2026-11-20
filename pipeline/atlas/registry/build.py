@@ -656,18 +656,30 @@ def add_curated_wbk_items(registry: dict[str, RegistryItem], name_variants: list
     return registry
 
 
-def attach_wbk_variants(registry: dict[str, RegistryItem], name_variants: list[dict]) -> dict[str, RegistryItem]:
+def attach_wbk_variants(registry: dict[str, RegistryItem], name_variants: list[dict],
+                        report: dict | None = None) -> dict[str, RegistryItem]:
     """(T926, owner 2026-11-19 23:59: every entry of `name_variants.json`, as it stands, finds its water) Every name of a
     whole-feature `wbks` entry is a VARIANT of that waterbody's item. `apply_name_variants` attaches names to GRAPH NODES
     and runs before the isolated waterbodies are minted (`build.py`), so a lake with no stream through it — Lilypad Lake's
-    "LAKE #905", Teanook Lake's "TEANOOK L.", Big Horn Reservoir's "BIGHORN RESERVOIR", 23 names on 18 lakes — kept only
+    "LAKE #905", Teanook Lake's "TEANOOK L.", Big Horn Reservoir's "BIGHORN RESERVOIR", 21 names on 16 lakes — kept only
     its gazetted name, and search never found it by the name the stocking record or the bathymetry sheet gives it.
 
     ONLY ADDS: a name the item lacks joins `variants` and `name_sources` (its file source, `name_records`); the shown name,
     the kind, the sections and every other field stay. A wbk an item absorbed (`aliases`) names that item. Reach-scoped
     entries are a stream's and stay `apply_name_variants`'s. Idempotent: the atlas build and `pipeline.atlas.sidecars` run
-    it last on the registry they write."""
+    it last on the registry they write.
+
+    (T926 review) THE MATCHERS READ VARIANTS TOO: `regs.matching.matcher.build_name_index` keys every name and variant, and
+    a key that named one water must never come to name two (a DFO row, a batch, a backfill would turn ambiguous). So a name
+    whose matcher key (`matcher._norm`) already names ANOTHER water — or that another item took first in this pass — is
+    NOT attached; it goes to `report["skipped"]` ({item, name, key, names}), never dropped silently. A wbk no item holds
+    goes to `report["no_item"]`. A name `source` that is no `NameSource` is refused (the file is wrong)."""
     from pipeline.common.models import NameTuple
+    from pipeline.common.registry_kinds import is_water
+    from pipeline.regs.matching.matcher import _norm
+    rep = report if report is not None else {}
+    rep.setdefault("skipped", [])
+    rep.setdefault("no_item", [])
     owner = {iid: iid for iid in registry}
     for iid, it in registry.items():
         for a in it.aliases:
@@ -681,6 +693,7 @@ def attach_wbk_variants(registry: dict[str, RegistryItem], name_variants: list[d
         for w in wbks:
             iid = owner.get(f"wbk:{w}")
             if iid is None:
+                rep["no_item"].append(f"wbk:{w}")
                 continue
             for n in e.get("names") or ():
                 if not n.get("name"):
@@ -688,13 +701,36 @@ def attach_wbk_variants(registry: dict[str, RegistryItem], name_variants: list[d
                 try:
                     src = NameSource(n.get("source", "regulation"))
                 except ValueError:
-                    src = NameSource.alias
+                    raise ValueError(f"name_variants: {n['name']!r} on wbk:{w} has source {n.get('source')!r}, which "
+                                     f"is no NameSource ({', '.join(s.value for s in NameSource)})") from None
                 add[iid].append(NameTuple(n["name"], src, n.get("note", ""), label=n.get("source_label") or "",
                                           ref=n.get("source_ref") or ""))
+    # the matcher's name index as it stands (`build_name_index`): key -> the waters it names
+    names_of: dict[str, set[str]] = defaultdict(set)
+    for it in registry.values():
+        if is_water(it):
+            for nm in {it.name, *it.variants}:
+                k = _norm(nm)
+                if k:
+                    names_of[k].add(it.id)
     for iid in sorted(add):
         it = registry[iid]
         have = {it.name, *it.variants}
-        new = [t for t in add[iid] if t.name not in have]
+        new = []
+        for t in add[iid]:
+            if t.name in have or any(x.name == t.name for x in new):
+                continue
+            k = _norm(t.name)
+            held = names_of.get(k, set()) if k else set()
+            # a key this water already answers to is no change to the index (its "CAMPBELL L." beside "Campbell Lake")
+            others = sorted(held - {iid}) if iid not in held else []
+            if others and is_water(it):
+                if not any(s["item"] == iid and s["name"] == t.name for s in rep["skipped"]):
+                    rep["skipped"].append({"item": iid, "name": t.name, "key": k, "names": others})
+                continue
+            new.append(t)
+            if k and is_water(it):
+                names_of[k].add(iid)
         if not new:
             continue
         names = tuple(dict.fromkeys(t.name for t in new))
@@ -702,7 +738,24 @@ def attach_wbk_variants(registry: dict[str, RegistryItem], name_variants: list[d
         recs = tuple(r for r in name_records(names, new) if r.name not in got)
         registry[iid] = replace(it, variants=tuple(sorted({*it.variants, *names})),
                                 name_sources=(*it.name_sources, *recs))
+    rep["no_item"] = sorted(set(rep["no_item"]))
     return registry
+
+
+#: (T926 review) the file `attach_wbk_variants`'s report is written to, beside `registry.json`
+WBK_VARIANT_REPORT = "wbk_variant_report.json"
+
+
+def write_wbk_variant_report(rep: dict, out_dir, log=print) -> None:
+    """Write `attach_wbk_variants`'s report beside the registry and SAY every name it did not attach (a matcher key that
+    already names another water) and how many wbks name no item — nothing is held back silently."""
+    import json
+    from pathlib import Path
+    (Path(out_dir) / WBK_VARIANT_REPORT).write_text(json.dumps(rep, indent=1, sort_keys=True) + "\n", encoding="utf-8")
+    log(f"  wbk variants (T926): {len(rep.get('skipped', []))} name(s) not attached — their matcher key already names "
+        f"another water; {len(rep.get('no_item', []))} wbk(s) no item holds -> {WBK_VARIANT_REPORT}")
+    for s in rep.get("skipped", []):
+        log(f"    not attached: {s['name']!r} on {s['item']} (key {s['key']!r} names {', '.join(s['names'])})")
 
 
 def add_lake_parts(registry: dict[str, RegistryItem],

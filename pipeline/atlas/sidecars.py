@@ -42,7 +42,7 @@ from pipeline.common.curated import CURATED, GENERATED
 from pipeline.atlas.splits.splits import dump_resolved, order_resolved
 
 SIDECARS = ("region_home.json", "registry.json", "item_points.json", "merge_report.json", "slough_fold_report.json",
-            "one_water_report.json", "splits.resolved.json", "lake_loop_report.json")
+            "one_water_report.json", "splits.resolved.json", "lake_loop_report.json", "wbk_variant_report.json")
 
 
 def enrich_resolved(rows: list[dict], curated_defs, *, strict: bool = True) -> list[dict]:
@@ -156,8 +156,10 @@ def write_sidecars(build: Path, out: Path | None = None, *, log=print) -> Path:
     registry = merge_one_waters(registry, one_water_names(_nv), owrep, one_water_takes(_nv))
     (dest / "one_water_report.json").write_text(json.dumps(owrep, indent=1) + "\n", encoding="utf-8")
     # (T926) the same pass the atlas build runs: every whole-feature wbk name of `name_variants.json` on its item
-    from pipeline.atlas.registry import attach_wbk_variants
-    registry = attach_wbk_variants(registry, _nv)
+    from pipeline.atlas.registry.build import attach_wbk_variants, write_wbk_variant_report
+    wvrep: dict = {}
+    registry = attach_wbk_variants(registry, _nv, wvrep)
+    write_wbk_variant_report(wvrep, dest, log)
     write_registry(registry, dest / "registry.json")
     log(f"  registry.json: {n_parts} lake part(s) carry part_of; their lakes own no section")
     pins_path = build / "item_points.json"
