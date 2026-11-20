@@ -28,6 +28,11 @@ describe("the gauge feed contract on the worker's own output", () => {
     expect(gaugeFeedContract(files)).toEqual([]);
     // (T676 item 2) the index names the oldest app that reads it (one table with publish.py)
     expect((files["index.json"] as { minAppVersion?: string }).minAppVersion).toBe(FEED_MIN_APP.gaugeFeed);
+    // and obs.json and every station file (the background check reads obs.json alone; the gate reads each file's own)
+    const stamps = Object.entries(files).filter(([n]) => n !== "index.json")
+      .map(([n, d]) => [n, (d as { minAppVersion?: string }).minAppVersion]);
+    expect(stamps.length).toBe(stations.length + 1);
+    expect(stamps.filter(([, v]) => v !== FEED_MIN_APP.gaugeFeed)).toEqual([]);
     // the check bites: a renamed field, an untagged file
     const idx = files["index.json"] as { stations: Record<string, Record<string, unknown>> };
     const [first] = stations;

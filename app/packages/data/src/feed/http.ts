@@ -19,7 +19,7 @@
 // `standing` comes from core rather than being restated here. A second copy of the
 // thresholds is a second answer to "is this river low", and the feed and the sheet
 // would eventually disagree about the same reading (AGENTS rule 23).
-import { FeedNeedsNewerApp, gaugeFeedRefusal, isFeedTooNew, reportFailure, shownParameter, standing, type FeedGate,
+import { gaugeFeedRefusal, isFeedTooNew, reportFailure, shownParameter, standing, type FeedGate,
          type GaugeFeedFile, type SourceChange, now as clockNow } from "@app/core";
 import type { Aged, Forecast, Parameter, Reading, StationId } from "../index";
 import type { AheadDays, StationChange } from "../panel";
@@ -289,11 +289,11 @@ export async function fetchObs(base: string, fetchImpl: typeof fetch = fetch,
   const got = await fetchJsonResilient<ObsFile>(url, { fetchImpl, attempts: 1, limits, cache: "no-store", ...(headers ? { headers } : {}) });
   if (!got.ok && got.status === 304 && kept) return kept.value;
   if (!got.ok) throw new Error(`${url}: HTTP ${got.status}`);
-  // (T676 item 2) a file for a newer app throws the gate's refusal (a known state: the caller keeps what it has and
-  // reports nothing); so does one this app cannot read while the gate holds the gauge feed's bump
+  // (T676 item 2) a file stamped for a newer app throws the gate's refusal (a known state: the caller keeps what it has
+  // and reports nothing). Only the file's OWN stamp excuses it: every gauge file is stamped, so a file in another format
+  // without one, or a broken file in this app's own format, is a real failure, reported (T557)
   gate?.checkFile(got.value, "gauges");
   const why = gaugeFeedRefusal(got.value, "obs");    // (T557)
-  if (why && gate?.holds("gauges")) throw new FeedNeedsNewerApp("gauges", gate.holds("gauges")!);
   if (why) throw new Error(`${url}: ${why}`);
   if (held) {
     if (got.etag) held.write(JSON.stringify({ url, etag: got.etag, value: got.value }));
@@ -392,10 +392,9 @@ export function httpFeed(base: string, fetchImpl: typeof fetch = fetch,
             }
           }
           // (T557) a file in another format, or not the shape asked for, is refused and REPORTED, never cached or kept:
-          // what this session or the phone already holds answers instead, with its own age. (T676 item 2) While the gate
-          // holds the gauge feed's bump, a file this app cannot read is that bump: the same fallback, not reported
+          // what this session or the phone already holds answers instead, with its own age. (T676 item 2) Only a file's own
+          // `minAppVersion` (the gate, above) excuses it; anything else this app cannot read is reported
           const why = gaugeFeedRefusal(got.value, kindOf(path));
-          if (why && opts.gate?.holds("gauges")) return fallback<T>(path, url);
           if (why) {
             reportFailure(new Error(`${url}: ${why}`));
             return fallback<T>(path, url);

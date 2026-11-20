@@ -23,8 +23,8 @@
  *
  * `snapshot()` is a new object on every change (for `useSyncExternalStore`); `subscribe` is told after each.
  */
-import { errorClassOf, isFeedTooNew, mobileDataFrom, releaseAllowed, reportFailure, type AppVersion, type FeedGate,
-         type MobileDataSetting, type UpdateEvent } from "@app/core";
+import { errorClassOf, isFeedTooNew, mobileDataFrom, parseSemver, releaseAllowed, reportFailure, type AppVersion,
+         type FeedGate, type MobileDataSetting, type UpdateEvent } from "@app/core";
 import { parseManifest, type Held, type Manifest, type StageOutcome } from "../manifest";
 // Hermes has no TextDecoder (regs/blob.ts)
 import { utf8 } from "../regs/blob";
@@ -249,6 +249,22 @@ interface Persisted {
 }
 
 const STORE_VERSION = 1;
+
+const isPlain = (x: unknown): x is Record<string, unknown> => !!x && typeof x === "object" && !Array.isArray(x);
+const strOrNull = (x: unknown) => x === null || typeof x === "string";
+/**
+ * (T676 item 2) The kept refusals, as read back: ONLY plain-object entries with a semver `need` and a string-or-null
+ * etag / sha256; anything else is dropped (a cache: losing one costs one download). Not a plain object: none at all.
+ */
+function keptRefusals(x: unknown): Persisted["refused"] | undefined {
+  if (!isPlain(x)) return undefined;
+  const out: NonNullable<Persisted["refused"]> = {};
+  for (const [id, r] of Object.entries(x)) {
+    if (!isPlain(r) || typeof r.need !== "string" || !parseSemver(r.need) || !strOrNull(r.etag) || !strOrNull(r.sha256)) continue;
+    out[id as FeedId] = { etag: r.etag as string | null, sha256: r.sha256 as string | null, need: r.need };
+  }
+  return out;
+}
 const blank = (id: SourceId): SourceStatus =>
   ({ id, checkedAt: null, updatedAt: null, error: null, failedAt: null, offline: false, failures: 0 });
 
@@ -290,7 +306,13 @@ export function createUpdateService(o: UpdateOptions): UpdateService {
   try {
     const t = o.store?.read();
     const p = t ? (JSON.parse(t) as Persisted) : null;
-    if (p && p.v === STORE_VERSION && typeof p.seen === "object" && typeof p.at === "object") kept = p;
+    if (p && p.v === STORE_VERSION && typeof p.seen === "object" && typeof p.at === "object") {
+      kept = p;
+      // (T676 item 2) a kept refusal is held to its shape, never trusted (a bad one crashed the start)
+      const refused = keptRefusals(p.refused);
+      if (refused) kept.refused = refused;
+      else delete kept.refused;
+    }
   } catch { /* unreadable: start clean — it is a cache of validators and times */ }
   const save = () => { try { o.store?.write(JSON.stringify(kept)); } catch { /* a refused write costs a re-download */ } };
 

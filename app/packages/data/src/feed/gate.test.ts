@@ -10,6 +10,8 @@ import { appTooOld, appUpdateVM, APP_UPDATE_WORDS, createFeedGate, FeedNeedsNewe
 import { sha256Hex } from "../sha256";
 import type { StationId } from "../index";
 import { createUpdateService } from "../update/service";
+import { createNotifySettings, NOTIFY_DEFAULT } from "../notify/settings";
+import { runBackgroundCheck } from "../notify/check";
 import { fetchObs, httpFeed } from "./http";
 import { httpInSeason } from "./inseason";
 import { httpRunTiming } from "./runtiming";
@@ -215,16 +217,64 @@ describe("(T676 item 2) every reader given the gate refuses an index for a newer
     expect(gate.needs()).toBe("0.9.0");
     expect(() => f.offer!(files["index.json"])).toThrow(/needs app 0.9.0/);
     await expect(fetchObs("http://x/feeds/live", serve(files), undefined, undefined, gate)).rejects.toThrow(FeedNeedsNewerApp);
-    // a bumped station file / obs.json WITHOUT the stamp, while the gate holds the bump: the same known state
-    files["A.json"] = { ...ST, format: "gauge-feed/2" };
-    files["obs.json"] = { ...OBS, format: "gauge-feed/2" };
-    f.refresh!();
-    expect(await f.lastReport(A)).toBe(ST.now.at);
-    await expect(fetchObs("http://x/feeds/live", serve(files), undefined, undefined, gate)).rejects.toThrow(FeedNeedsNewerApp);
-    // the background check's own gate (a fresh one, no index read): obs.json's own stamp is enough
-    files["obs.json"] = bump(OBS);
+    // the background check's own gate (a fresh one per run, no index read): obs.json's own stamp is enough
     await expect(fetchObs("http://x/feeds/live", serve(files), undefined, undefined, createFeedGate(APP))).rejects.toThrow(FeedNeedsNewerApp);
   }));
+
+  it("(review M1/M3) ONLY a file's own stamp excuses it: a broken gauge file in this app's format, or another format with no stamp, is REPORTED with a gate present — held or not", async () => {
+    const reported: string[] = [];
+    const undo = setFailureSink((e) => reported.push(String((e as Error).message ?? e)));
+    try {
+      const IDX = { format: GAUGE_FEED_FORMAT, minAppVersion: TODAY, fetchedAt: "2026-11-20T12:00:00Z", stations: { A: {} } };
+      const brokenStation = { format: GAUGE_FEED_FORMAT, minAppVersion: TODAY, fetchedAt: "2026-11-20T12:00:00Z" };   // no station
+      const brokenObs = { format: GAUGE_FEED_FORMAT, minAppVersion: TODAY, fetchedAt: "2026-11-20T12:00:00Z" };       // no stations
+      for (const held of [false, true]) {
+        reported.length = 0;
+        const gate = createFeedGate(APP);
+        if (held) gate.note("gauges", "0.9.0");                // a hold (say a stale one) excuses nothing
+        const files: Record<string, unknown> = { "index.json": IDX, "A.json": brokenStation, "obs.json": brokenObs };
+        const f = httpFeed("http://x/feeds/live", serve(files), { gate });
+        expect(await f.lastReport(A)).toBeUndefined();
+        expect(reported.filter((m) => m.includes("A.json"))).toHaveLength(1);
+        // obs.json: the background check reports it (a plain failure, never the gate's known state)
+        const settings = createNotifySettings({ read: () => JSON.stringify({ ...NOTIFY_DEFAULT, on: true,
+          rules: [{ id: "r1", station: "A", stationName: "A", quantity: "discharge", direction: "above",
+                    threshold: { kind: "value", value: 1 }, on: true, water: null, createdAt: 0 }] }), write: () => {} });
+        const r = await runBackgroundCheck({ settings, obs: () => fetchObs("http://x/feeds/live", serve(files), undefined, undefined, gate),
+          manifest: async () => { throw new Error("unused"); }, notify: async () => {}, now: () => Date.parse("2026-11-20T12:00:00Z") });
+        expect(r.failed).toHaveLength(1);
+        expect(reported.filter((m) => m.includes("obs.json"))).toHaveLength(1);
+        // and a file in another format WITHOUT a stamp: reported too (every gauge file is stamped; one missing it is a defect)
+        reported.length = 0;
+        files["A.json"] = { ...brokenStation, station: "A", format: "gauge-feed/2", minAppVersion: undefined };
+        f.refresh!();
+        await f.lastReport(A);
+        expect(reported.filter((m) => m.includes("A.json"))).toHaveLength(1);
+      }
+    } finally { undo(); }
+  });
+
+  it("(review M2) a bad kept refusal never crashes the start: not an object → none; an entry without a semver need → dropped", async () => {
+    const URL_ = "https://o.test/feeds/dfo/index.json";
+    const o = origin({ [URL_]: DFO });
+    const start = (refused: unknown) => {
+      const store = mem(JSON.stringify({ v: 1, seen: {}, at: {}, refused }));
+      const gate = createFeedGate(APP);
+      const salmon = httpSalmonFeed("https://o.test/feeds/dfo/", mem(), o.fetch, { gate });
+      return createUpdateService({ fetch: o.fetch, appVersion: APP, feedGate: gate, store,
+                                   feeds: [{ id: "dfo", url: URL_, apply: (text) => salmon.offer!(text) }] });
+    };
+    for (const bad of ["ab", 7, ["x"], null, { dfo: { need: 5 } }, { dfo: "0.9.0" }, { dfo: { need: "soon", etag: null, sha256: null } },
+                       { dfo: { need: "0.9.0", etag: 3, sha256: null } }, { dfo: { need: "0.9.0" } }]) {
+      const s = start(bad);
+      expect([s.snapshot().needsApp ?? null, s.snapshot().feeds[0]!.needsApp ?? null]).toEqual([null, null]);
+      await s.check();                                     // the index is read whole, as with no refusal kept
+      expect(s.snapshot().feeds[0]).toMatchObject({ error: null, needsApp: null });
+    }
+    // a well-formed one is kept
+    const good = start({ dfo: { need: "0.9.0", etag: null, sha256: null } });
+    expect(good.snapshot().needsApp).toBe("0.9.0");
+  });
 
   it("run timing: the capture answers", () => quiet(async () => {
     const runs = enc.encode(JSON.stringify({ format: "runtiming-runs/1", slots: ["Steelhead"], default: 0,

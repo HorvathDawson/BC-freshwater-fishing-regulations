@@ -44,9 +44,6 @@ export interface FeedGate {
    * app (holding the need). It never clears the need: only the index speaks for the feed.
    */
   checkFile(doc: unknown, feed: GatedFeed): void;
-  /** The version `feed` is held to (its index, or one of its files, asked for a newer app), or null. A file of that feed
-   *  this app cannot read is then a known state — the feed's bump — not a failure to report. */
-  holds(feed: GatedFeed): string | null;
   /** Set a feed's need from outside a read (the update service: a kept refusal after a restart; a 304 of the index
    *  this app reads); null clears it. */
   note(feed: GatedFeed, need: string | null): void;
@@ -88,7 +85,6 @@ export function createFeedGate(app: AppVersion | null): FeedGate {
         throw new FeedNeedsNewerApp(feed, g.need);
       }
     },
-    holds: (feed) => refused[feed] ?? null,
     note(feed, need) { set(feed, app ? need : null); },
     needs() {
       const all = Object.values(refused).filter((v): v is string => !!v).sort();
