@@ -1,6 +1,6 @@
 # T723 — iOS: salmon, run timing, search, saved spots, photos work on the simulator (IOS-6)
 
-Status: IN PROGRESS (app chat; the keyboard and back fixes and the small audit fixes are MERGED into `redesign/stream-sections` 2026-11-16 (d15784a4f), see "Merged" at the end; the owner answered the two picks 2026-11-16 12:08: a spot's Save row is lifted above the keyboard on iOS, the back strip stays 16 pt; left (Claude): the scenario ports, the Conditions alert field under the decimal pad, the iOS Save-row lift with its simulator proof).
+Status: IN PROGRESS (merged parts in d15784a4f; item 3, the 10 iOS scenario ports, DROPPED by the owner 2026-11-20; left (Claude): the Conditions alert field under the decimal pad, the iOS Save-row lift, the credits Modal in ModalBack)
 
 Source: owner 2026-11-14, verbatim: "Maybe we could make a handoff to start improving the ios versions? Making sure it is
 rock solid too?" and "We want to do as much work as possible without the Apple account". Stub IOS-6 in
@@ -197,3 +197,9 @@ branch's later T737 version kept) and this ticket (both sides kept).
 (question dialog in the main chat, 2026-11-16 12:08, on the list of small behaviours left as built): "we should fix anything that doesnt seem desirable". The app chat's call: (1) a spot's Save row is LIFTED above the keyboard (a Save button
 hidden while typing is not what a user wants): to build, iOS, with the simulator proof; (2) the left-edge back strip
 stays 16 pt.
+
+## Owner answer 2026-11-20 01:56
+
+Dropped: item 3, the iOS scenario ports. Not doing it. owner 2026-11-20 01:56 (lane-plan batch), verbatim: "Make sure their tickets are  removed/completed/no doing labelled".
+
+Status line before this answer: IN PROGRESS (app chat; the keyboard and back fixes and the small audit fixes are MERGED into `redesign/stream-sections` 2026-11-16 (d15784a4f), see "Merged" at the end; the owner answered the two picks 2026-11-16 12:08: a spot's Save row is lifted above the keyboard on iOS, the back strip stays 16 pt; left (Claude): the scenario ports, the Conditions alert field under the decimal pad, the iOS Save-row lift with its simulator proof).

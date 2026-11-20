@@ -1,6 +1,6 @@
 # T709 — Store preview video from one command
 
-Status: IN PROGRESS (step 1, Android, built 2026-11-13: `node app/tools/store-video/run.mjs`; the owner sees the clip before any upload; step 2, iOS, benched)
+Status: POSTPONED (owner 2026-11-20: after this release; 11-19 "ignore the video for now"). Step 1 Android built: `node app/tools/store-video/run.mjs`.
 
 Source: owner 2026-11-13: "we want to generate a nice App preview". Neighbours: T704 (store pictures, one command), T319,
 T244. Nothing is uploaded by this ticket; the owner uploads.
@@ -101,3 +101,8 @@ and after (and the June closure by its colour), then cuts 864x1920 / 30 fps / H.
 - 864x1920, not 1080x1920/2400: the emulator is 1080x2400 (9:20) and H.264 Level 4.0 cannot hold 1080x2400; 864x1920 is
   the same frame scaled, no bars. Step 2 still needs Apple's 886x1920 / 1200x1600.
 
+## Owner answer 2026-11-20 01:56
+
+Owner picked "Postpone" for the store video (with T715) until after this release.
+
+Status line before this answer: IN PROGRESS (step 1, Android, built 2026-11-13: `node app/tools/store-video/run.mjs`; the owner sees the clip before any upload; step 2, iOS, benched)

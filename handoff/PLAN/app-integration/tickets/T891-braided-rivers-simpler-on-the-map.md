@@ -1,6 +1,6 @@
 # T891 — braided rivers drawn simpler: side channels thinner, braids simplified in the tile build
 
-Status: PARTIAL — part one on production since 0.8.3 (tiles `sc` + thinner side-channel style; 2b5a1748a, 07ee36ad5; owner approved the style ~03:25 and kept the ~9.8k small lines thinner ~06:40); the owner's check of part one (0.8.2 staging item 5) taken as done on his word 2026-11-20 — ONLY part one is covered; left (Claude): part two, braids simplified harder at low and middle zooms in the tile build, pictures to the owner first.
+Status: DONE — part one (2b5a1748a, 07ee36ad5), on production since 0.8.3; part two (braids simplified harder at low and middle zoom) MOVED to T699 by the owner 2026-11-20 ("Fold into T699 later").
 
 Owner 2026-11-18 ~22:02 (main chat), staging map shot of the Lillooet River braids near Pemberton, MU 2-9
 (/Users/dawson.horvath/.claude/uploads/b8ddfca9-44eb-400e-a9bf-bd89b4b0f359/8b47b3ee-image.png), verbatim: "Isn't
@@ -63,3 +63,9 @@ On the ~9,800 small lines that also draw thinner, verbatim: "probably okay". Kep
 Owner 2026-11-20, "Couldn't we just assume most of these are done already?": covers part one only (the thinner side channels, 0.8.2 staging item 5). Part two (braid simplification in the tile build, pictures first) is unbuilt and stays open.
 
 Status line before this answer: PARTIAL — part one on production since 0.8.3 (tiles `sc` + thinner side-channel style; 2b5a1748a, 07ee36ad5; owner approved the style ~03:25 and kept the ~9.8k small lines thinner ~06:40); owner: OWNER-TODO "Test 0.8.2 on staging (2026-11-19 morning)" (item 5); left (Claude): part two, braids simplified harder at low and middle zooms in the tile build, pictures to the owner first.
+
+## Owner answer 2026-11-20 01:56
+
+Owner picked "Fold into T699 later" for part two (braid simplification at low/middle zoom). It is not done here; it lives in T699 (postponed).
+
+Status line before this answer: PARTIAL — part one on production since 0.8.3 (tiles `sc` + thinner side-channel style; 2b5a1748a, 07ee36ad5; owner approved the style ~03:25 and kept the ~9.8k small lines thinner ~06:40); the owner's check of part one (0.8.2 staging item 5) taken as done on his word 2026-11-20 — ONLY part one is covered; left (Claude): part two, braids simplified harder at low and middle zooms in the tile build, pictures to the owner first.

@@ -1,6 +1,6 @@
 # T538 — build-apk.sh: cheap checks before the lock, changelog required, MapLibre proof on both paths
 
-Status: IN PROGRESS — fcbcda2ba (built; prechecks, stock-APK refusal and changelog shown); real `build-apk.sh --play` runs since, each bumping versionCode after the checks (88681f9f0 build 33 … 8f2e96c8b build 41, 2026-11-19). left (Claude): the expected build id recorded beside the patch in app/tools/maplibre-patch (Work 4; the id is still read from the AAR itself).
+Status: DONE — fcbcda2ba (used by every Play build since, 88681f9f0 … 8f2e96c8b); the last left item (an expected MapLibre build id file beside the patch) DROPPED by the owner 2026-11-20.
 
 Source: workflow review 2026-11-09 (verified against the code). Rank 6.
 
@@ -66,3 +66,9 @@ keystore, readelf, AAR build id, wrangler login each FAIL — all before the loc
 Not verified / left: a real `build-apk.sh` and `--play` run (bump-after-checks, the APK id check on a real APK, the
 publish-only put + email); "expected id recorded beside the patch" (app/tools/maplibre-patch/, the tools lane — the
 expected id is still read from the AAR itself).
+
+## Owner answer 2026-11-20 01:56
+
+Dropped: the expected-build-id file. Both build paths already check the AAR. owner 2026-11-20 01:56 (lane-plan batch), verbatim: "Make sure their tickets are  removed/completed/no doing labelled".
+
+Status line before this answer: IN PROGRESS — fcbcda2ba (built; prechecks, stock-APK refusal and changelog shown); real `build-apk.sh --play` runs since, each bumping versionCode after the checks (88681f9f0 build 33 … 8f2e96c8b build 41, 2026-11-19). left (Claude): the expected build id recorded beside the patch in app/tools/maplibre-patch (Work 4; the id is still read from the AAR itself).
