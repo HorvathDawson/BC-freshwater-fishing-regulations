@@ -26,11 +26,14 @@ describe("in-season: reading the feed and links", () => {
     expect(parseInSeasonFeed(feed([row({ id: "is-a" })]))?.rows).toHaveLength(1);
   });
   it("(T548 item 4) a row it cannot read is dropped and named; the other rows stand", () => {
-    const f = parseInSeasonFeed({ ...feed([row({ id: "is-a" }), row({ id: "is-b" })]),
-      rows: [row({ id: "is-a" }), { id: 1 }, { ...row({ id: "is-c" }), change: null }, { ...row({ id: "is-d" }), from: 20260101 },
-             null, row({ id: "is-b" })] });
-    expect(f?.rows.map((r) => r.id)).toEqual(["is-a", "is-b"]);
+    const good = ["is-a", "is-b", "is-e", "is-f", "is-g"].map((id) => row({ id }));
+    const bad = [{ id: 1 }, { ...row({ id: "is-c" }), change: null }, { ...row({ id: "is-d" }), from: 20260101 }, null];
+    const f = parseInSeasonFeed({ ...feed([]), rows: [good[0], ...bad, ...good.slice(1)] });
+    expect(f?.rows.map((r) => r.id)).toEqual(["is-a", "is-b", "is-e", "is-f", "is-g"]);
     expect([f?.unread, f?.unreadRows]).toEqual([4, ["row 2", "is-c", "is-d", "row 5"]]);
+    // MORE THAN HALF unreadable is a feed this app does not read: refused whole (half exactly still reads)
+    expect(parseInSeasonFeed({ ...feed([]), rows: [good[0], ...bad] })).toBeNull();
+    expect(parseInSeasonFeed({ ...feed([]), rows: [good[0], bad[0]] })?.unread).toBe(1);
     expect(INSEASON_FAILURES.unreadRows(["is-c"])).toBe(
       "in-season index.json: 1 row this app could not read (is-c) — dropped, the other changes shown");
     expect(parseInSeasonLinks({ format: "nope", matches: {} })).toBeNull();

@@ -86,6 +86,12 @@ describe("httpInSeason", () => {
       expect([off?.feed.rows.map((r) => r.id), seen]).toEqual([["is-a"], []]);
       // the update service's offer takes it (a readable feed), never refuses the whole index for one row
       expect(() => httpInSeason("http://x", mem(), serve({})).offer!(JSON.stringify(index))).not.toThrow();
+      // most rows unreadable: refused whole — the offer throws, a read keeps the capture
+      const most = { ...FEED, fetchedAt: "2026-12-01T00:00:00Z", rows: [...index.rows, { ...index.rows[1]!, id: "is-bad2" }] };
+      expect(() => httpInSeason("http://x", mem(), serve({})).offer!(JSON.stringify(most))).toThrow("not a readable inseason-feed/1 feed");
+      seen.length = 0;
+      const kept = await httpInSeason("http://x", store, serve({ "index.json": most, "matches.json": LINKS })).latest();
+      expect([kept?.feed.fetchedAt, seen.map(String)]).toEqual([FEED.fetchedAt, ["Error: in-season index.json: not a readable inseason-feed/1 feed — refused"]]);
     } finally { undo(); }
   });
   it("nothing ever captured and nothing reached: null, never a throw", async () => {

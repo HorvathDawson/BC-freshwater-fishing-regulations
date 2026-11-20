@@ -119,6 +119,40 @@ describe("useInSeasonInbox (T700)", () => {
       expect(seen.map(String)).toEqual(["Error: in-season index.json: not a readable inseason-feed/1 feed — refused"]);
     } finally { undo(); }
   });
+
+  it("(T548 item 4) a row it cannot read: left out and SAID on the inbox line (and reported); over half: the index is refused whole", async () => {
+    const seen: unknown[] = [];
+    const undo = setFailureSink((e) => seen.push(e));
+    const C = row("is-c", "Duncan River");
+    const bad = { id: "is-bad", region: "4", water: "W", change: 7 };
+    const mount = (rows: unknown[], store = mem()) => {
+      const feed = { format: "inseason-feed/1", fetchedAt: "2026-11-20T00:00:00Z", source: SRC, removed: [], rows };
+      const serve = (async (u: string) => (String(u).endsWith("index.json") ? new Response(JSON.stringify(feed))
+        : new Response(JSON.stringify({ format: INSEASON_LINKS_FORMAT, notices: {} })))) as unknown as typeof fetch;
+      const source = httpInSeason("http://x/feeds/inseason", store, serve);
+      const out: { s?: InSeasonInboxState; now?: InSeasonNow } = {};
+      function Both() {
+        const now = useInSeason(source, 0, "r-1", null);
+        out.now = now;
+        out.s = useInSeasonInbox(now, mem(), null, () => {});
+        return null;
+      }
+      render(<Both />);
+      return out;
+    };
+    try {
+      const some = mount([A, bad, C]);
+      await waitFor(() => expect(some.s!.failure).toBe(INBOX_WORDS.unreadRows(1)));
+      expect(some.now!.data!.feed.rows.map((r) => r.id)).toEqual(["is-a", "is-c"]);
+      expect(seen.map(String)).toEqual(["Error: in-season index.json: 1 row this app could not read (is-bad) — dropped, the other changes shown"]);
+      cleanup();
+      seen.length = 0;
+      // most rows unreadable: refused whole, the feed's own failure line, the capture (none here) answers
+      const most = mount([A, bad, { ...bad, id: "is-bad2" }]);
+      await waitFor(() => expect(most.s!.failure).toBe(INBOX_WORDS.failure));
+      expect(seen.map(String)).toEqual(["Error: in-season index.json: not a readable inseason-feed/1 feed — refused"]);
+    } finally { undo(); }
+  });
 });
 
 describe("useInSeasonCovers (T520): one load path for the banner and the water map", () => {

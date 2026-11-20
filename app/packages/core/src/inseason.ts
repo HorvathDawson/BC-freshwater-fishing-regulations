@@ -90,7 +90,9 @@ function rowReadable(r: unknown): r is InSeasonRow {
 /**
  * The feed as the app reads it, or null when the INDEX is not one (another format, no time, no rows list). (T548 item 4)
  * A ROW it cannot read is DROPPED, never the whole feed: one bad row must not hide every other notice. The feed says how
- * many it dropped and which (`unread`, `unreadRows`) so the reader reports them; the rows read are whole.
+ * many it dropped and which (`unread`, `unreadRows`) so the reader reports them and the inbox says so. MORE THAN HALF of
+ * the rows unreadable is not a bad row but a feed this app does not read (a change of shape): refused whole (null), so
+ * the capture keeps answering and the update service's offer throws, as for a format it does not read.
  */
 export function parseInSeasonFeed(x: unknown): InSeasonFeed | null {
   const f = x as Partial<InSeasonFeed> | null;
@@ -99,6 +101,7 @@ export function parseInSeasonFeed(x: unknown): InSeasonFeed | null {
   const rows = (f.rows as unknown[]).filter(rowReadable);
   const unreadRows = (f.rows as unknown[]).flatMap((r, i) => (rowReadable(r) ? [] : [
     r && typeof r === "object" && typeof (r as { id?: unknown }).id === "string" ? (r as { id: string }).id : `row ${i + 1}`]));
+  if (unreadRows.length * 2 > f.rows.length) return null;
   return { ...f, source: typeof f.source === "string" ? f.source : "", removed: f.removed ?? [], rows,
            ...(unreadRows.length ? { unread: unreadRows.length, unreadRows } : { unread: 0, unreadRows: [] }) } as InSeasonFeed;
 }
