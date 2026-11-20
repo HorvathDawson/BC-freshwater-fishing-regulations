@@ -138,9 +138,11 @@ def main(argv: Optional[List[str]] = None) -> int:
     from pipeline.regs.inseason.resolve import release_dir
     t = table(release_dir(a.release))
     sys.stdout.write(json.dumps(t, ensure_ascii=False, sort_keys=True, separators=(",", ":")) + "\n")
-    one = sum(1 for _, _, r in t["pairs"] if not r.get("u"))
+    one = sum(1 for a, b, r in t["pairs"] if r == a or r == b)
+    words = sum(1 for _, _, r in t["pairs"] if r.get("u"))
     sys.stderr.write(f"salmon_pairs: {t['release']}: {len(t['pairs'])} pairs, {one} resolve to one region's opening, "
-                     f"{len(t['pairs']) - one} to both regions' words\n")
+                     f"{len(t['pairs']) - one - words} to one quota of both regions' caps (T669 item 3), "
+                     f"{words} to both regions' words\n")
     return 0
 
 

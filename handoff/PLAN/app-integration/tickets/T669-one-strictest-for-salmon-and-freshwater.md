@@ -1,6 +1,6 @@
 # T669 — One "strictest of both regions" for salmon and freshwater straddlers
 
-Status: IN PROGRESS — item 1 done (91398f801); item 2 (the rule statement on each DFO verdict, a feed format change) DROPPED by the owner 2026-11-20; left (Claude): item 3, pooled and hatchery/wild caps as numbers (after T676 lands)
+Status: IN PROGRESS — item 1 done (91398f801); item 2 DROPPED by the owner 2026-11-20; item 3 built on lane/l9-strictest (28fdf30fa); left (Claude): main chat review + merge; ships with the next data release (staging upload re-stages the pair table)
 
 Source: owner 2026-11-11 (T668): "The strictest of the rules is the same logic the fresh water regulations use I
 believe; we should double check that and if possible unify that logic." The side-by-side is in
@@ -45,3 +45,38 @@ Mutation: a freshwater reader that never displaces fails four cases. Test only: 
 Dropped: item 2. Not doing it. Item 3 stays. owner 2026-11-20 01:56 (lane-plan batch), verbatim: "Make sure their tickets are  removed/completed/no doing labelled".
 
 Status line before this answer: IN PROGRESS — item 1 done (91398f801); left (Claude): items 2 and 3 (feed format change: worker + app + live.compose together); the shared comparison landed in T668 (dfb4ea7c1)
+
+## Item 2 DROPPED (owner 2026-11-20)
+The rule statement on each DFO verdict (a feed format change) is not done. Item 3 needed no feed format bump.
+
+## Item 3 built 2026-11-20 (lane/l9-strictest, 28fdf30fa)
+`deliver.salmon`: `_caps` now reads the aggregate tier (`total` + `whose`), a hatchery-marked kind (read as a release
+of unmarked fish), an unmarked share and a monthly cap. `_both_bind` keeps a pool apart from a plain count: a plain count
+never displaces a pool (the pool covers more waters: Z4's "a narrower cap never displaces a wider", applied to waters);
+a pool at or under the plain count displaces it. `_moot` drops a size cap that another cap already covers. `_tree_of`
+builds the caps that bind into the tree `quota._one` gives a DFO row with those numbers. `stricter_opening` therefore
+returns one region's opening, or (a mix) `{t: both regions' words, tree}`. It returns `u` (words, no number) only when a
+number is unread or the caps do not make one tree (two pools). RULINGS Z4a is amended. `test_strictest_cases` now builds
+its trees with `quota._one` and has hatchery / unmarked / pool cases. The only case that still differs on purpose is "a
+pooled count over a lower plain count": freshwater keeps the plain count only, salmon keeps both, the pool over the
+count. No live card has that case today. All 111 trees in the live release's openings read back to themselves.
+The app needs no change: it takes the Python answer from the pair table and draws any tree. An app test shows a
+merged tree from the table is drawn as numbers.
+
+**Proof.** Side deliver via heavy.sh to `data/generated/side/l9-strictest/out`, release r-3c76ec6cf0d4. Answers diff
+against the live r-6258ffded676: 265 sections changed in all. Only ONE two-region chain changed (chain 300, Region 5B
+region section beside Region 6 E/A: Qualcho Creek part 2 and 18 unnamed wetlands, 19 sections):
+- Chinook, all year: before "Limit: see DFO's words below" (4 per day, only 1 over 50 cm; 4 per day, only 1 over 65
+  cm; "Region 5B and Region 6 together"). After: Region 5B's own opening, "Up to 4 chinook a day in total, all waters of
+  Management Units 5-6 to 5-11 combined · only 1 over 50 cm" (1 over 50 cm already covers 1 over 65 cm).
+- Coho, Jan 1 to Oct 31: before "Limit: see DFO's words below" (4 per day, only 2 over 50 cm; 4 per day, only 1 over 50
+  cm). After: "Up to 4 coho a day in total, all waters of Management Units 5-6 to 5-11 combined · only 1 over 50 cm"
+  (Region 5B's pool with Region 6's size cap, "together").
+The other 246 sections are on 24 one-region chains. On those, only the verdict's DFO words `t` differ ("…, hatchery
+marked only"). That comes from T623 F13 (11d7722c6) and today's typed feed, not from this change: a one-region chain
+never reaches `strictest`. Part-name wording (T780) is release-wide. The pair table on the live release goes from 2
+pairs with both regions' words to 1 with one region's opening and 1 with one quota.
+Shots (web, 390 px, Jan 15, release only, no live feed): `T669-shots/before-qualcho-creek-jan15.png`,
+`T669-shots/after-qualcho-creek-jan15.png`.
+Under the live feed the app reads the pair table. `deploy/staging/upload.sh` re-stages it (sync-inputs `dfo-pairs`)
+with the release, so the feed path changes on that upload.
