@@ -251,3 +251,18 @@ refusal; `carried_holds` adds only the unit's on_designation rows, and nothing o
 why — on the Classified Waters Licence row with its price, on the class box for a resident —, no "?", no note above
 "You need"; two waters in order and the part prefix; none = as before), `inputs.test.ts` (+2: the tap day's value of the
 year), `methods-licence.render.test.tsx` (+1: the fold closed until pressed, then the why).
+
+## Review leftovers (lane LF, 2026-11-20, 5b07930fc)
+- **One licence year per full licence key.** `release.build.cw_through` computed one carried licence year per
+  (licensing set, unit), but a section's licence answer is per `LicenceKey` (set, province exceptions, tidal, water kind,
+  keyed rule set): a carried lake, wetland or tidal section beside a stream would take the stream's year. It now groups by
+  `answers.licence.section_licence_keys` + unit. Test: `test_t973_review_carried_sections_share_a_year_only_under_one_full_licence_key`
+  (a stream, a lake and a tidal section of one set; fails when grouped by set alone). Measured on the l10-cw side
+  bundle (heavy.sh): 7,080 carried sections; groups 15 -> 25 (5 groups held 2-4 keys each, all differing only in the
+  keyed rule set, all streams, none tidal); the cw-through tables (`section_cw`, `cw_year`, `cw_note`) are identical
+  before and after — the split groups' years are the same.
+- **Only the carried unit's own stamp waiver.** `carried_holds` copied the source section's whole `waived` list. `holds`
+  now keeps (internally, `_waived_by`) which designation waives each requirement, and only a waiver the carried
+  designation prints comes off. Test: the carried-answer test gains a source with two designations, the waiver printed
+  by the other (the section keeps its steelhead stamp; fails with the old copy). Measured on the same side bundle: the
+  cw-through tables are identical with the old copy and the new.

@@ -41,3 +41,9 @@ Depends: none (a data release ships it). Size: S. After this release unless it i
   `test_release.py::test_cores_water_names_are_cased_as_the_water_page_cases_them` (KITWANGA MILL POND) run on the
   side-after bundle: test_release + test_release_slices + t941 33 passed.
 - Shots: `T941-shots/search-row-before.png`, `search-row-after.png` (KITWANGA MILL POND -> Kitwanga Mill Pond).
+
+## Review leftover (lane LF, 2026-11-20, d60b72ba6)
+`case_core_names`: an item holding a `name_source` row for both "X" and display_case("X") hit the (item_id, name) key
+when its name's row moved. Now the name's own row takes the shown spelling and the other row is deleted first.
+Test: `test_an_item_holding_both_spellings_keeps_one_row_its_names` (IntegrityError without the fix). Measure: 0 such
+items in the live bundle and in the l9-strictest side bundle; no data changes.
