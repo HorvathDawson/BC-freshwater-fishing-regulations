@@ -242,7 +242,7 @@ reads both files; a ticket closed here moves there once its lane is finished wit
 | T939 | DFO salmon: the quota quote drops trailing conditions ("only 2 over 35 cm") | OPEN | | review of lane/l1-feeds 2026-11-20 |
 | T940 | Satellite: one colour set for all water lines, the same in light and dark (owner) | OPEN | | owner 2026-11-20, after this release |
 | T970 | Photo viewer: the buttons stay at full strength while the photo is dragged down to close | OPEN | | L4 Android looks 2026-11-20 |
-| T971 | Conditions: picking Level in the gauge card also re-ranks the estimate card above it | OPEN | | L4 Android looks 2026-11-20 |
+| T971 | Conditions: picking Level in the gauge card also re-ranks the estimate card above it | IN REVIEW | 2a2aa0e75 (lane/t971-flow-leads) | L4 Android looks 2026-11-20 |
 | T972 | Search for "Thompson" lists "Thompson Plateau" locality five times, identical lines | OPEN | | L4 Android looks 2026-11-20 |
 | T941 | Search rows and neighbour-water names show a water's name cased, as the water page does (core item.name via display_case at bundle export) | OPEN | | main chat 2026-11-20 (T926 review), after this release unless small |
 | T942 | Kitimat: the 2-over-50 cm rule (only 1 not a hatchery steelhead) is enforced but no longer shown | OPEN | | lane/t936-t931 2026-11-20 (T931 A refused pins) |
