@@ -26,4 +26,8 @@ waters + 2,917 aliases, ~52k queries, found = in the top 40):
 ## Acceptance
 The probe rerun: every miss class above found (except 4 until the owner picks a source); `searchIndex.test.ts` pins one
 case per class; no ranking change for exact names (the probe's 22,699 exact queries unchanged).
-Depends: none. Size: M. Owner: yes (4: the names source). Default: 1, 2, 3, 5 built; 4 waits.
+Depends: none. Size: M. Owner: answered 2026-11-19 (4: BC Geographical Names). All of 1-5 to build.
+
+## Owner 2026-11-19 20:31 (main chat, question batch)
+(4) Picked "Use BC Geographical Names (Recommended)": official and alternate names from the BC Geographical Names
+service become search names only; the names shown on the map and cards stay as they are.

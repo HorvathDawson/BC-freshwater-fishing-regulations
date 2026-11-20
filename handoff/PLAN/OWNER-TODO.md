@@ -13,12 +13,11 @@ with the default Claude uses until you answer). Newest first inside each section
 
 **T920, Conditions (owner ~16:30 and ~16:49):** the gauge map is under the chart; the gauge list is a legend (not a
 selector); the chart's gauge picker is a bordered "N gauges ▾" field. Pictures sent in chat; lands after your look, the
-checks and an independent review. **T919 (c), your call:** the map's 777 font/sprite files (13.8 MB) are fetched one by
-one on first install (35–160 s). Default: pack them into one file through the system downloader; or ship them in the app.
+checks and an independent review. **T919 (c), ANSWERED 2026-11-19 20:31:** the map's 777 font/sprite files (13.8 MB,
+35–160 s on first install) become one packed download through the system downloader (owner: "One packed download").
 
-**T926 (4), your call:** search has no First Nations names on waters ("Sts'ailes", "Stó:lō", "Xsan", "Quw'utsun" find
-nothing): no source we hold carries them. Default: take official and alternate names from the BC Geographical Names
-service as search names (shown names unchanged); or leave them out.
+**T926 (4), ANSWERED 2026-11-19 20:31:** First Nations names come from the BC Geographical Names service (official and
+alternate names) as search names only; shown names unchanged (owner: "Use BC Geographical Names").
 
 ## 2026-11-19 afternoon: 0.8.3 on staging, then 0.8.3 to production (0.8.2 production skipped)
 

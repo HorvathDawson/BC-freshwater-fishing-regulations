@@ -26,3 +26,7 @@ Small finds that did not block 0.8.3. Batch them into the next release.
   default: pack the folder into ONE verified file that goes through the same system-downloader path as the data files
   (no app-size change, one request); the alternative is shipping it inside the app (+~14 MB, or less if the glyph ranges
   are cut to the characters the tiles' names use).
+
+## Owner 2026-11-19 20:31 (main chat, question batch)
+(c) Picked "One packed download (Recommended)": the 777 map font/sprite files become ONE verified file fetched through
+the system downloader like the data files; no app-size change. Not shipped inside the app.
