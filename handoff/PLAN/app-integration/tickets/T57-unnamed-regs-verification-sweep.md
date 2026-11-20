@@ -75,3 +75,14 @@ of something with rules that apply)".
 ## Acceptance
 A needs_bundle test pins: 0 unnamed sections without a page; sampled pages equal base + bound overrides; the trib-rule
 miss count is recorded and each remaining miss has a reason in the ticket.
+
+## 2026-11-20 (T945): 41 more unnamed stream sections, every one an atlas change (by handle, old atlas b9de120e vs live 4ae7b629)
+47 sections became unnamed, 6 stopped being: +41.
+- +44 / -6 T796 (17512b36d): DFO's names for two unnamed Babine lines, "Sockeye Creek" (360800595) and "Hazelwood
+  Creek" (360852175). Their 6 sections are named now; and the leaf prune (`leaf_prune.min_hops`, hops to the nearest
+  NAMED water) keeps 44 unnamed headwater leaves that were 3-5 hops from Babine Lake and are now 1 from those creeks
+  (30 into Sockeye, 14 into Hazelwood; MU 6-8).
+- +2 Sheldens Creek (998b4e6ab, df08a776a): the creek drawn on to the road bridge as one named item keeps two
+  unnamed leaves joining it (360288761, 360394715:41).
+- +1 the Lakelse confluence cut (7102afb9b, owner 2026-11-15 confluence sweep): `split:skeena_river__lakelse_river_
+  into_skeena_river` crosses the unnamed line 360866092 168 m above its mouth into the Lakelse; one section became two.

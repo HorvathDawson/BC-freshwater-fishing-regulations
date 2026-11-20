@@ -6,7 +6,7 @@
  * step: one group; a twin row: its own origin only), the steps that set the answer are the deciding ones with no tag
  * (the rule that sets it; a weekday part of today). A "Lowers the number" step is not read here: the rail draws one
  * whether or not it lowered today's number; the stored answer's `narrow` says (`storedElsewhere`). `setByDown`: every
- * group has a setting step and each is kicked "<water> · its tributaries"; `names`: those waters; `mentions`: every
+ * group has a setting step and each is kicked "<water> · its tributaries" (or a tributaries row's own name, `downWater`); `names`: those waters; `mentions`: every
  * deciding tributary water the rail draws.
  */
 import type { Decided, FlowStepVM, FlowVM, RuleIndex } from "@app/core";
@@ -16,7 +16,16 @@ const ORIGIN = /^(Hatchery|Wild) ones(?:: )?/;
 
 const originOf = (s: FlowStepVM): "Hatchery" | "Wild" | null => (ORIGIN.exec(s.tag ?? "")?.[1] as "Hatchery" | "Wild" | undefined) ?? null;
 const bareTag = (s: FlowStepVM): string | null => (s.today ? null : (s.tag ?? "").replace(ORIGIN, "") || null);
-const water = (s: FlowStepVM): string | null => (s.kicker.endsWith(DOWN) ? s.kicker.slice(0, -DOWN.length) : null);
+const TRIBUTARY = /\btributar(?:y|ies)\b/i;
+/**
+ * (T946) The water a deciding step's kicker names as carried down to its tributaries — core's `DECIDE.K_DOWN` read back:
+ * "<water> · its tributaries", or (T919 a) a row whose own name already says it is about tributaries, named once ("Lake
+ * Revelstoke's Tributaries", "Rancheria River's Tributaries"). Every other kicker is "<name> · <what>" or a fixed phrase
+ * with no "tributar" in it. Reading only the first form, the T892 sweep failed every such row's line after T919 a.
+ */
+export const downWater = (kicker: string): string | null =>
+  kicker.endsWith(DOWN) ? kicker.slice(0, -DOWN.length) : TRIBUTARY.test(kicker) && !kicker.includes(" · ") ? kicker : null;
+const water = (s: FlowStepVM): string | null => downWater(s.kicker);
 
 export function railSetters(flow: FlowVM | null, origin: "hatchery" | "wild" | null = null): { setByDown: boolean; names: string[]; mentions: string[] } {
   const won = (flow?.steps ?? []).filter((s) => s.tone === "won");
