@@ -13,8 +13,14 @@ export const MARK_LABEL_HALF = 100;
 /** How a label hangs from its point: the map's `text-anchor`. */
 export type MarkLabelAnchor = "bottom" | "bottom-left" | "bottom-right";
 
-/** The anchor for a label whose ring is at `x` on a map `width` px wide: centred unless a half-width would hang over. */
+/**
+ * The anchor for a label whose ring is at `x` on a map `width` px wide: centred unless a half-width would hang over.
+ * A ring OFF the map hangs its label outward, off the map with it (T929 review: hung inward, up to 180 px of a label
+ * stood on the map with no ring under it).
+ */
 export function labelAnchor(x: number, width: number, half: number = MARK_LABEL_HALF): MarkLabelAnchor {
+  if (x < 0) return "bottom-right";
+  if (x > width) return "bottom-left";
   if (x < half) return "bottom-left";
   if (x > width - half) return "bottom-right";
   return "bottom";

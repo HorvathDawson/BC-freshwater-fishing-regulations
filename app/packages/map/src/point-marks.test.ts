@@ -21,12 +21,12 @@ describe("T317 point marks", () => {
                    { lon: -121.6, lat: 49.3, label: null, a11y: "", on: true }];
     const xs: Record<number, number> = { [-121.9]: 200, [-121.8]: 380, [-121.7]: -600, [-121.6]: 10 };
     const anchors = await labelAnchors(marks, 400, (lon) => [xs[lon]!, 50]);
-    expect(anchors).toEqual(["bottom", "bottom-right", "bottom-left", null]);
+    expect(anchors).toEqual(["bottom", "bottom-right", "bottom-right", null]);
     type F = { geometry: { coordinates: number[] }; properties: { i: number; kind: string; anchor?: string } };
     const labels = (marksData(marks, anchors).features as F[]).filter((f) => f.properties.kind === "label");
     // the anchor test: each label at its own mark, exactly — an off-screen mark's label stays off screen with it
     expect(labels.map((f) => [f.geometry.coordinates, f.properties.anchor]))
-      .toEqual([[[-121.9, 49.1], "bottom"], [[-121.8, 49.0], "bottom-right"], [[-121.7, 49.2], "bottom-left"]]);
+      .toEqual([[[-121.9, 49.1], "bottom"], [[-121.8, 49.0], "bottom-right"], [[-121.7, 49.2], "bottom-right"]]);
     // a camera somewhere else changes no label's point (the tester's "they move around with you as you pan")
     const panned = await labelAnchors(marks, 400, (lon) => [xs[lon]! - 350, 50]);
     expect((marksData(marks, panned).features as F[]).filter((f) => f.properties.kind === "label")
