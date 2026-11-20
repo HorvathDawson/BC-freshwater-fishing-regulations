@@ -324,11 +324,13 @@ def licensing_books(doc: dict, lic_ids: Sequence[str]) -> List[dict]:
 def add_sources(facts: List[dict], doc: dict, order: Sequence[str]) -> None:
     """Each rule's book pages and why it applies (`book`, `applies`, `applies_trib`) onto its
     display facts, in the export's rule order (`order`: rule ids). Only the rules a part reaches
-    by the tributary walk somewhere carry `applies_trib`."""
+    by the tributary walk somewhere carry `applies_trib`; only a water table's row carries `row` (T916)."""
     walked = {k for rs in doc["rulesets"].values() for k in rs.get("trib") or []}
     for f, rid in zip(facts, order):
         x = doc["rules"][rid]
         f["book"] = book_pages(x, doc)
+        if (doc["entries"].get(x["entry_id"]) or {}).get("kind") == "water":
+            f["row"] = True          # T916: a water table's row, the water's own entry (the model's `RuleFacts.row`)
         boxes = book_boxes(x, doc)
         if boxes:
             f["book_box"] = boxes

@@ -118,6 +118,10 @@ def _leaves(codes) -> frozenset[str]:
     return frozenset(expand_species(list(codes or [])))
 
 
+#: what a char exception on the word "trout" may name (RULINGS C2): the group, or a char alone
+_CHAR_SCOPE = frozenset({"CHAR", "DV", "LT", "EB"})
+
+
 def statement(x: dict) -> tuple:
     """WHAT A QUOTA IS ABOUT, without its number: the fish (leaves, less `species_except`), its
     size bounds (each band's ends, and whether the band keeps none), its origin, its water kind,
@@ -132,13 +136,14 @@ def statement(x: dict) -> tuple:
     char out of it (`catalogue.trout_scope_problems`, RULINGS C2): Amor Lake's "Trout
     daily quota = 2" (its row names no char: trout and char) and Region 1's "Trout: 4" (its box
     releases "All char": trout only) both say "trout", so for a trout the lake's 2 replaces the
-    4 — and Region 1's char release still binds the char. So a `CHAR` exception on `TROUT_CHAR` is
+    4 — and Region 1's char release still binds the char. So a char exception on `TROUT_CHAR` —
+    `CHAR`, or one char alone (Chilliwack Lake's `DV`, C2 as amended by the owner 2026-11-18) — is
     the word's scope, not part of what the statement is about."""
     bands = tuple((b.get("min_cm"), b.get("max_cm"), b.get("take") == 0, bool(b.get("closed")))
                   for b in (x.get("lengths") or []))
     sp = list(x.get("species") or [])
     out = [c for c in (x.get("species_except") or [])
-           if not (c == "CHAR" and "TROUT_CHAR" in sp)]
+           if not (c in _CHAR_SCOPE and "TROUT_CHAR" in sp)]
     return (_leaves(sp) - _leaves(out),
             bands, x.get("origin"), x.get("water"),
             tuple(sorted(x.get("while") or [])), tuple(sorted(x.get("when_targeting") or [])),

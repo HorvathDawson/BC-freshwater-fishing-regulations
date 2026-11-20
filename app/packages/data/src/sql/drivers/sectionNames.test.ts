@@ -7,7 +7,7 @@ import { describe, expect, it } from "vitest";
 import type { Db, Row } from "../db";
 import { LINE_OPEN } from "../../regs/line";
 import { openLineReads } from "../../regs/place";
-import { openRegsFixtureWithLines, regsFixtureLines, sectionNames, type LineRow } from "./releaseDir";
+import { openRegsFixtureWithLines, regsFixtureLines, regsFixtureUnnamedTaps, sectionNames, type LineRow } from "./releaseDir";
 
 const ROWS = regsFixtureLines().lines;
 /** three closed stream sections of the fixture that begin where another ends (a cut), as names: [stream key, start metre] */
@@ -63,6 +63,23 @@ describe("T667 section names: a renumbering is absorbed, a move fails by name", 
     const cut = sectionNames(openRegsFixtureWithLines(ROWS, { db: (name, d) => name === "water" ? partsShifted(d) : d }));
     expect(await cut.part(VEDDER, ...VEDDER_LOW)).toBe(low + 1);
     expect(await cut.partAt(VEDDER, VEDDER_KEY, 5000)).toBe(low + 1);
+  });
+
+  // (T768) the WHOLE list, against an answer this code did not compute: the fixture keeps the golden taps' unnamed
+  // sample (taps.json, the pipeline's), of which the streams are those with a line; its wetlands and lakes have none
+  it("the unnamed streams are exactly the golden unnamed taps that have a stream line, ascending; a water's own section is never one", async () => {
+    const loader = openRegsFixtureWithLines(), names = sectionNames(loader);
+    const unnamed = await names.unnamedStreams();
+    const lined = new Set(regsFixtureLines().lines.map((l) => l[0]));
+    const taps = regsFixtureUnnamedTaps().map((u) => u.handle);
+    expect(unnamed).toEqual(taps.filter((h) => lined.has(h)).sort((a, b) => a - b));
+    expect([unnamed.length > 0, unnamed.length < taps.length]).toEqual([true, true]);   // both kinds are in the sample
+    const named = new Set((await (await loader.db("water")).all("SELECT sid FROM part_section")).map((r) => Number(r.sid)));
+    expect(unnamed.filter((h) => named.has(h))).toEqual([]);
+    // MUTATION: an unnamed tap that loses its line is no stream any more, though its slot is still in a block that
+    // other rows fill (a filler, spanning nothing): this found that "has a line" alone let such a slot through
+    expect(await sectionNames(openRegsFixtureWithLines(ROWS.filter((l) => l[0] !== unnamed[0]))).unnamedStreams())
+      .toEqual(unnamed.slice(1));
   });
 
   it("a part whose end moved to another boundary, or a place off the water, is refused by name", async () => {

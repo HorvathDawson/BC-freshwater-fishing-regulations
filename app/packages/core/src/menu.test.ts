@@ -4,7 +4,7 @@
  */
 import { describe, expect, it } from "vitest";
 import {
-  aboutEnvVM, aboutVM, dataProvenanceLine, contactVM, diagnosticRows, regsLapsed, regsLapsedNote, sourceFreshness, glossaryRows, glossarySections, markedRuns, editDistance, isoDayWords,
+  aboutEnvVM, aboutVM, contactVM, diagnosticRows, regsLapsed, regsLapsedNote, sourceFreshness, glossaryRows, glossarySections, markedRuns, editDistance, isoDayWords,
   mailtoUrl, regsReportWhere, waterReportWhere, reportMessage, reportPayload, emailProblem, REPORT_REASONS, sourcesVM, whereLines, type Diagnostics, type SourceDateKey, type SourcesInput,
 } from "./menu";
 import { FISH_CREDITS } from "./regs/fish.generated";
@@ -142,24 +142,6 @@ describe("about", () => {
     expect([aboutEnvVM(prod), aboutEnvVM(null), aboutVM({ appBuild: null, release: null, tiles: null, edition: null,
       dataEnv: prod }, "u").env]).toEqual([null, null, null]);
     expect(aboutEnvVM({ ...prod, switchable: true })?.badge).toBe("PRODUCTION");
-  });
-  // (T585 F12, F13) which data the Conditions card answers from, in a development or staging build
-  it("the Conditions card names the data release in a staging build, and nothing in a production one", () => {
-    const P = { release: "r-303b4007a70a", env: "staging", built: "staging", switchable: false, channel: "live", builtChannel: "live" } as const;
-    expect(dataProvenanceLine(P)).toBe("Data release r-303b4007a70a");
-    expect(dataProvenanceLine({ ...P, release: null })).toBe("Data release Not stated");
-    expect(dataProvenanceLine({ ...P, env: "production", built: "production" })).toBeNull();
-  });
-  it("an overridden data source or channel is named beside the release; the build's own are not", () => {
-    const P = { release: "r-303b4007a70a", env: "staging", built: "staging", switchable: true, channel: "live", builtChannel: "live" } as const;
-    expect(dataProvenanceLine({ ...P, env: "production" })).toBe("Data release r-303b4007a70a · Data source Production");
-    expect(dataProvenanceLine({ ...P, channel: "test" })).toBe("Data release r-303b4007a70a · Channel test");
-    expect(dataProvenanceLine({ ...P, env: "local", channel: "test" }))
-      .toBe("Data release r-303b4007a70a · Data source Local · Channel test");
-    // a build MADE for the test channel reads it by design: not an override
-    expect(dataProvenanceLine({ ...P, channel: "test", builtChannel: "test" })).toBe("Data release r-303b4007a70a");
-    // a production build with a switch says its release (it can be switched away)
-    expect(dataProvenanceLine({ ...P, env: "production", built: "production" })).toBe("Data release r-303b4007a70a");
   });
   it("a development build's switch marks the pending choice and says when it applies, whole", () => {
     const vm = aboutEnvVM({ ...ENV, switchable: true, pending: "local" });
@@ -462,17 +444,25 @@ describe("freshness: each source against its own cadence (owner 2026-10-22)", ()
 });
 
 describe("contact", () => {
-  it("is a placeholder until the owner supplies one", () => {
-    expect(contactVM(null)).toEqual({ kind: "none", intro: "Questions, corrections and ideas are welcome.",
+  // (T860, owner 2026-11-18) the intro names the report form beside the email, in words (the row is on the same page);
+  // "Email me" only where there is an address to email
+  const TAIL = "A water's regulations have their own Report a problem link, which names the water for you.";
+  const INTRO = "Questions, corrections and ideas are welcome. I read every message. Email me, or send a note from the app "
+    + `with Report a problem. ${TAIL}`;
+  const NO_EMAIL = "Questions, corrections and ideas are welcome. I read every message. Send a note from the app with "
+    + `Report a problem. ${TAIL}`;
+
+  it("is a placeholder until the owner supplies one, and then says nothing of email", () => {
+    expect(contactVM(null)).toEqual({ kind: "none", intro: NO_EMAIL,
       text: "Contact details are coming soon. Until then, use Report a problem to share a note from your device." });
     expect(contactVM("  ").kind).toBe("none");
     expect(contactVM("not an address").kind).toBe("none");
   });
 
-  it("reads an email address or a web link from the one config value", () => {
-    expect(contactVM("hello@example.org")).toEqual({ kind: "email", intro: "Questions, corrections and ideas are welcome.",
+  it("reads an email address or a web link from the one config value: only an address says \"Email me\"", () => {
+    expect(contactVM("hello@example.org")).toEqual({ kind: "email", intro: INTRO,
       label: "Email", value: "hello@example.org", url: "mailto:hello@example.org" });
-    expect(contactVM("https://example.org/contact")).toEqual({ kind: "link", intro: "Questions, corrections and ideas are welcome.",
+    expect(contactVM("https://example.org/contact")).toEqual({ kind: "link", intro: NO_EMAIL,
       label: "Website", value: "https://example.org/contact", url: "https://example.org/contact" });
   });
 });
@@ -578,7 +568,7 @@ describe("report a problem, sent (T237)", () => {
     expect(reportPayload({ ...base, email: "a@b.ca", on: {} }).contact).toBe(false);
     expect(reportPayload({ ...base, email: "nope", contact: true, on: {} }).contact).toBe(false);
     expect(reportPayload({ ...base, email: "", contact: true, on: {} }).contact).toBe(false);
-    expect(MENU_WORDS.report.privacy).toBe("We use your report only to fix the app's data. It holds what you wrote and "
+    expect(MENU_WORDS.report.privacy).toBe("I use your report only to fix the app's data. It holds what you wrote and "
       + "the details you left switched on; your email, if you give one, is used only to reply — and only if you tick "
       + "‘You may contact me’.");
     expect(emailProblem("")).toBeNull();

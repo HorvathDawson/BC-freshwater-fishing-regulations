@@ -3,16 +3,16 @@
  * never compute: every finished sentence is here, pinned by a core test against the goldens
  * (app/fixtures/golden/golden.json, regs v38 @ 7fb6809f).
  *
- * Later tickets add fields where the contract marks them (T28 `GroupVM.pinLine`), and the functions declared beside
+ * Later tickets add fields where the contract marks them (T28 added `GroupVM.pinLine`, gone with the pin bar at the T810 cutover), and the functions declared beside
  * their types (T33 `licenceBlockLines`, T36 `sheetOf`/`sheetLines`).
  */
 import type { Line, RuleKey } from "./line";
 import type { SheetKey } from "./sheetKey";
-import type { PinLine } from "./pins";
 import type { RegsInputs } from "./inputs";
 import type { Weekday } from "../calendar.generated";
 import type { KeepEnv } from "./keep";
-import type { BookBox } from "../answers.generated";
+import type { BookBox, FishSheet, Together, YearBar } from "../answers.generated";
+import type { ClassBadgeVM } from "./classBadge";
 
 export type { Weekday } from "../calendar.generated";
 /** The spec's weekday names, Monday first (THE CALENDAR SPEC). */
@@ -43,7 +43,8 @@ export interface RegsPage {
 
 /** The whole page for one tap: `buildRegsPage` in page.ts (T21). */
 
-/** `in_boat` (T670 G1): a gear or method rule that holds for an angler in a boat ("No angling (from a boat)") */
+/** `in_boat` (T670 G1): a gear or method rule that holds for an angler in a boat ("No angling (from a boat)"), or
+ *  (T797) in a powered boat ("No angling (from a powered boat)") */
 export type BoatKind = "none" | "unpowered" | "electric_only" | "power_capped" | "speed" | "towing" | "in_boat";
 /** (T209) one chip of the boats line; `rule` is the first rule of the kind (its sheet opens from the chip). */
 export interface BoatChipVM { readonly kind: BoatKind; readonly text: string; readonly rule: RuleKey }
@@ -58,6 +59,8 @@ export interface HeaderVM {
   readonly place: { full: string; short: string } | null;  // two candidates; the component shows full if ≤2 lines else short (fitLabel)
   // no action: golden header.action (Map, Parts) is dropped — owner call 3 (T71 Map, T150 Parts); the Map view lists parts
   readonly tabs: readonly { tab: Tab; label: string }[];   // golden header.tabs; (T42) outside B.C. the Keep tab alone
+  /** (T841) the classified-water badge ("Class II"), `classBadge.ts`; absent: none (not classified, or look A out of period) */
+  readonly classed?: ClassBadgeVM;
 }
 
 // ── 2.2 Keep tab (prototype buildKeep) ─────────────────────────────────────────────────────────────────────────────
@@ -76,9 +79,66 @@ export interface KeepVM {
   readonly possession: PossessionVM | null; // (T15)
   readonly whereNot: WhereNotVM | null;
   readonly outside: string | null;          // words.OUTSIDE_BC (page v36 renderCard foot) (T42)
+  /** (T810 N, S) the trout and char table (`trout.ts` `troutOf`), or its refusal; null: the cell has none, or the day is
+   *  closed. ABSENT only on the two edges with no card (outside B.C., tidal water). The one trout path (no old card). */
+  readonly trout?: TroutVM | TroutRefusedVM | null;
+  /** (T892) the trout fold row's line in the one table when EVERY row of today's trout table rests on the same waters'
+   *  rows carried down to their tributaries ("Bella Coola River’s rule for its tributaries", sheets/trout.ts `troutFrom`).
+   *  Kept beside the table, never in it: the table's words are Python's (T810). Absent: none, or only some rows. */
+  readonly troutFrom?: string;
 }
 export type KeepBlock = "strip" | "inherited" | "banner" | { caveat: number } | { group: number } | { plain: number } | "otherFish" | "possession" | "whereNot"
-  | "outside";
+  | "outside" | "trout";
+
+// ── (T810 N) the trout and char table (trout-table-contract.md 2.3, 2.12): every text the payload's, drawn unchanged ──
+/** One band of a keep box's right column ("up to the 5", "only 3", "only 1 of these 4"), over rows `from`..`to`; `date`:
+ *  the small line under its white box (`DateSet.band`; a nested band's is always null: the date set names no nested band). */
+export interface TroutBandVM { readonly from: number; readonly to: number; readonly text: string;
+  readonly kind: "upto" | "own" | "shared" | "possession" | "size"; readonly date: string | null }
+/** One fish row. `split` (trout 5): a merged hatchery+wild row ("… if wild"), never with an origin or a label. `origin` null on a plain row AND on a merged twin (trout 4: key = the fish, its first line "<size> if
+ *  wild"); `date`: its own last line (`DateSet.row`); `coming`: its sheet's coming-change sentences (`DateSet.sheet`);
+ *  `a11y`: its screen-reader label (payload texts in payload order, joined by ". "). `tag` (T907): the row's tributary
+ *  source as a tag beside its name, in the box tag's look ("Lake’s rule"), Python's words (`TRow.tag`, "Trout Lake’s
+ *  tributaries"); null: none (or a release from before T907, whose rows carry only `TRow.down`, which this app no longer
+ *  draws: owner 2026-11-19 ~06:55, "simialr to how it has "this water"", instead of the grey line). */
+export interface TroutRowVM {
+  readonly key: string; readonly fish: string; readonly name: string; readonly origin: "hatchery" | "wild" | null;
+  readonly label: string | null; readonly split: boolean; readonly tag: string | null; readonly sub: string | null; readonly lines: readonly string[]; readonly quiet: readonly string[];
+  readonly src: readonly number[]; readonly sheet: FishSheet; readonly coming: readonly string[]; readonly date: string | null;
+  readonly a11y: string;
+}
+/** A keep box, or the Release / Closed group under them; `date`: the strip date, or the column date under the word. */
+export interface TroutBoxVM {
+  readonly kind: "keep" | "release" | "closed"; readonly head: string; readonly label: string | null; readonly strip: string | null;
+  /** (T810 G2 Q4) the possession every row shares, drawn on its own line under the box's top line (keep only) */
+  readonly possession: string | null;
+  readonly tag: string | null; readonly date: string | null; readonly rows: readonly TroutRowVM[]; readonly bands: readonly TroutBandVM[];
+  /** (trout 4) the nested bands (`Box.inner`, kind "shared" / "size"): each over 2+ rows inside ONE band (never that band
+   *  whole), none overlapping; drawn inside its band's white box. [] on a release or closed box. */
+  readonly inner: readonly TroutBandVM[];
+}
+/** The table under the Trout and char entry. `top.lead` has its day slot filled; `top.sub` (trout 4): the exception, drawn
+ *  as the lead's subtitle (the full sentence is `lead + ", " + sub`); `card`: the card-level date (`DateSet.card`), the
+ *  grey line under the top line; `fold`:
+ *  the entry's folded row (`name` the app's entry word); the links are the app's navigation words, null where hidden. */
+export interface TroutVM {
+  readonly kind: "table";
+  readonly top: { readonly lead: string; readonly sub: string | null; readonly second: string | null; readonly date: string | null };
+  readonly card: string | null;
+  readonly fold: { readonly name: string; readonly value: string; readonly tone: "keep" | "release" | "closed" | "none"; readonly date: string | null };
+  readonly hatchLink: string | null;
+  readonly boxes: readonly TroutBoxVM[];
+  readonly together: Together | null;
+  readonly year: YearBar | null;
+  readonly elsewhere: readonly string[]; readonly elsewhereLink: string | null;
+  readonly sourcesLink: string;
+  readonly src: readonly number[];
+  /** the rows-frame rows the table replaces (Q-D4): drawn nowhere else */
+  readonly covers: readonly number[];
+}
+/** A trout frame that broke the contract (`trout.ts` `checkTrout`): reported, no table drawn; `covers` still names the rows
+ *  it would have replaced (never drawn by the old card instead). */
+export interface TroutRefusedVM { readonly kind: "refused"; readonly why: string; readonly covers: readonly number[] }
 /** `also` (T670 K1): the sentences after the lead — fish whose possession differs, then the water's own possession limits —
  *  drawn under the row; `value` is "" when the water's own limits are the only possession rules. */
 export interface PossessionVM { readonly label: string; readonly value: string; readonly says: string; readonly also: readonly string[];
@@ -110,17 +170,17 @@ export interface BannerVM {
 /** prototype per-article block; page v36 cardBlock / treeBlock / rowTitle / scopeBadge */
 export interface GroupVM {
   readonly row: number;                     // index into rows frame rows[]
+  /** (T892) the group's sheet names a deciding step "<that water> · its tributaries" for all its fish: its fold row in
+   *  the one table says so ("Duck Lake’s rule for its tributaries", flow.ts `downLine`). Absent: none. */
+  readonly from?: string;
   readonly title: string;                   // page v36 rowTitle(row)
   readonly scope: string | null;            // head kicker, null when moved to the share (moveTag)
   readonly head: GroupHeadVM;
-  /** (T28) the pin bar's group line (pins.ts groupLine over the stored tree root + headline); null: no tree */
-  readonly pinLine: PinLine | null;
   readonly origin: OriginVM | null;         // the .ghd.gsub block
   readonly year: { label: string; says: string } | null;   // the .gyear year window (plainrow.ts yearWindowOf), under the head
   readonly tree: readonly TreeNodeVM[] | null;   // root's children when header.tier === tree[0].id, else tree[]
   readonly notKept: readonly NotKeptVM[];
   readonly worked: { label: string; says: string | null; lines: readonly { at: "here" | "elsewhere"; q: string; a: string }[] } | null;   // q carries ":" for at=here
-  readonly quiet: Line | null;              // page v36 noRulesLine (STEEL_LINE) + ⓘ steelhead
   readonly more: { text: string; open: SheetKey };   // "See every regulation line ›" → src:r<i>
 }
 export interface GroupHeadVM {
@@ -154,8 +214,6 @@ export interface TierVM {
   readonly sub: string | null;              // own tier: cap(why_here)
   readonly origin: OriginVM | null;         // tier.origin with How to tell and the root's book when group.origin is null
   readonly band: boolean;                   // tier === "size": the tinted SizeBand wraps this node
-  readonly short: string;                   // shortOf(tier) for the pin bar (T28)
-  readonly n: number | null;                // (T29) the stored tier's number: the pin bar's form-a share test (PinTierAnchor.n)
   readonly children: readonly TreeNodeVM[];
 }
 /**
@@ -212,6 +270,34 @@ export interface LadderVM {                                           // "How th
   readonly lost: readonly { text: string; status: string; rule: RuleKey; book: Line }[];
   /** (T216) the angler's explanation, in layers (base → this water → exceptions); the Keep form only (story.ts) */
   readonly story?: DecidedStoryVM;
+  /** (T883, proposal) the fish sheet's "How this was decided": the steps in order, then the answer (flow.ts) */
+  readonly flow?: FlowVM;
+}
+/** (T883, proposal) one step of a fish's "How this was decided": who says it (kicker), the rule's words, what it did
+ *  (none for the rule that sets the answer: the answer line says it), and its printed page ("p.21 ↗"). */
+export interface FlowStepVM {
+  readonly kicker: string; readonly says: Line; readonly tag: string | null;
+  /** won: it holds; lost: replaced or lifted (greyed); quiet: changed nothing (folded); note: a restatement (review 6) */
+  readonly tone: "won" | "lost" | "quiet" | "note"; readonly book: Line; readonly rule: RuleKey | null;
+  /** the same kicker as the step before: drawn once (the page moves to the words' line) */
+  readonly repeat?: true;
+  /** a weekday part in force on the viewed day: its tag ("Today" / the weekday) in the accent, the word never colour alone */
+  readonly today?: true;
+  /** the data's restates notes under the step (the combined-quota note) */
+  readonly notes?: readonly string[];
+}
+/** (T883, proposal) every fish sheet's "How this was decided", trout and other fish alike: the steps that made the
+ *  answer in reading order (base → this water → what narrows it, a replaced rule in its place, quietly), the answer, the
+ *  other rules (possession, duties) one line each, and the rules that changed nothing (folded). */
+export interface FlowVM {
+  readonly steps: readonly FlowStepVM[];
+  /** the answer line at the rail's end, whole ("So: Release every one here.") */
+  readonly result: string | null;
+  readonly other: readonly FlowStepVM[]; readonly otherHead: string;
+  readonly quiet: readonly FlowStepVM[]; readonly quietHead: string;
+  /** (T892) the waters a deciding step names "<that water> · its tributaries", when they hold for every fish of the row:
+   *  what the Keep tab's table row says (flow.ts `downLine`). Absent: none. */
+  readonly down?: readonly string[];
 }
 /** (T216) "How this was decided" for an angler: which rules applied today, layer by layer, what each did and why. */
 export interface DecidedStoryVM {
@@ -232,7 +318,8 @@ export interface DecidedStepVM {
   readonly rule: RuleKey;
 }
 export interface CaveatVM {                                           // page v36 inPartHtml / sideHtml / anglerClosures / timedHtml / uncertainHtml (T15b)
-  readonly kind: "partclosed" | "inpart" | "side" | "angler" | "timed"; readonly hot: boolean;
+  /** (T796) `note`: a section's note from the release (core `section_note`), Python's own sentence as `title`, no items */
+  readonly kind: "note" | "partclosed" | "inpart" | "side" | "angler" | "timed"; readonly hot: boolean;
   readonly title: string; readonly calm: string | null;
   readonly items: readonly CaveatItemVM[]; readonly later: readonly CaveatItemVM[] | null;
   /** (T208, inpart) the distinct area tags of its items ("Outlet area only (see map 1)"), drawn on the folded head; `areaNow`:
@@ -244,7 +331,11 @@ export interface CaveatItemVM { readonly what: Line; readonly where: string | nu
    *  stays the rule's own words (the golden's); the component draws the tag before it and sets the item apart. `map`: the link to the synopsis page that shows it. */
   readonly area?: { readonly tag: string; readonly map: Line | null };
   /** (T372) a salmon caveat item's DFO words for its place (limits, sizes, notes, gear), each a line under it */
-  readonly detail?: readonly string[] }
+  readonly detail?: readonly string[];
+  /** (T898) a closure of every day from `after` minutes after sunset to `before` minutes before sunrise: the moment's stored
+   *  hours window (the pipeline's `solar` + `offset_min` ends), so a screen gives the day's real times without reading
+   *  `where`. Absent for any other item. */
+  readonly daylight?: { readonly after: number; readonly before: number } }
 
 export interface OtherFishKeyVM { readonly status: "release" | "closed"; readonly says: string; readonly term: string }
 export interface OtherFishRowVM{ readonly thumb: string | null; readonly name: string; readonly value: string;
@@ -254,7 +345,11 @@ export interface OtherFishRowVM{ readonly thumb: string | null; readonly name: s
   readonly stamps: readonly Line[];
   /** (T670 K2) the row's fish its number does not hold for — released or closed by their own rule (the store's "back"
    *  conditions), each in the rule's stored sentence; drawn under the row, in the status colour. [] for none */
-  readonly back: readonly { readonly status: "release" | "closed"; readonly says: string; readonly rule: RuleKey }[] }
+  readonly back: readonly { readonly status: "release" | "closed"; readonly says: string; readonly rule: RuleKey }[];
+  /** (T892) the row's answer rests on another water's row carried down to its tributaries — the sheet's "<that water> ·
+   *  its tributaries" step — said under the name ("Kootenay River’s rule for its tributaries", flow.ts `downLine`).
+   *  Absent: the water's own rules, its region's, or B.C.'s. */
+  readonly from?: string }
 export interface WhereNotVM { readonly heading: string; readonly scope: string | null; readonly items: readonly { text: Line; rule: RuleKey }[] }
 
 // ── 2.3 Gear tab (prototype buildGear; page v36 gearParts) ─────────────────────────────────────────────────────────
@@ -266,6 +361,9 @@ export interface GearVM {
   readonly mode: { value: string; terms: readonly string[]; changes: readonly ChangeVM[]; src: SourceLineVM | null } | null;
   readonly lines: readonly GearLineVM[];    // Lines · Hooks · Weight on the line, only parts the summary sentence names
   readonly bait: BaitVM | null;
+  /** (T900) the section's ONE source line: every row's and the Bait item's rules together, drawn once under the section
+   *  instead of under each row (`srcs:gear` opens the Sources sheet of all of them); null on a day with no items */
+  readonly src: SourceLineVM | null;
 }
 export interface GearLineVM { readonly k: "lines" | "hook" | "weight"; readonly label: string; readonly values: readonly string[]; readonly terms: readonly string[]; readonly changes: readonly ChangeVM[]; readonly src: SourceLineVM | null;
   /** (T30) the ⓘ after each value (`terms` is their union): one id an ⓘ, two or more one "What these words mean" */
@@ -282,8 +380,11 @@ export interface SourceLineVM {
 export interface BaitVM { readonly label: string; readonly notes: readonly Line[];
   readonly list: YesNoVM; readonly src: SourceLineVM | null }
 export type YesNoVM = readonly { col: "ok" | "no"; head: "Allowed" | "Not allowed";
+  /** (T900) a "Not allowed" column of bare names (no note, no ⓘ; three or more) is drawn as one wrapped line, not a row each */
+  inline: boolean;
   /** (T35) terms: glossary ids for an ⓘ after the name (the set_line ⓘ on an allowed "Set lines"); [] for none */
-  items: readonly { mark: "✓" | "✕"; name: string; note: string | null; terms: readonly string[] }[] }[];
+  /** (T922) `notes`: one capitalised, full-stopped sentence per condition; [] for none */
+  items: readonly { mark: "✓" | "✕"; name: string; notes: readonly string[]; terms: readonly string[] }[] }[];
 
 // ── 2.4 Methods tab ────────────────────────────────────────────────────────────────────────────────────────────────
 export interface MethodsVM {
@@ -331,6 +432,8 @@ export type SheetBlock =
   | { k: "value"; text: Line }
   | { k: "weekBox"; day: string; scope: string | null; status: string; says: string }
   | { k: "ladder"; q: string | null; result: string | null; steps: readonly LadderStepVM[] }
+  /** (T883, proposal) "How this was decided" as one flow, the same on every fish sheet */
+  | { k: "flow"; flow: FlowVM }
   | { k: "sources"; groups: readonly { where: string; rows: readonly SourceRowVM[] }[];
       /** (T36) the "Overruled (N)" cards: drawn as page v36 srcCard (quoted words, then whose, then the role), one group per card */
       overruled?: true }
@@ -345,7 +448,9 @@ export type SheetBlock =
   /** (T36) an other-fish row drawn as its Keep group (prototype g28 article): T37 draws it with the Keep tab's group component */
   | { k: "group"; group: GroupVM;
       /** false: the group's title is not drawn (the sheet's title says it) — the prototype drops a head title with no scope tag */
-      titled: boolean }
+      titled: boolean;
+      /** (T883) false: the card does not draw its "See every regulation line ›"; the sheet draws it after its flow */
+      more?: false }
   /** (T36) the row's title with its scope tag run on (page v36 .rtitle + .scope: "Black crappie" "Region 2-wide") */
   | { k: "rowTitle"; title: string; scope: string | null };
 export interface LadderStepVM { readonly level: string;

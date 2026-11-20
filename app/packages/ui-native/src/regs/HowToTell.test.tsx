@@ -1,8 +1,8 @@
 /**
  * T38 — the "Hatchery or wild?" sheet (regs-v11 sheetHtml hatch over page v36 adiposeHtml; T439: its lines are typed here, no longer read from golden.json):
- * the two rainbow-trout drawings (`AdiposeArt`), the plain line, then the hatchery_wild term with its closed fold and
- * its pages. Mounted over the FROZEN vedder_1010 page (fixtures/vedder_1010.json), the images handed down as the app
- * hands them (apps/mobile `ADIPOSE_IMAGES`; here two stand-in sources).
+ * the two drawings (`AdiposeArt`; T886: the loader's coho, printed per theme, `adipose.generated.ts`), the plain line,
+ * then the hatchery_wild term with its closed fold and its pages. Mounted over the FROZEN vedder_1010 page
+ * (fixtures/vedder_1010.json).
  *
  * Order inside a figure: the drawing, then its caption — the prototype (regs-v11.html sheetHtml hatch) puts the SVG at
  * the start of each `figure.fishart`, before the figcaption (screens/59-sheet-how-to-tell.png).
@@ -14,8 +14,9 @@ import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import type { RegsPage, SheetKey, SheetVM } from "@app/core";
 import { SheetHost } from "./SheetHost";
 import { RegsScreen } from "./RegsScreen";
-import { AdiposeArt } from "./AdiposeArt";
-import { DARK, LIGHT } from "../theme";
+import { AdiposeArt, adiposeArt } from "./AdiposeArt";
+import { ADIPOSE } from "../adipose.generated";
+import { DARK, LIGHT, THEMES, type Palette } from "../theme";
 import vedder1010 from "./fixtures/vedder_1010.json";
 
 afterEach(cleanup);
@@ -23,7 +24,6 @@ afterEach(cleanup);
 type Frozen = Omit<RegsPage, "sheet"> & { sheets: Record<string, SheetVM | null> };
 const sheetPage = (f: unknown): RegsPage => { const p = f as Frozen; return { ...p, sheet: (k: SheetKey) => p.sheets[k] ?? null } as RegsPage; };
 const VEDDER = sheetPage(vedder1010);
-const ADIPOSE = { wild: { uri: "adipose-wild.webp" }, clipped: { uri: "adipose-clipped.webp" } };
 /** the sheet's lines, in order (the book's words are the glossary transcription: the rule book's p.13 and p.80 words) */
 const G = {
   lines: [
@@ -38,14 +38,14 @@ const G = {
   pages: [{ text: "p.13 ↗", pdf: 15 }, { text: "p.80 ↗", pdf: 86 }],
 };
 
-function hatch({ adipose = ADIPOSE as typeof ADIPOSE | null, palette = LIGHT } = {}) {
+function hatch({ palette = LIGHT as Palette } = {}) {
   const onBook = vi.fn(), opened: SheetKey[] = [];
-  render(<SheetHost page={VEDDER} open="hatch" onOpen={(k) => opened.push(k)} onClose={() => {}} onBook={onBook} palette={palette} adipose={adipose ?? undefined} />);
+  render(<SheetHost page={VEDDER} open="hatch" onOpen={(k) => opened.push(k)} onClose={() => {}} onBook={onBook} palette={palette} />);
   return { onBook, opened };
 }
 const squash = (s: string | null | undefined) => (s ?? "").replace(/\s+/g, " ").trim();
-/** the source an RN-web Image draws (its inner <img>) */
-const srcOf = (fig: HTMLElement) => fig.querySelector("img")?.getAttribute("src") ?? null;
+/** the file an RN-web Image draws (its inner <img>), by name */
+const srcOf = (fig: HTMLElement) => fig.querySelector("img")?.getAttribute("src")?.split("/").pop() ?? null;
 
 describe("T38 How to tell: the hatch sheet", () => {
   it("1. two figures, the drawing then its caption: labelled by their captions, in order, each with its own drawing", () => {
@@ -54,8 +54,8 @@ describe("T38 How to tell: the hatch sheet", () => {
     // (T40) the drawing is the image, named by the caption; the figure carries no label (it would hide the caption's text)
     const pic = (f: HTMLElement) => f.querySelector<HTMLElement>('[data-testid="adipose-picture"]')!;
     expect(figs.map((f) => [f.getAttribute("aria-label"), pic(f).getAttribute("role"), pic(f).getAttribute("aria-label"), srcOf(f)])).toEqual([
-      [null, "img", "Wild · adipose fin there", "adipose-wild.webp"],
-      [null, "img", "Hatchery · clipped, a healed scar instead", "adipose-clipped.webp"],
+      [null, "img", "Wild · adipose fin there", "adipose-light-wild.webp"],
+      [null, "img", "Hatchery · clipped, a healed scar instead", "adipose-light-clipped.webp"],
     ]);
     // inside each figure: the picture box first, the caption after it (the prototype's figure.fishart order)
     expect(figs.map((f) => [...f.children].map((c) => [c.getAttribute("data-testid"), squash(c.textContent)]))).toEqual([
@@ -125,27 +125,33 @@ describe("T38 How to tell: the hatch sheet", () => {
     }
   });
 
-  it("each figure keeps the drawing's own proportions (800×300) and the fish picture's measure", () => {
+  it("each figure keeps the drawing's own proportions (1200×600, 2:1) and the fish picture's measure", () => {
     hatch();
+    expect(ADIPOSE.size).toEqual({ width: 1200, height: 600 });
     const boxes = screen.getAllByTestId("adipose-picture").map((b) => [b.style.aspectRatio, b.parentElement!.style.maxWidth]);
-    expect(boxes).toEqual([[`${800 / 300} / 1`, "360px"], [`${800 / 300} / 1`, "360px"]]);
+    expect(boxes).toEqual([["2 / 1", "360px"], ["2 / 1", "360px"]]);
   });
 
-  it("an app that registered no drawings still draws both figures, captioned, with an empty ground of the same size", () => {
-    hatch({ adipose: null });
-    expect(screen.getAllByTestId("adipose-picture").map((f) => [f.getAttribute("aria-label"), srcOf(f)])).toEqual([
-      ["Wild · adipose fin there", null], ["Hatchery · clipped, a healed scar instead", null]]);
+  it("(T886) each theme draws the pair printed in its own tokens: dark its own, light and the colour-blind theme the light one", () => {
+    const drawn = (palette: Palette) => { hatch({ palette }); const out = screen.getAllByTestId("adipose-figure").map(srcOf); cleanup(); return out; };
+    expect(drawn(DARK)).toEqual(["adipose-dark-wild.webp", "adipose-dark-clipped.webp"]);
+    expect(drawn(LIGHT)).toEqual(["adipose-light-wild.webp", "adipose-light-clipped.webp"]);
+    expect(drawn(THEMES.cvd)).toEqual(["adipose-light-wild.webp", "adipose-light-clipped.webp"]);
   });
 
-  it("6. How to tell opens it: the ST kind's 'How to tell hatchery ›' on the Vedder Keep tab opens the hatch sheet (ur3-howtell-steelhead)", () => {
+  it("(T886) a palette no theme wears (light with dark's accent) has no drawing, and says so (never a pair in other colours)", () => {
+    expect(() => adiposeArt({ ...LIGHT, accent: DARK.accent })).toThrow(/no hatch drawing is printed in/);
+  });
+
+  it("6. How to tell opens it: the trout table's 'How to tell a hatchery fish ›' on the Vedder Keep tab opens the hatch sheet (T810 cutover: the table's link, where the ST kind's was)", () => {
     const onSheet = vi.fn();
-    render(<RegsScreen page={VEDDER} palette={LIGHT} adipose={ADIPOSE} actions={{ onSheet, onDay() {}, onBook() {} }} onDate={() => {}} />);
-    const tells = screen.getAllByText("How to tell hatchery ›");
-    expect(tells.length).toBeGreaterThan(0);
-    fireEvent.click(tells[0]!);
+    render(<RegsScreen page={VEDDER} palette={LIGHT} actions={{ onSheet, onDay() {}, onBook() {} }} onDate={() => {}} />);
+    const tell = screen.getByTestId("trout-hatch");
+    expect(tell.textContent).toBe("How to tell a hatchery fish ›");
+    fireEvent.click(tell);
     expect(onSheet.mock.calls).toEqual([["hatch"]]);
     expect(screen.getByRole("heading", { name: "Hatchery or wild?" })).toBeTruthy();
-    expect(screen.getAllByTestId("adipose-figure").map(srcOf)).toEqual(["adipose-wild.webp", "adipose-clipped.webp"]);
+    expect(screen.getAllByTestId("adipose-figure").map(srcOf)).toEqual(["adipose-light-wild.webp", "adipose-light-clipped.webp"]);
   });
 });
 
@@ -155,14 +161,14 @@ describe("AdiposeArt on a wide sheet", () => {
   it("phone: one above the other; tablet / desktop: side by side, wrapping (as a fish's looks, T46)", () => {
     expect(figures.map((f) => f.variant)).toEqual(["wild", "clipped"]);
     const dir = (layout: "phone" | "tablet" | "desktop") => {
-      render(<AdiposeArt figures={figures} images={ADIPOSE} palette={LIGHT} layout={layout} />);
+      render(<AdiposeArt figures={figures} palette={LIGHT} layout={layout} />);
       const s = screen.getByTestId("adipose-art").style; const out = [s.flexDirection, s.flexWrap]; cleanup(); return out;
     };
     expect([dir("phone"), dir("tablet"), dir("desktop")]).toEqual([["column", ""], ["row", "wrap"], ["row", "wrap"]]);
   });
 
   it("the sheet hands its layout down: a tablet's hatch sheet sets the two side by side", () => {
-    render(<SheetHost page={VEDDER} open="hatch" onOpen={() => {}} onClose={() => {}} palette={LIGHT} adipose={ADIPOSE} layout="tablet" />);
+    render(<SheetHost page={VEDDER} open="hatch" onOpen={() => {}} onClose={() => {}} palette={LIGHT} layout="tablet" />);
     expect(screen.getByTestId("adipose-art").style.flexDirection).toBe("row");
   });
 

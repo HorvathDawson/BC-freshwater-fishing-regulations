@@ -1,6 +1,8 @@
 # T608 — Three read-only audits before closed testing
 
-Status: OPEN
+Status: DONE — ef14f3b83 (A), 347b96a45 (B), ea9bda3cd (C), 1b1cfd8a9 + 07e20df52 (D). Findings files written; tickets filed from A (T623), B (T620, T621, T622), C (T558, T559, T609); D's follow-up tickets parked by the owner 2026-11-10 ("we can handle them later… I just wanted to look at the scale").
+
+Closed by the 2026-11-20 audit: acceptance (findings files with ranked lists; tickets filed) met for A-C; D's findings written and its tickets parked on the owner's recorded word.
 
 Source: owner 2026-11-10: "we could run more audits in background with fable maybe?" Aim: the T495 gates (no wrong
 regs, no crashes, clean first run) and the owner's rule that one water never shows differently by platform or path.

@@ -9,7 +9,7 @@ import type { DayFlowAnswer, HydatDaily, LikeStore, Spot, WeatherSource } from "
 import type { Camera, TileEndpoints } from "@app/map";
 import type { MutableRefObject } from "react";
 import type { MenuInfo } from "../menu/MenuHost";
-import type { AdiposeImages, FishImages } from "../regs/types";
+import type { FishImages } from "../regs/types";
 import type { Palette, ThemeName } from "../theme";
 
 export interface ShellProps {
@@ -80,7 +80,6 @@ export interface ShellProps {
   /** The fish pictures by species code, registered by the app (T20). Absent -> silhouettes. */
   fishImages?: FishImages;
   /** (T38) the hatch sheet's two drawings (Wild / Hatchery · clipped), registered by the app. */
-  adiposeImages?: AdiposeImages;
   /** S1: a spot's photographs — the store and the platform's picker (the app's). Absent -> no photos offered. */
   photos?: SpotPhotos;
   /** G1: the platform's own back (Android `BackHandler`, the browser's history), from the app. Absent -> ‹ only. */
@@ -149,6 +148,11 @@ export interface ShellProps {
    * per ready release.
    */
   onSafeToApply?: () => void;
+  /**
+   * (T746) The apply in flight and the failed one (`@app/ui` `useApplyCurtain`): drawn over everything as the curtain
+   * (`ApplyCurtain`), a back layer while it is up. Null / absent: none.
+   */
+  applyCurtain?: { applying: boolean; failed: Error | null; close: () => void; line: string } | null;
   /**
    * (T186, Q164) Fetch ahead after first paint: the regs file of the region in view, and core + sql-wasm when the
    * browser is idle and not on Save-Data / a slow connection (`@app/ui` `useReleasePrefetch`). The WEB only (App passes

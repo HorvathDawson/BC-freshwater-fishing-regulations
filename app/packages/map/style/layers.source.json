@@ -143,6 +143,33 @@
         },
         "opacity": {
           "token": "opacity.parcel.edge"
+        },
+        "satellite": {
+          "$comment": "(T923, owner 2026-11-20: purposely stand out over satellite, reserves and private land) over imagery ONLY: its own hue taken darker, at full strength, 2.5 px far out to 3.5 px close in (owner: Second, but thicker), with a light casing 1 px wider each side under it. The drawn map is exactly as it was.",
+          "color": {
+            "token": "color.parcel.edge.imagery"
+          },
+          "width": {
+            "token": "width.land.edge.imagery",
+            "mode": "zoom",
+            "ramp": [[4, 2.5], [11, 2.5], [16, 3.5]]
+          },
+          "opacity": {
+            "token": "opacity.land.edge.imagery"
+          },
+          "casing": {
+            "color": {
+              "token": "color.imagery.casing"
+            },
+            "width": {
+              "token": "width.land.casing.imagery",
+              "mode": "zoom",
+              "ramp": [[4, 1.8], [11, 1.8], [16, 2.2]]
+            },
+            "opacity": {
+              "token": "opacity.land.casing.imagery"
+            }
+          }
         }
       },
       "$comment": "QUIET ON PURPOSE (owner 2026-10-22: \"private land is very abrasive when turned on\" and \"should show slightly more zoomed out\"). A warm tint at `opacity.parcel` and a hairline edge at `opacity.parcel.edge`, under every water colour (first of our layers). From z11: the tile builder now writes the parcel layer from z11 too (pipeline/deliver/tiles/layers.py `parcel` minzoom; about +2 MB of tiles, measured). The atlas shipped today was built at z12, so until the next atlas build z11 asks for parcels the tiles do not have and the layer still starts at z12."
@@ -176,6 +203,33 @@
         "$comment": "v1's ADMIN_BORDER_MINZOOM. The hatch and the tint carry this area at a distance; the border is for when you are close enough to want to know exactly where it runs. Drawn from z4 it is one more line in a province already full of them.",
         "opacity": {
           "token": "opacity.admin.edge"
+        },
+        "satellite": {
+          "$comment": "(T923, owner 2026-11-20: purposely stand out over satellite, reserves and private land) over imagery ONLY: its own hue taken darker, at full strength, 2.5 px far out to 3.5 px close in (owner: Second, but thicker), with a light casing 1 px wider each side under it. The drawn map is exactly as it was.",
+          "color": {
+            "token": "color.indigenous.edge.imagery"
+          },
+          "width": {
+            "token": "width.land.edge.imagery",
+            "mode": "zoom",
+            "ramp": [[4, 2.5], [11, 2.5], [16, 3.5]]
+          },
+          "opacity": {
+            "token": "opacity.land.edge.imagery"
+          },
+          "casing": {
+            "color": {
+              "token": "color.imagery.casing"
+            },
+            "width": {
+              "token": "width.land.casing.imagery",
+              "mode": "zoom",
+              "ramp": [[4, 1.8], [11, 1.8], [16, 2.2]]
+            },
+            "opacity": {
+              "token": "opacity.land.casing.imagery"
+            }
+          }
         }
       },
       "opacity": {
@@ -1254,7 +1308,7 @@
           "enum": "salmon_status",
           "categories": {
             "open": {
-              "token": "color.salmon.open"
+              "token": "color.salmon.open-area"
             },
             "release": {
               "token": "color.salmon.release"
@@ -1273,6 +1327,7 @@
             "provider": "salmon",
             "field": "profile"
           },
+          "accessFrom": "profile",
           "$comment": "(T211) THE SALMON COLOURING, the fast way — the `profile` mode's engine, its own channel: feature-state `sp` holds the section's DFO CHAIN label (`s<chain>`, @app/core `salmonLabel`, fixed for the release), set as each tile arrives; the DAY lives in the paint as one match over the chain labels (`salmonDayProfiles`). Toggling Standard / Salmon is one paint change per layer: no fetch, no relabel. A section DFO does not list reads the UNLISTED chain (closed to salmon fishing, owner 2026-10-27) — an answer, not `missing`; `missing` is only a section not labelled yet. Its own tokens (`salmon.*`), never the provincial `status.*`, so the two colourings read apart."
         },
         "runs": {
@@ -1505,7 +1560,7 @@
           "enum": "salmon_status",
           "categories": {
             "open": {
-              "token": "color.salmon.open"
+              "token": "color.salmon.open-area"
             },
             "release": {
               "token": "color.salmon.release"
@@ -1524,6 +1579,7 @@
             "provider": "salmon",
             "field": "profile"
           },
+          "accessFrom": "profile",
           "$comment": "(T211) THE SALMON COLOURING, the fast way — the `profile` mode's engine, its own channel: feature-state `sp` holds the section's DFO CHAIN label (`s<chain>`, @app/core `salmonLabel`, fixed for the release), set as each tile arrives; the DAY lives in the paint as one match over the chain labels (`salmonDayProfiles`). Toggling Standard / Salmon is one paint change per layer: no fetch, no relabel. A section DFO does not list reads the UNLISTED chain (closed to salmon fishing, owner 2026-10-27) — an answer, not `missing`; `missing` is only a section not labelled yet. Its own tokens (`salmon.*`), never the provincial `status.*`, so the two colourings read apart."
         },
         "runs": {
@@ -1817,7 +1873,7 @@
           "enum": "salmon_status",
           "categories": {
             "open": {
-              "token": "color.salmon.open"
+              "token": "color.salmon.open-area"
             },
             "release": {
               "token": "color.salmon.release"
@@ -1836,6 +1892,7 @@
             "provider": "salmon",
             "field": "profile"
           },
+          "accessFrom": "profile",
           "$comment": "(T211) THE SALMON COLOURING, the fast way — the `profile` mode's engine, its own channel: feature-state `sp` holds the section's DFO CHAIN label (`s<chain>`, @app/core `salmonLabel`, fixed for the release), set as each tile arrives; the DAY lives in the paint as one match over the chain labels (`salmonDayProfiles`). Toggling Standard / Salmon is one paint change per layer: no fetch, no relabel. A section DFO does not list reads the UNLISTED chain (closed to salmon fishing, owner 2026-10-27) — an answer, not `missing`; `missing` is only a section not labelled yet. Its own tokens (`salmon.*`), never the provincial `status.*`, so the two colourings read apart."
         },
         "runs": {
@@ -2269,6 +2326,11 @@
           ]
         ],
         "$comment_t470": "(T470 B, owner 2026-11-07) THINNER AT MID ZOOM, today's from z12: the z8-z11 stops were [8, .6, .15], [11, .75, .75] (ord 5: 1.35 / 3.45 / 4.5 px at z8 / z10 / z11, now 1.0 / 1.95 / 3.25). The same curve drives the closed stripe, the gear edges and the selection casing. `closed`: a closed section's width times this factor, so closed is the heaviest line on the mid-zoom map (1.3 from z7 to z11, back to 1 at z12).",
+        "sideChannel": {
+          "token": "width.stream.side",
+          "has": "sc",
+          "$comment": "(T891, owner 2026-11-18: \"side channels should be less bold too\") A braid's SIDE CHANNEL (the tile's `sc`, present only there: pipeline export.is_side_channel_piece) is drawn at this factor of the width its order gives, in the SAME colour (one water); the main channel, which carries no `sc`, keeps its width. Inside every stop of this curve, so the closed stripe, the gear edges, the casings and the heavy layer all follow it with no layer added; a selected or lit side channel still takes the highlight's floor (`width.stream.highlight` / `.water`), so selection reads the same on it."
+        },
         "closed": [
           [
             6,
@@ -2509,6 +2571,7 @@
             "provider": "salmon",
             "field": "profile"
           },
+          "accessFrom": "profile",
           "$comment": "(T211) THE SALMON COLOURING, the fast way — the `profile` mode's engine, its own channel: feature-state `sp` holds the section's DFO CHAIN label (`s<chain>`, @app/core `salmonLabel`, fixed for the release), set as each tile arrives; the DAY lives in the paint as one match over the chain labels (`salmonDayProfiles`). Toggling Standard / Salmon is one paint change per layer: no fetch, no relabel. A section DFO does not list reads the UNLISTED chain (closed to salmon fishing, owner 2026-10-27) — an answer, not `missing`; `missing` is only a section not labelled yet. Its own tokens (`salmon.*`), never the provincial `status.*`, so the two colourings read apart."
         },
         "runs": {

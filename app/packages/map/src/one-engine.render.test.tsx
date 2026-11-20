@@ -60,6 +60,10 @@ class FakeGl {
   addControl() {} hasImage() { return false; } addImage() {} removeImage() {} remove() {}
   getContainer() { return { clientWidth: 400, clientHeight: 800 }; }
   getCanvasContainer() { return { style: { cursor: "" } }; } isMoving() { return false; }
+  /** (T856) the camera padding the web map sets for the desktop rail */
+  padding = { top: 0, bottom: 0, left: 0, right: 0 };
+  getPadding() { return this.padding; }
+  setPadding(p: { top: number; bottom: number; left: number; right: number }) { this.padding = p; }
   getCanvas() { return { style: { width: "400px", height: "800px" } }; }
   resize() {}
   getCenter() { return { lng: -122, lat: 49 }; }
@@ -160,7 +164,7 @@ describe("one colouring engine in the web map", () => {
     r.rerender(<WebMap {...props({ data: undefined, standing: { labels: ROUTE, values: values([20]) } })} />);
     await act(async () => { await Promise.resolve(); });
     // feature-state only, the route only: a reach with nothing to say now is cleared, no paint, no clear-all
-    expect(log).toEqual(['set atlas/stream 11 {"standing":20}', 'set atlas/lake 12 {"standing":null}']);
+    expect(log).toEqual(['set atlas/stream 11 {"standing":20}', 'set atlas/lake 12 {"standing":""}']);
   });
 
   it("before any feed answers nothing is labelled; the status is not held back by it", async () => {

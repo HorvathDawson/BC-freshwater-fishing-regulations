@@ -1,6 +1,6 @@
 # T127 — A displaced rule still shows a "counts toward this one" line, and the card gate bounds a kind by it
 
-Status: DONE — dbc7fd2f (lane wf_754f5fcd-d71-2; found 2026-10-22 by the Perry Creek card-gate fix, 3a6d20c3, T80).
+Status: DONE — 358b5076a (lane wf_754f5fcd-d71-2; found 2026-10-22 by the Perry Creek card-gate fix, 3a6d20c3, T80).
 `rows.counts_toward` (governs, or `contains`) decides xref / group kinds / outer total. Answers diff (scratch, full set):
 5 cards lose a cross-reference (St. Mary r2 EB on keys 65 + 326 incl. Perry Creek; Beattie Lake r2 DV on key 2056 ×3),
 Perry Creek's own row becomes a 20-a-day group (9 new strings); card gate 0 problems on 7,180 cards. Left: ships with the

@@ -42,6 +42,7 @@ from pipeline.regs.dfo_salmon.fetch import ALL_SLUGS, PAGES, normalize_slug
 from pipeline.regs.dfo_salmon.cascade import Scope, build_scopes, resolution_chain
 from pipeline.regs.parsing.entry_models import Extent
 from pipeline.regs.dfo_salmon.locations import Location, normalize
+from pipeline.regs.dfo_salmon import side_streams as _side_streams
 from pipeline.common.names import key
 from pipeline.common.curated import CURATED, GENERATED, SOURCE
 
@@ -82,8 +83,11 @@ class Binding:
     """
 
     extents: List[Extent] = field(default_factory=list)
-    #: Three-valued, reach-level. `None` inherits the water's own setting; this becomes
-    #: the rule's `includes_tributaries` (AGENTS rule 9).
+    #: Three-valued, reach-level. On a NAMED-WATER place (T807, owner 2026-11-16) `None` means DFO's words decide
+    #: (`side_streams.derive`: the place's own line, else the exact heading it sits under, else river only) and a value
+    #: is a STATED EXCEPTION, which `EntryLocation.tributaries_exception` gives the reason for; the water's flag never
+    #: decides. On a default / scope place `None` inherits the water's setting, as before. The effective value
+    #: (`side_streams.effective`) becomes the rule's `includes_tributaries` (AGENTS rule 9).
     tributaries: Optional[bool] = None
     tributaries_only: bool = False
     #: Carve-outs subtracted from the tributary set — "other than Morice River and
@@ -150,7 +154,10 @@ class WaterBinding:
     sections: List[str] = field(default_factory=list)
     #: THE BINDING. Empty means unbound — no rule on this water can resolve.
     item_ids: List[str] = field(default_factory=list)
-    #: Entry-wide tributary scope, when the NAME says so ("… and tributaries").
+    #: Entry-wide tributary scope, when the MERGED name said so ("… and tributaries"). T807 (owner 2026-11-16): it NEVER
+    #: decides a named-water place's side streams — one cleaned name merges headings that disagree ("Morice River
+    #: (including tributaries)" and "Morice River"), which is how nine places went wrong; the place's exact heading
+    #: (`EntryLocation.heading`) decides (`side_streams`). Kept for the record and for a default / scope place.
     tributaries: Optional[bool] = None
     #: {status, via, reason, candidates} — what the matcher found. Informational.
     match: dict = field(default_factory=dict)
@@ -218,6 +225,19 @@ class EntryLocation:
     #: here. Such a place binds nothing (no extent) and is not missing: the reach row says `tidal_water`, and the
     #: bundle does not paint its water "parts not mapped" for it. Absent from the file when False.
     tidal_water: bool = False
+    #: T807 (owner 2026-11-16, "The heading counts"): THE EXACT WATERS HEADING this place's row sits under on DFO's page
+    #: ("Morice River (including tributaries)", "Morice River"), whitespace-normalised — stamped from the cached pages
+    #: (`side_streams stamp`; the live page, else the newest archive holding the place). With the place's own words it
+    #: decides the side streams (`side_streams.derive`). Absent from the file when None (a default / scope place).
+    heading: Optional[str] = None
+    #: T807: why a named-water place's STORED side-stream setting (`binding.tributaries`) differs from what DFO's words
+    #: say: {"reason": …, "save": the save it came from}. A stored setting with no reason is refused by
+    #: `side_streams check`. Absent when empty.
+    tributaries_exception: dict = field(default_factory=dict)
+    #: T807: the owner OVERRULED this place's earlier side-stream saves with the rule ("Yes, river only for all ten",
+    #: 2026-11-16): {"through": the last save date overruled, "owner": his words}. A review mark of the place dated on or
+    #: before `through` no longer sets its side streams (`review.proposals`); a later save does. Absent when empty.
+    side_streams_overruled: dict = field(default_factory=dict)
 
     @property
     def is_variant(self) -> bool:
@@ -229,6 +249,9 @@ class EntryLocation:
         d["binding"] = self.binding.to_dict()
         if not self.tidal_water:
             d.pop("tidal_water")
+        for k in ("heading", "tributaries_exception", "side_streams_overruled"):
+            if not d.get(k):
+                d.pop(k)
         return d
 
     @classmethod
@@ -504,7 +527,7 @@ def propose_groups(ef: EntryFile, threshold: float = DUPLICATE_THRESHOLD) -> Lis
         # the section, the directional op, and whether tributaries are in or out.
         # Two scopes that differ on any of those are never the same reach.
         by_water.setdefault(
-            (loc.water, loc.section, st.get("op"), loc.binding.tributaries), []
+            (loc.water, loc.section, st.get("op"), _side_streams.effective(loc).tributaries), []
         ).append(loc)
 
     changed = []
@@ -868,8 +891,10 @@ def apply_seed(ef: EntryFile, locations: List[Location], structure: dict, *,
                          "landmarks": loc.landmarks, "op": loc.op,
                          "anchor_types": loc.anchor_types, "excludes": loc.excludes,
                          "areas": loc.areas},
-            binding=Binding(tributaries=loc.tributaries, notes=list(loc.notes),
+            # T807: a named water's place stores NO side-stream setting — DFO's words decide (`side_streams`)
+            binding=Binding(tributaries=None if loc.kind == "water" else loc.tributaries, notes=list(loc.notes),
                             spatial_caveat=loc.narrows_extent),
+            heading=getattr(loc, "heading", None) if loc.kind == "water" else None,
         ))
         added += 1
 
@@ -917,6 +942,7 @@ def to_reach_input(loc: EntryLocation, rules: List[dict],
     # The registry item lives on the WATER — one answer serves all of a river's
     # reaches — so a location with no water record binds nothing.
     item_ids = list(water.item_ids) if water else []
+    eff = _side_streams.effective(loc, water)
     # THE CATALOGUE SHAPE, the one the builder reads: the entry's tributary flag flat on the
     # entry, and everything that differs per rule — its extents, `tributaries_only`, its carve-
     # outs — on the rule. `build_reach` consumes plain dicts; the models are what we STORE, so
@@ -924,10 +950,11 @@ def to_reach_input(loc: EntryLocation, rules: List[dict],
     entry = {
         "entry_id": loc.location_id,
         "matched": item_ids,
-        # The location's own flag, else its water's. A rule's `None` inherits this (AGENTS 9).
-        "includes_tributaries": bool(loc.binding.tributaries
-                                     if loc.binding.tributaries is not None
-                                     else (water.tributaries if water else False)),
+        # owner 2026-11-15: an extent naming the water holds on its own channels too (`reach.channels`)
+        "_named_water_takes_its_channels": True,
+        # T807: the place's side streams as DFO's words say them (a named water: its stated exception, else its own
+        # line, else its exact heading, else river only; a default: its own flag, else its water's)
+        "includes_tributaries": eff.tributaries,
     }
     extents = [e.model_dump(mode="json") for e in loc.binding.extents]
     excludes = [e.model_dump(mode="json") for e in loc.binding.tributary_excludes]
@@ -937,12 +964,15 @@ def to_reach_input(loc: EntryLocation, rules: List[dict],
     out = [{
         "rule_id": f"{loc.location_id}#{i}",
         "extents": list(extents),
-        "includes_tributaries": loc.binding.tributaries,
-        "tributaries_only": loc.binding.tributaries_only,
+        "includes_tributaries": eff.tributaries,
+        "tributaries_only": eff.only,
         "tributary_excludes": list(excludes),
         # T679 D5 (owner 2026-11-12): at a confluence cut the joining water stays out unless DFO's words add it
         # (`reach.build.DFO_JOINING_WATER_STAYS_OUT`): every caller (reach run, review app) shapes it here
         _JOINERS_STAY_OUT: True,
+        # T784: DFO's words for the place, where the builder reads "unless the words name it" (a joining water at a
+        # confluence cut, D5; a lake place's through-river, T743): without them that exception could never apply
+        "extent_text": _place_words(loc),
     } for i, _ in enumerate(rules)]
     # A "rest" (owner 2026-11-02: "Except in those areas and times listed below") is the water minus
     # the places it names — other LOCATIONS on the water. The builder resolves a rest against the
@@ -950,8 +980,11 @@ def to_reach_input(loc: EntryLocation, rules: List[dict],
     # owner 2026-11-02: "the rest-of op should be after all extents are placed; it will be the remaining
     # parts without any other extent applying" — so a DFO rest is resolved HERE, at build time: its
     # siblings are EVERY other location on the same water with a placed extent (not a rest itself, not
-    # an unplaced one). A place placed later drops out of the rest without re-marking. An explicit list
-    # on the extent (older marks) is ignored for DFO: the current placements decide.
+    # an unplaced one). A place placed later drops out of the rest without re-marking.
+    # T761 (owner 2026-11-15): a rest may carry its OWN BOUNDS (`Extent.bounds`, the stretch it is the rest of) and its
+    # own LIST of the places it leaves out (`siblings`, "the areas below"), honoured; with no list, every other LIVE
+    # place of the water. A DORMANT listed place takes nothing; one with no extent is skipped and named
+    # (`rest_listing`). The listed places ride along as rules of this entry, as before.
     # "ALL THE OTHER PLACES ON THIS WATER" (T607, owner 2026-11-10: DFO's "all open portions of the Little Qualicum
     # River", once saved as the whole river, emptied the rest — "this has to apply to all already matched items
     # instead"). A place of this kind has NO stretch of its own: it binds the UNION of every other placed place on its
@@ -970,35 +1003,139 @@ def to_reach_input(loc: EntryLocation, rules: List[dict],
                 if lid != of.location_id and x.water_id and x.water_id == of.water_id and x.binding.extents
                 and not kind(x, "other_places") and not (x.is_variant and x.duplicate_of == of.location_id)]
 
-    def rule_of(sib, rest_ids: Optional[list] = None) -> dict:
+    def rule_of(sib) -> dict:
         ex = [e.model_dump(mode="json") for e in sib.binding.extents]
-        if rest_ids is not None:
-            ex = [({**e, "siblings": rest_ids} if e.get("op") == "rest" else e) for e in ex]
+        se = _side_streams.effective(sib, water)
         return {"rule_id": sib.location_id, "extents": ex,
                 # explicit, never inherited: a sibling rides in ANOTHER place's entry, whose own flag is not its own
-                "includes_tributaries": (sib.binding.tributaries if sib.binding.tributaries is not None
-                                         else bool(water.tributaries if water else False)),
-                "tributaries_only": sib.binding.tributaries_only,
-                "tributary_excludes": [e.model_dump(mode="json") for e in sib.binding.tributary_excludes]}
+                "includes_tributaries": se.tributaries,
+                "tributaries_only": se.only,
+                "tributary_excludes": [e.model_dump(mode="json") for e in sib.binding.tributary_excludes],
+                "extent_text": _place_words(sib)}
 
-    def rest_siblings(of) -> list:
-        return [x for x in on_water(of) if not kind(x, "rest")]
+    def rest_ex(of, e: dict) -> dict:
+        """T761: the rest extent as the builder reads it — its LIVE, DRAWN listed places as `siblings`, and the ones it
+        leaves out of the subtraction (dormant / undrawn) named for the diagnostic (`build._build_rest`)"""
+        got = rest_listing(of, siblings)
+        return {**e, "siblings": got["listed"], _DFO_REST: {"dormant": got["dormant"], "undrawn": got["undrawn"]}}
 
     if kind(loc, "rest"):
-        placed = rest_siblings(loc)
-        ids = [x.location_id for x in placed]
         for r in out:
-            r["extents"] = [({**e, "siblings": ids} if e.get("op") == "rest" else e) for e in r["extents"]]
-        entry["rules"] = out + [{**rule_of(sib), "includes_tributaries": sib.binding.tributaries} for sib in placed]
+            r["extents"] = [(rest_ex(loc, e) if e.get("op") == "rest" else e) for e in r["extents"]]
+        placed = [siblings[x] for x in rest_listing(loc, siblings)["listed"]]
+        # a listed DEFAULT place with no flag of its own inherits the rest's; a listed named water reads its own words
+        # (T807: its side streams are what DFO says of that place, `side_streams.effective`)
+        entry["rules"] = out + [{**rule_of(sib), **({} if _side_streams.applies(sib)
+                                                    else {"includes_tributaries": sib.binding.tributaries})}
+                                for sib in placed]
     elif kind(loc, "other_places"):
         placed = on_water(loc)
         ids = [x.location_id for x in placed]
         for r in out:
             r["extents"] = [({**e, "siblings": ids} if e.get("op") == "other_places" else e) for e in r["extents"]]
-        # a rest among them is resolved against ITS siblings (every other placed stretch), which ride along already
-        entry["rules"] = out + [rule_of(sib, [x.location_id for x in rest_siblings(sib)] if kind(sib, "rest") else None)
-                                for sib in placed]
+        # a rest among them is resolved against ITS listed places, which ride along already (each is a placed place of
+        # the water); a listed one that is not placed on this water is added
+        riders = {x.location_id for x in placed}
+        extra = [siblings[x] for sib in placed if kind(sib, "rest")
+                 for x in rest_listing(sib, siblings)["listed"] if x not in riders]
+        rules = []
+        for sib in placed:
+            r = rule_of(sib)
+            if kind(sib, "rest"):
+                r["extents"] = [(rest_ex(sib, e) if e.get("op") == "rest" else e) for e in r["extents"]]
+            rules.append(r)
+        entry["rules"] = out + rules + [rule_of(x) for x in {x.location_id: x for x in extra}.values()]
     return entry, out
+
+
+def _place_words(loc: EntryLocation) -> str:
+    """DFO's own words for where a place is (`specific_area`), as the builder's `extent_text` (T784)."""
+    return str((loc.source_text or {}).get("specific_area") or "").strip()
+
+
+#: T761: the key on a DFO rest extent (as `to_reach_input` hands it to the builder) that marks it a DFO place's rest:
+#: a listed place that does not bind is SKIPPED and named, and the listed places' sections inside its bounds are
+#: reported (`build._build_rest`, `REST_BEHIND`). The same string as `pipeline.atlas.reach.build.DFO_REST_KEY`.
+_DFO_REST = "_dfo_rest"
+#: POLICY (T761, owner 2026-11-15): A DORMANT PLACE A REST LEAVES OUT TAKES NOTHING OUT OF IT — DFO no longer lists it,
+#: so its water is the rest's again (Nanaimo x2, Somass x4, Stamp x8). False = it still takes its water (the mutation pin).
+A_DORMANT_LISTED_PLACE_TAKES_NOTHING = True
+
+
+def _rest_extent(loc: EntryLocation):
+    return next((e for e in loc.binding.extents if e.op == "rest"), None)
+
+
+def rest_listing(loc: EntryLocation, siblings: Optional[Dict[str, "EntryLocation"]]) -> dict:
+    """T761 (owner 2026-11-15): THE PLACES A DFO "REST OF" LEAVES OUT, and which of them take water out of it.
+
+    A rest's own list (`siblings` on its extent, "the areas below") is honoured; with none it is EVERY OTHER LIVE PLACE
+    of its water with an extent (never a rest, never an "all the other places", never the rest's own variant). Each
+    listed place is one of:
+      listed   live and drawn: its sections come out of the rest, and the rest answers AFTER it on them (the chain)
+      dormant  DFO no longer lists it: it takes nothing (Nanaimo, Somass, Stamp's retired stretches)
+      undrawn  no extent yet, or itself a rest / "all the other places": skipped, named on the card — never the whole
+               rest unknown
+    A listed id that is no place of the region raises: the place's extent names it, and it must be fixed there.
+    -> {listed, dormant, undrawn: {id: why}, named: bool}, each in the order given (the file's, else id order)."""
+    sibs = siblings or {}
+    rest = _rest_extent(loc)
+    if rest is None:
+        raise ValueError(f"{loc.location_id}: rest_listing reads a place whose extent is a rest")
+    named = bool(rest.siblings)
+    if named:
+        gone = [x for x in rest.siblings if x not in sibs or x == loc.location_id]
+        if gone:
+            raise ValueError(f"{loc.location_id}: its rest lists {gone}, which are no other place of its region — fix "
+                             "the place's extent in the review app's DFO mode (the rest-of form's listed places)")
+        ids = list(rest.siblings)
+    else:
+        # every other place of the water with a stretch — the dormant ones too, so they are NAMED as taking nothing
+        ids = sorted(lid for lid, x in sibs.items()
+                     if lid != loc.location_id and x.water_id and x.water_id == loc.water_id and x.binding.extents
+                     and not any(e.op in ("rest", "other_places") for e in x.binding.extents)
+                     and not (x.is_variant and x.duplicate_of == loc.location_id))
+    listed, dormant, undrawn = [], [], {}
+    for lid in ids:
+        x = sibs[lid]
+        if x.status != "active" and A_DORMANT_LISTED_PLACE_TAKES_NOTHING:
+            dormant.append(lid)
+        elif not x.binding.extents:
+            undrawn[lid] = "it has no extent yet"
+        elif any(e.op in ("rest", "other_places") for e in x.binding.extents):
+            undrawn[lid] = "it is itself a rest / all-the-other-places place: it draws no stretch to leave out"
+        else:
+            listed.append(lid)
+    return {"listed": listed, "dormant": dormant, "undrawn": undrawn, "named": named}
+
+
+def answers_before(loc: EntryLocation, siblings: Optional[Dict[str, "EntryLocation"]]) -> List[dict]:
+    """T761 (design 6): WHICH PLACES ANSWER BEFORE A "REST OF" PLACE, AND WHERE — in plain words, for the card and the
+    review app. One row per place the rest leaves out: `{id, state, words}`. A live, drawn one answers first on its own
+    stretch inside the rest's bounds, on the days it has a rule for that fish; the rest's rule shows there on the other
+    days (`deliver.salmon` puts the rest after it in those sections' chains). [] for a place that is no rest."""
+    if _rest_extent(loc) is None:
+        return []
+    sibs = siblings or {}
+    got = rest_listing(loc, sibs)
+    rest = _rest_extent(loc)
+    where = "inside this place's own bounds" if rest.bounds is not None else "on this water"
+
+    def name(lid: str) -> str:
+        x = sibs.get(lid)
+        area = ((x.source_text or {}).get("specific_area") if x else "") or ""
+        return f"“{area.strip()[:90]}”" if area.strip() else lid
+
+    out = [{"id": l, "state": "answers_first",
+            "words": f"On {name(l)}'s stretch {where}, {name(l)} answers first for a fish on the days it has a rule for "
+                     "it; on the other days this place's rule shows there."} for l in got["listed"]]
+    out += [{"id": l, "state": "dormant",
+             "words": f"{name(l)} is no longer on DFO's page (dormant): it takes nothing out of this place."}
+            for l in got["dormant"]]
+    out += [{"id": l, "state": "undrawn",
+             "words": f"{name(l)} is left out of the subtraction ({why}): this place covers its water until it is "
+                      "placed."} for l, why in got["undrawn"].items()]
+    return out
 
 
 # ---------------------------------------------------------------------------

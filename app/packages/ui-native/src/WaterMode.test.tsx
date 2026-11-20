@@ -54,7 +54,7 @@ vi.mock("./WaterScreen", async (importOriginal) => {
     <><real.WaterScreen {...p} /><Text testID="regs-on">{`regs on ${p.item} part ${p.part}`}</Text></> };
 });
 const { Shell } = await import("./Shell");
-const { openRegsFixture, openRegsFixtureWithLines, sectionNames } = await import("@app/data/release/node");
+const { openRegsFixture, openRegsFixtureWithLines, regsFixtureUnnamedTaps, sectionNames } = await import("@app/data/release/node");
 
 afterEach(cleanup);
 beforeAll(() => {
@@ -64,6 +64,16 @@ beforeAll(() => {
 });
 
 const CHILLIWACK = "gnis:8634" as ItemId;
+const { partName, partRowAria, partWhere } = await import("@app/core");
+const { loadWaterGroup, openRegsStore } = await import("@app/data/regs");
+/** (T768) What the map's bar says for the group's part `i` (`"top"`: the last): its place and its name, from the water's
+ *  own group — the one content pin is conformance waterGroup.fixture.test.ts, so a new part end moves no line here. */
+const GROUPS = openRegsStore(openRegsFixtureWithLines());
+async function group(item: string) { return loadWaterGroup(await GROUPS, item); }
+async function barOf(item: string, i: number | "top") {
+  const g = await group(item), at = i === "top" ? g.parts.length - 1 : i;
+  return `${partWhere(g, at)} | ${partName(g, at)}`;
+}
 const UNNAMED = 99_999 as SectionId;
 const pan = (dx: number) => [
   { absoluteX: 200, x: 200, translationX: 0, translationY: 0 },
@@ -109,7 +119,11 @@ async function mount(tab: "map" | "conditions", sid?: SectionId, loader?: Return
 const tapMap = async () => {
   await act(async () => { fireEvent.click(shownMap()!); });
 };
-const until = async (f: () => boolean) => waitFor(() => expect(f()).toBe(true));
+/** Waits for a LOAD (a tap or a step reads the release), so it carries this file's load deadline, as its twins in
+ *  apps/mobile do. (T751) It had testing-library's default 1 s: a step into another water holds the old view for up to
+ *  PANE_HOLD_MS (1.2 s) while the next loads, so a read slower than 1 s (a loaded CI runner) failed here with the old
+ *  view still up, "expected false to be true". The condition is what is waited for; the deadline only bounds a hang. */
+const until = async (f: () => boolean) => waitFor(() => expect(f()).toBe(true), { timeout: 20_000 });
 const titled = () => screen.queryByText("Chilliwack River") !== null;
 
 describe("one water screen, whichever map you tapped", () => {
@@ -212,9 +226,14 @@ describe("one water screen, whichever map you tapped", () => {
 // fixture release (its sections are named, never numbered)
 describe("one water screen, on the regs fixture release", () => {
   it("(T53) on the regs fixture release: an unnamed reach is titled with the store's name on both its views", async () => {
-    // (T667) the unnamed reach by NAME — stream key 354088147 from its mouth — never by its handle (578, 576, 638, …:
-    // it moved with four of the last five builds); a build that moves the section fails here saying so
-    const unnamed = await sectionNames(openRegsFixtureWithLines()).stream(354088147, 0);
+    // (T667) never by its handle (578, 576, 638, …: it moved with four of the last five builds), and (r-46e4355a7277)
+    // not by a stream key either: the fixture keeps a SAMPLE of unnamed reaches that moves with every re-cut (stream
+    // 354088147:0, named here until then, left it). Any unnamed stream of the fixture will do: its first
+    const [unnamed] = await sectionNames(openRegsFixtureWithLines()).unnamedStreams();
+    // (T768) its name is the PIPELINE's for that section (the golden taps' `unnamed`), not a pattern the app could
+    // satisfy with any name
+    const golden = regsFixtureUnnamedTaps().find((u) => u.handle === unnamed)?.name;
+    expect(golden).toMatch(/^Unnamed stream · Regions? \d/);
     await mount("conditions", unnamed as SectionId, openRegsFixture());
     await tapMap();
     const title = () => screen.queryAllByTestId("water-title").map((t) => t.textContent).join(" | ");
@@ -225,7 +244,7 @@ describe("one water screen, on the regs fixture release", () => {
     // the Regulations view's name row carries its date pill too: the heading is the name
     expect([cond, within(screen.getByTestId("regs-header")).getByRole("heading").textContent,
             screen.getByTestId("regs-on").textContent]).toEqual([
-      ["Unnamed stream · Region 1", `panel for ${unnamed} at 49.1`], "Unnamed stream · Region 1", "regs on null part null"]);
+      [golden, `panel for ${unnamed} at 49.1`], golden, "regs on null part null"]);
   }, 40_000);
 });
 
@@ -259,11 +278,12 @@ describe("the water's Map view and the rest of the water screen agree (P15 follo
     const regs = screen.getByTestId("regs-on").textContent;
     fireEvent.click(screen.getByRole("tab", { name: "Map" }));
     await waitFor(() => expect(screen.getByTestId("water-map-where")).toBeTruthy(), { timeout: 20_000 });
+    const slesse = await barOf(CHILLIWACK, (await group(CHILLIWACK)).parts.findIndex((p) => p.partIx === twoUp));
     expect([stepped, regs, where()]).toEqual([
-      "Part 4 of 5 · Chilliwack River | 100 m below the Slesse Creek confluence → Chilliwack River Ecological Reserve boundary",
+      slesse,
       // (T517) part_ix is river order, mouth first: two up from the Vedder Crossing part is the Slesse Creek one
       `regs on gnis:8634 part ${twoUp}`,
-      "Part 4 of 5 · Chilliwack River | 100 m below the Slesse Creek confluence → Chilliwack River Ecological Reserve boundary"]);
+      slesse]);
   }, 40_000);
 
   it("across waters: ▲ on the Vedder opens the Chilliwack's map at its lowest part IN ITS PLACE (owner 2026-10-22 " +
@@ -273,24 +293,35 @@ describe("the water's Map view and the rest of the water screen agree (P15 follo
     const upper = await sectionNames(openRegsFixtureWithLines()).part("gnis:3062",
       "chilliwack_vedder_rivers__vedder_crossing_bridge_200_m_downstream", "chilliwack_vedder_rivers__vedder_crossing_bridge");
     await onMap("gnis:3062", upper);
+    const vedderTop = await barOf("gnis:3062", "top"), chwMouth = await barOf(CHILLIWACK, 0);
+    // (T849) every tap waits for a settled screen (the bar at the place the last step left it, not busy through a read,
+    // the arrow there and enabled): a tap that lands before that moves nothing and the wait after it cannot succeed
+    const settledAt = (place: string, button: string) => () => {
+      const b = screen.queryByRole("button", { name: button });
+      const bar = screen.queryByTestId("water-map-bar");
+      return where().startsWith(place) && b !== null && b.getAttribute("aria-disabled") !== "true"
+        && bar !== null && bar.getAttribute("aria-busy") !== "true";
+    };
+    const tap = async (place: string, button: string) => {
+      await until(settledAt(place, button));
+      act(() => { fireEvent.click(screen.getByRole("button", { name: button })); });
+    };
     const seen = [where()];
-    fireEvent.click(screen.getByRole("button", { name: "Upstream into Chilliwack River" }));
-    await until(() => where().startsWith("Part 1 of 5 · Chilliwack River"));
+    await tap(vedderTop, "Upstream into Chilliwack River");
+    await until(() => where().startsWith(chwMouth));
     seen.push(`${where()} | ${screen.getByLabelText(BACK).textContent}`);
-    fireEvent.click(screen.getByRole("button", { name: "Downstream into Vedder River" }));
-    await until(() => where().startsWith("Part 2 of 2"));
+    await tap(chwMouth, "Downstream into Vedder River");
+    await until(() => where().startsWith(vedderTop));
     seen.push(`${where()} | ${screen.getByLabelText(BACK).textContent}`);
-    fireEvent.click(screen.getByRole("button", { name: "Upstream into Chilliwack River" }));
-    await until(() => where().startsWith("Part 1 of 5"));
+    await tap(vedderTop, "Upstream into Chilliwack River");
+    await until(() => where().startsWith(chwMouth));
     seen.push(`${where()} | ${screen.getByLabelText(BACK).textContent}`);
     act(() => { fireEvent.click(screen.getByLabelText(BACK)); });
     seen.push(screen.queryByTestId("water-map-where") ? where() : "the Map tab");
     expect(seen).toEqual([
-      "Part 2 of 2 · Vedder River | Cable car crossing (200 m downstream of Vedder Crossing bridge) → Vedder Crossing Bridge",
+      vedderTop,
       // one system: the Chilliwack replaced the Vedder, so its ‹ names the tab the system was opened from
-      "Part 1 of 5 · Chilliwack River | Vedder Crossing Bridge → Orange triangular boundary signs (200 m upstream of Vedder Crossing bridge) | Map",
-      "Part 2 of 2 · Vedder River | Cable car crossing (200 m downstream of Vedder Crossing bridge) → Vedder Crossing Bridge | Map",
-      "Part 1 of 5 · Chilliwack River | Vedder Crossing Bridge → Orange triangular boundary signs (200 m upstream of Vedder Crossing bridge) | Map",
+      `${chwMouth} | Map`, `${vedderTop} | Map`, `${chwMouth} | Map`,
       "the Map tab"]);
   }, 40_000);
 });
@@ -327,7 +358,7 @@ describe("ONE MAP ENTRY (T71, owner call 3, 2026-10-22: \"Keep only one Map entr
     fireEvent.click(screen.getByRole("tab", { name: "Map" }));
     await waitFor(() => expect(screen.getByTestId("water-map-where")).toBeTruthy(), { timeout: 20_000 });
     seen.push(screen.getByTestId("water-map-where").textContent);
-    expect(seen).toEqual([["Map", "Close, back to Map"], [["tab", "Map"]], null, 0, "Part 2 of 5 · Chilliwack River"]);
+    expect(seen).toEqual([["Map", "Close, back to Map"], [["tab", "Map"]], null, 0, partWhere(await group(CHILLIWACK), 1)]);
   }, 40_000);
 });
 
@@ -352,25 +383,22 @@ describe("THE PARTS LIST IN THE MAP VIEW (T150, owner 2026-10-23: \"dont we want
     fireEvent.click(toggle());
     const open = [toggle().getAttribute("aria-label"), toggle().getAttribute("aria-expanded"),
                   screen.getByTestId("water-map-parts-list").getAttribute("aria-label"), rows()];
+    const gc = await group(CHILLIWACK);
     expect([closed, open]).toEqual([
-      ["Show all 5 parts", "false", null],
-      ["Hide the list of parts", "true", "Parts of this water", [
-        ["Vedder Crossing Bridge → Orange triangular boundary signs (200 m upstream of Vedder Crossing bridge), part 1 of 5 · Chilliwack River", "true"],
-        [expect.stringMatching(/, part 2 of 5 · Chilliwack River$/), "false"],
-        [expect.stringMatching(/, part 3 of 5 · Chilliwack River$/), "false"],
-        [expect.stringMatching(/, part 4 of 5 · Chilliwack River$/), "false"],
-        [expect.stringMatching(/, part 5 of 5 · Chilliwack River$/), "false"]]]]);
+      [`Show all ${gc.parts.length} parts`, "false", null],
+      ["Hide the list of parts", "true", "Parts of this water",
+        gc.parts.map((_, k) => [partRowAria(gc, k), String(k === 0)])]]);
     // the pick: part 3 of the list (a rule set of its own: the Regulations view names it by its own ends) — the map's
     // bar says so, the list closes, and the Regulations view reads that part
     const name2 = within(screen.getByTestId("water-map-parts-list")).getAllByRole("radio")[2]!.getAttribute("aria-label")!.split(", part ")[0];
     fireEvent.click(screen.getByTestId("water-map-part-2"));
-    await waitFor(() => expect(screen.getByTestId("water-map-where").textContent).toBe("Part 3 of 5 · Chilliwack River"), { timeout: 20_000 });
+    await waitFor(() => expect(screen.getByTestId("water-map-where").textContent).toBe(partWhere(gc, 2)), { timeout: 20_000 });
     const after = [screen.getByTestId("water-map-name").textContent, screen.queryByTestId("water-map-parts-list"),
                    toggle().getAttribute("aria-label")];
     fireEvent.click(screen.getByRole("tab", { name: "Regulations" }));
     // (T369) load-proof: the place label itself is waited for (the page may hold its spinner a moment after the tab)
     await waitFor(() => expect(screen.getByTestId("regs-place")).toBeTruthy(), { timeout: 20_000 });
     expect([...after, screen.getByTestId("regs-place").getAttribute("aria-label")])
-      .toEqual([name2, null, "Show all 5 parts", expect.stringContaining(name2!.split(" → ")[0]!)]);
+      .toEqual([name2, null, `Show all ${gc.parts.length} parts`, expect.stringContaining(name2!.split(" → ")[0]!)]);
   }, 60_000);
 });

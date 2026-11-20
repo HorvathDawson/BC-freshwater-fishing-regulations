@@ -4,8 +4,17 @@
  * share. One module, so the first frame and every frame after it are painted the same way.
  */
 import type { GearMark } from "@app/core";
-import { MAP_STYLE, NO_VALUES, STYLE_META, colorExpression, profileChannel, profileDay, type ChannelValues, type Tokens }
-  from "./style";
+import { MAP_STYLE, NO_VALUES, STYLE_META, colorExpression, finfishOver, profileChannel, profileDay, salmonLabelIn,
+         type ChannelValues, type ColorMode, type Tokens } from "./style";
+
+/**
+ * (T796 A6) `shown` held off the sections DFO's finfish closures paint (`finfishOver`: closed, or isolated away) on a
+ * status profile mode — a closed section has no access dots, gear marks or order fade. `shown` itself on every other day.
+ */
+function offFinfish(m: Parameters<typeof finfishOver>[0], values: ChannelValues | null, shown: unknown): unknown {
+  const fin = finfishOver(m, values);
+  return fin ? ["all", shown, ["!", salmonLabelIn([...fin.closed, ...fin.none])]] : shown;
+}
 
 /**
  * "MEASURED HERE, BUT NOTHING TO COMPARE IT TO" — the dashed line over a stream whose standing is the -1 sentinel
@@ -58,11 +67,36 @@ const OUTLINE_SHOWN = ["case", SELECTED, 1, PART, 1, INSEASON, 1, 0];
  *  else the highlight's */
 const outlineColour = (tokens: Tokens) => ["case", INSEASON, tokens["color.ui.attention"], tokens["color.highlight"]];
 
+/** (T735) the part you are on, or a selected stream */
+const ON = ["any", SELECTED, PART];
+/** (T735) the casing's px each side (`width.selection.casing`: light 2.5, dark 1.5) */
+const casingPx = (tokens: Tokens): number => Number(tokens["width.selection.casing"]);
+/** (T735, look C) `flag.selection.edge` 1: the part's casing is the ground's colour, the status carries; 0: the highlight ring */
+const edgeLook = (tokens: Tokens): boolean => Number(tokens["flag.selection.edge"]) === 1;
+/** (T735) the soft glow layer outside the part's casing — drawn by a theme with `opacity.selection.glow` above 0 only */
+export const SELECTION_GLOW = "selection-glow";
+export const hasGlow = (tokens: Tokens): boolean => Number(tokens["opacity.selection.glow"]) > 0;
+
 /** The stream casing's paint: the stream's own width (`streamWidth`, with its floors) plus the outline each side. */
 export function casingPaint(streamWidth: unknown, tokens: Tokens): Record<string, unknown> {
-  return { "line-color": outlineColour(tokens),
-           "line-width": withinZoomCurve(streamWidth, (v) => ["+", v, 2 * CASING_PX]),
+  const px = casingPx(tokens);
+  const paint: Record<string, unknown> = { "line-color": outlineColour(tokens),
+           "line-width": withinZoomCurve(streamWidth, (v) => ["+", v, 2 * px]),
            "line-opacity": OUTLINE_SHOWN };
+  if (edgeLook(tokens)) {
+    // look C: the part is edged in the ground's colour; an in-season casing stays on the OTHER parts, lowered
+    paint["line-color"] = ["case", ON, tokens["color.selection.edge"], tokens["color.ui.attention"]];
+    paint["line-opacity"] = ["case", ON, 1, ["all", INSEASON, WATER], Number(tokens["opacity.selection.casing.others"]), OUTLINE_SHOWN];
+  }
+  return paint;
+}
+
+/** (T735, look C) the soft glow outside the part's casing; opacity 0 elsewhere */
+export function glowPaint(streamWidth: unknown, tokens: Tokens): Record<string, unknown> {
+  const px = casingPx(tokens);
+  return { "line-color": tokens["color.ui.attention"], "line-blur": 6,
+           "line-width": withinZoomCurve(streamWidth, (v) => ["+", v, 2 * px + 12]),
+           "line-opacity": ["case", ON, Number(tokens["opacity.selection.glow"]), 0] };
 }
 
 /** A selected lake's or wetland's ring. */
@@ -102,16 +136,50 @@ export function nobaselineOpacity(mode: string): unknown {
  */
 export const NOACCESS_LAYER = "stream-noaccess";
 
+/** (T937) whether `mode` of `layerId` reads the STATUS channel's no_access labels without being a status mode (`accessFrom`) */
+export function takesAccessFromStatus(layerId: string, mode: string): boolean {
+  const m = STYLE_META.colorModes[layerId]?.[mode];
+  return m?.scale === "profile" && !!m.accessFrom;
+}
+
+/**
+ * (T937) THE MODE WHOSE `no_access` LABELS A MODE DRAWS THE DOTS BY: its own where it has a `no_access` member (Standard's
+ * profile mode, a categorical one), else the one its `accessFrom` names in the style (the Salmon mode: no public access
+ * is an ACCESS answer, not a salmon one, so the status channel's own labels speak for it — one look, no second test).
+ */
+function accessMode(layerId: string, mode: string): ColorMode | null {
+  const modes = STYLE_META.colorModes[layerId];
+  const m = modes?.[mode];
+  if (!m) return null;
+  const from = m.scale === "profile" && m.accessFrom ? modes?.[m.accessFrom] : undefined;
+  const a = "categories" in m && m.categories["no_access"] ? m : from;
+  return a && "categories" in a && a.categories["no_access"] ? a : null;
+}
+
 /** Where `mode` paints a stream section `no_access`, as a boolean expression; null where the mode never does. */
 export function noAccessShown(layerId: string, mode: string, values: ChannelValues | null = NO_VALUES): unknown | null {
-  const m = STYLE_META.colorModes[layerId]?.[mode];
-  if (!m || !("categories" in m) || !m.categories["no_access"]) return null;
+  const m = accessMode(layerId, mode);
+  if (!m) return null;
   if (m.scale === "profile") {
     const labels = (values ?? NO_VALUES).status?.no_access ?? [];
-    return labels.length ? ["in", ["coalesce", ["feature-state", m.property], ""], ["literal", [...labels]]] : null;
+    const shown = ["in", ["coalesce", ["feature-state", m.property], ""], ["literal", [...labels]]];
+    // a DFO finfish closure holds the dots off, as on Standard: all fishing is closed there, and the section paints closed
+    return labels.length ? offFinfish(m, values, shown) : null;
   }
   if (m.scale === "categorical") return ["==", ["feature-state", m.property], "no_access"];
   return null;
+}
+
+/**
+ * (T937) `shown` held off the no-access sections of a mode that takes its access from another (`accessFrom`: Salmon):
+ * a no-access water wears the one dotted grey look, with no closed stripe, gear edge or issue stripe on it, exactly as on
+ * Standard (where those marks already stand down for it). `shown` itself in every other mode, and null stays null.
+ */
+function offNoAccess(layerId: string, mode: string, values: ChannelValues | null, shown: unknown | null): unknown | null {
+  const m = STYLE_META.colorModes[layerId]?.[mode];
+  if (shown === null || !m || m.scale !== "profile" || !m.accessFrom) return shown;
+  const na = noAccessShown(layerId, mode, values);
+  return na === null ? shown : ["all", shown, ["!", na]];
 }
 
 /** The dots' opacity for the stream layer in `mode`: 1 on a no-access section, else 0 (every mode without one). */
@@ -207,9 +275,10 @@ export function gearShown(layerId: "stream" | "lake", mode: string, mark: GearMa
   const off = mode === "salmon" ? [...(v.salmon?.closed ?? []), ...(v.salmon?.none ?? [])]
     : [...(v.status?.closed ?? []), ...(v.status?.no_access ?? []), ...(v.status?.none ?? [])];
   const marked = ["in", ["coalesce", ["feature-state", "gm"], ""], ["literal", [...labels]]];
-  return off.length
+  // (T796 A6) and a section DFO's finfish closure closes on Standard (`offFinfish`) — the Salmon day closes it already
+  return offNoAccess(layerId, mode, values, offFinfish(m, v, off.length
     ? ["all", marked, ["!", ["in", ["coalesce", ["feature-state", m.property], ""], ["literal", off]]]]
-    : marked;
+    : marked));
 }
 
 /** One mark's paint on a stream (an edge round the line, `streamWidth` its own) or a lake (a ring). */
@@ -217,8 +286,14 @@ export function gearPaint(layerId: "stream" | "lake", mode: string, mark: GearMa
                           values: ChannelValues | null = NO_VALUES, streamWidth?: unknown): Record<string, unknown> {
   const shown = gearShown(layerId, mode, mark, values);
   const ramp = GEAR_RAMPS[GEAR_RAMP];
+  // (T887) on a Salmon keep section drawn in its casing, the edge sits OUTSIDE the casing, so the mark is never under it
+  const casingPx = mode === "salmon" ? Number(tokens["width.salmon.casing"] ?? 0) : 0;
+  const kept = casingPx > 0 ? (values ?? NO_VALUES).salmon?.open ?? [] : [];
+  const edge = (z: number) => 2 * GEAR_EDGE_PX * rampAt(ramp.edge, z);
   const width = layerId === "stream" && streamWidth !== undefined
-    ? withinZoomCurve(streamWidth, (w, z) => ["+", w, 2 * GEAR_EDGE_PX * rampAt(ramp.edge, z)])
+    ? withinZoomCurve(streamWidth, (w, z) => kept.length
+      ? ["+", w, ["case", salmonLabelIn(kept), edge(z) + 2 * casingPx, edge(z)]]
+      : ["+", w, edge(z)])
     : ["interpolate", ["linear"], ["zoom"],
        ...ramp.edge.flatMap(([z, f]) => [z, GEAR_RING_PX * f])];
   return {
@@ -229,6 +304,30 @@ export function gearPaint(layerId: "stream" | "lake", mode: string, mark: GearMa
     // zoom may only be the input of a top-level interpolate, so the day's test sits inside each stop
     "line-opacity": shown === null ? 0
       : ["interpolate", ["linear"], ["zoom"], ...ramp.opacity.flatMap(([z, o]) => [z, ["case", shown, o, 0]])],
+  };
+}
+
+/**
+ * (T887 option B, owner 2026-11-18: "Should be bright green for keep in light I think too?") THE KEEP LINE'S CASING: a
+ * thin ink edge each side of a Salmon-view stream section DFO lets you keep from, drawn UNDER the line, so a bright green
+ * (light) still stands off the light basemap — the casing meets the ground at 3:1, the green meets the casing. The theme
+ * switches it: `width.salmon.casing` 0 is no casing (option A, dark, colour-blind). Its own runtime layer (a line has no
+ * stroke of its own); its width is the stream's base width (no feature-state), shown only on the day's `open` labels.
+ */
+export const SALMON_CASING_LAYER = "stream-salmon-casing";
+
+export function salmonCasingPaint(mode: string, tokens: Tokens, values: ChannelValues | null = NO_VALUES,
+                                  streamWidth?: unknown): Record<string, unknown> {
+  const px = Number(tokens["width.salmon.casing"] ?? 0);
+  const open = (values ?? NO_VALUES).salmon?.open ?? [];
+  const noaccess = noAccessShown("stream", mode, values);
+  const w = streamWidth ?? ["interpolate", ["linear"], ["zoom"], 6, 1.2, 10, 2, 14, 3.2];
+  return {
+    "line-color": tokens["color.salmon.casing"],
+    "line-width": withinZoomCurve(w, (v) => ["+", v, 2 * px]),
+    // (T937) never round a no-access section: it is the dotted grey line, not a kept water
+    "line-opacity": mode === "salmon" && px > 0 && open.length
+      ? ["case", salmonLabelIn(open), noaccess === null ? 1 : ["case", noaccess, 0, 1], 0] : 0,
   };
 }
 
@@ -261,11 +360,18 @@ export const CLOSED_CUE_LAYER = "stream-closed";
 
 /** Where `mode` paints a stream section closed, as a boolean expression; null where the mode never does. */
 export function closedShown(layerId: string, mode: string, values: ChannelValues | null = NO_VALUES): unknown | null {
+  return offNoAccess(layerId, mode, values, closedBase(layerId, mode, values));
+}
+function closedBase(layerId: string, mode: string, values: ChannelValues | null): unknown | null {
   const m = STYLE_META.colorModes[layerId]?.[mode];
   if (!m || !("categories" in m) || !m.categories["closed"]) return null;
   if (m.scale === "profile") {
     const labels = profileDay(m, values)?.["closed"] ?? [];
-    return labels.length ? ["in", ["coalesce", ["feature-state", m.property], ""], ["literal", [...labels]]] : null;
+    const byDay = labels.length ? ["in", ["coalesce", ["feature-state", m.property], ""], ["literal", [...labels]]] : null;
+    // (T796 A6) a section DFO's finfish closure paints closed is closed: its stripe, its width
+    const fin = finfishOver(m, values)?.closed ?? [];
+    if (!fin.length) return byDay;
+    return byDay === null ? salmonLabelIn(fin) : ["any", salmonLabelIn(fin), byDay];
   }
   if (m.scale === "categorical") return ["==", ["feature-state", m.property], "closed"];
   return null;
@@ -286,6 +392,199 @@ export function closedCuePaint(mode: string, tokens: Tokens, values: ChannelValu
     "line-opacity": shown === null ? 0 : ["case", shown, 1, 0],
   };
 }
+/**
+ * (T759, owner 2026-11-15: "I like the stripe option best for the ones with banners ... the stripes should only be on the
+ * salmon view") THE ISSUE STRIPE: dashes down the middle of a stream whose water has a DFO salmon rule the feed could not
+ * place (the rows that carry the river page's banner). The line keeps the colour it would have anyway; the stripe is an
+ * extra pair of layers over it, ONLY while the stream's mode is `salmon` (the view the banner belongs to) and ONLY on
+ * the sections the engine's `issue` channel labelled (feature-state `gi`) — never a second test of a rule.
+ *
+ * Two layers, one dash: the casing (the paper's colour, `color.issue.casing`) and the ink (`color.issue.stripe`) on it.
+ * The closed colour was tried for the dashes and fails (it is the closed line's own colour: ratio 1.00); and any one ink
+ * loses on one of the five lines a Salmon stream can wear. Dark ink on a paper dash leaves every line, and every ground
+ * under it, a contrast of its own (tools/issue-stripe.test.ts). It fades in with zoom as the gear marks do (`GEAR_RAMPS`),
+ * so a whole province is not speckled.
+ */
+export const ISSUE_LAYERS = { casing: "stream-issue-casing", stripe: "stream-issue-stripe" } as const;
+/** the stripe's width, as a share of the stream line's own width: ONE share for both layers. (Owner 2026-11-16, on the dark
+ *  blue "Keep salmon" line: "Make it wider") it was 0.4 ink inside a 0.85 casing. MapLibre divides dash distance by
+ *  floor(line-width), so layers of different widths have different periods and drift out of phase (the casing then covers
+ *  the line). Same width, same period: the pale part lies ALONG the line (`dash.issue.casing` 5 on 3 off, under
+ *  `dash.issue.stripe` 3 on 5 off), so the line's own colour shows in the gaps and down both edges. */
+export const ISSUE_SHARE = 0.6;
+/** the mode the stripe is drawn in: the Salmon view's */
+export const ISSUE_MODE = "salmon";
+
+/** Where the stripe is shown on a stream in `mode`, as a boolean expression; null: nowhere (any other view). */
+export function issueShown(mode: string, values: ChannelValues | null = NO_VALUES): unknown | null {
+  return offNoAccess("stream", mode, values, mode === ISSUE_MODE ? ["==", ["coalesce", ["feature-state", "gi"], ""], "1"] : null);
+}
+
+export function issuePaint(part: keyof typeof ISSUE_LAYERS, mode: string, tokens: Tokens, streamWidth?: unknown, values: ChannelValues | null = NO_VALUES): Record<string, unknown> {
+  const w = streamWidth ?? ["interpolate", ["linear"], ["zoom"], 6, 1.2, 10, 2, 14, 3.2];
+  const shown = issueShown(mode, values);
+  return {
+    "line-color": tokens[part === "casing" ? "color.issue.casing" : "color.issue.stripe"],
+    "line-width": withinZoomCurve(w, (v) => ["*", v, ISSUE_SHARE]),
+    "line-dasharray": tokens[part === "casing" ? "dash.issue.casing" : "dash.issue.stripe"],
+    "line-opacity": shown === null ? 0
+      : ["interpolate", ["linear"], ["zoom"], ...GEAR_RAMPS[GEAR_RAMP].opacity.flatMap(([z, o]) => [z, ["case", shown, o, 0]])],
+  };
+}
+
+type WidthSpec = Exclude<(typeof STYLE_META.widths)[string], string>;
+/** One stop of a "linear" width: its zoom, the width there (zoom and the tile's order only), the T470 closed factor. */
+interface WidthStop { at: number; w: unknown; f: number }
+
+/** (T891) The factor a side channel's width takes — `["case", ["has", "sc"], factor, 1]` — or null where the width has none. */
+function sideChannelFactor(spec: WidthSpec, tokens: Tokens): unknown | null {
+  const sc = (spec as { sideChannel?: { has: string; token: string } }).sideChannel;
+  if (sc === undefined) return null;
+  const f = Number(tokens[sc.token]);
+  if (!(f > 0 && f <= 1)) throw new Error(`the side-channel width token ${sc.token} is ${String(tokens[sc.token])}, not a factor in (0, 1]`);
+  return f === 1 ? null : ["case", ["has", sc.has], f, 1];
+}
+
+function linearStops(spec: WidthSpec, tokens: Tokens): WidthStop[] {
+  const scale = Number(tokens[spec.token] ?? 1);
+  const attr = ["coalesce", ["to-number", ["get", spec.by]], 1];
+  // (T891) a braid's side channel (`sc`) is drawn thinner, in every stop: the main channel keeps its width
+  const side = sideChannelFactor(spec, tokens);
+  return spec.ramp.map(([at, base, slope]) => {
+    const w = ["*", scale, ["+", base, ["*", attr, slope]]];
+    return { at, w: side === null ? w : ["*", side, w], f: spec.closed ? rampAt(spec.closed, at) : 1 };
+  });
+}
+
+/** A stop's width with the T470 factor on the sections `closed` holds (the stop itself where there is none). */
+function closedPart(s: WidthStop, closed: unknown | null): unknown {
+  return s.f === 1 || closed === null ? s.w : ["*", ["case", closed, s.f, 1], s.w];
+}
+
+/**
+ * THE HIGHLIGHT'S WIDTH FLOOR (px, by feature-state), or null where the theme has none. P15: the water's other parts
+ * (`water`) take their own, lower floor — after `selected`, which wins. T151: the part you are on in a water's Map view
+ * (`part`) takes the SAME floor as the others — one width for every part.
+ */
+function highlightFloor(tokens: Tokens): unknown | null {
+  if (tokens["width.stream.highlight"] === undefined) return null;
+  return tokens["width.stream.water"] !== undefined
+    ? ["case", SELECTED, Number(tokens["width.stream.highlight"]), ["any", PART, WATER], Number(tokens["width.stream.water"]), 0]
+    : ["case", SELECTED, Number(tokens["width.stream.highlight"]), 0];
+}
+
+/**
+ * (T848) THE STREAM LAYER DRAWN OVER `stream` WHERE ITS WIDTH READS FEATURE-STATE — a selected or lit section (the
+ * highlight's floor) and a closed one (T470's heavier mid-zoom line). Owner 2026-11-18, the web map lagging zooming out
+ * over Intata Reach: every labelled section re-evaluated each feature-state paint property of every layer it is in, and
+ * the costliest was the stream's own width — a 2.7 KB zoom curve with `max`, `in` and `feature-state`, evaluated twice per
+ * feature and shared by nine layers. So the `stream` layer's width reads zoom and order only (`StreamWidths.base`), and
+ * this layer — the stream's own colour and opacity — draws the sections whose width differs (`heavy`), at the width the
+ * stream had before (`drawn`); `stream` is hidden under it there, so a translucent line is never drawn twice. Each mark
+ * drawn with the stream's width reads the drawn width only where it can show and the two differ (`markWidth`).
+ */
+export const STREAM_HEAVY = "stream-heavy";
+
+/** (T848) The stream's width, split: what reads feature-state, and where. */
+export interface StreamWidths {
+  /** the width from zoom and stream order alone: no feature-state */
+  readonly base: unknown;
+  /** the stream's width as drawn (the floors and closed's factor): `paintFor`'s, the one width before T848 */
+  readonly drawn: unknown;
+  /** where `drawn` may differ from `base` (lit or closed), as a boolean expression; null: nowhere */
+  readonly heavy: unknown | null;
+  /** where the highlight's floor applies (selected, part, water); null: the theme has no floor */
+  readonly lit: unknown | null;
+  /** `drawn` on the lit sections, the closed factor (unconditionally) elsewhere: right wherever a section is heavy */
+  readonly heavyWidth: unknown;
+  /** `drawn` where `guard` holds, `base` elsewhere (null: `base`) */
+  within(guard: unknown | null): unknown;
+}
+
+/** (T848) The stream's widths in `mode` — `paintFor("stream", …)["line-width"]` is their `drawn`. */
+export function streamWidths(mode: string, tokens: Tokens, given: ChannelValues | null = NO_VALUES): StreamWidths {
+  const values = given ?? NO_VALUES;
+  const m = STYLE_META.colorModes["stream"]?.[mode];
+  // a profile mode with no day is the plain map (`paintFor`)
+  const eff = profileChannel(m) && profileDay(m, values) === null ? "plain" : mode;
+  const spec = STYLE_META.widths["stream"];
+  if (spec === undefined || typeof spec === "string" || (spec.mode ?? "linear") !== "linear")
+    throw new Error("streamWidths: the stream's width is no longer a linear ramp over order");
+  const stops = linearStops(spec, tokens);
+  const closed = spec.closed ? closedShown("stream", eff, values) : null;
+  const floor = highlightFloor(tokens);
+  const lit = floor === null ? null : tokens["width.stream.water"] !== undefined ? ["any", SELECTED, PART, WATER] : SELECTED;
+  const drawnAt = (s: WidthStop) => (floor === null ? closedPart(s, closed) : ["max", closedPart(s, closed), floor]);
+  const factorAt = (s: WidthStop) => (s.f === 1 || closed === null ? s.w : ["*", s.f, s.w]);
+  const curve = (f: (s: WidthStop) => unknown) => ["interpolate", ["linear"], ["zoom"], ...stops.flatMap((s) => [s.at, f(s)])];
+  const heavy = lit !== null && closed !== null ? ["any", lit, closed] : lit ?? closed;
+  return {
+    base: curve((s) => s.w),
+    drawn: curve(drawnAt),
+    heavy, lit,
+    heavyWidth: curve((s) => (lit === null ? factorAt(s) : ["case", lit, drawnAt(s), factorAt(s)])),
+    within: (guard) => (guard === null ? curve((s) => s.w) : curve((s) => ["case", guard, drawnAt(s), s.w])),
+  };
+}
+
+/**
+ * (T848) `paint` (the stream's, as `paintFor` and the focus make it) split between the two layers that draw it: `stream`
+ * at the base width, hidden where `heavy`; `STREAM_HEAVY` at the drawn width, shown only there. The same colour on both.
+ */
+export function splitStream(paint: Record<string, unknown>, sw: StreamWidths):
+    { stream: Record<string, unknown>; heavy: Record<string, unknown> } {
+  const op = paint["line-opacity"] ?? 1;
+  if (sw.heavy === null)
+    return { stream: { ...paint, "line-width": sw.base }, heavy: { ...paint, "line-width": sw.base, "line-opacity": 0 } };
+  return {
+    stream: { ...paint, "line-width": sw.base, "line-opacity": withinZoomCurve(op, (v) => ["case", sw.heavy, 0, v]) },
+    heavy: { ...paint, "line-width": sw.heavyWidth, "line-opacity": withinZoomCurve(op, (v) => ["case", sw.heavy, v, 0]) },
+  };
+}
+
+/** (T848) The marks drawn with the stream's width. */
+export type StreamMark = "casing" | "glow" | "gear" | "closed" | "runs" | "issue";
+/** a casing shows on a selected section, the part you are on, or one an in-season change covers (`casingPaint`) */
+const CASED = ["any", SELECTED, PART, INSEASON];
+
+/**
+ * (T848) The stream width a mark is drawn with in `mode`: the drawn width wherever the mark can show AND it differs
+ * from the base, the base (no feature-state) everywhere else — so a mark reads the floor or closed's factor only where
+ * it would be seen, and not at all in a mode that never shows it.
+ */
+export function markWidth(mark: StreamMark, mode: string, sw: StreamWidths): unknown {
+  switch (mark) {
+    case "casing": return sw.within(CASED);
+    case "glow": return sw.within(ON);
+    // never on a closed section (`gearShown`): the floor is all that differs
+    case "gear": return markShownIn("gear", mode) ? sw.within(sw.lit) : sw.base;
+    // only on a closed section: the factor always, the floor where lit
+    case "closed": return markShownIn("closed", mode) ? sw.heavyWidth : sw.base;
+    case "runs": return markShownIn("runs", mode) ? sw.within(sw.heavy) : sw.base;
+    case "issue": return markShownIn("issue", mode) ? sw.within(issueShown(mode)) : sw.base;
+  }
+}
+
+/**
+ * (T848 fix 2) THE MODES A STREAM MARK CAN SHOW IN — by the mode alone, never its day (a day arriving must not flip a
+ * layer's visibility: that re-lays out every tile). A mark outside them is `visibility: none`: no bucket, no
+ * feature-state work. `nobaseline` / `noaccess` / `runs` / `issue` / `gear` / `closed` as their paint functions read them.
+ */
+export type ModalMark = "nobaseline" | "noaccess" | "gear" | "closed" | "runs" | "issue" | "salmonCasing";
+export function markShownIn(mark: ModalMark, mode: string, layerId: "stream" | "lake" = "stream"): boolean {
+  const m = STYLE_META.colorModes[layerId]?.[mode];
+  const cats = m && "categories" in m ? m.categories : {};
+  switch (mark) {
+    case "nobaseline": return mode === "standing";
+    case "noaccess": return accessMode(layerId, mode) !== null;
+    case "gear": return GEAR_MODES.includes(mode) && m?.scale === "profile";
+    case "closed": return cats["closed"] !== undefined && (m?.scale === "profile" || m?.scale === "categorical");
+    case "runs": return mode === "runs";
+    case "issue": return issueShown(mode) !== null;
+    case "salmonCasing": return mode === "salmon";
+  }
+}
+
 /** The MapLibre paint property that carries colour, per layer type. */
 // Module-private: an implementation detail of `paintFor`.
 function colourPropFor(type: string | undefined): string {
@@ -322,7 +621,6 @@ export function paintFor(layerId: string, mode: string, tokens: Tokens,
    * colour is now the mode's, always; what is selected is OUTLINED by the selection layers (`SELECTION_CASING`,
    * `SELECTION_RINGS`), and a selected stream is drawn at least `width.stream.highlight` wide (below).
    */
-  const selected = SELECTED;
   const isHighlightable = STYLE_META.highlightable.some((h) => h.id === layerId);
   let out: Record<string, unknown> = { [colourPropFor(type)]: colorExpression(layerId, mode, tokens, values) };
 
@@ -359,14 +657,9 @@ export function paintFor(layerId: string, mode: string, tokens: Tokens,
           z.push(at, f === 1 ? w : ["*", closed === null ? f : ["case", closed, 1, f], w]);
         }
       } else {
-        const attr = ["coalesce", ["to-number", ["get", spec.by]], 1];
         // (T470) `closed`: a section the day paints closed is drawn this much heavier, short of the factor's last zoom
         const closed = spec.closed ? closedShown(layerId, mode, values) : null;
-        for (const [at, base, slope] of spec.ramp) {
-          const w = ["*", scale, ["+", base, ["*", attr, slope]]];
-          const f = spec.closed ? rampAt(spec.closed, at) : 1;
-          z.push(at, f === 1 || closed === null ? w : ["*", ["case", closed, f, 1], w]);
-        }
+        for (const s of linearStops(spec, tokens)) z.push(s.at, closedPart(s, closed));
       }
       out[widthKey] = z;
     }
@@ -386,15 +679,8 @@ export function paintFor(layerId: string, mode: string, tokens: Tokens,
      * layer is dropped and the map comes up unstyled with a single console line.
      * `tools/style-valid.test.ts` now runs the spec's own validator over this.
      */
-    if (isHighlightable && type === "line" && tokens["width.stream.highlight"] !== undefined) {
-      // P15: the water's other parts (`water`) take their own, lower floor — after `selected`, which wins. T151: the part
-      // you are on in a water's Map view (`part`) takes the SAME floor as the others — one width for every part
-      const floor: unknown = tokens["width.stream.water"] !== undefined
-        ? ["case", selected, Number(tokens["width.stream.highlight"]),
-           ["any", PART, WATER], Number(tokens["width.stream.water"]), 0]
-        : ["case", selected, Number(tokens["width.stream.highlight"]), 0];
-      out[widthKey] = withinZoomCurve(out[widthKey], (v) => ["max", v, floor]);
-    }
+    const floor = isHighlightable && type === "line" ? highlightFloor(tokens) : null;
+    if (floor !== null) out[widthKey] = withinZoomCurve(out[widthKey], (v) => ["max", v, floor]);
   }
 
   const dash = (STYLE_META.dashes ?? {})[layerId];
@@ -450,7 +736,8 @@ export function paintFor(layerId: string, mode: string, tokens: Tokens,
     // (`interpolationFactor is not a function`, entering Conditions or Runs from the Map tab)
     out["line-opacity"] = labels.length
       ? fadeByOrder(out["line-opacity"] ?? 1, fade,
-          ["in", ["coalesce", ["feature-state", (m as { property: string }).property], ""], ["literal", labels]])
+          // (T796 A6) closed is never faded: nor is a section DFO's finfish closure paints closed
+          offFinfish(m, values, ["in", ["coalesce", ["feature-state", (m as { property: string }).property], ""], ["literal", labels]]))
       : fadeByOrder(out["line-opacity"] ?? 1, { ...fade, stops: fade.stops.map(([z, ks]) => [z, ks.map(() => 1)]) }, false);
   }
 

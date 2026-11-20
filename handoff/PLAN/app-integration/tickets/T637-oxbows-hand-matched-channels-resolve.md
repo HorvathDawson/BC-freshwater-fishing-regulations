@@ -1,6 +1,8 @@
 # T637 — Okanagan River Oxbows: the owner's hand-matched side channels must bind again
 
-Status: IN PROGRESS — f4069759f, 216a7e60a, 070230ff5, 298e77cb4; owner ANSWERED 2026-11-12 (Whiteswan: every inlet closed, T690); left (Claude): restamp matched (oxbows), one rebuild with T623/T660, reach + binding diff, promote
+Status: DONE — f4069759f, 216a7e60a, 070230ff5, 298e77cb4, c7decd691, b0646e6d4, f5831c1ac. The oxbow channels bind again (name variant + fix (a) + owner cuts), restamped and promoted with the next rebuild; Whiteswan taken by T690.
+
+Closed by the 2026-11-20 audit: the oxbow work landed (f4069759f, 216a7e60a, 070230ff5, 298e77cb4, restamp c7decd691) and rode the next rebuild promote f5831c1ac / release r-483b295de57c (okanagan_river_oxbows.r1 89 = 89 sections); Whiteswan moved to T690.
 
 Source: owner 2026-11-11, on T632 item 3: "what you mean they never had an item if they are unnamed side channels? i hand matched them?"
 

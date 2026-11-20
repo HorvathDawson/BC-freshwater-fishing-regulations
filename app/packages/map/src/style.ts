@@ -44,7 +44,9 @@ export type ColorMode =
   | { label: string; scale: "profile"; property: string; enum: string;
       categories: Record<string, TokenRef>; missing: TokenRef;
       /** Whose values it reads: provider `salmon` (T211) is the salmon channel's day, every other the status's. */
-      data?: { provider: string; field?: string } };
+      data?: { provider: string; field?: string };
+      /** (T937) the mode of this layer whose `no_access` labels also draw the no-access dots here (Salmon: Standard's). */
+      accessFrom?: string };
 
 /** (T211) THE CHANNEL A PROFILE MODE READS ITS DAY FROM: the Salmon colouring's own, else the day's status. */
 type ProfileChannel = "status" | "salmon";
@@ -52,6 +54,32 @@ export function profileChannel(mode: ColorMode | undefined): ProfileChannel | nu
   if (mode?.scale !== "profile") return null;
   return mode.data?.provider === "salmon" ? "salmon" : "status";
 }
+
+/**
+ * (T796 A6, owner 2026-11-16: "Closes the whole page") THE STATUS DAY WITH DFO'S FINFISH CLOSURES OVER IT. A DFO "Finfish
+ * closure" closes ALL fishing on its stretch, trout included, so the Standard map paints the section closed, ahead of its
+ * status profile `p`: by its salmon chain label (`sp`, the salmon channel's, on every tile the Map tab colours) in
+ * `finfish` (@app/core `finfishDayLabels` — the live feed's when one is read, so it follows DFO's edits; the status
+ * index answers for the build's day alone). Under a legend isolate that is not Closed (`isolateDay`) the same labels move
+ * to `finfishNone`, the neutral grey, as a closed section's do. Absent (never an empty list) on a day with none: the
+ * paint is then exactly the status day's.
+ */
+export type StatusDay = DayProfiles & { readonly finfish?: readonly string[]; readonly finfishNone?: readonly string[] };
+/** The feature-state the salmon channel labels each section's chain in (`salmonInput`; the Salmon modes' `property`). */
+export const SALMON_LABEL_KEY = "sp";
+
+/** The finfish closures over a STATUS profile mode's day (`StatusDay`); null where the mode is another or there are none. */
+export function finfishOver(mode: ColorMode | undefined, values: ChannelValues | null):
+    { readonly closed: readonly string[]; readonly none: readonly string[] } | null {
+  if (profileChannel(mode) !== "status") return null;
+  const d = (values ?? NO_VALUES).status;
+  const closed = d?.finfish ?? [], none = d?.finfishNone ?? [];
+  return closed.length || none.length ? { closed, none } : null;
+}
+
+/** A section whose salmon chain label is one of `labels`, as a boolean expression. */
+export const salmonLabelIn = (labels: readonly string[]): unknown =>
+  ["in", ["coalesce", ["feature-state", SALMON_LABEL_KEY], ""], ["literal", [...labels]]];
 
 /** The day's label sets a profile mode paints by (null: none installed). */
 export function profileDay(mode: ColorMode | undefined, values: ChannelValues | null):
@@ -78,7 +106,7 @@ export interface StandingValues {
  * Null where the channel has nothing installed.
  */
 export interface ChannelValues {
-  status: DayProfiles | null;
+  status: StatusDay | null;
   standing: StandingValues | null;
   /** The lake channels' values are their labels, so the style reads nothing here: the day the bands count from, */
   stocked: number | null;
@@ -92,9 +120,11 @@ export interface ChannelValues {
   /** (T199) the run timing's section values are its labels (`rt`: the state for the species and pentad); (T261) what
    *  is here is the zoomed-out field's — each watershed group's state by its `basin_id` — and the key painted. */
   runs: { readonly key: string; readonly basins: Readonly<Record<string, "spawn" | "pass" | "off">> } | null;
+  /** (T759) the issue stripe is in the labels (`gi`), nothing for the style: always null. */
+  issue: null;
 }
 export const NO_VALUES: ChannelValues =
-  { status: null, standing: null, stocked: null, survey: null, salmon: null, method: null, runs: null };
+  { status: null, standing: null, stocked: null, survey: null, salmon: null, method: null, runs: null, issue: null };
 
 /** A token is a colour, a number, or a dash pattern (an array of line-width multiples). */
 export type Tokens = Record<string, string | number | number[]>;
@@ -163,6 +193,10 @@ export const STYLE_META = meta as unknown as {
   edgeOpacities: Record<string, string>;
   /** (T470) edge id -> [[zoom, factor]]: its outline opacity token times a zoom curve. */
   edgeOpacityRamps: Record<string, [number, number][]>;
+  /** (T923) edge layer id -> tokens of its paint over satellite imagery (`outline.satellite`) */
+  satelliteEdges?: Record<string, { color: string; width: string; ramp: [number, number][]; opacity: string }>;
+  /** (T923) casing layers drawn over satellite only */
+  satelliteOnly?: string[];
   themes: Record<string, Tokens>;
   /** Layers a view may switch that are added at runtime, not defined here. */
   runtimeLayers: string[];
@@ -288,7 +322,25 @@ export function colorExpression(layerId: string, modeName: string, t: Tokens,
       if (labels.length) out.push([...labels], val(ref));
     }
     out.push(val(mode.missing));           // `none` (tidal, outside B.C.) and every unplaced label
-    return out.length > 3 ? out : val(mode.missing);
+    const plain = out.length > 3 ? out : val(mode.missing);
+    // (T937) NO PUBLIC ACCESS reads the same colour on every colouring: where this mode takes its access from another
+    // (`accessFrom`, Salmon), the status day's no_access sections wear that mode's no_access colour, ahead of the day
+    const from = mode.accessFrom ? STYLE_META.colorModes[layerId]?.[mode.accessFrom] : undefined;
+    const noAccess = from && "categories" in from ? from.categories["no_access"] : undefined;
+    const naLabels = values?.status?.no_access ?? [];
+    // a DFO finfish closure holds the grey off, as on Standard: all fishing is closed there, and the section reads closed
+    const finAway = from && "property" in from ? finfishOver(from, values) : null;
+    const noAccessIs = ["in", ["coalesce", ["feature-state", from && "property" in from ? from.property : ""], ""], ["literal", [...naLabels]]];
+    const byDay = from && "property" in from && noAccess && naLabels.length
+      ? ["case", finAway ? ["all", noAccessIs, ["!", salmonLabelIn([...finAway.closed, ...finAway.none])]] : noAccessIs, val(noAccess), plain]
+      : plain;
+    // (T796 A6) DFO's finfish closures, ahead of the day's profile: closed (or, isolated away, `missing`) by the chain
+    const fin = finfishOver(mode, values);
+    if (!fin) return byDay;
+    const closed = mode.categories["closed"];
+    if (!closed) throw new Error(`profile mode "${modeName}" has no closed colour for a finfish closure`);
+    return ["case", ...(fin.closed.length ? [salmonLabelIn(fin.closed), val(closed)] : []),
+            ...(fin.none.length ? [salmonLabelIn(fin.none), val(mode.missing)] : []), byDay];
   }
 
   const read = ["feature-state", mode.property];
@@ -300,7 +352,9 @@ export function colorExpression(layerId: string, modeName: string, t: Tokens,
     out.push(val(fallback));
     return out;
   }
-  const out: unknown[] = ["case", ["==", read, null], val(mode.missing),
+  // (T832) anything but a number is `missing`: no state, and the cleared sentinel (`sections.ts` `CLEARED`) a phone writes
+  // in place of null (iOS's bridge drops a null-valued key)
+  const out: unknown[] = ["case", ["!=", ["typeof", read], "number"], val(mode.missing),
                           ["interpolate", ["linear"], read]];
   const interp = out[3] as unknown[];
   for (const [at, ref] of mode.stops) interp.push(at, val(ref));
@@ -317,6 +371,13 @@ export function salmonStatusColour(theme: string, status: SalmonMapStatus): stri
   const hex = resolveTheme(theme)[`color.salmon.${status}`];
   if (typeof hex !== "string") throw new Error(`theme "${theme}" cannot paint salmon ${status}`);
   return hex;
+}
+
+/** (T887) The keep line's casing in one theme (option B: an ink edge round a bright keep), or null where it has none. */
+export function salmonCasingColour(theme: string): string | null {
+  const t = resolveTheme(theme);
+  const px = Number(t["width.salmon.casing"] ?? 0), hex = t["color.salmon.casing"];
+  return px > 0 && typeof hex === "string" ? hex : null;
 }
 
 /** (T199) The colour the Run timing mode paints a run state (or no run: `none`) in one theme — its legend swatch. */
@@ -338,6 +399,14 @@ export function closedCueColour(theme: string): string {
   const hex = resolveTheme(theme)["color.cue.closed"];
   if (typeof hex !== "string") throw new Error(`theme "${theme}" has no closed cue`);
   return hex;
+}
+
+/** (T759) The issue stripe's ink and the paper under it in one theme — the legend's swatch draws them on a line. */
+export function issueStripeColours(theme: string): { stripe: string; casing: string } {
+  const t = resolveTheme(theme);
+  const stripe = t["color.issue.stripe"], casing = t["color.issue.casing"];
+  if (typeof stripe !== "string" || typeof casing !== "string") throw new Error(`theme "${theme}" has no issue stripe`);
+  return { stripe, casing };
 }
 
 /** (T636) A gauge dot that reports only the other quantity, in one theme: its grey fill and its ring — the legend's swatch. */

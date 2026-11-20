@@ -5,10 +5,14 @@
  *
  *   water      meta.format `water/1`, a blob codec this layer decodes, `layout.versions` = core `KNOWN_VERSIONS` (and =
  *              the manifest's `regulations.versions`), `static answers.glossary.version` = 5, and its `section_handles`
- *              the sid space of the tiles drawn (the P10 pair: tile version `<handles16>.<build>`).
+ *              the sid space of the tiles drawn (the P10 pair: tile version `<handles16>.<build>`). (T810 M0) an
+ *              OPTIONAL section (core `OPTIONAL_VERSIONS`) may be absent; present, it is at the version this app reads
+ *              and the manifest says the same, and the store records it held (`meta.optional`), so the reads name its
+ *              columns and tables only then.
  *   region,    checked on their first open (web fetches them lazily): their format, and `section_handles`,
  *   sid        `reach_digest` and `rule_ids_sha256` equal to water's — a region file from another build numbers rules
- *              differently, and every rix it names would be another rule.
+ *              differently, and every rix it names would be another rule. (T810 M0) A region file carries the `cell`
+ *              columns of every optional section the store holds (all or nothing, trout table contract 2.1).
  *
  * A refusal is a `RegsStoreError` (the UI says "Regulations unavailable", never a partly-read page). The loader's own
  * refusal of a file (a `ReleaseError`: the release has no such file, or the file is not the manifest's format/handles)
@@ -25,7 +29,10 @@
  * digests are no longer held to the province bundle's `BundleInfo` (there is no bundle on the release path) but to the
  * tiles drawn and to each other; `meta.store_digest` / `meta.counts` are not in the release files and are not read.
  */
-import { BLOB_CODECS, KNOWN_VERSIONS, REGS_FORMATS, SECTION_NAMES, type SectionName } from "@app/core";
+import {
+  BLOB_CODECS, KNOWN_VERSIONS, OPTIONAL_VERSIONS, REGS_FORMATS, SECTION_NAMES, type OptionalSectionName, type SectionName,
+} from "@app/core";
+import { PACK_OPTIONAL_SECTION_TABLES } from "../pack.generated";
 import type { Cell, Db } from "../sql/db";
 import { ReleaseError, type ReleaseLoader } from "../release/loader";
 import { unpackBlob } from "./blob";
@@ -53,6 +60,9 @@ export interface RegsMeta {
   readonly ruleIdsSha256: string;
   readonly answersSha256: string;
   readonly versions: { readonly [K in SectionName]: number };
+  /** (T810 M0) The optional sections this release holds, at their version (each = `OPTIONAL_VERSIONS`); a section the
+   *  release leaves out is absent here, and nothing reads its columns or tables. */
+  readonly optional: { readonly [K in OptionalSectionName]?: number };
   readonly glossaryVersion: number;
   readonly layout: { readonly top: readonly string[]; readonly sections: Readonly<Record<string, readonly string[]>> };
 }
@@ -121,6 +131,22 @@ export async function openRegsStore(loader: RegsLoader, expect: RegsExpect = {})
   const unsaid = SECTION_NAMES.filter((n) => said && said[n] !== versions[n])
     .map((n) => `the manifest says ${n} ${said![n] ?? "absent"}, the water file ${versions[n]}`);
   if (unsaid.length) throw new RegsStoreError("version", `regs store: ${unsaid.join(", ")} — refused`);
+  // (T810 M0) the optional sections: absent is fine; present, at the version this app reads, and the manifest the same
+  const optionalNames = Object.keys(OPTIONAL_VERSIONS) as OptionalSectionName[];
+  const optOff = optionalNames.filter((n) => versions[n] !== undefined && versions[n] !== OPTIONAL_VERSIONS[n])
+    .map((n) => `${n} section version ${versions[n]}, this app reads ${OPTIONAL_VERSIONS[n]}`);
+  if (optOff.length) throw new RegsStoreError("version", `regs store: ${optOff.join(", ")} — refused`);
+  const optUnsaid = optionalNames.filter((n) => said && said[n] !== versions[n])
+    .map((n) => `the manifest says ${n} ${said![n] ?? "absent"}, the water file ${versions[n] ?? "absent"}`);
+  if (optUnsaid.length) throw new RegsStoreError("version", `regs store: ${optUnsaid.join(", ")} — refused`);
+  const held = optionalNames.filter((n) => versions[n] !== undefined);
+  const optional = Object.fromEntries(held.map((n) => [n, versions[n]!])) as RegsMeta["optional"];
+  /** the `cell` columns of the optional sections held (generated names): every region file must carry them */
+  const optionalCells = held.flatMap((n) => {
+    const t = PACK_OPTIONAL_SECTION_TABLES[n];
+    if (!t) throw new RegsStoreError("version", `regs store: this app's contract names no tables for the ${n} section — refused`);
+    return [...t.cell];
+  });
 
   // 5: every table's dictionary (water holds the region tables' too)
   const dicts = new Map<string, Uint8Array>();
@@ -144,10 +170,11 @@ export async function openRegsStore(loader: RegsLoader, expect: RegsExpect = {})
   // the others, on first open: same build as water, or the whole store is refused
   let refusal: RegsStoreError | null = null;
   const checked = new WeakMap<Db, Promise<Db>>();
-  const hold = (name: string, d: Db, want: string, extra?: (meta: Map<string, string>) => string | null): Promise<Db> => {
+  const hold = (name: string, d: Db, want: string, extra?: (meta: Map<string, string>) => string | null,
+                cellColumns?: readonly string[]): Promise<Db> => {
     let p = checked.get(d);
     if (!p) {
-      p = metaOf(d).then((fm) => {
+      p = metaOf(d).then(async (fm) => {
         const f = fm.get("format");
         if (f !== want) throw new RegsStoreError("format", `regs store: ${name} is ${f ?? "unformatted"}, this app reads ${want} — refused`);
         for (const [k, what] of DIGESTS) {
@@ -157,6 +184,13 @@ export async function openRegsStore(loader: RegsLoader, expect: RegsExpect = {})
         }
         const bad = extra?.(fm);
         if (bad) throw new RegsStoreError("damaged", `regs store: ${bad} — refused`);
+        if (cellColumns) {
+          // (T810 M0) all or nothing: a region file without a held optional section's column is another build's
+          const has = new Set((await d.all("SELECT name FROM pragma_table_info('cell')")).map((r) => String(r.name)));
+          const lacks = cellColumns.filter((c) => !has.has(c));
+          if (lacks.length)
+            throw new RegsStoreError("damaged", `regs store: ${name} has no cell.${lacks.join(", cell.")}, which water's sections hold — refused`);
+        }
         return d;
       }).catch((e) => {
         if (e instanceof RegsStoreError) refusal ??= e;
@@ -179,7 +213,7 @@ export async function openRegsStore(loader: RegsLoader, expect: RegsExpect = {})
     release: loader.release, format: REGS_FORMATS.water, blobCodec: codec as RegsMeta["blobCodec"],
     sectionHandles: handles, reachDigest: reach, ruleIdsSha256: ruleIds, answersSha256: need("answers_sha256"),
     versions: Object.fromEntries(SECTION_NAMES.map((n) => [n, versions[n]!])) as RegsMeta["versions"],
-    glossaryVersion: gv,
+    optional, glossaryVersion: gv,
     layout: { top: layout.top ?? [], sections: layout.sections ?? {} },
   };
 
@@ -192,7 +226,8 @@ export async function openRegsStore(loader: RegsLoader, expect: RegsExpect = {})
       const d = await opened(loader.regionDb(akey), regions.some((r) => !loader.manifest.files[`regs-${r}`]));
       return hold("a region file", d, REGS_FORMATS.region, (fm) =>
         (regions as readonly string[]).includes(fm.get("region") ?? "")
-          ? null : `the region file opened for akey ${akey} is region ${fm.get("region")}, not ${regions.join(" / ")}`);
+          ? null : `the region file opened for akey ${akey} is region ${fm.get("region")}, not ${regions.join(" / ")}`,
+        optionalCells.length ? optionalCells : undefined);
     },
     async sid(): Promise<Db> {
       live();
@@ -213,7 +248,7 @@ export async function openRegsStore(loader: RegsLoader, expect: RegsExpect = {})
       return opened(loader.db("geo"), false);
     },
   };
-  const { clear, ...reads } = makeReads({ ...files, val });
+  const { clear, ...reads } = makeReads({ ...files, val, dict, optional });
   return {
     meta, ...files, ...reads, dict, val,
     refused: () => refusal,

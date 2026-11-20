@@ -1,6 +1,6 @@
 # T185 — From review marks to catalogue changes: the marks are the decisions, Claude applies them
 
-Status: DONE (e32eb08e) — owner decides the 8 proposals and applies them. Owner 2026-10-24: "we want to avoid making the review curation tool update files directly anyways. must
+Status: DONE (102236e9a) — owner decides the 8 proposals and applies them. Owner 2026-10-24: "we want to avoid making the review curation tool update files directly anyways. must
 be a better process to get the manual results in to entries etc."
 
 ## The process
@@ -28,7 +28,7 @@ commit of the marks store), each with a mutation; `test_curation_review_screen` 
 under `data/curated` changed. A ticket's work line now reads "a reviewed change to the curated files (T185)". Still
 open here: steps 3–5 (the proposal builder, the change-review page, apply).
 
-## Outcome — steps 3–5 (2026-10-27, e32eb08e)
+## Outcome — steps 3–5 (2026-10-27, 102236e9a)
 
 Marks -> proposals -> owner decides (a mark) -> owner applies, one commit each. Nothing but the owner's
 `apply_proposals` writes a curated file; the one-write pins are unchanged and green.

@@ -53,7 +53,7 @@ describe.each([["light", LIGHT], ["dark", DARK]] as [string, Palette][])("Flow t
     const { getByTestId, queryByTestId } = render(
       <SpotScreen spot={old} palette={palette} onBack={() => {}} dayFlow={{ view: dayFlowView(old, "idle"), onAsk: null }} />);
     expect(getByTestId("spot-gauges-pending").textContent).toBe(
-      "The gauges for 15 Aug 2024 have not been read from their record yet. Refresh fills them in.");
+      "The gauges for Thu 15 Aug 2024 have not been read from their record yet. Refresh fills them in.");
     expect(queryByTestId("spot-gauges-day")).toBeNull();
   });
 
@@ -61,16 +61,17 @@ describe.each([["light", LIGHT], ["dark", DARK]] as [string, Palette][])("Flow t
     const day: Spot = { ...backdated, panel: TRIP_PANEL, panelDay: { state: "day", date: "2024-08-15" } };
     const { getByTestId, queryByTestId } = render(
       <SpotScreen spot={day} palette={palette} onBack={() => {}} dayFlow={{ view: dayFlowView(day, "idle"), onAsk: null }} />);
-    expect(getByTestId("spot-gauges-day").textContent).toBe("Each gauge's daily mean on 15 Aug 2024, the day of the visit.");
+    expect(getByTestId("spot-gauges-day").textContent).toBe("Each gauge's daily mean on Thu 15 Aug 2024, the day of the visit.");
     expect(queryByTestId("spot-gauges-pending")).toBeNull();
   });
 
-  it("a draft added for an earlier day says the day's flow it read", () => {
-    const { getByTestId } = render(
+  it("a draft added for an earlier day says the day's flow it read (in its record, folded until opened: T819)", () => {
+    const { getByTestId, getByLabelText } = render(
       <SpotScreen spot={{ ...filled, createdAt: SAVED }} palette={palette} mode="draft" onBack={() => {}}
                   dayFlow={{ view: dayFlowView(filled, "idle"), onAsk: null }} />);
+    fireEvent.click(getByLabelText("Show the record"));
     expect(getByTestId("day-flow-line").textContent).toBe("19.6 m³/s, lower than 8 days in 10 for the date — filled in "
-      + "from the day's record (HYDAT daily mean, 15 Aug 2024).");
+      + "from the day's record (HYDAT daily mean, Thu 15 Aug 2024).");
   });
 
   it("filled: the day's flow said whole in the theme's ink, and no action", () => {
@@ -79,7 +80,7 @@ describe.each([["light", LIGHT], ["dark", DARK]] as [string, Palette][])("Flow t
                   dayFlow={{ view: dayFlowView(filled, "idle"), onAsk: null }} />);
     const line = getByTestId("day-flow-line");
     expect(line.textContent).toBe("19.6 m³/s, lower than 8 days in 10 for the date — filled in from the day's record "
-      + "(HYDAT daily mean, 15 Aug 2024).");
+      + "(HYDAT daily mean, Thu 15 Aug 2024).");
     expect(line.style.color).toBe(rgb(palette.ink));
     expect(queryByLabelText("Get the flow for that day")).toBeNull();
   });

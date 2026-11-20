@@ -37,6 +37,8 @@ export interface ReportWhere {
   quantity?: string | null;
   span?: string | null;
   feed?: string | null;
+  /** (T901) the report opens with this text already in "What happened" (Join the test, where no contact address is set) */
+  ask?: string | null;
 }
 
 /** (T352) The map as the reader had it when they asked to report: its layer, forecast offset, zoom and centre. */

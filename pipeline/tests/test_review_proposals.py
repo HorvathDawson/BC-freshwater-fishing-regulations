@@ -110,6 +110,21 @@ def _as_marked(path: Path, dst: Path) -> None:
     dst.write_bytes(got.stdout)
 
 
+def _trout_scope_as_today(path: Path) -> None:
+    """The MARKED_AT copy with each trout line's char exception as the curated row has it today (RULINGS C2, amended
+    by the owner 2026-11-18: Chilliwack Lake's "No wild trout over 50 cm" leaves out bull trout alone). The old
+    `[CHAR]` no longer validates, and the proposals check every file they edit validates."""
+    now = {r["rule_id"]: r.get("species_except") for e in json.loads(
+        (CURATED.regulations.synopsis / path.name).read_text(encoding="utf-8"))["entries"] for r in e.get("rules") or []}
+    doc = json.loads(path.read_text(encoding="utf-8"))
+    for e in doc["entries"]:
+        for r in e.get("rules") or []:
+            if "TROUT_CHAR" in (r.get("species") or []) and "CHAR" in (r.get("species_except") or []) \
+                    and now.get(r["rule_id"]) is not None:
+                r["species_except"] = now[r["rule_id"]]
+    path.write_text(json.dumps(doc, indent=1, ensure_ascii=False) + "\n", encoding="utf-8")
+
+
 @pytest.fixture()
 def src(tmp_path) -> P.Sources:
     """Temp copies of the files a proposal edits, and a build whose registry names the Quinsam."""
@@ -118,6 +133,7 @@ def src(tmp_path) -> P.Sources:
     dfo.mkdir(parents=True)
     for name in ("region-2.json", "region-5.json"):
         _as_marked(CURATED.regulations.synopsis / name, cat / name)
+        _trout_scope_as_today(cat / name)
     _as_marked(Path(CURATED.dfo_salmon.places) / "region-1.json", dfo / "region-1.json")
     _as_marked(CURATED.waters.cuts, tmp_path / "data/curated/splits.json")
     build = tmp_path / "build"
@@ -536,7 +552,10 @@ def test_the_forks_is_two_pieces_on_both_places(src_now):
         assert p["applicable"], p["problems"]
         [ed] = [e for e in p["edits"] if e["field"] == "extents"]
         tri = [e for e in p["edits"] if e["field"] == "tributaries"]
-        assert [e["after"] for e in tri] == [False]          # 128 inherits none, 129 says include today
+        # T807: both places sit under a plain heading ("Bulkley River", "Morice River") with words naming no side
+        # streams, so "no tributaries" is what the words say: the save stores nothing (the frozen Morice place stored
+        # "include" then, so the apply drops it)
+        assert [e["after"] for e in tri] in ([], [None])
         assert ed["after"] == [{"op": "between", "splits": [FORK_CUT + "_u100m", FORK_CUT], "item_id": "gnis:2195"},
                                {"op": "between", "splits": [FORK_CUT, FORK_CUT + "_d1000m"], "item_id": "gnis:2195"}]
 

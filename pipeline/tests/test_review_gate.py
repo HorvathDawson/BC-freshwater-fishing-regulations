@@ -212,6 +212,7 @@ def test_promote_to_a_directory(tmp_path):
         (d / FILENAME).write_text(h)
         (d / "registry.json").write_text("{}")
     from pipeline.atlas.inputs import write_complete
+    (cand / "split_unplaced.json").write_text("[]")        # T743: every cut placed
     write_complete(cand, {})                    # T547 §4: the atlas build's finished marker
     got = PR.promote(cand, target=target, tiles=tmp_path / "tiles", bundle=tmp_path / "b.sqlite",
                      log=lambda *_: None)
@@ -595,3 +596,19 @@ def test_the_fast_row_reader_never_returns_an_escaped_value(tmp_path):
     line = (tmp_path / "r.jsonl").read_text(encoding="utf-8")
     assert len(line.split('"')) == 17                    # the fast path's shape: only the guard stops it
     assert P._row(line) == ("a\\b", "r\\1", "1:0")
+
+
+def test_late_warm_steps_run_after_ready(reuse_mod, monkeypatch):
+    """T742 E8 (perf): the zone rule counts (~60 s) warm AFTER the app says ready — a DFO place never waits for them —
+    and are listed as to do until they finish"""
+    assert "rule section counts" not in [n for n, _ in reuse_mod.WARM_STEPS]
+    assert [n for n, _ in reuse_mod.LATE_WARM_STEPS] == ["rule section counts"]
+    assert [n for n, _ in reuse_mod.WARM_STEPS][-1] == "DFO places"
+    seen = []
+    monkeypatch.setattr(reuse_mod, "_one", lambda: seen.append(("one", reuse_mod._READY["ready"])), raising=False)
+    monkeypatch.setattr(reuse_mod, "_late", lambda: seen.append(("late", reuse_mod._READY["ready"])), raising=False)
+    monkeypatch.setattr(reuse_mod, "WARM_STEPS", (("one", "_one"),))
+    monkeypatch.setattr(reuse_mod, "LATE_WARM_STEPS", (("late", "_late"),))
+    got = reuse_mod.warm(reuse_mod.WARM_STEPS, late=reuse_mod.LATE_WARM_STEPS)
+    assert seen == [("one", False), ("late", True)]
+    assert ([d["step"] for d in got["done"]], got["todo"], got["ready"]) == (["one", "late"], [], True)

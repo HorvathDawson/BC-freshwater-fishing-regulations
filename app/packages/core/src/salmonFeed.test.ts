@@ -6,7 +6,7 @@
 import { describe, expect, it } from "vitest";
 import { SALMON_FEED_GOLDEN } from "./salmonFeed.golden";
 import { salmonCard, salmonChainStatus, salmonNotes, type SalmonFacts } from "./salmon";
-import { composeChain, dfoNoticeRows, parseDfoUnplaced, parseSalmonFeed, pickSalmon, salmonFeedLine, salmonCheckedLine, salmonFeedOf, withSalmonFeed } from "./salmonFeed";
+import { composeChain, dfoNoticeRows, feedFinfishOn, feedTables, parseDfoUnplaced, parseSalmonFeed, pickSalmon, salmonFeedLine, salmonFeedOf, withSalmonFeed } from "./salmonFeed";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any -- the golden is the pipeline's JSON, read as data
 const G = SALMON_FEED_GOLDEN as any;
@@ -153,24 +153,16 @@ describe("(T350) the bucket goes with the notes it is read from", () => {
   });
 });
 
-describe("the line by the mode switch (T276)", () => {
-  it("says when the feed was fetched, in the feed's own time; nothing for the release's own file", () => {
-    const f = feed();
-    expect(salmonCheckedLine(withSalmonFeed(release(), { ...f, at: "2026-10-29T09:11:27Z" }))).toBe("DFO rules checked Oct 29");
-    expect(salmonCheckedLine(release())).toBeNull();
-    expect(salmonCheckedLine(null)).toBeNull();
-  });
-
-  it("T551: the legend's date and the card's line are ONE B.C. stamp, whatever zone the device is in", () => {
+describe("the feed line (T276)", () => {
+  it("T551: the card's line is a B.C. stamp, whatever zone the device is in", () => {
     const f = feed();
     // 00:15 UTC Aug 15 is 17:15 PT Aug 14: the legend used the UTC date (Aug 15) beside a card saying Aug 14
     const at = "2026-08-15T00:15:00Z";
     const withAt = withSalmonFeed(release(), { ...f, at });
-    expect(salmonCheckedLine(withAt)).toBe("DFO rules checked Aug 14");
     expect(salmonFeedLine(withAt)).toBe("Checked with DFO Aug 14, 2026, 5:15 pm PT");
-    // and the two agree on a fetch just past B.C. midnight (07:05 UTC = 00:05 PT)
+    // and a fetch just past B.C. midnight (07:05 UTC = 00:05 PT) is the next B.C. day
     const late = withSalmonFeed(release(), { ...f, at: "2026-11-10T07:05:00Z" });
-    expect([salmonCheckedLine(late), salmonFeedLine(late)]).toEqual(["DFO rules checked Nov 10", "Checked with DFO Nov 10, 2026, 12:05 am PT"]);
+    expect(salmonFeedLine(late)).toBe("Checked with DFO Nov 10, 2026, 12:05 am PT");
   });
 });
 
@@ -186,6 +178,28 @@ describe("(T321) the feed's rows in DFO's words", () => {
       [other]: [{ k: "new", sp: "Coho", d: "", t: "kept" }], [carried]: [{ k: "new", sp: "Coho", d: "", t: "new words" }] });
     const plain = withSalmonFeed(rel, f).payload.x!;
     expect(plain[carried]).toBeUndefined();                                       // the feed says nothing now: gone
+  });
+});
+
+describe("(T870) the feed's printed rows (`pr`)", () => {
+  it("a location the feed carries lists the feed's rows (none when the feed carries none); the others keep the release's", () => {
+    const r = release();
+    const f = feed();
+    const [carried, other] = [Object.keys(f.locs)[0]!, "zz:not-in-the-feed"];
+    const rel = { ...r, chainOf: r.chainOf, payload: { ...r.payload, pr: {
+      [carried]: ["Coho | Sep 1 to Dec 31 | 1 per day"], [other]: ["Chum | Oct 1 to Nov 30 | 2 per day"] } } } as SalmonFacts;
+    const fx = { ...f, locs: { ...f.locs, [carried]: { ...f.locs[carried]!, pr: ["Coho | Sep 1 to Dec 31 | 2 per day — FN1234"] } } } as typeof f;
+    expect(withSalmonFeed(rel, fx).payload.pr).toEqual({
+      [other]: ["Chum | Oct 1 to Nov 30 | 2 per day"], [carried]: ["Coho | Sep 1 to Dec 31 | 2 per day — FN1234"] });
+    // a feed before T870 carries no rows for its places: none, never the release's rows under the feed's answers
+    expect(withSalmonFeed(rel, f).payload.pr![carried]).toBeUndefined();
+  });
+  it("a feed whose rows are not a list of words is refused whole", () => {
+    const f = feed();
+    const l = Object.keys(f.locs)[0]!;
+    for (const pr of [[], [1], [""], "Coho | x"])
+      expect(parseSalmonFeed({ ...f, locs: { ...f.locs, [l]: { ...f.locs[l]!, pr } } }), JSON.stringify(pr)).toBeNull();
+    expect(parseSalmonFeed({ ...f, locs: { ...f.locs, [l]: { ...f.locs[l]!, pr: ["Coho | Sep 1 to Dec 31 | 1 per day"] } } })).not.toBeNull();
   });
 });
 
@@ -266,5 +280,39 @@ describe("(T521) the feed's unplaced places", () => {
     const { items: _i, ...old } = matched;
     expect(() => parseDfoUnplaced([old])).toThrow("dfo unplaced.json: row 0 is not a place with fingerprint, region, water, rows and items");
     expect(() => parseDfoUnplaced({})).toThrow("dfo unplaced.json: not a list");
+  });
+});
+
+// (T770) the gear lines of a chain under a live feed (`live.compose`, `deliver.salmon.gear_on`)
+const five = <T>(x: T) => [x, x, x, x, x];
+describe("(T770) under a live feed a chain's gear lines are every place's, narrowest first, a line once", () => {
+  it("Little Qualicum, Oct 1: the stretch's fly-only and the river's hook rule; Jun 1 the hook rule alone", () => {
+    const FLY = "Fly-fishing only (Sep 1–Nov 30)", HOOK = "single barbless hook less than 15mm from point to shank";
+    const feed = parseSalmonFeed({ ...G.feed, gears: [[FLY], [HOOK], [HOOK, "No natural bait allowed"]],
+                        locs: { stretch: { r: "1", sp: five([0, 0]), g: [0, -1, 244, 0, 335, -1] },
+                                river: { r: "1", sp: five([0, 0]), g: [0, 1] }, river2: { r: "1", sp: five([0, 0]), g: [0, 2] } } })!;
+    const t = feedTables(feed);
+    // (owner 2026-11-16, question 13: "Show both") MUTATION: the first place with any line shows the fly-only alone
+    const got = composeChain(["stretch", "river", "river2"], feed, [], false, undefined, t);
+    const lines = (day: number) => {
+      let v = -1;
+      for (let k = 0; k < got.g.length; k += 2) if (got.g[k]! <= day) v = got.g[k + 1]!;
+      return v >= 0 ? t.gears[v] : null;
+    };
+    expect([lines(274), lines(152)]).toEqual([[FLY, HOOK, "No natural bait allowed"], [HOOK, "No natural bait allowed"]]);
+  });
+});
+
+describe("(T796 A6) the web's cue to read the salmon files for the Standard map", () => {
+  it("is any place's species verdict carrying `f` on the day, by the feed's own runs (-1: the place says nothing)", () => {
+    const base = feed();
+    const fin = { ...base,
+      verdicts: [{ s: "closed", t: "Not opened by DFO", d: 1 }, { s: "closed", t: "Finfish closure (Jul 20)", f: 1 }],
+      locs: { "6:x": { r: "6", sp: [[0, -1, 201, 1, 202, 0], [0, -1], [0, -1], [0, -1], [0, -1]], g: [0, -1] } } } as typeof base;
+    // Jul 20 is day 201; the day before says nothing, the day after is closed without `f`
+    expect([new Date(2026, 6, 19), new Date(2026, 6, 20), new Date(2026, 6, 21)].map((d) => feedFinfishOn(fin, d)))
+      .toEqual([false, true, false]);
+    // the pipeline's golden feed carries no finfish closure
+    expect(feedFinfishOn(base, new Date(2026, 6, 20))).toBe(false);
   });
 });

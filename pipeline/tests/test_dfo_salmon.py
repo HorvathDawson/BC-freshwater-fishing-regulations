@@ -851,16 +851,19 @@ def test_to_reach_input_shapes_a_watershed_above_a_point():
     entry, rules = to_reach_input(loc, [{"species": "Pink", "dates": "Jun 16 to Aug 23",
                                          "limits_gear": "2 per day"}], water)
 
+    # owner 2026-11-15: a DFO place's named water takes its own side channels (`reach.channels.CHANNELS_KEY`)
     assert entry == {"entry_id": loc.location_id, "matched": ["item:kispiox"],
-                     "includes_tributaries": True}
+                     "_named_water_takes_its_channels": True, "includes_tributaries": True}
     assert len(rules) == 1
     assert rules[0]["extents"][0]["op"] == "downstream_of"
     assert rules[0]["extents"][0]["splits"] == ["split:kispiox-resort"]
     assert rules[0]["includes_tributaries"] is True
     # Only what resolution reads: the scraped row's species, dates and gear never reach it.
-    # T679 D5: and the policy flag that keeps a confluence cut's joining water out unless DFO's words add it
+    # T679 D5: and the policy flag that keeps a confluence cut's joining water out unless DFO's words add it; T784:
+    # and those words (the place's `specific_area`), which that exception reads
     assert set(rules[0]) == {"rule_id", "extents", "includes_tributaries", "tributaries_only",
-                             "tributary_excludes", "_joining_water_stays_out"}
+                             "tributary_excludes", "_joining_water_stays_out", "extent_text"}
+    assert rules[0]["extent_text"] == loc.source_text["specific_area"].strip()
 
 
 def test_to_reach_input_carries_tributary_carve_outs():
@@ -885,7 +888,7 @@ def test_to_reach_input_carries_tributary_carve_outs():
     entry, rules = to_reach_input(loc, [{"species": "All", "dates": "Aug 1 to Dec 31",
                                          "limits_gear": "No natural bait allowed"}], water)
     # The carve-outs and `only` are the RULE's — the catalogue has no entry-wide list.
-    assert set(entry) == {"entry_id", "matched", "includes_tributaries"}
+    assert set(entry) == {"entry_id", "matched", "includes_tributaries", "_named_water_takes_its_channels"}
     assert rules[0]["tributaries_only"] is True
     assert len(rules[0]["tributary_excludes"]) == 2
 
@@ -2297,7 +2300,10 @@ def test_every_scraped_rule_types_and_keeps_its_chain_of_custody():
 
 @pytest.mark.needs_source
 def test_the_feed_revalidates_from_disk():
-    """What is on disk is what the catalogue model accepts — not merely what we wrote."""
+    """What is on disk is what the catalogue model accepts — not merely what we wrote. (T796 A6) Its DFO marks
+    (`typed.DFO_MARKS`: `hidden`, `finfish`) are the feed's own keys, dropped as every reader drops them
+    (`typed.as_catalogue`)."""
+    from pipeline.regs.dfo_salmon.typed import as_catalogue
     from pipeline.regs.parsing.catalogue import CatalogueRule
 
     feed_dir = need(None, "source", Path(under_test.generated().regs.dfo_salmon) / "typed", DFO_FEED_HINT)
@@ -2305,7 +2311,7 @@ def test_the_feed_revalidates_from_disk():
     for path in sorted(feed_dir.glob("region-*.json")):
         for loc in json.loads(path.read_text(encoding="utf-8"))["locators"]:
             for rule in loc["rules"]:
-                CatalogueRule(**rule)
+                CatalogueRule(**as_catalogue(rule))
                 total += 1
     # T349: + 10 page-default sentences (one rule each, `cascade.statement_locators`)
     # 11-09 refresh: + 1 typed rule each for the two rows above (R1 FN1216, R2 FN1217); 548 on the 11-03 pages
@@ -2379,6 +2385,19 @@ def test_an_unreadable_season_goes_to_review_rather_than_publishing_as_none():
 
     # An EMPTY cell is a fact, not a failure: the regulation applies all year.
     assert not any(r.review_reason for r in _typed(dates="", limits_gear="2 per day"))
+
+
+def test_the_quota_quote_keeps_hatchery_marked_only():
+    """(T623 F13) DFO Region 2, Squamish River coho: "1 per day, hatchery marked only". The quote is the app's short
+    line, and it stopped at "per day", so the line said "1 per day" with the condition gone. The worker's twin is the
+    shared row in dfo-rows.json ("hatchery marked only after the count")."""
+    rule, = _typed(species="Coho", dates="Sep 15 to Jan 31", limits_gear="1 per day, hatchery marked only")
+    assert rule.verbatim == "1 per day, hatchery marked only" and rule.origin is not None
+    rule, = _typed(species="Coho", dates="Sep 15 to Jan 31", limits_gear="2 per day hatchery marked fish only")
+    assert rule.verbatim == "2 per day hatchery marked fish only"
+    # a cell without the tail quotes the count alone, as before
+    assert _typed(species="Coho", dates="Sep 15 to Jan 31", limits_gear="2 per day. Barbless hooks only")[0].verbatim \
+        == "2 per day"
 
 
 def test_a_repaired_window_is_published_repaired():
@@ -2656,7 +2675,10 @@ def test_a_watershed_walk_passes_through_its_lakes_but_collects_streams():
         ids = [k for k, v in reg.items()
                if getattr(v, "kind", "") == "lake" and (v.name or "").lower() == name.lower()]
         assert ids, f"no registry lake named {name}"
-        secs = set(reg[ids[0]].section_ids)
+        # a lake divided into parts (T812: Babine Lake's main body and its east part, `part_of`) holds no section
+        # itself; its water is its parts'
+        secs = set(reg[ids[0]].section_ids) | {s for k, v in reg.items() if getattr(v, "part_of", "") == ids[0]
+                                               for s in v.section_ids}
         feeders = {g.edges[ei].from_node for s in secs for ei in g.up_adj.get(s, [])
                    if str(g.nodes[g.edges[ei].from_node].kind).endswith("stream")}
         assert feeders & skeena, f"the walk stopped at {name}: none of its inflows is in it"

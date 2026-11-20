@@ -1,12 +1,11 @@
 /**
- * T34 — the Bait item (prototype `.gxc[data-k=bait]`): its label, its notes (a Line each — the ⓘ is a term run), the ban heading (T515: when it runs, once), the ✓/✕ list, its source line. `also_allowed` is not drawn (D18 a, parity). No logic.
+ * T34 — the Bait item (prototype `.gxc[data-k=bait]`): its label, its notes (a Line each — the ⓘ is a term run), the ban heading (T515: when it runs, once), the ✓/✕ list. (T900) Its source line is the Gear tab's one, under the section. An element's `also_allowed` is in its note (core `bait.ts`, T797 item 2, D18 b). No logic.
  */
 import { View } from "react-native";
 import type { BaitVM } from "@app/core";
 import { TYPE } from "../type";
 import type { Palette } from "../theme";
 import { LineText, type KeepActions } from "./LineText";
-import { SourceLine } from "./SourceLine";
 import { Cell } from "./TabSection";
 import { YesNoList } from "./YesNoList";
 
@@ -19,7 +18,6 @@ export function BaitList({ vm, palette, actions }: { vm: BaitVM; palette: Palett
         </View>
       ))}
       <YesNoList list={vm.list} palette={palette} actions={actions} />
-      {vm.src && <SourceLine src={vm.src} palette={palette} actions={actions} spaced />}
     </Cell>
   );
 }

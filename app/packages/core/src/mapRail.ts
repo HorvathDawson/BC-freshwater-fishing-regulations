@@ -28,11 +28,20 @@ export const MY_LOCATION = {
   denied: "Location is off for this app. Turn it on in your device settings, then tap again.",
   /** a fix did not arrive (no signal, timed out) */
   noFix: "Your location could not be found. Try again outside, or check location is on.",
+  /**
+   * (T864, owner 2026-11-18; PROPOSAL, the owner picks the words) the fix is outside B.C. and its ~50 km margin (`nearBC`):
+   * not used — the map stays on B.C. — and said once per press (once per open for the open's own centring). Also the
+   * Spots tab's "At my location" and a spot's "Parking: here", which start nothing from a far fix.
+   */
+  far: "You're outside British Columbia. This app only covers B.C. waters, so your location won't help here — the map " +
+       "and regulations still work.",
 } as const;
 
 /** The Spots tab (T48; the rail's Spots menu before it): your saved spots, and the ways to add one. */
 export const SPOTS_MENU = {
   title: "Spots",
+  /** (T819 item 11) the header's square Add, always in sight: it opens the ways to add, at the top of the list */
+  add: "Add", addLabel: "Add a spot", addClose: "Close the ways to add",
   /**
    * THE TWO WAYS TO ADD ONE (owner 2026-10-22: "where you are or select on map"; the map's-middle "Add a spot here" is
    * gone — you had to centre the map first). First where the phone is — offered only when the reader has let the app
@@ -53,8 +62,10 @@ export const SPOTS_MENU = {
   showLabel: (title: string) => `Show ${title} on the map`,
   /** No spots yet: what a spot is, since this is the only place that says so. */
   emptyTitle: "No spots yet",
-  emptyBody: "Pin an exact point on a stream and the app records the gauge, its standing against the record and " +
-             "the weather that day. Notes and photographs go on top. Press and hold the map to drop one.",
+  /** (T819 item 15) two plain lines, and where spots are kept (the web's notice says the same: not on the website yet) */
+  emptyBody: "Save the places you fish: the water, the day, how the river and the weather were, and your notes and " +
+             "photos.\nAdd one below, or press and hold the map.\nSaved on this phone and in its backup. Not on the " +
+             "website yet.",
   refresh: "Refresh",
   refreshing: "Refreshing…",
   refreshLabel: "Refresh spots",

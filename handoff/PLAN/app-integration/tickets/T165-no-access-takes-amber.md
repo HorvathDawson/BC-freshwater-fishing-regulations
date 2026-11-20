@@ -1,6 +1,6 @@
 # T165 — No public access: streams dotted grey (like under-lake streams, a bit stronger); the warning lives in the banner
 
-Status: DONE — 429173ad (dotted grey layer, grey tokens, warning token, legend, gates, shots). Built as the owner
+Status: DONE — f438d4178 (dotted grey layer, grey tokens, warning token, legend, gates, shots). Built as the owner
 decided (dotted grey); Q150 below records the details built by default.
 
 Source: owner 2026-10-23 (after T146): "the no access color is still not aggressive enough. it is too benign. should be

@@ -10,11 +10,11 @@
  * or `buildHydrograph`'s; this holds the state and hands the component actions that only take measurements.
  */
 import { useEffect, useMemo, useRef, useState } from "react";
-import { bcHour, localDate, reportFailure, CHART_ZOOM, CONDITIONS_WORDS, chartReadoutLine, fitDomain, isZoomed, monthAbbr, pad2, panDomain, timeAt,
-         zoomChanges, zoomDomain, type ChartSpan, type Domain } from "@app/core";
+import { bcHour, FORECAST_DASH, forecastDash, OTHER_MODEL_DASH, localDate, reportFailure, CHART_ZOOM, CONDITIONS_WORDS, chartReadoutLine, fitDomain, isZoomed, monthAbbr, pad2,
+         panDomain, timeAt, zoomChanges, zoomDomain, type ChartSpan, type Domain } from "@app/core";
 import { draftSeriesOf, type GaugeFeed, type Parameter, type WaterSource, type Series, type StationId } from "@app/data";
 import { useAsync, type Async } from "./async";
-import { askOnce, chartParameter, peekAnswer, seriesKey } from "./answers";
+import { askOnce, cardParameters, chartParameter, peekAnswer, seriesKey } from "./answers";
 import { useFeedVersion } from "./feedVersion";
 import { READING_REUSE_MS, stationReading } from "./hooks";
 import { buildHydrograph, DEFAULT_BOX, type Box, type Hydrograph } from "./hydrograph";
@@ -22,21 +22,32 @@ import { buildHydrograph, DEFAULT_BOX, type Box, type Hydrograph } from "./hydro
 const NO_MODELS: readonly string[] = [];
 
 /**
- * (T377) EACH MODEL DRAWN AT ONCE WEARS ITS OWN DASH, in the order drawn: the chosen model's (with its ribbon) first,
- * then the others' — so two traces in one colour are told apart by shape, and the legend's swatch draws the same.
+ * (T377, T895) EACH MODEL WEARS ITS OWN DASH, KEYED BY THE MODEL. T377 handed dashes out in the order drawn (the chosen
+ * model's first), all in one colour, so a model's pattern changed whenever another was switched on or off (owner
+ * 2026-11-19: "make the different models forecast have different colors so when they are toggled on or off you can tell
+ * which are which"). Now a model keeps its pattern and its colour token (`Palette.forecast`, `color.ui.forecast.<model>`)
+ * wherever it is drawn: its trace, its ribbon's edge and its legend switch. Every pattern is broken, as a forecast is (the
+ * measured line is solid); drawn with round caps, so a `0.1` dash is a dot. A run of a model the app has no token for
+ * (the publisher added one) is drawn in the chart's own trace colour with `OTHER_MODEL_DASH`, never as a named model.
  */
-export const FORECAST_DASHES: readonly string[] = ["4,3", "1,2.5", "8,2,1.5,2"];
-export const forecastDash = (i: number): string => FORECAST_DASHES[Math.min(i, FORECAST_DASHES.length - 1)]!;
+export { FORECAST_DASH, forecastDash, OTHER_MODEL_DASH };
 
-/** How tall the chart is for a width: a phone keeps the old proportion; a wide column does not become a banner. */
+/**
+ * How tall the chart is for a width. (T920, owner 2026-11-19: "the chart should be taller too", layout D) about square on a
+ * phone — 398 at a 332 px chart (a 390 px window), a 340 px plot under the 34 px band that holds the unit and the zoom buttons — and capped
+ * at 420 on a wide column, so a desktop chart is not a wall (T367's "so much white space" was a 340 px BANNER at full width).
+ */
 export function chartHeight(width: number): number {
-  // (T367, owner 2026-11-04: "so much white space") a wide panel's chart stops at 240 — it reached 340
-  return Math.round(Math.min(240, Math.max(180, width * 0.4)));
+  return Math.round(Math.min(420, Math.max(260, width * 1.2)));
 }
 
-/** The chart's box at a measured width (never narrower than the old fixed one). */
+/** (T920 review) The narrowest chart drawn 1:1: a 320 dp phone's card inside is ~262. */
+const MIN_CHART_W = 200;
+
+/** The chart's box at a measured width: exactly that width (so the Svg is drawn 1:1 and a touch's pixels are the
+ *  viewBox's — the read-out does not drift), never under `MIN_CHART_W`; the old fixed box until the width is measured. */
 export function chartBox(width: number): Box {
-  const w = Math.max(DEFAULT_BOX.width, Math.round(width));
+  const w = width > 0 ? Math.max(MIN_CHART_W, Math.round(width)) : DEFAULT_BOX.width;
   return { ...DEFAULT_BOX, width: w, height: chartHeight(w) };
 }
 
@@ -247,7 +258,8 @@ export function useChartView(source: WaterSource, station: StationId | null, spa
       values: s.values, bands, at: s.at, xLabels: [],
       nowIndex: s.now?.index ?? -1, nowValue: s.now?.value ?? null, priorYears: s.priorYears,
       forecast: s.forecast?.series
-        ? { at: s.forecast.series.at, mid: s.forecast.series.mid, lo: s.forecast.series.lo, hi: s.forecast.series.hi }
+        ? { key: s.forecast.model, at: s.forecast.series.at, mid: s.forecast.series.mid, lo: s.forecast.series.lo,
+            hi: s.forecast.series.hi }
         : null,
       alsoForecasts: drawForecast ? alsoRuns : [],
       log: span === "year" && s.parameter === "discharge",
@@ -257,7 +269,7 @@ export function useChartView(source: WaterSource, station: StationId | null, spa
     const p = shape.probe;
     const readout = p ? {
       x: p.x, y: p.y, kind: p.kind,
-      line: chartReadoutLine({ t: p.t, value: p.value, unit: CONDITIONS_WORDS.unit[s.parameter], kind: p.kind,
+      line: chartReadoutLine({ t: p.t, value: p.value, unit: CONDITIONS_WORDS.unit[s.parameter], quantity: s.parameter, kind: p.kind,
                                daily: span === "year", median: p.median }),
     } : null;
     return { state: "ready", error: null,
@@ -289,10 +301,11 @@ export function usePrefetchGauges(source: WaterSource, stations: readonly Statio
     if (!list) return;
     let alive = true;
     const ids = list.split("\n") as StationId[];
+    // (T830) the card's quantities are the bundle's and the reading's `reports` (`cardParameters`): asked the same way here
     const chart = (st: StationId, sp: ChartSpan) =>
-      askOnce(source, `params:${st}`, () => source.gaugeParameters(st))
-        .then((available) => {
-          const p = chartParameter(picked ?? null, available);
+      Promise.all([askOnce(source, `params:${st}`, () => source.gaugeParameters(st)), reading(st)])
+        .then(([available, r]) => {
+          const p = chartParameter(picked ?? null, cardParameters(available, r?.reports));
           return askOnce(source, seriesKey(st, sp, p, model), () => source.gaugeSeries(st, sp, p, model));
         })
         .catch(() => null);

@@ -7,8 +7,9 @@
 //                                      entry files — see `EntrySource`), rows/region-<slug>.json (T366: the last
 //                                      typed page's rows, the row digest's baseline — rows.ts)
 //
-// THE SAFETY RULES (each as the Python): a failed fetch keeps the region's last answers, marked `stale`, and the
-// second failure in a row notifies; a page that does not parse / verify HOLDS the region at the last feed; a
+// THE SAFETY RULES (each as the Python): a failed fetch keeps the region's last answers and counts `failures` (in a
+// row); the region is `stale` only once its last GOOD read (`checked`) is older than STALE_AFTER_HOURS, and that is when
+// the owner is told (T851: one failed daily fetch used to mark every region stale); a page that does not parse / verify HOLDS the region at the last feed; a
 // STRUCTURAL reconcile holds the region; a `section_moved` location keeps its last answers; a fingerprint no curated
 // location knows is UNPLACED (its rules held in unplaced.json, the owner told once). Nothing here writes a curated
 // file.
@@ -20,10 +21,11 @@
 // (or a calendar that throws) keeps that location's last answers (a `check` verdict when it has none), listed in the
 // region's `holds` with the reason, and the rest of the region publishes. A page that does not parse / verify, and a
 // STRUCTURAL reconcile, still hold the region (those are page-level).
-import { FEED_FORMATS } from "../../../../packages/core/src/feedFormats.generated";
+import { FEED_FORMATS, FEED_MIN_APP } from "../../../../packages/core/src/feedFormats.generated";
 import { contentHash, loadManifest, rev, skipSameStore, type Fetch, type Meter, type Store } from "../io";
 import { sendDue } from "../notify";
-import { byFingerprint, loadEntryFile, reconcile, type EntryFile, type Report } from "./entries";
+import { derive, livePieces, pieceId, PIECES_SHAPE } from "./closures";
+import { byFingerprint, loadEntryFile, reconcile, waterById, type EntryFile, type EntryLocation, type Report, type WaterBinding } from "./entries";
 import { build, type TypedFeed } from "./feed";
 import { ALL_SLUGS, fetchRegion, isoSeconds, normalizeSlug, PAGES, pageUrl, REAL_SLUGS, type FetchRegionOptions, type RegionSnapshot } from "./fetch";
 import { sha256 } from "./hash";
@@ -34,7 +36,7 @@ import { parseRegion } from "./parse";
 import { cmpStr, cmpTuple, formatFixed, pyRe, pyStrOf, pyTypeName, repr, search } from "./py";
 import { feedText, loads, PyFloat } from "./pyjson";
 import { headerAnswers, headerClosure, markShared, poolOf } from "./quota";
-import { Interner, locationCalendar, NOT_LISTED, SPECIES } from "./salmon";
+import { inForce, Interner, locationCalendar, NOT_LISTED, SPECIES } from "./salmon";
 import { untangle, verify } from "./untangle";
 import { readRegistry, REGISTRY_PATH, template, type Registry } from "./wording";
 import { feedMap, readBaseline, rowChanges, rowsNotice, ROWS_KEY, type RowChange, type RowsBaseline } from "./rows";
@@ -43,8 +45,23 @@ import { feedMap, readBaseline, rowChanges, rowsNotice, ROWS_KEY, type RowChange
 // closure's verdict carries `c`, a region its `shared` + `sizes`, a header note's length is `lengths`
 // (T556) the string is generated from the Python table (pipeline/common/feed_formats.py), the app's reader with it
 export const FORMAT = FEED_FORMATS.dfoFeed;
+/** (T676 item 2) the index's `minAppVersion`: the oldest app that reads it (live.py's MIN_APP, one table) */
+export const MIN_APP = FEED_MIN_APP.dfoFeed;
 const SPECIES_N = [...SPECIES];
-export const FAIL_NOTIFY = 2;
+/**
+ * (T851) A region is STALE when its last good read (`checked`) is older than this at a run whose fetch failed — not
+ * because one fetch failed. 30 h is the app's own line for the DFO feed (packages/core staleness.ts
+ * `STALE_AFTER.dfo` = `DAILY_FEED_STALE_MS`: the slowest cron, daily, plus 6 h; test/dfo.stale.test.ts pins them equal),
+ * so a region's answers are doubted exactly when the app would doubt the whole feed. A failure inside the line is kept
+ * honest as `failures` (fetches in a row that failed; 0 after a read), /status (`dfoHeld`) and the run's health record.
+ * The Python's `live.STALE_AFTER_HOURS` is the same number (pinned by the same test).
+ */
+export const STALE_AFTER_HOURS = 30;
+/** (T851) the last good read `checked` is past the line at `at` (no read at all, or an unreadable time: stale) */
+export function staleAt(checked: string | null | undefined, at: string): boolean {
+  const age = Date.parse(at) - Date.parse(checked ?? "");
+  return !(age <= STALE_AFTER_HOURS * 3600_000);
+}
 /** (T549 item 9) `live queue` reads the MAC's unplaced.json, never the worker's on R2: the Mac reads DFO's page first
  *  (`live run`), then queues what it holds. `queue` alone seeded nothing when the Mac had not run since the page changed. */
 export const QUEUE_ACTION = (slugs: string) =>
@@ -86,7 +103,7 @@ export interface DfoDeps {
 }
 
 /** Bump when a code change alters what a region's page types to: unchanged pages are re-typed once after a deploy. */
-export const DFO_REV = "2026-11-09.1"; // T521: an unplaced row carries its water's app items (`items`); T332 quota trees
+export const DFO_REV = "2026-11-20.1"; // T623 F13: the quota quote keeps a trailing "hatchery marked (fish) only"; T759: close matches apply, issues + dfo shape in index.json; T758: + the page-default places (cascade.ts statementLocators); T757: + one loc per closed-area piece today's row names; T521: an unplaced row carries its water's app items (`items`); T332 quota trees
 // (T549 items 7, 10) index.json is written by EVERY run that gets to the end, so its `at` is when DFO was last CHECKED.
 // It was skipped while unchanged and under a 20 h heartbeat: in season (a run every 6 h) `at` moved once a day and sat
 // exactly on the app's stale line, so the card said "checked 24 h ago" 6 h after a check. One small put a run.
@@ -100,12 +117,9 @@ export interface RowHold {
   kept: "carried" | "check";
 }
 export const ROW_HELD_VERDICT = { s: "check", t: "DFO's row for this place could not be read this run — check DFO" };
-/** (T549 item 4) A curated place DFO REWORDED: its row no longer matches (held unplaced, the owner told), and the place
- *  it most likely was would leave the feed, so the WIDER rule of its chain would answer. It reads `check` instead,
- *  listed in the region's `holds`, until the owner confirms the rebind or the row goes. */
-export const REWORDED_VERDICT = { s: "check", t: "DFO reworded this place and the new wording is not confirmed yet — check DFO" };
-/** (T549 item 4) A curated place that LEFT DFO's page with no reworded row to explain it: published in the region's
- *  `gone` (the wider rule answers — right when DFO removed the row, wrong when the page was misread), the owner told once. */
+/** (T549 item 4, live.gone_places) A curated place that LEFT DFO's page: published in the region's `gone` (the wider rule
+ *  answers — right when DFO removed the row, wrong when the page was misread), the owner told once. (T759: a place DFO
+ *  REWORDED is not this: its close match applies the new row's rule, `closeMatches`, and the row is an issue.) */
 export interface Gone {
   location_id: string;
   water: string;
@@ -185,6 +199,25 @@ const waterKnown = (ef: EntryFile, water: string): boolean => {
   return !k || ef.waters.some((w) => key(w.name) === k || w.aliases.some((a) => key(a) === k));
 };
 
+/** (T759, live.close_matches; owner 2026-11-15: "close match needs confirming") fingerprint -> the curated place a
+ *  `drift` row is read as: its TOP candidate (`entries.reconcile`, same water, score >= 0.5), when no row of today's page
+ *  joins that place exactly and no earlier drift row (page order) took it. Its rule APPLIES there — and the row stays an
+ *  issue (`drift`) until the owner confirms the wording in DFO review. A drift row whose top candidate is taken stays
+ *  unplaced (its rules held) and is an `unmatched` issue (`near_place_taken`). */
+export function closeMatches(ef: EntryFile, report: Report): Map<string, EntryLocation> {
+  const byId = new Map(ef.locations.map((l) => [l.location_id, l] as const));
+  const taken = new Set(report.outcomes.filter((o) => ["ok", "revived", "section_moved"].includes(o.status) && o.location_id).map((o) => o.location_id!));
+  const out = new Map<string, EntryLocation>();
+  for (const o of report.outcomes) {
+    if (o.status !== "drift" || !o.candidates.length) continue;
+    const lid = o.candidates[0]!.location_id;
+    if (taken.has(lid) || !byId.has(lid)) continue;
+    taken.add(lid);
+    out.set(o.fingerprint, byId.get(lid)!);
+  }
+  return out;
+}
+
 function join(
   slug: string,
   ef: EntryFile,
@@ -192,6 +225,7 @@ function join(
   locations: Location[],
   report: Report,
   holds: Map<string, { fingerprint: string; why: string }> = new Map(),
+  close: ReadonlyMap<string, EntryLocation> = new Map(),
 ): [Map<string, Json[]>, Json[]] {
   const index = byFingerprint(ef);
   const byFp = new Map(locations.map((l) => [l.fingerprint, l] as const));
@@ -200,19 +234,26 @@ function join(
   const unplaced: Json[] = [];
   for (const loc of typed.locators || []) {
     const fp = loc.fingerprint;
-    const hit = index.get(fp);
-    if (hit && loc.error !== undefined) {
+    // (T759) a `drift` row in `close` (`closeMatches`) joins its close match too — and is ALSO listed unplaced (kind
+    // drift), so `live queue` still seeds it for review
+    const hit = index.get(fp) ?? close.get(fp);
+    // (T787) a locator whose every row is from a table DFO commented out answers nothing, typed or not (the Python's
+    // robust `feed.type_rows` marks its unread rule `hidden` too): it never holds its place
+    const allHidden = (loc.hidden?.length ?? 0) > 0 && loc.hidden!.length === loc.rows.length;
+    if (hit && loc.error !== undefined && !allHidden) {
       if (!holds.has(hit.location_id)) holds.set(hit.location_id, { fingerprint: fp, why: loc.error });
-      continue;
-    }
-    if (hit) {
+      if (!close.has(fp)) continue;
+    } else if (hit) {
       // T349 / T358 (live.join): a quota pooled across areas — Region 5B's "in the aggregate" row (quota.markShared)
-      const marked = markShared(loc.rules, poolOf(hit));
+      // (T787, live.join) only the rows in force: a hidden row (a commented-out table) answers nothing
+      const marked = markShared(inForce(loc.rules), poolOf(hit));
       const l = rules.get(hit.location_id);
       if (l) l.push(...marked);
       else rules.set(hit.location_id, [...marked]);
-      continue;
+      if (!close.has(fp)) continue;
     }
+    // T349 (live.join): a page default's sentence with no default location here is not a new place
+    if (fp.startsWith("page:")) continue;
     const src = byFp.get(fp);
     const o = outcome.get(fp);
     const water = src ? src.water : "";
@@ -284,28 +325,188 @@ export function goneNotice(slug: string, g: Gone): Notice {
   };
 }
 
-export function unplacedNotice(u: Json): Notice {
+/** (T759, live.BANNER) what every issue notice says the app does */
+const banner = (water: string, until: string) =>
+  `every stretch of ${water} shows a banner quoting it, and its line the issue look, until ${until}`;
+
+/** (live.unplaced_notice) The one notice of an unplaced row — (T759) also its issue's (`issuesOf`): `applied`, the close
+ *  match whose rule it now gives (`closeMatches`). */
+export function unplacedNotice(u: Json, applied: string | null = null): Notice {
   const slug = u.region;
   const n = u.rules.length;
   const held = `${n} rule${n !== 1 ? "s" : ""} held unplaced`;
   const act = QUEUE_ACTION(slug);
+  const ban = banner(u.water || "the water", "it is matched to a place in DFO review");
+  const scoreOf = (c: Json) => formatFixed(c.score instanceof PyFloat ? c.score.v : Number(c.score), 2);
+  const likely = u.kind === "drift" && u.candidates.length ? String(u.candidates[0].location_id) : undefined;
+  const data = { region: slug, kind: u.kind, water: u.water || undefined, place: u.scope || undefined,
+                 affects: applied ? `read as ${applied}, whose answer it now gives` : held.replace(" unplaced", ""),
+                 ...(likely ? { likely } : {}) };
+  if (applied) {
+    const c = u.candidates[0];
+    return {
+      key: `dfo-drift:${slug}:${u.fingerprint}`,
+      urgent: true,
+      text: `DFO Region ${slug}: new wording on ${u.water}: ${repr(u.scope)} — read as ${applied} (${scoreOf(c)}), whose answer it now gives; `
+        + banner(u.water, "you confirm it in DFO review") + `. Confirm (or refute) it in DFO review after: ${act}`,
+      data,
+    };
+  }
   let text: string;
   if (u.kind === "drift" && u.candidates.length) {
     const c = u.candidates[0];
-    const score = c.score instanceof PyFloat ? c.score.v : Number(c.score);
-    text = `DFO Region ${slug}: new wording on ${u.water}, likely ${c.location_id} (${formatFixed(score, 2)}) — ${held}. Confirm in DFO review after: ${act}`;
+    text = `DFO Region ${slug}: new wording on ${u.water}, likely ${c.location_id} (${scoreOf(c)}) — ${held} (${c.location_id} is held by another row today); ${ban}. Confirm in DFO review after: ${act}`;
   } else if (u.kind === "new_water")
-    text = `DFO Region ${slug}: a water no entry knows, ${repr(u.water)}: ${repr(u.scope)} — ${held}. Bind it in DFO review after: ${act}`;
-  else text = `DFO Region ${slug}: new location on ${u.water}: ${repr(u.scope)} — ${held}. Place it in DFO review after: ${act}`;
-  const likely = u.kind === "drift" && u.candidates.length ? String(u.candidates[0].location_id) : undefined;
+    text = `DFO Region ${slug}: a water no entry knows, ${repr(u.water)}: ${repr(u.scope)} — ${held}; no section can show it until the water is bound. Bind it in DFO review after: ${act}`;
+  else text = `DFO Region ${slug}: new location on ${u.water}: ${repr(u.scope)} — ${held}; ${ban}. Place it in DFO review after: ${act}`;
+  // T366: a row whose place matches no curated DFO place is URGENT (and a place question: `live queue`)
+  return { key: `dfo-${u.kind}:${slug}:${u.fingerprint}`, urgent: true, text, data };
+}
+
+// ── (T549 item 4) a curated place the page no longer shows ───────────────────────────────────────────────────────────
+
+/** (live.gone_places) every ACTIVE curated place `reconcile` found absent from today's page (`dormant`) and not answering
+ *  today: it leaves `locs` and the wider place of its chain answers — no status change, nothing shown. Listed in the
+ *  region's `gone` and told once, only when the last feed published it (or already listed it). Returns [gone, notices]. */
+export function gonePlaces(slug: string, rep: Report, prev: Json, locs: Readonly<Record<string, Json>>, page: string): [Gone[], Notice[]] {
+  const was = (prev.regions || {})[slug] || {};
+  const wasGone = new Map(((was.gone || []) as Gone[]).map((g) => [g.location_id, g] as const));
+  const prevLocs = (prev.locs || {}) as Record<string, Json>;
+  const gone: Gone[] = [];
+  const notices: Notice[] = [];
+  for (const o of rep.outcomes) {
+    if (o.status !== "dormant" || !o.location_id || o.location_id in locs) continue;
+    const lid = o.location_id;
+    const g = wasGone.get(lid) ?? (lid in prevLocs && prevLocs[lid].r === slug
+      ? { location_id: lid, water: o.water, place: o.specific_area, page } : null);
+    if (g === null) continue;
+    gone.push(g);
+    notices.push(goneNotice(slug, g));
+  }
+  return [gone.sort((x, y) => cmpStr(x.location_id, y.location_id)), notices];
+}
+
+// ── (T759) the issues: rules on today's page we cannot stand behind yet ─────────────────────────────────────────────
+
+/** (live.SHAPE) the feed's shape, served at top level and on /status.json `dfo`: `pieces` >= 1 — it emits the closed
+ *  areas of a place as their own locations (`<water_id>#closed:<key>`, T573). A release binding a piece needs it. */
+export const SHAPE = { pieces: PIECES_SHAPE } as const;
+
+/** live._water_of: the curated water a DFO water name (or an alias) names, or undefined */
+const waterOf = (ef: EntryFile, water: string): WaterBinding | undefined => {
+  const k = key(water || "");
+  return ef.waters.find((w) => !!k && (key(w.name) === k || w.aliases.some((a) => key(a) === k)));
+};
+
+/** (live.confirmed) a curated place whose wording the owner stands behind: not a variant, or a variant he CONFIRMED in
+ *  DFO review (`duplicate_confirmed` true). A variant only PROPOSED (`duplicate_confirmed` null) is not. */
+export const confirmed = (loc: EntryLocation): boolean => !loc.duplicate_of || loc.duplicate_confirmed === true;
+
+/** (live.drawn) a curated place that says where it is: an extent, tidal water, or a cascade default (not a water's
+ *  reach) — or a confirmed variant (it rides the place it rewords) */
+export const drawn = (loc: EntryLocation): boolean =>
+  !!loc.binding?.extents?.length || !!loc.tidal_water || loc.kind !== "water" || !!loc.duplicate_of;
+
+/** (live.curated_pieces) every closed-area piece id the curated places' OWN stored wording names (`closures.derive` over
+ *  every place, active or dormant) — the pieces the release can bind */
+export function curatedPieces(ef: EntryFile): Set<string> {
+  const out = new Set<string>();
+  for (const e of derive(ef.locations).values()) if (e.water_id) for (const a of e.areas) out.add(pieceId(e.water_id, a.key));
+  return out;
+}
+
+export interface Issue {
+  kind: "unmatched" | "drift" | "closed_area_unbound"; key: string; fingerprint: string; water: string; area: string;
+  rows: string[]; why?: string; place?: string; location_id?: string; piece?: string;
+}
+export interface IssueWater { r: string; name: string; items: string[]; list: Issue[] }
+
+/** the `dfo-issue` notice of an issue the unplaced notice does not tell (live.issues_of `tell`): a proposed-variant
+ *  drift, a closed area no curated wording names */
+function issueNotice(slug: string, waterName: string, issue: Issue): Notice {
+  const [what, until] = issue.kind === "closed_area_unbound"
+    ? ["a closed area no curated wording names (DFO reworded it inside its place)", "you place the closed area in DFO review"]
+    : [`a reworded wording read as ${issue.place}, not yet confirmed`, "you confirm it in DFO review"];
   return {
-    key: `dfo-${u.kind}:${slug}:${u.fingerprint}`,
-    text,
-    data: { region: slug, kind: u.kind, water: u.water || undefined, place: u.scope || undefined, affects: held.replace(" unplaced", ""), ...(likely ? { likely } : {}) },
+    key: `dfo-issue:${slug}:${issue.key}`, urgent: true,
+    text: `DFO Region ${slug}: ${what} on ${issue.water}: ${repr(issue.area)} — ${issue.rows.join("; ") || "no rows"}. The answers stand; `
+      + banner(waterName, until),
+    data: { region: slug, kind: issue.kind, water: issue.water || undefined, place: issue.area || undefined, affects: what },
   };
 }
 
-function carry(prev: Json, slug: string, verdicts: Interner<unknown>, gears: Interner<unknown>, only: Set<string> | null = null): Record<string, Json> {
+/**
+ * (live.issues_of, T759, owner 2026-11-15) THE ISSUES OF ONE REGION READ TODAY, by curated water. An issue changes no
+ * answer; the app gives the water's line the issue look and a banner quoting the row on every section of its `items`:
+ *   unmatched  no curated wording (`new`), its close match held by another row (`near_place_taken`), or its wording
+ *              joins a place that is not drawn (`undrawn`)
+ *   drift      a row read as a close match (`place`), or one joining a PROPOSED variant (`place` = the place it rewords)
+ *   closed_area_unbound  a closed area today's row names that no curated wording names (`curatedPieces`)
+ * A `new_water` row goes to `noWater`. Returns [waters, noWater, notices] — notices only for the issues the unplaced
+ * notice does not tell.
+ */
+export function issuesOf(slug: string, ef: EntryFile, typed: TypedFeed, found: Location[], unplaced: Json[],
+                         close: ReadonlyMap<string, EntryLocation>,
+                         pieces: ReadonlyMap<string, [Json, Location | undefined, Json]>): [Map<string, IssueWater>, Issue[], Notice[]] {
+  const index = byFingerprint(ef);
+  const rowsOf = new Map((typed.locators || []).map((l) => [l.fingerprint, l.rows] as const));
+  const held = new Map(unplaced.map((u) => [u.fingerprint as string, u] as const));
+  const waters = new Map<string, IssueWater>();
+  const noWater: Issue[] = [];
+  const notices: Notice[] = [];
+  const add = (w: WaterBinding | undefined, issue: Issue) => {
+    if (w === undefined) return void noWater.push(issue);
+    let got = waters.get(w.water_id);
+    if (!got) waters.set(w.water_id, (got = { r: slug, name: w.name, items: [...w.item_ids].sort(cmpStr), list: [] }));
+    if (got.list.every((i) => i.key !== issue.key)) got.list.push(issue);
+  };
+  const tell = (w: WaterBinding | undefined, issue: Issue) => notices.push(issueNotice(slug, w ? w.name : issue.water, issue));
+  for (const f of found) {
+    const fp = f.fingerprint;
+    const base = { fingerprint: fp, water: f.water, area: f.specific_area, rows: [...(rowsOf.get(fp) || [])] };
+    const hit = index.get(fp);
+    if (close.has(fp)) {
+      add(waterById(ef, close.get(fp)!.water_id) ?? waterOf(ef, f.water), { kind: "drift", key: `drift:${fp}`, ...base, place: close.get(fp)!.location_id });
+    } else if (held.has(fp)) {
+      const u = held.get(fp)!;
+      const why = u.kind === "new_water" ? "new_water" : u.kind === "drift" ? "near_place_taken" : "new";
+      add(why === "new_water" ? undefined : waterOf(ef, f.water),
+          { kind: "unmatched", key: `unmatched:${fp}`, ...base, why, ...(why === "near_place_taken" ? { place: u.candidates[0].location_id } : {}) });
+    } else if (hit !== undefined && !confirmed(hit)) {
+      const w = waterById(ef, hit.water_id);
+      const issue: Issue = { kind: "drift", key: `drift:${fp}`, ...base, place: hit.duplicate_of!, location_id: hit.location_id };
+      add(w, issue);
+      tell(w, issue);
+    } else if (hit !== undefined && !drawn(hit)) {
+      // not told again: the row was told when it was unplaced, the place is in review
+      add(waterById(ef, hit.water_id), { kind: "unmatched", key: `unmatched:${fp}`, ...base, why: "undrawn", location_id: hit.location_id });
+    }
+  }
+  const known = curatedPieces(ef);
+  for (const lid of [...pieces.keys()].filter((l) => !known.has(l)).sort(cmpStr)) {
+    const [rule, row, area] = pieces.get(lid)!;
+    const w = waterById(ef, lid.split("#", 1)[0]);
+    const issue: Issue = { kind: "closed_area_unbound", key: `closed_area_unbound:${lid}`, fingerprint: row!.fingerprint,
+                           water: row!.water, area: area.item || area.words || "", rows: [rule.verbatim], piece: lid };
+    add(w, issue);
+    tell(w, issue);
+  }
+  for (const got of waters.values()) got.list.sort((a, b) => cmpStr(a.key, b.key));
+  return [waters, [...noWater].sort((a, b) => cmpStr(a.key, b.key)), notices];
+}
+
+/** (T759, change-aware) the last feed's issues of a region whose page and entries did not change: its waters' (`r`), and
+ *  its `no_water` rows (by the region's unplaced fingerprints). An index from before issues carries none. */
+function carryIssues(prev: Json, slug: string, prevUnplaced: Json[]): [Map<string, IssueWater>, Issue[]] {
+  const iss = prev.issues || {};
+  const waters = new Map(Object.entries((iss.waters || {}) as Record<string, IssueWater>).filter(([, w]) => w.r === slug));
+  const fps = new Set(prevUnplaced.map((u) => u.fingerprint));
+  return [waters, ((iss.no_water || []) as Issue[]).filter((i) => fps.has(i.fingerprint))];
+}
+
+/** live._carry: the last feed's answers for a region (or some of its places), re-indexed into this run's tables — with
+ *  their rows in DFO's words (`x`) and (T870) as printed (`pr`). Exported for the vectors' `carry` case. */
+export function carry(prev: Json, slug: string, verdicts: Interner<unknown>, gears: Interner<unknown>, only: Set<string> | null = null): Record<string, Json> {
   const pv = prev.verdicts || [];
   const pg = prev.gears || [];
   const out: Record<string, Json> = {};
@@ -313,7 +514,9 @@ function carry(prev: Json, slug: string, verdicts: Interner<unknown>, gears: Int
     if (c.r !== slug || (only !== null && !only.has(lid))) continue;
     const sp = c.sp.map((runs: number[]) => runs.map((x, k) => (k % 2 === 0 || x < 0 ? x : verdicts.add(pv[x]))));
     const g = c.g.map((x: number, k: number) => (k % 2 === 0 || x < 0 ? x : gears.add(pg[x])));
-    out[lid] = { r: slug, sp, g, ...(c.x && c.x.length ? { x: c.x } : {}) };
+    // (T770) another fish's closure lines `o` index the same gear table: carried with the place, never dropped
+    const o = c.o ? { o: c.o.map((x: number, k: number) => (k % 2 === 0 || x < 0 ? x : gears.add(pg[x]))) } : {};
+    out[lid] = { r: slug, sp, g, ...o, ...(c.x && c.x.length ? { x: c.x } : {}), ...(c.pr && c.pr.length ? { pr: c.pr } : {}) };
   }
   return out;
 }
@@ -400,6 +603,10 @@ export async function runDfo(deps: DfoDeps): Promise<DfoResult> {
   const unplaced: Json[] = [];
   const notices: Notice[] = [];
   const prevRegions = prev.regions || {};
+  // (T759, live.run) the issues of the regions READ this run, by water; `unread` names the others and why
+  const issues = new Map<string, IssueWater>();
+  const noWater: Issue[] = [];
+  const unread: Record<string, string> = {};
 
   const entryCache = new Map<string, EntryFile>();
   const entryText = new Map<string, string | null>();
@@ -420,6 +627,7 @@ export async function runDfo(deps: DfoDeps): Promise<DfoResult> {
     if (!todo.includes(slug) && slug in prevRegions) {
       Object.assign(locs, carry(prev, slug, verdicts, gears));
       regionOut[slug] = prevRegions[slug];
+      unread[slug] = "not asked";
       unplaced.push(...prevUnplacedOf(slug));
     }
 
@@ -441,16 +649,17 @@ export async function runDfo(deps: DfoDeps): Promise<DfoResult> {
       unresolved: was.unresolved || [],
       // (T320) the page's general text, kept to tell the owner what changed (readTexts)
       texts: was.texts || [],
+      // (T549 item 4) the places DFO dropped: kept with the answers when the page is not read today; a page read today
+      // replaces them (`gonePlaces`)
+      gone: [...(was.gone || [])],
     };
     setBucket(reg);
-    if (robust) {
-      reg.holds = was.holds || [];
-      reg.gone = was.gone || [];
-    }
+    if (robust) reg.holds = was.holds || [];
     regionOut[slug] = reg;
     const tellGone = () => { for (const g of (reg.gone || []) as Gone[]) notices.push(goneNotice(slug, g)); };
     const hold = (why: string, k: string) => {
       reg.held = why;
+      unread[slug] = "held";
       Object.assign(locs, carry(prev, slug, verdicts, gears));
       unplaced.push(...prevUnplacedOf(slug));
       notices.push({ key: `dfo-held:${slug}:${k}`, text: `DFO Region ${slug} held at the last feed: ${why}`, data: { region: slug, kind: "held", affects: `the whole region is held at the last feed: ${why}` } });
@@ -461,16 +670,18 @@ export async function runDfo(deps: DfoDeps): Promise<DfoResult> {
     try {
       [html, fetched] = await fetcher(slug);
     } catch (e) {
-      reg.stale = true;
+      // (T851) the last answers stand; `stale` only once the last good read is older than the line (STALE_AFTER_HOURS)
+      reg.stale = staleAt(was.checked, at);
       reg.failures = Number(was.failures || 0) + 1;
+      unread[slug] = "stale";
       Object.assign(locs, carry(prev, slug, verdicts, gears));
       unplaced.push(...prevUnplacedOf(slug));
-      log(`region ${slug}: fetch failed (${pyStrOf(e)}); the last feed stands`);
-      if (reg.failures >= FAIL_NOTIFY)
+      log(`region ${slug}: fetch failed (${pyStrOf(e)}); the last feed stands${reg.stale ? " (stale)" : ""}`);
+      if (reg.stale)
         notices.push({
           key: `dfo-fetch:${slug}:${was.checked || "never"}`,
-          text: `DFO Region ${slug}: ${reg.failures} fetches in a row failed (${pyStrOf(e)}); the feed shows the page of ${reg.asof || "no date"}`,
-          data: { region: slug, kind: "fetch", affects: `${reg.failures} fetches in a row failed (${pyStrOf(e)}); the app shows the page of ${reg.asof || "no date"}` },
+          text: `DFO Region ${slug}: no good read since ${was.checked || "never"} (over ${STALE_AFTER_HOURS} h), ${reg.failures} fetches in a row failed (${pyStrOf(e)}); the feed shows the page of ${reg.asof || "no date"}, marked stale`,
+          data: { region: slug, kind: "fetch", affects: `no good read since ${was.checked || "never"} (over ${STALE_AFTER_HOURS} h), ${reg.failures} fetches in a row failed (${pyStrOf(e)}); the app shows the page of ${reg.asof || "no date"}, marked stale` },
         });
       continue;
     }
@@ -494,10 +705,18 @@ export async function runDfo(deps: DfoDeps): Promise<DfoResult> {
       if (usable) {
         inputsOut[slug] = key;
         Object.assign(locs, carry(prev, slug, verdicts, gears));
+        // (T759) the same page and entries give the same issues: the last feed's for this region, carried (the Python
+        // re-reads them; this is what it would read) — and their notices re-offered with the rest
+        const [cw, cn] = carryIssues(prev, slug, prevUnplacedOf(slug));
+        for (const [wid, w] of cw) issues.set(wid, w);
+        noWater.push(...cn);
+        const applied = new Map([...cw.values()].flatMap((w) => w.list.filter((i) => i.kind === "drift" && !i.location_id).map((i) => [i.fingerprint, i.place!] as const)));
         for (const u of prevUnplacedOf(slug)) {
           unplaced.push(u);
-          notices.push(unplacedNotice(u)); // re-offered: a send that failed is retried (notified.json dedupes)
+          notices.push(unplacedNotice(u, applied.get(u.fingerprint) ?? null)); // re-offered: a failed send is retried (notified.json dedupes)
         }
+        for (const w of cw.values())
+          for (const i of w.list) if (i.kind === "closed_area_unbound" || (i.kind === "drift" && i.location_id)) notices.push(issueNotice(slug, w.name, i));
         tellGone(); // re-offered likewise (the outbox tells a key once)
         skipped.push(slug);
         if (deps.meter) deps.meter.sourcesUnchanged += 1;
@@ -523,11 +742,20 @@ export async function runDfo(deps: DfoDeps): Promise<DfoResult> {
     readHeader(slug, html, reg, was, ef, notices);
     readTexts(slug, html, reg, was, notices);
     const closure = headerClosure(reg.notes || [], slug); // T320: the header's closure wins over the table's rows
-    const words = closure ? new Map<string, Json[]>() : wordsByLocation(ef, typed); // T321: a closed page's rows are not in force
+    const close = closeMatches(ef, rep); // (T759) a close match applies its rule
+    const words = closure ? new Map<string, Json[]>() : wordsByLocation(ef, typed, close); // T321: a closed page's rows are not in force
     notices.push(...wordingNotices(slug, ef, typed, robust));
     const rowHolds = new Map<string, { fingerprint: string; why: string }>();
-    const xOf = (lid: string) => (words.get(lid)?.length ? { x: words.get(lid)! } : {});
-    const [rules, held] = join(slug, ef, typed, found, rep, rowHolds);
+    const printed = closure ? new Map<string, string[]>() : rowsByLocation(ef, typed, close); // T870: the rows behind its answers
+    const xOf = (lid: string) => ({ ...(words.get(lid)?.length ? { x: words.get(lid)! } : {}),
+                                    ...(printed.get(lid)?.length ? { pr: printed.get(lid)! } : {}) });
+    const [rules, held] = join(slug, ef, typed, found, rep, rowHolds, close);
+    // T573 / T757: every closed area TODAY'S rows still name, its own rule (`closures.livePieces`, the Python's
+    // `live_pieces`); one DFO dropped is NOT in the feed, so its place answers there (T759: a removal, nothing shown; a
+    // closed area DFO reworded is a `closed_area_unbound` issue). A row the port cannot read THROWS, as the Python's run
+    // raises: the job fails, the last good feed stands.
+    const pieces = livePieces(ef, found, close);
+    for (const [lid, [rule]] of pieces) rules.set(lid, [rule]);
     if (aware) inputsOut[slug] = { page: sha, entries: contentHash((await rawEntries(slug)) ?? "") };
     const moved = new Set(rep.outcomes.filter((o) => o.status === "section_moved" && o.location_id).map((o) => o.location_id!));
     for (const lid of [...rules.keys()].sort(cmpStr)) {
@@ -562,30 +790,7 @@ export async function runDfo(deps: DfoDeps): Promise<DfoResult> {
           data: { region: slug, kind: "row-held", place: lid, affects: `its row did not read (${h.why.split("\n")[0]}); ${how === "carried" ? "its last answers stand" : "it reads 'check DFO'"}` },
         });
       }
-      // (T549 item 4) A PLACE THAT LEFT THE PAGE. `reconcile` calls an active curated place no row matched `dormant`
-      // and nothing read it: the place left `locs` and the wider rule of its chain answered, with nobody told.
-      //   reworded  the top candidate of a `drift` row (held unplaced, its own urgent notice): reads `check`, in `holds`
-      //   gone      no row explains it: listed in the region's `gone` and told once — only a place the last feed
-      //             published (or already listed), so a place that was never live says nothing
-      const reworded = new Map<string, string>();
-      for (const o of rep.outcomes)
-        if (o.status === "drift" && o.candidates.length && !reworded.has(o.candidates[0]!.location_id)) reworded.set(o.candidates[0]!.location_id, o.fingerprint);
-      const wasGone = new Map(((was.gone || []) as Gone[]).map((g) => [g.location_id, g] as const));
-      const prevLocs = (prev.locs || {}) as Record<string, Json>;
-      const gone: Gone[] = [];
-      for (const o of rep.outcomes) {
-        if (o.status !== "dormant" || !o.location_id) continue;
-        const lid = o.location_id;
-        if (reworded.has(lid)) {
-          const v = verdicts.add(REWORDED_VERDICT);
-          locs[lid] = { r: slug, sp: SPECIES_N.map(() => [0, v]), g: [0, -1] };
-          kept.push({ location_id: lid, fingerprint: reworded.get(lid)!, why: "DFO reworded this place; the new wording is held unplaced until it is confirmed", kept: "check" });
-        } else if (wasGone.has(lid)) gone.push(wasGone.get(lid)!);
-        else if (prevLocs[lid]?.r === slug) gone.push({ location_id: lid, water: o.water, place: o.specific_area, page: sha.slice(0, 12) });
-      }
       reg.holds = kept.sort((x, y) => cmpStr(x.location_id, y.location_id));
-      reg.gone = gone.sort((x, y) => cmpStr(x.location_id, y.location_id));
-      tellGone();
     }
     if (moved.size) {
       Object.assign(locs, carry(prev, slug, verdicts, gears, moved));
@@ -600,8 +805,17 @@ export async function runDfo(deps: DfoDeps): Promise<DfoResult> {
     for (const u of held) {
       u.first_seen = prevUnplaced.get(JSON.stringify([slug, u.fingerprint]))?.first_seen || at;
       unplaced.push(u);
-      notices.push(unplacedNotice(u));
+      notices.push(unplacedNotice(u, close.get(u.fingerprint)?.location_id ?? null));
     }
+    // (T549 item 4, live.gone_places) the places DFO dropped: listed and told once; the wider rule answers
+    const [gone, told] = gonePlaces(slug, rep, prev, locs, sha.slice(0, 12));
+    reg.gone = gone;
+    notices.push(...told);
+    // (T759) the rules of this page we cannot stand behind yet, by water — they change no answer
+    const [got, nw, toldIssues] = issuesOf(slug, ef, typed, found, held, close, pieces);
+    for (const [wid, w] of got) issues.set(wid, w);
+    noWater.push(...nw);
+    notices.push(...toldIssues);
     if (robust) await rowDigest(slug, sha, typed, ef, deps.priv, notices, log);
   }
 
@@ -612,7 +826,10 @@ export async function runDfo(deps: DfoDeps): Promise<DfoResult> {
   // robust: number verdicts / gears canonically (first use over the sorted locations; NOT_LISTED stays 0) so a carried
   // region and a re-typed one publish the same bytes — what lets an unchanged feed skip its write
   const [vItems, gItems] = robust ? canonical(sortedLocs, verdicts.items, gears.items) : [verdicts.items, gears.items];
-  const index = { format: FORMAT, at, regions, verdicts: vItems, gears: gItems, locs: sortedLocs, unplaced: unplaced.length,
+  const index = { format: FORMAT, minAppVersion: MIN_APP, at, regions, verdicts: vItems, gears: gItems, locs: sortedLocs, unplaced: unplaced.length,
+                  dfo: { ...SHAPE },
+                  issues: { waters: Object.fromEntries([...issues].sort(([x], [y]) => cmpStr(x, y))), no_water: noWater,
+                            unread: Object.fromEntries(ALL_SLUGS.filter((s) => s in unread).map((s) => [s, unread[s]!])) },
                   ...(pairs ? { pairs } : {}) };
   const unplacedSorted = unplaced
     .map((u, i) => ({ u, i }))
@@ -669,9 +886,28 @@ async function rowDigest(slug: string, sha: string, typed: TypedFeed, ef: EntryF
   await priv.put(ROWS_KEY(slug), JSON.stringify({ sha256: sha, date_modified: typed.date_modified, rows: now } satisfies RowsBaseline));
 }
 
+/** live.rows_by_location (T870): location id → its DFO table rows as printed, the rows in force (a commented-out table's
+ *  `hidden` rows left out), its locators in page order, each once (`locs[lid].pr`); a close-matched row's on its match */
+export function rowsByLocation(ef: EntryFile, typed: TypedFeed, close: ReadonlyMap<string, EntryLocation> = new Map()): Map<string, string[]> {
+  const index = new Map<string, EntryLocation>([...close, ...byFingerprint(ef)]);
+  const out = new Map<string, string[]>();
+  for (const loc of typed.locators || []) {
+    const hit = index.get(loc.fingerprint);
+    if (!hit) continue;
+    const hidden = new Set(loc.hidden ?? []);
+    const rows = [...new Set(loc.rows.filter((r, i) => !hidden.has(i) && r))];
+    if (!rows.length) continue;
+    const l = out.get(hit.location_id) ?? [];
+    for (const r of rows) if (!l.includes(r)) l.push(r);
+    out.set(hit.location_id, l);
+  }
+  return out;
+}
+
 /** live.words_by_location (T321): location id → the rows its card shows in DFO's words, `{k, sp, d, t}` (`locs[lid].x`) */
-export function wordsByLocation(ef: EntryFile, typed: TypedFeed): Map<string, Json[]> {
-  const index = byFingerprint(ef);
+export function wordsByLocation(ef: EntryFile, typed: TypedFeed, close: ReadonlyMap<string, EntryLocation> = new Map()): Map<string, Json[]> {
+  // (T759) a close-matched row's words on its close match (an exact fingerprint wins)
+  const index = new Map<string, EntryLocation>([...close, ...byFingerprint(ef)]);
   const out = new Map<string, Json[]>();
   for (const loc of typed.locators || []) {
     const hit = index.get(loc.fingerprint);
@@ -734,6 +970,7 @@ function canonical(locs: Record<string, Json>, vs: unknown[], gs: unknown[]): [u
   for (const l of Object.values(locs)) {
     l.sp = l.sp.map((runs: number[]) => runs.map((x, k) => (k % 2 === 0 ? x : re(x, vMap, vs, vOut))));
     l.g = l.g.map((x: number, k: number) => (k % 2 === 0 ? x : re(x, gMap, gs, gOut)));
+    if (l.o) l.o = l.o.map((x: number, k: number) => (k % 2 === 0 ? x : re(x, gMap, gs, gOut)));
   }
   return [vOut, gOut];
 }

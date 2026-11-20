@@ -267,33 +267,52 @@ export function runTimingSection(events: FeedEvent[]): Section {
   };
 }
 
+/** (T847) the roster notice's action is "<fetch the roster> && <build>" (publish.roster_action; a non-default roster adds
+ *  "&& cp …" to the fetch half): split at the LAST " && " so the match step goes between the two */
+export function splitRosterAction(action: string): [string, string] {
+  const cut = action.lastIndexOf(" && ");
+  return cut < 0 ? [action, ""] : [action.slice(0, cut), action.slice(cut + 4)];
+}
+
+/** (T847) the match step for stations new to the roster (`pipeline/tools/audit/check_curated.py`'s regenerate line) */
+export const MATCH_ACTION = (ids: string[]) =>
+  `python -m pipeline.gauges.generate.match --build data/generated/atlas/full && python -m pipeline.gauges.generate.promote --only ${ids.join(" ")}`;
+
+/** (T847) Stations ECCC lists that the roster has NEVER SEEN (gaugeEvents: one event each, `data.station`), and the
+ *  "listed, no data" notes (no `data`). Known stations joining or leaving ECCC's list are never told: the feed follows
+ *  the list by itself. Any other roster event (an older shape still queued for the digest) is shown as its own text. */
 export function rosterSection(events: FeedEvent[]): Section {
-  const rich = events.filter((e) => e.data?.latest !== undefined);
-  if (!rich.length)
+  const fresh = events.filter((e) => typeof e.data?.station === "string");
+  const other = events.filter((e) => !fresh.includes(e)).map(generic);
+  if (!fresh.length)
     return {
       heading: `Gauge stations: ${plural(events.length, "item")}`,
       subject: `Gauge stations: ${plural(events.length, "item")}`,
-      blocks: [{ items: events.map(generic) }],
+      blocks: [{ items: other }],
       steps: [],
       why: "The gauge feed compares ECCC's real-time list and answers with the roster on every run.",
     };
-  const d = rich[rich.length - 1]!.data ?? {};
-  const ids = String(d.latest ?? "").split(/\s+/).filter(Boolean);
-  const joined = ids.filter((x) => x.startsWith("+")).map((x) => x.slice(1));
-  const left = ids.filter((x) => x.startsWith("-")).map((x) => x.slice(1));
-  const items: Item[] = [];
-  if (joined.length) items.push({ name: `${plural(joined.length, "station")} ECCC now lists`, text: joined.join(", "), note: "the roster calls them silent" });
-  if (left.length) items.push({ name: `${plural(left.length, "station")} ECCC no longer lists`, text: left.join(", "), note: "the roster calls them live" });
-  if (!items.length) items.push({ text: String(d.latest ?? "") });
+  const ids = [...new Set(fresh.map((e) => String(e.data.station)))].sort();
+  const d = fresh[fresh.length - 1]!.data;
+  // the notice's action is "<fetch the roster> && <build>" (publish.roster_action): the match goes between the two
+  const [fetchRoster, build] = splitRosterAction(String(d.action ?? ""));
+  const heading = `ECCC lists ${plural(ids.length, "station")} we've never seen`;
   return {
-    heading: "ECCC's real-time station list changed",
-    subject: `Roster drift: ${[joined.length ? `${joined.length} joined` : "", left.length ? `${left.length} left` : ""].filter(Boolean).join(", ") || "station list changed"}`,
-    blocks: [{ items: [...items, ...events.filter((e) => e.data?.latest === undefined).map(generic)] }],
+    heading,
+    subject: heading,
+    blocks: [{
+      items: [
+        { name: ids.length === 1 ? "Station" : "Stations", text: ids.join(", "), note: `on ECCC's real-time list, no row in ${d.current ?? "the roster"}: the feed asks them, but no water shows them until they are matched` },
+        ...other,
+      ],
+    }],
     steps: [
-      { text: "Refresh the roster and rebuild:", code: String(d.action ?? "") },
+      { text: "Refresh the roster:", code: fetchRoster },
+      { text: "Match the new stations:", code: MATCH_ACTION(ids) },
+      ...(build ? [{ text: "Rebuild:", code: build }] : []),
       { text: 'Then GitHub → Actions → "feeds — sync curated inputs → R2 private/" (what: roster).' },
     ],
-    why: "The gauge feed compares ECCC's real-time list with the roster on every run.",
+    why: "The gauge feed tells you once about each station ECCC lists that the roster has never seen. Known stations joining or leaving ECCC's list need nothing: the feed follows the list by itself.",
   };
 }
 

@@ -1,6 +1,6 @@
 # T724 — iOS: shared links open the app as universal links (IOS-7)
 
-Status: PARTIAL (left (Claude): the simulator `openurl` run on the next build; the real hand-off waits for the Team ID and the signed build, T88).
+Status: PARTIAL (built: 9af44b246, ffd44b943, f9d47f0d9; the Team ID is in place since 2026-11-14 (4cc85a914), so every site build writes `apple-app-site-association`; left (Claude): the simulator `openurl` run, then the verified hand-off on a signed build (needs the App ID with Associated Domains on, T88)).
 
 Source: owner 2026-11-14, verbatim: "Maybe we could make a handoff to start improving the ios versions? Making sure it is
 rock solid too?" and "We want to do as much work as possible without the Apple account". Stub IOS-7 in
@@ -48,3 +48,11 @@ no Team ID, no verified association, so the first run is the "no app / unverifie
 Waits for T88: the Apple account and Team ID, a build with the Associated Domains entitlement signed by that team, the site deploy
 carrying the file (rebuild with the Team ID set, `--require-ios-links` for prod), and the on-device/simulator verified proof.
 Apple fetches the file through its CDN: a change can take hours to be seen.
+
+## Team ID in place (2026-11-14 evening)
+The owner's Apple Developer account was approved (individual) and he saved the Team ID in `~/.canifishthis/ios-team-id`
+himself. Local check, no deploy: the site build's own reader (`readIosTeamId`) accepts the file and
+`appSiteAssociationFile` gives `{"applinks":{"details":[{"appIDs":["<team>.ca.canifishthis.app"],"components":[{"/":
+"/water/*"},{"/":"/"}]}]}}`; `tools/seo/appLinks.test.ts` 8 of 8. From now on every site build writes the file. Still
+left: the simulator `openurl` run; the real hand-off needs the App ID registered with Associated Domains on (owner) and
+a signed build (T88).

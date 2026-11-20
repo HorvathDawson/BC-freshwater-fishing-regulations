@@ -29,7 +29,7 @@ Before: the release is on staging and the owner has checked it there (phone + we
 
 1. **Claude — rehearse every script** (nothing written to production):
    ```bash
-   deploy/prod/upload.sh --bucket bc-fishing-regulations-staging --dry-run
+   deploy/prod/upload.sh --bucket bc-fishing-regulations-staging --dry-run   # ends with the prune plan (T865)
    deploy/prod/feeds.sh --dry-run
    npx --prefix app wrangler deploy -c deploy/prod/data.wrangler.toml --dry-run --outdir /tmp/data-dry
    deploy/prod/build-apk.sh --dry-run
@@ -43,13 +43,15 @@ Before: the release is on staging and the owner has checked it there (phone + we
 3. **Owner — the data worker.** Check the old one's name and route (Workers → bc-fishing-r2 → Domains & Routes; Q174), then
    ```bash
    npx --prefix app wrangler deploy -c deploy/prod/data.wrangler.toml
-   curl -sI https://data.canifishthis.ca/stations.json | head -3      # the v1 keys still answer (until step 11, the same day)
+   curl -sI https://data.canifishthis.ca/cron/hydro/stations.json | head -3   # the v1 keys still answer (until the new site is live)
    ```
 4. **Owner — the data.** The release staging serves:
    ```bash
    CONFIRM_PROD=<r-id> .venv/bin/python -m pipeline release --prod <r-id>   # runs CONFIRM_PROD=canifishthis.ca deploy/prod/upload.sh <r-id>
    ```
-   It refuses unless staging's live manifest is byte-identical to `data/release/<r-id>/manifest.json`.
+   It refuses unless staging's live manifest is byte-identical to `data/release/<r-id>/manifest.json`. After the pointer
+   it prunes old releases (T865, below): the first promote has no previous pointer, so none is pruned. The v1 layout
+   stays until step 11.
 5. **Owner — the feeds worker** (deploys over the placeholder; the secrets stay):
    ```bash
    CONFIRM_PROD=bc-fishing-feeds deploy/prod/feeds.sh
@@ -61,8 +63,11 @@ Before: the release is on staging and the owner has checked it there (phone + we
    HYDAT / run-timing starts fail and say so by email (it asks for `target: production`, never staging's bucket).
 6. **Claude builds, owner deploys — the site** (one vintage with the data; the SEO build is heavy):
    ```bash
-   EXPO_PUBLIC_CONTACT=support@canifishthis.ca EXPO_PUBLIC_APP_ENV=production \
-     pnpm -C app --filter @app/mobile exec expo export --clear --platform web --output-dir ../../dist/web-prod
+   # (T910) the same three steps as `export:web:staging`: export with maps, then the font + paint-first shell, then the
+   # maps moved out (a plain `expo export` fails build-seo at the END: "the app's web export has no file for the face(s)")
+   (cd app/apps/mobile && EXPO_PUBLIC_CONTACT=support@canifishthis.ca EXPO_PUBLIC_APP_ENV=production \
+     pnpm exec expo export --clear --platform web --output-dir ../../dist/web-prod --source-maps \
+     && node ../../tools/web-shell.mjs ../../dist/web-prod && node ../../tools/sourcemaps.mjs keep-web ../../dist/web-prod)
    scripts/heavy.sh seo-prod 30 -- node app/tools/build-seo.mjs --release-dir data/release/<r-id> \
      --app app/dist/web-prod --threads 4 --out app/dist/seo-prod
    CONFIRM_PROD=canifishthis.ca deploy/prod/site.sh                 # owner
@@ -84,18 +89,35 @@ Before: the release is on staging and the owner has checked it there (phone + we
    Install from internal on the phone (About shows no environment badge), then promote the same build to Closed testing
    in Play Console (T371). From now on every Play build is production; staging stays on the sideload APK page (Q173).
 10. **Owner — search.** Search Console Domain property (DNS TXT) + Bing import; submit `https://canifishthis.ca/sitemap.xml`.
-11. **Owner — the same day (Q174, owner 2026-11-08: the owner is the only user, so no 30-day wait).** Once the prod app
-    reads `feeds/` and the new site is live: disable the `bc-fishing-cron` worker and `main`'s `update-hydro.yml`,
-    `update-in-season.yml`, `update-stocking.yml`, and delete the v1 R2 layout (`stations.json`, `gauges.geojson`,
-    `recent/`, `history/`, `climatology/`).
+11. **Claude — at the switch, on the owner's word** (T865; owner 2026-11-18 ~18:25: "when we flip the switch i will get
+    you to clean that stuff up too"; never before he says so). Once the prod app reads `feeds/` and the new site is
+    live, in one go: turn off the old crons, then drop the v1 layout (never automatic: once it is gone a site rollback to
+    the Vite build loads with no data):
+    ```bash
+    gh workflow disable update-hydro.yml -R HorvathDawson/BC-freshwater-fishing-regulations
+    gh workflow disable update-in-season.yml -R HorvathDawson/BC-freshwater-fishing-regulations
+    gh workflow disable update-stocking.yml -R HorvathDawson/BC-freshwater-fishing-regulations
+    npx --prefix app wrangler delete --name bc-fishing-cron    # main's cron-runner/ (dispatches update-hydro.yml)
+    CONFIRM_PROD=canifishthis.ca deploy/prod/drop-v1.sh --dry-run   # the list and the bytes
+    CONFIRM_PROD=canifishthis.ca deploy/prod/drop-v1.sh
+    ```
+    `drop-v1.sh` fails closed: it deletes nothing unless canifishthis.ca loads `/_expo/static/js/web/index-<hash>.js` and
+    lacks the old `<!-- build: webapp UI fixes` comment. The v1 layout (`V1_FILES` / `V1_DIRS` in
+    `pipeline/deliver/release/prod_prune.py`, read from `main`): `cron/**` (hydro `stations.json`, `gauges.geojson`,
+    `gauge_matches.json`, `recent/`, `history/`, `climatology/`; in-season; stocking incl. `anglerinfo.db`), `shards/**`,
+    `mobile/**`, `row_images/**`, `bathymetry/**` and the root files (`tier0.json`, `data_version.json`,
+    `layer_manifest.json`, `match_table.json`, the `*.pmtiles` the old site read, ...). `feedback/**` (the old worker's
+    stored reports) is kept: content, not layout. Then `rclone size r2:bc-fishing-regulations`: well under 10 GB.
 
 ## Every later release
 
 1. **Claude:** `python -m pipeline release --staging` (build → checks → promote LATEST → staging upload + smoke); staging
    feeds worker / site / APK when they changed.
 2. **Owner:** check staging (phone + web).
-3. **Owner — data:** `CONFIRM_PROD=<r-id> .venv/bin/python -m pipeline release --prod <r-id>`.
-4. **Owner — feeds worker, only if it changed** (with the app, never ahead): `CONFIRM_PROD=bc-fishing-feeds deploy/prod/feeds.sh`.
+3. **Owner — feeds worker FIRST when the release carries closed areas** (T790 item 7: the worker types the closed-area
+   pieces live, so it goes BEFORE or WITH the data, never after): `CONFIRM_PROD=bc-fishing-feeds deploy/prod/feeds.sh`.
+   Otherwise only if it changed, with the app, never ahead.
+4. **Owner — data:** `CONFIRM_PROD=<r-id> .venv/bin/python -m pipeline release --prod <r-id>`.
 5. **Owner — site, if pages or the web app changed:** step 6 above (Claude builds, owner deploys).
    **Store pictures (T704), after the staging site carries the final web build, before the Play listing is updated:**
    `node app/tools/store-shots/run.mjs` (no arguments; a few minutes, headless Chrome, no credits). It re-shoots the 8 Play
@@ -110,15 +132,31 @@ Before: the release is on staging and the owner has checked it there (phone + we
 ## Rollback
 
 - **Data:** `CONFIRM_PROD=canifishthis.ca deploy/prod/rollback.sh` (the previous pointer back; it checks every file it
-  names is still there), then `echo <previous r-id> > data/release/LATEST`. A promote never deletes the previous release.
+  names is still there), then `echo <previous r-id> > data/release/LATEST`. A promote never deletes the previous release
+  (T865: it deletes only the releases neither pointer names; promoting the live release again leaves the previous
+  pointer as it is).
 - **A worker** (feeds, data, site): `npx --prefix app wrangler deployments list -c <its config>`, then
   `npx --prefix app wrangler rollback <version-id> -c <its config>`. Configs: `app/workers/feeds/wrangler.prod.toml`,
   `deploy/prod/data.wrangler.toml`, `deploy/prod/site.wrangler.toml`.
 - **The app:** Play Console → the release → Halt rollout; ship a fixed build (a higher versionCode). Our `play.json`
   only adds the "What's new" bullets once Play offers that build, so a halted build announces nothing.
 
+## Clean-up (T865, automatic)
+
+R2's free tier is 10 GB. After every promote, `deploy/prod/upload.sh` runs `pipeline.deliver.release.prod_prune`:
+- **releases**: every object under `release/r-*/`, `release/tiles/*/`, `release/basemap/*/` whose folder neither
+  `release/manifest.json` nor `release/manifest.previous.json` names is deleted (an allowlist: `feeds/`, `private/`,
+  `runtiming/`, `map-assets/`, `app/`, `*.wasm`, `feedback/` are never candidates). Refused, nothing deleted, exit 1:
+  a pointer it cannot read or parse, a file a kept manifest names that is missing, both pointers naming one release.
+  A folder no pointer names but that went up under 24 h ago (server time) is kept, and said: a web tab opened on a
+  release promoted earlier the same day still reads its files. It prints each key once deleted and the bytes freed
+  (a delete that stops part way says how many went); `--dry-run` prints the plan as the pointer step would leave it.
+- **v1**: not automatic; step 11 above (`deploy/prod/drop-v1.sh`, Claude, at the switch, on the owner's word).
+- Every `deploy/prod` script compares `--bucket` bare (`deploy/lib/bucket.sh`): `bc-fishing-regulations/` or
+  `r2:bc-fishing-regulations` still needs `CONFIRM_PROD`.
+`runtiming/` is not pruned: its own publisher's content-named files (a few MB a refresh, `pipeline/runtiming/feed/publish.py`).
+
 ## Not yet (tickets)
 
-Old releases pile up in the prod bucket (a promote clears nothing): prune by hand to live + previous until a prune
-script exists. `pipeline/runtiming/feed/publish.py` names only staging's bucket, so `feeds-runtiming.yml` cannot publish
+`pipeline/runtiming/feed/publish.py` names only staging's bucket, so `feeds-runtiming.yml` cannot publish
 to production yet; until it can, `deploy/prod/upload.sh` copies staging's run timing for the same tiles.

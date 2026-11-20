@@ -1,6 +1,6 @@
 # T189 — Curation review: every rule's extent visible, source pinned, tributary and lake-split calls
 
-Status: DONE (106dbc83). Owner to re-run the pilot (T136) on the new screen.
+Status: DONE (c22030e48). Owner to re-run the pilot (T136) on the new screen.
 
 Source: the owner during the T136 pilot (T184 screen): "I can not see the extent for each rule. The
 formatting of the page is really bad. Too much content being repeated. The parse + original src image

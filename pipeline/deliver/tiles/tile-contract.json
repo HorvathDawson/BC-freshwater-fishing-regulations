@@ -5,7 +5,8 @@
       "geometry": "line",
       "attrs": [
         "name",
-        "ord"
+        "ord",
+        "sc"
       ],
       "featureId": "section_id",
       "decorative": false,

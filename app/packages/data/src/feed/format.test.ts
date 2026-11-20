@@ -82,4 +82,12 @@ describe("now(): one rank for one reading", () => {
     expect(r.value.discharge).toBe(15.7);
     expect([r.value.percentile, r.value.rankedAt]).toEqual([null, "2026-09-01T10:30:00Z"]);
   });
+  it("(T830) carries the quantities the index says the station reports live; none on an index from before them", async () => {
+    const idx = { ...INDEX, stations: { "08MH001": { percentile: 0.5, observedAt: at, reports: ["discharge", "level"] } } };
+    const r = (await httpFeed("http://x/g", server({ "index.json": idx, "08MH001.json": STATION })).now(S))!;
+    expect(r.value.reports).toEqual(["discharge", "level"]);
+    const old = { ...INDEX, stations: { "08MH001": { percentile: 0.5, observedAt: at } } };
+    expect("reports" in (await httpFeed("http://x/g", server({ "index.json": old, "08MH001.json": STATION })).now(S))!.value)
+      .toBe(false);
+  });
 });

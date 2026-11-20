@@ -12,12 +12,15 @@
  */
 import { useEffect, useMemo, useRef } from "react";
 import {
-  NEAR_KM, SEARCH_BAR, SEARCH_FIND, duplicateNames, extentOf, searchKey, rankNear, seeLine, townBox, waterCaption, waterStatusOn,
-  watersNear,
+  NEAR_KM, SEARCH_BAR, SEARCH_FIND, boxAround, duplicateNames, extentOf, searchKey, rankNear, seeLine, townBox, waterCaption,
+  waterStatusOn, watersNear,
   type AreaAsk, type Bbox, type Extent, type LatLon, type StatusIndex, type WaterStatus } from "@app/core";
 import type { ItemId, NameHit, NearHit, PlaceHit, PointerHit, WaterSource, SectionId } from "@app/data";
 import { useAsync, type Async } from "./async";
-import { useSearch, warmSearchIndex, type SearchResults } from "./hooks";
+import { useSearch, warmSearchIndex, type CutHit, type SearchResults } from "./hooks";
+
+/** (T927) How far round a boundary place's mark the map opens, km: the place and the water on each side of it. */
+export const CUT_BOX_KM = 1.5;
 
 /** What a map should do for the current search. Handed straight to `<Map fit highlight>`. */
 export interface MapFocus {
@@ -73,8 +76,23 @@ export function focusFor(input: {
    * were asking from.
    */
   pin?: PlaceHit | null;
+  /**
+   * (T927) A boundary place on the water: the map opens on it (`CUT_BOX_KM` round its mark), marks it and lights the
+   * water. Its mark null (none stands there): the water's own box, unmarked.
+   */
+  spot?: { key: string; point: LatLon | null; words: string } | null;
 }): MapFocus | null {
-  const { town, best, pin = null } = input;
+  const { town, best, pin = null, spot = null } = input;
+  if (!town && best && spot) {
+    return {
+      key: spot.key,
+      bbox: spot.point ? boxAround(spot.point, CUT_BOX_KM) : best.extent?.bbox ?? null,
+      highlight: best.sections,
+      refine: !spot.point && best.extent?.basis !== "outline",
+      marker: spot.point,
+      caption: SEARCH_FIND.cutCaption(spot.words, best.name),
+    };
+  }
   if (town) {
     const far = town.near.reduce((m, n) => Math.max(m, n.km), 0);
     const p = town.place;
@@ -156,15 +174,19 @@ export function useTown(source: WaterSource, place: PlaceHit | null): Async<Town
  * Kept pure here so "a tap never leaves" is a test, not a hope.
  * ──────────────────────────────────────────────────────────────────────────────────────── */
 
-/** Something in the results the reader can point at: a water, or a town. */
+/** Something in the results the reader can point at: a water, a town, or (T927) a boundary place on a water. */
 export type SearchTarget =
   | { kind: "water"; item: ItemId; name: string }
-  | { kind: "place"; place: PlaceHit };
+  | { kind: "place"; place: PlaceHit }
+  | { kind: "cut"; cut: CutHit };
 
 /** The key a target's row shares with the `MapFocus` it produces — how a row knows it is lit. */
 export function targetKey(t: SearchTarget): string {
-  return t.kind === "water" ? `item:${t.item}` : `place:${t.place.place}`;
+  return t.kind === "water" ? `item:${t.item}` : t.kind === "cut" ? cutKey(t.cut) : `place:${t.place.place}`;
 }
+
+/** (T927) A boundary place's key: its water and its place (stream key + metres). */
+export const cutKey = (c: CutHit): string => `cut:${c.item}:${c.at.blk}:${c.at.m}`;
 
 /** What the reader has in hand on the search screen. */
 export interface SearchPick {
@@ -223,7 +245,7 @@ export function searchStep(s: SearchPick, a: SearchAction):
     case "go":
       if (a.target.kind === "place") return { pick: { selected: null, town: a.target.place }, leave: null };
       if (!isSelected(s, a.target)) return { pick: { ...s, selected: a.target }, leave: null };
-      return { pick: s, leave: a.target.item };
+      return { pick: s, leave: a.target.kind === "cut" ? a.target.cut.item : a.target.item };
   }
 }
 
@@ -234,12 +256,14 @@ export function searchStep(s: SearchPick, a: SearchAction):
  * the "follow the best match" branch, which nothing asked for).
  */
 export function subjectOf(pick: SearchPick):
-    { item: ItemId | null; place: PlaceHit | null; pin: PlaceHit | null } {
+    { item: ItemId | null; place: PlaceHit | null; pin: PlaceHit | null; cut: CutHit | null } {
   const p = pick.selected;
-  if (p?.kind === "water") return { item: p.item, place: null, pin: pick.town };
-  if (p?.kind === "place") return { item: null, place: p.place, pin: null };
-  if (pick.town) return { item: null, place: pick.town, pin: null };
-  return { item: null, place: null, pin: null };
+  if (p?.kind === "water") return { item: p.item, place: null, pin: pick.town, cut: null };
+  // (T927) a boundary place: its water is the subject, the place where the map opens and its mark
+  if (p?.kind === "cut") return { item: p.cut.item, place: null, pin: null, cut: p.cut };
+  if (p?.kind === "place") return { item: null, place: p.place, pin: null, cut: null };
+  if (pick.town) return { item: null, place: pick.town, pin: null, cut: null };
+  return { item: null, place: null, pin: null, cut: null };
 }
 
 /** One group of results, in the order they are drawn. */
@@ -248,7 +272,9 @@ export type ResultGroup =
   /** Group names that only point, each with its line (`seeLine`) and the waters it opens. */
   | { kind: "see"; title: string; pointers: readonly { hit: PointerHit; line: string }[] }
   | { kind: "waters"; title: string;
-      waters: readonly { hit: NameHit; dup: boolean }[] };
+      waters: readonly { hit: NameHit; dup: boolean }[] }
+  /** (T927) the book's boundary places: where a water's rules change */
+  | { kind: "cuts"; title: string; cuts: readonly CutHit[] };
 
 /**
  * PLACES FIRST, AND APART. A town is not a water — it is a question about the ground
@@ -258,7 +284,21 @@ export type ResultGroup =
  * "near Fernie".
  */
 export function resultGroups(r: { waters: readonly NameHit[]; places: readonly PlaceHit[];
-                                  pointers?: readonly PointerHit[]; area?: AreaAsk | null; fuzzy?: boolean }):
+                                  pointers?: readonly PointerHit[]; area?: AreaAsk | null; fuzzy?: boolean;
+                                  cuts?: readonly CutHit[] }):
+    ResultGroup[] {
+  const groups = waterGroups(r);
+  // (T927) THE BOUNDARY PLACES rank below the names as typed and above a typo's: after the waters, or before them when
+  // the waters were found only by a close spelling
+  if (!r.cuts?.length) return groups;
+  const cuts: ResultGroup = { kind: "cuts", title: SEARCH_FIND.cutsHead, cuts: r.cuts };
+  const at = groups.findIndex((g) => g.kind === "waters");
+  if (at < 0) return [...groups, cuts];
+  return r.fuzzy ? [...groups.slice(0, at), cuts, ...groups.slice(at)] : [...groups, cuts];
+}
+
+function waterGroups(r: { waters: readonly NameHit[]; places: readonly PlaceHit[];
+                          pointers?: readonly PointerHit[]; area?: AreaAsk | null; fuzzy?: boolean }):
     ResultGroup[] {
   const out: ResultGroup[] = [];
   if (r.places.length)
@@ -301,8 +341,9 @@ export function useSearchView(source: WaterSource, pick: SearchPick):
       // previous keystroke must not light the wrong river.
       best: best && best.item === subject.item ? best : null,
       pin: subject.pin,
+      spot: subject.cut ? { key: cutKey(subject.cut), point: subject.cut.point, words: subject.cut.words } : null,
     }),
-    [subject.place, subject.item, subject.pin, tv, best]);
+    [subject.place, subject.item, subject.pin, subject.cut, tv, best]);
   // A town list reads only ITS town's answer, never a stale one for another.
   const stale = pick.town !== null && tv !== null && tv.place.place !== pick.town.place;
   const mine: Async<TownView | null> = stale ? { state: "loading", value: null, error: null }
@@ -359,10 +400,10 @@ export function useSearchSession(source: WaterSource, memory: SearchMemory, open
   return {
     results, typed, town, focus,
     busy: typed && !answered && hits.state !== "failed" && !last.current.waters.length && !last.current.places.length
-      && !last.current.pointers.length,
+      && !last.current.pointers.length && !last.current.cuts?.length,
     failed: typed && hits.state === "failed",
     none: typed && answered && !results.waters.length && !results.places.length
-      && !results.pointers.length,
+      && !results.pointers.length && !results.cuts?.length,
     size: searchSheet(pick),
   };
 }

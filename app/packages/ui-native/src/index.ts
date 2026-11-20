@@ -7,10 +7,9 @@
  * here to duplicate — every one of these takes data from a hook and draws it.
  *
  * (T282) Metro does not tree-shake: whatever this file exports is in the web's first bundle. The parts loaded later
- * (`part.tsx`: menu pages, More, Spots, a spot, Conditions charts, the water's map, the rarer sheets) are NOT exported
- * here — import them by path.
+ * (`part.tsx`: menu pages, More, Spots, a spot, Conditions charts, the water's map, the rarer sheets, T910 the water's
+ * Regulations page) are NOT exported here — import them by path.
  */
-export { WaterScreen } from "./WaterScreen";
 export { Shell, type ShellProps } from "./Shell";
 export { SearchSheet } from "./SearchSheet";
 export { TopBar, TOP_BAR, topBarBottom } from "./TopBar";
@@ -19,6 +18,7 @@ export { MapRail } from "./MapRail";
 export { FaceBar, ViewTabs, type Face } from "./Faces";
 export { WaterFrame, WaterInset, WaterTitle } from "./WaterFrame";
 export { TabBar, TABS, TAB_BAR, type TabKey } from "./TabBar";
+export { NavRail, NAV_RAIL } from "./NavRail";
 export { LegendStrip, LegendCount, LegendRamp } from "./Chrome";
 export { Sheet, Choice } from "./Sheet";
 export { EdgeBack } from "./EdgeBack";
@@ -27,18 +27,21 @@ export { LayersSheet, legendColour } from "./LayersSheet";
 export { OptionRow, type Option } from "./OptionRow";
 export { Button, type ButtonKind } from "./Button";
 export { SayingLine } from "./SayingLine";
+export { LoaderLine, loaderLineText } from "./LoaderLine";
 export { ago, count, plural } from "./format";
 export { Icon, IconText, ICONS, ICON_STROKE, LUCIDE_NAME, type IconName } from "./icons";
 export * from "./type";
-export type { AdiposeImages, FishImages } from "./regs/types";
+export type { FishImages } from "./regs/types";
 export { setSynopsisSource, setSynopsisNet } from "./regs/synopsisSource";
-export { SheetHost, type SheetHostProps } from "./regs/SheetHost";
 // (T269) the SEO prerender's width for the year bars (it never lays out); 0 in the app
-export { StripWidthHint } from "./regs/YearStrip";
+export { StripWidthHint } from "./regs/stripWidth";
 export { Credits } from "./Credits";
 export { LoadingState, useDelayedShow, SPINNER_TIMING } from "./LoadingState";
+export { COHO_WIDTH, cohoHeight } from "./coho";
 export { StageBar } from "./StageBar";
 export { ErrorState } from "./ErrorState";
+// (T746) the curtain over the app while a downloaded data release is put in use
+export { ApplyCurtain } from "./ApplyCurtain";
 // (T231) the "Updated to …" toast and the device's word on its network (online, metered) for the update service
 export { UpdateToast } from "./UpdateToast";
 export { connectivity } from "./connectivity";
@@ -50,3 +53,5 @@ export * from "./theme";
 export { preloadParts } from "./part";
 export { openLinkShown, setLinkFailedSink } from "./openLink";
 export { platformLine } from "./platformLine";
+// (T319) the store-shots web build draws the phone's Spots and Help lines
+export { drawPhoneScreensOnWeb } from "./storeShots";

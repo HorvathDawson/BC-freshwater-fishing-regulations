@@ -1,6 +1,8 @@
 # T553 — Base rules pinned to the printed book: zone/provincial quota numbers, row text equals the extraction, missing rows noticed
 
-Status: IN REVIEW — 377fe1adc, 7f146ad9d, 85ff69e70, e028ad100, 7db6e4b1b, 34986a8f9, 698aeabb7, 63624a50a (items 1-7; owner answers the 10 print questions in test_base_rules_in_print.DISAGREE)
+Status: DONE — 377fe1adc, 7f146ad9d, 85ff69e70, e028ad100, 7db6e4b1b, 34986a8f9, 698aeabb7, 63624a50a (items 1-7). The owner's print questions were answered through T629 (DONE, 4734dbdca: items 1, 2 kept as allowances in DISAGREE, 3, 4 fixed); the follow-ups through T628 (DONE).
+
+Closed by the 2026-11-20 audit: the pending owner answers were filed as T629 ('owner questions from T553', 95c144d9c) and answered 2026-11-11 (T629 DONE 4734dbdca); DISAGREE in pipeline/tests/test_base_rules_in_print.py now holds only the two answered 'keep' wordings.
 
 Source: data pipeline review 2026-11-09 (owner-led; 14 areas + a gap check, every finding re-read against the code and release data by a second reviewer). Rank 9 of 17; highest severity 4 of 5.
 

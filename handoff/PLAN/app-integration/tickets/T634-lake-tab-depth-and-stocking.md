@@ -1,6 +1,6 @@
 # T634 — Lake tab: depth charts and stocking, to the owner's decisions of 2026-11-11
 
-Status: OPEN
+Status: POSTPONED (deferred, owner 2026-11-13: "after the closed release we will do stocking and depth maps next"; the owner's 2026-11-20 answer marked it POSTPONED like T695/T699). Left (Claude) when it restarts: the path to ship in the ticket and item 6 (the app's Lake tab).
 
 Source: the depth and stocking audit (T608 D, page https://claude.ai/artifact/7Dn9FwZu3N1aMGxsCR4ea3) and the owner's answers 2026-11-11.
 
@@ -241,3 +241,9 @@ lists split on commas only (some use ";").
 Owner, 2026-11-13: "after the closed release we will do stocking and depth maps next." This ticket's "Path to ship"
 runs under **T200** (stocking, first) then **T201** (depth maps, second); each has the feasibility note's first step,
 matcher and owner questions: `handoff/PLAN/research/stocking-feasibility.md`, `handoff/PLAN/research/bathymetry-feasibility.md`.
+
+## Owner answer 2026-11-20
+
+Owner 2026-11-20 (audit question 8, answered "Couldn't we just assume most of these are done already?"): POSTPONED like T695 and T699, the owner's own deferral of 2026-11-13 stands. T200/T201 keep their own step lists.
+
+Status line before this answer: OPEN — three research passes done, nothing shipped, app untouched: first d55900aba (licence per record, vector reader/placing, PDF trial, chart->lake proposals), second b8e65f2f0 (PDFs 200 dpi 1-bit, 748 -> 201 MB), third a1d7da363 (Access Only records built on the owner's word, licence flag; stocking 1,751 clean, contours 25/28, vectors 298 strict); left (Claude): the path to ship in the ticket and item 6 (the app's Lake tab), after closed testing

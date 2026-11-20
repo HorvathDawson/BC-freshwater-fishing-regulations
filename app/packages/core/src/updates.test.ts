@@ -2,7 +2,7 @@
 import { describe, expect, it } from "vitest";
 import { dataVM, syncVM, type DataInput } from "./more";
 import { updateLogText, updateLogVM } from "./updateLog";
-import { bellLabel, failedSources, failureWords, offlineDataLine, syncErrorVM, updatedToast, updateSourcesVM,
+import { bellLabel, failedSources, failureWords, offlineDataLine, syncErrorVM, updatedToast, updateSourcesVM, UPDATE_WORDS,
          type UpdateSourceInput } from "./updates";
 
 const NOW = Date.parse("2026-10-28T20:00:00Z");
@@ -91,6 +91,17 @@ describe("the sources' words", () => {
     expect(bellLabel("2 in-season changes not on the map yet", 1))
       .toBe("2 in-season changes not on the map yet; 1 update failed");
     expect(bellLabel(null, 2)).toBe("2 updates failed");
+  });
+
+  it("(T676 item 2) a live feed this app is too old for: its row and the More tab say why it is not updating", () => {
+    const vm = updateSourcesVM({ sources: [src("gauges"), src("dfo", { needsApp: "0.9.0" })], release: { phase: "current", progress: null }, now: NOW });
+    expect(vm.sources.map((s) => s.problem)).toEqual([null, UPDATE_WORDS.row.feedTooOld]);
+    expect([vm.line, vm.notice]).toEqual([UPDATE_WORDS.row.feedTooOld, UPDATE_WORDS.row.feedTooOld]);
+    expect(UPDATE_WORDS.row.feedTooOld).toBe("New data needs the latest app; the last copy is shown");
+    // not a failure: the badge's count is untouched; a release too old for the app is said first
+    expect(failedSources(vm.sources.map((s) => src(s.k, { needsApp: "0.9.0" })), true)).toEqual([]);
+    expect(updateSourcesVM({ sources: [src("dfo", { needsApp: "0.9.0" })], release: { phase: "app-too-old", progress: null }, now: NOW }).notice)
+      .toBe(UPDATE_WORDS.row.appTooOld);
   });
 });
 

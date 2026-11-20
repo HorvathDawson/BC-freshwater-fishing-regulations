@@ -99,21 +99,22 @@ describe("T45 a sheet on a wide screen", () => {
  */
 describe("T45 review: the map's sheets stay bottom sheets on a wide screen", () => {
   const RANGE = dayRange(new Date(2026, 9, 22), null);
+  // (T915) the Day sheet keeps the bottom sheet below the desktop class; at 1440 it is a popover (DaySheet.test.tsx)
   it("a plain Sheet (Layers / Spots / SpotDrop) and the Day sheet at 900, 1024, 1440: no dialog, the grabber is there", () => {
-    const seen: Record<string, [boolean, number][]> = {};
+    const seen: Record<string, [boolean, number | null][]> = {};
     for (const w of [900, 1024, 1440]) {
-      const row: [boolean, number][] = [];
+      const row: [boolean, number | null][] = [];
       render(<LayoutWidthContext.Provider value={w}>
         <Sheet open onClose={() => {}} title="Layers" palette={LIGHT}><Text>choices</Text></Sheet></LayoutWidthContext.Provider>);
       row.push([!!screen.queryByTestId("sheet-dialog"), screen.getByTestId("sheet-handle").children.length]);
       cleanup();
       render(<LayoutWidthContext.Provider value={w}>
-        <DaySheet open onClose={() => {}} palette={LIGHT} day={null} onDay={() => {}} range={RANGE} now={new Date(2026, 9, 22)} /></LayoutWidthContext.Provider>);
-      row.push([!!screen.queryByTestId("sheet-dialog"), screen.getByTestId("sheet-handle").children.length]);
+        <DaySheet open onClose={() => {}} palette={LIGHT} day={null} onDay={() => {}} range={RANGE} now={new Date(2026, 9, 22)} anchor="regs-date" /></LayoutWidthContext.Provider>);
+      row.push([!!screen.queryByTestId("sheet-dialog"), screen.queryByTestId("sheet-handle")?.children.length ?? null]);
       cleanup();
       seen[w] = row;
     }
-    const bottom: [boolean, number][] = [[false, 2], [false, 2]];
-    expect(seen).toEqual({ 900: bottom, 1024: bottom, 1440: bottom });
+    const bottom: [boolean, number | null][] = [[false, 2], [false, 2]];
+    expect(seen).toEqual({ 900: bottom, 1024: bottom, 1440: [[false, 2], [false, null]] });
   });
 });

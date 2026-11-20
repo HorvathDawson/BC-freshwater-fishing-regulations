@@ -206,7 +206,7 @@ def origin_place(P, model: dict, kinds: Sequence[str], keep: str, T, share: Opti
     origin stays the group's)."""
     from pipeline.deliver.answers.rows import badge_of
     from pipeline.deliver.answers.tree import share_place
-    if share is None:
+    if share is None or share["water"] is None:
         return None
     other = "W" if keep == "hatchery" else "H"
     wins = [((model["R"].get(S) or {}).get(other) or {}).get("win") for S in kinds]
@@ -245,7 +245,7 @@ def possession_of(P, model: dict, kinds: Sequence[str], total, what: str, share:
     n = _js(n_)
     days = "1 day’s fish" if k == 1 else f"{k} days’ fish"    # ROUND20h (reader: "not 3" puzzled — said nothing)
     doubles = None
-    if share is not None and share.get("take") is not None and share["take"] < total:
+    if share is not None and share["water"] is not None and share.get("take") is not None and share["take"] < total:
         verb = {1: "is", 2: "doubles", 3: "triples"}.get(k, f"is {k} times")
         doubles = (f"Possession {verb} the {_js(total)} a day, not the {_js(share['take'])} from "
                    f"{share_place(share['water'], share_region_wide(P, share))}.")
@@ -253,12 +253,18 @@ def possession_of(P, model: dict, kinds: Sequence[str], total, what: str, share:
             "example": f"With {_js(total)} {what} a day you may have {n}: {days}.", "doubles": doubles}
 
 
-def headline_of(n, origin: Optional[str], what: str, place: str) -> dict:
+def _raised_total_by(P, T):
+    """T834: the raise of total `T` by a water's own quota (`rows.pools`), or None."""
+    from pipeline.deliver.answers.rows import pools
+    return next((x for x in pools(P) if x.clause.key == T.key and x.f.get("take") is not None), None)
+
+
+def headline_of(n, origin: Optional[str], what: str, place: Optional[str]) -> dict:
     """T475 ask 1 (owner 2026-11-07): a share's headline in one line, from fields — "2 hatchery trout/char a day from
     streams": the number, the one origin the share's water keeps (`origin`, the resolved rules' — `origin_place`; None
     where any is kept), the group's fish as one noun (`fish`, "trout/char") and where the share holds."""
     fish = what.replace(" and ", "/")
-    unit = f"{origin + ' ' if origin else ''}{fish} a day from {place}"
+    unit = f"{origin + ' ' if origin else ''}{fish} a day" + ("" if place is None else f" from {place}")
     return {"unit": unit, "says": f"{_js(n)} {unit}", "origin": origin, "fish": fish}
 
 
@@ -272,7 +278,7 @@ def share_info(P, model: dict, share: dict, T, total, head: dict, what: str, sco
     another water of its kind, keep 1 on the other kind, keep the whole total on the other kind."""
     from pipeline.deliver.answers.rows import badge_of
     from pipeline.deliver.answers.tree import share_place, share_region_wide
-    if badge_of(T) not in ("region", "bc"):
+    if badge_of(T) not in ("region", "bc") or share["water"] is None:
         return None
     s, T, water = share["take"], total, share["water"]
     other = "lake" if water == "stream" else "stream"
@@ -337,17 +343,59 @@ def _item_n(it: dict, total) -> Optional[float]:
     return None
 
 
-def _duties(P, model: dict, S: str, n) -> List[str]:
+def _duty_band(r, lo: float, hi: float) -> str:
+    """T763: the band of a yearly limit or record duty whose `lengths` narrow the kind's keep range [lo, hi], in the
+    boundary standard's words ("over 50 cm (20 in)", the caps' composer); "" where the rule holds the whole kind
+    (Shuswap's "5 a year" on a kind kept at 50 cm or longer) or has no lengths (steelhead's "10 a year")."""
+    from pipeline.deliver.answers.caps import edges, rule_sides
+    held = [x for x in r.x.get("lengths") or [] if x.get("take") != 0]
+    if not held:
+        return ""
+    if len(held) > 1:
+        raise common.AnswersError(f"answers: {r.key} limits a yearly limit or record duty to {len(held)} bands; "
+                                  "the duty words say one")
+    # the bound comes from THE ONE reader of a rule's size shape (`display.rule.size_shape`, `test_one_size_shape.py`):
+    # a duty's band is a keeping range with a bottom and no top ("over 50 cm"); any other shape is refused, never guessed
+    from pipeline.deliver.answers.display.rule import size_shape
+    a = size_shape(r.x.get("lengths"))["min"]
+    if a is None:
+        raise common.AnswersError(f"answers: {r.key} limits a yearly limit or record duty to a length band that is not "
+                                  "'over a size' (a bottom and no top); the duty words cannot say it")
+    b = INF
+    if a <= lo and b >= hi:
+        return ""
+    sides: Dict[float, str] = {}
+    for x, side, _w in sorted(rule_sides(r), key=lambda t: t[2]):
+        sides.setdefault(x, side)
+    return common.band_words(a, b, *edges(sides, a, b))
+
+
+def licence_duty(l: dict, lo: float, hi: float) -> Optional[str]:
+    """A decided line's yearly limit or record duty in the card's words ("10 a year", "record each on your licence right
+    away", a banded one naming its band); None for any other line. `_duties` and the trout table's fish sheet (T810 H)
+    both say them from here."""
+    r = l["r"]
+    if l["t"] == "annual" and isinstance(r.f.get("take"), (int, float)):
+        band = _duty_band(r, lo, hi)
+        return f"{_js(r.f['take'])} {band} a year" if band else f"{_js(r.f['take'])} a year"
+    if l["t"] == "record" or (l["t"] == "duty" and r.f.get("record_retention")):
+        band = _duty_band(r, lo, hi)
+        # UR1 G; ROUND20g 2 (owner: fewer words); T763: a banded duty names its band
+        return (f"record each one {band} on your licence right away" if band
+                else "record each on your licence right away")
+    return None
+
+
+def _duties(P, model: dict, S: str, n, lo: float, hi: float) -> List[str]:
     from pipeline.deliver.answers.rows import main_res
     R_ = model["R"].get(S) or {}
     m = main_res(R_.get("H"), R_.get("W"))
     out: List[str] = []
     for l in (m or {}).get("lines") or []:
         r = l["r"]
-        if l["t"] == "annual" and isinstance(r.f.get("take"), (int, float)):
-            w = f"{_js(r.f['take'])} a year"
-        elif l["t"] == "record" or (l["t"] == "duty" and r.f.get("record_retention")):
-            w = "record each on your licence right away"          # UR1 G; ROUND20g 2 (owner: fewer words)
+        lic = licence_duty(l, lo, hi)
+        if lic is not None:
+            w = lic
         elif l["t"] == "duty" and r.type == "stop_fishing_after_quota":
             # UR2 5; ROUND20g 2 (owner: fewer words); ROUND20i 5 (UR4: "here" read as the whole Vedder?): the book's "stop
             # fishing that water", named by its noun ("this river")
@@ -356,6 +404,184 @@ def _duties(P, model: dict, S: str, n) -> List[str]:
             continue
         if w not in out:
             out.append(w)
+    # (T810 ticket L) a fish's own possession line (`possession_duty`) is no longer a card duty: it was said only for
+    # trout and char (`POSSESSION_FISH`), whose cards the cutover drops — the table says it on the fish's row, and J
+    # proves it (`trout/check.possession_problems`, F0's lead). The kind's key still holds it (`_kinds_of`), so the tree
+    # the table builder reads is the same.
+    return out
+
+
+#: T805 part B (owner 2026-11-16, "Keep the page line (Recommended)"): THE PAGE KEEPS ITS ONE POSSESSION LINE ("2 daily
+#: quotas"); a trout or char kind whose own possession differs says it on its row — Region 7's "Lake trout: possession
+#: quota = 1 daily quota" and the same for bull trout (p.58, p.64), a water's own possession quota with its size clause
+#: (Cunningham Lake p.59 "Lake trout possession quota = 2 (only one over 50 cm)"; Tagish Lake p.53), the Bowron Lake Park
+#: waters' "daily and possession quotas = 1" (p.43). The words come from the rules the reader says SPEAK for the fish
+#: (`possession_rules`); `card_check.check_tree` proves each line's numbers from those rules. False = the mutation pin:
+#: no possession line on any row (the page line alone, as before).
+A_POSSESSION_ON_THE_FISH_ROW = True
+
+#: the fish a possession line is said for (the trout and char of the book's p.80 table)
+POSSESSION_FISH = frozenset({"RB", "ST", "CT", "GB", "EB", "DV", "LT"})
+
+
+def possession_lead(rules: Sequence):
+    """THE ONE CHOICE OF THE PAGE'S POSSESSION LEAD (trout plan F0, contract 2.11; fight #2): of the possession multipliers
+    `rules` (each with `.f` and `.key`: every rule the reader gives the role `possession` on this reading, with a
+    `per_daily`), the one written for every game fish, else the largest (ties by key). None when there is none. The page
+    reads this choice (`RowsFrame.page_possession`, rows 34); `possession_duty` measures a fish against it; J and the
+    frame-level test call it on decoded frames. Nothing else picks a lead."""
+    got = [r for r in rules if r.f.get("per_daily")]
+    if not got:
+        return None
+    every = [r for r in got if "ALL_GAME_FISH" in (r.f.get("species") or [])]
+    return sorted(every or got, key=lambda r: (-float(r.f["per_daily"]), r.key))[0]
+
+
+def possession_role_rules(P, model: dict, role: str = "possession") -> List:
+    """Every rule the reader gives `role` on this reading, once each, in the frame's order: fish by fish, hatchery then
+    wild, each answer's roles in stored order (page v36 possessionHtml's walk, the app's `rulesOfRole`)."""
+    out: Dict[str, object] = {}
+    for v in model["R"].values():
+        for o in ("H", "W"):
+            for k, ro in ((v.get(o) or {}).get("roles") or {}).items():
+                if ro.get("role") == role and k not in out:
+                    out[k] = P.by_key[k]
+    return list(out.values())
+
+
+def page_possession(P, model: dict):
+    """The rule the page's one possession line states (`possession_lead` over this reading's possession multipliers)."""
+    return possession_lead(possession_role_rules(P, model))
+
+
+def lead_covers(lead, S: str) -> bool:
+    """The page's lead speaks for the fish `S`: it is written for every game fish, or names `S` (its closed groups
+    expanded). A lead naming other fish only ("Possession: the daily quota for lake trout") says nothing of `S`."""
+    if lead is None:
+        return False
+    sp = lead.f.get("species") or []
+    return "ALL_GAME_FISH" in sp or S in common.expand(sp)
+
+
+def trout_only(r) -> bool:
+    """A rule whose fish are all trout or char (`common.trout_char()`, the table's fish) once its groups are expanded; an
+    open subject (no members) or any other fish makes it not."""
+    sp = common.expand(r.f.get("species"))
+    return bool(sp) and set(sp) <= common.trout_char()
+
+
+def page_line(P, model: dict) -> Optional[dict]:
+    """THE PAGE'S POSSESSION ROW, CHOSEN ONCE IN PYTHON (trout plan F0, contract 2.11; `RowsFrame.page_possession`, rows 34
+    only): {lead, also}; None where nothing is left for it to say (no rule has the role `possession` or
+    `possession_cap` here, or only trout- or char-only counts do: the fish rows say those).
+
+    `lead` {says, value, src}: the rule `page_possession` picks — its whole sentence (`display.rule_facts` `plain`, the
+    same words the display section ships for the rule: "Possession: 2 days’ quota." and the home exception), the value
+    words the page row shows ("2 days’ quota", `display.rule.possession_value`, so the app's `possessionValue` regex
+    goes) and the rule; null where no multiplier speaks (a water whose only possession rule is its own count: its line
+    says it). `also` [{says, src}]: the lines the page row keeps under the lead — every other multiplier of another
+    number of days, then the water's own possession counts (`possession_cap`), in the frame's order — LESS every rule
+    whose fish are all trout or char (`trout_only`): those are said on the table's rows (`possession_duty`; fight #3).
+    A rule with no sentence is refused (the app drew no row there: a silent gap)."""
+    from pipeline.deliver.answers.display.rule import possession_value, rule_facts
+    per = possession_role_rules(P, model)
+    caps = possession_role_rules(P, model, "possession_cap")
+    lead = possession_lead(per)
+    if lead is None and not caps:
+        if per:
+            raise common.AnswersError(f"answers: possession rules {[r.key for r in per]} speak here with no multiplier")
+        return None
+
+    def says(r) -> str:
+        w = rule_facts(r.f).get("plain")
+        if not w:
+            raise common.AnswersError(f"answers: the possession rule {r.key} has no sentence; the page's row needs one")
+        return w
+    out_lead = None
+    if lead is not None:
+        out_lead = {"says": says(lead), "value": possession_value(lead.f), "src": lead.key}
+    also = [r for r in per if r is not lead and float(r.f.get("per_daily") or 0) != float(lead.f["per_daily"])] \
+        if lead is not None else []
+    also = [{"says": says(r), "src": r.key} for r in also + caps if not trout_only(r)]
+    if out_lead is None and not also:
+        return None                             # only trout- or char-only counts: the table's rows say them
+    return {"lead": out_lead, "also": also}
+
+
+def possession_rules(P, model: dict, S: str) -> Tuple[List, List]:
+    """(multipliers, counts): the possession rules the reader says SPEAK for the kept fish `S` (its leading origin's answer)
+    other than the page's own line — a per-daily-quota rule naming it (Region 7's lake trout "1 daily quota") and a water's
+    possession count with its clauses (`possession_cap` lines, the clause `within` its count)."""
+    from pipeline.deliver.answers.rows import main_res
+    R_ = model["R"].get(S) or {}
+    m = main_res(R_.get("H"), R_.get("W"))
+    if not m:
+        return [], []
+    page = page_possession(P, model)
+    per = sorted({P.by_key[k] for k, ro in m["roles"].items() if ro.get("role") == "possession"
+                  and P.by_key[k].f.get("per_daily") and P.by_key[k] is not page
+                  and "ALL_GAME_FISH" not in (P.by_key[k].f.get("species") or [])}, key=lambda r: r.key)
+    # (every game fish's multiplier is the page's line, a straddler's two regions' alike)
+    caps = []
+    for l in m["lines"]:
+        if l["t"] == "possession_cap" and l["r"] not in caps:
+            caps.append(l["r"])
+    return per, caps
+
+
+def possession_duty(P, model: dict, S: str) -> Optional[str]:
+    """T805 part B: a kept trout or char's own possession, in one line, where it differs from the page's: "in your possession:
+    1 day’s limit, not 2 (…)"; "in your possession: no more than 2 lake trout, only 1 over 50 cm (20 in) (…)"; a count over
+    several kinds "no more than 1 trout and char in all"; each with the home exception (`POSSESSION_HOME`, RULINGS Q15).
+    None where the page's line is the fish's."""
+    if not A_POSSESSION_ON_THE_FISH_ROW or S not in POSSESSION_FISH:
+        return None
+    from pipeline.deliver.answers.display.rule import POSSESSION_HOME
+    per, caps = possession_rules(P, model, S)
+    tops = [r for r in caps if not r.f.get("within")]
+    if len(tops) > 1:
+        raise common.AnswersError(f"answers: {S} has {len(tops)} possession counts here ({[r.key for r in tops]}); "
+                                  "the row says one")
+    if tops:
+        top = tops[0]
+        if not isinstance(top.f.get("take"), (int, float)):
+            raise common.AnswersError(f"answers: the possession count {top.key} has no number")
+        from pipeline.deliver.answers.rows import written_name_of
+        names = written_name_of(top)
+        many = len(common.expand(top.f.get("species"))) > 1
+        w = f"no more than {_js(top.f['take'])} {names}" + (" in all" if many else "")
+        for c in [r for r in caps if r.f.get("within") == top.rule_id and r.entry_id == top.entry_id]:
+            w += "".join(f", {clause}" for clause in _possession_clauses(c))
+        return f"in your possession: {w} ({POSSESSION_HOME})"
+    if per:
+        ks = {float(r.f["per_daily"]) for r in per}
+        if len(ks) > 1:
+            raise common.AnswersError(f"answers: {S} has possession rules of {sorted(ks)} daily quotas here")
+        k = ks.pop()
+        page = page_possession(P, model)
+        if page is not None and float(page.f["per_daily"]) == k and lead_covers(page, S):
+            return None                         # F0: the page's lead says this very number for this fish
+        days = "1 day’s limit" if k == 1 else f"{_js(k)} days’ limits"
+        not_page = f", not {_js(page.f['per_daily'])}" if page is not None and float(page.f["per_daily"]) != k else ""
+        return f"in your possession: {days}{not_page} ({POSSESSION_HOME})"
+    return None
+
+
+def _possession_clauses(r) -> List[str]:
+    """A possession count's size clause in words: each band keeping a number ("only 1 over 50 cm (20 in)"); a band
+    keeping none says nothing here (no such fish may be kept at all, the day's rules say so)."""
+    from pipeline.deliver.answers.caps import edges, rule_sides
+    from pipeline.deliver.answers.rows import _bands
+    sides: Dict[float, str] = {}
+    for x, side, _w in sorted(rule_sides(r), key=lambda t: t[2]):
+        sides.setdefault(x, side)
+    out = []
+    for a, b, t in _bands(r):
+        t = r.f.get("take") if t is None else t
+        if t and a:
+            w = common.band_words(a, b, *edges(sides, a, b))
+            # "only 1 over 50 cm (20 in)"; a band said by its number first reads "only 1 measuring 90 cm (35 in) or longer"
+            out.append(f"only {_js(t)} {'measuring ' if w[:1].isdigit() else ''}{w}")
     return out
 
 
@@ -674,7 +900,7 @@ NO_FISHING_TERM = "no_fishing_for"
 
 def card_of(P, model: dict, grp: dict, rows_out: List[dict], home: int) -> dict:
     """The card fields of one group total (see the module docstring)."""
-    from pipeline.deliver.answers.rows import _lift_words, _kept, badge_of, written_name_of, keep_range
+    from pipeline.deliver.answers.rows import _lift_words, _kept, badge_of, written_name_of, keep_range, pools
     T = P.by_key[grp["pool"]]
     total = grp["total"]
     unlimited = total == "unlimited"
@@ -682,7 +908,8 @@ def card_of(P, model: dict, grp: dict, rows_out: List[dict], home: int) -> dict:
     what = written_name_of(T)
     states: List[dict] = []
     # the stream (lake) share holding EVERY kind of the total (the lead share, rows 7)
-    share = next((s for s in grp["subcaps"] if s["water"] and s["over_cm"] is None
+    # (T834: or a RAISED total's own number, `rows.groups.A_RAISED_TOTAL_IS_ONE_BOX` — a share-like cap with no water)
+    share = next((s for s in grp["subcaps"] if (s["water"] or s["r"] == grp["pool"]) and s["over_cm"] is None
                   and s["under_cm"] is None
                   and set(s["of"]) | {S for L in s["lifted"] for S in L["members"]} == set(kinds)),
                  None)
@@ -748,7 +975,8 @@ def card_of(P, model: dict, grp: dict, rows_out: List[dict], home: int) -> dict:
         n_head = capacity(kinds, base)
         # UR2 1 (user panel: the big "2 a day from this stream" read as the party's limit): whose number it is
         from pipeline.deliver.answers.tree import share_place, share_region_wide
-        unit = (f"a day per angler from {share_place(share['water'], share_region_wide(P, share))}" if share is not None
+        unit = (f"a day per angler from {share_place(share['water'], share_region_wide(P, share))}"
+                if share is not None and share["water"] is not None
                 else "a day per angler")   # ROUND20f 3: a region's share "from streams"
         head = {"n": n_head, "unit": unit, "says": f"{_js(n_head)} {unit}"}
         inners = {info[S]["inner"].key for S in kinds if info[S]["inner"] is not None}
@@ -779,7 +1007,7 @@ def card_of(P, model: dict, grp: dict, rows_out: List[dict], home: int) -> dict:
     # its sentence), the group's fish and the share's water
     if share is not None and not unlimited:
         head.update(headline_of(head["n"], next(iter(os_))[0] if share_origin is not None else None, what,
-                                share_place(share["water"], share_region_wide(P, share))))
+                                None if share["water"] is None else share_place(share["water"], share_region_wide(P, share))))
 
     # -- lifts out of the share, and the total under it ------------------------------------------
     region = (P.by_key[share["r"]].x.get("entry_name") if share else None) or "the region"
@@ -802,13 +1030,20 @@ def card_of(P, model: dict, grp: dict, rows_out: List[dict], home: int) -> dict:
             {"kinds": list(L["members"]), "n": n, "by": L["by"],
              "fish": _lift_words(P, L["by"], L["members"])})
         states.append({"r": L["by"], "line": "lift"})
-    limit = (f"the {_js(share['take'])}-from-{share['water']}s limit across {share_both}" if share_both else
-             f"{region}’s {_js(share['take'])}-from-{share['water']}s limit") if share is not None else ""
+    limit = ((f"{region}’s {_js(share['take'])}-a-day limit" if share["water"] is None else
+              f"the {_js(share['take'])}-from-{share['water']}s limit across {share_both}" if share_both else
+              f"{region}’s {_js(share['take'])}-from-{share['water']}s limit") if share is not None else "")
     for each in each_of.values():
         each.sort(key=lambda e: -(INF if e["n"] is None else e["n"]))     # stable: highest first
         where, whose = _whose(P, P.by_key[each[0]["by"]])
         allows = ["any number" if e["n"] is None else f"up to {_js(e['n'])} a day" for e in each]
-        if len(each) == 1:
+        if share["water"] is None:
+            # T834 (owner 12:29): "5 with exception to 20 brook trout which also uses up your 5 quota"
+            t = _js(share["take"])
+            named = common.join([f"{e['fish']} {a}" for e, a in zip(each, allows)], " and ")
+            fish = common.join([e["fish"] for e in each], " and ")
+            says = f"{where}, {named} — they count toward the {t}; past {t}, {fish} only."
+        elif len(each) == 1:
             says = f"{where}, {each[0]['fish']}: {allows[0]} — {whose} replaces {limit} for them."
         else:
             named = common.join([f"{e['fish']} ({a})" for e, a in zip(each, allows)], " and ")
@@ -830,12 +1065,18 @@ def card_of(P, model: dict, grp: dict, rows_out: List[dict], home: int) -> dict:
         scope = both or T.x.get("entry_name") or "the region"
         total_line = f"No more than {_js(total)} {what} a day per angler across {scope}, {other} included."   # UR1 A
         states.append({"r": grp["pool"], "line": "total"})
+    if total_line is not None and _raised_total_by(P, T) is not None:
+        # T834 (owner 12:29: "the total is 5 not 20 or 25"): a total a water's own quota raised is never said as the
+        # region's; its number is the exception's ("or 20 if they’re brook trout"), the region's the headline
+        total_line = None
+        states = [x for x in states if x["line"] != "total"]
 
     # -- buckets and kind rows -------------------------------------------------------------------
     share_b = None
     if share is not None:
         share_b = {"title": f"Up to {_js(share['take'])} a day between them — "
-                            + (f"all {share['water']}s in {share_both} combined" if share_both
+                            + (f"{region}’s {_js(share['take'])} a day" if share["water"] is None
+                               else f"all {share['water']}s in {share_both} combined" if share_both
                                else f"all {region} {share['water']}s combined"),
                    "cap": share["take"], "by": share["r"], "why": "share", "kinds": []}
     # one bucket per lifting entry (Duncan: its rainbow and its Dolly Varden rules are one row)
@@ -926,11 +1167,14 @@ def card_of(P, model: dict, grp: dict, rows_out: List[dict], home: int) -> dict:
             if b not in lift_bucket.values() and share is not None and S in share["of"]:
                 # (ROUND14 3: not under the water's own rule printing the share's very number)
                 if info[S]["inner"] is None or info[S]["inner"].f["take"] != share["take"]:
-                    notes.append(f"counts toward the {_js(share['take'])} from {share['water']}s")
+                    notes.append(f"counts toward the {_js(share['take'])}"
+                                 + ("" if share["water"] is None else f" from {share['water']}s"))
             else:
                 notes.append(f"counts toward the {_js(total)} a day")
-        duties = _duties(P, model, S, n)
-        key = (id(b), said_by, n, name, detail, tuple(notes), tuple(duties))
+        duties = _duties(P, model, S, n, lo, hi)
+        # (T810 L) a fish whose own possession differs stays a kind apart, as when the card said it (the table's input)
+        poss = possession_duty(P, model, S) if n != 0 else None
+        key = (id(b), said_by, n, name, detail, tuple(notes), tuple(duties), poss)
         k = rows_by.get(key)
         if k is None:
             k = {"species": [], "name": name, "detail": detail, "n": None if n == INF else n,
@@ -971,7 +1215,10 @@ def card_of(P, model: dict, grp: dict, rows_out: List[dict], home: int) -> dict:
 
     # -- the worked count (RULINGS Q23b) -----------------------------------------------------------
     worked: List[dict] = []
-    if share is not None and lifts and not unlimited:
+    # (T834: none on a RAISED total — what its lifted fish leave on other waters is the owner's open question to BC Fish
+    # and Wildlife, GOTCHAS; the card states no number for it yet)
+    raised_total = _raised_total_by(P, T) is not None
+    if share is not None and share["water"] is not None and lifts and not unlimited and not raised_total:
         parts = [e for L in lifts for e in L["each"]]              # every lifting rule (W1)
         main = max(parts, key=lambda L: (L["n"] or 0))
         q = main["n"] or 0
@@ -983,6 +1230,10 @@ def card_of(P, model: dict, grp: dict, rows_out: List[dict], home: int) -> dict:
         m_origin = said_origin or "hatchery"
         plural = kind_names(main["kinds"], main["kinds"] == ["ST"], origin=said_origin)
         other_kind = "lake" if share["water"] == "stream" else "stream"
+        # T834 (RULINGS T17): a water's own quota that RAISED the share below the total (`rows.pools`: the Peace River's
+        # lake trout 3 over Zone 7's 2 from streams) holds every fish here to its number, the lifted ones included
+        up = next((x.f["take"] for x in pools(P) if x.clause.key == share["r"] and x.f.get("take") is not None
+                   and x.f["take"] < total), None)
         # ROUND20b C4 (owner: fewer words): the two ends of the range only — all the lifted fish ("that’s your day"),
         # and as many as the share ("none from other streams — up to N more from here or from lakes"); the lines
         # between are arithmetic the reader does not need
@@ -994,6 +1245,8 @@ def card_of(P, model: dict, grp: dict, rows_out: List[dict], home: int) -> dict:
             # for the other kinds — here: the lifted kinds' rest, and the share's own number
             here = min(left, share["take"] + sum(max(0, (L["n"] or 0) - (k if L is main else 0))
                                                  for L in parts))
+            if up is not None:
+                here = min(here, max(0, up - k))
             if left == 0:
                 a = f"that’s your {what} for the day, everywhere."
             elif k == share["take"] and here >= left:
@@ -1013,6 +1266,9 @@ def card_of(P, model: dict, grp: dict, rows_out: List[dict], home: int) -> dict:
                 a = f"1 more fish of any kind, from here or from a {other_kind}."
             else:
                 a = f"{_js(left)} more fish of any kind, from here or from {other_kind}s."
+            if up is not None and left > 0 and here < left:
+                # T834: the raised share holds them here — say how many of those may come from here
+                a = a[:-1] + (" — none more from here." if here == 0 else f" — only {_js(here)} more from here.")
             # ROUND UR7 1: "here" — the lift is this water's (its fish count as the share's anywhere else)
             worked.append({"kept": k, "q": f"If you keep {k} {plural} here", "a": a, "species": [S0],
                            "origin": m_origin,
@@ -1023,8 +1279,9 @@ def card_of(P, model: dict, grp: dict, rows_out: List[dict], home: int) -> dict:
     # with no lift the kept-elsewhere examples are the list. Each keeps the basket it starts from and
     # the number the gate proves.
     el = rows_out[home].get("elsewhere") or {}
-    for x in el.get("lines") or []:
-        if worked and x["kind"] == "stream_tally":
+    keep_n = bool(worked)                  # (the keep-N lines; a stream tally split by fish is still one tally's lines)
+    for x in ([] if raised_total else el.get("lines") or []):
+        if keep_n and x["kind"] == "stream_tally":
             continue
         # "Kept 2 elsewhere today? Keep 3 more here" is the total's arithmetic: said where this water's
         # number IS the total (Ross Lake's own trout 1 counts the fish kept elsewhere too — the
@@ -1050,7 +1307,8 @@ def card_of(P, model: dict, grp: dict, rows_out: List[dict], home: int) -> dict:
     tree, header = TR.tree_of(P, model, TR.Ctx(
         grp=grp, buckets=buckets, info=info, side=side, share=share, unlimited=unlimited, head=head,
         origin_one=(os_.pop()[0] if one_origin else None), lifting=[b for b in lift_bucket.values() if b in buckets],
-        what=what, share_origin=share_origin))
+        what=what, share_origin=share_origin, table=sysm["table"],
+        across=TR.across_rows(rows_out, home, kinds)))          # T805: a wild limit two rows share
     return {"headline": head, "origin": origin, "lifts": lifts, "total_line": total_line,
             "buckets": buckets, "not_kept": not_kept, "worked": worked, "states": states,
             "table": table, "cap_kinds": sysm["kinds"], "caps": sysm["caps"], "tree": tree, "header": header,

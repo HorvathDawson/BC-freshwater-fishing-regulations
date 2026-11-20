@@ -41,7 +41,7 @@ describe("(T21 review) the group's year window (prototype .gyear over page v36 m
   const real = seams([], { runOf: (perDay, d) => runOf(perDay.map((st) => [st, 1] as const), d) });
   it("a strip that changes through the year: 'Through the year' and today's run, worded", () => {
     expect(yearWindowOf(row({ year: year(["release", 90], ["keep", 214], ["release", 61]) }), inputs(), D(10, 10), real))
-      .toEqual({ label: "Through the year", says: "You can keep them until Oct 31. Then release only from Nov 1." });
+      .toEqual({ label: "Through the year", says: "You can keep them until Oct 31. Then release only Nov 1–Mar 31. You can keep them from Apr 1 next year." });
     expect(yearWindowOf(row({ year: year(["release", 90], ["keep", 214], ["release", 61]) }), inputs(), D(1, 5), real)!.says)
       .toBe("Release only until Mar 31. You can keep them from Apr 1.");
   });
@@ -54,9 +54,36 @@ describe("(T21 review) the group's year window (prototype .gyear over page v36 m
 });
 
 describe("the year's words over the stored strip (page v36 runTxt / closedRuns / runUntil)", () => {
-  it("keep now: until when, then what, from when", () => {
-    const y = new YearWords(inputs(), seams([{ now: "keep", all: false, from: D(5, 1), until: D(10, 31), next: D(11, 1), then: "release" }]));
-    expect(y.runTxt([], D(10, 10), true)).toBe("You can keep them until Oct 31. Then release only from Nov 1.");
+  // (T762) a keep day names every run of the year in order, each with its range, then when keeping returns
+  const real = seams([], { runOf: (perDay, d) => runOf(perDay.map((st) => [st, 1] as const), d) });
+  const days = (...spec: [string, number][]) => spec.flatMap(([s, n]) => Array<string>(n).fill(s));
+  it("keep, closed, keep (Fraser River, part 14): the closure's end and keeping's return; 'next year' once the closure is past", () => {
+    const y = new YearWords(inputs(), real), sg = days(["keep", 273], ["closed", 31], ["keep", 61]);
+    expect(y.runTxt(sg, D(9, 15), false)).toBe("You can keep them until Sep 30. Then closed Oct 1–31. You can keep them from Nov 1.");
+    expect(y.runTxt(sg, D(11, 15), false)).toBe("You can keep them until Sep 30 next year. Then closed Oct 1–31. You can keep them from Nov 1 next year.");
+    expect(y.runTxt(sg, D(9, 30), true)).toBe("You can keep them until Sep 30. Then closed Oct 1–31. You can keep them from Nov 1.");
+  });
+  it("keep, closed, keep, closed (Fraser River, part 12): a later keep run is named too, and the line ends where today's run comes round", () => {
+    const y = new YearWords(inputs(), real), sg = days(["keep", 89], ["closed", 82], ["keep", 102], ["closed", 31], ["keep", 61]);
+    expect(y.runTxt(sg, D(11, 15), false)).toBe("You can keep them until Mar 30 next year. Then closed Mar 31–Jun 20. Then you can keep them Jun 21–Sep 30. "
+      + "Then closed Oct 1–31. You can keep them from Nov 1 next year.");
+  });
+  it("keep, closed, release, closed, keep (Boardman Creek): every run once, the whole water's closures named as such; on the first keep day the return is next year's", () => {
+    const water = (d: number) => (d >= 245 && d <= 305) || (d >= 92 && d <= 166);   // Sep 1 – Oct 31, Apr 1 – Jun 14 (leap calendar)
+    const sg = days(["release", 90], ["closed", 75], ["keep", 78], ["closed", 61], ["release", 61]);
+    expect(new YearWords(inputs(water), real).runTxt(sg, D(7, 15), false)).toBe("You can keep them until Aug 31. Then the whole water is closed Sep 1–Oct 31. "
+      + "Then release only Nov 1–Mar 31. Then the whole water is closed Apr 1–Jun 14. You can keep them from Jun 15 next year.");
+    expect(new YearWords(inputs(), real).runTxt(sg, D(6, 15), false)).toBe("You can keep them until Aug 31. Then closed Sep 1–Oct 31. "
+      + "Then release only Nov 1–Mar 31. Then closed Apr 1–Jun 14. You can keep them from Jun 15 next year.");
+  });
+  it("a run that wraps the New Year (Nicola River): kept to Dec 31, then the runs of next year in order", () => {
+    const y = new YearWords(inputs(), real), sg = days(["release", 59], ["closed", 214], ["keep", 92]);
+    expect(y.runTxt(sg, D(12, 31), false)).toBe("You can keep them until Dec 31. Then release only Jan 1–Feb 28. Then closed Mar 1–Sep 30. You can keep them from Oct 1 next year.");
+  });
+  it("keep all year: no line; the other branch is as it was (closed now, then keeping)", () => {
+    const y = new YearWords(inputs(), real);
+    expect([y.runTxt(days(["keep", 365]), D(7, 15), false), y.runTxt(days(["keep", 365]), D(7, 15), true)]).toEqual(["", ""]);
+    expect(y.runTxt(days(["keep", 273], ["closed", 31], ["keep", 61]), D(10, 15), false)).toBe("Closed until Oct 31. You can keep them from Nov 1.");
   });
   it("release now: the runs that follow until keeping, a whole-water closure named as such, 'next year' when it wraps", () => {
     const water = (d: number) => d >= 183 && d <= 244;   // Jul 1 – Aug 31 (leap calendar)

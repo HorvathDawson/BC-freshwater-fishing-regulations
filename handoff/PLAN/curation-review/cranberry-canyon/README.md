@@ -88,3 +88,21 @@ open, low-relief valley for about 11 km.
 - `plot.py`: draws the PNGs and writes the GeoJSON and HTML map
 - `profile.csv`: every 25 m station (d_below_falls, measure, lon/lat, ch_dem, fwa_z, rel100, rel200, rel100_max, w20, w40)
 - `cranberry_canyon.geojson`, `map.html`: the falls point, the estimate, the range segment and the profile line (Leaflet on OpenTopoMap)
+
+## The falls (top of the canyon): the owner's sources (2026-11-18)
+
+The falls cut `cranberry_river__falls_top_of_canyon` (55.56407, -128.68426) carries the owner's full write-up in its
+`_note` (data/curated/waters/cuts.json). The sources:
+
+- Synopsis, Region 6, Cranberry River: "No fishing between fishing boundary signs upstream of and downstream of
+  Cranberry River Canyon".
+- huntingBC forum: https://www.huntingbc.ca/forum/printthread.php?t=96691&pp=10&page=1 ("If you walk to falls at 5km
+  lots of blowdown but good viewing for springs below falls. this is closed, You can fish above falls past triangle
+  signs …"): the falls are the TOP of the closed reach.
+- BC NRS document: https://comment.nrs.gov.bc.ca/api/public/document/5b1acced43cf9c0019391d53/download ("The Ginmiltkun
+  Falls (also referred to as the Cranberry River Falls in some of the literature) is located on the Cranberry River
+  immediately above the confluence with Ginmiltkun Creek (or about 11km upstream of the Nass River confluence)").
+  Ginmiltkun Creek joins directly below the placed point; satellite and topo show the falls at the bend there.
+- DFO report: https://waves-vagues.dfo-mpo.gc.ca/library-bibliotheque/271968.pdf ("A falls 16 kilometres from the river
+  mouth presents a partial barrier to salmon migration"; blasting 1931, further work 1973).
+- Measured on the FWA Cranberry line: 15.75 km above the Nass (DFO: 16 km; the NRS document's "about 11km" is the odd one).

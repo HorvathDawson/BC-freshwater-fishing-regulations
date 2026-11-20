@@ -31,6 +31,46 @@ verified 1-to-1 against the consumer page (COMPARISON.md).
   written out: `no_rule`, `by_origin`, a `null` part key for a part outside B.C., a `null` decided
   answer (no rule in scope speaks).
 
+## THE CLOSURES TO THE NON-RESIDENT ALIEN, PER PART (2026-11-17, T789 G8) — licence frame `alien_closures`, additive (licence stays 7)
+
+Owner 2026-11-17 ("Should each of these waters just have their own info? Don't want this on waters it doesn't apply
+to"; Lakelse and Telkwa "Same thing applies to these"): no province-wide list. `LicenceFrame.alien_closures`
+[{rule, of, says}] (`licence.alien_closures`) is on the frame of a part whose RULE SET holds an `angler_closure` naming the
+non-resident alien — the bundle's `ruleset` binding, the tributary walk included — that the ladder leaves standing
+there on some day (the reader, `effective_rules_bound`, asked at the set's moments and day cuts: what the Keep tab's
+"Closed to some anglers" caveat says; the Bulkley's inherited closure loses to the Telkwa's, Morice's and Suskwa's own
+or nearer rows) — and on no other frame. `rule` the export index; `of` the water whose rule it
+is where the part holds it by the tributary walk (data only, null on its own parts); `says` the whole sentence,
+composed here (`licence.alien_line` / `alien_says`): the catalogue's composer over the rule's parts, "all year" where
+it has no dates (the synopsis: no date is all year; the book prints it on all 6 such rows), and on a tributary
+"<water> and its tributaries: <line>" ("Lakelse River and its tributaries: Angling closed to non-guided non-resident
+aliens, all year — between Lakelse Lake and power line crossing"); the app draws it and composes nothing. For it, such a part's rule set is in its licence key
+(`part_licence_key` / `section_scope`, as for a sleepy designation's set): 15 rules in 71 rule sets, 356 named
+parts of 314 waters (the 12 the book names and, by "Incl. Tribs", their tributaries), 165 -> 212 named licence keys.
+On the wire: `frames` rows [holds, documents, under_16?, alien_closures?] (the 4th only with the 3rd) into the interned `alien_closures`
+table; the store's `licence_alien`, in every regs shard. ADDITIVE: a reader that does not know it reads the first three
+indexes as before, so `licence` stays 7 until the app reads it (bump both sides together then).
+
+## A BAIT ALLOWANCE SAID ONCE (2026-11-17, T797 item 2) — gear `bait[].allowances`, additive (gear stays 12)
+
+`BaitPick.allowances` [{says, by [clause]}] (`gear.allowances`): each distinct allowance of an allowed-by-circumstance
+bait element once per part, deduped across rules by its words ("Dead fin fish may be used when fishing for white
+sturgeon.", "Dead fin fish may be used while set lining."), `by` every clause allowing it, merged in order so the
+Sources cite each. A Fraser part holding the Fraser row's own sturgeon line and the province's bait.r3 says it once,
+citing both. Present exactly where `also_allowed` is (which keeps one circumstance per clause, unchanged).
+
+## THE TROUT SECTION (2026-11-16, T810 ticket I) — `trout` 1, OPTIONAL, behind `--trout-table`
+
+The trout and char table (handoff/PLAN/design/trout-table-contract.md): per part key and segment a `TroutFrame`
+{table, dates, covers} or null (Q-D3: the display frame says closed or tidal, or the rows frame asks about no trout or
+char fish), composed once per key over all its segments (`Section.compose_key`) from the POST-PASS `rows`, the
+`display` frame and the `licence` answer. Built only with `--trout-table` (`answers.cli build`, `pipeline.deliver
+answers` / `all`, `mini_release --build`): without it the file holds no `trout` section, spec text or schema, so it is
+the file it was before. On the wire (`encode.TroutCodec`): `frames` [[table, dates | null, covers]], `tables` (bodies,
+each row's `sheet` a `sheets` index), `dates`, `sheets`; the store adds `cell.trout` (last, nullable) and the four
+tables `trout_frame`, `trout_table`, `trout_dates`, `trout_sheet`, carried by every regs shard, their zdicts in
+`water-shared`. Any shape change bumps `trout`.
+
 ## answers/2 (DATAFLOW P7, 2026-10-08) — what changed from answers/1
 
 Nobody had consumed answers/1, so there is no migration note (user decision U3). The changes:

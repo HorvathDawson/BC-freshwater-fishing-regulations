@@ -38,8 +38,9 @@ function honours(h: { params: string; body: string }, key: string): boolean {
 const NATIVE_NOT: Record<string, string> = {
   onRegion: "web only by design: it feeds the web's tile prefetch; a phone holds the release installed",
   onImageryError: "web only by design: the binding has no per-tile error event; a phone learns of unreachable imagery from useImageryReach's probe",
-  trace: "OPEN GAP (T608B G5): the route overlay is not drawn on a phone. Its lines are read from the atlas archive by a JS pmtiles " +
-         "fetch (range requests), which cannot read the installed archive on a phone; needs a native tile reader, tested on a device",
+  insetLeft: "web only by design (T856): the desktop's nav rail floats over the web map's left edge; a phone never floats it, so 0",
+  // `trace` is honoured since T831 (T608B G5 closed): its pins, and its lines read from the installed atlas through the
+  // app's byte-range reader (`TileEndpoints.readRange`).
 };
 /** Keys the web does not honour, and why. */
 const WEB_NOT: Record<string, string> = {};

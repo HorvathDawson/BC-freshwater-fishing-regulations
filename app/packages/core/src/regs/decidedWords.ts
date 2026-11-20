@@ -3,6 +3,18 @@
  * today, and why — in plain words. Verbatim, frozen; spread into ALL_WORDS (words.ts) so the no-hand-facts test knows
  * them. No imports: words.ts imports this file.
  */
+/** (T892) a water's possessive: "Twin Lakes’", "Kootenay River’s" */
+const poss = (name: string): string => (/s$/i.test(name) ? `${name}’` : `${name}’s`);
+/** (T907 round 2, owner 2026-11-19 ~12:27 "Drop the repeat") the water a tributary line names: `poss`, except a name
+ *  already ending in "Tributaries" says it once ("Lake Revelstoke's Tributaries" -> "Lake Revelstoke’s"), Python's
+ *  `trout/words.py` `whose_tributaries` word for word */
+const whoseTribs = (name: string): string => {
+  const base = name.replace(/(?:^|\s+)tributaries$/i, "");
+  if (base === name || !base.trim()) return poss(name);
+  const m = /(?:['’]s|s['’])$/.exec(base);
+  return m ? base.slice(0, m.index) + (m[0].endsWith("s") ? "’s" : "s’") : poss(base);
+};
+
 export const DECIDE = Object.freeze({
   INTRO: "Rules stack in layers: the region’s base rules first, then this water’s own rules, then any exceptions. A later layer can change an earlier one.",
   ANSWER: "Today’s answer: ",
@@ -74,4 +86,42 @@ export const DECIDE = Object.freeze({
   WHERE_DFO: "Set by Fisheries and Oceans Canada (DFO), not the B.C. rule book.",
   WHERE_BY: "The rule that beat it: ",
   WHERE_LIFTED_BY: "The rule that opens it: ",
+
+  // (T883, proposal) the one "How this was decided" every fish sheet draws (flow.ts): each step's kicker (who says it),
+  // what it did, the closing answer, and the short lists under it
+  K_BC: "All of B.C.",
+  K_BASE: (name: string) => `${name} · base rule`,
+  K_AREA: (name: string) => `${name} · area rule`,
+  // (owner 2026-11-18 ~23:40) a rule another water's row carries down to its tributaries says so, never "this water's"
+  // (T919 a) a row whose own name already says it is about tributaries ("Lake Revelstoke's Tributaries", "Chilko Lake's
+  // tributary streams") is named once, never "… Tributaries · its tributaries"
+  K_DOWN: (name: string) => /\btributar(?:y|ies)\b/i.test(name) ? name : `${name} · its tributaries`,
+  // (T892) the same fact on the "What you can keep" table's row: under the fish's name, one line
+  ROW_DOWN: (names: readonly string[]) => names.length === 1 ? `${whoseTribs(names[0]!)} rule for its tributaries`
+    : `${names.slice(0, -1).map(whoseTribs).join(", ")} and ${whoseTribs(names[names.length - 1]!)} rules for their tributaries`,
+  K_WATER: (name: string) => `${name} · this water’s rule`,
+  K_LISTED: (name: string) => `${name} · listed water`,
+  K_FEDERAL: "Federal law",
+  K_PART: "Part of this water",
+  T_COUNTS: "Counts toward this total",
+  T_LOWERS: "Lowers the number",
+  T_CAPS: "A cap inside the total",
+  T_SIZE: "Size rule",
+  T_ALSO: "Also applies",
+  T_YEARLY: "Yearly limit",
+  T_DUTY: "Must do",
+  T_REPLACED: (who: string) => `Replaced by ${who}`,
+  T_LIFTED: (who: string) => `Lifted by ${who}`,
+  T_REPLACED_ABOVE: "Replaced by a rule above",
+  T_REPLACED_PLAIN: "Replaced",
+  T_LIFTED_PLAIN: "Lifted",
+  T_SAME: "Says the same",
+  T_ORIGIN: (origin: "hatchery" | "wild", tag: string | null) => `${origin === "wild" ? "Wild ones" : "Hatchery ones"}${tag ? `: ${tag}` : ""}`,
+  T_RESTATES: (who: string) => `Restates ${who}’s rule`,
+  T_MOOT: "Doesn’t matter today",
+  T_UNNEEDED: "Not needed here",
+  RESULT: "So: ",
+  W_DAYS: (days: string) => `${days}: `,
+  OTHER: "Other rules",
+  QUIET: (n: number) => `Rules that don’t apply here (${n})`,
 });

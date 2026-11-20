@@ -154,6 +154,171 @@ def test_no_owner_mark_is_orphaned_or_dropped_live():
         for r in dropped)
 
 
+# --------------------------------------------- a recorded identity change carries the mark (owner 2026-11-17)
+# Six owner DFO marks read "binding moved" on the T806 / T812 rebuild though no place they answered for moved: Sheldens
+# Creek's line became one item with its channel (blk:360846083 -> wsc:950-016367), Babine Lake was cut into two parts
+# (wbk:329026676 -> wbk:-24 + wbk:-25), and the Cowichan's water flag turned off under places that say their own.
+# Owner: "Why would we have to do this … they should all be good?" Each carry below has its twin that stays stale.
+
+PLACE = "6:test-creek:whole"
+
+
+def _place_world(tmp_path, *, items, extent, own=None, water_tribs=True, reg=None):
+    ent, typed = tmp_path / "entries", tmp_path / "typed"
+    ent.mkdir(exist_ok=True)
+    typed.mkdir(exist_ok=True)
+    (ent / "region-6.json").write_text(json.dumps({
+        "region": "6", "region_number": 6, "region_name": "Skeena", "structure": {}, "scopes": [],
+        "waters": [{"water_id": "6:test-creek", "region": "6", "region_number": 6, "name": "Test Creek",
+                    "item_ids": list(items), "tributaries": water_tribs}],
+        "locations": [{"location_id": PLACE, "region": "6", "region_number": 6, "kind": "water", "precedence": 3,
+                       "water": "Test Creek", "water_id": "6:test-creek", "fingerprints": ["fp1"],
+                       "status": "active", "source_text": {"waters": "Test Creek", "specific_area": "",
+                                                          "op": "whole_water"},
+                       "binding": {"extents": [extent], "tributaries": own}}]}))
+    (typed / "region-6.json").write_text(json.dumps({"locators": [{"fingerprint": "fp1", "rows": [], "rules": []}]}))
+    splits = tmp_path / "splits.json"
+    splits.write_text(json.dumps({"waterbodies": []}))
+    build = tmp_path / "build"
+    build.mkdir(exist_ok=True)
+    (build / "registry.json").write_text(json.dumps({"items": reg or []}))
+    return ent, typed, P.Sources(entries_dir=ent, dfo_dir=ent, splits_path=splits, build=build)
+
+
+def _place_mark(prints, items=None):
+    fix = [{"scope": "entry", "op": "whole", "items": list(items), "points": []}] if items else []
+    return M.Mark.model_validate({
+        "scope": "dfo", "target": PLACE, "verdict": "verified", "answers": {"T": "y", "R": "y", "P": "y"}, "reviewer": "dawson",
+        "date": "2026-11-15", "pdf_sha256": SHA, "prints": prints, "extent_fix": fix})
+
+
+def _status(m, ent, typed, src):
+    return M.status(m, D.prints_of(PLACE, ent, typed), applied=P.applied_keys([m], src))
+
+
+LINE = {"id": "blk:7", "kind": "stream", "section_ids": ["7:0", "7:900"], "ref_ids": ["blk:7"]}
+MERGED = {"id": "wsc:9", "kind": "stream", "section_ids": ["7:0", "7:900", "-5:0", "-5:60"],
+          "ref_ids": ["blk:-5", "blk:7", "wsc:9"]}
+
+
+def _merged_case(tmp_path, *, now_extent, now_reg):
+    ent, typed, src = _place_world(tmp_path, items=["blk:7"], extent={"op": "whole", "item_id": "blk:7"},
+                                   reg=[LINE])
+    m = _place_mark(D.prints_of(PLACE, ent, typed), items=["blk:7"])
+    assert _status(m, ent, typed, src)["status"] == "verified"
+    ent, typed, src = _place_world(tmp_path, items=["wsc:9"], extent=now_extent, reg=now_reg)
+    return m, ent, typed, src
+
+
+def test_a_line_merged_into_one_item_carries_its_mark(tmp_path):
+    """T806: the old id's line is wholly inside the one item that lists it -> the fix reads as landed."""
+    m, ent, typed, src = _merged_case(tmp_path, now_extent={"op": "whole", "item_id": "wsc:9"}, now_reg=[MERGED])
+    assert M.status(m, D.prints_of(PLACE, ent, typed))["status"] == "stale"       # the bug, without the carry
+    st = _status(m, ent, typed, src)
+    assert st["status"] == "verified" and st.get("landed"), st
+    assert not [p for p in P.build([m], src) if p["target"] == PLACE]              # and no proposal writes blk:7 back
+
+
+def test_a_line_only_partly_in_the_new_item_is_not_carried(tmp_path):
+    other = {"id": "gnis:3", "kind": "stream", "section_ids": ["7:900"], "ref_ids": ["gnis:3"]}
+    m, ent, typed, src = _merged_case(tmp_path, now_extent={"op": "whole", "item_id": "wsc:9"},
+                                      now_reg=[{**MERGED, "section_ids": ["7:0", "-5:0"]}, other])
+    assert _status(m, ent, typed, src)["status"] == "stale"
+
+
+def test_a_merged_id_under_a_different_extent_still_reads_stale(tmp_path):
+    """No laundering: the id carries, the place moved (a cut now bounds it) -> a re-check."""
+    m, ent, typed, src = _merged_case(
+        tmp_path, now_extent={"op": "upstream_of", "splits": ["test_creek__bridge"], "item_id": "wsc:9"},
+        now_reg=[MERGED])
+    assert _status(m, ent, typed, src)["status"] == "stale"
+
+
+LAKE = {"id": "wbk:5", "kind": "lake", "section_ids": ["lake:5"], "ref_ids": ["wbk:5"]}
+PARTS = [{**LAKE, "section_ids": []},
+         {"id": "wbk:-1", "kind": "lake", "section_ids": ["lake:-1"], "ref_ids": ["wbk:-1"], "part_of": "wbk:5"},
+         {"id": "wbk:-2", "kind": "lake", "section_ids": ["lake:-2"], "ref_ids": ["wbk:-2"], "part_of": "wbk:5"}]
+
+
+def _parted_case(tmp_path, *, now_ids, now_reg):
+    ent, typed, src = _place_world(tmp_path, items=["wbk:5"], extent={"op": "whole", "item_id": "wbk:5"}, reg=[LAKE])
+    m = _place_mark(D.prints_of(PLACE, ent, typed), items=["wbk:5"])
+    ent, typed, src = _place_world(tmp_path, items=now_ids, reg=now_reg,
+                                   extent={"op": "whole", **({"item_ids": now_ids} if len(now_ids) > 1
+                                                              else {"item_id": now_ids[0]})})
+    return m, ent, typed, src
+
+
+def test_a_lake_cut_into_parts_carries_a_mark_on_the_whole_lake(tmp_path):
+    """T812: a place naming EVERY part of a split parent (which owns no section) is the whole lake."""
+    m, ent, typed, src = _parted_case(tmp_path, now_ids=["wbk:-2", "wbk:-1"], now_reg=PARTS)
+    st = _status(m, ent, typed, src)
+    assert st["status"] == "verified" and st.get("landed"), st
+
+
+@pytest.mark.parametrize("now_ids,reg", [
+    (["wbk:-1"], PARTS),                                            # one part is not the whole lake
+    (["wbk:-1", "wbk:-2"], [LAKE] + PARTS[1:]),                     # the parent still owns a section: not tiled
+])
+def test_a_part_or_an_untiled_lake_is_not_the_whole_lake(tmp_path, now_ids, reg):
+    m, ent, typed, src = _parted_case(tmp_path, now_ids=now_ids, now_reg=reg)
+    assert _status(m, ent, typed, src)["status"] == "stale"
+
+
+@pytest.mark.parametrize("own,held", [(False, True), (True, True), (None, False)])
+def test_the_waters_flag_moves_only_a_place_that_reads_it(tmp_path, own, held):
+    """T803 item 1: the Cowichan's water flag off under places that say their own (held); a place with no flag of its
+    own reads the water's, so its tributaries really went (stale: the dormant `whole` place, 720 -> 16 sections)."""
+    ent, typed, src = _place_world(tmp_path, items=["gnis:1"], extent={"op": "whole"}, own=own, water_tribs=True)
+    m = _place_mark(D.prints_of(PLACE, ent, typed))
+    ent, typed, src = _place_world(tmp_path, items=["gnis:1"], extent={"op": "whole"}, own=own, water_tribs=False)
+    assert M.status(m, D.prints_of(PLACE, ent, typed))["status"] == "stale"
+    assert (_status(m, ent, typed, src)["status"] == "verified") is held
+
+
+def _carry_of(m, ent, typed, **over):
+    from pipeline.regs.review.recheck import mark_digest
+    now = D.prints_of(PLACE, ent, typed)["records"][0]["binding"]
+    return {"scope": "dfo", "target": PLACE, "mark_date": m.date, "mark": mark_digest(m), "binding": now,
+            "decision": {"ticket": "T803", "item": 1, "commit": "a5990dd7b", "owner": "Turn it off (Recommended)"},
+            "words": "they should all be good?", **over}
+
+
+def test_an_owner_carry_holds_only_while_the_place_is_as_his_decision_left_it(tmp_path):
+    """Owner 2026-11-17 08:37 (Cowichan `whole`, Gitnadoix): a mark moved by his OWN later decision is held by a listed
+    carry (owner_carries.json) — never by a rule — and only while the place's binding is the one that decision made."""
+    ent, typed, src = _place_world(tmp_path, items=["gnis:1"], extent={"op": "whole"}, own=None, water_tribs=True)
+    m = _place_mark(D.prints_of(PLACE, ent, typed))
+    ent, typed, src = _place_world(tmp_path, items=["gnis:1"], extent={"op": "whole"}, own=None, water_tribs=False)
+    now = D.prints_of(PLACE, ent, typed)
+    carry = _carry_of(m, ent, typed)
+    assert M.status(m, now, applied=P.applied_keys([m], src, carries=[]))["status"] == "stale"
+    st = M.status(m, now, applied=P.applied_keys([m], src, carries=[carry]))
+    assert st["status"] == "verified" and st.get("landed"), st
+    # a later real move of the place: the carry no longer holds it
+    ent, typed, src = _place_world(tmp_path, items=["gnis:1"], own=None, water_tribs=False,
+                                   extent={"op": "upstream_of", "splits": ["test_creek__bridge"], "item_id": "gnis:1"})
+    assert M.status(m, D.prints_of(PLACE, ent, typed),
+                    applied=P.applied_keys([m], src, carries=[carry]))["status"] == "stale"
+
+
+def test_an_owner_carry_is_for_one_mark_only(tmp_path):
+    """A carry names the mark (digest + date): another mark in force on the place is not held by it."""
+    ent, typed, src = _place_world(tmp_path, items=["gnis:1"], extent={"op": "whole"}, own=None, water_tribs=True)
+    m = _place_mark(D.prints_of(PLACE, ent, typed))
+    ent, typed, src = _place_world(tmp_path, items=["gnis:1"], extent={"op": "whole"}, own=None, water_tribs=False)
+    for carry in (_carry_of(m, ent, typed, mark="0" * 12), _carry_of(m, ent, typed, mark_date="2026-11-14")):
+        assert M.status(m, D.prints_of(PLACE, ent, typed),
+                        applied=P.applied_keys([m], src, carries=[carry]))["status"] == "stale"
+
+
+def test_the_curated_owner_carries_are_whole():
+    """Every listed carry names its mark, the decision (ticket, item, commit) and the owner's words (refused if not)."""
+    from pipeline.regs.review import owner_carry as OC
+    rows = OC.load(Path(under_test.curated().review.marks).parent / "owner_carries.json")
+    assert rows and all({"ticket", "item", "commit"} <= set(r["decision"]) for r in rows)
+
+
 # ------------------------------------------------------------------ historic groups, auto-approve
 
 def _loc(lid, text, *, status="active", dup=None, water="Test River", wid="1:test-river"):
@@ -214,8 +379,9 @@ def test_auto_approve_takes_only_a_bare_water_named_once(words, area, places, ok
 
 def test_a_historic_only_place_is_its_own_item_with_its_dormant_rewordings():
     """The North Alouette (owner 2026-11-02): a dormant place that no live place rewords stayed in
-    no group and the live queue dropped it. It is its own place, its dormant rewordings join it,
-    and the live queue keeps it while its water is live."""
+    no group and the live queue dropped it. It is its own place, and the live queue keeps it while
+    its water is live. T742 B (owner 2026-11-14, grouping removed): a dormant rewording is its own
+    place too, never folded into a group head, so `historic_only` no longer takes the groups."""
     import sys
     sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "curation-review" / "backend"))
     import dfo as B
@@ -226,10 +392,10 @@ def test_a_historic_only_place_is_its_own_item_with_its_dormant_rewordings():
     g = D.groups(locs)
     assert "north" not in g and g["2"]["canonical"] == g["two"]["canonical"] == "two"
     live = {"1:test-river"}
-    assert B.historic_only(locs["north"][1], g, live) and B.historic_only(locs["two"][1], g, live)
-    assert not B.historic_only(locs["2"][1], g, live)          # a rewording rides its place
-    assert not B.historic_only(locs["up"][1], g, live)         # live: shown anyway
-    assert not B.historic_only(locs["north"][1], g, set())     # a water off the live page: archived
+    assert B.historic_only(locs["north"][1], live) and B.historic_only(locs["two"][1], live)
+    assert B.historic_only(locs["2"][1], live)                 # T742 B: a rewording is its own place
+    assert not B.historic_only(locs["up"][1], live)            # live: shown anyway
+    assert not B.historic_only(locs["north"][1], set())        # a water off the live page: archived
 
 
 def test_applied_keys_names_a_missing_build_instead_of_calling_marks_moved(tmp_path):

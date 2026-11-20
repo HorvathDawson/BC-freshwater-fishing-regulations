@@ -2,7 +2,10 @@
  * (T231) The sync icon's states as drawn: checking, the ring while downloading (with the dot), the brief check, the red
  * error badge — and the bell's sync section (what failed, last success, Retry) beside the in-season rows.
  */
-import { afterEach, describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
+
+// (T909) the bell and the refresh button are the phone bar's (`BarControls.native`); the web twin draws neither
+vi.mock("./BarControls", async () => await import("./BarControls.native"));
 import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { syncVM, type UpdateSourceInput } from "@app/core";
 import { InSeasonNotice } from "./InSeasonNotice";

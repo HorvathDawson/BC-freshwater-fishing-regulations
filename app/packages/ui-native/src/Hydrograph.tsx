@@ -7,13 +7,13 @@
  *
  * ZOOMABLE AND READABLE (owner 2026-10-21: "look at data better"). Given a `ChartView`'s actions (`view`), the plot
  * takes a pinch or a mouse wheel to zoom where it is, a drag to move along a zoomed window, a tap or a hover to read
- * the value under it, and a double-tap to see the whole chart again — with − / + / "Whole chart" buttons beside the
- * read-out for anyone who does not gesture. The recognisers only MEASURE: what a zoom, a pan and a nearest sample are
+ * the value under it, and a double-tap to see the whole chart again — with − / + / "Whole chart" buttons, small in the
+ * plot's top-right corner (T920), for anyone who does not gesture. The recognisers only MEASURE: what a zoom, a pan and a nearest sample are
  * is core's (`chartZoom.ts`), the state is @app/ui's (`useChartView`), and the words are core's.
  */
 import { useId, useMemo, useRef } from "react";
 import { withWebProps } from "./gestureWeb";
-import { CONDITIONS_WORDS, wheelFactor } from "@app/core";
+import { CONDITIONS_WORDS, isForecastModel, wheelFactor } from "@app/core";
 import { forecastDash, MARK_FONT, type ChartView, type Hydrograph as Shape } from "@app/ui";
 import { View, type ViewInstance } from "react-native";
 import { Text } from "./Text";
@@ -34,15 +34,25 @@ const TICK = 11;
 export type ChartActions = Pick<ChartView, "zoomed" | "readout" | "zoomIn" | "zoomOut" | "fit" | "zoomAt" | "zooms" | "panBy"
                                 | "probeAt">;
 
-/** (T367) a forecast model in the legend: tap to draw it; (T377) several are drawn at once, a tap on one drawn hides it */
-export interface LegendModel { readonly key: string; readonly label: string; readonly on: boolean; readonly onPress: () => void;
-  /** (T377) the dash its trace wears when drawn (`forecastDash`), so the swatch draws the same */
-  readonly dash?: string }
+/**
+ * (T367) a forecast model in the legend: tap to draw it; (T377) several are drawn at once, a tap on one drawn hides it.
+ * (T895) Its colour and dash are the MODEL's (`modelLook`, from `key`), the same as its trace's, never handed in.
+ */
+export interface LegendModel { readonly key: string; readonly label: string; readonly on: boolean; readonly onPress: () => void }
+
+/**
+ * (T895) HOW A MODEL IS DRAWN: its own colour token (`Palette.forecast`) and its own dash (`forecastDash`), for its trace,
+ * its ribbon, its end dot and its legend switch alike, so a line and its entry cannot disagree. A model with no token of
+ * its own (one the publisher added after this build) is drawn in the chart's trace colour with the "other" dash.
+ */
+function modelLook(palette: Palette, model: string | null, colour: string): { colour: string; dash: string } {
+  return { colour: model !== null && isForecastModel(model) ? palette.forecast[model] : colour, dash: forecastDash(model ?? "") };
+}
 
 export function Hydrograph({ shape, palette, colour, label, unit,
                              forecastLabel, models, realtime, view }:
   { shape: Shape; palette: Palette; colour: string; label?: string;
-    /** the quantity's unit, drawn over the value axis */
+    /** the quantity's unit, drawn at the plot's top-left */
     unit?: string;
     /** e.g. "ELF · 30 days" — which model is drawing the dashes (when the legend has no model entries). */
     forecastLabel?: string;
@@ -57,6 +67,8 @@ export function Hydrograph({ shape, palette, colour, label, unit,
   const clip = `plot${useId().replace(/[^a-zA-Z0-9]/g, "")}`;
   const windowed = !!view?.zoomed;
   const readout = view?.readout ?? null;
+  const fc = shape.forecast;
+  const fcLook = fc ? modelLook(palette, fc.key, colour) : null;
   const svg = (
       <Svg width="100%" height={box.height} viewBox={`0 0 ${box.width} ${box.height}`}>
         {/* THE PLOT'S RECTANGLE: a zoomed window's lines run on past its edges and are cut there. */}
@@ -120,28 +132,32 @@ export function Hydrograph({ shape, palette, colour, label, unit,
             </G>
           );
         })}
-        {shape.forecast && (
-          <G>
-            {shape.forecast.band !== "" && (
-              <Path d={shape.forecast.band} fill={colour} fillOpacity={0.13} />
+        {/* (T895) the chosen model in ITS colour and dash: its ribbon, trace and end dot */}
+        {fc && (
+          <G testID={`chart-forecast-${fc.key ?? "model"}`}>
+            {fc.band !== "" && (
+              <Path d={fc.band} fill={fcLook!.colour} fillOpacity={0.13} />
             )}
-            <Path d={shape.forecast.line} fill="none" stroke={colour} strokeWidth={1.8}
-                  strokeDasharray={forecastDash(0)} strokeLinecap="round" strokeLinejoin="round" />
-            {shape.forecast.end && (
-              <Circle cx={shape.forecast.end.x} cy={shape.forecast.end.y} r={2.6}
-                      fill={palette.card} stroke={colour} strokeWidth={1.6} />
+            <Path d={fc.line} fill="none" stroke={fcLook!.colour} strokeWidth={1.8}
+                  strokeDasharray={fcLook!.dash} strokeLinecap="round" strokeLinejoin="round" />
+            {fc.end && (
+              <Circle cx={fc.end.x} cy={fc.end.y} r={2.6}
+                      fill={palette.card} stroke={fcLook!.colour} strokeWidth={1.6} />
             )}
           </G>
         )}
-        {/* (T377) THE OTHER MODELS DRAWN AT ONCE: each its trace alone, thinner, in its own dash (the ribbon is the
-            chosen model's) */}
-        {shape.alsoForecasts.map((a, i) => (
-          <G key={a.key} testID={`chart-also-${a.key}`}>
-            <Path d={a.line} fill="none" stroke={colour} strokeWidth={1.4} strokeDasharray={forecastDash(i + 1)}
-                  strokeLinecap="round" strokeLinejoin="round" />
-            {a.end && <Circle cx={a.end.x} cy={a.end.y} r={2.2} fill={palette.card} stroke={colour} strokeWidth={1.3} />}
-          </G>
-        ))}
+        {/* (T377) THE OTHER MODELS DRAWN AT ONCE: each its trace alone, thinner (the ribbon is the chosen model's);
+            (T895) each in its own colour and dash */}
+        {shape.alsoForecasts.map((a) => {
+          const look = modelLook(palette, a.key, colour);
+          return (
+            <G key={a.key} testID={`chart-also-${a.key}`}>
+              <Path d={a.line} fill="none" stroke={look.colour} strokeWidth={1.4} strokeDasharray={look.dash}
+                    strokeLinecap="round" strokeLinejoin="round" />
+              {a.end && <Circle cx={a.end.x} cy={a.end.y} r={2.2} fill={palette.card} stroke={look.colour} strokeWidth={1.3} />}
+            </G>
+          );
+        })}
         {shape.now && (
           <Circle cx={shape.now.x} cy={shape.now.y} r={4}
                   fill={colour} stroke={palette.card} strokeWidth={2} />
@@ -157,15 +173,19 @@ export function Hydrograph({ shape, palette, colour, label, unit,
           </G>
         )}
         <G>
+          {/* (T920) THE VALUES INSIDE THE PLOT, ON ITS RIGHT, each sitting on its gridline; the top one hangs under its
+              line, clear of the band over the plot (the unit and the zoom buttons). (T920 round 3) In the app's face: an
+              svg text with no family was the browser's serif on the web */}
           {shape.yTicks.map((t) => (
-            <SvgText key={`y${t.value}`} x={box.padLeft - 6} y={t.at + 3.5}
-                     fontSize={TICK} fill={palette.faint} textAnchor="end">
+            <SvgText key={`y${t.value}`} x={box.width - box.padRight - 2}
+                     y={t.at - TICK - 2 < box.padTop ? t.at + TICK + 1 : t.at - 4}
+                     fontSize={TICK} fontFamily={TYPE.meta.fontFamily} fill={palette.faint} textAnchor="end">
               {t.label}
             </SvgText>
           ))}
           {shape.xTicks.map((t) => (
             <SvgText key={`x${t.value}`} x={t.at} y={box.height - 7}
-                     fontSize={TICK} fill={palette.faint} textAnchor={t.anchor ?? "middle"}>
+                     fontSize={TICK} fontFamily={TYPE.meta.fontFamily} fill={palette.faint} textAnchor={t.anchor ?? "middle"}>
               {t.label}
             </SvgText>
           ))}
@@ -173,22 +193,21 @@ export function Hydrograph({ shape, palette, colour, label, unit,
       </Svg>
   );
   return (
-    <View accessibilityRole="image"
-          accessibilityLabel={label ?? CONDITIONS_WORDS.hydrograph.label}>
-      {/* (T367) ONE ROW OVER THE PLOT: the unit over the value axis, the value under the finger (else how to read the
-          chart), the zoom buttons — it was three rows (the zoom bar, the unit, the hint under the plot) */}
-      {view ? <ZoomBar palette={palette} view={view} unit={unit} />
-        : unit ? <Text testID="chart-unit" style={{ ...TYPE.micro, fontSize: 11, color: palette.sub, marginBottom: 2 }}>{unit}</Text> : null}
+    <View style={{ gap: SPACE.s2 }}>
       {/* THE PLOT IS READ WITH A FINGER: inside a water's view swipe a drag on it is the chart's (zoom, pan, read-out;
-          see ViewSwipe); the zoom bar, the key and the caption are text, and swipe with the page */}
-      <SwipeShield>
-        {view ? <Gestures view={view} plotX={shape.plot.x}>{svg}</Gestures> : svg}
-      </SwipeShield>
-      {/* A KEY, because four things share one frame and only one of them is a measurement.
-          Drawn from the same palette and the same `colour` the paths use, so a swatch
-          cannot end up describing a line of a different shade. */}
+          see ViewSwipe); the band over it and the key are controls and text, and swipe with the page */}
+      <View>
+        <SwipeShield>
+          <View accessibilityRole="image" accessibilityLabel={label ?? CONDITIONS_WORDS.hydrograph.label}>
+            {view ? <Gestures view={view} plotX={shape.plot.x}>{svg}</Gestures> : svg}
+          </View>
+        </SwipeShield>
+        <PlotBand palette={palette} view={view} unit={unit} height={box.padTop} />
+      </View>
+      {/* A KEY, because four things share one frame and only one of them is a measurement. Drawn from the same palette
+          and the same `colour` the paths use, so a swatch cannot end up describing a line of a different shade. */}
       <View testID="chart-legend" style={{ flexDirection: "row", flexWrap: "wrap", alignItems: "center", columnGap: 14,
-                                           rowGap: 6, marginTop: 8 }}>
+                                           rowGap: 6 }}>
         <Key palette={palette} label={CONDITIONS_WORDS.key.reading} swatch="line" colour={colour} />
         {shape.envelopes.length > 0 && (
           <>
@@ -209,15 +228,19 @@ export function Hydrograph({ shape, palette, colour, label, unit,
             selector they replace was a third row of controls); one model running is a plain entry */}
         {models && (models.length > 1 || realtime) ? (
           <>
-            {models.map((m) => (
-              <Pressable key={m.key} testID={`chart-model-${m.key}`} onPress={m.onPress} accessibilityRole="checkbox"
-                         aria-checked={m.on} accessibilityLabel={CONDITIONS_WORDS.key.model(m.label, m.on)}
-                         {...hitProps({ w: 60, h: 26 })}
-                         style={{ paddingVertical: 3, paddingHorizontal: 6, borderRadius: palette.r.pill, borderWidth: 1,
-                                  borderColor: m.on ? colour : palette.line2, opacity: m.on ? 1 : 0.6 }}>
-                <Key palette={palette} label={m.label} swatch="dash" dash={m.dash} colour={m.on ? colour : palette.sub} />
-              </Pressable>
-            ))}
+            {models.map((m) => {
+              // (T895) on: the model's own colour, on its border and its swatch, as its trace; off: grey, in its own dash
+              const look = modelLook(palette, m.key, colour);
+              return (
+                <Pressable key={m.key} testID={`chart-model-${m.key}`} onPress={m.onPress} accessibilityRole="checkbox"
+                           aria-checked={m.on} accessibilityLabel={CONDITIONS_WORDS.key.model(m.label, m.on)}
+                           {...hitProps({ w: 60, h: 26 })}
+                           style={{ paddingVertical: 3, paddingHorizontal: 6, borderRadius: palette.r.pill, borderWidth: 1,
+                                    borderColor: m.on ? look.colour : palette.line2, opacity: m.on ? 1 : 0.6 }}>
+                  <Key palette={palette} label={m.label} swatch="dash" dash={look.dash} colour={m.on ? look.colour : palette.sub} />
+                </Pressable>
+              );
+            })}
             {/* (T398) the forecast fully off: the measured line alone */}
             {realtime && (
               <Pressable testID="chart-model-off" onPress={realtime.onPress} accessibilityRole="radio"
@@ -230,9 +253,9 @@ export function Hydrograph({ shape, palette, colour, label, unit,
               </Pressable>
             )}
           </>
-        ) : shape.forecast && (
-          <Key palette={palette} label={forecastLabel ?? "forecast"} swatch="dash"
-               colour={colour} />
+        ) : fcLook && (
+          <Key palette={palette} label={forecastLabel ?? "forecast"} swatch="dash" dash={fcLook.dash}
+               colour={fcLook.colour} />
         )}
       </View>
 
@@ -242,36 +265,42 @@ export function Hydrograph({ shape, palette, colour, label, unit,
   );
 }
 
-/** How to work the chart, said whole under the plot (above it, beside the buttons, a phone cut it to "…"). */
+/** (T920) the zoom buttons' size: small and quiet in the plot's corner (each still a 44 × 44 press, `hitProps`) */
+const ZOOM = 28;
+
 /**
- * THE LINE ABOVE THE PLOT: the unit, the value under the finger when one is being read (else, faint, how to read the
- * chart — touch and pointer each in their own words), and the zoom buttons, right where the eye is. (T367) One line:
- * the value is cut to it rather than growing a second, so reading a value never moves the chart.
+ * (T920) THE BAND OVER THE PLOT, inside the chart's top margin: the unit at the left; the value under the finger
+ * when one is being read (else one short faint line on how to read the chart — touch and pointer each in their own
+ * words); and the zoom buttons, small, in the top-right corner, for anyone who does not gesture. One line: the value is
+ * cut to it rather than growing a second, so reading a value never moves the chart.
  */
-function ZoomBar({ palette, view, unit }: { palette: Palette; view: ChartActions; unit?: string }) {
+function PlotBand({ palette, view, unit, height }: { palette: Palette; view?: ChartActions; unit?: string; height: number }) {
   const W = CONDITIONS_WORDS;
-  const r = view.readout;
+  const r = view?.readout ?? null;
   const hint = useMemo(() => CONDITIONS_WORDS.zoomHint[chartPointer()], []);
-  // (T604, owner build 25) THE HINT IS SAID WHOLE, on its own line under the row: beside the buttons on a phone it ran to
-  // three lines at the top of the card and was cut at the scroll's edge under the pinned access band. The row keeps the
-  // unit, the read-out and the buttons on one line, so reading a value never moves the chart.
   return (
-    <View style={{ marginBottom: SPACE.s1, gap: SPACE.s1 }}>
-      <View style={{ flexDirection: "row", alignItems: "center", gap: SPACE.s2 }}>
-        {unit ? <Text testID="chart-unit" style={{ ...TYPE.micro, fontSize: 11, color: palette.sub }}>{unit}</Text> : null}
+    <View pointerEvents="box-none"
+          style={{ position: "absolute", top: 0, left: 0, right: 0, height, flexDirection: "row", alignItems: "center",
+                   gap: SPACE.s2, paddingLeft: 4 }}>
+      {unit ? <Text testID="chart-unit" style={{ ...TYPE.micro, fontSize: 11, color: palette.sub }}>{unit}</Text> : null}
+      {view && !r && (
+        <Text testID="chart-hint" numberOfLines={1} style={{ ...TYPE.micro, fontSize: 11, flex: 1, color: palette.faint }}>{hint}</Text>
+      )}
+      {view && (
         <Text numberOfLines={1} accessibilityLiveRegion="polite" testID="chart-readout"
-              style={{ ...TYPE.metaBold, flex: 1, color: palette.ink }}>
+              style={{ ...TYPE.metaBold, flex: r ? 1 : 0, color: palette.ink }}>
           {r ? r.line : ""}
         </Text>
-        <View style={{ flexDirection: "row", gap: SPACE.s1 }} accessibilityRole="toolbar"
+      )}
+      {view && (
+        <View style={{ flexDirection: "row", gap: SPACE.s1, marginLeft: "auto" }} accessibilityRole="toolbar"
               accessibilityLabel={W.zoom.group}>
           <ZoomButton palette={palette} label={W.zoom.out} glyph="−" onPress={view.zoomed ? view.zoomOut : undefined} />
           <ZoomButton palette={palette} label={W.zoom.in} glyph="+" onPress={view.zoomIn} />
           <ZoomButton palette={palette} label={W.zoom.fit} glyph="⤢"
                       onPress={view.zoomed || r ? view.fit : undefined} />
         </View>
-      </View>
-      <Text style={{ ...TYPE.meta, color: palette.faint }}>{hint}</Text>
+      )}
     </View>
   );
 }
@@ -282,12 +311,12 @@ function ZoomButton({ palette, label, glyph, onPress }: {
 }) {
   const off = !onPress;
   return (
-    <Pressable {...hitProps({ w: 32, h: 32 })} onPress={onPress} disabled={off} accessibilityRole="button" accessibilityLabel={label}
+    <Pressable {...hitProps({ w: ZOOM, h: ZOOM })} onPress={onPress} disabled={off} accessibilityRole="button" accessibilityLabel={label}
                aria-disabled={off}
-               style={{ minWidth: 32, height: 32, paddingHorizontal: SPACE.s2, alignItems: "center",
+               style={{ width: ZOOM, height: ZOOM, alignItems: "center",
                         justifyContent: "center", borderRadius: palette.r.pill, borderWidth: 1,
-                        borderColor: palette.line2, backgroundColor: palette.card, opacity: off ? 0.4 : 1 }}>
-      <Text style={{ ...TYPE.metaBold, color: palette.ink }}>{glyph}</Text>
+                        borderColor: palette.line, backgroundColor: palette.card, opacity: off ? 0.35 : 0.85 }}>
+      <Text style={{ ...TYPE.meta, color: palette.sub }}>{glyph}</Text>
     </Pressable>
   );
 }
@@ -381,10 +410,11 @@ function Key({ palette, label, swatch, colour, dash }: {
 }) {
   return (
     <View style={{ flexDirection: "row", alignItems: "center", gap: 5 }}>
-      <View style={{ width: 16, height: 9, justifyContent: "center" }}>
+      <View style={{ width: dash ? 24 : 16, height: 9, justifyContent: "center" }}>
         {swatch === "dash" && dash ? (
-          <Svg testID="key-dash" width={16} height={4}>
-            <Line x1={0} y1={2} x2={16} y2={2} stroke={colour} strokeWidth={2} strokeDasharray={dash} />
+          // (T895) as the trace is drawn: round caps (a 0.1 dash is a dot), wide enough to show the whole pattern once
+          <Svg testID="key-dash" width={24} height={4}>
+            <Line x1={1} y1={2} x2={23} y2={2} stroke={colour} strokeWidth={2} strokeDasharray={dash} strokeLinecap="round" />
           </Svg>
         ) : swatch === "fill" || swatch === "faintfill" ? (
           <View style={{ height: 9, backgroundColor: colour,

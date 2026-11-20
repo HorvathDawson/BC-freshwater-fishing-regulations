@@ -1,6 +1,6 @@
 # T222 — Stave spawning channels: add the Ruskin / Northrop channels so Stave r1/r2 can bind
 
-Status: DONE — live r-0fa7927b16e5 (2026-10-28), atlas 10cbcb72e9f907cf, tiles 10cbcb72e9f907cf.edc12ab96087
+Status: DONE — live r-0fa7927b16e5 (2026-10-28), atlas 10cbcb72e9f907cf, tiles 10cbcb72e9f907cf.edc12ab96087 Commits: e8ff6db1, 0f40f008, c47572af, 2ea061c4, f010a2b1.
 
 Source: owner 2026-10-27 "needs a split" list (decisions.md): "Stave at Ruskin Dam (and channels): should already exist —
 find the existing splits and bind." Applied in 540995d4 for the z2 marking rule; Stave r1/r2 stayed undrawn because the

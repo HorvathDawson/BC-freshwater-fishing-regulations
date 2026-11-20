@@ -15,7 +15,7 @@
 import type { WaterSource } from "@app/data";
 import type { ReleaseLoader } from "@app/data/release";
 import type { RegsStore } from "@app/data/regs";
-import { pageRegion, parseStartLink, regsSoloOf, reportFailure, setRegsFirstStart, setStartRegion, WATER_PATH,
+import { pageRegion, parseStartLink, reportFailure, setRegsFirstStart, setStartRegion, WATER_PATH,
          type StartLink } from "@app/ui";
 import { placeReads, resolveStartLink } from "@app/ui/place";
 import { preloadParts } from "@app/ui-native";
@@ -44,9 +44,10 @@ export function startLink(): StartLink | null {
     // route is the map until the place is resolved in the release)
     const water = link?.route.mode === "water" || !!link?.place;
     setRegsFirstStart(water);
-    // (T282) the map's code is in the later chunk (`@app/ui-native` later.ts): any start but a water's own page asks for
-    // it now, beside the release's first files; a water's page is handed to the app without it (fetched once idle)
-    if (!water) void preloadParts();
+    // (T910) the Regulations page's code is in the later chunk (`@app/ui-native` later.ts): a start on a water's page asks
+    // for it now, beside the release's first files (its pane is the first screen there); any other start draws the map,
+    // whose code is in the first script, and the chunk comes once the line is quiet and the browser idle (the Shell)
+    if (water) void preloadParts();
     return link;
   }
   catch (e) { console.error(e instanceof Error ? e.message : String(e)); return null; }
@@ -55,6 +56,5 @@ export function startLink(): StartLink | null {
 /** (T369) The start link resolved in the open release (`@app/ui/place`): only a link that carries a place opens `lines`. */
 export function resolveStart(link: StartLink, store: RegsStore, loader: ReleaseLoader,
                              itemFor: Pick<WaterSource, "itemForSection">): Promise<StartLink> {
-  // (T369 D13) a Map asked of a solo water opens its Regulations straight away (the opener's own question)
-  return resolveStartLink(link, placeReads(store, loader), itemFor, regsSoloOf(loader));
+  return resolveStartLink(link, placeReads(store, loader), itemFor);
 }

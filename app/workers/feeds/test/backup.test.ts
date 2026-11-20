@@ -131,7 +131,7 @@ describe("personal data in the backups (T559)", () => {
     expect(page).toContain(`deleted automatically ${RETENTION_DAYS} days after they are received`);
     expect(page).toContain(`deleted automatically ${CRASH_RETENTION_DAYS} days after the error was last seen`);
     expect(page).toContain("for a day’s counting");
-    expect(page).toContain("We delete it within 30 days");
+    expect(page).toContain("I delete it within 30 days");
     expect(DAILY_KEEP_DAYS + LIFECYCLE_SLACK_DAYS).toBeLessThanOrEqual(31);
   });
 

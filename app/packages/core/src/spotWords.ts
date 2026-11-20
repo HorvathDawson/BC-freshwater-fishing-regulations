@@ -30,10 +30,15 @@ export const SPOT_WORDS = {
   save: "Save spot", saveChanges: "Save changes",
   /** (T284) the page's three headed blocks: the day as it was, what the person added, how the next days compare */
   thatDay: "That day", added: "What you added", nextDays: "The next few days",
+  /** (T819 item 5) the draft's record, folded to one card: its open and close, and what the card says it holds */
+  showRecord: "Show the record", hideRecord: "Hide the record",
+  recordDetail: "The flow, the weather and the week before, as recorded for this moment.",
   /** where a spot has nothing added yet */
   nothingAdded: "No notes or photos yet.",
   /** (T310) where to park: a fact of the spot (every visit's), shown on the page and as a P on the map */
   parking: "Parking", noParking: "No parking added.",
+  /** (T819 item 14) a spot's parking, said plainly (its coordinates small under it) */
+  parkingSaved: "Parking saved",
   parkingHere: "Use my location", parkingPick: "Pick on the map", parkingRemove: "Remove parking",
   directions: "Directions", directionsLabel: "Directions to the parking, in your maps app",
   parkingNoFix: "Could not find your location.",
@@ -50,6 +55,10 @@ export const SPOT_CAPTURE_WORDS = {
   /** `water`: the picked water's name, or null when it has none */
   tapPoint: (water: string | null) => `Tap the point on ${water ?? "this reach"}.`,
   when: "When were you there?",
+  /** (T819 item 2) under the question: what is recorded for the moment picked. A spot keeps no rules, so it says none. */
+  whenDetail: (water: string | null) =>
+    `The weather and the flow are recorded for this moment${water ? ` on ${water}` : ""}, so it is worth getting right.`,
+  day: "Day", hour: "Hour",
   earlierDay: "Earlier day", laterDay: "Later day", earlierHour: "Earlier hour", laterHour: "Later hour",
   back: "Back", cancel: "Cancel", next: "Next",
 } as const;
@@ -59,8 +68,8 @@ export const SPOT_CONFIRM_WORDS = {
   delete: {
     label: "Confirm delete",
     title: "Delete this spot?",
-    detail: "The gauge reading, the weather and the rules that were in force are recorded nowhere else. This cannot be "
-      + "undone.",
+    /** (T819 item 2) a spot keeps no rules: only its reading and its weather are lost with it */
+    detail: "The gauge reading and the weather recorded with it are kept nowhere else. This cannot be undone.",
     keep: "Keep it",
     go: "Delete",
   },
@@ -103,8 +112,36 @@ export const WEB_SPOTS_WORDS = {
     "Spots don't show up on the website yet. Accounts are coming, so your spots will be on your phone and here.",
   ],
   getApp: "Get the app",
-  /** the Play listing (the app's own store link); spelled here so the web has one place for it */
-  appUrl: "https://play.google.com/store/apps/details?id=ca.canifishthis.app",
+  /** (T901) one button per store; the addresses are core's storeLinks.ts */
+  playButton: "Google Play",
+  appStoreButton: "App Store",
+  /** (T901) one plain line naming only the stores still coming (none left: no line) */
+  coming: { both: "Coming soon to Google Play and the App Store.", play: "Coming soon to Google Play.",
+            appStore: "Coming soon to the App Store." },
+  /**
+   * (T901, owner 2026-11-19: "we could add a contact to get into testing maybe?") under a store that is not public yet:
+   * one line and one press per store, an email to the app's contact (More → Contact), or the in-app Report form where
+   * no address is set. The body asks for what the store's tester list needs. The app speaks as "I".
+   */
+  join: {
+    lead: "Want to try it early?",
+    android: { button: "Join the Android test", subject: "Join the Android test",
+               body: "Hi, I'd like to join the Android test of the Can I Fish This? app. The email on my Google account is: " },
+    iphone: { button: "Join the iPhone test", subject: "Join the iPhone test",
+              body: "Hi, I'd like to join the iPhone test of the Can I Fish This? app. The email on my Apple ID is: " },
+    /**
+     * (T911, owner 2026-11-19: "a popup with either a straight to email button or a copy email option") what a Join the
+     * test press opens: one line in the owner's voice (T860: I / me) on how to join, "Email me" (the mailto above), "Copy
+     * email" (the address, then "Copied"), and where the clipboard is refused, the address to select, said plainly.
+     */
+    popup: {
+      android: "Email me the address of your Google account and I'll add you to the Android test.",
+      iphone: "Email me the address of your Apple ID and I'll add you to the iPhone test.",
+      email: "Email me", copy: "Copy email", copied: "Copied",
+      refused: "I couldn't copy it from here. Select the address and copy it yourself:",
+      close: "Close",
+    },
+  },
   back: "Back to the map",
 } as const;
 

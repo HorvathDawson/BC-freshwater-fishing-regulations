@@ -9,7 +9,7 @@ T86 = needs production data and hosting live; OTHER LANE = being made by another
 |---|---|---|---|
 | 1 | Enrol in the Apple Developer Program, pay, accept agreements | individual or organization is open question 1 in `handoff/PLAN/ios/START-HERE-ios.md` (an organization needs a D-U-N-S number and changes the seller name) | OWNER (Apple ID + 2FA) |
 | 2 | Create the app record | Bundle ID `ca.canifishthis.app` (`app.json:36`), Platform iOS, Primary language English (Canada) (START-HERE-ios.md), SKU: your choice, proposal `canifishthis-ios` | OWNER, ACCOUNT |
-| 3 | Team ID and API key to `~/.canifishthis/ios-team-id`, `~/.canifishthis/asc-api-key.json` (.p8, App Manager) | START-HERE-ios.md "What needs the owner physically" | OWNER, ACCOUNT |
+| 3 | Team ID and API key to `~/.canifishthis/ios-team-id`, `~/.canifishthis/asc-api-key.json` (.p8, role Admin; App Manager cannot sign for the store) | START-HERE-ios.md "What needs the owner physically" | OWNER, ACCOUNT |
 
 ## B. App information
 | # | Field | Value or page | Who |
@@ -32,7 +32,7 @@ T86 = needs production data and hosting live; OTHER LANE = being made by another
 | 15 | Marketing URL (optional) | https://canifishthis.ca | OWNER |
 | 16 | What's New | for a first version, proposal: "First release for iPhone." Check later versions against `app/packages/core/src/changelog.ts` | OWNER |
 | 17 | Copyright | proposal: the year and the name of the seller entered at enrolment (not mine to choose) | OWNER |
-| 18 | Screenshots, iPhone 6.9" and 6.5": STILL TO TAKE | none taken yet; to be made from the simulator by another lane (`app/tools/store-shots.mjs`, `iphone67` and `iphone55`) | OTHER LANE |
+| 18 | Screenshots, iPhone 6.9" and 6.5" | T319 set 4 (7 shots, 4 split, 1320x2868 and 1242x2688, `app/tools/store-shots.mjs`), laid out 2026-11-19, rendered when 0.8.2 is on staging; uploaded by `deploy/staging/appstore-screenshots-push.py --commit` once the 0.8.2 UI is final (plan run, nothing sent yet) | CLAUDE (T319) |
 | 19 | App preview video | `app/tools/store-video` run on iOS (T709 step 2) | OTHER LANE |
 | 20 | iPad screenshots | none: `supportsTablet: false` (`app.json:37`) | n/a |
 | 21 | App icon 1024: NO ALPHA CHANNEL | `app/apps/mobile/assets/icon/icon-1024.png` (the Play icon, `app.json:6`) is 1024 x 1024 but has alpha; Apple rejects that. A flattened copy (onto the icon ground) is made at upload time and is never committed; the repo file stays as it is | OWNER, at upload |

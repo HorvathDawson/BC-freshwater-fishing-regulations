@@ -1,6 +1,8 @@
 # T719 — iOS: tap open speed and cue, T716 parity (IOS-2)
 
-Status: IN PROGRESS (iOS chat, test-bed lane: `regs-open` ported; the simulator numbers and the tap-up design are in the run).
+Status: DONE — 49b7226b6, efd9ada22, d6afcf124, d15784a4f. iOS tap cue at the lift (the tap-up patch) and the regs-open twin, merged 2026-11-16; the owner's iPhone look on build 36 passed.
+
+Closed by the 2026-11-20 audit: owner on build 36, 2026-11-16 ~21:22: "a-d worked good ... yes to (E) and (f)" (OWNER-TODO: 'iPhone build 36 test (a–f) done'); check e was T719's left; patch merged in d15784a4f.
 
 Source: owner 2026-11-14, verbatim: "Maybe we could make a handoff to start improving the ios versions? Making sure it is
 rock solid too?" and "We want to do as much work as possible without the Apple account". Stub IOS-2 in
@@ -71,7 +73,7 @@ T716 "after" (emulator, with its `onTapUp` cue).
 |---|---|---|---|---|---|
 | small (Norrish) | 352 / 352 / 352 | 448 / 407 / 407 | 448 / 408 / 407 | 40 / 37 / 32 | 418 / 416 / 414 |
 | unnamed stream | 352 / 352 / 352 | 371 / 401 / 402 | 444 / 401 / 402 | 28 / 37 / 36 | 421 / 397 / 398 |
-| mid (Coquitlam) | no target: `[target] {"none":true}` (the probe found no point on the framed river; test bed, see below) | | | 40 / 59 / 39 | 478 / 440 / 399 |
+| mid (Coquitlam) | 352 / 352 / 352 (re-run `ios-mid`, 081d93f90, iPhone 17) | 366 / 434 / 454 | 575 / 434 / 454 | 40 / 59 / 39 | 478 / 440 / 399 |
 | Fraser | 351 / 352 / 351 | 382 / 427 / 426 | 545 / 427 / 426 | 40 / 37 / 39 | 514 / 436 / 413 |
 | Skeena | 351 / 351 / 351 | 402 / 451 / 495 | 553 / 451 / 495 | 36 / 48 / 48 | 546 / 460 / 445 |
 | lake (Cultus) | 351 / 351 / 351 | 429 / 403 / 402 | 429 / 403 / 402 | 42 / 73 / 52 | 380 / 407 / 420 |
@@ -86,8 +88,8 @@ T716 "after" (emulator, with its `onTapUp` cue).
   on the Mac.
 - **Double tap (small): PASS.** UIKit saw 2 taps 233 ms apart, the map zoomed (32 % of the map changed), no page,
   nothing reported, no cue lit (nothing lights without an `onTapUp`).
-- `mid`: the app's own `[target]` search found no point on Coquitlam River after the search framing (T689's "searched,
-  found none"). A test-bed case to re-run (Android found one). Not an app open-speed result.
+- `mid`: the first run's probe found no point on Coquitlam River (`[target] {"none":true}`). The re-run found one
+  and measured the same 352 ms. That was a one-off of the probe after the search framing, not the app.
 
 **A lean iOS `onTapUp` (a design for the main lane's decision; NOT written):**
 - *Why not just override `touchesEnded:` in `MLRNMapView`* (it already overrides `touchesBegan:`): UIKit holds a

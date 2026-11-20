@@ -16,6 +16,8 @@ export interface WaterBinding {
 }
 export interface EntryLocation {
   location_id: string;
+  /** the region key (as the file stores it; T757: a closed-area piece's entry B carries it) */
+  region?: string;
   kind: string;
   precedence: number;
   water: string;
@@ -24,8 +26,13 @@ export interface EntryLocation {
   fingerprints: string[];
   source_text: { specific_area?: string; landmarks?: string[] } & Record<string, unknown>;
   status: string;
-  /** the curated binding (only its `within` areas are read here: quota.poolOf) */
+  /** the curated binding (its `within` areas are read by quota.poolOf; T759: whether it has extents, live.drawn) */
   binding?: { extents?: { op?: string | null; area_id?: string | null }[] } & Record<string, unknown>;
+  /** (T759, live.confirmed / live.drawn) a reworded wording of `duplicate_of`; the owner's word on it (null: proposed) */
+  duplicate_of?: string | null;
+  duplicate_confirmed?: boolean | null;
+  /** tidal water: the place binds nothing and is not missing (live.drawn) */
+  tidal_water?: boolean;
 }
 export interface EntryFile {
   region: string;
@@ -56,6 +63,10 @@ export function loadEntryFile(slug: string, text: string | null): EntryFile {
     })),
   };
 }
+
+/** EntryFile.water: the water binding of `waterId`, or undefined */
+export const waterById = (ef: EntryFile, waterId: string | null | undefined): WaterBinding | undefined =>
+  ef.waters.find((w) => w.water_id === waterId);
 
 export function byFingerprint(ef: EntryFile): Map<string, EntryLocation> {
   const m = new Map<string, EntryLocation>();

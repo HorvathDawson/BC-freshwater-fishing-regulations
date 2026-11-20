@@ -28,7 +28,7 @@ import { ROLE, WORDS } from "../words";
  *  / boats / always). */
 function sourceLineOf(ctx: SheetCtx, key: SheetKey): SourceLineVM | null {
   const { gear, methods } = ctx.page;
-  const all: (SourceLineVM | null | undefined)[] = [gear?.mode?.src, ...(gear?.lines ?? []).map((l) => l.src), gear?.bait?.src,
+  const all: (SourceLineVM | null | undefined)[] = [gear?.src, gear?.mode?.src, ...(gear?.lines ?? []).map((l) => l.src), gear?.bait?.src,
     methods?.ways?.src, methods?.boats?.src, methods?.reference?.src];
   return all.find((s) => s?.open === key) ?? null;
 }

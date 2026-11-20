@@ -26,11 +26,17 @@ ALLOWLIST: dict[str, tuple[int, str]] = {
         1, "predates(): UI_EXPORT_ALLOW_PREDATING=1, the user's deliberate switch for a run "
            "against an old side build (fails by default)"),
     "pipeline/tests/test_stocking_match.py": (1, "optional tool: geopandas (importorskip)"),
+    "pipeline/tests/test_trout_table.py": (
+        1, "T810 L: the whole built release's trout check waits for a rows-34 (cutover) release as LATEST; a rows-33 "
+           "release has no trout section to check (the re-review asked for a skip that names why)"),
     "pipeline/tests/test_mu_regions.py": (1, "optional tool: geopandas (importorskip)"),
     "pipeline/tests/test_no_slivers.py": (
         1, "opt-in: ATLAS_BUILD_TWIN names a second build to compare for determinism"),
     "pipeline/tests/test_dfo_suggest.py": (
         1, "optional tool: node + the frontend's typescript (source pins still run without them)"),
+    "pipeline/tests/test_worker_deploy_pieces_gate.py": (
+        1, "optional tool: the app's esbuild (app/node_modules; pipeline CI installs no app packages) for the "
+           "worker-shape reader; the deploy itself refuses without it (T757)"),
 }
 
 _SKIP_CALLS = {"skip", "importorskip", "xfail", "skipTest"}

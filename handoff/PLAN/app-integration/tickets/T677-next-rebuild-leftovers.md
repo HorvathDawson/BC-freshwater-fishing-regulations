@@ -1,6 +1,6 @@
 # T677 — Next rebuild: what the side build left
 
-Status: PARTIAL — items 4–7 closed (below); left (Claude): item 1 (measure the name rule), item 3 (by-place binding diff); owner: item 2
+Status: PARTIAL — items 4–7 closed (by T678/T685, RULINGS E21; below); item 2 answered by the owner 2026-11-12 (keep as built: the Strathcona Park rule covers the first 33 m of the Ucona); left (Claude): item 1 (measure the name rule), item 3 (by-place binding diff)
 
 Source: the rebuild lane, 2026-11-11 (`handoff/PLAN/app-integration/next-rebuild-results.md`).
 

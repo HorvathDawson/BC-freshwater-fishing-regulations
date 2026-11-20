@@ -22,6 +22,12 @@ CAP = 40
 #: the kinds of rule that limit keeping (`display.kind_of`)
 COUNTING = ("pool", "subcap", "sizecap", "size", "gate")
 
+#: (T810 L, Region 8 p.68 "And you may retain: 20 brook trout from streams") a zone rule a fish is EXEMPT from — an
+#: in-force zone rule that applies to it lists the rule in its `exempts` for that fish — neither counts nor checks that
+#: fish when it is kept on ANOTHER water: 2 brook trout kept on another Region 8 stream leave the 4 from streams whole.
+#: False = the mutation pin (the zone's trout/char counts took the brook trout kept elsewhere: 2 more here, not 4)
+A_ZONE_EXEMPTS_ELSEWHERE = True
+
 Fish = Tuple[str, str, float, str]            # (species, origin, length cm, place)
 
 
@@ -58,6 +64,8 @@ class Engine:
         from pipeline.deliver.answers import rows as RW
         here = {id(r) for r in self.rules}
         self.rules += [x for x in RW.raises(P) if id(x.clause) in here and x.clause.key not in self.unlift]
+        # T834: the day pool a water's own daily quotas raise a region cap to (`rows.pools`), over every fish it holds
+        self.rules += [x for x in RW.pools(P) if id(x.clause) in here and x.clause.key not in self.unlift]
         self._state: Dict[Tuple[str, str, str], str] = {}
         self._bands_of: Dict[int, list] = {}
         self._needs: Dict[Fish, Optional[frozenset]] = {}
@@ -90,13 +98,28 @@ class Engine:
             return False
         return not (r.f.get("water") and r.f["water"] != self.kind_of_place(place))
 
+    def _zone_exempt(self, r, f: Fish) -> bool:
+        """`f` (kept on another water) is exempt from the zone rule `r`: an in-force zone rule applying to it lists `r`
+        in its `exempts` for `f`'s fish (`A_ZONE_EXEMPTS_ELSEWHERE`)."""
+        if not A_ZONE_EXEMPTS_ELSEWHERE:
+            return False
+        from pipeline.deliver.answers import common
+        for z in self.zone:
+            if z is r or not self._applies(z, f):
+                continue
+            for x in z.f.get("exempts") or ():
+                if x.get("entry_id") == r.entry_id and x.get("rule_id") == r.rule_id \
+                        and f[0] in common.expand(x.get("species") or ()):
+                    return True
+        return False
+
     def checks(self, r, f: Fish) -> bool:
         """`r` decides whether `f` may be kept."""
         if not self._applies(r, f):
             return False
         if f[3] == "here":
             return self.state(r, f[0], f[1]) == "speaks"
-        return id(r) in self._zone
+        return id(r) in self._zone and not self._zone_exempt(r, f)
 
     def counts(self, r, g: Fish, f: Optional[Fish] = None) -> bool:
         """`r` counts `g` (a fish already kept) toward its take when `f` is asked about — RULINGS
@@ -118,9 +141,11 @@ class Engine:
             if st == "lifted" and r.k == "pool":
                 return False
             return st in ("speaks", "lifted", "displaced")
-        # elsewhere: the zone's rules for that water, and this water's own counts (rows F9)
-        return id(r) in self._zone or (not EID.is_table(r.entry_id)
-                                  and self.state(r, g[0], g[1]) in ("speaks", "lifted"))
+        # elsewhere: the zone's rules for that water (save one the fish is exempt from: T810 L, Region 8's brook trout
+        # from streams), and this water's own counts (rows F9)
+        if id(r) in self._zone:
+            return not self._zone_exempt(r, g)
+        return not EID.is_table(r.entry_id) and self.state(r, g[0], g[1]) in ("speaks", "lifted")
 
     def _band(self, r, L: float):
         """(band index, take) of the length, or None where no band of the rule holds it."""

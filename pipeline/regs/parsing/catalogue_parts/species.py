@@ -98,15 +98,15 @@ SPECIES_GROUPS["ALL_GAME_FISH"] = BOOK_SPECIES
 #: group quota by place, and 56 Region 1 lakes would have let a char be kept.
 NAMING_GROUPS = frozenset({"CHAR"})
 
-#: THE SCOPE OF THE WORD "TROUT" (user ruling 2026-09-28): "trout" includes char UNLESS CHAR ARE
-#: MENTIONED. p.80 says trout rules apply to char "unless char are specifically excluded", and the
-#: book excludes them by naming char APART in the same row, or in the same zone table: Region 6's
-#: box (p.49) prints "Trout/char: 5, but not more than … 3 Dolly Varden/bull trout and/or lake
-#: trout combined, 1 trout from streams July 1-Oct 31. And you must release: … Trout under 30 cm
-#: from any stream, Trout of any size from streams, Nov 1-June 30" — so "1 trout from streams",
-#: "Trout under 30 cm" and "Trout of any size from streams" are about trout alone; Region 1's
-#: "Trout: 4 … And you must release: … All char (includes Dolly Varden)" (p.13) likewise. A lake
-#: row printing only "Trout daily quota = 2" mentions no char, and its 2 counts char too.
+#: THE SCOPE OF THE WORD "TROUT" — `mentions_char_apart` is the 2026-09-28 reading ("trout" excludes
+#: char wherever the row MENTIONS char apart), kept as a word test only. What a "trout" line excludes
+#: is decided by RULINGS C2 (`trout_char_excluded`): a char the row gives a RELATED line of its own
+#: leaves it alone (Chilliwack Lake's "No wild trout over 50 cm, 1 bull trout over 60 cm": [DV]); all
+#: char leave only for a "char" line or every char named (Region 1's "All char": [CHAR]); Region 6's
+#: box names Dolly Varden and lake trout, so its "1 trout from streams" and "Trout of any size from
+#: streams" leave out those two (brook trout stay in), and "Trout under 30 cm from any stream" (no
+#: char size line) covers every char (owner 2026-11-18). A lake row printing only "Trout daily quota
+#: = 2" mentions no char, and its 2 counts char too.
 #:
 #: A char is mentioned apart when the text names one ON ITS OWN: "char", Dolly Varden, bull trout,
 #: lake trout, brook trout. The group word "trout/char" ("trout and char") is not such a mention —
@@ -205,24 +205,80 @@ def char_rules_apart(rules) -> list:
     return [r for r in rules if set(r.species) & chars and "TROUT_CHAR" not in r.species]
 
 
+def _places(r) -> Optional[frozenset]:
+    """The areas a rule's own extents name (None: no extents of its own — it stands on its row's water)."""
+    ex = getattr(r, "extents", None) or []
+    if not ex:
+        return None
+    return frozenset((getattr(e, "area_id", None) if not isinstance(e, dict) else e.get("area_id"),
+                      getattr(e, "within_area", None) if not isinstance(e, dict) else e.get("within_area"))
+                     for e in ex)
+
+
+def _covers(c, t) -> bool:
+    """(T854) Does char rule `c` stand everywhere trout line `t` does? Both on the row's own water (no extents), or
+    `c` naming at least every area `t` names (Region 6's "all Dolly Varden/bull trout from streams" stands in the
+    whole region, as the stream lines do; its Fraser/Skeena lake trout release stands in two basins only)."""
+    pc, pt = _places(c), _places(t)
+    if pc is None:
+        return True
+    if pt is None:
+        return False
+    return pt <= pc
+
+
+def trout_char_excluded(r, rules) -> List[str]:
+    """THE CHAR A "TROUT" LINE EXCLUDES, read from its row (RULINGS C2 as amended by the owner
+    2026-11-18): `["CHAR"]` when (a) the line excludes char in so many words, or (b) the CHAR GROUP AS
+    A WHOLE has a related rule of its own in the row — a rule naming "char", or rules that between
+    them name every char; else the char that have a related rule of their own, each alone (Chilliwack
+    Lake: `["DV"]`); else none. `rules` is the row (a water's row, or a zone table).
+
+    (Owner 2026-11-18, T854: "trout always covers char unles "char" as a whole is referenced elsewise on its own
+    ... this should be a release like brook trout") A char's own rule takes it out of a trout line only where it
+    STANDS EVERYWHERE THE LINE DOES (`_covers`): Region 6's "Lake trout from Fraser and Skeena Watersheds, Sept
+    15-Nov 30" stands in two basins of the region, so it leaves lake trout in the region's stream lines ("Trout of
+    any size from streams, Nov 1-June 30", "1 trout from streams July 1-Oct 31") — it adds its own release there,
+    it exempts lake trout from nothing."""
+    if _EXCLUDES_CHAR.search(r.verbatim or ""):
+        return ["CHAR"]
+    chars = BOOK_FAMILIES["CHAR"]
+    named: set = set()
+    for c in char_rules_apart(rules):
+        if c is not r and related_rules(r, c) and _covers(c, r):
+            if "CHAR" in c.species:
+                named.add("CHAR")
+            elif not (c.within and c.take is not None and not c.lengths):
+                named |= set(c.species) & set(chars)
+            # (T854) else a COUNT SHARE inside a group quota naming one or two char ("3 Dolly Varden/bull trout and/or
+            # lake trout combined" within Region 6's "Trout/char: 5") is the group's own count, stacked with the other
+            # lines (Q23), never those char's rule of their own: they stay in the trout lines beside it. A SIZE clause
+            # inside the quota ("no bull trout under 75 cm", upper Kootenay) is the char's own size rule: it leaves.
+    if "CHAR" in named or set(chars) <= named:
+        return ["CHAR"]
+    return [c for c in chars if c in named]
+
+
 def trout_scope_problems(entry_id: str, regs_verbatim: str, rules) -> List[str]:
-    """EVERY "TROUT" LINE IS SCOPED BY ITS ROW (user ruling 2026-10-07, TROUT/CHAR CLARIFIED; p.80
-    "all regulations that apply to trout (as a group) also apply to char unless char are
-    specifically excluded"). A `TROUT_CHAR` rule printing the bare word "trout" (itself, or the
-    quota it is a clause `within`: Region 1's "1 over 50 cm" under "Trout: 4") carries
-    `species_except: [CHAR]` exactly when
-      (a) its own text excludes char explicitly (`_EXCLUDES_CHAR`), or
-      (b) its row or zone table SPECIFIES CHAR SEPARATELY WITH ITS OWN RULE that is RELATED to
-          this line — governs the same aspect, kind of water and days (`related_rules`): Region 1's
-          "you must release: All char" beside "2 from streams (must be hatchery)", Chilliwack
-          Lake's "1 bull trout over 60 cm" beside "No wild trout over 50 cm" — specifying char
-          separately IS excluding it. An UNRELATED char rule excludes nothing: "no trout under 30
-          cm" still covers a bull trout beside "bull trout release Aug 1-Oct 31".
-    A combined "trout/char" mention names char in and never excludes them; a mention of char that is
-    no rule of its own does not exclude them either ("Wild trout/char quota = 2 (no wild trout over
-    40 cm)": the 40 cm cap covers char). A bare "trout" line never excludes one char alone (the
-    book's exclusion is of char as a group, `CHAR`)."""
-    apart = char_rules_apart(rules)
+    """EVERY "TROUT" LINE IS SCOPED BY ITS ROW (p.80: "all regulations that apply to trout (as a
+    group) also apply to char unless char are specifically excluded"; user ruling 2026-10-07,
+    TROUT/CHAR CLARIFIED, amended by the owner 2026-11-18). A `TROUT_CHAR` rule printing the bare
+    word "trout" (itself, or the quota it is a clause `within`: Region 1's "1 over 50 cm" under
+    "Trout: 4") carries in `species_except` exactly the char `trout_char_excluded` reads:
+      (a) its own text excludes char explicitly (`_EXCLUDES_CHAR`): `[CHAR]`;
+      (b) its row or zone table gives the CHAR GROUP AS A WHOLE a rule of its own RELATED to this
+          line — same aspect, kind of water and days (`related_rules`) — naming "char" (Region 1's
+          "you must release: All char" beside "2 from streams (must be hatchery)") or naming every
+          char between them: `[CHAR]`;
+      (c) its row gives ONE char (or two) a related rule of its own: that char leaves the line, and
+          only that char — Chilliwack Lake's "No wild trout over 50 cm, 1 bull trout over 60 cm" is
+          `species_except: [DV]`, so a wild brook trout or lake trout over 50 cm is still released
+          (owner 2026-11-18: "only bull trout is out it needs to change the char group as a whole
+          to get the char to change compeltely out of the group").
+    An UNRELATED char rule excludes nothing: "no trout under 30 cm" still covers a bull trout beside
+    "bull trout release Aug 1-Oct 31". A combined "trout/char" mention names char in and never
+    excludes them; a mention of char that is no rule of its own does not exclude them either ("Wild
+    trout/char quota = 2 (no wild trout over 40 cm)": the 40 cm cap covers char)."""
     by_id = {r.rule_id: r for r in rules}
     out: List[str] = []
     for r in rules:
@@ -237,22 +293,25 @@ def trout_scope_problems(entry_id: str, regs_verbatim: str, rules) -> List[str]:
         if word == "trout/char" and out_char:
             out.append(f"{r.rule_id}: prints 'trout/char', which names char in — it never "
                        f"carries species_except CHAR")
+        one = [c for c in BOOK_FAMILIES["CHAR"] if c in r.species_except]
+        if word == "trout/char" and one:
+            out.append(f"{r.rule_id}: prints 'trout/char', which names every char in — it never "
+                       f"leaves out one char: drop {one} from species_except")
         if word != "trout":
             continue
-        lone = sorted(c for c in r.species_except if c in BOOK_FAMILIES["CHAR"])
-        if lone:
-            out.append(f"{r.rule_id}: species_except {lone} — a 'trout' line excludes char as a "
-                       f"group (CHAR), never one char")
-        excluded = any(related_rules(r, c) for c in apart) \
-            or bool(_EXCLUDES_CHAR.search(r.verbatim or ""))
-        if excluded and not out_char:
-            out.append(f"{r.rule_id}: prints 'trout' and its row specifies char separately (or the "
-                       f"line excludes char) — its trout exclude char (p.80; user ruling 2026-10-07): "
-                       f"species_except [CHAR]")
-        elif not excluded and out_char:
-            out.append(f"{r.rule_id}: prints 'trout', its row has no char rule of its own and the "
-                       f"line excludes no char — trout includes char (p.80): drop CHAR from "
+        has = [c for c in ("CHAR",) + BOOK_FAMILIES["CHAR"] if c in r.species_except]
+        want = trout_char_excluded(r, rules)
+        if has == want:
+            continue
+        if not want:
+            out.append(f"{r.rule_id}: prints 'trout', its row gives no char a related rule of its own "
+                       f"and the line excludes no char — trout includes char (p.80): drop {has} from "
                        f"species_except")
+        else:
+            out.append(f"{r.rule_id}: prints 'trout'; its row gives {want} a related rule of its own "
+                       f"(or the line excludes char) — the trout line excludes exactly those (p.80; "
+                       f"RULINGS C2, owner 2026-11-18: one char alone leaves alone, the char group "
+                       f"only as a group): species_except {want}, not {has}")
     return out
 
 _PRINTS_STEELHEAD = re.compile(r"\bsteelhead\b", re.I)
@@ -384,9 +443,9 @@ REFUSED_SPECIES: dict[str, str] = {
     "BT": "a bull trout is a Dolly Varden in the regulations (p.80: 'Any bull trout that you catch "
           "and keep must be counted as part of your Dolly Varden quota') — write DV",
     "TROUT": "trout includes char unless char are specifically excluded (p.80) — write "
-             "TROUT_CHAR, with species_except [CHAR] when the row or zone table mentions char "
-             "apart (a char named on its own: 'char', Dolly Varden/bull trout, lake trout, brook "
-             "trout)",
+             "TROUT_CHAR; where the row or zone table gives a char a related line of its own, "
+             "species_except names that char alone ([DV]), and [CHAR] only for a 'char' line or "
+             "every char named (RULINGS C2, owner 2026-11-18)",
     "SA": "the salmon subject is SALMON",
 }
 

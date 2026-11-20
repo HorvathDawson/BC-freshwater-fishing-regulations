@@ -11,13 +11,13 @@
  * Lives in the drivers layer because it is a node:sqlite driver over files (layers.json); the temp folder comes from
  * $TMPDIR (node:os is not a driver import).
  */
-import { existsSync, mkdtempSync, readdirSync, readFileSync, writeFileSync } from "node:fs";
+import { existsSync, mkdtempSync, readdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { join, resolve } from "node:path";
 import { DatabaseSync } from "node:sqlite";
 import type { Db, Row } from "../db";
 import { verify } from "../../fetchVerified";
 import { parseManifest, type Manifest } from "../../manifest";
-import { releaseLoader, type DbName, type Opener, type ReleaseLoader, type ReleaseSource } from "../../release/loader";
+import { releaseLoader, type DbName, type FileName, type Opener, type ReleaseLoader, type ReleaseSource } from "../../release/loader";
 import { encodeLineBlock, LINE_OPEN, type SectionLine } from "../../regs/line";
 import { openLineReads } from "../../regs/place";
 import { BLOCK_BITS } from "../../regs/reads";
@@ -79,9 +79,18 @@ export function miniReleaseDir(root: string = MINI_RELEASE_ROOT): string {
 /** The mini release as the app reads a release (`openReleaseDir`). */
 export const openMiniRelease = (tamper: ReleaseTamper = {}): ReleaseLoader => openReleaseDir(miniReleaseDir(), tamper);
 
-/** node:sqlite over a verified file: the bytes written to a temp file and opened read-only. */
+/** (T764) the temp folders this process's openers made; removed when the process ends */
+const opened: string[] = [];
+
+/**
+ * node:sqlite over a verified file: the bytes written to a temp file and opened read-only. (T764) The folder is removed
+ * when the process ends (a release is 15 MB and more, and three days of test runs once left 151 GB of these); a killed
+ * process leaves its folder, which under vitest lies in the run's own temp folder (`tools/test-tmp.ts`) and goes with it.
+ */
 export function nodeOpener(): Opener {
   const tmp = mkdtempSync(join(process.env.TMPDIR || "/tmp", "release-open-"));
+  if (opened.push(tmp) === 1)
+    process.once("exit", () => { for (const d of opened) rmSync(d, { recursive: true, force: true }); });
   return async (name, bytes) => {
     const p = join(tmp, `${name}.sqlite`);
     writeFileSync(p, await bytes());
@@ -98,6 +107,8 @@ export interface ReleaseTamper {
   db?(name: DbName, d: Db): Db;
   /** (T369) a file the folder lacks, served in place of its bytes (the manifest must name it: `manifest`) */
   files?: Partial<Record<DbName, Db>>;
+  /** (T823) a file's bytes as the loader receives them, after they were held to the manifest (a corrupt binary file) */
+  bytes?(name: FileName, b: Uint8Array): Uint8Array;
 }
 
 /**
@@ -111,7 +122,8 @@ export function openReleaseDir(dir: string, tamper: ReleaseTamper = {}): Release
     async bytes(name) {
       const f = m.files[name];
       if (!f) throw new Error(`release ${m.data_release} has no file ${name}`);
-      return verify(f.url, new Uint8Array(readFileSync(join(dir, "..", f.url))), f);
+      const b = await verify(f.url, new Uint8Array(readFileSync(join(dir, "..", f.url))), f);
+      return tamper.bytes ? tamper.bytes(name, b) : b;
     },
   };
   const disk = nodeOpener(), wrap = tamper.db, given = tamper.files ?? {};
@@ -120,7 +132,19 @@ export function openReleaseDir(dir: string, tamper: ReleaseTamper = {}): Release
 }
 
 /** The regs fixture release, opened as the app opens a release. */
-export const openRegsFixture = (): ReleaseLoader => openReleaseDir(regsFixtureDir());
+export const openRegsFixture = (tamper: ReleaseTamper = {}): ReleaseLoader => openReleaseDir(regsFixtureDir(), tamper);
+
+/**
+ * (T810) THE TROUT FIXTURE (`app/fixtures/trout/`, written by the pipeline's `scripts/trout-refresh.sh`, never by hand):
+ * a regs fixture cut from a side release built with `--trout-table`, so it holds the optional `trout` section; beside it
+ * `trout-vectors.generated.json` (per case the cell the reader must decode) and `section-lines.json`. Until the cutover
+ * it is apart from the normal regs fixture above, which holds no trout section.
+ */
+export const TROUT_FIXTURE_ROOT = resolve(__dirname, "../../../../../fixtures/trout");
+
+/** The trout fixture release, opened as the app opens a release. */
+export const openTroutFixture = (tamper: ReleaseTamper = {}): ReleaseLoader =>
+  openReleaseDir(regsFixtureDir(join(TROUT_FIXTURE_ROOT, "regs-release")), tamper);
 
 /** (T369) One stream section's line as the fixture lists it: [handle, stream key, from m, to m). */
 export type LineRow = readonly [number, number, number, number];
@@ -133,6 +157,17 @@ export function regsFixtureLines(): { unnamed: number; lines: LineRow[] } {
   const d = JSON.parse(readFileSync(join(REGS_FIXTURE_ROOT, "..", "section-lines.json"), "utf8")) as
     { unnamed: number; lines: LineRow[] };
   return { unnamed: d.unnamed, lines: d.lines };
+}
+
+/**
+ * (T768) The golden UNNAMED taps the regs fixture is cut around (`app/fixtures/golden/taps.json` `unnamed`, written by
+ * the pipeline with the fixture): each sampled section's handle and the name the PIPELINE gives it. A test that picks
+ * an unnamed reach compares the app's name for it with this one, an answer the app did not compute.
+ */
+export function regsFixtureUnnamedTaps(): { handle: number; name: string }[] {
+  const d = JSON.parse(readFileSync(join(REGS_FIXTURE_ROOT, "..", "..", "..", "..", "fixtures", "golden", "taps.json"), "utf8")) as
+    { unnamed: { handle: number; name: string }[] };
+  return d.unnamed.map((u) => ({ handle: u.handle, name: u.name }));
 }
 
 /**
@@ -217,6 +252,15 @@ export interface SectionNames {
    * `item` whose lines (`part_line`) hold stream key `blk` at metre `m`.
    */
   partAt(item: string, blk: number, m: number): Promise<number>;
+  /**
+   * THE RELEASE'S UNNAMED STREAM SECTIONS, ascending: every handle with a rule key (`regs-sid` `section_akey`) that no
+   * water's part holds and that has a stream line of its own (a line that spans something: a slot no row names is a
+   * filler spanning nothing, `sectionLineDb`). A committed fixture keeps only a SAMPLE of them (taps.json's evenly
+   * spaced `unnamed`), and the sample MOVES with every re-cut, so a test chooses one by the PROPERTY it needs (bound by
+   * a tributary rule, the region's base alone, …), never by a stream key the sample happened to hold: 354088147:0 left
+   * the sample on r-46e4355a7277 and three tests that named it stopped a release. For a fixture (it reads every block).
+   */
+  unnamedStreams(): Promise<number[]>;
 }
 
 /** `loader`'s section names; it must carry a `lines` file for `stream` (`openRegsFixtureWithLines`, a live release). */
@@ -260,6 +304,21 @@ export function sectionNames(loader: ReleaseLoader): SectionNames {
       if (rows.length !== 1)
         throw new Error(`section names: ${item} has ${rows.length} parts at ${blk}:${m}, not 1, in release ${loader.manifest.data_release}`);
       return Number(rows[0]!.part_ix);
+    },
+    async unnamedStreams() {
+      const [water, sid] = await Promise.all([loader.db("water"), loader.db("regs-sid")]);
+      const named = new Set((await water.all("SELECT sid FROM part_section")).map((r) => Number(r.sid)));
+      const out: number[] = [];
+      for (const r of await sid.all("SELECT block, b FROM section_akey ORDER BY block")) {
+        const b = r.b as Uint8Array, dv = new DataView(b.buffer, b.byteOffset, b.byteLength);
+        for (let i = 0; i < b.byteLength / 2; i += 1) {
+          const h = (Number(r.block) << BLOCK_BITS) + i;
+          if (!dv.getUint16(2 * i, true) || named.has(h)) continue;
+          const l = await lines.sectionLine(h);
+          if (l && l.to !== l.from) out.push(h);
+        }
+      }
+      return out;
     },
   };
 }

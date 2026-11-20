@@ -51,6 +51,8 @@ def _core(p: Path) -> Path:
         INSERT INTO item_area VALUES (0, '2', '2-8'), (6, '3', '3-1');
         INSERT INTO name_source VALUES ('gnis:0', 'Alpha', 'osm', 'OSM'), ('gnis:6', 'Far', 'osm', 'OSM');
         INSERT INTO place VALUES (7, 'n7', 'Hope', 'town', 1, 49.3, -121.4), (8, 'n8', 'Lytton', 'village', 1, 50.2, -121.5);
+        CREATE TABLE section_note (sid INTEGER PRIMARY KEY, note TEXT NOT NULL) WITHOUT ROWID;
+        INSERT INTO section_note VALUES (20, 'Mostly outside A Reserve.'), (4100, 'Mostly outside B Park.');
     """)
     c.commit()
     c.close()
@@ -162,6 +164,9 @@ def test_a_slice_covers_its_regions_waters_whole_and_what_they_name(tmp_path):
     assert (106,) not in _rows(w2, "SELECT id FROM str") and (120,) not in _rows(w2, "SELECT id FROM str")
     assert {(100,), (110,), (121,)} <= set(_rows(w2, "SELECT id FROM str"))
     assert _rows(c2, "SELECT place_id FROM place") == [(7,)]
+    # (T796) `section_note` is whole in every slice: Far Creek's note (R3, not held) too. MUTATION: keying it by ord drops 4100
+    assert _rows(c2, "SELECT * FROM section_note") == _rows(core, "SELECT * FROM section_note") == \
+        [(20, "Mostly outside A Reserve."), (4100, "Mostly outside B Park.")]
     # (T370) the region-wide tables are in no slice: `water-shared` holds them whole, with the strings they name
     sh = out[SL.WATER_SHARED]
     assert _rows(sh, "SELECT akey FROM akey") == [(1,), (2,)] and _rows(sh, "SELECT count(*) FROM akey_region") == [(2,)]
@@ -259,3 +264,15 @@ def test_on_the_live_release_a_slice_is_the_whole_file_for_what_it_covers(tmp_pa
                 for (i,) in _rows(ws, f"SELECT {col} FROM {t} WHERE {col} IS NOT NULL")}
         assert used <= set(strs) and all(strs[i] == w.execute("SELECT text FROM str WHERE id = ?", (i,)).fetchone()[0]
                                          for i in list(used)[:2000])
+
+
+def test_a_core_cut_before_section_note_gives_slices_without_it(tmp_path):
+    """(T796) `section_note` is ADDITIVE: a whole core without it cuts slices without it (the app reads its absence as no
+    notes, asked of the slice's own sqlite_master), never a refusal."""
+    core = _core(tmp_path / "core.sqlite")
+    c = sqlite3.connect(core)
+    c.execute("DROP TABLE section_note")
+    c.commit()
+    c.close()
+    out = SL.build_slices(tmp_path, core, _water(tmp_path / "water.sqlite"), SIDS)
+    assert _rows(out["core-2"], "SELECT name FROM sqlite_master WHERE name = 'section_note'") == []

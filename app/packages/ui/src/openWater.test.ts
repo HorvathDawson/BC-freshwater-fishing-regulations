@@ -173,15 +173,16 @@ describe("(T58) the opener: a split lake's areas, and a late lookup dropped", ()
   });
 });
 
-describe("(T203) a search result ALWAYS lands on the water's Map, the whole water shown", () => {
-  it("from the Map tab and from Conditions alike: the Map view, `whole`, search consumed; a part step drops `whole`", () => {
+describe("(T203, T747) a search result ALWAYS lands on the water's Map, on the part its bar names", () => {
+  it("from the Map tab and from Conditions alike: the Map view, NOT whole (the frame's part), search consumed", () => {
     const sent: RouteAction[] = [];
     waterOpener(source, (a) => sent.push(a)).searched(VEDDER);
-    expect(sent).toEqual([{ type: "openWater", item: VEDDER, tapSid: null, at: null, part: null, view: "map", whole: true,
+    // (T747, owner 2026-11-14) never `whole`: the bar names a part, the camera frames that part
+    expect(sent).toEqual([{ type: "openWater", item: VEDDER, tapSid: null, at: null, part: null, view: "map",
                             fromSearch: true }]);
     for (const base of [mapTab, condMap]) {
       const r = reduce({ ...base, search: true } as Route, sent[0]!);
-      expect([waterFrame(r)?.view, waterFrame(r)?.whole]).toEqual(["map", true]);
+      expect([waterFrame(r)?.view, waterFrame(r)?.whole]).toEqual(["map", undefined]);
       // back lands on the map searched over, search closed
       expect(reduce(r, { type: "back" })).toEqual({ ...base, search: false });
       const stepped = reduce(r, { type: "part", part: 1 });
@@ -194,34 +195,30 @@ describe("(T203) a search result ALWAYS lands on the water's Map, the whole wate
   });
 });
 
-describe("(T221) a SOLO water from search opens on its Regulations, its Map view gone", () => {
-  it("solo: Regulations in front, no Map view; not solo, or the read failing: the whole Map as before", async () => {
+describe("(T925) every named water opens with its Map view, however it is opened — one of one part too", () => {
+  it("a search result opens on its Map at once (nothing asked first); a map tap and an open by id offer the Map view", async () => {
     const sent: RouteAction[] = [];
-    const ask = (answer: boolean | Error) => waterOpener(source, (a) => sent.push(a), {
-      solo: async () => { if (answer instanceof Error) throw answer; return answer; } });
-    await ask(true).searched(VEDDER);
-    await ask(false).searched(VEDDER);
-    await ask(new Error("no store")).searched(VEDDER);
-    expect(sent.map((a) => [(a as { view?: string }).view, (a as { solo?: boolean }).solo ?? false])).toEqual(
-      [["regs", true], ["map", false], ["map", false]]);
-    const r = reduce({ ...mapTab, search: true } as Route, sent[0]!);
-    expect(frameViews(waterFrame(r)!)).toEqual(["regs", "conditions"]);
-    expect(reduce(r, { type: "view", view: "map" })).toBe(r);
-  });
-});
-
-describe("(T498) a MAP TAP on a solo water opens knowing it: the view strip never changes after the pane is shown", () => {
-  it("the tapped frame carries `solo` from its first render (no Map view to drop later); not solo, or the read failing: the Map view offered", async () => {
-    const sent: RouteAction[] = [];
-    const ask = (answer: boolean | Error) => waterOpener(source, (a) => sent.push(a), {
-      solo: async () => { if (answer instanceof Error) throw answer; return answer; } });
-    await ask(true).tap(77 as SectionId, AT, "regs");
-    await ask(false).tap(77 as SectionId, AT, "regs");
-    await ask(new Error("no store")).tap(77 as SectionId, AT, "regs");
-    // an unnamed reach is never asked (it has no water to be solo)
-    await ask(true).tap(5 as SectionId, AT, "regs");
+    const opener = waterOpener(source, (a) => sent.push(a));
+    const searched = opener.searched(VEDDER);
+    // dispatched in the same tick: no read stands between the result and its pane (T221 asked "solo?" here)
+    expect(sent.map((a) => (a as { view?: string }).view)).toEqual(["map"]);
+    await searched;
+    await opener.tap(77 as SectionId, AT, "regs");
+    opener.item(VEDDER, "map");
+    // an unnamed reach still has no water Map
+    await opener.tap(5 as SectionId, AT, "regs");
     expect(sent.map((a) => frameViews(waterFrame(reduce(mapTab, a))!))).toEqual(
-      [["regs", "conditions"], ["regs", "conditions", "map"], ["regs", "conditions", "map"], ["regs", "conditions"]]);
-    expect((sent[0] as { solo?: boolean }).solo).toBe(true);
+      [["regs", "conditions", "map"], ["regs", "conditions", "map"], ["regs", "conditions", "map"], ["regs", "conditions"]]);
+    expect(sent.map((a) => waterFrame(reduce(mapTab, a))!.view)).toEqual(["map", "regs", "map", "regs"]);
+    expect(sent.some((a) => "solo" in a)).toBe(false);
+  });
+
+  it("(T737 kept) a search result and an open by id ask the page's geo at once (`warm`), before the pane mounts", () => {
+    const warmed: ItemId[] = [], sent: RouteAction[] = [];
+    const opener = waterOpener(source, (a) => { sent.push(a); warmed.push("|" as never); }, { warm: (i) => warmed.push(i) });
+    void opener.searched(VEDDER);
+    opener.item(VEDDER, "map");
+    // warmed first, then dispatched: the same order T221's solo question gave
+    expect(warmed).toEqual([VEDDER, "|", VEDDER, "|"]);
   });
 });

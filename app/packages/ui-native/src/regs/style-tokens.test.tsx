@@ -38,6 +38,8 @@ afterEach(cleanup);
 const STATES = { vedder_1010: vedder1010, x35p_1010: x35p1010, klwa_1012: klwa1012, glenn_615: glenn615 } as unknown as Record<string, RegsPage>;
 /** check.mjs leaves out the strip's bar (`.sbar`), month axis (`.smonths`) and legend (`.slegend`) */
 const SKIP = ["strip-bar", "strip-months", "strip-legend"] as const;
+/** the one text excused from the four-size scale (rule 1 only): the trout table's top line, TYPE.screen */
+const SIZE_ALLOW = "trout-top";
 const LINK_SEL = '[role="link"], [role="button"][aria-label^="What "]';
 
 /** the colour react-native-web writes for a palette token (it normalises the hex) */
@@ -55,7 +57,10 @@ function audit(root: Element) {
   const inLink = (h: TextHit) => links.some((l) => l === h.el || l.contains(h.el));
   return {
     hits,
-    sizes: [...new Set(hits.map((h) => h.size))].sort(),
+    // KEYED: the trout table's top line ("Up to 2 today") at TYPE.screen (23 px): owner 2026-11-17 23:29 (app chat dialog,
+    // before/after pictures): "Keep it big, 23 px (Recommended)"; as signed off in the R picture pack (2026-11-17 21:33).
+    // Its own element only, every other text still counts
+    sizes: [...new Set(hits.filter((h) => h.testID !== SIZE_ALLOW).map((h) => h.size))].sort(),
     weights: [...new Set(hits.map((h) => h.weight))].sort(),
     linkColours: [...new Set(hits.filter(inLink).map((h) => h.color))],
     underlined: hits.filter((h) => inLink(h) && h.underline).map((h) => h.text),

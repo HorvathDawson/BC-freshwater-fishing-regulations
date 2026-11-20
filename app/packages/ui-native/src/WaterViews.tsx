@@ -16,13 +16,13 @@
  *   Map         the water framed and lit on the map (`focusFor`, the search's framing); the parts and their steps
  *               are P15's. The canvas pans, so here the swipe listens on the header only.
  */
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { View } from "react-native";
-import { WATER_SCREEN_WORDS, waterReportWhere } from "@app/core";
+import { conditionsOpening, WATER_SCREEN_WORDS, waterReportWhere } from "@app/core";
 import type { ItemId, Parameter, WaterSource, SectionId } from "@app/data";
 import type { Horizon, PanelFeed } from "@app/ui";
 import type { TileEndpoints } from "@app/map";
-import { frameBasinAsk, useBasinDays, useFrameView, useMapEntries, useRegsStore, useUnnamedName, useWater, useWaterBasin, useWaterBox, useWaterLine,
+import { frameBasinAsk, useBasinDays, useFrameView, useMapEntries, useRegsStore, useSpeakerMeasures, useUnnamedName, useWater, useWaterBasin, useWaterBox, useWaterLine,
          useWaterName, useWaterPlace } from "@app/ui";
 import type { ReleaseLoader } from "@app/data/release";
 import { ConditionsPanel } from "./ConditionsPanel";
@@ -32,7 +32,7 @@ import { Place } from "./regs/RegsHeader";
 import { LoadingState } from "./LoadingState";
 import { ErrorState } from "./ErrorState";
 import { type Palette } from "./theme";
-import { WaterFrame, WaterInset, WaterTitle } from "./WaterFrame";
+import { SplitReportContext, useWaterMapSplit, WaterFrame, WaterInset, WaterTitle } from "./WaterFrame";
 import { WaterReportLink } from "./menu/ReportLink";
 import { BasinDays } from "./BasinDays";
 import { usePaneReady } from "./shell/paneReveal";
@@ -70,8 +70,10 @@ export function WaterConditions({ source, item, tapSid, palette, tiles, theme, o
   // (T728, owner 2026-11-14: "when you chang elvel/condition in the card it should not change cindition map layers too")
   // THE CARD'S QUANTITY IS THIS VIEW'S: one state, read by the card and the watershed days alike; the map's layer is
   // only where it starts. A pick here never reaches the map's Show.
-  const [own, setOwn] = useState<Parameter | null>(null);
-  const parameter = own ?? opening;
+  // (T767, T369 one load path) and it is the REACH's: the shell keeps this view mounted from reach to reach, so the pick
+  // is held with the water and section it was made on and read only there; a move to another reach drops it, so the next
+  // reach, and this one again, open as they open.
+  const [pick, setPick] = useState<{ at: string; quantity: Parameter } | null>(null);
   // (T369) THE FRAME'S REACH AND POINT, read once from the release (`useFrameView`, the one reading of a frame)
   const store = useRegsStore(loader);
   const fv = useFrameView(store.value ?? null, { item, part, tapSid, at: from ?? null });
@@ -79,6 +81,21 @@ export function WaterConditions({ source, item, tapSid, palette, tiles, theme, o
   const sheet = useWater(source, item);
   const section = loader ? fv.value?.section ?? null
     : tapSid ?? (sheet.state === "ready" ? sheet.value?.sections[0] ?? null : null);
+  // (T817, owner 2026-11-16 on Harrison Lake) WHERE THE VIEW OPENS: Flow (T728, `opening`) wherever a gauge that speaks for
+  // the reach measures flow; where none does and one measures level, Level, saying so at the top (core
+  // `conditionsOpening`, the one decision). What those gauges measure is the bundle's (`useSpeakerMeasures`); the water's
+  // last answer is kept while a part step reads the next (the body stays up, T584), and the card's first spinner waits
+  // for the first (`holding`), so a level-only water never draws Flow first.
+  const measures = useSpeakerMeasures(source, section);
+  const held = useRef<{ item: ItemId | null; value: readonly (readonly Parameter[])[] } | null>(null);
+  if (measures.state === "ready") held.current = { item, value: measures.value };
+  const measured = measures.state === "ready" ? measures.value : held.current?.item === item ? held.current.value : null;
+  const start = conditionsOpening(measured, opening ?? "discharge");
+  const pickAt = `${item ?? ""}|${section ?? ""}`;
+  if (pick && section !== null && pick.at !== pickAt) setPick(null);
+  const own = pick?.at === pickAt ? pick.quantity : null;
+  const setOwn = (quantity: Parameter) => setPick({ at: pickAt, quantity });
+  const parameter = own ?? (start.note ? start.quantity : opening);
   const here = loader ? fv.value?.here ?? null : from ?? null;
   const waiting = loader ? fv.state === "loading" || store.state === "loading" : sheet.state === "loading";
   const failed = loader ? store.error ?? fv.error : null;
@@ -106,7 +123,7 @@ export function WaterConditions({ source, item, tapSid, palette, tiles, theme, o
 
   // (T508) DRAWN WHOLE, this view's own part: the reach known (or why not), the place label and the access notices, the
   // watershed group's days — the panel says its own (`ConditionsPanel`), and its maps theirs (`MiniMap`)
-  usePaneReady(section === null ? !waiting : where.settled && days.state !== "loading");
+  usePaneReady(section === null ? !waiting : where.settled && days.state !== "loading" && (measured !== null || measures.state === "failed"));
 
   return (
     <WaterFrame palette={palette} face="conditions" title={<WaterTitle name={name} palette={palette} />}>
@@ -126,9 +143,11 @@ export function WaterConditions({ source, item, tapSid, palette, tiles, theme, o
                            parameter={parameter} onParameter={setOwn} from={here}
                            credits={credits} horizon={horizon} onHorizon={onHorizon} regsDay={regsDay} waterLine={line} waterBox={box}
                            alertWater={name ? { item, name } : null}
+                           note={start.note} offer={start.offer}
                            reportAbout={{ water: item, place: name, part: part ?? null, partLabel: where.place?.full ?? null }}
                            footer={<BasinDays state={days} palette={palette} theme={theme ?? "light"} onPick={onHorizon}
-                                              layout="rows" testID="water-basin-days" />} />
+                                              layout="rows" testID="water-basin-days" />}
+                           holding={measured === null && measures.state !== "failed"} />
         </>
       )}
     </WaterFrame>
@@ -143,17 +162,21 @@ export function WaterMap({ source, item, palette, children }: {
   const sheet = useWater(source, item);
   const name = sheet.state === "ready" ? sheet.value?.name ?? null : null;
   const nameSource = sheet.state === "ready" ? sheet.value?.nameSource ?? null : null;
-  // the canvas goes full-bleed under the frame's header (the one difference the frame allows); the name row stays on it
+  // the canvas goes full-bleed under the frame's header (the one difference the frame allows); the name row stays on it.
+  // (T752) from the tablet breakpoint up it is a split inside the column instead: text left, map right
+  const split = useWaterMapSplit();
+  const report = <WaterReportLink where={waterReportWhere({ view: "map", water: item, place: name })} palette={palette}
+                                  testID="report-link-water-map" />;
   return (
-    <WaterFrame palette={palette} face="regulations" title={<WaterTitle name={name} palette={palette} source={nameSource} />} bleed>
+    <WaterFrame palette={palette} face="regulations" title={<WaterTitle name={name} palette={palette} source={nameSource} />} bleed={!split}>
       {/* (T342) the map and its chrome are never selectable text */}
       <View style={{ flex: 1 }}>
-      <View style={{ flex: 1 }}><Selectable on={false}>{children}</Selectable></View>
+      <View style={{ flex: 1 }}>
+        {/* (T752) a split carries the report link in its text column (`SplitReportContext`) */}
+        <SplitReportContext.Provider value={split ? report : null}><Selectable on={false}>{children}</Selectable></SplitReportContext.Provider>
+      </View>
       {/* (T569) the report entry on the Map view too: a slim row under the canvas, at the column's gutter */}
-      <WaterInset column>
-        <WaterReportLink where={waterReportWhere({ view: "map", water: item, place: name })} palette={palette}
-                         testID="report-link-water-map" />
-      </WaterInset>
+      {!split && <WaterInset column>{report}</WaterInset>}
       </View>
     </WaterFrame>
   );

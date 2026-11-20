@@ -16,7 +16,8 @@
  */
 import type { Region } from "../pack.generated";
 import { openProbe } from "../openProbe";
-import { reportFailure, parseDfoUnplaced, parseSalmonFeed, pickSalmon, SALMON_FEED_FORMAT, type SalmonFacts, type SalmonFeed } from "@app/core";
+import { isFeedTooNew, reportFailure, parseDfoUnplaced, parseSalmonFeed, pickSalmon, SALMON_FEED_FORMAT, type FeedGate, type SalmonFacts,
+         type SalmonFeed } from "@app/core";
 
 export interface SalmonFeedStore { read(): string | null; write(text: string): void }
 export interface SalmonFeedSource {
@@ -34,7 +35,9 @@ export interface SalmonFeedSource {
 export const SALMON_FEED_TTL_MS = 60 * 60_000;
 
 export function httpSalmonFeed(base: string, store?: SalmonFeedStore, fetchImpl: typeof fetch = fetch,
-                               opts: { ttlMs?: number; now?: () => number } = {}): SalmonFeedSource {
+                               opts: { ttlMs?: number; now?: () => number;
+                                       /** (T676 item 2) refuses an index newer than this app: the capture answers */
+                                       gate?: FeedGate } = {}): SalmonFeedSource {
   const ttl = opts.ttlMs ?? SALMON_FEED_TTL_MS, now = opts.now ?? Date.now;
   let held: { at: number; p: Promise<SalmonFeed | null> } | null = null;
   const root = base.replace(/\/$/, "");
@@ -67,13 +70,19 @@ export function httpSalmonFeed(base: string, store?: SalmonFeedStore, fetchImpl:
       // hourly re-ask does not flood: the crash reporter sends one error once a run (digits folded, so every status is
       // one report) and at most `maxPerRun` a run (ui/crashReport.ts)
       if (!r.ok) throw new Error(`dfo index.json: HTTP ${r.status}`);
-      const f = parseSalmonFeed(JSON.parse(await r.text()));
+      const raw: unknown = JSON.parse(await r.text());
+      opts.gate?.check(raw, "dfo");     // (T676 item 2) an index for a newer app: the capture answers, the prompt is up
+      const f = parseSalmonFeed(raw);
       // (T556) a body that came back but is not a feed this app reads (another format: a bump this build predates) is
       // REPORTED, as in-season's is (T548); the capture — else the release's salmon file — answers meanwhile
       if (!f) throw new Error(`dfo index.json: not a readable ${SALMON_FEED_FORMAT} feed — refused`);
       const was = captured();
       if (!was || f.at >= was.at) return await complete(f);
-    } catch (e) { reportFailure(e); /* offline, or not a feed: the capture answers, its age said; (T368) not offline: reported */ }
+    } catch (e) {
+      // offline, or not a feed: the capture answers, its age said; (T368) not offline: reported. (T676 item 2) A feed for
+      // a newer app is a known state, not a failure: the gate holds it for the update prompt
+      if (!isFeedTooNew(e)) reportFailure(e);
+    }
     return captured();
   };
   let version = 0;
@@ -83,7 +92,9 @@ export function httpSalmonFeed(base: string, store?: SalmonFeedStore, fetchImpl:
       return held.p;
     },
     offer(text) {
-      const f = parseSalmonFeed(JSON.parse(text));
+      const raw: unknown = JSON.parse(text);
+      opts.gate?.check(raw, "dfo");     // (T676 item 2) throws for a newer app: the service keeps it unseen and says so
+      const f = parseSalmonFeed(raw);
       if (!f) throw new Error("not a dfo-feed/3 feed");
       held = { at: now(), p: complete(f) };   // (T521) its unplaced places read beside it, as a fetch does
       version += 1;

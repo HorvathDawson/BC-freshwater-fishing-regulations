@@ -82,7 +82,7 @@ describe("More → Notifications (T234, T527)", () => {
     const more = (ctl: NotifyControls | null) => (
       <LayoutWidthContext.Provider value={null}>
         <NotifyRoot controls={ctl}>
-          <MoreScreen palette={LIGHT} data={DATA} back="Map" onBack={() => {}} contact={null} theme="light" onTheme={() => {}} onPick={() => {}} />
+          <MoreScreen palette={LIGHT} data={DATA} onBack={() => {}} contact={null} theme="light" onTheme={() => {}} onPick={() => {}} />
         </NotifyRoot>
       </LayoutWidthContext.Provider>
     );
@@ -246,13 +246,13 @@ describe("Alert me on a gauge's card, and the editor (T527)", () => {
     expect(screen.queryByTestId("alert-me")).toBeNull();
   });
 
-  it("prefills the card's figure, not the raw reading (3.199 m is the card's 3.2)", async () => {
+  it("prefills the card's figure, not the raw reading (3.199 m is the card's 3.20)", async () => {
     const { c } = controls();
     const { source } = fakeSource();
     render(<NotifyRoot controls={c}><AlertMe palette={LIGHT} target={{ ...target, quantity: "level", current: 3.199 }} source={source} /></NotifyRoot>);
     fireEvent.click(screen.getByTestId("alert-me-open"));
     await flush();
-    expect((screen.getByTestId("alert-form-value") as HTMLInputElement).value).toBe("3.2");
+    expect((screen.getByTestId("alert-form-value") as HTMLInputElement).value).toBe("3.20");
   });
 
   it("(T620 G11) opened with no card figure (More → Add an alert): the box fills from the series, one 'now' in both lines", async () => {

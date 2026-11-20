@@ -1041,7 +1041,7 @@ def test_no_row_releases_the_char_it_gives_its_own_limit():
     for r in raw["rules"]:
         r.pop("species_except", None)
         rules.append(CatalogueRule.model_validate(r))
-    with pytest.raises(ValueError, match="species_except \\[CHAR\\]"):
+    with pytest.raises(ValueError, match="species_except \\['DV'\\]"):
         CatalogueEntry.model_validate(raw)
     assert _row_cancels_its_own_char_limit(CatalogueEntry.model_construct(
         entry_id=chilliwack.entry_id, rules=rules))

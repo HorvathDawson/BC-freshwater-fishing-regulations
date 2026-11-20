@@ -9,7 +9,7 @@
 import { describe, expect, it } from "vitest";
 import {
   crossLabel, crossDown, crossUp, exitLabel, groupBounds, isConfidence, markA11y, itemNote, markLabel, mergeNav, navSections, partAt, partBounds, partName,
-  partOfSection, partRowAria, partWhere, stepDown, stepsDown, stepsUp, waterGroup, wholeAria, wholeLabel, WATER_MAP_WORDS, type ItemNavRows,
+  partOfSection, partRowAria, partWhere, stepDown, stepUp, waterGroup, wholeAria, wholeLabel, WATER_MAP_WORDS, type ItemNavRows,
 } from "./waterNav";
 import { WORDS } from "./regs/words";
 import type { EndsTable } from "./ends";
@@ -191,9 +191,9 @@ export const FRASER_LILLOOET: ItemNavRows = riverOrder({
 });
 
 const order = (g: ReturnType<typeof waterGroup>) => g.parts.map((p, i) => `${i}: ${partName(g, i)}`);
-/** Each part's ways ▼ | ▲ ("-": none), as the conformance test prints them. */
+/** Each part's step ▼ | ▲ ("-": none), as the conformance test prints them. */
 const steps = (g: ReturnType<typeof waterGroup>) =>
-  g.parts.map((_, i) => `${stepsDown(g, i).join(",") || "-"}|${stepsUp(g, i).join(",") || "-"}`);
+  g.parts.map((_, i) => `${stepDown(g, i) ?? "-"}|${stepUp(g, i) ?? "-"}`);
 
 /** The release's `water_continue` row: the Chilliwack (its part 0, mouth first) goes on as the Vedder (its part 0). */
 const CHW_AS_VEDDER = { ord: 7670, part: 0, otherPart: 0, item: "gnis:3062", name: "Vedder River" };
@@ -209,15 +209,18 @@ describe("the group's parts, mouth first (the release's `part_ix`)", () => {
       "3: Chilliwack River Ecological Reserve boundary → Source",
     ]);
     expect(g.parts.map((p) => [p.partIx, p.pieces])).toEqual([[0, [0]], [1, [1]], [2, [2]], [3, [3]]]);
-    expect([partWhere(g, 0), partWhere(g, 3)]).toEqual(["Part 1 of 4 · Chilliwack River", "Part 4 of 4 · Chilliwack River"]);
+    // (T768) the count is the group's own (the local rows above pin the parts); the test holds the words around it
+    const n = g.parts.length;
+    expect([partWhere(g, 0), partWhere(g, n - 1)]).toEqual([`Part 1 of ${n} · Chilliwack River`, `Part ${n} of ${n} · Chilliwack River`]);
   });
 
   it("(T150 review) a parts-list row as a screen reader says it, whole; the list's title is the one PARTS_TITLE", () => {
     const g = waterGroup([CHILLIWACK], NO_ENDS);
-    expect([partRowAria(g, 0), partRowAria(g, 3), partRowAria(waterGroup([VEDDER], NO_ENDS), 0)]).toEqual([
-      "Vedder Crossing Bridge → Tamihi Rapids Bridge, part 1 of 4 · Chilliwack River",
-      "Chilliwack River Ecological Reserve boundary → Source, part 4 of 4 · Chilliwack River",
-      "Vedder River, part 1 of 1"]);
+    const n = g.parts.length;   // (T768) the group's own count, not a typed one
+    expect([partRowAria(g, 0), partRowAria(g, n - 1), partRowAria(waterGroup([VEDDER], NO_ENDS), 0)]).toEqual([
+      `Vedder Crossing Bridge → Tamihi Rapids Bridge, part 1 of ${n} · Chilliwack River`,
+      `Chilliwack River Ecological Reserve boundary → Source, part ${n} of ${n} · Chilliwack River`,
+      "Vedder River, whole water"]);
     // one copy of "Parts of this water" (that it is SPELLED once, in regs/words.ts, is a source scan:
     // tools/one-parts-list.test.ts — core may not read files; the Parts sheet that also read it is removed, T698)
     expect([WATER_MAP_WORDS.parts, WORDS.PARTS_TITLE]).toEqual(["Parts of this water", "Parts of this water"]);
@@ -236,7 +239,7 @@ describe("the group's parts, mouth first (the release's `part_ix`)", () => {
 
   it("a one-part water is named by its water, with no note", () => {
     const g = waterGroup([VEDDER], NO_ENDS);
-    expect([partName(g, 0), itemNote(g, 0), partWhere(g, 0)]).toEqual(["Vedder River", "", "Part 1 of 1"]);
+    expect([partName(g, 0), itemNote(g, 0), partWhere(g, 0)]).toEqual(["Vedder River", "", "Whole water"]);
   });
 
   it("KLWA: a split lake's three items are one water, ordered by their exits (as the prototype's klwa)", () => {
@@ -266,86 +269,32 @@ describe("the group's parts, mouth first (the release's `part_ix`)", () => {
   });
 });
 
-describe("▼ / ▲ over the marks", () => {
-  it("Cowichan: one step each way; the ends stop", () => {
-    const g = waterGroup([COWICHAN], NO_ENDS);
-    expect([0, 1, 2, 3].map((i) => [stepDown(g, i), stepsUp(g, i)])).toEqual([
-      [null, [1]], [0, [2]], [1, [3]], [2, []]]);
-  });
-
-  it("Chilliwack: by the marks, which name partIx", () => {
-    const g = waterGroup([CHILLIWACK], NO_ENDS);
-    expect([0, 1, 2, 3].map((i) => [stepDown(g, i), stepsUp(g, i)])).toEqual([
-      [null, [1]], [0, [2]], [1, [3]], [2, []]]);
-  });
-
-  it("a side channel: ▲ from below the fork gives the main stem first and offers the side channel", () => {
-    const g = waterGroup([ZYMOETZ], NO_ENDS);
-    const canyon = partAt(g, "gnis:3137", 1), main = partAt(g, "gnis:3137", 3), side = partAt(g, "gnis:3137", 2);
-    expect([canyon, main, side]).toEqual([1, 3, 2]);
-    expect(stepsUp(g, canyon)).toEqual([main, side]);
-    // the side channel rejoins the main stem going up, and going down returns to the canyon
-    expect([stepsUp(g, side), stepDown(g, side)]).toEqual([[main], canyon]);
-    // ▼ from the main stem takes the canyon, not the side channel
-    expect(stepDown(g, main)).toBe(canyon);
-  });
-
-  it("where the marks say nothing, the order does", () => {
-    const g = waterGroup([ZYMOETZ], NO_ENDS);
-    const lake = partAt(g, "gnis:3137", 4);       // "A lake → McDonell Lake outlet": no mark below it
-    expect([lake, stepDown(g, lake), stepsUp(g, lake)]).toEqual([4, 3, [5]]);
-  });
-
-  it("a fork going DOWN: below the Zymoetz's source part are the main stem and the lake part, main stem first", () => {
-    // the lake part's own mark says it sits below the source (`down 2, up [3]`), and nothing else leads into it
-    const g = waterGroup([ZYMOETZ], NO_ENDS);
-    const source = partAt(g, "gnis:3137", 5), main = partAt(g, "gnis:3137", 3), lake = partAt(g, "gnis:3137", 4);
-    expect([stepsDown(g, source), stepDown(g, source)]).toEqual([[main, lake], main]);
-    // and above the canyon, ▼ offers the canyon first and the side channel that rejoins there
-    expect(steps(g)).toEqual(["-|1", "0|3,2", "1|3", "1,2|5", "3|5", "3,4|-"]);
-  });
-
-  it("(T460) the Fraser above Williams Lake: ▲ never skips the Region 7A → Region 5 part; ▼ never skips back", () => {
-    const g = waterGroup([FRASER_UP], NO_ENDS);
-    const p = (ix: number) => partAt(g, "gnis:39325", ix);
-    const [chilcotin, williams, border, source] = [p(0), p(1), p(2), p(3)];
-    // the release's marks offer part 0 from part 1 too (a side channel of part 1 touches it 53.27 N): not a step
-    expect([stepsUp(g, williams), stepsDown(g, source)]).toEqual([[border], [border]]);
-    expect([stepsUp(g, chilcotin), stepsUp(g, border), stepsDown(g, border), stepsDown(g, williams)])
-      .toEqual([[williams], [source], [williams], [chilcotin]]);
-  });
-
-  it("(T460) channels that leave a part and come back to it are ways on, not skips (the Fraser at Lillooet)", () => {
-    const g = waterGroup([FRASER_LILLOOET], NO_ENDS);
-    const p = (ix: number) => partAt(g, "gnis:39325", ix);
-    expect(stepsUp(g, p(1)).slice().sort()).toEqual([p(2), p(3), p(4)].sort());
-    expect([stepsUp(g, p(2)), stepsUp(g, p(3))]).toEqual([[p(1)], [p(1)]]);
-  });
-
-  it("EVERY part of every water is stepped INTO by ▼ or ▲ from another part, and all are reached from the mouth", () => {
-    const waters = { CHILLIWACK: [CHILLIWACK], VEDDER: [VEDDER], COWICHAN: [COWICHAN], KLWA: [KL_MAIN, KL_UPPER, KL_LOWER],
-                     ZYMOETZ: [ZYMOETZ] };
-    const missed: string[] = [];
-    for (const [name, rows] of Object.entries(waters)) {
+describe("(T750) ▼ / ▲: one line through every part, never a choice", () => {
+  it("Cowichan, Chilliwack, KLWA: the next part in the order each way; the ends stop", () => {
+    for (const rows of [[COWICHAN], [CHILLIWACK], [KL_MAIN, KL_UPPER, KL_LOWER]]) {
       const g = waterGroup(rows, NO_ENDS);
-      const into = new Set(g.parts.flatMap((_, i) => [...stepsDown(g, i), ...stepsUp(g, i)].filter((j) => j !== i)));
-      const seen = new Set([0]);
-      const queue = [0];
-      while (queue.length) {
-        const i = queue.shift()!;
-        for (const j of [...stepsDown(g, i), ...stepsUp(g, i)]) if (!seen.has(j)) { seen.add(j); queue.push(j); }
-      }
-      g.parts.forEach((p, j) => {
-        if (g.parts.length > 1 && !into.has(j)) missed.push(`${name} ${j} (${p.partIx}): nothing steps into it`);
-        if (!seen.has(j)) missed.push(`${name} ${j} (${p.partIx}): not reached from the mouth`);
-      });
+      const n = g.parts.length;
+      expect(steps(g)).toEqual(g.parts.map((_, i) => `${i ? i - 1 : "-"}|${i < n - 1 ? i + 1 : "-"}`));
     }
-    expect(missed).toEqual([]);
   });
 
-  it("KLWA: the sibling boundaries are steps; the ends stop", () => {
-    const g = waterGroup([KL_MAIN, KL_UPPER, KL_LOWER], NO_ENDS);
-    expect([0, 1, 2].map((i) => [stepDown(g, i), stepsUp(g, i)])).toEqual([[null, [1]], [0, [2]], [1, []]]);
+  it("the Zymoetz's fork above the canyon (main stem and side channel): ▲ takes the next in the order, no choice", () => {
+    const g = waterGroup([ZYMOETZ], NO_ENDS);
+    // the marks fork (`up [0, 5]` at the canyon's upper entrance; the source part sits above the main stem AND the lake
+    // part): the step walks the order the release ranked them in
+    expect(steps(g)).toEqual(["-|1", "0|2", "1|3", "2|4", "3|5", "4|-"]);
+  });
+
+  it("the Fraser's channels round Lillooet and above Williams Lake: still the order, nothing skipped", () => {
+    for (const rows of [[FRASER_UP], [FRASER_LILLOOET]]) {
+      const g = waterGroup(rows, NO_ENDS);
+      expect(steps(g)).toEqual(g.parts.map((_, i) => `${i ? i - 1 : "-"}|${i < g.parts.length - 1 ? i + 1 : "-"}`));
+    }
+  });
+
+  it("an index off the group steps nowhere", () => {
+    const g = waterGroup([COWICHAN], NO_ENDS);
+    expect([stepUp(g, -1), stepDown(g, 0), stepUp(g, 3), stepDown(g, 4), stepUp(g, 4)]).toEqual([null, null, null, null, null]);
   });
 });
 
@@ -376,11 +325,12 @@ describe("across waters: a stream that goes on as another (`water_continue`)", (
         .toBe(true);
   });
 
-  it("a cross only where this water has no step that way; a junction part the water does not have THROWS", () => {
-    // the junction on a part with a part above it: ▲ stays inside the water
-    const mid = waterGroup([{ ...CHILLIWACK, continuesFrom: { ...VEDDER_FROM_CHW, ord: 1, part: 0 } }], NO_ENDS);
-    expect([mid.prev?.at, crossUp(mid, 0)]).toEqual([0, null]);
-    // (no silent fallbacks) a release defect is said, never a cross quietly left out
+  it("(T750) a junction inside the line, or a part the water does not have, THROWS: never a cross quietly left out", () => {
+    // the Chilliwack going on FROM another water at its lowest part: the top is part 3, so ▲ could never reach it
+    expect(() => waterGroup([{ ...CHILLIWACK, continuesFrom: { ...VEDDER_FROM_CHW, ord: 1, part: 0 } }], NO_ENDS))
+      .toThrow("water map: gnis:8634 (ord 11095) goes on from gnis:8634 at part 0, not its top part");
+    expect(() => waterGroup([{ ...CHILLIWACK, continuesAs: { ...CHW_AS_VEDDER, part: 2 } }], NO_ENDS))
+      .toThrow("water map: gnis:8634 (ord 11095) goes on as gnis:3062 at part 2, not its lowest part");
     expect(() => waterGroup([{ ...VEDDER, continuesFrom: { ...VEDDER_FROM_CHW, part: 7 } }], NO_ENDS))
       .toThrow("water map: gnis:3062 (ord 7670) its water_continue row names part 7, which it does not have");
   });
@@ -441,15 +391,13 @@ describe("the exit, the highlight and the frame", () => {
 });
 
 describe("(T517, water/3) a boundary is said by the end token its parts share — the one end resolver", () => {
-  const ENDS: EndsTable = { cnr: ["CNR Mile 66 Trestle, approximate location (low confidence)"], br: ["CNR Bridge (mile 70.2)"],
-                            gt: ["Greendale Trestle"] };
+  const ENDS: EndsTable = { cnr: ["CNR Mile 66 Trestle"], br: ["CNR Bridge (mile 70.2)"], gt: ["Greendale Trestle"] };
   const rows: ItemNavRows = { ...COWICHAN, marks: COWICHAN.marks.map((m, i) => ({ ...m, token: ["cnr", "br", "gt"][i]!,
                                                                                     ...(i === 0 ? { confidence: "low" as const } : {}) })) };
-  it("its words are the token's in `display.ends` — an approximate cut's confidence is IN them, never appended again", () => {
+  it("its words are the token's in `display.ends` — the place's name alone; a cut's confidence is never appended (T780)", () => {
     const g = waterGroup([rows], ENDS);
-    expect(g.marks.map((m) => markLabel(g, m))).toEqual([
-      "CNR Mile 66 Trestle, approximate location (low confidence)", "CNR Bridge (mile 70.2)", "Greendale Trestle"]);
-    expect(markA11y(g, g.marks[0]!)).toBe("Boundary: CNR Mile 66 Trestle, approximate location (low confidence)");
+    expect(g.marks.map((m) => markLabel(g, m))).toEqual(["CNR Mile 66 Trestle", "CNR Bridge (mile 70.2)", "Greendale Trestle"]);
+    expect(markA11y(g, g.marks[0]!)).toBe("Boundary: CNR Mile 66 Trestle");
   });
   it("no token (no named place: a side channel meets, a split lake's areas): no words, and \"Boundary\" alone", () => {
     const g = waterGroup([{ ...rows, marks: rows.marks.map((m, i) => (i === 1 ? { ...m, token: null } : m)) }], ENDS);
@@ -518,5 +466,93 @@ describe("T517: one part per connected run, a salmon-cut run joined on the map",
     const g = mergeNav(waterGroup([DEAN], ENDS), (sid) => (sid === 12 ? "b" : "a"));
     expect(g.parts.map((_, i) => partName(g, i))).toEqual([
       "Mouth → Tanswanket Creek confluence", "Tanswanket Creek confluence → Anahim Lake", "Anahim Lake → Source"]);
+  });
+});
+
+/*
+ * (T766) ▲ / ▼ OVER A LIVE-JOINED LINE. The live salmon reads parts 1, 3 and 4 of a water alike and they join, while the
+ * side channel (part 2) between them does not: the entries were [0], [1+3+4], [2]. The joined entry holds the top part,
+ * so it holds the step into the water above (`water_continue`) — and it stood in the middle of the line, where ▲ stepped
+ * on to the side channel and the cross was never offered. The line's ends stay its ends: the entry holding the top part
+ * goes last (`mergeNav`), and ▲ past the last entry / ▼ past the first is the cross (`crossUp` / `crossDown`).
+ * MUTATION: drop the move of the top part's entry in `mergeNav` -> the made-up case's ▲ ends on the side channel, which
+ * crosses from the wrong entry (`[g.prev.at]` 1, not 2), and the property's "top part's entry is last" fails.
+ * MUTATION: make `crossUp` need `prev.at === at` again -> a mouth entry that also holds the top part (the whole main stem
+ * joined, a side channel apart) never crosses up: the property fails.
+ */
+describe("(T766) ▲ / ▼ after a live salmon join: every entry once each way, the crossings at the ends", () => {
+  const ENDS: EndsTable = { mouth: ["Mouth"], a: ["A"], b: ["B"], c: ["C"], source: ["Source"] };
+  const piece = (n: number, lo: string | null, hi: string | null, more: object = {}) =>
+    ({ partIx: n, label: `part ${n}`, lo, hi, grp: 0, run: 0, ...more });
+  const BELOW = { ord: 9001, part: 0, otherPart: 2, item: "gnis:below", name: "Below River" };
+  const ABOVE = { ord: 9002, part: 4, otherPart: 0, item: "gnis:above", name: "Above River" };
+  const SIDE: ItemNavRows = {
+    ord: 9000, item: "gnis:side", name: "Side River", kind: "stream", tidal: [],
+    parts: [piece(0, "mouth", "a"), piece(1, "a", "b"), piece(2, null, null, { side: true }), piece(3, "b", "c"),
+            piece(4, "c", "source")],
+    geo: [0, 1, 2, 3, 4].map((k) => ({ partIx: k, box: [k, 0, k + 1, 1] as const, mid: [k + 0.5, 0.5] as const })),
+    marks: [mark(1e6, 5e5, "a", 0, [1]), mark(2e6, 5e5, "b", 1, [2, 3]), mark(2e6, 5e5, "b", 2, [3]),
+            mark(4e6, 5e5, "c", 3, [4])],
+    sections: secs({ 0: [1], 1: [2], 2: [3], 3: [4], 4: [5] }),
+    exit: null, continuesAs: BELOW, continuesFrom: ABOVE,
+  };
+  /** ▲ from the lowest entry to the end, and what the end offers; ▼ from there back, and what the bottom offers. */
+  const walk = (g: ReturnType<typeof waterGroup>) => {
+    const up: number[] = [0];
+    for (let at = stepUp(g, 0); at !== null; at = stepUp(g, at)) up.push(at);
+    const down: number[] = [up[up.length - 1]!];
+    for (let at = stepDown(g, down[0]!); at !== null; at = stepDown(g, at)) down.push(at);
+    return { up, down, top: crossUp(g, up[up.length - 1]!)?.item ?? "Highest part",
+             bottom: crossDown(g, down[down.length - 1]!)?.item ?? "Lowest part",
+             // no entry but the line's two ends crosses
+             inner: g.parts.some((_, i) => (i > 0 && crossDown(g, i) !== null) || (i < g.parts.length - 1 && crossUp(g, i) !== null)) };
+  };
+
+  it("parts 1, 3 and 4 joined, the side channel not: ▲ walks [0], the side channel, [1+3+4], then crosses up", () => {
+    const g = mergeNav(waterGroup([SIDE], ENDS), (sid) => (sid === 1 ? "mouth" : sid === 3 ? "side" : "main"));
+    expect(g.parts.map((p) => p.pieces)).toEqual([[0], [2], [1, 3, 4]]);
+    expect(walk(g)).toEqual({ up: [0, 1, 2], down: [2, 1, 0], top: "gnis:above", bottom: "gnis:below", inner: false });
+    expect([g.next?.at, g.prev?.at]).toEqual([0, 2]);                 // each junction on the entry that holds it
+  });
+
+  /** Every way to cut `n` parts into keys, each set partition once (restricted growth strings). */
+  function* patterns(n: number, at: readonly number[] = []): Generator<readonly number[]> {
+    if (at.length === n) { yield at; return; }
+    const next = at.length ? Math.max(...at) + 1 : 0;
+    for (let k = 0; k <= next; k += 1) yield* patterns(n, [...at, k]);
+  }
+  /** One run of one rule set, so the live salmon alone decides what joins; going on as / from another water as asked. */
+  const oneRun = (r: ItemNavRows, below: boolean, above: boolean): ItemNavRows => {
+    const ixs = r.parts.map((p) => p.partIx);
+    return { ...r, parts: r.parts.map((p) => ({ ...p, grp: 0, run: 0 })),
+             continuesAs: below ? { ...BELOW, part: Math.min(...ixs) } : null,
+             continuesFrom: above ? { ...ABOVE, part: Math.max(...ixs) } : null };
+  };
+  const WATERS: readonly (readonly [string, readonly ItemNavRows[]])[] = [
+    ["Side", [SIDE]], ["Chilliwack", [CHILLIWACK]], ["Vedder", [VEDDER]], ["Cowichan", [COWICHAN]], ["Zymoetz", [ZYMOETZ]],
+    ["Fraser up", [FRASER_UP]], ["Fraser Lillooet", [FRASER_LILLOOET]], ["Kootenay Lake", [KL_MAIN, KL_UPPER, KL_LOWER]]];
+
+  it("every fixture water, every join pattern, going on as / from another water or not: ▲ walks every entry once to the cross or 'Highest part', ▼ walks it back", () => {
+    let seen = 0;
+    for (const [name, rows] of WATERS) {
+      const one = rows.length === 1;
+      for (const below of one ? [false, true] : [false]) for (const above of one ? [false, true] : [false]) {
+        const base = waterGroup(one ? [oneRun(rows[0]!, below, above)] : rows, ENDS);
+        for (const p of patterns(base.parts.length)) {
+          const keyOf = new Map(base.parts.flatMap((q, i) => q.sids.map((s) => [s, `k${p[i]}`] as const)));
+          const g = mergeNav(base, (sid) => keyOf.get(sid)!);
+          const w = walk(g), m = g.parts.length, label = `${name} ${below ? "↓" : ""}${above ? "↑" : ""} [${p.join("")}]`;
+          expect({ up: [...w.up].sort((a, b) => a - b), down: w.down, top: w.top, bottom: w.bottom, inner: w.inner }, label)
+            .toEqual({ up: Array.from({ length: m }, (_, i) => i), down: [...w.up].reverse(),
+                       top: above ? "gnis:above" : "Highest part", bottom: below ? "gnis:below" : "Lowest part", inner: false });
+          // the top part's entry is the last wherever the line allows (it is not the mouth's too): the cross stands on
+          // the entry that holds the junction
+          const last = base.parts[base.parts.length - 1]!, topAt = partAt(g, last.item, last.partIx);
+          expect(topAt === m - 1 || topAt === 0, `${label}: the top part's entry ${topAt} of ${m}`).toBe(true);
+          seen += 1;
+        }
+      }
+    }
+    expect(seen).toBeGreaterThan(1000);
   });
 });

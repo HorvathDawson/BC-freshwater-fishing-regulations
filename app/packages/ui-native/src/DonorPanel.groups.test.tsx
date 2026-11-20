@@ -48,6 +48,7 @@ describe("(T168) the donor rows, grouped", () => {
   it("own first, the count line whole, the not-reporting folded; opening a fold shows its rows", () => {
     const count = "No gauge on this water reporting · 2 estimating from other waters · 3 not reporting";
     render(<DonorPanel palette={LIGHT} value={VALUE} day={new Date(2026, 9, 23, 12)} sides={SIDES} count={count} />);
+    fireEvent.click(screen.getByTestId("gauges-fold").querySelector("[role=button]")!);
     expect(screen.getByTestId("gauge-count").textContent).toBe(count);
     const own = screen.getByTestId("donor-groups-own"), donor = screen.getByTestId("donor-groups-donor");
     expect(own.textContent).toBe("ON THIS WATER2 not reporting");
@@ -75,9 +76,35 @@ describe("(T168) the donor rows, grouped", () => {
 
   it("without sides (a saved spot) the rows are one run and the silent line names the silent", () => {
     render(<DonorPanel palette={LIGHT} value={VALUE} day={new Date(2026, 9, 23, 12)} />);
+    fireEvent.click(screen.getByTestId("gauges-fold").querySelector("[role=button]")!);
     expect(screen.queryByTestId("donor-groups")).toBeNull();
     expect(screen.queryByTestId("gauge-count")).toBeNull();
     expect(screen.getByText(/^Not reporting: 08MH085/)).toBeTruthy();
+  });
+});
+
+describe("(T920, a tester via the owner 2026-11-19: \"this can be made into a drop-down box\") the gauge legend is one fold", () => {
+  it("closed by default, its words the count of gauges; opened, the count line, the groups and their rows; before the day strip and Sources and notes", () => {
+    const count = "No gauge on this water reporting · 2 estimating from other waters · 3 not reporting";
+    render(<DonorPanel palette={LIGHT} value={VALUE} day={new Date(2026, 9, 23, 12)} sides={SIDES} count={count}
+                       chart={<span data-testid="chart" />} after={<span data-testid="day-strip" />} foot={<span data-testid="credits" />} />);
+    const fold = screen.getByTestId("gauges-fold");
+    const head = fold.querySelector("[role=button]")!;
+    expect([head.textContent, head.getAttribute("aria-label"), head.getAttribute("aria-expanded")])
+      .toEqual(["5 gauges behind this estimate", "5 gauges behind this estimate", "false"]);
+    expect(screen.queryByTestId("gauge-count")).toBeNull();
+    expect(screen.queryByLabelText(CONDITIONS_WORDS.donorList)).toBeNull();
+    fireEvent.click(head);
+    expect(head.getAttribute("aria-expanded")).toBe("true");
+    expect(screen.getByTestId("gauge-count").textContent).toBe(count);
+    expect(screen.getByLabelText(CONDITIONS_WORDS.donorList)).toBeTruthy();
+    expect(screen.getByTestId("donor-groups-own")).toBeTruthy();
+    // the order: the chart card, then the gauges' fold, then what the caller draws after (the watershed card), then the
+    // small print's fold, last
+    const order = [screen.getByTestId("chart"), fold, screen.getByTestId("day-strip"),
+                   screen.getByRole("button", { name: CONDITIONS_WORDS.fold })];
+    for (let i = 1; i < order.length; i++)
+      expect(order[i - 1]!.compareDocumentPosition(order[i]!) & Node.DOCUMENT_POSITION_FOLLOWING, `item ${i}`).toBeTruthy();
   });
 });
 

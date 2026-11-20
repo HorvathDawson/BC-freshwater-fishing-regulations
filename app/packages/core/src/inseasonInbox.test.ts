@@ -113,7 +113,7 @@ describe("in-season inbox (T700)", () => {
     expect([inboxTarget(s, "is-a"), inboxTarget(s, "is-b"), inboxTarget(s, "is-m")]).toEqual([{ item: "gnis:1" }, null, null]);
     expect(inboxDetail(s, "is-m", "2026-11-13")?.note).toBe("Shown on the Regulations page of each of the 2 waters it applies to.");
     expect(inboxDetail(s, "is-b", "2026-11-13")).toEqual({ id: "is-b", tag: "New", head: "Okanagan River · Region 8", dates: null,
-      text: "Closed to all fishing", url: SRC, note: "We have not placed this change on the map yet. Check it before you fish." });
+      text: "Closed to all fishing", url: SRC, note: "I have not placed this change on the map yet. Check it before you fish." });
   });
 
   it("the list: New (unread) ahead of Earlier (read), newest first, each row's words whole", () => {

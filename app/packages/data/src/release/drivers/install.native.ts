@@ -169,13 +169,24 @@ const nativeFill = (tries = 4): PartFill => async (url, part, _have, total, onBy
 export function device(fetchImpl: typeof fetch = fetch, bg?: BackgroundNative | null): Device | null {
   const sys = bg ? background(bg, { ...fs, uri: (p) => fileAt(p).uri }, nativeFill()) : null;
   const partFs: PartFs = bg ? { ...fs, hash: (p) => bg.sha256(fileAt(p).uri) } : fs;
+  // (T256 item 4) the data files of a first install over a poor line: timeouts by size, retries, resume (the big
+  // files are the native transport's, `nativeFill`, which already retries and resumes)
+  // (T760, W46) a try that was cut is SAID: four silent tries of one stalled file read as an app that stopped
+  const inApp = (url: string, expect: { bytes: number; sha256: string }) => fetchVerifiedResilient(url, expect, { fetchImpl, onRetry: (e) => console.warn(
+    `[download] try ${e.attempt - 1} failed (${e.why}); trying again in ${e.waitMs} ms${e.resumeAt ? `, from byte ${e.resumeAt}` : ""}`) });
   return {
     fs,
-    // (T256 item 4) the data files of a first install over a poor line: timeouts by size, retries, resume (the big
-    // files are the native transport's, `nativeFill`, which already retries and resumes)
-    download: (url, expect) => fetchVerifiedResilient(url, expect, { fetchImpl }),
+    // (T912) an update's data files were queued with the system's downloader (`Booted.stage`): taken from their jobs
+    download: sys ? (url, expect) => sys.fetch(url, expect, inApp) : inApp,
     toDisk: partDownload(partFs, sys ? sys.fill : nativeFill()),
     ...(sys ? { background: { queue: sys.queue } } : {}),
+    // (T738) the facts only — what each big file holds on disk and in the system's downloader (one `jobs()` for all);
+    // what they add up to is `tally.ts`'s, shared with every platform. Without the module: the `.part`s alone.
+    look: async (files) => {
+      const jobs = bg ? await bg.jobs() : [];
+      return Promise.all(files.map(async (f) => ({ file: await fs.size(f.path), part: await fs.size(`${f.path}.part`),
+                                                    job: jobs.find((j) => j.url === f.url) ?? null })));
+    },
     dirUri: (path) => dirAt(path).uri,
     fileUri: (path) => fileAt(path).uri,
     // (T722 F9) the volume's free bytes (iOS: systemFreeSize; Android: usableSpace; null when it will not say) and what

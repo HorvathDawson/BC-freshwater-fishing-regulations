@@ -25,6 +25,7 @@ import type { Settled } from "./settle";
 import { ruleBook } from "./book";
 import { LADDER_Q, LEVEL_HEAD, LOSES, SAYS, WORDS, pageWaterNoun } from "./words";
 import { storyOf } from "./story";
+import { flowOf, type DownScope } from "./flow";
 
 /** One rule's place in a row's ladder (page v36 rowSources item): its role and what it lost to, for which fish. */
 export interface LadderItem {
@@ -32,6 +33,8 @@ export interface LadderItem {
   /** The rule that replaced / lifted / agrees with it (page v36 `by`, here the rule itself). */
   readonly by: RuleView | null;
   readonly spp: ReadonlySet<string>;
+  /** (T883) a trout rule whose stored role holds for one origin's fish only: the flow says which ("Wild ones: …") */
+  readonly origin?: "hatchery" | "wild";
 }
 
 /** The roles page v36 reads as deciding a row (WINS), and their reading order (QORDER). */
@@ -46,7 +49,9 @@ export interface LadderSeams {
   /** T17 grouphead.ts `scopeOf` (page v36 scopeOf) — read for a pool row's result line only. */
   readonly scopeOf?: (row: HydRow, inp: RegsInputs) => string | null;
 }
-export interface LadderEnv { readonly card: CardModel; readonly settled: Settled; readonly inp: RegsInputs; readonly seams: LadderSeams }
+export interface LadderEnv { readonly card: CardModel; readonly settled: Settled; readonly inp: RegsInputs; readonly seams: LadderSeams;
+  /** (T883) build the fish sheet's flow too (the other: sheet asks; the Keep tab does not draw it) */
+  readonly flow?: true }
 
 /** page v36 say: a rule's plain sentence (answers display.rules[].plain), "" for none. */
 export const say = (r: RuleView): string => r.facts?.plain ?? "";
@@ -96,6 +101,25 @@ export function rowSources(row: HydRow, card: CardModel, settled: Settled, inp: 
   return [...best.values()].sort((a, b) => wins(b.role) - wins(a.role) || a.r.rank - b.r.rank);
 }
 
+const winItem = (r: RuleView): LadderItem => ({ r, role: "governs", by: null, spp: new Set() });
+
+/** (T892) A row's stored answers, one per fish × origin it covers (the rows frame's hatchery and wild answer of each of
+ *  its fish, as rowSources reads them): what the table row's tributary line is checked against (flow.ts `DownScope`). */
+function rowScope(row: HydRow, card: CardModel, inp: RegsInputs): DownScope {
+  const f = card.ctx.s >= 0 ? inp.year?.rowsBySeg[card.ctx.s] ?? null : null;
+  const cells = row.allMembers.filter((S) => card.R[S]).flatMap((S) => {
+    const a = f?.fish[S];
+    return [a?.hatchery, a?.wild].flatMap((d) => (d ? [d] : []));
+  });
+  return { cells, rules: inp.rules };
+}
+
+/** (T892) The waters the row's fish sheet names "<that water> · its tributaries" on a deciding step, for every fish of
+ *  the row (`FlowVM.down`): the sheet's own flow (`ladderOf` with `flow`), so the Keep tab's row says what the sheet says. */
+export function rowDown(row: HydRow, env: Omit<LadderEnv, "flow">): readonly string[] {
+  return ladderOf(row, { ...env, flow: true }).flow?.down ?? [];
+}
+
 /** page v36 byName: the replacing rule named by its level (its own rank, not the part's). */
 function byName(b: RuleView | null, inp: RegsInputs): string {
   if (!b || b.missing) return WORDS.BY_ABOVE;
@@ -121,7 +145,7 @@ export function ladderOf(row: HydRow, env: LadderEnv, members?: readonly string[
   const title = seams.rowTitle(row, inp);
   const items: LadderItem[] = rowSources(row, card, settled, inp)
     .filter((it) => !members || !it.spp.size || [...it.spp].some((S) => members.includes(S)));
-  if (!items.length && row.win) items.push({ r: row.win, role: "governs", by: null, spp: new Set() });
+  if (!items.length && row.win) items.push(winItem(row.win));
   // No role is re-classified here (owner rule 2026-10-21): page v36 moved a deciding record_retention rule to "duty"; the
   // pipeline stores it so since rows 31 (`rows.stored_role`), so it is read under "Other rules" as stored.
   // `fields.record_retention` only words the tag.
@@ -188,8 +212,11 @@ export function ladderOf(row: HydRow, env: LadderEnv, members?: readonly string[
     && !(i.by && !i.by.missing && shortLabel(i.by.export.label, title) === shortLabel(i.r.export.label, title)));
   // (T216) the angler's explanation, every stored item in layers (the Keep form only; the other: sheet keeps the ladder)
   const story = members ? null : storyOf(items, (it) => words(it).text, inp, keepResult);
+  // (T883, proposal) the fish sheet's one flow: the same items, in reading order, with the row's answer last
+  const flow = members || !env.flow ? null
+    : flowOf(items, (it) => words(it).text, inp.item?.name || inp.place?.name || "", keepResult, rowScope(row, card, inp));
   return {
-    label: WORDS.DECIDED, sections, ...(story ? { story } : {}),
+    label: WORDS.DECIDED, sections, ...(story ? { story } : {}), ...(flow ? { flow } : {}),
     lost: lost.map((it) => {
       const w = words(it);
       return w.missing ? { text: w.text.map((r) => (r.t === "text" ? r.s : "")).join(""), status: "", rule: it.r.key, book: [] }

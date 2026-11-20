@@ -56,15 +56,32 @@ const words = (inp: RegsInputs) =>
 
 const MEMO = new WeakMap<RegsInputs, Map<string, Settled>>();
 const NYM = new WeakMap<RegsInputs, readonly number[]>();
+/** (T917) each segment's ladder decoded once per inputs, held by the inputs (as MEMO): it goes when they go */
+const LADDERS = new WeakMap<RegsInputs, Map<number, Ladder | null>>();
+
+/**
+ * Segment `s`'s ladder (`ladderAt` over the year's frame and the statics' reason words), decoded once per inputs: settleAt
+ * asks per segment AND day and the frame does not change with the day (T917: the decode was the SEO build's largest cost).
+ * @public — pinned by settle.test.ts
+ */
+export function ladderOfSeg(inp: RegsInputs, s: number): Ladder | null {
+  let byS = LADDERS.get(inp);
+  if (!byS) LADDERS.set(inp, byS = new Map());
+  if (byS.has(s)) return byS.get(s)!;
+  const [reasons, states] = words(inp);
+  const L = ladderAt(inp.year?.ladderBySeg[s] ?? null, reasons, states);
+  byS.set(s, L);
+  return L;
+}
 
 /** Every not_yet_mapped rix over all of the key's segments, first-seen order (page `w._nym`), once per inputs. */
 function undrawn(inp: RegsInputs): readonly number[] {
   let out = NYM.get(inp);
   if (!out) {
     const seen = new Set<number>();
-    const [reasons, states] = words(inp);
-    for (const f of inp.year?.ladderBySeg ?? []) {
-      const L = ladderAt(f, reasons, states);
+    const segs = inp.year?.ladderBySeg.length ?? 0;
+    for (let s = 0; s < segs; s++) {
+      const L = ladderOfSeg(inp, s);
       if (L) for (const o of L.values()) for (const [ix, v] of o.none) if (v.state === "not_yet_mapped") seen.add(ix);
     }
     NYM.set(inp, out = [...seen]);
@@ -89,8 +106,7 @@ export function settleAt(inp: RegsInputs, place: RegsPlace, s: number, day: Day)
     memo.set(ck, none);
     return none;
   }
-  const [reasons, states] = words(inp);
-  const L = ladderAt(inp.year.ladderBySeg[s] ?? null, reasons, states);
+  const L = ladderOfSeg(inp, s);
   const st = new Map<number, VerdictState>(), lifted = new Map<number, number>();
   if (L) for (const o of L.values()) for (const [ix, v] of o.none) {
     if (v.state === "lifted") lifted.set(ix, v.by!);

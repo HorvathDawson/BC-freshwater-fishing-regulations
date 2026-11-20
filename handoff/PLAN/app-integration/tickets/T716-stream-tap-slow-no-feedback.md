@@ -1,6 +1,6 @@
 # T716 — Tapping a stream takes a long time to open, with no feedback
 
-Status: IN PROGRESS (before closed testing; round 2 done, rides the next APK; left (Claude): a look on the next build)
+Status: IN REVIEW (round 1 3180f75a8, round 2 98eb18e32; owner 2026-11-13 kept the double-tap wait; seen on the 0.7.9 test-bed APK 2026-11-14: regs-open 19/19, cue 26-145 ms, page 345-445 ms, double tap lit/out; owner: OWNER-TODO "Phone check after 0.7.9 (build 31, Play internal, 2026-11-14), T716")
 
 Source: owner 2026-11-13, build 0.7.8 on their Android phone, verbatim: "When you click on a stream it is taking a very
 long time to open with no feedback it feels bad and slow. Want before closed testing"

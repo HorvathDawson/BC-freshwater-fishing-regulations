@@ -85,7 +85,7 @@ describe("a spot added for an earlier day records that day (Q161)", () => {
     expect(Object.fromEntries(s.panel!.rows.map((r) => [r.station, r.percentile]))).toEqual(
       { "08MH001": 0.375, "08MH999": 0.75 });
     expect([savedGauges(s), needsDayPanel(s), needsDayFlow(s)]).toEqual(["day", false, false]);
-    expect(DAY_PANEL_WORDS.ofTheDay(s.panelDay!.date)).toBe("Each gauge's daily mean on 20 Oct 2026, the day of the visit.");
+    expect(DAY_PANEL_WORDS.ofTheDay(s.panelDay!.date)).toBe("Each gauge's daily mean on Tue 20 Oct 2026, the day of the visit.");
   });
 
   it("today: read live, exactly as before — no day panel, no day flow", async () => {

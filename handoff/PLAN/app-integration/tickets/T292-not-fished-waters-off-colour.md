@@ -1,6 +1,6 @@
 # T292 — Sewage basins, tailing ponds and dumps drawn in an off colour, never as fishing water
 
-Status: PARTIAL — app + pipeline done and the tiles carry `kind`; left: the shots of the named tap sheet (owner 2026-10-29: "make sure they are coloured properly too in the ui. they should be a off color").
+Status: PARTIAL — f67bd7142: app + pipeline done and the tiles carry `kind` (since the 10-30 build); left (Claude): the shots of the named tap sheet on current tiles (owner 2026-10-29: "make sure they are coloured properly too in the ui. they should be a off color").
 
 ## Work
 1. Find how FWA waterbodies typed Settling Basin-Sewage, Mine-Tailing Pond, Dump (and any similar man-made non-fishing

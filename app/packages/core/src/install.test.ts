@@ -1,6 +1,7 @@
 /** P11: the start-up and first-run words, composed here and pinned whole (AGENTS 33). */
 import { describe, expect, it } from "vitest";
-import { downloadFraction, DOWNLOAD_NOTE_WORDS, DOWNLOAD_SAYINGS, INSTALL_WORDS, installLine, MOBILE_DATA_WORDS, mobileDataDecision, mobileDataFrom,
+import { UPDATE_WORDS } from "./updates";
+import { APPLY_WORDS, applyLine, downloadFraction, DOWNLOAD_NOTE_WORDS, failedStartLine, keepsTryingByItself, restartsByItself, stillLine, DOWNLOAD_SAYINGS, INSTALL_WORDS, installLine, MOBILE_DATA_WORDS, mobileDataDecision, mobileDataFrom,
          rolledBackLine, SAYING_MS, sayingAt, SETUP_WORDS, setupFraction, setupLine, SMALL_DOWNLOAD_BYTES, spaceLine, startStage } from "./install";
 
 describe("the first-run download line", () => {
@@ -38,6 +39,43 @@ describe("the rollback line (a new set would not open, so the one it replaced is
   it("leaves out a name it does not have rather than making one up", () => {
     expect(rolledBackLine({ refused: null, using: null }))
       .toBe("The newest map data would not open, so the app is using the data it had before.");
+  });
+});
+
+describe("(T746) a downloaded release put in use", () => {
+  it("has five whole fish-pun lines, each saying the new regulations are being put in place, with the one-character ellipsis", () => {
+    expect(APPLY_WORDS.lines).toEqual([
+      "Reeling in the new regulations…",
+      "Netting the latest regulations…",
+      "Landing the new regulations…",
+      "Tying on the new regulations…",
+      "Casting the new regulations into place…",
+    ]);
+    for (const l of APPLY_WORDS.lines) {
+      expect(l).toMatch(/regulations/);
+      expect(l.endsWith("…")).toBe(true);
+      expect(l).not.toMatch(/\.\.\./);
+    }
+    // the boot screen's own waiting lines use the same one character
+    expect(startStage("paint").endsWith("…")).toBe(true);
+  });
+
+  it("picks one line per release, by its id: the same release always says the same line; no id, the first", () => {
+    expect(applyLine("release-four")).toBe(applyLine("release-four"));
+    expect(applyLine(null)).toBe("Reeling in the new regulations…");
+    expect(applyLine(undefined)).toBe("Reeling in the new regulations…");
+    expect(applyLine("")).toBe("Reeling in the new regulations…");
+    // every line is reachable, and a handful of ids spread over more than one
+    const seen = new Set(Array.from({ length: 200 }, (_, i) => applyLine(`r-${i.toString(16).padStart(12, "0")}`)));
+    expect([...seen].sort()).toEqual([...APPLY_WORDS.lines].sort());
+    // pinned whole for two ids (a change to the pick moves these on purpose)
+    expect([applyLine("release-two"), applyLine("release-four")])
+      .toEqual(["Netting the latest regulations…", "Casting the new regulations into place…"]);
+  });
+
+  it("a failed apply is said plainly, unchanged", () => {
+    expect(APPLY_WORDS.failed).toBe("The new regulations could not be put in place. The app is still using the data it had.");
+    expect(APPLY_WORDS.ok).toBe("OK");
   });
 });
 
@@ -104,5 +142,41 @@ describe("(T722) iOS-truthful download words, and the full-disk sentence", () =>
       + "this phone has 120.0 MB free. Free up some space and try again.");
     expect(spaceLine(1_461_200_000, 0)).toBe("Not enough free space: the download needs about 1,461.2 MB and this "
       + "phone has 0.0 MB free. Free up some space and try again.");
+  });
+});
+
+describe("(T760) a first-install download that does not move", () => {
+  it("under the bar after a minute with no new byte: the carry-on words, or the offline waiting words", () => {
+    expect(stillLine(false)).toBe("The download has not moved for a minute. It carries on by itself; if it stays stuck the app starts that file again.");
+    expect(stillLine(true)).toBe("Offline — this will load when you’re back online");
+  });
+  it("a start failed on a file that would not download says so above Try again; other failures keep their words", () => {
+    expect(failedStartLine(INSTALL_WORDS.stuck, false)).toBe("A file would not download after several tries. Check your connection, then tap Try again.");
+    expect(failedStartLine(INSTALL_WORDS.stuck, true)).toBe("A file would not download after several tries. Check your connection, then tap Try again.");
+    expect(failedStartLine("release: x does not match the manifest", false)).toBe("Check the connection and try again. What has downloaded is kept.");
+    expect(failedStartLine("first run: the manifest could not be read (no answer)", true)).toBe("The first start needs a connection: the map and regulations download once, then work offline.");
+  });
+  it("(T760) a stuck download is shown at once: the app does not start over from it by itself; any other failure does", () => {
+    expect(restartsByItself(INSTALL_WORDS.stuck)).toBe(false);
+    expect(restartsByItself("release: x does not match the manifest")).toBe(true);
+    expect(restartsByItself("first run: the manifest could not be read (no answer)")).toBe(true);
+  });
+  it("(T760) a failure that is the connection's keeps trying by itself once on screen; no other failure does", () => {
+    const line = Object.assign(new Error("down-x.sqlite.gz: no answer in 20000 ms"), { environment: true });
+    const noLine = Object.assign(new TypeError("Network request failed"), { name: "TypeError" });
+    const http = Object.assign(new Error("HTTP 503 for x"), { environment: false });
+    // the connection's: the first run's manifest unread, a dropped / timed-out line, the platform's "no connection"
+    expect(keepsTryingByItself(new Error("first run: the manifest could not be read (manifest: no answer in 5000 ms)"), true)).toBe(true);
+    expect(keepsTryingByItself(line, false)).toBe(true);
+    expect(keepsTryingByItself(noLine, false)).toBe(true);
+    // never: the stuck download (even with the manifest unread), an app too old, a file that failed its check, an HTTP
+    // refusal, the system downloader's own failure, an unknown error
+    expect(keepsTryingByItself(new Error(INSTALL_WORDS.stuck), false)).toBe(false);
+    expect(keepsTryingByItself(Object.assign(new Error(INSTALL_WORDS.stuck), { environment: true }), true)).toBe(false);
+    expect(keepsTryingByItself(new Error(UPDATE_WORDS.row.appTooOld), false)).toBe(false);
+    expect(keepsTryingByItself(new Error("release: r/x.sqlite does not match the manifest (the same size, other bytes)"), false)).toBe(false);
+    expect(keepsTryingByItself(http, false)).toBe(false);
+    expect(keepsTryingByItself(new Error("https://x/atlas.pmtiles: the download failed (reason 1008)"), false)).toBe(false);
+    expect(keepsTryingByItself(new Error("boom"), false)).toBe(false);
   });
 });

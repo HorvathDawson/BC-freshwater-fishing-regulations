@@ -367,7 +367,8 @@ def test_policy_version_is_bumped_when_classify_changes():
     from pipeline.atlas.graph import tributaries
     from pipeline.atlas.reach import extent, licensing, outside, steelhead
     from pipeline.atlas.reach import build as reach_build
-    from pipeline.atlas.registry import regions
+    from pipeline.atlas.registry import lake_loops, regions
+    from pipeline.atlas.splits import anchors
     policy.update({
         "confluence_cut_excludes_the_joining_water":
             tributaries.CONFLUENCE_CUT_EXCLUDES_THE_JOINING_WATER,
@@ -392,7 +393,21 @@ def test_policy_version_is_bumped_when_classify_changes():
         "a_failed_scope_unbinds_the_row": reach_build.A_FAILED_SCOPE_UNBINDS_THE_ROW,
         "a_line_the_atlas_lists_inside_is_tidal": outside.A_LINE_THE_ATLAS_LISTS_INSIDE_IS_TIDAL,
         "dfo_joining_water_stays_out": reach_build.DFO_JOINING_WATER_STAYS_OUT,
+        "dfo_through_river_stays_out": reach_build.DFO_THROUGH_RIVER_STAYS_OUT,
         "verbatim_reads_are_guarded": reach_build.A_WORD_READ_THAT_STOPS_MATCHING_STOPS_THE_RUN,
+        "lake_loops_leave_river_items": lake_loops.LAKE_LOOPS_LEAVE_RIVER_ITEMS,
+        "lake_loops_join_their_lake": lake_loops.LAKE_LOOPS_JOIN_THEIR_LAKE,
+        "loops_never_divide_a_lake": lake_loops.LOOPS_NEVER_DIVIDE_A_LAKE,
+        "a_tributary_is_its_line_that_meets_the_parent": anchors.A_TRIBUTARY_IS_ITS_LINE_THAT_MEETS_THE_PARENT,
+        "a_dead_end_goes_with_its_water": tributaries.A_DEAD_END_GOES_WITH_ITS_WATER,
+        "dfo_rest_has_its_own_bounds": reach_build.DFO_REST_HAS_ITS_OWN_BOUNDS,
+        "dfo_rest_skips_a_listed_place_that_does_not_bind": reach_build.DFO_REST_SKIPS_A_LISTED_PLACE_THAT_DOES_NOT_BIND,
+        "a_piece_into_the_cut_lake_is_just_above_its_cut": extent.A_PIECE_INTO_THE_CUT_LAKE_IS_JUST_ABOVE_ITS_CUT,
+        "a_walked_past_exception_is_no_stop": licensing.A_WALKED_PAST_EXCEPTION_IS_NO_STOP,
+        "a_cut_on_a_line_end_is_across_only_at_its_point": extent.A_CUT_ON_A_LINE_END_IS_ACROSS_ONLY_AT_ITS_POINT,
+        "the_water_at_a_confluence_cut_brings_its_named_water":
+            reach_build.THE_WATER_AT_A_CONFLUENCE_CUT_IS_THE_ONE_THAT_BRINGS_ITS_NAMED_WATER,
+        "a_through_river_stays_out_with_its_side_channels": reach_build.A_THROUGH_RIVER_STAYS_OUT_WITH_ITS_SIDE_CHANNELS,
     })
     expected.update({"confluence_cut_excludes_the_joining_water": True,
                      "confluence_water_without_a_row_goes_with_the_cut": True,
@@ -414,8 +429,21 @@ def test_policy_version_is_bumped_when_classify_changes():
                      "a_failed_scope_unbinds_the_row": True,
                      "a_line_the_atlas_lists_inside_is_tidal": True,
                      "dfo_joining_water_stays_out": True,
-                     "verbatim_reads_are_guarded": True})
-    assert cache.POLICY_VERSION == "38", "update this pin with the version it was taken at"
+                     "dfo_through_river_stays_out": True,
+                     "verbatim_reads_are_guarded": True,
+                     "lake_loops_leave_river_items": True,
+                     "lake_loops_join_their_lake": True,
+                     "loops_never_divide_a_lake": True,
+                     "a_tributary_is_its_line_that_meets_the_parent": True,
+                     "a_dead_end_goes_with_its_water": True,
+                     "dfo_rest_has_its_own_bounds": True,
+                     "dfo_rest_skips_a_listed_place_that_does_not_bind": True,
+                     "a_piece_into_the_cut_lake_is_just_above_its_cut": True,
+                     "a_walked_past_exception_is_no_stop": True,
+                     "a_cut_on_a_line_end_is_across_only_at_its_point": True,
+                     "the_water_at_a_confluence_cut_brings_its_named_water": True,
+                     "a_through_river_stays_out_with_its_side_channels": True})
+    assert cache.POLICY_VERSION == "47", "update this pin with the version it was taken at"
     assert policy == expected, (
         f"classify.py policy changed to {policy} — bump cache.POLICY_VERSION "
         f"(currently {cache.POLICY_VERSION!r}) and update this test together")
@@ -493,7 +521,7 @@ def test_an_unbound_dfo_location_stays_unbound():
     from pipeline.regs.dfo_salmon.entries import Binding, to_reach_input
 
     # The shape `to_reach_input` reads — Sheldens Creek's, the one real case (2026-09-23).
-    loc = SimpleNamespace(location_id="6:sheldens-creek:upstream", binding=Binding())
+    loc = SimpleNamespace(location_id="6:sheldens-creek:upstream", binding=Binding(), source_text={})
     entry, rules = to_reach_input(loc, [{"species": None}], None)
     assert entry["matched"] == []
     b, _ = build_reach(entry, rules[0], {"gnis:1": object()}, graph=None)

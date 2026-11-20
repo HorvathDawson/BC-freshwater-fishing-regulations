@@ -14,7 +14,7 @@ import { describe, expect, it } from "vitest";
 import { nativeAdapter, nativeRenderer, type NativeRefs } from "./adapters/native";
 import { webAdapter, webRenderer, type GlMapSlice } from "./adapters/web";
 import { baseAdapter, type MapHandle, type MapRenderer } from "./adapters/contract";
-import { CASING_PX, paintFor, SELECTION_CASING, SELECTION_RINGS } from "./paint";
+import { CASING_PX, markWidth, paintFor, SELECTION_CASING, SELECTION_RINGS, streamWidths } from "./paint";
 import {
   MAP_STYLE, STYLE_META, colorExpression, isRuntimeLayer, layerIds, resolveTheme,
   toggleableGroups,
@@ -127,9 +127,10 @@ describe("map parity: one op script, both renderers, the same commands", () => {
     const w = await script(webRenderer(glRecorder(wlog), 14), wlog);
     const nlog: string[] = [];
     const n = await script(nativeRenderer(bindingRecorder(nlog), (e) => { throw e; }), nlog);
-    // (T345) the one difference: a phone unsets a key by writing it null (MapLibre Native's removals are applied after a
-    // frame's sets and all but the first per source-layer dropped: `adapters/native.ts` `raw.remove`)
-    expect(n.log).toEqual(w.log.map((l) => l.replace(/^remove (\S+) (\S+) (\w+)$/, (_, t, id, k) => `set ${t} ${id} {"${k}":null}`)));
+    // (T345) the one difference: a phone unsets a key by WRITING it (MapLibre Native's removals are applied after a
+    // frame's sets and all but the first per source-layer dropped: `adapters/native.ts` `raw.remove`); (T826) a highlight
+    // key is written false, never null (iOS's bridge drops a null-valued key: `unsetValue`)
+    expect(n.log).toEqual(w.log.map((l) => l.replace(/^remove (\S+) (\S+) (\w+)$/, (_, t, id, k) => `set ${t} ${id} {"${k}":false}`)));
     expect(n.out).toEqual(w.out);
     // and the log is the one the contract describes, not merely the same on both: each feature addressed ONCE per
     // source-layer (lake_flowing draws the lake features, wetland_flowing the wetland ones: `onceSink`), the selection
@@ -387,8 +388,8 @@ describe("the style adapter (platform-free: one implementation, tested for what 
     const at = (id: string) => ids.indexOf(id);
     // under the stream line (its colour on top), over the lakes; each ring over its own polygons' last layer (the lake's
     // is its shoreline, drawn over the boundaries since T83)
-    // (T213) with the gear marks between: the stream's edges over the casing, the lake's rings under the selection ring
-    expect([at(SELECTION_CASING) === at("stream") - 3, at(SELECTION_CASING) > at("lake__edge"),
+    // (T213) with the gear marks between: the stream's edges over the casing (and T887's keep casing under them), the lake's rings under the selection ring
+    expect([at(SELECTION_CASING) === at("stream") - 4, at(SELECTION_CASING) > at("lake__edge"),
             at(SELECTION_RINGS.lake) === at("lake__edge") + 3, at(SELECTION_RINGS.wetland) === at("wetland_flowing") + 1])
       .toEqual([true, true, true, true]);
     const layer = (id: string) => style.layers.find((l: { id: string }) => l.id === id) as unknown as
@@ -402,14 +403,17 @@ describe("the style adapter (platform-free: one implementation, tested for what 
       const tk = resolveTheme(theme);
       const s = runtimeStyle({ atlas: "a.pmtiles", basemap: "b.pmtiles" } as never, theme, {});
       const casing = s.layers.find((l: { id: string }) => l.id === SELECTION_CASING) as unknown as { paint: Record<string, unknown> };
+      // (T735) dark wears look C (src/selection-look.test.ts pins it whole); light and cvd are today's
+      if (theme === "dark") continue;
       expect([theme, casing.paint["line-color"], casing.paint["line-opacity"]])
         .toEqual([theme, ["case", inseason, tk["color.ui.attention"], tk["color.highlight"]], shown]);
     }
     expect([SELECTION_CASING, SELECTION_RINGS.lake, SELECTION_RINGS.wetland].map((id) =>
       [layer(id).type, layer(id)["source-layer"], layer(id).paint["line-opacity"]])).toEqual([
       ["line", "stream", shown], ["line", "lake", shown], ["line", "wetland", shown]]);
-    // the casing is the stream's own width (with its floors) plus the outline on each side, inside the zoom curve
-    const w = paintFor("stream", "plain", resolveTheme("light"))["line-width"] as unknown[];
+    // the casing is the stream's own width (with its floors) plus the outline on each side, inside the zoom curve —
+    // (T848) the drawn width only where a casing shows, the base width elsewhere (`markWidth`)
+    const w = markWidth("casing", "plain", streamWidths("plain", resolveTheme("light"))) as unknown[];
     const cw = layer(SELECTION_CASING).paint["line-width"] as unknown[];
     expect([cw.slice(0, 3), cw.slice(3).filter((_, i) => i % 2 === 1)]).toEqual([
       w.slice(0, 3), w.slice(3).filter((_, i) => i % 2 === 1).map((v) => ["+", v, 2 * CASING_PX])]);
@@ -417,8 +421,8 @@ describe("the style adapter (platform-free: one implementation, tested for what 
 
   it("a theme or mode change repaints the outline with the stream (one paint path)", () => {
     const r = recorder();
-    a.setLayerMode(r.h, "stream", "plain", "dark");
-    const t = resolveTheme("dark");
+    a.setLayerMode(r.h, "stream", "plain", "light");     // (T735) dark's casing is look C's, pinned in selection-look.test.ts
+    const t = resolveTheme("light");
     expect(r.calls.filter((c) => c.startsWith(`paint ${SELECTION_CASING} line-color`)
                                  || c.startsWith(`paint ${SELECTION_RINGS.lake} line-color`)))
       .toEqual([`paint ${SELECTION_CASING} line-color case,boolean,feature-state,inseason,false,${t["color.ui.attention"]},${t["color.highlight"]}`,

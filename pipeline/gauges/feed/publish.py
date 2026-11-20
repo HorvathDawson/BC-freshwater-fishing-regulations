@@ -53,7 +53,7 @@ from concurrent.futures import ThreadPoolExecutor
 from datetime import date, datetime, timedelta, timezone
 from pathlib import Path
 from pipeline.common.curated import CURATED, SOURCE
-from pipeline.common.feed_formats import FEED_FORMATS
+from pipeline.common.feed_formats import FEED_FORMATS, FEED_MIN_APP
 from pipeline.gauges.feed.climatology import PCTILES
 from pipeline.gauges.feed.change import combine_day as _combine_day, forecast_days, gauge_scale as _gauge_scale
 from pipeline.gauges.feed.change import model_name as _model_name
@@ -185,7 +185,8 @@ def _thinned(series: list, last: tuple) -> list:
 
 
 # OWNER-RUN UPSTREAM UPDATES, SAID IN THE INDEX (owner 2026-10-22 late). Each run already learns two things only the
-# owner can act on: a newer HYDAT on the listing, and ECCC's real-time list drifting from the roster snapshot. Both
+# owner can act on: a newer HYDAT on the listing, and ECCC's real-time list naming a station the roster has never seen
+# (T847: only those; a known station joining or leaving the list is followed with no refresh). Both
 # were console lines nobody reads on a cron. They are now `maintenance` notices in index.json — ONE list for every
 # owner task, so another kind joins it without a new field — sent to the owner once (`pipeline.gauges.feed.notify`)
 # and read by the app (the Data sources page's HYDAT line). Each names the exact command that clears it.
@@ -229,6 +230,12 @@ def newest_forecast_issue(forecast: dict | None) -> str | None:
     return best[1] if best else None
 
 
+def never_seen(latest: object) -> list[str]:
+    """The station ids a `roster` notice's `latest` names (T847: space-separated). A token with a `+`/`-` sign is the
+    pre-T847 joined/left text, not a never-seen station: dropped."""
+    return [t for t in str(latest or "").split() if t[:1] not in "+-"]
+
+
 def maintenance_notices(*, release: str | None, latest: str | None, drift: dict | None,
                         previous: list | None, at: str, roster: str = ROSTER_PATH) -> list[dict]:
     """The owner tasks due this run, sorted by kind: `[{kind, since, current, latest, action}]`; empty when none.
@@ -238,6 +245,11 @@ def maintenance_notices(*, release: str | None, latest: str | None, drift: dict 
     skipped; `drift` None: no station list) KEEPS the previous notice of its kind rather than calling the task done on
     one failed GET — except a HYDAT notice the envelope has since caught up with. No envelope (`release` None): no
     HYDAT claim either way, there is nothing in use to compare.
+
+    THE ROSTER NOTICE (T847) is the stations ECCC lists that the roster holds no row for (`drift["unknown"]`), its
+    `latest` their ids space-separated; known stations joining or leaving the list raise none. The worker tells each id
+    once (`index.ts gaugeEvents`, key `roster:new:<id>`). A kept notice from before T847 (`+id`/`-id` tokens) keeps
+    only its bare ids (`never_seen`): none, so it is dropped.
     """
     prev = {n.get("kind"): n for n in previous or [] if isinstance(n, dict)}
 
@@ -254,11 +266,10 @@ def maintenance_notices(*, release: str | None, latest: str | None, drift: dict 
         elif (p := prev.get("hydat")) and p.get("latest") and p["latest"] != release:
             out.append(notice("hydat", release, p["latest"], HYDAT_ACTION))
     if drift is not None:
-        if drift.get("joined") or drift.get("left"):
-            said = " ".join([f"+{s}" for s in drift.get("joined", [])] + [f"-{s}" for s in drift.get("left", [])])
-            out.append(notice("roster", roster, said, roster_action(roster)))
-    elif (p := prev.get("roster")) and p.get("latest"):
-        out.append(notice("roster", roster, p["latest"], roster_action(roster)))
+        if drift.get("unknown"):
+            out.append(notice("roster", roster, " ".join(drift["unknown"]), roster_action(roster)))
+    elif (p := prev.get("roster")) and (kept := never_seen(p.get("latest"))):
+        out.append(notice("roster", roster, " ".join(kept), roster_action(roster)))
     return sorted(out, key=lambda n: n["kind"])
 
 
@@ -322,6 +333,7 @@ HORIZONS = (1, 2, 3, 4, 5, 6, 7, 8, 9, 10)
 # another (core `GAUGE_FEED_FORMAT`, `gaugeFeedRefusal`). (T556) Typed once, in pipeline/common/feed_formats.py, which
 # the app's and the worker's value is generated from.
 FEED_FORMAT = FEED_FORMATS["gauge_feed"]
+MIN_APP = FEED_MIN_APP["gauge_feed"]   # (T676 item 2) the index's `minAppVersion`: the oldest app that reads it
 
 # (T550) A READING OLDER THAN THIS, when the feed is written, IS NOT TODAY'S and is never ranked: its `percentile` is null
 # and its per-quantity ranks are dropped, so no reader counts, weighs or colours it (`age_gate`). Its `observedAt` stays,
@@ -364,6 +376,23 @@ def level_on_rating(rating: list | None, discharge: float | None, level: float |
         i += 1
     lo, hi = rating[i][1], rating[i][2]
     return lo - pad <= level <= hi + pad
+
+
+def live_quantities(discharge: float | None, level: float | None, *, level_off_datum: bool) -> list[str]:
+    """(T830) WHICH QUANTITIES THE STATION REPORTED LIVE THIS RUN that the feed stands behind: the index's `reports`.
+
+    A rank says how a reading compares with the record; this says what the reading IS, so the app never reads "no
+    level rank" as "no level". Capilano at Canyon (08GA031) reports a level on every row but has two years of HYDAT
+    level (`record.MIN_RECORD_YEARS` is three), so no level band and no level rank: the app said "Reports flow only
+    today, not water level" (16 stations on 2026-11-17). A level off the record's rating (T550, `level_on_rating`:
+    another datum) is left out on purpose: its number is not the river's level on any datum the app shows.
+    """
+    out = []
+    if discharge is not None:
+        out.append("discharge")
+    if level is not None and not level_off_datum:
+        out.append("level")
+    return out
 
 
 def age_gate(entry: dict, now: datetime) -> dict:
@@ -795,8 +824,8 @@ def publish(out: Path, stations: list[str], clim: dict | None = None,
     `now` is the clock, injectable so a test can stand on a known day; a run uses the wall.
     `listed` is ECCC's real-time list this run (`listed_stations`); published in the index
     when known, so "not a real-time gauge" and "real-time but quiet today" can be told apart.
-    `drift` is `roster_drift` this run (None: no list), written as a `roster` maintenance notice naming `roster`, the
-    roster file this run read (`roster_shown`).
+    `drift` is `roster_drift` this run (None: no list); its `unknown` stations (listed, never seen by the roster) are
+    written as a `roster` maintenance notice naming `roster`, the roster file this run read (`roster_shown`).
     """
     out.mkdir(parents=True, exist_ok=True)
     # the previous index's notices, read before it is overwritten: each notice's `since` is carried from there
@@ -885,8 +914,9 @@ def publish(out: Path, stations: list[str], clim: dict | None = None,
         have = envelope.get(r["station"]) or {}
         # (T550 item 2) a live level off the record's rating is on another datum: no level is ranked for this station
         # this run (today, ahead, or as its default), exactly as if it had no level envelope
-        if "level" in have and not level_on_rating((clim or {}).get("ratings", {}).get(r["station"]), r["discharge"],
-                                                   r["level"], (clim or {}).get("ratingPadM")):
+        off_datum = "level" in have and not level_on_rating((clim or {}).get("ratings", {}).get(r["station"]),
+                                                            r["discharge"], r["level"], (clim or {}).get("ratingPadM"))
+        if off_datum:
             have = {k: v for k, v in have.items() if k != "level"}
         param = shown_parameter(have, r["discharge"], r["level"])
         ranked_at = rank_when(today_of[r["station"]])
@@ -936,6 +966,8 @@ def publish(out: Path, stations: list[str], clim: dict | None = None,
             "percentile": percentile_of(observed, band),
             # Which quantity `percentile` above is about — the station's own default.
             "parameter": param,
+            # (T830) what the reading carries, ranked or not (`live_quantities`): a level with no band is still a level
+            "reports": live_quantities(r["discharge"], r["level"], level_off_datum=off_datum),
             **per,
             "observedAt": r["at"],
             # THE DEGREES THEMSELVES, not only their percentile — and this is the one
@@ -989,6 +1021,7 @@ def publish(out: Path, stations: list[str], clim: dict | None = None,
 
         (out / f"{r['station']}.json").write_text(json.dumps({
             "format": FEED_FORMAT,
+            "minAppVersion": MIN_APP,      # (T676 item 2) every gauge file names the oldest app that reads it
             "fetchedAt": now.isoformat(timespec="seconds").replace("+00:00", "Z"),
             "station": r["station"],
             "now": {"discharge": r["discharge"], "level": r["level"], "at": r["at"],
@@ -1042,6 +1075,7 @@ def publish(out: Path, stations: list[str], clim: dict | None = None,
                                       previous=before, at=fetched_at, roster=roster)
     (out / "index.json").write_text(json.dumps({
         "format": FEED_FORMAT,
+        "minAppVersion": MIN_APP,
         "fetchedAt": fetched_at,
         # (T68) the newest forecast run's issue time, feed-wide, for the More tab's Forecasts line; null: no run held
         "forecastIssuedAt": newest_forecast_issue(forecast),
@@ -1102,10 +1136,12 @@ def main() -> None:
         print("  ⚠️  ECCC real-time station list unavailable; asking the roster's "
               f"{len(ids)} realtime stations", file=sys.stderr)
     if drift and (drift["joined"] or drift["left"]):
-        print(f"  ⚠️  ROSTER DRIFT: ECCC now lists {len(drift['joined'])} station(s) the roster "
+        print(f"  roster drift: ECCC now lists {len(drift['joined'])} station(s) the roster "
               f"calls silent ({', '.join(drift['joined'])}) and no longer lists "
-              f"{len(drift['left'])} it calls live ({', '.join(drift['left'])}).\n"
-              f"     The feed follows ECCC; the bundle follows the roster. Refresh with:\n"
+              f"{len(drift['left'])} it calls live ({', '.join(drift['left'])}); the feed follows ECCC, nothing to do.")
+    if drift and drift["unknown"]:
+        print(f"  ⚠️  NEVER-SEEN STATIONS: ECCC lists {len(drift['unknown'])} station(s) the roster has no row for "
+              f"({', '.join(drift['unknown'])}); no water can show them until they are matched. Refresh with:\n"
               f"       {roster_action(shown)}")
     if args.limit:
         ids = ids[: args.limit]

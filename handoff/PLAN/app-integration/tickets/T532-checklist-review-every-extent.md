@@ -1,6 +1,8 @@
 # T532 — Checklist review for every extent (DFO places and the regulations' own extents), one interface
 
-Status: IN REVIEW — owner looks
+Status: DONE — 75581bbe4, 4d266e1b2, d217da561, 34f8d3e27. The extents checklist (DFO places + regulation extents, one interface, one water at a time) through round 10; the owner accepted it as built and labelled every DFO place with it.
+
+Closed by the 2026-11-20 audit: OWNER-TODO 'ANSWERED 2026-11-12 (owner: close as answered / accept as built): Review app: the checklist is ready (T532, 2026-11-09)'; the owner then labelled all DFO places through it (STATUS 2026-11-15).
 
 Owner 2026-11-09, on the round-4 mockup (shots: scratchpad t525-r4-*.png; copied to shots/T532-mockup-*.png): "definitely
 better. need to make it play nice with entire list + future items when dfo adds new ones. also should have similar quality

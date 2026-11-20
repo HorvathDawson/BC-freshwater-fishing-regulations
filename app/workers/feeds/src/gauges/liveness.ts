@@ -31,11 +31,21 @@ export function stationsToAsk(roster: RosterRow[], listed: Set<string> | null): 
   return [roster.filter((s) => speaksNow(s)).map((s) => s.station).sort(), "roster"];
 }
 
-export function rosterDrift(roster: RosterRow[], listed: Set<string> | null): { joined: string[]; left: string[] } | null {
+/** liveness.roster_drift. `unknown` (T847): listed now, and no roster row at all — the only owner task; a known
+ *  station joining or leaving the list is followed by the feed with no refresh. */
+export interface RosterDrift {
+  joined: string[];
+  left: string[];
+  unknown: string[];
+}
+
+export function rosterDrift(roster: RosterRow[], listed: Set<string> | null): RosterDrift | null {
   if (listed === null) return null;
   const was = new Set(roster.filter((s) => speaksNow(s)).map((s) => s.station));
+  const held = new Set(roster.map((s) => s.station));
   return {
     joined: [...listed].filter((s) => !was.has(s)).sort(),
     left: [...was].filter((s) => !listed.has(s)).sort(),
+    unknown: [...listed].filter((s) => !held.has(s)).sort(),
   };
 }

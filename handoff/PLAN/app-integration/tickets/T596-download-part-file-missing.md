@@ -1,6 +1,6 @@
 # T596 — A release download fails with "NoSuchFileException … .sqlite.part"
 
-Status: IN REVIEW (845734782)
+Status: IN REVIEW — 845734782, ae308c372 (release install and prune run one at a time; the queue has no swallowing catch). The acceptance read is `GET /crashes`, which answers 403 without the RUN_TOKEN (checked 2026-11-20 on staging and production; the lane may not read the token). owner: OWNER-TODO "T595/T596 /crashes reads (run token)": he (or a session he gives the token) runs the two curls and records that kind 4219b587 has not come back on builds from 0.7.3.
 
 Source: worker `GET /crashes` 2026-11-10, kind 4219b587: once, the owner's phone (install c909e605), 0.7.0 build 22,
 2026-11-09 23:07 UTC, while taking release r-d14bdb180f55: `java.nio.file.NoSuchFileException:
@@ -21,3 +21,6 @@ Source: worker `GET /crashes` 2026-11-10, kind 4219b587: once, the owner's phone
 - The reproduction no longer files the error; the update finishes.
 
 Depends: —. Size: S. Owner: no.
+
+## L3 2026-11-20 read attempt
+`GET /crashes` answers HTTP 403 without the bearer RUN_TOKEN on staging (`bc-fishing-feeds-staging.horvath-dawson.workers.dev`) and production (`feeds.canifishthis.ca`); the token is a secret the lane does not read, so no crash read was made. The owner (or a session he gives the token) runs, per worker: `curl -H "Authorization: Bearer $RUN_TOKEN" "<worker>/crashes?since=2026-11-09"` and records: kind 4219b587 absent since 0.7.3.

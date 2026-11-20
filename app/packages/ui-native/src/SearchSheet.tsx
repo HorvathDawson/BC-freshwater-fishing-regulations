@@ -21,6 +21,10 @@
  * its top. The sheet follows the finger; past a third of its height or on a downward flick search closes, otherwise it
  * springs back. A drag that starts with the list scrolled down scrolls the list; upward from the top scrolls as usual.
  *
+ * (T858) ON THE WEB THE KEYBOARD MOVES THROUGH IT from the field: ↓ / ↑ move a highlight (`active`, drawn as the
+ * keyboard's ring) through the list's stops and back to the field, Enter presses the highlighted one, and the list
+ * scrolls to keep it in view (`listKeys.web.ts`, wired by `useShellSearch`). A phone has none of it.
+ *
  * Reduced motion: a cross-fade, no slide (`useReducedMotion`). Transforms and opacity only, on the native driver.
  *
  * Every decision — ranking, which water the map shows, the box, the sheet's height — is made in `@app/core` and
@@ -34,13 +38,14 @@
  *  - a town is a question about the ground, not a water: its row says so, in its colour (`palette.place`).
  */
 import { useEscapeCloses } from "./escapeCloses";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Animated, View, useWindowDimensions } from "react-native";
 import { FlatList, GestureDetector, usePanGesture, type PanGestureConfig } from "react-native-gesture-handler";
 import { Text } from "./Text";
 import { Pressable } from "./Pressable";
 import { SEARCH_BAR, type StatusIndex, bcNow } from "@app/core";
 import type { ItemId } from "@app/data";
+import type { StreamPlace } from "@app/data/regs/place";
 import { useBackLayer, useSheetDrag, type SearchAction, type SearchPick, type SearchSession } from "@app/ui";
 import { LoadingState } from "./LoadingState";
 import { Icon } from "./icons";
@@ -49,16 +54,19 @@ import { TOP_BAR, searchPanelWidth } from "./TopBar";
 import { TYPE } from "./type";
 import type { Palette } from "./theme";
 import { count } from "./format";
-import { sheetRows } from "./search/rows";
+import { sheetRows, type Row } from "./search/rows";
 import { SheetRow } from "./search/SheetRow";
 import { hitProps } from "./regs/hit";
+import { CoachScrollContext, useCoachScroller } from "./coachScroll";
+import { stopRow } from "./search/keys";
+import { resultsProps, revealStop } from "./search/listKeys";
 
 /** How far down the sheet sits at HALF: this share of its full height goes below the screen's edge. */
 export const HALF_DROP = 0.45;
 /** The transition's length, ms (F2–F3 of the approved frames: the dim and the rise together). */
 export const SHEET_MS = 240;
 
-export function SearchSheet({ open, top, palette, session, pick, onAct, onOpenWater, onClose, statusIndex, day = null, total, recents = [], onRecent, onClearRecents }: {
+export function SearchSheet({ open, top, palette, session, pick, onAct, onOpenWater, onOpenPlace, onClose, statusIndex, day = null, total, recents = [], onRecent, onClearRecents, active = null }: {
   /** Search is open (route `search`). Closed: the sheet slides (or fades) away and its rows go. */
   open: boolean;
   /**
@@ -76,6 +84,8 @@ export function SearchSheet({ open, top, palette, session, pick, onAct, onOpenWa
   onAct: (a: SearchAction) => void;
   /** The selected water row's open action: the water screen, through `openWater`. */
   onOpenWater: (item: ItemId) => void;
+  /** (T927) a boundary place's open action: its water, at the part holding the place */
+  onOpenPlace?: (item: ItemId, at: StreamPlace) => void;
   /** The day's status of each water (the index the map colours by); null: no row carries a status. */
   statusIndex: StatusIndex | null;
   /** The day the map is on (the picked day), null = today: the rows' status dots answer for THE SAME day (T620 G1). */
@@ -86,6 +96,8 @@ export function SearchSheet({ open, top, palette, session, pick, onAct, onOpenWa
   recents?: readonly string[];
   onRecent?: (q: string) => void;
   onClearRecents?: () => void;
+  /** (T858) the stop the web's keyboard highlights (`keyStops`), null: none (always, on a phone) */
+  active?: string | null;
 }) {
   const still = useReducedMotion();
   // a wide screen: the sheet is a panel under the bar, the map clear beside it
@@ -106,6 +118,13 @@ export function SearchSheet({ open, top, palette, session, pick, onAct, onOpenWa
   tall.current = height;
   const listTop = useRef(0);
   useEffect(() => { if (open) { pull.setValue(0); listTop.current = 0; } }, [open, pull]);
+  // (T842) the walkthrough's highlight on a row (the Vedder River) rides the list's scroll on the UI thread, and the walk
+  // may scroll the row into view (owner on 0.7.12: the box trailed a scroll; the row was under the keyboard and the card)
+  const coach = useCoachScroller();
+  // (T858) the list itself, for the keyboard's scroll to a highlighted row not drawn yet; the walkthrough's ref beside it
+  const list = useRef<FlatList<Row> | null>(null);
+  const coachRef = coach.ref;
+  const listRef = useCallback((n: FlatList<Row> | null) => { list.current = n; coachRef(n); }, [coachRef]);
   const phone = panel === null;
   const handlePull = usePanGesture(useMemo((): PanGestureConfig => ({
     runOnJS: true, disableReanimated: true, testID: "search-sheet-drag", enabled: phone,
@@ -142,8 +161,10 @@ export function SearchSheet({ open, top, palette, session, pick, onAct, onOpenWa
     run.start();
     return () => run.stop();
   }, [half, still, lowered]);
-  // back, everywhere (app/HANDOFF-ui.md): a town's list is a step inside search — back is its "← All results"
-  useBackLayer(open && pick.town !== null, () => onAct({ t: "back" }));
+  // (T730, owner 2026-11-16) back from a picked place closes search, as after a water (it used to step to the results
+  // with the text kept, and a second back closed): one back returns to the map. The on-screen "← All results" row still
+  // steps to the results (`act({ t: "back" })`, SheetRow)
+  useBackLayer(open && pick.town !== null, onClose);
   /*
    * ESCAPE CLOSES SEARCH ON A WIDE SCREEN, wherever the focus is (owner 2026-10-22 late): after a pick the field has
    * given up the focus, so the field's own Escape would no longer hear it. Typed or not, a town's list or not, it is
@@ -151,8 +172,17 @@ export function SearchSheet({ open, top, palette, session, pick, onAct, onOpenWa
    */
   useEscapeCloses(open && panel !== null, onClose);
 
-  if (!shown) return null;
   const rows = open ? sheetRows(pick, session, recents) : [];
+  // (T858) the highlighted stop kept in view: scrolled to where it is drawn, or (not drawn yet) to its row
+  const rowsNow = useRef(rows);
+  rowsNow.current = rows;
+  useEffect(() => {
+    if (active === null || revealStop(active)) return;
+    const index = stopRow(rowsNow.current, pick, active);
+    if (index >= 0) list.current?.scrollToIndex({ index, viewPosition: 0.5, animated: false });
+  }, [active, pick]);
+  const listData = useMemo(() => ({ pick, active }), [pick, active]);
+  if (!shown) return null;
   const drop = Math.round(height * HALF_DROP);
   const today = day ?? bcNow();
   const act = (a: SearchAction) => onAct(a);
@@ -164,7 +194,7 @@ export function SearchSheet({ open, top, palette, session, pick, onAct, onOpenWa
                               backgroundColor: palette.scrim,
                               opacity: Animated.multiply(gone.interpolate({ inputRange: [0, 1], outputRange: [1, 0] }),
                                                          lowered.interpolate({ inputRange: [0, 1], outputRange: [1, 0] })) }} />
-      <Animated.View testID={`search-sheet-${session.size}`}
+      <Animated.View testID={`search-sheet-${session.size}`} {...resultsProps()}
                      onLayout={(e) => setHeight(e.nativeEvent.layout.height)}
                      style={{ position: "absolute", top: top + 8, bottom: 0,
                               ...(panel === null ? { left: 0, right: 0 }
@@ -212,7 +242,9 @@ export function SearchSheet({ open, top, palette, session, pick, onAct, onOpenWa
             {/* (T440's lesson) a real view between the pan's detector and the list's own: drawn as its direct child, Android
                 left the list out of the accessibility tree */}
             <View testID="search-list-frame" collapsable={false} style={{ flex: 1 }}>
+              <CoachScrollContext.Provider value={coach.scroller}>
               <FlatList
+                ref={listRef}
                 testID="search-list"
                 data={rows}
                 keyExtractor={(r) => r.key}
@@ -220,16 +252,19 @@ export function SearchSheet({ open, top, palette, session, pick, onAct, onOpenWa
                 // the list's own scroll runs beside the pull (neither cancels the other); `bounces` off: at the top a
                 // downward pull moves the sheet, not an iOS overscroll of the list
                 simultaneousWith={listPull} bounces={false} scrollEventThrottle={16}
-                onScroll={(e) => { listTop.current = e.nativeEvent.contentOffset.y; }}
+                onScroll={(e) => { listTop.current = e.nativeEvent.contentOffset.y; coach.track(listTop.current); }}
                 // at half the sheet's lower part is below the screen's edge: the list ends where the screen does
                 contentContainerStyle={{ paddingBottom: half ? drop : 0 }}
-                extraData={pick}
+                extraData={listData}
+                // (T858) a highlighted row past what is drawn: near it by the rows' average height, then drawn and revealed
+                onScrollToIndexFailed={(f) => list.current?.scrollToOffset({ offset: f.averageItemLength * f.index, animated: false })}
                 renderItem={({ item: r }) => (
-                  <SheetRow r={r} palette={palette} pick={pick} act={act} onOpenWater={onOpenWater}
+                  <SheetRow r={r} palette={palette} pick={pick} act={act} onOpenWater={onOpenWater} onOpenPlace={onOpenPlace}
                             statusIndex={statusIndex} today={today} onRecent={onRecent}
-                            onClearRecents={onClearRecents} />
+                            onClearRecents={onClearRecents} active={active} />
                 )}
               />
+              </CoachScrollContext.Provider>
             </View>
           </GestureDetector>
         )}

@@ -6,6 +6,7 @@
  */
 import { deflateSync } from "fflate";
 import { describe, expect, it } from "vitest";
+import { KNOWN_VERSIONS, REGS_FORMATS, SECTION_NAMES } from "@app/core";
 import { openInMemory } from "../sql/drivers/node";
 import type { Db } from "../sql/db";
 import type { Manifest } from "../manifest";
@@ -16,7 +17,10 @@ const X = (v: unknown) => `X'${Buffer.from(typeof v === "string" ? v : JSON.stri
 const H = "aaaaaaaaaaaaaaaa", R = "bbbbbbbbbbbbbbbb", I = "cccccccccccccccc";
 const META = (rows: Record<string, string>) => "CREATE TABLE meta (k TEXT PRIMARY KEY, v TEXT NOT NULL);" +
   Object.entries(rows).map(([k, v]) => `INSERT INTO meta VALUES ('${k}', '${v}');`).join("");
-const VERSIONS = { ladder: 1, rows: 33, gear: 12, licence: 7, display: 20 };
+/** The section versions this app reads (T810 S: from `KNOWN_VERSIONS`, never retyped: rows 34, trout required). */
+const VERSIONS: Record<string, number> = Object.fromEntries(SECTION_NAMES.map((n) => [n, KNOWN_VERSIONS[n]]));
+/** (T810 S, F0) the page's possession row a rows 34 frame carries in its sixth slot */
+const PAGE_POSSESSION = { lead: { says: "Possession: 2 days’ quota.", value: "2 days’ quota", src: 0 }, also: [] };
 const FISH = ["BB", "CT", "RB"];
 const MOMENTS = [{ weekdays: ["Monday"], hours: null }, { weekdays: ["Sunday"], hours: null }];
 const STATICS: Record<string, unknown> = {
@@ -35,8 +39,8 @@ const DICT = Buffer.from(JSON.stringify(RULE));
 
 /** Two regions; akey 1 → region 1, akey 2 → region 2. Frame id 5 exists in BOTH region files with DIFFERENT content,
  *  so a read routed to the wrong file is seen. regs-sid: handle 4097 (block 1, slot 1) → akey 2, place 0. */
-function seed(o: { noTidal?: boolean; badCells?: boolean; ruleGap?: boolean; noDict?: boolean; badStrip?: boolean; tidalPart?: boolean; lengths?: boolean;
-                   partLine?: boolean; alias?: boolean } = {}) {
+function seed(o: { alien?: boolean; noTidal?: boolean; badCells?: boolean; ruleGap?: boolean; noDict?: boolean; badStrip?: boolean; tidalPart?: boolean; lengths?: boolean;
+                   partLine?: boolean; alias?: boolean; notes?: "rows" | "badShape" | "noWords" } = {}) {
   const asked: string[] = [];
   const spy = (name: string, d: Db): Db => ({
     all: (q, ...p) => { asked.push(`${name}: ${q.split(" FROM ")[1]?.split(" ")[0]}`); return d.all(q, ...p); },
@@ -92,22 +96,22 @@ function seed(o: { noTidal?: boolean; badCells?: boolean; ruleGap?: boolean; noD
     INSERT INTO place VALUES (0, '["2"]', 6, '{"stream":"Unnamed stream · Region 2","lake":"Unnamed lake · Region 2"}');
   `);
   const FRAMES = `
-    CREATE TABLE cell (akey INTEGER, s INTEGER, ladder INTEGER, rows INTEGER, gear INTEGER, licence INTEGER, display INTEGER);
+    CREATE TABLE cell (akey INTEGER, s INTEGER, ladder INTEGER, rows INTEGER, gear INTEGER, licence INTEGER, display INTEGER, trout INTEGER);
     CREATE TABLE ladder_frame (id INTEGER PRIMARY KEY, j BLOB); CREATE TABLE ladder_verdict (id INTEGER PRIMARY KEY, j BLOB);
     CREATE TABLE rows_frame (id INTEGER PRIMARY KEY, j BLOB); CREATE TABLE rows_decided (id INTEGER PRIMARY KEY, j BLOB);
     CREATE TABLE rows_row (id INTEGER PRIMARY KEY, j BLOB); CREATE TABLE gear_frame (id INTEGER PRIMARY KEY, j BLOB);
     CREATE TABLE licence_frame (id INTEGER PRIMARY KEY, j BLOB); CREATE TABLE licence_hold (id INTEGER PRIMARY KEY, j BLOB);
     CREATE TABLE licence_doc (id INTEGER PRIMARY KEY, j BLOB); CREATE TABLE licence_answer (id INTEGER PRIMARY KEY, j BLOB);
     CREATE TABLE licence_u16 (id INTEGER PRIMARY KEY, j BLOB); CREATE TABLE display_frame (id INTEGER PRIMARY KEY, j BLOB);`;
-  const region = (r: string, extra: string) => openInMemory("", META({ format: "regs-region/1", region: r, section_handles: H,
+  const region = (r: string, extra: string) => openInMemory("", META({ format: REGS_FORMATS.region, region: r, section_handles: H,
     reach_digest: R, rule_ids_sha256: I }) + FRAMES + extra);
   const regs2 = region("2", `
-    INSERT INTO cell VALUES ${o.badCells ? "(2, 1, 5, 5, 5, 5, 5)" : "(2, 0, 5, 5, 5, 5, 5), (2, 1, 5, 6, 5, 6, 6)"};
+    INSERT INTO cell VALUES ${o.badCells ? "(2, 1, 5, 5, 5, 5, 5, NULL)" : "(2, 0, 5, 5, 5, 5, 5, NULL), (2, 1, 5, 6, 5, 6, 6, NULL)"};
     INSERT INTO ladder_frame VALUES (5, ${X([10, [[2, 11], [1, 12, 13, 14]]])});
     INSERT INTO ladder_verdict VALUES (10, ${X([[0], [], [], [], [], []])}), (11, ${X([[1], [], [], [], [[1, [0]]], []])}),
       (12, ${X([[], [1], [], [], [], []])}), (13, ${X([[], [], [1], [], [], []])}), (14, ${X([[], [], [], [], [], [[1, 0, 0]]])});
-    INSERT INTO rows_frame VALUES (5, ${X([["RB", "CT"], { RB: [7, null, "hatchery"], CT: [null, 8, "wild"] }, [3, 4, 3], "known_with_rules", [0, 1, 1]])}),
-      (6, ${X([[], {}, [], null, []])})${o.badStrip ? `, (9, ${X([[], {}, [3], null, [2]])}), (10, ${X([[], {}, [3, 4], null, [0]])}), (11, ${X([["RB"], { RB: [7, null] }, [], null, []])})` : ""};
+    INSERT INTO rows_frame VALUES (5, ${X([["RB", "CT"], { RB: [7, null, "hatchery"], CT: [null, 8, "wild"] }, [3, 4, 3], "known_with_rules", [0, 1, 1], PAGE_POSSESSION])}),
+      (6, ${X([[], {}, [], null, [], null])}), (13, ${X([["RB"], { RB: [7, 8, "hatchery"] }, [], null, [], null])})${o.badStrip ? `, (9, ${X([[], {}, [3], null, [2], null])}), (10, ${X([[], {}, [3, 4], null, [0], null])}), (11, ${X([["RB"], { RB: [7, null] }, [], null, [], null])}), (12, ${X([[], {}, [], null, []])})` : ""};
     INSERT INTO rows_decided VALUES (7, ${X({ status: "keep", win: 0 })}), (8, ${X({ status: "release", win: 1 })});
     INSERT INTO rows_row VALUES (3, ${X({ kind: "keep", pool: 0 })}), (4, ${X({ kind: "closed", pool: null })});
     INSERT INTO gear_frame VALUES (5, ${X({ summary: "g", counts: {} })});
@@ -116,10 +120,13 @@ function seed(o: { noTidal?: boolean; badCells?: boolean; ruleGap?: boolean; noD
     INSERT INTO licence_doc VALUES (1, ${X([3, 4, 3])});
     INSERT INTO licence_answer VALUES (3, ${X({ need: "a" })}), (4, ${X({ need: "b" })});
     INSERT INTO licence_u16 VALUES (2, ${X([{ residency: "resident" }])});
+    ${o.alien ? `CREATE TABLE licence_alien (id INTEGER PRIMARY KEY, j BLOB);
+      INSERT INTO licence_alien VALUES (0, ${X([{ rule: 41, says: "Closed to aliens on weekends" }, { rule: 7, says: "Closed to aliens Aug" }])});
+      INSERT INTO licence_frame VALUES (7, ${X([0, 1, 2, 0])});` : ""}
     INSERT INTO display_frame VALUES (5, ${X({ status: "own", closing: [], strip: 0 })}),
       (6, ${X({ status: "tidal", tidal: true, note: "n", see: "s", licence: null })});`);
   const regs1 = region("1", `
-    INSERT INTO cell VALUES (1, 0, 5, 5, 5, 5, 5), (1, 1, 5, 5, 5, 5, 5);
+    INSERT INTO cell VALUES (1, 0, 5, 5, 5, 5, 5, NULL), (1, 1, 5, 5, 5, 5, 5, NULL);
     INSERT INTO display_frame VALUES (5, ${X({ status: "closed", closing: [[0, ["RB"]]], strip: 1 })});`);
   // handle 4097 = block 1, slot 1: akey bytes [2, 0] at offset 2 (little-endian 2), place byte 1 at offset 1 (place 0)
   const akeyBlock = Buffer.alloc(8192); akeyBlock[2] = 2; akeyBlock[3] = 0; akeyBlock[8191] = 1;   // slot 4095 → akey 256
@@ -133,7 +140,15 @@ function seed(o: { noTidal?: boolean; badCells?: boolean; ruleGap?: boolean; noD
     CREATE TABLE section_tidal (block INTEGER PRIMARY KEY, b BLOB);
     INSERT INTO section_tidal VALUES (1, X'${tidalBlock.toString("hex")}');`));
   const core = openInMemory("", "CREATE TABLE item (ord INTEGER PRIMARY KEY, item_id TEXT UNIQUE); INSERT INTO item VALUES (3, 'gnis:1');"
-    + (o.alias ? "CREATE TABLE item_alias (alias TEXT PRIMARY KEY, item_id TEXT NOT NULL); INSERT INTO item_alias VALUES ('wbk:9', 'gnis:1');" : ""));
+    + (o.alias ? "CREATE TABLE item_alias (alias TEXT PRIMARY KEY, item_id TEXT NOT NULL); INSERT INTO item_alias VALUES ('wbk:9', 'gnis:1');" : "")
+    // (T796) core section_note: the release's own DDL (`rows`); present but not the contract's shape, or a note with no
+    // words — a damaged release, said, never read as "no notes"
+    + (o.notes === "rows" ? "CREATE TABLE section_note (sid INTEGER PRIMARY KEY, note TEXT NOT NULL) WITHOUT ROWID; "
+         + "INSERT INTO section_note VALUES (4098, 'Mostly outside Gladys Lake Ecological Reserve: its closure (rule book p.9) does not apply here.'), "
+         + "(20, 'Mostly outside Tow Hill Ecological Reserve: its closure (rule book p.9) does not apply here.');"
+       : o.notes === "badShape" ? "CREATE TABLE section_note (sid INTEGER PRIMARY KEY, words TEXT);"
+       : o.notes === "noWords" ? "CREATE TABLE section_note (sid INTEGER PRIMARY KEY, note TEXT); INSERT INTO section_note VALUES (20, NULL);"
+       : ""));
   const dbs: Record<string, Db> = { water: spy("water", water), "regs-1": spy("regs-1", regs1), "regs-2": spy("regs-2", regs2),
                                     "regs-sid": spy("regs-sid", sid), core: spy("core", core) };
   const regionOf: Record<number, string> = { 1: "1", 2: "2" };
@@ -218,6 +233,28 @@ describe("reads over water", () => {
     expect(asked).toEqual(["core: item", "core: item", "core: sqlite_master"]);
   });
 
+  it("(T796) sectionNotes: core section_note whole, by sid, once; a core cut before the table (asked of sqlite_master) has none", async () => {
+    const { loader, asked } = seed({ notes: "rows" });
+    const st = await openRegsStore(loader);
+    asked.length = 0;
+    expect([...(await st.sectionNotes())]).toEqual([
+      [20, "Mostly outside Tow Hill Ecological Reserve: its closure (rule book p.9) does not apply here."],
+      [4098, "Mostly outside Gladys Lake Ecological Reserve: its closure (rule book p.9) does not apply here."]]);
+    await st.sectionNotes();
+    expect(asked).toEqual(["core: sqlite_master", "core: section_note"]);          // read once
+    const old = seed();
+    const none = await openRegsStore(old.loader);
+    old.asked.length = 0;
+    expect((await none.sectionNotes()).size).toBe(0);
+    expect(old.asked).toEqual(["core: sqlite_master"]);                             // absent: never read, never caught
+  });
+
+  it("(T796) sectionNotes: a table that IS there but cannot be read, or a note with no words, fails said — never no notes", async () => {
+    await expect((await openRegsStore(seed({ notes: "badShape" }).loader)).sectionNotes()).rejects.toThrow(/note/);
+    await expect((await openRegsStore(seed({ notes: "noWords" }).loader)).sectionNotes())
+      .rejects.toThrow(new RegsStoreError("damaged", "regs store: core section_note 20 has no note"));
+  });
+
   it("(T555) itemOrd follows core.item_alias: an absorbed id is the ord of the water it became; a gone id is still null", async () => {
     const { loader } = seed({ alias: true });
     const st = await openRegsStore(loader);
@@ -259,9 +296,10 @@ describe("cells and frames: routed to the key's region file", () => {
     const { loader, asked } = seed();
     const st = await openRegsStore(loader);
     asked.length = 0;
-    expect(await st.cell(2, 1)).toEqual({ ladder: 5, rows: 6, gear: 5, licence: 6, display: 6 });
-    expect(await st.cells(2)).toEqual([{ ladder: 5, rows: 5, gear: 5, licence: 5, display: 5 },
-                                       { ladder: 5, rows: 6, gear: 5, licence: 6, display: 6 }]);
+    // (T810 S) the trout table's id is a cell column like the others; a NULL one (no table here, Q-D3) is null, never 0
+    expect(await st.cell(2, 1)).toEqual({ ladder: 5, rows: 6, gear: 5, licence: 6, display: 6, trout: null });
+    expect(await st.cells(2)).toEqual([{ ladder: 5, rows: 5, gear: 5, licence: 5, display: 5, trout: null },
+                                       { ladder: 5, rows: 6, gear: 5, licence: 6, display: 6, trout: null }]);
     expect(await st.display(1, 5)).toEqual({ status: "closed", closing: [[0, ["RB"]]], strip: 1 });
     expect(asked.filter((a) => a.startsWith("regs-")))
       // (T286) a key's cells are read whole, once: `cell` and `cells` share that read
@@ -287,7 +325,8 @@ describe("cells and frames: routed to the key's region file", () => {
       fish: { RB: { hatchery: { status: "keep", win: 0 }, wild: null, lead: "hatchery" }, CT: { hatchery: null, wild: { status: "release", win: 1 }, lead: "wild" } },
       // row 3 twice, with two strips: the stored row has no year, the frame's fifth slot names it (rows 30)
       rows: [{ kind: "keep", pool: 0, year: SPLIT }, { kind: "closed", pool: null, year: NONE }, { kind: "keep", pool: 0, year: NONE }],
-      steelhead_line: "known_with_rules" });
+      steelhead_line: "known_with_rules", page_possession: PAGE_POSSESSION });
+    expect((await st.rows(2, 6)).page_possession).toBeNull();      // (T810 S, F0) the sixth slot as stored: null or the row
     expect(got.rows.map((r) => Object.keys(r))).toEqual([["kind", "pool", "year"], ["kind", "pool", "year"], ["kind", "pool", "year"]]);
     expect(got.rows[1]!.year).toBe(got.rows[2]!.year);              // one strip, one value: identical strips share
   });
@@ -300,6 +339,9 @@ describe("cells and frames: routed to the key's region file", () => {
     // rows 33 (T161): a fish held as [h, w] — no stored leading origin — is damaged, never re-picked here
     await expect(st.rows(2, 11)).rejects.toThrow(
       new RegsStoreError("damaged", "regs store: rows frame 11 holds RB as [7,null], not [h, w, lead]"));
+    // rows 34 (T810 S, F0): a frame with no sixth slot (a rows 33 frame) is damaged, never read as "no possession row"
+    await expect(st.rows(2, 12)).rejects.toThrow(
+      new RegsStoreError("damaged", "regs store: rows frame 12 has no page_possession slot (rows 34, F0)"));
   });
 
   it("licence: holds, the document's answers in order, under_16 only when the frame has it", async () => {
@@ -307,6 +349,19 @@ describe("cells and frames: routed to the key's region file", () => {
     expect(await st.licence(2, 5)).toEqual({ holds: { holds: ["basic"] }, profiles: [{ need: "a" }, { need: "b" }, { need: "a" }],
       under_16: [{ residency: "resident" }] });
     expect(await st.licence(2, 6)).toEqual({ holds: { holds: ["basic"] }, profiles: [{ need: "a" }, { need: "b" }, { need: "a" }] });
+  });
+
+  it("(T789 G8) licence: the 4th index is the part's alien_closures (licence_alien), in order; a store without the table reads as before", async () => {
+    const st = await openRegsStore(seed({ alien: true }).loader);
+    expect(await st.licence(2, 7)).toEqual({ holds: { holds: ["basic"] }, profiles: [{ need: "a" }, { need: "b" }, { need: "a" }],
+      under_16: [{ residency: "resident" }],
+      alien_closures: [{ rule: 41, says: "Closed to aliens on weekends" }, { rule: 7, says: "Closed to aliens Aug" }] });
+    // a frame without the 4th index, in a store that holds the table: no alien_closures key at all
+    expect(await st.licence(2, 5)).not.toHaveProperty("alien_closures");
+    // a release cut before the table (the live r-46e4355a7277): its frames carry 3 indexes, read as before, no error
+    const old = await openRegsStore(seed().loader);
+    expect(await old.licence(2, 5)).toEqual({ holds: { holds: ["basic"] }, profiles: [{ need: "a" }, { need: "b" }, { need: "a" }],
+      under_16: [{ residency: "resident" }] });
   });
 
   it("gear and display ARE the frame (FrameCodec); frames() reads one cell's five", async () => {
@@ -328,6 +383,20 @@ describe("cells and frames: routed to the key's region file", () => {
     expect(asked.filter((a) => a === "regs-2: rows_row")).toEqual(["regs-2: rows_row"]);   // ids 3, 4 in one read (T286)
     const bad = await openRegsStore(seed({ badCells: true }).loader);
     await expect(bad.cells(2)).rejects.toThrow(new RegsStoreError("damaged", "regs store: akey 2's cells are out of sequence"));
+  });
+
+  it("(T286, 0.8.0) a ladder's verdicts, common and rows, are ONE read; a fish's hatchery and wild decided rows are ONE read", async () => {
+    // an `await` on the common verdict (or on the hatchery row) before asking the rest held them into a second batch:
+    // one more native round trip on every tap (the live Cultus Lake page took 31 calls against its budget of 30)
+    const { loader, asked } = seed();
+    const st = await openRegsStore(loader);
+    await Promise.all([st.region(2), st.statics()]);
+    asked.length = 0;
+    await st.ladder(2, 5);
+    expect(asked).toEqual(["regs-2: ladder_frame", "regs-2: ladder_verdict"]);
+    asked.length = 0;
+    expect((await st.rows(2, 13)).fish).toEqual({ RB: { hatchery: { status: "keep", win: 0 }, wild: { status: "release", win: 1 }, lead: "hatchery" } });
+    expect(asked.filter((a) => a.startsWith("regs-"))).toEqual(["regs-2: rows_frame", "regs-2: rows_decided"]);
   });
 });
 

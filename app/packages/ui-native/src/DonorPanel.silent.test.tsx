@@ -6,7 +6,7 @@
  * worse, in a colour that is not the one its gauge-switch chip wears.
  */
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { cleanup, render, screen } from "@testing-library/react";
+import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import type { MapProps } from "@app/map";
 import type { DonorRow, PanelAnswer } from "@app/ui";
 import { LIGHT } from "./theme";
@@ -42,6 +42,7 @@ describe("the gauge table and its route map, with a silent member", () => {
   it("draws neither a row nor a pin for it, and each shown row is its pin's colour", () => {
     render(<DonorPanel palette={LIGHT} value={VALUE} day={new Date(2026, 8, 4, 12)} at={{ atlas: "a", basemap: "b" }}
                        theme="light" />);
+    fireEvent.click(screen.getByTestId("gauges-fold").querySelector("[role=button]")!);
     expect(screen.queryByText("08S")).toBeNull();
     expect(screen.getByText("Not reporting: 08S (last report not known)")).toBeTruthy();
     const pins = seen.at(-1)!.trace!.pins.filter((p) => p.kind === "gauge");

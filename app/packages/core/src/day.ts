@@ -7,7 +7,7 @@
  * LOCAL, NOT UTC, throughout. A spot fished at 6 p.m. in Vancouver on the 30th is in UTC on the 31st, and the list
  * used to say so; the reader's day is the only day a reader means.
  */
-import { BC_TIME_LABEL, bcOffsetHours } from "./clock";
+import { BC_TIME_LABEL, bcOffsetHours, now as clockNow } from "./clock";
 import { reportOnce } from "./failure";
 import { monthAbbr, weekdayAbbr } from "./flow";
 
@@ -126,14 +126,43 @@ export function bcDayWords(ms: number, weekday = false): string {
   return `${weekday ? `${weekdayAbbr(w.getUTCDay())}, ` : ""}${monthAbbr(w.getUTCMonth())} ${w.getUTCDate()}`;
 }
 export const bcWeekdayAbbr = (ms: number): string => weekdayAbbr(bcWall(ms).getUTCDay());
-export function bcStampWords(ms: number): string {
+/** (T908) "9:20 a.m. PT": the B.C. clock alone */
+export function bcClockWords(ms: number): string {
   const f = bcFields(ms);
-  return `${bcDayWords(ms)}, ${f.hour % 12 || 12}:${pad2(f.minute)} ${f.hour < 12 ? "a.m." : "p.m."} ${BC_TIME_LABEL}`;
+  return `${f.hour % 12 || 12}:${pad2(f.minute)} ${f.hour < 12 ? "a.m." : "p.m."} ${BC_TIME_LABEL}`;
+}
+export function bcStampWords(ms: number): string {
+  return `${bcDayWords(ms)}, ${bcClockWords(ms)}`;
 }
 /** "Mon, Nov 9": a CALENDAR day ("YYYY-MM-DD"), said as that day (parsed at B.C. noon, so no zone moves it). */
 export function bcIsoDayWords(isoDay: string): string {
   return bcDayWords(bcMidnight(isoDay) + 12 * HOUR_MS, true);
 }
+
+/**
+ * (T819 item 10, owner-picked) THE SPOTS' ONE DATE STYLE: "Sun 15 Nov, 5 pm" — a spot, a visit, an observation, a list
+ * row, a week-before day — on the B.C. clock. The spots said a date four ways ("2026-11-15 at 21:37", "Sun Nov 15 2026",
+ * "15 Nov", "Sun 15"); every one now comes from here.
+ *   spotDay    "Sun 15 Nov", and the year when it is not `ref`'s: "Sun 15 Nov 2025"
+ *   spotHour   "5 pm", "12 am", "9:37 pm" (minutes only when there are any)
+ *   spotStamp  "Sun 15 Nov, 5 pm"
+ * `ref` (default the clock's now) only decides whether the year is said.
+ */
+export function spotDay(ms: number, ref: number = clockNow()): string {
+  const w = bcWall(ms);
+  const year = w.getUTCFullYear() === bcWall(ref).getUTCFullYear() ? "" : ` ${w.getUTCFullYear()}`;
+  return `${weekdayAbbr(w.getUTCDay())} ${w.getUTCDate()} ${monthAbbr(w.getUTCMonth())}${year}`;
+}
+/** A CALENDAR day ("YYYY-MM-DD") in the spots' style, read at B.C. noon so no zone moves it: "Sun 15 Nov". */
+export const spotIsoDay = (isoDay: string, ref?: number): string => spotDay(bcMidnight(isoDay) + 12 * HOUR_MS, ref);
+export function spotHour(ms: number): string {
+  const f = bcFields(ms);
+  return hourWords(f.hour, f.minute);
+}
+/** An hour of the clock, 0–23 (and its minute), in the spots' words: "5 pm", "12 am", "9:37 pm". */
+const hourWords = (hour: number, minute = 0): string =>
+  `${hour % 12 || 12}${minute ? `:${pad2(minute)}` : ""} ${hour < 12 ? "am" : "pm"}`;
+export const spotStamp = (ms: number, ref?: number): string => `${spotDay(ms, ref)}, ${spotHour(ms)}`;
 
 /** The B.C. hour of an instant, 0–23. */
 export function bcHour(ms: number): number {
@@ -252,9 +281,9 @@ export interface VisitSteps {
   laterHour: boolean;
   /** The visit's B.C. hour, 0-23. */
   hour: number;
-  /** "09:00" */
+  /** "9 am" (T819: the spots' one style, `spotHour`) */
   hourLabel: string;
-  /** "Sun Aug 30 2026" */
+  /** "Sun 30 Aug" (T819: `spotDay`) */
   dayText: string;
 }
 
@@ -268,9 +297,9 @@ export function visitSteps(at: number, now: number): VisitSteps {
     earlierHour: h > 0,
     laterHour: h < 23 && setVisitHour(at, h + 1, Infinity) <= now,
     hour: h,
-    hourLabel: `${pad2(h)}:00`,
-    // Date#toDateString's shape, on the B.C. clock; the names are the one table (flow.ts)
-    dayText: `${weekdayAbbr(w.getUTCDay())} ${monthAbbr(w.getUTCMonth())} ${pad2(w.getUTCDate())} ${w.getUTCFullYear()}`,
+    // (T819 item 10) the spots' one style: "9 am" on the hour, "Sun 30 Aug" (the year only when it is not this one)
+    hourLabel: hourWords(h),
+    dayText: spotDay(at, now),
   };
 }
 

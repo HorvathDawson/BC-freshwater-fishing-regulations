@@ -122,6 +122,7 @@ CLASSIFIED = {
     "pipeline/deliver/__main__.py": "the deliver out dir and release staging",
     "pipeline/deliver/bundle/build.py": "continuations_held.json beside the bundle",
     "pipeline/deliver/sync_inputs.py": "copies curated inputs INTO a staging dir (reads curated)",
+    "pipeline/regs/classified_waters.py": "T841: --write-pins writes its pins file beside the module (reads the corpus)",
     # --- tools whose outputs are generated (review inputs, feeds, proposals, worklists)
     "pipeline/bathymetry/contours.py": "generated bathymetry contours",
     "pipeline/bathymetry/propose.py": "generated bathymetry proposals",
@@ -131,6 +132,7 @@ CLASSIFIED = {
     "pipeline/regs/dfo_salmon/suggest.py": "generated review inputs",
     "pipeline/regs/parsing/batch_exporter.py": "the parse work dir (generated)",
     "pipeline/regs/parsing/ingest_catalogue.py": "its ledger in the parse work dir; curated via write_entryfile (the writer)",
+    "pipeline/regs/review/audit.py": "the read-only marks audit's report at --out (md + json beside it)",
     "pipeline/regs/review/precheck.py": "json to stdout",
     "pipeline/regs/review/proposals.py": "side copies outside the curated tree (write_side refuses curated) + the proposals dir",
     "pipeline/regs/review/split_suggest.py": "generated review input",

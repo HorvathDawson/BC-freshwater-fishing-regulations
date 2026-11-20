@@ -1,14 +1,13 @@
 /**
  * T481 (owner 2026-11-07, "here-max + one breadcrumb") — core's half over the store's new fields (`water_max`, a tier's
- * `short`, an own tier's `within` / `fish`; pipeline test_answers_t481_pin.py pins them): the group line a Keep group pins,
- * "Fishing more than one water today? ›" under the region's total, and its sheet in the water's own numbers.
- * Pins: the Vedder's line names the true most and nothing in it adds up to more; no link under a water's own total.
+ * `short`, an own tier's `within` / `fish`; pipeline test_answers_t481_pin.py pins them): "Fishing more than one water
+ * today? ›" under the region's total, and its sheet in the water's own numbers; no link under a water's own total.
+ * (T810 cutover) The pin bar's group line left with the bar (owner 2026-11-17 23:29).
  */
 import { describe, expect, it } from "vitest";
 import type { GroupTotal, TreeTier } from "../answers.generated";
 import { groupHeadOf, headCtx } from "./grouphead";
 import type { KeepEnv } from "./keep";
-import { groupLine } from "./pins";
 import type { SheetCtx } from "./model";
 import { parseSheetKey } from "./sheetKey";
 import { sheetLines, sheetOf } from "./sheets";
@@ -23,24 +22,6 @@ const sheetCtx = (g: GroupTotal): SheetCtx => {
   return { inp: ctx.inp, page: {} as SheetCtx["page"], today: { m: 10, d: 10 } as unknown as SheetCtx["today"],
     env: { card: ctx.card } as unknown as KeepEnv } as SheetCtx;
 };
-
-describe("T481 the group line: the water's limit", () => {
-  it("the Vedder: the true most leads, the share and the exception's fish inside it; both tiers are said", () => {
-    const l = groupLine("Trout and char", VEDDER());
-    expect(l.text).toBe("Trout and char · 4 a day — up to 2 of any kind, the rest hatchery rainbow");
-    expect(l.said).toEqual([SHARE481.id, OWN481.id]);
-    const nums = [...l.text.matchAll(/\b(\d+)\b/g)].map((m) => +m[1]!);
-    expect(Math.max(...nums)).toBeLessThanOrEqual(4);
-  });
-  it("mutation: the exception tier gone, the share leads alone", () => {
-    expect(groupLine("Trout and char", VEDDER({ tree: [{ ...ROOT, children: [SHARE481] }], water_max: 2 })).text)
-      .toBe("Trout and char · 2 a day from streams");
-  });
-  it("mutation: a store with no water_max cannot overstate (the root's number)", () => {
-    expect(groupLine("Trout and char", VEDDER({ water_max: undefined })).text)
-      .toBe("Trout and char · 4 a day — up to 2 of any kind, the rest hatchery rainbow");
-  });
-});
 
 describe("T481 the region's total, said once: \"Fishing more than one water today? ›\"", () => {
   it("under the region's total, opening the row's multi sheet", () => {

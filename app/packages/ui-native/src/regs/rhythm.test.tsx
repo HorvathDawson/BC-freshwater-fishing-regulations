@@ -35,12 +35,14 @@ describe("R1 — a ✓ / ✕ row keeps the prototype's line boxes (Gear's bait l
   it("strut 16.22 px, name run 19.5 px, note run 16.22 px — the note no longer inherits the name's line", () => {
     render(<GearTab vm={(vedder1010 as unknown as RegsPage).gear as GearVM} palette={LIGHT} actions={NO} />);
     const rows = screen.getAllByTestId("yesno-item");
+    // (T922) roe says only its name; "Water insects and crayfish" carries a note, each its own bullet item
     const roe = rows.find((r) => r.textContent!.startsWith("Roe (fish eggs)"))!;
-    expect([roe.textContent, lh(roe)]).toEqual(["Roe (fish eggs)\nthe fish or fish parts ban excepts it", "16.22px"]);
+    expect([roe.textContent, lh(roe)]).toEqual(["Roe (fish eggs)", "16.22px"]);
     expect([within(roe).getByTestId("yesno-name").textContent, lh(within(roe).getByTestId("yesno-name"))])
       .toEqual(["Roe (fish eggs)", "19.5px"]);
-    expect([within(roe).getByTestId("yesno-note").textContent, lh(within(roe).getByTestId("yesno-note"))])
-      .toEqual(["\nthe fish or fish parts ban excepts it", "16.22px"]);
+    const ins = rows.find((r) => r.textContent!.startsWith("Water insects"))!;
+    const note = ins.parentElement!.querySelector('[data-testid="yesno-note"]')!;
+    expect([note.textContent, lh(note.lastElementChild!)]).toEqual(["•On streams.", "16.22px"]);
     // every row, not only the one read: the same three line boxes
     expect([...new Set(rows.map((r) => lh(r)))]).toEqual(["16.22px"]);
     expect([...new Set(rows.map((r) => lh(within(r).getByTestId("yesno-name"))))]).toEqual(["19.5px"]);

@@ -48,7 +48,7 @@ export function mapProblems(ns, { day = 'today', mode = 'trout' } = {}) {
     ...need(ns.some((n) => /^Showing a Map/.test(n.desc)), 'no map on screen'),
     ...need(pick && new RegExp(`Map coloured for ${day}\\b`, 'i').test(pick.desc), `the map is not coloured for ${day} (${pick?.desc ?? 'no day picker'})`),
     ...(mode === 'trout' ? need(/Own rules/.test(t) && !/Keep salmon/.test(t), 'the map is not in trout mode (legend)')
-      : need(/Keep salmon/.test(t) && /DFO rules checked/.test(t), 'the map is not in salmon mode (no "Keep salmon" / "DFO rules checked" legend)')),
+      : need(/Keep salmon/.test(t) && /Release only/.test(t) && !/Own rules/.test(t), 'the map is not in salmon mode (no "Keep salmon" / "Release only" legend, or "Own rules" still there)')),
   ];
 }
 
@@ -64,8 +64,8 @@ export function regsProblems(ns, water) {
   ];
 }
 
-/** The Conditions view with the gauge card's chart: the gauge, a flow reading, the other-years bands, the release. */
-export function conditionsProblems(ns, { water, release, screenH }) {
+/** The Conditions view with the gauge card's chart: the gauge, a flow reading, the other-years bands, no release line (T920). */
+export function conditionsProblems(ns, { water, screenH }) {
   const t = text(ns);
   const legend = byId(ns, 'chart-legend');
   return [
@@ -73,9 +73,10 @@ export function conditionsProblems(ns, { water, release, screenH }) {
     ...need(byId(ns, 'gauge-card'), 'no gauge card'),
     ...need(byId(ns, 'gauge-title') && byId(ns, 'gauge-title').box.y1 - byId(ns, 'gauge-title').box.y0 > 20, "the gauge's name is not whole on screen (scrolled under the header)"),
     ...need(/m³\/s/.test(t), 'no flow reading (m³/s)'),
-    ...need(/middle half/.test(t) && /median/.test(t), 'no other-years bands (middle half / median) on the chart'),
+    ...need(/normal range/.test(t) && /median/.test(t), 'no other-years bands (normal range / median) on the chart'),
     ...need(legend && legend.box.y1 <= screenH * 0.9, `the chart's legend is not whole on screen (${legend ? `y ${legend.box.y0}-${legend.box.y1}` : 'absent'})`),
-    ...need(new RegExp(`Data release ${release}`).test(t), `the card does not name the data release ${release}`),
+    // (T920, owner 2026-11-19: "we dont need the data release code just the last date") the card names no release
+    ...need(!/Data release /.test(t), 'the card still names a data release'),
   ];
 }
 

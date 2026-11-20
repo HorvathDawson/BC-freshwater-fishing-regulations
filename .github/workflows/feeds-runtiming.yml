@@ -24,8 +24,14 @@ name: feeds — run timing (PSF + DFO) → R2 runtiming/
 # REPORT only (counts, sizes), never the data.
 #
 # TARGET: staging by default and, for now, ONLY staging. Production is an explicit choice that is commented out
-# below until the owner enables it (uncomment the option AND the prod secrets block; publish.py names only staging —
-# give it a --bucket first).
+# below until the owner enables it. (T404) Everything else is already derived from `target`: the bucket, the data host
+# the diff reads (DATA), CONFIRM_PROD for publish.py (the same guard as every deploy/prod script), the guard step.
+# THE OWNER'S EDITS to enable production (nothing else):
+#   1. the `target` input: uncomment `- production` in its options;
+#   2. the env block: replace the two AWS_* lines with the two commented prod lines under them;
+#   3. repo secrets PROD_R2_ACCESS_KEY_ID / PROD_R2_SECRET_ACCESS_KEY (an R2 token scoped to bc-fishing-regulations).
+# A production run needs the production release live (release/manifest.json) and its binding base at
+# bc-fishing-regulations/private/runtiming/base/<handles>.json.gz (deploy/prod/upload.sh puts it there).
 #
 # SECRETS (the repo's existing ones, as feeds-hydat.yml):
 #   CLOUDFLARE_ACCOUNT_ID            the account id (R2's S3 endpoint is https://<id>.r2.cloudflarestorage.com)
@@ -96,13 +102,18 @@ jobs:
       AWS_DEFAULT_REGION: auto
       R2_ENDPOINT: https://${{ secrets.CLOUDFLARE_ACCOUNT_ID }}.r2.cloudflarestorage.com
       W: ${{ github.workspace }}/work
-      DATA: https://data-staging.canifishthis.ca
+      # (T404) what the diff compares against is the TARGET's live feed
+      DATA: ${{ inputs.target == 'production' && 'https://data.canifishthis.ca' || 'https://data-staging.canifishthis.ca' }}
+      TARGET: ${{ inputs.target }}
+      # (T404) publish.py refuses the production bucket without this, as every deploy/prod script: set only for production
+      CONFIRM_PROD: ${{ inputs.target == 'production' && 'canifishthis.ca' || '' }}
     steps:
-      - name: Guard — staging only until the owner enables production
+      - name: Guard — the bucket and the data host must be the target's (production only once the owner enables it)
         run: |
-          case "$BUCKET" in
-            bc-fishing-regulations-staging) echo "target bucket: $BUCKET" ;;
-            *) echo "::error::only bc-fishing-regulations-staging is allowed (got $BUCKET)"; exit 1 ;;
+          case "${TARGET:-staging}:$BUCKET:$DATA" in
+            staging:bc-fishing-regulations-staging:https://data-staging.canifishthis.ca) echo "target: staging, bucket $BUCKET" ;;
+            production:bc-fishing-regulations:https://data.canifishthis.ca) echo "target: PRODUCTION, bucket $BUCKET, data $DATA" ;;
+            *) echo "::error::target ${TARGET:-?}, bucket $BUCKET and data host $DATA do not go together"; exit 1 ;;
           esac
           [ -n "${AWS_ACCESS_KEY_ID:-}" ] || { echo "::error::R2 keys are not set (see the header)"; exit 1; }
 
@@ -193,5 +204,5 @@ jobs:
       - name: 7/7 upload to R2 (files, then index.json last) — only a real change
         if: env.UPLOAD == 'true' && env.CHANGED == 'true'
         run: |
-          python -m pipeline.runtiming.feed.publish --dir "$W/out/runtiming" --via aws --yes
+          python -m pipeline.runtiming.feed.publish --dir "$W/out/runtiming" --via aws --bucket "$BUCKET" --yes
           echo "Uploaded run timing (atlas $HANDLES) to $BUCKET/runtiming/." >> "$GITHUB_STEP_SUMMARY"

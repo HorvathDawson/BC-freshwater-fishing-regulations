@@ -11,29 +11,30 @@
     {
      "col": "no",
      "head": "Not allowed",
+     "inline": true,
      "items": [
       {
        "mark": "✕",
        "name": "Worms",
-       "note": null,
+       "notes": [],
        "terms": []
       },
       {
        "mark": "✕",
        "name": "Roe (fish eggs)",
-       "note": null,
+       "notes": [],
        "terms": []
       },
       {
        "mark": "✕",
        "name": "Water insects and crayfish",
-       "note": null,
+       "notes": [],
        "terms": []
       },
       {
        "mark": "✕",
        "name": "Fish or fish parts",
-       "note": null,
+       "notes": [],
        "terms": []
       }
      ]
@@ -228,6 +229,48 @@
     "fly_fishing"
    ],
    "value": "Fly fishing only"
+  },
+  "src": {
+   "aria": "Sources: This water’s, Province, Region 2",
+   "keys": [
+    "r2:chilliwack_vedder_rivers_does_not_include_sumas_river_see_ma@2-4::chilliwack_vedder_rivers.r4",
+    "zp:terminal_tackle::terminal_tackle.r6",
+    "zp:terminal_tackle::terminal_tackle.r4",
+    "zp:terminal_tackle::terminal_tackle.r1",
+    "z2:single_barbless_hook::single_barbless_hook.r1",
+    "r2:chilliwack_vedder_rivers_does_not_include_sumas_river_see_ma@2-4::chilliwack_vedder_rivers.r5"
+   ],
+   "open": "srcs:gear",
+   "pages": [
+    {
+     "pdf": 10,
+     "printed": 8
+    },
+    {
+     "pdf": 23,
+     "printed": 21
+    },
+    {
+     "box": [
+      {
+       "box": [
+        36.25,
+        554.4,
+        540.25,
+        627.36
+       ],
+       "pdf": 24,
+       "size": [
+        576,
+        756
+       ]
+      }
+     ],
+     "pdf": 24,
+     "printed": 22
+    }
+   ],
+   "who": "This water’s · Province · Region 2 ›"
   }
  },
  "header": {
@@ -262,419 +305,11 @@
  "keep": {
   "banner": null,
   "caveats": [],
-  "groups": [
-   {
-    "head": {
-     "exception": null,
-     "form": "a",
-     "lead": [
-      {
-       "s": "2",
-       "size": "big",
-       "t": "num"
-      },
-      {
-       "s": " ",
-       "t": "text"
-      },
-      {
-       "s": "hatchery trout/char a day from streams",
-       "t": "text"
-      },
-      {
-       "s": " ",
-       "t": "text"
-      },
-      {
-       "label": "How this limit is shared",
-       "open": "share:r0",
-       "s": "ⓘ",
-       "t": "link"
-      }
-     ],
-     "leadN": 2,
-     "multi": [
-      {
-       "open": "multi:r0",
-       "s": "Fishing more than one water today? ›",
-       "t": "link"
-      }
-     ],
-     "nolimit": false,
-     "ofTotal": true,
-     "rootTier": "t1",
-     "shareOf": null,
-     "terms": [],
-     "whyHere": null,
-     "words": [
-      {
-       "s": "4",
-       "size": "big",
-       "t": "num"
-      },
-      {
-       "s": " ",
-       "t": "text"
-      },
-      {
-       "s": "a day per angler across Region 2, lakes included",
-       "t": "text"
-      }
-     ]
-    },
-    "more": {
-     "open": "src:r0",
-     "text": "See every regulation line ›"
-    },
-    "notKept": [
-     {
-      "mark": null,
-      "pictures": [
-       {
-        "caption": "Rainbow trout ›",
-        "code": "RB",
-        "name": "Rainbow trout",
-        "open": "sp:RB",
-        "sil": false
-       },
-       {
-        "caption": "Coastal cutthroat trout ›",
-        "code": "CT",
-        "name": "Cutthroat trout",
-        "open": "sp:CT",
-        "sil": false
-       }
-      ],
-      "presence": null,
-      "says": "Rainbow trout and cutthroat trout: release every one",
-      "stamps": [],
-      "status": "release",
-      "term": null,
-      "whose": [
-       {
-        "s": "This river’s rule",
-        "t": "text"
-       },
-       {
-        "s": " · ",
-        "t": "text"
-       },
-       {
-        "box": [
-         {
-          "box": [
-           36.25,
-           554.4,
-           540.25,
-           627.36
-          ],
-          "pdf": 24,
-          "size": [
-           576,
-           756
-          ]
-         }
-        ],
-        "pdf": 24,
-        "printed": 22,
-        "t": "book"
-       }
-      ]
-     }
-    ],
-    "origin": null,
-    "pinLine": {
-     "cls": "g",
-     "n": 2,
-     "said": [
-      "t2"
-     ],
-     "sub": null,
-     "text": "Trout and char · 2 a day from streams"
-    },
-    "quiet": null,
-    "row": 0,
-    "scope": null,
-    "title": "Trout and char",
-    "tree": [
-     {
-      "band": false,
-      "children": [
-       {
-        "band": true,
-        "children": [
-         {
-          "also": [],
-          "duty": null,
-          "folded": false,
-          "kind": "Brook trout and brown trout",
-          "pictures": [
-           {
-            "caption": "Brook trout ›",
-            "code": "EB",
-            "name": "Brook trout",
-            "open": "sp:EB",
-            "sil": false
-           },
-           {
-            "caption": "Brown trout ›",
-            "code": "GB",
-            "name": "Brown trout",
-            "open": "sp:GB",
-            "sil": false
-           }
-          ],
-          "presence": null,
-          "qualifiers": null,
-          "says": [
-           {
-            "s": "Up to ",
-            "t": "text"
-           },
-           {
-            "s": "2",
-            "size": "inline",
-            "t": "num"
-           },
-           {
-            "s": " brook or brown trout combined",
-            "t": "text"
-           }
-          ],
-          "size": {
-           "chip": "30 cm (12 in) or longer",
-           "def": false,
-           "lead": null,
-           "rule": true,
-           "text": "must be 30 cm (12 in) or longer; release any shorter",
-           "then": "release any shorter"
-          },
-          "species": [
-           "EB",
-           "GB"
-          ],
-          "stamps": [],
-          "t": "kind",
-          "zero": false
-         },
-         {
-          "also": [],
-          "duty": null,
-          "folded": false,
-          "kind": "Dolly Varden/bull trout and lake trout",
-          "pictures": [
-           {
-            "caption": "Bull trout ›",
-            "code": "DV",
-            "name": "Dolly Varden/bull trout",
-            "open": "sp:DV",
-            "sil": false
-           },
-           {
-            "caption": "Lake trout ›",
-            "code": "LT",
-            "name": "Lake trout",
-            "open": "sp:LT",
-            "sil": false
-           }
-          ],
-          "presence": null,
-          "qualifiers": null,
-          "says": [
-           {
-            "s": "Up to ",
-            "t": "text"
-           },
-           {
-            "s": "1",
-            "size": "inline",
-            "t": "num"
-           },
-           {
-            "s": " Dolly Varden/bull trout or lake trout combined",
-            "t": "text"
-           }
-          ],
-          "size": {
-           "chip": "60 cm (24 in) or longer",
-           "def": false,
-           "lead": null,
-           "rule": true,
-           "text": "must be 60 cm (24 in) or longer; release any shorter",
-           "then": "release any shorter"
-          },
-          "species": [
-           "DV",
-           "LT"
-          ],
-          "stamps": [],
-          "t": "kind",
-          "zero": false
-         },
-         {
-          "also": [],
-          "duty": [
-           {
-            "s": "10 a year · Stop fishing the Vedder River after 2 a day · Record each on your licence right away",
-            "t": "text"
-           },
-           {
-            "s": " ",
-            "t": "text"
-           },
-           {
-            "open": {
-             "tab": "licence"
-            },
-            "s": "Steelhead stamp ›",
-            "t": "link"
-           }
-          ],
-          "folded": false,
-          "kind": "Steelhead",
-          "pictures": [
-           {
-            "caption": "Steelhead ›",
-            "code": "ST",
-            "name": "Steelhead",
-            "open": "sp:ST",
-            "sil": false
-           }
-          ],
-          "presence": null,
-          "qualifiers": null,
-          "says": [
-           {
-            "s": "Up to ",
-            "t": "text"
-           },
-           {
-            "s": "2",
-            "size": "inline",
-            "t": "num"
-           },
-           {
-            "s": " hatchery steelhead — wild steelhead go back",
-            "t": "text"
-           },
-           {
-            "s": " ",
-            "t": "text"
-           },
-           {
-            "open": "hatch",
-            "s": "How to tell hatchery ›",
-            "t": "link"
-           }
-          ],
-          "size": {
-           "chip": "rainbow trout over 50 cm (20 in)",
-           "def": true,
-           "lead": "Counts as a steelhead:",
-           "rule": false,
-           "text": "rainbow trout over 50 cm (20 in)",
-           "then": null
-          },
-          "species": [
-           "ST"
-          ],
-          "stamps": [],
-          "t": "kind",
-          "zero": false
-         }
-        ],
-        "exception": null,
-        "folded": false,
-        "kicker": null,
-        "line": [
-         {
-          "s": "Only ",
-          "t": "text"
-         },
-         {
-          "s": "1",
-          "size": "big",
-          "t": "num"
-         },
-         {
-          "s": " of all your trout and char may be over 50 cm (20 in) — not ",
-          "t": "text"
-         },
-         {
-          "s": "1",
-          "size": "big2",
-          "t": "num"
-         },
-         {
-          "s": " per species. 2 if one of them is a hatchery steelhead.",
-          "t": "text"
-         }
-        ],
-        "n": 1,
-        "origin": null,
-        "relation": null,
-        "short": "may be over 50 cm (20 in) — 2 if one is a hatchery steelhead",
-        "sub": null,
-        "t": "tier",
-        "tid": "t3",
-        "tier": "size"
-       }
-      ],
-      "exception": null,
-      "folded": true,
-      "kicker": null,
-      "line": [],
-      "n": 2,
-      "origin": {
-       "book": [
-        {
-         "pdf": 23,
-         "printed": 21,
-         "t": "book"
-        }
-       ],
-       "howtell": true,
-       "says": [],
-       "tag": null
-      },
-      "relation": null,
-      "short": "2 of them from streams",
-      "sub": null,
-      "t": "tier",
-      "tid": "t2",
-      "tier": "share"
-     }
-    ],
-    "worked": {
-     "label": "Examples of how to interpret regulations",
-     "lines": [
-      {
-       "a": "None more here",
-       "at": "elsewhere",
-       "q": "Kept 2 on another stream?"
-      },
-      {
-       "a": "Keep 2 more here. Fish from lakes count toward the 4 a day, not toward the 2 from streams.",
-       "at": "elsewhere",
-       "q": "Kept 1 at a lake?"
-      },
-      {
-       "a": "It counts here too: at most 2 over 50 cm (20 in) a day in all — only 1 of them may be anything other than a hatchery steelhead.",
-       "at": "elsewhere",
-       "q": "Kept trout or char over 50 cm (20 in) elsewhere today?"
-      }
-     ],
-     "says": "Your own limit, counted across every Region 2 stream you fish today."
-    },
-    "year": null
-   }
-  ],
+  "groups": [],
   "inherited": null,
   "order": [
    "strip",
-   {
-    "group": 0
-   },
+   "trout",
    "otherFish",
    "possession",
    "whereNot"
@@ -870,6 +505,468 @@
    ],
    "status": "open",
    "todayAt": 0.36712328767123287
+  },
+  "trout": {
+   "boxes": [
+    {
+     "bands": [
+      {
+       "date": null,
+       "from": 0,
+       "kind": "upto",
+       "text": "counts toward the 2",
+       "to": 0
+      },
+      {
+       "date": null,
+       "from": 1,
+       "kind": "upto",
+       "text": "counts toward the 2",
+       "to": 1
+      },
+      {
+       "date": null,
+       "from": 2,
+       "kind": "upto",
+       "text": "counts toward the 2",
+       "to": 2
+      },
+      {
+       "date": null,
+       "from": 3,
+       "kind": "shared",
+       "text": "counts toward the 2 · only 1 between them",
+       "to": 4
+      }
+     ],
+     "date": null,
+     "head": "Keep 2 in all",
+     "inner": [],
+     "kind": "keep",
+     "label": "Hatchery only",
+     "possession": null,
+     "rows": [
+      {
+       "a11y": "Brook trout. 30 cm (12 in) or longer. counts toward the 2",
+       "coming": [
+        "From Jun 1 the water is closed to all fishing."
+       ],
+       "date": null,
+       "fish": "EB",
+       "key": "EB",
+       "label": null,
+       "lines": [
+        "30 cm (12 in) or longer"
+       ],
+       "name": "Brook trout",
+       "origin": null,
+       "quiet": [],
+       "sheet": {
+        "head": "Keep · counts toward the 2",
+        "here": [
+         {
+          "bold": false,
+          "t": "Size: 30 cm (12 in) or longer."
+         },
+         {
+          "bold": false,
+          "t": "Hatchery only: wild ones go back."
+         },
+         {
+          "bold": false,
+          "t": "Counts toward the 2 in all, together with brown trout, steelhead, Dolly Varden/bull trout and lake trout."
+         },
+         {
+          "bold": false,
+          "t": "Only 1 over 50 cm (20 in), 2 if one is a hatchery steelhead."
+         }
+        ],
+        "src": [
+         3082,
+         3083,
+         3091,
+         3095
+        ]
+       },
+       "split": false,
+       "src": [
+        3082,
+        3083,
+        3091,
+        3095,
+        3088,
+        3085
+       ],
+       "sub": null,
+       "tag": null
+      },
+      {
+       "a11y": "Brown trout. 30 cm (12 in) or longer. counts toward the 2",
+       "coming": [
+        "From Jun 1 the water is closed to all fishing."
+       ],
+       "date": null,
+       "fish": "GB",
+       "key": "GB",
+       "label": null,
+       "lines": [
+        "30 cm (12 in) or longer"
+       ],
+       "name": "Brown trout",
+       "origin": null,
+       "quiet": [],
+       "sheet": {
+        "head": "Keep · counts toward the 2",
+        "here": [
+         {
+          "bold": false,
+          "t": "Size: 30 cm (12 in) or longer."
+         },
+         {
+          "bold": false,
+          "t": "Hatchery only: wild ones go back."
+         },
+         {
+          "bold": false,
+          "t": "Counts toward the 2 in all, together with brook trout, steelhead, Dolly Varden/bull trout and lake trout."
+         },
+         {
+          "bold": false,
+          "t": "Only 1 over 50 cm (20 in), 2 if one is a hatchery steelhead."
+         }
+        ],
+        "src": [
+         3082,
+         3083,
+         3091,
+         3095
+        ]
+       },
+       "split": false,
+       "src": [
+        3082,
+        3083,
+        3091,
+        3095,
+        3088,
+        3085
+       ],
+       "sub": null,
+       "tag": null
+      },
+      {
+       "a11y": "Steelhead. a rainbow over 50 cm (20 in). after keeping 2, stop fishing this river today. Steelhead are known to be in this water. counts toward the 2",
+       "coming": [
+        "From Jun 1 the water is closed to all fishing."
+       ],
+       "date": null,
+       "fish": "ST",
+       "key": "ST",
+       "label": null,
+       "lines": [
+        "after keeping 2, stop fishing this river today"
+       ],
+       "name": "Steelhead",
+       "origin": null,
+       "quiet": [
+        "Steelhead are known to be in this water."
+       ],
+       "sheet": {
+        "head": "Keep · counts toward the 2",
+        "here": [
+         {
+          "bold": false,
+          "t": "Here a steelhead is a rainbow over 50 cm (20 in)."
+         },
+         {
+          "bold": false,
+          "t": "Hatchery only: wild ones go back."
+         },
+         {
+          "bold": false,
+          "t": "Counts toward the 2 in all, together with brook trout, brown trout, Dolly Varden/bull trout and lake trout."
+         },
+         {
+          "bold": false,
+          "t": "Only 1 over 50 cm (20 in), 2 if one is a hatchery steelhead."
+         },
+         {
+          "bold": false,
+          "t": "Steelhead are known to be in this water."
+         },
+         {
+          "bold": true,
+          "t": "Once you have kept 2 steelhead here, stop fishing this river for the rest of the day: the whole river, not only this stretch."
+         },
+         {
+          "bold": false,
+          "t": "Licence: 10 a year · record each on your licence right away · Steelhead Conservation Surcharge Stamp, only if you fish for steelhead, even to release them."
+         }
+        ],
+        "src": [
+         3082,
+         3084,
+         3377,
+         3093
+        ]
+       },
+       "split": false,
+       "src": [
+        3082,
+        3084,
+        3377,
+        3093,
+        3381,
+        3095,
+        3088,
+        3085,
+        3083
+       ],
+       "sub": "a rainbow over 50 cm (20 in)",
+       "tag": null
+      },
+      {
+       "a11y": "Dolly Varden/bull trout. 60 cm (24 in) or longer. counts toward the 2 · only 1 between them",
+       "coming": [
+        "From Jun 1 the water is closed to all fishing."
+       ],
+       "date": null,
+       "fish": "DV",
+       "key": "DV",
+       "label": null,
+       "lines": [
+        "60 cm (24 in) or longer"
+       ],
+       "name": "Dolly Varden/bull trout",
+       "origin": null,
+       "quiet": [],
+       "sheet": {
+        "head": "Keep · only 1 between them · counts toward the 2",
+        "here": [
+         {
+          "bold": false,
+          "t": "Size: 60 cm (24 in) or longer."
+         },
+         {
+          "bold": false,
+          "t": "Hatchery only: wild ones go back."
+         },
+         {
+          "bold": false,
+          "t": "Counts toward the 2 in all, together with brook trout, brown trout, steelhead and lake trout."
+         },
+         {
+          "bold": false,
+          "t": "Only 1 between them: this fish and lake trout."
+         },
+         {
+          "bold": false,
+          "t": "Only 1 over 50 cm (20 in), 2 if one is a hatchery steelhead."
+         }
+        ],
+        "src": [
+         3082,
+         3086,
+         3083,
+         3087
+        ]
+       },
+       "split": false,
+       "src": [
+        3082,
+        3086,
+        3083,
+        3087,
+        3095,
+        3088,
+        3085
+       ],
+       "sub": null,
+       "tag": null
+      },
+      {
+       "a11y": "Lake trout. 60 cm (24 in) or longer. counts toward the 2 · only 1 between them",
+       "coming": [
+        "From Jun 1 the water is closed to all fishing."
+       ],
+       "date": null,
+       "fish": "LT",
+       "key": "LT",
+       "label": null,
+       "lines": [
+        "60 cm (24 in) or longer"
+       ],
+       "name": "Lake trout",
+       "origin": null,
+       "quiet": [],
+       "sheet": {
+        "head": "Keep · only 1 between them · counts toward the 2",
+        "here": [
+         {
+          "bold": false,
+          "t": "Size: 60 cm (24 in) or longer."
+         },
+         {
+          "bold": false,
+          "t": "Hatchery only: wild ones go back."
+         },
+         {
+          "bold": false,
+          "t": "Counts toward the 2 in all, together with brook trout, brown trout, steelhead and Dolly Varden/bull trout."
+         },
+         {
+          "bold": false,
+          "t": "Only 1 between them: this fish and Dolly Varden/bull trout."
+         },
+         {
+          "bold": false,
+          "t": "Only 1 over 50 cm (20 in), 2 if one is a hatchery steelhead."
+         }
+        ],
+        "src": [
+         3082,
+         3086,
+         3083,
+         3087
+        ]
+       },
+       "split": false,
+       "src": [
+        3082,
+        3086,
+        3083,
+        3087,
+        3095,
+        3088,
+        3085
+       ],
+       "sub": null,
+       "tag": null
+      }
+     ],
+     "strip": "only 1 over 50 cm (20 in), 2 if one is a hatchery steelhead",
+     "tag": null
+    },
+    {
+     "bands": [],
+     "date": null,
+     "head": "Release",
+     "inner": [],
+     "kind": "release",
+     "label": null,
+     "possession": null,
+     "rows": [
+      {
+       "a11y": "Rainbow trout",
+       "coming": [
+        "From Jun 1 the water is closed to all fishing."
+       ],
+       "date": null,
+       "fish": "RB",
+       "key": "RB",
+       "label": null,
+       "lines": [],
+       "name": "Rainbow trout",
+       "origin": null,
+       "quiet": [],
+       "sheet": {
+        "head": "Put it back",
+        "here": [],
+        "src": [
+         527,
+         3095,
+         3088
+        ]
+       },
+       "split": false,
+       "src": [
+        527,
+        3095,
+        3088
+       ],
+       "sub": null,
+       "tag": null
+      },
+      {
+       "a11y": "Cutthroat trout",
+       "coming": [
+        "From Jun 1 the water is closed to all fishing."
+       ],
+       "date": null,
+       "fish": "CT",
+       "key": "CT",
+       "label": null,
+       "lines": [],
+       "name": "Cutthroat trout",
+       "origin": null,
+       "quiet": [],
+       "sheet": {
+        "head": "Put it back",
+        "here": [],
+        "src": [
+         528,
+         3095,
+         3088
+        ]
+       },
+       "split": false,
+       "src": [
+        528,
+        3095,
+        3088
+       ],
+       "sub": null,
+       "tag": null
+      }
+     ],
+     "strip": null,
+     "tag": null
+    }
+   ],
+   "card": "Until May 31, then closed to all fishing",
+   "covers": [
+    0
+   ],
+   "elsewhere": [
+    "Your own limit, counted across every Region 2 stream you fish.",
+    "Kept 2 on another stream? None more here.",
+    "Kept 1 at a lake? Keep 2 more here. Fish from lakes count toward the 4 a day, not toward the 2 from streams.",
+    "Kept trout or char over 50 cm (20 in) elsewhere? It counts here too: at most 2 over 50 cm (20 in) a day in all — only 1 of them may be anything other than a hatchery steelhead."
+   ],
+   "elsewhereLink": "Fished elsewhere today? ›",
+   "fold": {
+    "date": null,
+    "name": "Trout and char",
+    "tone": "keep",
+    "value": "2 a day"
+   },
+   "hatchLink": "How to tell a hatchery fish ›",
+   "kind": "table",
+   "sourcesLink": "Sources ›",
+   "src": [
+    3082,
+    3083,
+    3091,
+    3095,
+    3088,
+    3085,
+    3084,
+    3377,
+    3093,
+    3381,
+    3086,
+    3087,
+    527,
+    528
+   ],
+   "together": null,
+   "top": {
+    "date": null,
+    "lead": "Keep 2 trout and char on May 15",
+    "second": null,
+    "sub": null
+   },
+   "year": null
   },
   "whereNot": {
    "heading": "Where you can’t fish",
@@ -1129,11 +1226,14 @@
     {
      "col": "ok",
      "head": "Allowed",
+     "inline": false,
      "items": [
       {
        "mark": "✓",
        "name": "Angling (rod and line)",
-       "note": "fly fishing only: nothing but the fly on the line, no float, sinker or attractor",
+       "notes": [
+        "Fly fishing only: nothing but the fly on the line, no float, sinker or attractor."
+       ],
        "terms": []
       }
      ]
@@ -1141,41 +1241,42 @@
     {
      "col": "no",
      "head": "Not allowed",
+     "inline": true,
      "items": [
       {
        "mark": "✕",
        "name": "Set lines",
-       "note": null,
+       "notes": [],
        "terms": []
       },
       {
        "mark": "✕",
        "name": "Spear or bow",
-       "note": null,
+       "notes": [],
        "terms": []
       },
       {
        "mark": "✕",
        "name": "Crayfish traps",
-       "note": null,
+       "notes": [],
        "terms": []
       },
       {
        "mark": "✕",
        "name": "Nets",
-       "note": null,
+       "notes": [],
        "terms": []
       },
       {
        "mark": "✕",
        "name": "Snagging",
-       "note": null,
+       "notes": [],
        "terms": []
       },
       {
        "mark": "✕",
        "name": "Chumming",
-       "note": null,
+       "notes": [],
        "terms": []
       }
      ]
@@ -1836,110 +1937,109 @@
      "text": "How this was decided"
     },
     {
-     "k": "ladder",
-     "q": "What you can keep",
-     "result": "Release every one here.",
-     "steps": [
-      {
-       "level": "Region 2",
-       "lines": [
-        {
-         "applies": [
-          "From the Region 2 table — all of Region 2."
-         ],
-         "book": [
-          {
-           "pdf": 23,
-           "printed": 21,
-           "t": "book"
-          }
-         ],
-         "rule": "z2:daily_quotas::species_quotas.r5",
-         "tag": "Release",
-         "text": [
-          {
-           "s": "In streams, release every kokanee.",
-           "t": "text"
-          }
-         ],
-         "won": true
-        }
-       ]
-      }
-     ]
-    },
-    {
-     "k": "ladder",
-     "q": "Other rules",
-     "result": null,
-     "steps": [
-      {
-       "level": "Region 2",
-       "lines": [
-        {
-         "applies": [
-          "From the Region 2 table — all of Region 2."
-         ],
-         "book": [
-          {
-           "pdf": 23,
-           "printed": 21,
-           "t": "book"
-          }
-         ],
-         "rule": "z2:possession_quota::possession_quota.r1",
-         "tag": "Carry limit",
-         "text": [
-          {
-           "s": "Possession: 2 days’ quota. Fish at home don’t count.",
-           "t": "text"
-          }
-         ],
-         "won": true
-        }
-       ]
-      }
-     ]
-    },
-    {
-     "body": [
-      {
-       "k": "ladder",
-       "q": null,
-       "result": null,
-       "steps": [
-        {
-         "level": "",
-         "lines": [
-          {
-           "applies": [
-            "From the Region 2 table — all of Region 2."
-           ],
-           "book": [
-            {
-             "pdf": 23,
-             "printed": 21,
-             "t": "book"
-            }
-           ],
-           "rule": "z2:daily_quotas::species_quotas.r4",
-           "tag": "Replaced by the Region 2 rule",
-           "text": [
-            {
-             "s": "Keep up to 5 kokanee a day.",
-             "t": "text"
-            }
-           ],
-           "won": false
-          }
-         ]
-        }
-       ]
-      }
-     ],
-     "k": "fold",
-     "open": false,
-     "summary": "Rules that don’t apply here (1)"
+     "flow": {
+      "other": [
+       {
+        "book": [
+         {
+          "bare": true,
+          "pdf": 23,
+          "printed": 21,
+          "t": "book"
+         }
+        ],
+        "kicker": "Region 2 · base rule",
+        "rule": "z2:possession_quota::possession_quota.r1",
+        "says": [
+         {
+          "s": "Possession: 2 days’ quota. Fish at home don’t count.",
+          "t": "text"
+         }
+        ],
+        "tag": null,
+        "tone": "won"
+       }
+      ],
+      "otherHead": "Other rules",
+      "quiet": [
+       {
+        "book": [
+         {
+          "bare": true,
+          "pdf": 11,
+          "printed": 9,
+          "t": "book"
+         },
+         {
+          "s": " ",
+          "t": "text"
+         },
+         {
+          "bare": true,
+          "pdf": 86,
+          "printed": 80,
+          "t": "book"
+         }
+        ],
+        "kicker": "All of B.C.",
+        "rule": "zp:quota_defaults::quota_defaults.r1",
+        "says": [
+         {
+          "s": "Possession: 2 days’ quota. Fish at home don’t count.",
+          "t": "text"
+         }
+        ],
+        "tag": "Replaced by Region 2",
+        "tone": "lost"
+       }
+      ],
+      "quietHead": "Rules that don’t apply here (1)",
+      "result": "So: Release every one here.",
+      "steps": [
+       {
+        "book": [
+         {
+          "bare": true,
+          "pdf": 23,
+          "printed": 21,
+          "t": "book"
+         }
+        ],
+        "kicker": "Region 2 · base rule",
+        "rule": "z2:daily_quotas::species_quotas.r4",
+        "says": [
+         {
+          "s": "Keep up to 5 kokanee a day.",
+          "t": "text"
+         }
+        ],
+        "tag": "Replaced",
+        "tone": "lost"
+       },
+       {
+        "book": [
+         {
+          "bare": true,
+          "pdf": 23,
+          "printed": 21,
+          "t": "book"
+         }
+        ],
+        "kicker": "Region 2 · base rule",
+        "repeat": true,
+        "rule": "z2:daily_quotas::species_quotas.r5",
+        "says": [
+         {
+          "s": "In streams, release every kokanee.",
+          "t": "text"
+         }
+        ],
+        "tag": null,
+        "tone": "won"
+       }
+      ]
+     },
+     "k": "flow"
     },
     {
      "k": "link",
@@ -1959,87 +2059,29 @@
   "other:o1": {
    "blocks": [
     {
-     "k": "pictures",
-     "pics": [
-      {
-       "caption": "Lake whitefish ›",
-       "code": "LW",
-       "name": "Lake whitefish",
-       "open": "sp:LW",
-       "sil": false
-      },
-      {
-       "caption": "Mountain whitefish ›",
-       "code": "MW",
-       "name": "Mountain whitefish",
-       "open": "sp:MW",
-       "sil": false
-      }
-     ]
-    },
-    {
      "group": {
       "head": {
        "exception": null,
        "form": null,
        "lead": null,
        "leadN": null,
-       "multi": [
-        {
-         "open": "multi:r2",
-         "s": "Fishing more than one water today? ›",
-         "t": "link"
-        }
-       ],
+       "multi": null,
        "nolimit": false,
        "ofTotal": false,
        "rootTier": "t1",
        "shareOf": null,
        "terms": [],
        "whyHere": null,
-       "words": [
-        {
-         "s": "15",
-         "size": "big",
-         "t": "num"
-        },
-        {
-         "s": " ",
-         "t": "text"
-        },
-        {
-         "s": "a day per angler across Region 2",
-         "t": "text"
-        }
-       ]
+       "words": []
       },
       "more": {
        "open": "src:r2",
        "text": "See every regulation line ›"
       },
       "notKept": [],
-      "origin": {
-       "book": [
-        {
-         "pdf": 23,
-         "printed": 21,
-         "t": "book"
-        }
-       ],
-       "howtell": false,
-       "says": [],
-       "tag": null
-      },
-      "pinLine": {
-       "cls": "g",
-       "n": 15,
-       "said": [],
-       "sub": null,
-       "text": "Whitefish · 15 a day"
-      },
-      "quiet": null,
+      "origin": null,
       "row": 2,
-      "scope": "Region 2-wide",
+      "scope": null,
       "title": "Whitefish",
       "tree": [
        {
@@ -2111,7 +2153,116 @@
       "year": null
      },
      "k": "group",
-     "titled": true
+     "more": false,
+     "titled": false
+    },
+    {
+     "k": "head",
+     "text": "How this was decided"
+    },
+    {
+     "flow": {
+      "other": [
+       {
+        "book": [
+         {
+          "bare": true,
+          "pdf": 23,
+          "printed": 21,
+          "t": "book"
+         }
+        ],
+        "kicker": "Region 2 · base rule",
+        "rule": "z2:possession_quota::possession_quota.r1",
+        "says": [
+         {
+          "s": "Possession: 2 days’ quota. Fish at home don’t count.",
+          "t": "text"
+         }
+        ],
+        "tag": null,
+        "tone": "won"
+       }
+      ],
+      "otherHead": "Other rules",
+      "quiet": [
+       {
+        "book": [
+         {
+          "bare": true,
+          "pdf": 11,
+          "printed": 9,
+          "t": "book"
+         },
+         {
+          "s": " ",
+          "t": "text"
+         },
+         {
+          "bare": true,
+          "pdf": 86,
+          "printed": 80,
+          "t": "book"
+         }
+        ],
+        "kicker": "All of B.C.",
+        "rule": "zp:quota_defaults::quota_defaults.r1",
+        "says": [
+         {
+          "s": "Possession: 2 days’ quota. Fish at home don’t count.",
+          "t": "text"
+         }
+        ],
+        "tag": "Replaced by Region 2",
+        "tone": "lost"
+       }
+      ],
+      "quietHead": "Rules that don’t apply here (1)",
+      "result": "So: 15 a day here, for all of Region 2 together.",
+      "steps": [
+       {
+        "book": [
+         {
+          "bare": true,
+          "pdf": 23,
+          "printed": 21,
+          "t": "book"
+         }
+        ],
+        "kicker": "Region 2 · base rule",
+        "rule": "z2:daily_quotas::species_quotas.r6",
+        "says": [
+         {
+          "s": "Keep up to 15 whitefish a day, all kinds together.",
+          "t": "text"
+         }
+        ],
+        "tag": null,
+        "tone": "won"
+       }
+      ]
+     },
+     "k": "flow"
+    },
+    {
+     "k": "link",
+     "line": [
+      {
+       "open": "multi:r2",
+       "s": "Fishing more than one water today? ›",
+       "t": "link"
+      }
+     ]
+    },
+    {
+     "k": "link",
+     "line": [
+      {
+       "open": "src:r2",
+       "s": "See every regulation line ›",
+       "t": "link"
+      }
+     ]
     }
    ],
    "key": "other:o1",
@@ -2121,87 +2272,29 @@
   "other:o2": {
    "blocks": [
     {
-     "k": "pictures",
-     "pics": [
-      {
-       "caption": "Largemouth bass ›",
-       "code": "LMB",
-       "name": "Largemouth bass",
-       "open": "sp:LMB",
-       "sil": false
-      },
-      {
-       "caption": "Smallmouth bass ›",
-       "code": "SMB",
-       "name": "Smallmouth bass",
-       "open": "sp:SMB",
-       "sil": false
-      }
-     ]
-    },
-    {
      "group": {
       "head": {
        "exception": null,
        "form": null,
        "lead": null,
        "leadN": null,
-       "multi": [
-        {
-         "open": "multi:r3",
-         "s": "Fishing more than one water today? ›",
-         "t": "link"
-        }
-       ],
+       "multi": null,
        "nolimit": false,
        "ofTotal": false,
        "rootTier": "t1",
        "shareOf": null,
        "terms": [],
        "whyHere": null,
-       "words": [
-        {
-         "s": "20",
-         "size": "big",
-         "t": "num"
-        },
-        {
-         "s": " ",
-         "t": "text"
-        },
-        {
-         "s": "a day per angler across Region 2",
-         "t": "text"
-        }
-       ]
+       "words": []
       },
       "more": {
        "open": "src:r3",
        "text": "See every regulation line ›"
       },
       "notKept": [],
-      "origin": {
-       "book": [
-        {
-         "pdf": 23,
-         "printed": 21,
-         "t": "book"
-        }
-       ],
-       "howtell": false,
-       "says": [],
-       "tag": null
-      },
-      "pinLine": {
-       "cls": "g",
-       "n": 20,
-       "said": [],
-       "sub": null,
-       "text": "Bass · 20 a day"
-      },
-      "quiet": null,
+      "origin": null,
       "row": 3,
-      "scope": "Region 2-wide",
+      "scope": null,
       "title": "Bass",
       "tree": [
        {
@@ -2273,7 +2366,116 @@
       "year": null
      },
      "k": "group",
-     "titled": true
+     "more": false,
+     "titled": false
+    },
+    {
+     "k": "head",
+     "text": "How this was decided"
+    },
+    {
+     "flow": {
+      "other": [
+       {
+        "book": [
+         {
+          "bare": true,
+          "pdf": 23,
+          "printed": 21,
+          "t": "book"
+         }
+        ],
+        "kicker": "Region 2 · base rule",
+        "rule": "z2:possession_quota::possession_quota.r1",
+        "says": [
+         {
+          "s": "Possession: 2 days’ quota. Fish at home don’t count.",
+          "t": "text"
+         }
+        ],
+        "tag": null,
+        "tone": "won"
+       }
+      ],
+      "otherHead": "Other rules",
+      "quiet": [
+       {
+        "book": [
+         {
+          "bare": true,
+          "pdf": 11,
+          "printed": 9,
+          "t": "book"
+         },
+         {
+          "s": " ",
+          "t": "text"
+         },
+         {
+          "bare": true,
+          "pdf": 86,
+          "printed": 80,
+          "t": "book"
+         }
+        ],
+        "kicker": "All of B.C.",
+        "rule": "zp:quota_defaults::quota_defaults.r1",
+        "says": [
+         {
+          "s": "Possession: 2 days’ quota. Fish at home don’t count.",
+          "t": "text"
+         }
+        ],
+        "tag": "Replaced by Region 2",
+        "tone": "lost"
+       }
+      ],
+      "quietHead": "Rules that don’t apply here (1)",
+      "result": "So: 20 a day here, for all of Region 2 together.",
+      "steps": [
+       {
+        "book": [
+         {
+          "bare": true,
+          "pdf": 23,
+          "printed": 21,
+          "t": "book"
+         }
+        ],
+        "kicker": "Region 2 · base rule",
+        "rule": "z2:daily_quotas::species_quotas.r1",
+        "says": [
+         {
+          "s": "Keep up to 20 bass a day, all kinds together.",
+          "t": "text"
+         }
+        ],
+        "tag": null,
+        "tone": "won"
+       }
+      ]
+     },
+     "k": "flow"
+    },
+    {
+     "k": "link",
+     "line": [
+      {
+       "open": "multi:r3",
+       "s": "Fishing more than one water today? ›",
+       "t": "link"
+      }
+     ]
+    },
+    {
+     "k": "link",
+     "line": [
+      {
+       "open": "src:r3",
+       "s": "See every regulation line ›",
+       "t": "link"
+      }
+     ]
     }
    ],
    "key": "other:o2",
@@ -2327,70 +2529,88 @@
      "text": "How this was decided"
     },
     {
-     "k": "ladder",
-     "q": "What you can keep",
-     "result": "20 a day here, for all of Region 2 together.",
-     "steps": [
-      {
-       "level": "Region 2",
-       "lines": [
-        {
-         "applies": [
-          "From the Region 2 table — all of Region 2."
-         ],
-         "book": [
-          {
-           "pdf": 23,
-           "printed": 21,
-           "t": "book"
-          }
-         ],
-         "rule": "z2:daily_quotas::species_quotas.r2",
-         "tag": "Daily limit",
-         "text": [
-          {
-           "s": "Keep up to 20 black crappie a day.",
-           "t": "text"
-          }
-         ],
-         "won": true
-        }
-       ]
-      }
-     ]
-    },
-    {
-     "k": "ladder",
-     "q": "Other rules",
-     "result": null,
-     "steps": [
-      {
-       "level": "Region 2",
-       "lines": [
-        {
-         "applies": [
-          "From the Region 2 table — all of Region 2."
-         ],
-         "book": [
-          {
-           "pdf": 23,
-           "printed": 21,
-           "t": "book"
-          }
-         ],
-         "rule": "z2:possession_quota::possession_quota.r1",
-         "tag": "Carry limit",
-         "text": [
-          {
-           "s": "Possession: 2 days’ quota. Fish at home don’t count.",
-           "t": "text"
-          }
-         ],
-         "won": true
-        }
-       ]
-      }
-     ]
+     "flow": {
+      "other": [
+       {
+        "book": [
+         {
+          "bare": true,
+          "pdf": 23,
+          "printed": 21,
+          "t": "book"
+         }
+        ],
+        "kicker": "Region 2 · base rule",
+        "rule": "z2:possession_quota::possession_quota.r1",
+        "says": [
+         {
+          "s": "Possession: 2 days’ quota. Fish at home don’t count.",
+          "t": "text"
+         }
+        ],
+        "tag": null,
+        "tone": "won"
+       }
+      ],
+      "otherHead": "Other rules",
+      "quiet": [
+       {
+        "book": [
+         {
+          "bare": true,
+          "pdf": 11,
+          "printed": 9,
+          "t": "book"
+         },
+         {
+          "s": " ",
+          "t": "text"
+         },
+         {
+          "bare": true,
+          "pdf": 86,
+          "printed": 80,
+          "t": "book"
+         }
+        ],
+        "kicker": "All of B.C.",
+        "rule": "zp:quota_defaults::quota_defaults.r1",
+        "says": [
+         {
+          "s": "Possession: 2 days’ quota. Fish at home don’t count.",
+          "t": "text"
+         }
+        ],
+        "tag": "Replaced by Region 2",
+        "tone": "lost"
+       }
+      ],
+      "quietHead": "Rules that don’t apply here (1)",
+      "result": "So: 20 a day here, for all of Region 2 together.",
+      "steps": [
+       {
+        "book": [
+         {
+          "bare": true,
+          "pdf": 23,
+          "printed": 21,
+          "t": "book"
+         }
+        ],
+        "kicker": "Region 2 · base rule",
+        "rule": "z2:daily_quotas::species_quotas.r2",
+        "says": [
+         {
+          "s": "Keep up to 20 black crappie a day.",
+          "t": "text"
+         }
+        ],
+        "tag": null,
+        "tone": "won"
+       }
+      ]
+     },
+     "k": "flow"
     },
     {
      "k": "link",
@@ -2454,110 +2674,108 @@
      "text": "How this was decided"
     },
     {
-     "k": "ladder",
-     "q": "What you can keep",
-     "result": "Release every one here.",
-     "steps": [
-      {
-       "level": "Vedder River",
-       "lines": [
-        {
-         "applies": [
-          "A B.C. rule for Fraser River."
-         ],
-         "book": [
-          {
-           "pdf": 9,
-           "printed": 7,
-           "t": "book"
-          }
-         ],
-         "rule": "zp:white_sturgeon_licence::white_sturgeon_licence.r2",
-         "tag": "Release",
-         "text": [
-          {
-           "s": "Release every white sturgeon.",
-           "t": "text"
-          }
-         ],
-         "won": true
-        }
-       ]
-      }
-     ]
-    },
-    {
-     "k": "ladder",
-     "q": "Other rules",
-     "result": null,
-     "steps": [
-      {
-       "level": "Region 2",
-       "lines": [
-        {
-         "applies": [
-          "From the Region 2 table — all of Region 2."
-         ],
-         "book": [
-          {
-           "pdf": 23,
-           "printed": 21,
-           "t": "book"
-          }
-         ],
-         "rule": "z2:possession_quota::possession_quota.r1",
-         "tag": "Carry limit",
-         "text": [
-          {
-           "s": "Possession: 2 days’ quota. Fish at home don’t count.",
-           "t": "text"
-          }
-         ],
-         "won": true
-        }
-       ]
-      }
-     ]
-    },
-    {
-     "body": [
-      {
-       "k": "ladder",
-       "q": null,
-       "result": null,
-       "steps": [
-        {
-         "level": "",
-         "lines": [
-          {
-           "applies": [
-            "A B.C.-wide rule — Fraser watershed, Mission to Williams Lake River."
-           ],
-           "book": [
-            {
-             "pdf": 9,
-             "printed": 7,
-             "t": "book"
-            }
-           ],
-           "rule": "zp:white_sturgeon_licence::white_sturgeon_licence.r4",
-           "tag": "Replaced by this river’s rule",
-           "text": [
-            {
-             "s": "No fishing for white sturgeon: every non-tidal water of the province; lifted on the licensed Fraser watershed (r4x)",
-             "t": "text"
-            }
-           ],
-           "won": false
-          }
-         ]
-        }
-       ]
-      }
-     ],
-     "k": "fold",
-     "open": false,
-     "summary": "Rules that don’t apply here (1)"
+     "flow": {
+      "other": [
+       {
+        "book": [
+         {
+          "bare": true,
+          "pdf": 23,
+          "printed": 21,
+          "t": "book"
+         }
+        ],
+        "kicker": "Region 2 · base rule",
+        "rule": "z2:possession_quota::possession_quota.r1",
+        "says": [
+         {
+          "s": "Possession: 2 days’ quota. Fish at home don’t count.",
+          "t": "text"
+         }
+        ],
+        "tag": null,
+        "tone": "won"
+       }
+      ],
+      "otherHead": "Other rules",
+      "quiet": [
+       {
+        "book": [
+         {
+          "bare": true,
+          "pdf": 11,
+          "printed": 9,
+          "t": "book"
+         },
+         {
+          "s": " ",
+          "t": "text"
+         },
+         {
+          "bare": true,
+          "pdf": 86,
+          "printed": 80,
+          "t": "book"
+         }
+        ],
+        "kicker": "All of B.C.",
+        "rule": "zp:quota_defaults::quota_defaults.r1",
+        "says": [
+         {
+          "s": "Possession: 2 days’ quota. Fish at home don’t count.",
+          "t": "text"
+         }
+        ],
+        "tag": "Replaced by Region 2",
+        "tone": "lost"
+       }
+      ],
+      "quietHead": "Rules that don’t apply here (1)",
+      "result": "So: Release every one here.",
+      "steps": [
+       {
+        "book": [
+         {
+          "bare": true,
+          "pdf": 9,
+          "printed": 7,
+          "t": "book"
+         }
+        ],
+        "kicker": "All of B.C.",
+        "rule": "zp:white_sturgeon_licence::white_sturgeon_licence.r4",
+        "says": [
+         {
+          "s": "No fishing for white sturgeon: every non-tidal water of the province; lifted on the licensed Fraser watershed (r4x)",
+          "t": "text"
+         }
+        ],
+        "tag": "Lifted by Fraser watershed, Mission to Williams Lake River",
+        "tone": "lost"
+       },
+       {
+        "book": [
+         {
+          "bare": true,
+          "pdf": 9,
+          "printed": 7,
+          "t": "book"
+         }
+        ],
+        "kicker": "Fraser watershed, Mission to Williams Lake River · listed water",
+        "rule": "zp:white_sturgeon_licence::white_sturgeon_licence.r2",
+        "says": [
+         {
+          "s": "Release every white sturgeon.",
+          "t": "text"
+         }
+        ],
+        "tag": null,
+        "tone": "won"
+       }
+      ]
+     },
+     "k": "flow"
     },
     {
      "k": "link",
@@ -2621,70 +2839,88 @@
      "text": "How this was decided"
     },
     {
-     "k": "ladder",
-     "q": "What you can keep",
-     "result": "25 a day here, for all of Region 2 together.",
-     "steps": [
-      {
-       "level": "Region 2",
-       "lines": [
-        {
-         "applies": [
-          "From the Region 2 table — all of Region 2."
-         ],
-         "book": [
-          {
-           "pdf": 23,
-           "printed": 21,
-           "t": "book"
-          }
-         ],
-         "rule": "z2:daily_quotas::species_quotas.r3",
-         "tag": "Daily limit",
-         "text": [
-          {
-           "s": "Keep up to 25 crayfish a day.",
-           "t": "text"
-          }
-         ],
-         "won": true
-        }
-       ]
-      }
-     ]
-    },
-    {
-     "k": "ladder",
-     "q": "Other rules",
-     "result": null,
-     "steps": [
-      {
-       "level": "Region 2",
-       "lines": [
-        {
-         "applies": [
-          "From the Region 2 table — all of Region 2."
-         ],
-         "book": [
-          {
-           "pdf": 23,
-           "printed": 21,
-           "t": "book"
-          }
-         ],
-         "rule": "z2:possession_quota::possession_quota.r1",
-         "tag": "Carry limit",
-         "text": [
-          {
-           "s": "Possession: 2 days’ quota. Fish at home don’t count.",
-           "t": "text"
-          }
-         ],
-         "won": true
-        }
-       ]
-      }
-     ]
+     "flow": {
+      "other": [
+       {
+        "book": [
+         {
+          "bare": true,
+          "pdf": 23,
+          "printed": 21,
+          "t": "book"
+         }
+        ],
+        "kicker": "Region 2 · base rule",
+        "rule": "z2:possession_quota::possession_quota.r1",
+        "says": [
+         {
+          "s": "Possession: 2 days’ quota. Fish at home don’t count.",
+          "t": "text"
+         }
+        ],
+        "tag": null,
+        "tone": "won"
+       }
+      ],
+      "otherHead": "Other rules",
+      "quiet": [
+       {
+        "book": [
+         {
+          "bare": true,
+          "pdf": 11,
+          "printed": 9,
+          "t": "book"
+         },
+         {
+          "s": " ",
+          "t": "text"
+         },
+         {
+          "bare": true,
+          "pdf": 86,
+          "printed": 80,
+          "t": "book"
+         }
+        ],
+        "kicker": "All of B.C.",
+        "rule": "zp:quota_defaults::quota_defaults.r1",
+        "says": [
+         {
+          "s": "Possession: 2 days’ quota. Fish at home don’t count.",
+          "t": "text"
+         }
+        ],
+        "tag": "Replaced by Region 2",
+        "tone": "lost"
+       }
+      ],
+      "quietHead": "Rules that don’t apply here (1)",
+      "result": "So: 25 a day here, for all of Region 2 together.",
+      "steps": [
+       {
+        "book": [
+         {
+          "bare": true,
+          "pdf": 23,
+          "printed": 21,
+          "t": "book"
+         }
+        ],
+        "kicker": "Region 2 · base rule",
+        "rule": "z2:daily_quotas::species_quotas.r3",
+        "says": [
+         {
+          "s": "Keep up to 25 crayfish a day.",
+          "t": "text"
+         }
+        ],
+        "tag": null,
+        "tone": "won"
+       }
+      ]
+     },
+     "k": "flow"
     },
     {
      "k": "link",
@@ -2752,37 +2988,36 @@
      "text": "How this was decided"
     },
     {
-     "k": "ladder",
-     "q": "What you can keep",
-     "result": "Closed here.",
-     "steps": [
-      {
-       "level": "Federal law",
-       "lines": [
-        {
-         "applies": [
-          "Set by a federal or park authority — Region 2."
-         ],
-         "book": [
-          {
-           "pdf": 23,
-           "printed": 21,
-           "t": "book"
-          }
-         ],
-         "rule": "z2:protected_species::protected_species.r1",
-         "tag": "Closed",
-         "text": [
-          {
-           "s": "No fishing for Nooksack dace, Salish sucker, green sturgeon and Cultus Lake sculpin.",
-           "t": "text"
-          }
-         ],
-         "won": true
-        }
-       ]
-      }
-     ]
+     "flow": {
+      "other": [],
+      "otherHead": "Other rules",
+      "quiet": [],
+      "quietHead": "Rules that don’t apply here (0)",
+      "result": "So: Closed here.",
+      "steps": [
+       {
+        "book": [
+         {
+          "bare": true,
+          "pdf": 23,
+          "printed": 21,
+          "t": "book"
+         }
+        ],
+        "kicker": "Federal law",
+        "rule": "z2:protected_species::protected_species.r1",
+        "says": [
+         {
+          "s": "No fishing for Nooksack dace, Salish sucker, green sturgeon and Cultus Lake sculpin.",
+          "t": "text"
+         }
+        ],
+        "tag": null,
+        "tone": "won"
+       }
+      ]
+     },
+     "k": "flow"
     },
     {
      "k": "link",
@@ -2831,15 +3066,6 @@
     },
     {
      "items": [
-      {
-       "line": [
-        {
-         "s": "With 4 trout and char a day you may have 8: 2 days’ fish.",
-         "t": "text"
-        }
-       ],
-       "strong": "Possession doubles the 4 a day, not the 2 from streams."
-      },
       {
        "line": [
         {
@@ -5034,304 +5260,7 @@
    "sub": null,
    "title": "White sturgeon"
   },
-  "src:r0": {
-   "blocks": [
-    {
-     "k": "head",
-     "text": "These decide it (14)"
-    },
-    {
-     "groups": [
-      {
-       "rows": [
-        {
-         "book": [
-          {
-           "box": [
-            {
-             "box": [
-              36.25,
-              554.4,
-              540.25,
-              627.36
-             ],
-             "pdf": 24,
-             "size": [
-              576,
-              756
-             ]
-            }
-           ],
-           "pdf": 24,
-           "printed": 22,
-           "t": "book"
-          }
-         ],
-         "key": "r2:chilliwack_vedder_rivers_does_not_include_sumas_river_see_ma@2-4::chilliwack_vedder_rivers.r6",
-         "quote": "hatchery rainbow trout catch and release (50 cm or less)",
-         "role": "Sets the number · for rainbow trout",
-         "title": "Release hatchery rainbow trout 50 cm (20 in) or less, May 1–31"
-        },
-        {
-         "book": [
-          {
-           "box": [
-            {
-             "box": [
-              36.25,
-              554.4,
-              540.25,
-              627.36
-             ],
-             "pdf": 24,
-             "size": [
-              576,
-              756
-             ]
-            }
-           ],
-           "pdf": 24,
-           "printed": 22,
-           "t": "book"
-          }
-         ],
-         "key": "r2:chilliwack_vedder_rivers_does_not_include_sumas_river_see_ma@2-4::chilliwack_vedder_rivers.r7",
-         "quote": "hatchery cutthroat catch and release",
-         "role": "Release every one · for cutthroat trout",
-         "title": "Release hatchery cutthroat trout, May 1–31"
-        }
-       ],
-       "where": "Region 2 · for this water (Chilliwack River)"
-      },
-      {
-       "rows": [
-        {
-         "book": [
-          {
-           "pdf": 23,
-           "printed": 21,
-           "t": "book"
-          }
-         ],
-         "key": "z2:daily_quotas::trout_char_quota.r1",
-         "quote": "Trout/char: 4",
-         "role": "Sets the number · for Dolly Varden/bull trout, brook trout, brown trout, lake trout and steelhead",
-         "title": "Keep up to 4 trout and char a day"
-        },
-        {
-         "book": [
-          {
-           "pdf": 23,
-           "printed": 21,
-           "t": "book"
-          }
-         ],
-         "key": "z2:daily_quotas::trout_char_quota.r4",
-         "quote": "2 from streams (must be hatchery)",
-         "role": "Lowers the number · for Dolly Varden/bull trout, brook trout, brown trout, lake trout and steelhead",
-         "title": "At most 2 hatchery trout and char a day from streams"
-        },
-        {
-         "book": [
-          {
-           "pdf": 23,
-           "printed": 21,
-           "t": "book"
-          }
-         ],
-         "key": "z2:daily_quotas::trout_char_quota.r2",
-         "quote": "1 over 50 cm",
-         "role": "A limit inside the total · for Dolly Varden/bull trout, brook trout, brown trout and lake trout",
-         "title": "At most 1 trout or char (not steelhead) over 50 cm (20 in) a day"
-        },
-        {
-         "book": [
-          {
-           "pdf": 23,
-           "printed": 21,
-           "t": "book"
-          }
-         ],
-         "key": "z2:daily_quotas::trout_char_quota.r8",
-         "quote": "Hatchery trout/char under 30 cm from streams",
-         "role": "Size limit · for Dolly Varden/bull trout, brook trout, brown trout, lake trout and steelhead",
-         "title": "No hatchery trout or char under 30 cm (12 in) from streams"
-        },
-        {
-         "book": [
-          {
-           "pdf": 23,
-           "printed": 21,
-           "t": "book"
-          }
-         ],
-         "key": "z2:possession_quota::possession_quota.r1",
-         "quote": "Possession quotas = 2 daily quotas",
-         "role": "Possession limit",
-         "title": "Possession: twice the daily quota"
-        },
-        {
-         "book": [
-          {
-           "pdf": 23,
-           "printed": 21,
-           "t": "book"
-          }
-         ],
-         "key": "z2:daily_quotas::trout_char_quota.r6",
-         "quote": "Wild trout/char from streams",
-         "role": "Release every one",
-         "title": "Release wild trout and char from streams"
-        },
-        {
-         "book": [
-          {
-           "pdf": 23,
-           "printed": 21,
-           "t": "book"
-          }
-         ],
-         "key": "z2:daily_quotas::trout_char_quota.r5",
-         "quote": "1 char (bull trout, Dolly Varden, or lake trout)",
-         "role": "A limit inside the total · for Dolly Varden/bull trout and lake trout",
-         "title": "At most 1 Dolly Varden/bull trout or lake trout a day"
-        },
-        {
-         "book": [
-          {
-           "pdf": 23,
-           "printed": 21,
-           "t": "book"
-          }
-         ],
-         "key": "z2:daily_quotas::trout_char_quota.r5b",
-         "quote": "none under 60 cm",
-         "role": "Size limit · for Dolly Varden/bull trout and lake trout",
-         "title": "No Dolly Varden/bull trout or lake trout under 60 cm (24 in)"
-        },
-        {
-         "book": [
-          {
-           "pdf": 23,
-           "printed": 21,
-           "t": "book"
-          }
-         ],
-         "key": "z2:daily_quotas::trout_char_quota.r2b",
-         "quote": "1 over 50 cm (2 hatchery steelhead over 50 cm allowed)",
-         "role": "A limit inside the total · for steelhead",
-         "title": "At most 2 trout or char over 50 cm (20 in) a day"
-        },
-        {
-         "book": [
-          {
-           "pdf": 23,
-           "printed": 21,
-           "t": "book"
-          }
-         ],
-         "key": "z2:hatchery_steelhead_stop::hatchery_steelhead_stop.r1",
-         "quote": "When you have caught and retained your daily quota of hatchery steelhead from any water, you must stop fishing that water for the remainder of that day.",
-         "role": "Something you must do · for steelhead",
-         "title": "Stop fishing after your daily limit of hatchery steelhead"
-        }
-       ],
-       "where": "Region 2 · region-wide"
-      },
-      {
-       "rows": [
-        {
-         "book": [
-          {
-           "pdf": 8,
-           "printed": 6,
-           "t": "book"
-          }
-         ],
-         "key": "zp:steelhead::steelhead.r1",
-         "quote": "The annual province-wide quota for hatchery steelhead is 10.",
-         "role": "Yearly limit · for steelhead",
-         "title": "Up to 10 hatchery steelhead a licence year"
-        },
-        {
-         "book": [
-          {
-           "pdf": 8,
-           "printed": 6,
-           "t": "book"
-          }
-         ],
-         "key": "zp:steelhead::steelhead.r4",
-         "quote": "You must immediately record your retention of hatchery steelhead on your basic angling licence.",
-         "role": "Something you must do · for steelhead",
-         "title": "Write each hatchery steelhead on your licence right away"
-        }
-       ],
-       "where": "Provincial · in Regions 1, 2, 3, 5 and 6"
-      }
-     ],
-     "k": "sources"
-    },
-    {
-     "body": [
-      {
-       "groups": [
-        {
-         "rows": [
-          {
-           "book": [],
-           "key": "z2:daily_quotas::trout_char_quota.r7",
-           "notes": [],
-           "quote": "All wild steelhead",
-           "role": "Says the same as “Wild trout/char from streams” · for steelhead",
-           "title": "Release wild steelhead",
-           "trib": false
-          }
-         ],
-         "where": "Region 2 · region-wide"
-        },
-        {
-         "rows": [
-          {
-           "book": [],
-           "key": "zp:quota_defaults::quota_defaults.r1",
-           "notes": [],
-           "quote": "Possession quota — no more than twice the daily quota unless otherwise specified.",
-           "role": "Beaten by “Possession quotas = 2 daily quotas”",
-           "title": "Possession: twice the daily quota",
-           "trib": false
-          }
-         ],
-         "where": "Provincial · province-wide"
-        },
-        {
-         "rows": [
-          {
-           "book": [],
-           "key": "zp:steelhead::steelhead.r2",
-           "notes": [],
-           "quote": "All wild steelhead must be released.",
-           "role": "Beaten by “All wild steelhead” · for steelhead",
-           "title": "Release wild steelhead",
-           "trib": false
-          }
-         ],
-         "where": "Provincial · in Regions 1, 2, 3, 5 and 6"
-        }
-       ],
-       "k": "sources",
-       "overruled": true
-      }
-     ],
-     "k": "fold",
-     "open": false,
-     "summary": "Overruled (3)"
-    }
-   ],
-   "key": "src:r0",
-   "sub": "Vedder River · May 15. The more specific rule speaks first: this water, then from downstream, a named area, the region, then the province.",
-   "title": "Trout and char"
-  },
+  "src:r0": null,
   "srcs:always": {
    "blocks": [
     {

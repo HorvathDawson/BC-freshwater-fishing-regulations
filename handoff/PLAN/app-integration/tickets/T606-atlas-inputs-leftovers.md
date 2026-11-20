@@ -1,6 +1,6 @@
 # T606 — Atlas inputs: what T547 left
 
-Status: PARTIAL — items 1, 2 and 4 done (item 2: 0b23c1403, built in `full_next` 2026-11-12, not promoted); left (Claude): item 3 (held, reason below)
+Status: PARTIAL — items 1 (18db8478b), 2 (0b23c1403, now in the promoted atlas: the five lakes no longer carry West Road / Blackwater names, checked 2026-11-20) and 4 done; left (Claude): item 3 (held, reason below).
 
 Source: T547's report 2026-11-10 (commits 9c701a58b … 4acd5d0f1). T547's ticket file numbers the sections.
 

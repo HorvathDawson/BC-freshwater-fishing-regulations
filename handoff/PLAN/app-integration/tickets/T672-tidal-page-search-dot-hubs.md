@@ -1,6 +1,8 @@
 # T672 — T462 audit, the W findings and the cosmetics: tidal page, search dot, topic hubs
 
-Status: IN PROGRESS — the mechanical fixes are in (items 1a, 1b, 2, 3, 4, 5); left (Claude): item 6 (K9) held, the staging site deploy, and the next release for items 1b and 2 (deliver rebuilds the store and the status index).
+Status: DONE — 84d420a08, 464139a6d, 82fb5a758, e1345fae2, 1358a2de4, 83b1477ba. W1–W4, G11 and 1b fixed (tidal parts never say 'outside B.C.', search dot, hubs by year, every region in the description, the site's text model, the tidal fact per section); K9 left as is on the owner's word.
+
+Closed by the 2026-11-20 audit: owner 2026-11-12 'W1-W3, G11: accept as built. K9: leave.'; W4 1358a2de4; 1b 83b1477ba; staging site deployed and releases since (r-0a9930fb8826 onward).
 
 Source: `handoff/PLAN/app-integration/T462-audit.md` (85ba2e821), findings W1, W2, W3 and the cosmetic K9, G11, W4.
 Owner 2026-11-11: fix what is mechanical; anything that is a choice, and any new wording, is held and proposed.

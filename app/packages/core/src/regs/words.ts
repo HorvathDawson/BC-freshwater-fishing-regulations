@@ -71,9 +71,6 @@ export const WORDS = Object.freeze({
   OPENS: (md: string) => `Opens ${md}`,
   CLOSED_FROM: (md: string) => `Closed from ${md}`,
   CLOSED_SPAN: (span: string) => `Closed ${span}`,
-  TROUT_CLOSED: "closed", TROUT_RELEASE: "release only",
-  TROUT_LINE: (state: string, tail: string) => `Trout ${state}${tail}`,
-  ALL_YEAR: " all year",
   UNTIL: (md: string) => ` until ${md}`,
   // T14 the closed banner (page v36 closedBanner / mergedHtml / tidalHtml; prototype closechain rewrite)
   CLOSED_ALL_YEAR: "Closed all year",
@@ -110,6 +107,8 @@ export const WORDS = Object.freeze({
   ROW_STREAM: "Stream", ROW_LAKE: "Lake", ROW_WETLAND: "Wetland",
   CALM_LATER: "Not in force today. The map can’t draw these places yet, so check where you are.",
   WHERE: (p: string) => "Where: " + p,
+  // (T797 item 4) an undrawn-part rule's words then its stored conditions, joined as its label joins them ("…, wild only")
+  COND_SEP: ", ",
   // (T623 F4, owner 2026-11-11) a closure of a part of the water the map does not draw: a warning on every day, at the top
   PART_CLOSED_NOW: (noun: string, when: string) => `Part of this ${noun} is closed ${when}`,
   PART_CLOSED_LATER: (noun: string) => `Part of this ${noun} closes at times`,
@@ -125,9 +124,13 @@ export const WORDS = Object.freeze({
   SIDE_TITLE: "⚠ On one side of the channel only",
   HALF_ONLY: (side: string) => side + " half only",
   TIMED_TITLE: "⚠ At certain times",
-  /** (T318) a closure of some hours of every day, said under the year bar: "Daylight only: closed from 1 h after sunset to 1 h before sunrise" */
-  TIMED_DAYLIGHT: (after: string, before: string) => `Daylight only: closed from ${after} after sunset to ${before} before sunrise`,
-  /** (T473) a daylight-only closure as today's real hours, under the status: "Daylight only · fishing 07:04–18:37 PT" */
+  /** (T318) a closure of some hours of every day, said under the year bar: "Daylight only: closed from 1 h after sunset to 1 h
+   *  before sunrise"; (T898, owner 2026-11-19 pick "Times in the rule line") with the day's times known, each in brackets
+   *  after its part: "… 1 h after sunset (18:21) to 1 h before sunrise (7:23)" */
+  TIMED_DAYLIGHT: (after: string, before: string, at: { from: string; to: string } | null = null) => at
+    ? `Daylight only: closed from ${after} after sunset (${at.from}) to ${before} before sunrise (${at.to})`
+    : `Daylight only: closed from ${after} after sunset to ${before} before sunrise`,
+  /** (T473) a daylight-only closure as today's real hours, under the status: "Daylight only · fishing 7:04–18:37" */
   DAYLIGHT_HOURS: (range: string) => `Daylight only · fishing ${range}`,
   TIMED_H: (min: number) => (min % 60 === 0 ? `${min / 60} h` : `${min} min`),
   ANGLER_TITLE: "⚠ Closed to some anglers",
@@ -146,7 +149,6 @@ export const WORDS = Object.freeze({
   WHOLE_CLOSED: (r: string) => "The whole water is closed " + r + ".",
   CLOSED_RANGE: (r: string) => "Closed " + r + ".",
   NEXT_YEAR: " next year",
-  KEEP_UNTIL_THEN: (until: string, then: string, next: string) => "You can keep them until " + until + ". Then " + then + " from " + next + ".",
   NOW_UNTIL: (now: string, until: string) => now + " until " + until + ".",
   THEN_WHOLE: (r: string) => " Then the whole water is closed " + r + ".",
   THEN_RANGE: (then: string, r: string) => " Then " + then + " " + r + ".",
@@ -185,14 +187,8 @@ export const WORDS = Object.freeze({
   SHORT_STREAMS: "streams", SHORT_DAY_UNDER: " a day under ", SHORT_UNDER: " under ", SHORT_PLUS: "plus up to ",
   SHORT_OF_THEM: " of them", SHORT_OF_THOSE: "of those, ", SHORT_OVER: "over ", COMMA: ", ", COLON_SP: ": ",
   OPEN_PAREN: " (", CLOSE_PAREN: ")",
-  // ── T28 pin bar (pins.ts: prototype pinUpdate's form a group line, the total in brackets under the share) ──
-  PIN_OF_TOTAL: (total: string) => `(of ${total})`,
-  // ── T481 pin bar "here-max + one breadcrumb" (owner 2026-11-07): line 1 the water's limit, line 2 the path below it ──
-  PIN_A_DAY: (n: number) => `${n} a day`,
-  PIN_SHARE: (n: number, from: string) => `${n} a day from ${from}`,
-  // the share plus a water's own tier beside it: the true most, the share inside it, the rest the exception's fish
-  PIN_EXCEPTION: (max: number, share: number, fish: string) => `${max} a day — up to ${share} of any kind, the rest ${fish}`,
-  PIN_OF_THEM: " of them", PIN_LEVEL_SEP: "; ", PIN_NONE: "none", PIN_OR: " or ", PIN_MAY_BE_OVER: "may be over ",
+  // shortOf's size line (T481; the pin bar it was also for left at the T810 cutover)
+  PIN_MAY_BE_OVER: "may be over ",
   // the card head's link under the region total, and its sheet (sheets.ts multiSheet: the water's own numbers)
   MULTI_LINK: "Fishing more than one water today? ›",
   MULTI_TITLE: "Fishing more than one water today",
@@ -214,10 +210,9 @@ export const WORDS = Object.freeze({
   // ── T19 tail + other fish (tail.ts, others.ts: prototype nk, worked, Other fish; page v36 noRulesLine, rowsHtml) ──
   INTERPRET_EXAMPLES: "Examples of how to interpret regulations", EXCEPTION_REGIONAL: "Exception to regional quota", SEE_EVERY_LINE: "See every regulation line ›", OTHER_FISH: "Other fish",
   NO_LIMIT: "no limit", CLOSED_LC: "closed", RELEASE_LC: "release", SIZE_HINT: "· size limit", COLON: ":",
-  STEEL_POSSIBLE: "Steelhead rules apply here; steelhead may not be present in this water.",
-  STEEL_KNOWN: "Steelhead are known to be in this water.",
-  STEEL_NO_RULES: "Steelhead have been recorded here, but no steelhead rule applies: treat any rainbow, however big, as a rainbow trout.",
   CLOSED_MARK: "✕",
+  /** (T829) the release group's shape mark (trout-table contract 2.4: the app draws the marks ↩ and ✕, never a rule) */
+  RELEASE_MARK: "↩",
   // page v36 levelTag (level.ts): the level a rule speaks at, by the part's rank (Region N from the rule's own entry id)
   LEVEL_TAG_BC: "B.C. rule", LEVEL_TAG_REGION: (n: string) => `Region ${n} rule`, LEVEL_TAG_REGION_ANY: "Region rule",
   LEVEL_TAG_AREA: "Named area rule", LEVEL_TAG_DOWN: "Downstream rule", LEVEL_TAG_FED: "Federal or park rule",
@@ -345,6 +340,8 @@ export const ELEM: Readonly<Record<string, string>> = Object.freeze({ roe: "Roe 
   spear_fishing: "Spear or bow", crayfish_trapping: "Crayfish traps", netting: "Nets", snagging: "Snagging",
   chumming: "Chumming", downrigger: "Downrigger", light: "Light to attract fish" });
 export const BAIT = Object.freeze({
+  /** (T900) a rule label's "head — where" join (the pipeline's) */
+  DASH: " — ",
   LABEL: "Bait",
   /** (T515) the heading over the list: what is banned + WHEN, then the status, then the bait_ban ⓘ as its own run (after a space) */
   BAN_ALL: "No natural bait", BAN_SOME: "Bait ban",
@@ -411,6 +408,28 @@ function deepWords(t: object): string[] {
     : v && typeof v === "object" && !(v instanceof RegExp) ? deepWords(v) : []);
 }
 
+/**
+ * (T810 N, trout-table-contract.md 2.4) THE TROUT TABLE'S NAVIGATION WORDS: the only app words the table draws (beside
+ * the day phrase in its top line's slot). None states a rule; every rule word is the payload's.
+ */
+export const TROUT_NAV = Object.freeze({
+  /** the folded entry's name (the entry exists today) */
+  ENTRY: "Trout and char",
+  HATCH: "How to tell a hatchery fish ›",
+  SOURCES: "Sources ›",
+  ELSEWHERE: "Fished elsewhere today? ›",
+  /** (T810 O) the small mark in a row picture's corner: the picture opens the fish's sheet */
+  MORE: "›",
+} as const);
+
+/** (T810 P) the trout fish sheet's section heads and its link to the table's every rule (app words; none states a rule). */
+export const TROUT_SHEET = Object.freeze({
+  HERE: "Here, today",
+  TELL: "How to tell it",
+  SOURCES: "Sources",
+  ALL_SOURCES: "All sources ›",
+} as const);
+
 /** "Mon" … "Sun" (Monday first, as the calendar). */
 export const WD3: readonly string[] = WEEKDAYS.map((w) => w.slice(0, 3));
 /** "J", "F", … — the strip's month initials. */
@@ -436,7 +455,8 @@ export const LIC = Object.freeze({
   ACT_FISHING: "To fish here", ACT_TARGETING: (sp: string) => `To fish for ${sp}`, ACT_RETAINING: (sp: string) => `To keep ${sp}`,
   ACT_RECORDED: "When you keep a fish you must record", ACT_GUIDING: "To guide anglers",
   LEN_RANGE: (a: number, b: number) => `${a}–${b} cm`, LEN_OVER: (a: number) => `over ${a} cm`, LEN_UNDER: (b: number) => `under ${b} cm`,
-  // priceTxt
+  // priceTxt; (T789 G10) a document with its own price, in a list of several
+  WITH_PRICE: (name: string, price: string) => `${name} (${price})`,
   PER_YEAR: (p: string) => `$${p} a year`, PER_DAY: (p: string) => `$${p} a day`, PER_8_DAYS: (p: string) => `$${p} for 8 days`, DOT: " · ",
   // licParts whenTxt / alsoTxt
   NEEDED_AT_ALL: "Needed to fish at all", WHATEVER: ", whatever you fish for",
@@ -445,6 +465,8 @@ export const LIC = Object.freeze({
   OTHER_TIME: (act: string) => `at any other time only if you ${act}`, EITHER: ". Either one does", ALSO_SEP: "; ",
   // designation classbox
   CLASS_HEAD: (c: string) => `Class ${c} Classified Water`, CLASS_TERM: "classified_waters",
+  /** (T841) the header's badge: "Class II"; with its period (look B), said "Class II, Jul 1–Dec 31" */
+  CLASS_BADGE: (c: string) => `Class ${c}`, CLASS_BADGE_ARIA: (cls: string, period: string) => `${cls}, ${period}`,
   UNIT: (u: string) => `Licence unit: ${u}`,
   STAMP_DURING: (dates: string) => `. Steelhead Stamp needed ${dates}, whatever you fish for`, IN_FORCE: " (in force today)",
   STAMP_OTHER_TIME: "; at any other time only to fish for steelhead",
@@ -527,6 +549,10 @@ export const ALL_WORDS: ReadonlySet<string> = new Set([
   ...deepWords(METHODS),
   // (T33) the licence words
   ...licWords(),
+  // (T810 N) the trout table's navigation words
+  ...deepWords(TROUT_NAV),
+  // (T810 P) the trout fish sheet's heads
+  ...deepWords(TROUT_SHEET),
 ]);
 
 /** The words of a Line that are not data: text and link words, and the fixed words of term and book runs. Numbers are

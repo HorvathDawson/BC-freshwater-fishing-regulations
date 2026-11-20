@@ -7,12 +7,14 @@
  * This file words and arranges them; it decides nothing (moveAllowances only moves words between two notes).
  *
  * Ports (inventory names, regs v38 @ 7fb6809f): page v36 gearParts' bait block (WHY, the item note), prototype dated (with
- * bits 16), buildGear's bait cell (note2, the UR2 7 / 20h allowance move, the UR4 fix 6 all-year line). `also_allowed`
- * (✓ dead fish … `<small>`) is not shown: the prototype reads only the item's `<span>` (decisions D18 a).
+ * bits 16), buildGear's bait cell (note2, the UR2 7 / 20h allowance move, the UR4 fix 6 all-year line).
+ * (T797 item 2, owner 2026-11-16 "Show it", reversing decisions D18 a) an element's stored `also_allowed` (dead fin fish
+ * when fishing for white sturgeon, p.8 and p.23) is said under it, in its rule's own words (D18 b).
  */
 import { closedFoot, changeVM, gearAnswer, sourceLine, type GearCtx, bookBits } from "./gear";
 import type { GearAnswer, RegsInputs } from "./inputs";
 import { text, type Line, type Run } from "./line";
+import { clean } from "./names";
 import type { BaitVM, ChangeVM } from "./model";
 import { bookIndex, spanWords } from "./strip";
 import { BAIT, ELEM, GEAR } from "./words";
@@ -28,11 +30,45 @@ const elemName = (e: string): string => ELEM[e] ?? e;
  *  and "carry up to N kg". */
 export function baitItems(g: GearAnswer): BaitItem[] {
   return g.bait.map((b) => {
-    const sub = b.excepted_from ? BAIT.EXCEPTED(elemName(b.excepted_from.element).toLowerCase())
+    // (T922) roe reads as roe: no "the fish or fish parts ban excepts it" note
+    const sub = b.excepted_from && b.element === "roe" ? BAIT.ALLOWED : b.excepted_from ? BAIT.EXCEPTED(elemName(b.excepted_from.element).toLowerCase())
       : b.by ? (b.why ? (BAIT.WHY[b.why] ?? b.why) : "") : BAIT.ALLOWED;
     return { ok: b.ok, name: elemName(b.element), s: [sub, b.carry_kg != null ? BAIT.CARRY(b.carry_kg) : ""].filter(Boolean).join(BAIT.SEP),
              rix: b.by?.[0] ?? null };
   });
+}
+
+/** (T797 item 2, D18 b) per bait element, in `g.bait` order: the rules of its stored allowances (`also_allowed`), each
+ *  once. The pipeline decides them (`gear.py` bait `also_allowed`); this only reads their rule indices. */
+export function allowanceRules(g: GearAnswer): readonly (readonly number[])[] {
+  return g.bait.map((b) => [...new Set((b.also_allowed ?? []).map((a) => a.clause[0]))]);
+}
+
+/** (T797 item 2) an element's note, then each allowance's rule label (the stored words, as the boats line says its
+ *  rules), each label once. */
+export function noteWithAllowances(note: string, rixs: readonly number[], rules: GearCtx["rules"]): string[] {
+  const said = [...new Set(rixs.filter((ix) => rules.has(ix)).map((ix) => clean(rules.get(ix).export.label)))];
+  // (T922) the item's own note splits at its " · " (why, carry limit); each allowance label stays whole
+  return [...(note ? note.split(BAIT.SEP) : []), ...labelsOnce(said)].filter(Boolean);
+}
+
+/**
+ * (T900) rule labels of the same exception said once: two rules worded "<head> — <where>" (white sturgeon's dead fin fish,
+ * one rule per entry of the book: "upstream of the CPR Bridge at Mission", "Fraser River; Pitt River, …") print the head
+ * once and each rule's own "— <where>" (with any tail it carries) after it, "·" between them. A label without a
+ * " — <where>" part, or with a head no other label shares, stands as it is. Every word of every label stays.
+ */
+export function labelsOnce(labels: readonly string[]): string[] {
+  const cut = (l: string): [string, string | null] => { const i = l.indexOf(BAIT.DASH); return i < 0 ? [l, null] : [l.slice(0, i), l.slice(i + BAIT.DASH.length)]; };
+  const out: string[] = [], at = new Map<string, number>(), where: string[][] = [];
+  for (const l of labels) {
+    const [head, w] = cut(l);
+    const j = w === null ? undefined : at.get(head);
+    if (j !== undefined) { where[j]!.push(w!); continue; }
+    if (w !== null) { at.set(head, out.length); where[out.length] = [w]; } else where[out.length] = [];
+    out.push(head);
+  }
+  return out.map((head, i) => (where[i]!.length ? head + BAIT.DASH + where[i]!.join(BAIT.SEP) : head));
 }
 
 /** prototype buildGear.note2: a note that only repeats its column ("allowed", "banned", "bait ban") loses that word. */
@@ -49,7 +85,7 @@ export function moveAllowances(items: BaitItem[]): void {
     const to = items.find((y) => y.ok && new RegExp("^" + m[2], "i").test(y.name));
     if (!to) continue;
     x.s = m[1]!;
-    if (!/ban excepts it/i.test(to.s)) to.s = [to.s, BAIT.STILL_OK(m[2]!)].filter(Boolean).join(BAIT.SEP);
+    if (!/ban excepts it/i.test(to.s) && !/^roe\b/i.test(to.name)) to.s = [to.s, BAIT.STILL_OK(m[2]!)].filter(Boolean).join(BAIT.SEP);
   }
 }
 
@@ -100,14 +136,16 @@ export function banHeading(banToday: boolean, items: readonly BaitItem[], allYea
 export function buildBait(inp: RegsInputs, ctx: GearCtx, anyway = false): BaitVM | null {
   const g = gearAnswer(inp);
   if (!g || (!anyway && closedFoot(inp, ctx))) return null;
-  const items = baitItems(g);
+  const items = baitItems(g), also = allowanceRules(g);
   moveAllowances(items);
   const bits = bookBits(inp), dated = datedBans(bits, bookIndex(inp.day), inp.statics.strip);
   const all = dated.length ? null : allYearBan(bits, items);
+  const row = (ok: boolean) => items.flatMap((x, i) => x.ok !== ok ? []
+    : [[x.name, noteWithAllowances(note2(x.s), also[i] ?? [], ctx.rules)] as const]);
   const notes: Line[] = banHeading(g.bait_ban, items, all, dated, ctx.glossary.has("bait_ban"), anyway);
   return {
     label: BAIT.LABEL, notes,
-    list: yesNo(items.filter((x) => x.ok).map((x) => [x.name, note2(x.s)] as const), items.filter((x) => !x.ok).map((x) => [x.name, note2(x.s)] as const)),
-    src: sourceLine("srcs:bait", items.flatMap((x) => (x.rix == null ? [] : [x.rix])), ctx),
+    list: yesNo(row(true), row(false)),
+    src: sourceLine("srcs:bait", [...items.flatMap((x) => (x.rix == null ? [] : [x.rix])), ...also.flat()], ctx),
   };
 }

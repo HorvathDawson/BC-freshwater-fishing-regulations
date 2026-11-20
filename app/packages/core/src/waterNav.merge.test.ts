@@ -7,7 +7,7 @@
  * ONE mode (owner 2026-11-08): they join only where the live salmon reads them alike; with no reading, never.
  */
 import { describe, expect, it } from "vitest";
-import { entryNames, markLabel, mergeNav, partAt, partName, stepsUp, waterGroup, type ItemNavRows } from "./waterNav";
+import { entryNames, markLabel, mergeNav, partAt, partName, stepUp, waterGroup, type ItemNavRows } from "./waterNav";
 import { salmonTimelineKey, type SalmonFacts } from "./salmon";
 
 // one river: parts 0 (sids 1, 2), 1 (sid 3), 2 (sid 4) are one run of one rule set (grp 0, run 0) cut by DFO chains;
@@ -40,7 +40,7 @@ describe("mergeNav (T228, T517)", () => {
     expect(g.parts[0]!.box).toEqual([0, 0, 3, 1]);
     expect([0, 1].map((i) => partName(g, i))).toEqual([RUN, "Watershed boundary → Source"]);
     expect(g.marks.map((m) => [m.down, m.up, markLabel(g, m)])).toEqual([[0, [1], "Watershed boundary"]]);
-    expect(stepsUp(g, 0)).toEqual([1]);
+    expect(stepUp(g, 0)).toBe(1);
   });
 
   it("a feed opening salmon on the middle piece splits it out; reverting joins them again", () => {
@@ -114,6 +114,18 @@ describe("the salmon key is the regulations' content (T228 follow-up)", () => {
     const loud = { s: "open", t: "coho:  2 PER day" };
     const f = salmonFacts([OPEN2, OPEN2, loud], chainOf, [CLOSED, OPEN2, OPEN4H, loud]);
     expect(pieces(f)).toEqual([[1, 2, 3, 4], [5, 6]]);
+  });
+  // (T767 item 4) the feed's short text can leave the condition to the tree ("2 per day (Nov 7–30)", "hatchery-marked
+  // only" in `tree.says` alone): words alike, trees apart are different regulations. MUTATION: drop the tree's words from
+  // `salmonTimelineKey`'s verdict -> the three pieces join as one.
+  it("(T767) words alike, trees apart (hatchery-marked only in the tree alone) splits; trees alike join", () => {
+    const tree = (says: string) => ({ node: "tier", id: says, tier: "count", n: 2, says, by: 0, children: [] });
+    const any = { s: "open", t: "2 per day (Nov 7–30)", tree: tree("2 a day") };
+    const marked = { s: "open", t: "2 per day (Nov 7–30)", tree: tree("2 a day, hatchery-marked only") };
+    const v = [CLOSED, any, marked];
+    expect(pieces(salmonFacts([any, marked, any], chainOf, v))).toEqual([[1, 2], [3], [4], [5, 6]]);
+    const again = { ...any, tree: { ...tree("2 a day"), id: "another node, the same words" } };
+    expect(pieces(salmonFacts([any, again, any], chainOf, [CLOSED, any, again]))).toEqual([[1, 2, 3, 4], [5, 6]]);
   });
   it("a feed change re-groups: the middle piece goes hatchery-only, then back", () => {
     expect(pieces(salmonFacts([OPEN2, OPEN4H, OPEN2], chainOf))).toEqual([[1, 2], [3], [4], [5, 6]]);

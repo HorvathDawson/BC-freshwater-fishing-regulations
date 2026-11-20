@@ -125,6 +125,42 @@ def test_a_gauge_cut_is_said_by_the_regulations_own_split_there_else_the_nearest
         end_words(doc, "gauge__1", "from")
 
 
+def _gauge_water(trib_at_m: float | None):
+    """One river along x (metres = its measure from the mouth): mouth -[s1]- bridge (5 km) -[s2]- gauge (16.8 km)
+    -[s3]- source (30 km); a named tributary meeting it at `trib_at_m` (None: no tributary)."""
+    from shapely.geometry import LineString
+    db = sqlite3.connect(":memory:")
+    db.executescript("CREATE TABLE split (split_id TEXT, name TEXT, kind TEXT);"
+                     "CREATE TABLE item (ord INTEGER, item_id TEXT);"
+                     "CREATE TABLE item_down (ord INTEGER, down_ord INTEGER);")
+    db.executemany("INSERT INTO split VALUES (?,?,?)", [("x__bridge", "Canyon City bridge", "point"),
+                                                        ("gauge__g", "08DB001 · Nass River Above Shumal Creek", "gauge")])
+    db.executemany("INSERT INTO item VALUES (?,?)", [(1, "gnis:1"), (2, "gnis:2")])
+    geo = {1: LineString([(0, 0), (5000, 0)]), 2: LineString([(5000, 0), (16800, 0)]),
+           3: LineString([(16800, 0), (30000, 0)])}
+    span = {1: (0.0, 5000.0, "mouth", "x__bridge", 0, None), 2: (5000.0, 16800.0, "x__bridge", "gauge__g", 0, None),
+            3: (16800.0, 30000.0, "gauge__g", "source", 0, None)}
+    sids = {(1, 0): [1], (1, 1): [2], (1, 2): [3]}
+    kind = {1: "stream", 2: "stream"}
+    if trib_at_m is not None:
+        db.execute("INSERT INTO item_down VALUES (2, 1)")
+        geo[9] = LineString([(trib_at_m, 50), (trib_at_m, 4000)])
+        span[9] = (0.0, 3950.0, "mouth", "source", 0, None)
+        sids[(2, 0)] = [9]
+    return db, geo, span, sids, kind
+
+
+def test_a_gauge_cut_is_near_what_stands_near_it_along_the_water_never_the_far_end_of_its_section():
+    """T850 (owner 2026-11-18: "a big issue"): the Nass's open coho stretch, Canyon City bridge to 08DB001 (11.8 km),
+    read "Canyon City bridge → Canyon City bridge": `gauge_near` measured from a point on the gauge's section to the
+    WHOLE of the bridge's sections, the one section between them, so 0 m. Measured along the water from the cut, the
+    bridge is 11.8 km off: not near (`NEAR_M`), and the cut is said by its km — or by a tributary meeting near it."""
+    assert T.gauge_near(*_gauge_water(None)) == []
+    assert T.gauge_near(*_gauge_water(16500.0)) == [("gauge__g", "confluence:gnis:2", 300.0)]
+    # MUTATION: a tributary past NEAR_M of the cut is no name for it; the bridge is never one either
+    assert T.gauge_near(*_gauge_water(16800.0 - T.NEAR_M - 100)) == []
+
+
 def test_a_gauge_cut_keeps_every_name_it_is_known_by():
     """T517 (owner 2026-11-08: "any can be used"): the regulation's own name is said; the gauge's stays as an alternate
     (`end_variants`, the mark's `alt`), never discarded."""

@@ -6,14 +6,15 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { cleanup, renderHook, waitFor } from "@testing-library/react";
 import { setFailureSink } from "@app/core";
-import { SpaceError, type BootOptions, type Booted } from "@app/data/release";
+import { SpaceError, UnreadableError, type BootOptions, type Booted } from "@app/data/release";
 
 const boots: (() => Promise<Booted>)[] = [];
 vi.mock("@app/data/release", async (orig) => ({
   ...(await orig<typeof import("@app/data/release")>()),
   bootRelease: () => boots.shift()!(),
-  warmLike: async () => {},
+  warmLike: async () => { const w = warms.shift(); if (w) await w(); },
 }));
+const warms: (() => Promise<void>)[] = [];
 
 import { useReleaseBoot } from "./boot";
 
@@ -55,6 +56,37 @@ describe("useReleaseBoot: the replaced set is retired (T360)", () => {
     expect(b.retire).not.toHaveBeenCalled();
   });
 
+  it("(T746) an apply in flight is `applying` over the set in use, until the new set commits", async () => {
+    const a = set("r-a"), b = set("r-b");
+    let open = () => {};
+    boots.push(async () => a.booted, () => new Promise<Booted>((done) => { open = () => done(b.booted); }));
+    const { result, rerender } = renderHook(({ g }) => useReleaseBoot(OPTS, g), { initialProps: { g: 0 } });
+    await waitFor(() => expect(result.current.state).toBe("ready"));
+    expect(result.current.state === "ready" && result.current.applying).toBeFalsy();
+    rerender({ g: 1 });
+    await waitFor(() => expect(result.current.state === "ready" && result.current.applying).toBe(true));
+    expect(result.current.state === "ready" && result.current.booted).toBe(a.booted);   // the set in use stays on screen
+    open();
+    await waitFor(() => expect(result.current.state === "ready" && result.current.booted).toBe(b.booted));
+    expect(result.current.state === "ready" && result.current.applying).toBeFalsy();
+    expect(reported).toEqual([]);
+  });
+
+  it("(T746) a warm-up that throws fails the apply like any other: said (applyError), reported, the old set kept", async () => {
+    vi.spyOn(console, "error").mockImplementation(() => {});
+    const a = set("r-a"), b = set("r-b");
+    boots.push(async () => a.booted, async () => b.booted);
+    warms.push(async () => { throw new Error("paint: decode failed"); });
+    const { result, rerender } = renderHook(({ g }) => useReleaseBoot(OPTS, g), { initialProps: { g: 0 } });
+    await waitFor(() => expect(result.current.state).toBe("ready"));
+    rerender({ g: 1 });
+    await waitFor(() => expect(result.current.state === "ready" && result.current.applyError?.message).toBe("paint: decode failed"));
+    expect(result.current.state === "ready" && result.current.applying).toBe(false);
+    expect(result.current.state === "ready" && result.current.booted).toBe(a.booted);
+    expect(reported.map(String)).toEqual(["Error: paint: decode failed"]);
+    expect(a.retire).not.toHaveBeenCalled();
+  });
+
   it("(T722 F9) a download that will not fit fails in its own words (said, reported); any other failure says none", async () => {
     vi.spyOn(console, "error").mockImplementation(() => {});
     const words = "Not enough free space: the download needs about 482.0 MB and this phone has 120.0 MB free. "
@@ -67,5 +99,15 @@ describe("useReleaseBoot: the replaced set is retired (T360)", () => {
     rerender({ a: 1 });
     await waitFor(() => expect(result.current.state === "failed" && result.current.error.message).toBe("offline"));
     expect(result.current.state === "failed" && result.current.said).toBeNull();
+  });
+
+  it("(T845) a release this app cannot read says so plainly; the format stays in the error (the log)", async () => {
+    vi.spyOn(console, "error").mockImplementation(() => {});
+    const why = "release r-old is not one this app reads: regulations trout is 1, not 5";
+    boots.push(async () => { throw new UnreadableError(why); });
+    const { result } = renderHook(() => useReleaseBoot(OPTS, 0, 0));
+    await waitFor(() => expect(result.current.state).toBe("failed"));
+    expect(result.current.state === "failed" && [result.current.said, result.current.error.message])
+      .toEqual(["This version of the app can't read the data on the server yet. Try again later, or check for an app update.", why]);
   });
 });

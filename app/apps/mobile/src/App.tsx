@@ -15,31 +15,28 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { AppState, Platform, Share, StatusBar, Text, View, useColorScheme, useWindowDimensions } from "react-native";
 import { SafeAreaProvider, SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 import { useFonts } from "expo-font";
-import {
-  BricolageGrotesque_700Bold, BricolageGrotesque_800ExtraBold,
-} from "@expo-google-fonts/bricolage-grotesque";
-import {
-  Archivo_400Regular, Archivo_500Medium, Archivo_600SemiBold, Archivo_700Bold, Archivo_800ExtraBold,
-} from "@expo-google-fonts/archivo";
-import { JetBrainsMono_500Medium } from "@expo-google-fonts/jetbrains-mono";
-import { DOWNLOAD_NOTE_WORDS, downloadFraction, INSTALL_WORDS, MAP_CREDITS, MOBILE_DATA_WORDS, mobileDataDecision, installLine, SETUP_WORDS, setupFraction, setupLine, netBanner, progressWords, rolledBackLine, splashLineFor, startStage, updatedToast, UPDATE_LOG_WORDS, UPDATE_WORDS, versionHeaders,
-         versionLine, dataProvenanceLine, now as clockNow } from "@app/core";
+// (T741, T910) the faces per platform: the phone's TTF, each from its own weight's folder (`fonts.native.ts`); the web's
+// WOFF2 from our own /assets/fonts/ (`fonts.web.ts`). `tools/font-imports.test.ts` holds both to the faces drawn.
+import { FONT_SOURCES } from "./fonts";
+import { applyLine, DOWNLOAD_NOTE_WORDS, downloadFraction, failedStartLine, restartsByItself, INSTALL_WORDS, stillLine, MAP_CREDITS, MOBILE_DATA_WORDS, mobileDataDecision, installLine, SETUP_WORDS, setupFraction, setupLine, netBanner, progressWords, rolledBackLine, splashLineFor, startStage, updatedToast, UPDATE_LOG_WORDS, UPDATE_WORDS, versionHeaders,
+         versionLine, createFeedGate, now as clockNow } from "@app/core";
 import { createNet, shareFetch, createReportOutbox, createUpdateLog, createUpdateService, phoneNetwork, versionedFetch, httpFeed, gaugeHistory, httpInSeason, httpRunTiming, httpSalmonFeed, manifestDate, noteHeld, followSavedItems, openRunTimingStore,
          type Held, type UpdateService, type WaterSource } from "@app/data";
 import { bootSaid, type MobileDataGate, type ReleaseLoader } from "@app/data/release";
 import * as platform from "@app/data/release/platform";
-import { fillDayFlow, onVisit, visitIdOf, storedHydat, openLayerStore, openLikeStore, openSalmonFeedStore, openGaugeHistoryStore, openInSeasonStore, openInSeasonSeenStore, openInSeasonInboxStore, openFirstRunStore, openDataModeStore, openWalkthroughStore, openLocationAskStore, openAppUpdateStore, openRecentSearchStore, openRunSpeciesStore, openUpdateStore, openUpdateLogStore, openReportOutboxStore, openCrashSettingStore, openCrashPendingStore, openCrashExitStore, openInstallIdStore, openMeteo, openPhotos, openSpots, needsRefresh, refreshSpot,
+import { fillDayFlow, onVisit, visitIdOf, storedHydat, openLayerStore, openLikeStore, openSalmonFeedStore, openGaugeHistoryStore, openInSeasonStore, openInSeasonSeenStore, openInSeasonInboxStore, openFirstRunStore, openDataModeStore, openWalkthroughStore, openLocationAskStore, openAppUpdateStore, openRecentSearchStore, openRunSpeciesStore, openUpdateStore, openUpdateLogStore, openReportOutboxStore, openCrashSettingStore, openCrashPendingStore, openCrashExitStore, openInstallIdStore, openMeteo, openPhotos, openSpots, needsRefresh, refreshSpot, syncBackupSet,
          type DayFlowAnswer, type Spot } from "@app/data/spots";
-import { Button, connectivity, ErrorState, LoadingState, SayingLine, setSynopsisNet, setSynopsisSource, Shell, StageBar, THEMES, UpdateToast, setLinkFailedSink, type ThemeName,
-         platformLine, type ShellProps, type UpdatesLogControls } from "@app/ui-native";
-import { LayoutWidthContext, liveFetch, NetRoot, useNet, useNetActivity, releaseMapInput, releaseStatus, setAnglerProfile, teeConsoleErrors, createCrashReporter, createCrashSetting, CrashSettingRoot, NotifyRoot, AlertLinesRefresh, installCrashHandlers, installId, reportPastExits, crashWhere, useRefreshOnReconnect, useReleaseBoot, useSpots, type MapTiles,
-         DataProvenanceContext, loadRegsStore, reportFailure, startNeedsRelease, startNoticeLine,
+import { Button, COHO_WIDTH, cohoHeight, connectivity, ErrorState, LoadingState, LoaderLine, loaderLineText, SayingLine, TYPE, setSynopsisNet, setSynopsisSource, Shell, StageBar, THEMES, UpdateToast, setLinkFailedSink, type ThemeName,
+         platformLine, drawPhoneScreensOnWeb, type ShellProps, type UpdatesLogControls } from "@app/ui-native";
+import { LayoutWidthContext, liveFetch, NetRoot, useNet, useNetActivity, releaseMapInput, releaseStatus, setAnglerProfile, teeConsoleErrors, createCrashReporter, createCrashSetting, CrashSettingRoot, NotifyRoot, AlertLinesRefresh, installCrashHandlers, installId, reportPastExits, crashWhere, useRefreshOnReconnect, useApplyCurtain, useDownloadStill, useReleaseBoot, useBootTries, useRetryByItself, retriesByItselfNow, useSpots, type MapTiles,
+         loadRegsStore, reportFailure, startNeedsRelease, startNoticeLine,
          type AddressState, type PairingInput, type Route, type SpotPhotos, type StartLink, type StatusSource,
          useAppUpdate } from "@app/ui";
 import { onAppLink } from "./appLink";
 import { PHOTO_SOURCES, pickPhoto } from "./pickPhoto";
 import { routeAddress, routeLinks, routeUrl, systemBack } from "./systemBack";
 import { locate } from "./locate";
+import type { ReadRange } from "@app/map";
 import { returnedFromBackground } from "./returnedFromBackground";
 import { share } from "./share";
 // (T390) the platform's way to a newer app: Play's in-app update, the App Store page, the staging APK page; none on the web
@@ -52,7 +49,7 @@ import { releaseSplash } from "./splash";
 // (T234) the phone's local notifications (gauge alerts, new data ready) and their background check; none on the web
 import { notifications, onTap, setWakeUpdates } from "./notify";
 
-import { APP_ENV, APP_VERSION, BUILT_CHANNEL, ENDPOINTS, IMAGERY_TILES, MENU_INFO, CRASH_URL, TEST_REPORTS, pickChannel, storedChannel, REPORT_URL, UPDATE_CHANNEL, UPDATES_LOG } from "./config";
+import { APP_ENV, APP_VERSION, ENDPOINTS, IMAGERY_TILES, MENU_INFO, CRASH_URL, TEST_REPORTS, pickChannel, storedChannel, REPORT_URL, STORE_SHOTS, UPDATE_CHANNEL, UPDATES_LOG } from "./config";
 
 /*
  * THE RECENT ERROR LOG (menu: Report a problem): every console.error the app already logs is also kept in a small
@@ -60,7 +57,10 @@ import { APP_ENV, APP_VERSION, BUILT_CHANNEL, ENDPOINTS, IMAGERY_TILES, MENU_INF
  * stored or sent; uncaught errors go separately, scrubbed, under the Data switch (T242, below).
  */
 teeConsoleErrors(console);
-import { ADIPOSE_IMAGES, FISH_IMAGES } from "./fishImages.generated";
+import { FISH_IMAGES } from "./fishImages.generated";
+
+// (T319) a store-shots web build (never deployed) draws the phone's Spots and Help lines
+if (STORE_SHOTS) drawPhoneScreensOnWeb(true);   // only the web reads it: the phone draws its own screens anyway
 
 /**
  * (T41) THE WEB START LINK, read once (a test affordance; null on native and on a plain visit): the water, part, day,
@@ -95,6 +95,8 @@ const FEED = ENDPOINTS.feed;
  * workers allow it, the local dev server's `serve-tiles` too once restarted), and the browser's own User-Agent.
  */
 const WEB = Platform.OS === "web";
+/** (T732) The phone backup's photo set: Android's cloud backup only (25 MB quota; see `@app/data` `syncBackupSet`). */
+const BACKUP_SET = Platform.select({ android: true, default: false });
 const VERSION_HEADERS = WEB
   ? (APP_ENV.env === "local" ? {} : versionHeaders(APP_VERSION, { platform: "web", ua: false }))
   : versionHeaders(APP_VERSION, { platform: platformLine(), ua: true });
@@ -157,33 +159,54 @@ function BootNetLine({ colour }: { colour: string }) {
 }
 
 /**
- * (T244) THE LOADING SCREEN: the loading fish at the centre of the WINDOW, its pun beneath, then the step and the
- * progress. The fish is drawn at once (`immediate`: no 300 ms hold) at the size and centre of the native splash picture
- * (`pnpm splash`, 110 dp), so the native splash can hand off to it with nothing to jump: the centre is the window's, not
- * the safe area's (the native splash is centred in the window), so the insets' difference is taken back out. Everything
- * else hangs below the fish, so what arrives late (the step, a download bar) never moves it. The native splash is let go
- * once the fish is laid out.
+ * (T760) Under the first install's bar: said once the byte count has not moved for a minute (`useDownloadStill`), gone
+ * when it moves. `bytes` null: not downloading (no line). (T738) The count is the bytes had as they are (`Progress.had`),
+ * not the bar's held-up figure: a file queued again from zero is moving while the bar holds.
  */
-const BOOT_FISH = 110;
+function BootStillLine({ bytes, colour }: { bytes: number | null; colour: string }) {
+  const { mode } = useNet();
+  if (!useDownloadStill(bytes)) return null;
+  return (
+    <Text testID="boot-still" style={{ color: colour, fontSize: 13, textAlign: "center", paddingHorizontal: 24 }}>
+      {stillLine(mode.offline)}
+    </Text>
+  );
+}
+
+/** The loader's height (its width is `COHO_WIDTH`): what the words hang below. */
+const BOOT_LOADER_H = cohoHeight(COHO_WIDTH);
+/**
+ * (T244) THE LOADING SCREEN: the loader at the centre of the WINDOW, its pun beneath, then the step and the progress.
+ * (T814, owner 2026-11-17) the loader is the owner's linocut coho (`LoadingState coho`, `COHO_WIDTH` wide), no longer the
+ * circling fish; (T843) the native splash picture (`pnpm splash`) is the coho's first frame at this size, so the hand-off
+ * is the same picture. The loader is drawn at once (`immediate`: no 300 ms hold) at the
+ * centre of the window, not of the safe area (the native splash is centred in the window), so the insets' difference is
+ * taken back out. Everything else hangs below it, so what arrives late (the step, a download bar) never moves it. The
+ * native splash is let go once the loader is laid out.
+ */
 function BootScreen({ palette, line, words, saying = false, children }: {
   palette: (typeof THEMES)[ThemeName]; line: string; words: string; saying?: boolean; children?: React.ReactNode;
 }) {
   const insets = useSafeAreaInsets();
   const onLayout = useCallback(() => {
-    // two frames: the fish's strip is drawn on the first one after layout
+    // two frames: the loader's sheet is drawn on the first one after layout
     requestAnimationFrame(() => requestAnimationFrame(releaseSplash));
   }, []);
   return (
     <View testID="boot-screen" style={{ flex: 1, transform: [{ translateY: (insets.bottom - insets.top) / 2 }] }}>
-      <View style={{ position: "absolute", top: "50%", marginTop: -BOOT_FISH / 2, left: 0, right: 0, alignItems: "center" }}
+      <View style={{ position: "absolute", top: "50%", marginTop: -BOOT_LOADER_H / 2, left: 0, right: 0, alignItems: "center" }}
             onLayout={onLayout}>
-        <LoadingState palette={palette} size={BOOT_FISH} label={words} immediate />
+        <LoadingState palette={palette} size={COHO_WIDTH} label={words} immediate coho />
       </View>
-      <View style={{ position: "absolute", top: "50%", marginTop: BOOT_FISH / 2 + 8, left: 0, right: 0, alignItems: "center", gap: 10 }}>
-        {saying
-          ? <SayingLine style={{ color: palette.ink, fontSize: 15, textAlign: "center", paddingHorizontal: 24 }} />
-          : <Text testID="boot-line" style={{ color: palette.ink, fontSize: 15, textAlign: "center", paddingHorizontal: 24 }}>{line}</Text>}
-        <Text style={{ color: palette.sub, fontSize: 13 }}>{words}</Text>
+      <View style={{ position: "absolute", top: "50%", marginTop: BOOT_LOADER_H / 2 + 8, left: 0, right: 0, alignItems: "center", gap: 10 }}>
+        {/* (T852) the line under the coho, set as the curtain's: the red rule, then the line small and muted */}
+        <LoaderLine palette={palette}>
+          {saying
+            ? <SayingLine style={{ ...loaderLineText(palette), paddingHorizontal: 24 }} />
+            : <Text testID="boot-line" style={{ ...loaderLineText(palette), paddingHorizontal: 24 }}>{line}</Text>}
+        </LoaderLine>
+        {/* (T852) the step beneath, a step quieter than the line above it (as in the owner's pick B) */}
+        <Text testID="boot-words" style={{ ...TYPE.small, color: palette.sub, textAlign: "center", paddingHorizontal: 24 }}>{words}</Text>
         {children}
       </View>
     </View>
@@ -209,23 +232,45 @@ export default function App() {
   const hydat = useMemo(() => storedHydat(ENDPOINTS.hydat), []);
   // S1: a spot's photographs — files beside the spots file on a phone, IndexedDB in a browser — and the platform's
   // picker (`./pickPhoto.native.ts` / `.web.ts`). The user's own: never in a release, never uploaded.
+  // (T732) `photoEpoch`: a new store when photos were put back from the backup set (a restored phone), so every tile
+  // that drew "no photo" asks again; `backupLine`: what the Spots tab says the phone's backup holds (Android only)
+  const [photoEpoch, setPhotoEpoch] = useState(0);
+  const [backupLine, setBackupLine] = useState<string | null>(null);
+  const photoStore = useMemo(() => openPhotos(), [photoEpoch]);   // eslint-disable-line react-hooks/exhaustive-deps
   const photos = useMemo<SpotPhotos>(
-    () => ({ store: openPhotos(), pick: pickPhoto, sources: PHOTO_SOURCES }), []);
+    () => ({ store: photoStore, pick: pickPhoto, sources: PHOTO_SOURCES, backupLine }), [photoStore, backupLine]);
   const [refreshing, setRefreshing] = useState(false);
   // P01: every write awaited and serialised; a failure reaches the screen that asked
   const spotsHook = useSpots(spotStore);
   const spots: Spot[] = spotsHook.spots.state === "ready" ? spotsHook.spots.value : [];
+  // (T732) THE PHONE BACKUP'S PHOTO SET, in step with the spots: at the start and after every save or delete (the list
+  // changes). Android only: its cloud backup has a 25 MB quota; iCloud carries the photos as kept (no set, no line).
+  const spotsReady = spotsHook.spots.state === "ready";
+  useEffect(() => {
+    if (!BACKUP_SET || !spotsReady) return;
+    let live = true;
+    syncBackupSet(spots).then((r) => {
+      if (!live || !r) return;
+      setBackupLine(r.line);
+      if (r.restored.length) setPhotoEpoch((n) => n + 1);
+    }, reportFailure);
+    return () => { live = false; };
+  }, [spots, spotsReady]);
   // (T231) the gauge index is the update service's to renew: once read it is held until the service offers a newer one
   // (T315) and every station's last week kept on the phone (each station file read, and the publisher's feed-wide
   // newest rows on each feed update): offline, a Conditions chart still draws its measured line, "as of" its age
+  // (T676 item 2) ONE FEED GATE, the release gate's version rule: an index stamped for a newer app is refused by its
+  // reader (the capture answers) and raises the update prompt (`updates.needsApp`). The web is never gated (its code
+  // ships with its data), as for the release
+  const feedGate = useMemo(() => createFeedGate(WEB && process.env.EXPO_PUBLIC_RELEASE_GATE !== "1" ? null : APP_VERSION), []);
   const feed = useMemo(() => httpFeed(FEED, liveFetch(SHARED_FETCH), {
     indexHeld: true, history: gaugeHistory(openGaugeHistoryStore()),
-    online: () => !devOffline.on && connectivity.online() }), []);
+    online: () => !devOffline.on && connectivity.online(), gate: feedGate }), []);
   useEffect(() => { void feed.syncObservations?.(); }, [feed]);
   // T211: the live DFO salmon rules, the last capture kept on the device for offline
-  const salmonFeed = useMemo(() => httpSalmonFeed(ENDPOINTS.dfoFeed, openSalmonFeedStore()), []);
+  const salmonFeed = useMemo(() => httpSalmonFeed(ENDPOINTS.dfoFeed, openSalmonFeedStore(), undefined, { gate: feedGate }), []);
   // T230: the provincial in-season changes and where each applies, the last capture kept for offline; the ids shown
-  const inSeason = useMemo(() => httpInSeason(ENDPOINTS.inSeason, openInSeasonStore()), []);
+  const inSeason = useMemo(() => httpInSeason(ENDPOINTS.inSeason, openInSeasonStore(), undefined, { gate: feedGate }), []);
   const inSeasonSeen = useMemo(() => openInSeasonSeenStore(), []);
   const inSeasonInbox = useMemo(() => openInSeasonInboxStore(), []);
   // T236: the first-run notice (not legal advice), once per device
@@ -246,13 +291,14 @@ export default function App() {
   // a run-timing set published for another atlas (set from the booted release below)
   const drawnHandles = useRef<string | null>(null);
   const runTiming = useMemo(() => httpRunTiming(`${ENDPOINTS.base}/runtiming`, openRunTimingStore(), undefined,
-                                                { handles: () => drawnHandles.current }), []);
+                                                { handles: () => drawnHandles.current, gate: feedGate }), []);
 
   // THE RELEASE: manifest → (native: install / update) → paint, then the Shell. (T231) The phone's background install
   // is the update service's (`deferUpdate`: it holds a large set for Wi-Fi); `generation` re-boots onto a staged update.
   const [generation, setGeneration] = useState(0);
-  // (T262) a failed first start is tried again: twice by itself (a DNS miss, a dropped line), then on the reader's Retry
-  const [attempt, setAttempt] = useState(0);
+  // (T262) a failed first start is tried again: twice by itself (a DNS miss, a dropped line), then on the reader's Retry;
+  // (T760) one try at a time, and a connection's failure also once a minute by itself behind its words (`useBootTries`)
+  const tries = useBootTries();
   const [autoTries, setAutoTries] = useState(0);
   /*
    * (T298) THE FIRST INSTALL ON MOBILE DATA: the reader's setting (the update service keeps it: Always / Ask / Wi-Fi
@@ -302,7 +348,9 @@ export default function App() {
     // (T251) a phone's requests name the app; its first install is gated by the release's minAppVersion (the web's app
     // ships with its data: never gated)
     ...(WEB ? {} : { fetch: DATA_FETCH, appVersion: APP_VERSION }),
-  }), [feed, salmonFeed, mobileGate, beforeBackground]), generation, attempt);
+  }), [feed, salmonFeed, mobileGate, beforeBackground]), generation, tries.attempt, tries.quiet);
+  const settleTries = tries.settle;
+  useEffect(() => settleTries(boot), [boot, settleTries]);
   const booted = boot.state === "ready" ? boot.booted : null;
   const bootedRef = useRef(booted);
   bootedRef.current = booted;
@@ -342,6 +390,7 @@ export default function App() {
     // (T251) a store build can lag behind the data: a release asking for a newer app is not applied. The web's code ships
     // with its data, so it is never gated — save `EXPO_PUBLIC_RELEASE_GATE=1`, the browser test's way to see the gate
     appVersion: WEB && process.env.EXPO_PUBLIC_RELEASE_GATE !== "1" ? null : APP_VERSION,
+    feedGate,
     feeds: [
       { id: "gauges", url: ENDPOINTS.checks.gauges,
         apply: (text) => { feed.offer!(JSON.parse(text)); void feed.syncObservations?.(); } },
@@ -352,10 +401,11 @@ export default function App() {
     release: {
       manifestUrl: ENDPOINTS.manifest,
       held: () => bootedRef.current?.held ?? null,
-      stage: async (m, on) => {
+      // (T912) the service's mobile-data rule goes with the download: a phone's system downloader carries it on closed
+      stage: async (m, on, o) => {
         const b = bootedRef.current;
         if (!b) throw new Error(UPDATE_WORDS.sheet.notOpen);
-        return b.stage(m, (p) => on(p.bytes, p.of));
+        return b.stage(m, (p) => on(p.bytes, p.of), o);
       },
     },
     store: openUpdateStore(),
@@ -384,9 +434,12 @@ export default function App() {
   useEffect(() => { setWakeUpdates(updates); return () => setWakeUpdates(null); }, [updates]);
   /** Apply a staged update: boot onto it, the set in use on screen until the new one is ready. */
   const applying = useRef<{ before: Held | null; at: number } | null>(null);
+  const [applyTarget, setApplyTarget] = useState<string | null>(null);
   const apply = useCallback(() => {
     if (updates.snapshot().release?.phase !== "ready") return;
     applying.current = { before: bootedRef.current?.held ?? null, at: clockNow() };
+    // (T746) the release being put in use: its curtain line is picked by it (the cold start's boot screen picks the same)
+    setApplyTarget(updates.snapshot().release?.target ?? null);
     if ((globalThis as { __openProbe?: boolean }).__openProbe) console.log("[swap] apply");
     setGeneration((g) => g + 1);
   }, [updates]);
@@ -421,11 +474,13 @@ export default function App() {
   const clearToast = useCallback(() => setToast(null), []);
   // (T723 G9) a link the phone would not open is said on the same toast (and was reported by `openLink`)
   useEffect(() => setLinkFailedSink(setToast), []);
-  // (T585 F12, F13) a development or staging build says which data release it answers from on the Conditions card (and
-  // the data source / channel when they are not this build's own); null in a production build
-  const provenance = useMemo(() => dataProvenanceLine({
-    release: heldRelease, env: APP_ENV.env, built: APP_ENV.built, switchable: APP_ENV.switchable,
-    channel: UPDATE_CHANNEL, builtChannel: BUILT_CHANNEL }), [heldRelease]);
+  // (T746) the apply in flight, and the failed one until the reader closes it (it was reported where it was caught)
+  const curtain = useApplyCurtain(boot, applyTarget);
+  const applyingNow = curtain.applying;
+  useEffect(() => {
+    // (T287) the test bed's stall log reads the curtain off these lines
+    if ((globalThis as { __openProbe?: boolean }).__openProbe) console.log(`[swap] curtain ${applyingNow ? "up" : "down"}`);
+  }, [applyingNow]);
 
   // (T251, T476) the Updates log's levers (development and staging builds): the Developer card (map credits long press) draws them
   const releaseNow = boot.state === "ready" ? boot.booted.manifest.data_release : null;
@@ -468,7 +523,7 @@ export default function App() {
   const menuInfo = useMemo(() => ({ ...MENU_INFO, updatesLog, report: reportOutbox, install: INSTALL.id }), [updatesLog, reportOutbox]);
 
   const data = useMemo((): { source: WaterSource; status: StatusSource; pairing: PairingInput;
-                             tiles: MapTiles & { imagery: string }; loader: ReleaseLoader } | null => {
+                             tiles: MapTiles & { imagery: string; readRange?: ReadRange }; loader: ReleaseLoader } | null => {
     if (boot.state !== "ready") return null;
     const b = boot.booted;
     // the tiles, mask, basemap and map assets from the release when it names them, else the dev server's; the pair
@@ -476,8 +531,12 @@ export default function App() {
     // T01: the loader goes to the water screen too — the Regulations page reads water / regs-<region> / regs-sid
     // through it (no regs store file of its own)
     // the satellite imagery is Esri's, online (never in a release): `IMAGERY_TILES`
+    // (T831) and a phone's reader of its installed atlas by range (the route map's lines); none on the web
+    // (`@app/data/release/platform` `atlasRange`)
     const m = releaseMapInput(b, ENDPOINTS.tiles);
-    return { source: b.source, status: releaseStatus(b.loader), ...m, tiles: { ...m.tiles, imagery: IMAGERY_TILES },
+    const readRange = platform.atlasRange;
+    return { source: b.source, status: releaseStatus(b.loader), ...m,
+             tiles: { ...m.tiles, imagery: IMAGERY_TILES, ...(readRange ? { readRange } : {}) },
              loader: b.loader };
   }, [boot]);
   useEffect(() => { drawnHandles.current = data?.pairing.manifest.tiles.current?.id?.split(".")[0] ?? null; }, [data]);
@@ -535,19 +594,34 @@ export default function App() {
   // (T262) what a failed start says: the reader's words (an app too old to read this release says so); the exception
   // and the dev server hint only in a local build
   const tooOld = boot.state === "failed" && boot.error.message === UPDATE_WORDS.row.appTooOld;
+  // (T760) a failure the app does not start over from by itself (a stuck download was already queued again): shown at once
+  const shownAtOnce = boot.state === "failed" && !restartsByItself(boot.error.message);
   useEffect(() => {
-    if (boot.state !== "failed" || tooOld || autoTries >= 2) return;
-    const t = setTimeout(() => { setAutoTries((n) => n + 1); setAttempt((a) => a + 1); }, 2000 * (autoTries + 1));
+    if (boot.state !== "failed" || tooOld || shownAtOnce || autoTries >= 2) return;
+    const t = setTimeout(() => { setAutoTries((n) => n + 1); tries.again(false); }, 2000 * (autoTries + 1));
     return () => clearTimeout(t);
-  }, [boot, tooOld, autoTries]);
-  const failed = boot.state === "failed" && (tooOld || autoTries >= 2) ? boot.error.message : null;
+  }, [boot, tooOld, shownAtOnce, autoTries, tries.again]);
+  // (T760) the reader is asked something by a try of the app's own (mobile data, the notification's leave): the loading
+  // screen shows the question; the failure would hide it
+  const failed = boot.state === "failed" && (tooOld || shownAtOnce || autoTries >= 2) && !mobileAsk && !askingNotify
+    ? boot.error.message : null;
+  // (T760, owner 2026-11-15 "keep trying by itself") a failure that is the connection's, on screen with its words and Try
+  // again, is also tried again by the app once a minute (in the foreground, one try at a time), so the install finishes
+  // without a tap when the line is back; the try stays behind the words until the line answers (`useReleaseBoot` quiet)
+  // ("unknown" before the first event on some starts counts as the foreground; only "background" stops the clock)
+  const [appActive, setAppActive] = useState(AppState.currentState !== "background");
+  useEffect(() => {
+    const sub = AppState.addEventListener("change", (st) => setAppActive(st !== "background"));
+    return () => sub.remove();
+  }, []);
+  useRetryByItself(retriesByItselfNow(boot, failed !== null, appActive), () => tries.again(true));
   // (T390) a first start refused for an old app: the strong prompt and the same Update button as the bell's
   const bootUpdate = useAppUpdate(tooOld ? appUpdater : null, appUpdateStore, { offline: false, tooOld });
   const bootUpdateVM = tooOld ? bootUpdate?.vm ?? null : null;
   const firstRunOffline = boot.state === "failed" && boot.firstRunOffline;
   // (T722 F9) a download that will not fit says how much space it needs (not "Check the connection")
   const bootSaidWords = boot.state === "failed" ? boot.said : null;
-  const retryBoot = useCallback(() => setAttempt((a) => a + 1), []);
+  const retryBoot = tries.tap;
   const stage = boot.state === "loading" ? boot.stage : boot.state === "failed" ? "manifest" : "paint";
   const progress = boot.state === "loading" ? boot.progress : null;
   // (T272) a first install's second stage: everything is down, and it is being set up on the device
@@ -576,11 +650,7 @@ export default function App() {
   // The faces are named in @app/ui-native/type.ts and loaded here, so that package stays
   // free of platform imports. Until they land, hold the splash rather than paint the whole
   // app in the system face and reflow it a beat later.
-  const [fontsIn, fontError] = useFonts({
-    BricolageGrotesque_700Bold, BricolageGrotesque_800ExtraBold,
-    Archivo_400Regular, Archivo_500Medium, Archivo_600SemiBold, Archivo_700Bold, Archivo_800ExtraBold,
-    JetBrainsMono_500Medium,
-  });
+  const [fontsIn, fontError] = useFonts(FONT_SOURCES);
   // (T254) BUT NEVER FOREVER: on a slow line the web's font check gives up after 12 s (expo-font's FontObserver) and
   // `useFonts` reports an error, never ready — the app sat on "Loading type…" for good (measured: Slow 3G, a local
   // build). A failed check, or FONT_WAIT_MS with the data already open, draws the app in the system face; the faces swap
@@ -594,7 +664,7 @@ export default function App() {
   const ready = fontsIn || !!fontError || fontWaitOver;
   // (T244) the native splash is let go when the boot screen's fish is up (BootScreen); a start that skips that screen lets it go here
   useEffect(() => { if (failed || (ready && data)) releaseSplash(); }, [failed, ready, data]);
-  const bootWords = setup ? SETUP_WORDS.title : startStage(!ready && data ? "fonts" : stage);
+  const bootWords = setup ? SETUP_WORDS.title : (stage === "apply" ? applyLine(boot.state === "loading" ? boot.release : null) : startStage(!ready && data ? "fonts" : stage));
 
   // (T45) THE WINDOW'S WIDTH, read here and nowhere else in the app: every screen takes its layout class from it
   // (@app/ui `useLayoutClass`), so a component arranges itself for a phone, a tablet or a desktop without reading the window
@@ -609,7 +679,6 @@ export default function App() {
     <NetRoot net={NET} connectivity={connectivity} store={dataModeStore}>
     <CrashSettingRoot setting={CRASH_URL ? crashSetting : null}>
     <NotifyRoot controls={notifications}>
-    <DataProvenanceContext.Provider value={provenance}>
     <SafeAreaView style={{ flex: 1, backgroundColor: palette.card }}>
       <StatusBar barStyle={name === "dark" ? "light-content" : "dark-content"} />
       {failed ? (
@@ -625,7 +694,7 @@ export default function App() {
                         retryLabel={bootUpdateVM.button?.label} retryTestID="boot-app-update-action" />
           ) : (
             <ErrorState palette={palette} size="body" align="center"
-                        message={tooOld ? failed : bootSaidWords ?? (firstRunOffline ? INSTALL_WORDS.firstRunOffline : INSTALL_WORDS.again)}
+                        message={tooOld ? failed : bootSaidWords ?? failedStartLine(failed, firstRunOffline)}
                         onRetry={tooOld ? undefined : retryBoot} retryLabel={INSTALL_WORDS.retry} retryTestID="boot-retry" />
           )}
           {APP_ENV.env === "local" && (
@@ -652,6 +721,9 @@ export default function App() {
         <Shell source={data.source} palette={palette} loader={data.loader} menuInfo={menuInfo}
                // (T231) the sync icon reads the update service; a ready update is applied at the Shell's safe moment
                updates={updates} onSafeToApply={apply}
+               // (T746) while it is put in use: the curtain (loading fish + one line) over the app, taking every tap and
+               // the back; a failed apply said on it until closed
+               applyCurtain={curtain}
                // T129: the boot's manifest read seeds the service's first release check (`seedRelease`): no second request
                // (T186, Q164) the web fetches ahead after first paint; a phone holds the release installed
                prefetch={Platform.OS === "web"}
@@ -663,7 +735,6 @@ export default function App() {
                status={data.status} pairing={data.pairing}
                spots={spots}
                fishImages={FISH_IMAGES}
-               adiposeImages={ADIPOSE_IMAGES}
                systemBack={systemBack}
                initialRoute={place.route ?? start?.route} onRoute={holdPlace} openRequest={openRequest} openUpdate={openUpdate}
                initialDay={place.address ? place.address.day : start?.day ?? null}
@@ -748,6 +819,8 @@ export default function App() {
                   : INSTALL_WORDS.wifi}</Text>}
             </>
           )}
+          {/* (T760) the download not moving for a minute: said (a start that never reported counts from 0 bytes) */}
+          <BootStillLine bytes={stage === "install" && !setup ? progress?.had ?? progress?.bytes ?? 0 : null} colour={palette.sub} />
           {setup && (
             <>
               <StageBar palette={palette} value={setupFraction(setup)} testID="boot-setup-bar" />
@@ -757,7 +830,6 @@ export default function App() {
         </BootScreen>
       )}
     </SafeAreaView>
-    </DataProvenanceContext.Provider>
     </NotifyRoot>
     </CrashSettingRoot>
     </NetRoot>

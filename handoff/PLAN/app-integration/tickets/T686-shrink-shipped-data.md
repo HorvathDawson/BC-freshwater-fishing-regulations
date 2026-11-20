@@ -1,6 +1,6 @@
 # T686 — Shrink shipped data across the board
 
-Status: IN REVIEW — survey and prototypes done 2026-11-14 (r-f749475d0962), ranked below; owner: OWNER-TODO "T686: pick the shipped-data shrink"
+Status: IN PROGRESS — OWNER PICKED (a) 2026-11-16 11:57, "(a) Three lossless changes (Recommended)": near as one blob per place, climate bands packed, down in blocks, about 1.94 MB; to build (who builds is being settled between the two chats). Survey and prototypes of 2026-11-14 (r-f749475d0962) are ranked below
 
 Source: owner 2026-11-12 (T678 release stopped at the size gate): "Raise now, shrink later, but the ticket should cover
 ways to shrink data across the board, not just ponds." RULINGS O5 raised `core`, `conditions` and the web's
@@ -119,3 +119,7 @@ change); (e) nothing now: the release data is 3.8 % of the phone download and ti
 
 Depends: none (the T678 release ships first with the raised budgets). Size: M (survey + proposal). Owner: yes (the
 pick). Default: no shipped change until the owner picks.
+
+2026-11-15: `salmon-6` gate raised 320,000 → 420,000 (owner round 5, "Raise to 420 kB (Recommended)"; measured 379,295 B gz
+once the Stikine and Taku places bound, `pipeline/deliver/release/build.py` `SIZE_GATES`). Shrink it back with the rest:
+`salmon-6` is a candidate here (lower it again once the picked changes ship).

@@ -6,7 +6,7 @@
  * facts the feeds worker writes beside each gauge's share card (`feeds/cards/<station>.json`) and the weather at the
  * gauge (Open-Meteo). What the build writes here is what does not move between feed runs: the gauge's name and number,
  * the waters it serves (one line each to that water's regulations page — never an open/closed word on this page), and
- * "Open on the website" (the web app on that water's Conditions view) beside a greyed "Open in the app · coming soon"
+ * "Open on the website" (the web app on that water's Conditions view) beside the "Get the app" block (`getAppBlock`)
  * (the phone app takes no links yet, D1; T514).
  *
  * WHICH GAUGES: every station in the release that serves at least one water with a page — its own water (`gauge.item_id`),
@@ -22,7 +22,7 @@ import { OPEN_METEO_ATTRIBUTION, weatherPlace } from "../../packages/data/src/sp
 import { crashUrlFor, ORIGINS, REPORT_URLS } from "../../apps/mobile/src/env";
 import { clip, esc, SHARE_FONT, SHARE_GROUND, SHARE_H, SHARE_INK, SHARE_W, type Site } from "./html";
 import type { GaugeConfig } from "./gaugeClient";
-import { bestServes, gaugePath, OPEN_IN_APP_URL, STALE_AFTER_MS, TRUST_RANK, type GaugeRows, type ServesTrust } from "@app/core";
+import { appStoreLink, TESTFLIGHT_URL, WEB_SPOTS_WORDS, bestServes, gaugePath, getAppBlock, playStoreLink, type GetAppSlot, STALE_AFTER_MS, TRUST_RANK, type GaugeRows, type ServesTrust } from "@app/core";
 import { readGaugeRows } from "@app/data/release";
 
 export { readGaugeRows, type GaugeRows };
@@ -32,6 +32,10 @@ export interface GaugeModel {
   readonly station: string; readonly name: string; readonly path: string; readonly lat: number | null; readonly lon: number | null;
   /** its own water, lakes it gauges, sections it is a good / fair gauge for — by best trust, then name */
   readonly close: readonly WaterLink[];
+  /** (T908) the main waters, the only ones listed open: its own water, lakes it gauges, sections it is a good gauge for */
+  readonly main: readonly WaterLink[];
+  /** (T908) the rest, folded: fair guides, then the weak (rough) ones */
+  readonly more: readonly WaterLink[];
   /** waters it is only a weak (rough) guide for */
   readonly rough: readonly WaterLink[];
 }
@@ -46,7 +50,8 @@ export function gaugeModels(rows: GaugeRows, water: (item: string) => WaterLink 
     if (!links.length) continue;
     links.sort((a, b) => TRUST_RANK[a.t] - TRUST_RANK[b.t] || a.w.name.localeCompare(b.w.name) || a.w.id.localeCompare(b.w.id));
     out.push({ station: g.station, name: g.name, path: gaugePath(g.station, g.name), lat: g.lat, lon: g.lon,
-               close: links.filter((l) => l.t !== "weak").map((l) => l.w), rough: links.filter((l) => l.t === "weak").map((l) => l.w) });
+               close: links.filter((l) => l.t !== "weak").map((l) => l.w),
+               main: links.filter((l) => TRUST_RANK[l.t] <= TRUST_RANK.good).map((l) => l.w), more: links.filter((l) => TRUST_RANK[l.t] > TRUST_RANK.good).map((l) => l.w), rough: links.filter((l) => l.t === "weak").map((l) => l.w) });
   }
   return out.sort((a, b) => a.name.localeCompare(b.name) || a.station.localeCompare(b.station));
 }
@@ -64,18 +69,24 @@ const CORE = join(HERE, "../../packages/core/src");
 export const CORE_INLINE: readonly (readonly [file: string, names: readonly string[]])[] = [
   ["clock.ts", ["BC_PERMANENT_FROM", "BC_TIME_LABEL", "bcOffsetHours"]],
   ["flow.ts", ["MONTHS", "monthAbbr", "WEEKDAY_NAMES", "weekdayAbbr"]],
-  ["day.ts", ["pad2", "HOUR_MS", "bcWall", "fromBcWall", "bcMidnight", "bcFields", "bcDayWords", "bcWeekdayAbbr", "bcStampWords", "bcIsoDayWords"]],
+  // (T908) the Conditions legend's "Normal" band, and where a percentile sits on the colour bar
+  ["gauge-policy.generated.ts", ["PERCENTILE_KNOTS"]],
+  ["flow.ts", ["KNOTS", "standing", "NORMAL_BAND"]],
+  // (T908) the forecast options: the models' dashes and the app's own toggle logic (change.ts)
+  ["conditions.ts", ["REALTIME_ONLY", "FORECAST_MODEL_CONTROL", "forecastModelOption", "FLOW_LEGEND"]],
+  ["day.ts", ["pad2", "HOUR_MS", "bcWall", "fromBcWall", "bcMidnight", "bcFields", "bcDayWords", "bcWeekdayAbbr", "bcStampWords", "bcClockWords", "bcIsoDayWords"]],
   ["chartTicks.ts", ["niceTicks"]],
   ["chartMarks.ts", ["RULE_GAP", "LABEL_GAP", "IMPORTANCE", "MARK_ROWS", "markTextWidth", "meets", "layoutDayMarks"]],
   ["alerts.ts", ["normalRangeOf"]],
-  ["freshness.ts", ["AGO_WORDS", "ageWords", "freshness", "MAY_BE_OLD", "READING_LEAD", "readingAgeParts", "readingAgeWords"]],
-  ["standing.ts", ["figure"]],
+  ["change.ts", ["STEADY_RATIO", "OBSERVED_TREND", "observedTrend", "FORECAST_DASH", "OTHER_MODEL_DASH", "forecastDash", "NO_MODEL_PICK", "pickModel", "realtimeOnly", "forecastDrawn"]],
+  ["freshness.ts", ["AGO_WORDS", "ageWords", "freshness", "MAY_BE_OLD", "READING_LEAD", "readingAgeParts", "readingAgeWords", "readingAgeBrief"]],
+  ["standing.ts", ["figure", "BAND_WORDS", "bandOfWord", "standingNowLine", "gaugeSummaryLine", "side", "daysShort", "daysNear"]],
 ];
 const plain = (ts_: string): string =>
   ts.transpileModule(ts_, { compilerOptions: { target: ts.ScriptTarget.ES2020, module: ts.ModuleKind.ESNext, removeComments: true } }).outputText
     .replace(/^export /gm, "");
-function inlineCore(file: string, names: readonly string[]): string {
-  const path = join(CORE, file), src = readFileSync(path, "utf8");
+function inlineCore(file: string, names: readonly string[], dir: string = CORE): string {
+  const path = join(dir, file), src = readFileSync(path, "utf8");
   const sf = ts.createSourceFile(path, src, ts.ScriptTarget.ES2020, true);
   const found = new Set<string>(), out: string[] = [];
   for (const st of sf.statements) {
@@ -86,7 +97,7 @@ function inlineCore(file: string, names: readonly string[]): string {
     out.push(src.slice(st.getStart(sf), st.end));
   }
   const missing = names.filter((n) => !found.has(n));
-  if (missing.length) throw new Error(`seo: core/${file} has no top-level ${missing.join(", ")} to write into the gauge page's script`);
+  if (missing.length) throw new Error(`seo: ${dir === CORE ? "core/" : ""}${file} has no top-level ${missing.join(", ")} to write into the gauge page's script`);
   return plain(out.join("\n"));
 }
 /** gaugeClient.ts as one plain script (TypeScript's own transpile), core's functions written in from their source, calling itself on load */
@@ -97,6 +108,20 @@ export function clientScript(): string {
   const core = CORE_INLINE.map(([f, names]) => inlineCore(f, names)).join("\n");
   // the feed's age line is judged by the stale time the facts file names; `freshness`' default is that same table's value
   return `(function(){"use strict";\nconst STALE_AFTER_MS=${STALE_AFTER_MS};\n${core}\n${js}\ngaugePage(document,Date.now,window.fetch.bind(window)).catch(function(e){console.error(e)});\n})();\n`;
+}
+
+/** (T911) joinClient.ts as one plain, self-hosted script, calling itself on load. It reports through the gauge page's own
+ *  reporter (gaugeClient.ts `pageReporter` and what it calls, written in from their source) at the page's #gauge-config. */
+const JOIN_REPORTER: readonly string[] = ["isEnvironment", "crashReport", "pageReporter"];
+export function joinScript(): string {
+  const js = plain(readFileSync(join(HERE, "joinClient.ts"), "utf8"));
+  if (/^\s*import\b/m.test(js)) throw new Error("seo: joinClient.ts must not import anything (it ships as one plain script)");
+  const reporter = inlineCore("gaugeClient.ts", JOIN_REPORTER, HERE);
+  // the card is drawn on gauge pages only, each with its #gauge-config; one without it is a build defect, thrown (the
+  // mailto links still work)
+  const start = `var c=document.getElementById("gauge-config");if(!c||!c.textContent)throw new Error("join card: no #gauge-config on this page");` +
+    `joinPopup(document,function(){return window.navigator.clipboard;},pageReporter(JSON.parse(c.textContent),window.fetch.bind(window),Date.now));`;
+  return `(function(){"use strict";\n${reporter}\n${js}\n${start}\n})();\n`;
 }
 
 /** the production hosts the page names; deploy/staging/site.sh points a staging copy at staging's */
@@ -135,37 +160,69 @@ export function gaugeDescription(g: GaugeModel): string {
 }
 
 /**
- * (T514) the page's "Open in the app": greyed "coming soon" while the Play listing is not public (`OPEN_IN_APP_URL` null), the
- * listing's link once it is. The one config value is `@app/core` share.ts; a phone with the app opens the app (T625).
+ * (T514, T901) the page's two store buttons, "Google Play" and "App Store" (owner 2026-11-19: one button per store). Each
+ * is greyed "coming soon" until its page is public: Play while core's `PLAY_PUBLIC` is false, the App Store while core's
+ * `APP_STORE_PUBLIC` is false (`appStoreLink()` null); then its link. A phone with the app installed opens the app (T625).
  */
-export function openInAppControl(listing: string | null = OPEN_IN_APP_URL): string {
-  return listing === null
-    ? `<span class="app soon" aria-disabled="true">Open in the app · coming soon</span>`
-    : `<a class="app" href="${esc(listing)}">Open in the app</a>`;
+export function openInAppControl(play: string | null = playStoreLink(), appStore: string | null = appStoreLink(),
+                                 contact: string | null = null, testflight: string | null = TESTFLIGHT_URL): string {
+  const blk = getAppBlock(play, appStore, contact, false, testflight);
+  const P = WEB_SPOTS_WORDS.join.popup;
+  // (T911) a Join the test link still is the mailto (it works with no script); joinClient.ts opens its card over it
+  const slot = (x: GetAppSlot) => x.kind === "store"
+    ? `<a class="app" href="${esc(x.url)}">${esc(x.label)}</a>`
+    : `<a class="app" href="${esc(x.ask.mailto!)}" data-join="join-${x.store}">${esc(x.label)}</a>`;
+  const card = (x: GetAppSlot) => {
+    if (x.kind !== "join") return "";
+    const id = `join-${x.store}`, addr = x.ask.address;
+    return `<dialog id="${id}" class="join" aria-labelledby="${id}-h" data-copied="${esc(P.copied)}" data-refused="${esc(P.refused)}">` +
+      `<button type="button" class="x" data-close aria-label="${esc(P.close)}">\u2715</button>` +
+      `<h2 id="${id}-h">${esc(x.label)}</h2><p>${esc(P[x.store])}</p>` +
+      `<div class="acts"><a class="app" href="${esc(x.ask.mailto!)}">${esc(P.email)}</a>` +
+      (addr ? `<button type="button" class="app alt" data-copy="${esc(addr)}">${esc(P.copy)}</button>` : "") + `</div>` +
+      `<p class="small" role="status" data-said></p>` + (addr ? `<p class="addr" data-addr hidden>${esc(addr)}</p>` : "") + `</dialog>`;
+  };
+  return (blk.coming ? `<p class="small coming">${esc(blk.coming)}</p>` : "") +
+    (blk.lead ? `<p class="small joins">${esc(blk.lead)}</p>` : "") +
+    (blk.slots.length ? `<div class="stores">${blk.slots.map(slot).join("")}</div>` + blk.slots.map(card).join("") : "");
+}
+
+/**
+ * (T908) the fold's summary: "Also" after the main waters; with none, "rough" only when every folded water is a weak
+ * guide (the fold holds fair guides too, and a fair guide is never called rough).
+ */
+export function moreSummary(g: Pick<GaugeModel, "main" | "more" | "rough">): string {
+  const n = `${g.more.length} more ${g.more.length === 1 ? "water" : "waters"}`;
+  if (g.main.length) return `Also a guide for ${n}`;
+  const rough = new Set(g.rough.map((w) => w.id));
+  return g.more.every((w) => rough.has(w.id)) ? `A rough guide for ${n}` : `A guide for ${n}`;
 }
 
 /** the page body: everything that does not move between feed runs; the live sections are filled by gaugeClient.ts */
-export function gaugeBody(g: GaugeModel, release: string, clientHref: string, asOf: string): string {
+export function gaugeBody(g: GaugeModel, release: string, clientHref: string, asOf: string, contact: string | null = null,
+                          joinHref: string | null = null): string {
   const first = g.close[0] ?? g.rough[0]!;
   const line = (w: WaterLink) => `<li><a href="${esc(w.path)}">${esc(w.name)} fishing regulations</a></li>`;
   const cfg = JSON.stringify(gaugeConfig(g, release)).replace(/</g, "\\u003c");
   return `<div class="gv"><nav class="crumbs"><a href="/">Home</a> › <a href="/gauges">River gauges</a> › ${esc(g.name)}</nav>` +
     `<h1>${esc(g.name)}</h1>` +
-    `<p class="small">Water Survey of Canada gauge ${esc(g.station)} · live river conditions, read each time this page opens.</p>` +
-    `<h2>Now</h2><div id="gauge-now"><p class="small">Reading the latest from the gauge…</p></div>` +
+    `<p class="small">Water Survey of Canada gauge ${esc(g.station)} · read each time this page opens.</p>` +
+    `<div id="gauge-now" class="now-card"><p class="small">Reading the latest from the gauge…</p></div>` +
     `<noscript><p class="warn">The live reading, chart and weather need JavaScript.</p></noscript>` +
-    `<h2>Last 7 days and the forecast</h2><div id="gauge-chart"></div>` +
-    `<h2>Weather at the gauge</h2><div id="gauge-weather"><p class="small">Reading the forecast…</p></div>` +
-    `<h2>Regulations</h2>` +
-    (g.close.length ? `<p>The waters this gauge serves:</p><ul>${g.close.map(line).join("")}</ul>` : "") +
-    (g.rough.length ? `<details><summary>${g.close.length ? "Also a rough guide for" : "A rough guide for"} ${g.rough.length} more ${g.rough.length === 1 ? "water" : "waters"}</summary>` +
-      `<ul class="cols">${g.rough.map(line).join("")}</ul></details>` : "") +
+    `<div id="gauge-chart"></div>` +
+    `<div id="gauge-weather"><p class="small">Reading the forecast…</p></div>` +
+    `<h2>Waters this gauge serves</h2>` +
+    (g.main.length ? `<ul>${g.main.map(line).join("")}</ul>` : "") +
+    // (T908) the fair and weak guides are one fold, never the page's body
+    (g.more.length ? `<details><summary>${esc(moreSummary(g))}</summary>` +
+      `<ul class="cols">${g.more.map(line).join("")}</ul></details>` : "") +
     `<p class="small">Waters as of <time datetime="${esc(asOf)}">${esc(asOf)}</time>, from release ${esc(release)}.</p>` +
     `<div class="card"><p>See this gauge with the map, alerts and every other gauge in the app.</p>` +
     // (owner 2026-11-08) the website now; the phone app greyed until its store listing is public (T514)
     `<div class="opens"><a class="app" href="${esc(`${first.path}?view=conditions`)}">Open on the website</a>` +
-    `${openInAppControl()}</div></div></div>` +
-    `<script type="application/json" id="gauge-config">${cfg}</script><script src="${esc(clientHref)}" defer></script>`;
+    `${openInAppControl(undefined, undefined, contact)}</div></div></div>` +
+    `<script type="application/json" id="gauge-config">${cfg}</script><script src="${esc(clientHref)}" defer></script>` +
+    (joinHref ? `<script src="${esc(joinHref)}" defer></script>` : "");
 }
 
 export function gaugesIndexBody(gs: readonly GaugeModel[], asOf: string): string {

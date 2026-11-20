@@ -59,7 +59,10 @@ BLOB_COLUMNS = {
     "rows_decided": "j", "rows_row": "j", "rows_frame": "j",
     "gear_frame": "j",
     "licence_hold": "j", "licence_answer": "j", "licence_doc": "j", "licence_frame": "j", "licence_u16": "j",
+    "licence_alien": "j",                                       # T789 G8
     "display_frame": "j", "display_rule": "j",
+    # T810 ticket I: the trout section's tables (every store since the cutover, ticket L; none in an older release's)
+    "trout_frame": "j", "trout_table": "j", "trout_dates": "j", "trout_sheet": "j",
     "item": "x", "xpart": "j", "picker": "j", "runs": "j",
     "rule": "j", "lic": "j", "entry": "j", "ruleset": "j", "lset": "j",
 }
@@ -177,7 +180,7 @@ RULE_KEEP = ("entry_id", "rule_id", "type", "family", "dimension", "label", "par
              "fields", "binds", "not_yet_mapped")
 RULE_PROV_KEEP = ("rank", "who", "authority", "binds_to", "uncertain", "why", "entry_name", "region")
 LIC_KEEP = ("entry_id", "record_id", "kind", "label", "verbatim", "fields", "placement", "period",
-            "stamp_waiver", "records", "not_yet_mapped", "parts")
+            "stamp_waiver", "non_resident_note", "records", "not_yet_mapped", "parts")
 LIC_PROV_KEEP = ("entry_name", "uncertain", "why")
 ENTRY_KEEP = ("kind", "name", "full_name", "pages", "scope_note", "mus")
 WATER_KEEP = ("name", "kind", "sections", "outside_bc", "part_of", "entries", "steelhead",

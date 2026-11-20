@@ -6,7 +6,11 @@
   hydat         fetch_data's hydat layer downloads through the checked scripts/hydat-fetch.sh and raises on an
                 unreadable listing
   check-public  a failed secret read is not swallowed (a secret it cannot read is one it cannot look for)
-  testflight    --production needs CONFIRM_PROD, before the heavy queue (run)
+  testflight    --production needs CONFIRM_PROD, before the heavy queue (run); (T894) the version files go to the
+                bucket of the build's environment (staging by default, production only with --production, run as a
+                dry run), one per version, and a failed put stops with the redo hint
+  play          (T894) a Play build's own app/android/play/<versionCode>.json goes up before play.json, both stopping on a
+                failed put
 """
 from __future__ import annotations
 
@@ -35,7 +39,8 @@ def test_upload_clears_after_the_pointer_and_spares_the_release():
     assert clear and all(i > pointer for i in clear), "the clear must come after the pointer flip"
     cmd = " ".join(run[clear[0]:clear[0] + 3])
     for spared in ('"release/manifest.json"', '"release/tiles/$TILES/**"', '"release/$REL/**"', '"release/$BM"',
-                   '"release/$SYN"', '"feeds/**"', '"private/**"', '"runtiming/**"', '"test/**"'):
+                   '"release/$SYN"', '"feeds/**"', '"private/**"', '"runtiming/**"', '"test/**"', '"app/android/**"',
+                   '"app/ios/**"'):   # (T894 review) the iPhone's version files survive a staging release
         assert f"--exclude {spared}" in cmd, spared
 
 
@@ -175,6 +180,63 @@ def test_testflight_production_needs_confirm_prod():
     assert "set CONFIRM_PROD=canifishthis.ca" in r.stderr
 
 
+def _no_comments(rel: str) -> str:
+    return "\n".join(ln for ln in (ROOT / rel).read_text().splitlines() if not ln.lstrip().startswith("#"))
+
+
+def test_testflight_dry_run_puts_the_version_files_in_its_environments_bucket():
+    """(T894) staging by default; bc-fishing-regulations only with --production (and its confirmation)."""
+    import json
+    ver = json.loads((ROOT / "app/apps/mobile/app.json").read_text())["expo"]["version"]
+    env = {k: v for k, v in os.environ.items() if k not in ("CONFIRM_PROD", "BUILD_IOS_INNER")}
+    script = str(ROOT / "deploy/staging/build-ios-testflight.sh")
+    r = subprocess.run(["bash", script, "--dry-run"], env=env, capture_output=True, text=True, timeout=60)
+    assert r.returncode == 0, r.stderr
+    put = next(ln for ln in r.stdout.splitlines() if "after the upload: put" in ln)
+    assert put.startswith(f"[dry-run] after the upload: put bc-fishing-regulations-staging/app/ios/{ver}.json, then "
+                          "bc-fishing-regulations-staging/app/ios/appstore.json, with notes ["), put
+    assert "bc-fishing-regulations/" not in r.stdout
+    r = subprocess.run(["bash", script, "--production", "--dry-run"], env={**env, "CONFIRM_PROD": "canifishthis.ca"},
+                       capture_output=True, text=True, timeout=60)
+    assert r.returncode == 0, r.stderr
+    put = next(ln for ln in r.stdout.splitlines() if "after the upload: put" in ln)
+    assert put.startswith(f"[dry-run] after the upload: put bc-fishing-regulations/app/ios/{ver}.json, then "
+                          "bc-fishing-regulations/app/ios/appstore.json, with notes ["), put
+    assert "bc-fishing-regulations-staging" not in r.stdout
+
+
+def test_testflight_publishes_one_file_per_version_and_a_failed_put_stops():
+    code = _no_comments("deploy/staging/build-ios-testflight.sh")
+    loop = code[code.index('for f in "$VER.json" appstore.json; do'):code.index("done", code.index('for f in "$VER.json"'))]
+    assert 'put --remote "$BUCKET/app/ios/$f" --file "$OUT/appstore.json"' in loop
+    assert "was NOT published (the build IS uploaded): redo the puts in the header" in loop
+    assert "testflight-distribute.mjs" in loop                     # T918: the redo hint names the distribute step too
+    assert '\" >&2; exit 1; }' in loop                             # ... and a failed put still stops the script
+    assert "app/ios/appstore.json\" --file" not in code           # appstore.json only through the loop, after <ver>.json
+
+
+def test_play_build_publishes_its_own_versioncode_file_before_play_json():
+    code = _no_comments("deploy/staging/build-apk.sh")
+    own = code.index('put --remote "$BUCKET/app/android/play/$CODE.json" --file "$OUT/play.json"')
+    last = code.index('put --remote "$BUCKET/app/android/play.json" --file "$OUT/play.json"')
+    assert own < last
+    for at in (own, last):
+        tail = code[at:code.index("\n", code.index("|| {", at))]
+        assert "the build IS on Play): fix wrangler, then build-apk.sh --play --publish-only\" >&2; exit 1; }" in tail
+    # --publish-only redoes both, the build's own file first
+    assert code.index('put --remote "$BUCKET/app/android/play/$LOCALB.json" --file "$PJ"') \
+        < code.index('put --remote "$BUCKET/app/android/play.json" --file "$PJ"')
+
+
+def test_production_apk_refuses_the_stock_maplibre():
+    """(T893, owner 2026-11-19: "It has to use patched one") --production never takes --stock-maplibre."""
+    env = {k: v for k, v in os.environ.items() if k not in ("CONFIRM_PROD", "MLN_LOCAL_MAVEN")}
+    r = subprocess.run(["bash", str(ROOT / "deploy/staging/build-apk.sh"), "--play", "--production", "--dry-run",
+                        "--stock-maplibre=a test"], env=env, capture_output=True, text=True, timeout=30, cwd=ROOT)
+    assert r.returncode == 2
+    assert "production always carries the patched MapLibre (T893); --stock-maplibre is refused" in r.stderr
+
+
 def test_upload_puts_the_pointer_coupled_group_last_and_a_failed_test_reset_stops():
     """(T537) run timing done -> inputs (sync-inputs.sh) -> the pointer, as one last group; the test/ reset was a WARNING."""
     up = (ROOT / "deploy/staging/upload.sh").read_text()
@@ -245,7 +307,7 @@ PLACEHOLDER = "feeds (production) is not live yet"
 
 @pytest.fixture
 def prod_tree(tmp_path):
-    for rel in ("deploy/prod/sync-inputs.sh", "deploy/lib/input-formats.sh"):
+    for rel in ("deploy/prod/sync-inputs.sh", "deploy/lib/input-formats.sh", "deploy/lib/bucket.sh"):
         (tmp_path / rel).parent.mkdir(parents=True, exist_ok=True)
         shutil.copy(ROOT / rel, tmp_path / rel)
     return tmp_path
@@ -363,3 +425,15 @@ def test_both_uploaders_run_the_one_format_check():
         assert "status.json" not in body, rel                       # no second copy of the question
     staging = (ROOT / "deploy/staging/sync-inputs.sh").read_text()
     assert "FEEDS_WORKER_NOT_LIVE" not in staging and "\nNO_WORKER_YET=\n" in staging   # staging never claims it
+
+
+def test_publish_only_refuses_a_build_of_the_other_environment():
+    """(T894 review) a staging build's play.json never goes to the production bucket by --publish-only, nor the reverse:
+    the build writes its environment into the file, and --publish-only refuses a file of another (or no) environment
+    before any read of the published file or any put."""
+    sh = (ROOT / "deploy/staging/build-apk.sh").read_text()
+    assert 'v["env"]=sys.argv[3]' in sh and '"$MLN_GOT" "$ENVWORD" > "$OUT/play.json"' in sh
+    block = sh[sh.index("if [[ -n $PUBLISH_ONLY ]]; then"):]
+    block = block[:block.index("\nfi\n")]
+    refuse = block.index('[[ $PJENV == "$ENVWORD" ]] || {')
+    assert refuse < block.index('PUBB=$(curl') < block.index("r2 object put")

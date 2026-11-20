@@ -1,6 +1,6 @@
 # T570 — Indigenous land names show only when zoomed in a lot more
 
-Status: IN REVIEW
+Status: DONE — 0fd94a0a9 (closed on the owner's word 2026-11-20; see the last section)
 
 Source: owner 2026-11-10: "indigenous land names shouldnt show until zoomed in a lot more."
 
@@ -30,3 +30,9 @@ Depends: —. Size: S. Owner: yes (pick the zoom).
 
 ## DECIDED 2026-11-10 (owner, on the shots: "the pictures all look good")
 minzoom 12, built into the style. Rides the next web deploy and APK. Owner confirms on the phone.
+
+## Closed 2026-11-20
+
+Closed 2026-11-20 on the owner's word ("Couldn't we just assume most of these are done already?"): Indigenous land names closing in (zoom 12) is taken as checked on the phone.
+
+Status line before closing: IN REVIEW — 0fd94a0a9 (Indigenous land names from zoom 12, was 9; owner approved the shots 2026-11-10). Proof: the owner's look on the phone.

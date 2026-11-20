@@ -35,6 +35,7 @@ import { useHighlight } from "./web/useHighlight";
 import { useSpots } from "./web/useSpots";
 import { useChannels } from "./web/useChannels";
 import { useFit } from "./web/useFit";
+import { useInsetLeft } from "./web/useInsetLeft";
 import { useGauges, useTrace } from "./web/useOverlays";
 import { useWaterCopy } from "./web/useWaterCopy";
 import { useDrawn, useRegion, useVisible } from "./web/useVisible";
@@ -59,7 +60,7 @@ function SeenMap({ at, theme, view, modes, groups, hide, show, initial, data, on
                       onError, onMoved, onMapPoint, onLongPress, onOpenLab, highlight, inSeason, water, waterLine, selection = "outline", marker,
                       style,
                       gauges, onVisible, pins, bare, fit, basemap, trace, onImageryError,
-                      zoomControls, status, standing, lakes, salmon, method, runs, marks, onPressMark, spots, me, insetTop = 0, insetBottom = 0, onRegion, onOpenLink, useBackLayer, focus, near, onDrawn, lookKey, onLookDrawn }: MapProps) {
+                      zoomControls, status, standing, lakes, salmon, method, issue, runs, marks, onPressMark, spots, me, insetTop = 0, insetBottom = 0, insetLeft = 0, onRegion, onOpenLink, useBackLayer, focus, near, onDrawn, lookKey, onLookDrawn }: MapProps) {
   const refs = useWebMapRefs(onError);
   // (T243) the camera's own glides jump while the OS asks for reduced motion (`motion.ts`)
   useEffect(() => {
@@ -89,7 +90,8 @@ function SeenMap({ at, theme, view, modes, groups, hide, show, initial, data, on
   const lit = useHighlight(refs, { highlight, water, selection, near, inSeason });
   useMarks(refs, marks, onPressMark, furniture);
   const spotLayer = useSpots(refs, spots, at);
-  useChannels(refs, lit, { at, theme, data, status, standing, lakes, salmon, method, runs });
+  useChannels(refs, lit, { at, theme, data, status, standing, lakes, salmon, method, issue, runs });
+  useInsetLeft(refs, insetLeft, at);
   const traceBox = useFit(refs, fit, highlight);
   useGauges(refs, gauges);
   useTrace(refs, { trace, at, onError }, traceBox);
@@ -124,7 +126,8 @@ function SeenMap({ at, theme, view, modes, groups, hide, show, initial, data, on
     "--map-inset-top": `${insetTop}px`,
     // (T275) a block over the map's foot: the credits and the scale sit above it
     "--map-inset-bottom": `${insetBottom}px`,
-  } as React.CSSProperties), [furniture, insetTop, insetBottom]);
+    "--map-inset-left": `${insetLeft}px`,
+  } as React.CSSProperties), [furniture, insetTop, insetBottom, insetLeft]);
 
   // the spots' layer is the map's sibling, over it in the same box (the host is the map's: MapLibre owns its children)
   return <>

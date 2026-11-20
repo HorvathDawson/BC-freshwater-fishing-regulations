@@ -18,12 +18,13 @@ import { GUTTER, type Palette } from "../theme";
 import { GroupCard, Pictures } from "./GroupCard";
 import { LineText, type KeepActions } from "./LineText";
 import { openBook } from "./openBook";
-import type { AdiposeImages, FishImages } from "./types";
+import type { FishImages } from "./types";
 import { Fold } from "./sheet/Fold";
 import { Example, Head, List, Para, Quote } from "./sheet/Para";
 import { RuleRow } from "./sheet/RuleRow";
 import { LadderView } from "./sheet/LadderView";
 import { SourcesView } from "./sheet/SourcesView";
+import { FlowView } from "./sheet/FlowView";
 import { WeekBox } from "./sheet/WeekBox";
 import { FishImage, FishLooks } from "./sheet/FishImage";
 import { AdiposeArt } from "./AdiposeArt";
@@ -32,7 +33,6 @@ import { TermSection } from "./sheet/TermSection";
 
 export interface SheetBodyProps {
   palette: Palette; fish?: FishImages;
-  adipose?: AdiposeImages;                                   // T38: apps/mobile's ADIPOSE_IMAGES
   onOpen: (k: SheetKey) => void; onTab?: (t: Tab) => void;
   /** a Rule book page (default: open the synopsis at that page, D6 a) */
   onBook?: (pdf: number, box?: readonly SourceBox[]) => void;
@@ -42,9 +42,11 @@ export interface SheetBodyProps {
 const actionsOf = (p: SheetBodyProps): KeepActions =>
   ({ onSheet: p.onOpen, onDay() {}, onTab: (t) => p.onTab?.(t), onBook: p.onBook ?? ((pdf, box) => { void openBook(pdf, box); }) });
 
-export function SheetBlockView(p: { b: SheetBlock; layout?: LayoutClass } & SheetBodyProps) {
+export function SheetBlockView(p: { b: SheetBlock; layout?: LayoutClass;
+  /** (T868) the sheet's first block: a group card there sits under the sheet's title rule and draws no rule of its own */
+  first?: boolean } & SheetBodyProps) {
   const { b, palette } = p, actions = actionsOf(p);
-  const body = (bs: readonly SheetBlock[]) => bs.map((x, i) => <SheetBlockView key={i} {...p} b={x} />);
+  const body = (bs: readonly SheetBlock[]) => bs.map((x, i) => <SheetBlockView key={i} {...p} first={false} b={x} />);
   switch (b.k) {
     case "para": return <Para text={b.text} tone={b.tone} palette={palette} actions={actions} />;
     case "example": return <Example text={b.text} palette={palette} actions={actions} />;
@@ -57,6 +59,7 @@ export function SheetBlockView(p: { b: SheetBlock; layout?: LayoutClass } & Shee
     case "value": return <View style={{ marginTop: 8 }}><LineText line={b.text} style={TYPE.regsBodyBold} color={palette.ink} palette={palette} actions={actions} /></View>;
     case "weekBox": return <WeekBox day={b.day} scope={b.scope} status={b.status} says={b.says} palette={palette} />;
     case "ladder": return <LadderView q={b.q} result={b.result} steps={b.steps} palette={palette} actions={actions} />;
+    case "flow": return <FlowView flow={b.flow} palette={palette} actions={actions} />;
     case "sources": return <SourcesView groups={b.groups} overruled={b.overruled} palette={palette} actions={actions} />;
     case "pictures": return <Pictures pics={b.pics} palette={palette} actions={actions} images={p.fish} />;
     case "image": return <FishImage code={b.code} file={b.file} alt={b.alt} credit={b.credit} width={b.width} height={b.height} fish={p.fish} palette={palette} />;
@@ -65,10 +68,10 @@ export function SheetBlockView(p: { b: SheetBlock; layout?: LayoutClass } & Shee
       <SwipePages titles={b.pages.map((x) => x.title)} palette={palette}>
         {(i) => <SheetBody {...p} vm={b.pages[i]!} />}
       </SwipePages>);
-    case "adipose": return <AdiposeArt figures={b.figures} images={p.adipose} palette={palette} layout={p.layout} />;
+    case "adipose": return <AdiposeArt figures={b.figures} palette={palette} layout={p.layout} />;
     case "pages": case "source": case "link":
       return <View style={{ marginTop: 8 }}><LineText line={b.line} style={TYPE.meta} color={palette.sub} palette={palette} actions={actions} linkStyle={TYPE.metaBold} /></View>;
-    case "group": return <View style={{ marginHorizontal: -GUTTER }}><GroupCard g={b.group} titled={b.titled} palette={palette} actions={actions} images={p.fish} /></View>;
+    case "group": return <View style={{ marginHorizontal: -GUTTER }}><GroupCard g={b.group} titled={b.titled} ruled={!p.first} more={b.more !== false} palette={palette} actions={actions} images={p.fish} /></View>;
     case "rowTitle":
       return (
         <Text style={[TYPE.lead, { color: palette.ink, marginTop: 8 }]}>
@@ -96,7 +99,7 @@ export function SheetBody(p: { vm: SheetVM; layout?: LayoutClass } & SheetBodyPr
     <View testID="sheet-body">
       {grouped(vm.blocks).map((b, i) => Array.isArray(b)
         ? <FishLooks key={i} looks={b} layout={layout} fish={rest.fish} palette={rest.palette} />
-        : <SheetBlockView key={i} {...rest} layout={layout} b={b} />)}
+        : <SheetBlockView key={i} {...rest} layout={layout} b={b} first={i === 0} />)}
     </View>
   );
 }

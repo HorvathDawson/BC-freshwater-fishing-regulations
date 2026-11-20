@@ -11,7 +11,7 @@ The one current map of `app/` (T63). Why the layers are shaped this way is
 | `packages/core` | every answer and every sentence: status, regs presenters (`src/regs/`), conditions, search, menu words, freshness, the generated vocabularies (`*.generated.ts`) | nothing platform, no React |
 | `packages/data` | the data seam: the release loader + install (`src/release/`), the regs store reader (`src/regs/`), `WaterSource` over the release (`src/release/source.ts`), SQL drivers (`src/sql/`), spots (`src/spots/`), the gauge feed (`src/feed/`) | core |
 | `packages/ui` | headless React hooks — data, never elements: boot, search session, water/regs/route hooks, layout class | core, data, react |
-| `packages/ui-native` | every component (RN primitives) and every layout: `Shell.tsx` + `shell/`, water screen, regs screen (`src/regs/`), sheets, panels | core, data, ui, map |
+| `packages/ui-native` | every component (RN primitives) and every layout: `Shell.tsx` + `shell/`, water screen, regs screen (`src/regs/`), sheets, panels (T910: on the web the water's Regulations page is a `part` in the later chunk, `later.ts`, drawn as `WaterPageLoading` while its code comes; a phone has it at once) | core, data, ui, map |
 | `packages/map` | the ONE `<Map/>` (`Map.web.tsx` / `Map.native.tsx`; T409: the web map is built when first seen, `web/firstSeen.ts` — the warm map behind a water's page waits until shown, at every width), the generated style (`style/`, from `layers.source.json`) | core |
 | `apps/mobile` | the one shell for native and web (Expo + react-native-web): `src/App.tsx`, config (`config.ts` + `env.ts`: the data environment local / staging / production, T232; `eas.json` profiles), platform glue | all |
 | `conformance` | suites run against every `WaterSource` and the regs store: the fixture releases, the live release, the oracle parities (`src/regs/`) | all |
@@ -21,19 +21,30 @@ The one current map of `app/` (T63). Why the layers are shaped this way is
 ```
 data/release/r-*/ (R2 in production)
   └─ manifest ─▶ @app/data release loader (bootRelease; phone: install to disk; web: fetch on first need, and
-                   after first paint prefetch the region in view's regs file + core/sql-wasm on idle — T186,
+                   after first paint prefetch the region in view's regs file + core/sql-wasm on idle — T186; T910: the idle tier
+                   waits first for the load event + 5 s with no long task, ui-native `shell/settle.web.ts` —
                    `release/prefetch.ts`, `@app/ui` `useReleasePrefetch`, the map's `onRegion`)
                    ├─ WaterSource (release/source.ts): core, near, paint, conditions, flow-area …
                    ├─ answer slices (T256, `release/focus.ts`): web only — core / water read ROUTED: a read the map's
                    │    region's `core-<r>` / `water-<r>` covers goes there, anything else to the whole file
+                   ├─ ahead lane (T737, `release/lane.ts`, in `drivers/source.web.ts`): web only — every file fetched
+                   │    ahead (idle tier, background tier `release/background.ts`, the address bar's `lines`) one at a
+                   │    time at fetch priority low; a reader's download goes out at once (high) and aborts the file
+                   │    ahead it does not need (it comes again after the reader, same promise)
                    ├─ salmon (T211, `loader.salmon`): the Salmon card (`@app/ui` `useSalmonCard`) and the map's
                    │    Standard / Salmon toggle (`useSalmonColour` → the colouring engine's `salmon` channel)
                    ├─ offline (T238, `release/offline.ts`): More → Offline maps — the regulations for all of B.C. (never
                    │    per region; web: what the release cache holds), the province map, `@app/ui` `useOfflineMaps`
                    └─ RegsStore (regs/store.ts): water + regs-<region> + regs-sid
+                         (T910: the rules, `reads.rules()`, are inflated in a worker on the web — `regs/rulesDecode.web.ts`
+                         over fflate's own UMD build, `fflateWorker.generated.ts`; the phone's `rulesDecode.native.ts` as before)
                          └─▶ @app/ui hooks ─▶ @app/ui-native screens ─▶ apps/mobile App.tsx
 gauge feed (index.json, per-station) ─▶ data/src/feed/http.ts ─▶ panels / conditions
 in-season feed + links (feeds/inseason/, T230) ─▶ data/src/feed/inseason.ts ─▶ ui inseason.ts ─▶ banners, notice
+feed gate (T676 item 2): every feed index carries `minAppVersion` (FEED_MIN_APP, pipeline/common/feed_formats.py) ─▶
+                   core feedGate.ts `createFeedGate` (App.tsx, one) in each reader (salmon, inseason, http, runtiming):
+                   an index for a newer app is refused, the capture answers ─▶ update service `needsApp` ─▶ core
+                   `appTooOld` ─▶ the strong update prompt ("New data needs the latest app"), as a release's app-too-old
 background check (T234, phone only: apps/mobile notify.native.ts, expo-background-task ~15 min) ─▶ data/src/notify/check.ts
                    (obs.json via feed/http.ts `fetchObs`; the release manifest; our version file, core appUpdate.ts
                    `appVersionFileUrl`) ─▶ core alerts.ts (`evaluateAlerts`, T527 stock-style: crosses above / below a
@@ -43,7 +54,13 @@ background check (T234, phone only: apps/mobile notify.native.ts, expo-backgroun
                    (a plain list; Add an alert: gauge → condition → value), a gauge card's "Alert me" (ui-native
                    AlertMe.tsx `AlertEditor`)
 changelog (T234 v1.1): core changelog.ts (the one source) ─▶ About → What's new (`changelogVM`); build-apk.sh copies a
-                   version's bullets into latest.json / play.json ─▶ the bell's App update "What's new in …"
+                   version's Android bullets (`notesOn`) into latest.json / play/<versionCode>.json (+ play.json),
+                   build-ios-testflight.sh the iPhone's into app/ios/<version>.json (+ appstore.json); a store build
+                   reads the file of what the store offers (T894, core `storeUpdateCheck`) ─▶ the bell's App update
+                   "What's new in …"
+                   and (T888, phone only) the popup on opening: core `updatePopupVM` ─▶ ui `useAppUpdate` `popup` ─▶
+                   ui-native AppUpdatePopup.tsx (the coho, the bullets, Update / Not now; once per version above the
+                   installed one, after the first-run notice, the walkthrough and any sheet; then the bell)
 tiles (atlas.pmtiles + basemap) ─▶ @app/map
 ```
 
@@ -59,9 +76,9 @@ The app decides nothing about a regulation: every answer is looked up in the rel
 | `packages/data/dev/feeds/` | a gauge feed for tests | `pipeline.gauges.feed.publish` |
 | `fixtures/golden/` | the release-backed regs oracles, re-cut after a release: `taps.json` (the Python decoder's answers) and `page-oracle.json` (page v36's own code over the same release, rules by durable key; a change stops the release), from `states.json` (the 134 tap questions, no answers). The prototype extracts (golden, pins, tokens, inventory) are retired (T439) | `tools/regs-recut/sync.mjs` |
 | `fixtures/reference/` | page v36 (html, js) and its calendar copy, frozen: the parity tests' and the re-cut's oracle | `python -m pipeline.tools.emit.calendar` (calendar only) |
-| `fixtures/reader-states.json`, `fixtures/fishart.js` | the reader tool's states; the fish drawings `tools/emit-adipose.mjs` reads | hand / prototype |
+| `fixtures/reader-states.json` | the reader tool's states | hand / prototype |
 | `apps/mobile/assets/fish/thumbs/` | (T405) a 240 px thumbnail per fish picture, drawn by every row and chip (the fish sheet alone draws the full picture); `thumbs.json` records what each was made from, and `pnpm fish` refuses a missing or stale one | `node tools/emit-fish-thumbs.mjs` (Chrome), then `pnpm fish:build` |
-| `tools/seo/fonts/` | (T409) the app's faces as WOFF2 (lossless), served to the water pages at `/assets/fonts/`; `fonts.json` records the TTF each was made from, and the SEO build (`webFonts.ts`) refuses a missing or stale one | `node tools/emit-web-fonts.mjs` (Python fontTools + brotli) |
+| `tools/seo/fonts/` | (T409) the app's faces as WOFF2 (lossless), served at `/assets/fonts/`: (T910) the web app draws them too (`apps/mobile` `fonts.web.ts` over `webFonts.generated.ts`; the phone keeps the TTF, `fonts.native.ts`), `tools/web-shell.mjs` copies them into the export and the water pages name the export's file; `fonts.json` records the TTF each was made from, and the SEO build (`webFonts.ts`) and web-shell refuse a missing or stale one | `node tools/emit-web-fonts.mjs` (Python fontTools + brotli; `--module` rewrites only the generated module) |
 
 The design prototype (`app/design/`) was deleted in T87 (2026-10-28); git keeps it (regs v38 @ 7fb6809f).
 
@@ -69,7 +86,7 @@ The design prototype (`app/design/`) was deleted in T87 (2026-10-28); git keeps 
 
 `pnpm check` = `check:fast` (every gate below but vitest, ~21 s; `scripts/fast-fail.sh` runs it, T535) then `test`.
 
-tickets → changelog (app.json's version has the newest changelog entry, `scripts/check-changelog.mjs`, T538) → boundaries → platform (pairs complete; no inline `Platform.OS` / `typeof window` outside `INLINE_ALLOWED`, README "Web and native code") → style → colours → spinner → splash → gauge-policy / calendar / fish / answers / pack / app-reads (T555: app.json's version has its row in `pipeline/deliver/release/app_reads.json` and it is what the code reads; a format moved needs a version bump, then `python -m pipeline.tools.emit.app_reads`)
+tickets → changelog (app.json's version has the newest changelog entry, `scripts/check-changelog.mjs`, T538) → boundaries → platform (pairs complete; no inline `Platform.OS` / `typeof window` outside `INLINE_ALLOWED`, README "Web and native code") → style → colours → spinner → coho (T814: the coho loader's committed sheets read back against the `color.ui.coho.*` tokens; `pnpm coho:build` re-renders them with the owner's `tools/fish-loader/fish_loader.py`) → adipose (T886: the hatch sheet's two drawings, the loader's coho at rest, `packages/ui-native/src/adipose/`, read back against `color.ui.coho.*` + `color.ui.accent`; `pnpm adipose:build` redraws them with `tools/fish-loader/adipose_art.py`) → splash → gauge-policy / calendar / fish / answers / pack / app-reads (T555: app.json's version has its row in `pipeline/deliver/release/app_reads.json` and it is what the code reads; a format moved needs a version bump, then `python -m pipeline.tools.emit.app_reads`)
 (generated files current) → deps → **knip** (no unused file, export or dependency; allowances with reasons in
 `knip.jsonc`) → typecheck (`tsc -b`, `noUnusedLocals`) → typecheck:seo → promises → test (vitest: packages, conformance, `tools/*.test.ts`).
 `REGS_STORE_REQUIRED=1` makes the live-release suites fail instead of skip when no release is on disk, or when the release
@@ -97,6 +114,8 @@ need Chrome and the running app).
 Source maps (T352, `sourcemaps.mjs`): the web export (`export:web*`, `--source-maps`) and `deploy/staging/build-apk.sh`
 (the Hermes map) keep their maps per build in `data/sourcemaps/<version>-b<build>-<sha7>/` (gitignored, never served);
 `node app/tools/sourcemaps.mjs symbolicate <crash json>` reads a crash's stack back with them.
+
+(T752) **The water's Map tab is a split from the tablet breakpoint (900) up, on every platform:** text column left (420 px: name, Downstream / Upstream pinned, a parts list that scrolls inside it, report link), map right, inside the frame's column (`ui-native/src/WaterFrame.tsx` `WaterSplit`, `water/WaterMapView.tsx`); below 900 the phone layout, unchanged.
 
 The SEO site (`build-seo.mjs` over `seo/`, T192–T198): hub pages, sitemap, slugs (`app/seo/slug-map.json`), v1 301s. **A water
 page is the app (T269):** `seo/pane.tsx` server-renders the real `Shell` on that water's Regulations view (react-native-web;

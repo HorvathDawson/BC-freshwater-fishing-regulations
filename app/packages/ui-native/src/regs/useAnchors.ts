@@ -1,34 +1,25 @@
 /**
- * T29 — where the Keep tab's articles, group heads and tier sections are, and where the Gear / Methods / Licence sections
- * start, as CONTENT offsets of the regs ScrollView (the prototype's `pinTops` + the boxes `pinUpdate` and `mini` read),
- * handed to the pin store.
+ * T29 — where the Gear / Methods / Licence sections start, as CONTENT offsets of the regs ScrollView, handed to the tab
+ * store (the tab row's section in view and a tab press's scroll).
  *
- * Every anchored element registers a ref through `AnchorContext` (GroupCard: the article, its head block, each tier's
- * header, each kind / release row with the tier sections it sits in; RegsScreen: the section wrappers). After a layout
- * change the hook measures every registered node against `contentRef` (`measureLayout`: react-native-web through
- * bounding rects; native Fabric with a ref) and rebuilds the `PinAnchor[]` from the page's groups (`anchorsOf`) and the
- * section tops (`sectionsOf`). A section is measured with the rest rather than from its own onLayout: on the web its
- * onLayout fires only when its SIZE changes, not when the Keep tab above it grows and moves it.
+ * Every anchored element registers a ref through `AnchorContext` (RegsScreen: the section wrappers). After a layout change
+ * the hook measures every registered node against `contentRef` (`measureLayout`: react-native-web through bounding rects;
+ * native Fabric with a ref) and rebuilds the section tops (`sectionsOf`). A section is measured with the rest rather than
+ * from its own onLayout: on the web its onLayout fires only when its SIZE changes, not when the Keep tab above it grows and
+ * moves it. A measuring pass in which nothing has a height is dropped (jsdom has no layout).
  *
- * Nothing here reads a regulation: the strings and numbers are the VM's (GroupVM.pinLine, TierVM.short / n,
- * head.form / leadN). A measuring pass in which nothing has a height is dropped (jsdom has no layout; a test injects
- * anchors itself).
+ * (T810 cutover, owner 2026-11-17 23:29 "Remove it (Recommended)") The Keep group's anchors (its article, head block, tier
+ * headers, rows and size boxes, for the pin bar) left with the bar: no Keep tab draws a group card since the cutover.
  */
 import { createContext, useCallback, useEffect, useMemo, useRef } from "react";
-import { Animated, Dimensions, type LayoutChangeEvent, type ViewInstance } from "react-native";
-import type { GroupVM, PinAnchor, PinTierAnchor, RegsPage, Tab, TreeNodeVM } from "@app/core";
-import type { PinSections, PinStore } from "./pinStore";
+import { Dimensions, type LayoutChangeEvent, type ViewInstance } from "react-native";
+import type { RegsPage, Tab } from "@app/core";
+import type { TabSections, TabStore } from "./tabStore";
 
 export type SectionTab = Exclude<Tab, "keep">;
 
-/** What an anchored element is. `tids`: the tier sections it lies in, outermost first (a tier's header includes its own). */
-export type AnchorKey =
-  | { readonly k: "group" | "pin"; readonly row: number }
-  | { readonly k: "head"; readonly row: number; readonly tid: string; readonly tids: readonly string[] }
-  | { readonly k: "krow"; readonly row: number; readonly tids: readonly string[] }
-  | { readonly k: "section"; readonly tab: SectionTab }
-  /** (owner 2026-10-27) the size section's box: where a stuck header is bounded */
-  | { readonly k: "box" };
+/** What an anchored element is: a section wrapper of the page. */
+export type AnchorKey = { readonly k: "section"; readonly tab: SectionTab };
 
 export interface AnchorSink {
   /** a stable ref callback for the element `id` (unique on the page) */
@@ -38,58 +29,13 @@ export interface AnchorSink {
 }
 export const AnchorContext = createContext<AnchorSink | null>(null);
 
-/**
- * Where the size section's header pins on the web (owner 2026-10-27): `top` is read from the pin bar's measured stack
- * (`store`) when the bar overlays the scroll's top edge (`overlay`: phone, tablet), else 0 (the desktop's bar stands in
- * the side column). Absent outside a RegsScreen: the header does not stick.
- */
-export interface StickyPin {
-  readonly store: PinStore; readonly overlay: boolean;
-  /** the page scroll's offset as an Animated value (set by the scroll handler, no React render): drives the native sticky */
-  readonly scrollY: Animated.Value;
-}
-export const StickyContext = createContext<StickyPin | null>(null);
-
 export interface Box { readonly top: number; readonly height: number }
 export type Boxes = ReadonlyMap<string, { readonly key: AnchorKey; readonly box: Box }>;
 
-/** The anchors of the page's groups from measured boxes (pure; exported for the test). Document order = keep.groups. */
-export function anchorsOf(groups: readonly GroupVM[], boxes: Boxes): PinAnchor[] {
-  const list = [...boxes.values()];
-  const of = (k: "group" | "pin", row: number) => list.find((b) => b.key.k === k && b.key.row === row)?.box ?? null;
-  const headOf = (row: number, tid: string) =>
-    list.find((b) => b.key.k === "head" && b.key.row === row && b.key.tid === tid)?.box ?? null;
-  // prototype secEnd: the bottom of the section's last kind row or tier head (one with a height)
-  const endOf = (row: number, tid: string): number | null => {
-    let b = -Infinity;
-    for (const { key, box } of list)
-      if ((key.k === "krow" || key.k === "head") && key.row === row && key.tids.includes(tid) && box.height > 0)
-        b = Math.max(b, box.top + box.height);
-    return b === -Infinity ? null : b;
-  };
-  const out: PinAnchor[] = [];
-  for (const g of groups) {
-    const art = of("group", g.row);
-    if (!art) continue;
-    const tiers: PinTierAnchor[] = [];
-    const walk = (ns: readonly TreeNodeVM[]) => {
-      for (const n of ns) if (n.t === "tier") {
-        tiers.push({ tid: n.tid, tier: n.tier, n: n.n, head: headOf(g.row, n.tid), end: endOf(g.row, n.tid), short: n.short });
-        walk(n.children);
-      }
-    };
-    walk(g.tree ?? []);
-    out.push({ row: `r${g.row}`, group: true, tree: g.pinLine !== null, formA: g.head.form === "a", headlineN: g.head.leadN,
-      top: art.top, height: art.height, groupLine: g.pinLine, pin: of("pin", g.row), tiers });
-  }
-  return out;
-}
-
 /** The tab row's section tops from measured boxes (pure; exported for the test). */
-export function sectionsOf(boxes: Boxes): PinSections {
+export function sectionsOf(boxes: Boxes): TabSections {
   let gear: number | null = null, methods: number | null = null, methodsHeight = 0, licence: number | null = null;
   for (const { key, box } of boxes.values()) {
-    if (key.k !== "section") continue;
     if (key.tab === "gear") gear = box.top;
     else if (key.tab === "licence") licence = box.top;
     else { methods = box.top; methodsHeight = box.height; }
@@ -98,10 +44,10 @@ export function sectionsOf(boxes: Boxes): PinSections {
 }
 
 /**
- * The anchor sink for the page's Keep tab and the section wrappers' ref + layout handler. `contentRef` wraps every
+ * The anchor sink and the section wrappers' ref + layout handler. `contentRef` wraps every
  * anchored element (measureLayout against a non-ancestor fails on native).
  */
-export function useAnchors(page: RegsPage, contentRef: React.RefObject<ViewInstance | null>, store: PinStore): {
+export function useAnchors(page: RegsPage, contentRef: React.RefObject<ViewInstance | null>, store: TabStore): {
   sink: AnchorSink;
   section: (tab: SectionTab) => { ref: (node: ViewInstance | null) => void; onLayout: (e: LayoutChangeEvent) => void };
   remeasure: () => void;
@@ -112,8 +58,6 @@ export function useAnchors(page: RegsPage, contentRef: React.RefObject<ViewInsta
   const keys = useRef(new Map<string, AnchorKey>()).current;
   const refs = useRef(new Map<string, (node: ViewInstance | null) => void>()).current;
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const groupsRef = useRef(page.keep.groups);
-  groupsRef.current = page.keep.groups;
 
   const measure = useCallback(() => {
     timer.current = null;
@@ -127,8 +71,6 @@ export function useAnchors(page: RegsPage, contentRef: React.RefObject<ViewInsta
       // no layout (jsdom): nothing has a height — keep what the store has
       if (![...boxes.values()].some((b) => b.box.height > 0)) return;
       store.setSections(sectionsOf(boxes));
-      store.setBoxes(new Map([...boxes].filter(([, b]) => b.key.k === "box").map(([id, b]) => [id, b.box])));
-      store.setAnchors(anchorsOf(groupsRef.current, boxes));
     };
     for (const [id, node] of all) {
       const key = keys.get(id)!;

@@ -5,13 +5,14 @@
   "type": "module",
   "scripts": {
     "check": "pnpm run check:fast && pnpm run test",
-    "check:fast": "pnpm run tickets && pnpm run anchors && pnpm run changelog && pnpm run boundaries && pnpm run platform && pnpm run style && pnpm run colours && pnpm run spinner && pnpm run splash && pnpm run gauge-policy && pnpm run calendar && pnpm run fish && pnpm run answers && pnpm run pack && pnpm run app-reads && pnpm run feed-formats && pnpm run deps && pnpm run knip && pnpm run typecheck && pnpm run typecheck:worker && pnpm run typecheck:seo && pnpm run promises",
+    "check:fast": "pnpm run tickets && pnpm run anchors && pnpm run changelog && pnpm run boundaries && pnpm run platform && pnpm run style && pnpm run colours && pnpm run spinner && pnpm run coho && pnpm run adipose && pnpm run splash && pnpm run gauge-policy && pnpm run calendar && pnpm run fish && pnpm run answers && pnpm run pack && pnpm run app-reads && pnpm run feed-formats && pnpm run deps && pnpm run knip && pnpm run typecheck && pnpm run typecheck:worker && pnpm run typecheck:seo && pnpm run promises && pnpm run inventories",
     "dev:web": "pnpm --filter @app/mobile run web",
     "dev:android": "pnpm --filter @app/mobile run android",
     "dev:ios": "pnpm --filter @app/mobile run ios",
     "boundaries": "node tools/check-boundaries.mjs",
     "typecheck": "tsc -b",
     "promises": "node tools/check-promises.mjs",
+    "inventories": "vitest run tools/failures.test.ts tools/back-layers.test.ts",
     "typecheck:seo": "tsc -p tools/seo/tsconfig.json",
     "typecheck:worker": "tsc -p workers/feeds/tsconfig.json",
     "seo": "node tools/build-seo.mjs",
@@ -23,12 +24,17 @@
     "deps": "node tools/check-deps.mjs",
     "knip": "knip --no-progress",
     "tickets": "node tools/check-tickets.mjs",
+    "store-pages": "node tools/check-store-pages.mjs",
     "anchors": "node tools/check-test-anchors.mjs --strict",
     "changelog": "node ../scripts/check-changelog.mjs",
     "platform": "node tools/check-platform.mjs",
     "spinner": "node tools/build-spinner.mjs && git diff --exit-code packages/ui-native/src/fish-sprite.generated.ts tools/fish-sprite/fish-sprite.png tools/fish-sprite/fish-sprite.html",
     "spinner:build": "node tools/build-spinner.mjs",
     "spinner:view": "node tools/build-spinner.mjs && open tools/fish-sprite/fish-sprite.html",
+    "coho": "node tools/build-coho.mjs --check",
+    "coho:build": "node tools/build-coho.mjs",
+    "adipose": "node tools/build-adipose.mjs --check",
+    "adipose:build": "node tools/build-adipose.mjs",
     "splash": "node tools/build-splash.mjs --check",
     "splash:build": "node tools/build-splash.mjs",
     "tiles": "node tools/serve-tiles.mjs",
@@ -59,7 +65,7 @@
     "pnpm": ">=9"
   },
   "pnpm": {
-    "$comment": "ONE React for the whole workspace. packages/ui and packages/map declare react as a peer with range '*'; pnpm's auto-install-peers happily satisfied that with a DIFFERENT patch than the one Expo SDK 58 pins, which puts two Reacts in one bundle ('Invalid hook call'). These overrides make the pin structural rather than a convention. Bump them together with the Expo SDK, never alone (T250: SDK 58, every version exact and at least two weeks old; deps.md). react-native-svg is pinned here for the same reason: it ships native code that Expo SDK 58 builds against, and two copies in one bundle is a silent render failure rather than an error. react-native-gesture-handler (G1) is pinned for the same reason: native code, the version Expo SDK 58's bundledNativeModules names (~3.3.0, of which 3.3.0 is the only release). @react-native-community/netinfo is pinned for the same reason: native code, the version Expo SDK 58's bundledNativeModules names (12.0.1). react-native-safe-area-context is pinned for the same reason (T50): native code, the version Expo SDK 58's bundledNativeModules names (~5.10.1, of which 5.10.1 is the only release). expo-file-system is pinned for the same reason (T250): @app/data and @app/ui-native take it as a peer ('*'), and auto-install-peers kept the SDK 57 copy (57.0.6) beside apps/mobile's 58.0.11.",
+    "$comment": "ONE React for the whole workspace. packages/ui and packages/map declare react as a peer with range '*'; pnpm's auto-install-peers happily satisfied that with a DIFFERENT patch than the one Expo SDK 58 pins, which puts two Reacts in one bundle ('Invalid hook call'). These overrides make the pin structural rather than a convention. Bump them together with the Expo SDK, never alone (T250: SDK 58, every version exact and at least two weeks old; deps.md). react-native-svg is pinned here for the same reason: it ships native code that Expo SDK 58 builds against, and two copies in one bundle is a silent render failure rather than an error. react-native-gesture-handler (G1) is pinned for the same reason: native code, the version Expo SDK 58's bundledNativeModules names (~3.3.0, of which 3.3.0 is the only release). @react-native-community/netinfo is pinned for the same reason: native code, the version Expo SDK 58's bundledNativeModules names (12.0.1). react-native-safe-area-context is pinned for the same reason (T50): native code, the version Expo SDK 58's bundledNativeModules names (~5.10.1, of which 5.10.1 is the only release). expo-file-system is pinned for the same reason (T250): @app/data and @app/ui-native take it as a peer ('*'), and auto-install-peers kept the SDK 57 copy (57.0.6) beside apps/mobile's 58.0.11. expo-image-manipulator is pinned for the same reason (T732): @app/data takes it as a peer ('*'); 58.0.15 is the version Expo SDK 58's bundledNativeModules names (~58.0.15).",
     "overrides": {
       "react": "19.3.0",
       "react-dom": "19.3.0",
@@ -68,7 +74,8 @@
       "react-native-gesture-handler": "3.3.0",
       "@react-native-community/netinfo": "12.0.1",
       "react-native-safe-area-context": "5.10.1",
-      "expo-file-system": "58.0.11"
+      "expo-file-system": "58.0.11",
+      "expo-image-manipulator": "58.0.15"
     },
     "patchedDependencies": {
       "@maplibre/maplibre-react-native@11.5.0": "patches/@maplibre__maplibre-react-native@11.5.0.patch",

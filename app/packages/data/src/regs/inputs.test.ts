@@ -18,12 +18,12 @@ const rule = (rix: number, rank: number): StoredRule => ({ rix,
   facts: { kind: "gate" } as unknown as RuleFacts });
 const facts = (label: string) => ({ order: 0, label, short: label, lo: null, hi: null, runs: label, place: null, km: 1, closed_all_year: false,
   paper_licence: [] });
-const cell = (ladder: number, display: number): CellIds => ({ ladder, rows: 1, gear: 9, licence: 4, display });
+const cell = (ladder: number, display: number): CellIds => ({ ladder, rows: 1, gear: 9, licence: 4, display, trout: null });
 
 /** One water (gnis:1, ord 3) of three parts — part 0 on key 2 (no moments, closed Jun 1–30), part 1 on key 5 (a weekday
  *  split), part 2 outside B.C. — a picker grouping parts 0 and 1 as closed, and two sections (4097 named → part 1; 4098
  *  unlisted, on key 5). `asked` logs every read. */
-function fake(o: { openGroup?: boolean; tidalPiece?: boolean; oldRelease?: boolean } = {}) {
+function fake(o: { openGroup?: boolean; tidalPiece?: boolean; oldRelease?: boolean; notes?: boolean } = {}) {
   const asked: string[] = [];
   const log = <T>(what: string, v: T): Promise<T> => { asked.push(what); return Promise.resolve(v); };
   const parts: PartRow[] = [
@@ -63,6 +63,11 @@ function fake(o: { openGroup?: boolean; tidalPiece?: boolean; oldRelease?: boole
     // (T672 1b) handle 2 is key-less tidal water; `oldRelease`: a release cut before section_tidal (null)
     sectionTidal: (h: number) => log(`sectionTidal ${h}`, o.oldRelease ? null : h === 2),
     sectionPart: (ord: number, sid: number) => log(`sectionPart ${ord} ${sid}`, ord === 3 && sid === 4097 ? 1 : null),
+    // (T796) `notes`: core section_note holds a note on sids 4100 / 4101 / 4103 (part 0) and 4098 (an unnamed section)
+    sectionNotes: () => log("sectionNotes", new Map(o.notes ? [[4101, "B note."], [4100, "A note."], [4103, "A note."],
+                                                               [4098, "Lake note."]] : [])),
+    partLengths: (ord: number, partIx: number) => log(`partLengths ${ord} ${partIx}`,
+      new Map(((partIx === 0 ? [4103, 4101, 4100] : partIx === 1 ? [4097] : [4102]) as number[]).map((sid) => [sid, null]))),
     place: (ix: number) => log(`place ${ix}`, { place: ix, regions: ["5"], label: "Region 5",
       names: { stream: "Unnamed stream · Region 5", lake: "Unnamed lake · Region 5", wetland: "Unnamed wetland · Region 5" } }),
   };
@@ -170,6 +175,27 @@ describe("loadRegsInputs: a part", () => {
       .rejects.toEqual(new RegsInputsError("regs: gnis:1 has 3 part(s), no part 99"));
     await expect(loadRegsInputs(store, { kind: "part", item: "gnis:1", partIx: 99 }, JUN15, "Monday", 2026))
       .rejects.toBeInstanceOf(RegsInputsError);
+  });
+});
+
+describe("(T796) loadRegsInputs: the notes (core section_note)", () => {
+  it("a part's notes are its sections' (part_section), in sid order, each sentence once; a section's are its own", async () => {
+    const { store } = fake({ notes: true });
+    const at = (t: Parameters<typeof loadRegsInputs>[1]) => loadRegsInputs(store, t, JUN15, "Monday", 2026).then((i) => i.notes);
+    expect(await at({ kind: "part", item: "gnis:1", partIx: 0 })).toEqual(["A note.", "B note."]);
+    expect(await at({ kind: "part", item: "gnis:1", partIx: 1 })).toEqual([]);
+    expect(await at({ kind: "part", item: "gnis:1", partIx: 2 })).toEqual([]);           // outside B.C.: its own sections
+    expect(await at({ kind: "section", handle: 4098 })).toEqual(["Lake note."]);
+    expect(await at({ kind: "section", handle: 4097 })).toEqual([]);
+    expect(await at({ kind: "section", handle: 2 })).toEqual([]);                         // key-less: none of its own
+  });
+
+  it("a release with no note (or a core cut before the table): [] everywhere, and no part's sections are read for it", async () => {
+    const { store, asked } = fake();
+    const inp = await loadRegsInputs(store, { kind: "part", item: "gnis:1", partIx: 0 }, JUN15, "Monday", 2026);
+    expect(inp.notes).toEqual([]);
+    expect(asked.filter((a) => a.startsWith("partLengths"))).toEqual([]);
+    expect((await loadRegsInputs(store, { kind: "section", handle: 4098 }, JUN15, "Monday", 2026)).notes).toEqual([]);
   });
 });
 

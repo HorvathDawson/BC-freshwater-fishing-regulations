@@ -10,7 +10,7 @@ from pipeline.deliver.answers import common
 from pipeline.deliver.answers.common import AnswersError
 from pipeline.deliver.answers.display import is_closure_gate
 from pipeline.common import entry_id as EID
-from pipeline.deliver.answers.rows.rule import INF, R, _bands, _ge, _js, _keepish, size_lines
+from pipeline.deliver.answers.rows.rule import INF, R, _bands, _covers, _ge, _js, _keepish, size_lines
 
 
 def _stable_sort(xs, key):
@@ -96,6 +96,8 @@ def eval_sp(P: "Part", S: str, o: str) -> Optional[dict]:
     if win is None:
         return None
     shut = _range_released(P, S, A) if win.k == "pool" else None     # decision F16
+    if shut is None and win.k == "pool":
+        shut = _subcap_released(S, A, partly)                          # T846
     if shut is not None:
         win = shut
     if win.k == "gate":
@@ -131,7 +133,7 @@ def eval_sp(P: "Part", S: str, o: str) -> Optional[dict]:
         also.remove(p)
     for p in also:
         setr(p, "also")
-    if win.k == "gate":
+    if win.k == "gate" or (shut is not None and shut.k == "subcap"):
         for p in pools:
             setr(p, "moot", win.key)
     res = {"S": S, "o": o, "status": status, "win": win, "daily": None, "lines": [],
@@ -393,9 +395,24 @@ def fish_range(P: "Part", S: str) -> Tuple[float, float]:
     water (p.80; F5c), so there the rainbow's range ends at 50 cm and the steelhead's starts there."""
     if P.steelhead_water and S == "RB":
         return 0, 50
-    if P.steelhead_water and S == "ST":
+    if S == "ST" and (P.steelhead_water or A_STEELHEAD_IS_OVER_50_EVERYWHERE):
         return 50, INF
     return 0, INF
+
+
+#: T805 part D (adversarial review, Shamrock Creek blk:356196726): p.80 "steelhead: a rainbow trout longer than 50 cm in
+#: waters where anadromous rainbow trout are found" — a steelhead is over 50 cm WHEREVER one is answered, not only where a
+#: big rainbow is known to be one. Shamrock Creek (steelhead possible, Lonzo Creek's "Trout/char 20-30 cm in length Jun
+#: 16-Jan 31", p.24, by the walk) read "Up to 2 hatchery steelhead, 20–30 cm"; the 20-30 cm band now releases every
+#: steelhead there (decision F16), as on Lonzo Creek itself. False = the mutation pin (the impossible steelhead again).
+A_STEELHEAD_IS_OVER_50_EVERYWHERE = True
+
+
+#: T805 (RULINGS C5, owner 2026-11-16 q.38): a take-0 size clause of a quota (`within`) releases its band in decision F16
+#: exactly as the same words printed as a rule of their own do, so the seven Region 2 lakes printing "Wild trout/char
+#: daily quota = 2 (no wild trout over 40 cm)" store their char one way (hatchery only). False = the mutation pin: Lois
+#: and Windsor lakes' wild char read "no wild … 60 cm or longer" again (an empty wild range said as a keepable one).
+A_SIZE_CLAUSE_RELEASES_AS_A_RULE = True
 
 
 def _range_released(P: "Part", S: str, A: List[R]) -> Optional[R]:
@@ -404,9 +421,14 @@ def _range_released(P: "Part", S: str, A: List[R]) -> Optional[R]:
     "Trout/char 20-30 cm" beside Region 2's "Dolly Varden … none under 60 cm" (p.24, p.21): no char
     may be kept there, not "1"; the Coquitlam's "Hatchery trout 2 (20-30 cm only)" on a steelhead
     water: no steelhead (rainbow over 50 cm) may be kept. The winner is the lowest-ranked (the
-    water's own first) rule whose band releases part of the range. None where some length is kept."""
+    water's own first) rule whose band releases part of the range. None where some length is kept.
+    T805 (RULINGS C5): a size clause written INSIDE a quota (`within`, a `sizecap`) releases its band as a
+    stand-alone one does — Lois and Windsor lakes print "(no wild trout 40 cm or more)" as a clause of their
+    wild quota, Dodd and five more as a rule of its own; beside Region 2's "none under 60 cm" either way no
+    wild char may be kept (`A_SIZE_CLAUSE_RELEASES_AS_A_RULE`)."""
     lo, hi = fish_range(P, S)
-    rel = sorted(((a, b, r) for r in A if r.k in ("size", "pool")
+    kinds = ("size", "pool", "sizecap") if A_SIZE_CLAUSE_RELEASES_AS_A_RULE else ("size", "pool")
+    rel = sorted(((a, b, r) for r in A if r.k in kinds
                   for a, b, t in _bands(r) if t == 0), key=lambda x: (x[0], x[1], x[2].key))
     if not rel:
         return None
@@ -419,6 +441,23 @@ def _range_released(P: "Part", S: str, A: List[R]) -> Optional[R]:
     if at < hi:
         return None
     return min((r for a, b, r in rel if b > lo and a < hi), key=lambda r: r.rank)
+
+
+#: T846 (T810 L re-review, 2026-11-18): a take-0 share of a quota (`subcap`) naming the fish releases it, whatever the
+#: quota keeps of the rest. The Bella Coola tributaries' "all cutthroat trout catch and release" sits inside the
+#: rivers' own trout quota (atnarko_bella_coola_rivers.r4): the decided answer said keep, daily 1, where the book and the
+#: engine keep no cutthroat. False = the mutation pin (keep again).
+A_ZERO_SHARE_RELEASES = True
+
+
+def _subcap_released(S: str, A: List[R], partly: List[R]) -> Optional[R]:
+    """T846: the lowest-ranked speaking take-0 `subcap` covering fish `S` whole (no sizes, not only part of the day),
+    or None."""
+    if not A_ZERO_SHARE_RELEASES:
+        return None
+    zero = [r for r in A if r.k == "subcap" and r.f.get("take") == 0 and not r.f.get("lengths")
+            and _covers(r, S) and r not in partly]
+    return min(zero, key=lambda r: (r.rank, r.key)) if zero else None
 
 
 def _size_release(P: "Part", S: str, A: List[R]) -> Optional[R]:

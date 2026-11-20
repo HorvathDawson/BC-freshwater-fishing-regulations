@@ -77,6 +77,98 @@ class Ctx:
     #: ROUND20g 1: the origin rule said on the share's tier ("From streams, keep hatchery fish only — …"), where it holds
     #: on the share's kind of water only (`card.origin_place`)
     share_origin: Optional[str] = None
+    #: T793: the group's species × size table (`caps.system`, gate-proved cell by cell), whose cells say where one
+    #: origin keeps fewer than the other (`origin_clauses`)
+    table: Optional[dict] = None
+    #: T805: one origin's count rule holding fish of this card AND of another keep row of the same water (`across_rows`)
+    across: Tuple[dict, ...] = ()
+
+
+#: T805 (adversarial review finding 3, 2026-11-16): ONE WILD LIMIT ACROSS ROWS. Lois and Khartoum lakes (p.24, p.23):
+#: "Wild trout/char daily quota = 2 (no wild trout 40 cm or more), hatchery rainbow trout = 6 / Rainbow trout/hatchery
+#: steelhead quota = 6 in the aggregate". The rainbow trout are counted apart (their own row of 6) from the region's 4
+#: brook, brown, cutthroat and char, but the wild 2 holds every wild trout and char of both rows: 2 wild fish in all,
+#: never 2 on each card. Each card says it on the kinds it holds, naming the other row's fish ("no more than 2 wild trout
+#: and char in all, counting any wild rainbow trout you keep"); the gate proves the number with the other row's fish and
+#: that it binds after them (`card_check.check_tree`); the build stops on a card that leaves it out (`across_unsaid`).
+#: False = the mutation pin: each card says its own 2 again (2 + 2).
+A_WILD_LIMIT_ACROSS_ROWS_SAID = True
+
+
+#: T805 part D: Echoes Lakes (p.36) "trout/char daily quota = 1 in the aggregate from both lakes" — the lake's own tier
+#: reads "This lake’s rule: up to 1 … a day from both lakes together". False = the mutation pin (the line says 1 a day
+#: and the two-lake count lives only in the kept-elsewhere sentence, as before).
+A_BOTH_LAKES_SAID = True
+_BOTH_LAKES = re.compile(r"(?i)\bin the aggregate from both lakes\b")
+
+#: T834 (owner 2026-11-17, Kaslo River: "Yes: 2 in all"): a water's own tier whose fish the share still holds (no lift
+#: took them out) and whose number is NO LARGER than the share's sits INSIDE the share: Kaslo River / Keen Creek's "Bull
+#: trout daily quota = 2" under Region 4's "2 from streams" — 2 fish from the stream in all, both may be bull trout. It
+#: sat beside the share with "Not part of the 2 from streams" (only a SMALLER number nested), while the engine kept 2 in
+#: all. False = the old nesting (the mutation pin, `test_t834_share_lift.py`).
+AN_EQUAL_OWN_TIER_SITS_IN_THE_SHARE = True
+
+
+def across_rows(rows: Sequence[dict], home: int, kinds: Sequence[str]) -> Tuple[dict, ...]:
+    """T805: the count limits of ONE origin (an `origin2` condition: "Wild trout/char daily quota = 2") that hold fish of
+    the card on row `home` (its group's `kinds`) AND fish of another keep row of the same reading — {r, o, n, mine,
+    others}: `mine` the card's fish it holds, `others` the other rows' (each keeping that origin: the condition exists
+    only where it does). Read off the stored conditions, one per (rule, origin, number)."""
+    held: Dict[tuple, Dict[int, List[str]]] = {}
+    for i, r in enumerate(rows):
+        if r.get("kind") != "keep":
+            continue
+        for x in r.get("conds") or []:
+            if x.get("c") != "origin2" or not x.get("daily") or x.get("r") is None:
+                continue
+            fish = list(x.get("who") or r.get("members") or [])
+            got = held.setdefault((x["r"], x["o"], x["daily"]), {}).setdefault(i, [])
+            got += [S for S in fish if S not in got]
+    out = []
+    for (r, o, n), by_row in sorted(held.items(), key=lambda kv: repr(kv[0])):
+        mine = [S for S in kinds if any(S in fs for fs in by_row.values())]
+        others = [S for i, fs in sorted(by_row.items()) for S in fs if S not in kinds]
+        if mine and others and len(by_row) > 1:
+            out.append({"r": r, "o": o, "n": n, "mine": mine, "others": list(dict.fromkeys(others))})
+        elif mine and len(by_row) > 1:
+            # T834: ONE card holds the fish of several rows the limit holds (a raised total joined them: Lois Lake's
+            # rainbow 6 beside its other trout) — still across rows: each row's fish, naming the other rows' fish
+            for i, fs in sorted(by_row.items()):
+                here = [S for S in kinds if S in fs]
+                there = [S for j, gs in sorted(by_row.items()) if j != i for S in gs if S not in fs]
+                if here and there:
+                    out.append({"r": r, "o": o, "n": n, "mine": here, "others": list(dict.fromkeys(there))})
+    return tuple(out)
+
+
+def across_says(a: dict, species: Sequence[str]) -> str:
+    """T805: the cross-row limit on a kind's line, in the count grammar of `_count_also` ("no more than 3 counting any
+    lake trout you keep"): "no more than 2 wild trout and char in all, counting any wild rainbow trout you keep"."""
+    every = book_order_(list(dict.fromkeys(list(species) + list(a["others"]))))
+    names = sorted(a["others"], key=lambda S: common.sp_name(S).lower())      # as a kind row names its fish
+    return (f"no more than {_js(a['n'])} {a['o']} {group_words(every)} in all, counting any "
+            f"{kind_names(names, origin=a['o'])} you keep")
+
+
+def across_unsaid(frame: dict) -> List[str]:
+    """T805 THE BUILD CHECK: every card of a rows frame holding fish of a one-origin count limit that another keep row also
+    holds (`across_rows`) says it on each kind of those fish — an `also_counts` by that rule with its number, naming
+    the other row's fish. A card that says its own number alone reads 2 + 2 where the book allows 2."""
+    out: List[str] = []
+    rows = frame.get("rows") or []
+    for i, r in enumerate(rows):
+        g = r.get("group")
+        if not g or not g.get("tree") or r.get("kind") != "keep":
+            continue
+        for a in across_rows(rows, i, g.get("kinds") or r.get("members") or []):
+            for n, _p in walk(g["tree"]):
+                if n["node"] != "kind" or not set(n["species"]) & set(a["mine"]) or n["n"] == 0:
+                    continue
+                if not any(x.get("by") == a["r"] and x["n"] == a["n"] and set(a["others"]) <= set(x["species"])
+                           for x in n.get("also_counts") or []):
+                    out.append(f"row {i} kind {n['species']}: the {a['o']} {_js(a['n'])} of {a['r']} also holds "
+                               f"{a['others']} on another row, and the card says {n['sentence']!r}")
+    return out
 
 
 def _js(v) -> str:
@@ -146,6 +238,86 @@ def _kind_says(k: dict) -> str:
     return f"Up to {_js(k['n'])} {names}{combined(k['species'])}{wild_back}"
 
 
+def _origin_states(table: dict, S: str) -> Tuple[tuple, ...]:
+    """T793: one species' table bands where ONE origin keeps fewer than the other here, neighbours alike merged —
+    (from, to, from_in, to_in, origin, n): `origin` the origin held to fewer, `n` its most alone (0: none of it). A band
+    keeping none, or read as another fish (`as`: a rainbow over the steelhead line), says nothing."""
+    out: List[list] = []
+    for bd, c in zip(table["bands"][S], table["cells"][S]):
+        st = None
+        if c.get("as") is None and c["n"]:
+            if c.get("origin"):
+                st = ("wild" if c["origin"] == "hatchery" else "hatchery", 0)
+            elif c.get("by_origin"):
+                h, w = c["by_origin"]["hatchery"], c["by_origin"]["wild"]
+                st = ("wild", w) if (INF if w is None else w) < (INF if h is None else h) else ("hatchery", h)
+        if st is not None and out and out[-1][4:] == list(st) and out[-1][1] == bd["from"]:
+            out[-1][1], out[-1][3] = bd["to"], bd["to_in"]
+        elif st is not None:
+            out.append([bd["from"], bd["to"], bd["from_in"], bd["to_in"], *st])
+    return tuple(tuple(x) for x in out)
+
+
+def origin_clauses(species: Sequence[str], table: Optional[dict]) -> List[dict]:
+    """T793 (audit A1/A2, 2026-11-16: "No wild rainbow trout over 50 cm" on Comox Lake and the Kitimat's wild 1 were in the
+    stored row's `caps` and conditions but nowhere on the card): what a kind keeping BOTH origins keeps less of in one
+    origin, from the group's table — [{origin, species, from, to, from_in, to_in, n, says}], fish whose bands read alike
+    said together. The caps' grammar (`caps._said`), lower-cased for the kind's line: "no wild rainbow trout over 50 cm
+    (20 in)", "up to 1 wild rainbow trout 30–50 cm (12–20 in)"; over more than one fish "combined" (T475), which the gate
+    proves of the fish together (`card_check.check_tree`). Sizes by the boundary standard (`common.band_words`)."""
+    if table is None:
+        return []
+    by: Dict[tuple, List[str]] = {}
+    for S in species:
+        if S in table["cells"]:
+            sig = _origin_states(table, S)
+            if sig:
+                by.setdefault(sig, []).append(S)
+    out: List[dict] = []
+    for sig, sp in by.items():
+        for a, b, fi, ti, o, n in sig:
+            names = kind_names(sp, origin=o)
+            band = common.band_words(a or 0, INF if b is None else b, fi, ti)
+            says = (f"no {names} {band}" if n == 0 else
+                    f"up to {_js(n)} {names}{combined(sp)}" + ("" if band == "any size" else f" {band}"))
+            out.append({"origin": o, "species": list(sp), "from": a, "to": b, "from_in": fi, "to_in": ti, "n": n,
+                        "says": says})
+    return out
+
+
+_ORIGIN_WORD = re.compile(r"\b(?:wild|hatchery)\b", re.I)
+
+
+def origin_unsaid(frame: dict) -> List[str]:
+    """T793 THE BUILD CHECK: every keep row of a rows frame with an origin condition (`conds` origin / origin2 — one origin
+    sent back, or held to another limit) whose card tree — its own group's, else its `parent` row's, which the card draws
+    for it — says neither "wild" nor "hatchery" for the condition's fish (the group's origin line, a tier's origin line, the
+    lines of the kinds naming those fish and their notes). A row the card draws with no tree is not asked."""
+    out: List[str] = []
+    rows = frame.get("rows") or []
+    for i, r in enumerate(rows):
+        conds = [x for x in r.get("conds") or [] if x.get("c") in ("origin", "origin2")]
+        if r.get("kind") != "keep" or not conds:
+            continue
+        g = r.get("group")
+        if g is None and r.get("parent") is not None:
+            g = rows[r["parent"]].get("group")
+        if not g or not g.get("tree"):
+            continue
+        fish = {S for x in conds for S in (x.get("who") or r.get("members") or [])}
+        said = [g.get("origin") or ""]
+        for n, _p in walk(g["tree"]):
+            if n["node"] == "tier":
+                said.append(n.get("origin") or "")
+            elif set(n["species"]) & fish:
+                said += [n["says"]] + [a["says"] for a in n.get("also_counts") or []]
+        if not any(_ORIGIN_WORD.search(s) for s in said):
+            out.append(f"row {i} ({', '.join(sorted(fish))}: {', '.join(sorted({x['o'] for x in conds}))} "
+                       f"{'/'.join(sorted({x['c'] for x in conds}))}) is drawn as "
+                       f"{' | '.join(s for s in said if s)!r}")
+    return out
+
+
 def _size_also(kn, n, cm, others: List[str], then: List[dict], some: Optional[str] = None) -> Optional[str]:
     """A size cap no tier around a kind holds, said on the kind (ROUND18 7); `some` names the fish of the kind row
     it holds where it holds only some of them ("only 1 cutthroat trout over 50 cm (20 in)")."""
@@ -177,6 +349,12 @@ def _count_also(kn, n, mine: List[str], others: List[str], some: bool = False) -
     if (INF if kn is None else kn) > n:
         return f"up to {_js(n)} may be {kind_names(mine)}"
     return None
+
+
+def share_from(water: Optional[str], region_wide: bool) -> str:
+    """" from streams" / " from this stream" — or "" for the share-like cap of a RAISED total, which holds on every water
+    (T834: "5 trout/char a day"; `rows.groups.A_RAISED_TOTAL_IS_ONE_BOX`)."""
+    return "" if water is None else f" from {share_place(water, region_wide)}"
 
 
 def share_place(water: str, region_wide: bool) -> str:
@@ -275,7 +453,7 @@ def _why_here(L) -> Optional[str]:
 
 
 def tree_of(P, model: dict, c: Ctx) -> Tuple[List[dict], dict]:
-    from pipeline.deliver.answers.card import _replaces, book_order, kind_rows
+    from pipeline.deliver.answers.card import _raised_total_by, _replaces, book_order, kind_rows
     from pipeline.deliver.answers.rows import badge_of
     grp = c.grp
     T = P.by_key[grp["pool"]]
@@ -284,7 +462,7 @@ def tree_of(P, model: dict, c: Ctx) -> Tuple[List[dict], dict]:
     from pipeline.deliver.answers.rows.groups import tables_words
     # T623 F14: a straddler's total is counted across both regions' tables — said so, once
     scope = tables_words(grp) or T.x.get("entry_name") or ("B.C." if badge_of(T) == "bc" else "the region")
-    wk = c.share["water"] if c.share is not None else ("stream" if P.kind == "stream" else "lake")
+    wk = c.share["water"] if c.share is not None and c.share["water"] else ("stream" if P.kind == "stream" else "lake")
     other = "lakes" if wk == "stream" else "streams"
     head_n = c.head.get("n")
     said_total = not c.unlimited and (c.share is not None or (head_n is not None and head_n < total))
@@ -298,6 +476,11 @@ def tree_of(P, model: dict, c: Ctx) -> Tuple[List[dict], dict]:
     # -- the total ---------------------------------------------------------------------------------------
     if c.unlimited:
         root = tier("total", None, c.head["says"], grp["pool"])
+    elif zone and c.share is not None and _raised_total_by(P, T) is not None:
+        # T834 (owner 12:29: "the total is 5 not 20"): a region total a water's own quota raised says the region's
+        # number; the raised one is the exception's, said on its own tier ("They count toward the 5; past 5, …")
+        root = tier("total", total, f"Up to {_js(total)} a day per angler here, with this water’s exception",
+                    grp["pool"])
     elif zone:
         # UR1 A (user panel: "per angler or per group?"): the total is each angler's
         root = tier("total", total, f"{_js(total)} a day per angler across {scope}"
@@ -357,13 +540,18 @@ def tree_of(P, model: dict, c: Ctx) -> Tuple[List[dict], dict]:
             # ROUND20b C2 (owner: fewer words; the panel read "Replaces Region 2’s 2-from-streams limit" against the
             # share's "not counting hatchery rainbow trout" as two different limits): the line is whose rule and why it
             # applies here; what it replaced stays in `replaces` (history, not a rule in force)
-            t = tier("own", b["cap"], f"{whose}: " + ("any number" if b["cap"] is None else f"up to {_js(b['cap'])} a day"),
+            # T805 part D: a water's quota the book counts over two waters ("in the aggregate from both lakes", Echoes
+            # Lakes p.36) says so on its line, not only in the kept-elsewhere sentence
+            both = (" from both lakes together" if A_BOTH_LAKES_SAID and _BOTH_LAKES.search(
+                P.by_key[b["by"]].f.get("verbatim") or "") else "")
+            t = tier("own", b["cap"], f"{whose}: " + ("any number" if b["cap"] is None
+                                                       else f"up to {_js(b['cap'])} a day{both}"),
                      b["by"], whose=whose, why_here=why_here, replaces=rep, relation=None,
                      line=whose + (f" ({why_here})" if why_here else ""))
             own_ts.append((t, b))
         elif b["why"] == "share":
             # ROUND20f 3: a region's share says "from streams"; a water's own share "from this stream"
-            t = share_t = tier("share", b["cap"], f"{_js(b['cap'])} a day per angler from {share_place(c.share['water'], share_region_wide(P, c.share))}", b["by"])
+            t = share_t = tier("share", b["cap"], f"{_js(b['cap'])} a day per angler{share_from(c.share['water'], share_region_wide(P, c.share))}", b["by"])
             if c.share_origin is not None:
                 t["origin"] = c.share_origin           # ROUND20g 1: the origin rule where its scope is
                 t["origin_kind"] = c.origin_one        # T475: the same rule as a field (the headline says it)
@@ -390,8 +578,12 @@ def tree_of(P, model: dict, c: Ctx) -> Tuple[List[dict], dict]:
     under_share, under_total = [], []
     for t, b in own_ts:
         ks = {S for k in kind_rows(b) for S in k["species"]}
-        if share_t is not None and b not in c.lifting and c.share is not None and ks <= set(c.share["of"]) \
-                and t["n"] is not None and share_t["n"] is not None and t["n"] < share_t["n"]:
+        # (T834: never under a RAISED total's share-like cap: the region's number is the headline, a water's own tier
+        # stands beside it — Ross Lake's "trout 1" beside Region 2's 4 and the brook trout's 5)
+        if share_t is not None and b not in c.lifting and c.share is not None and c.share["water"] is not None \
+                and ks <= set(c.share["of"]) \
+                and t["n"] is not None and share_t["n"] is not None \
+                and (t["n"] <= share_t["n"] if AN_EQUAL_OWN_TIER_SITS_IN_THE_SHARE else t["n"] < share_t["n"]):
             under_share.append(t)
         else:
             under_total.append(t)
@@ -627,7 +819,7 @@ def tree_of(P, model: dict, c: Ctx) -> Tuple[List[dict], dict]:
             if up["n"] is not None and t["n"] is not None and t["n"] < up["n"]:
                 if t is share_t:
                     # T475 ask 3: "up to N", never "only"
-                    t["says"] = f"Up to {_js(t['n'])} of the {_js(up['n'])} from {share_place(c.share['water'], share_region_wide(P, c.share))}"
+                    t["says"] = f"Up to {_js(t['n'])} of the {_js(up['n'])}{share_from(c.share['water'], share_region_wide(P, c.share))}"
                     if lifted:
                         t["says"] += f", not counting {lifted}"
                         lifted = None
@@ -649,19 +841,39 @@ def tree_of(P, model: dict, c: Ctx) -> Tuple[List[dict], dict]:
     # share, they are in the total: "Not part of the 2 from streams; part of the 5 a day across Region 4" (`relation`)
     for t in under_total:
         if rel_on:
-            t["relation"] = (f"Not part of the {_js(share_t['n'])} from "
-                             f"{share_place(c.share['water'], share_region_wide(P, c.share))}; "
-                             f"part of the {_js(root['n'])} a day across {scope}")
+            if c.share["water"] is None:
+                # T834 (owner 12:29, the raised total's exception): "They count toward the 5; past 5, brook trout only" —
+                # said only of the rule lifting its fish past the region's number
+                lifting = any(t is tt and b in c.lifting for tt, b in own_ts)
+                fish = kind_names(list(dict.fromkeys(S for x, _p in walk(t["children"]) if x["node"] == "kind"
+                                                     for S in x["species"])), False)
+                t["relation"] = (f"They count toward the {_js(c.share['take'])}; past {_js(c.share['take'])}, "
+                                 f"{fish} only") if lifting else None
+            else:
+                t["relation"] = (f"Not part of the {_js(share_t['n'])} from "
+                                 f"{share_place(c.share['water'], share_region_wide(P, c.share))}; "
+                                 f"part of the {_js(root['n'])} a day across {scope}")
     from pipeline.deliver.bundle import read as RD
     steel_cm = RD._steelhead_min_cm()
     kind_origin: Dict[int, Optional[str]] = {}
 
+    said_origin: set = set()                     # T793: the kinds whose line says what one origin keeps less of
     for x, _p in walk([root]):
         if x["node"] != "kind":
             continue
         # T475 (asks 3-4): one pattern, "Up to N <fish>"; the sentence is the line, its detail and its notes
         x["says"] = _kind_says(x)
         kind_origin[id(x)] = x.get("_origin")
+        # T793: a kind keeping both origins says where one keeps less ("— no wild rainbow trout over 50 cm (20 in)")
+        oc = origin_clauses(x["species"], c.table) if len(x["_origins"]) == 2 and x["n"] != 0 else []
+        # T805: a one-origin count another row's fish share (Lois Lake's wild 2): said once on the line, naming them
+        if A_WILD_LIMIT_ACROSS_ROWS_SAID and x["n"] != 0 and x["_origins"]:
+            for a in c.across:
+                mine = [S for S in x["species"] if S in a["mine"]]
+                if mine and a["o"] in x["_origins"]:
+                    x["also_counts"].append({"tier": None, "by": a["r"], "n": a["n"], "over_cm": 0, "then": [],
+                                             "species": book_order_(mine + list(a["others"])),
+                                             "says": across_says(a, mine)})
         x["folded"] = False
         x["size_rule"] = size_rule(x, P.steelhead_water, steel_cm)     # ROUND20i 1
         for k_ in ("_hi", "_origins", "_origin"):
@@ -670,10 +882,13 @@ def tree_of(P, model: dict, c: Ctx) -> Tuple[List[dict], dict]:
         if x["detail"]:
             s += f", {x['detail']}"
         s += _w
-        notes = [a["says"] for a in x["also_counts"]]
+        notes = [o["says"] for o in oc] + [a["says"] for a in x["also_counts"]]
         if notes:
             s += " — " + "; ".join(notes)
         x["sentence"] = s
+        if oc:
+            x["says"] += " — " + "; ".join(o["says"] for o in oc)
+            said_origin.add(id(x))
     # ROUND20b C1 (owner: "This river’s rule: up to 4 a day" over "Up to 4 may be hatchery rainbow trout" says 4 twice):
     # an own tier whose ONLY child is one kind row at the tier's number names the fish itself — "This river’s rule: up to
     # 4 hatchery rainbow trout a day" — and the kind is FOLDED into it (`folded`: the page draws its size, notes and
@@ -681,8 +896,10 @@ def tree_of(P, model: dict, c: Ctx) -> Tuple[List[dict], dict]:
     # (the share too — Glenn Creek's "Only 2 of the 5 may be from this stream" over "Up to 2 may be brook, brown,
     # cutthroat or lake trout" — so a number is never said twice in a row on a tier and its only kind)
     for t, _p in walk([root]):
+        # (T793: never a kind whose line says an origin's smaller limit — a folded kind's line is not drawn)
         if t["node"] == "tier" and t["tier"] in ("own", "share") and t["n"] is not None and len(t["children"]) == 1 \
-                and t["children"][0]["node"] == "kind" and t["children"][0]["n"] == t["n"]:
+                and t["children"][0]["node"] == "kind" and t["children"][0]["n"] == t["n"] \
+                and id(t["children"][0]) not in said_origin:
             k = t["children"][0]
             names = kind_names(k["species"], k["name"] == "Steelhead", origin=kind_origin.get(id(k)))
             t["says"] = fold_words(t["says"], t["tier"], t["n"], names)
@@ -709,7 +926,7 @@ def tree_of(P, model: dict, c: Ctx) -> Tuple[List[dict], dict]:
         if t["tier"] == "count":
             t["short"] = lc_first(_count_says(t))
         elif t["tier"] == "share":
-            t["short"] = f"up to {_js(t['n'])} from {share_place(c.share['water'], share_region_wide(P, c.share))}"
+            t["short"] = f"up to {_js(t['n'])}{share_from(c.share['water'], share_region_wide(P, c.share))}"
         else:
             ks = [k for k, _q in walk(t["children"]) if k["node"] == "kind" and k["n"] != 0]
             sp = book_order(list(dict.fromkeys(S for k in ks for S in k["species"])))

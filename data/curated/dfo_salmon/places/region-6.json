@@ -495,7 +495,7 @@
         "D"
       ],
       "item_ids": [
-        "blk:360846083"
+        "wsc:950-016367"
       ],
       "tributaries": null,
       "match": {
@@ -1359,7 +1359,8 @@
         "B(i)"
       ],
       "item_ids": [
-        "wbk:329026676"
+        "wbk:-24",
+        "wbk:-25"
       ],
       "tributaries": true,
       "match": {
@@ -2578,9 +2579,15 @@
       "reviewed_by": "",
       "reviewed_at": "",
       "review_note": "",
+      "heading": "Cranberry River",
       "binding": {
-        "extents": [],
-        "tributaries": true,
+        "extents": [
+          {
+            "op": "whole",
+            "item_id": "gnis:4674"
+          }
+        ],
+        "tributaries": null,
         "tributaries_only": false,
         "tributary_excludes": [],
         "sections_cached": null,
@@ -2629,6 +2636,7 @@
       "reviewed_by": "",
       "reviewed_at": "",
       "review_note": "",
+      "heading": "Iknouk River",
       "binding": {
         "extents": [
           {
@@ -2682,9 +2690,15 @@
       "reviewed_by": "",
       "reviewed_at": "",
       "review_note": "",
+      "heading": "Ishkheenickh River",
       "binding": {
-        "extents": [],
-        "tributaries": true,
+        "extents": [
+          {
+            "op": "whole",
+            "item_id": "gnis:4069"
+          }
+        ],
+        "tributaries": null,
         "tributaries_only": false,
         "tributary_excludes": [],
         "sections_cached": null,
@@ -2731,9 +2745,15 @@
       "reviewed_by": "",
       "reviewed_at": "",
       "review_note": "",
+      "heading": "Kiteen River",
       "binding": {
-        "extents": [],
-        "tributaries": true,
+        "extents": [
+          {
+            "op": "whole",
+            "item_id": "gnis:3674"
+          }
+        ],
+        "tributaries": null,
         "tributaries_only": false,
         "tributary_excludes": [],
         "sections_cached": null,
@@ -2780,9 +2800,15 @@
       "reviewed_by": "",
       "reviewed_at": "",
       "review_note": "",
+      "heading": "Meziadin Lake",
       "binding": {
-        "extents": [],
-        "tributaries": true,
+        "extents": [
+          {
+            "op": "whole",
+            "item_id": "wbk:329223895"
+          }
+        ],
+        "tributaries": null,
         "tributaries_only": false,
         "tributary_excludes": [],
         "sections_cached": null,
@@ -2829,9 +2855,15 @@
       "reviewed_by": "",
       "reviewed_at": "",
       "review_note": "",
+      "heading": "Meziadin Lake",
       "binding": {
-        "extents": [],
-        "tributaries": false,
+        "extents": [
+          {
+            "op": "whole",
+            "item_id": "wbk:329223895"
+          }
+        ],
+        "tributaries": null,
         "tributaries_only": false,
         "tributary_excludes": [],
         "sections_cached": null,
@@ -2878,9 +2910,15 @@
       "reviewed_by": "",
       "reviewed_at": "",
       "review_note": "",
+      "heading": "Meziadin River",
       "binding": {
-        "extents": [],
-        "tributaries": true,
+        "extents": [
+          {
+            "op": "whole",
+            "item_id": "gnis:28108"
+          }
+        ],
+        "tributaries": null,
         "tributaries_only": false,
         "tributary_excludes": [],
         "sections_cached": null,
@@ -2940,8 +2978,18 @@
       "reviewed_by": "",
       "reviewed_at": "",
       "review_note": "",
+      "heading": "Nass River",
       "binding": {
-        "extents": [],
+        "extents": [
+          {
+            "op": "between",
+            "splits": [
+              "nass_river__canyon_city_gitwinksihlkw_bridge",
+              "gauge__08DB001"
+            ],
+            "item_id": "gnis:3206"
+          }
+        ],
         "tributaries": null,
         "tributaries_only": false,
         "tributary_excludes": [],
@@ -2994,8 +3042,17 @@
       "reviewed_by": "",
       "reviewed_at": "",
       "review_note": "",
+      "heading": "Nass River",
       "binding": {
-        "extents": [],
+        "extents": [
+          {
+            "op": "downstream_of",
+            "splits": [
+              "meziadin_river__meziadin_river_into_nass_river"
+            ],
+            "item_id": "gnis:3206"
+          }
+        ],
         "tributaries": null,
         "tributaries_only": false,
         "tributary_excludes": [],
@@ -3043,6 +3100,7 @@
       "reviewed_by": "",
       "reviewed_at": "",
       "review_note": "",
+      "heading": "Oweegee Creek",
       "binding": {
         "extents": [
           {
@@ -3096,6 +3154,7 @@
       "reviewed_by": "",
       "reviewed_at": "",
       "review_note": "",
+      "heading": "Oweegee Lake",
       "binding": {
         "extents": [
           {
@@ -3154,9 +3213,18 @@
       "reviewed_by": "",
       "reviewed_at": "",
       "review_note": "",
+      "heading": "Tseax R. (including tributaries) Note: The mouth of the Tseax R. is designated by white triangular fishing boundary signs located where what was formerly known as the Nass Back Channel enters the Nass R.",
       "binding": {
-        "extents": [],
-        "tributaries": true,
+        "extents": [
+          {
+            "op": "upstream_of",
+            "splits": [
+              "ksi_sii_aks_river__nass_road_bridge"
+            ],
+            "item_id": "gnis:3828"
+          }
+        ],
+        "tributaries": null,
         "tributaries_only": false,
         "tributary_excludes": [],
         "sections_cached": null,
@@ -3210,9 +3278,18 @@
       "reviewed_by": "",
       "reviewed_at": "",
       "review_note": "",
+      "heading": "Tseax R. (including tributaries) Note: The mouth of the Tseax R. is designated by white triangular fishing boundary signs located where what was formerly known as the Nass Back Channel enters the Nass R.",
       "binding": {
-        "extents": [],
-        "tributaries": true,
+        "extents": [
+          {
+            "op": "downstream_of",
+            "splits": [
+              "ksi_sii_aks_river__nass_road_bridge"
+            ],
+            "item_id": "gnis:3828"
+          }
+        ],
+        "tributaries": null,
         "tributaries_only": false,
         "tributary_excludes": [],
         "sections_cached": null,
@@ -3261,6 +3338,7 @@
       "reviewed_by": "",
       "reviewed_at": "",
       "review_note": "",
+      "heading": "Braverman River",
       "binding": {
         "extents": [
           {
@@ -3314,6 +3392,7 @@
       "reviewed_by": "",
       "reviewed_at": "",
       "review_note": "",
+      "heading": "Pallant Creek",
       "binding": {
         "extents": [
           {
@@ -3372,6 +3451,7 @@
       "reviewed_by": "",
       "reviewed_at": "",
       "review_note": "",
+      "heading": "Pallant Creek",
       "binding": {
         "extents": [
           {
@@ -3435,14 +3515,12 @@
       "reviewed_by": "",
       "reviewed_at": "",
       "review_note": "",
+      "heading": "Sheldens Creek",
       "binding": {
         "extents": [
           {
-            "op": "upstream_of",
-            "splits": [
-              "sheldens_creek__spur_19_bridge_site"
-            ],
-            "item_id": "blk:360846083"
+            "op": "whole",
+            "item_id": "wsc:950-016367"
           }
         ],
         "tributaries": null,
@@ -3495,6 +3573,7 @@
       "reviewed_by": "",
       "reviewed_at": "",
       "review_note": "",
+      "heading": "Yakoun River",
       "binding": {
         "extents": [
           {
@@ -3553,9 +3632,15 @@
       "reviewed_by": "",
       "reviewed_at": "",
       "review_note": "",
+      "heading": "Bish Creek",
       "binding": {
-        "extents": [],
-        "tributaries": true,
+        "extents": [
+          {
+            "op": "whole",
+            "item_id": "gnis:3480"
+          }
+        ],
+        "tributaries": null,
         "tributaries_only": false,
         "tributary_excludes": [],
         "sections_cached": null,
@@ -3602,9 +3687,15 @@
       "reviewed_by": "",
       "reviewed_at": "",
       "review_note": "",
+      "heading": "Brim River",
       "binding": {
-        "extents": [],
-        "tributaries": true,
+        "extents": [
+          {
+            "op": "whole",
+            "item_id": "gnis:4264"
+          }
+        ],
+        "tributaries": null,
         "tributaries_only": false,
         "tributary_excludes": [],
         "sections_cached": null,
@@ -3651,9 +3742,15 @@
       "reviewed_by": "",
       "reviewed_at": "",
       "review_note": "",
+      "heading": "Dala River",
       "binding": {
-        "extents": [],
-        "tributaries": true,
+        "extents": [
+          {
+            "op": "whole",
+            "item_id": "gnis:4688"
+          }
+        ],
+        "tributaries": null,
         "tributaries_only": false,
         "tributary_excludes": [],
         "sections_cached": null,
@@ -3700,6 +3797,7 @@
       "reviewed_by": "",
       "reviewed_at": "",
       "review_note": "",
+      "heading": "Endako River",
       "binding": {
         "extents": [
           {
@@ -3753,6 +3851,7 @@
       "reviewed_by": "",
       "reviewed_at": "",
       "review_note": "",
+      "heading": "Giltoyees Creek",
       "binding": {
         "extents": [
           {
@@ -3811,9 +3910,15 @@
       "reviewed_by": "",
       "reviewed_at": "",
       "review_note": "",
+      "heading": "Illiance River (including tributaries)",
       "binding": {
-        "extents": [],
-        "tributaries": true,
+        "extents": [
+          {
+            "op": "whole",
+            "item_id": "gnis:4205"
+          }
+        ],
+        "tributaries": null,
         "tributaries_only": false,
         "tributary_excludes": [],
         "sections_cached": null,
@@ -3860,6 +3965,7 @@
       "reviewed_by": "",
       "reviewed_at": "",
       "review_note": "",
+      "heading": "Kemano River",
       "binding": {
         "extents": [
           {
@@ -3913,9 +4019,15 @@
       "reviewed_by": "",
       "reviewed_at": "",
       "review_note": "",
+      "heading": "Khutze",
       "binding": {
-        "extents": [],
-        "tributaries": true,
+        "extents": [
+          {
+            "op": "whole",
+            "item_id": "gnis:36313"
+          }
+        ],
+        "tributaries": null,
         "tributaries_only": false,
         "tributary_excludes": [],
         "sections_cached": null,
@@ -3962,9 +4074,15 @@
       "reviewed_by": "",
       "reviewed_at": "",
       "review_note": "",
+      "heading": "Khutzeymateen River",
       "binding": {
-        "extents": [],
-        "tributaries": true,
+        "extents": [
+          {
+            "op": "whole",
+            "item_id": "gnis:4074"
+          }
+        ],
+        "tributaries": null,
         "tributaries_only": false,
         "tributary_excludes": [],
         "sections_cached": null,
@@ -4011,6 +4129,7 @@
       "reviewed_by": "",
       "reviewed_at": "",
       "review_note": "",
+      "heading": "Kildala River",
       "binding": {
         "extents": [
           {
@@ -4064,9 +4183,15 @@
       "reviewed_by": "",
       "reviewed_at": "",
       "review_note": "",
+      "heading": "Kiltuish River",
       "binding": {
-        "extents": [],
-        "tributaries": true,
+        "extents": [
+          {
+            "op": "whole",
+            "item_id": "gnis:3665"
+          }
+        ],
+        "tributaries": null,
         "tributaries_only": false,
         "tributary_excludes": [],
         "sections_cached": null,
@@ -4117,6 +4242,7 @@
       "reviewed_by": "",
       "reviewed_at": "",
       "review_note": "",
+      "heading": "Kincolith River",
       "binding": {
         "extents": [
           {
@@ -4182,9 +4308,19 @@
       "reviewed_by": "",
       "reviewed_at": "",
       "review_note": "",
+      "heading": "Kitimat River (including tributaries)",
       "binding": {
-        "extents": [],
-        "tributaries": true,
+        "extents": [
+          {
+            "op": "between",
+            "splits": [
+              "kitimat_river__kitimat_hatchery_outfall_u_s_sign",
+              "kitimat_river__kitimat_hatchery_outfall_d_s_sign"
+            ],
+            "item_id": "gnis:3225"
+          }
+        ],
+        "tributaries": null,
         "tributaries_only": false,
         "tributary_excludes": [],
         "sections_cached": null,
@@ -4235,9 +4371,18 @@
       "reviewed_by": "",
       "reviewed_at": "",
       "review_note": "",
+      "heading": "Kitimat River (including tributaries)",
       "binding": {
-        "extents": [],
-        "tributaries": true,
+        "extents": [
+          {
+            "op": "downstream_of",
+            "splits": [
+              "kitimat_river__hwy_37_bridge"
+            ],
+            "item_id": "gnis:3225"
+          }
+        ],
+        "tributaries": null,
         "tributaries_only": false,
         "tributary_excludes": [],
         "sections_cached": null,
@@ -4288,9 +4433,18 @@
       "reviewed_by": "",
       "reviewed_at": "",
       "review_note": "",
+      "heading": "Kitimat River (including tributaries)",
       "binding": {
-        "extents": [],
-        "tributaries": true,
+        "extents": [
+          {
+            "op": "upstream_of",
+            "splits": [
+              "kitimat_river__hwy_37_bridge"
+            ],
+            "item_id": "gnis:3225"
+          }
+        ],
+        "tributaries": null,
         "tributaries_only": false,
         "tributary_excludes": [],
         "sections_cached": null,
@@ -4337,6 +4491,7 @@
       "reviewed_by": "",
       "reviewed_at": "",
       "review_note": "",
+      "heading": "Kitlope River",
       "binding": {
         "extents": [
           {
@@ -4390,13 +4545,14 @@
       "reviewed_by": "",
       "reviewed_at": "",
       "review_note": "",
+      "heading": "Kitsault River (including tributaries)",
       "binding": {
         "extents": [
           {
             "op": "whole"
           }
         ],
-        "tributaries": true,
+        "tributaries": null,
         "tributaries_only": false,
         "tributary_excludes": [],
         "sections_cached": null,
@@ -4448,9 +4604,14 @@
       "reviewed_by": "",
       "reviewed_at": "",
       "review_note": "",
+      "heading": "Kitsault River (including tributaries)",
       "binding": {
-        "extents": [],
-        "tributaries": true,
+        "extents": [
+          {
+            "op": "whole"
+          }
+        ],
+        "tributaries": null,
         "tributaries_only": false,
         "tributary_excludes": [],
         "sections_cached": null,
@@ -4497,9 +4658,15 @@
       "reviewed_by": "",
       "reviewed_at": "",
       "review_note": "",
+      "heading": "Kloiya River",
       "binding": {
-        "extents": [],
-        "tributaries": true,
+        "extents": [
+          {
+            "op": "whole",
+            "item_id": "gnis:3696"
+          }
+        ],
+        "tributaries": null,
         "tributaries_only": false,
         "tributary_excludes": [],
         "sections_cached": null,
@@ -4550,9 +4717,18 @@
       "reviewed_by": "",
       "reviewed_at": "",
       "review_note": "",
+      "heading": "Kwinimass River (including tributaries)",
       "binding": {
-        "extents": [],
-        "tributaries": true,
+        "extents": [
+          {
+            "op": "upstream_of",
+            "splits": [
+              "ksi_x_anmas_river__lower_bridge_abutments"
+            ],
+            "item_id": "gnis:3815"
+          }
+        ],
+        "tributaries": null,
         "tributaries_only": false,
         "tributary_excludes": [],
         "sections_cached": null,
@@ -4603,9 +4779,18 @@
       "reviewed_by": "",
       "reviewed_at": "",
       "review_note": "",
+      "heading": "Kwinimass River (including tributaries)",
       "binding": {
-        "extents": [],
-        "tributaries": true,
+        "extents": [
+          {
+            "op": "downstream_of",
+            "splits": [
+              "ksi_x_anmas_river__lower_bridge_abutments"
+            ],
+            "item_id": "gnis:3815"
+          }
+        ],
+        "tributaries": null,
         "tributaries_only": false,
         "tributary_excludes": [],
         "sections_cached": null,
@@ -4652,6 +4837,7 @@
       "reviewed_by": "",
       "reviewed_at": "",
       "review_note": "",
+      "heading": "Nakina River",
       "binding": {
         "extents": [
           {
@@ -4705,9 +4891,15 @@
       "reviewed_by": "",
       "reviewed_at": "",
       "review_note": "",
+      "heading": "Quaal River",
       "binding": {
-        "extents": [],
-        "tributaries": true,
+        "extents": [
+          {
+            "op": "whole",
+            "item_id": "gnis:4622"
+          }
+        ],
+        "tributaries": null,
         "tributaries_only": false,
         "tributary_excludes": [],
         "sections_cached": null,
@@ -4754,6 +4946,7 @@
       "reviewed_by": "",
       "reviewed_at": "",
       "review_note": "",
+      "heading": "Rainy Creek",
       "binding": {
         "extents": [
           {
@@ -4811,9 +5004,15 @@
       "reviewed_by": "",
       "reviewed_at": "",
       "review_note": "",
+      "heading": "Stikine River",
       "binding": {
-        "extents": [],
-        "tributaries": true,
+        "extents": [
+          {
+            "op": "whole",
+            "item_id": "gnis:15430"
+          }
+        ],
+        "tributaries": null,
         "tributaries_only": false,
         "tributary_excludes": [],
         "sections_cached": null,
@@ -4860,9 +5059,15 @@
       "reviewed_by": "",
       "reviewed_at": "",
       "review_note": "",
+      "heading": "Swift River",
       "binding": {
-        "extents": [],
-        "tributaries": true,
+        "extents": [
+          {
+            "op": "whole",
+            "item_id": "gnis:2728"
+          }
+        ],
+        "tributaries": null,
         "tributaries_only": false,
         "tributary_excludes": [],
         "sections_cached": null,
@@ -4909,9 +5114,15 @@
       "reviewed_by": "",
       "reviewed_at": "",
       "review_note": "",
+      "heading": "Tahltan River",
       "binding": {
-        "extents": [],
-        "tributaries": true,
+        "extents": [
+          {
+            "op": "whole",
+            "item_id": "gnis:23163"
+          }
+        ],
+        "tributaries": null,
         "tributaries_only": false,
         "tributary_excludes": [],
         "sections_cached": null,
@@ -4963,9 +5174,15 @@
       "reviewed_by": "",
       "reviewed_at": "",
       "review_note": "",
+      "heading": "Taku River",
       "binding": {
-        "extents": [],
-        "tributaries": true,
+        "extents": [
+          {
+            "op": "whole",
+            "item_id": "gnis:8231"
+          }
+        ],
+        "tributaries": null,
         "tributaries_only": false,
         "tributary_excludes": [],
         "sections_cached": null,
@@ -5012,9 +5229,15 @@
       "reviewed_by": "",
       "reviewed_at": "",
       "review_note": "",
+      "heading": "Tatsatua Creek",
       "binding": {
-        "extents": [],
-        "tributaries": true,
+        "extents": [
+          {
+            "op": "whole",
+            "item_id": "gnis:25405"
+          }
+        ],
+        "tributaries": null,
         "tributaries_only": false,
         "tributary_excludes": [],
         "sections_cached": null,
@@ -5063,6 +5286,7 @@
       "reviewed_by": "",
       "reviewed_at": "",
       "review_note": "",
+      "heading": "Tatshenshini River (downstream of the BC/Yukon border)",
       "binding": {
         "extents": [
           {
@@ -5072,7 +5296,7 @@
             ]
           }
         ],
-        "tributaries": true,
+        "tributaries": null,
         "tributaries_only": false,
         "tributary_excludes": [],
         "sections_cached": null,
@@ -5130,12 +5354,16 @@
       "reviewed_by": "",
       "reviewed_at": "",
       "review_note": "",
+      "heading": "Tatshenshini River (upstream of the BC/ Yukon border – along the Haines Hwy.)",
+      "side_streams_overruled": {
+        "through": "2026-11-15",
+        "owner": "2026-11-17 17:01 (OWNER-TODO): \"for tatshenhini is the other 2 that list specific tributaries only locating that specific tributary remember thta was a mistake on my mark that i wanted you to fix\" (this place's save: Claude for Dawson 2026-11-15, marks line 2779)"
+      },
       "binding": {
         "extents": [
           {
             "op": "whole",
-            "item_id": "gnis:13637",
-            "within_area": "area:region:6"
+            "item_id": "gnis:13637"
           }
         ],
         "tributaries": null,
@@ -5143,7 +5371,9 @@
         "tributary_excludes": [],
         "sections_cached": null,
         "notes": [
-          "The Tatshenshini crosses 60°N TWICE: BC from the Alsek up to m 102,493 (border :0), 43 km in the YUKON, then back into BC at m 145,645 (border :1) for the headwaters along the Haines Hwy. DFO Region 6 regulates the BC water only; the Yukon stretch is bound by nothing here. The Blanchard joins the Tatshenshini IN the Yukon stretch, so 'upstream of the border along the Haines Hwy' can only mean the Blanchard's own BC water: 39.9 of its 40.3 km. It weaves along 60°N, and `within_area` drops the two Yukon slivers (59 m, 211 m) exactly."
+          "The Tatshenshini crosses 60°N TWICE: BC from the Alsek up to m 102,493 (border :0), 43 km in the YUKON, then back into BC at m 145,645 (border :1) for the headwaters along the Haines Hwy. DFO Region 6 regulates the BC water only; the Yukon stretch is bound by nothing here. The Blanchard joins the Tatshenshini IN the Yukon stretch, so 'upstream of the border along the Haines Hwy' can only mean the Blanchard's own BC water: 39.9 of its 40.3 km. It weaves along 60°N, and `within_area` drops the two Yukon slivers (59 m, 211 m) exactly.",
+          "Tributaries included (owner 2026-11-15, by question dialog: \"Add its tributaries\"); the BC-only limit (`within_area`) is kept. Set by Claude at the owner's request because the review editor cannot edit an extent with `within_area`.",
+          "`within_area: area:region:6` removed (owner 2026-11-15: \"you can unlock it tho\") so the review editor can edit this extent. It had dropped two Yukon slivers of the Blanchard (59 m, 211 m); a check on 2026-11-15 found plain `whole` binds the same 15 sections."
         ],
         "spatial_caveat": false
       }
@@ -5198,6 +5428,7 @@
       "reviewed_by": "",
       "reviewed_at": "",
       "review_note": "",
+      "heading": "Tatshenshini River (upstream of the BC/ Yukon border – along the Haines Hwy.)",
       "binding": {
         "extents": [
           {
@@ -5267,16 +5498,18 @@
       "reviewed_by": "",
       "reviewed_at": "",
       "review_note": "",
+      "heading": "Tatshenshini River (upstream of the BC/ Yukon border – along the Haines Hwy.)",
       "binding": {
         "extents": [
           {
             "op": "upstream_of",
             "splits": [
               "border:360886456:1"
-            ]
+            ],
+            "item_id": "gnis:25410"
           }
         ],
-        "tributaries": true,
+        "tributaries": null,
         "tributaries_only": false,
         "tributary_excludes": [
           {
@@ -5338,9 +5571,15 @@
       "reviewed_by": "",
       "reviewed_at": "",
       "review_note": "",
+      "heading": "Wahoo River",
       "binding": {
-        "extents": [],
-        "tributaries": true,
+        "extents": [
+          {
+            "op": "whole",
+            "item_id": "gnis:38622"
+          }
+        ],
+        "tributaries": null,
         "tributaries_only": false,
         "tributary_excludes": [],
         "sections_cached": null,
@@ -5387,6 +5626,7 @@
       "reviewed_by": "",
       "reviewed_at": "",
       "review_note": "",
+      "heading": "Weeanie River",
       "binding": {
         "extents": [
           {
@@ -5440,6 +5680,7 @@
       "reviewed_by": "",
       "reviewed_at": "",
       "review_note": "",
+      "heading": "Whalen Creek",
       "binding": {
         "extents": [
           {
@@ -5498,9 +5739,15 @@
       "reviewed_by": "",
       "reviewed_at": "",
       "review_note": "",
+      "heading": "Wilauks Creek (including tributaries)",
       "binding": {
-        "extents": [],
-        "tributaries": true,
+        "extents": [
+          {
+            "op": "whole",
+            "item_id": "gnis:3787"
+          }
+        ],
+        "tributaries": null,
         "tributaries_only": false,
         "tributary_excludes": [],
         "sections_cached": null,
@@ -5705,9 +5952,15 @@
       "reviewed_by": "",
       "reviewed_at": "",
       "review_note": "",
+      "heading": "Swift River",
       "binding": {
-        "extents": [],
-        "tributaries": true,
+        "extents": [
+          {
+            "op": "whole",
+            "item_id": "gnis:2728"
+          }
+        ],
+        "tributaries": null,
         "tributaries_only": false,
         "tributary_excludes": [],
         "sections_cached": null,
@@ -5952,9 +6205,18 @@
       "reviewed_by": "",
       "reviewed_at": "",
       "review_note": "",
+      "heading": "Babine Lake",
       "binding": {
-        "extents": [],
-        "tributaries": true,
+        "extents": [
+          {
+            "op": "whole",
+            "item_ids": [
+              "wbk:-24",
+              "wbk:-25"
+            ]
+          }
+        ],
+        "tributaries": null,
         "tributaries_only": false,
         "tributary_excludes": [],
         "sections_cached": null,
@@ -6025,9 +6287,10 @@
       "reviewed_by": "",
       "reviewed_at": "",
       "review_note": "",
+      "heading": "Babine Lake",
       "binding": {
         "extents": [],
-        "tributaries": false,
+        "tributaries": null,
         "tributaries_only": false,
         "tributary_excludes": [],
         "sections_cached": null,
@@ -6084,6 +6347,7 @@
       "reviewed_by": "",
       "reviewed_at": "",
       "review_note": "",
+      "heading": "Babine Lake",
       "binding": {
         "extents": [],
         "tributaries": null,
@@ -6136,6 +6400,7 @@
       "reviewed_by": "",
       "reviewed_at": "",
       "review_note": "",
+      "heading": "Babine River",
       "binding": {
         "extents": [
           {
@@ -6190,9 +6455,15 @@
       "reviewed_by": "",
       "reviewed_at": "",
       "review_note": "",
+      "heading": "Bear River",
       "binding": {
-        "extents": [],
-        "tributaries": true,
+        "extents": [
+          {
+            "op": "whole",
+            "item_id": "gnis:15535"
+          }
+        ],
+        "tributaries": null,
         "tributaries_only": false,
         "tributary_excludes": [],
         "sections_cached": null,
@@ -6244,9 +6515,18 @@
       "reviewed_by": "",
       "reviewed_at": "",
       "review_note": "",
+      "heading": "Bulkley River",
       "binding": {
-        "extents": [],
-        "tributaries": false,
+        "extents": [
+          {
+            "op": "downstream_of",
+            "splits": [
+              "bulkley_river__morice_river_into_bulkley_river"
+            ],
+            "item_id": "gnis:2195"
+          }
+        ],
+        "tributaries": null,
         "tributaries_only": false,
         "tributary_excludes": [],
         "sections_cached": null,
@@ -6300,11 +6580,22 @@
       "reviewed_by": "",
       "reviewed_at": "",
       "review_note": "",
+      "heading": "Bulkley River",
       "binding": {
-        "extents": [],
+        "extents": [
+          {
+            "op": "whole",
+            "item_id": "gnis:2195"
+          }
+        ],
         "tributaries": null,
-        "tributaries_only": false,
-        "tributary_excludes": [],
+        "tributaries_only": true,
+        "tributary_excludes": [
+          {
+            "op": "whole",
+            "item_id": "gnis:2637"
+          }
+        ],
         "sections_cached": null,
         "notes": [],
         "spatial_caveat": false
@@ -6350,6 +6641,7 @@
       "reviewed_by": "",
       "reviewed_at": "",
       "review_note": "",
+      "heading": "Fulton River",
       "binding": {
         "extents": [
           {
@@ -6404,13 +6696,14 @@
       "reviewed_by": "",
       "reviewed_at": "",
       "review_note": "",
+      "heading": "Kispiox River (including tributaries)",
       "binding": {
         "extents": [
           {
             "op": "whole"
           }
         ],
-        "tributaries": true,
+        "tributaries": null,
         "tributaries_only": false,
         "tributary_excludes": [],
         "sections_cached": null,
@@ -6464,9 +6757,18 @@
       "reviewed_by": "",
       "reviewed_at": "",
       "review_note": "",
+      "heading": "Kispiox River (including tributaries)",
       "binding": {
-        "extents": [],
-        "tributaries": true,
+        "extents": [
+          {
+            "op": "downstream_of",
+            "splits": [
+              "kispiox_river__signs_near_kispiox_river_resort"
+            ],
+            "item_id": "gnis:2308"
+          }
+        ],
+        "tributaries": null,
         "tributaries_only": false,
         "tributary_excludes": [],
         "sections_cached": null,
@@ -6514,9 +6816,15 @@
       "reviewed_by": "",
       "reviewed_at": "",
       "review_note": "",
+      "heading": "Kitseguecla River",
       "binding": {
-        "extents": [],
-        "tributaries": true,
+        "extents": [
+          {
+            "op": "whole",
+            "item_id": "gnis:12684"
+          }
+        ],
+        "tributaries": null,
         "tributaries_only": false,
         "tributary_excludes": [],
         "sections_cached": null,
@@ -6564,9 +6872,15 @@
       "reviewed_by": "",
       "reviewed_at": "",
       "review_note": "",
+      "heading": "Kitwanga River",
       "binding": {
-        "extents": [],
-        "tributaries": true,
+        "extents": [
+          {
+            "op": "whole",
+            "item_id": "gnis:3227"
+          }
+        ],
+        "tributaries": null,
         "tributaries_only": false,
         "tributary_excludes": [],
         "sections_cached": null,
@@ -6614,13 +6928,14 @@
       "reviewed_by": "",
       "reviewed_at": "",
       "review_note": "",
+      "heading": "Morice Lake",
       "binding": {
         "extents": [
           {
             "op": "whole"
           }
         ],
-        "tributaries": true,
+        "tributaries": null,
         "tributaries_only": false,
         "tributary_excludes": [],
         "sections_cached": null,
@@ -6678,17 +6993,18 @@
       "reviewed_by": "",
       "reviewed_at": "",
       "review_note": "",
+      "heading": "Morice River (including tributaries)",
       "binding": {
         "extents": [
           {
-            "op": "between",
+            "op": "upstream_of",
             "splits": [
-              "morice_river__fishing_boundary_signs_near_outlet_of_morice_lake_2000_m_downstream",
               "morice_river__gosnell_creek_into_morice_river"
-            ]
+            ],
+            "item_id": "gnis:14918"
           }
         ],
-        "tributaries": true,
+        "tributaries": null,
         "tributaries_only": false,
         "tributary_excludes": [],
         "sections_cached": null,
@@ -6756,6 +7072,7 @@
       "reviewed_by": "",
       "reviewed_at": "",
       "review_note": "",
+      "heading": "Morice River (including tributaries)",
       "binding": {
         "extents": [
           {
@@ -6766,7 +7083,7 @@
             ]
           }
         ],
-        "tributaries": true,
+        "tributaries": null,
         "tributaries_only": false,
         "tributary_excludes": [],
         "sections_cached": null,
@@ -6819,6 +7136,7 @@
       "reviewed_by": "",
       "reviewed_at": "",
       "review_note": "",
+      "heading": "Morice River (including tributaries)",
       "binding": {
         "extents": [
           {
@@ -6828,7 +7146,7 @@
             ]
           }
         ],
-        "tributaries": true,
+        "tributaries": null,
         "tributaries_only": false,
         "tributary_excludes": [],
         "sections_cached": null,
@@ -6880,17 +7198,18 @@
       "reviewed_by": "",
       "reviewed_at": "",
       "review_note": "",
+      "heading": "Morice River (including tributaries)",
       "binding": {
         "extents": [
           {
             "op": "between",
             "splits": [
-              "morice_river__gosnell_creek_into_morice_river",
+              "morice_river__gosnell_creek_into_morice_river_d100m",
               "morice_river__lamprey_creek_into_morice_river"
             ]
           }
         ],
-        "tributaries": true,
+        "tributaries": null,
         "tributaries_only": false,
         "tributary_excludes": [],
         "sections_cached": null,
@@ -6948,6 +7267,7 @@
       "reviewed_by": "",
       "reviewed_at": "",
       "review_note": "",
+      "heading": "Morice River (including tributaries)",
       "binding": {
         "extents": [
           {
@@ -6958,7 +7278,7 @@
             ]
           }
         ],
-        "tributaries": true,
+        "tributaries": null,
         "tributaries_only": false,
         "tributary_excludes": [],
         "sections_cached": null,
@@ -7014,6 +7334,7 @@
       "reviewed_by": "",
       "reviewed_at": "",
       "review_note": "",
+      "heading": "Morice River (including tributaries)",
       "binding": {
         "extents": [
           {
@@ -7023,7 +7344,7 @@
             ]
           }
         ],
-        "tributaries": true,
+        "tributaries": null,
         "tributaries_only": false,
         "tributary_excludes": [],
         "sections_cached": null,
@@ -7071,6 +7392,7 @@
       "reviewed_by": "",
       "reviewed_at": "",
       "review_note": "",
+      "heading": "Nilkitkwa Lake",
       "binding": {
         "extents": [
           {
@@ -7131,8 +7453,17 @@
       "reviewed_by": "",
       "reviewed_at": "",
       "review_note": "",
+      "heading": "Pinkut Creek",
       "binding": {
-        "extents": [],
+        "extents": [
+          {
+            "op": "downstream_of",
+            "splits": [
+              "pinkut_creek__signs_25_m_below_the_pinkut_fish_fence_d25m"
+            ],
+            "item_id": "gnis:23229"
+          }
+        ],
         "tributaries": null,
         "tributaries_only": false,
         "tributary_excludes": [],
@@ -7187,8 +7518,18 @@
       "reviewed_by": "",
       "reviewed_at": "",
       "review_note": "",
+      "heading": "Shegunia River",
       "binding": {
-        "extents": [],
+        "extents": [
+          {
+            "op": "between",
+            "splits": [
+              "shegunia_river__signs_above_the_shegunia_logging_road_bridge_u50m",
+              "shegunia_river__signs_below_the_shegunia_logging_road_bridge_d50m"
+            ],
+            "item_id": "gnis:22777"
+          }
+        ],
         "tributaries": null,
         "tributaries_only": false,
         "tributary_excludes": [],
@@ -7244,6 +7585,7 @@
       "reviewed_by": "",
       "reviewed_at": "",
       "review_note": "",
+      "heading": "Skeena River",
       "binding": {
         "extents": [
           {
@@ -7254,7 +7596,7 @@
             ]
           }
         ],
-        "tributaries": false,
+        "tributaries": null,
         "tributaries_only": false,
         "tributary_excludes": [],
         "sections_cached": null,
@@ -7304,6 +7646,7 @@
       "reviewed_by": "",
       "reviewed_at": "",
       "review_note": "",
+      "heading": "Skeena River",
       "binding": {
         "extents": [
           {
@@ -7313,7 +7656,7 @@
             ]
           }
         ],
-        "tributaries": false,
+        "tributaries": null,
         "tributaries_only": false,
         "tributary_excludes": [],
         "sections_cached": null,
@@ -7362,13 +7705,18 @@
       "reviewed_by": "",
       "reviewed_at": "",
       "review_note": "",
+      "heading": "Skeena River",
       "binding": {
         "extents": [
           {
-            "op": "whole"
+            "op": "upstream_of",
+            "splits": [
+              "skeena_river__cnr_railway_bridge_terrace"
+            ],
+            "item_id": "gnis:2936"
           }
         ],
-        "tributaries": false,
+        "tributaries": null,
         "tributaries_only": false,
         "tributary_excludes": [],
         "sections_cached": null,
@@ -7425,8 +7773,17 @@
       "reviewed_by": "",
       "reviewed_at": "",
       "review_note": "",
+      "heading": "Skeena River",
       "binding": {
-        "extents": [],
+        "extents": [
+          {
+            "op": "between",
+            "splits": [
+              "skeena_river__cnr_railway_bridge_terrace",
+              "skeena_river__babine_river_into_skeena_river"
+            ]
+          }
+        ],
         "tributaries": null,
         "tributaries_only": false,
         "tributary_excludes": [],
@@ -7482,6 +7839,7 @@
       "reviewed_by": "",
       "reviewed_at": "",
       "review_note": "",
+      "heading": "Skeena River",
       "binding": {
         "extents": [
           {
@@ -7490,7 +7848,7 @@
             "within_area": "area:sign_zone:skeena_river_kispiox_confluence_sign_zone"
           }
         ],
-        "tributaries": false,
+        "tributaries": null,
         "tributaries_only": false,
         "tributary_excludes": [],
         "sections_cached": null,
@@ -7544,6 +7902,7 @@
       "reviewed_by": "",
       "reviewed_at": "",
       "review_note": "",
+      "heading": "Skeena River",
       "binding": {
         "extents": [
           {
@@ -7603,6 +7962,7 @@
       "reviewed_by": "",
       "reviewed_at": "",
       "review_note": "",
+      "heading": "Suskwa (Bear) River",
       "binding": {
         "extents": [
           {
@@ -7657,9 +8017,15 @@
       "reviewed_by": "",
       "reviewed_at": "",
       "review_note": "",
+      "heading": "Sustut River",
       "binding": {
-        "extents": [],
-        "tributaries": true,
+        "extents": [
+          {
+            "op": "whole",
+            "item_id": "gnis:25386"
+          }
+        ],
+        "tributaries": null,
         "tributaries_only": false,
         "tributary_excludes": [],
         "sections_cached": null,
@@ -7710,6 +8076,7 @@
       "reviewed_by": "",
       "reviewed_at": "",
       "review_note": "",
+      "heading": "Telkwa River",
       "binding": {
         "extents": [
           {
@@ -7785,8 +8152,17 @@
       "reviewed_by": "",
       "reviewed_at": "",
       "review_note": "",
+      "heading": "Zymoetz (Copper) River",
       "binding": {
-        "extents": [],
+        "extents": [
+          {
+            "op": "downstream_of",
+            "splits": [
+              "zymoetz__hwy_16_bridge_over_the_zymoetz_copper"
+            ],
+            "item_id": "gnis:3137"
+          }
+        ],
         "tributaries": null,
         "tributaries_only": false,
         "tributary_excludes": [],
@@ -7843,8 +8219,17 @@
       "reviewed_by": "",
       "reviewed_at": "",
       "review_note": "",
+      "heading": "Zymoetz (Copper) River — Note: The section of river from Hwy 16 bridge downstream to the Zymotz-Skeena confluence is the Zymotz River. Those waters immediately downstream of the confluence are considered the Skeena River.",
       "binding": {
-        "extents": [],
+        "extents": [
+          {
+            "op": "upstream_of",
+            "splits": [
+              "zymoetz__hwy_16_bridge_over_the_zymoetz_copper"
+            ],
+            "item_id": "gnis:3137"
+          }
+        ],
         "tributaries": null,
         "tributaries_only": false,
         "tributary_excludes": [],
@@ -7893,13 +8278,14 @@
       "reviewed_by": "",
       "reviewed_at": "",
       "review_note": "",
+      "heading": "Ecstall River (including tributaries)",
       "binding": {
         "extents": [
           {
             "op": "whole"
           }
         ],
-        "tributaries": true,
+        "tributaries": null,
         "tributaries_only": false,
         "tributary_excludes": [],
         "sections_cached": null,
@@ -7954,9 +8340,18 @@
       "reviewed_by": "",
       "reviewed_at": "",
       "review_note": "",
+      "heading": "Ecstall River (including tributaries)",
       "binding": {
-        "extents": [],
-        "tributaries": true,
+        "extents": [
+          {
+            "op": "upstream_of",
+            "splits": [
+              "ecstall_river__johnston_creek"
+            ],
+            "item_id": "gnis:3986"
+          }
+        ],
+        "tributaries": null,
         "tributaries_only": false,
         "tributary_excludes": [],
         "sections_cached": null,
@@ -8004,13 +8399,14 @@
       "reviewed_by": "",
       "reviewed_at": "",
       "review_note": "",
+      "heading": "Exchamsiks River (including tributaries)",
       "binding": {
         "extents": [
           {
             "op": "whole"
           }
         ],
-        "tributaries": true,
+        "tributaries": null,
         "tributaries_only": false,
         "tributary_excludes": [],
         "sections_cached": null,
@@ -8062,9 +8458,18 @@
       "reviewed_by": "",
       "reviewed_at": "",
       "review_note": "",
+      "heading": "Exchamsiks River (including tributaries)",
       "binding": {
-        "extents": [],
-        "tributaries": true,
+        "extents": [
+          {
+            "op": "upstream_of",
+            "splits": [
+              "exchamsiks_river__hwy_16_bridge_over_the_exchamsiks"
+            ],
+            "item_id": "gnis:3499"
+          }
+        ],
+        "tributaries": null,
         "tributaries_only": false,
         "tributary_excludes": [],
         "sections_cached": null,
@@ -8112,13 +8517,14 @@
       "reviewed_by": "",
       "reviewed_at": "",
       "review_note": "",
+      "heading": "Exstew River (including tributaries)",
       "binding": {
         "extents": [
           {
             "op": "whole"
           }
         ],
-        "tributaries": true,
+        "tributaries": null,
         "tributaries_only": false,
         "tributary_excludes": [],
         "sections_cached": null,
@@ -8170,9 +8576,18 @@
       "reviewed_by": "",
       "reviewed_at": "",
       "review_note": "",
+      "heading": "Exstew River (including tributaries)",
       "binding": {
-        "extents": [],
-        "tributaries": true,
+        "extents": [
+          {
+            "op": "upstream_of",
+            "splits": [
+              "exstew_river__hwy_16_bridge_over_the_exstew"
+            ],
+            "item_id": "gnis:3498"
+          }
+        ],
+        "tributaries": null,
         "tributaries_only": false,
         "tributary_excludes": [],
         "sections_cached": null,
@@ -8226,9 +8641,18 @@
       "reviewed_by": "",
       "reviewed_at": "",
       "review_note": "",
+      "heading": "Gitnadoix River (including tributaries)",
       "binding": {
-        "extents": [],
-        "tributaries": true,
+        "extents": [
+          {
+            "op": "upstream_of",
+            "splits": [
+              "gitnadoix_river__powerline_crossing_near_the_mouth"
+            ],
+            "item_id": "gnis:3508"
+          }
+        ],
+        "tributaries": null,
         "tributaries_only": false,
         "tributary_excludes": [],
         "sections_cached": null,
@@ -8281,9 +8705,18 @@
       "reviewed_by": "",
       "reviewed_at": "",
       "review_note": "",
+      "heading": "Kasiks River (including tributaries)",
       "binding": {
-        "extents": [],
-        "tributaries": true,
+        "extents": [
+          {
+            "op": "upstream_of",
+            "splits": [
+              "kasiks_river__signs_below_the_kasiks_upper_pool_foot_of_the_canyon_falls"
+            ],
+            "item_id": "gnis:4078"
+          }
+        ],
+        "tributaries": null,
         "tributaries_only": false,
         "tributary_excludes": [],
         "sections_cached": null,
@@ -8336,9 +8769,18 @@
       "reviewed_by": "",
       "reviewed_at": "",
       "review_note": "",
+      "heading": "Kasiks River (including tributaries)",
       "binding": {
-        "extents": [],
-        "tributaries": true,
+        "extents": [
+          {
+            "op": "downstream_of",
+            "splits": [
+              "kasiks_river__signs_below_the_kasiks_upper_pool_foot_of_the_canyon_falls"
+            ],
+            "item_id": "gnis:4078"
+          }
+        ],
+        "tributaries": null,
         "tributaries_only": false,
         "tributary_excludes": [],
         "sections_cached": null,
@@ -8390,9 +8832,18 @@
       "reviewed_by": "",
       "reviewed_at": "",
       "review_note": "",
+      "heading": "Kasiks River (including tributaries)",
       "binding": {
-        "extents": [],
-        "tributaries": true,
+        "extents": [
+          {
+            "op": "upstream_of",
+            "splits": [
+              "kasiks_river__hwy_16_bridge_over_the_kasiks"
+            ],
+            "item_id": "gnis:4078"
+          }
+        ],
+        "tributaries": null,
         "tributaries_only": false,
         "tributary_excludes": [],
         "sections_cached": null,
@@ -8444,9 +8895,18 @@
       "reviewed_by": "",
       "reviewed_at": "",
       "review_note": "",
+      "heading": "Khyex River (including tributaries)",
       "binding": {
-        "extents": [],
-        "tributaries": true,
+        "extents": [
+          {
+            "op": "upstream_of",
+            "splits": [
+              "khyex_river__hwy_16_bridge_over_the_khyex"
+            ],
+            "item_id": "gnis:4076"
+          }
+        ],
+        "tributaries": null,
         "tributaries_only": false,
         "tributary_excludes": [],
         "sections_cached": null,
@@ -8494,9 +8954,15 @@
       "reviewed_by": "",
       "reviewed_at": "",
       "review_note": "",
+      "heading": "Kitsumkalum Lake",
       "binding": {
-        "extents": [],
-        "tributaries": true,
+        "extents": [
+          {
+            "op": "whole",
+            "item_id": "wbk:329241962"
+          }
+        ],
+        "tributaries": null,
         "tributaries_only": false,
         "tributary_excludes": [],
         "sections_cached": null,
@@ -8544,13 +9010,14 @@
       "reviewed_by": "",
       "reviewed_at": "",
       "review_note": "",
+      "heading": "Kitsumkalum River (including tpinributaries) Note: The mouth of the Kitsumkalum River is designated by fishing boundary signs located approx. 1.25 km downstream of the CNR bridge and approx. 200 m east of the CNR bridge.",
       "binding": {
         "extents": [
           {
             "op": "whole"
           }
         ],
-        "tributaries": true,
+        "tributaries": null,
         "tributaries_only": false,
         "tributary_excludes": [],
         "sections_cached": null,
@@ -8605,9 +9072,18 @@
       "reviewed_by": "",
       "reviewed_at": "",
       "review_note": "",
+      "heading": "Kitsumkalum River (including tpinributaries) Note: The mouth of the Kitsumkalum River is designated by fishing boundary signs located approx. 1.25 km downstream of the CNR bridge and approx. 200 m east of the CNR bridge.",
       "binding": {
-        "extents": [],
-        "tributaries": true,
+        "extents": [
+          {
+            "op": "upstream_of",
+            "splits": [
+              "kitsumkalum__signs_below_the_kitsumkalum_lower_canyon"
+            ],
+            "item_id": "gnis:3942"
+          }
+        ],
+        "tributaries": null,
         "tributaries_only": false,
         "tributary_excludes": [],
         "sections_cached": null,
@@ -8662,9 +9138,18 @@
       "reviewed_by": "",
       "reviewed_at": "",
       "review_note": "",
+      "heading": "Kitsumkalum River (including tpinributaries) Note: The mouth of the Kitsumkalum River is designated by fishing boundary signs located approx. 1.25 km downstream of the CNR bridge and approx. 200 m east of the CNR bridge.",
       "binding": {
-        "extents": [],
-        "tributaries": true,
+        "extents": [
+          {
+            "op": "downstream_of",
+            "splits": [
+              "kitsumkalum__signs_below_the_kitsumkalum_lower_canyon"
+            ],
+            "item_id": "gnis:3942"
+          }
+        ],
+        "tributaries": null,
         "tributaries_only": false,
         "tributary_excludes": [],
         "sections_cached": null,
@@ -8717,9 +9202,18 @@
       "reviewed_by": "",
       "reviewed_at": "",
       "review_note": "",
+      "heading": "Kitsumkalum River (including tpinributaries) Note: The mouth of the Kitsumkalum River is designated by fishing boundary signs located approx. 1.25 km downstream of the CNR bridge and approx. 200 m east of the CNR bridge.",
       "binding": {
-        "extents": [],
-        "tributaries": true,
+        "extents": [
+          {
+            "op": "downstream_of",
+            "splits": [
+              "kitsumkalum__cn_railway_bridge_over_the_kitsumkalum"
+            ],
+            "item_id": "gnis:3942"
+          }
+        ],
+        "tributaries": null,
         "tributaries_only": false,
         "tributary_excludes": [],
         "sections_cached": null,
@@ -8772,9 +9266,18 @@
       "reviewed_by": "",
       "reviewed_at": "",
       "review_note": "",
+      "heading": "Lakelse River (including tributaries)",
       "binding": {
-        "extents": [],
-        "tributaries": true,
+        "extents": [
+          {
+            "op": "downstream_of",
+            "splits": [
+              "lakelse_river__cnr_bridge"
+            ],
+            "item_id": "gnis:4903"
+          }
+        ],
+        "tributaries": null,
         "tributaries_only": false,
         "tributary_excludes": [],
         "sections_cached": null,
@@ -8829,9 +9332,18 @@
       "reviewed_by": "",
       "reviewed_at": "",
       "review_note": "",
+      "heading": "Lakelse River (including tributaries)",
       "binding": {
-        "extents": [],
-        "tributaries": true,
+        "extents": [
+          {
+            "op": "downstream_of",
+            "splits": [
+              "lakelse_river__whitebottom_rd_bridge_lakelse_near_the_mouth"
+            ],
+            "item_id": "gnis:4903"
+          }
+        ],
+        "tributaries": null,
         "tributaries_only": false,
         "tributary_excludes": [],
         "sections_cached": null,
@@ -8886,9 +9398,17 @@
       "reviewed_by": "",
       "reviewed_at": "",
       "review_note": "",
+      "heading": "Lakelse River (including tributaries)",
       "binding": {
-        "extents": [],
-        "tributaries": true,
+        "extents": [
+          {
+            "op": "upstream_of",
+            "splits": [
+              "lakelse_river__whitebottom_rd_bridge_lakelse_near_the_mouth"
+            ]
+          }
+        ],
+        "tributaries": null,
         "tributaries_only": false,
         "tributary_excludes": [],
         "sections_cached": null,
@@ -8936,9 +9456,15 @@
       "reviewed_by": "",
       "reviewed_at": "",
       "review_note": "",
+      "heading": "Redsand Lake",
       "binding": {
-        "extents": [],
-        "tributaries": true,
+        "extents": [
+          {
+            "op": "whole",
+            "item_id": "wbk:-1"
+          }
+        ],
+        "tributaries": null,
         "tributaries_only": false,
         "tributary_excludes": [],
         "sections_cached": null,
@@ -8986,9 +9512,15 @@
       "reviewed_by": "",
       "reviewed_at": "",
       "review_note": "",
+      "heading": "Scotia River",
       "binding": {
-        "extents": [],
-        "tributaries": true,
+        "extents": [
+          {
+            "op": "whole",
+            "item_id": "gnis:3200"
+          }
+        ],
+        "tributaries": null,
         "tributaries_only": false,
         "tributary_excludes": [],
         "sections_cached": null,
@@ -9041,6 +9573,7 @@
       "reviewed_by": "",
       "reviewed_at": "",
       "review_note": "",
+      "heading": "Skeena River",
       "binding": {
         "extents": [
           {
@@ -9050,7 +9583,7 @@
             ]
           }
         ],
-        "tributaries": false,
+        "tributaries": null,
         "tributaries_only": false,
         "tributary_excludes": [],
         "sections_cached": null,
@@ -9109,8 +9642,18 @@
       "reviewed_by": "",
       "reviewed_at": "",
       "review_note": "",
+      "heading": "Skeena River",
       "binding": {
-        "extents": [],
+        "extents": [
+          {
+            "op": "between",
+            "splits": [
+              "skeena_river__lakelse_river_into_skeena_river",
+              "skeena_river__highway_16_bridge_at_ferry_island"
+            ],
+            "item_id": "gnis:2936"
+          }
+        ],
         "tributaries": null,
         "tributaries_only": false,
         "tributary_excludes": [],
@@ -9159,6 +9702,7 @@
       "reviewed_by": "",
       "reviewed_at": "",
       "review_note": "",
+      "heading": "Treston Lake",
       "binding": {
         "extents": [
           {
@@ -9215,13 +9759,14 @@
       "reviewed_by": "",
       "reviewed_at": "",
       "review_note": "",
+      "heading": "Zymagotitz River [also known as Zymachord River] (including tributaries)",
       "binding": {
         "extents": [
           {
             "op": "whole"
           }
         ],
-        "tributaries": true,
+        "tributaries": null,
         "tributaries_only": false,
         "tributary_excludes": [],
         "sections_cached": null,
@@ -9275,9 +9820,18 @@
       "reviewed_by": "",
       "reviewed_at": "",
       "review_note": "",
+      "heading": "Zymagotitz River [also known as Zymachord River] (including tributaries)",
       "binding": {
-        "extents": [],
-        "tributaries": true,
+        "extents": [
+          {
+            "op": "upstream_of",
+            "splits": [
+              "zymagotitz_river__hwy_16_bridge_over_the_zymagotitz"
+            ],
+            "item_id": "gnis:3812"
+          }
+        ],
+        "tributaries": null,
         "tributaries_only": false,
         "tributary_excludes": [],
         "sections_cached": null,
@@ -9331,8 +9885,17 @@
       "reviewed_by": "",
       "reviewed_at": "",
       "review_note": "",
+      "heading": "Nass River",
       "binding": {
-        "extents": [],
+        "extents": [
+          {
+            "op": "downstream_of",
+            "splits": [
+              "meziadin_river__meziadin_river_into_nass_river"
+            ],
+            "item_id": "gnis:3206"
+          }
+        ],
         "tributaries": null,
         "tributaries_only": false,
         "tributary_excludes": [],
@@ -9382,6 +9945,7 @@
       "reviewed_by": "",
       "reviewed_at": "",
       "review_note": "",
+      "heading": "Tatshenshini River (downstream of the BC/Yukon border)",
       "binding": {
         "extents": [
           {
@@ -9471,9 +10035,10 @@
       "reviewed_by": "",
       "reviewed_at": "",
       "review_note": "",
+      "heading": "Babine Lake",
       "binding": {
         "extents": [],
-        "tributaries": false,
+        "tributaries": null,
         "tributaries_only": false,
         "tributary_excludes": [],
         "sections_cached": null,
@@ -9538,14 +10103,24 @@
       "reviewed_by": "",
       "reviewed_at": "",
       "review_note": "",
+      "heading": "Bulkley River",
       "binding": {
         "extents": [
           {
             "op": "between",
             "splits": [
-              "bulkley_river__morice_river_into_bulkley_river_d1000m",
-              "bulkley_river__morice_river_into_bulkley_river_u100m"
-            ]
+              "bulkley_river__morice_river_into_bulkley_river_u100m",
+              "bulkley_river__morice_river_into_bulkley_river_d1000m"
+            ],
+            "item_id": "gnis:2195"
+          },
+          {
+            "op": "between",
+            "splits": [
+              "morice_river__bulkley_confluence_u100m",
+              "morice_river__bulkley_confluence"
+            ],
+            "item_id": "gnis:14918"
           }
         ],
         "tributaries": null,
@@ -9612,6 +10187,11 @@
       "reviewed_by": "",
       "reviewed_at": "",
       "review_note": "",
+      "heading": "Morice River",
+      "side_streams_overruled": {
+        "through": "2026-11-16",
+        "owner": "2026-11-16, on the ten places whose saved side streams disagree with DFO's words: \"Yes, river only for all ten (Recommended)\" (this place's save: Dawson 2026-11-10, marks line 2544)"
+      },
       "binding": {
         "extents": [
           {
@@ -9631,7 +10211,7 @@
             "item_id": "gnis:2195"
           }
         ],
-        "tributaries": true,
+        "tributaries": null,
         "tributaries_only": false,
         "tributary_excludes": [],
         "sections_cached": null,
@@ -9691,8 +10271,26 @@
       "reviewed_by": "",
       "reviewed_at": "",
       "review_note": "",
+      "heading": "Skeena River",
       "binding": {
-        "extents": [],
+        "extents": [
+          {
+            "op": "rest",
+            "bounds": {
+              "op": "between",
+              "splits": [
+                "skeena_river__cnr_railway_bridge_terrace",
+                "gauge__08EB005"
+              ]
+            },
+            "siblings": [
+              "6:skeena-river:mainstem-waters-only-upstream-of-c~2",
+              "6:skeena-river:all-waters-within-the-4-triangular",
+              "6:skeena-river:mainstem-waters-near-the-kitwanga"
+            ],
+            "item_id": "gnis:2936"
+          }
+        ],
         "tributaries": null,
         "tributaries_only": false,
         "tributary_excludes": [],
@@ -9750,6 +10348,7 @@
       "reviewed_by": "",
       "reviewed_at": "",
       "review_note": "",
+      "heading": "Skeena River",
       "binding": {
         "extents": [
           {
@@ -9760,7 +10359,7 @@
             ]
           }
         ],
-        "tributaries": false,
+        "tributaries": null,
         "tributaries_only": false,
         "tributary_excludes": [],
         "sections_cached": null,
@@ -9808,13 +10407,14 @@
       "reviewed_by": "",
       "reviewed_at": "",
       "review_note": "",
+      "heading": "Gitnadoix River (including tributaries)",
       "binding": {
         "extents": [
           {
             "op": "whole"
           }
         ],
-        "tributaries": true,
+        "tributaries": null,
         "tributaries_only": false,
         "tributary_excludes": [],
         "sections_cached": null,
@@ -9862,13 +10462,14 @@
       "reviewed_by": "",
       "reviewed_at": "",
       "review_note": "",
+      "heading": "Kasiks River (including tributaries)",
       "binding": {
         "extents": [
           {
             "op": "whole"
           }
         ],
-        "tributaries": true,
+        "tributaries": null,
         "tributaries_only": false,
         "tributary_excludes": [],
         "sections_cached": null,
@@ -9931,6 +10532,7 @@
       "reviewed_by": "",
       "reviewed_at": "",
       "review_note": "",
+      "heading": "Skeena River",
       "binding": {
         "extents": [
           {
@@ -9941,7 +10543,7 @@
             ]
           }
         ],
-        "tributaries": false,
+        "tributaries": null,
         "tributaries_only": false,
         "tributary_excludes": [],
         "sections_cached": null,
@@ -9999,8 +10601,18 @@
       "reviewed_by": "",
       "reviewed_at": "",
       "review_note": "",
+      "heading": "Nass River",
       "binding": {
-        "extents": [],
+        "extents": [
+          {
+            "op": "between",
+            "splits": [
+              "meziadin_river__meziadin_river_into_nass_river",
+              "nass_river__hwy_37_bridge"
+            ],
+            "item_id": "gnis:3206"
+          }
+        ],
         "tributaries": null,
         "tributaries_only": false,
         "tributary_excludes": [],
@@ -10048,13 +10660,14 @@
       "reviewed_by": "",
       "reviewed_at": "",
       "review_note": "",
+      "heading": "Kitimat River (including tributaries)",
       "binding": {
         "extents": [
           {
             "op": "whole"
           }
         ],
-        "tributaries": true,
+        "tributaries": null,
         "tributaries_only": false,
         "tributary_excludes": [],
         "sections_cached": null,
@@ -10116,6 +10729,7 @@
       "reviewed_by": "",
       "reviewed_at": "",
       "review_note": "",
+      "heading": "Nakina River",
       "binding": {
         "extents": [
           {
@@ -10186,11 +10800,30 @@
       "reviewed_by": "",
       "reviewed_at": "",
       "review_note": "",
+      "heading": "Bulkley River",
       "binding": {
-        "extents": [],
+        "extents": [
+          {
+            "op": "whole",
+            "item_id": "gnis:2195"
+          }
+        ],
         "tributaries": null,
-        "tributaries_only": false,
-        "tributary_excludes": [],
+        "tributaries_only": true,
+        "tributary_excludes": [
+          {
+            "op": "whole",
+            "item_id": "gnis:14918"
+          },
+          {
+            "op": "whole",
+            "item_id": "gnis:2637"
+          },
+          {
+            "op": "whole",
+            "item_id": "gnis:30327"
+          }
+        ],
         "sections_cached": null,
         "notes": [],
         "spatial_caveat": false
@@ -10236,6 +10869,7 @@
       "reviewed_by": "",
       "reviewed_at": "",
       "review_note": "",
+      "heading": "Kitseguecla River",
       "binding": {
         "extents": [
           {
@@ -10290,13 +10924,14 @@
       "reviewed_by": "",
       "reviewed_at": "",
       "review_note": "",
+      "heading": "Morice River (including tributaries)",
       "binding": {
         "extents": [
           {
             "op": "whole"
           }
         ],
-        "tributaries": true,
+        "tributaries": null,
         "tributaries_only": false,
         "tributary_excludes": [],
         "sections_cached": null,
@@ -10350,6 +10985,7 @@
       "reviewed_by": "",
       "reviewed_at": "",
       "review_note": "",
+      "heading": "Morice River (including tributaries)",
       "binding": {
         "extents": [
           {
@@ -10360,7 +10996,7 @@
             ]
           }
         ],
-        "tributaries": true,
+        "tributaries": null,
         "tributaries_only": false,
         "tributary_excludes": [],
         "sections_cached": null,
@@ -10410,9 +11046,15 @@
       "reviewed_by": "",
       "reviewed_at": "",
       "review_note": "",
+      "heading": "Suskwa (Bear) River",
       "binding": {
-        "extents": [],
-        "tributaries": true,
+        "extents": [
+          {
+            "op": "whole",
+            "item_id": "gnis:2637"
+          }
+        ],
+        "tributaries": null,
         "tributaries_only": false,
         "tributary_excludes": [],
         "sections_cached": null,
@@ -10460,6 +11102,7 @@
       "reviewed_by": "",
       "reviewed_at": "",
       "review_note": "",
+      "heading": "Sustut River",
       "binding": {
         "extents": [
           {
@@ -10516,6 +11159,7 @@
       "reviewed_by": "",
       "reviewed_at": "",
       "review_note": "",
+      "heading": "Zymoetz (Copper) River — Note: The section of river from Hwy 16 bridge downstream to the Zymotz-Skeena confluence is the Zymotz River. Those waters immediately downstream of the confluence are considered the Skeena River.",
       "binding": {
         "extents": [
           {
@@ -10572,13 +11216,14 @@
       "reviewed_by": "",
       "reviewed_at": "",
       "review_note": "",
+      "heading": "Lakelse River (including tributaries)",
       "binding": {
         "extents": [
           {
             "op": "whole"
           }
         ],
-        "tributaries": true,
+        "tributaries": null,
         "tributaries_only": false,
         "tributary_excludes": [],
         "sections_cached": null,
@@ -10625,6 +11270,7 @@
       "reviewed_by": "",
       "reviewed_at": "",
       "review_note": "",
+      "heading": "Cranberry River",
       "binding": {
         "extents": [
           {
@@ -10678,6 +11324,7 @@
       "reviewed_by": "",
       "reviewed_at": "",
       "review_note": "",
+      "heading": "Kiteen River",
       "binding": {
         "extents": [
           {
@@ -10731,6 +11378,7 @@
       "reviewed_by": "",
       "reviewed_at": "",
       "review_note": "",
+      "heading": "Meziadin River",
       "binding": {
         "extents": [
           {
@@ -10896,6 +11544,7 @@
       "reviewed_by": "",
       "reviewed_at": "",
       "review_note": "",
+      "heading": "Babine River",
       "binding": {
         "extents": [
           {
@@ -10961,6 +11610,7 @@
       "reviewed_by": "",
       "reviewed_at": "",
       "review_note": "",
+      "heading": "Babine River",
       "binding": {
         "extents": [
           {
@@ -11027,6 +11677,7 @@
       "reviewed_by": "",
       "reviewed_at": "",
       "review_note": "",
+      "heading": "Skeena River",
       "binding": {
         "extents": [
           {
@@ -11035,7 +11686,7 @@
             "within_area": "area:sign_zone:skeena_river_kispiox_confluence_sign_zone"
           }
         ],
-        "tributaries": false,
+        "tributaries": null,
         "tributaries_only": false,
         "tributary_excludes": [],
         "sections_cached": null,
@@ -11092,6 +11743,7 @@
       "reviewed_by": "",
       "reviewed_at": "",
       "review_note": "",
+      "heading": "Babine Lake",
       "binding": {
         "extents": [],
         "tributaries": null,
@@ -11152,6 +11804,7 @@
       "reviewed_by": "",
       "reviewed_at": "",
       "review_note": "",
+      "heading": "Skeena River",
       "binding": {
         "extents": [
           {
@@ -11160,7 +11813,7 @@
             "within_area": "area:sign_zone:skeena_river_kispiox_confluence_sign_zone"
           }
         ],
-        "tributaries": false,
+        "tributaries": null,
         "tributaries_only": false,
         "tributary_excludes": [],
         "sections_cached": null,
@@ -11244,9 +11897,18 @@
       "reviewed_by": "",
       "reviewed_at": "",
       "review_note": "",
+      "heading": "Babine Lake",
       "binding": {
-        "extents": [],
-        "tributaries": false,
+        "extents": [
+          {
+            "op": "whole",
+            "item_ids": [
+              "wbk:-24",
+              "wbk:-25"
+            ]
+          }
+        ],
+        "tributaries": null,
         "tributaries_only": false,
         "tributary_excludes": [],
         "sections_cached": null,
@@ -11308,14 +11970,24 @@
       "reviewed_by": "",
       "reviewed_at": "",
       "review_note": "",
+      "heading": "Skeena River",
       "binding": {
         "extents": [
           {
-            "op": "between",
-            "splits": [
-              "skeena_river__cnr_railway_bridge_terrace",
-              "gauge__08EB005"
-            ]
+            "op": "rest",
+            "bounds": {
+              "op": "between",
+              "splits": [
+                "skeena_river__cnr_railway_bridge_terrace",
+                "gauge__08EB005"
+              ]
+            },
+            "siblings": [
+              "6:skeena-river:mainstem-waters-only-upstream-of-c~2",
+              "6:skeena-river:all-waters-within-the-4-triangular",
+              "6:skeena-river:mainstem-waters-near-the-kitwanga"
+            ],
+            "item_id": "gnis:2936"
           }
         ],
         "tributaries": null,
@@ -11378,6 +12050,7 @@
       "reviewed_by": "",
       "reviewed_at": "",
       "review_note": "",
+      "heading": "Skeena River",
       "binding": {
         "extents": [
           {
@@ -11388,7 +12061,7 @@
             ]
           }
         ],
-        "tributaries": false,
+        "tributaries": null,
         "tributaries_only": false,
         "tributary_excludes": [],
         "sections_cached": null,

@@ -21,8 +21,8 @@
 # uploading: the Cloudflare (wrangler) login; emailing: the run token; the patched MapLibre AAR (exactly one) and
 # llvm-readelf to prove it; `--play`: app.json clean; uncommitted app/ paths (a build is a clean worktree of HEAD: they
 # are LEFT OUT) refuse unless `--uncommitted=<reason>`. Then CI (T533) and fast-fail, then the lock.
-# (T538) `--play --publish-only`: redo only play.json + the email for the build already uploaded (app/dist/aab/play.json),
-# e.g. after an expired Cloudflare login stopped it after the Play upload.
+# (T538) `--play --publish-only`: redo only the version files (play/<versionCode>.json, play.json) + the email for the build
+# already uploaded (app/dist/aab/play.json), e.g. after an expired Cloudflare login stopped it after the Play upload.
 #
 # (T267) --play: Google Play INTERNAL TESTING instead of the sideload page. Bumps android.versionCode (= ios.buildNumber)
 # in app.json past max(app.json, ~/.canifishthis/play-last-version-code, the highest code Play holds) and commits ONLY
@@ -41,7 +41,10 @@
 # VERSION FILE our server publishes for the build's channel, which the app reads to tell a reader a newer version is out
 # and to show "What's new in <version>" before it is installed:
 #   sideload  app/android/latest.json  {version, build, sha, date, notes}  (beside the APK page, as before + notes)
-#   --play    app/android/play.json    {version, build, sha, date, notes}  (after the Play upload; the Play build reads it)
+#   --play    app/android/play/<versionCode>.json  {version, build, sha, date, notes}  (T894: after the Play upload; a
+#             Play build from 0.8.2 on reads the file of the versionCode Play OFFERS it, so a build promoted in Play
+#             Console to another track keeps its own file) + app/android/play.json, the same content (the last upload, any
+#             track: what 0.8.1 / 0.8.2-before-T894 installs read, and this script's precheck / --publish-only guard)
 # (T538) A version with no entry is REFUSED before the lock (`--no-notes=<reason>` goes on; the app then says "No notes
 # were published for version …").
 #
@@ -85,22 +88,25 @@ for a in "$@"; do
       [[ -n ${STOCK_MLN// /} ]] || { echo "build-apk: --stock-maplibre= needs a reason" >&2; exit 2; } ;;
   esac
 done
-# (owner 2026-11-09) EVERY non-production build carries the patched MapLibre until the fix is in a MapLibre release — the
-# staging-page APK too, not only --play: MLN_LOCAL_MAVEN defaults to the kept lean repo
-if [[ -z $PROD && -z $STOCK_MLN && -z ${MLN_LOCAL_MAVEN:-} ]]; then export MLN_LOCAL_MAVEN="$REPO/cache/maplibre/fslean-m2"; fi
-if [[ -z $PROD ]]; then
-  if [[ -n $STOCK_MLN ]]; then
-    [[ -z ${MLN_LOCAL_MAVEN:-} ]] || { echo "build-apk: --stock-maplibre with MLN_LOCAL_MAVEN set: pick one" >&2; exit 2; }
-    echo "build-apk: STOCK MapLibre (--stock-maplibre): $STOCK_MLN"
-  else
-    [[ -n ${MLN_LOCAL_MAVEN:-} ]] || { echo "build-apk: every non-production build carries the patched MapLibre (T420, T512): set" \
-      "MLN_LOCAL_MAVEN=$REPO/cache/maplibre/fslean-m2 (made by app/tools/maplibre-patch/build.sh with the lean patch)," \
-      "or say why not with --stock-maplibre=\"<reason>\"" >&2; exit 2; }
-    MLN_AAR=$(find "$MLN_LOCAL_MAVEN" -name 'android-sdk-vulkan-*.aar' 2>/dev/null)
-    [[ -n $MLN_AAR && $(echo "$MLN_AAR" | wc -l) -eq 1 ]] || {
-      echo "build-apk: MLN_LOCAL_MAVEN=$MLN_LOCAL_MAVEN must hold exactly one android-sdk-vulkan AAR (found: ${MLN_AAR:-none})" >&2; exit 2; }
-    echo "build-apk: patched MapLibre from $MLN_AAR"
-  fi
+# (owner 2026-11-09) EVERY build carries the patched MapLibre until the fix is in a MapLibre release — the staging-page
+# APK, --play, and (T893, owner 2026-11-19 ~00:20: "Can't we make it use the patched one?") --production too:
+# MLN_LOCAL_MAVEN defaults to the kept lean repo; --stock-maplibre="<reason>" is the only way to the stock SDK
+if [[ -z $STOCK_MLN && -z ${MLN_LOCAL_MAVEN:-} ]]; then export MLN_LOCAL_MAVEN="$REPO/cache/maplibre/fslean-m2"; fi
+# (T893, owner 2026-11-19 ~00:23: "It has to use patched one") a production build never takes the stock SDK
+if [[ -n $PROD && -n $STOCK_MLN ]]; then
+  echo "build-apk --production: production always carries the patched MapLibre (T893); --stock-maplibre is refused" >&2; exit 2
+fi
+if [[ -n $STOCK_MLN ]]; then
+  [[ -z ${MLN_LOCAL_MAVEN:-} ]] || { echo "build-apk: --stock-maplibre with MLN_LOCAL_MAVEN set: pick one" >&2; exit 2; }
+  echo "build-apk: STOCK MapLibre (--stock-maplibre): $STOCK_MLN"
+else
+  [[ -n ${MLN_LOCAL_MAVEN:-} ]] || { echo "build-apk: every build carries the patched MapLibre (T420, T512, T893): set" \
+    "MLN_LOCAL_MAVEN=$REPO/cache/maplibre/fslean-m2 (made by app/tools/maplibre-patch/build.sh with the lean patch)," \
+    "or say why not with --stock-maplibre=\"<reason>\"" >&2; exit 2; }
+  MLN_AAR=$(find "$MLN_LOCAL_MAVEN" -name 'android-sdk-vulkan-*.aar' 2>/dev/null)
+  [[ -n $MLN_AAR && $(echo "$MLN_AAR" | wc -l) -eq 1 ]] || {
+    echo "build-apk: MLN_LOCAL_MAVEN=$MLN_LOCAL_MAVEN must hold exactly one android-sdk-vulkan AAR (found: ${MLN_AAR:-none})" >&2; exit 2; }
+  echo "build-apk: patched MapLibre from $MLN_AAR"
 fi
 NOCI=; NONOTES=; SAMEVER=; UNCOMMITTED=; PRECHECK_ONLY=; PUBLISH_ONLY=
 for a in "$@"; do
@@ -156,22 +162,30 @@ for a in "$@"; do
   esac
 done
 # (T538) this version's changelog bullets as JSON (node strips the file's types; the file has no imports): the version
-# file's `notes`, the Play release notes and the email, from one place
-notes_json() { node -e 'import(process.argv[1]).then((m)=>{const e=m.CHANGELOG.find((x)=>x.version===process.argv[2]);process.stdout.write(JSON.stringify(e?e.notes:[]))})' "$1/app/packages/core/src/changelog.ts" "$2"; }
+# file's `notes`, the Play release notes and the email, from one place. (T888) Android's own (core `notesOn`: a note the
+# changelog tags `only` for the iPhone is left out): the app shows the file's list as it is, since a newer version is
+# never in its bundled changelog to filter by. build-ios-testflight.sh writes the iPhone's into app/ios/appstore.json.
+notes_json() { node -e 'import(process.argv[1]).then((m)=>{const e=m.CHANGELOG.find((x)=>x.version===process.argv[2]);process.stdout.write(JSON.stringify(e?m.notesOn(e,"android"):[]))})' "$1/app/packages/core/src/changelog.ts" "$2"; }
 WR="npx --prefix app wrangler"
 
-# (T538) --publish-only: redo only play.json + the email for the Play build already uploaded
+# (T538) --publish-only: redo only the version files + the email for the Play build already uploaded
 if [[ -n $PUBLISH_ONLY ]]; then
   [[ -n $PLAY ]] || { echo "build-apk: --publish-only is for a --play build (play.json + email)" >&2; exit 2; }
   PJ=app/dist/aab/play.json
   [[ -f $PJ ]] || { echo "build-apk --publish-only: no $PJ (the build writes it before the upload); nothing to publish" >&2; exit 1; }
   echo "build-apk --publish-only: $(cat "$PJ")"
-  # never put back an OLDER build's file over what Play builds read now
+  # never put back an OLDER build's file over what Play builds read now (play.json; the per-build file is its own)
   LOCALB=$(python3 -c 'import json,sys;print(json.load(open(sys.argv[1]))["build"])' "$PJ")
+  [[ $LOCALB =~ ^[1-9][0-9]*$ ]] || { echo "build-apk --publish-only: $PJ names no versionCode ('$LOCALB'); refused" >&2; exit 1; }
+  # (T894 review) the build's environment is in its file: a staging build's file never goes to production, nor the reverse
+  PJENV=$(python3 -c 'import json,sys;print(json.load(open(sys.argv[1])).get("env",""))' "$PJ")
+  [[ $PJENV == "$ENVWORD" ]] || { echo "build-apk --publish-only: $PJ is a ${PJENV:-unmarked} build, this is $ENVWORD; refused" >&2; exit 1; }
   PUBB=$(curl -fsS -A bc-fishing-build-apk "$BASE/play.json" | python3 -c 'import json,sys;print(json.load(sys.stdin)["build"])') \
     || { echo "build-apk --publish-only: cannot read the published $BASE/play.json; refused" >&2; exit 1; }
   (( LOCALB >= PUBB )) || { echo "build-apk --publish-only: $PJ is build $LOCALB, older than the published build $PUBB; refused" >&2; exit 1; }
-  if [[ -n $DRY ]]; then echo "[dry-run] put $BUCKET/app/android/play.json; email via $FEEDS/notify/apk${EMAIL:+}"; exit 0; fi
+  if [[ -n $DRY ]]; then echo "[dry-run] put $BUCKET/app/android/play/$LOCALB.json, then $BUCKET/app/android/play.json; email via $FEEDS/notify/apk${EMAIL:+}"; exit 0; fi
+  # (T894) the build's own file first (what a Play build reads, by the versionCode Play offers), then the last-upload file
+  $WR r2 object put --remote "$BUCKET/app/android/play/$LOCALB.json" --file "$PJ" --content-type "application/json" --cache-control "no-cache"
   $WR r2 object put --remote "$BUCKET/app/android/play.json" --file "$PJ" --content-type "application/json" --cache-control "no-cache"
   if [[ -n $EMAIL ]]; then
     TEST_URL=$(tr -d '\n' < "$SECRETS/play-test-url" 2>/dev/null || echo "$PLAY_STORE_URL")
@@ -223,6 +237,12 @@ if [[ -z ${BUILD_APK_INNER:-} ]]; then
     else bad "wrangler is not logged in (npx --prefix app wrangler login): the R2 puts would fail AFTER the build"; fi
     if [[ -n $EMAIL ]]; then [[ -s $TOKF ]] && ok "run token ($TOKF)" || bad "no run token at $TOKF (the email); --no-email goes on"; fi
   fi
+  case ${CANIFISHTHIS_R8:-} in
+    ""|0) ;;   # R8 off: nothing said, as before T749
+    1) if [[ -n $PROD ]]; then bad "CANIFISHTHIS_R8=1 is a trial (T749), refused for --production (app.config.js refuses it too)"
+       else ok "R8 ON (CANIFISHTHIS_R8=1, T749): minified build, R8's mapping.txt kept beside the Hermes map"; fi ;;
+    *) bad "CANIFISHTHIS_R8 must be unset, 0 or 1 (got '${CANIFISHTHIS_R8}')" ;;
+  esac
   if [[ -n $MLN_AAR ]]; then
     [[ -n $READELF && -x $READELF ]] && ok "llvm-readelf ($READELF)" || bad "no llvm-readelf under $ANDROID_HOME/ndk: the MapLibre build id cannot be proved"
     MLN_WANT=$([[ -n $READELF ]] && mln_id "$MLN_AAR" jni/arm64-v8a/libmaplibre.so)
@@ -343,19 +363,27 @@ OUT=$REPO/app/dist/apk; [[ -n $DRY ]] || mkdir -p "$OUT"
 # uploaded) under the key a crash's `app` names ("0.5.0 (build 8, 9813980, …)" -> 0.5.0-b8-9813980):
 # `node app/tools/sourcemaps.mjs symbolicate <crash json>` reads a stack back with it. No map: the build stops here.
 HERMES_MAP=$M/android/app/build/generated/sourcemaps/react/release/index.android.bundle.map
-keep_map() { node "$REPO/app/tools/sourcemaps.mjs" keep-android "$HERMES_MAP" "$VER-b$CODE-${SHA:0:7}"; }
+# (T749) CANIFISHTHIS_R8=1 (R8 on, plugins/with-no-minify.js): R8's mapping.txt is kept beside the Hermes map as
+# r8-mapping.txt (it reads a crash's renamed Java/Kotlin frames back). No mapping with the flag on: the build stops here,
+# before the APK/AAB is copied, committed or uploaded.
+R8_MAP=$M/android/app/build/outputs/mapping/release/mapping.txt
+keep_map() {
+  node "$REPO/app/tools/sourcemaps.mjs" keep-android "$HERMES_MAP" "$VER-b$CODE-${SHA:0:7}"
+  if [[ ${CANIFISHTHIS_R8:-} == 1 ]]; then node "$REPO/app/tools/sourcemaps.mjs" keep-r8 "$R8_MAP" "$VER-b$CODE-${SHA:0:7}"; fi
+}
 NAME="canifishthis-staging-$VER-$SHA.apk"
 [[ -n $PLAY ]] && { OUT=$REPO/app/dist/aab; [[ -n $DRY ]] || mkdir -p "$OUT"; NAME="canifishthis-$VER-$CODE-$SHA.aab"; }
 if [[ -n $DRY && -n $PLAY ]]; then
   echo "[dry-run] (cd \$WT/app && pnpm install --offline --frozen-lockfile); expo prebuild (plugins/with-upload-signing.js)"
   echo "[dry-run] (cd \$WT/$M/android && CANIFISHTHIS_UPLOAD_PROPERTIES=$SECRETS/upload-keystore.properties ./gradlew bundleRelease)"
   echo "[dry-run] keep the Hermes map: data/sourcemaps/$VER-b$CODE-${SHA:0:7}/android/"
+  if [[ ${CANIFISHTHIS_R8:-} == 1 ]]; then echo "[dry-run] (T749) R8 ON: keep R8's mapping.txt there too (r8-mapping.txt), or stop"; fi
   echo "[dry-run] check the AAB is signed by $SECRETS/upload_certificate.pem; copy -> $OUT/$NAME"
-  echo "[dry-run] check the AAB's libmaplibre.so build id: ${MLN_AAR:+the patched AAR ($MLN_AAR)}${STOCK_MLN:+stock (--stock-maplibre)}${PROD:+stock (production)}"
+  echo "[dry-run] check the AAB's libmaplibre.so build id: ${MLN_AAR:+the patched AAR ($MLN_AAR)}${STOCK_MLN:+stock (--stock-maplibre)}"
   echo "[dry-run] $ENVWORD build: EXPO_PUBLIC_APP_ENV=$EXPO_PUBLIC_APP_ENV, switch ${EXPO_PUBLIC_ENV_SWITCH:-off}, map lab ${EXPO_PUBLIC_MAP_LAB:-off}"
   echo "[dry-run] commit the versionCode $NEXT bump (app.json only) once the AAB passed both checks"
   echo "[dry-run] upload to Play track $TRACK with this version's changelog bullets as notes (unless --no-upload); email the same + the build id via $FEEDS/notify/apk (unless --no-email)"
-  echo "[dry-run] publish $BUCKET/app/android/play.json (read at $BASE/play.json): $VERSION_JSON"
+  echo "[dry-run] publish $BUCKET/app/android/play/$NEXT.json (read at $BASE/play/$NEXT.json by a Play build Play offers versionCode $NEXT), then $BUCKET/app/android/play.json (the last upload, read by 0.8.1 installs): $VERSION_JSON"
   exit 0
 fi
 if [[ -n $DRY ]]; then
@@ -399,9 +427,14 @@ if [[ -n $PLAY ]]; then
   PNOTES=$OUT/notes-$CODE.txt; { echo "$NOTES_HEAD $VER ($CODE)"; echo "$CH" | sed 's/^/- /'; } | cut -c1-500 > "$PNOTES"
   # (T234 v1.1) what a Play build reads to learn of this version (its background check + the bell's "What's new");
   # written BEFORE the upload so --publish-only can redo the put + email if a later step fails
-  python3 -c 'import json,sys;v=json.loads(sys.argv[1]);v["maplibre"]=sys.argv[2];print(json.dumps(v))' "$VERSION_JSON" "$MLN_GOT" > "$OUT/play.json"
+  python3 -c 'import json,sys;v=json.loads(sys.argv[1]);v["maplibre"]=sys.argv[2];v["env"]=sys.argv[3];print(json.dumps(v))' "$VERSION_JSON" "$MLN_GOT" "$ENVWORD" > "$OUT/play.json"
   "$REPO/.venv/bin/python" "$REPO/deploy/staging/play-upload.py" --aab "$OUT/$NAME" --package $PKG --track "$TRACK" --notes-file "$PNOTES"
   echo "$SHA_FULL" > "$REPO/app/dist/apk/last-play-sha"   # (T533) the FAST_FAIL_BASE of the next --play build
+  # (T894) the build's own file first: a Play build reads the file of the versionCode Play offers it (any track, after a
+  # promotion too); then play.json, the last upload (0.8.1 installs read it; the precheck and --publish-only compare with it)
+  $WR r2 object put --remote "$BUCKET/app/android/play/$CODE.json" --file "$OUT/play.json" \
+    --content-type "application/json" --cache-control "no-cache" \
+    || { echo "build-apk: play/$CODE.json was NOT published (the build IS on Play): fix wrangler, then build-apk.sh --play --publish-only" >&2; exit 1; }
   $WR r2 object put --remote "$BUCKET/app/android/play.json" --file "$OUT/play.json" \
     --content-type "application/json" --cache-control "no-cache" \
     || { echo "build-apk: play.json was NOT published (the build IS on Play): fix wrangler, then build-apk.sh --play --publish-only" >&2; exit 1; }
@@ -409,6 +442,8 @@ if [[ -n $PLAY ]]; then
   if [[ " $* " != *" --no-email "* ]]; then
     CH="$CH
 MapLibre build id $MLN_GOT ($MLN_WHAT)"
+    if [[ ${CANIFISHTHIS_R8:-} == 1 ]]; then CH="$CH
+Code shrinker (R8): on (T749)"; fi
     export V=$VER B=$CODE S=$SHA D=$DATE SZ="$MB MB" U="$TEST_URL" CH
     BODY=$(python3 -c 'import json,os;e=os.environ;print(json.dumps({"channel":"play","version":e["V"],"build":e["B"],"sha":e["S"],"date":e["D"],"size":e["SZ"],"url":e["U"],"changes":e["CH"].splitlines()}))')
     TOK=$(tr -d '\n' < "$REPO/$TOKF" 2>/dev/null || true)   # the REPO's: the build worktree has no gitignored token

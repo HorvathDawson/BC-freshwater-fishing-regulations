@@ -11,29 +11,30 @@
     {
      "col": "no",
      "head": "Not allowed",
+     "inline": true,
      "items": [
       {
        "mark": "✕",
        "name": "Worms",
-       "note": null,
+       "notes": [],
        "terms": []
       },
       {
        "mark": "✕",
        "name": "Roe (fish eggs)",
-       "note": null,
+       "notes": [],
        "terms": []
       },
       {
        "mark": "✕",
        "name": "Water insects and crayfish",
-       "note": null,
+       "notes": [],
        "terms": []
       },
       {
        "mark": "✕",
        "name": "Fish or fish parts",
-       "note": null,
+       "notes": [],
        "terms": []
       }
      ]
@@ -185,7 +186,48 @@
     ]
    }
   ],
-  "mode": null
+  "mode": null,
+  "src": {
+   "aria": "Sources: Province, Region 4, Duncan River",
+   "keys": [
+    "zp:terminal_tackle::terminal_tackle.r1",
+    "zp:terminal_tackle::terminal_tackle.r6",
+    "z4:single_barbless_hook::single_barbless_hook.r1",
+    "zp:terminal_tackle::terminal_tackle.r4",
+    "r4:duncan_river@4-19::duncan_river.r3"
+   ],
+   "open": "srcs:gear",
+   "pages": [
+    {
+     "pdf": 10,
+     "printed": 8
+    },
+    {
+     "pdf": 36,
+     "printed": 34
+    },
+    {
+     "box": [
+      {
+       "box": [
+        36,
+        241.44,
+        540,
+        270.24
+       ],
+       "pdf": 38,
+       "size": [
+        576,
+        756
+       ]
+      }
+     ],
+     "pdf": 38,
+     "printed": 36
+    }
+   ],
+   "who": "Province · Region 4 · Duncan River ›"
+  }
  },
  "header": {
   "date": "May 1",
@@ -219,355 +261,7 @@
  "keep": {
   "banner": null,
   "caveats": [],
-  "groups": [
-   {
-    "head": {
-     "exception": null,
-     "form": "a",
-     "lead": [
-      {
-       "s": "2",
-       "size": "big",
-       "t": "num"
-      },
-      {
-       "s": " ",
-       "t": "text"
-      },
-      {
-       "s": "trout/char a day from streams",
-       "t": "text"
-      },
-      {
-       "s": " ",
-       "t": "text"
-      },
-      {
-       "label": "How this limit is shared",
-       "open": "share:r0",
-       "s": "ⓘ",
-       "t": "link"
-      }
-     ],
-     "leadN": 2,
-     "multi": [
-      {
-       "open": "multi:r0",
-       "s": "Fishing more than one water today? ›",
-       "t": "link"
-      }
-     ],
-     "nolimit": false,
-     "ofTotal": true,
-     "rootTier": "t1",
-     "shareOf": null,
-     "terms": [],
-     "whyHere": null,
-     "words": [
-      {
-       "s": "5",
-       "size": "big",
-       "t": "num"
-      },
-      {
-       "s": " ",
-       "t": "text"
-      },
-      {
-       "s": "a day per angler across Region 4, lakes included",
-       "t": "text"
-      }
-     ]
-    },
-    "more": {
-     "open": "src:r0",
-     "text": "See every regulation line ›"
-    },
-    "notKept": [
-     {
-      "mark": null,
-      "pictures": [
-       {
-        "caption": "Bull trout ›",
-        "code": "DV",
-        "name": "Dolly Varden/bull trout",
-        "open": "sp:DV",
-        "sil": false
-       }
-      ],
-      "presence": null,
-      "says": "Dolly Varden/bull trout: release every one",
-      "stamps": [],
-      "status": "release",
-      "term": null,
-      "whose": [
-       {
-        "s": "Trout Lake’s rule for its tributaries",
-        "t": "text"
-       },
-       {
-        "s": " · ",
-        "t": "text"
-       },
-       {
-        "box": [
-         {
-          "box": [
-           36,
-           183.84,
-           540,
-           193.44
-          ],
-          "pdf": 42,
-          "size": [
-           576,
-           756
-          ]
-         }
-        ],
-        "pdf": 42,
-        "printed": 40,
-        "t": "book"
-       }
-      ]
-     }
-    ],
-    "origin": {
-     "book": [
-      {
-       "pdf": 36,
-       "printed": 34,
-       "t": "book"
-      }
-     ],
-     "howtell": false,
-     "says": [],
-     "tag": null
-    },
-    "pinLine": {
-     "cls": "g",
-     "n": 2,
-     "said": [
-      "t3",
-      "t2"
-     ],
-     "sub": null,
-     "text": "Trout and char · 5 a day — up to 2 of any kind, the rest rainbow"
-    },
-    "quiet": null,
-    "row": 0,
-    "scope": null,
-    "title": "Trout and char",
-    "tree": [
-     {
-      "band": false,
-      "children": [
-       {
-        "also": [
-         "Up to 1 cutthroat trout over 50 cm (20 in)"
-        ],
-        "duty": null,
-        "folded": true,
-        "kind": "Brook trout, brown trout, cutthroat trout and lake trout",
-        "pictures": [
-         {
-          "caption": "Brook trout ›",
-          "code": "EB",
-          "name": "Brook trout",
-          "open": "sp:EB",
-          "sil": false
-         },
-         {
-          "caption": "Brown trout ›",
-          "code": "GB",
-          "name": "Brown trout",
-          "open": "sp:GB",
-          "sil": false
-         },
-         {
-          "caption": "Coastal cutthroat trout ›",
-          "code": "CT",
-          "name": "Cutthroat trout",
-          "open": "sp:CT",
-          "sil": false
-         },
-         {
-          "caption": "Lake trout ›",
-          "code": "LT",
-          "name": "Lake trout",
-          "open": "sp:LT",
-          "sil": false
-         }
-        ],
-        "presence": null,
-        "qualifiers": null,
-        "says": null,
-        "size": {
-         "chip": "any size",
-         "def": false,
-         "lead": null,
-         "rule": false,
-         "text": "any size",
-         "then": null
-        },
-        "species": [
-         "EB",
-         "GB",
-         "CT",
-         "LT"
-        ],
-        "stamps": [],
-        "t": "kind",
-        "zero": false
-       }
-      ],
-      "exception": null,
-      "folded": false,
-      "kicker": "All Region 4 streams",
-      "line": [
-       {
-        "s": "Up to ",
-        "t": "text"
-       },
-       {
-        "s": "2",
-        "size": "big",
-        "t": "num"
-       },
-       {
-        "s": " brook, brown, cutthroat or lake trout of the 5 from streams",
-        "t": "text"
-       }
-      ],
-      "n": 2,
-      "origin": null,
-      "relation": null,
-      "short": "2 of them from streams",
-      "sub": null,
-      "t": "tier",
-      "tid": "t3",
-      "tier": "share"
-     },
-     {
-      "band": false,
-      "children": [
-       {
-        "also": [],
-        "duty": null,
-        "folded": true,
-        "kind": "Rainbow trout",
-        "pictures": [
-         {
-          "caption": "Rainbow trout ›",
-          "code": "RB",
-          "name": "Rainbow trout",
-          "open": "sp:RB",
-          "sil": false
-         }
-        ],
-        "presence": null,
-        "qualifiers": null,
-        "says": null,
-        "size": {
-         "chip": "any size",
-         "def": false,
-         "lead": null,
-         "rule": false,
-         "text": "any size",
-         "then": null
-        },
-        "species": [
-         "RB"
-        ],
-        "stamps": [],
-        "t": "kind",
-        "zero": false
-       }
-      ],
-      "exception": "Exception to regional quota",
-      "folded": false,
-      "kicker": null,
-      "line": [
-       {
-        "s": "The Duncan River’s rule: up to ",
-        "t": "text"
-       },
-       {
-        "s": "5",
-        "size": "big",
-        "t": "num"
-       },
-       {
-        "s": " rainbow trout a day",
-        "t": "text"
-       },
-       {
-        "s": " ",
-        "t": "text"
-       },
-       {
-        "box": [
-         {
-          "box": [
-           36,
-           241.44,
-           540,
-           270.24
-          ],
-          "pdf": 38,
-          "size": [
-           576,
-           756
-          ]
-         }
-        ],
-        "pdf": 38,
-        "printed": 36,
-        "t": "book"
-       }
-      ],
-      "n": 5,
-      "origin": null,
-      "relation": "Not part of the 2 from streams; part of the 5 a day across Region 4",
-      "short": "up to 5 rainbow trout",
-      "sub": "Its row covers its tributaries, so it applies here",
-      "t": "tier",
-      "tid": "t2",
-      "tier": "own"
-     }
-    ],
-    "worked": {
-     "label": "Examples of how to interpret regulations",
-     "lines": [
-      {
-       "a": "that’s your trout and char for the day, everywhere.",
-       "at": "here",
-       "q": "If you keep 5 rainbow trout here:"
-      },
-      {
-       "a": "they don’t use up your 2 from streams here, but on other streams they count as them: none from other streams today — up to 3 more of any kind, from here or from lakes.",
-       "at": "here",
-       "q": "If you keep 2 rainbow trout here:"
-      },
-      {
-       "a": "Keep 4 more here. Fish from lakes count toward the 5 a day, not toward the 2 from streams.",
-       "at": "elsewhere",
-       "q": "Kept 1 at a lake?"
-      },
-      {
-       "a": "It counts here too: at most 1 over 50 cm (20 in) a day in all.",
-       "at": "elsewhere",
-       "q": "Kept cutthroat trout over 50 cm (20 in) elsewhere today?"
-      }
-     ],
-     "says": "Your own limit, counted across every Region 4 stream you fish today."
-    },
-    "year": {
-     "label": "Through the year",
-     "says": "You can keep them until Oct 31. Then release only from Nov 1."
-    }
-   }
-  ],
+  "groups": [],
   "inherited": {
    "label": "By another water’s rule",
    "lines": [
@@ -609,9 +303,7 @@
   "order": [
    "strip",
    "inherited",
-   {
-    "group": 0
-   },
+   "trout",
    "otherFish",
    "possession",
    "whereNot"
@@ -763,6 +455,339 @@
    ],
    "status": "open",
    "todayAt": 0.3287671232876712
+  },
+  "trout": {
+   "boxes": [
+    {
+     "bands": [
+      {
+       "date": null,
+       "from": 0,
+       "kind": "shared",
+       "text": "2 total from these 4",
+       "to": 3
+      },
+      {
+       "date": null,
+       "from": 4,
+       "kind": "upto",
+       "text": "counts toward the 5",
+       "to": 4
+      }
+     ],
+     "date": "until Oct 31, then release",
+     "head": "Keep 5 in all",
+     "inner": [],
+     "kind": "keep",
+     "label": null,
+     "possession": null,
+     "rows": [
+      {
+       "a11y": "Brook trout. 2 total from these 4",
+       "coming": [
+        "From Nov 1 every one goes back."
+       ],
+       "date": null,
+       "fish": "EB",
+       "key": "EB",
+       "label": null,
+       "lines": [],
+       "name": "Brook trout",
+       "origin": null,
+       "quiet": [],
+       "sheet": {
+        "head": "Keep · 2 total from these 4 · counts toward the 5",
+        "here": [
+         {
+          "bold": false,
+          "t": "Any size."
+         },
+         {
+          "bold": false,
+          "t": "Counts toward the 5 in all, together with brown trout, lake trout, cutthroat trout and rainbow trout."
+         },
+         {
+          "bold": false,
+          "t": "2 total from these 4: this fish and brown trout, lake trout and cutthroat trout."
+         }
+        ],
+        "src": [
+         3135,
+         3144,
+         3137
+        ]
+       },
+       "split": false,
+       "src": [
+        3135,
+        3144,
+        3137
+       ],
+       "sub": null,
+       "tag": null
+      },
+      {
+       "a11y": "Brown trout. 2 total from these 4",
+       "coming": [
+        "From Nov 1 every one goes back."
+       ],
+       "date": null,
+       "fish": "GB",
+       "key": "GB",
+       "label": null,
+       "lines": [],
+       "name": "Brown trout",
+       "origin": null,
+       "quiet": [],
+       "sheet": {
+        "head": "Keep · 2 total from these 4 · counts toward the 5",
+        "here": [
+         {
+          "bold": false,
+          "t": "Any size."
+         },
+         {
+          "bold": false,
+          "t": "Counts toward the 5 in all, together with brook trout, lake trout, cutthroat trout and rainbow trout."
+         },
+         {
+          "bold": false,
+          "t": "2 total from these 4: this fish and brook trout, lake trout and cutthroat trout."
+         }
+        ],
+        "src": [
+         3135,
+         3144,
+         3137
+        ]
+       },
+       "split": false,
+       "src": [
+        3135,
+        3144,
+        3137
+       ],
+       "sub": null,
+       "tag": null
+      },
+      {
+       "a11y": "Lake trout. 2 total from these 4",
+       "coming": [
+        "From Nov 1 every one goes back."
+       ],
+       "date": null,
+       "fish": "LT",
+       "key": "LT",
+       "label": null,
+       "lines": [],
+       "name": "Lake trout",
+       "origin": null,
+       "quiet": [],
+       "sheet": {
+        "head": "Keep · 2 total from these 4 · counts toward the 5",
+        "here": [
+         {
+          "bold": false,
+          "t": "Any size."
+         },
+         {
+          "bold": false,
+          "t": "Counts toward the 5 in all, together with brook trout, brown trout, cutthroat trout and rainbow trout."
+         },
+         {
+          "bold": false,
+          "t": "2 total from these 4: this fish and brook trout, brown trout and cutthroat trout."
+         }
+        ],
+        "src": [
+         3135,
+         3144,
+         3137
+        ]
+       },
+       "split": false,
+       "src": [
+        3135,
+        3144,
+        3137
+       ],
+       "sub": null,
+       "tag": null
+      },
+      {
+       "a11y": "Cutthroat trout. only 1 over 50 cm (20 in). 2 total from these 4",
+       "coming": [
+        "From Nov 1 every one goes back."
+       ],
+       "date": null,
+       "fish": "CT",
+       "key": "CT",
+       "label": null,
+       "lines": [
+        "only 1 over 50 cm (20 in)"
+       ],
+       "name": "Cutthroat trout",
+       "origin": null,
+       "quiet": [],
+       "sheet": {
+        "head": "Keep · 2 total from these 4 · counts toward the 5",
+        "here": [
+         {
+          "bold": false,
+          "t": "Any size."
+         },
+         {
+          "bold": false,
+          "t": "Counts toward the 5 in all, together with brook trout, brown trout, lake trout and rainbow trout."
+         },
+         {
+          "bold": false,
+          "t": "2 total from these 4: this fish and brook trout, brown trout and lake trout."
+         },
+         {
+          "bold": false,
+          "t": "Only 1 over 50 cm (20 in)."
+         }
+        ],
+        "src": [
+         3135,
+         3136,
+         3144,
+         3137
+        ]
+       },
+       "split": false,
+       "src": [
+        3135,
+        3136,
+        3144,
+        3137
+       ],
+       "sub": null,
+       "tag": null
+      },
+      {
+       "a11y": "Rainbow trout. Duncan River’s tributaries. counts toward the 5",
+       "coming": [
+        "From Nov 1 every one goes back."
+       ],
+       "date": null,
+       "fish": "RB",
+       "key": "RB",
+       "label": null,
+       "lines": [],
+       "name": "Rainbow trout",
+       "origin": null,
+       "quiet": [],
+       "sheet": {
+        "head": "Keep · counts toward the 5",
+        "here": [
+         {
+          "bold": false,
+          "t": "Any size."
+         },
+         {
+          "bold": false,
+          "t": "Counts toward the 5 in all, together with brook trout, brown trout, lake trout and cutthroat trout."
+         }
+        ],
+        "src": [
+         1271,
+         3135,
+         3144
+        ]
+       },
+       "split": false,
+       "src": [
+        1271,
+        3135,
+        3144
+       ],
+       "sub": null,
+       "tag": "Duncan River’s tributaries"
+      }
+     ],
+     "strip": null,
+     "tag": null
+    },
+    {
+     "bands": [],
+     "date": null,
+     "head": "Release",
+     "inner": [],
+     "kind": "release",
+     "label": null,
+     "possession": null,
+     "rows": [
+      {
+       "a11y": "Dolly Varden/bull trout. Trout Lake’s tributaries",
+       "coming": [],
+       "date": null,
+       "fish": "DV",
+       "key": "DV",
+       "label": null,
+       "lines": [],
+       "name": "Dolly Varden/bull trout",
+       "origin": null,
+       "quiet": [],
+       "sheet": {
+        "head": "Put it back",
+        "here": [],
+        "src": [
+         1569,
+         3144
+        ]
+       },
+       "split": false,
+       "src": [
+        1569,
+        3144
+       ],
+       "sub": null,
+       "tag": "Trout Lake’s tributaries"
+      }
+     ],
+     "strip": null,
+     "tag": null
+    }
+   ],
+   "card": null,
+   "covers": [
+    0,
+    1
+   ],
+   "elsewhere": [
+    "Trout and char: Your own limit, counted across every Region 4 stream you fish.",
+    "Trout and char: Kept 1 at a lake? Keep 4 more here. Fish from lakes count toward the 5 a day, not toward the 2 from streams.",
+    "Trout and char: Kept cutthroat trout over 50 cm (20 in) elsewhere? It counts here too: at most 1 over 50 cm (20 in) a day in all.",
+    "Rainbow trout: The Duncan River’s rule: 5 a day here. Rainbow trout you kept anywhere else count toward those 5. They also count toward Region 4’s 5 trout and char a day."
+   ],
+   "elsewhereLink": "Fished elsewhere today? ›",
+   "fold": {
+    "date": null,
+    "name": "Trout and char",
+    "tone": "keep",
+    "value": "2 or 5 a day"
+   },
+   "hatchLink": null,
+   "kind": "table",
+   "sourcesLink": "Sources ›",
+   "src": [
+    3135,
+    3144,
+    3137,
+    3136,
+    1271,
+    1569
+   ],
+   "together": null,
+   "top": {
+    "date": null,
+    "lead": "Keep 2 trout and char on May 1",
+    "second": null,
+    "sub": "or 5 if they’re rainbow trout"
+   },
+   "year": null
   },
   "whereNot": {
    "heading": "Where you can’t fish",
@@ -1006,17 +1031,23 @@
     {
      "col": "ok",
      "head": "Allowed",
+     "inline": false,
      "items": [
       {
        "mark": "✓",
        "name": "Angling (rod and line)",
-       "note": "with a downrigger: attached to your line by a quick-release · with a light: submerged, attached to the line, within 1 m of the hook",
+       "notes": [
+        "With a downrigger: attached to your line by a quick-release.",
+        "With a light: submerged, attached to the line, within 1 m of the hook."
+       ],
        "terms": []
       },
       {
        "mark": "✓",
        "name": "Crayfish traps",
-       "note": "release anything in the trap that isn’t a crayfish",
+       "notes": [
+        "Release anything in the trap that isn’t a crayfish."
+       ],
        "terms": []
       }
      ]
@@ -1024,35 +1055,36 @@
     {
      "col": "no",
      "head": "Not allowed",
+     "inline": true,
      "items": [
       {
        "mark": "✕",
        "name": "Set lines",
-       "note": null,
+       "notes": [],
        "terms": []
       },
       {
        "mark": "✕",
        "name": "Spear or bow",
-       "note": null,
+       "notes": [],
        "terms": []
       },
       {
        "mark": "✕",
        "name": "Nets",
-       "note": null,
+       "notes": [],
        "terms": []
       },
       {
        "mark": "✕",
        "name": "Snagging",
-       "note": null,
+       "notes": [],
        "terms": []
       },
       {
        "mark": "✕",
        "name": "Chumming",
-       "note": null,
+       "notes": [],
        "terms": []
       }
      ]
@@ -1434,152 +1466,151 @@
      "text": "How this was decided"
     },
     {
-     "k": "ladder",
-     "q": "What you can keep",
-     "result": "Release every one here.",
-     "steps": [
-      {
-       "level": "Region 4",
-       "lines": [
-        {
-         "applies": [
-          "From the Region 4 table — all of Region 4."
-         ],
-         "book": [
-          {
-           "pdf": 36,
-           "printed": 34,
-           "t": "book"
-          }
-         ],
-         "rule": "z4:daily_quotas::species_quotas.r5",
-         "tag": "Release",
-         "text": [
-          {
-           "s": "In streams, release every kokanee.",
-           "t": "text"
-          }
-         ],
-         "won": true
-        }
-       ]
-      }
-     ]
-    },
-    {
-     "k": "ladder",
-     "q": "Other rules",
-     "result": null,
-     "steps": [
-      {
-       "level": "Region 4",
-       "lines": [
-        {
-         "applies": [
-          "From the Region 4 table — all of Region 4."
-         ],
-         "book": [
-          {
-           "pdf": 36,
-           "printed": 34,
-           "t": "book"
-          }
-         ],
-         "rule": "z4:possession_quota::possession_quota.r1",
-         "tag": "Carry limit",
-         "text": [
-          {
-           "s": "Possession: 2 days’ quota. Fish at home don’t count.",
-           "t": "text"
-          }
-         ],
-         "won": true
-        }
-       ]
-      }
-     ]
-    },
-    {
-     "body": [
-      {
-       "k": "ladder",
-       "q": null,
-       "result": null,
-       "steps": [
-        {
-         "level": "",
-         "lines": [
-          {
-           "applies": [
-            "From the Region 4 table — all of Region 4."
-           ],
-           "book": [
-            {
-             "pdf": 36,
-             "printed": 34,
-             "t": "book"
-            }
-           ],
-           "rule": "z4:daily_quotas::species_quotas.r4",
-           "tag": "Replaced by the Region 4 rule",
-           "text": [
-            {
-             "s": "Keep up to 15 kokanee a day.",
-             "t": "text"
-            }
-           ],
-           "won": false
-          },
-          {
-           "applies": [
-            "From the Region 4 table — all of Region 4."
-           ],
-           "book": [
-            {
-             "pdf": 36,
-             "printed": 34,
-             "t": "book"
-            }
-           ],
-           "rule": "z4:daily_quotas::species_quotas.r6",
-           "tag": "Replaced by the Region 4 rule",
-           "text": [
-            {
-             "s": "Only 5 kokanee over 30 cm (12 in) a day.",
-             "t": "text"
-            }
-           ],
-           "won": false
-          },
-          {
-           "applies": [
-            "From the Region 4 table — every stream in Region 4."
-           ],
-           "book": [
-            {
-             "pdf": 36,
-             "printed": 34,
-             "t": "book"
-            }
-           ],
-           "rule": "z4:spring_stream_closure::spring_stream_closure.r1",
-           "tag": "Replaced by this river’s rule",
-           "text": [
-            {
-             "s": "In streams, no fishing, Apr 1–Jun 14.",
-             "t": "text"
-            }
-           ],
-           "won": false
-          }
-         ]
-        }
-       ]
-      }
-     ],
-     "k": "fold",
-     "open": false,
-     "summary": "Rules that don’t apply here (3)"
+     "flow": {
+      "other": [
+       {
+        "book": [
+         {
+          "bare": true,
+          "pdf": 36,
+          "printed": 34,
+          "t": "book"
+         }
+        ],
+        "kicker": "Region 4 · base rule",
+        "rule": "z4:possession_quota::possession_quota.r1",
+        "says": [
+         {
+          "s": "Possession: 2 days’ quota. Fish at home don’t count.",
+          "t": "text"
+         }
+        ],
+        "tag": null,
+        "tone": "won"
+       }
+      ],
+      "otherHead": "Other rules",
+      "quiet": [
+       {
+        "book": [
+         {
+          "bare": true,
+          "pdf": 11,
+          "printed": 9,
+          "t": "book"
+         },
+         {
+          "s": " ",
+          "t": "text"
+         },
+         {
+          "bare": true,
+          "pdf": 86,
+          "printed": 80,
+          "t": "book"
+         }
+        ],
+        "kicker": "All of B.C.",
+        "rule": "zp:quota_defaults::quota_defaults.r1",
+        "says": [
+         {
+          "s": "Possession: 2 days’ quota. Fish at home don’t count.",
+          "t": "text"
+         }
+        ],
+        "tag": "Replaced by Region 4",
+        "tone": "lost"
+       }
+      ],
+      "quietHead": "Rules that don’t apply here (1)",
+      "result": "So: Release every one here.",
+      "steps": [
+       {
+        "book": [
+         {
+          "bare": true,
+          "pdf": 36,
+          "printed": 34,
+          "t": "book"
+         }
+        ],
+        "kicker": "Region 4 · base rule",
+        "rule": "z4:spring_stream_closure::spring_stream_closure.r1",
+        "says": [
+         {
+          "s": "In streams, no fishing, Apr 1–Jun 14.",
+          "t": "text"
+         }
+        ],
+        "tag": "Lifted by Duncan River",
+        "tone": "lost"
+       },
+       {
+        "book": [
+         {
+          "bare": true,
+          "pdf": 36,
+          "printed": 34,
+          "t": "book"
+         }
+        ],
+        "kicker": "Region 4 · base rule",
+        "repeat": true,
+        "rule": "z4:daily_quotas::species_quotas.r4",
+        "says": [
+         {
+          "s": "Keep up to 15 kokanee a day.",
+          "t": "text"
+         }
+        ],
+        "tag": "Replaced",
+        "tone": "lost"
+       },
+       {
+        "book": [
+         {
+          "bare": true,
+          "pdf": 36,
+          "printed": 34,
+          "t": "book"
+         }
+        ],
+        "kicker": "Region 4 · base rule",
+        "repeat": true,
+        "rule": "z4:daily_quotas::species_quotas.r6",
+        "says": [
+         {
+          "s": "Only 5 kokanee over 30 cm (12 in) a day.",
+          "t": "text"
+         }
+        ],
+        "tag": "Replaced",
+        "tone": "lost"
+       },
+       {
+        "book": [
+         {
+          "bare": true,
+          "pdf": 36,
+          "printed": 34,
+          "t": "book"
+         }
+        ],
+        "kicker": "Region 4 · base rule",
+        "repeat": true,
+        "rule": "z4:daily_quotas::species_quotas.r5",
+        "says": [
+         {
+          "s": "In streams, release every kokanee.",
+          "t": "text"
+         }
+        ],
+        "tag": null,
+        "tone": "won"
+       }
+      ]
+     },
+     "k": "flow"
     },
     {
      "k": "link",
@@ -1599,87 +1630,29 @@
   "other:o1": {
    "blocks": [
     {
-     "k": "pictures",
-     "pics": [
-      {
-       "caption": "Lake whitefish ›",
-       "code": "LW",
-       "name": "Lake whitefish",
-       "open": "sp:LW",
-       "sil": false
-      },
-      {
-       "caption": "Mountain whitefish ›",
-       "code": "MW",
-       "name": "Mountain whitefish",
-       "open": "sp:MW",
-       "sil": false
-      }
-     ]
-    },
-    {
      "group": {
       "head": {
        "exception": null,
        "form": null,
        "lead": null,
        "leadN": null,
-       "multi": [
-        {
-         "open": "multi:r3",
-         "s": "Fishing more than one water today? ›",
-         "t": "link"
-        }
-       ],
+       "multi": null,
        "nolimit": false,
        "ofTotal": false,
        "rootTier": "t1",
        "shareOf": null,
        "terms": [],
        "whyHere": null,
-       "words": [
-        {
-         "s": "15",
-         "size": "big",
-         "t": "num"
-        },
-        {
-         "s": " ",
-         "t": "text"
-        },
-        {
-         "s": "a day per angler across Region 4",
-         "t": "text"
-        }
-       ]
+       "words": []
       },
       "more": {
        "open": "src:r3",
        "text": "See every regulation line ›"
       },
       "notKept": [],
-      "origin": {
-       "book": [
-        {
-         "pdf": 36,
-         "printed": 34,
-         "t": "book"
-        }
-       ],
-       "howtell": false,
-       "says": [],
-       "tag": null
-      },
-      "pinLine": {
-       "cls": "g",
-       "n": 15,
-       "said": [],
-       "sub": null,
-       "text": "Whitefish · 15 a day"
-      },
-      "quiet": null,
+      "origin": null,
       "row": 3,
-      "scope": "Region 4-wide",
+      "scope": null,
       "title": "Whitefish",
       "tree": [
        {
@@ -1751,7 +1724,137 @@
       "year": null
      },
      "k": "group",
-     "titled": true
+     "more": false,
+     "titled": false
+    },
+    {
+     "k": "head",
+     "text": "How this was decided"
+    },
+    {
+     "flow": {
+      "other": [
+       {
+        "book": [
+         {
+          "bare": true,
+          "pdf": 36,
+          "printed": 34,
+          "t": "book"
+         }
+        ],
+        "kicker": "Region 4 · base rule",
+        "rule": "z4:possession_quota::possession_quota.r1",
+        "says": [
+         {
+          "s": "Possession: 2 days’ quota. Fish at home don’t count.",
+          "t": "text"
+         }
+        ],
+        "tag": null,
+        "tone": "won"
+       }
+      ],
+      "otherHead": "Other rules",
+      "quiet": [
+       {
+        "book": [
+         {
+          "bare": true,
+          "pdf": 11,
+          "printed": 9,
+          "t": "book"
+         },
+         {
+          "s": " ",
+          "t": "text"
+         },
+         {
+          "bare": true,
+          "pdf": 86,
+          "printed": 80,
+          "t": "book"
+         }
+        ],
+        "kicker": "All of B.C.",
+        "rule": "zp:quota_defaults::quota_defaults.r1",
+        "says": [
+         {
+          "s": "Possession: 2 days’ quota. Fish at home don’t count.",
+          "t": "text"
+         }
+        ],
+        "tag": "Replaced by Region 4",
+        "tone": "lost"
+       }
+      ],
+      "quietHead": "Rules that don’t apply here (1)",
+      "result": "So: 15 a day here, for all of Region 4 together.",
+      "steps": [
+       {
+        "book": [
+         {
+          "bare": true,
+          "pdf": 36,
+          "printed": 34,
+          "t": "book"
+         }
+        ],
+        "kicker": "Region 4 · base rule",
+        "rule": "z4:spring_stream_closure::spring_stream_closure.r1",
+        "says": [
+         {
+          "s": "In streams, no fishing, Apr 1–Jun 14.",
+          "t": "text"
+         }
+        ],
+        "tag": "Lifted by Duncan River",
+        "tone": "lost"
+       },
+       {
+        "book": [
+         {
+          "bare": true,
+          "pdf": 36,
+          "printed": 34,
+          "t": "book"
+         }
+        ],
+        "kicker": "Region 4 · base rule",
+        "repeat": true,
+        "rule": "z4:daily_quotas::species_quotas.r10",
+        "says": [
+         {
+          "s": "Keep up to 15 whitefish a day, all kinds together.",
+          "t": "text"
+         }
+        ],
+        "tag": null,
+        "tone": "won"
+       }
+      ]
+     },
+     "k": "flow"
+    },
+    {
+     "k": "link",
+     "line": [
+      {
+       "open": "multi:r3",
+       "s": "Fishing more than one water today? ›",
+       "t": "link"
+      }
+     ]
+    },
+    {
+     "k": "link",
+     "line": [
+      {
+       "open": "src:r3",
+       "s": "See every regulation line ›",
+       "t": "link"
+      }
+     ]
     }
    ],
    "key": "other:o1",
@@ -1805,110 +1908,109 @@
      "text": "How this was decided"
     },
     {
-     "k": "ladder",
-     "q": "What you can keep",
-     "result": "2 a day here, for all of Region 4 together.",
-     "steps": [
-      {
-       "level": "Region 4",
-       "lines": [
-        {
-         "applies": [
-          "From the Region 4 table — all of Region 4."
-         ],
-         "book": [
-          {
-           "pdf": 36,
-           "printed": 34,
-           "t": "book"
-          }
-         ],
-         "rule": "z4:daily_quotas::species_quotas.r2",
-         "tag": "Daily limit",
-         "text": [
-          {
-           "s": "Keep up to 2 burbot a day.",
-           "t": "text"
-          }
-         ],
-         "won": true
-        }
-       ]
-      }
-     ]
-    },
-    {
-     "k": "ladder",
-     "q": "Other rules",
-     "result": null,
-     "steps": [
-      {
-       "level": "Region 4",
-       "lines": [
-        {
-         "applies": [
-          "From the Region 4 table — all of Region 4."
-         ],
-         "book": [
-          {
-           "pdf": 36,
-           "printed": 34,
-           "t": "book"
-          }
-         ],
-         "rule": "z4:possession_quota::possession_quota.r1",
-         "tag": "Carry limit",
-         "text": [
-          {
-           "s": "Possession: 2 days’ quota. Fish at home don’t count.",
-           "t": "text"
-          }
-         ],
-         "won": true
-        }
-       ]
-      }
-     ]
-    },
-    {
-     "body": [
-      {
-       "k": "ladder",
-       "q": null,
-       "result": null,
-       "steps": [
-        {
-         "level": "",
-         "lines": [
-          {
-           "applies": [
-            "From the Region 4 table — every stream in Region 4."
-           ],
-           "book": [
-            {
-             "pdf": 36,
-             "printed": 34,
-             "t": "book"
-            }
-           ],
-           "rule": "z4:spring_stream_closure::spring_stream_closure.r1",
-           "tag": "Replaced by this river’s rule",
-           "text": [
-            {
-             "s": "In streams, no fishing, Apr 1–Jun 14.",
-             "t": "text"
-            }
-           ],
-           "won": false
-          }
-         ]
-        }
-       ]
-      }
-     ],
-     "k": "fold",
-     "open": false,
-     "summary": "Rules that don’t apply here (1)"
+     "flow": {
+      "other": [
+       {
+        "book": [
+         {
+          "bare": true,
+          "pdf": 36,
+          "printed": 34,
+          "t": "book"
+         }
+        ],
+        "kicker": "Region 4 · base rule",
+        "rule": "z4:possession_quota::possession_quota.r1",
+        "says": [
+         {
+          "s": "Possession: 2 days’ quota. Fish at home don’t count.",
+          "t": "text"
+         }
+        ],
+        "tag": null,
+        "tone": "won"
+       }
+      ],
+      "otherHead": "Other rules",
+      "quiet": [
+       {
+        "book": [
+         {
+          "bare": true,
+          "pdf": 11,
+          "printed": 9,
+          "t": "book"
+         },
+         {
+          "s": " ",
+          "t": "text"
+         },
+         {
+          "bare": true,
+          "pdf": 86,
+          "printed": 80,
+          "t": "book"
+         }
+        ],
+        "kicker": "All of B.C.",
+        "rule": "zp:quota_defaults::quota_defaults.r1",
+        "says": [
+         {
+          "s": "Possession: 2 days’ quota. Fish at home don’t count.",
+          "t": "text"
+         }
+        ],
+        "tag": "Replaced by Region 4",
+        "tone": "lost"
+       }
+      ],
+      "quietHead": "Rules that don’t apply here (1)",
+      "result": "So: 2 a day here, for all of Region 4 together.",
+      "steps": [
+       {
+        "book": [
+         {
+          "bare": true,
+          "pdf": 36,
+          "printed": 34,
+          "t": "book"
+         }
+        ],
+        "kicker": "Region 4 · base rule",
+        "rule": "z4:spring_stream_closure::spring_stream_closure.r1",
+        "says": [
+         {
+          "s": "In streams, no fishing, Apr 1–Jun 14.",
+          "t": "text"
+         }
+        ],
+        "tag": "Lifted by Duncan River",
+        "tone": "lost"
+       },
+       {
+        "book": [
+         {
+          "bare": true,
+          "pdf": 36,
+          "printed": 34,
+          "t": "book"
+         }
+        ],
+        "kicker": "Region 4 · base rule",
+        "repeat": true,
+        "rule": "z4:daily_quotas::species_quotas.r2",
+        "says": [
+         {
+          "s": "Keep up to 2 burbot a day.",
+          "t": "text"
+         }
+        ],
+        "tag": null,
+        "tone": "won"
+       }
+      ]
+     },
+     "k": "flow"
     },
     {
      "k": "link",
@@ -2000,110 +2102,189 @@
      "text": "How this was decided"
     },
     {
-     "k": "ladder",
-     "q": "What you can keep",
-     "result": "Closed here.",
-     "steps": [
-      {
-       "level": "Region 4",
-       "lines": [
-        {
-         "applies": [
-          "From the Region 4 table — all of Region 4."
-         ],
-         "book": [
-          {
-           "pdf": 36,
-           "printed": 34,
-           "t": "book"
-          }
-         ],
-         "rule": "z4:invasive_species_notice::invasive_species_notice.r1",
-         "tag": "Closed",
-         "text": [
-          {
-           "s": "No fishing for bass, yellow perch, northern pike and walleye: the Kootenay Region, except waters listed in the tables",
-           "t": "text"
-          }
-         ],
-         "won": true
-        }
-       ]
-      }
-     ]
-    },
-    {
-     "k": "ladder",
-     "q": "Other rules",
-     "result": null,
-     "steps": [
-      {
-       "level": "Region 4",
-       "lines": [
-        {
-         "applies": [
-          "From the Region 4 table — all of Region 4."
-         ],
-         "book": [
-          {
-           "pdf": 36,
-           "printed": 34,
-           "t": "book"
-          }
-         ],
-         "rule": "z4:possession_quota::possession_quota.r1",
-         "tag": "Carry limit",
-         "text": [
-          {
-           "s": "Possession: 2 days’ quota. Fish at home don’t count.",
-           "t": "text"
-          }
-         ],
-         "won": true
-        }
-       ]
-      }
-     ]
-    },
-    {
-     "body": [
-      {
-       "k": "ladder",
-       "q": null,
-       "result": null,
-       "steps": [
-        {
-         "level": "",
-         "lines": [
-          {
-           "applies": [
-            "From the Region 4 table — every stream in Region 4."
-           ],
-           "book": [
-            {
-             "pdf": 36,
-             "printed": 34,
-             "t": "book"
-            }
-           ],
-           "rule": "z4:spring_stream_closure::spring_stream_closure.r1",
-           "tag": "Replaced by this river’s rule",
-           "text": [
-            {
-             "s": "In streams, no fishing, Apr 1–Jun 14.",
-             "t": "text"
-            }
-           ],
-           "won": false
-          }
-         ]
-        }
-       ]
-      }
-     ],
-     "k": "fold",
-     "open": false,
-     "summary": "Rules that don’t apply here (1)"
+     "flow": {
+      "other": [
+       {
+        "book": [
+         {
+          "bare": true,
+          "pdf": 36,
+          "printed": 34,
+          "t": "book"
+         }
+        ],
+        "kicker": "Region 4 · base rule",
+        "rule": "z4:possession_quota::possession_quota.r1",
+        "says": [
+         {
+          "s": "Possession: 2 days’ quota. Fish at home don’t count.",
+          "t": "text"
+         }
+        ],
+        "tag": null,
+        "tone": "won"
+       }
+      ],
+      "otherHead": "Other rules",
+      "quiet": [
+       {
+        "book": [
+         {
+          "bare": true,
+          "pdf": 36,
+          "printed": 34,
+          "t": "book"
+         }
+        ],
+        "kicker": "Region 4 · base rule",
+        "rule": "z4:daily_quotas::species_quotas.r1",
+        "says": [
+         {
+          "s": "No fishing for bass.",
+          "t": "text"
+         }
+        ],
+        "tag": "Says the same",
+        "tone": "quiet"
+       },
+       {
+        "book": [
+         {
+          "bare": true,
+          "pdf": 36,
+          "printed": 34,
+          "t": "book"
+         }
+        ],
+        "kicker": "Region 4 · base rule",
+        "rule": "z4:daily_quotas::species_quotas.r7",
+        "says": [
+         {
+          "s": "No fishing for northern pike.",
+          "t": "text"
+         }
+        ],
+        "tag": "Says the same",
+        "tone": "quiet"
+       },
+       {
+        "book": [
+         {
+          "bare": true,
+          "pdf": 36,
+          "printed": 34,
+          "t": "book"
+         }
+        ],
+        "kicker": "Region 4 · base rule",
+        "rule": "z4:daily_quotas::species_quotas.r8",
+        "says": [
+         {
+          "s": "No fishing for walleye.",
+          "t": "text"
+         }
+        ],
+        "tag": "Says the same",
+        "tone": "quiet"
+       },
+       {
+        "book": [
+         {
+          "bare": true,
+          "pdf": 36,
+          "printed": 34,
+          "t": "book"
+         }
+        ],
+        "kicker": "Region 4 · base rule",
+        "rule": "z4:daily_quotas::species_quotas.r11",
+        "says": [
+         {
+          "s": "No fishing for yellow perch.",
+          "t": "text"
+         }
+        ],
+        "tag": "Says the same",
+        "tone": "quiet"
+       },
+       {
+        "book": [
+         {
+          "bare": true,
+          "pdf": 11,
+          "printed": 9,
+          "t": "book"
+         },
+         {
+          "s": " ",
+          "t": "text"
+         },
+         {
+          "bare": true,
+          "pdf": 86,
+          "printed": 80,
+          "t": "book"
+         }
+        ],
+        "kicker": "All of B.C.",
+        "rule": "zp:quota_defaults::quota_defaults.r1",
+        "says": [
+         {
+          "s": "Possession: 2 days’ quota. Fish at home don’t count.",
+          "t": "text"
+         }
+        ],
+        "tag": "Replaced by Region 4",
+        "tone": "lost"
+       }
+      ],
+      "quietHead": "Rules that don’t apply here (5)",
+      "result": "So: Closed here.",
+      "steps": [
+       {
+        "book": [
+         {
+          "bare": true,
+          "pdf": 36,
+          "printed": 34,
+          "t": "book"
+         }
+        ],
+        "kicker": "Region 4 · base rule",
+        "rule": "z4:spring_stream_closure::spring_stream_closure.r1",
+        "says": [
+         {
+          "s": "In streams, no fishing, Apr 1–Jun 14.",
+          "t": "text"
+         }
+        ],
+        "tag": "Lifted by Duncan River",
+        "tone": "lost"
+       },
+       {
+        "book": [
+         {
+          "bare": true,
+          "pdf": 36,
+          "printed": 34,
+          "t": "book"
+         }
+        ],
+        "kicker": "Region 4 · base rule",
+        "repeat": true,
+        "rule": "z4:invasive_species_notice::invasive_species_notice.r1",
+        "says": [
+         {
+          "s": "No fishing for bass, yellow perch, northern pike and walleye: the Kootenay Region, except waters listed in the tables",
+          "t": "text"
+         }
+        ],
+        "tag": null,
+        "tone": "won"
+       }
+      ]
+     },
+     "k": "flow"
     },
     {
      "k": "link",
@@ -2167,110 +2348,129 @@
      "text": "How this was decided"
     },
     {
-     "k": "ladder",
-     "q": "What you can keep",
-     "result": "Closed here.",
-     "steps": [
-      {
-       "level": "Region 4",
-       "lines": [
-        {
-         "applies": [
-          "From the Region 4 table — all of Region 4."
-         ],
-         "book": [
-          {
-           "pdf": 36,
-           "printed": 34,
-           "t": "book"
-          }
-         ],
-         "rule": "z4:daily_quotas::species_quotas.r9",
-         "tag": "Closed",
-         "text": [
-          {
-           "s": "No fishing for white sturgeon.",
-           "t": "text"
-          }
-         ],
-         "won": true
-        }
-       ]
-      }
-     ]
-    },
-    {
-     "k": "ladder",
-     "q": "Other rules",
-     "result": null,
-     "steps": [
-      {
-       "level": "Region 4",
-       "lines": [
-        {
-         "applies": [
-          "From the Region 4 table — all of Region 4."
-         ],
-         "book": [
-          {
-           "pdf": 36,
-           "printed": 34,
-           "t": "book"
-          }
-         ],
-         "rule": "z4:possession_quota::possession_quota.r1",
-         "tag": "Carry limit",
-         "text": [
-          {
-           "s": "Possession: 2 days’ quota. Fish at home don’t count.",
-           "t": "text"
-          }
-         ],
-         "won": true
-        }
-       ]
-      }
-     ]
-    },
-    {
-     "body": [
-      {
-       "k": "ladder",
-       "q": null,
-       "result": null,
-       "steps": [
-        {
-         "level": "",
-         "lines": [
-          {
-           "applies": [
-            "From the Region 4 table — every stream in Region 4."
-           ],
-           "book": [
-            {
-             "pdf": 36,
-             "printed": 34,
-             "t": "book"
-            }
-           ],
-           "rule": "z4:spring_stream_closure::spring_stream_closure.r1",
-           "tag": "Replaced by this river’s rule",
-           "text": [
-            {
-             "s": "In streams, no fishing, Apr 1–Jun 14.",
-             "t": "text"
-            }
-           ],
-           "won": false
-          }
-         ]
-        }
-       ]
-      }
-     ],
-     "k": "fold",
-     "open": false,
-     "summary": "Rules that don’t apply here (1)"
+     "flow": {
+      "other": [
+       {
+        "book": [
+         {
+          "bare": true,
+          "pdf": 36,
+          "printed": 34,
+          "t": "book"
+         }
+        ],
+        "kicker": "Region 4 · base rule",
+        "rule": "z4:possession_quota::possession_quota.r1",
+        "says": [
+         {
+          "s": "Possession: 2 days’ quota. Fish at home don’t count.",
+          "t": "text"
+         }
+        ],
+        "tag": null,
+        "tone": "won"
+       }
+      ],
+      "otherHead": "Other rules",
+      "quiet": [
+       {
+        "book": [
+         {
+          "bare": true,
+          "pdf": 11,
+          "printed": 9,
+          "t": "book"
+         },
+         {
+          "s": " ",
+          "t": "text"
+         },
+         {
+          "bare": true,
+          "pdf": 86,
+          "printed": 80,
+          "t": "book"
+         }
+        ],
+        "kicker": "All of B.C.",
+        "rule": "zp:quota_defaults::quota_defaults.r1",
+        "says": [
+         {
+          "s": "Possession: 2 days’ quota. Fish at home don’t count.",
+          "t": "text"
+         }
+        ],
+        "tag": "Replaced by Region 4",
+        "tone": "lost"
+       },
+       {
+        "book": [
+         {
+          "bare": true,
+          "pdf": 9,
+          "printed": 7,
+          "t": "book"
+         }
+        ],
+        "kicker": "All of B.C.",
+        "rule": "zp:white_sturgeon_licence::white_sturgeon_licence.r4",
+        "says": [
+         {
+          "s": "No fishing for white sturgeon: every non-tidal water of the province; lifted on the licensed Fraser watershed (r4x)",
+          "t": "text"
+         }
+        ],
+        "tag": "Says the same",
+        "tone": "quiet"
+       }
+      ],
+      "quietHead": "Rules that don’t apply here (2)",
+      "result": "So: Closed here.",
+      "steps": [
+       {
+        "book": [
+         {
+          "bare": true,
+          "pdf": 36,
+          "printed": 34,
+          "t": "book"
+         }
+        ],
+        "kicker": "Region 4 · base rule",
+        "rule": "z4:spring_stream_closure::spring_stream_closure.r1",
+        "says": [
+         {
+          "s": "In streams, no fishing, Apr 1–Jun 14.",
+          "t": "text"
+         }
+        ],
+        "tag": "Lifted by Duncan River",
+        "tone": "lost"
+       },
+       {
+        "book": [
+         {
+          "bare": true,
+          "pdf": 36,
+          "printed": 34,
+          "t": "book"
+         }
+        ],
+        "kicker": "Region 4 · base rule",
+        "repeat": true,
+        "rule": "z4:daily_quotas::species_quotas.r9",
+        "says": [
+         {
+          "s": "No fishing for white sturgeon.",
+          "t": "text"
+         }
+        ],
+        "tag": null,
+        "tone": "won"
+       }
+      ]
+     },
+     "k": "flow"
     },
     {
      "k": "link",
@@ -2334,110 +2534,109 @@
      "text": "How this was decided"
     },
     {
-     "k": "ladder",
-     "q": "What you can keep",
-     "result": "25 a day here, for all of Region 4 together.",
-     "steps": [
-      {
-       "level": "Region 4",
-       "lines": [
-        {
-         "applies": [
-          "From the Region 4 table — all of Region 4."
-         ],
-         "book": [
-          {
-           "pdf": 36,
-           "printed": 34,
-           "t": "book"
-          }
-         ],
-         "rule": "z4:daily_quotas::species_quotas.r3",
-         "tag": "Daily limit",
-         "text": [
-          {
-           "s": "Keep up to 25 crayfish a day.",
-           "t": "text"
-          }
-         ],
-         "won": true
-        }
-       ]
-      }
-     ]
-    },
-    {
-     "k": "ladder",
-     "q": "Other rules",
-     "result": null,
-     "steps": [
-      {
-       "level": "Region 4",
-       "lines": [
-        {
-         "applies": [
-          "From the Region 4 table — all of Region 4."
-         ],
-         "book": [
-          {
-           "pdf": 36,
-           "printed": 34,
-           "t": "book"
-          }
-         ],
-         "rule": "z4:possession_quota::possession_quota.r1",
-         "tag": "Carry limit",
-         "text": [
-          {
-           "s": "Possession: 2 days’ quota. Fish at home don’t count.",
-           "t": "text"
-          }
-         ],
-         "won": true
-        }
-       ]
-      }
-     ]
-    },
-    {
-     "body": [
-      {
-       "k": "ladder",
-       "q": null,
-       "result": null,
-       "steps": [
-        {
-         "level": "",
-         "lines": [
-          {
-           "applies": [
-            "From the Region 4 table — every stream in Region 4."
-           ],
-           "book": [
-            {
-             "pdf": 36,
-             "printed": 34,
-             "t": "book"
-            }
-           ],
-           "rule": "z4:spring_stream_closure::spring_stream_closure.r1",
-           "tag": "Replaced by this river’s rule",
-           "text": [
-            {
-             "s": "In streams, no fishing, Apr 1–Jun 14.",
-             "t": "text"
-            }
-           ],
-           "won": false
-          }
-         ]
-        }
-       ]
-      }
-     ],
-     "k": "fold",
-     "open": false,
-     "summary": "Rules that don’t apply here (1)"
+     "flow": {
+      "other": [
+       {
+        "book": [
+         {
+          "bare": true,
+          "pdf": 36,
+          "printed": 34,
+          "t": "book"
+         }
+        ],
+        "kicker": "Region 4 · base rule",
+        "rule": "z4:possession_quota::possession_quota.r1",
+        "says": [
+         {
+          "s": "Possession: 2 days’ quota. Fish at home don’t count.",
+          "t": "text"
+         }
+        ],
+        "tag": null,
+        "tone": "won"
+       }
+      ],
+      "otherHead": "Other rules",
+      "quiet": [
+       {
+        "book": [
+         {
+          "bare": true,
+          "pdf": 11,
+          "printed": 9,
+          "t": "book"
+         },
+         {
+          "s": " ",
+          "t": "text"
+         },
+         {
+          "bare": true,
+          "pdf": 86,
+          "printed": 80,
+          "t": "book"
+         }
+        ],
+        "kicker": "All of B.C.",
+        "rule": "zp:quota_defaults::quota_defaults.r1",
+        "says": [
+         {
+          "s": "Possession: 2 days’ quota. Fish at home don’t count.",
+          "t": "text"
+         }
+        ],
+        "tag": "Replaced by Region 4",
+        "tone": "lost"
+       }
+      ],
+      "quietHead": "Rules that don’t apply here (1)",
+      "result": "So: 25 a day here, for all of Region 4 together.",
+      "steps": [
+       {
+        "book": [
+         {
+          "bare": true,
+          "pdf": 36,
+          "printed": 34,
+          "t": "book"
+         }
+        ],
+        "kicker": "Region 4 · base rule",
+        "rule": "z4:spring_stream_closure::spring_stream_closure.r1",
+        "says": [
+         {
+          "s": "In streams, no fishing, Apr 1–Jun 14.",
+          "t": "text"
+         }
+        ],
+        "tag": "Lifted by Duncan River",
+        "tone": "lost"
+       },
+       {
+        "book": [
+         {
+          "bare": true,
+          "pdf": 36,
+          "printed": 34,
+          "t": "book"
+         }
+        ],
+        "kicker": "Region 4 · base rule",
+        "repeat": true,
+        "rule": "z4:daily_quotas::species_quotas.r3",
+        "says": [
+         {
+          "s": "Keep up to 25 crayfish a day.",
+          "t": "text"
+         }
+        ],
+        "tag": null,
+        "tone": "won"
+       }
+      ]
+     },
+     "k": "flow"
     },
     {
      "k": "link",
@@ -2505,37 +2704,36 @@
      "text": "How this was decided"
     },
     {
-     "k": "ladder",
-     "q": "What you can keep",
-     "result": "Closed here.",
-     "steps": [
-      {
-       "level": "Federal law",
-       "lines": [
-        {
-         "applies": [
-          "Set by a federal or park authority — everywhere in B.C."
-         ],
-         "book": [
-          {
-           "pdf": 11,
-           "printed": 9,
-           "t": "book"
-          }
-         ],
-         "rule": "zp:protected_species::protected_species.r1",
-         "tag": "Closed",
-         "text": [
-          {
-           "s": "No fishing for Cultus Lake sculpin, Enos Lake stickleback, Misty Lake stickleback, Nooksack dace, Paxton Lake stickleback, Rocky Mountain sculpin, shorthead sculpin, Salish sucker, Vananda Creek stickleback, vancouver lamprey, western brook lamprey (Morrison Creek population) and white sturgeon (Nechako, Upper Fraser, Kootenay and Columbia populations).",
-           "t": "text"
-          }
-         ],
-         "won": true
-        }
-       ]
-      }
-     ]
+     "flow": {
+      "other": [],
+      "otherHead": "Other rules",
+      "quiet": [],
+      "quietHead": "Rules that don’t apply here (0)",
+      "result": "So: Closed here.",
+      "steps": [
+       {
+        "book": [
+         {
+          "bare": true,
+          "pdf": 11,
+          "printed": 9,
+          "t": "book"
+         }
+        ],
+        "kicker": "Federal law",
+        "rule": "zp:protected_species::protected_species.r1",
+        "says": [
+         {
+          "s": "No fishing for Cultus Lake sculpin, Enos Lake stickleback, Misty Lake stickleback, Nooksack dace, Paxton Lake stickleback, Rocky Mountain sculpin, shorthead sculpin, Salish sucker, Vananda Creek stickleback, vancouver lamprey, western brook lamprey (Morrison Creek population) and white sturgeon (Nechako, Upper Fraser, Kootenay and Columbia populations).",
+          "t": "text"
+         }
+        ],
+        "tag": null,
+        "tone": "won"
+       }
+      ]
+     },
+     "k": "flow"
     },
     {
      "k": "link",
@@ -2584,15 +2782,6 @@
     },
     {
      "items": [
-      {
-       "line": [
-        {
-         "s": "With 5 trout and char a day you may have 10: 2 days’ fish.",
-         "t": "text"
-        }
-       ],
-       "strong": "Possession doubles the 5 a day, not the 2 from streams."
-      },
       {
        "line": [
         {
@@ -4717,195 +4906,7 @@
    "sub": null,
    "title": "White sturgeon"
   },
-  "src:r0": {
-   "blocks": [
-    {
-     "k": "head",
-     "text": "These decide it (5)"
-    },
-    {
-     "groups": [
-      {
-       "rows": [
-        {
-         "book": [
-          {
-           "box": [
-            {
-             "box": [
-              36,
-              183.84,
-              540,
-              193.44
-             ],
-             "pdf": 42,
-             "size": [
-              576,
-              756
-             ]
-            }
-           ],
-           "pdf": 42,
-           "printed": 40,
-           "t": "book"
-          }
-         ],
-         "key": "r4:trout_lake_s_tributaries@4-30::trout_lakes_tributaries.r1",
-         "quote": "Bull trout catch and release",
-         "role": "Release every one · for Dolly Varden/bull trout",
-         "title": "Release all Dolly Varden/bull trout in tributaries"
-        }
-       ],
-       "where": "Region 4 · for this water (Trout Lake)"
-      },
-      {
-       "rows": [
-        {
-         "book": [
-          {
-           "pdf": 36,
-           "printed": 34,
-           "t": "book"
-          }
-         ],
-         "key": "z4:daily_quotas::trout_char_quota.r1",
-         "quote": "Trout/char: 5",
-         "role": "Sets the number · for cutthroat trout, brook trout, brown trout and lake trout",
-         "title": "Keep up to 5 trout and char a day"
-        },
-        {
-         "book": [
-          {
-           "pdf": 36,
-           "printed": 34,
-           "t": "book"
-          }
-         ],
-         "key": "z4:daily_quotas::trout_char_quota.r3",
-         "quote": "2 from streams",
-         "role": "Lowers the number · for cutthroat trout, brook trout, brown trout and lake trout",
-         "title": "At most 2 trout and char a day from streams"
-        },
-        {
-         "book": [
-          {
-           "pdf": 36,
-           "printed": 34,
-           "t": "book"
-          }
-         ],
-         "key": "z4:possession_quota::possession_quota.r1",
-         "quote": "Possession quotas = 2 daily quotas (See tables for exceptions)",
-         "role": "Possession limit",
-         "title": "Possession: twice the daily quota"
-        },
-        {
-         "book": [
-          {
-           "pdf": 36,
-           "printed": 34,
-           "t": "book"
-          }
-         ],
-         "key": "z4:daily_quotas::trout_char_quota.r2",
-         "quote": "1 rainbow trout or cutthroat trout over 50 cm",
-         "role": "A limit inside the total · for cutthroat trout",
-         "title": "At most 1 rainbow trout or cutthroat trout over 50 cm (20 in) a day"
-        }
-       ],
-       "where": "Region 4 · region-wide"
-      }
-     ],
-     "k": "sources"
-    },
-    {
-     "body": [
-      {
-       "groups": [
-        {
-         "rows": [
-          {
-           "book": [],
-           "key": "r4:duncan_river@4-19::duncan_river.r5",
-           "notes": [],
-           "quote": "bull trout daily quota = 2 (any size)",
-           "role": "Beaten by “Bull trout catch and release” · for Dolly Varden/bull trout",
-           "title": "Keep up to 2 Dolly Varden/bull trout a day",
-           "trib": true
-          }
-         ],
-         "where": "Region 4 · for this water (Duncan River)"
-        },
-        {
-         "rows": [
-          {
-           "book": [],
-           "key": "r4:kootenay_lake_s_tributaries@4-19+4-7::kootenay_lake_tributaries.r1",
-           "notes": [],
-           "quote": "Bull trout catch and release",
-           "role": "Beaten by “Bull trout catch and release” · for Dolly Varden/bull trout",
-           "title": "Release all Dolly Varden/bull trout in tributaries",
-           "trib": true
-          }
-         ],
-         "where": "Region 4 · for this water (Kootenay Lake — Main Body)"
-        },
-        {
-         "rows": [
-          {
-           "book": [],
-           "key": "z4:spring_stream_closure::spring_stream_closure.r1",
-           "notes": [],
-           "quote": "No Fishing: in any stream in Region 4 from Apr 1-June 14 (see tables for additional closed times or exceptions).",
-           "role": "Lifted by “Exempt from spring closure”",
-           "title": "No fishing in streams, Apr 1–Jun 14",
-           "trib": false
-          }
-         ],
-         "where": "Region 4 · region-wide"
-        },
-        {
-         "rows": [
-          {
-           "book": [],
-           "key": "z4:daily_quotas::trout_char_quota.r4",
-           "notes": [],
-           "quote": "1 bull trout (Dolly Varden) of any size",
-           "role": "Beaten by “Bull trout catch and release” · for Dolly Varden/bull trout",
-           "title": "At most 1 Dolly Varden/bull trout a day",
-           "trib": false
-          }
-         ],
-         "where": "Region 4 · region-wide"
-        },
-        {
-         "rows": [
-          {
-           "book": [],
-           "key": "zp:quota_defaults::quota_defaults.r1",
-           "notes": [],
-           "quote": "Possession quota — no more than twice the daily quota unless otherwise specified.",
-           "role": "Beaten by “Possession quotas = 2 daily quotas (See tables for exceptions)”",
-           "title": "Possession: twice the daily quota",
-           "trib": false
-          }
-         ],
-         "where": "Provincial · province-wide"
-        }
-       ],
-       "k": "sources",
-       "overruled": true
-      }
-     ],
-     "k": "fold",
-     "open": false,
-     "summary": "Overruled (5)"
-    }
-   ],
-   "key": "src:r0",
-   "sub": "Glenn Creek · May 1. The more specific rule speaks first: this water, then from downstream, a named area, the region, then the province.",
-   "title": "Trout and char"
-  },
+  "src:r0": null,
   "srcs:always": {
    "blocks": [
     {

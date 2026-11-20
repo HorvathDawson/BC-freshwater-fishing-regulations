@@ -1,9 +1,9 @@
 /**
  * (T456) THE WALKTHROUGH'S VIEW OF A CONTROL WHOSE STATE A SCREEN KEEPS TO ITSELF — a fold's Details, the chart's Flow /
  * Level and 72 h / Year, the panel's forecast day. A DO step about one of them moves on when the reader uses it, so the walk
- * must see its value; "Show me" uses it the same way the reader's tap would (its own setter). The screen tells
- * (`useGuideControl`); the Shell keeps the values (`useGuideControlHost`) and reads them into the walk's facts. Outside a
- * host (a screen mounted alone, a test) telling is a no-op.
+ * must see its value; the walk's Next (T874; "Show me" before it) uses it the same way the reader's tap would (its own
+ * setter). The screen tells (`useGuideControl`); the Shell keeps the values (`useGuideControlHost`) and reads them into the
+ * walk's facts. Outside a host (a screen mounted alone, a test) telling is a no-op.
  */
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
 

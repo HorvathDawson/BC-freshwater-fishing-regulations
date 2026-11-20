@@ -18,6 +18,55 @@ import { normCdf, probit } from "./trust";
 
 export { CHANGE_POLICY };
 
+/** (T895) A flow forecast model the publisher runs (`CHANGE_POLICY.order`): each has its own colour token and dash. */
+export type ForecastModel = (typeof CHANGE_POLICY.order)[number];
+export const FORECAST_MODELS: readonly ForecastModel[] = CHANGE_POLICY.order;
+/** (T377, T895; moved from @app/ui chart.ts, T908) each model's own dash, keyed by the model: its trace, its ribbon's edge, its switch. */
+export const FORECAST_DASH: Readonly<Record<ForecastModel, string>> = { CLEVER: "7,4", COFFEE: "0.1,4", ELF: "9,3.5,0.1,3.5" };
+export const OTHER_MODEL_DASH = "3,3";
+export const forecastDash = (model: string): string => (Object.hasOwn(FORECAST_DASH, model) ? FORECAST_DASH[model as ForecastModel] : OTHER_MODEL_DASH);
+
+/* (T377, T398; moved from @app/ui panel/change.ts, T908: the gauge page's script runs it too) */
+/**
+ * (T377) WHICH MODELS THE CHART DRAWS: `model` the chosen one (null: the freshest run, the default) — its ribbon, its
+ * notes — `also` the others drawn beside it, in the order picked, and `on` the forecast switch (`forecastDrawn`).
+ */
+export interface ModelPick { readonly model: string | null; readonly also: readonly string[]; readonly on: boolean | null }
+export const NO_MODEL_PICK: ModelPick = { model: null, also: [], on: null };
+
+/**
+ * A TAP ON A MODEL'S LEGEND ENTRY (T377: several at once, each entry a switch). `drawn` is the model the chart draws
+ * now (the pick, or the default's freshest run) and `drawing` whether any forecast is. With none drawn the tap draws
+ * that one alone; on one not drawn it joins the others (the chosen one pinned, so the default never shifts under it);
+ * on one drawn beside the chosen it goes; on the chosen one the next drawn takes its place — the last one off is
+ * "Real-time only" (T398's measured line alone).
+ */
+export function pickModel(p: ModelPick, m: string, drawn: string | null, drawing: boolean): ModelPick {
+  if (!drawing) return { model: m, also: [], on: true };
+  if (m === drawn) return p.also.length ? { model: p.also[0]!, also: p.also.slice(1), on: true } : { ...p, also: [], on: false };
+  if (p.also.includes(m)) return { ...p, also: p.also.filter((x) => x !== m) };
+  return { model: drawn ?? p.model, also: [...p.also, m], on: true };
+}
+
+/** (T398, T377) "Real-time only": every model off, the measured line alone. */
+export const realtimeOnly = (p: ModelPick): ModelPick => ({ ...p, also: [], on: false });
+
+/**
+ * (T398) WHETHER THE CHART DRAWS A FORECAST AT ALL. The reader's switch wins: `false` is the measured line alone
+ * ("Real-time only", offered on every gauge), `true` is a model drawn. Untouched (`null`), a forecast is drawn unless
+ * ELF is the only model running here — ELF is the last resort (T144) and opt-in (owner 2026-11-05, Capilano: "if
+ * only elf is available … it should just show real time data"). Runs not yet known (`null`) draw none, so an ELF-only
+ * gauge never flashes its forecast before the runs arrive.
+ */
+export function forecastDrawn(on: boolean | null, runs: readonly { model: string }[] | null): boolean {
+  if (on !== null) return on;
+  if (!runs) return false;
+  return !(runs.length > 0 && runs.every((r) => r.model === "ELF"));
+}
+
+/** Is a run's model one the publisher names (and so one with a colour and a dash of its own)? */
+export const isForecastModel = (m: string): m is ForecastModel => (FORECAST_MODELS as readonly string[]).includes(m);
+
 /**
  * WITHIN THIS FACTOR EITHER WAY IS "LITTLE CHANGE" in words, and the legend's middle bracket. App-side only: the
  * publisher's thresholds say what is BIG (2x, half, a quarter of the record); this says what is not worth a word.
@@ -43,6 +92,14 @@ export function codedChange(ratio: number): number {
  */
 export const CHANGE_STOP_RATIOS: readonly number[] =
   [CHANGE_POLICY.fallRatio ** 2, CHANGE_POLICY.fallRatio, 1, CHANGE_POLICY.riseRatio, CHANGE_POLICY.riseRatio ** 2];
+
+/** (T908) WHAT THE MEASURED LINE HAS DONE over about a day, in one word, by the same "little change" factor (`STEADY_RATIO`) the forecast uses. Null when there is nothing to compare. */
+export const OBSERVED_TREND = { rise: "rising", steady: "steady", fall: "falling" } as const;
+export function observedTrend(before: number, now: number): (typeof OBSERVED_TREND)[keyof typeof OBSERVED_TREND] | null {
+  if (!(before > 0) || !(now >= 0)) return null;
+  const r = now / before;
+  return r >= STEADY_RATIO ? OBSERVED_TREND.rise : r <= 1 / STEADY_RATIO ? OBSERVED_TREND.fall : OBSERVED_TREND.steady;
+}
 
 export type ChangeKind = "big-rise" | "rise" | "steady" | "fall" | "big-fall";
 

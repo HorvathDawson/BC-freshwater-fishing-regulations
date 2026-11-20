@@ -83,7 +83,9 @@
         "obstacle": "plain",
         "tidal_water": "plain",
         "parcel_private__edge": "plain",
+        "parcel_private__casing": "plain",
         "indigenous_land__edge": "plain",
+        "indigenous_land__casing": "plain",
         "no_access__edge": "plain",
         "no_access_permit__edge": "plain",
         "eco_reserve__edge": "plain",
@@ -150,7 +152,9 @@
         "obstacle": "plain",
         "tidal_water": "plain",
         "parcel_private__edge": "plain",
+        "parcel_private__casing": "plain",
         "indigenous_land__edge": "plain",
+        "indigenous_land__casing": "plain",
         "no_access__edge": "plain",
         "no_access_permit__edge": "plain",
         "eco_reserve__edge": "plain",
@@ -206,7 +210,9 @@
         "obstacle": "plain",
         "tidal_water": "plain",
         "parcel_private__edge": "plain",
+        "parcel_private__casing": "plain",
         "indigenous_land__edge": "plain",
+        "indigenous_land__casing": "plain",
         "no_access__edge": "plain",
         "no_access_permit__edge": "plain",
         "eco_reserve__edge": "plain",
@@ -262,7 +268,9 @@
         "obstacle": "plain",
         "tidal_water": "plain",
         "parcel_private__edge": "plain",
+        "parcel_private__casing": "plain",
         "indigenous_land__edge": "plain",
+        "indigenous_land__casing": "plain",
         "no_access__edge": "plain",
         "no_access_permit__edge": "plain",
         "eco_reserve__edge": "plain",
@@ -376,7 +384,9 @@
     "stream": "water",
     "obstacle": "obstacles",
     "parcel_private__edge": "ownership",
+    "parcel_private__casing": "ownership",
     "indigenous_land__edge": "access",
+    "indigenous_land__casing": "access",
     "no_access__edge": "access",
     "no_access_permit__edge": "access",
     "eco_reserve__edge": "protected",
@@ -777,7 +787,7 @@
         "enum": "salmon_status",
         "categories": {
           "open": {
-            "token": "color.salmon.open"
+            "token": "color.salmon.open-area"
           },
           "release": {
             "token": "color.salmon.release"
@@ -796,6 +806,7 @@
           "provider": "salmon",
           "field": "profile"
         },
+        "accessFrom": "profile",
         "$comment": "(T211) THE SALMON COLOURING, the fast way — the `profile` mode's engine, its own channel: feature-state `sp` holds the section's DFO CHAIN label (`s<chain>`, @app/core `salmonLabel`, fixed for the release), set as each tile arrives; the DAY lives in the paint as one match over the chain labels (`salmonDayProfiles`). Toggling Standard / Salmon is one paint change per layer: no fetch, no relabel. A section DFO does not list reads the UNLISTED chain (closed to salmon fishing, owner 2026-10-27) — an answer, not `missing`; `missing` is only a section not labelled yet. Its own tokens (`salmon.*`), never the provincial `status.*`, so the two colourings read apart."
       },
       "runs": {
@@ -1015,7 +1026,7 @@
         "enum": "salmon_status",
         "categories": {
           "open": {
-            "token": "color.salmon.open"
+            "token": "color.salmon.open-area"
           },
           "release": {
             "token": "color.salmon.release"
@@ -1034,6 +1045,7 @@
           "provider": "salmon",
           "field": "profile"
         },
+        "accessFrom": "profile",
         "$comment": "(T211) THE SALMON COLOURING, the fast way — the `profile` mode's engine, its own channel: feature-state `sp` holds the section's DFO CHAIN label (`s<chain>`, @app/core `salmonLabel`, fixed for the release), set as each tile arrives; the DAY lives in the paint as one match over the chain labels (`salmonDayProfiles`). Toggling Standard / Salmon is one paint change per layer: no fetch, no relabel. A section DFO does not list reads the UNLISTED chain (closed to salmon fishing, owner 2026-10-27) — an answer, not `missing`; `missing` is only a section not labelled yet. Its own tokens (`salmon.*`), never the provincial `status.*`, so the two colourings read apart."
       },
       "runs": {
@@ -1198,7 +1210,7 @@
         "enum": "salmon_status",
         "categories": {
           "open": {
-            "token": "color.salmon.open"
+            "token": "color.salmon.open-area"
           },
           "release": {
             "token": "color.salmon.release"
@@ -1217,6 +1229,7 @@
           "provider": "salmon",
           "field": "profile"
         },
+        "accessFrom": "profile",
         "$comment": "(T211) THE SALMON COLOURING, the fast way — the `profile` mode's engine, its own channel: feature-state `sp` holds the section's DFO CHAIN label (`s<chain>`, @app/core `salmonLabel`, fixed for the release), set as each tile arrives; the DAY lives in the paint as one match over the chain labels (`salmonDayProfiles`). Toggling Standard / Salmon is one paint change per layer: no fetch, no relabel. A section DFO does not list reads the UNLISTED chain (closed to salmon fishing, owner 2026-10-27) — an answer, not `missing`; `missing` is only a section not labelled yet. Its own tokens (`salmon.*`), never the provincial `status.*`, so the two colourings read apart."
       },
       "runs": {
@@ -1454,6 +1467,7 @@
           "provider": "salmon",
           "field": "profile"
         },
+        "accessFrom": "profile",
         "$comment": "(T211) THE SALMON COLOURING, the fast way — the `profile` mode's engine, its own channel: feature-state `sp` holds the section's DFO CHAIN label (`s<chain>`, @app/core `salmonLabel`, fixed for the release), set as each tile arrives; the DAY lives in the paint as one match over the chain labels (`salmonDayProfiles`). Toggling Standard / Salmon is one paint change per layer: no fetch, no relabel. A section DFO does not list reads the UNLISTED chain (closed to salmon fishing, owner 2026-10-27) — an answer, not `missing`; `missing` is only a section not labelled yet. Its own tokens (`salmon.*`), never the provincial `status.*`, so the two colourings read apart."
       },
       "runs": {
@@ -1500,12 +1514,30 @@
         }
       }
     },
+    "parcel_private__casing": {
+      "plain": {
+        "label": "parcel_private__casing outline",
+        "scale": "static",
+        "color": {
+          "token": "color.imagery.casing"
+        }
+      }
+    },
     "indigenous_land__edge": {
       "plain": {
         "label": "indigenous_land outline",
         "scale": "static",
         "color": {
           "token": "color.indigenous.fill"
+        }
+      }
+    },
+    "indigenous_land__casing": {
+      "plain": {
+        "label": "indigenous_land__casing outline",
+        "scale": "static",
+        "color": {
+          "token": "color.imagery.casing"
         }
       }
     },
@@ -1875,7 +1907,7 @@
         "enum": "salmon_status",
         "categories": {
           "open": {
-            "token": "color.salmon.open"
+            "token": "color.salmon.open-area"
           },
           "release": {
             "token": "color.salmon.release"
@@ -1894,6 +1926,7 @@
           "provider": "salmon",
           "field": "profile"
         },
+        "accessFrom": "profile",
         "$comment": "(T211) THE SALMON COLOURING, the fast way — the `profile` mode's engine, its own channel: feature-state `sp` holds the section's DFO CHAIN label (`s<chain>`, @app/core `salmonLabel`, fixed for the release), set as each tile arrives; the DAY lives in the paint as one match over the chain labels (`salmonDayProfiles`). Toggling Standard / Salmon is one paint change per layer: no fetch, no relabel. A section DFO does not list reads the UNLISTED chain (closed to salmon fishing, owner 2026-10-27) — an answer, not `missing`; `missing` is only a section not labelled yet. Its own tokens (`salmon.*`), never the provincial `status.*`, so the two colourings read apart."
       },
       "runs": {
@@ -2212,6 +2245,7 @@
           "provider": "salmon",
           "field": "profile"
         },
+        "accessFrom": "profile",
         "$comment": "(T211) THE SALMON COLOURING, the fast way — the `profile` mode's engine, its own channel: feature-state `sp` holds the section's DFO CHAIN label (`s<chain>`, @app/core `salmonLabel`, fixed for the release), set as each tile arrives; the DAY lives in the paint as one match over the chain labels (`salmonDayProfiles`). Toggling Standard / Salmon is one paint change per layer: no fetch, no relabel. A section DFO does not list reads the UNLISTED chain (closed to salmon fishing, owner 2026-10-27) — an answer, not `missing`; `missing` is only a section not labelled yet. Its own tokens (`salmon.*`), never the provincial `status.*`, so the two colourings read apart."
       },
       "runs": {
@@ -2339,10 +2373,50 @@
           12,
           1
         ]
-      ]
+      ],
+      "sideChannel": {
+        "has": "sc",
+        "token": "width.stream.side"
+      }
     },
     "parcel_private__edge": "width.parcel.edge",
+    "parcel_private__casing": {
+      "token": "width.land.casing.imagery",
+      "mode": "zoom",
+      "ramp": [
+        [
+          4,
+          1.8
+        ],
+        [
+          11,
+          1.8
+        ],
+        [
+          16,
+          2.2
+        ]
+      ]
+    },
     "indigenous_land__edge": "width.admin.edge",
+    "indigenous_land__casing": {
+      "token": "width.land.casing.imagery",
+      "mode": "zoom",
+      "ramp": [
+        [
+          4,
+          1.8
+        ],
+        [
+          11,
+          1.8
+        ],
+        [
+          16,
+          2.2
+        ]
+      ]
+    },
     "no_access__edge": {
       "token": "width.closure.edge",
       "mode": "zoom",
@@ -2806,7 +2880,9 @@
   "minzoomByMode": {},
   "edgeOpacities": {
     "parcel_private__edge": "opacity.parcel.edge",
+    "parcel_private__casing": "opacity.land.casing.imagery",
     "indigenous_land__edge": "opacity.admin.edge",
+    "indigenous_land__casing": "opacity.land.casing.imagery",
     "no_access__edge": "opacity.closure.edge",
     "no_access_permit__edge": "opacity.closure.edge",
     "eco_reserve__edge": "opacity.closure.edge",
@@ -2816,6 +2892,50 @@
     "mu__edge": "opacity.mu.edge",
     "sign_zone__edge": "opacity.closure.edge"
   },
+  "satelliteEdges": {
+    "parcel_private__edge": {
+      "color": "color.parcel.edge.imagery",
+      "width": "width.land.edge.imagery",
+      "ramp": [
+        [
+          4,
+          2.5
+        ],
+        [
+          11,
+          2.5
+        ],
+        [
+          16,
+          3.5
+        ]
+      ],
+      "opacity": "opacity.land.edge.imagery"
+    },
+    "indigenous_land__edge": {
+      "color": "color.indigenous.edge.imagery",
+      "width": "width.land.edge.imagery",
+      "ramp": [
+        [
+          4,
+          2.5
+        ],
+        [
+          11,
+          2.5
+        ],
+        [
+          16,
+          3.5
+        ]
+      ],
+      "opacity": "opacity.land.edge.imagery"
+    }
+  },
+  "satelliteOnly": [
+    "parcel_private__casing",
+    "indigenous_land__casing"
+  ],
   "edgeOpacityRamps": {
     "region__edge": [
       [
@@ -2949,10 +3069,16 @@
       "width.stream.base": 1,
       "width.stream.highlight": 3.2,
       "width.stream.water": 2.4,
+      "width.stream.side": 0.5,
       "width.imagery.edge": 1.5,
       "opacity.imagery.edge": 1,
       "opacity.imagery.fill": 0.2,
       "opacity.water.others": 0.25,
+      "width.selection.casing": 2.5,
+      "flag.selection.edge": 0,
+      "color.selection.edge": "#F8F8F2",
+      "opacity.selection.glow": 0,
+      "opacity.selection.casing.others": 1,
       "color.water.context": "#D5D5D5",
       "opacity.water.context": 0.55,
       "opacity.water.near": 0.7,
@@ -3036,6 +3162,13 @@
         2
       ],
       "color.indigenous.fill": "#6F5D00",
+      "color.indigenous.edge.imagery": "#2E1500",
+      "color.parcel.edge.imagery": "#2A2A1C",
+      "color.imagery.casing": "#FFD9B0",
+      "width.land.edge.imagery": 1,
+      "width.land.casing.imagery": 2.5,
+      "opacity.land.edge.imagery": 1,
+      "opacity.land.casing.imagery": 0.75,
       "opacity.closure": 0.55,
       "opacity.park": 0.32,
       "color.watershed.fill": "#2F5E2A",
@@ -3066,10 +3199,15 @@
       "color.ui.accent": "#5F26E0",
       "color.ui.on-accent": "#FFFFFF",
       "color.ui.live": "#027486",
+      "color.ui.coho.ink": "#1F2E3B",
+      "color.ui.coho.red": "#CF5A3C",
+      "color.ui.coho.ground": "#FFFFFF",
       "color.ui.attention": "#15181C",
       "color.ui.warning": "#D08404",
       "color.ui.spot": "#15181C",
       "color.ui.spot-ground": "#FFFFFF",
+      "color.ui.photo.ground": "#15181C",
+      "color.ui.photo.ink": "#FFFFFF",
       "color.ui.me": "#1A73E8",
       "color.ui.me-ring": "#FFFFFF",
       "color.ui.place-band": "#FBF0E6",
@@ -3077,12 +3215,18 @@
       "color.ui.donor.2": "#670848",
       "color.ui.donor.3": "#D77782",
       "color.ui.donor.4": "#797000",
+      "color.ui.forecast.clever": "#DD6600",
+      "color.ui.forecast.coffee": "#A86CF4",
+      "color.ui.forecast.elf": "#5C4A00",
       "color.ui.shadow": "#15181C",
       "color.ui.imagery.water": "#2A333B",
       "color.ui.imagery.forest": "#3C5A2E",
       "color.ui.imagery.scrub": "#6E7F53",
       "opacity.ui.shadow": 0.9,
       "opacity.ui.scrim": 0.28,
+      "color.ui.coach-scrim": "#15181C",
+      "opacity.ui.coach-scrim": 0.45,
+      "opacity.ui.rail": 0.85,
       "opacity.parcel.edge": 0.5,
       "opacity.closure.edge": 0.85,
       "opacity.park.edge": 0.9,
@@ -3091,6 +3235,10 @@
       "color.ui.imagery.halo": "#0B0E10",
       "color.label.minor": "#8B857F",
       "color.salmon.open": "#4361D1",
+      "color.ui.salmon-keep": "#4361D1",
+      "color.salmon.casing": "#0A1116",
+      "width.salmon.casing": 0,
+      "color.salmon.open-area": "#4361D1",
       "color.salmon.release": "#451F60",
       "color.salmon.closed": "#8F0006",
       "color.salmon.check": "#D08404",
@@ -3109,6 +3257,16 @@
         2,
         1.5
       ],
+      "color.issue.stripe": "#0A1116",
+      "color.issue.casing": "#F8F8F2",
+      "dash.issue.stripe": [
+        3,
+        5
+      ],
+      "dash.issue.casing": [
+        5,
+        3
+      ],
       "color.cue.closed": "#F8F8F2",
       "dash.cue.closed": [
         2,
@@ -3124,10 +3282,16 @@
       "width.stream.base": 1,
       "width.stream.highlight": 3.2,
       "width.stream.water": 2.4,
+      "width.stream.side": 0.5,
       "width.imagery.edge": 1.5,
       "opacity.imagery.edge": 1,
       "opacity.imagery.fill": 0.2,
       "opacity.water.others": 0.25,
+      "width.selection.casing": 1.5,
+      "flag.selection.edge": 1,
+      "color.selection.edge": "#0A0B0D",
+      "opacity.selection.glow": 0.4,
+      "opacity.selection.casing.others": 0.35,
       "color.water.context": "#39434B",
       "opacity.water.context": 0.55,
       "opacity.water.near": 0.7,
@@ -3215,6 +3379,13 @@
         2
       ],
       "color.indigenous.fill": "#C9945E",
+      "color.indigenous.edge.imagery": "#2E1500",
+      "color.parcel.edge.imagery": "#2A2A1C",
+      "color.imagery.casing": "#FFD9B0",
+      "width.land.edge.imagery": 1,
+      "width.land.casing.imagery": 2.5,
+      "opacity.land.edge.imagery": 1,
+      "opacity.land.casing.imagery": 0.75,
       "opacity.closure": 0.6,
       "opacity.park": 0.3,
       "color.watershed.fill": "#1C5A2E",
@@ -3245,10 +3416,15 @@
       "color.ui.accent": "#A97CFF",
       "color.ui.on-accent": "#100A22",
       "color.ui.live": "#37D6EA",
+      "color.ui.coho.ink": "#F2E8D5",
+      "color.ui.coho.red": "#CF5A3C",
+      "color.ui.coho.ground": "#15181B",
       "color.ui.attention": "#F0F2F0",
       "color.ui.warning": "#FFD307",
       "color.ui.spot": "#F0F2F0",
       "color.ui.spot-ground": "#15181B",
+      "color.ui.photo.ground": "#000000",
+      "color.ui.photo.ink": "#F0F2F0",
       "color.ui.me": "#1A73E8",
       "color.ui.me-ring": "#FFFFFF",
       "color.ui.place-band": "#231A12",
@@ -3256,12 +3432,18 @@
       "color.ui.donor.2": "#FF9B54",
       "color.ui.donor.3": "#FF7BB8",
       "color.ui.donor.4": "#4ADE80",
+      "color.ui.forecast.clever": "#D75A09",
+      "color.ui.forecast.coffee": "#B068A0",
+      "color.ui.forecast.elf": "#EEE070",
       "color.ui.shadow": "#000000",
       "color.ui.imagery.water": "#2A333B",
       "color.ui.imagery.forest": "#3C5A2E",
       "color.ui.imagery.scrub": "#6E7F53",
       "opacity.ui.shadow": 0.85,
       "opacity.ui.scrim": 0.28,
+      "color.ui.coach-scrim": "#000000",
+      "opacity.ui.coach-scrim": 0.65,
+      "opacity.ui.rail": 0.85,
       "opacity.parcel.edge": 0.42,
       "opacity.closure.edge": 0.85,
       "opacity.park.edge": 0.75,
@@ -3270,6 +3452,10 @@
       "color.ui.imagery.halo": "#0B0E10",
       "color.label.minor": "#B8B8B8",
       "color.salmon.open": "#A7FBB2",
+      "color.ui.salmon-keep": "#A7FBB2",
+      "color.salmon.casing": "#F4F8F5",
+      "width.salmon.casing": 0,
+      "color.salmon.open-area": "#A7FBB2",
       "color.salmon.release": "#BE8DC2",
       "color.salmon.closed": "#FF3B6D",
       "color.salmon.check": "#FFD307",
@@ -3287,6 +3473,16 @@
       "dash.run.pass": [
         2,
         1.5
+      ],
+      "color.issue.stripe": "#F4F8F5",
+      "color.issue.casing": "#0A0B0D",
+      "dash.issue.stripe": [
+        3,
+        5
+      ],
+      "dash.issue.casing": [
+        5,
+        3
       ],
       "color.cue.closed": "#0A0B0D",
       "dash.cue.closed": [
@@ -3307,10 +3503,16 @@
       "width.stream.base": 1,
       "width.stream.highlight": 3.2,
       "width.stream.water": 2.4,
+      "width.stream.side": 0.5,
       "width.imagery.edge": 1.5,
       "opacity.imagery.edge": 1,
       "opacity.imagery.fill": 0.2,
       "opacity.water.others": 0.25,
+      "width.selection.casing": 2.5,
+      "flag.selection.edge": 0,
+      "color.selection.edge": "#F8F8F2",
+      "opacity.selection.glow": 0,
+      "opacity.selection.casing.others": 1,
       "color.water.context": "#D5D5D5",
       "opacity.water.context": 0.55,
       "opacity.water.near": 0.7,
@@ -3394,6 +3596,13 @@
         2
       ],
       "color.indigenous.fill": "#8B5A2B",
+      "color.indigenous.edge.imagery": "#2E1500",
+      "color.parcel.edge.imagery": "#2A2A1C",
+      "color.imagery.casing": "#FFD9B0",
+      "width.land.edge.imagery": 1,
+      "width.land.casing.imagery": 2.5,
+      "opacity.land.edge.imagery": 1,
+      "opacity.land.casing.imagery": 0.75,
       "opacity.closure": 0.55,
       "opacity.park": 0.2,
       "color.watershed.fill": "#2F5E2A",
@@ -3424,10 +3633,15 @@
       "color.ui.accent": "#5F26E0",
       "color.ui.on-accent": "#FFFFFF",
       "color.ui.live": "#027486",
+      "color.ui.coho.ink": "#1F2E3B",
+      "color.ui.coho.red": "#CF5A3C",
+      "color.ui.coho.ground": "#FFFFFF",
       "color.ui.attention": "#15181C",
       "color.ui.warning": "#D08404",
       "color.ui.spot": "#15181C",
       "color.ui.spot-ground": "#FFFFFF",
+      "color.ui.photo.ground": "#15181C",
+      "color.ui.photo.ink": "#FFFFFF",
       "color.ui.me": "#1A73E8",
       "color.ui.me-ring": "#FFFFFF",
       "color.ui.place-band": "#FBF0E6",
@@ -3435,12 +3649,18 @@
       "color.ui.donor.2": "#B5480B",
       "color.ui.donor.3": "#A81E6B",
       "color.ui.donor.4": "#0E7A3D",
+      "color.ui.forecast.clever": "#D9631A",
+      "color.ui.forecast.coffee": "#B04FC0",
+      "color.ui.forecast.elf": "#5E5A00",
       "color.ui.shadow": "#15181C",
       "color.ui.imagery.water": "#2A333B",
       "color.ui.imagery.forest": "#3C5A2E",
       "color.ui.imagery.scrub": "#6E7F53",
       "opacity.ui.shadow": 0.9,
       "opacity.ui.scrim": 0.28,
+      "color.ui.coach-scrim": "#15181C",
+      "opacity.ui.coach-scrim": 0.45,
+      "opacity.ui.rail": 0.85,
       "opacity.parcel.edge": 0.5,
       "opacity.closure.edge": 0.85,
       "opacity.park.edge": 1,
@@ -3448,7 +3668,11 @@
       "color.ui.imagery.label-water": "#B4DCFF",
       "color.ui.imagery.halo": "#0B0E10",
       "color.label.minor": "#7F7C79",
-      "color.salmon.open": "#016890",
+      "color.salmon.open": "#22C55E",
+      "color.ui.salmon-keep": "#007E33",
+      "color.salmon.casing": "#004D2A",
+      "width.salmon.casing": 1.25,
+      "color.salmon.open-area": "#007E33",
       "color.salmon.release": "#421652",
       "color.salmon.closed": "#8F0006",
       "color.salmon.check": "#D08404",
@@ -3466,6 +3690,16 @@
       "dash.run.pass": [
         2,
         1.5
+      ],
+      "color.issue.stripe": "#0A1116",
+      "color.issue.casing": "#F8F8F2",
+      "dash.issue.stripe": [
+        3,
+        5
+      ],
+      "dash.issue.casing": [
+        5,
+        3
       ],
       "color.cue.closed": "#F8F8F2",
       "dash.cue.closed": [
@@ -3575,6 +3809,11 @@
     "width.stream.water": {
       "type": "number",
       "themeable": false
+    },
+    "width.stream.side": {
+      "type": "number",
+      "themeable": false,
+      "$comment": "(T891) A braid's side channel (tile `sc`) is drawn at this factor of its order's width; the main channel keeps 1. A factor, not px: the stream width is linear in order and zoom."
     },
     "width.imagery.edge": {
       "type": "number",
@@ -3885,6 +4124,41 @@
       "themeable": true,
       "$comment": "Reserves and treaty lands, in brown — the OSM convention, and v1's. ONE token for the fill and its border, because there is one thing to say. It sits deliberately OUTSIDE the crimson/amber restriction language: this is an access advisory, never a fishing closure, and it is the nearest brown to v1's #8B6508 that a reader can still tell apart from `status.restricted`, which is a genuinely different claim."
     },
+    "color.indigenous.edge.imagery": {
+      "type": "color",
+      "themeable": true,
+      "$comment": "(T923, owner 2026-11-20: 'make indigenous easy to see only in satellite mode') A RESERVE'S OUTLINE OVER SATELLITE IMAGERY ONLY: the reserve brown (`color.indigenous.fill`) taken much darker, at full strength, so the line reads on a photograph. Photos are the same in both themes, so the value is too; the drawn map keeps its fill-hued edge."
+    },
+    "color.parcel.edge.imagery": {
+      "type": "color",
+      "themeable": true,
+      "$comment": "(T923, owner 2026-11-20: 'can be on private too') A PRIVATE PARCEL'S OUTLINE OVER SATELLITE IMAGERY ONLY: the parcel earth tone (`color.parcel.private`) taken darker, in its own dark earth hue (an olive-leaning dark, apart from the reserve's brown). The drawn map keeps its fill-hued hairline."
+    },
+    "color.imagery.casing": {
+      "type": "color",
+      "themeable": true,
+      "$comment": "(T923) THE LIGHT CASING UNDER A RESERVE'S OR PARCEL'S OUTLINE OVER SATELLITE: a fixed pale peach (the same in every theme: the photograph does not change with the theme, and `color.outside` is near-black in dark), so the darker line is cut out of dark forest and water alike. Not drawn on the drawn map."
+    },
+    "width.land.edge.imagery": {
+      "type": "number",
+      "themeable": false,
+      "$comment": "(T923) the reserve / parcel outline over satellite, px, times its zoom ramp in `layers.source.json` (2.5 px far out, 3.5 px close in)."
+    },
+    "width.land.casing.imagery": {
+      "type": "number",
+      "themeable": false,
+      "$comment": "(T923) the casing under that outline, px, times its ramp (4.5 px far out, 5.5 px close in): a 1 px light rim each side of the line."
+    },
+    "opacity.land.edge.imagery": {
+      "type": "number",
+      "themeable": false,
+      "$comment": "(T923) the reserve / parcel outline over satellite: full strength, where the drawn map's is a firm tint."
+    },
+    "opacity.land.casing.imagery": {
+      "type": "number",
+      "themeable": false,
+      "$comment": "(T923) the casing's opacity under it: light, so it is a rim, not a second line."
+    },
     "opacity.closure": {
       "type": "number",
       "themeable": true,
@@ -4034,6 +4308,21 @@
       "themeable": true,
       "$comment": "a live feed — the gauge, the fish spinner. Distinct from `accent`, which means 'you chose this'"
     },
+    "color.ui.coho.ink": {
+      "type": "color",
+      "themeable": true,
+      "$comment": "(T814, owner 2026-11-17) THE COHO LOADER's ink block: the owner's two-block linocut spawning coho (app/tools/fish-loader/fish_loader.py) on the start, download and setup screen and the applying curtain. Baked into its sprite sheet by `pnpm coho:build` (one sheet per distinct ink + red pair), never tinted at run time; `pnpm coho` fails when a sheet no longer wears these values."
+    },
+    "color.ui.coho.red": {
+      "type": "color",
+      "themeable": true,
+      "$comment": "(T814) the coho loader's second block, the spawning coho's red side and belly; baked like `color.ui.coho.ink`"
+    },
+    "color.ui.coho.ground": {
+      "type": "color",
+      "themeable": true,
+      "$comment": "(T814) the ground drawn behind the coho loader, a little past its frame; the card where the loader needs no ground of its own"
+    },
     "color.ui.attention": {
       "type": "color",
       "themeable": true,
@@ -4053,6 +4342,16 @@
       "type": "color",
       "themeable": true,
       "$comment": "T131 the ground of a saved spot's pin and of its name: the card, so a pin reads as the app's own object on the map (the selected pin swaps mark and ground)."
+    },
+    "color.ui.photo.ground": {
+      "type": "color",
+      "themeable": true,
+      "$comment": "(T819 item 4) A SPOT'S PHOTOGRAPH, FULL SCREEN: the ground the picture sits on. Black or near it in every theme, as a photo viewer is: the light theme's ink, the dark theme's shadow (the viewer drew on `ink`, which in the dark theme is light grey). References, never a second hex."
+    },
+    "color.ui.photo.ink": {
+      "type": "color",
+      "themeable": true,
+      "$comment": "(T819 item 4) the viewer's words and controls on `color.ui.photo.ground`: white or near it in every theme (the light theme's card, the dark theme's ink)"
     },
     "color.ui.me": {
       "type": "color",
@@ -4086,6 +4385,19 @@
       "type": "color",
       "themeable": true
     },
+    "color.ui.forecast.clever": {
+      "type": "color",
+      "themeable": true,
+      "$comment": "(T895, owner 2026-11-19: \"make the different models forecast have different colors so when they are toggled on or off you can tell which are which\") IDENTITY, NOT MAGNITUDE — one colour per flow forecast model on the Conditions chart (CLEVER, COFFEE, ELF: `CHANGE_POLICY.order`, the publisher's models), worn by the model's trace, its ribbon, its end dot and its legend switch alike, so a line and its entry are matched by colour AND by the model's own dash (`FORECAST_DASH` in @app/ui `chart.ts`): colour is never the only cue. Kept off the observed line (`color.ui.live`), the earlier years and median (`color.ui.sub`), the ink, the accent and the donor tones of the gauge picker over the chart, and off each other, under every dichromacy in the colour-blind theme: tools/forecast-models-cvd.test.ts holds the separations and the 3:1 a mark needs on the card."
+    },
+    "color.ui.forecast.coffee": {
+      "type": "color",
+      "themeable": true
+    },
+    "color.ui.forecast.elf": {
+      "type": "color",
+      "themeable": true
+    },
     "color.ui.shadow": {
       "type": "color",
       "themeable": true,
@@ -4113,6 +4425,21 @@
       "type": "number",
       "themeable": true,
       "$comment": "the scrim behind a bottom sheet"
+    },
+    "color.ui.coach-scrim": {
+      "type": "color",
+      "themeable": true,
+      "$comment": "(T842) the walkthrough's dim round its highlighted control: a spotlight tour's dim must read clearly in both themes, so it is its own colour, not the sheet's scrim"
+    },
+    "opacity.ui.coach-scrim": {
+      "type": "number",
+      "themeable": true,
+      "$comment": "(T842) the walkthrough dim's alpha: heavier on dark, where the page is already dark"
+    },
+    "opacity.ui.rail": {
+      "type": "number",
+      "themeable": true,
+      "$comment": "(T856) the desktop's floating nav rail: its paper (color.ui.card) at this alpha, so the map shows through"
     },
     "color.ui.imagery.label": {
       "type": "color",
@@ -4152,7 +4479,27 @@
     "color.salmon.open": {
       "type": "color",
       "themeable": true,
-      "$comment": "(T211) SALMON MAY BE KEPT today (a DFO limit above zero). A reference in every theme to a status hue already held to its theme's contrast and colour-blind gates."
+      "$comment": "(T211) SALMON MAY BE KEPT today (a DFO limit above zero). In dark and the colour-blind theme a reference to `status.open`, already held to its theme's contrast and colour-blind gates. LIGHT HAS ITS OWN GREEN (T887, owner 2026-11-18: \"Light mode keep salmon vs closed or release has very little contrast. Should be bright green for keep in light I think too?\"): light `status.open` is a deep teal-blue, and beside the dark release purple and closed red on a thin line the three read alike. A saturated green, as light as the basemap allows: it still holds 3:1 on every light ground (tools/map-contrast.test.ts). Not `status.open` itself, which is also the cool temperature dot, held off the closed red for every reader (status-colours-distinct). The colour-blind theme keeps its blue keep: a green against the closed red is the pair a deuteranope cannot separate. The water page's salmon chips and year bar wear it too (theme.ts `salmon`)."
+    },
+    "color.ui.salmon-keep": {
+      "type": "color",
+      "themeable": true,
+      "$comment": "(T887) KEEP AS WORDS AND BLOCKS ON A CARD: the Salmon card's chips (white words on it), the salmon year bar's keep days and its status word. Where the map's keep line is a bright green drawn with a casing (light, option B), a bright green cannot carry white words (2.3:1) or be a word on white, so the card keeps the darker green; everywhere else it is the map's own keep (an alias)."
+    },
+    "color.salmon.casing": {
+      "type": "color",
+      "themeable": true,
+      "$comment": "(T887 option B) THE KEEP LINE'S CASING: a thin deep-green edge each side of a Salmon-view stream section DFO lets you keep from, under the line (paint.ts `salmonCasingPaint`), so a bright green line still stands 3:1 off the light basemap (WCAG 1.4.11): the casing meets the ground, the green meets the casing. Deep green, not the gear ink: a fly-only or bait-ban edge (ink) drawn outside it on a kept section must read as its own mark (`gearPaint`)."
+    },
+    "width.salmon.casing": {
+      "type": "number",
+      "themeable": true,
+      "$comment": "(T887) THE OPTION SWITCH: the keep casing's width each side of the line, px. 0: no casing (option A, a mid green that clears 3:1 alone; dark and colour-blind). Above 0: option B, light's bright green cased. Pick A or B by this and light's `color.salmon.open` (A #007E33, B #22C55E)."
+    },
+    "color.salmon.open-area": {
+      "type": "color",
+      "themeable": true,
+      "$comment": "(T887) KEEP ON A LAKE OR WETLAND in the Salmon view: the fill and its shoreline. A polygon has no keep casing, so where the keep line is option B's bright cased green (light) the area keeps the deeper green that clears 3:1 on the light ground by itself (tools/map-contrast.test.ts); everywhere else it is the keep line's own colour (an alias)."
     },
     "color.salmon.release": {
       "type": "color",
@@ -4214,6 +4561,26 @@
       "themeable": true,
       "$comment": "(T199) RUN TIMING (the Map tab's Run timing mode, owner 2026-10-28): the passing run's dash, in line widths: long dashes, so a thin line still reads as a broken one."
     },
+    "color.issue.stripe": {
+      "type": "color",
+      "themeable": true,
+      "$comment": "(T759, owner 2026-11-15: \"dash with closed color maybe? Or a better color what ever is best practice\") THE ISSUE STRIPE's ink: dashes down a stream whose water has a DFO salmon rule the feed could not place, Salmon view only. The closed colour was tried and fails (tools/issue-stripe.test.ts: it is the closed line's own colour, ratio 1.00); the gear ink (no hue, so it reads the same for every reader) rides on the casing below."
+    },
+    "color.issue.casing": {
+      "type": "color",
+      "themeable": true,
+      "$comment": "(T759) the paper under the issue stripe's ink, so a dark line (closed, release, open) and a light one (check, no answer) both leave the dashes a ground of their own: the stripe is dark on paper, never ink on a line of its own darkness."
+    },
+    "dash.issue.stripe": {
+      "type": "dash",
+      "themeable": true,
+      "$comment": "(T759) the issue stripe's INK dashes (dark in the light theme), in the stripe's own widths: longer than the closed cue's ticks and the gear marks' edge dashes, so the three read apart. The ink and the casing (`dash.issue.casing`) are drawn at the SAME line width, so MapLibre (which divides dash distance by floor(line-width)) gives them the same period; the two arrays therefore sum to the same 8, which keeps them in phase: ink 3, then casing's pale 2, then a gap of 3 where the line's own colour shows."
+    },
+    "dash.issue.casing": {
+      "type": "dash",
+      "themeable": true,
+      "$comment": "(T759) the issue stripe's CASING dashes: 5 on, 3 off, a period of 8 like `dash.issue.stripe` (3 on, 5 off) and drawn from the same origin at the same width, so the ink sits on the first 3 of each 5 and the pale shows after it, along the line, never around it."
+    },
     "color.cue.closed": {
       "type": "color",
       "themeable": true,
@@ -4223,6 +4590,31 @@
       "type": "dash",
       "themeable": true,
       "$comment": "(T377) closed's stripe, in the stripe's own widths: short dashes with long gaps, so it reads as ticks along the line and never as the no-access dots (which replace the line) or a bait ban's dashed edge (which rides outside it)."
+    },
+    "width.selection.casing": {
+      "type": "number",
+      "themeable": true,
+      "$comment": "(T735, owner 2026-11-16: look C) the outline each side of the part you are on (a water's Map view) and of a selected stream, px. Light 2.5; dark 1.5 (a thin dark edge)."
+    },
+    "flag.selection.edge": {
+      "type": "number",
+      "themeable": true,
+      "$comment": "(T735, owner 2026-11-16: look C) 1: the part you are on has a casing in `color.selection.edge` (the status colour carries; the in-season casing stays only on the water's other parts); 0: the casing is the highlight ring (`color.highlight`, or `color.ui.attention` under an in-season change). Dark 1, every other theme 0."
+    },
+    "color.selection.edge": {
+      "type": "color",
+      "themeable": true,
+      "$comment": "(T735, owner 2026-11-16: look C) the casing of the part you are on when `flag.selection.edge` is 1: the ground's own colour, so the line's status colour is what is read."
+    },
+    "opacity.selection.glow": {
+      "type": "number",
+      "themeable": true,
+      "$comment": "(T735, owner 2026-11-16: look C) the soft light glow (layer `selection-glow`, `color.ui.attention`) outside the part's casing. 0 draws no glow layer at all. Dark 0.4."
+    },
+    "opacity.selection.casing.others": {
+      "type": "number",
+      "themeable": true,
+      "$comment": "(T735, owner 2026-11-16: look C) the in-season casing's opacity on the water's OTHER parts when `flag.selection.edge` is 1, so it does not compete with the part you are on. Dark 0.35; the other themes 1 (today's)."
     }
   },
   "enums": {

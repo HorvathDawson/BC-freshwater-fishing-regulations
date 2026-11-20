@@ -15,16 +15,17 @@
  *        the routes are copied out of the tiles when the panel opens (`trace` on the map)
  *        and drawn as an overlay that shows at every zoom
  *   "the ability to zoom and look at data better"
- *        zoom buttons, pinch and wheel; a Fit button to come back; and a larger map
+ *        zoom buttons, pinch and wheel
+ *
+ * Owner 2026-11-18 (T881): "we should choose one map size maybe larger fit only" — ONE SIZE, the larger one
+ * (`ROUTE_MAP_SIZE`), opened fitted to the water and its gauges; the Fit and Larger map buttons are gone.
  *
  * IT DRAWS A VIEW MODEL (`DonorMapVM`, built in @app/ui) AND DECIDES NOTHING: which pins,
  * which routes, which words and the camera are all made there. The tones are the palette's.
  */
-import { useMemo, useState, type ReactNode } from "react";
+import { useMemo, type ReactNode } from "react";
 import { View } from "react-native";
 import { Text } from "./Text";
-import { Pressable } from "./Pressable";
-import { hitProps } from "./regs/hit";
 import Svg, { Circle, Line, Path } from "react-native-svg";
 import type { SectionKey } from "@app/core";
 import type { MapProps, TileEndpoints, TraceProp } from "@app/map";
@@ -34,26 +35,32 @@ import { TYPE } from "./type";
 import { SPACE, type Palette } from "./theme";
 
 /**
+ * THE MAP'S SIZES, as a share of its measured width within bounds: a fixed 210 px was a letterbox in a desktop column
+ * and the pins crowded into a strip. `large` is about square — room to read a valley; `small` is the old default.
+ */
+const ROUTE_MAP_SIZES = {
+  large: { share: 0.95, min: 380, max: 620 },
+  small: { share: 0.6, min: 220, max: 340 },
+} as const;
+
+/** (T881, owner 2026-11-18: "maybe larger") THE ONE SIZE the route map is drawn at — change it here to go back. */
+const ROUTE_MAP_SIZE: keyof typeof ROUTE_MAP_SIZES = "large";
+
+/**
  * The map's height for its measured width. Read by the camera too (DonorPanel hands it to
  * `useDonorView`), so the frame the camera fits and the frame drawn are the same box.
- *
- * Proportional, within bounds: a fixed 210 px was a letterbox in a desktop column and the
- * pins crowded into a strip. Larger, it is about square — room to read a valley.
  */
-export function routeMapHeight(width: number, larger: boolean): number {
-  return larger
-    ? Math.round(Math.min(620, Math.max(380, width * 0.95)))
-    : Math.round(Math.min(340, Math.max(220, width * 0.6)));
+export function routeMapHeight(width: number): number {
+  const s = ROUTE_MAP_SIZES[ROUTE_MAP_SIZE];
+  return Math.round(Math.min(s.max, Math.max(s.min, width * s.share)));
 }
 
-export function DonorMap({ vm, at, theme, palette, toneOf, height, larger, onLarger,
+export function DonorMap({ vm, at, theme, palette, toneOf, height,
                            highlight, standing, waterLine, selected }: {
   vm: DonorMapVM; at: TileEndpoints; theme: string; palette: Palette;
   /** A donor row's tone (grey when quiet), or the accent for null — the panel's own rule. */
   toneOf: (row: number | null) => string;
   height: number;
-  larger: boolean;
-  onLarger: (on: boolean) => void;
   highlight?: readonly SectionKey[];
   /** The route's colours: the engine's standing channel (`routeColour.ts`). */
   standing?: MapProps["standing"];
@@ -78,32 +85,16 @@ export function DonorMap({ vm, at, theme, palette, toneOf, height, larger, onLar
                                      tone: toneOf(p.row), label: p.label, rank: p.rank }));
   const trace: TraceProp = { key: routeKey, routes, pins };
 
-  // FIT: sent on a press and at no other time, so it never fights a reader's own pan.
-  const [fits, setFits] = useState(0);
-  const fit = fits > 0 ? { key: `fit:${fits}`, bbox: framed(vm.bbox) } : null;
-
   return (
     <View style={{ gap: SPACE.s2 }}>
       <View style={{ height, borderRadius: palette.r.box, overflow: "hidden" }}>
         <MiniMap key={vm.key} at={at} palette={palette} theme={theme} camera={vm.camera}
                  height={height} bare zoomControls view="conditions"
                  highlight={highlight ?? vm.chain} standing={standing}
-                 trace={trace} fit={fit} waterLine={waterLine}
+                 trace={trace} waterLine={waterLine}
                  /* WATER ONLY: every other layer competes for the pixels the route needs. */
                  groups={{ water: true, admin: false, protected: false, access: false,
                            ownership: false, depth: false }} />
-        {/* TOP-LEFT: the zoom buttons hold the top-right, and the bottom is where the camera
-            puts a gauge far down the river (measured: Skeena at Usk under the old bottom row). */}
-        <View style={{ position: "absolute", left: SPACE.s2, top: SPACE.s2,
-                       flexDirection: "row", gap: SPACE.s2 }}>
-          <MapButton palette={palette} label={vm.words.fitLabel} onPress={() => setFits(fits + 1)}>
-            {vm.words.fit}
-          </MapButton>
-          <MapButton palette={palette} label={larger ? vm.words.smaller : vm.words.larger}
-                     onPress={() => onLarger(!larger)} on={larger}>
-            {larger ? vm.words.smaller : vm.words.larger}
-          </MapButton>
-        </View>
       </View>
 
       {/* THE KEY: ONE LINE of small inline symbols — you are here, a route down, a route up. The gauges are not
@@ -125,35 +116,6 @@ export function DonorMap({ vm, at, theme, palette, toneOf, height, larger, onLar
       {/* A DONOR WITH NO ROUTE IS SAID SO, not quietly dropped from the key. */}
       {vm.unplaced && <Text style={{ ...TYPE.meta, color: palette.faint }}>{vm.unplaced}</Text>}
     </View>
-  );
-}
-
-/**
- * The box "fit" returns to, never a point: a single gauge at the spot has no extent, and
- * fitting a point flies the camera to the deepest zoom. ~1 km either way at least.
- */
-function framed(b: readonly [number, number, number, number]):
-    readonly [number, number, number, number] {
-  const dx = Math.max(0, 0.012 - (b[2] - b[0]) / 2);
-  const dy = Math.max(0, 0.008 - (b[3] - b[1]) / 2);
-  return [b[0] - dx, b[1] - dy, b[2] + dx, b[3] + dy];
-}
-
-/** A small control over the map's corner — the app's chip, on the card. */
-function MapButton({ palette, label, onPress, on, children }: {
-  palette: Palette; label: string; onPress: () => void; on?: boolean; children: string;
-}) {
-  return (
-    <Pressable {...hitProps({ w: 90, h: 30 })} onPress={onPress} accessibilityRole="button" accessibilityLabel={label}
-               aria-pressed={on}
-               style={{ paddingVertical: SPACE.s1 + 2, paddingHorizontal: SPACE.s3,
-                        borderRadius: palette.r.pill, borderWidth: 1,
-                        borderColor: on ? palette.accent : palette.line2,
-                        backgroundColor: palette.card, ...palette.lift }}>
-      <Text style={{ ...TYPE.metaBold, color: on ? palette.accent : palette.ink }}>
-        {children}
-      </Text>
-    </Pressable>
   );
 }
 

@@ -1,0 +1,6 @@
+# (T810 R) Tap the first element whose testID is ID (a regex, whole) inside the element whose testID is IN (a picture of
+# the trout table, not a fold's thumbnail: both are `pic:<code>`).
+appId: ca.canifishthis.app
+---
+- tapOn: { id: "${ID}", childOf: { id: "${IN}" }, index: 0 }
+- waitForAnimationToEnd: { timeout: 3000 }

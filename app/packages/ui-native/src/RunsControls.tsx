@@ -7,6 +7,7 @@
  */
 import { DAY_LABELS, FISH, MONTH_PENTADS, RUN_SPECIES_CODE, RUN_WORDS, pentadLabel, seasonPeak, sliderKey, type RunSpecies } from "@app/core";
 import { runStateColour } from "@app/map/colours";
+import { useLayoutClass } from "@app/ui";
 import { useMemo, useRef, useState, type ReactNode } from "react";
 import { Image, PanResponder, ScrollView, View } from "react-native";
 import { Text } from "./Text";
@@ -44,12 +45,13 @@ export function RunSpeciesChips({ species, chosen, onToggle, onOnly, onAll, fish
       </View>
     </Pressable>
   );
-  return (
-    // a phone is narrower than six species: the row scrolls sideways
-    <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ width: "100%", flexGrow: 0 }}
-                contentContainerStyle={{ gap: 6, paddingRight: 8 }}>
-      <View testID="run-species" accessibilityRole="toolbar" accessibilityLabel={RUN_WORDS.speciesLabel}
-            style={{ flexDirection: "row", gap: 6 }}>
+  // (T902) a phone is narrower than six species: the row scrolls sideways. From the tablet class up the panel is wide,
+  // so the row WRAPS inside it instead (to a second line only where it must; the desktop panel is widened to fit one): every chip shows, in
+  // the same order and look, and the bar keeps its width, so the day controls under it do not move sideways.
+  const wide = useLayoutClass() !== "phone";
+  const row = (
+    <View testID="run-species" accessibilityRole="toolbar" accessibilityLabel={RUN_WORDS.speciesLabel}
+          style={wide ? { flexDirection: "row", flexWrap: "wrap", gap: 6, width: "100%" } : { flexDirection: "row", gap: 6 }}>
         {onAll && chip("all", false,
           <Text style={{ ...TYPE.micro, fontSize: 13, lineHeight: 17, fontWeight: "600", color: palette.ink }}>{RUN_WORDS.allSpecies}</Text>,
           RUN_WORDS.allSpeciesSaid, onAll, undefined, "button", !everyOn)}
@@ -71,6 +73,12 @@ export function RunSpeciesChips({ species, chosen, onToggle, onOnly, onAll, fish
           </>, RUN_WORDS.chipSaid(s.name, on), () => onToggle(s.name), onOnly ? () => onOnly(s.name) : undefined);
         })}
       </View>
+  );
+  if (wide) return row;
+  return (
+    <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ width: "100%", flexGrow: 0 }}
+                contentContainerStyle={{ gap: 6, paddingRight: 8 }}>
+      {row}
     </ScrollView>
   );
 }

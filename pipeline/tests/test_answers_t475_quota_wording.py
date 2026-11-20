@@ -184,7 +184,7 @@ def test_1_the_info_explains_the_regional_total_with_the_cards_numbers():
 
 
 def test_1_no_info_where_the_total_is_a_waters_own():
-    for w in (F.BELLA, F.COUNT, F.LAKE):
+    for w in (F.COUNT, F.LAKE):                 # T846: the Bella Coola's 1 is now an own tier under Region 2's 4
         g, _o, _P = _g(w)
         assert "info" not in g["headline"], w
 

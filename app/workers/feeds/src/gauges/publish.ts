@@ -8,12 +8,13 @@ import { contentHash, readStored, rev, type Fetch, type Meter, type Store } from
 import { sendDue } from "../notify";
 import { combineDay, forecastDays, gaugeScale, modelName, stale, stationChange, type Rank } from "./change";
 import { ATTRIBUTION, fetchSummary, timeout, withSeries, type Runs, type Summary } from "./forecast";
-import { listedStations, rosterDrift, STATION_LIST, stationsToAsk, type RosterRow } from "./liveness";
+import { listedStations, rosterDrift, STATION_LIST, stationsToAsk, type RosterDrift, type RosterRow } from "./liveness";
 import { dictRows, pool, pyFloat, pyRound, pyRoundInt, pySum, csvRows, truthy, urlencode } from "./py";
 import { appendRuns, type DeletableStore } from "./skill";
 import { addDays, centreWall, DAY_MS, dayMs, dayOf, HOUR, hours, instant, wallIso, yday } from "./time";
 import { readingCurrent } from "../../../../packages/core/src/freshness";
 import { GAUGE_FEED_FORMAT } from "../../../../packages/core/src/gaugeFeed";
+import { FEED_MIN_APP } from "../../../../packages/core/src/feedFormats.generated";
 import { FORECAST_DAYS } from "../../../../packages/core/src/gauge-policy.generated";
 
 const BASE = "https://dd.weather.gc.ca/today/hydrometric/csv/BC";
@@ -67,6 +68,18 @@ export function levelOnRating(rating: unknown, discharge: Num, level: Num, pad: 
   while (i < r.length - 2 && discharge > r[i + 1]![0]!) i++;
   const lo = r[i]![1]!, hi = r[i]![2]!;
   return lo - pad <= level && level <= hi + pad;
+}
+
+/**
+ * publish.live_quantities (T830): which quantities the reading carries that the feed stands behind — the index's
+ * `reports`. A level with no band (Capilano at Canyon, 08GA031: two years of HYDAT level) is still a level; a level off
+ * the record's rating (T550, `levelOnRating`: another datum) is left out on purpose.
+ */
+export function liveQuantities(discharge: Num, level: Num, levelOffDatum: boolean): string[] {
+  const out: string[] = [];
+  if (discharge !== null) out.push("discharge");
+  if (level !== null && !levelOffDatum) out.push("level");
+  return out;
 }
 
 /**
@@ -155,8 +168,13 @@ export interface Notice {
   action: string;
 }
 
-/** publish.maintenance_notices */
-export function maintenanceNotices(o: { release: string | null; latest: string | null; drift: { joined: string[]; left: string[] } | null; previous: unknown; at: string; roster?: string }): Notice[] {
+/** publish.never_seen (T847): the ids a `roster` notice's `latest` names; a pre-T847 `+id`/`-id` token is dropped */
+export function neverSeen(latest: unknown): string[] {
+  return String(latest ?? "").split(/\s+/).filter((t) => t && t[0] !== "+" && t[0] !== "-");
+}
+
+/** publish.maintenance_notices. The roster notice (T847) is `drift.unknown` alone, ids space-separated. */
+export function maintenanceNotices(o: { release: string | null; latest: string | null; drift: RosterDrift | null; previous: unknown; at: string; roster?: string }): Notice[] {
   const roster = o.roster ?? ROSTER_PATH;
   const prev = new Map<unknown, Record<string, any>>();
   if (Array.isArray(o.previous)) for (const n of o.previous) if (n && typeof n === "object" && !Array.isArray(n)) prev.set((n as any).kind ?? null, n);
@@ -175,13 +193,10 @@ export function maintenanceNotices(o: { release: string | null; latest: string |
     }
   }
   if (o.drift !== null) {
-    if (o.drift.joined.length || o.drift.left.length) {
-      const said = [...o.drift.joined.map((s) => `+${s}`), ...o.drift.left.map((s) => `-${s}`)].join(" ");
-      out.push(notice("roster", roster, said, rosterAction(roster)));
-    }
+    if (o.drift.unknown.length) out.push(notice("roster", roster, o.drift.unknown.join(" "), rosterAction(roster)));
   } else {
-    const p = prev.get("roster");
-    if (p && truthy(p.latest)) out.push(notice("roster", roster, p.latest, rosterAction(roster)));
+    const kept = neverSeen(prev.get("roster")?.latest);
+    if (kept.length) out.push(notice("roster", roster, kept.join(" "), rosterAction(roster)));
   }
   return out.sort((a, b) => cmpStr(a.kind, b.kind));
 }
@@ -529,7 +544,10 @@ export async function runGauges(deps: GaugeDeps): Promise<GaugeSummary> {
   if (!roster) log("  ⚠️  no roster (priv roster.json): no drift check this run");
   if (source === "roster") log(`  ⚠️  ECCC real-time station list unavailable; asking the roster's ${ids.length} realtime stations`);
   if (drift && (drift.joined.length || drift.left.length))
-    log(`  ⚠️  ROSTER DRIFT: ECCC now lists ${drift.joined.length} station(s) the roster calls silent (${drift.joined.join(", ")}) and no longer lists ${drift.left.length} it calls live (${drift.left.join(", ")}).`);
+    log(`  roster drift: ECCC now lists ${drift.joined.length} station(s) the roster calls silent (${drift.joined.join(", ")}) and no longer lists ${drift.left.length} it calls live (${drift.left.join(", ")}); the feed follows ECCC, nothing to do.`);
+  // (T847) the only owner task: a listed station the roster holds no row for
+  if (drift && drift.unknown.length)
+    log(`  ⚠️  NEVER-SEEN STATIONS: ECCC lists ${drift.unknown.length} station(s) the roster has no row for (${drift.unknown.join(", ")}); no water can show them until they are matched.`);
   // (T550 item 3) A SHRUNKEN ECCC LIST is not believed: more than LIST_SHRINK_SHARE fewer stations than the last index
   // listed (a truncated hydrometric_StationList.csv gave a 40-station run, recorded ok) → the roster's realtime stations
   // are asked, no drift is announced from the broken list, and the index carries no `listed` (unknown, never "nobody").
@@ -735,7 +753,7 @@ interface PublishArgs {
   latest: string | null;
   now: number;
   listed: Set<string> | null;
-  drift: { joined: string[]; left: string[] } | null;
+  drift: RosterDrift | null;
   roster: string;
   log: (s: string) => void;
   sleep: (ms: number) => Promise<void>;
@@ -1003,7 +1021,8 @@ async function publish(a: PublishArgs): Promise<Omit<GaugeSummary, "listSource" 
     }
     let have: Record<string, any> = envelope[st] || {};
     // (T550 item 2) a live level off the record's rating is on another datum: no level ranked this run (publish.py)
-    if ("level" in have && !levelOnRating((clim || {}).ratings?.[st], r.discharge, r.level, (clim || {}).ratingPadM)) {
+    const offDatum = "level" in have && !levelOnRating((clim || {}).ratings?.[st], r.discharge, r.level, (clim || {}).ratingPadM);
+    if (offDatum) {
       const { level: _lv, ...rest } = have;
       have = rest;
     }
@@ -1050,6 +1069,8 @@ async function publish(a: PublishArgs): Promise<Omit<GaugeSummary, "listSource" 
     index[st] = {
       percentile: percentileOf(observed, band),
       parameter: param,
+      // (T830) what the reading carries, ranked or not (publish.live_quantities)
+      reports: liveQuantities(r.discharge, r.level, offDatum),
       ...per,
       observedAt: r.at,
       ...(tC !== null ? { temperatureC: tC, temperatureAt: tAt } : {}),
@@ -1076,6 +1097,7 @@ async function publish(a: PublishArgs): Promise<Omit<GaugeSummary, "listSource" 
     const FC = "\u0000forecasts\u0000";
     let text = JSON.stringify({
       format: GAUGE_FEED_FORMAT,
+      minAppVersion: FEED_MIN_APP.gaugeFeed,   // (T676 item 2) every gauge file: the background alert check reads obs alone
       fetchedAt,
       station: st,
       now: { discharge: r.discharge, level: r.level, at: r.at, percentile: index[st].percentile, parameter: param },
@@ -1155,6 +1177,7 @@ async function publish(a: PublishArgs): Promise<Omit<GaugeSummary, "listSource" 
   const maintenance = maintenanceNotices({ release, latest: a.latest, drift: a.drift, previous: before, at: fetchedAt, roster: a.roster });
   if (!indexKept) await feed.put("index.json", JSON.stringify({
     format: GAUGE_FEED_FORMAT,
+    minAppVersion: FEED_MIN_APP.gaugeFeed,   // (T676 item 2) the oldest app that reads it (publish.py's MIN_APP)
     fetchedAt,
     // T225 follow-up: written ONCE. Python's dict literal names it twice and the second (T52: the newest issue among the
     // runs with a `change` block) silently replaced the first; the app's Forecasts line (T68) means the newest run
@@ -1177,7 +1200,7 @@ async function publish(a: PublishArgs): Promise<Omit<GaugeSummary, "listSource" 
       if (keep.length) obs[st] = keep;
     }
   }
-  if (!indexKept) await feed.put(OBS_FILE, JSON.stringify({ format: GAUGE_FEED_FORMAT, fetchedAt, windowHours: OBS_WINDOW_MS / 3_600_000, stations: obs }), JSON_CT);
+  if (!indexKept) await feed.put(OBS_FILE, JSON.stringify({ format: GAUGE_FEED_FORMAT, minAppVersion: FEED_MIN_APP.gaugeFeed, fetchedAt, windowHours: OBS_WINDOW_MS / 3_600_000, stations: obs }), JSON_CT);
 
   return {
     asked: a.ids.length, answered: got.length, release, stale: staleRelease, latest: a.latest, maintenance,

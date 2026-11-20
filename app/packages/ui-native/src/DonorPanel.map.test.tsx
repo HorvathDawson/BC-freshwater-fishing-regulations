@@ -1,7 +1,8 @@
 /**
- * T568 — THE ROUTE MAP HAS ONE PLACE IN THE SHEET: over the chart, whether the estimate answers or refuses. It sat under
- * the chart when the estimate answered and nowhere when it did not, so the Flow / Level toggle moved the map across the
- * chart (owner 2026-11-09: "the whole map jumps position from above the chart to below it").
+ * T568, T920 — THE ROUTE MAP HAS ONE PLACE IN THE SHEET: under the chart (T920, owner 2026-11-19: "move the gauge map
+ * below the chart on conditions"), whether the estimate answers or refuses. Before T568 it sat under the chart when the
+ * estimate answered and nowhere when it did not, so the Flow / Level toggle moved the map across the chart (owner
+ * 2026-11-09: "the whole map jumps position from above the chart to below it"); one place in every case is the rule.
  */
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { cleanup, render, screen } from "@testing-library/react";
@@ -29,15 +30,15 @@ const draw = (value: PanelAnswer) => render(
 const before = (a: Element, b: Element) => (a.compareDocumentPosition(b) & Node.DOCUMENT_POSITION_FOLLOWING) !== 0;
 
 describe("the route map's place", () => {
-  it("is over the chart when the estimate answers", () => {
+  it("is under the chart when the estimate answers", () => {
     draw({ answer: { ok: true, value: { percentile: 0.15, plusMinus: 12, trust: "close", spread: 6, donors: 1 } },
            rows: [row("08MH001")], areaKm2: 50, routesReady: true });
-    expect(before(screen.getByTestId("route-map"), screen.getByTestId("chart"))).toBe(true);
+    expect(before(screen.getByTestId("chart"), screen.getByTestId("route-map"))).toBe(true);
   });
 
-  it("is over the chart when the estimate refuses, as well", () => {
+  it("is under the chart when the estimate refuses, as well", () => {
     draw({ answer: { ok: false, why: "level-only" }, rows: [row("08MH001", { percentile: null, weight: 0, otherOnly: "level" })],
            areaKm2: 50, routesReady: true });
-    expect(before(screen.getByTestId("route-map"), screen.getByTestId("chart"))).toBe(true);
+    expect(before(screen.getByTestId("chart"), screen.getByTestId("route-map"))).toBe(true);
   });
 });

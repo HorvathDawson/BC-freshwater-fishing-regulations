@@ -12,7 +12,7 @@ const run = (...as: MenuAction[]): MenuState => as.reduce(menuReduce, MENU_CLOSE
 describe("the menu's state", () => {
   it("(T48) no drawer: the More tab lists the pages, and a page opens over it (back from the page is the More tab)", () => {
     expect([MENU_CLOSED, run({ type: "page", page: "glossary" }), menuReduce(MENU_CLOSED, { type: "closePage" })])
-      .toEqual([{ page: null, term: null, report: null }, { page: "glossary", term: null, report: null }, MENU_CLOSED]);
+      .toEqual([{ page: null, term: null, report: null, from: null }, { page: "glossary", term: null, report: null, from: null }, MENU_CLOSED]);
     expect(menuReduce(MENU_CLOSED, { type: "closePage" })).toBe(MENU_CLOSED);
   });
 
@@ -20,7 +20,7 @@ describe("the menu's state", () => {
     expect(run({ type: "page", page: "about" }, { type: "term", id: "bait" }).term).toBeNull();
     const t = run({ type: "page", page: "glossary" }, { type: "term", id: "bait" });
     expect(t.term).toBe("bait");
-    expect(menuReduce(t, { type: "closeTerm" })).toEqual({ page: "glossary", term: null, report: null });
+    expect(menuReduce(t, { type: "closeTerm" })).toEqual({ page: "glossary", term: null, report: null, from: null });
     expect(menuReduce(t, { type: "closePage" })).toEqual(MENU_CLOSED);
   });
 

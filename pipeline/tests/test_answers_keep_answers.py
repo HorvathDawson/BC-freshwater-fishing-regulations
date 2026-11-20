@@ -136,7 +136,7 @@ def test_3_the_rows_model_holds_parent_to_another_pooled_row():
             "narrow": None, "everyone": [], "groups": [], "prot": None, "wins": None, "lift_notes": [], "scope": None,
             "year": [["release", 365]]}
     pool = {**base, "kind": "no_limit", "pool": 3, "win": None, "conds": [], "items": [], "elsewhere": None}
-    frame = {"spp": ["DV"], "fish": {}, "steelhead_line": None}
+    frame = {"spp": ["DV"], "fish": {}, "steelhead_line": None, "page_possession": None}
     M.validate_section("rows", [{**frame, "rows": [pool, {**pool, "parent": 0}]}])
     for rows in ([pool, {**pool, "parent": 1}],            # itself
                  [pool, {**pool, "parent": 2}],            # no such row

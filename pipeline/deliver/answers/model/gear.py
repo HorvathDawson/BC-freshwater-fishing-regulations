@@ -38,6 +38,13 @@ class ExceptedFrom(Model):
     by: ClauseRef
 
 
+class Allowance(Model):
+    """T797 item 2: one distinct bait allowance of a part, said once (`gear.allowances`): its words and every clause
+    allowing it (merged across rules, so the Sources cite each)."""
+    says: StrictStr = Field(min_length=1)
+    by: Tuple[ClauseRef, ...] = Field(min_length=1)
+
+
 class BaitPick(Model):
     element: Literal["worms", "roe", "invertebrate", "fin_fish"]
     ok: StrictBool
@@ -45,6 +52,8 @@ class BaitPick(Model):
     why: Optional[StrictStr] = None
     carry_kg: Optional[Union[StrictInt, StrictFloat]] = None
     also_allowed: Optional[Tuple[Circumstance, ...]] = None
+    #: T797 item 2: `also_allowed` said once per distinct allowance, deduped across rules (with it, never alone)
+    allowances: Optional[Tuple[Allowance, ...]] = Field(default=None, min_length=1)
     #: ROUND20h 1: the ban this allowed element is an exception to (only on an allowed element)
     excepted_from: Optional[ExceptedFrom] = None
 

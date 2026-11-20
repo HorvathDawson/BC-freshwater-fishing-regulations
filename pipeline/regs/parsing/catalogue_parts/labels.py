@@ -84,13 +84,16 @@ def species_menu() -> str:
            "    regulations that apply to trout (as a group) also apply to char unless char are",
            "    specifically excluded'). 'Trout daily quota = 2' is `TROUT_CHAR`. There is no",
            "    TROUT-only code: the code TROUT is refused. BUT when the SAME ROW (or the same",
-           "    zone table) mentions char apart — 'char', Dolly Varden/bull trout, lake trout,",
-           "    brook trout on their own; 'trout/char' names char IN and does not count — that",
-           "    row's bare 'trout' lines exclude char: `TROUT_CHAR` with species_except [CHAR].",
-           "    Region 6's box ('Trout/char: 5 … 3 Dolly Varden/bull trout and/or lake trout",
-           "    combined, 1 trout from streams July 1-Oct 31 … Trout under 30 cm from any",
-           "    stream') mentions char, so '1 trout from streams' and 'Trout under 30 cm' are",
-           "    [TROUT_CHAR] except [CHAR]; 'Trout/char: 5' stays [TROUT_CHAR].",
+           "    zone table) gives a char a RELATED line of its own (same thing: count/release,",
+           "    size or gear; same water, days that meet; 'trout/char' names char IN and does not",
+           "    count), that row's bare 'trout' line leaves out THAT char only: Chilliwack Lake's",
+           "    'No wild trout over 50 cm, 1 bull trout over 60 cm' is [TROUT_CHAR] except [DV].",
+           "    All char leave (except [CHAR]) only when the line names 'char' as a group or",
+           "    every char is named (owner 2026-11-18). Region 6's box ('Trout/char: 5 … 3 Dolly",
+           "    Varden/bull trout and/or lake trout combined, 1 trout from streams July 1-Oct 31",
+           "    … Trout under 30 cm from any stream') names Dolly Varden and lake trout, so '1",
+           "    trout from streams' is [TROUT_CHAR] except [DV, LT]; 'Trout under 30 cm' (no char",
+           "    size line beside it) and 'Trout/char: 5' stay plain [TROUT_CHAR].",
            "  * A BULL TROUT IS A DOLLY VARDEN ('*Any bull trout that you catch and keep must be",
            "    counted as part of your Dolly Varden quota'). 'Bull trout catch and release' is",
            "    `DV`. The code BT is refused.",
@@ -103,7 +106,8 @@ def species_menu() -> str:
            "GROUPS — prefer these:"]
     gloss = {"ALL_GAME_FISH": "the whole list below; NOT salmon, NOT non-game fish",
              "TROUT_CHAR": ("'trout', 'trout/char', 'trout and char' — trout rules cover char "
-                            "(except [CHAR] on a bare 'trout' line whose row mentions char apart)"),
+                            "(a bare 'trout' line leaves out each char its row gives a related line — "
+                            "[DV]; [CHAR] only for a 'char' line or every char named)"),
              "CHAR": "'char' — Dolly Varden/bull trout, lake trout, brook trout",
              "ALL_FIN_FISH": ("\"any fish\" / \"fin fish\" — game fish, salmon AND non-game; never "
                               "crayfish"),
@@ -143,6 +147,18 @@ def is_protected_list(codes) -> bool:
     return bool(codes) and all(c in PROTECTED_FISH for c in codes)
 
 
+#: A NAME THAT STARTS WITH A PROPER NOUN KEEPS ITS CASE in a sentence ("other than Dolly Varden/bull
+#: trout"); the same list as the answers' `common._PROPER` (pinned equal in test_c2_one_char.py).
+PROPER_NAME = re.compile(r"^(Dolly|Arctic|Nooksack|Salish|Cultus|Enos|Coastal|Westslope|Misty|Vananda"
+                         r"|Paxton|Hadley|Morrison|Rocky|Speckled|Charlotte)")
+
+
+def _lc(name: str) -> str:
+    """A fish's name lower-cased for the middle of a sentence, a proper noun kept ("lake trout",
+    "Dolly Varden/bull trout") — as the answers say it (`common.lc`)."""
+    return name if PROPER_NAME.match(name) else name[:1].lower() + name[1:]
+
+
 def species_words(codes: List[str], excepts: List[str] | None = None) -> str:
     if not codes:
         return ""
@@ -159,7 +175,7 @@ def species_words(codes: List[str], excepts: List[str] | None = None) -> str:
              for c in codes]
     out = names[0] if len(names) == 1 else ", ".join(names[:-1]) + " and " + names[-1]
     if excepts:
-        ex = [_SPECIES_WORDS.get(c, c).lower() for c in excepts]
+        ex = [_lc(_SPECIES_WORDS.get(c, c)) for c in excepts]
         out += " other than " + (ex[0] if len(ex) == 1 else ", ".join(ex[:-1]) + " and " + ex[-1])
     return out
 
@@ -522,8 +538,10 @@ def _lift_name(x: "Exempts", siblings: Optional[dict] = None,
 
 def _lifted_names(r: CatalogueRule, siblings: Optional[dict] = None,
                   entries: Optional[dict] = None) -> list:
-    """The names of what `r` lifts (`_lift_name`), each once."""
-    return list(dict.fromkeys(n for n in (_lift_name(x, siblings, entries) for x in r.exempts)
+    """The names of what `r` lifts (`_lift_name`), each once. The lifted rule is named WITHOUT `r` among its siblings:
+    a lift never quotes itself back (T789 K8, `exempted_on_an_undrawn_part`)."""
+    others = {k: v for k, v in siblings.items() if k != r.rule_id} if siblings else siblings
+    return list(dict.fromkeys(n for n in (_lift_name(x, others, entries) for x in r.exempts)
                               if n))
 
 
@@ -601,6 +619,20 @@ def on_parts_words(r: CatalogueRule) -> str:
         return ""
     m = _ON_PARTS.search(r.verbatim or "")
     return f"on {m.group('n').lower()}" if m else ""
+
+
+def exempted_on_an_undrawn_part(r: CatalogueRule, siblings: Optional[dict]) -> str:
+    """(T789 K8, owner-approved for 0.8.0) THE BOOK'S EXEMPTION, SAID WITH THE RULE IT EXEMPTS, when the exemption holds
+    on a part no map draws: Shuswap Lake p.32, "(anglers fishing from the community pier in the city of Salmon Arm are
+    exempt from the closure)" after the Salmon Arm Bay closure, and the same "… exempt from the bait ban" after the bait
+    ban. The lift (`shuswap_lake.r5x`, `r11x`) is an undrawn part and has no verdict, so no reader drew it: the
+    exempted rule's own line carries the sentence, in brackets as printed. "" when no undrawn sibling lifts it."""
+    for s in (siblings or {}).values():
+        if s.rule_id == r.rule_id or not s.undrawn_part:
+            continue
+        if any(x.target == r.rule_id and not x.entry_id for x in s.exempts or ()):
+            return re.sub(r"[\s.;]+$", "", s.verbatim or "")
+    return ""
 
 
 def label_parts(r: CatalogueRule, siblings: Optional[dict] = None, place_of=None,
@@ -759,6 +791,9 @@ def label_parts(r: CatalogueRule, siblings: Optional[dict] = None, place_of=None
     # rule, and the reader shows the verbatim.
     p["conditions"] = ", ".join(cond)
     p["duty"] = "; ".join(d[:1].lower() + d[1:] for d in duty)
+    note = exempted_on_an_undrawn_part(r, siblings)
+    if note and p.get("what"):
+        p["what"] = f"{p['what']} ({note})"
     out = {}
     for k in LABEL_PARTS:
         v = re.sub(r"\s+", " ", _EMPHASIS.sub("", p.get(k) or "")).strip()

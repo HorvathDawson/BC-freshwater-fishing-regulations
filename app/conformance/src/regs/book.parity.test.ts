@@ -36,11 +36,14 @@ describe.skipIf(gate.skip)(`T43 ${ID}`, () => {
 
   it("every book run in every sheet: one spelling, linked to the stored PDF page", async () => {
     const { inp, page } = await pageOf();
-    const keys = Object.keys((JSON.parse(readFileSync(`${FIXTURE_DIR}/${ID}.json`, "utf8")) as { sheets: Record<string, unknown> }).sheets);
+    const frozen = (JSON.parse(readFileSync(`${FIXTURE_DIR}/${ID}.json`, "utf8")) as { sheets: Record<string, unknown> }).sheets;
+    const keys = Object.keys(frozen);
     expect(keys.length).toBe(59);   // the 65 golden keys less the 6 licsrc: ones (owner 2026-11-04)
     let runs = 0;
     for (const key of keys) {
-      const vm = page.sheet(key as Parameters<typeof page.sheet>[0]) as SheetVM;
+      const vm = page.sheet(key as Parameters<typeof page.sheet>[0]) as SheetVM | null;
+      // (T810 cutover) a covered row's sheet (src:r0, the trout group's) opens nothing, frozen and live alike
+      if (vm === null) { expect(frozen[key], key).toBeNull(); continue; }
       for (const r of bookRuns(vm.blocks)) {
         runs++;
         expect(bookText(r), `${key} p.${r.printed}`).toMatch(/^(Rule book )?p\.\d+ ↗$/);

@@ -243,6 +243,13 @@ EXAMPLES: tuple[Example, ...] = (
     E("duck_lake_row_beats_cvwma", ("ladder.who_speaks",), "wbk:329246292", "07-01", "SMB",
       ("r4:duck_lake_permit_required_see_note_on_page_34@4-6::duck_lake.r1",),
       ("r4:creston_valley_wildlife_management_area_cvwma_waters@4-6::creston_valley_wma_waters.r1",)),
+    # ---- gotchas.trout_includes_char: one char's own line takes only that char out (C2, owner 2026-11-18) --
+    E("chilliwack_lake_wild_size_line_holds_brook_trout", ("gotchas.trout_includes_char",), "wbk:329083341",
+      "07-15", "EB", ("r2:chilliwack_lake@2-4::chilliwack_lake.r1",),
+      says="'No wild trout over 50 cm' holds brook trout: only bull trout have their own line"),
+    E("chilliwack_lake_bull_trout_follow_their_own_line", ("gotchas.trout_includes_char",), "wbk:329083341",
+      "07-15", "DV", ("r2:chilliwack_lake@2-4::chilliwack_lake.r2",), ("r2:chilliwack_lake@2-4::chilliwack_lake.r1",),
+      says="'1 bull trout over 60 cm' is the bull trout's; the trout line leaves them out"),
     # ---- ladder.competition: weekday rules decide (user ruling 2026-10-08, review D2) ----------
     E("lower_west_arm_kokanee_saturday", ("ladder.competition",), "wbk:-22", "07-04", "KO",
       ("r4:kootenay_lake_lower_west_arm_for_location_see_map_on_page_34@4-7::kootenay_lake_lower_west_arm.r3",), ("r4:kootenay_lake_lower_west_arm_for_location_see_map_on_page_34@4-7::kootenay_lake_lower_west_arm.r4",), named_as="Kootenay Lake", weekday="Saturday",

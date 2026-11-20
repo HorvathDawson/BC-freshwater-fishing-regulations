@@ -4,7 +4,7 @@
  * Separated from the screens because all four tabs use the same shapes, and because the
  * map itself must never be asked to draw UI — everything here sits above it.
  */
-import { FLOW_LEGEND, KEY_ISOLATE_WORDS, legendCount, legendTickLabel, standing } from "@app/core";
+import { FLOW_LEGEND, KEY_ISOLATE_WORDS, legendCount, legendTickLabel, NORMAL_BAND } from "@app/core";
 import { ScrollView, useWindowDimensions, View } from "react-native";
 import { Text } from "./Text";
 import { Pressable } from "./Pressable";
@@ -19,14 +19,29 @@ import { round, type Palette } from "./theme";
  * It is a legend, not decoration: whatever the map is currently colouring by has to say
  * what its colours mean, or the map is a picture rather than an answer.
  */
-export function LegendStrip({ palette, children, full, wrap }:
+export function LegendStrip({ palette, children, full, wrap, card }:
   { palette: Palette; children: React.ReactNode; full?: boolean;
+    /**
+     * (T904, owner 2026-11-19) THE DESKTOP'S CARD: with `full`, not a bar across the window but a square-cornered card
+     * floating over the map at the bottom, centred, one ramp wide, with the map's own colour showing round it — no white
+     * bar. The foot it sits in is an overlay on the map already (T275), and ignores taps outside the card.
+     */
+    card?: boolean;
     /**
      * WRAP instead of scrolling sideways (layers menu B, the Map tab): the key measured 613 px in a 390 px phone and
      * hid "Has its own regulations" and "Base regulations only" off the edge, where nobody scrolls a caption. Wrapped,
      * every entry is on screen at any width; a second row is the price.
      */
     wrap?: boolean }) {
+  if (wrap && card) {
+    return (
+      <View testID="legend-card"
+            style={{ ...legendCard(palette), flexDirection: "row", flexWrap: "wrap", alignItems: "center", columnGap: 16, rowGap: 6,
+                     paddingVertical: 9, paddingHorizontal: LEGEND_ROWS.padX }}>
+        {children}
+      </View>
+    );
+  }
   if (wrap) {
     return (
       <View testID="legend-strip"
@@ -46,6 +61,15 @@ export function LegendStrip({ palette, children, full, wrap }:
    * a horizontal ScrollView: the content sizes to itself, so `width: "100%"` resolves
    * against the content rather than the screen and the bar collapses to its minimum.
    */
+  if (full && card) {
+    return (
+      <View testID="legend-card"
+            style={{ ...legendCard(palette), width: "100%", maxWidth: LEGEND_RAMP_MAX + 2 * LEGEND_CARD_PAD,
+                     paddingHorizontal: LEGEND_CARD_PAD, paddingVertical: 10 }}>
+        {children}
+      </View>
+    );
+  }
   if (full) {
     return (
       <View style={{ flexGrow: 0, borderTopWidth: 1, borderTopColor: palette.line,
@@ -83,11 +107,20 @@ export function DottedSwatch({ colour, width = 14, thick = 3 }: { colour: string
  * (T377) A STRIPED line swatch, the same box as a solid one: the line's colour with short dashes of `stripe` down its
  * middle, closed's stripe at legend size (Views, so it draws the same on web and native).
  */
-export function StripedSwatch({ colour, stripe, width = 14, thick = 4 }: { colour: string; stripe: string; width?: number; thick?: number }) {
+export function StripedSwatch({ colour, stripe, width = 14, thick = 4, casing }:
+    { colour: string; stripe: string; width?: number; thick?: number;
+      /** (T759) the paper under each dash, as the map draws the issue stripe (`issuePaint`): ink on `casing` on the line */
+      casing?: string }) {
+  const ink = Math.max(1, Math.round(thick * 0.4));
+  const base = Math.max(ink, Math.round(thick * 0.85));
   return (
-    <View testID="swatch-striped" style={{ width, height: thick, backgroundColor: colour, flexDirection: "row",
+    <View testID={casing ? "swatch-issue" : "swatch-striped"} style={{ width, height: thick, backgroundColor: colour, flexDirection: "row",
                                             alignItems: "center", justifyContent: "space-evenly" }}>
-      {[0, 1].map((i) => <View key={i} style={{ width: 2, height: Math.max(1, Math.round(thick * 0.4)), backgroundColor: stripe }} />)}
+      {[0, 1].map((i) => casing ? (
+        <View key={i} style={{ width: 4, height: base, backgroundColor: casing, alignItems: "center", justifyContent: "center" }}>
+          <View style={{ width: 3, height: ink, backgroundColor: stripe }} />
+        </View>
+      ) : <View key={i} style={{ width: 2, height: ink, backgroundColor: stripe }} />)}
     </View>
   );
 }
@@ -125,7 +158,7 @@ export function LegendRows({ rows }: { rows: readonly React.ReactNode[] }) {
 }
 
 /** One "29 closed" entry. The count is the point — it says how much map is that colour. */
-export function LegendCount({ palette, colour, n, label, line, dotted, striped, edge, rim, ring, tight, onPress, alone, faded }:
+export function LegendCount({ palette, colour, n, label, line, dotted, striped, issue, edge, cased, rim, ring, tight, onPress, alone, faded }:
   { palette: Palette; colour: string; n?: number; label: string;
     /**
      * Draw the swatch as a LINE instead of a square — for a key to lines. Every line swatch is
@@ -136,11 +169,15 @@ export function LegendCount({ palette, colour, n, label, line, dotted, striped, 
     dotted?: boolean;
     /** (T377) the line STRIPED down its middle with dashes in this colour, as the map draws closed (`closedCuePaint`) */
     striped?: string;
+    /** (T759) the line with the ISSUE STRIPE: ink dashes on paper dashes down it, as the map draws a water with a DFO rule to check */
+    issue?: { stripe: string; casing: string };
     /**
      * (T213) a GEAR MARK's key: the edge the map draws round a line of any status colour, in `colour` (the gear ink) —
      * a hollow line, solid for fly fishing only, dashed for a bait ban. No fill: the mark rides on every status.
      */
     edge?: "solid" | "dashed";
+    /** (T887) the line CASED in this colour, as the map draws option B's bright keep */
+    cased?: string;
     /** (T292) a DASHED RIM round the square in this colour, as the map draws not-fishing water's edge */
     rim?: string;
     /** (T636) a round DOT in `colour` with a RING in this colour, as the map draws a gauge reporting only the other quantity */
@@ -159,10 +196,11 @@ export function LegendCount({ palette, colour, n, label, line, dotted, striped, 
                     style={{ width: tight ? LEGEND_ROWS.edge : 22, height: 10, borderWidth: 1.5, borderColor: colour,
                              borderStyle: edge }} />
         : line && dotted ? <DottedSwatch colour={colour} width={lineW} thick={4} />
+        : line && issue ? <StripedSwatch colour={colour} stripe={issue.stripe} casing={issue.casing} width={lineW} thick={6} />
         : line && striped ? <StripedSwatch colour={colour} stripe={striped} width={lineW} />
         : ring ? <View testID="legend-ring" style={{ width: 12, height: 12, borderRadius: round(12), backgroundColor: colour,
                                                      borderWidth: 2.5, borderColor: ring }} /> : <View style={line
-        ? { width: lineW, height: 4, backgroundColor: colour }
+        ? { width: lineW, height: cased ? 6 : 4, backgroundColor: colour, ...(cased ? { borderWidth: 1, borderColor: cased } : {}) }
         : { width: 12, height: 12, borderRadius: palette.r.chip, backgroundColor: colour,
             ...(rim ? { borderWidth: 1, borderColor: rim, borderStyle: "dashed" as const } : {}) }}
         {...(rim ? { testID: "legend-rim" } : {})} />}
@@ -181,16 +219,20 @@ export function LegendCount({ palette, colour, n, label, line, dotted, striped, 
 }
 
 
-/**
- * WHERE "NORMAL" IS ON THE SCALE: the percentiles core's `standing` calls normal (the middle half of the record, 25–75),
- * read from that function rather than restated, so the legend's bracket and every "NORMAL" word agree.
- */
-const NORMAL: readonly [number, number] = (() => {
-  const at = Array.from({ length: 101 }, (_, i) => i / 100).filter((p) => standing(p) === "normal");
-  return [at[0] ?? 0.25, Math.min(1, (at.at(-1) ?? 0.74) + 0.01)];
-})();
+const NORMAL = NORMAL_BAND;
 /** the legend's widest: past this a ramp across a desktop window is a stripe, not a scale (centred in the strip) */
 export const LEGEND_RAMP_MAX = 560;
+/** (T904) the desktop card's side padding and its gap above the window's bottom edge */
+const LEGEND_CARD_PAD = 14;
+const LEGEND_CARD_GAP = 12;
+/**
+ * (T904) THE DESKTOP'S ONE KEY CARD (Map, Conditions and Runs alike): centred over the map's bottom, square-cornered, bordered
+ * all round, 12 px above the window's edge. The bar's rules (a top border only, the full width) are for a phone's foot.
+ */
+export function legendCard(palette: Palette) {
+  return { flexGrow: 0, alignSelf: "center", maxWidth: "100%", marginBottom: LEGEND_CARD_GAP, borderWidth: 1, borderColor: palette.line,
+           borderRadius: palette.r.box, backgroundColor: palette.card } as const;
+}
 const BAR = 10, TICKS = 14;
 /** (T427) the width of Low / High ("Falling" is the longest) beside the ramp, and the gap to it */
 const LABEL_W = 44, LABEL_GAP = 6;

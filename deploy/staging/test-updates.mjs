@@ -16,12 +16,26 @@
 //   node deploy/staging/test-updates.mjs big [tag]             (T255) a LARGE release: the basemap's id moves (same file,
 //                                                              same sha), so a phone re-downloads it whole (~270 MB) —
 //                                                              over the 20 MB line a metered connection holds for Wi-Fi
+//   node deploy/staging/test-updates.mjs data-book [tag] [padMB]  (T912) an update that really DOWNLOADS a data file and a big
+//                                                              file: the live `climate` with its SQLite change counter moved
+//                                                              (same rows, other bytes) and the rule book with a PDF comment
+//                                                              after its end (same pages, other bytes), both under
+//                                                              test/release/<id>/. (`big` moves only the basemap's id: the
+//                                                              phone keeps the file it holds at that path, nothing downloads).
+//                                                              padMB: the rule book grows by that many MB of PDF comment
+//                                                              (a download that outlasts a kill on a line the bench cannot
+//                                                              slow: the iOS simulator)
 //   node deploy/staging/test-updates.mjs gauge <station> <flow|level> <value>   (T234) the gauge alerts' feed (the
 //                                                              background check reads test/feeds/live/obs.json on this
 //                                                              channel): that station's newest reading set to <value>, now
 //   node deploy/staging/test-updates.mjs app-version <semver> [build] [notes…]   (T234 v1.1) the new-app-version notice:
 //                                                              test/app/android/latest.json and play.json name that version
 //                                                              (a build on the test channel reads them in its background check)
+//   node deploy/staging/test-updates.mjs side <release dir>    (T810 V-py, trout contract 2.8 / Q-D11) a SIDE release (one
+//                                                              holding the trout section, e.g. by scripts/trout-refresh.sh):
+//                                                              its data files go to test/release/<id>/ and the test
+//                                                              manifest names them (see `sideManifest` for the one way a
+//                                                              test manifest can reach them, and its limit)
 //   node deploy/staging/test-updates.mjs status                what test/ holds now
 //   node deploy/staging/test-updates.mjs clean                 remove test/
 //
@@ -113,10 +127,145 @@ export const tiles = (tag = String(Date.now() % 100000)) => synthetic(`tiles${ta
   m.tiles = { ...m.tiles, current: { ...m.tiles.current, id: `${h}.${build}` } };
   return m;
 });
+/**
+ * (T912) THE SAME SQLITE FILE WITH OTHER BYTES: its file change counter (header offset 24) moved on, and the
+ * "version-valid-for" number (offset 92) with it, so SQLite still trusts the header's page count. Nothing a reader queries
+ * changes; the sha256 does, so a phone downloads it (an update's data file) instead of copying the one it holds.
+ */
+export function bumpSqlite(raw) {
+  if (new TextDecoder().decode(raw.subarray(0, 15)) !== 'SQLite format 3') throw new Error('not a SQLite file');
+  const out = new Uint8Array(raw), v = new DataView(out.buffer, out.byteOffset, out.byteLength);
+  const c = (v.getUint32(24) + 1) >>> 0;
+  v.setUint32(24, c); v.setUint32(92, c);
+  return out;
+}
+/**
+ * (T912) The same PDF with other bytes: a comment line after its end (readers ignore it); the sha256 moves. `pad`: that
+ * many more bytes of comment lines (`%` + spaces), for a download that takes a while.
+ */
+export function bumpPdf(pdf, pad = 0) {
+  if (new TextDecoder().decode(pdf.subarray(0, 5)) !== '%PDF-') throw new Error('not a PDF');
+  const tail = new TextEncoder().encode('\n% test-updates data-book\n');
+  const out = new Uint8Array(pdf.length + tail.length + pad);
+  out.set(pdf); out.set(tail, pdf.length);
+  const line = new TextEncoder().encode(`%${' '.repeat(1022)}\n`);
+  for (let at = pdf.length + tail.length; at < out.length; at += line.length) out.set(line.subarray(0, Math.min(line.length, out.length - at)), at);
+  return out;
+}
+/** (T912) The `data-book` manifest: `live` with a new id, data file `name` replaced by `f`, and the rule book by `book`. */
+export function dataBookManifest(live, id, name, f, book) {
+  if (!live.synopsis) throw new Error('the live manifest names no rule book (synopsis)');
+  if (!live.files[name]) throw new Error(`the live manifest names no ${name}`);
+  const m = { ...structuredClone(live), data_release: id };
+  m.files[name] = { ...m.files[name], ...f };
+  m.synopsis = { ...m.synopsis, ...book };
+  return m;
+}
+export async function dataBook(tag = String(Date.now() % 100000), padMB = '0') {
+  const { createHash } = await import('node:crypto');
+  const { gzipSync, gunzipSync } = await import('node:zlib');
+  const fs = await import('node:fs'), os = await import('node:os'), path = await import('node:path');
+  const live = await liveManifest();
+  const name = 'climate', f = live.files[name];
+  const id = `${live.data_release}-book${tag}`;
+  const got = new Uint8Array(await (await fetch(`${ORIGIN}/release/${f.url}`, { cache: 'no-store' })).arrayBuffer());
+  const raw = bumpSqlite(got[0] === 0x1f && got[1] === 0x8b ? new Uint8Array(gunzipSync(got)) : got);
+  const sha256 = createHash('sha256').update(raw).digest('hex');
+  const gz = gzipSync(raw);
+  const file = `${id}/${name}-${sha256.slice(0, 12)}.sqlite.gz`, key = `${SIDE_PREFIX}${file}`;
+  const pdf = bumpPdf(new Uint8Array(await (await fetch(`${ORIGIN}/release/${live.synopsis.url}`, { cache: 'no-store' })).arrayBuffer()),
+                      Math.round(Number(padMB) * 1e6));
+  const bookSha = createHash('sha256').update(pdf).digest('hex');
+  const bookKey = `${SIDE_PREFIX}${id}/synopsis-${bookSha.slice(0, 12)}.pdf`;
+  for (const k of [key, bookKey]) if (!k.startsWith('test/')) throw new Error(`refusing to write ${k}`);
+  const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'test-updates-'));
+  try {
+    fs.writeFileSync(path.join(tmp, 'f.gz'), gz);
+    fs.writeFileSync(path.join(tmp, 'b.pdf'), pdf);
+    // as upload.sh ships a data file: stored gzip, served with Content-Encoding (see `side`)
+    rclone(['copyto', path.join(tmp, 'f.gz'), `${D}/${key}`, '--header-upload', 'Cache-Control: no-cache',
+            '--header-upload', 'Content-Encoding: gzip', '--header-upload', 'Content-Type: application/octet-stream']);
+    rclone(['copyto', path.join(tmp, 'b.pdf'), `${D}/${bookKey}`, '--header-upload', 'Cache-Control: no-cache',
+            '--header-upload', 'Content-Type: application/pdf']);
+  } finally { fs.rmSync(tmp, { recursive: true, force: true }); }
+  const m = dataBookManifest(live, id, name, { url: `../${key}`, bytes: raw.length, gz: gz.length, sha256 },
+                             { url: `../${bookKey}`, bytes: pdf.length, sha256: bookSha });
+  for (const [u, k] of [[m.files[name].url, key], [m.synopsis.url, bookKey]])
+    if (keyOf(u) !== k) throw new Error(`${u} resolves to ${keyOf(u)}`);
+  putManifest(m);
+  return { data_release: id, minAppVersion: m.minAppVersion ?? null, data: m.files[name].url, book: m.synopsis.url, bytes: raw.length + pdf.length };
+}
+
 export const minApp = (v) => {
   if (!/^\d+\.\d+\.\d+/.test(v ?? '')) throw new Error('min-app <semver>, e.g. min-app 99.0.0');
   return synthetic(`needs-${v}`, (m) => ({ ...m, minAppVersion: v }));
 };
+
+// (T810 V-py, Q-D11) A SIDE RELEASE ON THE TEST CHANNEL. CHECKED FIRST: can a test/ manifest point at
+// test/release/<id>/? The app reads every release file's url RELATIVE TO `${origin}/release/` on BOTH channels
+// (apps/mobile/src/env.ts `endpointsFor`: only the manifest and the feed indexes move under test/; install.ts fetches
+// `${release}${url}` and stores the file under its last segment). So a plain "<id>/<file>" url names release/<id>/, which
+// this harness never writes. The one url that reaches test/release/<id>/ is "../test/release/<id>/<file>": a client that
+// normalises it (browsers, the web build; OkHttp on Android) asks for test/release/…, and one that sends it as written
+// still gets that key, because the staging data worker resolves the path with its own URL parse (data-worker.js).
+// Proved in test-updates.test.mjs; not yet walked on a device. The cleaner fix is
+// the app's: on the test channel, resolve file urls against the manifest's own folder (`${origin}/test/release/`). Tiles,
+// basemap, map assets and the synopsis keep their urls: a side release built from the live inputs names the live ones,
+// which staging already holds under release/ (read only here).
+export const SIDE_PREFIX = 'test/release/';
+/** The test manifest for side release `m`: its data files' urls reach test/release/<id>/ from `${origin}/release/`. */
+export function sideManifest(m) {
+  if (!(m.regulations?.versions ?? {}).trout)
+    throw new Error(`${m.data_release}: no trout section — a release cut before the trout cutover (T810 L)`);
+  const id = m.data_release;
+  const files = {};
+  for (const [name, f] of Object.entries(m.files)) {
+    if (!f.url.startsWith(`${id}/`)) throw new Error(`${name}: ${f.url} is not in the release folder ${id}/`);
+    files[name] = { ...f, url: `../${SIDE_PREFIX}${f.url}` };
+  }
+  const out = { ...structuredClone(m), files };
+  // (T810 bench 2026-11-18) a side release cuts its OWN synopsis into its folder (r-…/synopsis-….pdf): staging's release/
+  // never holds it, so a first install's synopsis download was a 404 and the start failed at 468.6 of 480.4 MB. It goes
+  // to test/ as the data files do; a synopsis named outside the folder (the live one's) keeps its url.
+  if (m.synopsis?.url?.startsWith(`${id}/`)) out.synopsis = { ...out.synopsis, url: `../${SIDE_PREFIX}${m.synopsis.url}` };
+  return out;
+}
+/** Where each data file goes: [local path under the release root, bucket key] — test/ keys only (the synopsis too, when
+ *  it is the side release's own). */
+export function sideUploads(m) {
+  const own = m.synopsis?.url?.startsWith(`${m.data_release}/`) ? [m.synopsis] : [];
+  return [...Object.values(m.files), ...own].map((f) => [f.url, `${SIDE_PREFIX}${f.url}`]);
+}
+/** The bucket key a manifest url names, as a normalising client resolves it against `${origin}/release/`. */
+export function keyOf(url) {
+  return new URL(url, `${ORIGIN}/release/`).pathname.slice(1);
+}
+
+export async function side(dir) {
+  if (!dir) throw new Error('side <release dir>: a side release folder (r-…/ holding manifest.json)');
+  const fs = await import('node:fs'), path = await import('node:path');
+  const m = JSON.parse(fs.readFileSync(path.join(dir, 'manifest.json'), 'utf8'));
+  const root = path.dirname(path.resolve(dir));
+  const t = sideManifest(m);
+  for (const [name, f] of Object.entries(t.files)) {
+    const key = keyOf(f.url);
+    if (key !== `${SIDE_PREFIX}${m.files[name].url}`) throw new Error(`${name}: ${f.url} resolves to ${key}`);
+  }
+  if (t.synopsis && t.synopsis.url !== m.synopsis.url && keyOf(t.synopsis.url) !== `${SIDE_PREFIX}${m.synopsis.url}`)
+    throw new Error(`synopsis: ${t.synopsis.url} resolves to ${keyOf(t.synopsis.url)}`);
+  const ups = sideUploads(m);
+  for (const [local] of ups) if (!fs.existsSync(path.join(root, local))) throw new Error(`missing ${local} under ${root}`);
+  for (const [local, key] of ups) {
+    if (!key.startsWith('test/')) throw new Error(`refusing to write ${key}: the harness writes test/ only`);
+    // as upload.sh ships a release's data files: stored gzip, served with Content-Encoding (data-worker passes it through)
+    rclone(['copyto', path.join(root, local), `${D}/${key}`, '--header-upload', 'Cache-Control: no-cache',
+            ...(local.endsWith('.gz') ? ['--header-upload', 'Content-Encoding: gzip', '--header-upload',
+                                         'Content-Type: application/octet-stream'] : [])]);
+  }
+  putManifest(t);
+  return { data_release: t.data_release, files: ups.length, folder: `${SIDE_PREFIX}${m.data_release}/`,
+           note: 'file urls are "../test/release/<id>/…" from the app\'s release base; clean removes the folder with test/' };
+}
 
 /** (T234) A gauge's newest reading, as the background check will read it: `[now, level, discharge]` on the test channel. */
 export async function gauge(station, quantity, value) {
@@ -159,7 +308,7 @@ export async function clean() {
   return { cleaned: 'test/' };
 }
 
-const CMDS = { reset, gauge, 'app-version': appVersion, 'feed-bump': feedBump, 'feed-404': feed404, release, big, tiles, corrupt, missing, 'min-app': minApp, status, clean };
+const CMDS = { reset, gauge, 'app-version': appVersion, 'feed-bump': feedBump, 'feed-404': feed404, release, big, 'data-book': dataBook, tiles, corrupt, missing, 'min-app': minApp, side, status, clean };
 
 if (import.meta.url === `file://${process.argv[1]}`) {
   const [cmd, ...args] = process.argv.slice(2);

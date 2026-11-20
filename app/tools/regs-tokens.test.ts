@@ -46,7 +46,14 @@ describe("T22 tokens", () => {
 
   it("every TYPE face is loaded, Archivo 800 included", () => {
     expect(FACES_REQUIRED).toContain(FACE.textHeavy);
-    const app = readFileSync(here("../apps/mobile/src/App.tsx"), "utf8");
-    for (const face of FACES_REQUIRED) expect([face, app.includes(face)]).toEqual([face, true]);
+    // (T910) App.tsx loads `FONT_SOURCES` from `./fonts`: the phone's TTF in fonts.native.ts, the web's WOFF2 in
+    // webFonts.generated.ts (tools/font-imports.test.ts holds the two sets equal); every face is in both
+    expect(readFileSync(here("../apps/mobile/src/App.tsx"), "utf8")).toMatch(/useFonts\(FONT_SOURCES\)/);
+    const native = readFileSync(here("../apps/mobile/src/fonts.native.ts"), "utf8").match(/FONT_SOURCES[^=]*=\s*\{([^}]*)\}/)?.[1] ?? "";
+    const web = readFileSync(here("../apps/mobile/src/webFonts.generated.ts"), "utf8");
+    for (const face of FACES_REQUIRED) {
+      expect([face, "native", new RegExp(`\\b${face}\\b`).test(native)]).toEqual([face, "native", true]);
+      expect([face, "web", new RegExp(`^ {2}${face}: "/assets/fonts/`, "m").test(web)]).toEqual([face, "web", true]);
+    }
   });
 });

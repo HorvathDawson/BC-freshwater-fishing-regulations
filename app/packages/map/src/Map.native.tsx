@@ -35,6 +35,11 @@
  *     units, so it sat under the status bar in miles. Updated when the camera settles, not per frame of a pinch.
  *   - (T317) The marker, pins and boundary marks are GeoJSON layers (`point-marks.ts`); (T316) the spots too
  *     (`spot-marks.ts`): no view annotation is left.
+ *   - (T831) THE ROUTE MAP (`trace`): its pins (the gauges' dots, "you are here") go to the style's own `trace-pins`
+ *     source and its lines to `trace`, as the web's `setTrace` writes them: baked into each style (`nativeStyle`'s
+ *     `tracePins` / `traceLines`: the binding never pushes a mounted source's data into a source the style declares) and
+ *     changed in place after. The lines are copied out of the atlas as on the web (`traceOverlay`), read through the
+ *     app's file reader (`at.readRange`): `fetch` cannot read a range of an installed `file://` archive.
  */
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { AccessibilityInfo, Pressable, Text, View, type LayoutChangeEvent } from "react-native";
@@ -42,8 +47,8 @@ import {
   Camera, GeoJSONSource, Images, Layer, LogManager, Map as MLMap, VectorSource,
   type CameraRef, type GeoJSONSourceRef, type MapRef, type VectorSourceRef,
 } from "@maplibre/maplibre-react-native";
-import { CAMERA_BOUNDS, CAMERA_MAX_ZOOM, MIN_ZOOM, fitAtMost, fitZoomLimit, fitZoomOf, padBbox, refineFit, spotMarkers,
-         spotsInView, spotUnder, profileLabel, type Bbox, type SpotMarker, type SectionKey, now as clockNow } from "@app/core";
+import { CAMERA_BOUNDS, CAMERA_MAX_ZOOM, MIN_ZOOM, fitCamera, fitZoomLimit, fitZoomOf, padBbox, refineFit, spotMarkers,
+         spotsInView, spotUnder, profileLabel, unionBbox, type Bbox, type SpotMarker, type SectionKey, now as clockNow } from "@app/core";
 import { pressSpot, spotsKey } from "./spots";
 import { SPOT_SOURCE, spotBoxImage, spotBoxName, spotImages, spotsData, spotsLayers } from "./spot-marks";
 import { baseAdapter } from "./adapters/contract";
@@ -54,21 +59,24 @@ import { nativeMapGestures } from "./gestures";
 import { areaLayer, nativeStyle } from "./native-style";
 import { NativeLookTracker } from "./look-drawn";
 import { liftFor, type Lift, type LiftAnswer } from "./tapLift";
-import { isTapTarget, litKey, spreadSections, TAP_GROUPS, tapBox, VISIBLE_LAYERS, visibleSections } from "./sections";
+import { isTapTarget, litKey, spreadSections, TAP_GROUPS, tapBox, unsetValue, VISIBLE_LAYERS, visibleSections } from "./sections";
 import { withoutEngineKeys } from "./colouring";
 import { nativeImages } from "./images";
 import { useNativeColouring, type AtlasSource } from "./native/useColouring";
 import { colourProbe } from "./native/probe";
 import { panProbe } from "./native/panProbe";
 import { GoneViews } from "./native/goneView";
-import { nativeLabelShift } from "./native/labelShift";
+import { nativeLabelAnchors } from "./native/labelAnchor";
 import { MARK_BOX_IMAGE, MARK_LABEL, MARK_RING, MARK_SOURCE, PIN_SOURCE, markBox, markBoxImage, markHit, marksData,
          marksLayers, pinDotLayer, pinsData, titledPin, PIN_DOT } from "./point-marks";
+import type { MarkLabelAnchor } from "./marks";
 import { pngDataUri } from "./png";
 import { metricScale } from "./scale";
 import { GEOMETRY, SHOW_SCALE } from "./chrome";
 import { MapCredits } from "./MapCredits";
 import { LAB_ON, labStyle, useLab } from "./lab";
+import { heldLayers } from "./label-hold";
+import { HeldLabels, holdStore, useAdoptedIds } from "./native/labelHold";
 import type { MapProps } from "./map-props";
 import { COPY_LINE, COPY_SOURCE, COPY_UNTIL, WaterCopy, copyIds, pieceGridZoom, probeZoom, zoomAround, type CopyTarget } from "./water-copy";
 import { cameraMs, setReducedMotion } from "./motion";
@@ -76,6 +84,11 @@ import { ME_SOURCE, meData, mePaint } from "./me";
 import { camProbe } from "./native/camProbe";
 import { watchStyleAssets } from "./native/styleAssets";
 import { MAX_PIXEL_RATIO } from "./pixel-ratio";
+import { EMPTY_TRACE, pinCollection, TRACE_PINS_SOURCE, TRACE_SOURCE } from "./trace-overlay";
+import { collectionBbox, traceOverlay, type TraceCollection } from "./trace-geometry";
+
+/** (T831) The route map's pins before a style has loaded (`trace-pins`): none pushed, the style holds them. */
+const NO_PINS = pinCollection([]);
 
 /** (T401) MapLibre's prefetch zoom delta: how many zooms below the shown one it also loads, drawn as the placeholder
  *  while a tile loads. -1 = MapLibre's own (4). Measured 2026-11-06 on the stressed emulator: 2 and 3 moved neither the
@@ -84,6 +97,9 @@ const PREFETCH_ZOOM_DELTA = -1;
 
 /** (T317) a style-spec layer as the binding's `Layer` takes it (its source is the enclosing `GeoJSONSource`) */
 type LayerSpec = React.ComponentProps<typeof Layer>;
+
+/** (T876) After the labels come back with no frame drawn for it, how long until the last full frame counts as whole. */
+const RELEASE_WHOLE_MS = 400;
 
 /** An empty source, so the gauge layers exist before the first feed tick arrives (as on the web). */
 const EMPTY_FC = '{"type":"FeatureCollection","features":[]}';
@@ -110,9 +126,9 @@ const SETTLE_ASK_MS = 700;
 
 export function Map({ at, theme, view, modes, groups, hide, show, initial, data, onPressFeature, onPressStart, onPressObstacle, onPressNotFishing, chrome, onError,
                       onMoved, onMapPoint, onLongPress, onOpenLab, highlight, inSeason, water, waterLine, selection = "outline", marker, style, gauges,
-                      onVisible, pins, bare, fit, status, standing, lakes, salmon, method, runs, focus, near,
+                      onVisible, pins, bare, fit, status, standing, lakes, salmon, method, issue, runs, focus, near,
                       basemap, marks, onPressMark, spots, me, onImageryError: _noTileErrors,
-                      onRegion: _noPrefetch, insetBottom = 0, insetTop = 0, zoomControls, trace: _noTrace, onOpenLink, useBackLayer, onDrawn, lookKey, onLookDrawn }: MapProps) {
+                      onRegion: _noPrefetch, insetBottom = 0, insetTop = 0, zoomControls, trace, onOpenLink, useBackLayer, onDrawn, lookKey, onLookDrawn }: MapProps) {
   // `onRegion` is accepted and never called: it feeds the WEB's prefetch, and a phone holds the release installed.
   // `onImageryError` is accepted and never called: the binding has no per-tile error event. A phone learns the imagery
   // is unreachable from `useImageryReach`'s probe instead (satellite is online-only, owner 2026-10-21).
@@ -159,7 +175,7 @@ export function Map({ at, theme, view, modes, groups, hide, show, initial, data,
   }, []);
   // (T418) a sprite, glyph range or source that would not load is reported once, not only logged (MapLibre's log)
   useEffect(() => { watchStyleAssets(LogManager); }, []);
-  /** (T317) the boundary marks and their press, read by the tap (`onPress`) and the label measure (`shiftMarks`) */
+  /** (T317) the boundary marks and their press, read by the tap (`onPress`) and the label measure (`anchorMarks`) */
   const marksNow = useRef(marks);
   marksNow.current = marks;
   const pressMarkNow = useRef(onPressMark);
@@ -171,10 +187,11 @@ export function Map({ at, theme, view, modes, groups, hide, show, initial, data,
     const toCopy: CopyTarget = {
       set: (id, s) => { void copyRef.current?.setFeatureState({ id }, s as never).catch(report); },
       // (T345) a key is unset by a null write, as on the atlas (`adapters/native.ts` `raw.remove`): MapLibre Native drops
-      // all but a frame's first per-feature removal in a source and applies removals after sets
+      // all but a frame's first per-feature removal in a source and applies removals after sets; (T826) a highlight key
+      // is written `false` (`unsetValue`: iOS's bridge drops a null-valued key)
       remove: (id, key) => {
         const src = copyRef.current;
-        if (src) void (key === undefined ? src.removeFeatureState({ id }) : src.setFeatureState({ id }, { [key]: null } as never)).catch(report);
+        if (src) void (key === undefined ? src.removeFeatureState({ id }) : src.setFeatureState({ id }, { [key]: unsetValue(key) } as never)).catch(report);
       },
     };
     return nativeRenderer({
@@ -202,10 +219,10 @@ export function Map({ at, theme, view, modes, groups, hide, show, initial, data,
     copy: () => copy.current,
     toCopy: { set: (id, s) => { void copyRef.current?.setFeatureState({ id }, s as never).catch(report); },
               remove: (id, key) => { void (key === undefined ? copyRef.current?.removeFeatureState({ id })
-                : copyRef.current?.setFeatureState({ id }, { [key]: null } as never))?.catch(report); } },
+                : copyRef.current?.setFeatureState({ id }, { [key]: unsetValue(key) } as never))?.catch(report); } },
     // what a clear took that was not the engine's (the highlight, pushed data) is sent again by the effects below
     restore: () => { renderer.forget(); setGen((g) => g + 1); },
-    ready: styled && drawn, theme, atlasUrl: at.atlas, report, status, standing, lakes, salmon, method, runs,
+    ready: styled && drawn, theme, atlasUrl: at.atlas, report, status, standing, lakes, salmon, method, issue, runs,
   });
   const cv = colouring.values;
   /*
@@ -223,10 +240,17 @@ export function Map({ at, theme, view, modes, groups, hide, show, initial, data,
    */
   const gaugesNow = useRef(gauges);
   gaugesNow.current = gauges;
+  // (T831) the route map's pins and lines likewise: in each style it is handed, then to the `trace-pins` / `trace` sources
+  const tracePinsNow = useRef(trace?.pins);
+  tracePinsNow.current = trace?.pins;
+  /** (T831) the route lines copied out of the atlas for the current routes (`trace.key`), empty until they are in */
+  const [traceLines, setTraceLines] = useState<TraceCollection>(EMPTY_TRACE);
+  const traceLinesNow = useRef(traceLines);
+  traceLinesNow.current = traceLines;
   const look = useMemo(
     () => nativeStyle({ at, theme, view, modes, hide, show, groups, basemap: basemap ?? "map", focus: !!focus,
-                        gauges: gaugesNow.current ?? EMPTY_FC, areaData: JSON.parse(areaKey) as Data,
-                        values: cv }),
+                        gauges: gaugesNow.current ?? EMPTY_FC, tracePins: tracePinsNow.current,
+                        traceLines: traceLinesNow.current, areaData: JSON.parse(areaKey) as Data, values: cv }),
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [at.atlas, at.basemap, at.glyphs, at.sprite, at.assets, at.outside, theme, view, JSON.stringify(modes ?? {}),
      JSON.stringify(hide ?? []), JSON.stringify(show ?? []), JSON.stringify(groups ?? {}), basemap, areaKey, valuesKey, !!focus]);
@@ -251,7 +275,23 @@ export function Map({ at, theme, view, modes, groups, hide, show, initial, data,
   useEffect(() => { for (const e of look.errors) report(e); }, [look, report]);
   // (T420) a lab build's switches (`lab.ts`): today's style, the same object, unless one is flipped
   const lab = useLab();
-  const shown = useMemo(() => labStyle(look.style, lab), [look, lab]);
+  // (T903) keyed on the LOOK, never on `cv`'s object: equal values handed in new objects must not rebuild the style
+  // (the same rule as `valuesKey`, T287); `look` is rebuilt whenever the values' content changes, so `cv` here is its own
+  const shown = useMemo(() => labStyle(look.style, lab, cv), [look, lab]);  // eslint-disable-line react-hooks/exhaustive-deps
+  /*
+   * (T876) LABELS WAIT WHILE THE ZOOM MOVES (`label-hold.ts`): the camera's reports drive the hold; the style's label
+   * layers are adopted under their sources below (`HeldLabels`) and only they re-render when it changes.
+   */
+  const hold = useMemo(() => holdStore(), []);
+  const holdOn = useRef(lab.holdLabels);
+  holdOn.current = lab.holdLabels;
+  useEffect(() => { if (!lab.holdLabels) hold.machine.reset(); }, [lab.holdLabels, hold]);
+  useEffect(() => () => hold.machine.reset(), [hold]);
+  const heldNow = useMemo(() => heldLayers(shown as unknown as Parameters<typeof heldLayers>[0]), [shown]);
+  const adopted = useAdoptedIds(heldNow);
+  const onRegionIsChanging = useCallback((e: RegionEvent) => {
+    if (holdOn.current) hold.machine.moving(e.nativeEvent?.zoom);
+  }, [hold]);
   /*
    * (T566) THE CALLER'S LOOK, SAID WHEN DRAWN (`MapProps.lookKey`, `look-drawn.ts`): a key handed with a new style waits
    * for that style to load and then for a full frame — the frame the binding's held picture lifts at (T451) — so the
@@ -285,6 +325,34 @@ export function Map({ at, theme, view, modes, groups, hide, show, initial, data,
   }, [look]);  // eslint-disable-line react-hooks/exhaustive-deps
 
   const gaugeData = useMemo(() => JSON.parse(gauges ?? EMPTY_FC) as GeoJSON.FeatureCollection, [gauges]);
+  // (T831) keyed on the pins' content: a caller hands a new `trace` object on every render (`DonorMap`)
+  const tracePinKey = JSON.stringify(trace?.pins ?? []);
+  const tracePinJson = useMemo(() => pinCollection(trace?.pins ?? []), [tracePinKey]);  // eslint-disable-line react-hooks/exhaustive-deps
+  /*
+   * (T831) THE ROUTE LINES, as the web's `useTrace`: copied out of the atlas when the routes change (`trace.key`) and at no
+   * other time; the previous route goes the moment the subject changes. Read through the app's reader (`at.readRange`):
+   * without one a phone draws none and says so — never a `fetch` of the installed file, which would read it whole.
+   */
+  const traceBox = useRef<Bbox | null>(null);
+  const traceRead = at.readRange;
+  useEffect(() => {
+    let alive = true;
+    traceBox.current = null;
+    setTraceLines(EMPTY_TRACE);
+    const routes = (trace?.routes ?? []).filter((r) => r.path.length > 0);
+    if (!routes.length) return;
+    if (!traceRead) {
+      report(new Error("route map: no atlas reader on this phone (TileEndpoints.readRange), so no route lines are drawn"));
+      return;
+    }
+    traceOverlay(at.atlas, routes, traceRead).then(({ fc }) => {
+      if (!alive) return;
+      traceBox.current = collectionBbox(fc);
+      setTraceLines(fc);
+    }).catch(report);
+    return () => { alive = false; };
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- the routes are keyed by `trace.key`, as on the web
+  }, [trace?.key, at.atlas, traceRead, report]);
   const camera0 = useRef({ center: [initial.lon, initial.lat] as [number, number], zoom: initial.zoom });
   /** Where the camera is, for the scale bar: the latitude and zoom it last settled at. */
   const [scaleAt, setScaleAt] = useState({ lat: initial.lat, zoom: initial.zoom });
@@ -376,9 +444,12 @@ export function Map({ at, theme, view, modes, groups, hide, show, initial, data,
       if (seen.length && key !== lastSeen.current) { lastSeen.current = key; cb.current.onVisible?.(seen); }
     } catch (e) { report(e); }
   }, [report, renderer]);
-  // asked again as soon as someone (new) listens: a settled map does not draw again by itself (a tab switch)
+  // asked again as soon as someone (new) listens: a settled map does not draw again by itself (a tab switch). (T826) BY
+  // WHO LISTENS, not only whether anyone does: the Map tab zoomed in listens too (its read-ahead), so a switch to the
+  // Conditions tab handed the legend's listener a map whose set it had "already said" — the bar under the Conditions map
+  // had no marks and no count until a pan (iPhone, owner 2026-11-16). Both listeners are stable callbacks.
   useEffect(() => { lastSeen.current = ""; stale.current = true; void reportVisible(); },
-            [onVisible !== undefined, reportVisible]);
+            [onVisible, reportVisible]);
   /**
    * (T348, problem report 98935871: "the number of reaches coloured doesn't change when zoom or scroll changes") A
    * settle over tiles the map already holds need not render "fully" again, so nothing asked and the legend's count and
@@ -387,10 +458,15 @@ export function Map({ at, theme, view, modes, groups, hide, show, initial, data,
    */
   const settleAsk = useRef<ReturnType<typeof setTimeout> | null>(null);
   useEffect(() => () => { if (settleAsk.current) clearTimeout(settleAsk.current); }, []);
-  /** (T411, test bed only) which of the water's sections the copy AND the atlas both draw now (`camProbe.copy`) */
+  /**
+   * (T411, test bed only) which of the water's sections the copy AND the atlas both draw now (`camProbe.copy`).
+   * (T848 follow-up) Behind the `rendered` gate like every other query: the settle's timer schedules it, and a route map
+   * whose camera rests before its first full render (a slow pane, 0.8.1 bench) was asked here with no renderer — SIGSEGV
+   * in `MapRenderer::actor()`, the app gone under the test bed's Conditions-map tap.
+   */
   const copyDraw = useRef(async () => {
     const m = mapRef.current;
-    if (!camProbe.on() || !m || !copy.current.ids.size) return;
+    if (!camProbe.on() || !m || !rendered.current || !copy.current.ids.size) return;
     const ids = new Set(copy.current.ids);
     const drawn = async (layers: string[]) => new Set(visibleSections(
       await m.queryRenderedFeatures({ layers }).catch((e: unknown) => { report(e); return []; })).filter((id) => ids.has(id)));
@@ -412,7 +488,9 @@ export function Map({ at, theme, view, modes, groups, hide, show, initial, data,
     // (test bed only, the open probe's build) why a full render was or was not the whole one
     const why = !styledNow.current || !rendered.current ? "unstyled"
       : highlight && litWritten.current !== `${litText}|${gen}` ? "unlit"
-      : fit && (fitted.current !== fit.key || fitMoving.current) ? "moving" : null;
+      : fit && (fitted.current !== fit.key || fitMoving.current) ? "moving"
+      // (T876) the labels wait while the zoom moves: not whole until they are back (the next full frame after it says so)
+      : hold.machine.isHeld() ? "labels" : null;
     if (drawnNow.current && (globalThis as { __openProbe?: boolean }).__openProbe)
       console.log(`[whole] ${JSON.stringify({ t: clockNow(), why: why ?? "whole", h: size.current.height })}`);
     if (why) return;
@@ -431,6 +509,18 @@ export function Map({ at, theme, view, modes, groups, hide, show, initial, data,
    */
   const wantWhole = !!onDrawn && wholeSaid.current !== wholeKey;
   const lastFull = useRef(false);
+  /*
+   * (T876) the labels back after a hold: their full frame says the map is whole (`onDidFinishRenderingFrameFully`); a
+   * release that changes nothing on screen draws no frame, so a short while later the last full frame stands for it
+   */
+  useEffect(() => {
+    let t: ReturnType<typeof setTimeout> | null = null;
+    const off = hold.subscribe(() => {
+      if (t) clearTimeout(t);
+      t = hold.held() ? null : setTimeout(() => { t = null; if (lastFull.current) whole.current(); }, RELEASE_WHOLE_MS);
+    });
+    return () => { off(); if (t) clearTimeout(t); };
+  }, [hold]);
   const onRendered = useCallback(() => {
     if (looks.current.waiting()) sayLook(looks.current.fullFrame());
     panProbe.src("idle");               // (T499) a full render (MapLibre's "map idle")
@@ -578,8 +668,10 @@ export function Map({ at, theme, view, modes, groups, hide, show, initial, data,
   const [callout, setCallout] = useState<{ title: string; x: number; y: number } | null>(null);
   const onRegionWillChange = useCallback((e: RegionEvent) => {
     const ne = e.nativeEvent;
+    // (T876) not for a fit: it glides behind a held pane, and the labels would only delay "drawn whole" (`label-hold.ts`)
+    if (holdOn.current && !fitMoving.current) hold.machine.start(ne?.zoom);
     if (ne?.userInteraction && meNow.current?.following) meNow.current.onRelease?.();
-  }, []);
+  }, [hold]);
   useEffect(() => {
     // (T443) not before the map's first style has loaded: a fit sent while the native map was still being made was lost
     // to its initial camera (test bed: a water's map opened on the last water's place, its fit and refit both dropped)
@@ -607,10 +699,13 @@ export function Map({ at, theme, view, modes, groups, hide, show, initial, data,
       if (fitDone.current) clearTimeout(fitDone.current);
       fitDone.current = setTimeout(() => { fitDone.current = null; fitMoving.current = false; if (lastFull.current) whole.current(); }, glide + 100);
       camProbe.move(rounds ? "refine" : "fit", rounds, height);
-      // the binding's fitBounds has no maxZoom, and the camera now goes to z18: widen the box to what the limit shows
-      // (T443) a function of the box and the map's size only: a part is framed the same however it was reached
+      // (T443) a function of the box and the map's size only: a part is framed the same however it was reached; no closer
+      // than the limit (the camera goes to z18)
+      // (T929) sent as a centre and a zoom worked out from the size the map was LAID OUT at (`fitCamera`), never as the
+      // binding's fitBounds: that fits to the native frame as it is when the command lands, and on iOS a "Show all parts"
+      // pick's refit landed before the 48 pt strip had grown back (zoom 4, the part a speck). Android reads the same.
       const limit = fitZoomLimit(fit, fitZoomOf(b, width, height, p));
-      renderer.fitBounds(fitAtMost(b, limit, width, height, p), { padding: p, duration: cameraMs(450) });
+      renderer.easeTo(fitCamera(b, limit, width, height, p), { duration: cameraMs(450) });
     };
     /*
      * (T443, owner on 0.6.7: "the first open frames the part differently from ▲ then ▼") THE MAP'S SIZE CHANGED AFTER THE
@@ -621,7 +716,8 @@ export function Map({ at, theme, view, modes, groups, hide, show, initial, data,
     refit.current = () => { if (alive && last && !fitTouched.current) go(last); };
     // (T48) an exact camera to return to (search's cancel): put back as it was, nothing measured
     if (fit.camera) { renderer.easeTo(fit.camera, { duration: cameraMs(450) }); refine.current = null; refit.current = null; return () => { alive = false; }; }
-    if (fit.bbox) go(fit.bbox);
+    // (T831) and the route lines drawn, as the web's `useFit`: a river that bends outside its gauges stays on screen
+    if (fit.bbox) go(unionBbox([...fit.bbox] as Bbox, traceBox.current)!);
     if (!fit.refine) { refine.current = null; return () => { alive = false; }; }
     refine.current = async () => {
       const ids = (lit.current ?? []).map(Number).filter(Number.isFinite);
@@ -789,26 +885,27 @@ export function Map({ at, theme, view, modes, groups, hide, show, initial, data,
   /** (T420/T401) the pan probe's build (the test bed): frames full/partial and the camera's rest, for "streams drawn" */
   const PAN_PROBE = panProbe.on();
 
-  /** (T50) where each mark's label is centred, kept inside the map as the web's `markers.ts` does (`labelShift`):
-   *  measured where the camera settles, from each ring's screen x, and moved as a point of the marks' source (T317) */
-  const [labelAt, setLabelAt] = useState<{ key: string; at: readonly ([number, number] | null)[] }>({ key: "", at: [] });
-  // (T734) only a map that is mounted, styled and has drawn is asked (`nativeLabelShift`): asked before, the binding's
+  /** (T50, T929) how each mark's label hangs from its own point, kept inside the map as the web's `markers.ts` does
+   *  (`labelAnchor`): chosen where the camera settles, from each ring's screen x; the label's point never moves */
+  const [labelAt, setLabelAt] = useState<{ key: string; at: readonly (MarkLabelAnchor | null)[] }>({ key: "", at: [] });
+  // (T734) only a map that is mounted, styled and has drawn is asked (`nativeLabelAnchors`): asked before, the binding's
   // `project` threw a NullPointerException on the native main thread and closed the app
   const mountedNow = useRef(false);
   useEffect(() => { mountedNow.current = true; return () => { mountedNow.current = false; }; }, []);
-  const shiftMarks = useCallback(async () => {
+  const anchorMarks = useCallback(async () => {
     const ms = marksNow.current ?? [], w = size.current.width;
     if (!ms.some((k) => k.label) || !w) return;
-    const next = await nativeLabelShift(ms, w, mapRef.current,
-                                        () => mountedNow.current && styledNow.current && rendered.current, report);
+    const next = await nativeLabelAnchors(ms, w, mapRef.current,
+                                          () => mountedNow.current && styledNow.current && rendered.current, report);
     const key = JSON.stringify(ms);
     if (!next || JSON.stringify(marksNow.current ?? []) !== key) return;
     setLabelAt((was) => (was.key === key && JSON.stringify(was.at) === JSON.stringify(next) ? was : { key, at: next }));
   }, [report]);
-  // asked again once the map has drawn (a shift asked before it was skipped)
-  useEffect(() => { void shiftMarks(); }, [JSON.stringify(marks ?? []), shiftMarks, drawn]);  // eslint-disable-line react-hooks/exhaustive-deps
+  // asked again once the map has drawn (anchors asked before it were skipped)
+  useEffect(() => { void anchorMarks(); }, [JSON.stringify(marks ?? []), anchorMarks, drawn]);  // eslint-disable-line react-hooks/exhaustive-deps
 
   const onRegionDidChange = useCallback((e: RegionEvent) => {
+    hold.machine.rest();
     // (T508) the fit's glide at its end (not the camera it started from), and the last frame drawn had every tile in
     if (fitMoving.current && clockNow() - fitSentAt.current >= fitGlide.current * 0.8) fitMoving.current = false;
     if (lastFull.current) whole.current();
@@ -832,7 +929,7 @@ export function Map({ at, theme, view, modes, groups, hide, show, initial, data,
       const lon = ne.center[0];
       setSeenAt((was) => (was.lon === lon && was.lat === next.lat && was.zoom === next.zoom ? was : { ...was, lon, ...next }));
     }
-    void shiftMarks();
+    void anchorMarks();
     // the next full render reports what is on screen (and measures a fit): the tiles for here may not be in yet
     stale.current = true;
     copyStale.current = true;
@@ -848,7 +945,7 @@ export function Map({ at, theme, view, modes, groups, hide, show, initial, data,
     }, SETTLE_ASK_MS);
     // (T175) the reader's own pan or pinch: the copy never steps in against it (T443: nor does a refit)
     if (ne?.userInteraction) { copyTouched.current = true; fitTouched.current = true; }
-  }, [shiftMarks, reportVisible, report]);
+  }, [anchorMarks, reportVisible, report, hold]);
 
   // a new style dropped every feature-state (`forget`: send them all again) and may draw other features
   const onStyle = useCallback(() => {
@@ -894,6 +991,8 @@ export function Map({ at, theme, view, modes, groups, hide, show, initial, data,
   const pinLook = useMemo(() => pinDotLayer(furniture.card), [furniture.card]);
   // (T499, the pan probe's build) each GeoJSON source handed new data: a redraw with no camera move
   useEffect(() => { panProbe.src("gauges"); }, [gaugeData]);
+  useEffect(() => { panProbe.src("trace-pins"); }, [tracePinJson]);
+  useEffect(() => { panProbe.src("trace"); }, [traceLines]);
   useEffect(() => { panProbe.src("copy"); }, [copyData]);
   useEffect(() => { panProbe.src("me"); }, [meJson]);
   useEffect(() => { panProbe.src("pins"); }, [pinJson]);
@@ -928,7 +1027,10 @@ export function Map({ at, theme, view, modes, groups, hide, show, initial, data,
         onTapUp={onPressStart && onPressFeature ? onTapUp as never : undefined}
         onLongPress={onLongPress ? onLongPressed as never : undefined}
         onRegionDidChange={onRegionDidChange as never}
-        onRegionWillChange={probe || me?.on || PAN_PROBE ? ((e: RegionEvent) => { probe?.moving(); panProbe.moving(); onRegionWillChange(e); }) as never : undefined}
+        // (T876) always: the label hold starts on it
+        onRegionWillChange={((e: RegionEvent) => { probe?.moving(); panProbe.moving(); onRegionWillChange(e); }) as never}
+        // (T876) only while the hold is on: otherwise nothing reads a camera frame
+        onRegionIsChanging={lab.holdLabels ? onRegionIsChanging as never : undefined}
         onDidFinishRenderingFrame={probe || PAN_PROBE || wantWhole
           ? (() => { lastFull.current = false; probe?.frame(); if (PAN_PROBE) panProbe.frame(false); }) as never : undefined}
         // (T420/T401, test bed only) a frame with every tile in: the pan probe's "streams drawn"; (T508) and while someone
@@ -943,10 +1045,22 @@ export function Map({ at, theme, view, modes, groups, hide, show, initial, data,
       >
         <Camera ref={camRef} initialViewState={camera0.current} minZoom={MIN_ZOOM} maxZoom={CAMERA_MAX_ZOOM}
                 maxBounds={MAX_BOUNDS} />
-        <VectorSource id="atlas" ref={atlasAttached} />
+        <VectorSource id="atlas" ref={atlasAttached}>
+          <HeldLabels store={hold} ids={adopted.atlas} now={heldNow.atlas} />
+        </VectorSource>
+        {/* (T876) the basemap's and the units' names, adopted by id for the hold (the style's own sources) */}
+        <VectorSource id="basemap"><HeldLabels store={hold} ids={adopted.basemap} now={heldNow.basemap} /></VectorSource>
+        <VectorSource id="mus"><HeldLabels store={hold} ids={adopted.mus} now={heldNow.mus} /></VectorSource>
         {/* (T74) the hatches, the gauge pill and the route's pin, in this theme */}
         <Images images={images as never} />
-        <GeoJSONSource id="gauges" data={gaugeData} />
+        <GeoJSONSource id="gauges" data={gaugeData}>
+          <HeldLabels store={hold} ids={adopted.gauges} now={heldNow.gauges} />
+        </GeoJSONSource>
+        {/* (T831) the route map's lines, gauge dots and "you are here" pin: the style's own sources by id, as `gauges`.
+            Handed only once a style has loaded: what changes before then is in the style itself, and a change after it
+            is pushed to the source the binding adopted (it never pushes what it was mounted with) */}
+        <GeoJSONSource id={TRACE_SOURCE} data={(styled ? traceLines : EMPTY_TRACE) as never} />
+        <GeoJSONSource id={TRACE_PINS_SOURCE} data={(styled ? tracePinJson : NO_PINS) as never} />
         {/* (T175) the water copy: the style's own source by id, its lines from the tiles (`keepCopy`) */}
         <GeoJSONSource id={COPY_SOURCE} ref={copyRef} data={copyData as never} />
         {/* (T303) your location: the accuracy circle, then the dot over it, above every map layer */}

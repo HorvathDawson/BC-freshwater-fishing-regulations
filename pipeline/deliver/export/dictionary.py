@@ -11,7 +11,7 @@ from pipeline.deliver.export import codec as K
 from pipeline.deliver.export.guide_words import (
     CLAUSE_TEXT, END_TEXT, ENTRY_TEXT, FILE_TEXT, LENGTH_TEXT, LICENSING_FIELD_TEXT, LICENSING_RECORD_TEXT,
     LIFT_TEXT, OP_TEXT, PERIOD_TEXT, PROVENANCE_TEXT, RECORD_TEXT, RULE_FIELD_TEXT, RUN_TEXT, SET_TEXT,
-    SPLIT_TEXT, STAMP_WAIVER_TEXT, TIDAL_TEXT, WATER_PART_TEXT, WATER_TEXT, WHEN_TEXT, WHO_TEXT, extent_text
+    NON_RESIDENT_NOTE_TEXT, SPLIT_TEXT, STAMP_WAIVER_TEXT, TIDAL_TEXT, WATER_PART_TEXT, WATER_TEXT, WHEN_TEXT, WHO_TEXT, extent_text
 )
 from pipeline.deliver.export.guide import _fields, _licensing_models
 
@@ -68,11 +68,13 @@ def species_table() -> dict:
                                    "also apply to char unless char are specifically excluded' "
                                    "— the trout group is TROUT_CHAR; a bare 'trout' line is "
                                    "TROUT_CHAR with species_except CHAR only where it excludes "
-                                   "char in words or its row or zone table gives char a RELATED "
-                                   "line of their own (same aspect, water kind and days; user "
-                                   "ruling 2026-10-07)",
+                                   "char in words or its row or zone table gives char as a group "
+                                   "a RELATED line of their own (same aspect, water kind and days; "
+                                   "user ruling 2026-10-07); a char given such a line alone is "
+                                   "excepted alone (species_except DV; owner 2026-11-18)",
             "trout_note": "Trout includes char (Dolly Varden/bull trout, lake trout, brook "
-                          "trout) unless the line excludes them or char have their own line about the same thing.",
+                          "trout) unless the line excludes them or char have their own line about the same thing; "
+                          "when one char has its own line, only that char is left out.",
             # A SALMON THE BOOK NAMES — not a game fish, not in `fish` (user ruling 2026-09-28)
             "salmon": {c: {"name": _name(c), "group": g, "game_fish": False}
                        for c, g in sorted(C.SALMON_FISH.items())},
@@ -125,6 +127,7 @@ def field_dictionary(d: dict) -> dict:
                                                                    "why")},
         "licensing.period": PERIOD_TEXT,
         "licensing.stamp_waiver": STAMP_WAIVER_TEXT,
+        "licensing.non_resident_note": NON_RESIDENT_NOTE_TEXT,
         "entry": ENTRY_TEXT,
         "water": WATER_TEXT,
         "water.tidal": TIDAL_TEXT,
@@ -159,6 +162,8 @@ _DICTIONARY_SCOPES = (
      lambda doc: [x["period"] for x in doc["licensing"].values() if x.get("period")]),
     ("licensing stamp_waiver key", ("licensing.stamp_waiver",),
      lambda doc: [x["stamp_waiver"] for x in doc["licensing"].values() if x.get("stamp_waiver")]),
+    ("licensing non_resident_note key", ("licensing.non_resident_note",),
+     lambda doc: [x["non_resident_note"] for x in doc["licensing"].values() if x.get("non_resident_note")]),
     ("entry field", ("entry",), lambda doc: doc["entries"].values()),
     ("set key", ("rulesets{} / licensing_sets{}",),
      lambda doc: list(doc["rulesets"].values()) + list(doc["licensing_sets"].values())),

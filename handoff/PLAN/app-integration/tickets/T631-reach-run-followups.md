@@ -1,6 +1,6 @@
 # T631 — Reach run: follow-ups from T546
 
-Status: PARTIAL — items 1 and 3 done (197686263, a3518f5d2); left (Claude): item 2 (bundle flag + its app half, rides the next release), items 4–8 (traces; item 5 needs an atlas rebuild)
+Status: PARTIAL — items 1 and 3 done (197686263, a3518f5d2); item 5 answered by the owner 2026-11-12 (A: the three Skeena channels stay outside the DFO place; nothing to build); left (Claude): item 2 (the check flag: a bundle table + new page words, one change after the owner words the line), items 4, 6, 7, 8 (traces)
 
 Source: T546 report 2026-11-11.
 

@@ -11,7 +11,8 @@ async function stored(marker) {
   const tokFile = path.resolve(path.dirname(new URL(import.meta.url).pathname), '../../../workers/feeds/.run-token');
   const tok = (process.env.FEEDS_RUN_TOKEN ?? fs.readFileSync(tokFile, 'utf8')).trim();
   const since = new Date(Date.now() - 86_400_000).toISOString().slice(0, 10);
-  const r = await fetch(`${WORKER}/reports?since=${since}`, { headers: { authorization: `Bearer ${tok}` } });
+  // (T291) the staging worker keeps test-tagged reports apart: GET /reports lists them only with test=1
+  const r = await fetch(`${WORKER}/reports?since=${since}&test=1`, { headers: { authorization: `Bearer ${tok}` } });
   if (!r.ok) throw new Error(`GET /reports: HTTP ${r.status}`);
   const all = await r.json();
   const list = Array.isArray(all) ? all : all.reports ?? [];

@@ -116,9 +116,10 @@ class SplitAnchor:
 
 #: (T207) HOW SURE THE CURATOR IS OF WHERE A CUT STANDS. `high` is the default and is never written
 #: out (absent == high, so 99% of rows and files stay as they were); `medium` / `low` travel with the
-#: cut — splits.resolved.json, the registry boundary, the bundle's `split` and `part_mark`, the release,
-#: the app's boundary label and the review app — so a reader is told "approximate location (low
-#: confidence)" wherever the cut is named. Display only: it never moves the cut.
+#: cut — splits.resolved.json, the registry boundary, the bundle's `split` and `part_mark`, the release
+#: and the review app, whose boundary label says "approximate location (low confidence)". Display only: it
+#: never moves the cut. T780 (owner 2026-11-20): an angler's part names and the end words (`display.ends`:
+#: a part's name, a map mark, an in-season "Where") say the place's name alone, never these words.
 CONFIDENCE = ("high", "medium", "low")
 
 
@@ -132,7 +133,7 @@ def confidence_of(v) -> str:
 
 def confidence_words(c: str | None) -> str:
     """THE ONE SENTENCE for a cut's confidence: "" for high (or absent), else "approximate location
-    (low confidence)". The app's `@app/core` `confidenceWords` says the same (pinned by both tests)."""
+    (low confidence)" — the review app's words beside a cut's label (T780: never in an angler's part name)."""
     return "" if c in (None, "", "high") else f"approximate location ({c} confidence)"
 
 

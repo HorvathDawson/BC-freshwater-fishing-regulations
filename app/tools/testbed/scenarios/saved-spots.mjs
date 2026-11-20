@@ -55,7 +55,8 @@ export const savedSpots = {
       ctx.flow('tap-text', { TEXT: 'At my location' });
       ctx.captureDay = 'Yesterday';
       const words = await capture(ctx);
-      if (!words.some((w) => /^on Fraser River$/.test(w))) throw new Error(`the draft is not on the Fraser River (saw: ${words.slice(0, 8).join(' | ').slice(0, 300)})`);
+      // (T819 item 10) "on <water>" only when the title is not the water itself: a fresh draft is named for it
+      if (!words.some((w) => /^(on )?Fraser River$/.test(w))) throw new Error(`the draft is not on the Fraser River (saw: ${words.slice(0, 8).join(' | ').slice(0, 300)})`);
       return words.find((w) => /days in 10|normal/i.test(w)) ?? 'draft up';
     }, { stop: true });
 
@@ -88,7 +89,7 @@ export const savedSpots = {
       const ns = await look(d);
       const note = find(ns, 'resource-id="leadup-weather-note"');
       if (note) throw new Error(`no week-before weather: "${note.text}"`);
-      const days = ns.filter((n) => shown(n) && /^\w{3} \w{3} \d+: .*(high|rain|wind)/.test(n.desc));
+      const days = ns.filter((n) => shown(n) && /^\w{3} \d+ \w{3}: .*(high|rain|wind)/.test(n.desc));
       if (days.length < 3) throw new Error(`${days.length} weather day column(s) on screen under THE WEEK BEFORE (want the week's)`);
       fail(days.map((c) => (c.box.x1 > W ? `the ${c.desc.slice(0, 10)} column runs off the screen` : null)));
       const src = find(ns, 'resource-id="leadup-weather-source"');
@@ -100,7 +101,7 @@ export const savedSpots = {
       const ns = await look(d);
       const note = find(ns, 'resource-id="leadup-gauge-note"') ?? find(ns, 'resource-id="leadup-gauge-pending"');
       if (!meta) throw new Error(`no gauge rows under THE WEEK BEFORE${note ? `: "${note.text}"` : ''}`);
-      const rows = ns.filter((n) => shown(n) && /^\w{3} \w{3} \d+: [\d.,]+ (m³\/s|m)\b/.test(n.desc));
+      const rows = ns.filter((n) => shown(n) && /^\w{3} \d+ \w{3}: [\d.,]+ (m³\/s|m)\b/.test(n.desc));
       if (rows.length < 3) throw new Error(`${rows.length} gauge day row(s) on screen (want the week's)`);
       const problems = [];
       const places = [];
@@ -129,7 +130,8 @@ export const savedSpots = {
       const show = ns.find((n) => n.desc === `Show ${spot.title} on the map`);
       fail([labelProblem(title, { screenW: W, what: 'the row\'s title' }), labelProblem(lines, { screenW: W, what: 'the row\'s lines' }),
             show && shown(show) ? null : 'no "Show" button on the row']);
-      if (!/m³\/s/.test(lines.text)) throw new Error(`the row does not carry the day's flow: "${lines.text}"`);
+      // (T819 item 11) the row is the water and the day, then ONE condition word for the day's flow
+      if (!/normal|m³\/s/i.test(lines.text)) throw new Error(`the row does not carry the day's flow: "${lines.text}"`);
       noPercentile([lines.text], 'the Spots row');
       return lines.text.replace(/\n/g, ' / ');
     });
@@ -138,7 +140,7 @@ export const savedSpots = {
     let editor = false;
     await ctx.step(`${ALERT_Q} → Conditions → the gauge card's "Alert me" → the editor`, async () => {
       await openWater(ctx, { q: ALERT_Q, row: ALERT_ROW, view: 'conditions' });
-      await ctx.until(() => ctx.hasId('conditions-day-label'), { ms: 30_000, what: 'the Conditions view (conditions-day-label)' });
+      await ctx.until(() => ctx.hasId('gauge-card'), { ms: 30_000, what: 'the Conditions view (gauge-card)' });
       const open = await scrollTo(d, 'resource-id="alert-me-open"', { ...PANE_BAND, bottom: 1500 });
       tap(d, open);
       await ctx.until(() => ctx.hasId('alert-form'), { ms: 8000, what: 'the alert editor (alert-form)' });

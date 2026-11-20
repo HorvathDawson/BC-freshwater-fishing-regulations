@@ -2,8 +2,9 @@
 //
 // THE NATIVE SPLASH (T244): expo-splash-screen's plugin wants a literal ground colour per theme. The app's colours live
 // in the theme files and nowhere else (tools/check-colours.mjs), so the ground is read from them here: the boot screen's
-// own ground, `color.ui.card`, per theme. The picture is the loading fish's frame 0 (`pnpm splash`, tools/build-splash.mjs)
-// at the size the boot screen draws it, so the hand-off to the live FishSpinner has nothing to jump between.
+// own ground, `color.ui.card`, per theme. The picture is the boot loader's frame 0 (`pnpm splash`, tools/build-splash.mjs):
+// since T843 the coho (`CohoLoader`, 192 dp wide, `COHO_WIDTH`), at the size the boot screen draws it, so the hand-off to
+// the live loader has nothing to jump between.
 const { readFileSync } = require("node:fs");
 const { join } = require("node:path");
 
@@ -26,9 +27,12 @@ if (production && process.env.EXPO_PUBLIC_MAP_LAB) {
   throw new Error("app.config.js: EXPO_PUBLIC_MAP_LAB is for staging and test-bed builds only; unset it for production");
 }
 
-// (T420) a locally built MapLibre (app/tools/maplibre-patch) is for test-bed builds only: production stays on the stock SDK
-if (production && process.env.MLN_LOCAL_MAVEN) {
-  throw new Error("app.config.js: MLN_LOCAL_MAVEN (a locally built MapLibre) is for test-bed builds only; unset it for production");
+// (T420, T893) a locally built MapLibre (app/tools/maplibre-patch, the lean feature-state patch) is allowed in every build,
+// production too (owner 2026-11-19: "Can't we make it use the patched one?"); build-apk.sh checks the AAB carries its build id
+
+// (T749) R8 (CANIFISHTHIS_R8=1, plugins/with-no-minify.js) is a trial until its phone check is recorded: not in production
+if (production && require("./plugins/with-no-minify").r8Enabled()) {
+  throw new Error("app.config.js: CANIFISHTHIS_R8 (R8 on, T749) is a trial for test-bed and Play internal builds; unset it for production");
 }
 
 // (T420) with MLN_LOCAL_MAVEN set, MapLibre's own plugin is told the local SDK version (with-local-maplibre.js adds the repo)
@@ -58,7 +62,7 @@ module.exports = ({ config }) => ({
     ["expo-splash-screen", {
       backgroundColor: ground("light"),
       image: "./assets/splash/splash-light.png",
-      imageWidth: 110,
+      imageWidth: 192,
       resizeMode: "contain",
       dark: { backgroundColor: ground("dark"), image: "./assets/splash/splash-dark.png" },
     }],

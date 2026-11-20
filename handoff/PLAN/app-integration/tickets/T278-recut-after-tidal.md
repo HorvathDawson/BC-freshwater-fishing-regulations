@@ -1,6 +1,6 @@
 # T278 — Re-cut the app's golden regs fixtures after the tidal cuts (part renumbering)
 
-Status: DONE — re-cut on r-fa1915a56adb (LATEST), golden parity green; tidal parts never listed in the water map.
+Status: DONE — re-cut on r-fa1915a56adb (LATEST), golden parity green; tidal parts never listed in the water map. Commits: 3882c4b84.
 
 ## Problem
 Release r-62e2f3a8c81e's 23 new tidal cuts renumber golden parts: Fraser (x15p*), Campbell (x16p3–p5), Brunette (x23p0),

@@ -33,14 +33,24 @@ SCHEMA = Path(__file__).with_name("schema.sql")
 
 #: The answers sections the store holds, and each one's frame families: {(section, table key):
 #: store table}. A section or table key the store does not know is refused (teach it here).
+#: `SECTIONS` are in every answers file (a `cell` column each). An ADDED section (`ADDED_SECTIONS`, T810 ticket L: the
+#: trout table, required since the cutover) is in every answers file this code builds a store from (`build` refuses one
+#: without it) but NOT in a release cut before it (regs-region/1, rows 33): its `cell` column (LAST) and its tables are
+#: made where the store holds it (`added_schema`), so the reassembly of an older release (`store/release.py`), the
+#: decoder and the shards read that release as it was built (the previous live release still opens).
 SECTIONS = ("ladder", "rows", "gear", "licence", "display")
+ADDED_SECTIONS = ("trout",)
 FAMILIES = {("ladder", "verdicts"): "ladder_verdict", ("ladder", "frames"): "ladder_frame",
             ("rows", "decided"): "rows_decided", ("rows", "rows"): "rows_row",
             ("rows", "frames"): "rows_frame", ("gear", "frames"): "gear_frame",
             ("licence", "holds"): "licence_hold", ("licence", "answers"): "licence_answer",
             ("licence", "documents"): "licence_doc", ("licence", "frames"): "licence_frame",
             ("licence", "under_16"): "licence_u16",                     # ROUND15 2
-            ("display", "frames"): "display_frame", ("display", "rules"): "display_rule"}
+            ("licence", "alien_closures"): "licence_alien",             # T789 G8
+            ("display", "frames"): "display_frame", ("display", "rules"): "display_rule",
+            # T810 ticket I (contract 2.1): the trout section's four interned tables (`encode.TroutCodec`)
+            ("trout", "frames"): "trout_frame", ("trout", "tables"): "trout_table", ("trout", "dates"): "trout_dates",
+            ("trout", "sheets"): "trout_sheet"}
 #: Section keys held as `static` rows (whole values).
 SECTION_STATIC = {("ladder", "reasons"), ("ladder", "reason_state"),
                   ("gear", "province_methods"), ("gear", "parent"), ("gear", "methods"),
@@ -60,6 +70,22 @@ DISPLAY_PART_KEYS = ("order", "label", "lo", "hi", "runs", "place", "km",
 WATER_COLUMNS = ("name", "kind", "sections", "outside_bc", "entries", "steelhead", "parts")
 #: The answers keys row (`encode.encode`): 9 part-key fields, segments, moments.
 KEY_LEN = 11
+
+
+def added_schema(con: sqlite3.Connection, names) -> None:
+    """THE ADDED SECTIONS' SCHEMA (T810 tickets I and L, contract 2.1), on a store made from `schema.sql`: each present
+    section's `cell` column, LAST, in `ADDED_SECTIONS` order (NULL where the section has no value: Q-D3), and its frame
+    families' tables. One definition, shared by the builder and the release's reassembly (`store/release.py`)."""
+    for n in ADDED_SECTIONS:
+        if n not in names:
+            continue
+        con.execute(f"ALTER TABLE cell ADD COLUMN {n} INTEGER")
+        for (sec, _k), tbl in FAMILIES.items():
+            if sec == n:
+                con.execute(f"CREATE TABLE {tbl} (id INTEGER PRIMARY KEY, j BLOB NOT NULL)")
+    unknown = sorted(set(names) - set(ADDED_SECTIONS))
+    if unknown:
+        raise StoreError(f"store: {unknown} are not added sections the store knows")
 
 
 class _Strings:
@@ -277,9 +303,14 @@ def _write(con, raw: bytes, A: dict, sub: dict, item_ord: Dict[str, int], part_s
     if untaught or missing:
         raise StoreError(f"store: top-level keys {sorted(untaught)} are not taught to the store, "
                          f"{sorted(missing)} are missing")
-    if set(A["sections"]) != set(SECTIONS):
+    # (T810 ticket L) every section, the added ones too: answers without the trout section are a build from before the
+    # cutover, and the store is not cut from them
+    if set(A["sections"]) != set(SECTIONS) | set(ADDED_SECTIONS):
         raise StoreError(f"store: the answers hold sections {sorted(A['sections'])}, the store "
-                         f"knows {sorted(SECTIONS)} — teach it (store/build.py SECTIONS, FAMILIES)")
+                         f"needs {sorted(set(SECTIONS) | set(ADDED_SECTIONS))} — teach it "
+                         "(store/build.py SECTIONS, ADDED_SECTIONS, FAMILIES)")
+    added_schema(con, ADDED_SECTIONS)
+    cell_secs = SECTIONS + ADDED_SECTIONS
     layout = {"top": list(A), "sections": {n: list(s) for n, s in A["sections"].items()},
               "versions": {n: s["version"] for n, s in A["sections"].items()}}
     for name, sec in A["sections"].items():
@@ -330,17 +361,18 @@ def _write(con, raw: bytes, A: dict, sub: dict, item_ord: Dict[str, int], part_s
     secs = A["sections"]
     cells = []
     for k, n in enumerate(nseg):
-        ats = [secs[name]["at"][k] for name in SECTIONS]
+        ats = [secs[name]["at"][k] for name in cell_secs]
         if any(len(a) != n for a in ats):
             raise StoreError(f"store: key {k}: the sections' `at` rows are not its {n} segments")
         cells += [(k + 1, s, *(a[s] for a in ats)) for s in range(n)]
-    if any(len(secs[name]["at"]) != len(nseg) for name in SECTIONS):
+    if any(len(secs[name]["at"]) != len(nseg) for name in cell_secs):
         raise StoreError("store: a section's `at` is not one row per key")
-    con.executemany("INSERT INTO cell VALUES (?,?,?,?,?,?,?)", cells)
+    con.executemany(f"INSERT INTO cell VALUES ({','.join('?' * (2 + len(cell_secs)))})", cells)
 
     # ---- the frame families, as the answers interned them
     for (name, key), tbl in FAMILIES.items():
-        pending[tbl] = [(i, dumps(v)) for i, v in enumerate(secs[name][key])]
+        if name in secs:
+            pending[tbl] = [(i, dumps(v)) for i, v in enumerate(secs[name][key])]
 
     # ---- items and parts (display.waters, the answers' parts, the export's waters)
     DW = secs["display"]["waters"]
@@ -543,7 +575,7 @@ def _write(con, raw: bytes, A: dict, sub: dict, item_ord: Dict[str, int], part_s
               "placed_sections": len(placed), "tidal_sections": len(set(tidal_sids)),
               "section_blocks": len(blocks), "strings": len(S.ix),
               "rules": len(rules), "licensing": len(lics), "entries": len(pending["entry"]),
-              **{tbl: len(secs[n][k]) for (n, k), tbl in FAMILIES.items()}}
+              **{tbl: len(secs[n][k]) for (n, k), tbl in FAMILIES.items() if n in secs}}
     meta["counts"] = dumps_s(counts)
     con.executemany("INSERT INTO meta VALUES (?, ?)", sorted(meta.items()))
     return counts
@@ -554,9 +586,10 @@ def _shipped(con, pending: Dict[str, List[tuple]]) -> Dict[str, Dict[int, set]]:
     (`release.shards.row_regions`), read from the tables already written (place, section_akey,
     section_place, cell) and the still-raw frames."""
     from pipeline.deliver.release import shards as SH
-    raw = {t: {r[0]: r[1] for r in pending[t]} for t in SH.SHARD_TABLES if t in pending}
-    cells = con.execute(f"SELECT akey, {', '.join(SH.TOP)} FROM cell ORDER BY akey, s").fetchall()
-    return SH.row_regions(SH.akey_regions(con), cells, lambda t, i: json.loads(raw[t][i]))
+    tops = SH.tops(con)
+    raw = {t: {r[0]: r[1] for r in pending[t]} for t in SH.shard_tables(con) if t in pending}
+    cells = con.execute(f"SELECT akey, {', '.join(tops)} FROM cell ORDER BY akey, s").fetchall()
+    return SH.row_regions(SH.akey_regions(con), cells, lambda t, i: json.loads(raw[t][i]), tops)
 
 
 def _sets(sets: dict, ix: Dict[str, int], what: str) -> list:

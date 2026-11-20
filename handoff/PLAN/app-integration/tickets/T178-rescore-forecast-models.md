@@ -1,6 +1,6 @@
 # T178 — Re-score CLEVER vs COFFEE once the run archive holds enough, and set the weights by the verdict
 
-Status: PARTIAL — the worker scores monthly and reports (2026-11-04, not deployed: goes with the app); left: the first
+Status: PARTIAL — c97f30294: the feeds worker scores CLEVER vs COFFEE monthly and reports (deployed with the feeds worker, staging and production 2026-11-18/19); left (Claude): the first full-month verdict (2026-12-01 for November) and, if it moves, the reviewed weight change.
 full-month verdict (2026-12-01 for November) and, if it moves, the reviewed weight change.
 
 Source: T177 (owner Q160 "look into which model is best"). On 2026-10-24 only 5 stations × 1 issue day × lead 1 could be

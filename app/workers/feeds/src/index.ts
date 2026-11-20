@@ -6,7 +6,8 @@
 // GET /status (HTML) and GET /status.json (no auth): every feed's last run, last success, counts, held rows / places,
 // staleness against its cadence, last error — from private/feeds/status.json, which each run writes (src/status.ts).
 //
-// NOTIFICATIONS (src/events.ts): every run hands its events — a new HYDAT (asked daily), ECCC roster drift, in-season
+// NOTIFICATIONS (src/events.ts): every run hands its events — a new HYDAT (asked daily), a station ECCC lists that the
+// roster has never seen (T847: once per station), in-season
 // changes (the diff), DFO places to review (unplaced / held / moved, linked to the review app's DFO queue), a feed's
 // health changing — to one outbox: deduped by key, email through the EMAIL send_email binding (NOTIFY_EMAIL_FROM →
 // NOTIFY_EMAIL_TO), else / on failure the FEED_NOTIFY_URL webhook, else logged. NOTIFY_DIGEST=daily batches all but
@@ -18,11 +19,11 @@
 import { meteredFetch, meteredStore, newMeter, r2Store, readStored, setDeployId, writeMerged, type Meter, type R2BucketLike } from "./io";
 import { runGauges } from "./gauges";
 import { runDfo } from "./dfo";
-import { QUEUE_ACTION } from "./dfo/live";
+import { QUEUE_ACTION, SHAPE, STALE_AFTER_HOURS } from "./dfo/live";
 import { runInSeason } from "./inseason";
 import { channelOf, compose, deliver, readState, sendApk, sendTest, type FeedEvent, type NotifyConfig } from "./events";
-import { parseApk, sampleDfoEvents } from "./email";
-import { checkStatus, INPUT_FORMATS, readStatus, readStatusAt, record, recordHealth, refresh, servedStatus, statusHtml, STATUS_KEY, type Alert, type Held, type Job } from "./status";
+import { MATCH_ACTION, parseApk, sampleDfoEvents, splitRosterAction } from "./email";
+import { checkStatus, dfoIssueCounts, INPUT_FORMATS, readStatus, readStatusAt, record, recordHealth, refresh, servedStatus, statusHtml, STATUS_KEY, type Alert, type Held, type Job } from "./status";
 import { classOfError, fmtErrors, resilientFetch, RunHealth, SourceError, summarize } from "./health";
 import { pageUrl } from "./dfo/fetch";
 import { limited, routeClass, bearerOk, type RateLimiter } from "./guard";
@@ -32,6 +33,7 @@ import { cardEvents, runCards, type CardBucket, type CardRun } from "./gauges/ca
 import { runSkill, skillText, type SkillReport } from "./gauges/score";
 import { FLOOD_WEIGHTS } from "./gauges/change";
 import { STATION_LIST } from "./gauges/liveness";
+import { neverSeen } from "./gauges/publish";
 import { READING_MAX_AGE_HOURS } from "../../../packages/core/src/gauge-policy.generated";
 import { checkToken, dispatchOnce, OVERDUE_MS, unfinished, type Dispatch, type DispatchEnv } from "./dispatch";
 import { checkRunTiming } from "./runtiming";
@@ -93,9 +95,27 @@ export function notifyConfig(env: Env): NotifyConfig {
 
 /** gauge maintenance notices (publish.maintenanceNotices) → events */
 export function gaugeEvents(maintenance: any[], at: string): FeedEvent[] {
-  return maintenance.map((n) =>
-    n.kind === "hydat"
-      ? {
+  return maintenance.flatMap((n): FeedEvent[] =>
+    n.kind === "roster"
+      ? // (T847, owner 2026-11-18) ONE EVENT PER STATION THE ROSTER HAS NEVER SEEN, keyed by the station alone
+        // (`roster:new:<id>`): the told-keys ledger (events.ts) tells each once, however ECCC's list moves around it. A
+        // known station joining or leaving the list is no notice at all (publish.maintenanceNotices): the feed asks
+        // today's list, and waters hold their gauge by `active`, never `realtime`.
+        neverSeen(n.latest).map((id) => { const [fetchRoster, build] = splitRosterAction(String(n.action ?? "")); return {
+          key: `roster:new:${id}`,
+          kind: "roster" as const,
+          title: `ECCC lists a gauge station we've never seen: ${id}`,
+          text:
+            `${id} is on ECCC's real-time station list but has no row in ${n.current}: the feed asks it, but no water can show it until it is matched.\n\n` +
+            `1. Refresh the roster:\n   ${fetchRoster}\n` +
+            `2. Match the new station:\n   ${MATCH_ACTION([id])}\n` +
+            (build ? `3. Rebuild:\n   ${build}\n` : "") +
+            `${build ? 4 : 3}. Then sync it to R2: Actions → "feeds — sync curated inputs → R2 private/" (what: roster).\n\nNoticed ${n.since}.`,
+          at,
+          data: { station: id, current: n.current, action: n.action, since: n.since },
+        }; })
+      : n.kind === "hydat"
+      ? [{
           // (T554 item 4) the envelope in use is in the key: an older clim.json put back over a newer one is told again
           key: `hydat:${n.latest}:${n.current}`,
           kind: "hydat" as const,
@@ -107,15 +127,15 @@ export function gaugeEvents(maintenance: any[], at: string): FeedEvent[] {
             `Noticed ${n.since}.`,
           at,
           data: { latest: n.latest, current: n.current, since: n.since },
-        }
-      : {
+        }]
+      : [{
+          // a notice kind this worker does not know yet: its own words, once per `latest`
           key: `${n.kind}:${n.latest}`,
           kind: "roster" as const,
-          title: n.kind === "roster" ? "ECCC's real-time station list changed — refresh the roster" : `${n.kind}: ${n.latest} is due`,
-          text: `${n.kind}: ${n.latest} (feed on ${n.current}). Run: ${n.action}\nThen sync it to R2: Actions → "feeds — sync curated inputs → R2 private/" (what: roster).`,
+          title: `${n.kind}: ${n.latest} is due`,
+          text: `${n.kind}: ${n.latest} (feed on ${n.current}). Run: ${n.action}`,
           at,
-          data: { latest: n.latest, current: n.current, action: n.action },
-        },
+        }],
   );
 }
 
@@ -262,7 +282,7 @@ export const GAUGE_DEGRADED_SHARE = 0.1;
 export const sourceFetch = (u: string, i?: RequestInit) => fetch(u, { ...i, cache: "no-store" });
 
 
-async function run(job: Job, env: Env, opts: { regions?: string[]; limit?: number; dryNotify?: boolean } = {}) {
+async function run(job: Job, env: Env, opts: { regions?: string[]; limit?: number; dryNotify?: boolean; retry?: boolean } = {}) {
   const m: Meter = newMeter();
   // every request: metered (each attempt is a subrequest), then retried / timed out / measured per source (src/health.ts)
   const health = new RunHealth();
@@ -279,6 +299,10 @@ async function run(job: Job, env: Env, opts: { regions?: string[]; limit?: numbe
   let summary: Record<string, unknown> = {};
   let counts: Record<string, number> = {};
   let held: Held[] = [];
+  // (T759) a DFO run that published its index: its issue counts, for /status.json `dfoIssues`
+  let dfoIssues: ReturnType<typeof dfoIssueCounts> | undefined;
+  // (T851) a DFO run that published its index: the regions whose last fetch failed (the same-day retry asks them again)
+  let dfoFailed: string[] | undefined;
   let error: string | null = null;
   const events: FeedEvent[] = [];
   try {
@@ -388,7 +412,9 @@ async function run(job: Job, env: Env, opts: { regions?: string[]; limit?: numbe
       for (const [slug, r] of Object.entries<any>(regions)) {
         const src = `dfo-region-${slug}`;
         const url = pageUrl(slug);
-        if (r.stale && (opts.regions == null || opts.regions.includes(slug))) {
+        // (T851) a region whose fetch failed THIS run (`failures` counts them in a row; `stale` is now the age of its last
+        // good read, so it no longer says that)
+        if (Number(r.failures) > 0 && (opts.regions == null || opts.regions.includes(slug))) {
           const cls = health.failedUrls.get(url);
           if (cls) health.part(`region ${slug}`, cls, health.sources[src]?.last?.detail ?? cls);
           else if (health.sources[src]) {
@@ -405,7 +431,11 @@ async function run(job: Job, env: Env, opts: { regions?: string[]; limit?: numbe
         locations: Object.keys((s.index as any).locs ?? {}).length, regions: Object.keys(regions).length, unplaced: s.unplaced.length,
         notices: s.notices.length, unchangedRegions: (s.skipped ?? []).length,
       };
-      summary = { ...counts, skipped: s.skipped };
+      dfoFailed = Object.entries<any>(regions).filter(([, r]) => Number(r.failures) > 0).map(([slug]) => slug); // eslint-disable-line @typescript-eslint/no-explicit-any
+      counts.fetchFailed = dfoFailed.length;
+      counts.stale = Object.values<any>(regions).filter((r) => r.stale).length; // eslint-disable-line @typescript-eslint/no-explicit-any
+      summary = { ...counts, skipped: s.skipped, ...(opts.retry ? { retry: true } : {}) };
+      dfoIssues = dfoIssueCounts(s.index as any); // eslint-disable-line @typescript-eslint/no-explicit-any
       events.push(...dfoEvents(s.notices, at));
     } else {
       const s = await runInSeason({
@@ -434,6 +464,22 @@ async function run(job: Job, env: Env, opts: { regions?: string[]; limit?: numbe
     } else if (e instanceof SourceError && e.source) health.part(e.source, e.cls, e.message);
     else summary = { ...summary, errorClass: classOfError(e) };
   }
+  // (T851) what is left to fetch again later today (private/feeds/dfo/retry.json; the "50 * * * *" cron reads it)
+  if (job === "dfo") {
+    try {
+      const store = r2Store(env.BUCKET, DFO_PRIV);
+      const was = await readStored<DfoRetry>(store, DFO_RETRY_KEY);
+      const next = nextDfoRetry(was, { at, retry: !!opts.retry, failed: dfoFailed ?? null, asked: opts.regions ?? null });
+      if (next && next.tries >= DFO_RETRY_MAX) log(`dfo: ${next.tries} same-day retries since ${next.since} failed; the regular cron asks next`);
+      else if (next) log(`dfo: region ${next.regions?.join(", ") ?? "all"} asked again within the hour (retry ${next.tries + 1} of ${DFO_RETRY_MAX})`);
+      if (JSON.stringify(next) !== JSON.stringify(was)) {
+        if (next) await store.put(DFO_RETRY_KEY, JSON.stringify(next), { contentType: "application/json" });
+        else await store.delete(DFO_RETRY_KEY);
+      }
+    } catch (e) {
+      logErr(`dfo retry: not scheduled (${String((e as Error)?.message ?? e)})`);
+    }
+  }
   const wallMs = Date.now() - t0;
   // (T558 item 2) the gauge run (the most frequent) also watches the daily jobs
   if (job === "gauges") {
@@ -457,7 +503,8 @@ async function run(job: Job, env: Env, opts: { regions?: string[]; limit?: numbe
     if (r.ok === 0 && r.fail > 0 && !held.some((h) => h.where === `source ${n}`))
       held.push({ where: `source ${n}`, why: `nothing usable this run (${fmtErrors(r.errors)}); last good data kept` });
   let alerts: Alert[] = [];
-  const runRecord = { at, ok: error === null, wallMs, cpuMs: null, counts, held, error, meter: { ...m }, sources: health.sources };
+  const runRecord = { at, ok: error === null, wallMs, cpuMs: null, counts, held, error, meter: { ...m }, sources: health.sources,
+                      ...(dfoIssues !== undefined ? { dfoIssues } : {}) };
   if (st) {
     alerts = record(st, job, runRecord, new Date());
     const down = recordHealth(st, job, health, at);
@@ -513,12 +560,62 @@ async function run(job: Job, env: Env, opts: { regions?: string[]; limit?: numbe
   return { job, ok: error === null, error, wallMs, meter: m, sources: health.sources, failingParts: Object.keys(health.parts).length, summary, notify, push, stepErrors, log: logs.slice(-40) };
 }
 
-/** what a DFO run left held: whole regions (page / structure), stale regions (fetch failed), single places */
+// ── (T851) THE DFO SAME-DAY RETRY ─────────────────────────────────────────────────────────────────────────────────────
+// DFO is asked once a day off season (14:15 UTC), every 6 h in season. On 2026-11-18 every page answered 5xx at 14:15,
+// and nothing asked again until the next day. Now: fetchRegion rides out a blip inside the run (four tries over about a
+// minute), and a run that still leaves a region unread — or that fails outright — writes private/feeds/dfo/retry.json;
+// the hourly "50 * * * *" cron reads it and runs DFO again for those regions only, until a run reads them all (the file
+// is deleted) or DFO_RETRY_MAX tries have failed (then the regular cron asks next; a regular run starts a fresh count).
+// An hour with nothing due costs one R2 read. The retry runs are ordinary DFO runs: /status, the health record and the
+// owner's emails see each one.
+
+const DFO_PRIV = "private/feeds/dfo/";
+export const DFO_RETRY_KEY = "retry.json";
+/** hourly tries after a failed DFO run: half a day, inside the 30 h stale line of a region read at the last daily run */
+export const DFO_RETRY_MAX = 12;
+export interface DfoRetry {
+  /** when the failing streak began */
+  since: string;
+  /** the regions to fetch again; null: the whole run failed — every region */
+  regions: string[] | null;
+  /** retry runs since the last regular (cron / by-hand) run */
+  tries: number;
+  /** the run that wrote this */
+  last: string;
+}
+
+/** After a DFO run: what is left to retry (null: nothing). `failed`: the regions the published index says failed their
+ *  last fetch (null: the run threw before publishing — retry what it asked, or what the retry was for). A regular run
+ *  resets the count; a retry run adds one. */
+export function nextDfoRetry(was: DfoRetry | null, r: { at: string; retry: boolean; failed: string[] | null; asked: string[] | null }): DfoRetry | null {
+  const regions = r.failed ?? (r.retry && was ? was.regions : r.asked);
+  if (regions && !regions.length) return null;
+  return { since: was?.since ?? r.at, regions: regions ? [...regions].sort() : null, tries: r.retry ? (was?.tries ?? 0) + 1 : 0, last: r.at };
+}
+
+/** The retry cron's question: run now (and for which regions), or not */
+export function dfoRetryDue(st: DfoRetry | null): { regions?: string[] } | null {
+  if (!st || st.tries >= DFO_RETRY_MAX) return null;
+  return st.regions ? { regions: st.regions } : {};
+}
+
+/** The "50 * * * *" cron: a DFO run for the regions the last run could not read, when one is due. */
+export async function dfoRetry(env: Env): Promise<Record<string, unknown>> {
+  const st = await readStored<DfoRetry>(r2Store(env.BUCKET, DFO_PRIV), DFO_RETRY_KEY);
+  const due = dfoRetryDue(st);
+  if (!due) return { ran: false, why: st ? `${st.tries} retries since ${st.since} failed: the regular cron asks next` : "nothing to retry" };
+  const r = await run("dfo", env, { regions: due.regions, retry: true });
+  return { ran: true, regions: due.regions ?? "all", ok: r.ok, wallMs: r.wallMs, summary: r.summary, ...(r.error ? { error: r.error.split("\n")[0] } : {}) };
+}
+
+/** what a DFO run left held: whole regions (page / structure), regions whose fetch failed (T851: every one, stale or
+ *  not — a failure inside the stale line is still shown on /status and keeps the feed `degraded`), single places */
 export function dfoHeld(regions: Record<string, any>): Held[] {
   const out: Held[] = [];
   for (const [slug, r] of Object.entries<any>(regions)) {
     if (r.held) out.push({ where: `region ${slug}`, why: r.held });
-    else if (r.stale) out.push({ where: `region ${slug}`, why: `fetch failed ${r.failures}× in a row; the last answers stand` });
+    else if (Number(r.failures) > 0 || r.stale)
+      out.push({ where: `region ${slug}`, why: `fetch failed ${r.failures}× in a row; the last answers stand (read ${r.checked ?? "never"}${r.stale ? `, STALE: older than ${STALE_AFTER_HOURS} h` : ""})` });
     for (const h of r.holds ?? []) out.push({ where: `region ${slug}`, place: h.location_id, why: `${h.kept}: ${h.why}` });
   }
   return out;
@@ -677,8 +774,9 @@ async function runTimingCheck(env: Env, now = new Date()): Promise<{ ok: boolean
 }
 
 /** (T431) which job a cron string starts: its minute field names it (wrangler.toml [triggers]; test/scheduled.test.ts). */
-export function cronJob(cron: string): Job | "backup" | "skill" | "runtiming" {
+export function cronJob(cron: string): Job | "backup" | "skill" | "runtiming" | "dfo-retry" {
   if (cron.startsWith("25 ")) return "backup";   // + the report purge
+  if (cron.startsWith("50 ")) return "dfo-retry"; // (T851) hourly: a failed DFO run's regions again, only when one is due
   if (cron.startsWith("55 ")) return "skill";
   if (cron.startsWith("40 ")) return "runtiming";
   return cron.startsWith("15 ") ? "dfo" : cron.startsWith("45 ") ? "inseason" : "gauges";
@@ -746,7 +844,7 @@ export default {
         const error = `the feeds' status could not be read: ${e instanceof Error ? e.message : String(e)}`;
         console.error(JSON.stringify({ job: "status", error }));
         return url.pathname === "/status.json"
-          ? Response.json({ ok: false, error, inputs: INPUT_FORMATS }, { status: 503, headers: { "Cache-Control": "no-store" } })
+          ? Response.json({ ok: false, error, inputs: INPUT_FORMATS, dfo: SHAPE }, { status: 503, headers: { "Cache-Control": "no-store" } })
           : new Response(error, { status: 503, headers: { "Content-Type": "text/plain; charset=utf-8", "Cache-Control": "no-store" } });
       }
       // (T246) the last backup run beside the feeds (null: none yet)
@@ -763,7 +861,8 @@ export default {
       // (T558) how owner messages go out: "log" means nobody is told
       const nc = notifyConfig(env);
       const notifyInfo = { channel: channelOf(nc), digest: !!nc.digest };
-      if (url.pathname === "/status.json") return Response.json({ ...servedStatus(st, now), notify: notifyInfo, backup: bk, reportRetention: rt, skill: sk, push, inputs: INPUT_FORMATS }, { headers: { "Cache-Control": "no-store", ...SAFE_HEADERS } });
+      if (url.pathname === "/status.json") return Response.json({ ...servedStatus(st, now), notify: notifyInfo, backup: bk, reportRetention: rt, skill: sk, push, inputs: INPUT_FORMATS, dfo: SHAPE,
+                                                                       dfoIssues: st.feeds.dfo?.dfoIssues ?? null }, { headers: { "Cache-Control": "no-store", ...SAFE_HEADERS } });
       return new Response(statusHtml(st, now, sk, notifyInfo, { backup: bk, purge: rt, push }), { headers: { "Content-Type": "text/html; charset=utf-8", "Cache-Control": "no-store", ...SAFE_HEADERS,
         "Content-Security-Policy": "default-src 'none'; style-src 'unsafe-inline'; frame-ancestors 'none'" } });
     }
@@ -852,6 +951,11 @@ export default {
     if (job === "backup") { ctx.waitUntil(Promise.allSettled([backup(env), purge(env)])); return; }
     if (job === "skill") { ctx.waitUntil(skill(env)); return; }
     if (job === "runtiming") { ctx.waitUntil(runTimingCheck(env)); return; }
+    if (job === "dfo-retry") {
+      ctx.waitUntil(dfoRetry(env).then((r) => console.log(JSON.stringify({ job: "dfo-retry", ...r })),
+                                     (e) => console.error(JSON.stringify({ job: "dfo-retry", error: String((e as Error)?.stack ?? e).slice(0, 500) }))));
+      return;
+    }
     // (T558 W8) a failed run prints its error and the tail of its log (the step errors were printed as they happened)
     ctx.waitUntil(run(job, env).then((r) => {
       console.log(JSON.stringify({ job, ok: r.ok, wallMs: r.wallMs, meter: r.meter, stepErrors: r.stepErrors.length }));

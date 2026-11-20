@@ -5,10 +5,12 @@
  * The tiles are written by `mvt.fixture.ts`, so every test states the archive it reads.
  */
 import { describe, expect, it } from "vitest";
+import type { ReadRange } from "./endpoints";
 import { encodeTile, type FixtureFeature } from "./mvt.fixture";
+import { encodePmtiles } from "./pmtiles.fixture";
 import {
-  blockAround, clipLine, clipRing, collectionBbox, endFor, newTraceCache, project, readTrace,
-  junction, routeBbox, tileOf, tilesCovering, traceCollection, zoomForBudget, type TileSource,
+  blockAround, clipLine, clipRing, collectionBbox, endFor, newTraceCache, project, rangeSource, readTrace,
+  junction, routeBbox, tileOf, tilesCovering, traceCollection, traceOverlay, zoomForBudget, type TileSource,
   type TraceRoute,
 } from "./trace-geometry";
 
@@ -209,5 +211,44 @@ describe("the overlay collection", () => {
     expect(traceCollection([route({ role: "up", tone: "t", path: [7], mark: { at: 9 as never, into: 7 as never,
                                                                               label: "x" } })],
                            new Map([[7, into]])).features.some((f) => f.properties.kind === "join")).toBe(false);
+  });
+});
+
+/**
+ * (T831) A PHONE'S ATLAS IS AN INSTALLED FILE. `fetch` of a `file://` uri ignores the range and reads the whole archive,
+ * so a phone hands a byte-range reader (`TileEndpoints.readRange`) and the route overlay reads through it — here a real
+ * `.pmtiles` archive (`pmtiles.fixture.ts`) read by the real `PMTiles`, its reader answering each range as a view into
+ * the archive's bytes (the phone's reads the installed file: `@app/data` `range.native.ts`).
+ */
+describe("(T831) the atlas read through a byte-range reader", () => {
+  const reader = (bytes: Uint8Array, asked: [string, number, number][]): ReadRange => async (path, offset, length) => {
+    asked.push([path, offset, length]);
+    return bytes.subarray(offset, offset + length);   // a view into a larger buffer, as a file read may hand back
+  };
+
+  it("copies a route's line out of the archive, asking only ranges of it", async () => {
+    const [x, y] = [660, 1404];
+    const at = centre(12, x, y);
+    const tile = encodeTile({ stream: [line(311274, [[0, 2048], [4096, 2048]])] }, 4096);
+    const bytes = encodePmtiles([{ z: 12, x, y, data: tile }], 40_000);
+    const asked: [string, number, number][] = [];
+    const file = "file:///d/t831-geometry/atlas.pmtiles";
+    const { fc, missing } = await traceOverlay(file,
+                                               [route({ role: "up", tone: "tone-blue", path: [311274 as never], from: at, to: at })],
+                                               reader(bytes, asked));
+    expect({ missing, features: fc.features }).toEqual({ missing: [], features: [{
+      type: "Feature", properties: { role: "up", tone: "tone-blue", order: 1, on: false, kind: "line" },
+      geometry: { type: "MultiLineString", coordinates: [[project(12, x, y, 4096, [0, 2048]), project(12, x, y, 4096, [4096, 2048])]] },
+    }] });
+    // the header and directory in one read, then the tile itself: never the whole 40 kB archive
+    expect(asked.every(([p, , n]) => p === file && n <= 16_384)).toBe(true);
+    expect(asked.reduce((s, [, , n]) => s + n, 0)).toBeLessThan(bytes.length);
+  });
+
+  it("the archive source hands pmtiles exactly the bytes read, keyed by its path", async () => {
+    const backing = new Uint8Array([9, 9, 1, 2, 3, 9]);
+    const src = rangeSource("file:///d/atlas.pmtiles", async (_p, o, n) => backing.subarray(o, o + n));
+    const got = await src.getBytes(2, 3);
+    expect([src.getKey(), [...new Uint8Array(got.data)]]).toEqual(["file:///d/atlas.pmtiles", [1, 2, 3]]);
   });
 });

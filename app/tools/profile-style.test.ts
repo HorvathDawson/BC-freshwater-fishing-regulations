@@ -96,8 +96,12 @@ describe("the profile colour mode", () => {
         // (T165, on with the day's `no_access` labels) and the selection's outline (the stream's casing, the lake and
         // wetland rings), T175's water copy (the lake's fill, the stream's casing and line), and T213's gear marks (the
         // stream's two edges, the lake's two rings), T199's passing-run dash (`stream-runs-pass`, off outside `runs`),
-        // T377's closed stripe (`stream-closed`, on with the day's `closed` labels) — all validated with the real paint
-        expect(patched).toBe(20);
+        // T377's closed stripe (`stream-closed`, on with the day's `closed` labels), and T735's glow under the part's
+        // casing (`selection-glow`, look C: dark only; a theme with no glow has no such layer), and T759's issue stripe
+        // (`stream-issue-casing` + `stream-issue-stripe`, off outside `salmon`), and T848's heavy line (`stream-heavy`: the
+        // stream's lit and closed sections over it), and T887's keep casing (`stream-salmon-casing`, off outside `salmon`) — all
+        // validated with the real paint
+        expect(patched, theme).toBe(theme === "dark" ? 25 : 24);
         for (const e of validateStyleMin(style as never)) problems.push(`${theme}: ${e.message}`);
       }
     expect(problems).toEqual([]);

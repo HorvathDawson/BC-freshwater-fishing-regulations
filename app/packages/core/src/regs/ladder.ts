@@ -40,14 +40,22 @@ export function verdictList(v: VerdictWire, reasons: readonly string[], reasonSt
 
 /** page ladderAt: a frame → per fish (frame order) → per origin, the `common` verdict overlaid by the fish's own
  *  (`new Map([...base, ...own])`). The store's 2-element row `[fish, v]` (one verdict for all three origins) reaches here
- *  already spread to [fish, v, v, v] by T04's `ladder` read. null frame → null. */
+ *  already spread to [fish, v, v, v] by T04's `ladder` read. null frame → null.
+ *  (T917) One map for origins that carry the same wire verdict (the spread row), and the overlay made as `base` copied
+ *  then the own verdicts set (the insertion order of `new Map([...base, ...own])`). The maps are read-only (`Ladder`), so
+ *  sharing them changes no reader. Decoding once per segment is settle.ts's (`ladderOfSeg`, held with the inputs). */
 export function ladderAt(frame: LadderFrameWire | null, reasons: readonly string[], reasonState: readonly string[]): Ladder | null {
   if (!frame) return null;
   const base = verdictList(frame.common, reasons, reasonState);
+  const at = (v: VerdictWire): ReadonlyMap<number, Verdict> => {
+    const m = new Map(base);
+    for (const [i, x] of verdictList(v, reasons, reasonState)) m.set(i, x);
+    return m;
+  };
   const out = new Map<string, Readonly<Record<Origin, ReadonlyMap<number, Verdict>>>>();
   for (const [fish, none, hatchery, wild] of frame.rows) {
-    const at = (v: VerdictWire) => new Map([...base, ...verdictList(v, reasons, reasonState)]);
-    out.set(fish, { none: at(none), hatchery: at(hatchery), wild: at(wild) });
+    const n = at(none), h = hatchery === none ? n : at(hatchery), w = wild === none ? n : wild === hatchery ? h : at(wild);
+    out.set(fish, { none: n, hatchery: h, wild: w });
   }
   return out;
 }

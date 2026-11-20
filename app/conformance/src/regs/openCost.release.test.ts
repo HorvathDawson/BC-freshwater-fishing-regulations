@@ -15,6 +15,10 @@ import { liveRelease, openReleaseDir } from "../fixtureRelease";
 
 const LIVE = liveRelease();
 /** Calls for target + inputs (the page's own reads) and for the whole tap (+ the water sheet and its group). */
+// (0.8.0) the trout table (T810) is 3 needed calls a tap (trout_frame → trout_table → trout_sheet, each naming the next),
+// which took Cultus Lake's page to 31 against 30. The budgets stand: two reads held behind an `await` were a second
+// batch of the same family (ladder_verdict, rows_decided; reads.ts, pinned in reads.test.ts), and asking them together
+// gives those calls back — measured on the 0.8.0 candidate: page 26 / 30 / 29, whole tap 40 / 41 / 43.
 const CASES = [
   { id: "small stream (Norrish Creek)", item: "gnis:23402", page: 30, all: 50 },
   { id: "the Fraser (17 parts)", item: "gnis:39325", page: 40, all: 60 },

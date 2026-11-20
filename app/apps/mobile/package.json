@@ -1,6 +1,6 @@
 {
   "name": "@app/mobile",
-  "version": "0.7.10",
+  "version": "0.8.3",
   "private": true,
   "license": "UNLICENSED",
   "main": "index.js",
@@ -9,8 +9,8 @@
     "android": "expo run:android",
     "ios": "expo run:ios",
     "prebuild": "expo prebuild --clean",
-    "export:web": "EXPO_PUBLIC_CONTACT=support@canifishthis.ca expo export --platform web --source-maps && node ../../tools/sourcemaps.mjs keep-web dist",
-    "export:web:staging": "EXPO_PUBLIC_CONTACT=support@canifishthis.ca EXPO_PUBLIC_APP_ENV=staging expo export --clear --platform web --output-dir ../../dist/web-staging --source-maps && node ../../tools/sourcemaps.mjs keep-web ../../dist/web-staging"
+    "export:web": "EXPO_PUBLIC_CONTACT=support@canifishthis.ca expo export --platform web --source-maps && node ../../tools/web-shell.mjs dist && node ../../tools/sourcemaps.mjs keep-web dist",
+    "export:web:staging": "EXPO_PUBLIC_CONTACT=support@canifishthis.ca EXPO_PUBLIC_APP_ENV=staging expo export --clear --platform web --output-dir ../../dist/web-staging --source-maps && node ../../tools/web-shell.mjs ../../dist/web-staging && node ../../tools/sourcemaps.mjs keep-web ../../dist/web-staging"
   },
   "dependencies": {
     "@app/core": "workspace:*",
@@ -28,6 +28,7 @@
     "expo-background-task": "58.0.11",
     "expo-file-system": "58.0.11",
     "expo-font": "58.0.10",
+    "expo-image-manipulator": "58.0.15",
     "expo-image-picker": "58.0.10",
     "expo-in-app-updates": "0.13.0",
     "expo-location": "58.0.19",

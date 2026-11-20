@@ -1,6 +1,6 @@
 # T567 — Fraser at Mission: the app shows no current readings, the gauge page does
 
-Status: IN REVIEW — fb042cdfa, 1c57e7c07 (open parts a, c, d done; b (one lead gauge per water) waits for an owner decision, below; reaches the phone with the next build; owner confirms there)
+Status: DONE — fb042cdfa, 1c57e7c07, 694479e25 (closed on the owner's word 2026-11-20; see the last section)
 
 Source: Owner 2026-11-09: "the fraser at mission gauge has no current readings (but the gauge page for it does so there is an issue there?)".
 
@@ -97,3 +97,9 @@ day the chart keeps today in view: the readings up to now, a marked "today", the
 - Defaults to Level: only `ConditionsPanel.tsx` `shown = param ?? vm.reading?.quantity ?? "level"` (when the station's
   quantities are not yet known); every ask default is Flow ("discharge"). Not changed.
 - Web shots on staging data (Fraser, CPR Bridge at Mission -> Landstrom Bar): `T568-shots/`; see T568. Emulator: not run.
+
+## Closed 2026-11-20
+
+Closed 2026-11-20 on the owner's word ("Couldn't we just assume most of these are done already?"): Fraser at Mission showing its current reading is taken as checked on the phone.
+
+Status line before closing: IN REVIEW — fb042cdfa, 1c57e7c07, 694479e25 (a, c, d done; b done on the owner's 2026-11-10 rule "flow is always the leading option": one lead gauge per water and day, chosen in Flow). Proof: the owner confirms Fraser at Mission's reading on the phone.

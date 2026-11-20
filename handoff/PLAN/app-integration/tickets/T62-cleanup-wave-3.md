@@ -32,7 +32,7 @@ Not done:
 
 ## Outcome (pipeline lane)
 
-Items 3.1 and 3.3 of the audit plan, on `redesign/stream-sections` (15 commits, 7b946345..3fbbd839). No behaviour change.
+Items 3.1 and 3.3 of the audit plan, on `redesign/stream-sections` (15 commits, acba5347e..f627ecc3a). No behaviour change.
 
 **3.1. The UI export is now the package `pipeline/deliver/export/`.** `pipeline/tools/export_ui_rules.py` (6,605 lines) was
 split into contract, read, steelhead, guide_words, guide, cases, verdicts, closures, dictionary, model (`build`),
@@ -81,7 +81,7 @@ HEAD, placed at the same path.
 
 **pytest: 7 failures remain (3 failed, 4 errors), none from this ticket.** The full fast suite ran through heavy.sh, unfiltered: 6 failed,
 5,349 passed, 6 errors.
-- I fixed 5 of those 12 in 3fbbd839 (the alias rewrite); both files then passed, 101 tests.
+- I fixed 5 of those 12 in f627ecc3a (the alias rewrite); both files then passed, 101 tests.
 - **Still failing, and failing on the base too:**
   - 3 tests in `test_dfo_salmon` (another lane's area).
   - The 4 `test_synopsis_pages` errors, which depend on test order.

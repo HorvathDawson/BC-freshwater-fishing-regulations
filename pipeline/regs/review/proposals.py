@@ -127,10 +127,13 @@ class Sources:
     tidal_decisions: Optional[Path] = None
     _reg: Optional[dict] = field(default=None, repr=False)
     _texts: dict = field(default_factory=dict, repr=False)
+    _parsed: dict = field(default_factory=dict, repr=False)
     #: (T421) whether registry.json was there (None = not read yet), and whether an item was asked for without one:
     #: `applied_keys` refuses that
     _has_reg: Optional[bool] = field(default=None, repr=False)
     _asked_without_registry: bool = field(default=False, repr=False)
+    #: `carried`'s indexes over the registry (built once)
+    _carry: Optional[dict] = field(default=None, repr=False)
 
     @classmethod
     def live(cls, build: Optional[Path] = None) -> "Sources":
@@ -152,6 +155,15 @@ class Sources:
     def doc(self, path: Path) -> dict:
         return json.loads(self.text(path))
 
+    def parsed(self, path: Path) -> dict:
+        """(T755 follow-up) the file parsed ONCE per Sources, READ ONLY — for the finders, which hand out copies:
+        `applied_keys` parsed every region file once per place it looked up (1,438 parses, 0.65 s per save)"""
+        p = Path(path)
+        got = self._parsed.get(p)
+        if got is None:
+            got = self._parsed[p] = json.loads(self.text(p))
+        return got
+
     def item(self, iid: str) -> Optional[dict]:
         """A registry item as registry.json holds it (raw), or None."""
         if self._reg is None:
@@ -166,24 +178,52 @@ class Sources:
     def registry_path(self) -> Path:
         return Path(self.build or "") / "registry.json"
 
+    def carried(self, iid: str) -> Optional[list[str]]:
+        """`carried_item` over this build's registry (indexed once per Sources). Only a line (`blk:`) or a lake
+        (`wbk:`) id can have been merged or cut into parts; any other is never looked up."""
+        if not iid.startswith(("blk:", "wbk:")):
+            return None
+        self.item(iid)                                   # loads the registry (and remembers a missing one, T421)
+        if self._carry is None:
+            line_items: dict[str, set] = {}
+            parts: dict[str, list] = {}
+            for it in self._reg.values():
+                if it.get("kind") == "area":                 # an area holds the sections inside it, not a water
+                    continue
+                for s in it.get("section_ids") or ():
+                    if not s.startswith("lake:"):
+                        line_items.setdefault(s.rsplit(":", 1)[0], set()).add(it["id"])
+                if it.get("part_of"):
+                    parts.setdefault(it["part_of"], []).append(it["id"])
+            self._carry = {"line_items": line_items, "parts": {k: sorted(v) for k, v in parts.items()},
+                           "listed_by": {}}
+            for it in self._reg.values():
+                for r in it.get("ref_ids") or ():
+                    self._carry["listed_by"].setdefault(r, []).append(it["id"])
+        return carried_item(iid, self._reg, **self._carry)
+
 
 def _region_files(d: Path) -> list[Path]:
     return sorted(Path(d).glob("region-*.json"))
 
 
 def _find_entry(src: Sources, entry_id: str) -> Optional[tuple[Path, dict]]:
+    """(path, a COPY of the entry): a fresh object per call, as when each call parsed the file anew"""
+    import copy
     for p in _region_files(src.entries_dir):
-        for e in src.doc(p).get("entries") or []:
+        for e in src.parsed(p).get("entries") or []:
             if e.get("entry_id") == entry_id:
-                return p, e
+                return p, copy.deepcopy(e)
     return None
 
 
 def _find_location(src: Sources, location_id: str) -> Optional[tuple[Path, dict]]:
+    """(path, a COPY of the place): a fresh object per call, as when each call parsed the file anew"""
+    import copy
     for p in _region_files(src.dfo_dir):
-        for loc in src.doc(p).get("locations") or []:
+        for loc in src.parsed(p).get("locations") or []:
             if loc.get("location_id") == location_id:
-                return p, loc
+                return p, copy.deepcopy(loc)
     return None
 
 
@@ -242,6 +282,43 @@ def unified(rel: str, before: str, after: str) -> str:
 # --------------------------------------------------------------------------- edits
 
 _MISSING = "__absent__"
+
+
+def _same_side_streams(seen: Optional[bool], loc: Mapping) -> bool:
+    """T525's guard, read through T807: the side-stream setting a DFO mark saw is the one the place has now — the same
+    stored value, or (a named water storing nothing, since a save that matches DFO's words stores nothing) the value its
+    words give, which is what the mark's place stored when it was made."""
+    from pipeline.regs.dfo_salmon import side_streams as SS
+    now = (loc.get("binding") or {}).get("tributaries")
+    if seen == now:
+        return True
+    return now is None and seen is not None and SS.applies(loc) and SS.derived_of(loc).tributaries == seen
+
+
+def _side_stream_fields(m, loc: Mapping, fields: dict) -> dict:
+    """T807 (owner 2026-11-16): A DFO MARK'S SIDE-STREAM CALL, AS THE PLACE STORES IT. On a named water DFO's words
+    decide (`dfo_salmon.side_streams`): a call that matches them stores NOTHING (`binding.tributaries` None, no
+    exception); one that differs is a STATED EXCEPTION, stored with its reason and its save (`tributaries_exception`).
+    A call the owner overruled (`side_streams_overruled`: a save dated on or before `through`) sets nothing. Edits
+    `fields` (the binding's) in place; returns the location fields to set."""
+    from pipeline.regs.dfo_salmon import side_streams as SS
+    if "tributaries" not in fields or not SS.applies(loc):
+        return {}
+    over = loc.get("side_streams_overruled") or {}
+    if over.get("through") and str(m.date) <= str(over["through"]):
+        fields.pop("tributaries")
+        return {}
+    d = SS.derived_of(loc)
+    if fields["tributaries"] == d.tributaries:
+        fields["tributaries"] = None
+        return {"tributaries_exception": {}} if loc.get("tributaries_exception") else {}
+    if (loc.get("binding") or {}).get("tributaries") == fields["tributaries"] and loc.get("tributaries_exception"):
+        return {}                                         # the exception it states is already stored
+    words = (f"DFO's words say {'in' if d.tributaries else 'river only'} ({d.source}"
+             + (f": {d.words}" if d.words else "") + ")")
+    return {"tributaries_exception": {
+        "reason": f"the owner's save in the review app: side streams {'in' if fields['tributaries'] else 'out'}; "
+                  + words, "save": f"{m.reviewer} {m.date}"}}
 
 
 def _target_of(doc: dict, ed: Mapping) -> Optional[dict]:
@@ -474,7 +551,16 @@ def extent_of(fix, split_of, rest_at_build: bool = False) -> tuple[Optional[dict
         if sid is None:
             problems.append(f"point {i + 1} ({p.kind}) names no split")
         sids.append(sid)
-    if sids:
+    bounds = getattr(fix, "bounds", None)
+    if bounds is not None or getattr(fix, "siblings", None) is not None:
+        # T761: a DFO "rest of" — its own stretch (the points are that op's cuts) and the places it leaves out
+        if not rest_at_build:
+            problems.append("a rest's own bounds and listed places belong to a DFO place: a hand edit")
+        if bounds is not None and bounds != "whole":     # bounds "whole" is the rest of the whole water: no bounds
+            ex["bounds"] = {"op": bounds, **({"splits": sids} if sids else {})}
+        if fix.siblings is not None:
+            ex["siblings"] = list(fix.siblings)
+    elif sids:
         ex["splits"] = sids
     if len(fix.items) == 1:
         ex["item_id"] = fix.items[0]
@@ -489,8 +575,82 @@ def extent_of(fix, split_of, rest_at_build: bool = False) -> tuple[Optional[dict
     return ex, problems
 
 
+def carried_item(iid: str, reg: Mapping[str, dict], *, line_items: Mapping[str, set],
+                 parts: Mapping[str, list], listed_by: Mapping[str, list]) -> Optional[list[str]]:
+    """WHAT AN ITEM ID A MARK NAMED IS IN THIS BUILD, when the registry RECORDS that its identity changed (owner
+    2026-11-17, on six DFO marks that read "binding moved" after T806 / T812: "they should all be good") — the ids
+    that now stand for it, or None (no recorded change: the id stands as it is, or nothing says where it went).
+
+      merged  `blk:N` is no item any more, exactly one item lists it in its `ref_ids`, and that item holds EVERY
+              section on blue line N — the old id's line is wholly inside it (T806: Sheldens Creek's FWA line and its
+              hand-drawn channel are one item, wsc:950-016367) -> [that item]
+      parted  a lake the curation cut into parts: the item stays, owns no section, and its parts tile it
+              (`registry.add_lake_parts`, RU-11; T812 Babine 433.92 + 33.07 km² = the FWA polygon's 467.00) ->
+              EVERY part (a place naming only some of them is a different extent)
+
+    A line held by two items, an old id two items list, a gone id no item lists: None, so a mark on it stays stale."""
+    if iid.startswith("blk:") and iid not in reg:
+        by = listed_by.get(iid) or []
+        if len(by) == 1 and line_items.get(iid[4:]) == {by[0]}:
+            return [by[0]]
+        return None
+    it = reg.get(iid)
+    if it is not None and not it.get("section_ids") and parts.get(iid):
+        return list(parts[iid])
+    return None
+
+
+def _ids_of(e: Mapping) -> list[str]:
+    return [e["item_id"]] if e.get("item_id") else list(e.get("item_ids") or [])
+
+
+def carried_extents(fix_extents: list, src: "Sources") -> Optional[list]:
+    """A mark's fix as it reads after the registry's recorded identity changes (`carried_item`), in the shape a place
+    writes it (one item: `item_id`; several: `item_ids`, sorted) — or None when no id it names was carried."""
+    out, moved = [], False
+    for e in fix_extents:
+        ids = _ids_of(e)
+        now: list[str] = []
+        for i in ids:
+            got = src.carried(i)
+            moved |= got is not None
+            now += [x for x in (got or [i]) if x not in now]
+        e = {k: v for k, v in e.items() if k not in ("item_id", "item_ids")}
+        if len(now) == 1:
+            e["item_id"] = now[0]
+        elif now:
+            e["item_ids"] = sorted(now)
+        out.append(e)
+    return out if moved else None
+
+
+def _same_extents(a: list, b: list) -> bool:
+    """Two extent lists alike but for the ORDER of an extent's `item_ids`."""
+    def norm(xs):
+        return [{**x, "item_ids": sorted(x["item_ids"])} if x.get("item_ids") else x for x in xs or []]
+    return norm(a) == norm(b)
+
+
+def excludes_of(items) -> list[dict]:
+    """(owner 2026-11-15) an extent fix's excepted tributaries as the place's `tributary_excludes`: each water whole"""
+    return [{"op": "whole", "item_id": i} for i in items]
+
+
+def excepted_items(excludes) -> tuple[list[str], list[str]]:
+    """the inverse of `excludes_of`: (item ids, why not) — an exclusion that is not one water whole cannot be said"""
+    items, why = [], []
+    for i, x in enumerate(excludes or []):
+        if set(x) == {"op", "item_id"} and x.get("op") == "whole":
+            items.append(x["item_id"])
+        else:
+            why.append(f"excepted tributary {i + 1} ({x.get('op')}) is not one water whole: a hand edit")
+    return items, why
+
+
 #: T525: the fields of a curated extent an extent fix can say (`extent_of` writes exactly these)
-EXPRESSIBLE = frozenset({"op", "splits", "item_id", "item_ids", "area_id"})
+EXPRESSIBLE = frozenset({"op", "splits", "item_id", "item_ids", "area_id", "bounds", "siblings"})
+#: T761: the fields of a rest's `bounds` an extent fix can say (its op and cuts)
+BOUNDS_EXPRESSIBLE = frozenset({"op", "splits"})
 
 
 def unexpressed(extents: Iterable[Mapping]) -> list[str]:
@@ -500,13 +660,17 @@ def unexpressed(extents: Iterable[Mapping]) -> list[str]:
     out = []
     for i, ex in enumerate(extents):
         extra = sorted(set(ex) - EXPRESSIBLE)
+        if isinstance(ex.get("bounds"), Mapping):
+            extra += [f"bounds.{k}" for k in sorted(set(ex["bounds"]) - BOUNDS_EXPRESSIBLE)]
         if extra:
             out.append(f"extent {i + 1} ({ex.get('op')}) holds {', '.join(extra)}, which an extent fix cannot express: "
                        "a hand edit")
     return out
 
 
-def fixes_of_extents(extents: Iterable[Mapping], tributaries: Optional[bool]) -> tuple[list, list[str]]:
+def fixes_of_extents(extents: Iterable[Mapping], tributaries: Optional[bool], *,
+                     tributaries_only: Optional[bool] = None,
+                     tributary_excludes: Optional[Iterable[Mapping]] = None) -> tuple[list, list[str]]:
     """T525: A PLACE'S CURATED EXTENTS AS EXTENT FIXES — the pieces the review app's editor opens on, so a change
     starts FROM the extent the place has (never from an empty editor or an old mark). The inverse of `extent_of`:
     each extent's cuts as `split` points, its item(s), its area, and the place's own tributary flag as it is (None
@@ -516,13 +680,23 @@ def fixes_of_extents(extents: Iterable[Mapping], tributaries: Optional[bool]) ->
     from pipeline.regs.review.marks import ExtentFix
     extents = list(extents)
     why = unexpressed(extents)
+    excepted = None
+    if tributary_excludes is not None:
+        excepted, no = excepted_items(tributary_excludes)
+        why += no
     fixes = []
     for i, ex in enumerate(extents):
         items = list(ex.get("item_ids") or ([ex["item_id"]] if ex.get("item_id") else []))
+        bounds = ex.get("bounds") if isinstance(ex.get("bounds"), Mapping) else None
+        cuts = bounds.get("splits") if bounds is not None else ex.get("splits")
         try:
             fixes.append(ExtentFix(scope="entry", op=ex["op"], items=items, tributaries=tributaries,
-                                   points=[{"kind": "split", "split_id": s} for s in ex.get("splits") or []],
-                                   area=ex.get("area_id")))
+                                   points=[{"kind": "split", "split_id": s} for s in cuts or []],
+                                   area=ex.get("area_id"), tributaries_only=tributaries_only,
+                                   tributary_excludes=excepted,
+                                   # T761: a rest of its own stretch, and the places it leaves out
+                                   bounds=bounds.get("op") if bounds is not None else None,
+                                   siblings=list(ex["siblings"]) if ex.get("siblings") else None))
         except ValueError as e:
             why.append(f"extent {i + 1} ({ex.get('op')}): {e}")
     return ([], why) if why else (fixes, [])
@@ -653,6 +827,9 @@ def _provenance(m) -> dict:
 
 
 def _proposes(m) -> bool:
+    if m.scope == "closed_area":                 # T573: a confirmed closed area proposes its stretch's new cuts
+        from pipeline.regs.review.marks import cut_proposals_of
+        return bool(cut_proposals_of(m))
     return m.scope in ("entry", "rule", "dfo") and bool(
         m.extent_fix or m.tributaries or m.new_splits or m.lake_split_later
         or getattr(m, "variant_of", None) or getattr(m, "not_variant_of", None) or _dfo_tidal_call(m))
@@ -827,6 +1004,41 @@ def _cut_already_there(n, have: Mapping, src: "Sources") -> Optional[str]:
     return min(rows, key=lambda r: abs(float(r["route_measure"]) - float(m)))["split_id"] if rows else None
 
 
+def closed_area_cut(n, have: Mapping, src: "Sources") -> tuple[Optional[str], Optional[str]]:
+    """T573: A CLOSED AREA'S NEW END, by the T755 split hunt's rules (`dfo_salmon.suggest`): (the existing cut it IS,
+    or None; why it cannot be a cut, or None). An existing cut on the same blue line within `SAME_CUT_M` (25 m, by
+    the built atlas's `splits.resolved.json`) is reused; an end at the line's end (measure <= `LINE_END_M`) is
+    refused — a cut there breaks both halves, and a closed stretch needs two real ends."""
+    from pipeline.regs.dfo_salmon.suggest import LINE_END_M, SAME_CUT_M
+    m = getattr(n, "measure", None)
+    if m is not None and not n.offset_m and float(m) <= LINE_END_M:
+        return None, (f"the closed area's end {n.ref} is on its line's end (m {float(m):.1f}): no cut there — "
+                      "move the end off the mouth")
+    blk = getattr(n, "blk", None)
+    if blk is None or m is None or n.offset_m or not src.build:
+        return None, None
+    p = Path(src.build) / "splits.resolved.json"
+    if not p.exists():
+        return None, None
+    rows = [r for r in json.loads(src.text(p)) if str(r.get("blk")) == str(blk) and r.get("split_id") in have
+            and r.get("route_measure") is not None and abs(float(r["route_measure"]) - float(m)) <= SAME_CUT_M]
+    return (min(rows, key=lambda r: abs(float(r["route_measure"]) - float(m)))["split_id"] if rows else None), None
+
+
+def landed_cut(n, src: "Sources") -> Optional[str]:
+    """T573: THE CUT A CLOSED AREA'S NEW END IS NOW, in the cuts file of `src`: the split whose anchor is the one this
+    end lands as (`place_groups`' own dup rule) or the existing cut it reuses (`closed_area_cut`) — None while the cut
+    has not landed. The reach run reads a confirmed stretch's new ends through this, so a landed cut binds it."""
+    from pipeline.regs.review.marks import NewSplit
+    n = NewSplit.model_validate(n) if isinstance(n, Mapping) else n
+    doc = src.doc(src.splits_path)
+    have = {sp["id"]: sp for wb in doc.get("waterbodies") or [] for sp in wb.get("splits") or [] if sp.get("id")}
+    if n.anchor == "split" and not n.offset_m:
+        return n.split_id if n.split_id in have else None
+    got = place_groups([(n.ref, n, False, None)], src, doc, have)[n.ref]["dup"]
+    return got or closed_area_cut(n, have, src)[0]
+
+
 def _tidal_label(n, water: str = "") -> str:
     """A tidal cut's label: its name without the water's own name ("Nanaimo River: tidal boundary"
     -> "tidal boundary"), as every other split of the water is labelled; it always says tidal."""
@@ -994,9 +1206,11 @@ def build(decided, src: Sources, *, applied: Optional[set] = None) -> list[dict]
     ref_group: dict[tuple, dict] = {}                    # (mark key, ref | #i) -> group
     for m in inforce:
         who = {"target": m.target, "rule_id": m.rule_id, "reviewer": m.reviewer, "date": m.date, "scope": m.scope}
-        for n in m.new_splits:
+        for n in M.cut_proposals_of(m):              # T573: a confirmed closed area's new ends too
             if n.anchor != "split" or n.offset_m:     # an existing cut + an offset is a new cut
-                ref_group[(m.key, n.ref)] = group_for(n, who)
+                g = ref_group[(m.key, n.ref)] = group_for(n, who)
+                if g is not None and m.scope == "closed_area":
+                    g["closed"] = True
         for fi, f in enumerate(m.extent_fix):
             for pi, p in enumerate(f.points):
                 if p.kind in ("confluence", "lake_inlet", "lake_outlet", "coord"):
@@ -1031,6 +1245,12 @@ def build(decided, src: Sources, *, applied: Optional[set] = None) -> list[dict]
         targets = ", ".join(sorted({w["target"] for w in g["marks"]}))
         prov = f"proposed in review marks on {targets}"
         dup = pl["dup"]
+        if dup is None and g.get("closed"):
+            # T573: a closed area's end follows the T755 hunt's rules — an existing cut on its line within
+            # `SAME_CUT_M` IS that cut, and no cut is made on a line's end
+            dup, why = closed_area_cut(n, have, src)
+            if why:
+                problems.append(why)
         if dup is not None:                              # already in splits.json: applied
             gid_split[g["gid"]] = dup
             if g.get("tidal"):                           # T166: ... but flagged tidal?
@@ -1125,6 +1345,12 @@ def build(decided, src: Sources, *, applied: Optional[set] = None) -> list[dict]
             got.setdefault("extents", []).append(ex)
             if f.tributaries is not None:                # one call for every piece: `marks.pieces_ok`
                 got[tri_field] = f.tributaries
+            # (owner 2026-11-15) a DFO place's "tributaries only" and its excepted tributaries, when the fix calls them
+            # (None = no call: the file's stay — every mark saved before these fields)
+            if m.scope == "dfo" and f.tributaries_only is not None:
+                got["tributaries_only"] = f.tributaries_only
+            if m.scope == "dfo" and f.tributary_excludes is not None:
+                got["tributary_excludes"] = excludes_of(f.tributary_excludes)
         for scope, call in m.tributaries.items():
             want = call == "include"
             got = sets.setdefault(scope, {})
@@ -1145,12 +1371,24 @@ def build(decided, src: Sources, *, applied: Optional[set] = None) -> list[dict]
                     if scope != "entry":
                         problems.append(f"a DFO location has no rule {scope}")
                         continue
+                    fields = dict(fields)
+                    for fld, val in _side_stream_fields(m, loc, fields).items():
+                        if loc.get(fld, _MISSING) != val:
+                            edits.append({"file": _rel(path), "kind": "dfo_loc", "location_id": m.target,
+                                          "scope": "entry", "field": fld, "before": loc.get(fld, _MISSING),
+                                          "after": val})
                     # T525: the extents an extent fix replaces must be ones it can say again — a field the review
                     # editor cannot express (a `within_area`, `outside_areas`, ...) would be dropped by the write
                     if "extents" in fields and fields["extents"] != b.get("extents"):
                         problems += [f"entry: {x}" for x in unexpressed(b.get("extents") or [])]
                     for fld, val in fields.items():
                         before = b.get(fld, _MISSING)
+                        if fld == "extents" and before != val:
+                            # the fix named an id the registry has since recorded as merged / cut into parts: the
+                            # file saying the carried ids IS the fix (`carried_item`); writing the old id back is wrong
+                            got = carried_extents(val, src)
+                            if got is not None and _same_extents(before, got):
+                                continue
                         if before != val:
                             edits.append({"file": _rel(path), "kind": "dfo",
                                           "location_id": m.target, "scope": "entry",
@@ -1160,7 +1398,7 @@ def build(decided, src: Sources, *, applied: Optional[set] = None) -> list[dict]
                     # fix has landed changes nothing, so it is not held
                     seen = m.extent_before
                     if seen is not None and edits and (seen.extents != (b.get("extents") or [])
-                                                       or seen.tributaries != b.get("tributaries")):
+                                                       or not _same_side_streams(seen.tributaries, loc)):
                         problems.append("entry: the extent changed since this mark was made (it saw "
                                         f"{json.dumps(seen.model_dump())}): mark the place again")
         else:
@@ -1232,18 +1470,41 @@ def build(decided, src: Sources, *, applied: Optional[set] = None) -> list[dict]
     return out
 
 
-def applied_keys(marks: Iterable, src: Sources) -> set:
+def applied_keys(marks: Iterable, src: Sources, carries: Optional[list] = None) -> set:
     """THE MARKS WHOSE OWN FIX HAS LANDED (owner 2026-10-28): the key of every mark in force whose
     extent fix / tributary call the curated files now say exactly (`build` makes no proposal for it
     — new points resolved to the split that landed for them, by anchor, never by proposal content).
     Landing a mark moves its target's binding fingerprint; `marks.status(applied=...)` holds such a
     mark instead of calling it stale, so applying the owner's work never undoes it. Cheap: only the
-    scopes that propose extents are built, without the tidal decisions."""
+    scopes that propose extents are built, without the tidal decisions. `carries`: the owner's carries
+    (`owner_carry`; default the curated list) — a mark held over his own later decision, while the place is as it left it."""
     import dataclasses
+    from pipeline.regs.review import dfo as D
+    from pipeline.regs.review import owner_carry as OC
+    from pipeline.regs.review import marks as M
+    marks = list(marks)
     keep = [m for m in marks if m.scope in ("entry", "rule", "dfo")]
     out: set = set()
     cheap = dataclasses.replace(src, tidal_decisions=None)
     build(keep, cheap, applied=out)
+    # a DFO place whose geography moved only where it does not read (`dfo.same_place_bindings`: the water's tributary
+    # flag under a place with its own) holds as a landing does; a fix that named a merged / parted id lands in `build`
+    places = D.locations(src.dfo_dir)
+    inforce = M.latest(m for m in marks if m.scope == "dfo")
+    entries = OC.load() if carries is None else carries
+    if entries:
+        now_of = {e["target"]: (D.same_place_bindings(places[e["target"]][1], places[e["target"]][2])
+                                if e["target"] in places else None) for e in entries}
+        out |= OC.held(entries, {(m.scope, m.target): m for m in inforce.values()}, now_of)
+    for m in inforce.values():
+        got = places.get(m.target)
+        if m.key in out or got is None:
+            continue
+        same = D.same_place_bindings(got[1], got[2])
+        now = D._h(D.geography(got[1], got[2]))
+        bs = {r.binding for r in m.prints.records}
+        if bs and bs <= same and bs != {now}:            # moved, but only where the place does not read
+            out.add(m.key)
     # (T421) a new point's anchor comes from the registry; without one it falls back to the stamped point, which never
     # equals the split that landed — every such mark would read "binding moved". Name the missing build instead.
     if cheap._asked_without_registry:

@@ -671,7 +671,8 @@ def test_t623_f21_peace_inside_clayhurst_reserve_is_closed_all_year(db):
 
 # ============================================================================================ C3
 TROUT_NOTE = ("Trout includes char (Dolly Varden/bull trout, lake trout, brook trout) unless the line "
-              "excludes them or char have their own line about the same thing.")
+              "excludes them or char have their own line about the same thing; when one char has its own "
+              "line, only that char is left out.")
 
 
 def _notes(guide: dict) -> dict:

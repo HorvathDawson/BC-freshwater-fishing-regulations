@@ -16,7 +16,12 @@ const AT = { atlas: "file:///a.pmtiles", basemap: "file:///b.pmtiles", glyphs: "
 type L = { id: string; type: string; paint?: Record<string, unknown> };
 const style = (theme: string, focus: boolean) => nativeStyle({ at: AT, theme, view: "plain",
   modes: { stream: "plain", lake: "plain" }, basemap: "map", gauges: '{"type":"FeatureCollection","features":[]}', focus });
-const evalPaint = (l: L, prop: string, state: Record<string, unknown>) => {
+/** (T848) the stream as drawn: the lit sections are its heavy layer's (`stream-heavy`), `stream` hidden under it there */
+const drawn = (layers: L[], id: string) => (state: Record<string, unknown>): L => {
+  const own = layers.find((x) => x.id === id)!, heavy = layers.find((x) => x.id === `${id}-heavy`);
+  return heavy && Number(evalPaint(heavy, "line-opacity", state)) > 0 ? heavy : own;
+};
+const evalPaint = (l: L, prop: string, state: Record<string, unknown>): unknown => {
   const spec = (latest as unknown as Record<string, Record<string, { default?: unknown }>>)[`paint_${l.type}`]![prop]!;
   const e = createPropertyExpression(l.paint?.[prop] ?? spec.default, prop as never, spec as never);
   if (e.result !== "success") throw new Error(`${l.id} ${prop} does not parse`);
@@ -33,17 +38,18 @@ describe("(T459) a water's map view, focused", () => {
     const on = style(theme, true), off = style(theme, false);
     expect([...on.errors, ...off.errors]).toEqual([]);
     for (const [id, cprop, oprop] of [["stream", "line-color", "line-opacity"], ["lake", "fill-color", "fill-opacity"]] as const) {
-      const l = (on.style.layers as L[]).find((x) => x.id === id)!, o = (off.style.layers as L[]).find((x) => x.id === id)!;
-      const own = hex(evalPaint(o, cprop, {})), base = Number(evalPaint(o, oprop, {}));
-      expect(hex(evalPaint(l, cprop, { part: true }))).toBe(own);
-      expect(hex(evalPaint(l, cprop, { water: true }))).toBe(own);
-      expect(hex(evalPaint(l, cprop, { near: true }))).toBe(own);
-      expect(hex(evalPaint(l, cprop, {}))).toBe(String(t["color.water.context"]).toUpperCase());
-      expect(Number(evalPaint(l, oprop, { part: true }))).toBeCloseTo(base);
-      expect(Number(evalPaint(l, oprop, { near: true }))).toBeCloseTo(base * Number(t["opacity.water.near"]));
-      expect(Number(evalPaint(l, oprop, {}))).toBeCloseTo(base * Number(t["opacity.water.context"]));
+      const [lOn, lOff] = [drawn(on.style.layers as L[], id), drawn(off.style.layers as L[], id)];
+      const ev = (which: typeof lOn, prop: string, s: Record<string, unknown>) => evalPaint(which(s), prop, s);
+      const own = hex(ev(lOff, cprop, {})), base = Number(ev(lOff, oprop, {}));
+      expect(hex(ev(lOn, cprop, { part: true }))).toBe(own);
+      expect(hex(ev(lOn, cprop, { water: true }))).toBe(own);
+      expect(hex(ev(lOn, cprop, { near: true }))).toBe(own);
+      expect(hex(ev(lOn, cprop, {}))).toBe(String(t["color.water.context"]).toUpperCase());
+      expect(Number(ev(lOn, oprop, { part: true }))).toBeCloseTo(base);
+      expect(Number(ev(lOn, oprop, { near: true }))).toBeCloseTo(base * Number(t["opacity.water.near"]));
+      expect(Number(ev(lOn, oprop, {}))).toBeCloseTo(base * Number(t["opacity.water.context"]));
       // MUTATION PIN: not focused, an unlit section keeps its own colour (the browse map is untouched)
-      expect(hex(evalPaint(o, cprop, {}))).toBe(own);
+      expect(hex(ev(lOff, cprop, {}))).toBe(own);
     }
   });
 

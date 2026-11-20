@@ -156,6 +156,13 @@ CREATE TABLE split (split_id TEXT PRIMARY KEY, name TEXT NOT NULL, kind TEXT NOT
                     at TEXT NOT NULL, official_name TEXT, same_place_as TEXT,
                     lake_id TEXT, confidence TEXT) WITHOUT ROWID;
 
+-- (T927, owner 2026-11-19 23:49: "search something like ten Mile pool and get chuckwalla river") THE BOOK'S BOUNDARY
+-- PLACES, for search: every CURATED cut (`splits.resolved.json` `source: curated` — the cuts of `cuts.json` and the
+-- curated tidal limits that are cuts), once, at its host row's PLACE: the FWA stream key and the route measure in whole
+-- metres (AGENTS 5: a place on the water, never a section). Its words are the `split` row's; the release ships it in
+-- core (`release.build.core_cut_place`) with the words the part ends say. A braid sweep's extra row never speaks for it.
+CREATE TABLE cut_place (split_id TEXT PRIMARY KEY, blk INTEGER NOT NULL, m INTEGER NOT NULL) WITHOUT ROWID;
+
 -- regulations ---------------------------------------------------------------------
 -- `name` is the display name — "Chilliwack River". `full_name` is what the curator wrote:
 -- "CHILLIWACK / VEDDER RIVERS (does not include Sumas River) (see map on page 24)".
@@ -201,6 +208,12 @@ CREATE TABLE entry (entry_id TEXT PRIMARY KEY, item_id TEXT, name TEXT, full_nam
 CREATE TABLE see_pointer (entry_id TEXT NOT NULL, name TEXT NOT NULL, ix INTEGER NOT NULL,
                           target_entry TEXT NOT NULL, target_name TEXT NOT NULL, item_id TEXT,
                           PRIMARY KEY (entry_id, ix)) WITHOUT ROWID;
+
+-- (T796, owner 2026-11-16: "take out the lakes but add a note"; RULINGS Z10) a section's NOTE, one sentence said once,
+-- written by `bundle.outside_note`: a lake taken out by name (`area_closures.json` `outside_items`) of a reserve or park
+-- its polygon only reaches into says the closure there does not apply ("Mostly outside Gladys Lake Ecological Reserve:
+-- its closure (rule book p.9) does not apply here."). The release ships it in `core`; the app shows it on the page.
+CREATE TABLE section_note (sid INTEGER PRIMARY KEY, note TEXT NOT NULL) WITHOUT ROWID;
 
 -- rule_id is unique only WITHIN an entry — 49 collide corpus-wide (AGENTS rule 8), so
 -- every table keys on (entry_id, rule_id) and never on rule_id alone.

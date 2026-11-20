@@ -1,6 +1,6 @@
 # T723 — iOS: salmon, run timing, search, saved spots, photos work on the simulator (IOS-6)
 
-Status: IN PROGRESS (iOS chat: keyboard and back fixes on branch `ios/t723-keyboard-back`, small audit fixes on `ios/audit-fixes`; not merged; scenario ports not started).
+Status: IN PROGRESS (merged parts in d15784a4f; item 3, the 10 iOS scenario ports, DROPPED by the owner 2026-11-20; left (Claude): the Conditions alert field under the decimal pad, the iOS Save-row lift, the credits Modal in ModalBack)
 
 Source: owner 2026-11-14, verbatim: "Maybe we could make a handoff to start improving the ios versions? Making sure it is
 rock solid too?" and "We want to do as much work as possible without the Apple account". Stub IOS-6 in
@@ -42,6 +42,50 @@ resolve the view on the UI block (`MLRNViewModuleUtils withView`), class-check i
 There is no separate map object that is nil until ready (Android's `mapLibreMap!!`), so the NPE has no iOS twin by the
 code, and the JS gate covers iOS as well. Left: an iOS twin of the test bed's `open-race` (cold start → search → Open at
 once; Chilliwack + Fraser) to prove it on the simulator.
+
+## iOS look at shared fixes (2026-11-14)
+Build **081d93f90** `--testbed`, ad-hoc signed "to run locally" (495c9d490; earlier iOS numbers were the unsigned
+8ba815a23), simulator **iPhone 17 Pro**, iOS 26.5, light and dark. `run-ios.mjs shared-fixes`
+(`app/tools/testbed/scenarios-ios/shared-fixes.mjs`). Runs: `ios-shared2` (all five items) and `ios-shared3` (T729 and
+T728 again). Shots: `handoff/PLAN/ios/shots/shared-fixes/`.
+
+| fix | iOS | what was seen | shots |
+|---|---|---|---|
+| T729 credits card | **PASS** | A centred pop-up (box 31,358 to 371,516 pt), above the legend, readable in light and dark. With satellite on it carries "Imagery: Powered by Esri · Source: Esri, Vantor, …" (ios-shared2, both looks). It closes by its Close button and by a tap outside. It opens on Map, Conditions and Run timing. | t729-map-dark/-light, t729-satellite-dark, t729-conditions-dark, t729-runs-dark/-light |
+| T729 left-edge swipe | **iOS-only difference** | The edge drag over the open card CLOSED it (both looks), although it is a React Native Modal. Most likely the drag's start lands on the scrim as a tap; not looked into further. Harmless. | |
+| T729 + c099e9977 | **PASS** | Card left open on Run timing, then the Map tab tapped where it sits: no card or scrim left, and the next map tap reached the map's press handler (`[tap]` 1). **iOS-only difference:** while the card is open, iOS keeps the tab bar out of the accessibility tree (a Modal), and a finger on the tab bar may land on the scrim first. So on iOS "the tab changes with the card open" is a scrim tap, then a tab tap. | |
+| T728 Flow / Level | **not verified on iOS** | The Conditions layers sheet was set to Level (shot). But both waters reached from search (Coquitlam River; Fraser River at Mission) show an "Estimate for this spot" card with no Flow / Level chart (`chart-quantity` absent), so the card's pick could not be made. Needs a gauged section reached from the map (Android's way). Test bed, not app. | (in run dir: shared-t728-layers-before-*, shared-t728-card-level-*) |
+| T731 step bar | **PASS (a step within a water)** | Coquitlam River Part 1 → Part 2 (Upstream), recorded: the bar's words change in place in one frame; the Downstream / Upstream buttons keep their box (67,625-145,647 / 272,625-340,647 pt); no spinner, no resize. A step that CROSSES into the next water (the case b40336850 is about) was not reached: Part 1 is the lowest, and its "Lowest part" button is disabled. | t731-step-frames-dark |
+| T717 Back from a page | **PASS** | Back from Cultus Lake's page, recorded (light and dark): the frame after the page is the map as left, fully coloured; no blank, grey or light frame. A tap on the page's empty header was not heard by the hidden browse map, and the page stayed. | t717-back-frames-dark, t717-page-dark, t717-map-after-dark |
+| T717 memory | **iOS difference, for the main lane** | Footprint on a water's page: **331 / 306 MB** (light / dark run), against **213-230 MB** on the baseline build (8ba815a23, unsigned, iPhone 17). +80-115 MB, consistent with the browse map kept mounted under the page. Also differs: the signing and the device. Peak elsewhere at the baseline: 274 MB. | |
+| T730 search | **PASS** | Recents are one small block (2 chips). A swipe down from the handle with the keyboard up closes search. Back after opening Cultus stays on Cultus. Search reopens empty. (The step's own close by `search-panel-close` failed: no such id in the iOS tree. Test bed.) | t730-recents-dark, t730-after-swipe-dark, t730-back-on-water-dark, t730-reopened-dark |
+
+Test-bed flakes in these runs (not the app):
+- ios-shared3's satellite step: in dark the Close id was not found after the layer switch; in light satellite ended
+  up off, because the earlier look had left it on and the toggle flipped it. ios-shared2 passed the same step in both
+  looks.
+- First run (ios-shared, 16:50): an Apple Maps widget location prompt covered the app. It is now refused and logged
+  as a finding (216495454).
+
+**Follow-up (T729, Android chat 2026-11-14):** on Android, one tap on a tab with the credits card open closes the card
+and changes the tab. On iOS it takes two taps (the first lands on the Modal's scrim), a real difference. Not fixed
+here: wrap the credits Modal in ModalBack after ios/t723-keyboard-back merges, and let the tab bar take the tap.
+
+**Second pass (`ios-shared4`, build 081d93f90, iPhone 17, dark, 2026-11-14 23:30):**
+- **T728: PASS.** The Conditions layers were set to Level. Vedder River's card ("Chilliwack River at Vedder Crossing")
+  opens on Level (1.81 m). Switched to Flow (29.7 m³/s). Back on the map, the layers still say Level.
+  Shot: `t728-level-card-flow-level-dark.jpg` (layers before, card Level, card Flow, layers after).
+- **T731, the step that crosses into the next water: not reachable on Coquitlam River.** Its top part (3 of 3,
+  "Coquitlam Watershed boundary → Source") has a disabled "Highest part" button, so nothing crosses there. Still
+  unverified on iOS; needs a water whose end step crosses into another water (a split lake's other area, a river into a
+  lake).
+- T730 again PASS: search reopens empty. The step's note "still says Cultus" was the test bed reading the recents chip;
+  the shot shows an empty field.
+
+## Found on the combined build (ios/next d658f88ac, simulator, 2026-11-15 08:30)
+- **Conditions → Alert me: the decimal pad covers the value field** (field 780 to 821 pt, keyboard top 566 pt; shot in the
+  `next-ios-s2` session folder). The keyboard scenario records this step and marks it PASS; it is the "alert box on the
+  Conditions card" this ticket listed as not proven. To fix here with the same lift the Notifications fields got.
 
 ## Keyboard and modal back (branch ios/t723-keyboard-back, 2026-11-14)
 Simulator iPhone 17e (390 × 844 pt, iOS 26.5), software keyboard on, staging data. Scenarios `run-ios.mjs keyboard` and
@@ -131,3 +175,31 @@ Scenario `app/tools/testbed/scenarios-ios/audit-fixes.mjs` (`run-ios.mjs audit-f
 - **G5: not provable on the simulator.** "Open Settings" lands on Settings' root list and its search did not lead to the app's Precise Location switch in two tries; unit-tested (`approxFix.test.ts`, `mapRail.render.test.tsx`).
 - **G2: not proven.** A release was staged on the test channel; across a Notification Center pull-down and a background return the app logged no `[swap] apply` line at all (0, 0, 0), so there is no positive control: either it was not staged in time or the probe line is not reached by this method. Unit-tested only (`returnedFromBackground.test.ts`). A way to prove it: stage, read "Release, staged" in the Updates log, then the same two gestures.
 - The first step of the last run failed on an unrelated stray dialog (a leftover tap path); the earlier run's pass for the arrow, G7 and G6 stands (same build, same scenario code for those steps).
+
+## Merged, 2026-11-16 (app chat; owner's answer to question 19, 10:29: "Yes, one at a time (Recommended)")
+Merge 2 of the held app work: `ios/integration` 639d54d0d (T722 install, T723 keyboard and back, the audit fixes, T719
+tap-up) into `redesign/stream-sections`. 63 commits, 57 app code files, the MapLibre patch (iOS tap-up; the Android
+half is byte-identical) and the bg-download module's iOS side. Two conflicts: `prefetch.render.test.tsx` (the shared
+branch's later T737 version kept) and this ticket (both sides kept).
+- **One fix in the merge:** T723 G11's own test failed on the merged head: the 0.7.11 note "Android: code shrinker
+  (R8) on for this build…" (added on the shared branch after this branch was cut) would have shown on an iPhone. It
+  is now tagged Android-only (`changelog.ts` `only`); Android's notes are unchanged.
+- **Checks on the merged head:** `pnpm check`: 6,790 tests passed, that one failed, then it and `check:fast` green
+  after the tag; worker suite 487; the six Android benches on 43a489846 with R8 on and the patched MapLibre
+  (10:45 to 11:14, `--no-r2`): 6 of 6 scenarios. install (up 70 s after launch), crash-bed, bg-install (the
+  notification tap did not open the app, the bench launched it: the known old-bench behaviour), regs-open (cue 41 to
+  86 ms, page 337 to 371 ms), tap-stalls (worst 155 ms of 300), memory (boot 248.6 MB, peak 437 MB). After the bench
+  only docs and one test file (T751) changed.
+- **Not checked here:** nothing iOS was re-run for this merge (the simulator proofs above are the branch's own, on
+  its commits); the first iPhone build from the shared branch will be the check.
+
+## Owner on the two picks, 2026-11-16 12:08
+(question dialog in the main chat, 2026-11-16 12:08, on the list of small behaviours left as built): "we should fix anything that doesnt seem desirable". The app chat's call: (1) a spot's Save row is LIFTED above the keyboard (a Save button
+hidden while typing is not what a user wants): to build, iOS, with the simulator proof; (2) the left-edge back strip
+stays 16 pt.
+
+## Owner answer 2026-11-20 01:56
+
+Dropped: item 3, the iOS scenario ports. Not doing it. owner 2026-11-20 01:56 (lane-plan batch), verbatim: "Make sure their tickets are  removed/completed/no doing labelled".
+
+Status line before this answer: IN PROGRESS (app chat; the keyboard and back fixes and the small audit fixes are MERGED into `redesign/stream-sections` 2026-11-16 (d15784a4f), see "Merged" at the end; the owner answered the two picks 2026-11-16 12:08: a spot's Save row is lifted above the keyboard on iOS, the back strip stays 16 pt; left (Claude): the scenario ports, the Conditions alert field under the decimal pad, the iOS Save-row lift with its simulator proof).

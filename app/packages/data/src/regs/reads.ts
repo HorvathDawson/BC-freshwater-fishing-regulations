@@ -5,10 +5,12 @@
  * and page v36 see. The per-family interning is undone here, never in core (rows 30: a row's year strip, held once
  * per distinct strip in the static `rows.strips` and named by the rows frame's fifth slot, goes back on its row here).
  *
- *   core       itemOrd (core `item.item_id` is UNIQUE: one indexed read — core's ord IS water's item_ord, P08)
+ *   core       itemOrd (core `item.item_id` is UNIQUE: one indexed read — core's ord IS water's item_ord, P08); sectionNotes
+ *              (T796, `section_note`: ADDITIVE in core/1, so asked for first — a core cut before it has no notes)
  *   water      item, parts, picker, akey, segStarts, segMoments, ruleset, rules, lics, statics, str, place, sectionPart,
  *              partLines (T388)
- *   regs-<r>   cell, cells and the five frame families, in the file water's `akey_region` names for the KEY — a frame
+ *   regs-<r>   cell, cells and the five frame families (and, T810 M, the optional trout section's four when the store
+ *              holds it), in the file water's `akey_region` names for the KEY — a frame
  *              id is the store's, the same in every region file that holds it, but only those files hold it; so every
  *              frame read is asked with the key it was reached from (`ladder(akey, id)`, not `ladder(id)`)
  *   regs-sid   sectionAkey, sectionPlace (one 8 KB / 4 KB block per lookup, cached), and so unnamedName; sectionTidal
@@ -24,13 +26,16 @@
  * `store/common.py` `BLOCK_BITS = 12`.
  */
 import type {
-  AkeyRow, AnswersPlace, CellIds, Confidence, ContinueRow, DisplayFrame, ExportRule, GearValue, LadderFrameWire, LicenceValue,
-  Moment, PartFacts, Picker, RowsValue, RuleFacts, Statics, VerdictWire,
+  AkeyRow, AnswersPlace, CellIds, Confidence, ContinueRow, DateSet, DisplayFrame, ExportRule, FishSheet, GearValue,
+  LadderFrameWire, LicenceValue, Moment, OptionalSectionName, PartFacts, Picker, RowsValue, RuleFacts, Statics, TroutFrameWire,
+  TroutTableWire, TroutValue, VerdictWire,
 } from "@app/core";
-import { isConfidence } from "@app/core";
+import { CELL_COLUMNS, CELL_NULLABLE, CELL_SECTIONS, isConfidence } from "@app/core";
+import { PACK_OPTIONAL_SECTION_TABLES } from "../pack.generated";
 import type { Cell, Db, Row } from "../sql/db";
 import { CROSS } from "../release/queries";
 import { RegsStoreError } from "./errors";
+import { decodeRules } from "./rulesDecode";
 
 export interface ItemRow {
   readonly ord: number; readonly id: string; readonly name: string; readonly kind: string;
@@ -64,6 +69,16 @@ export interface StoredRule { readonly rix: number; readonly export: ExportRule;
 /** The store's statics (`static` rows) — `pdfPages` too: the release ships the synopsis's printed → PDF page map
  *  (`export.pdf_pages`, the export guide's `pdf_pages`, pipeline.common.synopsis_pages); the app never computes one. */
 export type StoreStatics = Statics;
+/**
+ * (T810 M) One stored cell: its frame ids (the generated `CellIds`; the trout table's null where the cell has none,
+ * contract 2.1 `cell.trout INTEGER NULL`, Q-D3), and, ONLY when the store holds an optional section, that section's id
+ * (null: none). A key absent from the object: not held.
+ */
+export type StoredCell = CellIds & { readonly [K in OptionalSectionName]?: number | null };
+/** (T810 S) The `cell` columns that may be NULL (contract 2.1: the trout table's, Q-D3: no table there), read as null,
+ *  never as frame 0 (`Number(null)`): the GENERATED list (`CELL_NULLABLE`, from the store's own schema). Every other
+ *  section's frame id is a number in every cell. */
+const NULL_CELLS: ReadonlySet<string> = new Set(CELL_NULLABLE);
 export interface Frames {
   readonly ladder: LadderFrameWire; readonly rows: RowsValue; readonly gear: GearValue;
   readonly licence: LicenceValue; readonly display: DisplayFrame;
@@ -78,15 +93,18 @@ export interface RegsReads {
   segStarts(seg: number): Promise<readonly number[]>;
   /** segmom.ix → statics.moments[i] */
   segMoments(mom: number): Promise<readonly Moment[]>;
-  cell(akey: number, s: number): Promise<CellIds>;
+  cell(akey: number, s: number): Promise<StoredCell>;
   /** Every segment's cell of the key, index = s (= 0..nseg-1, else damaged). */
-  cells(akey: number): Promise<readonly CellIds[]>;
+  cells(akey: number): Promise<readonly StoredCell[]>;
   ladder(akey: number, id: number): Promise<LadderFrameWire>;
   rows(akey: number, id: number): Promise<RowsValue>;
   gear(akey: number, id: number): Promise<GearValue>;
   licence(akey: number, id: number): Promise<LicenceValue>;
   /** StatusFrame | TidalStatus (a tidal key's display frame has status "tidal"). */
   display(akey: number, id: number): Promise<DisplayFrame>;
+  /** (T810 M) The trout section's frame `id`, decoded (`TroutCodec.decode_frame`): the table body with each row's
+   *  fish sheet back on it, the date set (null: none), `covers`. Asked only of a store that holds the section. */
+  trout(akey: number, id: number): Promise<TroutValue>;
   /** The five frames of one cell. */
   frames(akey: number, cell: CellIds): Promise<Frames>;
   ruleset(setId: number): Promise<RulesetRow>;
@@ -104,6 +122,10 @@ export interface RegsReads {
    *  tidal section is tidal water, not outside B.C. null: the release was cut before the table (it cannot say). */
   sectionTidal(handle: number): Promise<boolean | null>;
   place(ix: number): Promise<PlaceRow>;
+  /** (T796) Every section's note (core `section_note`, Python's own sentence: "Mostly outside <reserve>: its closure (rule
+   *  book p.9) does not apply here."), read whole once. Empty: none — or a core cut before the table (ADDITIVE in core/1),
+   *  asked of the file's own `sqlite_master`, never inferred from a failed read. */
+  sectionNotes(): Promise<ReadonlyMap<number, string>>;
   /** An unnamed section's whole name ("Unnamed stream · Region 5"); null outside B.C. */
   unnamedName(handle: number): Promise<string | null>;
   /** The part of item `itemOrd` section `sid` belongs to (water `part_section`, P09; its `ord` is the item_ord);
@@ -162,13 +184,19 @@ export interface ReadBase {
   /** (T182) the file holding `part_geo`: geo. */
   geo(): Promise<Db>;
   val<T = unknown>(table: string, blob: Cell): T;
+  /** (T910) a table's preset dictionary (what `val` inflates with): the web's rules worker is handed it */
+  dict?(table: string): Uint8Array | null;
+  /** (T810 M0) the optional sections the store holds (`RegsMeta.optional`); absent: none */
+  readonly optional?: { readonly [K in OptionalSectionName]?: number };
 }
 
 /** The family tables a frame read may name — a fixed list, never caller input. */
 const FAMILY = {
   ladderFrame: "ladder_frame", ladderVerdict: "ladder_verdict", rowsFrame: "rows_frame", rowsDecided: "rows_decided",
   rowsRow: "rows_row", gearFrame: "gear_frame", licenceFrame: "licence_frame", licenceHold: "licence_hold",
-  licenceDoc: "licence_doc", licenceAnswer: "licence_answer", licenceU16: "licence_u16", displayFrame: "display_frame",
+  licenceDoc: "licence_doc", licenceAnswer: "licence_answer", licenceU16: "licence_u16", licenceAlien: "licence_alien",
+  displayFrame: "display_frame",
+  troutFrame: "trout_frame", troutTable: "trout_table", troutDates: "trout_dates", troutSheet: "trout_sheet",
 } as const;
 type Family = (typeof FAMILY)[keyof typeof FAMILY];
 
@@ -190,9 +218,6 @@ const STATICS: Readonly<Record<keyof StoreStatics, string>> = {
 type YearStrip = RowsValue["rows"][number]["year"];
 /** (T286) The test bed's "before" build: batching off (apps/mobile index.js, `EXPO_PUBLIC_REGS_ONE_BY_ONE=1`). */
 const ONE_BY_ONE = (): boolean => (globalThis as { __regsOneByOne?: boolean }).__regsOneByOne === true;
-/** (T287) Rules inflated per turn of the JS thread, and the turn (a macrotask: the screen draws between). */
-const RULES_SLICE = 250;
-const turnOf = () => new Promise<void>((r) => setTimeout(r, 0));
 /** (T286) The most keys one batched read names (SQLite's bound-parameter limit is far above it). */
 const BATCH = 500;
 /**
@@ -289,13 +314,23 @@ export function makeReads(base: ReadBase): RegsReads & { clear(): void } {
   };
   /** One blob of a family, by id, from the region file holding the key's frames. */
   const blob = <T>(t: Family, akey: number, id: number): Promise<T> => familyOf(t)(akey, id) as Promise<T>;
+  /** (T810 M) the `cell` columns read: the generated ones, then each held optional section's (never a missing column) */
+  //     (the store refuses, at open, a held section the contract names no tables for)
+  const optionalCells = (Object.keys(base.optional ?? {}) as OptionalSectionName[])
+    .flatMap((sec) => PACK_OPTIONAL_SECTION_TABLES[sec]!.cell.map((c) => [sec, c] as const));
+  const cellColumns = [...CELL_COLUMNS, ...optionalCells.map(([, c]) => c)];
+  const cellOf = (r: Row): StoredCell => {
+    const ids = Object.fromEntries(CELL_SECTIONS.map((c) => [c, NULL_CELLS.has(c) ? nn(r[c]) : n(r[c])])) as Record<string, number | null>;
+    for (const [sec, c] of optionalCells) ids[sec] = nn(r[c]);
+    return ids as unknown as StoredCell;
+  };
   /** Every cell of a key (`s` order), batched per region file. */
   const keyCells = batched<number, Row[]>("keyCells", "cells of akey", async (keys) => {
     const byDb = new Map<Db, number[]>();
     for (const k of keys) { const d = await base.region(k); byDb.set(d, [...(byDb.get(d) ?? []), k]); }
     const out = new Map<number, Row[]>(keys.map((k) => [k, []]));
     for (const [d, some] of byDb) {
-      const rs = await d.all(`SELECT akey, s, ladder, rows, gear, licence, display FROM cell WHERE akey IN (${some.map(() => "?").join(", ")}) `
+      const rs = await d.all(`SELECT ${cellColumns.join(", ")} FROM cell WHERE akey IN (${some.map(() => "?").join(", ")}) `
         + "ORDER BY akey, s", ...some);
       for (const r of rs) out.get(n(r.akey))?.push(r);
     }
@@ -425,26 +460,28 @@ export function makeReads(base: ReadBase): RegsReads & { clear(): void } {
         blob<[number, number[][]]>(FAMILY.ladderFrame, akey, id), reads.statics()]);
       const fish = st.fish as readonly string[];
       const verdict = (v: number) => blob<VerdictWire>(FAMILY.ladderVerdict, akey, v);
-      return {
-        common: await verdict(common),
-        rows: await Promise.all(rows.map(async (r) => {
-          const code = fish[r[0]!];
-          if (code === undefined) throw damaged(`ladder frame ${id} names fish ${r[0]}, which is not in answers.fish`);
-          const own = r.length === 2 ? [r[1]!, r[1]!, r[1]!] : r.slice(1);
-          const [none, hatchery, wild] = await Promise.all(own.map(verdict));
-          return [code, none!, hatchery!, wild!] as const;
-        })),
-      };
+      // (T286, 0.8.0) the common verdict and the rows' asked together: one ladder_verdict read, not two (an `await`
+      // on the common one first held the rows' back into a second batch — a wasted round trip on every tap)
+      const [commonV, rowsV] = await Promise.all([verdict(common), Promise.all(rows.map(async (r) => {
+        const code = fish[r[0]!];
+        if (code === undefined) throw damaged(`ladder frame ${id} names fish ${r[0]}, which is not in answers.fish`);
+        const own = r.length === 2 ? [r[1]!, r[1]!, r[1]!] : r.slice(1);
+        const [none, hatchery, wild] = await Promise.all(own.map(verdict));
+        return [code, none!, hatchery!, wild!] as const;
+      }))]);
+      return { common: commonV, rows: rowsV };
     }),
 
     rows: (akey, id) => once("rows", id, async () => {
       // rows 30: the frame's fifth slot names each row's year strip in the static `rows.strips` (each distinct strip
-      // held once); the stored row has no `year` — it goes back on as the row's last field, as RowsCodec.decode_frame
-      const [[spp, fs, rs, line, ys], strips] = await Promise.all([
-        blob<[string[], Record<string, [number | null, number | null, "hatchery" | "wild" | null]>, number[], RowsValue["steelhead_line"], number[]]>(
-          FAMILY.rowsFrame, akey, id),
+      // held once); the stored row has no `year` — it goes back on as the row's last field, as RowsCodec.decode_frame.
+      // (T810 S) rows 34: the sixth slot is the page's possession row (F0 `page_possession`, null or the object), as stored
+      const [[spp, fs, rs, line, ys, pp], strips] = await Promise.all([
+        blob<[string[], Record<string, [number | null, number | null, "hatchery" | "wild" | null]>, number[], RowsValue["steelhead_line"], number[],
+              RowsValue["page_possession"]]>(FAMILY.rowsFrame, akey, id),
         yearStrips()]);
       if (!Array.isArray(ys) || ys.length !== rs.length) throw damaged(`rows frame ${id} has ${rs.length} rows and ${ys?.length ?? 0} strips`);
+      if (pp === undefined) throw damaged(`rows frame ${id} has no page_possession slot (rows 34, F0)`);
       for (const y of ys) {
         if (!(y >= 0 && y < strips.length)) throw damaged(`rows frame ${id} names strip ${y}, which is not in rows.strips (${strips.length})`);
       }
@@ -456,10 +493,14 @@ export function makeReads(base: ReadBase): RegsReads & { clear(): void } {
       }
       // (T286) every decided row and every row asked at once (one read each family), then put back in order
       const [decidedOf, rows] = await Promise.all([
-        Promise.all(Object.entries(fs).map(async ([S, [h, w, lead]]) => [S, { hatchery: await decided(h), wild: await decided(w), lead }] as const)),
+        // (0.8.0) a fish's hatchery and wild decided rows asked together: one rows_decided read (awaiting h before w was two)
+        Promise.all(Object.entries(fs).map(async ([S, [h, w, lead]]) => {
+          const [hatchery, wild] = await Promise.all([decided(h), decided(w)]);
+          return [S, { hatchery, wild, lead }] as const;
+        })),
         Promise.all(rs.map((r) => blob<Omit<RowsValue["rows"][number], "year">>(FAMILY.rowsRow, akey, r)))]);
       for (const [S, f] of decidedOf) fish[S] = f;
-      return { spp, fish, rows: rows.map((r, i) => ({ ...r, year: strips[ys[i]!]! })), steelhead_line: line };
+      return { spp, fish, rows: rows.map((r, i) => ({ ...r, year: strips[ys[i]!]! })), steelhead_line: line, page_possession: pp };
     }),
 
     gear: (akey, id) => blob<GearValue>(FAMILY.gearFrame, akey, id),
@@ -469,12 +510,27 @@ export function makeReads(base: ReadBase): RegsReads & { clear(): void } {
       const [holds, doc] = await Promise.all([
         blob<LicenceValue["holds"]>(FAMILY.licenceHold, akey, h!), blob<number[]>(FAMILY.licenceDoc, akey, d!)]);
       const profiles = await Promise.all(doc.map((a) => blob<LicenceValue["profiles"][number]>(FAMILY.licenceAnswer, akey, a)));
-      return u.length
-        ? { holds, profiles, under_16: await blob<NonNullable<LicenceValue["under_16"]>>(FAMILY.licenceU16, akey, u[0]!) }
-        : { holds, profiles };
+      if (!u.length) return { holds, profiles };
+      // [h, d, under_16?, alien_closures?]: (T789 G8) the 4th index, only with the 3rd, only on a part whose rule set holds a
+      // closure to the non-resident alien — in the ADDITIVE `licence_alien` table (a release cut before it has no 4th index)
+      const [under_16, alien_closures] = await Promise.all([
+        blob<NonNullable<LicenceValue["under_16"]>>(FAMILY.licenceU16, akey, u[0]!),
+        u.length > 1 ? blob<NonNullable<LicenceValue["alien_closures"]>>(FAMILY.licenceAlien, akey, u[1]!) : null]);
+      return alien_closures ? { holds, profiles, under_16, alien_closures } : { holds, profiles, under_16 };
     }),
 
     display: (akey, id) => blob<DisplayFrame>(FAMILY.displayFrame, akey, id),
+
+    // (T810 M) TroutCodec.decode_frame: [table, dates | null, covers]; each row's `sheet` id back as its FishSheet
+    trout: (akey, id) => once("trout", id, async () => {
+      const [t, d, covers] = await blob<TroutFrameWire>(FAMILY.troutFrame, akey, id);
+      const [body, dates] = await Promise.all([
+        blob<TroutTableWire>(FAMILY.troutTable, akey, t), d === null ? null : blob<DateSet>(FAMILY.troutDates, akey, d)]);
+      const boxes = await Promise.all(body.boxes.map(async (b) => ({
+        ...b, rows: await Promise.all(b.rows.map(async (r) => ({ ...r, sheet: await blob<FishSheet>(FAMILY.troutSheet, akey, r.sheet) }))),
+      })));
+      return { table: { ...body, boxes }, dates, covers };
+    }),
 
     async frames(akey, c) {
       const [ladder, rows, gear, licence, display] = await Promise.all([
@@ -491,17 +547,9 @@ export function makeReads(base: ReadBase): RegsReads & { clear(): void } {
     rules: () => once("rules", 0, async () => {
       const rs = await (await base.water()).all(
         "SELECT r.rix AS rix, r.j AS e, d.j AS f FROM rule r LEFT JOIN display_rule d ON d.id = r.rix ORDER BY r.rix");
-      const out = new Map<number, StoredRule>();
-      // (T286/T287) every rule is inflated and parsed here, once: a few hundred at a time with the screen's turn between,
-      // never one long hold of the JS thread (all at once it was a ~0.3 s freeze on the emulator)
-      for (let i = 0; i < rs.length; i++) {
-        if (i && i % RULES_SLICE === 0) await turnOf();
-        const r = rs[i]!;
-        if (n(r.rix) !== i) throw damaged(`the rules are out of sequence at ${i}`);
-        if (r.f === null || r.f === undefined) throw damaged(`rule ${i} has no display_rule`);
-        out.set(i, { rix: i, export: base.val<ExportRule>("rule", r.e), facts: base.val<RuleFacts>("display_rule", r.f) });
-      }
-      return out as ReadonlyMap<number, StoredRule>;
+      // (T286/T287) every rule is inflated and parsed once, a few hundred at a time with the screen's turn between;
+      // (T910) on the web the inflating runs in a worker (rulesDecode.web.ts), the phone as before (rulesDecode.native.ts)
+      return decodeRules(rs, base);
     }),
 
     lics: () => once("lics", 0, async () => {
@@ -546,6 +594,16 @@ export function makeReads(base: ReadBase): RegsReads & { clear(): void } {
       const r = await row(base.water(), "SELECT place, regions, label, names FROM place WHERE place = ?", ix, "place");
       return { place: n(r.place), regions: json<PlaceRow["regions"]>(r.regions), label: await reads.str(n(r.label)),
                names: json<PlaceRow["names"]>(r.names) };
+    }),
+
+    sectionNotes: () => once("sectionNotes", 0, async () => {
+      const core = await base.core();
+      if (!(await core.get(CROSS.HAS_SECTION_NOTE.sql))) return new Map<number, string>();
+      const rows = await core.all(CROSS.SECTION_NOTES.sql);
+      return new Map(rows.map((r) => {
+        if (typeof r.note !== "string" || !r.note) throw damaged(`core section_note ${String(r.sid)} has no note`);
+        return [n(r.sid), r.note] as const;
+      }));
     }),
 
     sectionPart: (ord, sid) => once("sectionPart", `${ord}:${sid}`, async () => {
@@ -644,5 +702,3 @@ export function makeReads(base: ReadBase): RegsReads & { clear(): void } {
   return { ...reads, clear: () => caches.clear() };
 }
 
-const cellOf = (r: Row): CellIds =>
-  ({ ladder: n(r.ladder), rows: n(r.rows), gear: n(r.gear), licence: n(r.licence), display: n(r.display) });

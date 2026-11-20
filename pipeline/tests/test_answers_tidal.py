@@ -20,6 +20,7 @@ from pipeline.deliver.answers import encode as E
 from pipeline.deliver.export import guide_words as export_guide_words
 from pipeline.tests.conftest import need, BUNDLE_HINT, EXPORT_HINT
 from pipeline.tests import under_test
+from pipeline.tests.test_answers_versions import APP_VERSIONS, app_reader_versions
 
 BUNDLE = under_test.path("bundle")
 EXPORT_DIR = under_test.path("export_dir")
@@ -104,21 +105,9 @@ def test_mutation_the_licence_half_returns_to_no_licence_needed(monkeypatch):
 
 
 #: the app's reader (`app/packages/core/src/regs/versions.ts` KNOWN_VERSIONS): what each section must be for the app to
-#: read it. T667 slice 4: the versions are typed in their two homes (writer `answers.SECTIONS`, reader there) and this
-#: test holds them equal, so a bump is one edit per side and none here.
-APP_VERSIONS = Path(__file__).resolve().parents[2] / "app/packages/core/src/regs/versions.ts"
+#: read it. T667 slice 4: the versions are typed in their two homes (writer `answers.SECTIONS`, reader there); since the
+#: trout plan's I0 the whole pin (every section, the optional list) is `test_answers_versions.py`, whose reader this uses.
 TIDAL_SECTIONS = ("display", "gear", "licence")
-
-
-def app_reader_versions(text: str | None = None) -> dict[str, int]:
-    """KNOWN_VERSIONS as the app's reader types it ({section: version}); raises when the line cannot be read."""
-    import re
-    src = APP_VERSIONS.read_text(encoding="utf-8") if text is None else text
-    m = re.search(r"export const KNOWN_VERSIONS = Object\.freeze\(\{([^}]*)\}", src)
-    assert m, f"{APP_VERSIONS}: no `export const KNOWN_VERSIONS = Object.freeze({{...}})` line"
-    got = {k: int(v) for k, v in re.findall(r"(\w+):\s*(\d+)", m.group(1))}
-    assert got, f"{APP_VERSIONS}: KNOWN_VERSIONS names no section"
-    return got
 
 
 def test_the_tidal_sections_carry_their_versions():

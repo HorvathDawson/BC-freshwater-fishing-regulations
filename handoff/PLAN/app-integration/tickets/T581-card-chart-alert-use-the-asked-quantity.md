@@ -1,6 +1,6 @@
 # T581 — The gauge card, chart and alert editor all use the quantity asked
 
-Status: IN REVIEW — 5a2e4117b (Held at HEAD (F1: card became a Level card under Flow; F7: editor prefill empty under Level). Fixed: `cardQuantity` (the asked quantity always; a silent station says so in the row's words and offers the other as the one Show choice; Flow while unknown), `currentFigure` + `alertNowValue` (card and editor read one figure). Tests: ui/src/cardQuantity.test.ts. Web shots ../T581-shots/ (F1); the alert editor does not exist on web (phone only), so F7 is test-only. Reaches the phone with the next build; owner confirms there.)
+Status: DONE — 5a2e4117b, a807fbba1 (closed on the owner's word 2026-11-20; see the last section)
 
 Source: T580 audit 2026-11-10 (owner: "stuff like this should never happen … look for other things like that").
 Findings, with file:line, the state that shows each and the proposed fix: `handoff/PLAN/app-integration/T580-findings.md`.
@@ -13,3 +13,9 @@ Findings, with file:line, the state that shows each and the proposed fix: `hando
 Acceptance: each finding named above no longer reproduces, and the test or gate the findings file proposes for it is in.
 
 Depends: T567. Size: S. Owner: no.
+
+## Closed 2026-11-20
+
+Closed 2026-11-20 on the owner's word ("Couldn't we just assume most of these are done already?"): the card, chart and alert editor using the asked quantity is taken as checked on the phone.
+
+Status line before closing: IN REVIEW — 5a2e4117b (Held at HEAD (F1: card became a Level card under Flow; F7: editor prefill empty under Level). Fixed: `cardQuantity` (the asked quantity always; a silent station says so in the row's words and offers the other as the one Show choice; Flow while unknown), `currentFigure` + `alertNowValue` (card and editor read one figure). Tests: ui/src/cardQuantity.test.ts. Web shots ../T581-shots/ (F1); the alert editor does not exist on web (phone only), so F7 is test-only. Reaches the phone with the next build; owner confirms there.)

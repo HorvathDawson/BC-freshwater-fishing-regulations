@@ -20,10 +20,12 @@ const PIN_JS = PIN === null ? '' : `(() => { const R = Date, off = ${PIN} - R.no
 fs.mkdirSync(OUT, { recursive: true });
 const ROOT = path.resolve(path.dirname(new URL(import.meta.url).pathname), '..');
 const rd = (f, re) => re.exec(fs.readFileSync(path.join(ROOT, f), 'utf8'))?.[1];
-const visit = Date.now() - 4 * 86400000, iso = (t) => new Date(t).toISOString();
+// (T319) the visit: 8:30 four days before the pinned day, B.C. time (permanent UTC-7), rated 4 of 5
+const bcDay = new Intl.DateTimeFormat('en-CA', { timeZone: 'America/Vancouver', year: 'numeric', month: '2-digit', day: '2-digit' }).format(new Date((PIN ?? Date.now()) - 4 * 86400000));
+const visit = Date.parse(`${bcDay}T08:30:00-07:00`), iso = (t) => new Date(t).toISOString();
 const sample = (t, c) => ({ at: iso(t), tempC: c, cloudPct: 40, pressureHpa: 1012, humidityPct: 63 });
 const SPOT = { id: 'play-spot', createdAt: visit, updatedAt: visit, visitedAt: visit, lat: 49.0985, lon: -121.9585, item: 'gnis:3062', waterName: 'Vedder River',
-  title: 'Bridge pool', notes: 'Fished the tail-out below the bridge from 7 to 10. Three rainbow on a small pheasant tail, one bull trout on a streamer. Water a little tea-coloured, still dropping.',
+  title: 'Bridge pool', rating: 4, notes: 'Fished the tail-out below the bridge from 7 to 10. Three rainbow on a small pheasant tail, one bull trout on a streamer. Water a little tea-coloured, still dropping.',
   photos: [], reading: { station: 'Vedder River at Vedder Crossing', discharge: 41.2, level: null, parameter: null, percentile: 0.42, at: iso(visit) },
   weather: { tempC: 14, windKph: 9, windDir: 250, rain3h: 0, pressureHpa: 1012, code: 2, at: iso(visit), window: { before: sample(visit - 3600e3, 13), at: sample(visit, 14), after: sample(visit + 3600e3, 15) } }, trace: null, panel: null };
 const SEEN = `try { localStorage.setItem('canifishthis.firstRun.v1', ${JSON.stringify(rd('packages/core/src/menu/legal.ts', /FIRST_RUN_VERSION = "([^"]+)"/))});
@@ -54,6 +56,12 @@ const SCENES = {
     await click(b, find('Bridge pool', '[role=button]')); await until(b, `!!document.querySelector('[data-testid=spot-when]')`); await sleep(6000); },
   '08-glossary': async (b) => { await mapReady(b); await sleep(2000); await click(b, find('More', '[role=tab]')); await sleep(1500);
     await click(b, find('Glossary', '[role=button],[role=link],[aria-label]')); await sleep(4000); },
+  // (T319) the Help page of the store-shots web build (the app's "Offline and updates" lines), scrolled so the lower map key and
+  // those lines are in view
+  '20-help': async (b) => { await mapReady(b); await sleep(2000); await click(b, find('More', '[role=tab]')); await sleep(1500);
+    await b.evaluate(`document.querySelector('[data-testid=menu-item-help]').scrollIntoView({ block: 'center' })`); await sleep(800);
+    await click(b, `document.querySelector('[data-testid=menu-item-help]')`); await until(b, `!!document.querySelector('[data-testid=help-facts]')`, 30000);
+    await b.evaluate(`document.querySelector('[data-testid=help-facts]').scrollIntoView({ block: 'center' })`); await sleep(2000); },
   // (T319, T704) the "works offline" shot: the dated list of what the phone holds
   '09-offline': async (b) => { await mapReady(b); await sleep(2000); await click(b, find('More', '[role=tab]')); await sleep(1500);
     // (T703) the offline / mobile-data controls live under More -> Settings and the phone-only mobile-data control is not drawn on the
@@ -66,15 +74,19 @@ const SCENES = {
 // the store-shots tool stacks two captures (same browser size, same camera) into one picture where a shot says `compose`.
 const scrollTo = (b, id) => b.evaluate(`document.querySelector('[data-testid=${id}]').scrollIntoView({ block: 'start' })`);
 const text = (b) => b.evaluate('document.body.innerText');
-// the Conditions map framed one zoom out (reaches coloured for the Chilliwack / Harrison watersheds), after the watershed
-// days have loaded; every scene that composes uses this same camera
+// the Conditions map at the 10 km scale, after the watershed days have loaded; every scene that composes uses this camera.
+// (T319) Opened on the day's river (`river()`, store-shots/pick-river.mjs): its page closed leaves the map framed on it
 async function condMap(b) {
-  await mapReady(b); await sleep(2000);
+  await until(b, `!!document.querySelector('[data-testid=water-close]')`, 120000); await sleep(3000);
+  await click(b, `document.querySelector('[data-testid=water-close]')`);
+  await mapReady(b); await sleep(4000);
   await click(b, find('Conditions', '[role=tab]')); await sleep(3000);
-  // zoom out by the wheel until the scale bar reads 10 km (the same camera for every scene that composes)
+  // the wheel, out or in, until the scale bar reads 10 km
   const scale = () => b.evaluate(`document.querySelector('.maplibregl-ctrl-scale')?.textContent.replace(/\\s+/g, ' ').trim()`);
-  for (let i = 0; i < 12 && (await scale()) !== '10 km'; i++) {
-    for (let k = 0; k < 3; k++) { await b.send('Input.dispatchMouseEvent', { type: 'mouseWheel', x: 180, y: 250, deltaX: 0, deltaY: 100 }); await sleep(250); }
+  const km = (t) => { const m = /^([\d.]+)\s*(km|m)$/.exec(t ?? ''); return m ? Number(m[1]) / (m[2] === 'm' ? 1000 : 1) : null; };
+  for (let i = 0; i < 16 && (await scale()) !== '10 km'; i++) {
+    const out = (km(await scale()) ?? 0) < 10;
+    for (let k = 0; k < 2; k++) { await b.send('Input.dispatchMouseEvent', { type: 'mouseWheel', x: 180, y: 250, deltaX: 0, deltaY: out ? 100 : -100 }); await sleep(250); }
     await sleep(2500); }
   if ((await scale()) !== '10 km') throw new Error('condMap: the map did not reach the 10 km scale, it reads ' + JSON.stringify(await scale()));
   await until(b, `!/still loading/.test(document.body.innerText) && /reaches coloured/.test(document.body.innerText)`, 90000); await sleep(8000);
@@ -86,16 +98,30 @@ Object.assign(SCENES, {
   // The Vedder is open for salmon in the fall; out of season the salmon bar and row still show, closed.
   // (owner 2026-11-12 "Stacked: trout top, salmon bottom") store shot 10 is two captures of the Vedder, same day: 18 = trout/game-fish year bar
   // and first rows, 19 = the SALMON (DFO) section. The composite is named 10-regs-bar-table in store-shots.json.
-  '18-regs-trout': async (b) => { await until(b, `!!document.querySelector('[data-testid=keep-strip]')`, 120000); await sleep(3000); await scrollTo(b, 'keep-strip'); await sleep(1500); },
+  // (T810 R) switched by what the page shows: the trout table's fold (`glance:trout`: after the cutover, or a build with
+  // EXPO_PUBLIC_TROUT_TABLE=1 on a release carrying the `trout` section) is opened so the shot holds the table under the
+  // calendar; the old card needs no press. The compose crop of 10-regs-bar-table was set on the old card: re-pick it.
+  '18-regs-trout': async (b) => { await until(b, `!!document.querySelector('[data-testid=keep-strip]')`, 120000); await sleep(3000);
+    const fold = `document.querySelector('[data-testid="glance:trout"] [role=button]')`;
+    if (await b.evaluate(`!!${fold}`)) { await b.evaluate(`${fold}.scrollIntoView({ block: 'center' })`); await sleep(500); await click(b, fold); await until(b, `!!document.querySelector('[data-testid=keep-trout]')`, 10000); await sleep(1000); }
+    await scrollTo(b, 'keep-strip'); await sleep(1500); },
   '19-regs-salmon': async (b) => { await until(b, `!!document.querySelector('[data-testid=keep-strip]')`, 120000); await sleep(3000);
     const at = await b.evaluate(`(() => { const e = [...document.querySelectorAll('*')].filter((x) => x.children.length === 0 && /^salmon \\(dfo\\)$/i.test(x.textContent.trim())).pop(); if (!e) return 'no SALMON (DFO) section';
       let p = e.parentElement; while (p && p.scrollHeight <= p.clientHeight + 2) p = p.parentElement; if (!p) return 'nothing scrolls';
       p.scrollTop += e.getBoundingClientRect().top - 275; return 'ok'; })()`);
     if (at !== 'ok') throw new Error('19-regs-salmon: ' + at);
     await sleep(1500); },
-  // the gauge's chart with the forecast drawn on it (the model lines are the default on the chart: CLEVER, COFFEE, ELF)
+  // the gauge's chart with the forecast drawn on it (the model lines are the default on the chart: CLEVER, COFFEE, ELF).
+  // (T319, owner 2026-11-19 "it should be showing the forecast on the chart") the Coquitlam at Port Coquitlam (gnis:19986): on
+  // 2026-11-19 its forecast rose clearly ahead of today where the Vedder's ran flat. A forecast moves daily: look before the final
   '11-cond-chart': async (b) => { await until(b, `!!document.querySelector('[data-testid=gauge-card]')`, 120000); await sleep(6000);
-    await until(b, `!!document.querySelector('[data-testid=chart-model-CLEVER]')`); await b.evaluate(`document.querySelector('[data-testid=chart-legend]').scrollIntoView({ block: 'end' })`); await sleep(2500); },
+    await until(b, `!!document.querySelector('[data-testid=chart-model-CLEVER]')`); await b.evaluate(`document.querySelector('[data-testid=chart-legend]').scrollIntoView({ block: 'end' })`); await sleep(2500);
+    // (T319) every forecast model the gauge has, drawn (T895 colours each): the chips that are off are turned on
+    for (const m of ['CLEVER', 'COFFEE', 'ELF']) {
+      const sel = `document.querySelector('[data-testid=chart-model-${m}]')`;
+      if (await b.evaluate(`!!${sel} && ${sel}.getAttribute('aria-checked') === 'false'`)) { await click(b, sel); await sleep(1500); }
+    }
+    await b.evaluate(`document.querySelector('[data-testid=chart-legend]').scrollIntoView({ block: 'end' })`); await sleep(2000); },
   '12-cond-change': async (b) => { await condMap(b); await click(b, `document.querySelector('[data-testid=map-horizons-change]')`); await sleep(7000); },
   '13-cond-forecast': async (b) => { await condMap(b); await click(b, `document.querySelector('[data-testid=map-horizons-days]')`); await sleep(1500);
     // the fourth day out: far enough that the forecast differs from today
@@ -113,10 +139,21 @@ Object.assign(SCENES, {
     await click(b, `document.querySelector('[data-testid=water-map-regs]')`);
     await until(b, `!!document.querySelector('[data-testid=keep-strip]')`, 60000); await sleep(3000); await scrollTo(b, 'keep-strip'); await sleep(1500); },
 });
-const URLS = { '02-regulations': '/water/vedder-river', '03-conditions': '/?regs=gnis:3062&view=conditions',
-  '18-regs-trout': '/water/vedder-river', '19-regs-salmon': '/water/vedder-river', '11-cond-chart': '/?regs=gnis:3062&view=conditions', '14-split-map': '/water/chilliwack-river', '15-split-rules': '/water/chilliwack-river' };
+// (T319) the Vedder by the app's own link (`/?regs=`), not its /water/ page: that page is the SEO build's, so a bare web export
+// served locally (the commit under test) has none
+// (T319, owner 2026-11-19 "choose the stream automatically based on what rivers are doing") the chart and the change map
+// open the day's river: STORE_RIVER (an item id) or <out>/river-pick.json, which store-shots/pick-river.mjs writes
+const river = () => { if (process.env.STORE_RIVER) return process.env.STORE_RIVER;
+  const f = path.join(OUT, 'river-pick.json'); if (!fs.existsSync(f)) throw new Error(`play-shots: no STORE_RIVER and no ${f} (node tools/store-shots/pick-river.mjs ${OUT})`);
+  return JSON.parse(fs.readFileSync(f, 'utf8')).pick.item_id; };
+const URLS = { '02-regulations': '/?regs=gnis:3062', '03-conditions': '/?regs=gnis:3062&view=conditions',
+  '18-regs-trout': '/?regs=gnis:3062', '19-regs-salmon': '/?regs=gnis:3062', '11-cond-chart': () => `/?regs=${river()}&view=conditions`,
+  '12-cond-change': () => `/?regs=${river()}`, '13-cond-forecast': () => `/?regs=${river()}`,
+  '14-split-map': '/?regs=gnis:8634', '15-split-rules': '/?regs=gnis:8634' };
 const SIZES = { phone: { width: 360, height: 640, dpr: 3, mobile: true, pre: '' }, tablet7: { width: 600, height: 960, dpr: 2, mobile: true, pre: 'tablet7-' }, tablet10: { width: 800, height: 1280, dpr: 2, mobile: true, pre: 'tablet10-' },
   // (T319) App Store: 6.7" iPhone 1290x2796 (430x932 @3), 5.5" 1242x2208 (414x736 @3), 13" iPad 2048x2732 (1024x1366 @2)
+  // (T319, 2026-11-18) 6.9" iPhone 1320x2868 (440x956 @3), the App Store's required iPhone size; its 6.5" set is framed from it
+  iphone69: { width: 440, height: 956, dpr: 3, mobile: true, pre: 'iphone69-' },
   iphone67: { width: 430, height: 932, dpr: 3, mobile: true, pre: 'iphone67-' }, iphone55: { width: 414, height: 736, dpr: 3, mobile: true, pre: 'iphone55-' },
   ipad13: { width: 1024, height: 1366, dpr: 2, mobile: true, pre: 'ipad13-' } };
 const sizeNames = (process.env.SIZES ?? 'phone').split(',');
@@ -124,7 +161,7 @@ let failed = 0; const report = {};   // (T704) scene -> 'ok' | the reason it was
 for (const sn of sizeNames) for (const [name, fn] of Object.entries(SCENES)) {
   if (ONLY && !ONLY.includes(name.slice(0, 2)) && !ONLY.includes(name)) continue;
   const z = SIZES[sn];
-  const b = await open(SITE + (URLS[name] ?? '/'), { ...z, init: PIN_JS + SEEN });
+  const u = URLS[name] ?? '/', b = await open(SITE + (typeof u === 'function' ? u() : u), { ...z, init: PIN_JS + SEEN });
   try {
     b.facts = {}; await fn(b);
     await checkScene(b, name);   // (T704) the page holds the shot's content, or nothing is captured

@@ -18,6 +18,8 @@ import type { ItemId, WaterSource, SectionId } from "@app/data";
 import type { Spot } from "@app/data/spots";
 import type { ReleaseLoader } from "@app/data/release";
 import { openRegsFixture, openRegsFixtureWithLines, sectionNames } from "@app/data/release/node";
+import { loadWaterGroup, openRegsStore } from "@app/data/regs";
+import { partWhere } from "@app/core";
 import { HOME, type RegsStart, type Route, type SystemBack } from "@app/ui";
 
 /** Android's BackHandler, as Android drives it: listeners newest first; a press none handles goes to Android. */
@@ -235,17 +237,24 @@ async function movesInsideChilliwack(extra: () => string = () => ""): Promise<st
   await view("Map"); await onWaterMap(); note(`${where()} · ${mapWhere()}`);
   return out;
 }
+// (T768) where the map says it is comes from each water's own group, never a typed "Part 2 of 5": a new part end on
+// the water moves no line here (the one content pin is conformance waterGroup.fixture.test.ts)
+const FIXTURE_STORE = await openRegsStore(openRegsFixtureWithLines());
+const CHW_GROUP = await loadWaterGroup(FIXTURE_STORE, "gnis:8634");
+const VEDDER_GROUP = await loadWaterGroup(FIXTURE_STORE, "gnis:3062");
+const CHW_AT = (i: number) => partWhere(CHW_GROUP, i);
+const VEDDER_TOP = partWhere(VEDDER_GROUP, VEDDER_GROUP.parts.length - 1);
 const MOVES_SEEN = [
   "tab Map",
   "water Chilliwack River on Regulations · no bar",
   "water Chilliwack River on Conditions · no bar",
-  "water Chilliwack River on Map · no bar · Part 1 of 5 · Chilliwack River",
-  "water Chilliwack River on Map · no bar · Part 2 of 5 · Chilliwack River",
-  "water Chilliwack River on Map · no bar · Part 3 of 5 · Chilliwack River",
-  "water Chilliwack River on Map · no bar · Part 2 of 5 · Chilliwack River",
+  `water Chilliwack River on Map · no bar · ${CHW_AT(0)}`,
+  `water Chilliwack River on Map · no bar · ${CHW_AT(1)}`,
+  `water Chilliwack River on Map · no bar · ${CHW_AT(2)}`,
+  `water Chilliwack River on Map · no bar · ${CHW_AT(1)}`,
   "water Chilliwack River on Regulations · no bar",
   // the stepped part is the frame's: the map comes back on it
-  "water Chilliwack River on Map · no bar · Part 2 of 5 · Chilliwack River",
+  `water Chilliwack River on Map · no bar · ${CHW_AT(1)}`,
 ];
 
 /** Search "chilliwack river", frame its row, and open it from the row's action (the search result path). */
@@ -285,11 +294,11 @@ async function acrossChilliwackVedder(extra: () => string = () => ""): Promise<s
   // Vedder is two parts (a salmon-cut run), and the Chilliwack meets its upper one
   note(`${where()} · ${mapWhere()}`);
   await press("Downstream into Vedder River");
-  await until(() => mapWhere().startsWith("Part 2 of 2")); note(`${where()} · ${mapWhere()}`);
+  await until(() => mapWhere().startsWith(VEDDER_TOP)); note(`${where()} · ${mapWhere()}`);
   await press("Upstream into Chilliwack River");
-  await until(() => mapWhere().startsWith("Part 1 of 5")); note(`${where()} · ${mapWhere()}`);
+  await until(() => mapWhere().startsWith(CHW_AT(0))); note(`${where()} · ${mapWhere()}`);
   await press("Downstream into Vedder River");
-  await until(() => mapWhere().startsWith("Part 2 of 2")); note(`${where()} · ${mapWhere()}`);
+  await until(() => mapWhere().startsWith(VEDDER_TOP)); note(`${where()} · ${mapWhere()}`);
   return out;
 }
 /** (T517) the dev fixture source holds no Vedder: its title, so the screen says which water is in front (a one-part
@@ -300,10 +309,10 @@ function withVedder(): WaterSource {
     ? { item: i, name: "Vedder River", kind: "river", sections: [] } : base.water(i)) };
 }
 const ACROSS_SEEN = [
-  "water Chilliwack River on Map · no bar · Part 1 of 5 · Chilliwack River",
-  "water Vedder River on Map · no bar · Part 2 of 2 · Vedder River",
-  "water Chilliwack River on Map · no bar · Part 1 of 5 · Chilliwack River",
-  "water Vedder River on Map · no bar · Part 2 of 2 · Vedder River",
+  `water Chilliwack River on Map · no bar · ${CHW_AT(0)}`,
+  `water Vedder River on Map · no bar · ${VEDDER_TOP}`,
+  `water Chilliwack River on Map · no bar · ${CHW_AT(0)}`,
+  `water Vedder River on Map · no bar · ${VEDDER_TOP}`,
 ];
 
 describe("Android's back, surface by surface (HANDOFF-ui 'Back, everywhere')", () => {
@@ -484,16 +493,17 @@ describe("Android's back, surface by surface (HANDOFF-ui 'Back, everywhere')", (
       "search · tab Map", "water Chilliwack River on Map · no bar", "handled -> tab Map", "ANDROID -> tab Map"]);
   });
 
-  it("(T48) search over the Conditions map: a town's list steps back to all results, then search closes, then the tab " +
-     "goes to the Map tab, then Android leaves", async () => {
+  it("(T48, T730) search over the Conditions map: back from a town's list closes search (owner 2026-11-16: one back " +
+     "returns to the map), then the tab goes to the Map tab, then Android leaves", async () => {
     await mount({ ...HOME, tab: "conditions" });
     act(() => { fireEvent.focus(screen.getByLabelText("Search waters and towns")); });
     fireEvent.change(screen.getByLabelText("Search waters and towns"), { target: { value: "chilliwack" } });
     await until(() => screen.queryByLabelText("Show Chilliwack on the map") !== null);
     await click("Show Chilliwack on the map");
     await until(() => screen.queryByLabelText("Back to all results") !== null);
-    expect(backs(4)).toEqual(["water near a town · search · tab Conditions", "handled -> search · tab Conditions",
-                              "handled -> tab Conditions", "handled -> tab Map", "ANDROID -> tab Map"]);
+    // (T730) it used to step to all results first; the on-screen "← All results" row still does (Search.shell.test.tsx)
+    expect(backs(3)).toEqual(["water near a town · search · tab Conditions", "handled -> tab Conditions",
+                              "handled -> tab Map", "ANDROID -> tab Map"]);
   });
 
   it("(T48) a More page closes first, then the More tab goes to the Map tab", async () => {
@@ -502,14 +512,16 @@ describe("Android's back, surface by surface (HANDOFF-ui 'Back, everywhere')", (
     expect(backs(3)).toEqual(["About page · tab More", "handled -> tab More", "handled -> tab Map", "ANDROID -> tab Map"]);
   });
 
+  // (T897, owner 2026-11-19: "should just be back") the ‹ reads plain "Back", and still returns to the tab it came from
   it("(owner 2026-10-22) More opened from Conditions: its ‹ and the system back return to Conditions, then the Map tab",
      async () => {
     await mount({ ...HOME, tab: "more", prev: "conditions" });
-    expect(screen.getByLabelText("Back to Conditions")).toBeTruthy();
+    expect(screen.getByLabelText("Back")).toBeTruthy();
+    expect(screen.queryByLabelText("Back to Conditions")).toBeNull();
     expect(backs(3)).toEqual(["tab More", "handled -> tab Conditions", "handled -> tab Map", "ANDROID -> tab Map"]);
     cleanup();
     await mount({ ...HOME, tab: "more", prev: "conditions" });
-    await click("Back to Conditions");
+    await click("Back");
     expect(backs(2)).toEqual(["tab Conditions", "handled -> tab Map", "ANDROID -> tab Map"]);
   });
 

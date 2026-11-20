@@ -22,8 +22,8 @@
  * cannot be raised is reported, and the rule's state is not advanced, so the next run raises it.
  */
 import {
-  alertNotification, alertSilentNotification, APP_VERSION_NOTE, appVersionToTell, evaluateAlerts, isEnvironment, newestReading, NOTIFY_WORDS,
-  releaseAllowed, reportFailure, UPDATE_DOWNLOAD_NOTE, UPDATE_READY_NOTE, type AppVersion,
+  alertNotification, alertSilentNotification, APP_VERSION_NOTE, appVersionToTell, evaluateAlerts, isEnvironment, isFeedTooNew, newestReading,
+  NOTIFY_WORDS, releaseAllowed, reportFailure, UPDATE_DOWNLOAD_NOTE, UPDATE_READY_NOTE, type AppVersion,
 } from "@app/core";
 import type { Manifest } from "../manifest";
 import type { ObsFile } from "../feed/history";
@@ -39,7 +39,8 @@ export interface Notice { channel: "gauges" | "updates" | "app"; title: string; 
 
 export interface CheckDeps {
   settings: NotifySettings;
-  /** the feed-wide newest rows (`fetchObs` over the app's feed base); throws offline */
+  /** the feed-wide newest rows (`fetchObs` over the app's feed base, with the feed gate); throws offline, and (T676
+   *  item 2) the gate's `FeedNeedsNewerApp` when the feed asks for a newer app */
   obs(): Promise<ObsFile>;
   /** the release manifest (the update service's url); throws offline */
   manifest(): Promise<Manifest>;
@@ -81,6 +82,7 @@ export async function runBackgroundCheck(d: CheckDeps): Promise<BgResult> {
   let fired = 0;
   let silent = 0;
   let told = false;
+  let tooOld = false;
 
   const live = s0.on ? s0.rules.filter((r) => r.on) : [];
   if (live.length) {
@@ -117,7 +119,12 @@ export async function runBackgroundCheck(d: CheckDeps): Promise<BgResult> {
       // only the alerts still there (one deleted while the check ran stays deleted)
       d.settings.update((s) => ({ ...s, ruleState: { ...s.ruleState,
         ...Object.fromEntries(Object.entries(states).filter(([id]) => s.rules.some((r) => r.id === id))) } }));
-    } catch (e) { reportFailure(e); fail(e); }
+    } catch (e) {
+      // (T676 item 2) the gauge feed asks for a newer app: a known state, said in the run line, never reported (the
+      // alerts' states stand; the open app shows the update prompt)
+      if (isFeedTooNew(e)) tooOld = true;
+      else { reportFailure(e); fail(e); }
+    }
   }
 
   if (s0.on && s0.updateReady && s0.held !== null) {
@@ -155,6 +162,7 @@ export async function runBackgroundCheck(d: CheckDeps): Promise<BgResult> {
   if (!s0.on || (!live.length && !s0.updateReady && !s0.appVersion)) parts.push(W.noRules);
   if (fired) parts.push(W.fired(fired));
   if (silent) parts.push(W.silent(silent));
+  if (tooOld) parts.push(W.appTooOld);
   if (told) parts.push(W.updateReady);
   if (toldApp) parts.push(W.appVersion);
   if (offline) parts.push(W.offline);

@@ -5,12 +5,16 @@
  * (`useSearchSession`) feeds both the sheet's rows and what the main map frames, lights and pins (T62 3.4: out of the
  * Shell, unchanged).
  */
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Keyboard, useWindowDimensions, type TextInputInstance } from "react-native";
 import type { ItemId, WaterSource } from "@app/data";
+import type { StreamPlace } from "@app/data/regs/place";
 import { NO_SEARCH, reportFailure, searchStep, useRecentSearches, useSearchSession, type SearchAction, type SearchMemory } from "@app/ui";
 import { searchPanelWidth } from "../TopBar";
 import { CLOSE_KEEPS_FOCUS } from "../searchFocus";
+import { sheetRows } from "../search/rows";
+import { keyStops } from "../search/keys";
+import { useListKeys } from "../search/listKeys";
 import type { ShellNav } from "./useShellNav";
 
 /** (T250) the search field's handle. RN 0.88's `TextInputInstance` is an alias of a class its types do not export, so a
@@ -84,7 +88,8 @@ export function useShellSearch({ source, nav, recentStore }: {
     if (arrivedAt.current === null) { if (route.mode === "browse") arrivedAt.current = route; }
     else if (arrivedAt.current !== route) { arrivedAt.current = null; setArrive(null); }
   }, [route, arrive]);
-  const openSearched = (id: ItemId) => {
+  /** A water picked from the results — (T927) a boundary place too: its water, at the part holding the place. */
+  const openSearched = (id: ItemId, at: StreamPlace | null = null) => {
     const n = ++arrivals.current;
     const key = `arrive:${id}:${n}`;
     const f = session.focus?.key === `item:${id}` ? session.focus : null;
@@ -95,11 +100,11 @@ export function useShellSearch({ source, nav, recentStore }: {
       void source.waterBox(id).then((bbox) => { if (bbox && arrivals.current === n) setArrive({ key, bbox, refine: false }); },
                                     reportFailure);   // (T368) not framed: reported
     }
-    // (T508) the search is consumed, its text with it — ONCE THE WATER HAS OPENED (the opener first asks whether it is
-    // solo): consumed before, the browse screen drew one more screen between the results and the pane (the field
+    // (T508) the search is consumed, its text with it — ONCE THE WATER HAS OPENED: consumed
+    // before, the browse screen drew one more screen between the results and the pane (the field
     // emptied, the recent searches, the water's outline gone), and only then was the opened pane held over it
     const q = searchMemory.q;
-    void opener.searched(id).then(() => { recents.push(q); setSearchMemory(NO_SEARCH); }, reportFailure);
+    void opener.searched(id, at).then(() => { recents.push(q); setSearchMemory(NO_SEARCH); }, reportFailure);
   };
   /**
    * (T269, owner 2026-10-29) THE PAGE STARTED ON A WATER (a `/water/<slug>` page, a start link) or at one (`?show=`):
@@ -133,8 +138,16 @@ export function useShellSearch({ source, nav, recentStore }: {
   const onFieldFocus = () => { if (!quiet.current) go({ type: "search", open: true }); };
   /** (T247) a recent search tapped: it becomes the query again */
   const pickRecent = useCallback((q: string) => searchType(q), [searchType]);
+  /*
+   * (T858) THE KEYBOARD IN THE LIST, on the web: ↓ / ↑ from the field move a highlight through what the sheet draws
+   * (`keyStops` over the very rows it draws), Enter presses it (listKeys.web.ts). A phone has none of it (the native
+   * twin: no highlight, no key taken).
+   */
+  const stops = useMemo(() => searching ? keyStops(sheetRows(searchMemory.pick, session, recents.list), searchMemory.pick) : [],
+                        [searching, searchMemory.pick, session, recents.list]);
+  const keys = useListKeys({ open: searching, stops, query: searchMemory.q, field });
   return { searching, searchMemory, recents, pickRecent, session, field, arrive, openSearched, landOn, searchAct, searchType, closeSearch,
-           closeToField, wideSearch, onFieldFocus };
+           closeToField, wideSearch, onFieldFocus, keys };
 }
 
 export type ShellSearch = ReturnType<typeof useShellSearch>;

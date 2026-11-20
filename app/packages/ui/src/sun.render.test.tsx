@@ -19,19 +19,19 @@ describe("useSunLine", () => {
   it("the tapped point, never asking the water's", () => {
     asked.length = 0;
     const { result } = renderHook(() => useSunLine(source, "gnis:1" as ItemId, { lat: 49.2827, lon: -123.1207 }, NOV4));
-    expect(result.current).toBe("Sunrise 08:05 PT · sunset 17:46 PT");
+    expect(result.current).toEqual({ text: "8:05–17:46", aria: "Sunrise 8:05, sunset 17:46 PT", rise: "8:05", set: "17:46" });
     expect(asked).toEqual([]);
   });
   it("no tap: the water's own point, on the chosen day", async () => {
     asked.length = 0;
     const { result, rerender } = renderHook(({ day }) => useSunLine(source, "gnis:1" as ItemId, null, day), { initialProps: { day: NOV4 } });
-    await waitFor(() => expect(result.current).toBe("Sunrise 08:00 PT · sunset 17:42 PT"));
+    await waitFor(() => expect(result.current).toEqual({ text: "8:00–17:42", aria: "Sunrise 8:00, sunset 17:42 PT", rise: "8:00", set: "17:42" }));
     rerender({ day: { y: 2026, m: 6, d: 21 } });
-    expect(result.current).toBe("Sunrise 05:03 PT · sunset 21:16 PT");
+    expect(result.current).toEqual({ text: "5:03–21:16", aria: "Sunrise 5:03, sunset 21:16 PT", rise: "5:03", set: "21:16" });
     expect(asked).toEqual(["gnis:1"]);
   });
   it("an unnamed reach takes its tap; with no point known there is no line", async () => {
-    expect(renderHook(() => useSunLine(source, null, VEDDER, NOV4)).result.current).toBe("Sunrise 08:00 PT · sunset 17:42 PT");
+    expect(renderHook(() => useSunLine(source, null, VEDDER, NOV4)).result.current).toEqual({ text: "8:00–17:42", aria: "Sunrise 8:00, sunset 17:42 PT", rise: "8:00", set: "17:42" });
     expect(renderHook(() => useSunLine(source, null, null, NOV4)).result.current).toBeNull();
     expect(renderHook(() => useSunLine({}, "gnis:1" as ItemId, null, NOV4)).result.current).toBeNull();
     const none = renderHook(() => useSunLine(source, "gnis:2" as ItemId, null, NOV4));
@@ -40,10 +40,23 @@ describe("useSunLine", () => {
   });
 });
 
-describe("useDaylight (T473)", () => {
+describe("useDaylight (T473, T898)", () => {
   it("the hours the rule's offsets leave open, at the point and on the day; no point, no function", () => {
     const { result } = renderHook(() => useDaylight(source, null, VEDDER, NOV4));
-    expect(result.current!(60, 60)).toBe("07:00–18:42 PT");
+    expect(result.current!.open(60, 60)).toBe("7:00–18:42");
+    // (T898) the hours it closes, on the date line's clock (that line: "8:00  17:42" on Nov 4 at the Vedder)
+    expect(result.current!.closed(60, 60)).toEqual({ from: "18:42", to: "7:00" });
     expect(renderHook(() => useDaylight(source, null, null, NOV4)).result.current).toBeNull();
+  });
+});
+
+describe("useDaylight (T898): the chosen day", () => {
+  it("a new day gives that day's hours, from the same sun as the date line", () => {
+    const { result, rerender } = renderHook(({ day }) => [useDaylight(source, null, VEDDER, day), useSunLine(source, null, VEDDER, day)] as const,
+                                            { initialProps: { day: NOV4 } });
+    const at = () => [result.current[0]!.closed(60, 60), result.current[1]!.text];
+    expect(at()).toEqual([{ from: "18:42", to: "7:00" }, "8:00–17:42"]);
+    rerender({ day: { y: 2026, m: 6, d: 21 } });
+    expect(at()).toEqual([{ from: "22:16", to: "4:03" }, "5:03–21:16"]);
   });
 });

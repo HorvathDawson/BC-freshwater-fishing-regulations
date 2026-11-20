@@ -1,6 +1,6 @@
 # T730 — Search on the phone: swipe down to close, small recents, the map stays, a fresh search each time
 
-Status: IN REVIEW (in build 32 = 0.7.10, Play internal 2026-11-14; emulator looks passed; owner: OWNER-TODO "Phone check, build 32 = 0.7.10")
+Status: IN PROGRESS (in build 32 as first built; one behaviour changed after the owner's 2026-11-16 answer "we should fix anything that doesnt seem desirable": 5f8ca1bb6 on branch `app-fix/small-looks-1116`, merged onto `redesign/stream-sections` 2026-11-16 (265fae08a; benches 572a6957a; Android back test fe89a5d47); left (Claude): the emulator look)
 
 Source: owner 2026-11-14, from using the app on a phone, verbatim:
 1. "When you open search on app you can't swipe down to close it also recent searchs take up a huge amount."
@@ -61,3 +61,8 @@ d. Every close resets search (`setSearchMemory(NO_SEARCH)` when `searching` turn
 - Left (Claude), emulator on the next APK: the swipe from the grabber and from the list (keyboard up and down, list
   scrolled and not, full and half), the recents block in light / dark, Thompson River framed then back stays there,
   reopen is empty.
+
+## Changed after the owner's answer, 2026-11-16 (app chat)
+Owner (question dialog in the main chat, 2026-11-16 12:08, on the list of small behaviours left as built): "we should fix anything that doesnt seem desirable". This one was left as built with an alternative on offer; the app chat judged it undesirable.
+Now, on branch `app-fix/small-looks-1116` (5f8ca1bb6, not merged): Back from a place picked in search closes search too (one Back returns to the map); the on-screen "All results" row still steps back to the results. Each fix has a test that failed first;
+`check:fast` passes. Left: the emulator look, then the merge with its benches.

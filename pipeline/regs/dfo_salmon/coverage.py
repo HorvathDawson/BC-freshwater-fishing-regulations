@@ -19,7 +19,7 @@ import re
 from collections import Counter, defaultdict
 from typing import Iterable, Mapping, Optional
 
-from pipeline.regs.dfo_salmon.suggest import CONF_RANK, GENERIC, TYPE_WORDS, _clean, direction, tokens
+from pipeline.regs.dfo_salmon.suggest import CONF_RANK, GENERIC, TYPE_WORDS, _clean, direction, double_reach, tokens
 
 #: why a location had no extent (the breakdown, one per unplaced location)
 WHY = {
@@ -141,6 +141,11 @@ def cluster(rows: list[dict], locs: Mapping[str, tuple[str, dict, Optional[dict]
                 if ops == {"upstream_of", "downstream_of"} or {direction(text[a]), direction(text[b])} == {
                         "upstream_of", "downstream_of"}:
                     continue                    # the two sides of one cut are two places
+                if double_reach(text[a]) != double_reach(text[b]):
+                    # "Mission to Hope AND Hope to Alexandra" reads 80% like "Mission to Hope" and is a longer
+                    # reach: never one place (Fraser dossier 2026-11-14) — unless DFO itself links them
+                    if da != b and db != a:
+                        continue
                 if da == b or db == a:
                     why = "dup"
                 elif sim >= 0.8:

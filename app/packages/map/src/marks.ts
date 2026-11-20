@@ -1,13 +1,29 @@
 /**
- * A boundary mark's label (P15, `MapProps.marks`), kept inside the map: the prototype's `--dx` (`regs-v11.html`
- * `placeMarks`). The label is centred over its ring and at most 180 px wide, so it is moved sideways by however much
- * of a 100 px half-width would hang over either edge. Platform-free, so the rule is a test (`marks.test.ts`).
+ * A boundary mark's label (P15, `MapProps.marks`), kept inside the map. The prototype's `--dx` (`regs-v11.html`
+ * `placeMarks`) moved the label's POINT sideways by what would hang over an edge; as a map point that was wrong (T929,
+ * a tester on 0.8.3: "the labels for the sections just move around with you as you pan"): a mark off screen had its
+ * label pulled up to 100 px inside the edge at every settle, so the label followed the camera, and a shift measured in
+ * pixels at one zoom was another distance at the next. Now the label's point IS the mark's (the cut point it names) and
+ * only its ANCHOR changes: centred over the ring where there is room, hanging right of it near the left edge and left of
+ * it near the right, so the box's corner always sits over its own ring and no leader is needed. Platform-free, so the
+ * rule is a test (`marks.test.ts`).
  */
 export const MARK_LABEL_HALF = 100;
 
-/** The sideways shift (px) for a label whose ring is at `x` on a map `width` px wide. */
-export function labelShift(x: number, width: number, half: number = MARK_LABEL_HALF): number {
-  return Math.min(0, width - half - x) + Math.max(0, half - x);
+/** How a label hangs from its point: the map's `text-anchor`. */
+export type MarkLabelAnchor = "bottom" | "bottom-left" | "bottom-right";
+
+/**
+ * The anchor for a label whose ring is at `x` on a map `width` px wide: centred unless a half-width would hang over.
+ * A ring OFF the map hangs its label outward, off the map with it (T929 review: hung inward, up to 180 px of a label
+ * stood on the map with no ring under it).
+ */
+export function labelAnchor(x: number, width: number, half: number = MARK_LABEL_HALF): MarkLabelAnchor {
+  if (x < 0) return "bottom-right";
+  if (x > width) return "bottom-left";
+  if (x < half) return "bottom-left";
+  if (x > width - half) return "bottom-right";
+  return "bottom";
 }
 
 /**

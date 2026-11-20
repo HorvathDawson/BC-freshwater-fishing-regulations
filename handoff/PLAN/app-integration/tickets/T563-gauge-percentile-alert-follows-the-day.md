@@ -1,6 +1,6 @@
 # T563 — A percentile alert follows each day's percentile, not the line of the day it was saved
 
-Status: IN REVIEW — 3b3e6a1c2.
+Status: DONE — 3b3e6a1c2 (closed on the owner's word 2026-11-20; see the last section)
 
 Source: Owner 2026-11-09 (owner checks page, T527): "it should be the percentile of each day so you set percentile on nov 4 then on dec 31 you want it to alert if the percentile crosses that bound for the percentile on that day not the day it was set".
 
@@ -15,3 +15,9 @@ Source: Owner 2026-11-09 (owner checks page, T527): "it should be the percentile
 Test: an alert saved on Nov 4 at p75 fires on Dec 31 when the reading crosses Dec 31's p75, and not when it crosses Nov 4's. Emulator run of the T527 checklist step 4. Custom percentiles stay whole numbers 10–90 (owner did not object).
 
 Depends: —. Size: M. Owner: no.
+
+## Closed 2026-11-20
+
+Closed 2026-11-20 on the owner's word ("Couldn't we just assume most of these are done already?"): the percentile alert-editor words and the T527 step 4 look are taken as good.
+
+Status line before closing: IN REVIEW — 3b3e6a1c2 (a percentile alert's line is worked out again from the record the phone holds on every open; App.tsx mount in 931235468). Proof: the owner's phone look at the alert editor words, and an emulator run of T527 checklist step 4.

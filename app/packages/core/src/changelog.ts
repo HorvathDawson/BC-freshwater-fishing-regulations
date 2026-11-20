@@ -4,7 +4,8 @@
  *   - More → About → "What's new" (every version, newest first: `changelogVM`, appUpdate.ts), bundled with the app;
  *   - the update prompt (the bell's "App update", T390) and the new-version notification's tap: the INCOMING version's
  *     bullets travel in the version file our server publishes (`deploy/staging/build-apk.sh` copies this version's entry
- *     into `latest.json` / `play.json`), so a prompt shows them before the update is installed.
+ *     into `latest.json` / `play.json`, `build-ios-testflight.sh` into `appstore.json`), so a prompt shows them before the
+ *     update is installed.
  * A RELEASE ADDS ITS ENTRY HERE before its build (build-apk.sh warns when app.json's version has none).
  *
  * NO IMPORTS: build-apk.sh reads this file with node (`node -e "import('./…/changelog.ts')"`, type stripping).
@@ -19,13 +20,74 @@ export interface ChangelogEntry {
   readonly draft?: boolean;
   /**
    * (T723 G11) A note true on ONE platform only, keyed by its exact text. Every other note is every platform's. What's new
-   * shows a reader only their own (`changelogVM`: an iPhone is not told about Google Play); `notes` is unchanged: the
-   * Play release notes and `latest.json` (build-apk.sh) still read it whole, and Android's list is byte for byte as it was.
+   * shows a reader only their own (`changelogVM`: an iPhone is not told about Google Play); `notes` is unchanged.
+   * (T888) The VERSION FILES carry the platform's own list (`notesOn`): build-apk.sh writes Android's into `latest.json`,
+   * `play.json` and the Play notes, build-ios-testflight.sh writes the iPhone's into `appstore.json`. A newer version is
+   * never in the bundled log, so this tag must travel in the file's list, not be looked up here.
    */
   readonly only?: Readonly<Record<string, "android" | "ios">>;
 }
 
+/** (T723 G11, T888) The notes a reader on `os` is shown: every note but one tagged for another platform (the web: untagged
+ *  only). The one filter: What's new (`changelogVM`), the prompt's bundled fallback, and both build scripts' version files. */
+export function notesOn(e: ChangelogEntry, os: "android" | "ios" | "web"): readonly string[] {
+  return e.notes.filter((n) => { const o = e.only?.[n]; return !o || o === os; });
+}
+
 export const CHANGELOG: readonly ChangelogEntry[] = [
+  {
+    version: "0.8.3", date: null, draft: true, notes: [
+      "Smoother pinch-zoom and zoom-out on the map",
+      "Data updates keep downloading after you leave the app",
+      "What you can keep: a simpler trout table, one value per fish, with a quiet note where a tributary rule applies",
+      "The day calendar keeps one size from month to month",
+      "The rule-book page link for a water goes to that water's own page",
+    ],
+  },
+  {
+    version: "0.8.2", date: null, draft: true, notes: [
+      "Smoother pinch-zoom on the map, and a braided river's side channels draw thinner than its main channel",
+      "What you can keep: one table for every fish, each row marked DFO or B.C. or naming the tributary rule it comes from; Gear and Methods are easier to read, each source said once",
+      "Salmon: the yearly limit counts adult chinook (with the size an adult is on that river), and Source lists every DFO row behind the card",
+      "Sunrise and sunset sit under the date, daylight-only rules show that day's times, and each river forecast model has its own colour",
+      "When a new version is out, a note says what's new, then waits under the bell",
+    ],
+  },
+  {
+    version: "0.8.1", date: null, draft: true, notes: [
+      "The map draws faster, most of all the Salmon map when you zoom out",
+      "Route maps on the phone show the gauge dots and where you are",
+      "A sharper swimming coho while data loads, with a cleaner line under it",
+      "On a computer, the Trout / Salmon switch sits beside the day, and the side bar lets the map show through",
+    ],
+  },
+  {
+    version: "0.8.0", date: null, notes: [
+      "Trout and char: one table per water: each fish's size and what it counts toward, shared limits boxed together",
+      "Tap a fish for how to tell it apart, what applies to it here today, and the book's own lines",
+      "Classified waters show their class and dates beside the water's name",
+      "Licence: closures for non-resident aliens on the waters they apply to; each youth licence with its own price",
+      "The swimming coho now greets you when the app opens, on the phone and the web",
+    ],
+  },
+  {
+    version: "0.7.12", date: "2026-11-16", draft: true, notes: [
+      "A swimming coho while data loads; the first download resumes in the background",
+      "Applying new data shows progress; the bar never goes backwards",
+      "Salmon: a stretch the book closes shows closed; a DFO rule I cannot place stays on its river with a note",
+      "Level-only waters open Conditions on Level; a small stream on a big river's gauge is flagged",
+      "Dark mode: the part of a river you are on stands out",
+    ],
+  },
+  {
+    version: "0.7.11", date: "2026-11-15", draft: true, notes: [
+      "Android: code shrinker (R8) on for this build; also carries T737, T747, T750 from the shared branch.",
+      "A water's map opened from search now frames the part you picked, not the whole water",
+      "Upstream and Downstream follow one line through every part of a water, with no branch to pick",
+      "Tapping an unnamed stretch opens its regulations sooner",
+    ],
+    only: { "Android: code shrinker (R8) on for this build; also carries T737, T747, T750 from the shared branch.": "android" },
+  },
   {
     version: "0.7.10", date: "2026-11-14", draft: true, notes: [
       "Going back from a water's page no longer flashes while the map comes back",

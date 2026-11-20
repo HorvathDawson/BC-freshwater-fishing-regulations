@@ -1,6 +1,6 @@
 # T206 — App golden parity after the retired overlapping rules (z1/z2 r3, Khartoum/Lois r3)
 
-Status: DONE (66a0aa70) — re-cut on r-f6918815ca78
+Status: DONE (29fbfc377) — re-cut on r-f6918815ca78
 
 Source: overlapping-rules.md, accepted 2026-10-26 and applied (decisions.md). The release r-3d6399afd7e2 drops
 `z1:trout_quota.r3`, `z2:trout_char_quota.r3`, `khartoum_lake.r3` and `lois_lake.r3`. The binding diff shows only those 4
@@ -61,7 +61,7 @@ exclusion) or make the tie-break name-independent (code, then deliver + re-cut).
 - The handle re-pins need the OLD fixture's handles mapped to the new ones by section id. `atlas/full.prev` is not
   the pinned atlas (the 380887xxx added streams differ).
 
-## 2026-10-27 — DONE (66a0aa70)
+## 2026-10-27 — DONE (29fbfc377)
 Amended the oracle at load (oracles.ts), with no re-cut. `REGS_STORE_REQUIRED=1 pnpm -C app check` is green apart from
 release-budget (T203).
 - ORDER: `flipsOver` and `renamedOrder`. A pair may differ in order only where the rename swapped the two rules' store

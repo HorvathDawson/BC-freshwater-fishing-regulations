@@ -11,7 +11,7 @@
  */
 import { catchmentLabel, confidenceWord, 
          seasonPhrase, standing } from "./flow";
-import { figure, inTen, daysNear, daysRange, standingHeadline, standingLong, standingReads } from "./standing";
+import { figureIn, inTen, daysNear, daysRange, standingHeadline, standingLong, standingReads } from "./standing";
 import { interval, type Estimate, type NoEstimate } from "./trust";
 import { isIsoDay, localStamp, shortDay, shortStamp } from "./day";
 import { monthAbbr, weekdayAbbr, type Standing } from "./flow";
@@ -152,6 +152,39 @@ export function leadGapLine(dayName: string): string {
 /** (T567) The water reports level only today, so its lead gauge was chosen on level. */
 export const LEVEL_ONLY_LEAD = "No gauge here reports flow today, so the gauge shown is chosen on water level.";
 
+/** (T817) The line at the top of a level-only water's Conditions view. */
+export const LEVEL_ONLY_WATER = "Level only: no flow is measured here.";
+
+/** (T817) Where a water's Conditions view opens, the line it opens with (null: none), and what its switch offers. */
+export interface ConditionsOpening {
+  quantity: "discharge" | "level";
+  note: string | null;
+  /**
+   * The Flow / Level switch's choices: every quantity a gauge that speaks for the water measures, Flow first — the same
+   * whichever is shown, so a pick never takes a choice away (owner 2026-11-16 on the Chehalis: "when you click level …
+   * you can never go back to flow"). Null where nothing is known (the card offers what its gauge has, as before).
+   */
+  offer: readonly ("discharge" | "level")[] | null;
+}
+
+/**
+ * (T817, owner 2026-11-16 on Harrison Lake: "if only level data exists it should show level data. just mention at top it
+ * is level data") WHERE A WATER'S CONDITIONS VIEW OPENS, AND WHAT IT OFFERS — the one decision. `measured` is what each
+ * gauge that speaks for the water has a record of (the bundle's `gauge_clim`, per station: the quantities the card can
+ * chart); null while it is being read. Flow leads wherever any of those gauges measures flow (owner 2026-11-10: the view
+ * opens on `opening`, Flow); only where none does and one measures level does it open on Level, saying so. A water no
+ * gauge measures in either opens as asked: the card's own refusal speaks for it. The lead gauge is never chosen here
+ * (`leadOver`, in Flow): a quantity is a view of the same gauge.
+ */
+export function conditionsOpening(measured: readonly (readonly string[])[] | null,
+                                  opening: "discharge" | "level" = "discharge"): ConditionsOpening {
+  const any = (q: string) => measured?.some((m) => m.includes(q)) ?? false;
+  const offered = (["discharge", "level"] as const).filter(any);
+  const offer = offered.length ? offered : null;
+  return !any("discharge") && any("level") ? { quantity: "level", note: LEVEL_ONLY_WATER, offer }
+    : { quantity: opening, note: null, offer };
+}
+
 /** The chart's mark for the day asked: "Wed 12 Nov" (T604: as the text line above the chart says it). */
 export function forecastDayMark(dayName: string): string {
   return dayName;
@@ -228,12 +261,21 @@ export const FLOW_LEGEND = {
     + "past years",
 } as const;
 
+/** (T398; a const of its own for the gauge page, T908) the legend entry that turns the forecast off */
+export const REALTIME_ONLY = "Real-time only";
+/** the model switches' group name, aloud */
+export const FORECAST_MODEL_CONTROL = "Forecast model";
+
 export const CONDITIONS_WORDS = {
   /** after a forecast run past `STALE_AFTER.forecast` — the Data block's "Likely out of date", in a line */
   runOld: "likely out of date",
   noEstimate: "NO ESTIMATE",
-  tapToChart: "TAP A GAUGE TO SEE ITS CHART",
   donorList: "The gauges behind this estimate",
+  /**
+   * (T920, a tester via the owner 2026-11-19: "most people are not interested in this info and this can be made into a
+   * drop-down box") the gauge legend's fold, closed by default: how many gauges stand behind the estimate
+   */
+  gaugesFold: (n: number) => `${n} ${n === 1 ? "gauge" : "gauges"} behind this estimate`,
   youAreHere: "you are here",
   byThen: "by then",
   readingWater: "Reading the water",
@@ -250,31 +292,37 @@ export const CONDITIONS_WORDS = {
   keptAsOf: (fetchedAt: number | null) => (fetchedAt !== null && Number.isFinite(fetchedAt)
     ? `Offline — measured line as of ${localStamp(fetchedAt)}, saved on this phone`
     : "Offline — measured line saved on this phone, age unknown"),
-  controls: { quantity: "Quantity", span: "Span", model: "Forecast model", gauge: "Gauge" },
+  controls: { quantity: "Quantity", span: "Span", model: FORECAST_MODEL_CONTROL, gauge: "Gauge" },
   /** The gauge switcher's kicker, right above the chart it switches (owner 2026-10-21). */
   chartGauge: "CHART THIS GAUGE",
   /** The chart's zoom controls (owner 2026-10-21: "look at data better"). */
   zoom: { in: "Zoom in", out: "Zoom out", fit: "Whole chart", group: "Chart zoom" },
-  /** How to work the chart, said once under it — touch and pointer each in their own words. */
+  /**
+   * How to work the chart, one short faint line in the read-out's place over the plot until a value is read — touch and
+   * pointer each in their own words. (T920: the long paragraph under the plot went; drag and double-tap still work.)
+   */
   zoomHint: {
-    touch: "Pinch to zoom, drag to move along, tap to read a value. Double-tap for the whole chart.",
-    pointer: "Scroll to zoom, drag to move along, point to read a value. Double-click for the whole chart.",
+    touch: "Pinch to zoom, tap to read a value",
+    pointer: "Scroll to zoom, point to read a value",
   },
   quantity: { discharge: "Flow", level: "Level" },
   span: { "72h": "Last 72 hours", year: "This year" },
   /** (T367) the span's word on the gauge card's compact toggle (the full words are its spoken name) */
   spanShort: { "72h": "72 h", year: "Year" },
-  /** (T60) The chart's key: the four things that share its frame (Hydrograph `Key` rows). */
-  key: { reading: "reading", middleHalf: "middle half", band: "10th–90th", median: "median",
+  /** (T60) The chart's key: the four things that share its frame (Hydrograph `Key` rows); (T920) the middle half is the
+   *  "normal range" (FLOW_LEGEND's normal is the middle half of past years) */
+  key: { reading: "reading", middleHalf: "normal range", band: "10th–90th", median: "median",
          /** (T367) the legend's one note where the record is too short for a normal range */
          noEnvelope: "no normal range (short record)",
          /** (T367) a model's legend entry: tap to draw it */
          model: (label: string, on: boolean) => `${label} forecast${on ? ", drawn. Tap to hide it" : ". Tap to draw it"}`,
          /** (T398) the legend entry that turns the forecast off: the measured line alone */
-         realtime: "Real-time only",
+         realtime: REALTIME_ONLY,
          realtimeLabel: (on: boolean) => (on ? "Real-time only, no forecast drawn" : "Real-time only. Tap to hide the forecast") },
   /** (T367) the gauge card: its title opens the list of gauges */
-  card: { pick: (name: string) => `${name}. Choose another gauge`, list: "Gauges behind this estimate" },
+  card: { pick: (name: string) => `${name}. Choose another gauge`, list: "Gauges behind this estimate",
+          // (T920) the picker's count, beside the charted gauge's name
+          count: (n: number) => `${n} gauges` },
   /** (T180) the hydrograph's name aloud; (T367) its caption is gone, the legend says what each mark is */
   hydrograph: { label: "River flow against its normal range" },
   /** The ONE place the app decides what a quantity is measured in. */
@@ -467,6 +515,9 @@ export function readingRanked(r: { percentile?: number | null }): boolean {
   return donorState({ percentile: r.percentile ?? null }).kind === "reads";
 }
 
+/** (T830) The gauge card's line under a quantity the station reads live with no band to rank it: Python's words. */
+export { NO_RECORD_LINE } from "./gauge-policy.generated";
+
 /** (T567) A member that reports the other quantity only, said three ways: its row, its dot, a screen reader. */
 export const OTHER_QUANTITY_WORDS = {
   level: { reads: "Reports water level only today, not flow. Show Level to see it.", map: "level only",
@@ -503,6 +554,13 @@ export function donorShare(r: Pick<DonorFacts, "weight"> & DonorReading): string
 }
 
 /** The labelled line beside the weight bar. */
+/** (T920) The gauge legend's second line: what the gauge reads (its full stop dropped where more follows), when a quiet
+ *  one last spoke, and its facts — one line, composed here so a test pins it whole (AGENTS 33). */
+export function donorDetailLine(reads: string, lastReport: string | null, facts: string | null): string {
+  const rest = [lastReport, facts].filter(Boolean) as string[];
+  return [rest.length ? reads.replace(/\.$/, "") : reads, ...rest].join(" · ");
+}
+
 export function donorWeightLine(r: DonorFacts): string {
   return donorCounted(r) ? `${donorShare(r)} of this estimate` : "not counted today";
 }
@@ -846,7 +904,7 @@ export function readingHeading(name: string): string {
 
 /** The stage, beside a discharge. */
 export function stageLine(level: number): string {
-  return `${figure(level)} ${CONDITIONS_WORDS.unit.level} stage`;
+  return `${figureIn(level, "level")} ${CONDITIONS_WORDS.unit.level} stage`;
 }
 
 /** The refusal where no gauge may speak for the water. */
@@ -897,6 +955,8 @@ export interface ReadoutFacts {
   t: number;
   value: number;
   unit: string;
+  /** (T830) Which quantity the value is: a level is written to `LEVEL_DECIMALS` places (`figureIn`). */
+  quantity: "discharge" | "level";
   /** A measurement, or a model's forecast — never said the same way. */
   kind: "reading" | "forecast";
   /** A daily series names the day only; an hourly one the minute. */
@@ -913,8 +973,8 @@ export function chartReadoutLine(f: ReadoutFacts, zone?: string): string {
   // A DAILY SAMPLE NAMES A CALENDAR DAY, stamped "YYYY-MM-DD" (UTC midnight): it is said as that day, never pushed
   // into the evening before by a time zone.
   const when = f.daily ? new Date(f.t).toISOString().slice(0, 10) : localStamp(f.t, zone);
-  const what = `${figure(f.value)} ${f.unit}${f.kind === "forecast" ? " forecast" : ""}`;
-  const norm = f.median != null && Number.isFinite(f.median) ? ` · median ${figure(f.median)}` : "";
+  const what = `${figureIn(f.value, f.quantity)} ${f.unit}${f.kind === "forecast" ? " forecast" : ""}`;
+  const norm = f.median != null && Number.isFinite(f.median) ? ` · median ${figureIn(f.median, f.quantity)}` : "";
   return `${when} · ${what}${norm}`;
 }
 

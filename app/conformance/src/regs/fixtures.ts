@@ -7,7 +7,7 @@
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { buildRegsPage, parseSheetKey, type RegsPage, type SheetKey, type SheetVM, type Who } from "@app/core";
 import { loadRegsInputs } from "@app/data/regs";
-import { ADULT_RESIDENT, baseUnnamedStream, inputsOf, parityStore, requestOf } from "./golden";
+import { ADULT_RESIDENT, baseUnnamedStream, inputsOf, parityStore, requestOf, taps } from "./golden";
 import { REPO } from "./oracles";
 
 export const FIXTURE_STATES = ["vedder_1010", "vedder_615", "vedder_515", "klwa_1010", "bc1_501", "glenn_501"] as const;
@@ -113,7 +113,15 @@ export async function syncFixtures(env: Readonly<Record<string, string | undefin
     ["edge_unnamed", `${FIXTURE_DIR}/edge_unnamed.json`, () => unnamedJson()],
     ...STYLE_FIXTURE_STATES.map((id): [string, string, () => Promise<string>] => [id, `${FIXTURE_DIR}/${id}.json`, () => frozenJson(id)]),
   ];
+  // (0.8.0 release, 2026-11-18) a fixture state the re-cut declares GONE (taps.json `gone`: its part merged into another,
+  // e.g. bc1_501 when the Atnarko r12 ended at its mouth, T794) has no tap to rebuild it from: its committed page stays,
+  // FROZEN at its last cut — the render tests mount it as a page shape, not as today's answer. It must exist.
+  const gone = new Set(Object.keys(taps().gone ?? {}));
   for (const [id, path, make] of files) {
+    if (gone.has(id.replace(/^(licence|edge)_/, ""))) {
+      if (!existsSync(path)) stale.push(`${id} (gone from taps.json, and no frozen file)`);
+      continue;
+    }
     const fresh = await make();
     if (write) writeFileSync(path, fresh);
     else if (!existsSync(path) || readFileSync(path, "utf8") !== fresh) stale.push(id);

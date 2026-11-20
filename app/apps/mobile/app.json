@@ -2,7 +2,7 @@
   "expo": {
     "name": "Can I Fish?",
     "slug": "canifishthis",
-    "version": "0.7.10",
+    "version": "0.8.3",
     "icon": "./assets/icon/icon-1024.png",
     "orientation": "portrait",
     "scheme": "canifishthis",
@@ -30,13 +30,15 @@
       ["expo-notifications", { "icon": "./assets/icon/adaptive-monochrome.png", "enableBackgroundRemoteNotifications": true }],
       "expo-background-task",
       "./plugins/with-upload-signing",
-      "./plugins/with-no-minify"
+      "./plugins/with-no-minify",
+      "./plugins/with-backup-rules",
+      "./plugins/with-optional-portrait"
     ],
     "ios": {
       "bundleIdentifier": "ca.canifishthis.app",
       "associatedDomains": ["applinks:canifishthis.ca", "applinks:staging.canifishthis.ca"],
       "supportsTablet": false,
-      "buildNumber": "32",
+      "buildNumber": "41",
       "config": {
         "usesNonExemptEncryption": false
       },
@@ -131,7 +133,7 @@
     },
     "android": {
       "package": "ca.canifishthis.app",
-      "versionCode": 32,
+      "versionCode": 41,
       "intentFilters": [
         {
           "action": "VIEW",

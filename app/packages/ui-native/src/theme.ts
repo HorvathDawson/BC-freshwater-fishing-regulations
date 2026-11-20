@@ -1,5 +1,6 @@
-import { colour, tempBandColour, translucent, waterStatusColour, STYLE_META } from "@app/map/colours";
-import { TEMP_BANDS, WATER_STATUSES, type TempBand, type WaterStatus } from "@app/core";
+import { colour, salmonStatusColour, tempBandColour, translucent, waterStatusColour, STYLE_META } from "@app/map/colours";
+import { FORECAST_MODELS, SALMON_MAP_STATUSES, TEMP_BANDS, WATER_STATUSES, type ForecastModel, type SalmonMapStatus, type TempBand,
+         type WaterStatus } from "@app/core";
 /**
  * The palette the phone components paint with.
  *
@@ -36,9 +37,20 @@ export interface Palette {
   waterStatus: Readonly<Record<WaterStatus, string>>;
   /** A TEMPERATURE BAND's colour, as the map paints its gauge dot (`tempBandColour`): the Conditions legend's swatches. */
   temp: Readonly<Record<TempBand, string>>;
+  /**
+   * (T887) A SALMON STATUS's colour, as the Salmon map paints it (`salmonStatusColour`): the water page's salmon chips and
+   * year bar wear the map line's colour. Light keep is its own green, not `open` (owner 2026-11-18); with option B's
+   * bright cased line, keep here is `color.ui.salmon-keep`, the green that carries words.
+   */
+  salmon: Readonly<Record<SalmonMapStatus, string>>;
   accent: string; onAccent: string;
   /** Live-feed accent. Distinct from `accent`, which means "you chose this". */
   live: string;
+  /**
+   * (T814) THE COHO LOADER (start screen, curtain): `color.ui.coho.*`. `ink` and `red` are printed into its sprite sheet
+   * (`pnpm coho:build`), never tinted, and pick which sheet (`cohoSheet`); `ground` is drawn behind it.
+   */
+  coho: { ink: string; red: string; ground: string };
   /**
    * ATTENTION, NOT A WATER'S STATUS — `color.ui.attention`: the sync icon's needs-a-refresh dot and a source's
    * "likely out of date" badge. It sits a few pixels from water drawn in the status colours, so it is none of them
@@ -51,6 +63,11 @@ export interface Palette {
    * not the accent of the you-are-here pin; `theme.test.ts` holds it ΔE-clear of every one of them.
    */
   spot: { mark: string; ground: string };
+  /**
+   * (T819 item 4) A SPOT'S PHOTOGRAPH FULL SCREEN — `color.ui.photo.ground` / `color.ui.photo.ink`: the viewer's black
+   * ground and its white words and controls, the same look in every theme (it drew on `ink`, light grey in dark mode).
+   */
+  photo: { ground: string; ink: string };
   /**
    * A TOWN, not a water — `color.label.place`. The search results put places in their own
    * group above the waters, and the pin that marks a town on the map wears the same colour,
@@ -105,6 +122,12 @@ export interface Palette {
   /** (T367) one colour per run species (by its name, "Chinook"…), for the Runs bar's chips and stacked histogram:
    *  `color.ui.run-species.*` — Okabe-Ito, colour-blind safe, the same in every theme (they sit on the card) */
   runSpecies: Readonly<Record<string, string>>;
+  /**
+   * (T895, owner 2026-11-19) ONE COLOUR PER FLOW FORECAST MODEL — `color.ui.forecast.<model>` (CLEVER, COFFEE, ELF): its
+   * trace, ribbon, end dot and legend switch on the Conditions chart, beside its own dash (`FORECAST_DASH`, @app/ui), so a
+   * model switched on or off is told by colour and by pattern. Identity, not magnitude; held by forecast-models-cvd.test.ts.
+   */
+  forecast: Readonly<Record<ForecastModel, string>>;
   /** The plain basemap's own colours, for the basemap chooser's preview. */
   water: readonly [string, string];
   /** The flow ramp's low, normal and high (`color.flow.f1/f4/f7`), for the Layers sheet's Show preview. */
@@ -113,6 +136,10 @@ export interface Palette {
   imagery: readonly [string, string, string];
   /** The dimming behind a bottom sheet. */
   scrim: string;
+  /** (T856) the desktop's floating nav rail: the paper, part see-through, so the map shows under it */
+  railGlass: string;
+  /** (T842) The walkthrough's dim round its highlighted control: heavier than a sheet's, so it reads in both themes. */
+  coachScrim: string;
   /**
    * Elevation. `boxShadow` — the `shadow*` props are deprecated in React Native 0.76+ and
    * warn on every render on web.
@@ -215,6 +242,17 @@ export const SHEET_DIALOG = { maxWidth: 640, inset: 24, maxHeight: 0.82 } as con
 export const MORE_WIDE = { maxWidth: 1040, gap: 24, data: 1.15, page: 680 } as const;
 
 /**
+ * T859 — A MENU PAGE AT DESKTOP WIDTH is a card over the page, not a takeover (owner 2026-11-18: "it shouldnt take over
+ * the entire page it should be a card that overlays … which you can click off to close"):
+ *
+ *   maxWidth   the card's width: the menu page's reading column (`MORE_WIDE.page`)
+ *   inset      the least room left around it, every side
+ *   maxHeight  its tallest, as a share of the window (its body scrolls past that)
+ *   phone / tablet  nothing: the full-window page, as before
+ */
+export const MENU_CARD = { maxWidth: MORE_WIDE.page, inset: 24, maxHeight: 0.85 } as const;
+
+/**
  * T46 — A FISH PICTURE never scales with the window (owner: "on desktop … they become hugeeee"):
  *
  *   maxWidth   the most a picture is ever drawn (a phone's sheet is 358 px across, so a phone never reaches it)
@@ -255,6 +293,9 @@ const statusColours = (theme: string) => ({
   waterStatus: Object.fromEntries(WATER_STATUSES.map((s) => [s, waterStatusColour(theme, s)])) as
     Record<WaterStatus, string>,
   temp: Object.fromEntries(TEMP_BANDS.map(([b]) => [b, tempBandColour(theme, b)])) as Record<TempBand, string>,
+  // (T887) keep on a card is `color.ui.salmon-keep`: the map's own keep, or (option B) the darker green that carries words
+  salmon: { ...Object.fromEntries(SALMON_MAP_STATUSES.map((s) => [s, salmonStatusColour(theme, s)])) as Record<SalmonMapStatus, string>,
+            open: colour(theme, "color.ui.salmon-keep") },
 });
 
 /** (T367, owner 2026-11-04: "differentiate the different species in [the histogram] by color") the run species with a
@@ -277,7 +318,9 @@ export function paletteFor(theme: string): Palette {
     ...statusColours(theme),
     quiet: c("color.ui.quiet"), accent: c("color.ui.accent"), onAccent: c("color.ui.on-accent"),
     live: c("color.ui.live"), attention: c("color.ui.attention"),
+    coho: { ink: c("color.ui.coho.ink"), red: c("color.ui.coho.red"), ground: c("color.ui.coho.ground") },
     spot: { mark: c("color.ui.spot"), ground: c("color.ui.spot-ground") },
+    photo: { ground: c("color.ui.photo.ground"), ink: c("color.ui.photo.ink") },
     place: c("color.label.place"), placeBand: c("color.ui.place-band"),
     warning: c("color.ui.warning"),
     noAccessBand: laid(c("color.ui.warning"), c("color.ui.card"), NO_ACCESS_BAND),
@@ -287,11 +330,15 @@ export function paletteFor(theme: string): Palette {
             c("color.ui.donor.4")],
     survey: [c("color.survey.digitised"), c("color.survey.sheet")],
     runSpecies: Object.fromEntries(RUN_SPECIES.map((n) => [n, c(`color.ui.run-species.${n.toLowerCase()}`)])),
+    forecast: Object.fromEntries(FORECAST_MODELS.map((m) => [m, c(`color.ui.forecast.${m.toLowerCase()}`)])) as
+      Record<ForecastModel, string>,
     water: [c("color.lake.fill"), c("color.water.mapped")],
     flow: [c("color.flow.f1"), c("color.flow.f4"), c("color.flow.f7")],
     imagery: [c("color.ui.imagery.water"), c("color.ui.imagery.forest"),
               c("color.ui.imagery.scrub")],
     scrim: translucent(theme, "color.ui.shadow", "opacity.ui.scrim"),
+    railGlass: translucent(theme, "color.ui.card", "opacity.ui.rail"),
+    coachScrim: translucent(theme, "color.ui.coach-scrim", "opacity.ui.coach-scrim"),
     lift: HARD(3, translucent(theme, "color.ui.shadow", "opacity.ui.shadow")),
     r: RADIUS,
   };

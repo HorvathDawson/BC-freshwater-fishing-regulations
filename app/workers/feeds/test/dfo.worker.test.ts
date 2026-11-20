@@ -7,7 +7,7 @@ import { describe, expect, it } from "vitest";
 import { runDfo } from "../src/dfo";
 import { fetchRegion } from "../src/dfo/fetch";
 import { readPairs } from "../src/dfo/live";
-import { FEED_FORMATS } from "../../../packages/core/src/feedFormats.generated";
+import { FEED_FORMATS, FEED_MIN_APP } from "../../../packages/core/src/feedFormats.generated";
 import { MemStore, privStore, REPO } from "./dfo.scenario";
 
 const FIX = join(REPO, "app/workers/feeds/test/fixtures/dfo");
@@ -21,7 +21,7 @@ describe("fetchRegion", () => {
     const got = await fetchRegion(async () => bodies.shift()!, "4", { sleep: async (ms) => void waits.push(ms), random: () => 0 });
     expect(got.snap.attempts).toBe(3);
     expect(got.snap.warnings).toEqual(["attempt 1: HTTP 503", "attempt 2: body too small (24 B < 8000 B)"]);
-    expect(waits).toEqual([7000, 4000]);
+    expect(waits).toEqual([7000, 15000]); // (T851) Retry-After, then the second wait of 5, 15, 45 s
     expect(got.snap.date_modified).toBe("2025-04-01");
   });
   it("gives up after four attempts with FetchError", async () => {
@@ -52,7 +52,7 @@ describe("runDfo in the Worker shape", () => {
       const slug = /region(\w+)-eng\.html$/.exec(url)![1]!;
       return new Response(slug === "7" ? "<html>down</html>" : page(slug));
     };
-    // the previous feed says region 7 already failed once: this failure is the second in a row → notify
+    // the previous feed says region 7 already failed once, its last good read 36 h ago: past the 30 h line → stale, notify (T851)
     feed.m.set("index.json", JSON.stringify({ regions: { "7": { failures: 1, checked: "2026-10-27T00:00:00+00:00", asof: "2026-04-01" } } }));
     {
       const got = await runDfo({ fetch, feed, priv, now: "2026-10-28T12:00:00Z", regions: ["4", "7"], notifyUrl: "https://ntfy.example/dfo", fetchOptions: { sleep: noSleep } });
@@ -144,6 +144,8 @@ describe("change-aware DFO runs", () => {
     const priv = privStore();
     await run(feed, priv, "2026-10-28T12:00:00Z", pages);
     const first = feed.m.get("index.json")!;
+    // (T676 item 2) the index names the oldest app that reads it (one table with live.py)
+    expect(JSON.parse(first).minAppVersion).toBe(FEED_MIN_APP.dfoFeed);
     const m = newMeter();
     const puts: string[] = [];
     const watched = Object.assign(Object.create(feed), { put: async (k: string, b: string) => (puts.push(k), feed.put(k, b)) });
@@ -270,7 +272,7 @@ describe("an unplaced row names its water's app items (T521)", () => {
 });
 
 // T549 item 4: a curated place no row of the page matches any more left `locs` in silence, so the WIDER rule of its chain
-// answered on the map and nobody was told. Reworded (a drift row names it as its likely place): it reads `check`.
+// answered on the map and nobody was told. Reworded: (T759) its close match answers with the new row and it is an issue.
 // Gone (no row explains it): listed in the region's `gone`, the owner told once per page it left on.
 describe("a curated place that leaves DFO's page (T549 item 4)", () => {
   const MABEL = "8:mabel-lake:northerly-of-a-line-drawn-from-a-w";
@@ -289,27 +291,31 @@ describe("a curated place that leaves DFO's page (T549 item 4)", () => {
     expect(dropped.length).toBeLessThan(page("8").length - 200);
   });
 
-  it("reworded: the place stays in the feed as `check` (never the wider rule), is in `holds`, and its row is held unplaced", async () => {
+  // (T759, owner 2026-11-15: superseded the "check" reading) a close reword: its free top candidate APPLIES the row's
+  // rule (the same answers as before), and the water carries a `drift` issue until the owner confirms it; nothing held
+  it("reworded: the close match answers with the new row's rule (no `check`, no `holds`), a `drift` issue on the water, the row still unplaced for review", async () => {
     const feed = new MemStore();
     const priv = privStore();
     const first = await run(feed, priv, "2026-10-28T12:00:00Z", page("8"));
-    expect(verdictsOf(first.index, MABEL).some((v: any) => v.s === "check")).toBe(false);
     const got = await run(feed, priv, "2026-10-28T18:00:00Z", reworded);
     const ix = got.index as any;
     expect(ix.regions["8"].held).toBeNull();
-    expect(verdictsOf(ix, MABEL)).toEqual([{ s: "check", t: "DFO reworded this place and the new wording is not confirmed yet — check DFO" }]);
-    expect(ix.regions["8"].holds).toEqual([expect.objectContaining({ location_id: MABEL, kept: "check", why: "DFO reworded this place; the new wording is held unplaced until it is confirmed" })]);
+    expect(verdictsOf(ix, MABEL)).toEqual(verdictsOf(first.index, MABEL));
+    expect(verdictsOf(ix, MABEL).some((v: any) => v.s === "check")).toBe(false);
+    expect(ix.regions["8"].holds).toEqual([]);
     expect(ix.regions["8"].gone).toEqual([]);
+    expect(ix.issues.waters["8:mabel-lake"].list).toEqual([expect.objectContaining({ kind: "drift", place: MABEL, water: "Mabel Lake" })]);
     expect(got.unplaced).toEqual([expect.objectContaining({ kind: "drift", water: "Mabel Lake", candidates: [expect.objectContaining({ location_id: MABEL })] })]);
-    expect(got.notices.filter((n) => n.key.startsWith("dfo-drift:"))).toHaveLength(1);
+    const told = got.notices.filter((n) => n.key.startsWith("dfo-drift:"));
+    expect(told).toHaveLength(1);
+    expect(told[0]!.text).toContain(`— read as ${MABEL} (`);
     expect(got.notices.filter((n) => n.key.startsWith("dfo-gone:"))).toEqual([]);
-    // the same page next run (typing skipped): the place still reads check and is still listed
+    // the same page next run (typing skipped): the same answers, the same issue (carried), the same notice re-offered
     const again = await run(feed, priv, "2026-10-29T00:00:00Z", reworded);
     expect(again.skipped).toEqual(["8"]);
-    expect(verdictsOf(again.index, MABEL).every((v: any) => v.s === "check")).toBe(true);
-    expect((again.index as any).regions["8"].holds).toHaveLength(1);
-    // the published feed is what the app's parser accepts as holds (location_id + kept)
-    expect(JSON.parse(feed.m.get("index.json")!).regions["8"].holds[0]).toMatchObject({ location_id: MABEL, kept: "check" });
+    expect(verdictsOf(again.index, MABEL)).toEqual(verdictsOf(first.index, MABEL));
+    expect((again.index as any).issues).toEqual(ix.issues);
+    expect(again.notices.filter((n) => n.key.startsWith("dfo-drift:")).map((n) => [n.key, n.text])).toEqual(told.map((n) => [n.key, n.text]));
   });
 
   it("gone: the place leaves `locs`, is listed in the region's `gone`, and the owner is told once (re-offered while it lasts)", async () => {
@@ -365,10 +371,13 @@ describe("(T668) the feed answers per place and carries the Python's straddler p
   it("index.json is places and their own answers: no chains, no region groups; no pairs.json, no pairs (said in the log)", async () => {
     const logs: string[] = [];
     const ix = await run(privStore(), logs);
-    expect(Object.keys(ix).sort()).toEqual(["at", "format", "gears", "locs", "regions", "unplaced", "verdicts"]);
+    expect(Object.keys(ix).sort()).toEqual(["at", "dfo", "format", "gears", "issues", "locs", "minAppVersion", "regions", "unplaced", "verdicts"]);   // T759: + the shape, the issues; T676: + minAppVersion
     expect(logs.some((l) => l.startsWith("dfo: no pairs.json"))).toBe(true);
     const locKeys = new Set(Object.values<Record<string, unknown>>(ix.locs).flatMap((l) => Object.keys(l)));
-    expect([...locKeys].sort().filter((k) => !["g", "r", "sp", "x"].includes(k))).toEqual([]);
+    // (T770) `o`: a place's own closure line of another fish (Region 6 B(ii)'s eulachon), not a composition; (T870) `pr`:
+    // the place's own rows as printed (the card's Source (DFO))
+    expect([...locKeys].sort().filter((k) => !["g", "o", "pr", "r", "sp", "x"].includes(k))).toEqual([]);
+    expect(Object.entries<Record<string, unknown>>(ix.locs).filter(([, l]) => "o" in l).map(([lid]) => lid)).toEqual(["6:b(ii):section"]);
     // every place is ONE region's
     expect(new Set(Object.values<{ r: string }>(ix.locs).map((l) => l.r))).toEqual(new Set(["6", "7"]));
   });

@@ -22,20 +22,22 @@ export interface MenuState {
   readonly term: string | null;
   /** a report asked from a regulations tab: where the reader was (prefilled into the report's diagnostics) */
   readonly report: ReportWhere | null;
+  /** (T897) the tab the page was opened from when that is the More tab (its Back returns there and says "More"); null: anywhere else, plain "Back" */
+  readonly from: "more" | null;
 }
 
 export type MenuAction =
-  | { type: "page"; page: MenuPageKey; report?: ReportWhere | null }
+  | { type: "page"; page: MenuPageKey; report?: ReportWhere | null; from?: "more" | null }
   | { type: "closePage" }
   | { type: "term"; id: string } | { type: "closeTerm" };
 
-export const MENU_CLOSED: MenuState = { page: null, term: null, report: null };
+export const MENU_CLOSED: MenuState = { page: null, term: null, report: null, from: null };
 
 export function menuReduce(s: MenuState, a: MenuAction): MenuState {
   switch (a.type) {
     // a report keeps where it was asked from, any other page forgets it
-    case "page": return { page: a.page, term: null, report: a.page === "report" ? a.report ?? null : null };
-    case "closePage": return s.page === null ? s : { ...s, page: null, term: null, report: null };
+    case "page": return { page: a.page, term: null, report: a.page === "report" ? a.report ?? null : null, from: a.from ?? null };
+    case "closePage": return s.page === null ? s : { ...s, page: null, term: null, report: null, from: null };
     case "term": return s.page === "glossary" ? { ...s, term: a.id } : s;
     case "closeTerm": return s.term === null ? s : { ...s, term: null };
   }
@@ -43,9 +45,10 @@ export function menuReduce(s: MenuState, a: MenuAction): MenuState {
 
 export interface MenuControls {
   readonly state: MenuState;
-  show(page: MenuPageKey): void;
+  /** `from: "more"`: opened from the More tab or a page opened from it (the ‹ then reads "More") */
+  show(page: MenuPageKey, from?: "more" | null): void;
   /** Report a problem, from wherever the reader is (a regulations tab passes the page's own words). */
-  report(where?: ReportWhere | null): void;
+  report(where?: ReportWhere | null, from?: "more" | null): void;
   closePage(): void;
   openTerm(id: string): void;
   closeTerm(): void;
@@ -53,8 +56,9 @@ export interface MenuControls {
 
 export function useMenu(): MenuControls {
   const [state, go] = useReducer(menuReduce, MENU_CLOSED);
-  const show = useCallback((page: MenuPageKey) => go({ type: "page", page }), []);
-  const report = useCallback((where?: ReportWhere | null) => go({ type: "page", page: "report", report: where ?? null }), []);
+  const show = useCallback((page: MenuPageKey, from?: "more" | null) => go({ type: "page", page, from: from ?? null }), []);
+  const report = useCallback((where?: ReportWhere | null, from?: "more" | null) =>
+    go({ type: "page", page: "report", report: where ?? null, from: from ?? null }), []);
   const closePage = useCallback(() => go({ type: "closePage" }), []);
   const openTerm = useCallback((id: string) => go({ type: "term", id }), []);
   const closeTerm = useCallback(() => go({ type: "closeTerm" }), []);

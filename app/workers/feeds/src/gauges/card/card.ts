@@ -21,7 +21,7 @@ import { CONDITIONS_WORDS } from "../../../../../packages/core/src/conditions";
 import { localDate, localStamp } from "../../../../../packages/core/src/day";
 import { standing } from "../../../../../packages/core/src/flow";
 import { freshness, MAY_BE_OLD, readingCurrent } from "../../../../../packages/core/src/freshness";
-import { figure, standingLong } from "../../../../../packages/core/src/standing";
+import { figure, figureIn, standingLong } from "../../../../../packages/core/src/standing";
 import { byWeekdays, forecastDueBy, STALE_AFTER } from "../../../../../packages/core/src/staleness";
 import { ATTRIBUTION } from "../forecast";
 import { bandFor, PCTILES } from "../publish";
@@ -32,7 +32,7 @@ import { Canvas, fillBand, fit, hex, measure, png, stroke, text, wrap, type Pt, 
 
 export const CARD_W = 1200, CARD_H = 630;
 /** bumped when the drawing changes without its inputs changing (every card is redrawn once) */
-export const CARD_REV = 2;
+export const CARD_REV = 3;
 export const CARDS_PREFIX = "feeds/cards/";
 export const MISSING_PREFIX = "private/cards-missing/";
 export const CARD_STATE = "private/feeds/cards/state.json";
@@ -81,6 +81,10 @@ export interface CardModel {
   week: [number, number][];
   /** the run drawn: the station's own first model with a current run (T347 working-day line, `dueBy`) */
   forecast: { model: string; issuedAt: string; issued: string; dueBy: number; points: [number, number][] } | null;
+  /** (T908) EVERY model with a current run, in the station's own order (the page's forecast options); `forecast` is the first */
+  forecasts: { model: string; issuedAt: string; issued: string; dueBy: number; horizonDays: number; points: [number, number][] }[];
+  /** (T908) the reading's rank 0-1 (the feed's `percentile`, what `standing` was worded from), for the page's colour bar; null: none */
+  percentile: number | null;
   /** a run exists but is past its working-day line (T347): said, not drawn */
   forecastOld: { model: string; issued: string } | null;
   /** the drawn forecast in core's words for the station's expected change ("rises to 4× (Wed)", "little change"); null = no change published */
@@ -131,6 +135,7 @@ export function cardModel(station: string, name: string, f: CardStation | null, 
     for (const r of recent) if (r[0] >= now - WEEK && r[0] <= now) week.push([r[0], r[1]]);
   }
   let forecast: CardModel["forecast"] = null, forecastOld: CardModel["forecastOld"] = null;
+  const forecasts: CardModel["forecasts"] = [];
   if (parameter === "discharge" && f?.forecasts) {
     const order = [...(f.change?.models ?? []), ...MODELS].filter((m, i, a) => a.indexOf(m) === i);
     for (const m of order) {
@@ -145,10 +150,10 @@ export function cardModel(station: string, name: string, f: CardStation | null, 
       // the Centre's stamps are its own clock, a fixed UTC−8 (core staleness.ts CENTRE_OFFSET_MS)
       const issued = run.issuedAt ? Date.parse(/[zZ]|[+-]\d\d:\d\d$/.test(run.issuedAt) ? run.issuedAt : `${run.issuedAt}-08:00`) : NaN;
       if (!Number.isFinite(issued)) continue;
-      if (byWeekdays(issued, now) === "stale") { forecastOld ??= { model: m, issued: pacific(issued) }; continue; }
-      forecast = { model: m, issuedAt: new Date(issued).toISOString(), issued: pacific(issued), dueBy: forecastDueBy(issued), points };
-      forecastOld = null;
-      break;
+      if (byWeekdays(issued, now) === "stale") { if (!forecast) forecastOld ??= { model: m, issued: pacific(issued) }; continue; }
+      const run1 = { model: m, issuedAt: new Date(issued).toISOString(), issued: pacific(issued), dueBy: forecastDueBy(issued), points };
+      forecasts.push({ ...run1, horizonDays: Math.max(1, Math.round((points[points.length - 1]![0] - now) / DAY)) });
+      if (!forecast) { forecast = run1; forecastOld = null; }
     }
   }
   const unit = parameter === null ? null : parameter === "level" ? "m" : "m³/s";
@@ -157,7 +162,7 @@ export function cardModel(station: string, name: string, f: CardStation | null, 
     station, name, now, parameter,
     unit,
     reading: v,
-    value: v === null ? null : `${figure(v)} ${parameter === "level" ? "m" : "m³/s"}`,
+    value: v === null ? null : `${figureIn(v, parameter ?? "discharge")} ${parameter === "level" ? "m" : "m³/s"}`,
     // the app's own line for a reading's standing (G28: the same words for "no record" too)
     // (T550) a reading past core's age line (`readingCurrent`) is not today's: no standing, the card's age line says when
     standing: v === null || !readingCurrent(nowRow?.at, now) ? null : standingLong(nowRow?.percentile ?? null, nowRow?.percentile == null ? null : standing(nowRow.percentile)),
@@ -165,7 +170,8 @@ export function cardModel(station: string, name: string, f: CardStation | null, 
     at: Number.isFinite(t) ? pacific(t) : null,
     fetchedAt: copyAt === null ? null : new Date(copyAt).toISOString(),
     stale: !Number.isFinite(t) || freshness(copyAt, now).state !== "live",
-    week, forecast, forecastOld,
+    week, forecast, forecasts, forecastOld,
+    percentile: v === null || !readingCurrent(nowRow?.at, now) ? null : (nowRow?.percentile ?? null),
     change: forecast && f?.change ? changeShort(f.change, localDate(now)) : null,
     normal: parameter && clim ? normalRange(clim[parameter], now - WEEK, Math.max(now, last)) : null,
   };
@@ -288,6 +294,8 @@ export function cardFacts(m: CardModel, drawnAt: Date): Record<string, unknown> 
     runOld: CONDITIONS_WORDS.runOld, mayBeOld: MAY_BE_OLD,
     week: m.week.map(([t, v]) => [t, v]),
     forecast: m.forecast && { ...m.forecast, attribution: ATTRIBUTION },
+    forecasts: m.forecasts.map((r) => ({ ...r, attribution: ATTRIBUTION })),
+    percentile: m.percentile,
     forecastOld: m.forecastOld,
     change: m.change,
     normal: m.normal,

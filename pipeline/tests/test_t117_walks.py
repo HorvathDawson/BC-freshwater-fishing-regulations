@@ -236,6 +236,8 @@ UP_ADJ_READERS = {
     # (T230, 7322da366) in-season pick-points: the named tributaries meeting a water's own stem, one level
     ("pipeline/regs/inseason/points.py", "points"): "a stem's named confluences, one level (in-season pick-points)",
     ("pipeline/atlas/reach/extent.py", "_across_the_junction"): "pieces meeting a line end, one level",
+    ("pipeline/atlas/reach/extent.py", "_points_at"):
+        "T833: the coordinates where a line stands at its end cut, from the edges joining there, one level",
     ("pipeline/atlas/reach/extent.py", "_by_measure._nbrs"): "braid neighbours inside the universe",
     ("pipeline/atlas/reach/extent.py", "_flow_reach"): "a detached piece's flow path to its own water",
     ("pipeline/atlas/reach/extent.py", "_line_length"): "a line's confluence measures",
@@ -262,8 +264,17 @@ UP_ADJ_READERS = {
     ("pipeline/deliver/tiles/export.py", "fill_zooms"):
         "T493: a hidden piece's drawn water of its OWN item up and down — a drawing zoom, binds nothing",
     ("curation-review/backend/reuse.py", "item_side_channels"): "leaves-and-rejoins test, one level",
+    # owner 2026-11-15 (mark 2578): a DFO place's named water's own side channels — the same one-level test, binds the
+    # water's own items only (`reach.channels`)
+    ("pipeline/atlas/reach/channels.py", "side_channels"): "leaves-and-rejoins test, one level",
+    # T743 (da9b1f4b0): where a channel's pieces meet its river, for the audit report — at most 4 pieces, binds nothing
+    ("pipeline/regs/review/audit.py", "_attach"): "audit report: a channel's attach measures, depth 4, binds nothing",
+    # T753 (a458c1fd4): a piece's flow neighbours, to see whether it leaves a lake and comes back — one level
+    ("pipeline/atlas/registry/lake_loops.py", "_neighbours"): "a piece's own up / down neighbours, one level",
     # the climbs: each asks `may_enter` (see WALKS above)
     ("pipeline/atlas/reach/build.py", "_stem_to_first_lake"): "may_enter",
+    ("pipeline/atlas/reach/build.py", "_through_river_with_the_lake"):
+        "T772: a lake's inflows, one level, to name the through-river's side channels; climbs through `subtree`",
     ("pipeline/common/io/export_gpkg.py", "export_tributaries"): "may_enter",
     ("pipeline/gauges/consume/shed.py", "build_gauge_sheds"): "hands up_adj to `_walk`, which asks may_enter",
     ("pipeline/gauges/consume/shed.py", "section_lengths"): "T252: a lake's inflow edges, one level (its length inflow to outlet)",

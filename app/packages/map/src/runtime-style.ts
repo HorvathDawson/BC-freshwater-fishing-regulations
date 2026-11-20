@@ -20,7 +20,8 @@ import { ATLAS_MAX_ZOOM, BASEMAP_MAX_ZOOM, GEAR_LEGEND } from "@app/core";
 import { MAP_STYLE, NO_VALUES, STYLE_META, defaultView, resolveTheme, withFollowers, type Tokens } from "./style";
 import { NO_ASSETS, type TileEndpoints } from "./endpoints";
 import { gaugeLayers, gaugeSource } from "./gaugeDots";
-import { CLOSED_CUE_LAYER, closedCuePaint, casingPaint, copyFillPaint, copyLinePaint, GEAR_LAYERS, gearPaint, NOACCESS_LAYER, noaccessPaint, nobaselineOpacity, paintFor, ringPaint, RUNS_PASS_LAYER, runsPassPaint, SELECTION_CASING, SELECTION_RINGS } from "./paint";
+import { landOutline } from "./on-imagery";
+import { SALMON_CASING_LAYER, salmonCasingPaint, ISSUE_LAYERS, issuePaint, CLOSED_CUE_LAYER, closedCuePaint, casingPaint, glowPaint, hasGlow, copyFillPaint, copyLinePaint, GEAR_LAYERS, gearPaint, markShownIn, markWidth, NOACCESS_LAYER, noaccessPaint, nobaselineOpacity, paintFor, ringPaint, RUNS_PASS_LAYER, runsPassPaint, SELECTION_CASING, SELECTION_GLOW, SELECTION_RINGS, splitStream, STREAM_HEAVY, streamWidths } from "./paint";
 import { traceLayers, traceSources } from "./trace-overlay";
 import { COPY_CASING, COPY_FILL, COPY_LINE, COPY_SOURCE, EMPTY_COPY, copyFilter } from "./water-copy";
 import { BASEMAP_LABELS, basemapLabelPaint, placesByImportance, WATER_NAMES } from "./labels";
@@ -124,6 +125,10 @@ function fieldSources(atlasUrl: string): Record<string, Record<string, unknown>>
     }]));
 }
 
+/** (T848 fix 2) A mark's layout: hidden (`visibility: none`, no bucket) in a mode that never shows it. */
+const shownIn = <L extends Record<string, unknown>>(shown: boolean, layout: L): L =>
+  (shown ? layout : { ...layout, visibility: "none" as const });
+
 /** Raster layers (imagery) go UNDER everything of ours; see the layer list below. */
 const isRaster = (l: { type?: string }) => l.type === "raster";
 
@@ -146,7 +151,7 @@ export function runtimeStyle(at: TileEndpoints, theme: string,
   const ours = MAP_STYLE.layers.filter((l) => !isRaster(l as { type?: string })).flatMap((l) => {
     const view = defaultView();
     const mode = layerModes[l.id] ?? view?.modes[l.id];
-    const coloured = mode ? { ...l, paint: paintFor(l.id, mode, resolveTheme(theme)) } : l;
+    const coloured = mode ? { ...l, paint: landOutline(l.id, paintFor(l.id, mode, resolveTheme(theme)), resolveTheme(theme), false) } : l;   // (T923) the satellite-only casing is not drawn on the first (drawn-map) frame
     // THE FIELD IS NOT DRAWN outside the modes it draws in — on the first frame too (`fieldMoved` in the adapter)
     const painted = l.id === STYLE_META.field?.layer && !(STYLE_META.field.drawnIn).includes(mode ?? "")
       ? { ...coloured, layout: { ...(coloured as { layout?: Record<string, unknown> }).layout, visibility: "none" } } as unknown as typeof coloured
@@ -184,7 +189,8 @@ export function runtimeStyle(at: TileEndpoints, theme: string,
      */
     const gear = (lid: "stream" | "lake", widthOf?: unknown) => GEAR_LEGEND.map((mark) => ({
       id: GEAR_LAYERS[lid][mark], type: "line" as const, source: "atlas", "source-layer": lid,
-      layout: { "line-cap": "butt" as const, "line-join": "round" as const },
+      layout: shownIn(markShownIn("gear", layerModes[lid] ?? view?.modes[lid] ?? "plain", lid),
+                      { "line-cap": "butt" as const, "line-join": "round" as const }),
       paint: gearPaint(lid, layerModes[lid] ?? view?.modes[lid] ?? "plain", mark, resolveTheme(theme), NO_VALUES, widthOf),
     }));
     if (ringed && l.id === lastDrawing("lake")) return [painted, ...gear("lake"), ringed];
@@ -199,8 +205,19 @@ export function runtimeStyle(at: TileEndpoints, theme: string,
       id: COPY_FILL, type: "fill" as const, source: COPY_SOURCE, filter: copyFilter("lake"),
       paint: copyFillPaint((painted as { paint?: Record<string, unknown> }).paint ?? {}) }, painted];
     if (l.id !== "stream") return [painted];
-    const copyLine = copyLinePaint((painted as { paint?: Record<string, unknown> }).paint
-                                   ?? paintFor("stream", "plain", tk), tk);
+    const streamPaint = (painted as { paint?: Record<string, unknown> }).paint ?? paintFor("stream", "plain", tk);
+    const copyLine = copyLinePaint(streamPaint, tk);
+    /*
+     * (T848) THE STREAM IN TWO LAYERS (`splitStream`): `stream` at the width zoom and order give, and the lit and closed
+     * sections over it at the width they are drawn at (`STREAM_HEAVY`) — so no width on the busy layers reads feature-state.
+     * Each mark is sized from the stream's width only where it can show (`markWidth`); one its mode never shows is not drawn.
+     */
+    const sMode = mode ?? "plain";
+    const sw = streamWidths(sMode, tk);
+    // (no mode: the stream is the catalogue's bare layer, and nothing is drawn over it)
+    const split = mode ? splitStream(streamPaint, sw) : { stream: streamPaint, heavy: { "line-opacity": 0 } };
+    const stream = { ...painted, paint: split.stream } as typeof painted;
+    const heavy = { ...painted, id: STREAM_HEAVY, paint: split.heavy } as unknown as typeof painted;
     const copied = [
       { id: COPY_CASING, type: "line" as const, source: COPY_SOURCE, filter: copyFilter("stream"),
         layout: { "line-cap": "round" as const, "line-join": "round" as const },
@@ -211,8 +228,7 @@ export function runtimeStyle(at: TileEndpoints, theme: string,
     const casing = {
       id: SELECTION_CASING, type: "line" as const, source: "atlas", "source-layer": "stream",
       layout: { "line-cap": "round" as const, "line-join": "round" as const },
-      paint: casingPaint((painted as { paint?: Record<string, unknown> }).paint?.["line-width"]
-                         ?? paintFor("stream", "plain", resolveTheme(theme))["line-width"], resolveTheme(theme)),
+      paint: casingPaint(markWidth("casing", sMode, sw), tk),
     };
     /*
      * ONLY IN THE MODE THAT MEANS ANYTHING BY IT.
@@ -231,11 +247,20 @@ export function runtimeStyle(at: TileEndpoints, theme: string,
      * the stream's own mode (`nobaselineOpacity`): every flow mode reads the number its
      * colour reads, every other mode is 0 — so nothing can leak, and nothing is missing.
      */
-    return [...copied, casing,
+    // (T735) look C's glow, directly under the casing; a theme with no glow (opacity 0) has no such layer
+    const glow = { id: SELECTION_GLOW, type: "line" as const, source: "atlas", "source-layer": "stream",
+      layout: { "line-cap": "round" as const, "line-join": "round" as const },
+      paint: glowPaint(markWidth("glow", sMode, sw), tk) };
+    return [...copied, ...(hasGlow(tk) ? [glow] : []), casing,
+      // (T887) the keep casing: under the gear edges and the line, built with no day (nothing is kept until a day is
+      // installed). Under the gear edges, which a cased keep section pushes outside it (`gearPaint`), so a fly-only or
+      // bait-ban mark is never hidden by it.
+      { id: SALMON_CASING_LAYER, type: "line" as const, source: "atlas", "source-layer": "stream",
+        layout: shownIn(markShownIn("salmonCasing", sMode), { "line-cap": "round" as const, "line-join": "round" as const }),
+        paint: salmonCasingPaint(sMode, tk, NO_VALUES, sw.base) },
       // (T213) the gear edges: under the line (its colour stays the read), over the selection casing
-      ...gear("stream", (painted as { paint?: Record<string, unknown> }).paint?.["line-width"]
-                        ?? paintFor("stream", "plain", tk)["line-width"]),
-      painted,
+      ...gear("stream", markWidth("gear", sMode, sw)),
+      stream, heavy,
     /*
      * "MEASURED HERE, BUT NOTHING TO COMPARE IT TO" — DRAWN AS A DASH.
      *
@@ -258,7 +283,7 @@ export function runtimeStyle(at: TileEndpoints, theme: string,
     {
       id: "stream-nobaseline", type: "line" as const, source: "atlas",
       "source-layer": "stream",
-      layout: { "line-cap": "butt" as const, "line-join": "round" as const },
+      layout: shownIn(markShownIn("nobaseline", sMode), { "line-cap": "butt" as const, "line-join": "round" as const }),
       paint: {
         "line-color": resolveTheme(theme)["color.water.ungauged"] as string,
         // Slightly heavier than the river under it, so the gaps read as gaps rather
@@ -277,7 +302,7 @@ export function runtimeStyle(at: TileEndpoints, theme: string,
     {
       id: NOACCESS_LAYER, type: "line" as const, source: "atlas",
       "source-layer": "stream",
-      layout: { "line-cap": "butt" as const, "line-join": "round" as const },
+      layout: shownIn(markShownIn("noaccess", sMode), { "line-cap": "butt" as const, "line-join": "round" as const }),
       paint: noaccessPaint(mode ?? "plain", resolveTheme(theme)),
     },
     /*
@@ -287,9 +312,8 @@ export function runtimeStyle(at: TileEndpoints, theme: string,
     {
       id: RUNS_PASS_LAYER, type: "line" as const, source: "atlas",
       "source-layer": "stream",
-      layout: { "line-cap": "butt" as const, "line-join": "round" as const },
-      paint: runsPassPaint(mode ?? "plain", resolveTheme(theme),
-                           (painted as { paint?: Record<string, unknown> }).paint?.["line-width"]),
+      layout: shownIn(markShownIn("runs", sMode), { "line-cap": "butt" as const, "line-join": "round" as const }),
+      paint: runsPassPaint(sMode, tk, markWidth("runs", sMode, sw)),
     },
     /*
      * (T377) CLOSED, STRIPED (`closedCuePaint`): a dashed stripe in the paper's colour down a closed stream — closed's
@@ -299,10 +323,19 @@ export function runtimeStyle(at: TileEndpoints, theme: string,
     {
       id: CLOSED_CUE_LAYER, type: "line" as const, source: "atlas",
       "source-layer": "stream",
-      layout: { "line-cap": "butt" as const, "line-join": "round" as const },
-      paint: closedCuePaint(mode ?? "plain", resolveTheme(theme), NO_VALUES,
-                            (painted as { paint?: Record<string, unknown> }).paint?.["line-width"]),
-    }];
+      layout: shownIn(markShownIn("closed", sMode), { "line-cap": "butt" as const, "line-join": "round" as const }),
+      paint: closedCuePaint(sMode, tk, NO_VALUES, markWidth("closed", sMode, sw)),
+    },
+    /*
+     * (T759) THE ISSUE STRIPE (`issuePaint`): dashes down a stream whose water has a DFO rule the feed could not place,
+     * over the line and over closed's own stripe, in the Salmon view only. Casing first, ink on it. Built with no
+     * section labelled and, outside Salmon, no opacity: the first frame draws none.
+     */
+    ...(["casing", "stripe"] as const).map((part) => ({
+      id: ISSUE_LAYERS[part], type: "line" as const, source: "atlas", "source-layer": "stream",
+      layout: shownIn(markShownIn("issue", sMode), { "line-cap": "butt" as const, "line-join": "round" as const }),
+      paint: issuePaint(part, sMode, tk, markWidth("issue", sMode, sw)),
+    }))];
   }) as { id: string; type?: string }[];
 
   return {

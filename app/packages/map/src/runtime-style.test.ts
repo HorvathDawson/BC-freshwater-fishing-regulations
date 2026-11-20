@@ -77,3 +77,18 @@ describe("the basemap's fills (T420)", () => {
     for (const l of ours) expect([l.id, l.paint?.["fill-antialias"]]).toEqual([l.id, undefined]);
   });
 });
+
+/*
+ * (T923) the reserve's / parcel's satellite casing is drawn over satellite only: the first frame (a drawn map) carries it at
+ * opacity 0 in every theme, so it never shows around a reserve before the ground is applied.
+ */
+describe("(T923) the satellite casings on the first frame", () => {
+  it("are at line-opacity 0 in every theme (the drawn map)", () => {
+    for (const theme of ["light", "dark", "cvd"]) {
+      const layers = runtimeStyle(AT, theme).layers as { id: string; paint?: Record<string, unknown> }[];
+      const casings = layers.filter((l) => l.id.endsWith("__casing"));
+      expect(casings.map((l) => l.id).sort(), theme).toEqual(["indigenous_land__casing", "parcel_private__casing"]);
+      for (const c of casings) expect(c.paint?.["line-opacity"], `${theme} ${c.id}`).toBe(0);
+    }
+  });
+});

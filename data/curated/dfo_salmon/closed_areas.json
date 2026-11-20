@@ -1,0 +1,415 @@
+{
+ "_about": "THE CLOSED AREAS THE OWNER CONFIRMED (T573): one record per closed area of a DFO row's entry B — a stretch between two cuts or a circle (centre + radius), `pipeline.regs.dfo_salmon.closures.PieceGeometry`. Written only by the review marks (scope closed_area, `python -m pipeline.regs.review.apply closed_areas`). A record whose item DFO no longer names stays here and is read as not live. The reach run binds the live ones (`pipeline.atlas.reach.dfo_salmon.resolve_closures`) and the bundle ships them (T573 build step).",
+ "pieces": [
+  {
+   "key": "00673ca0afe5",
+   "water_id": "3:thompson-river",
+   "name": "Deadman",
+   "item": "Deadman - from the fishing boundary signs approximately 1 km downstream of the Hwy No. 1 Bridge at Savona to the CN rail bridge approximately 500 m downstream of the confluence with Deadman Creek.",
+   "kind": "stretch",
+   "on_item": "gnis:39492",
+   "points": [
+    {
+     "kind": "new",
+     "split_id": "thompson_deadman_upper_signs"
+    },
+    {
+     "kind": "split",
+     "split_id": "thompson_river__cnr_bridge"
+    }
+   ],
+   "new_splits": [
+    {
+     "ref": "thompson_deadman_upper_signs",
+     "anchor": "bridge",
+     "name": "Deadman closed area, upper signs: 1 km downstream of the Hwy 1 bridge at Savona",
+     "on_item": "gnis:39492",
+     "coord": [
+      -120.872177,
+      50.75627
+     ],
+     "offset_m": -1000,
+     "confidence": "medium",
+     "quote": "Deadman - from the fishing boundary signs approximately 1 km downstream of the Hwy No. 1 Bridge at Savona",
+     "note": "bridge point: BC MoTI road structure 'SAVONA' (Hwy 1) over the Thompson, 50.75654,-120.87265; the cut is 1,000 m down the river from it ('approximately' is DFO's word)",
+     "blk": "356364690",
+     "measure": 117608.5
+    }
+   ],
+   "confidence": "medium",
+   "note": "",
+   "confirmed_by": "Claude (for Dawson)",
+   "confirmed_on": "2026-11-15"
+  },
+  {
+   "key": "5adc77c1f78d",
+   "water_id": "3:thompson-river",
+   "name": "Juniper",
+   "item": "Juniper - from the fishing boundary signs approximately 1.5 km downstream from Juniper Beach Park downstream approximately 4 km to the fishing boundary signs located at 50°46.893' N and 121°08.110' W.",
+   "kind": "stretch",
+   "on_item": "gnis:39492",
+   "points": [
+    {
+     "kind": "new",
+     "split_id": "thompson_juniper_upper_signs"
+    },
+    {
+     "kind": "new",
+     "split_id": "thompson_juniper_lower_signs"
+    }
+   ],
+   "new_splits": [
+    {
+     "ref": "thompson_juniper_upper_signs",
+     "anchor": "sign",
+     "name": "Juniper closed area, upper signs: 4 km upstream of its lower signs",
+     "on_item": "gnis:39492",
+     "coord": [
+      -121.133959,
+      50.780911
+     ],
+     "offset_m": 4000,
+     "confidence": "low",
+     "quote": "Juniper - from the fishing boundary signs approximately 1.5 km downstream from Juniper Beach Park downstream approximately 4 km to the fishing boundary signs located at 50°46.893' N and 121°08.110' W.",
+     "note": "placed 4,000 m up the river from DFO's own coordinate for the lower signs (owner 2026-11-15 night: \"if the book says 4km then we put it 4km\"); the other reading (1.5 km below Juniper Beach Park) is not used",
+     "blk": "356364690",
+     "measure": 93016.0
+    },
+    {
+     "ref": "thompson_juniper_lower_signs",
+     "anchor": "sign",
+     "name": "Juniper closed area, lower signs (50°46.893' N 121°08.110' W)",
+     "on_item": "gnis:39492",
+     "coord": [
+      -121.133959,
+      50.780911
+     ],
+     "confidence": "high",
+     "quote": "the fishing boundary signs located at 50°46.893' N and 121°08.110' W",
+     "note": "DFO's own coordinate (50.78155, -121.13517), 111 m from the river's line",
+     "blk": "356364690",
+     "measure": 93016.0
+    }
+   ],
+   "confidence": "low",
+   "note": "upper signs 4 km above DFO's printed lower signs: owner 2026-11-15 night, \"if the book says 4km then we put it 4km unless i had another split it already matched??\"; no cut exists at or near that spot (Thompson blk 356364690: lower signs m 93,016, upper m 97,016; nearest curated cuts m 81,551 and m 112,992; the atlas length break 'Battle Creek' at m 94,206 is a section break, not a sign), so a new cut",
+   "confirmed_by": "Claude (for Dawson)",
+   "confirmed_on": "2026-11-16"
+  },
+  {
+   "key": "c76883c57564",
+   "water_id": "3:thompson-river",
+   "name": "Ashcroft",
+   "item": "Ashcroft - from the fishing boundary sign at the upstream side of the mouth of the Bonaparte River to Hwy 97C bridge in Ashcroft.",
+   "kind": "stretch",
+   "on_item": "gnis:39492",
+   "points": [
+    {
+     "kind": "new",
+     "split_id": "thompson_bonaparte_mouth"
+    },
+    {
+     "kind": "new",
+     "split_id": "thompson_ashcroft_hwy_97c_bridge"
+    }
+   ],
+   "new_splits": [
+    {
+     "ref": "thompson_bonaparte_mouth",
+     "anchor": "confluence",
+     "name": "Bonaparte River",
+     "item_id": "gnis:38393",
+     "on_item": "gnis:39492",
+     "confidence": "high",
+     "quote": "Ashcroft - from the fishing boundary sign at the upstream side of the mouth of the Bonaparte River",
+     "note": "the Bonaparte's mouth on the Thompson (FWA)",
+     "blk": "356364690",
+     "measure": 80683.1,
+     "coord": [
+      -121.258053,
+      50.738875
+     ]
+    },
+    {
+     "ref": "thompson_ashcroft_hwy_97c_bridge",
+     "anchor": "bridge",
+     "name": "Hwy 97C bridge in Ashcroft",
+     "on_item": "gnis:39492",
+     "coord": [
+      -121.281673,
+      50.726878
+     ],
+     "confidence": "high",
+     "quote": "to Hwy 97C bridge in Ashcroft",
+     "note": "BC MoTI road structure 'ASHCROFT' (Hwy 97C) over the Thompson, 50.72701,-121.28188",
+     "blk": "356364690",
+     "measure": 78341.5
+    }
+   ],
+   "confidence": "medium",
+   "note": "",
+   "confirmed_by": "Claude (for Dawson)",
+   "confirmed_on": "2026-11-16"
+  },
+  {
+   "key": "00503bc8b63e",
+   "water_id": "6:babine-lake",
+   "name": "Twain Creek",
+   "item": "Twain Creek",
+   "kind": "circle",
+   "on_item": "wbk:329026676",
+   "centre": [
+    -125.811923,
+    54.609803
+   ],
+   "radius_m": 400.0,
+   "centre_from": "where Twain Creek's own channel (FWA blue line 360816333) meets the lake's outline; the in-lake connector line is not counted",
+   "confidence": "high",
+   "note": "",
+   "confirmed_by": "Claude (for Dawson)",
+   "confirmed_on": "2026-11-16"
+  },
+  {
+   "key": "0e1518e92322",
+   "water_id": "6:babine-lake",
+   "name": "Tachek Creek",
+   "item": "Tachek Creek",
+   "kind": "circle",
+   "on_item": "wbk:329026676",
+   "centre": [
+    -126.126354,
+    54.802675
+   ],
+   "radius_m": 400.0,
+   "centre_from": "where Tachek Creek's own channel (FWA blue line 360886739) meets the lake's outline; the in-lake connector line is not counted",
+   "confidence": "high",
+   "note": "",
+   "confirmed_by": "Claude (for Dawson)",
+   "confirmed_on": "2026-11-16"
+  },
+  {
+   "key": "36f5b357ebcf",
+   "water_id": "6:babine-lake",
+   "name": "Pendleton Creek",
+   "item": "Pendleton Creek",
+   "kind": "circle",
+   "on_item": "wbk:329026676",
+   "centre": [
+    -125.700061,
+    54.512658
+   ],
+   "radius_m": 400.0,
+   "centre_from": "Pendleton Creek is DFO's older name for Cross Creek: SkeenaWild's 2011 status report on Babine sockeye (from DFO's escapement database) lists the stock as 'Pendleton Creek (Cross Creek)', DFO's census site 612 is CROSS CREEK, and Cross Creek enters Pendleton Bay (BC Geographic Names 6951, 1.0 km from the mouth); no stream of the network is named Pendleton Creek. The centre: where its own channel (FWA blue line 360810067) meets the lake's outline; the in-lake connector line is not counted",
+   "confidence": "medium",
+   "note": "",
+   "confirmed_by": "Claude (for Dawson)",
+   "confirmed_on": "2026-11-16"
+  },
+  {
+   "key": "379a9388f532",
+   "water_id": "6:babine-lake",
+   "name": "Six Mile Creek",
+   "item": "Six Mile Creek",
+   "kind": "circle",
+   "on_item": "wbk:329026676",
+   "centre": [
+    -125.366248,
+    54.484971
+   ],
+   "radius_m": 400.0,
+   "centre_from": "Six Mile Creek is DFO's older name for Gullwing Creek: SkeenaWild's 2011 status report on Babine sockeye (from DFO's escapement database) lists the stock as 'Six Mile Creek (Gullwing Creek)', DFO's census site 615 is GULLWING CREEK, and it is the next named creek west of Four Mile Creek (local accounts fish '4 and 6 Mile creeks' together); no stream of the network or BC Geographic Names creek at the lake is named Six Mile. The centre: where its own channel (FWA blue line 360886655) meets the lake's outline; the in-lake connector line is not counted",
+   "confidence": "medium",
+   "note": "",
+   "confirmed_by": "Claude (for Dawson)",
+   "confirmed_on": "2026-11-16"
+  },
+  {
+   "key": "40d829f72ad9",
+   "water_id": "6:babine-lake",
+   "name": "Big Loon Creek",
+   "item": "Big Loon Creek",
+   "kind": "circle",
+   "on_item": "wbk:329026676",
+   "centre": [
+    -125.919595,
+    54.790268
+   ],
+   "radius_m": 400.0,
+   "centre_from": "where Big Loon Creek's own channel (FWA blue line 360828707) meets the lake's outline; the in-lake connector line is not counted",
+   "confidence": "high",
+   "note": "",
+   "confirmed_by": "Claude (for Dawson)",
+   "confirmed_on": "2026-11-16"
+  },
+  {
+   "key": "6b5f946bc1eb",
+   "water_id": "6:babine-lake",
+   "name": "Sockeye Creek",
+   "item": "Sockeye Creek",
+   "kind": "circle",
+   "on_item": "wbk:329026676",
+   "centre": [
+    -126.013207,
+    54.736242
+   ],
+   "radius_m": 400.0,
+   "centre_from": "the network leaves Sockeye Creek unnamed: DFO's census site 608 SOCKEYE CREEK (Babine sockeye) is at 54.73625, -126.01323 with FWA code 400-536025-743170, the mouth of this stream. The centre: where its own channel (FWA blue line 360800595) meets the lake's outline; the in-lake connector line is not counted",
+   "confidence": "high",
+   "note": "",
+   "confirmed_by": "Claude (for Dawson)",
+   "confirmed_on": "2026-11-16"
+  },
+  {
+   "key": "963a5557f71b",
+   "water_id": "6:babine-lake",
+   "name": "Hazelwood Creek",
+   "item": "Hazelwood Creek",
+   "kind": "circle",
+   "on_item": "wbk:329026676",
+   "centre": [
+    -126.267988,
+    55.123439
+   ],
+   "radius_m": 400.0,
+   "centre_from": "the network leaves Hazelwood Creek unnamed: DFO's census site 604 HAZELWOOD CREEK (Babine sockeye) is at 55.12344, -126.26801 with FWA code 400-536025-597418, the mouth of this stream (3.4 km south of Morrison Creek's). The centre: where its own channel (FWA blue line 360852175) meets the lake's outline; the in-lake connector line is not counted",
+   "confidence": "high",
+   "note": "",
+   "confirmed_by": "Claude (for Dawson)",
+   "confirmed_on": "2026-11-16"
+  },
+  {
+   "key": "c2013e4ac580",
+   "water_id": "6:babine-lake",
+   "name": "Five Mile Creek",
+   "item": "Five Mile Creek",
+   "kind": "circle",
+   "on_item": "wbk:329026676",
+   "centre": [
+    -126.60043,
+    55.255854
+   ],
+   "radius_m": 400.0,
+   "centre_from": "where Five Mile Creek's own channel (FWA blue line 360700441) meets the lake's outline; the in-lake connector line is not counted",
+   "confidence": "high",
+   "note": "",
+   "confirmed_by": "Claude (for Dawson)",
+   "confirmed_on": "2026-11-16"
+  },
+  {
+   "key": "c6d917f3f165",
+   "water_id": "6:babine-lake",
+   "name": "Pierre Creek",
+   "item": "Pierre Creek",
+   "kind": "circle",
+   "on_item": "wbk:329026676",
+   "centre": [
+    -125.852707,
+    54.63325
+   ],
+   "radius_m": 400.0,
+   "centre_from": "where Pierre Creek's own channel (FWA blue line 360871635) meets the lake's outline; the in-lake connector line is not counted",
+   "confidence": "high",
+   "note": "",
+   "confirmed_by": "Claude (for Dawson)",
+   "confirmed_on": "2026-11-16"
+  },
+  {
+   "key": "d8c7cac1841a",
+   "water_id": "6:babine-lake",
+   "name": "east of a line from Gullwing Creek to south shore of Babine ",
+   "item": "east of a line from Gullwing Creek to south shore of Babine Lake",
+   "kind": "line",
+   "on_item": "wbk:329026676",
+   "line": [
+    [
+     -125.366248,
+     54.484971
+    ],
+    [
+     -125.366248,
+     54.454902
+    ]
+   ],
+   "closes_item": "wbk:-25",
+   "confidence": "high",
+   "note": "the owner's reading, 2026-11-16 (T796): \"Due south\". From Gullwing Creek's mouth on the north shore (FWA blue line 360886655, BC Geographic Names 4122; the same point as the Six Mile Creek circle) due south to the south shore at 54.45490, -125.36625 (3,356 m). DFO names no point on the south shore; the reading not taken was the shortest crossing (bearing 167, 2,975 m, to 54.45896, -125.35615, about 0.8 km east of this end). East of it: Gullwing Island, Four Mile Creek, Telzato Creek and the Sutherland River's mouth. T812: the lake is split on this line (added_lakes.geojson ids 24 / 25); the line closes the part east of it, Babine Lake — East of Gullwing Creek (wbk:-25).",
+   "confirmed_by": "Claude (for Dawson)",
+   "confirmed_on": "2026-11-17"
+  },
+  {
+   "key": "f3116ad57dbe",
+   "water_id": "6:babine-lake",
+   "name": "Four Mile Creek",
+   "item": "Four Mile Creek",
+   "kind": "circle",
+   "on_item": "wbk:329026676",
+   "centre": [
+    -125.312955,
+    54.461777
+   ],
+   "radius_m": 400.0,
+   "centre_from": "where Four Mile Creek's own channel (FWA blue line 360841786) meets the lake's outline; the in-lake connector line is not counted",
+   "confidence": "high",
+   "note": "",
+   "confirmed_by": "Claude (for Dawson)",
+   "confirmed_on": "2026-11-16"
+  },
+  {
+   "key": "f4c347aad97f",
+   "water_id": "6:babine-lake",
+   "name": "Morrison Creek",
+   "item": "Morrison Creek",
+   "kind": "circle",
+   "on_item": "wbk:329026676",
+   "centre": [
+    -126.285975,
+    55.152191
+   ],
+   "radius_m": 400.0,
+   "centre_from": "where Morrison Creek's own channel (FWA blue line 360829558) meets the lake's outline; the in-lake connector line is not counted",
+   "confidence": "high",
+   "note": "",
+   "confirmed_by": "Claude (for Dawson)",
+   "confirmed_on": "2026-11-16"
+  },
+  {
+   "key": "200d03a74aaf",
+   "water_id": "8:shuswap-river",
+   "name": "the water survey station to WTFB signs",
+   "item": "closed from the water survey station (located at 50°19.105' N and 118°48.857' W) approximately 200 m down stream of Shuswap Falls Hatchery to WTFB signs (located at 50°18.181' N and 118°49.105' W) one km down stream",
+   "kind": "stretch",
+   "on_item": "gnis:25478",
+   "points": [
+    {
+     "kind": "split",
+     "split_id": "gauge__08LC003"
+    },
+    {
+     "kind": "new",
+     "split_id": "shuswap_closed_station_as_printed"
+    }
+   ],
+   "new_splits": [
+    {
+     "ref": "shuswap_closed_station_as_printed",
+     "anchor": "coord",
+     "on_item": "gnis:25478",
+     "name": "Shuswap closed stretch, the point DFO prints for the water survey station (50°19.105' N 118°48.857' W)",
+     "coord": [
+      -118.814453,
+      50.318456
+     ],
+     "confidence": "low",
+     "quote": "the water survey station ( located at 50°19.105' N and 118°48.857' W) approximately 200 m down stream of Shuswap Falls Hatchery",
+     "note": "DFO's coordinate as printed (50.3184167, -118.8142833), 13 m from the river line, km 133.08. It is 2 km BELOW the real WSC station 08LC003 (km 135.13): see the piece's note",
+     "blk": "356363194",
+     "measure": 133080.1
+    }
+   ],
+   "confidence": "low",
+   "note": "CHECK: DFO's printed points look SWAPPED against its words. The river flows north here (Shuswap Falls km 136.5 → Mabel Lake), so 'downstream' is north. The point printed for the water survey station (50°19.105' N) is the NORTH (downstream) one, at km 133.08; the point printed for the WTFB signs (50°18.181' N) is 27 m from WSC gauge 08LC003 'Shuswap River near Lumby' at km 135.13 — that is the water survey station. Between them is 2.05 km of river, not 'one km'. Stored as printed; the alternative end reads it as station → 1 km below.",
+   "confirmed_by": "Claude (for Dawson)",
+   "confirmed_on": "2026-11-16"
+  }
+ ]
+}

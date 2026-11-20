@@ -1,10 +1,12 @@
 import { useEffect, useState } from "react";
 import { api } from "../api";
 import type {
-  AreaHit, ExtentFix, ExtentOp, ExtentOpInfo, ExtentPreview, FixPoint, FixPointKind, ItemHit, NamedRef, SplitHit,
+  AreaHit, ExtentFix, ExtentOp, ExtentOpInfo, ExtentPreview, FixPoint, FixPointKind, ItemHit, NamedRef, RestBounds,
+  RestOf, SplitHit,
 } from "../types";
 import { failed } from "../failures";
 import { cutNamer, otherWaters, pointWords } from "../extentWords";
+import { TIDAL_END, TRIB_CHOICES, toTidalEnd, tribChoiceOf, withOp, withTribChoice } from "../dfoExtent";
 
 /** The ops and the owner's words for them, from the server only (`marks.OP_WORDS`, GET /api/extent-fix/ops). (T434) A
  *  failed read is shown; there is no copy here (a second copy of the policy drifts). */
@@ -61,7 +63,18 @@ interface Props {
   itemNames: Record<string, string>;
   /** whether the preview draws the tributary walk (the slow toggle); off, a walking binding still SAYS it walks */
   tributariesDrawn?: boolean;
+  /** (owner 2026-11-15) a DFO place: the tributary call in full — the water and its tributaries / tributaries only /
+   *  the water only — and the tributaries it does not take */
+  dfo?: boolean;
+  /** T761: the place's "rest of" as it is now (`extent_now.rest_of`): what answers first, the water's places */
+  restOf?: RestOf | null;
 }
+
+/** T761: the stretch a DFO "rest of" may be the rest of (`marks.REST_BOUNDS`), in the owner's words */
+const REST_BOUNDS: { v: RestBounds; words: string }[] = [
+  { v: "whole", words: "the whole water" }, { v: "upstream_of", words: "upstream of a point" },
+  { v: "downstream_of", words: "downstream of a point" }, { v: "between", words: "between two points" },
+];
 
 /* THE EXTENT-FIX EDITOR (T191). The reviewer proposes the extent — op, 1 or 2 split points, the
    items it holds on, tributaries — and it is recorded IN THE MARK (`Mark.extent_fix`); saving the mark
@@ -70,7 +83,7 @@ interface Props {
 export function ExtentFixEditor({ scope, entryId, currentOp, mapSplits, waters, value, onChange,
                                   onPreview, onPick, splitAt, newSplits = [], sources,
                                   previewFn, defaultOpen = false, piece, tributariesNow = "", cutLabels, itemNames,
-                                  tributariesDrawn = true }: Props) {
+                                  tributariesDrawn = true, dfo = false, restOf = null }: Props) {
   const tid = piece ? `${scope}-p${piece + 1}` : scope;
   const offered = SOURCES.filter((x) => (sources ? sources.includes(x.v) : x.v !== "new"));
   const [open, setOpen] = useState(!!value || defaultOpen);
@@ -88,7 +101,10 @@ export function ExtentFixEditor({ scope, entryId, currentOp, mapSplits, waters, 
     scope, op: (ops.some((o) => o.op === currentOp) ? currentOp : "whole") as ExtentOp,
     points: [], items: [], tributaries: null,
   };
-  const want = ops.find((o) => o.op === fix.op)?.points ?? 0;
+  // T761: a DFO "rest of" takes the points of its bounds' op
+  const rest = dfo && fix.op === "rest";
+  const want = ops.find((o) => o.op === (rest && fix.bounds ? fix.bounds : fix.op))?.points ?? 0;
+  const restNow = preview?.rest_of ?? restOf;
   const set = (patch: Partial<ExtentFix>) => { setPreview(null); onPreview(null); onChange({ ...fix, ...patch }); };
   const setPoint = (i: number, p: FixPoint) => {
     const pts = [...fix.points];
@@ -148,7 +164,7 @@ export function ExtentFixEditor({ scope, entryId, currentOp, mapSplits, waters, 
       <div className="fix-row">
         <span className="k">op</span>
         <select aria-label={`op ${scope}`} value={fix.op}
-          onChange={(e) => set({ op: e.target.value as ExtentOp })}>
+          onChange={(e) => { setPreview(null); onPreview(null); onChange(withOp(fix, e.target.value as ExtentOp)); }}>
           {ops.map((o) => (
             <option key={o.op} value={o.op}>
               {o.words}{o.points ? ` (${o.points} point${o.points === 1 ? "" : "s"})` : ""}
@@ -159,13 +175,61 @@ export function ExtentFixEditor({ scope, entryId, currentOp, mapSplits, waters, 
           <AreaSearch value={fix.area ?? null} onPick={(a) => set({ area: a })} scope={scope} />
         )}
       </div>
+      {rest && (
+        <div className="fix-row" data-testid={`fix-rest-bounds-${tid}`}>
+          <span className="k">of</span>
+          <select aria-label={`rest bounds ${scope}`} value={fix.bounds ?? "whole"}
+            onChange={(e) => set({ bounds: e.target.value === "whole" ? null : e.target.value as RestBounds, points: [] })}>
+            {REST_BOUNDS.map((b) => <option key={b.v} value={b.v}>{b.words}</option>)}
+          </select>
+          <span className="dim">the stretch this place is the rest of (its points below)</span>
+        </div>
+      )}
+      {rest && (
+        <div className="fix-row" data-testid={`fix-rest-leaves-${tid}`}>
+          <span className="k">leaves out</span>
+          <label className="fix-check">
+            <input type="checkbox" checked={fix.siblings == null}
+              onChange={(e) => set({ siblings: e.target.checked ? null
+                : (restNow?.places ?? []).filter((p) => p.listed).map((p) => p.id) })} />
+            every other live place of this water
+          </label>
+          {fix.siblings != null && (restNow?.places ?? []).map((p) => (
+            <label key={p.id} className="fix-check" title={p.id}>
+              <input type="checkbox" checked={fix.siblings!.includes(p.id)}
+                onChange={(e) => set({ siblings: e.target.checked ? [...fix.siblings!, p.id]
+                                                                   : fix.siblings!.filter((x) => x !== p.id) })} />
+              “{p.text.slice(0, 70)}” <span className="dim">({p.extent}{p.status !== "active" ? `, ${p.status}` : ""})</span>
+            </label>
+          ))}
+          {fix.siblings != null && !(restNow?.places ?? []).length &&
+            <span className="dim">preview on map to list this water's places</span>}
+        </div>
+      )}
+      {rest && (restNow?.answers_first.length ?? 0) > 0 && (
+        <div className="fix-row" data-testid={`fix-rest-first-${tid}`}>
+          <span className="k">answers first</span>
+          <span>{restNow!.answers_first.map((a) => <span key={a.id} style={{ display: "block" }}
+            className={a.state === "answers_first" ? "" : "dim"}>{a.words}</span>)}</span>
+        </div>
+      )}
       {Array.from({ length: want }, (_, i) => (
         <PointPicker key={`${fix.op}-${i}`} n={i + 1} of={want} point={fix.points[i]} mapSplits={mapSplits}
           onPoint={(p) => setPoint(i, p)} picking={pickAt === i} onPickMap={() => pick(i)}
           splitName={splitName} offered={offered} newSplits={newSplits} first={waters.map((w) => w.name)}
-          onLabel={(id, label) => setPickedCuts((m) => ({ ...m, [id]: label }))} />
+          onLabel={(id, label) => setPickedCuts((m) => ({ ...m, [id]: label }))}
+          onTidalEnd={dfo && toTidalEnd(fix, i) ? () => {
+            const t = toTidalEnd(fix, i);
+            if (t) { setPreview(null); onPreview(null); onChange(t); }
+          } : undefined} />
       ))}
-      <div className="fix-row">
+      {fix.op === "other_places" ? (
+        <div className="fix-row" data-testid={`fix-on-own-${tid}`}>
+          <span className="k">on</span>
+          <span className="dim">the place's own water, always — “all the other places on this water” takes no water of its
+            own (a water ticked here was refused at the write, Qualicum 2026-11-15)</span>
+        </div>
+      ) : <div className="fix-row">
         <span className="k">on</span>
         {waters.length === 0 && <span className="dim">no water matched</span>}
         {waters.map((w) => (
@@ -187,34 +251,73 @@ export function ExtentFixEditor({ scope, entryId, currentOp, mapSplits, waters, 
           setPicked((m) => ({ ...m, [h.id]: h.name }));
           set({ items: [...fix.items, h.id] });
         }} />
-        <span className="dim">{fix.items.length ? "" : "(none ticked = the entry's waters)"}</span>
-      </div>
-      <div className="fix-row">
-        <span className="k">tributaries</span>
-        {([[null, "no call"], [true, "include"], [false, "exclude"]] as [boolean | null, string][]).map(([v, w]) => (
-          <button key={w} type="button" className={`ans trib-call${(fix.tributaries ?? null) === v ? " on" : ""}`}
-            aria-pressed={(fix.tributaries ?? null) === v} onClick={() => set({ tributaries: v })}>{w}</button>
-        ))}
-        {tributariesNow && <span className="dim" data-testid={`fix-trib-now-${tid}`}>now: {tributariesNow}</span>}
-      </div>
+        <span className="dim">{fix.items.length ? (dfo ? "(a water ticked holds its own side channels too)" : "")
+          : "(none ticked = the entry's waters)"}</span>
+      </div>}
+      {dfo ? (
+        <div className="fix-row" role="radiogroup" aria-label={`tributaries ${tid}`}>
+          <span className="k">holds</span>
+          {TRIB_CHOICES.map((c) => (
+            <button key={c.v} type="button" role="radio" aria-checked={tribChoiceOf(fix) === c.v}
+              className={`ans trib-call${tribChoiceOf(fix) === c.v ? " on" : ""}`} data-testid={`fix-trib-${c.v}-${tid}`}
+              onClick={() => { setPreview(null); onPreview(null); onChange(withTribChoice(fix, c.v)); }}>{c.words}</button>
+          ))}
+          {tributariesNow && <span className="dim" data-testid={`fix-trib-now-${tid}`}>now: {tributariesNow}</span>}
+        </div>
+      ) : (
+        <div className="fix-row">
+          <span className="k">tributaries</span>
+          {([[null, "no call"], [true, "include"], [false, "exclude"]] as [boolean | null, string][]).map(([v, w]) => (
+            <button key={w} type="button" className={`ans trib-call${(fix.tributaries ?? null) === v ? " on" : ""}`}
+              aria-pressed={(fix.tributaries ?? null) === v} onClick={() => set({ tributaries: v })}>{w}</button>
+          ))}
+          {tributariesNow && <span className="dim" data-testid={`fix-trib-now-${tid}`}>now: {tributariesNow}</span>}
+        </div>
+      )}
+      {dfo && tribChoiceOf(fix) !== "water_only" && (
+        <div className="fix-row" data-testid={`fix-except-${tid}`}>
+          <span className="k">except</span>
+          <span className="dim">these tributaries:</span>
+          {(fix.tributary_excludes ?? []).map((x) => (
+            <span key={x} className="chip-tag new" title={x} data-testid="fix-except-chip">
+              {itemNames[x] ?? picked[x] ?? <span className="field-error">water {x} has no name</span>}
+              <button type="button" className="x" aria-label={`keep ${x}`}
+                onClick={() => set({ tributary_excludes: (fix.tributary_excludes ?? []).filter((y) => y !== x) })}>×</button>
+            </span>
+          ))}
+          {!(fix.tributary_excludes ?? []).length && <span className="dim">none</span>}
+          <ItemSearch kind="stream" placeholder="+ a tributary to leave out…" onPick={(h) => {
+            if ((fix.tributary_excludes ?? []).includes(h.id) || fix.items.includes(h.id)) return;
+            setPicked((m) => ({ ...m, [h.id]: h.name }));
+            set({ tributary_excludes: [...(fix.tributary_excludes ?? []), h.id] });
+          }} />
+        </div>
+      )}
       <div className="fix-row">
         <button type="button" className="btn small" disabled={busy} data-testid={`fix-preview-${tid}`}
           onClick={runPreview}>{busy ? "resolving…" : "preview on map"}</button>
         {preview && (preview.resolvable
-          ? <span data-testid={`fix-preview-says-${tid}`}><strong>binds {preview.n_sections?.toLocaleString()} section(s)</strong>
+          ? <span data-testid={`fix-preview-says-${tid}`}><strong>binds {preview.n_sections?.toLocaleString()} section(s)
+              {preview.km != null && ` · ${preview.km.toLocaleString()} km`}</strong>
               {preview.truncated && " (drawing capped)"} · on the map
               {preview.outcomes && Object.values(preview.outcomes).some((o) => o !== "bound") &&
                 <span className="warn-text"> · {Object.entries(preview.outcomes).map(([k, v]) => `${k} ${v}`).join(", ")}</span>}
               {preview.walks_tributaries === true && <span data-testid={`fix-preview-tribs-${tid}`}>{tributariesDrawn
                 ? " · with tributaries" : " · with tributaries — not drawn; tick Show tributaries to draw"}</span>}
               {preview.walks_tributaries === false && <span> · no tributaries</span>}
+              {(preview.channels?.length ?? 0) > 0 && <span style={{ display: "block" }} data-testid={`fix-channels-${tid}`}>
+                Its own side channels, included: {preview.channels!.map((c) => `${c.name} (${c.n_sections} section${c.n_sections === 1 ? "" : "s"}, ${c.km} km)`).join("; ")}.</span>}
               {preview.others && <span style={{ display: "block" }} data-testid="fix-others">
                 It has no stretch of its own. It applies to {preview.others.length} placed place{preview.others.length === 1 ? "" : "s"} of this water right now
                 {preview.others.length ? ": " + preview.others.map((o) => `“${o.text.slice(0, 70)}” (${o.extent})`).join("; ") : ""}.
                 {preview.others_unplaced?.length ? ` Not included until placed: ${preview.others_unplaced.map((o) => `“${o.text.slice(0, 60)}”`).join("; ")}.` : ""}
                 {" "}A place placed later joins by itself; it is never taken out of “the rest of the water”.
                 {preview.one_sibling && <span className="warn-text" style={{ display: "block" }} data-testid="fix-one-sibling">{preview.one_sibling}</span>}</span>}
-              {preview.dead_pieces?.length ? <span className="warn-text" data-testid={`fix-dead-pieces-${tid}`}>
+              {preview.rest_skipped && <span className="warn-text" style={{ display: "block" }} data-testid="fix-rest-skipped">
+                Left out of the subtraction (this place covers their water until they bind): {Object.entries(preview.rest_skipped).map(([k, v]) => `${k} — ${v}`).join("; ")}.</span>}
+              {preview.rest_dormant?.length ? <span className="dim" style={{ display: "block" }} data-testid="fix-rest-dormant">
+                Dormant, take nothing: {preview.rest_dormant.join(", ")}.</span> : null}
+              {preview.dead_pieces?.length ?<span className="warn-text" data-testid={`fix-dead-pieces-${tid}`}>
                 {" "}· piece {preview.dead_pieces.join(", ")} binds NOTHING alone — the build refuses it.
                 {(preview.dead_why ?? []).map((w, i) => <span key={i} style={{ display: "block" }} data-testid="fix-dead-why">{w}</span>)}</span> : null}
             </span>
@@ -228,8 +331,10 @@ export function ExtentFixEditor({ scope, entryId, currentOp, mapSplits, waters, 
 }
 
 function PointPicker({ n, of, point, mapSplits, onPoint, picking, onPickMap, splitName, offered,
-                      newSplits, onLabel, first }: {
+                      newSplits, onLabel, first, onTidalEnd }: {
   first: string[];
+  /** (2026-11-15) this end at the stream's tidal boundary: an open end, no cut (offered where the op has one) */
+  onTidalEnd?: () => void;
   n: number; of: number; point?: FixPoint; mapSplits: NamedRef[]; onPoint: (p: FixPoint) => void;
   picking: boolean; onPickMap: () => void; splitName: (id: string) => string;
   offered: typeof SOURCES; newSplits: NamedRef[];
@@ -248,8 +353,10 @@ function PointPicker({ n, of, point, mapSplits, onPoint, picking, onPickMap, spl
       </select>
       {src === "map" && (
         <select aria-label={`point ${n} split`} value={point?.kind === "split" ? point.split_id ?? "" : ""}
-          onChange={(e) => e.target.value && onPoint({ kind: "split", split_id: e.target.value })}>
+          onChange={(e) => e.target.value === TIDAL_END ? onTidalEnd?.()
+            : e.target.value && onPoint({ kind: "split", split_id: e.target.value })}>
           <option value="">— pick a split —</option>
+          {onTidalEnd && <option value={TIDAL_END}>the tidal boundary (open end, no cut — the place stops at the stream's tidal boundary)</option>}
           {mapSplits.map((s) => <option key={s.id} value={s.id}>{s.name}</option>)}
         </select>
       )}

@@ -30,6 +30,7 @@
  * NOTHING HERE IS A SECOND OPINION: each takes the percentile the arithmetic produced (or the band `standing()` chose
  * from it) and only chooses words for it.
  */
+import { LEVEL_DECIMALS } from "./gauge-policy.generated";
 import { standing, type Standing } from "./flow";
 
 /** The six bands, once. `band` is the sentence-case word; `headline` is what the water is doing, in a screen's first line. */
@@ -41,6 +42,19 @@ const BAND_WORDS: Record<Standing, { band: string; headline: string }> = {
   "much-above": { band: "Much above normal", headline: "Much above normal for the time of year" },
   "no-record":  { band: "No record",         headline: "No record to compare against" },
 };
+
+/** (T908) the band a band word names ("Above normal" -> "above"), or null for a word that is none of the six. */
+export function bandOfWord(word: string): Standing | null {
+  for (const k of Object.keys(BAND_WORDS) as Standing[]) if (BAND_WORDS[k].band === word) return k;
+  return null;
+}
+
+/** (T908) THE GAUGE PAGE'S ONE LINE, "Above normal for Nov 19 · rising": the band word, the day, and (when there is one) the trend word. */
+export const standingNowLine = (band: string, day: string, trend: string | null): string => `${band} for ${day}${trend ? ` · ${trend}` : ""}`;
+
+/** (T908) THE GAUGE PAGE'S ONE SMALL LINE under its headline: the rank, the expected change, the reading's age (each as core said it; none: left out). */
+export const gaugeSummaryLine = (rank: string | null, change: string | null, age: string): string =>
+  [rank ? rank.charAt(0).toUpperCase() + rank.slice(1) : null, change, age].filter((x): x is string => !!x).join(" · ");
 
 /** "Below normal" — the band alone. */
 export const bandWord = (s: Standing): string => BAND_WORDS[s].band;
@@ -144,4 +158,16 @@ export function figure(v: number): string {
   if (a >= 100) return String(Math.round(v));
   if (a >= 10) return String(Math.round(v * 10) / 10);
   return String(Math.round(v * 100) / 100);
+}
+
+/**
+ * (T830) A VALUE IN ITS QUANTITY, the one way any reading is written: a water LEVEL in metres to `LEVEL_DECIMALS` places,
+ * always ("1.00", "0.85", "340.21"; Python's `record.LEVEL_DECIMALS`, owner 2026-11-17 09:57), and anything else (a flow)
+ * as `figure`. A chart's axis ticks are round values and stay `figure` ("1.5", not "1.50").
+ */
+export function figureIn(v: number, quantity: string): string {
+  if (quantity !== "level") return figure(v);
+  const k = 10 ** LEVEL_DECIMALS;
+  const s = (Math.round(v * k) / k).toFixed(LEVEL_DECIMALS);      // half up, as `figure` rounds (0.335 -> "0.34")
+  return /^-0\.0*$/.test(s) ? s.slice(1) : s;
 }

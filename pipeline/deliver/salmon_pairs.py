@@ -63,14 +63,23 @@ def place_rules(entry_files: dict, feeds: dict, headers: dict) -> Dict[str, List
     return out
 
 
-def pairs(chains: List[dict], rules_of: Dict[str, List[dict]]) -> Tuple[List[list], List[str]]:
+def pairs(chains: List[dict], rules_of: Dict[str, List[dict]], static: Optional[Dict[str, dict]] = None,
+          verdicts: Optional[List[dict]] = None) -> Tuple[List[list], List[str]]:
     """([[a, b, answer]] sorted by content, the place ids a two-region chain names that no curated place is). Only
     chains with `s` (two regions); per species and day each group's first place with an answer (else `NOT_LISTED`),
-    exactly as `live.compose` folds them; a pair is two OPENINGS that differ."""
+    exactly as `live.compose` folds them; a pair is two OPENINGS that differ. (T796 A5) A release-side place (payload
+    `static[id]`, a rule-book closure `book:...`: the live feed never carries it, the app composes it from the release)
+    answers from its own year, its verdict indices into the payload's `verdicts`."""
     from pipeline.regs.dfo_salmon import live as L
     V, G = S._Interner(), S._Interner()
     V(S.NOT_LISTED)
+    static = static or {}
+    if static and verdicts is None:
+        raise S.SalmonError("salmon_pairs: static places need the payload's verdicts")
     cal: Dict[str, dict] = {}
+    for lid, year in static.items():
+        cal[lid] = {"sp": [[x if i % 2 == 0 else (V(verdicts[x]) if x >= 0 else -1) for i, x in enumerate(runs)]
+                           for runs in year["sp"]]}
     got: Dict[Tuple[str, str], list] = {}
     missing: set = set()
     for c in chains:
@@ -78,7 +87,7 @@ def pairs(chains: List[dict], rules_of: Dict[str, List[dict]]) -> Tuple[List[lis
         if not groups:
             continue
         lids = c["l"]
-        gone = [l for l in lids if l not in rules_of]
+        gone = [l for l in lids if l not in rules_of and l not in cal]
         if gone:
             missing.update(gone)
             continue
@@ -115,7 +124,8 @@ def table(rel: Path, *, entries_dir: Optional[Path] = None, feed_dir: Optional[P
         if not p.exists():
             raise S.SalmonError(f"salmon_pairs: no typed DFO feed {p} — write it:\n    python -m pipeline.regs.dfo_salmon.feed")
         feeds[s] = json.loads(p.read_text(encoding="utf-8"))
-    rows, missing = pairs(payload["chains"], place_rules(files, feeds, S.load_headers(feeds)))
+    rows, missing = pairs(payload["chains"], place_rules(files, feeds, S.load_headers(feeds)),
+                          payload.get("static") or {}, payload["verdicts"])
     if missing:
         raise S.SalmonError(f"salmon_pairs: release {rel.name} chains name places no curated file holds: {missing}")
     return {"format": FORMAT, "release": rel.name, "pairs": rows}

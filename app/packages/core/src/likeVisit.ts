@@ -24,10 +24,9 @@
  * per day by the publisher's one rule (the first flood model, else ELF). A day ELF made is scored like any other and
  * SAYS so — the factor names the model and the day carries the low-water caveat (`CHANGE_LOW_WATER`, T144).
  */
-import { monthAbbr, weekdayAbbr } from "./flow";
 import { daysShort } from "./standing";
 import { bcNow } from "./clock";
-import { shiftDay, wallIso } from "./day";
+import { shiftDay, spotDay, spotIsoDay, wallIso } from "./day";
 import { agoWords } from "./freshness";
 import { CHANGE_LOW_WATER, CHANGE_LOW_WATER_MARK } from "./change";
 import { weatherFigure } from "./weatherFigure";
@@ -149,6 +148,8 @@ export const LIKE_WORDS = {
   noFlowThen: "No flow then to compare: scored on the weather only.",
   noFlowAhead: "No flow forecast for this day: scored on the weather only.",
   noScore: "Nothing to compare for this day.",
+  /** (T819 item 9) a day's one line when no factor differs: every scored factor the same as at the visit */
+  allSame: "Much the same as your visit",
   nothingThen: "Nothing was recorded at this visit to compare with: no flow, no weather.",
   never: "The forecast has not been fetched yet. It is fetched when you are online.",
   weatherOnly: "weather only",
@@ -246,6 +247,19 @@ export function likeDay(then: LikeConditions, that: LikeConditions & { date: str
 
 const cap = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
 
+/**
+ * (T819 item 9) A COMING DAY IN ONE LINE: the single biggest difference from the visit — the scored factor that costs
+ * the day most of its score ((1 − likeness) × its share), said plainly ("Flow: 13 points lower"); `allSame` when nothing
+ * scored differs; null when nothing was scored. The full reasons stay behind the row's tap.
+ */
+export function likeBiggest(factors: readonly LikeFactor[]): string | null {
+  const scored = factors.filter((f) => f.likeness !== null && f.plain !== null);
+  if (!scored.length) return null;
+  const cost = (f: LikeFactor) => (1 - f.likeness!) * f.share;
+  const top = scored.reduce((a, b) => (cost(b) > cost(a) ? b : a));
+  return cost(top) > 0 ? top.plain : LIKE_WORDS.allSame;
+}
+
 /** True when the visit holds nothing at all to compare with. */
 export function likeNothingThen(then: LikeConditions): boolean {
   return LIKE_FACTORS.every((k) => (k === "flow" ? then.flow : k === "temp" ? then.tempC : k === "rain" ? then.rainMm
@@ -258,20 +272,26 @@ export function likeDays(now: number): string[] {
   return Array.from({ length: LIKE_DAYS }, (_, i) => wallIso(shiftDay(d, i)));
 }
 
-/** A coming day's column head: "Today", "Tomorrow", else the weekday "Sat"; and its date, "24 Oct". */
+/**
+ * A coming day's head: "Today" / "Tomorrow" over its date, else the date alone — "Wed 18 Nov", the spots' one style
+ * (T819 item 10, `spotIsoDay`); `sub` is empty then.
+ */
 export function likeDayHead(date: string, now: number): { top: string; sub: string } {
-  const [y, m, d] = date.split("-").map(Number) as [number, number, number];
   const days = likeDays(now);
-  const top = date === days[0] ? LIKE_WORDS.today : date === days[1] ? LIKE_WORDS.tomorrow
-    : weekdayAbbr(new Date(y, m - 1, d).getDay());
-  return { top, sub: `${d} ${monthAbbr(m - 1)}` };
+  const said = spotIsoDay(date, now);
+  const near = date === days[0] ? LIKE_WORDS.today : date === days[1] ? LIKE_WORDS.tomorrow : null;
+  return near ? { top: near, sub: said } : { top: said, sub: "" };
 }
 
-/** The visit's column: "Your visit" over its date, with the year when it is not this year: "30 Aug 2025". */
+/** A coming day's head said in one: "Today, Thu 22 Oct", "Sat 24 Oct". */
+export function likeDayHeadSaid(date: string, now: number): string {
+  const h = likeDayHead(date, now);
+  return h.sub ? `${h.top}, ${h.sub}` : h.top;
+}
+
+/** The visit's head: "Your visit" over its date, the year when it is not this year's: "Sun 30 Aug 2025" (T819). */
 export function likeVisitHead(visitedAt: number, now: number): { top: string; sub: string } {
-  const v = new Date(visitedAt);
-  const year = v.getFullYear() === new Date(now).getFullYear() ? "" : ` ${v.getFullYear()}`;
-  return { top: LIKE_WORDS.visit, sub: `${v.getDate()} ${monthAbbr(v.getMonth())}${year}` };
+  return { top: LIKE_WORDS.visit, sub: spotDay(visitedAt, now) };
 }
 
 /** The cell's number: "82%", or a dash for no score. */
@@ -279,8 +299,7 @@ export const likeScoreText = (d: LikeDay): string => (d.score === null ? LIKE_WO
 
 /** The day said whole, for a screen reader and a test: "Today, 24 Oct: 82%, very similar to your visit." */
 export function likeDayLabel(d: LikeDay, now: number): string {
-  const h = likeDayHead(d.date, now);
-  const head = `${h.top}, ${h.sub}`;
+  const head = likeDayHeadSaid(d.date, now);
   if (d.score === null || !d.read) return `${head}: ${LIKE_WORDS.noScore}`;
   const to = d.read === "different" ? "from" : "to";
   return `${head}: ${d.score}%, ${d.read} ${to} your visit${d.basis === "weather" ? ", on the weather only" : ""}.`;

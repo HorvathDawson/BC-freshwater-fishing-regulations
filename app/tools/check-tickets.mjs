@@ -50,13 +50,7 @@ export const STATUSES = ["IN PROGRESS", "IN REVIEW", "BLOCKED", "POSTPONED", "PA
  * lane that closes or re-words one removes its id here (a listed id that complies now fails the guard).
  */
 export const NO_STEP_YET = [
-  "T88", "T178", "T261", "T292", "T310", "T360", "T390", "T401", "T404", "T409",
-  "T410", "T461", "T485", "T496", "T498", "T508", "T532", "T543", "T544", "T546",
-  "T547", "T548", "T550", "T551", "T552", "T553", "T558", "T559", "T561", "T562",
-  "T563", "T564", "T565", "T566", "T567", "T568", "T569", "T570", "T571", "T572",
-  "T573", "T581", "T582", "T583", "T584", "T586", "T589", "T590", "T594", "T595",
-  "T596", "T598", "T604", "T607", "T609", "T610", "T620", "T621", "T622", "T624",
-  "T632", "T636",
+  "T360", "T401", "T409", "T410", "T552", "T572",
 ];
 
 const ID = /^T\d+[a-z]?/;

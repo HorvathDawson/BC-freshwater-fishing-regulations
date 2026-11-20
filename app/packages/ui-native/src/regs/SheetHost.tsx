@@ -16,7 +16,7 @@ import { Sheet } from "../Sheet";
 import type { Palette } from "../theme";
 import { SheetBody } from "./SheetBody";
 import { SynopsisLoading } from "./SynopsisLoading";
-import type { AdiposeImages, FishImages } from "./types";
+import type { FishImages } from "./types";
 
 export interface SheetHostProps {
   page: RegsPage;                       // page.sheet(key) is lazy + pure (T36)
@@ -26,7 +26,6 @@ export interface SheetHostProps {
   onTab?: (t: Tab) => void;             // "Steelhead stamp ›" when it sits in a sheet
   palette: Palette;
   fish?: FishImages;                    // T20 map code → ImageSourcePropType (registered by apps/mobile)
-  adipose?: AdiposeImages;              // T38 the hatch sheet's two drawings (apps/mobile ADIPOSE_IMAGES)
   onBook?: (pdf: number, box?: readonly SourceBox[]) => void;       // a Rule book page (default: the synopsis at that page, D6 a)
   layout?: LayoutClass;                 // (T45/T46) absent → the app's (`useLayoutClass`)
 }
@@ -47,7 +46,7 @@ export function SheetHost(p: SheetHostProps) {
   if (!drawn) return null;
   return (
     <Sheet open={vm !== null} title={drawn.title} sub={drawn.sub} scroll scrollRef={scroll} palette={p.palette} onClose={p.onClose} layout={layout} dialog footer={<SynopsisLoading palette={p.palette} />}>
-      <SheetBody vm={drawn} layout={layout} palette={p.palette} fish={p.fish} adipose={p.adipose} onOpen={p.onOpen} onTab={p.onTab} onBook={p.onBook} />
+      <SheetBody vm={drawn} layout={layout} palette={p.palette} fish={p.fish} onOpen={p.onOpen} onTab={p.onTab} onBook={p.onBook} />
     </Sheet>
   );
 }

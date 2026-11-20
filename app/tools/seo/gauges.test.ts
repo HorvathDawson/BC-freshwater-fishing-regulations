@@ -9,7 +9,7 @@ import { buildAll, type Built } from "./build";
 import { TODAY } from "./fixture";
 import { checkJsonLd } from "./jsonld";
 import { pngSize } from "./share";
-import { gaugeModels, gaugePath, gaugeTitle, LIVE, type GaugeRows } from "./gauges";
+import { gaugeModels, gaugePath, gaugeTitle, LIVE, moreSummary, type GaugeRows } from "./gauges";
 import { readConfig } from "./build";
 
 const site = readConfig();
@@ -54,7 +54,7 @@ describe("T487 gauge pages", () => {
     const links = [...p.html.matchAll(/<a href="(\/water\/[^"?]+)">([^<]*) fishing regulations<\/a>/g)].map((x) => x[1]);
     expect(links).toEqual([path(ids[0]!), path(ids[1]!)]);                 // own water first, then the fair one; the weak duplicate folded
     expect(p.html).toContain(`<a class="app" href="${path(ids[0]!)}?view=conditions">Open on the website</a>`);
-    expect(p.html).toContain(`<span class="app soon" aria-disabled="true">Open in the app · coming soon</span>`);
+    expect(p.html).toContain(`<p class="small coming">Coming soon to Google Play and the App Store.</p>`);
     const q = gaugePages().find((x) => x.path.startsWith("/gauge/08MH016"))!;
     expect(q.html).toMatch(/<details><summary>A rough guide for 2 more waters<\/summary>/);
     for (const g of gaugePages()) {
@@ -63,6 +63,10 @@ describe("T487 gauge pages", () => {
       expect(checkJsonLd(g.html, site.origin), g.path).toEqual([]);
       expect(g.title.length).toBeLessThanOrEqual(60);
     }
+    // (T908, owner 2026-11-19) no "Browse by region" on a gauge page (it leads to the hidden site map); the fair guides are in the fold, the main waters above it
+    for (const g of gaugePages()) expect(g.html, g.path).not.toContain("Browse by region");
+    expect(p.html).toMatch(/<h2>Waters this gauge serves<\/h2><ul><li><a href="[^"]*">[^<]*<\/a><\/li><\/ul><details><summary>Also a guide for 1 more water<\/summary>/);
+    expect(built.build.pages.find((x) => x.kind === "region")!.html).toContain("Browse by region");
     expect(m.length).toBeGreaterThan(4);
   });
 
@@ -137,5 +141,16 @@ describe("T487 the site worker's /gauge routes", () => {
     expect(old.status).toBe(301);
     expect(await (await w.fetch(new Request("https://canifishthis.ca/gauge/08MH001/chilliwack-river-at-vedder-crossing"), e, c)).text()).toBe("asset");
     expect(await (await w.fetch(new Request("https://canifishthis.ca/gauge/99XX999/card.png"), e, c)).text()).toBe("asset");
+  });
+});
+
+describe("(T908) the fold's summary names the guides it holds", () => {
+  const w = (id: string) => ({ id, name: id, path: `/water/${id}` });
+  const a = w("a"), b = w("b"), c = w("c");
+  it("rough only when every folded water is a weak guide; a fair one is never called rough", () => {
+    expect(moreSummary({ main: [a], more: [b], rough: [] })).toBe("Also a guide for 1 more water");
+    expect(moreSummary({ main: [], more: [b, c], rough: [b, c] })).toBe("A rough guide for 2 more waters");
+    expect(moreSummary({ main: [], more: [b, c], rough: [c] })).toBe("A guide for 2 more waters");
+    expect(moreSummary({ main: [], more: [b], rough: [] })).toBe("A guide for 1 more water");
   });
 });

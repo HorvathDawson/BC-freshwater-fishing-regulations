@@ -21,7 +21,7 @@ interface Case {
   name: string;
   rows: Row[];
   /** per row, what is asserted of its first rule (a key left out is not asserted; species null = the rule carries none) */
-  typed?: { type?: string; species?: string[] | null; reason?: "tbd" | "gear_permission" }[];
+  typed?: { type?: string; species?: string[] | null; reason?: "tbd" | "gear_permission"; verbatim?: string }[];
   /** [species, MMDD, the place's own status that day — null where the place says nothing] */
   own?: [string, number, string | null][];
   /** (T671 5B) the curated place's words and `within` areas (quota.poolOf) */
@@ -74,6 +74,7 @@ describe("(T671 D2, D1; T676) the shared hand rows: typed and answered as the fi
         if ("type" in want) expect(rule.type).toBe(want.type);
         if ("species" in want) expect(rule.species ?? null).toEqual(want.species);
         if (want.reason) expect(rule.review_reason!.startsWith(REASONS[want.reason])).toBe(true);
+        if (want.verbatim !== undefined) expect(rule.verbatim).toBe(want.verbatim); // (T623 F13) the verdict's short line
       });
       expect((c.own ?? []).map(([sp, md]) => [sp, md, status(c.rows, sp, md)])).toEqual(c.own ?? []);
     });

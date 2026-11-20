@@ -24,6 +24,11 @@ import { sharedFixesIos } from './scenarios-ios/shared-fixes.mjs';
 import { keyboardIos } from './scenarios-ios/keyboard.mjs';
 import { modalBackIos } from './scenarios-ios/modal-back.mjs';
 import { auditFixes } from './scenarios-ios/audit-fixes.mjs';
+import { build36Ios, t814BgIos } from './scenarios-ios/build36.mjs';
+import { conditionsIos } from './scenarios-ios/conditions.mjs';
+import { nullClearsIos } from './scenarios-ios/null-clears.mjs';
+import { t884Ios } from './scenarios-ios/t884.mjs';
+import { bgUpdateIos } from './scenarios-ios/bg-update.mjs';
 
 process.env.TESTBED_PLATFORM = 'ios';
 const HERE = path.dirname(new URL(import.meta.url).pathname);
@@ -35,12 +40,14 @@ const sleep = device.sleep;
 
 // ---------- shared steps ----------
 const hasTabs = (w) => w.some((x) => /^MORE$|^More$/.test(x)) && w.some((x) => /^MAP$|^Map$/.test(x));
+/** The first-install screen (App.tsx's boot: "N of M MB downloaded", `boot-close-ok`): the app is not up while it shows. */
+const installing = (w) => w.some((x) => / MB downloaded$|^Downloading the map and regulations/.test(x)) || (w.ids ?? []).includes('boot-close-ok');
 // (iPhone 17 layout) the search bar's "‹" and a water page's "‹ Map": neither has words Maestro can match on iOS
 const SEARCH_BACK = '9%,11%', PAGE_BACK = '10%,10%';
 // the Map tab, by place: the text "Map" is also a water page's back link and a Layers tile, and Maestro took the first
 // one it found (ios-t313g: the page reopened and every later scenario started on it)
 const MAP_TAB = '10%,92%';
-/** the walkthrough card's count line ("FIND A WATER · 1 OF 25") */
+/** the walkthrough card's count line ("FIND A WATER · 1 OF 10") */
 const GUIDE = /\d+ of \d+$/i;
 /** a water's page is up: its back link by id (iOS reads "‹ Map" as the label "Back"; the tab bar can stay in the tree) */
 const onPage = (w) => (w.ids ?? []).includes('water-back') || (w.includes('Regulations') && w.includes('Conditions') && !hasTabs(w));
@@ -75,12 +82,16 @@ async function appUp(ctx, { launch = true, ms = 180_000, alerts = 'Allow' } = {}
       // the walkthrough opens once the map has drawn: a beat, then a last look before calling the app up
       await sleep(4000);
       const again = device.screenText();
-      if (!again.some((x) => GUIDE.test(x) || /^(I understand|Got it)$/.test(x))) { w = again; break; }
+      // (integration 2026-11-14) the tabs must still be there on the second look, and the first-install screen gone: a
+      // first open passed at 67 s with the download screen up (its own shot, 38.8 of 479.3 MB) on one stray read
+      if (hasTabs(again) && !installing(again) && !again.some((x) => GUIDE.test(x) || /^(I understand|Got it)$/.test(x))) {
+        w = again; break;
+      }
       continue;
     } else if (!device.pidOf()) device.launch();
     await sleep(3000);
   }
-  if (!hasTabs(w)) throw new Error(`the app is not up in ${ms / 1000} s (saw: ${w.slice(0, 8).join(' | ').slice(0, 300)})`);
+  if (!hasTabs(w) || installing(w)) throw new Error(`the app is not up in ${ms / 1000} s (saw: ${w.slice(0, 8).join(' | ').slice(0, 300)})`);
   const bad = w.find((x) => /could not be loaded|Something went wrong|Unable to load/i.test(x));
   if (bad) throw new Error(`the app says: ${bad}`);
 }
@@ -482,7 +493,10 @@ const SCENARIOS = [
         await ctx.waitText(/Regulations/, 30_000);
         return measure('water page');
       });
-      const LINK = process.env.BOOK_LINK ?? '.*[Rr]ule book p\\.[0-9]+ ↗.*';   // (T718) Cultus's link reads "This water in the rule book p.7 ↗" on 0.7.9
+      // (T718) the water's rule-book link, "This water in the rule book p.N ↗". Cultus's "p.7" (0.7.9) was the licences page,
+      // which T916 removed: the line is now only for a water's own table row, at the page's foot — Cultus may have none,
+      // so BOOK_LINK (or the water opened above) must name a water that has one
+      const LINK = process.env.BOOK_LINK ?? '.*[Rr]ule book p\\.[0-9]+ ↗.*';
       const book = async (label) => {
         ctx.flow('scroll-to', { TEXT: LINK });
         const t0 = Date.now();
@@ -617,6 +631,17 @@ const SCENARIOS = [
   modalBackIos,
   // (T723) the iOS audit fixes' proof, by name only
   auditFixes,
+  // (T814 T815 T816 T821) the owner's iPhone build 36 findings, by name only, on a fresh install
+  build36Ios,
+  t814BgIos,
+  // (T826) the Conditions tab on iOS: gauge markers, the flow bar, the Chehalis, the highlight after back
+  conditionsIos,
+  // (T832) a river that loses its standing at a horizon change shows none on iOS (the null-clear fix), pixels read
+  nullClearsIos,
+  // (T884) the fish sheet's big number on iOS (Cultus Lake, Black crappie) at three text sizes
+  t884Ios,
+  // (T912) an update goes on with the app closed (Home, then the process ended): the T722 background session
+  bgUpdateIos,
 ];
 
 // ---------- the runner (as run.mjs, without the Android-only crash buffer and test channel) ----------
@@ -645,7 +670,7 @@ function makeCtx(sc) {
   const ctx = {
     device, rec, dir,
     // (T719) the iOS steps the twins in scenarios-ios/ share with the scenarios here
-    ios: { appUp, coldStart, toMap, back, pageBack, onPage, hasTabs },
+    ios: { appUp, coldStart, toMap, back, pageBack, onPage, hasTabs, openLog },
     // (T542 waits) until / timer as Android's; hasId off Maestro's tree; settle's frame look a simulator screenshot
     ...makeWaits(device),
     hasId: (id) => device.hasId(id),

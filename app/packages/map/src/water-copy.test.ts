@@ -273,7 +273,9 @@ describe("the copy's paint IS the water's own (one colouring pathway)", () => {
     a.setLayerMode(h, "lake", "standing", "light");
     const of = (layer: string, prop: string) => calls.filter((c) => c.startsWith(`${layer} ${prop} `)).at(-1)?.split(" ").slice(2).join(" ");
     expect(of("water-copy-line", "line-color")).toBe(of("stream", "line-color"));
-    expect(of("water-copy-line", "line-opacity")).toBe(of("stream", "line-opacity"));
+    // (T848) the stream's opacity as ONE layer draws it: `stream` itself is hidden under `stream-heavy` where that shows
+    expect(of("water-copy-line", "line-opacity")).toBe(JSON.stringify(paintFor("stream", "standing", resolveTheme("light"))["line-opacity"]));
+    expect(of("stream-heavy", "line-color")).toBe(of("stream", "line-color"));
     expect(of("water-copy-fill", "fill-color")).toBe(of("lake", "fill-color"));
     expect(of("water-copy-casing", "line-color")).toBe(of("selection-casing", "line-color"));
   });

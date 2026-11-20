@@ -4,7 +4,7 @@
  * words — whole strings (AGENTS 33).
  */
 import { describe, expect, it } from "vitest";
-import { decodeSalmon, decodeSalmonHead, decodeSalmonShard, salmonCard, salmonChainStatus, salmonDayIndex, salmonDayProfiles, salmonLabel,
+import { decodeSalmon, decodeSalmonHead, decodeSalmonShard, finfishDayLabels, salmonCard, salmonChainStatus, salmonDayIndex, salmonDayProfiles, salmonLabel,
          SALMON_WORDS, SalmonError, salmonTable, salmonTableTexts, salmonRowTexts, salmonDayStatus, gearTabsFor, salmonStripOf, salmonTimelineKey, quotaLine } from "./salmon";
 import { tierWords } from "./regs/tree";
 import { text } from "./regs/line";
@@ -64,6 +64,8 @@ function shard(region: string, runs: [number, number, number][], handles = HANDL
 const FILE = encode(PAYLOAD);
 const SHARDS = [shard("6", [[100, 5, 1]]), shard("1", [[200, 2, 2]])];
 const facts = () => decodeSalmon(FILE, HANDLES, SHARDS);
+/** (T820) a page closed every day: one bar, every day of the book's year closed */
+const ALL_CLOSED_BAR = { label: null, unmapped: false, today: "closed", todayWord: "closed", runs: [{ status: "closed", days: 365 }] };
 
 describe("salmon/4", () => {
   it("decodes the runs: a placed section reads its chain; a section in no run reads the UNLISTED chain (closed)", () => {
@@ -125,6 +127,18 @@ describe("the Salmon colouring's day", () => {
   it("a section paints its chain's answer: an unlisted section paints closed", () => {
     const f = facts(), day = salmonDayProfiles(f, JUL20);
     expect([day.open.includes(salmonLabel(f, 101)), day.closed.includes(salmonLabel(f, 7))]).toEqual([true, true]);
+  });
+
+  it("(T796 A6) the day's finfish closures: every chain with a species verdict carrying `f` that day, by its label", () => {
+    // the Kispiox's coho closure (FN0897, Aug 24 on) answered by DFO's "Finfish closure": all fishing closed then
+    const verdicts = PAYLOAD.verdicts.map((v, i) => (i === 3 ? { ...v, f: 1 } : v));
+    const f = decodeSalmon(encode({ ...PAYLOAD, verdicts }), HANDLES, SHARDS);
+    expect([finfishDayLabels(f, JUL20), finfishDayLabels(f, SEP15)]).toEqual([[], ["s1"]]);
+    expect(finfishDayLabels(f, SEP15)).toEqual([salmonLabel(f, 101)]);
+    // the same day indexing as the map's salmon day: Aug 24 (day 236) is the first, Aug 23 not yet
+    expect([finfishDayLabels(f, new Date(2026, 7, 23)), finfishDayLabels(f, new Date(2026, 7, 24))]).toEqual([[], ["s1"]]);
+    // a file without `f` closes nothing beyond salmon
+    expect(finfishDayLabels(facts(), SEP15)).toEqual([]);
   });
 });
 
@@ -217,7 +231,9 @@ describe("the Salmon card", () => {
     const map = (v: number) => (v === CHECK ? 4 : v === OPEN ? 1 : 2);
     const place = (v: number) => ({ sp: [[0, 0], [0, 0, 244, v, 305, 0], [0, 0], [0, 0], [0, 0]], m: [0, 3, 244, map(v), 305, 3] });
     const p = { ...PAYLOAD,
-      verdicts: [...PAYLOAD.verdicts, { s: "check", t: "To be determined (Sep 1–Oct 31)" }, { s: "open", t: "2 per day (Sep 1–Oct 31)" }],
+      // (T882) a "check" nobody could read (a DFO "To be determined" reads its own words: salmonTbd.test.ts)
+      verdicts: [...PAYLOAD.verdicts, { s: "check", t: "Dates unparsed — check DFO: 2 per day (as printed: Sept 1st to Oct 31th)" },
+                 { s: "open", t: "2 per day (Sep 1–Oct 31)" }],
       chains: [PAYLOAD.chains[0]!, { ...PAYLOAD.chains[1]!, u: ["1:cowichan", "1:other"] }, { ...PAYLOAD.chains[2]!, ...place(a) },
                { r: ["1"], w: "Other River", l: ["1:other"], g: [0, -1], n: [0, 0, 244, 1, 305, 0], ...place(b) }],
       unmapped: [...PAYLOAD.unmapped, { items: ["gnis:4674"], r: "1", w: "Kispiox River — at the other signs", chain: 3 }] };
@@ -266,7 +282,28 @@ describe("(T227) the salmon year at the top of the Keep tab", () => {
   it("every place mapped: ONE bar for the page, no label; a day no rule opens is closed", () => {
     const c = salmonCard(facts(), { sids: [101], item: null }, JUL20);
     expect(c.year).toEqual({ bars: [{ label: null, unmapped: false, today: "open", todayWord: "open",
-      runs: [{ status: "closed", days: 195 }, { status: "open", days: 40 }, { status: "closed", days: 130 }] }] });
+      runs: [{ status: "closed", days: 195 }, { status: "open", days: 40 }, { status: "closed", days: 130 }] }], by: "dfo" });
+  });
+
+  // (T934, owner 2026-11-20 "Bait ban needs to apply to salmon [too]. So would fly fish only")
+  it("(T934) the salmon bar carries the B.C. bait ban / fly only of its open days; closed days stay the closed stripe", () => {
+    const c = salmonCard(facts(), { sids: [101], item: null }, JUL20);   // closed 195, open 40, closed 130
+    const legend = [{ bit: 0, mark: "✓" as const, label: "open" }, { bit: 4, mark: null, label: "fly fishing only" },
+                    { bit: 16, mark: null, label: "bait ban" }];
+    // B.C.: bait ban all year, fly fishing only from book day 200; a game-fish closed day (bit 1 alone) carries no gear
+    const s = salmonStripOf(c, { runs: [{ bits: 16, days: 200 }, { bits: 20, days: 100 }, { bits: 1, days: 65 }],
+                                 line: [], todayAt: 200 / 365, legend })!;
+    expect(s.runs).toEqual([{ drawn: "closed", days: 195, gear: 0 }, { drawn: "open", days: 5, gear: 16 },
+                            { drawn: "open", days: 35, gear: 20 }, { drawn: "closed", days: 130, gear: 0 }]);
+    expect(s.legend).toEqual([{ drawn: "open", label: "✓ Open" }, { drawn: "closed", label: "✕ Closed" },
+                              { drawn: "open", bit: 4, label: "Fly fishing only" }, { drawn: "open", bit: 16, label: "Bait ban" }]);
+    // a release day carries the bait ban only: its stripes are the release ones, so the key never names a fly mark it lacks
+    const rel = { headlineStatus: "release", year: { by: "dfo", bars: [{ label: null, unmapped: false, today: "release",
+      todayWord: "release", runs: [{ status: "release", days: 365 }] }] } } as never;
+    const r = salmonStripOf(rel, { runs: [{ bits: 20, days: 365 }], line: [], legend })!;
+    expect([r.runs, r.legend.map((l) => l.label)]).toEqual([[{ drawn: "release", days: 365, gear: 16 }], ["Release only", "Bait ban"]]);
+    // the two bars' days must be the same year
+    expect(() => salmonStripOf(c, { runs: [{ bits: 16, days: 300 }], line: [], legend })).toThrow(/300 days/);
   });
 
   it("a page across places that differ: still one bar, `varies` on the days they differ", () => {
@@ -289,9 +326,14 @@ describe("(T227) the salmon year at the top of the Keep tab", () => {
     expect(s.status).toBe("closed");
   });
 
-  it("no salmon here (DFO lists nothing): no bar — never an all-closed salmon bar; the glance row is a plain 'closed'", () => {
+  // (T820, owner 2026-11-16 21:37: "the calendar bar doesnt have a full red line for salmon when closed but instead it is
+  // empty with no color on the calendar bar..") T227's "no bar" here is overruled: the full closed bar
+  it("no salmon here (DFO lists nothing): closed every day — the FULL closed bar (T820); the glance row is a plain 'closed'", () => {
     const c = salmonCard(facts(), { sids: [7], item: "gnis:1" }, JUL20);
-    expect([c.year.bars, salmonStripOf(c, null), c.closedOnly]).toEqual([[], null, true]);
+    expect([c.year, c.closedOnly]).toEqual([{ bars: [ALL_CLOSED_BAR], by: "dfo" }, true]);
+    const s = salmonStripOf(c, { runs: [{ bits: 0 }], line: [{ kind: "when", text: "today" }], todayAt: 200 / 365 })!;
+    expect([s.status, s.mark + s.word, s.soon, s.runs, s.legend.map((l) => l.label), s.title])
+      .toEqual(["closed", "✕Closed", null, [{ drawn: "closed", days: 365, gear: 0 }], ["✕ Closed"], "Salmon (DFO)"]);
     expect(salmonGlance(c)).toEqual({ source: "dfo", thumb: "CO", name: SALMON_WORDS.title, value: "closed", tone: "closed", fold: false });
     expect(salmonCard(facts(), { sids: [101], item: null }, JUL20).closedOnly).toBe(false);
   });
@@ -307,12 +349,12 @@ describe("(T227) the salmon year at the top of the Keep tab", () => {
 
   it("(owner 2026-11-13, Capilano) salmon closed all year beside a provincial bar closed all year: its own bar, like game fish's", () => {
     const card = { headlineStatus: "closed", year: {
-      bars: [{ label: null, unmapped: false, today: "closed", todayWord: "closed", runs: [{ status: "closed", days: 365 }] }] } } as never;
+      bars: [{ label: null, unmapped: false, today: "closed", todayWord: "closed", runs: [{ status: "closed", days: 365 }] }], by: "dfo" } } as never;
     for (const general of [{ runs: [{ bits: 1 }], line: [{ kind: "when", text: "today" }], todayAt: 316 / 365 },
                            { runs: [{ bits: 1 }, { bits: 0 }], line: [{ kind: "when", text: "today" }], todayAt: 316 / 365 }]) {
       const s = salmonStripOf(card, general)!;
       expect([s.status, s.mark + s.word, s.when, s.soon, s.runs, s.legend.map((l) => l.label)])
-        .toEqual(["closed", "✕Closed", "today", null, [{ drawn: "closed", days: 365 }], ["✕ Closed"]]);
+        .toEqual(["closed", "✕Closed", "today", null, [{ drawn: "closed", days: 365, gear: 0 }], ["✕ Closed"]]);
     }
   });
 
@@ -415,10 +457,14 @@ describe("(T227, owner 2026-10-28) a region-wide closure is the answer", () => {
       { r: ["4"], w: "Kootenay River", l: ["4:kootenay-river:whole", "4:region:section"], sp: [[0, 7], [0, 7], [0, 7], [0, 7], [0, 7]], g: [0, -1], m: [0, 3],
         c: ["4:closed:a"] }] };
   const f4 = () => decodeSalmon(encode(P4), HANDLES, [...SHARDS, shard("4", [[300, 2, 3]])]);
-  it("a chain the header closes (any tier — a water's own row too): one closed row in the header's words, no bar, no Details", () => {
+  // (T820, owner 2026-11-16 21:37: "the calendar bar doesnt have a full red line for salmon when closed but instead it is
+  // empty with no color on the calendar bar..") T227's "no bar" overruled: the one statement keeps its words AND draws
+  // the full closed bar
+  it("a chain the header closes (any tier — a water's own row too): one closed row in the header's words, the full closed bar, no Details", () => {
     const c = salmonCard(f4(), { sids: [300], item: "gnis:14097" }, JUL20);
-    expect([c.allClosed, c.headlineStatus, c.caveat, c.closedOnly, c.year.bars, c.regionRules])
-      .toEqual([true, "closed", null, true, [], []]);
+    expect([c.allClosed, c.headlineStatus, c.caveat, c.closedOnly, c.year, c.regionRules])
+      .toEqual([true, "closed", null, true, { bars: [ALL_CLOSED_BAR], by: "dfo" }, []]);
+    expect(salmonStripOf(c, null)).toMatchObject({ status: "closed", runs: [{ drawn: "closed", days: 365 }] });
     expect(c.rows.map((r) => [r.label, r.status, r.notes])).toEqual([
       ["Salmon", "closed", ["There is no fishing for salmon in Region 4 - Kootenays until further notice."]]]);
     expect(salmonGlance(c).fold).toBe(false);
@@ -441,7 +487,7 @@ describe("(T318) the salmon table keeps every DFO word", () => {
     ["a water with no undrawn place", JUL20, [101], null], ["the Cowichan", SEP15, [200], null], ["an unlisted water", JUL20, [7], null]];
   for (const [what, day, sids, item] of cases) it(`${what}: every row word, size, species note and place word is in the table`, () => {
     const c = salmonCard(withNotes(), { sids, item }, day), t = salmonTable(c);
-    const have = new Set(salmonTableTexts(t, c.gear));
+    const have = new Set(salmonTableTexts(t, [...c.closures, ...c.gear]));
     // (T502) a row's words its species rows already say are not repeated under the table: closed words on rows all
     // Closed, a read verdict's words on rows whose quota line says its numbers (its dates on the line's `window`)
     const said = (s: string) => c.rows.some((r) => r.repeats?.includes(s) && r.species.every((sp) => {
@@ -528,6 +574,29 @@ describe("(T320, T332) the salmon bucket and each species' numbers — the game-
     expect(co({ tree: h }).quota).toBe("1 a day, hatchery-marked only · none over 35 cm");      // the folded kind: not said twice
     const u = co({ u: 1 });
     expect([u.quota, u.quotaUnread]).toEqual([null, true]);
+  });
+
+  // (T767 item 4) the feed's short text can drop the condition ("2 per day (Nov 7–30)" for Fraser coho, the "hatchery-
+  // marked only" in the tree's `says` alone). A page on two chains whose verdicts read alike but whose trees differ draws
+  // no quota line (no one reading), so DFO's words were the only line: the condition was said nowhere.
+  // MUTATION: drop `treeWords` from `notesOf` -> the says line is "4 per day (Jul 15–Aug 23)" alone.
+  it("(T767) verdicts alike in words, trees apart: each says its tree, so a condition only the tree carries is said", () => {
+    const P = PAYLOAD as never as { verdicts: object[]; chains: object[] };
+    const t = "4 per day (Jul 15–Aug 23)";
+    const verdicts = P.verdicts.map((v, i) => (i === 2 ? { ...v, t, tree: count(4, "4 a day") } : v));
+    verdicts.push({ s: "open", t, tree: count(4, "4 a day, hatchery-marked only",
+                                              [kind("hatchery-marked coho", 4, "4 a day, hatchery-marked only", true)]) });   // 7
+    const marked = { ...(P.chains[1] as object), sp: [[0, 1], [0, 3, 196, 7, 236, 3], [0, 4], [0, 4], [0, 5]] };
+    const f = decodeSalmon(encode({ ...PAYLOAD, verdicts, chains: [...P.chains, marked] }), HANDLES,
+                           [shard("6", [[100, 5, 1], [105, 2, 3]]), SHARDS[1]!]);
+    const table = salmonTable(salmonCard(f, { sids: [101, 105], item: null }, JUL20));
+    expect(table.species.find((r) => r.code === "CO")!.quota ?? null).toBeNull();          // two readings: no one line
+    expect(table.says.flatMap((s) => s.lines).filter((l) => l.startsWith(t)).map((l) => l.replace(/ /g, " ")))
+      .toEqual([`${t} · 4 a day`, `${t} · 4 a day, hatchery-marked only`]);
+    // one chain (one reading): the quota line says the tree, DFO's words are not repeated under it — as before
+    const one = salmonTable(salmonCard(f, { sids: [105], item: null }, JUL20));
+    expect([one.species.find((r) => r.code === "CO")!.quota, one.says.flatMap((s) => s.lines).filter((l) => l.startsWith(t))])
+      .toEqual(["4 a day, hatchery-marked only", []]);
   });
 
   it("a wild allowance and a monthly quota are said; 'N of N unmarked' is marked or unmarked", () => {

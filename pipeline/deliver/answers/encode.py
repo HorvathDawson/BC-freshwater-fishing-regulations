@@ -22,6 +22,7 @@ from pipeline.deliver.answers.answers import (ORIGINS, PART_KEY_FIELDS, RESERVED
                                               Model)
 from pipeline.deliver.calendar import DAYS, day_of, reading_day_of
 from pipeline.deliver.answers.common import Interner
+from pipeline.deliver.answers.model.rows import ROWS_VERSION, page_possession_written
 from pipeline.deliver.bundle import read
 
 FORMAT = "answers/2"
@@ -184,7 +185,7 @@ SPEC = {
                     "about, per fish and origin the number after the winner's clauses with every "
                     "line and role, the rows (one per shared limit), their conditions, each kind's "
                     "keep range and band numbers, and the real daily limit",
-            "version": "33",
+            "version": str(ROWS_VERSION),
             "at": "[[frame index per segment] per key]",
             "frames": "[[spp, {fish code: [decided h, decided w, lead]}, [row], steelhead_line, [strip]]] — "
                       "`spp` the fish the card asks about (5.1, the page's order); per fish the "
@@ -195,7 +196,15 @@ SPEC = {
                       "never re-decided; the rows in card order (indexes into `rows`); `steelhead_line` "
                       "possible_with_rules | known_with_rules | known_no_rules | null (5.6); "
                       "version 30: per row, in the same order, its year strip (an index into `strips`) — "
-                      "the decoded row is the `rows` entry with `year` = that strip, last",
+                      "the decoded row is the `rows` entry with `year` = that strip, last"
+                      + ("; version 34 (trout plan F0): a SIXTH slot, `page_possession` — null, or {lead: null | "
+                         "{says, value, src}, also: [{says, src}]}: the page's possession row chosen once in Python "
+                         "(`card.page_line`): the lead's whole sentence, the value words the row shows and its rule; "
+                         "the lines kept under it (no trout- or char-only rule: the table's rows say those). Version 34 "
+                         "also (the trout cutover): where the trout section has a table, every row mixing trout or char "
+                         "with other fish is two rows (its trout part, then the rest), and the rows the table covers "
+                         "(its `covers`) carry no `group` and no `elsewhere`: the table says them"
+                         if page_possession_written() else ""),
             "strips": "[[[status, days]]] — version 30: every DISTINCT year strip, once (run-length over the 365 "
                       "book days, status keep | release | closed | none, the days summing to 365; see `rows[].year`). "
                       "A row is stored without its strip and the frame names the strip, so rows that differ only by "
@@ -529,7 +538,7 @@ SPEC = {
                       "alone in a boat\"), specs {slot: [clause]}, "
                       "elements {slot:member: {verdict, by, over}}, main [clause], circumstantial "
                       "[{clause, while?, targeting?, note?}], hook, fly, bait [{element, ok, by, "
-                      "why?, carry_kg?, also_allowed?, excepted_from? {element, by} — version 11 (ROUND20h): the ban an allowed "
+                      "why?, carry_kg?, also_allowed?, allowances? [{says, by [clause]}] (T797 item 2, additive: each distinct allowance once, every clause allowing it), excepted_from? {element, by} — version 11 (ROUND20h): the ban an allowed "
                       "element is an exception to, the province's fin-fish ban's roe, on the days it is in force}], bait_ban, "
                       "(version 12, ROUND20i: `summary.changes[].when` leaves out the days the water is closed; the hook "
                       "\"a single barbless hook, no trebles\"; fly fishing only \"no float or strike indicator, no sinker or "
@@ -555,8 +564,16 @@ SPEC = {
                     "exemptions, guiding and other anglers' rules",
             "version": "7",
             "at": "[[frame index per segment] per key]",
-            "frames": "[[holds, documents, under_16?]] — indexes into `holds`, `documents` and `under_16` "
-                      "(absent on tidal water)",
+            "frames": "[[holds, documents, under_16?, alien_closures?]] — indexes into `holds`, `documents`, `under_16` "
+                      "(absent on tidal water) and `alien_closures` (T789 G8: only on a part whose rule set holds one; "
+                      "never without `under_16`)",
+            "alien_closures": "[[{rule, of, says}]] — T789 G8 (owner 2026-11-17: each water its own, none where it does not "
+                              "apply): the closures to the non-resident alien the part's rule set holds "
+                              "(`licence.alien_closures`; the rule set is in the licence key there) and the ladder leaves "
+                              "standing, `rule` its export index, `of` the water whose rule it is on a tributary part (else "
+                              "null; data only), `says` the whole sentence (\"Lakelse River and its tributaries: …\" on a "
+                              "tributary; \"all year\" where no date is printed). Additive: a reader "
+                              "that does not know it reads the first three indexes as before",
             "under_16": "[[{residency, label, none_needed, with_adult {who, counts} | null, buy [{doc, name, "
                         "prices, or? [{need, names}]}], own_limit, says}] per residency] — version 5 (ROUND15 2): what an under-16 "
                         "angler needs here, per residency (not guided, no status), read off the profiles' "
@@ -703,6 +720,33 @@ SPEC = {
                       "`unresolved_licensing` [licensing ref]. `km` null: no run carries a measure; `place` null: "
                       "no entry heading",
         },
+        # T810 ticket I (contract 2.1-2.6): the trout and char table — every file since the cutover (ticket L); every cell
+        # has a value, NULL where no table is drawn
+        "trout": {
+            "what": "The trout and char table (trout table plan, contract 2.3). "
+                    "Per part key and segment, the table the page draws under its Trout and char entry "
+                    "(every word, structure and rule ref decided in Python; the app draws it and composes only the top "
+                    "line's {day} slot), or null where none is drawn: the display frame at the same key and segment says "
+                    "closed or tidal, or the rows frame asks about no trout or char fish (Q-D3). Decoded: "
+                    "`TroutFrame` {table, dates, covers} (schema `trout`); on the wire `trout.wire`. Version 2 (T810 L, "
+                    "owner 2026-11-18 on Region 4's cutthroat and rainbow): a band's kind may be \"size\" — the box's "
+                    "number and a size cap its rows share, \"counts toward the 2 · only 1 over 50 cm (20 in) between "
+                    "them\". Version 3 (owner 2026-11-18 00:52): a date said once — the card line (or a box's, or a "
+                    "band's) holds every row under it without a date of its own; the most specific level wins. Version 4 "
+                    "(owner 01:22 / 01:28): the top line's exception on a subline (`TopLine.sub`), nested bands "
+                    "(`Box.inner`), a fish's hatchery and wild twins as one row. Version 5: `split` marks that row.",
+            "version": "5",
+            "at": "[[frame index per segment, or null (no table)] per key]",
+            "frames": "[[table, dates | null, covers]] (`TroutFrameWire`) — `table` an index into `tables`, `dates` into "
+                      "`dates` (null: no fish of the table changes later in the year), `covers` the rows frame's rows "
+                      "(at the same key and segment, after Python split each row mixing trout or char with other fish) "
+                      "the table replaces",
+            "tables": "[TroutTableWire] — every NOW word of a table (no date words), each row's `sheet` an index into "
+                      "`sheets`; one body serves every key, segment and water that reads the same",
+            "dates": "[DateSet] — every NEXT text of one cell: under the top line, the card line, the fold's, per box "
+                     "(\"b\"), band (\"b:k\") and row (\"b:r\"), and each fish sheet's coming change",
+            "sheets": "[FishSheet] — one fish sheet (head, Here lines, Sources at most 4), shared by every row that says it",
+        },
     },
     "reserved": {k: f"not yet present: {v}" for k, v in RESERVED.items()},
 }
@@ -818,11 +862,24 @@ class RowsCodec:
                     raise AnswersError("answers: a rows row has no year strip (year.stamp_years runs before encoding)")
                 rs.append(rows.add({k: x for k, x in r.items() if k != "year"}))
                 ys.append(strips.add(r["year"]))
-            refs.append(frames.add([v["spp"], fish, rs, v["steelhead_line"], ys]))
+            # F0 (rows 34): the page's possession row, the frame's sixth slot — on every frame from that version, on
+            # none before it (`model.rows.page_possession_written`)
+            if ("page_possession" in v) != page_possession_written():
+                raise AnswersError(f"answers: a rows {ROWS_VERSION} frame {'holds' if 'page_possession' in v else 'lacks'} "
+                                   "`page_possession` (written from rows 34 on, F0)")
+            fr = [v["spp"], fish, rs, v["steelhead_line"], ys]
+            refs.append(frames.add(fr + [v["page_possession"]] if "page_possession" in v else fr))
         return {"decided": decided.rows, "rows": rows.rows, "strips": strips.rows, "frames": frames.rows}, refs
 
     def decode_frame(self, sec, ref, rules, fish):
-        spp, fs, rs, line, ys = sec["frames"][ref]
+        fr = sec["frames"][ref]
+        # (the section's version is this code's: `decode` refuses another before any frame is read; a reader of an older
+        # release's own section — the changed-answers list, `answers_diff`, across the cutover — passes a rows 33
+        # section: five slots, or six where F0 wrote the page's possession before the cutover)
+        old = str(sec.get("version")) not in ("", "None") and int(sec.get("version")) < 34
+        if len(fr) not in ((5, 6) if old else (6 if page_possession_written() else 5,)):
+            raise AnswersError(f"answers: rows {sec.get('version', ROWS_VERSION)} frame {ref} has {len(fr)} slots")
+        spp, fs, rs, line, ys = fr[:5]
         if len(ys) != len(rs):
             raise AnswersError(f"answers: rows frame {ref} has {len(rs)} rows and {len(ys)} strips")
         strips = sec["strips"]
@@ -838,7 +895,8 @@ class RowsCodec:
                 "fish": {S: {"hatchery": None if h is None else sec["decided"][h],
                              "wild": None if w is None else sec["decided"][w], "lead": lead}
                          for S, (h, w, lead) in fs.items()},
-                "rows": [{**sec["rows"][i], "year": strips[y]} for i, y in zip(rs, ys)], "steelhead_line": line}
+                "rows": [{**sec["rows"][i], "year": strips[y]} for i, y in zip(rs, ys)], "steelhead_line": line,
+                **({"page_possession": fr[5]} if len(fr) == 6 else {})}
 
 
 class LicenceCodec:
@@ -846,22 +904,61 @@ class LicenceCodec:
     static_keys = ("profiles", "profile_dims", "residency_labels", "profile_labels")
 
     def encode(self, values, rix, fix):
-        holds, answers, docs, u16, frames = Table(), Table(), Table(), Table(), Table()
+        holds, answers, docs, u16, aw, frames = Table(), Table(), Table(), Table(), Table(), Table()
         refs = []
         for v in values:
             row = [holds.add(v["holds"]), docs.add([answers.add(p) for p in v["profiles"]])]
             if v.get("under_16") is not None:
                 row.append(u16.add(v["under_16"]))            # ROUND15 2
+            if v.get("alien_closures") is not None:           # T789 G8: the 4th index, after under_16's
+                if len(row) != 3:
+                    raise ValueError("licence: a frame with alien_closures and no under_16")
+                row.append(aw.add(v["alien_closures"]))
             refs.append(frames.add(row))
         return {"holds": holds.rows, "answers": answers.rows, "documents": docs.rows,
-                "under_16": u16.rows, "frames": frames.rows}, refs
+                "under_16": u16.rows, "alien_closures": aw.rows, "frames": frames.rows}, refs
 
     def decode_frame(self, sec, ref, rules, fish):
-        h, d, *u = sec["frames"][ref]
+        h, d, *rest = sec["frames"][ref]
         out = {"holds": sec["holds"][h], "profiles": [sec["answers"][i] for i in sec["documents"][d]]}
-        if u:
-            out["under_16"] = sec["under_16"][u[0]]
+        if rest:
+            out["under_16"] = sec["under_16"][rest[0]]
+        if len(rest) > 1:
+            out["alien_closures"] = sec["alien_closures"][rest[1]]
         return out
+
+
+class TroutCodec:
+    """T810 ticket I (contract 2.1, Q-D10): the trout section. A cell's value is a `TroutFrame` or None (no table, Q-D3);
+    its parts are interned apart so a body, a date set or a sheet that reads the same is stored once: `sheets`
+    (FishSheet), `tables` (the body, each row's sheet as a `sheets` index), `dates` (DateSet) and `frames` ([table,
+    dates | null, covers]). A null cell is a null ref."""
+    name = "trout"
+    static_keys: Tuple[str, ...] = ()
+
+    def encode(self, values, rix, fix):
+        sheets, tables, dates, frames = Table(), Table(), Table(), Table()
+        refs = []
+        for v in values:
+            if v is None:
+                refs.append(None)
+                continue
+            t = v["table"]
+            body = {**t, "boxes": [{**b, "rows": [{**r, "sheet": sheets.add(r["sheet"])} for r in b["rows"]]}
+                                   for b in t["boxes"]]}
+            d = None if v["dates"] is None else dates.add(v["dates"])
+            refs.append(frames.add([tables.add(body), d, list(v["covers"])]))
+        return {"frames": frames.rows, "tables": tables.rows, "dates": dates.rows, "sheets": sheets.rows}, refs
+
+    def decode_frame(self, sec, ref, rules, fish):
+        if ref is None:
+            return None
+        t, d, covers = sec["frames"][ref]
+        body = sec["tables"][t]
+        sheets = sec["sheets"]
+        table = {**body, "boxes": [{**b, "rows": [{**r, "sheet": sheets[r["sheet"]]} for r in b["rows"]]}
+                                   for b in body["boxes"]]}
+        return {"table": table, "dates": None if d is None else sec["dates"][d], "covers": covers}
 
 
 #: One codec per section the file may hold — the encoder and the decoder iterate this.
@@ -869,7 +966,8 @@ CODECS = {c.name: c for c in (LadderCodec(), RowsCodec(),
                               FrameCodec("gear", ("province_methods", "parent", "methods",
                                                   "moments", "conduct_means", "count_nouns")),
                               LicenceCodec(), FrameCodec("display", ("rules", "waters", "strip",
-                                                                     "reasons", "licensing", "ends")))}
+                                                                     "reasons", "licensing", "ends")),
+                              TroutCodec())}
 
 
 # --------------------------------------------------------------------------------------------
@@ -945,8 +1043,8 @@ def encode(model: Model, data: dict) -> dict:
                              "unnamed_parts": len(unnamed["parts"]),
                              "places": len(model.places),
                              "fish": len(fish)}},
-        "spec": SPEC,
-        "schemas": _schemas(),
+        "spec": spec_for(sections),
+        "schemas": _schemas(sections),
         "fish": fish,
         "keys": keys,
         "segments": segs.rows,
@@ -964,9 +1062,19 @@ def encode(model: Model, data: dict) -> dict:
     return wire
 
 
-def _schemas() -> dict:
+def _schemas(present) -> dict:
     from pipeline.deliver.answers.model import json_schemas
-    return json_schemas()
+    return json_schemas(present)
+
+
+def spec_for(present) -> dict:
+    """`SPEC` as a file holding the sections `present` ships it: an OPTIONAL section it lacks (`model.OPTIONAL_FRAMES`:
+    trout) has no text there, so a file built without it is the bytes it was before the section existed."""
+    from pipeline.deliver.answers.model import OPTIONAL_FRAMES
+    drop = set(OPTIONAL_FRAMES) - set(present)
+    if not drop:
+        return SPEC
+    return {**SPEC, "sections": {n: v for n, v in SPEC["sections"].items() if n not in drop}}
 
 
 def check_pair(wire: dict, data: dict, guide: dict) -> None:

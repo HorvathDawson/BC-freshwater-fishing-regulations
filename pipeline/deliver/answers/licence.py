@@ -26,7 +26,7 @@ import json
 import sqlite3
 from collections import defaultdict
 from dataclasses import dataclass
-from typing import Callable, Dict, List, Optional, Sequence, Tuple  # noqa: F401
+from typing import Callable, Dict, Iterable, List, Optional, Sequence, Tuple  # noqa: F401
 
 from pipeline.deliver.answers.common import Interner, connect, dumps
 from pipeline.deliver.calendar import month_day, segments, when_vector
@@ -132,6 +132,82 @@ def under_16_summary(answers: Sequence[dict], names: Dict[str, str]) -> List[dic
     return out
 
 
+#: T789 G8 (reviewer 2026-11-17, owner rule: Python decides the words): a closure a part holds BY THE TRIBUTARY WALK
+#: is its water's, not the part's own — said with the water's name ("Lakelse River and its tributaries: …")
+ALIEN_OF_TRIBS = "{water} and its tributaries: {line}"
+#: the synopsis: "When no date is listed, the regulations apply ALL YEAR" — and each of these rows prints it (pp.52-53:
+#: Kitseguecla, Kitsumkalum, Kitwanga, Lakelse, Suskwa)
+ALL_YEAR = "all year"
+
+
+def alien_line(parts: dict, when: Optional[dict]) -> str:
+    """T789 G8: an alien closure's own line — the catalogue's composer (`labels.compose`, the rule label's) over the
+    rule's parts, its `when` saying "all year" where the rule has no dates (none unread): "Angling closed to non-guided
+    non-resident aliens, on Saturdays and Sundays, all year", "… aliens, all year — between Lakelse Lake and power
+    line crossing"; a dated one as its label ("…, Sep 1-Oct 31, on Saturdays and Sundays")."""
+    from pipeline.regs.parsing.catalogue_parts.labels import compose
+    w = when or {}
+    p = dict(parts)
+    if not w.get("dates") and not w.get("unparsed"):
+        p["when"] = f"{p['when']}, {ALL_YEAR}" if p.get("when") else ALL_YEAR
+    return compose(p)
+
+
+def alien_says(line: str, of: Optional[str]) -> str:
+    """The whole sentence a part says: its own line, or (a closure it holds by the tributary walk) its water's —
+    "Lakelse River and its tributaries: Angling closed to non-guided non-resident aliens, all year — between Lakelse
+    Lake and power line crossing"."""
+    return line if of is None else ALIEN_OF_TRIBS.format(water=of, line=line)
+
+
+def alien_candidates(db) -> Dict[int, List[dict]]:
+    """T789 G8: each rule set's `angler_closure`s naming the non-resident alien, as the bundle binds them (`ruleset`:
+    the reach run's binding, the tributary walk included) — {set_id: [{rule, of, says}]}, by export index (`rule_ix`):
+    `of` the rule's water (its entry's name) where the set holds it BY THE TRIBUTARY WALK (`via` trib), else null (the
+    part is that water); `says` the whole sentence (`alien_says` over `alien_line`). A set with none is absent. These
+    sets carry their rule set in the licence key (`keyed_sets`); which closures a part SAYS is the ladder's
+    (`alien_closures`)."""
+    out: Dict[int, List[dict]] = defaultdict(list)
+    for set_id, ix, via, name, parts, when, cond in db.execute(
+            "SELECT s.set_id, x.ix, s.via, e.name, r.parts, r.when_, r.conditions FROM ruleset s "
+            "JOIN rule r ON r.entry_id = s.entry_id AND r.rule_id = s.rule_id "
+            "JOIN rule_ix x ON x.entry_id = s.entry_id AND x.rule_id = s.rule_id "
+            "JOIN entry e ON e.entry_id = s.entry_id "
+            "WHERE r.type = 'angler_closure' ORDER BY s.set_id, x.ix"):
+        to = json.loads(cond or "{}").get("closed_to") or {}
+        if "non_resident_alien" in (to.get("residency") or ()):
+            of = name if via == "trib" else None
+            line = alien_line(json.loads(parts), json.loads(when) if when else None)
+            out[set_id].append({"rule": ix, "of": of, "says": alien_says(line, of)})
+    return dict(out)
+
+
+def alien_closures(db, speaking: Callable[[Sequence[int], Sequence[int]], set]) -> Dict[int, List[dict]]:
+    """T789 G8 (owner 2026-11-17: "Should each of these waters just have their own info? Don't want this on waters it
+    doesn't apply to"; Lakelse and Telkwa "Same thing applies to these"): EACH RULE SET'S CLOSURES TO THE NON-RESIDENT
+    ALIEN THAT THE LADDER LEAVES STANDING — {set_id: [{rule, says}]}: of `alien_candidates`, those that speak in some
+    stored verdict of one of the set's rule keys (`speaking(keys, rules)`, `VerdictStore.speaking`: the verdicts the Keep
+    tab's "Closed to some anglers" caveat is read from, never re-decided here). On the Telkwa, the Morice and the
+    Suskwa and their tributaries the Bulkley's inherited closure loses to the own or nearer row's (RULINGS T4 / T14):
+    only theirs is said. A set with none standing is absent."""
+    keys_of: Dict[int, List[int]] = defaultdict(list)
+    for k, s in db.execute("SELECT key_ix, set_id FROM rule_key ORDER BY key_ix"):
+        keys_of[s].append(k)
+    out: Dict[int, List[dict]] = {}
+    for set_id, cs in sorted(alien_candidates(db).items()):
+        up = speaking(keys_of.get(set_id, []), [c["rule"] for c in cs])
+        keep = [c for c in cs if c["rule"] in up]
+        if keep:
+            out[set_id] = keep
+    return out
+
+
+def alien_of(key: "LicenceKey", alien: Dict[int, List[dict]]) -> Optional[List[dict]]:
+    """T789 G8: the closures to the non-resident alien of THIS key's rule set — the rule set is in the key only where it
+    holds one or a designation of its licensing set can sleep (`part_licence_key`); every other key has none."""
+    return alien.get(key.ruleset) if key.ruleset is not None else None
+
+
 def document_names(bundle_path: str) -> Dict[str, str]:
     """Every licence document's name, by id (the bundle's `licence` table: the export's `licences[].name`, the page's
     DOC) — the words a stamp line names its document by (`stamps.py`)."""
@@ -212,7 +288,8 @@ class LicenceKey:
     province_except: str
     tidal: bool
     kind: Optional[str]
-    ruleset: Optional[int]          # only where a designation of the set can be put to sleep
+    ruleset: Optional[int]          # only where a designation of the set can be put to sleep, or (T789 G8) the set
+                                    # holds a closure to the non-resident alien
 
     def as_list(self) -> list:
         return [self.licensing_set, self.province_except, int(self.tidal), self.kind,
@@ -258,11 +335,14 @@ def corpus(db: sqlite3.Connection) -> Corpus:
 # Keys
 # --------------------------------------------------------------------------------------------
 
-def part_licence_key(p, sleepy: set) -> LicenceKey:
+def part_licence_key(p, sleepy: set, alien: Iterable[int] = ()) -> LicenceKey:
     """A part's licence key (`types.Part`, the bundle's `part`): what `requirements_in_force`
-    reads of its sections — read off the part, never off a scan of every section (M4)."""
+    reads of its sections — read off the part, never off a scan of every section (M4). The rule set is in the key
+    where a designation of its licensing set can sleep (`sleepy`), or (T789 G8) where the set holds a closure to the
+    non-resident alien (`alien`, `alien_candidates`' sets): that part's frame says the ones standing, no other's."""
+    keyed = p.licensing_set in sleepy or p.set_id in alien
     return LicenceKey(p.licensing_set, ",".join(p.province_except), p.tidal, p.kind,
-                      p.set_id if p.licensing_set in sleepy else None)
+                      p.set_id if keyed else None)
 
 
 def change_days(db: sqlite3.Connection) -> List[int]:
@@ -520,7 +600,8 @@ def documents(C: Corpus, h: dict, alts: Sequence[Tuple[str, dict]], p: Dict[str,
 
 def key_year(db, C: Corpus, key: LicenceKey, sid: int, days: Sequence[int],
              P: Sequence[Dict[str, str]], contested: set, ref: Callable,
-             memo: Dict[str, list], stats: Optional[dict] = None) -> Dict[int, dict]:
+             memo: Dict[str, list], stats: Optional[dict] = None,
+             alien: Optional[Dict[int, List[dict]]] = None) -> Dict[int, dict]:
     """One licence key's answers over the year, `{start_day: {"holds", "profiles"}}`, read at one
     of its sections (`sid`; every section of a key answers alike, pinned by the tests), cut on
     `days` (`change_days`) with equal neighbours merged."""
@@ -553,6 +634,10 @@ def key_year(db, C: Corpus, key: LicenceKey, sid: int, days: Sequence[int],
             names = memo["_names"] = dict(db.execute("SELECT doc_id, name FROM licence"))
         # ROUND15 2: the under-16 summary per residency, read off the profiles' answers
         ans = {"holds": wire, "profiles": memo[mk], "under_16": under_16_summary(memo[mk], names)}
+        aw = alien_of(key, alien) if alien is not None else None
+        if aw:
+            ans["alien_closures"] = aw
+
         s = dumps(wire)
         if s != last:
             year[d] = ans
@@ -574,22 +659,30 @@ def sleepy_sets(db) -> set:
         "SELECT set_id, entry_id, record_id FROM licensing_set") if (e, r) in sleepy}
 
 
-_SLEEPY: Dict[str, set] = {}
+def keyed_sets(db) -> Tuple[set, frozenset]:
+    """(the sleepy licensing sets, the rule sets holding a closure to the non-resident alien): where the rule set is in
+    the licence key (`part_licence_key`, `section_scope`) — one reading for both."""
+    return sleepy_sets(db), frozenset(alien_candidates(db))
+
+
+_KEYED: Dict[str, Tuple[set, frozenset]] = {}
 
 
 def section_scope(key: tuple, B) -> LicenceKey:
-    """The part key's licence key: what `requirements_in_force` reads of a part."""
+    """The part key's licence key: what `requirements_in_force` reads of a part (and, T789 G8, its rule set where that
+    holds a closure to the non-resident alien)."""
     from pipeline.deliver.answers.common import key_dict
     k = key_dict(key)
-    if B.path not in _SLEEPY:
+    if B.path not in _KEYED:
         db = connect(B.path)
         try:
-            _SLEEPY[B.path] = sleepy_sets(db)
+            _KEYED[B.path] = keyed_sets(db)
         finally:
             db.close()
+    sleepy, alien = _KEYED[B.path]
     ls = k["licensing_set"]
     return LicenceKey(ls, ",".join(k["province_except"]), bool(k["tidal"]), k["kind"],
-                      k["ruleset"] if ls in _SLEEPY[B.path] else None)
+                      k["ruleset"] if ls in sleepy or k["ruleset"] in alien else None)
 
 
 def representatives(path: str, wanted) -> Dict[LicenceKey, int]:
@@ -603,19 +696,19 @@ def representatives(path: str, wanted) -> Dict[LicenceKey, int]:
     wanted = set(wanted)
     db = connect(path)
     try:
-        sleepy = sleepy_sets(db)
+        sleepy, alien = keyed_sets(db)
         out: Dict[LicenceKey, int] = {}
         for ps in parts(db).values():
             for p in ps:
                 if p.set_id is None:
                     continue
-                k = part_licence_key(p, sleepy)
+                k = part_licence_key(p, sleepy, alien)
                 if k in wanted and (k not in out or p.rep_sid < out[k]):
                     out[k] = p.rep_sid
         loose: Dict[LicenceKey, int] = {}
         if wanted - set(out):
             for p in unnamed_parts(db):
-                k = part_licence_key(p, sleepy)
+                k = part_licence_key(p, sleepy, alien)
                 if k in wanted and k not in out and (k not in loose or p.rep_sid < loose[k]):
                     loose[k] = p.rep_sid
         out.update(loose)
@@ -649,8 +742,13 @@ def section_prepare(scope: LicenceKey, ctx):
     sid = (ctx.licence_reps or {}).get(scope)
     if sid is None:
         raise AnswersError(f"licence: the build handed no section for the licence key {scope}")
+    if "alien" not in c:
+        # T789 G8: the closures to the non-resident alien each rule set says — the stored verdicts' (`ctx.store`)
+        if ctx.store is None:
+            raise AnswersError("licence: no verdicts store to read the closures to the non-resident alien from")
+        c["alien"] = alien_closures(c["db"], ctx.store.speaking)
     year = key_year(c["db"], c["C"], scope, sid, c["days"], c["P"], c["contested"],
-                    c["C"].index.__getitem__, c["memo"])
+                    c["C"].index.__getitem__, c["memo"], alien=c["alien"])
     if scope.tidal and TIDAL_IS_DOCUMENTED:
         # TIDAL WATER (FIX D12, code review A-7): no provincial licence or stamp holds (L7) — and
         # none is "not needed": the federal Tidal Waters Sport Fishing Licence is. The frame is the

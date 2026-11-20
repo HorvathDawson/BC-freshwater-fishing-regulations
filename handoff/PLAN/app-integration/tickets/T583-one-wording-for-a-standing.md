@@ -1,6 +1,8 @@
 # T583 — One wording for a gauge's standing, everywhere
 
-Status: IN REVIEW — dad265255 (F4 held at HEAD. One module `app/packages/core/src/standing.ts`; forms: band "Below normal"; headline "Below normal for the time of year"; short "Below normal · 20th percentile"; long (the card) "Below normal · 20th percentile for the date"; reads (donor row) "Reads below normal · 20th percentile."; percentile (map dot, chips) "20th percentile"; place chip "≤10th percentile"; inTen kept for the estimate sentence only; one `figure()` (card, chart, dot, spots, stage, public page; the shipped gauge-page script is written from core's function). Gate `tools/one-standing-words.test.ts`; worker parity `workers/feeds/test/cards.test.ts`; shots ../T583-shots/. Owner: keep or retire the estimate sentence "Lower than 8 days in 10"?)
+Status: DONE — dad265255, 5a71f6bb1. One standing wording in core standing.ts with its gate and worker parity test; owner 2026-11-10 keeps the "Lower than 8 days in 10" estimate sentence (the measured-gauge words then moved to days-in-10 in T598).
+
+Closed by the 2026-11-20 audit: the only open item was the owner's keep/retire question, answered 2026-11-10 ('i like it', DECIDED section, 5a71f6bb1); gate tools/one-standing-words.test.ts is in.
 
 Source: T580 audit 2026-11-10 (owner: "stuff like this should never happen … look for other things like that").
 Findings, with file:line, the state that shows each and the proposed fix: `handoff/PLAN/app-integration/T580-findings.md`.

@@ -204,7 +204,8 @@
     50
    ],
    "matched": [
-    "wbk:329026676"
+    "wbk:-24",
+    "wbk:-25"
    ],
    "extents": [
     {
@@ -223,11 +224,10 @@
      "may_target": false,
      "extents": [
       {
-       "op": "whole"
+       "op": "whole",
+       "item_id": "wbk:-25"
       }
-     ],
-     "review_reason": "Held on the whole water as an undrawn part (a note, never coloured by it): line-boundary closure has no cut-point — item has no bindable boundaries besides op:whole",
-     "undrawn_part": "east of a line from Gullwing Creek to the south shore of Babine Lake"
+     ]
     },
     {
      "rule_id": "babine_lake.r2",
@@ -250,7 +250,8 @@
      "may_target": false,
      "extents": [
       {
-       "op": "whole"
+       "op": "whole",
+       "item_id": "wbk:-24"
       }
      ],
      "review_reason": "Held on the whole water as an undrawn part (a note, never coloured by it): radius closure has no cut-point — item has no bindable boundaries besides op:whole",
@@ -365,7 +366,7 @@
       {
        "op": "between",
        "splits": [
-        "babine_river__babine_lake",
+        "babine_river__babine_lake_main_body",
         "babine_river__nilkitkwa_lake"
        ]
       }
@@ -765,6 +766,7 @@
       "LT"
      ],
      "take": 1,
+     "period": "possession",
      "within": "bennett_lake.r3",
      "lengths": [
       {
@@ -2576,7 +2578,12 @@
       {
        "op": "whole"
       }
-     ]
+     ],
+     "unresolved_locators": [
+      "the area at the outlet of François Lake described on map 1"
+     ],
+     "review_reason": "Held on the whole water as an undrawn part (a note, never coloured by it): rule applies only to a mapped outlet area with no matching cut-point on this item",
+     "undrawn_part": "the area at the outlet of François Lake described on map 1"
     },
     {
      "rule_id": "francois_lake.r3",
@@ -2596,7 +2603,12 @@
       {
        "op": "whole"
       }
-     ]
+     ],
+     "unresolved_locators": [
+      "the area at the outlet of François Lake described on map 1"
+     ],
+     "review_reason": "Held on the whole water as an undrawn part (a note, never coloured by it): rule applies only to a mapped outlet area with no matching cut-point on this item",
+     "undrawn_part": "the area at the outlet of François Lake described on map 1"
     },
     {
      "rule_id": "francois_lake.r4",
@@ -2611,7 +2623,12 @@
       {
        "op": "whole"
       }
-     ]
+     ],
+     "unresolved_locators": [
+      "the area at the outlet of François Lake described on map 1"
+     ],
+     "review_reason": "Held on the whole water as an undrawn part (a note, never coloured by it): rule applies only to a mapped outlet area with no matching cut-point on this item",
+     "undrawn_part": "the area at the outlet of François Lake described on map 1"
     },
     {
      "rule_id": "francois_lake.r5",
@@ -2629,7 +2646,12 @@
       {
        "op": "whole"
       }
-     ]
+     ],
+     "unresolved_locators": [
+      "the area at the outlet of François Lake described on map 1"
+     ],
+     "review_reason": "Held on the whole water as an undrawn part (a note, never coloured by it): rule applies only to a mapped outlet area with no matching cut-point on this item",
+     "undrawn_part": "the area at the outlet of François Lake described on map 1"
     },
     {
      "rule_id": "francois_lake.r6",
@@ -2651,7 +2673,12 @@
       {
        "op": "whole"
       }
-     ]
+     ],
+     "unresolved_locators": [
+      "the area at the outlet of François Lake described on map 1"
+     ],
+     "review_reason": "Held on the whole water as an undrawn part (a note, never coloured by it): rule applies only to a mapped outlet area with no matching cut-point on this item",
+     "undrawn_part": "the area at the outlet of François Lake described on map 1"
     },
     {
      "rule_id": "francois_lake.r7",
@@ -2669,7 +2696,12 @@
       {
        "op": "whole"
       }
-     ]
+     ],
+     "unresolved_locators": [
+      "the area at the outlet of François Lake described on map 1"
+     ],
+     "review_reason": "Held on the whole water as an undrawn part (a note, never coloured by it): rule applies only to a mapped outlet area with no matching cut-point on this item",
+     "undrawn_part": "the area at the outlet of François Lake described on map 1"
     }
    ]
   },
@@ -6049,6 +6081,7 @@
       "LT"
      ],
      "take": 1,
+     "period": "possession",
      "within": "morley_lake.r13",
      "lengths": [
       {
@@ -6771,7 +6804,7 @@
      "op": "between",
      "item_id": "gnis:17687",
      "splits": [
-      "babine_river__babine_lake",
+      "babine_river__babine_lake_main_body",
       "babine_river__nilkitkwa_lake"
      ]
     }
@@ -6848,7 +6881,7 @@
        "op": "between",
        "item_id": "gnis:17687",
        "splits": [
-        "babine_river__babine_lake",
+        "babine_river__babine_lake_main_body",
         "babine_river__nilkitkwa_lake"
        ]
       }
@@ -7870,7 +7903,7 @@
      "steelhead_stamp_waived": {
       "verbatim": "Steelhead Stamp not mandatory for Skeena River 2 unless fishing for steelhead."
      },
-     "verbatim": "There are two separate Class II waters on the Skeena River (non-residents and non-resident aliens require separate licences describing which section they are fishing): (a) from Exchamsiks River to 1.5 km upstream of Kitsumkalum River (known as \"Skeena River 2\"), July 1-Sept 30",
+     "verbatim": "from Exchamsiks River to 1.5 km upstream of Kitsumkalum River (known as \"Skeena River 2\"), July 1-Sept 30",
      "review_reason": "From the Exchamsiks confluence cut (owner 2026-10-24, book p.53: from Exchamsiks River to 1.5 km upstream of Kitsumkalum River). T67 put that cut on the mainstem (360887278 at 67,917 m); before it the cut lay only on side channel 360216952 and the reach stood in at the Skeena River Ecological Reserve's lower mainstem crossing (m 63,480, LS-1), over-requiring the licence below the Exchamsiks.",
      "kind": "designation"
     },
@@ -7911,7 +7944,7 @@
       "verbatim": "Steelhead Stamp is mandatory in Skeena River Section 4 during the Classified Waters period from July 1-Dec 31"
      },
      "verbatim": "1.5 km upstream of Zymoetz River (known as \"Skeena River Section 4\"), July 1-Dec 31",
-     "review_reason": "Skeena River Section 4 prints only its lower end (1.5 km upstream of Zymoetz River); bound upstream_of that point with no upper end, which runs to the headwaters — a curator must draw the upper bound from the page 54/55 maps",
+     "review_reason": "SETTLED (owner 2026-11-16, question 35, T801: \"Should run all the way up\"; main river only): Section 4 has no upper end. The province's regulation says so: Angling and Scientific Collection Regulation, Schedule A, item 33: \"Skeena River upstream of 1.5 km upstream of Zymoetz River (Skeena River 4)\", Class II, July 1 to Dec 31. Bound upstream_of that point to the source, the main river only (no tributaries).",
      "kind": "designation"
     }
    ],
@@ -8591,6 +8624,7 @@
       "LT"
      ],
      "take": 1,
+     "period": "possession",
      "within": "tagish_lake.r2",
      "lengths": [
       {
@@ -11114,7 +11148,7 @@
       "TROUT_CHAR"
      ],
      "species_except": [
-      "CHAR"
+      "DV"
      ],
      "when": {
       "dates": [
@@ -11191,7 +11225,7 @@
       "TROUT_CHAR"
      ],
      "species_except": [
-      "CHAR"
+      "DV"
      ],
      "when": {
       "dates": [

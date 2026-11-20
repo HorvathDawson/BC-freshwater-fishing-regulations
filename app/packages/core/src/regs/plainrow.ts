@@ -50,7 +50,9 @@ export interface PlainRowSeams extends LadderSeams {
   /** T19 words MORE: "See every regulation line ›". */
   readonly more: string;
 }
-export interface PlainRowEnv { readonly inp: RegsInputs; readonly card: CardModel; readonly settled: Settled; readonly seams: PlainRowSeams }
+export interface PlainRowEnv { readonly inp: RegsInputs; readonly card: CardModel; readonly settled: Settled; readonly seams: PlainRowSeams;
+  /** (T883) the other: sheet asks for the fish sheet's flow (decided.ts LadderEnv.flow) */
+  readonly flow?: true }
 
 /** A row page v36 draws without a quota card and without its legacy pooled path: no pool, no group headline. */
 export const isPlainRow = (row: HydRow): boolean => !row.pool && !row.raw.group?.headline;
@@ -87,18 +89,33 @@ export class YearWords {
       return whole ? WORDS.WHOLE_CLOSED(r) : WORDS.CLOSED_RANGE(r);
     }).join(" ");
   }
+  /** page v36 runTxt's " Then …" sentence for one run: its range, a closure of the whole water named as such. */
+  private thenTxt(nx: YearRunOf): string {
+    const r = rangeTxt(md(nx.from!), md(nx.until!));
+    return nx.now === "closed" && this.water[this.seams.bookIndex(nx.from!)] === "closed" ? WORDS.THEN_WHOLE(r) : WORDS.THEN_RANGE(RUN_THEN[nx.now]!, r);
+  }
   /** page v36 runTxt: today's run and what follows, until the fish may be kept again. */
   runTxt(sg: readonly string[], today: Day, tail: boolean): string {
     const { runOf } = this.seams, r = runOf(sg, today);
     if (r.all) return tail ? "" : r.now === "keep" ? "" : WORDS.ALL_YEAR_SENT;
-    if (r.now === "keep") return WORDS.KEEP_UNTIL_THEN(fmtMd(md(r.until!)), RUN_THEN[r.then!]!, fmtMd(md(r.next!)));
+    // (T762) a keep day: until when, then EVERY other run of the year in order with its range (a later keep run too),
+    // then the day today's keep run comes round again. Each run is named once; " next year" on the "until" as on the
+    // other branch, and on the return when it falls on or before today (on today itself it is next year's).
+    if (r.now === "keep") {
+      let out = WORDS.NOW_UNTIL(RUN_NOW.keep!, fmtMd(md(r.until!)) + this.nextYr(r.until!, today)), cur = r;
+      for (let k = 0; md(cur.next!) !== md(r.from!); k++) {
+        if (k > 365) throw new Error("runTxt: the year's runs never come back to today's");   // 365 days hold fewer runs
+        cur = runOf(sg, cur.next!);
+        out += this.thenTxt(cur);
+      }
+      const back = this.seams.bookIndex(r.from!) <= this.seams.bookIndex(today) ? WORDS.NEXT_YEAR : "";
+      return out + WORDS.KEEP_FROM(fmtMd(md(r.from!)) + back);
+    }
     let out = tail ? "" : WORDS.NOW_UNTIL(RUN_NOW[r.now]!, fmtMd(md(r.until!)) + this.nextYr(r.until!, today)), cur = r, k = 0;
-    const wClosed = (d: Day) => this.water[this.seams.bookIndex(d)] === "closed";
     while (cur.then !== "keep" && k++ < 3) {
       const nx = runOf(sg, cur.next!);
       if (nx.all) break;
-      out += nx.now === "closed" && wClosed(nx.from!) ? WORDS.THEN_WHOLE(rangeTxt(md(nx.from!), md(nx.until!)))
-        : WORDS.THEN_RANGE(RUN_THEN[nx.now]!, rangeTxt(md(nx.from!), md(nx.until!)));
+      out += this.thenTxt(nx);
       cur = nx;
       if (md(nx.next!) === md(r.from!)) break;
     }
@@ -110,7 +127,8 @@ export class YearWords {
 
 /**
  * A group's year window (prototype round UR5 `.gyear`, lifted from page v36's per-row strip): "Through the year" and page
- * v36 runTxt over the row's STORED year strip ("You can keep them until Oct 31. Then release only from Nov 1."). Null
+ * v36 runTxt over the row's STORED year strip ("You can keep them until Oct 31. Then release only Nov 1–Mar 31. You can keep
+ * them from Apr 1 next year.", T762). Null
  * where page v36 draws no strip under the row (miniStrip): a one-run strip, or one that only repeats the water's own
  * closed days. Words and a draw-or-not over two stored answers (the row's year, the water's closed days); decides nothing.
  */
@@ -184,7 +202,7 @@ export function plainRowOf(rowIx: number, env: PlainRowEnv): PlainRowVM {
   const release = !row.raw.group?.headline && row.kind === "release" && cs.length
     ? { names: cs.map(seams.fishName).join(WORDS.NAMES_SEP), pictures: seams.pictures(cs) } : null;
   const p = row.raw.presence;
-  let ladder: LadderVM = withRestates(ladderOf(row, { card, settled, inp, seams }), row, inp);
+  let ladder: LadderVM = withRestates(ladderOf(row, { card, settled, inp, seams, ...(env.flow ? { flow: true as const } : {}) }), row, inp);
   if (row.raw.week) ladder = { ...ladder, sections: ladder.sections.map((s) => ({ ...s, result: null })) };   // prototype: a week row drops .lres
   return {
     row: rowIx, title: seams.rowTitle(row, inp),

@@ -12,22 +12,22 @@
 import { FORECAST_DAYS } from "../packages/core/src/gauge-policy.generated";
 import { gaugeFeedRefusal, type GaugeFeedFile } from "../packages/core/src/gaugeFeed";
 
-/** index.json's own keys (`IndexFile`; `forecastAttribution` is read by the panel's credits line). */
-export const INDEX_KEYS = ["format", "fetchedAt", "forecastIssuedAt", "hydat", "maintenance", "forecastAttribution",
+/** index.json's own keys (`IndexFile`; `forecastAttribution` is read by the panel's credits line; `minAppVersion` by the feed gate, T676). */
+export const INDEX_KEYS = ["format", "minAppVersion", "fetchedAt", "forecastIssuedAt", "hydat", "maintenance", "forecastAttribution",
                            "stations", "listed"] as const;
 /** One station's entry in the index (`IndexFile.stations`): what colours a dot and when it was read. `temperature` is the
  *  temperature's place in its own envelope, written by the publisher and not read by the app yet. */
-export const INDEX_STATION_KEYS = ["percentile", "parameter", "discharge", "level", "observedAt", "stale", "staleSince",
+export const INDEX_STATION_KEYS = ["percentile", "parameter", "reports", "discharge", "level", "observedAt", "stale", "staleSince",
                                    "forecast", "ahead", "aheadDays", "change", "temperatureC", "temperatureAt",
                                    "temperatureBand", "temperature"] as const;
 /** What the bundle owns (the `gauge` table): never re-shipped by a feed. */
 export const BUNDLE_OWNED = ["name", "at", "areaKm2", "area_km2", "river", "section", "lon", "lat", "mag", "active"] as const;
 /** A station file's keys (`StationFile`) and its `now`. */
-export const STATION_KEYS = ["format", "fetchedAt", "station", "now", "recent", "daily", "priorYears", "forecasts",
+export const STATION_KEYS = ["format", "minAppVersion", "fetchedAt", "station", "now", "recent", "daily", "priorYears", "forecasts",
                              "change"] as const;
 export const NOW_KEYS = ["discharge", "level", "at", "percentile", "parameter"] as const;
 /** obs.json (`ObsFile`). */
-export const OBS_KEYS = ["format", "fetchedAt", "windowHours", "stations"] as const;
+export const OBS_KEYS = ["format", "minAppVersion", "fetchedAt", "windowHours", "stations"] as const;
 const AHEAD_KEYS = ["discharge", "level", "model", "levelModel"];
 
 /** "{blk}:{measure}", the shape a section id takes: it never leaves the bundle. */
@@ -68,6 +68,10 @@ export function gaugeFeedContract(files: Record<string, unknown>): string[] {
         for (const k of ["percentile", "discharge", "level", "temperature"])
           if (k in e && !isRank(e[k])) bad.push(`${name} ${st}: ${k} ${JSON.stringify(e[k])} is not a percentile`);
         if ("forecast" in e && typeof e.forecast !== "boolean") bad.push(`${name} ${st}: forecast is not a boolean`);
+        // (T830) what the reading carries: a list of quantities, each once
+        if ("reports" in e && !(Array.isArray(e.reports) && e.reports.every((q) => q === "discharge" || q === "level")
+                                && new Set(e.reports).size === e.reports.length))
+          bad.push(`${name} ${st}: reports ${JSON.stringify(e.reports)} is not a list of quantities`);
         if (e.ahead !== undefined) {
           if (!isObj(e.ahead)) { bad.push(`${name} ${st}: ahead is not an object`); continue; }
           for (const [day, at] of Object.entries(e.ahead)) {

@@ -1,6 +1,6 @@
 # T715 — Store video: the command builds its own starting state
 
-Status: OPEN (after closed testing (owner 2026-11-13: "these are after closed"); before the next time the video is regenerated for a store upload)
+Status: POSTPONED (owner 2026-11-20 with T709: after this release; earlier "these are after closed")
 
 Source: owner 2026-11-13, after approving the first cut ("the video looks good"): "should make a ticket create a proper
 state". Follows T709 (`node app/tools/store-video/run.mjs`, f535ebdca).
@@ -40,3 +40,9 @@ that state is.
 ## Notes
 The same setup step is what the iOS run (T709 step 2) will need; write it so the scene list and the fixed data are
 shared and only the device driving differs.
+
+## Owner answer 2026-11-20 01:56
+
+Postponed with T709 (owner 2026-11-20).
+
+Status line before this answer: OPEN (after closed testing (owner 2026-11-13: "these are after closed"); before the next time the video is regenerated for a store upload)

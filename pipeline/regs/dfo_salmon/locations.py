@@ -44,6 +44,7 @@ from typing import Dict, List, Optional
 from pipeline.regs.dfo_salmon.fetch import ALL_SLUGS, DEFAULT_CACHE, PAGES, load_cached, normalize_slug
 from pipeline.regs.dfo_salmon.parse import parse_region
 from pipeline.regs.dfo_salmon.untangle import Untangled, classify_scope, untangle
+from pipeline.regs.dfo_salmon import side_streams as _side_streams
 from pipeline.common.curated import GENERATED
 
 logger = logging.getLogger(__name__)
@@ -132,6 +133,9 @@ class Location:
     #: True when a note NARROWS the extent (a radius closure, a lake closure line), so
     #: binding the whole water would read as more open than the source allows.
     narrows_extent: bool = False
+    #: T807: the exact waters heading a named water's row sits under (None for a default, or when its rows sit under
+    #: two headings — `side_streams check` names those)
+    heading: Optional[str] = None
 
     def to_dict(self) -> dict:
         return asdict(self)
@@ -152,9 +156,15 @@ class RuleRecord:
     fishery_notices: List[Dict[str, str]]
     source: str
     order: int
+    #: (T787) from a table DFO commented out (`parse.table_hidden`): kept for the reviewer, answers nothing. Written
+    #: only when true, so a page with no hidden table scrapes as before
+    hidden: bool = False
 
     def to_dict(self) -> dict:
-        return asdict(self)
+        d = asdict(self)
+        if not d["hidden"]:
+            d.pop("hidden")
+        return d
 
 
 #: Region-level shape. A change here is structural — see `entries.reconcile`.
@@ -224,7 +234,7 @@ def extract(u: Untangled) -> tuple[List[Location], List[RuleRecord], dict]:
             rules.append(RuleRecord(
                 fingerprint=loc.fingerprint,
                 species=r.species or "All", dates=r.dates, limits_gear=r.limits_gear,
-                fishery_notices=r.fishery_notices, source=r.source, order=order,
+                fishery_notices=r.fishery_notices, source=r.source, order=order, hidden=r.hidden,
             ))
             order += 1
 
@@ -248,6 +258,8 @@ def extract(u: Untangled) -> tuple[List[Location], List[RuleRecord], dict]:
     for w in u.waters:
         for reach in w.reaches:
             op, a_types, _mainstem, tribs = classify_scope(reach.scope)
+            # T807: the side streams are DFO's words for THIS place — its own line, else its exact heading
+            heading = reach.headings[0] if len(reach.headings) == 1 else None
             add(Location(
                 fingerprint=fingerprint(w.section, w.name, reach.scope),
                 region=u.region, region_number=u.region_number,
@@ -255,11 +267,12 @@ def extract(u: Untangled) -> tuple[List[Location], List[RuleRecord], dict]:
                 section=w.section, inherits=list(w.inherits),
                 water=w.name, aliases=list(w.aliases), specific_area=reach.scope,
                 op=op, anchor_types=a_types,
-                tributaries=reach.tributaries if reach.tributaries is not None else w.tributaries,
+                tributaries=_side_streams.derive(reach.scope, heading).tributaries,
                 excludes=list(reach.excludes), areas=[],
                 landmarks=landmarks(f"{w.name} {reach.scope}"),
                 notes=_notes_for(reach.scope)[0] + ([w.name_note] if w.name_note else []),
                 narrows_extent=_notes_for(reach.scope)[1],
+                heading=heading,
             ), reach.rules)
 
     return locations, rules, structure_signature(u)
@@ -268,6 +281,12 @@ def extract(u: Untangled) -> tuple[List[Location], List[RuleRecord], dict]:
 def emit(slug: str, out_dir: Path, cache_dir: Path = DEFAULT_CACHE) -> tuple[int, int]:
     """Write `locations/region-<slug>.json` and `rules/region-<slug>.json` from the cached raw page."""
     return emit_html(slug, load_cached(slug, cache_dir), out_dir)
+
+
+#: HOW A PAGE IS SCRAPED into `rules/region-<slug>.json`, stamped on the file; `feed.emit` refuses a rules file of
+#: another number, so a typed feed is never made from rows scraped by older code. 2 (T787): a row from a table DFO
+#: commented out carries `hidden` — a file scraped before it has those rows unmarked, and they would answer.
+SCRAPE_FORMAT = 2
 
 
 def emit_html(slug: str, html: str, out_dir: Path) -> tuple[int, int]:
@@ -291,7 +310,7 @@ def emit_html(slug: str, html: str, out_dir: Path) -> tuple[int, int]:
     }, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
 
     (out_dir / "rules" / f"region-{slug}.json").write_text(json.dumps({
-        "region": slug, "date_modified": parsed.date_modified,
+        "region": slug, "date_modified": parsed.date_modified, "scrape_format": SCRAPE_FORMAT,
         "page": page_stamp(html), "notes": parse_header(html, slug), "header_format": HEADER_FORMAT,   # T482
         "preamble": parsed.preamble,
         "rules": [r.to_dict() for r in rules],

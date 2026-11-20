@@ -148,10 +148,11 @@ const COVERED: Record<string, string> = {
   "packages/ui-native/src/TopBar.tsx#TopBar: takes onClose (TopBarProps)": "T48: the field's ‹ and Escape; search open is ROUTE state (route `search`), so system back closes it through the Shell's route layer, first",
   "packages/ui-native/src/Faces.tsx#FaceBar: takes onBack": "the water header's ‹ button; system back is the Shell's route layer",
   "packages/ui-native/src/ViewSwipe.tsx#WaterViewsContext: takes onBack (WaterViews)": "carries the Shell's back to the header's ‹ and the edge swipe; not a surface",
-  "packages/ui-native/src/water/WaterMapView.tsx#Head: takes onClose": "a header's × button; MarkPop and Chooser, which draw it, register",
+  "packages/ui-native/src/water/WaterMapView.tsx#Head: takes onClose": "a header's × button; MarkPop, which draws it, registers (T750: the Chooser that also drew it is gone)",
   "packages/ui-native/src/spot/Confirm.tsx#Confirm: takes onCancel": "SpotScreen's layer answers back while a confirm is shown (keep)",
   "packages/ui-native/src/SpotCapture.tsx#WhenScreen: takes onBack": "a capture step; SpotCapture's layer steps back from it",
   "packages/ui-native/src/SpotCapture.tsx#Coach: takes onCancel": "the capture's banner; SpotCapture's layer is its back",
+  "packages/ui-native/src/SpotScreen.tsx#SpotScreen: opens recordOpen": "(T819 item 5) an inline disclosure on the draft (its record folded to one card), not an overlay: the card's own tap folds it; back is SpotCapture's step back",
   "packages/ui-native/src/menu/InfoPages.tsx#AboutPage: draws AboutPage": "a menu page's CONTENT: MenuHost draws it inside <MenuPage>, which registers (useBackLayer)",
   "packages/ui-native/src/menu/InfoPages.tsx#SourcesPage: draws SourcesPage": "a menu page's CONTENT: MenuHost draws it inside <MenuPage>, which registers (useBackLayer)",
   "packages/ui-native/src/menu/HelpPage.tsx#HelpPage: draws HelpPage": "(T248) a menu page's CONTENT: MenuHost draws it inside <MenuPage>, which registers (useBackLayer)",
@@ -192,7 +193,9 @@ describe("back, everywhere: one mechanism", () => {
       // (T729) the map's credits card, opened from the © chip (its back is the app's, handed down as MapProps.useBackLayer)
       "packages/map/src/MapCredits.tsx",
       // (T476, T420) the Developer card, in a development or staging build only
-      "packages/ui-native/src/DeveloperModal.tsx", "packages/ui-native/src/Sheet.tsx", "packages/ui-native/src/menu/MenuPage.tsx",
+      "packages/ui-native/src/DeveloperModal.tsx", "packages/ui-native/src/JoinTestCard.tsx", "packages/ui-native/src/Sheet.tsx", "packages/ui-native/src/menu/MenuPage.tsx",
+      // (T915) the day calendar's popover on a desktop browser
+      "packages/ui-native/src/regs/DaySheet.web.tsx",
       // (T354) the rule book in the app, full screen
       "packages/ui-native/src/regs/PdfViewer.native.tsx",
       // (T284) a spot photograph, full screen
@@ -225,6 +228,10 @@ describe("back, everywhere: every surface registers a back layer", () => {
       "packages/map/src/MapCredits.tsx#MapCredits: a Modal",
       // (T234) the "Alert me" form, inline in the gauge card (COVERED)
       "packages/ui-native/src/AlertMe.tsx#AlertEditor: takes onCancel",
+      // (T888) the newer-version popup on opening: a <Sheet> (registered); back is Not now
+      "packages/ui-native/src/AppUpdatePopup.tsx#AppUpdatePopup: takes onDismiss",
+      // (T746) the apply curtain: a back layer while it is up (back closes a failed apply's message, and is held mid-apply)
+      "packages/ui-native/src/ApplyCurtain.tsx#ApplyCurtain: a dialog",
       // (T476) the Developer card, open: its own Modal, registered (useBackLayer); MapScreen hands it devOpen
       "packages/ui-native/src/DeveloperCard.tsx#DeveloperCard: takes onClose",
       "packages/ui-native/src/DeveloperModal.tsx#DeveloperModal: a Modal",
@@ -234,6 +241,8 @@ describe("back, everywhere: every surface registers a back layer", () => {
       // (T700) a notice opened in the bell's inbox: back steps back to the list
       "packages/ui-native/src/InSeasonInbox.tsx#InSeasonInboxDetail: takes onBack",
       "packages/ui-native/src/InSeasonNotice.tsx#InSeasonNotice: takes onClose",
+      // (T911) the Join the test card on the web's Spots notice: its own Modal, registered (useBackLayer)
+      "packages/ui-native/src/JoinTestCard.tsx#JoinTestCard: a Modal",
       "packages/ui-native/src/LayersSheet.tsx#LayersSheet: takes onClose",
       // (T303) the rail's one-line location notice (why there is no dot): a tap puts it away; not a surface (COVERED)
       "packages/ui-native/src/MapRail.tsx#MapRail: takes dismiss",
@@ -256,6 +265,8 @@ describe("back, everywhere: every surface registers a back layer", () => {
       "packages/ui-native/src/SpotCapture.tsx#Coach: takes onCancel",
       "packages/ui-native/src/SpotDropSheet.tsx#SpotDropSheet: takes onCancel",
       "packages/ui-native/src/SpotPickBanner.tsx#SpotPickBanner: takes onCancel",
+    "packages/ui-native/src/SpotScreen.tsx#SpotScreen: opens recordOpen",
+    "packages/ui-native/src/SpotsScreen.tsx#SpotsScreen: opens addOpen",
       "packages/ui-native/src/SyncErrorSheet.tsx#SyncErrorSheet: takes onClose",
       // (T60) SpotScreen read "takes onBack" only from its bottom row's `? p.onBack : leaveEdit` ternary; that second
       // Back button is gone (one surface per action). It still registers (`useBackLayer`) and back.test drives it.
@@ -279,7 +290,10 @@ describe("back, everywhere: every surface registers a back layer", () => {
       "packages/ui-native/src/menu/SettingsPage.tsx#SettingsPage: draws SettingsPage",
       "packages/ui-native/src/menu/UpdatesLogPage.tsx#ChannelPicker: draws ChannelPicker",
       "packages/ui-native/src/menu/UpdatesLogPage.tsx#UpdatesLogPage: draws UpdatesLogPage",
-      "packages/ui-native/src/regs/DaySheet.tsx#DaySheet: takes onClose",
+      // (T915) "Which day?": the phone's <Sheet> (registered); the browser's draws that sheet, or at desktop width a popover
+      // in its own Modal, registered (useBackLayer)
+      "packages/ui-native/src/regs/DaySheet.native.tsx#DaySheet: draws DaySheet",
+      "packages/ui-native/src/regs/DaySheet.web.tsx#DaySheet: a Modal",
       // (T354) the rule book in the app, full screen (native); the web's draws nothing (COVERED)
       "packages/ui-native/src/regs/PdfViewer.native.tsx#PdfViewer: a Modal",
       "packages/ui-native/src/regs/PdfViewer.web.tsx#PdfViewer: draws PdfViewer",
@@ -288,7 +302,6 @@ describe("back, everywhere: every surface registers a back layer", () => {
     "packages/ui-native/src/spot/PhotoViewer.tsx#PhotoViewer: a Modal",
       "packages/ui-native/src/water/WaterMapView.tsx#Head: takes onClose",
       "packages/ui-native/src/water/WaterMapView.tsx#MarkPop: a dialog",
-      "packages/ui-native/src/water/WaterMapView.tsx#Chooser: a dialog",
     ]);
   });
 

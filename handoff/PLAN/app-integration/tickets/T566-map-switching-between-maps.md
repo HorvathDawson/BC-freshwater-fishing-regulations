@@ -1,6 +1,6 @@
 # T566 — Switching between the maps causes issues sometimes (owner, Pixel 9, build 24)
 
-Status: IN REVIEW — f856e42f2 (key follows the map; reproduced on web and the emulator); owner phone check on the next build
+Status: DONE — f856e42f2 (closed on the owner's word 2026-11-20; see the last section)
 
 Source: Owner 2026-11-09 (owner checks page, T512): "it is okay but not perfect. it is good to pan around, lags a tiny bit rarely but switching between the maps causes issues sometimes."
 
@@ -52,3 +52,9 @@ to ~80 ms AFTER the map on the emulator (a React render behind the native frame)
 new key, but for a frame or two the new colours are under the old one; the residual 1-2 frames on Runs switches are
 other foot chrome moving with the tab; iOS not run; the b26 APK's MapLibre (stock or lean) not checked against the
 after APK (lean).
+
+## Closed 2026-11-20
+
+Closed 2026-11-20 on the owner's word ("Couldn't we just assume most of these are done already?"): the map key matching the map after quick Trout/Salmon/Runs flips is taken as checked on the phone.
+
+Status line before closing: IN REVIEW — f856e42f2 (key follows the map; reproduced on web and the emulator); owner phone check on the next build

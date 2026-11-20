@@ -9,9 +9,14 @@
 //
 // The app is put on each state's day by the start link (`?regs=…&date=…`) and, with `--clock proto` (the default), its
 // clock on the prototype's today (PROTO_TODAY, its snapshot day) — so the header words match (`Today` vs a weekday).
+//
+// (T810 R) The trout entry is read as the screen shows it (regs-web/rows.mjs): the old group cards (`cardGroups`, never a
+// KeepBox's band of rows) feed the group checks; the trout table (an app built with EXPO_PUBLIC_TROUT_TABLE=1 on a release
+// carrying the `trout` section, until the cutover) gets `trout-table`: its fold opens it, a row's picture opens a sheet.
 import fs from 'node:fs';
 import { RECT, SCROLL, openApp, scrollTo, sleep, tap, tid, until } from './regs-web/drive.mjs';
 import { APP_URL, METHODS_COMPACT, PHONE, PROTO_TODAY, WALK_STATES, appKeyOf, urlsOf } from './regs-web/states.mjs';
+import { IN_PAGE as ROWS } from './regs-web/rows.mjs';
 import states from '../fixtures/golden/states.json' with { type: 'json' };
 import manifest from '../apps/mobile/assets/fish/manifest.json' with { type: 'json' };
 
@@ -32,15 +37,11 @@ const ASPECT = Object.fromEntries(manifest.images.map((m) => [m.file, m.width / 
 const HEADER = `(() => { ${RECT} const h = ${tid('regs-header')}, n = ${tid('water-title')}, d = ${tid('regs-date')}, a = ${tid('regs-action')}, p = ${tid('regs-place')}, s = ${SCROLL};
   return { h: R(h), name: n && R(n), date: d && R(d), action: a && R(a), label: p && R(p), lh: p ? parseFloat(getComputedStyle(p).lineHeight) || 0 : 0, text: h.innerText, scroll: R(s) }; })()`;
 
-const PIN = `(() => { ${RECT} const bar = ${tid('pin-bar')}, s = ${SCROLL};
-  if (!bar || bar.getBoundingClientRect().height < 1) return { bar: null, scroll: R(s) };
-  const lines = [...bar.querySelectorAll('*')].filter((e) => [...e.childNodes].some((c) => c.nodeType === 3 && c.textContent.trim()) && !e.parentElement.closest('[data-pinline]'))
-    .map((e) => ({ r: R(e), lh: parseFloat(getComputedStyle(e).lineHeight) || 20, text: e.innerText.replace(/\\s+/g, ' ').trim() }));
-  return { bar: R(bar), lines, text: bar.innerText.replace(/\\s+/g, ' ').trim(), scroll: R(s), store: globalThis.__regsDebug?.pinLines() ?? null }; })()`;
-
-/** each keep group: its top/bottom in CONTENT px, its title, its head block's height, and its first kind row's content y */
-const GROUPS = `(() => { ${RECT} const s = ${SCROLL}, top0 = s.getBoundingClientRect().top - s.scrollTop;
-  return [...document.querySelectorAll('[data-testid=keep-group]')].map((g) => { const head = g.firstElementChild, t = g.querySelector('[role=heading], h1, h2, h3');
+/** each keep group: its top/bottom in CONTENT px, its title, its head block's height, and its first kind row's content y.
+ *  (T810 R) the old group cards only (`cardGroups`): a KeepBox's `keep-group` (the trout table's, the salmon card's) is a
+ *  band of rows inside a box, not a group */
+const GROUPS = `(() => { ${RECT} ${ROWS} const s = ${SCROLL}, top0 = s.getBoundingClientRect().top - s.scrollTop;
+  return cardGroups(document).map((g) => { const head = g.firstElementChild, t = g.querySelector('[role=heading], h1, h2, h3');
     const r = R(g), seen = new Set(), rows = [];
     /* the kind rows: each picture strip's first picture (one per strip), as the prototype's .krow.kt */
     for (const p of g.querySelectorAll('[data-testid^="pic:"]')) { if (seen.has(p.parentElement)) continue; seen.add(p.parentElement); rows.push({ code: p.dataset.testid.slice(4), y: R(p).top - top0 }); }
@@ -59,19 +60,24 @@ const PICTURES = `(() => { ${RECT} const ASPECT = ${JSON.stringify(ASPECT)}, bad
     if (fit && fit !== 'contain' && fit !== 'auto') bad.push(f + ' drawn ' + fit); }
   return { n: imgs.length, bad }; })()`;
 
-/** r20f-headers: inside every keep group, each block's first text starts at the head's text edge (± 1 px) */
-const EDGE = `(() => { const bad = [];
+/** r20f-headers: inside every keep group (the old cards, `cardGroups`), each block's first text starts at the head's text edge (± 1 px) */
+const EDGE = `(() => { ${ROWS} const bad = [];
   const firstLeft = (el) => { const w = document.createTreeWalker(el, NodeFilter.SHOW_TEXT); let n, best = Infinity;
     while ((n = w.nextNode())) { if (!n.textContent.trim()) continue; const p = n.parentElement; if (p.closest('[data-testid^="pic:"], [data-testid^="chip:"], svg')) continue;
       const rg = document.createRange(); rg.selectNodeContents(n); const r = rg.getClientRects()[0]; if (r && r.width > 0) best = Math.min(best, r.left); }
     return best; };
-  document.querySelectorAll('[data-testid=keep-group]').forEach((g) => { const head = g.firstElementChild; if (!head) return; const edge = firstLeft(head);
+  cardGroups(document).forEach((g) => { const head = g.firstElementChild; if (!head) return; const edge = firstLeft(head);
     for (const blk of [...g.children].slice(1)) { const l = firstLeft(blk); if (l !== Infinity && Math.abs(l - edge) > 1) bad.push((g.querySelector('h1,[role=heading]')?.innerText || 'group') + ': a block at ' + l.toFixed(1) + ' vs ' + edge.toFixed(1) + ' “' + blk.innerText.slice(0, 30).replace(/\\s+/g, ' ') + '”'); } });
   return bad; })()`;
 
 const SHEET = `(() => { ${RECT} const d = ${tid('sheet-dialog')} || ${tid('sheet-body')}?.closest('[role=dialog]') || document.querySelector('[role=dialog]');
   if (!d) return null; const hs = [...d.querySelectorAll('[role=heading], h1, h2')].map((e) => e.innerText.trim()); const body = ${tid('sheet-body')};
   return { title: hs[0] ?? null, body: body ? R(body) : null }; })()`;
+
+/** (T810 R) the trout entry the screen shows (rows.mjs `troutShown`): 'table', 'card' (the old group card) or null */
+const TROUT = `(() => { ${ROWS} return troutShown(document); })()`;
+const TROUT_FOLD = `document.querySelector('[data-testid="glance:trout"] [role=button]')`;
+const TROUT_PIC = `document.querySelector('[data-testid="keep-trout"] [data-testid^="pic:"][role=button]')`;
 
 // ── the walk ─────────────────────────────────────────────────────────────────────────────────────────────────────
 async function walkState(id, theme) {
@@ -97,27 +103,7 @@ async function walkState(id, theme) {
     const edge = await b.evaluate(EDGE);
     say(edge.length === 0, 'r20f-headers', tag, edge.length ? edge.slice(0, 3).join(' · ') : `${groups.length} group(s): every block on the head's text edge`);
 
-    // 4 r20d-pinned-stack: each group's first kind row at 60 % of the viewport, and just past the group's head
-    for (const g of groups) {
-      const view = h0.scroll.h;
-      const samples = [['head passed', g.top + g.head + 4], ...g.rows.map((r) => [`row ${r.code}@60%`, r.y - 0.6 * view, r.y])];
-      for (const [why, y, rowY] of samples) {
-        if (y <= 0) continue;
-        const at = await scrollTo(b, Math.round(y));
-        const p = await b.evaluate(PIN);
-        const passed = g.top + g.head <= at;   // the group's head has gone under the header: its line must be pinned
-        if (!p.bar) { say(!passed, 'r20d-pinned-stack', `${tag} ${g.title} ${why}`, passed ? 'the head is gone and no pin bar' : 'head still in view: no bar'); continue; }
-        const under = rowY !== undefined && rowY - at + p.scroll.top < p.bar.bottom - 1;
-        const lines = p.lines.every((l) => l.r.h <= 2.6 * l.lh + 0.5);
-        const top = Math.abs(p.bar.top - p.scroll.top) <= 1.5, tall = p.bar.h <= 90;
-        const words = p.store === null || p.store.join(' ').replace(/\s+/g, ' ').trim() === p.text;
-        const own = !passed || p.text.startsWith(g.title);
-        say(lines && top && tall && words && own && !under, 'r20d-pinned-stack', `${tag} ${g.title} ${why}`,
-          `bar top ${p.bar.top.toFixed(1)} vs scroll top ${p.scroll.top.toFixed(1)}; ${p.bar.h.toFixed(1)} px (≤ 90); lines ${lines ? '≤ 2.6 LH' : 'TOO TALL'};` +
-          ` “${p.text.slice(0, 80)}”${words ? '' : ` ≠ store “${(p.store || []).join(' ')}”`}${own ? '' : ` — not this group's (${g.title})`}${under ? ' — the row is under the bar' : ''}`);
-      }
-    }
-    await scrollTo(b, 0);
+    // 4 r20d-pinned-stack: retired with the pin bar (T810 cutover, owner 2026-11-17 23:29 "Remove it (Recommended)")
 
     // 5 pictures-whole
     const pics = await b.evaluate(PICTURES);
@@ -160,6 +146,38 @@ async function walkState(id, theme) {
         try { await until(b, `!(${SHEET})`, 4000, 'the sheet to close'); } catch { bad.push(`${ak}: Done did not close it`); await b.evaluate(`globalThis.__regsDebug && 0`); }
       }
       say(bad.length === 0, 'sheets open', tag, bad.length ? `${bad.length}/${keys.length}: ${bad.slice(0, 4).join(' · ')}` : `${keys.length} sheets: has a heading, Done closes`);
+    }
+    // (T810 R) trout-table: switched by what the screen shows. The old card (switch off, or a release without the `trout`
+    // section) has nothing to open here. The table: its fold (when the at-a-glance table heads it) opens it in place
+    // (aria-expanded true), a row's picture opens that fish's sheet (a heading), Done closes it.
+    const shown = await b.evaluate(TROUT);
+    if (shown !== 'table') say(true, 'trout-table', tag, `${shown === 'card' ? 'the old trout card' : 'no trout entry'}: no table to open`);
+    else {
+      const bad = [];
+      let said = 'the table drawn in full';
+      await scrollTo(b, 0);
+      if (await b.evaluate(`!!${TROUT_FOLD}`)) {
+        await tap(b, TROUT_FOLD, 'the trout fold', { scroll: true });
+        await until(b, `!!${tid('keep-trout')}`, 4000, 'the trout table under its fold').catch(() => bad.push('the fold did not open the table'));
+        const ex = await b.evaluate(`${TROUT_FOLD}?.getAttribute('aria-expanded') ?? null`);
+        if (ex !== 'true') bad.push(`the fold's aria-expanded is ${ex}`);
+        said = 'the fold opens the table';
+      }
+      const key = bad.length ? null : await b.evaluate(`${TROUT_PIC}?.dataset.testid ?? null`);
+      if (!bad.length && !key) bad.push('no row picture in the table');
+      if (key) {
+        await tap(b, TROUT_PIC, key, { scroll: true });
+        const sh = await until(b, `!!(${SHEET})`, 5000, `the sheet of ${key}`).then(() => b.evaluate(SHEET), () => null);
+        if (!sh) bad.push(`${key}: no sheet`);
+        else {
+          if (!sh.title) bad.push(`${key}: the sheet has no heading`);
+          await tap(b, `[...document.querySelectorAll('[role=button]')].find((e) => /^Done$/.test(e.innerText.trim()) || e.getAttribute('aria-label') === 'Done')`, 'Done');
+          await until(b, `!(${SHEET})`, 4000, 'the sheet to close').catch(() => bad.push(`${key}: Done did not close it`));
+          said += `; ${key} opens “${sh.title}”, Done closes it`;
+        }
+      }
+      say(bad.length === 0, 'trout-table', tag, bad.length ? bad.join(' · ') : said);
+      await scrollTo(b, 0);
     }
     // 10 no console errors
     say(b.errors.length === 0, 'no console errors', tag, b.errors.length ? b.errors.slice(0, 3).join(' | ').slice(0, 300) : 'none');

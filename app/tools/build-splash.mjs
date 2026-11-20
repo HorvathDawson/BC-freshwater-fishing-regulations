@@ -1,21 +1,28 @@
 #!/usr/bin/env node
 /**
- * THE NATIVE SPLASH, DRAWN FROM THE LOADING FISH (T244, owner 2026-10-29).
+ * THE NATIVE SPLASH, DRAWN FROM THE LOADER (T244, owner 2026-10-29; T843, owner 2026-11-17: the coho, not the circling fish).
  *
- *   node tools/build-splash.mjs            -> writes apps/mobile/assets/splash/splash-{light,dark}.png
+ *   node tools/build-splash.mjs            -> writes apps/mobile/assets/splash/splash-{light,dark}.png and (T844) the web's
+ *                                             opening picture, web-frame0-{light,dark}.png (the web sheet's frame 0)
  *   node tools/build-splash.mjs --check    -> exits 1 when either committed file differs (`pnpm splash`)
  *
- * The native splash (expo-splash-screen) must hand off to the in-app `FishSpinner` with no jump, so it is not new art:
- * it is the spinner's own frame 0 (the strip `pnpm spinner` bakes, `fish-sprite.generated.ts`), tinted `color.ui.live`,
- * over the same orbit ring in `color.ui.line` that `FishSpinner` draws as a bordered view — composited here at the pixel
- * size the app draws it (110 dp x 3 = 330 px, bilinear from the 192 px frame, as the Image stretch does), one file per
- * theme, on a transparent ground. The ground is `color.ui.card` per theme (what the boot screen paints), read by
- * `apps/mobile/app.config.js` from the same theme files; no colour is written down here or there.
+ * The native splash (expo-splash-screen) must hand off to the boot screen's loader with no jump, so it is not new art:
+ * it is the loader's own frame 0. Since T814 the boot screen's loader is the coho (`CohoLoader`, `COHO_WIDTH` = 192 dp
+ * wide), and the splash had stayed the circling fish's frame 0, so a launch showed the old fish, then the coho (owner
+ * 2026-11-17: "the old loading icon shows up before the new swimming fish one"). Now it is the coho sheet's frame 0 per
+ * theme (light: coho-light, dark: coho-dark; the sheets are already printed in the theme's ink and red), at the pixel
+ * size the app draws it (192 x 80 dp x 3 = 576 x 240 px, bilinear from the 480 x 200 px frame, as the Image stretch
+ * does), on a transparent ground. The ground the coho sits on is `color.ui.coho.ground` = `color.ui.card`, what the boot
+ * screen paints and what `apps/mobile/app.config.js` gives the splash; no colour is written down here or there.
  *
- * At t = 0 the spinner's ring is a full circle, its rotation is 0 and its strip is at frame 0 — so the first frame of the
- * live spinner IS this picture, to the pixel, and `splash.ts` hides the native one only once that frame is on screen.
+ * Android 12+ shows the splash icon inside a 192 dp circle: frame 0's farthest inked pixel is 92.6 dp from the centre,
+ * inside the 96 dp radius; `--check` holds that (`CIRCLE_DP`), so a redrawn coho that would be clipped fails here.
+ *
+ * At t = 0 `CohoLoader`'s one Animated.Value is 0, so its sheet shows frame 0 — the first frame of the live loader IS
+ * this picture, and `splash.ts` hides the native one only once that frame is on screen. The frame is read from the
+ * committed lossless WebP by Python (`fish-loader/sheet_facts.py --frame0`): the decode is exact on every machine.
  */
-import { inflateSync as inflate } from "node:zlib";
+import { execFileSync } from "node:child_process";
 // (T80) fflate, not node:zlib, to write: zlib's deflate bytes differ by CPU (the Mac vs CI's x64); --check compares bytes
 import { zlibSync } from "fflate";
 import { readFileSync, writeFileSync, mkdirSync, existsSync } from "node:fs";
@@ -23,10 +30,11 @@ import { fileURLToPath } from "node:url";
 
 const here = (p) => fileURLToPath(new URL(p, import.meta.url));
 
-/** The size the boot screen draws the spinner at (App.tsx), in dp, and the density the splash art is made at. */
-const SPLASH_DP = 110;
+/** The width the boot screen draws the coho at (`COHO_WIDTH`, ui-native/src/coho.ts), in dp, and the art's density. */
+const SPLASH_DP = 192;
 const DENSITY = 3;
-const PX = SPLASH_DP * DENSITY;
+/** Android 12+'s splash icon circle, in dp: everything inked must fall inside it. */
+const CIRCLE_DP = 192;
 
 const CRC = (() => {
   const t = new Uint32Array(256);
@@ -62,74 +70,66 @@ function pngRGBA(w, h, rgba) {
   return Buffer.concat([SIG, chunk("IHDR", ihdr), chunk("IDAT", Buffer.from(zlibSync(raw, { level: 9 }))), chunk("IEND", Buffer.alloc(0))]);
 }
 
-/** Frame 0 of the committed strip: its alpha channel, 0..1, `frame` x `frame`. */
-function frameZero() {
-  const src = readFileSync(here("../packages/ui-native/src/fish-sprite.generated.ts"), "utf8");
-  const frame = Number(/frame:\s*(\d+)/.exec(src)?.[1]);
-  const frames = Number(/frames:\s*(\d+)/.exec(src)?.[1]);
-  const ring = Number(/radius:\s*([\d.]+)/.exec(src)?.[1]);
-  const ringW = Number(/width:\s*([\d.]+)/.exec(src)?.[1]);
-  const b64 = /data:image\/png;base64,([A-Za-z0-9+/=]+)/.exec(src)?.[1];
-  if (!frame || !frames || !ring || !b64) throw new Error("build-splash: cannot read fish-sprite.generated.ts");
-  const png = Buffer.from(b64, "base64");
-  // the strip is our own writer's: 8-bit grey+alpha, one IDAT, filter 0 on every row (build-spinner.mjs `png`)
-  let at = 8, w = 0, h = 0; const idat = [];
-  while (at < png.length) {
-    const len = png.readUInt32BE(at), type = png.toString("latin1", at + 4, at + 8);
-    if (type === "IHDR") { w = png.readUInt32BE(at + 8); h = png.readUInt32BE(at + 12); }
-    if (type === "IDAT") idat.push(png.subarray(at + 8, at + 8 + len));
-    at += 12 + len;
-  }
-  const raw = inflate(Buffer.concat(idat));
-  const a = new Float64Array(frame * frame);
-  for (let y = 0; y < frame; y++) {
-    const row = y * (1 + w * 2);
-    if (raw[row] !== 0) throw new Error("build-splash: the strip is not filter-0; build-spinner.mjs changed its writer");
-    for (let x = 0; x < frame; x++) a[y * frame + x] = raw[row + 2 + x * 2] / 255;
-  }
-  if (h !== frame) throw new Error("build-splash: strip height != frame");
-  return { alpha: a, frame, ring, ringW };
-}
-
-const hex = (s) => [1, 3, 5].map((i) => parseInt(s.slice(i, i + 2), 16));
-function theme(name) {
-  const v = JSON.parse(readFileSync(here(`../packages/map/style/themes/${name}.json`), "utf8")).values;
-  for (const k of ["color.ui.live", "color.ui.line"]) if (typeof v[k] !== "string") throw new Error(`build-splash: theme ${name} has no ${k}`);
-  return { live: hex(v["color.ui.live"]), line: hex(v["color.ui.line"]) };
-}
-
-/** The splash picture for one theme: ring (line) under the fish (live), straight alpha, PX x PX. */
-function draw(sprite, { live, line }) {
-  const { alpha, frame, ring, ringW } = sprite;
-  const out = Buffer.alloc(PX * PX * 4);
-  // FishSpinner: ring View of diameter size*radius*2 with a border of max(size*width, 1) dp, centred; border-box.
-  const R = SPLASH_DP * ring * DENSITY, bw = Math.max(SPLASH_DP * ringW, 1) * DENSITY, C = PX / 2;
-  const SS = 4;
-  const sample = (fx, fy) => {                       // bilinear on the 192 px frame, like the Image stretch
-    const x0 = Math.floor(fx), y0 = Math.floor(fy), tx = fx - x0, ty = fy - y0;
-    const at = (x, y) => alpha[Math.min(Math.max(y, 0), frame - 1) * frame + Math.min(Math.max(x, 0), frame - 1)];
-    return at(x0, y0) * (1 - tx) * (1 - ty) + at(x0 + 1, y0) * tx * (1 - ty) + at(x0, y0 + 1) * (1 - tx) * ty + at(x0 + 1, y0 + 1) * tx * ty;
+/** The coho module's facts: the frame size and each theme's sheet file; (T844) `web`: the web's sheets' module. */
+function coho(module = "coho.generated.ts") {
+  const src = readFileSync(here(`../packages/ui-native/src/${module}`), "utf8");
+  const fw = Number(/frame:\s*\{\s*width:\s*(\d+)/.exec(src)?.[1]);
+  const fh = Number(/frame:\s*\{[^}]*height:\s*(\d+)/.exec(src)?.[1]);
+  const imports = Object.fromEntries([...src.matchAll(/import (\w+) from "\.\/coho\/([\w.-]+)";/g)].map((m) => [m[1], m[2]]));
+  const sheetOf = (theme) => {
+    const v = new RegExp(`\\b${theme}:\\s*(\\w+),`).exec(src)?.[1];
+    if (!v || !imports[v]) throw new Error(`build-splash: ${module} names no sheet for theme ${theme}`);
+    return here(`../packages/ui-native/src/coho/${imports[v]}`);
   };
-  for (let y = 0; y < PX; y++) for (let x = 0; x < PX; x++) {
-    let r = 0;
-    for (let sy = 0; sy < SS; sy++) for (let sx = 0; sx < SS; sx++) {
-      const d = Math.hypot(x + (sx + 0.5) / SS - C, y + (sy + 0.5) / SS - C);
-      if (d <= R && d >= R - bw) r++;
-    }
-    const ringA = r / (SS * SS);
-    const fishA = sample(((x + 0.5) * frame) / PX - 0.5, ((y + 0.5) * frame) / PX - 0.5);
-    const a = fishA + ringA * (1 - fishA);           // fish over ring
-    const o = (y * PX + x) * 4;
-    if (a > 0) for (let k = 0; k < 3; k++) out[o + k] = Math.round((live[k] * fishA + line[k] * ringA * (1 - fishA)) / a);
-    out[o + 3] = Math.round(a * 255);
-  }
-  return pngRGBA(PX, PX, out);
+  if (!fw || !fh) throw new Error(`build-splash: cannot read the frame size from ${module}`);
+  return { fw, fh, sheetOf };
 }
 
-const sprite = frameZero();
-const files = ["light", "dark"].map((name) => ({
-  path: here(`../apps/mobile/assets/splash/splash-${name}.png`), bytes: draw(sprite, theme(name)),
-}));
+/** Frame 0 of a sheet, straight-alpha RGBA, decoded by the repo's Python (lossless WebP: exact everywhere). */
+function frameZero(sheet, fw, fh) {
+  const py = here("../../.venv/bin/python");
+  if (!existsSync(py)) throw new Error(`build-splash: no Python at ${py} — make the repo's .venv`);
+  const b64 = execFileSync(py, [here("./fish-loader/sheet_facts.py"), "--frame0", String(fw), String(fh), sheet], { encoding: "utf8" }).trim();
+  const px = Buffer.from(b64, "base64");
+  if (px.length !== fw * fh * 4) throw new Error(`build-splash: frame 0 of ${sheet} is ${px.length} B, not ${fw}x${fh} RGBA`);
+  return px;
+}
+
+/** The splash picture: frame 0 stretched to W x H px (bilinear on premultiplied colour), straight alpha. */
+function draw(px, fw, fh) {
+  const W = SPLASH_DP * DENSITY, H = Math.round((SPLASH_DP * fh / fw) * DENSITY);
+  const out = Buffer.alloc(W * H * 4);
+  const at = (x, y, k) => {
+    const o = (Math.min(Math.max(y, 0), fh - 1) * fw + Math.min(Math.max(x, 0), fw - 1)) * 4;
+    return k === 3 ? px[o + 3] / 255 : (px[o + k] * px[o + 3]) / 255;   // premultiplied
+  };
+  let far = 0;
+  for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) {
+    const fx = ((x + 0.5) * fw) / W - 0.5, fy = ((y + 0.5) * fh) / H - 0.5;
+    const x0 = Math.floor(fx), y0 = Math.floor(fy), tx = fx - x0, ty = fy - y0;
+    const lerp = (k) => at(x0, y0, k) * (1 - tx) * (1 - ty) + at(x0 + 1, y0, k) * tx * (1 - ty)
+      + at(x0, y0 + 1, k) * (1 - tx) * ty + at(x0 + 1, y0 + 1, k) * tx * ty;
+    const a = lerp(3), o = (y * W + x) * 4;
+    if (a > 0) {
+      for (let k = 0; k < 3; k++) out[o + k] = Math.min(255, Math.round(lerp(k) / a));
+      out[o + 3] = Math.round(a * 255);
+      if (out[o + 3] > 8) far = Math.max(far, Math.hypot(x + 0.5 - W / 2, y + 0.5 - H / 2) / DENSITY);
+    }
+  }
+  if (far > CIRCLE_DP / 2) throw new Error(`build-splash: the coho reaches ${far.toFixed(1)} dp from the centre; Android 12+ clips the splash icon at ${CIRCLE_DP / 2} dp`);
+  return { bytes: pngRGBA(W, H, out), far };
+}
+
+const { fw, fh, sheetOf } = coho();
+const web = coho("cohoWeb.generated.ts");
+// (T852) the web's frame is its own size (2 px per CSS px; the phones' 2.5 px per dp), at the phones' aspect
+if (web.fw * fh !== fw * web.fh) throw new Error("build-splash: the web's coho frame is not the phones' aspect");
+const files = ["light", "dark"].flatMap((name) => [
+  { path: here(`../apps/mobile/assets/splash/splash-${name}.png`), ...draw(frameZero(sheetOf(name), fw, fh), fw, fh) },
+  // (T844) the web's opening picture: the WEB sheet's frame 0 at its own pixels (the web draws it at 2 px per CSS px
+  // too, T852), shown by the export's HTML shell (`tools/web-shell.mjs`) until that sheet has arrived: the same picture
+  { path: here(`../apps/mobile/assets/splash/web-frame0-${name}.png`), bytes: pngRGBA(web.fw, web.fh, frameZero(web.sheetOf(name), web.fw, web.fh)), far: 0 },
+]);
 
 if (process.argv.includes("--check")) {
   const stale = files.filter((f) => !existsSync(f.path) || !readFileSync(f.path).equals(f.bytes));
@@ -140,5 +140,5 @@ if (process.argv.includes("--check")) {
   console.log("splash art: current");
 } else {
   mkdirSync(here("../apps/mobile/assets/splash"), { recursive: true });
-  for (const f of files) { writeFileSync(f.path, f.bytes); console.log(`wrote ${f.path} (${f.bytes.length} B)`); }
+  for (const f of files) { writeFileSync(f.path, f.bytes); console.log(`wrote ${f.path} (${f.bytes.length} B${f.far ? `; reaches ${f.far.toFixed(1)} dp` : ""})`); }
 }

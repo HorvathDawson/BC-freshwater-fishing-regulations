@@ -7,25 +7,33 @@
  * colouring. Plain water needs no key. Whether it is shown is the Shell's call; what it says is here.
  */
 import { CHANGE_LEGEND, changeMarkWords, FLOW_LEGEND, OTHER_QUANTITY_WORDS, TEMP_LEGEND, unprovenLine,
-         WATER_STATUS_LINE, WATER_STATUSES, waterLegend, salmonLegend, GEAR_LEGEND,
-         RUN_WORDS, salmonCheckedLine, slotsFor, MAP_KEY, closedKey, waterKeyWords, OBSTACLE_ICON_KINDS }
+         WATER_STATUS_LINE, WATER_STATUSES, type WaterStatus, waterLegend, salmonLegend, GEAR_LEGEND,
+         RUN_WORDS, slotsFor, MAP_KEY, closedKey, waterKeyWords, OBSTACLE_ICON_KINDS }
   from "@app/core";
-import { closedCueColour, gaugeOnlyColours, gearEdgeColour, notFishingColours, runStateColour, salmonStatusColour } from "@app/map/colours";
-import { Icon, ObstacleIcon } from "../icons";
-import { hitProps } from "../regs/hit";
+import { closedCueColour, gaugeOnlyColours, issueStripeColours, gearEdgeColour, notFishingColours, runStateColour, salmonCasingColour, salmonStatusColour } from "@app/map/colours";
+import { ObstacleIcon } from "../icons";
 import { useMemo, useState } from "react";
 import { useCoachTarget } from "../CoachMarks";
-import { useWindowDimensions, View } from "react-native";
+import { View } from "react-native";
 import { Text } from "../Text";
 import { Pressable } from "../Pressable";
+import { tabsAsRail, useLayoutClass } from "@app/ui";
 import { RunDayCaption, RunDaySlider, RunSpeciesChips } from "../RunsControls";
 import type { FishImages } from "../regs/types";
-import { LEGEND_RAMP_MAX, LEGEND_ROWS, WIDE_LEGEND, LegendCount, LegendRamp, LegendRows, LegendStrip } from "../Chrome";
+import { LEGEND_RAMP_MAX, legendCard, LegendCount, LegendRamp, LegendRows, LegendStrip } from "../Chrome";
 import { BasinDays } from "../BasinDays";
 import { legendColour } from "../LayersSheet";
 import { LEGEND_TEXT, TYPE } from "../type";
 import { changeRampStops, flowRampStops, round, type Palette } from "../theme";
 import type { MapColouring } from "./useMapColouring";
+
+/**
+ * (T904) how far the map's scale bar, attribution and gauge-only chip sit above its bottom edge: the foot's height, except
+ * on the desktop class where every map tab's key is a card floating at the middle (`legendCard`), when they stay at the map's own corners.
+ */
+export function mapFootInset(tabsRail: boolean, tab: string, footH: number): number {
+  return tabsRail && (tab === "conditions" || tab === "map" || tab === "runs") ? 0 : footH;
+}
 
 export function MapLegend({ col, conditions, palette, theme, mapDay }: {
   col: MapColouring;
@@ -36,37 +44,42 @@ export function MapLegend({ col, conditions, palette, theme, mapDay }: {
   mapDay: Date | null;
 }) {
   const { flowParam, horizon, layers, mm, cond } = col;
+  // (T904) the desktop's Conditions key is a card over the map, not a bar under it; phones and narrow web keep the bar
+  const card = tabsAsRail(useLayoutClass());
   const onConditions = mm.onConditions;
   // The readings on screen, as positions on the legend's own scale (sentinels excluded: a state, not a point).
   const visibleMarks = cond.marks;
   // (T367, T425) THE FISHERY HEADS THE KEY IT CHANGES: the Map tab's legend, with (in Salmon, whose rules these are) DFO's
   // source line and the fold above it. The Trout | Salmon switch itself is on the map's rail (`RegsLayerToggle`)
   const fishery = !conditions && col.salmonOffered && col.statusOk && col.layers.water.drawn === "regulations";
-  // (T377) the regulations key folded away (the bar keeps its source line); a reader's choice for this screen, open at first
-  const [folded, setFolded] = useState(false);
-  const wide = useWindowDimensions().width >= WIDE_LEGEND;
-  const checked = fishery && col.regsLayer === "salmon" ? salmonCheckedLine(col.salmonFacts) : null;
   // (T396) the regulations key's entries, laid in two rows below (`LegendRows`)
   const gearRows = col.gearMarked ? GEAR_LEGEND.map((m) => (
     <LegendCount key={m} palette={palette} colour={gearEdgeColour(theme)} edge={m === "fly" ? "solid" : "dashed"} tight
                  label={MAP_KEY.gear[m]} />
   )) : [];
+  // (T759) THE ISSUE STRIPE'S ENTRY: only while the Salmon key is up and the feed has a water the stripe can mark
+  const issueRow = col.issueFeed ? [
+    <LegendCount key="issue" palette={palette} colour={palette.sub} line tight issue={issueStripeColours(theme)} label={MAP_KEY.issue} />,
+  ] : [];
   // (T377) A CLASS IS TAPPABLE while the map draws it: a tap shows it alone, again (or the one shown) shows all
   const tap = (cls: string) => (col.statusOk
     ? { onPress: () => col.isolate(cls), alone: col.isolated === cls, faded: col.isolated != null && col.isolated !== cls }
     : {});
-  const statusRows = WATER_STATUSES.map((s) => (
+  // (T937) one entry per status, No access too: Salmon's key wears that very entry (not tappable there: no salmon class)
+  const statusRow = (s: WaterStatus, tapped: boolean) => (
     <LegendCount key={s} palette={palette} colour={palette.waterStatus[s]} tight
                  line dotted={WATER_STATUS_LINE[s] === "dotted"} striped={s === "closed" ? closedCueColour(theme) : undefined}
-                 label={s === "closed" ? closedKey(mapDay) : MAP_KEY.status[s]} {...tap(s)} />
-  ));
+                 label={s === "closed" ? closedKey(mapDay) : MAP_KEY.status[s]} {...(tapped ? tap(s) : {})} />
+  );
+  const statusRows = WATER_STATUSES.map((s) => statusRow(s, true));
   const salmonRows = salmonLegend().map((r) => (
     <LegendCount key={r.status} palette={palette} colour={salmonStatusColour(theme, r.status)} line tight
                  striped={r.status === "closed" ? closedCueColour(theme) : undefined}
+                 cased={r.status === "open" ? salmonCasingColour(theme) ?? undefined : undefined}
                  label={MAP_KEY.salmon[r.status]} {...tap(r.status)} />
   ));
   const strip = (
-    <LegendStrip palette={palette} full={onConditions} wrap={!onConditions}>
+    <LegendStrip palette={palette} full={onConditions} wrap={!onConditions} card={card}>
       {/* NO QUANTITY SWITCH HERE (owner 2026-10-22): Flow · Level · Temperature is the Layers sheet's Show, one
           choice — a second switch in the strip would be two answers to "where do I change this". The ramp below
           names the quantity shown; the horizon control stays on the map (`horizons`). */}
@@ -120,8 +133,11 @@ export function MapLegend({ col, conditions, palette, theme, mapDay }: {
       ) : col.regsLayer === "salmon" ? (
         // (T211) DFO's salmon: the salmon key in the salmon colours, and whose rules they are. The switch is under the
         // Layers button and the day in the map's corner (T213)
-        // (T396) two rows, as Trout & more's: three statuses, then Check DFO with the gear marks
-        <LegendRows rows={[salmonRows.slice(0, 3), [...salmonRows.slice(3), ...gearRows]]} />
+        // (T396) two rows as Trout & more's: the three classes, then Check DFO (T882) and No access (T937: Standard's own entry,
+        // the same words and swatch) with the gear marks. Salmon's checked date left the key (owner 2026-11-20: "Remove checked dste")
+        // to hold the two rows. Only the issue entry (T759, when the feed has such a water) takes a third, never wrapped by chance
+        <LegendRows rows={[salmonRows.slice(0, 3), [...salmonRows.slice(3), statusRow("no_access", false), ...gearRows],
+                           issueRow].filter((r) => r.length > 0)} />
       ) : (
         // The three statuses, in the words and colours every surface uses (@app/core
         // WATER_STATUS through the map's theme) — for the day shown. (T213) Then the gear marks drawn ON them: an ink
@@ -155,47 +171,12 @@ export function MapLegend({ col, conditions, palette, theme, mapDay }: {
     </LegendStrip>
   );
   if (!fishery) return strip;
-  const fold = folded ? MAP_KEY.fold.show : MAP_KEY.fold.hide;
-  const button = (
-    <Pressable testID="legend-fold" onPress={() => setFolded((f) => !f)} accessibilityRole="button"
-               aria-expanded={!folded} accessibilityLabel={fold} {...hitProps({ w: 32, h: 32 })}
-               style={{ marginLeft: "auto", width: 32, height: 32, alignItems: "center", justifyContent: "center",
-                        borderWidth: 1, borderColor: palette.line, borderRadius: palette.r.chip }}>
-      <Icon name={folded ? "collapse" : "expand"} colour={palette.ink} size={18} />
-    </Pressable>
-  );
-  const source = checked && (
-    <Text testID="salmon-legend-source" numberOfLines={2}
-          style={{ ...TYPE.caption, lineHeight: 15, color: palette.sub, flexShrink: 1 }}>
-      {checked}
-    </Text>
-  );
-  // (T469) WIDE SCREEN, key open: the fold button sits in the key's own row (its right end), not in a strip of its own
-  if (wide && !folded) {
-    return (
-      <View testID="legend-fishery-bar" style={{ backgroundColor: palette.card, flexDirection: "row", alignItems: "flex-start",
-                                                 borderTopWidth: 1, borderTopColor: palette.line }}>
-        <View style={{ flex: 1 }}>
-          {source && <View testID="legend-fishery-head" style={{ paddingHorizontal: LEGEND_ROWS.padX, paddingTop: 9 }}>{source}</View>}
-          {strip}
-        </View>
-        <View style={{ paddingRight: LEGEND_ROWS.padX, paddingTop: 7 }}>{button}</View>
-      </View>
-    );
-  }
+  // (T896) NO HEAD, NO RESERVE: both modes are exactly T396's two rows (a phone) or one row (from `WIDE_LEGEND`)
+  // (T904) a desktop's card is the strip itself: no bar round it
+  if (card) return strip;
   return (
-    <View testID="legend-fishery-bar" style={{ backgroundColor: palette.card }}>
-      {/* (T396, T425) ONE ROW, 32 px tall in both modes: Salmon's "DFO rules checked …" (up to two lines) beside the fold
-          button, which Trout & more has alone — so switching modes does not move the bar */}
-      <View testID="legend-fishery-head"
-            style={{ flexDirection: "row", alignItems: "center", gap: 10, paddingHorizontal: LEGEND_ROWS.padX,
-                     paddingTop: 9, minHeight: 41, borderTopWidth: 1, borderTopColor: palette.line }}>
-        {source}
-        {/* (T377) THE KEY FOLDS AWAY: the head stays, the rows go (the bar one line tall); the choice holds across both
-            modes, so switching never moves the bar */}
-        {button}
-      </View>
-      {folded ? <View style={{ height: 9 }} /> : strip}
+    <View testID="legend-fishery-bar" style={{ backgroundColor: palette.card, borderTopWidth: 1, borderTopColor: palette.line }}>
+      {strip}
     </View>
   );
 }
@@ -261,6 +242,11 @@ export function RunsKey({ theme, palette, bottom }: { theme: string; palette: Pa
  * line below appears only while loading — never the routine offline line. Tap it for the whole text. (T367) What is
  * WRONG (stale, failed) is the bar over the map (`PairBanner`), not a grey line here.
  */
+/**
+ * (T902) the Runs bar's column: 760 px on a phone; from the tablet class (900 px) up it widens to 960 (the window less its 14 px margins, if narrower) so the species chips
+ * (six species and All, each with its fish) sit on one line, with no sideways scroll (RunSpeciesChips wraps if ever more).
+ */
+const RUNS_PANEL_MAX = { phone: 760, tablet: 960, desktop: 960 } as const;
 export function RunsLegend({ col, palette, theme, fishImages }: { col: MapColouring; palette: Palette; theme: string;
                                                                       fishImages?: FishImages }) {
   const r = col.runs;
@@ -271,13 +257,18 @@ export function RunsLegend({ col, palette, theme, fishImages }: { col: MapColour
     name: s.name, colour: palette.runSpecies[s.name] ?? palette.sub, season: r.facts!.season(slotsFor(r.facts!, [s], r.year)),
   })) : []), [r.facts, r.chosen, r.year, palette.sub]);
   const [open, setOpen] = useState(false);
+  const layout = useLayoutClass();
+  // (T904) the desktop's Runs key is a card over the map, as the Map and Conditions keys are
+  const card = tabsAsRail(layout);
   // (T261) the walkthrough points at the species row by this key
   const speciesTarget = useCoachTarget("runs:species");
   const note = !r.problem && r.loading ? RUN_WORDS.loading : null;
   return (
-    <View testID="runs-legend" style={{ borderTopWidth: 1, borderTopColor: palette.line, backgroundColor: palette.card,
-                                        paddingHorizontal: 14, paddingTop: 8, paddingBottom: 8, gap: 6 }}>
-      <View style={{ width: "100%", maxWidth: 760, alignSelf: "center", gap: 6 }}>
+    <View testID={card ? "runs-legend-card" : "runs-legend"}
+          style={card ? { ...legendCard(palette), width: "100%", maxWidth: RUNS_PANEL_MAX[layout] + 28, paddingHorizontal: 14, paddingVertical: 8, gap: 6 }
+                      : { borderTopWidth: 1, borderTopColor: palette.line, backgroundColor: palette.card,
+                          paddingHorizontal: 14, paddingTop: 8, paddingBottom: 8, gap: 6 }}>
+      <View style={{ width: "100%", maxWidth: RUNS_PANEL_MAX[layout], alignSelf: "center", gap: 6 }}>
         {/* (T367, owner 2026-11-04) THE SPECIES, in the bar with the rest of run timing (they sat over the map): tap to
             show or hide, long-press for one alone, All for every one; each chip's colour is its band in the histogram */}
         {r.species.length > 0 && (

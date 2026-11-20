@@ -79,8 +79,8 @@ describe("(T668 fix 4) each row names where its answer comes from", () => {
     expect(rowsOf(live, 67, MAR)).toEqual([["Chinook", "open", "Region 6 and Region 7 together"],
                                            ["Coho · sockeye · pink · chum", "closed", "Region 6 · E"]]);
     expect(rowsOf(live, 67, JUL)[0]).toEqual(["Chinook", "open", "Region 6 · E"]);
-    // both regions' gear lines on the straddler
-    expect(salmonCard(live, { sids: [67], item: null }, JUL).gear).toEqual(["Barbless hooks only (Jan 1–Dec 31)", "No bait (Jan 1–Dec 31)"]);
+    // both regions' gear lines on the straddler; (T870 item 3) a row holding every day reads "all year"
+    expect(salmonCard(live, { sids: [67], item: null }, JUL).gear).toEqual(["Barbless hooks only (all year)", "No bait (all year)"]);
   });
 
   it("THE SKEENA's lettered sections, as DFO prints them (owner 2026-11-11): A, B(i), B(ii)", () => {

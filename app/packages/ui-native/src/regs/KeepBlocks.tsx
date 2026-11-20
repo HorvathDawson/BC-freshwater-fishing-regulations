@@ -4,10 +4,10 @@
  * each draws its VM slice.
  */
 import { useState, type ReactNode } from "react";
-import { Image, View } from "react-native";
+import { Image, PixelRatio, View, useWindowDimensions } from "react-native";
 import { Text } from "../Text";
 import Svg, { Circle, Path } from "react-native-svg";
-import { GLANCE_WORDS, WORDS, daylightOffsets, timedLineText, type BannerVM, type GlanceRowVM, type CaveatVM, type InheritedVM, type OtherFishKeyVM, type OtherFishRowVM, type PossessionVM, type WhereNotVM } from "@app/core";
+import { GLANCE_WORDS, SALMON_ISSUE_WORDS, WORDS, daylightOffsets, timedLineText, type BannerVM, type DaylightAt, type GlanceRowVM, type CaveatVM, type InheritedVM, type OtherFishKeyVM, type OtherFishRowVM, type PossessionVM, type WhereNotVM } from "@app/core";
 import { Icon } from "../icons";
 import { TYPE } from "../type";
 import { GUTTER, type Palette } from "../theme";
@@ -19,6 +19,13 @@ import { useGuideControl } from "../guideControls";
 
 /** (T40) a full-width press row at least 44 tall (`minHeight: 44`): its known box */
 const ROW = { w: 44, h: 44 } as const;
+/** (T907, owner 2026-11-19 ~06:50: "the trable is weird spacing with the same words liek release") every row of the
+ *  species table ends in ONE slot this wide — the Other fish rows' ›, the trout and salmon folds' ⌄ / ⌃, or nothing on a
+ *  plain row — so each row's value ends on the same right edge, whatever its mark */
+const END_W = 18;
+/** the row's end slot: its mark centred in `END_W` */
+const End = ({ children }: { children?: ReactNode }) =>
+  <View testID="row-end" style={{ width: END_W, alignItems: "center", justifyContent: "center" }}>{children}</View>;
 
 export function ClosedBanner({ banner, palette, actions }: { banner: BannerVM; palette: Palette; actions: KeepActions }) {
   const tone = palette.closed;   // the prototype draws the tidal banner in the closed rule too (.banner)
@@ -123,6 +130,13 @@ export function CaveatBlock({ caveat, palette, actions, inset = true }: { caveat
     );
   };
   const head = (caveat.kind === "inpart" ? WORDS.INPART_IC : "") + caveat.title;
+  // (T796) a section's note: Python's sentence, said as it is — body text under a quiet rule, no label, nothing to open
+  if (caveat.kind === "note") return (
+    <View testID="keep-caveat" style={{ marginTop: 8, marginHorizontal: gutter, paddingTop: 6, paddingBottom: 6, paddingLeft: 10,
+                                        borderLeftWidth: 3, borderLeftColor: palette.line2 }}>
+      <Text selectable testID="kicker:note" style={[TYPE.meta, { color: palette.ink }]}>{caveat.title}</Text>
+    </View>
+  );
   const body = (
     <>
       {caveat.calm && <Text style={[TYPE.meta, { color: palette.sub, marginBottom: 4 }]}>{caveat.calm}</Text>}
@@ -168,14 +182,22 @@ export function CaveatBlock({ caveat, palette, actions, inset = true }: { caveat
  * only: closed from 1 h after sunset to 1 h before sunrise", the rule-book link inline, the line opening its rule's sheet.
  * Core `timedLineText` words it.
  */
-export function TimedLines({ caveat, palette, actions, hoursSaid = false }: { caveat: CaveatVM; palette: Palette; actions: KeepActions;
+export function TimedLines({ caveat, palette, actions, hoursSaid = false, daylight = null }: { caveat: CaveatVM; palette: Palette; actions: KeepActions;
   /** (T473) the daylight-only item's open hours are said with the status: its rule words drop to a small secondary line */
-  hoursSaid?: boolean }) {
+  hoursSaid?: boolean;
+  /** (T898) the day's sun at the water (`useDaylight`): each daylight-only item's closed hours, from ITS OWN offsets, said
+   *  inside its rule line (core `timedLineText`), once per window (a second rule on the same night window: its words
+   *  alone); null: the words alone (no sun point) */
+  daylight?: DaylightAt | null }) {
+  const said = new Set<string>();
   return (
     <View testID="keep-timed" style={{ marginHorizontal: GUTTER, marginTop: 6, rowGap: 2 }}>
       {[...caveat.items, ...(caveat.later ?? [])].map((x, i) => {
-        const small = hoursSaid && !!daylightOffsets(x);
-        const words = <Text selectable testID="keep-timed-line" style={small ? [TYPE.meta, { color: palette.sub }] : [TYPE.metaSemi, { color: palette.ink }]}>{timedLineText(x)}</Text>;
+        const off = daylightOffsets(x), win = off ? `${off.after}/${off.before}` : "";
+        const at = off && daylight && !said.has(win) ? daylight.closed(off.after, off.before) : null;
+        if (at) said.add(win);
+        const small = hoursSaid && !!off;
+        const words = <Text selectable testID="keep-timed-line" style={small ? [TYPE.meta, { color: palette.sub }] : [TYPE.metaSemi, { color: palette.ink }]}>{timedLineText(x, at)}</Text>;
         return (
           <View key={i} testID="keep-timed-item" style={{ flexDirection: "row", flexWrap: "wrap", alignItems: "baseline", columnGap: 8 }}>
             {x.rule ? (
@@ -240,7 +262,26 @@ function Thumb({ code, images, palette }: { code: string | null; images: FishIma
 }
 
 /** (T221) A folded row of the at-a-glance table: its row (picture, name, the day's answer) and the card it opens. */
-export interface GlanceFold { readonly key: string; readonly row: GlanceRowVM; readonly body: () => ReactNode }
+export interface GlanceFold {
+  readonly key: string; readonly row: GlanceRowVM; readonly body: () => ReactNode;
+  /** (T810 O, owner about 17:15 "Salmon + trout folds") the row's end is the expand / collapse arrow
+   *  beside its value words, not the "Details" / "Hide" button; the Other fish list's own folds never set it */
+  readonly arrow?: boolean;
+}
+
+/**
+ * (T759, owner 2026-11-15: "mark the folded row") THE FOLDED SALMON ROW'S MARK when its card holds a DFO issue banner: a small
+ * square badge in the banner's own attention colour (the bar down the banner's edge) with a "!", named by the banner's title, so the banner
+ * is not missed while the card is folded. Square corners, no new words.
+ */
+function IssueMark({ palette }: { palette: Palette }) {
+  return (
+    <View testID="glance-issue" accessible accessibilityRole="image" accessibilityLabel={SALMON_ISSUE_WORDS.title}
+          style={{ width: 18, height: 18, alignItems: "center", justifyContent: "center", backgroundColor: palette.attention }}>
+      <Text importantForAccessibility="no" style={[TYPE.metaBold, { color: palette.card, lineHeight: 16 }]}>!</Text>
+    </View>
+  );
+}
 
 /**
  * (T221, owner 2026-10-28) A FOLDED ROW: drawn as an Other fish row — picture, name, a status word only where the whole
@@ -262,9 +303,19 @@ function FoldRow({ f, palette, images, coach }: { f: GlanceFold; palette: Palett
         <Thumb code={f.row.thumb} images={images} palette={palette} />
         <Text style={[TYPE.regsBodySemi, { color: palette.ink, flex: 1 }]}>{f.row.name}</Text>
         {f.row.value && <Text testID={`st:${f.row.tone}`} style={[TYPE.regsBodyBold, { color: tone }]}>{f.row.value}</Text>}
+        {/* (T907) no mark: the slot stays, so the value ends where the other rows' do */}
+        <End />
       </View>
+      {/* (T796) a rule-book closure says where it is from under the row: its words (page, line, dates), then its place */}
+      {f.row.book?.map((b) => (
+        <View key={b.words} testID="glance-book" style={{ paddingBottom: 9 }}>
+          <Text selectable testID="glance-book-words" style={[TYPE.meta, { color: palette.ink }]}>{b.words}</Text>
+          <Text selectable testID="glance-book-from" style={[TYPE.meta, { color: palette.sub, marginTop: 2 }]}>{b.from}</Text>
+        </View>
+      ))}
     </View>
   );
+  if (f.arrow) return <ArrowFold f={f} open={open} setOpen={setOpen} ring={ring} tone={tone} palette={palette} images={images} />;
   return (
     <View testID={`glance:${f.key}`}>
       <View ref={ring} collapsable={false} style={{ paddingHorizontal: GUTTER }}>
@@ -280,7 +331,14 @@ function FoldRow({ f, palette, images, coach }: { f: GlanceFold; palette: Palett
                               borderTopColor: palette.line, backgroundColor: lit ? palette.tint : "transparent" };
                    }}>
           <Thumb code={f.row.thumb} images={images} palette={palette} />
-          <Text style={[TYPE.regsBodySemi, { color: palette.ink, flex: 1 }]}>{f.row.name}</Text>
+          {f.row.from ? (
+            // (T892) a quota group from another water's tributary rule: said under its name, in the row's spoken words once
+            <View style={{ flex: 1 }}>
+              <Text style={[TYPE.regsBodySemi, { color: palette.ink }]}>{f.row.name}</Text>
+              <Text testID="row-from" style={[TYPE.meta, { color: palette.sub, marginTop: 2 }]}>{f.row.from}</Text>
+            </View>
+          ) : <Text style={[TYPE.regsBodySemi, { color: palette.ink, flex: 1 }]}>{f.row.name}</Text>}
+          {f.row.issue && <IssueMark palette={palette} />}
           {f.row.value && <Text testID={`st:${f.row.tone}`} style={[TYPE.regsBodyBold, { color: tone }]}>{f.row.value}</Text>}
           <View testID="glance-toggle" style={{ flexDirection: "row", alignItems: "center", justifyContent: "center", minWidth: 84, gap: 4, paddingVertical: 4, paddingHorizontal: 8,
                                                  borderWidth: 1, borderColor: palette.ink, borderRadius: palette.r.box }}>
@@ -288,6 +346,55 @@ function FoldRow({ f, palette, images, coach }: { f: GlanceFold; palette: Palett
             <Text style={[TYPE.metaBold, { color: palette.ink }]}>{open ? GLANCE_WORDS.hide : GLANCE_WORDS.show}</Text>
             <Icon name={open ? "collapse" : "expand"} colour={palette.ink} size={14} />
           </View>
+        </RegsPress>
+      </View>
+      {open && <View testID={`glance-body:${f.key}`} style={{ paddingBottom: 12 }}>{f.body()}</View>}
+    </View>
+  );
+}
+
+/** (T810 O) the OS text scale from which the arrow fold's value goes under its name (spec 3.5: 200 % text) */
+const FOLD_STACK_AT = 1.5;
+
+/**
+ * (T810 O, owner about 17:15 "Salmon + trout folds": "Both folded entries (salmon and trout) show their words + an arrow
+ * instead of 'Details'") THE ARROW FOLD: picture, name, the value words (and their small date, the
+ * trout fold's `DateSet.fold`), then the expand / collapse arrow beside them. The whole row stays the one 44 px press,
+ * open or folded by aria-expanded; its spoken name is exactly its visible words (WCAG 2.5.3), the arrow being a picture.
+ * At large text the value goes under the name, so nothing scrolls sideways.
+ */
+function ArrowFold({ f, open, setOpen, ring, tone, palette, images }: {
+  f: GlanceFold; open: boolean; setOpen: (v: boolean) => void; ring: ReturnType<typeof useCoachTarget>; tone: string;
+  palette: Palette; images?: FishImages }) {
+  useWindowDimensions();
+  const stack = (PixelRatio.getFontScale() || 1) >= FOLD_STACK_AT;
+  const value = (f.row.value || f.row.date) ? (
+    <View testID="glance-value" style={stack ? { marginTop: 2 } : { flex: 1, minWidth: 0, alignItems: "flex-end" }}>
+      {f.row.value && <Text testID={`st:${f.row.tone}`} style={[TYPE.regsBodyBold, { color: tone, ...(stack ? {} : { textAlign: "right" }) }]}>{f.row.value}</Text>}
+      {f.row.date && <Text testID="glance-date" style={[TYPE.meta, { color: palette.sub, ...(stack ? {} : { textAlign: "right" }) }]}>{f.row.date}</Text>}
+    </View>
+  ) : null;
+  return (
+    <View testID={`glance:${f.key}`}>
+      <View ref={ring} collapsable={false} style={{ paddingHorizontal: GUTTER }}>
+        <RegsPress accessibilityRole="button" aria-expanded={open} accessibilityLabel={[f.row.name, f.row.from, f.row.value, f.row.date].filter(Boolean).join(" ")}
+                   onPress={() => setOpen(!open)} box={ROW}
+                   style={(st) => {
+                     const lit = st.pressed || !!(st as { hovered?: boolean }).hovered || !!(st as { focused?: boolean }).focused;
+                     return { flexDirection: "row", alignItems: "center", gap: 10, minHeight: 44, paddingVertical: 9, borderTopWidth: 1,
+                              borderTopColor: palette.line, backgroundColor: lit ? palette.tint : "transparent" };
+                   }}>
+          <Thumb code={f.row.thumb} images={images} palette={palette} />
+          {/* the name keeps its own width (up to half the row); a long value or date wraps under itself, not the name */}
+          <View style={stack ? { flex: 1, minWidth: 0 } : { flexShrink: 0, maxWidth: "50%" }}>
+            <Text style={[TYPE.regsBodySemi, { color: palette.ink }]}>{f.row.name}</Text>
+            {/* (T892) every row of the table rests on another water's row carried down to its tributaries: said once, here */}
+            {f.row.from && <Text testID="row-from" style={[TYPE.meta, { color: palette.sub, marginTop: 2 }]}>{f.row.from}</Text>}
+            {stack && value}
+          </View>
+          {f.row.issue && <IssueMark palette={palette} />}
+          {!stack && (value ?? <View style={{ flex: 1 }} />)}
+          <End><View testID="glance-arrow"><Icon name={open ? "collapse" : "expand"} colour={palette.ink} size={END_W} /></View></End>
         </RegsPress>
       </View>
       {open && <View testID={`glance-body:${f.key}`} style={{ paddingBottom: 12 }}>{f.body()}</View>}
@@ -307,15 +414,20 @@ export function SpeciesRows({ rows, keys, palette, actions, images, folds = [] }
   return (
     <View testID="species-rows">
       {folds.map((f) => <FoldRow key={f.key} f={f} palette={palette} images={images}
-                                 coach={f.key === "salmon" ? "regs:salmon" : f === folds.find((x) => x.key.startsWith("group:")) ? "regs:trout" : undefined} />)}
+                                 coach={f.key === "salmon" ? "regs:salmon"
+                                   // (T810 O) the trout table's one fold where it is drawn, else the first group's
+                                   : f === (folds.find((x) => x.key === "trout") ?? folds.find((x) => x.key.startsWith("group:"))) ? "regs:trout" : undefined} />)}
       <View style={{ paddingHorizontal: GUTTER }}>
       {rows.map((o) => [
         <RegsPress key={o.open} accessibilityRole="button" onPress={() => actions.onSheet(o.open)} box={ROW}
                    style={{ flexDirection: "row", alignItems: "center", gap: 10, minHeight: 44, paddingVertical: 9, borderTopWidth: 1, borderTopColor: palette.line }}>
           <Thumb code={o.thumb} images={images} palette={palette} />
           <View style={{ flex: 1 }}>
+            {/* (T907, owner 2026-11-19 ~06:50) no B.C. / DFO tag on a row: the calendar heads carry it */}
             <Text style={[TYPE.regsBody, { color: palette.ink }]}>{o.name}</Text>
             {o.week && <Text style={[TYPE.metaSemi, { color: palette.sub, marginTop: 2 }]}>{o.week}</Text>}
+            {/* (T892) another water's row carried down to its tributaries answers this row: said under the name */}
+            {o.from && <Text testID="row-from" style={[TYPE.meta, { color: palette.sub, marginTop: 2 }]}>{o.from}</Text>}
             {/* (T670 K2) the row's fish its number does not hold for: said on the row, in the status colour, never only in the sheet */}
             {o.back.map((b, i) => (
               <Text key={i} testID={`otherfish-back:${b.status}`} style={[TYPE.metaSemi, { color: tone(b.status), marginTop: 2 }]}>{b.says}</Text>
@@ -324,7 +436,7 @@ export function SpeciesRows({ rows, keys, palette, actions, images, folds = [] }
           <Text testID={`st:${o.tone}`} style={[TYPE.regsBodyBold, { color: tone(o.tone) }]}>
             {o.value}{o.sizeHint ? <Text style={[TYPE.metaSemi, { color: palette.sub }]}>{` ${o.sizeHint}`}</Text> : null}
           </Text>
-          <Text style={[TYPE.regsBody, { color: palette.sub }]}>›</Text>
+          <End><Text style={[TYPE.regsBody, { color: palette.sub }]}>›</Text></End>
         </RegsPress>,
         // prototype .ostamps (rows 32): the row's stored licence documents under it, each "You need <document ›> <when>"
         ...o.stamps.map((s, i) => (

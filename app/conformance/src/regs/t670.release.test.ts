@@ -6,16 +6,16 @@
  *
  *   K1  a water's own possession limit            Charlie Lake, p.65
  *   K2  a row's fish that must go back            Peace River, Site C dam up to the Halfway closure, p.66
- *   K3  a child row's fish nobody may keep        Shuswap Lake's lake trout, p.28
- *   K4  a pooled row with no card                 Bruer Creek's brook trout, p.68
- *   K5  the same, a water's one-kind quota        Mat Creek (Duncan River's tributaries), p.36
+ *   K3  a child row's fish nobody may keep        Shuswap Lake's lake trout, p.28        (T810 S: the trout table's)
+ *   K4  a pooled row with no card                 Bruer Creek's brook trout, p.68        (T810 S: the trout table's)
+ *   K5  the same, a water's one-kind quota        Mat Creek (Duncan River's tributaries), p.36   (T810 S: the table's)
  *   G1  a rule held for an angler in a boat       Kispiox River, p.51
  *   G3  gear and boat rules of an undrawn part    Mahood Lake, p.32
  *   G4  a hook-size limit                         Qualicum River, p.18
  *   G7  the classified-water licence terms        Wigwam River (Kootenay booking), Dean River (the draw), p.7 (Li13)
  */
 import { beforeAll, describe, expect, it } from "vitest";
-import { buildRegsPage, plain, type RegsInputs, type RegsPage } from "@app/core";
+import { BOAT_WHILE, boatsLine, buildRegsPage, gearAnswer, OTHER_WHILE, plain, type RegsInputs, type RegsPage, type TroutVM } from "@app/core";
 import { loadRegsInputs, openRegsStore, type RegsStore } from "@app/data/regs";
 import { sectionNames, type SectionNames } from "@app/data/release/node";
 import { liveReleaseAt, openReleaseDir } from "../fixtureRelease";
@@ -36,10 +36,9 @@ describe.skipIf(!at.dir)(`T670: what the release holds is on the screen (${at.di
 
   it("K1 Charlie Lake: 'Walleye daily and possession quotas = 3; northern pike …' (p.65) is under the Possession row", async () => {
     const pos = (await page("wbk:329264876", 0, 7, 15, "Wednesday")).keep.possession!;
+    // (T810 S, F0) the trout- and char-only lines (Dolly Varden or bull trout, lake trout) are the table's rows now
     expect([pos.value, pos.also]).toEqual(["2 days’ quota", [
       "Possession: the daily quota for Arctic grayling. Fish at home don’t count.",
-      "Possession: the daily quota for Dolly Varden or bull trout. Fish at home don’t count.",
-      "Possession: the daily quota for lake trout. Fish at home don’t count.",
       "Have no more than 3 walleye in possession. Fish at home don’t count.",
       "Have no more than 3 northern pike in possession. Fish at home don’t count."]]);
     expect(pos.says.endsWith(pos.also.join(" "))).toBe(true);   // the sheet's sentence holds them too
@@ -53,27 +52,39 @@ describe.skipIf(!at.dir)(`T670: what the release holds is on the screen (${at.di
     expect(keep.otherFishKey.map((k) => k.status)).toContain("release");
   });
 
-  it("K3 Shuswap Lake, Nov 11: Region 3's 'Lake trout from Oct 15-Jan 31' release (p.28) is a line of the trout card; none in July", async () => {
-    const lines = async (m: number, d: number) => (await page("wbk:329518145", 0, m, d, "Wednesday")).keep.groups
-      .flatMap((g) => g.notKept.map((n) => [n.status, n.says, plain(n.whose), n.pictures.map((p) => p.code).join()]));
-    expect(await lines(11, 11)).toEqual([["release", "Release every lake trout, Oct 15–Jan 31.", "Region 3 rule · Rule book p.28 ↗", "LT"]]);
-    expect(await lines(7, 15)).toEqual([]);
+  /** (T810 S) the trout table's boxes as [kind, the fish of its rows, every word of the box] (the payload's, unchanged) */
+  const boxes = (p: RegsPage) => {
+    const t = p.keep.trout;
+    expect(t?.kind, "a trout table").toBe("table");
+    return (t as TroutVM).boxes.map((b) => [b.kind, b.rows.map((r) => r.fish), JSON.stringify(b)] as const);
+  };
+
+  it("K3 Shuswap Lake, Nov 11: Region 3's 'Lake trout from Oct 15-Jan 31' release (p.28) puts lake trout in the table's release box; not in July", async () => {
+    const lt = async (m: number, d: number) => boxes(await page("wbk:329518145", 0, m, d, "Wednesday"))
+      .filter(([, fish]) => fish.includes("LT")).map(([kind]) => kind);
+    expect(await lt(11, 11)).toEqual(["release"]);
+    // exact (main chat, live bundle with L): the lake trout ALONE in the Release box
+    expect(boxes(await page("wbk:329518145", 0, 11, 11, "Wednesday")).filter(([kind]) => kind === "release")
+      .map(([, fish, j]) => [fish, JSON.parse(j).head])).toEqual([[["LT"], "Release"]]);
+    expect(await lt(7, 15)).not.toContain("release");
   });
 
-  it("K4 Bruer Creek: '20 brook trout from streams' (p.68) leads the species list and opens its full row", async () => {
+  it("K4 Bruer Creek: '20 brook trout from streams' (p.68) is the table's: a keep box holds brook trout and says 20", async () => {
     const p = await page("gnis:10061", await names.part("gnis:10061", "mouth", "source"), 7, 15, "Wednesday");
-    const o = p.keep.otherFish![0]!;
-    expect([o.name, o.value, o.tone, o.open]).toEqual(["Brook trout", "20 a day", "keep", "other:o0"]);
-    const sheet = p.sheet(o.open)!;
-    expect(sheet.title).toBe("Brook trout");
-    expect(JSON.stringify(sheet.blocks)).toContain("In streams, keep up to 20 brook trout a day.");
+    const eb = boxes(p).filter(([kind, fish]) => kind === "keep" && fish.includes("EB"));
+    expect(eb.length).toBe(1);
+    expect(eb[0]![2]).toMatch(/\b20\b/);
+    expect([eb[0]![1], JSON.parse(eb[0]![2]).head]).toEqual([["EB"], "Keep 20 in all"]);   // brook trout alone in its box
+    expect((p.keep.otherFish ?? []).map((o) => o.name)).not.toContain("Brook trout");   // never a second time
   });
 
-  it("K5 Mat Creek, Jan 15: the Duncan River's 'bull trout daily quota = 2' (p.36) leads the species list", async () => {
+  it("K5 Mat Creek, Jan 15: the Duncan River's 'bull trout daily quota = 2' (p.36) is the table's: a keep box holds Dolly Varden and says 2", async () => {
     const p = await page("gnis:14254", await names.part("gnis:14254", "mouth", "source"), 1, 15, "Thursday");
-    const o = p.keep.otherFish![0]!;
-    expect([o.name, o.value, o.tone]).toEqual(["Dolly Varden/bull trout", "2 a day", "keep"]);
-    expect(p.sheet(o.open)!.title).toBe("Dolly Varden/bull trout");
+    const dv = boxes(p).filter(([kind, fish]) => kind === "keep" && fish.includes("DV"));
+    expect(dv.length).toBe(1);
+    expect(dv[0]![2]).toMatch(/\b2\b/);
+    expect([dv[0]![1], JSON.parse(dv[0]![2]).head]).toEqual([["DV"], "Keep 2 in all"]);   // (the band's words are G2's)
+    expect((p.keep.otherFish ?? []).map((o) => o.name)).not.toContain("Dolly Varden/bull trout");
   });
 
   it("G1 Kispiox River: 'No angling from boats, no powered boats' (p.51) — both on the boats line and the Methods list", async () => {
@@ -81,6 +92,48 @@ describe.skipIf(!at.dir)(`T670: what the release holds is on the screen (${at.di
     expect(p.boats!.map((b) => [b.kind, b.text])).toEqual([["in_boat", "No angling (from a boat)"], ["unpowered", "No powered boats"]]);
     expect(p.methods!.boats!.items).toEqual(["No angling (from a boat)", "No powered boats"]);
   });
+
+  it("(T797) 'No angling from powered boats' is on the boats line: the Horsefly below Woodjam Bridge (p.45), not above it; the Chilko above Henry's Crossing on its dates only", async () => {
+    const boats = async (item: string, lo: string, hi: string, month: number, day: number) =>
+      (await page(item, await names.part(item, lo, hi), month, day, "Wednesday")).boats!.map((b) => [b.kind, b.text]);
+    expect(await boats("gnis:24531", "mouth", "horsefly_river__woodjam_bridge", 7, 15))
+      .toEqual([["in_boat", "No angling (from a powered boat) — downstream of Woodjam Bridge"]]);
+    expect(await boats("gnis:24531", "horsefly_river__woodjam_bridge", "horsefly_river__horsefly_river_falls", 7, 15)).toEqual([]);
+    const chilko = ["gnis:13741", "chilko_river__henry_crossing_bridge", "lake_outlet:wbk:329079684"] as const;
+    expect((await boats(...chilko, 9, 20)).filter(([k]) => k === "in_boat"))
+      .toEqual([["in_boat", "No angling (from a powered boat), Sep 11-Sep 30 — upstream of Henry Crossing bridge"]]);
+    expect((await boats(...chilko, 7, 15)).filter(([k]) => k === "in_boat")).toEqual([]);
+  });
+
+  // The boats line reads the gear frame's circumstances by token; a token it does not list is dropped without a word
+  // (T797: `in_powered_boat`, 47 parts of 35 waters, for as long as the line existed). Province-wide, five days of the year.
+  it("(T797) province-wide: every rule held for an angler in a boat, powered or not, is on its page's boats line; no circumstance is one the app does not know", async () => {
+    const ords = (await (await st.water()).all("SELECT item_ord FROM item WHERE shown = 1")).map((r) => Number(r.item_ord));
+    const days = [[1, 15], [4, 15], [7, 15], [9, 20], [11, 15]] as const;
+    const unknown = new Set<string>(), missing: string[] = [], held = { in_boat: 0, in_powered_boat: 0 } as Record<string, number>;
+    for (const ord of ords) {
+      const [it2, parts] = await Promise.all([st.item(ord), st.parts(ord)]);
+      for (let partIx = 0; partIx < parts.length; partIx += 1) {
+        if (!parts[partIx]!.facts || parts[partIx]!.tidal) continue;
+        for (const [month, day] of days) {
+          const inp = await loadRegsInputs(st, { kind: "part", item: it2.id, partIx }, { month, day }, "Wednesday", 2026);
+          const ga = gearAnswer(inp);
+          if (!ga) continue;
+          const shown = new Set(boatsLine(inp).filter((c) => c.kind === "in_boat").map((c) => c.rule));
+          for (const c of ga.circumstantial) for (const w of c.while ?? []) {
+            if (!BOAT_WHILE.includes(w)) { if (!OTHER_WHILE.includes(w)) unknown.add(w); continue; }
+            held[w] = (held[w] ?? 0) + 1;
+            const key = inp.rules.get(c.clause[0]).key;
+            if (!shown.has(key)) missing.push(`${it2.name} part ${partIx} ${month}-${day}: ${key}`);
+          }
+        }
+      }
+    }
+    expect([...unknown]).toEqual([]);
+    expect(missing).toEqual([]);
+    // both kinds are really in the release (a walk that met none would prove nothing)
+    expect([held.in_boat! > 0, held.in_powered_boat! > 0]).toEqual([true, true]);
+  }, 300_000);
 
   it("G3 Mahood Lake, Jul 15: the bait ban and single barbless hook inside the signs (p.32) are in the in-part block", async () => {
     const c = (await page("wbk:329354708", 0, 7, 15, "Wednesday")).keep.caveats.find((x) => x.kind === "inpart")!;

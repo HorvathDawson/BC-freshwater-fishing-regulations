@@ -85,6 +85,16 @@ describe("route (P13): one value, one back rule", () => {
     expect(reduce(HOME, { type: "back" })).toBe(HOME);
   });
 
+  it("(T819 item 12) a spot just saved opens on the Spots tab, wherever it was picked: back is the list, then the Map", () => {
+    // started in Spots, picked on the Map tab (the add flow over it), saved
+    const adding = run(HOME, { type: "tab", tab: "spots" }, { type: "tab", tab: "map" }, { type: "addSpot", at: { lat: 49, lon: -122 } });
+    const saved = reduce(adding, { type: "savedSpot", id: "s9" });
+    expect(saved).toEqual({ mode: "browse", tab: "spots", spot: "s9", adding: null, search: false });
+    const list = reduce(saved, { type: "back" });
+    expect(list).toEqual({ mode: "browse", tab: "spots", spot: null, adding: null, search: false });
+    expect(reduce(list, { type: "back" })).toEqual(HOME);
+  });
+
   it("back on another tab's root goes to the Map tab (the start tab); back on the Map tab stays (Android leaves)", () => {
     const tabs = ["map", "conditions", "spots", "more"] as const;
     const after = tabs.map((t) => {
@@ -375,15 +385,17 @@ describe("back steps out one layer: moves inside a water replace, a different wa
   });
 });
 
-describe("(T221) a solo water: one part, no continuation — no Map view", () => {
+describe("(T925) EVERY named water offers its Map view — a water of one part too (T221's solo gate is gone)", () => {
+  // a water of one part going on as / from no other (Cheakamus River's shape): T221 dropped its Map view
   const W = "gnis:4688" as ItemId;
   const open = (view: "regs" | "map") => reduce(HOME, { type: "openWater", item: W, view });
-  it("the `solo` action drops the Map view (Regulations in front if the Map was); another water's is ignored", () => {
-    const onMap = reduce(open("map"), { type: "solo", item: W });
-    expect([waterFrame(onMap)?.view, frameViews(waterFrame(onMap)!)]).toEqual(["regs", ["regs", "conditions"]]);
-    const other = open("map");
-    expect(reduce(other, { type: "solo", item: "gnis:1" as ItemId })).toBe(other);
-    expect(reduce(onMap, { type: "solo", item: W })).toBe(onMap);
-    expect(backDepth(onMap)).toBe(backDepth(open("map")));
+  it("the frame offers Regulations · Conditions · Map, the Map opens and is moved to, and no frame carries a solo flag", () => {
+    expect(frameViews(waterFrame(open("regs"))!)).toEqual(["regs", "conditions", "map"]);
+    expect(waterFrame(open("map"))).toEqual({ item: W, part: null, tapSid: null, at: null, view: "map" });
+    expect(waterFrame(reduce(open("regs"), { type: "view", view: "map" }))?.view).toBe("map");
+    expect(backDepth(open("map"))).toBe(backDepth(open("regs")));
+  });
+  it("the gate is the item alone: named → three views, unnamed reach → two", () => {
+    expect([frameViews({ item: W }), frameViews({ item: null })]).toEqual([["regs", "conditions", "map"], ["regs", "conditions"]]);
   });
 });

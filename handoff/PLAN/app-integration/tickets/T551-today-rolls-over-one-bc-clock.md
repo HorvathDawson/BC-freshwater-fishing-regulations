@@ -1,6 +1,8 @@
 # T551 — "Today" rolls over at midnight B.C. time everywhere, from one clock; site pages do not print a stale day
 
-Status: IN REVIEW (d3b7f080e, e1142f148, 7af7f39e4). Done: items 1, 2 (except the gauge page script), 5 (card; not the page script), 6, 7; item 8 not done. Not done: items 3 and 4 (the static hubs' day words and rebuild cadence: owner choice, see the report), the gauge page script's own zone formatting (`tools/seo/gaugeClient.ts`, listed in `KNOWN_SECOND_CLOCKS` in `app/tools/clock.test.ts`), item 8's helper dedupe. Gate: `app/tools/clock.test.ts` bans a second B.C. clock (`getHours`/`getMinutes`/`getTimezoneOffset`/`timeZone:`) outside clock.ts and day.ts.
+Status: DONE — d3b7f080e, e1142f148, 7af7f39e4. Items 1, 2, 5, 6, 7 and the clock gate (app/tools/clock.test.ts) landed; the gauge page script, items 3, 4, 8 went to T605.
+
+Closed by the 2026-11-20 audit: built items merged; everything left (gauge page script, items 3, 4, 8) was taken over by T605 ('One B.C. clock: what T551 left'), whose items 1-5 are built.
 
 Source: data pipeline review 2026-11-09 (owner-led; 14 areas + a gap check, every finding re-read against the code and release data by a second reviewer). Rank 7 of 17; highest severity 4 of 5.
 

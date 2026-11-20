@@ -35,24 +35,68 @@ export function sunTimes(lat: number, lon: number, y: number, m: number, d: numb
 }
 
 export const SUN_WORDS = {
-  /** "Sunrise 08:02 PT · sunset 17:41 PT" */
-  line: (rise: string, set: string) => `Sunrise ${rise} · sunset ${set}`,
-  /** "07:04–18:37 PT" */
+  /** "7:04–18:37" */
   range: (from: string, to: string) => `${from}–${to}`,
+  /** (T878) the day's sun under the date: "9:01–17:17" — no "PT" (the app is B.C.-only; owner 2026-11-18 look round) */
+  day: (rise: string, set: string) => `${rise}–${set}`,
+  /** (T878) what a screen reader says for it: "Sunrise 9:01, sunset 17:17 PT" */
+  aria: (rise: string, set: string) => `Sunrise ${rise}, sunset ${set} PT`,
 } as const;
 
-/** The day's line at a point, on the B.C. clock: "Sunrise 08:02 PT · sunset 17:41 PT"; null with no rise or set. */
-export function sunLine(lat: number, lon: number, day: { y: number; m: number; d: number }): string | null {
+/** The day's sun as a screen draws it: the line's words, its accessible label, and the two times alone ("9:01", "17:17"). */
+export interface SunDay { text: string; aria: string; rise: string; set: string }
+
+/** The B.C. clock time without its zone word: "05:07" of "05:07 PT". */
+const bare = (ms: number) => bcClockTime(ms).replace(/ \S+$/, "");
+
+/** "9:01" of "09:01 PT": the B.C. clock, the hour without its leading 0 and no zone word. */
+const short = (ms: number) => bare(ms).replace(/^0(?=\d:)/, "");
+
+/**
+ * (T878, owner 2026-11-18) THE DAY'S SUN at a point, on the B.C. clock: the small line under the day pill ("9:01–17:17",
+ * beside the sun icon), what a screen reader says for it ("Sunrise 9:01, sunset 17:17 PT") and the two times alone (the
+ * rise / set look); null with no rise or set.
+ */
+export function sunLine(lat: number, lon: number, day: { y: number; m: number; d: number }): SunDay | null {
   const t = sunTimes(lat, lon, day.y, day.m, day.d);
-  return t.rise === null || t.set === null ? null : SUN_WORDS.line(bcClockTime(t.rise), bcClockTime(t.set));
+  if (t.rise === null || t.set === null) return null;
+  const rise = short(t.rise), set = short(t.set);
+  return { text: SUN_WORDS.day(rise, set), aria: SUN_WORDS.aria(rise, set), rise, set };
 }
 
 /**
  * (T473) The hours a "daylight only" closure leaves open on a day at a point: from `beforeMin` before sunrise to `afterMin`
- * after sunset ("07:04–18:37 PT"), the offsets the rule's own words carry; null with no rise or set.
+ * after sunset ("7:04–18:37"), the rule's stored offsets; null with no rise or set. (T898, owner 2026-11-19) On the date
+ * line's clock (`sunLine`: no leading 0, no "PT"), so the page says every time one way.
  */
 export function daylightRange(lat: number, lon: number, day: { y: number; m: number; d: number }, afterMin: number, beforeMin: number): string | null {
   const t = sunTimes(lat, lon, day.y, day.m, day.d);
   if (t.rise === null || t.set === null) return null;
-  return SUN_WORDS.range(bcClockTime(t.rise - beforeMin * 60_000).replace(/ \S+$/, ""), bcClockTime(t.set + afterMin * 60_000));
+  return SUN_WORDS.range(short(t.rise - beforeMin * 60_000), short(t.set + afterMin * 60_000));
+}
+
+/**
+ * (T898, owner 2026-11-19: "could give you the times for it on the section you are currently on") The hours a "daylight
+ * only" closure CLOSES on a day at a point: from `afterMin` after that day's sunset to `beforeMin` before its sunrise —
+ * the same sun as the line under the date (`sunLine`, the same point and day), on its clock ("18:21", "7:23": no "PT", no
+ * leading 0). Both ends are the picked day's own sunset and sunrise, as that line says them (the next morning's sunrise
+ * is a minute or two from it). Null with no rise or set.
+ */
+export function daylightClosed(lat: number, lon: number, day: { y: number; m: number; d: number }, afterMin: number,
+                               beforeMin: number): { from: string; to: string } | null {
+  const t = sunTimes(lat, lon, day.y, day.m, day.d);
+  if (t.rise === null || t.set === null) return null;
+  return { from: short(t.set + afterMin * 60_000), to: short(t.rise - beforeMin * 60_000) };
+}
+
+/** (T473, T898) A daylight-only closure's hours on one day at one point, given the rule's own offsets (minutes closed after
+ *  sunset, before sunrise): the hours it leaves open (`daylightRange`) and the hours it closes (`daylightClosed`). */
+export interface DaylightAt {
+  open(afterMin: number, beforeMin: number): string | null;
+  closed(afterMin: number, beforeMin: number): { from: string; to: string } | null;
+}
+
+/** (T473, T898) `DaylightAt` for the point and the day. */
+export function daylightAt(lat: number, lon: number, day: { y: number; m: number; d: number }): DaylightAt {
+  return { open: (a, b) => daylightRange(lat, lon, day, a, b), closed: (a, b) => daylightClosed(lat, lon, day, a, b) };
 }

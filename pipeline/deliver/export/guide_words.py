@@ -406,8 +406,9 @@ SPLIT_TEXT = {
                      "keeps that spelling (`area:CLAYHURST ECOLOGICAL RESERVE`) — ids never "
                      "change, and extents bind by them; show `name`, never the id",
     "confidence": "ONLY on a curated cut whose place is not certain: `medium` or `low` (absent: "
-                  "high). Say the cut's name with 'approximate location (low confidence)' wherever "
-                  "it is named — a part's runs, a boundary on the map",
+                  "high): a review fact (the curator's 'approximate location (low confidence)'). "
+                  "Never add it to the cut's name where an angler reads it — a part's runs or name, "
+                  "a boundary on the map, an in-season place (T780, owner 2026-11-20)",
     "near": "ONLY on a GAUGE cut a part ends at (T517): the end token of the nearest named feature on the ground — a "
             "tributary's `confluence:<water id>` or another named cut of the water — and `near_m` how far it stands, "
             "metres. Say that feature where the part's end is named; the gauge's own name is an alternate only",
@@ -434,6 +435,12 @@ SPLIT_TEXT = {
 }
 
 #: A designation's classified period (`licensing[*].period`, designations only).
+#: `licensing[].non_resident_note` — see `add_non_resident_notes` (T801 item 2).
+NON_RESIDENT_NOTE_TEXT = {
+    "says": "the book's separate-licence line as one whole sentence with its full stop (p.53: 'Non-residents and "
+            "non-resident aliens require separate licences describing which section they are fishing.')",
+}
+
 #: `licensing[].stamp_waiver` — see `add_stamp_waivers`.
 STAMP_WAIVER_TEXT = {
     "outright": "true: '(Steelhead Stamp not required)' — NO steelhead stamp on the designation's "
@@ -798,6 +805,9 @@ LICENSING_RECORD_TEXT = {
                       "Show it on the water as a place not yet mapped; it is NEVER required of "
                       "the whole water (`read.requirements_in_force` lists it under "
                       "`not_yet_mapped`, never `holds`)",
+    "non_resident_note": "ONLY on a classified designation whose entry prints the book's separate-licence line "
+                         "(p.53, the Skeena River 2 and Section 4): {says}, one whole sentence in the book's "
+                         "words — show it in the designation's box (`read.add_non_resident_notes`)",
     "stamp_waiver": "ONLY on a designation that waives the Steelhead Stamp: {outright, lifts, "
                     "verbatim, says} (see `licensing.stamp_waiver`). `outright` "
                     "('(Steelhead Stamp not required)'): NO steelhead stamp on its sections while "
@@ -952,7 +962,11 @@ LIFT_TEXT = {
              "row's quota printing '(any size)', which drops EVERY size constraint of its region for "
              "its fish — the 'only 1 over 50 cm' clauses and the 'none under/over X cm' rules (Robb "
              "Lake's 'Bull trout daily quota = 1 (any size)' lifts Zone 7A's 1 over 50 cm for bull "
-             "trout). Derived when the bundle is built — never infer it. "
+             "trout). own_quota (owner 2026-11-17, RULINGS T17): the lifter is a water row's own daily "
+             "quota LARGER than a region cap counting its fish (the trout/char total; on a stream the 'from "
+             "streams' share): the fish leaves the cap, and the cap is raised to the quota's number for every "
+             "fish it holds (Peace River's lake trout 3 above Zone 7A's '2 from streams': 3 in all, the other "
+             "trout 2 at most). Derived when the bundle is built — never infer it. "
              "Absent = the lifter's own printed exemption",
     "equivalent": "'<entry_id>::<rule_id>' — the lifter's printed exemption names that blanket "
                   "closure of its own region, and this item is the SAME KIND of closure in "

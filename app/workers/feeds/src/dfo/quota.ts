@@ -160,6 +160,15 @@ type Note = { id?: string; k: string; t: string; n?: unknown; lengths?: Band[]; 
 const overOf = (n: Note): number | undefined => n.lengths?.[0]?.min_cm;
 const isInt = (x: unknown): x is number => typeof x === "number" && Number.isInteger(x);
 
+/** quota.period_says (T869, owner 2026-11-18, wording A — our words): the chinook annual limit counts ADULT chinook,
+ *  and what an adult is differs by water, so its tier says "10 adult chinook a year from all fresh waters" (the app adds
+ *  where an adult is another length here); every other period limit keeps DFO's sentence */
+export function periodSays(n: Note): string {
+  if (n.k === "annual" && (n.sp ?? []).length === 1 && n.sp![0] === "CH" && isInt(n.n))
+    return `${n.n} adult chinook a year${/\ball fresh waters\b/i.test(n.t || "") ? " from all fresh waters" : ""}`;
+  return n.t || "";
+}
+
 /** quota.bucket: the header's combined limits — `tree` the TOTAL tier (its annual / monthly limits as tiers with a
  *  `period`), DFO's words, possession, min sizes — or null */
 export function bucket(notes: Note[]): Record<string, unknown> | null {
@@ -176,10 +185,10 @@ export function bucket(notes: Note[]): Record<string, unknown> | null {
     if (n.id) (out.ids as string[]).push(n.id); // (T343) said by the bucket's tier
     const sp = [...(n.sp ?? [])];
     const cm = overOf(n);
-    if (isInt(cm)) tree.children.push(size(seq, n.n, cm, n.t, n.k, sp));
+    if (isInt(cm)) tree.children.push(size(seq, n.n, cm, periodSays(n), n.k, sp));
     else {
       seq[0]! += 1;
-      tree.children.push({ node: "tier", id: `t${seq[0]}`, tier: "count", n: n.n, says: n.t, by: 0, children: [], species: sp, period: n.k });
+      tree.children.push({ node: "tier", id: `t${seq[0]}`, tier: "count", n: n.n, says: periodSays(n), by: 0, children: [], species: sp, period: n.k });
     }
   }
   const poss = notes.filter((n) => n.k === "possession" && !(n.w && n.w.length));

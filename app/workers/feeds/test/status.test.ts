@@ -66,16 +66,19 @@ describe("status + alerts", () => {
     expect(html).toContain("never run"); // gauges
   });
 
-  it("dfoHeld lists held regions, stale regions and single places", () => {
+  it("dfoHeld lists held regions, regions whose fetch failed (stale or not) and single places", () => {
     expect(
       dfoHeld({
         "1": { held: "the page did not parse (X)" },
-        "2": { stale: true, failures: 2 },
+        "2": { stale: true, failures: 2, checked: "2026-10-27T14:15:00+00:00" },
+        "3": { stale: false, failures: 1, checked: "2026-10-28T14:15:00+00:00" },
         "8": { holds: [{ location_id: "8:a", kept: "carried", why: "ValidationError: …" }] },
       }),
     ).toEqual([
       { where: "region 1", why: "the page did not parse (X)" },
-      { where: "region 2", why: "fetch failed 2× in a row; the last answers stand" },
+      { where: "region 2", why: "fetch failed 2× in a row; the last answers stand (read 2026-10-27T14:15:00+00:00, STALE: older than 30 h)" },
+      // (T851) a failure inside the stale line is still listed (the feed is `degraded`, never quietly ok)
+      { where: "region 3", why: "fetch failed 1× in a row; the last answers stand (read 2026-10-28T14:15:00+00:00)" },
       { where: "region 8", place: "8:a", why: "carried: ValidationError: …" },
     ]);
   });

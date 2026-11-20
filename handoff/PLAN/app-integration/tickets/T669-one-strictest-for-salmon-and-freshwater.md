@@ -1,6 +1,6 @@
 # T669 — One "strictest of both regions" for salmon and freshwater straddlers
 
-Status: IN PROGRESS — item 1 done (91398f801); left (Claude): items 2 and 3 (feed format change: worker + app + live.compose together); the shared comparison landed in T668 (dfb4ea7c1)
+Status: IN PROGRESS — item 1 done (91398f801); item 2 (the rule statement on each DFO verdict, a feed format change) DROPPED by the owner 2026-11-20; left (Claude): item 3, pooled and hatchery/wild caps as numbers (after T676 lands)
 
 Source: owner 2026-11-11 (T668): "The strictest of the rules is the same logic the fresh water regulations use I
 believe; we should double check that and if possible unify that logic." The side-by-side is in
@@ -39,3 +39,9 @@ Depends: T668. Size: M. Owner: no.
 both reach it. Three differ on purpose, each with its reason in the table: a pooled count (salmon shows both words,
 item 3), hours (only the salmon header compares them), a region with nothing to say (DFO: closed, `NOT_LISTED`).
 Mutation: a freshwater reader that never displaces fails four cases. Test only: no output can move.
+
+## Owner answer 2026-11-20 01:56
+
+Dropped: item 2. Not doing it. Item 3 stays. owner 2026-11-20 01:56 (lane-plan batch), verbatim: "Make sure their tickets are  removed/completed/no doing labelled".
+
+Status line before this answer: IN PROGRESS — item 1 done (91398f801); left (Claude): items 2 and 3 (feed format change: worker + app + live.compose together); the shared comparison landed in T668 (dfb4ea7c1)

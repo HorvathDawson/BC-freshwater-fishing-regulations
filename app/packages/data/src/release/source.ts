@@ -23,7 +23,7 @@
  * T182 holds down / climate / geo's tables in their old files and has no `item_near` / `lake_section`: each read then
  * goes the old way (`fileFor`; the two has-table checks below).
  */
-import { describeBy, shownParameter, type IndexWater, type NearPlace, type SearchIndexData, type WaterFix } from "@app/core";
+import { describeBy, shownParameter, SMALL_WATER_TEXT_KEY, type IndexCut, type IndexWater, type NearPlace, type SearchIndexData, type WaterFix } from "@app/core";
 import { num, str, type Db, type Row } from "../sql/db";
 import * as BQ from "../sql/queries";
 import { boxOfGeoRows, pointOfGeoRows, continuedOrds, gaugeWatersOf, link, nearHit, parametersOf, pentadsOf, placesOf, pointerHits, rankNameHits, routesOf, withNameSources, seriesOf, sid,
@@ -34,7 +34,7 @@ import type { Aged, BasinMember, BundleCounts, BundleInfo, GaugeLink, ItemId, Na
 import type { DbName, ReleaseLoader } from "./loader";
 import { buildStandingClasses, type StandingClasses } from "../standing";
 import { decodeBasinGrid, type BasinGrid } from "../basinGrid";
-import { CROSS, fileFor, META, RELEASE_QUERIES as R, type PackName } from "./queries";
+import { CONDITIONS_META, CROSS, fileFor, META, RELEASE_QUERIES as R, type PackName } from "./queries";
 
 /** The lowest SQLite parameter ceiling any driver may have been compiled with. */
 const CHUNK = 500;
@@ -117,6 +117,8 @@ export function makeReleaseSource(loader: ReleaseLoader, opts: SourceOptions = {
     return now ? of(now) : [];
   };
   const hasNameSource = has(CROSS.HAS_NAME_SOURCE), hasItemArea = has(CROSS.HAS_ITEM_AREA);
+  /** (T927) the boundary places search finds; none from a core cut before `cut_place`. */
+  const hasCutPlace = has(CROSS.HAS_CUT_PLACE);
   /** (T224) the `name_source` rows of these waters; none from a core cut before the table. */
   const nameSourcesOf = async (items: readonly string[]): Promise<Row[]> =>
     (await hasNameSource()) ? chunked(items, (c) => all(CROSS.NAME_SOURCES_FOR_ITEMS(c.length), ...c)) : [];
@@ -301,6 +303,31 @@ export function makeReleaseSource(loader: ReleaseLoader, opts: SourceOptions = {
   /** The Conditions map's classes, built once per source (`standingClasses`). */
   let classes: Promise<StandingClasses> | null = null;
 
+  /**
+   * (T823) THE SMALL-WATER SENTENCE, the conditions meta's `SMALL_WATER_TEXT_KEY`, read once and only where a section
+   * asked about has a flagged member. A release with `flow-small` and no sentence is broken: refused, never shown bare.
+   */
+  let smallText: Promise<string> | null = null;
+  const smallSentence = () => (smallText ??= get(CONDITIONS_META, SMALL_WATER_TEXT_KEY).then((r) => {
+    const v = r?.v;
+    if (typeof v !== "string" || !v)
+      throw new Error(`release ${loader.release}: flow-small flags members but conditions meta has no ${SMALL_WATER_TEXT_KEY}`);
+    return v;
+  }, (e) => { smallText = null; throw e; }));
+  /** One `small` per (panel, mask): every section of a pair shares it, as they share their members. */
+  const smallOf = new Map<number, NonNullable<Panel["small"]>>();
+  /** (T823) A section's `small` from its flow-small `mask` over its panel's members in paint's order (bit k = member ord
+   *  k); undefined for no bits. A bit past the panel's last member is a file that is not this paint's: refused. */
+  const smallFor = (panel: number, list: readonly PanelMember[], mask: number, text: string): Panel["small"] => {
+    if (!mask) return undefined;
+    if (mask >>> list.length)
+      throw new Error(`release ${loader.release}: flow-small flags member ${31 - Math.clz32(mask)} of panel ${panel}, which has ${list.length}`);
+    const key = panel * 2 ** 31 + mask;
+    let got = smallOf.get(key);
+    if (!got) smallOf.set(key, (got = { stations: list.filter((_, k) => (mask >>> k) & 1).map((m) => m.station), text }));
+    return got;
+  };
+
   return {
     ...(loader.handles ? { handles: loader.handles } : {}),
     async info(): Promise<BundleInfo> {
@@ -354,11 +381,12 @@ export function makeReleaseSource(loader: ReleaseLoader, opts: SourceOptions = {
      * A core cut before `item_near` / `item_area` / `name_source` gives those parts empty — search still works.
      */
     async searchIndex(): Promise<SearchIndexData<IndexWater, PlaceHit>> {
-      const [items, aliases, places, near, areas, sources] = await Promise.all([
+      const [items, aliases, places, near, areas, sources, cuts] = await Promise.all([
         all(CROSS.INDEX_ITEMS), all(CROSS.INDEX_ALIASES), all(CROSS.INDEX_PLACES),
         hasItemNear().then((h) => (h ? all(CROSS.INDEX_NEAR) : [] as Row[])),
         hasItemArea().then((h) => (h ? all(CROSS.INDEX_AREA) : [] as Row[])),
         hasNameSource().then((h) => (h ? all(CROSS.INDEX_NAME_SOURCES) : [] as Row[])),
+        hasCutPlace().then((h) => (h ? all(CROSS.INDEX_CUTS) : [] as Row[])),
       ]);
       const nearOf = new Map<number, NearPlace[]>();
       for (const r of near) {
@@ -381,6 +409,11 @@ export function makeReleaseSource(loader: ReleaseLoader, opts: SourceOptions = {
                                        source: label.get(`${str(r.item_id)}\u0000${str(r.alias)}`) ?? null })),
         places: places.map((r) => ({ place: str(r.place_id) as PlaceId, name: str(r.name), kind: str(r.kind),
                                      lat: Number(r.lat), lon: Number(r.lon), pop: num(r.pop) })),
+        // (T927) the book's boundary places; a mark's position in microdegrees (NULL: no mark there)
+        cuts: cuts.map((r): IndexCut => ({
+          item: str(r.item_id), words: str(r.words), alt: r.alt == null ? [] : (JSON.parse(str(r.alt)) as string[]),
+          generic: Number(r.generic) === 1, blk: Number(r.blk), m: Number(r.m),
+          lat: r.lat == null ? null : Number(r.lat) / 1e6, lon: r.lon == null ? null : Number(r.lon) / 1e6 })),
       };
     },
 
@@ -467,13 +500,22 @@ export function makeReleaseSource(loader: ReleaseLoader, opts: SourceOptions = {
     async panelsFor(sections) {
       const out = new Map<SectionId, Panel>();
       if (!sections.length) return out;
-      const [paint, members, at, area] = await Promise.all([loader.paint(), membersOf(), indexOf(), loader.flowArea()]);
+      const [paint, members, at, area, small] = await Promise.all([loader.paint(), membersOf(), indexOf(), loader.flowArea(),
+                                                                   loader.flowSmall()]);
+      const flagged: [SectionId, number, readonly PanelMember[], number][] = [];
       for (const s of sections) {
         const panel = paint.panelOf(s);
         if (panel === null) continue;                     // no panel: ABSENT, never an empty one (see WaterSource)
-        const i = at(s);
-        out.set(s, { areaKm2: i === null ? null : area[i]!, members: members.get(panel) ?? [],
+        const i = at(s), list = members.get(panel) ?? [];
+        out.set(s, { areaKm2: i === null ? null : area[i]!, members: list,
                      ...(paint.lakes ? { lakeKnown: true as const } : {}) });
+        // (T823) flow-small's bits for this section, over its members in paint's order (bit i = member ord i)
+        const mask = small && i !== null ? small[i]! : 0;
+        if (mask) flagged.push([s, panel, list, mask]);
+      }
+      if (flagged.length) {
+        const text = await smallSentence();
+        for (const [s, panel, list, mask] of flagged) out.set(s, { ...out.get(s)!, small: smallFor(panel, list, mask, text) });
       }
       return out;
     },
@@ -504,15 +546,20 @@ export function makeReleaseSource(loader: ReleaseLoader, opts: SourceOptions = {
 
     standingClasses() {
       return (classes ??= (async () => {
-        const [paint, members, area, basins, lakes] = await Promise.all([
-          loader.paint(), membersOf(), loader.flowArea(), basinsOf(), wholeLakeRoad()]);
-        // paint's runs, in its section order — the order flow-area's target areas follow (`indexOf` above)
+        const [paint, members, area, small, basins, lakes] = await Promise.all([
+          loader.paint(), membersOf(), loader.flowArea(), loader.flowSmall(), basinsOf(), wholeLakeRoad()]);
+        // (T823) the class's speaker carries the sheet's small-water warning too (`panelsFor`): the same speaker, both ways
+        const text = small && small.some((m) => m !== 0) ? await smallSentence() : "";
+        // paint's runs, in its section order — the order flow-area's target areas and flow-small's masks follow
         const { starts, counts, panels } = paint.runs;
         function* sections() {
           let i = 0;
-          for (let r = 0; r < starts.length; r++)
+          for (let r = 0; r < starts.length; r++) {
+            const list = members.get(panels[r]!) ?? [];
             for (let k = 0; k < counts[r]!; k++, i++)
-              yield { sid: starts[r]! + k, panel: panels[r]!, areaKm2: area[i]! };
+              yield { sid: starts[r]! + k, panel: panels[r]!, areaKm2: area[i]!,
+                      small: small ? smallFor(panels[r]!, list, small[i]!, text) : undefined };
+          }
         }
         return buildStandingClasses(loader.release, sections(), members, lakes, basins);
       })());

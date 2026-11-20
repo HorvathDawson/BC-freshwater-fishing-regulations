@@ -103,11 +103,14 @@ describe("donorView", () => {
     expect(vm.rows).toEqual([
       { station: "08MH001", row: 0, name: null, quiet: false, on: false, bar: "60%",
         weightLine: donorWeightLine(a), reads: donorReads(a), lastReport: null, facts: donorFacts(a), relation: null,
+        // (T920) the legend's second line: the reading (its full stop dropped) and the facts
+        detail: `${donorReads(a).replace(/\.$/, "")} · ${donorFacts(a)}`,
         because: donorBecause(a), label: donorRowLabel(a, true, false) },
       // A quiet gauge says when it last reported (owner 2026-10-21).
       { station: "08MH024", row: 1, name: null, quiet: true, on: true, bar: "1%",
         weightLine: donorWeightLine(b), reads: "Reporting, but its reading cannot be ranked today.",
         lastReport: donorLastReport(early), facts: donorFacts(b), relation: null,
+        detail: `Reporting, but its reading cannot be ranked today · ${donorLastReport(early)} · ${donorFacts(b)}`,
         because: null,
         label: "08MH024, upstream, 2.4× apart, reporting but not ranked today, so it counts for nothing. "
           + "Showing this gauge's chart" },
@@ -196,8 +199,6 @@ describe("donorView", () => {
     expect(vm.map.pins.map((p) => p.label))
       .toEqual(["60%", "reporting, not ranked", "0%", "you are here"]);
     expect(vm.map.bbox).toEqual([-122, 49.0, -121.5, 49.2]);
-    expect(vm.map.words).toEqual({ fit: "Fit", fitLabel: "Fit the map to you and the gauges",
-                                   larger: "Larger map", smaller: "Smaller map" });
   });
 
   it("has no map until the routes are in", () => {
@@ -332,7 +333,7 @@ describe("useConditionsView", () => {
     expect([result.current.lead, shown, result.current.refuse, result.current.quiet, result.current.panel.answer])
       .toEqual(["LAKE", {
         heading: readingHeading("Lake at Outlet"), title: "Lake at Outlet", figure: 2.31, unit: "m",
-        quantity: "level", stage: null, figures: { level: 2.31 }, scope: null, forecast: null,
+        quantity: "level", stage: null, figures: { level: 2.31 }, reports: null, scope: null, forecast: null,
         standing: standingLong(0.6, "normal"), percentile: 0.6 }, false, null,
         // the donor panel says the lake is read at its own gauge — not answerFrom's "no gauge on this water"
         { ok: false, why: "own-gauge" }]);
@@ -379,7 +380,7 @@ describe("useConditionsView", () => {
       figure: 4.162, unit: "m", quantity: "level",
       stage: null,                                        // the stage line is said beside a discharge only
       standing: standingLong(0.432, "normal"), percentile: 0.432,
-      figures: { discharge: 5.46, level: 4.162 }, scope: null, forecast: null,
+      figures: { discharge: 5.46, level: 4.162 }, reports: null, scope: null, forecast: null,
     });
     // and declared discharge, the same two values: the discharge, with its stage beside it
     const src2 = { ...source, gaugeNow: async () => ({ fetchedAt: Date.now() - 5 * 60_000,

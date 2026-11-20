@@ -130,7 +130,9 @@ def test_a_seed_is_a_step_through_may_enter(monkeypatch):
 def test_a_code_run_piece_is_a_step_through_may_enter(monkeypatch):
     """M3: the pieces of a lake's code run are taken through `may_enter` (`via=RUN`)."""
     g = _entry_fixture()
-    g.nodes["run:0"] = _w("run:0", order=1, wsc="100-1-2")
+    # its own code: a piece of ok:0's code with no connection would be a dead end of ok:0's water, collected by
+    # `A_DEAD_END_GOES_WITH_ITS_WATER` whatever the run step says
+    g.nodes["run:0"] = _w("run:0", order=1, wsc="100-1-2-1")
     monkeypatch.setattr(T, "code_runs", lambda graph: ({"ok:0": ("run:0",)}, frozenset()))
     assert "run:0" in T.tributaries_of_reach(g, {"R:0"})
     real = T.may_enter
@@ -205,10 +207,11 @@ def test_lake_main_outlet_whole():
 def test_the_order_guard_s_exemption_is_the_lake_s_main_outlet():
     """Equal-order outlets: the main-flow one is the lake's river, so a walk up it enters the lake (the
     Dester Lake exemption) — before T117 `_is_main_outlet` demanded STRICTLY larger and refused both. The
-    secondary outlet still never climbs into its lake."""
+    secondary outlet still never climbs into its lake. (b:0 ends with no way on, so once the walk holds the
+    lake's water it is a dead end of that water and goes with it: `A_DEAD_END_GOES_WITH_ITS_WATER`.)"""
     assert (T.tributaries_of_reach(_two_outlets(), {"R:0"}),
             T.tributaries_of_reach(_two_outlets(joins="b:0"), {"R:0"})) == (
-        {"a:0", "lake:7", "up:0"}, {"b:0"})
+        {"a:0", "lake:7", "up:0", "b:0"}, {"b:0"})
 
 
 def test_both_readers_ask_lake_main_outlet(monkeypatch):

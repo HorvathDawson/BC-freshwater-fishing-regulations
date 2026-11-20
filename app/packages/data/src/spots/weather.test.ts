@@ -45,6 +45,44 @@ describe("openMeteo", () => {
     expect(w!.tempC).toBe(14.2);
   });
 
+  describe("(T819 item 1) a visit in the last 36 hours takes ITS hour, not the live reading", () => {
+    const body = {
+      current: { time: "2026-11-16T04:30", temperature_2m: 6, wind_speed_10m: 3, precipitation: 0 },
+      hourly: { time: ["2026-11-15T23:00", "2026-11-16T00:00", "2026-11-16T01:00"],
+                temperature_2m: [7.5, 8, 7.8], wind_speed_10m: [4, 5, 6], precipitation: [0, 0.2, 0] },
+    };
+    const at = (visit: string, clock: string) => {
+      vi.useFakeTimers({ now: Date.parse(clock) });
+      try { const f = ok(body); return { f, w: openMeteo(f as never).at(49, -122, new Date(visit)) }; }
+      finally { vi.useRealTimers(); }
+    };
+
+    it("a visit 4.5 hours ago (17:00 PT, saved at 21:30 PT) is the 17:00 reading, not 21:30's", async () => {
+      const { f, w } = at("2026-11-16T00:00:00Z", "2026-11-16T04:30:00Z");
+      const got = (await w)!;
+      expect(got.tempC).toBe(8);
+      expect(got.at).toBe("2026-11-16T00:00");
+      expect(got.windKph).toBe(5);
+      expect(got.backfilled).toBe(true);
+      expect(String(f.mock.calls[0]![0])).not.toContain("current=");
+    });
+
+    it("a visit 30 hours ago (inside the 36-hour forecast window) is still its own hour", async () => {
+      const { f, w } = at("2026-11-16T00:00:00Z", "2026-11-17T06:00:00Z");
+      expect(String(f.mock.calls[0]![0])).toContain("api.open-meteo.com/v1/forecast");
+      expect((await w)!.tempC).toBe(8);
+    });
+
+    it("a visit within the hour is the live reading", async () => {
+      const { f, w } = at("2026-11-16T00:00:00Z", "2026-11-16T00:40:00Z");
+      expect(String(f.mock.calls[0]![0])).toContain("current=");
+      const got = (await w)!;
+      expect(got.tempC).toBe(6);
+      expect(got.backfilled).toBe(false);
+      expect(got.window!.at!.tempC).toBe(8);
+    });
+  });
+
   it("returns null when offline rather than a plausible temperature", async () => {
     const fetchImpl = vi.fn(async () => { throw new Error("offline"); });
     expect(await openMeteo(fetchImpl as never).at(49, -122, new Date())).toBeNull();

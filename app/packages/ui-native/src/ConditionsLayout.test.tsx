@@ -21,6 +21,12 @@ import { CONDITIONS_WORDS, donorReason, forecastRunLine, horizonDateChip, bcNow,
 const chipOf = (d: number) => horizonDateChip(d as Horizon, bcNow());
 /** (T367) the forecast days sit in the header's drop-down: open it */
 const openDays = () => fireEvent.click(screen.getByLabelText("Choose a forecast day"));
+/** (T920) the gauge legend sits in its own fold, closed by default: open it as a reader would (absent: nothing to open) */
+const openGauges = () => {
+  const fold = screen.queryByTestId("gauges-fold");
+  if (fold) fireEvent.click(fold.querySelector("[role=button]")!);
+};
+
 import type { Panel, WaterSource, SectionId } from "@app/data";
 import { makeFixtureSource } from "@app/data/fixture";
 import { clearPanelCache, resetChartPrefs } from "@app/ui";
@@ -99,6 +105,7 @@ async function draw(scene: Scene) {
                           onHorizon={onHorizon} />);
   await waitFor(() => expect(scene === "none" ? screen.queryByText(noGaugeSentence())
     : screen.queryByTestId("reading-figure")).toBeTruthy());
+  openGauges();
   return { onHorizon };
 }
 
@@ -128,8 +135,7 @@ const precedes = (a: Element, b: Element) =>
  * reader's clock with its zone named (P16 item 5, core's `localStamp`). A silent donor (QUIET) draws no row; one line
  * names it instead (owner 2026-10-22, "yes they should be hidden but mentioned with a last data time").
  */
-const SILENT_ROW = ["Quiet River", "not counted today", "Not reporting today.",
-                    "upstream · drains 300 km² · 6.0× apart · on this reach"];
+const SILENT_ROW = ["Quiet River", "not counted today"];
 const SILENT_LINE = "Not reporting: Quiet River (last report not known)";
 const SAYS: Readonly<Record<"estimate" | "none", readonly string[]>> = {
   estimate: [
@@ -140,25 +146,24 @@ const SAYS: Readonly<Record<"estimate" | "none", readonly string[]>> = {
     "Now",
     "Forecast",
     "Change",
-    "TAP A GAUGE TO SEE ITS CHART",
+    "3 gauges behind this estimate",                      // (T920) the gauge legend's fold, opened by `draw`
     "LEAD",
     "Lead Creek near Town",
     "80% of this estimate",
-    "Reads below normal · lower than 9 days in 10.",
-    "upstream · drains 60 km² · same size · on this reach",
+    // (T920 round 3) the legend row's second line: what it reads and its facts, one line
+    "Reads below normal · lower than 9 days in 10 · upstream · drains 60 km² · same size · on this reach",
     "Counts this much because it drains almost exactly the same country.",
     "DAM",
     "Dam Creek below the Dam",
     "20% of this estimate",
-    "Reads above normal · higher than 8 days in 10.",
-    "downstream · drains 55 km² · same size · dam-controlled · on this reach",
+    "Reads above normal · higher than 8 days in 10 · downstream · drains 55 km² · same size · dam-controlled · on this reach",
     "Counts this much because it drains almost exactly the same country; it sits downstream, so it carries extra water; it has only 6 years of record, so it counts 30%.",
     "This water is controlled by a dam. The reading is real, but it follows a release schedule as much as the weather — a low river here can mean the gate is shut rather than that the country is dry.",
     "These gauges disagree by 46 points. That is a catchment doing more than one thing, and the range above is the honest answer rather than their average.",
     "No gauge sits exactly here, so the reading is carried from the nearest ones. A gauge counts for more when it drains a piece of country the same size as this one, when it sits upstream, and when it has a long record. The percentage beside each is how much of the answer above came from it.",
     "12.5",
     "m³/s",
-    "· 1.2 m stage",
+    "· 1.20 m stage",
     "Below normal · lower than 9 days in 10 for the date",
     `This gauge's own reading · observed ${localStamp(Date.parse("2026-09-04T06:00:00Z"))} · checked 5 min ago`,
     "Flow",
@@ -210,9 +215,9 @@ describe("P16: one reading order", () => {
       screen.getByText("ESTIMATE FOR THIS SPOT"),                   // the headline's kicker (T367: the tile's top row …
       screen.getByLabelText("Choose a forecast day"),              // … holds the horizon control, after it)
       screen.getByTestId("gauge-title"),                            // the gauge card: its title …
-      screen.getByLabelText(CONDITIONS_WORDS.controls.span),        // … and the chart's toggles on its row,
-      screen.getByTestId("reading-figure"),                         // the reading (this scene has no series to chart)
-      screen.getByText(CONDITIONS_WORDS.tapToChart),                // the donor list
+      screen.getByTestId("reading-figure"),                         // the reading (this scene has no series to chart),
+      screen.getByLabelText(CONDITIONS_WORDS.controls.span),        // (T920) the chart's toggles, on the row over the chart
+      screen.getByLabelText(CONDITIONS_WORDS.donorList),            // the donor list (T920: a legend, no tap hint)
       screen.getByRole("button", { name: CONDITIONS_WORDS.fold }),  // the fold
     ];
     for (let i = 1; i < order.length; i++)
@@ -232,7 +237,7 @@ describe("P16: one reading order", () => {
     // OPEN: under the donor list, in the order they were said before P16, above the explainer.
     openFold();
     const fold = screen.getByRole("button", { name: CONDITIONS_WORDS.fold });
-    const order = [screen.getByText(CONDITIONS_WORDS.tapToChart), fold,
+    const order = [screen.getByLabelText(CONDITIONS_WORDS.donorList), fold,
                    screen.getByText(DAM), screen.getByText(DISAGREE),
                    screen.getByText(CONDITIONS_WORDS.explainer), screen.getByText("SOURCES")];
     for (let i = 1; i < order.length; i++)

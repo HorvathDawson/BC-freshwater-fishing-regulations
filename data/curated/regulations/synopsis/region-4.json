@@ -3246,13 +3246,6 @@
         "duncan_river__duncan_lake"
        ]
       }
-     ],
-     "exempts": [
-      {
-       "target": "trout_char_quota.r3",
-       "entry_id": "z4:daily_quotas",
-       "note": "the stream's own quota replaces '2 from streams'"
-      }
      ]
     },
     {
@@ -4785,7 +4778,7 @@
       }
      ],
      "species_except": [
-      "CHAR"
+      "DV"
      ]
     },
     {
@@ -4887,7 +4880,7 @@
       "TROUT_CHAR"
      ],
      "species_except": [
-      "CHAR"
+      "DV"
      ],
      "when": {
       "dates": [
@@ -7560,7 +7553,7 @@
      ],
      "extent_text": "upstream of Koocanusa Reservoir to White River",
      "species_except": [
-      "CHAR"
+      "DV"
      ]
     },
     {
@@ -7658,7 +7651,7 @@
       }
      ],
      "species_except": [
-      "CHAR"
+      "DV"
      ]
     },
     {
@@ -8045,13 +8038,6 @@
      "extents": [
       {
        "op": "whole"
-      }
-     ],
-     "exempts": [
-      {
-       "target": "trout_char_quota.r3",
-       "entry_id": "z4:daily_quotas",
-       "note": "the stream's own quota replaces '2 from streams'"
       }
      ]
     }

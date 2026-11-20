@@ -34,6 +34,11 @@ export function unpackBlob(b: Uint8Array, dict: Uint8Array | null): unknown {
     if (e instanceof RegsBlobError) throw e;
     throw new RegsBlobError("regs store: a blob is not JSON");   // corrupt deflate data cannot be its JSON either
   }
+  return parseBlob(bytes);
+}
+
+/** (T910) An inflated blob's JSON value (`unpackBlob`'s second half: the web inflates its rules off the page's thread). */
+export function parseBlob(bytes: Uint8Array): unknown {
   try {
     return JSON.parse(utf8(bytes));
   } catch {

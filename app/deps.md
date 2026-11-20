@@ -122,6 +122,9 @@ off as before; shrinking is a decision of its own (keep rules + a device walk), 
 - `@expo-google-fonts/jetbrains-mono` — figures: readings, percentiles, station ids. One
   weight, ~45 KB. A mono face is not decoration here — flow numbers are read down a column
   and have to align.
+  (T910) The three packages' TTF files are the PHONE's faces (`apps/mobile/src/fonts.native.ts`) and the source of the
+  web's: the web draws the WOFF2 made losslessly from them (`tools/seo/fonts/`, `fonts.web.ts`), from our own
+  `/assets/fonts/` — no TTF in the web export.
 - `maplibre-gl` — the web map renderer. **PINNED TO v5.** `pmtiles@4`'s protocol handler is
   written against maplibre 5's `addProtocol` signature; on maplibre 6 it fails SILENTLY —
   the archive header is fetched, no tile is ever requested, no error is raised, and the map
@@ -154,7 +157,7 @@ off as before; shrinking is a decision of its own (keep rules + a device walk), 
   REJECTS its promise instead of closing the app (`ReactTagResolver.runOrReject`; build 32's verify lane saw
   `NullPointerException at MLRNMapView.project`: `mapLibreMap!!` asked before `onMapReady`), and `project` / `unproject` /
   `queryRenderedFeaturesWith{Point,Rect}` name the call when the map is not ready (`readyMap`); upstreamable as is. The
-  app also never asks a map that has not drawn (`packages/map/src/native/labelShift.ts`). Bump the binding only with the patch re-applied and the emulator AND simulator pans
+  app also never asks a map that has not drawn (`packages/map/src/native/labelAnchor.ts`). Bump the binding only with the patch re-applied and the emulator AND simulator pans
   re-run.
   **T250 (SDK 58 / RN 0.88): kept at 11.5.0** (11.5.1 is from 2026-10-29, under the two-week rule); the patch applies
   unchanged (same package version) and the Android build on RN 0.88 is the proof (T250 ticket). Not upstreamed.
@@ -230,6 +233,13 @@ off as before; shrinking is a decision of its own (keep rules + a device walk), 
   `<input type=file>` and needs nothing. The picked file is copied straight into `documentDirectory/spots/photos/`,
   because the picker's own copy lives in a cache the OS may clear. Its config plugin in `apps/mobile/app.json` carries
   the camera and library permission strings. Photos are the user's own data: never in a release, never uploaded.
+- `expo-image-manipulator` — pinned 58.0.15 (the SDK 58 line; `bundledNativeModules` names `~58.0.15`; also in the root
+  `overrides`: @app/data takes it as a peer). (T732, owner 2026-11-14: "Only need to backup photos and spots") Makes the
+  phone backup's photo copies: each photo resized to 1280 px on its long edge, WebP 75 (owner 2026-11-16: "D: WebP 75";
+  ~81 KB for the 12 MP stand-in; WebP encode: Android `Bitmap.CompressFormat.WEBP`, iOS `SDWebImageWebPCoder`), so
+  the newest photos fit Android's 25 MB cloud backup beside the spots. Used ONLY by
+  `packages/data/src/spots/backupSet.native.ts`; originals are never re-encoded. The web has no phone backup and needs
+  nothing.
 - `expo-location` — pinned 58.0.19 (the SDK 58 line; `bundledNativeModules` names `~58.0.19`). (T74, owner 2026-10-27)
   "At my location" in the Spots menu on a phone: where the device is, foreground only, asked for from the reader's own
   tap (`requestForegroundPermissionsAsync`) and never before. Used ONLY by `apps/mobile/src/locate.native.ts`; the web

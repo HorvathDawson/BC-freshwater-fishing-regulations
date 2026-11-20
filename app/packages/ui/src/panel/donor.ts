@@ -1,13 +1,13 @@
 import { useMemo } from "react";
 import { type DonorRow, type Horizon, type PanelAnswer, type Quantity, type WaterSource, type SectionId,
          type StationId } from "@app/data";
-import { changeLowWaterNote, donorState, CONDITIONS_WORDS, disagreeNote, donorBecause, donorCounted, donorFacts, donorRelation, donorLastReport,
+import { changeLowWaterNote, donorState, CONDITIONS_WORDS, disagreeNote, donorBecause, donorCounted, donorDetailLine, donorFacts, donorRelation, donorLastReport,
          donorPinTitle, donorReads, donorReason, donorRowLabel, donorSilent, donorVotes, donorWeightLine,
          estimateHeadline, estimateRange, estimateSentence, gaugeChoiceLabel, HORIZON_LABELS, isAhead, metresApart,
-         panelCamera, refusalIsAboutTheDay, regulatedNote, SAME_PLACE_M, shortRecordNote, silentLine, sizeApart, tidalNote,
+         panelCamera, ROUTE_MARK_PX, refusalIsAboutTheDay, regulatedNote, SAME_PLACE_M, shortRecordNote, silentLine, sizeApart, tidalNote,
          throughLakeNote, interval,
          backwaterNote, diversionNote, unplacedNote, type SectionKey } from "@app/core";
-import { donorMapKey, donorMapLabel, hereMapLabel, joinMapLabel, ROUTE_MAP_WORDS, routeLegend } from "@app/core";
+import { donorMapKey, donorMapLabel, hereMapLabel, joinMapLabel, routeLegend } from "@app/core";
 import { gaugeSides, groupGauges, isDonorSide, stateAt, type GaugeGroup, type GaugeSide } from "@app/core";
 import { useAsync } from "../async";
 import { horizonChips, type HorizonChipVM } from "./horizon";
@@ -41,6 +41,8 @@ export interface DonorRowVM {
   facts: string;
   /** How this gauge relates to the water being read, in one plain line; null for a gauge on this water. */
   relation: string | null;
+  /** (T920) the gauge legend's second line: what it reads, when a quiet gauge last spoke, and its facts, one line */
+  detail: string;
   /** Why it counts what it counts; null for a quiet gauge, which counts nothing. */
   because: string | null;
   /** The row's screen-reader name. */
@@ -102,9 +104,10 @@ export interface DonorMapVM {
   keyGroups: readonly GaugeGroupVM<DonorKeyVM>[] | null;
   /** The key's line samples: only the roles drawn. */
   legend: readonly { role: "up" | "down"; label: string }[];
-  /** Every mark's extent [w, s, e, n] — what "fit" returns to. */
+  /** Every mark's extent [w, s, e, n] — what the opening camera frames (T881: it is the only frame; no Fit button). */
   bbox: readonly [number, number, number, number];
-  words: { fit: string; fitLabel: string; larger: string; smaller: string };
+  /** (T817) The tone row of a gauged lake's own station that has a reading: drawn live, not as a quiet member; else null. */
+  liveRow: number | null;
 }
 
 export type DonorVM =
@@ -138,8 +141,9 @@ export type DonorVM =
       horizons: readonly HorizonChipVM[];
       /** Null until the routes are in, or when no donor can be placed. */
       map: DonorMapVM | null;
-      tapToChart: string;
       listLabel: string;
+      /** (T920) the gauge legend's fold: "4 gauges behind this estimate" (every member, the silent ones too) */
+      gaugesFold: string;
       /** Only the members that speak at this horizon; the silent ones are in `silent`. */
       rows: readonly DonorRowVM[];
       /**
@@ -174,6 +178,13 @@ export type DonorVM =
 export interface DonorViewOptions {
   /** The CHOSEN day: today on a live sheet, the visit on a saved spot. Never the clock. */
   day: Date;
+  /**
+   * (T830) The INSTANT the answer is asked at, where it is not the day's start: a live sheet today asks at the clock
+   * (`ConditionsVM.ref`, the one the gauge switch reads). Read against the day's midnight, every reading made after
+   * 06:00 that cannot be ranked (Capilano's level, which has no band) was past the age line and named "Not reporting",
+   * while the switch beside it said reporting. Absent (a saved spot): the day.
+   */
+  ref?: number;
   horizon: Horizon;
   /** Where the reader is, for "you are here". */
   from: { lat: number; lon: number } | null;
@@ -198,6 +209,12 @@ export interface DonorViewOptions {
    * it. Ignored when `from` is given: the tap is the place then.
    */
   place?: readonly [number, number, number, number] | null;
+  /**
+   * (T817) A GAUGED LAKE'S OWN STATION (`ConditionsVM.own`): a lake has no donors, so its map held "you are here" alone,
+   * framed on a point in open water (Harrison Lake, owner 2026-11-16: "the map looks super weird and not visible"). Its
+   * pin and key line are drawn, and the camera frames it with the place.
+   */
+  own?: { lat: number; lon: number; name: string; label: string; key: string; live: boolean } | null;
 }
 
 /** The donor panel's view model, from an answer. Pure: a saved spot builds it from frozen data. */
@@ -208,7 +225,7 @@ export function donorView(value: PanelAnswer, o: DonorViewOptions): DonorVM {
    * not a pin; `silentLine` names it under the table with its last data time. Core decides which are silent (the same
    * rule `donorReads` words), against the CHOSEN day.
    */
-  const ref = o.day.getTime();
+  const ref = o.ref ?? o.day.getTime();
   const silent = silentLine(rows, { ref, horizon: o.horizon, ...(o.zone ? { zone: o.zone } : {}) });
   /*
    * A ROW'S TONE IS ITS INDEX IN THE PANEL'S WEIGHT ORDER, not its place among the rows shown. The gauge switch lists
@@ -242,8 +259,13 @@ export function donorView(value: PanelAnswer, o: DonorViewOptions): DonorVM {
    * (and remounted) the map. The pins below are the members that speak (or, on a refusal, every located member, each
    * saying why it does not count), but the frame is the same.
    */
-  const camera = panelCamera([...framed.map((r) => ({ lat: r.route!.lat!, lon: r.route!.lon! })), ...corners],
-                             o.from, o.size);
+  const own = o.own ?? null;
+  const ownAt = own ? [{ lat: own.lat, lon: own.lon }] : [];
+  // (T881) each mark framed whole — a gauge with room for its share pill, the spot with its pin and words
+  const gaugePx = { px: ROUTE_MARK_PX.gauge };
+  const camera = panelCamera([...framed.map((r) => ({ lat: r.route!.lat!, lon: r.route!.lon!, ...gaugePx })),
+                              ...ownAt.map((p) => ({ ...p, ...gaugePx })), ...corners,
+                              ...(o.from ? [{ ...o.from, px: ROUTE_MARK_PX.here }] : [])], null, o.size);
   // On a refusal no member speaks, yet the map stays: its pins are the members, each with its state.
   const pinned = answer.ok ? shown : framed;
   const placed = pinned.filter(located);
@@ -261,7 +283,7 @@ export function donorView(value: PanelAnswer, o: DonorViewOptions): DonorVM {
    * (owner 2026-10-21: different icons), so both show: the dot at the pin's point. The
    * absorbing words stay on the gauge's own title — it IS the gauge you are standing at.
    */
-  const pts = [...framed.map((r) => ({ lat: r.route!.lat!, lon: r.route!.lon! })),
+  const pts = [...framed.map((r) => ({ lat: r.route!.lat!, lon: r.route!.lon! })), ...ownAt,
                ...(from ? [from] : corners)];
   const drawn = placed.filter((r) => (r.route?.path.length ?? 0) > 0);
   // (T168) on this water first: the key reads own gauges first, and their labels win a crowded map (`rank`)
@@ -274,7 +296,16 @@ export function donorView(value: PanelAnswer, o: DonorViewOptions): DonorVM {
   const keyOrder = placedGroups ? placedGroups.flatMap((g) => g.shown) : placed;
   const rankOf = new Map(keyOrder.map((r, i) => [r, i]));
   const keyOf = (r: DonorRow): DonorKeyVM => ({ row: toneOf(r), label: donorMapKey(r, ask) });
-  const map: DonorMapVM | null = value.routesReady && camera ? {
+  /*
+   * (T881, owner 2026-11-18, on Babine Lake — Main Body: "Lakes or other things without a meaningful map here don't need to
+   * include gauge map..") A ROUTE MAP DRAWS A GAUGE OR IS NOT DRAWN. Its only other mark is "you are here", which says
+   * nothing the sheet's own heading has not: the map is null then, as it is with nothing to frame. That is a water with no
+   * member at all (a lake or creek no gauge is near enough to: "No gauge on this water is close enough"), a refusal whose
+   * every member is not reporting or not real-time (those are not framed, so not pinned), and an answer whose members
+   * have no known place (the rows under it still name each one). A gauged lake's own station is a gauge on the map (T817).
+   */
+  const drawsAGauge = placed.length > 0 || own !== null;
+  const map: DonorMapVM | null = value.routesReady && camera && drawsAGauge ? {
     camera,
     key: `${camera.lon.toFixed(3)},${camera.lat.toFixed(3)},${camera.zoom.toFixed(1)}`,
     pins: [
@@ -283,12 +314,15 @@ export function donorView(value: PanelAnswer, o: DonorViewOptions): DonorVM {
         return { lat: r.route!.lat!, lon: r.route!.lon!, row, kind: "gauge",
                  title: donorPinTitle(r, r === atSpot), label: donorMapLabel(r, ask), rank: sides ? rankOf.get(r) ?? row : row };
       }),
+      // (T817) a gauged lake's own station, in the first gauge tone (a lake has no donors to share the tones with)
+      ...(own ? [{ lat: own.lat, lon: own.lon, row: 0, kind: "gauge" as const, title: own.name, label: own.label, rank: 0 }] : []),
       // LAST, so it draws over a gauge at the same place.
       ...(from ? [{ lat: from.lat, lon: from.lon, row: null, title: here, kind: "here" as const,
                     label: hereMapLabel(), rank: -1 }] : []),
     ],
     keys: [
       ...(from ? [{ row: null, label: here }] : []),
+      ...(own ? [{ row: 0, label: own.key }] : []),
       ...keyOrder.map(keyOf),
     ],
     keyGroups: placedGroups?.map((g) => ({ ...g, shown: g.shown.map(keyOf), folded: g.folded.map(keyOf) })) ?? null,
@@ -310,8 +344,7 @@ export function donorView(value: PanelAnswer, o: DonorViewOptions): DonorVM {
     legend: routeLegend(drawn.map((r) => r.role)),
     bbox: [Math.min(...pts.map((p) => p.lon)), Math.min(...pts.map((p) => p.lat)),
            Math.max(...pts.map((p) => p.lon)), Math.max(...pts.map((p) => p.lat))],
-    words: { fit: ROUTE_MAP_WORDS.fit, fitLabel: ROUTE_MAP_WORDS.fitLabel,
-             larger: ROUTE_MAP_WORDS.larger, smaller: ROUTE_MAP_WORDS.smaller },
+    liveRow: own?.live ? 0 : null,
   } : null;
 
   if (!answer.ok)
@@ -324,13 +357,15 @@ export function donorView(value: PanelAnswer, o: DonorViewOptions): DonorVM {
 
   function rowVM(r: DonorRow): DonorRowVM {
     const on = o.selected != null && r.station === o.selected;
+    const reads = donorReads(r, { ref, horizon: o.horizon });
+    const lastReport = !donorCounted(r) ? donorLastReport(r.observedAt, o.zone) : null;
+    const facts = donorFacts(r);
     return {
       station: r.station, row: toneOf(r), name: r.route?.name ?? null, quiet: !donorCounted(r), on,
       bar: `${Math.max(1, Math.round(r.weight * 100))}%`,
       weightLine: donorWeightLine(r),
-      reads: donorReads(r, { ref: o.day.getTime(), horizon: o.horizon }),
-      lastReport: !donorCounted(r) ? donorLastReport(r.observedAt, o.zone) : null,
-      facts: donorFacts(r),
+      reads, lastReport, facts,
+      detail: donorDetailLine(reads, lastReport, facts),
       relation: !sides || !isDonorSide(sideOf(r)) ? null : donorRelation({
         station: r.station, name: r.route?.name ?? null, role: r.role, reaches: r.route?.path.length ?? 0,
         joined: r.route?.join !== undefined,
@@ -355,8 +390,8 @@ export function donorView(value: PanelAnswer, o: DonorViewOptions): DonorVM {
              ramp: o.horizon === "change" ? "change" : "flow" },
     horizons: horizonChips(o.horizon, o.quantity),
     map,
-    tapToChart: CONDITIONS_WORDS.tapToChart,
     listLabel: CONDITIONS_WORDS.donorList,
+    gaugesFold: CONDITIONS_WORDS.gaugesFold(rows.length),
     rows: shown.map(rowVM),
     groups: sides ? groupGauges(rows, sideOf, (r) => stateAt(r, ask), { horizon: o.horizon })
       .map((g) => ({ ...g, shown: g.shown.map(rowVM), folded: g.folded.map(rowVM) })) : null,
@@ -450,18 +485,19 @@ export function useGaugeSides(source: WaterSource, section: SectionId | null,
 
 /** `donorView`, memoised for a component. */
 export function useDonorView(value: PanelAnswer, o: DonorViewOptions): DonorVM {
-  const { day, horizon, from, size, selected, pickable, quantity, sides, place } = o;
+  const { day, ref, horizon, from, size, selected, pickable, quantity, sides, place, own } = o;
   const t = day.getTime();
   const lat = from?.lat;
   const lon = from?.lon;
   const { width, height } = size;
   const placeKey = place ? place.join(",") : "";
+  const ownKey = own ? [own.lat, own.lon, own.name, own.label, own.key, own.live].join("|") : "";
   return useMemo(
-    () => donorView(value, { day: new Date(t), horizon,
+    () => donorView(value, { day: new Date(t), ...(ref !== undefined ? { ref } : {}), horizon,
                              from: lat != null && lon != null ? { lat, lon } : null,
                              size: { width, height }, selected, pickable,
                              ...(quantity ? { quantity } : {}), sides: sides ?? null,
-                             place: placeKey ? place ?? null : null }),
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- the box by value
-    [value, t, horizon, lat, lon, width, height, selected, pickable, quantity, sides, placeKey]);
+                             place: placeKey ? place ?? null : null, own: ownKey ? own ?? null : null }),
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- the box and the lake's own gauge by value
+    [value, t, ref, horizon, lat, lon, width, height, selected, pickable, quantity, sides, placeKey, ownKey]);
 }

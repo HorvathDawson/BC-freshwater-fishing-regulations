@@ -70,7 +70,7 @@ const LIC = (await import("../packages/ui-native/src/regs/fixtures/licence_vedde
 type Frozen = Omit<RegsPage, "sheet"> & { sheets: Record<string, SheetVM | null> };
 const SHEETS_PAGE = ((f: Frozen): RegsPage => ({ ...f, sheet: (k: SheetKey) => f.sheets[k] ?? null }) as RegsPage)(PAGES.vedder_1010 as unknown as Frozen);
 const SHEET_KEYS = ["gl:catch_and_release", "pos:pos", "hatch", "sp:RB", "srcs:gl|hook", "rule:zp:conduct::conduct.r1",
-  "other:o0", "src:r0"] as const;
+  "other:o0", "other:o1"] as const;   // (T810 cutover) "src:r0" (the trout group's every line) opens nothing now: the Whitefish sheet's group card
 
 const SIZES: Partial<Record<LayoutClass, [number, number]>> = { phone: [390, 844], desktop: [1280, 800] };
 
@@ -169,7 +169,7 @@ function measure(scales: readonly number[]): Record<string, M> {
         keys.push(`${id} ${c} ${scale}×`);
       }
   // (T37) the sheets over the page, at the same scales and widths: a glossary word, Possession, How to tell, a fish, a
-  // source list, a rule, a licence source, an other fish and a row's every line
+  // source list, a rule, a licence source, an other fish and an other fish's group card
   for (const scale of scales)
     for (const k of SHEET_KEYS)
       for (const [c, size] of Object.entries(SIZES) as [LayoutClass, [number, number]][]) {
@@ -212,7 +212,7 @@ describe("T40 the Regulations view at 200 % text, laid out in Chrome", () => {
     // the evidence: the header's name row and place row grow with the text (two lines each at 2×), and how many line boxes
     // (T517) the Vedder's part is named by its own two ends ("Mouth → Cable car crossing (200 m downstream of Vedder
     // Crossing bridge)"): its place row takes the lines the name needs, from the length guess in this static layout
-    // (two at 1×, four at 2×) — never cut
+    // (two at 1×, four at 2×) — never cut; (T878) the Lower West Arm (no label) has no place row at all
     expect(Object.fromEntries(Object.entries(m).filter(([k]) => !k.startsWith("sheet ")).map(([k, v]) => [k, `title ${v.title} place ${v.place}`])))
       .toMatchInlineSnapshot(`
         {
@@ -220,10 +220,10 @@ describe("T40 the Regulations view at 200 % text, laid out in Chrome", () => {
           "glenn_501 desktop 2×": "title 48 place 32",
           "glenn_501 phone 1×": "title 48 place 16",
           "glenn_501 phone 2×": "title 60 place 32",
-          "klwa_1010 desktop 1×": "title 48 place 16",
-          "klwa_1010 desktop 2×": "title 48 place 32",
-          "klwa_1010 phone 1×": "title 48 place 16",
-          "klwa_1010 phone 2×": "title 117 place 32",
+          "klwa_1010 desktop 1×": "title 48 place 0",
+          "klwa_1010 desktop 2×": "title 48 place 0",
+          "klwa_1010 phone 1×": "title 48 place 0",
+          "klwa_1010 phone 2×": "title 117 place 0",
           "vedder_1010 desktop 1×": "title 48 place 32",
           "vedder_1010 desktop 2×": "title 48 place 130",
           "vedder_1010 phone 1×": "title 48 place 32",

@@ -1,6 +1,6 @@
 # T240 — production launch checklist (one list, in order)
 
-Status: OPEN — brought up to date 2026-11-11 (T540 pass: STATE table below, every item checked against the repo; the prod runbook is handoff/PLAN/release/PRODUCTION.md, T404); nothing on production is run (human-only, CONFIRM_PROD); the old section bodies are the 2026-10-29 text.
+Status: OPEN — production went live 2026-11-18/19 (OWNER-TODO record 2026-11-18 22:13: data worker bc-fishing-r2, backup bucket bc-fishing-regulations-backup, feeds worker on feeds.canifishthis.ca, website; STATUS 2026-11-19: data r-6258ffded676 and website 0.8.3 on production). Done since (OWNER-TODO 2026-11-18 ~22:58 and ~23:05): the owner's Cloudflare steps, and the switch (bc-fishing-cron schedules removed, main's three update workflows gone, deploy/prod/drop-v1.sh run: T865). The STATE table below (2026-11-11) predates that and is not re-checked. Left: the GitHub production option + PROD_R2 secrets for feeds-hydat / feeds-runtiming and the prod run-timing publish (T404); the branch structure the owner asked for 2026-11-18 ~23:05 (main / staging / feature branches, the working branch protected like main; no ticket of its own yet). The prod runbook is handoff/PLAN/release/PRODUCTION.md.
 
 Source: owner 2026-10-28 — approved proposal P6 in handoff/PLAN/proposed-tickets-2026-10-28.md ("approved ALL 16").
 Pulls together what T86 (hosting), T198 (SEO redirects / Search Console), T225 (feeds), T232 (environments),

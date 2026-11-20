@@ -97,7 +97,7 @@ describe("layersVM: the sheet, whole", () => {
                   tiles: ["ground.map *", "ground.satellite", "ground.corridors (off) [Coming soon]"] },
         water: { title: "Colour the water by", drawn: "regulations",
                  note: "Stocked and Depth have no data yet. They turn on by themselves when a release carries their values.",
-                 tiles: ["water.regulations *", "water.stocked (off) [No data yet]", "water.depth (off) [No data yet]"] },
+                 tiles: ["water.regulations *", "water.stocked (off) [Coming soon]", "water.depth (off) [Coming soon]"] },
         overlays: { title: "On the map",
                     rows: ["overlay.spots *", "overlay.contours", "overlay.private", "overlay.obstacles",
                            "overlay.pools (off) [Coming soon]",
@@ -113,7 +113,7 @@ describe("layersVM: the sheet, whole", () => {
   it("every tile carries its words", () => {
     const vm = layersVM("map", LAYER_DEFAULTS, NONE);
     expect([...vm.ground.tiles, ...vm.water.tiles, ...vm.overlays.rows].map((t) => `${t.label} · ${t.note}`)).toEqual([
-      "Map · Drawn · works offline", "Satellite · Esri imagery · online only", "Corridors · Detail imagery along a stream",
+      "Map · Works offline", "Satellite · Photo map · needs internet", "Corridors · Close-up photos along rivers, download for offline",
       "Regulations · Open, closed or its own rules, on the day", "Stocked · When a lake was last stocked",
       "Depth · Which lakes were surveyed",
       "Spots · Your saved spots",
@@ -126,8 +126,8 @@ describe("layersVM: the sheet, whole", () => {
   it("a stale Stocked choice with no values: Regulations drawn and shown chosen, the badge counts nothing", () => {
     const vm = layersVM("map", { ...LAYER_DEFAULTS, water: "water.stocked" }, NONE);
     expect([vm.water.drawn, tiles(vm.water.tiles), vm.changed, vm.effective.water])
-      .toEqual(["regulations", ["water.regulations *", "water.stocked (off) [No data yet]",
-                                "water.depth (off) [No data yet]"], 0, "regulations"]);
+      .toEqual(["regulations", ["water.regulations *", "water.stocked (off) [Coming soon]",
+                                "water.depth (off) [Coming soon]"], 0, "regulations"]);
   });
 
   it("a release with values: Depth draws, turns the contours on with it, and counts as one change", () => {

@@ -39,42 +39,24 @@
  * monochrome fish-and-ring is most of why the first version read worse than the canvas
  * loader it replaced — that one was a steel-blue fish on a pale grey orbit.
  */
-import { useEffect, useRef, useState } from "react";
-import { AccessibilityInfo, Animated, Easing, View } from "react-native";
+import { useRef } from "react";
+import { Animated, View } from "react-native";
 import { spriteStaircase } from "@app/ui";
 import { FISH_SPRITE } from "./fish-sprite.generated";
-import { reportFailure, SPINNER_WORDS } from "@app/core";
+import { usePlatformLoops } from "./platformLoops";
+import { SPINNER_WORDS } from "@app/core";
 import { round, type Palette } from "./theme";
 
+/**
+ * (T814) Both loops are kept running by `usePlatformLoops` (started again on "active", on the first layout and after a
+ * dropped loop). (Owner 2026-11-17: "we will ignore reduced motion for this") the fish always swims, Reduce Motion or
+ * not: a still fish read as a hung app on an iPhone that had it on.
+ */
 export function FishSpinner({ palette, size = 96, label = SPINNER_WORDS.loading, colour }:
   { palette: Palette; size?: number; label?: string; colour?: string }) {
   const phase = useRef(new Animated.Value(0)).current;
   const orbit = useRef(new Animated.Value(0)).current;
-  const [still, setStill] = useState(false);
-
-  useEffect(() => {
-    // A spinner is the one thing on screen that always moves, so it is the one thing
-    // "reduce motion" is most likely to have been turned on for.
-    let live = true;
-    AccessibilityInfo.isReduceMotionEnabled().then((on) => { if (live) setStill(on); }, reportFailure);
-    // react-native-web returns UNDEFINED here when the browser has no matchMedia, so the
-    // optional call is load-bearing, not defensive noise.
-    const sub = AccessibilityInfo.addEventListener("reduceMotionChanged", setStill);
-    return () => { live = false; sub?.remove(); };
-  }, []);
-
-  useEffect(() => {
-    if (still) return;
-    const loop = (value: Animated.Value, duration: number) =>
-      Animated.loop(Animated.timing(value, {
-        toValue: 1, duration, easing: Easing.linear, useNativeDriver: true,
-      }));
-    const a = loop(phase, FISH_SPRITE.cycleMs);
-    const b = loop(orbit, FISH_SPRITE.orbitMs);
-    a.start();
-    b.start();
-    return () => { a.stop(); b.stop(); };
-  }, [phase, orbit, still]);
+  const onLayout = usePlatformLoops([[phase, FISH_SPRITE.cycleMs], [orbit, FISH_SPRITE.orbitMs]]);
 
   const rotate = orbit.interpolate({ inputRange: [0, 1], outputRange: ["0deg", "360deg"] });
   const translateX = phase.interpolate(spriteStaircase(FISH_SPRITE.frames, size));
@@ -82,7 +64,7 @@ export function FishSpinner({ palette, size = 96, label = SPINNER_WORDS.loading,
   const ring = size * FISH_SPRITE.ring.radius * 2;
 
   return (
-    <View accessibilityRole="progressbar" accessibilityLabel={label}
+    <View accessibilityRole="progressbar" accessibilityLabel={label} onLayout={onLayout}
           style={{ width: size, height: size, alignItems: "center", justifyContent: "center" }}>
       {/* Behind, and not rotated — a circle looks identical at every angle, so spinning it
           would be pure cost. */}
@@ -90,14 +72,13 @@ export function FishSpinner({ palette, size = 96, label = SPINNER_WORDS.loading,
                      borderWidth: Math.max(size * FISH_SPRITE.ring.width, 1),
                      borderColor: palette.line }} />
       <Animated.View style={{ position: "absolute", width: size, height: size,
-                              overflow: "hidden", transform: still ? [] : [{ rotate }] }}>
+                              overflow: "hidden", transform: [{ rotate }] }}>
         <Animated.Image
           testID="fish-sprite"
           source={{ uri: FISH_SPRITE.uri }}
           tintColor={colour ?? palette.live}
           resizeMode="stretch"
-          style={{ width: size * FISH_SPRITE.frames, height: size,
-                   transform: still ? [] : [{ translateX }] }}
+          style={{ width: size * FISH_SPRITE.frames, height: size, transform: [{ translateX }] }}
         />
       </Animated.View>
     </View>

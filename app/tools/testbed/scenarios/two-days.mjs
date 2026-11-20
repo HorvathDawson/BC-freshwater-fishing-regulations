@@ -41,9 +41,8 @@ async function setDay(ctx, want) {
 async function conditions(ctx) {
   const d = ctx.device;
   await openWater(ctx, { q: Q, row: ROW, view: 'conditions' });
-  await ctx.until(() => ctx.hasId('conditions-day-label'), { ms: 30_000, what: 'the Conditions view (conditions-day-label)' });
+  await ctx.until(() => ctx.hasId('gauge-card'), { ms: 30_000, what: 'the Conditions view (gauge-card)' });
   const top = await look(d);
-  const label = find(top, 'resource-id="conditions-day-label"');
   const link = find(top, 'resource-id="conditions-day-link"');
   // the chart: its legend on screen means the plot above it is too
   await scrollTo(d, 'resource-id="chart-legend"', { ...PANE_BAND, top: 1250 });
@@ -52,7 +51,7 @@ async function conditions(ctx) {
   const legend = find(ns, 'resource-id="chart-legend"');
   // the plot: the drawing just above the legend
   const plot = ns.filter((n) => n.cls === 'SvgView' && shown(n) && n.box.y1 <= legend.box.y0 && n.box.x1 - n.box.x0 > 400).at(-1) ?? null;
-  return { label, link, plot, today: find(ns, 'resource-id="chart-mark-today"'), regs: find(ns, 'resource-id="chart-mark-regs"') };
+  return { link, plot, today: find(ns, 'resource-id="chart-mark-today"'), regs: find(ns, 'resource-id="chart-mark-regs"') };
 }
 
 export const twoDays = {
@@ -69,12 +68,11 @@ export const twoDays = {
     await ctx.step('regulations day = today: no line, the chart marks Today only', async () => {
       await setDay(ctx, 0);
       const c = await conditions(ctx);
-      if (c.label?.text !== 'Conditions: today') throw new Error(`the day label reads "${c.label?.text}", not "Conditions: today"`);
       if (c.link) throw new Error(`a two-days line is up with both days on today: "${c.link.text}"`);
       if (!c.plot) throw new Error('no chart on the gauge card');
       if (!shown(c.today)) throw new Error('the chart does not mark Today');
       if (c.regs) throw new Error('the chart marks a regulations day while it is today');
-      return `${c.label.text} · chart: Today marked, no regulations-day mark`;
+      return 'no line · chart: Today marked, no regulations-day mark';
     });
 
     await ctx.step('regulations day inside the forecast (tomorrow): the line, and the chart marks it', async () => {
@@ -86,7 +84,6 @@ export const twoDays = {
       if (c.link.text !== want) throw new Error(`the line reads "${c.link.text}", want "${want}"`);
       const cut = labelProblem(c.link, { screenW: W });
       if (cut) throw new Error(cut);
-      if (c.label?.text !== 'Conditions: today') throw new Error(`the regulations day moved Conditions' own day: "${c.label?.text}"`);
       if (!c.plot) throw new Error('no chart on the gauge card');
       if (!shown(c.regs)) throw new Error(`the chart does not mark the regulations day (${name})`);
       if (!inside(c.regs, c.plot, 4)) throw new Error(`the regulations-day mark is outside the plot (mark ${JSON.stringify(c.regs.box)}, plot ${JSON.stringify(c.plot.box)})`);
@@ -103,7 +100,6 @@ export const twoDays = {
       if (c.link.text !== want) throw new Error(`the line reads "${c.link.text}", want "${want}"`);
       const cut = labelProblem(c.link, { screenW: W });
       if (cut) throw new Error(cut);
-      if (c.label?.text !== 'Conditions: today') throw new Error(`the regulations day moved Conditions' own day: "${c.label?.text}"`);
       if (!shown(c.today)) throw new Error('the chart does not mark Today');
       if (c.regs) throw new Error(`the chart still marks a regulations day past the forecast (${JSON.stringify(c.regs.box)})`);
       d.screenshot(path.join(ctx.dir, 'T603-two-days-past-chart.png'));

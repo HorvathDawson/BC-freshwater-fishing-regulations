@@ -108,7 +108,8 @@ transmitting iff it is present in `gauge/index.json`. The publisher asks the sta
 ECCC's real-time list **as of that run** (`hydrometric_StationList.csv`, one request), not the
 roster's snapshot `realtime` flag, and publishes that list as `index.json.listed`: a station
 absent from `stations` but in `listed` is a live gauge quiet this run; one not in `listed` has
-no real-time data at ECCC at all. Every run prints ROSTER DRIFT when the snapshot disagrees. Any boolean baked into a per-build
+no real-time data at ECCC at all. Every run prints the drift when the snapshot disagrees; only a listed station the roster
+has no row for at all is an owner notice (T847: one email per never-seen station, ever). Any boolean baked into a per-build
 artifact is right the week it is cut and wrong months later — slowly enough that nobody
 notices. `GaugeLink.live` is therefore three-valued: absent feed means `null`, not `false`.
 

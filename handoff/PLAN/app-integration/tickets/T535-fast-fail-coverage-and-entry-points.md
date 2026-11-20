@@ -1,6 +1,8 @@
 # T535 — fast-fail runs every cheap gate, from every long-job entry point, cheapest first
 
-Status: IN PROGRESS — aac40d46e, parked gate 3993744e9; left (Claude): install the heavy.sh fast-fail gate (copy handoff/PLAN/app-integration/T535-heavy-gate/heavy.sh + heavy.test.sh into scripts/, commit) once fast-fail is green repo-wide — installing it while T637 keeps fast-fail red would stop every lane's next heavy job.
+Status: DONE — aac40d46e, 3993744e9. fast-fail runs every cheap gate cheapest first (check:fast, CI steps by name, review app) with the gate table and mutation proof; the heavy.sh gate is built and tested, parked; its install moved to T661 (item 3).
+
+Closed by the 2026-11-20 audit: Acceptance (table, a mutation per gate, heavy.sh never takes the lock on a failing fast-fail — the parked copy's shell test) met; the install is carried by T661 ('install the parked heavy.sh gate (T535)').
 
 Source: workflow review 2026-11-09 (verified against the code). Rank 3.
 

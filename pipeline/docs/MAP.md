@@ -26,13 +26,15 @@ a copy of the live release's reach run → `pipeline build --hold-latest` via he
 against the live release) → follows (T666, `pipeline/release_follows.py`: the in-season matches, the app's fixtures
 re-cut and the tests that read the release, all on the candidate) → LATEST → `deploy/staging/upload.sh`. Preflight
 lists every failure at once; `--dry-run` rehearses every stage's checks. Its ledger is `data/generated/release/ledger.json`;
-`--prod <r-id>` (human-only) re-uploads that same release through `deliver/release/publish.py`.
+`--prod <r-id>` (human-only) re-uploads that same release through `deliver/release/publish.py`. After the production pointer moves,
+`deploy/prod/upload.sh` prunes the bucket (T865, `deliver/release/prod_prune.py`): release-scoped objects neither pointer
+names (the v1 layout only by `deploy/prod/drop-v1.sh`, at the switch).
 
 ## Stages and where they live
 
 | stage | code | reads | writes (`GENERATED.*`, `pipeline/common/curated.py`) |
 |---|---|---|---|
-| **atlas** | `atlas/build.py`; `atlas/graph/` (network, prune, tributaries, windows), `atlas/splits/` (sectionizer, anchors, area cuts, border, sliver gate, the coast cut `splits/coast.py`: T678/T685 one rule (RULINGS E21) — a creek entering a tidal river is cut at the river's edge (where it leaves the FWA river polygon its mouth sits in), a water reaching the sea is fresh to the shoreline, the DFO polygon never cuts; `shore_cuts.json`, `tidal_sections.json` (the one tidal record), `coast_owner.json`), `atlas/registry/` (named waters, flowing-polygon fold, regions), `atlas/waters/` (added lakes/streams), `atlas/sidecars.py`, `atlas/promote.py`, `atlas/inputs.py` (T547: the digest of every curated input, in `graph.pkl.meta.json`; `pipeline release` refuses an atlas behind one) | FWA gpkg, `CURATED.splits`, names, areas | `data/generated/atlas/<build>/`: graph, `registry.json`, `section_handles.txt`, sidecars |
+| **atlas** | `atlas/build.py`; `atlas/graph/` (network, prune, tributaries, windows), `atlas/splits/` (sectionizer, anchors (every cut it cannot place listed in `split_unplaced.json`, T743), area cuts, border, sliver gate, the coast cut `splits/coast.py`: T678/T685 one rule (RULINGS E21) — a creek entering a tidal river is cut at the river's edge (where it leaves the FWA river polygon its mouth sits in), a water reaching the sea is fresh to the shoreline, the DFO polygon never cuts; `shore_cuts.json`, `tidal_sections.json` (the one tidal record), `coast_owner.json`), `atlas/registry/` (named waters, flowing-polygon fold, lake loops `registry/lake_loops.py` (T753: a nameless line out of a lake and back into it is the lake's, unless that would divide the lake by a cut area; `lake_loop_report.json`), regions), `atlas/waters/` (added lakes/streams), `atlas/sidecars.py`, `atlas/promote.py`, `atlas/inputs.py` (T547: the digest of every curated input, in `graph.pkl.meta.json`; `pipeline release` refuses an atlas behind one) | FWA gpkg, `CURATED.splits`, names, areas | `data/generated/atlas/<build>/`: graph, `registry.json`, `section_handles.txt`, sidecars |
 | **clim** | `gauges/feed/climatology.py` | HYDAT | `clim.json` (the gauge envelope) |
 | **reach** | `atlas/reach/` (`cli.py`, `build.py`, `classify.py`, `extent.py`, `licensing.py`, `steelhead.py`, `cache.py`) | atlas, the catalogue corpus (`data/curated/regulations/synopsis/`) | `data/generated/reaches/<run>/`: per-rule bindings, `report.json`, diagnostics |
 | **tiles** | `deliver/tiles/` (`tippe.py`, `layers.py`, `names.py`, `basemap.py`) | atlas | `data/generated/tiles/`: `atlas.pmtiles` (z4–13, T85), `atlas.meta.json`, `layers/` + `layers/undrawn.json` (the sections left out on purpose, T64; the bundle's `bundle/undrawn.py` proves none was needed), never the basemap |
@@ -52,7 +54,11 @@ step's output; nothing is promoted unless every step and the vintage check pass)
 7. `store` — `deliver/store/` → `regs.sqlite` in staging only (P20: never kept; `--debug-json` keeps a copy).
 8. `release` — `deliver/release/` (`build.py`, `paint.py`, `shards.py`, `manifest.py`) → the shipped set: paint,
    access, core, near, water, `regs-<region>` ×9, `regs-sid`, conditions, flow-area, salmon (T211: DFO salmon per chain
-   and day, `deliver/salmon.py`; placed by the reach run's `dfo_salmon.jsonl.gz`, `atlas/reach/dfo_salmon.py`) (gzip,
+   and day, `deliver/salmon.py`; placed by the reach run's `dfo_salmon.jsonl.gz`, `atlas/reach/dfo_salmon.py`; T573: a place's closed areas are
+   locations of their own, `regs/dfo_salmon/closures.build_pieces` / `resolve_closures`; T761: a "rest of" place —
+   its bounds and listed places `regs/dfo_salmon/entries.rest_listing` / `answers_before`, bound by `atlas/reach/build._build_rest`,
+   answering after its listed places on their sections `deliver/salmon.rests_behind` / `rest_after`; T807: a named-water
+   place's side streams are DFO's words for it, `regs/dfo_salmon/side_streams.effective`, read by `entries.to_reach_input`) (gzip,
    sha-named, one manifest).
    Readers rebuild the store from those files (`deliver/store/release.py province_store`).
 
@@ -66,14 +72,17 @@ step's output; nothing is promoted unless every step and the vintage check pass)
 | **the LLM parse** | `regs/parsing/` (`run_parse.sh`, `dispatch`) | **HUMAN-ONLY, spends credits** (AGENTS 1); writes the catalogue |
 | catalogue model + gate | `regs/parsing/catalogue.py`, `validate_catalogue.py` | what ingest refuses |
 | curation review | `regs/review/` + `curation-review/` (FastAPI + frontend) | marks only in review mode (AGENTS 65–67) |
+| classified waters gate | `regs/classified_waters.py` (`BOOK`: the book's 73 classified rows with each designation's printed period, place, carve-outs, sleep; `NAMED`: the Li5/Li5a waters; `classified_pins.json`: each designation's measured stretch and walk) | T841: `--check` holds the corpus to the book (fast-fail, release preflight); `--bundle` holds the candidate: the Classified Waters Licence on every section a designation binds, `holds.considered` naming every designation (the card's Class badge), the named waters, the pins (release checks stage); `--write-pins BUNDLE` re-cuts the pins after a reviewed change |
 | steelhead list | `regs/steelhead/known_waters.py`, `regs/steelhead/accept.py` | generates the list; `accept` prints added / dropped and `--write`s `data/curated/waters/steelhead_waters.json` (AGENTS 54, T324) |
 | DFO salmon | `regs/dfo_salmon/` | see [`19-dfo-salmon-pipeline.md`](19-dfo-salmon-pipeline.md) |
 | gauge matches | `gauges/generate/` (`match.py`, `promote.py`) | REVIEWED data: promote station by station (AGENTS 38) |
 | live gauge feed | `gauges/feed/publish.py` (+ `forecast.py`, `change.py`, `notify.py`) | the feed the app polls; `scripts/dev-build.sh`, `scripts/update-hydat.sh` |
 | generated app code | `tools/emit/` (`calendar`, `gauge_policy`, `pack`) + `deliver/answers/model --check` | `--check` in `pnpm check` and CI |
 | the mini release | `tools/mini_release.py` (+ `fixtures/mini/`, `deliver/export/claims.py`) | T667 slice 8: the real chain atlas → release on an invented world, no live data; `--check` (CI) / `--write` keep `app/packages/data/dev/mini-release/`; the export held to the mini corpus's own claims (`--claims`) |
+| water rules map | `tools/water_map/` (`python -m pipeline.tools.water_map "<water>" [--mode salmon\|freshwater\|both] [--date] [--release] [--focus KM-KM]`) | T853: the Nass-style labelled PNG of any water's system from a release on disk (answers via `province_store` + `encode.tap`, salmon via `decode_files`, lines from the tile layers); read-only, writes PNGs to `--out` |
 | audits | `tools/audit/` (`build_parity.py`, `check_curated.py` — `--waters` is the fast hand-edit check, the build's first step, …) | read-only reports |
 | basemap | `deliver/tiles/basemap.py` (+ `basemap_roads.py`) | the OSM ground: clip, filter to what the style draws (T85, T202), cap at z13 with the z13 roads rebuilt from z14 so trail/FSR names survive (T202; zoom audit gates the build), release as `data/release/basemap/<id>/` + `tiles/basemap.meta.json` (T75); the release names it |
+| near B.C. | `deliver/tiles/near_bc.py` | by hand, when `data/source/bc_boundary.geojson` changes: B.C. grown by 50 km, simplified to 5 km, written as `app/packages/core/src/nearBcOutline.ts` (70 points) for the app's "far from B.C." location check (T864, `nearBc.ts`) |
 | split binding | `tools/audit/audit_split_binding.py` | which curated splits a rule can bind to, and which no item carries (T67) |
 | tile sizes | `tools/audit/tile_sizes.py` | bytes per zoom and layer of a pmtiles archive (the S2 size table) |
 | PREPARED, NOT FED | `stocking/`, `bathymetry/`, `runtiming/` | kept on purpose (owner 2026-10-22); each README says what feeds it (the two `generate/audit.py` were deleted in T436, 971f40575: restore from git). T634 first pass: `bathymetry/` holds the chart -> lake proposer (`propose`), the owner-only `accept`, and the 2001 vector-file fetch / `.e00` reader / placing fit (`fetch_vectors`, `e00`, `place`; files kept outside git); second pass: `compress` (chart PDFs -> 200 dpi 1-bit, outside git) |

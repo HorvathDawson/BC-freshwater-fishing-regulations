@@ -155,8 +155,11 @@ describe("the style and the tiles agree", () => {
     for (const l of arrowed)
       expect(built.has(`${l.id}__arrows`), `${l.id} declares arrows but has no arrow layer`).toBe(true);
     expect(arrowed.map((l) => l.id)).toEqual(["stream"]);
+    // (T923) and one CASING line layer per outline that declares `satellite.casing`, drawn over satellite imagery only
+    const cased = outlined.filter((l) => (l.outline as { satellite?: { casing?: unknown } }).satellite?.casing);
+    for (const l of cased) expect(built.has(`${l.id}__casing`), `${l.id} declares a satellite casing but has none`).toBe(true);
     expect(Object.keys(STYLE_META.colorModes).length)
-      .toBe(source.layers.length + outlined.length + labelled.length + arrowed.length);
+      .toBe(source.layers.length + outlined.length + labelled.length + arrowed.length + cased.length);
   });
 
   it("the layers that say where you may not go cannot be switched off", () => {

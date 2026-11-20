@@ -11,7 +11,7 @@
  * map keeps the most recently used `CAP` of them. A failure is never kept — the next asker tries again.
  */
 import { FEED_TTL_MS, type Parameter, type StationId } from "@app/data";
-import { now as clockNow } from "@app/core";
+import { NO_RECORD_LINE, now as clockNow } from "@app/core";
 
 /** How long an answer is reused: the feed's own file reuse (`TTL_MS` in data/src/feed/http.ts). */
 export const ANSWER_TTL_MS = FEED_TTL_MS;
@@ -80,6 +80,29 @@ export function chartParameter(picked: Parameter | null | undefined,
 }
 
 /**
+ * (T830) THE QUANTITIES A STATION'S CARD MAY SHOW: those the bundle has a band for (`gaugeParameters`), and any the
+ * publisher says it reports live today (the index's `reports`). Capilano at Canyon reads a level on every row and has
+ * two years of level record, no band: its Level is offered, the reading drawn unranked and the chart without a band.
+ * In the one order, flow first. `reports` null or absent (a feed from before it): the bundle's alone, as before.
+ */
+export function cardParameters(banded: readonly Parameter[],
+                               reports: readonly Parameter[] | null | undefined): readonly Parameter[] {
+  if (!reports?.some((q) => !banded.includes(q))) return banded;
+  return (["discharge", "level"] as const).filter((q) => banded.includes(q) || reports.includes(q));
+}
+
+/**
+ * (T830) THE CARD'S LINE IN PLACE OF A STANDING, when the quantity shown is one the station reads live with no band to
+ * rank it against (`cardParameters` offered it from `reports` alone): Python's line (`NO_RECORD_LINE`), no dot, never
+ * a high / low / normal word, and never the other quantity's standing. Null otherwise — the card's own standing stands.
+ * Nothing is said while the bundle's quantities are still being read (`known` false).
+ */
+export function noRecordLine(shown: Parameter, banded: readonly Parameter[], known: boolean,
+                             reports: readonly Parameter[] | null | undefined): string | null {
+  return known && !banded.includes(shown) && !!reports?.includes(shown) ? NO_RECORD_LINE : null;
+}
+
+/**
  * (T581, T580 F1) WHICH QUANTITY THE GAUGE CARD IS ABOUT. When the caller owns the quantity (the map's Show) the card is
  * about exactly that, always: a station that does not measure it is `silent`, and the card says so in the words its row
  * and pin use, offering the other quantity as the one Show choice, never quietly drawing it. Left to the panel (nothing
@@ -95,9 +118,13 @@ export interface CardQuantity {
 }
 
 export function cardQuantity(asked: Parameter | null | undefined, available: readonly Parameter[], known: boolean,
-                             readingQuantity: Parameter | null | undefined): CardQuantity {
+                             readingQuantity: Parameter | null | undefined,
+                             offered: readonly Parameter[] | null = null): CardQuantity {
   if (asked) {
     const silent = known && !available.includes(asked);
+    // (T817) THE WATER'S CHOICES, when the caller knows them (core `conditionsOpening` `offer`): the same before and after
+    // a pick, so Level never takes Flow away (the Chehalis, owner 2026-11-16); the asked quantity is always among them
+    if (offered) return { shown: asked, silent, options: (["discharge", "level"] as const).filter((q) => q === asked || offered.includes(q)) };
     return { shown: asked, silent,
              options: silent ? (["discharge", "level"] as const).filter((q) => q === asked || available.includes(q)) : available };
   }

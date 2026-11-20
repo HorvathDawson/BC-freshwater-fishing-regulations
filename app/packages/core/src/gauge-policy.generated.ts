@@ -73,6 +73,12 @@ export const RECORD_QUANTITIES: readonly RecordQuantity[] = ["discharge", "level
 /** The shortest record, in years, that may rank a reading: the climatology's floor and the donor panel's gate. */
 export const MIN_RECORD_YEARS = 3;
 
+/** (T830) The gauge card's line under a quantity the station reads live with no band to rank it (record.NO_RECORD_LINE). */
+export const NO_RECORD_LINE = "Too new to say if this is high or low.";
+
+/** (T830) Decimals a water level is shown to, in metres, wherever one is shown (record.LEVEL_DECIMALS). */
+export const LEVEL_DECIMALS = 2;
+
 // The envelope and the panel (T125 item 6). PCTILES in pipeline/gauges/feed/climatology.py, as fractions: every envelope
 // is built at these knots, a reading is ranked between them (`percentileInBand`), the standing words break at them
 // (`standing`) and the map's percentile ramp stops at them. MIN_TOTAL_WEIGHT in pipeline/gauges/consume/panel.py: below it
@@ -113,3 +119,13 @@ export const FORECAST_HOLIDAYS: readonly string[] = [
 
 /** What a vote whose path crosses a lake keeps of its weight while a vote with no lake on its path reports. */
 export const THROUGH_LAKE_FACTOR = 0.05;
+
+// (T823) Small next to its gauge, from pipeline/gauges/consume/small_water.py. Python decides, per paint section, which
+// of its panel's members drain much more than it (`flow-small`: bit i = member ord i) and writes the sentence; the app
+// shows the conditions meta's text beside a reading from a member whose bit is set, word for word.
+
+/** The conditions file's meta key holding the warning shown beside a much bigger member's reading. */
+export const SMALL_WATER_TEXT_KEY = "small_water_text";
+/** The conditions file's meta key holding the threshold the bits were decided at (the member drains at least this many
+ *  times the section's target area). For audit; the app compares nothing. */
+export const SMALL_WATER_RATIO_KEY = "small_water_ratio";

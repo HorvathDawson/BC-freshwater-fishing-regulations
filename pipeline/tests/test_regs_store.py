@@ -68,7 +68,9 @@ def _wire() -> dict:
             "licence": {"version": 5, "at": [[0], [0, 0, 0], [0]], "holds": [{"holds": [0]}],
                         "answers": [{"documents": []}], "documents": [[0, 0]],
                         "under_16": [[{"residency": "resident", "says": "No licence needed."}]],
-                        "frames": [[0, 0, 0]],
+                        # T789 G8: the part's closures to the non-resident alien, the frame's 4th index
+                        "alien_closures": [[{"rule": 0, "says": "Angling closed to non-guided non-resident aliens"}]],
+                        "frames": [[0, 0, 0, 0]],
                         "profiles": ["a", "b"], "profile_dims": [["age", ["a", "b"]]],
                         "residency_labels": {"resident": "B.C. resident"}, "profile_labels": ["A", "B"]},
             "display": {"version": 6, "at": [[0], [0, 0, 1], [0]],
@@ -92,6 +94,9 @@ def _wire() -> dict:
                                                       "closed_all_year": True, "paper_licence": []}],
                                            "picker": {"choices": [], "headed": False},
                                            "unresolved_licensing": [0]}}},
+            # T810 L: the trout section, in every answers file since the cutover (a NULL cell: no table there, Q-D3)
+            "trout": {"version": 1, "at": [[None], [0, None, 0], [None]], "frames": [[0, None, [0]]],
+                      "tables": [{"boxes": [{"rows": [{"sheet": 0}]}]}], "dates": [], "sheets": [{"head": "h"}]},
         },
     }
 
@@ -603,6 +608,8 @@ def test_the_live_store_schema_invariants(live):
         assert con.execute("SELECT count(*) FROM place").fetchone()[0] == len(A["places"])
         # every family holds exactly the answers' interned table, ids 0..n-1
         for (name, key), tbl in FAMILIES.items():
+            if name not in A["sections"]:
+                continue                                # an optional section this answers file lacks (T810: trout)
             n, lo, hi = con.execute(f"SELECT count(*), min(id), max(id) FROM {tbl}").fetchone()
             assert (n, lo, hi) == (len(A["sections"][name][key]), 0, len(A["sections"][name][key]) - 1)
         for name in SECTIONS:

@@ -18,7 +18,7 @@
  *               tab, which is what the framing was made for.
  */
 import { useCallback, useEffect, useState } from "react";
-import { MY_LOCATION, SPOTS_MENU, boxAround, reportFailure, type Bbox, type LatLon } from "@app/core";
+import { MY_LOCATION, SPOTS_MENU, boxAround, nearBC, reportFailure, type Bbox, type LatLon } from "@app/core";
 import { needsRefresh, spotLabel, spotRowLines, staleSpotsLine, type Spot } from "@app/data/spots";
 import { refusedLine } from "./myLocation";
 import { HOME, type Route, type RouteAction } from "./route";
@@ -251,7 +251,10 @@ export function useMapRail(go: (a: RouteAction) => void, locate: Locate | null =
       if (!locate) return;
       setError(null);
       try {
-        addAt(await locate.here());
+        const at = await locate.here();
+        // (T864) a fix far outside B.C. starts no spot there (the map cannot show it): said, and "Pick on the map" still works
+        if (!nearBC(at)) { setError(MY_LOCATION.far); return; }
+        addAt(at);
       } catch (e) {
         // (T723 G6) a refusal says so (with "Open Settings" under it) and is not a defect; anything else is reported
         reportFailure(e);

@@ -5,7 +5,7 @@
 import { describe, expect, it } from "vitest";
 import { standing } from "./flow";
 import {
-  bandWord, daysInTen, daysNear, daysRange, daysShort, figure, inTen, levelChip, levelName, placeChip, placeSaid,
+  bandWord, daysInTen, daysNear, daysRange, daysShort, figure, figureIn, inTen, levelChip, levelName, placeChip, placeSaid,
   standingHeadline, standingLong, standingReads, standingShort,
 } from "./standing";
 
@@ -82,5 +82,17 @@ describe("one standing, every form", () => {
   });
   it("rounds a figure to three figures, once", () => {
     expect([1234.5, 123.4, 12.34, 1.548, 0.3349].map(figure)).toEqual(["1235", "123", "12.3", "1.55", "0.33"]);
+  });
+});
+
+// (T830, owner 2026-11-17 09:57) A WATER LEVEL IS WRITTEN TO TWO DECIMALS, everywhere; a flow keeps its three figures.
+describe("figureIn", () => {
+  it("writes a level to LEVEL_DECIMALS places (Python's record.LEVEL_DECIMALS), half up", () => {
+    expect([1, 0.998, 0.85, 1.187, 0.335, 340.214, 0, -0.001, 12].map((v) => figureIn(v, "level")))
+      .toEqual(["1.00", "1.00", "0.85", "1.19", "0.34", "340.21", "0.00", "0.00", "12.00"]);
+  });
+  it("leaves a flow (and anything not a level) as figure", () => {
+    expect([25.7, 1234.5, 0.3349, 12].map((v) => figureIn(v, "discharge"))).toEqual(["25.7", "1235", "0.33", "12"]);
+    expect(figureIn(1.5, "discharge")).toBe(figure(1.5));
   });
 });

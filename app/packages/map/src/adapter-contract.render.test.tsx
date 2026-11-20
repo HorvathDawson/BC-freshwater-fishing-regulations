@@ -13,12 +13,15 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { act, cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { useEffect, useImperativeHandle, type ReactNode } from "react";
-import { MAP_GESTURES, setFailureSink } from "@app/core";
+import { MAP_GESTURES, fitCamera, fitZoomLimit, fitZoomOf, setFailureSink } from "@app/core";
 import type { MapProps } from "./map-props";
 import type { StatusIndex } from "@app/core";
 import { maplibreGestures, nativeMapGestures } from "./gestures";
 import { colour } from "./chrome";
 import { MARK_LABEL, MARK_RING, MARK_SOURCE, PIN_DOT, PIN_SOURCE } from "./point-marks";
+import { encodeTile } from "./mvt.fixture";
+import { encodePmtiles } from "./pmtiles.fixture";
+import { project } from "./trace-geometry";
 
 /** Every SDK call that matters to the contract, in order, as one string each. */
 const log: string[] = [];
@@ -67,6 +70,10 @@ class FakeGl {
   /** the element whose cursor the hover sets (GL JS's canvas container) */
   container = { style: { cursor: "" } };
   getCanvasContainer() { return this.container; }
+  /** (T856) the camera padding the web map sets for the desktop rail */
+  padding = { top: 0, bottom: 0, left: 0, right: 0 };
+  getPadding() { return this.padding; }
+  setPadding(p: { top: number; bottom: number; left: number; right: number }) { this.padding = p; }
   isMoving() { return false; }
   /** The canvas as last sized: a test sets `web.canvasH` to leave it stale (its box changed, the observer not yet run). */
   getCanvas() { return { style: { width: "400px", height: `${web.canvasH}px` } }; }
@@ -115,14 +122,15 @@ class Marker {
 }
 vi.mock("maplibre-gl", () => ({ Map: FakeGl, NavigationControl: Control, ScaleControl: Control, Marker,
                                 Popup: class { setText() { return this; } }, addProtocol: () => {} }));
-vi.mock("pmtiles", () => ({ Protocol: class { tile = () => {}; } }));
+// the protocol handler is the web renderer's (faked); the archive reader is the real one (T831: the route lines)
+vi.mock("pmtiles", async (real) => ({ ...(await real<typeof import("pmtiles")>()), Protocol: class { tile = () => {}; } }));
 
 // ---- @maplibre/maplibre-react-native, recorded ----------------------------------------------------------------------
 type Press = { nativeEvent: { point: [number, number]; lngLat: [number, number] } | null };
 const native: { props: Record<string, unknown> | null; camera: Record<string, unknown> | null;
                 geojson: Record<string, unknown>; holdRender: boolean; watched?: string[];
                 layers?: Record<string, { type: string; paint?: unknown }>;
-                images?: Record<string, unknown>; fitOpts?: unknown[];
+                images?: Record<string, unknown>; fitOpts?: unknown[]; easeOpts?: unknown[];
                 onLog?: (e: { level: string; tag: string; message: string }) => boolean } =
   { props: null, camera: null, geojson: {}, holdRender: false };
 vi.mock("@maplibre/maplibre-react-native", () => ({
@@ -152,7 +160,7 @@ vi.mock("@maplibre/maplibre-react-native", () => ({
     native.camera = props;
     useImperativeHandle(ref as never, () => ({
       fitBounds: (b: unknown, o?: unknown) => { (native.fitOpts ??= []).push(o); log.push(`fit ${JSON.stringify(b)}`); },
-      easeTo: (o: { center: [number, number]; zoom: number; duration: number }) =>
+      easeTo: (o: { center: [number, number]; zoom: number; duration: number }) => (native.easeOpts ??= []).push(o) &&
         log.push(`ease ${JSON.stringify(o.center)} z${o.zoom} ${o.duration}ms`),
     }));
     return null;
@@ -198,7 +206,7 @@ afterEach(() => {
   answer = () => [];
   web.map = null; web.opts = null; web.rotationOff = false; web.keyboardRotationOff = false; web.tilesIn = true;
   web.fitOpts = []; web.canvasH = 800; web.data = {}; webCam.lng = -122; webCam.lat = 49;
-  native.props = null; native.camera = null; native.geojson = {}; native.holdRender = false; native.layers = {}; native.fitOpts = [];
+  native.props = null; native.camera = null; native.geojson = {}; native.holdRender = false; native.layers = {}; native.fitOpts = []; native.easeOpts = [];
 });
 
 const AT = { atlas: "file:///d/atlas.pmtiles", basemap: "file:///d/basemap.pmtiles" };
@@ -263,8 +271,9 @@ const PLATFORMS = {
  * value a feature holds is not sent twice: `onceSink`).
  */
 const unset = (sl: string, id: number, key: string) => (platform === "native"
-  // (T345) a phone unsets a key by writing it null (`adapters/native.ts` `raw.remove`: MapLibre Native's removals)
-  ? `set atlas/${sl} number:${id} {"${key}":null}` : `remove atlas/${sl} number:${id} ${key}`);
+  // (T345) a phone unsets a key by writing it (`adapters/native.ts` `raw.remove`: MapLibre Native's removals); (T826) a
+  // highlight key is written false, never null: iOS's bridge drops a null-valued key (`unsetValue`)
+  ? `set atlas/${sl} number:${id} {"${key}":false}` : `remove atlas/${sl} number:${id} ${key}`);
 let platform = "";
 const selected = (id: number, on: boolean) => ["wetland", "lake", "stream"]
   .map((sl) => (on ? `set atlas/${sl} number:${id} {"selected":true}` : unset(sl, id, "selected")));
@@ -510,9 +519,9 @@ it("the lift that ends a long press is cancelled, so the browser makes no click 
     expect(log).toEqual(['set atlas/stream number:311274 {"other":3}']);
     const why = "the map colours sections through the colouring engine only "
       + "(MapProps.status, MapProps.standing, MapProps.lakes, MapProps.salmon, MapProps.method, MapProps.runs)";
-    expect(errors).toEqual([`pushed p/standing/status/stocked/survey/sp/salmon/gm/rt on "stream" refused: ${why}`,
-                            `pushed p/standing/status/stocked/survey/sp/salmon/gm/rt on "lake" refused: ${why}`,
-                            `pushed p/standing/status/stocked/survey/sp/salmon/gm/rt on "basin" refused: ${why}`]);
+    expect(errors).toEqual([`pushed p/standing/status/stocked/survey/sp/salmon/gm/rt/gi on "stream" refused: ${why}`,
+                            `pushed p/standing/status/stocked/survey/sp/salmon/gm/rt/gi on "lake" refused: ${why}`,
+                            `pushed p/standing/status/stocked/survey/sp/salmon/gm/rt/gi on "basin" refused: ${why}`]);
   });
 
   it("T317: the marks are map layers — a ring each, a label each labelled one — and no DOM marker moves with the map", async () => {
@@ -523,24 +532,26 @@ it("the lift that ends a long press is cancelled, so the browser makes no click 
     expect([web.map!.getLayer(MARK_RING)?.source, web.map!.getLayer(MARK_LABEL)?.source]).toEqual([MARK_SOURCE, MARK_SOURCE]);
     const fc = web.data[MARK_SOURCE] as { features: { properties: Record<string, unknown> }[] };
     expect(fc.features.map((f) => f.properties)).toEqual([
-      { i: 0, kind: "ring", on: false }, { i: 0, kind: "label", label: "Tamihi Rapids Bridge" }, { i: 1, kind: "ring", on: true }]);
+      { i: 0, kind: "ring", on: false }, { i: 0, kind: "label", label: "Tamihi Rapids Bridge", anchor: expect.any(String) },
+      { i: 1, kind: "ring", on: true }]);
     expect(document.querySelectorAll(".maplibregl-marker").length).toBe(0);
   });
 
-  it("P15/T317: a mark's label near the map's edge is moved in where the camera settles — never per frame", async () => {
+  it("P15/T929: a mark's label near the map's edge hangs inward from its own point, chosen where the camera settles", async () => {
     render(<WebMap {...base({ data: undefined, marks: [
       { lon: -121.83788, lat: 49.071839, label: "Tamihi Rapids Bridge", a11y: "Boundary: Tamihi Rapids Bridge", on: false }] })} />);
-    type Fc = { features: { properties: { kind: string }; geometry: { coordinates: number[] } }[] };
-    const labelAt = () => (web.data[MARK_SOURCE] as Fc | undefined)?.features.find((f) => f.properties.kind === "label")
-      ?.geometry.coordinates;
-    // x 362 of 400: 62 px in, the label's point at x 300 (`unproject`: lng = x / 1000 - 122.2)
-    await waitFor(() => expect(labelAt()?.[0]).toBeCloseTo(-121.9, 6));
+    type Fc = { features: { properties: { kind: string; anchor?: string }; geometry: { coordinates: number[] } }[] };
+    const label = () => (web.data[MARK_SOURCE] as Fc | undefined)?.features.find((f) => f.properties.kind === "label");
+    // x 362 of 400: hangs left of its ring, at the ring
+    await waitFor(() => expect(label()?.properties.anchor).toBe("bottom-right"));
+    expect(label()?.geometry.coordinates).toEqual([-121.83788, 49.071839]);
     const project = web.map!.project.bind(web.map);
     web.map!.project = (l) => ({ ...project(l), x: 30 });
     act(() => web.map!.fire("move"));
-    expect(labelAt()?.[0]).toBeCloseTo(-121.9, 6);
+    expect(label()?.properties.anchor).toBe("bottom-right");                  // never per frame
     act(() => web.map!.fire("moveend"));
-    await waitFor(() => expect(labelAt()?.[0]).toBeCloseTo(-122.1, 6));      // 70 px the other way: x 100
+    await waitFor(() => expect(label()?.properties.anchor).toBe("bottom-left"));
+    expect(label()?.geometry.coordinates).toEqual([-121.83788, 49.071839]);   // still the mark's own point
   });
 
   it("T317: the marker and a panel's pins are one GeoJSON source with the pin image per tone, not DOM markers", async () => {
@@ -554,7 +565,7 @@ it("the lift that ends a long press is cancelled, so the browser makes no click 
   });
 });
 
-describe("(T734) the phone's marks' label shift asks only a map that is there", () => {
+describe("(T734) the phone's marks' label anchors ask only a map that is there", () => {
   const MARKS = [{ lon: -121.83788, lat: 49.071839, label: "Tamihi Rapids Bridge", a11y: "Boundary: Tamihi Rapids Bridge", on: false }];
   const asked = () => log.filter((l) => /^(un)?project /.test(l));
   const layout = () => act(() => { (native.props!.onLayout as (e: unknown) => void)({ nativeEvent: { layout: { width: 400, height: 800 } } }); });
@@ -571,7 +582,7 @@ describe("(T734) the phone's marks' label shift asks only a map that is there", 
     await act(async () => {});
     expect(asked()).toEqual([]);
     act(() => { (native.props!.onDidFinishRenderingMapFully as () => void)(); });
-    await waitFor(() => expect(asked()).toEqual(["project -121.83788,49.071839", "unproject 300,400"]));
+    await waitFor(() => expect(asked()).toEqual(["project -121.83788,49.071839"]));       // (T929) never an unproject
   });
 
   it("unmounted: a late settle sends nothing", async () => {
@@ -622,6 +633,126 @@ describe("native only (T317)", () => {
   });
 });
 
+/**
+ * (T831) THE ROUTE MAP'S PINS ON BOTH MAPS. A water's Conditions route map (`DonorMap`) hands `trace.pins`: a dot per
+ * gauge in its donor tone with its share, and the "you are here" pin. The phone ignored `trace` (`trace: _noTrace`), so
+ * its `trace-pins` source stayed the style's empty one: no dots, no pin, on Android and iOS, while the web drew them.
+ *
+ * What a phone DRAWS for a source its style declares is the style's own data until the binding's `data` CHANGES: its
+ * `GeoJSONSource` adopts the existing source and never pushes the data it mounted with (`MLRNSource.addToMap`). So the
+ * pins a route map opens with are in each style it is handed, the source's data is handed only once a style has loaded,
+ * and a later change goes to the source — never a style swap.
+ */
+describe.each(["web", "native"] as const)("T831 the route map's gauge dots and you-are-here pin: %s", (name) => {
+  const HERE = { lat: 49.1, lon: -121.9, kind: "here" as const, tone: "tone-ink", label: "You are here", rank: 0 };
+  const GAUGE = { lat: 49.2, lon: -122.1, kind: "gauge" as const, tone: "tone-blue", label: "62%", rank: 0 };
+  const QUIET = { lat: 49.3, lon: -122.3, kind: "gauge" as const, tone: "tone-grey", label: null, rank: 1 };
+  const trace = (pins: readonly (typeof HERE | typeof GAUGE | typeof QUIET)[]) => ({ key: "r1", routes: [], pins });
+  const point = (lon: number, lat: number) => ({ type: "Point", coordinates: [lon, lat] });
+  const OPENED = { type: "FeatureCollection", features: [
+    { type: "Feature", properties: { kind: "gauge", tone: "tone-blue", rank: 0, label: "62%" }, geometry: point(-122.1, 49.2) },
+    { type: "Feature", properties: { kind: "gauge", tone: "tone-grey", rank: 1 }, geometry: point(-122.3, 49.3) },
+    { type: "Feature", properties: { kind: "here", tone: "tone-ink", rank: 0, label: "You are here" }, geometry: point(-121.9, 49.1) },
+  ] };
+  /** The pins the map draws now: the web's source as last set; a phone's source once its style has loaded. */
+  const drawn = () => (name === "web" ? web.data["trace-pins"] : native.geojson["trace-pins"]);
+  const ready = async () => {
+    if (name === "web") await waitFor(() => expect(web.data["trace-pins"]).toBeTruthy());
+    else await waitFor(() => expect(native.props).toBeTruthy());
+  };
+
+  it("a route map opens with every gauge's dot (its share beside it, a null share left out) and the pin", async () => {
+    const M = PLATFORMS[name].Map;
+    render(<M {...base({ data: undefined, highlight: undefined, trace: trace([GAUGE, QUIET, HERE]) })} />);
+    await ready();
+    expect(drawn()).toEqual(OPENED);
+    // and a phone's style holds them too: what its adopted source draws before any change
+    if (name === "native")
+      expect((native.props!.mapStyle as { sources: Record<string, { data: unknown }> }).sources["trace-pins"]!.data).toEqual(OPENED);
+  });
+
+  it("a share that changes (a new horizon) moves the dots' words in place: no style swap, the same pins", async () => {
+    const M = PLATFORMS[name].Map;
+    const r = render(<M {...base({ data: undefined, highlight: undefined, trace: trace([GAUGE, HERE]) })} />);
+    await ready();
+    const style1 = native.props?.mapStyle;
+    r.rerender(<M {...base({ data: undefined, highlight: undefined, trace: trace([{ ...GAUGE, label: "40%" }, HERE]) })} />);
+    await act(async () => {});
+    expect(drawn()).toEqual({ ...OPENED, features: [{ ...OPENED.features[0]!, properties: { ...OPENED.features[0]!.properties, label: "40%" } },
+                                                    OPENED.features[2]] });
+    if (name === "native") expect(native.props!.mapStyle).toBe(style1);
+  });
+
+  it("no route map: no pins", async () => {
+    const M = PLATFORMS[name].Map;
+    render(<M {...base({ data: undefined, highlight: undefined })} />);
+    await ready();
+    expect(drawn()).toEqual({ type: "FeatureCollection", features: [] });
+  });
+});
+
+/**
+ * (T831) THE ROUTE LINES ON A PHONE. The web copies a route's reaches out of the atlas over HTTP (`traceOverlay`); a
+ * phone's atlas is an installed file, so the app hands the map a byte-range reader (`at.readRange`) and the lines are
+ * read through it — here over a real `.pmtiles` archive held in memory — into the style's own `trace` source.
+ */
+describe("T831 native: the route lines, read through the injected atlas reader", () => {
+  const [X, Y] = [660, 1404];
+  const tileCentre = { lon: project(12, X, Y, 1, [0.5, 0.5])[0], lat: project(12, X, Y, 1, [0.5, 0.5])[1] };
+  const ARCHIVE = encodePmtiles([{ z: 12, x: X, y: Y,
+    data: encodeTile({ stream: [{ id: 311274, type: 2, parts: [[[0, 2048], [4096, 2048]]] }] }, 4096) }], 40_000);
+  const routes = [{ role: "down" as const, tone: "tone-blue", path: [311274 as never], from: tileCentre, to: tileCentre }];
+  const LINE = { type: "Feature", properties: { role: "down", tone: "tone-blue", order: 1, on: false, kind: "line" },
+                 geometry: { type: "MultiLineString", coordinates: [[project(12, X, Y, 4096, [0, 2048]), project(12, X, Y, 4096, [4096, 2048])]] } };
+  let n = 0;
+  /** A fresh archive path per test: the overlay keeps one archive (and its sections) per path for the session. */
+  const reader = () => {
+    const asked: string[] = [];
+    const readRange = async (path: string, offset: number, length: number) => {
+      asked.push(path);
+      return ARCHIVE.subarray(offset, offset + length);
+    };
+    return { at: { ...AT, atlas: `file:///d/t831-${++n}/atlas.pmtiles`, readRange }, asked };
+  };
+  const lines = () => native.geojson.trace as { features: unknown[] } | undefined;
+
+  it("a route map's lines are copied out of the atlas through the app's reader, into the style's `trace` source", async () => {
+    const { at, asked } = reader();
+    render(<NativeMap {...base({ at, data: undefined, highlight: undefined, trace: { key: "r1", routes, pins: [] } })} />);
+    await waitFor(() => expect(lines()?.features.length).toBe(1));
+    expect({ asked: [...new Set(asked)], lines: lines() })
+      .toEqual({ asked: [at.atlas], lines: { type: "FeatureCollection", features: [LINE] } });
+  });
+
+  it("a theme swap keeps the route: its lines and pins are in the new style", async () => {
+    const { at } = reader();
+    const pins = [{ lat: tileCentre.lat, lon: tileCentre.lon, kind: "here" as const, tone: "tone-ink", label: null, rank: 0 }];
+    const r = render(<NativeMap {...base({ at, data: undefined, highlight: undefined, trace: { key: "r1", routes, pins } })} />);
+    await waitFor(() => expect(lines()?.features.length).toBe(1));
+    r.rerender(<NativeMap {...base({ at, theme: "dark", data: undefined, highlight: undefined, trace: { key: "r1", routes, pins } })} />);
+    await act(async () => {});
+    const sources = (native.props!.mapStyle as { sources: Record<string, { data: { features: unknown[] } }> }).sources;
+    expect([sources.trace!.data.features, sources["trace-pins"]!.data.features.length]).toEqual([[LINE], 1]);
+  });
+
+  it("the routes change: the old lines go at once; no routes, no lines", async () => {
+    const { at } = reader();
+    const r = render(<NativeMap {...base({ at, data: undefined, highlight: undefined, trace: { key: "r1", routes, pins: [] } })} />);
+    await waitFor(() => expect(lines()?.features.length).toBe(1));
+    r.rerender(<NativeMap {...base({ at, data: undefined, highlight: undefined, trace: { key: "none", routes: [], pins: [] } })} />);
+    await act(async () => {});
+    expect(lines()).toEqual({ type: "FeatureCollection", features: [] });
+  });
+
+  it("no reader handed: no line is drawn, and the map says why (never a fetch of the installed file)", async () => {
+    const onError = vi.fn();
+    render(<NativeMap {...base({ data: undefined, highlight: undefined, onError, trace: { key: "r1", routes, pins: [] } })} />);
+    await waitFor(() => expect(onError).toHaveBeenCalled());
+    expect([String(onError.mock.calls[0]![0]?.message), lines()?.features])
+      .toEqual(["route map: no atlas reader on this phone (TileEndpoints.readRange), so no route lines are drawn", []]);
+  });
+});
+
 describe("overzoom: the camera past the tiles, every source at its own deepest zoom", () => {
   it("web: maplibre-gl is constructed with the camera to z18 and each source stopping where its archive stops", () => {
     render(<WebMap {...base()} />);
@@ -638,19 +769,43 @@ describe("overzoom: the camera past the tiles, every source at its own deepest z
     await waitFor(() => expect(web.fitOpts.length).toBe(1));
     expect(web.fitOpts).toEqual([{ padding: 48, maxZoom: 14, duration: 450 }]);
   });
-  it("native: a fit to a pond is widened to what z14 shows — the binding's fitBounds has no maxZoom", async () => {
+  it("native: a fit to a pond goes no closer than z14, centred on it — sent as a centre and a zoom (T929)", async () => {
     render(<NativeMap {...base({ fit: { key: "pond", bbox: [-121.9502, 49.1999, -121.9498, 49.2001] } })} />);
-    await waitFor(() => expect(log.some((l) => l.startsWith("fit"))).toBe(true));
-    const fits = log.filter((l) => l.startsWith("fit"))
-      .map((l) => (JSON.parse(l.slice(4)) as number[]).map((v) => Math.round(v * 1e4) / 1e4));
-    // a 400 x 800 phone less 48 px padding: 304 x 704 px of z14 (0.0130° of longitude, 0.0198° of latitude at 49.2°N),
-    // centred on the pond
-    expect(fits).toEqual([[-121.9565, 49.1901, -121.9435, 49.2099]]);
+    await waitFor(() => expect(native.easeOpts?.length).toBe(1));
+    const [c] = native.easeOpts as { center: number[]; zoom: number }[];
+    expect([...c!.center.map((v) => Math.round(v * 1e6) / 1e6), c!.zoom]).toEqual([-121.95, 49.2, 14]);
+    expect(log.filter((l) => l.startsWith("fit"))).toEqual([]);
   });
-  it("(T400) native: a fit EASES — the binding's fitBounds defaults to a 'fly' arc, out and back in, in 450 ms", async () => {
+  it("(T400) native: a fit EASES — never the binding's default 'fly' arc, out and back in, in 450 ms", async () => {
     render(<NativeMap {...base({ fit: { key: "pond", bbox: [-121.9502, 49.1999, -121.9498, 49.2001] } })} />);
-    await waitFor(() => expect(native.fitOpts?.length).toBe(1));
-    expect(native.fitOpts).toEqual([{ padding: { top: 48, right: 48, bottom: 48, left: 48 }, duration: 450, easing: "ease" }]);
+    await waitFor(() => expect(native.easeOpts?.length).toBe(1));
+    expect(native.easeOpts).toEqual([{ center: [expect.closeTo(-121.95, 6), expect.closeTo(49.2, 6)], zoom: 14,
+                                       duration: 450, easing: "ease" }]);
+    expect(native.fitOpts).toEqual([]);
+  });
+  it("(T929) native: a fit framed in a 48 pt strip is framed again in the grown map by a zoom worked out from the NEW size " +
+     "— never a fitBounds the binding measures against a frame iOS has not grown yet", async () => {
+    const part = [-121.75, 49.03, -121.55, 49.12] as const;
+    const layout = (height: number) => act(() => {
+      (native.props!.onLayout as (e: unknown) => void)({ nativeEvent: { layout: { width: 390, height } } });
+    });
+    const r = render(<NativeMap {...base({ data: undefined, highlight: undefined })} />);
+    await waitFor(() => expect(native.props).toBeTruthy());
+    layout(259);
+    layout(48);                                        // the parts list open: the map a strip
+    r.rerender(<NativeMap {...base({ data: undefined, highlight: undefined, fit: { key: "part 3", bbox: part } })} />);
+    await waitFor(() => expect(native.easeOpts?.length).toBe(1));
+    layout(259);                                       // the pick closed the list: the map back to its height
+    const eases = native.easeOpts as { center: number[]; zoom: number }[];
+    const want = (h: number) => {
+      const p = Math.max(8, Math.round(Math.min(56, 390 * 0.12, h * 0.12)));
+      return fitCamera(part, fitZoomLimit({}, fitZoomOf(part, 390, h, p)), 390, h, p);
+    };
+    expect(eases.map((e) => Math.round(e.zoom * 1e6) / 1e6))
+      .toEqual([want(48).zoom, want(259).zoom].map((z) => Math.round(z * 1e6) / 1e6));
+    expect(eases[1]!.zoom).toBeGreaterThan(9.9);         // the part fills the map: not the zoom 4 a 48 pt fit landed at
+    expect(eases[1]!.center).toEqual([want(259).lon, want(259).lat]);
+    expect(native.fitOpts).toEqual([]);
   });
   it("(T48) a fit to a CAMERA puts it back exactly (search's cancel), the same command on both maps, once per key", async () => {
     const fit = { key: "restore:1", bbox: null, camera: { lon: -121.85, lat: 49.15, zoom: 9.4 } };
@@ -829,7 +984,7 @@ it("no listener, no long press: the binding is handed no handler (its long press
     let t = 1_800_000_000_000;
     const clock = vi.spyOn(Date, "now").mockImplementation(() => t);
     const r = render(<NativeMap {...base({ fit, onDrawn: drawn })} />);
-    await waitFor(() => expect(log.some((l) => l.startsWith("fit "))).toBe(true));
+    await waitFor(() => expect(log.some((l) => l.startsWith("ease "))).toBe(true));
     full();                                            // the first draw: the gate opens, the selection is written after it
     await waitFor(() => expect(log.some((l) => l.includes('"selected"'))).toBe(true));
     expect(drawn).not.toHaveBeenCalled();             // the fit is still on its way
@@ -863,7 +1018,7 @@ it("no listener, no long press: the binding is handed no handler (its long press
     let t = 1_800_000_000_000;
     const clock = vi.spyOn(Date, "now").mockImplementation(() => t);
     const r = render(<NativeMap {...base({ fit, onDrawn: drawn })} />);
-    await waitFor(() => expect(log.some((l) => l.startsWith("fit "))).toBe(true));
+    await waitFor(() => expect(log.some((l) => l.startsWith("ease "))).toBe(true));
     act(() => { (native.props!.onDidFinishRenderingMapFully as () => void)(); });   // the one "fully rendered"
     await waitFor(() => expect(log.some((l) => l.includes('"selected"'))).toBe(true));
     const frame = (full: boolean) => act(() => {
@@ -881,6 +1036,26 @@ it("no listener, no long press: the binding is handed no handler (its long press
     await act(async () => {});
     expect(native.props!.onDidFinishRenderingFrameFully).toBeUndefined();
     clock.mockRestore();
+  });
+  it("(T848 follow-up) the test bed's copy probe queries nothing either: a camera at rest before the first full render " +
+     "(the 0.8.1 bench's route map, app gone with SIGSEGV in MapRenderer::actor())", async () => {
+    native.holdRender = true;
+    const g = globalThis as { __panProbe?: boolean };
+    g.__panProbe = true;                               // the test bed's probe build: the settle schedules `copyDraw`
+    const say = vi.spyOn(console, "log").mockImplementation(() => {});
+    try {
+      render(<NativeMap {...base({ data: undefined })} />);       // a lit water: the copy has ids to look for
+      await waitFor(() => expect(native.props).toBeTruthy());
+      act(() => {
+        (native.props!.onRegionDidChange as (e: unknown) => void)({ nativeEvent: { center: [-122, 49], zoom: 12.5 } });
+      });
+      // the settle's ask (700 ms), then the copy probe 400 ms after it — no full render in between
+      await act(async () => { await new Promise((r) => setTimeout(r, 1300)); });
+      expect(log.filter((l) => l.startsWith("query"))).toEqual([]);
+    } finally {
+      delete g.__panProbe;
+      say.mockRestore();
+    }
   });
   it("queries nothing until the map has drawn (Android SIGSEGVs in MapRenderer::actor() before that)", async () => {
     native.holdRender = true;
@@ -926,6 +1101,24 @@ it("no listener, no long press: the binding is handed no handler (its long press
     PLATFORMS.native.settle();
     await waitFor(() => expect(seen.mock.calls).toEqual([[[5, 6]], [[7]]]));
     expect(queries()).toBe(before + 1);
+  });
+  it("(T826) a NEW listener is told what is on screen, though the set is the one the last listener heard (Map → Conditions)", async () => {
+    // the Map tab zoomed in hands the map its read-ahead (`regsPrefetch.onVisible`); the Conditions tab its legend's
+    // (`noteVisible`). Same camera, same sections: the legend was never told, and the bar under the Conditions map had no
+    // marks and no count until a pan (iPhone, owner 2026-11-16: "the current conditions view doesnt show the bar")
+    const prefetch = vi.fn(), legend = vi.fn();
+    answer = () => [{ id: "5" }, { id: "6" }];
+    const r = render(<NativeMap {...base({ data: undefined, highlight: undefined, onVisible: prefetch })} />);
+    await waitFor(() => expect(prefetch.mock.calls).toEqual([[[5, 6]]]));
+    r.rerender(<NativeMap {...base({ data: undefined, highlight: undefined, onVisible: legend })} />);
+    await waitFor(() => expect(legend.mock.calls).toEqual([[[5, 6]]]));
+    // and the same listener again (a re-render) asks nothing more
+    const queries = () => log.filter((l) => l.startsWith("query viewport")).length;
+    const before = queries();
+    r.rerender(<NativeMap {...base({ data: undefined, highlight: undefined, onVisible: legend })} />);
+    await act(async () => {});
+    expect(queries()).toBe(before);
+    expect(legend.mock.calls).toEqual([[[5, 6]]]);
   });
   it("(T348) a settle with no full render after it still asks, once: the legend's count follows a pan over held tiles", async () => {
     const seen = vi.fn();
@@ -1021,10 +1214,15 @@ it("no listener, no long press: the binding is handed no handler (its long press
   it("frames a subject: a fit moves the camera to the box, once per key", async () => {
     const fit = { key: "a", bbox: [-123, 49, -122, 50] as const };
     const r = render(<NativeMap {...base({ data: undefined, highlight: undefined, fit })} />);
-    await waitFor(() => expect(log.filter((l) => l.startsWith("fit"))).toEqual(["fit [-123,49,-122,50]"]));
+    const sent = () => (native.easeOpts ?? []) as { center: number[]; zoom: number }[];
+    await waitFor(() => expect(sent().length).toBe(1));
+    // (T929) the box's Mercator centre (north of the degrees' middle), at the zoom that frames 1° in 304 px (z7.74)
+    expect([...sent()[0]!.center.map((v) => Math.round(v * 1e4) / 1e4), Math.round(sent()[0]!.zoom * 100) / 100])
+      .toEqual([-122.5, 49.5026, 7.74]);
     r.rerender(<NativeMap {...base({ data: undefined, highlight: undefined, fit: { ...fit } })} />);
     await act(async () => {});
-    expect(log.filter((l) => l.startsWith("fit"))).toEqual(["fit [-123,49,-122,50]"]);
+    expect(sent().length).toBe(1);
+    expect(log.filter((l) => l.startsWith("fit"))).toEqual([]);
   });
   it("(T287) a new status index with the same day's profiles (an applied update) swaps no style", async () => {
     const index = (): StatusIndex => ({

@@ -3,25 +3,25 @@
  * `WaterFrame`: the back and the view strip, the same row on every view of the water, are the frame's — this screen
  * draws no header row, gutter or width of its own): the regs header (name, date pill, place label, the four tabs; no Parts since T150)
  * FIXED above ONE ScrollView that holds the four tab sections — "What you can keep", then the Gear / Methods
- * / Licence slots — and the pin bar over the scroll's top edge.
+ * / Licence slots. (T810 cutover, owner 2026-11-17 23:29 "Remove it (Recommended)") The pin bar is gone.
  *
- * Owns the layout state only: the open regs sheet (T37 SheetHost), the pin store (scroll offset → pinned lines + tab in view, off
- * React's render path) and the anchors. The tabs are not a pager (D1 a): a press scrolls to its section
+ * Owns the layout state only: the open regs sheet (T37 SheetHost), the tab store (scroll offset → tab in view, off React's
+ * render path) and the section anchors. The tabs are not a pager (D1 a): a press scrolls to its section
  * (`tabScrollY`), and the scroll moves the selected tab (`tabInView`). No words of its own and no regulation logic:
  * every string is the RegsPage's.
  *
  * (T45) ON A WIDE SCREEN (`layout`, the water screen's `useLayoutClass`) the same page is arranged by `RegsWide`: the
- * page and its pin bar in a reading column of about 70 characters (tablet), and beside it a side column holding the date
- * pill, the sections as a list and the pinned lines (desktop). A phone is drawn exactly as before.
+ * page in a reading column of about 70 characters (tablet), and beside it a side column holding the date pill and the
+ * sections as a list (desktop). A phone is drawn exactly as before.
  *
  * ONE MAP ENTRY (T71, owner call 3, 2026-10-22): the regs header has no Map button; the water's Map view is offered once,
  * by the view strip the frame draws.
  */
-import { useContext, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useContext, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { openProbe } from "@app/data";
-import { AccessibilityInfo, Animated, Platform, ScrollView, View, type ScrollViewInstance, type ViewInstance } from "react-native";
+import { AccessibilityInfo, Platform, ScrollView, View, type ScrollViewInstance, type ViewInstance } from "react-native";
 import { Text } from "../Text";
-import { LEGAL_WORDS, parseSheetKey, tabScrollY, type AccessNotice, type GlanceRowVM, type InSeasonBannerVM, type Line, type RegsPage, type SalmonStripVM, type SheetKey, type Tab } from "@app/core";
+import { LEGAL_WORDS, parseSheetKey, tabScrollY, type AccessNotice, type GlanceRowVM, type InSeasonBannerVM, type Line, type RegsPage, type SalmonStripVM, type SheetKey, type SunDay, type Tab, type DaylightAt } from "@app/core";
 import { AccessNoticeBlock } from "./AccessNoticeBlock";
 import { FreshDot } from "../menu/Fresh";
 import { WaterInset } from "../WaterFrame";
@@ -32,15 +32,15 @@ import { type Palette } from "../theme";
 import { ReferenceFold } from "./ReferenceFold";
 import { KeepTab } from "./KeepTab";
 import { LineText, TermTitles, type KeepActions } from "./LineText";
-import { createPinStore, type PinStore } from "./pinStore";
+import { createTabStore, type TabStore } from "./tabStore";
 import { RegsHeader } from "./RegsHeader";
-import { PinOver, ReadingColumn, RegsSide } from "./RegsWide";
+import { ReadingColumn, RegsSide } from "./RegsWide";
 import { SheetHost } from "./SheetHost";
 import { recallRegsScroll, rememberRegsScroll } from "./scrollMemory";
 import type { LayoutClass, RegsStart } from "@app/ui";
-import { AnchorContext, StickyContext, useAnchors } from "./useAnchors";
+import { AnchorContext, useAnchors } from "./useAnchors";
 import { InSeasonBanners } from "./InSeasonBanner";
-import type { AdiposeImages, FishImages } from "./types";
+import type { FishImages } from "./types";
 import { CoachScrollContext, useCoachScroller } from "../CoachMarks";
 
 declare const __DEV__: boolean | undefined;
@@ -49,7 +49,7 @@ declare const __DEV__: boolean | undefined;
  * (T41) THE BROWSER WALK'S HOOK — in a development build on the web only (`app/tools/regs-walk.mjs`): open any sheet of
  * this page by its key without a reload, and read the pin bar's lines. Never in a release build, never on native.
  */
-export interface RegsDebug { openSheet(k: string): boolean; pinLines(): string[] }
+export interface RegsDebug { openSheet(k: string): boolean }
 const debugOn = () => typeof __DEV__ !== "undefined" && __DEV__ && Platform.OS === "web";
 
 /** A section slot: a node, or a node drawn with this screen's actions. */
@@ -61,8 +61,6 @@ export interface RegsScreenProps {
   /** (T224) where the water's name came from when it is not the official one ("City of Abbotsford stream layer") */
   nameSource?: string | null;
   images?: FishImages;
-  /** (T38) the hatch sheet's two drawings (apps/mobile `ADIPOSE_IMAGES`); absent → an empty ground of their size */
-  adipose?: AdiposeImages;
   /** what a Keep link does (the tab links are this screen's: they scroll to the section) */
   actions: Omit<KeepActions, "onTab">;
   /**
@@ -95,7 +93,7 @@ export interface RegsScreenProps {
    */
   layout?: LayoutClass;
   /** a test injects its store (golden anchors); the app makes its own */
-  store?: PinStore;
+  store?: TabStore;
   /**
    * (T41) where the page starts — the web start link's (`@app/ui` `parseStartLink`), a test affordance: the sheet is open
    * at once; the scroll jumps to the tab's section (+ `scroll` px) once that section is measured. `onStarted` is called
@@ -122,12 +120,14 @@ export interface RegsScreenProps {
    * drawn at the page's foot under the "not legal advice" line (`LEGAL_WORDS.footer`, always drawn). Absent: that line only.
    */
   asOf?: string | null;
-  /** (T382) the day's sunrise and sunset at the water (`useSunLine`), a small line in the page's header; absent: none. */
-  sun?: string | null;
-  /** (T473) a daylight-only closure's open hours on the day at the water, from its own offsets; null: no point known */
-  /** (T474) the water's own entry in the rule book (core `waterBookOf`): "This water in the rule book p.N ↗"; empty: none */
+  /** (T382) the day's sunrise and sunset at the water (`useSunLine`); (T878) a small line under the date pill; absent: none. */
+  sun?: SunDay | null;
+  /** (T474) the water's own entry in the rule book (core `waterBookOf`): "This water in the rule book p.N ↗", (T916) drawn in
+   *  the page's foot under the "as of" line; empty: none */
   waterBook?: Line;
-  daylight?: ((after: number, before: number) => string | null) | null;
+  /** (T473, T898) a daylight-only closure's open and closed hours on the day at the water (`useDaylight`), from its own
+   *  offsets; null: no point known */
+  daylight?: DaylightAt | null;
   /**
    * (T50) the water as opened (`regsScrollKey`): the page remembers its scroll under it and, mounted again without a
    * start link (a view or tab switch, back / forward, a new day, an Android recreation), returns there once the page is
@@ -136,19 +136,17 @@ export interface RegsScreenProps {
   scrollKey?: string | null;
 }
 
-export function RegsScreen({ page, palette, images, adipose, actions, onDate,
+export function RegsScreen({ page, palette, images, actions, onDate,
                              gear, methods, licence, referenceOpen = false, footer, salmon, store: injected, layout = "phone", start = null, onStarted,
                              lapsed = null, access = [], inSeason = [], glance = null, salmonStrip = null,
                              nameSource = null, asOf = null, scrollKey = null, sun = null, daylight = null, waterBook = [] }: RegsScreenProps) {
   // (T286) the open probe (test bed only): the page's first render, and its first layout (mounted, before paint)
   openProbe.mark("regsRender");
   useLayoutEffect(() => { openProbe.mark("layout"); }, []);
-  const store = useMemo(() => injected ?? createPinStore(), [injected]);
+  const store = useMemo(() => injected ?? createTabStore(), [injected]);
   const scroll = useRef<ScrollViewInstance>(null);
   const content = useRef<ViewInstance>(null);
   const { sink, section, remeasure } = useAnchors(page, content, store);
-  const scrollY = useRef(new Animated.Value(0)).current;
-  const sticky = useMemo(() => ({ store, overlay: layout !== "desktop", scrollY }), [store, layout, scrollY]);
   // the sideways swipe between the water's views (Regulations · Conditions · Map): the frame's header, the regs header and
   // the scroll's content each listen (siblings, never nested — nested detectors race); see WaterViews in ViewSwipe.tsx.
   // Only the scroll's content follows the finger: the regs header listens `still` (it is one page with the frame's rows)
@@ -207,7 +205,6 @@ export function RegsScreen({ page, palette, images, adipose, actions, onDate,
     const g = globalThis as { __regsDebug?: RegsDebug };
     const hook: RegsDebug = {
       openSheet: (k) => { const key = parseSheetKey(k); if (key) setSheet(key); return key !== null; },
-      pinLines: () => store.getLines().map((l) => (l.sub ? `${l.text} ${l.sub}` : l.text)),
     };
     g.__regsDebug = hook;
     return () => { if (g.__regsDebug === hook) delete g.__regsDebug; };
@@ -217,7 +214,7 @@ export function RegsScreen({ page, palette, images, adipose, actions, onDate,
   // (T227) a tab whose section is not drawn (Gear / Methods on a day nothing may be fished) is not offered
   const header = useMemo(() => ({ ...page.header, tabs: page.header.tabs.filter((t) =>
     (t.tab !== "gear" || !!gear) && (t.tab !== "methods" || !!methods)) }), [page.header, gear, methods]);
-  const head = <RegsHeader header={header} palette={palette} tabs={store} onDate={onDate} onTab={toTab}
+  const head = <RegsHeader header={header} palette={palette} tabs={store} onDate={onDate} onTab={toTab} onTerm={(id) => openSheet(`gl:${id}`)}
                            side={layout === "desktop"} nameSource={nameSource} sun={sun} />;
   const sec = (tab: "gear" | "methods" | "licence", slot: Slot) => {
     const node = typeof slot === "function" ? slot(keepActions) : slot;
@@ -237,11 +234,6 @@ export function RegsScreen({ page, palette, images, adipose, actions, onDate,
           <Text accessibilityRole="alert" style={{ ...TYPE.metaBold, color: palette.ink, flex: 1 }}>{lapsed}</Text>
         </WaterInset>
       )}
-      {waterBook.length > 0 && (
-        <WaterInset testID="regs-water-book" style={{ paddingTop: 10 }}>
-          <LineText line={waterBook} style={TYPE.metaBold} color={palette.accent} palette={palette} actions={keepActions} />
-        </WaterInset>
-      )}
       {/* (T565, owner 2026-11-09) an in-season change is B.C. Fish and Wildlife's notice for the WATER, not a salmon or a
           species thing: first on the page, above the salmon card and every calendar and species block (T472: collapsed to one line) */}
       <InSeasonBanners banners={inSeason} palette={palette} />
@@ -250,12 +242,10 @@ export function RegsScreen({ page, palette, images, adipose, actions, onDate,
           failed, is drawn here in its place (its pending / failed face) — never a silent gap */}
       {(!glance || !glance.salmon) && (typeof salmon === "function" ? salmon({ actions: keepActions, images }) : salmon)}
       <AnchorContext.Provider value={sink}>
-        <StickyContext.Provider value={sticky}>
           <KeepTab keep={page.keep} daylight={daylight} dateLabel={page.header.date} palette={palette} actions={keepActions} images={images} salmonStrip={salmonStrip}
                    glance={glance ? { salmon: glance.salmon && salmon
                      ? { row: glance.salmon, card: () => (typeof salmon === "function" ? salmon({ actions: keepActions, images }) : salmon) }
                      : null } : null} />
-        </StickyContext.Provider>
       </AnchorContext.Provider>
       {sec("gear", gear)}
       {sec("methods", methods)}
@@ -272,6 +262,14 @@ export function RegsScreen({ page, palette, images, adipose, actions, onDate,
       <WaterInset testID="regs-legal" style={{ marginTop: 20, paddingTop: 10, gap: 2, borderTopWidth: 1, borderTopColor: palette.line }}>
         <Text style={{ ...TYPE.caption, lineHeight: 15, color: palette.sub }}>{LEGAL_WORDS.footer}</Text>
         {asOf && <Text testID="regs-as-of" style={{ ...TYPE.caption, lineHeight: 15, color: palette.sub }}>{asOf}</Text>}
+        {/* (T474) the water's own rule-book page, (T916, owner 2026-11-19: "the location that was awkward at the top") here
+            in the foot beside the synopsis it cites: a reference for the whole page, not a fact about today, so it no
+            longer sits above the first status card. Once per page; empty: none (T60: a page its lines already link) */}
+        {waterBook.length > 0 && (
+          <View testID="regs-water-book" style={{ marginTop: 8 }}>
+            <LineText line={waterBook} style={TYPE.small} color={palette.accent} palette={palette} actions={keepActions} />
+          </View>
+        )}
       </WaterInset>
       {/* (T41 Q3) once, at the page's foot: the report is about the whole page (it names no tab) */}
       <ReportLink page={page} palette={palette} />
@@ -283,10 +281,14 @@ export function RegsScreen({ page, palette, images, adipose, actions, onDate,
   // (T45) the page in the reading column (a phone: as it is); on a desktop, beside the side column
   const read = <ReadingColumn layout={layout} testID="regs-reading">{body}</ReadingColumn>;
   const coachScroll = useCoachScroller();
+  // (T842) one ref for the page's life: the walkthrough's highlight is tied to this scroll view's native scroll event
+  const pageRef = useCallback((n: ScrollViewInstance | null) => {
+    (scroll as { current: ScrollViewInstance | null }).current = n; coachScroll.ref(n);
+  }, [scroll, coachScroll]);
   const pageScroll = (
     <View style={{ flex: 1 }}>
-      <ScrollView ref={(n) => { (scroll as { current: ScrollViewInstance | null }).current = n; coachScroll.ref(n); }} testID="regs-scroll" scrollEventThrottle={16} onScrollBeginDrag={() => { restoring.current = false; }} contentContainerStyle={{ flexGrow: 1, paddingBottom: 32 }}
-                  onScroll={(e) => { const y = e.nativeEvent.contentOffset.y; scrollY.setValue(y); store.setScroll(y); coachScroll.track(y);
+      <ScrollView ref={pageRef} testID="regs-scroll" scrollEventThrottle={16} onScrollBeginDrag={() => { restoring.current = false; }} contentContainerStyle={{ flexGrow: 1, paddingBottom: 32 }}
+                  onScroll={(e) => { const y = e.nativeEvent.contentOffset.y; store.setScroll(y); coachScroll.track(y);
                                      if (scrollKey && !restoring.current) rememberRegsScroll(scrollKey, y); }}
                   onLayout={(e) => { viewH.current = e.nativeEvent.layout.height; store.setViewport(e.nativeEvent.layout.height); }}
                   onContentSizeChange={(_w, h) => { contentH.current = h; store.setContentHeight(h); remeasure(); }}>
@@ -295,7 +297,6 @@ export function RegsScreen({ page, palette, images, adipose, actions, onDate,
           {swipe ? <ViewSwipe swipe={swipe} testId="view-swipe-body">{read}</ViewSwipe> : read}
         </CoachScrollContext.Provider>
       </ScrollView>
-      {layout !== "desktop" && <PinOver layout={layout} store={store} palette={palette} />}
     </View>
   );
 
@@ -308,11 +309,11 @@ export function RegsScreen({ page, palette, images, adipose, actions, onDate,
       <AccessNoticeBlock notices={access} palette={palette} />
       {layout === "desktop" ? (
         <View testID="regs-columns" style={{ flex: 1, flexDirection: "row" }}>
-          <RegsSide header={header} store={store} palette={palette} onDate={onDate} onTab={toTab} />
+          <RegsSide header={header} store={store} palette={palette} onDate={onDate} onTab={toTab} sun={sun} />
           {pageScroll}
         </View>
       ) : pageScroll}
-      <SheetHost page={page} open={sheet} onOpen={openSheet} onClose={() => setSheet(null)} palette={palette} fish={images} adipose={adipose}
+      <SheetHost page={page} open={sheet} onOpen={openSheet} onClose={() => setSheet(null)} palette={palette} fish={images}
                  onTab={(t) => { setSheet(null); toTab(t); }} onBook={actions.onBook} layout={layout} />
     </View>
     </TermTitles.Provider>

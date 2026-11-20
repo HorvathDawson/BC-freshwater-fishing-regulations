@@ -13,7 +13,7 @@
  *
  * (T404) THE ONE SWITCH: this file owns every environment's hosts (data origin, report + crash endpoint); everything else
  * derives from them — the release, tiles, map assets, feeds, synopsis copy and sql.js (`endpointsFor`), the app's version
- * file (`<origin>/app/android/play.json`, core `appVersionFileUrl`), reports and crashes (`reportUrlFor` / `crashUrlFor`).
+ * files (`<origin>/app/android/play/<versionCode>.json`, `<origin>/app/ios/<version>.json`, core `storeVersionFileUrl`), reports and crashes (`reportUrlFor` / `crashUrlFor`).
  * The public site (share links, privacy page) is `@app/core` `SITE_ORIGIN`: one site for every environment. A host spelt
  * anywhere else in app code fails `tools/no-env-hosts.test.ts`. The runbook is handoff/PLAN/release/PRODUCTION.md.
  *

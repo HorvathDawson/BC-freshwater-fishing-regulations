@@ -15,7 +15,7 @@ const leadUp = (rain: number) => ({ station: "08MH016", gauge: null,
   weather: [1, 2, 3, 4, 5, 6, 7].map((d) => ({ date: `2026-01-0${d}`, maxC: 20, minC: 9, precipMm: rain / 3, windMaxKph: 10, code: 1 })) });
 const reading = (p: number, t: number) => ({ station: "08MH016", discharge: 41.2, level: null, percentile: p, at: new Date(t).toISOString() });
 
-/** The first visit, 30 Aug: flow 42nd, 14°, 3 mm before — the coming days below are the same. Rated 5. */
+/** The first visit, Sun 30 Aug: flow 42nd, 14°, 3 mm before — the coming days below are the same. Rated 5. */
 const FIRST: Spot = {
   id: "s1", createdAt: at(7, 30), updatedAt: at(7, 30), visitedAt: at(7, 30), lat: 49.1, lon: -121.96, item: null,
   waterName: "Chilliwack River", title: "Tamihi", notes: "", photos: [], trace: null, panel: null,
@@ -24,7 +24,7 @@ const FIRST: Spot = {
 const visit = (id: string, t: number, p: number, temp: number, rating: number | null): Visit => ({
   id, createdAt: t, visitedAt: t, rating, notes: "", photos: [], trace: null, panel: null,
   reading: reading(p, t), weather: weather(temp), leadUp: leadUp(3) });
-/** 12 Sep: flow 80th (38 points higher than the coming days), rated 2. 3 Oct: 18°, rated 4. 10 Oct: not rated. */
+/** Sat 12 Sep: flow 80th (38 points higher than the coming days), rated 2. Sat 3 Oct: 18°, rated 4. Sat 10 Oct: not rated. */
 const SPOT = [visit("v1", at(8, 12), 0.8, 14, 2), visit("v2", at(9, 3), 0.42, 18, 4), visit("v3", at(9, 10), 0.42, 14, null)]
   .reduce((s, v) => addVisit(s, v, NOW), FIRST);
 
@@ -42,8 +42,8 @@ describe("visitsView", () => {
     const v = visitsView(SPOT, "v2", NOW);
     expect(v.heading).toBe("Your visits");
     expect(v.chips.map((c) => [c.id, c.date, c.rated, c.on])).toEqual([
-      ["s1", "30 Aug", "5★", false], ["v1", "12 Sep", "2★", false], ["v2", "3 Oct", "4★", true], ["v3", "10 Oct", "Not rated", false]]);
-    expect(v.chips[3]!.label).toBe("Visit on 10 Oct, not rated");
+      ["s1", "Sun 30 Aug", "5★", false], ["v1", "Sat 12 Sep", "2★", false], ["v2", "Sat 3 Oct", "4★", true], ["v3", "Sat 10 Oct", "Not rated", false]]);
+    expect(v.chips[3]!.label).toBe("Visit on Sat 10 Oct, not rated");
     expect([v.rate.value, v.rate.word, v.canRemove]).toEqual([4, "Good", true]);
     expect(v.rate.stars.map((s) => [s.n, s.on])).toEqual([[1, true], [2, true], [3, true], [4, true], [5, false]]);
     expect(v.rate.stars[3]!.label).toBe("Rated 4 of 5. Press to clear the rating");
@@ -65,17 +65,17 @@ describe("likeVisitView — predicted from 3 rated visits", () => {
     expect([v.mode, v.best, v.hint, v.note]).toEqual(["predict", "Best going by your ratings",
       "1 visit is not rated and is left out.", null]);
     expect(v.intro).toContain("not a promise of fish");
-    expect(v.visit).toEqual({ top: "From your ratings", sub: "5★ 30 Aug · 2★ 12 Sep · 4★ 3 Oct",
-                              label: "From your ratings: 5★ 30 Aug · 2★ 12 Sep · 4★ 3 Oct." });
-    // 30 Aug 100 % alike (w 1), 3 Oct temp 4° apart (1 − 0.1·4/12 = 96.7 → 97 %, w .912), 12 Sep flow 38 points apart
+    expect(v.visit).toEqual({ top: "From your ratings", sub: "5★ Sun 30 Aug · 2★ Sat 12 Sep · 4★ Sat 3 Oct",
+                              label: "From your ratings: 5★ Sun 30 Aug · 2★ Sat 12 Sep · 4★ Sat 3 Oct." });
+    // Sun 30 Aug 100 % alike (w 1), Sat 3 Oct temp 4° apart (1 − 0.1·4/12 = 96.7 → 97 %, w .912), Sat 12 Sep flow 38 points apart
     // (1 − 0.25·0.76 = 81 %, w .531): (5 + .912·4 + .531·2) / 2.443 = 3.99 → 4.0
     const d = v.days![0]!;
     expect([d.date, d.top, d.score, d.read, d.basis, d.best]).toEqual(
       ["2026-10-22", "Today", "4.0★", "Good", "From 3 rated visits", true]);
-    expect(d.reasons).toEqual(["Most like your 5★ visit on 30 Aug (100% alike)", "Flow: the same",
+    expect(d.reasons).toEqual(["Most like your 5★ visit on Sun 30 Aug (100% alike)", "Flow: the same",
       "Rain in the 3 days before: the same", "Cloud: the same", "Pressure: the same", "Air temperature: the same",
       "Wind: the same"]);
-    expect(d.label).toBe("Today, 22 Oct: about 4.0 of 5, good, from 3 rated visits.");
+    expect(d.label).toBe("Today, Thu 22 Oct: about 4.0 of 5, good, from 3 rated visits.");
     expect(v.days!.filter((x) => x.best)).toHaveLength(1);
   });
 
@@ -85,8 +85,8 @@ describe("likeVisitView — predicted from 3 rated visits", () => {
     const none = rateVisit(rateVisit(rateVisit(SPOT, "s1", null), "v1", null), "v2", null);
     const like = likeVisitView(none, FETCHED, false, NOW, "v1");
     expect([like.mode, like.best, like.hint, like.visit.sub]).toEqual(["like", "Closest to your visit",
-      "Rate your visits to see how good each coming day may be by your own ratings.", "12 Sep"]);
+      "Rate your visits to see how good each coming day may be by your own ratings.", "Sat 12 Sep"]);
     expect(like.days![0]!.score).toBe("81%");
-    expect(likeVisitView(none, FETCHED, false, NOW).visit.sub).toBe("10 Oct");   // no visit shown: the latest
+    expect(likeVisitView(none, FETCHED, false, NOW).visit.sub).toBe("Sat 10 Oct");   // no visit shown: the latest
   });
 });

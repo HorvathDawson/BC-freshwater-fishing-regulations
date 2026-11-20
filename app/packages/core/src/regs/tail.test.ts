@@ -6,7 +6,7 @@ import { describe, expect, it } from "vitest";
 import type { FishManifest } from "./fish.generated";
 import { headCtx } from "./grouphead";
 import { plain } from "./line";
-import { MORE, moreOf, notKeptOf, quietOf, STEEL_LINE, workedOf } from "./tail";
+import { MORE, moreOf, notKeptOf, workedOf } from "./tail";
 import { treeEnv } from "./tree";
 import { cardOf, GROUP, INP, TROUT_ROW } from "./testing/keepFixtures";
 
@@ -54,15 +54,7 @@ describe("workedOf", () => {
   });
 });
 
-describe("quietOf / MORE", () => {
-  it("only 'recorded here, but no steelhead rule applies', only over rainbow trout (golden x15p0_1010)", () => {
-    const ctx = ctxOf(GROUP(), "known_no_rules");
-    expect(plain(quietOf(ctx.row, ctx.card))).toBe(`${STEEL_LINE.known_no_rules} ⓘ`);
-    expect(plain(quietOf(ctx.row, ctx.card))).toBe("Steelhead have been recorded here, but no steelhead rule applies: treat any rainbow, however big, as a rainbow trout. ⓘ");
-    expect(quietOf(ctxOf().row, ctxOf().card)).toBeNull();
-    const ko = headCtx(0, cardOf([{ ...TROUT_ROW, all_members: ["KO"], group: GROUP() }], { line: "known_no_rules" }), INP())!;
-    expect(quietOf(ko.row, ko.card)).toBeNull();
-  });
+describe("MORE", () => {
   it("every carded row ends on 'See every regulation line ›', opening its row's sheet", () => {
     expect([MORE, moreOf(3)]).toEqual(["See every regulation line ›", { text: "See every regulation line ›", open: "src:r3" }]);
   });

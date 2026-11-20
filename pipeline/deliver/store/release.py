@@ -33,7 +33,7 @@ from pipeline.deliver.store.decode import Store
 #: (T672 1b) store tables added after releases were cut WITHOUT a format change (ADDITIVE, `contract.FILES`): a release
 #: whose files hold none of them was cut before the table, so the reassembled store drops it — its store, as built,
 #: had no such table (`store_digest` hashes every table's name). A release cut with it holds it and is held to it.
-ADDITIVE_TABLES = frozenset({"section_tidal"})
+ADDITIVE_TABLES = frozenset({"section_tidal", "licence_alien"})
 
 #: the water file's meta keys an older release (no `store_meta`) carries over from the store's
 WATER_STORE_KEYS = ("about_bundle", "answers_sha256", "blob_codec", "card_check", "layout", "reach_digest",
@@ -70,6 +70,12 @@ def province_store(release: Optional[Path] = None, *, verify: bool = True) -> St
     from pipeline.deliver.store.build import SCHEMA
     con = sqlite3.connect(":memory:")
     con.executescript(SCHEMA.read_text())
+    # (T810 tickets I, L) a release holding an ADDED section (the trout table: every release from the cutover, a side
+    # release before it) names it among its regulations' versions (the store's layout): the reassembled store gains its
+    # column and tables as the built one had them; a release cut before it (the previous live release) has none and is
+    # put back as it was built, like an `ADDITIVE_TABLES` table it lacks
+    from pipeline.deliver.store.build import ADDED_SECTIONS, added_schema
+    added_schema(con, [n for n in ADDED_SECTIONS if n in ((manifest.get("regulations") or {}).get("versions") or {})])
     tables = [t for (t,) in con.execute("SELECT name FROM sqlite_master WHERE type = 'table' AND name <> 'meta'")]
     water_meta: dict = {}
     held: set = set()

@@ -19,20 +19,20 @@ describe("leadUpView", () => {
       heading: "The week before",
       weather: {
         days: [
-          { label: "Sun Aug 23: fair, high 16°C, low 8°C, no rain, wind up to 10 km/h",
-            day: "Sun 23", sky: "Fair", temps: "16° / 8°", rain: "0 mm", wind: "10 km/h", icon: "cloudSun", band: 0 },
-          { label: "Mon Aug 24: rain, high 17°C, low 8°C, 6 mm of rain, wind up to 10 km/h",
-            day: "Mon 24", sky: "Rain", temps: "17° / 8°", rain: "6 mm", wind: "10 km/h", icon: "cloudRain", band: 2 },
-          { label: "Tue Aug 25: fair, high 18°C, low 8°C, no rain, wind up to 10 km/h",
-            day: "Tue 25", sky: "Fair", temps: "18° / 8°", rain: "0 mm", wind: "10 km/h", icon: "cloudSun", band: 0 },
-          { label: "Wed Aug 26: fair, high 19°C, low 8°C, wind up to 10 km/h",
-            day: "Wed 26", sky: "Fair", temps: "19° / 8°", rain: "—", wind: "10 km/h", icon: "cloudSun", band: 0 },
-          { label: "Thu Aug 27: fair, high 20°C, low 8°C, no rain, wind up to 10 km/h",
-            day: "Thu 27", sky: "Fair", temps: "20° / 8°", rain: "0 mm", wind: "10 km/h", icon: "cloudSun", band: 0 },
-          { label: "Fri Aug 28: fair, high 21°C, low 8°C, no rain, wind up to 10 km/h",
-            day: "Fri 28", sky: "Fair", temps: "21° / 8°", rain: "0 mm", wind: "10 km/h", icon: "cloudSun", band: 0 },
-          { label: "Sat Aug 29: fair, high 22°C, low 8°C, no rain, wind up to 10 km/h",
-            day: "Sat 29", sky: "Fair", temps: "22° / 8°", rain: "0 mm", wind: "10 km/h", icon: "cloudSun", band: 0 },
+          { label: "Sun 23 Aug: fair, high 16°C, low 8°C, no rain, wind up to 10 km/h",
+            day: "Sun 23 Aug", weekday: "Sun", date: "23 Aug", sky: "Fair", high: "16°", low: "8°", rain: "0", wind: "10", icon: "cloudSun", band: 0 },
+          { label: "Mon 24 Aug: rain, high 17°C, low 8°C, 6 mm of rain, wind up to 10 km/h",
+            day: "Mon 24 Aug", weekday: "Mon", date: "24 Aug", sky: "Rain", high: "17°", low: "8°", rain: "6", wind: "10", icon: "cloudRain", band: 2 },
+          { label: "Tue 25 Aug: fair, high 18°C, low 8°C, no rain, wind up to 10 km/h",
+            day: "Tue 25 Aug", weekday: "Tue", date: "25 Aug", sky: "Fair", high: "18°", low: "8°", rain: "0", wind: "10", icon: "cloudSun", band: 0 },
+          { label: "Wed 26 Aug: fair, high 19°C, low 8°C, wind up to 10 km/h",
+            day: "Wed 26 Aug", weekday: "Wed", date: "26 Aug", sky: "Fair", high: "19°", low: "8°", rain: "—", wind: "10", icon: "cloudSun", band: 0 },
+          { label: "Thu 27 Aug: fair, high 20°C, low 8°C, no rain, wind up to 10 km/h",
+            day: "Thu 27 Aug", weekday: "Thu", date: "27 Aug", sky: "Fair", high: "20°", low: "8°", rain: "0", wind: "10", icon: "cloudSun", band: 0 },
+          { label: "Fri 28 Aug: fair, high 21°C, low 8°C, no rain, wind up to 10 km/h",
+            day: "Fri 28 Aug", weekday: "Fri", date: "28 Aug", sky: "Fair", high: "21°", low: "8°", rain: "0", wind: "10", icon: "cloudSun", band: 0 },
+          { label: "Sat 29 Aug: fair, high 22°C, low 8°C, no rain, wind up to 10 km/h",
+            day: "Sat 29 Aug", weekday: "Sat", date: "29 Aug", sky: "Fair", high: "22°", low: "8°", rain: "0", wind: "10", icon: "cloudSun", band: 0 },
         ],
         rain: "6 mm of rain in the week before, on 1 day (1 day not recorded).",
         source: "Weather from Open-Meteo.com (CC BY 4.0)",
@@ -42,13 +42,13 @@ describe("leadUpView", () => {
       gauge: {
         unit: "m³/s",
         days: [
-          { label: "Sun Aug 23: 50 m³/s, lower than 5 days in 10 for the day", day: "Sun 23", value: "50", place: "5 in 10 days higher" },
-          { label: "Mon Aug 24: 45 m³/s, lower than 5 days in 10 for the day", day: "Mon 24", value: "45", place: "5 in 10 days higher" },
-          { label: "Tue Aug 25: no daily mean recorded", day: "Tue 25", value: "—", place: "" },
-          { label: "Wed Aug 26: 35 m³/s, lower than 5 days in 10 for the day", day: "Wed 26", value: "35", place: "5 in 10 days higher" },
-          { label: "Thu Aug 27: 30 m³/s, lower than 5 days in 10 for the day", day: "Thu 27", value: "30", place: "5 in 10 days higher" },
-          { label: "Fri Aug 28: 25 m³/s, lower than 5 days in 10 for the day", day: "Fri 28", value: "25", place: "5 in 10 days higher" },
-          { label: "Sat Aug 29: 20 m³/s, lower than at least 9 days in 10 for the day", day: "Sat 29", value: "20",
+          { label: "Sun 23 Aug: 50 m³/s, lower than 5 days in 10 for the day", day: "Sun 23 Aug", value: "50", place: "5 in 10 days higher" },
+          { label: "Mon 24 Aug: 45 m³/s, lower than 5 days in 10 for the day", day: "Mon 24 Aug", value: "45", place: "5 in 10 days higher" },
+          { label: "Tue 25 Aug: no daily mean recorded", day: "Tue 25 Aug", value: "—", place: "" },
+          { label: "Wed 26 Aug: 35 m³/s, lower than 5 days in 10 for the day", day: "Wed 26 Aug", value: "35", place: "5 in 10 days higher" },
+          { label: "Thu 27 Aug: 30 m³/s, lower than 5 days in 10 for the day", day: "Thu 27 Aug", value: "30", place: "5 in 10 days higher" },
+          { label: "Fri 28 Aug: 25 m³/s, lower than 5 days in 10 for the day", day: "Fri 28 Aug", value: "25", place: "5 in 10 days higher" },
+          { label: "Sat 29 Aug: 20 m³/s, lower than at least 9 days in 10 for the day", day: "Sat 29 Aug", value: "20",
             place: "9+ in 10 days higher" },
         ],
         trend: "Flow fell over the week: 50 → 20 m³/s",
@@ -100,14 +100,14 @@ describe("leadUpView", () => {
                                              levelPlace: null } : d)),
     })!;
     expect(v.weather!.pending).toBe("1 day had no weather from Open-Meteo yet. Refresh fills it in.");
-    expect(v.weather!.days[6]!.label).toBe("Sat Aug 29: no weather for this day yet");
+    expect(v.weather!.days[6]!.label).toBe("Sat 29 Aug: no weather for this day yet");
     expect(v.gauge!.pending).toBe("The station had not published 3 of these days yet. Refresh fills them in.");
     expect(v.gauge!.days.slice(4).map((d) => [d.value, d.place, d.label])).toEqual([
-      ["—", "not yet", "Thu Aug 27: no daily mean published yet"],
-      ["—", "not yet", "Fri Aug 28: no daily mean published yet"],
-      ["—", "not yet", "Sat Aug 29: no daily mean published yet"]]);
+      ["—", "not yet", "Thu 27 Aug: no daily mean published yet"],
+      ["—", "not yet", "Fri 28 Aug: no daily mean published yet"],
+      ["—", "not yet", "Sat 29 Aug: no daily mean published yet"]]);
     // the settled gap on the 25th stays a plain gap
-    expect(v.gauge!.days[2]).toEqual({ label: "Tue Aug 25: no daily mean recorded", day: "Tue 25", value: "—",
+    expect(v.gauge!.days[2]).toEqual({ label: "Tue 25 Aug: no daily mean recorded", day: "Tue 25 Aug", value: "—",
                                        place: "" });
   });
 
@@ -125,9 +125,9 @@ describe("leadUpView", () => {
             say(leadUpView({ ...lu, parameter: "discharge" }, { ...offline, parameter: "level" })),
             // nothing declared anywhere (saved before T106): discharge, core's default — and a level-only week has none
             say(leadUpView(lu, offline))]).toEqual([
-      ["m", "Level rose over the week: 1 → 1.6 m", null],
-      ["m", "Level rose over the week: 1 → 1.6 m", null],
-      ["m", "Level rose over the week: 1 → 1.6 m", null],
+      ["m", "Level rose over the week: 1.00 → 1.60 m", null],
+      ["m", "Level rose over the week: 1.00 → 1.60 m", null],
+      ["m", "Level rose over the week: 1.00 → 1.60 m", null],
       [null, null, "The station has no daily means for that week."]]);
   });
 

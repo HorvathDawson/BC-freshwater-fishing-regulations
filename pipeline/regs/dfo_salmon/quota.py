@@ -323,6 +323,23 @@ def _over(n: Mapping) -> Optional[int]:
     return ls[0].get("min_cm") if ls else None
 
 
+#: (T869, owner 2026-11-18, wording A — our words, not DFO's) THE ANNUAL CHINOOK LIMIT COUNTS ADULT CHINOOK (rule book
+#: p.7 and p.77), and what an adult is differs by water (over 62 cm on the Vedder, over 65 cm on the Skeena): DFO's
+#: "chinook salmon over 50 cm" counted fish that are not adults there. The tier says "10 adult chinook a year from all
+#: fresh waters"; the app adds, where the water's adult is another length, "(here an adult is over 62 cm, …)" from the
+#: scoped `adult` sizes (`sizes`). Any other period limit (Region 8's monthly) keeps DFO's sentence. The worker's
+#: `quota.ts` `periodSays` the same (pinned by the dfo vectors' header answers).
+_RE_ALL_FRESH = re.compile(r"\ball fresh waters\b", re.I)
+
+
+def period_says(note: Mapping) -> str:
+    """An annual / monthly header limit's words on the bucket's tier (T869): the chinook annual limit in our words,
+    every other one DFO's sentence."""
+    if note.get("k") == "annual" and list(note.get("sp") or ()) == ["CH"] and isinstance(note.get("n"), int):
+        return f"{note['n']} adult chinook a year{' from all fresh waters' if _RE_ALL_FRESH.search(note.get('t') or '') else ''}"
+    return note.get("t") or ""
+
+
 def bucket(notes: Sequence[Mapping]) -> Optional[dict]:
     """The region header's combined limits as the salmon bucket (None: the page prints no combined daily limit):
     `tree` the TOTAL tier of the quota tree ("Up to 4 salmon a day in total"; the header's annual / monthly limits its
@@ -344,11 +361,11 @@ def bucket(notes: Sequence[Mapping]) -> Optional[dict]:
                 out["ids"].append(n["id"])                       # (T343) said by the bucket's tier
             sp = list(n.get("sp") or ())
             if isinstance(_over(n), int):
-                tree["children"].append(_size(seq, n["n"], _over(n), n["t"], n["k"], species=sp))
+                tree["children"].append(_size(seq, n["n"], _over(n), period_says(n), n["k"], species=sp))
             else:
                 seq[0] += 1
                 tree["children"].append({"node": "tier", "id": f"t{seq[0]}", "tier": "count", "n": n["n"],
-                                         "says": n["t"], "by": 0, "children": [], "species": sp, "period": n["k"]})
+                                         "says": period_says(n), "by": 0, "children": [], "species": sp, "period": n["k"]})
     poss = [n for n in notes if n.get("k") == "possession" and not n.get("w")]
     if poss:
         p = poss[0]

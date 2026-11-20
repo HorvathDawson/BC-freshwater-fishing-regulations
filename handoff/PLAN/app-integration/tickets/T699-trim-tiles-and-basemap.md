@@ -13,3 +13,7 @@ on the live release first, against what the map loses (detail at the zooms angle
 - No shipped change and no tile rebuild until the owner un-defers it. Tiles and bundle share a vintage; promote file by file.
 
 Depends: T686 (survey), closed testing started. Size: M. Owner: yes (the pick). Default: tiles and basemap stay as built.
+
+## Added 2026-11-20 01:56 (owner)
+
+T891 part two folds in here: braids simplified harder at low and middle zoom in the tile build, keeping rule-bearing pieces tappable at high zoom; pictures first (Lillooet at Tipella, lower Fraser, Squamish, Skeena). Owner picked "Fold into T699 later".

@@ -13,7 +13,7 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import { act, cleanup, fireEvent, render, screen, within } from "@testing-library/react";
 import { createElement, forwardRef, useState } from "react";
 import { PixelRatio, Pressable, Text, View } from "react-native";
-import type { LicenceVM, PinAnchor, RegsPage, SheetKey, SheetVM, Who } from "@app/core";
+import type { LicenceVM, RegsPage, SheetKey, SheetVM, Who } from "@app/core";
 import type { LayoutClass, MenuControls } from "@app/ui";
 import { MenuContext } from "../menu/MenuContext";
 import { LIGHT } from "../theme";
@@ -24,8 +24,9 @@ import { MethodsTab } from "./MethodsTab";
 import { lineRun } from "./hit";
 import { RegsPress } from "./RegsPress";
 import { RegsScreen } from "./RegsScreen";
+import { SheetBody } from "./SheetBody";
 import { SheetHost } from "./SheetHost";
-import { createPinStore } from "./pinStore";
+import { createTabStore } from "./tabStore";
 import { labelAudit, pressAudit, scaleOf } from "./testing/a11yAudit";
 import vedder1010 from "./fixtures/vedder_1010.json";
 import klwa1010 from "./fixtures/klwa_1010.json";
@@ -57,12 +58,11 @@ const VEDDER_INLINE: string[] = [
   "button What does Anglers under 16 mean?", "button What does Bait ban mean?", "button What does Catch and release (release) mean?",
   "button What does Conservation Surcharge Stamp for salmon mean?", "button What does Fly fishing only mean?",
   "button What does No fishing for (closed) mean?", "button What does Single barbless hook mean?",
-  "button What does Steelhead Stamp mean?", "button What does Steelhead mean?",
-  "link Fishing more than one water today? ›",   // (T481) the head's link under the region's total (multi: sheet)
-  "link How this limit is shared",   // (T475) the ⓘ on the share's headline "2 hatchery trout/char a day from streams" (share: sheet)
-  "link How to tell hatchery ›",   // the page's own link run in a hatchery-only line (Line `link`), not GroupCard's HowTell press
-  "link Rule book page 21, opens the PDF", "link Rule book page 22, opens the PDF", "link Rule book page 9, opens the PDF",
-  "link Steelhead stamp ›", "link White Sturgeon Conservation Licence ›",
+  "button What does Steelhead Stamp mean?",
+  // (T810 cutover) gone with the old trout card: "What does Steelhead mean?", "Fishing more than one water today? ›" (the
+  // table's "Fished elsewhere today? ›" is a press: TroutCard.test), "How this limit is shared", "How to tell hatchery ›"
+  // (the table's "How to tell a hatchery fish ›" press), "Rule book page 21 / 22" (the fish sheet's Sources), "Steelhead stamp ›"
+  "link Rule book page 9, opens the PDF", "link White Sturgeon Conservation Licence ›",
 ];
 
 /** the Licence tab as the water screen holds it: a pick rebuilds the answer for that angler (the frozen six) */
@@ -74,7 +74,7 @@ function Licence({ actions }: { actions: Parameters<typeof LicenceTab>[0]["actio
 /** the Shell's menu, so the page's foot draws its "Report a problem with this page" link as the app does */
 const MENU = { report() {} } as unknown as MenuControls;
 
-function mount(id = "vedder_1010", layout: LayoutClass = "phone", store = createPinStore()) {
+function mount(id = "vedder_1010", layout: LayoutClass = "phone", store = createTabStore()) {
   const page = PAGES[id]!;
   return render(
     <MenuContext.Provider value={MENU}>
@@ -129,12 +129,18 @@ describe("roles", () => {
     expect(screen.getByTestId("keep-strip").textContent).toContain("Open");
   });
 
-  it("a fish picture is a button saying what it shows; an ⓘ asks what its word means; a book link says it opens the PDF", () => {
+  it("a trout table row is a button saying the whole row (its picture inside it); an ⓘ asks what its word means; a book link says it opens the PDF", () => {
     mount();
-    expect(screen.getAllByRole("button", { name: /— what it looks like$/ }).length).toBeGreaterThan(0);
-    expect(screen.getByRole("button", { name: "Rainbow trout — what it looks like" })).toBeTruthy();
+    // (T810 cutover) the table's row is the press its picture opens through (build spec P), named by its one label (N's
+    // golden): the fish's name first; the old card's "<fish> — what it looks like" pictures went with it
+    const rows = within(screen.getByTestId("keep-trout")).getAllByTestId("keep-row");
+    expect(rows.length).toBeGreaterThan(3);
+    expect(rows.filter((r) => r.getAttribute("role") !== "button"
+      || !r.getAttribute("aria-label")!.startsWith(within(r).getByTestId("keep-name").textContent!))).toEqual([]);
+    expect(rows.every((r) => r.querySelector("[data-testid^='pic:']") !== null)).toBe(true);
+    expect(screen.getByRole("button", { name: /^Rainbow trout\b/ })).toBeTruthy();
     const terms = screen.getAllByRole("button").map((b) => b.getAttribute("aria-label")).filter((l) => l?.startsWith("What"));
-    expect(terms).toContain("What does Steelhead mean?");
+    expect(terms).toContain("What does Bait ban mean?");
     expect(screen.getAllByRole("link", { name: /^Rule book page \d+, opens the PDF$/ }).length).toBeGreaterThan(0);
   });
 });
@@ -165,7 +171,7 @@ describe("4. every press is named and reaches 44 × 44", () => {
 
   for (const id of ["vedder_1010", "klwa_1010", "bc1_501", "glenn_501"] as const)
     it(`${id}: every sheet the page opens, on a phone and as a wide dialog`, () => {
-      const page = PAGES[id]!, keys = Object.keys((({ vedder_1010: vedder1010, klwa_1010: klwa1010, bc1_501: bc1501, glenn_501: glenn501 })[id] as Frozen).sheets);
+      const page = PAGES[id]!, keys = Object.keys((({ vedder_1010: vedder1010, klwa_1010: klwa1010, bc1_501: bc1501, glenn_501: glenn501 })[id] as unknown as Frozen).sheets);
       const offences: string[] = [];
       let sized = 0;
       for (const layout of ["phone", "desktop"] as const)
@@ -235,8 +241,18 @@ describe("6. font scaling", () => {
     const keep = scaleOf(screen.getByTestId("keep-tab"));
     expect(keep.length).toBeGreaterThan(50);
     expect(keep.filter((t) => t.afs !== "true")).toEqual([]);
-    const numbers = keep.filter((t) => t.id.startsWith("n:"));
-    expect(numbers.length).toBeGreaterThan(3);
+    // (T810 cutover) the Keep tab's numbers (`n:` runs) went with the old trout card: the table's numbers are in its
+    // payload sentences, which grow like every sentence (below). The page's numbers still stop at 2× where it draws them:
+    // the group cards of the Other fish sheets (the Vedder's Whitefish and Bass)
+    const sheetNumbers = (["other:o1", "other:o2"] as const).flatMap((k) => {
+      const { container, unmount } = render(<SheetBody vm={PAGES.vedder_1010!.sheet(k)!} palette={LIGHT} onOpen={() => {}} onBook={() => {}} />);
+      const out = scaleOf(container).filter((t) => t.id.startsWith("n:"));
+      unmount();
+      return out;
+    });
+    const numbers = [...keep.filter((t) => t.id.startsWith("n:")), ...sheetNumbers];
+    // (T883) the sheets' group cards say their number once (the kind line's "Up to 15"), not again in a head
+    expect(numbers.length).toBeGreaterThan(1);
     expect(numbers.filter((t) => t.mfm !== "2")).toEqual([]);
     // the header: the name (the frame's WaterTitle) and every word of the regs header
     const header = scaleOf(screen.getByTestId("regs-header"));
@@ -259,35 +275,7 @@ describe("6. font scaling", () => {
   });
 });
 
-describe("7. re-measure on a font-scale change", () => {
-  it("useAnchors measures again on Dimensions change, and the pin bar reads the new anchors", () => {
-    vi.useFakeTimers();
-    let scale = 1;
-    vi.spyOn(PixelRatio, "getFontScale").mockImplementation(() => scale);
-    // jsdom has no layout: every node measures as its document order × the font scale (text twice as tall at 2×) —
-    // react-native-web's measureLayout reads offsetTop / offsetHeight
-    const order = new Map<Element, number>();
-    const at = (el: Element) => { if (!order.has(el)) order.set(el, order.size); return order.get(el)!; };
-    const proto = (globalThis as unknown as { HTMLElement: { prototype: { offsetTop: number; offsetHeight: number } } }).HTMLElement.prototype;
-    vi.spyOn(proto, "offsetTop", "get").mockImplementation(function (this: Element) {
-      return this.getAttribute("data-testid") === "regs-content" ? 0 : (100 + at(this) * 40) * scale;
-    });
-    vi.spyOn(proto, "offsetHeight", "get").mockImplementation(function (this: Element) { at(this); return 40 * scale; });
-    const store = createPinStore();
-    const set = vi.spyOn(store, "setAnchors");
-    mount("vedder_1010", "phone", store);
-    act(() => { vi.advanceTimersByTime(50); });
-    const before = set.mock.calls.length;
-    expect(before).toBeGreaterThan(0);
-    const first = set.mock.calls[before - 1]![0] as readonly PinAnchor[];
-    scale = 2;
-    act(() => { window.dispatchEvent(new Event("resize")); vi.advanceTimersByTime(50); });
-    expect(set.mock.calls.length).toBeGreaterThan(before);
-    const next = set.mock.calls[set.mock.calls.length - 1]![0] as readonly PinAnchor[];
-    expect(next.map((a) => [a.top, a.height])).toEqual(first.map((a) => [a.top * 2, a.height * 2]));
-    // the pin bar draws from the new anchors: a scroll inside the group as it now stands pins its line (under the old,
-    // half-height anchors the same offset is past the group, and nothing pins)
-    act(() => { store.setScroll(next[0]!.top + 50); });
-    expect(screen.getAllByTestId("pin-group").length).toBe(1);
-  });
-});
+// (T810 cutover) retired: "7. re-measure on a font-scale change — useAnchors measures again on Dimensions change, and the
+// pin bar reads the new anchors". Only a Keep-tab group card registers pin anchors, and no Keep tab draws one since the
+// cutover (the trout table has no pin bar): useAnchors.test "the Vedder's Keep tab, both days, registers no pin anchor".
+// No table test covers it: the pin bar has no subject on a real page.

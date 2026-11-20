@@ -19,6 +19,15 @@ const ROWS: readonly { key: keyof Lab; label: string; hint: string; on: Lab[keyo
   { key: "roads", label: "Basemap roads", hint: "test only: off hides roads", on: true, off: false },
   { key: "landuse", label: "Basemap greens", hint: "test only: off hides landuse", on: true, off: false },
   { key: "labels", label: "Labels", hint: "test only: off hides every label", on: true, off: false },
+  { key: "holdLabels", label: "Labels wait while zooming", hint: "names come back when the map rests (today: on)", on: true, off: false },
+  { key: "waterNames", label: "Water names", hint: "test only: off hides lake and stream names", on: true, off: false },
+  { key: "placeNames", label: "Place names", hint: "test only: off hides towns, islands, the sea", on: true, off: false },
+  { key: "roadNames", label: "Road and POI names", hint: "test only: off hides the basemap's other labels", on: true, off: false },
+  { key: "areaNames", label: "Area names", hint: "test only: off hides parks, reserves, closures, units", on: true, off: false },
+  { key: "gaugePills", label: "Gauge pills", hint: "test only: off hides the gauges' readings", on: true, off: false },
+  { key: "marks", label: "Water marks", hint: "test only: off hides route arrows, flow arrows, obstacles", on: true, off: false },
+  { key: "paintDefault", label: "Paint against the default", hint: "label tests list only what differs (same look; T903)", on: true, off: false },
+  { key: "labelMatch", label: "Label tests hashed", hint: "with the default: a lookup, not a scan (same look; T903)", on: true, off: false },
 ];
 
 export function MapLab({ chrome }: { chrome: MapChrome }) {

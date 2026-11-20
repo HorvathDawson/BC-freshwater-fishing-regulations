@@ -143,6 +143,7 @@
       "reviewed_by": "",
       "reviewed_at": "",
       "review_note": "",
+      "heading": "Mabel Lake",
       "binding": {
         "extents": [],
         "tributaries": null,
@@ -195,6 +196,7 @@
       "reviewed_by": "",
       "reviewed_at": "",
       "review_note": "",
+      "heading": "Osoyoos Lake",
       "binding": {
         "extents": [],
         "tributaries": null,
@@ -259,8 +261,18 @@
       "reviewed_by": "",
       "reviewed_at": "",
       "review_note": "",
+      "heading": "Shuswap River",
       "binding": {
-        "extents": [],
+        "extents": [
+          {
+            "op": "between",
+            "splits": [
+              "shuswap_river__shuswap_falls_wilsey_dam",
+              "shuswap_river__mabel_lake"
+            ],
+            "item_id": "gnis:25478"
+          }
+        ],
         "tributaries": null,
         "tributaries_only": false,
         "tributary_excludes": [],
@@ -310,8 +322,18 @@
       "reviewed_by": "",
       "reviewed_at": "",
       "review_note": "",
+      "heading": "Shuswap River",
       "binding": {
-        "extents": [],
+        "extents": [
+          {
+            "op": "between",
+            "splits": [
+              "shuswap_river__mara_bridge",
+              "shuswap_river__mabel_lake"
+            ],
+            "item_id": "gnis:25478"
+          }
+        ],
         "tributaries": null,
         "tributaries_only": false,
         "tributary_excludes": [],
@@ -361,8 +383,18 @@
       "reviewed_by": "",
       "reviewed_at": "",
       "review_note": "",
+      "heading": "Shuswap River",
       "binding": {
-        "extents": [],
+        "extents": [
+          {
+            "op": "between",
+            "splits": [
+              "shuswap_river__signs_50_m_upstream_of_trinity_bridge",
+              "shuswap_river__signs_50_m_downstream_of_trinity_bridge"
+            ],
+            "item_id": "gnis:25478"
+          }
+        ],
         "tributaries": null,
         "tributaries_only": false,
         "tributary_excludes": [],
@@ -414,6 +446,7 @@
       "reviewed_by": "",
       "reviewed_at": "",
       "review_note": "",
+      "heading": "Osoyoos Lake",
       "binding": {
         "extents": [],
         "tributaries": null,
@@ -478,8 +511,18 @@
       "reviewed_by": "",
       "reviewed_at": "",
       "review_note": "",
+      "heading": "Shuswap River",
       "binding": {
-        "extents": [],
+        "extents": [
+          {
+            "op": "between",
+            "splits": [
+              "shuswap_river__shuswap_falls_wilsey_dam",
+              "shuswap_river__mabel_lake"
+            ],
+            "item_id": "gnis:25478"
+          }
+        ],
         "tributaries": null,
         "tributaries_only": false,
         "tributary_excludes": [],

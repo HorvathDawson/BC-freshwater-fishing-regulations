@@ -27,14 +27,14 @@ export interface Tap {
 }
 
 /** A golden state whose part the release merged away (taps.py PART_GONE): never tapped; the parity excludes it with
- *  `reason` (conformance exclusions.ts PART_GONE_IDS). `partIx` is the golden's; the water is in the store's `nowIn`. */
+ *  `reason` (taps.json `gone`, read by conformance/src/regs/harness.parity.test.ts). `partIx` is the golden's; the water is in the store's `nowIn`. */
 export interface GoneTap {
   item: string; partIx: number; nowIn: number; reason: string; md: number; date: string; weekday: Weekday;
 }
 
 /** (T278) A golden state whose WHOLE part is tidal now (taps.py PART_TIDAL): the tidal piece has no freshwater rules and
  *  is off the map (the store's part `tidalPartIx` is unkeyed), so it is never tapped; the parity excludes it with `reason`
- *  (conformance exclusions.ts PART_TIDAL_IDS). `partIx` is the golden's. */
+ *  (taps.json `tidal`, read by conformance/src/regs/harness.parity.test.ts). `partIx` is the golden's. */
 export interface TidalTap {
   item: string; partIx: number; tidalPartIx: number; reason: string; md: number; date: string; weekday: Weekday;
 }

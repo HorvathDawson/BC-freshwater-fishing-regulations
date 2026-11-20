@@ -5,10 +5,17 @@ import { isVersioned, readStored, type Fetch, type Meter, type Store } from "./i
 import { body as notifyBody } from "./notify";
 import { fmtErrors, foldHealth, summarize, type FeedHealth, type RunHealth, type SourceRun } from "./health";
 import { FORMAT as WORDING_FORMAT } from "./dfo/wording";
+import { PIECES_SHAPE } from "./dfo/closures";
 import { FEED_FORMATS } from "../../../packages/core/src/feedFormats.generated";
 import { INSEASON_LINKS_FORMAT } from "../../../packages/core/src/inseason";
 
 export type Job = "gauges" | "dfo" | "inseason";
+
+/** (T757 item 7) THE FEED SHAPE THIS WORKER'S CODE SERVES, read before a deploy by `deploy/lib/worker-shape.mjs` (which
+ *  bundles this module) for `pipeline/deliver/release/pieces_gate.py`: a release binding a closed-area piece is refused
+ *  a worker without it. The same value as `dfo/live.ts SHAPE` (served on /status.json); `test/status.shape.test.ts`
+ *  holds the two together and runs the deploy's reader. */
+export const DFO_SHAPE = { pieces: PIECES_SHAPE } as const;
 export type FeedState = "ok" | "degraded" | "failing" | "stale" | "never";
 
 export interface Held {
@@ -32,6 +39,8 @@ export interface RunRecord {
   meter: Meter | null;
   /** this run's outcomes per upstream source (src/health.ts): ok / fail / retries / errors by class / last error */
   sources?: Record<string, SourceRun>;
+  /** (T759) a DFO run that published its index: its issue counts (`dfoIssueCounts`; null: the index has none) */
+  dfoIssues?: DfoIssueCounts | null;
 }
 
 export interface FeedStatus {
@@ -50,6 +59,8 @@ export interface FeedStatus {
   checkedAt: string | null;
   /** rolling per-source record (hourly buckets, 7 days) + the parts failing now; served summarized (`servedStatus`) */
   health?: FeedHealth;
+  /** (T759, DFO) the issue counts of the last index a run PUBLISHED (a failed run publishes none and leaves it) */
+  dfoIssues?: DfoIssueCounts | null;
 }
 
 export interface Status {
@@ -69,6 +80,19 @@ export const INPUT_FORMATS: Readonly<Record<string, readonly string[]>> = {
   "private/feeds/dfo/pairs.json": [FEED_FORMATS.dfoPairs],
   "feeds/inseason/matches.json": [INSEASON_LINKS_FORMAT],
 };
+
+/**
+ * (T759, Android chat's ruling 2026-11-15) THE LAST DFO RUN'S ISSUES, counted, served on /status.json as `dfoIssues`
+ * (`no_water` issues are shown nowhere in the app, so they are visible here): taken from the index the run published —
+ * null when that index carries no `issues` (a worker from before T759), never a made-up zero.
+ */
+export interface DfoIssueCounts { waters: number; issues: number; no_water: number; unread: number }
+export function dfoIssueCounts(index: { issues?: { waters?: Record<string, { list?: unknown[] }>; no_water?: unknown[]; unread?: Record<string, string> } } | null | undefined): DfoIssueCounts | null {
+  const i = index?.issues;
+  if (!i || typeof i !== "object" || !i.waters || !Array.isArray(i.no_water) || !i.unread) return null;
+  const ws = Object.values(i.waters).filter((w) => (w.list ?? []).length > 0);
+  return { waters: ws.length, issues: ws.reduce((n, w) => n + w.list!.length, 0), no_water: i.no_water.length, unread: Object.keys(i.unread).length };
+}
 
 export const STATUS_KEY = "status.json";
 /** a feed is stale when its last success is older than this many cadences */
@@ -154,6 +178,7 @@ export function record(s: Status, job: Job, run: RunRecord, now: Date): Alert[] 
     job, cadenceMin: cadenceMin(job, now), lastRun: null, lastSuccess: null, lastError: null, failures: 0, state: "never", announced: null, checkedAt: null,
   };
   f.lastRun = run;
+  if (run.dfoIssues !== undefined) f.dfoIssues = run.dfoIssues;
   if (run.ok) {
     f.lastSuccess = run.at;
     f.failures = 0;

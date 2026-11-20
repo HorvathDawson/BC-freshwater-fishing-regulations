@@ -5,12 +5,15 @@
  * conformance/src/regs/keep.parity.test.ts (retired, T439).
  */
 import { describe, expect, it } from "vitest";
-import { keepOf, keepOrder, plainRowSeams, type KeepEnv } from "./keep";
+import { groupOf, keepOf, keepOrder, plainRowSeams, sectionNotesOf, type KeepEnv } from "./keep";
+import { drawnRows } from "./grouphead";
+import { cardOf, INP, RIX, rv, TROUT_ROW } from "./testing/keepFixtures";
+import { closeForFinfish } from "./finfish";
 import { otherFishKeyOf } from "./others";
 import { runOf } from "./strip";
 import { FISH } from "./fish.generated";
-import type { OtherFishRowVM } from "./model";
-import type { RegsInputs } from "./inputs";
+import type { CaveatVM, KeepVM, OtherFishRowVM, RegsPage } from "./model";
+import type { RegsInputs, RuleView } from "./inputs";
 
 const none = { strip: false, inherited: false, banner: false, caveats: [], rows: [], otherFish: false, possession: false, whereNot: false };
 
@@ -41,6 +44,14 @@ describe("keepOrder: page v36 renderCard + prototype buildKeep draw order", () =
       .toEqual([{ caveat: 0 }, "strip", "banner", { caveat: 1 }, { group: 0 }]);
   });
 
+  it("(T796) a section's notes lead the tab, before the part-closed warning, above the strip — on a closed day too", () => {
+    expect(keepOrder({ ...none, strip: true, banner: true, rows: [{ group: 0 }],
+      caveats: [{ kind: "note" }, { kind: "partclosed" }, { kind: "inpart" }, { kind: "note" }] }))
+      .toEqual([{ caveat: 0 }, { caveat: 3 }, { caveat: 1 }, "strip", "banner", { caveat: 2 }, { group: 0 }]);
+    expect(keepOrder({ ...none, strip: true, banner: true, caveats: [{ kind: "note" }] }))
+      .toEqual([{ caveat: 0 }, "strip", "banner"]);
+  });
+
   it("nothing at all draws nothing", () => {
     expect(keepOrder(none)).toEqual([]);
   });
@@ -51,6 +62,30 @@ describe("keepOf: the days with no card", () => {
     const k = keepOf({ key: null } as unknown as RegsInputs, {} as KeepEnv);
     expect(k).toEqual({ order: ["outside"], outside: "This part of the water is outside B.C.: no B.C. rules apply.", strip: null,
       inherited: null, banner: null, groups: [], plainRows: [], otherFish: null, otherFishKey: [], caveats: [], possession: null, whereNot: null });
+  });
+});
+
+const GLADYS = "Mostly outside Gladys Lake Ecological Reserve: its closure (rule book p.9) does not apply here.";
+const TOW = "Mostly outside Tow Hill Ecological Reserve: its closure (rule book p.9) does not apply here.";
+
+describe("(T796) sectionNotesOf: the section's notes as caveats, Python's words as they are", () => {
+  it("one `note` caveat per note, in order, the sentence its title, nothing to open", () => {
+    expect(sectionNotesOf({ notes: [GLADYS, TOW] } as unknown as RegsInputs)).toEqual([
+      { kind: "note", hot: false, title: GLADYS, calm: null, items: [], later: null },
+      { kind: "note", hot: false, title: TOW, calm: null, items: [], later: null }]);
+    expect(sectionNotesOf({ notes: [] } as unknown as RegsInputs)).toEqual([]);
+  });
+
+  it("a DFO finfish closure closes the page and keeps the note (it is about the place, not the day)", () => {
+    const note = sectionNotesOf({ notes: [GLADYS] } as unknown as RegsInputs)[0]!;
+    const side: CaveatVM = { kind: "side", hot: false, title: "On one side", calm: null, items: [], later: null };
+    const keep = { order: [{ caveat: 0 }, "strip", { caveat: 1 }], strip: { status: "open", line: [], runs: [], todayAt: 0, months: [], legend: [] },
+      inherited: null, banner: null, groups: [], plainRows: [], otherFish: null, otherFishKey: [], caveats: [note, side],
+      possession: null, whereNot: null, outside: null } as unknown as KeepVM;
+    const page = { status: "open", header: { dot: "open" }, keep, licence: {} } as unknown as RegsPage;
+    const shut = closeForFinfish(page, ["Finfish closure"]);
+    expect(shut.keep.caveats).toEqual([note]);
+    expect(shut.keep.order).toEqual([{ caveat: 0 }, "strip", "banner"]);
   });
 });
 
@@ -91,5 +126,26 @@ describe("plainRowSeams: T19b's seams bound to the merged presenters", () => {
   it("the fish names and pictures: the species book's name first; a fish with no picture is a silhouette", () => {
     expect([seams.fishName("RB"), seams.hasFish("RB"), seams.hasFish("ZZ"), seams.more]).toEqual(["Rainbow trout", true, false, "See every regulation line ›"]);
     expect(seams.pictures(["ZZ"])).toEqual([{ code: "ZZ", name: "ZZ", sil: true }]);
+  });
+});
+
+describe("(T892, review 2-2) groupOf: a quota group decided by another water's tributary rule carries its fold's line", () => {
+  // keepFixtures' Vedder-like trout group; rule 10 is the Chilliwack River's row reaching this part by its tributaries
+  const TRIB = { ...rv(10), missing: false, rank: 1, baseRank: 0, via: "trib", part: null, export: { prov: { rank: 0, entry_name: "Chilliwack River" } } } as unknown as RuleView;
+  const rules = { ...RIX, get: (i: number) => (i === 10 ? TRIB : rv(i)), has: (i: number) => i === 10 || RIX.has(i) };
+  const fish = TROUT_ROW.all_members;
+  const groupWith = (roles: (S: string) => [number, string, null][]) => {
+    const base = cardOf([TROUT_ROW], { R: Object.fromEntries(fish.map((S) => [S, {}])) as never });
+    const card = { ...base, ctx: { ...base.ctx, s: 0 } } as typeof base;
+    const inp = { ...INP(), rules, year: { rowsBySeg: [{ fish: Object.fromEntries(fish.map((S) =>
+      [S, { lead: "hatchery", hatchery: { win: roles(S)[0]![0], narrow: null, roles: roles(S) }, wild: { win: roles(S)[0]![0], narrow: null, roles: roles(S) } }])) }] } } as unknown as RegsInputs;
+    const env = { card, settled: { lifted: new Map(), day: { month: 10, day: 10 } }, fish: FISH, today: { month: 10, day: 10 }, tot: "a" } as unknown as KeepEnv;
+
+    return groupOf(0, inp, env, drawnRows(card), plainRowSeams(inp, FISH));
+  };
+  it("every fish and origin decided by the tributary rule: the line, whole; the region's rows: none", () => {
+    expect(groupWith(() => [[10, "governs", null], [1, "replaced", null]]).from).toBe("Chilliwack River’s rule for its tributaries");
+    expect(groupWith(() => [[1, "governs", null]]).from).toBeUndefined();
+    expect(groupWith((S) => (S === "RB" ? [[10, "governs", null]] : [[1, "governs", null]])).from).toBeUndefined();
   });
 });

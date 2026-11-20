@@ -14,7 +14,7 @@ export const install = {
       return `test/ = ${s.release.data_release}${s.checked ? ` (${s.checked})` : ''}`;
     }, { shot: false, stop: true });
     await ctx.step('clean app on Wi-Fi', async () => {
-      ctx.device.stop(); ctx.device.clearData();
+      ctx.device.stop(); ctx.device.cleanApp();   // (T760) not `pm clear`: the system downloader's rows go too
       try { ctx.device.adb(['logcat', '-G', '16M']); ctx.device.logcatClear(); } catch { /* none yet */ }
       await ctx.device.net('wifi'); ctx.device.link('full', 'none');
       ctx.device.launch();

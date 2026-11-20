@@ -20,7 +20,7 @@ describe("Download over mobile data (T298)", () => {
     const picked: MobileDataSetting[] = [];
     render(
       <LayoutWidthContext.Provider value={null}>
-        <MoreScreen palette={LIGHT} data={DATA} back="Map" onBack={() => {}} contact={null} theme="light" onTheme={() => {}}
+        <MoreScreen palette={LIGHT} data={DATA} onBack={() => {}} contact={null} theme="light" onTheme={() => {}}
                     onPick={() => {}} metered={{ value: "ask", set: (s) => picked.push(s) }} />
       </LayoutWidthContext.Provider>);
     fireEvent.click(screen.getByTestId("menu-item-settings"));  // (T703) the controls live in Settings

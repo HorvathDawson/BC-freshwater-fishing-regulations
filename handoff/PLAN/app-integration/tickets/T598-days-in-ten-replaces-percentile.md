@@ -1,6 +1,6 @@
 # T598 — "Days in 10" replaces the percentile wherever the reader sees it
 
-Status: IN REVIEW (built; web shots in ../T598-shots/; phone not run; owner: look at the short form)
+Status: DONE — eb4bf2168 (closed on the owner's word 2026-11-20; see the last section)
 
 Source: owner 2026-11-10, on keeping "Lower than 8 days in 10": "also easier for a user uneducated to understand";
 asked whether measured gauges should say it the same way: "if it is user visible then yes probably better".
@@ -36,3 +36,9 @@ Depends: T583. Size: S–M. Owner: look at the shots (short forms).
 - Gate: `tools/one-standing-words.test.ts` refuses any string or template with a space that holds "percentile" (identifiers, kind tags and test ids pass), proven on the spellings it replaces; "days in 10" stays core's (Help excepted).
 - Public gauge page and share card only print the band headline (no rank), so nothing changed there; the staging-site build on disk predates T583, so no shot of it.
 - Shots (web): Conditions card and rows, map dot label. Saved spot, lead-up chips and the alert editor are phone-only (Spots and Notifications are not on the web): their words are in `saved-spot-chips-alert-words.txt`, from the same functions.
+
+## Closed 2026-11-20
+
+Closed 2026-11-20 on the owner's word ("Couldn't we just assume most of these are done already?"): pick: keep what is built, the short form "8 in 10 days higher". Owner 2026-11-20: keep what is built.
+
+Status line before closing: IN REVIEW (built; web shots in ../T598-shots/; phone not run; owner: look at the short form)

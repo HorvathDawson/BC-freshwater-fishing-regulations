@@ -201,18 +201,19 @@ export function usePanelAsk(
 /**
  * WHO SPEAKS FOR THIS SECTION, as the map decides it (`speakerFor` in @app/data, T105): its panel through the SAME
  * cached fetch `usePanelStandings` colours from, else the station in its lake, else nothing. `name` is a lake
- * station's name (a panel's donors carry theirs on their routes); null where the bundle has none.
+ * station's name (a panel's donors carry theirs on their routes); null where the bundle has none. (T817) `at` is a lake
+ * station's position, for the route map's own-gauge pin; null for a panel (its donors are placed by their routes).
  */
 export function useSpeaker(source: WaterSource, section: SectionId | null):
-  Async<{ speaker: Speaker | null; name: string | null }> {
+  Async<{ speaker: Speaker | null; name: string | null; at: { lat: number; lon: number } | null }> {
   return useAsync(
     async () => {
-      if (!section) return { speaker: null, name: null };
+      if (!section) return { speaker: null, name: null, at: null };
       const [panels, lakes] = await Promise.all([cached(source, [section]), source.lakeStationsFor([section])]);
       const speaker = speakerFor(panels.get(section), lakes.get(section));
-      const name = speaker?.kind === "lake"
-        ? (await source.gaugePoints()).find((g) => g.station === speaker.station)?.name ?? null : null;
-      return { speaker, name };
+      const point = speaker?.kind === "lake"
+        ? (await source.gaugePoints()).find((g) => g.station === speaker.station) ?? null : null;
+      return { speaker, name: point?.name ?? null, at: point ? { lat: point.lat, lon: point.lon } : null };
     },
     `speaker:${section ?? ""}`,
     section !== null,

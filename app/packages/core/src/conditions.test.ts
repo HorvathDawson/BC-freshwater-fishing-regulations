@@ -334,6 +334,7 @@ describe("the gauge reading under the estimate", () => {
 
   it("gives the stage beside the flow", () => {
     expect(stageLine(1.23)).toBe("1.23 m stage");
+    expect(stageLine(1)).toBe("1.00 m stage");                  // (T830) a level to two decimals
   });
 
   it("refuses in words when no gauge may speak", () => {
@@ -444,26 +445,33 @@ describe("the chart's read-out and controls", () => {
   });
   it("says a reading with its time, unit and the median, whole", () => {
     expect(chartReadoutLine({ t: Date.parse("2026-10-20T21:00:00Z"), value: 4.123, unit: "m³/s",
-                              kind: "reading", daily: false, median: 10.61 }, VAN))
+                              quantity: "discharge", kind: "reading", daily: false, median: 10.61 }, VAN))
       .toBe("2026-10-20 at 14:00 PDT · 4.12 m³/s · median 10.6");
   });
   it("marks a forecast step as a forecast, and leaves a missing median out", () => {
     expect(chartReadoutLine({ t: Date.parse("2026-10-22T07:00:00Z"), value: 13.9, unit: "m³/s",
-                              kind: "forecast", daily: false, median: null }, VAN))
+                              quantity: "discharge", kind: "forecast", daily: false, median: null }, VAN))
       .toBe("2026-10-22 at 00:00 PDT · 13.9 m³/s forecast");
   });
   it("says a daily mean's own calendar day, never the evening before", () => {
-    expect(chartReadoutLine({ t: Date.parse("2026-03-05"), value: 0.335, unit: "m", kind: "reading",
-                              daily: true }, VAN))
+    expect(chartReadoutLine({ t: Date.parse("2026-03-05"), value: 0.335, unit: "m", quantity: "level",
+                              kind: "reading", daily: true }, VAN))
       .toBe("2026-03-05 · 0.34 m");
+  });
+  it("(T830) says a level to two decimals, its median too; a flow keeps its three figures", () => {
+    expect(chartReadoutLine({ t: Date.parse("2026-10-20T21:00:00Z"), value: 1, unit: "m", quantity: "level",
+                              kind: "reading", daily: false, median: 1.5 }, VAN))
+      .toBe("2026-10-20 at 14:00 PDT · 1.00 m · median 1.50");
+    expect(chartReadoutLine({ t: Date.parse("2026-10-20T21:00:00Z"), value: 25, unit: "m³/s", quantity: "discharge",
+                              kind: "reading", daily: false, median: 1.5 }, VAN))
+      .toBe("2026-10-20 at 14:00 PDT · 25 m³/s · median 1.5");
   });
   it("names the zoom controls and the gauge switcher in one table", () => {
     expect(CONDITIONS_WORDS.zoom).toEqual({ in: "Zoom in", out: "Zoom out", fit: "Whole chart", group: "Chart zoom" });
     expect(CONDITIONS_WORDS.chartGauge).toBe("CHART THIS GAUGE");
-    expect(CONDITIONS_WORDS.zoomHint.touch)
-      .toBe("Pinch to zoom, drag to move along, tap to read a value. Double-tap for the whole chart.");
-    expect(CONDITIONS_WORDS.zoomHint.pointer)
-      .toBe("Scroll to zoom, drag to move along, point to read a value. Double-click for the whole chart.");
+    // (T920) one short faint line over the plot, in the read-out's place
+    expect(CONDITIONS_WORDS.zoomHint).toEqual({ touch: "Pinch to zoom, tap to read a value",
+                                                pointer: "Scroll to zoom, point to read a value" });
   });
 });
 
@@ -561,5 +569,16 @@ describe("T567 lead gauge words", () => {
   it("says the gap and the level-only lead whole", () => {
     expect(_gap("Wed 12 Nov")).toBe("Wed 12 Nov: this gauge has a flow forecast but no water level forecast. Show Flow to see it.");
     expect(_lo).toBe("No gauge here reports flow today, so the gauge shown is chosen on water level.");
+  });
+});
+
+describe("(T920) the gauge legend's detail line", () => {
+  it("joins the reading, the last report and the facts on one line, the reading's full stop dropped only where more follows", async () => {
+    const { donorDetailLine } = await import("./conditions");
+    expect(donorDetailLine("Reads normal · higher than 6 days in 10.", null, "upstream · drains 478 km² · 2.9× apart"))
+      .toBe("Reads normal · higher than 6 days in 10 · upstream · drains 478 km² · 2.9× apart");
+    expect(donorDetailLine("Not reporting today.", "last report Nov 18 at 21:20", null))
+      .toBe("Not reporting today · last report Nov 18 at 21:20");
+    expect(donorDetailLine("Reads normal.", null, null)).toBe("Reads normal.");
   });
 });

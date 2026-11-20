@@ -9,7 +9,7 @@
  * the Map tab is the route's tab rule: apps/mobile back.test.tsx.)
  */
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { act, cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { act, cleanup, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { Linking, Share, Text } from "react-native";
 import { FISH_CREDITS, MENU_WORDS, regsReportWhere, waterReportWhere, type DataInput, type GlossaryTerm, type RegsPage } from "@app/core";
 import type { RegsLoader } from "@app/data/regs";
@@ -22,10 +22,26 @@ import { MoreScreen, type MobileDataControl } from "./MoreScreen";
 import { MenuHost, type MenuInfo } from "./MenuHost";
 import { ReportLink, WaterReportLink } from "./ReportLink";
 import { RegsScreen } from "../regs/RegsScreen";
-import { createPinStore } from "../regs/pinStore";
+import { createTabStore } from "../regs/tabStore";
 import vedder1010 from "../regs/fixtures/vedder_1010.json";
 
 afterEach(() => { cleanup(); vi.restoreAllMocks(); ERROR_LOG.clear(); });
+
+/**
+ * (T859) A release that holds a glossary, for the real MenuHost: `useGlossary` answers this one loader with its terms
+ * (reading a real store is the regs tests' business); every other loader, null included, goes to the real hook.
+ */
+const GLOSSARY_LOADER = { release: "r-glossary", manifest: null } as unknown as RegsLoader;
+vi.mock("@app/ui", async (orig) => {
+  const ui = await orig<typeof import("@app/ui")>();
+  const terms = [{ id: "bait", term: "Bait", says: "Anything an angler offers a fish to eat.", pages: [80], quote: "", source: "" }];
+  return {
+    ...ui,
+    useGlossary: (loader: RegsLoader | null, on: boolean) => (loader === GLOSSARY_LOADER
+      ? (on ? { state: "ready", value: { terms, pdfPages: { 80: 82 } }, error: null } : { state: "loading", value: null, error: null })
+      : ui.useGlossary(loader, on)),
+  };
+});
 
 const INFO: MenuInfo = { appBuild: "1.2.0 (34)", contact: null };
 const NOW = Date.now();
@@ -41,20 +57,21 @@ const DATA: DataInput = {
 /** The Shell's wiring, and nothing else: the one back, the menu, the More tab and the host — at a window width. */
 function App({ info = INFO, loader = null, out, data = DATA, theme = "light", onTheme = () => {}, width = null, metered = null }: {
   metered?: MobileDataControl | null;
-  info?: MenuInfo; loader?: RegsLoader | null; out: { back?: Back }; data?: DataInput;
+  info?: MenuInfo; loader?: RegsLoader | null; out: { back?: Back; menu?: ReturnType<typeof useMenu> }; data?: DataInput;
   theme?: ThemeName; onTheme?: (t: ThemeName) => void; width?: number | null;
 }) {
   const [route, go] = useRoute();
   const b = useBack(route, go, null);
   out.back = b;
   const menu = useMenu();
+  out.menu = menu;
   return (
     <LayoutWidthContext.Provider value={width}>
       <BackLayerContext.Provider value={b.layers}>
         <MenuContext.Provider value={menu}>
-          <MoreScreen palette={LIGHT} data={data} back="Map" onBack={b.back} contact={info.contact}
+          <MoreScreen palette={LIGHT} data={data} onBack={b.back} contact={info.contact}
                       theme={theme} onTheme={onTheme} metered={metered}
-                      onPick={(k) => (k === "report" ? menu.report(routeWhere(route, null)) : menu.show(k))} />
+                      onPick={(k) => (k === "report" ? menu.report(routeWhere(route, null), "more") : menu.show(k, "more"))} />
           <MenuHost menu={menu} palette={LIGHT} loader={loader} info={info} tiles="d768d6e135e62b99.c9f9604f12bf"
                     route={route} day={null} />
         </MenuContext.Provider>
@@ -77,14 +94,14 @@ const text = (id: string) => screen.getByTestId(id).textContent;
 const said = (id: string) => screen.getByTestId(id).getAttribute("aria-label");
 
 describe("the More tab (T48; owner 2026-10-22 refinement; T167)", () => {
-  it("top to bottom: back to the previous tab, the title, Data, Settings and the pages as rows, Contact — the only list", () => {
+  it("top to bottom: Back, the title, Data, Settings and the pages as rows, Contact — the only list", () => {
     render(<App out={{}} />);
     expect({
       back: [text("more-back"), said("more-back")],
       headings: screen.getAllByRole("heading").map((e) => e.textContent),
       rows: screen.getAllByTestId(/^menu-item-/).map((e) => e.textContent),
     }).toEqual({
-      back: ["Map", "Back to Map"],
+      back: ["Back", "Back"],
       headings: ["More", "Data", "Contact"],
       rows: [
         "SettingsDownloads, crash reports and display",
@@ -96,6 +113,44 @@ describe("the More tab (T48; owner 2026-10-22 refinement; T167)", () => {
         "Report a problemSomething wrong, missing or confusing",
       ],
     });
+  });
+
+  it("(T897) the head is plain Back whatever tab More was opened from, and it sits OUTSIDE the scroll view (sticky)", () => {
+    render(<App out={{}} />);
+    const back = screen.getByTestId("more-back");
+    const scroll = screen.getByTestId("more-scroll");
+    expect([back.textContent, back.getAttribute("aria-label")]).toEqual(["Back", "Back"]);
+    expect(scroll.contains(back)).toBe(false);
+    expect(scroll.contains(screen.getByRole("heading", { name: "More" }))).toBe(false);
+    // the page's own parts scroll
+    expect(scroll.contains(screen.getByTestId("more-data"))).toBe(true);
+  });
+
+  it("(T897) a page opened from More reads ‹ More (said \"Back to More\"), apart from the tab's own Back", () => {
+    render(<App out={{}} />);
+    pick("menu-item-about");
+    const back = screen.getByRole("button", { name: "Back to More" });
+    expect(back.textContent).toBe("More");
+    expect(screen.getByTestId("more-back").getAttribute("aria-label")).toBe("Back");
+  });
+
+  it("(T897) a page opened from anywhere but More reads plain Back; from About it follows where Back goes", () => {
+    const out: { menu?: ReturnType<typeof useMenu> } = {};
+    render(<App out={out} />);
+    act(() => { out.menu!.report({ mode: "water" } as never); }); settle();      // a water's Report link
+    const names = () => screen.getAllByRole("button").map((e) => e.getAttribute("aria-label")).filter((n) => n?.startsWith("Back"));
+    expect(names()).toEqual(["Back", "Back"]);                                    // the tab's own, and the page's
+    act(() => { out.menu!.show("sources"); }); settle();                         // the first-run notice's Sources
+    expect(names()).toEqual(["Back", "Back"]);
+    // opened from More, then on from About: Back returns to More, so both say "More"
+    act(() => { out.menu!.show("about", "more"); }); settle();
+    expect(names()).toContain("Back to More");
+    act(() => { out.menu!.show("sources", "more"); }); settle();
+    expect(names()).toContain("Back to More");
+    // opened from elsewhere, About then Sources: plain Back
+    act(() => { out.menu!.show("about"); }); settle();
+    act(() => { out.menu!.show("sources", undefined); }); settle();
+    expect(names()).toEqual(["Back", "Back"]);
   });
 
   it("(T167) the Data block: one summary badge, the in-season warning, then EVERY source as one row — drawn compact, " +
@@ -210,15 +265,23 @@ describe("the More tab (T48; owner 2026-10-22 refinement; T167)", () => {
 
   it("Contact, inline at the bottom: a placeholder until the owner supplies the one value; then that address", () => {
     render(<App out={{}} />);
-    expect(text("more-contact")).toBe("Questions, corrections and ideas are welcome."
+    expect(text("more-contact")).toBe("Questions, corrections and ideas are welcome. I read every message. Send a note from the "
+      + "app with Report a problem. A water's regulations have their own Report a problem link, which names the water "
+      + "for you."
       + "Contact details are coming soon. Until then, use Report a problem to share a note from your device.");
     cleanup();
     render(<App out={{}} info={{ appBuild: null, contact: "hello@example.org" }} />);
     expect(screen.getByLabelText("Email: hello@example.org")).toBeTruthy();
   });
-});
 
-describe("Settings (T703)", () => {
+  it("(T860) Contact names Report a problem beside the email, in words: the row on the same page is the one way in (T60)", () => {
+    render(<App out={{}} info={{ appBuild: null, contact: "hello@example.org" }} />);
+    expect(text("contact-intro")).toBe(
+      "Questions, corrections and ideas are welcome. I read every message. Email me, or send a note from the app with Report a problem. "
+        + "A water's regulations have their own Report a problem link, which names the water for you.");
+    expect(screen.queryByTestId("contact-report")).toBeNull();
+    expect(screen.getAllByRole("button", { name: "Report a problem" })).toHaveLength(1);
+  });
   it("the first row of More opens it: Data / Privacy / Display headings over square cards, the Display tiles as before", () => {
     const picked: string[] = [];
     render(<App out={{}} theme="dark" onTheme={(t) => picked.push(t)} />);
@@ -362,9 +425,9 @@ describe("a page", () => {
       + "All other copyright (c) for Lucide are held by Lucide Contributors 2022."]);
   });
 
-  it("(T167) a menu page on a wide screen reads in a centred column; a phone's is the full width", () => {
+  it("(T167) a menu page on a tablet reads in a centred column; a phone's is the full width (desktop: a card, T859)", () => {
     const widths: (string | null)[] = [];
-    for (const width of [390, 1280]) {
+    for (const width of [390, 1279]) {
       render(<App out={{}} width={width} />);
       pick("menu-item-sources");
       const col = screen.getByTestId("source-synopsis").parentElement!.parentElement as HTMLElement;
@@ -372,6 +435,120 @@ describe("a page", () => {
       cleanup();
     }
     expect(widths).toEqual([null, "680px"]);
+  });
+});
+
+describe("(T859) a menu page at desktop width is a card over the page", () => {
+  const keyUp = (key: string) => { act(() => { fireEvent.keyUp(document, { key }); }); settle(); };
+
+  it("1280 px: About opens as a card (✕, the scrim) with no ‹ Back; 1279 px: the full-window page as before", () => {
+    const seen: Record<number, unknown> = {};
+    for (const width of [390, 1279, 1280]) {
+      render(<App out={{}} width={width} />);
+      pick("menu-item-about");
+      const page = screen.getByTestId("menu-page-about");
+      seen[width] = {
+        card: screen.queryByTestId("menu-card-close") !== null,
+        scrim: screen.queryByTestId("menu-card-scrim") !== null,
+        back: screen.queryByLabelText("Back to More") !== null,
+        width: page.style.maxWidth || null,
+        title: screen.getAllByRole("heading").map((e) => e.textContent).includes("About"),
+      };
+      cleanup();
+    }
+    expect(seen).toEqual({
+      390: { card: false, scrim: false, back: true, width: null, title: true },
+      1279: { card: false, scrim: false, back: true, width: null, title: true },
+      1280: { card: true, scrim: true, back: false, width: "680px", title: true },
+    });
+  });
+
+  it("the card's ✕, the scrim, Escape and the one back each close it", () => {
+    const closes: Record<string, () => void> = {
+      close: () => pick("menu-card-close"),
+      scrim: () => pick("menu-card-scrim"),
+      escape: () => keyUp("Escape"),
+      back: () => { act(() => { out.back!.back(); }); settle(); },
+    };
+    const out: { back?: Back } = {};
+    const shut: Record<string, boolean> = {};
+    for (const [k, close] of Object.entries(closes)) {
+      render(<App out={out} width={1280} />);
+      pick("menu-item-about");
+      expect(screen.getByTestId("menu-page-about")).toBeTruthy();
+      close();
+      shut[k] = screen.queryByTestId("menu-page-about") === null;
+      // nothing left open: a further back has nothing to close
+      let r = true;
+      act(() => { r = out.back!.back(); });
+      shut[`${k} then back`] = !r;
+      cleanup();
+    }
+    expect(shut).toEqual({ close: true, "close then back": true, scrim: true, "scrim then back": true,
+                           escape: true, "escape then back": true, back: true, "back then back": true });
+  });
+
+  it("the scrim is the card's last sibling, under it, with no tab stop: a press inside the card never reaches its close", () => {
+    render(<App out={{}} width={1280} />);
+    pick("menu-item-about");
+    const scrim = screen.getByTestId("menu-card-scrim");
+    const card = screen.getByTestId("menu-page-about");
+    // a click bubbles to its ancestors only: the card is not inside the scrim, so the scrim's onPress never hears it
+    expect([scrim.contains(card), card.contains(scrim), card.nextElementSibling === scrim,
+            scrim.getAttribute("tabindex"), scrim.style.zIndex, card.style.zIndex]).toEqual([false, false, true, "-1", "0", "1"]);
+    act(() => { fireEvent.click(within(card).getByText(/reads British Columbia's freshwater fishing regulations/)); });
+    settle();
+    expect(screen.getByTestId("menu-page-about")).toBeTruthy();
+  });
+
+  it("(T901) Report opened with an `ask` (Join the test, no contact address) starts with that text in What happened", () => {
+    const out: { menu?: ReturnType<typeof useMenu> } = {};
+    render(<App out={out} />);
+    act(() => { out.menu!.report({ ask: "Join the Android test\n\nHi" }); }); settle();
+    expect((screen.getByTestId("report-what") as HTMLTextAreaElement).value).toBe("Join the Android test\n\nHi");
+  });
+
+  it("one tree across the breakpoint: a report's typed draft survives the window crossing 1280 px both ways", () => {
+    const { rerender } = render(<App out={{}} width={1279} />);
+    pick("menu-item-report");
+    act(() => { fireEvent.change(screen.getByTestId("report-what"), { target: { value: "The closure is wrong." } }); });
+    const field = screen.getByTestId("report-what");
+    const seen: [boolean, string, boolean][] = [];
+    for (const width of [1280, 1279, 1440]) {
+      rerender(<App out={{}} width={width} />);
+      settle();
+      const now = screen.getByTestId("report-what") as HTMLTextAreaElement;
+      seen.push([screen.queryByTestId("menu-card-close") !== null, now.value, now === field]);
+    }
+    expect(seen).toEqual([[true, "The closure is wrong.", true], [false, "The closure is wrong.", true],
+                          [true, "The closure is wrong.", true]]);
+  });
+
+  it("a glossary term inside the card (the real MenuHost): Escape / back close the term, then the page; the ✕ closes " +
+     "both at once", () => {
+    const at = () => [screen.queryByTestId("menu-page-glossary") ? "glossary" : "closed",
+                      screen.queryByTestId("glossary-term") ? "term" : "-"];
+    const out: { back?: Back } = {};
+    const openTerm = () => {
+      render(<App out={out} width={1280} loader={GLOSSARY_LOADER} />);
+      pick("menu-item-glossary");
+      pick("glossary-row-bait");
+    };
+    const steps: string[][] = [];
+    for (const close of [() => keyUp("Escape"), () => { act(() => { out.back!.back(); }); settle(); }]) {
+      openTerm();
+      steps.push(at()); close(); steps.push(at()); close(); steps.push(at());
+      cleanup();
+    }
+    openTerm();
+    pick("menu-card-close");
+    steps.push(at());
+    let r = true;
+    act(() => { r = out.back!.back(); });
+    expect([steps, r]).toEqual([[
+      ["glossary", "term"], ["glossary", "-"], ["closed", "-"],
+      ["glossary", "term"], ["glossary", "-"], ["closed", "-"],
+      ["closed", "-"]], false]);
   });
 });
 
@@ -385,7 +562,7 @@ describe("report a problem", () => {
     // the diagnostics, each visible with its switch
     expect(screen.getAllByTestId(/^report-diag-/).map((e) => e.getAttribute("data-testid"))).toEqual(
       ["report-diag-app", "report-diag-platform", "report-diag-tiles", "report-diag-where", "report-diag-errors"]);
-    expect(screen.getByText("Tell us what is wrong. Nothing leaves this device until you send it yourself, and only "
+    expect(screen.getByText("Tell me what is wrong. Nothing leaves this device until you send it yourself, and only "
       + "what you can see below.")).toBeTruthy();
     expect(text("report-empty")).toBe("Write a few words about the problem first.");
     press("Share…");                                   // inert while empty
@@ -417,7 +594,7 @@ describe("report a problem", () => {
     pick("menu-item-report");
     act(() => { fireEvent.change(screen.getByTestId("report-what"), { target: { value: "x" } }); });
     await act(async () => { fireEvent.click(screen.getByLabelText("Share…")); });
-    expect(text("report-noshare")).toBe("Sharing is not available here. Copy the report below and send it to us.");
+    expect(text("report-noshare")).toBe("Sharing is not available here. Copy the report below and send it to me.");
   });
 });
 
@@ -552,7 +729,7 @@ describe("the Regulations screen's report link (T41 Q3, Claude 2026-10-22: once,
   it("is drawn ONCE, after the Licence section and before the picture credits — no tab section ends with one", () => {
     const report = vi.fn();
     const menu = { report } as unknown as MenuControls;
-    const store = createPinStore();
+    const store = createTabStore();
     render(
       <MenuContext.Provider value={menu}>
         <RegsScreen page={vedder1010 as unknown as RegsPage} palette={LIGHT} store={store}

@@ -214,6 +214,17 @@ describe("spots and the rail, through the Shell (T48)", () => {
     ]);
   });
 
+  it("(T864) At my location from Toronto: nothing starts, the far line is said, and no Open Settings under it", async () => {
+    const { MY_LOCATION } = await import("@app/core");
+    const locate: Locate = { permission: async () => "granted", here: async () => ({ lat: 43.65, lon: -79.38 }) };
+    const saved = mount({ locate, spots: [] });
+    tab("Spots");
+    await waitFor(() => expect(screen.queryByLabelText("At my location")).not.toBeNull());
+    await act(async () => { fireEvent.click(screen.getByLabelText("At my location")); });
+    expect([look(), screen.getByRole("alert").textContent, screen.queryByText("Open Settings"), saved]).toEqual([
+      `${BAR} (Spots) | no map | spots tab`, MY_LOCATION.far, null, []]);
+  });
+
   it("At my location: the permission is asked on the tap, and refused there it is said and nothing starts; with no " +
      "location module (native today) it is not offered and the tab says so", async () => {
     const locate: Locate = { permission: async () => "prompt", here: async () => { throw new Error("denied"); } };
@@ -235,6 +246,7 @@ describe("spots and the rail, through the Shell (T48)", () => {
      async () => {
     const saved = mount();
     tab("Spots");
+    press("Add a spot");          // (T819 item 11) with spots in the list, the ways to add open from the header's Add
     press("Pick on the map");
     const picking = [look(), screen.getByTestId("spot-pick-banner").textContent];
     press("tap a water");
@@ -262,7 +274,7 @@ describe("spots and the rail, through the Shell (T48)", () => {
   it("pick mode is a back layer: Android's back leaves it one step (the Map tab as it was), the next leaves the app; " +
      "the banner's Cancel, Escape, a tab, and the drop sheet's Cancel all leave nothing", () => {
     const saved = mount();
-    const enter = () => { tab("Spots"); press("Pick on the map"); };
+    const enter = () => { tab("Spots"); press("Add a spot"); press("Pick on the map"); };
     enter();
     let handled = false, left = true;
     act(() => { handled = androidBack(); });
@@ -304,6 +316,15 @@ describe("the rail's Layers badge (layers menu B)", () => {
 });
 
 describe("the rail's My location button (T303)", () => {
+  it("(T910) is a toggle button: aria-pressed says it follows, never aria-selected (Lighthouse: not allowed on role=button)", async () => {
+    const { MapRail } = await import("./MapRail");
+    const me = { on: true, following: true, busy: false, notice: null as string | null, press: vi.fn(), dismiss: vi.fn() };
+    render(<MapRail palette={LIGHT} onLayers={() => {}} me={me} />);
+    const b = screen.getAllByRole("button")[0]!;   // My location sits above Layers; its name follows its state
+    expect(b.getAttribute("aria-pressed")).toBe("true");
+    expect(b.hasAttribute("aria-selected")).toBe(false);
+    cleanup();
+  });
   it("sits above Layers, is named for its state, presses, and shows why it failed", async () => {
     const { MapRail } = await import("./MapRail");
     const { MY_LOCATION } = await import("@app/core");

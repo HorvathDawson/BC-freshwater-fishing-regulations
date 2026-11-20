@@ -1,6 +1,8 @@
 # T565 — An in-season notice sits at the top of the Regulations page, not under salmon
 
-Status: IN REVIEW — dbbe3121b.
+Status: DONE — dbbe3121b. The in-season notice is first on the Regulations page (layout test pins it); the owner looked at it on a Fraser water 2026-11-19 and asked only that it open by default (T899, 18044af55).
+
+Closed by the 2026-11-20 audit: owner's 2026-11-19 shot of a Fraser water's in-season fold (T899 source) shows the notice at the top; his one change ('in season notices should default open') is T899 DONE.
 
 Source: Owner 2026-11-09 (owner checks page, T520): "in season change is showing like it is under salmon but it should be at top. in season notice is not a salmon thing it is a general river thing."
 

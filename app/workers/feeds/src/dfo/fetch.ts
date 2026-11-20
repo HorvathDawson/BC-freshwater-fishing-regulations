@@ -1,4 +1,5 @@
 // T225 port of pipeline/regs/dfo_salmon/fetch.py: the region pages, their slugs, and the validated fetch with retries.
+import { SourceError } from "../health";
 import type { Fetch } from "../io";
 import { sha256Bytes } from "./hash";
 import { PyError, repr } from "./py";
@@ -53,7 +54,11 @@ const USER_AGENT =
   "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36";
 const REQUEST_TIMEOUT_MS = 30_000;
 const MAX_ATTEMPTS = 4;
-const BACKOFF_BASE_S = 2.0;
+/** (T851) waits 5, 15, 45 s (+ jitter): four tries over about a minute, so a passing 5xx / network blip / timeout is
+ *  ridden out inside the run (it was 2, 4, 8 s: DFO's whole site answered 5xx for longer on 2026-11-18). The attempts
+ *  stay 4, so a run asks no more subrequests than before. The Python's `_BACKOFF_BASE` / `_BACKOFF_FACTOR` are the same. */
+const BACKOFF_BASE_S = 5.0;
+const BACKOFF_FACTOR = 3;
 const SENTINELS = ['id="wb-cont"', "Recreational salmon fishing limits", 'property="dateModified"'];
 const MIN_BYTES = 8_000;
 const RE_DATE_MODIFIED = /<time[^>]*property="dateModified"[^>]*>\s*([0-9]{4}-[0-9]{2}-[0-9]{2})/i;
@@ -127,7 +132,7 @@ export async function fetchRegion(
   let status = 0;
   let attempt = 0;
   const backoff = (attempt: number, retryAfter: number | null = null) =>
-    sleep(((retryAfter ?? BACKOFF_BASE_S * 2 ** (attempt - 1)) + rnd() * 0.75) * 1000);
+    sleep(((retryAfter ?? BACKOFF_BASE_S * BACKOFF_FACTOR ** (attempt - 1)) + rnd() * 0.75) * 1000);
 
   for (attempt = 1; attempt <= max; attempt++) {
     try {
@@ -173,6 +178,9 @@ export async function fetchRegion(
       break;
     } catch (e) {
       if (e instanceof FetchError) throw e;
+      // (T851, worker only) the run's breaker (health.ts) has stopped asking DFO's host: waiting and asking again only
+      // meets the open breaker again — the region fails now and the same-day retry (index.ts `dfoRetry`) asks later
+      if (e instanceof SourceError && e.cls === "circuit") throw new FetchError(`region ${slug}: ${e.message}`);
       const name = e instanceof PyError ? e.pyType : e instanceof Error ? e.name : "Exception";
       const msg = e instanceof Error ? e.message : String(e);
       warnings.push(`attempt ${attempt}: ${name}: ${msg}`);

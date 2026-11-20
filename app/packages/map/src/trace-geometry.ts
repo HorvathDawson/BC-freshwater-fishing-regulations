@@ -28,7 +28,8 @@
  */
 import { reportFailure, now as clockNow } from "@app/core";
 import type { SectionKey } from "@app/core";
-import { PMTiles } from "pmtiles";
+import { PMTiles, type Source } from "pmtiles";
+import type { ReadRange } from "./endpoints";
 import { decodeTile, type TileLayer } from "./mvt";
 import { perSectionLayers } from "./sections";
 
@@ -459,13 +460,30 @@ export function collectionBbox(fc: TraceCollection): Bbox | null {
 const archives = new Map<string, { src: TileSource; cache: TraceCache }>();
 
 /**
- * The atlas archive as a `TileSource`, one per URL for the session — the same bytes the
- * map's own `pmtiles://` source reads (an HTTP cache shared with it on the web).
+ * (T831) A `pmtiles` archive source over a byte-range reader (`TileEndpoints.readRange`): a phone's installed `file://`
+ * atlas, read where its directories and tiles are, never whole. The archive's key is its path.
  */
-export function atlasTrace(url: string): { src: TileSource; cache: TraceCache } {
+export function rangeSource(path: string, read: ReadRange): Source {
+  return {
+    getKey: () => path,
+    getBytes: async (offset, length) => {
+      const b = await read(path, offset, length);
+      // exactly the bytes read, in a buffer of their own: a view into a larger one would hand pmtiles the rest too
+      const whole = b.byteOffset === 0 && b.byteLength === b.buffer.byteLength;
+      return { data: (whole ? b.buffer : b.slice().buffer) as ArrayBuffer };
+    },
+  };
+}
+
+/**
+ * The atlas archive as a `TileSource`, one per URL for the session — the same bytes the
+ * map's own `pmtiles://` source reads (an HTTP cache shared with it on the web). (T831) With `read`, through that reader
+ * (a phone's installed file) instead of `fetch`.
+ */
+export function atlasTrace(url: string, read?: ReadRange): { src: TileSource; cache: TraceCache } {
   let a = archives.get(url);
   if (!a) {
-    const pm = new PMTiles(url);
+    const pm = new PMTiles(read ? rangeSource(url, read) : url);
     a = {
       src: { tile: async (z, x, y) => {
         const r = await pm.getZxy(z, x, y);
@@ -482,13 +500,13 @@ export function atlasTrace(url: string): { src: TileSource; cache: TraceCache } 
  * The whole job: the routes' shapes from the atlas at `url`, as an overlay collection.
  * `ms`, `tiles` (every tile the plan read, cached or not) and `fetched` (the cache misses
  * among them) are the measured cost, reported so a caller (and a test) can see it.
+ * (T831) `read`: the archive's byte-range reader, when it is not read over HTTP (a phone's file).
  */
-export async function traceOverlay(url: string, routes: readonly TraceRoute[],
-                                   source?: TileSource):
+export async function traceOverlay(url: string, routes: readonly TraceRoute[], read?: ReadRange):
     Promise<{ fc: TraceCollection; missing: number[]; fetched: number; tiles: number;
               ms: number }> {
   const t0 = clockNow();
-  const a = source ? { src: source, cache: atlasTrace(url).cache } : atlasTrace(url);
+  const a = atlasTrace(url, read);
   const got = await readTrace(routes, a.src, a.cache);
   return { fc: traceCollection(routes, got.shapes), missing: got.missing,
            fetched: got.fetched, tiles: got.asked.length, ms: clockNow() - t0 };

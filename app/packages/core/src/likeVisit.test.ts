@@ -3,7 +3,7 @@
  * Timestamps from LOCAL parts so the days read the same in any zone the suite runs in.
  */
 import { describe, expect, it } from "vitest";
-import { LIKE_CARRIED_WEIGHT, LIKE_FACTORS, LIKE_WEIGHTS, likeAgeLine, likeDay, likeDayHead, likeDayLabel, likeDays, likeness, likeNothingThen, likeRead,
+import { LIKE_CARRIED_WEIGHT, LIKE_FACTORS, LIKE_WEIGHTS, likeAgeLine, likeBiggest, likeDay, likeDayHead, likeDayLabel, likeDays, likeness, likeNothingThen, likeRead,
          likeVisitHead, type LikeConditions } from "./likeVisit";
 
 const THEN: LikeConditions = { flow: 0.42, tempC: 14, rainMm: 2, windKph: 8, cloudPct: 40, pressureHpa: 1012 };
@@ -133,13 +133,13 @@ describe("the words around it", () => {
   it("five days from today, each with its head", () => {
     expect(likeDays(NOW)).toEqual(["2026-10-22", "2026-10-23", "2026-10-24", "2026-10-25", "2026-10-26"]);
     expect(likeDays(NOW).map((d) => likeDayHead(d, NOW))).toEqual([
-      { top: "Today", sub: "22 Oct" }, { top: "Tomorrow", sub: "23 Oct" }, { top: "Sat", sub: "24 Oct" },
-      { top: "Sun", sub: "25 Oct" }, { top: "Mon", sub: "26 Oct" }]);
+      { top: "Today", sub: "Thu 22 Oct" }, { top: "Tomorrow", sub: "Fri 23 Oct" }, { top: "Sat 24 Oct", sub: "" },
+      { top: "Sun 25 Oct", sub: "" }, { top: "Mon 26 Oct", sub: "" }]);
   });
 
   it("the visit's column names its year only when it is another year", () => {
     expect([likeVisitHead(new Date(2026, 7, 30, 9).getTime(), NOW), likeVisitHead(new Date(2025, 7, 30).getTime(), NOW)])
-      .toEqual([{ top: "Your visit", sub: "30 Aug" }, { top: "Your visit", sub: "30 Aug 2025" }]);
+      .toEqual([{ top: "Your visit", sub: "Sun 30 Aug" }, { top: "Your visit", sub: "Sat 30 Aug 2025" }]);
   });
 
   it("a day said whole", () => {
@@ -148,9 +148,9 @@ describe("the words around it", () => {
       likeDayLabel(likeDay(THEN, same({ flow: null, tempC: 2, rainMm: 30 })), NOW),
       likeDayLabel(likeDay(THEN, { date: "2026-10-22", flow: null, tempC: null, rainMm: null, windKph: null, cloudPct: null }), NOW),
     ]).toEqual([
-      "Sat, 24 Oct: 100%, very similar to your visit.",
-      "Sat, 24 Oct: 53%, different from your visit, on the weather only.",
-      "Today, 22 Oct: Nothing to compare for this day.",
+      "Sat 24 Oct: 100%, very similar to your visit.",
+      "Sat 24 Oct: 53%, different from your visit, on the weather only.",
+      "Today, Thu 22 Oct: Nothing to compare for this day.",
     ]);
   });
 
@@ -178,5 +178,17 @@ describe("(T620 G13) one weather number", () => {
     expect([weatherFigure("temp", 13.6), weatherFigure("wind", 21.5), weatherFigure("rain", 2.46),
             weatherFigure("cloud", 40.4), weatherFigure("pressure", 1012.6)])
       .toEqual(["14°C", "22 km/h", "2.5 mm", "40%", "1013 hPa"]);
+  });
+});
+
+/* (T819 item 9) a coming day in one line: the factor that costs the day most of its score */
+describe("likeBiggest (T819)", () => {
+  it("names the factor that costs most, says 'much the same' when nothing differs, and nothing when nothing scored", () => {
+    const none = { flow: null, tempC: null, rainMm: null, windKph: null, cloudPct: null, pressureHpa: null };
+    expect([likeBiggest(likeDay(THEN, same({ tempC: 6 })).factors),
+            likeBiggest(likeDay(THEN, same({ tempC: 12, flow: 0.12 })).factors),
+            likeBiggest(likeDay(THEN, same()).factors),
+            likeBiggest(likeDay(THEN, { date: "2026-10-24", ...none }).factors)])
+      .toEqual(["Air temperature: 8° cooler", "Flow: 30 points lower", "Much the same as your visit", null]);
   });
 });

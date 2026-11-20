@@ -3,12 +3,13 @@
 One page, one pointer (T437): a new chat reads, in order,
 
 1. `AGENTS.md` (every rule), then `CLAUDE.md`.
-2. The newest restart page: **`handoff/PLAN/NEXT-SESSION-after-chat12.md`** (it replaces `NEXT-SESSION-after-chat11.md`).
+2. The newest restart page: **`handoff/PLAN/NEXT-SESSION-2026-11-19-evening.md`** (written 2026-11-19 ~16:25: 0.8.3 is
+   on production; watch the store reviews, then T917, T919, T914; ONE chat does everything).
 3. The top entry of `handoff/PLAN/STATUS.md` (what changed last), and `handoff/PLAN/OWNER-TODO.md` (what only the
    owner can do).
 4. The work list: `handoff/PLAN/app-integration/tickets/README.md` (the ledger; tickets are the sole source of work).
 
-A second chat working the parked tickets (T667 rest, T686, T602, loose nits) reads `handoff/PLAN/NEXT-SESSION-parked-tickets.md` instead of step 2; iOS: `handoff/PLAN/ios/START-HERE-ios.md`.
+A second chat working the parked tickets (T667 rest, T686, T602, loose nits) reads `handoff/PLAN/PARKED-TICKETS.md` instead of step 2; iOS: `handoff/PLAN/ios/START-HERE-ios.md`.
 
 iOS hardening (owner reopened it 2026-11-14, own chat, simulator work first): `handoff/PLAN/ios/START-HERE-ios.md`.
 

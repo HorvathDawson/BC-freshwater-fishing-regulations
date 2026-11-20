@@ -108,9 +108,3 @@ export const FISH_IMAGES: Readonly<Record<string, readonly { readonly thumb: Ima
     { thumb: require("../assets/fish/thumbs/yellow-perch.webp"), full: require("../assets/fish/yellow-perch.webp") },
   ],
 };
-
-/** (T38) The hatch sheet's two drawings (Wild · adipose fin there / Hatchery · clipped), by variant. */
-export const ADIPOSE_IMAGES: { readonly wild: ImageSourcePropType; readonly clipped: ImageSourcePropType } = {
-  wild: require("../assets/fish/adipose-wild.webp"),
-  clipped: require("../assets/fish/adipose-clipped.webp"),
-};

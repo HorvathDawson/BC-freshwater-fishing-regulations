@@ -17,7 +17,7 @@ import { assignSlugs, type SlugMap, type Steps } from "./slug";
 import { verifyAgainstApp } from "./verify";
 import { regionYear, yearCardHtml } from "./regionYear";
 import { pageSize, type PageSize } from "./budget";
-import { clientScript, gaugeBody, gaugeDescription, gaugeModels, gaugesIndexBody, gaugeTitle, siteGaugeCardSvg, stationsFile, type GaugeModel, type GaugeRows } from "./gauges";
+import { clientScript, joinScript, gaugeBody, gaugeDescription, gaugeModels, gaugesIndexBody, gaugeTitle, siteGaugeCardSvg, stationsFile, type GaugeModel, type GaugeRows } from "./gauges";
 
 export interface PageRec {
   readonly path: string; readonly kind: "water" | "region" | "letter" | "topic" | "changes" | "about" | "privacy" | "gauge" | "gauges";
@@ -117,12 +117,17 @@ export async function buildSite(o: BuildOpts): Promise<SiteBuild> {
     const m = await waterModel(store, ord, on);
     if (m && m.region >= 1 && (!o.only || o.only.has(m.id))) models.push(m);
   }
+  // every water's model held to the app's own pages (verify.ts); (T917) run while the render threads draw the water pages
+  // (it was ~70 s of the main thread before the first page was asked for), and gated before any page is awaited below
+  const verifyApp = async (): Promise<void> => {
+    const differ: string[] = [];
+    for (const m of models) {
+      const pages = await Promise.all(m.parts.map((p) => appPage(store, m.id, p.partIx, on)));
+      differ.push(...verifyAgainstApp(m, pages));
+    }
+    if (differ.length) throw new Error(`seo: ${differ.length} page(s) differ from the app:\n${differ.slice(0, 20).join("\n")}`);
+  };
   const bad: string[] = [];
-  for (const m of models) {
-    const pages = await Promise.all(m.parts.map((p) => appPage(store, m.id, p.partIx, on)));
-    bad.push(...verifyAgainstApp(m, pages));
-  }
-  if (bad.length) throw new Error(`seo: ${bad.length} page(s) differ from the app:\n${bad.slice(0, 20).join("\n")}`);
 
   const towns = await nearestTowns(store), units = await managementUnits(store);
   const { map: slugMap, removed, steps: slugSteps } = assignSlugs(models.map((m) => ({ id: m.id, name: m.name, region: m.region, town: towns.get(m.id) ?? null, mus: units.get(m.id) ?? [] })), o.slugMap);
@@ -144,8 +149,8 @@ export async function buildSite(o: BuildOpts): Promise<SiteBuild> {
     pages.push({ path, kind, html, hash, title, description, size: pageSize(path, html) });
     files.set(outFile(path), html);
   };
-  const shellOf = (path: string, title: string, description: string, body: string, ld: string, image?: string) =>
-    shell({ title, description, path, body: body + regionFooter(), jsonld: ld, cssHref, ...(image ? { image } : {}) }, site);
+  const shellOf = (path: string, title: string, description: string, body: string, ld: string, image?: string, regionNav = true) =>
+    shell({ title, description, path, body: body + (regionNav ? regionFooter() : ""), jsonld: ld, cssHref, ...(image ? { image } : {}) }, site);
   /** the build date is shown (the JSON-LD `dateModified` must be on the page); it is a date, never "today" */
   const built = () => `Rules from release ${esc(release.id)}, built <time datetime="${asOf}">${asOf}</time>.`;
   const regionFooter = () => regions.length
@@ -187,6 +192,7 @@ export async function buildSite(o: BuildOpts): Promise<SiteBuild> {
     // (T406) the card's source: build.ts draws it as `share/<slug>.png` (share.ts) and ships the PNG only
     files.set(`share/${slugOf(m.id)}.svg`, shareSvg(m, site));
   }
+  await verifyApp();
   for (const w of made) {
     const p = await w.page;
     if (p.html !== null) { add("water", w.path, p.html, w.hash); continue; }
@@ -292,13 +298,15 @@ export async function buildSite(o: BuildOpts): Promise<SiteBuild> {
   if (gauges.length) {
     const client = clientScript(), clientHref = `/assets/gauge.${sha(client, 10)}.js`;
     files.set(clientHref.slice(1), client);
+    const join = joinScript(), joinHref = `/assets/join.${sha(join, 10)}.js`;       // (T911) the Join the test card's script
+    files.set(joinHref.slice(1), join);
     const gaugeCrumbs = (g: GaugeModel): [string, string][] => [["Home", "/"], ["River gauges", "/gauges"], [g.name, g.path]];
     for (const g of gauges) {
       const title = gaugeTitle(g), description = gaugeDescription(g);
       unique(titles, title, g.path); unique(descriptions, description, g.path);
       // lastmod moves with what the build wrote (name, waters, place), not with the release id the live half names
-      add("gauge", g.path, shellOf(g.path, title, description, gaugeBody(g, release.id, clientHref, asOf), pageLd(site, g.path, title, asOf, gaugeCrumbs(g)),
-          `/gauge/${g.station}/card.png`), sha(JSON.stringify(g)));
+      add("gauge", g.path, shellOf(g.path, title, description, gaugeBody(g, release.id, clientHref, asOf, site.contact, joinHref), pageLd(site, g.path, title, asOf, gaugeCrumbs(g)),
+          `/gauge/${g.station}/card.png`, false), sha(JSON.stringify(g)));   // (T908, owner 2026-11-19) no "Browse by region": it leads to the hidden site map
     }
     const title = clip(`River gauges in BC: live flow and weather — ${site.name}`, 60);
     const description = clip(`Live flow, the last 7 days, flow forecasts and the weather at ${gauges.length} BC river gauges on waters with fishing regulations.`);

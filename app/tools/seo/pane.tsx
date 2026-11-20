@@ -15,7 +15,7 @@ import "./globals";
 import { createElement, type ReactElement } from "react";
 import { renderToStaticMarkup, renderToString } from "react-dom/server";
 import { AppRegistry, View } from "react-native";
-import { FACES_REQUIRED, Shell, StripWidthHint, THEMES, type AdiposeImages, type FishImages } from "@app/ui-native";
+import { FACES_REQUIRED, preloadParts, Shell, StripWidthHint, THEMES, type FishImages } from "@app/ui-native";
 // react-native-web's record of pictures already loaded: a server render draws a picture only when it is in there
 import { ImageUriCache } from "react-native-web/dist/modules/ImageLoader";
 import { HOME, LayoutWidthContext, openWater, reduce, setPrerenderAnswers, type Async, type LayoutClass } from "@app/ui";
@@ -35,7 +35,7 @@ const STRIP_WIDTH: Readonly<Record<LayoutClass, number>> = { phone: CLASS_WIDTH.
 export interface PaneInputs {
   readonly source: WaterSource; readonly loader: ReleaseLoader;
   /** the app's fish pictures (`apps/mobile` fishImages.generated.ts), as the web export serves them */
-  readonly fishImages?: FishImages; readonly adiposeImages?: AdiposeImages;
+  readonly fishImages?: FishImages;
 }
 
 /** react-native-web's server render goes through its app registry: one key, drawing whichever tree is being rendered */
@@ -59,7 +59,7 @@ function tree(p: PaneInputs, item: ItemId, layout: LayoutClass, theme: "light" |
       createElement(View, { style: { flex: 1, backgroundColor: palette.card } },
         createElement(Shell, {
           source: p.source, palette, loader: p.loader, theme, themeName: theme, onTheme: NOOP, tiles: NO_TILES,
-          fishImages: p.fishImages, adiposeImages: p.adiposeImages,
+          fishImages: p.fishImages,
           // a tap's route: the water on its Regulations view, opened from the map (the start link's `?regs=<item>`)
           initialRoute: reduce(HOME, openWater({ item, part: null, view: "regs" })), initialDay: null,
         }))));
@@ -77,7 +77,7 @@ export class PaneRenderer {
   constructor(private readonly p: PaneInputs, private readonly waitMs = 4000) {
     // the pictures are the web export's files, which the page loads like any other: drawn as loaded, as the app draws them
     // (T405) a row draws a picture's thumbnail; the full picture is the fish sheet's, never in a prerendered pane
-    const uris = [...Object.values(p.fishImages ?? {}).flat().map((f) => f.thumb), ...Object.values(p.adiposeImages ?? {})]
+    const uris = Object.values(p.fishImages ?? {}).flat().map((f) => f.thumb)
       .map((s) => (s && typeof s === "object" && "uri" in s ? (s as { uri?: string }).uri : undefined));
     for (const u of uris) if (u) ImageUriCache.add(u);
   }
@@ -109,6 +109,9 @@ export class PaneRenderer {
   /** One render, as react-native-web's own server render makes it (its app container, its class names). */
   private async render(item: ItemId, layout: LayoutClass, theme: "light" | "dark"): Promise<string> {
     const el = tree(this.p, item, layout, theme);
+    // (T910) the water's Regulations page is a lazy part on the web (ui-native `part`, later.ts): the server render asks
+    // for it first, so the pane is the page, never its loading face
+    await preloadParts();
     await this.settle(el);
     drawn = el;
     const app = registry.getApplication(APP_KEY, {});

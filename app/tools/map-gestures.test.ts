@@ -42,14 +42,16 @@ describe("the native map applies the gesture policy and feature-state by id", ()
             src.includes("renderer.states("),
             adapter.includes("stateHandle(sink, lit)"),
             adapter.includes("src.setFeatureState({ id, sourceLayer: t.sourceLayer }, s)"),
-            // (T345) a key is unset by a NULL WRITE, never by a per-feature removeFeatureState (Native drops all but
-            // the first removal per source-layer in a frame)
-            adapter.includes("src.setFeatureState({ id, sourceLayer: t.sourceLayer }, { [key]: null })")
+            // (T345) a key is unset by a WRITE, never by a per-feature removeFeatureState (Native drops all but
+            // the first removal per source-layer in a frame); (T826) of `unsetValue(key)`: false for a highlight key, as
+            // iOS's bridge drops a null-valued key
+            adapter.includes("src.setFeatureState({ id, sourceLayer: t.sourceLayer }, { [key]: unsetValue(key) })")
               && !adapter.includes("src.removeFeatureState("),
             // only where a phone has an id: the section source-layers (MVT ids); area values go into the style
             adapter.includes("SECTION_SOURCE_LAYERS.includes(t.sourceLayer)"),
             src.includes("areaLayer(layerId) ? area : sec"),
-            src.includes('<VectorSource id="atlas" ref={atlasAttached} />'),
+            // (T876) the atlas source element now holds the adopted label layers: the same source by id, the same ref
+            /<VectorSource id="atlas" ref=\{atlasAttached\}\s*\/?>/.test(src),
             src.includes("nativeStyle({")]).toEqual([true, true, true, true, true, true, true, true, true]);
   });
   it("draws the web's metric scale bar, not the binding's", () => {

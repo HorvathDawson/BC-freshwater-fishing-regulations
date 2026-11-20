@@ -124,8 +124,10 @@ _RE_TBD = re.compile(r"to\s+be\s+determined", re.I)
 #: HOW THIS MODULE TYPES A ROW, as a number the typed feed carries (`feed.build` `typed_format`). Bump it when a row
 #: types differently: the release refuses typed files of another number (`deliver.salmon.load_inputs`), so rows typed by
 #: older code never ship. 2 (T671 D2): a row nobody could type keeps the species its cell names. 3 (T676): the date
-#: cell is read by `dates.read_dates` (open-ended rows, `check` on an unreadable cell).
-FORMAT = 3
+#: cell is read by `dates.read_dates` (open-ended rows, `check` on an unreadable cell). 4 (T787): a row from a table DFO
+#: commented out carries `hidden` (`feed.type_rows`) and answers nothing — a file typed before it reads those rows live;
+#: (T796 A6, same number, not shipped between) a "Finfish closure" row's closure carries `finfish` (`typed_rules`).
+FORMAT = 4
 #: (T671 D2) the advisory's `review_reason` prefixes the bundle reads: a row DFO has not set, and a row that is a gear
 #: PERMISSION (it opens and closes no fish). Every other advisory that is not about another fish is a row nobody could
 #: type: `deliver.salmon.unread_row` shows it as "check DFO" for the species its cell names, on the days it holds.
@@ -172,6 +174,9 @@ _RE_BAIT_BAN = re.compile(r"\bbait\s+ban\b|\bno\s+natural\s+bait\b|\bnatural\s+b
 _RE_BAIT_ALLOWED = re.compile(r"\bnatural\s+bait\s+allowed\b", re.I)
 #: "Single, barbless hook in tidal and non-tidal portions of all streams" — the comma cost the flag.
 _RE_BARBLESS = re.compile(r"\bsingle,?\s+barbless\s+hook\b", re.I)
+#: the hook rule's quoted span: the sentence through a hyphenated word ("non-tidal"), never cut at the hyphen (T789 D6:
+#: Region 6's line read "Single, barbless hook in tidal and non" on 25,787 sections); a free-standing dash still ends it
+_RE_HOOK_SPAN = re.compile(r"single,?\s+barbless\s+hook(?:[\w\s,.]|-(?=\w))*", re.I)
 
 
 def decode(limits: str) -> dict:
@@ -449,7 +454,10 @@ def to_rules(rec: dict, rule_base: str, order: int) -> List[CatalogueRule]:
         times = _RE_TIMES.search(gear) or _RE_SOLAR_TIMES.search(gear)
         # The closure wording is the whole cell; a quota's cell may also carry gear clauses, so
         # quote just the count where we can find it.
-        quoted = _span(gear, re.compile(r"\b\d+\s+(?:hatchery[- ]marked\s+)?per\s+day", re.I))
+        # (T623 F13) the quote runs on to a trailing "hatchery marked (fish) only": the short line is the quote, and
+        # "1 per day" alone drops the condition (Squamish coho "1 per day, hatchery marked only")
+        quoted = _span(gear, re.compile(r"\b\d+\s+(?:hatchery[- ]marked\s+)?per\s+day"
+                                        r"(?:,?\s+hatchery[- ]marked(?:\s+fish)?\s+only)?", re.I))
         parent_id = rid
         out.append(CatalogueRule(
             rule_id=rid, type=RuleType.retention_limit, species=codes, take=take,
@@ -515,7 +523,7 @@ def to_rules(rec: dict, rule_base: str, order: int) -> List[CatalogueRule]:
 
     if says["single_barbless_hook"]:
         gap = _RE_GAP.search(gear)
-        quoted = _span(gear, re.compile(r"single,?\s+barbless\s+hook[\w\s,.]*", re.I))
+        quoted = _span(gear, _RE_HOOK_SPAN)
         out.append(CatalogueRule(
             rule_id=f"{rid}_hook", type=RuleType.tackle_restriction,
             gear=[{"slot": "barb", "only": ["barbless"]}, {"slot": "points_per_hook", "max": 1}]
@@ -552,3 +560,33 @@ def row_text(rec: dict) -> str:
     parts = [(rec.get("species") or "").strip(), (rec.get("dates") or "").strip(),
              (rec.get("limits_gear") or "").strip()]
     return " | ".join(p for p in parts if p)
+
+
+# --------------------------------------------------------------------------------------- #
+# The marks a typed DFO rule carries beside the catalogue's fields
+# --------------------------------------------------------------------------------------- #
+
+#: (T796 A6, owner 2026-11-16: "Closes the whole page (Recommended)") "Finfish closure" closes ALL FISHING on its stretch
+#: on its dates, not only salmon (ten rows: Stamp 4, Nitinat 3, Somass, Sproat, Tahltan). Its salmon reading is the
+#: closure it always was; the closing rule carries `finfish: true` and the verdict it gives carries `f: 1`
+#: (`deliver.salmon.verdict_on`), so the app closes the page — trout included — from the same verdict the salmon card
+#: reads. A finfish closure printed for PART of the water inside a limits cell is that part's (`_RE_PART_CLOSURE`).
+_RE_FINFISH = re.compile(r"\bfinfish\s+closure\b", re.I)
+#: the keys a typed DFO rule carries that the catalogue model does not hold: (T787) `hidden`, (T796 A6) `finfish`
+DFO_MARKS = ("hidden", "finfish")
+
+
+def typed_rules(rec: dict, rule_base: str, order: int) -> List[dict]:
+    """ONE scraped row -> its typed rules as the feed stores them: `to_rules`, dumped, with the DFO marks — `finfish`
+    on the closure a "Finfish closure" row states (T796 A6) and `hidden` on every rule of a row from a table DFO
+    commented out (T787). The one way a row is typed (`feed.type_rows`, the vectors' hand rows)."""
+    rules = [r.model_dump(mode="json", exclude_defaults=True, by_alias=True) for r in to_rules(rec, rule_base, order)]
+    if _RE_FINFISH.search(_RE_PART_CLOSURE.sub(" ", rec.get("limits_gear") or "")):
+        rules = [{**r, "finfish": True} if (r.get("type") == "retention_limit" and r.get("may_target") is False
+                                            and not r.get("within")) else r for r in rules]
+    return [{**r, "hidden": True} for r in rules] if rec.get("hidden") else rules
+
+
+def as_catalogue(rule: dict) -> dict:
+    """A typed DFO rule without its DFO marks (`DFO_MARKS`): what `CatalogueRule` validates (it refuses extra keys)."""
+    return {k: v for k, v in rule.items() if k not in DFO_MARKS}

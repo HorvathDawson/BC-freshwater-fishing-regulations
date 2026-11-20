@@ -1,6 +1,6 @@
 # T624 — Runs keeps its own day; a shared water link is the water's own page
 
-Status: IN REVIEW (a938841a0)
+Status: DONE — a938841a0 (closed on the owner's word 2026-11-20; see the last section)
 
 Source: owner 2026-11-10, answering T620's two open choices (T608B findings G10 and G17).
 
@@ -20,3 +20,9 @@ Source: owner 2026-11-10, answering T620's two open choices (T608B findings G10 
   water.
 
 Depends: T620. Size: S. Owner: looks at the shots.
+
+## Closed 2026-11-20
+
+Closed 2026-11-20 on the owner's word ("Couldn't we just assume most of these are done already?"): the owner's look at Runs keeping its own day and the shared link opening the water page is taken as done.
+
+Status line before closing: IN REVIEW (a938841a0)

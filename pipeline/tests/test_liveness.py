@@ -58,7 +58,7 @@ def test_the_list_is_none_not_empty_when_it_says_nothing():
 def test_the_feed_asks_todays_list_and_says_how_far_the_roster_drifted():
     feed = LV.listed_stations(LIST)
     assert (LV.stations_to_ask(ROWS, feed), LV.roster_drift(ROWS, feed)) == (
-        (["A", "N", "S"], "eccc"), {"joined": ["N", "S"], "left": ["X"]})
+        (["A", "N", "S"], "eccc"), {"joined": ["N", "S"], "left": ["X"], "unknown": ["N"]})
     assert (LV.stations_to_ask(ROWS, None), LV.roster_drift(ROWS, None)) == ((["A", "X"], "roster"), None)
 
 

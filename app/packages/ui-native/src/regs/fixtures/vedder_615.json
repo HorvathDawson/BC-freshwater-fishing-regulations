@@ -10,7 +10,8 @@
   "closedMore": [],
   "day": null,
   "lines": [],
-  "mode": null
+  "mode": null,
+  "src": null
  },
  "header": {
   "date": "Jun 15",
@@ -166,6 +167,7 @@
    "status": "closed",
    "todayAt": 0.4520547945205479
   },
+  "trout": null,
   "whereNot": null
  },
  "licence": null,

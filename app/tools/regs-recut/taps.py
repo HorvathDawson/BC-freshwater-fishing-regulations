@@ -33,18 +33,19 @@ that index. Declared states are themselves checked, so an entry that no longer d
   and rows, but the atlas added or removed sections under it (T67: braid cuts, a ditch leaving its river, moved
   length cuts), so only its section COUNT differs. Tapped and compared whole (`recounted` on the state: the reason and
   the store's count); the parity holds the subtitle to the golden's with the count replaced.
-- A "closed all year" golden part (no label to check) is held to the store's part at its index being closed all year
-  (T67: a renumbering put an open part at a closed state's index); one that is not must be declared.
+- A "closed all year" golden part has no label, so (T765) it is declared by its two END TOKENS in CLOSED_ENDS and held
+  to them wherever it is tapped (moved, grown or not); every closed state not gone or tidal must be declared there,
+  and every stale declaration is listed in ONE run.
 - PART_TIDAL (T278): a tidal cut (T166/T185/T212: the piece below a stream's tidal boundary leaves every binding, no
   freshwater rules, off the map) took the golden part. `(None, tidal_ix, why)`: the WHOLE golden part is tidal now — the
   store's part `tidal_ix` is unkeyed and unlabelled (the tidal remainder) and no store part has the golden label; written
-  to taps.json `tidal` (not `states`), and the parity excludes the state in every block (exclusions.ts PART_TIDAL_IDS).
+  to taps.json `tidal` (not `states`), and the parity excludes the state in every block (golden.ts `tidal`).
   `(ix, tidal_ix, why)`: the freshwater remainder of the golden part is the store's part `ix` (its extent words changed,
   its rows did not) — tapped and compared like PART_GROWN (`tidal` on the state). A part only RENUMBERED by a tidal cut
   is PART_MOVED, citing the cut. Each entry cites its cut (the bundle's `tidal` table: section -> split / entry).
 - PART_GONE: the golden part's water merged into the store's part `now_in` (or, T67, was split or recounted so
   the page's merged closed list is not the golden's); no store part has the golden label and count. Written to taps.json `gone` (not `states`), and the parity excludes the state with this reason
-  (conformance/src/regs/exclusions.ts PART_GONE_IDS).
+  (golden.ts `gone`).
 """
 import argparse, datetime, json, re, sys
 from pathlib import Path
@@ -100,10 +101,22 @@ T228 = ("T228 (a757756b, owner 2026-10-28): no-access land breaks a water's piec
 _LEN = "the automatic length cuts moved off braid-spanned junctions (owner Q2)"
 _GAUGE = "the old perpendicular sweep's gauge cuts are gone"
 COLUMBIA_R11 = ('2026-10-27 (owner, decisions.md "needs a split"): columbia_river.r11 \'Speed restriction (10 km/h) from Mud Lake to Columbia Lake\' now binds the Fairmont -> Columbia Lake stretch, so the golden\'s two-stretch part (Kinbasket Lake -> Donald + Fairmont -> Columbia Lake outlet, 3 sections) is two parts: 3 (Fairmont, 2 sections, with the speed limit) and 7 (Kinbasket -> Donald, 1 section)')
+T794_BC = ("T794 (owner 2026-11-16 'Go on all', 0e2b483b6, r-54d7abce9bec): the Atnarko's 'No powered boats … from Goat "
+           "Creek to the confluence with Talchako River' (atnarko_bella_coola_rivers.r12) ends at the Atnarko's mouth, off "
+           "the Bella Coola's side channels, so the golden part (4 side channels joining 55–59.1 km from the mouth; store "
+           "part 0 of 2 in r-46e4355a7277, 7 sections) has the mainstem's rows and is in store part 0, 'From the mouth up "
+           "to the Talchako River confluence' (47 + 7 = 54 sections): the Bella Coola has one part")
 PART_MOVED = {"x15p16_1010": 14,   # (T183) 15; then T278 FRASER_TIDAL: 14
               # (T278) FRASER_TIDAL: the golden part at old store part k (k > 3) is store part k - 1 (x15p9: closed all
               # year, held to the store's part being closed)
-              "x15p4_1010": 3, "x15p5_1010": 4, "x15p6_1010": 5, "x15p7_1010": 6, "x15p8_1010": 7, "x15p9_1010": 8,
+              "x15p4_1010": 3, "x15p5_1010": 4, "x15p6_1010": 5, "x15p7_1010": 6, "x15p8_1010": 7,
+              # (r-46e4355a7277, 2026-11-16) x15p9 names the part itself: 7, "From the signs 2800 m downstream of Hell's
+              # Gate up to Hell's Gate" (closed all year, 1 section, the 211.91 km mark; store part 5 before this release).
+              # Two more runs below it (the Hwy 1 bridge at Hope and the Alexandra Bridge are part ends now) moved every
+              # index up by two, and the old declared index 8 landed on the NEXT closed part (Hell's Gate -> the signs
+              # 6,500 m below Boston Bar): a closed part has no label to check, so nothing objected and the golden page
+              # was compared with the wrong stretch (fraser_river r3 / r12 in place of r2 / r11).
+              "x15p9_1010": 7,
               "x15p11_1010": 10, "x15p12_1010": 11, "x15p13_1010": 12,
               # (T278) CAMPBELL_TIDAL renumbers the two parts after the golden part 3
               "x16p4_1010": 3, "x16p5_1010": 4,
@@ -125,7 +138,8 @@ MOVED_WHY = {**{k: FRASER_TIDAL for k in ("x15p4_1010", "x15p5_1010", "x15p6_101
                                           "x15p11_1010", "x15p12_1010", "x15p13_1010")},
              "x16p4_1010": CAMPBELL_TIDAL, "x16p5_1010": CAMPBELL_TIDAL,
              "x16p7_1010": f"{T517}: the Campbell's closed parts are 5 and 9 in river order"}
-              # (T187) x22p6 (the Peace's Dinosaur Lake part) is back to its golden place and size: part 6, 1 section
+              # (T187) x22p6 (the Peace's Dinosaur Lake part) was back to its golden place and size: part 6, 1 section;
+              # (T794, r-54d7abce9bec) it is PART_GONE now (closed with the Dinosaur Lake row)
 #: gone states whose water's list of parts is still the golden's (labels and order the Parts sheet draws): not `recut`
 GONE_NOT_RECUT: set[str] = set()
 #: the reason a water is `recut` (its list of parts is not the golden's), by the state that shows it
@@ -148,7 +162,7 @@ def _t517_at(ix, group):
 
 
 PART_GROWN = {
-    "x15p0_1010": (19, f"{T183}: a Fraser piece at the Region 5 / 7A line carries both regions' rules and joined part 16 (109 -> 108 sections); then T678 D1 (owner 2026-11-11, r-0a9930fb8826): two ponds on the upper Fraser are the river now (3 -> 1 lakes, 108 -> 112 sections; same rows), and river order numbers it part 19; then the T678 junction fix (owner 2026-11-13, r-adc4e248a163): a corrected junction measure re-cuts one Fraser piece (112 -> 113 sections; same part, same ends, same 1,407.21 km, same rows)"),
+    "x15p0_1010": (23, f"{T183}: a Fraser piece at the Region 5 / 7A line carries both regions' rules and joined part 16 (109 -> 108 sections); then T678 D1 (owner 2026-11-11, r-0a9930fb8826): two ponds on the upper Fraser are the river now (3 -> 1 lakes, 108 -> 112 sections; same rows), and river order numbers it part 19; then the T678 junction fix (owner 2026-11-13, r-adc4e248a163): a corrected junction measure re-cuts one Fraser piece (112 -> 113 sections; same part, same ends, same 1,407.21 km, same rows); then r-46e4355a7277 (2026-11-16): the release has 24 Fraser parts where r-f749475d0962 had 20 — four more stretches in Region 3 between the Thompson confluence and the Bridge River Rapids (parts 12 to 16), where two Region 3 DFO places went from no extent to bound (3:fraser-river:in-that-portion… 3 sections, 3:fraser-river:mainstem-waters… 31; the owner's saves landed 2026-11-15) — so the golden part, unchanged (same label, 113 sections), is part 23, not 19"),
     "x14p0_1010": (3, f"{T220}: braid pieces that close a kept side channel were restored (26 -> 27 sections); then T678 D1 (owner 2026-11-11, r-0a9930fb8826): the Kitimat's pond lake:329233923 is the river now (27 -> 28 sections, no lake; same rows), and river order numbers it part 3"),
     "x13p4_1010": (7, "T322 (owner 2026-10-29 slough calls, folded 2026-11-03): a lake on this water is a slough of its stream now, so the part runs through one lake fewer (35 -> 42 sections; same rows); then T678 D1 (owner 2026-11-11, r-0a9930fb8826): 21 ponds on the Dean are the river now (24 -> 3 lakes, 17 -> 27 sections; same rows)"
                    + _t517_at(7, "parts 7, 8 and 9")),
@@ -175,12 +189,25 @@ PART_GROWN = {
                      "group and rows), and the below-Reserve stretch of group 0 (old part 2, 46 sections) is now two runs "
                      "either side of the Reserve (parts 1 and 3, 44 + 2 sections, same key), so this group is store parts 4 and 5"
                      "; then T710 (owner 2026-11-13 'List it where it sits', r-a9914d6b25b7): the Reserve side channel "
-                     "(old part 18) is listed after part 3, so this group is store parts 5 and 6 (order only, no binding)"),
+                     "(old part 18) is listed after part 3, so this group is store parts 5 and 6 (order only, no binding)"
+                     "; then r-46e4355a7277 (2026-11-16): the confluence cut skeena_river__lakelse_river_into_skeena_river "
+                     "(the owner's cut answers of 2026-11-15) divides this group's first run at the Lakelse — Exchamsiks "
+                     "-> Lakelse, 55 sections to the 108.51 km mark (store part 5, tapped), then Lakelse -> Zymagotitz, 8 "
+                     "sections to the same 115.77 km mark (part 6), then part 7 (4 sections) as before: 60 -> 55 + 8, same "
+                     "key, same group, same rows; and the group's upper cut is labelled as the owner named it, 'the top of "
+                     "Hell's Gate (1.5 km above the Kitsumkalum)' (label only)"),
     "x17p7_1010": (5, "T697 part ends (owner 2026-11-12, RULINGS P55 follow-up 'Yes, read the real boundary', 040b79d16, "
                       "r-adc4e248a163): the Babine's juvenile counting weir cut is aliased onto Nilkitkwa Lake's outlet edge "
                       "and now keeps its own name (bundle.spans.end_token), so the part's top end reads 'the juvenile "
                       "counting weir', not 'the Nilkitkwa Lake outlet' (label only; same piece at the 99.05 km mark, 1 "
                       "section, open, same rule rows; owner 2026-11-13 'Accept same-piece changes')"),
+    "x17p2_1010": (7, "T812 (owner 2026-11-16 'split babine lake on the line like our other split lakes', a9475700d, "
+                      "r-54d7abce9bec): Babine Lake is two lakes split on the due-south Gullwing Creek line (added_lakes "
+                      "wbk:-24 'Babine Lake — Main Body' and wbk:-25 'Babine Lake — East of Gullwing Creek', part_of "
+                      "wbk:329026676), so this part's top end is the Main Body's outlet (lake_outlet:wbk:-24, was "
+                      "wbk:329026676) and reads 'the Babine Lake — Main Body outlet' (label only; same piece, 110.73 -> "
+                      "111.12 km, 1 section, same rows) — store part 7, where river order numbers it (r-46e4355a7277 "
+                      "tapped it there by label)"),
     "x9p3_1010": (3, "T497 (owner 2026-11-08, follow connections): three pieces of this stretch are the Old Kootenay "
                      "River Channel's now, which also renumbers the Kootenay's parts: 4 -> 1 sections, same rows (was "
                      "PART_RECOUNTED at 7, carried to store part 3 by label); then T708 (owner 2026-11-13, Kootenay "
@@ -195,12 +222,13 @@ PART_GROWN_IS: dict = {
     'x14p0_1010': ('From the Hwy 37 bridge up to the top of the river', 28),
     'x27p0_1010': ('Two stretches: from Region 7A boundary up to Region 6 boundary (through 4 lakes), and from Region 6 boundary up to the top of the river (through 1 lake)', 72),
     'x27p2_1010': ('From the mouth up to Region 5 boundary', 3),
-    'x19p1_1010': ('From the Exchamsiks River confluence up to 1.5 km upstream of the Kitsumkalum River confluence', 60),
+    'x19p1_1010': ("From the Exchamsiks River confluence up to the top of Hell's Gate (1.5 km above the Kitsumkalum)", 55),
     'x13p4_1010': ('From Anahim Lake up to the top of the river (through 3 lakes)', 27),
     'x9p1_1010': ('Upstream of Koocanusa Reservoir · From the Koocanusa Reservoir upstream end up to the White River confluence', 56),
     'x9p0_1010': ('From the B.C. border up to the Lake Koocanusa outlet', 1),
     'x5p0_1010': ('Upstream of Josephine Falls / See exceptions · From the Josephine Falls up to the top of the river', 11),
     'x17p7_1010': ('From the fishing boundary signs 100 m upstream of adult fish counting fence up to the juvenile counting weir', 1),
+    'x17p2_1010': ('From the Fort Babine Bridge up to the Babine Lake — Main Body outlet', 1),
     'x9p3_1010': ('Downstream of Idaho border · From the CPR Bridge near Creston up to the Old Kootenay River Channel confluence', 1),
 }
 PART_GONE = {
@@ -210,6 +238,13 @@ PART_GONE = {
     "x13p2_1010": (3, f"{T220}: restored braid pieces renumbered the Dean; the golden closed part (the page's merged "
                       f"'closed all year', 4 sections) is store parts 3 and 6 now, part 2 is the open 0.5-3.5 km stretch"),
     "x18p3_1010": (3, COLUMBIA_R11),
+    "x22p6_1010": (9, "T794 (owner 2026-11-16 'Go on all', 673e0df2a, r-54d7abce9bec): the Dinosaur Lake row's 'No Fishing "
+                      "from W.A.C. Bennett Dam to 100 m south of Gething Creek' (p.65) binds the Peace below the dam as the "
+                      "new rule dinosaur_lake.r1b (between peace_river__dinosaur_lake and peace_river__williston_lake_zone_b), "
+                      "so the golden part (open, the zone's rows only) is store part 9 closed all year, labelled 'Reservoir "
+                      "Downstream of W.A.C. Bennett Dam · From Dinosaur Lake up to the Williston Lake — Zone B outlet': same "
+                      "piece (1706.11 -> 1706.74 km, 1 section), its rows are not the golden's"),
+    "bc1_501": (0, T794_BC), "bc1_1010": (0, T794_BC),
     "x27p1_1010": (0, f"{T183}: the West Road's Region 6 stretch below Carnlick Creek shares its rules with part 0 now"),
     "x15p17_1010": (15, f"{T183}: the golden part (356364114:674465, Region 5 and Region 7A) shares its rules with 699253 and is in part 16 (T278: 15) now"),
     "x15p18_1010": (15, f"{T183}: the golden part (356364114:699253, Region 5 and Region 7A) shares its rules with 674465 and is in part 16 (T278: 15) now"),
@@ -245,10 +280,10 @@ PART_RECOUNTED = {
                       "Babine Bridge cut and now joins it (gauge an alias), so the sliver between is gone: 2 -> 1 sections"),
     "x13p3_1010": (2, f"{T67}: the Dean's side channel 360227736 is cut at the 0.5 km sign (421 m): 2 -> 3 sections; "
                       f"then {T220}: restored braid pieces, 4 sections, renumbered 3 -> 2 (part order follows rule-set ids)"),
-    "bc1_501": (1, f"{T220}: braid pieces that close a kept side channel were restored: 6 -> 7 sections"),
-    "bc0_501": (0, f"{T220}: braid pieces that close a kept side channel were restored: 44 -> 47 sections"),
-    "bc1_1010": (1, f"{T220}: braid pieces that close a kept side channel were restored: 6 -> 7 sections"),
-    "bc0_1010": (0, f"{T220}: braid pieces that close a kept side channel were restored: 44 -> 47 sections"),
+    "bc0_501": (0, f"{T220}: braid pieces that close a kept side channel were restored: 44 -> 47 sections; then "
+                   f"{T794_BC}: 47 -> 54 sections"),
+    "bc0_1010": (0, f"{T220}: braid pieces that close a kept side channel were restored: 44 -> 47 sections; then "
+                   f"{T794_BC}: 47 -> 54 sections"),
     "x13p1_1010": (1, f"{T220}: braid pieces that close a kept side channel were restored: 14 -> 15 sections"),
     "x15p1_1010": (1, f"{T220}: braid pieces that close a kept side channel were restored: 35 -> 36 sections"),
     "x21p1_1010": (1, f"{T220}: braid pieces that close a kept side channel were restored: 36 -> 37 sections"),
@@ -331,6 +366,57 @@ def t517_group(golden, parts):
         return None
     hit = sorted(ix for ix, (sl, _) in parts.items() if same_part((lab, parts[ix][1]), (sl, parts[ix][1])))
     return hit[0] if hit else None
+
+
+#: (T765) a golden part that is closed all year has no label to compare, so it is declared by what it IS: the two end
+#: tokens (`part.lo_s` / `part.hi_s`) of the store part it is. A release that adds part ends moves the index; the ends
+#: do not move, so a wrong landing is an error that names the state, the declared ends and what the store holds there.
+CLOSED_ENDS = {
+    "chw0_1010": ("chilliwack_vedder_rivers__boundary_signs_below_slesse_creek", "area:CHILLIWACK RIVER ECOLOGICAL RESERVE"),
+    "x15p9_1010": ("fraser_river__signs_2800_m_downstream_of_hell_s_gate", "fraser_river__hell_s_gate"),
+    "x16p7_1010": ("campbell_river__strathcona_dam_100_m_downstream", "campbell_river__strathcona_dam"),
+    "x17p5_1010": ("babine_river__signs_80_m_downstream_of_adult_fish_counting_fence", "babine_river__adult_counting_fence"),
+}
+
+
+def closed_state(st):
+    """Is the golden state's part a closed-all-year one (no label)? Its `sub` is 'kind · N sections · closed all year'."""
+    return golden_part(st)[0] == "closed all year"
+
+
+def ends_problem(sid, ix, ends_at, declared=CLOSED_ENDS):
+    """(T765) None when the store part `ix` has the declared ends of closed state `sid`, else the sentence naming the
+    state, the declared index, the declared ends and what the store holds there. `ends_at` is {part_ix: (lo, hi)}."""
+    want = declared.get(sid)
+    if want is None:
+        return f"{sid}: a closed golden part with no declared ends — add it to CLOSED_ENDS (store part {ix} holds {ends_at.get(ix)})"
+    got = ends_at.get(ix)
+    if tuple(got or ()) != tuple(want):
+        found = sorted(i for i, e in ends_at.items() if tuple(e) == tuple(want))
+        return (f"{sid}: declared store part {ix} should have ends {want} but holds {got}"
+                + (f"; those ends are store part {found}" if found else "; no store part has those ends"))
+    return None
+
+
+def resolve_all(states, resolve_one, ends_of):
+    """(T765) Resolve every state, collecting EVERY stale declaration (one run names them all, not the first).
+    `resolve_one(sid, st)` -> (ix, gone) or raises SystemExit; `ends_of(sid, st)` -> {part_ix: (lo, hi)} or None for a
+    state with no store water. Returns ({sid: (ix, gone)}, [problems]); a closed state that is tapped is held to its ends."""
+    done, problems = {}, []
+    for sid, st in states.items():
+        try:
+            ix, gone = resolve_one(sid, st)
+        except SystemExit as e:
+            problems.append(str(e))
+            continue
+        ends = ends_of(sid, st)
+        if gone is None and ends is not None and closed_state(st):
+            bad = ends_problem(sid, ix, ends)
+            if bad:
+                problems.append(f"taps: {bad}")
+                continue
+        done[sid] = (ix, gone)
+    return done, problems
 
 
 def main():
@@ -468,6 +554,16 @@ def main():
                              "not: the release renumbered the water — declare the state in PART_GONE")
         return part_ix, None
 
+    def ends_at(item):
+        return {ix: (s.s(lo), s.s(hi)) for ix, lo, hi in
+                c.execute("select part_ix, lo_s, hi_s from part where item_ord=?", (ord_of[item],))}
+
+    # the cell's frame ids: the five always-on sections, then any optional section the store carries (T810: `trout`,
+    # contract.OPTIONAL_SECTIONS); the app's harness reads the same columns, so a side release's taps name them too
+    have = {r[1] for r in c.execute("pragma table_info(cell)")}
+    CELL_COLS = ("ladder", "rows", "gear", "licence", "display") + tuple(k for k in ("trout",) if k in have)
+    CELL_SQL = f"select {', '.join(CELL_COLS)} from cell where akey=? and s=?"
+
     def tap(item, part_ix, month, day, weekday):
         o = ord_of.get(item)
         if o is None:
@@ -482,7 +578,7 @@ def main():
         if mom is not None:
             moms = [M[i] for i in json.loads(c.execute("select ix from segmom where mom=?", (mom,)).fetchone()[0])]
         si = E.segment_index(starts, day_of((month, day)), moms, weekday, False)
-        cell = c.execute("select ladder, rows, gear, licence, display from cell where akey=? and s=?", (akey, si)).fetchone()
+        cell = c.execute(CELL_SQL, (akey, si)).fetchone()
         # the display frame of every day of the leap calendar, each at ITS OWN weekday in 2026 (page v36 segOf(w, md) =
         # segAt(w, md, weekdayOf(md), false), the snapshot's runsOf); day 60 (Feb 29, absent in 2026) at its first moment
         days = []
@@ -495,7 +591,7 @@ def main():
                 sd = E.segment_index(starts, d, moms, WD_OF_DAY[d], False)
             days.append(c.execute("select display from cell where akey=? and s=?", (akey, sd)).fetchone()[0])
         return {"item_ord": o, "akey": akey, "seg": seg, "mom": mom, "nseg": nseg, "starts": starts, "moments": moms,
-                "s": si, "cell": dict(zip(("ladder", "rows", "gear", "licence", "display"), cell)), "displayByDay": days}
+                "s": si, "cell": dict(zip(CELL_COLS, cell)), "displayByDay": days}
 
     def leap(cid, item, part_ix, year, month, day):
         wd = weekday_of(year, month, day)
@@ -505,22 +601,35 @@ def main():
         moms = None if mom is None else [M[i] for i in json.loads(c.execute("select ix from segmom where mom=?", (mom,)).fetchone()[0])]
         rd = reading_day_of((month, day))
         si = E.segment_index(starts, rd, moms, wd, False)
-        cell = c.execute("select ladder, rows, gear, licence, display from cell where akey=? and s=?", (akey, si)).fetchone()
+        cell = c.execute(CELL_SQL, (akey, si)).fetchone()
         return {"id": cid, "item": item, "partIx": part_ix, "date": f"{year}-{month:02d}-{day:02d}", "weekday": wd,
                 "readingDay": rd, "akey": akey, "starts": starts, "moments": moms, "s": si,
-                "cell": dict(zip(("ladder", "rows", "gear", "licence", "display"), cell))}
+                "cell": dict(zip(CELL_COLS, cell))}
 
     out = {"meta": {"generator": "app/tools/regs-recut/taps.py", "store": {k: meta.get(k) for k in ("format", "section_handles", "reach_digest", "rule_ids_sha256", "answers_sha256", "store_digest", "layout")},
                     "golden": G["meta"].get("sha"), "version": G["meta"].get("version"), "year": 2026}, "states": {}, "unnamed": [],
            "leap": [leap("zymoetz_20360229", "gnis:3137", 0, 2036, 2, 29), leap("zymoetz_20360228", "gnis:3137", 0, 2036, 2, 28),
                     leap("zymoetz_20280229", "gnis:3137", 0, 2028, 2, 29), leap("zymoetz_20280228", "gnis:3137", 0, 2028, 2, 28)],
            "gone": {}, "tidal": {}, "recut": {}}
+    def _pix(st):
+        return int(st["part"]) if st.get("part") not in (None, "") else 0
+    resolved, problems = resolve_all(
+        G["states"],
+        lambda sid, st: resolve(sid, st, by_name.get(st["water"]), _pix(st)) if by_name.get(st["water"]) else (_pix(st), None),
+        lambda sid, st: ends_at(by_name[st["water"]]) if by_name.get(st["water"]) in ord_of else None)
+    # (T765) a closed golden part must be declared by its ends, tapped or not gone
+    undeclared = sorted(sid for sid, st in G["states"].items() if closed_state(st) and sid not in CLOSED_ENDS
+                        and sid not in PART_GONE and sid not in PART_TIDAL)
+    problems += [f"taps: {sid}: a closed golden part with no declared ends — add it to CLOSED_ENDS" for sid in undeclared
+                 if not any(p.startswith(f"taps: {sid}:") for p in problems)]
+    if problems:
+        raise SystemExit(f"taps: {len(problems)} stale declaration(s):\n  " + "\n  ".join(problems))
     for sid, st in G["states"].items():
         item = by_name.get(st["water"])
-        part_ix = int(st["part"]) if st.get("part") not in (None, "") else 0
+        part_ix = _pix(st)
         md = st["md"]; month, day = md // 100, md % 100
         wd = WEEKDAYS[datetime.date(2026, month, day).weekday()]
-        ix, gone = resolve(sid, st, item, part_ix) if item else (part_ix, None)
+        ix, gone = resolved[sid]
         if gone is not None:
             out["tidal" if sid in PART_TIDAL else "gone"][sid] = {**gone, "md": md, "date": f"2026-{month:02d}-{day:02d}", "weekday": wd}
             continue

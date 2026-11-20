@@ -31,7 +31,7 @@ const sync = syncVM({ feed: true, feedFetchedAt: DATA.feedFetchedAt!, checkedAt:
 function more(onSync: () => void) {
   return render(
     <LayoutWidthContext.Provider value={null}>
-      <MoreScreen palette={LIGHT} data={DATA} back="Map" onBack={() => {}} contact={null} theme="light" onTheme={() => {}}
+      <MoreScreen palette={LIGHT} data={DATA} onBack={() => {}} contact={null} theme="light" onTheme={() => {}}
                   onPick={() => {}} sync={sync} onSync={onSync} />
     </LayoutWidthContext.Provider>);
 }
@@ -67,7 +67,7 @@ describe("More → Data has one sync control (T428, T703)", () => {
   it("nothing above the table when nothing is wrong: no update lines, no 'Checked' words, no new-release banner beside the button", () => {
     const quiet: DataInput = { ...DATA, updates: { sources: DATA.updates!.sources.filter((x) => x.k !== "dfo"), release: null } };
     render(<LayoutWidthContext.Provider value={null}>
-      <MoreScreen palette={LIGHT} data={quiet} back="Map" onBack={() => {}} contact={null} theme="light" onTheme={() => {}}
+      <MoreScreen palette={LIGHT} data={quiet} onBack={() => {}} contact={null} theme="light" onTheme={() => {}}
                   onPick={() => {}} sync={sync} />
     </LayoutWidthContext.Provider>);
     expect(screen.queryByTestId("data-updates")).toBeNull();
@@ -77,14 +77,14 @@ describe("More → Data has one sync control (T428, T703)", () => {
   it("a release this app cannot use, or one it refused, is said above the table (the button's words never say it)", () => {
     const refused: DataInput = { ...DATA, updates: { sources: [], release: { phase: "current", progress: null, refused: "r-2" } } };
     const { unmount } = render(<LayoutWidthContext.Provider value={null}>
-      <MoreScreen palette={LIGHT} data={refused} back="Map" onBack={() => {}} contact={null} theme="light" onTheme={() => {}}
+      <MoreScreen palette={LIGHT} data={refused} onBack={() => {}} contact={null} theme="light" onTheme={() => {}}
                   onPick={() => {}} sync={sync} />
     </LayoutWidthContext.Provider>);
     expect(screen.getByTestId("data-updates-notice").textContent).toBe(UPDATE_WORDS.row.refused);
     unmount();
     const old: DataInput = { ...DATA, updates: { sources: [], release: { phase: "app-too-old", progress: null } } };
     render(<LayoutWidthContext.Provider value={null}>
-      <MoreScreen palette={LIGHT} data={old} back="Map" onBack={() => {}} contact={null} theme="light" onTheme={() => {}}
+      <MoreScreen palette={LIGHT} data={old} onBack={() => {}} contact={null} theme="light" onTheme={() => {}}
                   onPick={() => {}} sync={sync} />
     </LayoutWidthContext.Provider>);
     expect(screen.getByTestId("data-updates-notice").textContent).toBe(UPDATE_WORDS.row.appTooOld);
@@ -93,7 +93,7 @@ describe("More → Data has one sync control (T428, T703)", () => {
   it("the button's state shows in words when it asks something (a newer release; a failure), once — no banner repeats it", () => {
     const newer = syncVM({ feed: true, feedFetchedAt: DATA.feedFetchedAt!, checkedAt: NOW, checking: false, newRelease: "r-9", now: NOW });
     render(<LayoutWidthContext.Provider value={null}>
-      <MoreScreen palette={LIGHT} data={{ ...DATA, newRelease: "r-9" }} back="Map" onBack={() => {}} contact={null} theme="light"
+      <MoreScreen palette={LIGHT} data={{ ...DATA, newRelease: "r-9" }} onBack={() => {}} contact={null} theme="light"
                   onTheme={() => {}} onPick={() => {}} sync={newer} />
     </LayoutWidthContext.Provider>);
     expect(screen.getByTestId("more-sync-label").textContent).toBe(newer.label);
@@ -103,7 +103,7 @@ describe("More → Data has one sync control (T428, T703)", () => {
   it("without a sync button the newer-release banner and a download line say it instead", () => {
     const dl: DataInput = { ...DATA, newRelease: "r-9", updates: { sources: [], release: { phase: "waiting-wifi", progress: null } } };
     render(<LayoutWidthContext.Provider value={null}>
-      <MoreScreen palette={LIGHT} data={dl} back="Map" onBack={() => {}} contact={null} theme="light" onTheme={() => {}}
+      <MoreScreen palette={LIGHT} data={dl} onBack={() => {}} contact={null} theme="light" onTheme={() => {}}
                   onPick={() => {}} />
     </LayoutWidthContext.Provider>);
     expect(screen.getByTestId("data-new-release")).toBeTruthy();

@@ -9,10 +9,16 @@
  *
  * AT ITS DEFAULTS IT IS TODAY'S MAP: the one default that is not "off" is `hideInvisible` (owner 2026-11-06, after the
  * stressed A/B and a phone check: ON for every build) — it hides only layers drawing nothing, so the picture is the same.
+ * (T903, 2026-11-19, after interleaved A/Bs on the emulator) `paintDefault` and `labelMatch` are ON for every build too:
+ * the label tests written against the day's default, as hashed `match`es, draw exactly the same picture
+ * (`tools/paint-default.test.ts` evaluates both forms).
  * `lab.test.ts` pins that, that with it off the style comes back as the very object, and that each switch moves only
  * the layers it names.
  */
 import { useSyncExternalStore } from "react";
+import { labelGroup, LABEL_GROUPS, type LabelGroup } from "./label-hold";
+import { paintDefaultStyle } from "./paint-default";
+import type { ChannelValues } from "./style";
 
 export interface Lab {
   /** (T448) draw at most 2 device pixels per dp (today's map: on) */
@@ -32,10 +38,30 @@ export interface Lab {
   /** hide a layer whose every opacity is the constant 0: it draws nothing, but MapLibre Native still re-applies every
    *  stored feature-state to it each frame (T420 correction) */
   hideInvisible: boolean;
+  /** (T876) each kind of label drawn (today: on), to find which kind costs a quick pinch (`label-hold.ts` LabelGroup) */
+  waterNames: boolean;
+  placeNames: boolean;
+  roadNames: boolean;
+  areaNames: boolean;
+  gaugePills: boolean;
+  marks: boolean;
+  /** (T876) the labels wait while the zoom moves and come back at rest (today: on; native only) */
+  holdLabels: boolean;
+  /** (T903) each label test written against the day's default: the big set's complement (`paint-default.ts`; same look) */
+  paintDefault: boolean;
+  /** (T903) and each label test a hashed `match` instead of a scanned `in` (with `paintDefault`) */
+  labelMatch: boolean;
 }
+
+/** (T876) The lab switch of each kind of label. */
+export const LABEL_SWITCH: Readonly<Record<LabelGroup, keyof Lab>> = {
+  water: "waterNames", places: "placeNames", roads: "roadNames", areas: "areaNames", gauges: "gaugePills", marks: "marks",
+};
 
 export const LAB_DEFAULT: Readonly<Lab> = Object.freeze({
   pixelCap: true, prefetch: 4, streamsOneBucket: false, roads: true, landuse: true, labels: true, stateGapMs: 0, hideInvisible: true,
+  waterNames: true, placeNames: true, roadNames: true, areaNames: true, gaugePills: true, marks: true, holdLabels: true,
+  paintDefault: true, labelMatch: true,
 });
 
 /** Read once: Metro inlines `EXPO_PUBLIC_*` at build time. */
@@ -78,12 +104,17 @@ const drawsNothing = (l: Layer & { paint?: Record<string, unknown> }): boolean =
 };
 
 /** The style with the lab's switches applied; the SAME object when every style switch is at its default. */
-export function labStyle<S>(style: S, lab: Readonly<Lab>): S {
+export function labStyle<S>(style: S, lab: Readonly<Lab>, values: ChannelValues | null = null): S {
+  // (T903) the label tests against the day's default, before the other switches
+  if (lab.paintDefault) return labStyle(paintDefaultStyle(style, values, { match: lab.labelMatch }), { ...lab, paintDefault: false }, values);
   const s = style as unknown as Style;
-  if (!lab.streamsOneBucket && lab.roads && lab.landuse && lab.labels && !lab.hideInvisible) return style;
+  const kindsOff = LABEL_GROUPS.filter((g) => !lab[LABEL_SWITCH[g]]);
+  if (!lab.streamsOneBucket && lab.roads && lab.landuse && lab.labels && !lab.hideInvisible && !kindsOff.length) return style;
   const layers = s.layers.map((l) => {
     if (lab.hideInvisible && drawsNothing(l)) return hidden(l);
     if (!lab.labels && l.type === "symbol") return hidden(l);
+    const kind = labelGroup(l);
+    if (kind && kindsOff.includes(kind)) return hidden(l);
     if (!lab.roads && l.source === "basemap" && l["source-layer"] === "roads") return hidden(l);
     if (!lab.landuse && l.source === "basemap" && l["source-layer"] === "landuse") return hidden(l);
     if (lab.streamsOneBucket && l.type === "line" && l.source === "atlas" && l["source-layer"] === "stream") {

@@ -2,10 +2,12 @@
 // (feeds status + freshness, manifest, synopsis, a /water/ page, a legacy /waterbody/ 301, private/ not served) and a
 // headless Chrome (regs-web/cdp.mjs — the repo's browser driver, no npm dependency) on the live app: the map paints
 // (phone + desktop), the attribution names OpenStreetMap, the Salmon and Run timing modes repaint it, a tap opens a
-// named water's regulations, a tap opens an unnamed stream, Conditions shows a gauge reading, the rule book PDF opens.
+// named water's regulations, a tap opens an unnamed stream, Conditions shows a gauge reading, the rule book PDF opens; (T737) `--only firsttap` (opt-in, not in the default run: it is a timing
+// measure): on a fresh profile the Fraser's Region 2 part is tapped 3 s after paint and again after a pan to Lillooet;
+// each is WARNed over 4 s to readable and FAILs over 10 s (the complete time is logged).
 //
 //   node app/tools/smoke-staging.mjs [--url https://staging.canifishthis.ca] [--shots <dir>] [--slug vedder-river]
-//                                    [--only http,browser,desktop]
+//                                    [--only http,browser,desktop,firsttap]   (firsttap is OPT-IN: slow networks, ~40 s)
 //   → prints one PASS/WARN/FAIL line per check; exit 1 on any FAIL, with the failing step's screenshot path.
 //   Screenshots of every browser step land in --shots (default: a fresh temp dir; the path is printed).
 //
@@ -18,7 +20,7 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import { open } from './regs-web/cdp.mjs';
-import { project, TARGETS } from './map-tap.mjs';
+import { project, TARGETS, HOME } from './map-tap.mjs';
 
 const args = process.argv.slice(2);
 const opt = (k, d) => { const i = args.indexOf(k); return i >= 0 ? args[i + 1] : d; };
@@ -31,7 +33,7 @@ const SLUG = opt('--slug', 'vedder-river');
 const ONLY = opt('--only', 'http,browser,desktop').split(',');
 const SHOTS = opt('--shots', null) ?? fs.mkdtempSync(path.join(os.tmpdir(), 'smoke-staging-'));
 fs.mkdirSync(SHOTS, { recursive: true });
-const PROD_HOST = /^https:\/\/(canifishthis\.ca|data\.canifishthis\.ca|bc-fishing-feeds\.horvath-dawson\.workers\.dev)$/;
+const PROD_HOST = /^https:\/\/(canifishthis\.ca|data\.canifishthis\.ca|feeds\.canifishthis\.ca|bc-fishing-feeds\.horvath-dawson\.workers\.dev)$/;   // T404: the prod feeds custom domain (its default)
 for (const u of [SITE, DATA, FEEDS])
   if (PROD) { if (!PROD_HOST.test(u)) { console.error(`smoke-staging --production: ${u} is not a production host — refusing`); process.exit(2); } }
   else if (!/^https:\/\/([a-z0-9-]+\.)*(staging\.canifishthis\.ca|data-staging\.canifishthis\.ca|[a-z0-9-]+-staging\.[a-z0-9-]+\.workers\.dev)$/.test(u)
@@ -330,11 +332,110 @@ async function desktop() {
   } finally { await b.close(); }
 }
 
+// ---------------------------------------------------------------- first tap (T737)
+// A FRESH profile (a new browser: empty cache, no service worker, no storage), the Fraser's Region 2 part tapped 3 s
+// after the map paints, then again after a pan to Lillooet (Region 3). Each tap is timed to READABLE (the Regulations
+// header on screen and on top, not merely in the page: the held pane is in the DOM, hidden) and to COMPLETE (every
+// release file / picture of the page in, quiet for 1.5 s); over 4 s to readable WARNs and over 10 s FAILs; the complete time is printed.
+// These are the first-click numbers of handoff/PLAN/app-integration/tickets/T737-web-first-tap-waits-for-prefetch.md.
+const FIRST_TAP_MS = 4000;        // the goal: a WARN above it
+const FIRST_TAP_FAIL_MS = 10000;  // the loose cap: a FAIL above it (a slow line is not a broken page)
+// vertices of the Fraser River's own line (stream_name layer, name "Fraser River"), clear of any mouth
+const FRASER = { lng: -122.204312, lat: 49.131767 };      // below Mission, a Region 2 part
+const LILLOOET = { lng: -121.871932, lat: 50.856968 };    // north of Lillooet, Region 3
+const visQ = (id) => `(() => { const e = ${tidQ(id)}; if (!e) return false; const r = e.getBoundingClientRect(); if (!(r.width > 0 && r.height > 0)) return false;
+  const x = Math.min(innerWidth - 1, Math.max(0, r.left + Math.min(r.width / 2, 40))), y = Math.min(innerHeight - 1, Math.max(0, r.top + r.height / 2));
+  const h = document.elementFromPoint(x, y); return !!h && (e.contains(h) || h.contains(e)); })()`;
+const mercX = (lo, z) => (lo + 180) / 360 * 512 * 2 ** z;
+const mercY = (la, z) => (1 - Math.log(Math.tan(Math.PI / 4 + la * Math.PI / 360)) / Math.PI) / 2 * 512 * 2 ** z;
+async function firstTap() {
+  const b = await open(`${SITE}/`, { width: 1440, height: 900, dpr: 1, network: true, init: SEEN });
+  let centre = { ...HOME };
+  const canvasBox = () => b.evaluate(`(() => { const c = document.querySelector('canvas.maplibregl-canvas') || document.querySelector('canvas'); if (!c) return null;
+    const r = c.getBoundingClientRect(); return { x: r.left + r.width / 2, y: r.top + r.height / 2, w: r.width, h: r.height }; })()`);
+  const panTo = async ({ lng, lat }) => {   // drag the map as a person pans, in steps of 40% of the canvas
+    const r = await canvasBox(); const z = HOME.zoom;
+    let dx = mercX(lng, z) - mercX(centre.lon, z), dy = mercY(lat, z) - mercY(centre.lat, z);
+    const step = Math.min(r.w, r.h) * 0.4;
+    while (Math.abs(dx) > 0.5 || Math.abs(dy) > 0.5) {
+      const sx = Math.max(-step, Math.min(step, dx)), sy = Math.max(-step, Math.min(step, dy));
+      await b.send('Input.dispatchMouseEvent', { type: 'mouseMoved', x: r.x, y: r.y });
+      await b.send('Input.dispatchMouseEvent', { type: 'mousePressed', x: r.x, y: r.y, button: 'left', clickCount: 1 });
+      for (let k = 1; k <= 12; k++) { await b.send('Input.dispatchMouseEvent', { type: 'mouseMoved', x: r.x - sx * k / 12, y: r.y - sy * k / 12, button: 'left', buttons: 1 }); await sleep(16); }
+      await sleep(350);
+      await b.send('Input.dispatchMouseEvent', { type: 'mouseReleased', x: r.x - sx, y: r.y - sy, button: 'left', clickCount: 1 });
+      dx -= sx; dy -= sy; await sleep(500);
+    }
+    centre = { lon: lng, lat };
+  };
+  /** tap `at` now; the ms to readable and to complete (null when it never completes inside 30 s) */
+  const timedTap = async (at, label, sweep, part) => {
+    await shot(b, `FT-before-${label}`);
+    const reqStart = b.requests.length;
+    let t0 = Date.now();
+    const box = await canvasBox(); const z = HOME.zoom;
+    // After a PAN the camera is a few tens of pixels off what was asked (drags lose some of their distance), so the tap is
+    // swept sideways until it opens the Fraser: a tap the page shows no sign of (no water frame within 1.5 s) missed
+    // every line; one that opens ANOTHER water (a creek beside it) is closed and the sweep goes on. The time counts from
+    // the tap that opened the Fraser. The first tap of a fresh page (`sweep` false) is never repeated: it is the test.
+    const nudges = sweep ? [0, ...Array.from({ length: 30 }, (_, i) => (i % 2 ? 1 : -1) * 6 * (Math.floor(i / 2) + 1))] : [0];
+    let swept = 0;
+    for (const nudge of nudges) {
+      t0 = Date.now();
+      await tapAt(b, Math.round(box.x + mercX(at.lng, z) - mercX(centre.lon, z)) + nudge, Math.round(box.y + mercY(at.lat, z) - mercY(centre.lat, z)));
+      let seen = false;
+      for (let i = 0; i < 38 && !seen; i++) { seen = await b.evaluate(`!!${tidQ('water-frame')}`).catch(() => false); if (!seen) await sleep(40); }
+      if (!seen) continue;
+      if (!sweep) break;
+      await until(b, `!!${tidQ('water-title')}?.innerText.trim()`, 8000, 'the tapped water').catch(() => {});
+      if (part.test(await b.evaluate(`${tidQ('water-title')}?.innerText + ' ' + document.body.innerText`).catch(() => ''))) break;
+      swept++;
+      await b.evaluate(`${tidQ('water-close')}?.click()`);
+      await until(b, `!${tidQ('water-frame')}`, 8000, 'the wrong water to close').catch(() => {});
+      await sleep(300);
+    }
+    let readable = null, complete = null;
+    while (Date.now() - t0 < 30000) {
+      if (readable === null && await b.evaluate(visQ('regs-header')).catch(() => false)) readable = Date.now() - t0;
+      if (readable !== null) {
+        const rel = b.requests.slice(reqStart).filter((r) => /\/release\/|\.webp|\.png|\.jpg/.test(r.url));
+        const last = Math.max(t0 + readable, ...rel.map((r) => r.doneAt ?? 0));
+        if (!rel.some((r) => !r.doneAt) && Date.now() - last > 1500) { complete = last - t0; break; }
+      }
+      await sleep(40);
+    }
+    await shot(b, `FT-${label}`);
+    return { readable, complete, swept, title: ((await b.evaluate(`(${tidQ('water-title')}?.innerText ?? '') + ' · ' + document.body.innerText`).catch(() => '')) || '').replace(/\n+/g, ' · ').slice(0, 240) };
+  };
+  try {
+    await until(b, `!!${tidQ('map-day')} && !!document.querySelector('canvas')`, 120000, 'the map (map-day)');
+    await dismiss(b);
+    await sleep(3000);   // the click comes 3 s after paint, while the background download is under way
+    for (const [name, at, label, part] of [['Fraser River, Region 2 part, 3 s after paint', FRASER, 'fraser-r2', /Fraser River[\s\S]*CPR Bridge at Mission/],
+                                           ['Fraser River at Lillooet (Region 3 part), after a pan', LILLOOET, 'fraser-lillooet', /Fraser River[\s\S]*Bridge River Rapids/]]) {
+      await check(`first tap: ${name} readable within ${FIRST_TAP_MS / 1000} s`, async () => {
+        if (at === LILLOOET) { await b.evaluate(`${tidQ('water-close')}?.click()`); await sleep(1200); await panTo(LILLOOET); await sleep(2000); }
+        const r = await timedTap(at, label, at === LILLOOET, part);
+        must(r.readable !== null, `the Regulations never became readable in 30 s (the tap opened "${r.title}")`);
+        must(part.test(r.title), `the tap opened "${r.title}", not the expected part of the Fraser River (${part})`);
+        const where = ([...r.title.matchAll(/Fraser River · ([^·]+)/g)].pop() ?? [r.title.slice(0, 80)])[0].trim();
+        const said = `${where}: readable ${(r.readable / 1000).toFixed(1)} s, complete ${r.complete === null ? 'not in 30 s' : (r.complete / 1000).toFixed(1) + ' s'}, ${r.swept} sweep tap(s)`;
+        must(r.readable <= FIRST_TAP_FAIL_MS, `readable after ${(r.readable / 1000).toFixed(1)} s (cap ${FIRST_TAP_FAIL_MS / 1000} s): ${said}`);
+        // a sweep tap means a miss or a wrong water came first: the files the right tap read were already warm, so its time is the weaker measure
+        if (r.readable > FIRST_TAP_MS) return { warn: `readable after ${(r.readable / 1000).toFixed(1)} s (goal ${FIRST_TAP_MS / 1000} s): ${said}` };
+        if (r.swept > 0) return { warn: `${r.swept} sweep tap(s) came first, so this tap read warm files: ${said}` };
+        return said;
+      });
+    }
+  } finally { await b.close(); }
+}
+
 const t0 = Date.now();
 console.log(`smoke: ${SITE} (data ${DATA}, feeds ${FEEDS}); shots → ${SHOTS}`);
 if (ONLY.includes('http')) await http();
 if (ONLY.includes('browser')) await browser().catch((e) => say('FAIL', 'phone session', e.message));
 if (ONLY.includes('desktop')) await desktop().catch((e) => say('FAIL', 'desktop session', e.message));
+if (ONLY.includes('firsttap')) await firstTap().catch((e) => say('FAIL', 'first-tap session', e.message));
 const fails = results.filter((r) => r.level === 'FAIL');
 console.log(`\n${fails.length ? 'SMOKE FAILED' : 'smoke ok'}: ${results.filter((r) => r.level === 'PASS').length} pass, ` +
   `${results.filter((r) => r.level === 'WARN').length} warn, ${fails.length} fail in ${((Date.now() - t0) / 1000).toFixed(0)} s; shots ${SHOTS}`);

@@ -12,7 +12,7 @@
  */
 import { openProbe } from "../openProbe";
 import { oneShot } from "../sha256";
-import { decodeAccessFile, decodeLakeFacts, decodeMethod, decodeMethodAsync, decodePaint, decodePaintAsync, decodeFlowArea,
+import { decodeAccessFile, decodeLakeFacts, decodeMethod, decodeMethodAsync, decodePaint, decodePaintAsync, decodeFlowArea, decodeFlowSmall,
          decodeSalmonHead, decodeSalmonShard, decodeSalmonShardAsync, salmonFacts, type LakeFacts, type MethodFacts, type Paint, type SalmonFacts, type SalmonShard,
          type SectionAccess, now } from "@app/core";
 import type { Db } from "../sql/db";
@@ -25,11 +25,11 @@ import { covers, routedDb, sliceKeys, type SliceKeys, type Sliced } from "./focu
 export type SalmonSlice = `salmon-${Region}` | "salmon-x";
 type BinName = "salmon" | SalmonSlice | "method";
 
-export type FileName = "paint" | "flow-area" | "lakes" | "access" | "core" | "near" | "water" | `regs-${Region}` | "regs-sid"
+export type FileName = "paint" | "flow-area" | "flow-small" | "lakes" | "access" | "core" | "near" | "water" | `regs-${Region}` | "regs-sid"
   | `core-${Region}` | `water-${Region}` | "water-shared"
   | BinName
   | "conditions" | "down" | "climate" | "geo" | "lines";
-export type DbName = Exclude<FileName, "paint" | "flow-area" | "lakes" | "access" | BinName>;
+export type DbName = Exclude<FileName, "paint" | "flow-area" | "flow-small" | "lakes" | "access" | BinName>;
 
 export interface ReleaseSource {
   /**
@@ -55,9 +55,19 @@ export interface ReleaseLoader {
   readonly manifest: Manifest;
   readonly handles: string;
   db(name: DbName): Promise<Db>;
-  paint(): Promise<Paint>;
+  /**
+   * The release's paint, decoded once (the first caller's `sliceMs` decides the decode's slice: (T741) a launch passes
+   * `LAUNCH_SLICE_MS`, everything else the default `SLICE_MS`).
+   */
+  paint(o?: { sliceMs?: number }): Promise<Paint>;
   /** The target areas, in paint section order (opened with Conditions). */
   flowArea(): Promise<Float64Array>;
+  /**
+   * (T823) Per paint section (flow-area's order), the bitmask over its panel's members by `ord` whose reading carries the
+   * small-water sentence (`flow-small`). Null when the manifest names no such file (a release cut before T823: no bits,
+   * said by the manifest, never by a failed read); a file that is there and does not decode fails, as flow-area does.
+   */
+  flowSmall(): Promise<Uint32Array | null>;
   /** The lake modes' values (`lakes`), checked against the release's handles; null when the manifest names none. */
   lakes(): Promise<LakeFacts | null>;
   /** (T211) The DFO salmon (`salmon` + slices), checked against the release's handles; null when the manifest names none.
@@ -86,6 +96,13 @@ export interface ReleaseLoader {
   routed(name: Sliced): Db;
   /** (T256) The file a read naming `keys` goes to: the whole file when it is here or no slice covers the keys. */
   dbFor(name: Sliced, keys: SliceKeys | null): Promise<Db>;
+  /**
+   * (T737, 2026-11-15) Open the FOCUS region's slice of `name` now, before any read names its keys: an unnamed tap's
+   * answer key comes out of `regs-sid` (1.2 MB), and only then did its water read go to the 0.17 MB `water-<r>` — in
+   * series. Nothing when no region is focused, the whole file is here, or the release cuts no such slice. Optional: a
+   * fake loader has none.
+   */
+  warmSlice?(name: Sliced): Promise<void>;
   /** Which files have been opened so far (the web's lazy-load test reads this). */
   opened(): readonly FileName[];
   /**
@@ -138,6 +155,7 @@ export function releaseLoader(m: Manifest, source: ReleaseSource, open: Opener,
   const dbs = new Map<DbName, Promise<Db>>();
   const order: FileName[] = [];
   let paint: Promise<Paint> | null = null, area: Promise<Float64Array> | null = null;
+  let small: Promise<Uint32Array | null> | null = null;
   let lakes: Promise<LakeFacts | null> | null = null;
   let salmonHead: Promise<SalmonFacts["payload"]> | null = null;
   const slices = new Map<string, Promise<SalmonShard>>();
@@ -149,6 +167,8 @@ export function releaseLoader(m: Manifest, source: ReleaseSource, open: Opener,
   const ahead = new Map<FileName, Promise<void>>();
   /** (T737) the files a prefetch has finished: in the release cache, so an open reads them without waiting */
   const aheadDone = new Set<FileName>();
+  /** (T737) the files whose open has FINISHED (a whole file still opening does not hold a read its slice answers) */
+  const openDone = new Set<DbName>();
   let focused: Region | null = null;
   /** (T256) the slices opened so far, per file, in the order opened (a slice once read keeps answering what it covers) */
   const slicesOpen: Record<Sliced, Region[]> = { core: [], water: [] };
@@ -160,9 +180,12 @@ const WATER_SHARED: DbName = "water-shared";
    * (T737) A whole file still being fetched AHEAD (the background prefetch) is NOT here: a tap read it, so the first tap
    * a few seconds after the map painted waited for the whole 2.5 MB `water` (8-9 s on staging, measured) instead of its
    * region's 0.17 MB slice. The slice answers now, the prefetch goes on beside it, and once it is in the whole file reads.
+   * (T737, 2026-11-15) Nor is a whole file still being OPENED: the in-season check (`itemOrd` of every water a notice
+   * names, province-wide) opens the whole 1.5 MB `core` a few seconds after paint, and a Region 2 tap then waited for it
+   * (9.4 s on staging, measured) though `core-2` held its answer. Only a finished open counts.
    */
   const wholeHere = async (name: Sliced): Promise<boolean> =>
-    dbs.has(name) || aheadDone.has(name) || (source.stored ? await source.stored(name).catch(() => false) : false);
+    openDone.has(name) || aheadDone.has(name) || (source.stored ? await source.stored(name).catch(() => false) : false);
 
   /**
    * (T360) A file's ONE handle: what `db()` hands out and every reader keeps. Its connection may be closed while idle
@@ -249,7 +272,7 @@ const WATER_SHARED: DbName = "water-shared";
         if (retired) shut(conns.get(name)!).catch(retired);
         return h;
       });
-      p.catch(() => dbs.delete(name));          // a failure is not cached: the next ask tries again
+      p.then(() => { if (dbs.get(name) === p) openDone.add(name); }, () => dbs.delete(name));   // a failure is not cached: the next ask tries again
       dbs.set(name, p);
     }
     return p;
@@ -260,10 +283,11 @@ const WATER_SHARED: DbName = "water-shared";
     manifest: m,
     handles,
     db,
-    paint() {
+    paint(o) {
       if (!paint) {
         touch("paint");
-        paint = source.bytes("paint").then((b) => decoded("decode paint", () => decodePaint(b, handles), () => decodePaintAsync(b, handles)));
+        paint = source.bytes("paint").then((b) => decoded("decode paint", () => decodePaint(b, handles),
+                                                          () => decodePaintAsync(b, handles, null, o?.sliceMs)));
         paint.catch(() => { paint = null; });
       }
       return paint;
@@ -275,6 +299,16 @@ const WATER_SHARED: DbName = "water-shared";
         area.catch(() => { area = null; });
       }
       return area;
+    },
+    flowSmall() {
+      if (!small) {
+        if (!m.files["flow-small"]) return Promise.resolve(null);
+        touch("flow-small");
+        small = Promise.all([loader.paint(), source.bytes("flow-small")])
+          .then(([p, b]) => openProbe.work("decode flow-small", () => decodeFlowSmall(b, p.sectionCount)));
+        small.catch(() => { small = null; });
+      }
+      return small;
     },
     lakes() {
       if (!lakes) {
@@ -356,6 +390,11 @@ const WATER_SHARED: DbName = "water-shared";
       return db(`regs-${held ?? rs[0]!}`);
     },
     focus(region) { focused = region; },
+    async warmSlice(name) {
+      const r = focused;
+      if (!r || !m.files[sliceOf(name, r)] || await wholeHere(name)) return;
+      await db(sliceOf(name, r));
+    },
     routed(name) { return routedDb((sql, p) => loader.dbFor(name, sliceKeys(name, sql, p))); },
     async dbFor(name, keys) {
       if (keys === null || await wholeHere(name)) return db(name);
@@ -424,7 +463,8 @@ const WATER_SHARED: DbName = "water-shared";
   };
   /*
    * (T287) THE DECODES ANOTHER SET OF THE SAME FILES MAY TAKE OVER (`adoptDecoded`): a file is the same when its
-   * manifest entry is (sha256 and section numbering); flow-area also needs the same paint (its length is paint's).
+   * manifest entry is (sha256 and section numbering); flow-area and flow-small also need the same paint (their length is
+ * paint's).
    */
   HELD.set(loader, {
     m,
@@ -435,6 +475,7 @@ const WATER_SHARED: DbName = "water-shared";
       const p = prev.slots();
       if (p.paint && same("paint")) { paint = p.paint; took.push("paint"); }
       if (p.area && same("flow-area") && took.includes("paint")) { area = p.area; took.push("flow-area"); }
+      if (p.small && same("flow-small") && took.includes("paint")) { small = p.small; took.push("flow-small"); }
       if (p.lakes && same("lakes")) { lakes = p.lakes; took.push("lakes"); }
       if (p.method && same("method")) { method = p.method; took.push("method"); }
       if (p.access && same("access")) { access = p.access; took.push("access"); }
@@ -446,7 +487,7 @@ const WATER_SHARED: DbName = "water-shared";
       for (const n of took) touch(n);
       return took;
     },
-    slots: () => ({ paint, area, lakes, method, access, salmonHead, slices, salmonMemo }),
+    slots: () => ({ paint, area, small, lakes, method, access, salmonHead, slices, salmonMemo }),
   });
   return loader;
 }
@@ -455,7 +496,8 @@ const WATER_SHARED: DbName = "water-shared";
 interface Held {
   m: Manifest;
   take(prev: Held): FileName[];
-  slots(): { paint: Promise<Paint> | null; area: Promise<Float64Array> | null; lakes: Promise<LakeFacts | null> | null;
+  slots(): { paint: Promise<Paint> | null; area: Promise<Float64Array> | null; small: Promise<Uint32Array | null> | null;
+             lakes: Promise<LakeFacts | null> | null;
              method: Promise<MethodFacts | null> | null; access: Promise<SectionAccess | null> | null;
              salmonHead: Promise<SalmonFacts["payload"]> | null; slices: ReadonlyMap<string, Promise<SalmonShard>>;
              salmonMemo: ReadonlyMap<string, { head: SalmonFacts["payload"]; read: SalmonShard[]; facts: SalmonFacts }> };
@@ -472,7 +514,7 @@ function heldOf(l: ReleaseLoader): Held | undefined {
 
 /**
  * (T287) AN APPLIED UPDATE KEEPS WHAT DID NOT CHANGE: every decoded file of the set on screen (paint, method, lakes,
- * access, flow-area, the salmon head and slices) whose manifest entry the new set repeats — same sha256, same section
+ * access, flow-area, flow-small, the salmon head and slices) whose manifest entry the new set repeats — same sha256, same section
  * numbering — is handed over as it is, the same objects. The screens then re-key onto the very answers they were
  * drawing, and the map relabels nothing for them. Returns the files taken.
  */
@@ -499,5 +541,6 @@ export async function warmLike(next: ReleaseLoader, prev: ReleaseLoader): Promis
   if (had.has("lakes")) steps.push(() => next.lakes());
   if (had.has("access")) steps.push(() => next.access());
   if (had.has("flow-area")) steps.push(() => next.flowArea());
+  if (had.has("flow-small")) steps.push(() => next.flowSmall());
   for (const s of steps) await s().catch(() => undefined);
 }

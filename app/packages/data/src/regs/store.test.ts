@@ -5,7 +5,8 @@
  * store.release.test.ts`.
  */
 import { describe, expect, it } from "vitest";
-import { KNOWN_VERSIONS } from "@app/core";
+import { KNOWN_VERSIONS, OPTIONAL_VERSIONS, REGS_FORMATS, SECTION_NAMES } from "@app/core";
+import { PACK_OPTIONAL_SECTION_TABLES } from "../pack.generated";
 import { openInMemory } from "../sql/drivers/node";
 import type { Db } from "../sql/db";
 import type { Manifest } from "../manifest";
@@ -14,7 +15,12 @@ import { asBytes, openRegsStore, RegsStoreError, type RegsLoader } from "./store
 
 const hex = (s: string) => `X'${Buffer.from(s).toString("hex")}'`;
 const META = "CREATE TABLE meta (k TEXT PRIMARY KEY, v TEXT NOT NULL);";
-const VERSIONS = { ladder: 1, rows: 33, gear: 12, licence: 7, display: 20 };
+/** The section versions this app reads (T810 M0: from `KNOWN_VERSIONS`, never retyped; the writer's side is held to the
+ *  same line by pipeline/tests/test_answers_versions.py, the golden's store by conformance store.release.test.ts). */
+const VERSIONS: Record<string, number> = Object.fromEntries(SECTION_NAMES.map((n) => [n, KNOWN_VERSIONS[n]]));
+const K = KNOWN_VERSIONS, TROUT = KNOWN_VERSIONS.trout;
+/** (T810 S) the region files' format: this app's, and the one before the trout cutover (a held set's) */
+const REGION = REGS_FORMATS.region, OLD_REGION = "regs-region/1";
 const H = "aaaaaaaaaaaaaaaa", R = "bbbbbbbbbbbbbbbb", I = "cccccccccccccccc";
 
 interface Opts {
@@ -44,7 +50,7 @@ function release(o: Opts = {}): { loader: RegsLoader; opened: string[] } {
     "CREATE TABLE akey_region (akey INTEGER, region TEXT);" +
     "INSERT INTO akey_region VALUES (7, '1'), (9, '2'), (11, '2'), (11, '1');");
   const region = (r: string, extra: Record<string, string> = {}) => openInMemory("", metaSql({
-    format: "regs-region/1", region: r, section_handles: H, reach_digest: R, rule_ids_sha256: I, ...extra }));
+    format: REGION, region: r, section_handles: H, reach_digest: R, rule_ids_sha256: I, ...extra }));
   const dbs: Record<string, Db> = {
     water, "regs-1": region("1"), "regs-2": region("2", o.region2),
     "regs-sid": openInMemory("", metaSql({ format: "regs-sid/1", section_handles: H, reach_digest: R, rule_ids_sha256: I, ...o.sid })),
@@ -81,7 +87,7 @@ describe("openRegsStore: what it accepts", () => {
     expect(opened).toEqual(["water"]);
     expect(st.meta).toEqual({
       release: "r-test", format: "water/3", blobCodec: "json", sectionHandles: H, reachDigest: R, ruleIdsSha256: I,
-      answersSha256: "f", versions: VERSIONS, glossaryVersion: 5, layout: { top: ["about"], sections: { rows: ["version"] } },
+      answersSha256: "f", versions: VERSIONS, optional: {}, glossaryVersion: 5, layout: { top: ["about"], sections: { rows: ["version"] } },
     });
     expect(new TextDecoder().decode(st.dict("rule")!)).toBe("dictionary");
     expect(st.dict("ladder_frame")).toBeNull();
@@ -105,10 +111,6 @@ describe("openRegsStore: what it accepts", () => {
     expect(await refusal(openRegsStore(release().loader, { tiles: "dddddddddddddddd.000000000000" }))).toEqual({
       why: "digest", message: `regs store: built for atlas ${H}, the map is dddddddddddddddd.000000000000 — refused` });
   });
-
-  it("KNOWN_VERSIONS is what the in-memory release (and the live one) carries", () => {
-    expect({ ...KNOWN_VERSIONS }).toEqual({ ...VERSIONS, glossary: 5 });
-  });
 });
 
 describe("openRegsStore: what it refuses at open (each a RegsStoreError naming why)", () => {
@@ -126,41 +128,41 @@ describe("openRegsStore: what it refuses at open (each a RegsStoreError naming w
   });
   it("display 19 — a store whose parts carry composed names (`run_name`, words in `lo` / `hi`), before the end tokens — is refused", async () => {
     expect(await refusal(openRegsStore(release({ versions: { ...VERSIONS, display: 19 }, manifestVersions: { ...VERSIONS, display: 19 } })
-      .loader))).toEqual({ why: "version", message: "regs store: display section version 19, this app reads 20 — refused" });
+      .loader))).toEqual({ why: "version", message: `regs store: display section version 19, this app reads ${K.display} — refused` });
   });
   it("a blob codec this layer cannot decode", async () => {
     expect(await refusal(openRegsStore(release({ water: { blob_codec: "brotli" } }).loader)))
       .toEqual({ why: "codec", message: "regs store: blob codec brotli, this app reads json / deflate / zdict — refused" });
   });
   it("a section version the presenters were not ported against (every one named)", async () => {
-    expect(await refusal(openRegsStore(release({ versions: { ...VERSIONS, rows: 34, display: 16 } }).loader))).toEqual({
+    expect(await refusal(openRegsStore(release({ versions: { ...VERSIONS, rows: K.rows + 1, display: 16 } }).loader))).toEqual({
       why: "version",
-      message: "regs store: rows section version 34, this app reads 33, display section version 16, this app reads 20 — refused" });
+      message: `regs store: rows section version ${K.rows + 1}, this app reads ${K.rows}, display section version 16, this app reads ${K.display} — refused` });
   });
   it("rows 29 — a store from before the year strip (rows[].year) — is refused: this app draws no strip it would derive", async () => {
     expect(await refusal(openRegsStore(release({ versions: { ...VERSIONS, rows: 29 }, manifestVersions: { ...VERSIONS, rows: 29 } })
-      .loader))).toEqual({ why: "version", message: "regs store: rows section version 29, this app reads 33 — refused" });
+      .loader))).toEqual({ why: "version", message: `regs store: rows section version 29, this app reads ${K.rows} — refused` });
   });
   it("rows 30 / display 17 — a store from before the Keep tab's last choices moved to the pipeline (stamps, parent, narrow_all, " +
      "the record duty; closers) — is refused: this app re-derives none of them", async () => {
     expect(await refusal(openRegsStore(release({ versions: { ...VERSIONS, rows: 30, display: 17 }, manifestVersions: { ...VERSIONS, rows: 30, display: 17 } })
       .loader))).toEqual({ why: "version",
-      message: "regs store: rows section version 30, this app reads 33, display section version 17, this app reads 20 — refused" });
+      message: `regs store: rows section version 30, this app reads ${K.rows}, display section version 17, this app reads ${K.display} — refused` });
   });
   it("rows 31 / licence 6 — a store from before the four pipeline answers (Other fish rows' stamps; the steelhead stamp left " +
      "out where steelhead are closed; an under-16 document's alternatives) — is refused: this app derives none of them", async () => {
     expect(await refusal(openRegsStore(release({ versions: { ...VERSIONS, rows: 31, licence: 6 }, manifestVersions: { ...VERSIONS, rows: 31, licence: 6 } })
       .loader))).toEqual({ why: "version",
-      message: "regs store: rows section version 31, this app reads 33, licence section version 6, this app reads 7 — refused" });
+      message: `regs store: rows section version 31, this app reads ${K.rows}, licence section version 6, this app reads ${K.licence} — refused` });
   });
   it("rows 32 — a store from before the leading origin was shipped (T161: `fish[S].lead`) — is refused: this app picks no " +
      "leading origin of its own", async () => {
     expect(await refusal(openRegsStore(release({ versions: { ...VERSIONS, rows: 32 }, manifestVersions: { ...VERSIONS, rows: 32 } })
-      .loader))).toEqual({ why: "version", message: "regs store: rows section version 32, this app reads 33 — refused" });
+      .loader))).toEqual({ why: "version", message: `regs store: rows section version 32, this app reads ${K.rows} — refused` });
   });
   it("a manifest that says other versions than its water file", async () => {
-    expect(await refusal(openRegsStore(release({ manifestVersions: { ...VERSIONS, gear: 13 } }).loader))).toEqual({
-      why: "version", message: "regs store: the manifest says gear 13, the water file 12 — refused" });
+    expect(await refusal(openRegsStore(release({ manifestVersions: { ...VERSIONS, gear: K.gear + 1 } }).loader))).toEqual({
+      why: "version", message: `regs store: the manifest says gear ${K.gear + 1}, the water file ${K.gear} — refused` });
   });
   it("another glossary version", async () => {
     expect(await refusal(openRegsStore(release({ glossary: '{"version":4,"terms":[]}' }).loader)))
@@ -169,6 +171,38 @@ describe("openRegsStore: what it refuses at open (each a RegsStoreError naming w
   it("water cut for another atlas than the manifest's tiles", async () => {
     expect(await refusal(openRegsStore(release({ tiles: "eeeeeeeeeeeeeeee.123456789abc" }).loader))).toEqual({
       why: "digest", message: `regs store: built for atlas ${H}, the map is eeeeeeeeeeeeeeee.123456789abc — refused` });
+  });
+});
+
+/**
+ * (T810 S) THE TROUT SECTION IS REQUIRED from the cutover (`SECTION_NAMES`, `KNOWN_VERSIONS.trout`); no section is
+ * optional today (`OPTIONAL_VERSIONS` empty, the generated contract's `PACK_OPTIONAL_SECTION_TABLES` the same). A water
+ * file without it, or at another version, is another reader's release.
+ */
+describe("openRegsStore: the trout section (T810 S: required)", () => {
+  const without = (v: Record<string, number>) => Object.fromEntries(Object.entries(v).filter(([n]) => n !== "trout"));
+
+  it("no optional section is left, on either side of the contract", () => {
+    expect([Object.keys(OPTIONAL_VERSIONS), Object.keys(PACK_OPTIONAL_SECTION_TABLES)]).toEqual([[], []]);
+    expect(SECTION_NAMES).toContain("trout");
+  });
+
+  it("held at the version this app reads: opens, and meta.versions names it with the others", async () => {
+    const st = await openRegsStore(release().loader);
+    expect(st.meta.versions).toEqual(VERSIONS);
+    expect(st.meta.versions.trout).toBe(TROUT);
+    expect(st.meta.optional).toEqual({});
+  });
+
+  it("absent (a release from before the cutover): refused", async () => {
+    expect(await refusal(openRegsStore(release({ versions: without(VERSIONS), manifestVersions: without(VERSIONS) }).loader))).toEqual({
+      why: "version", message: `regs store: trout section version absent, this app reads ${TROUT} — refused` });
+  });
+
+  it("at another version: refused", async () => {
+    const v = { ...VERSIONS, trout: TROUT + 1 };
+    expect(await refusal(openRegsStore(release({ versions: v, manifestVersions: v }).loader))).toEqual({
+      why: "version", message: `regs store: trout section version ${TROUT + 1}, this app reads ${TROUT} — refused` });
   });
 });
 
@@ -189,10 +223,10 @@ describe("openRegsStore: a region or sid file from another build refuses the WHO
     expect(st.refused()?.message).toBe(want.message);
   });
 
-  it("a region file of another format", async () => {
-    const st = await openRegsStore(release({ region2: { format: "regs-region/2" } }).loader);
+  it("a region file of another format (T810 S: a held set from before the trout cutover)", async () => {
+    const st = await openRegsStore(release({ region2: { format: OLD_REGION } }).loader);
     expect(await refusal(st.region(9))).toEqual({
-      why: "format", message: "regs store: a region file is regs-region/2, this app reads regs-region/1 — refused" });
+      why: "format", message: `regs store: a region file is ${OLD_REGION}, this app reads ${REGION} — refused` });
   });
 
   it("a region file that is not the key's region", async () => {
@@ -221,7 +255,7 @@ describe("openRegsStore: a region or sid file from another build refuses the WHO
  */
 function realLoader(o: { drop?: string; manifestFormat?: Record<string, string>; fail?: Set<string> } = {}) {
   const { loader: fake } = release();
-  const FMT: Record<string, string> = { water: "water/3", "regs-1": "regs-region/1", "regs-2": "regs-region/1", "regs-sid": "regs-sid/1" };
+  const FMT: Record<string, string> = { water: "water/3", "regs-1": REGION, "regs-2": REGION, "regs-sid": "regs-sid/1" };
   const files = Object.fromEntries(Object.keys(FMT).filter((n) => n !== o.drop)
     .map((n) => [n, { format: o.manifestFormat?.[n] ?? FMT[n], section_handles: H, url: n, sha256: "", bytes: 0 }]));
   const manifest = { ...fake.manifest, files } as unknown as Manifest;
@@ -255,7 +289,7 @@ describe("openRegsStore over the real loader: a file the loader refuses refuses 
   it("a region file the loader refuses (not the manifest's format): format, and poisoned", async () => {
     const { L } = realLoader({ manifestFormat: { "regs-2": "regs-region/9" } });
     const st = await openRegsStore(L);
-    const want = { why: "format", message: "regs store: regs-2: format regs-region/1 / handles " + H +
+    const want = { why: "format", message: `regs store: regs-2: format ${REGION} / handles ` + H +
       " are not the manifest's regs-region/9 / " + H + " — refused" };
     expect(await refusal(st.region(9))).toEqual(want);
     expect(await refusal(st.sid())).toEqual(want);

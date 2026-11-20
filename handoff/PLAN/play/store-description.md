@@ -2,6 +2,8 @@
 
 Written by the owner; Claude corrected four claims (share link, reserve lands, always-shown layers, "summaries"),
 small inaccuracies, added salmon and run timing (one section, to fit 4000), and the official source links (the same links the app uses).
+2026-11-19 (T319, owner 2026-11-18 "yes change all": the app speaks as "I", never "we"): "we recommend" -> "I recommend";
+every feature named was checked against the 0.8.2 code (glossary, alerts + Notifications, share link, photos, layers).
 Limits: short 80 characters, long 4000. Same text for the App Store.
 
 ## Short description
@@ -69,4 +71,4 @@ Official sources:
 • Fisheries and Oceans Canada, freshwater salmon regulations: https://www.pac.dfo-mpo.gc.ca/fm-gp/rec/fresh-douce/index-eng.html
 • Water Survey of Canada, river flow and level data: https://wateroffice.ec.gc.ca
 
-Important: The app's initial download includes a large data package (approximately 500 MB). For the best experience, we recommend downloading and setting up the app while connected to WiFi.
+Important: The app's initial download includes a large data package (approximately 500 MB). For the best experience, I recommend downloading and setting up the app while connected to Wi-Fi.

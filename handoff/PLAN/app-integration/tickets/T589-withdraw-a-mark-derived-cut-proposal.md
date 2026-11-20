@@ -1,6 +1,6 @@
 # T589 — A cut proposal can be withdrawn (the Allco fence)
 
-Status: PARTIAL — 680c1d6eb, 54a06dc89 (2026-11-10): the withdraw call is built and the Allco fence cut is withdrawn by the owner; the button to withdraw one himself is open (it needs a new mark kind and a writer: see below)
+Status: PARTIAL — 680c1d6eb, 54a06dc89 (2026-11-10): the withdraw call is built and the Allco fence cut is withdrawn by the owner. left (Claude): a button to withdraw a proposed cut himself (a new mark kind, a writer merging into proposal_overrides.json, its write-through domain; see below).
 
 Source: T532 round 6, leftover c.
 

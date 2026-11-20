@@ -157,7 +157,7 @@
    "name": "FIXTURE RIVER",
    "display_name": "Fixture River",
    "region": "1",
-   "regs_verbatim": "No Fishing Apr 1-June 30\nTrout/char daily quota = 2\nNo Fishing from 21:00 hours to 05:00 hours each day, Aug 1-Dec 31\nExempt from July 15-Aug 31 summer closure",
+   "regs_verbatim": "No Fishing Apr 1-June 30\nTrout/char daily quota = 2\nNo Fishing from 21:00 hours to 05:00 hours each day, Aug 1-Dec 31\nExempt from July 15-Aug 31 summer closure\nDolly Varden daily quota = 2 (any size)",
    "source_pages": [
     91
    ],
@@ -258,6 +258,20 @@
       {
        "target": "summer_stream_closure.r1",
        "entry_id": "z2:summer_stream_closure"
+      }
+     ]
+    },
+    {
+     "rule_id": "fixture_river.r5",
+     "type": "retention_limit",
+     "verbatim": "Dolly Varden daily quota = 2 (any size)",
+     "species": [
+      "DV"
+     ],
+     "take": 2,
+     "extents": [
+      {
+       "op": "whole"
       }
      ]
     }

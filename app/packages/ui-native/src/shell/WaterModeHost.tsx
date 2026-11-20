@@ -9,8 +9,9 @@ import type { ReleaseLoader } from "@app/data/release";
 import { crossAction, exitAction, mapPointTap, partAction, showRegsActions, waterFrame, type MapRail,
          mapError, type RegsStart } from "@app/ui";
 import type { Camera, MapSpots, TileEndpoints } from "@app/map";
-import { WaterScreen } from "../WaterScreen";
-import type { AdiposeImages, FishImages } from "../regs/types";
+import type { WaterScreen as WaterScreenType } from "../WaterScreen";
+import { WaterPageLoading } from "../WaterPageLoading";
+import type { FishImages } from "../regs/types";
 import type { Palette } from "../theme";
 import type { ShellNav } from "./useShellNav";
 import type { MapColouring } from "./useMapColouring";
@@ -20,9 +21,18 @@ import { part } from "../part";
 const WaterConditions = part(() => import("../later").then((m) => m.WaterConditions));
 const WaterMap = part(() => import("../later").then((m) => m.WaterMap));
 const WaterMapView = part(() => import("../later").then((m) => m.WaterMapView));
+/**
+ * (T910, owner 2026-11-19 "build all 3 on webapp") THE REGULATIONS PAGE, loaded later on the web too: its code (the page,
+ * the Keep / Gear / Licence / Methods tabs, the Salmon card: ~150 KiB of the first script) is in the later chunk. Until it
+ * is in, the page's own loading face (`WaterPageLoading`, the one it draws while its water's sheet comes) — never an empty
+ * box. Asked at once by a start on a water's page (apps/mobile startLink.web: `preloadParts`), when first drawn, or once
+ * the browser is idle after the first screen; a phone has it at once (one bundle).
+ */
+const WaterScreen = part<React.ComponentProps<typeof WaterScreenType>>(() => import("../later").then((m) => m.WaterScreen), undefined,
+                                                                       (p) => <WaterPageLoading palette={p.palette} />);
 
 export function WaterModeHost({ frame, nav, col, source, palette, loader, tiles, theme, feed, rail, spotLayer, camera,
-                                waterCamera, fishImages, adiposeImages, mapDay, onDay, start, onStarted }: {
+                                waterCamera, fishImages, mapDay, onDay, start, onStarted }: {
   frame: NonNullable<ReturnType<typeof waterFrame>>; nav: ShellNav; col: MapColouring; source: WaterSource;
   palette: Palette; loader: ReleaseLoader | null; tiles: TileEndpoints; theme: string;
   feed?: import("@app/data").GaugeFeed; rail: MapRail; spotLayer: MapSpots | undefined;
@@ -32,22 +42,25 @@ export function WaterModeHost({ frame, nav, col, source, palette, loader, tiles,
    * the reader left it (APP-PREP §0 rule 1).
    */
   waterCamera: MutableRefObject<Camera | null>;
-  fishImages?: FishImages; adiposeImages?: AdiposeImages;
+  fishImages?: FishImages;
   mapDay: Date | null; onDay: (d: Date | null) => void;
   start: RegsStart | null; onStarted: () => void;
 }) {
   const { go, back, opener } = nav;
   const item: ItemId | null = nav.item;
-  const { flowParam, credits, horizon, pickDay, mm, mapStatus } = col;
+  const { credits, horizon, pickDay, mm, mapStatus } = col;
   return frame.view === "conditions"
     // THE ONE CONDITIONS PANEL OF A SECTION, from either map (a frame with no item is an unnamed reach).
     ? <WaterConditions source={source} item={item} tapSid={frame.tapSid} palette={palette} loader={loader}
                        // (T369 D1) the frame's part: the reach shown is the frame's (`frameView.ts`)
                        part={frame.part}
                        tiles={tiles} theme={theme}
-                       // The card OPENS on the map's Flow or Level (Temperature is not a hydrograph: the station's own).
                        // (T728, owner 2026-11-14) a Flow / Level pick in the card is the card's: it never sets the map's Show.
-                       opening={flowParam === "temperature" ? undefined : flowParam}
+                       // (T728, owner 2026-11-16 "fix anything that doesnt seem desirable"; 2026-11-10 "Flow leads, Level
+                       // auxiliary") and the map's Show never sets the card's: it OPENS on Flow, whatever the map shows. A
+                       // water whose station reads only level: the card says Flow is not measured and offers Level (as before
+                       // for a map on Flow)
+                       opening="discharge"
                        from={frame.at}
                        feed={feed}
                        credits={credits} horizon={horizon}
@@ -78,7 +91,7 @@ export function WaterModeHost({ frame, nav, col, source, palette, loader, tiles,
                         // another water opens on top (back returns here), at the point tapped (its "you are here")
                         onOtherSection={(sid, at) => opener.tap(sid, at, "regs", item)} />
         </WaterMap>
-      : <WaterScreen source={source} item={item} palette={palette} fishImages={fishImages} adiposeImages={adiposeImages}
+      : <WaterScreen source={source} item={item} palette={palette} fishImages={fishImages}
                      // T01: what the Regulations page reads — the release, the ONE day (the map's), the part tapped
                      // (T53: an unnamed reach, item null, is answered by the tapped section itself)
                      loader={loader} day={mapDay} onDay={onDay} section={frame.tapSid} at={frame.at}

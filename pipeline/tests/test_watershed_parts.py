@@ -368,8 +368,11 @@ def test_lake_mid_reach_gains_the_book_does_not_support_are_gone(real, corpus):
     assert stel == set(reg["gnis:7836"].section_ids)
     des = _rule(real, corpus, "r6:stellako_river@6-4+7-12", "stellako_river", licensing=True)
     assert len(des) > len(stel), "the designation includes tributaries"
-    assert "Cruickshank River" not in name(_rule(real, corpus, "r1:puntledge_river@1-6",
-                                                 "puntledge_river.r5"))
+    # (T798, owner 2026-11-18: "look at entry it is clearly close all tributaries") the Puntledge's "No Fishing
+    # tributaries" names no part: it closes every side stream of the whole river, Comox Lake's feeders included
+    # (Cruickshank River is closed by its own row too)
+    assert "Cruickshank River" in name(_rule(real, corpus, "r1:puntledge_river@1-6",
+                                             "puntledge_river.r5"))
     duncan = _rule(real, corpus, "r4:duncan_river@4-19", "duncan_river.r1")
     feeders = {g.edges[i].from_node for i in g.up_adj.get("lake:329120714", [])}
     assert not duncan & feeders, "Duncan Lake's tributaries are their own row"

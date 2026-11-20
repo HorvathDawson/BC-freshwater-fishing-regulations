@@ -29,8 +29,16 @@ it("7. states.json and taps.json are from one sync, and taps.json answers every 
   // (T115) 4 Fraser states' parts merged away and (T67) 2 closed states re-cut (taps.json `gone`), (T183) the West Road's
   // x27p1 merged into part 0, (2026-10-27) the Columbia's x18p3 split in two by its Mud Lake speed limit; T220 x13p2 + x9p2;
   // (T278) x15p3 + x37p1 tidal now (taps.json `tidal`): 121 tapped + 11 gone + 2 tidal = 134
+  // (0.8.0 release, 2026-11-18) the 0.8.0 atlas's cut declares three more states GONE (declarations 8391ff0ca): x22p6
+  // (T794 item 1: dinosaur_lake.r1b closes it all year) and bc1_501 + bc1_1010 (T794 item 3: Atnarko r12 ends at its mouth,
+  // the side channel merges into part 0). Both cuts are declared so the push before the release's re-cut stays green:
+  // none of the three gone = the live cut, 121 tapped + 11 gone + 2 tidal; all three = the 0.8.0 cut, 118 + 14 + 2; a
+  // partial set is neither
+  const NEW_GONE = ["x22p6_1010", "bc1_501", "bc1_1010"];
+  const goneNow = NEW_GONE.filter((s) => s in T.gone);
+  expect([0, NEW_GONE.length], `a partial set of the 0.8.0 cut's gone states: ${goneNow.join(", ")}`).toContain(goneNow.length);
   expect([T.meta.golden, STATES.meta.version, ids.length, Object.keys(T.gone).length, Object.keys(T.tidal).length, Object.keys(STATES.states).length])
-    .toEqual(["d7b1ed353", "v38", 121, 11, 2, 134]);
+    .toEqual(["d7b1ed353", "v38", ...(goneNow.length ? [118, 14, 2, 134] : [121, 11, 2, 134])]);
   expect([...Object.keys(T.states), ...Object.keys(T.gone), ...Object.keys(T.tidal)].sort()).toEqual(Object.keys(STATES.states).sort());
 });
 

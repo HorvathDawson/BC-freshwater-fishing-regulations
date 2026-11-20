@@ -40,6 +40,15 @@ DAILY_DAYS=$(printf '%s\n' "$LC" | awk '/^prefix:/ {p=$2} /^action:/ && p=="dail
   exit 1; }
 TOKF=app/workers/feeds/.run-token.prod
 [[ -s $TOKF ]] || { echo "no $TOKF: write the production RUN_TOKEN there (the value given to feeds-placeholder.sh)" >&2; exit 1; }
+# (T757 item 7) the mirror of upload.sh's pieces gate: a worker whose code does not serve dfo.pieces is refused while
+# production's LIVE release binds a closed-area piece (it would make the app drop the live feed). A worker that serves the shape passes
+# without the release being read (a first deploy has none yet); for one that does not, an unreadable release = refused;
+# an unreadable worker shape = refused always
+LIVE_M=$(mktemp); trap 'rm -f "$LIVE_M"' EXIT
+rclone cat "r2:bc-fishing-regulations/release/manifest.json" --s3-no-check-bucket > "$LIVE_M" || : > "$LIVE_M"
+WSHAPE=$(node deploy/lib/worker-shape.mjs) || WSHAPE=
+.venv/bin/python -m pipeline.deliver.release.pieces_gate --worker-deploy --live-manifest "$LIVE_M" \
+  --releases "${RELEASES_DIR:-data/release}" --worker-shape "$WSHAPE"
 npx --prefix app wrangler deploy -c "$C"
 T=$(tr -d '\n' < "$TOKF")
 sleep 10   # the new version reaches every location

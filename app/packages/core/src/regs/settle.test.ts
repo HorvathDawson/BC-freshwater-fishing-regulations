@@ -5,7 +5,8 @@
 import { describe, expect, it } from "vitest";
 import type { DisplayFrame, LadderFrameWire, RegsInputs, RuleIndex, RuleView, Statics, VerdictWire } from "./inputs";
 import { makePlace } from "./place";
-import { broadOf, isClosedOn, settle, settleAt, displayStatusOn } from "./settle";
+import { ladderAt } from "./ladder";
+import { broadOf, isClosedOn, ladderOfSeg, settle, settleAt, displayStatusOn } from "./settle";
 
 /** A RuleIndex whose views carry only a rix and a rank (all broadOf reads). */
 const index = (ranks: Readonly<Record<number, number>>): RuleIndex => ({
@@ -126,5 +127,32 @@ describe("makePlace", () => {
     expect([p.key, p.R, ix(p.cands), p.starts, p.moments, p.part, p.tidal]).toEqual([inp.key, R, [5, 2, 3], [1, 153], null, null, false]);
     const out = makePlace(inputs({ key: false }));
     expect([out.key, out.cands, out.starts, out.moments, out.tidal]).toEqual([null, [], [], null, false]);
+  });
+});
+
+describe("T917: each segment's ladder decoded once per inputs (ladderOfSeg), the same answer as a fresh decode", () => {
+  const fresh = (inp: RegsInputs, s: number) =>
+    ladderAt(inp.year!.ladderBySeg[s] ?? null, inp.statics.ladderReasons as readonly string[], inp.statics.ladderReasonState as readonly string[]);
+  it("every segment, every day: settleAt's ladder is the cached one and equals an uncached decode", () => {
+    const inp = inputs(), p = makePlace(inp);
+    for (const s of [0, 1]) {
+      const once = ladderOfSeg(inp, s);
+      expect(once).toEqual(fresh(inp, s));
+      for (const month of [1, 6, 12]) for (let day = 1; day <= 28; day++) {
+        const L = settleAt(inp, p, s, { month, day }).L;
+        expect(L).toBe(once);
+        expect(L).toEqual(fresh(inp, s));
+      }
+    }
+    expect(ladderOfSeg(inp, 5)).toBeNull();   // no frame for the segment
+  });
+  it("is held by the inputs: other inputs with other reason words miss and decode their own", () => {
+    const a = inputs();
+    const b = { ...inputs(), statics: { ladderReasons: ["lifted", "own_row"], ladderReasonState: ["moot", "displaced"] } } as unknown as RegsInputs;
+    const la = ladderOfSeg(a, 0)!, lb = ladderOfSeg(b, 0)!;
+    expect(lb).not.toBe(la);
+    expect(la.get("CT")!.none.get(1)).toMatchObject({ state: "lifted", reason: "lifted", by: 9 });
+    expect(lb.get("CT")!.none.get(1)).toMatchObject({ state: "moot", reason: "lifted", by: 9 });
+    expect(lb).toEqual(fresh(b, 0));
   });
 });

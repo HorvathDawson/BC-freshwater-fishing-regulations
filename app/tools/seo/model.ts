@@ -7,7 +7,7 @@
  *
  * The angler is the adult resident, as the app defaults (the licence never changes open/closed).
  */
-import { WEEKDAYS, type BannerVM, type Day, type Line, type RegsPage, type TreeNodeVM, type Weekday } from "@app/core";
+import { WEEKDAYS, type BannerVM, type Day, type Line, type RegsPage, type TreeNodeVM, type TroutVM, type Weekday } from "@app/core";
 import { liveParts, PAGE_ORDS_SQL, regionsOfKeys, regsPage, type RegsStore } from "@app/data/regs";
 
 export interface BookRef { readonly printed: number; readonly pdf: number | null }
@@ -97,6 +97,26 @@ function bannerItems(b: BannerVM | null): Item[] {
                 ...(b.merged ? [item(b.merged.label), ...b.merged.items.map((i) => item(i.text, i.book))] : [])]);
 }
 
+/**
+ * (T810 T) The trout table's words, in draw order, from N's view model (`troutOf`, with the build day as "today": the top line
+ * says "Up to 5 today"): every string is the payload's; nothing is composed here. The in-app links are not words.
+ */
+export function troutWords(t: TroutVM): (Item | null)[] {
+  const out: (Item | null)[] = [item(t.fold.name, null, true), item(t.top.lead), item(t.top.sub), item(t.top.second), item(t.top.date), item(t.card), item(t.fold.value), item(t.fold.date)];
+  for (const b of t.boxes) {
+    out.push(item(b.head), item(b.label), item(b.strip), item(b.tag), item(b.possession), item(b.date));
+    for (const r of b.rows) {
+      // (T907) the row's tributary tag, beside its name as the app draws it ("Duncan River’s tributaries")
+      out.push(item(r.name), item(r.origin), item(r.label), item(r.tag), item(r.sub), ...r.lines.map((l) => item(l)), ...r.quiet.map((q) => item(q)),
+               item(r.date), ...r.coming.map((c) => item(c)));
+    }
+    for (const y of b.bands) out.push(item(y.text), item(y.date));
+    for (const y of b.inner) out.push(item(y.text), item(y.date));   // (trout 4) nested bands, after the outer ones as the app reads them
+  }
+  out.push(item(t.together?.text), item(t.year?.title), ...t.elsewhere.map((e) => item(e)));
+  return out;
+}
+
 /** The sections of one part's page: what the Regulations page says on its Keep, Gear, Methods and Licence tabs. */
 function sectionsOf(page: Omit<RegsPage, "sheet">): Section[] {
   const k = page.keep, out: Section[] = [];
@@ -108,11 +128,13 @@ function sectionsOf(page: Omit<RegsPage, "sheet">): Section[] {
     put(c.title, [item(c.calm), ...c.items.flatMap((i) => [item(i.area ? `${i.area.tag}:` : null), item(i.what, i.book), item(i.where), item(i.fish), ...(i.detail ?? []).map((d) => item(d)), item(i.area?.map)]),
                   ...(c.later ?? []).flatMap((i) => [item(i.area ? `${i.area.tag}:` : null), item(i.what, i.book), item(i.where), item(i.area?.map)])]);
   }
+  // (T810 T) the table, when the page has one (a refusal draws none: it is reported, and its rows are drawn nowhere else)
+  if (k.trout?.kind === "table") put("Trout and char", troutWords(k.trout));
   const keep: (Item | null)[] = [];
   for (const g of k.groups) {
     keep.push(item(g.title, null, true), item(g.scope), item(g.head.lead), item(g.head.words), item(g.head.whyHere),
               item(g.origin?.says ?? null, g.origin?.book ?? null), item(g.year?.says), ...treeItems(g.tree),
-              ...g.notKept.flatMap((n) => [item(n.says), item(n.whose), item(n.presence), ...n.stamps.map((s) => item(s))]), item(g.quiet));
+              ...g.notKept.flatMap((n) => [item(n.says), item(n.whose), item(n.presence), ...n.stamps.map((s) => item(s))]));
   }
   for (const p of k.plainRows) {
     keep.push(item(p.title, null, true), item(p.pill?.text), item(p.scope), item(p.sum), item(p.week?.says),
@@ -138,7 +160,7 @@ function sectionsOf(page: Omit<RegsPage, "sheet">): Section[] {
                  ...(g.mode?.changes ?? []).map((c) => item(`${c.chip}: ${c.when} ${c.says}`)),
                  ...g.lines.flatMap((l) => [item(`${l.label}: ${l.values.join(", ")}`), ...l.changes.map((c) => item(`${c.chip}: ${c.when} ${c.says}`))]),
                  ...(g.bait ? [item(g.bait.label), ...g.bait.notes.map((n) => item(n)),
-                               ...g.bait.list.flatMap((c) => [item(c.head), ...c.items.map((i) => item(i.note ? `${i.name} (${i.note})` : i.name))])] : [])]);
+                               ...g.bait.list.flatMap((c) => [item(c.head), ...c.items.map((i) => item(i.notes.length ? `${i.name} (${i.notes.join(" ")})` : i.name))])] : [])]);
   }
   const m = page.methods;
   if (m) {
@@ -167,7 +189,7 @@ const TODAY_WORDS: Record<Status, string> = {
   closed: "Closed to fishing today.",
   tidal: "Tidal water: the tidal rules apply.",
   outside: "Outside British Columbia.",
-  unknown: "We could not tell whether this water is open today. Check the synopsis.",
+  unknown: "I could not tell whether this water is open today. Check the synopsis.",
 };
 
 /** (T406 part 2) The strip's year runs folded to closed / open (bit 1 = closed; null stays null); null: no strip. */
@@ -279,6 +301,7 @@ async function focusOf(store: RegsStore, akeys: readonly number[]): Promise<stri
 
 /** The app's page for one part on `on` (the angler defaults as the app's do). */
 export async function appPage(store: RegsStore, itemId: string, partIx: number, on: BuildDay, today: Day = on.day): Promise<RegsPage> {
+  // (T810 T, S) the crawler draws the trout table as the app does: wherever the cell names one (one trout path)
   return regsPage(store, itemId, partIx, on, today);
 }
 

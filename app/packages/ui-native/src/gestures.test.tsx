@@ -7,15 +7,16 @@
  * the close. What it does NOT: the recognisers' own activation (`activeOffsetX`, `failOffsetY`, `hitSlop`) —
  * `fireGestureHandler` skips them — nor how any of it feels under a finger. That is the owner's, on a device.
  */
+import { useMemo, useState } from "react";
 import { afterEach, beforeAll, describe, expect, it, vi } from "vitest";
 import { act, cleanup, fireEvent, render, screen } from "@testing-library/react";
-import { Text, View } from "react-native";
+import { Animated, Text, View } from "react-native";
 import { GestureHandlerRootView, State } from "react-native-gesture-handler";
-import { fireGestureHandler, getByGestureTestId } from "react-native-gesture-handler/jest-utils";
+import { createGestureController, fireGestureHandler, getByGestureTestId } from "react-native-gesture-handler/jest-utils";
 import type { ItemId } from "@app/data";
 import { BackLayerContext, HOME, useEdgeBack, useRoute, useViewSwipe, waterFrame, type BackLayers,
          type Route } from "@app/ui";
-import { EdgeBack } from "./EdgeBack";
+import { EDGE_BACK_HOLD_MS, EdgeBack } from "./EdgeBack";
 import { ViewSwipe, WEB_PAGE_PROPS, useSwipeShield } from "./ViewSwipe";
 import { Sheet } from "./Sheet";
 import { LIGHT } from "./theme";
@@ -83,6 +84,116 @@ describe("<EdgeBack> (iOS only)", () => {
       return [os, has, text];
     });
     expect(found).toEqual([["android", false, "the water"], ["web", false, "the water"]]);
+  });
+
+  it("(T821) a swipe that went back holds the screen where it was let go until the screen it went back to is drawn", () => {
+    // build 36 put it home the moment the back was decided: the screen just swiped away stood whole again until the
+    // back's render landed ("it flashes the menu back for a second before it goes back")
+    const shift = () => (screen.getByText("the water").parentElement as HTMLElement).style.transform;
+    let redraw: () => void = () => {};
+    function Host() {
+      const [, setN] = useState(0);
+      redraw = () => setN((n) => n + 1);
+      return <Edge back={() => true} />;
+    }
+    render(<Host />);
+    fire("edge-back", pan(5, 120));
+    const held = shift();
+    act(() => redraw());
+    expect([held, shift()]).toEqual(["translateX(120px)", "translateX(0px)"]);
+  });
+
+  describe("(T928) the screen never stays part-way", () => {
+    // the tester's browse layer stood ~135 pt right through tab changes until a restart: a drag's offset, never put home
+    const shift = () => (screen.getByText("the water").parentElement as HTMLElement).style.transform;
+    let redraw: () => void = () => {};
+    let remake: () => void = () => {};
+    function Host({ back = () => true }: { back?: () => boolean }) {
+      const [, setN] = useState(0);
+      const [gen, setGen] = useState(0);
+      redraw = () => setN((n) => n + 1);
+      remake = () => setGen((g) => g + 1);
+      // a new back each `remake` (as a new `go` makes one): a new `drag`, so the handler's config is made again
+      const b = useMemo(() => () => back(), [back, gen]);  // eslint-disable-line react-hooks/exhaustive-deps
+      return <Edge back={b} />;
+    }
+    afterEach(() => { vi.useRealTimers(); });
+    /** A drag from the edge, 135 px across, still under the finger (no end delivered). */
+    const dragTo135 = () => {
+      const c = createGestureController("edge-back");
+      act(() => { c.begin({ absoluteX: 5, x: 5 }); c.activate({ absoluteX: 5, x: 5 }); });
+      act(() => { c.update({ absoluteX: 140, x: 140, translationX: 135 }); });
+      return c;
+    };
+
+    it("a finger held still is never sent home under it: renders while it is down leave the screen with it", () => {
+      vi.useFakeTimers();
+      const back = vi.fn(() => true);
+      render(<Host back={back} />);
+      const c = dragTo135();
+      act(() => redraw());
+      const during = shift();
+      act(() => { vi.advanceTimersByTime(2000); });    // held still for 2 s, no move sent
+      act(() => redraw());                             // a feed update re-renders the shell
+      const held = shift();
+      act(() => { c.end({ absoluteX: 140, x: 140, translationX: 135, velocityX: 0 }); });
+      expect([during, held, back.mock.calls.length]).toEqual(["translateX(135px)", "translateX(135px)", 1]);
+    });
+
+    /** The page (react-native-web's AppState) hidden or shown again. */
+    const appState = (state: "hidden" | "visible") => act(() => {
+      Object.defineProperty(document, "visibilityState", { configurable: true, value: state });
+      document.dispatchEvent(new Event("visibilitychange"));
+    });
+    afterEach(() => { Object.defineProperty(document, "visibilityState", { configurable: true, value: "visible" }); });
+
+    it("a drag whose end never reached the view is put home when the app goes to the background and comes back", () => {
+      render(<Host />);
+      dragTo135();                                     // the end is lost: the system took the touch with the app
+      const dragged = shift();
+      appState("hidden");
+      appState("visible");
+      const back = shift();
+      act(() => redraw());                             // and stays home (no finger down any more)
+      expect([dragged, back, shift()]).toEqual(["translateX(135px)", "translateX(0px)", "translateX(0px)"]);
+    });
+
+    it("a cancelled drag's spring home is let finish: a render landing mid-spring does not cut it to 0", () => {
+      // under test an Animated spring lands at once; this one is held in flight until `land` (the view stays where
+      // the spring has it, here still at the finger's last place)
+      let land: ((r: { finished: boolean }) => void) | undefined;
+      const spring = vi.spyOn(Animated, "spring").mockImplementation(() =>
+        ({ start: (cb?: (r: { finished: boolean }) => void) => { land = cb; }, stop: () => {}, reset: () => {} }) as never);
+      try {
+        render(<Host />);
+        const c = dragTo135();
+        act(() => { c.cancel({ absoluteX: 140, x: 140, translationX: 135 }); });   // the spring home starts
+        act(() => redraw());                           // a render lands mid-spring: not cut short
+        const mid = shift();
+        act(() => land?.({ finished: true }));
+        act(() => redraw());                           // the next render after it lands: home, hard
+        expect([spring.mock.calls.length, mid, shift()]).toEqual([1, "translateX(135px)", "translateX(0px)"]);
+      } finally { spring.mockRestore(); }
+    });
+
+    it("a handler made again mid-drag still knows the finger: the release goes back, and the screen comes home", () => {
+      const back = vi.fn(() => true);
+      render(<Host back={back} />);
+      const c = dragTo135();
+      act(() => remake());                             // a new `drag`, so a new handler config, mid-drag
+      act(() => { c.end({ absoluteX: 140, x: 140, translationX: 135, velocityX: 0 }); });
+      act(() => redraw());
+      expect([back.mock.calls.length, shift()]).toEqual([1, "translateX(0px)"]);
+    });
+
+    it("a swipe that went back but whose back drew nothing here is put home after the hold, not left there", () => {
+      vi.useFakeTimers();
+      render(<Edge back={() => true} />);              // nothing re-renders the view
+      fire("edge-back", pan(5, 120));
+      const held = shift();
+      act(() => { vi.advanceTimersByTime(EDGE_BACK_HOLD_MS); });
+      expect([held, shift()]).toEqual(["translateX(120px)", "translateX(0px)"]);
+    });
   });
 });
 

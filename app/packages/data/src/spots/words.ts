@@ -4,26 +4,21 @@
  * They were composed inside `SpotScreen` and `SpotsScreen`, where a test could only match a fragment it had itself
  * supplied (AGENTS 33). Here each one is a whole string a test pins, and the screens draw it.
  */
-import { CONDITIONS_WORDS, localDate, localDateTime, localStamp, latLon, weatherFigure, monthAbbr, weekdayAbbr, figure, daysInTen, placeChip, placeSaid, readingIn,
-         shownParameter, type DeclaresQuantity, type ShownQuantity } from "@app/core";
-import type { DailyGauge, DailyWeather, DayPlace, Spot, SpotReading, WeatherWindow } from "./model";
+import { bandWord, bcMidnight, CONDITIONS_WORDS, spotDay, standing, traceSentence, type FrozenTrace, latLon, weatherFigure, figure, figureIn, daysInTen, placeChip, placeSaid,
+         readingIn, shownParameter, spotIsoDay, spotStamp, type DeclaresQuantity, type ShownQuantity } from "@app/core";
+import { spotLabel, type DailyGauge, type DailyWeather, type DayPlace, type Spot, type SpotReading, type WeatherWindow } from "./model";
 import { OPEN_METEO_ATTRIBUTION } from "./weather";
 import { isBackdated, readingIsTheDays } from "./dayFlow";
 
 /* ---- S1: the week before the visit ------------------------------------------------------------------------------ */
 
 const DASH = "—";
-const parts = (date: string) => {
-  const [y, m, d] = date.split("-").map(Number) as [number, number, number];
-  return { wd: weekdayAbbr(new Date(y, m - 1, d).getDay()), mon: monthAbbr(m - 1), d };
-};
 /** One decimal where it means something: "4.2", "0", "12". */
 const tenth = (v: number): string => String(Number(v.toFixed(1)));
 
-/** "Sun 23" — the head of a lead-up day's column. The day is the reader's own. */
+/** "Sun 23 Aug" — a lead-up day, in the spots' one style (T819 item 10); the week is the visit's, so no year. */
 export function leadUpDayLabel(date: string): string {
-  const p = parts(date);
-  return `${p.wd} ${p.d}`;
+  return spotIsoDay(date, bcMidnight(date));
 }
 
 /** The sky in a word, from the day's WMO code group; a dash for none or a code outside the table. */
@@ -62,21 +57,27 @@ export function rainBand(mm: number | null): 0 | 1 | 2 | 3 {
   return mm === null || mm < 0.2 ? 0 : mm < 2 ? 1 : mm < 8 ? 2 : 3;
 }
 
-/** A lead-up weather day as the strip draws it. A value nobody recorded is a dash. */
-export function leadUpWeatherCells(d: DailyWeather): { day: string; sky: string; temps: string; rain: string;
-                                                        wind: string; icon: SkyIcon | null; band: 0 | 1 | 2 | 3 } {
+/**
+ * A lead-up weather day as the table draws it (T819 item 8: seven columns at phone width, no sideways scroll): the day
+ * as its weekday over its date, the high over the low, the rain and the wind as bare numbers — their units said once in
+ * the row's label (`LEAD_UP_WORDS.rows`). A value nobody recorded is a dash.
+ */
+export function leadUpWeatherCells(d: DailyWeather): { day: string; weekday: string; date: string; sky: string;
+                                                        high: string; low: string; rain: string; wind: string;
+                                                        icon: SkyIcon | null; band: 0 | 1 | 2 | 3 } {
   const deg = (v: number | null) => (v === null ? DASH : `${Math.round(v)}°`);
+  const [weekday = "", date = "", month = ""] = leadUpDayLabel(d.date).split(" ");
   return {
-    day: leadUpDayLabel(d.date), sky: skyWord(d.code), temps: `${deg(d.maxC)} / ${deg(d.minC)}`,
-    rain: d.precipMm === null ? DASH : `${tenth(d.precipMm)} mm`,
-    wind: d.windMaxKph === null ? DASH : `${Math.round(d.windMaxKph)} km/h`,
+    day: leadUpDayLabel(d.date), weekday, date: `${date} ${month}`.trim(), sky: skyWord(d.code),
+    high: deg(d.maxC), low: deg(d.minC),
+    rain: d.precipMm === null ? DASH : tenth(d.precipMm),
+    wind: d.windMaxKph === null ? DASH : String(Math.round(d.windMaxKph)),
     icon: skyIcon(d.code), band: rainBand(d.precipMm),
   };
 }
 
 /** The day said whole: "Sun Aug 23: rain, high 18°C, low 9°C, 4.2 mm of rain, wind up to 22 km/h". */
 export function leadUpWeatherSentence(d: DailyWeather): string {
-  const p = parts(d.date);
   const sky = skyWord(d.code);
   const bits = [
     sky === DASH ? null : sky.toLowerCase(),
@@ -86,7 +87,7 @@ export function leadUpWeatherSentence(d: DailyWeather): string {
     d.windMaxKph === null ? null : `wind up to ${Math.round(d.windMaxKph)} km/h`,
   ].filter((b): b is string => b !== null);
   // a day with nothing at all is one the service had not sent yet; a refresh asks for it again (`weatherDayPending`)
-  return `${p.wd} ${p.mon} ${p.d}: ${bits.length ? bits.join(", ") : "no weather for this day yet"}`;
+  return `${leadUpDayLabel(d.date)}: ${bits.length ? bits.join(", ") : "no weather for this day yet"}`;
 }
 
 /**
@@ -134,19 +135,19 @@ const stillToCome = (d: DailyGauge) => d.discharge === null && d.level === null 
 /** A lead-up gauge day as the strip draws it; a day still to come says so under its dash. */
 export function leadUpGaugeCells(d: DailyGauge, q: "discharge" | "level"): { value: string; place: string } {
   const v = valueOf(d, q);
-  return { value: v === null ? DASH : figure(v),
+  return { value: v === null ? DASH : figureIn(v, q),
            place: v === null ? (stillToCome(d) ? "not yet" : "") : chipOf(placeOf(d, q)) };
 }
 
 /** The day said whole: "Sun Aug 23: 50.0 m³/s, lower than 4 days in 10 for the day". */
 export function leadUpGaugeSentence(d: DailyGauge, q: "discharge" | "level"): string {
-  const p = parts(d.date);
+  const day = leadUpDayLabel(d.date);
   const v = valueOf(d, q);
-  if (v === null && stillToCome(d)) return `${p.wd} ${p.mon} ${p.d}: no daily mean published yet`;
-  if (v === null) return `${p.wd} ${p.mon} ${p.d}: no daily mean recorded`;
+  if (v === null && stillToCome(d)) return `${day}: no daily mean published yet`;
+  if (v === null) return `${day}: no daily mean recorded`;
   const at = placeOf(d, q);
   const where = at === null ? "no record to compare it with" : placeSaid(at, "day");
-  return `${p.wd} ${p.mon} ${p.d}: ${figure(v)} ${UNIT[q]}, ${where}`;
+  return `${day}: ${figureIn(v, q)} ${UNIT[q]}, ${where}`;
 }
 
 /**
@@ -162,12 +163,12 @@ export function leadUpGaugeTrend(days: readonly DailyGauge[], q: "discharge" | "
   const moved = q === "level" ? b - a : a === 0 ? (b > 0 ? 1 : 0) : b / a - 1;
   const step = q === "level" ? 0.05 : 0.1;
   const verb = moved >= step ? "rose" : moved <= -step ? "fell" : "held steady";
-  return `${q === "level" ? "Level" : "Flow"} ${verb} over the week: ${figure(a)} → ${figure(b)} ${UNIT[q]}`;
+  return `${q === "level" ? "Level" : "Flow"} ${verb} over the week: ${figureIn(a, q)} → ${figureIn(b, q)} ${UNIT[q]}`;
 }
 
-/** Under the gauge row: whose means they are, and whether they were filled in afterwards. */
-export function leadUpGaugeMeta(station: string, backfilled?: boolean): string {
-  return [station, "daily means", backfilled ? "filled in afterwards" : null].filter(Boolean).join(" · ");
+/** Under the gauge row: whose means they are (named, T819), and whether they were filled in afterwards. */
+export function leadUpGaugeMeta(station: string, backfilled?: boolean, names?: ReadonlyMap<string, string>): string {
+  return [gaugeLabel(station, names), "daily means", backfilled ? "filled in afterwards" : null].filter(Boolean).join(" · ");
 }
 
 /** The Spots list's banner over spots with something still to fill in (the visit's weather or flow (T170), or the week before). */
@@ -186,8 +187,8 @@ export const LEAD_UP_WORDS = {
   gaugeEmpty: "The station has no daily means for that week.",
   weatherFilledIn: `${OPEN_METEO_ATTRIBUTION} · filled in afterwards`,
   weatherSource: OPEN_METEO_ATTRIBUTION,
-  /** (T284) the weather table's row labels, said once at the left */
-  rows: { day: "Day", sky: "Sky", temp: "High / low", rain: "Rain", wind: "Wind" },
+  /** (T284) the weather table's row labels, said once at the left; (T819 item 8) each with its unit, said once */
+  rows: { day: "Day", sky: "Sky", temp: "High / low °C", rain: "Rain mm", wind: "Wind km/h" },
   /** The refresh line: a whole half of the week was never read (offline, or saved before the week was kept). */
   notRecorded: "The week before this visit was not recorded — it can be filled in from the days themselves.",
   /** The refresh line: the week was read, but some of its days were not out yet (owner bug 2026-10-22). */
@@ -210,11 +211,8 @@ export function leadUpGaugePending(n: number): string {
 
 /* ---- T170: the visit day's flow, from the day's record ----------------------------------------------------------- */
 
-/** "15 Aug 2024" — a day said in full, for a record's date. */
-const fullDay = (date: string): string => {
-  const [y, m, d] = date.split("-").map(Number) as [number, number, number];
-  return `${d} ${monthAbbr(m - 1)} ${y}`;
-};
+/** "Thu 15 Aug 2024" — a record's day, in the spots' one style (T819 item 10), with its year: it is a dated record. */
+const fullDay = (date: string): string => `${spotIsoDay(date, bcMidnight(date))} ${date.slice(0, 4)}`;
 
 /** Where a filled day's mean came from, in words. */
 const DAY_SOURCE = { feed: "ECCC's daily mean, provisional", hydat: "HYDAT daily mean" } as const;
@@ -302,6 +300,11 @@ export function photoLabel(n: number, of: number): string {
   return `Photo ${n} of ${of}`;
 }
 
+/** (T836) The viewer's counter at the top, as the phone photo viewers write it: "2 of 5". */
+export function photoCounter(n: number, of: number): string {
+  return `${n} of ${of}`;
+}
+
 /** A photo that could not be added, said whole. The spot and its other photos are untouched. */
 export function photoFailed(e: unknown): string {
   const why = e instanceof Error ? e.message : String(e);
@@ -338,21 +341,43 @@ export function weatherTrend(win: WeatherWindow): string | null {
  */
 function observedAt(at: string | null): string {
   const ms = at ? Date.parse(/(Z|[+-]\d\d:?\d\d)$/.test(at) ? at : `${at}Z`) : NaN;
-  return Number.isNaN(ms) ? "no observation time recorded" : `observed ${localStamp(ms)}`;
+  return Number.isNaN(ms) ? "no observation time recorded" : `observed ${spotStamp(ms)}`;
 }
 
-/** When a frozen value was observed, by whom, and whether it was filled in after the fact. */
-export function observedLine(at: string | null, backfilled?: boolean, station?: string | null): string {
+/**
+ * (T819 item 7) A station said by NAME, the code after it: "Chilliwack River at Vedder Crossing (08MH001)"; the code
+ * alone where the release names none (or before the names are read). `names` is the release's code → name.
+ */
+export function gaugeLabel(station: string, names?: ReadonlyMap<string, string>): string {
+  const name = names?.get(station)?.trim();
+  return name ? `${name} (${station})` : station;
+}
+
+/** When a frozen value was observed, by whom (named, T819), and whether it was filled in after the fact. */
+export function observedLine(at: string | null, backfilled?: boolean, station?: string | null,
+                             names?: ReadonlyMap<string, string>): string {
   return [
-    station ?? null,
+    station ? gaugeLabel(station, names) : null,
     observedAt(at),
     backfilled ? "filled in afterwards" : null,
   ].filter(Boolean).join(" · ");
 }
 
-/** "2026-08-30 at 09:00 · 49.0974, -121.9675" — the visit, in the reader's own time, and the place. */
-export function spotHeadline(spot: Pick<Spot, "visitedAt" | "createdAt" | "lat" | "lon">): string {
-  return `${localDateTime(spot.visitedAt ?? spot.createdAt)} · ${latLon(spot)}`;
+/**
+ * "Sun 30 Aug, 9 am" — the visit, in the spots' one style (T819 item 10). No coordinates: they are said once, under
+ * Show on map (`spotPlaceLine`), not in the header.
+ */
+export function spotHeadline(spot: Pick<Spot, "visitedAt" | "createdAt">): string {
+  return spotStamp(spot.visitedAt ?? spot.createdAt);
+}
+
+/** (T819 item 10) Where the spot is, as numbers, under Show on map: "49.0974, -121.9675". */
+export const spotPlaceLine = (spot: Pick<Spot, "lat" | "lon">): string => latLon(spot);
+
+/** (T819 item 10) "on Chilliwack River" under the title, or null when it would only say the title again. */
+export function spotWaterLine(spot: Pick<Spot, "title" | "waterName" | "lat" | "lon">, label: string): string | null {
+  const w = spot.waterName?.trim();
+  return !w || w.toLowerCase() === label.trim().toLowerCase() ? null : `on ${w}`;
 }
 
 /**
@@ -381,19 +406,70 @@ function tripDayGauge(spot: Spot): string {
   return spot.reading?.station || df ? "flow that day not read yet" : "no gauge";
 }
 
-/**
- * The two lines under a spot's name in the list: the LOCAL day of the visit with what was recorded, then where.
- *
- * The visit, not the record: spots are typed up on the drive home or the week after, and the list used to date
- * them by `createdAt` in UTC — a Sunday evening's fishing read as Monday's.
- */
-export function spotRowLines(spot: Spot): [string, string] {
-  const g = spot.reading, w = spot.weather, f = spotReadingFigure(g);
-  const gauge = isBackdated(spot) && !readingIsTheDays(spot) ? tripDayGauge(spot)
+/** The list row's and the draft summary's flow part: the reading as it stood that day, or that there was none. */
+function gaugePart(spot: Spot): string {
+  const g = spot.reading, f = spotReadingFigure(g);
+  return isBackdated(spot) && !readingIsTheDays(spot) ? tripDayGauge(spot)
     : g && f
-    ? `${f.figure} ${f.unit}${g.percentile != null ? ` · ${daysInTen(g.percentile)}` : ""}`
+    // (T830) a level to LEVEL_DECIMALS places (`figureIn`); a flow as it was saved
+    ? `${f.quantity === "level" ? figureIn(f.figure, "level") : f.figure} ${f.unit}${g.percentile != null ? ` · ${daysInTen(g.percentile)}` : ""}`
     : "no gauge";
-  const weather = w?.tempC != null ? `${weatherFigure("temp", w.tempC)}${w.backfilled ? " (filled in)" : ""}` : "no weather";
-  return [`${localDate(spot.visitedAt ?? spot.createdAt)} · ${gauge} · ${weather}`,
-          `${latLon(spot)}`];
+}
+
+/** The list row's and the draft summary's weather part: the temperature recorded, or that there was none. */
+function weatherPart(spot: Spot): string {
+  const w = spot.weather;
+  return w?.tempC != null ? `${weatherFigure("temp", w.tempC)}${w.backfilled ? " (filled in)" : ""}` : "no weather";
+}
+
+/**
+ * (T819 item 11) A SPOT'S ROW IN THE LIST, under its name: the water and the day of the visit, then ONE condition word —
+ * where the flow stood that day ("Below normal"), the bare figure where nothing ranked it, or why there is none. The day
+ * is the visit's, in the spots' one style (P12b: never the UTC day it was typed up). No coordinates, no weather: the
+ * spot's page has them.
+ */
+export function spotRowLines(spot: Spot, ref?: number): [string, string] {
+  const day = spotDay(spot.visitedAt ?? spot.createdAt, ref);
+  const water = spot.waterName?.trim();
+  const where = water && water.toLowerCase() !== spotLabel(spot).toLowerCase() ? `${water} · ${day}` : day;
+  return [where, conditionWord(spot)];
+}
+
+/** The row's one condition word (T819 item 11), from the same record `gaugePart` reads. */
+function conditionWord(spot: Spot): string {
+  if (isBackdated(spot) && !readingIsTheDays(spot)) {
+    const df = spot.dayFlow;
+    if (df?.state === "filled")
+      return rankedWord(df.percentile, `${figure(df.discharge)} ${UNIT.discharge}`);
+    if (df?.state === "none") return ROW_WORDS.noFlowThatDay;
+    return spot.reading?.station || df ? ROW_WORDS.notReadYet : ROW_WORDS.noGauge;
+  }
+  const g = spot.reading, f = spotReadingFigure(g);
+  if (!g || !f) return ROW_WORDS.noGauge;
+  return rankedWord(g.percentile, `${f.quantity === "level" ? figureIn(f.figure, "level") : f.figure} ${f.unit}`);
+}
+
+/** A spot's own reading said in one word: its band where it was ranked, else its figure (a record, not a donor's state). */
+const rankedWord = (rank: number | null | undefined, bare: string): string =>
+  rank == null ? bare : bandWord(standing(rank));
+
+/** The list row's words for a spot with no ranked flow (T819 item 11). */
+const ROW_WORDS = { noGauge: "No gauge", noFlowThatDay: "No flow that day", notReadYet: "Flow that day not read yet" } as const;
+
+/**
+ * (T819 item 5) THE DRAFT'S RECORD IN ONE LINE, on the folded card that opens to the whole record: what the water and
+ * the sky were doing, "28.2 m³/s · lower than 8 days in 10 · 6°C".
+ */
+export function spotRecordSummary(spot: Spot): string {
+  return `${gaugePart(spot)} · ${weatherPart(spot)}`;
+}
+
+/**
+ * (T819 items 3, 6, 7) HOW THE SPOT REACHES ITS GAUGE, in one plain sentence — "Water here flows about 17 km down to
+ * Chilliwack River at Vedder Crossing (08MH001)." — the trace's own sentence (core `traceSentence`, the Conditions
+ * sheet's), the station named. Null when the trace names no station: nothing known is nothing said.
+ */
+export function spotTraceLine(t: FrozenTrace | null, names?: ReadonlyMap<string, string>): string | null {
+  if (!t || t.station === null) return null;
+  return traceSentence(t, t.stationName ? `${t.stationName} (${t.station})` : gaugeLabel(t.station, names));
 }

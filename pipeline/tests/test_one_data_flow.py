@@ -94,7 +94,7 @@ def test_the_review_app_neither_builds_nor_promotes_an_atlas():
 @pytest.mark.smoke  # T667 D6: a guard beside the file's first test
 def test_the_tiles_carry_only_what_is_read():
     from pipeline.deliver.tiles.layers import BY_NAME, contract
-    assert BY_NAME["stream"].attrs == ("section_id", "name", "ord")
+    assert BY_NAME["stream"].attrs == ("section_id", "name", "ord", "sc")      # T891: `sc` read by the style (side channels)
     assert BY_NAME["lake"].attrs == ("section_id", "name", "water", "area_m2")
     assert BY_NAME["wetland"].attrs == ("section_id", "name", "water")
     on_disk = json.loads((REPO_ROOT / "pipeline/deliver/tiles/tile-contract.json").read_text())
@@ -412,6 +412,7 @@ def test_promote_drops_a_prev_only_when_the_current_build_shares_its_sid_space(t
         write_handles(ids, d)
         (d / "registry.json").write_text("{}")
         from pipeline.atlas.inputs import write_complete
+        (d / "split_unplaced.json").write_text("[]")    # T743: every cut placed
         write_complete(d, {})                   # T547 §4: the atlas build's finished marker
         return d
     full, prev, nxt = atlas("full", ["a:1"]), atlas("full.prev", ["a:1"]), atlas("full_next", ["a:1", "a:2"])

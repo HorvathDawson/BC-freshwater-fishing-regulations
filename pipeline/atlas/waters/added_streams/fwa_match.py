@@ -76,6 +76,16 @@ class _FwaIndex:
         return [int(i) for i in self.tree.query(line.buffer(tol))]
 
 
+#: POLICY (T806, made general by T813 2026-11-17): a tail past the FWA line's MOUTH is never an extension (see
+#: `_tail_past_end`), from ANY source. Which end is the mouth is read from the FWA line (mouth first), never from the
+#: source line's vertex order, so it holds for city layers as for hand-drawn lines. The line is then classified like
+#: any other: a re-draw of the FWA line is a duplicate (Port Moody's Schoolhouse Creek North src 3/4/15/16, a 104 m
+#: hook at the tidal mouth, was minted at the line's TOP measure with its geometry at the mouth), a line of its own is
+#: novel (the Sheldens Creek estuary channel). False = minted as an upstream extension at the top, as before (the
+#: mutation pin).
+DOWNSTREAM_TAIL_IS_NOVEL = True
+
+
 def _tail_past_end(line: LineString, fwa_geom: LineString, tol: float) -> Optional[LineString]:
     """The single contiguous uncovered tail of ``line`` if it runs past ``fwa_geom`` — else None."""
     rem = line.difference(fwa_geom.buffer(tol))
@@ -99,6 +109,11 @@ def _tail_past_end(line: LineString, fwa_geom: LineString, tol: float) -> Option
     near_is_divergence = (near.distance(fwa_geom) <= tol * 1.6
                           and min(near.distance(e) for e in fwa_ends) <= tol * 3.0)
     if not (touches_muni_end and near_is_divergence and far.distance(fwa_geom) > tol * 1.6):
+        return None
+    # T806/T813: an extension continues the FWA line past its SOURCE (the line is mouth first, so its last vertex):
+    # the tail is minted on the FWA blk from the line's top measure up. A tail past the MOUTH is no upstream tail —
+    # read as one it was minted at the top measure with its geometry at the bottom — from any source.
+    if DOWNSTREAM_TAIL_IS_NOVEL and near.distance(fwa_ends[0]) < near.distance(fwa_ends[1]):
         return None
     return tail
 

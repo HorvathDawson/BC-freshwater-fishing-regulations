@@ -77,7 +77,8 @@ export function literals(source: string): [kind: "copy" | "figure", text: string
   // a testID or a key is a name for a test or React, never shown; a `case "…":` is a key being matched; a console line
   // or a thrown Error's message is for the log and the failure report, never drawn
   const src = source.replace(/\b(?:testID|key)=(?:\{[^}]*\}|"[^"]*")/g, "").replace(/\bcase\s+"[^"]*"\s*:/g, "case _:")
-    .replace(/\b(console\.\w+|Error)\(\s*"(?:[^"\\\n]|\\.)*"/g, "$1(_");
+    .replace(/\b(console\.\w+|Error)\(\s*"(?:[^"\\\n]|\\.)*"/g, "$1(_")
+    .replace(/\b(console\.\w+|Error)\(\s*`(?:[^`\\]|\\.)*`/g, "$1(_");   // a template-literal message too (T886's adiposeArt)
   const out: [kind: "copy" | "figure", text: string][] = [];
   const seen = new Set<string>();
   const add = (kind: "copy" | "figure", text: string) => { const k = `${kind}:${text}`; if (!seen.has(k)) { seen.add(k); out.push([kind, text]); } };

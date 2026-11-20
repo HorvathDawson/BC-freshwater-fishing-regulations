@@ -1,6 +1,6 @@
 # T537 — `release --staging`: resolve in-season before the promote, resume from the smoke, name the after-chores
 
-Status: IN PROGRESS — b3b950e5e (built + unit-proved); left (Claude): one real `python -m pipeline release --staging` ending with a clean tree and green fast-fail, and the pointer-free smoke group in app/tools/smoke-staging.mjs (tools lane) — see Built.
+Status: DONE — b3b950e5e (built, used by every staging release since 2026-11-12); the last left item (the pointer-free smoke group before the upload) DROPPED by the owner 2026-11-20.
 
 Source: workflow review 2026-11-09 (verified against the code). Rank 5.
 
@@ -68,3 +68,9 @@ Not verified / left: the acceptance's one real `release --staging` (clean tree +
 (`--only` has http / browser / desktop; http mixes pointer-free and pointer checks) — app/tools is another lane's. The
 goldens re-cut is named, not run, by the release. On a resume after the in-season commit, `pipeline build` reruns
 deliver (notice_waters.json is a deliver input), so the candidate may be rebuilt once.
+
+## Owner answer 2026-11-20 01:56
+
+Dropped: the pointer-free smoke group. Releases already run clean. owner 2026-11-20 01:56 (lane-plan batch), verbatim: "Make sure their tickets are  removed/completed/no doing labelled".
+
+Status line before this answer: IN PROGRESS — b3b950e5e (built + unit-proved); real `python -m pipeline release --staging` runs since 2026-11-12 resolve in-season on the candidate and commit notice_waters.json alone (b76c997d9 first, 4c9b96bbc on r-6258ffded676, 2026-11-19). left (Claude): the pointer-free smoke group in app/tools/smoke-staging.mjs (feeds status, backup age, private/ not served) run before any upload (Work 2; tools lane).

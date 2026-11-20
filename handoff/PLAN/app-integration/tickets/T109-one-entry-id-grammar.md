@@ -1,6 +1,6 @@
 # T109 — One entry-id grammar: tier, region and zone parsed about 10 ways (z7a shows as "Region 7")
 
-Status: DONE — 6c03f5fe (step 1), 89fea9c0 (steps 2 + 3, Python), 1ca9bc00 (left item: shipped region). Lanes wf_754f5fcd-d71-3, lane-T125. Needs deliver + regs fixture re-cut.
+Status: DONE — 0ef3ed2fd (step 1), edb0653c6 (steps 2 + 3, Python), 1ca9bc00 (left item: shipped region). Lanes wf_754f5fcd-d71-3, lane-T125. Needs deliver + regs fixture re-cut.
 - Step 1 DONE: level.ts reads z7a/z7b as "Region 7A/7B rule" (23 entries, whole subs pinned in level.test.ts); the
   golden is held to the ruling by one counted rewrite at load (oracles.zone7Ruled: 54 level words in 8 states;
   exclusions.test.ts pins the count). No rebuild.

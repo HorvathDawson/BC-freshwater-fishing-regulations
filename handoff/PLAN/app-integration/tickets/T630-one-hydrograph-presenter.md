@@ -1,6 +1,6 @@
 # T630 — One hydrograph presenter for the app and the public gauge page
 
-Status: OPEN — read 2026-11-11, not built: one presenter changes what the public gauge page (or the app) draws; needs a pick first, listed at the end
+Status: DROPPED — owner 2026-11-12: "Leave both charts as they are (accepted as built)"; one presenter would change what one chart shows, so nothing was built (read 2026-11-11, 44b0af0ce).
 
 Source: T564 report 2026-11-11. The public gauge page still draws its own SVG; the app's presenter lives in `ui`,
 which the site build cannot import. T564's parity test compares shared `core` words, not the live app panel.

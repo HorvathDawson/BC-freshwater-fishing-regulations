@@ -719,7 +719,9 @@ APPROVED_LAKE_NAMES_BY_SOURCE: dict[str, tuple] = {
 # the headwater loop-closer fix made DEM correct for its tricky cases (e.g. Ramsay Trib.6 drawn backwards),
 # so DEM gives the right flow AND source markers there too. Shared by build() and mapcheck so the dataset
 # matches the validation view. (trust_source is still supported per-source; the set is just empty for now.)
-RELIABLE_SOURCES: set = set()
+# T806 (2026-11-16): a HAND-DRAWN line (`manual`) is drawn head first on purpose, and the one it holds (the Sheldens
+# Creek estuary channel) lies on a tidal flat the DEM cannot orient.
+RELIABLE_SOURCES: set = {"manual"}
 
 
 def approved_lake_polys(gpkg, bbox, source: str) -> list:
@@ -1457,6 +1459,8 @@ def load_build(path: str | Path) -> list[dict]:
 #: (owner 2026-10-28) only the `source: "osm"` streams are OpenStreetMap data; the city layers carry their own licences.
 ADDED_STREAMS_ODBL = ("the `streams[]` and `name_variants[]` entries whose `source` is \"osm\" (geometry, name, "
                       "segments; today Northrop Channel, blk -2300000000, from data/source/municipal/osm_streams.geojson). "
+                      "The `manual` entries are drawn by hand for this project (today the Sheldens Creek estuary "
+                      "channel, blk -2400000001, from data/source/municipal/manual_streams.geojson). "
                       "Every other entry is from a city stream layer under that city's open government licence "
                       "(Abbotsford, Burnaby, Port Moody, Squamish: see pipeline/atlas/waters/added_streams/SOURCES.md).")
 
@@ -1567,10 +1571,41 @@ def _resolve_source(source: str, gpkg: str, pad: float):
         exclude_wsc=FWA_EXCLUDE_BY_SOURCE.get(source, ()), approved_lakes=approved,
         orient_sampler=ElevationSampler(), trust_source=source in RELIABLE_SOURCES)
     _apply_side_channels(source, streams, chains)
+    if source in RELIABLE_SOURCES:
+        _carry_continued_order(streams, chains)
     report["input_dropped"] = [{"src_id": p.get("src_id"), "name": p.get("name") or "", "why": why}
                                for p, why in dropped]
     report["input_kept"] = len(features)
     return streams, candidates, report
+
+
+#: how close (m) a drawn head must sit to an FWA line's mouth vertex to CONTINUE that line downstream
+_CONTINUES_M = 0.01
+
+
+def _carry_continued_order(streams: list[dict], chains: list) -> int:
+    """T806: a hand-drawn line whose HEAD is an FWA line's own MOUTH vertex continues that river downstream (the
+    Sheldens Creek estuary channel, drawn on from the head of the salt marsh to the road bridge). It carries the
+    river's Strahler order and Shreve magnitude, not its own 1: the walk refuses to climb from a smaller order into a
+    bigger one where the codes are equal (`tributaries._refusal`, `bigger_river`), so with order 1 the creek above
+    would fall out of every walk from the estuary. Returns how many it set."""
+    mouths = {}
+    for c in chains:
+        g = getattr(c, "geometry", None)
+        if g is not None and not g.is_empty:
+            mouths[(round(g.coords[0][0], 2), round(g.coords[0][1], 2))] = c
+    n = 0
+    for s in streams:
+        if s.get("klass") != "novel" or not s.get("segments"):
+            continue
+        hx, hy = s["segments"][-1]["coords3005"][-1][:2]          # stored mouth first: the last vertex is the head
+        c = mouths.get((round(hx, 2), round(hy, 2)))
+        if c is None or Point(hx, hy).distance(Point(c.geometry.coords[0][:2])) > _CONTINUES_M:
+            continue
+        s["stream_order"] = max(s["stream_order"] or 1, c.stream_order or 1)
+        s["stream_magnitude"] = max(s["stream_magnitude"] or 1, c.stream_magnitude or 1)
+        n += 1
+    return n
 
 
 def _offset_added_blks(streams: list[dict], name_variants: list[dict], offset: int) -> None:

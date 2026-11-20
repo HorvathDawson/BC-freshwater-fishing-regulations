@@ -28,7 +28,7 @@
  * Every word the notifications and their settings draw is here (AGENTS 33: tests pin the finished strings).
  */
 import { CONDITIONS_WORDS } from "./conditions";
-import { figure, levelChip, levelName, levelSpan } from "./standing";
+import { figure, figureIn, levelChip, levelName, levelSpan } from "./standing";
 import { bcClockTime } from "./clock";
 import { calendarDayOfYear, localStamp } from "./day";
 import { monthAbbr, valueAtPercentile, type Band } from "./flow";
@@ -418,9 +418,9 @@ export const NOTIFY_WORDS = {
     cancel: "Cancel",
     bad: "Type a number.",
     badPct: `Type a whole number from ${PERCENTILE_MIN} to ${PERCENTILE_MAX}: 10 is very low for the day, 90 very high.`,
-    now: (q: AlertQuantity, v: number) => `Now ${figure(v)} ${unitOf(q)}`,
+    now: (q: AlertQuantity, v: number) => `Now ${figureIn(v, q)} ${unitOf(q)}`,
     nowUnknown: "No reading now",
-    normal: (q: AlertQuantity, lo: number, hi: number) => `normal today ${figure(lo)}–${figure(hi)} ${unitOf(q)}`,
+    normal: (q: AlertQuantity, lo: number, hi: number) => `normal today ${figureIn(lo, q)}–${figureIn(hi, q)} ${unitOf(q)}`,
     normalUnknown: "no normal range for today",
     loading: "Reading the gauge…",
     /** why the percentile line cannot be picked (the chip is shown disabled, with this under it) */
@@ -473,12 +473,14 @@ export const NOTIFY_WORDS = {
     woke: "woken by our server",
     /** (T739) that wake started downloading the newer regulations data */
     downloading: "new data downloading",
+    /** (T676 item 2) the gauge feed asks for a newer app: the alerts wait for the app update (not a failure) */
+    appTooOld: "gauge alerts wait for the app update",
   },
 } as const;
 
 /** The line in words: "30 m³/s" / "the level higher than 8 days in 10 for the day". */
 function thresholdWords(r: Pick<GaugeAlertRule, "quantity" | "threshold">): string {
-  return r.threshold.kind === "value" ? `${figure(r.threshold.value)} ${unitOf(r.quantity)}`
+  return r.threshold.kind === "value" ? `${figureIn(r.threshold.value, r.quantity)} ${unitOf(r.quantity)}`
     : `${levelName(r.threshold.pct)} for the day`;
 }
 
@@ -533,11 +535,11 @@ export function alertSummary(r: Pick<GaugeAlertRule, "quantity" | "direction" | 
   const line = now ? thresholdAt(r.threshold, now.at) : null;
   if (r.threshold.kind === "percentile")
     parts.push(line !== null && now
-      ? `The line is worked out for each day from the gauge's record, so it moves with the date: ${figure(line)} ${u} for ${readingDay(now.at)}.`
+      ? `The line is worked out for each day from the gauge's record, so it moves with the date: ${figureIn(line, r.quantity)} ${u} for ${readingDay(now.at)}.`
       : "The line is worked out for each day from the gauge's record, so it moves with the date.");
   parts.push(`It is ready again once the ${q} is back ${r.direction === "above" ? "below" : "above"} the line.`);
   if (now && line !== null && isPast(r.direction, now.value, line))
-    parts.push(`It is ${r.direction} that now (${figure(now.value)} ${u}), so the first notification comes after it crosses back and then ${r.direction} again.`);
+    parts.push(`It is ${r.direction} that now (${figureIn(now.value, r.quantity)} ${u}), so the first notification comes after it crosses back and then ${r.direction} again.`);
   return parts.join(" ");
 }
 
@@ -561,11 +563,11 @@ export function alertContextLine(q: AlertQuantity, current: number | null, norma
 export function alertNotification(r: GaugeAlertRule, reading: AlertReading): { title: string; body: string } {
   const where = r.water?.name ?? r.stationName;
   const u = unitOf(r.quantity);
-  const line = r.threshold.kind === "value" ? `${figure(r.threshold.value)} ${u}`
+  const line = r.threshold.kind === "value" ? `${figureIn(r.threshold.value, r.quantity)} ${u}`
     : `${levelName(r.threshold.pct)} for ${readingDay(reading.at)}`;
   return {
     title: `${where}: ${quantityWord(r.quantity)} alert`,
-    body: `${r.stationName} crossed ${r.direction} ${line} — ${figure(reading.value)} ${u} at ${bcClockTime(Date.parse(reading.at))}.`,
+    body: `${r.stationName} crossed ${r.direction} ${line} — ${figureIn(reading.value, r.quantity)} ${u} at ${bcClockTime(Date.parse(reading.at))}.`,
   };
 }
 

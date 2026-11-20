@@ -13,19 +13,21 @@ export { spotLabel, isUntitled } from "./model";
 export { captureSpot, type WeatherSource } from "./capture";
 export { openSpots, openLayerStore, openLikeStore, openSalmonFeedStore, openGaugeHistoryStore, openInSeasonStore, openInSeasonSeenStore, openInSeasonInboxStore, openFirstRunStore, openDataModeStore, openWalkthroughStore, openLocationAskStore, openAppUpdateStore, openRecentSearchStore, openRunSpeciesStore,
          openUpdateStore, openUpdateLogStore, openReportOutboxStore, openCrashSettingStore, openCrashPendingStore, openCrashExitStore,
-         openInstallIdStore, openNotifyStore, openPushStore } from "./store";
+         openInstallIdStore, openNotifyStore, openHeldCopyStore, openPushStore } from "./store";
 export { openSpotsWith, type SpotsFs } from "./core";
 export { openMeteo } from "./weather";
 export { needsRefresh, refreshReason, refreshSpot } from "./refresh";
-export { observedLine, spotHeadline, spotReadingFigure, spotRowLines, weatherTrend, LEAD_UP_WORDS, leadUpDayLabel,
+export { observedLine, spotHeadline, spotRecordSummary, spotPlaceLine, spotTraceLine, spotWaterLine, spotReadingFigure, spotRowLines, weatherTrend, LEAD_UP_WORDS, leadUpDayLabel,
          leadUpGaugeCells, leadUpGaugeMeta, leadUpGaugeSentence, leadUpGaugeTrend, leadUpGaugePending, leadUpQuantity,
          leadUpUnit, leadUpRainLine, leadUpWeatherCells, leadUpWeatherPending, leadUpWeatherSentence, PHOTO_WORDS,
-         photoFailed, photoLabel, removePhotoLabel, staleSpotsLine } from "./words";
+         photoCounter, photoFailed, photoLabel, removePhotoLabel, staleSpotsLine } from "./words";
 export { DRAFT_WORDS } from "./words";
 // S1: the week before a visit, and a spot's photographs (the platform pair behind `./photoStore`)
 export { leadUpPendingDays } from "./leadup";
 export { isPhotoRef, type PhotoSource, type PhotoStore, type PickedPhoto } from "./photos";
 export { openPhotos } from "./photoStore";
+// T732: the phone backup's photo set (compressed copies, newest first, fitted to the quota) and the restore of its copies
+export { syncBackupSet } from "./backupSet";
 // T51: "Like your visit?" — the inputs to core's `likeDay`, and the last fetched forecast kept for offline
 export { comingConditions, fetchLike, NOTHING_FETCHED, readLike, visitConditions, visitHour, writeLike,
          type LikeFetched, type LikeSources, type LikeStore } from "./likeVisit";

@@ -39,7 +39,17 @@ const answer = (over = {}): PanelAnswer => ({
 const DAY = new Date(2026, 8, 4, 12);
 
 type Props = Omit<Parameters<typeof DonorPanel>[0], "palette" | "day">;
-const draw = (p: Props) => render(<DonorPanel palette={LIGHT} day={DAY} {...p} />);
+/** (T920) the gauge legend sits in its own fold, closed by default: open it as a reader would (absent: nothing to open) */
+const openGauges = () => {
+  const fold = screen.queryByTestId("gauges-fold");
+  if (fold) fireEvent.click(fold.querySelector("[role=button]")!);
+};
+
+const draw = (p: Props) => {
+  const r = render(<DonorPanel palette={LIGHT} day={DAY} {...p} />);
+  openGauges();
+  return r;
+};
 
 const text = () => document.body.textContent ?? "";
 
@@ -65,7 +75,8 @@ describe("the donor panel", () => {
       expect(screen.getByText(s)).toBeTruthy();
     for (const r of vm.rows) {
       // Two rows may finish the same sentence (same factors), so all of them, not one.
-      for (const s of [r.weightLine, r.facts, r.because!])
+      // (T920) the legend row: name + share, then what it reads and its facts (one line); the "because" is in the fold
+      for (const s of [r.weightLine, r.detail, r.because!])
         expect(screen.getAllByText(s).length).toBeGreaterThan(0);
       expect(screen.getByLabelText(r.label)).toBeTruthy();
     }
@@ -108,8 +119,9 @@ describe("the donor panel", () => {
     draw({ value: answer() });
     expect(screen.getByText("08MH001")).toBeTruthy();
     expect(screen.getByText("08MH024")).toBeTruthy();
-    expect(screen.getByText("upstream · drains 120 km² · 2.4× apart")).toBeTruthy();
-    expect(screen.getByText("downstream · drains 120 km² · 2.4× apart")).toBeTruthy();
+    // (T920) where it is and the size apart are in the row's label; the legend line itself is name + share
+    expect(screen.getByLabelText("08MH001, upstream, 2.4× apart, 60 per cent of the answer")).toBeTruthy();
+    expect(screen.getByLabelText("08MH024, downstream, 2.4× apart, 40 per cent of the answer")).toBeTruthy();
   });
 
   it("says a reporting station with nothing to rank is quiet rather than printing a zero", () => {
@@ -118,7 +130,6 @@ describe("the donor panel", () => {
     draw({ value: { ...v, rows: [row("08MH001", { percentile: null,
                                                    observedAt: new Date(2026, 8, 4, 8).toISOString() })] } });
     expect(screen.getByText("not counted today")).toBeTruthy();
-    expect(screen.getByText("Reporting, but its reading cannot be ranked today.")).toBeTruthy();
   });
 
   it("hides a silent station from the table and names it in one line under it (owner 2026-10-22)", () => {
@@ -243,7 +254,7 @@ describe("the donor panel", () => {
                             + "from 2 gauges nearby.")).toBeTruthy();
   });
 
-  it("says how far each gauge is in reaches when it knows the route", () => {
+  it("(T920 round 3) draws each gauge as its name and share, then what it reads and its facts on one line under it", () => {
     const v = answer();
     draw({ value: { ...v, rows: [
       row("08MH001", { route: { station: "08MH001" as never, name: "VEDDER", lat: 49,
@@ -251,10 +262,10 @@ describe("the donor panel", () => {
       row("08MH024", { route: { station: "08MH024" as never, name: null, lat: 49,
                                 lon: -122, role: "up", path: ["a"] as never } }),
     ] } });
-    expect(screen.getByText("upstream · drains 120 km² · 2.4× apart · 2 reaches away"))
-      .toBeTruthy();
-    expect(screen.getByText("upstream · drains 120 km² · 2.4× apart · on this reach"))
-      .toBeTruthy();
+    expect(screen.getByTestId("donor-detail-08MH001").textContent).toBe("Reads below normal · lower than 9 days in 10 · upstream · drains 120 km² · 2.4× apart · 2 reaches away");
+    expect(screen.getByTestId("donor-detail-08MH024").textContent).toBe("Reads below normal · lower than 9 days in 10 · upstream · drains 120 km² · 2.4× apart · on this reach");
+    expect(screen.getByTestId("donor-share-08MH001").textContent).toBe("60% of this estimate");
+    expect(screen.getByTestId("donor-share-08MH024").textContent).toBe("60% of this estimate");   // both rows weigh 0.6 here
   });
 
   it("draws no map when the caller has no tiles, and still lists the gauges", () => {
@@ -282,23 +293,20 @@ describe("the donor panel", () => {
     expect(screen.getByText("08MH001")).toBeTruthy();
   });
 
-  it("says what each gauge itself reads, in the same words as the headline", () => {
+  it("(T920 round 3, owner: \"we lost other detil in the gauge legend\") says what each gauge reads on its legend row", () => {
     draw({ value: { ...answer(), rows: [row("08MH001", { percentile: 0.2 })] } });
-    expect(screen.getByText("Reads below normal · lower than 8 days in 10."))
-      .toBeTruthy();
+    expect(screen.getByTestId("donor-detail-08MH001").textContent).toBe("Reads below normal · lower than 8 days in 10 · upstream · drains 120 km² · 2.4× apart");
   });
 
   const DAM = "This water is controlled by a dam. The reading is real, but it follows a "
     + "release schedule as much as the weather — a low river here can mean the gate is shut "
     + "rather than that the country is dry.";
 
-  it("says when the water is dam-controlled: on the row, and in words in the fold (P16)", () => {
+  it("says when the water is dam-controlled, in words in the fold (P16; T920: no longer on the legend row)", () => {
     draw({ value: { ...answer(), rows: [row("08PA004", { regulated: true })] } });
     expect(screen.queryByText(DAM)).toBeNull();
     openFold();
     expect(screen.getByText(DAM)).toBeTruthy();
-    expect(screen.getByText("upstream · drains 120 km² · 2.4× apart · dam-controlled"))
-      .toBeTruthy();
   });
 
   it("says nothing about dams when no donor is on regulated water", () => {
@@ -404,13 +412,12 @@ describe("the donor panel", () => {
       .toBeTruthy();
   });
 
-  it("tells a screen reader which row's chart is showing", () => {
-    draw({ value: answer(), selected: "08MH024" as never, onSelect: () => {} });
-    expect(screen.getByText("TAP A GAUGE TO SEE ITS CHART")).toBeTruthy();
-    expect(screen.getByLabelText("08MH024, downstream, 2.4× apart, 40 per cent of the "
-                                 + "answer. Showing this gauge's chart")).toBeTruthy();
-    expect(screen.getByLabelText("08MH001, upstream, 2.4× apart, 60 per cent of the "
-                                 + "answer. Show this gauge's chart")).toBeTruthy();
+  it("(T920) is a legend: no row is a button, none is marked, and no tap hint, even with a gauge charted", () => {
+    draw({ value: answer(), selected: "08MH024" as never });
+    expect(screen.queryByText("TAP A GAUGE TO SEE ITS CHART")).toBeNull();
+    expect(screen.queryByRole("button", { name: /08MH0(24|01)/ })).toBeNull();
+    expect(screen.getByLabelText("08MH024, downstream, 2.4× apart, 40 per cent of the answer")).toBeTruthy();
+    expect(screen.getByLabelText("08MH001, upstream, 2.4× apart, 60 per cent of the answer")).toBeTruthy();
   });
 
   it("marks the fold with the set's chevron: expand closed, collapse open (no drawn borders)", () => {

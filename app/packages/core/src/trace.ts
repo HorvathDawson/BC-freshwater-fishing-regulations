@@ -139,15 +139,20 @@ export function routeCamera(t: AnyTrace, from?: { lat: number; lon: number } | n
  *
  * Returns null when there is nothing to frame, so a caller draws no map rather than a map
  * of nowhere.
+ *
+ * (T881, owner 2026-11-18: "larger fit only") A MARK IS MORE THAN ITS POINT. A point may carry `px`, the pixels its
+ * drawing takes beyond the point on each side (a gauge's share pill, "you are here" and its words: `ROUTE_MARK_PX`);
+ * the frame then holds every mark WHOLE, with `EDGE` px left over at the frame's edges, centred on the marks' box —
+ * the Vedder's rightmost share was cut by the map's edge. Points without `px` are framed as before (`PAD`).
  */
 export function panelCamera(
-  points: readonly { lat: number | null; lon: number | null }[],
+  points: readonly { lat: number | null; lon: number | null; px?: MarkPx }[],
   from?: { lat: number; lon: number } | null,
-  /** The map's size in CSS pixels. Defaults suit the route map under an estimate. */
+  /** The map's size in CSS pixels, as laid out. */
   size: { width: number; height: number } = { width: 380, height: 210 },
 ): { lon: number; lat: number; zoom: number } | null {
   const pts = [...points, ...(from ? [from] : [])]
-    .filter((p): p is { lat: number; lon: number } => p.lat !== null && p.lon !== null);
+    .filter((p): p is { lat: number; lon: number; px?: MarkPx } => p.lat !== null && p.lon !== null);
   if (!pts.length) return null;
 
   // Web Mercator, normalised to [0,1] in each axis — the space tiles are cut in, so a span
@@ -164,8 +169,6 @@ export function panelCamera(
   const ys = pts.map((p) => toY(p.lat));
   const x0 = Math.min(...xs), x1 = Math.max(...xs);
   const y0 = Math.min(...ys), y1 = Math.max(...ys);
-  const lon = ((x0 + x1) / 2) * 360 - 180;
-  const lat = toLat((y0 + y1) / 2);
 
   /*
    * 512, NOT 256 — MapLibre's world is `tileSize * 2^zoom` and its vector tile size is 512.
@@ -176,12 +179,69 @@ export function panelCamera(
    */
   const TILE = 512;
   const PAD = 1.35;                 // markers sit off the edge of the frame, not on it
-  const fit = (span: number, px: number) =>
-    span <= 0 ? Infinity : Math.log2(px / (TILE * span * PAD));
-  const zoom = Math.min(fit(x1 - x0, size.width), fit(y1 - y0, size.height));
-  // A single point has no span and would fit at any zoom, so it gets a sensible close one.
-  return { lon, lat, zoom: Math.max(4, Math.min(13, Number.isFinite(zoom) ? zoom : 12.5)) };
+  const clampZ = (z: number) => Math.max(4, Math.min(13, z));
+  const marked = pts.some((p) => p.px);
+  if (!marked) {
+    const fit = (span: number, px: number) =>
+      span <= 0 ? Infinity : Math.log2(px / (TILE * span * PAD));
+    const zoom = Math.min(fit(x1 - x0, size.width), fit(y1 - y0, size.height));
+    // A single point has no span and would fit at any zoom, so it gets a sensible close one.
+    return { lon: ((x0 + x1) / 2) * 360 - 180, lat: toLat((y0 + y1) / 2),
+             zoom: clampZ(Number.isFinite(zoom) ? zoom : 12.5) };
+  }
+  /*
+   * THE MARKS' BOX at a world size `w` px: each point's pixel position widened by its own extents. Its pixel width is
+   * span·w plus the extents of whichever marks sit at the edges, so the world size that fills the frame is found by
+   * a few rounds of w = (room − extents) / span (the extremes settle in one or two).
+   */
+  const box = (w: number) => {
+    let l = Infinity, r = -Infinity, t = Infinity, b = -Infinity;
+    pts.forEach((p, i) => {
+      const e = p.px ?? NO_PX;
+      l = Math.min(l, xs[i]! * w - e.l); r = Math.max(r, xs[i]! * w + e.r);
+      t = Math.min(t, ys[i]! * w - e.t); b = Math.max(b, ys[i]! * w + e.b);
+    });
+    return { l, r, t, b };
+  };
+  const roomX = size.width - 2 * EDGE, roomY = size.height - 2 * EDGE;
+  let w = TILE * 2 ** 12.5;
+  if (x1 - x0 > 0 || y1 - y0 > 0) {
+    w = TILE * 2 ** 13;
+    for (let k = 0; k < 8; k++) {
+      const m = box(w);
+      const ex = (m.r - m.l) - (x1 - x0) * w, ey = (m.b - m.t) - (y1 - y0) * w;
+      const wx = x1 > x0 ? (roomX - ex) / (x1 - x0) : Infinity;
+      const wy = y1 > y0 ? (roomY - ey) / (y1 - y0) : Infinity;
+      w = Math.min(wx, wy, TILE * 2 ** 13);
+      if (!(w > TILE * 2 ** 4)) { w = TILE * 2 ** 4; break; }
+    }
+  }
+  const zoom = clampZ(Math.log2(w / TILE));
+  w = TILE * 2 ** zoom;
+  // centred on the marks' box (their drawings too), not on their points
+  const m = box(w);
+  return { lon: (((m.l + m.r) / 2) / w) * 360 - 180, lat: toLat(((m.t + m.b) / 2) / w), zoom };
 }
+
+/** (T881) The pixels a mark's drawing takes beyond its point, each side. */
+export interface MarkPx { l: number; r: number; t: number; b: number }
+const NO_PX: MarkPx = { l: 0, r: 0, t: 0, b: 0 };
+/** (T881) What is left between the marks' box and the frame's edge, px. */
+const EDGE = 10;
+
+/**
+ * (T881) THE ROUTE MAP'S MARKS, as `trace-overlay.ts` draws them, in px beyond the point:
+ *   gauge  a 7 px dot in a 10.5 px halo, and its SHARE PILL on whichever side is free (`text-variable-anchor-offset`
+ *          1.1 em across or 0.95 em up/down at 12.5 px, the pill 7 px wider and 3 px taller than its words). The side is
+ *          MapLibre's choice, so every side has room for a pill as wide as "100%" (~30 px of text): 14 + 7 + 30 + 7.
+ *          A longer state ("not reporting") may still reach past the edge; MapLibre tries the free sides first.
+ *   here   the pin, 30 px tall standing on the point, and "you are here" under it (12 px, 0.35 em down, ~72 px wide).
+ * A fixed allowance, never the label's own text: the frame must not move when Flow / Level changes the words (T568).
+ */
+export const ROUTE_MARK_PX: { gauge: MarkPx; here: MarkPx } = {
+  gauge: { l: 58, r: 58, t: 34, b: 34 },
+  here: { l: 36, r: 36, t: 32, b: 22 },
+};
 
 /**
  * How far apart two coordinates are, in metres.
@@ -305,7 +365,9 @@ export const TRACE_WORDS = {
  * Says what is true, including when that is "we cannot tell you" — the sentence a person
  * needs is different in each case, and a generic one would be wrong in all of them.
  */
-export function traceSentence(t: AnyTrace): string {
+export function traceSentence(t: AnyTrace,
+                              /** (T819 item 7) how the station is said: a saved spot names it; the code by default */
+                              said: string | null = t.station): string {
   if (t.station === null)
     return "No station drains enough of this water to speak for it. One that did not " +
            "would still give you a number, and the number would be wrong.";
@@ -316,10 +378,10 @@ export function traceSentence(t: AnyTrace): string {
   if (t.rel === "up" || t.rel === "up_branch") {
     const on = t.rel === "up" ? "on this water" : "on a tributary of this water";
     return d === null || (t.metres ?? 0) < 500
-      ? `${t.station} is just upstream, ${on}: water here has already passed it.`
-      : `${t.station} is ${d} upstream, ${on}: water here has already passed it.`;
+      ? `${said} is just upstream, ${on}: water here has already passed it.`
+      : `${said} is ${d} upstream, ${on}: water here has already passed it.`;
   }
   return d === null
-    ? `This reach drains through ${t.station}.`
-    : `Water here flows ${d} down to ${t.station}.`;
+    ? `This reach drains through ${said}.`
+    : `Water here flows ${d} down to ${said}.`;
 }

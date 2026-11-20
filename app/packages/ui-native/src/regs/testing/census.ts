@@ -39,7 +39,7 @@ export const STATUS_TOKENS: readonly (keyof Palette)[] = ["open", "closed", "res
  * element itself is excepted, never what it holds. Nothing else is excepted; a new entry needs a
  * reason the prototype gives (cite its CSS / check), never "the gate failed".
  */
-export const ALLOW: readonly { testID: string; rule: "border" | "tint"; side?: "top" | "left"; reason: string }[] = [
+export const ALLOW: readonly { testID: string; rule: "border" | "tint" | "filled" | "picture"; side?: "top" | "left"; reason: string }[] = [
   { testID: "keep-caveat", rule: "border", side: "left",
     reason: "T42: the caveat block's 3 px left rule is `restricted` on purpose (prototype .caveats border-left: it marks "
       + "'restricted here at some times, sides or anglers'); its label (testID kicker:<kind>) stays sub" },
@@ -50,6 +50,18 @@ export const ALLOW: readonly { testID: string; rule: "border" | "tint"; side?: "
       + "box outside any card, which r20g/r20h never measured. KEPT (T39 Q2, Claude 2026-10-22, owner delegated): it is "
       + "the one thing on the Licence tab an angler must DO at the water (carry the paper licence, record the fish at "
       + "once), so it is the one tinted box there; ink on tint holds the contrast gates light / dark / CVD" },
+  { testID: "kicker:badge", rule: "filled",
+    reason: "T810, the trout table's badge (KeepBox `Label`): the card word on an ink ground is a filled LABEL, not a "
+      + "control. Owner picks: the filled HATCHERY ONLY label (build spec 3.2, owner 16:00: 'The HATCHERY ONLY label is a "
+      + "filled label in the same place in a row and in a strip'); and G2 Q9, 2026-11-17 ~15:50: '1: Badges + \"only 2 "
+      + "wild in all\" (Recommended)' — filled HATCHERY, outlined WILD (the outlined one is ink on the ground: no "
+      + "exception). Card on ink holds the contrast gates light / dark / CVD" },
+  { testID: "keep-tile", rule: "picture",
+    reason: "T810, the trout table's picture tile (KeepBox `Tile`): the fish sits on a tint tile, owner 2026-11-17 23:29 (app "
+      + "chat dialog, before/after pictures): \"Keep the tile (Recommended)\"; as signed off in the R picture pack (2026-11-17 "
+      + "21:33). Only the tile itself; the picture and its parent paint nothing" },
+  { testID: "keep-tile-more", rule: "picture",
+    reason: "T810, the card patch under the tile's corner \"›\" (the picture opens its sheet), the same signed-off look" },
 ];
 
 const ROLE_OF_PREFIX: readonly [string, Role][] = [["st:", "status"], ["n:", "number"], ["chip:", "chip"], ["btn:", "button"]];
@@ -144,7 +156,7 @@ export function census(root: HTMLElement, palette: Palette): CensusHit[] {
 const say = (h: CensusHit) => `“${h.text.slice(0, 40)}”`;
 /** A key excuses its OWN element (and, for a border, its one side) — never a descendant: a status rule on a banner chain
  *  row, or a tinted run inside the paper note, is still a fault. */
-const allowed = (el: Element, rule: "border" | "tint", side?: string) =>
+const allowed = (el: Element, rule: "border" | "tint" | "filled" | "picture", side?: string) =>
   ALLOW.some((a) => a.rule === rule && testIdOf(el) === a.testID && (rule !== "border" || a.side === side));
 
 /**
@@ -153,7 +165,7 @@ const allowed = (el: Element, rule: "border" | "tint", side?: string) =>
  *   2 token     every text colour is a TEXT_TOKENS token
  *   3 status    open / closed / restricted text only on a status word (role status)
  *   4 filled    card / onAccent text only on a filled control (role button)
- *   5 number    every number in ink (the size section's in its `rule`, UR7 owner B: under testID tier:size or pin:size)
+ *   5 number    every number in ink (the size section's in its `rule`, UR7 owner B: under testID tier:size)
  *   6 tint      a text background is `tint` only on a chip, and no other background but the card's
  *   9 release   every st:release word is bold (≥ 700, r20i-glare)
  */
@@ -172,10 +184,10 @@ export function textFaults(root: HTMLElement, palette: Palette, tab: Tab): Recor
       bad.token.push(`${tab}: ${h.color} (${h.tokens.join("|") || "no token"}) is not a text token, on ${say(h)}`);
     if (h.tokens.some((t) => STATUS_TOKENS.includes(t)) && h.role !== "status")
       bad.status.push(`${tab}: ${h.token} on a non-status ${h.role} ${say(h)}`);
-    if (h.tokens.some((t) => t === "card" || t === "onAccent") && h.role !== "button")
+    if (h.tokens.some((t) => t === "card" || t === "onAccent") && h.role !== "button" && !allowed(h.el, "filled"))
       bad.filled.push(`${tab}: ${h.token} text off a filled control: ${say(h)}`);
     if (h.role === "number") {
-      const size = h.el.closest('[data-testid="tier:size"], [data-testid="pin:size"]') !== null;
+      const size = h.el.closest('[data-testid="tier:size"]') !== null;
       const want: keyof Palette = size ? "rule" : "ink";
       if (!h.tokens.includes(want)) bad.number.push(`${tab}: a number not in ${want}: ${h.token ?? h.color} ${say(h)}`);
     }
@@ -228,7 +240,7 @@ export function pictureFaults(root: HTMLElement): string[] {
   for (const pic of root.querySelectorAll<HTMLElement>('[data-testid^="pic:"]')) {
     const id = testIdOf(pic)!;
     for (const el of [pic.parentElement, pic, ...pic.querySelectorAll<HTMLElement>("*")])
-      if (el && !clear(el.style.backgroundColor)) bad.push(`${id}: ${el === pic.parentElement ? "its parent" : testIdOf(el) ?? el.tagName.toLowerCase()} paints ${el.style.backgroundColor}`);
+      if (el && !clear(el.style.backgroundColor) && !(el !== pic.parentElement && el !== pic && allowed(el, "picture"))) bad.push(`${id}: ${el === pic.parentElement ? "its parent" : testIdOf(el) ?? el.tagName.toLowerCase()} paints ${el.style.backgroundColor}`);
   }
   return bad;
 }

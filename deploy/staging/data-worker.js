@@ -3,6 +3,10 @@
 // them). A gzip-stored release file is passed through with encodeBody "manual": the v1 worker (archive/r2-worker) let the
 // runtime gzip it a second time, so the app's sha256 check of the decoded bytes failed (seen 2026-10-28). Production's
 // data worker has the same defect: fix it the same way before a release goes to prod (T86).
+// (T912) ...except to a client that does not take gzip (Android's DownloadManager sends `Accept-Encoding: identity`):
+// the edge decoded the passed-through gzip for it and sent it chunked, with no Content-Length and no ETag, so a cut system
+// download could never resume. Such a client gets the STORED gzip bytes as a plain octet-stream (no Content-Encoding):
+// their real length, the ETag, Range/206. The app unpacks a gzip body itself and checks the decoded bytes (verifyAsync).
 const CORS = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Methods": "GET, HEAD, OPTIONS",
@@ -19,6 +23,22 @@ async function limited(request, env) {
   const ip = request.headers.get("CF-Connecting-IP") ?? "unknown";
   try { if ((await env.RL.limit({ key: `data:${ip}` })).success) return null; } catch { return null; }
   return new Response("Too Many Requests\n", { status: 429, headers: { ...CORS, "Retry-After": "60", "Cache-Control": "no-store" } });
+}
+// (T912) does the CLIENT take gzip? The runtime shows a worker `Accept-Encoding: br, gzip` on every incoming request and
+// keeps the client's own value in request.cf.clientAcceptEncoding (developers.cloudflare.com/fundamentals/reference/
+// http-headers); the header is read only where cf does not carry it (outside the edge: tests, wrangler dev). The edge
+// treats a request with no Accept-Encoding as one that takes no encoding (curl), so none here means no gzip.
+function takesGzip(request) {
+  const ae = request.cf?.clientAcceptEncoding ?? request.headers.get("Accept-Encoding") ?? "";
+  let gzip = null, star = null;
+  for (const part of ae.split(",")) {
+    const [coding, ...params] = part.trim().toLowerCase().split(";");
+    const qp = params.map((p) => p.trim()).find((p) => p.startsWith("q="));
+    const ok = !qp || Number(qp.slice(2)) > 0;
+    if (coding === "gzip" || coding === "x-gzip") gzip = ok;
+    else if (coding === "*") star = ok;
+  }
+  return gzip ?? star ?? false;
 }
 export default {
   async fetch(request, env) {
@@ -52,6 +72,13 @@ export default {
     if (obj.httpMetadata?.contentDisposition) headers.set("Content-Disposition", obj.httpMetadata.contentDisposition);
     if (!headers.has("Cache-Control")) headers.set("Cache-Control", "public, max-age=300");
     if (key.endsWith(".wasm")) headers.set("Content-Type", "application/wasm");
+    // (T912) a gzip-stored file to a client that does not take gzip: the stored bytes as they are, not encoded (see the top)
+    const raw = headers.get("Content-Encoding")?.toLowerCase() === "gzip" && !takesGzip(request);
+    if (raw) {
+      headers.delete("Content-Encoding");
+      headers.set("Content-Type", "application/octet-stream");
+      headers.append("Vary", "Accept-Encoding");
+    }
     const inm = request.headers.get("If-None-Match");
     // weak comparison (RFC 9110 §13.1.2): the edge weakens our ETag to W/"…" when it gzips a response, so the app sends the
     // weak form back; strip W/ on both sides, accept a list and "*"
@@ -59,13 +86,15 @@ export default {
     if (inm && !range && (inm.trim() === "*" || inm.split(",").map(bare).includes(bare(obj.httpEtag))))
       return new Response(null, { status: 304, headers });
     if (request.method === "HEAD") { headers.set("Content-Length", String(obj.size)); return new Response(null, { status: 200, headers }); }
-    let status = 200;
+    let status = 200, sent = obj.size;
     if (m && obj.range) {
       const off = obj.range.offset ?? 0, len = obj.range.length ?? obj.size - off;
       headers.set("Content-Range", `bytes ${off}-${off + len - 1}/${obj.size}`);
-      status = 206;
+      status = 206; sent = len;
     }
     headers.set("Accept-Ranges", "bytes");
+    // (T912) the stored bytes' length, said outright (the slice's on a 206): what lets a cut system download resume
+    if (raw) headers.set("Content-Length", String(sent));
     return new Response(obj.body, { status, headers, encodeBody: headers.has("Content-Encoding") ? "manual" : "automatic" });
   },
 };

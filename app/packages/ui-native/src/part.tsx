@@ -1,11 +1,14 @@
 /**
  * (T282) A PART OF THE APP LOADED LATER: on the web its code is a separate chunk (Metro splits on `import()`), fetched
- * when the part is first drawn or when the browser is idle after the first screen (`preloadParts`), so the map and the
- * Regulations pane — the first screen — arrive first on a slow line (the 4 MB bundle took 43 s on Fast 3G). On a phone
+ * when the part is first drawn or when the browser is idle after the first screen (`preloadParts`), so the first screen
+ * arrives first on a slow line (the 4 MB bundle took 43 s on Fast 3G). (T910) The map is the first screen of a start on
+ * `/`; a start on a water's page asks for the chunk at once (its Regulations page is a part). On a phone
  * the bundle is one file: the part is asked for at once and is in long before anything draws it.
  *
  * No Suspense: until its code is in the part draws nothing (what an unopened sheet draws anyway), then the component
- * itself — no fallback, no look change.
+ * itself — no fallback, no look change. (T910) A SCREEN loaded later (the water's Regulations page) is never an empty
+ * box while its code comes: `loading` draws its own loading state (the same one it draws while its data comes), shown
+ * only while the code is not in.
  *
  * A PART WHOSE CODE CANNOT LOAD IS SHOWN AND REPORTED (owner: no silent fallbacks): every failed load goes to
  * `reportFailure`, and a part that is wanted draws the error line with "Try again" in its place — never nothing. (Before,
@@ -31,7 +34,9 @@ export const PART_FAILED = NET_WORDS.part.code;
  * code the moment the Shell mounts — on a water's own page that competes with the files the hand-over waits for.
  * Absent: drawn whenever mounted.
  */
-export function part<P extends object>(load: () => Promise<ComponentType<P>>, when?: (props: P) => boolean):
+export function part<P extends object>(load: () => Promise<ComponentType<P>>, when?: (props: P) => boolean,
+                                       /** (T910) what a wanted part draws until its code is in (absent: nothing) */
+                                       loading?: ComponentType<P>):
     ((props: P) => ReturnType<typeof createElement> | null) & { preload(): Promise<void> } {
   let C: ComponentType<P> | null = null;
   let p: Promise<void> | null = null;
@@ -59,7 +64,8 @@ export function part<P extends object>(load: () => Promise<ComponentType<P>>, wh
       return () => { live = false; };
     }, [wanted, tries]);
     if (C) return createElement(C, props);
-    if (!failed || !wanted) return null;
+    if (!wanted) return null;
+    if (!failed) return loading ? createElement(loading, props) : null;
     const palette = (props as { palette?: Palette }).palette ?? LIGHT;
     return (
       <View testID="part-failed" style={{ padding: SPACE.s4, gap: SPACE.s2, backgroundColor: palette.card }}>

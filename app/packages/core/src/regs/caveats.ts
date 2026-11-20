@@ -28,13 +28,13 @@ import { cap, clean, gameFish, spName, type SpeciesBook } from "./names";
 import { makePlace } from "./place";
 import type { Settled } from "./settle";
 import { daySegments, tapDay } from "./tap";
-import { fmtDay } from "./strip";
-import { sameDay } from "../day";
+import { dayPhrase } from "./strip";
 import { timeCond, winTxt } from "./time";
 import { ruleBook } from "./book";
 import { WD3, WORDS, pageWaterNoun } from "./words";
 
 export type { CaveatVM } from "./model";
+
 
 /** The families the Keep tab's caveats speak for (renderCard). */
 export const KEEP_FAMS: readonly string[] = Object.freeze(["retention", "access"]);
@@ -115,7 +115,10 @@ export function inPartBlock(u: readonly InPartEntry[], noun: string): CaveatVM |
 function inPartItem(r: RuleView, inp: RegsInputs): CaveatItemVM {
   const p = cap(r.part ?? "").replace(/\(map ([A-Z])\)/, WORDS.MAP_IN_REGS);
   const where = /various|do not identify|buoys and signs/i.test(p) ? WORDS.WHERE_SIGNS : WORDS.WHERE(p);
-  const words: Line = [text(clean(parts(r).what || r.export.label).replace(/ — in part:.*$/, "")),
+  // (T797 item 4) the rule's stored conditions follow its words, as its label joins them: the Pitt Lake head's "Trout and
+  // char — release all, wild only" (p.25, "Wild trout/char catch and release"); `what` alone dropped which fish
+  const pr = parts(r), what = pr.what ? [pr.what, pr.conditions].filter(Boolean).join(WORDS.COND_SEP) : r.export.label;
+  const words: Line = [text(clean(what).replace(/ — in part:.*$/, "")),
     ...(r.wins.length ? [text(" · " + winTxt(r.wins).slice(2))] : [])];
   const area = areaOf(r, inp);
   return area ? { ...item(words, where, r), area } : item(words, where, r);
@@ -164,7 +167,7 @@ export function partClosedOf(s: Settled, inp: RegsInputs, today: Day): CaveatVM 
   const shut = s.inpart.filter((x) => closedGate(x.rule));
   if (!shut.length) return null;
   const noun = pageWaterNoun(inp), now = shut.filter((x) => x.now), later = shut.filter((x) => !x.now);
-  const when = sameDay(s.day, today) ? WORDS.TODAY_LC : WORDS.ON_DAY(fmtDay(s.day));
+  const when = dayPhrase(s.day, today);
   return {
     kind: "partclosed", hot: now.length > 0,
     title: now.length ? WORDS.PART_CLOSED_NOW(noun, when) : WORDS.PART_CLOSED_LATER(noun),
@@ -198,8 +201,13 @@ const describeShort = (r: RuleView, inp: RegsInputs) => cap(describe(r, sp(inp))
  * moment while the card's is open — its stored closures; (b) a fish whose stored answer differs between the day's open
  * moments; (c) an angler closure that speaks at some of the day's moments, not the card's. `settledAtSeg(j)` is T07's
  * settle at segment j of the same day (its display frame and ladder).
+ *
+ * (T810 N, S) `covered`: the members of the rows the trout table replaces (its `covers`). Such a fish is the table's,
+ * which says its weekday and hours words itself (contract 2.2, 2.5), so (b) always skips it, as it skips a week-split
+ * fish: no fish is spoken twice.
  */
-export function timedOf(inp: RegsInputs, s: Settled, settledAtSeg: (seg: number) => Settled): CaveatVM | null {
+export function timedOf(inp: RegsInputs, s: Settled, settledAtSeg: (seg: number) => Settled,
+                        covered: ReadonlySet<string>): CaveatVM | null {
   const M = inp.year?.moments ?? null;
   if (!M || !inp.year || s.s < 0) return null;
   const ss = daySegments(inp.year.segStarts, tapDay(s.day, inp.calendarYear).day);
@@ -218,7 +226,13 @@ export function timedOf(inp: RegsInputs, s: Settled, settledAtSeg: (seg: number)
     const all = cl.filter(([, fs]) => asked.every((S) => (fs as readonly string[]).includes(S)));
     const pick = (all.length ? all : [...cl].sort((a, b) => b[1].length - a[1].length).slice(0, 1)).map(([r]) => r);
     const whole = pick.filter((r) => !closing(cur).some(([ix]) => ix === r.rix));
-    for (const r of whole) items.push(item([text(describeShort(r, inp))], momentTxt(M[j]), r));
+    // (T898) a closure of every day's hours from sunset to sunrise carries its offsets, read from the stored window — only
+    // a rule whose stored species are EVERY game fish, with none excepted (the water is closed to game fish those hours,
+    // which is what "Daylight only" says); a closure of some fish there keeps its own words. (Replaces T473's
+    // `^no fishing` test of the words, which also took "No fishing for steelhead".)
+    const dl = daylightOfMoment(M[j]), game = gameFish(sp(inp));
+    for (const r of whole) items.push(dl && namesEveryGameFish(r, game) ? { ...item([text(describeShort(r, inp))], momentTxt(M[j]), r), daylight: dl }
+                                                       : item([text(describeShort(r, inp))], momentTxt(M[j]), r));
     if (!whole.length) items.push(item([text(WORDS.MISSING_CLOSER(momentTxt(M[j])))], null, null));
   }
 
@@ -229,6 +243,7 @@ export function timedOf(inp: RegsInputs, s: Settled, settledAtSeg: (seg: number)
   const weekly = new Set(rs.flatMap(([, r]) => (r ? r.rows.flatMap((x) => x.raw.week?.species ?? []) : [])));
   for (const S of spp) {
     if (weekly.has(S)) continue;   // its row says the weekday window (rows[].week)
+    if (covered.has(S)) continue;  // (T810 N) the trout table says it
     const by = rs.map(([j, r]) => [j, r ? mainRes(r.R[S]) : null] as const);
     const words = by.map(([j, d]) => [j, answerTxt(d)] as const);
     if (new Set(words.map(([, t]) => t)).size < 2) continue;
@@ -253,7 +268,10 @@ export function timedOf(inp: RegsInputs, s: Settled, settledAtSeg: (seg: number)
     const on = sets.filter(([, x]) => x.has(ix)).map(([j]) => j);
     if (on.length === ss.length || on.includes(cur)) continue;
     const r = R.get(ix);
-    items.push(item([text(describeShort(r, inp))], r.tcond || daysTxt([...new Set(on.flatMap((j) => M[j]!.weekdays))]), r));
+    // (T800) the rule's own sentence, as the "some anglers" note says it on the days it speaks (`anglerOf`). `describe()`
+    // falls back to the printed text for an angler closure and the short form cut it at the first bracket: the Skeena's
+    // weekend zones read "…, July 1 - Dec 31, · Sat, Sun" with nobody named, or named no zone
+    items.push(item([text(r.export.label)], r.tcond || daysTxt([...new Set(on.flatMap((j) => M[j]!.weekdays))]), r));
   }
   return items.length ? { kind: "timed", hot: false, title: WORDS.TIMED_TITLE, calm: null, items, later: null } : null;
 }
@@ -264,31 +282,51 @@ export function timedOf(inp: RegsInputs, s: Settled, settledAtSeg: (seg: number)
  * whose part is not drawn is `not_yet_mapped` (pipeline `undrawn_part`), carried on the water; page v36's separate
  * "couldn't be placed" block read a store field nothing fills, and is gone.
  */
-export function caveatsOf(inp: RegsInputs, s: Settled, settledAtSeg: (seg: number) => Settled): readonly CaveatVM[] {
+export function caveatsOf(inp: RegsInputs, s: Settled, settledAtSeg: (seg: number) => Settled,
+                          covered: ReadonlySet<string>): readonly CaveatVM[] {
   const st = s.status?.status;
   if (!st || st === "closed" || st === "tidal") return [];
-  return [inPartOf(s, inp, KEEP_FAMS), sideOf(s, KEEP_FAMS), anglerOf(s), timedOf(inp, s, settledAtSeg)]
+  return [inPartOf(s, inp, KEEP_FAMS), sideOf(s, KEEP_FAMS), anglerOf(s), timedOf(inp, s, settledAtSeg, covered)]
     .filter((c): c is CaveatVM => c !== null);
 }
 
 /**
- * (T473) The offsets of a daylight-only closure, read from the item's own words ("60 min after sunset–60 min before
- * sunrise", the rule's `where`): minutes closed after sunset and before sunrise; null for any other timed item.
+ * (T898) A moment closed every day from some minutes after sunset to some before sunrise, read from its stored hours
+ * window (the pipeline's ClockTime ends: `solar` + `offset_min`, never the words): `{ after, before }` in minutes; null for
+ * any other moment (a clock-time end, a window of some weekdays, the hours outside the window, an end on the sun itself).
+ */
+export function daylightOfMoment(m: Moment | null | undefined): { after: number; before: number } | null {
+  const h = m?.hours;
+  if (!m || !h || !h.in || m.weekdays.length !== 7) return null;
+  const { start: s, end: e } = h;
+  if (s.at || e.at || s.solar !== "sunset" || e.solar !== "sunrise" || !(s.offset_min > 0) || !(e.offset_min < 0)) return null;
+  return { after: s.offset_min, before: -e.offset_min };
+}
+
+/** (T898) A rule whose stored species are every game fish, none excepted (`species` expanded from `ALL_GAME_FISH`); false
+ *  when the book has no game fish. */
+export function namesEveryGameFish(r: Pick<RuleView, "species" | "speciesExcept">, game: readonly string[]): boolean {
+  return game.length > 0 && !r.speciesExcept.length && game.every((S) => r.species.includes(S));
+}
+
+/**
+ * (T473) The offsets of a daylight-only closure: minutes closed after sunset and before sunrise; null for any other timed
+ * item. (T898) Read from the item's stored window (`daylight`, `timedOf`), no longer from its words.
  */
 export function daylightOffsets(x: CaveatItemVM): { after: number; before: number } | null {
-  const what = x.what.map((r) => (r.t === "text" ? r.s : "")).join("").trim();
-  const m = x.where ? /^(\d+) min after sunset\s*[–-]\s*(\d+) min before sunrise$/.exec(x.where.trim()) : null;
-  return m && /^no fishing/i.test(what) ? { after: +m[1]!, before: +m[2]! } : null;
+  return x.daylight ?? null;
 }
 
 /**
  * (T318, owner 2026-10-31) A TIMED ITEM AS ONE LINE under the year bar (not a boxed note): a closure of the hours around
  * sunset ("No fishing for any game fish" · "60 min after sunset–60 min before sunrise") reads "Daylight only: closed from
  * 1 h after sunset to 1 h before sunrise"; any other timed item reads its words and its moment, "<what>: <when>".
+ * (T898, owner 2026-11-19 pick "Times in the rule line") `at`: the day's closed hours at the water (`DaylightAt.closed`),
+ * each in brackets after its part: "… 1 h after sunset (18:21) to 1 h before sunrise (7:23)"; null: the words alone.
  */
-export function timedLineText(x: CaveatItemVM): string {
+export function timedLineText(x: CaveatItemVM, at: { from: string; to: string } | null = null): string {
   const what = x.what.map((r) => (r.t === "text" ? r.s : "")).join("").trim();
   const d = daylightOffsets(x);
-  if (d) return WORDS.TIMED_DAYLIGHT(WORDS.TIMED_H(d.after), WORDS.TIMED_H(d.before));
+  if (d) return WORDS.TIMED_DAYLIGHT(WORDS.TIMED_H(d.after), WORDS.TIMED_H(d.before), at);
   return x.where ? `${what}: ${x.where}` : what;
 }

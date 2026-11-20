@@ -9,8 +9,8 @@ import { act, cleanup, fireEvent, render, screen, waitFor, within } from "@testi
 import type { ItemId, SectionId } from "@app/data";
 import type { MapProps } from "@app/map";
 import { openRegsFixture, openRegsFixtureWithLines, regsFixtureLines, sectionNames } from "@app/data/release/node";
-import { openRegsStore } from "@app/data/regs";
-import { setFailureSink } from "@app/core";
+import { loadWaterGroup, openRegsStore } from "@app/data/regs";
+import { markLabel, partName, partWhere, setFailureSink } from "@app/core";
 import { BackLayerContext, HOME, openWater, parseStartLink, partAction, partOfTap, reduce, useBack, useRoute,
          waterFrame, type Route, type StartLink, type SystemBack } from "@app/ui";
 import { linkSearch, placeReads, resolveStartLink } from "@app/ui/place";
@@ -38,8 +38,29 @@ const PARTS = {
     "area:SKEENA RIVER ECOLOGICAL RESERVE@near:skeena_river__exchamsiks_river_into_skeena_river"],
   vedderUpper: ["gnis:3062", "chilliwack_vedder_rivers__vedder_crossing_bridge_200_m_downstream", "chilliwack_vedder_rivers__vedder_crossing_bridge"],
   zymoetzLake: ["gnis:3137", "zymoetz__mcdonell_lake_3000_m_downstream", "lake_outlet:wbk:329682393"],
+  zymoetzSource: ["gnis:3137", "lake_inlet:wbk:329682393", "source"],
+  cowichanCnrGreendale: ["gnis:12227", "cowichan_river__cnr_bridge", "cowichan_river__greendale_trestle"],
 } as const;
 const partOf = (k: keyof typeof PARTS) => { const [item, lo, hi] = PARTS[k]; return sections.part(item, lo, hi); };
+/** (T768) What the bar says for a named part, or for the entry `up` steps above it: read from the water's own group, so
+ *  no test types "Part 2 of 21" (a new part end anywhere on the water moved every such line in seven files). */
+const GROUPS = openRegsStore(openRegsFixtureWithLines());
+async function said(k: keyof typeof PARTS, up = 0): Promise<{ where: string; name: string; partIx: number }> {
+  const [item, lo, hi] = PARTS[k], g = await loadWaterGroup(await GROUPS, item);
+  const at = g.parts.findIndex((p) => p.lo === lo && p.hi === hi), i = at + up;
+  if (at < 0 || !g.parts[i]) throw new Error(`${item} has no part from ${lo} to ${hi} (+${up}) in its group`);
+  return { where: partWhere(g, i), name: partName(g, i), partIx: g.parts[i]!.partIx };
+}
+/** (T768) The bar's lead for the group's part `i` of a water ("Part 2 of 5 · Chilliwack River"), `top` for its last. */
+async function groupOf(item: string) { return loadWaterGroup(await GROUPS, item); }
+async function where(item: string, i: number | "top") {
+  const g = await groupOf(item); return partWhere(g, i === "top" ? g.parts.length - 1 : i);
+}
+async function lead(item: string, i: number | "top") {
+  const g = await groupOf(item), at = i === "top" ? g.parts.length - 1 : i;
+  return `${partWhere(g, at)} | ${partName(g, at)}`;
+}
+const CHW_ITEM = "gnis:8634", KLWA_ITEM = "wbk:-20";
 const CHW0_LIT = [[380887781, 0]] as const;
 const CHW0_WATER = [[355993454, 0], [355993455, 0], [355993456, 0], [355998527, 0], [355999283, 0], [355999620, 0],
                     [356000264, 0], [380887781, 200], [380887817, 0],
@@ -93,21 +114,19 @@ describe("<WaterMapView> (T150 / T151)", () => {
     await ready();
     const toggle = screen.getByTestId("water-map-parts-toggle");
     expect([toggle.getAttribute("aria-label"), toggle.getAttribute("aria-expanded"), screen.queryByTestId("water-map-parts-list")])
-      .toEqual(["Show all 5 parts", "false", null]);
+      .toEqual([`Show all ${(await groupOf("gnis:8634")).parts.length} parts`, "false", null]);
     fireEvent.click(toggle);
     const radios = within(screen.getByTestId("water-map-parts-list")).getAllByRole("radio");
-    expect(radios.map((r) => [r.getAttribute("aria-checked"), r.textContent])).toEqual([
-      ["true", "✓Vedder Crossing Bridge → Orange triangular boundary signs (200 m upstream of Vedder Crossing bridge)"],
-      ["false", "Orange triangular boundary signs (200 m upstream of Vedder Crossing bridge) → Tamihi Rapids Bridge"],
-      ["false", "Tamihi Rapids Bridge → 100 m below the Slesse Creek confluence"],
-      ["false", "100 m below the Slesse Creek confluence → Chilliwack River Ecological Reserve boundary"],
-      ["false", "Chilliwack River Ecological Reserve boundary → Source"]]);
+    const gc = await groupOf("gnis:8634");
+    expect(radios.map((r) => [r.getAttribute("aria-checked"), r.textContent])).toEqual(
+      gc.parts.map((_, k) => [String(k === 0), `${k === 0 ? "✓" : ""}${partName(gc, k)}`]));
     // T151: no bold in the list — every text in it is the regular face
     const faces = [...screen.getByTestId("water-map-parts").querySelectorAll("div[dir], span")]
       .map((e) => getComputedStyle(e).fontFamily).filter(Boolean);
     expect([...new Set(faces)]).toEqual(["Archivo_400Regular"]);
     fireEvent.click(radios[2]!);
-    await waitFor(() => expect(screen.getByTestId("water-map-where").textContent).toBe("Part 3 of 5 · Chilliwack River"));
+    const third = await where(CHW_ITEM, 2);
+    await waitFor(() => expect(screen.getByTestId("water-map-where").textContent).toBe(third));
     expect([calls, screen.queryByTestId("water-map-parts-list")]).toEqual([["part gnis:8634 2"], null]);
     // (T150 review) the picked row is gone with the list: focus is on the toggle, not dropped to the page
     expect(document.activeElement?.getAttribute("data-testid")).toBe("water-map-parts-toggle");
@@ -119,7 +138,7 @@ describe("<WaterMapView>", () => {
     mount("gnis:8634", 0);
     await ready();
     const name = screen.getByTestId("water-map-name");
-    expect(name.getAttribute("aria-label")).toBe("Vedder Crossing Bridge → Orange triangular boundary signs (200 m upstream of Vedder Crossing bridge)");
+    expect(name.getAttribute("aria-label")).toBe(partName(await groupOf("gnis:8634"), 0));   // (T768) the group's words, pinned in conformance
     const down = screen.getByTestId("water-map-step-down"), up = screen.getByTestId("water-map-step-up");
     for (const el of [name, down, up]) expect(el.style.getPropertyValue("-webkit-line-clamp"), el.textContent ?? "").toBe("2");
     // each step's button holds its own words (a shrinkable column of half the bar), and names the whole way for a reader
@@ -132,28 +151,29 @@ describe("<WaterMapView>", () => {
   it("the Chilliwack from its mouth part: lit, framed, ▲ to the top; the ends disabled", async () => {
     mount("gnis:8634", 0);
     await ready();
-    expect(bar()).toBe("Part 1 of 5 · Chilliwack River | Vedder Crossing Bridge → Orange triangular boundary signs (200 m upstream of Vedder Crossing bridge)"
+    expect(bar()).toBe(`${await lead("gnis:8634", 0)}`
       + " | Downstream into Vedder River | Upstream | Flows into Vedder River ›");
     expect(lit()).toEqual({
       highlight: await sections.streams(CHW0_LIT), water: await sections.streams(CHW0_WATER) });
     expect(seen.props?.fit).toEqual({ key: "gnis:8634:0", bbox: [-121.96469, 49.096026, -121.962945, 49.097385], refine: false,
       maxZoom: 12 });
-    expect(seen.props?.marks?.map((m) => `${m.label ?? "(ring)"} ${m.a11y}`)).toEqual([
-      "Orange triangular boundary signs (200 m upstream of Vedder Crossing bridge) Boundary: Orange triangular boundary signs (200 m upstream of Vedder Crossing bridge)",
-      "(ring) Boundary: Tamihi Rapids Bridge",
-      "(ring) Boundary: 100 m below the Slesse Creek confluence",
-      "(ring) Boundary: Chilliwack River Ecological Reserve boundary"]);
-    for (let k = 0; k < 4; k += 1) fireEvent.click(screen.getByRole("button", { name: "Upstream" }));
-    expect(bar()).toBe("Part 5 of 5 · Chilliwack River | Chilliwack River Ecological Reserve boundary → Source"
-      + " | Downstream | Highest part (off)");
+    // (T768) every mark's words are the group's (markLabel); only the part's own ends are labelled, the rest are rings
+    const chw = await groupOf("gnis:8634");
+    expect(seen.props?.marks?.map((m) => `${m.label ?? "(ring)"} ${m.a11y}`)).toEqual(chw.marks.map((m) => {
+      const w = markLabel(chw, m);
+      return `${m.down === 0 || m.up.includes(0) ? w ?? "(ring)" : "(ring)"} Boundary: ${w}`;
+    }));
+    expect(markLabel(chw, chw.marks[0]!)).toBeTruthy();   // not vacuous: the first mark is a named place
+    for (let k = 0; k < chw.parts.length - 1; k += 1) fireEvent.click(screen.getByRole("button", { name: "Upstream" }));
+    expect(bar()).toBe(`${await lead("gnis:8634", "top")}` + " | Downstream | Highest part (off)");
     // the committed regs fixture's handle of the Chilliwack's part 4 (frozen until `pnpm regs-fixture` re-cuts it; T206,
     // r-f6918815ca78: 380887781:58646; T220 re-cut it to 1236842; T222 r-445850b69ae1 to 1236847, handles +5; T289 r-ce76b4ed3624: handles -2, the Thomas / Angelo lake stubs re-joined)
-    expect([lit().highlight, seen.props?.fit?.key]).toEqual([[await sections.stream(...CHW_SOURCE)], "gnis:8634:4"]);
+    expect([lit().highlight, seen.props?.fit?.key]).toEqual([[await sections.stream(...CHW_SOURCE)], `gnis:8634:${chw.parts.length - 1}`]);
     // the disabled end does nothing
     fireEvent.click(screen.getByRole("button", { name: "Highest part" }));
-    expect(screen.getByTestId("water-map-where").textContent).toBe("Part 5 of 5 · Chilliwack River");
+    expect(screen.getByTestId("water-map-where").textContent).toBe(await where("gnis:8634", "top"));
     fireEvent.click(screen.getByRole("button", { name: "Downstream" }));
-    expect(screen.getByTestId("water-map-where").textContent).toBe("Part 4 of 5 · Chilliwack River");
+    expect(screen.getByTestId("water-map-where").textContent).toBe(await where("gnis:8634", (await groupOf("gnis:8634")).parts.length - 2));
   }, 30_000);
 
   it("(T345) a mouth on TIDAL water: 'Flows into the tidal Fraser River' is plain words, no link, nothing opened", async () => {
@@ -214,43 +234,48 @@ describe("<WaterMapView>", () => {
     await ready();
     act(() => seen.props!.onPressMark!(2));
     // (T517) a mark says the same words as the ends of the parts it joins
-    const pop = within(screen.getByRole("dialog", { name: "100 m below the Slesse Creek confluence" }));
+    const chw = await groupOf("gnis:8634"), mk = chw.marks[2]!, word = markLabel(chw, mk)!;
+    const pop = within(screen.getByRole("dialog", { name: word }));
     expect(screen.getByTestId("water-map-mark").textContent).toBe(
-      "100 m below the Slesse Creek confluence"
-      + "Upstream100 m below the Slesse Creek confluence → Chilliwack River Ecological Reserve boundaryChilliwack River"
-      + "DownstreamTamihi Rapids Bridge → 100 m below the Slesse Creek confluenceChilliwack River");
+      `${word}Upstream${partName(chw, mk.up[0]!)}Chilliwack River`
+      + `Downstream${partName(chw, mk.down)}Chilliwack River`);
     expect(seen.props?.marks?.[2]?.on).toBe(true);
     fireEvent.click(pop.getByRole("button", { name: "Close" }));
     expect(screen.queryByTestId("water-map-mark")).toBeNull();
     const SOURCE = await sections.stream(...CHW_SOURCE), VEDDER = await sections.stream(355999181, 0);   // the Vedder's stretch
     act(() => seen.props!.onPressFeature!("stream", SOURCE));
-    expect(screen.getByTestId("water-map-where").textContent).toBe("Part 5 of 5 · Chilliwack River");
+    expect(screen.getByTestId("water-map-where").textContent).toBe(await where("gnis:8634", "top"));
     act(() => seen.props!.onPressFeature!("stream", VEDDER));
-    expect([screen.getByTestId("water-map-where").textContent, calls]).toEqual(["Part 5 of 5 · Chilliwack River",
+    expect([screen.getByTestId("water-map-where").textContent, calls]).toEqual([await where("gnis:8634", "top"),
       ["part gnis:8634 4", `other ${VEDDER}`]]);
   }, 30_000);
 
-  // (T67, r-0ed3c2b2a0a7) the Zymoetz's canyon side channel is no part of its own any more (E15's mark is gone); the
-  // Skeena's Ecological Reserve part is a fork upstream. (T183, r-98c43091c440) Skeena section 2 starts at the Exchamsiks
-  // cut: the Reserve is part 5 now (part 6 is the Exchamsiks host channel above the cut, still section 2), and its ▲ is
-  // part 0 (which took in the mainstem up to the Exchamsiks) or that channel. (T517) part_ix is the river order: the
-  // Reserve is part 1 (named by its two crossings of the Reserve's boundary), the mainstem round it part 2 (from the tidal
-  // boundary: it joins the stem below and above the Reserve), the channel (no ends: said as its water) part 17
-  it("a fork upstream: ▲ on the Skeena's Ecological Reserve opens the chooser, the main stem first", async () => {
+  // (T750, owner 2026-11-14: "navigating up the skeena it gives a branching option. we should only have up or downastream
+  // that access all components") the Skeena's Ecological Reserve forks upstream in the marks (the main stem, and the
+  // km-less side channel beside it): ▲ steps straight to the next part in the water's one line, the main stem, and the
+  // next ▲ to the side channel. No dialog opens.
+  it("(T750) no fork: ▲ on the Skeena's Ecological Reserve steps to the main stem, then the side channel; no chooser", async () => {
     mount("gnis:2936", await partOf("skeenaReserve"));
     await ready();
-    expect(screen.getByTestId("water-map-name").textContent).toBe(
+    const name = () => screen.getByTestId("water-map-name").textContent;
+    const where = () => screen.getByTestId("water-map-where").textContent;
+    expect(name()).toBe(
       "Skeena River Ecological Reserve boundary (km 63.5) → Skeena River Ecological Reserve boundary near the Exchamsiks River confluence");
+    // (T768) "Part k of N" is the group's own for the Reserve and the entries one and two steps above it
+    const [reserve, stem, side] = await Promise.all([said("skeenaReserve"), said("skeenaReserve", 1), said("skeenaReserve", 2)]);
+    expect(where()).toBe(reserve.where);
     fireEvent.click(screen.getByRole("button", { name: "Upstream" }));
-    const chooser = within(screen.getByRole("dialog", { name: "Which way upstream?" }));
-    const other = "Skeena River";
-    expect(chooser.getAllByRole("button").map((b) => b.getAttribute("aria-label"))).toEqual(
-      ["Close", "Skeena River Ecological Reserve boundary near the Exchamsiks River confluence → Exchamsiks River confluence", other]);
-    fireEvent.click(chooser.getByRole("button", { name: other }));
-    expect([screen.queryByRole("dialog"), screen.getByTestId("water-map-name").textContent]).toEqual([null, other]);
+    expect([screen.queryByRole("dialog"), name(), where()]).toEqual([null,
+      "Skeena River Ecological Reserve boundary near the Exchamsiks River confluence → Exchamsiks River confluence", stem.where]);
+    fireEvent.click(screen.getByRole("button", { name: "Upstream" }));
+    expect([screen.queryByRole("dialog"), name(), where()]).toEqual([null, "Skeena River", side.where]);
+    fireEvent.click(screen.getByRole("button", { name: "Downstream" }));
+    fireEvent.click(screen.getByRole("button", { name: "Downstream" }));
+    expect([screen.queryByRole("dialog"), where()]).toEqual([null, reserve.where]);
+    expect(new Set([reserve.where, stem.where, side.where]).size).toBe(3);   // three different parts, one per press
   }, 30_000);
 
-  it("Android's back closes an open mark, then the chooser, before it leaves the water (back, everywhere)", async () => {
+  it("Android's back closes an open mark before it leaves the water (back, everywhere)", async () => {
     let press: (() => boolean) | null = null;
     const system: SystemBack = (b) => { press = b; return { sync: () => {}, dispose: () => { press = null; } }; };
     const routes: string[] = [];
@@ -272,17 +297,10 @@ describe("<WaterMapView>", () => {
     await ready();
     act(() => seen.props!.onPressMark!(2));
     const seenMark = [open(), `${back()} -> ${open()}`, `${back()} -> ${open()}`];
-    cleanup(); routes.length = 0;
-    render(<Harness item="gnis:2936" part={await partOf("skeenaReserve")} />);   // (T678 junctions) the Skeena's Ecological Reserve, picked by its ends (part 1 is the stretch below it now)
-    await ready();
-    fireEvent.click(screen.getByRole("button", { name: "Upstream" }));
-    const seenChooser = [open(), `${back()} -> ${open()}`];
-    expect([...seenMark, ...seenChooser]).toEqual([
-      "100 m below the Slesse Creek confluence · water",
+    expect(seenMark).toEqual([
+      `${markLabel(await groupOf("gnis:8634"), (await groupOf("gnis:8634")).marks[2]!)} · water`,
       "true -> nothing open · water",
       "true -> nothing open · browse",
-      "Which way upstream? · water",
-      "true -> nothing open · water",
     ]);
   });
 
@@ -319,23 +337,23 @@ describe("<WaterMapView>", () => {
     // flows into the Sumas River (the fixture's core names every water a kept water flows into), ▲ a step
     mount("gnis:3062", 0);
     await ready();
-    expect(bar()).toBe("Part 1 of 2 · Vedder River | Mouth → Cable car crossing (200 m downstream of Vedder Crossing bridge) | Lowest part (off) | Upstream | Flows into Sumas River ›");
+    expect(bar()).toBe(`${await lead("gnis:3062", 0)} | Lowest part (off) | Upstream | Flows into Sumas River ›`);
     cleanup();
     const calls = mount("gnis:3062", await partOf("vedderUpper"));
     await ready();
-    expect(bar()).toBe("Part 2 of 2 · Vedder River | Cable car crossing (200 m downstream of Vedder Crossing bridge) → Vedder Crossing Bridge | Downstream | Upstream into Chilliwack River");
+    expect(bar()).toBe(`${await lead("gnis:3062", "top")} | Downstream | Upstream into Chilliwack River`);
     // the words wrap (two lines at most, then cut with an ellipsis) inside the half-width button at 390 px
     expect(stepText("up")).toEqual({ text: "Upstream into Chilliwack River", lines: 2, align: "center" });
     fireEvent.click(screen.getByRole("button", { name: "Upstream into Chilliwack River" }));
     cleanup();
     const more = mount("gnis:8634", 0);
     await ready();
-    expect(bar()).toBe("Part 1 of 5 · Chilliwack River | Vedder Crossing Bridge → Orange triangular boundary signs (200 m upstream of Vedder Crossing bridge)"
+    expect(bar()).toBe(`${await lead("gnis:8634", 0)}`
       + " | Downstream into Vedder River | Upstream | Flows into Vedder River ›");
     fireEvent.click(screen.getByRole("button", { name: "Downstream into Vedder River" }));
     // the map did not move inside the water: each is the caller's to open (through openWater, Map in front)
     expect([screen.getByTestId("water-map-where").textContent, [...calls, ...more]]).toEqual([
-      "Part 1 of 5 · Chilliwack River", ["cross gnis:8634 at 0", "cross gnis:3062 at 1"]]);
+      await where("gnis:8634", 0), ["cross gnis:8634 at 0", "cross gnis:3062 at 1"]]);
   }, 30_000);
 
   it("(T517) ▲ from the Zymoetz's lake part steps onto the source part, a part of its own named by its own ends", async () => {
@@ -344,25 +362,27 @@ describe("<WaterMapView>", () => {
     expect(screen.getByTestId("water-map-name").textContent).toBe("McDonell Lake (3000 m downstream) → McDonell Lake outlet");
     fireEvent.click(screen.getByRole("button", { name: "Upstream" }));
     expect([screen.queryByRole("dialog"), screen.getByTestId("water-map-name").textContent, calls]).toEqual([
-      null, "McDonell Lake → Source", ["part gnis:3137 5"]]);
+      null, "McDonell Lake → Source", [`part gnis:3137 ${await partOf("zymoetzSource")}`]]);
+    expect((await said("zymoetzLake", 1)).partIx).toBe(await partOf("zymoetzSource"));   // the source part is the next entry up
   }, 30_000);
 
   it("opened by a tap: starts on the tapped section's part (the Regulations view's part)", async () => {
     const CNR_TO_GREENDALE = await sections.stream(354155148, 41391);
     mount("gnis:12227", null, CNR_TO_GREENDALE);   // (T289 r-ce76b4ed3624: -> 59247; T278 r-62e2f3a8c81e: same section, -> 59249) CNR Bridge -> Greendale (354155148:41391; T206, r-f6918815ca78; T185 r-ea426985a467: two cuts ahead, +2; T220 r-46be3c135e68: 59296 -> 59304; T222 r-445850b69ae1: -> 59305)
     await ready();
-    expect(bar()).toBe("Part 4 of 5 · Cowichan River | CNR Bridge (mile 70.2) → Greendale Trestle | Downstream | Upstream");
+    // (T768) its place in the water is the group's (r-46e4355a7277 put a new part end, Skutz Falls, below it: 5 of 6)
+    expect(bar()).toBe(`${(await said("cowichanCnrGreendale")).where} | CNR Bridge (mile 70.2) → Greendale Trestle | Downstream | Upstream`);
     expect(lit().highlight).toEqual([CNR_TO_GREENDALE]);   // the tapped section given to mount()
   }, 30_000);
 
   it("KLWA from the Main Body: the three closure areas; Show regulations for another area names that water", async () => {
     const calls = mount("wbk:-20", 0);
     await ready();
-    expect(bar()).toBe("Part 3 of 3 | Kootenay Lake — Main Body | Downstream | Highest part (off)");
+    expect(bar()).toBe(`${await lead("wbk:-20", "top")} | Downstream | Highest part (off)`);
     expect([screen.getByTestId("water-map-whole").textContent, seen.props?.marks]).toEqual(["⤢ Whole lake", []]);
     fireEvent.click(screen.getByRole("button", { name: "Downstream" }));
     fireEvent.click(screen.getByRole("button", { name: "Show regulations for this part" }));
-    expect([bar(), calls]).toEqual(["Part 2 of 3 | Kootenay Lake — Upper West Arm | Downstream | Upstream",
+    expect([bar(), calls]).toEqual([`${await lead(KLWA_ITEM, 1)} | Downstream | Upstream`,
                                     ["part wbk:-21 0", "regs wbk:-21 part 0"]]);
   }, 30_000);
 
@@ -411,7 +431,7 @@ describe("<WaterMapView>", () => {
     expect(layout()).toEqual(atMouth);
   }, 30_000);
 
-  it("(T203) opened for a search result (`whole`): the camera frames the WHOLE water, offering 'This part'", async () => {
+  it("(T203, T369 D7) framed whole (⤢, the frame's `whole`): the camera frames the WHOLE water, offering 'This part'", async () => {
     render(<WaterMapView loader={loader} item={"gnis:8634" as ItemId} part={null} tapSid={null} palette={LIGHT} map={MAP} whole
                          onOpenWater={() => {}} onShowRegs={() => {}} onOtherSection={() => {}} onCross={() => {}} />);
     await ready();
@@ -509,7 +529,9 @@ describe("<WaterMapView>", () => {
       const ways: Record<string, [string, string]> = {
         // (T369) the part's own address — a place (its midpoint section's middle), never `part=1`
         reload: await wayIn((await opened(await addressOf(open({ item: C, part: 1, view: "map" })))).route),
-        "search Open, then the list": await wayIn(open({ item: C, view: "map", whole: true, fromSearch: true }), [pick(0)]),
+        // (T747) a search Open frames the part its bar names at once: no pick needed
+        "search Open": await wayIn(open({ item: C, view: "map", fromSearch: true })),
+        "search Open, then the list": await wayIn(open({ item: C, view: "map", fromSearch: true }), [pick(0)]),
         "tap (356364584:312)": await wayIn(await tap(C, MARY_HILL[0]!)),
         "▼ from Lougheed → boundary": await wayIn(open({ item: C, part: 2, view: "map" }), [down]),
         "the list, from the top part": await wayIn(open({ item: C, part: 3, view: "map" }), [pick(0)]),
@@ -518,7 +540,7 @@ describe("<WaterMapView>", () => {
         "⤢ twice": await wayIn(open({ item: C, part: 1, view: "map" }), [whole, whole]),
       };
       const first = ways.reload![0];
-            expect(JSON.parse(first)).toMatchObject({ where: "Part 1 of 3 · Coquitlam River", highlight: MARY_HILL,
+            expect(JSON.parse(first)).toMatchObject({ where: await where("gnis:19986", 0), highlight: MARY_HILL,
                                                 fit: { key: "gnis:19986:1", bbox: [-122.808104, 49.226226, -122.78, 49.269798] } });
       for (const [way, [drew, reloaded]] of Object.entries(ways)) expect({ way, drew, reloaded }).toEqual({ way, drew: first, reloaded: first });
       // the tapped frame OPENED at its part (T369 D3: no adopting); no URL ever held a section id
@@ -526,8 +548,8 @@ describe("<WaterMapView>", () => {
       expect(urls.length).toBeGreaterThan(0);
       expect(urls.filter((u) => /(^|[?&])(sid|part)=/.test(u) || u.split(/[^0-9]+/).some((n) => sids.has(n)))).toEqual([]);
       expect([...new Set(urls)].filter((u) => u.includes("view=map") && !u.includes("blk="))).toEqual(
-        // only a search Open's whole-water frame has no place before its pick
-        [`?regs=${C}&view=map&whole=1`]);
+        // only a search Open's frame has no place before a pick (its part is the frame's, read as the Regulations view reads it)
+        [`?regs=${C}&view=map`]);
       // the part's place: the Coquitlam's stream key, the middle of the part's run (T388 `part_line`: 312–7028 m; the
       // fixture re-cut on r-4230bc0c1dd5 carries it, the one before took the midpoint section's middle, 3451); the
       // other places are the frames the ways in started on (parts 2 and 3). A tap's is its part's too, said as a tap
@@ -578,9 +600,12 @@ describe("<WaterMapView>", () => {
 
     it("(T517) the Zymoetz's source part above its lake part: ▲ into it and its URL reloaded draw the same", async () => {
       const Z = "gnis:3137" as ItemId;
-      // part_ix 4 is "McDonell Lake (3000 m downstream) → McDonell Lake outlet"; ▲ is the source part (part_ix 5)
-      const [stepped, reloaded] = await wayIn(open({ item: Z, part: 4, view: "map" }), [up]);
-      expect(JSON.parse(stepped)).toMatchObject({ where: "Part 6 of 6 · Zymoetz River", name: "McDonell Lake → Source" });
+      // the lake part is "McDonell Lake (3000 m downstream) → McDonell Lake outlet", by its ends; ▲ is the source part,
+      // the highest: (T768) its "Part N of N" is the group's
+      const [stepped, reloaded] = await wayIn(open({ item: Z, part: await partOf("zymoetzLake"), view: "map" }), [up]);
+      const source = await said("zymoetzSource");
+      expect(source.where).toMatch(/^Part (\d+) of \1 · Zymoetz River$/);
+      expect(JSON.parse(stepped)).toMatchObject({ where: source.where, name: "McDonell Lake → Source" });
       expect(reloaded).toEqual(stepped);
     }, 60_000);
   });

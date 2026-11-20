@@ -230,6 +230,32 @@ def plain(x: dict, names: Optional[str] = None) -> Optional[str]:
     return got
 
 
+def _plain_name(x: dict, conj: str) -> str:
+    """The rule's fish in a plain sentence's words (`_plain`)."""
+    s = re.sub(r"^all ", "", written_name(x, conj))
+    s = re.sub(r"^Dolly Varden/bull trout$", "Dolly Varden or bull trout", s)
+    s = s.replace("Dolly Varden/bull trout", "Dolly Varden, bull trout")
+    if conj == " or ":
+        s = re.sub(r"^trout and char", "trout or char", s)
+    return s
+
+
+def _possession_words(x: dict, sp: str) -> str:
+    """A possession multiplier's value words, `sp` its fish: "2 days’ quota", "the daily quota for lake trout"."""
+    n = _num(x["per_daily"])
+    times = "the daily quota" if n == 1 else f"{n} days’ quota"
+    return times + ("" if re.search(r"game fish|^fish", sp) else f" for {sp}")
+
+
+def possession_value(x: dict) -> str:
+    """THE VALUE WORDS OF A POSSESSION MULTIPLIER'S SENTENCE (trout plan F0): the words after "Possession:" in its
+    `plain` ("2 days’ quota"), from the same function — the page row shows them, so the app cuts nothing from the
+    sentence (its `possessionValue` regex goes). Only a multiplier (`per_daily`) has them."""
+    if not _js(x.get("per_daily")):
+        raise AnswersError(f"display: {x.get('entry')}::{x.get('rule')} is no possession multiplier: no value words")
+    return _possession_words(x, _plain_name(x, " and "))
+
+
 def _plain(x: dict, names: Optional[str] = None) -> Optional[str]:
     """The rule as a plain sentence (`sayRule`, consumer 6.3); None where the page writes none.
 
@@ -247,12 +273,7 @@ def _plain(x: dict, names: Optional[str] = None) -> Optional[str]:
         return None
 
     def nm(conj: str) -> str:
-        s = re.sub(r"^all ", "", written_name(x, conj))
-        s = re.sub(r"^Dolly Varden/bull trout$", "Dolly Varden or bull trout", s)
-        s = s.replace("Dolly Varden/bull trout", "Dolly Varden, bull trout")
-        if conj == " or ":
-            s = re.sub(r"^trout and char", "trout or char", s)
-        return s
+        return _plain_name(x, conj)
 
     species = list(x.get("species") or [])
     sp = names or nm(" and ")
@@ -283,10 +304,7 @@ def _plain(x: dict, names: Optional[str] = None) -> Optional[str]:
     if _js(x.get("per_daily")):
         # THE POSSESSION QUOTA (RULINGS Q15, P43: plain words): "2 days’ quota", and fish at home don't count
         # (`plain` adds that sentence)
-        n = _num(x["per_daily"])
-        times = "the daily quota" if n == 1 else f"{n} days’ quota"
-        of = "" if re.search(r"game fish|^fish", sp) else f" for {sp}"
-        return f"{wrap(f'Possession: {times}{of}')} {_home()}"
+        return f"{wrap(f'Possession: {_possession_words(x, sp)}')} {_home()}"
     over = f" over {cm_in(z['min'])}" if z["min"] is not None else ""
     # A SLOT (owner 2026-10-28, Q62): the book's "between", in the must-be / release style — "release any between 60 cm
     # (24 in) and 90 cm (35 in)", its own clause after a ";"

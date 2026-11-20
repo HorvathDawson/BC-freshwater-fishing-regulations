@@ -19,6 +19,7 @@ import { useCoachTarget } from "../CoachMarks";
 import { hitProps } from "../regs/hit";
 import type { FishImages } from "../regs/types";
 import { TYPE } from "../type";
+import { CornerStrip } from "../CornerStrip";
 import type { Palette } from "../theme";
 import type { MapColouring } from "./useMapColouring";
 import { usePainting, type HeldLookStore } from "@app/ui";
@@ -26,6 +27,29 @@ import { usePainting, type HeldLookStore } from "@app/ui";
 /** the rail's button size (MapRail `SIZE`) */
 const SIZE = 44;
 const HIT = hitProps({ w: SIZE, h: SIZE });
+
+/**
+ * (T856) ON A DESKTOP-WIDTH WINDOW (from 1280) the switch is in the map's top row, directly after the day strip, drawn
+ * with the same strip (`CornerStrip`: same height, border, lift, a filled chosen segment): Trout | Salmon, a fish and
+ * the word. Same ids and the same handler as the rail's buttons; never both are drawn (`BrowseHost`).
+ */
+export function RegsLayerStrip({ col, palette, look }: {
+  col: Pick<MapColouring, "regsLayer" | "setRegsLayer"> & Partial<Pick<MapColouring, "salmonLoading" | "salmonOffered">>;
+  palette: Palette; look?: HeldLookStore<unknown>;
+}) {
+  const painting = usePainting(look);
+  const W = SALMON_WORDS.toggle;
+  const keys = (["standard", "salmon"] as const).filter((k) => k === "standard" || col.salmonOffered !== false);
+  return (
+    <CornerStrip palette={palette} testID="regs-paint" label={W.label} radio coach="modes"
+                 segments={keys.map((k) => {
+                   const on = col.regsLayer === k;
+                   return { key: k, chip: W.rail[k], icon: "fish" as const, label: W.said[k], on,
+                            busy: (k === "salmon" && col.salmonLoading === true) || (on && painting),
+                            onPress: () => col.setRegsLayer(k) };
+                 })} />
+  );
+}
 
 export function RegsLayerToggle({ col, palette, fishImages, look }: {
   col: Pick<MapColouring, "regsLayer" | "setRegsLayer"> & Partial<Pick<MapColouring, "salmonLoading" | "salmonOffered">>;

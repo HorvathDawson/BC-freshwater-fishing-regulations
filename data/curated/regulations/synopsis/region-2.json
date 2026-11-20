@@ -1633,7 +1633,7 @@
       }
      ],
      "species_except": [
-      "CHAR"
+      "DV"
      ]
     },
     {
@@ -1809,7 +1809,7 @@
       }
      ],
      "species_except": [
-      "CHAR"
+      "DV"
      ]
     },
     {
@@ -2815,7 +2815,7 @@
       }
      ],
      "species_except": [
-      "CHAR"
+      "DV"
      ]
     },
     {
@@ -3639,6 +3639,10 @@
       {
        "op": "whole",
        "item_id": "blk:355991777"
+      },
+      {
+       "op": "whole",
+       "item_id": "blk:355994562"
       }
      ],
      "extent_text": "Jesperson's Side Channel, Herrling Side Channel, and Seabird Island north Side Channel"
@@ -4080,7 +4084,7 @@
       }
      ],
      "species_except": [
-      "CHAR"
+      "DV"
      ]
     },
     {
@@ -5542,7 +5546,7 @@
       }
      ],
      "species_except": [
-      "CHAR"
+      "DV"
      ]
     },
     {
@@ -7813,7 +7817,7 @@
       }
      ],
      "species_except": [
-      "CHAR"
+      "DV"
      ]
     },
     {
@@ -8343,7 +8347,8 @@
       }
      ],
      "species_except": [
-      "CHAR"
+      "DV",
+      "EB"
      ]
     },
     {

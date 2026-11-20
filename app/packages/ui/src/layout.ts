@@ -32,3 +32,12 @@ export const LayoutWidthContext = createContext<number | null>(null);
 export function useLayoutClass(): LayoutClass {
   return layoutClassFor(useContext(LayoutWidthContext));
 }
+
+/**
+ * (T839) WHERE THE FOUR TABS ARE DRAWN: at `desktop` they are a left navigation rail and the bottom bar is not drawn; on
+ * a phone or a tablet they are the bottom bar, as ever. Whether they are drawn AT ALL is still `bottomBarShown` (route.ts):
+ * the rail follows the bar's rule, so regs mode (a water's page) and the add-a-spot flow have neither.
+ */
+export function tabsAsRail(layout: LayoutClass): boolean {
+  return layout === "desktop";
+}

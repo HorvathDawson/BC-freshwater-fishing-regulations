@@ -53,6 +53,28 @@ describe("ladderAt", () => {
     expect(ct.wild.get(1)).toEqual({ state: "lifted", partly: null, reason: "lifted", by: 5 });
   });
 
+  it("(T917) origins with the same wire verdict share one map; each origin is the spread overlay, in its order", () => {
+    const common: VerdictWire = [[1, 2], [], [3], [], [], []];
+    const own: VerdictWire = [[4], [], [], [], [], [[2, 1, 9]]], other: VerdictWire = [[], [], [], [5], [], []];
+    const frame: LadderFrameWire = { common, rows: [["RB", own, own, own], ["CT", own, other, own], ["DV", own, other, other]] };
+    const L = ladderAt(frame, REASONS, REASON_STATE)!;
+    // the decode before T917, written out: `new Map([...base, ...own])` per origin
+    const spread = (v: VerdictWire) => [...new Map([...verdictList(common, REASONS, REASON_STATE), ...verdictList(v, REASONS, REASON_STATE)])];
+    for (const [fish, none, hatchery, wild] of frame.rows) {
+      const got = L.get(fish)!;
+      expect([[...got.none], [...got.hatchery], [...got.wild]]).toEqual([spread(none), spread(hatchery), spread(wild)]);
+    }
+    const rb = L.get("RB")!, ct = L.get("CT")!, dv = L.get("DV")!;
+    expect(rb.hatchery).toBe(rb.none);
+    expect(rb.wild).toBe(rb.none);
+    expect(ct.wild).toBe(ct.none);
+    expect(ct.hatchery).not.toBe(ct.none);
+    expect(dv.wild).toBe(dv.hatchery);
+    // a fish's maps are its own: no other fish's row reaches them
+    expect(rb.none).not.toBe(ct.none);
+    expect([...ct.none.keys()]).toEqual([1, 2, 3, 4]);
+  });
+
   it("no frame, no ladder", () => {
     expect(ladderAt(null, REASONS, REASON_STATE)).toBeNull();
   });

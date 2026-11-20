@@ -125,10 +125,83 @@ describe("the native style", () => {
       .toEqual(["visible", "none"]);
   });
 
+  it("(T923) the drawn map's reserve and parcel edges are as before and its casings are not drawn; satellite gets the T923 paint", () => {
+    for (const theme of ["light", "dark", "cvd"]) {
+      const tk = resolveTheme(theme) as Record<string, unknown>;
+      const map = nativeStyle({ ...base, theme }).style as unknown as S;
+      const sat = nativeStyle({ ...base, theme, basemap: "satellite" }).style as unknown as S;
+      for (const [edge, casing, colour] of [["indigenous_land__edge", "indigenous_land__casing", "color.indigenous.edge.imagery"],
+                                            ["parcel_private__edge", "parcel_private__casing", "color.parcel.edge.imagery"]] as const) {
+        // the drawn map: the edge is its plain paint, untouched; the casing is there but at opacity 0
+        expect(layer(map, edge).paint, `${theme} ${edge} drawn`).toEqual(paintFor(edge, "plain", resolveTheme(theme)));
+        expect(layer(map, casing).paint!["line-opacity"], `${theme} ${casing} drawn`).toBe(0);
+        // satellite: the darker edge at full strength, its ramped width, and the casing drawn under it
+        const e = layer(sat, edge).paint!, c = layer(sat, casing).paint!;
+        expect([e["line-color"], e["line-opacity"]], `${theme} ${edge} satellite`).toEqual([tk[colour], tk["opacity.land.edge.imagery"]]);
+        expect(e["line-width"], `${theme} ${edge} width`).toEqual(["interpolate", ["linear"], ["zoom"],
+          ...[[4, 2.5], [11, 2.5], [16, 3.5]].flatMap(([z, k]) => [z, (tk["width.land.edge.imagery"] as number) * k!])]);
+        expect([c["line-color"], c["line-opacity"]], `${theme} ${casing} satellite`).toEqual([tk["color.imagery.casing"], tk["opacity.land.casing.imagery"]]);
+        // the casing's colour is one fixed light value in every theme (the photograph does not follow the theme)
+        expect(tk["color.imagery.casing"]).toBe(resolveTheme("light")["color.imagery.casing"]);
+        expect(String(tk["color.imagery.casing"]).startsWith("@")).toBe(false);
+        // and it sits under the edge
+        const ids = layer(sat, edge) && sat.layers.map((l) => l.id);
+        expect(ids.indexOf(casing)).toBeLessThan(ids.indexOf(edge));
+      }
+    }
+  });
+
+  it("(T923) over satellite the reserve and parcel outlines are ONE look in every theme (the photograph does not change)", () => {
+    const paints = (theme: string) => {
+      const sat = nativeStyle({ ...base, theme, basemap: "satellite" }).style as unknown as S;
+      return ["indigenous_land__edge", "indigenous_land__casing", "parcel_private__edge", "parcel_private__casing"]
+        .map((id) => [id, layer(sat, id).paint]);
+    };
+    const light = paints("light");
+    expect(paints("dark")).toEqual(light);
+    expect(paints("cvd")).toEqual(light);
+    // and they are really drawn: full-strength edge, casing visible
+    expect(light.every(([, p]) => (p as Record<string, number>)["line-opacity"]! > 0)).toBe(true);
+  });
+
   it("starts the gauge source with the gauges it is given", () => {
     const fc = '{"type":"FeatureCollection","features":[{"type":"Feature","geometry":{"type":"Point","coordinates":[-122,49]},"properties":{"label":"x"}}]}';
     const s = nativeStyle({ ...base, gauges: fc }).style as unknown as S;
     expect(s.sources.gauges!.data).toEqual(JSON.parse(fc));
+  });
+
+  /*
+   * (T831) THE ROUTE MAP ON A PHONE: every piece the web's route overlay draws its dots and pin with is in the phone's
+   * style — the `trace-pins` source, its layers reading it, the pin's image under this theme's name and given to the map
+   * — and the pins a route map opens with are IN that source (the binding adopts a source the style declares and never
+   * pushes the data it mounted with). The web's `setTrace` writes `pinCollection(pins)`; this is the same collection.
+   */
+  it("(T831) carries the route overlay's pin source, layers and image, and starts it with the pins it is given", () => {
+    const pins = [{ lat: 49.1, lon: -121.9, kind: "here" as const, tone: "tone-ink", label: "You are here", rank: 0 },
+                  { lat: 49.2, lon: -122.1, kind: "gauge" as const, tone: "tone-blue", label: null, rank: 1 }];
+    for (const theme of ["light", "dark"]) {
+      const s = nativeStyle({ ...base, theme, tracePins: pins }).style as unknown as S;
+      const onPins = (s.layers as (L & { source?: string })[]).filter((l) => l.source === "trace-pins").map((l) => l.id);
+      expect([theme, onPins]).toEqual([theme, ["trace-gauge-halo", "trace-gauge", "trace-label", "trace-here", "trace-here-label"]]);
+      const here = layer(s, "trace-here").layout!["icon-image"] as string;
+      expect([theme, here, here in nativeImages(theme)]).toEqual([theme, nativeImageName("trace-here", theme), true]);
+      expect([theme, s.sources["trace-pins"]!.data]).toEqual([theme, { type: "FeatureCollection", features: [
+        { type: "Feature", properties: { kind: "here", tone: "tone-ink", rank: 0, label: "You are here" },
+          geometry: { type: "Point", coordinates: [-121.9, 49.1] } },
+        { type: "Feature", properties: { kind: "gauge", tone: "tone-blue", rank: 1 },
+          geometry: { type: "Point", coordinates: [-122.1, 49.2] } }] }]);
+    }
+    expect((nativeStyle(base).style as unknown as S).sources["trace-pins"]!.data).toEqual({ type: "FeatureCollection", features: [] });
+  });
+
+  it("(T831) starts the route overlay's line source with the lines it is given, and its line layers read it", () => {
+    const lines = { type: "FeatureCollection" as const, features: [{ type: "Feature" as const,
+      properties: { role: "down" as const, tone: "tone-blue", kind: "line" as const, order: 1, on: false },
+      geometry: { type: "MultiLineString" as const, coordinates: [[[-122, 49], [-121.9, 49.1]] as [number, number][]] } }] };
+    const s = nativeStyle({ ...base, traceLines: lines }).style as unknown as S;
+    const onLines = (s.layers as (L & { source?: string })[]).filter((l) => l.source === "trace").map((l) => l.id);
+    expect([onLines, s.sources.trace!.data]).toEqual([["trace-line-down", "trace-line-up", "trace-arrows", "trace-join", "trace-join-label"], lines]);
+    expect((nativeStyle(base).style as unknown as S).sources.trace!.data).toEqual({ type: "FeatureCollection", features: [] });
   });
 
   it("a caller's bad mode is reported, and the style is still made", () => {

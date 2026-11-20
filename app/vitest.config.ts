@@ -102,6 +102,13 @@ const extensions = [".web.tsx", ".web.ts", ".web.jsx", ".web.js",
 
 export default defineConfig({
   test: {
+    // (T764) the run's own temp folder, removed when the run ends: tests make temp folders and do not remove them
+    globalSetup: ["./tools/test-tmp.ts"],
+    // (2026-11-18) ON CI, TWO WORKERS. GitHub's runner has 4 vCPUs and vitest's default is cpus-1 = 3 workers; with the
+    // render project's jsdom suites the main process fell behind and a worker's report to it timed out ("[vitest-worker]:
+    // Timeout calling onTaskUpdate", an unhandled error that fails the job with every test passed): app CI on
+    // d6cbad35d run 1 and 1d45799a7. Fewer workers leave the main process room. Laptops keep the default.
+    ...(process.env.CI ? { maxWorkers: 2 } : {}),
     projects: [
       {
         // 30 s, not vitest's 5: the regs parity suites walk all 134 golden states over the live release in one test,

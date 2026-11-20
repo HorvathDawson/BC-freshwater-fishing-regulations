@@ -369,6 +369,110 @@
     }
    ],
    "source_words": "Babine Lake excluding tributaries and those waters within a 400 m radius of the following tributary streams: Also closed east of a line from Gullwing Creek to south shore of Babine Lake. Note: Barbed hooks are authorized in Babine Lake."
+  },
+  "8:shuswap-river:middle-between-shuswap-falls-and-m#closed": {
+   "id": "8:shuswap-river:middle-between-shuswap-falls-and-m#closed",
+   "derived_from": "8:shuswap-river:middle-between-shuswap-falls-and-m",
+   "kind": "closure",
+   "water": "Shuswap River",
+   "water_id": "8:shuswap-river",
+   "region": "8",
+   "status": "dormant",
+   "title": "Shuswap River: closed in 1 named area",
+   "rule": {
+    "type": "retention_limit",
+    "species": [
+     "SA"
+    ],
+    "take": 0,
+    "may_target": false,
+    "verbatim": "Closed"
+   },
+   "areas": [
+    {
+     "key": "200d03a74aaf",
+     "item": "closed from the water survey station ( located at 50°19.105' N and 118°48.857' W) approximately 200m down stream of Shuswap Falls Hatchery to WTFB signs (located at 50°18.181' N and 118°49.105' W) one km down stream",
+     "kind": "stretch",
+     "name": "the water survey station to WTFB signs",
+     "words": "closed from the water survey station ( located at 50°19.105' N and 118°48.857' W) approximately 200m down stream of Shuswap Falls Hatchery to WTFB signs (located at 50°18.181' N and 118°49.105' W) one km down stream",
+     "inline": true,
+     "ends": [
+      {
+       "words": "the water survey station ( located at 50°19.105' N and 118°48.857' W) approximately 200m down stream of Shuswap Falls Hatchery",
+       "coords": [
+        {
+         "printed": "50°19.105' N 118°48.857' W",
+         "lat": 50.3184167,
+         "lon": -118.8142833
+        }
+       ]
+      },
+      {
+       "words": "WTFB signs (located at 50°18.181' N and 118°49.105' W) one km down stream",
+       "coords": [
+        {
+         "printed": "50°18.181' N 118°49.105' W",
+         "lat": 50.3030167,
+         "lon": -118.8184167
+        }
+       ]
+      }
+     ]
+    }
+   ],
+   "source_words": "(middle) between Shuswap Falls and Mabel Lake except closed from the water survey station ( located at 50°19.105' N and 118°48.857' W) approximately 200m down stream of Shuswap Falls Hatchery to WTFB signs (located at 50°18.181' N and 118°49.105' W) one km down stream."
+  },
+  "8:shuswap-river:middle-between-shuswap-falls-and-m~2#closed": {
+   "id": "8:shuswap-river:middle-between-shuswap-falls-and-m~2#closed",
+   "derived_from": "8:shuswap-river:middle-between-shuswap-falls-and-m~2",
+   "kind": "closure",
+   "water": "Shuswap River",
+   "water_id": "8:shuswap-river",
+   "region": "8",
+   "status": "active",
+   "title": "Shuswap River: closed in 1 named area",
+   "rule": {
+    "type": "retention_limit",
+    "species": [
+     "SA"
+    ],
+    "take": 0,
+    "may_target": false,
+    "verbatim": "Closed"
+   },
+   "areas": [
+    {
+     "key": "200d03a74aaf",
+     "item": "closed from the water survey station (located at 50°19.105' N and 118°48.857' W) approximately 200 m down stream of Shuswap Falls Hatchery to WTFB signs (located at 50°18.181' N and 118°49.105' W) one km down stream",
+     "kind": "stretch",
+     "name": "the water survey station to WTFB signs",
+     "words": "closed from the water survey station (located at 50°19.105' N and 118°48.857' W) approximately 200 m down stream of Shuswap Falls Hatchery to WTFB signs (located at 50°18.181' N and 118°49.105' W) one km down stream",
+     "inline": true,
+     "ends": [
+      {
+       "words": "the water survey station (located at 50°19.105' N and 118°48.857' W) approximately 200 m down stream of Shuswap Falls Hatchery",
+       "coords": [
+        {
+         "printed": "50°19.105' N 118°48.857' W",
+         "lat": 50.3184167,
+         "lon": -118.8142833
+        }
+       ]
+      },
+      {
+       "words": "WTFB signs (located at 50°18.181' N and 118°49.105' W) one km down stream",
+       "coords": [
+        {
+         "printed": "50°18.181' N 118°49.105' W",
+         "lat": 50.3030167,
+         "lon": -118.8184167
+        }
+       ]
+      }
+     ]
+    }
+   ],
+   "source_words": "(middle) between Shuswap Falls and Mabel Lake except closed from the water survey station (located at 50°19.105' N and 118°48.857' W) approximately 200 m down stream of Shuswap Falls Hatchery to WTFB signs (located at 50°18.181' N and 118°49.105' W) one km down stream."
   }
  }
 }

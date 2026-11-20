@@ -1,6 +1,6 @@
 # T562 — Review marks, what T545 and T541 left
 
-Status: PARTIAL — 0f6e7607c, aed6f6a25 (2026-11-10): items 4, 5, 7 done; 6 closed (owner: not wanted); 1: older DFO marks audited and passed (owner), the guard for entry / rule marks open; 2, 3 open (outside the review lane).
+Status: PARTIAL — 0f6e7607c, aed6f6a25 (2026-11-10): items 4, 5, 7 done; 6 closed (owner: not wanted); 1: older DFO marks audited and passed (owner). left (Claude): item 1's changed-extent guard for entry / rule marks (reuse.post_mark + proposals), items 2 (found names: mine.py under pipeline/, digest pin) and 3 (an accepted name on a lake or registry item).
 
 Source: the T545 and T541 lanes' reports, 2026-11-09.
 

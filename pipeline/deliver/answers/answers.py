@@ -46,6 +46,7 @@ from pipeline.deliver.calendar import (DAYS, day_of, month_day, per_day,  # noqa
                                        rule_vectors, segments, segments_of)
 from pipeline.deliver import types as T
 from pipeline.deliver.bundle import read
+from pipeline.deliver.answers.model.rows import ROWS_VERSION
 
 #: The origins every question is asked for: "none" is the reader's default (origin not known,
 #: `origin=None`); "hatchery" / "wild" are `read.ASKABLE_ORIGINS`.
@@ -112,7 +113,15 @@ class Section:
     `compose_from`, `compose` a value finished from OTHER sections' values at the same part key and
                             segment (`compose(value, {section: value})` -> value; answers 2.6: the
                             display frame's strip code reads the rows and gear frames there). The
-                            sections it reads are built with it."""
+                            sections it reads are built with it;
+    `compose_key`           (T810 ticket I, contract 2.2) a WHOLE-KEY compose: one key's values of the `compose_from`
+                            sections over ALL its segments, after every post-pass and every `compose`
+                            (`compose_key({section: [value per segment]}, starts, moments, ctx)` -> [value per segment]);
+                            it adds no day cut (its value is a function of those values, so any change in them already
+                            starts a segment);
+    `optional`              built only when the build names it (`build(optional=…)`): a file without it is the file
+                            as it was before the section existed (contract 2.1). None is, since the trout cutover
+                            (T810 ticket L); the rule stays for the next additive section."""
     name: str
     version: int
     scope: Callable
@@ -122,6 +131,8 @@ class Section:
     static: Optional[Callable] = None
     compose_from: Tuple[str, ...] = ()
     compose: Optional[Callable] = None
+    compose_key: Optional[Callable] = None
+    optional: bool = False
 
 
 class Context:
@@ -215,6 +226,120 @@ def _ladder_prepare(scope: RuleKey, ctx: Context):
     return slots(st, k), values
 
 
+def _no_scope(key: tuple, B) -> None:
+    """A whole-key compose reads no part of the key itself (its inputs are the other sections' values)."""
+    return None
+
+
+#: T810 ticket I: False = the build check that a whole-key compose adds no day cut is off (the mutation pin)
+A_TROUT_ADDS_NO_DAY_CUT = True
+
+
+def _trout_compose_key(values: Dict[str, list], starts: List[int], moments, ctx: "Context") -> list:
+    """THE TROUT SECTION'S WHOLE-KEY COMPOSE (contract 2.2): `trout.table.compose_key` over one key's post-pass rows,
+    display and licence values, each frame as the file holds it (JSON values). The build stops (`AnswersError`) on a
+    table the builder refuses, and where two neighbouring segments with equal inputs get different tables (the
+    section would add a day cut)."""
+    import json
+    from pipeline.deliver.answers.trout import table as TT
+    rules = ctx.cache.get("trout_rules")
+    if rules is None:
+        data = ctx.cache["export"]
+        rules = ctx.cache["trout_rules"] = TT.Rules.from_export(data, ctx.doc)
+    rows, disp, lic = values["rows"], values["display"], values["licence"]
+    # (T892) each row's tributary line reads the rules as this key's rule set holds them (`key_trib`, filled per key
+    # below: a rule the set lists under `trib` ranks 1) and as its fish sheet's rail says them (the display title, kind)
+    from pipeline.deliver.answers.display.rule import kind_of, title
+    from pipeline.deliver.answers.trout import down as TD
+    facts = ctx.cache.setdefault("trout_down_facts", {})
+
+    def fact(key: str):
+        got = facts.get(key)
+        if got is None:
+            x = ctx.B.rules[tuple(key.split("::", 1))]
+            got = facts[key] = (kind_of(x), title(x))
+        return got
+    down = TD.reader(rules, ctx.cache["key_trib"], fact)
+    # T810 G2 Q7: the stop duty's noun from the names of the key's waters (`key_names`, filled per key below)
+    got = TT.compose_key(rows, disp, starts, moments, rules, licences=lic,
+                         noun=TT.stop_noun(ctx.cache.get("key_names") or ()), down=down)
+    out = [None if f is None else json.loads(json.dumps(f, ensure_ascii=False)) for f in got]
+    for j in range(1, len(out)):
+        same_in = rows[j] == rows[j - 1] and disp[j] == disp[j - 1] and lic[j] == lic[j - 1]
+        a, b = out[j - 1], out[j]
+        if A_TROUT_ADDS_NO_DAY_CUT and same_in and (
+                (a is None) != (b is None) or (a is not None and (a["table"], a["covers"]) != (b["table"], b["covers"]))):
+            raise AnswersError(f"answers: the trout table differs between segments {j - 1} and {j} (from day "
+                               f"{starts[j]}) whose rows, display and licence values are equal: it would add a day cut")
+    return out
+
+
+#: T810 ticket L: False = the cutover pass is off (the covered trout rows keep `group` and `elsewhere`, mixed rows stay
+#: whole): how a test gets the rows the trout builder read (`pipeline/tests/mini_chain.trout_inputs`); the cut
+#: itself is pinned in `test_t810_cutover.py`
+A_CUT_OVER = True
+#: T810 L (the review's findings 2 and 3), each False = its mutation pin: the build stops where a covered row's
+#: kept-elsewhere text is not on its table; a split part carries its own fish's stamps; the year strips are cut again
+A_ELSEWHERE_HELD = True
+A_SPLIT_RESTAMPED = True
+A_SPLIT_YEARS_RECUT = True
+
+#: the row fields the trout table says for the rows it covers, dropped from them at rows 34 (contract Q-D9: `year`,
+#: `week`, `items`, `conds`, `real_daily`, `everyone`, `stamps` and `presence` stay — the page reads them elsewhere)
+COVERED_DROP = ("group", "elsewhere")
+
+
+def cut_over(frames: Sequence[dict], cells: Sequence[Optional[dict]], licences: Sequence[dict], starts: List[int],
+             moments, doc_names: Dict[str, str], pix: int) -> List[dict]:
+    """THE ROWS 34 FORM of one key's rows frames (T810 ticket L): at each segment with a trout table, the frame the
+    table's `covers` index — every row mixing trout or char with other fish split into its trout part and the rest
+    (`trout.table.split_mixed`, the same function the table read: the build stops where the two disagree), each part with
+    its own stamps (`stamps.row_stamps` against the licence answer the stamps were made from) — and every covered row
+    without `group` and `elsewhere` (`COVERED_DROP`). A segment with no table (Q-D3) keeps its frame. The year strips are
+    stamped again (`year.stamp_years`: a split part's strip is its own fish's). The inputs are not changed (frames and
+    rows are shared between keys and segments)."""
+    from pipeline.deliver.answers.stamps import documents_of, row_stamps
+    from pipeline.deliver.answers.trout.table import split_mixed
+    from pipeline.deliver.answers.year import stamp_years
+    out: List[dict] = []
+    moved = False
+    for j, (f, cell) in enumerate(zip(frames, cells)):
+        if cell is None:
+            out.append(f)
+            continue
+        split, covers = split_mixed(f)
+        if list(cell["covers"]) != covers:
+            raise AnswersError(f"answers: segment {j} from day {starts[j]}: the trout table covers {list(cell['covers'])}"
+                               f", the split frame's trout rows are {covers}")
+        if A_ELSEWHERE_HELD:
+            # what the cut drops must be on the table: every kept-elsewhere text the card said for a covered row
+            from pipeline.deliver.answers.trout.table import elsewhere_said
+            lost = [t for t in elsewhere_said(f) if t not in (cell["table"].get("elsewhere") or ())]
+            if lost:
+                raise AnswersError(f"answers: segment {j} from day {starts[j]}: the cutover drops kept-elsewhere text the "
+                                   f"trout table does not say: {lost[:3]}")
+        whole = {id(r) for r in f.get("rows") or ()}
+        profiles = (licences[j] or {}).get("profiles") or []
+        docs = documents_of(profiles[pix]) if pix < len(profiles) else []
+        rows = []
+        for i, r in enumerate(split["rows"]):
+            if id(r) not in whole and A_SPLIT_RESTAMPED:   # a part of a split row: its own fish's documents
+                r = {k: v for k, v in r.items() if k != "stamps"}
+                rs = row_stamps(r, docs, doc_names) if docs else None
+                if rs is not None:
+                    r["stamps"] = rs
+            if i in covers and any(k in r for k in COVERED_DROP):
+                r = {k: v for k, v in r.items() if k not in COVERED_DROP}
+            rows.append(r)
+        changed = len(rows) != len(f.get("rows") or ()) or any(a is not b for a, b in zip(rows, f.get("rows") or ()))
+        out.append({**f, "rows": rows} if changed else f)
+        moved |= changed
+    if not moved or not A_SPLIT_YEARS_RECUT:
+        return out if moved else list(frames)
+    bare = [{**f, "rows": [{k: v for k, v in r.items() if k != "year"} for r in f.get("rows") or ()]} for f in out]
+    return stamp_years(bare, starts, moments)
+
+
 def _sections() -> Tuple[Section, ...]:
     from pipeline.deliver.answers import display, gear, licence, rows
     return (
@@ -300,7 +425,11 @@ def _sections() -> Tuple[Section, ...]:
         # rows 32 (owner rule 2026-10-21): every row's `stamps` — the licence documents the row's fish need by the row's
         # answer (the prototype's round UR7 stampsFor on an Other fish row and a page-v36 keep-line row, `stamps.row_stamps`)
         # rows 33 (T161, decision Q66): every fish carries its leading origin, `FishAnswer.lead` (`common.lead_name`)
-        Section("rows", 33, rows.section_scope, derive_from="ladder", derive=rows.section_derive),
+        # rows 34 (the trout cutover, ticket L; F0): every frame's `page_possession` (`card.page_line`); every row mixing
+        # trout or char with other fish split in two (`trout.table.split_mixed`, the A0 amendment); the rows the trout
+        # table covers carry no `group` and no `elsewhere` (contract Q-D9, `cut_over`) — the version is
+        # `model.rows.ROWS_VERSION`, the one number
+        Section("rows", ROWS_VERSION, rows.section_scope, derive_from="ladder", derive=rows.section_derive),
         # answers 2.6: gear 5 (static `count_nouns`: "1 line (rod)")
         # ROUND10 W4: gear 6 (`counts[slot].cites`, the Lines row's `says`)
         # ROUND11 A2: gear 7 (`summary` {says, parts, terms, cites, changes}; a stream's Lines row
@@ -353,6 +482,18 @@ def _sections() -> Tuple[Section, ...]:
         Section("display", 20, display.section_scope, prepare=display.section_prepare,
                 static=display.section_static, compose_from=("rows", "gear"),
                 compose=display.compose),
+        # T810 ticket I (trout table plan, contract 2.1-2.7): trout 1 — the trout and char table per key and segment
+        # (`answers/trout/table.compose_key`), composed from the POST-PASS rows, the display frame (Q-D3's NULL) and the
+        # licence answer (the fish sheets' stamps). REQUIRED since the cutover (ticket L; owner 17:40: only at the
+        # switch): in every file, `--trout-table` gone. ANY change of its shape bumps this number (contract 2.1).
+        # trout 2 (T810 L, owner 2026-11-18): a band's kind "size" ("counts toward the 2 · only 1 over 50 cm (20 in)
+        # between them", Region 4's cutthroat and rainbow). trout 3 (owner 2026-11-18 00:52, "said once"): a date level
+        # holds every row under it without one of its own (`DateSet`, the most specific wins). trout 4 (owner 01:22 /
+        # 01:28): `TopLine.sub`, nested bands (`Box.inner`), one row for a fish's hatchery and wild twins. trout 5 (the
+        # app chat's S): `TRow.split` marks that merged row (the fish sheet's hatchery link). (T892) `TRow.down`, a row's
+        # tributary line, is OPTIONAL and absent where none, so trout stays 5: the phones' installed 0.8.0 / 0.8.1
+        # apps read a table carrying it (rows are JSON in column `j`, `checkTrout` ignores unknown keys) and the app reads a release without it (no line)
+        Section("trout", 5, _no_scope, compose_from=("rows", "display", "licence"), compose_key=_trout_compose_key),
     )
 
 
@@ -451,15 +592,21 @@ class Model:
 def build(bundle: str, export_dir: Path, *, workers: int = 0, items: Optional[Iterable[str]] = None,
           sections: Optional[Sequence[str]] = None, log=print,
           export: Optional[Tuple[dict, dict]] = None, verdicts: Optional[str] = None,
-          unnamed: Optional[Iterable[int]] = None, book: Optional[Tuple] = None) -> Model:
+          unnamed: Optional[Iterable[int]] = None, book: Optional[Tuple] = None,
+          optional: Iterable[str] = ()) -> Model:
     """Every answer for every part of every named water in the export (or only `items`) AND every
     part of the unnamed water (answers 2.4, S1: the bundle's `unnamed_part`, keyed after the named
     parts — all of them, or only `unnamed` (part ids); none when `items` is given without
     `unnamed`), for every section (or only `sections`, with the sections they derive from).
     `export` is the pair already read (`load_export`), so a caller holding it does not read it
-    twice (M9)."""
+    twice (M9). `optional`: the OPTIONAL sections to build too (`Section.optional`; none since the trout cutover);
+    every other optional section is left out, whatever `sections` says."""
     import time
     from pipeline.deliver.export.codec import expand
+    opt = set(optional)
+    unknown_opt = sorted(opt - {s.name for s in SECTIONS if s.optional})
+    if unknown_opt:
+        raise AnswersError(f"answers: {unknown_opt} are not optional sections")
     t0 = time.time()
     verdicts = str(verdicts or Path(bundle).with_name("verdicts.sqlite"))
     data, guide = export if export is not None else load_export(export_dir)
@@ -481,7 +628,8 @@ def build(bundle: str, export_dir: Path, *, workers: int = 0, items: Optional[It
     first = len(keys)
     keys, part_key, region_places = common.unnamed_keys(
         B, keys, unnamed if unnamed is not None else (None if items is None else []))
-    chosen = with_needs([s for s in SECTIONS if sections is None or s.name in sections])
+    chosen = with_needs([s for s in SECTIONS if (sections is None or s.name in sections or s.name in opt)
+                         and (not s.optional or s.name in opt)])
     for s in list(chosen):
         if s.derive_from and all(c.name != s.derive_from for c in chosen):
             chosen.insert(0, next(c for c in SECTIONS if c.name == s.derive_from))
@@ -545,6 +693,8 @@ def build(bundle: str, export_dir: Path, *, workers: int = 0, items: Optional[It
         segs.append(starts)
         seg_moments.append(at)
         for s in chosen:
+            if s.compose_key is not None:
+                continue                                # whole-key: after every pass below
             if s.prepare is not None:
                 pd, vals = per_root[s.name]
             else:
@@ -585,11 +735,27 @@ def build(bundle: str, export_dir: Path, *, workers: int = 0, items: Optional[It
         pix = _lic.profile_index(DEFAULT_PROFILE)
         for ki in range(len(keys)):
             out["rows"][ki] = stamp_licence_documents(out["rows"][ki], out["licence"][ki], doc_names, pix)
+    # T793 (audit A1/A2, 2026-11-16): A ROW WITH AN ORIGIN CONDITION SAYS ITS ORIGIN ON THE CARD — "No wild rainbow trout
+    # over 50 cm" on Comox Lake was in the row's conditions and caps but not in the tree the card draws
+    if "rows" in out:
+        from pipeline.deliver.answers.tree import across_unsaid, origin_unsaid
+        unsaid = []
+        for ki in range(len(keys)):
+            for j, frame in enumerate(out["rows"][ki]):
+                # T805: and a one-origin limit two rows share is said on both cards (Lois Lake's wild 2, never 2 + 2)
+                for p in origin_unsaid(frame) + across_unsaid(frame):
+                    named = sorted(i for i, ks in parts.items() if ki in ks)
+                    unsaid.append(f"key {ki} {dict(zip(PART_KEY_FIELDS, keys[ki]))} (waters {named[:3]}"
+                                  f"{' …' if len(named) > 3 else ''}), segment {j} from day {segs[ki][j]}: {p}")
+        if unsaid:
+            raise AnswersError(f"answers: {len(unsaid)} card(s) leave out the origin a row's condition names "
+                               f"(T793) or a one-origin limit another row shares (T805):\n  " + "\n  ".join(unsaid[:20]))
     # licence 7: THE STEELHEAD STAMP WHERE STEELHEAD ARE CLOSED — the licence answer at a key and segment whose card says
     # steelhead are closed there leaves the stamp out of its documents (`stamps.drop_closed_steelhead_stamp`, the
     # prototype's round 20i O3 render-time drop). After the stamps above: the card's fish documents are the full answer's.
     if "rows" in out and "licence" in out:
         from pipeline.deliver.answers.stamps import drop_closed_steelhead_stamp
+        lic_stamped = list(out["licence"])    # the licence answers the stamps above read (T810 L re-stamps split rows)
         for ki in range(len(keys)):
             out["licence"][ki] = drop_closed_steelhead_stamp(out["rows"][ki], out["licence"][ki])
     # a value finished from other sections' values at the same key and segment (answers 2.6)
@@ -599,6 +765,38 @@ def build(bundle: str, export_dir: Path, *, workers: int = 0, items: Optional[It
         for ki in range(len(keys)):
             out[s.name][ki] = [s.compose(v, {n: out[n][ki][j] for n in s.compose_from})
                                for j, v in enumerate(out[s.name][ki])]
+    # T810 ticket I (contract 2.2): a WHOLE-KEY compose, after every post-pass and every compose above — it reads their
+    # final values (the weekday words, the stamps, the steelhead stamp's drop, the display frame's status)
+    ctx.cache["export"] = data
+    names_of: Dict[int, list] = {}
+    if any(s.compose_key is not None for s in chosen):
+        for item, ks in parts.items():
+            nm = (data["waters"].get(item) or {}).get("name")
+            for k in set(ks):
+                if k is not None:
+                    names_of.setdefault(k, []).append(nm)
+    for s in chosen:
+        if s.compose_key is None:
+            continue
+        for ki in range(len(keys)):
+            ctx.cache["key_names"] = names_of.get(ki, ())
+            # (T892) the rules this key's rule set reached by the tributary walk (`trout/down.py`)
+            if keys[ki][0] not in B.sets:
+                raise AnswersError(f"answers: key {ki} names rule set {keys[ki][0]}, which the bundle does not hold")
+            ctx.cache["key_trib"] = frozenset(f"{e}::{r}" for e, r, v in B.sets[keys[ki][0]] if v == "trib")
+            try:
+                out[s.name].append(s.compose_key({n: out[n][ki] for n in s.compose_from}, segs[ki], seg_moments[ki],
+                                                 ctx))
+            except AnswersError as e:
+                named = sorted(i for i, ks in parts.items() if ki in ks)
+                raise AnswersError(f"answers: section {s.name}, key {ki} (waters {named[:3]}"
+                                   f"{' …' if len(named) > 3 else ''}): {e}") from e
+    # T810 ticket L (contract Q-D9, the A0 amendment): THE CUTOVER — the rows frames as they ship beside the trout table:
+    # mixed rows split, the covered rows without `group` and `elsewhere` (the table says them). After the table read them.
+    if "trout" in out and A_CUT_OVER:
+        for ki in range(len(keys)):
+            out["rows"][ki] = cut_over(out["rows"][ki], out["trout"][ki], lic_stamped[ki], segs[ki], seg_moments[ki],
+                                       doc_names, pix)
     # a static table may read the sections' values as built (display G3 reads the rows' frames)
     ctx.cache["sections_out"] = out
     statics = {s.name: s.static(ctx, data, guide, keys, parts) for s in chosen

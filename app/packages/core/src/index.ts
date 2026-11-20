@@ -22,6 +22,7 @@ export * from "./access";
 export * from "./lakeFacts";
 export * from "./salmon";
 export * from "./salmonFeed";
+export * from "./salmonIssues";
 export * from "./runTiming";
 export * from "./inseason";
 export * from "./inseasonInbox";
@@ -47,6 +48,7 @@ export * from "./gaugeSide";
 export * from "./change";
 export * from "./chartZoom";
 export * from "./photoZoom";
+export * from "./photoViewer";
 export * from "./routeMap";
 export * from "./temperature";
 export * from "./install";
@@ -62,6 +64,8 @@ export * from "./help";
 export * from "./updates";
 // (T251) the app's version (one source, the release gate) and the Updates log's events and words
 export * from "./appVersion";
+// (T676 item 2) a feed index newer than the app: refused, the capture kept, the update prompt raised
+export * from "./feedGate";
 // (T390) a newer app: the channel, once a day, the gentle and the strong prompt
 export * from "./appUpdate";
 export * from "./updateLog";
@@ -80,12 +84,16 @@ export * from "./spotWords";
 export * from "./linkFailed";
 export * from "./permissions";
 export * from "./approxFix";
+// (T864) is the device near enough to B.C. for its position to mean anything here
+export * from "./nearBc";
 export * from "./uiWords";
 export * from "./ends";
 export * from "./waterNav";
 export * from "./mapRail";
 // (T385) the water header's Share: its words, and the production link it sends
 export * from "./share";
+export * from "./storeLinks";
+export * from "./joinTest";
 export * from "./gaugePage";
 export * from "./spotPins";
 export * from "./layers";
@@ -106,3 +114,5 @@ export * from "./chartTicks";
 // (T234 v1.1) the app's changelog: one source, bundled; the incoming version's bullets travel in the version file
 export * from "./changelog";
 export * from "./chartMarks";
+// (T732) Android's phone backup: which photos fit beside the spots under the 25 MB quota, and the line that says so
+export * from "./backupSet";

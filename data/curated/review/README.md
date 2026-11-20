@@ -4,6 +4,7 @@
 |---|---|---|---|
 | `marks.jsonl` | reviewed | the review app — APPEND-ONLY, never edited by hand; the one tool that rewrites it is a migration's carry through `pipeline.regs.review.commit_marks` (lines removed, none added, said in its commit) | `pipeline.regs.review.apply` (write-through to each domain's final file), the review app |
 | `closed.json` | authored | hand (`pipeline.regs.review.closed`) | apply + review app skip a closed domain |
+| `owner_carries.json` | authored | hand, on the owner's word (`pipeline.regs.review.owner_carry`) | `proposals.applied_keys`: a DFO mark held over the owner's own later decision while the place is as that left it |
 | `proposal_overrides.json` | authored | hand (a proposed cut's confidence) | `marks.proposals`; folded away by T326 |
 
 No build stage reads this folder: a mark changes the build only through the final curated file it writes

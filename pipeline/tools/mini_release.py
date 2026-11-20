@@ -468,7 +468,8 @@ def stage_commands(out: Path, fwa: Path, coast: Path) -> list[tuple[str, list[st
     (route (a), T667 slice 8: this release ships no tiles and no basemap). The tile step writes only its layer files
     (`--no-archive`): the bundle measures section access against them (T54).
     The export and the answers are held to the mini corpus's own claims (`fixtures/mini/claims.json`,
-    `pipeline.deliver.export.claims`); the release ships no basemap and no synopsis.
+    `pipeline.deliver.export.claims`); the release ships no basemap and no synopsis. The answers hold the trout section
+    (required since the T810 cutover, ticket L): the card gate runs its proof (J) here, as fast-fail's `--check` does.
     """
     py = [sys.executable, "-m"]
     atlas, reaches, tiles, d, fed = out / "atlas", out / "reaches", out / "tiles", out / "deliver", out / "fed"

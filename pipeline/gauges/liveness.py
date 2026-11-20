@@ -12,11 +12,14 @@ the roster's `realtime` flag, ECCC's real-time station list — and each reader 
   speaks_now(station, feed) IS IT TRANSMITTING NOW? Membership of ECCC's real-time station list (`STATION_LIST`) — the
                             list as fetched THIS RUN (`feed`, from `listed_stations`) when there is one, else the
                             roster's `realtime` flag, which is that same list as `data/fetch_data.py` read it on the
-                            day the roster was fetched (a snapshot: `roster_drift` says how far it has moved).
+                            day the roster was fetched (a snapshot: `roster_drift` says how far it has moved;
+                            only a listed station the roster holds no row for at all is an owner task, T847).
 
 They are independent facts. On the roster of 2026-10-23 every transmitting station is active (428 of 466), and 38
 active stations are silent (seasonal, or dropped from the list); ECCC's list that day held 4 stations the roster has
-never seen (07FA008, 08DA013, 08DB015, 08FB012) — the feed asks them, the bundle cannot place them.
+never seen (07FA008, 08DA013, 08DB015, 08FB012) — the feed asks them, the bundle cannot place them. Those (`unknown`
+in `roster_drift`) are the ONLY roster notice the owner gets, once per station (T847); a known station joining or leaving
+the list is followed by the feed with no refresh.
 
 DORMANT = neither (`dormant`): matched, kept, attached to nothing (the bundle's gauge tables, T226).
 WHO ASKS WHICH. May speak: the bundle's shed filter, and the atlas's gauge cuts (`consume.cuts.split_defs`; owner
@@ -89,10 +92,16 @@ def stations_to_ask(roster: Iterable[Mapping], listed: Optional[set[str]]) -> tu
 def roster_drift(roster: Iterable[Mapping], listed: Optional[set[str]]) -> Optional[dict]:
     """How far the roster's snapshot is from ECCC's list today. None without the list.
 
-    `joined`: listed now, not live in the roster. `left`: live in the roster, no longer listed. The donor panels no
-    longer read the roster flag (owner 2026-10-22, "chosen live": which members answer is decided from the feed at
-    read time), so drift costs only the roster's own accuracy — said every run, like a stale HYDAT."""
+    `joined`: listed now, not live in the roster. `left`: live in the roster, no longer listed. `unknown`: listed now
+    and in the roster NOWHERE (no row at all, live or not) — a station the bundle has never seen and cannot place.
+
+    ONLY `unknown` IS AN OWNER TASK (T847, owner 2026-11-18: "shouldnt it automatically pick up the changes … unless it
+    was a never before seen gauge?"). A known station joining or leaving the list needs nothing: the feed asks today's
+    list (`stations_to_ask`) and a gauge is attached to a water by `may_speak` (`active`), never by `realtime`.
+    `joined`/`left` are kept for the console line; the `roster` notice names `unknown` alone (`maintenance_notices`)."""
     if listed is None:
         return None
-    was = {s["station"] for s in roster if speaks_now(s)}
-    return {"joined": sorted(listed - was), "left": sorted(was - listed)}
+    rows = list(roster)
+    was = {s["station"] for s in rows if speaks_now(s)}
+    held = {s["station"] for s in rows}
+    return {"joined": sorted(listed - was), "left": sorted(was - listed), "unknown": sorted(listed - held)}

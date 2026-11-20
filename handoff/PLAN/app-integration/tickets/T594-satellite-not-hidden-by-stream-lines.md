@@ -1,6 +1,6 @@
 # T594 — Satellite view is not hidden by the stream lines
 
-Status: IN REVIEW — dcfbf8f29 (look C built, web + phone from the one style source); the owner looks at the shots and picks the opacity
+Status: DONE — dcfbf8f29 (closed on the owner's word 2026-11-20; see the last section)
 
 Source: owner problem report 2026-11-10 07:31 UTC (worker report 442a0ecc, build 24, z9.6 near Chilliwack): "we need to
 figure out a way to have better satellite where it isn't blocked by the streams lines." (The same report's other half,
@@ -122,3 +122,9 @@ Shots (web, 390 px, satellite, today's Trout colouring) in `handoff/PLAN/app-int
 Owner question: keep 1.5 px at full strength, or 2 px at 0.9? (0.7 would need the colour-blind floors lowered.)
 Not checked: the look on the phone itself (emulator or Pixel); a creek under heavy canopy is not visible in the imagery
 either way.
+
+## Closed 2026-11-20
+
+Closed 2026-11-20 on the owner's word ("Couldn't we just assume most of these are done already?"): pick: keep what is built, look C with stream edges 1.5 px at full strength (not 2 px at 0.9). Owner 2026-11-20: keep what is built.
+
+Status line before closing: IN REVIEW — dcfbf8f29 (look C built, web + phone from the one style source); the owner looks at the shots and picks the opacity

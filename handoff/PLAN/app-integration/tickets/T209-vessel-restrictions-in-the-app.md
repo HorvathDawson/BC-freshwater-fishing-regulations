@@ -1,6 +1,6 @@
 # T209 — vessel restrictions in the app
 
-Status: DONE (ffe7e7e2, c63427bbd)
+Status: DONE (98485018d, c63427bbd)
 
 Source: owner 2026-10-26. The catalogue holds `vessel_rule` rules (speed limits, no powered boats, electric motors
 only …). The app should show them on the water page and the map sheet.

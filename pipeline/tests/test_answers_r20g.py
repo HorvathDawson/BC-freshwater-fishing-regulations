@@ -46,7 +46,7 @@ def test_the_streams_origin_rule_sits_on_the_stream_share():
 
 
 def test_a_waters_own_total_keeps_the_origin_on_the_group():
-    out, _P = F.card(F.BELLA, OCT10)                          # the Bella Coola's own total is the river's: same scope
+    out, _P = F.card(F.COUNT, OCT10)          # a creek's own total (the Bella Coola's, since T846, is under Region 2's 4)
     (g,) = [r["group"] for r in out["rows"] if r.get("group") and "RB" in r["group"]["kinds"]]
     assert g["origin"] == "Keep hatchery fish only — wild trout and char go back."
     assert not any(t.get("origin") for t in _tiers(g))

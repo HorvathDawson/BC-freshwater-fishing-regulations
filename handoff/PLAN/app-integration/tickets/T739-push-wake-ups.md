@@ -1,6 +1,6 @@
 # T739 — Push "wake-ups" so alerts and notices arrive on time (iPhone first, Android as a second step)
 
-Status: IN PROGRESS (both steps approved by the owner 2026-11-14: iPhone, then "for android too."; iOS chat, branch `ios/t739-push`; Android needs the owner's Firebase project file before it can be built).
+Status: IN PROGRESS (both steps approved by the owner 2026-11-14: iPhone, then "for android too."; iOS chat, branch `ios/t739-push`; ANDROID PUSH IS OFF THE TABLE FOR NOW, owner 2026-11-16 12:08 on Firebase: "we dont want this right now"; iPhone push unchanged).
 
 Source: owner 2026-11-14, verbatim: "dont we want to use it for the notifications thought?" (on the Push Notifications
 box of the App ID), "there are also time sensitive notifications?" and "can we do this same push notification style to
@@ -54,6 +54,21 @@ the token; a failed push is reported and the periodic check still catches the no
 
 Depends: T88 (a signed build on a real iPhone), the feeds worker. Size: M (iPhone), M (Android). Owner: yes (the pick,
 the APNs key, the App ID box; for Android the Firebase project and the self-host exception).
+
+## Owner answer, 2026-11-15 evening (OWNER-TODO.md "owner answers, round 6", verbatim: "Yes to both (Recommended by it)")
+The proposed privacy-page line ("Push token. If you turn notifications on, the app sends our server a push token for
+this phone …") and the App Store privacy answer (Identifiers → Device ID: collected, App Functionality, not linked to
+the user, not used for tracking) are approved as written (To-Do row `t739-privacy-wording`). Left (Claude): the line
+into the privacy page's source on the push branch; the Android / Firebase line and the Play Data safety answer still
+wait for the Firebase decision. Putting the page live is the owner's, with the production release. This removes the
+wording block on merging the push code; the merge order (push last) stands.
+
+## Owner, 2026-11-16 12:08 (question dialog in the main chat): no Firebase, no Android push for now
+Asked whether "for android too" was his exception to "self-host everything" for push delivery through Google's
+Firebase, he typed: "we dont want this right now". So Android gets no push and needs no Firebase project. To check
+when the push branch comes up for merge (it is the last of the held merges): the Android app must not register a
+token or need `google-services.json`; the worker's FCM sender may stay as dead code only if nothing can call it
+(else it comes out). iPhone push is unchanged. The 200 registrations a day per address stand as built.
 
 ## Results
 

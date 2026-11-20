@@ -1,6 +1,6 @@
 # T610 — A "same place" grouping writes why on the place (the Serpentine link had no note)
 
-Status: IN REVIEW
+Status: DONE — 459e01458, 304feaeec (closed on the owner's word 2026-11-20; see the last section)
 
 Source: found 2026-11-10 while testing T607; coordinator: "ticket + fix … in your lane".
 
@@ -25,3 +25,9 @@ out), so no mark's apply can write it, and the test above does not look at regio
 he saves a "same place" on it — or the test's regions are widened and this one decided. Owner / coordinator call.
 
 Depends: —. Size: S. Owner: no.
+
+## Closed 2026-11-20
+
+Closed 2026-11-20 on the owner's word ("Couldn't we just assume most of these are done already?"): pick: leave it. Owner 2026-11-20: keep the stated default, record why it stays. The Thompson grouping (3:thompson-river:from-kamloops-lake-outlet-downstre) keeps no note: its "same place" mark (2026-11-09) is no longer the mark in force, so no mark apply can write one, and the test keeps its current region scope.
+
+Status line before closing: IN PROGRESS — 459e01458, 304feaeec: a "same place" grouping save writes why on the place; the Serpentine link's note landed through the app's own apply. left (Claude): the Thompson grouping (3:thompson-river:from-kamloops-lake-outlet-downstre) still has no note (checked 2026-11-20); either widen the test to region 3 and ask the owner to re-save its "same place", or record why it stays.

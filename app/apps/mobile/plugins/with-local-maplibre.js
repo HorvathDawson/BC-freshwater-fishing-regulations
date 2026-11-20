@@ -1,7 +1,7 @@
 /**
  * (T420) TEST-BED ONLY: build the app against a locally built MapLibre Native Android SDK (the feature-state patch,
  * app/tools/maplibre-patch/README.md) instead of the stock Maven Central one. Loaded by app.config.js ONLY when
- * MLN_LOCAL_MAVEN is set (a production build with it set is refused there), so every other build is untouched.
+ * MLN_LOCAL_MAVEN is set (every Android build, production too since T893), so a build without it is untouched.
  *
  * MLN_LOCAL_MAVEN = the local Maven repo build.sh publishes (`<work dir>/m2`). It must hold exactly one version of
  * org.maplibre.gl:android-sdk-vulkan. This plugin adds the repo to every project's repositories; app.config.js hands

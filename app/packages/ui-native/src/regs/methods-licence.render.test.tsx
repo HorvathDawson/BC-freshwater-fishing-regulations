@@ -57,11 +57,12 @@ describe("<MethodsTab>", () => {
   it("bc1_501: ✓ ways with their conditions, ✕ ways, the boat rule and its source", () => {
     const { sheets } = mountMethods(methodsOf(bc1501));
     expect(domLines(screen.getByTestId("methods-ways"))).toEqual(["Ways to fish", "Allowed",
-      "✓ Angling (rod and line) with a downrigger: attached to your line by a quick-release · with a light: submerged, attached to the line, within 1 m of the hook",
-      "✓ Spear or bow — not for trout or other game fish not for game fish, salmon or protected species · burbot allowed",
-      "✓ Crayfish traps release anything in the trap that isn’t a crayfish", "Not allowed", "✕ Set lines", "✕ Nets", "✕ Snagging", "✕ Chumming",
+      "✓ Angling (rod and line)", "• With a downrigger: attached to your line by a quick-release.", "• With a light: submerged, attached to the line, within 1 m of the hook.",
+      "✓ Spear or bow — not for trout or other game fish", "• Not for game fish, salmon or protected species.", "• Burbot allowed.",
+      "✓ Crayfish traps", "• Release anything in the trap that isn’t a crayfish.", "Not allowed", "✕ Set lines", "✕ Nets", "✕ Snagging", "✕ Chumming",
       "Province › Rule book p.8 ↗"]);
-    expect(domLines(screen.getByTestId("methods-boats"))).toEqual(["Boats",
+    // (T797) the Bella Coola's "No angling from powered boats" (p.43) leads the list: it was held and never drawn
+    expect(domLines(screen.getByTestId("methods-boats"))).toEqual(["Boats", "No angling (from a powered boat)",
       "No powered boats — between the Goat Creek confluence and the Talchako River confluence", "This water’s › Rule book p.43 ↗"]);
     fireEvent.click(within(screen.getByTestId("methods-boats")).getByRole("button", { name: "Sources: This water’s" }));
     expect(sheets).toEqual(["srcs:boats"]);
@@ -75,6 +76,7 @@ describe("<MethodsTab>", () => {
     render(<MethodsTab vm={vm} palette={LIGHT} actions={a.actions} boats={boats} />);
     const section = screen.getByTestId("methods-vessels");
     expect(domLines(section)).toEqual([METHODS.VESSELS, "No powered boats (in part)", "Speed limit 8 km/h", "Boats",
+      "No angling (from a powered boat)",
       "No powered boats — between the Goat Creek confluence and the Talchako River confluence", "This water’s › Rule book p.43 ↗"]);
     // under Methods: after its Ways to fish
     const ways = screen.getByTestId("methods-ways");
@@ -123,7 +125,7 @@ describe("<MethodsTab>", () => {
 
   it("(owner wave A) an allowed Set lines way draws its set_line ⓘ, which opens gl:set_line", () => {
     const vm = methodsOf(bc1501), ways = vm.ways!;
-    const allowed: MethodsVM = { ...vm, ways: { ...ways, list: [{ ...ways.list[0]!, items: [{ mark: "✓", name: "Set lines", note: null, terms: ["set_line"] }] }] } };
+    const allowed: MethodsVM = { ...vm, ways: { ...ways, list: [{ ...ways.list[0]!, items: [{ mark: "✓", name: "Set lines", notes: [], terms: ["set_line"] }] }] } };
     const { sheets } = mountMethods(allowed);
     expect(domLines(screen.getByTestId("methods-ways")).slice(0, 3)).toEqual(["Ways to fish", "Allowed", "✓ Set lines ⓘ"]);
     fireEvent.click(within(screen.getByTestId("methods-ways")).getByText("ⓘ"));
@@ -238,6 +240,21 @@ describe("<LicenceTab>", () => {
       "? Check: part of this water is also marked “not a Classified Water”.", "You’re exempt from: Basic angling licence.",
       "Nothing is required of this angler here."]);
     expect(within(screen.getByTestId("licence-answer")).queryByRole("button", { name: "Source" })).toBeNull();
+  });
+
+  it("(T789 G8) From outside Canada: each closure to the non-resident alien is its own plain note, in the stored words, after the class box", () => {
+    const SEDAN = "Angling closed to non-guided non-resident aliens, Jul 1-Dec 31, on Saturdays and Sundays — between the Shegunia River confluence and the Sedan Creek confluence";
+    const GLACIER = "Angling closed to non-resident aliens, Aug 15-Oct 31 — from the lake to Glacier Creek";
+    const alien: Who = { age: "adult", residency: "non_resident_alien" };
+    const vm = LIC_X5P1["adult|non_resident_alien"]!;
+    // where core's buildLicence puts them (licence.test.ts "T789 G8"): after the designation boxes, before "You need"
+    const notes: Block[] = [{ cls: "scopenote", text: SEDAN }, { cls: "scopenote", text: GLACIER }];
+    mountLicence({ ...vm, blocks: [vm.blocks[0]!, ...notes, ...vm.blocks.slice(1)] }, alien);
+    const lines = domLines(screen.getByTestId("licence-answer"));
+    const at = lines.indexOf(SEDAN);
+    expect(at).toBeGreaterThan(0);
+    expect(lines.slice(at, at + 3)).toEqual([SEDAN, GLACIER, LICW.YOU_NEED]);
+    expect(within(screen.getByTestId("licence-answer")).queryByTestId("st:contested")).toBeNull();
   });
 
   it("vedder_615 (closed): no Licence section at all (owner 2026-11-04; the prototype drew only its heading, D16 a)", () => {

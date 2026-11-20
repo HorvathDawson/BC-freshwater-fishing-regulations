@@ -182,6 +182,24 @@ export interface StateSink {
 export const HIGHLIGHT_KEYS = ["selected", "part", "water", "near", "inseason"] as const;
 
 /**
+ * (T826) WHAT A PHONE WRITES TO UNSET A KEY (T345: a write, never `removeFeatureState`). The highlight's keys are
+ * booleans every paint reads as `["boolean", ["feature-state", k], false]`, so they are unset by `false`. NOT by `null`:
+ * React Native's iOS TurboModule bridge drops a null-valued key from the dictionary it hands MapLibre
+ * (`convertJSIObjectToNSDictionary`; `enableModuleArgumentNSNullConversionIOS` is off in RN 0.88), so `{ selected: null }`
+ * reached iOS as `{}`, a merge of nothing, and the tapped water stayed lit after going back (owner, iPhone build 36).
+ * Android's bridge keeps the null; `false` reads the same there.
+ *
+ * (T832) AND NO OTHER KEY IS EVER WRITTEN NULL EITHER, on either platform: the colouring's labels (`p`, `standing`, `rt`,
+ * …) are unset by `CLEARED`, the empty string — what every paint already reads a missing label as (a profile's
+ * `coalesce(…, "")`, a categorical `match`'s fallback, the continuous `standing` mode's "not a number": `missing`). A
+ * null there reached iOS as `{}` too, so a river that lost its standing at a horizon change kept its old colour.
+ */
+export const CLEARED = "";
+export function unsetValue(key: string): false | typeof CLEARED {
+  return (HIGHLIGHT_KEYS as readonly string[]).includes(key) ? false : CLEARED;
+}
+
+/**
  * (T499, owner 2026-11-08 on 0.6.9: the Fraser's water map, left open, "flickered now and then with no input") WHAT A
  * HIGHLIGHT LIGHTS, as text: the map's highlight effect is keyed on this, never on the arrays. A caller's re-render
  * hands the same ids in NEW arrays (the water map's view model rebuilt by a feed refresh); keyed on the arrays, each

@@ -1,8 +1,7 @@
 /**
  * (T228, T517) THE LIVE SALMON KEY of a water — the ONE reading every screen joins a water's parts by (`@app/core`
- * `mergeNav`): the water map (`waterMap.ts` `useSalmonKey`), the header and Parts sheet's names (`useMapEntries`), the
- * receiving water kept in colour, and whether a water is solo (`regs.ts` `regsSoloOf`). Its own module so both sides
- * import it without a cycle.
+ * `mergeNav`): the water map (`waterMap.ts` `useSalmonKey`), the header and Parts sheet's names (`useMapEntries`), and the
+ * receiving water kept in colour. Its own module so both sides import it without a cycle.
  */
 import { salmonTimelineKey } from "@app/core";
 import type { ItemId } from "@app/data";

@@ -7,13 +7,13 @@
 import { afterEach, describe, expect, it } from "vitest";
 import { cleanup, fireEvent, render, screen, within } from "@testing-library/react";
 import { Text } from "react-native";
-import { buildRegsPage, type RegsInputs, type RegsPage, type SheetKey } from "@app/core";
+import { buildRegsPage, daylightAt, type CaveatItemVM, type CaveatVM, type RegsInputs, type RegsPage, type SheetKey } from "@app/core";
 import { DARK, LIGHT } from "../theme";
 import { KeepTab } from "./KeepTab";
-import { CaveatBlock } from "./KeepBlocks";
+import { CaveatBlock, TimedLines } from "./KeepBlocks";
 import { RegsHeader } from "./RegsHeader";
 import { RegsScreen } from "./RegsScreen";
-import { createPinStore } from "./pinStore";
+import { createTabStore } from "./tabStore";
 import type { KeepActions } from "./LineText";
 import x31p from "./fixtures/edge_x31p_1010.json";
 import x15p2 from "./fixtures/edge_x15p2_1010.json";
@@ -70,7 +70,7 @@ describe("9. tidal water (x31p_1010)", () => {
     expect([screen.queryByTestId("keep-strip"), screen.queryByTestId("keep-group"), screen.queryByRole("heading", { name: /trout/i })]).toEqual([null, null, null]);
   });
   it("the header dot is faint (the sub grey), not a status colour", () => {
-    render(<RegsHeader header={asPage(x31p).header} palette={LIGHT} tabs={createPinStore()} onDate={() => {}} onTab={() => {}} />);
+    render(<RegsHeader header={asPage(x31p).header} palette={LIGHT} tabs={createTabStore()} onDate={() => {}} onTab={() => {}} />);
     expect(getComputedStyle(screen.getByTestId("regs-dot")).backgroundColor).toBe(rgb(LIGHT.sub));
   });
 });
@@ -78,25 +78,25 @@ describe("9. tidal water (x31p_1010)", () => {
 describe("10. an unnamed section (D11 a)", () => {
   const h = asPage(unnamed).header;
   it("the store's place name as the heading; no Map or Parts button", () => {
-    render(<RegsHeader header={h} palette={LIGHT} tabs={createPinStore()} onDate={() => {}} onTab={() => {}} />);
+    render(<RegsHeader header={h} palette={LIGHT} tabs={createTabStore()} onDate={() => {}} onTab={() => {}} />);
     expect(h.name).toMatch(/^Unnamed stream · Regions? \d/);
     expect(within(screen.getByTestId("regs-header")).getByRole("heading").textContent).toBe(h.name);
     expect(screen.queryByRole("button", { name: /map|parts/i })).toBeNull();
     expect(screen.queryByTestId("regs-action")).toBeNull();
-    expect(screen.getByTestId("regs-place").textContent).toBe("");
+    // (T878) no label: no place row
+    expect(screen.queryByTestId("regs-place")).toBeNull();
   });
-  it("header-one-shape: the empty label slot is the height of a named water's", () => {
+  it("(T878, owner 2026-11-18: \"a ton of space\") no empty label slot: a named water's row, none for the unnamed one", () => {
     const style = (header: RegsPage["header"]) => {
-      render(<RegsHeader header={header} palette={LIGHT} tabs={createPinStore()} onDate={() => {}} onTab={() => {}} />);
-      const s = getComputedStyle(screen.getByTestId("regs-place")).height;
+      render(<RegsHeader header={header} palette={LIGHT} tabs={createTabStore()} onDate={() => {}} onTab={() => {}} />);
+      const p = screen.queryByTestId("regs-place");
+      const s = p ? getComputedStyle(p).height : null;
       cleanup();
       return s;
     };
-    // a named water whose name fits one line ("Mouth → Source"; the Vedder's part name now wraps: T517)
+    // a named water whose name fits one line ("Mouth → Source"; the Vedder's part name now wraps: T517): its one line
     const named = style(asPage(glenn501).header), none = style(h);
-    // (owner 2026-10-27) one line when the name fits: the empty slot is a named water's one line
-    expect(named).toBe(none);
-    expect(named).not.toBe("");
+    expect([named, none]).toEqual(["16.22px", null]);
   });
 });
 
@@ -126,15 +126,49 @@ describe("11. the timed caveat (x15p2_1010, D10 a)", () => {
   });
 
   it("(T473) with the water's sun: the day's real hours under the status, the rule's words a small line after; no point, the plain rule", () => {
-    const range = (a: number, b: number) => (a === 60 && b === 60 ? "07:04–18:37 PT" : null);   // the offsets come from the rule's words
+    // (T898) the offsets come from the item's stored window (`daylight`), not its words
+    const range = { open: (a: number, b: number) => (a === 60 && b === 60 ? "7:04–18:37" : null), closed: () => null };
     render(<KeepTab keep={page.keep} dateLabel={page.header.date} palette={LIGHT} actions={{ ...NOOP, onTab() {} }} daylight={range} />);
     const strip = screen.getByTestId("keep-strip");
-    expect(within(strip).getByTestId("keep-daylight").textContent).toBe("Daylight only · fishing 07:04–18:37 PT");
+    expect(within(strip).getByTestId("keep-daylight").textContent).toBe("Daylight only · fishing 7:04–18:37");
     expect(screen.getByTestId("keep-timed-line").textContent).toBe("Daylight only: closed from 1 h after sunset to 1 h before sunrise");
     cleanup();
     render(<KeepTab keep={page.keep} dateLabel={page.header.date} palette={LIGHT} actions={{ ...NOOP, onTab() {} }} daylight={null} />);
     expect(screen.queryByTestId("keep-daylight")).toBeNull();
     expect(screen.getByTestId("keep-timed-line").textContent).toBe("Daylight only: closed from 1 h after sunset to 1 h before sunrise");
+  });
+
+  it("(T898) the day's times inside the rule line, from the water's sun on the picked day; a new day, its times", () => {
+    expect(caveat.items[0]!.daylight).toEqual({ after: 60, before: 60 });   // the stored window's offsets, on the VM
+    const MISSION = { lat: 49.133, lon: -122.31 };
+    const keepOn = (day: { y: number; m: number; d: number }, date: string) =>
+      <KeepTab keep={page.keep} dateLabel={date} palette={LIGHT} actions={{ ...NOOP, onTab() {} }}
+               daylight={daylightAt(MISSION.lat, MISSION.lon, day)} />;
+    const { rerender } = render(keepOn({ y: 2026, m: 11, d: 19 }, "Nov 19"));
+    const items = () => screen.getAllByTestId("keep-timed-item").map((e) => e.textContent);
+    expect(items()).toEqual(["Daylight only: closed from 1 h after sunset (18:24) to 1 h before sunrise (7:25)Rule book p.23 ↗"]);
+    expect(within(screen.getByTestId("keep-strip")).getByTestId("keep-daylight").textContent).toBe("Daylight only · fishing 7:25–18:24");
+    rerender(keepOn({ y: 2026, m: 6, d: 21 }, "Jun 21"));
+    expect(items()).toEqual(["Daylight only: closed from 1 h after sunset (22:17) to 1 h before sunrise (4:04)Rule book p.23 ↗"]);
+    expect(screen.getByTestId("keep-daylight").textContent).toBe("Daylight only · fishing 4:04–22:17");
+    // no point known: the rule's words alone, no hours line
+    rerender(<KeepTab keep={page.keep} dateLabel="Nov 19" palette={LIGHT} actions={{ ...NOOP, onTab() {} }} daylight={null} />);
+    expect(items()).toEqual(["Daylight only: closed from 1 h after sunset to 1 h before sunriseRule book p.23 ↗"]);
+    expect(screen.queryByTestId("keep-daylight")).toBeNull();
+  });
+
+  it("(T898 review) each daylight item takes its OWN window's times, and a window shared by two rules is timed once", () => {
+    const it_ = (after: number, before: number, s: string): CaveatItemVM => ({ what: [{ t: "text", s }], where: null, rule: null,
+      fish: null, book: [], daylight: { after, before } });
+    const cav: CaveatVM = { kind: "timed", hot: false, title: "", calm: null, later: null,
+      items: [it_(60, 60, "No fishing"), it_(60, 60, "No fishing"), it_(30, 45, "No fishing"),
+              { what: [{ t: "text", s: "No fishing for steelhead" }], where: "Sat, Sun", rule: null, fish: null, book: [] }] };
+    render(<TimedLines caveat={cav} palette={LIGHT} actions={{ ...NOOP, onTab() {} }} daylight={daylightAt(49.133, -122.31, { y: 2026, m: 11, d: 19 })} />);
+    expect(screen.getAllByTestId("keep-timed-line").map((e) => e.textContent)).toEqual([
+      "Daylight only: closed from 1 h after sunset (18:24) to 1 h before sunrise (7:25)",
+      "Daylight only: closed from 1 h after sunset to 1 h before sunrise",
+      "Daylight only: closed from 30 min after sunset (17:54) to 45 min before sunrise (7:40)",
+      "No fishing for steelhead: Sat, Sun"]);
   });
 
   /*

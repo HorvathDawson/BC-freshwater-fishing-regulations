@@ -1,9 +1,14 @@
 import { describe, expect, it } from "vitest";
-import { labelShift, MARK_LABEL_FONT } from "./marks";
+import { labelAnchor, MARK_LABEL_FONT } from "./marks";
 
-describe("a boundary mark's label stays inside the map (the prototype's --dx)", () => {
-  it("centred where there is room; pushed in from either edge by what would hang over", () => {
-    expect([200, 100, 290, 40, 370, -10].map((x) => labelShift(x, 390))).toEqual([0, 0, 0, 60, -80, 110]);
+describe("(T929) a boundary mark's label stays inside the map by how it hangs, never by moving its point", () => {
+  it("centred where there is room; from its corner, hanging inward, where a half-width would hang over an edge", () => {
+    expect([200, 100, 290, 40, 0, 370, 390].map((x) => labelAnchor(x, 390)))
+      .toEqual(["bottom", "bottom", "bottom", "bottom-left", "bottom-left", "bottom-right", "bottom-right"]);
+  });
+  it("a ring off the map hangs its label outward, off the map with it — never back onto the map with no ring", () => {
+    expect([-10, -600, 391, 450].map((x) => labelAnchor(x, 390)))
+      .toEqual(["bottom-right", "bottom-right", "bottom-left", "bottom-left"]);
   });
 });
 

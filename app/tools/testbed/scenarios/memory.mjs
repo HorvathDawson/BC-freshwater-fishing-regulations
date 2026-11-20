@@ -63,7 +63,7 @@ export const memory = {
 
     await ctx.step('boot: cold start → the map drawn', async () => {
       // a clean install of THIS build's release (an earlier staging install's data is not this release)
-      if (process.env.MEMORY_CLEAR !== '0') ctx.device.clearData();
+      if (process.env.MEMORY_CLEAR !== '0') ctx.device.cleanApp();   // (T760) not `pm clear`
       await ctx.device.net('wifi'); ctx.device.link('full', 'none');   // a just-booted emulator's network comes up late
       ctx.device.stop(); ctx.device.launch();
       // the first run's "could not be loaded" card waits for its Try again (a reader's tap), it does not retry itself

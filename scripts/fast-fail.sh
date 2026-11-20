@@ -184,9 +184,11 @@ step "watershed codes read only in wsc.py (a pipeline Python file changed)" wsc_
 # caught 2026-11-14 (T667 slice 8): the tile export drew the configured gpkg's areas and the bundle read HYDAT, the
 # gpkg, clim.json and the DFO feed from the live tree whatever it was given — found only by running the chain on the
 # invented world. A changed atlas / deliver / gauges module or mini fixture runs the mini chain twice (~10 s, no data)
+# caught 2026-11-15 (CI red; T788 item 3): a pipeline/regs change (the DFO typing, the catalogue) moved the mini release
+# and nothing here ran it — regs is in the trigger
 mini_chain() {
-  grep -qE '^pipeline/(atlas|deliver|gauges|tools/mini_release)[/.]|^pipeline/tests/fixtures/mini/|^app/packages/data/dev/mini-release/' <<<"$CHANGED" \
-    || { echo "   (no atlas / deliver / gauges / mini file changed)"; return 0; }
+  grep -qE '^pipeline/(atlas|deliver|gauges|regs|tools/mini_release)[/.]|^pipeline/tests/fixtures/mini/|^app/packages/data/dev/mini-release/' <<<"$CHANGED" \
+    || { echo "   (no atlas / deliver / gauges / regs / mini file changed)"; return 0; }
   "$PY" -m pytest -q -p no:cacheprovider pipeline/tests/test_mini_release.py pipeline/tests/test_mini_deliver_inputs.py \
     pipeline/tests/test_export_claims.py
   # (T667 slice 8) and the committed copy the app's tests read still matches a rebuild (~8 s, by content)
@@ -199,8 +201,16 @@ step "the mini chain on invented data (an atlas / deliver / gauges / mini file c
 # imports nothing. A changed pipeline Python file runs every test file that walks the pipeline's sources (found by
 # the same grep each time, so a new scanner joins by itself), CI's markers (~40 s). Two are left out: their time is
 # the review app's own fixtures, not the scan (test_review_screen 83 s, test_review_marks 15 s), and CI runs them.
+# (T791 item 3, owner 2026-11-16 "Yes, as proposed") the release preflight sets FAST_FAIL_FRESH_COPY_NEXT when its
+# fresh-copy run (the whole no-data tier on a clean clone) follows in the same preflight: the in-place whole tier and its
+# two subsets here (source scanners, review tests) ran the same tests twice more, ~27 min over one night's attempts
+fresh_copy_next() {
+  [[ ${FAST_FAIL_FRESH_COPY_NEXT:-} == 1 ]] || return 1
+  echo "   (left to the release's fresh-copy run, next in this preflight: the whole no-data tier on a clean clone)"
+}
 source_scanners() {
   grep -qE '^pipeline/.*\.py$' <<<"$CHANGED" || { echo "   (no pipeline Python file changed)"; return 0; }
+  fresh_copy_next && return 0
   local files
   files=$(git grep -l -E 'rglob\("\*\.py"\)|glob\("\*\*/\*\.py"\)|_py_sources\(|walk\(.*pipeline' -- 'pipeline/tests/test_*.py' \
     | grep -vE 'test_review_(screen|marks)\.py$')
@@ -209,6 +219,24 @@ source_scanners() {
   "$PY" -m pytest -q -p no:cacheprovider -m "$markers" $files
 }
 step "every source scanner (a pipeline Python file changed)" source_scanners
+
+# caught 2026-11-15 (CI red on 189458c93 and 67c9b32f1): T742 B dropped `historic_only`'s groups argument and T742 C made
+# `search_splits` read the atlas registry; test_marks_never_orphaned still passed the groups and
+# test_review_checklist's cut-search test (data-free) now read the build. The lanes ran `test_review_*` / `test_dfo_*`
+# directly in the DATA tier, so the build was visible and the first file was not in the run at all. A changed review
+# module (pipeline/regs/review, the review app's backend) runs EVERY test file that reads review code (found by the
+# same grep each time, so a new one joins by itself) under CI's markers, which hide this machine's builds (tiers.py)
+review_tests() {
+  grep -qE '^(pipeline/regs/review|curation-review/backend)/.*\.py$' <<<"$CHANGED" \
+    || { echo "   (no review module changed)"; return 0; }
+  fresh_copy_next && return 0
+  local files markers
+  files=$(git grep -l -E 'pipeline\.regs\.review|regs\.review import|curation-review' -- 'pipeline/tests/test_*.py')
+  markers=$(no_data_markers) || return 1
+  # shellcheck disable=SC2086
+  "$PY" -m pytest -q -p no:cacheprovider -m "$markers" $files
+}
+step "every review test, CI's tier (a review module changed)" review_tests
 
 # caught 2026-11-14 (CI red on b07996827): scripts/test-env.sh hard-coded .venv/bin/python, which a hosted runner has
 # not; nothing ran the contract's test before the push. A changed scripts/test-*.sh, test-env runner or tiers file runs
@@ -265,6 +293,9 @@ step "every curated cut label names a place" "$PY" -m pytest -q -p no:cacheprovi
 # reproduce: a stale generated file or vector file fails here; 0.2 s + 1.5 s (also in `python -m pipeline.tools.emit --check`)
 step "feed formats generated from the one table" "$PY" -m pipeline.tools.emit.feed_formats --check
 step "DFO parity vectors are what the Python reads (the worker's test reproduces them)" "$PY" -m pipeline.tools.emit.dfo_vectors --check
+# (T810 V-py) the same pin for the trout table: the committed vectors are the committed trout fixture's cells (a vector
+# edited by hand, or a fixture re-cut without them, fails here; scripts/trout-refresh.sh writes both)
+step "trout table vectors are the trout fixture's cells (the app's reader reproduces them)" "$PY" -m pipeline.tools.emit.trout_vectors --check
 
 # caught (2026-11-09): after LATEST moved, `pnpm check` failed in conformance until regs-recut/sync.mjs re-cut the goldens;
 # taps.json meta.store must be the store of LATEST's water file, or this names the sync command
@@ -274,6 +305,18 @@ step "goldens cut from LATEST" "$PY" scripts/check-goldens-paired.py
 # dfo_salmon/places/region-2.json and read "saved"; no build or release looked. Read-only, ~2 s: every mark in force is
 # in its curated file, or is on the dated allow-list (`pipeline/regs/review/apply.py` NOT_LANDED_OK)
 step "review marks have landed in their curated files" "$PY" -m pipeline.regs.review.apply --check --waiting-ok
+
+# (T786, owner 2026-11-17: "do not ship \"wrong\" places") a place whose latest review save is "wrong" / "unsure" with no
+# extent fix shipped its older drawing (Sproat, Stamp Falls, the Region 3 Fraser on staging 11-16). Read-only, instant:
+# refuses while one is listed, live or dormant; only a dated WRONG_SAVE_OK row (pipeline/regs/review/wrong_saves.py) passes
+step "no place ships on a wrong save with no fix" "$PY" -m pipeline.regs.review.wrong_saves --check
+
+# (T841, owner 2026-11-17: "make sure we capture all classified waters whether labeled by symbol or by tributary of
+# something") the bundle's symbol cross-check only PRINTED a CW glyph with no designation; nothing held a parse to the
+# book's classified rows. Instant, corpus only: every row the book prints with the CW glyph or a "Class I/II water" is
+# in the corpus with its classes, its tributaries and its glyph (BOOK in pipeline/regs/classified_waters.py); the
+# release's checks stage runs the same gate with --bundle on the candidate (the licence on every section it binds)
+step "every classified water the book prints is in the corpus as printed" "$PY" -m pipeline.regs.classified_waters --check
 
 # caught (2026-11-10, T546/T632): OKANAGAN RIVER OXBOWS pinned 26 wsc ids no registry item carries; the row bound the
 # rest with nothing said. Owner 2026-11-11: no build runs with a dead override id (the reach run refuses it too).
@@ -285,6 +328,10 @@ step "every curated override id names a water" "$PY" -m pipeline.regs.matching.m
 # what fast-fail ran by hand before: the ticket ledger (T84, T437), colours (2026-11-07 pin-study hex, T481), answers
 # not stale (2026-11-07, found at the end of a release), the app typecheck (2026-11-07 TS6133, 1b84c5ae6). The whole
 # vitest suite stays `pnpm check` (Tier 1); the changed files' tests run below.
+# caught 2026-11-15 (CI red on e0785054a): T750 removed WaterMapView's Chooser (tools/back-layers.test.ts still listed it)
+# and T737 added two swallowing catches (tools/failures.test.ts pins each file's count); both lanes ran their targeted
+# tests + `pnpm check:fast`, which ran no vitest, and the two inventories import none of what they scan, so no sibling
+# test finds them. check:fast now ends with `pnpm inventories` (those two files, ~3 s), whatever changed.
 step "app gates (pnpm check:fast: every pnpm check gate but vitest)" pnpm -C app run -s check:fast
 
 # caught (2026-11-09, CI run 42717971280): 15 tests red on CI only — tests without a `needs_*` marker read the local
@@ -301,6 +348,7 @@ as_ci() {
   local tests src
   src=$(grep -E '^pipeline/.*\.py$' <<<"$CHANGED" | grep -vE '(^|/)(test_[^/]*|conftest)\.py$' | grep -vE '^pipeline/tests/' || true)
   if [[ -n $src && -n ${FAST_FAIL_BASE:-} ]]; then
+    fresh_copy_next && return 0
     echo "   $(grep -c . <<<"$src") pipeline source file(s) changed ($(head -3 <<<"$src" | paste -sd' ' -)…): the whole no-data tier, as CI"
     bash scripts/pytest-chunked.sh -- -m "$CI_MARKERS"
     return
@@ -364,6 +412,9 @@ vitest_changed() {
   # source file off disk and pins each file's unhandled-catch count, so a catch removed in packages/map broke it; and
   # changelog.ts has no sibling test (its order is pinned in core's appUpdate.test.ts: 0.7.10 sorted as a string).
   grep -qE '^app/(apps|packages)/.*\.(ts|tsx)$' <<<"$CHANGED" && tests+=("tools/failures.test.ts")
+  # caught 2026-11-15 (CI red on e0785054a): tools/back-layers.test.ts inventories every back surface in apps/mobile, ui,
+  # ui-native and map off disk; only a ui-native change ran it above. Any of its roots changed runs it
+  grep -qE '^app/(apps/mobile|packages/(ui|ui-native|map))/src/.*\.(ts|tsx)$' <<<"$CHANGED" && tests+=("tools/back-layers.test.ts")
   grep -qE '^app/packages/core/src/changelog\.ts$' <<<"$CHANGED" && tests+=("packages/core/src/appUpdate.test.ts")
   (( ${#tests[@]} )) || { echo "   (no changed app file has a test)"; return 0; }
   tests=($(printf '%s\n' "${tests[@]}" | sort -u))

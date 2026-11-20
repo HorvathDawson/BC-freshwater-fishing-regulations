@@ -4,9 +4,9 @@
  * its failure reports held to the feeds worker's own crash validator (wire parity).
  */
 import { describe, expect, it } from "vitest";
-import { bcDayWords, bcIsoDayWords, bcStampWords, CONDITIONS_WORDS, figure, freshness, readingAgeWords } from "@app/core";
+import { FLOW_LEGEND, NORMAL_BAND, REALTIME_ONLY, forecastDash, bcDayWords, bcIsoDayWords, bcStampWords, CONDITIONS_WORDS, figure, freshness, readingAgeBrief } from "@app/core";
 import { validateCrash } from "../../workers/feeds/src/crashes";
-import { chartSvg, crashReport, forecastHtml, gaugePage, isEnvironment, readingHtml, weatherHtml, type Facts } from "./gaugeClient";
+import { chartSvg, colourBarHtml, crashReport, forecastHtml, gaugePage, isEnvironment, readingHtml, weatherHtml, type Facts } from "./gaugeClient";
 
 const text = (html: string) => html.replace(/<[^>]+>/g, " ").replace(/\s+/g, " ");
 // ── the live half ────────────────────────────────────────────────────────────────────────────────────────────────────
@@ -25,41 +25,42 @@ const facts = (o: Partial<Facts> = {}): Facts => ({
 describe("T487 the gauge page's live half", () => {
   it("a fresh reading: value, standing, and the APP'S age line; a copy past its time says so in the app's words; no reading is said, never blank", () => {
     const fresh = text(readingHtml(facts(), NOW));
-    expect(fresh).toMatch(/22\.2 m³\/s flow Much below normal · lower than almost every day on record for the date This gauge's own reading · observed 2026-11-08 at 04:00 PT · checked 10 min ago/);
-    expect(readingHtml(facts(), NOW)).not.toContain("class=\"warn\"");
+    // (T908, owner 2026-11-19: "a lot of text up in this area") three rows: the headline with the figure; the bar; ONE small line, pinned whole
+    expect(fresh).toBe(" Much below normal for Nov 8 · steady 22.2 m³/s Lower than almost every day on record for the date · rises to 1.8× (Tue) · read 4:00 a.m. PT ");
+    expect(readingHtml(facts(), NOW)).not.toContain("class=\"warn");
     // (G7) the reading itself is old but OUR copy is not: the app's rule says nothing is wrong
-    expect(readingHtml(facts({ at: "2026-11-07T15:00:00Z" }), NOW)).not.toContain("class=\"warn\"");
+    expect(readingHtml(facts({ at: "2026-11-07T15:00:00Z" }), NOW)).not.toContain("class=\"warn");
     // our copy is 3 hours old: the app's words, "may be out of date"
     const old = readingHtml(facts({ fetchedAt: "2026-11-08T09:00:00Z" }), NOW);
-    expect(text(old)).toMatch(/observed 2026-11-08 at 04:00 PT · last checked 3h ago, may be out of date/);
-    expect(old).toContain('class="warn"');
+    expect(text(old)).toMatch(/read 4:00 a\.m\. PT · last checked 3h ago, may be out of date/);
+    expect(old).toContain('class="warn meta"');
     expect(text(readingHtml(facts({ fetchedAt: null }), NOW))).toMatch(/age unknown/);
     // the line IS core's, whatever the facts
     const f = facts({ fetchedAt: "2026-11-06T12:00:00Z" });
-    expect(text(readingHtml(f, NOW))).toContain(readingAgeWords(freshness(Date.parse(f.fetchedAt!), NOW, f.staleAfterMs), f.atText));
+    expect(text(readingHtml(f, NOW))).toContain(readingAgeBrief(freshness(Date.parse(f.fetchedAt!), NOW, f.staleAfterMs), Date.parse(f.at!), NOW));
     expect(text(readingHtml(f, NOW))).toContain("last checked 2d ago");   // G22: the app's "2d ago" / "1h ago", not "75 minutes ago"
     expect(text(readingHtml(facts({ value: null, reading: null, at: null, atText: null }), NOW))).toMatch(/No current reading The live feed has no reading for this gauge/);
     expect(readingHtml(facts(), NOW)).not.toMatch(/percentile/i);
   });
 
   it("the forecast: drawn and named; past its working-day line, out of date; none, said", () => {
-    expect(text(forecastHtml(facts(), NOW))).toMatch(/Dashed: the CLEVER flow forecast, issued 2026-11-07/);
-    expect(text(forecastHtml(facts(), NOW))).toContain("Expected change: rises to 1.8× (Tue).");
+    expect(text(forecastHtml(facts(), NOW))).toMatch(/CLEVER \(dashed\): issued 2026-11-07/);
+    expect(text(readingHtml(facts(), NOW))).toContain("rises to 1.8× (Tue)");
     expect(text(forecastHtml(facts(), NOW + 2 * 86_400_000))).toMatch(/likely out of date/);
     expect(text(forecastHtml(facts({ forecast: null }), NOW)).trim()).toBe("No flow forecast for this gauge.");
     expect(text(forecastHtml(facts({ forecast: null, forecastOld: { model: "ELF", issued: "Oct 30" } }), NOW))).toMatch(/latest ELF run \(issued Oct 30\) is likely out of date/);
     const svg = chartSvg(facts(), NOW)!;
     expect(svg).toContain('class="obs"');
-    expect(svg).toContain('class="fc"');
-    expect(chartSvg(facts({ forecast: null }), NOW)).not.toContain('class="fc"');
+    expect(svg).toContain('class="fc m-CLEVER"');
+    expect(chartSvg(facts({ forecast: null }), NOW)).not.toContain('class="fc');
     expect(chartSvg(facts({ week: [], forecast: null }), NOW)).toBeNull();
   });
 
   it("(T564) the chart is drawn at the width it is shown at, tall on a phone, with a mark for today and the usual range behind the line", () => {
     const f = facts({ normal: [[NOW - 7 * 86_400_000, 10, 20, 30, 40, 50], [NOW + 5 * 86_400_000, 10, 20, 30, 40, 50]] });
     const phone = chartSvg(f, NOW, 380)!, wide = chartSvg(f, NOW, 900)!;
-    expect(phone).toMatch(/viewBox="0 0 380 323" width="380" height="323"/);     // 1 drawing unit = 1 px: 13 px text stays 13 px
-    expect(wide).toMatch(/viewBox="0 0 900 405"/);
+    expect(phone).toMatch(/viewBox="0 0 380 228" width="380" height="228"/);     // 1 drawing unit = 1 px: 13 px text stays 13 px; (T908) a smaller chart
+    expect(wide).toMatch(/viewBox="0 0 900 270"/);
     for (const svg of [phone, wide]) {
       expect(svg).toContain('class="today"');
       expect(svg).toContain('class="bandn"');
@@ -108,7 +109,7 @@ describe("T487 the gauge page's live half", () => {
     };
     const ok = page(200);
     await ok.run();
-    expect(text(ok.dom.window.document.getElementById("gauge-now")!.innerHTML)).toMatch(/22\.2 m³\/s flow/);
+    expect(text(ok.dom.window.document.getElementById("gauge-now")!.innerHTML)).toMatch(/22\.2 m³\/s/);
     expect(ok.dom.window.document.getElementById("gauge-chart")!.innerHTML).toContain("<svg");
     expect(text(ok.dom.window.document.getElementById("gauge-weather")!.innerHTML)).toMatch(/5°C Cloud/);
     expect(ok.sent).toEqual([]);
@@ -127,5 +128,37 @@ describe("T487 the gauge page's live half", () => {
 
   it("the shipped script's core functions are written from core's own source, and run (see gauges.test.ts for the parity)", () => {
     expect(figure(0.123)).toBe("0.12");
+  });
+
+  it("(T908) the colour bar: the Conditions key with this gauge's reading marked, from core's Normal band; no rank, no bar", () => {
+    const bar = colourBarHtml(facts({ percentile: 0.2 }));
+    expect(text(bar)).toContain(`${FLOW_LEGEND.low} ${FLOW_LEGEND.high}`);
+    expect(bar).toContain('class="mark" style="left:20%"');
+    expect(bar).toContain(`left:${NORMAL_BAND[0] * 100}%;width:${Math.round((NORMAL_BAND[1] - NORMAL_BAND[0]) * 1000) / 10}%`);
+    expect(colourBarHtml(facts())).toBe("");
+  });
+
+  it("(T908) the CLEVER and COFFEE options: each a switch in the app's pick logic, its own dash; Real-time only draws neither", async () => {
+    const run = (model: string, d: number) => ({ model, issuedAt: "2026-11-07T18:32:00Z", issued: "x", dueBy: NOW + 86_400_000, attribution: "a",
+      points: [[NOW, 23], [NOW + d * 86_400_000, 40]] as [number, number][], horizonDays: d });
+    const both = facts({ forecasts: [run("CLEVER", 10), run("COFFEE", 5)] });
+    const doc = document.implementation.createHTMLDocument("g");
+    doc.body.innerHTML = `<div id="gauge-now"></div><div id="gauge-chart"></div><div id="gauge-weather"></div>` +
+      `<script type="application/json" id="gauge-config">${JSON.stringify({ station: "08MH001", facts: "https://d/f.json", weather: null, weatherAttribution: "", sky: {}, crash: null, env: "staging", release: "r1" })}</script>`;
+    await gaugePage(doc, () => NOW, (async () => new Response(JSON.stringify(both))) as typeof fetch);
+    const chart = () => doc.getElementById("gauge-chart")!;
+    const drawn = () => [...chart().querySelectorAll("path.fc")].map((x) => x.getAttribute("class")!.split(" ")[1]);
+    expect(chart().querySelectorAll("button[data-model]").length).toBe(3);
+    expect(text(chart().innerHTML)).toContain("CLEVER · 10d");
+    expect(text(chart().innerHTML)).toContain("COFFEE · 5d");
+    expect(drawn()).toEqual(["m-CLEVER"]);                                                          // the lead alone, as in the app
+    (chart().querySelector('button[data-model="COFFEE"]') as HTMLElement).click();
+    expect(drawn()).toEqual(["m-CLEVER", "m-COFFEE"]);
+    expect(chart().querySelector("path.fc.m-COFFEE")!.getAttribute("stroke-dasharray")).toBe(forecastDash("COFFEE"));
+    (chart().querySelector('button[data-model=""]') as HTMLElement).click();
+    expect(drawn()).toEqual([]);
+    expect(chart().querySelector('button[data-model=""]')!.getAttribute("aria-pressed")).toBe("true");
+    expect(text(chart().innerHTML)).toContain(REALTIME_ONLY);
+    expect(text(forecastHtml(facts({ forecast: null }), NOW)).trim()).toBe("No flow forecast for this gauge.");   // neither: one line
   });
 });

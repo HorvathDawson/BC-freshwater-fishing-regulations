@@ -7,9 +7,9 @@
 import path from 'node:path';
 
 const LOOKS = (process.env.SHARED_LOOKS ?? 'light,dark').split(',');
-const ITEMS = (process.env.SHARED_ITEMS ?? 't729,t728,t731,t717,t730').split(',');
+const ITEMS = (process.env.SHARED_ITEMS ?? 't729,t728,t731,t731x,t717,t730').split(',');
 // iOS search rows by their accessibility text (data names: kept out of the static check's literal scan, as regs-open's)
-const ROW = { coquitlam: 'Show Coquitlam River,.*', cultus: 'Show Cultus Lake,.*Lindell Beach.*' };
+const ROW = { vedder: 'Show Vedder River,.*', coquitlam: 'Show Coquitlam River,.*', cultus: 'Show Cultus Lake,.*Lindell Beach.*' };
 const has = (ctx, id) => (ctx.device.screenText().ids ?? []).includes(id);
 const box = (ctx, id) => ctx.device.nodes().find((n) => n.id === id)?.box ?? null;
 const mid = (b) => [Math.round((b.x0 + b.x1) / 2), Math.round((b.y0 + b.y1) / 2)];
@@ -68,7 +68,9 @@ export const sharedFixesIos = {
         });
         await ctx.step(`${look} T729: satellite on, the card names Esri`, async () => {
           await toMap(ctx);
-          ctx.flow('layers-satellite'); await sleep(800); ctx.flow('tap-text', { TEXT: 'Done' }); await sleep(3000);
+          // by the option's id, never the toggle flow: a look left on satellite turned it off again (ios-shared3)
+          ctx.flow('tap-text', { TEXT: 'Choose layers.*' }); await sleep(1000);
+          ctx.flow('tap-id', { ID: 'option-ground\\.satellite' }); await sleep(800); ctx.flow('tap-text', { TEXT: 'Done' }); await sleep(3000);
           await chip();
           const w = d.screenText();
           shot('t729-satellite');
@@ -87,8 +89,11 @@ export const sharedFixesIos = {
             if (!(await chip())) throw new Error(`the © chip on ${tab} opened no card`);
             shot(`t729-${tab.toLowerCase()}`);
             if (tab === 'Conditions') { ctx.flow('tap-id', { ID: 'map-credits-close' }); await sleep(800); return 'opened, closed'; }
-            // (c099e9977) left OPEN, the tab changed: the card and its scrim must go, and the next map tap must reach the map
-            ctx.flow('tab', { TAB: 'Map' }); await sleep(2000);
+            // (c099e9977) left OPEN, then the Map tab tapped where it sits: on iOS the card is a Modal, so the tab bar is
+            // out of the accessibility tree (a text tap finds no "Map": ios-shared2) and a finger there lands on the
+            // scrim. Either way the card and its scrim must go, and the next map tap must reach the map
+            ctx.flow('tap-point', { POINT: '10%,92%' }); await sleep(1500);
+            if (!has(ctx, 'map-credits-card')) { ctx.flow('tap-point', { POINT: '10%,92%' }); await sleep(2000); }   // the scrim took the first
             const left = has(ctx, 'map-credits-card') || has(ctx, 'map-credits-scrim');
             d.logcatClear();
             const n0 = taps(ctx);
@@ -112,12 +117,17 @@ export const sharedFixesIos = {
           shot('t728-layers-before');
           const before = d.nodes().filter((n) => /^option-/.test(n.id)).map((n) => `${n.id}:${n.desc}`);
           ctx.flow('tap-text', { TEXT: 'Done' }); await sleep(1500);
-          ctx.flow('search', { Q: 'Coquitlam River' });
-          ctx.flow('open-result', { LINE: ROW.coquitlam });
-          await ctx.until(() => has(ctx, 'water-back'), { ms: 20_000, what: 'the Coquitlam River page' });
+          // Vedder River: a gauged card with the Flow / Level chart (Android read Flow 30.4, Level 1.83 there). Coquitlam's
+          // and the Fraser at Mission's open on an "Estimate for this spot" with no chart in reach (ios-shared2/3)
+          ctx.flow('search', { Q: 'Vedder River' });
+          ctx.flow('open-result', { LINE: ROW.vedder });
+          await ctx.until(() => has(ctx, 'water-back'), { ms: 20_000, what: 'the Vedder River page' });
           if (has(ctx, 'water-view-conditions')) ctx.flow('tap-id', { ID: 'water-view-conditions' });
           await sleep(3000);
+          try { ctx.flow('scroll-to', { TEXT: 'Level' }); } catch { /* said below */ }
+          await sleep(1000);
           shot('t728-card-level');
+          if (!has(ctx, 'chart-quantity')) { await pageBack(ctx); ctx.skip('no Flow / Level chart (chart-quantity) on the card, scrolled'); }
           ctx.flow('tap-text', { TEXT: 'Flow' }); await sleep(1500);
           shot('t728-card-flow');
           await pageBack(ctx); await sleep(2000);
@@ -143,6 +153,24 @@ export const sharedFixesIos = {
           await toMap(ctx);
           const moved = JSON.stringify([bar0, up0]) !== JSON.stringify([bar1, up1]);
           return `step buttons before ${JSON.stringify([bar0, up0])} after ${JSON.stringify([bar1, up1])}${moved ? ' (MOVED)' : ' (same place)'} · video ${path.basename(r.file)}`;
+        });
+      }
+
+      if (ITEMS.includes('t731x')) {
+        // (b40336850) the step that CROSSES into the next water: Coquitlam River's highest part (3 of 3), then Upstream
+        await ctx.step(`${look} T731: from Coquitlam River's top part, Upstream into the next water (recorded)`, async () => {
+          await openWater('Coquitlam River', ROW.coquitlam);
+          ctx.flow('tap-id', { ID: 'water-view-map' }); await sleep(3000);
+          for (let i = 0; i < 2; i++) { ctx.flow('tap-id', { ID: 'water-map-step-up' }); await sleep(2500); }
+          shot('t731x-before');
+          const w0 = d.screenText().filter((x) => /PART \d+ OF \d+|Part \d+ of \d+/i.test(x));
+          const b0 = [box(ctx, 'water-map-step-down'), box(ctx, 'water-map-step-up')];
+          const r = await record('t731x-cross', async () => { ctx.flow('tap-id', { ID: 'water-map-step-up' }); }, 4000);
+          shot('t731x-after');
+          const w1 = d.screenText().filter((x) => /PART \d+ OF \d+|Part \d+ of \d+/i.test(x));
+          const b1 = [box(ctx, 'water-map-step-down'), box(ctx, 'water-map-step-up')];
+          await toMap(ctx);
+          return `before ${w0.join(' | ') || '?'} → after ${w1.join(' | ') || '?'} · buttons ${JSON.stringify(b0) === JSON.stringify(b1) ? 'same place' : `MOVED ${JSON.stringify(b0)} → ${JSON.stringify(b1)}`} · video ${path.basename(r.file)}`;
         });
       }
 
@@ -174,7 +202,7 @@ export const sharedFixesIos = {
           ctx.swipe([x, y], [x, y + 450], 350); await sleep(1500);
           const closed = !has(ctx, 'search-sheet-handle');
           shot('t730-after-swipe');
-          if (!closed) ctx.flow('tap-id', { ID: 'search-panel-close' });
+          if (!closed) await ctx.ios.back(ctx);          // the search's ‹ (no search-panel-close in the iOS tree)
           return `handle at ${x},${y}; swipe down (keyboard up): ${closed ? 'closed' : 'STAYED OPEN'}`;
         });
         await ctx.step(`${look} T730: Back after a result stays on that water; search starts afresh`, async () => {
@@ -185,7 +213,7 @@ export const sharedFixesIos = {
           const w = d.screenText();
           shot('t730-reopened');
           const kept = w.find((x) => /^Cultus/.test(x));
-          ctx.flow('tap-id', { ID: 'search-panel-close' }); await sleep(800);
+          await ctx.ios.back(ctx);
           return `search reopened: ${kept ? `still says "${kept}"` : 'empty (afresh)'} (judge the map from the shot)`;
         });
       }

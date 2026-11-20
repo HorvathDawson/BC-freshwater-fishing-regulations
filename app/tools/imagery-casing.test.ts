@@ -29,7 +29,7 @@ const ORDS = [1, 2, 3, 4, 6, 8, 10];
 const STATES = [{ p: "p1" }, { p: "p2" }, { p: "b" }, { p: "p2", selected: true }, { p: "b", water: true }];
 const ZOOMS = [6, 8, 10, 10.5, 11, 11.5, 12, 12.5, 13, 13.5, 14, 15, 16, 17, 18];
 /** The layers drawn with the stream's width. */
-const STREAM_LAYERS = ["stream", "stream-closed", "stream-gear-fly", "stream-gear-bait", "stream-runs-pass", "selection-casing"];
+const STREAM_LAYERS = ["stream", "stream-heavy", "stream-closed", "stream-gear-fly", "stream-gear-bait", "stream-runs-pass", "selection-casing"];
 
 type Paint = Record<string, Record<string, unknown>>;
 function painted(theme: string, basemaps: ("map" | "satellite")[]): Paint {
@@ -52,6 +52,15 @@ const evaluator = (prop: string, value: unknown) => {
   if (e.result !== "success") throw new Error(`${prop} does not parse: ${JSON.stringify(e.value)}`);
   return (zoom: number, ord: number, state: Record<string, unknown>) =>
     e.value.evaluate({ zoom } as never, { type: 2, properties: { ord, area_m2: 1e6 } } as never, state as never) as number;
+};
+/**
+ * (T848) THE STREAM AS DRAWN: `stream`, or the lit and closed sections' own layer over it (`stream-heavy`) where that
+ * shows — one evaluator per paint property, like `evaluator`.
+ */
+const drawnStream = (paint: Paint, prop: string) => {
+  const [s, h, ho] = [evaluator(prop, paint["stream"]![prop]), evaluator(prop, paint["stream-heavy"]![prop]),
+                      evaluator("line-opacity", paint["stream-heavy"]!["line-opacity"])];
+  return (zoom: number, ord: number, state: Record<string, unknown>) => (ho(zoom, ord, state) > 0 ? h : s)(zoom, ord, state);
 };
 /** What a tap's query box meets: the band MapLibre tests a line with. */
 const band = (w: number, g: number) => (g > 0 ? g + 2 * w : w);
@@ -91,7 +100,7 @@ describe("over satellite the stream opens; the drawn map does not move (T594)", 
           if (z <= 11 && (gs !== 0 || Math.abs(ws - wm) > 1e-6)) problems.push(`${where}: changed at overview (${wm} -> ${ws} gap ${gs})`);
           // THE TAP: never a narrower band than the drawn map's line
           if (band(ws, gs) < wm - 1e-6) problems.push(`${where}: band ${band(ws, gs)} < the drawn line ${wm}`);
-          if (l === "stream" && z >= 14) {
+          if ((l === "stream" || l === "stream-heavy") && z >= 14) {
             if (Math.abs(ws - e) > 1e-6) problems.push(`${where}: edge ${ws}, not ${e}`);
             if (gs < rampAt(IMAGERY_GAP_FLOOR, z) - 1e-6) problems.push(`${where}: clear middle ${gs} under the floor`);
           }
@@ -102,11 +111,11 @@ describe("over satellite the stream opens; the drawn map does not move (T594)", 
 
     it(`${theme}: the gear edges and the selection's outline sit outside the stream's edges by what they showed before`, () => {
       const problems: string[] = [];
-      const wStream = evaluator("line-width", sat["stream"]!["line-width"]);
-      const gStream = evaluator("line-gap-width", sat["stream"]!["line-gap-width"]);
+      const wStream = drawnStream(sat, "line-width");
+      const gStream = drawnStream(sat, "line-gap-width");
       for (const l of ["stream-gear-fly", "selection-casing"]) {
         const pad = (z: number, o: number, s: Record<string, unknown>) =>
-          (evaluator("line-width", map[l]!["line-width"])(z, o, s) - evaluator("line-width", map["stream"]!["line-width"])(z, o, s)) / 2;
+          (evaluator("line-width", map[l]!["line-width"])(z, o, s) - drawnStream(map, "line-width")(z, o, s)) / 2;
         const w = evaluator("line-width", sat[l]!["line-width"]), g = evaluator("line-gap-width", sat[l]!["line-gap-width"]);
         for (const z of [14, 16]) for (const ord of ORDS) for (const s of STATES) {
           if (Math.abs(g(z, ord, s) - gStream(z, ord, s)) > 1e-6) problems.push(`${l} z${z} ord ${ord}: its gap is not the stream's`);

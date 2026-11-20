@@ -11,7 +11,7 @@
  */
 export { Map } from "./Map";
 export type { MapProps, Camera, MapSpots } from "./map-props";
-export { type TileEndpoints } from "./endpoints";
+export { type TileEndpoints, type ReadRange } from "./endpoints";
 export { runtimeStyle } from "./runtime-style";
 export { baseAdapter, type MapHandle } from "./adapters/contract";
 /** The catalogue a Layers menu is built from. Groups and views come from the generated

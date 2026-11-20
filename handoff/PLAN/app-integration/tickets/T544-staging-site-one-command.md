@@ -1,6 +1,8 @@
 # T544 — Staging site deploy is one command, and the site says which release it was built on
 
-Status: IN REVIEW (64a111515). Done: deploy/staging/site-all.sh (cheap checks, export + SEO build under heavy.sh, or --relink, then site.sh); site.sh writes /site-release.json (release + min app, refuses a build not on LATEST); smoke compares it with the manifest (warn if min app same, fail if moved) and prints both ids. Proof: `site.sh --dry-run` on the current tree (stamp written), test_release_command. Not proven: a real deploy + smoke, and site-all.sh end to end (15 min run).
+Status: DONE — 64a111515. deploy/staging/site-all.sh is the one staging site command and the site stamps site-release.json; real deploys since 2026-11-12 with the smoke comparing it to the manifest.
+
+Closed by the 2026-11-20 audit: T678-progress.md 2026-11-12: staging site redeployed on r-0a9930fb8826 by site-all.sh, smoke 19 pass / 0 warn / 0 fail ('site release matches the manifest release'); 11-13 /site-release.json = r-adc4e248a163.
 
 Source: workflow review 2026-11-09 (verified against the code). Rank 12.
 

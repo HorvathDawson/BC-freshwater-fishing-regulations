@@ -17,9 +17,8 @@
  * (app/fixtures/reference/page_v36.js — the table the prototype's snapshot read, regs-v11/tools/snap.mjs),
  * evaluated from that file's FISHART block with a stub `window`; not in the store, never hand-written.
  *
- * (T38) And the hatch sheet's two drawings (`ADIPOSE_IMAGES`, by variant): the manifest rows `adipose-wild.webp` and
- * `adipose-clipped.webp` (code null: never a species picture; drawn by tools/emit-adipose.mjs). A manifest without
- * either is refused — the "Hatchery or wild?" sheet would draw two empty grounds.
+ * (T886) The hatch sheet's two drawings are no longer fish pictures here: they are printed per theme in ui-native
+ * (`adipose.generated.ts`, tools/build-adipose.mjs), as the loader's coho.
  *
  * (T405) Each species picture is registered TWICE, `{ thumb, full }`: the thumbnail tools/emit-fish-thumbs.mjs made from
  * it (apps/mobile/assets/fish/thumbs/, 240 px) for every row and chip, the picture itself for the fish sheet only. The
@@ -62,16 +61,6 @@ export function fishTips(pageSrc) {
   return Object.fromEntries(Object.keys(FISHART.SPECIES).sort().map((c) => [c, [...(FISHART.SPECIES[c].tips ?? [])]]));
 }
 
-/** (T38) The hatch sheet's drawings, by variant: their manifest file names. */
-export const ADIPOSE_FILES = { wild: "adipose-wild.webp", clipped: "adipose-clipped.webp" };
-
-function adiposeFiles(manifest) {
-  return Object.entries(ADIPOSE_FILES).map(([variant, file]) => {
-    if (!manifest.images.some((i) => i.file === file)) throw new Error(`emit-fish: manifest.json has no ${file} (the hatch sheet's drawing)`);
-    return [variant, file];
-  });
-}
-
 const nullable = (v) => (v === null || v === undefined ? "null" : s(v));
 
 const cmp = (a, b) => (a < b ? -1 : a > b ? 1 : 0);
@@ -103,7 +92,6 @@ export function thumbProblems(manifest, record, read) {
 
 export function emit(manifest, sha, tips) {
   const codes = byCode(manifest);
-  const adipose = adiposeFiles(manifest);
   const credits = new Map(manifest.images.filter(credited).map((i) => [i.file, creditLine(i)]));
 
   const core = [
@@ -161,11 +149,6 @@ export function emit(manifest, sha, tips) {
       ...imgs.map((i) => `    { thumb: require(${s(`../assets/fish/thumbs/${i.file}`)}), full: require(${s(`../assets/fish/${i.file}`)}) },`),
       "  ],",
     ].join("\n")),
-    "};",
-    "",
-    "/** (T38) The hatch sheet's two drawings (Wild · adipose fin there / Hatchery · clipped), by variant. */",
-    "export const ADIPOSE_IMAGES: { readonly wild: ImageSourcePropType; readonly clipped: ImageSourcePropType } = {",
-    ...adipose.map(([variant, file]) => `  ${variant}: require(${s(`../assets/fish/${file}`)}),`),
     "};",
     "",
   ].join("\n");

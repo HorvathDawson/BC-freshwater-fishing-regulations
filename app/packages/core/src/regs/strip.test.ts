@@ -3,13 +3,12 @@
  * app/conformance/src/regs/strip.parity.test.ts (retired, T439).
  */
 import { describe, expect, it } from "vitest";
-import type { CardModel, HydRow } from "./card";
 import type { DisplayFrame, RegsInputs, RuleView, Statics } from "./inputs";
 import type { Day } from "./model";
 import type { Settled } from "./settle";
 import {
   BOOK_DAYS, bookIndex, closedOnBookDay, daySegCount, displayOnBookDay, legendOf, nextOpen, runOf, spanWords, stripOf,
-  stripRuns, troutLine, waterSegs,
+  stripRuns, waterSegs,
 } from "./strip";
 
 const D = (month: number, day: number): Day => ({ month, day });
@@ -31,12 +30,10 @@ function inputs(o: { day?: Day; byDay?: (DisplayFrame | null)[]; moments?: boole
     year: { segStarts: o.starts ?? [1], moments: o.moments ? [{}, {}] : null, displayByDay: o.byDay ?? year() },
   } as unknown as RegsInputs;
 }
-const settled = (status: DisplayFrame | null, inpart: { family: string; now: boolean }[] = []): Settled =>
-  ({ status, inpart: inpart.map((x) => ({ now: x.now, rule: { export: { family: x.family } } as unknown as RuleView })) }) as unknown as Settled;
-const row = (kind: HydRow["kind"], members: string[], yr: [string, number][] = [["release", 365]], pool = false): HydRow =>
-  ({ kind, members, pool: pool ? ({} as RuleView) : null, year: yr }) as unknown as HydRow;
-const card = (rows: HydRow[] = []): CardModel => ({ rows }) as unknown as CardModel;
-const texts = (inp: RegsInputs, s: Settled, c = card(), today = D(10, 10)) => stripOf(inp, s, c, today)!.line.map((l) => l.text);
+const settled = (status: DisplayFrame | null, inpart: { family: string; now: boolean; closure?: boolean }[] = []): Settled =>
+  ({ status, inpart: inpart.map((x) => ({ now: x.now,
+    rule: { export: { family: x.family }, kind: "gate", facts: { closure: x.closure ?? true } } as unknown as RuleView })) }) as unknown as Settled;
+const texts = (inp: RegsInputs, s: Settled, today = D(10, 10)) => stripOf(inp, s, today)!.line.map((l) => l.text);
 
 describe("the book's year", () => {
   it("BOOK_DAYS is the 365 days with no Feb 29; bookIndex is its index (Feb 29 reads as Feb 28)", () => {
@@ -103,7 +100,7 @@ describe("stripOf: the status line", () => {
   });
   it("closed: 'Closed' + 'Opens <the next open day>'; 'today' when the day is today", () => {
     const inp = inputs({ day: D(6, 15) });
-    const v = stripOf(inp, settled(SHUT), card(), D(6, 15))!;
+    const v = stripOf(inp, settled(SHUT), D(6, 15))!;
     expect([v.status, v.line]).toEqual(["closed",
       [{ kind: "status", text: "Closed" }, { kind: "when", text: "today" }, { kind: "soonOpen", text: "Opens Jul 1" }]]);
   });
@@ -122,38 +119,29 @@ describe("stripOf: the status line", () => {
     expect(texts(inputs({ day: D(10, 10) }), settled(OPEN, [{ family: "retention", now: false }, { family: "gear", now: true }])))
       .toEqual(["Open", "today"]);
   });
+  it("T789 K7: a retention rule of an undrawn part that closes nothing (a release/limit gate) leaves it plain 'Open'", () => {
+    expect(texts(inputs({ day: D(10, 10) }), settled(OPEN, [{ family: "retention", now: true, closure: false }]))).toEqual(["Open", "today"]);
+  });
   it("the weekday only when the key has moments and the day has more than one segment", () => {
     expect(texts(inputs({ day: D(10, 12), weekday: "Monday", moments: true, starts: [1, 1] }), settled(OPEN))).toEqual(["Open", "on Oct 12 (Mon)"]);
     expect(texts(inputs({ day: D(10, 12), weekday: "Monday", moments: true, starts: [1] }), settled(OPEN))).toEqual(["Open", "on Oct 12"]);
     expect(texts(inputs({ day: D(10, 12), weekday: "Monday", moments: false, starts: [1, 1] }), settled(OPEN))).toEqual(["Open", "on Oct 12"]);
   });
   it("tidal water or no display frame: no strip", () => {
-    expect(stripOf(inputs({ tidal: true }), settled(OPEN), card(), D(10, 10))).toBeNull();
-    expect(stripOf(inputs(), settled(TIDAL), card(), D(10, 10))).toBeNull();
-    expect(stripOf(inputs(), settled(null), card(), D(10, 10))).toBeNull();
+    expect(stripOf(inputs({ tidal: true }), settled(OPEN), D(10, 10))).toBeNull();
+    expect(stripOf(inputs(), settled(TIDAL), D(10, 10))).toBeNull();
+    expect(stripOf(inputs(), settled(null), D(10, 10))).toBeNull();
   });
   it("runs, marker, months and legend", () => {
-    const v = stripOf(inputs({ day: D(10, 10) }), settled(OPEN), card(), D(10, 10))!;
+    const v = stripOf(inputs({ day: D(10, 10) }), settled(OPEN), D(10, 10))!;
     expect([v.runs.map((r) => r.days), v.todayAt, v.months.join(""), v.legend.map((l) => l.bit)])
       .toEqual([[151, 30, 31, 153], 282 / 365, "JFMAMJJASOND", [0, 1, 4, 16]]);
   });
 });
 
-describe("the trout line: a stored release/closed trout row, worded over its STORED year strip", () => {
-  const today = D(10, 10), open = inputs({ day: today, byDay: year(() => OPEN) });
-  it("release only until the stored run ends; closed all year", () => {
-    const rel = card([row("release", ["RB", "KO"], [["release", 90], ["keep", 275]])]);
-    expect(troutLine(rel, D(2, 1))).toBe("Trout release only until Mar 31");
-    expect(texts(open, settled(OPEN), card([row("closed", ["CT"], [["closed", 365]])]), today)).toEqual(["Open", "today", "Trout closed all year"]);
-  });
-  it("never beside a trout keep row, never a pooled row, never a char-only row", () => {
-    const rel = row("release", ["RB"]);
-    expect(troutLine(card([row("keep", ["GB"]), rel]), today)).toBeNull();
-    expect(troutLine(card([row("release", ["RB"], undefined, true)]), today)).toBeNull();
-    expect(troutLine(card([row("release", ["EB", "DV", "LT"])]), today)).toBeNull();
-    expect(troutLine(card([row("nolimit", ["RB"]), rel]), today)).toBe("Trout release only all year");
-  });
-  it("not when a closure is within 21 days (the closure speaks first)", () => {
-    expect(texts(inputs({ day: D(5, 15) }), settled(OPEN), card([row("release", ["RB"])]))).toEqual(["Open", "on May 15", "Closed Jun 1–30"]);
+describe("(T810 S) no trout line: the strip speaks for the whole water only (owner 2026-11-16 \"Drop it\")", () => {
+  it("an open water with no closure ahead says its status and day, nothing about trout", () => {
+    const today = D(10, 10);
+    expect(texts(inputs({ day: today, byDay: year(() => OPEN) }), settled(OPEN), today)).toEqual(["Open", "today"]);
   });
 });

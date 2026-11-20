@@ -1,6 +1,6 @@
 # T371 — 0.5.0 to Play CLOSED testing (start the clock for a production release)
 
-Status: IN PROGRESS — Claude's drafts done (play/data-safety.md, play/listing.md); owner: the Play Console steps (OWNER-TODO "T371"). The build to promote is T495's gated production build; build 22 (0.7.0, staging) is the newest internal one (2026-11-09).
+Status: IN PROGRESS — Claude's drafts done (play/data-safety.md, play/listing.md). 2026-11-19: the Closed track holds the gated production build 39 (0.8.3, e9732147f), waiting for Google's review (STATUS 2026-11-19 evening and 22:04). Left, owner: the tester list (12 testers opted in for 14 continuous days) and then the production-access application; the Console's requirement list (Work 4) written down here.
 Earlier: IN PROGRESS — 2026-11-05: the build to promote is now **0.6.2, versionCode 11** (on internal since 11-05), not 0.5.0; promote after 2–3 clean internal days. Drafts re-checked 11-05: data-safety current; the Apple/store privacy draft caught up (T244). — the Claude drafts are done (data-safety + listing, 2026-11-04). The Console steps are the owner's. Batch 7 of RELEASE-PLAN-0.5.0 (owner 2026-11-03: "release 0.5.0 to closed testing from internal testing so we can start getting requirements for google play release").
 
 ## Why

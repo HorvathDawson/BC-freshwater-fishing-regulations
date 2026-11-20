@@ -1,6 +1,6 @@
 # T496 — Cleanup sweep before launch
 
-Status: PARTIAL — pass 1 2026-11-08, 678bf986e (see below); owner 2026-11-07 (part of T495).
+Status: PARTIAL — pass 1 2026-11-08, 678bf986e, and the dev-tool fallbacks fixed in f135c4284 (see below); left (Claude): pass 2 over the "Deferred" list (files other lanes had open, the archive/webapp comments, the v1 banners now that production is live, handoff pages no longer cited). Owner 2026-11-07 (part of T495).
 
 Code, config and docs that the launch should not carry. Owner rule: delete freely, git is the safety net; never drop or
 rename DATA content without asking.

@@ -28,6 +28,7 @@ writes paint, derives three per-water flags for search, converts the climatology
   climate        gauge_clim, bands float16: clim/2 (T182: off the Conditions map) bundle
   geo            part_geo (T182: "show on the map" without the whole water file), bundle
   flow-area      the panel target areas, one varint per paint section (paint.py)  bundle
+  flow-small     (T823) per paint section, the panel members much bigger than it  bundle
   lakes          OPTIONAL, absent today: per lake section, surveyed / last        a lakes/1 file, only when
                  stocked — the Depth and Stocked modes' values (lakes/1)          handed one (`lakes=`); no feed
                                                                                   makes one yet (lake_facts.py)
@@ -42,6 +43,7 @@ from __future__ import annotations
 import gzip
 import hashlib
 import json
+import re
 import shutil
 import sqlite3
 import struct
@@ -78,12 +80,25 @@ FORMATS = {name: spec["format"] for name, spec in C.FILES.items()}
 #: candidate (atlas b5cb0aa4345a6af0) against r-483b295de57c — core 1,388,309 → 1,508,127 gz (`item_section` 65,237 →
 #: 81,357 rows), conditions 916,049 → 963,726 gz (`section_gauge` 108,075 → 114,140 rows: a folded pond takes its river's
 #: gauge). Each gate ~10 % over the measurement, as T182 set them.
-SIZE_GATES = {"paint": 1_000_000, "access": 300_000, "core": 1_650_000, "lakes": 100_000, "salmon": 60_000,
-              **{f"salmon-{r}": 320_000 for r in (*SH.REGIONS, "x")}, "method": 600_000,
+#: (owner 2026-11-15, round 5: "Raise to 420 kB (Recommended)"; RULINGS O5 again, shrinking is T686) `salmon-6`
+#: 320,000 → 420,000: the Stikine and Taku "including tributaries" places bound (92,460 sections off the region
+#: default; no_extent in r-f749475d0962) measured 379,295 B gz on the 2026-11-15 hold-latest build (reach d8cefe97)
+#: against LATEST's 314,700. The other regions keep 320,000.
+#: (owner 2026-11-16, T796 A5, question dialog: "Raise to 100 kB (Recommended)"; RULINGS O5 "raise now, shrink later",
+#: O9; shrinking is T686) `salmon` 60,000 → 100,000: the rule book's full closures first in every DFO-listed chain they
+#: close (`deliver.salmon.with_book_closures`) — the head 31,847 → ~92,000 B gz on r-46e4355a7277's salmon step.
+#: (owner 2026-11-16 ~14:55, T796 A5: "but yes you can do the raise"; RULINGS O5, O10) `salmon-6` 420,000 → 460,000: the
+#: book places in every listed chain fragment Region 6's runs, +53,225 B gz on r-46e4355a7277's numbers (379,396 →
+#: ~432,600).
+SIZE_GATES = {"paint": 1_000_000, "access": 300_000, "core": 1_650_000, "lakes": 100_000, "salmon": 100_000,
+              **{f"salmon-{r}": 320_000 for r in (*SH.REGIONS, "x")}, "salmon-6": 460_000, "method": 600_000,
               # (T388) water + `part_line` (79,253 B gz measured alone on the 2026-11-04 bundle; water was 2,409,579 in
               # r-b86b60ca533b → ~2.49 MB, too close to 2.5 MB) → 2,650,000
               "water": 2_650_000, "near": 2_250_000, "climate": 1_650_000, "regs-sid": 1_400_000, "conditions": 1_060_000,
               "down": 1_250_000, "geo": 700_000, "flow-area": 220_000,
+              # (T823) `flow-small`: one bitmask varint per paint section, measured 2026-11-16 on the live bundle (141,189
+              # sections): 21,396 B gz at x50 (x200: 27,444)
+              "flow-small": 32_000,
               # (T369) `lines`: ~0.99-1.08 MB gz estimated 2026-11-03 on the atlas's handles (ends proxied from the FWA
               # stream extents; the build measures the real one); (T386) phone-held too since 2026-11-04 (in the offline
               # total), fetched once a page is drawn (its place in the address) or when a link with a place is opened
@@ -101,7 +116,8 @@ SIZE_GATES = {"paint": 1_000_000, "access": 300_000, "core": 1_650_000, "lakes":
 #: History: 14 → 15 MB, owner 2026-10-22 (Q55).
 OFFLINE_GATE = 20_000_000
 
-CORE_TABLES = ("item", "alias", "item_alias", "item_section", "place", "see_pointer", "name_source")
+#: (T796) `section_note` (`bundle.outside_note`): a water's note said once on its page, e.g. "Mostly outside <reserve>"
+CORE_TABLES = ("item", "alias", "item_alias", "item_section", "place", "see_pointer", "name_source", "section_note")
 NEAR_TABLES = ("place_water",)
 COND_TABLES = ("gauge", "section_gauge", "lake_gauge", "basin", "basin_frame", "basin_grid")
 DOWN_TABLES = ("section_down",)
@@ -213,6 +229,7 @@ def _core_flags(con: sqlite3.Connection) -> None:
     core_area(con)
 
 
+SECTION_NOTE_DDL = "CREATE TABLE section_note (sid INTEGER PRIMARY KEY, note TEXT NOT NULL) WITHOUT ROWID"
 NAME_SOURCE_DDL = ("CREATE TABLE name_source (item_id TEXT NOT NULL, name TEXT NOT NULL, src TEXT NOT NULL, "
                    "label TEXT NOT NULL, PRIMARY KEY (item_id, name)) WITHOUT ROWID")
 
@@ -281,6 +298,89 @@ def core_area(con: sqlite3.Connection, schema: str = "b") -> None:
     con.executemany("INSERT INTO item_area VALUES (?, ?, ?)",
                     [(o, ",".join(sorted(regions.get(o, ()), key=_region_key)), ",".join(sorted(mus.get(o, ()), key=_mu_key)))
                      for o in sorted(set(regions) | set(mus))])
+
+
+#: (T927 Pitfalls) a place whose words NAME nothing of their own ("lower falls", "boundary signs", "tidal boundary (DFO
+#: Subarea 3-18)"): no capital letter outside its brackets. Search offers it only with its water's name in the query.
+_BRACKETS = re.compile(r"\([^)]*\)")
+
+
+def cut_words(text: str) -> str:
+    """(T927) A cut's words as search shows them, spaces collapsed. (The part ends' words carry no confidence clause since
+    T780: `display.ends` says the place alone.)"""
+    return re.sub(r"\s+", " ", text or "").strip()
+
+
+def cut_generic(words: str) -> bool:
+    """(T927) The words name no place of their own: no capital letter outside brackets ("lower falls")."""
+    return not any(c.isupper() for c in _BRACKETS.sub(" ", words))
+
+
+def core_cut_place(con: sqlite3.Connection, ends: Dict[str, List[str]], schema: str = "b") -> List[str]:
+    """(T927, owner 2026-11-19 23:49) `cut_place`: THE BOOK'S BOUNDARY PLACES search finds — every curated cut (the
+    bundle's `cut_place`) on each named water it stands on: `ord` the water, `words` what the place is called (the part
+    ends' own words, `display.ends`; the `split` name where nothing ends there), `alt` its other
+    names (JSON, NULL: none), `generic` 1 when the words name nothing of their own (`cut_generic`: search wants the
+    water's name too), `blk` / `m` THE PLACE (the FWA stream key and metres along it, AGENTS 5 — the app opens the water
+    at the part holding it, `@app/ui` place.ts), `lon` / `lat` in microdegrees where a map mark stands there (the
+    bundle's `part_mark.token`), else NULL. The waters: the split's main-stem positions (`split.at`), else the waters
+    whose sections hold the place; a cut on no water is COUNTED AND PRINTED (T927 review: never dropped silently).
+    ADDITIVE, still core/1: a bundle without `cut_place` gives no table, and search finds no places. `schema` holds the
+    bundle; `item` / `item_section` are core's own. Returns the split ids on no water."""
+    have = {r[0] for r in con.execute(f"SELECT name FROM {schema}.sqlite_master WHERE type='table'")}
+    if "cut_place" not in have:
+        return
+    con.execute("CREATE TABLE cut_place (ord INTEGER NOT NULL, words TEXT NOT NULL, alt TEXT, generic INTEGER NOT NULL, "
+                "blk INTEGER NOT NULL, m INTEGER NOT NULL, lon INTEGER, lat INTEGER, PRIMARY KEY (ord, blk, m, words)) "
+                "WITHOUT ROWID")
+    ord_of = dict(con.execute("SELECT item_id, ord FROM main.item"))
+    mark: Dict[str, Tuple[int, int]] = {}
+    if "part_mark" in have and "token" in {r[1] for r in con.execute(f"PRAGMA {schema}.table_info(part_mark)")}:
+        for tok, lon, lat in con.execute(f"SELECT token, lon, lat FROM {schema}.part_mark WHERE token IS NOT NULL "
+                                         "ORDER BY ord, mark_ix"):
+            mark.setdefault(tok, (int(round(lon * 1_000_000)), int(round(lat * 1_000_000))))
+    rows: set = set()
+    unplaced: List[str] = []
+    for sid, blk, m, name, at, same in con.execute(
+            f"SELECT c.split_id, c.blk, c.m, s.name, s.at, s.same_place_as FROM {schema}.cut_place c "
+            f"JOIN {schema}.split s ON s.split_id = c.split_id ORDER BY c.split_id"):
+        said = [w for w in (ends.get(sid) or []) if not w.startswith("to:")]
+        words = cut_words(said[0] if said else name)
+        if not words:
+            raise ReleaseError(f"cut_place: {sid} has no words")
+        alt = []
+        for w in [*said[1:], name]:
+            w = cut_words(w)
+            if w and w.lower() != words.lower() and w.lower() not in (a.lower() for a in alt):
+                alt.append(w)
+        ords = sorted({ord_of[i] for i, _ in json.loads(at or "[]") if i in ord_of})
+        if not ords:                     # no main-stem position: the waters whose sections hold it, a stream first
+            held = con.execute(
+                f"SELECT DISTINCT s.ord, i.kind = 'stream' FROM {schema}.section_measure sm JOIN main.item_section s "
+                f"ON s.sid = sm.sid JOIN main.item i ON i.ord = s.ord WHERE sm.blk = ? AND sm.from_m <= ? AND ? <= sm.to_m",
+                (blk, m, m)).fetchall()
+            ords = sorted({o for o, st in held if st} or {o for o, _ in held})
+        if not ords:
+            unplaced.append(sid)
+        lon, lat = mark.get(sid) or (mark.get(same) if same else None) or (None, None)
+        for o in ords:
+            # generic by the cut's own label (`split.name`): the part words capitalise their first letter
+            rows.add((o, words, json.dumps(alt, ensure_ascii=False) if alt else None, int(cut_generic(name)),
+                      blk, m, lon, lat))
+    con.executemany("INSERT OR IGNORE INTO cut_place VALUES (?, ?, ?, ?, ?, ?, ?, ?)", sorted(rows, key=lambda r: r[:6]))
+    print(f"  cut_place: {len(rows)} row(s); {len(unplaced)} curated cut(s) on no water, not searchable"
+          + (f": {', '.join(unplaced)}" if unplaced else ""))
+    return unplaced
+
+
+def display_ends(store: sqlite3.Connection) -> Dict[str, List[str]]:
+    """(T927) The regs store's `display.ends` (T517: {token: [words, other names…]}), decoded."""
+    from pipeline.deliver.store.common import unpack
+    row = store.execute("SELECT j FROM static WHERE k = 'display.ends'").fetchone()
+    if row is None:
+        raise ReleaseError("release: the regs store has no static display.ends — the cut places cannot be named")
+    zd = dict(store.execute("SELECT tbl, d FROM zdict"))
+    return json.loads(unpack(row[0], zd.get("static")))
 
 
 def lake_section(con: sqlite3.Connection, schema: str = "b") -> None:
@@ -480,7 +580,8 @@ def build(*, bundle: Path, store: Path, status_index: Path, export_dir: Path, ou
 
     work = Path(tempfile.mkdtemp(prefix=".release-", dir=out_root if out_root.exists() else None))
     try:
-        files: Dict[str, Path] = bundle_files(work, bundle, b, base, status_index.read_bytes())
+        files: Dict[str, Path] = bundle_files(work, bundle, b, base, status_index.read_bytes(),
+                                              ends=display_ends(st))
         if lakes is not None:
             p = work / "lakes.bin"
             p.write_bytes(lakes_bytes(lakes.read_bytes(), base["section_handles"]))
@@ -490,12 +591,17 @@ def build(*, bundle: Path, store: Path, status_index: Path, export_dir: Path, ou
         # bundle region (owner 2026-10-28: a water page's card fetches its own region's slice), cut by the store's places
         from pipeline.deliver import salmon as SALMON
         _sid_regions = SH.sid_regions(st)
-        for name, blob in SALMON.encode_files(*SALMON.read_bundle(b), base["section_handles"],
+        # (T796 A5) the rule book's full closures, FIRST in the chains of the stretches they close (a static place:
+        # the stored verdicts beside the bundle say which rule closes which section on which days)
+        _payload, _secs = SALMON.read_bundle(b)
+        _payload, _secs = SALMON.with_book_closures(_payload, _secs, *SALMON.book_inputs(bundle, _secs))
+        for name, blob in SALMON.encode_files(_payload, _secs, base["section_handles"],
                                                lambda sid: _sid_regions.get(sid, ())).items():
             (work / f"{name}.bin").write_bytes(blob)
             files[name] = work / f"{name}.bin"
+        shard_tables = SH.shard_tables(st)              # (T810 tickets I, L) + an added section's, where the store holds it
         common = [t for (t,) in st.execute("SELECT name FROM sqlite_master WHERE type='table' ORDER BY name")
-                  if t not in SH.SHARD_TABLES and t not in SH.SID_TABLES and t != "meta"]
+                  if t not in shard_tables and t not in SH.SID_TABLES and t != "meta"]
 
         def water_extra(con):
             # camera hints as integer microdegrees (~0.1 m): a REAL is 8 bytes, these are ~4 (part_geo: the geo file)
@@ -540,7 +646,7 @@ def build(*, bundle: Path, store: Path, status_index: Path, export_dir: Path, ou
             mine = [a for a, rs in regions.items() if r in rs]
             ids = SH.shard_rows(store, mine)
             plan = []
-            for t in SH.SHARD_TABLES:
+            for t in shard_tables:
                 keep = sorted(ids[t])
                 col = "akey" if t == "cell" else "id"
                 plan.append(("s", t, f"WHERE {col} IN ({','.join(map(str, keep)) or 'NULL'})"))
@@ -581,10 +687,11 @@ def build(*, bundle: Path, store: Path, status_index: Path, export_dir: Path, ou
 
 
 def bundle_files(work: Path, bundle: Path, b: sqlite3.Connection, base: Dict[str, str],
-                 status_index: bytes) -> Dict[str, Path]:
+                 status_index: bytes, ends: Optional[Dict[str, List[str]]] = None) -> Dict[str, Path]:
     """The bundle's half of the release — paint, flow-area, access, core, near, conditions, down, climate, geo —
     written into `work`. `base` is
-    every file's meta (section_handles, reach_digest). The app's committed fixture releases
+    every file's meta (section_handles, reach_digest); `ends` the regs store's `display.ends` (T927: core's `cut_place`
+    words; None: no table). The app's committed fixture releases
     (`app/packages/data/dev/fixture-release/`) were cut once by this code and are frozen (T61)."""
     files: Dict[str, Path] = {}
     p = work / "paint.bin"
@@ -599,15 +706,32 @@ def bundle_files(work: Path, bundle: Path, b: sqlite3.Connection, base: Dict[str
     # (T224) `name_source` is additive: a bundle built before it gives an empty table (no name shows a source)
     with sqlite3.connect(f"file:{bundle}?mode=ro", uri=True) as _b:
         _has_ns = _b.execute("SELECT 1 FROM sqlite_master WHERE type='table' AND name='name_source'").fetchone()
+        # (T796) `section_note` is additive too: a bundle built before it ships an empty table (no page has a note)
+        _has_sn = _b.execute("SELECT 1 FROM sqlite_master WHERE type='table' AND name='section_note'").fetchone()
+    _flags = _core_flags if _has_ns else _core_flags_empty_name_source
+
+    def _core_extra(con: sqlite3.Connection) -> None:
+        _flags(con)
+        if not _has_sn:
+            con.execute(SECTION_NOTE_DDL)
+        if ends is not None:
+            core_cut_place(con, ends)
     files["core"] = copy_file(work / "core.sqlite", {"b": bundle},
-                              [("b", t, None) for t in CORE_TABLES if t != "name_source" or _has_ns],
-                              {**base, "format": FORMATS["core"]},
-                              extra=_core_flags if _has_ns else _core_flags_empty_name_source)
+                              [("b", t, None) for t in CORE_TABLES
+                               if (t != "name_source" or _has_ns) and (t != "section_note" or _has_sn)],
+                              {**base, "format": FORMATS["core"]}, extra=_core_extra)
     files["near"] = copy_file(work / "near.sqlite", {"b": bundle}, [("b", t, None) for t in NEAR_TABLES],
                               {**base, "format": FORMATS["near"]})
+    # (T823) THE SMALL-WATER WARNING follows the speaker: one bit per panel member per paint section (`flow-small`,
+    # paint.py), the sentence and the threshold in the conditions meta (pipeline/gauges/consume/small_water.py)
+    from pipeline.gauges.consume.small_water import META_RATIO_KEY, META_TEXT_KEY, SMALL_WATER_TEXT, ratio_for
+    p = work / "flow-small.bin"
+    p.write_bytes(PAINT.encode_small(b, ratio_for()))
+    files["flow-small"] = p
     files["conditions"] = copy_file(work / "conditions.sqlite", {"b": bundle},
                                     [("b", t, None) for t in COND_TABLES],
-                                    {**base, "format": FORMATS["conditions"]}, extra=lake_section)
+                                    {**base, "format": FORMATS["conditions"], META_TEXT_KEY: SMALL_WATER_TEXT,
+                                     META_RATIO_KEY: f"{ratio_for():g}"}, extra=lake_section)
     files["down"] = copy_file(work / "down.sqlite", {"b": bundle}, [("b", t, None) for t in DOWN_TABLES],
                               {**base, "format": FORMATS["down"]})
     files["climate"] = copy_file(work / "climate.sqlite", {"b": bundle}, [("b", t, None) for t in CLIMATE_TABLES],

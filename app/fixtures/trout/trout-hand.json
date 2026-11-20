@@ -1,0 +1,3897 @@
+{
+ "format": "trout-hand/1",
+ "_about": "(T810 V-py, trout table contract 2.8) HAND-WRITTEN contract edge cases: every `cases[].frame` is a TroutFrame BOTH readers must refuse: the pydantic model (`pipeline/tests/test_trout_vectors.py`) and the app's trout reader (reportFailure, no table drawn). `base` is the valid frame each case breaks one way; `rule_count` is the size of the rule table its rule indexes resolve against (the dangling index is refused by that table, not by the shape). One shared file, never a copy per side.",
+ "rule_count": 3,
+ "base": {
+  "table": {
+   "top": {
+    "lead": "Up to 2 {day}",
+    "second": null,
+    "sub": null
+   },
+   "fold": {
+    "value": "Up to 2",
+    "tone": "keep"
+   },
+   "hatch_link": false,
+   "boxes": [
+    {
+     "kind": "keep",
+     "head": "Keep 2 in all",
+     "label": null,
+     "strip": null,
+     "possession": null,
+     "tag": null,
+     "rows": [
+      {
+       "key": "CT",
+       "fish": "CT",
+       "name": "Cutthroat trout",
+       "origin": null,
+       "label": null,
+       "sub": null,
+       "lines": [
+        "30 cm (12 in) or longer"
+       ],
+       "quiet": [],
+       "src": [
+        0
+       ],
+       "sheet": {
+        "head": "Cutthroat trout: up to the 2 today",
+        "here": [
+         {
+          "t": "Size: any size.",
+          "bold": false
+         }
+        ],
+        "src": [
+         0
+        ]
+       },
+       "split": false
+      },
+      {
+       "key": "RB",
+       "fish": "RB",
+       "name": "Rainbow trout",
+       "origin": null,
+       "label": null,
+       "sub": null,
+       "lines": [
+        "30 cm (12 in) or longer"
+       ],
+       "quiet": [],
+       "src": [
+        0,
+        1
+       ],
+       "sheet": {
+        "head": "Rainbow trout: up to the 2 today",
+        "here": [
+         {
+          "t": "Size: any size.",
+          "bold": false
+         }
+        ],
+        "src": [
+         0,
+         1
+        ]
+       },
+       "split": false
+      }
+     ],
+     "bands": [
+      {
+       "from": 0,
+       "to": 1,
+       "text": "only 2 of these 2",
+       "kind": "shared"
+      }
+     ],
+     "inner": []
+    },
+    {
+     "kind": "release",
+     "head": "Release",
+     "label": null,
+     "strip": null,
+     "possession": null,
+     "tag": null,
+     "rows": [
+      {
+       "key": "DV",
+       "fish": "DV",
+       "name": "Dolly Varden/bull trout",
+       "origin": null,
+       "label": null,
+       "sub": null,
+       "lines": [],
+       "quiet": [],
+       "src": [
+        2
+       ],
+       "sheet": {
+        "head": "Dolly Varden/bull trout: up to the 2 today",
+        "here": [
+         {
+          "t": "Size: any size.",
+          "bold": false
+         }
+        ],
+        "src": [
+         2
+        ]
+       },
+       "split": false
+      }
+     ],
+     "bands": [],
+     "inner": []
+    }
+   ],
+   "together": null,
+   "year": null,
+   "elsewhere": [],
+   "src": [
+    0,
+    1,
+    2
+   ]
+  },
+  "dates": {
+   "top": null,
+   "card": null,
+   "fold": null,
+   "box": {
+    "0": "until Oct 31, then release"
+   },
+   "band": {},
+   "row": {},
+   "sheet": {
+    "CT": [
+     "Release from Nov 1."
+    ]
+   }
+  },
+  "covers": [
+   0,
+   2
+  ]
+ },
+ "cases": [
+  {
+   "name": "band gap",
+   "why": "the bands leave row 1 of the keep box under no band",
+   "frame": {
+    "table": {
+     "top": {
+      "lead": "Up to 2 {day}",
+      "second": null,
+      "sub": null
+     },
+     "fold": {
+      "value": "Up to 2",
+      "tone": "keep"
+     },
+     "hatch_link": false,
+     "boxes": [
+      {
+       "kind": "keep",
+       "head": "Keep 2 in all",
+       "label": null,
+       "strip": null,
+       "possession": null,
+       "tag": null,
+       "rows": [
+        {
+         "key": "CT",
+         "fish": "CT",
+         "name": "Cutthroat trout",
+         "origin": null,
+         "label": null,
+         "sub": null,
+         "lines": [
+          "30 cm (12 in) or longer"
+         ],
+         "quiet": [],
+         "src": [
+          0
+         ],
+         "sheet": {
+          "head": "Cutthroat trout: up to the 2 today",
+          "here": [
+           {
+            "t": "Size: any size.",
+            "bold": false
+           }
+          ],
+          "src": [
+           0
+          ]
+         },
+         "split": false
+        },
+        {
+         "key": "RB",
+         "fish": "RB",
+         "name": "Rainbow trout",
+         "origin": null,
+         "label": null,
+         "sub": null,
+         "lines": [
+          "30 cm (12 in) or longer"
+         ],
+         "quiet": [],
+         "src": [
+          0,
+          1
+         ],
+         "sheet": {
+          "head": "Rainbow trout: up to the 2 today",
+          "here": [
+           {
+            "t": "Size: any size.",
+            "bold": false
+           }
+          ],
+          "src": [
+           0,
+           1
+          ]
+         },
+         "split": false
+        }
+       ],
+       "bands": [
+        {
+         "from": 0,
+         "to": 0,
+         "text": "only 2",
+         "kind": "own"
+        }
+       ],
+       "inner": []
+      },
+      {
+       "kind": "release",
+       "head": "Release",
+       "label": null,
+       "strip": null,
+       "possession": null,
+       "tag": null,
+       "rows": [
+        {
+         "key": "DV",
+         "fish": "DV",
+         "name": "Dolly Varden/bull trout",
+         "origin": null,
+         "label": null,
+         "sub": null,
+         "lines": [],
+         "quiet": [],
+         "src": [
+          2
+         ],
+         "sheet": {
+          "head": "Dolly Varden/bull trout: up to the 2 today",
+          "here": [
+           {
+            "t": "Size: any size.",
+            "bold": false
+           }
+          ],
+          "src": [
+           2
+          ]
+         },
+         "split": false
+        }
+       ],
+       "bands": [],
+       "inner": []
+      }
+     ],
+     "together": null,
+     "year": null,
+     "elsewhere": [],
+     "src": [
+      0,
+      1,
+      2
+     ]
+    },
+    "dates": {
+     "top": null,
+     "card": null,
+     "fold": null,
+     "box": {
+      "0": "until Oct 31, then release"
+     },
+     "band": {},
+     "row": {},
+     "sheet": {
+      "CT": [
+       "Release from Nov 1."
+      ]
+     }
+    },
+    "covers": [
+     0,
+     2
+    ]
+   }
+  },
+  {
+   "name": "band overlap",
+   "why": "two bands hold row 0",
+   "frame": {
+    "table": {
+     "top": {
+      "lead": "Up to 2 {day}",
+      "second": null,
+      "sub": null
+     },
+     "fold": {
+      "value": "Up to 2",
+      "tone": "keep"
+     },
+     "hatch_link": false,
+     "boxes": [
+      {
+       "kind": "keep",
+       "head": "Keep 2 in all",
+       "label": null,
+       "strip": null,
+       "possession": null,
+       "tag": null,
+       "rows": [
+        {
+         "key": "CT",
+         "fish": "CT",
+         "name": "Cutthroat trout",
+         "origin": null,
+         "label": null,
+         "sub": null,
+         "lines": [
+          "30 cm (12 in) or longer"
+         ],
+         "quiet": [],
+         "src": [
+          0
+         ],
+         "sheet": {
+          "head": "Cutthroat trout: up to the 2 today",
+          "here": [
+           {
+            "t": "Size: any size.",
+            "bold": false
+           }
+          ],
+          "src": [
+           0
+          ]
+         },
+         "split": false
+        },
+        {
+         "key": "RB",
+         "fish": "RB",
+         "name": "Rainbow trout",
+         "origin": null,
+         "label": null,
+         "sub": null,
+         "lines": [
+          "30 cm (12 in) or longer"
+         ],
+         "quiet": [],
+         "src": [
+          0,
+          1
+         ],
+         "sheet": {
+          "head": "Rainbow trout: up to the 2 today",
+          "here": [
+           {
+            "t": "Size: any size.",
+            "bold": false
+           }
+          ],
+          "src": [
+           0,
+           1
+          ]
+         },
+         "split": false
+        }
+       ],
+       "bands": [
+        {
+         "from": 0,
+         "to": 0,
+         "text": "only 2",
+         "kind": "own"
+        },
+        {
+         "from": 0,
+         "to": 1,
+         "text": "only 2 of these 2",
+         "kind": "shared"
+        }
+       ],
+       "inner": []
+      },
+      {
+       "kind": "release",
+       "head": "Release",
+       "label": null,
+       "strip": null,
+       "possession": null,
+       "tag": null,
+       "rows": [
+        {
+         "key": "DV",
+         "fish": "DV",
+         "name": "Dolly Varden/bull trout",
+         "origin": null,
+         "label": null,
+         "sub": null,
+         "lines": [],
+         "quiet": [],
+         "src": [
+          2
+         ],
+         "sheet": {
+          "head": "Dolly Varden/bull trout: up to the 2 today",
+          "here": [
+           {
+            "t": "Size: any size.",
+            "bold": false
+           }
+          ],
+          "src": [
+           2
+          ]
+         },
+         "split": false
+        }
+       ],
+       "bands": [],
+       "inner": []
+      }
+     ],
+     "together": null,
+     "year": null,
+     "elsewhere": [],
+     "src": [
+      0,
+      1,
+      2
+     ]
+    },
+    "dates": {
+     "top": null,
+     "card": null,
+     "fold": null,
+     "box": {
+      "0": "until Oct 31, then release"
+     },
+     "band": {},
+     "row": {},
+     "sheet": {
+      "CT": [
+       "Release from Nov 1."
+      ]
+     }
+    },
+    "covers": [
+     0,
+     2
+    ]
+   }
+  },
+  {
+   "name": "a dangling rule index",
+   "why": "a row cites rule 999999: past the release's rule table (rule_count)",
+   "frame": {
+    "table": {
+     "top": {
+      "lead": "Up to 2 {day}",
+      "second": null,
+      "sub": null
+     },
+     "fold": {
+      "value": "Up to 2",
+      "tone": "keep"
+     },
+     "hatch_link": false,
+     "boxes": [
+      {
+       "kind": "keep",
+       "head": "Keep 2 in all",
+       "label": null,
+       "strip": null,
+       "possession": null,
+       "tag": null,
+       "rows": [
+        {
+         "key": "CT",
+         "fish": "CT",
+         "name": "Cutthroat trout",
+         "origin": null,
+         "label": null,
+         "sub": null,
+         "lines": [
+          "30 cm (12 in) or longer"
+         ],
+         "quiet": [],
+         "src": [
+          0,
+          999999
+         ],
+         "sheet": {
+          "head": "Cutthroat trout: up to the 2 today",
+          "here": [
+           {
+            "t": "Size: any size.",
+            "bold": false
+           }
+          ],
+          "src": [
+           0
+          ]
+         },
+         "split": false
+        },
+        {
+         "key": "RB",
+         "fish": "RB",
+         "name": "Rainbow trout",
+         "origin": null,
+         "label": null,
+         "sub": null,
+         "lines": [
+          "30 cm (12 in) or longer"
+         ],
+         "quiet": [],
+         "src": [
+          0,
+          1
+         ],
+         "sheet": {
+          "head": "Rainbow trout: up to the 2 today",
+          "here": [
+           {
+            "t": "Size: any size.",
+            "bold": false
+           }
+          ],
+          "src": [
+           0,
+           1
+          ]
+         },
+         "split": false
+        }
+       ],
+       "bands": [
+        {
+         "from": 0,
+         "to": 1,
+         "text": "only 2 of these 2",
+         "kind": "shared"
+        }
+       ],
+       "inner": []
+      },
+      {
+       "kind": "release",
+       "head": "Release",
+       "label": null,
+       "strip": null,
+       "possession": null,
+       "tag": null,
+       "rows": [
+        {
+         "key": "DV",
+         "fish": "DV",
+         "name": "Dolly Varden/bull trout",
+         "origin": null,
+         "label": null,
+         "sub": null,
+         "lines": [],
+         "quiet": [],
+         "src": [
+          2
+         ],
+         "sheet": {
+          "head": "Dolly Varden/bull trout: up to the 2 today",
+          "here": [
+           {
+            "t": "Size: any size.",
+            "bold": false
+           }
+          ],
+          "src": [
+           2
+          ]
+         },
+         "split": false
+        }
+       ],
+       "bands": [],
+       "inner": []
+      }
+     ],
+     "together": null,
+     "year": null,
+     "elsewhere": [],
+     "src": [
+      0,
+      1,
+      2,
+      999999
+     ]
+    },
+    "dates": {
+     "top": null,
+     "card": null,
+     "fold": null,
+     "box": {
+      "0": "until Oct 31, then release"
+     },
+     "band": {},
+     "row": {},
+     "sheet": {
+      "CT": [
+       "Release from Nov 1."
+      ]
+     }
+    },
+    "covers": [
+     0,
+     2
+    ]
+   }
+  },
+  {
+   "name": "a date key to a missing box",
+   "why": "dates.box names box 9",
+   "frame": {
+    "table": {
+     "top": {
+      "lead": "Up to 2 {day}",
+      "second": null,
+      "sub": null
+     },
+     "fold": {
+      "value": "Up to 2",
+      "tone": "keep"
+     },
+     "hatch_link": false,
+     "boxes": [
+      {
+       "kind": "keep",
+       "head": "Keep 2 in all",
+       "label": null,
+       "strip": null,
+       "possession": null,
+       "tag": null,
+       "rows": [
+        {
+         "key": "CT",
+         "fish": "CT",
+         "name": "Cutthroat trout",
+         "origin": null,
+         "label": null,
+         "sub": null,
+         "lines": [
+          "30 cm (12 in) or longer"
+         ],
+         "quiet": [],
+         "src": [
+          0
+         ],
+         "sheet": {
+          "head": "Cutthroat trout: up to the 2 today",
+          "here": [
+           {
+            "t": "Size: any size.",
+            "bold": false
+           }
+          ],
+          "src": [
+           0
+          ]
+         },
+         "split": false
+        },
+        {
+         "key": "RB",
+         "fish": "RB",
+         "name": "Rainbow trout",
+         "origin": null,
+         "label": null,
+         "sub": null,
+         "lines": [
+          "30 cm (12 in) or longer"
+         ],
+         "quiet": [],
+         "src": [
+          0,
+          1
+         ],
+         "sheet": {
+          "head": "Rainbow trout: up to the 2 today",
+          "here": [
+           {
+            "t": "Size: any size.",
+            "bold": false
+           }
+          ],
+          "src": [
+           0,
+           1
+          ]
+         },
+         "split": false
+        }
+       ],
+       "bands": [
+        {
+         "from": 0,
+         "to": 1,
+         "text": "only 2 of these 2",
+         "kind": "shared"
+        }
+       ],
+       "inner": []
+      },
+      {
+       "kind": "release",
+       "head": "Release",
+       "label": null,
+       "strip": null,
+       "possession": null,
+       "tag": null,
+       "rows": [
+        {
+         "key": "DV",
+         "fish": "DV",
+         "name": "Dolly Varden/bull trout",
+         "origin": null,
+         "label": null,
+         "sub": null,
+         "lines": [],
+         "quiet": [],
+         "src": [
+          2
+         ],
+         "sheet": {
+          "head": "Dolly Varden/bull trout: up to the 2 today",
+          "here": [
+           {
+            "t": "Size: any size.",
+            "bold": false
+           }
+          ],
+          "src": [
+           2
+          ]
+         },
+         "split": false
+        }
+       ],
+       "bands": [],
+       "inner": []
+      }
+     ],
+     "together": null,
+     "year": null,
+     "elsewhere": [],
+     "src": [
+      0,
+      1,
+      2
+     ]
+    },
+    "dates": {
+     "top": null,
+     "card": null,
+     "fold": null,
+     "box": {
+      "9": "until Oct 31, then release"
+     },
+     "band": {},
+     "row": {},
+     "sheet": {}
+    },
+    "covers": [
+     0,
+     2
+    ]
+   }
+  },
+  {
+   "name": "a date key to a missing row",
+   "why": "dates.row names row 0:7",
+   "frame": {
+    "table": {
+     "top": {
+      "lead": "Up to 2 {day}",
+      "second": null,
+      "sub": null
+     },
+     "fold": {
+      "value": "Up to 2",
+      "tone": "keep"
+     },
+     "hatch_link": false,
+     "boxes": [
+      {
+       "kind": "keep",
+       "head": "Keep 2 in all",
+       "label": null,
+       "strip": null,
+       "possession": null,
+       "tag": null,
+       "rows": [
+        {
+         "key": "CT",
+         "fish": "CT",
+         "name": "Cutthroat trout",
+         "origin": null,
+         "label": null,
+         "sub": null,
+         "lines": [
+          "30 cm (12 in) or longer"
+         ],
+         "quiet": [],
+         "src": [
+          0
+         ],
+         "sheet": {
+          "head": "Cutthroat trout: up to the 2 today",
+          "here": [
+           {
+            "t": "Size: any size.",
+            "bold": false
+           }
+          ],
+          "src": [
+           0
+          ]
+         },
+         "split": false
+        },
+        {
+         "key": "RB",
+         "fish": "RB",
+         "name": "Rainbow trout",
+         "origin": null,
+         "label": null,
+         "sub": null,
+         "lines": [
+          "30 cm (12 in) or longer"
+         ],
+         "quiet": [],
+         "src": [
+          0,
+          1
+         ],
+         "sheet": {
+          "head": "Rainbow trout: up to the 2 today",
+          "here": [
+           {
+            "t": "Size: any size.",
+            "bold": false
+           }
+          ],
+          "src": [
+           0,
+           1
+          ]
+         },
+         "split": false
+        }
+       ],
+       "bands": [
+        {
+         "from": 0,
+         "to": 1,
+         "text": "only 2 of these 2",
+         "kind": "shared"
+        }
+       ],
+       "inner": []
+      },
+      {
+       "kind": "release",
+       "head": "Release",
+       "label": null,
+       "strip": null,
+       "possession": null,
+       "tag": null,
+       "rows": [
+        {
+         "key": "DV",
+         "fish": "DV",
+         "name": "Dolly Varden/bull trout",
+         "origin": null,
+         "label": null,
+         "sub": null,
+         "lines": [],
+         "quiet": [],
+         "src": [
+          2
+         ],
+         "sheet": {
+          "head": "Dolly Varden/bull trout: up to the 2 today",
+          "here": [
+           {
+            "t": "Size: any size.",
+            "bold": false
+           }
+          ],
+          "src": [
+           2
+          ]
+         },
+         "split": false
+        }
+       ],
+       "bands": [],
+       "inner": []
+      }
+     ],
+     "together": null,
+     "year": null,
+     "elsewhere": [],
+     "src": [
+      0,
+      1,
+      2
+     ]
+    },
+    "dates": {
+     "top": null,
+     "card": null,
+     "fold": null,
+     "box": {},
+     "band": {},
+     "row": {
+      "0:7": "until Oct 31, then release"
+     },
+     "sheet": {}
+    },
+    "covers": [
+     0,
+     2
+    ]
+   }
+  },
+  {
+   "name": "a row with dates at two levels",
+   "why": "row 0:0 dated by its box and by itself",
+   "frame": {
+    "table": {
+     "top": {
+      "lead": "Up to 2 {day}",
+      "second": null,
+      "sub": null
+     },
+     "fold": {
+      "value": "Up to 2",
+      "tone": "keep"
+     },
+     "hatch_link": false,
+     "boxes": [
+      {
+       "kind": "keep",
+       "head": "Keep 2 in all",
+       "label": null,
+       "strip": null,
+       "possession": null,
+       "tag": null,
+       "rows": [
+        {
+         "key": "CT",
+         "fish": "CT",
+         "name": "Cutthroat trout",
+         "origin": null,
+         "label": null,
+         "sub": null,
+         "lines": [
+          "30 cm (12 in) or longer"
+         ],
+         "quiet": [],
+         "src": [
+          0
+         ],
+         "sheet": {
+          "head": "Cutthroat trout: up to the 2 today",
+          "here": [
+           {
+            "t": "Size: any size.",
+            "bold": false
+           }
+          ],
+          "src": [
+           0
+          ]
+         },
+         "split": false
+        },
+        {
+         "key": "RB",
+         "fish": "RB",
+         "name": "Rainbow trout",
+         "origin": null,
+         "label": null,
+         "sub": null,
+         "lines": [
+          "30 cm (12 in) or longer"
+         ],
+         "quiet": [],
+         "src": [
+          0,
+          1
+         ],
+         "sheet": {
+          "head": "Rainbow trout: up to the 2 today",
+          "here": [
+           {
+            "t": "Size: any size.",
+            "bold": false
+           }
+          ],
+          "src": [
+           0,
+           1
+          ]
+         },
+         "split": false
+        }
+       ],
+       "bands": [
+        {
+         "from": 0,
+         "to": 1,
+         "text": "only 2 of these 2",
+         "kind": "shared"
+        }
+       ],
+       "inner": []
+      },
+      {
+       "kind": "release",
+       "head": "Release",
+       "label": null,
+       "strip": null,
+       "possession": null,
+       "tag": null,
+       "rows": [
+        {
+         "key": "DV",
+         "fish": "DV",
+         "name": "Dolly Varden/bull trout",
+         "origin": null,
+         "label": null,
+         "sub": null,
+         "lines": [],
+         "quiet": [],
+         "src": [
+          2
+         ],
+         "sheet": {
+          "head": "Dolly Varden/bull trout: up to the 2 today",
+          "here": [
+           {
+            "t": "Size: any size.",
+            "bold": false
+           }
+          ],
+          "src": [
+           2
+          ]
+         },
+         "split": false
+        }
+       ],
+       "bands": [],
+       "inner": []
+      }
+     ],
+     "together": null,
+     "year": null,
+     "elsewhere": [],
+     "src": [
+      0,
+      1,
+      2
+     ]
+    },
+    "dates": {
+     "top": null,
+     "card": null,
+     "fold": null,
+     "box": {
+      "0": "until Oct 31, then release"
+     },
+     "band": {},
+     "row": {
+      "0:0": "until Oct 31, then release"
+     },
+     "sheet": {}
+    },
+    "covers": [
+     0,
+     2
+    ]
+   }
+  },
+  {
+   "name": "a key used twice",
+   "why": "row key CT twice",
+   "frame": {
+    "table": {
+     "top": {
+      "lead": "Up to 2 {day}",
+      "second": null,
+      "sub": null
+     },
+     "fold": {
+      "value": "Up to 2",
+      "tone": "keep"
+     },
+     "hatch_link": false,
+     "boxes": [
+      {
+       "kind": "keep",
+       "head": "Keep 2 in all",
+       "label": null,
+       "strip": null,
+       "possession": null,
+       "tag": null,
+       "rows": [
+        {
+         "key": "CT",
+         "fish": "CT",
+         "name": "Cutthroat trout",
+         "origin": null,
+         "label": null,
+         "sub": null,
+         "lines": [
+          "30 cm (12 in) or longer"
+         ],
+         "quiet": [],
+         "src": [
+          0
+         ],
+         "sheet": {
+          "head": "Cutthroat trout: up to the 2 today",
+          "here": [
+           {
+            "t": "Size: any size.",
+            "bold": false
+           }
+          ],
+          "src": [
+           0
+          ]
+         },
+         "split": false
+        },
+        {
+         "key": "RB",
+         "fish": "RB",
+         "name": "Rainbow trout",
+         "origin": null,
+         "label": null,
+         "sub": null,
+         "lines": [
+          "30 cm (12 in) or longer"
+         ],
+         "quiet": [],
+         "src": [
+          0,
+          1
+         ],
+         "sheet": {
+          "head": "Rainbow trout: up to the 2 today",
+          "here": [
+           {
+            "t": "Size: any size.",
+            "bold": false
+           }
+          ],
+          "src": [
+           0,
+           1
+          ]
+         },
+         "split": false
+        },
+        {
+         "key": "CT",
+         "fish": "CT",
+         "name": "Cutthroat trout",
+         "origin": null,
+         "label": null,
+         "sub": null,
+         "lines": [
+          "30 cm (12 in) or longer"
+         ],
+         "quiet": [],
+         "src": [
+          0
+         ],
+         "sheet": {
+          "head": "Cutthroat trout: up to the 2 today",
+          "here": [
+           {
+            "t": "Size: any size.",
+            "bold": false
+           }
+          ],
+          "src": [
+           0
+          ]
+         },
+         "split": false
+        }
+       ],
+       "bands": [
+        {
+         "from": 0,
+         "to": 2,
+         "text": "only 2 of these 3",
+         "kind": "shared"
+        }
+       ],
+       "inner": []
+      },
+      {
+       "kind": "release",
+       "head": "Release",
+       "label": null,
+       "strip": null,
+       "possession": null,
+       "tag": null,
+       "rows": [
+        {
+         "key": "DV",
+         "fish": "DV",
+         "name": "Dolly Varden/bull trout",
+         "origin": null,
+         "label": null,
+         "sub": null,
+         "lines": [],
+         "quiet": [],
+         "src": [
+          2
+         ],
+         "sheet": {
+          "head": "Dolly Varden/bull trout: up to the 2 today",
+          "here": [
+           {
+            "t": "Size: any size.",
+            "bold": false
+           }
+          ],
+          "src": [
+           2
+          ]
+         },
+         "split": false
+        }
+       ],
+       "bands": [],
+       "inner": []
+      }
+     ],
+     "together": null,
+     "year": null,
+     "elsewhere": [],
+     "src": [
+      0,
+      1,
+      2
+     ]
+    },
+    "dates": {
+     "top": null,
+     "card": null,
+     "fold": null,
+     "box": {
+      "0": "until Oct 31, then release"
+     },
+     "band": {},
+     "row": {},
+     "sheet": {
+      "CT": [
+       "Release from Nov 1."
+      ]
+     }
+    },
+    "covers": [
+     0,
+     2
+    ]
+   }
+  },
+  {
+   "name": "a label on a box and its rows",
+   "why": "the HATCHERY ONLY label on the box and on row 0",
+   "frame": {
+    "table": {
+     "top": {
+      "lead": "Up to 2 {day}",
+      "second": null,
+      "sub": null
+     },
+     "fold": {
+      "value": "Up to 2",
+      "tone": "keep"
+     },
+     "hatch_link": true,
+     "boxes": [
+      {
+       "kind": "keep",
+       "head": "Keep 2 in all",
+       "label": "Hatchery only",
+       "strip": null,
+       "possession": null,
+       "tag": null,
+       "rows": [
+        {
+         "key": "CT",
+         "fish": "CT",
+         "name": "Cutthroat trout",
+         "origin": null,
+         "label": "Hatchery only",
+         "sub": null,
+         "lines": [
+          "30 cm (12 in) or longer"
+         ],
+         "quiet": [],
+         "src": [
+          0
+         ],
+         "sheet": {
+          "head": "Cutthroat trout: up to the 2 today",
+          "here": [
+           {
+            "t": "Size: any size.",
+            "bold": false
+           }
+          ],
+          "src": [
+           0
+          ]
+         },
+         "split": false
+        },
+        {
+         "key": "RB",
+         "fish": "RB",
+         "name": "Rainbow trout",
+         "origin": null,
+         "label": null,
+         "sub": null,
+         "lines": [
+          "30 cm (12 in) or longer"
+         ],
+         "quiet": [],
+         "src": [
+          0,
+          1
+         ],
+         "sheet": {
+          "head": "Rainbow trout: up to the 2 today",
+          "here": [
+           {
+            "t": "Size: any size.",
+            "bold": false
+           }
+          ],
+          "src": [
+           0,
+           1
+          ]
+         },
+         "split": false
+        }
+       ],
+       "bands": [
+        {
+         "from": 0,
+         "to": 1,
+         "text": "only 2 of these 2",
+         "kind": "shared"
+        }
+       ],
+       "inner": []
+      },
+      {
+       "kind": "release",
+       "head": "Release",
+       "label": null,
+       "strip": null,
+       "possession": null,
+       "tag": null,
+       "rows": [
+        {
+         "key": "DV",
+         "fish": "DV",
+         "name": "Dolly Varden/bull trout",
+         "origin": null,
+         "label": null,
+         "sub": null,
+         "lines": [],
+         "quiet": [],
+         "src": [
+          2
+         ],
+         "sheet": {
+          "head": "Dolly Varden/bull trout: up to the 2 today",
+          "here": [
+           {
+            "t": "Size: any size.",
+            "bold": false
+           }
+          ],
+          "src": [
+           2
+          ]
+         },
+         "split": false
+        }
+       ],
+       "bands": [],
+       "inner": []
+      }
+     ],
+     "together": null,
+     "year": null,
+     "elsewhere": [],
+     "src": [
+      0,
+      1,
+      2
+     ]
+    },
+    "dates": {
+     "top": null,
+     "card": null,
+     "fold": null,
+     "box": {
+      "0": "until Oct 31, then release"
+     },
+     "band": {},
+     "row": {},
+     "sheet": {
+      "CT": [
+       "Release from Nov 1."
+      ]
+     }
+    },
+    "covers": [
+     0,
+     2
+    ]
+   }
+  },
+  {
+   "name": "{day} twice",
+   "why": "the top line holds the day slot twice",
+   "frame": {
+    "table": {
+     "top": {
+      "lead": "Up to 2 {day} {day}",
+      "second": null,
+      "sub": null
+     },
+     "fold": {
+      "value": "Up to 2",
+      "tone": "keep"
+     },
+     "hatch_link": false,
+     "boxes": [
+      {
+       "kind": "keep",
+       "head": "Keep 2 in all",
+       "label": null,
+       "strip": null,
+       "possession": null,
+       "tag": null,
+       "rows": [
+        {
+         "key": "CT",
+         "fish": "CT",
+         "name": "Cutthroat trout",
+         "origin": null,
+         "label": null,
+         "sub": null,
+         "lines": [
+          "30 cm (12 in) or longer"
+         ],
+         "quiet": [],
+         "src": [
+          0
+         ],
+         "sheet": {
+          "head": "Cutthroat trout: up to the 2 today",
+          "here": [
+           {
+            "t": "Size: any size.",
+            "bold": false
+           }
+          ],
+          "src": [
+           0
+          ]
+         },
+         "split": false
+        },
+        {
+         "key": "RB",
+         "fish": "RB",
+         "name": "Rainbow trout",
+         "origin": null,
+         "label": null,
+         "sub": null,
+         "lines": [
+          "30 cm (12 in) or longer"
+         ],
+         "quiet": [],
+         "src": [
+          0,
+          1
+         ],
+         "sheet": {
+          "head": "Rainbow trout: up to the 2 today",
+          "here": [
+           {
+            "t": "Size: any size.",
+            "bold": false
+           }
+          ],
+          "src": [
+           0,
+           1
+          ]
+         },
+         "split": false
+        }
+       ],
+       "bands": [
+        {
+         "from": 0,
+         "to": 1,
+         "text": "only 2 of these 2",
+         "kind": "shared"
+        }
+       ],
+       "inner": []
+      },
+      {
+       "kind": "release",
+       "head": "Release",
+       "label": null,
+       "strip": null,
+       "possession": null,
+       "tag": null,
+       "rows": [
+        {
+         "key": "DV",
+         "fish": "DV",
+         "name": "Dolly Varden/bull trout",
+         "origin": null,
+         "label": null,
+         "sub": null,
+         "lines": [],
+         "quiet": [],
+         "src": [
+          2
+         ],
+         "sheet": {
+          "head": "Dolly Varden/bull trout: up to the 2 today",
+          "here": [
+           {
+            "t": "Size: any size.",
+            "bold": false
+           }
+          ],
+          "src": [
+           2
+          ]
+         },
+         "split": false
+        }
+       ],
+       "bands": [],
+       "inner": []
+      }
+     ],
+     "together": null,
+     "year": null,
+     "elsewhere": [],
+     "src": [
+      0,
+      1,
+      2
+     ]
+    },
+    "dates": {
+     "top": null,
+     "card": null,
+     "fold": null,
+     "box": {
+      "0": "until Oct 31, then release"
+     },
+     "band": {},
+     "row": {},
+     "sheet": {
+      "CT": [
+       "Release from Nov 1."
+      ]
+     }
+    },
+    "covers": [
+     0,
+     2
+    ]
+   }
+  },
+  {
+   "name": "{day} outside the top line",
+   "why": "a box head holds the day slot",
+   "frame": {
+    "table": {
+     "top": {
+      "lead": "Up to 2 {day}",
+      "second": null,
+      "sub": null
+     },
+     "fold": {
+      "value": "Up to 2",
+      "tone": "keep"
+     },
+     "hatch_link": false,
+     "boxes": [
+      {
+       "kind": "keep",
+       "head": "Keep 2 in all {day}",
+       "label": null,
+       "strip": null,
+       "possession": null,
+       "tag": null,
+       "rows": [
+        {
+         "key": "CT",
+         "fish": "CT",
+         "name": "Cutthroat trout",
+         "origin": null,
+         "label": null,
+         "sub": null,
+         "lines": [
+          "30 cm (12 in) or longer"
+         ],
+         "quiet": [],
+         "src": [
+          0
+         ],
+         "sheet": {
+          "head": "Cutthroat trout: up to the 2 today",
+          "here": [
+           {
+            "t": "Size: any size.",
+            "bold": false
+           }
+          ],
+          "src": [
+           0
+          ]
+         },
+         "split": false
+        },
+        {
+         "key": "RB",
+         "fish": "RB",
+         "name": "Rainbow trout",
+         "origin": null,
+         "label": null,
+         "sub": null,
+         "lines": [
+          "30 cm (12 in) or longer"
+         ],
+         "quiet": [],
+         "src": [
+          0,
+          1
+         ],
+         "sheet": {
+          "head": "Rainbow trout: up to the 2 today",
+          "here": [
+           {
+            "t": "Size: any size.",
+            "bold": false
+           }
+          ],
+          "src": [
+           0,
+           1
+          ]
+         },
+         "split": false
+        }
+       ],
+       "bands": [
+        {
+         "from": 0,
+         "to": 1,
+         "text": "only 2 of these 2",
+         "kind": "shared"
+        }
+       ],
+       "inner": []
+      },
+      {
+       "kind": "release",
+       "head": "Release",
+       "label": null,
+       "strip": null,
+       "possession": null,
+       "tag": null,
+       "rows": [
+        {
+         "key": "DV",
+         "fish": "DV",
+         "name": "Dolly Varden/bull trout",
+         "origin": null,
+         "label": null,
+         "sub": null,
+         "lines": [],
+         "quiet": [],
+         "src": [
+          2
+         ],
+         "sheet": {
+          "head": "Dolly Varden/bull trout: up to the 2 today",
+          "here": [
+           {
+            "t": "Size: any size.",
+            "bold": false
+           }
+          ],
+          "src": [
+           2
+          ]
+         },
+         "split": false
+        }
+       ],
+       "bands": [],
+       "inner": []
+      }
+     ],
+     "together": null,
+     "year": null,
+     "elsewhere": [],
+     "src": [
+      0,
+      1,
+      2
+     ]
+    },
+    "dates": {
+     "top": null,
+     "card": null,
+     "fold": null,
+     "box": {
+      "0": "until Oct 31, then release"
+     },
+     "band": {},
+     "row": {},
+     "sheet": {
+      "CT": [
+       "Release from Nov 1."
+      ]
+     }
+    },
+    "covers": [
+     0,
+     2
+    ]
+   }
+  },
+  {
+   "name": "covers out of order",
+   "why": "covers not ascending",
+   "frame": {
+    "table": {
+     "top": {
+      "lead": "Up to 2 {day}",
+      "second": null,
+      "sub": null
+     },
+     "fold": {
+      "value": "Up to 2",
+      "tone": "keep"
+     },
+     "hatch_link": false,
+     "boxes": [
+      {
+       "kind": "keep",
+       "head": "Keep 2 in all",
+       "label": null,
+       "strip": null,
+       "possession": null,
+       "tag": null,
+       "rows": [
+        {
+         "key": "CT",
+         "fish": "CT",
+         "name": "Cutthroat trout",
+         "origin": null,
+         "label": null,
+         "sub": null,
+         "lines": [
+          "30 cm (12 in) or longer"
+         ],
+         "quiet": [],
+         "src": [
+          0
+         ],
+         "sheet": {
+          "head": "Cutthroat trout: up to the 2 today",
+          "here": [
+           {
+            "t": "Size: any size.",
+            "bold": false
+           }
+          ],
+          "src": [
+           0
+          ]
+         },
+         "split": false
+        },
+        {
+         "key": "RB",
+         "fish": "RB",
+         "name": "Rainbow trout",
+         "origin": null,
+         "label": null,
+         "sub": null,
+         "lines": [
+          "30 cm (12 in) or longer"
+         ],
+         "quiet": [],
+         "src": [
+          0,
+          1
+         ],
+         "sheet": {
+          "head": "Rainbow trout: up to the 2 today",
+          "here": [
+           {
+            "t": "Size: any size.",
+            "bold": false
+           }
+          ],
+          "src": [
+           0,
+           1
+          ]
+         },
+         "split": false
+        }
+       ],
+       "bands": [
+        {
+         "from": 0,
+         "to": 1,
+         "text": "only 2 of these 2",
+         "kind": "shared"
+        }
+       ],
+       "inner": []
+      },
+      {
+       "kind": "release",
+       "head": "Release",
+       "label": null,
+       "strip": null,
+       "possession": null,
+       "tag": null,
+       "rows": [
+        {
+         "key": "DV",
+         "fish": "DV",
+         "name": "Dolly Varden/bull trout",
+         "origin": null,
+         "label": null,
+         "sub": null,
+         "lines": [],
+         "quiet": [],
+         "src": [
+          2
+         ],
+         "sheet": {
+          "head": "Dolly Varden/bull trout: up to the 2 today",
+          "here": [
+           {
+            "t": "Size: any size.",
+            "bold": false
+           }
+          ],
+          "src": [
+           2
+          ]
+         },
+         "split": false
+        }
+       ],
+       "bands": [],
+       "inner": []
+      }
+     ],
+     "together": null,
+     "year": null,
+     "elsewhere": [],
+     "src": [
+      0,
+      1,
+      2
+     ]
+    },
+    "dates": {
+     "top": null,
+     "card": null,
+     "fold": null,
+     "box": {
+      "0": "until Oct 31, then release"
+     },
+     "band": {},
+     "row": {},
+     "sheet": {
+      "CT": [
+       "Release from Nov 1."
+      ]
+     }
+    },
+    "covers": [
+     2,
+     0
+    ]
+   }
+  },
+  {
+   "name": "a top date on a keep table",
+   "why": "DateSet.top on a table with a keep box",
+   "frame": {
+    "table": {
+     "top": {
+      "lead": "Up to 2 {day}",
+      "second": null,
+      "sub": null
+     },
+     "fold": {
+      "value": "Up to 2",
+      "tone": "keep"
+     },
+     "hatch_link": false,
+     "boxes": [
+      {
+       "kind": "keep",
+       "head": "Keep 2 in all",
+       "label": null,
+       "strip": null,
+       "possession": null,
+       "tag": null,
+       "rows": [
+        {
+         "key": "CT",
+         "fish": "CT",
+         "name": "Cutthroat trout",
+         "origin": null,
+         "label": null,
+         "sub": null,
+         "lines": [
+          "30 cm (12 in) or longer"
+         ],
+         "quiet": [],
+         "src": [
+          0
+         ],
+         "sheet": {
+          "head": "Cutthroat trout: up to the 2 today",
+          "here": [
+           {
+            "t": "Size: any size.",
+            "bold": false
+           }
+          ],
+          "src": [
+           0
+          ]
+         },
+         "split": false
+        },
+        {
+         "key": "RB",
+         "fish": "RB",
+         "name": "Rainbow trout",
+         "origin": null,
+         "label": null,
+         "sub": null,
+         "lines": [
+          "30 cm (12 in) or longer"
+         ],
+         "quiet": [],
+         "src": [
+          0,
+          1
+         ],
+         "sheet": {
+          "head": "Rainbow trout: up to the 2 today",
+          "here": [
+           {
+            "t": "Size: any size.",
+            "bold": false
+           }
+          ],
+          "src": [
+           0,
+           1
+          ]
+         },
+         "split": false
+        }
+       ],
+       "bands": [
+        {
+         "from": 0,
+         "to": 1,
+         "text": "only 2 of these 2",
+         "kind": "shared"
+        }
+       ],
+       "inner": []
+      },
+      {
+       "kind": "release",
+       "head": "Release",
+       "label": null,
+       "strip": null,
+       "possession": null,
+       "tag": null,
+       "rows": [
+        {
+         "key": "DV",
+         "fish": "DV",
+         "name": "Dolly Varden/bull trout",
+         "origin": null,
+         "label": null,
+         "sub": null,
+         "lines": [],
+         "quiet": [],
+         "src": [
+          2
+         ],
+         "sheet": {
+          "head": "Dolly Varden/bull trout: up to the 2 today",
+          "here": [
+           {
+            "t": "Size: any size.",
+            "bold": false
+           }
+          ],
+          "src": [
+           2
+          ]
+         },
+         "split": false
+        }
+       ],
+       "bands": [],
+       "inner": []
+      }
+     ],
+     "together": null,
+     "year": null,
+     "elsewhere": [],
+     "src": [
+      0,
+      1,
+      2
+     ]
+    },
+    "dates": {
+     "top": "until Oct 31",
+     "card": null,
+     "fold": "until Oct 31",
+     "box": {},
+     "band": {},
+     "row": {},
+     "sheet": {}
+    },
+    "covers": [
+     0,
+     2
+    ]
+   }
+  },
+  {
+   "name": "a year bar on a keep table",
+   "why": "the year bar on a table with a keep box",
+   "frame": {
+    "table": {
+     "top": {
+      "lead": "Up to 2 {day}",
+      "second": null,
+      "sub": null
+     },
+     "fold": {
+      "value": "Up to 2",
+      "tone": "keep"
+     },
+     "hatch_link": false,
+     "boxes": [
+      {
+       "kind": "keep",
+       "head": "Keep 2 in all",
+       "label": null,
+       "strip": null,
+       "possession": null,
+       "tag": null,
+       "rows": [
+        {
+         "key": "CT",
+         "fish": "CT",
+         "name": "Cutthroat trout",
+         "origin": null,
+         "label": null,
+         "sub": null,
+         "lines": [
+          "30 cm (12 in) or longer"
+         ],
+         "quiet": [],
+         "src": [
+          0
+         ],
+         "sheet": {
+          "head": "Cutthroat trout: up to the 2 today",
+          "here": [
+           {
+            "t": "Size: any size.",
+            "bold": false
+           }
+          ],
+          "src": [
+           0
+          ]
+         },
+         "split": false
+        },
+        {
+         "key": "RB",
+         "fish": "RB",
+         "name": "Rainbow trout",
+         "origin": null,
+         "label": null,
+         "sub": null,
+         "lines": [
+          "30 cm (12 in) or longer"
+         ],
+         "quiet": [],
+         "src": [
+          0,
+          1
+         ],
+         "sheet": {
+          "head": "Rainbow trout: up to the 2 today",
+          "here": [
+           {
+            "t": "Size: any size.",
+            "bold": false
+           }
+          ],
+          "src": [
+           0,
+           1
+          ]
+         },
+         "split": false
+        }
+       ],
+       "bands": [
+        {
+         "from": 0,
+         "to": 1,
+         "text": "only 2 of these 2",
+         "kind": "shared"
+        }
+       ],
+       "inner": []
+      },
+      {
+       "kind": "release",
+       "head": "Release",
+       "label": null,
+       "strip": null,
+       "possession": null,
+       "tag": null,
+       "rows": [
+        {
+         "key": "DV",
+         "fish": "DV",
+         "name": "Dolly Varden/bull trout",
+         "origin": null,
+         "label": null,
+         "sub": null,
+         "lines": [],
+         "quiet": [],
+         "src": [
+          2
+         ],
+         "sheet": {
+          "head": "Dolly Varden/bull trout: up to the 2 today",
+          "here": [
+           {
+            "t": "Size: any size.",
+            "bold": false
+           }
+          ],
+          "src": [
+           2
+          ]
+         },
+         "split": false
+        }
+       ],
+       "bands": [],
+       "inner": []
+      }
+     ],
+     "together": null,
+     "year": {
+      "title": "This year",
+      "runs": [
+       [
+        "keep",
+        365
+       ]
+      ]
+     },
+     "elsewhere": [],
+     "src": [
+      0,
+      1,
+      2
+     ]
+    },
+    "dates": {
+     "top": null,
+     "card": null,
+     "fold": null,
+     "box": {
+      "0": "until Oct 31, then release"
+     },
+     "band": {},
+     "row": {},
+     "sheet": {
+      "CT": [
+       "Release from Nov 1."
+      ]
+     }
+    },
+    "covers": [
+     0,
+     2
+    ]
+   }
+  },
+  {
+   "name": "a reopening date in a keep box",
+   "why": "'reopens' under a box that is not closed today",
+   "frame": {
+    "table": {
+     "top": {
+      "lead": "Up to 2 {day}",
+      "second": null,
+      "sub": null
+     },
+     "fold": {
+      "value": "Up to 2",
+      "tone": "keep"
+     },
+     "hatch_link": false,
+     "boxes": [
+      {
+       "kind": "keep",
+       "head": "Keep 2 in all",
+       "label": null,
+       "strip": null,
+       "possession": null,
+       "tag": null,
+       "rows": [
+        {
+         "key": "CT",
+         "fish": "CT",
+         "name": "Cutthroat trout",
+         "origin": null,
+         "label": null,
+         "sub": null,
+         "lines": [
+          "30 cm (12 in) or longer"
+         ],
+         "quiet": [],
+         "src": [
+          0
+         ],
+         "sheet": {
+          "head": "Cutthroat trout: up to the 2 today",
+          "here": [
+           {
+            "t": "Size: any size.",
+            "bold": false
+           }
+          ],
+          "src": [
+           0
+          ]
+         },
+         "split": false
+        },
+        {
+         "key": "RB",
+         "fish": "RB",
+         "name": "Rainbow trout",
+         "origin": null,
+         "label": null,
+         "sub": null,
+         "lines": [
+          "30 cm (12 in) or longer"
+         ],
+         "quiet": [],
+         "src": [
+          0,
+          1
+         ],
+         "sheet": {
+          "head": "Rainbow trout: up to the 2 today",
+          "here": [
+           {
+            "t": "Size: any size.",
+            "bold": false
+           }
+          ],
+          "src": [
+           0,
+           1
+          ]
+         },
+         "split": false
+        }
+       ],
+       "bands": [
+        {
+         "from": 0,
+         "to": 1,
+         "text": "only 2 of these 2",
+         "kind": "shared"
+        }
+       ],
+       "inner": []
+      },
+      {
+       "kind": "release",
+       "head": "Release",
+       "label": null,
+       "strip": null,
+       "possession": null,
+       "tag": null,
+       "rows": [
+        {
+         "key": "DV",
+         "fish": "DV",
+         "name": "Dolly Varden/bull trout",
+         "origin": null,
+         "label": null,
+         "sub": null,
+         "lines": [],
+         "quiet": [],
+         "src": [
+          2
+         ],
+         "sheet": {
+          "head": "Dolly Varden/bull trout: up to the 2 today",
+          "here": [
+           {
+            "t": "Size: any size.",
+            "bold": false
+           }
+          ],
+          "src": [
+           2
+          ]
+         },
+         "split": false
+        }
+       ],
+       "bands": [],
+       "inner": []
+      }
+     ],
+     "together": null,
+     "year": null,
+     "elsewhere": [],
+     "src": [
+      0,
+      1,
+      2
+     ]
+    },
+    "dates": {
+     "top": null,
+     "card": null,
+     "fold": null,
+     "box": {
+      "0": "reopens Nov 1"
+     },
+     "band": {},
+     "row": {},
+     "sheet": {}
+    },
+    "covers": [
+     0,
+     2
+    ]
+   }
+  },
+  {
+   "name": "a nested band that is its whole band",
+   "why": "a nested band spanning its band whole says the band twice",
+   "frame": {
+    "table": {
+     "top": {
+      "lead": "Up to 2 {day}",
+      "second": null,
+      "sub": null
+     },
+     "fold": {
+      "value": "Up to 2",
+      "tone": "keep"
+     },
+     "hatch_link": false,
+     "boxes": [
+      {
+       "kind": "keep",
+       "head": "Keep 2 in all",
+       "label": null,
+       "strip": null,
+       "possession": null,
+       "tag": null,
+       "rows": [
+        {
+         "key": "CT",
+         "fish": "CT",
+         "name": "Cutthroat trout",
+         "origin": null,
+         "label": null,
+         "sub": null,
+         "lines": [
+          "30 cm (12 in) or longer"
+         ],
+         "quiet": [],
+         "src": [
+          0
+         ],
+         "sheet": {
+          "head": "Cutthroat trout: up to the 2 today",
+          "here": [
+           {
+            "t": "Size: any size.",
+            "bold": false
+           }
+          ],
+          "src": [
+           0
+          ]
+         },
+         "split": false
+        },
+        {
+         "key": "RB",
+         "fish": "RB",
+         "name": "Rainbow trout",
+         "origin": null,
+         "label": null,
+         "sub": null,
+         "lines": [
+          "30 cm (12 in) or longer"
+         ],
+         "quiet": [],
+         "src": [
+          0,
+          1
+         ],
+         "sheet": {
+          "head": "Rainbow trout: up to the 2 today",
+          "here": [
+           {
+            "t": "Size: any size.",
+            "bold": false
+           }
+          ],
+          "src": [
+           0,
+           1
+          ]
+         },
+         "split": false
+        }
+       ],
+       "bands": [
+        {
+         "from": 0,
+         "to": 1,
+         "text": "only 2 of these 2",
+         "kind": "shared"
+        }
+       ],
+       "inner": [
+        {
+         "from": 0,
+         "to": 1,
+         "text": "only 1 between them",
+         "kind": "shared"
+        }
+       ]
+      },
+      {
+       "kind": "release",
+       "head": "Release",
+       "label": null,
+       "strip": null,
+       "possession": null,
+       "tag": null,
+       "rows": [
+        {
+         "key": "DV",
+         "fish": "DV",
+         "name": "Dolly Varden/bull trout",
+         "origin": null,
+         "label": null,
+         "sub": null,
+         "lines": [],
+         "quiet": [],
+         "src": [
+          2
+         ],
+         "sheet": {
+          "head": "Dolly Varden/bull trout: up to the 2 today",
+          "here": [
+           {
+            "t": "Size: any size.",
+            "bold": false
+           }
+          ],
+          "src": [
+           2
+          ]
+         },
+         "split": false
+        }
+       ],
+       "bands": [],
+       "inner": []
+      }
+     ],
+     "together": null,
+     "year": null,
+     "elsewhere": [],
+     "src": [
+      0,
+      1,
+      2
+     ]
+    },
+    "dates": {
+     "top": null,
+     "card": null,
+     "fold": null,
+     "box": {
+      "0": "until Oct 31, then release"
+     },
+     "band": {},
+     "row": {},
+     "sheet": {
+      "CT": [
+       "Release from Nov 1."
+      ]
+     }
+    },
+    "covers": [
+     0,
+     2
+    ]
+   }
+  },
+  {
+   "name": "a nested band across two bands",
+   "why": "a nested band lies inside one band",
+   "frame": {
+    "table": {
+     "top": {
+      "lead": "Up to 2 {day}",
+      "second": null,
+      "sub": null
+     },
+     "fold": {
+      "value": "Up to 2",
+      "tone": "keep"
+     },
+     "hatch_link": false,
+     "boxes": [
+      {
+       "kind": "keep",
+       "head": "Keep 2 in all",
+       "label": null,
+       "strip": null,
+       "possession": null,
+       "tag": null,
+       "rows": [
+        {
+         "key": "CT",
+         "fish": "CT",
+         "name": "Cutthroat trout",
+         "origin": null,
+         "label": null,
+         "sub": null,
+         "lines": [
+          "30 cm (12 in) or longer"
+         ],
+         "quiet": [],
+         "src": [
+          0
+         ],
+         "sheet": {
+          "head": "Cutthroat trout: up to the 2 today",
+          "here": [
+           {
+            "t": "Size: any size.",
+            "bold": false
+           }
+          ],
+          "src": [
+           0
+          ]
+         },
+         "split": false
+        },
+        {
+         "key": "RB",
+         "fish": "RB",
+         "name": "Rainbow trout",
+         "origin": null,
+         "label": null,
+         "sub": null,
+         "lines": [
+          "30 cm (12 in) or longer"
+         ],
+         "quiet": [],
+         "src": [
+          0,
+          1
+         ],
+         "sheet": {
+          "head": "Rainbow trout: up to the 2 today",
+          "here": [
+           {
+            "t": "Size: any size.",
+            "bold": false
+           }
+          ],
+          "src": [
+           0,
+           1
+          ]
+         },
+         "split": false
+        }
+       ],
+       "bands": [
+        {
+         "from": 0,
+         "to": 0,
+         "text": "counts toward the 2",
+         "kind": "upto"
+        },
+        {
+         "from": 1,
+         "to": 1,
+         "text": "counts toward the 2",
+         "kind": "upto"
+        }
+       ],
+       "inner": [
+        {
+         "from": 0,
+         "to": 1,
+         "text": "only 1 between them",
+         "kind": "shared"
+        }
+       ]
+      },
+      {
+       "kind": "release",
+       "head": "Release",
+       "label": null,
+       "strip": null,
+       "possession": null,
+       "tag": null,
+       "rows": [
+        {
+         "key": "DV",
+         "fish": "DV",
+         "name": "Dolly Varden/bull trout",
+         "origin": null,
+         "label": null,
+         "sub": null,
+         "lines": [],
+         "quiet": [],
+         "src": [
+          2
+         ],
+         "sheet": {
+          "head": "Dolly Varden/bull trout: up to the 2 today",
+          "here": [
+           {
+            "t": "Size: any size.",
+            "bold": false
+           }
+          ],
+          "src": [
+           2
+          ]
+         },
+         "split": false
+        }
+       ],
+       "bands": [],
+       "inner": []
+      }
+     ],
+     "together": null,
+     "year": null,
+     "elsewhere": [],
+     "src": [
+      0,
+      1,
+      2
+     ]
+    },
+    "dates": {
+     "top": null,
+     "card": null,
+     "fold": null,
+     "box": {
+      "0": "until Oct 31, then release"
+     },
+     "band": {},
+     "row": {},
+     "sheet": {
+      "CT": [
+       "Release from Nov 1."
+      ]
+     }
+    },
+    "covers": [
+     0,
+     2
+    ]
+   }
+  },
+  {
+   "name": "a nested band of one row",
+   "why": "a nested band spans two rows or more",
+   "frame": {
+    "table": {
+     "top": {
+      "lead": "Up to 2 {day}",
+      "second": null,
+      "sub": null
+     },
+     "fold": {
+      "value": "Up to 2",
+      "tone": "keep"
+     },
+     "hatch_link": false,
+     "boxes": [
+      {
+       "kind": "keep",
+       "head": "Keep 2 in all",
+       "label": null,
+       "strip": null,
+       "possession": null,
+       "tag": null,
+       "rows": [
+        {
+         "key": "CT",
+         "fish": "CT",
+         "name": "Cutthroat trout",
+         "origin": null,
+         "label": null,
+         "sub": null,
+         "lines": [
+          "30 cm (12 in) or longer"
+         ],
+         "quiet": [],
+         "src": [
+          0
+         ],
+         "sheet": {
+          "head": "Cutthroat trout: up to the 2 today",
+          "here": [
+           {
+            "t": "Size: any size.",
+            "bold": false
+           }
+          ],
+          "src": [
+           0
+          ]
+         },
+         "split": false
+        },
+        {
+         "key": "RB",
+         "fish": "RB",
+         "name": "Rainbow trout",
+         "origin": null,
+         "label": null,
+         "sub": null,
+         "lines": [
+          "30 cm (12 in) or longer"
+         ],
+         "quiet": [],
+         "src": [
+          0,
+          1
+         ],
+         "sheet": {
+          "head": "Rainbow trout: up to the 2 today",
+          "here": [
+           {
+            "t": "Size: any size.",
+            "bold": false
+           }
+          ],
+          "src": [
+           0,
+           1
+          ]
+         },
+         "split": false
+        },
+        {
+         "key": "EB",
+         "fish": "EB",
+         "name": "Brook trout",
+         "origin": null,
+         "label": null,
+         "sub": null,
+         "lines": [
+          "30 cm (12 in) or longer"
+         ],
+         "quiet": [],
+         "src": [
+          0,
+          1
+         ],
+         "sheet": {
+          "head": "Brook trout: up to the 2 today",
+          "here": [
+           {
+            "t": "Size: any size.",
+            "bold": false
+           }
+          ],
+          "src": [
+           0,
+           1
+          ]
+         },
+         "split": false
+        }
+       ],
+       "bands": [
+        {
+         "from": 0,
+         "to": 2,
+         "text": "2 total from these 3",
+         "kind": "shared"
+        }
+       ],
+       "inner": [
+        {
+         "from": 0,
+         "to": 0,
+         "text": "only 1 between them",
+         "kind": "shared"
+        }
+       ]
+      },
+      {
+       "kind": "release",
+       "head": "Release",
+       "label": null,
+       "strip": null,
+       "possession": null,
+       "tag": null,
+       "rows": [
+        {
+         "key": "DV",
+         "fish": "DV",
+         "name": "Dolly Varden/bull trout",
+         "origin": null,
+         "label": null,
+         "sub": null,
+         "lines": [],
+         "quiet": [],
+         "src": [
+          2
+         ],
+         "sheet": {
+          "head": "Dolly Varden/bull trout: up to the 2 today",
+          "here": [
+           {
+            "t": "Size: any size.",
+            "bold": false
+           }
+          ],
+          "src": [
+           2
+          ]
+         },
+         "split": false
+        }
+       ],
+       "bands": [],
+       "inner": []
+      }
+     ],
+     "together": null,
+     "year": null,
+     "elsewhere": [],
+     "src": [
+      0,
+      1,
+      2
+     ]
+    },
+    "dates": {
+     "top": null,
+     "card": null,
+     "fold": null,
+     "box": {
+      "0": "until Oct 31, then release"
+     },
+     "band": {},
+     "row": {},
+     "sheet": {
+      "CT": [
+       "Release from Nov 1."
+      ]
+     }
+    },
+    "covers": [
+     0,
+     2
+    ]
+   }
+  },
+  {
+   "name": "overlapping nested bands",
+   "why": "nested bands never overlap",
+   "frame": {
+    "table": {
+     "top": {
+      "lead": "Up to 2 {day}",
+      "second": null,
+      "sub": null
+     },
+     "fold": {
+      "value": "Up to 2",
+      "tone": "keep"
+     },
+     "hatch_link": false,
+     "boxes": [
+      {
+       "kind": "keep",
+       "head": "Keep 2 in all",
+       "label": null,
+       "strip": null,
+       "possession": null,
+       "tag": null,
+       "rows": [
+        {
+         "key": "CT",
+         "fish": "CT",
+         "name": "Cutthroat trout",
+         "origin": null,
+         "label": null,
+         "sub": null,
+         "lines": [
+          "30 cm (12 in) or longer"
+         ],
+         "quiet": [],
+         "src": [
+          0
+         ],
+         "sheet": {
+          "head": "Cutthroat trout: up to the 2 today",
+          "here": [
+           {
+            "t": "Size: any size.",
+            "bold": false
+           }
+          ],
+          "src": [
+           0
+          ]
+         },
+         "split": false
+        },
+        {
+         "key": "RB",
+         "fish": "RB",
+         "name": "Rainbow trout",
+         "origin": null,
+         "label": null,
+         "sub": null,
+         "lines": [
+          "30 cm (12 in) or longer"
+         ],
+         "quiet": [],
+         "src": [
+          0,
+          1
+         ],
+         "sheet": {
+          "head": "Rainbow trout: up to the 2 today",
+          "here": [
+           {
+            "t": "Size: any size.",
+            "bold": false
+           }
+          ],
+          "src": [
+           0,
+           1
+          ]
+         },
+         "split": false
+        },
+        {
+         "key": "EB",
+         "fish": "EB",
+         "name": "Brook trout",
+         "origin": null,
+         "label": null,
+         "sub": null,
+         "lines": [
+          "30 cm (12 in) or longer"
+         ],
+         "quiet": [],
+         "src": [
+          0,
+          1
+         ],
+         "sheet": {
+          "head": "Brook trout: up to the 2 today",
+          "here": [
+           {
+            "t": "Size: any size.",
+            "bold": false
+           }
+          ],
+          "src": [
+           0,
+           1
+          ]
+         },
+         "split": false
+        }
+       ],
+       "bands": [
+        {
+         "from": 0,
+         "to": 2,
+         "text": "2 total from these 3",
+         "kind": "shared"
+        }
+       ],
+       "inner": [
+        {
+         "from": 0,
+         "to": 1,
+         "text": "only 1 between them",
+         "kind": "shared"
+        },
+        {
+         "from": 1,
+         "to": 2,
+         "text": "only 1 between them",
+         "kind": "shared"
+        }
+       ]
+      },
+      {
+       "kind": "release",
+       "head": "Release",
+       "label": null,
+       "strip": null,
+       "possession": null,
+       "tag": null,
+       "rows": [
+        {
+         "key": "DV",
+         "fish": "DV",
+         "name": "Dolly Varden/bull trout",
+         "origin": null,
+         "label": null,
+         "sub": null,
+         "lines": [],
+         "quiet": [],
+         "src": [
+          2
+         ],
+         "sheet": {
+          "head": "Dolly Varden/bull trout: up to the 2 today",
+          "here": [
+           {
+            "t": "Size: any size.",
+            "bold": false
+           }
+          ],
+          "src": [
+           2
+          ]
+         },
+         "split": false
+        }
+       ],
+       "bands": [],
+       "inner": []
+      }
+     ],
+     "together": null,
+     "year": null,
+     "elsewhere": [],
+     "src": [
+      0,
+      1,
+      2
+     ]
+    },
+    "dates": {
+     "top": null,
+     "card": null,
+     "fold": null,
+     "box": {
+      "0": "until Oct 31, then release"
+     },
+     "band": {},
+     "row": {},
+     "sheet": {
+      "CT": [
+       "Release from Nov 1."
+      ]
+     }
+    },
+    "covers": [
+     0,
+     2
+    ]
+   }
+  },
+  {
+   "name": "a wrong nested kind",
+   "why": "a nested band is shared or size",
+   "frame": {
+    "table": {
+     "top": {
+      "lead": "Up to 2 {day}",
+      "second": null,
+      "sub": null
+     },
+     "fold": {
+      "value": "Up to 2",
+      "tone": "keep"
+     },
+     "hatch_link": false,
+     "boxes": [
+      {
+       "kind": "keep",
+       "head": "Keep 2 in all",
+       "label": null,
+       "strip": null,
+       "possession": null,
+       "tag": null,
+       "rows": [
+        {
+         "key": "CT",
+         "fish": "CT",
+         "name": "Cutthroat trout",
+         "origin": null,
+         "label": null,
+         "sub": null,
+         "lines": [
+          "30 cm (12 in) or longer"
+         ],
+         "quiet": [],
+         "src": [
+          0
+         ],
+         "sheet": {
+          "head": "Cutthroat trout: up to the 2 today",
+          "here": [
+           {
+            "t": "Size: any size.",
+            "bold": false
+           }
+          ],
+          "src": [
+           0
+          ]
+         },
+         "split": false
+        },
+        {
+         "key": "RB",
+         "fish": "RB",
+         "name": "Rainbow trout",
+         "origin": null,
+         "label": null,
+         "sub": null,
+         "lines": [
+          "30 cm (12 in) or longer"
+         ],
+         "quiet": [],
+         "src": [
+          0,
+          1
+         ],
+         "sheet": {
+          "head": "Rainbow trout: up to the 2 today",
+          "here": [
+           {
+            "t": "Size: any size.",
+            "bold": false
+           }
+          ],
+          "src": [
+           0,
+           1
+          ]
+         },
+         "split": false
+        },
+        {
+         "key": "EB",
+         "fish": "EB",
+         "name": "Brook trout",
+         "origin": null,
+         "label": null,
+         "sub": null,
+         "lines": [
+          "30 cm (12 in) or longer"
+         ],
+         "quiet": [],
+         "src": [
+          0,
+          1
+         ],
+         "sheet": {
+          "head": "Brook trout: up to the 2 today",
+          "here": [
+           {
+            "t": "Size: any size.",
+            "bold": false
+           }
+          ],
+          "src": [
+           0,
+           1
+          ]
+         },
+         "split": false
+        }
+       ],
+       "bands": [
+        {
+         "from": 0,
+         "to": 2,
+         "text": "2 total from these 3",
+         "kind": "shared"
+        }
+       ],
+       "inner": [
+        {
+         "from": 0,
+         "to": 0,
+         "text": "only 1",
+         "kind": "own"
+        }
+       ]
+      },
+      {
+       "kind": "release",
+       "head": "Release",
+       "label": null,
+       "strip": null,
+       "possession": null,
+       "tag": null,
+       "rows": [
+        {
+         "key": "DV",
+         "fish": "DV",
+         "name": "Dolly Varden/bull trout",
+         "origin": null,
+         "label": null,
+         "sub": null,
+         "lines": [],
+         "quiet": [],
+         "src": [
+          2
+         ],
+         "sheet": {
+          "head": "Dolly Varden/bull trout: up to the 2 today",
+          "here": [
+           {
+            "t": "Size: any size.",
+            "bold": false
+           }
+          ],
+          "src": [
+           2
+          ]
+         },
+         "split": false
+        }
+       ],
+       "bands": [],
+       "inner": []
+      }
+     ],
+     "together": null,
+     "year": null,
+     "elsewhere": [],
+     "src": [
+      0,
+      1,
+      2
+     ]
+    },
+    "dates": {
+     "top": null,
+     "card": null,
+     "fold": null,
+     "box": {
+      "0": "until Oct 31, then release"
+     },
+     "band": {},
+     "row": {},
+     "sheet": {
+      "CT": [
+       "Release from Nov 1."
+      ]
+     }
+    },
+    "covers": [
+     0,
+     2
+    ]
+   }
+  },
+  {
+   "name": "a nested band on a release box",
+   "why": "a release box has no bands",
+   "frame": {
+    "table": {
+     "top": {
+      "lead": "Up to 2 {day}",
+      "second": null,
+      "sub": null
+     },
+     "fold": {
+      "value": "Up to 2",
+      "tone": "keep"
+     },
+     "hatch_link": false,
+     "boxes": [
+      {
+       "kind": "keep",
+       "head": "Keep 2 in all",
+       "label": null,
+       "strip": null,
+       "possession": null,
+       "tag": null,
+       "rows": [
+        {
+         "key": "CT",
+         "fish": "CT",
+         "name": "Cutthroat trout",
+         "origin": null,
+         "label": null,
+         "sub": null,
+         "lines": [
+          "30 cm (12 in) or longer"
+         ],
+         "quiet": [],
+         "src": [
+          0
+         ],
+         "sheet": {
+          "head": "Cutthroat trout: up to the 2 today",
+          "here": [
+           {
+            "t": "Size: any size.",
+            "bold": false
+           }
+          ],
+          "src": [
+           0
+          ]
+         },
+         "split": false
+        },
+        {
+         "key": "RB",
+         "fish": "RB",
+         "name": "Rainbow trout",
+         "origin": null,
+         "label": null,
+         "sub": null,
+         "lines": [
+          "30 cm (12 in) or longer"
+         ],
+         "quiet": [],
+         "src": [
+          0,
+          1
+         ],
+         "sheet": {
+          "head": "Rainbow trout: up to the 2 today",
+          "here": [
+           {
+            "t": "Size: any size.",
+            "bold": false
+           }
+          ],
+          "src": [
+           0,
+           1
+          ]
+         },
+         "split": false
+        }
+       ],
+       "bands": [
+        {
+         "from": 0,
+         "to": 1,
+         "text": "only 2 of these 2",
+         "kind": "shared"
+        }
+       ],
+       "inner": []
+      },
+      {
+       "kind": "release",
+       "head": "Release",
+       "label": null,
+       "strip": null,
+       "possession": null,
+       "tag": null,
+       "rows": [
+        {
+         "key": "DV",
+         "fish": "DV",
+         "name": "Dolly Varden/bull trout",
+         "origin": null,
+         "label": null,
+         "sub": null,
+         "lines": [],
+         "quiet": [],
+         "src": [
+          2
+         ],
+         "sheet": {
+          "head": "Dolly Varden/bull trout: up to the 2 today",
+          "here": [
+           {
+            "t": "Size: any size.",
+            "bold": false
+           }
+          ],
+          "src": [
+           2
+          ]
+         },
+         "split": false
+        }
+       ],
+       "bands": [],
+       "inner": [
+        {
+         "from": 0,
+         "to": 0,
+         "text": "only 1",
+         "kind": "own"
+        }
+       ]
+      }
+     ],
+     "together": null,
+     "year": null,
+     "elsewhere": [],
+     "src": [
+      0,
+      1,
+      2
+     ]
+    },
+    "dates": {
+     "top": null,
+     "card": null,
+     "fold": null,
+     "box": {
+      "0": "until Oct 31, then release"
+     },
+     "band": {},
+     "row": {},
+     "sheet": {
+      "CT": [
+       "Release from Nov 1."
+      ]
+     }
+    },
+    "covers": [
+     0,
+     2
+    ]
+   }
+  },
+  {
+   "name": "a bad sub",
+   "why": "the top line's subline is a whole phrase, no leading or trailing space",
+   "frame": {
+    "table": {
+     "top": {
+      "lead": "Up to 2 {day}",
+      "second": null,
+      "sub": " or 4 if they’re brook trout"
+     },
+     "fold": {
+      "value": "Up to 2",
+      "tone": "keep"
+     },
+     "hatch_link": false,
+     "boxes": [
+      {
+       "kind": "keep",
+       "head": "Keep 2 in all",
+       "label": null,
+       "strip": null,
+       "possession": null,
+       "tag": null,
+       "rows": [
+        {
+         "key": "CT",
+         "fish": "CT",
+         "name": "Cutthroat trout",
+         "origin": null,
+         "label": null,
+         "sub": null,
+         "lines": [
+          "30 cm (12 in) or longer"
+         ],
+         "quiet": [],
+         "src": [
+          0
+         ],
+         "sheet": {
+          "head": "Cutthroat trout: up to the 2 today",
+          "here": [
+           {
+            "t": "Size: any size.",
+            "bold": false
+           }
+          ],
+          "src": [
+           0
+          ]
+         },
+         "split": false
+        },
+        {
+         "key": "RB",
+         "fish": "RB",
+         "name": "Rainbow trout",
+         "origin": null,
+         "label": null,
+         "sub": null,
+         "lines": [
+          "30 cm (12 in) or longer"
+         ],
+         "quiet": [],
+         "src": [
+          0,
+          1
+         ],
+         "sheet": {
+          "head": "Rainbow trout: up to the 2 today",
+          "here": [
+           {
+            "t": "Size: any size.",
+            "bold": false
+           }
+          ],
+          "src": [
+           0,
+           1
+          ]
+         },
+         "split": false
+        }
+       ],
+       "bands": [
+        {
+         "from": 0,
+         "to": 1,
+         "text": "only 2 of these 2",
+         "kind": "shared"
+        }
+       ],
+       "inner": []
+      },
+      {
+       "kind": "release",
+       "head": "Release",
+       "label": null,
+       "strip": null,
+       "possession": null,
+       "tag": null,
+       "rows": [
+        {
+         "key": "DV",
+         "fish": "DV",
+         "name": "Dolly Varden/bull trout",
+         "origin": null,
+         "label": null,
+         "sub": null,
+         "lines": [],
+         "quiet": [],
+         "src": [
+          2
+         ],
+         "sheet": {
+          "head": "Dolly Varden/bull trout: up to the 2 today",
+          "here": [
+           {
+            "t": "Size: any size.",
+            "bold": false
+           }
+          ],
+          "src": [
+           2
+          ]
+         },
+         "split": false
+        }
+       ],
+       "bands": [],
+       "inner": []
+      }
+     ],
+     "together": null,
+     "year": null,
+     "elsewhere": [],
+     "src": [
+      0,
+      1,
+      2
+     ]
+    },
+    "dates": {
+     "top": null,
+     "card": null,
+     "fold": null,
+     "box": {
+      "0": "until Oct 31, then release"
+     },
+     "band": {},
+     "row": {},
+     "sheet": {
+      "CT": [
+       "Release from Nov 1."
+      ]
+     }
+    },
+    "covers": [
+     0,
+     2
+    ]
+   }
+  },
+  {
+   "name": "a repeated date level",
+   "why": "a level never repeats the date of the level above it",
+   "frame": {
+    "table": {
+     "top": {
+      "lead": "Up to 2 {day}",
+      "second": null,
+      "sub": null
+     },
+     "fold": {
+      "value": "Up to 2",
+      "tone": "keep"
+     },
+     "hatch_link": false,
+     "boxes": [
+      {
+       "kind": "keep",
+       "head": "Keep 2 in all",
+       "label": null,
+       "strip": null,
+       "possession": null,
+       "tag": null,
+       "rows": [
+        {
+         "key": "CT",
+         "fish": "CT",
+         "name": "Cutthroat trout",
+         "origin": null,
+         "label": null,
+         "sub": null,
+         "lines": [
+          "30 cm (12 in) or longer"
+         ],
+         "quiet": [],
+         "src": [
+          0
+         ],
+         "sheet": {
+          "head": "Cutthroat trout: up to the 2 today",
+          "here": [
+           {
+            "t": "Size: any size.",
+            "bold": false
+           }
+          ],
+          "src": [
+           0
+          ]
+         },
+         "split": false
+        },
+        {
+         "key": "RB",
+         "fish": "RB",
+         "name": "Rainbow trout",
+         "origin": null,
+         "label": null,
+         "sub": null,
+         "lines": [
+          "30 cm (12 in) or longer"
+         ],
+         "quiet": [],
+         "src": [
+          0,
+          1
+         ],
+         "sheet": {
+          "head": "Rainbow trout: up to the 2 today",
+          "here": [
+           {
+            "t": "Size: any size.",
+            "bold": false
+           }
+          ],
+          "src": [
+           0,
+           1
+          ]
+         },
+         "split": false
+        }
+       ],
+       "bands": [
+        {
+         "from": 0,
+         "to": 1,
+         "text": "only 2 of these 2",
+         "kind": "shared"
+        }
+       ],
+       "inner": []
+      },
+      {
+       "kind": "release",
+       "head": "Release",
+       "label": null,
+       "strip": null,
+       "possession": null,
+       "tag": null,
+       "rows": [
+        {
+         "key": "DV",
+         "fish": "DV",
+         "name": "Dolly Varden/bull trout",
+         "origin": null,
+         "label": null,
+         "sub": null,
+         "lines": [],
+         "quiet": [],
+         "src": [
+          2
+         ],
+         "sheet": {
+          "head": "Dolly Varden/bull trout: up to the 2 today",
+          "here": [
+           {
+            "t": "Size: any size.",
+            "bold": false
+           }
+          ],
+          "src": [
+           2
+          ]
+         },
+         "split": false
+        }
+       ],
+       "bands": [],
+       "inner": []
+      }
+     ],
+     "together": null,
+     "year": null,
+     "elsewhere": [],
+     "src": [
+      0,
+      1,
+      2
+     ]
+    },
+    "dates": {
+     "top": null,
+     "card": "Until Oct 31, then release",
+     "fold": null,
+     "box": {
+      "0": "until Oct 31, then release"
+     },
+     "band": {},
+     "row": {},
+     "sheet": {
+      "CT": [
+       "Release from Nov 1."
+      ]
+     }
+    },
+    "covers": [
+     0,
+     2
+    ]
+   }
+  }
+ ]
+}

@@ -159,6 +159,8 @@ class Rule:
     fishery_notices: List[Dict[str, str]] = field(default_factory=list)
     source: str = "table"
     row_index: int = -1
+    #: (T787) the row sits in a table DFO commented out: provenance only, it answers nothing
+    hidden: bool = False
 
     @classmethod
     def from_row(cls, r: RegRow) -> "Rule":
@@ -169,6 +171,7 @@ class Rule:
             fishery_notices=r.fishery_notices,
             source=r.source,
             row_index=r.row_index,
+            hidden=r.hidden,
         )
 
 
@@ -189,9 +192,15 @@ class Reach:
     anchor_types: List[str] = field(default_factory=list)
     excludes: List[str] = field(default_factory=list)
     mainstem_only: bool = False
-    #: True / False / None — None means "not stated, inherit the water's own setting".
+    #: True / False / None — what the place's OWN words say ("including / excluding tributaries"); None = silent. T807:
+    #: never filled from the merged name — the exact heading (`heading`) speaks for a silent place
+    #: (`side_streams.derive`).
     tributaries: Optional[bool] = None
     rules: List[Rule] = field(default_factory=list)
+    #: T807: the EXACT waters heading(s) this reach's rows sit under (whitespace-normalised). One cleaned name merges
+    #: headings ("Morice River (including tributaries)" and "Morice River"); a reach whose rows sit under two is flagged
+    #: by `side_streams check`.
+    headings: List[str] = field(default_factory=list)
 
 
 @dataclass
@@ -488,9 +497,12 @@ def untangle(parsed: ParsedRegion) -> Untangled:
                     anchor_types=types,
                     excludes=list(r.specific_area_bullets),
                     mainstem_only=mainstem,
-                    tributaries=tribs if tribs is not None else name_tribs,
+                    # T807: the place's own words only — the merged name's setting is not carried down
+                    tributaries=tribs,
                 )
             reach = by_scope[full]
+            if _norm(r.waters) not in reach.headings:
+                reach.headings.append(_norm(r.waters))
             for b in r.specific_area_bullets:
                 if b not in reach.excludes:
                     reach.excludes.append(b)

@@ -1,6 +1,11 @@
 {
  "boats": [
   {
+   "kind": "in_boat",
+   "rule": "r5:atnarko_bella_coola_rivers_includes_tributaries_except_burnt@5-11+5-6+5-8::atnarko_bella_coola_rivers.r11",
+   "text": "No angling (from a powered boat)"
+  },
+  {
    "kind": "unpowered",
    "rule": "r5:atnarko_bella_coola_rivers_includes_tributaries_except_burnt@5-11+5-6+5-8::atnarko_bella_coola_rivers.r12",
    "text": "No powered boats"
@@ -21,25 +26,25 @@
       {
        "mark": "✕",
        "name": "Worms",
-       "note": null,
+       "notes": [],
        "terms": []
       },
       {
        "mark": "✕",
        "name": "Roe (fish eggs)",
-       "note": null,
+       "notes": [],
        "terms": []
       },
       {
        "mark": "✕",
        "name": "Water insects and crayfish",
-       "note": null,
+       "notes": [],
        "terms": []
       },
       {
        "mark": "✕",
        "name": "Fish or fish parts",
-       "note": null,
+       "notes": [],
        "terms": []
       }
      ]
@@ -202,6 +207,14 @@
   "mode": null
  },
  "header": {
+  "classed": {
+   "aria": "Class II, Mar 1–May 31",
+   "cls": "II",
+   "inForce": false,
+   "label": "Class II",
+   "period": "Mar 1–May 31",
+   "term": "classified_waters"
+  },
   "date": "May 1",
   "dateAria": "Fri May 1, change date",
   "dayWord": "Fri",
@@ -230,496 +243,11 @@
  "keep": {
   "banner": null,
   "caveats": [],
-  "groups": [
-   {
-    "head": {
-     "exception": null,
-     "form": "a",
-     "lead": [
-      {
-       "s": "2",
-       "size": "big",
-       "t": "num"
-      },
-      {
-       "s": " ",
-       "t": "text"
-      },
-      {
-       "s": "trout/char a day from streams",
-       "t": "text"
-      },
-      {
-       "s": " ",
-       "t": "text"
-      },
-      {
-       "label": "How this limit is shared",
-       "open": "share:r0",
-       "s": "ⓘ",
-       "t": "link"
-      }
-     ],
-     "leadN": 2,
-     "multi": [
-      {
-       "open": "multi:r0",
-       "s": "Fishing more than one water today? ›",
-       "t": "link"
-      }
-     ],
-     "nolimit": false,
-     "ofTotal": true,
-     "rootTier": "t1",
-     "shareOf": null,
-     "terms": [],
-     "whyHere": null,
-     "words": [
-      {
-       "s": "5",
-       "size": "big",
-       "t": "num"
-      },
-      {
-       "s": " ",
-       "t": "text"
-      },
-      {
-       "s": "a day per angler across Region 5, lakes included",
-       "t": "text"
-      }
-     ]
-    },
-    "more": {
-     "open": "src:r0",
-     "text": "See every regulation line ›"
-    },
-    "notKept": [
-     {
-      "mark": "✕",
-      "pictures": [
-       {
-        "caption": "Steelhead ›",
-        "code": "ST",
-        "name": "Steelhead",
-        "open": "sp:ST",
-        "sil": false
-       }
-      ],
-      "presence": [
-       {
-        "s": "A rainbow trout over 50 cm (20 in) here counts as a steelhead.",
-        "t": "text"
-       },
-       {
-        "s": " ",
-        "t": "text"
-       },
-       {
-        "ids": [
-         "steelhead"
-        ],
-        "t": "term"
-       }
-      ],
-      "says": "Steelhead: closed, no catch and release",
-      "stamps": [],
-      "status": "closed",
-      "term": "no_fishing_for",
-      "whose": [
-       {
-        "s": "This river’s rule",
-        "t": "text"
-       },
-       {
-        "s": " · ",
-        "t": "text"
-       },
-       {
-        "box": [
-         {
-          "box": [
-           36,
-           126.72,
-           540,
-           228.96
-          ],
-          "pdf": 49,
-          "size": [
-           576,
-           756
-          ]
-         }
-        ],
-        "pdf": 49,
-        "printed": 43,
-        "t": "book"
-       }
-      ]
-     }
-    ],
-    "origin": {
-     "book": [
-      {
-       "pdf": 48,
-       "printed": 42,
-       "t": "book"
-      }
-     ],
-     "howtell": false,
-     "says": [],
-     "tag": null
-    },
-    "pinLine": {
-     "cls": "g",
-     "n": 5,
-     "said": [],
-     "sub": null,
-     "text": "Trout and char · 5 a day"
-    },
-    "quiet": null,
-    "row": 0,
-    "scope": null,
-    "title": "Trout and char",
-    "tree": [
-     {
-      "band": false,
-      "children": [
-       {
-        "band": true,
-        "children": [
-         {
-          "also": [],
-          "duty": null,
-          "folded": false,
-          "kind": "Brook trout, brown trout and lake trout",
-          "pictures": [
-           {
-            "caption": "Brook trout ›",
-            "code": "EB",
-            "name": "Brook trout",
-            "open": "sp:EB",
-            "sil": false
-           },
-           {
-            "caption": "Brown trout ›",
-            "code": "GB",
-            "name": "Brown trout",
-            "open": "sp:GB",
-            "sil": false
-           },
-           {
-            "caption": "Lake trout ›",
-            "code": "LT",
-            "name": "Lake trout",
-            "open": "sp:LT",
-            "sil": false
-           }
-          ],
-          "presence": null,
-          "qualifiers": null,
-          "says": [
-           {
-            "s": "Up to ",
-            "t": "text"
-           },
-           {
-            "s": "2",
-            "size": "inline",
-            "t": "num"
-           },
-           {
-            "s": " brook, brown or lake trout combined",
-            "t": "text"
-           }
-          ],
-          "size": {
-           "chip": "25 cm (10 in) or longer",
-           "def": false,
-           "lead": null,
-           "rule": true,
-           "text": "must be 25 cm (10 in) or longer; release any shorter",
-           "then": "release any shorter"
-          },
-          "species": [
-           "EB",
-           "GB",
-           "LT"
-          ],
-          "stamps": [],
-          "t": "kind",
-          "zero": false
-         },
-         {
-          "also": [],
-          "duty": null,
-          "folded": false,
-          "kind": "Dolly Varden/bull trout",
-          "pictures": [
-           {
-            "caption": "Bull trout ›",
-            "code": "DV",
-            "name": "Dolly Varden/bull trout",
-            "open": "sp:DV",
-            "sil": false
-           }
-          ],
-          "presence": null,
-          "qualifiers": null,
-          "says": [
-           {
-            "s": "Up to ",
-            "t": "text"
-           },
-           {
-            "s": "1",
-            "size": "inline",
-            "t": "num"
-           },
-           {
-            "s": " Dolly Varden/bull trout",
-            "t": "text"
-           }
-          ],
-          "size": {
-           "chip": "25 cm (10 in) or longer",
-           "def": false,
-           "lead": null,
-           "rule": true,
-           "text": "must be 25 cm (10 in) or longer; release any shorter",
-           "then": "release any shorter"
-          },
-          "species": [
-           "DV"
-          ],
-          "stamps": [],
-          "t": "kind",
-          "zero": false
-         }
-        ],
-        "exception": null,
-        "folded": false,
-        "kicker": null,
-        "line": [
-         {
-          "s": "Only ",
-          "t": "text"
-         },
-         {
-          "s": "1",
-          "size": "big",
-          "t": "num"
-         },
-         {
-          "s": " of all your trout and char may be over 50 cm (20 in) — not 1 per species.",
-          "t": "text"
-         }
-        ],
-        "n": 1,
-        "origin": null,
-        "relation": null,
-        "short": "may be over 50 cm (20 in)",
-        "sub": null,
-        "t": "tier",
-        "tid": "t4",
-        "tier": "size"
-       },
-       {
-        "band": false,
-        "children": [
-         {
-          "also": [],
-          "duty": null,
-          "folded": false,
-          "kind": "Cutthroat trout",
-          "pictures": [
-           {
-            "caption": "Coastal cutthroat trout ›",
-            "code": "CT",
-            "name": "Cutthroat trout",
-            "open": "sp:CT",
-            "sil": false
-           }
-          ],
-          "presence": null,
-          "qualifiers": null,
-          "says": [
-           {
-            "s": "Up to ",
-            "t": "text"
-           },
-           {
-            "s": "1",
-            "size": "inline",
-            "t": "num"
-           },
-           {
-            "s": " cutthroat trout",
-            "t": "text"
-           }
-          ],
-          "size": {
-           "chip": "25–33 cm (10–13 in)",
-           "def": false,
-           "lead": null,
-           "rule": true,
-           "text": "must be 25–33 cm (10–13 in); release any other size",
-           "then": "release any other size"
-          },
-          "species": [
-           "CT"
-          ],
-          "stamps": [],
-          "t": "kind",
-          "zero": false
-         },
-         {
-          "also": [],
-          "duty": null,
-          "folded": false,
-          "kind": "Rainbow trout",
-          "pictures": [
-           {
-            "caption": "Rainbow trout ›",
-            "code": "RB",
-            "name": "Rainbow trout",
-            "open": "sp:RB",
-            "sil": false
-           }
-          ],
-          "presence": null,
-          "qualifiers": null,
-          "says": [
-           {
-            "s": "Up to ",
-            "t": "text"
-           },
-           {
-            "s": "1",
-            "size": "inline",
-            "t": "num"
-           },
-           {
-            "s": " rainbow trout",
-            "t": "text"
-           }
-          ],
-          "size": {
-           "chip": "25–50 cm (10–20 in)",
-           "def": false,
-           "lead": null,
-           "rule": true,
-           "text": "must be 25–50 cm (10–20 in); release any shorter",
-           "then": "release any shorter"
-          },
-          "species": [
-           "RB"
-          ],
-          "stamps": [],
-          "t": "kind",
-          "zero": false
-         }
-        ],
-        "exception": null,
-        "folded": false,
-        "kicker": null,
-        "line": [
-         {
-          "s": "Up to ",
-          "t": "text"
-         },
-         {
-          "s": "1",
-          "size": "big",
-          "t": "num"
-         },
-         {
-          "s": " cutthroat or rainbow trout combined (part of the 2)",
-          "t": "text"
-         }
-        ],
-        "n": 1,
-        "origin": null,
-        "relation": null,
-        "short": "up to 1 cutthroat or rainbow trout combined",
-        "sub": null,
-        "t": "tier",
-        "tid": "t3",
-        "tier": "count"
-       }
-      ],
-      "exception": null,
-      "folded": false,
-      "kicker": null,
-      "line": [
-       {
-        "s": "This river’s rule: up to ",
-        "t": "text"
-       },
-       {
-        "s": "2",
-        "size": "big",
-        "t": "num"
-       },
-       {
-        "s": " a day (part of the 5)",
-        "t": "text"
-       },
-       {
-        "s": " ",
-        "t": "text"
-       },
-       {
-        "box": [
-         {
-          "box": [
-           36,
-           126.72,
-           540,
-           228.96
-          ],
-          "pdf": 49,
-          "size": [
-           576,
-           756
-          ]
-         }
-        ],
-        "pdf": 49,
-        "printed": 43,
-        "t": "book"
-       }
-      ],
-      "n": 2,
-      "origin": null,
-      "relation": null,
-      "short": "up to 2 of them",
-      "sub": null,
-      "t": "tier",
-      "tid": "t2",
-      "tier": "own"
-     }
-    ],
-    "worked": {
-     "label": "Examples of how to interpret regulations",
-     "lines": [
-      {
-       "a": "It counts here too: at most 1 over 50 cm (20 in) a day in all.",
-       "at": "elsewhere",
-       "q": "Kept trout or char over 50 cm (20 in) elsewhere today?"
-      }
-     ],
-     "says": "This river’s rule: 2 a day here. Trout and char other than steelhead you kept anywhere else today count toward those 2. They also count toward Region 5’s 5 trout and char a day."
-    },
-    "year": null
-   }
-  ],
+  "groups": [],
   "inherited": null,
   "order": [
    "strip",
-   {
-    "group": 0
-   },
+   "trout",
    "otherFish",
    "possession",
    "whereNot"
@@ -869,6 +397,432 @@
    "status": "open",
    "todayAt": 0.3287671232876712
   },
+  "trout": {
+   "boxes": [
+    {
+     "bands": [
+      {
+       "date": null,
+       "from": 0,
+       "kind": "upto",
+       "text": "counts toward the 2",
+       "to": 0
+      },
+      {
+       "date": null,
+       "from": 1,
+       "kind": "upto",
+       "text": "counts toward the 2",
+       "to": 1
+      },
+      {
+       "date": null,
+       "from": 2,
+       "kind": "upto",
+       "text": "counts toward the 2",
+       "to": 2
+      },
+      {
+       "date": null,
+       "from": 3,
+       "kind": "own",
+       "text": "counts toward the 2 · only 1",
+       "to": 3
+      },
+      {
+       "date": null,
+       "from": 4,
+       "kind": "shared",
+       "text": "counts toward the 2 · only 1 between them",
+       "to": 5
+      }
+     ],
+     "date": "until May 31, then only 1 measuring 25–50 cm (10–20 in)",
+     "head": "Keep 2 in all",
+     "inner": [],
+     "kind": "keep",
+     "label": null,
+     "possession": null,
+     "rows": [
+      {
+       "a11y": "Brook trout. 25 cm (10 in) or longer. counts toward the 2",
+       "coming": [
+        "From Jun 1: only 1 measuring 25–50 cm (10–20 in)."
+       ],
+       "date": null,
+       "fish": "EB",
+       "key": "EB",
+       "label": null,
+       "lines": [
+        "25 cm (10 in) or longer"
+       ],
+       "name": "Brook trout",
+       "origin": null,
+       "quiet": [],
+       "sheet": {
+        "head": "Keep · counts toward the 2",
+        "here": [
+         {
+          "bold": false,
+          "t": "Size: 25 cm (10 in) or longer."
+         },
+         {
+          "bold": false,
+          "t": "Counts toward the 2 in all, together with brown trout, lake trout, Dolly Varden/bull trout, cutthroat trout and rainbow trout."
+         },
+         {
+          "bold": false,
+          "t": "Only 1 over 50 cm (20 in)."
+         }
+        ],
+        "src": [
+         1650,
+         3155,
+         3156,
+         3168
+        ]
+       },
+       "split": false,
+       "src": [
+        1650,
+        3155,
+        3156,
+        3168
+       ],
+       "sub": null
+      },
+      {
+       "a11y": "Brown trout. 25 cm (10 in) or longer. counts toward the 2",
+       "coming": [
+        "From Jun 1: only 1 measuring 25–50 cm (10–20 in)."
+       ],
+       "date": null,
+       "fish": "GB",
+       "key": "GB",
+       "label": null,
+       "lines": [
+        "25 cm (10 in) or longer"
+       ],
+       "name": "Brown trout",
+       "origin": null,
+       "quiet": [],
+       "sheet": {
+        "head": "Keep · counts toward the 2",
+        "here": [
+         {
+          "bold": false,
+          "t": "Size: 25 cm (10 in) or longer."
+         },
+         {
+          "bold": false,
+          "t": "Counts toward the 2 in all, together with brook trout, lake trout, Dolly Varden/bull trout, cutthroat trout and rainbow trout."
+         },
+         {
+          "bold": false,
+          "t": "Only 1 over 50 cm (20 in)."
+         }
+        ],
+        "src": [
+         1650,
+         3155,
+         3156,
+         3168
+        ]
+       },
+       "split": false,
+       "src": [
+        1650,
+        3155,
+        3156,
+        3168
+       ],
+       "sub": null
+      },
+      {
+       "a11y": "Lake trout. 25 cm (10 in) or longer. counts toward the 2",
+       "coming": [
+        "From Jun 1: only 1 measuring 25–50 cm (10–20 in)."
+       ],
+       "date": null,
+       "fish": "LT",
+       "key": "LT",
+       "label": null,
+       "lines": [
+        "25 cm (10 in) or longer"
+       ],
+       "name": "Lake trout",
+       "origin": null,
+       "quiet": [],
+       "sheet": {
+        "head": "Keep · counts toward the 2",
+        "here": [
+         {
+          "bold": false,
+          "t": "Size: 25 cm (10 in) or longer."
+         },
+         {
+          "bold": false,
+          "t": "Counts toward the 2 in all, together with brook trout, brown trout, Dolly Varden/bull trout, cutthroat trout and rainbow trout."
+         },
+         {
+          "bold": false,
+          "t": "Only 1 over 50 cm (20 in)."
+         }
+        ],
+        "src": [
+         1650,
+         3155,
+         3156,
+         3159
+        ]
+       },
+       "split": false,
+       "src": [
+        1650,
+        3155,
+        3156,
+        3159,
+        3168
+       ],
+       "sub": null
+      },
+      {
+       "a11y": "Dolly Varden/bull trout. 25 cm (10 in) or longer. counts toward the 2 · only 1",
+       "coming": [
+        "From Jun 1: only 1 measuring 25–50 cm (10–20 in)."
+       ],
+       "date": null,
+       "fish": "DV",
+       "key": "DV",
+       "label": null,
+       "lines": [
+        "25 cm (10 in) or longer"
+       ],
+       "name": "Dolly Varden/bull trout",
+       "origin": null,
+       "quiet": [],
+       "sheet": {
+        "head": "Keep · only 1 · counts toward the 2",
+        "here": [
+         {
+          "bold": false,
+          "t": "Size: 25 cm (10 in) or longer."
+         },
+         {
+          "bold": false,
+          "t": "Counts toward the 2 in all, together with brook trout, brown trout, lake trout, cutthroat trout and rainbow trout."
+         },
+         {
+          "bold": false,
+          "t": "This fish: only 1."
+         },
+         {
+          "bold": false,
+          "t": "Only 1 over 50 cm (20 in)."
+         }
+        ],
+        "src": [
+         1650,
+         3155,
+         3156,
+         3158
+        ]
+       },
+       "split": false,
+       "src": [
+        1650,
+        3155,
+        3156,
+        3158,
+        3168
+       ],
+       "sub": null
+      },
+      {
+       "a11y": "Cutthroat trout. 25–33 cm (10–13 in). counts toward the 2 · only 1 between them. until May 31, then only 1 measuring 25–33 cm (10–13 in)",
+       "coming": [
+        "From Jun 1: only 1 measuring 25–33 cm (10–13 in)."
+       ],
+       "date": "until May 31, then only 1 measuring 25–33 cm (10–13 in)",
+       "fish": "CT",
+       "key": "CT",
+       "label": null,
+       "lines": [
+        "25–33 cm (10–13 in)"
+       ],
+       "name": "Cutthroat trout",
+       "origin": null,
+       "quiet": [],
+       "sheet": {
+        "head": "Keep · only 1 between them · counts toward the 2",
+        "here": [
+         {
+          "bold": false,
+          "t": "Size: 25–33 cm (10–13 in)."
+         },
+         {
+          "bold": false,
+          "t": "Counts toward the 2 in all, together with brook trout, brown trout, lake trout, Dolly Varden/bull trout and rainbow trout."
+         },
+         {
+          "bold": false,
+          "t": "Only 1 between them: this fish and rainbow trout."
+         }
+        ],
+        "src": [
+         1650,
+         1651,
+         1652,
+         3155
+        ]
+       },
+       "split": false,
+       "src": [
+        1650,
+        1651,
+        1652,
+        3155,
+        3156,
+        3168
+       ],
+       "sub": null
+      },
+      {
+       "a11y": "Rainbow trout. 25–50 cm (10–20 in). counts toward the 2 · only 1 between them. until May 31, then only 1",
+       "coming": [
+        "From Jun 1: only 1."
+       ],
+       "date": "until May 31, then only 1",
+       "fish": "RB",
+       "key": "RB",
+       "label": null,
+       "lines": [
+        "25–50 cm (10–20 in)"
+       ],
+       "name": "Rainbow trout",
+       "origin": null,
+       "quiet": [],
+       "sheet": {
+        "head": "Keep · only 1 between them · counts toward the 2",
+        "here": [
+         {
+          "bold": false,
+          "t": "Size: 25–50 cm (10–20 in)."
+         },
+         {
+          "bold": false,
+          "t": "Counts toward the 2 in all, together with brook trout, brown trout, lake trout, Dolly Varden/bull trout and cutthroat trout."
+         },
+         {
+          "bold": false,
+          "t": "Only 1 between them: this fish and cutthroat trout."
+         }
+        ],
+        "src": [
+         1650,
+         1651,
+         3155,
+         3168
+        ]
+       },
+       "split": false,
+       "src": [
+        1650,
+        1651,
+        3155,
+        3168
+       ],
+       "sub": null
+      }
+     ],
+     "strip": "only 1 over 50 cm (20 in)",
+     "tag": null
+    },
+    {
+     "bands": [],
+     "date": null,
+     "head": "Closed",
+     "inner": [],
+     "kind": "closed",
+     "label": null,
+     "possession": null,
+     "rows": [
+      {
+       "a11y": "Steelhead. Steelhead are known to be in this water.",
+       "coming": [],
+       "date": null,
+       "fish": "ST",
+       "key": "ST",
+       "label": null,
+       "lines": [],
+       "name": "Steelhead",
+       "origin": null,
+       "quiet": [
+        "Steelhead are known to be in this water."
+       ],
+       "sheet": {
+        "head": "Closed · do not fish for it",
+        "here": [
+         {
+          "bold": false,
+          "t": "Steelhead are known to be in this water."
+         }
+        ],
+        "src": [
+         1646,
+         3168
+        ]
+       },
+       "split": false,
+       "src": [
+        1646,
+        3168
+       ],
+       "sub": null
+      }
+     ],
+     "strip": null,
+     "tag": null
+    }
+   ],
+   "card": null,
+   "covers": [
+    0
+   ],
+   "elsewhere": [
+    "This river’s rule: 2 a day here. Trout and char other than steelhead you kept anywhere else count toward those 2. They also count toward Region 5’s 5 trout and char a day.",
+    "Kept trout or char over 50 cm (20 in) elsewhere? It counts here too: at most 1 over 50 cm (20 in) a day in all."
+   ],
+   "elsewhereLink": "Fished elsewhere today? ›",
+   "fold": {
+    "date": null,
+    "name": "Trout and char",
+    "tone": "keep",
+    "value": "2 a day"
+   },
+   "hatchLink": null,
+   "kind": "table",
+   "sourcesLink": "Sources ›",
+   "src": [
+    1650,
+    3155,
+    3156,
+    3168,
+    3159,
+    3158,
+    1651,
+    1652,
+    1646
+   ],
+   "together": null,
+   "top": {
+    "date": null,
+    "lead": "Keep 2 trout and char on May 1",
+    "second": null,
+    "sub": null
+   },
+   "year": null
+  },
   "whereNot": {
    "heading": "Where you can’t fish",
    "items": [
@@ -1013,12 +967,14 @@
  "methods": {
   "boats": {
    "items": [
+    "No angling (from a powered boat)",
     "No powered boats — between the Goat Creek confluence and the Talchako River confluence"
    ],
    "label": "Boats",
    "src": {
     "aria": "Sources: This water’s",
     "keys": [
+     "r5:atnarko_bella_coola_rivers_includes_tributaries_except_burnt@5-11+5-6+5-8::atnarko_bella_coola_rivers.r11",
      "r5:atnarko_bella_coola_rivers_includes_tributaries_except_burnt@5-11+5-6+5-8::atnarko_bella_coola_rivers.r12"
     ],
     "open": "srcs:boats",
@@ -1149,19 +1105,19 @@
       {
        "mark": "✓",
        "name": "Angling (rod and line)",
-       "note": "with a downrigger: attached to your line by a quick-release · with a light: submerged, attached to the line, within 1 m of the hook",
+       "notes": ["With a downrigger: attached to your line by a quick-release.","With a light: submerged, attached to the line, within 1 m of the hook."],
        "terms": []
       },
       {
        "mark": "✓",
        "name": "Spear or bow — not for trout or other game fish",
-       "note": "not for game fish, salmon or protected species · burbot allowed",
+       "notes": ["Not for game fish, salmon or protected species.","Burbot allowed."],
        "terms": []
       },
       {
        "mark": "✓",
        "name": "Crayfish traps",
-       "note": "release anything in the trap that isn’t a crayfish",
+       "notes": ["Release anything in the trap that isn’t a crayfish."],
        "terms": []
       }
      ]
@@ -1173,25 +1129,25 @@
       {
        "mark": "✕",
        "name": "Set lines",
-       "note": null,
+       "notes": [],
        "terms": []
       },
       {
        "mark": "✕",
        "name": "Nets",
-       "note": null,
+       "notes": [],
        "terms": []
       },
       {
        "mark": "✕",
        "name": "Snagging",
-       "note": null,
+       "notes": [],
        "terms": []
       },
       {
        "mark": "✕",
        "name": "Chumming",
-       "note": null,
+       "notes": [],
        "terms": []
       }
      ]
@@ -1823,14 +1779,6 @@
        "says": [],
        "tag": null
       },
-      "pinLine": {
-       "cls": "g",
-       "n": 15,
-       "said": [],
-       "sub": null,
-       "text": "Whitefish · 15 a day"
-      },
-      "quiet": null,
       "row": 2,
       "scope": "Region 5-wide",
       "title": "Whitefish",
@@ -2429,15 +2377,6 @@
     },
     {
      "items": [
-      {
-       "line": [
-        {
-         "s": "With 5 trout and char a day you may have 10: 2 days’ fish.",
-         "t": "text"
-        }
-       ],
-       "strong": "Possession doubles the 5 a day, not the 2 from streams."
-      },
       {
        "line": [
         {
@@ -4623,333 +4562,7 @@
    "sub": null,
    "title": "White sturgeon"
   },
-  "src:r0": {
-   "blocks": [
-    {
-     "k": "head",
-     "text": "These decide it (10)"
-    },
-    {
-     "groups": [
-      {
-       "rows": [
-        {
-         "book": [
-          {
-           "box": [
-            {
-             "box": [
-              36,
-              126.72,
-              540,
-              228.96
-             ],
-             "pdf": 49,
-             "size": [
-              576,
-              756
-             ]
-            }
-           ],
-           "pdf": 49,
-           "printed": 43,
-           "t": "book"
-          }
-         ],
-         "key": "r5:atnarko_bella_coola_rivers_includes_tributaries_except_burnt@5-11+5-6+5-8::atnarko_bella_coola_rivers.r5",
-         "quote": "on Bella Coola R. MAINSTEM ONLY, trout/ char daily quota = 2, of which only one may be a trout (cutthroat or rainbow) and none may be under 25 cm",
-         "role": "Sets the number · for cutthroat trout, Dolly Varden/bull trout, brook trout, brown trout, lake trout and rainbow trout",
-         "title": "Keep up to 2 trout and char a day (none under 25 cm (10 in)), Apr 1–May 31"
-        },
-        {
-         "book": [
-          {
-           "box": [
-            {
-             "box": [
-              36,
-              126.72,
-              540,
-              228.96
-             ],
-             "pdf": 49,
-             "size": [
-              576,
-              756
-             ]
-            }
-           ],
-           "pdf": 49,
-           "printed": 43,
-           "t": "book"
-          }
-         ],
-         "key": "r5:atnarko_bella_coola_rivers_includes_tributaries_except_burnt@5-11+5-6+5-8::atnarko_bella_coola_rivers.r6",
-         "quote": "of which only one may be a trout (cutthroat or rainbow) and none may be under 25 cm",
-         "role": "A limit inside the total · for cutthroat trout and rainbow trout",
-         "title": "At most 1 cutthroat trout or rainbow trout a day, Apr 1–May 31"
-        },
-        {
-         "book": [
-          {
-           "box": [
-            {
-             "box": [
-              36,
-              126.72,
-              540,
-              228.96
-             ],
-             "pdf": 49,
-             "size": [
-              576,
-              756
-             ]
-            }
-           ],
-           "pdf": 49,
-           "printed": 43,
-           "t": "book"
-          }
-         ],
-         "key": "r5:atnarko_bella_coola_rivers_includes_tributaries_except_burnt@5-11+5-6+5-8::atnarko_bella_coola_rivers.r7",
-         "quote": "no cutthroat may be over 33 cm",
-         "role": "A limit inside the total · for cutthroat trout",
-         "title": "No cutthroat trout over 33 cm (13 in), Apr 1–May 31"
-        },
-        {
-         "book": [
-          {
-           "box": [
-            {
-             "box": [
-              36,
-              126.72,
-              540,
-              228.96
-             ],
-             "pdf": 49,
-             "size": [
-              576,
-              756
-             ]
-            }
-           ],
-           "pdf": 49,
-           "printed": 43,
-           "t": "book"
-          }
-         ],
-         "key": "r5:atnarko_bella_coola_rivers_includes_tributaries_except_burnt@5-11+5-6+5-8::atnarko_bella_coola_rivers.r13",
-         "quote": "No Fishing for steelhead",
-         "role": "Closes it · for steelhead",
-         "title": "No fishing for steelhead"
-        }
-       ],
-       "where": "Region 5 · for this water (Bella Coola River)"
-      },
-      {
-       "rows": [
-        {
-         "book": [
-          {
-           "pdf": 48,
-           "printed": 42,
-           "t": "book"
-          }
-         ],
-         "key": "z5:daily_quotas::trout_char_quota.r1",
-         "quote": "Trout/char: 5",
-         "role": "The group total this counts toward · for cutthroat trout, Dolly Varden/bull trout, brook trout, brown trout, lake trout and rainbow trout",
-         "title": "Keep up to 5 trout and char a day"
-        },
-        {
-         "book": [
-          {
-           "pdf": 48,
-           "printed": 42,
-           "t": "book"
-          }
-         ],
-         "key": "z5:daily_quotas::trout_char_quota.r2",
-         "quote": "1 over 50 cm",
-         "role": "A limit inside the total · for cutthroat trout, Dolly Varden/bull trout, brook trout, brown trout and lake trout",
-         "title": "At most 1 trout or char over 50 cm (20 in) a day"
-        },
-        {
-         "book": [
-          {
-           "pdf": 48,
-           "printed": 42,
-           "t": "book"
-          }
-         ],
-         "key": "z5:daily_quotas::trout_char_quota.r3",
-         "quote": "2 from streams",
-         "role": "Lowers the number · for cutthroat trout, Dolly Varden/bull trout, brook trout, brown trout, lake trout and rainbow trout",
-         "title": "At most 2 trout and char a day from streams"
-        },
-        {
-         "book": [
-          {
-           "pdf": 48,
-           "printed": 42,
-           "t": "book"
-          }
-         ],
-         "key": "z5:possession_quota::possession_quota.r1",
-         "quote": "Possession quotas = 2 daily quotas (see tables for exceptions)",
-         "role": "Possession limit",
-         "title": "Possession: twice the daily quota"
-        },
-        {
-         "book": [
-          {
-           "pdf": 48,
-           "printed": 42,
-           "t": "book"
-          }
-         ],
-         "key": "z5:daily_quotas::trout_char_quota.r4",
-         "quote": "1 Dolly Varden/bull trout",
-         "role": "A limit inside the total · for Dolly Varden/bull trout",
-         "title": "At most 1 Dolly Varden/bull trout a day"
-        },
-        {
-         "book": [
-          {
-           "pdf": 48,
-           "printed": 42,
-           "t": "book"
-          }
-         ],
-         "key": "z5:daily_quotas::trout_char_quota.r5",
-         "quote": "2 lake trout",
-         "role": "A limit inside the total · for lake trout",
-         "title": "At most 2 lake trout a day"
-        }
-       ],
-       "where": "Region 5 · region-wide"
-      }
-     ],
-     "k": "sources"
-    },
-    {
-     "body": [
-      {
-       "groups": [
-        {
-         "rows": [
-          {
-           "book": [],
-           "key": "r5:atnarko_bella_coola_rivers_includes_tributaries_except_burnt@5-11+5-6+5-8::atnarko_bella_coola_rivers.r3",
-           "notes": [],
-           "quote": "Trout/char daily quota = 1 (none under 25 cm and all cutthroat trout catch and release)",
-           "role": "Lifted by “on Bella Coola R. MAINSTEM ONLY, trout/ char daily quota = 2, of which only one may be a trout (cutthroat or rainbow) and none may be under 25 cm”",
-           "title": "Keep up to 1 trout or char a day (none under 25 cm (10 in))",
-           "trib": false
-          }
-         ],
-         "where": "Region 5 · for this water (Bella Coola River)"
-        },
-        {
-         "rows": [
-          {
-           "book": [],
-           "key": "r5:atnarko_bella_coola_rivers_includes_tributaries_except_burnt@5-11+5-6+5-8::atnarko_bella_coola_rivers.r4",
-           "notes": [],
-           "quote": "all cutthroat trout catch and release",
-           "role": "Lifted by “on Bella Coola R. MAINSTEM ONLY, trout/ char daily quota = 2, of which only one may be a trout (cutthroat or rainbow) and none may be under 25 cm” · for cutthroat trout",
-           "title": "Release all cutthroat trout",
-           "trib": false
-          }
-         ],
-         "where": "Region 5 · for this water (Bella Coola River)"
-        },
-        {
-         "rows": [
-          {
-           "book": [],
-           "key": "z5:daily_quotas::trout_char_quota.r6",
-           "notes": [],
-           "quote": "ALL STEELHEAD",
-           "role": "Beaten by “No Fishing for steelhead” · for steelhead",
-           "title": "Release all steelhead",
-           "trib": false
-          }
-         ],
-         "where": "Region 5 · region-wide"
-        },
-        {
-         "rows": [
-          {
-           "book": [],
-           "key": "zp:quota_defaults::quota_defaults.r1",
-           "notes": [],
-           "quote": "Possession quota — no more than twice the daily quota unless otherwise specified.",
-           "role": "Beaten by “Possession quotas = 2 daily quotas (see tables for exceptions)”",
-           "title": "Possession: twice the daily quota",
-           "trib": false
-          }
-         ],
-         "where": "Provincial · province-wide"
-        },
-        {
-         "rows": [
-          {
-           "book": [],
-           "key": "zp:steelhead::steelhead.r1",
-           "notes": [],
-           "quote": "The annual province-wide quota for hatchery steelhead is 10.",
-           "role": "Beaten by “No Fishing for steelhead” · for steelhead",
-           "title": "Up to 10 hatchery steelhead a licence year",
-           "trib": false
-          }
-         ],
-         "where": "Provincial · in Regions 1, 2, 3, 5 and 6"
-        },
-        {
-         "rows": [
-          {
-           "book": [],
-           "key": "zp:steelhead::steelhead.r4",
-           "notes": [],
-           "quote": "You must immediately record your retention of hatchery steelhead on your basic angling licence.",
-           "role": "Doesn’t matter today because of “No Fishing for steelhead” · for steelhead",
-           "title": "Write each hatchery steelhead on your licence right away",
-           "trib": false
-          }
-         ],
-         "where": "Provincial · in Regions 1, 2, 3, 5 and 6"
-        },
-        {
-         "rows": [
-          {
-           "book": [],
-           "key": "zp:steelhead::steelhead.r2",
-           "notes": [],
-           "quote": "All wild steelhead must be released.",
-           "role": "Says the same as “No Fishing for steelhead” · for steelhead",
-           "title": "Release wild steelhead",
-           "trib": false
-          }
-         ],
-         "where": "Provincial · in Regions 1, 2, 3, 5 and 6"
-        }
-       ],
-       "k": "sources",
-       "overruled": true
-      }
-     ],
-     "k": "fold",
-     "open": false,
-     "summary": "Overruled (7)"
-    }
-   ],
-   "key": "src:r0",
-   "sub": "Bella Coola River · May 1. The more specific rule speaks first: this water, then from downstream, a named area, the region, then the province.",
-   "title": "Trout and char"
-  },
+  "src:r0": null,
   "srcs:always": {
    "blocks": [
     {
@@ -5415,6 +5028,37 @@
   },
   "srcs:boats": {
    "blocks": [
+    {
+     "applies": [
+      "This water’s own row in the 2025–2027 BC Freshwater Fishing Regulations Synopsis: Bella Coola River."
+     ],
+     "book": [
+      {
+       "box": [
+        {
+         "box": [
+          36,
+          126.72,
+          540,
+          228.96
+         ],
+         "pdf": 49,
+         "size": [
+          576,
+          756
+         ]
+        }
+       ],
+       "pdf": 49,
+       "printed": 43,
+       "t": "book"
+      }
+     ],
+     "k": "rule",
+     "level": "This water’s",
+     "open": "rule:r5:atnarko_bella_coola_rivers_includes_tributaries_except_burnt@5-11+5-6+5-8::atnarko_bella_coola_rivers.r11",
+     "title": "No angling (from a powered boat)"
+    },
     {
      "applies": [
       "This water’s own row in the 2025–2027 BC Freshwater Fishing Regulations Synopsis: Bella Coola River.",

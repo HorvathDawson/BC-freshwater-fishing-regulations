@@ -62,6 +62,15 @@ def test_the_map_status_of_a_day():
         ["open", "release", "closed", "closed", "check"]
 
 
+def test_t882_green_whenever_any_salmon_is_open():
+    """(T882, owner 2026-11-18 ~21:18: "they should still show green if any salmon there are open only yellow if closed
+    other then the to be determined") the map's order is open, then release, then check, then closed: DFO's "To be
+    determined" (a "check") paints only where nothing is open or release only (the Thompson's chinook beside its sockeye)."""
+    o, r, c, tbd = {"s": "open"}, {"s": "release"}, {"s": "closed"}, {"s": "check", "t": "To be determined (Apr 1–Mar 31)"}
+    assert [S.map_status([o, c, tbd, c, c]), S.map_status([tbd, c, o, c, c]), S.map_status([r, c, tbd, c, c]),
+            S.map_status([c, c, tbd, c, c]), S.map_status([tbd] * 5)] == ["open", "open", "release", "check", "check"]
+
+
 def _loc(lid, prec, fps, water="", water_id=None, area="", tidal_water=False):
     return SimpleNamespace(location_id=lid, precedence=prec, fingerprints=fps, water=water, water_id=water_id,
                            source_text={"specific_area": area}, tidal_water=tidal_water)

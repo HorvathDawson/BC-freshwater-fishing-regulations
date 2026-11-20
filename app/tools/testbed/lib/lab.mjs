@@ -7,7 +7,11 @@
 import * as device from './device.mjs';
 
 /** The switch each key's value means ON (MapLab.tsx's ROWS). */
-const ON = { pixelCap: true, prefetch: 2, stateGapMs: 250, streamsOneBucket: true, roads: true, landuse: true, labels: true, hideInvisible: true };
+const ON = { pixelCap: true, prefetch: 2, stateGapMs: 250, streamsOneBucket: true, roads: true, landuse: true, labels: true, hideInvisible: true,
+             // (T876) each kind of label, and the hold while zooming
+             waterNames: true, placeNames: true, roadNames: true, areaNames: true, gaugePills: true, marks: true, holdLabels: true,
+             // (T903) the label tests against the day's default, and hashed
+             paintDefault: true, labelMatch: true };
 export const LAB_KEYS = Object.keys(ON);
 
 /** `k=v,k=v` → { k: v } (numbers and booleans read as such). */
@@ -64,6 +68,14 @@ export async function setLab(change, d = device) {
   for (const [k, v] of Object.entries(change)) {
     const want = v === ON[k];
     let sw = byId(nodes(d), `map-lab-${k}`);
+    // (T876) a row below the card's fold: scroll the card up a little, at most three times
+    for (let i = 0; !sw && i < 3; i++) {
+      const foot = byId(nodes(d), 'map-lab-state') ?? byId(nodes(d), 'map-lab');
+      if (!foot) break;
+      d.sh(`input swipe ${foot.x} ${foot.y} ${foot.x} ${Math.max(0, foot.y - 600)} 400`);
+      await d.sleep(700);
+      sw = byId(nodes(d), `map-lab-${k}`);
+    }
     if (!sw) throw new Error(`lab: no switch map-lab-${k}`);
     if (sw.checked !== want) {
       d.sh(`input tap ${sw.x} ${sw.y}`);

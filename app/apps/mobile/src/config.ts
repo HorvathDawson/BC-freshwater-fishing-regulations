@@ -59,14 +59,16 @@ export const UPDATE_CHANNEL = resolveChannel({
   override: SWITCHABLE ? channelStore.read() : null,
 });
 
-/** (T585 F13) The channel this build names, whatever a tester's switch keeps: the Conditions card says when the two differ. */
-export const BUILT_CHANNEL = resolveChannel({ named: process.env.EXPO_PUBLIC_UPDATE_CHANNEL, switchable: false });
 
 /**
  * (T251) THE UPDATES LOG is a development and staging tool: kept and shown in a switchable build, or any build reading
  * anything but production (an internal staging APK). A production build reading production data keeps none.
  */
 export const UPDATES_LOG = SWITCHABLE || APP_ENV.env !== "production";
+
+/** (T319) A STORE-SHOTS WEB BUILD (`EXPO_PUBLIC_STORE_SHOTS=1`, never deployed): the web draws the phone's Spots and Help
+ *  lines for `app/tools/store-shots.mjs` to photograph (`@app/ui-native` storeShots.ts). */
+export const STORE_SHOTS = process.env.EXPO_PUBLIC_STORE_SHOTS === "1";
 
 /**
  * THE MENU'S BUILD FACTS (owner 2026-10-21). `CONTACT` is THE ONE contact value the menu's Contact and Report a problem

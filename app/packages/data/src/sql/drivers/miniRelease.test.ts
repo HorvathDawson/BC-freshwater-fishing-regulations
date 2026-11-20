@@ -4,6 +4,8 @@
  * loader — every file held to its manifest (length + sha256) — and read: its waters are the invented ones, by name.
  */
 import { describe, expect, it } from "vitest";
+import { buildSearchIndex, queryIndex } from "@app/core";
+import { makeReleaseSource } from "../../release/source";
 import { MINI_RELEASE_ROOT, miniReleaseDir, openMiniRelease, sectionNames } from "./releaseDir";
 
 describe("the mini release (T667 slice 8)", () => {
@@ -24,5 +26,14 @@ describe("the mini release (T667 slice 8)", () => {
     const s = sectionNames(loader);
     const [mouth, low] = await s.streams([[900000001, 0], [900000001, 1000]]);
     expect(mouth).not.toBe(low);
+  }, 30_000);
+
+  it("(T927) its boundary place reaches search through the release reader: core's cut_place, as the index reads it", async () => {
+    const data = await makeReleaseSource(openMiniRelease()).searchIndex();
+    expect(data.cuts).toEqual([{ item: "gnis:990002", words: "Mock Creek Falls", alt: [], generic: false,
+                                 blk: 900000002, m: 5999, lat: 52.264448, lon: -125.853228 }]);
+    // and the in-memory index finds it by its words, on its water
+    const ix = buildSearchIndex(data);
+    expect(queryIndex(ix, "mock creek falls").cuts.map((c) => [c.words, c.water.name])).toEqual([["Mock Creek Falls", "Mock Creek"]]);
   }, 30_000);
 });

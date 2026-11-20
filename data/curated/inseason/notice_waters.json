@@ -1,7 +1,7 @@
 {
   "$comment": "notice_waters.json (was matches.json; T324). T226 AUTHORED: provincial in-season notices (feeds/inseason/index.json `rows[].id`) -> the waters they apply to. Written by the review app's In-season tab (POST /api/inseason/matches) or by hand; read through pipeline.regs.inseason.matches (validates: unknown splits, ops, ids refused). INFORMATIONAL ONLY: a match puts a banner on the water in the app, it never changes an answer. `history` is append-only, one note per edit.",
   "format": "inseason-matches/2",
-  "release": "r-f749475d0962",
+  "release": "r-6258ffded676",
   "words": {
     "alexander_creek__easternmost_hwy_3": "easternmost Hwy 3",
     "border:356537100:0": "BC boundary",
@@ -73,7 +73,7 @@
           ]
         }
       },
-      "stamp": "9ae63dd48efcf187"
+      "stamp": "3434fd1296c8a75a"
     },
     "is-03e14f544b83": {
       "region": "1",
@@ -105,7 +105,7 @@
           "all": true
         }
       },
-      "stamp": "af083aa45676cb4d"
+      "stamp": "5a2b8754bfb69926"
     },
     "is-06e7bf41d7fc": {
       "region": "3",
@@ -316,7 +316,7 @@
           "all": true
         }
       },
-      "stamp": "db855f0d3b0649f7"
+      "stamp": "03579871e3bd7b89"
     },
     "is-0762f7371d1a": {
       "region": "4",
@@ -344,7 +344,7 @@
           "all": true
         }
       },
-      "stamp": "f64949777af18f57"
+      "stamp": "77f630b187c64519"
     },
     "is-14c1a6f972a3": {
       "region": "3",
@@ -401,7 +401,7 @@
           ]
         }
       },
-      "stamp": "c1cb0539a211187f"
+      "stamp": "b665e14349a19870"
     },
     "is-164f9965bfbd": {
       "region": "4",
@@ -438,7 +438,7 @@
           "all": true
         }
       },
-      "stamp": "6b37481faf797c79"
+      "stamp": "2d3ce30cd500f938"
     },
     "is-1cf72da5a533": {
       "region": "4",
@@ -466,7 +466,7 @@
           ]
         }
       },
-      "stamp": "65d9ba0558a6515f"
+      "stamp": "1faa94832f091ca9"
     },
     "is-20205c2b98c9": {
       "region": "4",
@@ -514,7 +514,7 @@
           ]
         }
       },
-      "stamp": "63b36557b62c756c"
+      "stamp": "63341ec14b3a4ebe"
     },
     "is-2fa458fef3c3": {
       "region": "8",
@@ -546,7 +546,7 @@
           "all": true
         }
       },
-      "stamp": "923db020640f7e41"
+      "stamp": "28d5d8122fb95e29"
     },
     "is-4169515839dc": {
       "region": "2",
@@ -613,7 +613,7 @@
           "all": true
         }
       },
-      "stamp": "0523de77740e480b"
+      "stamp": "6f957e647131f4ff"
     },
     "is-472d822b755f": {
       "region": "4",
@@ -664,7 +664,7 @@
           ]
         }
       },
-      "stamp": "d98c7bda339b4b81"
+      "stamp": "6e2d9054fd1c257b"
     },
     "is-498820589328": {
       "region": "5",
@@ -698,7 +698,7 @@
           ]
         }
       },
-      "stamp": "c2a06a24e6d88f10"
+      "stamp": "1da03316d45cad11"
     },
     "is-4eaad82900f8": {
       "region": "4",
@@ -732,7 +732,7 @@
           ]
         }
       },
-      "stamp": "fdb2b72c589d77d5"
+      "stamp": "deb8b159e24391fe"
     },
     "is-50ac6c61eb00": {
       "region": "4",
@@ -769,7 +769,7 @@
           "all": true
         }
       },
-      "stamp": "dbb949caf3b2904d"
+      "stamp": "90b58c8c54990df0"
     },
     "is-546bc1e74bbc": {
       "region": "4",
@@ -790,7 +790,7 @@
           "all": true
         }
       },
-      "stamp": "f64949777af18f57"
+      "stamp": "77f630b187c64519"
     },
     "is-689cae172c40": {
       "region": "1",
@@ -822,7 +822,7 @@
           "all": true
         }
       },
-      "stamp": "d3e70a826ee7a87d"
+      "stamp": "04c73422b5342399"
     },
     "is-695fd31ebf80": {
       "region": "4",
@@ -872,7 +872,7 @@
           ]
         }
       },
-      "stamp": "fdb2b72c589d77d5"
+      "stamp": "deb8b159e24391fe"
     },
     "is-69d2a07100fc": {
       "region": "8",
@@ -1076,7 +1076,7 @@
           "all": true
         }
       },
-      "stamp": "302e0a884b1f479a"
+      "stamp": "fa0e7c7639ff8153"
     },
     "is-6a32433916ac": {
       "region": "8",
@@ -1168,21 +1168,7 @@
           "all": true
         },
         "gnis:12257": {
-          "runs": [
-            [356557997, 0, 1502],
-            [356557997, 1567, 1612],
-            [356557997, 1670, 1706],
-            [356557997, 2165, 6892],
-            [356557997, 7003, 7156],
-            [356557997, 7257, 7504],
-            [356557997, 8260, 8913],
-            [356557997, 9002, 10678],
-            [356557997, 11127, 12020]
-          ],
-          "lakes": true,
-          "ends": [
-            ["mouth", "source"]
-          ]
+          "all": true
         },
         "gnis:12419": {
           "all": true
@@ -1242,12 +1228,7 @@
           "all": true
         },
         "gnis:13668": {
-          "runs": [
-            [356560517, 0, 12734]
-          ],
-          "ends": [
-            ["mouth", "source"]
-          ]
+          "all": true
         },
         "gnis:13809": {
           "all": true
@@ -1285,30 +1266,7 @@
           "all": true
         },
         "gnis:15972": {
-          "runs": [
-            [356569725, 0, 2022],
-            [356569725, 2075, 5115],
-            [356569725, 5239, 5264],
-            [356569725, 5327, 6427],
-            [356569725, 6502, 8892],
-            [356569725, 9338, 9368],
-            [356569725, 9673, 9748],
-            [356569725, 9813, 9898],
-            [356569725, 11297, 11595],
-            [356569725, 12474, 12628],
-            [356569725, 12763, 13025],
-            [356569725, 13652, 14200],
-            [356569725, 14422, 14539],
-            [356569725, 14585, 14922],
-            [356569725, 15076, 15442],
-            [356569725, 15664, 16045],
-            [356569725, 16228, 17068],
-            [356569725, 17181, 19654]
-          ],
-          "lakes": true,
-          "ends": [
-            ["mouth", "source"]
-          ]
+          "all": true
         },
         "gnis:16149": {
           "all": true
@@ -1585,14 +1543,7 @@
           "all": true
         },
         "gnis:25654": {
-          "runs": [
-            [356564182, 0, 7259],
-            [356564182, 7335, 13040]
-          ],
-          "lakes": true,
-          "ends": [
-            ["mouth", "source"]
-          ]
+          "all": true
         },
         "gnis:25662": {
           "all": true
@@ -1717,12 +1668,7 @@
           "all": true
         },
         "gnis:28622": {
-          "runs": [
-            [356556691, 0, 12680]
-          ],
-          "ends": [
-            ["mouth", "source"]
-          ]
+          "all": true
         },
         "gnis:28671": {
           "all": true
@@ -1935,7 +1881,7 @@
           "all": true
         }
       },
-      "stamp": "d7372daa48a3093d"
+      "stamp": "0b385cc7fded68fa"
     },
     "is-6db43a66acf9": {
       "region": "7B",
@@ -1977,7 +1923,7 @@
           ]
         }
       },
-      "stamp": "3ac8469a36a66d90"
+      "stamp": "933aa5c06e0ef3d8"
     },
     "is-74fcb31b2d0b": {
       "region": "1",
@@ -2020,7 +1966,7 @@
           "all": true
         }
       },
-      "stamp": "af083aa45676cb4d"
+      "stamp": "5a2b8754bfb69926"
     },
     "is-7826b2108311": {
       "region": "2",
@@ -2076,7 +2022,7 @@
           ]
         }
       },
-      "stamp": "2ad6b30d7556477d"
+      "stamp": "465cd27b555e8553"
     },
     "is-79fcd6f4a6bc": {
       "region": "8",
@@ -2266,7 +2212,7 @@
           "all": true
         }
       },
-      "stamp": "302e0a884b1f479a"
+      "stamp": "fa0e7c7639ff8153"
     },
     "is-8cd37f6e5bf9": {
       "region": "2",
@@ -2327,7 +2273,7 @@
           ]
         }
       },
-      "stamp": "1e0bb2435a21d9e7"
+      "stamp": "d3c3c7e8ade63344"
     },
     "is-9e042d16dbe9": {
       "region": "4",
@@ -2373,7 +2319,7 @@
           ]
         }
       },
-      "stamp": "34891175407ec6a4"
+      "stamp": "2c489cdd89b2ac45"
     },
     "is-a8dcfeb1e3c6": {
       "region": "2",
@@ -2495,7 +2441,7 @@
           ]
         }
       },
-      "stamp": "621a50dba297a14f"
+      "stamp": "3a9ce81795e46d06"
     },
     "is-a9ddfd332aa7": {
       "region": "4",
@@ -2537,7 +2483,7 @@
           ]
         }
       },
-      "stamp": "f1c7dcb423a4c91a"
+      "stamp": "b47bfbaa67b4823a"
     },
     "is-b7a6816f8679": {
       "region": "4",
@@ -2585,7 +2531,7 @@
           ]
         }
       },
-      "stamp": "6f6b8995f0359891"
+      "stamp": "53fc785e00f9f9f5"
     },
     "is-bb5426c61ff3": {
       "region": "8",
@@ -2613,7 +2559,7 @@
           "all": true
         }
       },
-      "stamp": "816101e636798a0a"
+      "stamp": "19261170230c061a"
     },
     "is-c77bf6cd7da6": {
       "region": "2",
@@ -2642,7 +2588,7 @@
           "all": true
         }
       },
-      "stamp": "c60ceda6f8e48e56"
+      "stamp": "80c76e9cf2cb7ecf"
     },
     "is-c7dd217d00e3": {
       "region": "4",
@@ -2677,7 +2623,7 @@
           "all": true
         }
       },
-      "stamp": "3e92bd11ff1f08cd"
+      "stamp": "24562229b546cc89"
     },
     "is-cd23c37ead11": {
       "region": "4",
@@ -2712,7 +2658,7 @@
           "all": true
         }
       },
-      "stamp": "27c04025af3decba"
+      "stamp": "81c8e90199d5ea24"
     },
     "is-d55f2ace6f8e": {
       "region": "4",
@@ -2747,7 +2693,7 @@
           ]
         }
       },
-      "stamp": "65d9ba0558a6515f"
+      "stamp": "1faa94832f091ca9"
     },
     "is-e03c3754d0af": {
       "region": "8",
@@ -2779,7 +2725,7 @@
           "all": true
         }
       },
-      "stamp": "c9803a9ab441e6cd"
+      "stamp": "ffbd6ada005a123e"
     },
     "is-ed799087db95": {
       "region": "4",
@@ -2814,7 +2760,7 @@
           "all": true
         }
       },
-      "stamp": "965ca52f4365667a"
+      "stamp": "05e1edbf29462e4f"
     },
     "is-f1670924c755": {
       "region": "4",
@@ -2849,7 +2795,7 @@
           "all": true
         }
       },
-      "stamp": "eb48c87a9fc5f856"
+      "stamp": "1b37f7079364b9f3"
     },
     "is-f528732e7d5b": {
       "region": "8",
@@ -2954,7 +2900,7 @@
           "all": true
         }
       },
-      "stamp": "dd60b0c4480d8c0d"
+      "stamp": "99f12c46d46a8652"
     },
     "is-f9e5db230277": {
       "region": "4",
@@ -2983,7 +2929,7 @@
           ]
         }
       },
-      "stamp": "9ae63dd48efcf187"
+      "stamp": "3434fd1296c8a75a"
     }
   },
   "history": [

@@ -1,6 +1,6 @@
 # T508 — A water opened into its Map or Conditions view appears in one piece
 
-Status: IN REVIEW — owner 2026-11-09 on build 24: "Not right", no note; left (Claude): ask which tab and what loads late, reproduce on the emulator
+Status: IN REVIEW — f2428537b, 02364791a, 49dd973d3; owner 2026-11-09 on build 24: "Not right", no note. The question went to the owner with T498's; owner: OWNER-TODO "which tab, and what loads late?"; then Claude reproduces on the emulator.
 
 Was: IN REVIEW — f2428537b, 02364791a (+ testbed 49dd973d3), in build 22 (3d807829d); owner: OWNER-TODO "Phone check with build 22" (Map / Conditions views open whole).
 Earlier: IN REVIEW — f2428537b, 02364791a (+ testbed 49dd973d3); owner sees it on the next APK. Follow-up of T498. Part of T495 (smooth map).

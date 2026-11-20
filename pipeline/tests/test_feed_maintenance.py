@@ -92,14 +92,38 @@ def test_no_envelope_no_hydat_notice(tmp_path, net):
     assert _index(tmp_path)["maintenance"] == []
 
 
-DRIFT = {"joined": ["08NM139", "10CD005"], "left": ["08EG012"]}
+# T847: 08NM139 began transmitting and 08EG012 stopped (both known roster rows); 07FA008 and 08DA013 have no row at all
+DRIFT = {"joined": ["07FA008", "08DA013", "08NM139"], "left": ["08EG012"], "unknown": ["07FA008", "08DA013"]}
+KNOWN_ONLY = {"joined": ["08NM139", "10CD005"], "left": ["08EG012"], "unknown": []}
 ROSTER_DUE = {"kind": "roster", "since": "2026-10-22T21:00:00Z", "current": "data/source/bc_hydrometric_stations.json",
-              "latest": "+08NM139 +10CD005 -08EG012", "action": pub.ROSTER_ACTION}
+              "latest": "07FA008 08DA013", "action": pub.ROSTER_ACTION}
 
 
-def test_roster_drift_writes_a_notice(tmp_path, net):
+def test_a_never_seen_station_writes_a_notice_naming_only_those(tmp_path, net):
     pub.publish(tmp_path, [], clim=CLIM, latest_release="20260717", now=NOW, drift=DRIFT)
     assert _index(tmp_path)["maintenance"] == [ROSTER_DUE]
+
+
+def test_a_known_station_joining_or_leaving_is_no_notice(tmp_path, net):
+    # T847 (owner 2026-11-18): the feed already asks today's list and waters hold their gauge by `active`; nothing to do
+    pub.publish(tmp_path, [], clim=CLIM, latest_release="20260717", now=NOW, drift=KNOWN_ONLY)
+    assert _index(tmp_path)["maintenance"] == []
+
+
+def test_the_same_never_seen_station_keeps_its_first_since(tmp_path, net):
+    # the list wobbling around it (a known station leaving) changes nothing about the notice: same latest, same since
+    pub.publish(tmp_path, [], clim=CLIM, latest_release="20260717", now=NOW, drift=DRIFT)
+    pub.publish(tmp_path, [], clim=CLIM, latest_release="20260717", now=LATER,
+                drift=dict(DRIFT, left=["08EG012", "08MH001"]))
+    assert _index(tmp_path)["maintenance"] == [ROSTER_DUE]
+
+
+def test_a_kept_pre_t847_notice_is_dropped(tmp_path, net):
+    # an index written before T847 says "+id -id"; with no list this run it is kept only for its bare ids — none
+    (tmp_path / "index.json").write_text(json.dumps({"maintenance": [dict(ROSTER_DUE, latest="+08NM139 -08EG012")]}))
+    pub.publish(tmp_path, [], clim=CLIM, latest_release="20260717", now=LATER, drift=None)
+    assert _index(tmp_path)["maintenance"] == []
+    assert pub.never_seen("+08NM139 07FA008 -08EG012") == ["07FA008"]
 
 
 def test_roster_and_hydat_notices_together_in_kind_order(tmp_path, net):
@@ -110,7 +134,7 @@ def test_roster_and_hydat_notices_together_in_kind_order(tmp_path, net):
 
 def test_no_drift_clears_the_roster_notice(tmp_path, net):
     pub.publish(tmp_path, [], clim=CLIM, latest_release="20260717", now=NOW, drift=DRIFT)
-    pub.publish(tmp_path, [], clim=CLIM, latest_release="20260717", now=LATER, drift={"joined": [], "left": []})
+    pub.publish(tmp_path, [], clim=CLIM, latest_release="20260717", now=LATER, drift={"joined": [], "left": [], "unknown": []})
     assert _index(tmp_path)["maintenance"] == []
 
 

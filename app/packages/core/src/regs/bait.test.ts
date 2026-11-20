@@ -3,8 +3,8 @@
  * bait.parity.test.ts (retired, T439)): the item words, note2, the allowance move, the dated ban runs and the all-year line.
  */
 import { describe, expect, it } from "vitest";
-import { allYearBan, baitItems, banHeading, datedBans, moveAllowances, note2, type BaitItem } from "./bait";
-import type { GearAnswer, StripState } from "./inputs";
+import { allowanceRules, allYearBan, baitItems, banHeading, datedBans, moveAllowances, note2, noteWithAllowances, type BaitItem } from "./bait";
+import type { GearAnswer, RuleIndex, RuleView, StripState } from "./inputs";
 
 const LABELS: StripState[] = [
   { state: "fly_only", bit: 4, label: "fly fishing only", says: "" }, { state: "bait_ban", bit: 16, label: "bait ban", says: "" },
@@ -22,7 +22,7 @@ describe("baitItems (page v36 gearParts bait)", () => {
     ];
     expect(baitItems({ bait } as GearAnswer)).toEqual([
       { ok: true, name: "Worms", s: "allowed", rix: null },
-      { ok: true, name: "Roe (fish eggs)", s: "allowed · the fish or fish parts ban excepts it", rix: 3 },
+      { ok: true, name: "Roe (fish eggs)", s: "allowed", rix: 3 },   // (T922) roe reads as roe: no "ban excepts it" note
       { ok: true, name: "Water insects and crayfish", s: "on streams · carry up to 1 kg", rix: 5 },
       { ok: false, name: "Fish or fish parts", s: "something_new", rix: 4 },
       { ok: false, name: "Worms", s: "", rix: 6 },
@@ -39,10 +39,15 @@ describe("note2", () => {
 
 describe("moveAllowances (UR2 7 / round 20h)", () => {
   const items = (okS: string): BaitItem[] => [{ ok: false, name: "Fish or fish parts", s: "banned · roe is still OK", rix: 1 }, { ok: true, name: "Roe (fish eggs)", s: okS, rix: 2 }];
-  it("moves '<x> is still OK' to the allowed item it names", () => {
+  it("(T922) '<x> is still OK' on the ban leaves it; roe, the item it names, says nothing more than its name", () => {
     const xs = items("");
     moveAllowances(xs);
-    expect(xs.map((x) => note2(x.s))).toEqual(["", "roe is still OK"]);
+    expect(xs.map((x) => note2(x.s))).toEqual(["", ""]);
+  });
+  it("moves '<x> is still OK' to the allowed item it names (any item but roe)", () => {
+    const xs: BaitItem[] = [{ ok: false, name: "Fish or fish parts", s: "banned · worms is still OK", rix: 1 }, { ok: true, name: "Worms", s: "", rix: 2 }];
+    moveAllowances(xs);
+    expect(xs.map((x) => note2(x.s))).toEqual(["", "worms is still OK"]);
   });
   it("only drops it when the allowed item already names the ban", () => {
     const xs = items("allowed · the fish or fish parts ban excepts it");
@@ -102,4 +107,24 @@ describe("banHeading (T515): one line — what, when, status, ⓘ", () => {
     expect(line(banHeading(true, none, null, [next], true))).toEqual(["No natural bait Sep 1–Dec 31 · not today ⓘ"]);
   });
   it("only some baits banned, no season: no heading line at all", () => expect(banHeading(false, some, null, [], true)).toEqual([]));
+});
+
+describe("T797 item 2 (owner 2026-11-16 'Show it', D18 b): an element's stored allowance is said under it, in its rule's words", () => {
+  const LABEL = "Dead fin fish may be used, when fishing for white sturgeon — upstream of the CPR Bridge at Mission";
+  const rules: RuleIndex = { get: (ix) => ({ rix: ix, export: { label: ix === 574 ? `${LABEL}*` : "other" } }) as unknown as RuleView,
+    has: (ix) => ix === 574, size: 1 };
+  const sturgeon: GearAnswer["bait"] = [{ element: "worms", ok: true, by: null },
+    { element: "fin_fish", ok: false, by: [4, 0], why: "banned_roe_ok", also_allowed: [{ clause: [574, 0], targeting: ["WSG"] }, { clause: [574, 0] }] }];
+  it("a sturgeon water: the fin-fish item's rules, each once; its note then says the label (cleaned), after the item's own words", () => {
+    const also = allowanceRules({ bait: sturgeon } as GearAnswer);
+    expect(also).toEqual([[], [574]]);
+    expect(noteWithAllowances("", also[1]!, rules)).toEqual([LABEL]);
+    expect(noteWithAllowances("bait ban", also[1]!, rules)).toEqual(["bait ban", LABEL]);
+    expect(noteWithAllowances("on streams · carry up to 1 kg", [], rules)).toEqual(["on streams", "carry up to 1 kg"]);
+  });
+  it("elsewhere (no allowance): nothing is added", () => {
+    const also = allowanceRules({ bait: [{ element: "fin_fish", ok: false, by: [4, 0], why: "banned_roe_ok" }] } as unknown as GearAnswer);
+    expect(also).toEqual([[]]);
+    expect(noteWithAllowances("roe is still OK", also[0]!, rules)).toEqual(["roe is still OK"]);
+  });
 });

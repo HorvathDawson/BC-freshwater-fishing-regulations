@@ -166,7 +166,7 @@ A `<Sheet>`'s Modal `onRequestClose` (Android delivers back there while a Modal 
 | Adding a spot: details → hour → point → water | one step back each (= that step's ‹ Back) | SpotCapture `useBackLayer` | back.test "adding a spot" |
 | Adding a spot, first step, nothing put in | leaves the capture | route `adding` | back.test |
 | Adding a spot, first step, a name/notes/photos put in | **asks** ("Discard this spot?", `DRAFT_WORDS`); back again = "Keep adding" | SpotCapture | back.test "notes typed" |
-| A zoomed or panned map; a zoomed chart; "Larger map" | **nothing is reset** — back is navigation, not undo (Android: Maps and Photos do not un-zoom on back); the map's ⤢ and the chart's own reset do that | — | (decision) |
+| A zoomed or panned map; a zoomed chart | **nothing is reset** — back is navigation, not undo (Android: Maps and Photos do not un-zoom on back); the map's ⤢ and the chart's own reset do that | — | (decision) |
 | Folds, expanders, the regs page's section tabs / pin bar | not back layers (they are the page's state, not something opened over it); back leaves the water | — | (decision) |
 | Keyboard up | the OS closes it first (Android's own) | — | — |
 

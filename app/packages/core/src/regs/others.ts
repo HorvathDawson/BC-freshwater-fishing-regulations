@@ -3,15 +3,19 @@
  * "Weekends: keep 5 · Weekdays: release" under it).
  *
  * Owner rule 2026-10-21: each row's kind, daily take, members, weekday status and group are the store's (`rows_row`); the
- * day's status is the settled store answer. This file SPLITS the rows for display (trout and char first, page v36's
- * TROUTISH) and words each other-fish row's stored answer; it decides no regulation. The licence documents a row's fish
+ * day's status is the settled store answer. This file SPLITS the rows for display and words each other-fish row's stored
+ * answer; it decides no regulation. (T810 S) Which rows are trout and char is Python's: the trout table's `covers` (the
+ * rows-frame rows today's trout cell replaces, contract Q-D4). Page v36's hand trout list is gone. The licence documents a row's fish
  * need (prototype round UR7 stampsFor on an Other fish row) are the store's (rows 32 `Row.stamps`, the pipeline's
  * `stamps.row_stamps`); each is drawn as tree.ts `stampLine` words it.
  *
- * Ports (inventory names @ 7fb6809f): page v36 rowsHtml (TROUTISH, rowsHtml.short), renderCard's rows condition;
+ * Ports (inventory names @ 7fb6809f): page v36 rowsHtml (its hand trout list, rowsHtml.short), renderCard's rows condition;
  * prototype buildKeep Other fish (owk, the v33 size hint), thumb.
  */
 import type { CardModel, CardStatus, HydRow } from "./card";
+import { rowDown, type LadderSeams } from "./decided";
+import { downLine } from "./flow";
+import type { Settled } from "./settle";
 import type { FishManifest } from "./fish.generated";
 import { parentRow, rowTitle } from "./grouphead";
 import { stampLine } from "./tree";
@@ -20,42 +24,57 @@ import type { OtherFishKeyVM, OtherFishRowVM } from "./model";
 import { clean } from "./names";
 import { WORDS } from "./words";
 
-/** page v36 TROUTISH: trout and char first, in full; every other fish folds into one short list. */
-export const TROUTISH: readonly string[] = Object.freeze(["RB", "CT", "EB", "GB", "LT", "DV", "ST", "BT", "CT_ws", "CT_c"]);
+/** (T810 N) The rows-frame rows a trout table replaces (its `covers`, contract Q-D4). */
+export type TableCovers = readonly number[];
+
+/**
+ * (T810 N, S) The rows today's trout cell replaces (`inp.trout.covers`); [] where the cell has none (a NULL cell, Q-D3:
+ * no trout or char fish here, or the banner or the tidal page speaks) or the tap has no cell at all. The trout section
+ * is required from rows 34 (`SECTION_NAMES`): a tap with a cell and no `trout` is refused, never read as "no table".
+ */
+export function tableCovers(inp: RegsInputs): TableCovers {
+  if (inp.trout === undefined && inp.cell) throw new TroutSectionMissing();
+  return inp.trout?.covers ?? [];
+}
+
+/** A tapped cell's inputs without the trout section (required from rows 34): built by something other than the store. */
+class TroutSectionMissing extends Error {
+  constructor() { super("regs: a cell's inputs carry no trout section (required from rows 34)"); this.name = "TroutSectionMissing"; }
+}
 
 /** page v36 renderCard: rows are drawn only on a day the store does not call closed (and that has its rows frame). */
 export const rowsDrawn = (card: CardModel): boolean => card.status !== "closed" && !!card.ctx.status && !card.missingRows;
 
 /**
- * page v36 rowsHtml: `main` = the rows with a trout or char (all members), `rest` = the others. With no trout row, or
- * fewer than two others, every row is drawn in order and `rest` is null (no Other fish list). No rows on a closed day.
+ * page v36 rowsHtml, (T810 S) split by the trout table's `covers` (`TableCovers`): those rows are the table's, never
+ * `main` or `rest`; the other fish are every row NOT in `covers`. Beside a table, two or more others are the compact list
+ * (`rest`); fewer are drawn in full, as today (owner 2026-11-16 "Stays as today"). With no table (`covers` empty) every
+ * row is drawn in order and `rest` is null (no Other fish list). No rows on a closed day.
  */
-export function splitRows(card: CardModel): { main: readonly number[]; rest: readonly number[] | null } {
+export function splitRows(card: CardModel, covers: TableCovers): { main: readonly number[]; rest: readonly number[] | null } {
   if (!rowsDrawn(card)) return { main: [], rest: null };
-  const all = card.rows.map((_, i) => i);
-  const main = all.filter((i) => card.rows[i]!.allMembers.some((S) => TROUTISH.includes(S)));   // page `allMembers || members`: always set
-  const rest = all.filter((i) => !main.includes(i));
-  return !main.length || rest.length < 2 ? { main: all, rest: null } : { main, rest };
+  const cov = new Set(covers), others = card.rows.map((_, i) => i).filter((i) => !cov.has(i));
+  return others.length < 2 || others.length === card.rows.length ? { main: others, rest: null } : { main: [], rest: others };
 }
 
 /**
  * (T670 K4/K5) THE FULL ROWS NOTHING DRAWS: a row of `main` that is no parent's child (grouphead.ts `parentRow`), has no
  * stored group headline (so no card) and holds a pool (so no plain row) — page v36's legacy pooled card, never ported.
- * It was dropped from the tab whole: Region 8's "20 brook trout from streams" (p.68) on every open stream of the region,
- * the Duncan River's "bull trout daily quota = 2" (p.36) on its tributaries. Such a row is drawn as a line of the compact
- * list, its stored answer in one word and its full article one tap down (`other:oN`), like every row of `rest`.
+ * Such a row is drawn as a line of the compact list, its stored answer in one word and its full article one tap down
+ * (`other:oN`), like every row of `rest`. (T810 S) The trout ones (Region 8's "20 brook trout from streams", p.68; the
+ * Duncan River's "bull trout daily quota = 2", p.36) are the table's rows now (`covers`); this is for the other fish.
  */
-export function looseRows(card: CardModel): readonly number[] {
-  return splitRows(card).main.filter((i) => {
+export function looseRows(card: CardModel, covers: TableCovers): readonly number[] {
+  return splitRows(card, covers).main.filter((i) => {
     const r = card.rows[i]!;
     return !parentRow(card, r) && !r.raw.group?.headline && !!r.pool;
   });
 }
 
-/** The rows of the compact list, in the order drawn: the loose full rows (trout and char first), then `rest`. Null: no list.
+/** The rows of the compact list, in the order drawn: the loose full rows, then `rest`. Null: no list.
  *  `other:oN` is the N-th of these (sheets/other.ts reads the same list). */
-export function listRows(card: CardModel): readonly number[] | null {
-  const loose = looseRows(card), { rest } = splitRows(card);
+export function listRows(card: CardModel, covers: TableCovers): readonly number[] | null {
+  const loose = looseRows(card, covers), { rest } = splitRows(card, covers);
   return loose.length || rest ? [...loose, ...(rest ?? [])] : null;
 }
 
@@ -86,13 +105,17 @@ export function backOf(r: HydRow): OtherFishRowVM["back"] {
   });
 }
 
-/** prototype Other fish: one compact row per list row (`listRows`), opening its full row as a sheet; null when there is no list. */
-export function otherFishOf(card: CardModel, inp: RegsInputs, fish: FishManifest): readonly OtherFishRowVM[] | null {
-  const list = listRows(card);
+/** prototype Other fish: one compact row per list row (`listRows`), opening its full row as a sheet; null when there is no list.
+ *  (T892) `from`: the row's sheet names a deciding step "<that water> · its tributaries" for all its fish (`rowDown`: the
+ *  sheet's own flow, built with the same `seams`). */
+export function otherFishOf(card: CardModel, inp: RegsInputs, fish: FishManifest, covers: TableCovers, settled: Settled,
+  seams: LadderSeams): readonly OtherFishRowVM[] | null {
+  const list = listRows(card, covers);
   if (!list) return null;
   return list.map((ix, i): OtherFishRowVM => {
     const r = card.rows[ix]!, g = r.raw.group;
     const hasSize = g ? SIZE_IN_GROUP.test(JSON.stringify(g.tree ?? g.kinds ?? [])) : sizeInItems(r);
+    const from = downLine(rowDown(r, { card, settled, inp, seams }));
     return {
       thumb: r.members.find((c) => (fish[c]?.length ?? 0) > 0) ?? null,
       name: rowTitle(r, inp), value: shortValue(r.kind, r.daily), tone: r.kind,
@@ -101,6 +124,7 @@ export function otherFishOf(card: CardModel, inp: RegsInputs, fish: FishManifest
       open: `other:o${i}`,
       stamps: (r.raw.stamps ?? []).map(stampLine),
       back: backOf(r),
+      ...(from ? { from } : {}),
     };
   });
 }
@@ -122,6 +146,6 @@ export function otherFishKeyOf(rows: readonly OtherFishRowVM[] | null, inp: Regs
 
 /** The rows drawn as groups (T21's `KeepVM.groups`): the drawn full rows (`splitRows.main`, minus page v36's parent rows)
  *  whose stored group has a headline. */
-export function groupRows(card: CardModel, drawn: ReadonlySet<number>): readonly number[] {
-  return splitRows(card).main.filter((i) => drawn.has(i) && !!card.rows[i]!.raw.group?.headline);
+export function groupRows(card: CardModel, drawn: ReadonlySet<number>, covers: TableCovers): readonly number[] {
+  return splitRows(card, covers).main.filter((i) => drawn.has(i) && !!card.rows[i]!.raw.group?.headline);
 }

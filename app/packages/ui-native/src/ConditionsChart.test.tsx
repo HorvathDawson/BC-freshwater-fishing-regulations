@@ -20,6 +20,12 @@ import { ConditionsPanel } from "./ConditionsPanel";
 import { LIGHT } from "./theme";
 
 afterEach(cleanup);
+/** (T920) the gauge legend sits in its own fold, closed by default: open it as a reader would (absent: nothing to open) */
+const openGauges = () => {
+  const fold = screen.queryByTestId("gauges-fold");
+  if (fold) fireEvent.click(fold.querySelector("[role=button]")!);
+};
+
 beforeEach(clearPanelCache);
 
 const SEC = 7 as SectionId;
@@ -60,6 +66,7 @@ async function draw(src: WaterSource = source) {
   </GestureHandlerRootView>);
   await waitFor(() => expect(screen.getByTestId("reading-figure")).toBeTruthy());
   expect(screen.getByTestId("gauge-title").textContent).toBe("Lead Creek near Town");
+  openGauges();
 }
 
 /** (T367) the card's title is the switch: a press opens the gauges behind the estimate as a list */
@@ -73,17 +80,25 @@ const precedes = (a: Element, b: Element) =>
   (a.compareDocumentPosition(b) & Node.DOCUMENT_POSITION_FOLLOWING) !== 0;
 
 describe("the gauge switch sits by the plot", () => {
-  it("runs switch → the gauge's reading → the chart's controls, all above the donor list", async () => {
+  it("runs switch → the gauge's reading → Flow | Level and 72 h | Year on one row → the chart → its legend, all above the donor list", async () => {
     await draw();
     // the card, and its title the switch (the old kicker "AT LEAD CREEK NEAR TOWN" and the chip wrap are gone)
     expect(screen.getByTestId("gauge-card")).toBeTruthy();
     expect(screen.queryByText(CONDITIONS_WORDS.chartGauge)).toBeNull();
+    // (T920 round 3, owner 2026-11-19: "level/flow selector is messy") the two toggles, the old segmented look, on ONE row
+    // directly over the chart
+    await waitFor(() => expect(screen.getByTestId("chart-legend")).toBeTruthy());
+    const row = screen.getByTestId("chart-toggles");
+    expect([...row.querySelectorAll("[role=radiogroup]")].map((g) => g.getAttribute("aria-label"))).toEqual(["Quantity", "Span"]);
+    expect([...row.querySelectorAll("[role=radio]")].map((r) => r.textContent)).toEqual(["Flow", "Level", "72 h", "Year"]);
     const order = [
       screen.getByTestId("gauge-pick"),
       screen.getByTestId("gauge-title"),
-      screen.getByLabelText(CONDITIONS_WORDS.controls.span),
       screen.getByTestId("reading-figure"),
-      screen.getByText(CONDITIONS_WORDS.tapToChart),
+      row,
+      screen.getByLabelText(chartLabel("72h")),
+      screen.getByTestId("chart-legend"),
+      screen.getByLabelText(CONDITIONS_WORDS.donorList),
     ];
     for (let i = 1; i < order.length; i++)
       expect(precedes(order[i - 1]!, order[i]!), `item ${i} after item ${i - 1}`).toBe(true);
@@ -169,7 +184,7 @@ describe("the chart zooms and reads out", () => {
     expect(screen.getByRole("button", { name: CONDITIONS_WORDS.zoom.fit }).getAttribute("aria-disabled"))
       .toBe("true");
     // the hint, whole, and no read-out yet
-    expect(screen.getByText(CONDITIONS_WORDS.zoomHint.pointer)).toBeTruthy();
+    expect(screen.getByTestId("chart-hint").textContent).toBe(CONDITIONS_WORDS.zoomHint.pointer);
     expect(screen.queryByText(/^\d{4}-\d\d-\d\d at \d\d:\d\d .+ · [\d.]+ m³\/s/)).toBeNull();
   });
 
@@ -191,11 +206,11 @@ describe("the chart zooms and reads out", () => {
       return el.textContent!;
     });
     expect(line).not.toBe(CONDITIONS_WORDS.zoomHint.pointer);
-    // (T604) the hint stays, whole, on its own line: the read-out has the row above it to itself
-    expect(screen.getByText(CONDITIONS_WORDS.zoomHint.pointer)).toBeTruthy();
+    // (T920) one line over the plot: the value read takes the hint's place, never a second line that moves the chart
+    expect(screen.queryByTestId("chart-hint")).toBeNull();
     act(() => { fireGestureHandler(getByGestureTestId("chart-double-tap"), [{ x: 1, y: 1 }, { x: 1, y: 1 }]); });
     await waitFor(() => expect(screen.queryByText(/^\d{4}-\d\d-\d\d at \d\d:\d\d .+ · [\d.]+ m³\/s/)).toBeNull());
-    expect(screen.getByText(CONDITIONS_WORDS.zoomHint.pointer)).toBeTruthy();
+    expect(screen.getByTestId("chart-hint").textContent).toBe(CONDITIONS_WORDS.zoomHint.pointer);
   });
 
   it("a wheel the chart cannot use scrolls the page: out at the whole chart, in at the narrowest", async () => {
@@ -222,5 +237,51 @@ describe("the chart zooms and reads out", () => {
       [{ scale: 1, focalX: 180 }, { scale: 1.5, focalX: 180 }, { scale: 3, focalX: 180 }]); });
     await waitFor(() => expect(screen.getByRole("button", { name: CONDITIONS_WORDS.zoom.out })
       .getAttribute("aria-disabled")).not.toBe("true"));
+  });
+});
+
+/**
+ * (T920, owner 2026-11-19: "we also cant switch between year and recent view anymore") THE SPAN AND THE QUANTITY SWITCH
+ * WHAT THE CHART DRAWS, not only the toggle's state: Year draws the year chart (its name, its axis, its line), 72 h draws
+ * the recent chart again; Level draws the level chart in metres.
+ */
+describe("the chart's toggles change the chart", () => {
+  const drawnChart = () => {
+    const img = screen.getByTestId("gauge-card").querySelector("[role=img][aria-label]")!;
+    const svg = img.querySelector("svg")!;
+    return { name: img.getAttribute("aria-label"),
+             axis: [...svg.querySelectorAll("text")].map((t) => t.textContent).join("|"),
+             line: [...svg.querySelectorAll("path")].map((p) => p.getAttribute("d")).join("|"),
+             unit: screen.getByTestId("chart-unit").textContent };
+  };
+  const radio = (group: string, name: string) =>
+    [...screen.getByTestId(group).querySelectorAll("[role=radio]")].find((r) => r.textContent === name)!;
+
+  it("Year draws the year chart; 72 h draws the recent chart again", async () => {
+    await draw();
+    await waitFor(() => expect(screen.getByLabelText(chartLabel("72h"))).toBeTruthy());
+    const recent = drawnChart();
+    expect(radio("chart-span", "72 h").getAttribute("aria-checked")).toBe("true");
+    fireEvent.click(radio("chart-span", "Year"));
+    await waitFor(() => expect(screen.getByLabelText(chartLabel("year"))).toBeTruthy());
+    await waitFor(() => expect(drawnChart().line).not.toBe(recent.line));
+    const year = drawnChart();
+    expect(radio("chart-span", "Year").getAttribute("aria-checked")).toBe("true");
+    expect(year.name).toBe(chartLabel("year"));
+    expect(year.axis).not.toBe(recent.axis);
+    fireEvent.click(radio("chart-span", "72 h"));
+    await waitFor(() => expect(drawnChart()).toEqual(recent));
+  });
+
+  it("Level draws the level chart, in metres; Flow draws the flow chart again", async () => {
+    await draw();
+    await waitFor(() => expect(screen.getByLabelText(chartLabel("72h"))).toBeTruthy());
+    const flow = drawnChart();
+    expect(flow.unit).toBe("m³/s");
+    fireEvent.click(radio("chart-quantity", "Level"));
+    await waitFor(() => expect(drawnChart().unit).toBe("m"));
+    await waitFor(() => expect(drawnChart().line).not.toBe(flow.line));
+    fireEvent.click(radio("chart-quantity", "Flow"));
+    await waitFor(() => expect(drawnChart()).toEqual(flow));
   });
 });

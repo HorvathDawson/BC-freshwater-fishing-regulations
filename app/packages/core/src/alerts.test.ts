@@ -353,7 +353,7 @@ describe("the words (whole strings, AGENTS 33)", () => {
     expect(alertNotification(rule({ direction: "below", threshold: value(12), water: null, quantity: "level" }),
                              { at: "2026-11-09T06:30:00-07:00", value: 11.94 })).toEqual({
       title: "Chilliwack River at Vedder Crossing: level alert",
-      body: "Chilliwack River at Vedder Crossing crossed below 12 m — 11.9 m at 06:30 PT.",
+      body: "Chilliwack River at Vedder Crossing crossed below 12.00 m — 11.94 m at 06:30 PT.",
     });
   });
 

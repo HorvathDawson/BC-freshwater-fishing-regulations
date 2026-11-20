@@ -3,8 +3,8 @@
  * frame as the app draws them). The arrangement differs; the words do not:
  *
  *   phone    nothing wraps the page, nothing is beside it (the design: golden parity, the existing render tests)
- *   tablet   the page and its pin bar in the reading column; the header as on a phone
- *   desktop  the reading column beside the side column (the date pill, the sections, the pinned lines); the header
+ *   tablet   the page in the reading column; the header as on a phone (T810 cutover: no pin bar)
+ *   desktop  the reading column beside the side column (the date pill, the sections); the header
  *            keeps the name row and the place label
  *
  * The page's words, every class, every state: the same, in the same order. The view's words on a desktop: the phone's,
@@ -12,16 +12,15 @@
  * What jsdom cannot lay out (the line length, the left edge, no sideways scroll) is measured in Chrome by
  * tools/regs-wide-layout.test.ts.
  */
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { act, cleanup, fireEvent, render, screen, within } from "@testing-library/react";
 import { Text } from "react-native";
 import type { LayoutClass } from "@app/ui";
-import { type PinAnchor, type PinLine, type RegsPage } from "@app/core";
+import { type RegsPage } from "@app/core";
 import { LIGHT } from "../theme";
 import { WaterFrame } from "../WaterFrame";
 import { RegsScreen, type RegsScreenProps } from "./RegsScreen";
-import { createPinStore } from "./pinStore";
-import slice from "./fixtures/pin-geometry.json";
+import { createTabStore } from "./tabStore";
 import vedder1010 from "./fixtures/vedder_1010.json";
 import klwa1010 from "./fixtures/klwa_1010.json";
 import bc1501 from "./fixtures/bc1_501.json";
@@ -63,13 +62,17 @@ describe("T45 the Regulations view on a wide screen: same words, another arrange
     const h = PAGES[id]!.header;
     const date = `${h.dayWord}${h.date}`, place = h.place ? `${h.place.full}${h.place.full}` : "";
     const tabs = "What you can keepGearMethodsLicence";
+    // (T841, owner 2026-11-17 21:38 "In the name row") a classified water's badge sits in the name row, after the name,
+    // on every layout: its class and (look B) its period
+    const c = (h as { classed?: { label: string; period: string | null } }).classed;
+    const badge = c ? `${c.label}${c.period ?? ""}` : "";
     // (owner call 3: T71 Map, T150 Parts) the header draws no action: the name, the pill, the place, the tabs
-    const phoneHead = `${h.name}${date}${place}${tabs}`;
+    const phoneHead = `${h.name}${badge}${date}${place}${tabs}`;
     expect(seen.phone!.startsWith(phoneHead)).toBe(true);
     expect(seen).toEqual({
       phone: seen.phone,
       tablet: seen.phone,
-      desktop: `${h.name}${place}${date}${tabs}${seen.phone!.slice(phoneHead.length)}`,
+      desktop: `${h.name}${badge}${place}${date}${tabs}${seen.phone!.slice(phoneHead.length)}`,
     });
   });
 
@@ -115,7 +118,7 @@ describe("T45 the Regulations view on a wide screen: same words, another arrange
   }, 30_000);
 
   it("desktop: a section press in the side column selects it at once and scrolls the page's column to it (T29 tabScrollY)", () => {
-    const store = createPinStore();
+    const store = createTabStore();
     mount("vedder_1010", "desktop", { store });
     const to = vi.fn();
     (screen.getByTestId("regs-scroll") as unknown as { scroll: typeof to }).scroll = to;
@@ -138,37 +141,5 @@ describe("T45 the Regulations view on a wide screen: same words, another arrange
   });
 });
 
-/* THE PIN BAR STILL WORKS: the bars at chosen offsets through the page's scroll, drawn in the side column (desktop) and over
-   the reading column (tablet) — the lines the pin store holds at each offset (PinBar.test.tsx pins them in words). */
-type Slice = { heights: Record<string, number>;
-  states: Record<string, { viewport: { height: number }; anchors: PinAnchor[] }> };
-const OFFSETS: Record<string, readonly number[]> = { vedder_1010: [0, 128, 300, 912, 968, 1128, 1624], klwa_1010: [0, 128, 744] };
-const P = slice as unknown as Slice;
-
-describe("T45 the pin bar on a wide screen", () => {
-  beforeEach(() => { vi.useFakeTimers(); });
-  const bar = () => {
-    const b = screen.queryByTestId("pin-bar");
-    if (!b) return [];
-    return [...b.querySelectorAll('[data-testid="pin-group"], [data-testid="pin-tier"]')].map((line) => [...line.children].map((t) => t.textContent));
-  };
-  const want = (lines: readonly PinLine[]) => lines.map((l) => (l.sub === null ? [l.text] : [l.text, l.sub]));
-
-  it.each([["vedder_1010", "desktop"], ["klwa_1010", "desktop"], ["vedder_1010", "tablet"]] as const)("%s %s", (id, layout) => {
-    const s = P.states[id]!, store = createPinStore({ heights: new Map(Object.entries(P.heights)) });
-    render(<RegsScreen page={PAGES[id]!} palette={LIGHT} actions={NOOP} onDate={() => {}} store={store} layout={layout} />);
-    act(() => { store.setViewport(s.viewport.height); store.setAnchors(s.anchors); });
-    let drawn = 0;
-    for (const y of OFFSETS[id]!) {
-      act(() => { fireEvent.scroll(screen.getByTestId("regs-scroll"), { target: { scrollTop: y } }); vi.advanceTimersByTime(200); });
-      expect([y, bar()]).toEqual([y, want(store.getLines())]);
-      const b = screen.queryByTestId("pin-bar");
-      if (b) {
-        drawn++;
-        expect([y, layout === "desktop" ? ids(b).includes("regs-side") : getComputedStyle(b).position])
-          .toEqual([y, layout === "desktop" ? true : "absolute"]);
-      }
-    }
-    expect(drawn).toBeGreaterThan(0);
-  });
-});
+// (T810 cutover, owner 2026-11-17 23:29 "Remove it (Recommended)") retired: "T45 the pin bar on a wide screen" — the bar is
+// gone (no Keep tab draws a group card since the cutover); no page draws one, on any class: RegsScreen.test

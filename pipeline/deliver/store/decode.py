@@ -68,8 +68,14 @@ class Store:
 
     # ---- the answers file
     def answers(self) -> dict:
-        from pipeline.deliver.store.build import FAMILIES, SECTIONS
+        from pipeline.deliver.store.build import ADDED_SECTIONS, FAMILIES, SECTIONS
         layout = json.loads(self.meta["layout"])
+        # (T810 tickets I, L) the cell's columns: every section's, then each added one the store holds (its layout's: an
+        # older release's store has none)
+        cols = [c[1] for c in self.con.execute("PRAGMA table_info(cell)")]
+        cell_secs = SECTIONS + tuple(n for n in ADDED_SECTIONS if n in layout["sections"])
+        if cols != ["akey", "s", *cell_secs]:
+            raise StoreError(f"store: cell's columns {cols} are not the layout's sections {list(cell_secs)}")
         keys = []
         nseg = []
         for (a, rs, ls, sw, st, sr, pe, home, kind, tidal, seg, mom, n) in self.con.execute(
@@ -85,11 +91,11 @@ class Store:
         places = [{"regions": json.loads(r), "label": self.s(lb), "names": json.loads(nm)}
                   for _, r, lb, nm in
                   self.con.execute("SELECT place, regions, label, names FROM place ORDER BY place")]
-        at: Dict[str, List[list]] = {name: [[] for _ in keys] for name in SECTIONS}
+        at: Dict[str, List[list]] = {name: [[] for _ in keys] for name in cell_secs}
         for row in self.con.execute(
-                f"SELECT akey, s, {', '.join(SECTIONS)} FROM cell ORDER BY akey, s"):
+                f"SELECT akey, s, {', '.join(cell_secs)} FROM cell ORDER BY akey, s"):
             a, s = row[0], row[1]
-            for name, f in zip(SECTIONS, row[2:]):
+            for name, f in zip(cell_secs, row[2:]):
                 lst = at[name][a - 1]
                 if len(lst) != s:
                     raise StoreError(f"store: cell ({a}, {s}) is out of sequence")

@@ -28,6 +28,15 @@ export const SEARCH_FIND = {
   inUnits: (prefix: string, n: number) => `${n} ${n === 1 ? "water" : "waters"} in MUs ${prefix}…`,
   /** the waters group's heading when some matched only after a slip in spelling was forgiven */
   closeSpellings: (n: number) => `${n} named ${n === 1 ? "water" : "waters"}, some by close spelling`,
+  /** (T927) the heading over the book's boundary places */
+  cutsHead: "Where rules change",
+  /** (T927) a boundary place's line: its water, and what the place is */
+  cutLine: (water: string) => `on the ${water}, where its rules change`,
+  /** (T927) the map's caption while a boundary place is shown */
+  cutCaption: (words: string, water: string) => `${words}, on the ${water}`,
+  /** (T927) a boundary place's row aloud, and its open action */
+  cutShow: (words: string, water: string) => `Show ${words} on the ${water}`,
+  cutOpen: (words: string, water: string) => `Open the ${water} at ${words}`,
 } as const;
 
 /** The stored text as a list: a JSON array of strings, anything else (a damaged file, another version) as none. */

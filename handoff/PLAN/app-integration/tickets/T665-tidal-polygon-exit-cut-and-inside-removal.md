@@ -1,6 +1,8 @@
 # T665 — Tidal: cut every creek where it leaves the tidal polygon; remove lines wholly inside it
 
-Status: PARTIAL — f5831c1ac, be87eb86e, 001e23697, 30aa93f43, f1f928029, 227c53b08, a3518f5d2, 2a21460e0, 76f067600, 56b18e8bb; left (Claude): the staging release of candidate r-483b295de57c (`release --staging --accept-diff …`) once HEAD is pushed (agents do not push) and the fresh-copy `test_stepcache` red is fixed; the shore rule into RULINGS.md and MAP.md
+Status: DONE — f1f928029, 227c53b08, a3518f5d2, 2a21460e0, 76f067600, 56b18e8bb, f5831c1ac, be87eb86e, 001e23697, 30aa93f43, 23a65adfa. The polygon-exit cut and the inside-tidal removal were built, promoted and released to staging (r-483b295de57c); the rule was then replaced by the coast rule (T685, RULINGS E21), which is the one written into RULINGS/MAP.
+
+Closed by the 2026-11-20 audit: promoted f5831c1ac, staging release r-483b295de57c (23a65adfa); the 'shore rule into RULINGS/MAP' leftover was taken by T677 item 6 ('done by T678/T685: the one tidal rule is RULINGS E21 ... and MAP.md's atlas row').
 
 Source: owner 2026-11-11, on the T660 follow-up (A–J): "every item in the 103 can be removed. And the plan in general
 looks solid just need to figure out a clean way to implement it." Next atlas rebuild (with T664 and the nine waiting DFO

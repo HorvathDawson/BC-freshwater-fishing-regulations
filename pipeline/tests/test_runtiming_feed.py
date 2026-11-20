@@ -84,6 +84,9 @@ def built(tmp_path):
 
 def test_each_section_takes_its_relations_and_the_paint_index_says_when(built):
     docs, index, report, _ = built
+    # (T676 item 2) the built index names the oldest app that reads it, from the one table
+    from pipeline.common.feed_formats import FEED_MIN_APP
+    assert index["minAppVersion"] == FEED_MIN_APP["runtiming_index"]
     runs, paint = docs["runs"], docs["paint"]
     assert [r["id"] for r in runs["runs"]] == ["psf:7", "dfo:9:Coho:-"]
     assert runs["slots"][runs["default"]] == "Steelhead"
@@ -353,3 +356,41 @@ def test_t552_the_report_names_dfo_records_that_bind_nothing(built, tmp_path):
     _files, _index, report = B.build(timing, poly, make_base(tmp_path))
     assert report["dfo_records_unbound"] == 1 and report["dfo_unbound_examples"] == ["dfo:77:Coho:- Nowhere Creek"]
     assert built[2]["dfo_records_unbound"] == 0
+
+
+def test_t404_publish_honours_the_bucket(tmp_path, capsys, monkeypatch):
+    """(T404) publish takes --bucket (default staging); the plan names it; an unknown bucket is refused."""
+    from pipeline.runtiming.feed import publish as P
+    d = tmp_path / "runtiming"
+    d.mkdir()
+    (d / "runs-a.json.gz").write_bytes(b"x")
+    (d / "index.json").write_text(json.dumps({"files": {"runs": {"url": "runs-a.json.gz"}}}))
+    assert P.main(["--dir", str(d), "--via", "wrangler"]) == 0
+    assert f"{P.BUCKET}/runtiming/index.json" in capsys.readouterr().out
+    monkeypatch.setenv("CONFIRM_PROD", "canifishthis.ca")
+    assert P.main(["--dir", str(d), "--via", "wrangler", "--bucket", P.PROD_BUCKET]) == 0
+    out = capsys.readouterr().out
+    assert f" {P.PROD_BUCKET}/runtiming/index.json" in out and P.BUCKET not in out
+    with pytest.raises(SystemExit, match="not one of"):
+        P.main(["--dir", str(d), "--via", "wrangler", "--bucket", "somebody-elses"])
+
+
+def test_t404_the_production_bucket_needs_confirm_prod(tmp_path, monkeypatch):
+    """(T404 review) --bucket <production> is refused without CONFIRM_PROD=canifishthis.ca, in publish and base, plan or
+    send, however the name is spelt; with it the plan names the production bucket."""
+    from pipeline.runtiming.feed import publish as P
+    d = tmp_path / "runtiming"
+    d.mkdir()
+    (d / "runs-a.json.gz").write_bytes(b"x")
+    (d / "index.json").write_text(json.dumps({"files": {"runs": {"url": "runs-a.json.gz"}}}))
+    monkeypatch.delenv("CONFIRM_PROD", raising=False)
+    for spelt in (P.PROD_BUCKET, P.PROD_BUCKET.upper(), f"r2:{P.PROD_BUCKET}/"):
+        with pytest.raises(SystemExit, match="CONFIRM_PROD"):
+            P.main(["--dir", str(d), "--via", "wrangler", "--bucket", spelt, "--yes"])
+        with pytest.raises(SystemExit, match="CONFIRM_PROD"):
+            BASE.main(["--bucket", spelt, "--upload", "--add-basins", str(tmp_path / "none")])
+    monkeypatch.setenv("CONFIRM_PROD", "wrong")
+    with pytest.raises(SystemExit, match="CONFIRM_PROD"):
+        P.main(["--dir", str(d), "--via", "wrangler", "--bucket", P.PROD_BUCKET])
+    monkeypatch.setenv("CONFIRM_PROD", "canifishthis.ca")
+    assert P.main(["--dir", str(d), "--via", "wrangler", "--bucket", P.PROD_BUCKET]) == 0

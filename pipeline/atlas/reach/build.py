@@ -15,6 +15,7 @@ import time
 from collections.abc import Mapping
 from dataclasses import dataclass, field
 
+from pipeline.atlas.reach import channels as _channels
 from pipeline.atlas.reach.covered import covered_ids as _covered_ids
 from pipeline.atlas.graph import tributaries as _tribs
 from pipeline.common.names import key as name_key
@@ -452,6 +453,10 @@ def build_reach(entry: dict, rule: dict, registry, graph, *, covered=None,
                            Outcome.unresolved, (), Reason.scope_unresolved,
                            "the entry's scope extents do not resolve, or place no section — the row "
                            "binds nothing until they do (never the whole water)"), []
+    # owner 2026-11-15: a DFO place's extent naming a water holds on that water's OWN CHANNELS too (`reach.channels`)
+    wide = _channels.expand_rule(entry, rule, registry, graph)
+    if wide is not None:
+        rule = wide
     lim = tidal_limit(entry, tidal)
     if lim:
         binding, diags = build_reach(entry, rule, registry, graph, covered=covered, clip=clip,
@@ -532,6 +537,8 @@ def build_reach(entry: dict, rule: dict, registry, graph, *, covered=None,
             "in_reach": bool(row.get("in_reach")), "kept_out": len(row["sections"]),
             "own_row": list(row.get("own_row") or ()), "with_cut": bool(row.get("with_cut")),
             "joined": row.get("joined", 0),
+            # T804: how the joining water was found when it was not at the cut itself
+            **({"found": row["found"]} if row.get("found") not in (None, "at the cut") else {}),
             **({"bounded_at_lake": True, "stem": len(row.get("stem") or ())}
                if row.get("bounded_at_lake") else {})}))
     seen_through: set[tuple[str, str]] = set()
@@ -653,6 +660,10 @@ def _build_rest(entry: dict, rule: dict, rest: dict, registry, graph, *, covered
     eid, rid = entry["entry_id"], rule["rule_id"]
     tribs = wants_tributaries(rule, entry)
     rules = {r.get("rule_id"): r for r in entry.get("rules") or [] if isinstance(r, dict)}
+    # T761: a DFO PLACE'S rest (`entries.to_reach_input` marks it): its own bounds, and a listed place that does not
+    # bind is skipped and named, never the whole rest unknown. A rule-book rest (no mark) is as it always was.
+    dfo = rest.get(DFO_REST_KEY)
+    dfo_rest = dfo is not None and DFO_REST_SKIPS_A_LISTED_PLACE_THAT_DOES_NOT_BIND
 
     def unknown(detail: str) -> tuple[RuleBinding, list[Diagnostic]]:
         return RuleBinding(eid, rid, Outcome.unresolved, (), Reason.complement_unknown, detail,
@@ -661,6 +672,8 @@ def _build_rest(entry: dict, rule: dict, rest: dict, registry, graph, *, covered
     taken: set[str] = set()
     withheld: set[str] = set()
     counts: dict[str, int] = {}
+    each: dict[str, set[str]] = {}
+    skipped: dict[str, str] = dict((dfo or {}).get("undrawn") or {})
     for sid in rest.get("siblings") or []:
         sib = rules.get(sid)
         if sib is None or sid == rid:
@@ -668,6 +681,9 @@ def _build_rest(entry: dict, rule: dict, rest: dict, registry, graph, *, covered
         if (not sib.get("extents") or _rest_of(sib) is not None
                 or str(sib.get("undrawn_part") or "").strip() or sib.get("unresolved_locators")
                 or sib.get("standing")):
+            if dfo_rest:
+                skipped[sid] = "it does not draw its place"
+                continue
             return unknown(f"rest sibling {sid} does not draw its place, so the rest of the "
                            f"water around it is unknown")
         b, d = build_reach(entry, sib, registry, graph, covered=covered, clip=clip,
@@ -676,15 +692,24 @@ def _build_rest(entry: dict, rule: dict, rest: dict, registry, graph, *, covered
                 b.outcome is not Outcome.bound or b.tributaries_pending):
             why = (f"{b.reason.value}: {b.detail}" if b.reason is not None
                    else "its tributary walk is pending")
+            if dfo_rest:
+                skipped[sid] = f"it does not bind ({why})"
+                continue
             return unknown(f"rest sibling {sid} does not bind ({why}) — the rest of the water "
                            f"is unknown until it does")
         taken |= set(b.sections)
+        each[sid] = set(b.sections)
         counts[sid] = len(b.sections)
         if _policy.COMPLEMENT_WITHHOLDS_STRADDLERS:
             withheld |= {p for x in d if x.kind == "unclassified"
                          for p in (x.payload.get("pieces") or ())}
 
-    whole = {k: v for k, v in rest.items() if k != "siblings"} | {"op": "whole"}
+    whole = {k: v for k, v in rest.items() if k not in ("siblings", "bounds", DFO_REST_KEY)} | {"op": "whole"}
+    bounds = rest.get("bounds") if dfo is not None and DFO_REST_HAS_ITS_OWN_BOUNDS else None
+    if bounds:
+        # the stretch it is the rest OF, on the rest's own item scope and walk (`Extent.bounds`)
+        whole = {**whole, "op": bounds["op"], "splits": list(bounds.get("splits") or []),
+                 "cut_pick": dict(bounds.get("cut_pick") or {})}
     base, diags = build_reach(entry, {**rule, "extents": [whole]}, registry, graph,
                               covered=covered, clip=clip, outside=outside, shared=shared,
                               regional=regional, owned=owned)
@@ -696,8 +721,18 @@ def _build_rest(entry: dict, rule: dict, rest: dict, registry, graph, *, covered
         "siblings": counts, "water": len(base.sections),
         "removed": len(set(base.sections) & taken), "withheld": sorted(held),
         "kept": len(sections),
+        **({"bounds": {"op": bounds["op"], "splits": list(bounds.get("splits") or [])}} if bounds else {}),
+        **({"skipped": dict(sorted(skipped.items())), "dormant": list((dfo or {}).get("dormant") or [])}
+           if dfo is not None else {}),
         "why": "other parts: the water minus the sections its siblings bind; pieces straddling "
-               "a sibling's end are withheld, never decided"}))
+               "a sibling's end are withheld, never decided"
+               + ("; a DFO place's listed place that does not bind is skipped and named, a dormant one takes "
+                  "nothing" if dfo is not None else "")}))
+    if dfo is not None:
+        # T761 "AREAS AND TIMES": the listed places' sections INSIDE the bounds — where the rest answers after them
+        behind = {s: sorted(secs & set(base.sections)) for s, secs in sorted(each.items()) if secs & set(base.sections)}
+        if behind:
+            diags.append(Diagnostic(eid, rid, REST_BEHIND, {"behind": behind}))
     if not sections:
         return RuleBinding(eid, rid, Outcome.unresolved, (), Reason.no_sections,
                            "the siblings bind every section of the water — no other parts "
@@ -876,6 +911,31 @@ DFO_JOINING_WATER_STAYS_OUT = True
 A_WORD_READ_THAT_STOPS_MATCHING_STOPS_THE_RUN = True
 #: the rule key a DFO place's rule carries (set by `reach.dfo_salmon`, never by the corpus)
 JOINING_WATER_STAYS_OUT_KEY = "_joining_water_stays_out"
+#: T761: the key on a DFO place's rest extent (`entries._DFO_REST`, set by `entries.to_reach_input`, never by the
+#: corpus): `{dormant: [ids], undrawn: {id: why}}` — the listed places left out of the subtraction, for the diagnostic
+DFO_REST_KEY = "_dfo_rest"
+#: POLICY (T761, owner 2026-11-15): A DFO PLACE'S REST HAS ITS OWN BOUNDS (`Extent.bounds`): it is the rest of that
+#: stretch, not of the whole water ("upstream of CNR bridge … to a point above the Babine, excluding the areas below").
+#: False = the bounds are ignored and the rest is of the whole water (the mutation pin).
+DFO_REST_HAS_ITS_OWN_BOUNDS = True
+#: POLICY (T761): A DFO REST SKIPS A LISTED PLACE THAT DOES NOT BIND, and names it (`complement` `skipped`) — one sibling
+#: whose cut is not built no longer leaves the whole rest `complement_unknown` (Nanaimo). A rule-book rest keeps
+#: `classify.COMPLEMENT_UNKNOWN_IF_A_SIBLING_DOES_NOT_BIND` (AGENTS 13). False = the DFO rest goes unknown too.
+DFO_REST_SKIPS_A_LISTED_PLACE_THAT_DOES_NOT_BIND = True
+#: T761 "areas and times": the diagnostic a DFO rest emits with its listed places' sections inside its bounds,
+#: `{behind: {listed id: [sections]}}` — lifted into the place's reach row (`reach.dfo_salmon.resolve_all` `behind`),
+#: where `deliver.salmon` puts the rest after those places in the chain
+REST_BEHIND = "rest_behind"
+#: POLICY (T743, 2026-11-15; D5's reason applied to T468): A DFO LAKE PLACE'S THROUGH-RIVER ABOVE THE LAKE STAYS OUT
+#: unless DFO's words name it. T468 takes a lake row's through-river in when it has "no row of its own", and a DFO place
+#: is resolved with no table of rows (`owned` None), so EVERY through-river read as unrowed: "Redsand Lake, including
+#: tributaries" (a lake on the Kitsumkalum mainstem 2 km below Kitsumkalum Lake) took the Kitsumkalum River above it,
+#: Kitsumkalum Lake's whole basin with it — 2,635 of its 2,639 sections, 3,086 km — and "Kitsumkalum Lake, including
+#: tributaries" took the 1,643 sections of the river above the lake; the Kitsumkalum River has DFO places of its own on
+#: the same page. Keyed on the same rule key as D5 (`JOINING_WATER_STAYS_OUT_KEY`), so the reach run and the review app
+#: (both shape the rule in `dfo_salmon.entries.to_reach_input`) agree by construction. Reported in the `through_river`
+#: diagnostic (`stays_out`). False = every DFO through-river goes with the lake, as before (the mutation pin).
+DFO_THROUGH_RIVER_STAYS_OUT = True
 
 
 def _joiners_at(graph, registry, owned, entry, words, sid, kind, label, blk, m, done, *,
@@ -884,11 +944,14 @@ def _joiners_at(graph, registry, owned, entry, words, sid, kind, label, blk, m, 
     side channel (`principal=False`) only a joiner the label NAMES is taken: the unnamed fallback of
     a curated confluence cut is its principal line's alone."""
     rows: list[dict] = []
+    found = "at the cut"
     if kind == "confluence":
         head = name_key(label.split("\u2192")[0])          # the one name key (T61 2.8)
         joiners = _tribs.confluence_joiners(graph, blk, m, names=(head,)) if head else ()
         if principal:
             joiners = joiners or _tribs.confluence_joiners(graph, blk, m)
+            if not joiners and head and THE_WATER_AT_A_CONFLUENCE_CUT_IS_THE_ONE_THAT_BRINGS_ITS_NAMED_WATER:
+                joiners, found = _bringer(graph, blk, m, head)
     else:
         near = _tribs.confluence_joiners(graph, blk, m,
                                          near=_tribs.CONFLUENCE_NEAR_M)
@@ -915,9 +978,55 @@ def _joiners_at(graph, registry, owned, entry, words, sid, kind, label, blk, m, 
                      "negated": negated, "own_row": own, "with_cut": with_cut,
                      "signs_below": _signs_below(words, water),
                      "signs_above": _signs_above(words, water),
+                     "found": found,
                      "blk": blk, "m": m, "subtree": subtree,
                      "sections": [] if (included or with_cut) else subtree})
     return rows
+
+
+#: POLICY (T804, owner 2026-11-16 question 9: "we need a trigger for why they are out? … what is the condition just so it
+#: is a universal rule"): THE WATER JOINING AT A CONFLUENCE CUT IS THE ONE THAT BRINGS THE CUT'S NAMED WATER TO THE
+#: LINE. Ruling T9 (a joining water with a row of its own stays out of the stretch rule; one with none goes with the
+#: cut) asks which water joins AT the cut, and the lookup asked only for the named stream's own mouth within 1 m of the
+#: cut. The Morice's "from Gosnell Creek to Lamprey Creek" cut is named for Gosnell Creek, which never meets the Morice:
+#: it joins the Thautil River 222 m above the Thautil's mouth, and the Thautil meets the Morice 20 m below the cut. No
+#: joiner was found, T9 never ran, and the closure walked up the Thautil and Gosnell Creek (both with rows of their own)
+#: and every stream feeding them: 1,827 sections. When neither the named stream nor any stream joins within 1 m, the
+#: joining water is the one meeting the line within `CONFLUENCE_NEAR_M` that is the named stream or carries it (the named
+#: stream lies in its subtree), the nearest such — and T9 decides it as before (`found` in the `confluence_cut`
+#: diagnostic says how it was found). False = the mutation pin (no joiner, the walk takes it all, as before).
+THE_WATER_AT_A_CONFLUENCE_CUT_IS_THE_ONE_THAT_BRINGS_ITS_NAMED_WATER = True
+
+
+def _bringer(graph, blk: str, m: float, head: str) -> tuple[frozenset, str]:
+    """(mouths, how found) of the water that brings the stream named `head` to line `blk` near `m`
+    (`THE_WATER_AT_A_CONFLUENCE_CUT_IS_THE_ONE_THAT_BRINGS_ITS_NAMED_WATER`): the named stream's own mouth within
+    `CONFLUENCE_NEAR_M`, else the nearest stream meeting the line there whose subtree holds a stream of that name.
+    (frozenset(), "") when none does."""
+    near = _tribs.CONFLUENCE_NEAR_M
+    named = _tribs.confluence_joiners(graph, blk, m, near=near, names=(head,))
+    if named:
+        return named, "the named water joins near the cut"
+    by_dist: dict[str, float] = {}
+    for nid in _tribs.confluence_joiners(graph, blk, m, near=near):
+        for ei in graph.down_adj.get(nid, []):
+            e = graph.edges[ei]
+            if e.at_measure is not None and getattr(graph.nodes.get(e.to_node), "blk", None) == blk:
+                by_dist[nid] = min(by_dist.get(nid, float("inf")), abs(e.at_measure - m))
+        by_dist.setdefault(nid, float("inf"))
+    # one water may meet the line by several mouths (a braid): group by name, nearest water first
+    groups: dict[str, set[str]] = {}
+    for nid in by_dist:
+        groups.setdefault((graph.nodes[nid].display_name or "").strip(), set()).add(nid)
+    for water, mouths in sorted(groups.items(), key=lambda kv: (min(by_dist[n] for n in kv[1]), kv[0])):
+        if not water:
+            continue
+        if any(name_key(graph.nodes[s].display_name or "") == head for s in _tribs.subtree(graph, mouths)
+               if s in graph.nodes):
+            d = min(by_dist[n] for n in mouths)
+            return frozenset(mouths), ("it carries the named water" + (f", {d:.0f} m from the cut" if d != float("inf")
+                                                                         else ""))
+    return frozenset(), ""
 
 
 _OWN_INDEX: dict = {}
@@ -1142,8 +1251,10 @@ def _expander(graph, registry, covered, rule, entry, *, cuts=None, region=None, 
                 with_cut |= add
             elif row.get("with_cut"):
                 row["joined"] = len(set(row["subtree"]) & got)
-        got = frozenset(got | with_cut | _through_river_with_the_lake(
-            graph, registry, owned, entry, rule, reach, own_water, blocked, passed, expand))
+        drop: set[str] = set()
+        got = frozenset((got | with_cut | _through_river_with_the_lake(
+            graph, registry, owned, entry, rule, reach, own_water, blocked, passed, expand, drop=drop))
+            - (drop - set(reach) - own_water))
         if region is None:
             return got
         kept = {s for s in got if s in region}
@@ -1156,8 +1267,19 @@ def _expander(graph, registry, covered, rule, entry, *, cuts=None, region=None, 
     return expand
 
 
+#: POLICY (T772, owner 2026-11-17 "Yes, show me the list"): A THROUGH-RIVER THAT STAYS OUT OF A LAKE'S WALK STAYS OUT
+#: WITH ITS SIDE CHANNELS. The walk refuses the river entering the lake on its outlet line (`through_inlets`), but a side
+#: channel of that river — a piece carrying the RIVER'S OWN watershed code — that enters the lake by a mouth of its own
+#: came in as a lake tributary, with what feeds it: "Kitsumkalum Lake, including tributaries" took 16 side-channel
+#: pieces (14.6 km) of the Kitsumkalum River above the lake. When the through-river stays out (a row of its own, the
+#: rule's words, or a DFO place's T743), the river and its side channels entering the lake, and everything above them,
+#: are taken out of the walk (`drop`; never the lake's own water or the reach). Reported as `channels_out` on the
+#: `through_river` diagnostic. False = the mutation pin.
+A_THROUGH_RIVER_STAYS_OUT_WITH_ITS_SIDE_CHANNELS = True
+
+
 def _through_river_with_the_lake(graph, registry, owned, entry, rule, reach, own_water, blocked,
-                                 passed, expand) -> set[str]:
+                                 passed, expand, drop: set | None = None) -> set[str]:
     """A LAKE ROW'S THROUGH-RIVER ABOVE THE LAKE, when it has no row of its own
     (`tributaries.A_LAKE_ROWS_UNROWED_THROUGH_RIVER_IS_A_TRIBUTARY`, T468): the river entering each
     of the entry's own lakes on the lake's outlet line, and everything above it — streams only, never
@@ -1167,6 +1289,8 @@ def _through_river_with_the_lake(graph, registry, owned, entry, rule, reach, own
     if not _tribs.A_LAKE_ROWS_UNROWED_THROUGH_RIVER_IS_A_TRIBUTARY:
         return set()
     words = " ".join(str(rule.get(k) or "") for k in ("verbatim", "extent_text"))
+    # T743: a DFO place has no rows to say which through-river is a water of its own — it stays out unless named
+    stays_out = bool(rule.get(JOINING_WATER_STAYS_OUT_KEY)) and DFO_THROUGH_RIVER_STAYS_OUT
     add: set[str] = set()
     for lake in sorted(s for s in reach if s in own_water):
         if _resolve._kind_of(graph, lake, registry) != "lake":
@@ -1177,8 +1301,9 @@ def _through_river_with_the_lake(graph, registry, owned, entry, rule, reach, own
             water = (graph.nodes[inlet].display_name or "").strip()
             own = own_rows(registry, owned, {inlet}, entry.get("entry_id"))
             negated = bool(water) and _rule_excludes(words, water)
+            held = stays_out and not (bool(water) and _rule_includes(words, water))
             joined = 0
-            if not own and not negated:
+            if not own and not negated and not held:
                 got = {s for s in _tribs.subtree(graph, {inlet})
                        if s not in blocked and s not in passed and s not in own_water
                        and s not in reach
@@ -1186,8 +1311,20 @@ def _through_river_with_the_lake(graph, registry, owned, entry, rule, reach, own
                             or _resolve._kind_of(graph, s, registry) == "stream")}
                 joined = len(got - add)
                 add |= got
+            channels: set[str] = set()
+            if (own or negated or held) and drop is not None and A_THROUGH_RIVER_STAYS_OUT_WITH_ITS_SIDE_CHANNELS:
+                # the river's side channels entering the lake by mouths of their own: the river's own code, a stream
+                code = graph.nodes[inlet].wsc
+                channels = {e.from_node for e in (graph.edges[i] for i in graph.up_adj.get(lake, []))
+                            if code and e.from_node not in reach and e.from_node != inlet
+                            and e.from_node in graph.nodes and graph.nodes[e.from_node].wsc == code
+                            and e.from_node not in own_water} if code else set()
+                if channels:
+                    drop |= set(_tribs.subtree(graph, channels)) - set(reach) - own_water
             expand.through.append({"lake": lake, "inlet": inlet, "water": water or "(unnamed)",
-                                   "own_row": list(own), "negated": negated, "joined": joined})
+                                   "own_row": list(own), "negated": negated, "joined": joined,
+                                   **({"stays_out": True} if held else {}),
+                                   **({"channels_out": len(channels)} if channels else {})})
     return add
 
 

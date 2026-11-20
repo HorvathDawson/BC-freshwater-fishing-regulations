@@ -1,6 +1,6 @@
 # T582 — One day per water screen, and the same kept state on web and phone
 
-Status: IN REVIEW (built per the DECIDED section; web shots in ../T582-shots/; phone not run, no build this session)
+Status: DONE — 52eed5c80 (closed on the owner's word 2026-11-20; see the last section)
 
 Source: T580 audit 2026-11-10 (owner: "stuff like this should never happen … look for other things like that").
 Findings, with file:line, the state that shows each and the proposed fix: `handoff/PLAN/app-integration/T580-findings.md`.
@@ -33,3 +33,9 @@ Two days, each labelled, with a soft link. The forecast is a short window; regul
 ## Owner look pending (2026-11-10)
 Owner will try it on build 25: "we just want to make sure it isn't clunky and hard for a user to know what it means."
 Stays IN REVIEW until he says it reads clearly. If not: simplify the wording or drop to one line; ask him what confused.
+
+## Closed 2026-11-20
+
+Closed 2026-11-20 on the owner's word ("Couldn't we just assume most of these are done already?"): the regulations-day line and the one kept state per water are taken as checked on the phone.
+
+Status line before closing: IN REVIEW (built per the DECIDED section; web shots in ../T582-shots/; phone not run, no build this session)

@@ -13,16 +13,17 @@ import { Pressable, Text, View } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { makeFixtureSource } from "@app/data/fixture";
 import type { Spot } from "@app/data/spots";
-import { clearPanelCache, HOME, type Route } from "@app/ui";
+import { clearPanelCache, HOME, LayoutWidthContext, type Route } from "@app/ui";
 import type { Panel, SectionId, WaterSource } from "@app/data";
 import { LIGHT } from "./theme";
+import { drawPhoneScreensOnWeb } from "./storeShots";
 import { labelAudit, shellPressAudit } from "./regs/testing/a11yAudit";
 import { hitProps } from "./regs/hit";
 
 vi.mock("@app/map", async (orig) => ({ ...(await orig<Record<string, unknown>>()), Map: () => null }));
 vi.mock("./FishSpinner", () => ({ FishSpinner: () => null }));
 const { Shell } = await import("./Shell");
-afterEach(cleanup);
+afterEach(() => { cleanup(); drawPhoneScreensOnWeb(false); });
 
 const VISIT = new Date(2026, 7, 30, 23, 30).getTime();
 const TAMIHI: Spot = {
@@ -33,11 +34,12 @@ const TAMIHI: Spot = {
 function mount(start: Route, width: number, extra: Record<string, unknown> = {}) {
   Object.defineProperty(document.documentElement, "clientWidth", { configurable: true, value: width });
   Object.defineProperty(document.documentElement, "clientHeight", { configurable: true, value: width > 700 ? 900 : 844 });
-  render(<GestureHandlerRootView>
+  // (T839) the window's width is told to the app as App.tsx tells it: at 1280 the tabs are the left rail
+  render(<LayoutWidthContext.Provider value={width}><GestureHandlerRootView>
     <Shell source={makeFixtureSource()} palette={LIGHT} theme="light" themeName="light" onTheme={() => {}}
            tiles={{ atlas: "a", basemap: "b" } as never} initialRoute={start} spots={[TAMIHI]} onSaveSpot={() => {}}
            locate={null} {...extra} />
-  </GestureHandlerRootView>);
+  </GestureHandlerRootView></LayoutWidthContext.Provider>);
 }
 /** a closed sheet slides out on react-native-web and is gone at the end of its animation, which jsdom never plays */
 const slidOut = () => act(() => {
@@ -125,15 +127,23 @@ async function coachRegistry() {
 
 /** state, how it is put on screen, and the words that prove it is there */
 const STATES_T258: [string, (width: number) => Promise<void>, RegExp][] = [
+  // (T909) the bell is the phone's (the website's bar has none): its sheet is opened from the phone's bar controls, drawn
+  // the way the store-shots web build draws them (T319, `storeShots.ts`; reset after each test)
   ["the bell sheet (Notifications)", async (w) => {
+    drawPhoneScreensOnWeb(true);
     mount(HOME, w); await settle();
     act(() => { fireEvent.click(screen.getByTestId("inseason-bell")); }); await settle();
   }, /Notifications/],
   ["the first-run notice", async (w) => { mount(HOME, w, { firstRun: memory(null) }); await settle(); }, /Before you fish/],
+  ["(T888) the newer-version popup on opening", async (w) => {
+    mount(HOME, w, { appUpdateStore: memory(), appUpdater: { channel: "play", installed: "0.8.1", start: async () => "downloading",
+                     check: async () => ({ available: true, version: "0.8.2", notes: ["The map draws faster"] }) } });
+    await settle();
+  }, /Version 0\.8\.2 is out/],
   ["the day calendar sheet", async () => {
     const { DaySheet } = await import("./regs/DaySheet");
     const { dayRange } = await import("@app/core");
-    render(<DaySheet open onClose={() => {}} palette={LIGHT} day={null} onDay={() => {}} range={dayRange(new Date(2026, 8, 4), null)} now={new Date(2026, 8, 4, 12)} />);
+    render(<DaySheet open onClose={() => {}} palette={LIGHT} day={null} onDay={() => {}} range={dayRange(new Date(2026, 8, 4), null)} now={new Date(2026, 8, 4, 12)} anchor="regs-date" />);
     await settle();
   }, /Showing /],
   ["the sync error sheet", async () => {
@@ -142,32 +152,30 @@ const STATES_T258: [string, (width: number) => Promise<void>, RegExp][] = [
       failed={[{ k: "gauges", checkedAt: Date.now() - 60_000, updatedAt: null, error: "HTTP 503", failedAt: Date.now() - 60_000, offline: false }]} />);
     await settle();
   }, /Retry/],
-  ["(T293) the guided walkthrough's card, its control ringed", async () => {
+  ["(T293) the guided walkthrough's card, its control highlighted", async () => {
     const { GuideCard } = await import("./Walkthrough");
     const reg = await coachRegistry();
     reg.set("search", { measureInWindow: (cb: (...n: number[]) => void) => cb(14, 10, 362, 46) } as never);
     const noop = () => {};
-    render(<GuideCard guide={{ open: true, pending: true, at: 1, paused: false, reopen: noop, finish: noop, next: noop, back: noop, resume: noop, pass: noop }}
-      facts={{ water: { item: "w", name: "Vedder River" }, searching: false, query: "", selected: null, open: null, adding: false, viewing: null, spots: 0 }}
-      acts={{ search: noop, select: noop, openWater: noop, view: noop, addSpot: noop, cancelAdd: noop, toSpots: noop, openSpot: noop,
-              openLayers: noop, otherGround: noop, obstaclesOn: noop, restoreLayers: noop }}
+    render(<GuideCard guide={{ open: true, pending: true, at: 0, paused: false, reopen: noop, finish: noop, next: noop, go: noop, back: noop, resume: noop, pass: noop }}
+      facts={{ water: { item: "w", name: "Vedder River" }, searching: false, query: "", selected: null, open: null }}
       palette={LIGHT} registry={reg} top={60} bottom={64} />);
     await screen.findByTestId("guide-ring", {}, { timeout: 3000 });
-  }, /Show me/],
+  }, /Search for it/],
   ["a water's Conditions with a gauge, donors and the day", async () => {
     clearPanelCache();
     const { ConditionsPanel } = await import("./ConditionsPanel");
     render(<ConditionsPanel source={GAUGE_SOURCE} section={SEC} palette={LIGHT} feed={GAUGE_FEED} scroll={false} day={new Date(2026, 8, 4, 12)} />);
     await screen.findByTestId("reading-figure");
   }, /Lead Creek/],
-  ["(T284) a spot's three blocks: that day, what you added, the next few days", async (w) => {
+  ["(T284, T819 item 5) a spot's three blocks: what you added, that day, the next few days", async (w) => {
     Object.defineProperty(document.documentElement, "clientWidth", { configurable: true, value: w });
     Object.defineProperty(document.documentElement, "clientHeight", { configurable: true, value: 900 });
     Object.defineProperty(window, "innerWidth", { configurable: true, value: w });
     act(() => { window.dispatchEvent(new Event("resize")); });
     const { SpotScreen } = await import("./SpotScreen");
     const day = (date: string, best: boolean) => ({ date, top: "Sat", sub: "31 Oct", score: "72%", read: "Similar",
-      basis: "weather only", best, reasons: ["Air temperature: 4° cooler", "Wind: 3 km/h calmer"], label: "Sat, 31 Oct: 72%, similar to your visit.", why: [] });
+      basis: "weather only", best, reasons: ["Air temperature: 4° cooler", "Wind: 3 km/h calmer"], label: "Sat, 31 Oct: 72%, similar to your visit.", why: [], lead: "Air temperature: 4° cooler" });
     const photo = "data:image/gif;base64,R0lGODlhAQABAAAAACw=";
     render(<SpotScreen spot={{ ...TAMIHI, notes: "Three rainbow below the bridge.", photos: ["photos/s1-1.png", "photos/s1-2.png"] }}
       palette={LIGHT} onBack={() => {}} onEdit={() => {}} onDelete={() => {}} onShowOnMap={() => {}}
@@ -191,7 +199,7 @@ const STATES_T258: [string, (width: number) => Promise<void>, RegExp][] = [
     press("Close photo"); await settle();
     expect(screen.queryByTestId("photo-viewer")).toBeNull();
     press("Photo 2 of 2"); await settle();   // left open: the audit below sees the viewer too
-  }, /That day[\s\S]*What you added[\s\S]*The next few days/],
+  }, /What you added[\s\S]*That day[\s\S]*The next few days/],
   ["(T294) a spot's visits, the shown visit's rating, and the days predicted from rated visits", async (w) => {
     Object.defineProperty(document.documentElement, "clientWidth", { configurable: true, value: w });
     Object.defineProperty(window, "innerWidth", { configurable: true, value: w });
@@ -205,7 +213,7 @@ const STATES_T258: [string, (width: number) => Promise<void>, RegExp][] = [
     const spot = addVisit(addVisit({ ...TAMIHI, rating: 5 }, v("v1", 86400e3 * 10, 2)), v("v2", 86400e3 * 20, 4));
     const day = (date: string, best: boolean) => ({ date, top: "Sat", sub: "31 Oct", score: "4.2★", read: "Good",
       basis: "From 3 rated visits", best, reasons: ["Most like your 5★ visit on 30 Aug (84% alike)", "Flow: the same"],
-      label: "Sat, 31 Oct: about 4.2 of 5, good, from 3 rated visits.", why: [] });
+      label: "Sat, 31 Oct: about 4.2 of 5, good, from 3 rated visits.", why: [], lead: "Flow: the same" });
     let rated: number | null = null;
     render(<SpotScreen spot={{ ...TAMIHI, rating: 5 }} palette={LIGHT} onBack={() => {}} onEdit={() => {}} onDelete={() => {}}
       visits={visitsView(spot, TAMIHI.id, Date.now())} onPickVisit={() => {}} onRate={(n) => { rated = n; }}
@@ -239,6 +247,24 @@ describe.each([["phone", 390], ["desktop", 1280]] as const)("(T243) %s: every pr
       if (go) await go();
       expect(findings()).toEqual([]);
     });
+});
+
+describe("(T839) the desktop rail is in the 44 × 44 gate", () => {
+  it("1280: the tabs are rail presses, named, each box reaching 44 × 44; 390: they are the bottom bar's", async () => {
+    for (const [width, rail] of [[1280, true], [390, false]] as const) {
+      mount(HOME, width);
+      await settle();
+      expect(!!screen.queryByTestId("nav-rail")).toBe(rail);
+      const tabs = screen.getAllByRole("tab");
+      expect(tabs.map((t) => t.getAttribute("aria-label"))).toEqual(["Map", "Conditions", "Runs", "Spots", "More"]);
+      for (const t of tabs) {
+        const [w, h, top, right, bottom, left] = (t.getAttribute("data-hitslop") ?? "").split(" ").map(Number) as [number, number, number, number, number, number];
+        expect([w + left + right >= 44, h + top + bottom >= 44]).toEqual([true, true]);
+      }
+      expect(findings()).toEqual([]);
+      cleanup();
+    }
+  });
 });
 
 describe("(T243) the audit catches what it is for", () => {

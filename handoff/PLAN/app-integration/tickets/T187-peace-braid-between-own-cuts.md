@@ -1,6 +1,6 @@
 # T187 — The Peace braid piece between Site C's own two cuts binds no Peace row
 
-Status: DONE (dc46e53e fix + tests + POLICY_VERSION 31 + RULINGS E18; 56981f9b taps). Not promoted: the side
+Status: DONE (13027245d fix + tests + POLICY_VERSION 31 + RULINGS E18; 525ab99e9 taps). Not promoted: the side
 run is `data/generated/scratch/peace/reach`, and the owner promotes it.
 
 ## The defect

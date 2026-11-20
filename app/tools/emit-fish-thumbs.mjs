@@ -9,7 +9,7 @@
  * GroupCard's 80 px), its own proportions kept, an RGBA WebP like the pictures (no ground behind a fish, D4). Rows and
  * chips draw the thumbnail; only the fish sheet's picture (`FishImage`, opened by a tap) draws the full one.
  *
- * Rasterised in headless Chrome (tools/regs-web/cdp.mjs, as emit-adipose.mjs): the picture decoded, drawn onto a canvas
+ * Rasterised in headless Chrome (tools/regs-web/cdp.mjs): the picture decoded, drawn onto a canvas
  * with high-quality smoothing, read back as WebP. `thumbs.json` records, per picture, the sha256 of the picture it was
  * made from and of the thumbnail: `node tools/emit-fish.mjs --check` (`pnpm fish`, in `pnpm check`) refuses a picture
  * with no thumbnail, a thumbnail made from another version of its picture, or a thumbnail file that is not the one

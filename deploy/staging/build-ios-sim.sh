@@ -71,7 +71,9 @@ APP=$(ls -d "$DD"/Build/Products/Release-iphonesimulator/*.app | head -1)
 [[ -d $APP ]] || { echo "no $APP" >&2; exit 1; }
 # (T722) the simulated entitlements are in the binary (without them the background downloads are refused): checked, never assumed
 BIN="$APP/$(/usr/libexec/PlistBuddy -c 'Print :CFBundleExecutable' "$APP/Info.plist")"
-otool -l "$BIN" | grep -qE "sectname __entitlements|sectname __ents_der" \
+# (2026-11-16) grep reads ALL of otool's output (no -q): `grep -q` quit at the first match, otool died of SIGPIPE writing
+# the rest, and pipefail called a binary that has the section "no section" (a 4-minute build thrown away)
+otool -l "$BIN" | grep -E "sectname __entitlements|sectname __ents_der" >/dev/null \
   || { echo "no simulated entitlements section in $BIN: background URLSessions would be refused" >&2; exit 1; }
 rm -rf "$OUT/canifishthis.app"; cp -R "$APP" "$OUT/canifishthis.app"
 NAME="canifishthis-staging-$VER-$SHA.app.zip"

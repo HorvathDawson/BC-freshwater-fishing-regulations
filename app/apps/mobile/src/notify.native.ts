@@ -15,7 +15,7 @@
  *               just opens the app, which applies the update as it always does; (v1.1) "a new version of the app" opens
  *               the bell on its App update (what's new + Update, T390).
  *   versions    (v1.1) the new-version notice reads the version file OUR server publishes for this build's channel
- *               (core `appVersionFileUrl`: `latest.json` beside the staging APK page, `play.json` for a Play build).
+ *               (core `appVersionFileUrl`: `latest.json` beside the staging APK page; a store build has none).
  *               Never Play's own check: Play's in-app update API needs the app in the foreground.
  *   push        (T739, owner 2026-11-14) while the reader has notifications on, this phone's push token (`./pushToken`:
  *               APNs on iPhone; FCM on Android only once the Firebase file is in the build) is registered with our
@@ -29,10 +29,10 @@ import { platformLine } from "@app/ui-native";
 import * as BackgroundTask from "expo-background-task";
 import * as Notifications from "expo-notifications";
 import * as TaskManager from "expo-task-manager";
-import { appUpdateChannel, appVersionFileUrl, NOTIFY_WORDS, now, reportFailure, versionHeaders } from "@app/core";
-import { createNotifySettings, createPushRegistrar, fetchObs, parseManifest, runBackgroundCheck, runWake, versionedFetch,
-         type Notice, type NotifyData, type UpdateService } from "@app/data";
-import { openNotifyStore, openPushStore } from "@app/data/spots";
+import { appUpdateChannel, appVersionFileUrl, createFeedGate, NOTIFY_WORDS, now, reportFailure, versionHeaders } from "@app/core";
+import { conditionalJson, createNotifySettings, createPushRegistrar, fetchObs, parseManifest, runBackgroundCheck, runWake,
+         versionedFetch, type Notice, type NotifyData, type UpdateService } from "@app/data";
+import { openHeldCopyStore, openNotifyStore, openPushStore } from "@app/data/spots";
 import type { NotifyControls, NotifyPermission } from "@app/ui";
 import { APP_VERSION, ENDPOINTS, PUSH_URL } from "./config";
 import { pushSeam } from "./pushToken";
@@ -53,11 +53,16 @@ const OWN_CHANNEL = appUpdateChannel({ os: Platform.OS, env: process.env.EXPO_PU
 const OWN_VERSION_FILE = appVersionFileUrl(OWN_CHANNEL,
   { apkPage: process.env.EXPO_PUBLIC_DEV_APK_URL || null, dataBase: ENDPOINTS.base });
 /** (owner 2026-11-06) a Play build tells a new version only once Play offers it, and only the foreground check can ask
- *  Play (an Activity), so a Play build has no background new-version notice: Play notifies its own installs. */
-const VERSION_FILE = OWN_CHANNEL === "play" ? null : OWN_VERSION_FILE && ENDPOINTS.channel === "test"
+ *  Play (an Activity), so a Play build has no background new-version notice: Play notifies its own installs. (T888) The
+ *  same for an App Store build: its `appstore.json` is written at the TestFlight upload, before the store has the
+ *  version, and the App Store tells its own installs. */
+const VERSION_FILE = OWN_CHANNEL === "play" || OWN_CHANNEL === "app-store" ? null : OWN_VERSION_FILE && ENDPOINTS.channel === "test"
   ? `${ENDPOINTS.base}/test/app/android/${OWN_VERSION_FILE.split("/").pop()}` : OWN_VERSION_FILE;
 const FETCH = versionedFetch((u, i) => fetch(u, i),
                              versionHeaders(APP_VERSION, { platform: platformLine(), ua: true }));
+
+// (T741) the last copy of each file the check reads, with its ETag: an unchanged file costs a 304
+const HELD = { obs: openHeldCopyStore("obs"), manifest: openHeldCopyStore("manifest"), version: openHeldCopyStore("version") };
 
 let channels: Promise<void> | null = null;
 function ensureChannels(): Promise<void> {
@@ -84,17 +89,13 @@ async function raise(n: Notice): Promise<void> {
 /** what the check reads and raises: one set for the periodic task and the push wake-up */
 const CHECK = {
   settings, now, appVersion: APP_VERSION, notify: raise,
-  obs: () => fetchObs(ENDPOINTS.alertFeed, FETCH),
-  latestApp: VERSION_FILE ? async () => {
-    const res = await FETCH(VERSION_FILE, { cache: "no-store" });
-    if (!res.ok) throw new Error(`${VERSION_FILE}: HTTP ${res.status}`);
-    return res.json();
-  } : null,
-  manifest: async () => {
-    const res = await FETCH(ENDPOINTS.manifest, { cache: "no-store" });
-    if (!res.ok) throw new Error(`${ENDPOINTS.manifest}: HTTP ${res.status}`);
-    return parseManifest(await res.json());
-  },
+  // (T741) a conditional GET with the last copy kept: an unchanged obs.json costs a 304, not ~24 kB a run
+  // (T676 item 2) a feed gate made for THIS run (a need never outlives the run): an obs.json stamped for a newer app
+  // waits for the update, never reported each run; anything else wrong with it is reported
+  obs: () => fetchObs(ENDPOINTS.alertFeed, FETCH, undefined, HELD.obs, createFeedGate(APP_VERSION)),
+  latestApp: VERSION_FILE ? () => conditionalJson(VERSION_FILE, FETCH, HELD.version) : null,
+  // the kept copy is held to the same reader as a fresh one (`parseManifest` throws on a manifest it refuses)
+  manifest: async () => parseManifest(await conditionalJson(ENDPOINTS.manifest, FETCH, HELD.manifest, (v) => { parseManifest(v); })),
 };
 
 TaskManager.defineTask(TASK, async () => {

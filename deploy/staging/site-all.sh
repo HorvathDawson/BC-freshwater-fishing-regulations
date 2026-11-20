@@ -55,7 +55,7 @@ FAST_FAIL_DONE=${FAST_FAIL_DONE:-$(git rev-parse HEAD)}; export FAST_FAIL_DONE
 if [[ $RELINK == 1 ]]; then
   node deploy/staging/relink-seo.mjs "$S" "$OLD/index.html" "$W/index.html"
 else
-  scripts/heavy.sh site-seo 50 -- node app/tools/build-seo.mjs --release-dir "$D" --app "$W" --threads 4
+  scripts/heavy.sh site-seo 50 -- node app/tools/build-seo.mjs --release-dir "$D" --app "$W" --threads auto
 fi
 
 # 4. merge, stamp, deploy, smoke ----------------------------------------------------------------------------------------

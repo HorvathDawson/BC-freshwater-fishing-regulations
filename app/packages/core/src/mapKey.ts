@@ -17,8 +17,10 @@ export const MAP_KEY = {
   status: { own: "Own rules", base: "Base rules", no_access: "No access" } satisfies Record<Exclude<WaterStatus, "closed">, string>,
   gear: { fly: "Fly only", bait: "Bait ban" } satisfies Record<GearMark, string>,
   notFishing: "Not fishable",
-  /** (T377) the regulations bar's fold: what its button does, whole (the key hidden, the switch stays) */
-  fold: { hide: "Hide the map key", show: "Show the map key" },
+  /** (T759) the issue stripe's entry (Salmon key only): the banner on the water's page says what the rule is */
+  issue: "Check rule",
+  /** (T882, the owner's pick 2026-11-18 ~22:50: "Check DFO") the check colour is DFO's "To be determined" OR a DFO row the
+   *  app could not read, and "Check DFO" is true of both; the long label (`SALMON_WORDS.legend.check`) names the two */
   salmon: { open: "Keep salmon", release: "Release only", closed: "Closed", check: "Check DFO" } satisfies Record<SalmonMapStatus, string>,
   stocked: { season: "This season", year: "This year", recent: "1–3 years ago", decade: "3–10 years ago", old: "Over 10 years ago" } satisfies Record<StockRecency, string>,
   stockedNone: "Not stocked",
