@@ -96,14 +96,43 @@ function rowReadable(r: unknown): r is InSeasonRow {
  */
 export function parseInSeasonFeed(x: unknown): InSeasonFeed | null {
   const f = x as Partial<InSeasonFeed> | null;
-  if (!f || typeof f !== "object" || f.format !== INSEASON_FEED_FORMAT || typeof f.fetchedAt !== "string") return null;
-  if (!Array.isArray(f.rows) || !Array.isArray(f.removed ?? [])) return null;
-  const rows = (f.rows as unknown[]).filter(rowReadable);
-  const unreadRows = (f.rows as unknown[]).flatMap((r, i) => (rowReadable(r) ? [] : [
-    r && typeof r === "object" && typeof (r as { id?: unknown }).id === "string" ? (r as { id: string }).id : `row ${i + 1}`]));
-  if (unreadRows.length * 2 > f.rows.length) return null;
-  return { ...f, source: typeof f.source === "string" ? f.source : "", removed: f.removed ?? [], rows,
+  if (inSeasonFeedRefusal(x)) return null;
+  const rows = (f!.rows as unknown[]).filter(rowReadable);
+  const unreadRows = unreadRowIds(f!.rows as unknown[]);
+  return { ...f, source: typeof f!.source === "string" ? f!.source : "", removed: f!.removed ?? [], rows,
            ...(unreadRows.length ? { unread: unreadRows.length, unreadRows } : { unread: 0, unreadRows: [] }) } as InSeasonFeed;
+}
+
+/** each unreadable row's id (`row <n>` when it has none), in the feed's order */
+const unreadRowIds = (rows: readonly unknown[]): string[] => rows.flatMap((r, i) => (rowReadable(r) ? [] : [
+  r && typeof r === "object" && typeof (r as { id?: unknown }).id === "string" ? (r as { id: string }).id : `row ${i + 1}`]));
+
+/** the row ids a refusal names before "and n more" */
+const REFUSAL_IDS = 5;
+
+/**
+ * (T548 L5) WHY `parseInSeasonFeed` REFUSES an index, in words (the report, the source's `failure()`, the update
+ * service's error); null: it reads. An index refused because MORE THAN HALF its rows cannot be read says so: how many
+ * of how many, and the first few row ids ("not a readable inseason-feed/1 feed" alone did not say it was the rows).
+ */
+export function inSeasonFeedRefusal(x: unknown): string | null {
+  const f = x as Partial<InSeasonFeed> | null;
+  if (!f || typeof f !== "object" || Array.isArray(f)) return `not a readable ${INSEASON_FEED_FORMAT} feed (not an object)`;
+  if (f.format !== INSEASON_FEED_FORMAT)
+    return `not a readable ${INSEASON_FEED_FORMAT} feed (${typeof f.format === "string" ? `format ${f.format}` : "no format"})`;
+  if (typeof f.fetchedAt !== "string") return `not a readable ${INSEASON_FEED_FORMAT} feed (no fetchedAt)`;
+  if (!Array.isArray(f.rows)) return `not a readable ${INSEASON_FEED_FORMAT} feed (no rows list)`;
+  if (!Array.isArray(f.removed ?? [])) return `not a readable ${INSEASON_FEED_FORMAT} feed (removed is not a list)`;
+  const rows = inSeasonRowsRefused(f);
+  return rows ? INSEASON_FAILURES.rowsRefused(rows.unread, rows.of, rows.ids) : null;
+}
+
+/** (T548 L5) the index is refused for its rows (more than half unreadable): how many, of how many, which; else null */
+export function inSeasonRowsRefused(x: unknown): { readonly unread: number; readonly of: number; readonly ids: readonly string[] } | null {
+  const rows = (x as { rows?: unknown } | null)?.rows;
+  if (!Array.isArray(rows)) return null;
+  const ids = unreadRowIds(rows);
+  return ids.length * 2 > rows.length ? { unread: ids.length, of: rows.length, ids } : null;
 }
 
 const isNat = (n: unknown): n is number => Number.isSafeInteger(n) && (n as number) >= 0;
@@ -256,6 +285,10 @@ export const INSEASON_FAILURES = {
   /** (T548 item 4) rows of the index this app could not read: dropped, the rest shown */
   unreadRows: (rows: readonly string[]) =>
     `in-season index.json: ${rows.length} row${rows.length === 1 ? "" : "s"} this app could not read (${rows.join(", ")}) — dropped, the other changes shown`,
+  /** (T548 L5) more than half the rows could not be read: the index is refused whole (a change of shape, not a bad row) */
+  rowsRefused: (unread: number, of: number, ids: readonly string[]) =>
+    `not a readable ${INSEASON_FEED_FORMAT} feed: ${unread} of ${of} rows could not be read (${ids.slice(0, REFUSAL_IDS).join(", ")}` +
+    `${ids.length > REFUSAL_IDS ? ` and ${ids.length - REFUSAL_IDS} more` : ""}), more than half`,
   /** (T693) the links match a notice to waters this device's release does not hold: it is in the bell, not on a page */
   absentWaters: (id: string, items: readonly string[]) =>
     `in-season: ${id} is matched to ${items.join(", ")}, which this release does not hold (shown in the bell, not on a page)`,

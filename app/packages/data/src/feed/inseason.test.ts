@@ -56,7 +56,7 @@ describe("httpInSeason", () => {
       const got = await httpInSeason("http://x", store, serve({ "index.json": { ...FEED, format: "inseason-feed/2" },
                                                                 "matches.json": LINKS })).latest();
       expect(got?.feed.fetchedAt).toBe(FEED.fetchedAt);
-      expect(seen.map(String)).toEqual(["Error: in-season index.json: not a readable inseason-feed/1 feed — refused"]);
+      expect(seen.map(String)).toEqual(["Error: in-season index.json: not a readable inseason-feed/1 feed (format inseason-feed/2) — refused"]);
     } finally { undo(); }
   });
   it("(T548) the update service's offer: a feed it cannot read throws (never marked seen); a readable one re-fetches", async () => {
@@ -88,10 +88,18 @@ describe("httpInSeason", () => {
       expect(() => httpInSeason("http://x", mem(), serve({})).offer!(JSON.stringify(index))).not.toThrow();
       // most rows unreadable: refused whole — the offer throws, a read keeps the capture
       const most = { ...FEED, fetchedAt: "2026-12-01T00:00:00Z", rows: [...index.rows, { ...index.rows[1]!, id: "is-bad2" }] };
-      expect(() => httpInSeason("http://x", mem(), serve({})).offer!(JSON.stringify(most))).toThrow("not a readable inseason-feed/1 feed");
+      // (T548 L5) and the words say it was the rows: how many of how many, and which
+      const ROWS = "not a readable inseason-feed/1 feed: 2 of 3 rows could not be read (is-bad, is-bad2), more than half";
+      expect(() => httpInSeason("http://x", mem(), serve({})).offer!(JSON.stringify(most))).toThrow(ROWS);
       seen.length = 0;
-      const kept = await httpInSeason("http://x", store, serve({ "index.json": most, "matches.json": LINKS })).latest();
-      expect([kept?.feed.fetchedAt, seen.map(String)]).toEqual([FEED.fetchedAt, ["Error: in-season index.json: not a readable inseason-feed/1 feed — refused"]]);
+      const src = httpInSeason("http://x", store, serve({ "index.json": most, "matches.json": LINKS }));
+      const kept = await src.latest();
+      expect([kept?.feed.fetchedAt, seen.map(String)]).toEqual([FEED.fetchedAt, [`Error: in-season index.json: ${ROWS} — refused`]]);
+      expect([src.failure!(), src.failureRows!()]).toEqual([`in-season index.json: ${ROWS} — refused`, { unread: 2, of: 3 }]);
+      // over five unreadable: the first five named, the rest counted
+      const many = { ...FEED, rows: [FEED.rows[0], ...[1, 2, 3, 4, 5, 6, 7].map((n) => ({ id: `is-x${n}`, change: 7 }))] };
+      expect(() => httpInSeason("http://x", mem(), serve({})).offer!(JSON.stringify(many))).toThrow(
+        "not a readable inseason-feed/1 feed: 7 of 8 rows could not be read (is-x1, is-x2, is-x3, is-x4, is-x5 and 2 more), more than half");
     } finally { undo(); }
   });
   it("nothing ever captured and nothing reached: null, never a throw", async () => {

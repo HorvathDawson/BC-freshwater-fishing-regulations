@@ -188,6 +188,9 @@ export const INBOX_WORDS = {
   manyWaters: (n: number) => `Shown on the Regulations page of each of the ${n} waters it applies to.`,
   /** the inbox's line when the feed could not be read (the failure itself is reported by the source) */
   failure: "The latest in-season notices could not be read by this version of the app. Shown: the last ones it read.",
+  /** (T548 L5) the feed was refused because more than half its notices could not be read: how many, of how many */
+  failureRows: (n: number, of: number) =>
+    `The latest in-season notices could not be read by this version of the app (${n} of ${of} could not be read). Shown: the last ones it read.`,
   /** (T548 item 4) some rows of the feed could not be read: they were left out, the others are shown (also reported) */
   unreadRows: (n: number) => n === 1
     ? "1 in-season notice could not be read by this version of the app. It is not shown; the others are."

@@ -8,7 +8,7 @@
  * kept with the captured links, never with none: an outage of one file must not turn matched changes into the
  * "not on the map yet" notice. Asked once per `ttlMs`; every answer resolves, never rejects.
  */
-import { INSEASON_FAILURES, INSEASON_FEED_FORMAT, isFeedTooNew, parseInSeasonFeed, reported, parseInSeasonLinks,
+import { INSEASON_FAILURES, inSeasonFeedRefusal, inSeasonRowsRefused, isFeedTooNew, parseInSeasonFeed, reported, parseInSeasonLinks,
          type FeedGate, type InSeasonFeed, type InSeasonLinks } from "@app/core";
 
 export interface InSeasonStore { read(): string | null; write(text: string): void }
@@ -29,6 +29,8 @@ export interface InSeasonSource {
    * shows a line for it (`INBOX_WORDS.failure`) while the capture answers. Offline is not one. It is also reported.
    */
   failure?(): string | null;
+  /** (T548 L5) the newest fetch was refused for its ROWS (more than half unreadable): how many of how many; else null */
+  failureRows?(): { readonly unread: number; readonly of: number } | null;
 }
 
 export const INSEASON_TTL_MS = 60 * 60_000;
@@ -41,6 +43,7 @@ export function httpInSeason(base: string, store?: InSeasonStore, fetchImpl: typ
   const root = base.replace(/\/$/, "");
   let held: { at: number; p: Promise<InSeasonData | null> } | null = null;
   let failure: string | null = null;
+  let failureRows: { unread: number; of: number } | null = null;
   const captured = (): InSeasonData | null => {
     try {
       const t = store?.read();
@@ -66,14 +69,17 @@ export function httpInSeason(base: string, store?: InSeasonStore, fetchImpl: typ
   const get = async (): Promise<InSeasonData | null> => {
     const [f, l] = await Promise.all([getJson("index.json"), getJson("matches.json")]);
     // (T676 item 2) an index for a newer app: not a failure (no line, no report), the capture answers, the prompt is up
-    if (f !== null && tooNew(f)) { failure = null; return captured(); }
+    if (f !== null && tooNew(f)) { failure = null; failureRows = null; return captured(); }
     const feed = parseInSeasonFeed(f);
     // (T548) a body that came back but is not a feed this app reads is REPORTED; the capture answers meanwhile.
     // (T700) and held as this source's `failure()`, for the inbox's line, until a readable one comes back
+    // (T548 L5) the words say why: a format, a missing field, or more than half the rows (how many, which)
     if (f !== null && !feed) {
-      failure = `in-season index.json: not a readable ${INSEASON_FEED_FORMAT} feed — refused`;
+      failure = `in-season index.json: ${inSeasonFeedRefusal(f) ?? "refused"} — refused`;
+      const rows = inSeasonRowsRefused(f);
+      failureRows = rows ? { unread: rows.unread, of: rows.of } : null;
       reported(null)(new Error(failure));
-    } else if (feed) failure = null;
+    } else if (feed) { failure = null; failureRows = null; }
     // (T548 item 4) a row it could not read was dropped, the rest kept: REPORTED (a fresh read only; the capture's own
     // dropped rows were reported when it was read)
     if (feed?.unread) reported(null)(new Error(INSEASON_FAILURES.unreadRows(feed.unreadRows ?? [])));
@@ -95,10 +101,12 @@ export function httpInSeason(base: string, store?: InSeasonStore, fetchImpl: typ
     },
     refresh() { held = null; },
     failure: () => failure,
+    failureRows: () => failureRows,
     offer(text) {
       const raw: unknown = JSON.parse(text);
       opts.gate?.check(raw, "inseason");   // (T676 item 2) throws for a newer app: the service keeps it unseen and says so
-      if (!parseInSeasonFeed(raw)) throw new Error(`not a readable ${INSEASON_FEED_FORMAT} feed`);
+      const why = inSeasonFeedRefusal(raw);   // (T548 L5) the words say why (the rows: how many of how many, which)
+      if (why) throw new Error(why);
       held = null;
     },
   };
