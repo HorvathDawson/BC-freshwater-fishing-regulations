@@ -277,3 +277,60 @@ def test_one_entry_two_designations_each_section_takes_the_reach_it_joins(world)
     assert {(d.rule_id, d.payload["to"]) for d in diags
             if d.kind == "first_classified_downstream"} == {("a", f"{BULKLEY}#b"),
                                                           ("b", f"{BULKLEY}#a")}
+
+
+# --- T944: A DEAD END FLOWS WHERE ITS WATER FLOWS (`tributaries.A_DEAD_END_FLOWS_WHERE_ITS_WATER_FLOWS`) ---------
+
+def _with_dead_ends(world):
+    """The world plus two creeks with a DEAD END each (`tributaries.A_DEAD_END_GOES_WITH_ITS_WATER` hands the walks
+    those sinks): Shea Creek SH (code g-1) joins Gosnell's G_up, and its side piece SH_dead leaves SH and stops —
+    Shea Creek 773423, which kept the Bulkley's AND the Morice's units; creek T (code m-1) joins the Morice, and its
+    dead end T_dead was left with the Bulkley's walk alone (774476)."""
+    import dataclasses
+    g, reg = world
+    for nid, blk, code in (("SH", "SH", "g-1"), ("SH_dead", "SHD", "g-1"), ("T", "T", "m-1"),
+                           ("T_dead", "TD", "m-1")):
+        g.nodes[nid] = dataclasses.replace(_node(nid, blk, 0, 100), wsc=code)
+    for a, b in (("SH", "G_up"), ("SH", "SH_dead"), ("T", "M"), ("T", "T_dead")):
+        g.edges.append(FlowEdge(from_node=a, to_node=b, kind="confluence", at_measure=50))
+        i = len(g.edges) - 1
+        g.up_adj.setdefault(b, []).append(i)
+        g.down_adj.setdefault(a, []).append(i)
+    pl = _placements()
+    more = ("SH", "SH_dead", "T", "T_dead")
+    pl[0] = LicensingPlacement(BULKLEY, "d", "designation", "sections", sections=pl[0].sections + more,
+                               via_tributary=pl[0].via_tributary + more)
+    pl[1] = LicensingPlacement(MORICE, "d", "designation", "sections", sections=pl[1].sections + more,
+                               via_tributary=pl[1].via_tributary + more)
+    return (g, reg), pl
+
+
+def test_a_dead_end_takes_the_unit_its_water_takes(world):
+    w, pl = _with_dead_ends(world)
+    got, _ = _run(w, pl)
+    assert not {"SH", "SH_dead"} & (got[BULKLEY] | got[MORICE])   # Shea flows into Gosnell: no unit, nor its end
+    assert {"T", "T_dead"} <= got[MORICE] and not {"T", "T_dead"} & got[BULKLEY]
+    per: dict[str, int] = {}
+    for secs in got.values():
+        for s in secs:
+            per[s] = per.get(s, 0) + 1
+    assert all(n == 1 for n in per.values()), per
+
+
+def test_a_rivers_mouth_keeps_nothing_below(world):
+    """The Bulkley's mouth B has no code that leaves itself elsewhere: not a dead end, nothing to follow."""
+    import dataclasses
+    from pipeline.atlas.graph import tributaries as T
+    w, _pl = _with_dead_ends(world)
+    for nid in ("B", "B_hi"):                  # the Bulkley's own code: its mouth B is a sink, the code never leaves
+        w[0].nodes[nid] = dataclasses.replace(w[0].nodes[nid], wsc="400")
+    out = T.dead_end_outlets(w[0])
+    assert out == {"SH_dead": ("G_up",), "T_dead": ("M",)}
+
+
+def test_mutation_switching_dead_end_outlets_off_leaves_two_units(world, monkeypatch):
+    from pipeline.atlas.graph import tributaries as T
+    monkeypatch.setattr(T, "A_DEAD_END_FLOWS_WHERE_ITS_WATER_FLOWS", False)
+    w, pl = _with_dead_ends(world)
+    got, _ = _run(w, pl)
+    assert "SH_dead" in got[BULKLEY] and "SH_dead" in got[MORICE]

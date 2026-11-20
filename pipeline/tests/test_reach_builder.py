@@ -408,6 +408,7 @@ def test_policy_version_is_bumped_when_classify_changes():
         "the_water_at_a_confluence_cut_brings_its_named_water":
             reach_build.THE_WATER_AT_A_CONFLUENCE_CUT_IS_THE_ONE_THAT_BRINGS_ITS_NAMED_WATER,
         "a_through_river_stays_out_with_its_side_channels": reach_build.A_THROUGH_RIVER_STAYS_OUT_WITH_ITS_SIDE_CHANNELS,
+        "a_dead_end_flows_where_its_water_flows": tributaries.A_DEAD_END_FLOWS_WHERE_ITS_WATER_FLOWS,
     })
     expected.update({"confluence_cut_excludes_the_joining_water": True,
                      "confluence_water_without_a_row_goes_with_the_cut": True,
@@ -442,8 +443,9 @@ def test_policy_version_is_bumped_when_classify_changes():
                      "a_walked_past_exception_is_no_stop": True,
                      "a_cut_on_a_line_end_is_across_only_at_its_point": True,
                      "the_water_at_a_confluence_cut_brings_its_named_water": True,
-                     "a_through_river_stays_out_with_its_side_channels": True})
-    assert cache.POLICY_VERSION == "47", "update this pin with the version it was taken at"
+                     "a_through_river_stays_out_with_its_side_channels": True,
+                     "a_dead_end_flows_where_its_water_flows": True})
+    assert cache.POLICY_VERSION == "48", "update this pin with the version it was taken at"
     assert policy == expected, (
         f"classify.py policy changed to {policy} — bump cache.POLICY_VERSION "
         f"(currently {cache.POLICY_VERSION!r}) and update this test together")

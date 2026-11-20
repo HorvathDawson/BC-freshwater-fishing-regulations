@@ -854,6 +854,9 @@ W46. **The guards the 2026-11 audits put in (T429–T442) stay in. A change that
     A DEAD END of a water the walk collected wholly (a lake's second outlet that stops, a closed loop, an unconnected
     piece: a graph sink the walk never reaches by climbing) goes with that water (`tributaries.A_DEAD_END_GOES_WITH_ITS_WATER`,
     2026-11-15; the six Stikine/Taku tributaries' part-name stop). Never on the reach's own code, never past a carve-out.
+    And a dead end FLOWS WHERE ITS WATER FLOWS (`tributaries.A_DEAD_END_FLOWS_WHERE_ITS_WATER_FLOWS`, T944): any pass that
+    walks DOWN from a section (Li5/RU-13's first classified water) goes on from a sink where its code leaves that code
+    (`dead_end_outlets`), never reads it as the sea — Shea Creek's dead end held both the Bulkley's and the Morice's units.
 
 ## Runbook: upstream updates the owner runs
 
