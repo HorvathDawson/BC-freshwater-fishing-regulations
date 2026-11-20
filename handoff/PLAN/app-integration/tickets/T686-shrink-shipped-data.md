@@ -124,6 +124,8 @@ pick). Default: no shipped change until the owner picks.
 once the Stikine and Taku places bound, `pipeline/deliver/release/build.py` `SIZE_GATES`). Shrink it back with the rest:
 `salmon-6` is a candidate here (lower it again once the picked changes ship).
 
+Owner 2026-11-20 09:59 (dialog): "Ship readers now, formats later (Recommended)": app 0.8.4 reads both; this release's data (staging and production) stays in the old formats; the packed formats switch on in the first data release after 0.8.4 reaches the production stores.
+
 ## Built 2026-11-20 (lane L8, `lane/l8-shrink`): the owner's (a)
 Three lossless release formats, the bundle unchanged (the pipeline still reads its rows; only the release packs):
 - `near/2` — `place_water (place_id, b)`, one row per town: its waters' ords as gaps, then ckm as two byte planes. The

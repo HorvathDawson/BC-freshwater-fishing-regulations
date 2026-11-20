@@ -111,13 +111,25 @@ describe("T193 + T269 water pages (the app's own pane) and About", () => {
     const pv = built.build.pages.find((p) => p.path === "/privacy")!;
     expect(text(pv.html)).toMatch(/Open-Meteo/);
     expect(text(pv.html)).toMatch(/salted one-way hash/);
-    // (T739) the owner's approved push-token line, whole (OWNER-TODO round 6, `t739-privacy-wording`)
-    expect(text(pv.html)).toContain("Push token If you turn notifications on, the app sends our server a push token for this phone "
-      + "(an address Apple or Google issue so a message can reach the app) and whether the phone is an iPhone or Android. "
-      + "We use it only to send a silent signal telling the app to check for new data; the signal carries no words, no waters "
-      + "and no location. We do not receive your alerts, the waters you watch or where you are. The token is deleted when you "
-      + "turn notifications off, or when Apple or Google tell us it no longer works. It is not linked to you or to an account "
-      + "and is not backed up.");
+    // (T739) the push-token paragraph, whole: the owner's line with his 2026-11-20 pick "Claude's edit" (iPhone / Apple
+    // only, "I/my", what the server keeps)
+    expect(text(pv.html)).toContain("Push token On an iPhone, when notifications are on and at least one is set (a gauge alert, "
+      + "“New regulations data” or “New app version”), the app sends my server a push token for this phone: an address Apple "
+      + "issues so a message can reach the app. With it I keep only whether it is for Apple’s test or live push service and "
+      + "when it was registered. I use it only to send, through Apple’s push service, a silent signal telling the app to check "
+      + "for new data; the signal carries no words, no waters and no location. I do not receive your alerts, the waters you "
+      + "watch or where you are. I do not store your IP address with it: to limit abuse I keep only a salted one-way hash of it "
+      + "for a day’s counting. The token is deleted when you turn notifications off, or when Apple tells me it no longer works. "
+      + "It is not linked to you or to an account and is not backed up.");
+    expect(text(pv.html)).toContain("The app sends me three things: a problem report, only when you press Send; unless you switch "
+      + "it off, a short error report when the app itself fails; and, on an iPhone with notifications on, a push token so I can "
+      + "tell the app to check for new data.");
+    expect(text(pv.html)).toContain("The services named above (Cloudflare, Open-Meteo, Esri, and Apple for push only) receive only "
+      + "the requests described here.");
+    expect(text(pv.html)).not.toMatch(/Google issue|or Android|Google tell/);
+    // (owner 2026-11-20 09:48) the page names its visit counter, so "This website" never says it runs no analytics
+    expect(text(pv.html)).not.toMatch(/runs no analytics/);
+    expect(text(pv.html)).toContain("the only script is the visit counter described above");
     expect(pv.html).toMatch(/href="\/privacy"/);
     // every hub page's footer (a water page is the app's pane: the app's More menu links it)
     expect(hubs().every((p) => p.html.includes('<a href="/privacy">Privacy policy</a>'))).toBe(true);

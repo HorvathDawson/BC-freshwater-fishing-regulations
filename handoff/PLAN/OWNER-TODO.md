@@ -9,7 +9,33 @@ Things only you can do. Claude keeps this list current while you are away; the w
 `handoff/PLAN/app-integration/tickets/` (README.md is the ledger, and its "Owner questions" table has every question
 with the default Claude uses until you answer). Newest first inside each section.
 
-## 2026-11-20 10:05: T679 #8 — which gauges count as "on this water" (lane L8; NOT asked yet)
+## 2026-11-20 09:59: T686 formats and T679 #8 answered (dialog)
+
+- T686 smaller formats (near/2, down/2, climate/2; 17.5 → 15.2 MB, lossless; only app 0.8.4 reads them): "Ship readers
+  now, formats later (Recommended)": 0.8.4 reads old and new; this release's data (staging AND production) stays in the
+  old formats; the new formats switch on in the first data release after 0.8.4 is in the production stores.
+- T679 #8 (one rule for "on this water"): "Ranking's rule, list first (Recommended)": along the water, a lake on the way
+  ends it; Claude measures which gauges move and shows the owner the list before it ships.
+
+## 2026-11-20 09:48: privacy page answered (dialog)
+
+- Push privacy text (pictures `app-integration/T739-shots/privacy-*-light.png`): "Looks good (Recommended)". Merged;
+  goes live with the next production website; effective date moves to that day. T739.
+- Live contradiction found: "This website" said "runs no analytics" while the page names Cloudflare Web Analytics (T910):
+  "Fix the sentence (Recommended)": now "It sets no cookies and runs no advertising or tracking scripts; the only script
+  is the visit counter described above." T739.
+
+## 2026-11-20 09:39: morning questions answered (dialog)
+
+- Three "Unnamed …" lakes (3261, 3296, 3299): "Show "Unnamed …" (Recommended)": they show "Unnamed Cayoosh Cr",
+  "Unnamed Vanhorlick 1", "Unnamed Vanhorlick 2"; the number stays a search name. T926.
+- "#14A": "Show Floatplane Lake": a number with a letter on it counts as a number name too; "#14A" stays searchable.
+  T926 (Claude extends the rule and reports how many more waters change).
+- Push privacy line: "Claude's edit (Recommended)": Apple only, "I/my", push token added to "the short version", Apple
+  (push only) added to the services, the one-day salted IP hash and the stored environment + time said, effective date
+  moved to the go-live day. The owner sees the text before it goes live. T739.
+
+## 2026-11-20 09:52: T679 #8 — which gauges count as "on this water" (lane L8; ANSWERED 09:59, see above)
 
 Two parts of the app decide whether a gauge is on the water you are reading, by different rules: the gauge list's
 "ON THIS WATER" heading (the app: the gauge's water is this water or one it continues as, `water_continue`) and the
@@ -22,7 +48,7 @@ a side run measures it before anything ships). Measured: over 1,587 panels the h
 sections in 12, so the flag is shipped per section (like the small-water warning), not per gauge.
 No picture yet: the list of gauges that move comes with the measurement.
 
-## 2026-11-20 07:33: push privacy line, now that Android has no push (T739, lane L5; NOT asked yet)
+## 2026-11-20 07:33: push privacy line, now that Android has no push (T739, lane L5; ANSWERED 09:39, see above)
 
 The push-token paragraph you approved on 11-15 ("Yes to both") is now in the privacy page's source exactly as written
 (`app/tools/seo/html.ts`, heading "Push token", after the crash-report section; it goes live only with a production
@@ -46,7 +72,7 @@ Facts from the independent code review (2026-11-20), for the same pick; the appr
 - A token is sent only when notifications are on AND something is set to be checked (a gauge alert, "New
   regulations data" or "New app version"), not on "notifications on" alone.
 
-## 2026-11-20 07:07: a morning question (T926 number names)
+## 2026-11-20 07:07: a morning question (T926 number names; ANSWERED 09:39, see above)
 
 - **Three lakes would show "Unnamed …" instead of their number.** Under "Never show a number name", the lakes now shown
   as 3261, 3296 and 3299 would show "Unnamed Cayoosh Cr", "Unnamed Vanhorlick 1" and "Unnamed Vanhorlick 2" (their
