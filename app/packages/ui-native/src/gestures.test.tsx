@@ -10,7 +10,7 @@
 import { useMemo, useState } from "react";
 import { afterEach, beforeAll, describe, expect, it, vi } from "vitest";
 import { act, cleanup, fireEvent, render, screen } from "@testing-library/react";
-import { Text, View } from "react-native";
+import { Animated, Text, View } from "react-native";
 import { GestureHandlerRootView, State } from "react-native-gesture-handler";
 import { createGestureController, fireGestureHandler, getByGestureTestId } from "react-native-gesture-handler/jest-utils";
 import type { ItemId } from "@app/data";
@@ -126,16 +126,54 @@ describe("<EdgeBack> (iOS only)", () => {
       return c;
     };
 
-    it("a drag whose end never reached the view is put home by the next render once its finger has gone quiet", () => {
+    it("a finger held still is never sent home under it: renders while it is down leave the screen with it", () => {
       vi.useFakeTimers();
-      render(<Host />);
-      dragTo135();
-      const dragged = shift();
-      act(() => redraw());                             // a render while the finger is down: the screen stays with it
+      const back = vi.fn(() => true);
+      render(<Host back={back} />);
+      const c = dragTo135();
+      act(() => redraw());
       const during = shift();
-      act(() => { vi.advanceTimersByTime(1600); });    // nothing heard from the finger since
-      act(() => redraw());                             // a tab change
-      expect([dragged, during, shift()]).toEqual(["translateX(135px)", "translateX(135px)", "translateX(0px)"]);
+      act(() => { vi.advanceTimersByTime(2000); });    // held still for 2 s, no move sent
+      act(() => redraw());                             // a feed update re-renders the shell
+      const held = shift();
+      act(() => { c.end({ absoluteX: 140, x: 140, translationX: 135, velocityX: 0 }); });
+      expect([during, held, back.mock.calls.length]).toEqual(["translateX(135px)", "translateX(135px)", 1]);
+    });
+
+    /** The page (react-native-web's AppState) hidden or shown again. */
+    const appState = (state: "hidden" | "visible") => act(() => {
+      Object.defineProperty(document, "visibilityState", { configurable: true, value: state });
+      document.dispatchEvent(new Event("visibilitychange"));
+    });
+    afterEach(() => { Object.defineProperty(document, "visibilityState", { configurable: true, value: "visible" }); });
+
+    it("a drag whose end never reached the view is put home when the app goes to the background and comes back", () => {
+      render(<Host />);
+      dragTo135();                                     // the end is lost: the system took the touch with the app
+      const dragged = shift();
+      appState("hidden");
+      appState("visible");
+      const back = shift();
+      act(() => redraw());                             // and stays home (no finger down any more)
+      expect([dragged, back, shift()]).toEqual(["translateX(135px)", "translateX(0px)", "translateX(0px)"]);
+    });
+
+    it("a cancelled drag's spring home is let finish: a render landing mid-spring does not cut it to 0", () => {
+      // under test an Animated spring lands at once; this one is held in flight until `land` (the view stays where
+      // the spring has it, here still at the finger's last place)
+      let land: ((r: { finished: boolean }) => void) | undefined;
+      const spring = vi.spyOn(Animated, "spring").mockImplementation(() =>
+        ({ start: (cb?: (r: { finished: boolean }) => void) => { land = cb; }, stop: () => {}, reset: () => {} }) as never);
+      try {
+        render(<Host />);
+        const c = dragTo135();
+        act(() => { c.cancel({ absoluteX: 140, x: 140, translationX: 135 }); });   // the spring home starts
+        act(() => redraw());                           // a render lands mid-spring: not cut short
+        const mid = shift();
+        act(() => land?.({ finished: true }));
+        act(() => redraw());                           // the next render after it lands: home, hard
+        expect([spring.mock.calls.length, mid, shift()]).toEqual([1, "translateX(135px)", "translateX(0px)"]);
+      } finally { spring.mockRestore(); }
     });
 
     it("a handler made again mid-drag still knows the finger: the release goes back, and the screen comes home", () => {
