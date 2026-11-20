@@ -87,3 +87,13 @@ The CO's answer is quoted here with the date. The measurement is in this ticket.
 mutation pin on the stop.
 
 Depends: a CO's answer (owner). Size: M. Owner: yes (ask a CO). Default: keep LI-2, as shipped.
+
+## Owner 12:24 (2026-11-20): nearest wins both ways; only a tributary-applying unit claims what is above it
+Verbatim: "this also happens invereted (Nearest still wins: a stream gets only one unit, and an upstream Class II overrules a downstream Class I above it.) for example a upstrem class i overrules a downstream class ii too. (assumign that the classified water sis applied to tributaries) usually it says it?"
+- Nearest wins whatever the class: an upstream Class I overrules a downstream Class II above it (RU-13 already does).
+- A classified water claims the sections above it only when its row applies to tributaries ("[Includes Tributaries]",
+  or a tributaries-only row). Today a walked section is re-homed to ANY designation whose own reach it meets. Default
+  built (L10, to confirm with the owner): a classified water whose unit does not reach its tributaries is a
+  pass-through like a rowed no-unit water: it goes in `through`, and the card shows the "may need" note. L10 counts the
+  cases and names up to 5.
+
