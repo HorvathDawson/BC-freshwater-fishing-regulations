@@ -139,6 +139,10 @@ export const CUT_LIMIT = 6;
 export const CUT_SAME_PLACE_M = 500;
 /** (T927) Query words that name no water of their own: "creek falls" names no water. */
 const KIND_WORDS = new Set(["river", "rivers", "creek", "creeks", "lake", "lakes", "the", "of", "slough", "channel"]);
+/** (T927 review) A one-word query that is only a kind of place ("bridge", "falls") names no place: it does not find
+ *  places by "a word in it" (hundreds of bridges); a place whose words START with it still does ("Bridge River …"). */
+const PLACE_KIND_WORDS = new Set([...KIND_WORDS, "bridge", "bridges", "falls", "confluence", "signs", "sign", "boundary",
+                                  "mouth", "outlet", "inlet"]);
 
 // ── edit distance ─────────────────────────────────────────────────────────────────────────────────────────────────────
 
@@ -373,9 +377,15 @@ export function queryIndex<W extends IndexWater, P extends IndexPlace>(
     const all = clusterByName(hits);
     let shown = all.slice(0, limit);
     if (exact.size && all.length > limit) {
-      // (T926) an exact name past the limit takes the last rows' place, in its own order: the top is unchanged
-      const late = all.slice(limit).filter((h) => exact.has(h.item));
-      if (late.length) shown = [...shown.slice(0, Math.max(0, limit - late.length)), ...late];
+      // (T926) the limit is taken from the rows NOT typed exactly: every exact row is kept, in the list's own order, and
+      // only non-exact rows give way to an exact one past the limit. More exact rows than the limit (72 "Jennings Lakes"):
+      // the first `limit` of them, nothing else.
+      const exactRows = all.filter((h) => exact.has(h.item));
+      if (exactRows.length >= limit) shown = exactRows.slice(0, limit);
+      else {
+        let room = limit - exactRows.length;
+        shown = all.filter((h) => exact.has(h.item) || room-- > 0);
+      }
     }
     return { waters: shown, places, area: areaAsk, fuzzy, cuts };
   };
@@ -463,6 +473,7 @@ export function queryCuts<W extends IndexWater, P extends IndexPlace>(
   if (q.length < 3 || !ix._c.length) return [];
   const qWord = !hasSep(q);
   const qWords = wordsOf(cutWordsKey(q));
+  const kindOnly = qWords.length === 1 && PLACE_KIND_WORDS.has(qWords[0]!);
   const found: { c: CutEntry; tier: number; as: string | null }[] = [];
   const nameWords = new Map<number, readonly string[]>();
   const wordsOfWater = (w: number) => {
@@ -477,7 +488,7 @@ export function queryCuts<W extends IndexWater, P extends IndexPlace>(
     if (!c.cut.generic) {
       for (const k of c.keys) {
         const t = tierOf(q, qWord, k.key, k.wordKey, k.alt !== null);
-        if (t !== null && t < 6 && (tier === null || t < tier)) { tier = t; as = k.alt; }
+        if (t !== null && t < (kindOnly ? 4 : 6) && (tier === null || t < tier)) { tier = t; as = k.alt; }
       }
     }
     if (tier === null && qWords.length >= 2) {

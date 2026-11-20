@@ -179,6 +179,23 @@ describe("T926: every name variant finds its water", () => {
     expect(all.slice(0, 6)).toEqual(cut.slice(0, 6));
     expect(cut.slice(6).sort()).toEqual(["erie", "shane"]);
   });
+  it("more waters of the exact name than the limit: the biggest of them, in order, and never a non-exact row", () => {
+    const lakes: SearchIndexData = {
+      waters: [
+        ...Array.from({ length: 50 }, (_, i) => w(`ll${i}`, "Long Lake", { kind: "lake", size: null, areaHa: 1000 - i })),
+        ...Array.from({ length: 10 }, (_, i) => w(`lc${i}`, `Long Lake Creek ${i}`, { size: 90000 })),
+      ],
+      aliases: [], places: [],
+    };
+    const lx = buildSearchIndex(lakes);
+    const got = queryIndex(lx, "long lake", 40).waters.map((x) => x.item);
+    expect(got).toEqual(Array.from({ length: 40 }, (_, i) => `ll${i}`));
+    // 80+: still exactly the limit, the biggest first
+    const many = buildSearchIndex({ ...lakes, waters: [...lakes.waters,
+      ...Array.from({ length: 40 }, (_, i) => w(`lm${i}`, "Long Lake", { kind: "lake", size: null, areaHa: 10 - i / 10 }))] });
+    const m = queryIndex(many, "long lake", 40).waters.map((x) => x.item);
+    expect(m).toEqual(Array.from({ length: 40 }, (_, i) => `ll${i}`));
+  });
   it("a whole query that is a name is found though part of it reads as a unit", () => {
     expect(queryIndex(mix, "UNNAMED 3-20").waters[0]?.item).toBe("u320");
   });
@@ -233,6 +250,15 @@ describe("T927: the book's boundary places", () => {
     expect(queryIndex(cx, "Greendale Trestle").waters.map((x) => x.name)).toEqual(["Greendale Trestle Creek"]);
     expect(cuts("Greendale Trestel")).toEqual([]);
     expect(cuts("rest")).toEqual([]);
+  });
+  it("a one-word query that is only a kind of place finds no place by a word in it; a place starting with it still", () => {
+    const k = buildSearchIndex({ ...D, cuts: [...D.cuts!,
+      { item: "cw", words: "Hwy 19 bridge", alt: [], generic: false, blk: 9, m: 10, lat: null, lon: null },
+      { item: "ck", words: "Bridge River confluence", alt: [], generic: false, blk: 8, m: 10, lat: null, lon: null }] });
+    for (const q of ["bridge", "falls", "confluence", "signs", "boundary", "mouth", "outlet", "inlet", "creek"])
+      expect(queryIndex(k, q).cuts.map((c) => c.words).filter((x) => x !== "Bridge River confluence"), q).toEqual([]);
+    expect(queryIndex(k, "bridge").cuts.map((c) => c.words)).toEqual(["Bridge River confluence"]);
+    expect(queryIndex(k, "hwy 19 bridge").cuts.map((c) => c.words)).toEqual(["Hwy 19 bridge"]);
   });
   it("an index without places answers none", () => {
     expect(queryIndex(ix, "elk").cuts).toEqual([]);
