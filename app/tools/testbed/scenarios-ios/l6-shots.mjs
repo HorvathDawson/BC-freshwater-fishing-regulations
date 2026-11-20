@@ -1,7 +1,9 @@
 // (T831, T836) THE iPHONE SHOTS OWED BY TWO MERGED FIXES, light and dark, by name only (`inAll: false`):
 //   t831-ios  a gauged water's Conditions (Coquitlam River, Region 2): the route map draws its lines, the gauge dots and
-//             the accent-violet "you are here" pin (`T831-ios-route-<look>.png`; accent pixels counted on the screen
-//             below the page's head, said, the shot is the proof to set beside the web's);
+//             the accent-violet "you are here" pin (`T831-ios-route-<look>.png`). The map sits under the gauge chart
+//             (T920), below the first screen: the page is scrolled until its frame (`donor-route-map`) is whole on screen,
+//             and the accent pixels are counted INSIDE that frame (the first version counted the whole screen and passed
+//             on the page's own violet buttons with the map off screen, 2026-11-20); the shot is the proof beside the web's;
 //   t836-ios  the spot photo viewer: a seeded spot with three photos, opened from its thumbnail, the counter, a tap that
 //             hides the buttons and one that brings them back, a swipe to the next photo, a drag down that closes it
 //             (`T836-ios-<step>-<look>.png`).
@@ -43,16 +45,33 @@ export const t831Ios = {
         await d.sleep(2500);
         ctx.flow('tap-id', { ID: 'water-view-conditions' });
         await ctx.until(() => d.hasId('gauge-card'), { ms: 30_000, what: 'the Conditions view (gauge-card)' });
+        await d.sleep(4000);
+        // the map under the chart: scroll in the left gutter (a drag ON the map pans it) until its frame is whole on screen
+        const screenH = () => Math.max(...d.nodes().map((x) => x.box.y1));
+        let map = null;
+        for (let i = 0; i < 8; i++) {
+          const ns = d.nodes(), H = Math.max(...ns.map((x) => x.box.y1));
+          map = ns.find((x) => x.id === 'donor-route-map') ?? null;
+          if (map && map.box.y0 >= H * 0.12 && map.box.y1 <= H * 0.88) break;
+          map = null;
+          swipe(ctx, `t831-down-${look}-${i}`, '4%,72%', '4%,42%', 700);
+          await d.sleep(1200);
+        }
+        if (!map) throw new Error(`the route map (donor-route-map) never came whole on screen (screen ${screenH()} pt)`);
         await d.sleep(9000);                              // the route map's lines are read out of the atlas, then drawn
         const file = path.join(ctx.dir, `T831-ios-route-${look}.png`);
         d.screenshot(file);
         const img = readPng(file);
-        // below the page's head and above the tab bar: the route map is the first map on the Conditions view
-        const n = count(img, { x: 0, y: Math.round(img.h * 0.18), w: img.w, h: Math.round(img.h * 0.62) }, accent);
+        // inside the map's frame only (points → pixels), its middle 80 % by 70 % (the zoom buttons' corner left out)
+        const k = img.w / Math.max(...d.nodes().map((x) => x.box.x1));
+        const b = map.box, bw = b.x1 - b.x0, bh = b.y1 - b.y0;
+        const box = { x: Math.round((b.x0 + bw * 0.1) * k), y: Math.round((b.y0 + bh * 0.2) * k),
+                      w: Math.round(bw * 0.8 * k), h: Math.round(bh * 0.7 * k) };
+        const n = count(img, box, accent);
         const w = d.screenText();
         await ctx.ios.pageBack(ctx);
-        if (n < 40) throw new Error(`no accent pixels under the page head (${n}): no "you are here" pin (${path.basename(file)})`);
-        return `${n} accent pixels (the pin); gauge named: ${w.find((x) => /^Coquitlam River (above|at|near) /i.test(x)) ?? 'see the shot'} · ${path.basename(file)}`;
+        if (n < 40) throw new Error(`no accent pixels inside the route map's frame (${n}): no "you are here" pin (${path.basename(file)})`);
+        return `${n} accent pixels inside the route map (frame ${b.x0},${b.y0}-${b.x1},${b.y1} pt): the pin; gauge named: ${w.find((x) => /^Coquitlam River (above|at|near) /i.test(x)) ?? 'see the shot'} · ${path.basename(file)}`;
       });
     }
     d.appearance('light');
