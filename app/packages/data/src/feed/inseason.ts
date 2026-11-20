@@ -20,7 +20,7 @@ export interface InSeasonSource {
   refresh?(): void;
   /**
    * (T548) The update service's apply: the index it fetched, THROWING when it is not a readable `inseason-feed/1` (a
-   * format bump, a row the app cannot read) — so the service shows and reports it and does not mark the feed seen —
+   * format bump; T548 item 4: a row the app cannot read is dropped, not the feed) — so the service shows and reports it and does not mark the feed seen —
    * else as `refresh`.
    */
   offer?(text: string): void;
@@ -74,6 +74,9 @@ export function httpInSeason(base: string, store?: InSeasonStore, fetchImpl: typ
       failure = `in-season index.json: not a readable ${INSEASON_FEED_FORMAT} feed — refused`;
       reported(null)(new Error(failure));
     } else if (feed) failure = null;
+    // (T548 item 4) a row it could not read was dropped, the rest kept: REPORTED (a fresh read only; the capture's own
+    // dropped rows were reported when it was read)
+    if (feed?.unread) reported(null)(new Error(INSEASON_FAILURES.unreadRows(feed.unreadRows ?? [])));
     const was = captured();
     if (!feed || (was && feed.fetchedAt < was.feed.fetchedAt)) return was;
     // (T520) links that came back but will not read (another format, a notice it cannot place) are REPORTED, naming the

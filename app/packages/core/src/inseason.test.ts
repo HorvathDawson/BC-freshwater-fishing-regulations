@@ -21,8 +21,18 @@ const feed = (rows: InSeasonRow[], removed: string[] = []): InSeasonFeed =>
 describe("in-season: reading the feed and links", () => {
   it("refuses what is not a whole feed / links", () => {
     expect(parseInSeasonFeed({ format: "dfo-feed/1" })).toBeNull();
-    expect(parseInSeasonFeed({ format: "inseason-feed/1", fetchedAt: "x", rows: [{ id: 1 }] })).toBeNull();
+    expect(parseInSeasonFeed({ format: "inseason-feed/1", fetchedAt: "x", rows: "no" })).toBeNull();
+    expect(parseInSeasonFeed(feed([row({ id: "is-a" })]))).toMatchObject({ unread: 0, unreadRows: [] });
     expect(parseInSeasonFeed(feed([row({ id: "is-a" })]))?.rows).toHaveLength(1);
+  });
+  it("(T548 item 4) a row it cannot read is dropped and named; the other rows stand", () => {
+    const f = parseInSeasonFeed({ ...feed([row({ id: "is-a" }), row({ id: "is-b" })]),
+      rows: [row({ id: "is-a" }), { id: 1 }, { ...row({ id: "is-c" }), change: null }, { ...row({ id: "is-d" }), from: 20260101 },
+             null, row({ id: "is-b" })] });
+    expect(f?.rows.map((r) => r.id)).toEqual(["is-a", "is-b"]);
+    expect([f?.unread, f?.unreadRows]).toEqual([4, ["row 2", "is-c", "is-d", "row 5"]]);
+    expect(INSEASON_FAILURES.unreadRows(["is-c"])).toBe(
+      "in-season index.json: 1 row this app could not read (is-c) — dropped, the other changes shown");
     expect(parseInSeasonLinks({ format: "nope", matches: {} })).toBeNull();
   });
   it("refuses the whole links file on any notice it cannot read — never a narrower or wider one (T520)", () => {

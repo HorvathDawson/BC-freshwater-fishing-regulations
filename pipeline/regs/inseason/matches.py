@@ -245,22 +245,12 @@ def problems(doc: Matches, *, feed_ids: Iterable[str] | None = None,
 
 def span(row: dict, effective: Optional[Effective] = None) -> tuple[Optional[str], Optional[str]]:
     """WHEN A ROW IS IN FORCE — `@app/core` `inSeasonSpan`, the one rule (T520): the curated override, else the feed's
-    dates, else — ONLY for a one-off window (T548): a change printing ONE date range, `parsed.window`, that OPENS on
-    the row's `from` day, not a rescind / clarification — that range's end in the `from` year, rolling on over the new
-    year. Any other printed window is a yearly season: no end is inferred; the row is in force until the page drops it.
+    own dates. NEVER AN END INFERRED (owner 2026-11-11, T548: "Never invent an end date"): a printed window in the change
+    is the notice's words, not its end; the row is in force until the page drops it or a printed / curated `to` passes.
     ONE case file pins both: `app/packages/core/src/inseason-span.parity.json`, read by `inseason.test.ts` and
     `test_inseason_publish.py`."""
     frm = (effective.from_ if effective and effective.from_ else None) or row.get("from") or None
     to = (effective.to if effective and effective.to else None) or row.get("to") or None
-    parsed = row.get("parsed") or {}
-    w = parsed.get("window") or {}
-    kinds = parsed.get("kinds") or []
-    if not to and frm and w.get("to_month") and w.get("to_day") and w.get("from_month") and w.get("from_day") \
-            and frm[5:] == f"{w['from_month']:02d}-{w['from_day']:02d}" \
-            and "rescind" not in kinds and "clarification" not in kinds:
-        y = int(frm[:4])
-        end = f"{y}-{w['to_month']:02d}-{w['to_day']:02d}"
-        to = f"{y + 1}-{end[5:]}" if end < frm else end
     return frm, to
 
 
