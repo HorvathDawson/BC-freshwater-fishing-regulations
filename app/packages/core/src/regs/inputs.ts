@@ -15,7 +15,7 @@ import type { Day, RegsTarget, Weekday } from "./model";
 import type { RuleKey } from "./line";
 import type { SpeciesBook } from "./names";
 import type { EndsTable } from "../ends";
-import type { Md } from "./time";
+import type { Md, RuleWhen } from "./time";
 
 export type { RowsValue, Row, Decided, GearAnswer, GearValue, StatusFrame, LicenceValue, ProfileAnswer, Holds,
               RuleFacts, PartFacts, Picker, Choice, Moment, GlossaryTerm, StripState, Place as AnswersPlace } from "../answers.generated";
@@ -71,11 +71,23 @@ export interface RegsInputs {
    *  Gladys Lake Ecological Reserve: its closure (rule book p.9) does not apply here."), said once, in section order;
    *  [] none. Drawn as they are (`keep.ts` `sectionNotesOf`). */
   readonly notes: readonly string[];
+  /** (T973, owner 2026-11-20) the Classified Waters units carried to the tapped section or part through a water whose own
+   *  line prints no unit (release `cw-through`, Python's answer): each drawn as a "may need" note on the licence card,
+   *  never as a requirement. Absent or []: none (an older release says nothing new). */
+  readonly mayNeed?: readonly MayNeed[];
   /** (T810 M, S) today's trout and char table (the cell's `trout` frame, decoded): null = the cell has none (contract
    *  Q-D3: the banner or the tidal page speaks, or no trout or char fish here); ABSENT = the tap has no cell (outside
    *  B.C., a tidal piece). Kept apart (AGENTS 32). From rows 34 the section is required (`SECTION_NAMES`): a tap with a
    *  cell always carries it, and `others.ts` `tableCovers` refuses one that does not. */
   readonly trout?: TroutValue | null;
+}
+
+/** (T973) One carried unit as the release states it: the classified water's licence unit and class, its classified period
+ *  (null: all year), the waters with their own line and no unit it passed (names, up from the classified water), and
+ *  whether only part of the tapped water carries it. */
+export interface MayNeed {
+  readonly unitName: string; readonly classified: string; readonly when: RuleWhen | null;
+  readonly through: readonly string[]; readonly part: boolean;
 }
 
 export interface AkeyRow { akey: number; ruleset: number; licensingSet: number | null; steelheadWater: boolean; steelhead: 1 | 2 | null; steelheadRules: boolean; kind: string; tidal: boolean; seg: number; mom: number | null; nseg: number }

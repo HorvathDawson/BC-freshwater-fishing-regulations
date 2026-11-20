@@ -6,7 +6,7 @@
 import { describe, expect, it } from "vitest";
 import type { CellIds, DisplayFrame, ExportRule, Moment, Picker, RuleFacts } from "@app/core";
 import { displayByDay, loadRegsInputs, RegsInputsError, targetFor, type InputsStore } from "./inputs";
-import type { PartRow, StoredRule } from "./reads";
+import type { CarriedNote, PartRow, StoredRule } from "./reads";
 
 const WEEK = m(["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"]), WEEKEND = m(["Saturday", "Sunday"]);
 function m(weekdays: string[]): Moment { return { weekdays, hours: null } as unknown as Moment; }
@@ -23,7 +23,9 @@ const cell = (ladder: number, display: number): CellIds => ({ ladder, rows: 1, g
 /** One water (gnis:1, ord 3) of three parts — part 0 on key 2 (no moments, closed Jun 1–30), part 1 on key 5 (a weekday
  *  split), part 2 outside B.C. — a picker grouping parts 0 and 1 as closed, and two sections (4097 named → part 1; 4098
  *  unlisted, on key 5). `asked` logs every read. */
-function fake(o: { openGroup?: boolean; tidalPiece?: boolean; oldRelease?: boolean; notes?: boolean } = {}) {
+const STELLAKO: CarriedNote = { unitName: "Stellako River", classified: "II", when: null, through: ["Endako River"] };
+
+function fake(o: { openGroup?: boolean; tidalPiece?: boolean; oldRelease?: boolean; notes?: boolean; carried?: boolean } = {}) {
   const asked: string[] = [];
   const log = <T>(what: string, v: T): Promise<T> => { asked.push(what); return Promise.resolve(v); };
   const parts: PartRow[] = [
@@ -66,6 +68,8 @@ function fake(o: { openGroup?: boolean; tidalPiece?: boolean; oldRelease?: boole
     // (T796) `notes`: core section_note holds a note on sids 4100 / 4101 / 4103 (part 0) and 4098 (an unnamed section)
     sectionNotes: () => log("sectionNotes", new Map(o.notes ? [[4101, "B note."], [4100, "A note."], [4103, "A note."],
                                                                [4098, "Lake note."]] : [])),
+    // (T973) `carried`: cw-through carries the Stellako's unit on 4100 / 4103 (part 0 of three sections) and 4098
+    carriedUnits: () => log("carriedUnits", new Map(o.carried ? [[4100, STELLAKO], [4103, STELLAKO], [4098, STELLAKO]] : [])),
     partLengths: (ord: number, partIx: number) => log(`partLengths ${ord} ${partIx}`,
       new Map(((partIx === 0 ? [4103, 4101, 4100] : partIx === 1 ? [4097] : [4102]) as number[]).map((sid) => [sid, null]))),
     place: (ix: number) => log(`place ${ix}`, { place: ix, regions: ["5"], label: "Region 5",
@@ -252,5 +256,21 @@ describe("displayByDay", () => {
     expect(d.length).toBe(366);
     // 2026: Jan 1 Thursday, Jan 3 Saturday, Feb 28 Saturday, Mar 1 Sunday, Mar 2 Monday
     expect([d[0], d[2], d[58], d[59], d[60], d[61]]).toEqual([SHUT, OPEN, OPEN, SHUT, OPEN, SHUT]);
+  });
+});
+
+describe("(T973) loadRegsInputs: the carried units (release cw-through)", () => {
+  it("a section's is its own; a part's are its sections', each note once, `part` where only some carry it", async () => {
+    const { store } = fake({ carried: true });
+    const at = (t: Parameters<typeof loadRegsInputs>[1]) => loadRegsInputs(store, t, JUN15, "Monday", 2026).then((i) => i.mayNeed);
+    expect(await at({ kind: "section", handle: 4098 })).toEqual([{ ...STELLAKO, part: false }]);
+    expect(await at({ kind: "section", handle: 4097 })).toEqual([]);
+    expect(await at({ kind: "part", item: "gnis:1", partIx: 0 })).toEqual([{ ...STELLAKO, part: true }]);   // 2 of 3
+    expect(await at({ kind: "part", item: "gnis:1", partIx: 1 })).toEqual([]);
+  });
+  it("a release without the file: [] everywhere, and no part's sections are read for it", async () => {
+    const { store, asked } = fake();
+    expect((await loadRegsInputs(store, { kind: "part", item: "gnis:1", partIx: 0 }, JUN15, "Monday", 2026)).mayNeed).toEqual([]);
+    expect(asked.filter((a) => a.startsWith("partLengths"))).toEqual([]);
   });
 });

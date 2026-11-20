@@ -247,6 +247,20 @@ export async function openRegsStore(loader: RegsLoader, expect: RegsExpect = {})
         throw new RegsStoreError("missing", `regs store: release ${loader.release} has no geo file — refused`);
       return opened(loader.db("geo"), false);
     },
+    /** (T973) the carried units (`cw-through`, OPTIONAL): null when the manifest names none (an older release: nothing
+     *  new is said); a file cut for another atlas than water's is refused, as every other file is. */
+    async cw(): Promise<Db | null> {
+      live();
+      if (!loader.manifest.files["cw-through"]) return null;
+      const d = await opened(loader.db("cw-through"), false);
+      const fm = await metaOf(d);
+      if (fm.get("section_handles") !== handles) {
+        const e = new RegsStoreError("digest", `regs store: cw-through is cut for atlas ${fm.get("section_handles") ?? "absent"}, water's is ${handles} — refused`);
+        refusal ??= e;
+        throw e;
+      }
+      return d;
+    },
   };
   const { clear, ...reads } = makeReads({ ...files, val, dict, optional });
   return {

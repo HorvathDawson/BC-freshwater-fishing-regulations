@@ -19,7 +19,7 @@
  * its own.
  */
 import type { DocumentNeed, Path_, Prices, PrintedRequirement, When } from "../answers.generated";
-import type { Holds, LicenceValue, ProfileAnswer, RegsInputs } from "./inputs";
+import type { Holds, LicenceValue, MayNeed, ProfileAnswer, RegsInputs } from "./inputs";
 import type { LicenceBlockVM, LicenceVM, NeedItemVM, Who } from "./model";
 import { cap, expand, join, lc, lcNames, type SpeciesBook } from "./names";
 import { AGE_DIM, profileIndex } from "./tap";
@@ -140,6 +140,12 @@ function bookTerms(inp: RegsInputs, P: ProfileAnswer, doc: string, feeP: Profile
   return out;
 }
 
+/** (T973) A carried unit's "may need" note: the release's unit, class, period and the waters passed, in words. */
+export function mayNeedTxt(m: MayNeed): string {
+  const period = whenDates(m.when as RuleWhen).map(([a, b]) => rangeTxt(a, b)).join(LIC.SEP);
+  return LIC.MAY_NEED(m.unitName, m.classified, period, join(m.through), m.through.length > 1, m.part);
+}
+
 // ── the answer ──────────────────────────────────────────────────────────────────────────────────────────────────────
 
 type Item = NeedItemVM & { readonly docs: readonly string[] };
@@ -174,6 +180,8 @@ function answerBlocks(inp: RegsInputs, F: LicenceValue & { holds: Holds }, who: 
     // rows: the Elk's tributaries, the Stellako), are said once; a box that differs in any word is still drawn
     if (!out.some((o) => o.cls === "classbox" && o.head === box.head && o.body === box.body)) out.push(box);
   }
+  // (T973) a unit carried through a water whose own line prints none: a "may need" note, never a box or a requirement
+  for (const m of inp.mayNeed ?? []) out.push({ cls: "flag", text: mayNeedTxt(m) });
   if (H.contested) out.push({ cls: "flag", text: LIC.CONTESTED });
   // page v36's unresolved-licensing flags ("Check: … couldn't be placed on the map") need the store's item.unresolved, which
   // T09 does not load yet (no item carries one in the current release) — not drawn
