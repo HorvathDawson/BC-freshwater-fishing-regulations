@@ -1,6 +1,6 @@
 # T174 — The remaining "answered → grey → answered" gaps on main rivers (after T169)
 
-Status: DONE 2026-10-27 (Q153 + Q155 shipped in release r-bda3fea28838; Q154 measured, left off — owner)
+Status: DONE 2026-10-27 (Q153 + Q155 shipped in release r-bda3fea28838; Q154 measured, left off — owner) Commits: 00153bf6.
 
 Source: T169's census (2026-10-24). Inside side-channel waters the unexplained gaps are 0; outside them, these remain
 (Flow / Level runs), each with a reason, but two classes are the owner's rule ("a predicted section flows into unpredicted

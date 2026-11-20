@@ -1,6 +1,6 @@
 # T224 — Name variants from local sources (municipal, ECCC, DFO, synopsis, OSM, BC GNIS), each with its real source
 
-Status: DONE 2026-10-29 — in release r-62e2f3a8c81e (atlas c1029). Owner spot-check of 20 auto-accepted names is
+Status: DONE 2026-10-29 — in release r-62e2f3a8c81e (atlas c1029). Owner spot-check of 20 auto-accepted names is Commits: 009aeec0, 39cc91e2, 2ea061c4.
 listed below (OWNER-TODO); a reject → `python -m pipeline.tools.mined_names` → next build. Earlier: 009aeec0, 39cc91e2,
 2ea061c4.
 

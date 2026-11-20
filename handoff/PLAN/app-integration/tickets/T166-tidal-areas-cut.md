@@ -1,6 +1,6 @@
 # T166 — Tidal areas cut: turn the DFO tidal polygon into clean cuts across each stream
 
-Status: DONE 2026-10-29 — built and shipped (r-ce76b4ed3624: 33 tidal cuts + 10 whole tidal waters off the freshwater
+Status: DONE 2026-10-29 — built and shipped (r-ce76b4ed3624: 33 tidal cuts + 10 whole tidal waters off the freshwater Commits: b49a29e11, d7b8f2f55, d99d28971.
 map); the phase-1 leftovers closed below. One owner proposal open (Mamquam Blind Channel, T212).
 
 Source: owner 2026-10-23: "another ticket to add is doing a tidal areas cut. this will be a little bit tricky because our

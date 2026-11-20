@@ -162,7 +162,7 @@ any row here that is not DONE or DROPPED. A reopened ticket's row moves back to 
 | T152 | sewage basins, tailing ponds, dumps (275) drawn as fishable lakes | DONE | ef91524b, c321204d | live since the 10-27 atlas/tiles build (r-c706f5eaa2a3): 245 bindings removed, 275 muted fills |
 | T153 | a river's rules on unnamed lake polygons on its course (Q124 default, one flag) | DONE | 52462f99, 62e9cb7c | reach rerun: 569 polygons on 154 rivers, 284 rules gain, 0 lose; delivered r-9cf1fef180a8 |
 | T154 | a dams layer (BC WRIS, OGL-BC) matched to FWA; T148 R2 reads it | DONE | 23be8123, d8fab861, 216753d7 | fetch layer `dams`; evidence only (Q-T154a); delivered r-9cf1fef180a8 |
-| T155 | Still Creek and Nelson Creek: book entries with no water (named ditch/canal lines) | DONE | 83463771 | measured: all three entries bind (99, 6, 9 sections); no change |
+| T155 | Still Creek and Nelson Creek: book entries with no water (named ditch/canal lines) | DONE | 0c88c2165 | measured: all three entries bind (99, 6, 9 sections); no change |
 | T156 | test hygiene: hydat sandbox stub release; temp gate fixtures outside the app tree | DONE | 9c6cbd46, 7714418a, 23cee506 | tests; delivered r-9cf1fef180a8 |
 | T157 | Conditions follow-ups: switcher states, no record to compare, ELF caveat on map, handover drawn | DONE | 9c6cbd46, 4b82d910, 7714418a, 2c845cf2 | app; delivered r-9cf1fef180a8 |
 | T158 | depth contours vs no-access fills: contours held off lake fills, deep navy | DONE | 9c6cbd46, 7714418a, 3d5f19de | app style; delivered r-9cf1fef180a8 |

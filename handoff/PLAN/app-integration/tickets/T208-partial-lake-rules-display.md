@@ -1,6 +1,6 @@
 # T208 — show rules that hold on an undrawn part of a lake (e.g. François Lake outlet area, "map 1")
 
-Status: DONE 2026-10-29 — display, map link and list built and in r-62e2f3a8c81e; the drawn outline is T281
+Status: DONE 2026-10-29 — display, map link and list built and in r-62e2f3a8c81e; the drawn outline is T281 Commits: 3fc83a0f, 08d19ed36.
 (waits on lake splits, deferred by the owner).
 
 Source: owner 2026-10-26, reviewing François Lake: "Char — 2 per day … in part: the area at the outlet of François

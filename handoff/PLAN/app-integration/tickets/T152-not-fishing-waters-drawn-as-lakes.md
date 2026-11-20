@@ -1,6 +1,6 @@
 # T152 — Sewage basins, tailing ponds and dumps are drawn as fishable lakes
 
-Status: DONE 2026-10-27 — shipped by the 10-27 atlas build + reach + tiles (b6b5000e171023c9.0d7666619a1c) in release
+Status: DONE 2026-10-27 — shipped by the 10-27 atlas build + reach + tiles (b6b5000e171023c9.0d7666619a1c) in release Commits: ef91524b, c321204d.
 r-c706f5eaa2a3; after-numbers and a shot below (T152 lane, 2026-10-27 night).
 
 Source: T148 census (handoff/PLAN/sloughs/v2/census.md table B), 2026-10-23.
