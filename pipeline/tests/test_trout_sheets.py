@@ -104,13 +104,14 @@ def test_every_sheet_of_the_mini_release_is_whole_and_says_no_today(mini):
 
 #: (case, row key) -> the sheet, whole
 EXPECTED = {
+    # RE-PINNED (T931 A): T854 / RULINGS C2 refined 2026-11-18 — brook and lake trout are in Region 6's "1 trout from
+    # streams July 1-Oct 31", so on Jul 15 that 1 is the box's own number ("Keep 1 in all", as test_trout_table's
+    # skeena-sedan-mill-jul15 table): no inner "1 total from these 4" inside the 5 any longer
     ('skeena-sedan-mill-jul15', 'ST'): (
-        'Keep · 1 total from these 4 · counts toward the 5\n'
+        'Keep · counts toward the 1\n'
         'Here a steelhead is a rainbow over 50 cm (20 in).\n'
         'Hatchery only: wild ones go back.\n'
-        'Counts toward the 5 in all, together with brook trout, lake trout, brown trout, cutthroat trout and rainbow trout.\n'
-        '1 total from these 4: this fish and brown trout, cutthroat trout and rainbow trout.\n'
-        'Only 1 over 50 cm (20 in).\n'
+        'Counts toward the 1 in all, together with brook trout, brown trout, cutthroat trout, lake trout and rainbow trout.\n'
         'Steelhead are known to be in this water.\n'
         '**Once you have kept 1 steelhead here, stop fishing this stream for the rest of the day: the whole stream, not only this stretch.\n'
         'Licence: 10 a year · record each on your licence right away.'
@@ -181,10 +182,12 @@ def test_the_named_fish_sheets_whole(live, case, key):
 
 @pytest.mark.needs_bundle
 def test_the_skeena_elsewhere_lines_whole(live):
+    # RE-PINNED (T931 A, T854): the box's number is Region 6's "1 from streams" now, so the limit it names is counted on
+    # the region's streams, and a fish kept at a lake counts toward the 5 a day only
     assert live.frame("skeena-sedan-mill-jul15")["table"]["elsewhere"] == (
-        "Your own limit, counted across every water in Region 6 you fish, lakes and streams alike.",       # T810 L
-        "Kept 2 elsewhere? Keep 3 more here, but no more than 1 brown trout, cutthroat trout, rainbow trout or steelhead "
-        "from streams in all.",
+        "Your own limit, counted across every Region 6 stream you fish.",
+        "Kept 1 on another stream? None more here.",
+        "Kept 1 at a lake? Keep 1 more here. Fish from lakes count toward the 5 a day, not toward the 1 from streams.",
         "Kept trout or char over 50 cm (20 in) elsewhere? It counts here too: at most 1 over 50 cm (20 in) a day in all.")
 
 

@@ -727,7 +727,13 @@ def test_hatchery_and_wild_twins_are_one_row(request, monkeypatch):
     assert not any(r["origin"] for r in b["rows"])
     # (trout 5, the app chat) the merged row says so (`split`): the sheet's hatchery link; and only it
     assert rb["split"] is True and t["table"]["hatch_link"] is True
-    assert not next(r for r in b["rows"] if r["fish"] == "EB")["split"]
+    # RE-PINNED (T931 A): RULINGS C2 amended 2026-11-18 (Chilliwack Lake) takes only bull trout out of "No wild trout over
+    # 50 cm", so brook trout is a wild-size row too ("a wild brook trout … over 50 cm goes back"): every "if wild" row is
+    # split, bull trout (its own 60 cm line) is not. (Lake trout is left unpinned here: it reads "60 cm (24 in) or longer"
+    # with no wild cap, which C2 amended does not obviously give — reported to the main chat, T931.)
+    split = {r["fish"]: r["split"] for r in b["rows"]}
+    assert {f: split[f] for f in ("EB", "GB", "CT", "RB", "DV")} == {
+        "EB": True, "GB": True, "CT": True, "RB": True, "DV": False}
     k0 = next(k for k, cells in enumerate(m.sections["trout"]) if any(c is not None and c == t for c in cells))
     cells0 = copy.deepcopy(m.sections["trout"][k0])
     j0 = next(jj for jj, c in enumerate(cells0) if c == t)
@@ -874,27 +880,29 @@ def test_the_sweeps_r1_r2_forms(request, monkeypatch, flag):
 
 @pytest.mark.needs_bundle
 def test_big_bend_creek_draws_one_shared_band_the_strip_does_not_say(request, monkeypatch):
-    """Owner 23:32, built where nothing else says it (a1-real: Big Bend Creek, the Nechako and the Liard): brown,
-    cutthroat, rainbow trout and steelhead, all kept from 30 cm, share "1 total from these 4" inside "Keep 2 in all"; no
-    row says "only 1, counting any …". Mutation: the pin off says the count on each row again."""
+    """Owner 23:32 (one shared band, never "only 1, counting any …" on each row). Built on Big Bend Creek (a1-real: brown,
+    cutthroat, rainbow trout and steelhead shared "1 total from these 4" inside Zone 7A's "Keep 2 in all"). RE-PINNED
+    (T931 A) after RULINGS C2 amended + T854 (2026-11-18): Region 6's "1 trout from streams July 1-Oct 31" now holds every
+    trout and char but bull trout (`species_except [DV]`), so on Big Bend (Regions 6 + 7A, the stricter per fish, Z4) that
+    1 is every kept fish's limit: "Keep 1 in all", bull trout released ("all Dolly Varden/bull trout from streams"); no
+    inner share is left to draw there. No live water draws the no-strip inner band now, so the switch's mutation is held on
+    the Fraser at Mission, the strip-held inner band (`test_the_fraser_at_mission_…`): `A_INNER_CAP_IS_A_BAND` off, its
+    Dolly Varden and lake trout each say "only 1, counting any …" again."""
     from pipeline.deliver.answers.trout import table as TT
-    four = ("GB", "CT", "RB", "ST")
-
-    def big_bend(got):
-        return next(c for c in got["Big Bend Creek (all parts)"] if c is not None and any(
-            b["kind"] == "keep" and b["head"] == "Keep 2 in all" and set(four) <= {r["key"] for r in b["rows"]}
-            for b in c["table"]["boxes"]))
     got, *_ = _live_tables(request, ("Big Bend Creek",))
-    b, keys = _one_box(big_bend(got), four)
-    at = sorted(keys.index(k) for k in four)
-    assert at == list(range(at[0], at[0] + 4))
-    assert [x for x in b["bands"] if x["from"] == at[0]] == [
-        {"from": at[0], "to": at[-1], "text": "counts toward the 2 · 1 total from these 4", "kind": "shared"}]
+    bb = got["Big Bend Creek"]["table"]
+    keep = next(b for b in bb["boxes"] if b["kind"] == "keep")
+    assert (bb["top"]["lead"], keep["head"], {r["key"] for r in keep["rows"]}) == (
+        "Keep 1 trout and char {day}", "Keep 1 in all", {"EB", "GB", "CT", "LT", "RB", "ST"})
+    assert [r["key"] for b in bb["boxes"] if b["kind"] == "release" for r in b["rows"]] == ["DV"]
+    assert not any(x.startswith("only 1, counting any") for b in bb["boxes"] for r in b["rows"] for x in r["lines"])
+    got, *_ = _live_tables(request, ("Fraser River",))
+    b, _keys = _one_box(_mission(got), ("DV", "LT"))
     assert not any(x.startswith("only 1, counting any") for r in b["rows"] for x in r["lines"])
     monkeypatch.setattr(TT, "A_INNER_CAP_IS_A_BAND", False)
-    got, *_ = _live_tables(request, ("Big Bend Creek",))
-    b, _keys = _one_box(big_bend(got), four)
-    assert any(x.startswith("only 1, counting any") for r in b["rows"] for x in r["lines"])
+    got, *_ = _live_tables(request, ("Fraser River",))
+    b, _keys = _one_box(_mission(got), ("DV", "LT"))
+    assert sum(x.startswith("only 1, counting any") for r in b["rows"] for x in r["lines"]) == 2
 
 
 def _r4(got):                                          # a Region 4 stream's default, Jun 15-Oct 31: "Keep 2 in all"

@@ -119,12 +119,15 @@ def test_vedder_card_says_the_lift_once_and_over_50_on_the_rows(built):
 @pytest.mark.needs_bundle
 def test_a_region_4_streams_own_lifts_name_the_river_and_what_they_allow(built):
     g = _trout(built, DUNCAN, ("mouth", "duncan_river__lardeau_river_into_duncan_river"))
-    # ROUND10 W1: one line for the row, each kind with its number, highest first
+    # ROUND10 W1: one line for the row, each kind with its number, highest first.
+    # T834 (owner 2026-11-17 11:10, "Strict everywhere"; RULINGS T17, T3a revised): only an own quota ABOVE the share
+    # lifts; the Duncan's bull trout 2 equals the 2 from streams, so its lift is gone and the line names rainbow alone
     assert _lifts(g) == [
-        "On this river, its own rule replaces Region 4’s 2-from-streams limit for rainbow trout (up "
-        "to 5 a day) and Dolly Varden/bull trout (up to 2 a day)."]
-    # ROUND12 2: the river's own bucket first
-    assert [b["title"] for b in g["buckets"]] == ["This river’s rule",
+        "On this river, rainbow trout: up to 5 a day — this river’s rule replaces Region 4’s 2-from-streams limit for "
+        "them."]
+    # ROUND12 2: the river's own buckets first. T834: the bull trout's own 2 is a bucket of its own that sits inside the
+    # share (`tree.AN_EQUAL_OWN_TIER_SITS_IN_THE_SHARE`), the rainbow's 5 the lifted one
+    assert [b["title"] for b in g["buckets"]] == ["This river’s rule", "This river’s rule",
                                                    "Up to 2 a day between them — all Region 4 streams combined"]
     assert g["headline"]["also"] == [{"n": 5, "says": "5 if they’re rainbow trout"}]
     assert [w["kept"] for w in g["worked"] if w["at"] == "here"] == [5, 2]                 # ROUND20b C4: the ends of the range

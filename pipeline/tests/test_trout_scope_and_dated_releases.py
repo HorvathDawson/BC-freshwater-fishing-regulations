@@ -235,8 +235,8 @@ def test_region_6s_winter_stream_release_takes_brook_trout_not_its_named_char(tm
 @pytest.mark.needs_bundle
 def test_the_book_answers_on_real_sections():
     """On the built bundle: Amor Lake answers a rainbow with its own 2 and a Dolly Varden with
-    Region 1's char release; Region 6's winter stream release speaks for a rainbow and a brook trout,
-    not a lake trout (RULINGS C2, amended 2026-11-18)."""
+    Region 1's char release; Region 6's winter stream release speaks for a rainbow, a brook trout and
+    a lake trout, not a bull trout (RULINGS C2, amended 2026-11-18, refined by T854 the same day)."""
     need(None, "bundle", BUNDLE, BUNDLE_HINT)
     db = sqlite3.connect(f"file:{BUNDLE}?mode=ro", uri=True)
     sp = db.execute("select species_except from rule where entry_id='z1:daily_quotas' and "
@@ -261,7 +261,11 @@ def test_the_book_answers_on_real_sections():
     stream = sid("z6:daily_quotas", "trout_char_quota.r7")
     assert "z6:daily_quotas::trout_char_quota.r7" in speaks(stream, "RB", (12, 1))
     assert "z6:daily_quotas::trout_char_quota.r7" in speaks(stream, "EB", (12, 1))
-    assert "z6:daily_quotas::trout_char_quota.r7" not in speaks(stream, "LT", (12, 1))
+    # T854 (owner 2026-11-18, "Yes, include lake trout (Recommended)"; RULINGS C2 refined): the Fraser/Skeena lake trout
+    # line stands in two basins only and the "3 Dolly Varden/bull trout and/or lake trout" is a count share, so neither
+    # takes lake trout out: r7 is `species_except [DV]`, lake trout are released with the trout, bull trout are not
+    assert "z6:daily_quotas::trout_char_quota.r7" in speaks(stream, "LT", (12, 1))
+    assert "z6:daily_quotas::trout_char_quota.r7" not in speaks(stream, "DV", (12, 1))
 
 
 # ================================================================ B — dated zone releases stand

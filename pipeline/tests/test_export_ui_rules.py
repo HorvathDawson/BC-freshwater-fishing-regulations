@@ -1163,11 +1163,13 @@ def test_every_both_hold_claim_is_the_readers(doc, db):
     nic = [n for n in cc["r3:nicola_river@3-13"]["notes"] if n["kind"] == "row_closure"
            and n["zone_rule"] == z3]
     assert len(nic) == 1
+    # RULINGS C2 as amended by the owner 2026-11-18 (sweep: "Nicola River r3/r3x (→ DV)"): only bull trout leave the
+    # trout lift, so brook trout and lake trout are lifted with the trout; bull trout and whitefish stay closed
     assert [(x["dates"], x["fish"]) for x in nic[0]["zone_lifted"]] == [
-        ("Jan 1-Feb 28", ["CT", "GB", "RB", "ST"])]
+        ("Jan 1-Feb 28", ["CT", "EB", "GB", "LT", "RB", "ST"])]
     assert nic[0]["zone_lifted"][0]["by"] == ["r3:nicola_river@3-13::nicola_river.r3x"]
     held = {f for h in nic[0]["zone_holds"] for f in h["fish"]}
-    assert {"MW", "DV", "EB"} <= held and not held & {"RB", "CT"}
+    assert {"MW", "DV"} <= held and not held & {"RB", "CT", "EB"}      # C2 amended: brook trout go with the trout
     assert "Jan 1-Feb 28" in nic[0]["says"] and "lifted" in nic[0]["says"]
     tho = [n for n in cc["r3:thompson_river_downstream_of_signs_at_kamloops_lake_outlet_t"
                          "@3-13+3-14+3-18"]["notes"] if n["kind"] == "row_closure"]
