@@ -9,6 +9,17 @@ Things only you can do. Claude keeps this list current while you are away; the w
 `handoff/PLAN/app-integration/tickets/` (README.md is the ledger, and its "Owner questions" table has every question
 with the default Claude uses until you answer). Newest first inside each section.
 
+## 2026-11-20 11:11: salmon card and map fixes answered (dialog); T971 settled by the Flow-leads ruling
+
+- T669 item 3 (lane L9, pictures `tickets/T669-shots/before|after-qualcho-creek-jan15.png` sent): **"Ship it
+  (Recommended)"**: a straddling water's salmon card shows the stricter region's numbers instead of "see DFO's words
+  below" (Qualcho Creek, Region 5B/6, is the only live card that changes).
+- T679 #1 (203 pieces just outside B.C. marked outside) and #6 (42 named pieces given to their water): **"Turn both on
+  (Recommended)"** in the map rebuild; Claude checks the before/after diff first and stops if anything unexpected moves.
+- T679 #12 (tributary scope into the bundle): not asked; lane L7's default stands (the two lists stay in code).
+- T971 (Level in the gauge card re-ranks the estimate card, lane L4 10:28): NOT asked: the owner's 2026-11-10 ruling
+  (Flow leads, Level never picks its own; never ask) settles it. The estimate card stays on Flow; fixed in this release.
+
 ## 2026-11-20 11:02: T679 #8 lake rule answered (dialog)
 
 The owner worried tiny lakes would cut a river off from its own gauge. Measured (lane/l8-blockers e39e97d1c,

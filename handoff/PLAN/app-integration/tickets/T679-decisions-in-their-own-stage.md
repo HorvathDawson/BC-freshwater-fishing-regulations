@@ -197,3 +197,5 @@ Owner 2026-11-20 11:02 (dialog), after the blocker measure (`T679-shots/own-gaug
   - It is written when `packed.SHIP_PACKED_FORMATS` is on, so it switches on with the packed formats. Off, paint/5 is
     byte-identical to live.
   - Measured ON, on the live bundle: 3,597 sections, the same set the summed rows give; +282 B gz.
+
+Owner 2026-11-20 11:11 (dialog): #1 and #6 **"Turn both on (Recommended)"** in the wave-4 rebuild, diff first (stop if anything unexpected moves). #12 not asked: lane L7's default stands (lists stay in code).
