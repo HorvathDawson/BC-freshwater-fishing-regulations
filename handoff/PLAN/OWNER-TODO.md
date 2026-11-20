@@ -9,6 +9,13 @@ Things only you can do. Claude keeps this list current while you are away; the w
 `handoff/PLAN/app-integration/tickets/` (README.md is the ledger, and its "Owner questions" table has every question
 with the default Claude uses until you answer). Newest first inside each section.
 
+## 2026-11-19 evening (after 0.8.3)
+
+**T920, Conditions (owner ~16:30 and ~16:49):** the gauge map is under the chart; the gauge list is a legend (not a
+selector); the chart's gauge picker is a bordered "N gauges ▾" field. Pictures sent in chat; lands after your look, the
+checks and an independent review. **T919 (c), your call:** the map's 777 font/sprite files (13.8 MB) are fetched one by
+one on first install (35–160 s). Default: pack them into one file through the system downloader; or ship them in the app.
+
 ## 2026-11-19 afternoon: 0.8.3 on staging, then 0.8.3 to production (0.8.2 production skipped)
 
 **Owner plan, 2026-11-19 ~12:40:** finish 0.8.3, put it on staging, then take 0.8.3 straight to production (web, Play,

@@ -1,6 +1,6 @@
 # T919 — 0.8.3 leftovers
 
-Status: OPEN (found by Claude 2026-11-19, during the 0.8.3 integration).
+Status: IN PROGRESS (main chat, 2026-11-19 evening: (a) and (b) built, uncommitted until review; (c), (d) next).
 
 Small finds that did not block 0.8.3. Batch them into the next release.
 
@@ -11,3 +11,18 @@ Small finds that did not block 0.8.3. Batch them into the next release.
   per the self-host rule.
 - (d) T912 follow-up: a cut data-file system download restarts from zero. The data worker fix (T912 round 3) is deployed on
   staging AND production as of 2026-11-19, so check that the app can now resume a cut download, then close this or fix it.
+
+## Built (main chat, 2026-11-19 evening)
+- (a) `decidedWords.ts` `K_DOWN`: a row whose own name already says tributaries ("Lake Revelstoke's Tributaries", "Chilko
+  Lake's tributary streams") is the kicker alone. `flow.test.ts` pins both names.
+- (b) Cause: the Gear section's one source line (`SourceLineVM.pages`, drawn by `SourceLine.tsx` as "Rule book p.N ↗")
+  was not counted by `waterBookOf`'s T60 dedupe, which only saw `{t:"book"}` runs. It now counts every drawn `srcs:` line
+  (not the per-row `srcs:gl|…` ones, undrawn since T900). `waterbook.test.ts` pins both. Core regs + WaterBook +
+  WaterScreen vitest: 690 passed.
+- (c) Measured (live release's `map-assets-1`): 777 files, 13.8 MB; 769 are font glyph ranges (every Unicode block of each
+  font stack), 8 are sprites (~100 KB). They already come from our own server (self-host rule met) and are fetched once per
+  asset digest (an update whose assets did not change fetches nothing). The cost is the FIRST install: 777 requests paced at
+  22/s (the host's 30/s limit) = the 35–160 s seen on the benches, outside the system downloader. Owner question (batched),
+  default: pack the folder into ONE verified file that goes through the same system-downloader path as the data files
+  (no app-size change, one request); the alternative is shipping it inside the app (+~14 MB, or less if the glyph ranges
+  are cut to the characters the tiles' names use).
