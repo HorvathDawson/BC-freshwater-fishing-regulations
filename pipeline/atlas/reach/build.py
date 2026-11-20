@@ -36,7 +36,7 @@ from pipeline.atlas.reach.outside import (
 from pipeline.regs.parsing.catalogue import Designation
 from pipeline.atlas.reach.licensing import (
     PLACED_KINDS, LicensingPlacement, as_rule, carve_out_orphans, carve_outs_to_owner,
-    first_classified_downstream, national_park_sections, on_designations, own_beats_inherited,
+    first_classified_downstream, national_park_sections, on_designations,
     place_record, without_national_parks,
 )
 
@@ -241,15 +241,9 @@ def build_reaches(entries, registry, graph, *, build: str = "", handles: str = "
     lic_diags.extend(d for d in sh_diags if d.payload.get("record"))
     twins = frozenset((b.entry_id, b.rule_id) for b in got_rules)
 
-    # A water's own designation beats one inherited by another water's tributary walk.
-    licensing, yielded = own_beats_inherited(licensing, designations)
-    lic_diags.extend(yielded)
-    for d in yielded:
-        k = f"designation:{d.kind}"
-        report.licensing[k] = report.licensing.get(k, 0) + 1
-    # ONE UNIT PER SECTION: a walked section takes the designation of the first classified water
-    # it flows into; a rowed tributary printing no designation is not classified (user rulings
-    # 2026-10-03, `licensing.first_classified_downstream`).
+    # ONE UNIT PER SECTION, ONE PASS (T679 #10): a walked section takes the designation of the first classified
+    # water it flows into, a water's own designation included; a rowed tributary printing no designation is not
+    # classified (user rulings 2026-10-03, `licensing.first_classified_downstream`).
     licensing, homed = first_classified_downstream(
         licensing, designations, graph, registry, owned,
         lambda s: _resolve._kind_of(graph, s, registry),
@@ -257,8 +251,9 @@ def build_reaches(entries, registry, graph, *, build: str = "", handles: str = "
     lic_diags.extend(homed)
     for d in homed:
         k = f"designation:{d.kind}"
-        report.licensing[k] = report.licensing.get(k, 0) + d.payload.get(
-            "rehomed", d.payload.get("removed", d.payload.get("added", 0)))
+        # the walker's own water (`trib_yields_to_own` / `trib_kept_beside_own`) counts its records, as it did
+        report.licensing[k] = report.licensing.get(k, 0) + (1 if d.kind.startswith("trib_") else d.payload.get(
+            "rehomed", d.payload.get("removed", d.payload.get("added", 0))))
     # Water a carve-out removed goes to the excluded water's own designation, and must end there.
     licensing, handed = carve_outs_to_owner(licensing, carved, claims)
     lic_diags.extend(handed)

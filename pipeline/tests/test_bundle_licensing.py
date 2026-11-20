@@ -499,35 +499,47 @@ def _recs(*ps, **over):
     return {(p.entry_id, p.record_id): over.get(p.record_id, _D(p.record_id)) for p in ps}
 
 
+def _one_pass(placements, records, own_water=None):
+    """`licensing.first_classified_downstream`, THE ONE PASS (T679 #10), on a world with no flow edges: a walked
+    section stops where it is. `own_water` = {entry_id: sections of the walker's own water} (its matched items)."""
+    from pipeline.common.models import StreamGraph
+    from pipeline.common.models.registry import RegistryItem
+    reg = {f"own:{e}": RegistryItem(id=f"own:{e}", name=e, kind="stream", section_ids=tuple(secs))
+           for e, secs in (own_water or {}).items()}
+    return reach_lic.first_classified_downstream(
+        placements, records, StreamGraph(), reg, {}, lambda s: "stream",
+        matched_of={e: [f"own:{e}"] for e in (own_water or {})})
+
+
 def test_a_waters_own_designation_takes_its_sections_out_of_anothers_tributary_walk():
     """The Bulkley's walk reached the Suskwa, Class I with its own designation, and those sections
     carried both classes; the Elk's unit sat over Wigwam, Michel, Forsyth and Abruzzi, each with
     its own unit licence. A water's own designation wins — as a water's own rule does."""
     bulkley = _P("r6:bulkley", "bulkley", ["b1", "b2", "s1", "s2", "m1"], trib=["s1", "s2", "m1"])
     suskwa = _P("r6:suskwa", "suskwa", ["s1", "s2", "s3"], trib=["s3"])
-    got, diags = reach_lic.own_beats_inherited([bulkley, suskwa], _recs(bulkley, suskwa))
+    got, diags = _one_pass([bulkley, suskwa], _recs(bulkley, suskwa))
     by = {p.record_id: p for p in got}
     assert by["bulkley"].sections == ("b1", "b2", "m1")      # Morice-like m1: nobody's own
     assert by["bulkley"].via_tributary == ("m1",)
     assert by["suskwa"] == suskwa                             # its own reach is never taken
-    assert [(d.rule_id, d.kind, d.payload["removed"], d.payload["to"]) for d in diags] == [
-        ("bulkley", "trib_yields_to_own", 2, ["r6:suskwa#suskwa"])]
+    assert [(d.rule_id, d.kind, d.payload["rehomed"], d.payload["to"]) for d in diags] == [
+        ("bulkley", "first_classified_downstream", 2, "r6:suskwa#suskwa")]
 
 
 def test_only_the_inherited_half_yields_and_only_to_a_designation():
     # both name the section by reach: stays ambiguous (validator 6 reports it), neither loses it
     a, b = _P("e:a", "a", ["x"]), _P("e:b", "b", ["x"])
-    assert reach_lic.own_beats_inherited([a, b], _recs(a, b))[0] == [a, b]
+    assert _one_pass([a, b], _recs(a, b))[0] == [a, b]
     # a requirement or not_classified binding by reach takes nothing from a designation
     walk = _P("e:a", "a", ["r", "t"], trib=["t"])
     req = _P("e:q", "q", ["t"], kind="requirement")
-    assert reach_lic.own_beats_inherited([walk, req], _recs(walk))[0] == [walk, req]
+    assert _one_pass([walk, req], _recs(walk))[0] == [walk, req]
     # two walks meeting on a section: neither is the water's own, both keep it
     w1, w2 = _P("e:a", "a", ["r1", "t"], trib=["t"]), _P("e:b", "b", ["r2", "t"], trib=["t"])
-    assert reach_lic.own_beats_inherited([w1, w2], _recs(w1, w2))[0] == [w1, w2]
+    assert _one_pass([w1, w2], _recs(w1, w2))[0] == [w1, w2]
     # a pending walk's direct sections are its own
     pend = _P("e:p", "p", ["t"], pending=True)
-    got, _ = reach_lic.own_beats_inherited([walk, pend], _recs(walk, pend))
+    got, _ = _one_pass([walk, pend], _recs(walk, pend))
     assert got[0].sections == ("r",)
 
 
@@ -551,17 +563,23 @@ STAMP = "Steelhead Stamp mandatory Mar 1-May 31, Apr 1-Apr 30"
     ({}, dict(classified="I", verbatim="Class I water"), "class"),
 ])
 def test_an_inherited_designation_yields_only_to_one_that_says_as_much(own, inherited, why):
-    """The reviewer's guard: yielding drops the inherited designation from the section, so the
-    own one must cover its period, oblige the stamp no less, and sleep under a closure only when
-    the inherited one does. Otherwise both stay and the pair is reported."""
+    """The reviewer's guard, ON THE WALKER'S OWN WATER (T679 #10: the one case the pass decides before the walk):
+    yielding drops the inherited designation from the section, so the own one must cover its period, oblige the
+    stamp no less, and sleep under a closure only when the inherited one does. Otherwise both stay and the pair is
+    reported. Off the walker's own water the section is the own designation's stop: re-homed whatever its class
+    or period, the reason reported (one unit per section, RU-13)."""
     walk = _P("e:w", "w", ["r", "t"], trib=["t"])
     mine = _P("e:o", "o", ["t"])
     recs = {("e:w", "w"): _D("w", **inherited), ("e:o", "o"): _D("o", **own)}
     assert reach_lic.why_not_yield(recs[("e:o", "o")], recs[("e:w", "w")]) == why
-    got, diags = reach_lic.own_beats_inherited([walk, mine], recs)
+    got, diags = _one_pass([walk, mine], recs, own_water={"e:w": ["r", "t"]})
     assert got == [walk, mine]
     assert [(d.kind, d.payload["why"], d.payload["own"]) for d in diags] == [
         ("trib_kept_beside_own", why, "e:o#o")]
+    got, diags = _one_pass([walk, mine], recs)
+    assert got[0].sections == ("r",)
+    assert [(d.kind, d.payload["to"], d.payload["why_not_yield"]) for d in diags] == [
+        ("first_classified_downstream", "e:o#o", why)]
 
 
 def test_a_suspension_on_one_side_only_keeps_both():
@@ -570,8 +588,8 @@ def test_a_suspension_on_one_side_only_keeps_both():
     mine = _P("e:o", "o", ["t"])
     sleeping = Designation.model_construct(**{**_D("o").__dict__, "suspended_while": [object()]})
     assert reach_lic.why_not_yield(sleeping, _D("w")) == "suspended"
-    assert reach_lic.own_beats_inherited([walk, mine], {("e:w", "w"): _D("w"),
-                                                        ("e:o", "o"): sleeping})[0] == [walk, mine]
+    assert _one_pass([walk, mine], {("e:w", "w"): _D("w"), ("e:o", "o"): sleeping},
+                     own_water={"e:w": ["r", "t"]})[0] == [walk, mine]
 
 
 def test_an_own_designation_that_says_more_still_wins():
@@ -580,16 +598,29 @@ def test_an_own_designation_that_says_more_still_wins():
     # the walk is spring-only with no stamp; the own one is all year and obliges the stamp
     recs = {("e:w", "w"): _D("w", when=SPRING),
             ("e:o", "o"): _D("o", steelhead_stamp_during={"when": SPRING, "verbatim": STAMP})}
-    got, diags = reach_lic.own_beats_inherited([walk, mine], recs)
-    assert got[0].sections == ("r",) and diags[0].kind == "trib_yields_to_own"
+    got, diags = _one_pass([walk, mine], recs, own_water={"e:w": ["r", "t"]})
+    assert got[0].sections == ("r",)
+    assert [(d.kind, d.payload["removed"], d.payload["kept"], d.payload["to"]) for d in diags] == [
+        ("trib_yields_to_own", 1, 1, ["e:o#o"])]
 
 
 def test_a_section_two_designations_own_is_contested_and_takes_nothing_from_a_walk():
     walk = _P("e:w", "w", ["r", "t"], trib=["t"])
     a, b = _P("e:a", "a", ["t"]), _P("e:b", "b", ["t"])
-    got, diags = reach_lic.own_beats_inherited([walk, a, b], _recs(walk, a, b))
+    got, diags = _one_pass([walk, a, b], _recs(walk, a, b), own_water={"e:w": ["r", "t"]})
     assert got[0] == walk
     assert [(d.kind, d.payload["why"]) for d in diags] == [("trib_kept_beside_own", "contested")]
+    # off the walker's own water: the first of them by id is the stop (one unit per section)
+    got, diags = _one_pass([walk, a, b], _recs(walk, a, b))
+    assert got[0].sections == ("r",) and [d.payload["to"] for d in diags] == ["e:a#a"]
+
+
+def test_there_is_one_licensing_pass():
+    """T679 #10: `own_beats_inherited` is gone; the reach calls the one pass only."""
+    import inspect
+    from pipeline.atlas.reach import build as reach_build
+    assert not hasattr(reach_lic, "own_beats_inherited")
+    assert "own_beats_inherited" not in inspect.getsource(reach_build)
 
 
 def test_what_a_carve_out_removes_goes_to_the_excluded_waters_own_designation():
