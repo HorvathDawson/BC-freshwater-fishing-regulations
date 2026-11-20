@@ -1,6 +1,6 @@
 # T739 — Push "wake-ups" so alerts and notices arrive on time (iPhone first, Android as a second step)
 
-Status: IN PROGRESS (both steps approved by the owner 2026-11-14: iPhone, then "for android too."; iOS chat, branch `ios/t739-push`; ANDROID PUSH IS OFF THE TABLE FOR NOW, owner 2026-11-16 12:08 on Firebase: "we dont want this right now"; iPhone push unchanged).
+Status: IN PROGRESS (both steps approved by the owner 2026-11-14: iPhone, then "for android too."; iOS chat, branch `ios/t739-push`; ANDROID PUSH IS OFF THE TABLE FOR NOW, owner 2026-11-16 12:08 on Firebase: "we dont want this right now"; iPhone push unchanged). 2026-11-20 09:07: lane/l5-push merged (f9c2e42b5, reviewed twice), staging feeds worker deployed (push.missing.ios == [], 0 tokens); left (Claude): the TestFlight build with this release, then the owner phone test.
 
 Source: owner 2026-11-14, verbatim: "dont we want to use it for the notifications thought?" (on the Push Notifications
 box of the App ID), "there are also time sensitive notifications?" and "can we do this same push notification style to
