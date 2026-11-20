@@ -1,6 +1,6 @@
 # T548 — In-season notices: a notice still in force is shown, the feed has a stale rule, and the app says it reads it
 
-Status: IN PROGRESS — 65df4ce38, 0bdb754e0, e2f235509, 3a90a1591, 09320de47 (items 1+9, 2+3, 4, 6 done; worker parts deployed with the staging worker 2026-11-12 and production 2026-11-18; item 8's per-release links replaced by T673 on the owner's word; 2026-11-20 09320de47: the one-off end rule removed per the owner's 2026-11-11 answer, item 4's per-row reading built, items 7 and 10 closed as covered by T693 and T673). left (Claude): main chat review + merge (lane/l1-feeds), then the next app build carries it (the review app's in-force column reads the same rule at once)
+Status: IN PROGRESS — 65df4ce38, 0bdb754e0, e2f235509, 3a90a1591, 09320de47 (items 1+9, 2+3, 4, 6 done; worker parts deployed with the staging worker 2026-11-12 and production 2026-11-18; item 8's per-release links replaced by T673 on the owner's word; 2026-11-20 09320de47: the one-off end rule removed per the owner's 2026-11-11 answer, item 4's per-row reading built, items 7 and 10 closed as covered by T693 and T673). left (Claude): main chat review + merge (lane/l1-feeds; review fix 6dd3fd9e5), then the next app build carries it (the review app's in-force column reads the same rule at once)
 
 Source: data pipeline review 2026-11-09 (owner-led; 14 areas + a gap check, every finding re-read against the code and release data by a second reviewer). Rank 4 of 17; highest severity 5 of 5.
 
@@ -84,7 +84,7 @@ Severity 2, fragility, partly, reaches an angler; area inseason. Related ticket:
 Fix the items above in severity order, one commit per item where they are separable. Anything found and not done becomes a new ticket.
 
 ## Acceptance
-Fixtures from the 2026-11-08 capture: the recurring-window notice shows in year two, the seven one-off summer closures stay hidden after their window, an open-ended cell keeps its start date. Freshness table and More say the feed is read; a stale rule exists and is tested. One shared case file pins the Python and TS "in force" rule.
+Fixtures from the 2026-11-08 capture: the recurring-window notice shows in year two, the seven summer closures with a printed window show while the Province lists them (owner 2026-11-20; was: "stay hidden after their window"), an open-ended cell keeps its start date. Freshness table and More say the feed is read; a stale rule exists and is tested. One shared case file pins the Python and TS "in force" rule.
 
 Depends: —. Size: M. Owner: yes (Q178).
 
@@ -117,9 +117,8 @@ year until the row leaves the Province's page or a curated end is set.
   Okanagan, Granby and new-year cases now read `to` null and in force after their window; every other case unchanged.
   Effect: the seven 2026 "July 30 to September 15" closures (Salmon, Okanagan, Similkameen, Granby, Bessette) show again
   while the Province lists them; nothing is hidden by an invented end.
-  Reading taken: "a notice shows inside its printed window each year" is read as "the notice (with its window in its own
-  words) shows while the page lists it" — no seasonal filter was built (Heber Creek's text is half year-round, and a
-  filter would hide that part). If the owner meant "only during the window", that is a small follow-up on this rule.
+  Confirmed by the owner 2026-11-20 (below): a notice with a printed window shows while the Province lists it; no
+  seasonal filter.
 - **Item 4, per row**: `parseInSeasonFeed` drops a row it cannot read (no id / water / change text, or dates that are not
   text) and keeps every other; the feed says how many and which (`unread`, `unreadRows`). The reader reports them once per
   fresh read (`INSEASON_FAILURES.unreadRows`), not on the capture; the update service's `offer` takes such a feed (it is
@@ -132,4 +131,16 @@ year until the row leaves the Province's page or a curated end is set.
   row: dropped, reported once, capture without it, offer takes it), `test_inseason_publish.py` (the parity cases on the
   Python side). Not run here: `test_the_curated_ranges_resolve_on_the_release_under_test` (needs a built bundle; the
   lane's worktree holds none).
+
+## Owner 2026-11-20 (~06:34, dialog): a notice with a printed window
+Asked when a notice that prints a window ("July 30 to September 15") shows, the owner picked: "While the Province lists it
+(Recommended)". Built so in 09320de47 (no end inferred; the window stays in the notice's words).
+
+## Review fix 2026-11-20 (6dd3fd9e5)
+- Dropped rows are SAID, not only reported: the inbox line reads "1 in-season notice could not be read by this version of
+  the app. It is not shown; the others are." (`INBOX_WORDS.unreadRows`, from the feed in use's `unread`).
+- More than half the rows unreadable is a feed this app does not read: `parseInSeasonFeed` refuses it whole (the capture
+  answers, the update service's `offer` throws, the feed's own failure line shows, as for a format bump).
+- Tests: `inseason.test.ts` (the threshold: half reads, over half refuses), `data/src/feed/inseason.test.ts` (offer throws,
+  the capture kept), `ui/src/inseason.render.test.tsx` (the inbox line for one dropped row; the whole refusal).
 
