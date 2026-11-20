@@ -14,6 +14,7 @@
  * its data, as for the release gate): every index passes.
  */
 import { compareSemver, parseSemver, releaseAllowed, type AppVersion } from "./appVersion";
+import { reportFailure } from "./failure";
 
 /** The feeds whose index carries `minAppVersion` (the update service's ids, plus run timing, read on its own). */
 export type GatedFeed = "dfo" | "inseason" | "gauges" | "runtiming";
@@ -57,7 +58,8 @@ export function createFeedGate(app: AppVersion | null): FeedGate {
     if ((refused[feed] ?? null) === need) return;
     if (need === null) delete refused[feed];
     else refused[feed] = need;
-    for (const l of [...listeners]) { try { l(); } catch { /* a listener never breaks a read */ } }
+    // a listener that throws never breaks a read: it is reported (T368), the others still told
+    for (const l of [...listeners]) { try { l(); } catch (e) { reportFailure(e); } }
   };
   return {
     check(index, feed) {
