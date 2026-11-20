@@ -408,6 +408,8 @@ def test_policy_version_is_bumped_when_classify_changes():
             reach_build.THE_WATER_AT_A_CONFLUENCE_CUT_IS_THE_ONE_THAT_BRINGS_ITS_NAMED_WATER,
         "a_through_river_stays_out_with_its_side_channels": reach_build.A_THROUGH_RIVER_STAYS_OUT_WITH_ITS_SIDE_CHANNELS,
         "a_dead_end_flows_where_its_water_flows": tributaries.A_DEAD_END_FLOWS_WHERE_ITS_WATER_FLOWS,
+        # (T944 review, LF) pinned at 49: the live reach run is unchanged by it (rules and licensing digests)
+        "a_mouth_never_flows_back_up": tributaries.A_MOUTH_NEVER_FLOWS_BACK_UP,
         "a_rowed_no_unit_water_carries_the_unit": licensing.A_ROWED_NO_UNIT_WATER_CARRIES_THE_UNIT,
         "only_a_unit_on_its_tributaries_claims_them": licensing.ONLY_A_UNIT_ON_ITS_TRIBUTARIES_CLAIMS_THEM,
     })
@@ -445,6 +447,7 @@ def test_policy_version_is_bumped_when_classify_changes():
                      "the_water_at_a_confluence_cut_brings_its_named_water": True,
                      "a_through_river_stays_out_with_its_side_channels": True,
                      "a_dead_end_flows_where_its_water_flows": True,
+                     "a_mouth_never_flows_back_up": True,
                      "a_rowed_no_unit_water_carries_the_unit": True,
                      "only_a_unit_on_its_tributaries_claims_them": True})
     assert cache.POLICY_VERSION == "49", "update this pin with the version it was taken at"

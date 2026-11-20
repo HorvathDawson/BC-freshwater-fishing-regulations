@@ -328,6 +328,33 @@ def test_a_rivers_mouth_keeps_nothing_below(world):
     assert out == {"SH_dead": ("G_up",), "T_dead": ("M",)}
 
 
+def _mouth_with_a_distributary():
+    """A river R (code r, main flow 1000) whose mouth R_mouth is a sink (the sea); upstream of it, at R_hi, a distributary D
+    leaves the code (code d, to the sea on its own), and a side piece R_side (1100) leaves R_hi and stops (a dead end)."""
+    import dataclasses
+    g = StreamGraph()
+    for nid, code, et in (("R_hi", "r", ("1000",)), ("R_mouth", "r", ("1000",)), ("R_side", "r", ("1100",)),
+                          ("D", "d", ("1100",))):
+        g.nodes[nid] = dataclasses.replace(_node(nid, nid, 0, 100), wsc=code, edge_types=et)
+    g.edges = [FlowEdge(from_node=a, to_node=b, kind="confluence", at_measure=0)
+               for a, b in (("R_hi", "R_mouth"), ("R_hi", "D"), ("R_hi", "R_side"))]
+    for i, e in enumerate(g.edges):
+        g.up_adj.setdefault(e.to_node, []).append(i)
+        g.down_adj.setdefault(e.from_node, []).append(i)
+    return g
+
+
+def test_a_mouth_never_flows_back_up(monkeypatch):
+    """(T944 review, LF) `A_MOUTH_NEVER_FLOWS_BACK_UP`: a sink on its code's MAIN FLOW is the river's mouth. Its code
+    leaving itself upstream (a distributary at R_hi) is not where the mouth's water goes: no outlet, "nothing below" as
+    before T944. The side piece off R_hi is a dead end and still flows where its water flows.
+    MUTATION: the guard off, the mouth is sent back up into the distributary."""
+    from pipeline.atlas.graph import tributaries as T
+    assert T.dead_end_outlets(_mouth_with_a_distributary()) == {"R_side": ("D",)}
+    monkeypatch.setattr(T, "A_MOUTH_NEVER_FLOWS_BACK_UP", False)
+    assert T.dead_end_outlets(_mouth_with_a_distributary()) == {"R_mouth": ("D",), "R_side": ("D",)}
+
+
 def test_mutation_switching_dead_end_outlets_off_leaves_two_units(world, monkeypatch):
     from pipeline.atlas.graph import tributaries as T
     monkeypatch.setattr(T, "A_DEAD_END_FLOWS_WHERE_ITS_WATER_FLOWS", False)
