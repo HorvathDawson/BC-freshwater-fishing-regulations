@@ -1,6 +1,6 @@
 # T548 — In-season notices: a notice still in force is shown, the feed has a stale rule, and the app says it reads it
 
-Status: IN PROGRESS — 65df4ce38, 0bdb754e0, e2f235509, 3a90a1591, 09320de47 (items 1+9, 2+3, 4, 6 done; worker parts deployed with the staging worker 2026-11-12 and production 2026-11-18; item 8's per-release links replaced by T673 on the owner's word; 2026-11-20 09320de47: the one-off end rule removed per the owner's 2026-11-11 answer, item 4's per-row reading built, items 7 and 10 closed as covered by T693 and T673). left (Claude): main chat review + merge (lane/l1-feeds; review fix 6dd3fd9e5), then the next app build carries it (the review app's in-force column reads the same rule at once) 2026-11-20 07:18: merged (27e98e4eb); left (Claude): the next app build.
+Status: IN PROGRESS — 65df4ce38, 0bdb754e0, e2f235509, 3a90a1591, 09320de47 (items 1+9, 2+3, 4, 6 done; worker parts deployed with the staging worker 2026-11-12 and production 2026-11-18; item 8's per-release links replaced by T673 on the owner's word; 2026-11-20 09320de47: the one-off end rule removed per the owner's 2026-11-11 answer, item 4's per-row reading built, items 7 and 10 closed as covered by T693 and T673). left (Claude): main chat review + merge (lane/l1-feeds; review fix 6dd3fd9e5), then the next app build carries it (the review app's in-force column reads the same rule at once) 2026-11-20 07:18: merged (27e98e4eb). 2026-11-20 10:35: leftover L5 built on lane/la-feeds-leftovers (bf782ad11: a feed refused for its rows says how many of how many and which, in the report and the inbox line); left (Claude): main chat review + merge, then the next app build.
 
 Source: data pipeline review 2026-11-09 (owner-led; 14 areas + a gap check, every finding re-read against the code and release data by a second reviewer). Rank 4 of 17; highest severity 5 of 5.
 
@@ -143,6 +143,18 @@ Asked when a notice that prints a window ("July 30 to September 15") shows, the 
   answers, the update service's `offer` throws, the feed's own failure line shows, as for a format bump).
 - Tests: `inseason.test.ts` (the threshold: half reads, over half refuses), `data/src/feed/inseason.test.ts` (offer throws,
   the capture kept), `ui/src/inseason.render.test.tsx` (the inbox line for one dropped row; the whole refusal).
-- Leftover (second review L5, noted, not fixed): an index refused because over half its rows cannot be read shows the
+- Leftover (second review L5, noted, not fixed here; built 2026-11-20, at the end): an index refused because over half its rows cannot be read shows the
   generic "could not be read by this version of the app" line and report; neither says it was the rows.
 
+
+## Leftover L5 built 2026-11-20 (lane LA, `lane/la-feeds-leftovers`, bf782ad11)
+- **The words say why.** core `inSeasonFeedRefusal(x)` says why `parseInSeasonFeed` refuses an index: the format seen, a
+  missing field, or the rows: "not a readable inseason-feed/1 feed: 2 of 3 rows could not be read (is-bad, is-bad2), more
+  than half" (`INSEASON_FAILURES.rowsRefused`: the first five ids, then "and n more"). The report, the source's
+  `failure()` and the update service's offer error carry it (`data/src/feed/inseason.ts`).
+- **The inbox line too.** The source's `failureRows()` gives how many of how many; `useInSeasonInbox` says
+  `INBOX_WORDS.failureRows(n, of)`: "The latest in-season notices could not be read by this version of the app (2 of 3
+  could not be read). Shown: the last ones it read." A format refusal keeps the plain line.
+- **Tests**: `data/src/feed/inseason.test.ts` (the offer's error, the report, `failure()` / `failureRows()`, the
+  five-ids cap), `ui/src/inseason.render.test.tsx` (the inbox line and the report, whole). Mutation (the old generic words
+  back): both fail.

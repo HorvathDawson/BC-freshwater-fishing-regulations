@@ -1,6 +1,6 @@
 # T739 — Push "wake-ups" so alerts and notices arrive on time (iPhone first, Android as a second step)
 
-Status: IN PROGRESS (both steps approved by the owner 2026-11-14: iPhone, then "for android too."; iOS chat, branch `ios/t739-push`; ANDROID PUSH IS OFF THE TABLE FOR NOW, owner 2026-11-16 12:08 on Firebase: "we dont want this right now"; iPhone push unchanged).
+Status: IN PROGRESS (both steps approved by the owner 2026-11-14: iPhone, then "for android too."; iOS chat, branch `ios/t739-push`; ANDROID PUSH IS OFF THE TABLE FOR NOW, owner 2026-11-16 12:08 on Firebase: "we dont want this right now"; iPhone push unchanged). 2026-11-20 10:35: review leftovers L2 + L3 built on lane/la-feeds-leftovers (683042a46: every token listed; one run tells at most 1,500 phones and carries the rest to the next run, under the subrequest limit, said on /status); left (Claude): main chat review + merge, then the staging feeds worker deploy.
 
 Source: owner 2026-11-14, verbatim: "dont we want to use it for the notifications thought?" (on the Push Notifications
 box of the App ID), "there are also time sensitive notifications?" and "can we do this same push notification style to
@@ -453,7 +453,7 @@ filtered on `/push`, would say whether a register (and its status) arrived befor
   phone in `push-token.json`); a second 429 is no longer a reported defect: the line says "Server wake-ups:
   registration pending: our server is busy for this connection. It tries again when the app next starts." with "Try
   again". Tests `notify/push.test.ts`, `Notifications.test.tsx`, `alerts.test.ts`.
-- **Leftovers (not fixed here):**
+- **Leftovers (not fixed here; L2 + L3 built 2026-11-20, at the end):**
   - **L2**: `sendWake` lists tokens with `listKeys(…, 100_000)`, a silent cap: past 100k registered phones the rest get no
     wake and nothing says so (`push.ts`, the sender's list).
   - **L3**: one R2 get plus one APNs fetch per token, inside the gauge run's invocation (20 at a time): past a few
@@ -478,3 +478,24 @@ filtered on `/push`, would say whether a register (and its status) arrived befor
   this connection. It tries again when the app next starts." (`pending` carries `what`); "Try again" withdraws again
   (`retryPush` sends the token while a notification is on, else the withdrawal).
 - Wording: a deleted token record comes back "within 7 days" (the worker's log line and comment), not "at the next start".
+
+### Leftovers L2 + L3 built 2026-11-20 (lane LA, `lane/la-feeds-leftovers`, 683042a46)
+- **L2, no silent cap.** `sendWake` lists every token, page by page (`listKeys(…, Infinity)`); the 100,000 cap is gone.
+- **L3, measured, then capped per run with a carry-over.** The limit: 10,000 subrequests an invocation on Workers Paid,
+  R2 binding calls included (T225 "Limits checked"); the gauge run itself is 1,400–1,900, about 3,000 at worst. A wake
+  costs per phone one R2 get, one APNs fetch and one R2 delete when the token is dead (3 at most), plus one list per 1,000
+  phones and about 10 fixed reads/writes (`pushSubrequests`). Sent at once, about 2,300 phones beside a worst gauge run
+  would pass the limit (and fail the run's status write). Now ONE RUN TELLS AT MOST `PUSH_SENDS_PER_RUN` (1,500) phones
+  and keeps its place in `private/push/carry.json` (`push-carry/1`: reason, since, the circle's start, the last key
+  told, part). Every feed run looks for it: one with no reason of its own carries the wake on; a NEW wake starts its
+  circle where the carried one stands, so the phones not yet told come first and a gauge run that wakes every 30 min
+  still reaches every phone. A carry that cannot be kept throws (the run fails, as a lost status does); one that does
+  not read is said (`carryError`, a step error), deleted, and the wake begins again at the first phone.
+- **Honest on /status**: the push record carries `carry: {part, left, since}`; /status says "part N of a wake begun …:
+  M phone(s) left for the next run" (or "the last part"); the run's `push` summary carries it too. Queues were not
+  needed: a million phones is ~1,000 list calls + 4,500 + 10 per run, under the limit beside the worst gauge run.
+- **Tests** `app/workers/feeds/test/push.scale.test.ts` (5): 100,001 tokens all listed; a worst-case wake (every token
+  dead) measured with a counting bucket + APNs under `pushSubrequests`, and the arithmetic up to a million phones (and
+  that sending all in one run would not fit); the circle over four runs (every phone told once, the untold first); a
+  carry that cannot be kept / does not read; real in-season runs (a run with no reason carries it on; /status words).
+  Mutation-checked: the 100,000 cap back; no per-run cap; a new wake restarting at the first key; the run not carrying.

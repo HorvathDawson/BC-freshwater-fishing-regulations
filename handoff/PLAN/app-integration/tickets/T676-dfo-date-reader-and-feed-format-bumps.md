@@ -1,6 +1,6 @@
 # T676 — The release and the live feed read a DFO date cell the same way; a feed format bump does not strand an older app
 
-Status: IN PROGRESS (2026-11-20, b1f6f23dc, review fixes 719fd569c 243b46352 2c316de53) — items 1, 3 and 4 done (4f591c31a, 4bc03ac14); item 2 built on the owner's 2026-11-20 pick (per-feed `minAppVersion`), branch lane/l1-feeds. left (Claude): main chat review + merge, then the staging feeds worker deploy (the worker stamps the dfo / inseason / live indexes) and the next app build (the gate ships in the app; an app older than it ignores the field) 2026-11-20 07:18: merged (27e98e4eb), staging feeds worker deployed (stamps live); left (Claude): the next app build.
+Status: IN PROGRESS (2026-11-20, b1f6f23dc, review fixes 719fd569c 243b46352 2c316de53) — items 1, 3 and 4 done (4f591c31a, 4bc03ac14); item 2 built on the owner's 2026-11-20 pick (per-feed `minAppVersion`), branch lane/l1-feeds. left (Claude): main chat review + merge, then the staging feeds worker deploy (the worker stamps the dfo / inseason / live indexes) and the next app build (the gate ships in the app; an app older than it ignores the field) 2026-11-20 07:18: merged (27e98e4eb), staging feeds worker deployed (stamps live). 2026-11-20 10:35: leftovers L2-L4 built on lane/la-feeds-leftovers (31b04ca5c: a refused gauge file asked again only by its validator, the More row shows any gauge-file hold steadily, the foreground obs sync reports); left (Claude): main chat review + merge, then the next app build.
 
 Source: T556 (data pipeline review 2026-11-09, findings 1 and 3). T556 pinned the two languages with shared fixtures and
 generated the format strings; these two are changes of behaviour, not pins.
@@ -156,10 +156,34 @@ An independent review of lane/l1-feeds said "merge after fixes":
   under the reviewer's `why && opts.gate` mutation; checked); the M2 repros and seven more shapes start clean (fails with
   the guard removed; checked).
 - **L1:** `gauges.contract.test.ts` pins `minAppVersion` on `obs.json` and every station file the worker writes.
-- **Leftovers (noted, not fixed):**
+- **Leftovers (noted, not fixed here; L2–L4 built 2026-11-20, at the end):**
   - L2: a gauge station file or `obs.json` refused as newer than the app is downloaded again on every read (only the
     index's refusal is remembered).
   - L3: the gauges row on More shows a need only from the index; one set by a station file or `obs.json` reaches the
     prompt (the gate) but not the row.
   - L4: `syncObservations` swallows every failure (`catch {}`), a broken `obs.json` included; the T368 scan lists it.
 
+
+## Leftovers L2–L4 built 2026-11-20 (lane LA, `lane/la-feeds-leftovers`, 31b04ca5c)
+The owner, 2026-11-20 10:00: "Make sure every left over goes on this release when we cut it".
+- **L2, a refused gauge file is remembered.** Background (`fetchObs` with its kept copy, so `createCheckSources`' `HELD.obs`):
+  a file refused as newer than the app is kept beside the good copy as `refused: {etag, need}`; the next run sends THAT
+  validator, so an unchanged refused file is a 304 and the same `FeedNeedsNewerApp` (alerts wait), nothing downloaded. The
+  gate is asked first whether the need still refuses (an app updated since reads it whole); a refusal not in its shape is
+  dropped. Foreground (`httpFeed`): each refused file is remembered (validator, need, when); inside FEED_TTL_MS nothing is
+  asked, after it a 304 by its validator; the sync icon (`refresh`) asks at once; a 404 drops it and its hold. The
+  foreground obs sync now has its own in-memory kept copy, so an unchanged `obs.json` (refused or not) is a 304 too.
+- **L3, the gauges row shows any gauge-file hold, steadily.** core `feedGate`: a file's need is held under its own name
+  (`checkFile(doc, feed, url)`), cleared only by that file reading (or `clearFile` on a 404); the index passing and
+  `note(feed, null)` (a 304 of the index) clear only the index's need. The update service's rows read the gate's word per
+  feed (`refused()[id]`, index and files together) and publish when it moves, so the More row and the prompt no longer
+  flicker (a 304 cleared them until the next station read set them again).
+- **L4, the foreground obs sync reports.** `syncObservations`' `catch {}` is gone: a stamp (`FeedNeedsNewerApp`) is a known
+  state (held, not reported), offline is the environment's (not reported), anything else is reported once per kind a run
+  (`reportOnce`: the sync runs on every feed update). `tools/failures.test.ts` FINE for http.ts 3 → 2.
+- **Tests** (`app/packages/data/src/feed/refusedFiles.test.ts`, 9; `core/src/feedGate.test.ts` file holds): background
+  304 on the second and later runs, the origin taking the bump back, an updated app, through `createCheckSources`, bad kept
+  refusals; foreground no request inside the TTL, 304 after, refresh, take-back, 404; the row held across two index 304s
+  and cleared by the file; obs.json's hold on the row; a 500 / a broken file reported once each, offline and a stamp not.
+  Mutation-checked (each fails the tests named): background refusal memory off; foreground TTL skip off; foreground
+  validator off; rows from the service only; the index clearing file holds; `catch {}` back.
