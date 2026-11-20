@@ -39,8 +39,18 @@ function NeedItem({ it, palette, actions }: { it: NeedItemVM; palette: Palette; 
           {it.book.map((t, i) => <Text key={i} testID="need-book-term" style={[TYPE.meta, { color: palette.ink, marginTop: 2 }]}>{t}</Text>)}
         </View>
       )}
+      <Why why={it.why} palette={palette} />
     </View>
   );
+}
+
+/** (T973, owner 2026-11-20 13:22) a carried Classified Waters unit's why, behind the card's fold; nothing on any other row */
+function Why({ why, palette }: { why: string | undefined; palette: Palette }) {
+  return why ? (
+    <Fold summary={LIC.MAY_WHY_FOLD} palette={palette} testID="licence-why-fold">
+      <Text testID="licence-why" style={[TYPE.meta, { color: palette.ink }]}>{why}</Text>
+    </Fold>
+  ) : null;
 }
 
 function Block({ b, palette, actions }: { b: LicenceBlockVM; palette: Palette; actions: Acts }) {
@@ -55,6 +65,7 @@ function Block({ b, palette, actions }: { b: LicenceBlockVM; palette: Palette; a
             <Terms ids={b.terms} palette={palette} actions={actions} />
             <Text style={[TYPE.regsBody, { color: palette.ink }]}>{"\n"}{b.body}</Text>
           </Text>
+          {b.cls === "classbox" && <Why why={b.why} palette={palette} />}
         </View>
       );
     case "flag":

@@ -601,15 +601,17 @@ def documents(C: Corpus, h: dict, alts: Sequence[Tuple[str, dict]], p: Dict[str,
 def key_year(db, C: Corpus, key: LicenceKey, sid: int, days: Sequence[int],
              P: Sequence[Dict[str, str]], contested: set, ref: Callable,
              memo: Dict[str, list], stats: Optional[dict] = None,
-             alien: Optional[Dict[int, List[dict]]] = None) -> Dict[int, dict]:
+             alien: Optional[Dict[int, List[dict]]] = None,
+             holds_of: Optional[Callable[[tuple], dict]] = None) -> Dict[int, dict]:
     """One licence key's answers over the year, `{start_day: {"holds", "profiles"}}`, read at one
     of its sections (`sid`; every section of a key answers alike, pinned by the tests), cut on
-    `days` (`change_days`) with equal neighbours merged."""
+    `days` (`change_days`) with equal neighbours merged. `holds_of(month_day)` replaces `holds` at the section (T973:
+    the answer as if a carried designation held, `carried_holds`)."""
     alts = _alternatives_here(db, C, sid)
     year: Dict[int, dict] = {}
     last = None
     for d in days:
-        h = holds(db, C, sid, month_day(d))
+        h = holds(db, C, sid, month_day(d)) if holds_of is None else holds_of(month_day(d))
         if stats is not None:
             stats["key_days_wrong_water"] = stats.get("key_days_wrong_water", 0) + \
                 bool(h["wrong_water"])
@@ -648,6 +650,37 @@ def key_year(db, C: Corpus, key: LicenceKey, sid: int, days: Sequence[int],
 # --------------------------------------------------------------------------------------------
 # The `licence` section of the answers file
 # --------------------------------------------------------------------------------------------
+
+def carried_holds(C: Corpus, here: dict, source: dict, designation: str, md) -> dict:
+    """(T973, owner 2026-11-20 13:22) THE ANSWER AS IF A CARRIED DESIGNATION HELD: a section's own `holds` (`here`) with
+    the carried designation added on the days it is in force at its own water (`source`, `holds` read at one of its
+    own sections) — the designation box, and every requirement that holds where a designation does
+    (`on_designation`: the Classified Waters Licence, the classified steelhead stamp) as the source holds it. The
+    classified water's own answer is the model, so a carried unit is the same row, for the same anglers, at the same
+    price; only what the source holds BECAUSE of its designation moves."""
+    if designation not in source["designations"]:
+        return here
+    add = [k for k in source["rows"] if C.requirements[k].get("_placement") == "on_designation"]
+    extra = [k for k in add if k not in here["rows"]]
+    desig = list(here["_desig"]) + [d for d in source["_desig"] if f"{d['entry_id']}#{d['id']}" == designation
+                                    and f"{d['entry_id']}#{d['id']}" not in here["designations"]]
+    return {**here, "holds": _order(C, list(here["holds"]) + [k for k in extra if k in source["holds"]]),
+            "displaced": {**here["displaced"], **{k: v for k, v in source["displaced"].items() if k in extra}},
+            "rows": _order(C, list(here["rows"]) + extra),
+            "designations": sorted(set(here["designations"]) | {designation}), "_desig": desig,
+            "stamp_period": read.steelhead_stamp_period(desig, md)}
+
+
+def carried_year(db, C: Corpus, sid: int, source_sid: int, designation: str, set_id: Optional[int], kind: Optional[str],
+                 days: Sequence[int], P: Sequence[Dict[str, str]], contested: set, memo: Dict[str, list]) -> Dict[int, dict]:
+    """(T973) `key_year` at a carried section `sid` with `designation` held as at its own section `source_sid`
+    (`carried_holds`): {start_day: {"holds", "profiles", "under_16"}}, the licence frame's own shape. No
+    `alien_closures`: those are the part's rule set's, and the app keeps the part's own."""
+    key = LicenceKey(set_id, "", False, kind, None)
+    return key_year(db, C, key, sid, days, P, contested, C.index.__getitem__, memo,
+                    holds_of=lambda md: carried_holds(C, holds(db, C, sid, md), holds(db, C, source_sid, md),
+                                                      designation, md))
+
 
 def sleepy_sets(db) -> set:
     """Licensing sets holding a designation a closure can put to sleep (`suspended_while`): there
