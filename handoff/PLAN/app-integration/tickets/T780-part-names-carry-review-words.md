@@ -29,7 +29,7 @@ Owner 2026-11-20 ("Couldn't we just assume most of these are done already?"): ta
 Status line before this answer: OPEN (the words are not in `data/curated/waters/cuts.json`: the labels are clean (e.g. "Skutz Falls", confidence "medium"); deliver appends "approximate location (… confidence)" from the cut's `confidence` field by the T207 rule (`pipeline/deliver/answers/display/part.py`, `confidence_words`). Needs a call on whether part names keep that suffix, then one deliver run and a release)
 
 ## Built (lane L2, branch `lane/l2-parts`, 2026-11-20)
-Commit 72efb1a10. `display.part.end_name` no longer appends `confidence_words`: `display.ends` (a part's name, a map
+Commits 72efb1a10 (code) and 1daa94efe (the mini release re-cut, which the change moves). `display.part.end_name` no longer appends `confidence_words`: `display.ends` (a part's name, a map
 mark, an in-season "Where") and the bundle's part_mark labels say the place's name alone. The cut's `confidence` still
 ships (export `splits`, bundle `part_mark`) and the review app still says "approximate location (… confidence)"
 beside a cut's label. The cut labels in `cuts.json` were already clean (0 of 505 carry review words).
