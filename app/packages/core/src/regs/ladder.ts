@@ -41,15 +41,11 @@ export function verdictList(v: VerdictWire, reasons: readonly string[], reasonSt
 /** page ladderAt: a frame → per fish (frame order) → per origin, the `common` verdict overlaid by the fish's own
  *  (`new Map([...base, ...own])`). The store's 2-element row `[fish, v]` (one verdict for all three origins) reaches here
  *  already spread to [fish, v, v, v] by T04's `ladder` read. null frame → null.
- *  (T917) The same lookup, made once: a frame decoded once per (frame, reasons, states) (settle.ts asks per segment and day,
- *  and the frame does not change with the day), and one map for origins that carry the same wire verdict (the spread row).
- *  The overlay is `base` copied then the own verdicts set, the insertion order of `new Map([...base, ...own])`. The maps are
- *  read-only (`Ladder`), so sharing them changes no reader. This was the SEO build's largest single cost (~50 s). */
-const DECODED = new WeakMap<LadderFrameWire, { reasons: readonly string[]; reasonState: readonly string[]; ladder: Ladder }>();
+ *  (T917) One map for origins that carry the same wire verdict (the spread row), and the overlay made as `base` copied
+ *  then the own verdicts set (the insertion order of `new Map([...base, ...own])`). The maps are read-only (`Ladder`), so
+ *  sharing them changes no reader. Decoding once per segment is settle.ts's (`ladderOfSeg`, held with the inputs). */
 export function ladderAt(frame: LadderFrameWire | null, reasons: readonly string[], reasonState: readonly string[]): Ladder | null {
   if (!frame) return null;
-  const hit = DECODED.get(frame);
-  if (hit && hit.reasons === reasons && hit.reasonState === reasonState) return hit.ladder;
   const base = verdictList(frame.common, reasons, reasonState);
   const at = (v: VerdictWire): ReadonlyMap<number, Verdict> => {
     const m = new Map(base);
@@ -61,6 +57,5 @@ export function ladderAt(frame: LadderFrameWire | null, reasons: readonly string
     const n = at(none), h = hatchery === none ? n : at(hatchery), w = wild === none ? n : wild === hatchery ? h : at(wild);
     out.set(fish, { none: n, hatchery: h, wild: w });
   }
-  DECODED.set(frame, { reasons, reasonState, ladder: out });
   return out;
 }

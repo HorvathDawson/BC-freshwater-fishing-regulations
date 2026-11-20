@@ -19,8 +19,13 @@ describe("T917: how many threads the SEO build runs", () => {
     expect(c.said).toMatch(/held to 5 by memory/);
     expect(threadCounts("12", 16 * GB, 48 * GB, 18).render).toBe(5);
   });
-  it("never runs fewer than one render and two job threads", () => {
-    expect(threadCounts("auto", 2 * GB, 8 * GB, 2)).toMatchObject({ render: 1, jobs: 2 });
+  it("never runs fewer than two job threads", () => {
+    expect(threadCounts("auto", 8 * GB, 8 * GB, 2)).toMatchObject({ render: 1, jobs: 2 });
+  });
+  it("refuses when the free memory fits no render thread, naming the free memory and the budget", () => {
+    // 6 GB free of 48: 6 - 4.8 kept - 4.5 main < 1.3
+    expect(() => threadCounts("auto", 6 * GB, 48 * GB, 18)).toThrow(/fits no render thread \(6\.0 GB free of 48\.0: 1\.3 GB a render thread, 4\.5 GB main, 10 % kept free\)/);
+    expect(() => threadCounts("1", 6 * GB, 48 * GB, 18)).toThrow(/fits no render thread/);
   });
   it("refuses a count that is not a whole number ≥ 1", () => {
     for (const bad of ["0", "-2", "1.5", "lots"]) expect(() => threadCounts(bad, 34 * GB, 48 * GB, 18)).toThrow(/--threads/);

@@ -17,13 +17,23 @@ export class JobPool {
   private readonly queue: Job[] = [];
   private n = 0;
   private failed: Error | null = null;
+  private closing = false;
   /** called whenever a job finishes (the render pool waits on the backlog: `waiting`) */
   onIdle: () => void = () => {};
 
-  constructor(count: number, card: Card) {
+  /** `script`: the thread's module (a test gives one that dies) */
+  constructor(count: number, card: Card, script: URL = new URL("./jobs-worker.mjs", import.meta.url)) {
     for (let i = 0; i < count; i++) {
-      const w = new Worker(new URL("./jobs-worker.mjs", import.meta.url), { workerData: { card } });
+      const w = new Worker(script, { workerData: { card } });
       const t = { w, busy: null as Job | null };
+      // (T917 review) a thread that ends before close() (process.exit, a native crash; no 'error' event) fails the build
+      // loudly: its job and every waiting one are rejected, never left to hang
+      w.on("exit", (code: number) => {
+        if (this.closing) return;
+        const e = new Error(`seo: a job thread exited (code ${code})${t.busy ? ` during ${t.busy.msg.t} ${t.busy.msg.t === "zip" ? t.busy.msg.file : `#${t.busy.msg.n}`}` : ""}; the build stops`);
+        this.failed ??= e; t.busy?.fail(e); t.busy = null;
+        for (const j of this.queue.splice(0)) j.fail(e);
+      });
       w.on("message", (r: Reply) => {
         const job = t.busy!;
         t.busy = null;
@@ -67,5 +77,5 @@ export class JobPool {
   /** a share card drawn as its PNG */
   async png(svg: string): Promise<Uint8Array> { return (await this.ask({ t: "png", svg })).png!; }
 
-  async close(): Promise<void> { await Promise.all(this.threads.map((t) => t.w.terminate())); }
+  async close(): Promise<void> { this.closing = true; await Promise.all(this.threads.map((t) => t.w.terminate())); }
 }

@@ -38,11 +38,12 @@ export function threadCounts(asked: string, free = freeBytes(), total = totalmem
   const want = asked === "auto" ? Math.max(1, Math.floor((cores - 1) / (1 + JOBS_PER_RENDER))) : Number(asked);
   if (!Number.isInteger(want) || want < 1) throw new Error(`seo: --threads ${asked}: give a whole number of render threads ≥ 1, or auto`);
   const fits = Math.floor((free - KEEP_FREE * total - MAIN_GB * GB) / (RENDER_THREAD_GB * GB));
-  const render = Math.max(1, Math.min(want, fits));
-  const jobs = Math.max(2, Math.min(Math.ceil(render * JOBS_PER_RENDER), cores - 1 - render));
   const gb = (b: number) => (b / GB).toFixed(1);
-  const why = render < want
-    ? `held to ${render} by memory (${gb(free)} GB free of ${gb(total)}: ${RENDER_THREAD_GB} GB a render thread, ${MAIN_GB} GB main, ${KEEP_FREE * 100} % kept free)`
-    : `${gb(free)} GB free of ${gb(total)}, ${cores} cores`;
+  const budget = `${gb(free)} GB free of ${gb(total)}: ${RENDER_THREAD_GB} GB a render thread, ${MAIN_GB} GB main, ${KEEP_FREE * 100} % kept free`;
+  // (T917 review) not even one render thread fits: refused, never run anyway on a machine that may then be stopped mid-build
+  if (fits < 1) throw new Error(`seo: --threads ${asked}: the free memory fits no render thread (${budget}); free some memory and run again`);
+  const render = Math.min(want, fits);
+  const jobs = Math.max(2, Math.min(Math.ceil(render * JOBS_PER_RENDER), cores - 1 - render));
+  const why = render < want ? `held to ${render} by memory (${budget})` : `${gb(free)} GB free of ${gb(total)}, ${cores} cores`;
   return { render, jobs, said: `${render} render + ${jobs} job threads (--threads ${asked}: ${why})` };
 }

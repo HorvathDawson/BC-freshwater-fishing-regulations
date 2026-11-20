@@ -82,12 +82,28 @@ What changed:
   `packages/core/src/regs/ladder.ts` `ladderAt` decodes a frame once per (frame, reasons, states) (WeakMap; settle.ts
   asked per segment AND day, the frame does not change with the day), shares one map between origins carrying the same
   wire verdict, and overlays by copy + set (same insertion order as `new Map([...base, ...own])`). `--snapshot-only`:
-  140 s → 41 s. Core + conformance suites green (3,713 + the 261 Python-parity tests).
+  140 s → 41 s (55 s after the review moved the cache to the inputs, below). Core + conformance suites green (3,713 + the 261 Python-parity tests).
 
 Checks run: `vitest run tools/seo` (24 files, 169 tests), `tools/web-shell.test.ts`, `packages/core` + `conformance`,
 `tsc -b`, `tsc -p tools/seo/tsconfig.json`, knip (memory_pressure added to ignoreBinaries), check-promises/deps/
 boundaries/platform/anchors/tickets. `scripts/fast-fail.sh` fails in this worktree on 7 review marks NOT LANDED
 (pipeline curation state, unrelated to this change).
+
+**Review fixes (independent review of 7d85dd1bc, no blockers):**
+- `threads.ts`: when the free memory fits no render thread the build is **refused** with the free memory and the budget
+  named (was: ran 1 thread anyway). Tested.
+- `jobs.ts` / `panePool.ts`: a thread that **exits** before `close()` without an 'error' event (process.exit, a native
+  crash) rejects its job, every waiting job, later asks and the stylesheet ask: the build fails, never hangs.
+  `jobs.test.ts` (dying stand-in threads, 5 s timeouts; mutation-checked: without the handler the test times out).
+- **Ladder cache moved to the inputs:** `ladderAt` is pure again (shared maps + copy/set kept); the decode-once cache is
+  now `settle.ts` `ladderOfSeg`, a WeakMap on the `RegsInputs` (beside settle's own MEMO), so in the app a decoded ladder
+  goes when its inputs go instead of living as long as the store's never-emptied frame cache. Tests: every segment ×
+  84 days equals a fresh decode and is the cached object; other inputs with other reason words decode their own;
+  origins sharing a verdict share one map and every origin equals the old `new Map([...base, ...own])` in order.
+  Cost: `--snapshot-only` 41 s → 55 s (still 140 s before T917): frames shared between waters are now decoded once per
+  water. No full rerun (no output path changed); the 305-file fixture build is identical at `--threads 1` and `auto`.
+- Checks: `vitest run tools/seo packages/core/src/regs` (73 files, 842 tests), `tsc -b`, seo typecheck, knip (clean with
+  the repo's `.venv` present), check-tickets, check-promises.
 
 Where the time goes now: the render phase is CPU-bound (~14-15 of 18 cores busy, ~19.5 s per 1,000 pages; a render
 thread's per-page time rose from ~110 ms to ~200 ms under contention, so more threads will not help); start-up ~50 s

@@ -26,13 +26,23 @@ export class PanePool {
   private n = 0;
   private failed: Error | null = null;
   private made = 0;
+  private closing = false;
   private readonly started = Date.now();
 
-  constructor(count: number, private readonly data: ThreadData, private readonly jobs: JobPool) {
+  /** `script`: the thread's module (a test gives one that dies) */
+  constructor(count: number, private readonly data: ThreadData, private readonly jobs: JobPool,
+              script: URL = new URL("./pane-worker.mjs", import.meta.url)) {
     jobs.onIdle = () => this.next();
     for (let i = 0; i < count; i++) {
-      const w = new Worker(new URL("./pane-worker.mjs", import.meta.url), { workerData: data });
+      const w = new Worker(script, { workerData: data });
       const t = { w, busy: null as Job | null, ready: false };
+      // (T917 review) a render thread that ends before close() (no 'error' event) fails its page and every waiting one
+      w.on("exit", (code: number) => {
+        if (this.closing) return;
+        const e = new Error(`seo: a render thread exited (code ${code})${t.busy ? ` on ${JSON.stringify(t.busy.msg)}` : ""}; the build stops`);
+        this.failed ??= e; t.busy?.fail(e); t.busy = null; t.ready = false;
+        for (const j of this.queue.splice(0)) j.fail(e);
+      });
       w.on("message", (m: FromThread) => {
         if (m.t === "ready") { t.ready = true; this.next(); return; }
         if (m.t !== "done") return;
@@ -48,7 +58,7 @@ export class PanePool {
         }
         this.next();
       });
-      w.on("error", (err: unknown) => { const e = err instanceof Error ? err : new Error(String(err)); this.failed = e; t.busy?.fail(e); for (const j of this.queue.splice(0)) j.fail(e); });
+      w.on("error", (err: unknown) => { const e = err instanceof Error ? err : new Error(String(err)); this.failed = e; t.busy?.fail(e); t.busy = null; for (const j of this.queue.splice(0)) j.fail(e); });
       this.threads.push(t);
     }
   }
@@ -72,12 +82,15 @@ export class PanePool {
 
   /** every thread's part of the shared stylesheet (asked once the pages are done) */
   css(): Promise<PaneCssParts[]> {
-    return Promise.all(this.threads.map((t) => new Promise<PaneCssParts>((res) => {
-      const on = (m: FromThread) => { if (m.t === "css") { t.w.off("message", on); res(m.parts); } };
+    if (this.failed) return Promise.reject(this.failed);
+    return Promise.all(this.threads.map((t) => new Promise<PaneCssParts>((res, rej) => {
+      const gone = (code: number) => { if (!this.closing) rej(new Error(`seo: a render thread exited (code ${code}) before its part of the stylesheet; the build stops`)); };
+      const on = (m: FromThread) => { if (m.t === "css") { t.w.off("message", on); t.w.off("exit", gone); res(m.parts); } };
       t.w.on("message", on);
+      t.w.once("exit", gone);
       t.w.postMessage({ t: "css" } satisfies ToThread);
     })));
   }
 
-  async close(): Promise<void> { await Promise.all(this.threads.map((t) => t.w.terminate())); }
+  async close(): Promise<void> { this.closing = true; await Promise.all(this.threads.map((t) => t.w.terminate())); }
 }
