@@ -265,6 +265,16 @@ def page_scope(areas) -> str:
     return "areas-" + "-".join(str(a) for a in areas) if areas else "region"
 
 
+_PAGE_SCOPE = re.compile(r"region|areas(-\d+)+")
+
+
+def is_page_scope(key) -> bool:
+    """Whether a DFO section key is a page default's scope (`page_scope`: "region", "areas-28-29") — never one of the
+    page's lettered sections. A page default attached onto a row (Region 4's, 5B's: `entries.PAGE_DEFAULT_ON`) keeps it
+    as its `section`; it names no section of the page."""
+    return bool(key) and bool(_PAGE_SCOPE.fullmatch(str(key)))
+
+
 def page_fingerprint(slug: str, areas=()) -> str:
     """The feed key of a page default's sentence. STRUCTURAL, not a hash of the words: DFO rewording the sentence must
     not orphan the default (it is the scope that is durable, like a location id)."""
