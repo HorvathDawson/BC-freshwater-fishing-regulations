@@ -145,14 +145,14 @@
           "token": "opacity.parcel.edge"
         },
         "satellite": {
-          "$comment": "(T923, owner 2026-11-20: purposely stand out over satellite, reserves and private land) over imagery ONLY: its own hue taken darker, at full strength, 1.5 px far out to 2 px close in, with a thin light casing under it. The drawn map is exactly as it was.",
+          "$comment": "(T923, owner 2026-11-20: purposely stand out over satellite, reserves and private land) over imagery ONLY: its own hue taken darker, at full strength, 2.5 px far out to 3.5 px close in (owner: Second, but thicker), with a light casing 1 px wider each side under it. The drawn map is exactly as it was.",
           "color": {
             "token": "color.parcel.edge.imagery"
           },
           "width": {
             "token": "width.land.edge.imagery",
             "mode": "zoom",
-            "ramp": [[4, 1.5], [11, 1.5], [16, 2]]
+            "ramp": [[4, 2.5], [11, 2.5], [16, 3.5]]
           },
           "opacity": {
             "token": "opacity.land.edge.imagery"
@@ -164,7 +164,7 @@
             "width": {
               "token": "width.land.casing.imagery",
               "mode": "zoom",
-              "ramp": [[4, 1], [11, 1], [16, 1.2]]
+              "ramp": [[4, 1.8], [11, 1.8], [16, 2.2]]
             },
             "opacity": {
               "token": "opacity.land.casing.imagery"
@@ -205,14 +205,14 @@
           "token": "opacity.admin.edge"
         },
         "satellite": {
-          "$comment": "(T923, owner 2026-11-20: purposely stand out over satellite, reserves and private land) over imagery ONLY: its own hue taken darker, at full strength, 1.5 px far out to 2 px close in, with a thin light casing under it. The drawn map is exactly as it was.",
+          "$comment": "(T923, owner 2026-11-20: purposely stand out over satellite, reserves and private land) over imagery ONLY: its own hue taken darker, at full strength, 2.5 px far out to 3.5 px close in (owner: Second, but thicker), with a light casing 1 px wider each side under it. The drawn map is exactly as it was.",
           "color": {
             "token": "color.indigenous.edge.imagery"
           },
           "width": {
             "token": "width.land.edge.imagery",
             "mode": "zoom",
-            "ramp": [[4, 1.5], [11, 1.5], [16, 2]]
+            "ramp": [[4, 2.5], [11, 2.5], [16, 3.5]]
           },
           "opacity": {
             "token": "opacity.land.edge.imagery"
@@ -224,7 +224,7 @@
             "width": {
               "token": "width.land.casing.imagery",
               "mode": "zoom",
-              "ramp": [[4, 1], [11, 1], [16, 1.2]]
+              "ramp": [[4, 1.8], [11, 1.8], [16, 2.2]]
             },
             "opacity": {
               "token": "opacity.land.casing.imagery"

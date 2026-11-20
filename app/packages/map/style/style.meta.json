@@ -2380,15 +2380,15 @@
       "ramp": [
         [
           4,
-          1
+          1.8
         ],
         [
           11,
-          1
+          1.8
         ],
         [
           16,
-          1.2
+          2.2
         ]
       ]
     },
@@ -2399,15 +2399,15 @@
       "ramp": [
         [
           4,
-          1
+          1.8
         ],
         [
           11,
-          1
+          1.8
         ],
         [
           16,
-          1.2
+          2.2
         ]
       ]
     },
@@ -2893,15 +2893,15 @@
       "ramp": [
         [
           4,
-          1.5
+          2.5
         ],
         [
           11,
-          1.5
+          2.5
         ],
         [
           16,
-          2
+          3.5
         ]
       ],
       "opacity": "opacity.land.edge.imagery"
@@ -2912,15 +2912,15 @@
       "ramp": [
         [
           4,
-          1.5
+          2.5
         ],
         [
           11,
-          1.5
+          2.5
         ],
         [
           16,
-          2
+          3.5
         ]
       ],
       "opacity": "opacity.land.edge.imagery"
@@ -4136,12 +4136,12 @@
     "width.land.edge.imagery": {
       "type": "number",
       "themeable": false,
-      "$comment": "(T923) the reserve / parcel outline over satellite, px, times its zoom ramp in `layers.source.json` (1.5 px far out, 2 px close in)."
+      "$comment": "(T923) the reserve / parcel outline over satellite, px, times its zoom ramp in `layers.source.json` (2.5 px far out, 3.5 px close in)."
     },
     "width.land.casing.imagery": {
       "type": "number",
       "themeable": false,
-      "$comment": "(T923) the casing under that outline, px, times its ramp (2.5 px far out, 3 px close in): a thin light rim each side of the line."
+      "$comment": "(T923) the casing under that outline, px, times its ramp (4.5 px far out, 5.5 px close in): a 1 px light rim each side of the line."
     },
     "opacity.land.edge.imagery": {
       "type": "number",

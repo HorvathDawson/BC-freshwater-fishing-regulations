@@ -139,7 +139,7 @@ describe("the native style", () => {
         const e = layer(sat, edge).paint!, c = layer(sat, casing).paint!;
         expect([e["line-color"], e["line-opacity"]], `${theme} ${edge} satellite`).toEqual([tk[colour], tk["opacity.land.edge.imagery"]]);
         expect(e["line-width"], `${theme} ${edge} width`).toEqual(["interpolate", ["linear"], ["zoom"],
-          ...[[4, 1.5], [11, 1.5], [16, 2]].flatMap(([z, k]) => [z, (tk["width.land.edge.imagery"] as number) * k!])]);
+          ...[[4, 2.5], [11, 2.5], [16, 3.5]].flatMap(([z, k]) => [z, (tk["width.land.edge.imagery"] as number) * k!])]);
         expect([c["line-color"], c["line-opacity"]], `${theme} ${casing} satellite`).toEqual([tk["color.imagery.casing"], tk["opacity.land.casing.imagery"]]);
         // the casing's colour is one fixed light value in every theme (the photograph does not follow the theme)
         expect(tk["color.imagery.casing"]).toBe(resolveTheme("light")["color.imagery.casing"]);
@@ -149,6 +149,19 @@ describe("the native style", () => {
         expect(ids.indexOf(casing)).toBeLessThan(ids.indexOf(edge));
       }
     }
+  });
+
+  it("(T923) over satellite the reserve and parcel outlines are ONE look in every theme (the photograph does not change)", () => {
+    const paints = (theme: string) => {
+      const sat = nativeStyle({ ...base, theme, basemap: "satellite" }).style as unknown as S;
+      return ["indigenous_land__edge", "indigenous_land__casing", "parcel_private__edge", "parcel_private__casing"]
+        .map((id) => [id, layer(sat, id).paint]);
+    };
+    const light = paints("light");
+    expect(paints("dark")).toEqual(light);
+    expect(paints("cvd")).toEqual(light);
+    // and they are really drawn: full-strength edge, casing visible
+    expect(light.every(([, p]) => (p as Record<string, number>)["line-opacity"]! > 0)).toBe(true);
   });
 
   it("starts the gauge source with the gauges it is given", () => {
