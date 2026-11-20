@@ -1,6 +1,6 @@
 # T935 — iPhone: the year bars' closed days (and the "Closed" key swatch) draw no colour
 
-Status: OPEN.
+Status: DONE 2026-11-20 (33aa04409, shots 8bcbb359a 7008a6c73; independent review clean, web checked, smoke green).
 
 Source: owner 2026-11-20 ~00:11 (main chat), photo of his iPhone `T935-shots/owner-2026-11-20-fraser-iphone.jpg` (Fraser
 River, CPR Bridge at Mission → Landstrom Bar, Nov 20). Verbatim: "On apple DFO calendar when closed has no color". The
