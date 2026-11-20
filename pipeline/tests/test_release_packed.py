@@ -254,18 +254,54 @@ def test_t973_cw_through_is_optional_unswitched_and_carries_each_section_one_not
     db.executemany("INSERT INTO designation_carried VALUES (?, ?, 'd', ?)",
                    [(5, "r6:stellako@6-4", endako), (7, "r6:stellako@6-4", endako),
                     (9, "r6:morice@6-9", '[["gnis:2","Gosnell Creek"]]')])
+    # each designation's own section (the source the carried answer is read at); 5 and 7 share a licensing set
+    db.executemany("INSERT INTO licensing_set VALUES (?, 'designation', ?, 'd', 'reach')",
+                   [(0, "r6:stellako@6-4"), (1, "r6:morice@6-9")])
+    db.executemany("INSERT INTO section_licensing VALUES (?, ?)", [(100, 0), (200, 1), (5, 2), (7, 2)])
     db.commit()
     db.close()
-    out = B.copy_file(tmp_path / "cw.sqlite", {"b": bundle}, [], {"format": "cw-through/1"}, extra=B.cw_through)
+    asked = []
+
+    def year_of(sid, source_sid, designation, set_id):     # stands in for answers.licence.carried_year
+        asked.append((sid, source_sid, designation, set_id))
+        return {1: {"holds": {"designations": [designation]}}, 200: {"holds": {"designations": []}}}
+    out = B.copy_file(tmp_path / "cw.sqlite", {"b": bundle}, [], {"format": "cw-through/1"},
+                      extra=lambda con: B.cw_through(con, year_of=year_of))
     got = sqlite3.connect(out)
-    assert got.execute("SELECT sid, ix FROM section_cw ORDER BY sid").fetchall() == [(5, 0), (7, 0), (9, 1)]
+    assert asked == [(5, 100, "r6:stellako@6-4#d", 2), (9, 200, "r6:morice@6-9#d", None)]   # once per (set, unit)
+    assert got.execute("SELECT sid, ix, yx FROM section_cw ORDER BY sid").fetchall() == [(5, 0, 0), (7, 0, 0), (9, 1, 1)]
+    assert json.loads(got.execute("SELECT j FROM cw_year WHERE yx = 1").fetchone()[0]) == [
+        [1, {"holds": {"designations": ["r6:morice@6-9#d"]}}], [200, {"holds": {"designations": []}}]]
     assert got.execute("SELECT * FROM cw_note ORDER BY ix").fetchall() == [
         (0, "Stellako River", "II", None, endako),
         (1, "Morice River", "II", '{"dates":[{"from_day":1,"from_month":9,"to_day":31,"to_month":10}]}',
          '[["gnis:2","Gosnell Creek"]]')]
-    assert {t: [r[1] for r in got.execute(f"PRAGMA table_info({t})")] for t in ("cw_note", "section_cw")} == {
+    assert {t: [r[1] for r in got.execute(f"PRAGMA table_info({t})")] for t in ("cw_note", "cw_year", "section_cw")} == {
         t: cols for t, cols in C.FILES["cw-through"]["tables"].items() if t != "meta"}
     bare = tmp_path / "bare.sqlite"
     sqlite3.connect(bare).close()
     with pytest.raises(ValueError, match="designation_carried"):
         B.copy_file(tmp_path / "cw2.sqlite", {"b": bare}, [], {"format": "cw-through/1"}, extra=B.cw_through)
+
+
+def test_t973_the_carried_answer_is_the_sections_own_with_the_units_on_designation_rows_added():
+    """(owner 2026-11-20 13:22) `carried_holds`: on a day the unit is in force at its own water, the section's answer
+    gains the designation and what holds BECAUSE of it there (`on_designation`: the Classified Waters Licence), nothing
+    else of the source's; on a day it is not, the section's own answer as it is."""
+    from pipeline.deliver.answers import licence as LA
+    reqs = {"zp:basic#basic": {"_placement": "province"}, "zp:cwl#cwl": {"_placement": "on_designation"},
+            "r6:x#steelhead": {"_placement": "sections"}}
+    C = LA.Corpus(records={}, index={}, requirements=reqs, exemptions=[], alternatives=[], terms=[])
+    here = {"holds": ["zp:basic#basic"], "rows": ["zp:basic#basic"], "displaced": {}, "designations": [], "_desig": [],
+            "stamp_period": False}
+    unit = {"entry_id": "r6:stellako", "id": "d", "classified": "II"}
+    src = {"holds": ["r6:x#steelhead", "zp:basic#basic", "zp:cwl#cwl"], "rows": ["r6:x#steelhead", "zp:basic#basic", "zp:cwl#cwl"],
+           "displaced": {}, "designations": ["r6:stellako#d"], "_desig": [unit], "stamp_period": False}
+    got = LA.carried_holds(C, here, src, "r6:stellako#d", (7, 15))
+    assert got["rows"] == got["holds"] == ["zp:basic#basic", "zp:cwl#cwl"] and got["designations"] == ["r6:stellako#d"]
+    assert got["_desig"] == [unit]
+    assert LA.carried_holds(C, here, {**src, "designations": []}, "r6:stellako#d", (11, 20)) is here
+    # the designation's own stamp waiver goes with it: the steelhead stamp the section holds comes off, as the box says
+    here2 = {**here, "holds": here["holds"] + ["r6:x#steelhead"], "rows": here["rows"] + ["r6:x#steelhead"], "waived": []}
+    got = LA.carried_holds(C, here2, {**src, "waived": ["r6:x#steelhead"]}, "r6:stellako#d", (7, 15))
+    assert "r6:x#steelhead" not in got["rows"] and got["waived"] == ["r6:x#steelhead"]

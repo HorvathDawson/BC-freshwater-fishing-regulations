@@ -4,7 +4,7 @@
  * values and all 134 golden taps) is app/conformance/src/regs/inputs.release.test.ts.
  */
 import { describe, expect, it } from "vitest";
-import type { CellIds, DisplayFrame, ExportRule, Moment, Picker, RuleFacts } from "@app/core";
+import type { CellIds, DisplayFrame, ExportRule, LicenceValue, Moment, Picker, RuleFacts } from "@app/core";
 import { displayByDay, loadRegsInputs, RegsInputsError, targetFor, type InputsStore } from "./inputs";
 import type { CarriedNote, PartRow, StoredRule } from "./reads";
 
@@ -23,7 +23,10 @@ const cell = (ladder: number, display: number): CellIds => ({ ladder, rows: 1, g
 /** One water (gnis:1, ord 3) of three parts — part 0 on key 2 (no moments, closed Jun 1–30), part 1 on key 5 (a weekday
  *  split), part 2 outside B.C. — a picker grouping parts 0 and 1 as closed, and two sections (4097 named → part 1; 4098
  *  unlisted, on key 5). `asked` logs every read. */
-const STELLAKO: CarriedNote = { unitName: "Stellako River", classified: "II", when: null, through: ["Endako River"] };
+const YEAR_A = { holds: { designations: [20] } } as unknown as LicenceValue, YEAR_B = { holds: { designations: [] } } as unknown as LicenceValue;
+const STELLAKO: CarriedNote = { unitName: "Stellako River", classified: "II", when: null, through: ["Endako River"],
+                                year: [[1, YEAR_A], [170, YEAR_B]] };
+const NOTE = { unitName: "Stellako River", classified: "II", when: null, through: ["Endako River"] };
 
 function fake(o: { openGroup?: boolean; tidalPiece?: boolean; oldRelease?: boolean; notes?: boolean; carried?: boolean } = {}) {
   const asked: string[] = [];
@@ -263,9 +266,10 @@ describe("(T973) loadRegsInputs: the carried units (release cw-through)", () => 
   it("a section's is its own; a part's are its sections', each note once, `part` where only some carry it", async () => {
     const { store } = fake({ carried: true });
     const at = (t: Parameters<typeof loadRegsInputs>[1]) => loadRegsInputs(store, t, JUN15, "Monday", 2026).then((i) => i.mayNeed);
-    expect(await at({ kind: "section", handle: 4098 })).toEqual([{ ...STELLAKO, part: false }]);
+    // JUN15 is reading day 167: the year's first value (the second starts on 170)
+    expect(await at({ kind: "section", handle: 4098 })).toEqual([{ ...NOTE, part: false, licence: YEAR_A }]);
     expect(await at({ kind: "section", handle: 4097 })).toEqual([]);
-    expect(await at({ kind: "part", item: "gnis:1", partIx: 0 })).toEqual([{ ...STELLAKO, part: true }]);   // 2 of 3
+    expect(await at({ kind: "part", item: "gnis:1", partIx: 0 })).toEqual([{ ...NOTE, part: true, licence: YEAR_A }]);   // 2 of 3
     expect(await at({ kind: "part", item: "gnis:1", partIx: 1 })).toEqual([]);
   });
   it("a release without the file: [] everywhere, and no part's sections are read for it", async () => {

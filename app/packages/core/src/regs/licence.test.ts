@@ -8,7 +8,7 @@ import { describe, expect, it } from "vitest";
 import type { LicenceValue, ProfileAnswer } from "../answers.generated";
 import type { MayNeed, RegsInputs, RuleView } from "./inputs";
 import {
-  actTxt, buildLicence, licenceBlockLines, lx, mayNeedTxt, needLine, patchNeeds, priceTxt, profileOf, whoTxt,
+  actTxt, buildLicence, licenceBlockLines, lx, mayWhyTxt, needLine, patchNeeds, priceTxt, profileOf, whoTxt,
 } from "./licence";
 import type { NeedItemVM, Who } from "./model";
 import type { SpeciesBook } from "./names";
@@ -352,27 +352,52 @@ describe("T789 G8 (owner 2026-11-17 'Yes, ship it'): the closures to the non-res
   });
 });
 
-describe("T973 (owner 2026-11-20 12:11, '\"May need\" note'): a unit carried through a water with its own line and no unit", () => {
-  const STELLAKO: MayNeed = { unitName: "Stellako River", classified: "II", when: null, through: ["Endako River"], part: false };
-  const MORICE: MayNeed = { unitName: "Morice River", classified: "II", through: ["Gosnell Creek", "Hidden Creek"], part: true,
-    when: { dates: [{ from_month: 9, from_day: 1, to_month: 10, to_day: 31 }] } };
-  const vmOf = (mayNeed?: readonly MayNeed[], who: Who = WHO.adult!) =>
-    buildLicence({ ...INP({ paper: [] }), ...(mayNeed === undefined ? {} : { mayNeed }) } as RegsInputs, who, { closed: false, glossary: GLOSS })!;
-  it("the whole note, in plain words, as a flag before the 'You need' list — never a class box or a document", () => {
-    expect(lines(vmOf([STELLAKO]))[0]).toEqual(["flag",
-      "? Stellako River Class II may apply here: Endako River has its own line without Classified Waters. Check with a CO."]);
-    expect(mayNeedTxt(MORICE)).toBe("On part of this water: Morice River Class II (Sep 1–Oct 31) may apply here: Gosnell Creek and "
-      + "Hidden Creek have their own lines without Classified Waters. Check with a CO.");
-    const vm = vmOf([STELLAKO]);
-    expect(vm.blocks.filter((b) => b.cls === "classbox")).toEqual([]);
-    expect(JSON.stringify(vm.blocks.filter((b) => b.cls === "needs"))).not.toContain("Classified");
+describe("T973 (owner 2026-11-20 13:22): a carried unit shows as Classified Waters, the why behind a fold", () => {
+  const STELLAKO = { entry_id: "r6:stellako_river", record_id: "stellako_river", kind: "designation", label: "Class II", placement: "sections",
+    fields: { classified: "II", unit_name: "Stellako River" }, prov: {} };
+  const lics = new Map(LICS); lics.set(20, STELLAKO);
+  lics.set(21, { entry_id: "zp:classified_waters_licence", record_id: "classified_waters_licence", kind: "requirement",
+    label: "Non-residents need a Classified Waters Licence.", placement: "on_designation", fields: {}, prov: {} });
+  const CWL = { doc: "classified_waters_licence", when: { act: "fishing", on: "classified_period" }, base: true, prices: { day: [22.86] } } as const;
+  const withUnit = (): LicenceValue => {
+    const f = frame({ adult_non: { ...ADULT_NON, documents: [...ADULT_NON.documents, CWL],
+      requirements: [...ADULT_NON.requirements, { req: 21, when: CWL.when, paths: [{ need: ["classified_waters_licence"] }] }] } });
+    return { ...f, holds: { ...f.holds, designations: [20] } } as LicenceValue;
+  };
+  const note = (o: Partial<MayNeed> = {}): MayNeed =>
+    ({ unitName: "Stellako River", classified: "II", when: null, through: ["Endako River"], part: false, licence: withUnit(), ...o });
+  const WHY = "Stellako River’s Class II covers its tributaries. Endako River has its own line in the rule book without Classified Waters, "
+    + "so it may not apply here. Check with a CO.";
+  const vm = (who: Who, mayNeed?: readonly MayNeed[], licence: LicenceValue = frame()) =>
+    buildLicence({ ...INP({ licence, lics, paper: [] }), ...(mayNeed === undefined ? {} : { mayNeed }) } as RegsInputs, who, { closed: false, glossary: GLOSS })!;
+  /** the blocks with every `why` taken out: what is left must be a real unit's blocks exactly */
+  const unwhy = (v: ReturnType<typeof vm>) => JSON.parse(JSON.stringify(v.blocks, (k, x) => k === "why" ? undefined : x));
+  const whys = (v: ReturnType<typeof vm>) => JSON.stringify(v.blocks).match(/"why":"[^"]*"/g) ?? [];
+  it("the same rows as a real unit of that class, for every angler, but for the why — once, on the Classified Waters row", () => {
+    for (const who of Object.values(WHO)) {
+      const real = vm(who, undefined, withUnit()), carried = vm(who, [note()]);
+      expect(unwhy(carried)).toEqual(unwhy(real));
+      expect(whys(real)).toEqual([]);
+      expect(whys(carried)).toEqual([`"why":"${WHY}"`]);
+      expect(JSON.stringify(carried.blocks)).not.toContain("may apply here");          // the 12:11 note above "You need" is gone
+      expect(carried.blocks.some((b) => b.cls === "flag")).toBe(false);               // and its "?"
+    }
+    const non = vm(WHO.adult_non!, [note()]);
+    const row = non.blocks.flatMap((b) => b.cls === "needs" ? [...b.items, ...(b.onlyIf?.items ?? [])] : []).find((it) => it.why);
+    expect(row?.name).toMatch(/classified waters licence/i);
+    expect(row?.price).toBe("$22.86 a day");
+    // a B.C. resident needs no Classified Waters Licence: the why sits on the unit's box
+    const res = vm(WHO.adult!, [note()]);
+    expect(res.blocks.find((b) => b.cls === "classbox")).toMatchObject({ head: "Class II Classified Water", why: WHY });
   });
-  it("every angler sees it (it is about the water, as the class box is)", () => {
-    for (const w of Object.values(WHO)) expect(lines(vmOf([STELLAKO], w)).some((l) => l[0] === "flag")).toBe(true);
+  it("two waters in order; a part only partly carried says so", () => {
+    expect(mayWhyTxt(note({ unitName: "Morice River", through: ["Thautil River", "Gosnell Creek"], part: true })))
+      .toBe("On part of this water: Morice River’s Class II covers its tributaries. Thautil River and Gosnell Creek have their own "
+        + "lines in the rule book without Classified Waters, so it may not apply here. Check with a CO.");
   });
-  it("no carried unit (absent or empty): the tab exactly as before", () => {
-    const before = lines(vmOf());
-    expect(lines(vmOf([]))).toEqual(before);
-    expect(before.some((l) => l[0] === "flag")).toBe(false);
+  it("no carried unit (absent or empty): the tab exactly as before, no why anywhere", () => {
+    const before = vm(WHO.adult_non!);
+    expect(vm(WHO.adult_non!, []).blocks).toEqual(before.blocks);
+    expect(whys(before)).toEqual([]);
   });
 });

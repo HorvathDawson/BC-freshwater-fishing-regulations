@@ -257,6 +257,21 @@ describe("<LicenceTab>", () => {
     expect(within(screen.getByTestId("licence-answer")).queryByTestId("st:contested")).toBeNull();
   });
 
+  it("(T973, owner 13:22) a carried unit's why: a fold on its row, closed until pressed; no other row has one", () => {
+    const WHY = "Stellako River’s Class II covers its tributaries. Endako River has its own line in the rule book without Classified Waters, so it may not apply here. Check with a CO.";
+    const vm = LIC_X5P1["adult|resident"]!;
+    const needs = vm.blocks.find((b) => b.cls === "needs") as Extract<Block, { cls: "needs" }>;
+    const items = [{ ...needs.items[0]!, why: WHY }, ...needs.items.slice(1)];
+    mountLicence({ ...vm, blocks: vm.blocks.map((b) => b === needs ? { ...needs, items } : b) });
+    const box = screen.getByTestId("licence-answer");
+    expect(within(box).getAllByTestId("licence-why-fold")).toHaveLength(1);
+    expect(within(box).queryByTestId("licence-why")).toBeNull();
+    const fold = within(box).getByRole("button", { name: LICW.MAY_WHY_FOLD });
+    expect(fold.getAttribute("aria-expanded")).toBe("false");
+    fireEvent.click(fold);
+    expect(within(box).getByTestId("licence-why").textContent).toBe(WHY);
+  });
+
   it("vedder_615 (closed): no Licence section at all (owner 2026-11-04; the prototype drew only its heading, D16 a)", () => {
     expect((vedder615 as unknown as RegsPage).licence).toBeNull();
   });
