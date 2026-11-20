@@ -29,7 +29,7 @@ Depends: T926 (search folding of "'", ":" and combining marks). Size: S (list) +
 Verbatim: "We will make t930 defered until after bathy map and stocky and charts etc..". Starts after T200 (stocked
 lakes), T201 / T634 (depth maps and charts) ship.
 
-## Owner 2026-11-20 00:00 (main chat) + source check
+## Owner 2026-11-19 23:56 (main chat) + source check
 Verbatim: "We could add first Nation names to the main rivers now if we want and they are easy to find with a good open
 source". Checked the same minute (read-only):
 - Wikidata (CC0): none of 20 main rivers (Fraser, Skeena, Nass, Cowichan, Chilko, Thompson, Stikine, Harrison, Squamish,
@@ -40,3 +40,5 @@ source". Checked the same minute (read-only):
   already in our names).
 - So no structured open source holds them; the only route is the hand list with citations (Wikipedia prose, CC BY-SA, or
   the Nations' own published pages), i.e. this ticket's step 1.
+Owner 2026-11-19 (main chat, question batch), after that check: "Keep deferred (Recommended)". T930 stays POSTPONED as
+above.
