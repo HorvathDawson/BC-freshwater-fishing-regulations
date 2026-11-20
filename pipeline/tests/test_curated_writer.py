@@ -106,6 +106,8 @@ CLASSIFIED = {
     # dfo_salmon entries / wording, steelhead.accept, inseason.resolve, bathymetry.accept, gauges.review, review.apply /
     # apply_proposals / closed and parsing.io.write_entryfile left the scan when their raw curated write went)
     "pipeline/atlas/waters/added_streams/build_dataset.py": "curated via the writer; candidates + report to generated",
+    "pipeline/atlas/waters/added_streams/clean.py": "(T679 #13) READS the curated hand fixes (`calls`); writes only the "
+                                                    "cleaned layers under source/municipal/cleaned (a dev step)",
     # --- handed over (the review app's write path)
     "pipeline/regs/review/marks.py": "HANDED OVER: marks.append, the marks store (atomic_write under the store lock)",
     "curation-review/backend/writes.py": "HANDED OVER: writes.commit, marks + in-season matches, its own backup/rollback",

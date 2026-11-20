@@ -96,3 +96,47 @@ def test_junk_names_blanked_and_degenerate_dropped():
         _ls([[0, 0]], OBJECTID=2, local_stream_name="X", theme="Stream"),              # <2 pts -> dropped
     ], "port_moody")
     assert len(feats) == 1 and feats[0]["properties"]["name"] == ""
+
+
+# ------------------------------------------------------------------ T679 #13: the hand fixes are curated data
+
+def test_the_hand_fixes_are_read_from_the_curated_calls_file():
+    """(T679 #13) the drop-by-name / typo / drop-by-src_id / receiver fixes live in `waters/added_stream_calls.json`,
+    read by `clean.calls()`: a listed src_id is dropped (one MLS part by its `.N` id), its neighbours kept; the
+    Magnolia Creek receiver override is there for the generator."""
+    from pipeline.atlas.waters.added_streams.clean import calls
+    c = calls()
+    assert c.receiver_override["squamish"] == {"594": "Magnolia Creek"}
+    assert {"344", "279", "334.19", "41.1"} <= c.exclude_src_ids["burnaby"] and "528.2" not in c.exclude_src_ids["squamish"]
+    feats = clean_features([_ls([[0, 0], [1, 0]], OBJECTID=344, WATERWAYNAME="Ancient Grove Trib.1"),
+                            _ls([[1, 0], [2, 0]], OBJECTID=345, WATERWAYNAME="Ancient Grove Trib.1"),
+                            {"type": "Feature", "properties": {"OBJECTID": 41, "WATERWAYNAME": "JR Trib.1"},
+                             "geometry": {"type": "MultiLineString",
+                                          "coordinates": [[[0, 0], [1, 0]], [[1, 0], [2, 0]], [[2, 0], [3, 0]]]}}],
+                           "burnaby")
+    assert sorted(str(f["properties"]["src_id"]) for f in feats) == ["345", "41.2"]
+
+
+def test_the_calls_file_refuses_what_it_cannot_read(tmp_path):
+    """(AGENTS 37) a missing file raises; so does another format, a source the generator does not read, a row with no
+    `why`, and a src_id listed twice for one source — never an empty set of fixes."""
+    import json
+
+    import pytest
+
+    from pipeline.atlas.waters.added_streams.clean import CALLS_FORMAT, calls
+    with pytest.raises(FileNotFoundError):
+        calls(tmp_path / "nope.json")
+    p = tmp_path / "c.json"
+
+    def refused(doc, words):
+        p.write_text(json.dumps(doc))
+        with pytest.raises(ValueError, match=words):
+            calls(p)
+    refused({"format": "other/1"}, "not a added_stream_calls/1 file")
+    refused({"format": CALLS_FORMAT, "exclude_src_ids": [{"source": "vancouver", "src_ids": ["1"], "why": "x"}]},
+            "names source 'vancouver'")
+    refused({"format": CALLS_FORMAT, "name_aliases": [{"source": "squamish", "from": "a", "to": "b"}]}, "has no `why`")
+    refused({"format": CALLS_FORMAT, "exclude_src_ids": [{"source": "burnaby", "src_ids": ["1"], "why": "x"},
+                                                         {"source": "burnaby", "src_ids": ["1"], "why": "y"}]},
+            "twice for burnaby")

@@ -1,0 +1,8 @@
+{
+ "_about": "MINI FIXTURE (T667 slice 8): an invented tree for the mini release; see pipeline/tests/fixtures/mini/README.md.",
+ "format": "added_stream_calls/1",
+ "exclude_names": [],
+ "name_aliases": [],
+ "exclude_src_ids": [],
+ "receiver_override": []
+}

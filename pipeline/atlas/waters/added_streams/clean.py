@@ -14,6 +14,7 @@ from __future__ import annotations
 
 import json
 import re
+from dataclasses import dataclass
 from pathlib import Path
 from typing import Callable, Optional
 from pipeline.common.curated import SOURCE, generated
@@ -166,43 +167,58 @@ _FILES = {"port_moody": "port_moody_esa_streams", "burnaby": "burnaby_waterways"
           "squamish": "squamish_watercourses", "abbotsford": "abbotsford_streams",
           "osm": "osm_streams", "manual": "manual_streams"}
 
-# Municipal features to DROP per source, by exact (case-insensitive) name — bad/duplicated data that
-# should never be minted (e.g. a neighbouring municipality's creek that leaked into this layer).
-_EXCLUDE_NAMES_BY_SOURCE: dict[str, set] = {
-    "port_moody": {"stoney creek"},        # a Burnaby creek that does not belong in the Port Moody layer
-}
+# (T679 #13) THE HAND FIXES are curated data, not code: `waters/added_stream_calls.json` (`calls()`) — a feature dropped
+# by name, a misspelt name mapped onto its creek, a single bad piece dropped by src_id, a piece forced to drain into a
+# named creek (`build_dataset._apply_receiver_overrides`). Read by this generator only; never by the atlas build.
+CALLS_FORMAT = "added_stream_calls/1"
 
-# Per-source name fixes applied AFTER mapping: a misspelling splits one creek into two names, so its pieces
-# never merge into one channel (they can even resolve into each other). Map the typo onto the canonical name.
-_NAME_ALIASES_BY_SOURCE: dict[str, dict] = {
-    "squamish": {"Willson Slough": "Wilson Slough"},   # OID 627 typo — same slough as 626 (StreamDetail agrees)
-}
 
-# Municipal features to DROP per source by exact src_id — for pruning a SINGLE bad piece (a spurious
-# connector / a fragment that mis-routes flow) without dropping every other feature that shares its name.
-_EXCLUDE_SRC_IDS_BY_SOURCE: dict[str, set] = {
-    "burnaby": {"344", "356.1", "279", "305", "274", "268", "4", "8", "9",
-                "410", "41.0", "41.1", "105", "384", "292", "405", "223",
-                "334.0", "334.3", "334.7", "334.9", "334.10", "334.14", "334.17", "334.18", "334.19",  # Salmon
-                "233.1", "159", "234", "196", "121", "391"},   # Slough parts; 233.1/159/234/196/121/391 spurious
-    #   Ancient Grove Trib.1 stub; Rudolph 356.1 part; Fraser River; 305 Lost<->Holmes connector; 268/274
-    #   Thomas Trib.5; 4/8/9 Squatters Trib.2/1/3; 410 Jerry Rogers Creek; 41.0/41.1 JR Trib.1; 223 Jr 1-3;
-    #   105/384/292/405 unnamed spurious pieces
-    "squamish": {"654", "654.0", "654.1", "654.2", "608.5", "608.4", "597.1", "597.2", "664", "658.1",
-                 # Harris Slough & tribs (654.0, 612, 622.0/.1, 648.0/.1, 659), Whitaker Slough (373, 684),
-                 # Mamquam Side Channel (609), Dryden Creek Trib 1 (666), Stawamus River + Trib 1 (589, 590):
-                 "659", "612", "622.0", "622.1", "648.0", "648.1", "373", "684", "609", "666", "589", "590",
-                 "598.0", "598.1", "598.3",   # Logger's Lane Creek parts
-                 "651.5", "651.2",   # Little Stawamus: 651.5 is a spur off the 651.3/651.4 junction; 651.2 is
-                 #     an exact duplicate of 651.1 whose parallel edge split the mainstem and disconnected
-                 #     651.1 from 636 — dropping it reconnects the 651.0-651.1-651.3-651.4-636 run
-                 "528.1", "528.0",   # unnamed spurious pieces (528.2 KEPT: it is the connector that grounds the
-                 #                     whole Logger's Lane cluster to its outlet — removing it strands ~16 streams)
-                 "625.3", "625.1", "603"},   # Logger's Lane Creek Trib 4 parts
-    "port_moody": {"160", "161", "164", "80", "81", "157", "158", "159", "79",   # Suter Brook Creek spurious
-                   "204.1", "334", "63", "329"},   # pieces (164 = redundant parallel mouth beside 163);
-    #                                   204.1 = Kyle Creek part; 334 = Village Creek piece; 63/329 spurious
-}
+@dataclass(frozen=True)
+class Calls:
+    """The added-streams hand fixes, per source (`calls()`)."""
+    #: features dropped by exact name, lower case (bad/duplicated data that should never be minted)
+    exclude_names: dict
+    #: a misspelling mapped onto the canonical name, so the creek's pieces merge as one channel
+    name_aliases: dict
+    #: single pieces dropped by src_id (checked AFTER the `.N` multi-part suffix, so one part can go)
+    exclude_src_ids: dict
+    #: {src_id: receiver creek name}: the piece drains into the NEAREST channel of that name
+    receiver_override: dict
+
+
+def calls(path: Optional[Path] = None) -> Calls:
+    """The curated hand fixes (`CURATED.waters.added_stream_calls`). A missing or malformed file RAISES (AGENTS 37),
+    as does a source this module does not read, a src_id listed twice for one source, or a row without its `why`."""
+    from pipeline.common.curated import CURATED
+    p = Path(path) if path is not None else Path(CURATED.waters.added_stream_calls)
+    doc = json.loads(p.read_text(encoding="utf-8"))
+    if not isinstance(doc, dict) or doc.get("format") != CALLS_FORMAT:
+        raise ValueError(f"{p}: not a {CALLS_FORMAT} file")
+    names: dict[str, set] = {}
+    aliases: dict[str, dict] = {}
+    ids: dict[str, set] = {}
+    recv: dict[str, dict] = {}
+
+    def src(kind: str, i: int, r: dict) -> str:
+        s = (r or {}).get("source")
+        if s not in _SOURCES:
+            raise ValueError(f"{p}: {kind}[{i}] names source {s!r}, not one of {sorted(_SOURCES)}")
+        if not str((r or {}).get("why") or "").strip():
+            raise ValueError(f"{p}: {kind}[{i}] has no `why`")
+        return s
+    for i, r in enumerate(doc.get("exclude_names") or ()):
+        names.setdefault(src("exclude_names", i, r), set()).update(str(n).strip().lower() for n in r["names"])
+    for i, r in enumerate(doc.get("name_aliases") or ()):
+        aliases.setdefault(src("name_aliases", i, r), {})[str(r["from"])] = str(r["to"])
+    for i, r in enumerate(doc.get("exclude_src_ids") or ()):
+        have = ids.setdefault(src("exclude_src_ids", i, r), set())
+        twice = sorted(have & {str(x) for x in r["src_ids"]})
+        if twice or len(set(map(str, r["src_ids"]))) != len(r["src_ids"]):
+            raise ValueError(f"{p}: exclude_src_ids[{i}] lists src_id(s) twice for {r['source']}: {twice}")
+        have.update(str(x) for x in r["src_ids"])
+    for i, r in enumerate(doc.get("receiver_override") or ()):
+        recv.setdefault(src("receiver_override", i, r), {})[str(r["src_id"])] = str(r["receiver"])
+    return Calls(names, aliases, ids, recv)
 
 
 def _linestrings(geom: dict) -> list[list]:
@@ -218,9 +234,10 @@ def _linestrings(geom: dict) -> list[list]:
 def clean_features(features: list[dict], source: str) -> list[dict]:
     """Map raw features of one source to uniform-schema LineString features (MLS flattened)."""
     mapper = _SOURCES[source]
-    exclude = _EXCLUDE_NAMES_BY_SOURCE.get(source, set())
-    exclude_ids = _EXCLUDE_SRC_IDS_BY_SOURCE.get(source, set())
-    aliases = _NAME_ALIASES_BY_SOURCE.get(source, {})
+    hand = calls()                                        # (T679 #13) the curated hand fixes
+    exclude = hand.exclude_names.get(source, set())
+    exclude_ids = hand.exclude_src_ids.get(source, set())
+    aliases = hand.name_aliases.get(source, {})
     out: list[dict] = []
     for ft in features:
         props = mapper(ft.get("properties", {}))
@@ -229,13 +246,13 @@ def clean_features(features: list[dict], source: str) -> list[dict]:
         if props.get("name") in aliases:                  # fix a misspelling so the creek's pieces merge as one
             props["name"] = aliases[props["name"]]
         if (props.get("name") or "").strip().lower() in exclude:
-            continue                                      # bad/duplicated data (see _EXCLUDE_NAMES_BY_SOURCE)
+            continue                                      # bad/duplicated data (`calls().exclude_names`)
         parts = _linestrings(ft.get("geometry") or {})
         for i, coords in enumerate(parts):
             p = dict(props)
             if len(parts) > 1:                            # keep part identity distinct after a flatten
                 p = {**p, "src_id": f"{p['src_id']}.{i}"}
-            if str(p.get("src_id")) in exclude_ids:       # a single pruned piece (see _EXCLUDE_SRC_IDS_BY_SOURCE)
+            if str(p.get("src_id")) in exclude_ids:       # a single pruned piece (`calls().exclude_src_ids`)
                 continue                                  # checked AFTER the .N suffix so one MLS part can go
             out.append({"type": "Feature", "properties": p,
                         "geometry": {"type": "LineString", "coordinates": coords}})

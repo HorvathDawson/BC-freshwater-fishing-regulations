@@ -157,7 +157,9 @@ def code_digest(roots) -> str:
 #: overrides, the owner's found-name calls — `tools.mined_names` turns those into `found_names.json`, which IS hashed —
 #: the closed-domains list) and the hand worklist with no build reader (`unmapped_waters`).
 NOT_DELIVER_INPUTS = ("base", "review.proposal_overrides", "review.closed",
-                      "waters.slough_page_calls", "waters.found_name_calls", "waters.unmapped_waters")
+                      "waters.slough_page_calls", "waters.found_name_calls", "waters.unmapped_waters",
+                      # T679 #13: read by the added-streams generator only (its output, added_streams.json, is read)
+                      "waters.added_stream_calls")
 
 
 def curated_digest() -> str:
@@ -251,7 +253,17 @@ def deliver_sources(missing_ok: bool = False) -> dict:
     out["clim"] = hashlib.sha256(Path(CLIM_PATH).read_bytes()).hexdigest()[:16]
     # (T211) the DFO salmon rules the bundle snapshots (the typed feed), by content
     out["dfo"] = dfo_feed_digest()
+    # (T679 #11) the in-season notices' end tokens `display.ends` holds words for: read from the matches' GENERATED
+    # resolution (no longer in the curated digest)
+    out["inseason_ends"] = inseason_ends_digest()
     return out
+
+
+def inseason_ends_digest() -> str:
+    """The end tokens of the resolved in-season matches (`matches.end_tokens`, all deliver reads of them). A missing
+    resolution raises, naming the command (`matches.load`)."""
+    from pipeline.regs.inseason import matches as M
+    return _sha(M.end_tokens(M.load()))
 
 
 def dfo_feed_digest() -> str | None:

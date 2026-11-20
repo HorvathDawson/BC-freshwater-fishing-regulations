@@ -1296,7 +1296,8 @@ def q154_pond(pid: str):
 # --------------------------------------------------------------------------- T230: In-season tab
 # The provincial in-season feed's rows and where each applies (`inseason.py`). THE ONE WRITE THAT IS NOT A
 # MARK (owner 2026-10-28, AGENTS 66): POST /api/inseason/matches edits data/curated/inseason/notice_waters.json —
-# Claude/owner tooling, informational only, one history note per edit — through `writes.commit`.
+# Claude/owner tooling, informational only, one history note per edit — through `writes.commit` (T679 #11: with the
+# match's generated resolution, data/generated/inseason/resolved.json; the Re-resolve writes only that).
 
 class InSeasonMatchPayload(BaseModel):
     model_config = ConfigDict(extra="forbid")

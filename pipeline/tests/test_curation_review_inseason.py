@@ -39,9 +39,11 @@ FEED = {"format": "inseason-feed/1", "source": "https://example.invalid/inseason
                  _row(OPEN, "Cowichan River", "2020-01-01", None, status="new")],
         "removed": [{"id": GONE, "region": "1", "water": "Koksilah River", "change": "No fishing",
                      "effective": "x", "removedAt": "2026-10-20T00:00:00.000Z"}]}
-MATCHES = {"$comment": "test", "format": "inseason-matches/2", "release": "", "history": [],
+MATCHES = {"$comment": "test", "format": "inseason-matches/3", "history": [],
            "matches": {STALE: {"region": "1", "water": "Gone Creek", "note": "old", "by": "t", "at": "x",
                                "extents": [{"op": "whole", "item_id": COWICHAN, "splits": []}]}}}
+#: (T679 #11) the matches' GENERATED resolution: the stale match resolved on no release, nothing placed
+RESOLVED = {"format": "inseason-resolved/1", "release": "", "words": {}, "matches": {STALE: {}}}
 
 
 def _stamps(root: Path) -> dict[str, str]:
@@ -56,11 +58,13 @@ def env(tmp_path_factory):
     tmp = tmp_path_factory.mktemp("inseason")
     (tmp / "feed.json").write_text(json.dumps(FEED))
     (tmp / "matches.json").write_text(json.dumps(MATCHES))
+    (tmp / "resolved.json").write_text(json.dumps(RESOLVED))
     mp = pytest.MonkeyPatch()
     mp.setenv("CURATION_INSEASON_FEED", str(tmp / "feed.json"))
     # T331: a curated path is never env-overridable — the test points the one reader at a temp copy
     from pipeline.regs.inseason import matches as _M
     mp.setattr(_M, "default_path", lambda: tmp / "matches.json")
+    mp.setattr(_M, "resolved_path", lambda: tmp / "resolved.json")       # (T679 #11) the generated resolution
     curated_root(mp, tmp / "curated")                         # T422: the whole curated tree is a temp copy
     mp.setenv("CURATION_BACKUP_DIR", str(tmp / "backups"))
     mp.syspath_prepend(str(BACKEND))
@@ -116,16 +120,21 @@ def test_2_a_good_save_writes_the_match_and_its_history(env):
         ("Cowichan River", "the notice names the trestle", "tester", {"to": "2099-12-31"})
     assert [(h["id"], h["action"], h["note"]) for h in doc["history"]] == \
         [(LIVE, "set", "the notice names the trestle")]
-    # (T520) resolved on save, on the shipped release: the Cowichan in part, as FWA ranges + its ends in words
+    # (T520) resolved on save, on the shipped release: the Cowichan in part, as FWA ranges + its ends in words —
+    # (T679 #11) in the GENERATED resolution, never in the curated file
+    assert not {"waters", "stamp", "unresolved"} & set(m) and not {"release", "words"} & set(doc)
+    res = json.loads((env["dir"] / "resolved.json").read_text())
+    rm = res["matches"][LIVE]
     from pipeline.regs.inseason import resolve as R
-    assert doc["release"] == R.release_dir(None).name
-    (w,) = m["waters"].values()
+    assert res["release"] == R.release_dir(None).name
+    (w,) = rm["waters"].values()
     # its covered stretch as end TOKENS (never words): the trestle up to the source; the token's words in `words`
     assert w["runs"] and "all" not in w and [p[1] for p in w["ends"]] == ["source"]
-    assert doc["words"][w["ends"][0][0]] and m["stamp"]
+    assert res["words"][w["ends"][0][0]] and rm["stamp"]
     snaps = sorted((env["dir"] / "backups").iterdir())
     assert len(snaps) == 1 and snaps[0].name.endswith("-inseason-match")
     assert json.loads((snaps[0] / env["dir"].name / "matches.json").read_text()) == MATCHES   # the old bytes
+    assert json.loads((snaps[0] / env["dir"].name / "resolved.json").read_text()) == RESOLVED
     assert _q(env)["progress"]["matched"] == 1
 
 
@@ -156,6 +165,7 @@ def test_4_clear_removes_the_match_and_appends_history(env):
     assert r.status_code == 200 and r.json()["state"] == "unmatched", r.text
     doc = json.loads((env["dir"] / "matches.json").read_text())
     assert LIVE not in doc["matches"] and STALE in doc["matches"]
+    assert set(json.loads((env["dir"] / "resolved.json").read_text())["matches"]) == {STALE}     # (T679 #11)
     assert [(h["action"], h["note"]) for h in doc["history"]] == [("set", "the notice names the trestle"),
                                                                   ("clear", "wrong water")]
     row = next(x for x in _q(env)["rows"] if x["id"] == LIVE)

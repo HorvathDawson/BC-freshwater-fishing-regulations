@@ -61,8 +61,9 @@ already done for this release):
                passes a new diff; content = the changes and counts, not the before/after path strings).
   5 follows    (T666 items 1-2) REFRESH WHAT FOLLOWS THE RELEASE, on the candidate, LATEST untouched — the table is
                `pipeline/release_follows.py` `FOLLOWS`: (a) the IN-SEASON MATCHES are resolved (T537,
-               `regs.inseason.resolve`, through heavy.sh): a match that does not resolve stops here; a changed
-               `data/curated/inseason/notice_waters.json` is committed (that path only). (b) the app's release-backed
+               `regs.inseason.resolve`, through heavy.sh): a match that does not resolve stops here; the resolution is
+               GENERATED (T679 #11: `data/generated/inseason/resolved.json`, never committed — the curated
+               `notice_waters.json` holds only the owner's matches, and the resolve only reads it). (b) the app's release-backed
                FIXTURES are re-cut (`node app/tools/regs-recut/sync.mjs --release <candidate>`): a change that only
                renumbers (ids, handles, the fixture release) is committed with the release id; a changed GOLDEN PAGE —
                what an angler is told — STOPS, nothing committed, until `--accept-fixtures <token>` (T667 D5). (c) the
@@ -361,8 +362,6 @@ def ci_status(skip: str | None = None) -> tuple[int, str]:
     return got.returncode, (got.stdout + got.stderr).strip()
 
 
-#: (T537) the in-season matches, resolved on the candidate before the promote
-INSEASON = Path(CURATED.inseason.notice_waters)
 #: where staging serves the release pointer the prod upload promotes (`deploy/prod/upload.sh`)
 STAGING_MANIFEST_URL = "https://data-staging.canifishthis.ca/release/manifest.json"
 
@@ -376,7 +375,7 @@ def inseason_cmd(rid: str, check: bool = False) -> list[str]:
 
 def inseason_check(rid: str) -> tuple[str, str]:
     """The rehearsal's question (`resolve --check`, nothing written): ("same" | "change" | "unresolved" | "error", its
-    own line). "change": the real run rewrites and commits the file; "unresolved": the real run stops."""
+    own line). "change": the real run rewrites the generated resolution; "unresolved": the real run stops."""
     got = subprocess.run(inseason_cmd(rid, check=True), cwd=REPO_ROOT, capture_output=True, text=True)
     line = next((ln for ln in got.stdout.splitlines() if ln.startswith("in-season matches on")), "")
     if not line:
@@ -488,19 +487,6 @@ def staging_prechecks(rid: str) -> list[str]:
 
 def smoke_cmd() -> list[str]:
     return ["node", "app/tools/smoke-staging.mjs", "--shots", "app/dist/smoke-staging"]
-
-
-def inseason_dirty() -> bool:
-    """Is the in-season matches file changed in the working tree (the resolve wrote it)?"""
-    return subprocess.run(["git", "diff", "--quiet", "--", str(INSEASON)], cwd=REPO_ROOT).returncode == 1
-
-
-def commit_inseason(rid: str) -> str:
-    """Commit the in-season matches file ALONE (explicit path); the new HEAD."""
-    subprocess.run(["git", "commit", "-q", "-m", f"inseason: matches resolved on {rid} (pipeline release --staging, "
-                    "T537)\n\nCo-Authored-By: Claude <noreply@anthropic.com>", "--", str(INSEASON)], cwd=REPO_ROOT,
-                   check=True)
-    return git_head()
 
 
 def staging_release() -> str | None:
@@ -1159,8 +1145,8 @@ def stage_checks(ctx: Ctx) -> str:
 
 def stage_inseason(ctx: Ctx, rid: str, r: dict) -> str:
     """(T537) resolve the in-season matches on the candidate BEFORE the promote (was: mid-upload, after LATEST moved,
-    and the rewritten file then dirtied the next preflight). Done once per release (ledger `inseason`). A rewritten
-    file is committed alone; (T666) the run goes on, and the push gate at the end of the stage asks for it once."""
+    and the rewritten file then dirtied the next preflight). Done once per release (ledger `inseason`). (T679 #11)
+    The resolve writes the GENERATED resolution only: nothing to commit."""
     if (r.get("inseason") or {}).get("release") == rid:
         return f"in-season resolved on {rid} ({r['inseason'].get('at')})"
     rc = run_cmd(inseason_cmd(rid), env=ctx.heavy_env or None)
@@ -1168,12 +1154,6 @@ def stage_inseason(ctx: Ctx, rid: str, r: dict) -> str:
         raise Stop("follows", f"the in-season matches do not all resolve on {rid} (rc={rc}); LATEST was not moved",
                    "re-match the unresolved notices in the review app's In-season tab (the output above names them), "
                    "commit data/curated/inseason/notice_waters.json, then rerun")
-    if inseason_dirty():
-        head = commit_inseason(rid)
-        r["inseason"] = {"release": rid, "at": now(), "commit": head}
-        made_commit(r, head)
-        save_ledger(ctx.led)
-        return f"in-season re-resolved on {rid}, committed {head[:12]} ({rel(INSEASON)} only)"
     r["inseason"] = {"release": rid, "at": now()}
     save_ledger(ctx.led)
     return f"in-season resolved on {rid}"
@@ -1632,7 +1612,7 @@ def dry_run(ctx: Ctx) -> int:
             how, line = inseason_check(cand)
             print(f"{P}in-season matches: " + (
                 line if how == "same" else
-                f"{line} — the real run rewrites and commits the file (one more commit for the push gate)"
+                f"{line} — the real run rewrites the generated resolution (nothing to commit)"
                 if how == "change" else
                 stop(f"a match does not resolve on {cand}: {line} (re-match it in the review app's In-season tab)")
                 if how == "unresolved" else stop(f"the in-season resolve could not be rehearsed on {cand}: {line}")))

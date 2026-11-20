@@ -1,15 +1,18 @@
 """T230: THE IN-SEASON TAB — the provincial in-season feed's rows and WHERE each applies.
 
 The feed is the T225 worker's `inseason-feed/1` (`GENERATED.inseason / "feed" / "index.json"`, or
-`CURATION_INSEASON_FEED`); the matches are `data/curated/inseason/notice_waters.json` (`CURATED.inseason.notice_waters`),
-read and edited only through `pipeline.regs.inseason.matches`.
+`CURATION_INSEASON_FEED`); the matches are `data/curated/inseason/notice_waters.json` (`CURATED.inseason.notice_waters`)
+and (T679 #11) their GENERATED resolution (`matches.resolved_path()`: ranges, ends, stamps, never committed), read and
+edited only through `pipeline.regs.inseason.matches`.
 
     queue()                    every feed row (and removed row, and a match on a row the feed no longer holds:
                                "stale") with its match state, in-effect flag and history; progress
     item_splits(item_id)       the splits.json splits on one water, as labelled map points (the picker)
     extent_preview(extents)    what the extents bind, by the builder's own extent resolver, as geometry
     save_match(...)            THE ONE NON-MARK WRITE (owner 2026-10-28, AGENTS 66): set or clear one row's match
-                               and append its history note, via `writes.commit` (backup + atomic) under `writes.LOCK`
+                               and append its history note, via `writes.commit` (backup + atomic) under `writes.LOCK` —
+                               the curated matches and the match's resolution, one commit
+    resolve_all(...)           (T520) re-resolve every match on the shipped release: the GENERATED resolution only
 
 INFORMATIONAL ONLY: a match puts a banner on the water in the app; it is never a mark and changes no answer.
 """
@@ -68,9 +71,19 @@ def split_ids() -> set[str]:
     return set(reuse._split_records())
 
 
+def _load_curated() -> M.Matches:
+    """The curated matches alone, parsed (a missing file RAISES — AGENTS 37): what a Re-resolve reads."""
+    return M.parse_curated(matches_path().read_text(encoding="utf-8"), str(matches_path()))
+
+
 def _load_matches() -> M.Matches:
-    """The curated matches, parsed (a missing file RAISES — AGENTS 37)."""
-    return M.parse(matches_path().read_text(encoding="utf-8"))
+    """(T679 #11) The curated matches WITH their generated resolution. A missing resolution RAISES, naming the
+    Re-resolve (AGENTS 37: never read as "nothing resolved")."""
+    r = M.resolved_path()
+    if not r.exists():
+        raise FileNotFoundError(f"{r}: the in-season matches are not resolved on this machine — press Re-resolve on "
+                                f"the In-season tab, or run `{M.RESOLVE_CMD}`")
+    return M.merge(_load_curated(), json.loads(r.read_text(encoding="utf-8")))
 
 
 def _in_effect(frm: str | None, to: str | None, today: str) -> bool | None:
@@ -284,16 +297,17 @@ def _atlas():
 
 
 def resolve_all(by: str = "") -> dict:
-    """(T520) RE-RESOLVE every match on the shipped release (after a release promote: the file names an older one),
-    through `writes.commit`. Matches that no longer resolve keep their extents and say why (`unresolved`); publish
-    refuses them until re-matched. -> {release, unresolved: [...]}."""
+    """(T520) RE-RESOLVE every match on the shipped release (after a release promote: the resolution names an older
+    one), through `writes.commit`. Matches that no longer resolve keep their extents and say why (`unresolved`);
+    publish refuses them until re-matched. (T679 #11) Reads the curated matches, writes ONLY their generated
+    resolution (`matches.resolved_path()`). -> {release, unresolved: [...]}."""
     from pipeline.regs.inseason import resolve as R
     rel = R.read_release(R.release_dir(None))
     with writes.LOCK:
-        doc = _load_matches()
-        new, bad = R.resolve_doc(doc, _atlas(), rel)
-        if M.dumps(new) != M.dumps(doc):
-            writes.commit([(matches_path(), M.dumps(new))], "inseason-resolve")
+        new, bad = R.resolve_doc(_load_curated(), _atlas(), rel)
+        out, dst = M.dumps_resolved(new), M.resolved_path()
+        if not dst.exists() or out != dst.read_text(encoding="utf-8"):
+            writes.commit([(dst, out)], "inseason-resolve")
     return {"release": rel.name, "unresolved": bad}
 
 
@@ -350,9 +364,10 @@ def save_match(rid: str, extents, effective: dict | None, note: str, by: str = "
                 raise Refused(str(ex))
             new = M.set_match(doc, rid, match, at=at, by=by, note=note)
             new = new.model_copy(update={"release": rel.name, "words": {**new.words, **words}})
-        text = M.dumps(new)
-        errs = [p for p in M.problems(M.parse(text), split_ids=split_ids()) if p.startswith(rid)]
+        text = M.dumps_curated(new)
+        errs = [p for p in M.problems(M.parse_curated(text), split_ids=split_ids()) if p.startswith(rid)]
         if errs:
             raise Refused("; ".join(errs))
-        writes.commit([(path, text)], "inseason-match")
+        # (T679 #11) the owner's match (curated) and its resolution (generated), one commit
+        writes.commit([(path, text), (M.resolved_path(), M.dumps_resolved(new))], "inseason-match")
     return row(rid)

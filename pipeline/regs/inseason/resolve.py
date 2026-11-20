@@ -1,11 +1,12 @@
 """(T520) RESOLVE THE IN-SEASON MATCHES WHERE THE ATLAS IS — to FWA ranges on one data release.
 
-    python -m pipeline.regs.inseason.resolve [--release DIR] [--matches FILE] [--check]
+    python -m pipeline.regs.inseason.resolve [--release DIR] [--matches FILE] [--out FILE] [--check]
 
 Every match in `data/curated/inseason/notice_waters.json` (`matches.Match.extents`) is resolved on the atlas
-(`points.resolve`: the regs' resolver, the measure-cut pick-points, the tributary walk) and written back as `waters`,
-on the release the file then names (`release`, default `data/release/LATEST`; refused unless the release's
-`section_handles` digest is the atlas's):
+(`points.resolve`: the regs' resolver, the measure-cut pick-points, the tributary walk) and written as `waters` to the
+GENERATED resolution (T679 #11: `matches.resolved_path()`, `data/generated/inseason/resolved.json`; the curated file is
+only read and holds only the owner's matches), on the release the resolution then names (`release`, default
+`data/release/LATEST`; refused unless the release's `section_handles` digest is the atlas's):
 
     {item: {"all": true}}                           every section of the water (in that release's `part_section`)
     {item: {"runs": [[blk, m0, m1], …], "lakes"?: true, "ends": [[low, high], …]}}
@@ -39,8 +40,9 @@ No part index, label or section id (AGENTS 5): a range survives a renumbering of
 whole or not at all (it has no line). Each range set is proved on the spot: read back by the device's rule over the
 release's own `lines` file it must give exactly the resolved sections, or the match is refused.
 
-Who runs it: the review app on save (`curation-review/backend/inseason.py`, one match), the release promote
-(`deploy/staging/upload.sh`, every match, `--release` the release going up). `publish` only formats the result (no atlas).
+Who runs it: the review app on save (`curation-review/backend/inseason.py`, one match) and its Re-resolve, the release
+command's `follows` stage (`pipeline/release.py`, every match, `--release` the candidate). `publish` only formats the
+result (no atlas).
 
 A match that does not resolve keeps its extents, gets `unresolved` (the reason) and no `waters`, and the run exits 1:
 publish refuses it until it is re-matched. Deterministic (sorted everywhere).
@@ -510,26 +512,38 @@ def main(argv: list[str] | None = None) -> int:
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--release", type=Path, default=None, help="the release to resolve on (default LATEST)")
     ap.add_argument("--matches", type=Path, default=None, help="the curated file (default CURATED.inseason)")
+    ap.add_argument("--out", type=Path, default=None,
+                    help="the generated resolution to write (default matches.resolved_path())")
     ap.add_argument("--check", action="store_true", help="resolve and compare; write nothing (exit 1 on a difference)")
     a = ap.parse_args(argv)
-    src = Path(a.matches or M.default_path())
-    text = src.read_text(encoding="utf-8")
-    doc = M.parse(text)
+    # (T679 #11) THE CURATED FILE IS ONLY READ: the owner's matches. What is derived from them goes to the GENERATED
+    # resolution (`matches.resolved_path()`), never committed
+    doc = M.load_curated(a.matches)
+    dst = Path(a.out or M.resolved_path())
+    before = dst.read_text(encoding="utf-8") if dst.exists() else None
     rel = read_release(release_dir(a.release))
     new, bad = resolve_doc(doc, load_atlas(), rel)
-    out = M.dumps(new)
+    out = M.dumps_resolved(new)
     if a.check:
-        same = out == text
+        same = out == before
         print(f"in-season matches on {rel.name}: {'unchanged' if same else 'WOULD CHANGE'}"
               f"{f', {len(bad)} unresolved' if bad else ''}")
         return 0 if same and not bad else 1
-    if out != text:
-        from pipeline.common.curated_write import write_any   # T600: atomic, backed up and logged
-        write_any(src, out, tool="pipeline.regs.inseason.resolve", source=f"re-resolved on {rel.name}")
-        print(f"in-season matches re-resolved on {rel.name}: {src} rewritten (commit it)", file=sys.stderr)
+    if out != before:
+        write_resolved(dst, out)
+        print(f"in-season matches re-resolved on {rel.name}: {dst} written", file=sys.stderr)
     else:
         print(f"in-season matches on {rel.name}: unchanged", file=sys.stderr)
     return 1 if bad else 0
+
+
+def write_resolved(dst: Path, text: str) -> None:
+    """The generated resolution, atomically (a temp file beside it, then a rename)."""
+    import os
+    dst.parent.mkdir(parents=True, exist_ok=True)
+    tmp = dst.with_name(dst.name + ".tmp")
+    tmp.write_text(text, encoding="utf-8")
+    os.replace(tmp, dst)
 
 
 if __name__ == "__main__":

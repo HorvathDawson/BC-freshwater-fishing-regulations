@@ -138,6 +138,9 @@ class Waters(BaseModel):
     added_lakes: FilePath
     #: PROMOTED, not authored — 361 minted streams whose negative `blk` ids are a live ABI.
     added_streams: FilePath
+    #: AUTHORED (T679 #13): the added-streams generator's hand fixes (a feature dropped by name or src_id, a name typo,
+    #: a receiver override), read by the generator only (`added_streams.clean.calls`), never by the atlas build.
+    added_stream_calls: FilePath
     #: The worklist for minting more added lakes (was `ungazetted.json`). No build reader BY DESIGN; the minting is a
     #: hand process. Checked by `check_curated --waters`; declared so a dead-file sweep cannot delete it.
     unmapped_waters: FilePath
@@ -258,7 +261,7 @@ class RunTiming(BaseModel):
 class InSeason(BaseModel):
     """T226: the provincial in-season notices bound to waters (`notice_waters.json`, was `matches.json`;
     `pipeline.regs.inseason.matches`), AUTHORED — written by the review app's In-season tab or by hand, never by a
-    generator."""
+    generator. (T679 #11) The owner's matches only: their resolved ranges are generated (`matches.resolved_path()`)."""
 
     model_config = ConfigDict(frozen=True)
 

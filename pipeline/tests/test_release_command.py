@@ -153,17 +153,7 @@ def world(tmp_path: Path, monkeypatch):
         w["site_min_apps"].append(min_app)
         return list(w.get("site_problems", [])), "site serves app 9.9.9"
     monkeypatch.setattr(R, "site_problems", site)
-    # (T537) the in-season resolve's file, its commit, and what staging serves (network)
-    w["inseason_dirty"] = False
-    monkeypatch.setattr(R, "inseason_dirty", lambda: w["inseason_dirty"])
-    w["commits_made"] = []
-
-    def commit_inseason(rid):
-        w["commits_made"].append(rid)
-        w["pushed"], w["tree"] = False, w["tree"] + "+matches"       # a new HEAD, not on GitHub yet
-        w["unpushed"].append("c0mmit" + "0" * 34)
-        return "c0mmit" + "0" * 34
-    monkeypatch.setattr(R, "commit_inseason", commit_inseason)
+    # (T537; T679 #11) the in-season resolve writes the generated resolution only: no commit of its own
     # (T666 items 1-2) the follows stage: the re-cut's changed paths, its commit, the tests found by rule, the push
     w["recut_changed"], w["recuts_committed"], w["unpushed"], w["pushes"] = [], [], [], 0
     monkeypatch.setattr(R, "recut_changed", lambda: list(w["recut_changed"]))
@@ -946,8 +936,7 @@ def test_the_fresh_copy_test_run_happens_once_in_the_release_pre_check(world, ca
     assert _staging() == 1 and world["fresh_copies"] == 1                      # a resume: same tree
     world["commits"] = {"abc123"}
     world["tree"] = "t2"                                                       # the release's own re-cut commit
-    world["committed_since"] = {"app/fixtures/golden/taps.json", "app/packages/ui-native/src/regs/fixtures/a.json",
-                                "data/curated/inseason/notice_waters.json"}
+    world["committed_since"] = {"app/fixtures/golden/taps.json", "app/packages/ui-native/src/regs/fixtures/a.json"}
     capsys.readouterr()
     assert _staging() == 1 and world["fresh_copies"] == 1
     assert "the commits since touch only what the release refreshes (fixtures, matches): not rerun" in capsys.readouterr().out
@@ -1059,24 +1048,22 @@ def test_a_failed_inseason_resolve_stops_before_the_promote(world, capsys):
     assert _latest(world) == LIVE and "upload" not in [c for c, _ in world["calls"]]
 
 
-def test_a_rewritten_inseason_file_is_committed_alone_and_the_run_stops_once_for_the_push(world, capsys):
-    """T537, and T666: the stop comes at the END of the follows stage (after the re-cut and the tests), so the matches
-    commit and the fixtures commit are one push, not two stops."""
-    world["inseason_dirty"] = True
+def test_the_inseason_resolve_makes_no_commit_and_the_run_stops_once_for_the_push(world, capsys):
+    """T537, T666, and T679 #11: the resolve writes the GENERATED resolution (never committed), so the release's one
+    commit is the fixtures re-cut, and the stop for the push comes once, at the END of the follows stage."""
     world["recut_changed"] = ["app/fixtures/golden/taps.json"]
     assert _staging() == 1
     io = capsys.readouterr()
-    assert world["commits_made"] == [NEW] and "committed c0mmit" in io.out
+    assert "in-season resolved on" in io.out and "committed c0mmit" not in io.out
     assert world["recuts_committed"] == [(NEW, "renumber only")]
-    assert "STOPPED at follows" in io.err and "2 commit(s) are not on origin/redesign/stream-sections: 2 the release made" in io.err
+    assert "STOPPED at follows" in io.err and "1 commit(s) are not on origin/redesign/stream-sections: 1 the release made" in io.err
     assert "next: git push origin HEAD:redesign/stream-sections, then rerun" in io.err and "--push" in io.err
     assert _latest(world) == LIVE and [c for c, _ in world["calls"]] == ALL[:7]
-    world["inseason_dirty"], world["pushed"], world["unpushed"] = False, True, []      # the human pushed
+    world["pushed"], world["unpushed"] = True, []                                    # the human pushed
     assert _staging() == 0                                     # resolved, re-cut and tested for NEW: none run again
     names = [c for c, _ in world["calls"]]
     assert (names.count("inseason"), names.count("recut"), names.count("follow-py"), names.count("follow-app")) == (1, 1, 1, 1)
     assert world["pushes"] == 0 and _latest(world) == NEW
-
 
 def test_a_smoke_failure_reruns_only_the_smoke_and_the_chores_are_named(world, capsys):
     world["fail"] = {"smoke"}

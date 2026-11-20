@@ -1,8 +1,6 @@
 {
  "$comment": "MINI FIXTURE (T667 slice 8): an invented tree for the mini release; see pipeline/tests/fixtures/mini/README.md.",
- "format": "inseason-matches/2",
- "release": "r-f749475d0962",
- "words": {},
+ "format": "inseason-matches/3",
  "matches": {},
  "history": []
 }
