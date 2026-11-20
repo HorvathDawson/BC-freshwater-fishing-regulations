@@ -7,16 +7,16 @@
  * the close. What it does NOT: the recognisers' own activation (`activeOffsetX`, `failOffsetY`, `hitSlop`) —
  * `fireGestureHandler` skips them — nor how any of it feels under a finger. That is the owner's, on a device.
  */
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { afterEach, beforeAll, describe, expect, it, vi } from "vitest";
 import { act, cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { Text, View } from "react-native";
 import { GestureHandlerRootView, State } from "react-native-gesture-handler";
-import { fireGestureHandler, getByGestureTestId } from "react-native-gesture-handler/jest-utils";
+import { createGestureController, fireGestureHandler, getByGestureTestId } from "react-native-gesture-handler/jest-utils";
 import type { ItemId } from "@app/data";
 import { BackLayerContext, HOME, useEdgeBack, useRoute, useViewSwipe, waterFrame, type BackLayers,
          type Route } from "@app/ui";
-import { EdgeBack } from "./EdgeBack";
+import { EDGE_BACK_HOLD_MS, EdgeBack } from "./EdgeBack";
 import { ViewSwipe, WEB_PAGE_PROPS, useSwipeShield } from "./ViewSwipe";
 import { Sheet } from "./Sheet";
 import { LIGHT } from "./theme";
@@ -101,6 +101,61 @@ describe("<EdgeBack> (iOS only)", () => {
     const held = shift();
     act(() => redraw());
     expect([held, shift()]).toEqual(["translateX(120px)", "translateX(0px)"]);
+  });
+
+  describe("(T928) the screen never stays part-way", () => {
+    // the tester's browse layer stood ~135 pt right through tab changes until a restart: a drag's offset, never put home
+    const shift = () => (screen.getByText("the water").parentElement as HTMLElement).style.transform;
+    let redraw: () => void = () => {};
+    let remake: () => void = () => {};
+    function Host({ back = () => true }: { back?: () => boolean }) {
+      const [, setN] = useState(0);
+      const [gen, setGen] = useState(0);
+      redraw = () => setN((n) => n + 1);
+      remake = () => setGen((g) => g + 1);
+      // a new back each `remake` (as a new `go` makes one): a new `drag`, so the handler's config is made again
+      const b = useMemo(() => () => back(), [back, gen]);  // eslint-disable-line react-hooks/exhaustive-deps
+      return <Edge back={b} />;
+    }
+    afterEach(() => { vi.useRealTimers(); });
+    /** A drag from the edge, 135 px across, still under the finger (no end delivered). */
+    const dragTo135 = () => {
+      const c = createGestureController("edge-back");
+      act(() => { c.begin({ absoluteX: 5, x: 5 }); c.activate({ absoluteX: 5, x: 5 }); });
+      act(() => { c.update({ absoluteX: 140, x: 140, translationX: 135 }); });
+      return c;
+    };
+
+    it("a drag whose end never reached the view is put home by the next render once its finger has gone quiet", () => {
+      vi.useFakeTimers();
+      render(<Host />);
+      dragTo135();
+      const dragged = shift();
+      act(() => redraw());                             // a render while the finger is down: the screen stays with it
+      const during = shift();
+      act(() => { vi.advanceTimersByTime(1600); });    // nothing heard from the finger since
+      act(() => redraw());                             // a tab change
+      expect([dragged, during, shift()]).toEqual(["translateX(135px)", "translateX(135px)", "translateX(0px)"]);
+    });
+
+    it("a handler made again mid-drag still knows the finger: the release goes back, and the screen comes home", () => {
+      const back = vi.fn(() => true);
+      render(<Host back={back} />);
+      const c = dragTo135();
+      act(() => remake());                             // a new `drag`, so a new handler config, mid-drag
+      act(() => { c.end({ absoluteX: 140, x: 140, translationX: 135, velocityX: 0 }); });
+      act(() => redraw());
+      expect([back.mock.calls.length, shift()]).toEqual([1, "translateX(0px)"]);
+    });
+
+    it("a swipe that went back but whose back drew nothing here is put home after the hold, not left there", () => {
+      vi.useFakeTimers();
+      render(<Edge back={() => true} />);              // nothing re-renders the view
+      fire("edge-back", pan(5, 120));
+      const held = shift();
+      act(() => { vi.advanceTimersByTime(EDGE_BACK_HOLD_MS); });
+      expect([held, shift()]).toEqual(["translateX(120px)", "translateX(0px)"]);
+    });
   });
 });
 
