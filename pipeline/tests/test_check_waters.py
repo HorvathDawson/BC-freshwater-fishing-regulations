@@ -85,19 +85,28 @@ def test_a_name_variant_the_registry_lacks_is_a_warning(waters, tmp_path):
     assert not any("name_variants" in e for e in err)
 
 
-def test_a_tidal_limit_label_with_review_words_is_a_warning(waters, tmp_path):
-    """T780: the owner's tidal rows are his to reword (an atlas input): warned, never refused."""
-    def bad(d):
-        row = next(r for r in d["waters"] if (r.get("at") or {}).get("label"))
-        row["at"]["label"] += " (low confidence)"
-    _edit(waters.tidal, bad)
-    err, warn, _ = C.check_waters(waters, registry=tmp_path / "no-registry.json")
-    assert not any("tidal" in e for e in err)
-    assert any(w.startswith("tidal[") and "review words" in w for w in warn)
+def _first_tidal_label(d, label):
+    next(r for r in d["waters"] if (r.get("at") or {}).get("label"))["at"]["label"] = label
 
 
-def test_a_place_name_holding_a_review_word_inside_another_word_passes(waters, tmp_path):
-    """The near miss: "Checkerboard Creek" is a name, not a CHECK."""
-    _edit(waters.cuts, lambda d: d["waterbodies"][0]["splits"][0].update(label="Checkerboard Creek confluence"))
+@pytest.mark.parametrize("label", [
+    "Spur 19 Bridge site (road bridge near the mouth, low confidence)",      # the Sheldens Creek row before 11-20
+    "Tidal boundary (medium confidence)", "Tidal boundary, approximate location (low confidence)",
+    "Bridge CHECK", "Bridge (TODO)", "Bridge ??", "Bridge [Review: which side]"])
+def test_a_tidal_limit_label_with_review_words_is_refused(waters, tmp_path, label):
+    """T780 (owner 2026-11-20 reworded the last one): a tidal limit's label is a cut's name too — refused."""
+    _edit(waters.tidal, lambda d: _first_tidal_label(d, label))
+    err, _, _ = C.check_waters(waters, registry=tmp_path / "no-registry.json")
+    assert any(e.startswith("tidal[") and "review words" in e for e in err), err
+
+
+@pytest.mark.parametrize("label", [
+    "Checkerboard Creek confluence", "Check dam", "Confidence Creek confluence", "Todo Lake outlet",
+    "Lake Confidence (north end)", "Spur 19 Bridge site (road bridge near the mouth)"])
+def test_a_place_name_holding_a_review_word_passes(waters, tmp_path, label):
+    """The near misses: a word a review note uses is also a name ("Check dam", "Confidence Creek"); only CHECK / TODO
+    in capitals and confidence said as a note ("(low confidence)", ", medium confidence") are refused."""
+    _edit(waters.cuts, lambda d: d["waterbodies"][0]["splits"][0].update(label=label))
+    _edit(waters.tidal, lambda d: _first_tidal_label(d, label))
     err, _, _ = C.check_waters(waters, registry=tmp_path / "no-registry.json")
     assert not any("review words" in e for e in err), err

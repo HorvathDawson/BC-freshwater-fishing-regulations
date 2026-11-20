@@ -10,8 +10,8 @@ THE WATERS CHECK (T324, owner 2026-11-05: "keep hand edits; add a fast check"). 
 and before this a bad edit surfaced only after the hour-long atlas build. `--waters` reads each file and checks its
 SHAPE (the fields its loader needs, unique ids, coordinates inside BC) and its REFERENCES (an area def's `file` names
 a declared curated file; an added stream's name variant names an added stream; an added lake's `part_of` lake is in
-the atlas registry; T780: no cut label in `cuts` carries review words such as "approximate location (… confidence)",
-a tidal limit's label is warned; a continuation is never listed twice, or both reviewed and refused). It is the build's FIRST step (`pipeline.build.preflight`) and a CI step (pipeline-ci.yml).
+the atlas registry; T780: no cut label in `cuts` or `tidal_limits` carries review words such as "approximate location
+(… confidence)"; a continuation is never listed twice, or both reviewed and refused). It is the build's FIRST step (`pipeline.build.preflight`) and a CI step (pipeline-ci.yml).
 Ids a name variant targets that the current registry does not hold are WARNINGS, not errors: a new variant reaches
 the registry only with the next atlas, so "not yet built" and "a typo" look alike until then — the list is printed.
 With no atlas registry on the machine (CI) the registry checks are skipped and the output says so.
@@ -450,22 +450,24 @@ def check_waters(waters=None, registry: Path | None = None) -> tuple[list[str], 
                     err.append(f"cuts[{(sp or {}).get('id')}]: the label carries the review words {hit.group(0)!r} "
                                "(an angler reads it in the part's name): keep the place's name; how sure the cut is "
                                "goes in `confidence`, a review note in `note` / `_note`")
-    # the tidal limits' cut labels are the same kind of name; the owner's own rows are his to reword, and a change
-    # there moves the atlas inputs (an atlas build) — said as a warning, never refused here
+    # the tidal limits' cut labels are the same kind of name (owner 2026-11-20 reworded the last one, Sheldens Creek)
     td = load("tidal")
     if td is not None:
         for r in (td.get("waters") if isinstance(td, dict) else None) or []:
             hit = REVIEW_WORDS.search(str(((r or {}).get("at") or {}).get("label") or ""))
             if hit:
-                warn.append(f"tidal[{r.get('blk')} {r.get('name')}]: the cut label carries the review words "
-                            f"{hit.group(0)!r} (T780: an angler reads it in a part's name); reword it at the next "
-                            "atlas build")
+                err.append(f"tidal[{r.get('blk')} {r.get('name')}]: the cut label carries the review words "
+                           f"{hit.group(0)!r} (an angler reads it in a part's name): keep the place's name; how sure "
+                           "the limit is goes in `why`")
     return err, warn, notes
 
 
-#: (T780) the review words a cut's label must not carry: the T207 confidence sentence, a bare confidence, a curator's
-#: CHECK / TODO / "??" and a bracketed review note ("[review: …]")
-REVIEW_WORDS = re.compile(r"approximate location|\bconfidence\b|\bCHECK\b|\bTODO\b|\?\?|\[\s*review\b", re.I)
+#: (T780) the review words a cut's label must not carry: the T207 sentence ("approximate location"), a confidence said
+#: as a note — "(low confidence)" or ", low confidence" (any of the three levels) — a curator's CHECK / TODO in capitals,
+#: "??" and a bracketed review note ("[review: …]"). Never a word a place name can hold: "Check dam", "Confidence Creek
+#: confluence" and "Todo Lake" are names (only the capitals and the note forms are refused)
+REVIEW_WORDS = re.compile(r"(?i:approximate location)|(?i:(?:\(|,\s*)(?:low|medium|high) confidence\b)"
+                          r"|\bCHECK\b|\bTODO\b|\?\?|(?i:\[\s*review\b)")
 
 
 def waters_main(registry: Path | None) -> int:
