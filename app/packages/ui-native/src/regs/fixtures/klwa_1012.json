@@ -16,13 +16,13 @@
       {
        "mark": "✓",
        "name": "Worms",
-       "note": null,
+       "notes": [],
        "terms": []
       },
       {
        "mark": "✓",
        "name": "Roe (fish eggs)",
-       "note": "the fish or fish parts ban excepts it",
+       "notes": [],
        "terms": []
       }
      ]
@@ -35,13 +35,13 @@
       {
        "mark": "✕",
        "name": "Water insects and crayfish",
-       "note": "not on lakes",
+       "notes": ["Not on lakes."],
        "terms": []
       },
       {
        "mark": "✕",
        "name": "Fish or fish parts",
-       "note": null,
+       "notes": [],
        "terms": []
       }
      ]
@@ -935,19 +935,19 @@
       {
        "mark": "✓",
        "name": "Angling (rod and line)",
-       "note": "with a downrigger: attached to your line by a quick-release\nwith a light: submerged, attached to the line, within 1 m of the hook",
+       "notes": ["With a downrigger: attached to your line by a quick-release.","With a light: submerged, attached to the line, within 1 m of the hook."],
        "terms": []
       },
       {
        "mark": "✓",
        "name": "Ice fishing",
-       "note": "lines: 1\nhook, lure or fly per line: 1\nRemove your ice hut before breakup\nWarn others of your ice hole",
+       "notes": ["Lines: 1.","Hook, lure or fly per line: 1.","Remove your ice hut before breakup.","Warn others of your ice hole."],
        "terms": []
       },
       {
        "mark": "✓",
        "name": "Crayfish traps",
-       "note": "release anything in the trap that isn’t a crayfish",
+       "notes": ["Release anything in the trap that isn’t a crayfish."],
        "terms": []
       }
      ]
@@ -960,31 +960,31 @@
       {
        "mark": "✕",
        "name": "Set lines",
-       "note": null,
+       "notes": [],
        "terms": []
       },
       {
        "mark": "✕",
        "name": "Spear or bow",
-       "note": null,
+       "notes": [],
        "terms": []
       },
       {
        "mark": "✕",
        "name": "Nets",
-       "note": null,
+       "notes": [],
        "terms": []
       },
       {
        "mark": "✕",
        "name": "Snagging",
-       "note": null,
+       "notes": [],
        "terms": []
       },
       {
        "mark": "✕",
        "name": "Chumming",
-       "note": null,
+       "notes": [],
        "terms": []
       }
      ]

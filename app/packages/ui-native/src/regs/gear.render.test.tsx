@@ -65,12 +65,12 @@ describe("<GearTab> vedder_1010 (open, Oct 10)", () => {
   it("Bait: ✓ rows with their notes, ✕ Fish or fish parts, the dated ban, Province ›", () => {
     const { sheets } = mount(vm);
     expect(domLines(screen.getByTestId("gear-bait"))).toEqual(["Bait", "Bait ban May 1–31 · not today ⓘ", "Allowed", "✓ Worms",
-      "✓ Roe (fish eggs) the fish or fish parts ban excepts it", "✓ Water insects and crayfish on streams", "Not allowed",
+      "✓ Roe (fish eggs)", "✓ Water insects and crayfish", "• On streams.", "Not allowed",
       "✕ Fish or fish parts"]);
     // (T40) no row label (it would hide the row's words and its ⓘ from a screen reader): the column head is read as text,
     // then each row's own words; the ✓ / ✕ that repeats the head is hidden
-    expect(screen.queryByLabelText("Allowed: Roe (fish eggs), the fish or fish parts ban excepts it")).toBeNull();
-    expect([...screen.getByTestId("gear-bait").querySelectorAll('[aria-hidden="true"]')].map((e) => e.textContent)).toEqual(["✓", "✓", "✓", "✕"]);
+    expect(screen.queryByText(/ban excepts it/)).toBeNull();
+    expect([...screen.getByTestId("gear-bait").querySelectorAll('[aria-hidden="true"]')].map((e) => e.textContent)).toEqual(["✓", "✓", "✓", "•", "✕"]);
     expect(sheets).toEqual([]);   // (T900) its source is the section's one
   });
 

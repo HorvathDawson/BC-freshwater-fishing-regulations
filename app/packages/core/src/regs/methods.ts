@@ -89,8 +89,8 @@ export function waysVM(chips: readonly WayChip[], ctx: GearCtx): MethodsVM["ways
   const name = (m: string) => ELEM[m] ?? m;
   return {
     label: METHODS.WAYS,
-    list: yesNo(// (T900) each condition on its own line (the way joined them with " · " into one long grey line)
-    ok.map((c) => [name(c.method) + (METHODS_TEST.NOT_GAME.test(c.info) ? METHODS.NOT_GAME : ""), c.info.split(METHODS.SEP).join("\n"),
+    list: yesNo(// (T922) each condition its own item
+    ok.map((c) => [name(c.method) + (METHODS_TEST.NOT_GAME.test(c.info) ? METHODS.NOT_GAME : ""), c.info ? c.info.split(METHODS.SEP) : [],
                                (WAY_TERMS[c.method] ?? []).filter((t) => ctx.glossary.has(t))] as const),
                 no.map((c) => [cap(lc(name(c.method))), ""] as const)),
     src: sourceLine("srcs:ways", [...ok, ...no].flatMap((c) => (c.rix == null ? [] : [c.rix])), ctx),

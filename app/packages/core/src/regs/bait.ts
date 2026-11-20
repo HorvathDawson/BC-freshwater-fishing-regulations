@@ -30,7 +30,8 @@ const elemName = (e: string): string => ELEM[e] ?? e;
  *  and "carry up to N kg". */
 export function baitItems(g: GearAnswer): BaitItem[] {
   return g.bait.map((b) => {
-    const sub = b.excepted_from ? BAIT.EXCEPTED(elemName(b.excepted_from.element).toLowerCase())
+    // (T922) roe reads as roe: no "the fish or fish parts ban excepts it" note
+    const sub = b.excepted_from && b.element === "roe" ? BAIT.ALLOWED : b.excepted_from ? BAIT.EXCEPTED(elemName(b.excepted_from.element).toLowerCase())
       : b.by ? (b.why ? (BAIT.WHY[b.why] ?? b.why) : "") : BAIT.ALLOWED;
     return { ok: b.ok, name: elemName(b.element), s: [sub, b.carry_kg != null ? BAIT.CARRY(b.carry_kg) : ""].filter(Boolean).join(BAIT.SEP),
              rix: b.by?.[0] ?? null };
@@ -45,9 +46,10 @@ export function allowanceRules(g: GearAnswer): readonly (readonly number[])[] {
 
 /** (T797 item 2) an element's note, then each allowance's rule label (the stored words, as the boats line says its
  *  rules), each label once. */
-export function noteWithAllowances(note: string, rixs: readonly number[], rules: GearCtx["rules"]): string {
+export function noteWithAllowances(note: string, rixs: readonly number[], rules: GearCtx["rules"]): string[] {
   const said = [...new Set(rixs.filter((ix) => rules.has(ix)).map((ix) => clean(rules.get(ix).export.label)))];
-  return [note, ...labelsOnce(said)].filter(Boolean).join(BAIT.SEP);
+  // (T922) the item's own note splits at its " · " (why, carry limit); each allowance label stays whole
+  return [...(note ? note.split(BAIT.SEP) : []), ...labelsOnce(said)].filter(Boolean);
 }
 
 /**
@@ -83,7 +85,7 @@ export function moveAllowances(items: BaitItem[]): void {
     const to = items.find((y) => y.ok && new RegExp("^" + m[2], "i").test(y.name));
     if (!to) continue;
     x.s = m[1]!;
-    if (!/ban excepts it/i.test(to.s)) to.s = [to.s, BAIT.STILL_OK(m[2]!)].filter(Boolean).join(BAIT.SEP);
+    if (!/ban excepts it/i.test(to.s) && !/^roe\b/i.test(to.name)) to.s = [to.s, BAIT.STILL_OK(m[2]!)].filter(Boolean).join(BAIT.SEP);
   }
 }
 

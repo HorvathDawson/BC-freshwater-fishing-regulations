@@ -70,12 +70,21 @@ describe("wayChips + waysVM (page v36 gearParts ways, prototype WAYS)", () => {
   it("the list: ✓ ways (a limited way's name says so) then ✕ ways without their why; sources ✓ first, then ✕", () => {
     const v = waysVM(wayChips(g, ctx), ctx)!;
     expect(v.label).toBe("Ways to fish");
-    expect(v.list.map((c) => [c.col, c.items.map((i) => `${i.mark} ${i.name}${i.note ? ` | ${i.note}` : ""}`)])).toEqual([
-      ["ok", ["✓ Spear or bow — not for trout or other game fish | not for game fish, salmon or protected species\nkokanee allowed",
-        "✓ Ice fishing | lines: 1\nmust be attached to your line by a quick-release, tied on\nRemove your ice hut before breakup\nother",
-        "✓ Crayfish traps | release anything in the trap that isn’t a crayfish\nSet lines only in winter",
-        "✓ Angling (rod and line) | with a light: submerged, within 1 m of the hook\nwith a downrigger: attached to your line by a quick-release",
-        "✓ Angling (rod and line) | fly fishing only: nothing but the fly on the line, no float, sinker or attractor"]],
+    // (T922) each condition its own item, a capital first and a full stop last
+    expect(v.list.map((c) => [c.col, c.items.map((i) => [`${i.mark} ${i.name}`, ...i.notes])])).toEqual([
+      ["ok", [["✓ Spear or bow — not for trout or other game fish", "Not for game fish, salmon or protected species.", "Kokanee allowed."],
+        ["✓ Ice fishing", "Lines: 1.", "Must be attached to your line by a quick-release, tied on.", "Remove your ice hut before breakup.", "Other."],
+        ["✓ Crayfish traps", "Release anything in the trap that isn’t a crayfish.", "Set lines only in winter."],
+        ["✓ Angling (rod and line)", "With a light: submerged, within 1 m of the hook.", "With a downrigger: attached to your line by a quick-release."],
+        ["✓ Angling (rod and line)", "Fly fishing only: nothing but the fly on the line, no float, sinker or attractor."]]],
+      ["no", [["✕ Nets"], ["✕ Snagging"]]],
+    ]);
+    expect([v.src?.who, v.src?.open, v.src?.keys, v.src?.pages]).toEqual(["Province · This water’s ›", "srcs:ways", ["w:r0::r1", "w:r1::r1"],
+      [{ printed: 8, pdf: 10 }, { printed: 22, pdf: 24 }]]);
+  });
+  it("(T922) the ✕ column: bare names, no notes", () => {
+    const v = waysVM(wayChips(g, ctx), ctx)!;
+    expect(v.list.map((c) => [c.col, c.items.map((i) => `${i.mark} ${i.name}${i.notes.length ? ` | ${i.notes.join(" ")}` : ""}`)]).slice(1)).toEqual([
       ["no", ["✕ Nets", "✕ Snagging"]],
     ]);
     expect([v.src?.who, v.src?.open, v.src?.keys, v.src?.pages]).toEqual(["Province · This water’s ›", "srcs:ways", ["w:r0::r1", "w:r1::r1"],

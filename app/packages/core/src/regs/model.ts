@@ -383,7 +383,8 @@ export type YesNoVM = readonly { col: "ok" | "no"; head: "Allowed" | "Not allowe
   /** (T900) a "Not allowed" column of bare names (no note, no ⓘ; three or more) is drawn as one wrapped line, not a row each */
   inline: boolean;
   /** (T35) terms: glossary ids for an ⓘ after the name (the set_line ⓘ on an allowed "Set lines"); [] for none */
-  items: readonly { mark: "✓" | "✕"; name: string; note: string | null; terms: readonly string[] }[] }[];
+  /** (T922) `notes`: one capitalised, full-stopped sentence per condition; [] for none */
+  items: readonly { mark: "✓" | "✕"; name: string; notes: readonly string[]; terms: readonly string[] }[] }[];
 
 // ── 2.4 Methods tab ────────────────────────────────────────────────────────────────────────────────────────────────
 export interface MethodsVM {

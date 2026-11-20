@@ -57,9 +57,9 @@ describe("<MethodsTab>", () => {
   it("bc1_501: ✓ ways with their conditions, ✕ ways, the boat rule and its source", () => {
     const { sheets } = mountMethods(methodsOf(bc1501));
     expect(domLines(screen.getByTestId("methods-ways"))).toEqual(["Ways to fish", "Allowed",
-      "✓ Angling (rod and line) with a downrigger: attached to your line by a quick-release · with a light: submerged, attached to the line, within 1 m of the hook",
-      "✓ Spear or bow — not for trout or other game fish not for game fish, salmon or protected species · burbot allowed",
-      "✓ Crayfish traps release anything in the trap that isn’t a crayfish", "Not allowed", "✕ Set lines", "✕ Nets", "✕ Snagging", "✕ Chumming",
+      "✓ Angling (rod and line)", "• With a downrigger: attached to your line by a quick-release.", "• With a light: submerged, attached to the line, within 1 m of the hook.",
+      "✓ Spear or bow — not for trout or other game fish", "• Not for game fish, salmon or protected species.", "• Burbot allowed.",
+      "✓ Crayfish traps", "• Release anything in the trap that isn’t a crayfish.", "Not allowed", "✕ Set lines", "✕ Nets", "✕ Snagging", "✕ Chumming",
       "Province › Rule book p.8 ↗"]);
     // (T797) the Bella Coola's "No angling from powered boats" (p.43) leads the list: it was held and never drawn
     expect(domLines(screen.getByTestId("methods-boats"))).toEqual(["Boats", "No angling (from a powered boat)",
@@ -125,7 +125,7 @@ describe("<MethodsTab>", () => {
 
   it("(owner wave A) an allowed Set lines way draws its set_line ⓘ, which opens gl:set_line", () => {
     const vm = methodsOf(bc1501), ways = vm.ways!;
-    const allowed: MethodsVM = { ...vm, ways: { ...ways, list: [{ ...ways.list[0]!, items: [{ mark: "✓", name: "Set lines", note: null, terms: ["set_line"] }] }] } };
+    const allowed: MethodsVM = { ...vm, ways: { ...ways, list: [{ ...ways.list[0]!, items: [{ mark: "✓", name: "Set lines", notes: [], terms: ["set_line"] }] }] } };
     const { sheets } = mountMethods(allowed);
     expect(domLines(screen.getByTestId("methods-ways")).slice(0, 3)).toEqual(["Ways to fish", "Allowed", "✓ Set lines ⓘ"]);
     fireEvent.click(within(screen.getByTestId("methods-ways")).getByText("ⓘ"));

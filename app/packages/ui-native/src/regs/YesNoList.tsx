@@ -38,13 +38,21 @@ export function YesNoList({ list, palette, actions }: { list: YesNoVM; palette: 
                   STRUT the note's small line box (its font too: a 15 px strut on a 12.5 px note's baseline adds ~2 px a
                   line): the name is a run at its own size and height, so a note line is not drawn at the name's 20.25 px
                   (the prototype: `.ync li` --t3/1.3, its note --t4/1.3) */}
-              <Text testID="yesno-item" style={[TYPE.meta, { lineHeight: NOTE_LH, color: palette.ink, flex: 1 }]}>
-                <Text testID="yesno-name" style={[TYPE.regsBodySemi, { lineHeight: NAME_LH }]}>
-                  {it.name}
-                  {it.terms.length > 0 && <> <TermText ids={it.terms} palette={palette} actions={actions} /></>}
+              <View style={{ flex: 1 }}>
+                <Text testID="yesno-item" style={[TYPE.meta, { lineHeight: NOTE_LH, color: palette.ink }]}>
+                  <Text testID="yesno-name" style={[TYPE.regsBodySemi, { lineHeight: NAME_LH }]}>
+                    {it.name}
+                    {it.terms.length > 0 && <> <TermText ids={it.terms} palette={palette} actions={actions} /></>}
+                  </Text>
                 </Text>
-                {it.note !== null && <Text testID="yesno-note" style={[TYPE.meta, { lineHeight: NOTE_LH, color: palette.sub }]}>{"\n"}{it.note}</Text>}
-              </Text>
+                {/* (T922) each condition its own item: a small bullet, a hanging indent; core gives the capital and the full stop */}
+                {it.notes.map((n, j) => (
+                  <View key={j} testID="yesno-note" style={{ flexDirection: "row", alignItems: "baseline", marginTop: 1 }}>
+                    <Text aria-hidden style={[TYPE.meta, { lineHeight: NOTE_LH, width: 12, color: palette.sub }]}>•</Text>
+                    <Text style={[TYPE.meta, { lineHeight: NOTE_LH, color: palette.sub, flex: 1 }]}>{n}</Text>
+                  </View>
+                ))}
+              </View>
             </View>
           ))}
         </View>
