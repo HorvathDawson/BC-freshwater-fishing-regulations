@@ -113,8 +113,9 @@ def flowing(graph, water_of: dict[str, str] | None = None, kind_of: dict[str, st
     gauge's section — exactly as a line in its place would be. A lake item's polygon, and a polygon no water owns,
     stays a lake.
 
-    A LINE STAYS A LINE whoever owns it: a short line a lake item owns (a narrows, an outlet stub) was always walked
-    as a stream, and this ruling is about polygons only.
+    A LINE STAYS A LINE whoever owns it: a short line a lake item owns (a narrows, an outlet stub, a T753 lake loop) is
+    walked as a stream, and this ruling is about polygons only. Its ANSWER is its owner's, though: `build` takes the
+    panel off every line of a lake or wetland item last (`standing_water_lines`, T931 C).
 
     Sized like a line, from its own `stream_magnitude`: the graph gives a polygon node the largest magnitude of the
     network lines under it (`graph.build_stream_graph`), which on a canal or slough is the through-line at its outlet —
@@ -1151,7 +1152,30 @@ def build(graph, model: AreaModel,
             by_section.pop(sec, None)
         else:
             by_section[sec] = by_section[end]
+    # A LINE OF A STANDING WATER WEARS NO FLOW PANEL — see `standing_water_lines`. Last: whatever a pass above gave it.
+    if STANDING_WATER_LINES_HAVE_NO_PANEL:
+        for sec in standing_water_lines(graph, water_of, kind_of, by_section):
+            by_section.pop(sec)
     return Panels(by_section=by_section, members=members)
+
+
+#: (T931 C, 2026-11-20) a line a LAKE or WETLAND item owns takes the lake's answer (`lake_gauge`), never a flow panel.
+STANDING_WATER_LINES_HAVE_NO_PANEL = True
+
+
+def standing_water_lines(graph, water_of: dict[str, str] | None, kind_of: dict[str, str] | None,
+                         by_section: dict[str, Any]) -> list[str]:
+    """Every answered LINE whose WATER is a lake or wetland (`kind_of`): a line such an item owns — a T753 lake loop
+    (a nameless line leaving a lake and coming back into it is that lake's, AGENTS 12), a narrows or outlet stub. THE
+    PANEL FOLLOWS THE OWNER'S KIND, as the tiles and every other reader do (AGENTS 55, `test_one_water_kind.py`): the
+    walk still goes along such a line as a line (`flowing`: it carries the river's relationship through), but the
+    section is the lake's, and a lake's answer is `lake_gauge` — no lake or wetland section wears a panel
+    (`test_stream_polygon_panels.py::test_no_lake_or_wetland_wears_a_panel`; on r-6258ffded676 the seven loop pieces
+    of four lakes did, from the river's walk)."""
+    if not water_of or not kind_of:
+        return []
+    return sorted(s for s in by_section if kind_of.get(water_of.get(s, "")) in ("lake", "wetland")
+                  and _kind(graph.nodes.get(s)) == "stream")
 
 
 def _route_chain(down: dict[str, str], start: str) -> list[str]:
