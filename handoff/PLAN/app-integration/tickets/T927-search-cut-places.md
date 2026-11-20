@@ -31,7 +31,7 @@ pool and get chuckwalla river?" Yes: `cuts.json` `chuckwalla_river__fishing_boun
 is placed. Acceptance adds "Ten Mile Pool" → Chuckwalla River. "All the cuts": every placed cut, not only the named 274
 (generic labels still need the water's name in the query, per Pitfalls).
 
-## Lane 2026-11-20 (lane/t926-t927, commit 8cce181ab)
+## Lane 2026-11-20 (lane/t926-t927, commit 8ad09bf33 after the rebase onto L2)
 Built as the Work section says, with these specifics:
 - Bundle `cut_place` (split_id, blk, m): every CURATED cut of `splits.resolved.json` (`source: curated` — the 505 of
   `cuts.json` + 2 curated tidal-limit cuts = 507), once, at its host row (a braid sweep's extra row never speaks). Release
@@ -69,8 +69,8 @@ Note: the map pin uses the town pin's colour (`palette.place`), and on a phone t
 ## Review fixes 2026-11-20 (lane/t926-t927)
 - A one-word query that is only a kind of place ("bridge", "falls", "confluence", "signs", "boundary", "mouth",
   "outlet", "inlet", or a water kind) does not find places by a word inside them; a place starting with it still does
-  ("Bridge River confluence") (6cae36cbd).
-- No silent drops (445b1bdce): `core_cut_place` counts, prints and returns every curated cut on no water (the
+  ("Bridge River confluence") (9f287e8d3).
+- No silent drops (986c6e190): `core_cut_place` counts, prints and returns every curated cut on no water (the
   Okanagan River Oxbows slope cut today); `placePartOf` reports a place no part holds (the water still opens, on its
   own part). The confidence-clause strip is gone: since T780 `display.ends` says the place alone.
 - Tests: the mini release's "Mock Creek Falls" read through the release reader (`makeReleaseSource().searchIndex()`) and

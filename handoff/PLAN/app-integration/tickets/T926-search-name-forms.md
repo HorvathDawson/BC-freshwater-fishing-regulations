@@ -68,7 +68,7 @@ Asked whether to remove the 290 generic labels ("LAKE #1013", "LAKE 5567": 288 f
 search-only, never displayed; the stocking records name those lakes by them). Answer: "Keep as search-only
 (Recommended)". The file stays as it stands; they find their lakes.
 
-## Lane 2026-11-20 (lane/t926-t927, commit 8cce181ab)
+## Lane 2026-11-20 (lane/t926-t927, commit 8ad09bf33 after the rebase onto L2)
 The 31 misses, by cause (probe rerun: the main chat's 52k probes, scratchpad `probe/probe2.mjs`):
 - 21 names on 16 lakes never reached their item: `apply_name_variants` names graph nodes, and an isolated lake is minted
   AFTER it, so Lilypad Lake's "LAKE #905" / "SCOTT #2", "TEANOOK L.", "BIGHORN RESERVOIR", "KETTLE LAKE #2" … stayed off
@@ -111,9 +111,9 @@ Verbatim: "Withe the name clean up make sure it still matches properly. And that
 Done as below: no override file touched, every match proved unchanged.
 
 ## Review fixes 2026-11-20 (lane/t926-t927)
-- Exact names under the limit (6cae36cbd): every row typed exactly is kept ahead of the rest; only non-exact rows give
+- Exact names under the limit (9f287e8d3): every row typed exactly is kept ahead of the rest; only non-exact rows give
   way; more exact rows than the limit returns the first `limit` of them (pinned with 50 and 90 "Long Lake"s).
-- The registry pass never makes a matcher key name a second water (9dcb7a264): `attach_wbk_variants` keys each new name
+- The registry pass never makes a matcher key name a second water (65694b0b4): `attach_wbk_variants` keys each new name
   as `matcher.build_name_index` does and skips one whose key already names another water, listing it in
   `wbk_variant_report.json` (printed by the atlas build and sidecars); unknown name sources are refused. Dry run on the
   live registry: 43 items gain names, 0 existing keys change, 0 lost, 37 new keys each naming one water. NOT attached
