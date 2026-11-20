@@ -43,6 +43,7 @@ from __future__ import annotations
 import gzip
 import hashlib
 import json
+import re
 import shutil
 import sqlite3
 import struct
@@ -299,6 +300,89 @@ def core_area(con: sqlite3.Connection, schema: str = "b") -> None:
                      for o in sorted(set(regions) | set(mus))])
 
 
+#: (T927 Pitfalls) a place whose words NAME nothing of their own ("lower falls", "boundary signs", "tidal boundary (DFO
+#: Subarea 3-18)"): no capital letter outside its brackets. Search offers it only with its water's name in the query.
+_BRACKETS = re.compile(r"\([^)]*\)")
+
+
+def cut_words(text: str) -> str:
+    """(T927) A cut's words as search shows them, spaces collapsed. (The part ends' words carry no confidence clause since
+    T780: `display.ends` says the place alone.)"""
+    return re.sub(r"\s+", " ", text or "").strip()
+
+
+def cut_generic(words: str) -> bool:
+    """(T927) The words name no place of their own: no capital letter outside brackets ("lower falls")."""
+    return not any(c.isupper() for c in _BRACKETS.sub(" ", words))
+
+
+def core_cut_place(con: sqlite3.Connection, ends: Dict[str, List[str]], schema: str = "b") -> List[str]:
+    """(T927, owner 2026-11-19 23:49) `cut_place`: THE BOOK'S BOUNDARY PLACES search finds — every curated cut (the
+    bundle's `cut_place`) on each named water it stands on: `ord` the water, `words` what the place is called (the part
+    ends' own words, `display.ends`; the `split` name where nothing ends there), `alt` its other
+    names (JSON, NULL: none), `generic` 1 when the words name nothing of their own (`cut_generic`: search wants the
+    water's name too), `blk` / `m` THE PLACE (the FWA stream key and metres along it, AGENTS 5 — the app opens the water
+    at the part holding it, `@app/ui` place.ts), `lon` / `lat` in microdegrees where a map mark stands there (the
+    bundle's `part_mark.token`), else NULL. The waters: the split's main-stem positions (`split.at`), else the waters
+    whose sections hold the place; a cut on no water is COUNTED AND PRINTED (T927 review: never dropped silently).
+    ADDITIVE, still core/1: a bundle without `cut_place` gives no table, and search finds no places. `schema` holds the
+    bundle; `item` / `item_section` are core's own. Returns the split ids on no water."""
+    have = {r[0] for r in con.execute(f"SELECT name FROM {schema}.sqlite_master WHERE type='table'")}
+    if "cut_place" not in have:
+        return
+    con.execute("CREATE TABLE cut_place (ord INTEGER NOT NULL, words TEXT NOT NULL, alt TEXT, generic INTEGER NOT NULL, "
+                "blk INTEGER NOT NULL, m INTEGER NOT NULL, lon INTEGER, lat INTEGER, PRIMARY KEY (ord, blk, m, words)) "
+                "WITHOUT ROWID")
+    ord_of = dict(con.execute("SELECT item_id, ord FROM main.item"))
+    mark: Dict[str, Tuple[int, int]] = {}
+    if "part_mark" in have and "token" in {r[1] for r in con.execute(f"PRAGMA {schema}.table_info(part_mark)")}:
+        for tok, lon, lat in con.execute(f"SELECT token, lon, lat FROM {schema}.part_mark WHERE token IS NOT NULL "
+                                         "ORDER BY ord, mark_ix"):
+            mark.setdefault(tok, (int(round(lon * 1_000_000)), int(round(lat * 1_000_000))))
+    rows: set = set()
+    unplaced: List[str] = []
+    for sid, blk, m, name, at, same in con.execute(
+            f"SELECT c.split_id, c.blk, c.m, s.name, s.at, s.same_place_as FROM {schema}.cut_place c "
+            f"JOIN {schema}.split s ON s.split_id = c.split_id ORDER BY c.split_id"):
+        said = [w for w in (ends.get(sid) or []) if not w.startswith("to:")]
+        words = cut_words(said[0] if said else name)
+        if not words:
+            raise ReleaseError(f"cut_place: {sid} has no words")
+        alt = []
+        for w in [*said[1:], name]:
+            w = cut_words(w)
+            if w and w.lower() != words.lower() and w.lower() not in (a.lower() for a in alt):
+                alt.append(w)
+        ords = sorted({ord_of[i] for i, _ in json.loads(at or "[]") if i in ord_of})
+        if not ords:                     # no main-stem position: the waters whose sections hold it, a stream first
+            held = con.execute(
+                f"SELECT DISTINCT s.ord, i.kind = 'stream' FROM {schema}.section_measure sm JOIN main.item_section s "
+                f"ON s.sid = sm.sid JOIN main.item i ON i.ord = s.ord WHERE sm.blk = ? AND sm.from_m <= ? AND ? <= sm.to_m",
+                (blk, m, m)).fetchall()
+            ords = sorted({o for o, st in held if st} or {o for o, _ in held})
+        if not ords:
+            unplaced.append(sid)
+        lon, lat = mark.get(sid) or (mark.get(same) if same else None) or (None, None)
+        for o in ords:
+            # generic by the cut's own label (`split.name`): the part words capitalise their first letter
+            rows.add((o, words, json.dumps(alt, ensure_ascii=False) if alt else None, int(cut_generic(name)),
+                      blk, m, lon, lat))
+    con.executemany("INSERT OR IGNORE INTO cut_place VALUES (?, ?, ?, ?, ?, ?, ?, ?)", sorted(rows, key=lambda r: r[:6]))
+    print(f"  cut_place: {len(rows)} row(s); {len(unplaced)} curated cut(s) on no water, not searchable"
+          + (f": {', '.join(unplaced)}" if unplaced else ""))
+    return unplaced
+
+
+def display_ends(store: sqlite3.Connection) -> Dict[str, List[str]]:
+    """(T927) The regs store's `display.ends` (T517: {token: [words, other names…]}), decoded."""
+    from pipeline.deliver.store.common import unpack
+    row = store.execute("SELECT j FROM static WHERE k = 'display.ends'").fetchone()
+    if row is None:
+        raise ReleaseError("release: the regs store has no static display.ends — the cut places cannot be named")
+    zd = dict(store.execute("SELECT tbl, d FROM zdict"))
+    return json.loads(unpack(row[0], zd.get("static")))
+
+
 def lake_section(con: sqlite3.Connection, schema: str = "b") -> None:
     """(T182) `lake_section`: THE LAKE ROAD per section — the lowest station over every gauged lake holding it (the
     rule the app's `lakeStationsFor` and the Conditions map's lake classes apply), so Conditions opens without core.
@@ -496,7 +580,8 @@ def build(*, bundle: Path, store: Path, status_index: Path, export_dir: Path, ou
 
     work = Path(tempfile.mkdtemp(prefix=".release-", dir=out_root if out_root.exists() else None))
     try:
-        files: Dict[str, Path] = bundle_files(work, bundle, b, base, status_index.read_bytes())
+        files: Dict[str, Path] = bundle_files(work, bundle, b, base, status_index.read_bytes(),
+                                              ends=display_ends(st))
         if lakes is not None:
             p = work / "lakes.bin"
             p.write_bytes(lakes_bytes(lakes.read_bytes(), base["section_handles"]))
@@ -602,10 +687,11 @@ def build(*, bundle: Path, store: Path, status_index: Path, export_dir: Path, ou
 
 
 def bundle_files(work: Path, bundle: Path, b: sqlite3.Connection, base: Dict[str, str],
-                 status_index: bytes) -> Dict[str, Path]:
+                 status_index: bytes, ends: Optional[Dict[str, List[str]]] = None) -> Dict[str, Path]:
     """The bundle's half of the release — paint, flow-area, access, core, near, conditions, down, climate, geo —
     written into `work`. `base` is
-    every file's meta (section_handles, reach_digest). The app's committed fixture releases
+    every file's meta (section_handles, reach_digest); `ends` the regs store's `display.ends` (T927: core's `cut_place`
+    words; None: no table). The app's committed fixture releases
     (`app/packages/data/dev/fixture-release/`) were cut once by this code and are frozen (T61)."""
     files: Dict[str, Path] = {}
     p = work / "paint.bin"
@@ -628,6 +714,8 @@ def bundle_files(work: Path, bundle: Path, b: sqlite3.Connection, base: Dict[str
         _flags(con)
         if not _has_sn:
             con.execute(SECTION_NOTE_DDL)
+        if ends is not None:
+            core_cut_place(con, ends)
     files["core"] = copy_file(work / "core.sqlite", {"b": bundle},
                               [("b", t, None) for t in CORE_TABLES
                                if (t != "name_source" or _has_ns) and (t != "section_note" or _has_sn)],

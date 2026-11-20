@@ -200,6 +200,9 @@ def resolve_names(chains: list[BlkChain], fid_rows, *, curated_blks) -> list[Blk
 
 _ABBREV = [(re.compile(r"\bL\.$"), "Lake"), (re.compile(r"\bCr\.$"), "Creek"),
            (re.compile(r"\bR\.$"), "River")]
+#: (T926 5) `str.title()` capitalises the letter after an apostrophe: "PETE'S POND" -> "Pete'S Pond". A LONE letter after
+#: one (a possessive "'s", a "'t") is lower case; a name going on after it keeps its capital ("O'CONNOR" -> "O'Connor").
+_APOSTROPHE_LETTER = re.compile(r"(['’])([A-Z])(?![A-Za-z])")
 
 
 def _display_case(name: str) -> str:
@@ -207,7 +210,7 @@ def _display_case(name: str) -> str:
     already-cased names (override/gazette like 'McArthur') untouched."""
     if not name or name != name.upper():
         return name
-    s = name.title()
+    s = _APOSTROPHE_LETTER.sub(lambda m: m.group(1) + m.group(2).lower(), name.title())
     for pat, full in _ABBREV:
         s = pat.sub(full, s)
     return s

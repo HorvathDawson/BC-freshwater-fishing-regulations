@@ -19,6 +19,17 @@
  *  4. A TOWN. "near Chilliwack", or a plain town name that matched no water: the waters whose "near X" town it is
  *     (`item_near`), below every name match.
  *
+ * (T926, owner 2026-11-19 23:59: every entry of the name variants file finds its water) A name typed EXACTLY — a water's
+ * name or one of its aliases — is never cut off by the limit: "BEAVER", a stocking record's name for three small lakes,
+ * ties with the prefix matches of every Beaver Creek and lost to the bigger ones past the 40th row. And a whole query
+ * that IS a name is found even when part of it reads as an area ("UNNAMED 3-20" is a lake, not MU 3-20).
+ *
+ * (T927, owner 2026-11-19 23:49) THE BOOK'S BOUNDARY PLACES (`cut_place`: "Ten Mile Pool", "Greendale Trestle") are
+ * answered beside the waters, as `cuts`: matched by their words and other names (exact · prefix · a word — never
+ * anywhere inside, nor by a typo), or with the water's own name in the query ("cowichan lower falls"). A place whose
+ * words name nothing of their own ("Lower falls", `generic`) is found only that second way. Two places on one blue line
+ * within `CUT_SAME_PLACE_M` of each other (a bridge and the signs 200 m below it) are one row: the better match.
+ *
  * The towns themselves (`places`) are matched the same way, a typo included. Pure, no I/O: the data layer hands in rows.
  */
 import { sizeSignal } from "./near";
@@ -48,15 +59,40 @@ export interface IndexAlias { item: string; alias: string; source: string | null
 
 export interface IndexPlace { place: string; name: string; kind: string; lat: number; lon: number; pop: number | null }
 
+/**
+ * (T927) One of the book's boundary places — a curated cut, where a water's rules change — on a water it stands on, as
+ * core's `cut_place` holds it. `blk` + `m` is THE PLACE (the FWA stream key and metres along it, AGENTS 5): the water opens
+ * at the part holding it (`@app/ui` place.ts).
+ */
+export interface IndexCut {
+  item: string;
+  /** what the place is called: the words the water's part ends say ("Greendale Trestle") */
+  words: string;
+  /** its other names ("fishing boundary signs at Ten Mile Pool (100 m upstream)") */
+  alt: readonly string[];
+  /** the words name nothing of their own ("Lower falls"): found only with the water's name in the query */
+  generic: boolean;
+  blk: number;
+  m: number;
+  /** where its map mark stands, or null (no mark there) */
+  lat: number | null;
+  lon: number | null;
+}
+
 /** Everything the index is built from. */
 export interface SearchIndexData<W extends IndexWater = IndexWater, P extends IndexPlace = IndexPlace> {
   waters: readonly W[];
   aliases: readonly IndexAlias[];
   places: readonly P[];
+  /** (T927) the boundary places; absent or empty: a core cut before `cut_place` (search finds no places) */
+  cuts?: readonly IndexCut[];
 }
 
 /** A water as answered: its facts, and the alias it was found by (null: by its name). */
 export type WaterMatch<W extends IndexWater> = W & { matchedAs: string | null; matchedSource: string | null };
+
+/** (T927) A boundary place as answered: the place, its water's facts, the other name it was found by (null: its words). */
+export type CutMatch<W extends IndexWater> = IndexCut & { water: W; matchedAs: string | null };
 
 /** What the query asked of an area, said once for the sheet's heading. */
 export interface AreaAsk { kind: "mu" | "region"; code: string }
@@ -68,6 +104,8 @@ export interface IndexAnswer<W extends IndexWater, P extends IndexPlace> {
   area: AreaAsk | null;
   /** the waters in the answer were found by a typo-tolerant match (none matched as typed) */
   fuzzy: boolean;
+  /** (T927) the boundary places the query names, best first (none for an area alone or a town) */
+  cuts: CutMatch<W>[];
 }
 
 // ── the key tiers: `matchTier`, over precomputed keys ────────────────────────────────────────────────────────────────
@@ -95,6 +133,16 @@ const TOWN_TIER = 30;
 const FUZZY_BELOW = 8;
 /** At most this many waters are added for a town matched by a plain name. */
 const TOWN_ADD = 15;
+/** (T927) At most this many boundary places in an answer. */
+export const CUT_LIMIT = 6;
+/** (T927) Two boundary places on one blue line nearer than this are one row (a bridge and the signs 200 m below it). */
+export const CUT_SAME_PLACE_M = 500;
+/** (T927) Query words that name no water of their own: "creek falls" names no water. */
+const KIND_WORDS = new Set(["river", "rivers", "creek", "creeks", "lake", "lakes", "the", "of", "slough", "channel"]);
+/** (T927 review) A one-word query that is only a kind of place ("bridge", "falls") names no place: it does not find
+ *  places by "a word in it" (hundreds of bridges); a place whose words START with it still does ("Bridge River …"). */
+const PLACE_KIND_WORDS = new Set([...KIND_WORDS, "bridge", "bridges", "falls", "confluence", "signs", "sign", "boundary",
+                                  "mouth", "outlet", "inlet"]);
 
 // ── edit distance ─────────────────────────────────────────────────────────────────────────────────────────────────────
 
@@ -183,10 +231,20 @@ export interface SearchIndex<W extends IndexWater = IndexWater, P extends IndexP
   /** @internal distinct words → the entries holding them */ readonly _vocab: ReadonlyMap<string, readonly number[]>;
   /** @internal place keys */ readonly _pk: readonly string[];
   /** @internal place words → places */ readonly _pvocab: ReadonlyMap<string, readonly number[]>;
+  /** @internal (T927) the boundary places, keyed */ readonly _c: readonly CutEntry[];
+}
+
+/** (T927) A boundary place, keyed: its words first, then its other names; every word of them, for "water + place". */
+interface CutEntry {
+  cut: IndexCut; water: number;
+  keys: readonly { key: string; wordKey: string; alt: string | null }[];
+  words: readonly string[];
 }
 
 const wordsOf = (key: string): string[] => key.split(SEP).filter(Boolean);
 const wordKeyOf = (key: string) => ` ${key.replace(/[\-(/]+/g, " ")}`;
+/** (T927) A key's words with every mark off ("(100 m upstream)," → "100 m upstream"): what "water + place" compares. */
+const cutWordsKey = (key: string) => key.replace(/[^\p{L}\p{N}\s]+/gu, " ");
 
 /** Build the index from the rows the data layer read. Once per source; the cost is a few tens of ms on 20,000 waters. */
 export function buildSearchIndex<W extends IndexWater, P extends IndexPlace>(
@@ -216,8 +274,17 @@ export function buildSearchIndex<W extends IndexWater, P extends IndexPlace>(
   const pk = data.places.map((p) => searchKey(p.name));
   const pvocab = new Map<string, number[]>();
   pk.forEach((k, pi) => { for (const t of new Set(wordsOf(k))) (pvocab.get(t) ?? pvocab.set(t, []).get(t)!).push(pi); });
+  const cuts: CutEntry[] = [];
+  for (const c of data.cuts ?? []) {
+    const w = byItem.get(c.item);
+    if (w === undefined) continue;
+    const keys = [{ key: searchKey(c.words), alt: null as string | null },
+                  ...c.alt.map((a) => ({ key: searchKey(a), alt: a }))]
+      .filter((k) => k.key).map((k) => ({ ...k, wordKey: wordKeyOf(k.key) }));
+    cuts.push({ cut: c, water: w, keys, words: [...new Set(keys.flatMap((k) => wordsOf(cutWordsKey(k.key))))] });
+  }
   return { waters: data.waters, places: data.places, entries: entries.length, _e: entries, _size: size, _town: town,
-           _vocab: vocab, _pk: pk, _pvocab: pvocab };
+           _vocab: vocab, _pk: pk, _pvocab: pvocab, _c: cuts };
 }
 
 /**
@@ -289,7 +356,7 @@ const BY_SIZE = (size: Float64Array) => (a: { w: number; tier: number }, b: { w:
 export function queryIndex<W extends IndexWater, P extends IndexPlace>(
     ix: SearchIndex<W, P>, query: string, limit = 40, placeLimit = 6): IndexAnswer<W, P> {
   const key = searchKey(query);
-  if (key.length < 2) return { waters: [], places: [], area: null, fuzzy: false };
+  if (key.length < 2) return { waters: [], places: [], area: null, fuzzy: false, cuts: [] };
   const parsed = parseQuery(key);
   const waters = ix.waters;
   const inArea = (w: W): boolean =>
@@ -299,13 +366,28 @@ export function queryIndex<W extends IndexWater, P extends IndexPlace>(
   const areaOnly = parsed.muPrefix !== null || (parsed.area !== null && parsed.rest === "");
   const areaAsk: AreaAsk | null = parsed.area ?? (parsed.muPrefix !== null ? { kind: "mu", code: parsed.muPrefix } : null);
   const sizeOf = ix._size;
-  const finish = (best: Map<number, { w: number; tier: number; e: Entry }>, fuzzy: boolean, places: P[]):
-      IndexAnswer<W, P> => {
+  /** (T926) the waters found by a name or alias typed EXACTLY: never cut off by the limit */
+  const exact = new Set<string>();
+  const finish = (best: Map<number, { w: number; tier: number; e: Entry }>, fuzzy: boolean, places: P[],
+                  cuts: CutMatch<W>[] = []): IndexAnswer<W, P> => {
     const ranked = [...best.values()].sort((a, b) =>
       a.tier - b.tier || sizeOf[b.w]! - sizeOf[a.w]! || waters[b.w]!.pieces - waters[a.w]!.pieces
       || waters[a.w]!.name.length - waters[b.w]!.name.length || waters[a.w]!.name.localeCompare(waters[b.w]!.name));
     const hits = ranked.map((r): WaterMatch<W> => ({ ...waters[r.w]!, matchedAs: r.e.alias, matchedSource: r.e.source }));
-    return { waters: clusterByName(hits).slice(0, limit), places, area: areaAsk, fuzzy };
+    const all = clusterByName(hits);
+    let shown = all.slice(0, limit);
+    if (exact.size && all.length > limit) {
+      // (T926) the limit is taken from the rows NOT typed exactly: every exact row is kept, in the list's own order, and
+      // only non-exact rows give way to an exact one past the limit. More exact rows than the limit (72 "Jennings Lakes"):
+      // the first `limit` of them, nothing else.
+      const exactRows = all.filter((h) => exact.has(h.item));
+      if (exactRows.length >= limit) shown = exactRows.slice(0, limit);
+      else {
+        let room = limit - exactRows.length;
+        shown = all.filter((h) => exact.has(h.item) || room-- > 0);
+      }
+    }
+    return { waters: shown, places, area: areaAsk, fuzzy, cuts };
   };
 
   // AN AREA ALONE: its biggest waters.
@@ -340,10 +422,18 @@ export function queryIndex<W extends IndexWater, P extends IndexPlace>(
   };
   const scoped = parsed.area !== null;
   for (const e of ix._e) {
+    if (e.key === key) {
+      // (T926) the whole query is this name or alias: found as typed, whatever part of it reads as an area
+      offer(e, e.alias !== null ? 2 : 0);
+      exact.add(waters[e.water]!.item);
+      continue;
+    }
     if (scoped && !inArea(waters[e.water]!)) continue;
     const t = tierOf(q, qWord, e.key, e.wordKey, e.alias !== null);
     if (t !== null) offer(e, t);
+    if (e.key === q) exact.add(waters[e.water]!.item);
   }
+  const cuts = queryCuts(ix, q, scoped ? inArea : null);
   let fuzzy = false;
   if (best.size < FUZZY_BELOW && q.length >= 3) {
     const typed = new Set(best.keys());
@@ -367,7 +457,65 @@ export function queryIndex<W extends IndexWater, P extends IndexPlace>(
       for (const r of extra) best.delete(r.w);
     }
   }
-  return finish(best, fuzzy, places);
+  return finish(best, fuzzy, places, cuts);
+}
+
+/**
+ * (T927) THE BOUNDARY PLACES a query names, best first (`CUT_LIMIT`): by the place's words or another name of it — exact ·
+ * prefix · a word, the `matchTier` ladder without "anywhere inside" (a place is a name of its own; three letters inside
+ * one is no ask) — or, for every place and the only way for a `generic` one, every query word starting a word of the
+ * place or of its water's name, at least one of each, the water's being more than a kind ("cowichan lower falls", not
+ * "creek falls"). Quality first, then the bigger water; two places on one blue line within `CUT_SAME_PLACE_M` are one row.
+ * `inArea`: the area the query named, if any. Never by a typo: a place is found as typed.
+ */
+export function queryCuts<W extends IndexWater, P extends IndexPlace>(
+    ix: SearchIndex<W, P>, q: string, inArea: ((w: W) => boolean) | null = null, limit = CUT_LIMIT): CutMatch<W>[] {
+  if (q.length < 3 || !ix._c.length) return [];
+  const qWord = !hasSep(q);
+  const qWords = wordsOf(cutWordsKey(q));
+  const kindOnly = qWords.length === 1 && PLACE_KIND_WORDS.has(qWords[0]!);
+  const found: { c: CutEntry; tier: number; as: string | null }[] = [];
+  const nameWords = new Map<number, readonly string[]>();
+  const wordsOfWater = (w: number) => {
+    let n = nameWords.get(w);
+    if (!n) nameWords.set(w, n = wordsOf(cutWordsKey(ix._e[w]!.key)));
+    return n;
+  };
+  for (const c of ix._c) {
+    const water = ix.waters[c.water]!;
+    if (inArea && !inArea(water)) continue;
+    let tier: number | null = null, as: string | null = null;
+    if (!c.cut.generic) {
+      for (const k of c.keys) {
+        const t = tierOf(q, qWord, k.key, k.wordKey, k.alt !== null);
+        if (t !== null && t < (kindOnly ? 4 : 6) && (tier === null || t < tier)) { tier = t; as = k.alt; }
+      }
+    }
+    if (tier === null && qWords.length >= 2) {
+      const name = wordsOfWater(c.water);
+      let inPlace = false, inName = false, every = true;
+      for (const qw of qWords) {
+        const p = c.words.some((w) => w.startsWith(qw)), n = name.some((w) => w.startsWith(qw));
+        if (!p && !n) { every = false; break; }
+        if (p && !name.some((w) => w === qw)) inPlace = true;
+        if (n && !KIND_WORDS.has(qw) && qw.length >= 3) inName = true;
+      }
+      if (every && inPlace && inName) tier = 4;
+    }
+    if (tier !== null) found.push({ c, tier, as });
+  }
+  const size = ix._size;
+  found.sort((a, b) => a.tier - b.tier || size[b.c.water]! - size[a.c.water]!
+    || a.c.cut.words.length - b.c.cut.words.length || a.c.cut.words.localeCompare(b.c.cut.words) || a.c.cut.m - b.c.cut.m);
+  const out: CutMatch<W>[] = [];
+  for (const f of found) {
+    if (out.length >= limit) break;
+    const near = out.some((o) => o.blk === f.c.cut.blk && Math.abs(o.m - f.c.cut.m) < CUT_SAME_PLACE_M);
+    const twin = out.some((o) => o.item === f.c.cut.item && searchKey(o.words) === searchKey(f.c.cut.words));
+    if (near || twin) continue;
+    out.push({ ...f.c.cut, water: ix.waters[f.c.water]!, matchedAs: f.as });
+  }
+  return out;
 }
 
 /** The towns a query means: the name as typed (exact · prefix · word · anywhere), else within an edit. Biggest first. */

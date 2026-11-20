@@ -27,7 +27,7 @@
  *   unnamed    unchanged: the tapped section's middle from `lines`, fetched only when an unnamed reach is on screen or a
  *              link to one is opened.
  */
-import { bcNow } from "@app/core";
+import { bcNow, reportFailure } from "@app/core";
 import type { ItemId, SectionId, WaterSource } from "@app/data";
 import type { PartLine, RegsReads } from "@app/data/regs";
 import type { ReleaseLoader } from "@app/data/release";
@@ -120,6 +120,24 @@ export async function resolvePartPlace(store: PlaceReads, item: ItemId, ord: num
   const mid = (await store.navRows(ord)).geo.find((g) => g.partIx === run.partIx)?.midSid;
   if (mid === undefined) throw new Error(`place: ${item}'s part ${run.partIx} has no part_geo row`);
   return { sid: mid as SectionId, item, part: run.partIx };
+}
+
+/**
+ * (T927) THE PART OF A WATER HOLDING A PLACE — a boundary place picked in search — by the named link's own lookup
+ * (`resolvePartPlace`: the part whose run holds the stream key + metres). null: the water is not in this release, or no
+ * part of it holds the place. `reads`: the open release's place reads, asked when a place is first opened.
+ */
+export function placePartOf(reads: () => Promise<PlaceReads>): (item: ItemId, p: StreamPlace) => Promise<number | null> {
+  return async (item, p) => {
+    const store = await reads();
+    const ord = await store.itemOrd(item);
+    const part = ord === null ? null : (await resolvePartPlace(store, item, ord, await store.partLines(ord), p))?.part ?? null;
+    // (T927 review) the water still opens (on its own part), and the miss is REPORTED, as a failed read is: a boundary
+    // place search found is always on its water in the release it came from
+    if (part === null)
+      reportFailure(new Error(`place: ${item} ${ord === null ? "is not in this release" : `has no part holding ${p.blk} @ ${p.m} m`}`));
+    return part;
+  };
 }
 
 /** Where a link's place falls: on the link's own water through its `part_line` (T388), or — an unnamed reach's link —

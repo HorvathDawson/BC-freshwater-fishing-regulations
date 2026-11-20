@@ -158,6 +158,113 @@ describe("duplicates", () => {
   });
 });
 
+describe("T926: every name variant finds its water", () => {
+  // twelve big Beaver Creeks, then two small lakes a stocking record calls "BEAVER"
+  const many: SearchIndexData = {
+    waters: [
+      ...Array.from({ length: 12 }, (_, i) => w(`bc${i}`, `Beaver Creek ${i}`, { size: 1000 + i })),
+      w("erie", "Erie Lake", { kind: "lake", size: null, areaHa: 5 }),
+      w("shane", "Shane Lake", { kind: "lake", size: null, areaHa: 3 }),
+      w("u320", "Unnamed 3-20", { kind: "lake", size: null, areaHa: 2, regions: ["3"], mus: ["3-12"] }),
+      w("iver", "Iver Lake", { kind: "lake", size: null, areaHa: 2 }),
+    ],
+    aliases: [{ item: "erie", alias: "BEAVER", source: null }, { item: "shane", alias: "BEAVER", source: null },
+              { item: "iver", alias: "SNOW LAKE *", source: null }],
+    places: [],
+  };
+  const mix = buildSearchIndex(many);
+  it("a name typed exactly is never cut off by the limit; the top of the list is unchanged", () => {
+    const all = queryIndex(mix, "beaver", 100).waters.map((x) => x.item);
+    const cut = queryIndex(mix, "beaver", 8).waters.map((x) => x.item);
+    expect(all.slice(0, 6)).toEqual(cut.slice(0, 6));
+    expect(cut.slice(6).sort()).toEqual(["erie", "shane"]);
+  });
+  it("more waters of the exact name than the limit: the biggest of them, in order, and never a non-exact row", () => {
+    const lakes: SearchIndexData = {
+      waters: [
+        ...Array.from({ length: 50 }, (_, i) => w(`ll${i}`, "Long Lake", { kind: "lake", size: null, areaHa: 1000 - i })),
+        ...Array.from({ length: 10 }, (_, i) => w(`lc${i}`, `Long Lake Creek ${i}`, { size: 90000 })),
+      ],
+      aliases: [], places: [],
+    };
+    const lx = buildSearchIndex(lakes);
+    const got = queryIndex(lx, "long lake", 40).waters.map((x) => x.item);
+    expect(got).toEqual(Array.from({ length: 40 }, (_, i) => `ll${i}`));
+    // 80+: still exactly the limit, the biggest first
+    const many = buildSearchIndex({ ...lakes, waters: [...lakes.waters,
+      ...Array.from({ length: 40 }, (_, i) => w(`lm${i}`, "Long Lake", { kind: "lake", size: null, areaHa: 10 - i / 10 }))] });
+    const m = queryIndex(many, "long lake", 40).waters.map((x) => x.item);
+    expect(m).toEqual(Array.from({ length: 40 }, (_, i) => `ll${i}`));
+  });
+  it("a whole query that is a name is found though part of it reads as a unit", () => {
+    expect(queryIndex(mix, "UNNAMED 3-20").waters[0]?.item).toBe("u320");
+  });
+  it("a print mark the file gives is typed as it stands", () => {
+    expect(queryIndex(mix, "SNOW LAKE *").waters.map((x) => [x.item, x.matchedAs])).toEqual([["iver", "SNOW LAKE *"]]);
+  });
+});
+
+describe("T927: the book's boundary places", () => {
+  const D: SearchIndexData = {
+    waters: [
+      w("cw", "Cowichan River", { size: 5000 }), w("ck", "Chuckwalla River", { size: 900 }),
+      w("vd", "Vedder River", { size: 4000 }), w("ch", "Chilliwack River", { size: 4500 }),
+      w("zy", "Zymoetz River", { size: 3000 }), w("lm", "Limonite Creek", { size: 20 }),
+      w("li", "Liumchen Creek", { size: 50 }), w("gt", "Greendale Trestle Creek", { size: 1 }),
+    ],
+    aliases: [],
+    places: [{ place: "9", name: "Vedder Crossing", kind: "village", lat: 49.1, lon: -121.96, pop: 500 }],
+    cuts: [
+      { item: "cw", words: "Greendale Trestle", alt: [], generic: false, blk: 1, m: 48408, lat: 48.8, lon: -124 },
+      { item: "ck", words: "Ten Mile Pool (100 m upstream)", alt: ["fishing boundary signs at Ten Mile Pool (100 m upstream)"],
+        generic: false, blk: 2, m: 13632, lat: 51.77, lon: -127.19 },
+      { item: "ck", words: "Ten Mile Pool (200 m downstream)", alt: [], generic: false, blk: 2, m: 13332, lat: 51.77, lon: -127.19 },
+      { item: "vd", words: "Vedder Crossing Bridge", alt: [], generic: false, blk: 3, m: 12950, lat: null, lon: null },
+      { item: "vd", words: "Cable car crossing (200 m downstream of Vedder Crossing bridge)", alt: [], generic: true,
+        blk: 3, m: 12723, lat: 49.09, lon: -121.96 },
+      { item: "zy", words: "Limonite Creek confluence", alt: [], generic: false, blk: 4, m: 46924, lat: 54.5, lon: -127.9 },
+      { item: "li", words: "Lower falls", alt: [], generic: true, blk: 5, m: 800, lat: 49.0, lon: -122.0 },
+    ],
+  };
+  const cx = buildSearchIndex(D);
+  const cuts = (q: string) => queryIndex(cx, q).cuts.map((c) => `${c.words} / ${c.water.name}`);
+  it("a place is found by its words, first among places, and names its water", () => {
+    expect(cuts("Greendale Trestle")).toEqual(["Greendale Trestle / Cowichan River"]);
+    expect(cuts("Vedder Crossing")[0]).toBe("Vedder Crossing Bridge / Vedder River");
+    expect(cuts("Limonite Creek")[0]).toBe("Limonite Creek confluence / Zymoetz River");
+  });
+  it("two places on one line within 500 m are one row; a place's other name finds it and says so", () => {
+    expect(cuts("ten mile pool")).toEqual(["Ten Mile Pool (100 m upstream) / Chuckwalla River"]);
+    expect(queryIndex(cx, "fishing boundary signs").cuts.map((c) => c.matchedAs))
+      .toEqual(["fishing boundary signs at Ten Mile Pool (100 m upstream)"]);
+  });
+  it("a place whose words name nothing of their own only with its water's name; a kind word is not a name", () => {
+    expect(cuts("lower falls")).toEqual([]);
+    expect(cuts("liumchen lower falls")).toEqual(["Lower falls / Liumchen Creek"]);
+    expect(cuts("creek falls")).toEqual([]);
+    expect(cuts("cowichan greendale")).toEqual(["Greendale Trestle / Cowichan River"]);
+  });
+  it("the waters and the town are answered beside the places; nothing by a typo or from inside a word", () => {
+    const r = queryIndex(cx, "Vedder Crossing");
+    expect(r.places.map((p) => p.name)).toEqual(["Vedder Crossing"]);
+    expect(queryIndex(cx, "Greendale Trestle").waters.map((x) => x.name)).toEqual(["Greendale Trestle Creek"]);
+    expect(cuts("Greendale Trestel")).toEqual([]);
+    expect(cuts("rest")).toEqual([]);
+  });
+  it("a one-word query that is only a kind of place finds no place by a word in it; a place starting with it still", () => {
+    const k = buildSearchIndex({ ...D, cuts: [...D.cuts!,
+      { item: "cw", words: "Hwy 19 bridge", alt: [], generic: false, blk: 9, m: 10, lat: null, lon: null },
+      { item: "ck", words: "Bridge River confluence", alt: [], generic: false, blk: 8, m: 10, lat: null, lon: null }] });
+    for (const q of ["bridge", "falls", "confluence", "signs", "boundary", "mouth", "outlet", "inlet", "creek"])
+      expect(queryIndex(k, q).cuts.map((c) => c.words).filter((x) => x !== "Bridge River confluence"), q).toEqual([]);
+    expect(queryIndex(k, "bridge").cuts.map((c) => c.words)).toEqual(["Bridge River confluence"]);
+    expect(queryIndex(k, "hwy 19 bridge").cuts.map((c) => c.words)).toEqual(["Hwy 19 bridge"]);
+  });
+  it("an index without places answers none", () => {
+    expect(queryIndex(ix, "elk").cuts).toEqual([]);
+  });
+});
+
 describe("speed (T247: measure time per keystroke)", () => {
   /** A release-sized index: 20,000 waters, 3,000 aliases, 2,800 towns, drawn from a fixed pseudo-random stream. */
   const big = (() => {

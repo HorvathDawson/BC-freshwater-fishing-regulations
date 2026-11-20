@@ -156,6 +156,13 @@ CREATE TABLE split (split_id TEXT PRIMARY KEY, name TEXT NOT NULL, kind TEXT NOT
                     at TEXT NOT NULL, official_name TEXT, same_place_as TEXT,
                     lake_id TEXT, confidence TEXT) WITHOUT ROWID;
 
+-- (T927, owner 2026-11-19 23:49: "search something like ten Mile pool and get chuckwalla river") THE BOOK'S BOUNDARY
+-- PLACES, for search: every CURATED cut (`splits.resolved.json` `source: curated` — the cuts of `cuts.json` and the
+-- curated tidal limits that are cuts), once, at its host row's PLACE: the FWA stream key and the route measure in whole
+-- metres (AGENTS 5: a place on the water, never a section). Its words are the `split` row's; the release ships it in
+-- core (`release.build.core_cut_place`) with the words the part ends say. A braid sweep's extra row never speaks for it.
+CREATE TABLE cut_place (split_id TEXT PRIMARY KEY, blk INTEGER NOT NULL, m INTEGER NOT NULL) WITHOUT ROWID;
+
 -- regulations ---------------------------------------------------------------------
 -- `name` is the display name — "Chilliwack River". `full_name` is what the curator wrote:
 -- "CHILLIWACK / VEDDER RIVERS (does not include Sumas River) (see map on page 24)".

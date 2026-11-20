@@ -1030,7 +1030,7 @@
   },
   "names": [
    {
-    "name": "PETE'S POND UNNAMED LAKE AT THE HEAD OF SAN JUAN RIVER",
+    "name": "PETE'S POND",
     "source": "regulation",
     "note": "Unnamed lake at the head of San Juan River. BC Lakes Database survey_id 1155: 'A RECONNAISSANCE SURVEY OF PETE'S POND'. Regulation MU 1-3.; REGION 1 - Vancouver Island; MU 1-3"
    },
@@ -56871,11 +56871,6 @@
    {
     "name": "Plateau Ponds",
     "source": "marker",
-    "note": ""
-   },
-   {
-    "name": ".",
-    "source": "stocking",
     "note": ""
    },
    {

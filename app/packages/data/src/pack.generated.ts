@@ -103,6 +103,16 @@ export const PACK_FILES: Record<string, PackFile> = {
         "alias",
         "alias_key"
       ],
+      "cut_place": [
+        "ord",
+        "words",
+        "alt",
+        "generic",
+        "blk",
+        "m",
+        "lon",
+        "lat"
+      ],
       "item": [
         "ord",
         "item_id",

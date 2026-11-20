@@ -52,11 +52,19 @@ def test_there_is_one_tributary_module():
     assert (ROOT / "pipeline/atlas/graph/tributaries.py").exists()
 
 
-def test_the_bundle_normalises_names_the_way_the_tiles_do():
-    src = (ROOT / "pipeline/deliver/bundle/build.py").read_text()
-    assert "from pipeline.deliver.tiles.names import normalise" in src, (
-        "the bundle is comparing names raw again; the tile folds case and punctuation, so "
-        "the two indexes would disagree about what counts as a distinct name")
+def test_the_bundle_keys_aliases_the_way_search_compares_them():
+    """The bundle once compared variants raw and shipped ~3,000 shouting duplicates ("EAST WHITE RIVER" beside "East
+    White River"). It then folded them with the tiles' `normalise`, back when the tiles carried names for a second search
+    index. The tiles carry no variants now; the one search index is core's, and it compares `search_key`. (T926, owner
+    2026-11-19 23:59) `normalise` also folded punctuation, so "SNOW LAKE *" and "Pigeon Lake # 2" — names the variants file
+    gives — were dropped and could never be typed. So: one alias row per distinct SEARCH key, case folded, marks kept."""
+    from pipeline.deliver.bundle.build import alias_rows
+    rows = alias_rows([{"id": "x", "name": "East White River",
+                        "variants": ["EAST WHITE RIVER", "East  White River", "SNOW LAKE", "SNOW LAKE *"]}])
+    assert [a for _, a, _ in rows] == ["SNOW LAKE", "SNOW LAKE *"], (
+        "the bundle's aliases are not one per search key: case duplicates ship, or a name search types differently "
+        "is folded away")
+    assert "from pipeline.common.search_key import search_key" in (ROOT / "pipeline/deliver/bundle/build.py").read_text()
 
 
 def test_normalise_folds_the_case_that_caused_it():

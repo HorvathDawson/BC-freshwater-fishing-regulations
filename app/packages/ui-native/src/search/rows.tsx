@@ -2,7 +2,7 @@
  * T60 copy scan reads its words with the sheet's). */
 import { RECENT_MAX, SEARCH_BAR, SEARCH_FIND, nearCount, watersNear } from "@app/core";
 import type { ItemId, NameHit, NearHit, PlaceHit } from "@app/data";
-import { resultGroups, type SearchPick, type SearchSession } from "@app/ui";
+import { resultGroups, type CutHit, type SearchPick, type SearchSession } from "@app/ui";
 
 export type Row =
   | { t: "head"; key: string; label: string; right?: string; back?: boolean; place?: boolean;
@@ -10,6 +10,8 @@ export type Row =
       band?: boolean }
   | { t: "place"; key: string; place: PlaceHit }
   | { t: "water"; key: string; hit: NameHit; dup: boolean }
+  /** (T927) a boundary place on a water: where its rules change */
+  | { t: "cut"; key: string; cut: CutHit }
   | { t: "near"; key: string; near: NearHit }
   /** A group name that only points: its line (`seeLine`) and a way to open each water it names. */
   | { t: "see"; key: string; line: string; see: readonly { name: string; item: ItemId | null }[] }
@@ -39,6 +41,9 @@ export function sheetRows(pick: SearchPick, s: SearchSession, recents: readonly 
       if (g.kind === "places") {
         rows.push({ t: "head", key: "ph", label: g.title, right: g.note, place: true, band: true });
         for (const p of g.places) rows.push({ t: "place", key: `p:${p.place}`, place: p });
+      } else if (g.kind === "cuts") {
+        rows.push({ t: "head", key: "ch", label: g.title });
+        for (const c of g.cuts) rows.push({ t: "cut", key: `c:${c.item}:${c.at.blk}:${c.at.m}`, cut: c });
       } else if (g.kind === "see") {
         rows.push({ t: "head", key: "sh", label: g.title });
         for (const p of g.pointers) rows.push({ t: "see", key: `s:${p.hit.entry}`, line: p.line, see: p.hit.see });

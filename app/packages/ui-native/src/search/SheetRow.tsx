@@ -7,6 +7,7 @@ import { Pressable } from "../Pressable";
 import { Button } from "../Button";
 import { SEARCH_BAR, SEARCH_FIND, areaPhrase, nearRowSub, spokenName, waterRowSub, type StatusIndex } from "@app/core";
 import type { ItemId } from "@app/data";
+import type { StreamPlace } from "@app/data/regs/place";
 import { isSelected, rowStatus, type SearchAction, type SearchPick, type SearchTarget } from "@app/ui";
 import { Icon, IconText } from "../icons";
 import { TYPE } from "../type";
@@ -18,8 +19,11 @@ import { CoachItemContext } from "../CoachMarks";
 import { goStop, recentStop, seeStop } from "./keys";
 import { stopProps } from "./listKeys";
 
-export function SheetRow({ r, palette, pick, act, onOpenWater, statusIndex, today, onRecent, onClearRecents, active = null }: {
+export function SheetRow({ r, palette, pick, act, onOpenWater, onOpenPlace, statusIndex, today, onRecent, onClearRecents,
+                          active = null }: {
   r: Row; palette: Palette; pick: SearchPick; act: (a: SearchAction) => void; onOpenWater: (item: ItemId) => void;
+  /** (T927) a boundary place's open action: its water, at the place (absent: the water as a name opens it) */
+  onOpenPlace?: (item: ItemId, at: StreamPlace) => void;
   statusIndex: StatusIndex | null; today: Date;
   /** (T247) a recent search tapped: search it again */
   onRecent?: (q: string) => void;
@@ -141,6 +145,24 @@ export function SheetRow({ r, palette, pick, act, onOpenWater, statusIndex, toda
            goLabel={SEARCH_BAR.open(r.near.name)}
            onPress={() => act({ t: "select", target: t })}
            onGo={() => onOpenWater(r.near.item)} coach={guideItem === r.near.item}
+           stop={r.key} highlight={highlightOf(r.key, active)} />
+    );
+  }
+  if (r.t === "cut") {
+    // (T927) A BOUNDARY PLACE: its words, the water it is on and that its rules change there; select frames it on the
+    // map (its mark, the water lit), go opens the water at the part holding it
+    const c = r.cut;
+    const t: SearchTarget = { kind: "cut", cut: c };
+    return (
+      <Hit palette={palette} tone={palette.accent} name={c.words}
+           status={rowStatus(c.item, statusIndex, today)}
+           alias={c.matchedAs !== null ? `also ${c.matchedAs}` : null}
+           sub={SEARCH_FIND.cutLine(c.water)}
+           selected={isSelected(pick, t)}
+           label={SEARCH_FIND.cutShow(c.words, c.water)}
+           goLabel={SEARCH_FIND.cutOpen(c.words, c.water)}
+           onPress={() => act({ t: "select", target: t })}
+           onGo={() => (onOpenPlace ? onOpenPlace(c.item, c.at) : onOpenWater(c.item))}
            stop={r.key} highlight={highlightOf(r.key, active)} />
     );
   }

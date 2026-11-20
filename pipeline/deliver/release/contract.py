@@ -106,7 +106,12 @@ FILES = {
         # (T796, owner 2026-11-16) a section's note, one sentence said once on its page ("Mostly outside Gladys Lake
         # Ecological Reserve: its closure (rule book p.9) does not apply here.", `bundle.outside_note`). ADDITIVE, so
         # still core/1: a core without it has no notes
-        "section_note": ["sid", "note"]}},
+        "section_note": ["sid", "note"],
+        # (T927, owner 2026-11-19) the book's boundary places search finds (build.core_cut_place): a curated cut on its
+        # water, its words, other names, whether the words name nothing of their own, and its PLACE (stream key +
+        # metres, AGENTS 5; a map mark's microdegrees where one stands). ADDITIVE, so still core/1: a core without it
+        # finds no places (the app asks `HAS_CUT_PLACE` first)
+        "cut_place": ["ord", "words", "alt", "generic", "blk", "m", "lon", "lat"]}},
     "near": {"format": "near/1", "kind": "sqlite", "tables": {
         "meta": ["k", "v"], "place_water": ["place_id", "ckm", "ord"]}},
     # (T182) the tables T129 measured riding in a file a moment did not otherwise need moved into files of their own:
