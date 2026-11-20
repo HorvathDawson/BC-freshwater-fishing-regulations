@@ -12,7 +12,7 @@
  */
 import { openProbe } from "../openProbe";
 import { oneShot } from "../sha256";
-import { decodeAccessFile, decodeLakeFacts, decodeMethod, decodeMethodAsync, decodePaint, decodePaintAsync, decodeFlowArea, decodeFlowSmall,
+import { decodeAccessFile, decodeLakeFacts, decodeMethod, decodeMethodAsync, decodePaint, decodePaintAsync, decodeFlowArea, decodeFlowSmall, decodeFlowOwn,
          decodeSalmonHead, decodeSalmonShard, decodeSalmonShardAsync, salmonFacts, type LakeFacts, type MethodFacts, type Paint, type SalmonFacts, type SalmonShard,
          type SectionAccess, now } from "@app/core";
 import type { Db } from "../sql/db";
@@ -25,11 +25,11 @@ import { covers, routedDb, sliceKeys, type SliceKeys, type Sliced } from "./focu
 export type SalmonSlice = `salmon-${Region}` | "salmon-x";
 type BinName = "salmon" | SalmonSlice | "method";
 
-export type FileName = "paint" | "flow-area" | "flow-small" | "lakes" | "access" | "core" | "near" | "water" | `regs-${Region}` | "regs-sid"
+export type FileName = "paint" | "flow-area" | "flow-small" | "flow-own" | "lakes" | "access" | "core" | "near" | "water" | `regs-${Region}` | "regs-sid"
   | `core-${Region}` | `water-${Region}` | "water-shared"
   | BinName
   | "conditions" | "down" | "climate" | "geo" | "lines";
-export type DbName = Exclude<FileName, "paint" | "flow-area" | "flow-small" | "lakes" | "access" | BinName>;
+export type DbName = Exclude<FileName, "paint" | "flow-area" | "flow-small" | "flow-own" | "lakes" | "access" | BinName>;
 
 export interface ReleaseSource {
   /**
@@ -68,6 +68,11 @@ export interface ReleaseLoader {
    * said by the manifest, never by a failed read); a file that is there and does not decode fails, as flow-area does.
    */
   flowSmall(): Promise<Uint32Array | null>;
+  /**
+   * (T679 #8) Per paint section, the bitmask over its panel's members by `ord` that stand on the section's own water
+   * (`flow-own`). Null when the manifest names no such file (the heading then decides as before, said by the manifest).
+   */
+  flowOwn(): Promise<Uint32Array | null>;
   /** The lake modes' values (`lakes`), checked against the release's handles; null when the manifest names none. */
   lakes(): Promise<LakeFacts | null>;
   /** (T211) The DFO salmon (`salmon` + slices), checked against the release's handles; null when the manifest names none.
@@ -156,6 +161,7 @@ export function releaseLoader(m: Manifest, source: ReleaseSource, open: Opener,
   const order: FileName[] = [];
   let paint: Promise<Paint> | null = null, area: Promise<Float64Array> | null = null;
   let small: Promise<Uint32Array | null> | null = null;
+  let own: Promise<Uint32Array | null> | null = null;
   let lakes: Promise<LakeFacts | null> | null = null;
   let salmonHead: Promise<SalmonFacts["payload"]> | null = null;
   const slices = new Map<string, Promise<SalmonShard>>();
@@ -309,6 +315,16 @@ const WATER_SHARED: DbName = "water-shared";
         small.catch(() => { small = null; });
       }
       return small;
+    },
+    flowOwn() {
+      if (!own) {
+        if (!m.files["flow-own"]) return Promise.resolve(null);
+        touch("flow-own");
+        own = Promise.all([loader.paint(), source.bytes("flow-own")])
+          .then(([p, b]) => openProbe.work("decode flow-own", () => decodeFlowOwn(b, p.sectionCount)));
+        own.catch(() => { own = null; });
+      }
+      return own;
     },
     lakes() {
       if (!lakes) {

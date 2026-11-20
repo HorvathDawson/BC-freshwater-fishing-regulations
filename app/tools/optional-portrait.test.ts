@@ -27,6 +27,20 @@ describe("with-optional-portrait (T913)", () => {
     expect(() => setManifest(m)).toThrow(/already declares android.hardware.screen.portrait/);
   });
 
+  // (T931 E) a prebuilt android/ already holds the plugin's line, and `expo config --type introspect` re-reads it:
+  // its OWN line, exactly and alone, is accepted unchanged; any other declaration is still refused
+  it("accepts its own line, alone, unchanged; refuses it with another attribute, required, or twice", () => {
+    const own = { $: { "android:name": "android.hardware.screen.portrait", "android:required": "false" } };
+    const other = { $: { "android:name": "android.hardware.camera", "android:required": "false" } };
+    const m = { application: [], "uses-feature": [other, own] };
+    expect(setManifest(m)).toBe(m);
+    const required = { $: { "android:name": "android.hardware.screen.portrait", "android:required": "true" } };
+    const extra = { $: { ...own.$, "tools:node": "replace" } };
+    for (const fs of [[required], [extra], [own, own], [own, required]]) {
+      expect(() => setManifest({ "uses-feature": fs })).toThrow(/already declares android.hardware.screen.portrait/);
+    }
+  });
+
   it("app.json applies the plugin while it locks portrait", () => {
     const app = JSON.parse(readFileSync(resolve(__dirname, "../apps/mobile/app.json"), "utf8")).expo;
     expect(app.orientation).toBe("portrait");

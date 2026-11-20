@@ -918,12 +918,17 @@ FOUND = {
     # T810 L: Ape Creek (Bella Coola, "all cutthroat trout catch and release" inside the 1 trout/char a day): cutthroat
     # trout under Release, never a Keep row "catch and release" with "only 0" (79 tables, 35 waters)
     "A_ZERO_COUNT_IS_RELEASE": ("gnis:10549", 0, J.ZERO_MARK),
-    "A_RAINBOW_STOPS_AT_THE_STEELHEAD_SIZE": ("blk:360846083", 0, "ST hatchery at"),
+    # RE-PINNED (T931 A): Sheldens Creek is ONE item since T806 (df08a776a, the FWA line + the hand-drawn estuary channel
+    # share code 950-016367), so its id is wsc:950-016367, no longer the FWA line's blk:360846083
+    "A_RAINBOW_STOPS_AT_THE_STEELHEAD_SIZE": ("wsc:950-016367", 0, "ST hatchery at"),
     "A_APART_SAYS_THE_BOX_MOST": ("blk:356370187", 0, "the top line says"),
     "A_WILD_QUOTA_FROM_EVERY_ROW": ("gnis:2046", 0, "RB wild at"),
     "A_KIND_NUMBER_IS_SHARED": ("blk:356196726", 0, "the engine refuses it"),
     "A_KIND_SIZE_CAP_IS_SHARED": ("gnis:39325", 19, "the engine refuses it"),
-    "A_WILD_QUOTA_JOINS_ITS_COUNT": ("gnis:3225", 0, "the engine refuses it"),
+    # RE-PINNED (T931 A): since T854 (RULINGS C2 refined 2026-11-18) Region 6's "1 trout from streams Jul 1-Oct 31" holds
+    # brook and lake trout too, and the Kitimat's part 0 no longer shows the fault with the flag off (measured: parts 1
+    # and 3 do, Jul 1's basket of a wild rainbow beside another kept trout); pinned on part 1
+    "A_WILD_QUOTA_JOINS_ITS_COUNT": ("gnis:3225", 1, "the engine refuses it"),
 }
 
 

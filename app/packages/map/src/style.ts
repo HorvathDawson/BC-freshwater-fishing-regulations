@@ -193,6 +193,10 @@ export const STYLE_META = meta as unknown as {
   edgeOpacities: Record<string, string>;
   /** (T470) edge id -> [[zoom, factor]]: its outline opacity token times a zoom curve. */
   edgeOpacityRamps: Record<string, [number, number][]>;
+  /** (T923) edge layer id -> tokens of its paint over satellite imagery (`outline.satellite`) */
+  satelliteEdges?: Record<string, { color: string; width: string; ramp: [number, number][]; opacity: string }>;
+  /** (T923) casing layers drawn over satellite only */
+  satelliteOnly?: string[];
   themes: Record<string, Tokens>;
   /** Layers a view may switch that are added at runtime, not defined here. */
   runtimeLayers: string[];

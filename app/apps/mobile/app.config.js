@@ -41,6 +41,9 @@ const withLocalMaplibreVersion = (plugins) => !localMaplibre ? plugins : plugins
   Array.isArray(p) && p[0] === "@maplibre/maplibre-react-native"
     ? [p[0], { ...p[1], android: { ...p[1]?.android, nativeVersion: localMaplibre } }] : p);
 
+// (T739) No Android push (owner 2026-11-16 12:08, on Firebase: "we dont want this right now"): no `google-services.json`,
+// no Firebase config here; push is iPhone only (APNs, `src/pushToken.ios.ts`).
+
 module.exports = ({ config }) => ({
   ...config,
   // the adaptive icon's solid background: the icon's own ground (the splash below keeps the boot screen's `color.ui.card`)

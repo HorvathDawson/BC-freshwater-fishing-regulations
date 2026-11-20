@@ -1,6 +1,6 @@
 # T542 — Emulator suites: wait on conditions, and a static check that every id and label they use exists
 
-Status: IN PROGRESS — tools lane; 5107823ca (static check + condition waits built, unit-proved 2026-11-10); left (Claude): run the six suites on the emulator and record wall time (command under "Built").
+Status: DONE 2026-11-20 (5107823ca) — all six suites green with the condition waits; wall times recorded under "Wall time" below.
 
 Source: workflow review 2026-11-09 (verified against the code). Rank 10.
 
@@ -33,3 +33,18 @@ Depends: T534 (same test-bed files). Size: M. Owner: no.
 - Proof: that test file (20 tests), `node --check` on every scenario. Wall time before/after: NOT measured (no emulator). Ceiling: 47 fixed sleeps totalling ~204 s in these six files before (some inside poll loops, which stay); 93 s of documented timers remain.
 - Not verified (needs the emulator): all six suites green with the condition waits. Command: `scripts/heavy.sh testbed 45 -- bash app/tools/testbed/session.sh --build -- node app/tools/testbed/run.mjs install feeds big-update offline gestures water-nav` (T534's stamp is built in), then record wall time here. Risk to watch: a `settle` that returns early on a still-loading screen, and `toBackground` waiting for the tab bar words to leave.
 - Needs a change in scripts/ (not mine): none. The static test is picked up by `vitest_changed` when it changes; to run it when only an APP file changes, add `app/tools/testbed-static.test.ts` to `vitest_changed`'s list in scripts/fast-fail.sh when `app/apps/` or `app/packages/ui-native/` files changed.
+
+## Wall time (recorded 2026-11-20 from app/tools/testbed/out/runs reports)
+
+| suite | before (runs 11-08 to 11-10 UTC, before 5107823ca) | after (run 2026-11-11T22-25-01, commit 104e6513c) |
+|---|---|---|
+| install | 195 s (11-09T22-54) | 191 s |
+| feeds | 267 s (11-10T00-09) | 293 s |
+| big-update | 429 s (11-10T00-22) | 430 s |
+| offline | 524 s (11-09T23-09) | 492 s |
+| gestures | 124 s (11-08T02-32) | 101 s |
+| water-nav | 470 s (11-08T02-04) | 341 s FAIL, then green 564 s (11-11T23-01); green since: 362 s (11-19T22-16), 376 s (11-20T02-59) |
+
+Not like-for-like (different days and builds; the waits mostly sit on downloads and map loads, which vary). Total wall
+time is about unchanged; the gain is reliability (no fixed sleep shorter than the screen it waits for) and the static
+check. All six green.

@@ -125,6 +125,45 @@ describe("the native style", () => {
       .toEqual(["visible", "none"]);
   });
 
+  it("(T923) the drawn map's reserve and parcel edges are as before and its casings are not drawn; satellite gets the T923 paint", () => {
+    for (const theme of ["light", "dark", "cvd"]) {
+      const tk = resolveTheme(theme) as Record<string, unknown>;
+      const map = nativeStyle({ ...base, theme }).style as unknown as S;
+      const sat = nativeStyle({ ...base, theme, basemap: "satellite" }).style as unknown as S;
+      for (const [edge, casing, colour] of [["indigenous_land__edge", "indigenous_land__casing", "color.indigenous.edge.imagery"],
+                                            ["parcel_private__edge", "parcel_private__casing", "color.parcel.edge.imagery"]] as const) {
+        // the drawn map: the edge is its plain paint, untouched; the casing is there but at opacity 0
+        expect(layer(map, edge).paint, `${theme} ${edge} drawn`).toEqual(paintFor(edge, "plain", resolveTheme(theme)));
+        expect(layer(map, casing).paint!["line-opacity"], `${theme} ${casing} drawn`).toBe(0);
+        // satellite: the darker edge at full strength, its ramped width, and the casing drawn under it
+        const e = layer(sat, edge).paint!, c = layer(sat, casing).paint!;
+        expect([e["line-color"], e["line-opacity"]], `${theme} ${edge} satellite`).toEqual([tk[colour], tk["opacity.land.edge.imagery"]]);
+        expect(e["line-width"], `${theme} ${edge} width`).toEqual(["interpolate", ["linear"], ["zoom"],
+          ...[[4, 2.5], [11, 2.5], [16, 3.5]].flatMap(([z, k]) => [z, (tk["width.land.edge.imagery"] as number) * k!])]);
+        expect([c["line-color"], c["line-opacity"]], `${theme} ${casing} satellite`).toEqual([tk["color.imagery.casing"], tk["opacity.land.casing.imagery"]]);
+        // the casing's colour is one fixed light value in every theme (the photograph does not follow the theme)
+        expect(tk["color.imagery.casing"]).toBe(resolveTheme("light")["color.imagery.casing"]);
+        expect(String(tk["color.imagery.casing"]).startsWith("@")).toBe(false);
+        // and it sits under the edge
+        const ids = layer(sat, edge) && sat.layers.map((l) => l.id);
+        expect(ids.indexOf(casing)).toBeLessThan(ids.indexOf(edge));
+      }
+    }
+  });
+
+  it("(T923) over satellite the reserve and parcel outlines are ONE look in every theme (the photograph does not change)", () => {
+    const paints = (theme: string) => {
+      const sat = nativeStyle({ ...base, theme, basemap: "satellite" }).style as unknown as S;
+      return ["indigenous_land__edge", "indigenous_land__casing", "parcel_private__edge", "parcel_private__casing"]
+        .map((id) => [id, layer(sat, id).paint]);
+    };
+    const light = paints("light");
+    expect(paints("dark")).toEqual(light);
+    expect(paints("cvd")).toEqual(light);
+    // and they are really drawn: full-strength edge, casing visible
+    expect(light.every(([, p]) => (p as Record<string, number>)["line-opacity"]! > 0)).toBe(true);
+  });
+
   it("starts the gauge source with the gauges it is given", () => {
     const fc = '{"type":"FeatureCollection","features":[{"type":"Feature","geometry":{"type":"Point","coordinates":[-122,49]},"properties":{"label":"x"}}]}';
     const s = nativeStyle({ ...base, gauges: fc }).style as unknown as S;

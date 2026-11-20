@@ -37,9 +37,11 @@ import { neverSeen } from "./gauges/publish";
 import { READING_MAX_AGE_HOURS } from "../../../packages/core/src/gauge-policy.generated";
 import { checkToken, dispatchOnce, OVERDUE_MS, unfinished, type Dispatch, type DispatchEnv } from "./dispatch";
 import { checkRunTiming } from "./runtiming";
+import { dfoAnswersChanged, handlePush, newRelease, pushMissing, PUSH_STATUS_KEY, sendWake, wakePhones, wakeReason, writePushFailure, type PushEnv } from "./push";
 import { capEvents, CORS as REPORT_CORS, handleReport, listReportsCounted, purgeLimits, purgeReports, purgeTestReports, reportEvents, RETENTION_DAYS, RETENTION_STATUS_KEY, type ReportEnv } from "./reports";
 
-export interface Env extends ReportEnv, DispatchEnv {
+/** (T739) PushEnv: the APNs secrets (APNS_KEY, APNS_KEY_ID, APNS_TEAM_ID; src/push.ts; iPhone only, no FCM) */
+export interface Env extends ReportEnv, DispatchEnv, PushEnv {
   BUCKET: R2BucketLike;
   RUN_TOKEN?: string;
   FEED_NOTIFY_URL?: string;
@@ -396,6 +398,10 @@ async function run(job: Job, env: Env, opts: { regions?: string[]; limit?: numbe
       if (s.answered === 0 && !turn) throw new Error(`no station answered (asked ${s.asked}); index.json ${s.indexKept ? "kept (last good)" : "rewritten"}`);
       if (s.rankDrop) throw new Error(`${s.rankDrop.lost} of ${s.rankDrop.had} stations ranked last run lost their rank with a current reading (clim.json broken or for another roster); index.json kept (last good)`);
     } else if (job === "dfo") {
+      // (review 2026-11-20, M1) the feed the phones read before this run: a wake only when its answers change
+      let prevIndex: unknown = null;
+      try { prevIndex = await readStored(meteredStore(r2Store(env.BUCKET, "feeds/dfo/"), m), "index.json"); }
+      catch (e) { logErr(`push: the last DFO index was not read (${String((e as Error)?.message ?? e)}); this run counts as changed`); }
       const s = await runDfo({
         fetch: fetch_,
         feed: meteredStore(r2Store(env.BUCKET, "feeds/dfo/"), m),
@@ -428,6 +434,7 @@ async function run(job: Job, env: Env, opts: { regions?: string[]; limit?: numbe
       counts = {
         locations: Object.keys((s.index as any).locs ?? {}).length, regions: Object.keys(regions).length, unplaced: s.unplaced.length,
         notices: s.notices.length, unchangedRegions: (s.skipped ?? []).length,
+        answersChanged: dfoAnswersChanged(prevIndex, s.index) ? 1 : 0,
       };
       dfoFailed = Object.entries<any>(regions).filter(([, r]) => Number(r.failures) > 0).map(([slug]) => slug); // eslint-disable-line @typescript-eslint/no-explicit-any
       counts.fetchFailed = dfoFailed.length;
@@ -535,7 +542,26 @@ async function run(job: Job, env: Env, opts: { regions?: string[]; limit?: numbe
       logErr(`status: not written (${String((e as Error)?.message ?? e)})`);
     }
   }
-  return { job, ok: error === null, error, wallMs, meter: m, sources: health.sources, failingParts: Object.keys(health.parts).length, summary, notify, stepErrors, log: logs.slice(-40) };
+  // (T739) THE WAKE-UP: a feed the phones' check reads changed, or (asked on the gauge run, the most frequent) a new
+  // release was published -> one silent push to every registered phone. Never on a dry run; a failure is a step error
+  let push: unknown = null;
+  // (review 2026-11-20, M2) a wake whose status could not be kept fails the run: a lost record is never silent
+  let pushStatusLost = false;
+  if (!opts.dryNotify) {
+    const reasons = [wakeReason(job, error === null, counts)];
+    let rel: string | null = null;
+    if (job === "gauges") {
+      try { rel = await newRelease(env.BUCKET); if (rel) reasons.push(`release ${rel}`); }
+      catch (e) { logErr(`push: the release manifest was not read (${String((e as Error)?.message ?? e)})`); }
+    }
+    const why = reasons.filter(Boolean).join(", ");
+    if (why) {
+      const w = await wakePhones(env, (u, i) => fetch(u, i), new Date(), why, rel, logErr);
+      push = w.push;
+      pushStatusLost = w.statusLost;
+    }
+  }
+  return { job, ok: error === null && !pushStatusLost, error, wallMs, meter: m, sources: health.sources, failingParts: Object.keys(health.parts).length, summary, notify, push, stepErrors, log: logs.slice(-40) };
 }
 
 // ── (T851) THE DFO SAME-DAY RETRY ─────────────────────────────────────────────────────────────────────────────────────
@@ -780,6 +806,27 @@ export default {
       if (req.method !== "POST") return new Response("Method Not Allowed", { status: 405, headers: { ...REPORT_CORS, Allow: "POST, OPTIONS" } });
       return handleCrash(req, env);
     }
+    // (T739) a phone's push token: public POST (validated, rate-limited per address, stored private), nothing else kept
+    if (url.pathname === "/push/register" || url.pathname === "/push/unregister") {
+      if (req.method !== "POST") return new Response("Method Not Allowed", { status: 405, headers: { Allow: "POST" } });
+      return handlePush(req, env, url.pathname === "/push/register" ? "register" : "unregister");
+    }
+    if (url.pathname === "/run/push" && req.method === "POST") {
+      // (T739) one wake to every registered phone now (a test after the secrets are set); the result as /status shows it
+      if (!authed(req, env)) return new Response("Forbidden", { status: 403 });
+      const reason = (url.searchParams.get("reason") ?? "by hand").slice(0, 40);
+      const at = new Date();
+      try {
+        const r = await sendWake(env, (u, i) => fetch(u, i), at, reason);
+        return Response.json(r, { status: r.ok ? 200 : 502 });
+      } catch (e) {
+        const error = String((e as Error)?.message ?? e);
+        // (M2) kept on /status too; a status that cannot be written is said in the answer
+        let statusError: string | null = null;
+        try { await writePushFailure(env.BUCKET, at, reason, error); } catch (w) { statusError = String((w as Error)?.message ?? w); }
+        return Response.json({ ok: false, error, ...(statusError ? { statusError } : {}) }, { status: 500 });
+      }
+    }
     if (url.pathname === "/crashes" && req.method === "GET") {
       if (!authed(req, env)) return new Response("Forbidden", { status: 403 });
       const since = url.searchParams.get("since") ?? new Date(Date.now() - 30 * 86_400_000).toISOString().slice(0, 10);
@@ -817,13 +864,15 @@ export default {
       const rt = await side(RETENTION_STATUS_KEY);
       // (T178) the last monthly model score
       const sk = await side(SKILL_STATUS_KEY);
+      // (T739) the push wake-ups: which platform cannot send (a secret missing: said, never a silent skip) and the last send
+      const push = { missing: pushMissing(env), last: await side(PUSH_STATUS_KEY) };
       publicStatus(st);
       // (T558) how owner messages go out: "log" means nobody is told
       const nc = notifyConfig(env);
       const notifyInfo = { channel: channelOf(nc), digest: !!nc.digest };
-      if (url.pathname === "/status.json") return Response.json({ ...servedStatus(st, now), notify: notifyInfo, backup: bk, reportRetention: rt, skill: sk, inputs: INPUT_FORMATS, dfo: SHAPE,
+      if (url.pathname === "/status.json") return Response.json({ ...servedStatus(st, now), notify: notifyInfo, backup: bk, reportRetention: rt, skill: sk, push, inputs: INPUT_FORMATS, dfo: SHAPE,
                                                                        dfoIssues: st.feeds.dfo?.dfoIssues ?? null }, { headers: { "Cache-Control": "no-store", ...SAFE_HEADERS } });
-      return new Response(statusHtml(st, now, sk, notifyInfo, { backup: bk, purge: rt }), { headers: { "Content-Type": "text/html; charset=utf-8", "Cache-Control": "no-store", ...SAFE_HEADERS,
+      return new Response(statusHtml(st, now, sk, notifyInfo, { backup: bk, purge: rt, push }), { headers: { "Content-Type": "text/html; charset=utf-8", "Cache-Control": "no-store", ...SAFE_HEADERS,
         "Content-Security-Policy": "default-src 'none'; style-src 'unsafe-inline'; frame-ancestors 'none'" } });
     }
     if (url.pathname === "/notify/test" && req.method === "POST") {

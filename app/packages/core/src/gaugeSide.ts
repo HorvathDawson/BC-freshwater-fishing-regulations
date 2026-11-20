@@ -39,9 +39,15 @@ export function gaugeSide(g: GaugePlace | undefined, w: ThisWater): GaugeSide {
   return g.section !== null && g.section === w.section ? "own" : "donor";
 }
 
-/** Each station's side, from `WaterSource.gaugeWaters`' answer — the map every surface reads. */
-export function gaugeSides(stations: readonly string[], w: ThisWater,
-                           places: ReadonlyMap<string, GaugePlace>): ReadonlyMap<string, GaugeSide> {
+/**
+ * Each station's side, from `WaterSource.gaugeWaters`' answer — the map every surface reads. (T679 #8, owner 2026-11-20
+ * "Ranking's rule") `own`: the release's flag (`flow-own`, Python's one decision: along the water, across a
+ * `water_continue`, a lake on the way ends it) — when the release carries it, it IS the answer and nothing is decided
+ * here; without it (a release cut before the flag) `gaugeSide` decides as it always did.
+ */
+export function gaugeSides(stations: readonly string[], w: ThisWater, places: ReadonlyMap<string, GaugePlace>,
+                           own?: ReadonlySet<string>): ReadonlyMap<string, GaugeSide> {
+  if (own) return new Map(stations.map((s) => [s, own.has(s) ? "own" : "donor"]));
   return new Map(stations.map((s) => [s, gaugeSide(places.get(s), w)]));
 }
 

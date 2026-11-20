@@ -21,6 +21,131 @@ Pictures: `handoff/PLAN/app-integration/L4-android-shots-2026-11-20/` (per ticke
   search sheet (T730: `T730/`, recents as one block of tags, swipe down closes), the two-days chart marks (T604: `T604/`), the route
   map (T831: `T831/T831-route-pins.png`).
 
+## 2026-11-20 11:11: salmon card and map fixes answered (dialog); T971 settled by the Flow-leads ruling
+
+- T669 item 3 (lane L9, pictures `tickets/T669-shots/before|after-qualcho-creek-jan15.png` sent): **"Ship it
+  (Recommended)"**: a straddling water's salmon card shows the stricter region's numbers instead of "see DFO's words
+  below" (Qualcho Creek, Region 5B/6, is the only live card that changes).
+  Then the owner asked whether coho "only 1 over 50" was wrong (5B says 2 over 50): it is Region 6's own cap (all Region 6
+  waters: "4 per day, only 1 over 50 cm"), the stricter of the two. Answer (dialog): **"Name the region (Recommended)"**:
+  on a mixed line each number says its region, e.g. "Up to 4 coho a day in total, all waters of MU 5-6 to 5-11 combined
+  (Region 5B) · only 1 over 50 cm (Region 6)".
+- T679 #1 (203 pieces just outside B.C. marked outside) and #6 (42 named pieces given to their water): **"Turn both on
+  (Recommended)"** in the map rebuild; Claude checks the before/after diff first and stops if anything unexpected moves.
+- T679 #12 (tributary scope into the bundle): not asked; lane L7's default stands (the two lists stay in code).
+- T971 (Level in the gauge card re-ranks the estimate card, lane L4 10:28): NOT asked: the owner's 2026-11-10 ruling
+  (Flow leads, Level never picks its own; never ask) settles it. The estimate card stays on Flow; fixed in this release.
+
+## 2026-11-20 11:02: T679 #8 lake rule answered (dialog)
+
+The owner worried tiny lakes would cut a river off from its own gauge. Measured (lane/l8-blockers e39e97d1c,
+`T679-shots/own-gauge-blockers.csv`): of the 1,060 moved labels, 881 are blocked by a lake or pond; 448 of those by
+unnamed ponds that belong to no water (Halfway: a 0.44 ha pond cuts off 80 sections), 433 by named lakes (Pitt, Bowron,
+Lillooet); 179 are no lake (another branch or channel). Answer: **"Named lakes only (Recommended)"**: the walk along a
+water passes through unnamed ponds that belong to no water, at any size; named lakes still end it. The same walk ranks
+the lead gauge (`own_distances`), so both change together. Ships with #8 in this release.
+
+## 2026-11-20 10:45: credits and T679 #8 answered (dialog)
+
+The owner asked how much is left (credits running low) and why so many gauges "changed waters". Claude's answer: none
+changes water and no lead gauge changes; #8 only relabels a list entry "on this water" → "nearby" where a lake lies
+between (1,060 of 12,306 own labels; list sent as `app-integration/T679-shots/own-gauge-moves.csv`). Answers:
+- Credit savings: **"One combined review (Recommended)"**: the remaining lanes get ONE independent review together
+  before merge, not one each. (Not chosen: pausing T940, fewer pictures.)
+- T679 #8: **"Ship it"**: `SHIP_OWN_GAUGE_FLAG` on in this release; it rides the map-data rebuild.
+
+## 2026-11-20 10:22: T679 #8 list to look at (lane L8; ANSWERED 10:45: ship it, see above)
+
+The gauges that would move from "ON THIS WATER" to "ESTIMATING FROM OTHER WATERS" under the rule you picked at 09:59 (along
+the water, a lake on the way ends it): `handoff/PLAN/app-integration/T679-shots/own-gauge-moves.csv` (water, gauge,
+was → now, sections). 155 gauges on 104 waters, all own → donor, 1,060 of 176,367 (section, gauge) pairs. Biggest:
+Halfway River (2 gauges, 59 + 53 sections), Stikine at Telegraph Creek (44), Lillooet at Tenas Narrows (35), Columbia at
+Donald (34) and Nicholson (31). Nothing ships until you say so (`packed.SHIP_OWN_GAUGE_FLAG` stays off). T679.
+
+## 2026-11-20 10:00: every leftover goes on this release (owner, verbatim; clarified 10:05)
+
+"Make sure every left over goes on this release when we cut it", clarified: "All stuff we were working on. I meant all
+the tickets we went through before". So: every ticket we worked through in this batch (the lane plan's tickets, the
+T920–T939 set, and the review leftovers on them) is finished and in this release. Claude also keeps the bug finds from
+that work in (T941–T946: wrong or missing rules and names) as small fixes in the batch. T940 (satellite colours) stays
+"after this release" as the owner first said: its lane finishes and waits unmerged. T686 packed formats after 0.8.4 is
+in production; T709/T715 postponed; dropped items stay dropped.
+
+## 2026-11-20 09:59: T686 formats and T679 #8 answered (dialog)
+
+- T686 smaller formats (near/2, down/2, climate/2; 17.5 → 15.2 MB, lossless; only app 0.8.4 reads them): "Ship readers
+  now, formats later (Recommended)": 0.8.4 reads old and new; this release's data (staging AND production) stays in the
+  old formats; the new formats switch on in the first data release after 0.8.4 is in the production stores.
+- T679 #8 (one rule for "on this water"): "Ranking's rule, list first (Recommended)": along the water, a lake on the way
+  ends it; Claude measures which gauges move and shows the owner the list before it ships.
+
+## 2026-11-20 09:48: privacy page answered (dialog)
+
+- Push privacy text (pictures `app-integration/T739-shots/privacy-*-light.png`): "Looks good (Recommended)". Merged;
+  goes live with the next production website; effective date moves to that day. T739.
+- Live contradiction found: "This website" said "runs no analytics" while the page names Cloudflare Web Analytics (T910):
+  "Fix the sentence (Recommended)": now "It sets no cookies and runs no advertising or tracking scripts; the only script
+  is the visit counter described above." T739.
+
+## 2026-11-20 09:39: morning questions answered (dialog)
+
+- Three "Unnamed …" lakes (3261, 3296, 3299): "Show "Unnamed …" (Recommended)": they show "Unnamed Cayoosh Cr",
+  "Unnamed Vanhorlick 1", "Unnamed Vanhorlick 2"; the number stays a search name. T926.
+- "#14A": "Show Floatplane Lake": a number with a letter on it counts as a number name too; "#14A" stays searchable.
+  T926 (Claude extends the rule and reports how many more waters change).
+- Push privacy line: "Claude's edit (Recommended)": Apple only, "I/my", push token added to "the short version", Apple
+  (push only) added to the services, the one-day salted IP hash and the stored environment + time said, effective date
+  moved to the go-live day. The owner sees the text before it goes live. T739.
+
+## 2026-11-20 09:52: T679 #8 — which gauges count as "on this water" (lane L8; ANSWERED 09:59, see above)
+
+Two parts of the app decide whether a gauge is on the water you are reading, by different rules: the gauge list's
+"ON THIS WATER" heading (the app: the gauge's water is this water or one it continues as, `water_continue`) and the
+lead-gauge ranking (the pipeline: the same, but walked along the water, so a lake on the way ends it). T679 #8 moves the
+decision into the data, once. Before building it, the one rule to keep:
+(a) DEFAULT: the ranking's (along the water, a lake between ends it) — a gauge on the far side of a lake would move from
+"ON THIS WATER" to "ESTIMATING FROM OTHER WATERS"; (b) the heading's (same water, lakes or not) — the ranking would start
+treating such a gauge as the water's own. Not measured yet: how many gauges move under either (needs the atlas graph;
+a side run measures it before anything ships). Measured: over 1,587 panels the heading's rule differs between a panel's
+sections in 12, so the flag is shipped per section (like the small-water warning), not per gauge.
+No picture yet: the list of gauges that move comes with the measurement.
+
+## 2026-11-20 07:33: push privacy line, now that Android has no push (T739, lane L5; ANSWERED 09:39, see above)
+
+The push-token paragraph you approved on 11-15 ("Yes to both") is now in the privacy page's source exactly as written
+(`app/tools/seo/html.ts`, heading "Push token", after the crash-report section; it goes live only with a production
+release). Since then you said no Android push (11-16, "we dont want this right now"), so four small things no longer
+match the app. Pick: (a) leave it as approved, (b) Claude's edit below, (c) your words. Default until you answer: (a).
+1. It says "an address Apple or Google issue" and "whether the phone is an iPhone or Android", and "when Apple or Google
+   tell us". Today only iPhones send a token. Edit: "an address Apple issues", drop "and whether the phone is an iPhone or
+   Android", "when Apple tells us".
+2. It says "our server" / "We"; the rest of the page says "my servers" / "I". Edit: "my server", "I".
+3. "The short version" still says "The app sends me two things" (problem report, error report). Edit: add "and, if you
+   turn notifications on, an iPhone's push token".
+4. "The services named above (Cloudflare, Open-Meteo, Esri)" leaves out Apple, which carries the silent signal. Edit: add
+   Apple (push only). Also: the page's effective date (2026-11-19) should move to the day this goes live.
+No picture: this is wording only; the whole paragraph is quoted in T739 ("Owner answer, 2026-11-15 evening").
+Facts from the independent code review (2026-11-20), for the same pick; the approved wording is NOT changed:
+- The page says Apple/Google and iPhone/Android, but Android sends nothing (no Android push since 11-16).
+- To limit registrations, the server keeps a salted one-way hash of the phone's IP address for a day (the same as
+  problem and crash reports); the paragraph does not say so.
+- Besides the token and the platform, the server stores the APNs environment (sandbox / production) and the time of
+  the registration.
+- A token is sent only when notifications are on AND something is set to be checked (a gauge alert, "New
+  regulations data" or "New app version"), not on "notifications on" alone.
+
+## 2026-11-20 07:07: a morning question (T926 number names; ANSWERED 09:39, see above)
+
+- **Three lakes would show "Unnamed …" instead of their number.** Under "Never show a number name", the lakes now shown
+  as 3261, 3296 and 3299 would show "Unnamed Cayoosh Cr", "Unnamed Vanhorlick 1" and "Unnamed Vanhorlick 2" (their
+  stocking records' only lettered names). OK, or should those three keep their number? Default until you answer: the
+  rule as you gave it (they show the "Unnamed …" names). The other five change to a real lake name: 5566 → Pigeon Lake
+  #2, #15 → Precipice Lake, #1222 → Wilderness, #1012 → Trails End Lake, #825 → Heidi Lake. Ticket T926.
+- **Is "#14A" a number name?** The lake shown "#14A" (wbk:329021840) has a letter in it, so under the rule it stays
+  shown (its other name is "FLOATPLANE LAKE"). Should a number with a letter on it count as a number name too? Default
+  until you answer: it stays shown, the
+  rule as you gave it. Ticket T926.
+
 ## 2026-11-20 ~06:55: number names, T923, satellite colours answered (dialog)
 
 - Lakes shown by a bare number (Pigeon Lake # 2 shown as "5566"; also 3261, 3296, 3299): "Never show a number name": a
@@ -57,13 +182,6 @@ linked by its existing override in book_name_links.json, which stays untouched).
 T937 Salmon map no-access grey: owner, verbatim, "Remove checked dste" (remove the "Checked Nov 19" line from the Salmon
 key so it stays two rows). T923 satellite outline for reserves and private land: "Looks good, land it" (review, then it
 lands with this release).
-
-## 2026-11-20: T928/T929 pictures to look at
-
-**T928/T929 pictures (iPhone simulator, before / after):** a "Show all parts" pick framing its part, and the boundary
-labels staying on their marks when you pan (`handoff/PLAN/app-integration/tickets/T929-shots/`); T928's sideways shift
-was not reproduced (the drag now always comes home), and a separate "map drawn in part of the screen after search →
-water → Back" was found (`handoff/PLAN/app-integration/tickets/T928-shots/`). Then the main chat reviews and merges.
 
 ## 2026-11-20 01:56: lane-plan batch answered
 

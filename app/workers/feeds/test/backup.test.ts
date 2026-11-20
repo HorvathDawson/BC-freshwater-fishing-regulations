@@ -163,6 +163,10 @@ describe("personal data in the backups (T559)", () => {
     }
     expect(personalKind("private/reports/limits/x.json")).toBe("never");
     expect(personalKind("private/crashes/limits/x.json")).toBe("never");
+    // (T739) the push tokens and their counters are never copied; the sender's last result is not personal
+    expect(personalKind("private/push/tokens/ab.json")).toBe("never");
+    expect(personalKind("private/push/limits/ab.json")).toBe("never");
+    expect(personalKind("private/push/last.json")).toBe(null);
     expect(personalKind("private/feeds/notify/state.json")).toBe(null);
   });
 

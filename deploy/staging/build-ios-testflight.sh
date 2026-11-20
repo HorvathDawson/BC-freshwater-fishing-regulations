@@ -85,6 +85,9 @@ ios_notes() { node -e 'import(process.argv[1]).then((m)=>{const e=m.CHANGELOG.fi
 export EXPO_PUBLIC_CONTACT=${EXPO_PUBLIC_CONTACT:-support@canifishthis.ca}
 # a store build never carries the test bed's switches
 unset EXPO_PUBLIC_PAN_PROBE EXPO_PUBLIC_TEST_REPORTS EXPO_PUBLIC_UPDATE_CHANNEL
+# (T739) the App Store export signs `aps-environment` as production: the phone's push token is registered as production
+# (src/pushToken.ios.ts), so the feeds worker sends it to APNs' production host
+export EXPO_PUBLIC_APNS_ENV=production
 
 need() { [[ -s $1 ]] || { echo "missing $1 — $2" >&2; exit 2; }; }
 TEAM_FILE=$SECRETS/ios-team-id KEY_FILE=$SECRETS/asc-api-key.json LAST_FILE=$SECRETS/testflight-last-build

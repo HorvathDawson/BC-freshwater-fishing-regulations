@@ -64,6 +64,8 @@ export * from "./help";
 export * from "./updates";
 // (T251) the app's version (one source, the release gate) and the Updates log's events and words
 export * from "./appVersion";
+// (T676 item 2) a feed index newer than the app: refused, the capture kept, the update prompt raised
+export * from "./feedGate";
 // (T390) a newer app: the channel, once a day, the gentle and the strong prompt
 export * from "./appUpdate";
 export * from "./updateLog";

@@ -22,3 +22,13 @@ export const FEED_FORMATS = {
   /** runtiming/paint: runtiming/feed/build.py writes, the app reads */
   runtimingPaint: "runtiming-paint/1",
 } as const;
+
+/** (T676 item 2) The oldest app that reads each feed index's format: every writer stamps it as the index's
+ *  `minAppVersion`; an older app that carries the gate (core feedGate.ts) refuses the index, keeps its last
+ *  capture and raises the update prompt. A format bump raises it in the same edit. */
+export const FEED_MIN_APP = {
+  dfoFeed: "0.0.0",
+  inseasonFeed: "0.0.0",
+  gaugeFeed: "0.0.0",
+  runtimingIndex: "0.0.0",
+} as const;

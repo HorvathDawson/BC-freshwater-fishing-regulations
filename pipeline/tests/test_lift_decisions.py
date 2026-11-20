@@ -145,10 +145,11 @@ def test_the_nicola_below_its_lake_is_trout_catch_and_release_on_jan_15_whitefis
     assert f"{NICOLA}::nicola_river.r3" in rb and Z3_SPRING not in rb
     assert _closures(sid, (1, 15), "RB") == set()
     assert Z3_SPRING in _closures(sid, (1, 15), "MW")
-    # "Trout" is trout only: the char (Dolly Varden/bull trout, brook trout) stay closed
-    # (review L4: a mutation dropping `species_except: CHAR` from the lift opens them)
-    for char in ("EB", "DV"):
-        assert Z3_SPRING in _closures(sid, (1, 15), char), char
+    # RULINGS C2 as amended by the owner 2026-11-18 (the sweep: "Nicola River r3/r3x (→ DV)"): the row's related char
+    # rule is bull trout's alone, so only Dolly Varden/bull trout leave the "trout" lift and stay closed; brook trout
+    # is trout here and is lifted with the rainbow (review L4: a mutation dropping `species_except: [DV]` opens DV)
+    assert Z3_SPRING in _closures(sid, (1, 15), "DV")
+    assert _closures(sid, (1, 15), "EB") == set()
     # Mar 1 on: the row's own closure and the spring closure, for trout too
     assert {Z3_SPRING, f"{NICOLA}::nicola_river.r2"} <= _closures(sid, (3, 15), "RB")
 

@@ -8,6 +8,9 @@
 //   node app/tools/testbed/crash-stub/server.mjs [--port 39256] [--log <file.jsonl>]
 //
 // Each POST is appended to the log as {at, status, answer, body}; GET /__stub/kinds lists the stored kinds (the bucket).
+// (T739) POST /push/register|unregister go to the worker's own push handler (src/push.ts), over the same bucket;
+// GET /__stub/push lists the tokens it holds. An iOS simulator build points here through EXPO_PUBLIC_REPORT_URL
+// (http://127.0.0.1:<port>/report: the app derives /crash and /push from it, env.ts).
 import http from 'node:http';
 import fs from 'node:fs';
 import { register } from 'node:module';
@@ -20,6 +23,7 @@ const HOOK = `export async function resolve(spec, ctx, next) {
 }`;
 register(`data:text/javascript,${encodeURIComponent(HOOK)}`);
 const { handleCrash } = await import('../../../workers/feeds/src/crashes.ts');
+const { handlePush, TOKENS_PREFIX } = await import('../../../workers/feeds/src/push.ts');
 
 const args = process.argv.slice(2);
 const opt = (k, d) => { const i = args.indexOf(k); return i >= 0 ? args[i + 1] : d; };
@@ -43,15 +47,22 @@ http.createServer(async (req, res) => {
     res.writeHead(200, { 'Content-Type': 'application/json' }).end(JSON.stringify(kinds));
     return;
   }
+  if (req.method === 'GET' && url.pathname === '/__stub/push') {
+    const tokens = [...env.BUCKET.m.entries()].filter(([k]) => k.startsWith(TOKENS_PREFIX)).map(([key, v]) => ({ key, ...JSON.parse(v) }));
+    res.writeHead(200, { 'Content-Type': 'application/json' }).end(JSON.stringify(tokens));
+    return;
+  }
   const chunks = [];
   for await (const c of req) chunks.push(c);
   const body = Buffer.concat(chunks).toString('utf8');
   // the per-IP gate keys on CF-Connecting-IP: every report from the emulator is one "IP", as from one phone
-  const r = await handleCrash(new Request(`http://localhost:${PORT}${url.pathname}`, { method: req.method, body: req.method === 'POST' ? body : undefined,
-    headers: { 'Content-Type': req.headers['content-type'] ?? 'application/json', 'CF-Connecting-IP': '10.0.2.15' } }), env);
+  const wreq = new Request(`http://localhost:${PORT}${url.pathname}`, { method: req.method, body: req.method === 'POST' ? body : undefined,
+    headers: { 'Content-Type': req.headers['content-type'] ?? 'application/json', 'CF-Connecting-IP': '10.0.2.15' } });
+  const push = url.pathname.match(/^\/push\/(register|unregister)$/)?.[1];
+  const r = push ? await handlePush(wreq, env, push) : await handleCrash(wreq, env);
   const answer = await r.text();
   const line = { at: new Date().toISOString(), status: r.status, answer, body: (() => { try { return JSON.parse(body); } catch { return body; } })() };
   if (LOG) fs.appendFileSync(LOG, `${JSON.stringify(line)}\n`);
-  console.log(`[crash-stub] ${req.method} ${url.pathname} → ${r.status} ${answer}`);
+  console.log(`[${push ? 'push' : 'crash'}-stub] ${req.method} ${url.pathname} → ${r.status} ${answer}`);
   res.writeHead(r.status, { 'Content-Type': 'application/json' }).end(answer);
 }).listen(PORT, () => console.log(`[crash-stub] listening on :${PORT}`));

@@ -43,6 +43,8 @@ export const UPDATE_WORDS = {
     ready: "An update is ready; it is used at the next pause",
     /** (T251) the release states a minAppVersion newer than this app: the data in use is kept */
     appTooOld: "Update the app to get new regulations",
+    /** (T676 item 2) a live feed asks for a newer app: its last copy stays in use (the app-update prompt's words) */
+    feedTooOld: "New data needs the latest app; the last copy is shown",
     /** (T555) a release this device proved defective and went back from: the data in use is kept, and it is not "updated" */
     refused: "A new data release could not be used on this device; the app keeps the data it has",
     failed: (n: number) => (n === 1 ? "1 source could not be updated" : `${n} sources could not be updated`),
@@ -104,6 +106,8 @@ export interface UpdateSourceInput {
   readonly error: string | null;
   readonly failedAt: number | null;
   readonly offline: boolean;
+  /** (T676 item 2) a live feed whose newest index asks for a newer app (the version): its capture stays in use */
+  readonly needsApp?: string | null;
 }
 
 export interface UpdateReleaseInput {
@@ -170,10 +174,12 @@ export function updateSourcesVM(i: { sources: readonly UpdateSourceInput[]; rele
     const name = UPDATE_WORDS.names[s.k];
     const line = `${s.checkedAt !== null ? R.checked(ago(s.checkedAt, i.now)) : R.notChecked} · `
       + (s.updatedAt !== null ? R.updated(ago(s.updatedAt, i.now)) : R.notUpdated);
-    const problem = s.error !== null ? failureWords(s.error, s.offline) : null;
+    const problem = s.error !== null ? failureWords(s.error, s.offline) : s.needsApp ? R.feedTooOld : null;
     return { k: s.k, name, line, problem, shown: `${name}: ${line}${problem ? ` · ${problem}` : ""}` };
   });
   const failed = i.sources.filter((s) => s.error !== null && !s.offline).length;
+  // (T676 item 2) a live feed this app is too old for: said on the More tab, as a release's app-too-old is
+  const feedTooOld = i.sources.some((s) => s.k !== "release" && !!s.needsApp);
   const checked = i.sources.map((s) => s.checkedAt).filter((t): t is number => t !== null);
   const r = i.release;
   const line = r?.phase === "downloading"
@@ -183,8 +189,9 @@ export function updateSourcesVM(i: { sources: readonly UpdateSourceInput[]; rele
     : r?.phase === "app-too-old" ? R.appTooOld
     : r?.refused ? R.refused
     : failed > 0 ? R.failed(failed)
+    : feedTooOld ? R.feedTooOld
     : checked.length ? R.checked(ago(Math.max(...checked), i.now)) : R.notChecked;
-  const notice = r?.phase === "app-too-old" ? R.appTooOld : r?.refused ? R.refused : null;
+  const notice = r?.phase === "app-too-old" ? R.appTooOld : r?.refused ? R.refused : feedTooOld ? R.feedTooOld : null;
   const release = r?.phase === "downloading" || r?.phase === "waiting-wifi" || r?.phase === "ready" ? line : null;
   return { title: R.title, line, label: `${R.title}: ${line}.`, sources, notice, release };
 }

@@ -14,6 +14,7 @@ import { appendRuns, type DeletableStore } from "./skill";
 import { addDays, centreWall, DAY_MS, dayMs, dayOf, HOUR, hours, instant, wallIso, yday } from "./time";
 import { readingCurrent } from "../../../../packages/core/src/freshness";
 import { GAUGE_FEED_FORMAT } from "../../../../packages/core/src/gaugeFeed";
+import { FEED_MIN_APP } from "../../../../packages/core/src/feedFormats.generated";
 import { FORECAST_DAYS } from "../../../../packages/core/src/gauge-policy.generated";
 
 const BASE = "https://dd.weather.gc.ca/today/hydrometric/csv/BC";
@@ -1096,6 +1097,7 @@ async function publish(a: PublishArgs): Promise<Omit<GaugeSummary, "listSource" 
     const FC = "\u0000forecasts\u0000";
     let text = JSON.stringify({
       format: GAUGE_FEED_FORMAT,
+      minAppVersion: FEED_MIN_APP.gaugeFeed,   // (T676 item 2) every gauge file: the background alert check reads obs alone
       fetchedAt,
       station: st,
       now: { discharge: r.discharge, level: r.level, at: r.at, percentile: index[st].percentile, parameter: param },
@@ -1175,6 +1177,7 @@ async function publish(a: PublishArgs): Promise<Omit<GaugeSummary, "listSource" 
   const maintenance = maintenanceNotices({ release, latest: a.latest, drift: a.drift, previous: before, at: fetchedAt, roster: a.roster });
   if (!indexKept) await feed.put("index.json", JSON.stringify({
     format: GAUGE_FEED_FORMAT,
+    minAppVersion: FEED_MIN_APP.gaugeFeed,   // (T676 item 2) the oldest app that reads it (publish.py's MIN_APP)
     fetchedAt,
     // T225 follow-up: written ONCE. Python's dict literal names it twice and the second (T52: the newest issue among the
     // runs with a `change` block) silently replaced the first; the app's Forecasts line (T68) means the newest run
@@ -1197,7 +1200,7 @@ async function publish(a: PublishArgs): Promise<Omit<GaugeSummary, "listSource" 
       if (keep.length) obs[st] = keep;
     }
   }
-  if (!indexKept) await feed.put(OBS_FILE, JSON.stringify({ format: GAUGE_FEED_FORMAT, fetchedAt, windowHours: OBS_WINDOW_MS / 3_600_000, stations: obs }), JSON_CT);
+  if (!indexKept) await feed.put(OBS_FILE, JSON.stringify({ format: GAUGE_FEED_FORMAT, minAppVersion: FEED_MIN_APP.gaugeFeed, fetchedAt, windowHours: OBS_WINDOW_MS / 3_600_000, stations: obs }), JSON_CT);
 
   return {
     asked: a.ids.length, answered: got.length, release, stale: staleRelease, latest: a.latest, maintenance,

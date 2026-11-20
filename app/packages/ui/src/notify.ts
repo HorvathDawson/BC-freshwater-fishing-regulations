@@ -13,7 +13,7 @@ import { findGauges, hasRecord, now as coreNow, normalRangeOf, refreshAlertLines
          type GaugeAlertRule } from "@app/core";
 import {
   dismissRefused, notifyActive, putRule as put, removeRule as drop, setAppVersionNotice, setNotifyOn, setRuleOn as ruleOn,
-  setRuleLines, setUpdateReady as setReady, type NotifySettings, type NotifyState, type StationId, type WaterSource,
+  setRuleLines, setUpdateReady as setReady, type NotifySettings, type NotifyState, type PushStatus, type StationId, type WaterSource,
 } from "@app/data";
 import { useSeries } from "./hooks/gauge";
 import { useAsync, type Async } from "./async";
@@ -29,6 +29,13 @@ export interface NotifyPlatform {
   openSettings(): void;
   /** register (true) or drop (false) the background check */
   schedule(active: boolean): Promise<void>;
+  /**
+   * (T739) send (true) or withdraw (false) this phone's push token with our server, so a feed change wakes the same
+   * check at once; absent: this build has no push (the web; Android, owner 2026-11-16: no Android push)
+   */
+  push?(active: boolean): Promise<void>;
+  /** (T822) what the push registration last did (`@app/data` `PushRegistrar`): said on More → Notifications, never silent */
+  pushStatus?: { status(): PushStatus; subscribe(on: () => void): () => void };
 }
 
 export interface NotifyControls {
@@ -37,6 +44,9 @@ export interface NotifyControls {
   /** (T234 v1.1) this build can learn of a newer version of itself from our server (a version file for its channel) */
   readonly appVersion?: boolean;
 }
+
+/** (T739) this build wakes its check by push (its words say so: core `NOTIFY_WORDS.introPushIos`) */
+const hasPush = (c: NotifyControls | null): boolean => typeof c?.platform.push === "function";
 
 const NotifyContext = createContext<NotifyControls | null>(null);
 
@@ -50,6 +60,8 @@ export function NotifyRoot({ controls, children }: { controls: NotifyControls | 
       if (now === was) return;
       was = now;
       controls.platform.schedule(now).catch(reportFailure);
+      // (T739) the push token follows the same switch: on → registered, off → withdrawn (each start syncs it again)
+      controls.platform.push?.(now).catch(reportFailure);
     };
     sync();
     return controls.settings.subscribe(sync);
@@ -66,6 +78,13 @@ export interface NotificationsVM {
   readonly error: string | null;
   /** (v1.1) the "New app version" switch is offered (this build has a version file to read) */
   readonly canAppVersion: boolean;
+  /** (T739) this build's checks are also woken by push (the intro says so) */
+  readonly push: boolean;
+  /** (T822) the push registration's last outcome (null: this build has no push) */
+  readonly pushStatus: PushStatus | null;
+  /** (T822) send again now: the token (a notification on) or its withdrawal (none on); a failure is said in `pushStatus`
+   *  and reported unless the environment's */
+  retryPush(): void;
   setOn(on: boolean): Promise<void>;
   setUpdateReady(on: boolean): Promise<void>;
   /** (v1.1) the new-app-version notice */
@@ -90,6 +109,13 @@ export function useNotifications(): NotificationsVM | null {
     if (!c) return;
     setState(c.settings.read());
     return c.settings.subscribe(() => setState(c.settings.read()));
+  }, [c]);
+  const [pushStatus, setPushStatus] = useState<PushStatus | null>(() => c?.platform.pushStatus?.status() ?? null);
+  useEffect(() => {
+    const src = c?.platform.pushStatus;
+    if (!src) { setPushStatus(null); return; }
+    setPushStatus(src.status());
+    return src.subscribe(() => setPushStatus(src.status()));
   }, [c]);
   useEffect(() => {
     if (!c) return;
@@ -116,7 +142,9 @@ export function useNotifications(): NotificationsVM | null {
 
   if (!c || !state) return null;
   return {
-    state, permission, asking, error, canAppVersion: c.appVersion === true,
+    state, permission, asking, error, canAppVersion: c.appVersion === true, push: hasPush(c), pushStatus,
+    // (re-review) the send that is pending or failed, again: the register while a notification is on, else the unregister
+    retryPush: () => { c.platform.push?.(notifyActive(state)).catch(reportFailure); },
     setOn: async (on) => { write(setNotifyOn(on)); if (on) await allow(); },
     setUpdateReady: async (on) => { write((s) => (on ? setNotifyOn(true)(setReady(true)(s)) : setReady(false)(s))); if (on) await allow(); },
     setAppVersion: async (on) => { write((s) => (on ? setNotifyOn(true)(setAppVersionNotice(true)(s)) : setAppVersionNotice(false)(s))); if (on) await allow(); },

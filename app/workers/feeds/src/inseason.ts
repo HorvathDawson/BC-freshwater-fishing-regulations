@@ -16,6 +16,7 @@ import { contentHash, readStored } from "./io";
 import type { FeedEvent } from "./events";
 import { parseHtml, Str, Tag } from "./dfo/html";
 import { INSEASON_FEED_FORMAT, INSEASON_LINKS_FORMAT } from "../../../packages/core/src/inseason";
+import { FEED_MIN_APP } from "../../../packages/core/src/feedFormats.generated";
 
 export const SOURCE_URL = "https://www2.gov.bc.ca/gov/content/sports-culture/recreation/fishing-hunting/fishing/fishing-regulations";
 const UA = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36";
@@ -323,6 +324,8 @@ export interface FeedRow {
 }
 export interface InSeasonFeed {
   format: typeof FEED_FORMAT;
+  /** (T676 item 2) the oldest app that reads this format (FEED_MIN_APP, one table with the Python's) */
+  minAppVersion: string;
   fetchedAt: string;
   changedAt: string;
   source: string;
@@ -517,7 +520,7 @@ export function buildFeed(rows: Row[], prev: InSeasonFeed | null, now: string, p
   ];
   const matchedN = out.filter((r) => r.matched).length;
   return {
-    format: FEED_FORMAT, fetchedAt: now, changedAt: pageChanged || !prev ? now : prev.changedAt, source: SOURCE_URL, pageHash,
+    format: FEED_FORMAT, minAppVersion: FEED_MIN_APP.inseasonFeed, fetchedAt: now, changedAt: pageChanged || !prev ? now : prev.changedAt, source: SOURCE_URL, pageHash,
     matching: { method: matched ? "curated" : null, matched: matchedN, unmatched: out.length - matchedN }, rows: out, removed,
   };
 }

@@ -50,6 +50,48 @@ def built(request):
     return data, _build(WATERS)
 
 
+#: T834 (RULINGS T17, owner 2026-11-17 "Strict everywhere"; card 13:15 "Lead with 5"): a water's own daily quota above
+#: its region's cap raises that cap for its fish, and the card says ONE box led by the region's number
+#: (`rows.groups.A_RAISED_TOTAL_IS_ONE_BOX`). Kootenay Lake — Main Body's rainbow 10, Tranquille's rainbow 8 and Bow
+#: Lake's brook trout 10 are each such a quota, so since T834 their rows are HELD by the region's raised box and D19 (a)
+#: makes no group on them (T931 A, re-pinned 2026-11-20). The D19 (a) shape is still built wherever a one-kind own pool
+#: is not raised into a box; with T834's box off (`pre_t834`) these five waters build it again, which is how the
+#: D19 (a) rule, its mutation and the model's one-kind checks stay pinned on frames the builder really makes.
+Z4_TOTAL, Z3_TOTAL, Z7A_TOTAL = ("z4:daily_quotas::trout_char_quota.r1", "z3:daily_quotas::trout_char_quota.r1",
+                                 "z7a:daily_quotas::trout_char_quota.r1")
+ALL_TROUT = ["EB", "GB", "CT", "DV", "LT", "RB"]
+
+
+def _build_pre_t834(items, mp):
+    mp.setattr(RW.groups, "A_RAISED_TOTAL_IS_ONE_BOX", False)
+    return _build(items)
+
+
+@pytest.fixture(scope="module")
+def pre_t834(request):
+    need(request, "bundle", BUNDLE, BUNDLE_HINT)
+    need(request, "bundle", EXPORT_DIR / "ui-rules-export.json", EXPORT_HINT)
+    data, _ = C.load_export(EXPORT_DIR)
+    mp = pytest.MonkeyPatch()
+    try:
+        return data, _build_pre_t834(WATERS, mp)
+    finally:
+        mp.undo()
+
+
+def _raised_box(data, card, pool):
+    """The row `pool` and the raised box holding it: (row members, row group, holder pool, box pool, box total, box
+    kinds, head, its "also" lines, the box's first sub-cap as (rule, take, kinds, [(lifted fish, by)]))."""
+    row = _row(data, card, pool)
+    holder = card["rows"][row["parent"]]
+    g = holder["group"]
+    s0 = g["subcaps"][0]
+    return (row["members"], row.get("group"), data["rule_ids"][holder["pool"]], data["rule_ids"][g["pool"]], g["total"],
+            g["kinds"], g["headline"]["says"], g["headline"].get("also"),
+            (data["rule_ids"][s0["r"]], s0["take"], s0["of"],
+             [(L["members"], data["rule_ids"][L["by"]]) for L in s0["lifted"]]))
+
+
 def _card(model, item, md, part=0):
     k = model.parts[item][part]
     return model.sections["rows"][k][E.segment_index(model.segments[k], CAL.day_of(md))]
@@ -77,8 +119,20 @@ def _headless(data, model):
 
 
 @pytest.mark.needs_bundle
-def test_kootenay_main_body_rainbow_is_a_group_of_its_own(built):
+def test_kootenay_main_body_rainbow_raises_the_regions_box(built):
+    """T834 (RULINGS T17; owner 2026-11-17 13:15, Kootenay "Yes, they read right"): "Keep 5, rainbow trout up to 10" —
+    the rainbow row is held by Region 4's total, raised to 10 for rainbow only (T931 A re-pin; was D19 (a)'s own group)."""
     data, model = built
+    assert _raised_box(data, _card(model, KLMB, (10, 10)), KLMB_RB) == (
+        ["RB"], None, Z4_TOTAL, Z4_TOTAL, 10, ALL_TROUT, "5 trout/char a day",
+        [{"n": 10, "says": "10 if they’re rainbow trout"}],
+        (Z4_TOTAL, 5, ["EB", "GB", "CT", "DV", "LT"], [(["RB"], KLMB_RB)]))
+
+
+@pytest.mark.needs_bundle
+def test_kootenay_main_body_rainbow_is_a_group_of_its_own_without_t834(pre_t834):
+    """D19 (a), as built before T834 (its one box off): the rainbow's own 10 is a group of its own row."""
+    data, model = pre_t834
     row = _row(data, _card(model, KLMB, (10, 10)), KLMB_RB)
     g = row["group"]
     assert (row["members"], row.get("parent"), data["rule_ids"][g["pool"]], g["total"], g["kinds"], g["subcaps"]) \
@@ -100,8 +154,24 @@ def test_no_trout_or_char_row_ships_headless_but_the_two_known_shapes(built):
 
 
 @pytest.mark.needs_bundle
-def test_tranquille_and_a_region_7_brook_trout_lake_are_groups(built):
+def test_tranquille_and_a_region_7_brook_trout_lake_raise_their_regions_box(built):
+    """T834 (RULINGS T17), as Kootenay: Tranquille's rainbow 8 over Region 3's 5, Bow Lake's brook trout 10 over Zone A's
+    5 — each row held by its region's total raised for that fish only (T931 A re-pin)."""
     data, model = built
+    tq, bow = "r3:tranquille_lake@3-29::tranquille_lake.r1", "r7:bow_lake@7-15::bow_lake.r1"
+    assert _raised_box(data, _card(model, TRANQUILLE, (6, 15)), tq) == (
+        ["RB"], None, Z3_TOTAL, Z3_TOTAL, 8, ALL_TROUT, "5 trout/char a day",
+        [{"n": 8, "says": "8 if they’re rainbow trout"}], (Z3_TOTAL, 5, ["EB", "GB", "CT", "DV", "LT"], [(["RB"], tq)]))
+    got = _raised_box(data, _card(model, BOW_LAKE, (6, 15)), bow)
+    assert got[:8] == (["EB"], None, Z7A_TOTAL, Z7A_TOTAL, 10, ALL_TROUT, "5 trout/char a day",
+                       [{"n": 10, "says": "10 if they’re brook trout"}])
+    assert got[8][1:] == (5, ["GB", "CT", "DV", "LT", "RB"], [(["EB"], bow)])
+
+
+@pytest.mark.needs_bundle
+def test_tranquille_and_a_region_7_brook_trout_lake_are_groups_without_t834(pre_t834):
+    """D19 (a), as built before T834 (its one box off)."""
+    data, model = pre_t834
     rb = _row(data, _card(model, TRANQUILLE, (6, 15)), "r3:tranquille_lake@3-29::tranquille_lake.r1")
     eb = _row(data, _card(model, BOW_LAKE, (6, 15)), "r7:bow_lake@7-15::bow_lake.r1")
     assert [(r["members"], r["group"]["kinds"], data["rule_ids"][r["group"]["pool"]]) for r in (rb, eb)] == [
@@ -111,10 +181,11 @@ def test_tranquille_and_a_region_7_brook_trout_lake_are_groups(built):
 
 @pytest.mark.needs_bundle
 def test_mutation_the_old_one_kind_rule_leaves_the_rows_headless(built, monkeypatch):
-    """MUTATION: without the ruling the rows are back to no group — klmb's, Tranquille's and Bow Lake's."""
+    """MUTATION: without the ruling the rows are back to no group — klmb's, Tranquille's and Bow Lake's. On the D19 (a)
+    build (T834's box off, `pre_t834`): with the box on they are held by their region's raised box whatever D19 says."""
     data, _ = built
     monkeypatch.setattr(RW.groups, "A_TROUT_CHAR_TOTAL_OF_ONE_KIND_IS_A_GROUP", False)
-    pools = {p for _i, _s, p in _headless(data, _build(WATERS))}
+    pools = {p for _i, _s, p in _headless(data, _build_pre_t834(WATERS, monkeypatch))}
     assert {KLMB_RB, "r3:tranquille_lake@3-29::tranquille_lake.r1", "r7:bow_lake@7-15::bow_lake.r1"} <= pools
 
 
@@ -129,6 +200,13 @@ def test_other_fish_totals_of_one_kind_stay_without_a_group(built):
 # --------------------------------------------------------------------------------------------
 # T80 review: the claim over EVERY shipped water, not the five above
 # --------------------------------------------------------------------------------------------
+
+#: T834 + T854 (RULINGS C2 refined 2026-11-18): on the Kitimat's tributaries (Humphrys Creek) Nov 1-Jun 30 every other
+#: trout goes back, so the river's own "Hatchery rainbow trout … daily quota = 5" is the only trout pool and the zone's
+#: total keeps no kind to hold it: a third one-kind row the rows card leaves headless (T931 A, 2026-11-20). Since the T810
+#: cutover the trout TABLE draws every trout/char row (`Keep 5 in all` there), so it is drawn; the card gate proves it.
+KITIMAT_HATCHERY_RB = "r6:kitimat_river_angling_regulations_for_the_kitimat_river_are@6-3::kitimat_river.r4"
+
 
 def _shipped_headless(data):
     """`{item: {pool}}` — every water the SHIPPED answers file gives a headless trout/char pooled row (1,022 on the
@@ -178,14 +256,26 @@ def shipped(request):
 
 @pytest.mark.needs_bundle
 def test_every_shipped_headless_water_is_drawn_but_the_two_open_shapes(shipped):
-    """Every water the shipped file leaves with a headless trout/char row, rebuilt: what stays headless is ONLY the two
-    open shapes' pools (z8 r5 on Region 8's streams, Duncan River's DV on its tributaries), and the card gate proves
-    every group the rebuild drew (0 problems). On the 2026-10-22 release: 1,022 waters in, 996 left (982 z8 r5, 14
-    Duncan), 19 own pools turned into groups, 638 groups on 247 distinct cards proved."""
+    """Every water the shipped file leaves with a headless trout/char row, rebuilt: what stays headless is ONLY the open
+    shapes' pools (z8 r5 on Region 8's streams, Duncan River's DV on its tributaries, and since T854 the Kitimat's
+    hatchery rainbow on its tributaries), and the card gate proves every group the rebuild drew (0 problems). On the
+    2026-10-22 release: 1,022 waters in, 996 left (982 z8 r5, 14 Duncan), 19 own pools turned into groups, 638 groups on
+    247 distinct cards proved.
+    T810 CUTOVER (ticket L, contract Q-D9; T931 A re-pin 2026-11-20): the shipped rows the trout table covers carry no
+    `group` (the table says them), so every shipped headless trout/char row must sit on a card WITH a trout table — that
+    is what draws it now; the rebuild (rows only: no table, no cut) still holds the builder's groups to the open shapes."""
     data, before = shipped
     assert before, "the shipped file has no headless trout/char row: nothing left to prove here"
+    import json
+    model = E.decode(json.loads((EXPORT_DIR / "ui-rules-answers.json").read_bytes()), data)
+    untabled = sorted({item for item in before for k in model.parts[item] if k is not None
+                       for card, tbl in zip(model.sections["rows"][k], model.sections["trout"][k])
+                       if tbl is None and any(r["pool"] is not None and r.get("parent") is None
+                                              and set(r["members"]) <= TROUT_CHAR
+                                              and not ((r.get("group") or {}).get("headline")) for r in card["rows"])})
+    assert untabled == [], untabled[:10]
     after, problems = _rebuilt_headless(data, before)
-    assert ({p for ps in after.values() for p in ps}, problems) == ({Z8_EB, DUNCAN_DV}, [])
+    assert ({p for ps in after.values() for p in ps}, problems) == ({Z8_EB, DUNCAN_DV, KITIMAT_HATCHERY_RB}, [])
 
 
 @pytest.mark.needs_bundle
@@ -197,8 +287,9 @@ def test_mutation_without_the_ruling_shipped_waters_keep_other_headless_pools(sh
     skip."""
     data, before = shipped
     monkeypatch.setattr(RW.groups, "A_TROUT_CHAR_TOTAL_OF_ONE_KIND_IS_A_GROUP", False)
+    monkeypatch.setattr(RW.groups, "A_RAISED_TOTAL_IS_ONE_BOX", False)    # T834's box holds them otherwise (above)
     after, _ = _rebuilt_headless(data, set(before) | set(WATERS))
-    left = {p for ps in after.values() for p in ps} - {Z8_EB, DUNCAN_DV}
+    left = {p for ps in after.values() for p in ps} - {Z8_EB, DUNCAN_DV, KITIMAT_HATCHERY_RB}
     assert {KLMB_RB, "r3:tranquille_lake@3-29::tranquille_lake.r1", "r7:bow_lake@7-15::bow_lake.r1"} <= left
 
 
@@ -224,7 +315,8 @@ def test_the_rows_frames_of_the_t80_waters_pass_the_model(built):
 
 
 def _one_kind_frame(data, model):
-    """klmb Oct 10's frame (a copy) and the index of its rainbow row, whose group is the one-kind trout/char shape."""
+    """klmb Oct 10's frame (a copy) and the index of its rainbow row, whose group is the one-kind trout/char shape (on the
+    D19 (a) build, `pre_t834`: with T834's box on the row is held by Region 4's raised total instead)."""
     import copy
     card = copy.deepcopy(_card(model, KLMB, (10, 10)))
     i = next(i for i, r in enumerate(card["rows"])
@@ -239,19 +331,19 @@ def _check(frame):
 
 
 @pytest.mark.needs_bundle
-def test_the_one_kind_trout_group_validates(built):
-    data, model = built
+def test_the_one_kind_trout_group_validates(pre_t834):
+    data, model = pre_t834
     card, _ = _one_kind_frame(data, model)
     assert _check(card) == 1
 
 
 @pytest.mark.needs_bundle
-def test_mutation_a_one_kind_group_of_a_fish_not_trout_or_char_is_refused(built):
+def test_mutation_a_one_kind_group_of_a_fish_not_trout_or_char_is_refused(pre_t834):
     """MUTATION: the same frame with its rainbow turned into crayfish everywhere its row names it (the row and its group)
     — every other check of the group and the frame still holds, so only the one-kind rule can refuse it."""
     import json
     from pipeline.deliver.answers.model import ShapeError
-    data, model = built
+    data, model = pre_t834
     card, i = _one_kind_frame(data, model)
     assert '"CRA"' not in json.dumps(card["rows"][i])
     card["rows"][i] = json.loads(json.dumps(card["rows"][i]).replace('"RB"', '"CRA"'))
@@ -260,11 +352,11 @@ def test_mutation_a_one_kind_group_of_a_fish_not_trout_or_char_is_refused(built)
 
 
 @pytest.mark.needs_bundle
-def test_mutation_a_one_kind_trout_group_on_another_rules_pool_is_refused(built):
+def test_mutation_a_one_kind_trout_group_on_another_rules_pool_is_refused(pre_t834):
     """MUTATION: the group's pool moved to a rule no row of the frame pools rainbow under (the crayfish row's pool) — a
     one-kind group is valid only as its own row's total (not Duncan River's DV inside Region 4's 5), so it is refused."""
     from pipeline.deliver.answers.model import ShapeError
-    data, model = built
+    data, model = pre_t834
     card, i = _one_kind_frame(data, model)
     other = next(r["pool"] for r in card["rows"] if r["pool"] is not None and "RB" not in r["members"])
     card["rows"][i]["group"]["pool"] = other
@@ -309,16 +401,27 @@ def perry(request):
     return data, model
 
 
+def _xref_eb(card) -> bool:
+    """Does any row of the card cross-reference brook trout (an `xref` item naming EB — the displaced St. Mary's 1)?"""
+    return any(it.get("xref") and "EB" in it["members"] for r in card["rows"] for it in r.get("items") or ())
+
+
 @pytest.mark.needs_bundle
 def test_perry_creek_brook_trout_is_no_longer_held_by_the_st_mary_row(perry):
-    """T127: the reader displaced the St. Mary's 1 for brook trout, so that row no longer cross-references them — Perry
-    Creek's own "brook trout 20" row is held by nothing, drawn on its own and a one-kind group of 20 (T80 3)."""
+    """T127: the reader displaced the St. Mary's 1 for brook trout, so that row no longer cross-references them.
+    RE-PINNED (T931 A, 2026-11-20) to T834 (RULINGS T17): Perry Creek's own "brook trout 20" is above the caps that hold
+    brook trout there, so it raises them for brook trout ("… 20 if they’re brook trout") and its row is HELD by that one
+    box (the St. Mary's tributaries row), no group of its own — but through the raise, never the displaced
+    cross-reference (no EB `xref` on the card; the mutation below brings it back)."""
     data, model = perry
     for md in ((6, 15), (7, 15), (10, 10)):
+        card = _card(model, PERRY, md)
         row, parent = _perry(data, model, md)
-        g = row.get("group") or {}
-        assert (row["members"], parent, g.get("kinds"), (g.get("headline") or {}).get("says")) \
-            == (["EB"], None, ["EB"], "20 a day per angler")
+        g = parent["group"]
+        assert (row["members"], data["rule_ids"][parent["pool"]], row.get("group"), g["kinds"], g["total"],
+                g["headline"].get("also")) \
+            == (["EB"], ST_MARY_TRIBS, None, ["EB", "GB", "LT", "RB"], 20, [{"n": 20, "says": "20 if they’re brook trout"}])
+        assert not _xref_eb(card), md
     assert _gate(model, [PERRY]) == []
 
 
@@ -332,29 +435,33 @@ def test_mutation_with_the_displaced_cross_reference_perry_creek_is_held_and_no_
     row, parent = _perry(data, model)
     assert (row["members"], parent is not None and data["rule_ids"][parent["pool"]], row.get("group")) \
         == (["EB"], ST_MARY_TRIBS, None)
+    assert _xref_eb(_card(model, PERRY, (6, 15)))          # (T931 A) the displaced 1's cross-reference is back
 
 
 @pytest.mark.needs_bundle
 def test_mutation_a_one_kind_group_on_a_held_row_fails_the_card_gate(perry, monkeypatch):
     """MUTATION: with the St. Mary's displaced cross-reference back (T127 off) and without the drawn-row condition Perry
     Creek's brook trout row gets a group again, worded "1" through that cross-reference, and the card gate refuses it
-    (the batch-3 deliver's 30 problems, one key here)."""
+    (the batch-3 deliver's 30 problems, one key here). (T931 A) On the D19 (a) build, T834's box off: with it on, the
+    row is held by the raised box and no group forms either way. The gate's words are its current ones: the kind says
+    1 where brook trout alone keep 2."""
     data, _ = perry
     monkeypatch.setattr(RW.card_model, "A_DISPLACED_POOL_IS_NO_CROSS_REFERENCE", False)
     monkeypatch.setattr(RW.assemble, "A_ONE_KIND_GROUP_ONLY_ON_A_DRAWN_ROW", False)
+    monkeypatch.setattr(RW.groups, "A_RAISED_TOTAL_IS_ONE_BOX", False)
     model = A.build(BUNDLE, EXPORT_DIR, workers=1, items=[PERRY], sections=["rows", "ladder"], log=lambda *_: None)
     row, _parent = _perry(data, model)
     assert row["group"]["kinds"] == ["EB"]
     probs = _gate(model, [PERRY])
-    assert any(f"total {PERRY_EB}: headline says 1, with no lift 2 may be kept here" in p for p in probs), probs
+    assert any(f"total {PERRY_EB}: kind ['EB'] says 1, EB alone keeps 2" in p for p in probs), probs
 
 
 @pytest.mark.needs_bundle
-def test_mutation_a_one_kind_trout_group_on_a_held_row_is_refused_by_the_model(built):
+def test_mutation_a_one_kind_trout_group_on_a_held_row_is_refused_by_the_model(pre_t834):
     """MUTATION: klmb's one-kind rainbow group with its row made held by another pooled row of the frame — the model
     (`RowsFrame._one_kind_groups`) refuses it, as the build's own validation would."""
     from pipeline.deliver.answers.model import ShapeError
-    data, model = built
+    data, model = pre_t834
     card, i = _one_kind_frame(data, model)
     card["rows"][i]["parent"] = next(j for j, r in enumerate(card["rows"]) if j != i and r["pool"] is not None)
     with pytest.raises(ShapeError, match="held by another pool"):
@@ -423,9 +530,10 @@ def test_beattie_lake_bull_trout_sits_inside_the_lakes_trout_quota(beattie):
     data, model = beattie
     keep = "must be 30–50 cm (12–20 in); release any other size"
     small = "must be 50 cm (20 in) or less; release any longer"
+    # (T931 A) bull trout and lake trout are now a kind node each (the same words, the same 1)
     for md, kinds, tree in (
             ((6, 15), ["EB", "GB", "CT", "DV", "LT", "RB"], [(["EB", "GB", "CT", "RB"], 1, small),
-                                                              (["DV", "LT"], 1, keep)]),
+                                                              (["DV"], 1, keep), (["LT"], 1, keep)]),
             ((10, 25), ["EB", "GB", "CT", "DV", "RB"], [(["EB", "GB", "CT", "RB"], 1, small), (["DV"], 1, keep)])):
         card = _card(model, BEATTIE, md)
         assert not any(r["pool"] is not None and data["rule_ids"][r["pool"]] == LIARD_DV for r in card["rows"]), md
@@ -443,4 +551,5 @@ def test_mutation_without_the_named_pool_inside_beattie_bull_trout_loses_the_lia
     monkeypatch.setattr(RW.evaluate, "A_NAMED_POOL_IS_INSIDE", False)
     model = A.build(BUNDLE, EXPORT_DIR, workers=1, items=[BEATTIE], sections=["rows"], log=lambda *_: None)
     _head, tree = _beattie_trout(data, _card(model, BEATTIE, (10, 25)))
-    assert tree == [(["EB", "GB", "CT", "DV", "RB"], 1, "must be 50 cm (20 in) or less; release any longer")]
+    small = "must be 50 cm (20 in) or less; release any longer"
+    assert tree == [(["EB", "GB", "CT", "RB"], 1, small), (["DV"], 1, small)]     # (T931 A) bull trout its own node

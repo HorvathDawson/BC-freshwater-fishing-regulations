@@ -48,6 +48,17 @@ describe("gaugeSide", () => {
     expect([...sides].filter(([, s]) => s === "donor").length).toBe(11);
   });
 
+  it("(T679 #8) the release's own flag IS the answer where it is carried; without it the waters decide as before", () => {
+    // the flag (the ranking's rule) can call a gauge on the slough's own water a donor (a lake on the way) and nothing else
+    const flag = new Set(["08MH085"]);
+    const sides = gaugeSides(STATIONS, { waters: [NICOMEN], section: SEC }, PLACES, flag);
+    expect([...sides].filter(([, s]) => s === "own").map(([st]) => st)).toEqual(["08MH085"]);
+    expect(sides.get("08MH086")).toBe("donor");
+    // mutation: an empty flag is "none on this water", never "decide again"
+    expect([...gaugeSides(STATIONS, { waters: [NICOMEN], section: SEC }, PLACES, new Set())].every(([, s]) => s === "donor"))
+      .toBe(true);
+  });
+
   it("a continuation is one water: the Chilliwack's gauge is the Vedder's own (water_continue, both ways)", () => {
     const g = { item: CHILLIWACK, section: 1235779 };
     expect(gaugeSide(g, { waters: [CHILLIWACK, VEDDER].sort(), section: 1 })).toBe("own");

@@ -8,9 +8,9 @@
  * A row in effect with NO match yet is listed app-wide (`inSeasonNotice`), so a reader still learns of it.
  *
  * IN EFFECT on a day: the row is on the page (not `removed`), its `from` (if any) is on or before the day and its `to`
- * (if any) on or after it. `to` is the curated override's, else the feed's, else — for a change whose text prints ONE
- * date range (`parsed.window`) that OPENS on its `from` day (a one-off, T548) — that range's end. A row with only a
- * `from` (a yearly window included) stays in effect until the page drops it.
+ * (if any) on or after it. `to` is the curated override's, else the feed's — never inferred from a window the change
+ * prints (owner 2026-11-11, T548: "Never invent an end date"). A row with only a `from` stays in effect until the page
+ * drops it.
  *
  * WHERE (T520; T673, owner 2026-11-13: ONE file for every release — "Why not just have a single file that does both?"):
  * per water (its durable item id), `all` or FWA RANGES — stream key + metres along it, never a release, part index or
@@ -52,6 +52,10 @@ export interface InSeasonFeed {
   readonly source: string;
   readonly rows: readonly InSeasonRow[];
   readonly removed: readonly { readonly id: string; readonly removedAt?: string }[];
+  /** (T548 item 4) rows of the index this app could not read, dropped (each said in `unreadRows`); absent or 0: none */
+  readonly unread?: number;
+  /** (T548 item 4) the id (or the position) of each dropped row, for the report */
+  readonly unreadRows?: readonly string[];
 }
 /** (T520, T673) one FWA range: stream key, start, end (metres) — every section whose line [from, to) on that stream
  *  overlaps [m0, m1) (`inSeasonCover`) */
@@ -75,14 +79,31 @@ export interface InSeasonLinks {
                                               readonly waters: Readonly<Record<string, InSeasonWater>> }>>;
 }
 
-/** The feed as the app reads it, or null (never a half-read feed). */
+const dayOrNull = (v: unknown) => v === undefined || v === null || typeof v === "string";
+/** (T548 item 4) a row the app can read: an id, its water and its words; its dates, when given, are text */
+function rowReadable(r: unknown): r is InSeasonRow {
+  const x = r as Partial<InSeasonRow> | null;
+  return !!x && typeof x === "object" && typeof x.id === "string" && typeof x.water === "string"
+    && typeof x.change === "string" && dayOrNull(x.from) && dayOrNull(x.to);
+}
+
+/**
+ * The feed as the app reads it, or null when the INDEX is not one (another format, no time, no rows list). (T548 item 4)
+ * A ROW it cannot read is DROPPED, never the whole feed: one bad row must not hide every other notice. The feed says how
+ * many it dropped and which (`unread`, `unreadRows`) so the reader reports them and the inbox says so. MORE THAN HALF of
+ * the rows unreadable is not a bad row but a feed this app does not read (a change of shape): refused whole (null), so
+ * the capture keeps answering and the update service's offer throws, as for a format it does not read.
+ */
 export function parseInSeasonFeed(x: unknown): InSeasonFeed | null {
   const f = x as Partial<InSeasonFeed> | null;
   if (!f || typeof f !== "object" || f.format !== INSEASON_FEED_FORMAT || typeof f.fetchedAt !== "string") return null;
   if (!Array.isArray(f.rows) || !Array.isArray(f.removed ?? [])) return null;
-  for (const r of f.rows)
-    if (!r || typeof r.id !== "string" || typeof r.water !== "string" || typeof r.change !== "string") return null;
-  return { ...f, source: typeof f.source === "string" ? f.source : "", removed: f.removed ?? [] } as InSeasonFeed;
+  const rows = (f.rows as unknown[]).filter(rowReadable);
+  const unreadRows = (f.rows as unknown[]).flatMap((r, i) => (rowReadable(r) ? [] : [
+    r && typeof r === "object" && typeof (r as { id?: unknown }).id === "string" ? (r as { id: string }).id : `row ${i + 1}`]));
+  if (unreadRows.length * 2 > f.rows.length) return null;
+  return { ...f, source: typeof f.source === "string" ? f.source : "", removed: f.removed ?? [], rows,
+           ...(unreadRows.length ? { unread: unreadRows.length, unreadRows } : { unread: 0, unreadRows: [] }) } as InSeasonFeed;
 }
 
 const isNat = (n: unknown): n is number => Number.isSafeInteger(n) && (n as number) >= 0;
@@ -120,29 +141,16 @@ export function isoDayOf(d: Date): string {
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
 }
 
-const pad = (n: number) => String(n).padStart(2, "0");
-
 /**
- * When a row is in force: the curated override, else the feed's dates, else — ONLY for a one-off window — its one
- * printed window's end. (T548) A window is one-off when it OPENS on the row's `from` day ("July 30, 2026" / "No fishing
- * July 30 to September 15"): its end in the `from` year (rolling on over the new year). Any other printed window is a
- * yearly season the notice sets ("Sept 16, 2025" / "... August 15 to December 31"): no end is inferred, and the row
- * stays in force until the page drops it or a printed / curated `to` passes. One case file pins this rule and
+ * When a row is in force: the curated override, else the feed's own dates — NEVER AN END INFERRED (owner 2026-11-11,
+ * T548: "A notice stops showing when the Province drops it. Never invent an end date"). A printed window in the change
+ * ("No fishing July 30 to September 15") is the notice's words, shown with it; it does not end the row: the row is in
+ * force from its `from` until the page drops it or a printed / curated `to` passes. (The one-off rule of 65df4ce38, an
+ * end taken from a window opening on the `from` day, is gone.) One case file pins this rule and
  * `pipeline.regs.inseason.matches.span` (`inseason-span.parity.json`).
  */
 export function inSeasonSpan(row: InSeasonRow, link?: { from?: string; to?: string }): { from: string | null; to: string | null } {
-  const from = link?.from ?? row.from ?? null;
-  let to = link?.to ?? row.to ?? null;
-  const w = row.parsed?.window;
-  const kinds = row.parsed?.kinds ?? [];
-  if (!to && from && w && w.to_month && w.to_day && w.from_month && w.from_day
-      && from.slice(5) === `${pad(w.from_month)}-${pad(w.from_day)}`
-      && !kinds.includes("rescind") && !kinds.includes("clarification")) {
-    const y = Number(from.slice(0, 4));
-    const end = `${y}-${pad(w.to_month)}-${pad(w.to_day)}`;
-    to = end < from ? `${y + 1}-${end.slice(5)}` : end;
-  }
-  return { from, to };
+  return { from: link?.from ?? row.from ?? null, to: link?.to ?? row.to ?? null };
 }
 
 export interface InSeasonChange {
@@ -245,6 +253,9 @@ export const INSEASON_FAILURES = {
     `in-season matches.json: ${typeof seen === "string" ? seen : "no format"}, but this app reads ${INSEASON_LINKS_FORMAT} — refused (matched notices fall back to the last links read, else to the list of changes not on the map)`,
   /** (T517) an end the links name that this release's `display.ends` does not (publish refuses such links) */
   noWords: (id: string, e: string) => `in-season: ${id}: ${e}`,
+  /** (T548 item 4) rows of the index this app could not read: dropped, the rest shown */
+  unreadRows: (rows: readonly string[]) =>
+    `in-season index.json: ${rows.length} row${rows.length === 1 ? "" : "s"} this app could not read (${rows.join(", ")}) — dropped, the other changes shown`,
   /** (T693) the links match a notice to waters this device's release does not hold: it is in the bell, not on a page */
   absentWaters: (id: string, items: readonly string[]) =>
     `in-season: ${id} is matched to ${items.join(", ")}, which this release does not hold (shown in the bell, not on a page)`,

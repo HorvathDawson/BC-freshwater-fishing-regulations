@@ -73,7 +73,7 @@ from pathlib import Path
 from typing import Callable, Dict, List, Mapping, Optional, Sequence, Tuple
 
 from pipeline.common.curated import GENERATED
-from pipeline.common.feed_formats import FEED_FORMATS
+from pipeline.common.feed_formats import FEED_FORMATS, FEED_MIN_APP
 from pipeline.deliver import salmon as S
 from pipeline.regs.dfo_salmon import fetch as F
 
@@ -82,6 +82,7 @@ logger = logging.getLogger(__name__)
 #: T332 (/2): a verdict's quota is `tree` (a game-fish TreeTier), a bucket `{tree, …}`. T356 (/3): a header closure's
 #: verdict carries `c`, a region `shared` + `sizes` (`deliver.salmon.header_answers`), a note's length is `lengths`
 FORMAT = FEED_FORMATS["dfo_feed"]          # (T556) typed once, in pipeline/common/feed_formats.py
+MIN_APP = FEED_MIN_APP["dfo_feed"]         # (T676 item 2) the index's `minAppVersion`: the oldest app that reads it
 OUT_DIR = Path(GENERATED.regs.dfo_salmon) / "feed"
 #: (T851) a region is STALE when its last good read (`checked`) is older than this at a run whose fetch failed — not
 #: because one fetch failed (2026-11-18: one 5xx at the daily run marked every region stale). 30 h is the app's own
@@ -828,7 +829,7 @@ def run(out: Path, *, fetcher: Fetcher, regions: Optional[Sequence[str]] = None,
         if scrape_dir is not None and not dry_run:              # one vintage: the typed rows ARE this page's
             emit_region(slug, html, Path(scrape_dir), typed_dir)
 
-    index = {"format": FORMAT, "at": at, "regions": {s: region_out[s] for s in F.ALL_SLUGS if s in region_out},
+    index = {"format": FORMAT, "minAppVersion": MIN_APP, "at": at, "regions": {s: region_out[s] for s in F.ALL_SLUGS if s in region_out},
              "verdicts": verdicts.items, "gears": gears.items, "locs": dict(sorted(locs.items())),
              "unplaced": len(unplaced), "dfo": dict(SHAPE),
              "issues": {"waters": dict(sorted(issues.items())), "no_water": no_water,

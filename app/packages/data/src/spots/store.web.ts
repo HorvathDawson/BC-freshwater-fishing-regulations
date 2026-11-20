@@ -181,6 +181,11 @@ export function openNotifyStore(): { read(): string | null; write(text: string):
   } };
 }
 
+/** (T739) The push token last sent (the web has none: kept for the identical export surface), one key of its own. */
+export function openPushStore(): { read(): string | null; write(text: string): void } {
+  return keyStore("canifishthis.pushToken.v1");
+}
+
 /** (T254) The Data setting for low-bandwidth mode ("auto" | "on" | "off"), one key of its own. */
 export function openDataModeStore(): { read(): string | null; write(text: string): void } {
   return keyStore("canifishthis.lowData.v1");

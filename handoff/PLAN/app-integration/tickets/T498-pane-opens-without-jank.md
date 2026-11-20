@@ -1,6 +1,6 @@
 # T498 — The rules / conditions pane opens in one piece
 
-Status: IN REVIEW — b9103af33, 47299ccad, c23affc58; owner 2026-11-09 on build 24: "Not right", no note. The question went to the owner (OWNER-TODO phone-check note, and item 5 of the build-29 check: "A water page opens whole"); owner: OWNER-TODO "which tab, and what loads late?"; then Claude reproduces on the emulator. Since: T716 (open at the lift, Fraser 1.6 s → 0.5 s) and T717 (back without a flash) kept this hold.
+Status: DONE 2026-11-20 (b9103af33, 47299ccad, c23affc58) — the owner's question (build-29 item 5, "A water page opens whole") is ticked (owner ruling 2026-11-20: every check or look is taken as done); T716/T717 since.
 
 Was: IN REVIEW — b9103af33, 47299ccad (+ testbed c23affc58), in build 22 (3d807829d); owner: OWNER-TODO "Phone check with build 22" (a pane opens whole).
 Earlier: IN REVIEW — b9103af33, 47299ccad (+ testbed c23affc58); owner sees it on the next APK. Owner 2026-11-08 (phone, 0.6.9). Part of T495 (smooth map).

@@ -19,7 +19,7 @@ import { useFonts } from "expo-font";
 // WOFF2 from our own /assets/fonts/ (`fonts.web.ts`). `tools/font-imports.test.ts` holds both to the faces drawn.
 import { FONT_SOURCES } from "./fonts";
 import { applyLine, DOWNLOAD_NOTE_WORDS, downloadFraction, failedStartLine, restartsByItself, INSTALL_WORDS, stillLine, MAP_CREDITS, MOBILE_DATA_WORDS, mobileDataDecision, installLine, SETUP_WORDS, setupFraction, setupLine, netBanner, progressWords, rolledBackLine, splashLineFor, startStage, updatedToast, UPDATE_LOG_WORDS, UPDATE_WORDS, versionHeaders,
-         versionLine, now as clockNow } from "@app/core";
+         versionLine, createFeedGate, now as clockNow } from "@app/core";
 import { createNet, shareFetch, createReportOutbox, createUpdateLog, createUpdateService, phoneNetwork, versionedFetch, httpFeed, gaugeHistory, httpInSeason, httpRunTiming, httpSalmonFeed, manifestDate, noteHeld, followSavedItems, openRunTimingStore,
          type Held, type UpdateService, type WaterSource } from "@app/data";
 import { bootSaid, type MobileDataGate, type ReleaseLoader } from "@app/data/release";
@@ -47,7 +47,7 @@ import { trimOnPressure } from "./memoryTrim";
 import { backgroundDownloads, excludeFromBackup } from "./bgDownload";
 import { releaseSplash } from "./splash";
 // (T234) the phone's local notifications (gauge alerts, new data ready) and their background check; none on the web
-import { notifications, onTap } from "./notify";
+import { notifications, onTap, setWakeUpdates } from "./notify";
 
 import { APP_ENV, APP_VERSION, ENDPOINTS, IMAGERY_TILES, MENU_INFO, CRASH_URL, TEST_REPORTS, pickChannel, storedChannel, REPORT_URL, STORE_SHOTS, UPDATE_CHANNEL, UPDATES_LOG } from "./config";
 
@@ -259,14 +259,18 @@ export default function App() {
   // (T231) the gauge index is the update service's to renew: once read it is held until the service offers a newer one
   // (T315) and every station's last week kept on the phone (each station file read, and the publisher's feed-wide
   // newest rows on each feed update): offline, a Conditions chart still draws its measured line, "as of" its age
+  // (T676 item 2) ONE FEED GATE, the release gate's version rule: an index stamped for a newer app is refused by its
+  // reader (the capture answers) and raises the update prompt (`updates.needsApp`). The web is never gated (its code
+  // ships with its data), as for the release
+  const feedGate = useMemo(() => createFeedGate(WEB && process.env.EXPO_PUBLIC_RELEASE_GATE !== "1" ? null : APP_VERSION), []);
   const feed = useMemo(() => httpFeed(FEED, liveFetch(SHARED_FETCH), {
     indexHeld: true, history: gaugeHistory(openGaugeHistoryStore()),
-    online: () => !devOffline.on && connectivity.online() }), []);
+    online: () => !devOffline.on && connectivity.online(), gate: feedGate }), []);
   useEffect(() => { void feed.syncObservations?.(); }, [feed]);
   // T211: the live DFO salmon rules, the last capture kept on the device for offline
-  const salmonFeed = useMemo(() => httpSalmonFeed(ENDPOINTS.dfoFeed, openSalmonFeedStore()), []);
+  const salmonFeed = useMemo(() => httpSalmonFeed(ENDPOINTS.dfoFeed, openSalmonFeedStore(), undefined, { gate: feedGate }), []);
   // T230: the provincial in-season changes and where each applies, the last capture kept for offline; the ids shown
-  const inSeason = useMemo(() => httpInSeason(ENDPOINTS.inSeason, openInSeasonStore()), []);
+  const inSeason = useMemo(() => httpInSeason(ENDPOINTS.inSeason, openInSeasonStore(), undefined, { gate: feedGate }), []);
   const inSeasonSeen = useMemo(() => openInSeasonSeenStore(), []);
   const inSeasonInbox = useMemo(() => openInSeasonInboxStore(), []);
   // T236: the first-run notice (not legal advice), once per device
@@ -287,7 +291,7 @@ export default function App() {
   // a run-timing set published for another atlas (set from the booted release below)
   const drawnHandles = useRef<string | null>(null);
   const runTiming = useMemo(() => httpRunTiming(`${ENDPOINTS.base}/runtiming`, openRunTimingStore(), undefined,
-                                                { handles: () => drawnHandles.current }), []);
+                                                { handles: () => drawnHandles.current, gate: feedGate }), []);
 
   // THE RELEASE: manifest → (native: install / update) → paint, then the Shell. (T231) The phone's background install
   // is the update service's (`deferUpdate`: it holds a large set for Wi-Fi); `generation` re-boots onto a staged update.
@@ -386,6 +390,7 @@ export default function App() {
     // (T251) a store build can lag behind the data: a release asking for a newer app is not applied. The web's code ships
     // with its data, so it is never gated — save `EXPO_PUBLIC_RELEASE_GATE=1`, the browser test's way to see the gate
     appVersion: WEB && process.env.EXPO_PUBLIC_RELEASE_GATE !== "1" ? null : APP_VERSION,
+    feedGate,
     feeds: [
       { id: "gauges", url: ENDPOINTS.checks.gauges,
         apply: (text) => { feed.offer!(JSON.parse(text)); void feed.syncObservations?.(); } },
@@ -425,6 +430,8 @@ export default function App() {
     updates.start();
   }, [booted, updates]);
   useEffect(() => () => updates.stop(), [updates]);
+  // (T739) a push wake-up checks through this service (it starts a newer release's download when the setting allows)
+  useEffect(() => { setWakeUpdates(updates); return () => setWakeUpdates(null); }, [updates]);
   /** Apply a staged update: boot onto it, the set in use on screen until the new one is ready. */
   const applying = useRef<{ before: Held | null; at: number } | null>(null);
   const [applyTarget, setApplyTarget] = useState<string | null>(null);

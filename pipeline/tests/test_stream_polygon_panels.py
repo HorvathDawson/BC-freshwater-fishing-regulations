@@ -73,7 +73,8 @@ def test_a_stream_water_s_polygons_take_the_answer_of_its_line_below():
         "top": (("TOP",), 100.0),
         "foot": (("FOOT",), 100.0),
         "outlet": (("OUT",), 100.0),
-        "narrows": (("OUT",), 100.0),
+        # (T931 C) no "narrows": a line the LAKE item owns takes the lake's answer (`lake_gauge`), never the river's
+        # flow, though the walk still goes along it (`panels.standing_water_lines`)
         # Downstream first: the water leaving a polygon is the water that went through it. `p_up` walks on through
         # the unpanelled `mid` and the polygon below it, all the same water, to the first line that has an answer.
         "p_low": (("FOOT",), 100.0),
@@ -83,6 +84,32 @@ def test_a_stream_water_s_polygons_take_the_answer_of_its_line_below():
     # The SAME panel, not an equal copy: the polygon and its line are one answer.
     assert panels.by_section["p_low"] == panels.by_section["foot"]
     assert panels.by_section["p_up"] == panels.by_section["foot"]
+
+
+def _lake_line():
+    """A line a LAKE item owns, between its lake and a gauged river (a narrows or an outlet stub; since T753 also the
+    nameless loop pieces a lake took from its river, `registry.lake_loops`). The river's gauge walks up onto it.
+
+        lake ─▶ own_line ─▶ river      (`own_line` is the lake's; `river` gauged)
+    """
+    nodes = [poly("lake"), N("own_line", 100), N("river", 100)]
+    edges = [E("lake", "own_line"), E("own_line", "river")]
+    return g(nodes, edges), {"lake": LAKE, "own_line": LAKE, "river": RIVER}, [("R", "river", 40, False)]
+
+
+def test_a_line_of_a_lake_takes_the_lake_s_answer_not_a_flow_panel(monkeypatch):
+    """T931 C (T753 moved nameless lake-loop lines to their lake): a line the lake owns is the lake's, and a lake's answer
+    is `lake_gauge` — no panel. MUTATION: switch `STANDING_WATER_LINES_HAVE_NO_PANEL` off and the line wears the river's
+    panel again (as the seven Sproat / Moat / Tatlatui / Tsintsunko loop pieces did on r-6258ffded676)."""
+    graph, water_of, donors = _lake_line()
+    assert _answers(build(graph, MODEL, donors, water_of=water_of, kind_of=KINDS)) == {"river": (("R",), 100.0)}
+    monkeypatch.setattr(bp, "STANDING_WATER_LINES_HAVE_NO_PANEL", False)
+    assert "own_line" in build(graph, MODEL, donors, water_of=water_of, kind_of=KINDS).by_section
+    # the pass alone: an answered LINE of a lake or a wetland water is listed; a stream's never, nor a polygon (a lake
+    # item's polygon is kept off a panel by the walk's water-kind gate, pinned in test_polygon_walk.py)
+    lines = g([N("a", 100), N("b", 100), N("c", 100), poly("d")], [])
+    assert bp.standing_water_lines(lines, {"a": LAKE, "b": RIVER, "c": "w", "d": LAKE}, {**KINDS, "w": "wetland"},
+                                   {"a": 1, "b": 1, "c": 1, "d": 1}) == ["a", "c"]
 
 
 def test_with_no_line_below_a_polygon_takes_the_line_above():

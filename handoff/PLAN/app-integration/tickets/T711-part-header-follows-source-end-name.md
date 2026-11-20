@@ -1,6 +1,6 @@
 # T711 — Part header text follows the "Source" end name (ruling P55)
 
-Status: IN REVIEW (code + tests done, a2727a3b0; in the live release r-6258ffded676; the Kanaka Creek shots taken on staging 2026-11-20, `T711-shots/`. owner: OWNER-TODO "Picks taken: T594, T598, T610 closed; T711" ("Source" in both, 11-20); left (Claude): main chat review + merge; ships with the next data release).
+Status: IN PROGRESS — a2727a3b0; part header follows the Source end name; Kanaka shots approved 11-20; left (Claude): ships with the next data release. (Earlier note: IN REVIEW (code + tests done, a2727a3b0; in the live release r-6258ffded676; the Kanaka Creek shots taken on staging 2026-11-20, `T711-shots/`. owner: OWNER-TODO "Picks taken: T594, T598, T610 closed; T711" ("Source" in both, 11-20); left (Claude): main chat review + merge; ships with the next data release).)
 
 Source: owner 2026-11-13, boundary-name review: "Source" stands for Kanaka, Mat, Coquitlam and the other tops among the 62 changed by P55. Bug: the part header text still says "up to a lake outlet" while the name says "→ Source".
 ## Work

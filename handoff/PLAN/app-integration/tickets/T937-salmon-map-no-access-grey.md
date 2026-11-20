@@ -1,6 +1,6 @@
 # T937 — Salmon map: no-access water drawn grey like Trout, with its key entry
 
-Status: OPEN.
+Status: DONE — 81bb25ee5, b9ff4163a, 627303b49, 802f9a5ef; Salmon draws no-access water like Trout; merged via a4ced3eff; owner looks answered 11-20.
 
 Source: owner 2026-11-20 ~01:30 (main chat), verbatim: "Also salmon should have the no access land set to grey like trout
 with proper item in legend. Use same look as trout".

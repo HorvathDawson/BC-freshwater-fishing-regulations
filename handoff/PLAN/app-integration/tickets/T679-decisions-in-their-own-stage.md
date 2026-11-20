@@ -150,3 +150,52 @@ stops the run); D5 `build.DFO_JOINING_WATER_STAYS_OUT` (7 DFO places keep the jo
 `place.nodes_at_cuts` (bundle): 10 of the owner's 29 move, 17 lake-outlet cuts and 11 cuts on another blue line keep the
 projection, listed. Left (Claude): D1/D3/gauges show at the next deliver after promote; the 11 other-line gauge cuts and
 the Dewdney side effect go to the owner.
+
+Owner 2026-11-20 09:59 (dialog), #8: "Ranking's rule, list first (Recommended)": along the water, a lake on the way ends it; the list of gauges that move goes to the owner before it ships.
+Owner 2026-11-20 10:45 (dialog), after the list (`T679-shots/own-gauge-moves.csv`) was sent: **"Ship it"**. `packed.SHIP_OWN_GAUGE_FLAG` is ON (merge of lane/l8-shrink); `flow-own/1` ships with the next data release, which rebuilds the bundle for `section_own`.
+Owner 2026-11-20 11:02 (dialog), after the blocker measure (`T679-shots/own-gauge-blockers.csv`: 448 of 1,060 moves behind unnamed ponds of no water): **"Named lakes only (Recommended)"**: `own_distances` walks through an unnamed pond that belongs to no registry water, at any size; a named lake still ends it. The lead-gauge ranking reads the same walk, so it changes with it. Ships with #8.
+
+## Plan step 5, lane L8 (2026-11-20, `lane/l8-shrink`)
+- **#17 BUILT.** The export joins a rule-set group's runs once (`export.read.group_runs`, the water field `grp_runs`,
+  only where a group has 2+ parts: 200 waters on the live bundle); the answers read it (`display.builders._by_grp`
+  refuses a 2+-part group with none, never re-joins). Proof: export + answers on the live bundle with the code before and
+  after (via `scripts/heavy.sh`): `ui-rules-answers.json` BYTE-IDENTICAL; the export differs only by `grp_runs` and its
+  field-dictionary line. Measured alternative, not taken: composing each group's runs from its sections
+  (`compose_runs` over the union) equals the join in 244 of 246 groups; the Shuswap (gnis:25478, a branch run's order)
+  and gnis:3273 (three zero-length side-channel branch runs dropped) would change — a visible change for a maint item.
+- **(superseded below: #8 was built, then shipped on the owner's 10:45 "Ship it")** **#8 NOT BUILT — owner question (OWNER-TODO 2026-11-20 09:52; answered 09:59 above).** The app's "on this water" (`gaugeSide`: the gauge's
+  water is this water or a `water_continue` of it) and the ranking's own (`panels.own_distances`: the same, walked along
+  the water, a lake ends it) can differ; which one to keep is what the angler sees. Measured on the live bundle: the
+  app's rule over 176,367 (section, panel member) pairs calls 12,306 own, and in 12 of 1,587 panels it differs between
+  the panel's sections, so the flag ships PER PAINT SECTION (a bitmask over the panel's members, as `flow-small`), not
+  per member; it needs a release format (new file or flow-small/2), its app reader beside `gaugeSide` for older releases,
+  and the atlas graph to measure which gauges move.
+- **#16 NOT BUILT.** One flag means a paint format (paint/6: the union share `section_no_access` or a mostly-inside bit,
+  instead of the app summing per-area rows) with its app reader; `access.summed_rule_disagrees` already refuses any
+  bundle where the two disagree, so nothing on screen differs today (maint). Left for the next paint format change.
+
+## #8 and #16 built behind switches (2026-11-20 10:22, lane L8, after the owner's 09:59 / 10:00 answers)
+- **#8 BUILT; SHIPS (owner 10:45 "Ship it"; switch ON).** The rule is the ranking's: along the water, across a
+  `water_continue`, and a lake on the way ends it. `panels.build` keeps each section's own stations (`Panels.own`, from
+  `own_distances`), and the bundle writes `section_own (sid, bits)`: bit i is panel_member `ord` i. The release file
+  `flow-own/1` (`paint.encode_own`, one varint per paint section, the same layout as flow-small) is written only when
+  `packed.SHIP_OWN_GAUGE_FLAG` is on, and it is OFF. App 0.8.4 reads it: `loader.flowOwn`, then `gaugeWaters` gives
+  `own`, then core `gaugeSides(..., own)`. Where a release carries the flag, it is the answer. Without it, the old rule
+  decides, as before. `flow-own` is optional in the contract, so an older app ignores it.
+- **The list** (`app-integration/T679-shots/own-gauge-moves.csv`: water, gauge, was → now, sections). Made by running
+  this branch's gauge pass on the live atlas, read-only, via heavy.sh. Its panels equal the live bundle's exactly.
+  - Over 176,367 (section, panel member) pairs, the heading's rule says own 12,306 times and the ranking's 11,246.
+  - 1,060 pairs move, all of them own → donor. None moves the other way.
+  - That is 155 rows: 155 gauges on 104 waters.
+  - Biggest: Halfway River (07FA006, 59 sections; 07FA003, 53), Stikine at Telegraph Creek (08CE001, 44), Lillooet at
+    Tenas Narrows (08MG027, 35), Columbia at Donald (08NB005, 34) and at Nicholson (08NA002, 31), Graham (07FA005, 26),
+    Pitt near Port Coquitlam (08MH035, 25), Bowron (08KD007, 24), Moberly (07FB008, 22).
+  - The owner OK'd the list (10:45): `SHIP_OWN_GAUGE_FLAG` is ON; the next bundle rebuild writes `section_own`.
+- **#16 BUILT, on the T686 switch** (owner 10:00: every left-over on this release). paint/6 is paint/5 plus one column:
+  the sections MOSTLY inside no-access land, by the bundle's union share (`section_no_access.permille` > 500).
+  - Core `noPublicAccess` reads it where carried (`SectionAccess.mostly`); paint/4–5 still sum the rows.
+  - It is written when `packed.SHIP_PACKED_FORMATS` is on, so it switches on with the packed formats. Off, paint/5 is
+    byte-identical to live.
+  - Measured ON, on the live bundle: 3,597 sections, the same set the summed rows give; +282 B gz.
+
+Owner 2026-11-20 11:11 (dialog): #1 and #6 **"Turn both on (Recommended)"** in the wave-4 rebuild, diff first (stop if anything unexpected moves). #12 not asked: lane L7's default stands (lists stay in code).

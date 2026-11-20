@@ -161,7 +161,7 @@ export function privacyBody(site: Site, asOf: string): string {
     `It has no accounts, no ads and no tracking. This page says what the app and this website do with your information.</p>` +
     `<h2>The short version</h2><ul>` +
     `<li>Your photos and the spots you save stay on your device, and the app never sends me your GPS position. Two things that can show roughly where you were do leave it, both explained below: a saved spot’s place, rounded to about 1 km, goes to a weather service, and a problem report you choose to send includes the middle of the map you were looking at.</li>` +
-    `<li>The app sends me two things: a problem report, only when you press Send, and, unless you switch it off, a short error report when the app itself fails.</li>` +
+    `<li>The app sends me three things: a problem report, only when you press Send; unless you switch it off, a short error report when the app itself fails; and, on an iPhone with notifications on, a push token so I can tell the app to check for new data.</li>` +
     `<li>I do not sell or share your information, and I use no advertising. The website counts visits with Cloudflare Web Analytics, which sets no cookies and records no identifier; the phone app does not use it.</li></ul>` +
     `<h2>Location</h2><p>If you allow it, the app uses your location while it is open, to show where you are on the map, ` +
     `to show what is near you, and to pin a spot where you are standing. It is used on your device and is not sent to me. Two things described below can show roughly where you were: the weather request for a spot you pinned where you stood, and the map centre in a problem report you choose to send. ` +
@@ -220,10 +220,20 @@ export function privacyBody(site: Site, asOf: string): string {
     `except one that stops the app, which is kept on your device and sent the next time the app starts (and deleted from your device if you have switched crash reports off). ` +
     `I keep one stored record per kind of error, with a count, the app versions and the install ids it was seen in; I do not store your IP address, ` +
     `and to limit abuse I keep only a salted one-way hash of it for a day’s counting. Error records are deleted automatically 90 days after the error was last seen.</p>` +
-    `<h2>This website</h2><p>The website serves plain pages. It sets no cookies and runs no analytics, advertising or tracking scripts. ` +
+    // (T739) the push token: the owner's 2026-11-15 line ("Yes to both"), then his 2026-11-20 09:39 pick "Claude's edit":
+    // iPhone / Apple only (no Android push), "I/my", and what the server keeps said whole. Change the app, change this.
+    `<h2>Push token</h2><p>On an iPhone, when notifications are on and at least one is set (a gauge alert, “New regulations data” ` +
+    `or “New app version”), the app sends my server a push token for this phone: an address Apple issues so a message can reach the app. ` +
+    `With it I keep only whether it is for Apple’s test or live push service and when it was registered. ` +
+    `I use it only to send, through Apple’s push service, a silent signal telling the app to check for new data; ` +
+    `the signal carries no words, no waters and no location. I do not receive your alerts, the waters you watch or where you are. ` +
+    `I do not store your IP address with it: to limit abuse I keep only a salted one-way hash of it for a day’s counting. ` +
+    `The token is deleted when you turn notifications off, or when Apple tells me it no longer works. ` +
+    `It is not linked to you or to an account and is not backed up.</p>` +
+    `<h2>This website</h2><p>The website serves plain pages. It sets no cookies and runs no advertising or tracking scripts; the only script is the visit counter described above. ` +
     `Cloudflare, which hosts it, sees ordinary request information such as your IP address.</p>` +
     `<h2>No selling, no sharing</h2><p>I do not sell your information, and I do not share it for advertising. ` +
-    `The services named above (Cloudflare, Open-Meteo, Esri) receive only the requests described here.</p>` +
+    `The services named above (Cloudflare, Open-Meteo, Esri, and Apple for push only) receive only the requests described here.</p>` +
     `<h2>Children</h2><p>The app is not aimed at children under 13 and does not knowingly collect their information. ` +
     `It asks for none beyond the optional report.</p>` +
     `<h2>Changes</h2><p>If this policy changes, this page will carry the new text and a new effective date.</p>` +

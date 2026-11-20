@@ -1,7 +1,6 @@
 # T927 — Search finds the book's boundary places (where a water's rules change)
 
-Status: IN REVIEW — owner: OWNER-TODO "T927 = every placed cut searchable" (owner looks at the pictures, then main chat
-review + merge; ships with the next data release: a new core table, see "Lane 2026-11-20").
+Status: IN PROGRESS — 8ad09bf33, 9f287e8d3, 65694b0b4, 986c6e190, 244d086e3, af0bb8a04; merged via c6c46d7f9; owner looks approved 11-20; left (Claude): ships with the next data release (new core table cut_place in the bundle). (Earlier note: IN REVIEW — owner: OWNER-TODO "T927 = every placed cut searchable" (owner looks at the pictures, then main chat review + merge; ships with the next data release: a new core table, see "Lane 2026-11-20").)
 
 Source: owner 2026-11-19 (main chat), verbatim: "we should make the search know where all the cuts are so a user could
 search a cut location from book and find location. Thoughts?" Measured the same evening (read-only, scratchpad

@@ -97,7 +97,12 @@ def test_province_wide_no_part_ends_at_a_lake_or_a_count(request):
         bad += [f"{iid} said twice: {s}" for i, s in enumerate(said) if s in said[:i]]
         if iid == "gnis:11318":
             assert "Cliff Park Falls → Source" in said, said
-    assert waters > 500
+    # not vacuous: (T931 B) 482 waters of several parts on the live export r-6258ffded676 (over 500 on the 11-13 side
+    # build). The drop is 93a481b71 (2026-11-15, `tributaries.A_DEAD_END_GOES_WITH_ITS_WATER`, AGENTS 63), measured on
+    # the bundles before / after the 11-15 rebuild (reach 4f1bdab9 -> 6ca9a300): 86 waters left the several-parts set,
+    # 83 of them because their side part (a dead end) now carries the walk's rules and joined the main part, 2 re-cut,
+    # 1 gone; 7 joined. A floor just under today's count, not a count; the checks below are what this test pins
+    assert waters > 475
     assert bad == []
     # the last resort: used by NO end but the open one, which must still be there (resolve it, then empty `OPEN`)
     assert {i: len(v) for i, v in last_resort.items()} == {i: 1 for i in OPEN}, last_resort
