@@ -142,7 +142,8 @@ describe("the native style", () => {
           ...[[4, 1.5], [11, 1.5], [16, 2]].flatMap(([z, k]) => [z, (tk["width.land.edge.imagery"] as number) * k!])]);
         expect([c["line-color"], c["line-opacity"]], `${theme} ${casing} satellite`).toEqual([tk["color.imagery.casing"], tk["opacity.land.casing.imagery"]]);
         // the casing's colour is one fixed light value in every theme (the photograph does not follow the theme)
-        expect(tk["color.imagery.casing"]).toBe("#FFD9B0");
+        expect(tk["color.imagery.casing"]).toBe(resolveTheme("light")["color.imagery.casing"]);
+        expect(String(tk["color.imagery.casing"]).startsWith("@")).toBe(false);
         // and it sits under the edge
         const ids = layer(sat, edge) && sat.layers.map((l) => l.id);
         expect(ids.indexOf(casing)).toBeLessThan(ids.indexOf(edge));
