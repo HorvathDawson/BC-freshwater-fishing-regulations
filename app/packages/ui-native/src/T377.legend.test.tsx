@@ -67,7 +67,7 @@ describe("(T896) the regulations key is always shown, with no fold", () => {
     for (const mode of ["standard", "salmon"] as const) {
       show(col(mode, null));
       expect(screen.queryByTestId("legend-fold")).toBeNull();
-      expect(screen.getAllByTestId("legend-entry")).toHaveLength(mode === "standard" ? 7 : 6);
+      expect(screen.getAllByTestId("legend-entry")).toHaveLength(7);
       cleanup();
     }
   });
@@ -93,11 +93,11 @@ describe("(T896) the key is visible at a phone's width", () => {
   });
 });
 
-describe("(T396, T896) both modes' bars are the same two rows on a phone, nothing reserved", () => {
-  it("Trout and Salmon: two rows each, no head or reserve; Salmon's checked date ends its last row", () => {
+describe("(T396, T896, T937) Trout's bar is two rows on a phone, Salmon's three (No access joined its key: 390 dp holds no more), nothing reserved", () => {
+  it("no head or reserve; Salmon's checked date ends its last row", () => {
     for (const mode of ["standard", "salmon"] as const) {
       show(col(mode, null));
-      expect(screen.getAllByTestId("legend-row"), mode).toHaveLength(2);
+      expect(screen.getAllByTestId("legend-row"), mode).toHaveLength(mode === "standard" ? 2 : 3);
       expect(screen.queryByTestId("legend-fishery-head"), mode).toBeNull();
       expect(screen.queryByTestId("legend-reserve"), mode).toBeNull();
       const note = screen.queryByTestId("salmon-legend-source");
@@ -105,7 +105,7 @@ describe("(T396, T896) both modes' bars are the same two rows on a phone, nothin
       else {
         expect(note!.textContent).toBe("Checked Oct 29");
         expect(note!.getAttribute("aria-label")).toBe("DFO rules checked Oct 29");
-        expect(screen.getAllByTestId("legend-row")[1]!.contains(note)).toBe(true);
+        expect(screen.getAllByTestId("legend-row")[2]!.contains(note)).toBe(true);
       }
       cleanup();
     }

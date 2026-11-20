@@ -5,7 +5,7 @@
  */
 import type { GearMark } from "@app/core";
 import { MAP_STYLE, NO_VALUES, STYLE_META, colorExpression, finfishOver, profileChannel, profileDay, salmonLabelIn,
-         type ChannelValues, type Tokens } from "./style";
+         type ChannelValues, type ColorMode, type Tokens } from "./style";
 
 /**
  * (T796 A6) `shown` held off the sections DFO's finfish closures paint (`finfishOver`: closed, or isolated away) on a
@@ -136,13 +136,29 @@ export function nobaselineOpacity(mode: string): unknown {
  */
 export const NOACCESS_LAYER = "stream-noaccess";
 
+/**
+ * (T937) THE MODE WHOSE `no_access` LABELS A MODE DRAWS THE DOTS BY: its own where it has a `no_access` member (Standard's
+ * profile mode, a categorical one), else the one its `accessFrom` names in the style (the Salmon mode: no public access
+ * is an ACCESS answer, not a salmon one, so the status channel's own labels speak for it — one look, no second test).
+ */
+function accessMode(layerId: string, mode: string): ColorMode | null {
+  const modes = STYLE_META.colorModes[layerId];
+  const m = modes?.[mode];
+  if (!m) return null;
+  const from = m.scale === "profile" && m.accessFrom ? modes?.[m.accessFrom] : undefined;
+  const a = "categories" in m && m.categories["no_access"] ? m : from;
+  return a && "categories" in a && a.categories["no_access"] ? a : null;
+}
+
 /** Where `mode` paints a stream section `no_access`, as a boolean expression; null where the mode never does. */
 export function noAccessShown(layerId: string, mode: string, values: ChannelValues | null = NO_VALUES): unknown | null {
-  const m = STYLE_META.colorModes[layerId]?.[mode];
-  if (!m || !("categories" in m) || !m.categories["no_access"]) return null;
+  const m = accessMode(layerId, mode);
+  if (!m) return null;
   if (m.scale === "profile") {
     const labels = (values ?? NO_VALUES).status?.no_access ?? [];
-    return labels.length ? offFinfish(m, values, ["in", ["coalesce", ["feature-state", m.property], ""], ["literal", [...labels]]]) : null;
+    const shown = ["in", ["coalesce", ["feature-state", m.property], ""], ["literal", [...labels]]];
+    // a DFO finfish closure holds the dots off on Standard; the Salmon mode's own day answers for it (closed there already)
+    return labels.length ? (STYLE_META.colorModes[layerId]?.[mode] === m ? offFinfish(m, values, shown) : shown) : null;
   }
   if (m.scale === "categorical") return ["==", ["feature-state", m.property], "no_access"];
   return null;
@@ -286,11 +302,14 @@ export function salmonCasingPaint(mode: string, tokens: Tokens, values: ChannelV
                                   streamWidth?: unknown): Record<string, unknown> {
   const px = Number(tokens["width.salmon.casing"] ?? 0);
   const open = (values ?? NO_VALUES).salmon?.open ?? [];
+  const noaccess = noAccessShown("stream", mode, values);
   const w = streamWidth ?? ["interpolate", ["linear"], ["zoom"], 6, 1.2, 10, 2, 14, 3.2];
   return {
     "line-color": tokens["color.salmon.casing"],
     "line-width": withinZoomCurve(w, (v) => ["+", v, 2 * px]),
-    "line-opacity": mode === "salmon" && px > 0 && open.length ? ["case", salmonLabelIn(open), 1, 0] : 0,
+    // (T937) never round a no-access section: it is the dotted grey line, not a kept water
+    "line-opacity": mode === "salmon" && px > 0 && open.length
+      ? ["case", salmonLabelIn(open), noaccess === null ? 1 : ["case", noaccess, 0, 1], 0] : 0,
   };
 }
 
@@ -536,7 +555,7 @@ export function markShownIn(mark: ModalMark, mode: string, layerId: "stream" | "
   const cats = m && "categories" in m ? m.categories : {};
   switch (mark) {
     case "nobaseline": return mode === "standing";
-    case "noaccess": return cats["no_access"] !== undefined && (m?.scale === "profile" || m?.scale === "categorical");
+    case "noaccess": return accessMode(layerId, mode) !== null;
     case "gear": return GEAR_MODES.includes(mode) && m?.scale === "profile";
     case "closed": return cats["closed"] !== undefined && (m?.scale === "profile" || m?.scale === "categorical");
     case "runs": return mode === "runs";

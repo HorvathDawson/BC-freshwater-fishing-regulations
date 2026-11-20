@@ -44,7 +44,9 @@ export type ColorMode =
   | { label: string; scale: "profile"; property: string; enum: string;
       categories: Record<string, TokenRef>; missing: TokenRef;
       /** Whose values it reads: provider `salmon` (T211) is the salmon channel's day, every other the status's. */
-      data?: { provider: string; field?: string } };
+      data?: { provider: string; field?: string };
+      /** (T937) the mode of this layer whose `no_access` labels also draw the no-access dots here (Salmon: Standard's). */
+      accessFrom?: string };
 
 /** (T211) THE CHANNEL A PROFILE MODE READS ITS DAY FROM: the Salmon colouring's own, else the day's status. */
 type ProfileChannel = "status" | "salmon";

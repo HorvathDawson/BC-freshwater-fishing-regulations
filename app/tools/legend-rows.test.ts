@@ -83,7 +83,7 @@ describe("(T396) the regulations key: two rows in both modes, Trout & more fitti
     for (const mode of ["standard", "salmon"] as const) {
       render(h(MapLegend, { col: col(mode), conditions: false, palette: LIGHT, theme: "light", mapDay: null }));
       expect(screen.getAllByTestId("legend-row").length, mode).toBe(2);
-      expect(screen.getAllByTestId("legend-entry").length, mode).toBe(mode === "standard" ? 7 : 6);
+      expect(screen.getAllByTestId("legend-entry").length, mode).toBe(7);
       cleanup();
     }
   });
@@ -98,10 +98,10 @@ describe("(T396) the regulations key: two rows in both modes, Trout & more fitti
 });
 
 describe("(T759) the Salmon key with the issue stripe's entry added", () => {
-  it("still two rows, every row fits 390 dp in Archivo at the legend size, the new entry in the second", () => {
+  it("(T937) three rows now (No access joined the key), every row fits 390 dp in Archivo at the legend size, the new entry in the third", () => {
     render(h(MapLegend, { col: col("salmon", { sections: new Set([1]) }), conditions: false, palette: LIGHT, theme: "light", mapDay: null }));
-    expect(screen.getAllByTestId("legend-row").length).toBe(2);
-    expect(screen.getAllByTestId("legend-entry").length).toBe(7);
+    expect(screen.getAllByTestId("legend-row").length).toBe(3);
+    expect(screen.getAllByTestId("legend-entry").length).toBe(8);
     for (const w of rowWidths()) expect(w).toBeLessThanOrEqual(ROOM);
   });
 });

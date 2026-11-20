@@ -121,7 +121,7 @@ describe("(T848) what the adapter hands the map", () => {
 
   it("(fix 2) a mark its mode never shows is not drawn at all; one it can show is", () => {
     const want = (mode: string) => ({
-      [NOBASELINE_LAYER]: mode === "standing", [NOACCESS_LAYER]: mode === "profile",
+      [NOBASELINE_LAYER]: mode === "standing", [NOACCESS_LAYER]: mode === "profile" || mode === "salmon",
       [GEAR_LAYERS.stream.fly]: mode === "profile" || mode === "salmon", [RUNS_PASS_LAYER]: mode === "runs",
       [CLOSED_CUE_LAYER]: mode === "profile" || mode === "salmon", [ISSUE_LAYERS.stripe]: mode === "salmon",
       [SALMON_CASING_LAYER]: mode === "salmon" });

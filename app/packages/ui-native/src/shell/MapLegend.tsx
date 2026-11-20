@@ -7,7 +7,7 @@
  * colouring. Plain water needs no key. Whether it is shown is the Shell's call; what it says is here.
  */
 import { CHANGE_LEGEND, changeMarkWords, FLOW_LEGEND, OTHER_QUANTITY_WORDS, TEMP_LEGEND, unprovenLine,
-         WATER_STATUS_LINE, WATER_STATUSES, waterLegend, salmonLegend, GEAR_LEGEND,
+         WATER_STATUS_LINE, WATER_STATUSES, type WaterStatus, waterLegend, salmonLegend, GEAR_LEGEND,
          RUN_WORDS, salmonChecked, slotsFor, MAP_KEY, closedKey, waterKeyWords, OBSTACLE_ICON_KINDS }
   from "@app/core";
 import { closedCueColour, gaugeOnlyColours, issueStripeColours, gearEdgeColour, notFishingColours, runStateColour, salmonCasingColour, salmonStatusColour } from "@app/map/colours";
@@ -66,11 +66,13 @@ export function MapLegend({ col, conditions, palette, theme, mapDay }: {
   const tap = (cls: string) => (col.statusOk
     ? { onPress: () => col.isolate(cls), alone: col.isolated === cls, faded: col.isolated != null && col.isolated !== cls }
     : {});
-  const statusRows = WATER_STATUSES.map((s) => (
+  // (T937) one entry per status, No access too: Salmon's key wears that very entry (not tappable there: no salmon class)
+  const statusRow = (s: WaterStatus, tapped: boolean) => (
     <LegendCount key={s} palette={palette} colour={palette.waterStatus[s]} tight
                  line dotted={WATER_STATUS_LINE[s] === "dotted"} striped={s === "closed" ? closedCueColour(theme) : undefined}
-                 label={s === "closed" ? closedKey(mapDay) : MAP_KEY.status[s]} {...tap(s)} />
-  ));
+                 label={s === "closed" ? closedKey(mapDay) : MAP_KEY.status[s]} {...(tapped ? tap(s) : {})} />
+  );
+  const statusRows = WATER_STATUSES.map((s) => statusRow(s, true));
   const salmonRows = salmonLegend().map((r) => (
     <LegendCount key={r.status} palette={palette} colour={salmonStatusColour(theme, r.status)} line tight
                  striped={r.status === "closed" ? closedCueColour(theme) : undefined}
@@ -139,8 +141,11 @@ export function MapLegend({ col, conditions, palette, theme, mapDay }: {
       ) : col.regsLayer === "salmon" ? (
         // (T211) DFO's salmon: the salmon key in the salmon colours, and whose rules they are. The switch is under the
         // Layers button and the day in the map's corner (T213)
-        // (T396) two rows, as Trout & more's: three statuses, then Check DFO (T882: the owner's pick) with the gear marks
-        <LegendRows rows={[salmonRows.slice(0, 3), [...salmonRows.slice(3), ...gearRows, ...issueRow, ...(checkedNote ? [checkedNote] : [])]]} />
+        // (T396) two rows as Trout & more's where they fit: the three classes, then Check DFO (T882) and No access (T937: Standard's own
+        // entry, the same words and swatch) with the gear marks. T937: with the issue entry or the checked date that is more than 390 dp
+        // (Check DFO + No access + both gear marks fill a row), so they take a third row, never wrapped by chance
+        <LegendRows rows={[salmonRows.slice(0, 3), [...salmonRows.slice(3), statusRow("no_access", false), ...gearRows],
+                           [...issueRow, ...(checkedNote ? [checkedNote] : [])]].filter((r) => r.length > 0)} />
       ) : (
         // The three statuses, in the words and colours every surface uses (@app/core
         // WATER_STATUS through the map's theme) — for the day shown. (T213) Then the gear marks drawn ON them: an ink
