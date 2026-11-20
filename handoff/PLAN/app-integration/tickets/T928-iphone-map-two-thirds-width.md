@@ -1,6 +1,6 @@
 # T928 — iPhone: the main map fills only 2/3 of the screen after tab changes
 
-Status: IN REVIEW — owner: OWNER-TODO "T928/T929 pictures", then main chat review + merge (lane/t929-t928: 6bf58c8cf). Sideways shift not reproduced; drag fixed; a part-drawn browse map found (below).
+Status: IN REVIEW — owner: OWNER-TODO "T928/T929 pictures", then main chat review + merge (lane/t929-t928: c71429593, 54b256e06). Sideways shift not reproduced; drag fixed; the part-drawn browse map found is T938.
 
 Source: a tester on iPhone (TestFlight 0.8.3) relayed by the owner 2026-11-19 (`T928-shots/tester-2026-11-19-iphone.png`,
 middle shot: the map drawn in the right two-thirds, a dark empty strip on the left, the day bar and legend at full width).
@@ -30,7 +30,7 @@ offset in that subtree is the edge-back drag (`EdgeBack.tsx:23-57`, native drive
 animated value not settled back to 0). Next: read the drag's value back on re-render / reset it on focus; try an
 interrupted swipe on a real device. Report a problem (More) renders in that same layer: likely shifted but reachable.
 
-## Lane t929-t928, 2026-11-20 (6bf58c8cf)
+## Lane t929-t928, 2026-11-20 (c71429593; review follow-up 54b256e06)
 **The sideways shift: NOT reproduced** (iPhone 17e simulator, 390 pt, 0.8.3 build at 1f989bb48): a slow edge swipe on a
 water page with the app sent to the background half-way (Settings launched over it at 3.5 s of a 4 s swipe) went back
 normally; nothing stood sideways. **Fixed anyway in `EdgeBack.tsx`** (the only sideways offset in that layer): the
@@ -46,4 +46,10 @@ in its top ~60 %, grey below, through pans and a Conditions → Map tab change (
 after-search-water-back.png`, 0.8.3 and this lane's build alike). Background/foreground not needed. Likely the native
 map resized while kept hidden under the page (T717, `opacity: 0`) and its drawable not following. Not fixed here: it
 needs its own ticket (the main chat's call). Whether it is the tester's case (theirs is sideways, with the day bar moved
-too) is not known.
+too) is not known. Ticketed as T938.
+
+**Review follow-up (54b256e06):** the 1.5 s "finger gone quiet" rule sent the screen home under a finger held still (a
+feed render mid-hold jumped it to 0; a release there went back with the view at 0): dropped. A lost end is covered by
+AppState instead (background / active puts it home; the system ends every touch then). A render puts it home only with
+no finger down AND no spring running, so a cancelled drag's spring home is let finish. Tests: held still (not sent
+home, its release goes back), background/active (home), a render mid-spring (not cut); all three fail on c71429593.
