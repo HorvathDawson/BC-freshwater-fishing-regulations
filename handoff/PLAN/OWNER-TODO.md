@@ -16,8 +16,8 @@ selector); the chart's gauge picker is a bordered "N gauges ▾" field. Pictures
 checks and an independent review. **T919 (c), ANSWERED 2026-11-19 20:31:** the map's 777 font/sprite files (13.8 MB,
 35–160 s on first install) become one packed download through the system downloader (owner: "One packed download").
 
-**T926 (4), ANSWERED 2026-11-19 20:31:** First Nations names come from the BC Geographical Names service (official and
-alternate names) as search names only; shown names unchanged (owner: "Use BC Geographical Names").
+**T926 (4), ANSWERED 2026-11-19 20:33:** no outside names source. The owner withdrew the BC Geographical Names pick: the
+curated name-variants file already has the variants ("It sound like it has them all already"); its 31 misses get fixed.
 
 ## 2026-11-19 afternoon: 0.8.3 on staging, then 0.8.3 to production (0.8.2 production skipped)
 

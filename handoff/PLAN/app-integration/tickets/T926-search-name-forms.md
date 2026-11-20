@@ -26,8 +26,13 @@ waters + 2,917 aliases, ~52k queries, found = in the top 40):
 ## Acceptance
 The probe rerun: every miss class above found (except 4 until the owner picks a source); `searchIndex.test.ts` pins one
 case per class; no ranking change for exact names (the probe's 22,699 exact queries unchanged).
-Depends: none. Size: M. Owner: answered 2026-11-19 (4: BC Geographical Names). All of 1-5 to build.
+Depends: none. Size: M. Owner: answered 2026-11-19 (4 dropped, see below). Build 1, 2, 3, 5 and the 31 curated misses.
 
 ## Owner 2026-11-19 20:31 (main chat, question batch)
 (4) Picked "Use BC Geographical Names (Recommended)": official and alternate names from the BC Geographical Names
 service become search names only; the names shown on the map and cards stay as they are.
+## Owner 2026-11-19 20:33 (main chat): (4) withdrawn
+Verbatim: "We have all the name variants in the file / We want to add those / I made a mistake there", then, asked which
+file (curated `name_variants.json`: 7,742 / 7,773 found, no First Nations names except Tŝilhqox Biny in a note):
+"It sound like it has them all already". So: no BC Geographical Names fetch; (4) is dropped. Add instead: make the 31
+curated variants search misses into finds. "Sts'ailes", "Stó:lō" etc. still find nothing after this (no source holds them).
