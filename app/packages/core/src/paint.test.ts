@@ -1,6 +1,7 @@
 /** core paint decoder = the pipeline's (pipeline/deliver/release/paint.py), on bytes the pipeline wrote. */
 import { describe, expect, it } from "vitest";
-import { decodeAccessFile, decodeFlowArea, decodeFlowSmall, decodePaint, PaintError } from "./paint";
+import { decodeAccessFile, decodeFlowArea, decodeFlowOwn, decodeFlowSmall, decodePaint, PaintError } from "./paint";
+import { noPublicAccess } from "./access";
 import { PAINT_FIXTURE as F } from "./paint.fixture";
 
 const b64 = (s: string) => Uint8Array.from(atob(s), (c) => c.charCodeAt(0));
@@ -45,7 +46,7 @@ describe("decodePaint", () => {
   it("refuses a paint/3 file, which carries one record length for both quantities", () => {
     const old = b64(F.paint).slice();
     old[4] = 3;
-    expect(() => decodePaint(old, F.handles)).toThrow(new PaintError("paint: version 3 is not 4 or 5"));
+    expect(() => decodePaint(old, F.handles)).toThrow(new PaintError("paint: version 3 is not 4, 5 or 6"));
   });
   it("(T54) decodes the no-access half exactly as the pipeline does, and hands it to the status it carries", () => {
     const rows = (a: ReturnType<typeof decodeAccessFile>, sids: number[], areas: string[][]) =>
@@ -68,5 +69,33 @@ describe("decodePaint", () => {
   });
   it("refuses a truncated file", () => {
     expect(() => decodePaint(b64(F.paint).subarray(0, 40), F.handles)).toThrow();
+  });
+});
+
+describe("(T679 #16) paint/6: the one access flag, Python's union share", () => {
+  const p5 = decodePaint(b64(F.paint), F.handles, F.reach);
+  const p6 = decodePaint(b64(F.paint6), F.handles, F.reach);
+  it("is paint/5 plus the sections mostly inside no-access land, read as Python wrote them", () => {
+    expect(p6.members).toEqual(p5.members);
+    expect(p6.basins).toEqual(p5.basins);
+    expect([3, 4, 300].map((s) => p6.access.of(s))).toEqual([3, 4, 300].map((s) => p5.access.of(s)));
+    expect([0, 3, 4, 5, 6, 300, 301].filter((s) => noPublicAccess(p6.access, s))).toEqual(F.mostly);
+  });
+  it("the flag decides, not the summed rows (paint/5 sums them)", () => {
+    expect(p5.access.mostly).toBeUndefined();
+    expect(p6.access.mostly!(4)).toBe(true);
+    // mutation: a section the rows put mostly inside but the flag does not is NOT drawn as no access
+    expect(noPublicAccess({ of: p6.access.of, mostly: () => false }, 3)).toBe(false);
+    expect(noPublicAccess({ of: p6.access.of }, 3)).toBe(true);
+  });
+  it("(T679 #8) reads flow-own as the pipeline wrote it, and refuses another paint's", () => {
+    const p = decodePaint(b64(F.paint), F.handles, F.reach);
+    expect(Array.from(decodeFlowOwn(b64(F.own), p.sectionCount))).toEqual(F.owns);
+    expect(() => decodeFlowOwn(b64(F.own), p.sectionCount - 1)).toThrow(PaintError);
+    expect(() => decodeFlowOwn(b64(F.small), p.sectionCount)).toThrow(/not a flow-own/);
+  });
+  it("refuses a paint/6 whose flag column is cut", () => {
+    const b = b64(F.paint6);
+    expect(() => decodePaint(b.subarray(0, b.length - 1), F.handles, F.reach)).toThrow();
   });
 });

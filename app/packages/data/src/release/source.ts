@@ -689,7 +689,16 @@ export function makeReleaseSource(loader: ReleaseLoader, opts: SourceOptions = {
       const items = ords.length ? await chunked(ords, (c) => all(CROSS.ITEMS_FOR_ORDS(c.length), ...c)) : [];
       const gauges = stations.length
         ? await chunked([...stations], (c) => all(CROSS.GAUGE_WATERS(c.length), ...c)) : [];
-      return gaugeWatersOf(items.map((r) => str(r.item_id)), gauges);
+      const out = gaugeWatersOf(items.map((r) => str(r.item_id)), gauges);
+      // (T679 #8) a release with `flow-own` says which members stand on this water (Python's one rule); none: as before
+      if (!loader.manifest.files["flow-own"]) return out;
+      const [paint, members, at, bits] = await Promise.all([loader.paint(), membersOf(), indexOf(), loader.flowOwn()]);
+      const i = at(Number(section)), panel = paint.panelOf(Number(section));
+      const list = panel === null ? [] : members.get(panel) ?? [];
+      const mask = bits && i !== null ? bits[i]! : 0;
+      if (mask >>> list.length)
+        throw new Error(`release ${loader.release}: flow-own flags member ${31 - Math.clz32(mask)} of panel ${panel}, which has ${list.length}`);
+      return { ...out, own: new Set(list.filter((_, k) => (mask >>> k) & 1).map((m) => m.station)) };
     },
 
     // no producer ships bathymetry charts or stocking records yet: the honest answers are none

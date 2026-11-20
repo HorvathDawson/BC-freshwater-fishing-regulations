@@ -288,7 +288,8 @@ def contract_problems(d: Path, tmp: Path, every_file: bool = True) -> list:
     answers section ALL OR NOTHING — its version in the manifest's `regulations.versions` and the water file's layout,
     its `cell` column and tables in every regs file (`contract.region_tables`), or none of them. `every_file` False: a
     file the release lacks is not counted (the mini release has no `salmon-x`: no section of it lies in no region)."""
-    from pipeline.deliver.release.contract import FILES, OPTIONAL, OPTIONAL_SECTION_TABLES, region_tables
+    from pipeline.deliver.release.contract import OPTIONAL, OPTIONAL_SECTION_TABLES, region_tables, written_files
+    FILES = written_files()             # (T686) near / down / climate as `packed.SHIP_PACKED_FORMATS` says
     m = json.loads((d / "manifest.json").read_text())
     out = []
     built = (set(FILES) - OPTIONAL) | {"flow-small"}     # (T823) `flow-small`: optional to READ, always built
@@ -565,6 +566,13 @@ def app_paint_fixture() -> dict:
     paint, area = P.encode(status, db), P.encode_area(db)
     access = P.encode_access(db, handles=_tiny()["handles"])
     small = P.encode_small(db, 5.0)
+    # (T679 #16) paint/6: the union no-access share decides "mostly inside" (its tiny world agrees with the summed rows)
+    db.execute("INSERT INTO section_no_access VALUES (3, 1000), (4, 600), (300, 1000), (5, 20)")
+    paint6 = P.encode(status, db, version=P.MOSTLY_VERSION)
+    # (T679 #8) flow-own: sections 3 and 9 have their panel's member 0 on their own water
+    db.executescript("CREATE TABLE section_own (sid INTEGER PRIMARY KEY, bits INTEGER NOT NULL);"
+                     "INSERT INTO section_own VALUES (3, 1), (9, 1);")
+    own = P.encode_own(db)
     d, a = P.decode(paint), P.decode_access(access)
     return {"paint": base64.b64encode(paint).decode(), "area": base64.b64encode(area).decode(),
             "handles": _tiny()["handles"], "reach": _tiny()["reach_digest"],
@@ -578,7 +586,11 @@ def app_paint_fixture() -> dict:
             "file_areas": [list(x) for x in a["areas"]], "file_rows": [list(x) for x in a["rows"]],
             # (T823) flow-small at a ratio that flags some sections and not others in this tiny world (the release's
             # own is `small_water.ratio_for()`; the format does not depend on it)
-            "small": base64.b64encode(small).decode(), "smalls": P.decode_small(small, len(d["section_panel"]))}
+            "small": base64.b64encode(small).decode(), "smalls": P.decode_small(small, len(d["section_panel"])),
+            # (T679 #16) the same world as paint/6 (written once packed.SHIP_PACKED_FORMATS is on) and its flag
+            "paint6": base64.b64encode(paint6).decode(), "mostly": P.decode(paint6)["mostly"],
+            # (T679 #8) flow-own (written once packed.SHIP_OWN_GAUGE_FLAG is on) and its masks
+            "own": base64.b64encode(own).decode(), "owns": P.decode_own(own, len(d["section_panel"]))}
 
 
 @pytest.mark.smoke  # T667 D6: a guard beside the file's first test

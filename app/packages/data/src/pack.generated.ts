@@ -736,6 +736,11 @@ export const PACK_FILES: Record<string, PackFile> = {
     "kind": "bin",
     "tables": {}
   },
+  "flow-own": {
+    "format": "flow-own/1",
+    "kind": "bin",
+    "tables": {}
+  },
   "flow-small": {
     "format": "flow-small/1",
     "kind": "bin",
@@ -804,7 +809,7 @@ export const PACK_FILES: Record<string, PackFile> = {
     }
   },
   "paint": {
-    "format": "paint/5",
+    "format": "paint/6",
     "kind": "bin",
     "tables": {}
   },
@@ -2721,7 +2726,7 @@ export const PACK_FILES: Record<string, PackFile> = {
 };
 
 /** (T403) The files a release may omit (contract OPTIONAL); every other file is in every published release. */
-export const PACK_OPTIONAL: readonly string[] = ["flow-small", "lakes"];
+export const PACK_OPTIONAL: readonly string[] = ["flow-own", "flow-small", "lakes"];
 
 /**
  * (T810 ticket I, trout table contract 2.1) THE OPTIONAL ANSWERS SECTIONS: per section, the `cell` columns and the tables
@@ -2830,6 +2835,7 @@ export const PACK_UNITS: Record<string, string> = {
   "climate.gauge_clim.bands": "clim/3: u8 N, N pentad bytes, then per p10/p25/p50/p75/p90 the N float16 bit deltas (mod 2^16, the first from 0) as 5N low bytes then 5N high bytes; decoded, clim/2's [u8 pentad, 5 x float16 LE] records (pipeline/deliver/release/packed.py)",
   "down.section_down.b": "down/2: per block of 4096 sids, LEB128 N, N x sid gap (from block<<12 - 1), N x zz(down_sid delta, from block<<12), N x (len + 1, 0 NULL), L, L x lake slot gap (from -1) (pipeline/deliver/release/packed.py)",
   "flow-area": "flow-area/1: 'BCFA', u8 1, one LEB128 varint per paint section (sid order) = round(km2 x 1000)",
+  "flow-own": "flow-own/1: 'BCFO', u8 1, one LEB128 varint per paint section (sid order) = bitmask over its panel's members by ord: bit i set where member i stands on the section's own water (along the water, across a water_continue, a lake on the way ends it: the bundle's section_own)",
   "flow-small": "flow-small/1: 'BCFS', u8 1, one LEB128 varint per paint section (sid order) = bitmask over its panel's members by ord: bit i set where member i drains at least the conditions meta's small_water_ratio times the section's target area (show small_water_text beside that member's reading)",
   "geo.part_geo.e": "microdegrees",
   "geo.part_geo.mid_lat": "microdegrees",
@@ -2840,7 +2846,7 @@ export const PACK_UNITS: Record<string, string> = {
   "lakes": "lakes/1: 'BCLK', u8 1, 8 bytes section_handles, LEB128 asof+1, LEB128 count, then per section (sid ascending) LEB128 sid delta, u8 survey (0 none, 1 sheet, 2 digitised), LEB128 stocked day+1 (0 never); days since 1900-01-01 (pipeline/deliver/lake_facts.py)",
   "method": "method/1: 'BCMT', u8 1, 8 bytes section_handles, LEB128 profile count, then per profile LEB128 run count + runs (length << 2 | code: 0 none or closed, 1 bait ban, 2 fly only; 366 days), then LEB128 run count and three columns sid gap[], count[], profile[] (pipeline/deliver/method.py)",
   "near.place_water.b": "near/2: LEB128 N, N x (ord - previous ord - 1, the first from -1), N ckm low bytes, N ckm high bytes; read sorted by (ckm, ord) (pipeline/deliver/release/packed.py)",
-  "paint": "paint/5: see pipeline/deliver/release/paint.py",
+  "paint": "paint/6 (paint/5 while packed.SHIP_PACKED_FORMATS is off): see pipeline/deliver/release/paint.py",
   "salmon": "salmon/4: 'BCSA', u8 4, 8 bytes section_handles, u32le JSON length + UTF-8 JSON (credit, default, regions (+ the header notes, the bucket's quota tree, T356 shared + sizes), verdicts (+ T332 an open day's quota tree, T356 c a header closure; u 1: both regions' words, no number; T796 f 1 on a closed verdict from DFO's Finfish closure: all fishing closed, trout included), gears, chains (r, w, l the places narrowest first, sp, g, m, + T356 c; T770 o another fish's closure lines (\"Eulachon closed all year: No fishing for eulachon\"), day runs of an index into gears (-1 none), apart from the gear lines g, absent where none; u the places on its water not drawn yet; T668 s on a section in two DFO regions: each region's places as indices into l, the most strict answer per fish speaks, and h the region slugs whose fishing-hours line shows; a per species day runs of the index into l of the place that answers), unmapped, scopes, x, shards; T549 off: every curated place no chain names, id -> {why, k, r, w, items}, shown as a text row on its water's page; p: each chain place's {r, water, sec}, what a row is named by; T796 a rule book closure is a place book:<entry_id>::<rule_id>[~n], first in the chains it closes, its p {r?, water?, static 1, book {rule, pages}}; static: each such place's year {sp: 5 runs of verdict indexes (-1 nothing), g}, kept by the app under a live feed) (pipeline/deliver/salmon.py, salmon_who.py)",
   "salmon-1": "salmon-shard/1: 'BCSR', u8 1, 8 bytes section_handles, u8 region length + region, LEB128 run count, then per run LEB128 sid gap, count, chain (pipeline/deliver/salmon.py)",
   "salmon-2": "salmon-shard/1: 'BCSR', u8 1, 8 bytes section_handles, u8 region length + region, LEB128 run count, then per run LEB128 sid gap, count, chain (pipeline/deliver/salmon.py)",

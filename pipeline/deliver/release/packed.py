@@ -25,6 +25,20 @@ import sqlite3
 import struct
 from typing import Iterable, List, Optional, Sequence, Tuple
 
+#: THE SWITCH (owner 2026-11-20 09:59, "Ship readers now, formats later (Recommended)"). OFF: a release writes near/1,
+#: down/1 and climate/1 exactly as before T686 (byte for byte; every app reads them, so no minAppVersion is derived from
+#: them) and keeps their old gates. ON: near/2, down/2, climate/2 and their lowered gates; the release then needs app
+#: 0.8.4 (`app_gate`). Flip it to True in the FIRST data release cut after app 0.8.4 is live in BOTH production stores
+#: (Google Play production and the App Store) — never before: an older app keeps its data and is asked to update.
+#: App 0.8.4 reads both forms, whichever this says.
+SHIP_PACKED_FORMATS = False
+
+#: (T679 #8, owner 2026-11-20 09:59 "Ranking's rule, list first") THE OWN-GAUGE FLAG (`flow-own`): OFF until the owner
+#: has seen the list of gauges that move between "ON THIS WATER" and "ESTIMATING FROM OTHER WATERS"
+#: (handoff/PLAN/app-integration/T679-shots/own-gauge-moves.csv) and said ship it. An optional file: an app before 0.8.4
+#: does not know it and keeps its own rule; 0.8.4 reads the flag where the release carries it.
+SHIP_OWN_GAUGE_FLAG = False
+
 NEAR_FORMAT = "near/2"
 DOWN_FORMAT = "down/2"
 CLIMATE_FORMAT = "climate/2"

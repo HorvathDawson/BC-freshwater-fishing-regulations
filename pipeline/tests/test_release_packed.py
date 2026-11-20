@@ -4,7 +4,9 @@ The codec round trip (AGENTS 58: a new shape is taught to its codec, which refus
 fixture (app/packages/data/dev/packed-parity.json) is the bytes both writers write and both readers read back — the
 app's half is `app/tools/packed-parity.test.ts`. Then each `extra` packs what copy_file copied and decodes back to every
 row; the contract names the packed formats; and an app that reads only the old formats is held back by the release's
-app gate (it keeps its data and is asked to update), never handed a file it cannot read. No data.
+app gate (it keeps its data and is asked to update), never handed a file it cannot read. THE SWITCH (owner 2026-11-20
+09:59, "Ship readers now, formats later"): `packed.SHIP_PACKED_FORMATS` off writes the old forms with today's gates,
+on writes the packed ones with theirs; both are held here. No data.
 """
 from __future__ import annotations
 
@@ -130,3 +132,101 @@ def test_an_app_that_reads_only_the_old_formats_is_held_back_never_broken():
     reads = current_reads()
     for name, fmt in (("near", "near/1"), ("down", "down/1"), ("climate", "climate/1")):
         assert reads[name][0] == C.FILES[name]["format"] and fmt in reads[name]
+
+
+def test_the_switch_is_off_until_084_is_in_the_production_stores():
+    """Owner 2026-11-20 09:59: this release's data (staging and production) stays near/1, down/1, climate/1. Flipping
+    it is a reviewed one-line change (packed.py), made in the first data release after app 0.8.4 is in production."""
+    assert P.SHIP_PACKED_FORMATS is False
+
+
+@pytest.mark.parametrize("on", [False, True])
+def test_each_switch_position_writes_its_forms_and_gates(monkeypatch, tmp_path, on):
+    """OFF: the old formats, columns, climatology codec and gates, and the copied rows untouched (the release is the one
+    before T686). ON: the packed ones. Both are read when the release runs, not at import."""
+    monkeypatch.setattr(P, "SHIP_PACKED_FORMATS", on)
+    files = C.written_files()
+    want = {"near": ("near/2", ["place_id", "b"]), "down": ("down/2", ["block", "b"]),
+            "climate": ("climate/2", ["station", "parameter", "bands"])} if on else \
+        {"near": ("near/1", ["place_id", "ckm", "ord"]), "down": ("down/1", ["sid", "down_sid", "len", "lake"]),
+         "climate": ("climate/1", ["station", "parameter", "bands"])}
+    for name, (fmt, cols) in want.items():
+        t = {"near": "place_water", "down": "section_down", "climate": "gauge_clim"}[name]
+        assert (files[name]["format"], files[name]["tables"][t], B.formats()[name]) == (fmt, cols, fmt)
+    assert C.FILES["near"]["format"] == "near/2"            # the app's contract is the packed one either way
+    gates = B.size_gates()
+    assert {k: gates[k] for k in ("near", "down", "climate")} == (B.PACKED_GATES if on else B.UNPACKED_GATES)
+    # the bundle half's choice on a tiny bundle: what near and climate hold
+    b = tmp_path / "b.sqlite"
+    con = sqlite3.connect(b)
+    con.executescript("""
+        CREATE TABLE place_water (place_id INTEGER NOT NULL, ckm INTEGER NOT NULL, ord INTEGER NOT NULL,
+                                  PRIMARY KEY (place_id, ckm, ord)) WITHOUT ROWID;
+        INSERT INTO place_water VALUES (1, 10, 3), (1, 2500, 4), (2, 0, 3);
+        CREATE TABLE gauge_clim (station TEXT NOT NULL, parameter TEXT NOT NULL, bands BLOB NOT NULL);
+    """)
+    f32 = bytes([3]) + struct.pack("<5f", 1.0, 2.0, 3.0, 4.0, 5.0)
+    con.execute("INSERT INTO gauge_clim VALUES ('08MH001', 'discharge', ?)", (f32,))
+    con.commit()
+    con.close()
+    near = B.copy_file(tmp_path / "near.sqlite", {"b": b}, [("b", "place_water", None)], {"format": B.formats()["near"]},
+                       extra=P.pack_near if on else None)
+    rows = sqlite3.connect(near).execute("SELECT * FROM place_water ORDER BY 1").fetchall()
+    if on:
+        assert [(p, c, o) for p, bl in rows for c, o in P.decode_near(bl)] == [(1, 10, 3), (1, 2500, 4), (2, 0, 3)]
+    else:
+        assert sorted(rows) == [(1, 10, 3), (1, 2500, 4), (2, 0, 3)]
+    clim = B.copy_file(tmp_path / "clim.sqlite", {"b": b}, [("b", "gauge_clim", None)], {},
+                       extra=B._climate_extra if on else B._climate_f16)
+    (bands,) = sqlite3.connect(clim).execute("SELECT bands FROM gauge_clim").fetchone()
+    assert (P.unclim3(bands) if on else bands) == B.clim_f16(f32)
+
+
+def test_off_no_minappversion_is_derived_from_the_three_files():
+    """With the switch off the manifest names near/1, down/1, climate/1: the oldest recorded app reads them, so the
+    three files ask nothing of the app gate (the release's floor is what it was)."""
+    m = {"files": {n: {"format": C.UNPACKED[n]["format"]} for n in ("near", "down", "climate")}}
+    assert G.oldest_reader(m) == min(G.table(), key=G.ver)
+    # (T679 #16) paint/5 too: no app floor moves while the switch is off (paint/5 is read since 0.3.0)
+    assert G.needs({"files": {"paint": {"format": C.UNPACKED["paint"]["format"]}}}, G.table())["paint/5"] != "0.8.4"
+    # ON: paint/6 and the packed three need 0.8.4
+    on = {"files": {n: {"format": C.FILES[n]["format"]} for n in ("paint", "near", "down", "climate")}}
+    assert G.oldest_reader(on) == "0.8.4"
+
+
+@pytest.mark.parametrize("on", [False, True])
+def test_t679_16_paint_follows_the_same_switch(monkeypatch, on):
+    """(T679 #16, owner 2026-11-20 10:00: every left-over on this release) paint/6 (the one access flag) is written with
+    the packed formats and not before; off, paint/5 exactly as before (no `mostly` column)."""
+    from pipeline.deliver.release import paint as PAINT
+    from pipeline.tests.test_release import _tiny_bundle
+    from pipeline.deliver import status_index as SI
+    from pipeline.tests.test_status_index import _tiny
+    monkeypatch.setattr(P, "SHIP_PACKED_FORMATS", on)
+    assert B.formats()["paint"] == ("paint/6" if on else "paint/5") == f"paint/{PAINT.written_version()}"
+    db = _tiny_bundle()
+    db.execute("INSERT INTO section_no_access VALUES (3, 1000), (4, 600), (5, 20)")
+    status = SI.encode(_tiny())
+    b = PAINT.encode(status, db)
+    assert b[4] == (6 if on else 5)
+    d = PAINT.decode(b)
+    assert d.get("mostly") == ([3, 4] if on else None)
+    assert PAINT.encode(status, db, version=5) == (PAINT.encode(status, db) if not on else b[:4] + bytes([5]) + b[5:-len(
+        PAINT.mostly_column(db))])                      # paint/6 is paint/5 + the column, nothing else moves
+
+
+def test_t679_8_flow_own_is_built_only_behind_its_switch_and_refuses_a_stray_row():
+    """(T679 #8) `flow-own` waits for the owner's look at the list (`packed.SHIP_OWN_GAUGE_FLAG` off); it is optional in
+    the contract, so a release without it is read as before. Its writer refuses an own row on a section with no panel."""
+    from pipeline.deliver.release import paint as PAINT
+    from pipeline.tests.test_release import _tiny_bundle
+    assert P.SHIP_OWN_GAUGE_FLAG is False and "flow-own" in C.OPTIONAL
+    db = _tiny_bundle()
+    with pytest.raises(ValueError, match="section_own"):
+        PAINT.encode_own(db)
+    db.executescript("CREATE TABLE section_own (sid INTEGER PRIMARY KEY, bits INTEGER NOT NULL);"
+                     "INSERT INTO section_own VALUES (3, 1), (9, 1);")
+    assert PAINT.decode_own(PAINT.encode_own(db), 4) == [1, 0, 0, 1]
+    db.execute("INSERT INTO section_own VALUES (77, 1)")
+    with pytest.raises(ValueError, match="no panel"):
+        PAINT.encode_own(db)

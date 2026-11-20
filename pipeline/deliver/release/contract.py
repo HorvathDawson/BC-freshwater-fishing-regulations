@@ -58,15 +58,42 @@ def region_tables(sections=()) -> dict:
 #: (T823) `flow-small` is BUILT into every release from now, and optional only so an app built from this contract still
 #: reads a release cut before it (staging, 2026-11-16): the app reads its absence as "no warning bits", by the file's
 #: presence in the manifest, never by catching an error. Required once a release carrying it is live and the app reads it.
-OPTIONAL = frozenset({"lakes", "flow-small"})
+#: (T679 #8) `flow-own` too: built only once `packed.SHIP_OWN_GAUGE_FLAG` is on; its absence is "decide as before".
+OPTIONAL = frozenset({"lakes", "flow-small", "flow-own"})
+
+#: (T686, owner 2026-11-20 09:59: "Ship readers now, formats later") THE OLD FORMS of the switched files: what a
+#: release WRITES while `packed.SHIP_PACKED_FORMATS` is off (`written_files`). `FILES` below stays the app's contract (the
+#: packed forms; app 0.8.4 reads these too, `ALSO_READS`).
+UNPACKED = {
+    # (T679 #16, the same switch, owner 2026-11-20 10:00: every left-over on this release) paint/5, no access flag
+    "paint": {"format": PAINT.FORMAT, "kind": "bin", "tables": {}},
+    "near": {"format": "near/1", "kind": "sqlite", "tables": {
+        "meta": ["k", "v"], "place_water": ["place_id", "ckm", "ord"]}},
+    "down": {"format": "down/1", "kind": "sqlite", "tables": {
+        "meta": ["k", "v"], "section_down": ["sid", "down_sid", "len", "lake"]}},
+    "climate": {"format": "climate/1", "kind": "sqlite", "tables": {
+        "meta": ["k", "v"], "gauge_clim": ["station", "parameter", "bands"]}},
+}
+
+
+def written_files(packed: bool | None = None) -> dict:
+    """The files a release writes: `FILES`, with the three packed ones in their old form (`UNPACKED`) unless `packed`
+    (default: `packed.SHIP_PACKED_FORMATS`, read at call time)."""
+    on = PACKED.SHIP_PACKED_FORMATS if packed is None else packed
+    return dict(FILES) if on else {**FILES, **UNPACKED}
+
 
 #: {file: {"format", "kind": "sqlite" | "bin", "tables": {table: [columns]}}}
 FILES = {
-    "paint": {"format": PAINT.FORMAT, "kind": "bin", "tables": {}},
+    # (T679 #16) paint/6 (+ the one access flag), written once `packed.SHIP_PACKED_FORMATS` is on (`UNPACKED`: paint/5)
+    "paint": {"format": PAINT.MOSTLY_FORMAT, "kind": "bin", "tables": {}},
     "flow-area": {"format": PAINT.AREA_FORMAT, "kind": "bin", "tables": {}},
     # (T823) per paint section, which of its panel's members drain so much more than it that their reading carries the
     # small-water warning (the conditions meta's `small_water_text`): pipeline/gauges/consume/small_water.py
     "flow-small": {"format": PAINT.SMALL_FORMAT, "kind": "bin", "tables": {}},
+    # (T679 #8) per paint section, which of its panel's members stand on its own water (the ranking's rule): the gauge
+    # list's "ON THIS WATER" heading reads it (paint.py `encode_own`; behind `packed.SHIP_OWN_GAUGE_FLAG`)
+    "flow-own": {"format": PAINT.OWN_FORMAT, "kind": "bin", "tables": {}},
     # (T54) the gentler access tiers (permit / reserve / private) a Regulations page notes; paint carries the no-access rows
     "access": {"format": PAINT.ACCESS_FORMAT, "kind": "bin", "tables": {}},
     "lakes": {"format": LF.FORMAT, "kind": "bin", "tables": {}},
@@ -262,7 +289,10 @@ UNITS = {
     "flow-small": "flow-small/1: 'BCFS', u8 1, one LEB128 varint per paint section (sid order) = bitmask over its panel's "
                   "members by ord: bit i set where member i drains at least the conditions meta's small_water_ratio times "
                   "the section's target area (show small_water_text beside that member's reading)",
-    "paint": "paint/5: see pipeline/deliver/release/paint.py",
+    "paint": "paint/6 (paint/5 while packed.SHIP_PACKED_FORMATS is off): see pipeline/deliver/release/paint.py",
+    "flow-own": "flow-own/1: 'BCFO', u8 1, one LEB128 varint per paint section (sid order) = bitmask over its panel's "
+                "members by ord: bit i set where member i stands on the section's own water (along the water, across a "
+                "water_continue, a lake on the way ends it: the bundle's section_own)",
     "access": "access/1: 'BCAX', u8 1, 8 bytes section_handles, then an access half (pipeline/deliver/release/paint.py)",
     "lakes": "lakes/1: 'BCLK', u8 1, 8 bytes section_handles, LEB128 asof+1, LEB128 count, then per section "
              "(sid ascending) LEB128 sid delta, u8 survey (0 none, 1 sheet, 2 digitised), LEB128 stocked day+1 "
