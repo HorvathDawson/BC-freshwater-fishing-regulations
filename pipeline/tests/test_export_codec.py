@@ -443,6 +443,41 @@ def test_only_named_lake_edges_ship(doc):
     assert not [k for k in named if k not in doc["splits"]]
 
 
+def _same(got, want, what: str) -> None:
+    """`got == want`, failing FAST with a useful message (LF): the lengths, the digests and the first differing offset
+    with the text around it. A plain `assert` over the export (one 6 MB line) had pytest's assertion rewrite run difflib
+    over the whole string, which ran for hours. Objects are compared with `==` and shown as sorted JSON."""
+    if got == want:
+        return
+    if not isinstance(got, str) or not isinstance(want, str):
+        got, want = (json.dumps(x, sort_keys=True, ensure_ascii=False, default=repr) for x in (got, want))
+        if got == want:
+            pytest.fail(f"{what}: equal as JSON but not as objects (a tuple against a list?)", pytrace=False)
+    i = next((k for k, (a, b) in enumerate(zip(got, want)) if a != b), min(len(got), len(want)))
+    sha = lambda t: hashlib.sha256(t.encode("utf-8")).hexdigest()[:16]  # noqa: E731
+    pytest.fail(f"{what}: {len(got):,} chars against {len(want):,} (sha256 {sha(got)} against {sha(want)}); first "
+                f"difference at offset {i:,}:\n  got  {got[max(0, i - 60):i + 60]!r}\n  want {want[max(0, i - 60):i + 60]!r}",
+                pytrace=False)
+
+
+def test_a_mismatch_of_two_big_exports_fails_in_seconds_and_says_where():
+    """(LF) `_same` on two long one-line strings that differ: it fails at once, naming the offset and the text there.
+    MUTATION: a plain `assert got == want` raises an AssertionError (after difflib), never this failure."""
+    import time
+    base = '{"waters":[' + ",".join(f'{{"id":{k},"name":"water {k}"}}' for k in range(1_000)) + "]}"
+    other = base.replace('"water 700"', '"water 7O0"')
+    t0 = time.monotonic()
+    with pytest.raises(pytest.fail.Exception) as got:
+        _same(other, base, "the data file")
+    assert time.monotonic() - t0 < 5
+    msg = str(got.value)
+    at = base.index('"water 700"') + 8
+    assert f"first difference at offset {at:,}" in msg and "water 7O0" in msg and "water 700" in msg
+    with pytest.raises(pytest.fail.Exception, match="equal as JSON but not as objects"):
+        _same({"a": (1,)}, {"a": [1]}, "the model")
+    _same({"a": [1]}, {"a": [1]}, "the model")
+
+
 @pytest.mark.needs_bundle
 def test_the_files_on_disk_are_the_bundles_pair(doc):
     """The canonical files are DERIVED from the shipped bundle and must be its pair, byte for
@@ -455,11 +490,13 @@ def test_the_files_on_disk_are_the_bundles_pair(doc):
     assert shipped["about"].get("bundle") == doc["about"]["bundle"], \
         "the shipped export is another bundle's — rerun `python -m pipeline.deliver export`"
     data, guide = export_files.encode(doc)
-    assert shipped_at.read_text(encoding="utf-8") == K.dumps(data)
-    assert g.read_text(encoding="utf-8") == K.dumps(guide)
-    assert export_files.load(shipped_at) == doc
-    assert _decode_from_the_dictionary(json.loads(shipped_at.read_text(encoding="utf-8")),
-                                       json.loads(g.read_text(encoding="utf-8"))) == doc
+    # (LF) `_same`, never a bare assert: a mismatch of these 6 MB strings ran pytest's difflib for hours
+    _same(shipped_at.read_text(encoding="utf-8"), K.dumps(data), f"{shipped_at.name} against the bundle's encoding")
+    _same(g.read_text(encoding="utf-8"), K.dumps(guide), f"{g.name} against the bundle's encoding")
+    _same(export_files.load(shipped_at), doc, f"{shipped_at.name} decoded against the bundle's model")
+    _same(_decode_from_the_dictionary(json.loads(shipped_at.read_text(encoding="utf-8")),
+                                      json.loads(g.read_text(encoding="utf-8"))), doc,
+          f"{shipped_at.name} decoded by the field dictionary against the bundle's model")
 
 
 def test_a_refused_export_fails_the_deliver_command(tmp_path, monkeypatch):
