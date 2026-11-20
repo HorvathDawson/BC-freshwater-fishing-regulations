@@ -72,7 +72,6 @@ export * from "./net";
 
 export * from "./layout";
 export * from "./gestures";
-export * from "./provenance";
 export * from "./leave";
 export * from "./menu";
 export * from "./report";

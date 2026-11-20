@@ -41,6 +41,8 @@ export interface DonorRowVM {
   facts: string;
   /** How this gauge relates to the water being read, in one plain line; null for a gauge on this water. */
   relation: string | null;
+  /** (T920) the gauge legend's second line: what it reads, when a quiet gauge last spoke, and its facts, one line */
+  detail: string;
   /** Why it counts what it counts; null for a quiet gauge, which counts nothing. */
   because: string | null;
   /** The row's screen-reader name. */
@@ -139,8 +141,9 @@ export type DonorVM =
       horizons: readonly HorizonChipVM[];
       /** Null until the routes are in, or when no donor can be placed. */
       map: DonorMapVM | null;
-      tapToChart: string;
       listLabel: string;
+      /** (T920) the gauge legend's fold: "4 gauges behind this estimate" (every member, the silent ones too) */
+      gaugesFold: string;
       /** Only the members that speak at this horizon; the silent ones are in `silent`. */
       rows: readonly DonorRowVM[];
       /**
@@ -354,13 +357,16 @@ export function donorView(value: PanelAnswer, o: DonorViewOptions): DonorVM {
 
   function rowVM(r: DonorRow): DonorRowVM {
     const on = o.selected != null && r.station === o.selected;
+    const reads = donorReads(r, { ref, horizon: o.horizon });
+    const lastReport = !donorCounted(r) ? donorLastReport(r.observedAt, o.zone) : null;
+    const facts = donorFacts(r);
     return {
       station: r.station, row: toneOf(r), name: r.route?.name ?? null, quiet: !donorCounted(r), on,
       bar: `${Math.max(1, Math.round(r.weight * 100))}%`,
       weightLine: donorWeightLine(r),
-      reads: donorReads(r, { ref, horizon: o.horizon }),
-      lastReport: !donorCounted(r) ? donorLastReport(r.observedAt, o.zone) : null,
-      facts: donorFacts(r),
+      reads, lastReport, facts,
+      // its reading's full stop dropped where the facts follow it on the same line
+      detail: [reads.replace(/\.$/, ""), lastReport, facts].filter(Boolean).join(" · "),
       relation: !sides || !isDonorSide(sideOf(r)) ? null : donorRelation({
         station: r.station, name: r.route?.name ?? null, role: r.role, reaches: r.route?.path.length ?? 0,
         joined: r.route?.join !== undefined,
@@ -385,8 +391,8 @@ export function donorView(value: PanelAnswer, o: DonorViewOptions): DonorVM {
              ramp: o.horizon === "change" ? "change" : "flow" },
     horizons: horizonChips(o.horizon, o.quantity),
     map,
-    tapToChart: CONDITIONS_WORDS.tapToChart,
     listLabel: CONDITIONS_WORDS.donorList,
+    gaugesFold: CONDITIONS_WORDS.gaugesFold(rows.length),
     rows: shown.map(rowVM),
     groups: sides ? groupGauges(rows, sideOf, (r) => stateAt(r, ask), { horizon: o.horizon })
       .map((g) => ({ ...g, shown: g.shown.map(rowVM), folded: g.folded.map(rowVM) })) : null,

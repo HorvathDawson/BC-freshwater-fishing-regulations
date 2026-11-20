@@ -23,7 +23,8 @@
  *   headline   what the water is doing, and the range
  *   `detail`   the lead gauge's own reading (the caller's), as the headline's detail rows
  *   `chart`    the lead gauge's hydrograph (the caller's)
- *   donors     the map, its key, and one row per gauge
+ *   map        the route map and its key, under the chart (T920, owner 2026-11-19)
+ *   donors     one row per gauge
  *   fold       "Counts this much because…", the notes (a short record, a dam, a
  *              disagreement), the explainer, and `foot` (the chart's disclaimer and the
  *              credits) — closed by default, the words unchanged
@@ -56,8 +57,6 @@ import { TYPE } from "./type";
 import { changeRampStops, flowRampStops, SPACE, type Palette, round } from "./theme";
 import { hitProps } from "./regs/hit";
 
-/** The bullet's inset, so a row's detail lines align under its name and not its dot. */
-const INSET = 9 + SPACE.s2;
 
 /**
  * THE DESKTOP BREAK (owner 2026-10-21: "desktop falls apart"). At or above this width the panel is two columns — the
@@ -83,7 +82,7 @@ export function donorTone(palette: Palette, row: number | null, quiet: boolean):
 const placeMid = (b: readonly [number, number, number, number] | null | undefined) =>
   (b ? { lon: (b[0] + b[2]) / 2, lat: (b[1] + b[3]) / 2 } : null);
 
-export function DonorPanel({ palette, value, day, askedAt, at, theme, from, selected, onSelect,
+export function DonorPanel({ palette, value, day, askedAt, at, theme, from, selected,
                              horizon = 0, onHorizon, chain: chainProp, standing,
                              detail, chart, foot, after, quantity, sides, count, waterLine, place, holdKey, own }: {
   palette: Palette; value: PanelAnswer;
@@ -109,7 +108,7 @@ export function DonorPanel({ palette, value, day, askedAt, at, theme, from, sele
    * a saved spot has no chart to steer, and a row that cannot do anything must not look as
    * though it can.
    */
-  selected?: StationId | null; onSelect?: (station: StationId) => void;
+  selected?: StationId | null;
   /**
    * The reaches between here and the gauges, computed by the caller (it needs the bundle
    * and the feed); derived from the routes otherwise.
@@ -172,7 +171,7 @@ export function DonorPanel({ palette, value, day, askedAt, at, theme, from, sele
                      onLayout: (e: LayoutChangeEvent) => top.hold(e.nativeEvent.layout.height) } as const;
   const vm = useDonorView(value, { day, ...(askedAt !== undefined ? { ref: askedAt } : {}), horizon, from: from ?? null,
                                    size: { width: mapWidth, height: mapH },
-                                   selected: selected ?? null, pickable: !!onSelect,
+                                   selected: selected ?? null, pickable: false,   // (T920) the list is a legend; the gauge card's title picks the chart
                                    ...(quantity ? { quantity } : {}), sides: sides ?? null, place: place ?? null,
                                    own: own ?? null });
 
@@ -189,9 +188,11 @@ export function DonorPanel({ palette, value, day, askedAt, at, theme, from, sele
     : i !== null && i !== vm.map?.liveRow);
   const map = vm.map;
   /*
-   * (T568) THE ROUTE MAP HAS ONE PLACE IN THE SHEET: under the estimate tile (or the refusal), over the chart, whatever
-   * quantity is asked and whether or not the estimate answers. It used to sit under the chart when the estimate
-   * answered and not at all when it did not, so the Flow / Level toggle moved the whole map across the chart. It waits
+   * (T568, T920) THE ROUTE MAP HAS ONE PLACE IN THE SHEET: under the gauge chart (T920, owner 2026-11-19: "move the gauge
+   * map below the chart on conditions" — the estimate and the reading come first), whatever quantity is asked and whether
+   * or not the estimate answers. Before T920 it sat over the chart (T568), because it once sat under the chart only when the
+   * estimate answered and not at all when it did not, so the Flow / Level toggle moved the whole map across the chart;
+   * now it is under the chart in every case. It waits
    * for the routes (`map` is null until they are in): a MapLibre map reads its opening camera once, on mount, and a map
    * mounted early stays framed on the tap alone. Keyed on the camera for the same reason.
    * (T881) `map` is null, too, where it would draw no gauge (`donorView`): no map then, only the measuring view.
@@ -226,62 +227,41 @@ export function DonorPanel({ palette, value, day, askedAt, at, theme, from, sele
           {detail}
         </Block>
         </View>
-        {mapBlock}
         {chart}
+        {mapBlock}
         {after}
         {foot && <Fold palette={palette}>{foot}</Fold>}
       </View>
     );
   }
   const because = vm.rows.filter((r) => r.because);
-  /** One donor row; `i` 0 is the first of its list (no hairline above it). */
-  const row = (r: DonorRowVM, i: number) => {
-    const pick = onSelect ? () => onSelect(r.station as StationId) : undefined;
-    return (
-    <Pressable {...hitProps({ w: 300, h: 40 })} onPress={pick} disabled={!pick}
-          accessibilityRole={pick ? "button" : "text"}
-          // `aria-selected`, not `accessibilityState`: react-native-web >= 0.21
-          // ignores the latter (AGENTS 34).
-          aria-selected={pick ? r.on : undefined}
-          accessibilityLabel={r.label}
-          style={{ paddingVertical: SPACE.s2, gap: 2,
-                   borderTopWidth: i === 0 ? 0 : 1, borderTopColor: palette.line,
-                   // THE SELECTED ROW IS MARKED ON THE LEFT, not by a tint: the row
-                   // already carries a colour that means something (its pin).
-                   paddingLeft: SPACE.s2, marginLeft: -SPACE.s2 - 3,
-                   borderLeftWidth: 3,
-                   borderLeftColor: r.on ? toneOf(r.row) : "transparent" }}>
-      {/* A TIGHT ROW: dot · id · name · its share, on one line; what it reads under it. */}
+  /** (T920) the legend's second and third lines start under the name: the dot's width and the gap after it */
+  const INSET = 9 + SPACE.s2;
+  /** One donor row; `i` 0 is the first of its list (no hairline above it). (T920, owner 2026-11-19: "Turn this into just a
+   *  legend not a selector for the chart") a LEGEND ROW: not pressable, no row marked; the chart's gauge is picked in the
+   *  gauge card's title. */
+  const row = (r: DonorRowVM, i: number) => (
+    <View accessibilityRole="text" accessibilityLabel={r.label}
+          style={{ paddingVertical: SPACE.s2, borderTopWidth: i === 0 ? 0 : 1, borderTopColor: palette.line }}>
+      {/* (T920, owner 2026-11-19: "Make the legend a bit more simple but still showing how much each contribute to the
+          stream overall estimate at top") THE FIRST LINE: its dot (the same tone as its pin, so the map and the legend are
+          one thing), its name (the station id where it has none) and its share of the estimate. (T920 round 3: "we lost
+          other detil in the gauge legend") under it, what it reads and its facts; then how a gauge on another water relates. */}
       <View style={{ flexDirection: "row", alignItems: "center", gap: SPACE.s2 }}>
-        {/* The same tone as its pin, so the map and the table are one thing. */}
         <View testID={`donor-dot-${r.station}`}
               style={{ width: 9, height: 9, borderRadius: round(9), backgroundColor: toneOf(r.row) }} />
-        <Text style={{ ...TYPE.figure, color: palette.ink }}>{r.station}</Text>
-        {r.name ? (
-          <Text numberOfLines={1} style={{ ...TYPE.metaSemi, color: palette.sub, flex: 1, minWidth: 0 }}>
-            {r.name}
-          </Text>
-        ) : <View style={{ flex: 1 }} />}
+        <Text numberOfLines={1} style={{ ...TYPE.meta, color: palette.ink, flex: 1, minWidth: 0 }}>{r.name ?? r.station}</Text>
         {/* EVERY NUMBER SAYS WHAT IT IS — the weight, labelled. */}
-        <Text style={{ ...TYPE.metaBold, color: palette.ink }}>{r.weightLine}</Text>
+        <Text testID={`donor-share-${r.station}`} style={{ ...TYPE.metaBold, color: palette.ink }}>{r.weightLine}</Text>
       </View>
-      {/* WHAT THIS GAUGE ITSELF READS, in the headline's words. */}
-      <Text style={{ ...TYPE.meta, color: palette.ink, marginLeft: INSET }}>
-        {r.reads}
-      </Text>
-      {/* WHEN A QUIET GAUGE LAST SPOKE (owner 2026-10-21), or that it is not known; then its facts. */}
-      <Text style={{ ...TYPE.meta, color: palette.sub, marginLeft: INSET }}>
-        {[r.lastReport, r.facts].filter(Boolean).join(" · ")}
-      </Text>
-      {/* HOW IT RELATES to the water being read — a gauge on another water says where the two meet (owner 2026-10-28). */}
+      <Text testID={`donor-detail-${r.station}`} style={{ ...TYPE.meta, color: palette.sub, marginLeft: INSET }}>{r.detail}</Text>
       {r.relation ? (
         <Text testID={`donor-relation-${r.station}`} style={{ ...TYPE.meta, color: palette.faint, marginLeft: INSET }}>
           {r.relation}
         </Text>
       ) : null}
-    </Pressable>
-    );
-  };
+    </View>
+  );
 
   const answerSide = (
     <>
@@ -330,14 +310,17 @@ export function DonorPanel({ palette, value, day, askedAt, at, theme, from, sele
 
       {detail && <Block palette={palette}>{detail}</Block>}
       </View>
-      {mapBlock}
       {chart}
+      {mapBlock}
     </>
   );
 
   const gaugeSide = (
     <>
-      <Block palette={palette} first={wide}>
+      {/* (T920, a tester via the owner 2026-11-19: "most people are not interested in this info and this can be made into
+          a drop-down box ... keep the page less messy") THE GAUGE LEGEND, IN ONE FOLD, closed by default: the count line,
+          the groups and their rows, the silent line. The map and its key stay open above it. */}
+      <Fold palette={palette} label={vm.gaugesFold} testID="gauges-fold">
         {/* (T168) THE COUNT LINE first: how many gauges stand on this water, how many estimate from others */}
         {count ? <CountLine palette={palette}>{count}</CountLine> : null}
 
@@ -351,11 +334,9 @@ export function DonorPanel({ palette, value, day, askedAt, at, theme, from, sele
             {vm.rows.map((r, i) => <View key={r.station}>{row(r, i)}</View>)}
           </View>
         )}
-        {/* THE HINT, a quiet caption under the list it is about (it was a kicker, a heading of its own). */}
-        {onSelect && <Text style={{ ...TYPE.meta, color: palette.faint }}>{vm.tapToChart}</Text>}
         {/* THE SILENT MEMBERS, NAMED (owner 2026-10-22): not rows, not pins — one line, each with its last data. */}
         {vm.silent && !vm.groups ? <Silent palette={palette}>{vm.silent}</Silent> : null}
-      </Block>
+      </Fold>
       {after}
 
       {/* THE WORKING'S WORKING, closed (P16 item 3): why each gauge counts what it counts,
@@ -516,16 +497,20 @@ function Caveat({ palette, tone, children }: {
  * THE ONE FOLD. Closed by default; its label is core's, and opening it changes no words —
  * it only stops the small print competing with the answer.
  */
-export function Fold({ palette, children }: { palette: Palette; children: ReactNode }) {
+export function Fold({ palette, children, label = CONDITIONS_WORDS.fold, testID }: {
+  palette: Palette; children: ReactNode;
+  /** (T920) the fold's words; default "Sources and notes" (the gauge legend's is its count, `gaugesFold`) */
+  label?: string; testID?: string;
+}) {
   const [open, setOpen] = useState(false);
   return (
-    <View style={{ borderTopWidth: 1, borderTopColor: palette.line }}>
+    <View testID={testID} style={{ borderTopWidth: 1, borderTopColor: palette.line }}>
       <Pressable {...hitProps({ w: 300, h: 40 })} onPress={() => setOpen(!open)} accessibilityRole="button"
-                 aria-expanded={open} accessibilityLabel={CONDITIONS_WORDS.fold}
+                 aria-expanded={open} accessibilityLabel={label}
                  style={{ flexDirection: "row", alignItems: "center",
                           paddingVertical: SPACE.s3, gap: SPACE.s2 }}>
         <Text style={{ ...TYPE.kicker, color: palette.sub, flex: 1 }}>
-          {CONDITIONS_WORDS.fold}
+          {label}
         </Text>
         {/* The set's chevron (N1): down while closed, up while open; it carries no words. */}
         <Icon name={open ? "collapse" : "expand"} colour={palette.sub} size={16} />

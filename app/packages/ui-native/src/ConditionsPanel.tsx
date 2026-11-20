@@ -22,7 +22,7 @@ import type { TileEndpoints } from "@app/map";
 import { cardParameters, cardQuantity, changeChartModel, changeView, chartParameter, currentFigure, forecastDrawn, pickModel, realtimeOnly,
          useChartPrefs, useChartView, useConditionsView, useForecastAttribution, useGaugeParameters,
          noRecordLine, useGaugeShare, usePrefetchGauges, useSeries, type ChangeVM, type ShareControl, type GaugeChoiceVM, type GaugeGroupVM, type Horizon,
-         type PanelFeed, DataProvenanceContext } from "@app/ui";
+         type PanelFeed } from "@app/ui";
 import { GaugeGroups } from "./GaugeGroups";
 import { WaterReportLink } from "./menu/ReportLink";
 
@@ -130,9 +130,6 @@ export function ConditionsPanel({ source, section, palette, tiles, theme, colour
   // reading take it; the maps and the chart are shielded (`MiniMap`, `Hydrograph`), their drags are theirs. The
   // detector sits INSIDE the ScrollView — a browser reads `touch-action` only up to the nearest scroll container.
   const bodySwipe = useContext(WaterViewsContext)?.bodySwipe ?? null;
-  // (T585 F12, F13) a development or staging build names the data release (and an overridden source / channel) in the
-  // gauge card's foot; null in a production build
-  const provenance = useContext(DataProvenanceContext);
 
   // WHICH QUANTITIES THIS STATION CAN ANSWER IN, asked of the bundle rather than assumed:
   // 237 BC stations measure stage and never discharge.
@@ -159,10 +156,11 @@ export function ConditionsPanel({ source, section, palette, tiles, theme, colour
   // off where ELF is the only model, ELF being opt-in).
   const forecastOn = pickState.on;
   // THE CHART IS BUILT FOR THE WIDTH IT IS DRAWN AT (owner 2026-10-21: "the plot doesnt scale to fill page"):
-  // measured here, the paths are made for exactly that box and the labels stay label-sized.
+  // measured here, the paths are made for exactly that box and the labels stay label-sized. (T920) The card's inside:
+  // its width less its padding and border, so the plot is drawn 1:1, never scaled down into the card.
   const [chartW, setChartW] = useState(0);
   const measure = (e: LayoutChangeEvent) => {
-    const w = Math.round(e.nativeEvent.layout.width);
+    const w = Math.round(e.nativeEvent.layout.width) - 2 * (SPACE.s3 + 1);
     if (w > 0 && w !== chartW) setChartW(w);
   };
   // UNDER CHANGE THE CHART DRAWS THE CHANGE'S OWN LEAD MODEL, not the freshest run (T144 review, `changeChartModel`).
@@ -199,7 +197,7 @@ export function ConditionsPanel({ source, section, palette, tiles, theme, colour
   // the peak marked, and the Province's attribution as the feed carries it — decided in @app/ui (`changeView`).
   const attribution = useForecastAttribution(feed);
   const change: ChangeVM | null = horizon === "change" && series.state === "ready"
-    ? changeView(runs, vm.day, attribution, { width: Math.max(160, (chartW || 300) - CHANGE_AXIS - 2 * SPACE.s3), height: 120 },
+    ? changeView(runs, vm.day, attribution, { width: Math.max(160, (chartW || 276) - CHANGE_AXIS), height: 120 },
                  series.value?.change ?? null) : null;
 
   // (T456) the walkthrough: its Flow / Level and 72 h / Year steps see (and Show me sets) the chart's two toggles, and the
@@ -316,22 +314,26 @@ export function ConditionsPanel({ source, section, palette, tiles, theme, colour
     <View testID="gauge-card" onLayout={measure}
           style={{ gap: SPACE.s3, padding: SPACE.s3, borderWidth: 1, borderColor: palette.line2,
                    borderRadius: palette.r.box, backgroundColor: palette.card }}>
+      {/* (T920) the title row: the gauge picker and Share; the chart's switches moved to the row over the chart */}
       <GaugeTitle palette={palette} title={title} gauges={vm.gauges} groups={vm.gaugeGroups} share={gaugeShare}
-                  onPick={(s) => vm.select(s as never)}
-                  tools={<>
-                    <ChartControls<Parameter> palette={palette} value={shown} testID="chart-quantity" coach="cond:quantity"
-                                              label={W.controls.quantity} onPick={pick}
-                                              options={options.map((p) => [p, W.quantity[p]] as const)} />
-                    <ChartControls<Span> palette={palette} value={span} label={W.controls.span} testID="chart-span" coach="cond:span"
-                                         onPick={setSpan}
-                                         options={[["72h", W.spanShort["72h"], W.span["72h"]],
-                                                   ["year", W.spanShort.year, W.span.year]] as const} />
-                  </>} />
+                  onPick={(s) => vm.select(s as never)} />
       {readingRows}
       {vm.leadNote && !note && <Text testID="lead-note" style={{ ...TYPE.meta, color: palette.sub }}>{vm.leadNote}</Text>}
       {/* (T823) a gauge much bigger than this water still speaks for it, with the release's own warning */}
       {vm.smallWater && <Text testID="small-water" style={{ ...TYPE.meta, color: palette.sub }}>{vm.smallWater}</Text>}
       {change && <ChangeBlock palette={palette} change={change} colour={tint} />}
+      {/* (T920, owner 2026-11-19: "level/flow selector is messy") THE CHART'S TWO TOGGLES, the old segmented look, together
+          on ONE row directly over the chart they change (Flow | Level only where both are offered). Drawn whether or not a
+          chart is: a gauge silent in the quantity asked keeps the other one tap away (T817) */}
+      <View testID="chart-toggles" style={{ flexDirection: "row", flexWrap: "wrap", alignItems: "center", gap: SPACE.s2 }}>
+        <ChartControls<Parameter> palette={palette} value={shown} testID="chart-quantity" coach="cond:quantity"
+                                  label={W.controls.quantity} onPick={pick}
+                                  options={options.map((p) => [p, W.quantity[p]] as const)} />
+        <ChartControls<Span> palette={palette} value={span} label={W.controls.span} testID="chart-span" coach="cond:span"
+                             onPick={setSpan}
+                             options={[["72h", W.spanShort["72h"], W.span["72h"]],
+                                       ["year", W.spanShort.year, W.span.year]] as const} />
+      </View>
       {chart.state === "loading" && charts && (
         <LoadingState palette={palette} size={72} label={W.loadingRecord} style={{ alignItems: "center", paddingVertical: SPACE.s4 }} />
       )}
@@ -376,12 +378,12 @@ export function ConditionsPanel({ source, section, palette, tiles, theme, colour
           {run.model === "ELF" && <Text style={{ ...TYPE.meta, color: palette.sub }}>{CHANGE_LOW_WATER}</Text>}
         </About>
       )}
-      {/* THE CARD'S FOOT: when the reading was taken (and how fresh), then the offline note */}
-      {(foot || view?.asOf || provenance) && (
+      {/* THE CARD'S FOOT: when the reading was taken (and how fresh), then the offline note. (T920, owner 2026-11-19: "we
+          dont need the data release code just the last date") the data release is not said here */}
+      {(foot || view?.asOf) && (
         <View testID="gauge-card-foot" style={{ borderTopWidth: 1, borderTopColor: palette.line, paddingTop: SPACE.s2, gap: 2 }}>
           {foot && <Text style={{ ...TYPE.meta, color: palette.sub }}>{foot}</Text>}
           {view?.asOf && <Text testID="chart-kept-as-of" style={{ ...TYPE.meta, color: palette.sub }}>{view.asOf}</Text>}
-          {provenance && <Text testID="gauge-card-data-release" style={{ ...TYPE.meta, color: palette.sub }}>{provenance}</Text>}
         </View>
       )}
       {/* (T234) ALERT ME: a line on this gauge's quantity, told by the phone's background check (none on the web) */}
@@ -404,7 +406,7 @@ export function ConditionsPanel({ source, section, palette, tiles, theme, colour
   if (credits?.length) notes.push(<Credits key="credits" palette={palette} lines={credits} />);
   const small = notes.length ? <View style={{ gap: SPACE.s3 }}>{notes}</View> : undefined;
 
-  /* ONE READING ORDER, decided in `DonorPanel`: header → headline → detail → chart →
+  /* ONE READING ORDER, decided in `DonorPanel`: header → headline → detail → chart → map (T920) →
      donors → the day strip (`footer`, T506) → the fold, last (Sources and notes: the credits, the disclaimer). */
   const body = (
     <>
@@ -413,7 +415,9 @@ export function ConditionsPanel({ source, section, palette, tiles, theme, colour
         <Text testID="conditions-day-link" style={{ ...TYPE.meta, color: palette.sub }}>{link.line}</Text>
       )}
       <DonorPanel palette={palette} value={vm.panel} day={vm.day} askedAt={vm.ref} at={tiles} theme={theme}
-                  from={from} selected={station} onSelect={vm.select} horizon={horizon}
+                  // (T920, owner 2026-11-19: "Turn this into just a legend not a selector for the chart") the gauge list is a
+                  // legend: no `onSelect`; the chart's gauge is picked only in the gauge card's title. `selected` still marks it on the map.
+                  from={from} selected={station} horizon={horizon}
                   chain={vm.chain} standing={vm.route.standing}
                   onHorizon={onHorizon} quantity={parameter ?? "discharge"}
                   detail={detail} chart={graph}
@@ -471,10 +475,8 @@ function About({ palette, label, children }: { palette: Palette; label: string; 
  * estimate — a chevron: a tap opens them as a list (status dot, name, station, share), grouped as `gaugeChoiceGroups`
  * groups them (own first, the not-reporting last); a pick charts that gauge and closes the list. One gauge: a plain title.
  */
-function GaugeTitle({ palette, title, gauges, groups, onPick, tools, share }: {
+function GaugeTitle({ palette, title, gauges, groups, onPick, share }: {
   palette: Palette; title: string; gauges: readonly GaugeChoiceVM[]; onPick: (station: string) => void;
-  /** (T367) the chart's toggles, on the title's row (they wrap under it on a narrow screen) */
-  tools?: ReactNode;
   /** (T530) the gauge's Share (`useGaugeShare`); null: the station has no public page */
   share?: ShareControl | null;
   /** (T168) the gauges grouped, own first, the not-reporting folded (`gaugeChoiceGroups`); null: one run */
@@ -485,7 +487,7 @@ function GaugeTitle({ palette, title, gauges, groups, onPick, tools, share }: {
   const bar = (name: ReactNode) => (
     <View style={{ flexDirection: "row", flexWrap: "wrap", alignItems: "center", gap: SPACE.s2 }}>
       <View style={{ flexGrow: 1, flexBasis: 220, flexDirection: "row" }}>{name}</View>
-      <View style={{ flexDirection: "row", alignItems: "center", gap: SPACE.s2 }}>{tools}{share && <GaugeShare share={share} palette={palette} />}</View>
+      <View style={{ flexDirection: "row", alignItems: "center", gap: SPACE.s2 }}>{share && <GaugeShare share={share} palette={palette} />}</View>
     </View>
   );
   if (gauges.length < 2) return bar(head);
@@ -506,11 +508,17 @@ function GaugeTitle({ palette, title, gauges, groups, onPick, tools, share }: {
   return (
     <View style={{ gap: SPACE.s2 }}>
       {bar(
+        // (T920, owner 2026-11-19: "make the chart gauge selector more obvious") THE ONE PLACE A GAUGE IS PICKED for the
+        // chart: a bordered field like a select, the gauge's name and, in the accent, how many there are to pick from
         <Pressable testID="gauge-pick" onPress={() => setOpen((o) => !o)} accessibilityRole="button" aria-expanded={open}
-                   accessibilityLabel={W.card.pick(title)} {...hitProps({ w: 120, h: 34 })}
-                   style={{ flexDirection: "row", alignItems: "center", gap: SPACE.s2, flexShrink: 1 }}>
-          {head}
-          <Icon name={open ? "collapse" : "expand"} colour={palette.accent} size={16} />
+                   accessibilityLabel={W.card.pick(title)} {...hitProps({ w: 120, h: 40 })}
+                   style={{ flexDirection: "row", alignItems: "center", gap: SPACE.s2, flexShrink: 1, flexGrow: 1,
+                            minHeight: 40, paddingHorizontal: SPACE.s3, paddingVertical: SPACE.s2,
+                            borderWidth: 1, borderColor: open ? palette.accent : palette.line2, borderRadius: palette.r.box,
+                            backgroundColor: palette.tint }}>
+          <View style={{ flex: 1, minWidth: 0 }}>{head}</View>
+          <Text testID="gauge-pick-count" style={{ ...TYPE.metaBold, color: palette.accent }}>{W.card.count(gauges.length)}</Text>
+          <Icon name={open ? "collapse" : "expand"} colour={palette.accent} size={18} />
         </Pressable>
       )}
       {open && (

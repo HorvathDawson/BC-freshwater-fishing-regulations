@@ -103,11 +103,14 @@ describe("donorView", () => {
     expect(vm.rows).toEqual([
       { station: "08MH001", row: 0, name: null, quiet: false, on: false, bar: "60%",
         weightLine: donorWeightLine(a), reads: donorReads(a), lastReport: null, facts: donorFacts(a), relation: null,
+        // (T920) the legend's second line: the reading (its full stop dropped) and the facts
+        detail: `${donorReads(a).replace(/\.$/, "")} · ${donorFacts(a)}`,
         because: donorBecause(a), label: donorRowLabel(a, true, false) },
       // A quiet gauge says when it last reported (owner 2026-10-21).
       { station: "08MH024", row: 1, name: null, quiet: true, on: true, bar: "1%",
         weightLine: donorWeightLine(b), reads: "Reporting, but its reading cannot be ranked today.",
         lastReport: donorLastReport(early), facts: donorFacts(b), relation: null,
+        detail: `Reporting, but its reading cannot be ranked today · ${donorLastReport(early)} · ${donorFacts(b)}`,
         because: null,
         label: "08MH024, upstream, 2.4× apart, reporting but not ranked today, so it counts for nothing. "
           + "Showing this gauge's chart" },

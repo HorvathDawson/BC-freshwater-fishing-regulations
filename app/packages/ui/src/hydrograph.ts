@@ -29,8 +29,12 @@ export const MARK_FONT = 10;
 /** (T564) round-figure ticks are core's now (the gauge page draws its chart with the same function); kept exported here */
 export { niceTicks };
 
+/**
+ * (T920, layout D) the value labels sit INSIDE the plot on its right (the renderer's), so the plot runs the card's width:
+ * 4 px either side keeps a line's stroke whole; the 34 px top band holds the unit, the read-out and the zoom buttons.
+ */
 export const DEFAULT_BOX: Box = {
-  width: 320, height: 190, padLeft: 40, padRight: 10, padTop: 12, padBottom: 24,
+  width: 320, height: 190, padLeft: 4, padRight: 4, padTop: 34, padBottom: 24,
 };
 
 export interface Tick {

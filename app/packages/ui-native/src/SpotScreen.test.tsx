@@ -378,6 +378,8 @@ describe("<SpotScreen> shows the estimate it recorded", () => {
     const r = render(<SpotScreen spot={spot({ panel: frozen } as never)}
                                 palette={LIGHT} onBack={() => {}} />);
     expect(r.getByText("Below normal for the time of year")).toBeTruthy();
+    // (T920) the gauges behind it, in their fold
+    fireEvent.click(r.getByTestId("gauges-fold").querySelector("[role=button]")!);
     expect(r.getByText("08MH001")).toBeTruthy();
   });
 

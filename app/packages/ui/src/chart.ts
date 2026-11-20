@@ -32,10 +32,13 @@ const NO_MODELS: readonly string[] = [];
  */
 export { FORECAST_DASH, forecastDash, OTHER_MODEL_DASH };
 
-/** How tall the chart is for a width: a phone keeps the old proportion; a wide column does not become a banner. */
+/**
+ * How tall the chart is for a width. (T920, owner 2026-11-19: "the chart should be taller too", layout D) about square on a
+ * phone — 398 at a 332 px chart (a 390 px window), a 340 px plot under the 34 px band that holds the unit and the zoom buttons — and capped
+ * at 420 on a wide column, so a desktop chart is not a wall (T367's "so much white space" was a 340 px BANNER at full width).
+ */
 export function chartHeight(width: number): number {
-  // (T367, owner 2026-11-04: "so much white space") a wide panel's chart stops at 240 — it reached 340
-  return Math.round(Math.min(240, Math.max(180, width * 0.4)));
+  return Math.round(Math.min(420, Math.max(260, width * 1.2)));
 }
 
 /** The chart's box at a measured width (never narrower than the old fixed one). */

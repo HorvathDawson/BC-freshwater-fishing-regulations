@@ -469,10 +469,9 @@ describe("the chart's read-out and controls", () => {
   it("names the zoom controls and the gauge switcher in one table", () => {
     expect(CONDITIONS_WORDS.zoom).toEqual({ in: "Zoom in", out: "Zoom out", fit: "Whole chart", group: "Chart zoom" });
     expect(CONDITIONS_WORDS.chartGauge).toBe("CHART THIS GAUGE");
-    expect(CONDITIONS_WORDS.zoomHint.touch)
-      .toBe("Pinch to zoom, drag to move along, tap to read a value. Double-tap for the whole chart.");
-    expect(CONDITIONS_WORDS.zoomHint.pointer)
-      .toBe("Scroll to zoom, drag to move along, point to read a value. Double-click for the whole chart.");
+    // (T920) one short faint line over the plot, in the read-out's place
+    expect(CONDITIONS_WORDS.zoomHint).toEqual({ touch: "Pinch to zoom, tap to read a value",
+                                                pointer: "Scroll to zoom, point to read a value" });
   });
 });
 

@@ -19,7 +19,7 @@ import { useFonts } from "expo-font";
 // WOFF2 from our own /assets/fonts/ (`fonts.web.ts`). `tools/font-imports.test.ts` holds both to the faces drawn.
 import { FONT_SOURCES } from "./fonts";
 import { applyLine, DOWNLOAD_NOTE_WORDS, downloadFraction, failedStartLine, restartsByItself, INSTALL_WORDS, stillLine, MAP_CREDITS, MOBILE_DATA_WORDS, mobileDataDecision, installLine, SETUP_WORDS, setupFraction, setupLine, netBanner, progressWords, rolledBackLine, splashLineFor, startStage, updatedToast, UPDATE_LOG_WORDS, UPDATE_WORDS, versionHeaders,
-         versionLine, dataProvenanceLine, now as clockNow } from "@app/core";
+         versionLine, now as clockNow } from "@app/core";
 import { createNet, shareFetch, createReportOutbox, createUpdateLog, createUpdateService, phoneNetwork, versionedFetch, httpFeed, gaugeHistory, httpInSeason, httpRunTiming, httpSalmonFeed, manifestDate, noteHeld, followSavedItems, openRunTimingStore,
          type Held, type UpdateService, type WaterSource } from "@app/data";
 import { bootSaid, type MobileDataGate, type ReleaseLoader } from "@app/data/release";
@@ -29,7 +29,7 @@ import { fillDayFlow, onVisit, visitIdOf, storedHydat, openLayerStore, openLikeS
 import { Button, COHO_WIDTH, cohoHeight, connectivity, ErrorState, LoadingState, LoaderLine, loaderLineText, SayingLine, TYPE, setSynopsisNet, setSynopsisSource, Shell, StageBar, THEMES, UpdateToast, setLinkFailedSink, type ThemeName,
          platformLine, drawPhoneScreensOnWeb, type ShellProps, type UpdatesLogControls } from "@app/ui-native";
 import { LayoutWidthContext, liveFetch, NetRoot, useNet, useNetActivity, releaseMapInput, releaseStatus, setAnglerProfile, teeConsoleErrors, createCrashReporter, createCrashSetting, CrashSettingRoot, NotifyRoot, AlertLinesRefresh, installCrashHandlers, installId, reportPastExits, crashWhere, useRefreshOnReconnect, useApplyCurtain, useDownloadStill, useReleaseBoot, useBootTries, useRetryByItself, retriesByItselfNow, useSpots, type MapTiles,
-         DataProvenanceContext, loadRegsStore, reportFailure, startNeedsRelease, startNoticeLine,
+         loadRegsStore, reportFailure, startNeedsRelease, startNoticeLine,
          type AddressState, type PairingInput, type Route, type SpotPhotos, type StartLink, type StatusSource,
          useAppUpdate } from "@app/ui";
 import { onAppLink } from "./appLink";
@@ -49,7 +49,7 @@ import { releaseSplash } from "./splash";
 // (T234) the phone's local notifications (gauge alerts, new data ready) and their background check; none on the web
 import { notifications, onTap } from "./notify";
 
-import { APP_ENV, APP_VERSION, BUILT_CHANNEL, ENDPOINTS, IMAGERY_TILES, MENU_INFO, CRASH_URL, TEST_REPORTS, pickChannel, storedChannel, REPORT_URL, STORE_SHOTS, UPDATE_CHANNEL, UPDATES_LOG } from "./config";
+import { APP_ENV, APP_VERSION, ENDPOINTS, IMAGERY_TILES, MENU_INFO, CRASH_URL, TEST_REPORTS, pickChannel, storedChannel, REPORT_URL, STORE_SHOTS, UPDATE_CHANNEL, UPDATES_LOG } from "./config";
 
 /*
  * THE RECENT ERROR LOG (menu: Report a problem): every console.error the app already logs is also kept in a small
@@ -474,11 +474,6 @@ export default function App() {
     // (T287) the test bed's stall log reads the curtain off these lines
     if ((globalThis as { __openProbe?: boolean }).__openProbe) console.log(`[swap] curtain ${applyingNow ? "up" : "down"}`);
   }, [applyingNow]);
-  // (T585 F12, F13) a development or staging build says which data release it answers from on the Conditions card (and
-  // the data source / channel when they are not this build's own); null in a production build
-  const provenance = useMemo(() => dataProvenanceLine({
-    release: heldRelease, env: APP_ENV.env, built: APP_ENV.built, switchable: APP_ENV.switchable,
-    channel: UPDATE_CHANNEL, builtChannel: BUILT_CHANNEL }), [heldRelease]);
 
   // (T251, T476) the Updates log's levers (development and staging builds): the Developer card (map credits long press) draws them
   const releaseNow = boot.state === "ready" ? boot.booted.manifest.data_release : null;
@@ -677,7 +672,6 @@ export default function App() {
     <NetRoot net={NET} connectivity={connectivity} store={dataModeStore}>
     <CrashSettingRoot setting={CRASH_URL ? crashSetting : null}>
     <NotifyRoot controls={notifications}>
-    <DataProvenanceContext.Provider value={provenance}>
     <SafeAreaView style={{ flex: 1, backgroundColor: palette.card }}>
       <StatusBar barStyle={name === "dark" ? "light-content" : "dark-content"} />
       {failed ? (
@@ -829,7 +823,6 @@ export default function App() {
         </BootScreen>
       )}
     </SafeAreaView>
-    </DataProvenanceContext.Provider>
     </NotifyRoot>
     </CrashSettingRoot>
     </NetRoot>

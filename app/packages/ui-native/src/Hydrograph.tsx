@@ -7,8 +7,8 @@
  *
  * ZOOMABLE AND READABLE (owner 2026-10-21: "look at data better"). Given a `ChartView`'s actions (`view`), the plot
  * takes a pinch or a mouse wheel to zoom where it is, a drag to move along a zoomed window, a tap or a hover to read
- * the value under it, and a double-tap to see the whole chart again — with − / + / "Whole chart" buttons beside the
- * read-out for anyone who does not gesture. The recognisers only MEASURE: what a zoom, a pan and a nearest sample are
+ * the value under it, and a double-tap to see the whole chart again — with − / + / "Whole chart" buttons, small in the
+ * plot's top-right corner (T920), for anyone who does not gesture. The recognisers only MEASURE: what a zoom, a pan and a nearest sample are
  * is core's (`chartZoom.ts`), the state is @app/ui's (`useChartView`), and the words are core's.
  */
 import { useId, useMemo, useRef } from "react";
@@ -52,7 +52,7 @@ function modelLook(palette: Palette, model: string | null, colour: string): { co
 export function Hydrograph({ shape, palette, colour, label, unit,
                              forecastLabel, models, realtime, view }:
   { shape: Shape; palette: Palette; colour: string; label?: string;
-    /** the quantity's unit, drawn over the value axis */
+    /** the quantity's unit, drawn at the plot's top-left */
     unit?: string;
     /** e.g. "ELF · 30 days" — which model is drawing the dashes (when the legend has no model entries). */
     forecastLabel?: string;
@@ -173,15 +173,19 @@ export function Hydrograph({ shape, palette, colour, label, unit,
           </G>
         )}
         <G>
+          {/* (T920) THE VALUES INSIDE THE PLOT, ON ITS RIGHT, each sitting on its gridline; the top one hangs under its
+              line, clear of the band over the plot (the unit and the zoom buttons). (T920 round 3) In the app's face: an
+              svg text with no family was the browser's serif on the web */}
           {shape.yTicks.map((t) => (
-            <SvgText key={`y${t.value}`} x={box.padLeft - 6} y={t.at + 3.5}
-                     fontSize={TICK} fill={palette.faint} textAnchor="end">
+            <SvgText key={`y${t.value}`} x={box.width - box.padRight - 2}
+                     y={t.at - TICK - 2 < box.padTop ? t.at + TICK + 1 : t.at - 4}
+                     fontSize={TICK} fontFamily={TYPE.meta.fontFamily} fill={palette.faint} textAnchor="end">
               {t.label}
             </SvgText>
           ))}
           {shape.xTicks.map((t) => (
             <SvgText key={`x${t.value}`} x={t.at} y={box.height - 7}
-                     fontSize={TICK} fill={palette.faint} textAnchor={t.anchor ?? "middle"}>
+                     fontSize={TICK} fontFamily={TYPE.meta.fontFamily} fill={palette.faint} textAnchor={t.anchor ?? "middle"}>
               {t.label}
             </SvgText>
           ))}
@@ -189,22 +193,21 @@ export function Hydrograph({ shape, palette, colour, label, unit,
       </Svg>
   );
   return (
-    <View accessibilityRole="image"
-          accessibilityLabel={label ?? CONDITIONS_WORDS.hydrograph.label}>
-      {/* (T367) ONE ROW OVER THE PLOT: the unit over the value axis, the value under the finger (else how to read the
-          chart), the zoom buttons — it was three rows (the zoom bar, the unit, the hint under the plot) */}
-      {view ? <ZoomBar palette={palette} view={view} unit={unit} />
-        : unit ? <Text testID="chart-unit" style={{ ...TYPE.micro, fontSize: 11, color: palette.sub, marginBottom: 2 }}>{unit}</Text> : null}
+    <View style={{ gap: SPACE.s2 }}>
       {/* THE PLOT IS READ WITH A FINGER: inside a water's view swipe a drag on it is the chart's (zoom, pan, read-out;
-          see ViewSwipe); the zoom bar, the key and the caption are text, and swipe with the page */}
-      <SwipeShield>
-        {view ? <Gestures view={view} plotX={shape.plot.x}>{svg}</Gestures> : svg}
-      </SwipeShield>
-      {/* A KEY, because four things share one frame and only one of them is a measurement.
-          Drawn from the same palette and the same `colour` the paths use, so a swatch
-          cannot end up describing a line of a different shade. */}
+          see ViewSwipe); the band over it and the key are controls and text, and swipe with the page */}
+      <View>
+        <SwipeShield>
+          <View accessibilityRole="image" accessibilityLabel={label ?? CONDITIONS_WORDS.hydrograph.label}>
+            {view ? <Gestures view={view} plotX={shape.plot.x}>{svg}</Gestures> : svg}
+          </View>
+        </SwipeShield>
+        <PlotBand palette={palette} view={view} unit={unit} height={box.padTop} />
+      </View>
+      {/* A KEY, because four things share one frame and only one of them is a measurement. Drawn from the same palette
+          and the same `colour` the paths use, so a swatch cannot end up describing a line of a different shade. */}
       <View testID="chart-legend" style={{ flexDirection: "row", flexWrap: "wrap", alignItems: "center", columnGap: 14,
-                                           rowGap: 6, marginTop: 8 }}>
+                                           rowGap: 6 }}>
         <Key palette={palette} label={CONDITIONS_WORDS.key.reading} swatch="line" colour={colour} />
         {shape.envelopes.length > 0 && (
           <>
@@ -262,36 +265,42 @@ export function Hydrograph({ shape, palette, colour, label, unit,
   );
 }
 
-/** How to work the chart, said whole under the plot (above it, beside the buttons, a phone cut it to "…"). */
+/** (T920) the zoom buttons' size: small and quiet in the plot's corner (each still a 44 × 44 press, `hitProps`) */
+const ZOOM = 28;
+
 /**
- * THE LINE ABOVE THE PLOT: the unit, the value under the finger when one is being read (else, faint, how to read the
- * chart — touch and pointer each in their own words), and the zoom buttons, right where the eye is. (T367) One line:
- * the value is cut to it rather than growing a second, so reading a value never moves the chart.
+ * (T920) THE BAND OVER THE PLOT, inside the chart's top margin: the unit at the left; the value under the finger
+ * when one is being read (else one short faint line on how to read the chart — touch and pointer each in their own
+ * words); and the zoom buttons, small, in the top-right corner, for anyone who does not gesture. One line: the value is
+ * cut to it rather than growing a second, so reading a value never moves the chart.
  */
-function ZoomBar({ palette, view, unit }: { palette: Palette; view: ChartActions; unit?: string }) {
+function PlotBand({ palette, view, unit, height }: { palette: Palette; view?: ChartActions; unit?: string; height: number }) {
   const W = CONDITIONS_WORDS;
-  const r = view.readout;
+  const r = view?.readout ?? null;
   const hint = useMemo(() => CONDITIONS_WORDS.zoomHint[chartPointer()], []);
-  // (T604, owner build 25) THE HINT IS SAID WHOLE, on its own line under the row: beside the buttons on a phone it ran to
-  // three lines at the top of the card and was cut at the scroll's edge under the pinned access band. The row keeps the
-  // unit, the read-out and the buttons on one line, so reading a value never moves the chart.
   return (
-    <View style={{ marginBottom: SPACE.s1, gap: SPACE.s1 }}>
-      <View style={{ flexDirection: "row", alignItems: "center", gap: SPACE.s2 }}>
-        {unit ? <Text testID="chart-unit" style={{ ...TYPE.micro, fontSize: 11, color: palette.sub }}>{unit}</Text> : null}
+    <View pointerEvents="box-none"
+          style={{ position: "absolute", top: 0, left: 0, right: 0, height, flexDirection: "row", alignItems: "center",
+                   gap: SPACE.s2, paddingLeft: 4 }}>
+      {unit ? <Text testID="chart-unit" style={{ ...TYPE.micro, fontSize: 11, color: palette.sub }}>{unit}</Text> : null}
+      {view && !r && (
+        <Text testID="chart-hint" numberOfLines={1} style={{ ...TYPE.micro, fontSize: 11, flex: 1, color: palette.faint }}>{hint}</Text>
+      )}
+      {view && (
         <Text numberOfLines={1} accessibilityLiveRegion="polite" testID="chart-readout"
-              style={{ ...TYPE.metaBold, flex: 1, color: palette.ink }}>
+              style={{ ...TYPE.metaBold, flex: r ? 1 : 0, color: palette.ink }}>
           {r ? r.line : ""}
         </Text>
-        <View style={{ flexDirection: "row", gap: SPACE.s1 }} accessibilityRole="toolbar"
+      )}
+      {view && (
+        <View style={{ flexDirection: "row", gap: SPACE.s1, marginLeft: "auto" }} accessibilityRole="toolbar"
               accessibilityLabel={W.zoom.group}>
           <ZoomButton palette={palette} label={W.zoom.out} glyph="−" onPress={view.zoomed ? view.zoomOut : undefined} />
           <ZoomButton palette={palette} label={W.zoom.in} glyph="+" onPress={view.zoomIn} />
           <ZoomButton palette={palette} label={W.zoom.fit} glyph="⤢"
                       onPress={view.zoomed || r ? view.fit : undefined} />
         </View>
-      </View>
-      <Text style={{ ...TYPE.meta, color: palette.faint }}>{hint}</Text>
+      )}
     </View>
   );
 }
@@ -302,12 +311,12 @@ function ZoomButton({ palette, label, glyph, onPress }: {
 }) {
   const off = !onPress;
   return (
-    <Pressable {...hitProps({ w: 32, h: 32 })} onPress={onPress} disabled={off} accessibilityRole="button" accessibilityLabel={label}
+    <Pressable {...hitProps({ w: ZOOM, h: ZOOM })} onPress={onPress} disabled={off} accessibilityRole="button" accessibilityLabel={label}
                aria-disabled={off}
-               style={{ minWidth: 32, height: 32, paddingHorizontal: SPACE.s2, alignItems: "center",
+               style={{ width: ZOOM, height: ZOOM, alignItems: "center",
                         justifyContent: "center", borderRadius: palette.r.pill, borderWidth: 1,
-                        borderColor: palette.line2, backgroundColor: palette.card, opacity: off ? 0.4 : 1 }}>
-      <Text style={{ ...TYPE.metaBold, color: palette.ink }}>{glyph}</Text>
+                        borderColor: palette.line, backgroundColor: palette.card, opacity: off ? 0.35 : 0.85 }}>
+      <Text style={{ ...TYPE.meta, color: palette.sub }}>{glyph}</Text>
     </Pressable>
   );
 }

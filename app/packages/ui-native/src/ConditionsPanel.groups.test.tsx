@@ -47,6 +47,10 @@ describe("(T168) the conditions panel, grouped", () => {
   it("a panel: the count line, the switch and the rows group from one answer", async () => {
     render(<ConditionsPanel source={source({ panel: PANEL })} section={SEC} palette={LIGHT} feed={feed}
                             scroll={false} day={new Date(2026, 9, 23, 12)} />);
+    // (T920) the gauge legend is a fold, closed by default: its words say how many; opened, the count line leads it
+    await waitFor(() => expect(screen.getByTestId("gauges-fold")).toBeTruthy());
+    expect(screen.queryByTestId("gauge-count")).toBeNull();
+    fireEvent.click(screen.getByTestId("gauges-fold").querySelector("[role=button]")!);
     await waitFor(() => expect(screen.getByTestId("gauge-count")).toBeTruthy());
     expect(screen.getByTestId("gauge-count").textContent).toBe("1 gauge on this water · 1 not reporting");
     // the switch (T367: the card's title opens it): OWN on this water (the chart's gauge), FAR folded under the donors
@@ -66,6 +70,7 @@ describe("(T168) the conditions panel, grouped", () => {
   it("a gauged lake: its own station is on this water", async () => {
     render(<ConditionsPanel source={source({ panel: null, lake: "LAKEG" })} section={SEC} palette={LIGHT} feed={feed}
                             scroll={false} day={new Date(2026, 9, 23, 12)} />);
+    // (T920) no estimate here: the count line stands in the refusal's block, open (there is no gauge legend to fold)
     await waitFor(() => expect(screen.getByTestId("gauge-count")).toBeTruthy());
     expect(screen.getByTestId("gauge-count").textContent).toBe("1 gauge on this water");
   });

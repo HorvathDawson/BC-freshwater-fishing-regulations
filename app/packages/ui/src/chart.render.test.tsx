@@ -23,11 +23,12 @@ const source = { gaugeSeries: async () => ({ fetchedAt: 0, value: SERIES }) } as
 const ST = "08MH001" as StationId;
 
 describe("the chart's size", () => {
-  it("is built for the width it is drawn at, between 180 and 240 high (T367)", () => {
-    expect(chartBox(1000)).toEqual({ width: 1000, height: 240, padLeft: 40, padRight: 10, padTop: 12, padBottom: 24 });
-    expect(chartBox(358)).toEqual({ width: 358, height: 180, padLeft: 40, padRight: 10, padTop: 12, padBottom: 24 });
+  it("is built for the width it is drawn at, between 260 and 420 high (T367, T920)", () => {
+    expect(chartBox(1000)).toEqual({ width: 1000, height: 420, padLeft: 4, padRight: 4, padTop: 34, padBottom: 24 });
+    expect(chartBox(358)).toEqual({ width: 358, height: 420, padLeft: 4, padRight: 4, padTop: 34, padBottom: 24 });
     expect(chartBox(100).width).toBe(320);
-    expect([chartHeight(390), chartHeight(500), chartHeight(900)]).toEqual([180, 200, 240]);
+    // (T920) about square on a phone, capped on a wide column
+    expect([chartHeight(200), chartHeight(332), chartHeight(390), chartHeight(900)]).toEqual([260, 398, 420, 420]);
   });
 });
 
@@ -91,10 +92,10 @@ describe("useChartView", () => {
   });
 
   it("pans by the finger's pixels: dragging right brings earlier hours in", async () => {
-    const { result } = draw(590);                          // plot = 540 px wide
+    const { result } = draw(584);                          // plot = 576 px wide (T920: 4 px either side)
     const v = await ready(result);
-    act(() => v().zoomIn());                               // 18 h → 54 h: 36 h over 540 px, 15 px an hour
-    act(() => v().panBy(75));                              // five hours earlier
+    act(() => v().zoomIn());                               // 18 h → 54 h: 36 h over 576 px, 16 px an hour
+    act(() => v().panBy(80));                              // five hours earlier
     expect(v().shape.view).toEqual({ t0: T0 + 13 * H, t1: T0 + 49 * H });
     act(() => v().panBy(-10_000));                         // stops at the end of the record
     expect(v().shape.view).toEqual({ t0: T0 + 36 * H, t1: T0 + 72 * H });
@@ -103,7 +104,7 @@ describe("useChartView", () => {
   it("zooms where the pinch or wheel is, not in the middle", async () => {
     const { result } = draw(590);
     const v = await ready(result);
-    act(() => v().zoomAt(40, 4));                          // the plot's left edge
+    act(() => v().zoomAt(4, 4));                           // the plot's left edge
     expect(v().shape.view).toEqual({ t0: T0, t1: T0 + 18 * H });
   });
 
@@ -118,12 +119,12 @@ describe("useChartView", () => {
   });
 
   it("reads the value under the finger in core's words, and stops reading", async () => {
-    const { result } = draw(590);
+    const { result } = draw(584);                          // 72 h over 576 px: 8 px an hour
     const v = await ready(result);
-    act(() => v().probeAt(40 + 7.5 * 10));                 // ten hours in
+    act(() => v().probeAt(4 + 8 * 10));                    // ten hours in
     expect(v().readout?.line).toBe(chartReadoutLine({ t: T0 + 10 * H, value: 4.1, unit: "m³/s", quantity: "discharge", kind: "reading",
                                                       daily: false, median: 6 }));
-    expect(v().readout?.x).toBeCloseTo(115, 6);
+    expect(v().readout?.x).toBeCloseTo(84, 6);
     act(() => v().probeAt(null));
     expect(v().readout).toBeNull();
   });

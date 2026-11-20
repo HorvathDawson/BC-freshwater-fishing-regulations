@@ -270,8 +270,12 @@ export const CONDITIONS_WORDS = {
   /** after a forecast run past `STALE_AFTER.forecast` — the Data block's "Likely out of date", in a line */
   runOld: "likely out of date",
   noEstimate: "NO ESTIMATE",
-  tapToChart: "TAP A GAUGE TO SEE ITS CHART",
   donorList: "The gauges behind this estimate",
+  /**
+   * (T920, a tester via the owner 2026-11-19: "most people are not interested in this info and this can be made into a
+   * drop-down box") the gauge legend's fold, closed by default: how many gauges stand behind the estimate
+   */
+  gaugesFold: (n: number) => `${n} ${n === 1 ? "gauge" : "gauges"} behind this estimate`,
   youAreHere: "you are here",
   byThen: "by then",
   readingWater: "Reading the water",
@@ -293,17 +297,21 @@ export const CONDITIONS_WORDS = {
   chartGauge: "CHART THIS GAUGE",
   /** The chart's zoom controls (owner 2026-10-21: "look at data better"). */
   zoom: { in: "Zoom in", out: "Zoom out", fit: "Whole chart", group: "Chart zoom" },
-  /** How to work the chart, said once under it — touch and pointer each in their own words. */
+  /**
+   * How to work the chart, one short faint line in the read-out's place over the plot until a value is read — touch and
+   * pointer each in their own words. (T920: the long paragraph under the plot went; drag and double-tap still work.)
+   */
   zoomHint: {
-    touch: "Pinch to zoom, drag to move along, tap to read a value. Double-tap for the whole chart.",
-    pointer: "Scroll to zoom, drag to move along, point to read a value. Double-click for the whole chart.",
+    touch: "Pinch to zoom, tap to read a value",
+    pointer: "Scroll to zoom, point to read a value",
   },
   quantity: { discharge: "Flow", level: "Level" },
   span: { "72h": "Last 72 hours", year: "This year" },
   /** (T367) the span's word on the gauge card's compact toggle (the full words are its spoken name) */
   spanShort: { "72h": "72 h", year: "Year" },
-  /** (T60) The chart's key: the four things that share its frame (Hydrograph `Key` rows). */
-  key: { reading: "reading", middleHalf: "middle half", band: "10th–90th", median: "median",
+  /** (T60) The chart's key: the four things that share its frame (Hydrograph `Key` rows); (T920) the middle half is the
+   *  "normal range" (FLOW_LEGEND's normal is the middle half of past years) */
+  key: { reading: "reading", middleHalf: "normal range", band: "10th–90th", median: "median",
          /** (T367) the legend's one note where the record is too short for a normal range */
          noEnvelope: "no normal range (short record)",
          /** (T367) a model's legend entry: tap to draw it */
@@ -312,7 +320,9 @@ export const CONDITIONS_WORDS = {
          realtime: REALTIME_ONLY,
          realtimeLabel: (on: boolean) => (on ? "Real-time only, no forecast drawn" : "Real-time only. Tap to hide the forecast") },
   /** (T367) the gauge card: its title opens the list of gauges */
-  card: { pick: (name: string) => `${name}. Choose another gauge`, list: "Gauges behind this estimate" },
+  card: { pick: (name: string) => `${name}. Choose another gauge`, list: "Gauges behind this estimate",
+          // (T920) the picker's count, beside the charted gauge's name
+          count: (n: number) => `${n} gauges` },
   /** (T180) the hydrograph's name aloud; (T367) its caption is gone, the legend says what each mark is */
   hydrograph: { label: "River flow against its normal range" },
   /** The ONE place the app decides what a quantity is measured in. */
