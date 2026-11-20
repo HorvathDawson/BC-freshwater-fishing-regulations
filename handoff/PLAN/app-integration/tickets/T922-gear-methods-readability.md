@@ -22,3 +22,5 @@ Same on app and website. Pictures (Alice Lake Gear + Methods, 390 light/dark) to
 Whole-string tests on the composed lines; pictures approved by the owner.
 Depends: none. Size: M. Owner: yes (look at pictures). Default: (a) "Roe (fish eggs)", no note; (b) one capitalised,
 full-stopped line per condition.
+## Owner 2026-11-20 ~01:20 (main chat): pictures approved
+Shown Alice Lake Methods before/after and Gear after (web, dark). Verbatim: "Gear and method oens seem good."
