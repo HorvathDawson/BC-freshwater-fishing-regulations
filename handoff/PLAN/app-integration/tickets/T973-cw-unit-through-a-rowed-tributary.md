@@ -35,7 +35,9 @@ unit. Under it, Harmer Creek would keep the Elk's unit and Gosnell Creek would t
 row as the book's word on that water, which says nothing about a licence, so the water is not classified. Only a CO
 (or the Ministry) can say which reading is enforced.
 
-## What to ask the CO (draft)
+## What to ask the CO
+The question is in `pipeline/docs/GOTCHAS.md`, "Questions the owner will put to BC Fish and Wildlife" → Classified
+Waters licence (one example: the Stellako and the Endako). Longer draft:
 "A river is listed as Classified Waters with '[Includes Tributaries]'. One of its tributaries has its own line in the
 synopsis that does not mention Classified Waters (e.g. Grave Creek under the Elk, Gosnell Creek under the Morice, the
 Endako under the Stellako). Does a non-resident fishing that tributary, or a creek above it, need the river's
