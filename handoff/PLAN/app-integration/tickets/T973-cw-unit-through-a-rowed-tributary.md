@@ -153,12 +153,14 @@ need". No carried unit: the card exactly as before. Python resolves (unit, class
 **Proof: byte-identical where nothing passes a rowed water** (reach step in memory on the live atlas through
 `scripts/heavy.sh`, one run, `first_classified_downstream` called three ways on the same inputs): with the carry asked
 and without (= switch off), the placements and the diagnostics are EQUAL; with the tributary-claim rule on too, 0
-sections move. The written run's `licensing_digest` is **72f10f9269d699f8** = T944's switch-on result on the same atlas
-(pre-T973 code); rules digest 6ca9a300dad3d95e unchanged. So every licensing table is byte-identical; only the new
-`licensing_carried` table is added.
+sections move. `licensing_digest` with every T973 switch off (the same run's placements carried through the pass's
+later steps) = with both on = **72f10f9269d699f8**, which is also T944's switch-on result on the same atlas (pre-T973
+code; a second run reproduced all three); rules digest 6ca9a300dad3d95e unchanged. So every licensing table is
+byte-identical; only the new `licensing_carried` table is added.
 
 **Measured (live atlas): 7,080 sections gain a "may need" note** (raw 10,991 walk-drops, one per section; 0 placed
-elsewhere), on 97 named waters + 6,454 unnamed sections; 14 units, 21 rowed no-unit waters. Biggest first, by
+elsewhere; 1,908 sections reached by two walks name two rows, and in all of them the same unit and class
+(`disagree_unit` 0: the Stellako's Region 6 and 7 rows, the Elk's three), on 97 named waters + 6,454 unnamed sections; 14 units, 21 rowed no-unit waters. Biggest first, by
 section count (carried unit | through | named waters among them):
 
 | sections | carried unit | through (up from the classified water) | named waters |
@@ -207,8 +209,8 @@ byte-identical). The app gate on it: `cw-through/1` asks nothing of any app (nee
 Classified Waters. Check with a CO." above "You need", which lists no Classified Waters Licence.
 
 **Defaults chosen (tell the owner):** (a) the confluence-cut path (T9, item 2 above) is not changed; (b) nothing below a
-rowed water → the walker's unit; (c) two walks carrying different designations to one section keep the first by
-(entry, record) and count it (`disagree`); (d) a part partly carried says "On part of this water:"; (e) the note shows
+rowed water → the walker's unit; (c) two walks carrying different rows to one section keep the first by (entry, record)
+(`disagree` 1,908, all the same unit); (d) a part partly carried says "On part of this water:"; (e) the note shows
 to every angler profile (as the class box does); (f) the owner's 12:24 rule is ON (0 sections affected today).
 
 Tests: `test_licensing_first_classified.py` (+9: carried with path, two waters in order, upstream unit's own reach
