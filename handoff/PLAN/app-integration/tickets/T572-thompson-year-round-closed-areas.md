@@ -1,6 +1,6 @@
 # T572 — Thompson River: the three year-round closed areas inside one DFO place (owner's problem report)
 
-Status: IN REVIEW — owner looks (a proposal waits in the review app)
+Status: DONE 2026-11-20 (ec2198839, 85f465788, c6bef0aea (T573's cuts)) — superseded by T573 (the closed areas confirmed, cuts landed).
 
 Superseded by T573 (2026-11-20 audit: The ticket itself says the four-open-stretches proposal 'is REPLACED' by the owner's two-entries direction (T573); the three closed areas are now T573 pieces confirmed in data/curated/dfo_salmon/closed_areas.json (3 Thompson stretches) and their cuts landed (ec2198839, 85f465788, c6bef0aea).)
 

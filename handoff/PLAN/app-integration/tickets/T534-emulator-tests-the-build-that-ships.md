@@ -1,6 +1,6 @@
 # T534 — The emulator tests a build it can name: commit stamp, stale-APK refusal, patched MapLibre by default
 
-Status: IN PROGRESS — tools lane; 4b6f79411 (built + unit-proved 2026-11-10); left (Claude): one real `session.sh --build` + `run.mjs install` to see the stamp and build id 7bf3dc29 (command in "Built" below).
+Status: DONE 2026-11-20 (4b6f79411) — the stamp is proven on the emulator: test bed runs 2026-11-19T22-16-09 (commit 09985e595 clean) and 2026-11-20T02-59-17 (commit 1f989bb48 clean) both name libmaplibre build id 7bf3dc29141e550ff539a1768c092cb7f99c34c2 (patched, T420 lean) in their report header.
 
 Source: workflow review 2026-11-09 (verified against the code). Rank 2.
 
