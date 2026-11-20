@@ -39,6 +39,8 @@ export const ALLOW = new Set([
   "packages/map/style/themes/light.json",
   "packages/map/style/themes/dark.json",
   "packages/map/style/themes/cvd.json",
+  // (T940) the water's values over satellite imagery: one set, the same in every theme (not a theme of its own)
+  "packages/map/style/imagery.json",
   // GENERATED from the three above by `pnpm style:build`, hash-checked by `pnpm style`.
   "packages/map/style/style.json",
   "packages/map/style/style.meta.json",

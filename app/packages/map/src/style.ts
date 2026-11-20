@@ -198,6 +198,8 @@ export const STYLE_META = meta as unknown as {
   /** (T923) casing layers drawn over satellite only */
   satelliteOnly?: string[];
   themes: Record<string, Tokens>;
+  /** (T940) the water's values over satellite imagery, the same in every theme (`imagery.json`) */
+  imagery?: Tokens;
   /** Layers a view may switch that are added at runtime, not defined here. */
   runtimeLayers: string[];
   tokens: Record<string, { type: string; themeable: boolean }>;
@@ -280,15 +282,26 @@ export const defaultView = (): MapView => {
 /** Every theme the generated style defines. The app must not hardcode this list. */
 export const themeNames = (): string[] => Object.keys(STYLE_META.themes);
 
+/**
+ * (T940) THE NAME OF A THEME OVER A GROUND. Over satellite the water reads one colour set, the same in every theme
+ * (`imagery.json`, `onImageryTokens`): `groundTheme(theme, "satellite")` is the theme with that set in place, which is
+ * what the map KEY reads while satellite is drawn, so its swatches are the colours on the photograph. On the drawn map
+ * it is the theme itself. Not a theme of its own: `themeNames()` never lists it.
+ */
+const OVER_SATELLITE = "+satellite";
+export const groundTheme = (theme: string, ground: "map" | "satellite"): string =>
+  ground === "satellite" ? `${theme}${OVER_SATELLITE}` : theme;
+
 export function resolveTheme(name: string, overrides: Tokens = {}): Tokens {
-  const base = STYLE_META.themes[name];
+  const sat = name.endsWith(OVER_SATELLITE);
+  const base = STYLE_META.themes[sat ? name.slice(0, -OVER_SATELLITE.length) : name];
   if (!base) throw new Error(`unknown theme "${name}"`);
   for (const k of Object.keys(overrides)) {
     const def = STYLE_META.tokens[k];
     if (!def) throw new Error(`unknown token "${k}"`);
     if (!def.themeable) throw new Error(`token "${k}" is not themeable`);
   }
-  return { ...base, ...overrides };
+  return { ...base, ...(sat ? STYLE_META.imagery : {}), ...overrides };
 }
 
 /**

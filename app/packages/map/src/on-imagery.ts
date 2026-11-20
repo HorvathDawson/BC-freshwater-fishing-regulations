@@ -170,6 +170,17 @@ export function waterOnImagery(layerId: string, paint: Record<string, unknown>, 
 }
 
 /**
+ * (T940, owner 2026-11-20: "Satellite should maybe just be its own colors? Best for satellite?") THE WATER'S COLOURS OVER
+ * SATELLITE: one set, the same in light, dark and colour-blind (`imagery.json`, `STYLE_META.imagery`), in place of the
+ * theme's — the photograph does not change with the theme, so neither does what is drawn on it. Every status, the
+ * selection's ring, the no-access grey, the lakes, the Conditions and Runs ramps and the marks drawn with the stream
+ * (closed's dash, the gear edges, the keep casing, the issue stripe) read it. Only the water layers do (`onImageryLayer`):
+ * land (reserves, closures, parks) and the labels keep the theme's, as T923 set them. The drawn map is untouched.
+ */
+export const onImageryLayer = (layerId: string): boolean => STYLE_META.layerGroup[layerId] === "water";
+export const onImageryTokens = (tokens: Tokens): Tokens => ({ ...tokens, ...STYLE_META.imagery });
+
+/**
  * (T923, owner 2026-11-20: "for satellite we could have it purposely stand out a little more") A RESERVE'S AND A PRIVATE
  * PARCEL'S OUTLINE OVER IMAGERY: the edge in its own darker colour, wider and at full opacity (`outline.satellite` in
  * `layers.source.json`), and a light casing under it (`<layer>__casing`) so it reads on any photograph. On the drawn map

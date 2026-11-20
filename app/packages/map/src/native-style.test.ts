@@ -9,7 +9,7 @@ import { nativeImageName, nativeImages } from "./images";
 import { paintFor } from "./paint";
 import { nativeStyle } from "./native-style";
 import { runtimeStyle } from "./runtime-style";
-import { MAP_STYLE, NO_VALUES, resolveTheme } from "./style";
+import { groundTheme, MAP_STYLE, NO_VALUES, resolveTheme, STYLE_META } from "./style";
 
 type L = { id: string; type: string; paint?: Record<string, unknown>; layout?: Record<string, unknown>;
            minzoom?: number };
@@ -162,6 +162,87 @@ describe("the native style", () => {
     expect(paints("cvd")).toEqual(light);
     // and they are really drawn: full-strength edge, casing visible
     expect(light.every(([, p]) => (p as Record<string, number>)["line-opacity"]! > 0)).toBe(true);
+  });
+
+  /*
+   * (T940, owner 2026-11-20: "Satellite should maybe just be its own colors?") THE WATER OVER SATELLITE IS ONE LOOK. The
+   * photograph does not change with the theme, so the water drawn on it reads one colour set (`imagery.json`) in light,
+   * dark and colour-blind alike. Every look the app draws, focused or not: the water layers' paint and layout are the
+   * same in all three themes, except these, each for a stated reason:
+   *  - basin / basin__edge: the Conditions and Runs field is OPAQUE, its ramp mixed on the theme's paper (dark's differs)
+   *  - wetland fill-pattern: the still-wetland hatch is an image made per theme (its name carries the theme)
+   *  - stream__arrows text-halo-color: the flow arrows' halo is the theme's paper
+   *  - under_lake line-dasharray, cvd: colour-blind keeps its dotted route pattern (a pattern, not a colour)
+   */
+  const LOOKS: [string, string, Record<string, string>][] = [
+    ["plain", "plain", {}],
+    ["regs", "plain", { stream: "profile", lake: "profile", lake_flowing: "profile", wetland_flowing: "profile" }],
+    ["salmon", "plain", { stream: "salmon", lake: "salmon", lake_flowing: "salmon", wetland_flowing: "salmon" }],
+    ["runs", "plain", { stream: "runs", lake: "runs", lake_flowing: "runs", wetland_flowing: "runs", basin: "runs",
+                        basin__edge: "runs" }],
+    ["conditions", "conditions", {}], ["stocked", "stocked", {}], ["temperature", "temperature", {}]];
+  const views = (STYLE_META as unknown as { views: { id: string; modes: Record<string, string> }[] }).views;
+  const lookStyle = (theme: string, view: string, modes: Record<string, string>, focus: boolean,
+                     basemap: "map" | "satellite") =>
+    nativeStyle({ ...base, theme, view, modes: { ...views.find((v) => v.id === view)!.modes, ...modes }, focus, basemap })
+      .style as unknown as S;
+  const EXCEPT: Record<string, string[]> = {
+    dark: ["basin fill-color", "basin__edge line-color", "wetland fill-pattern", "stream__arrows text-halo-color"],
+    cvd: ["wetland fill-pattern", "under_lake line-dasharray"] };
+
+  it("(T940) over satellite the water is ONE look in light, dark and colour-blind, in every look the app draws", () => {
+    for (const [name, view, modes] of LOOKS) for (const focus of [false, true]) {
+      const light = lookStyle("light", view, modes, focus, "satellite");
+      for (const theme of ["dark", "cvd"]) {
+        const other = lookStyle(theme, view, modes, focus, "satellite");
+        const differs: string[] = [];
+        for (const a of light.layers.filter((l) => STYLE_META.layerGroup[l.id] === "water")) {
+          const b = layer(other, a.id);
+          for (const part of ["paint", "layout"] as const)
+            for (const k of new Set([...Object.keys(a[part] ?? {}), ...Object.keys(b[part] ?? {})]))
+              if (JSON.stringify(a[part]?.[k]) !== JSON.stringify(b[part]?.[k])) differs.push(`${a.id} ${k}`);
+        }
+        expect([name, focus, theme, differs.sort()]).toEqual([name, focus, theme, [...EXCEPT[theme]!].sort()]);
+      }
+    }
+  });
+
+  it("(T940) the set is what is drawn: a Trout status line over satellite is the set's closed, not the theme's", () => {
+    const status = { closed: ["p0"], own: ["p1"], base: ["b"], no_access: [], none: [] };
+    const values = { ...NO_VALUES, status } as never;
+    const im = STYLE_META.imagery!;
+    const lines = ["light", "dark", "cvd"].map((theme) => {
+      const sat = JSON.stringify(layer(nativeStyle({ ...base, theme, modes: { stream: "profile" }, values,
+                                                     basemap: "satellite" }).style as unknown as S, "stream").paint!["line-color"]);
+      const map = JSON.stringify(layer(nativeStyle({ ...base, theme, modes: { stream: "profile" }, values })
+        .style as unknown as S, "stream").paint!["line-color"]);
+      const own = resolveTheme(theme)["color.status.closed"] as string;
+      expect([theme, sat.includes(im["color.status.closed"] as string), sat.includes(own), map.includes(own)])
+        .toEqual([theme, true, false, true]);
+      return sat;
+    });
+    expect(lines[1]).toBe(lines[0]);
+    expect(lines[2]).toBe(lines[0]);
+    // and the key reads the same set while satellite is drawn: `groundTheme`; on the drawn map it is the theme itself
+    for (const theme of ["light", "dark", "cvd"]) {
+      expect(resolveTheme(groundTheme(theme, "satellite"))["color.status.closed"]).toBe(im["color.status.closed"]);
+      expect(groundTheme(theme, "map")).toBe(theme);
+    }
+  });
+
+  it("(T940) the drawn map does not read the set: emptying it changes satellite and leaves the drawn map as it was", () => {
+    const all = (basemap: "map" | "satellite") => JSON.stringify(["light", "dark", "cvd"].flatMap((theme) =>
+      LOOKS.flatMap(([, view, modes]) => [false, true].map((focus) => lookStyle(theme, view, modes, focus, basemap).layers))));
+    const meta = STYLE_META as { imagery?: Record<string, unknown> };
+    const kept = meta.imagery;
+    const [map, sat] = [all("map"), all("satellite")];
+    try {
+      meta.imagery = {};
+      expect(all("map")).toBe(map);
+      expect(all("satellite")).not.toBe(sat);
+    } finally {
+      meta.imagery = kept;
+    }
   });
 
   it("starts the gauge source with the gauges it is given", () => {

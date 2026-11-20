@@ -13,6 +13,9 @@
  *     than the solid line the drawn map hands the same tap, at any zoom, order or state;
  *   - the satellite → map switch takes the gap back on a live map (the web restyles in place);
  *   - the phone is handed the same opened paint (`nativeStyle`, one style source).
+ * (T940) Over satellite the water reads its own colour set, the same in every theme (`imagery.json`), widths and
+ * opacities included; so "what the drawn map paints" for the satellite rows is the drawn map under that set
+ * (`groundTheme(theme, "satellite")`), and the opening is measured against it.
  */
 import { describe, expect, it } from "vitest";
 import { createPropertyExpression, latest } from "@maplibre/maplibre-gl-style-spec";
@@ -21,7 +24,7 @@ import { baseAdapter, type MapHandle } from "../packages/map/src/adapters/contra
 import { nativeStyle } from "../packages/map/src/native-style";
 import { IMAGERY_GAP_FLOOR } from "../packages/map/src/on-imagery";
 import { rampAt } from "../packages/map/src/paint";
-import { resolveTheme } from "../packages/map/src/style";
+import { groundTheme, resolveTheme } from "../packages/map/src/style";
 
 const DAY: DayProfiles = { closed: ["p1"], own: ["p2"], base: ["b"], no_access: ["n"], none: ["p3"] };
 const THEMES = ["light", "dark", "cvd"] as const;
@@ -71,6 +74,8 @@ describe("over satellite the stream opens; the drawn map does not move (T594)", 
     const sat = painted(theme, ["satellite"]);
     const back = painted(theme, ["satellite", "map"]);
     const fresh = painted(theme, []);
+    // (T940) the drawn map's paint under the satellite set: what the opened stream is measured against
+    const ref = painted(groundTheme(theme, "satellite"), ["map"]);
     const e = Number(resolveTheme(theme)["width.imagery.edge"]);
 
     it(`${theme}: the drawn map is painted exactly as a map that never saw satellite`, () => {
@@ -91,7 +96,7 @@ describe("over satellite the stream opens; the drawn map does not move (T594)", 
     it(`${theme}: overview zooms are unchanged; from z14 two ${e} px edges round a clear middle a creek fits in`, () => {
       const problems: string[] = [];
       for (const l of STREAM_LAYERS) {
-        const wMap = evaluator("line-width", map[l]!["line-width"]);
+        const wMap = evaluator("line-width", ref[l]!["line-width"]);
         const wSat = evaluator("line-width", sat[l]!["line-width"]);
         const gSat = evaluator("line-gap-width", sat[l]!["line-gap-width"]);
         for (const z of ZOOMS) for (const ord of ORDS) for (const s of STATES) {
@@ -115,7 +120,7 @@ describe("over satellite the stream opens; the drawn map does not move (T594)", 
       const gStream = drawnStream(sat, "line-gap-width");
       for (const l of ["stream-gear-fly", "selection-casing"]) {
         const pad = (z: number, o: number, s: Record<string, unknown>) =>
-          (evaluator("line-width", map[l]!["line-width"])(z, o, s) - drawnStream(map, "line-width")(z, o, s)) / 2;
+          (evaluator("line-width", ref[l]!["line-width"])(z, o, s) - drawnStream(ref, "line-width")(z, o, s)) / 2;
         const w = evaluator("line-width", sat[l]!["line-width"]), g = evaluator("line-gap-width", sat[l]!["line-gap-width"]);
         for (const z of [14, 16]) for (const ord of ORDS) for (const s of STATES) {
           if (Math.abs(g(z, ord, s) - gStream(z, ord, s)) > 1e-6) problems.push(`${l} z${z} ord ${ord}: its gap is not the stream's`);
@@ -128,11 +133,11 @@ describe("over satellite the stream opens; the drawn map does not move (T594)", 
 
     it(`${theme}: a lake's fill is light close in, its outline heavier; unchanged at the overview`, () => {
       for (const l of ["lake", "lake_flowing"]) {
-        const fm = evaluator("fill-opacity", map[l]!["fill-opacity"]), fs = evaluator("fill-opacity", sat[l]!["fill-opacity"]);
+        const fm = evaluator("fill-opacity", ref[l]!["fill-opacity"]), fs = evaluator("fill-opacity", sat[l]!["fill-opacity"]);
         expect(fs(10, 1, { p: "b" })).toBeCloseTo(fm(10, 1, { p: "b" }), 6);
         expect(fs(14, 1, { p: "b" })).toBeCloseTo(fm(14, 1, { p: "b" }) * Number(resolveTheme(theme)["opacity.imagery.fill"]), 6);
       }
-      const em = evaluator("line-width", map["lake__edge"]!["line-width"]), es = evaluator("line-width", sat["lake__edge"]!["line-width"]);
+      const em = evaluator("line-width", ref["lake__edge"]!["line-width"]), es = evaluator("line-width", sat["lake__edge"]!["line-width"]);
       expect(es(10, 1, { p: "b" })).toBeCloseTo(em(10, 1, { p: "b" }), 6);
       expect(es(14, 1, { p: "b" })).toBeCloseTo(em(14, 1, { p: "b" }) * 1.8, 6);
     });

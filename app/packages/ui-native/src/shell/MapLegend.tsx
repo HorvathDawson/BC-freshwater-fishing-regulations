@@ -10,7 +10,7 @@ import { CHANGE_LEGEND, changeMarkWords, FLOW_LEGEND, OTHER_QUANTITY_WORDS, TEMP
          WATER_STATUS_LINE, WATER_STATUSES, type WaterStatus, waterLegend, salmonLegend, GEAR_LEGEND,
          RUN_WORDS, slotsFor, MAP_KEY, closedKey, waterKeyWords, OBSTACLE_ICON_KINDS }
   from "@app/core";
-import { closedCueColour, gaugeOnlyColours, issueStripeColours, gearEdgeColour, notFishingColours, runStateColour, salmonCasingColour, salmonStatusColour } from "@app/map/colours";
+import { closedCueColour, gaugeOnlyColours, groundTheme, issueStripeColours, gearEdgeColour, notFishingColours, runStateColour, salmonCasingColour, salmonStatusColour } from "@app/map/colours";
 import { ObstacleIcon } from "../icons";
 import { useMemo, useState } from "react";
 import { useCoachTarget } from "../CoachMarks";
@@ -24,7 +24,7 @@ import { LEGEND_RAMP_MAX, legendCard, LegendCount, LegendRamp, LegendRows, Legen
 import { BasinDays } from "../BasinDays";
 import { legendColour } from "../LayersSheet";
 import { LEGEND_TEXT, TYPE } from "../type";
-import { changeRampStops, flowRampStops, round, type Palette } from "../theme";
+import { changeRampStops, flowRampStops, paletteFor, round, type Palette } from "../theme";
 import type { MapColouring } from "./useMapColouring";
 
 /**
@@ -44,6 +44,10 @@ export function MapLegend({ col, conditions, palette, theme, mapDay }: {
   mapDay: Date | null;
 }) {
   const { flowParam, horizon, layers, mm, cond } = col;
+  // (T940) THE KEY SHOWS WHAT THE MAP DRAWS: over satellite the water wears its own colour set, the same in every theme
+  // (`groundTheme`), so the swatches do too; the words and the card stay the theme's
+  const keyTheme = groundTheme(theme, mm.basemap);
+  const keyPalette = useMemo(() => (keyTheme === theme ? palette : paletteFor(keyTheme)), [keyTheme, theme, palette]);
   // (T904) the desktop's Conditions key is a card over the map, not a bar under it; phones and narrow web keep the bar
   const card = tabsAsRail(useLayoutClass());
   const onConditions = mm.onConditions;
@@ -54,12 +58,12 @@ export function MapLegend({ col, conditions, palette, theme, mapDay }: {
   const fishery = !conditions && col.salmonOffered && col.statusOk && col.layers.water.drawn === "regulations";
   // (T396) the regulations key's entries, laid in two rows below (`LegendRows`)
   const gearRows = col.gearMarked ? GEAR_LEGEND.map((m) => (
-    <LegendCount key={m} palette={palette} colour={gearEdgeColour(theme)} edge={m === "fly" ? "solid" : "dashed"} tight
+    <LegendCount key={m} palette={palette} colour={gearEdgeColour(keyTheme)} edge={m === "fly" ? "solid" : "dashed"} tight
                  label={MAP_KEY.gear[m]} />
   )) : [];
   // (T759) THE ISSUE STRIPE'S ENTRY: only while the Salmon key is up and the feed has a water the stripe can mark
   const issueRow = col.issueFeed ? [
-    <LegendCount key="issue" palette={palette} colour={palette.sub} line tight issue={issueStripeColours(theme)} label={MAP_KEY.issue} />,
+    <LegendCount key="issue" palette={palette} colour={palette.sub} line tight issue={issueStripeColours(keyTheme)} label={MAP_KEY.issue} />,
   ] : [];
   // (T377) A CLASS IS TAPPABLE while the map draws it: a tap shows it alone, again (or the one shown) shows all
   const tap = (cls: string) => (col.statusOk
@@ -67,15 +71,15 @@ export function MapLegend({ col, conditions, palette, theme, mapDay }: {
     : {});
   // (T937) one entry per status, No access too: Salmon's key wears that very entry (not tappable there: no salmon class)
   const statusRow = (s: WaterStatus, tapped: boolean) => (
-    <LegendCount key={s} palette={palette} colour={palette.waterStatus[s]} tight
-                 line dotted={WATER_STATUS_LINE[s] === "dotted"} striped={s === "closed" ? closedCueColour(theme) : undefined}
+    <LegendCount key={s} palette={palette} colour={keyPalette.waterStatus[s]} tight
+                 line dotted={WATER_STATUS_LINE[s] === "dotted"} striped={s === "closed" ? closedCueColour(keyTheme) : undefined}
                  label={s === "closed" ? closedKey(mapDay) : MAP_KEY.status[s]} {...(tapped ? tap(s) : {})} />
   );
   const statusRows = WATER_STATUSES.map((s) => statusRow(s, true));
   const salmonRows = salmonLegend().map((r) => (
-    <LegendCount key={r.status} palette={palette} colour={salmonStatusColour(theme, r.status)} line tight
-                 striped={r.status === "closed" ? closedCueColour(theme) : undefined}
-                 cased={r.status === "open" ? salmonCasingColour(theme) ?? undefined : undefined}
+    <LegendCount key={r.status} palette={palette} colour={salmonStatusColour(keyTheme, r.status)} line tight
+                 striped={r.status === "closed" ? closedCueColour(keyTheme) : undefined}
+                 cased={r.status === "open" ? salmonCasingColour(keyTheme) ?? undefined : undefined}
                  label={MAP_KEY.salmon[r.status]} {...tap(r.status)} />
   ));
   const strip = (
@@ -114,20 +118,20 @@ export function MapLegend({ col, conditions, palette, theme, mapDay }: {
                         low={CHANGE_LEGEND.low} mid={CHANGE_LEGEND.mid} high={CHANGE_LEGEND.high}
                         band={CHANGE_LEGEND.steady} markWords={changeMarkWords}
                         describe={CHANGE_LEGEND.describe}
-                        stops={changeRampStops(theme)} marks={visibleMarks} />
+                        stops={changeRampStops(keyTheme)} marks={visibleMarks} />
           </>
         ) : (
           <>
             <LegendRamp palette={palette}
                         title={FLOW_LEGEND.title[flowParam === "level" ? "level" : "discharge"]}
                         low={FLOW_LEGEND.low} mid={FLOW_LEGEND.mid} high={FLOW_LEGEND.high}
-                        stops={flowRampStops(theme)} marks={visibleMarks} />
+                        stops={flowRampStops(keyTheme)} marks={visibleMarks} />
           </>
         )
       ) : layers.water.drawn !== "regulations" ? (
         // ONE COLOURING FOR ALL WATER: the measure's key, ending with what draws neutral and why
         waterLegend(layers.water.drawn).map((r, i) => (
-          <LegendCount key={r.label} palette={palette} colour={legendColour(palette, r.swatch)}
+          <LegendCount key={r.label} palette={palette} colour={legendColour(keyPalette, r.swatch)}
                        label={waterKeyWords(layers.water.drawn)[i] ?? r.label} />
         ))
       ) : col.regsLayer === "salmon" ? (
@@ -147,8 +151,8 @@ export function MapLegend({ col, conditions, palette, theme, mapDay }: {
         <LegendRows rows={[statusRows.filter((s) => s.key !== "no_access"),
                            [...statusRows.filter((s) => s.key === "no_access"), ...gearRows,
                             // (T292) sewage lagoons, tailings ponds, dumps: the off colour and its dashed rim, no status
-                            <LegendCount key="off" palette={palette} colour={notFishingColours(theme).fill} tight
-                                         rim={notFishingColours(theme).edge} label={MAP_KEY.notFishing} />]]} />
+                            <LegendCount key="off" palette={palette} colour={notFishingColours(keyTheme).fill} tight
+                                         rim={notFishingColours(keyTheme).edge} label={MAP_KEY.notFishing} />]]} />
       )}
       {/* (T377) THE CENTRE GROUP'S DAYS, under the ramp in the bottom bar: a tap on a day is the horizon chips' pick */}
       {conditions && col.basinDays && (
@@ -214,7 +218,9 @@ export function GaugeOnlyKey({ col, palette, theme, bottom }: { col: MapColourin
  *  `insetBottom` over the foot block; an overlay on the map's right edge starts above both, so none covers another. */
 const CORNER_CLEAR = 56;
 
-export function RunsKey({ theme, palette, bottom }: { theme: string; palette: Palette; bottom: number }) {
+export function RunsKey({ theme, palette, bottom, ground = "map" }: { theme: string; palette: Palette; bottom: number;
+  /** (T940) the ground drawn: over satellite the bar wears the water's satellite colours, as the map does */
+  ground?: "map" | "satellite" }) {
   const K = MAP_KEY.runs;
   return (
     <View testID="runs-key" accessibilityRole="image" accessibilityLabel={K.describe}
@@ -222,7 +228,7 @@ export function RunsKey({ theme, palette, bottom }: { theme: string; palette: Pa
                    paddingVertical: 6, paddingLeft: 7, paddingRight: 8, borderRadius: palette.r.chip, borderWidth: 1,
                    borderColor: palette.line, backgroundColor: palette.card, opacity: 0.96 }}>
       <View style={{ width: 8, borderRadius: round(8), overflow: "hidden" }}>
-        {K.rows.map((r) => <View key={r.state} style={{ flex: 1, backgroundColor: runStateColour(theme, r.state) }} />)}
+        {K.rows.map((r) => <View key={r.state} style={{ flex: 1, backgroundColor: runStateColour(groundTheme(theme, ground), r.state) }} />)}
       </View>
       <View style={{ justifyContent: "space-between", gap: 8 }}>
         {K.rows.map((r) => (

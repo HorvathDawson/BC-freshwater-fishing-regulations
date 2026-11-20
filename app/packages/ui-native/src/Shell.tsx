@@ -684,7 +684,7 @@ export function Shell(p: ShellProps) {
           {showLegendFor(keyTab, keyCol) && keyTab === "conditions" && <GaugeOnlyKey col={keyCol} palette={palette} theme={theme} bottom={footInset} />}
           {/* (T261) the Runs tab's foot: the date slider, the key, the run-size scale and the credit */}
           {/* (T566) held like the key above: leaving Runs, the run key stays until the map has drawn the Map tab's colours */}
-          {route.mode === "browse" && mapTabShown && keyTab === "runs" && !searching && <RunsKey theme={theme} palette={palette} bottom={footInset} />}
+          {route.mode === "browse" && mapTabShown && keyTab === "runs" && !searching && <RunsKey theme={theme} palette={palette} bottom={footInset} ground={keyCol.mm.basemap} />}
           {route.mode === "browse" && mapTabShown && keyTab === "runs" && !searching && <RunsLegend col={keyCol} palette={palette} theme={theme} fishImages={p.fishImages} />}
           </>}</HeldKey>
       </>

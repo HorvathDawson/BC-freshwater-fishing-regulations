@@ -36,6 +36,7 @@ describe("one palette", () => {
   it("allows the palette and nothing else", () => {
     // Widening this list is the one way past the gate. It should hurt to do.
     expect([...ALLOW].sort()).toEqual([
+      "packages/map/style/imagery.json",
       "packages/map/style/style.json",
       "packages/map/style/style.meta.json",
       "packages/map/style/themes/cvd.json",

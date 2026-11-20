@@ -99,6 +99,37 @@ for (const [name, def] of Object.entries(tokens)) {
   if (seen.size > 1) err(`token "${name}" is not themeable but the themes disagree: ${[...seen].join(" / ")}`);
 }
 
+// --- (T940) THE WATER OVER SATELLITE: one value per water token, the same in every theme (`imagery.json`) ---
+//
+// The photograph does not follow the theme, so what is drawn on it does not either: while the ground is satellite the
+// water layers read these values in place of the theme's (src/on-imagery.ts `onImageryTokens`). A value may name
+// another token with "@": one in this set, or one whose value is already the same in every theme — never a themed
+// one, which would bring the theme back in by the side door. Resolved here: the meta carries plain values.
+const imagerySrc = JSON.parse(readFileSync(dir + "imagery.json", "utf8"));
+const imagery = {};
+/** names in the set that are one colour with another on purpose (an "@"), skipped by the duplicate guard as aliases are */
+const imageryAliased = new Set();
+const sameEverywhere = (name) => themes.every((t) => JSON.stringify(t.values[name]) === JSON.stringify(themes[0].values[name]));
+const valueTypeOk = (type, v) => type === "color" ? typeof v === "string" && /^#[0-9a-fA-F]{6}$/.test(v)
+  : type === "number" ? typeof v === "number" : type === "dash" ? Array.isArray(v) : true;
+for (const [name, v] of Object.entries(imagerySrc.values ?? {})) {
+  const def = tokens[name];
+  if (!def) { err(`imagery.json: "${name}" is not a token`); continue; }
+  if (!def.themeable) { err(`imagery.json: "${name}" is not themeable, so it is already the same over satellite`); continue; }
+  let value = v, hops = 0;
+  while (typeof value === "string" && value.startsWith("@") && hops++ < 8) {
+    const target = value.slice(1);
+    if (target in (imagerySrc.values ?? {})) value = imagerySrc.values[target];
+    else if (tokens[target] && themes[0].values[target] !== undefined && sameEverywhere(target)) value = themes[0].values[target];
+    else { err(`imagery.json: ${name} names "${v}", which is neither in the set nor the same in every theme`); value = null; break; }
+    if (tokens[target]?.type !== def.type) { err(`imagery.json: ${name} names ${target}, a ${tokens[target]?.type}, not a ${def.type}`); break; }
+  }
+  if (value === null) continue;
+  if (typeof v === "string" && v.startsWith("@")) imageryAliased.add(name);
+  if (!valueTypeOk(def.type, value)) err(`imagery.json: ${name} = ${JSON.stringify(value)} is not a ${def.type}`);
+  imagery[name] = value;
+}
+
 /**
  * THE APP'S CHROME (`color.ui.*`) is in these themes so there is one palette, but it is never
  * map paint: a card colour is not "on screen" beside a river the way a map token is. The two
@@ -176,10 +207,20 @@ const together = (a, b) => {
   return viewSets.some((s) => s.has(a) && s.has(b));
 };
 
-for (const t of themes) {
-  const cols = Object.entries(t.values)
-    .filter(([n, v]) => typeof v === "string" && v.startsWith("#") && !isUi(n)
-                        && !aliased.has(`${t.name}:${n}`));
+/**
+ * (T940) THE PICTURES THE TWO GUARDS BELOW READ: each theme on its drawn map, and each theme OVER SATELLITE — its values
+ * with the satellite set in place of the ones it replaces (`imagery.json`). The satellite set is the same in every theme,
+ * so it is held against each theme's other map colours as they meet it there.
+ */
+const pictures = themes.flatMap((t) => [
+  { label: `theme "${t.name}"`, values: t.values, isAliased: (n) => aliased.has(`${t.name}:${n}`) },
+  { label: `theme "${t.name}" over satellite`, values: { ...t.values, ...imagery },
+    isAliased: (n) => (n in imagery ? imageryAliased.has(n) : aliased.has(`${t.name}:${n}`)) },
+]);
+
+for (const p of pictures) {
+  const cols = Object.entries(p.values)
+    .filter(([n, v]) => typeof v === "string" && v.startsWith("#") && !isUi(n) && !p.isAliased(n));
   for (let i = 0; i < cols.length; i++) {
     for (let j = i + 1; j < cols.length; j++) {
       const [n1, v1] = cols[i], [n2, v2] = cols[j];
@@ -187,7 +228,7 @@ for (const t of themes) {
       if (!together(n1, n2)) continue;                 // never drawn in the same picture
       const d = deltaE(v1, v2);
       if (d < MIN_DELTA_E)
-        err(`theme "${t.name}": ${n1} (${v1}) and ${n2} (${v2}) are ΔE ${d.toFixed(1)} apart ` +
+        err(`${p.label}: ${n1} (${v1}) and ${n2} (${v2}) are ΔE ${d.toFixed(1)} apart ` +
             `— under ${MIN_DELTA_E}, a reader cannot reliably tell them apart on a 1.4px line.`);
     }
   }
@@ -233,16 +274,16 @@ for (const t of themes) {
 // same green line meant "you may fish here" in the Regulations view and "normal water level"
 // in Conditions. The enum-coverage rule cannot see it — the collision is ACROSS colour modes,
 // not within one.
-for (const t of themes) {
+for (const p of pictures) {
   const byValue = new Map();
-  for (const [name, value] of Object.entries(t.values)) {
+  for (const [name, value] of Object.entries(p.values)) {
     if (typeof value !== "string" || !value.startsWith("#")) continue;
-    if (aliased.has(`${t.name}:${name}`)) continue;     // one colour on purpose — see above
+    if (p.isAliased(name)) continue;     // one colour on purpose — see above
     // The map's tokens and the app's chrome are checked each within their own set: the
     // dark page and the paper under a missing tile are both near-black and both mean "ground".
     const k = (isUi(name) ? "ui:" : "map:") + value.toLowerCase();
     if (byValue.has(k))
-      err(`theme "${t.name}": ${byValue.get(k)} and ${name} are both ${value} — two meanings, ` +
+      err(`${p.label}: ${byValue.get(k)} and ${name} are both ${value} — two meanings, ` +
           `one colour. A reader cannot tell them apart.`);
     else byValue.set(k, name);
   }
@@ -1210,6 +1251,8 @@ const meta = {
                          weight: l.pattern.weight ?? 1.2,
                          cross: l.pattern.cross === true }])),
   themes: Object.fromEntries(themes.map((t) => [t.name, t.values])),
+  /** (T940) the water's values over satellite imagery, the same in every theme (`imagery.json`, resolved) */
+  imagery,
   tokens, enums,
 };
 

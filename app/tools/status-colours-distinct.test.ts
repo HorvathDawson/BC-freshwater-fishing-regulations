@@ -84,7 +84,7 @@ const LINE = 0.6, EDGE = 0.8;
  * (T594, owner 2026-11-11: look C) OVER SATELLITE, ZOOMED IN, A STREAM IS TWO THIN EDGES (`width.imagery.edge` px at
  * `opacity.imagery.edge`, src/on-imagery.ts) round clear water. An edge's pixels are covered `e / (e + 1)` on average (a
  * line e px wide spreads over about e + 1 pixels across, antialiased: 1.5 px is the 0.6 of `LINE`), times its opacity.
- * Held to the SAME floors as the old satellite line (`${k}Sat`), over the imagery grounds plus the two the owner names:
+ * Held to the SAME floors as the satellite line (`SAT_FLOOR`, T940), over the imagery grounds plus the two the owner names:
  * dark forest (Liumchen Creek's canopy, z16) and the Fraser's brown silty water (z15), sampled from the T594 shots.
  * The lake-fill rows (`${k}Lake`, `opacity.lake`) are the DRAWN map's: over satellite a lake's fill fades to
  * `opacity.imagery.fill` of itself close in, and its status is carried by its outline, a line (drawn 1.8x there).
@@ -115,27 +115,27 @@ const edgeCoverage = (t: Record<string, unknown>) => {
  * Every floor under the ticket's 20 is listed, with its reason, in UNDER_20 — a new one fails until it is recorded.
  */
 const FLOOR: Record<Theme, Record<string, number>> = {
-  light: { ownerToken: 29, ownerLine: 21, ownerLake: 25, ownerSat: 17.5,
-           waterToken: 45.5, waterLine: 35, waterLake: 35, waterSat: 35,
-           permitToken: 22, permitLine: 16, permitSat: 15,
+  light: { ownerToken: 29, ownerLine: 21, ownerLake: 25,
+           waterToken: 45.5, waterLine: 35, waterLake: 35,
+           permitToken: 22, permitLine: 16,
            temperature: 27.5,
            boundaryToken: 20, boundaryLine: 13,
-           accessToken: 25, accessLine: 14, accessLake: 14, accessSat: 13.5,
-           accessPermitToken: 17.5, accessPermitLine: 12.5, accessPermitSat: 11.5, accessBoundaryToken: 13.5, accessBoundaryLine: 1 },
-  dark:  { ownerToken: 21.5, ownerLine: 21, ownerLake: 22, ownerSat: 18.5,
-           waterToken: 29.5, waterLine: 19, waterLake: 23.5, waterSat: 18,
-           permitToken: 14.5, permitLine: 12.5, permitSat: 10.5,
+           accessToken: 25, accessLine: 14, accessLake: 14,
+           accessPermitToken: 17.5, accessPermitLine: 12.5, accessBoundaryToken: 13.5, accessBoundaryLine: 1 },
+  dark:  { ownerToken: 21.5, ownerLine: 21, ownerLake: 22,
+           waterToken: 29.5, waterLine: 19, waterLake: 23.5,
+           permitToken: 14.5, permitLine: 12.5,
            temperature: 15,
            boundaryToken: 15, boundaryLine: 15.5,
-           accessToken: 12.5, accessLine: 8.5, accessLake: 12, accessSat: 8,
-           accessPermitToken: 12.5, accessPermitLine: 8, accessPermitSat: 8, accessBoundaryToken: 8.5, accessBoundaryLine: 15.5 },
-  cvd:   { ownerToken: 29, ownerLine: 21, ownerLake: 29.5, ownerSat: 17.5,
-           waterToken: 49, waterLine: 34, waterLake: 47, waterSat: 33.5,
-           permitToken: 23, permitLine: 17.5, permitSat: 16,
+           accessToken: 12.5, accessLine: 8.5, accessLake: 12,
+           accessPermitToken: 12.5, accessPermitLine: 8, accessBoundaryToken: 8.5, accessBoundaryLine: 15.5 },
+  cvd:   { ownerToken: 29, ownerLine: 21, ownerLake: 29.5,
+           waterToken: 49, waterLine: 34, waterLake: 47,
+           permitToken: 23, permitLine: 17.5,
            temperature: 25,
            boundaryToken: 20, boundaryLine: 12.5,
-           accessToken: 25, accessLine: 14.5, accessLake: 23.5, accessSat: 13.5,
-           accessPermitToken: 14, accessPermitLine: 10, accessPermitSat: 8.5, accessBoundaryToken: 17.5, accessBoundaryLine: 2.5 },
+           accessToken: 25, accessLine: 14.5, accessLake: 23.5,
+           accessPermitToken: 14, accessPermitLine: 10, accessBoundaryToken: 17.5, accessBoundaryLine: 2.5 },
 };
 
 /*
@@ -146,10 +146,20 @@ const FLOOR: Record<Theme, Record<string, number>> = {
  * dark) and the faded small streams' own / base (SMALL dark). It is the searched blue (sRGB step 4, LCh hue 255-295,
  * 3.02:1 on every dark ground) that gives up the least across every floor in this file.
  */
+/**
+ * (T940, owner 2026-11-20: "Satellite should maybe just be its own colors? Best for satellite?") THE FLOORS OVER SATELLITE,
+ * one set for every theme: over imagery the water is drawn in the satellite set (`imagery.json`), the same in light, dark
+ * and colour-blind, so its pairs are measured once, on it. What the set reaches, rounded down to 0.5.
+ */
+const SAT_FLOOR: Record<string, number> = { owner: 22, water: 27, permit: 13, access: 12.5, accessPermit: 10 };
+
 /** The reasons, once each (T47 part 2, T83 Q16: lift where cheap, else a recorded exception). */
 const WHY = {
-  satellite: "a 0.6-coverage line over conifer / shadow imagery: the near-black ground pulls every pair together, and no " +
-             "palette inside the house rules reaches 20 there for every pair (search-d.mjs)",
+  satellite: "(T940) the satellite set, one for every theme, was searched to keep every line status at least 3:1 on " +
+             "dark forest, shadow and water (light's closed stood 1.2:1 there); a 0.6-coverage line over near-black " +
+             "shadow and over snow pulls the grey and the plum toward their neighbours. Every pair beats dark's own " +
+             "colours over satellite (permit 10.5, access 8, access / permit 8) and gives a little up against light and " +
+             "colour-blind (permit 15 / 16, access 13.5, access / permit 11.5 / 8.5), the trade for being seen on the photograph",
   darkBase: "dark closed / base as a line, 19.1 (before T47 22.6): the dark base went from sky blue to deep blue to stand " +
             "off the yellow own and the rose closed; 20 here while closed / own clears before-T47 finds no palette " +
             "(search-d.mjs T47_TERM_MIN)",
@@ -179,23 +189,20 @@ const WHY = {
 } as const;
 /** Every floor under 20, by theme and key, and why. Whole: a floor newly under 20, or one lifted past it, fails. */
 const UNDER_20: Record<string, string> = {
-  "light ownerSat": WHY.satellite, "light permitLine": WHY.permit, "light permitSat": WHY.permit,
-  "light boundaryLine": WHY.boundaryLine,
-  "light accessLine": WHY.greyAccess, "light accessLake": WHY.greyAccess, "light accessSat": WHY.satellite,
-  "light accessPermitToken": WHY.greyPermit, "light accessPermitLine": WHY.greyPermit, "light accessPermitSat": WHY.greyPermit,
+  "light permitLine": WHY.permit, "light boundaryLine": WHY.boundaryLine,
+  "light accessLine": WHY.greyAccess, "light accessLake": WHY.greyAccess,
+  "light accessPermitToken": WHY.greyPermit, "light accessPermitLine": WHY.greyPermit,
   "light accessBoundaryToken": WHY.greyBoundary, "light accessBoundaryLine": WHY.greyBoundary,
-  "dark ownerSat": WHY.satellite, "dark waterLine": WHY.darkBase, "dark waterSat": WHY.satellite,
-  "dark permitToken": WHY.permit, "dark permitLine": WHY.permit, "dark permitSat": WHY.permit,
+  "dark waterLine": WHY.darkBase, "dark permitToken": WHY.permit, "dark permitLine": WHY.permit,
   "dark temperature": WHY.darkWarm, "dark boundaryToken": WHY.darkBoundary, "dark boundaryLine": WHY.darkBoundary,
   "dark accessToken": WHY.greyAccess, "dark accessLine": WHY.greyAccess, "dark accessLake": WHY.greyAccess,
-  "dark accessSat": WHY.satellite, "dark accessPermitToken": WHY.greyPermit,
-  "dark accessPermitLine": WHY.greyPermit, "dark accessPermitSat": WHY.greyPermit,
-  "dark accessBoundaryToken": WHY.greyBoundary, "dark accessBoundaryLine": WHY.greyBoundary,
-  "cvd ownerSat": WHY.satellite, "cvd permitLine": WHY.permit, "cvd permitSat": WHY.permit,
-  "cvd boundaryLine": WHY.boundaryLine,
-  "cvd accessLine": WHY.greyAccess, "cvd accessSat": WHY.satellite, "cvd accessPermitToken": WHY.greyPermit,
-  "cvd accessPermitLine": WHY.greyPermit, "cvd accessPermitSat": WHY.greyPermit,
-  "cvd accessBoundaryToken": WHY.greyBoundary, "cvd accessBoundaryLine": WHY.greyBoundary,
+  "dark accessPermitToken": WHY.greyPermit,
+  "dark accessPermitLine": WHY.greyPermit, "dark accessBoundaryToken": WHY.greyBoundary, "dark accessBoundaryLine": WHY.greyBoundary,
+  "cvd permitLine": WHY.permit, "cvd boundaryLine": WHY.boundaryLine,
+  "cvd accessLine": WHY.greyAccess, "cvd accessPermitToken": WHY.greyPermit,
+  "cvd accessPermitLine": WHY.greyPermit, "cvd accessBoundaryToken": WHY.greyBoundary, "cvd accessBoundaryLine": WHY.greyBoundary,
+  "satellite permitSat": WHY.satellite, "satellite accessSat": WHY.satellite,
+  "satellite accessPermitSat": WHY.satellite,
 };
 /** One meaning per colour: every two statuses, adjacent or not, and every status against body ink, in normal vision. */
 const MEANING_FLOOR = 20;
@@ -226,15 +233,20 @@ function failures(th: Theme, t: Record<string, unknown>): string[] {
   };
   const lakeA = t["opacity.lake"] as number;
   const name = (a: Status, b: Status) => `${a} ${colour(a)} vs ${b} ${colour(b)}`;
+  /** (T940) what is drawn over satellite: the theme with the satellite set in place (src/on-imagery.ts `onImageryTokens`) */
+  const sat = { ...t, ...STYLE_META.imagery } as Record<string, unknown>;
+  const satColour = (s: Status) => sat[`color.status.${s}`] as string;
+  const satName = (a: Status, b: Status) => `${a} ${satColour(a)} vs ${b} ${satColour(b)}`;
   /** Tokens, thin lines over the theme's grounds, thin lines over satellite, and (water) lake fills. */
   const asDrawn = (a: Status, b: Status, k: string, lake: boolean) => {
     hold(`${name(a, b)} as tokens`, worst(colour(a), colour(b)), f[`${k}Token`]!);
     hold(`${name(a, b)} as thin lines`, drawn(colour(a), colour(b), GROUND[th], LINE, LINE), f[`${k}Line`]!);
-    hold(`${name(a, b)} over satellite`, drawn(colour(a), colour(b), SATELLITE, LINE, LINE), f[`${k}Sat`]!);
+    // (T940) over satellite the map draws the satellite set, not the theme's colours: measured on that, one floor
+    hold(`${satName(a, b)} over satellite`, drawn(satColour(a), satColour(b), SATELLITE, LINE, LINE), SAT_FLOOR[k]!);
     // only the stream line's own colours open into edges: the no-access dots and the permit hatch are drawn as before
     if (k === "owner" || k === "water") {
-      const c = edgeCoverage(t);
-      hold(`${name(a, b)} as edges over satellite`, drawn(colour(a), colour(b), IMAGERY_EDGE_GROUNDS, c, c), f[`${k}Sat`]!);
+      const c = edgeCoverage(sat);
+      hold(`${satName(a, b)} as edges over satellite`, drawn(satColour(a), satColour(b), IMAGERY_EDGE_GROUNDS, c, c), SAT_FLOOR[k]!);
     }
     if (lake) hold(`${name(a, b)} as lake fills`, drawn(colour(a), colour(b), [LAKE_GROUND[th]], lakeA, lakeA), f[`${k}Lake`]!);
   };
@@ -346,8 +358,9 @@ describe("status colours, as drawn (T47)", () => {
   it("fails satellite edges fainter or thinner than the gate holds (mutation pin)", () => {
     const edges = (e: number, o: number) => failures("light",
       { ...resolveTheme("light"), "width.imagery.edge": e, "opacity.imagery.edge": o } as Record<string, unknown>);
-    expect(edges(1.5, 0.7)).toContain(de("light: closed ~8F0006 vs own ~D08404 as edges over satellite 13.5 < 17.5 (tritan (vienot) on ~e6e8ea)"));
-    expect(edges(1.4, 1)).toContain(de("light: closed ~8F0006 vs own ~D08404 as edges over satellite 17.2 < 17.5 (tritan (machado) on ~1c1a0b)"));
+    // (T940) measured on the satellite set, which every theme draws over imagery
+    expect(edges(1.5, 0.7)).toContain(de("light: closed ~EB4658 vs own ~FFF304 as edges over satellite 16.8 < 22 (tritan (vienot) on ~e6e8ea)"));
+    expect(edges(1.4, 1)).toContain(de("light: closed ~EB4658 vs own ~FFF304 as edges over satellite 21.7 < 22 (deutan (vienot) on ~a7a385)"));
     expect(edges(2, 0.9)).toEqual([]);
   });
 
@@ -388,7 +401,8 @@ describe("status colours, as drawn (T47)", () => {
   });
 
   it("records every floor under the ticket's 20, each with its reason (T83)", () => {
-    const under = THEMES.flatMap((th) => Object.entries(FLOOR[th]).filter(([, v]) => v < 20).map(([k]) => `${th} ${k}`));
+    const under = [...THEMES.flatMap((th) => Object.entries(FLOOR[th]).filter(([, v]) => v < 20).map(([k]) => `${th} ${k}`)),
+                   ...Object.entries(SAT_FLOOR).filter(([, v]) => v < 20).map(([k]) => `satellite ${k}Sat`)];
     expect(under).toEqual(Object.keys(UNDER_20));
     expect(Object.values(UNDER_20).filter((why) => why.length < 40)).toEqual([]);
   });

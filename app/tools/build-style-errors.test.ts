@@ -15,13 +15,17 @@ const made: string[] = [];
 
 type Layer = { id: string; outline?: Record<string, unknown> };
 
-function run(mutate?: (layers: Layer[]) => void): { code: number; out: string } {
+function run(mutate?: (layers: Layer[]) => void,
+             imagery?: (values: Record<string, unknown>) => void): { code: number; out: string } {
   const d = mkdtempSync(join(tmpdir(), "style-"));
   made.push(d);
   cpSync(STYLE, d, { recursive: true });
   const src = JSON.parse(readFileSync(join(d, "layers.source.json"), "utf8"));
   mutate?.(src.layers);
   writeFileSync(join(d, "layers.source.json"), JSON.stringify(src));
+  const im = JSON.parse(readFileSync(join(d, "imagery.json"), "utf8"));
+  imagery?.(im.values);
+  writeFileSync(join(d, "imagery.json"), JSON.stringify(im));
   try {
     const out = execFileSync(process.execPath, [SCRIPT], { env: { ...process.env, STYLE_SRC_DIR: d + "/" },
                                                           stdio: "pipe", encoding: "utf8" });
@@ -57,5 +61,23 @@ describe("outline.drawAfter refusals", () => {
     const r = run((ls) => { lake(ls).outline!.drawAfter = ls[0]!.id; });   // the first layer: before the lake
     expect(r.code).toBe(1);
     expect(r.out).toContain("must come later in the source than the fill it outlines");
+  }, 60_000);
+});
+
+/*
+ * (T940) THE SATELLITE SET's refusals (`imagery.json`): it holds values for real, themeable tokens only, and an "@" may
+ * name a token in the set or one already the same in every theme, never a themed one, which would bring the theme back.
+ */
+describe("the satellite set's refusals (T940)", () => {
+  it("refuses a value for a token that does not exist", () => {
+    const r = run(undefined, (v) => { v["color.status.nope"] = v["color.status.open"]; });
+    expect(r.code).toBe(1);
+    expect(r.out).toContain('imagery.json: "color.status.nope" is not a token');
+  }, 60_000);
+
+  it("refuses a name that points at a token which differs by theme and is not in the set", () => {
+    const r = run(undefined, (v) => { v["color.status.open"] = "@color.ui.ink"; });
+    expect(r.code).toBe(1);
+    expect(r.out).toContain('imagery.json: color.status.open names "@color.ui.ink", which is neither in the set nor the same in every theme');
   }, 60_000);
 });
