@@ -9,6 +9,10 @@ Things only you can do. Claude keeps this list current while you are away; the w
 `handoff/PLAN/app-integration/tickets/` (README.md is the ledger, and its "Owner questions" table has every question
 with the default Claude uses until you answer). Newest first inside each section.
 
+## 2026-11-20 ~07:00: T923 thicker satellite outline
+
+- [ ] T923 look at the thicker satellite outline (reserves and private land, one look in every theme; shots `tickets/T923-shots/round2-after-sat-*.png`), then the main chat merges lane/t923.
+
 ## 2026-11-20 ~06:34: lane pictures and data clean-ups answered
 
 Looks approved (dialog): part names T780/T711, iPhone map T929, search T926/T927. Data clean-ups, all four OK: remove the

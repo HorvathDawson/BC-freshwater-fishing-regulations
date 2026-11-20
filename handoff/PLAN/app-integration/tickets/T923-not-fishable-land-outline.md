@@ -1,6 +1,6 @@
 # T923 — Not-fishable land (reserves, private land) is hard to see, on satellite and in light mode
 
-Status: IN REVIEW — left (Claude): owner looks at the thicker satellite outline, then main chat merges (lane/t923, not merged; owner 2026-11-20 "Looks good, land it" before the thicker change).
+Status: IN REVIEW — owner: OWNER-TODO "T923 look at the thicker satellite outline"; then main chat merges (lane/t923, not merged; owner 2026-11-20 "Looks good, land it" before the thicker change).
 
 Source: a tester's feedback relayed by the owner 2026-11-19 (`T922-shots/tester-2026-11-19-3.png`). Tester, verbatim: "the
 color of the not disable land such as tribal land. It's hard to see when on satellite mode. ... Light mode is even harder
