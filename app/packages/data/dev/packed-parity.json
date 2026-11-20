@@ -1,0 +1,92 @@
+{
+ "about": "(T686) PARITY FIXTURE: the three packed release tables (pipeline/deliver/release/packed.py == @app/data release/packed.ts). near: one town's [ckm, ord] rows (any order), `hex` its near/2 blob, `sorted` what the readers give back ((ckm, ord) order). down: one block's [sid, down_sid, len, lake] rows (sid order; len / lake null = NULL), `hex` its down/2 blob. clim: a clim/2 blob and its clim/3 form. Both writers write these bytes; both readers read them back. Covers ckm 0 and 2500 (the high byte plane), a multi-byte ord gap, a block's first and last sid, a down_sid below the sid (zigzag), len NULL / 0 / multi-byte, lake slots, float16 deltas that wrap (a falling band, a negative value, 65504).",
+ "near": {
+  "rows": [
+   [
+    130,
+    200
+   ],
+   [
+    0,
+    0
+   ],
+   [
+    2500,
+    3
+   ],
+   [
+    130,
+    1
+   ],
+   [
+    7,
+    70000
+   ],
+   [
+    256,
+    4
+   ]
+  ],
+  "hex": "0600000100c301a7a1040082c4008207000009010000",
+  "sorted": [
+   [
+    0,
+    0
+   ],
+   [
+    7,
+    70000
+   ],
+   [
+    130,
+    1
+   ],
+   [
+    130,
+    200
+   ],
+   [
+    256,
+    4
+   ],
+   [
+    2500,
+    3
+   ]
+  ]
+ },
+ "down": {
+  "block": 2,
+  "rows": [
+   [
+    8192,
+    8195,
+    null,
+    null
+   ],
+   [
+    8195,
+    4100,
+    0,
+    1
+   ],
+   [
+    9000,
+    1958478,
+    300,
+    null
+   ],
+   [
+    12287,
+    12286,
+    2630,
+    1
+   ]
+  ],
+  "hex": "040002a406d61906fd3f94c9ee019fc9ed010001ad02c714020101"
+ },
+ "clim": {
+  "clim2": "00003e804000420051006001003d00410040f050ff7b480000191400bc00470047",
+  "clim3": "0300014800000080801900000000f01000ff013effc34000d342fe7c51fff6601bcb"
+ }
+}

@@ -42,6 +42,20 @@ PAIRS = [
     ("regs sid file",
      "pipeline/deliver/release/contract.py", r'"regs-sid":\s*\{"format":\s*"([^"]+)"',
      "app/packages/core/src/regs/versions.ts", r'\bsid:\s*"([^"]+)"'),
+    # (T686) the three packed release tables: the writer's format = the format the decoder takes the packed path on
+    # (the contract names packed.py's constants, so pack.generated.ts follows; these hold the decoders to them)
+    ("release near file (packed)",
+     "pipeline/deliver/release/packed.py", PY_CONST.format(name="NEAR_FORMAT"),
+     "app/packages/data/src/release/packed.ts", TS_CONST.format(name="NEAR_FORMAT")),
+    ("release down file (packed)",
+     "pipeline/deliver/release/packed.py", PY_CONST.format(name="DOWN_FORMAT"),
+     "app/packages/data/src/release/packed.ts", TS_CONST.format(name="DOWN_FORMAT")),
+    ("release climate file (packed)",
+     "pipeline/deliver/release/packed.py", PY_CONST.format(name="CLIMATE_FORMAT"),
+     "app/packages/data/src/release/packed.ts", TS_CONST.format(name="CLIMATE_FORMAT")),
+    ("release climatology blob codec",
+     "pipeline/deliver/release/packed.py", PY_CONST.format(name="CLIM_CODEC"),
+     "app/packages/data/src/release/packed.ts", TS_CONST.format(name="CLIM_CODEC")),
 ]
 #: a reader that takes a LIST of versions: the written one must be in it
 MEMBER = [

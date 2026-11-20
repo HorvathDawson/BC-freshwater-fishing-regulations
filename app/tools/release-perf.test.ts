@@ -2,7 +2,8 @@
  * P08: THE RELEASE ANSWERS LIKE THE BUNDLE, AND FAST (MINIMAL-PACKAGING §3).
  *
  *   parity   every single-file read (`packages/data/src/release/queries.ts`) gives the bundle query's rows on sampled
- *            keys; the climatology within float16 (clim/2).
+ *            keys; the climatology within float16 (clim/2; T686 clim/3 decoded to it); a down/2 pointer decoded from
+ *            its block.
  *   plans    every keyed read plans a SEARCH on its primary key or an index, never a SCAN.
  *   speed    p95 on the laptop (node:sqlite ≈ native): A1 / A3 / A5 / A6 / A7 / A9 ≤ 2 ms, A2 ≤ 5 ms.
  *
@@ -18,6 +19,8 @@ import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
 import { namedRelease } from "../conformance/src/fixtureRelease";
 import { fileFor, RELEASE_QUERIES, type PackName } from "../packages/data/src/release/queries";
+import { CLIMATE_FORMAT, decodeDownBlock, decodeNear, DOWN_FORMAT, downSlot, NEAR_FORMAT,
+         unclim3 } from "../packages/data/src/release/packed";
 
 const ROOT = resolve(__dirname, "../..");
 const REL = namedRelease();   // (T667) the release this Tier 2 run named ($RELEASE_DIR), through the one helper
@@ -40,6 +43,12 @@ const bundle = () => (files.__bundle ??= new DatabaseSync(BUNDLE!, { readOnly: t
 /** (T182) the file holding a query's table in THIS release (a release cut before the split: the old file). */
 const at = (file: PackName): string =>
   fileFor(JSON.parse(readFileSync(join(REL!, "manifest.json"), "utf8")).files, file);
+
+/** (T686) whether this release ships a file in its packed format (near/2, down/2, climate/2). */
+const formatOf = (name: string): string | undefined =>
+  JSON.parse(readFileSync(join(REL!, "manifest.json"), "utf8")).files[name]?.format;
+const packed = (name: "near" | "down" | "climate") =>
+  formatOf(name) === { near: NEAR_FORMAT, down: DOWN_FORMAT, climate: CLIMATE_FORMAT }[name];
 
 /** A seeded sample of a column's values (deterministic: every nth row). */
 function sample(sql: string, n: number): unknown[] {
@@ -104,11 +113,23 @@ it(`release parity + perf${unchecked ? ` — NOT RUN: RELEASE_DIR is set but BUN
 describe.skipIf(!live)("release parity + perf (Tier 2: RELEASE_DIR + BUNDLE)", () => {
   for (const [name, q] of Object.entries(RELEASE_QUERIES)) {
     it(`${name}: the release answers like the bundle`, () => {
-      const rq = open(at(q.file)).prepare(q.sql), bq = bundle().prepare(q.bundle);
+      // (T686) down/2: the pointer is decoded from its block, as the reader does (`source.ts` downRow)
+      const downPacked = name === "DOWN_FROM" && packed("down");
+      const rq = open(at(q.file)).prepare(downPacked ? "SELECT b FROM section_down WHERE block = ?" : q.sql);
+      const bq = bundle().prepare(q.bundle);
+      const clim = (r: Row) => (packed("climate") ? unclim3(r.bands as Uint8Array) : r.bands as Uint8Array);
       for (const p of params(name)) {
-        const got = rq.all(...(p as never[])), want = bq.all(...(p as never[]));
+        const want = bq.all(...(p as never[]));
+        let got: unknown[];
+        if (downPacked) {
+          const s = Number(p[0]), r = rq.get(Math.floor(s / 4096)) as Row | undefined;
+          const b = r ? decodeDownBlock(Math.floor(s / 4096), r.b as Uint8Array) : null, i = b ? downSlot(b, s) : -1;
+          got = b && i >= 0 ? [{ down_sid: b.down[i] }] : [];
+        } else {
+          got = rq.all(...(p as never[]));
+        }
         if (name === "CLIMATOLOGY") {
-          const g = got.map((r) => f16clim((r as Row).bands as Uint8Array));
+          const g = got.map((r) => f16clim(clim(r as Row)));
           const w = want.map((r) => f32clim((r as Row).bands as Uint8Array));
           expect(g.length).toBe(w.length);
           g.forEach((arr, i) => arr.forEach((v, k) => {
@@ -127,7 +148,10 @@ describe.skipIf(!live)("release parity + perf (Tier 2: RELEASE_DIR + BUNDLE)", (
                    "CLIM_PARAMETERS", "DOWN_FROM", "CLIMATOLOGY"];
     for (const n of keyed) {
       const q = RELEASE_QUERIES[n]!;
-      const plan = open(at(q.file)).prepare(`EXPLAIN QUERY PLAN ${q.sql}`).all(...(params(n)[0] as never[]))
+      // (T686) down/2 is read by block
+      const [sql, p0] = n === "DOWN_FROM" && packed("down") ? ["SELECT b FROM section_down WHERE block = ?", [0]]
+        : [q.sql, params(n)[0]];
+      const plan = open(at(q.file)).prepare(`EXPLAIN QUERY PLAN ${sql}`).all(...(p0 as never[]))
         .map((r) => String((r as Row).detail));
       expect([n, plan.filter((d) => /^SCAN /.test(d))]).toEqual([n, []]);
     }
@@ -152,7 +176,11 @@ describe.skipIf(!live)("release parity + perf (Tier 2: RELEASE_DIR + BUNDLE)", (
     const cells = r2.prepare("SELECT akey, s, ladder FROM cell").all() as Row[];
     const A3 = sid.prepare("SELECT b FROM section_akey WHERE block = ?");
     const A5 = core.prepare(RELEASE_QUERIES.SEARCH!.sql);
-    const A6 = near.prepare("SELECT ord, ckm FROM place_water WHERE place_id = ? ORDER BY ckm LIMIT 20");
+    // (T686) near/2: one town's blob, decoded (the reader's `nearPlace`)
+    const A6 = packed("near")
+      ? ((q) => ({ all: (id: number) => { const r = q.get(id) as Row | undefined; return r ? decodeNear(r.b as Uint8Array) : null; } }))(
+        near.prepare("SELECT b FROM place_water WHERE place_id = ?"))
+      : near.prepare("SELECT ord, ckm FROM place_water WHERE place_id = ? ORDER BY ckm LIMIT 20");
     const A7 = cond.prepare(RELEASE_QUERIES.GAUGE_FOR_SECTION!.sql);
     const A9 = water.prepare("SELECT sid FROM part_section WHERE ord = ?");
     let i = 0;

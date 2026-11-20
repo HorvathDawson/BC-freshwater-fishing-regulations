@@ -8,7 +8,7 @@ writes paint, derives three per-water flags for search, converts the climatology
   core           item (+ size, gauged, has_rows), alias, item_alias, item_section, place, bundle
                  see_pointer (a group name that only points: search leads to the waters it names),
                  item_near (T182: the town each search row names, so the first search needs no `near`)
-  near           place_water                                                      bundle
+  near           place_water, one packed row per town: near/2 (T686, packed.py)   bundle
   water          the regs store's common tables + display_rule + akey_region,     regs store + bundle
                  part_section, part_mark, water_exit,
                  water_continue (which stream goes on as another: the bundle's
@@ -24,8 +24,10 @@ writes paint, derives three per-water flags for search, converts the climatology
                  road per section, so Conditions needs no core); basin, basin_frame,
                  basin_grid (T376: the watershed groups' names, and which one a
                  point is in — bundle/basin_grid.py)
-  down           section_down (T182: an unnamed tap's "Tributary of ..." walk)    bundle
-  climate        gauge_clim, bands float16: clim/2 (T182: off the Conditions map) bundle
+  down           section_down (T182: an unnamed tap's "Tributary of ..." walk),   bundle
+                 in packed blocks of 4096 sids: down/2 (T686, packed.py)
+  climate        gauge_clim, bands float16 transposed + delta: clim/3 (T686;      bundle
+                 packed.py; T182: off the Conditions map)
   geo            part_geo (T182: "show on the map" without the whole water file), bundle
   flow-area      the panel target areas, one varint per paint section (paint.py)  bundle
   flow-small     (T823) per paint section, the panel members much bigger than it  bundle
@@ -54,6 +56,7 @@ from typing import Dict, Iterable, List, Optional, Tuple
 from pipeline.deliver import lake_facts as LF
 from pipeline.deliver.release import contract as C
 from pipeline.deliver.release import lines as LINES
+from pipeline.deliver.release import packed as PACKED
 from pipeline.deliver.release import part_line as PART_LINE
 from pipeline.deliver.release import paint as PAINT
 from pipeline.deliver.release import shards as SH
@@ -90,12 +93,18 @@ FORMATS = {name: spec["format"] for name, spec in C.FILES.items()}
 #: (owner 2026-11-16 ~14:55, T796 A5: "but yes you can do the raise"; RULINGS O5, O10) `salmon-6` 420,000 → 460,000: the
 #: book places in every listed chain fragment Region 6's runs, +53,225 B gz on r-46e4355a7277's numbers (379,396 →
 #: ~432,600).
+#: (T686, owner 2026-11-16: "(a) Three lossless changes") `near` 2,250,000 → 1,000,000, `down` 1,250,000 → 700,000,
+#: `climate` 1,650,000 → 1,100,000: near/2, down/2, climate/2 (`packed.py`) measured on a side release of the live
+#: bundle (reach 6ca9a300dad3d95e, 2026-11-20) against r-6258ffded676 — near 2,129,181 → 884,236, down 1,169,858 →
+#: 608,697, climate 1,433,007 → 985,939 B gz, every value decoded equal; each gate ~11-15 % over, as T182 set them.
+#: `salmon-6` stays 460,000: nothing here shrinks it (415,307 on r-6258ffded676, ~11 % under the gate; 420,000 would
+#: leave 1 %).
 SIZE_GATES = {"paint": 1_000_000, "access": 300_000, "core": 1_650_000, "lakes": 100_000, "salmon": 100_000,
               **{f"salmon-{r}": 320_000 for r in (*SH.REGIONS, "x")}, "salmon-6": 460_000, "method": 600_000,
               # (T388) water + `part_line` (79,253 B gz measured alone on the 2026-11-04 bundle; water was 2,409,579 in
               # r-b86b60ca533b → ~2.49 MB, too close to 2.5 MB) → 2,650,000
-              "water": 2_650_000, "near": 2_250_000, "climate": 1_650_000, "regs-sid": 1_400_000, "conditions": 1_060_000,
-              "down": 1_250_000, "geo": 700_000, "flow-area": 220_000,
+              "water": 2_650_000, "near": 1_000_000, "climate": 1_100_000, "regs-sid": 1_400_000, "conditions": 1_060_000,
+              "down": 700_000, "geo": 700_000, "flow-area": 220_000,
               # (T823) `flow-small`: one bitmask varint per paint section, measured 2026-11-16 on the live bundle (141,189
               # sections): 21,396 B gz at x50 (x200: 27,444)
               "flow-small": 32_000,
@@ -420,8 +429,9 @@ def clim_f16(bands: bytes) -> bytes:
 
 
 def _climate_extra(con: sqlite3.Connection) -> None:
+    """float32 → float16 (clim/2), then transposed + delta (clim/3, T686: the same float16 bits, `packed.py`)."""
     rows = con.execute("SELECT rowid, bands FROM gauge_clim").fetchall()
-    con.executemany("UPDATE gauge_clim SET bands = ? WHERE rowid = ?", [(clim_f16(b), r) for r, b in rows])
+    con.executemany("UPDATE gauge_clim SET bands = ? WHERE rowid = ?", [(PACKED.clim3(clim_f16(b)), r) for r, b in rows])
 
 
 
@@ -721,7 +731,7 @@ def bundle_files(work: Path, bundle: Path, b: sqlite3.Connection, base: Dict[str
                                if (t != "name_source" or _has_ns) and (t != "section_note" or _has_sn)],
                               {**base, "format": FORMATS["core"]}, extra=_core_extra)
     files["near"] = copy_file(work / "near.sqlite", {"b": bundle}, [("b", t, None) for t in NEAR_TABLES],
-                              {**base, "format": FORMATS["near"]})
+                              {**base, "format": FORMATS["near"]}, extra=PACKED.pack_near)
     # (T823) THE SMALL-WATER WARNING follows the speaker: one bit per panel member per paint section (`flow-small`,
     # paint.py), the sentence and the threshold in the conditions meta (pipeline/gauges/consume/small_water.py)
     from pipeline.gauges.consume.small_water import META_RATIO_KEY, META_TEXT_KEY, SMALL_WATER_TEXT, ratio_for
@@ -733,9 +743,9 @@ def bundle_files(work: Path, bundle: Path, b: sqlite3.Connection, base: Dict[str
                                     {**base, "format": FORMATS["conditions"], META_TEXT_KEY: SMALL_WATER_TEXT,
                                      META_RATIO_KEY: f"{ratio_for():g}"}, extra=lake_section)
     files["down"] = copy_file(work / "down.sqlite", {"b": bundle}, [("b", t, None) for t in DOWN_TABLES],
-                              {**base, "format": FORMATS["down"]})
+                              {**base, "format": FORMATS["down"]}, extra=PACKED.pack_down)
     files["climate"] = copy_file(work / "climate.sqlite", {"b": bundle}, [("b", t, None) for t in CLIMATE_TABLES],
-                                 {**base, "format": FORMATS["climate"], "clim": "clim/2"}, extra=_climate_extra)
+                                 {**base, "format": FORMATS["climate"], "clim": PACKED.CLIM_CODEC}, extra=_climate_extra)
     files["geo"] = copy_file(work / "geo.sqlite", {"b": bundle}, [("b", "part_geo", None)],
                              {**base, "format": FORMATS["geo"]}, extra=geo_e6)
     return files

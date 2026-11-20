@@ -35,6 +35,8 @@ import type { DbName, ReleaseLoader } from "./loader";
 import { buildStandingClasses, type StandingClasses } from "../standing";
 import { decodeBasinGrid, type BasinGrid } from "../basinGrid";
 import { CONDITIONS_META, CROSS, fileFor, META, RELEASE_QUERIES as R, type PackName } from "./queries";
+import { CLIM_CODEC, CLIMATE_FORMAT, decodeDownBlock, decodeNear, DOWN_BLOCK_BITS, DOWN_FORMAT, downSlot, invertNear,
+         NEAR_FORMAT, type DownBlock, type NearByOrd } from "./packed";
 
 /** The lowest SQLite parameter ceiling any driver may have been compiled with. */
 const CHUNK = 500;
@@ -122,16 +124,50 @@ export function makeReleaseSource(loader: ReleaseLoader, opts: SourceOptions = {
   /** (T224) the `name_source` rows of these waters; none from a core cut before the table. */
   const nameSourcesOf = async (items: readonly string[]): Promise<Row[]> =>
     (await hasNameSource()) ? chunked(items, (c) => all(CROSS.NAME_SOURCES_FOR_ITEMS(c.length), ...c)) : [];
+  /**
+   * (T686) down/2: the pointers in blocks of 4096 sids, each block read and decoded once (a walk stays in a few blocks).
+   * A down/1 release (or one cut before T182: `section_down` in conditions) is read by row, as before.
+   */
+  const downPacked = loader.manifest.files.down?.format === DOWN_FORMAT;
+  const downBlocks = new Map<number, Promise<DownBlock | null>>();
+  const downBlock = (block: number): Promise<DownBlock | null> => {
+    let p = downBlocks.get(block);
+    if (!p) {
+      p = get(CROSS.DOWN_BLOCK, block).then((r) => {
+        if (!r) return null;
+        if (!(r.b instanceof Uint8Array)) throw new Error(`down/2: block ${block} is not bytes`);
+        return decodeDownBlock(block, r.b);
+      });
+      downBlocks.set(block, p);
+      p.catch(() => downBlocks.delete(block));          // a failed read is not kept: the next ask reads again
+    }
+    return p;
+  };
+  /** down/2: the block and row of `s`'s pointer; null: `s` has none. */
+  const downRow = async (s: SectionId | number): Promise<[DownBlock, number] | null> => {
+    const n = Number(s), b = await downBlock(Math.floor(n / 2 ** DOWN_BLOCK_BITS));
+    const i = b ? downSlot(b, n) : -1;
+    return b && i >= 0 ? [b, i] : null;
+  };
   const down: DownOf = async (at) => {
+    if (downPacked) {
+      const r = await downRow(at);
+      return r ? sid(r[0].down[r[1]]!) : null;
+    }
     const r = await get(R.DOWN_FROM!, at);
     return r ? sid(r.down_sid) : null;
   };
   /** (T252) a route's facts beyond its path: reach lengths (down, when the release has them) and water names (core). */
   const hasDownLen = has(CROSS.HAS_DOWN_LEN), hasDownLake = has(CROSS.HAS_DOWN_LAKE);
   const routeFacts = async (): Promise<RouteFacts> => ({
-    ...((await hasDownLen()) ? { lenOf: async (s: SectionId) => decodeLen((await get(CROSS.LEN_OF, s))?.len) } : {}),
+    // (T686) down/2 always carries both (a NULL len is packed as such)
+    ...(downPacked ? {
+      lenOf: async (s: SectionId) => { const r = await downRow(s); return r ? decodeLen(r[0].len[r[1]]) : null; },
+      lakeOf: async (s: SectionId) => { const r = await downRow(s); return r ? r[0].lake[r[1]] === 1 : false; },
+    } : {}),
+    ...(!downPacked && (await hasDownLen()) ? { lenOf: async (s: SectionId) => decodeLen((await get(CROSS.LEN_OF, s))?.len) } : {}),
     // (T296) which reaches are lakes; a release cut before `section_down.lake` leaves it to the water's kind
-    ...((await hasDownLake()) ? { lakeOf: async (s: SectionId) => Number((await get(CROSS.LAKE_OF, s))?.lake ?? 0) === 1 } : {}),
+    ...(!downPacked && (await hasDownLake()) ? { lakeOf: async (s: SectionId) => Number((await get(CROSS.LAKE_OF, s))?.lake ?? 0) === 1 } : {}),
     nameOf: async (s: SectionId) => {
       const r = await get(R.ITEM_FOR_SECTION!, s);
       const item = r ? await get(R.ITEM!, str(r.item_id)) : null;
@@ -144,12 +180,50 @@ export function makeReleaseSource(loader: ReleaseLoader, opts: SourceOptions = {
   const sectionsOf = async (item: ItemId): Promise<SectionId[]> =>
     (await all(R.SECTIONS_FOR_ITEM!, item)).map((r) => sid(r.sid));
 
+  /**
+   * (T686) near/2: one packed row per town. A town's waters are its own blob; the by-water reads (`RINGS_FOR_ORDS`,
+   * `TOWNS_FOR_ORDS`, which near/1 answered by a scan) read every blob once and invert them (`invertNear`). Each answers
+   * in near/1's rows and order, so everything after reads them as before.
+   */
+  const nearPacked = loader.manifest.files.near?.format === NEAR_FORMAT;
+  let nearInverted: Promise<NearByOrd> | null = null;
+  const nearByOrd = (): Promise<NearByOrd> => (nearInverted ??= all(CROSS.NEAR_ALL_BLOBS).then((rows) =>
+    invertNear(rows.map((r) => {
+      if (!(r.b instanceof Uint8Array)) throw new Error(`near/2: town ${String(r.place_id)} is not bytes`);
+      return { place_id: Number(r.place_id), b: r.b };
+    })), (e) => { nearInverted = null; throw e; }));
+  /** RINGS_FOR_ORDS / TOWNS_FOR_ORDS over one chunk of ords, in their SQL's rows and order. */
+  const ringsOfOrds = async (ords: readonly number[]): Promise<Row[]> => {
+    if (!nearPacked) return all(CROSS.RINGS_FOR_ORDS(ords.length), ...ords);
+    const ix = await nearByOrd(), out: { ord: number; place_id: number; ckm: number }[] = [];
+    for (const o of new Set(ords)) {
+      const [a, z] = ix.range(o);
+      for (let k = a; k < z; k++) out.push({ ord: o, place_id: ix.place[k]!, ckm: ix.ckm[k]! });
+    }
+    // ORDER BY ckm, place_id (rows equal on both keep no order in SQL either: one town names a water once)
+    return out.sort((x, y) => x.ckm - y.ckm || x.place_id - y.place_id || x.ord - y.ord);
+  };
+  const townCounts = async (ords: readonly number[]): Promise<Row[]> => {
+    if (!nearPacked) return all(CROSS.TOWNS_FOR_ORDS(ords.length), ...ords);
+    const ix = await nearByOrd();
+    return [...new Set(ords)].flatMap((o) => { const [a, z] = ix.range(o); return z > a ? [{ ord: o, n: z - a }] : []; });
+  };
+  /** NEAR_PLACE: a town's waters, nearest first, at most `limit`. */
+  const nearPlace = async (id: string | number, limit: number): Promise<Row[]> => {
+    if (!nearPacked) return all(CROSS.NEAR_PLACE, id, limit);
+    const r = await get(CROSS.NEAR_TOWN_BLOB, id);
+    if (!r) return [];
+    if (!(r.b instanceof Uint8Array)) throw new Error(`near/2: town ${String(id)} is not bytes`);
+    const t = decodeNear(r.b), n = Math.min(limit, t.ord.length);
+    return Array.from({ length: n }, (_, i) => ({ ord: t.ord[i]!, ckm: t.ckm[i]! }));
+  };
+
   /** The towns these waters come near (near → core), nearest first; rows shaped like the bundle's NEAR_FOR_ITEMS. */
   async function ringsFor(items: readonly string[], perItem = Infinity): Promise<Row[]> {
     const ords = await chunked(items, (c) => all(CROSS.ORDS_FOR_ITEMS(c.length), ...c));
     if (!ords.length) return [];
     const itemOf = new Map(ords.map((r) => [Number(r.ord), str(r.item_id)]));
-    const rings = await chunked([...itemOf.keys()], (c) => all(CROSS.RINGS_FOR_ORDS(c.length), ...c));
+    const rings = await chunked([...itemOf.keys()], (c) => ringsOfOrds(c));
     const placeIds = [...new Set(rings.map((r) => Number(r.place_id)))];
     const places = new Map((await chunked(placeIds, (c) => all(CROSS.PLACES(c.length), ...c)))
       .map((p) => [Number(p.place_id), p]));
@@ -434,12 +508,12 @@ export function makeReleaseSource(loader: ReleaseLoader, opts: SourceOptions = {
     async watersNear(place): Promise<readonly NearHit[]> {
       const id = /^\d+$/.test(place) ? Number(place) : place;
       // every water within 25 km (the cap only guards a bad build; see the bundle reader)
-      const near = await all(CROSS.NEAR_PLACE, id, 2000);
+      const near = await nearPlace(id, 2000);
       if (!near.length) return [];
       const ords = [...new Set(near.map((r) => Number(r.ord)))];
       const [items, towns] = await Promise.all([
         chunked(ords, (c) => all(CROSS.ITEMS_FOR_ORDS(c.length), ...c)),
-        chunked(ords, (c) => all(CROSS.TOWNS_FOR_ORDS(c.length), ...c)),
+        chunked(ords, (c) => townCounts(c)),
       ]);
       const itemAt = new Map(items.map((r) => [Number(r.ord), r]));
       const townsAt = new Map(towns.map((r) => [Number(r.ord), Number(r.n)]));
@@ -579,7 +653,9 @@ export function makeReleaseSource(loader: ReleaseLoader, opts: SourceOptions = {
       const obs = (await opts.feed?.observations?.(station)) ?? null;
       const param = parameter ?? shownParameter(obs ?? {});
       const clim = await all(R.CLIMATOLOGY!, station, param);
-      return seriesOf(pentadsOf(clim[0]?.bands as Uint8Array | null | undefined, "clim/2"), obs, span, param, model);
+      // (T686) a climate/2 file carries clim/3; climate/1 (and a release cut before T182: conditions) clim/2
+      const codec = loader.manifest.files.climate?.format === CLIMATE_FORMAT ? CLIM_CODEC : "clim/2";
+      return seriesOf(pentadsOf(clim[0]?.bands as Uint8Array | null | undefined, codec), obs, span, param, model);
     },
 
     async gaugeParameters(station) {

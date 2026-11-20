@@ -11,6 +11,7 @@
  */
 import { KNOWN_VERSIONS, OPTIONAL_VERSIONS, PAINT_READS, SECTION_NAMES } from "@app/core";
 import { MANIFEST_FORMAT, PACK_FILES, PACK_OPTIONAL, PACK_WEB_ONLY, type Manifest } from "./pack.generated";
+import { CLIMATE_ALSO_READS, DOWN_ALSO_READS, NEAR_ALSO_READS } from "./release/packed";
 
 export type { Manifest, SynopsisAppend } from "./pack.generated";
 export type FileName = string;
@@ -63,8 +64,9 @@ export async function loadManifest(url: string, signal?: AbortSignal,
   return parseManifest(await res.json());
 }
 
-/** (T403) Formats a reader takes beside the contract's own (an older one it still decodes). */
-const ALSO_READS: Readonly<Record<string, readonly string[]>> = { paint: PAINT_READS };
+/** (T403) Formats a reader takes beside the contract's own (an older one it still decodes). (T686) near/1, down/1 and
+ *  climate/1: the release the app finds when it ships (and the committed fixtures) are cut before the packed formats. */
+const ALSO_READS: Readonly<Record<string, readonly string[]>> = { paint: PAINT_READS, near: NEAR_ALSO_READS, down: DOWN_ALSO_READS, climate: CLIMATE_ALSO_READS };
 
 type Readable = { ok: true } | { ok: false; reason: string };
 

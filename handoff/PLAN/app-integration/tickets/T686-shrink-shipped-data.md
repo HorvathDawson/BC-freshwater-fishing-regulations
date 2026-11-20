@@ -1,6 +1,6 @@
 # T686 — Shrink shipped data across the board
 
-Status: IN PROGRESS — OWNER PICKED (a) 2026-11-16 11:57, "(a) Three lossless changes (Recommended)": near as one blob per place, climate bands packed, down in blocks, about 1.94 MB; to build (who builds is being settled between the two chats). Survey and prototypes of 2026-11-14 (r-f749475d0962) are ranked below
+Status: IN PROGRESS — (a) BUILT 2026-11-20 on `lane/l8-shrink` (lane L8): near/2, down/2, climate/2 (clim/3), every value decoded equal to r-6258ffded676 on a side release; −2.25 MB gz on the phone (17.48 → 15.23 MB). Left: ship it in the wave-4 data release AFTER the app 0.8.4 that reads it is out (app gate), then lower `first_tap_unnamed` (6.2 → ~6.0 MB)
 
 Source: owner 2026-11-12 (T678 release stopped at the size gate): "Raise now, shrink later, but the ticket should cover
 ways to shrink data across the board, not just ponds." RULINGS O5 raised `core`, `conditions` and the web's
@@ -123,3 +123,37 @@ pick). Default: no shipped change until the owner picks.
 2026-11-15: `salmon-6` gate raised 320,000 → 420,000 (owner round 5, "Raise to 420 kB (Recommended)"; measured 379,295 B gz
 once the Stikine and Taku places bound, `pipeline/deliver/release/build.py` `SIZE_GATES`). Shrink it back with the rest:
 `salmon-6` is a candidate here (lower it again once the picked changes ship).
+
+## Built 2026-11-20 (lane L8, `lane/l8-shrink`): the owner's (a)
+Three lossless release formats, the bundle unchanged (the pipeline still reads its rows; only the release packs):
+- `near/2` — `place_water (place_id, b)`, one row per town: its waters' ords as gaps, then ckm as two byte planes. The
+  app reads a town's blob (`watersNear`), and for the by-water reads (`locate`'s rings, the town counts) inverts every
+  blob once into typed arrays (near/1 scanned the table for those).
+- `down/2` — `section_down (block, b)`, 4096 sids a block: sid gaps, zigzag down_sid deltas, len + 1, lake slots.
+  The app decodes a block once and keeps it (a walk stays in a few blocks).
+- `climate/2` — `gauge_clim.bands` clim/3: clim/2's float16 bits transposed, delta per column, low then high bytes.
+Writer `pipeline/deliver/release/packed.py`; reader `app/packages/data/src/release/packed.ts`; one parity fixture
+(`app/packages/data/dev/packed-parity.json`, `test_release_packed.py` + `app/tools/packed-parity.test.ts`); four format
+pairs in `scripts/check-format-pairs.py`. Layouts were chosen by measurement on the live tables (near: ord-sorted +
+ckm planes 884 k vs the prototype's ckm-delta 1.13 M; clim: byte planes 986 k vs u16 deltas 1.08 M).
+
+Losslessness (side release r-89607ac837e5 of the live bundle, via `scripts/heavy.sh`; proof script in the session
+scratchpad `l8/prove.py`): every near row (392,355), down row (145,803; 16,726 lakes) and climatology byte (2,393
+envelopes) decoded equal to r-6258ffded676's near/1, down/1, climate/1 AND to the bundle; every other file byte-identical.
+
+| file | live gz | packed gz | gate before → after |
+|---|---:|---:|---|
+| near | 2,129,181 | 884,236 (−58 %) | 2,250,000 → 1,000,000 |
+| down | 1,169,858 | 608,697 (−48 %) | 1,250,000 → 700,000 |
+| climate | 1,433,007 | 985,939 (−31 %) | 1,650,000 → 1,100,000 |
+| phone total | 17,482,831 | 15,229,657 (−2,253,174) | OFFLINE_GATE 20 MB kept |
+| web first_tap_unnamed | 6,034,484 | 5,473,323 | 6,200,000 kept until a down/2 release is LATEST (the live budget test reads LATEST) |
+
+`salmon-6` stays 460,000: nothing here shrinks it (415,307, ~11 % under).
+
+OLD APPS: the new formats are recorded for app 0.8.4 (`app_reads.json`; version bumped, draft changelog line). A release
+carrying them derives `minAppVersion` ≥ 0.8.4 (`app_gate.oldest_reader`; the upload refuses a lower stamp), so 0.8.3 and
+older keep the data they hold and show the update prompt (`releaseAllowed`; `readsRelease` refuses near/2 too). The
+0.8.4 app still reads near/1, down/1, climate/1 (`ALSO_READS`, by the manifest's format), so it works on the live
+release and the committed fixtures before the packed release ships. Not measured: device decode time (the town index
+is built on the first town search or water map, ~392 k pairs).
