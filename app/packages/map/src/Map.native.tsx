@@ -47,7 +47,7 @@ import {
   Camera, GeoJSONSource, Images, Layer, LogManager, Map as MLMap, VectorSource,
   type CameraRef, type GeoJSONSourceRef, type MapRef, type VectorSourceRef,
 } from "@maplibre/maplibre-react-native";
-import { CAMERA_BOUNDS, CAMERA_MAX_ZOOM, MIN_ZOOM, fitAtMost, fitZoomLimit, fitZoomOf, padBbox, refineFit, spotMarkers,
+import { CAMERA_BOUNDS, CAMERA_MAX_ZOOM, MIN_ZOOM, fitCamera, fitZoomLimit, fitZoomOf, padBbox, refineFit, spotMarkers,
          spotsInView, spotUnder, profileLabel, unionBbox, type Bbox, type SpotMarker, type SectionKey, now as clockNow } from "@app/core";
 import { pressSpot, spotsKey } from "./spots";
 import { SPOT_SOURCE, spotBoxImage, spotBoxName, spotImages, spotsData, spotsLayers } from "./spot-marks";
@@ -66,9 +66,10 @@ import { useNativeColouring, type AtlasSource } from "./native/useColouring";
 import { colourProbe } from "./native/probe";
 import { panProbe } from "./native/panProbe";
 import { GoneViews } from "./native/goneView";
-import { nativeLabelShift } from "./native/labelShift";
+import { nativeLabelAnchors } from "./native/labelAnchor";
 import { MARK_BOX_IMAGE, MARK_LABEL, MARK_RING, MARK_SOURCE, PIN_SOURCE, markBox, markBoxImage, markHit, marksData,
          marksLayers, pinDotLayer, pinsData, titledPin, PIN_DOT } from "./point-marks";
+import type { MarkLabelAnchor } from "./marks";
 import { pngDataUri } from "./png";
 import { metricScale } from "./scale";
 import { GEOMETRY, SHOW_SCALE } from "./chrome";
@@ -174,7 +175,7 @@ export function Map({ at, theme, view, modes, groups, hide, show, initial, data,
   }, []);
   // (T418) a sprite, glyph range or source that would not load is reported once, not only logged (MapLibre's log)
   useEffect(() => { watchStyleAssets(LogManager); }, []);
-  /** (T317) the boundary marks and their press, read by the tap (`onPress`) and the label measure (`shiftMarks`) */
+  /** (T317) the boundary marks and their press, read by the tap (`onPress`) and the label measure (`anchorMarks`) */
   const marksNow = useRef(marks);
   marksNow.current = marks;
   const pressMarkNow = useRef(onPressMark);
@@ -698,10 +699,13 @@ export function Map({ at, theme, view, modes, groups, hide, show, initial, data,
       if (fitDone.current) clearTimeout(fitDone.current);
       fitDone.current = setTimeout(() => { fitDone.current = null; fitMoving.current = false; if (lastFull.current) whole.current(); }, glide + 100);
       camProbe.move(rounds ? "refine" : "fit", rounds, height);
-      // the binding's fitBounds has no maxZoom, and the camera now goes to z18: widen the box to what the limit shows
-      // (T443) a function of the box and the map's size only: a part is framed the same however it was reached
+      // (T443) a function of the box and the map's size only: a part is framed the same however it was reached; no closer
+      // than the limit (the camera goes to z18)
+      // (T929) sent as a centre and a zoom worked out from the size the map was LAID OUT at (`fitCamera`), never as the
+      // binding's fitBounds: that fits to the native frame as it is when the command lands, and on iOS a "Show all parts"
+      // pick's refit landed before the 48 pt strip had grown back (zoom 4, the part a speck). Android reads the same.
       const limit = fitZoomLimit(fit, fitZoomOf(b, width, height, p));
-      renderer.fitBounds(fitAtMost(b, limit, width, height, p), { padding: p, duration: cameraMs(450) });
+      renderer.easeTo(fitCamera(b, limit, width, height, p), { duration: cameraMs(450) });
     };
     /*
      * (T443, owner on 0.6.7: "the first open frames the part differently from ▲ then ▼") THE MAP'S SIZE CHANGED AFTER THE
@@ -881,24 +885,24 @@ export function Map({ at, theme, view, modes, groups, hide, show, initial, data,
   /** (T420/T401) the pan probe's build (the test bed): frames full/partial and the camera's rest, for "streams drawn" */
   const PAN_PROBE = panProbe.on();
 
-  /** (T50) where each mark's label is centred, kept inside the map as the web's `markers.ts` does (`labelShift`):
-   *  measured where the camera settles, from each ring's screen x, and moved as a point of the marks' source (T317) */
-  const [labelAt, setLabelAt] = useState<{ key: string; at: readonly ([number, number] | null)[] }>({ key: "", at: [] });
-  // (T734) only a map that is mounted, styled and has drawn is asked (`nativeLabelShift`): asked before, the binding's
+  /** (T50, T929) how each mark's label hangs from its own point, kept inside the map as the web's `markers.ts` does
+   *  (`labelAnchor`): chosen where the camera settles, from each ring's screen x; the label's point never moves */
+  const [labelAt, setLabelAt] = useState<{ key: string; at: readonly (MarkLabelAnchor | null)[] }>({ key: "", at: [] });
+  // (T734) only a map that is mounted, styled and has drawn is asked (`nativeLabelAnchors`): asked before, the binding's
   // `project` threw a NullPointerException on the native main thread and closed the app
   const mountedNow = useRef(false);
   useEffect(() => { mountedNow.current = true; return () => { mountedNow.current = false; }; }, []);
-  const shiftMarks = useCallback(async () => {
+  const anchorMarks = useCallback(async () => {
     const ms = marksNow.current ?? [], w = size.current.width;
     if (!ms.some((k) => k.label) || !w) return;
-    const next = await nativeLabelShift(ms, w, mapRef.current,
-                                        () => mountedNow.current && styledNow.current && rendered.current, report);
+    const next = await nativeLabelAnchors(ms, w, mapRef.current,
+                                          () => mountedNow.current && styledNow.current && rendered.current, report);
     const key = JSON.stringify(ms);
     if (!next || JSON.stringify(marksNow.current ?? []) !== key) return;
     setLabelAt((was) => (was.key === key && JSON.stringify(was.at) === JSON.stringify(next) ? was : { key, at: next }));
   }, [report]);
-  // asked again once the map has drawn (a shift asked before it was skipped)
-  useEffect(() => { void shiftMarks(); }, [JSON.stringify(marks ?? []), shiftMarks, drawn]);  // eslint-disable-line react-hooks/exhaustive-deps
+  // asked again once the map has drawn (anchors asked before it were skipped)
+  useEffect(() => { void anchorMarks(); }, [JSON.stringify(marks ?? []), anchorMarks, drawn]);  // eslint-disable-line react-hooks/exhaustive-deps
 
   const onRegionDidChange = useCallback((e: RegionEvent) => {
     hold.machine.rest();
@@ -925,7 +929,7 @@ export function Map({ at, theme, view, modes, groups, hide, show, initial, data,
       const lon = ne.center[0];
       setSeenAt((was) => (was.lon === lon && was.lat === next.lat && was.zoom === next.zoom ? was : { ...was, lon, ...next }));
     }
-    void shiftMarks();
+    void anchorMarks();
     // the next full render reports what is on screen (and measures a fit): the tiles for here may not be in yet
     stale.current = true;
     copyStale.current = true;
@@ -941,7 +945,7 @@ export function Map({ at, theme, view, modes, groups, hide, show, initial, data,
     }, SETTLE_ASK_MS);
     // (T175) the reader's own pan or pinch: the copy never steps in against it (T443: nor does a refit)
     if (ne?.userInteraction) { copyTouched.current = true; fitTouched.current = true; }
-  }, [shiftMarks, reportVisible, report, hold]);
+  }, [anchorMarks, reportVisible, report, hold]);
 
   // a new style dropped every feature-state (`forget`: send them all again) and may draw other features
   const onStyle = useCallback(() => {

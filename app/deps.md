@@ -157,7 +157,7 @@ off as before; shrinking is a decision of its own (keep rules + a device walk), 
   REJECTS its promise instead of closing the app (`ReactTagResolver.runOrReject`; build 32's verify lane saw
   `NullPointerException at MLRNMapView.project`: `mapLibreMap!!` asked before `onMapReady`), and `project` / `unproject` /
   `queryRenderedFeaturesWith{Point,Rect}` name the call when the map is not ready (`readyMap`); upstreamable as is. The
-  app also never asks a map that has not drawn (`packages/map/src/native/labelShift.ts`). Bump the binding only with the patch re-applied and the emulator AND simulator pans
+  app also never asks a map that has not drawn (`packages/map/src/native/labelAnchor.ts`). Bump the binding only with the patch re-applied and the emulator AND simulator pans
   re-run.
   **T250 (SDK 58 / RN 0.88): kept at 11.5.0** (11.5.1 is from 2026-10-29, under the two-week rule); the patch applies
   unchanged (same package version) and the Android build on RN 0.88 is the proof (T250 ticket). Not upstreamed.
