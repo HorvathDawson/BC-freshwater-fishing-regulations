@@ -220,7 +220,7 @@ describe("the group's parts, mouth first (the release's `part_ix`)", () => {
     expect([partRowAria(g, 0), partRowAria(g, n - 1), partRowAria(waterGroup([VEDDER], NO_ENDS), 0)]).toEqual([
       `Vedder Crossing Bridge → Tamihi Rapids Bridge, part 1 of ${n} · Chilliwack River`,
       `Chilliwack River Ecological Reserve boundary → Source, part ${n} of ${n} · Chilliwack River`,
-      "Vedder River, part 1 of 1"]);
+      "Vedder River, whole water"]);
     // one copy of "Parts of this water" (that it is SPELLED once, in regs/words.ts, is a source scan:
     // tools/one-parts-list.test.ts — core may not read files; the Parts sheet that also read it is removed, T698)
     expect([WATER_MAP_WORDS.parts, WORDS.PARTS_TITLE]).toEqual(["Parts of this water", "Parts of this water"]);
@@ -239,7 +239,7 @@ describe("the group's parts, mouth first (the release's `part_ix`)", () => {
 
   it("a one-part water is named by its water, with no note", () => {
     const g = waterGroup([VEDDER], NO_ENDS);
-    expect([partName(g, 0), itemNote(g, 0), partWhere(g, 0)]).toEqual(["Vedder River", "", `Part 1 of ${g.parts.length}`]);
+    expect([partName(g, 0), itemNote(g, 0), partWhere(g, 0)]).toEqual(["Vedder River", "", "Whole water"]);
   });
 
   it("KLWA: a split lake's three items are one water, ordered by their exits (as the prototype's klwa)", () => {

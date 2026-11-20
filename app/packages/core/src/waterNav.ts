@@ -481,14 +481,16 @@ export const WATER_MAP_WORDS = {
 /** "Part 2 of 5 · Chilliwack River": where the current part sits in the group. */
 export function partWhere(g: WaterGroup, i: number): string {
   const note = itemNote(g, i);
-  return `Part ${i + 1} of ${g.parts.length}${note ? ` · ${note}` : ""}`;
+  // (T925, owner 2026-11-20: "It says part 1 of 1 should just say whole water") a water of one part is the whole water
+  const where = g.parts.length === 1 ? WATER_MAP_WORDS.whole("water") : `Part ${i + 1} of ${g.parts.length}`;
+  return `${where}${note ? ` · ${note}` : ""}`;
 }
 
 /** (T150) A row of the parts list as a screen reader says it: "Vedder Crossing Bridge → Tamihi Rapids Bridge, part 2
  *  of 4 · Chilliwack River" — its name, then where it sits (`partWhere`, lower-cased "part"). Whether it is the part
  *  shown is the row's checked state, not words. */
 export function partRowAria(g: WaterGroup, i: number): string {
-  return `${partName(g, i)}, ${partWhere(g, i).replace(/^Part/, "part")}`;
+  return `${partName(g, i)}, ${partWhere(g, i).replace(/^(Part|Whole)/, (w) => w.toLowerCase())}`;
 }
 
 /** The ⤢ button: frame the whole river (or lake), or — while it is framed — back to this part. */

@@ -34,3 +34,7 @@ is open.
   nothing else changed.
 - Shots: `T925-shots/before-{390-light,390-dark,1280-light}.png`, `T925-shots/after-{390-light,390-dark,1280-light}.png`
   (staging data, web build).
+## Owner 2026-11-20 ~01:30 (main chat): approved, with one change
+Verbatim: "It says part 1 of 1 should just say whole water. Also wrong font?? Other wise is good". So a one-part water's
+counter reads "Whole water" (core `partWhere`). The font in the shots is the local web preview's fallback (the dev server
+does not serve the self-hosted Archivo files that `web-shell.mjs` adds at export), not the app or the site.
