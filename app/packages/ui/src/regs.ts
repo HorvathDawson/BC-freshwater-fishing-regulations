@@ -17,18 +17,17 @@
  */
 import { useCallback, useEffect, useMemo, useRef, useSyncExternalStore } from "react";
 import { accessNeedsWeights, buildRegsPage, offlineAs, reported, headerOf, methodClassOn, pageAccessNotices as coreAccessNotices, partAccess,
-         salmonCardLive, soloWater, tapDay, type AccessNotice, type Day, type RegsInputs,
+         salmonCardLive, tapDay, type AccessNotice, type Day, type RegsInputs,
          type RegsPage, type RegsTarget, type SalmonCardLiveVM,
          type Weekday, type Who, bcNow, now as clockNow } from "@app/core";
 import { downstreamWater, openProbe, type ItemId, type WaterSource, type SectionId } from "@app/data";
 import type { ReleaseLoader } from "@app/data/release";
 /** a bundle region, as the loader names it */
 type Region = Awaited<ReturnType<ReleaseLoader["regionsOf"]>>[number];
-import { itemsOfSections, loadRegsInputs, loadWaterGroup, openRegsStore, RegsStoreError, siblingItems, targetFor, type RegsExpect, type RegsLoader,
+import { itemsOfSections, loadRegsInputs, openRegsStore, RegsStoreError, siblingItems, targetFor, type RegsExpect, type RegsLoader,
          type RegsStore } from "@app/data/regs";
 import { useAsync, type Async } from "./async";
 import { askOnce, peekAnswer } from "./answers";
-import { salmonKeyOf, type SalmonLoader as SalmonKeyLoader } from "./salmonKey";
 
 /** (T286) The test bed's "before" build (`EXPO_PUBLIC_REGS_ONE_BY_ONE=1`): no page held, every open read afresh. */
 const oneByOne = (): boolean => (globalThis as { __regsOneByOne?: boolean }).__regsOneByOne === true;
@@ -85,7 +84,7 @@ export async function prewarmRegs(loader: RegsLoader, { files = false }: { files
 }
 
 /**
- * (T737) `f` (an opener's question about a water: its part, whether it is solo), with `warm` told the water first — so
+ * (T737) `f` (an opener's question about a water: its part), with `warm` told the water first — so
  * what the page will read beside its rules is asked the moment the opener knows the water, beside the question's own
  * reads. The answer is `f`'s, unchanged.
  */
@@ -96,7 +95,7 @@ export function warmedFirst<A extends readonly unknown[], R>(warm: ((item: ItemI
 
 /**
  * (T737, owner 2026-11-15: "it still feels slow") WHAT A NAMED WATER'S OPEN WAITS ON BESIDE ITS PART, asked the moment
- * the opener knows the water (its part / solo questions, `warmedFirst`): `geo` (its parts and boxes — the solo check and
+ * the opener knows the water (its part question, `warmedFirst`): `geo` (its parts and boxes — the part question and
  * every view's parts read it). It was asked only after the water slice (0.9 + 2.4 s in series, measured on staging); now
  * the two come together. Nothing else is asked here: on a slow line (~1 Mbit/s measured) `access` asked beside them
  * held the readable page back by its share of the line, and the page asks it as before. The same loader open the page
@@ -149,19 +148,6 @@ export async function waterRegionsOf(loader: RegsLoader & Pick<ReleaseLoader, "r
  */
 export function regsGroupOf(loader: RegsLoader): (item: ItemId) => Promise<readonly ItemId[]> {
   return async (item) => (await siblingItems(await loadRegsStore(loader), item)) as readonly ItemId[];
-}
-
-/**
- * (T221) Whether a water is solo — one entry on its map, going on as / from no other water (`@app/core` `soloWater` over
- * its group, `loadWaterGroup`): what the opener asks of a search result (solo: its Regulations, not its Map). (T517) The
- * group as its map joins it: the same live salmon key (`salmonKeyOf`), so two pieces the live salmon reads alike are one
- * entry here as on the map.
- */
-export function regsSoloOf(loader: RegsLoader & SalmonKeyLoader): (item: ItemId) => Promise<boolean> {
-  return async (item) => {
-    const store = await loadRegsStore(loader);
-    return soloWater(await loadWaterGroup(store, item, await salmonKeyOf(loader, store, item)));
-  };
 }
 
 /**

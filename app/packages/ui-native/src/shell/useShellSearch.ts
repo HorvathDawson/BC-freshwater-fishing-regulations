@@ -98,8 +98,8 @@ export function useShellSearch({ source, nav, recentStore }: {
       void source.waterBox(id).then((bbox) => { if (bbox && arrivals.current === n) setArrive({ key, bbox, refine: false }); },
                                     reportFailure);   // (T368) not framed: reported
     }
-    // (T508) the search is consumed, its text with it — ONCE THE WATER HAS OPENED (the opener first asks whether it is
-    // solo): consumed before, the browse screen drew one more screen between the results and the pane (the field
+    // (T508) the search is consumed, its text with it — ONCE THE WATER HAS OPENED: consumed
+    // before, the browse screen drew one more screen between the results and the pane (the field
     // emptied, the recent searches, the water's outline gone), and only then was the opened pane held over it
     const q = searchMemory.q;
     void opener.searched(id).then(() => { recents.push(q); setSearchMemory(NO_SEARCH); }, reportFailure);

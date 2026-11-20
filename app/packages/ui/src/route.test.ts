@@ -385,15 +385,17 @@ describe("back steps out one layer: moves inside a water replace, a different wa
   });
 });
 
-describe("(T221) a solo water: one part, no continuation — no Map view", () => {
+describe("(T925) EVERY named water offers its Map view — a water of one part too (T221's solo gate is gone)", () => {
+  // a water of one part going on as / from no other (Cheakamus River's shape): T221 dropped its Map view
   const W = "gnis:4688" as ItemId;
   const open = (view: "regs" | "map") => reduce(HOME, { type: "openWater", item: W, view });
-  it("the `solo` action drops the Map view (Regulations in front if the Map was); another water's is ignored", () => {
-    const onMap = reduce(open("map"), { type: "solo", item: W });
-    expect([waterFrame(onMap)?.view, frameViews(waterFrame(onMap)!)]).toEqual(["regs", ["regs", "conditions"]]);
-    const other = open("map");
-    expect(reduce(other, { type: "solo", item: "gnis:1" as ItemId })).toBe(other);
-    expect(reduce(onMap, { type: "solo", item: W })).toBe(onMap);
-    expect(backDepth(onMap)).toBe(backDepth(open("map")));
+  it("the frame offers Regulations · Conditions · Map, the Map opens and is moved to, and no frame carries a solo flag", () => {
+    expect(frameViews(waterFrame(open("regs"))!)).toEqual(["regs", "conditions", "map"]);
+    expect(waterFrame(open("map"))).toEqual({ item: W, part: null, tapSid: null, at: null, view: "map" });
+    expect(waterFrame(reduce(open("regs"), { type: "view", view: "map" }))?.view).toBe("map");
+    expect(backDepth(open("map"))).toBe(backDepth(open("regs")));
+  });
+  it("the gate is the item alone: named → three views, unnamed reach → two", () => {
+    expect([frameViews({ item: W }), frameViews({ item: null })]).toEqual([["regs", "conditions", "map"], ["regs", "conditions"]]);
   });
 });

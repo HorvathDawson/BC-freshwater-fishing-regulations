@@ -27,7 +27,7 @@
  *   unnamed    unchanged: the tapped section's middle from `lines`, fetched only when an unnamed reach is on screen or a
  *              link to one is opened.
  */
-import { reported, bcNow } from "@app/core";
+import { bcNow } from "@app/core";
 import type { ItemId, SectionId, WaterSource } from "@app/data";
 import type { PartLine, RegsReads } from "@app/data/regs";
 import type { ReleaseLoader } from "@app/data/release";
@@ -154,9 +154,8 @@ export async function linkSearch(store: PlaceReads | null, r: Route, current = "
  * for a place alone, the map) and says so. A water named with no place, no part and not whole is a water whose address
  * needs no place — one of one part (a lake, a split lake's closure area): it opens at that part.
  */
-export async function resolveStartLink(link: StartLink, store: PlaceReads, itemFor: ItemFor,
-                                       solo?: (item: ItemId) => Promise<boolean>): Promise<StartLink> {
-  if (!link.place) return ownPart(link, store, solo);
+export async function resolveStartLink(link: StartLink, store: PlaceReads, itemFor: ItemFor): Promise<StartLink> {
+  if (!link.place) return ownPart(link, store);
   const view = link.place.view;
   const at = await placeAt(store, itemFor, waterFrame(link.route)?.item ?? null, link.place);
   if (!at) {
@@ -166,25 +165,22 @@ export async function resolveStartLink(link: StartLink, store: PlaceReads, itemF
   }
   // (T369 D5) a tapped frame's link reopens the tap: the section the place falls on, and the point it named
   const tap = link.tap ? { tapSid: at.sid, at: link.tap.at } : {};
-  const isSolo = at.item !== null && view === "map" && !!solo && await solo(at.item).catch(reported(false));
   const route = reduce(HOME, openWater(at.item === null
     ? { item: null, tapSid: at.sid, at: link.tap?.at ?? null, view }
-    : { item: at.item, part: at.part, view: isSolo ? "regs" : view,
+    : { item: at.item, part: at.part, view,
         // (T369 D7) ⤢ is in the address (`whole=1`): the frame comes back whole, on its part
-        ...tap, ...(isSolo ? { solo: true } : {}), whole: view === "map" && (at.part === null || !!waterFrame(link.route)?.whole) }));
+        ...tap, whole: view === "map" && (at.part === null || !!waterFrame(link.route)?.whole) }));
   return { ...link, route, place: null, tap: null, arrive: at.item ?? link.arrive };
 }
 
 
 /** (T369) A link naming a water alone: a water of one part opens at it; any other — a multi-part water whose link has
  *  no place (a release cut before `section_line` made it) — as it asks, its Map on its frame's part (T747: not whole). */
-async function ownPart(link: StartLink, store: PlaceReads, solo?: (item: ItemId) => Promise<boolean>): Promise<StartLink> {
+async function ownPart(link: StartLink, store: PlaceReads): Promise<StartLink> {
   const f = waterFrame(link.route);
   if (!f || f.item === null || f.part !== null || f.tapSid !== null) return link;
-  // (T369 D13) a Map asked of a solo water opens its Regulations at once (no Map mounted, then dropped)
-  const isSolo = f.view === "map" && !!solo && await solo(f.item).catch(reported(false));
-  const view = isSolo ? "regs" : f.view;
-  if (f.whole && !isSolo) return link;
+  const view = f.view;
+  if (f.whole) return link;
   const ord = await store.itemOrd(f.item);
   const parts = ord === null ? [] : (await store.parts(ord)).filter((p) => !p.tidal);
   if (parts.length === 1) {
@@ -194,8 +190,7 @@ async function ownPart(link: StartLink, store: PlaceReads, solo?: (item: ItemId)
     const sid = nav?.geo.find((g) => g.partIx === parts[0]!.partIx)?.midSid;
     if (nav && sid === undefined) throw new Error(`place: ${f.item}'s part ${parts[0]!.partIx} has no part_geo row`);
     const tap = sid !== undefined ? { tapSid: sid as SectionId, at: link.tap!.at } : {};
-    return { ...link, tap: null, route: reduce(HOME, openWater({ item: f.item, part: parts[0]!.partIx, view, ...tap,
-                                                                  ...(isSolo ? { solo: true } : {}) })) };
+    return { ...link, tap: null, route: reduce(HOME, openWater({ item: f.item, part: parts[0]!.partIx, view, ...tap })) };
   }
   // (T747) its Map on the part its bar names (the frame's part, read as the Regulations view reads it), not whole
   return link;

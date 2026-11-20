@@ -15,7 +15,7 @@
 import type { WaterSource } from "@app/data";
 import type { ReleaseLoader } from "@app/data/release";
 import type { RegsStore } from "@app/data/regs";
-import { pageRegion, parseStartLink, regsSoloOf, reportFailure, setRegsFirstStart, setStartRegion, WATER_PATH,
+import { pageRegion, parseStartLink, reportFailure, setRegsFirstStart, setStartRegion, WATER_PATH,
          type StartLink } from "@app/ui";
 import { placeReads, resolveStartLink } from "@app/ui/place";
 import { preloadParts } from "@app/ui-native";
@@ -56,6 +56,5 @@ export function startLink(): StartLink | null {
 /** (T369) The start link resolved in the open release (`@app/ui/place`): only a link that carries a place opens `lines`. */
 export function resolveStart(link: StartLink, store: RegsStore, loader: ReleaseLoader,
                              itemFor: Pick<WaterSource, "itemForSection">): Promise<StartLink> {
-  // (T369 D13) a Map asked of a solo water opens its Regulations straight away (the opener's own question)
-  return resolveStartLink(link, placeReads(store, loader), itemFor, regsSoloOf(loader));
+  return resolveStartLink(link, placeReads(store, loader), itemFor);
 }

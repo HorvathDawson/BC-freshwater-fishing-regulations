@@ -2,13 +2,13 @@
  * WHERE THE READER IS: the route, its one back, the one water opener and the water header's views — the Shell's
  * navigation, read once here and handed down (T62 3.4).
  */
-import { soloWater, waterExit } from "@app/core";
+import { waterExit } from "@app/core";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Platform } from "react-native";
 import type { ItemId, WaterSource } from "@app/data";
 import type { ReleaseLoader } from "@app/data/release";
-import { carryRoute, frameViews, loadRegsStore, regsGroupOf, regsPartOf, regsSoloOf, reportFailure, useOpenWater, useRegsStore, warmedFirst, warmUnnamedPage, warmWaterPage,
-         useRoute, useSalmonKey, useWaterGroup, waterFrame, type BrowseTab, type Route } from "@app/ui";
+import { carryRoute, frameViews, loadRegsStore, regsGroupOf, regsPartOf, reportFailure, useOpenWater, warmedFirst, warmUnnamedPage, warmWaterPage,
+         useRoute, waterFrame, type BrowseTab, type Route } from "@app/ui";
 import { backDepth, edgeBackDepth, useBack, useEdgeBack, useViewSwipe, type SystemBack } from "@app/ui";
 import { placeReads } from "@app/ui/place";
 import { TABS, type TabKey } from "../TabBar";
@@ -64,14 +64,13 @@ export function useShellNav({ source, loader, systemBack, initialRoute, onRoute 
   const now = useCallback(() => routeNow.current, []);
   const groupOf = useMemo(() => (loader ? regsGroupOf(loader) : undefined), [loader]);
   // (T737, 2026-11-15) what a named water's open waits on beside its part (geo), asked as soon as the opener
-  // knows the water — with its part / solo question, not after it (geo came after the water slice: 0.9 + 2.4 s in series)
+  // knows the water — with its part question, not after it (geo came after the water slice: 0.9 + 2.4 s in series)
   const warm = useMemo(() => (loader ? warmWaterPage(loader) : undefined), [loader]);
-  const soloOf = useMemo(() => (loader ? warmedFirst(warm, regsSoloOf(loader)) : undefined), [loader, warm]);
   // (T369 D3) a tapped water opens AT its part: the Regulations view's own answer, asked before the frame is made
   const partOf = useMemo(() => (loader ? warmedFirst(warm, regsPartOf(loader)) : undefined), [loader, warm]);
   // (T737) an unnamed reach's tap: what its page waits on (regs-sid, down, its region's water slice, access), together
   const unnamed = useMemo(() => (loader ? warmUnnamedPage(loader) : undefined), [loader]);
-  const opener = useOpenWater(source, go, { now, group: groupOf, solo: soloOf, partOf, unnamed });
+  const opener = useOpenWater(source, go, { now, group: groupOf, partOf, unnamed });
   /*
    * (T369 D8, owner 2026-11-04) A NEW RELEASE WITH A WATER OPEN is applied at once, and the open stack is CARRIED to the
    * same place on the water in it (`carryRoute`: by item and point, never by the old part index). Until it is, the water
@@ -95,22 +94,10 @@ export function useShellNav({ source, loader, systemBack, initialRoute, onRoute 
       .finally(() => { if (live) setCarried(loader); });
     return () => { live = false; };
   }, [loader, go]);
-  /*
-   * (T221, owner 2026-10-28) A SOLO WATER HAS NO MAP VIEW: one part, going on as / from no other water (`soloWater`; the
-   * Vedder ↔ Chilliwack keep theirs). However the water was opened — a map tap, a spot, a link — once its group is read
-   * the frame is told (`solo`), and its Map view goes (Regulations in front if the Map was).
-   */
-  const regsStore = useRegsStore(route.mode === "water" ? loader : null);
+  // (T925) every named water offers its Map view, one of one part too (`frameViews`): nothing is read here to take it
+  // away (T221's solo check, which dropped the Map view once the water's group was read, is gone)
   // (T286) the regulations made ready while the reader looks at the map: a phone only (prewarm.native.ts)
   usePrewarmRegs(loader);
-  // (T517) the group as the water's map joins it: the same live salmon key, so solo here is solo on the map
-  const soloItem = frame?.solo ? null : item;
-  const soloKey = useSalmonKey(route.mode === "water" ? loader : null, regsStore.value ?? null, soloItem);
-  const soloGroup = useWaterGroup(regsStore.value ?? null, soloItem, soloKey);
-  useEffect(() => {
-    const g = soloGroup.value;
-    if (item !== null && g && g.parts[0]?.item === item && soloWater(g)) go({ type: "solo", item });
-  }, [soloGroup.value, item, go]);
   /** G1 (owner 2026-10-21): a sideways swipe moves between a water's views — Regulations · Conditions · Map. */
   const viewSwipe = useViewSwipe(route, go, isTouchDevice());
   /**

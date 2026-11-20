@@ -341,15 +341,6 @@ export function crossDown(g: WaterGroup, at: number): NavCross | null {
 }
 
 /**
- * (T221, owner 2026-10-28) A water of ONE part (one entry of the map: pieces the live salmon joins are one) that goes on as / from no
- * other water (`next` / `prev`, the Vedder ↔ Chilliwack): its map has nothing to choose, so a search result opens its
- * Regulations and the water screen offers no Map view. A split lake's areas are parts of its group, so it is never solo.
- */
-export function soloWater(g: WaterGroup): boolean {
-  return g.parts.length === 1 && g.next === null && g.prev === null;
-}
-
-/**
  * ▲ off the top of this water into the one it goes on from: on the last entry of the line, with nothing above. That is
  * the entry holding the part that meets it (`waterGroup` puts that part last; `mergeNav` keeps its entry last), except
  * where the live salmon joins the top part with the mouth's and a piece that does not join stands apart (the whole main

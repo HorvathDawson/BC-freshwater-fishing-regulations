@@ -18,3 +18,19 @@ tap highlight that shows "for just a second": keep the tapped part marked while 
 Cheakamus River (one part) shows Regulations | Conditions | Map; pictures (390 light/dark, desktop) to the owner first.
 Depends: none. Size: M. Owner: yes (look). Default: the Map tab on every water; the tapped part stays marked while its card
 is open.
+
+## Built (lane/t925, not merged)
+- The gate was `@app/ui` `frameViews`: a frame flagged `solo` (T221: one part, no continuation, `@app/core` `soloWater`)
+  offered Regulations | Conditions only. The gate is now the item alone (named water: all three views; unnamed reach:
+  two). The whole solo path is gone: the frame flag and `solo` action, the opener's / start link's "solo?" read
+  (`regsSoloOf`), the Shell's group read that dropped the Map view, and `soloWater`. One path for app and web.
+- Owner-visible: a search result for a one-part water now opens on its Map (as every other water, T203/T747), not on its
+  Regulations. A map tap, a spot and a link open as before (Regulations in front), with Map in the strip.
+- The one-part map was already drawn (T875 `PartsOne`): the part lit, every other water grey, the receiving water muted,
+  "Flows into …". No end marks: a one-part water's ends are its own mouth and source, and the release places marks only
+  at rule boundaries.
+- Tap highlight: the browse map is hidden under the water's page on phone AND desktop (the page is full width), so a cue
+  kept lit there would not be seen. The persistent marking is the Map view (the tapped part lit while it is open);
+  nothing else changed.
+- Shots: `T925-shots/before-{390-light,390-dark,1280-light}.png`, `T925-shots/after-{390-light,390-dark,1280-light}.png`
+  (staging data, web build).

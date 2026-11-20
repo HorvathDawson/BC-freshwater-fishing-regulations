@@ -1,6 +1,6 @@
 /**
  * (T737, 2026-11-15) WHAT A NAMED WATER'S OPEN WAITS ON, ASKED AS THE WATER IS KNOWN: `warmWaterPage` (geo; a failure
- * left to the page's own read) and `warmedFirst` (the opener's part / solo question tells it
+ * left to the page's own read) and `warmedFirst` (the opener's part question tells it
  * first, its answer unchanged).
  */
 import { describe, expect, it } from "vitest";

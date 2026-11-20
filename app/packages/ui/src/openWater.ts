@@ -35,8 +35,6 @@ export interface WaterOpen {
   whole?: boolean;
   /** (T58) The water's split-lake areas, itself among them (`siblingItems`): another area of a lake held is that lake. */
   group?: readonly ItemId[];
-  /** (T221) The water is solo (one part, no continuation, `@app/core` `soloWater`): no Map view, Regulations in front. */
-  solo?: boolean;
 }
 
 /**
@@ -45,11 +43,10 @@ export interface WaterOpen {
  */
 export function openWater(o: WaterOpen): RouteAction {
   const asked = o.view ?? "regs";
-  const solo = !!o.solo && o.item !== null;
-  const views = frameViews({ item: o.item, solo });
+  const views = frameViews({ item: o.item });
   const a: RouteAction = { type: "openWater", item: o.item, tapSid: o.tapSid ?? null, at: o.at ?? null,
                           part: o.part ?? null, view: views.includes(asked) ? asked : views[0]!,
-                          ...(o.group ? { group: o.group } : {}), ...(solo ? { solo: true } : {}) };
+                          ...(o.group ? { group: o.group } : {}) };
   const w = o.whole && a.view === "map" ? { ...a, whole: true } : a;
   return o.fromSearch ? { ...w, fromSearch: true } : w;
 }
@@ -71,22 +68,17 @@ export async function openTap(source: Pick<WaterSource, "itemForSection">, sid: 
                               view: View, except: ItemId | null = null,
                               groupOf?: (item: ItemId) => Promise<readonly ItemId[] | undefined>,
                               partOf?: OpenerOptions["partOf"],
-                              solo?: OpenerOptions["solo"],
                               unnamed?: OpenerOptions["unnamed"]): Promise<RouteAction | null> {
   const item = await waterOfSection(source, sid);
   if (item !== null && item === except) return null;
   // (T737) an unnamed reach: what its page waits on, asked now and together
   if (item === null) unnamed?.(sid);
-  const [group, at2, isSolo] = await Promise.all([
+  const [group, at2] = await Promise.all([
     item !== null && groupOf ? groupOf(item) : undefined,
     // (T369 D3) the tapped water opens AT its part: one frame for it
     // (T368) a failed read opens part-less (each view asks the same `targetFor`), and is reported
-    item !== null && partOf ? partOf(item, sid).catch(reported(null)) : null,
-    // (T498) and KNOWING whether it is solo, as a search result does: told after it opened, its Map view dropped out of
-    // the strip under the reader (the pane changed shape after it was shown). A failed read opens with the Map view.
-    item !== null && solo ? solo(item).catch(reported(false)) : false]);
-  return openWater({ item, tapSid: sid, at, view, group, ...(at2 ? { part: at2.part } : {}),
-                     ...(isSolo ? { solo: true } : {}) });
+    item !== null && partOf ? partOf(item, sid).catch(reported(null)) : null]);
+  return openWater({ item, tapSid: sid, at, view, group, ...(at2 ? { part: at2.part } : {}) });
 }
 
 export interface WaterOpener {
@@ -103,8 +95,8 @@ export interface WaterOpener {
   /** A water by its id (a spot, a deep path). */
   item(item: ItemId, view?: View): void;
   /**
-   * A water picked from search's results: the search is consumed, so back lands on the map (route `fromSearch`). (T221)
-   * A solo water (`OpenerOptions.solo`) opens on its Regulations; any other on its whole Map (T203).
+   * A water picked from search's results: the search is consumed, so back lands on the map (route `fromSearch`). It
+   * opens on its Map (T203), framed on its part (T747) — (T925) a water of one part too: the map shows what it covers.
    */
   searched(item: ItemId): Promise<void>;
   /** (T716) Drop any open still being looked up (a tap's lift whose click never came): it dispatches nothing. */
@@ -125,12 +117,6 @@ export interface OpenerOptions {
    * A read that fails opens the water without them (as a water alone).
    */
   group?: (item: ItemId) => Promise<readonly ItemId[]>;
-  /**
-   * (T221) Whether a water is solo (one part, no continuation: `@app/core` `soloWater` over its group). Asked for a search
-   * result, a Map asked for by id, and (T498) a map tap, before the frame opens; a read that fails counts as not solo (its
-   * Map view is offered, as before). Absent: never asked.
-   */
-  solo?: (item: ItemId) => Promise<boolean>;
   /**
    * (T369 D3) The part a tapped section of a water opens at — the Regulations view's own
    * answer (`frameView.ts` `regsPartOf`). Every tapped frame then carries its part from the start, so no view adopts one
@@ -162,37 +148,25 @@ export function waterOpener(source: Pick<WaterSource, "itemForSection">, go: (a:
     return true;
   };
   return {
-    tap: (sid, at, view, except = null) => settle((groupOf) => openTap(source, sid, at, view, except, groupOf, o.partOf, o.solo,
+    tap: (sid, at, view, except = null) => settle((groupOf) => openTap(source, sid, at, view, except, groupOf, o.partOf,
                                                                         o.unnamed)),
     flow: (item, build) => settle(async (groupOf) => build(groupOf ? await groupOf(item) : undefined)).then(() => undefined),
-    // nothing to wait on: at once, and any open still in flight is overtaken — (T369 D13) but a Map asked for asks first
-    // whether the water is solo (no Map view: its Regulations), as a search result does, so no Map mounts and is dropped
-    item: (item, view = "regs") => {
-      if (view !== "map" || !o.solo) { latest += 1; go(openWater({ item, view })); return; }
-      const ask = o.solo;
-      void settle(async () => ((await ask(item).catch(reported(false)))
-        ? openWater({ item, view: "regs", solo: true }) : openWater({ item, view })));
-    },
+    // nothing to wait on: at once, and any open still in flight is overtaken
+    item: (item, view = "regs") => { latest += 1; go(openWater({ item, view })); },
     cancel: () => { latest += 1; },
-    // (T203) a result opens the water's Map, from Conditions or Regs alike — (T221) unless the water is solo: nothing to
-    // choose on its map, so its Regulations. (T747, owner 2026-11-14: "it is the section view but it is fully zoomed out
-    // instead of on the first section") framed on THE PART ITS BAR NAMES (the frame's part, `useFrameView`), never the
-    // whole water: T203 opened it whole while the bar said "Part 1 of 18", and on the wide desktop strip (243 px tall)
-    // the whole Skeena read as the province. ⤢ "Whole river" is one press away.
-    searched: (item) => {
-      if (!o.solo) { latest += 1; go(openWater({ item, view: "map", fromSearch: true })); return Promise.resolve(); }
-      const ask = o.solo;
-      return settle(async () => ((await ask(item).catch(reported(false)))
-        ? openWater({ item, view: "regs", solo: true, fromSearch: true })
-        : openWater({ item, view: "map", fromSearch: true }))).then(() => undefined);
-    },
+    // (T203) a result opens the water's Map, from Conditions or Regs alike — (T925) a water of one part too (T221 had
+    // opened that one on its Regulations, with no Map view). (T747, owner 2026-11-14: "it is the section view but it is
+    // fully zoomed out instead of on the first section") framed on THE PART ITS BAR NAMES (the frame's part,
+    // `useFrameView`), never the whole water: T203 opened it whole while the bar said "Part 1 of 18", and on the wide
+    // desktop strip (243 px tall) the whole Skeena read as the province. ⤢ "Whole river" is one press away.
+    searched: (item) => { latest += 1; go(openWater({ item, view: "map", fromSearch: true })); return Promise.resolve(); },
   };
 }
 
 /** The Shell's handle on `openWater` / `openTap`, dispatching to the route. */
 export function useOpenWater(source: Pick<WaterSource, "itemForSection">, go: (a: RouteAction) => void,
                              o: OpenerOptions = {}): WaterOpener {
-  const { now, group, solo, partOf, unnamed } = o;
-  return useMemo(() => waterOpener(source, go, { now, group, solo, partOf, unnamed }),
-                 [source, go, now, group, solo, partOf, unnamed]);
+  const { now, group, partOf, unnamed } = o;
+  return useMemo(() => waterOpener(source, go, { now, group, partOf, unnamed }),
+                 [source, go, now, group, partOf, unnamed]);
 }
