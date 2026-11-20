@@ -9,6 +9,14 @@ Things only you can do. Claude keeps this list current while you are away; the w
 `handoff/PLAN/app-integration/tickets/` (README.md is the ledger, and its "Owner questions" table has every question
 with the default Claude uses until you answer). Newest first inside each section.
 
+## 2026-11-20 13:32: release scope: Apple External in, production data in
+
+- Owner, verbatim: "Apple external can be touched with this release as a product build. Also we will want to update
+  prod data too". This release now also puts the 0.8.4 production build (reading production data) on TestFlight
+  EXTERNAL testing (Apple's beta review applies). Production data was already in. Order: merge → map rebuild →
+  staging → production data → Play Internal + TestFlight internal and external → production website. Play Closed
+  stays untouched. An App Store production submission stays yours.
+
 ## 2026-11-20 13:22: Classified Waters carried unit shown as Classified Waters, the why behind a button (T973)
 
 - Owner 13:22, on the Endako shot (note above "You need" with a "?"), verbatim: "in the photo you sent there is a rouge ? in the line and the line is under the header Canadian, other province, 167 and older?". Then (dialog), verbatim: "we should just say it is classified waters then give a button that expands the note on why we say that maybe? ".
