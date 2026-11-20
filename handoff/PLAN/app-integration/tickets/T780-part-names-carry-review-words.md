@@ -34,7 +34,7 @@ mark, an in-season "Where") and the bundle's part_mark labels say the place's na
 ships (export `splits`, bundle `part_mark`) and the review app still says "approximate location (… confidence)"
 beside a cut's label. The cut labels in `cuts.json` were already clean (0 of 505 carry review words).
 - Guard: `check_curated --waters` refuses a cut label in `cuts.json` with review words ("approximate location",
-  "confidence", CHECK, TODO, "??", "[review …]"); a TIDAL-LIMIT label with them is a warning (an atlas input).
+  "confidence", CHECK, TODO, "??", "[review …]"); a TIDAL-LIMIT label with them was a warning, refused since the review fix below.
 - Guide `confidence` sentence: a review fact, never added to the cut's name where an angler reads it.
 - water_map tool: "≈" from the mark's own `confidence` (an older release's clause still folded).
 - Pins: `test_t207_split_confidence.py` (end_name), `test_water_map.py`, `test_check_waters.py` (2 mutations, the tidal
@@ -51,8 +51,18 @@ beside a cut's label. The cut labels in `cuts.json` were already clean (0 of 505
   Sandy Pool mark). The Zymoetz has no part ending at the Hwy 16 bridge in the live release (that end is no part's end
   since r-46e4355a7277), so its names show no change and no shot was taken.
 
-LEFT FOR THE OWNER (a curated row of his, an atlas input): one tidal limit label still ships review words in its end
-words: Sheldens Creek, `tidal_limits.json` "Spur 19 Bridge site (road bridge near the mouth, low confidence)" (token
-`sheldens_creek__spur_19_bridge_site_road_bridge_near_the_mouth_low`). Rewording it to "Spur 19 Bridge site (road
-bridge near the mouth)" (the low confidence is already its `confidence`) changes an atlas input, so it rides the next
-atlas build; `check_curated --waters` warns until then.
+The one tidal limit label that still shipped review words: Sheldens Creek, `tidal_limits.json` "Spur 19 Bridge site
+(road bridge near the mouth, low confidence)". OWNER 2026-11-20 ~06:34 (dialog), verbatim pick: "Sheldens Creek label"
+— DONE on this branch: the label reads "Spur 19 Bridge site (road bridge near the mouth)" (one line of the file changed,
+diff-proved; the row's `why` keeps "LOW CONFIDENCE"). It is an ATLAS INPUT: it ships with the next atlas build (until
+then release preflight lists `tidal_limits` as newer than the atlas). Its cut id follows the label:
+`sheldens_creek__spur_19_bridge_site_road_bridge_near_the_mouth_low` -> `…_near_the_mouth` (no curated rule, test or
+fixture names it; the end token in `display.ends` moves with the atlas).
+
+REVIEW FIX (independent review 2026-11-20): the guard matched with `re.I`, so "Check dam" or "Confidence Creek
+confluence" would have failed the build's first step. Now CHECK / TODO match in capitals only, and confidence only as a
+note — "(low|medium|high confidence)" or ", low|medium|high confidence" — besides "approximate location", "??" and
+"[review …]". With the Sheldens label reworded, a tidal limit label with review words is REFUSED too (no longer a
+warning). Tests: `test_check_waters.py` (7 refused tidal labels, 6 place names that pass in both files).
+
+PICTURES APPROVED by the owner 2026-11-20 ~06:34 (dialog): the Fraser, Cowichan and Skeena before/after shots above.

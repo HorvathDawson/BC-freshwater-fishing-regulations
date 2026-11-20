@@ -34,3 +34,4 @@ Status line before this answer: IN PROGRESS (code + tests done; left (Claude): t
 Staging (release r-6258ffded676, web, 390 px, light): Kanaka Creek's top part reads "Cliff Park Falls → Source" in the
 Map view's part name, in the list of its three parts and in the Regulations header — "Source", never "a lake outlet".
 `T711-shots/kanaka-top-part-map.png`, `T711-shots/kanaka-all-parts.png`, `T711-shots/kanaka-top-part-regulations.png`.
+APPROVED by the owner 2026-11-20 ~06:34 (dialog).
