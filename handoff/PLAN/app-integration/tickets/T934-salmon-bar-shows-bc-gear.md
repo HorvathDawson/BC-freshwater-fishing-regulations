@@ -33,3 +33,5 @@ gear bits on closed frames too (and the game-fish bar to keep ignoring them): a 
 Verbatim: "Yes in theory we could have gear rules on a closed river because it could be a region rule bait ban but closed
 river. But on the river that is closed that doesn't matter because no hear [gear] in water so closed is only closed". So no
 pipeline change: a closed day is closed only, no gear bits.
+## Owner 2026-11-20 ~01:20 (main chat): pictures approved
+Shown Cheakamus + Little Qualicum (web, dark). Verbatim: "Same with salmon bars" (after "Gear and method oens seem good").
