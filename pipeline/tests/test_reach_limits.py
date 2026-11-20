@@ -16,6 +16,7 @@ from pipeline.atlas.reach.build import build_reach, entry_scope
 from pipeline.atlas.reach.licensing import NO_DESIGNATION, LicensingPlacement, on_designations
 from pipeline.atlas.reach.models import Outcome, Reason
 from pipeline.atlas.registry import regions
+from pipeline.atlas.splits import border as BD
 from pipeline.common.models import NodeKind, StreamGraph, StreamNode
 from pipeline.common.models.registry import RegistryItem
 from pipeline.regs.parsing.catalogue import Designation
@@ -43,6 +44,10 @@ G = _graph(_node("s5"), _node("s5b"), _node("s3"), _node("usa", out_of_bc=True),
 REG = {"gnis:1": _item("gnis:1", ["s5", "s5b", "s3", "usa", "lk"], "Fraser River"),
        "area:region:5": _item("area:region:5", ["s5", "lk", "usa"]),
        "area:region:3": _item("area:region:3", ["s3"])}
+# T679 #1 (on): the atlas stamps the regionless sliver `out_of_bc`, as the build does (`border.mark_regionless`); the
+# reach then reads the flag alone (the off reading is pinned in test_t679_step10.py)
+if BD.ONE_OUTSIDE_FLAG:
+    BD.mark_regionless(G, REG)
 
 
 def _entry(eid, rules, **kw):
