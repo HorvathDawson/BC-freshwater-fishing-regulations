@@ -1,8 +1,6 @@
 # T926 — Search: the name forms people type (abbreviations, "/", the book's own names)
 
-Status: IN REVIEW — owner: OWNER-TODO "T926 = every entry in name_variants.json finds its water" (owner looks at the
-pictures, then main chat review + merge; ships with the next data release — 21 of the 31 need the atlas registry pass,
-see "Lane 2026-11-20").
+Status: IN PROGRESS — 8ad09bf33, 9f287e8d3, 65694b0b4, 986c6e190, 244d086e3, af0bb8a04; merged via c6c46d7f9; owner looks approved 11-20; left (Claude): the atlas half (wbk variant registry pass, 21-23 of the 31) ships with the next atlas rebuild; the number-names follow-up is on lane/t926-numbers, not merged; the rest ships with the next data release. (Earlier note: IN REVIEW — owner: OWNER-TODO "T926 = every entry in name_variants.json finds its water" (owner looks at the pictures, then main chat review + merge; ships with the next data release — 21 of the 31 need the atlas registry pass, see "Lane 2026-11-20").)
 
 Source: owner 2026-11-19 (main chat), verbatim: "did we ever make sure handle name variants of water bodies?" Measured the
 same evening (read-only probe, scratchpad `search-probe/`: the real `queryIndex` on release r-6258ffded676's index, 19,782

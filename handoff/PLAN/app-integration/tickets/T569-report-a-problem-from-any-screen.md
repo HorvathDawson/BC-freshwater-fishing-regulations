@@ -1,6 +1,6 @@
 # T569 — Report a problem from the screen you are on (Conditions has no way in)
 
-Status: IN PROGRESS — 774befd64 (a "Report a problem with this water" link on a water's Conditions and Map views opens the form prefilled: water, place, part, tab, day, `station`, `quantity`, `span`, `feed`). The feeds worker with the new report/2 keys is deployed (staging 2026-11-12, production 2026-11-18). The review app's Reports tab now shows station / quantity / span / feed (lane L3 2026-11-20, a6d57826f; shot `T569-shots/reports-tab-detail-rows-light.png`). left (Claude): main chat review + merge.
+Status: DONE — 774befd64, a6d57826f; report link + Reports tab detail rows; worker deployed staging + production.
 
 Source: Owner 2026-11-09: "I sent a report after navigating away from the conditions pane to the about tab because there
 is no report an issue button on the conditions tab. You need to add that too, it is a bug."

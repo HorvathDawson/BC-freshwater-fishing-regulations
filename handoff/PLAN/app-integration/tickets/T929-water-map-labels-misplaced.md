@@ -1,6 +1,6 @@
 # T929 — Water map ("Show all parts"): boundary labels don't line up with the place they name
 
-Status: IN REVIEW — owner: OWNER-TODO "iPhone map T929" (pictures approved, dialog 2026-11-20 ~06:34); left (Claude): main chat merge (lane/t929-t928: 65691d11d, 752b5596e, 819419ebb).
+Status: DONE — 65691d11d, 752b5596e, 819419ebb; boundary labels anchored at their cut points; merged via e97c6932a; pictures approved by the owner 11-20.
 
 Source: a tester on iPhone relayed by the owner 2026-11-19 (`T928-shots/tester-2026-11-19-iphone.png`, top shot: Chilliwack
 River, Map, part 3 of 4 "100 m below the Slesse Creek confluence → Chilliwack River Ecological Reserve boundary"; the label
