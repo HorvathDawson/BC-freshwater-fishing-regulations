@@ -80,6 +80,9 @@ def test_every_shared_case_types_and_answers_as_the_file_says(name):
             assert rule["verbatim"] == want["verbatim"]
     place = _rules(name)
     assert [[sp, md, _status([place], sp, md)] for sp, md, _ in case.get("own", [])] == case.get("own", [])
+    # (T939) the verdict's short line whole: the count's quote, then each sub-limit's ("…, only 2 over 35 cm")
+    assert [[sp, md, (S.verdict_on([place], sp, md) or {}).get("t")] for sp, md, _ in case.get("says", [])] \
+        == case.get("says", [])
 
 
 def test_chum_to_be_determined_reads_check_for_chum_only_and_the_other_rows_stand():

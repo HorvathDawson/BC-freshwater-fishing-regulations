@@ -1,6 +1,6 @@
 # T943 — Chilliwack Lake: the lake trout row shows no wild cap, so it never says a wild one can't be kept
 
-Status: OPEN.
+Status: IN PROGRESS — lane/lb-rules-leftovers done; left (Claude): main chat review + merge.
 
 Source: lane/t936-t931 (T931 group A, seen while re-pinning `test_t810_cutover`), 2026-11-20.
 
@@ -18,3 +18,11 @@ Live answers r-6258ffded676, Chilliwack Lake trout table, lake trout row. The ha
 Check the trout table's composition for a char whose two size rules leave no keepable length for wild fish; the row
 should say wild ones go back. Pin Chilliwack Lake LT whole.
 Depends: none. Size: S. Owner: no (C2 as amended).
+
+## Result (lane/lb-rules-leftovers, 2026-11-20)
+No defect, data or display. The engine releases wild lake trout (won by `chilliwack_lake.r1`) and keeps hatchery lake
+trout at 60 cm or longer; both the live release r-6258ffded676 and the current build show the lake trout row labelled
+"Hatchery only" with the sheet line "Hatchery only: wild ones go back." T931 looked only at `lines[0]`.
+- Pin: lake trout whole in `test_t810_cutover.py::test_hatchery_and_wild_twins_are_one_row` (label, line, sheet, the
+  engine's statuses and winning rules); passes. The side deliver changes nothing on Chilliwack Lake.
+- Shots: `T943-shots/chilliwack-lake-jul15-before.png`, `-after.png` (identical; the "HATCHERY ONLY" label).

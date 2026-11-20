@@ -667,10 +667,17 @@ def tree_of(P, model: dict, c: Ctx) -> Tuple[List[dict], dict]:
         if sz["not_counting"] == ["ST"]:
             st = next((kn for kn in every_kind if kn["species"] == ["ST"] and can_pass(kn, cm)), None)
         got = holding(kids + ([st] if st is not None else []))
+        apart = False
+        if st is not None and got is None:
+            # (T942) the steelhead the raise lets past sit in a water's OWN tier (the Kitimat's "up to 5 a day": rainbow
+            # trout and steelhead), which is never split: the size tier holds the clause's own kinds and still says the
+            # steelhead's "+1" — the one tally the card gate's engine enforces (rows F17). The room is the tally's and
+            # the steelhead's own number, never the clause's kinds' tier (it does not hold the steelhead)
+            got, apart = holding(kids), True
         if st is not None and got is not None:
             box = count_of(parents(), got[0])
             subs = [s for s in grp["subcaps"] if s["over_cm"] == cm and set(sz["species"]) | {"ST"} <= set(s["of"])]
-            room = min([s["take"] for s in subs] + [INF if box["n"] is None else box["n"],
+            room = min([s["take"] for s in subs] + [INF if box["n"] is None or apart else box["n"],
                                                      INF if st["n"] is None else st["n"]])
             if room != INF and room - sz["n"] >= 1:
                 extra = {"n": _num(room - sz["n"]), "species": ["ST"]}

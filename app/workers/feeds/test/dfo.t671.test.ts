@@ -24,6 +24,8 @@ interface Case {
   typed?: { type?: string; species?: string[] | null; reason?: "tbd" | "gear_permission"; verbatim?: string }[];
   /** [species, MMDD, the place's own status that day — null where the place says nothing] */
   own?: [string, number, string | null][];
+  /** (T939) [species, MMDD, the verdict's short line `t`, whole: the count's quote, then each sub-limit's] */
+  says?: [string, number, string][];
   /** (T671 5B) the curated place's words and `within` areas (quota.poolOf) */
   place?: { specific_area: string; within: string[] };
   /** (T671 5B) [species, MMDD, the day's quota line — null where nothing opens] */
@@ -77,6 +79,7 @@ describe("(T671 D2, D1; T676) the shared hand rows: typed and answered as the fi
         if (want.verbatim !== undefined) expect(rule.verbatim).toBe(want.verbatim); // (T623 F13) the verdict's short line
       });
       expect((c.own ?? []).map(([sp, md]) => [sp, md, status(c.rows, sp, md)])).toEqual(c.own ?? []);
+      expect((c.says ?? []).map(([sp, md]) => [sp, md, verdict(rulesOf(c.rows), sp, md)?.t ?? null])).toEqual(c.says ?? []);
     });
   });
 

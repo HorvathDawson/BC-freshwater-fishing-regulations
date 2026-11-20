@@ -692,11 +692,16 @@ def _say_caps(P, model: dict, grp: dict, kinds: Sequence[str], info: Dict[str, d
             continue
         if any(o["over_cm"] <= cm and o["take"] <= sc["take"] and set(over) <= set(ov) for o, ov, _n in said):
             continue                                       # implied by a cap already said
-        if any(set(over) <= set(c["of"]) and c["take"] <= sc["take"]
-               for c in counts + ([share] if share is not None else [])):
+        # (T942) a clause a water's quota RAISES (rows F17, the Kitimat's "+1 for steelhead") is one tally that also
+        # counts the fish the raise let past: a count holding the clause's own kinds to its number does not say it,
+        # and it binds them even where each kind's own number is already that low (2 hatchery steelhead kept, no
+        # cutthroat over 50 cm)
+        raised = any(o is sc for _t, o in raising)
+        if not raised and any(set(over) <= set(c["of"]) and c["take"] <= sc["take"]
+                              for c in counts + ([share] if share is not None else [])):
             continue                                       # a count holding them all says it
-        binds = []
-        for S in over:
+        binds = list(over) if raised else []
+        for S in over if not raised else ():
             b, n, lo = where_of[S], info[S]["n"], info[S]["lo"]
             cap_b = b["cap"] if b["cap"] is not None else INF
             shared = any(where_of[x] is not b for x in over if x != S)
