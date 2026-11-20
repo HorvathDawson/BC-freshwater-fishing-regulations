@@ -1,6 +1,6 @@
 # T938 — iPhone: after search → water → Back, the browse map draws only its top part
 
-Status: IN PROGRESS — lane L6: the sideways case (the T928 tester's picture) reproduced on the iPhone simulator and fixed in 3e8189d79 (the edge swipe's spring home is JS-driven), 6 of 6 after; the grey lower part not reproduced on this build; left (Claude): the Android emulator walk
+Status: IN PROGRESS — lane L6: the sideways case (the T928 tester's picture) reproduced on the iPhone simulator and fixed in 3a8d5333b (a hard home re-renders the edge view so React commits 0); the grey lower part not reproduced on this build; left (Claude): the Android emulator walk
 
 Source: found 2026-11-20 by the main chat's T929/T928 lane on the iOS simulator (iPhone 17e, 390 pt), while trying to
 reproduce T928. Reproduces every time, on the 0.8.3 build (1f989bb48) and on lane/t929-t928.
@@ -39,12 +39,19 @@ colour, and its left strip (0-25 % across, 30-80 % down) is not one flat colour 
   value for good. The drag itself moves the offset from JS (`setValue` every frame), and a `setValue` on a native value
   goes to the native side only: React Native does not flush it back to React, so React's copy keeps the drag's offset.
   The first cancelled drag of a session arms it; the next edge swipe that goes back leaves the layer off home.
-- **Fix (3e8189d79).** `EdgeBack.tsx`: the spring home is JS-driven (`EDGE_BACK_NATIVE_DRIVER = false`), so the offset
-  never becomes native. Test: `EdgeBack.driver.test.tsx` fakes a phone's native motion (`./motion` NATIVE_DRIVER true)
-  and checks the short drag's and the cancelled drag's springs run on the JS driver; it fails with the native driver
-  (checked). The web tests (`gestures.test.tsx`) run on the web's JS driver and could not see this.
-- **After the fix** (3e8189d79, 13:05-13:38): 6 of 6 PASS. The three-drag walk that failed now ends with the whole map:
-  left strip 50 % (light) and 85 % (dark) its commonest colour, against 100 % before.
+- **Fix (3a8d5333b).** `EdgeBack.tsx`: every hard home (`homeNow`: after a back's render, after the hold, on the app
+  going to the background and back, after a spring lands) re-renders the edge view after `setValue(0)`, so React reads
+  the offset again (0) and commits it, whatever the driver. The spring stays on the native driver.
+  - First try, 3e8189d79: the spring home on the JS driver, so the offset never turns native. It passed on the
+    simulator (6 of 6, 13:05-13:38) but breaks the project's guard `tools/no-per-frame-animation.test.ts` (phone
+    components hand every animation to the platform, so nothing stutters while JS is busy), so it was replaced.
+  - Test: `EdgeBack.native-value.test.tsx` makes the offset behave as a native value after a swipe that went back
+    (`setValue` stores it and tells the view nothing, as on a phone): after the hold the view is home. It fails without
+    the re-render (checked: left at 120 px). The web tests (`gestures.test.tsx`) run every value JS-driven and could not
+    see this.
+- **After the fix** (build 3a8d5333b, run started 13:48): 6 of 6 PASS, light and dark (the ‹, the three-drag edge walk,
+  one low edge swipe). The three-drag walk that failed now ends with the whole map: left strip 50 % (light) and 85 %
+  (dark) its commonest colour, against 100 % before; the same after a pan.
 - Shots (`handoff/PLAN/ios/shots/t938/`): before `before-fix-light-1-before.jpg`,
   `before-fix-light-2-first-edge-drag-pans-page-map.jpg`, `before-fix-light-3-after-edge-back.jpg`,
   `before-fix-light-4-after-pan.jpg`, `before-fix-dark-3-after-edge-back.jpg`; after
