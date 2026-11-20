@@ -19,7 +19,7 @@ afterEach(cleanup);
 /** core `salmonStripOf` over a region-closed / unlisted card (pinned there): every day closed */
 const ALL_CLOSED: SalmonStripVM = {
   title: "Salmon (DFO)", by: "dfo", status: "closed", mark: "✕", word: "Closed", when: "today", soon: null,
-  runs: [{ drawn: "closed", days: 365 }], generalTitle: "Game fish (B.C. rules)", legend: [{ drawn: "closed", label: "✕ Closed" }],
+  runs: [{ drawn: "closed", days: 365, gear: 0 }], generalTitle: "Game fish (B.C. rules)", legend: [{ drawn: "closed", label: "✕ Closed" }],
 };
 
 function draw(strip: SalmonStripVM, palette: Palette) {
@@ -80,5 +80,27 @@ describe("(T820) <SalmonYearStrip> closed all year: the full closed bar", () => 
     const svg = within(block).getByTestId("salmon-strip-bar").querySelector("svg")!;
     expect([...svg.querySelectorAll(":scope > rect")].map((r) => r.getAttribute("fill"))).toEqual([LIGHT.card, LIGHT.closed]);
     expect(svg.querySelectorAll(":scope > polygon").length).toBeGreaterThan(0);
+  });
+});
+
+// (T934, owner 2026-11-20 "Bait ban needs to apply to salmon [too]. So would fly fish only")
+describe("(T934) <SalmonYearStrip> the B.C. gear marks on salmon days", () => {
+  const GEAR: SalmonStripVM = {
+    ...ALL_CLOSED, status: "open", mark: "✓ ", word: "Open",
+    runs: [{ drawn: "closed", days: 200, gear: 0 }, { drawn: "open", days: 100, gear: 16 }, { drawn: "open", days: 65, gear: 20 }],
+    legend: [{ drawn: "open", label: "✓ Open" }, { drawn: "closed", label: "✕ Closed" },
+             { drawn: "open", bit: 4, label: "Fly fishing only" }, { drawn: "open", bit: 16, label: "Bait ban" }],
+  };
+  it("a bait-ban run wears the bait band; a fly-only run the upright stripes in the salmon colour; the key names both", () => {
+    draw(GEAR, DARK);
+    const svg = screen.getByTestId("salmon-strip-bar").querySelector("svg")!;
+    expect(svg.innerHTML).not.toMatch(/<pattern|url\(#/);
+    const rects = [...svg.querySelectorAll(":scope > rect")].map((r) => [r.getAttribute("fill"), r.getAttribute("height")]);
+    // closed: card + tint; bait run: salmon green + the bait band; fly + bait run: card under the stripes + the bait band
+    expect(rects).toEqual([[DARK.card, "10"], [DARK.closed, "10"], [DARK.salmon.open, "10"], [DARK.restricted, "5"],
+                           [DARK.card, "10"], [DARK.restricted, "5"]]);
+    const fills = new Set([...svg.querySelectorAll(":scope > polygon")].map((p) => p.getAttribute("fill")));
+    expect(fills).toEqual(new Set([DARK.closed, DARK.salmon.open]));
+    expect(screen.getByTestId("salmon-strip-legend").textContent).toBe("✓ Open✕ ClosedFly fishing onlyBait ban");
   });
 });

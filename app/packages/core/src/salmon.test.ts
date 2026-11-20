@@ -285,6 +285,22 @@ describe("(T227) the salmon year at the top of the Keep tab", () => {
       runs: [{ status: "closed", days: 195 }, { status: "open", days: 40 }, { status: "closed", days: 130 }] }], by: "dfo" });
   });
 
+  // (T934, owner 2026-11-20 "Bait ban needs to apply to salmon [too]. So would fly fish only")
+  it("(T934) the salmon bar carries the B.C. bait ban / fly only of its open days; closed days stay the closed stripe", () => {
+    const c = salmonCard(facts(), { sids: [101], item: null }, JUL20);   // closed 195, open 40, closed 130
+    const legend = [{ bit: 0, mark: "✓" as const, label: "open" }, { bit: 4, mark: null, label: "fly fishing only" },
+                    { bit: 16, mark: null, label: "bait ban" }];
+    // B.C.: bait ban all year, fly fishing only from book day 200; a game-fish closed day (bit 1 alone) carries no gear
+    const s = salmonStripOf(c, { runs: [{ bits: 16, days: 200 }, { bits: 20, days: 100 }, { bits: 1, days: 65 }],
+                                 line: [], todayAt: 200 / 365, legend })!;
+    expect(s.runs).toEqual([{ drawn: "closed", days: 195, gear: 0 }, { drawn: "open", days: 5, gear: 16 },
+                            { drawn: "open", days: 35, gear: 20 }, { drawn: "closed", days: 130, gear: 0 }]);
+    expect(s.legend).toEqual([{ drawn: "open", label: "✓ Open" }, { drawn: "closed", label: "✕ Closed" },
+                              { drawn: "open", bit: 4, label: "Fly fishing only" }, { drawn: "open", bit: 16, label: "Bait ban" }]);
+    // the two bars' days must be the same year
+    expect(() => salmonStripOf(c, { runs: [{ bits: 16, days: 300 }], line: [], legend })).toThrow(/300 days/);
+  });
+
   it("a page across places that differ: still one bar, `varies` on the days they differ", () => {
     const c = salmonCard(facts(), { sids: [101, 200], item: null }, SEP15);
     expect(c.year.bars.length).toBe(1);
@@ -312,7 +328,7 @@ describe("(T227) the salmon year at the top of the Keep tab", () => {
     expect([c.year, c.closedOnly]).toEqual([{ bars: [ALL_CLOSED_BAR], by: "dfo" }, true]);
     const s = salmonStripOf(c, { runs: [{ bits: 0 }], line: [{ kind: "when", text: "today" }], todayAt: 200 / 365 })!;
     expect([s.status, s.mark + s.word, s.soon, s.runs, s.legend.map((l) => l.label), s.title])
-      .toEqual(["closed", "✕Closed", null, [{ drawn: "closed", days: 365 }], ["✕ Closed"], "Salmon (DFO)"]);
+      .toEqual(["closed", "✕Closed", null, [{ drawn: "closed", days: 365, gear: 0 }], ["✕ Closed"], "Salmon (DFO)"]);
     expect(salmonGlance(c)).toEqual({ source: "dfo", thumb: "CO", name: SALMON_WORDS.title, value: "closed", tone: "closed", fold: false });
     expect(salmonCard(facts(), { sids: [101], item: null }, JUL20).closedOnly).toBe(false);
   });
@@ -333,7 +349,7 @@ describe("(T227) the salmon year at the top of the Keep tab", () => {
                            { runs: [{ bits: 1 }, { bits: 0 }], line: [{ kind: "when", text: "today" }], todayAt: 316 / 365 }]) {
       const s = salmonStripOf(card, general)!;
       expect([s.status, s.mark + s.word, s.when, s.soon, s.runs, s.legend.map((l) => l.label)])
-        .toEqual(["closed", "✕Closed", "today", null, [{ drawn: "closed", days: 365 }], ["✕ Closed"]]);
+        .toEqual(["closed", "✕Closed", "today", null, [{ drawn: "closed", days: 365, gear: 0 }], ["✕ Closed"]]);
     }
   });
 

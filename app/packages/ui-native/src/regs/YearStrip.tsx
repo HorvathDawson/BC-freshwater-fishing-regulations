@@ -131,11 +131,17 @@ export function YearStrip({ strip, dateLabel, palette, title = null, hours = nul
 // ── (T227) THE SALMON BAR ───────────────────────────────────────────────────────────────────────────────────────────
 
 /** A salmon run's fill: the game-fish bar's own (open, release stripes, closed hatch); `unknown` a plain neutral fill. */
-function SalmonRect({ x, w, drawn, palette }: { x: number; w: number; drawn: SalmonDrawn; palette: Palette }) {
+function SalmonRect({ x, w, drawn, gear = 0, palette }: { x: number; w: number; drawn: SalmonDrawn; gear?: number; palette: Palette }) {
   if (drawn === "unknown") return <Rect x={x} y={0} width={w} height={H} fill={palette.line2} />;
-  // (T887) keep wears the Salmon map's keep colour (light: its own green); release and closed are the shared patterns
-  if (drawn === "open") return <Rect x={x} y={0} width={w} height={H} fill={palette.salmon.open} />;
-  return <RunRect x={x} w={w} bits={drawn === "closed" ? 1 : 2} palette={palette} />;
+  if (drawn === "closed") return <RunRect x={x} w={w} bits={1} palette={palette} />;
+  // (T934) release: the shared release stripes, with the B.C. bait band as the game-fish bar draws it
+  if (drawn === "release") return <RunRect x={x} w={w} bits={2 | (gear & 16)} palette={palette} />;
+  // (T887) keep wears the Salmon map's keep colour (light: its own green); (T934) the B.C. fly-only / artificial-flies
+  // stripes in that colour on the card, and the bait band, as the game-fish bar draws them in its own
+  const base = gear & 4 ? <><Rect x={x} y={0} width={w} height={H} fill={palette.card} /><Stripes x={x} w={w} set={UPRIGHT_STRIPES} fill={palette.salmon.open} /></>
+    : gear & 8 ? <><Rect x={x} y={0} width={w} height={H} fill={palette.card} /><Stripes x={x} w={w} set={FLIES_STRIPES} fill={palette.salmon.open} /></>
+    : <Rect x={x} y={0} width={w} height={H} fill={palette.salmon.open} />;
+  return <>{base}{gear & 16 ? <Rect x={x} y={H - 5} width={w} height={5} fill={palette.restricted} /> : null}</>;
 }
 
 /**
@@ -152,7 +158,7 @@ export function SalmonYearStrip({ strip, todayAt, months, dateLabel, palette, he
   const total = strip.runs.reduce((a, r) => a + r.days, 0) || 365;
   const room = Math.max(0, w - GAP * (strip.runs.length - 1));
   let x = 0;
-  const rects = strip.runs.map((r, i) => { const rw = (room * r.days) / total, at = x; x += rw + GAP; return { at, rw, drawn: r.drawn, i }; });
+  const rects = strip.runs.map((r, i) => { const rw = (room * r.days) / total, at = x; x += rw + GAP; return { at, rw, drawn: r.drawn, gear: r.gear, i }; });
   const tone = strip.status === "open" ? palette.salmon.open : strip.status === "release" ? palette.salmon.release
     : strip.status === "closed" ? palette.salmon.closed : palette.sub;
   return (
@@ -173,7 +179,7 @@ export function SalmonYearStrip({ strip, todayAt, months, dateLabel, palette, he
             accessible accessibilityRole="image" accessibilityLabel={`${strip.title}: ${strip.word}${strip.when ? ` ${strip.when}` : ""}`}>
         {w > 0 && (
           <Svg {...bar.svg}>
-            {rects.map((r) => <SalmonRect key={r.i} x={r.at} w={r.rw} drawn={r.drawn} palette={palette} />)}
+            {rects.map((r) => <SalmonRect key={r.i} x={r.at} w={r.rw} drawn={r.drawn} gear={r.gear} palette={palette} />)}
           </Svg>
         )}
         {w > 0 && (
@@ -187,9 +193,9 @@ export function SalmonYearStrip({ strip, todayAt, months, dateLabel, palette, he
       </View>
       <View testID="salmon-strip-legend" style={{ flexDirection: "row", flexWrap: "wrap", rowGap: 2, columnGap: 14, marginTop: 8 }}>
         {strip.legend.map((l) => (
-          <View key={l.drawn} style={{ flexDirection: "row", alignItems: "center", gap: 5 }}>
-            <Svg width={l.drawn === "release" ? 12 : 14} height={10}>
-              <SalmonRect x={0} w={l.drawn === "release" ? 12 : 14} drawn={l.drawn} palette={palette} />
+          <View key={l.bit ? `g${l.bit}` : l.drawn} style={{ flexDirection: "row", alignItems: "center", gap: 5 }}>
+            <Svg width={l.drawn === "release" || l.bit ? 12 : 14} height={10}>
+              <SalmonRect x={0} w={l.drawn === "release" || l.bit ? 12 : 14} drawn={l.drawn} gear={l.bit ?? 0} palette={palette} />
             </Svg>
             <Text style={[TYPE.legend, { color: palette.ink }]}>{l.label}</Text>
           </View>

@@ -33,7 +33,7 @@ import { DAYS_BEFORE_MONTH, MONTHS } from "./calendar.generated";
 import { METHOD_WORDS, type MethodClass } from "./method";
 import type { CaveatItemVM, CaveatVM, GearVM, MethodsVM } from "./regs/model";
 import { inPartBlock } from "./regs/caveats";
-import { BOOK_DAYS, fmtDay } from "./regs/strip";
+import { BOOK_DAYS, fmtDay, legendText } from "./regs/strip";
 import { WORDS } from "./regs/words";
 import { kindWords, tierWords } from "./regs/tree";
 import { text, type Line } from "./regs/line";
@@ -1528,11 +1528,18 @@ export interface SalmonStripVM {
   readonly when: string | null;
   /** the next change, as the game-fish bar says it ("Opens Nov 16" / "Closed from Nov 1"), else null */
   readonly soon: { readonly kind: "soonOpen" | "soon"; readonly text: string } | null;
-  readonly runs: readonly { readonly drawn: SalmonDrawn; readonly days: number }[];
+  /** (T934) `gear`: the B.C. gear bits the run's days carry (fly only 4, artificial flies 8, bait ban 16; 0 none), on days
+   *  salmon may be fished only (open / release): a closed day is the closed stripe */
+  readonly runs: readonly { readonly drawn: SalmonDrawn; readonly days: number; readonly gear: number }[];
   /** the provincial bar's name, drawn above it when the salmon bar is shown */
   readonly generalTitle: string;
-  readonly legend: readonly { readonly drawn: SalmonDrawn; readonly label: string }[];
+  /** (T934) a gear entry carries its B.C. bit (`bit`) and the game-fish key's own words ("Bait ban") */
+  readonly legend: readonly { readonly drawn: SalmonDrawn; readonly label: string; readonly bit?: number }[];
 }
+
+/** (T934, owner 2026-11-20 "Bait ban needs to apply to salmon [too]. So would fly fish only") the B.C. gear bits of the
+ *  provincial strip that hold for salmon fishing too: fly fishing only 4, artificial flies only 8, bait ban 16 */
+export const SALMON_GEAR_BITS = 4 | 8 | 16;
 
 const SOON_DAYS = 21;
 const bookDayWords = (i: number) => fmtDay(BOOK_DAYS[i]!);   // book day i (no Feb 29) → "Nov 16"
@@ -1547,17 +1554,25 @@ const bookDayWords = (i: number) => fmtDay(BOOK_DAYS[i]!);   // book day i (no F
  * none); `todayAt` its marker (book day / 365).
  */
 export function salmonStripOf(card: SalmonCardVM, general: {
-  readonly runs: readonly { readonly bits: number | null }[]; readonly line: readonly { readonly kind: string; readonly text: string }[];
-  readonly todayAt?: number } | null,
+  readonly runs: readonly { readonly bits: number | null; readonly days?: number }[];
+  readonly line: readonly { readonly kind: string; readonly text: string }[];
+  readonly todayAt?: number;
+  /** (T934) the provincial key, whose gear entries' words the salmon key repeats */
+  readonly legend?: readonly { readonly bit: number; readonly mark: "✓" | "✕" | null; readonly label: string }[] } | null,
 ): SalmonStripVM | null {
   const bar = card.year.bars[0];
   if (!bar) return null;
-  const runs: { drawn: SalmonDrawn; days: number }[] = [];
-  for (const r of bar.runs) {
-    const dr = DRAWN[r.status], last = runs[runs.length - 1];
-    if (last && last.drawn === dr) last.days += r.days; else runs.push({ drawn: dr, days: r.days });
-  }
-  const days = runs.flatMap((r) => Array.from({ length: r.days }, () => r.drawn));
+  const days = bar.runs.flatMap((r) => Array.from({ length: r.days }, () => DRAWN[r.status]));
+  // (T934) the provincial strip's gear bits of the same book days; a run with no day count carries none
+  const bits = general?.runs.every((r) => r.days !== undefined)
+    ? general.runs.flatMap((r) => Array.from({ length: r.days! }, () => (r.bits ?? 0) & SALMON_GEAR_BITS)) : [];
+  if (bits.length && bits.length !== days.length)
+    throw new Error(`salmonStripOf: the provincial strip has ${bits.length} days, the salmon bar ${days.length}`);
+  const runs: { drawn: SalmonDrawn; days: number; gear: number }[] = [];
+  days.forEach((dr, i) => {
+    const gear = dr === "open" || dr === "release" ? bits[i] ?? 0 : 0, last = runs[runs.length - 1];
+    if (last && last.drawn === dr && last.gear === gear) last.days++; else runs.push({ drawn: dr, days: 1, gear });
+  });
   const i = Math.round((general?.todayAt ?? 0) * BOOK_YEAR_DAYS);
   let soon: SalmonStripVM["soon"] = null;
   if (bar.today === "closed") {
@@ -1581,8 +1596,16 @@ export function salmonStripOf(card: SalmonCardVM, general: {
     when: general?.line.find((l) => l.kind === "when")?.text ?? null,
     soon, runs,
     generalTitle: SALMON_WORDS.barGeneral,
-    legend: (["open", "release", "unknown", "closed"] as const).filter((d) => present.has(d))
-      .map((d) => ({ drawn: d, label: d === "unknown" && bar.keyTbd ? SALMON_WORDS.tbd.key : SALMON_WORDS.barLegend[d] })),
+    legend: [
+      ...(["open", "release", "unknown", "closed"] as const).filter((d) => present.has(d))
+        .map((d) => ({ drawn: d, label: d === "unknown" && bar.keyTbd ? SALMON_WORDS.tbd.key : SALMON_WORDS.barLegend[d] })),
+      // (T934) each B.C. gear mark the bar draws, in the game-fish key's words, after the salmon statuses
+      ...[4, 8, 16].filter((b) => runs.some((r) => r.gear & b)).map((b) => {
+        const l = general?.legend?.find((x) => x.bit === b);
+        if (!l) throw new Error(`salmonStripOf: the provincial key has no entry for gear bit ${b}`);
+        return { drawn: "open" as const, bit: b, label: legendText(l) };
+      }),
+    ],
   };
 }
 
