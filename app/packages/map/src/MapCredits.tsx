@@ -16,7 +16,7 @@
  * session shows "© OpenStreetMap contributors" beside the chip for `STARTUP_MS`, then folds to the chip; later maps in
  * the same session start folded (the guideline does not ask for it again on every map or on return from background).
  */
-import { useEffect, useState } from "react";
+import { useEffect, useState, type ComponentType, type ReactNode } from "react";
 import { Modal, Pressable, ScrollView, Text, View, useWindowDimensions } from "react-native";
 import { ESRI_BADGE, GEOMETRY } from "./chrome";
 import { creditLines, type CreditPart } from "./credits";
@@ -47,12 +47,16 @@ function Parts({ parts, chrome, onOpenLink }: { parts: readonly CreditPart[]; ch
 }
 
 const ownBack = (_open: boolean, close: () => void) => close;
+/** No platform back around the card (the map alone): its children as they are. */
+function NoWrap({ children }: { onBack: () => void; children: ReactNode }) { return <>{children}</>; }
 
-export function MapCredits({ look, chrome, insetBottom = 0, onOpenLink, onLongPress, useBackLayer = ownBack }: {
+export function MapCredits({ look, chrome, insetBottom = 0, onOpenLink, onLongPress, useBackLayer = ownBack, modalBack: Back = NoWrap }: {
   look: Pick<Look, "view" | "modes" | "groups" | "basemap">; chrome: MapChrome; insetBottom?: number;
   onOpenLink?: ((url: string) => void) | undefined;
   /** (T729) the app's one back for the open card (MapProps.useBackLayer); absent: the card's own close */
   useBackLayer?: ((open: boolean, close: () => void) => () => void) | undefined;
+  /** (T723) the platform's back around the open card (MapProps.modalBack: the iOS left-edge swipe); absent: none */
+  modalBack?: ComponentType<{ onBack: () => void; children: ReactNode }> | undefined;
   /** (T420) a lab build's way into the map lab (`MapLab`); none in any other build */
   onLongPress?: (() => void) | undefined;
 }) {
@@ -107,7 +111,10 @@ export function MapCredits({ look, chrome, insetBottom = 0, onOpenLink, onLongPr
         // read. A Modal is above every one of them, whatever the legend's height or state; centred and capped to the
         // window, so it is inside the screen and whole. Closing is as before (Close, the chip is under it) plus the dim
         // and the system back.
+        // (T723) inside it, the platform's back (the iOS left-edge swipe) calls the card's one back, as Android's back does
+        // through `onRequestClose`; without it the swipe only closed the card by landing on the scrim as a tap
         <Modal visible transparent animationType="none" statusBarTranslucent onRequestClose={requestClose}>
+          <Back onBack={requestClose}>
           <Pressable testID="map-credits-scrim" accessibilityLabel="Close the credits" onPress={() => setOn(false)}
                      style={{ flex: 1, alignItems: "center", justifyContent: "center", padding: G.right * 2,
                               backgroundColor: chrome.scrim }}>
@@ -135,6 +142,7 @@ export function MapCredits({ look, chrome, insetBottom = 0, onOpenLink, onLongPr
               </ScrollView>
             </View>
           </Pressable>
+          </Back>
         </Modal>
       )}
     </>

@@ -1,0 +1,101 @@
+/**
+ * (T723, owner 2026-11-16: a spot's Save row is LIFTED above the keyboard on iOS) While the title or the notes are typed,
+ * the Save button rides on the iOS keyboard (`KeyboardBar`, an `InputAccessoryView` both fields name), so it is in
+ * reach and the scroll keeps the focused field above it. Android lifts the page's own row (T819) and gets no bar; the
+ * web has no soft keyboard. The phone's half is drawn here (`KeyboardBar.native`); how it sits on the keyboard is the
+ * simulator's (handoff/PLAN/ios/shots/t723/).
+ */
+import { createElement, forwardRef } from "react";
+import { afterEach, describe, expect, it, vi } from "vitest";
+import { cleanup, fireEvent, render, screen } from "@testing-library/react";
+import { Platform } from "react-native";
+import { SPOT_WORDS } from "@app/core";
+import type { Spot } from "@app/data/spots";
+import { LIGHT } from "./theme";
+
+vi.mock("./KeyboardBar", async () => await import("./KeyboardBar.native"));
+const scrolls: Record<string, unknown>[] = [];
+const fields: Record<string, unknown>[] = [];
+vi.mock("react-native", async (importOriginal) => {
+  const rn = await importOriginal<typeof import("react-native")>();
+  const Spy = forwardRef<unknown, Record<string, unknown>>(function ScrollView(p, ref) {
+    scrolls.push(p);
+    return createElement(rn.ScrollView as never, { ...p, ref });
+  });
+  const Field = forwardRef<unknown, Record<string, unknown>>(function TextInput(p, ref) {
+    fields.push(p);
+    return createElement(rn.TextInput as never, { ...p, ref });
+  });
+  return { ...rn, ScrollView: Spy, TextInput: Field };
+});
+const { SpotScreen } = await import("./SpotScreen");
+const { KeyboardBar: KeyboardBarWeb } = await import("./KeyboardBar.web");
+
+const OS = Platform.OS;
+const as = (os: string) => { (Platform as { OS: string }).OS = os; };
+afterEach(() => { cleanup(); as(OS); scrolls.length = 0; fields.length = 0; });
+
+const VISIT = new Date(2026, 7, 30, 9).getTime();
+const SPOT: Spot = {
+  id: "s1", createdAt: VISIT, visitedAt: VISIT, updatedAt: 0, lat: 49.0974, lon: -121.9675, item: null, waterName: null,
+  title: "", notes: "", photos: [], reading: null, weather: null, trace: null, panel: null,
+};
+const draw = (mode: "draft" | "edit" | "view", onSave?: () => void) =>
+  render(<SpotScreen spot={SPOT} palette={LIGHT} mode={mode} title="" notes="" onTitle={() => {}} onNotes={() => {}}
+                     onBack={() => {}} onSave={onSave} />);
+
+describe("<SpotScreen> Save on the iOS keyboard (T723)", () => {
+  it("iOS, a draft: the keyboard's bar carries Save, in the draft's words, and it saves", () => {
+    as("ios");
+    const save = vi.fn();
+    draw("draft", save);
+    const bar = screen.getByTestId("spot-save-bar-notes-save");
+    expect(bar.textContent).toBe(SPOT_WORDS.save);
+    fireEvent.click(bar);
+    expect(save).toHaveBeenCalledTimes(1);
+  });
+
+  it("each field names its OWN bar (React Native attaches a bar to the first field naming it), and each bar is drawn", () => {
+    // L6 2026-11-20, simulator: one bar named by both fields rode on the title's keyboard only, never the notes'
+    as("ios");
+    draw("draft", () => {});
+    const named = fields.map((f) => f.inputAccessoryViewID).filter(Boolean);
+    expect(new Set(named).size).toBe(2);
+    // no id named by two fields (the spy sees every render: one field label per id)
+    for (const id of new Set(named)) {
+      expect(new Set(fields.filter((f) => f.inputAccessoryViewID === id).map((f) => f.accessibilityLabel)).size).toBe(1);
+    }
+    for (const id of named) expect(screen.getByTestId(`${id}-save`).textContent).toBe(SPOT_WORDS.save);
+  });
+
+  it("iOS, an edit: the bar says Save changes", () => {
+    as("ios");
+    draw("edit", () => {});
+    expect(screen.getByTestId("spot-save-bar-title-save").textContent).toBe(SPOT_WORDS.saveChanges);
+  });
+
+  it("no bar on a saved spot being read, nor with nothing to save; none on Android (its page rises, T819) or the web", () => {
+    as("ios");
+    draw("view", () => {});
+    expect(screen.queryByTestId("spot-save-bar")).toBeNull();
+    cleanup();
+    draw("draft");
+    expect(screen.queryByTestId("spot-save-bar")).toBeNull();
+    cleanup();
+    as("android");
+    draw("draft", () => {});
+    expect(screen.queryByTestId("spot-save-bar")).toBeNull();
+    cleanup();
+    const w = render(<KeyboardBarWeb id="x" palette={LIGHT}><span>Save</span></KeyboardBarWeb>);
+    expect(w.container.innerHTML).toBe("");
+  });
+
+  it("a drag of the page puts the keyboard away at once (on-drag), never the interactive dismiss that looped with the bar up", () => {
+    // L6 2026-11-20, simulator: with the Save bar on the keyboard, an interactive drag down left the keyboard half way and
+    // the main thread spinning for 45 minutes; the page's scroll keeps its keyboard insets and its tap-through
+    as("ios");
+    draw("draft", () => {});
+    const page = scrolls.find((p) => p.automaticallyAdjustKeyboardInsets === true);
+    expect([page?.keyboardDismissMode, page?.keyboardShouldPersistTaps]).toEqual(["on-drag", "handled"]);
+  });
+});

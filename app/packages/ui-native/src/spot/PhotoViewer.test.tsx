@@ -8,6 +8,7 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import { act, cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { fireGestureHandler, getByGestureTestId } from "react-native-gesture-handler/jest-utils";
 import { PhotoViewer } from "./PhotoViewer";
+import { PHOTO_VIEWER } from "@app/core";
 import { PHOTO_WORDS, photoCounter } from "@app/data/spots";
 import { LIGHT, THEMES } from "../theme";
 
@@ -130,6 +131,15 @@ describe("PhotoViewer as the phone photo viewers behave (T836)", () => {
     expect(chromeShown()).toBe(true);
     doubleTap(200, 300);
     expect(chromeShown()).toBe(true);
+  });
+  it("(T836) a finger that moves as far as a drag is decided is no tap: a quick swipe moves the strip, the buttons stay", async () => {
+    await mount(1);
+    // fireGestureHandler skips the recognisers' thresholds, so the limit is read off what reaches the native handler
+    // (`maxDistance` is sent as `maxDist`): with none
+    // (the handler's default) a swipe faster than the tap's 500 ms also hid the buttons on the iPhone simulator
+    for (const id of ["photo-tap", "photo-double-tap"])
+      expect((getByGestureTestId(id) as unknown as { config: { maxDist?: number } }).config.maxDist, id)
+        .toBe(PHOTO_VIEWER.decideAfter);
   });
   it("the buttons' full-window layers pass a touch through to the photo (only the buttons take one)", async () => {
     await mount(1);

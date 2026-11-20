@@ -1,6 +1,6 @@
 # T723 — iOS: salmon, run timing, search, saved spots, photos work on the simulator (IOS-6)
 
-Status: IN PROGRESS (merged parts in d15784a4f; item 3, the 10 iOS scenario ports, DROPPED by the owner 2026-11-20; left (Claude): the Conditions alert field under the decimal pad, the iOS Save-row lift, the credits Modal in ModalBack)
+Status: IN REVIEW — merged parts d15784a4f; the last three (lane L6: the Save bar on the iPhone keyboard, the Conditions alert field above the decimal pad, the credits card in ModalBack) 9e9c40b61, 31ae56eda, 83dbd63d1, proven on the simulator (keyboard 7 of 7, 418f6f3a1); item 3, the 10 iOS scenario ports, DROPPED by the owner 2026-11-20; owner: OWNER-TODO "The Save bar over the iPhone keyboard (T723)"
 
 Source: owner 2026-11-14, verbatim: "Maybe we could make a handoff to start improving the ios versions? Making sure it is
 rock solid too?" and "We want to do as much work as possible without the Apple account". Stub IOS-6 in
@@ -203,3 +203,32 @@ stays 16 pt.
 Dropped: item 3, the iOS scenario ports. Not doing it. owner 2026-11-20 01:56 (lane-plan batch), verbatim: "Make sure their tickets are  removed/completed/no doing labelled".
 
 Status line before this answer: IN PROGRESS (app chat; the keyboard and back fixes and the small audit fixes are MERGED into `redesign/stream-sections` 2026-11-16 (d15784a4f), see "Merged" at the end; the owner answered the two picks 2026-11-16 12:08: a spot's Save row is lifted above the keyboard on iOS, the back strip stays 16 pt; left (Claude): the scenario ports, the Conditions alert field under the decimal pad, the iOS Save-row lift with its simulator proof).
+
+## The three left items, built and proven on the simulator (lane L6, 2026-11-20; 9e9c40b61, 31ae56eda, 83dbd63d1, 418f6f3a1)
+- **Save rides on the iPhone keyboard.** A Save spot bar sits on top of the keyboard (`KeyboardBar.{d.ts,native,web}`,
+  an `InputAccessoryView` on iOS; nothing on Android / the web). Lifting the page's own row instead would have pushed the
+  notes field under the raised row. The page's own Save row stays where it is (under the keyboard while typing).
+  - Defect found and fixed (31ae56eda): the page's interactive keyboard dismiss, with the bar up, left the keyboard
+    stuck half way on a drag down; the main thread then spun (about 7,000 keyboard-preference reads a second, 45 min).
+    The drag now puts the keyboard away (`keyboardDismissMode="on-drag"`). Shot: `handoff/PLAN/ios/shots/t723/l6-interactive-drag-stuck.jpg`.
+  - Defect found and fixed (83dbd63d1): one bar shared by the title and the notes showed only over the title (React
+    Native ties a bar to the first field that names it). Each field has its own bar now.
+- **Conditions → Alert me above the decimal pad.** The page's scroll gets the keyboard inset and taps-through-keyboard
+  props (`ConditionsPanel`). Before: the value field hidden under the pad. After: it scrolls up and sits just above the
+  pad's Done bar, its value readable.
+- **The map's credits card in the platform back.** `MapProps.modalBack` hands the app's `ModalBack` in through
+  MapScreen, so the iOS left-edge swipe closes the card as Android's back does. A tab tap with the card open still
+  takes two taps on iOS (an iOS Modal takes every touch; same as every other Modal).
+- **Tests**, each failing without its fix: `SpotScreen.keyboard.test.tsx` (5), `ConditionsPanel.keyboard.test.tsx` (2),
+  `MapCredits.render.test.tsx` (+1), `MapScreen.test.tsx` (+1). `tools/back-layers.test.ts` lists MapCredits' default
+  (`NoWrap`, no platform back handed in) as covered (418f6f3a1).
+- **Simulator run** (build 418f6f3a1 `--testbed`, iPhone 17e, iOS 26.5, `run-ios.mjs keyboard`, 2026-11-20 11:40-11:53):
+  7 of 7 steps PASS. Spot title field 117-151 pt and notes 272-366 pt, keyboard top 510 pt: clear; a drag down: keyboard
+  away, 1 keyboard-preference read in 5 s (the loop is gone); the bar carries Save (451-501 pt); one tap on Save spot with
+  the keyboard up: saved. Notifications' alert value field clear of the decimal pad, Done closes it. On a water's
+  Conditions → Alert me the bench's keyboard read came back empty ("no keyboard drawn"), but its shot shows the pad up
+  and the value field whole just above Done.
+- **Shots** (`handoff/PLAN/ios/shots/t723/`): before: `before-l6-spot-save-row.jpg`, `before-l6-cond-alert-value.jpg`;
+  after: `after-l6-spot-save-bar.jpg`, `after-l6-spot-notes-bar.jpg` (the bar over the notes), `after-l6-spot-drag-keyboard-away.jpg`,
+  `after-l6-cond-alert-value.jpg`.
+- Owner: the look of the Save bar is a proposal (OWNER-TODO 2026-11-20 L6).

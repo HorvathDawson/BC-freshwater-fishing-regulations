@@ -168,6 +168,7 @@ const COVERED: Record<string, string> = {
   "packages/ui-native/src/menu/UpdatesLogPage.tsx#UpdatesLogPage: draws UpdatesLogPage": "(T251) a menu page's CONTENT: MenuHost draws it inside <MenuPage>, which registers (useBackLayer)",
   "packages/ui-native/src/ModalBack.native.tsx#ModalBack: takes onBack": "(T723 F7) not a surface: the iOS left-edge strip inside a Modal that registers; every user hands it that Modal's own useBackLayer requestClose (Sheet, MenuPage, PdfViewer, PhotoViewer)",
   "packages/ui-native/src/ModalBack.web.tsx#ModalBack: takes onBack": "(T723 F7) the web's half draws its children untouched (the browser owns that edge); the Modal it sits in registers",
+  "packages/map/src/MapCredits.tsx#NoWrap: takes onBack": "(T723) not a surface: MapCredits' default for MapProps.modalBack when no platform back is handed in (the map alone); draws its children untouched inside the credits Modal, which registers",
   "packages/ui-native/src/menu/MenuPage.tsx#MenuPageHead: takes onBack": "the page header's ‹ button; its MenuPage registers (useBackLayer)",
   "packages/ui-native/src/menu/MoreScreen.tsx#MoreScreen: takes onBack (MoreScreenProps)": "owner 2026-10-22: the More TAB's ‹ to the tab it came from — a route tab (`prev`), not a layer: the Shell hands it the ONE back (`useBack`), which the system back also takes",
   "packages/ui-native/src/menu/MoreScreen.tsx#Head: takes onBack": "the More tab's ‹ button; MoreScreen hands it the Shell's one back",
@@ -225,6 +226,8 @@ describe("back, everywhere: every surface registers a back layer", () => {
     }));
     expect(found).toEqual([
       // (T729) the credits card, open: a Modal over the map, registered (useBackLayer, handed down by MapScreen)
+      // (T723) the credits card's default platform back (no ModalBack handed in): draws its children untouched (COVERED)
+      "packages/map/src/MapCredits.tsx#NoWrap: takes onBack",
       "packages/map/src/MapCredits.tsx#MapCredits: a Modal",
       // (T234) the "Alert me" form, inline in the gauge card (COVERED)
       "packages/ui-native/src/AlertMe.tsx#AlertEditor: takes onCancel",

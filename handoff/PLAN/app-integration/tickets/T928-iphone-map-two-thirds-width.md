@@ -53,3 +53,5 @@ feed render mid-hold jumped it to 0; a release there went back with the view at 
 AppState instead (background / active puts it home; the system ends every touch then). A render puts it home only with
 no finger down AND no spring running, so a cancelled drag's spring home is let finish. Tests: held still (not sent
 home, its release goes back), background/active (home), a render mid-spring (not cut); all three fail on c71429593.
+
+**Lane L6, 2026-11-20 (see T938):** the tester's sideways picture reproduced on the iPhone simulator AFTER c71429593 / 54b256e06: an edge swipe that goes back after a cancelled edge drag (one whose spring home ran on the native driver) left the browse layer at the finger's offset, through pans. Fixed in T938 (3a8d5333b: every hard home re-renders the edge view, so React commits 0).

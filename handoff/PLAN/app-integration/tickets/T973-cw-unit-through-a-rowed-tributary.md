@@ -218,3 +218,17 @@ wins, both-ways nearest, a unit on its own water only is passed, one per section
 `test_bundle_licensing.py` (+7: the table, four refusals, a run without the table refused, run file + digests),
 `test_release_packed.py` (+1: optional, unswitched, one note per section, refusal), `test_reach_builder.py` (policy
 pin 49); app `licence.test.ts` (+3: the whole note string, every profile, none = as before), `inputs.test.ts` (+2).
+
+## Owner 12:54 (2026-11-20): the 5 Classified Waters units that stop at their own water are right
+Checked against the book by the owner: Thompson River (R3), Skeena River sections 2 and 4 (R6, mainstem only), West Road
+(Blackwater) River (R5, "Mainstem only"), Deena Creek (R1, no tributary mark on its Class II line). The other 60
+waters' units reach their tributaries. Owner verbatim: "yes i missed those both are correct too." (after confirming
+Thompson and Skeena from the book: "so only a few classified waters streams in regulations dont apply to the
+tributaries").
+
+## Owner 13:22 (2026-11-20): show it as Classified Waters, the why behind a button
+- Owner 13:22, on the Endako shot (note above "You need" with a "?"), verbatim: "in the photo you sent there is a rouge ? in the line and the line is under the header Canadian, other province, 167 and older?". Then (dialog), verbatim: "we should just say it is classified waters then give a button that expands the note on why we say that maybe? ".
+  Built as: a carried unit shows as an ordinary Classified Waters licence row, in the same place and for the same
+  anglers as a real unit. An expand control on the row opens the why ("Stellako River's Class II covers its
+  tributaries; Endako River has its own line in the rule book without Classified Waters, so it may not apply here.
+  Check with a CO."). The "?" and the note above "You need" go.

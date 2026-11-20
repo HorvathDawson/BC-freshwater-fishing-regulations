@@ -1,6 +1,6 @@
 # T725 — iOS: memory table and cold start re-measured on 0.7.9 (IOS-8)
 
-Status: IN PROGRESS (iOS chat, test-bed lane: memory table and cold start measured on 0.7.9; the memory-warning trim is not tested on the simulator).
+Status: IN REVIEW — measured on 0.7.9 (68bf25229); lane L6: the memory-warning trim proven on the simulator (83653e704: the warning now reaches the app, `[trim]` 14 databases, 263 → 257 MB); owner: OWNER-TODO "oldest iPhone / iPad" (the oldest supported iPhone)
 
 Source: owner 2026-11-14, verbatim: "Maybe we could make a handoff to start improving the ios versions? Making sure it is
 rock solid too?" and "We want to do as much work as possible without the Apple account". Stub IOS-8 in
@@ -82,3 +82,21 @@ to 40 MB on the same step.
   opened. The test bed cannot split that between PDFKit and the kept map; Instruments (Allocations) on the simulator
   would.
 - The memory warning freed nothing measurable (218 → 215), and still no `[trim]` line in the log.
+
+## The memory-warning trim, proven on the simulator (lane L6, 2026-11-20; commit 83653e704)
+- **How the warning now reaches the app.** Simulator's Debug → Simulate Memory Warning calls CoreSimulator's
+  `-[SimDevice simulateMemoryWarning]` (read in the framework's symbols). `app/tools/testbed/lib/sim-memory-warning.js`
+  (JXA through Foundation's bridge, no Apple events) calls the same method on the device named by its UDID;
+  `device-ios.mjs` `memoryWarning()` uses it. The old `simctl spawn … notifyutil` never reached the app, and System
+  Events is not authorised for a script on this Mac (`-1743`), so the menu could not be driven. The `memory` scenario's
+  warning step now FAILS without the app's `[trim]` line.
+- **Run** (build of 83653e704 `--testbed`, iPhone 17e, iOS 26.5, `run-ios.mjs memory`, 2026-11-20 08:09):
+  `sent: simulateMemoryWarning to iPhone 17e …; [trim] iOS memory warning, 14 database(s) shrunk, 0 idle closed`.
+  Footprint 263 → 257 MB, malloc 86.3 → 78.3 MB, JS external 60.9 → 33.3 MB (JS heap 124 unchanged). The trim fires
+  and frees what it claims (the release's page caches); nothing idle was closed (every database had been read within
+  the minute).
+- The same run's table (MB, footprint / malloc / JS heap): boot 145 / 45 / 64; 8 pans 166 / 49 / 68; satellite 224 / 93 /
+  84; Cultus Lake's page 295 / 102 / 124; Conditions 272 / 88 / 124; Map tab 262 / 85 / 124; Salmon 263 / 86 / 124.
+  The rule book steps failed in the bench (its `scroll-to` did not find the link on this build): no PDF numbers.
+- Left: the verdict on the oldest supported iPhone (owner, decision 2; the simulator says nothing about a phone's
+  memory limit).

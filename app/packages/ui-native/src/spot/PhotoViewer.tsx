@@ -226,12 +226,15 @@ function PhotoStage({ uris, index, onIndex, done, palette, thumb, leaveRef }: {
     },
   } satisfies PanGestureConfig, PHOTO_WEB), [v, leaveRef]));
   const doubleTap = useTapGesture(useMemo((): TapGestureConfig => withWebProps({
-    runOnJS: true, disableReanimated: true, testID: "photo-double-tap", numberOfTaps: 2,
+    runOnJS: true, disableReanimated: true, testID: "photo-double-tap", numberOfTaps: 2, maxDistance: PHOTO_VIEWER.decideAfter,
     onDeactivate: (e) => { if (!e.canceled) live.current.z.toggle({ x: e.x, y: e.y }); },
   } satisfies TapGestureConfig, PHOTO_WEB), []));
-  // one tap: the buttons hide / come back — only once a double tap has failed (the exclusive pair below)
+  // one tap: the buttons hide / come back — only once a double tap has failed (the exclusive pair below). Both taps fail
+  // once the finger has moved as far as a drag is decided (`maxDistance`): with no limit (the handler's default on iOS
+  // and Android) a quick swipe under the tap's 500 ms was ALSO a tap, so the strip moved on and the buttons hid (T836,
+  // iPhone simulator 2026-11-20: "2 of 3" gone after every swipe)
   const tap = useTapGesture(useMemo((): TapGestureConfig => withWebProps({
-    runOnJS: true, disableReanimated: true, testID: "photo-tap",
+    runOnJS: true, disableReanimated: true, testID: "photo-tap", maxDistance: PHOTO_VIEWER.decideAfter,
     onDeactivate: (e) => { if (!e.canceled) setChrome((c) => !c); },
   } satisfies TapGestureConfig, PHOTO_WEB), []));
   const taps = useExclusiveGestures(doubleTap, tap);

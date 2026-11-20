@@ -162,8 +162,15 @@ export function memory() {
     return { footprint: head ? mb(head[1], head[2]) : null, malloc: r1(cat.malloc), graphics: r1(cat.graphics), mapped: r1(cat.mapped), rss };
   } catch { return null; }
 }
-/** (T363) iOS's memory warning, as the Simulator's menu sends it */
-export const memoryWarning = () => simctl(['spawn', udid(), 'notifyutil', '-p', 'UISimulatedMemoryWarningNotification']);
+/**
+ * (T363, T725) iOS's memory warning, as the Simulator's menu sends it: CoreSimulator's `-[SimDevice
+ * simulateMemoryWarning]`, the method the menu item calls (`sim-memory-warning.js`, JXA). The earlier `simctl spawn …
+ * notifyutil -p UISimulatedMemoryWarningNotification` never reached the app (no `[trim]` line in two runs). Returns the
+ * script's one line ("sent: …"); throws when it could not send.
+ */
+export const memoryWarning = () => execFileSync('osascript',
+  ['-l', 'JavaScript', path.join(path.dirname(new URL(import.meta.url).pathname), 'sim-memory-warning.js'), udid()],
+  { encoding: 'utf8', timeout: 60_000 }).trim();
 
 // ---------- the app's log, as the Android scenarios read logcat (T719/T720) ----------
 // run-ios.mjs streams the app's unified log (`log stream --style compact --level debug`, process CanIFish) to app-os.log

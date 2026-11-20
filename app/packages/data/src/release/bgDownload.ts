@@ -17,7 +17,9 @@
  *             sits paused for `wifiWaitMs` while mobile data is allowed is queued again under the allowed rule, and the
  *             log says so: it would otherwise wait for a Wi-Fi the reader no longer asked it to wait for.
  *             (T760) A job pending, or paused for anything but a wait for a network, with no new byte for `stuckMs` is
- *             queued again (said in the log, its bytes lost); after `stuckTries` the install fails with words.
+ *             queued again (said in the log, its bytes lost); after `stuckTries` the install fails with words. A wait for
+ *             a network is the platform's word (`waitsForNetwork`): Android's paused reasons, the iPhone's same reasons
+ *             on a job its background session holds back (a Wi-Fi-only job on mobile data).
  *   fetch     (T912) AN UPDATE'S DATA FILES go to the system too (`BgItem.whole`): an update that changes only the
  *             regulations is nothing but data files, and an update that also moves the map fetched them first, in the app,
  *             before any big file was queued — so a reader who closed the app while an update downloaded stopped all of
@@ -116,6 +118,27 @@ export interface Background {
  */
 const NETWORK_WAITS: ReadonlySet<number> = new Set([2, 3]);
 
+/**
+ * (T760, iPhone) Is the job waiting for a network the platform says it may not use yet? Android says so on a PAUSED job
+ * (its reasons 2 and 3). The iPhone's background session never pauses a job for that: a Wi-Fi-only task on mobile data
+ * just sits, so the module reports it "pending" (nothing down yet) or "running" (bytes from before) with the same
+ * reason (2: no network at all; 3: the network up is mobile data, a hotspot or Low Data Mode and the job is Wi-Fi only),
+ * read from the phone's current network path. Such a job is waiting honestly, whatever its status word.
+ */
+const waitsForNetwork = (j: BgJob) =>
+  (j.status === "pending" || j.status === "paused" || j.status === "running") && NETWORK_WAITS.has(j.reason);
+
+/**
+ * (T760) A job the system has parked and does not run again: pending, or paused, and NOT waiting for a network. (An
+ * iPhone Wi-Fi-only job waiting on mobile data is "pending" with reason 3: before this it was parked, queued again twice
+ * and the install failed "stuck" after half an hour.)
+ */
+const parked = (j: BgJob) => (j.status === "pending" || j.status === "paused") && !waitsForNetwork(j);
+
+/** What the log says a job is doing: "paused (reason 1)", "pending, waiting for a network (reason 3)", "running". */
+const doing = (j: BgJob) => j.status === "paused" ? `paused (reason ${j.reason})`
+  : waitsForNetwork(j) ? `${j.status}, waiting for a network (reason ${j.reason})` : j.status;
+
 /** (T760) How long a job may sit pending, or paused not waiting for a network, with no new byte before it is queued again. */
 const STUCK_MS = 10 * 60_000;
 /** (T760) How many times a file that does not move is queued again before the install fails (`INSTALL_WORDS.stuck`). */
@@ -211,10 +234,11 @@ export function background(bg: BackgroundNative, fs: PartFs & { uri(path: string
         }
         onBytes?.(Math.max(0, job!.bytes));
         // (T756) a Wi-Fi-only job (kept by `queue` because it was running) that now waits, while mobile data is allowed
-        if (job!.status === "paused" && !job!.metered && metered) {
+        // (Android: paused; the iPhone: any status with a network-wait reason)
+        if ((job!.status === "paused" || waitsForNetwork(job!)) && !job!.metered && metered) {
           pausedAt ||= clockNow();
           if (clockNow() - pausedAt >= wifiWaitMs) {
-            console.info(`[download] ${url}: a Wi-Fi-only download paused (reason ${job!.reason}) at ${job!.bytes} of ${total} bytes while mobile data is allowed; queued again to use it`);
+            console.info(`[download] ${url}: a Wi-Fi-only download ${doing(job!)} at ${job!.bytes} of ${total} bytes while mobile data is allowed; queued again to use it`);
             await bg.remove(job!.id);
             id = await enqueue(url, total);
             pausedAt = 0; said = ""; movedAt = clockNow(); lastBytes = -1;
@@ -225,8 +249,7 @@ export function background(bg: BackgroundNative, fs: PartFs & { uri(path: string
         // the downloader's own back-off gone quiet): pending, or paused for a reason that is not a wait for a network,
         // with no new byte for `stuckMs`: removed and queued again (its bytes are lost: a removed job cannot be resumed);
         // `stuckTries` times, then the install fails with the reader's words, never an endless wait (W46)
-        const parked = job!.status === "pending" || (job!.status === "paused" && !NETWORK_WAITS.has(job!.reason));
-        if (!parked || job!.bytes !== lastBytes) { lastBytes = job!.bytes; movedAt = clockNow(); }
+        if (!parked(job!) || job!.bytes !== lastBytes) { lastBytes = job!.bytes; movedAt = clockNow(); }
         else if (clockNow() - movedAt >= stuckMs) {
           const still = `not moved for ${Math.round((clockNow() - movedAt) / 1000)} s (${job!.status}, reason ${job!.reason}, ${Math.max(0, job!.bytes)} of ${total} bytes)`;
           if (++requeued > stuckTries) {
@@ -239,7 +262,7 @@ export function background(bg: BackgroundNative, fs: PartFs & { uri(path: string
           said = ""; movedAt = clockNow(); lastBytes = -1;
           continue;
         }
-        const now = job!.status === "paused" ? `paused (reason ${job!.reason})` : job!.status;
+        const now = doing(job!);
         if (now !== said) { console.info(`[download] ${url}: ${now}, ${job!.bytes} of ${total} bytes`); said = now; }
         await wait(pollMs);
       }
@@ -285,15 +308,14 @@ export function background(bg: BackgroundNative, fs: PartFs & { uri(path: string
         if (job.status === "paused" && !NETWORK_WAITS.has(job.reason))
           return instead(`its system download stopped part way (paused, reason ${job.reason}, ${Math.max(0, job.bytes)} bytes) and cannot resume (the host sends a data file to it with no length)`);
         // the same waits as `fill`: a Wi-Fi-only job paused while mobile data is allowed, or one parked with no new byte
-        if (job.status === "paused" && !job.metered && metered) {
+        if ((job.status === "paused" || waitsForNetwork(job)) && !job.metered && metered) {
           pausedAt ||= clockNow();
-          if (clockNow() - pausedAt >= wifiWaitMs) return instead(`a Wi-Fi-only download paused (reason ${job.reason}) while mobile data is allowed`);
+          if (clockNow() - pausedAt >= wifiWaitMs) return instead(`a Wi-Fi-only download ${doing(job)} while mobile data is allowed`);
         } else pausedAt = 0;
-        const parked = job.status === "pending" || (job.status === "paused" && !NETWORK_WAITS.has(job.reason));
-        if (!parked || job.bytes !== lastBytes) { lastBytes = job.bytes; movedAt = clockNow(); }
+        if (!parked(job) || job.bytes !== lastBytes) { lastBytes = job.bytes; movedAt = clockNow(); }
         else if (clockNow() - movedAt >= stuckMs)
           return instead(`its system download has not moved for ${Math.round((clockNow() - movedAt) / 1000)} s (${job.status}, reason ${job.reason})`);
-        const now = job.status === "paused" ? `paused (reason ${job.reason})` : job.status;
+        const now = doing(job);
         if (now !== said) { console.info(`[download] ${url}: ${now}, ${Math.max(0, job.bytes)} bytes (system download manager)`); said = now; }
         await wait(pollMs);
       }

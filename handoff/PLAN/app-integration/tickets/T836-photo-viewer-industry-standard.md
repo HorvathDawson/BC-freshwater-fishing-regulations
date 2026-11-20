@@ -1,6 +1,6 @@
 # T836 — The spot photo viewer behaves like the standard phone photo viewers
 
-Status: IN PROGRESS — merged 00edd4889 (2026-11-17: all four behaviours, tests); left (Claude): the Android and iPhone simulator bench, light and dark (open/close from the thumbnail, drag down, strip, tap vs double tap, pinch rubber and fling glide; on Android, that the buttons' layer passes touches).
+Status: IN PROGRESS — merged 00edd4889 (2026-11-17: all four behaviours, tests); lane L6: the iPhone simulator bench 9 of 9 light and dark after one fix (a swipe also hid the buttons: 6fdb3d8db, tap maxDistance); left (Claude): the Android bench (open/close from the thumbnail, drag down, strip, tap vs double tap, that the buttons' layer passes touches), pinch rubber and fling glide feel; the counter over a light photo is T976
 
 Source: owner 2026-11-17 ~11:15, in the app chat, verbatim: "the photo viewer could also use a little improvement to
 make it industry standard". Asked which of four standard (Apple / Google Photos) behaviours to add; picked all four
@@ -86,3 +86,23 @@ the buttons stay at full strength: T970); the photo grows from its thumbnail in 
 (`T836-light-open-sheet.png`, `T836-dark-open-sheet.png`, `T836-light-close-sheet.png`); the buttons' layer passes touches on Android.
 `pinch-spread-after-lift.png`: after a spread the photo rests with its bottom edge showing dark ground (one frame, not clamped; the
 settle was not filmed). Not covered: Reduce Motion, the fling glide's feel, a thumbnail off screen, the iPhone.
+
+## iPhone simulator bench and one fix (lane L6, 2026-11-20; 91d27a5a7, 6fdb3d8db)
+- **Bench** `scenarios-ios/l6-shots.mjs` `t836-ios`: a spot seeded with three different photos (one picture turned
+  0 / 90 / 180 degrees, so a moved strip is seen), then in light and dark: open from the thumbnail and the counter, a tap
+  hides the buttons and a second brings them back, a swipe to the next photo, a drag down closes it.
+- **Found (build 418f6f3a1, 11:56-12:00): every swipe also hid the buttons.** The strip moved on (the picture 77 % changed)
+  but the counter and buttons were gone. Cause: the gesture handler's tap has no distance limit by default on iOS and
+  Android, so a swipe faster than the tap's 500 ms was ALSO a tap. **Fix (6fdb3d8db):** the tap and the double tap
+  fail once the finger has moved `PHOTO_VIEWER.decideAfter` (6 px, where a drag is decided): `maxDistance` on both.
+  Test: `PhotoViewer.test.tsx` "(T836) a finger that moves as far as a drag is decided is no tap …" reads the limit
+  sent to the native handler on both taps (`fireGestureHandler` skips thresholds); it fails without the fix (checked).
+- **After the fix** (build 6fdb3d8db, 12:21-12:26): 9 of 9 PASS, light and dark: opened from the thumbnail at "1 of 3";
+  tap hides, tap brings back; a swipe moves to the next photo with the buttons up and "2 of 3"; a drag down closes it.
+- Shots (`handoff/PLAN/ios/shots/t836/`): `T836-ios-1-thumbs-light.jpg`, `T836-ios-3-open-light.jpg`,
+  `T836-ios-4-hidden-light.jpg`, `T836-ios-6-next-light.jpg`, `T836-ios-6-next-dark.jpg`, `T836-ios-7-closing-light.jpg`;
+  before the fix: `before-fix-T836-ios-6-next-light.jpg`.
+- Seen in the shots, not changed: the counter is white text with no backing, so over a white photo (the seeded fish
+  drawing) "2 of 3" is hard to read. Phone viewers put a soft shade behind it; a small follow-up if wanted.
+- Not covered here: the Android bench, pinch rubber and fling glide (feel), and on Android that the buttons' layer
+  passes touches. The fix is shared code, so Android gets it too (its taps had the same no-limit default).

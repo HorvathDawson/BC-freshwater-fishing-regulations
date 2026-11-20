@@ -87,7 +87,8 @@ export function DonorMap({ vm, at, theme, palette, toneOf, height,
 
   return (
     <View style={{ gap: SPACE.s2 }}>
-      <View style={{ height, borderRadius: palette.r.box, overflow: "hidden" }}>
+      {/* (T831) testID: the iPhone bench finds the map's frame by it (the pin is counted inside it, not in the key below) */}
+      <View testID="donor-route-map" style={{ height, borderRadius: palette.r.box, overflow: "hidden" }}>
         <MiniMap key={vm.key} at={at} palette={palette} theme={theme} camera={vm.camera}
                  height={height} bare zoomControls view="conditions"
                  highlight={highlight ?? vm.chain} standing={standing}

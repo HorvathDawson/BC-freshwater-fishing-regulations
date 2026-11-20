@@ -1,0 +1,17 @@
+# T976 — The photo viewer's counter can't be read over a light photo
+
+Status: OPEN
+
+Source: lane L6, 2026-11-20, from the T836 iPhone simulator shots (build 6fdb3d8db). Shot:
+`handoff/PLAN/ios/shots/t836/T836-ios-6-next-light.jpg`. The seeded photo (a fish drawing on white) fills the top of the
+screen, and the counter ("2 of 3"), white text with no backing, almost disappears into it. The ‹ › ✕ buttons have a
+dim disc behind them and stay readable.
+
+## Work
+Give the counter the same kind of backing the buttons have (a dim pill or a soft shade at the top), as the phone photo
+viewers do. A proposal for the owner, with light and dark shots over a light photo and a dark one.
+
+## Acceptance
+"N of M" readable over a white photo and over a dark one, iPhone and Android; a render test pins the backing.
+
+Depends: T836. Size: S. Owner: yes (the look, a proposal).
