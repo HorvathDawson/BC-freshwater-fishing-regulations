@@ -136,6 +136,12 @@ export function nobaselineOpacity(mode: string): unknown {
  */
 export const NOACCESS_LAYER = "stream-noaccess";
 
+/** (T937) whether `mode` of `layerId` reads the STATUS channel's no_access labels without being a status mode (`accessFrom`) */
+export function takesAccessFromStatus(layerId: string, mode: string): boolean {
+  const m = STYLE_META.colorModes[layerId]?.[mode];
+  return m?.scale === "profile" && !!m.accessFrom;
+}
+
 /**
  * (T937) THE MODE WHOSE `no_access` LABELS A MODE DRAWS THE DOTS BY: its own where it has a `no_access` member (Standard's
  * profile mode, a categorical one), else the one its `accessFrom` names in the style (the Salmon mode: no public access
@@ -157,8 +163,8 @@ export function noAccessShown(layerId: string, mode: string, values: ChannelValu
   if (m.scale === "profile") {
     const labels = (values ?? NO_VALUES).status?.no_access ?? [];
     const shown = ["in", ["coalesce", ["feature-state", m.property], ""], ["literal", [...labels]]];
-    // a DFO finfish closure holds the dots off on Standard; the Salmon mode's own day answers for it (closed there already)
-    return labels.length ? (STYLE_META.colorModes[layerId]?.[mode] === m ? offFinfish(m, values, shown) : shown) : null;
+    // a DFO finfish closure holds the dots off, as on Standard: all fishing is closed there, and the section paints closed
+    return labels.length ? offFinfish(m, values, shown) : null;
   }
   if (m.scale === "categorical") return ["==", ["feature-state", m.property], "no_access"];
   return null;

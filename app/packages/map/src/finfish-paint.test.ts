@@ -69,9 +69,8 @@ describe("the Standard map under a DFO finfish closure", () => {
       .toContain(JSON.stringify(["!", ["in", SP, ["literal", ["s1"]]]]));
     const noAccess = { ...v, status: { ...v.status!, no_access: ["p9"] } };
     expect(JSON.stringify(noAccessShown("stream", "profile", noAccess))).toContain(JSON.stringify(["!", ["in", SP, ["literal", ["s1"]]]]));
-    // the Salmon mode reads its own day (finfish verdicts are closed there already): untouched
-    expect(paintFor("stream", "salmon", t, { ...v, salmon: { open: [], release: [], closed: ["s0", "s1"], check: [], none: [] } }))
-      .toEqual(paintFor("stream", "salmon", t, { ...valuesOf(JUL20, null, false), salmon: { open: [], release: [], closed: ["s0", "s1"], check: [], none: [] } }));
+    // (T937) the Salmon mode takes its no-access dots from the status day, so a finfish closure holds them off there too
+    expect(JSON.stringify(noAccessShown("stream", "salmon", noAccess))).toContain(JSON.stringify(["!", ["in", SP, ["literal", ["s1"]]]]));
   });
 
   it("(T377) a legend isolate: shown alone under Closed, the neutral grey under any other class", () => {

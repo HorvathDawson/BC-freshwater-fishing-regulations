@@ -324,8 +324,11 @@ export function colorExpression(layerId: string, modeName: string, t: Tokens,
     const from = mode.accessFrom ? STYLE_META.colorModes[layerId]?.[mode.accessFrom] : undefined;
     const noAccess = from && "categories" in from ? from.categories["no_access"] : undefined;
     const naLabels = values?.status?.no_access ?? [];
+    // a DFO finfish closure holds the grey off, as on Standard: all fishing is closed there, and the section reads closed
+    const finAway = from && "property" in from ? finfishOver(from, values) : null;
+    const noAccessIs = ["in", ["coalesce", ["feature-state", from && "property" in from ? from.property : ""], ""], ["literal", [...naLabels]]];
     const byDay = from && "property" in from && noAccess && naLabels.length
-      ? ["case", ["in", ["coalesce", ["feature-state", from.property], ""], ["literal", [...naLabels]]], val(noAccess), plain]
+      ? ["case", finAway ? ["all", noAccessIs, ["!", salmonLabelIn([...finAway.closed, ...finAway.none])]] : noAccessIs, val(noAccess), plain]
       : plain;
     // (T796 A6) DFO's finfish closures, ahead of the day's profile: closed (or, isolated away, `missing`) by the chain
     const fin = finfishOver(mode, values);

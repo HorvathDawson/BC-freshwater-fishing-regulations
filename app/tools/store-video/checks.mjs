@@ -48,7 +48,7 @@ export function mapProblems(ns, { day = 'today', mode = 'trout' } = {}) {
     ...need(ns.some((n) => /^Showing a Map/.test(n.desc)), 'no map on screen'),
     ...need(pick && new RegExp(`Map coloured for ${day}\\b`, 'i').test(pick.desc), `the map is not coloured for ${day} (${pick?.desc ?? 'no day picker'})`),
     ...(mode === 'trout' ? need(/Own rules/.test(t) && !/Keep salmon/.test(t), 'the map is not in trout mode (legend)')
-      : need(/Keep salmon/.test(t) && /DFO rules checked/.test(t), 'the map is not in salmon mode (no "Keep salmon" / "DFO rules checked" legend)')),
+      : need(/Keep salmon/.test(t) && /Release only/.test(t) && !/Own rules/.test(t), 'the map is not in salmon mode (no "Keep salmon" / "Release only" legend, or "Own rules" still there)')),
   ];
 }
 
