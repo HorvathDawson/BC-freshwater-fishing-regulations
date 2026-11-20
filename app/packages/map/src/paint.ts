@@ -5,7 +5,7 @@
  */
 import type { GearMark } from "@app/core";
 import { MAP_STYLE, NO_VALUES, STYLE_META, colorExpression, finfishOver, profileChannel, profileDay, salmonLabelIn,
-         type ChannelValues, type Tokens } from "./style";
+         type ChannelValues, type ColorMode, type Tokens } from "./style";
 
 /**
  * (T796 A6) `shown` held off the sections DFO's finfish closures paint (`finfishOver`: closed, or isolated away) on a
@@ -136,16 +136,50 @@ export function nobaselineOpacity(mode: string): unknown {
  */
 export const NOACCESS_LAYER = "stream-noaccess";
 
+/** (T937) whether `mode` of `layerId` reads the STATUS channel's no_access labels without being a status mode (`accessFrom`) */
+export function takesAccessFromStatus(layerId: string, mode: string): boolean {
+  const m = STYLE_META.colorModes[layerId]?.[mode];
+  return m?.scale === "profile" && !!m.accessFrom;
+}
+
+/**
+ * (T937) THE MODE WHOSE `no_access` LABELS A MODE DRAWS THE DOTS BY: its own where it has a `no_access` member (Standard's
+ * profile mode, a categorical one), else the one its `accessFrom` names in the style (the Salmon mode: no public access
+ * is an ACCESS answer, not a salmon one, so the status channel's own labels speak for it — one look, no second test).
+ */
+function accessMode(layerId: string, mode: string): ColorMode | null {
+  const modes = STYLE_META.colorModes[layerId];
+  const m = modes?.[mode];
+  if (!m) return null;
+  const from = m.scale === "profile" && m.accessFrom ? modes?.[m.accessFrom] : undefined;
+  const a = "categories" in m && m.categories["no_access"] ? m : from;
+  return a && "categories" in a && a.categories["no_access"] ? a : null;
+}
+
 /** Where `mode` paints a stream section `no_access`, as a boolean expression; null where the mode never does. */
 export function noAccessShown(layerId: string, mode: string, values: ChannelValues | null = NO_VALUES): unknown | null {
-  const m = STYLE_META.colorModes[layerId]?.[mode];
-  if (!m || !("categories" in m) || !m.categories["no_access"]) return null;
+  const m = accessMode(layerId, mode);
+  if (!m) return null;
   if (m.scale === "profile") {
     const labels = (values ?? NO_VALUES).status?.no_access ?? [];
-    return labels.length ? offFinfish(m, values, ["in", ["coalesce", ["feature-state", m.property], ""], ["literal", [...labels]]]) : null;
+    const shown = ["in", ["coalesce", ["feature-state", m.property], ""], ["literal", [...labels]]];
+    // a DFO finfish closure holds the dots off, as on Standard: all fishing is closed there, and the section paints closed
+    return labels.length ? offFinfish(m, values, shown) : null;
   }
   if (m.scale === "categorical") return ["==", ["feature-state", m.property], "no_access"];
   return null;
+}
+
+/**
+ * (T937) `shown` held off the no-access sections of a mode that takes its access from another (`accessFrom`: Salmon):
+ * a no-access water wears the one dotted grey look, with no closed stripe, gear edge or issue stripe on it, exactly as on
+ * Standard (where those marks already stand down for it). `shown` itself in every other mode, and null stays null.
+ */
+function offNoAccess(layerId: string, mode: string, values: ChannelValues | null, shown: unknown | null): unknown | null {
+  const m = STYLE_META.colorModes[layerId]?.[mode];
+  if (shown === null || !m || m.scale !== "profile" || !m.accessFrom) return shown;
+  const na = noAccessShown(layerId, mode, values);
+  return na === null ? shown : ["all", shown, ["!", na]];
 }
 
 /** The dots' opacity for the stream layer in `mode`: 1 on a no-access section, else 0 (every mode without one). */
@@ -242,9 +276,9 @@ export function gearShown(layerId: "stream" | "lake", mode: string, mark: GearMa
     : [...(v.status?.closed ?? []), ...(v.status?.no_access ?? []), ...(v.status?.none ?? [])];
   const marked = ["in", ["coalesce", ["feature-state", "gm"], ""], ["literal", [...labels]]];
   // (T796 A6) and a section DFO's finfish closure closes on Standard (`offFinfish`) — the Salmon day closes it already
-  return offFinfish(m, v, off.length
+  return offNoAccess(layerId, mode, values, offFinfish(m, v, off.length
     ? ["all", marked, ["!", ["in", ["coalesce", ["feature-state", m.property], ""], ["literal", off]]]]
-    : marked);
+    : marked));
 }
 
 /** One mark's paint on a stream (an edge round the line, `streamWidth` its own) or a lake (a ring). */
@@ -286,11 +320,14 @@ export function salmonCasingPaint(mode: string, tokens: Tokens, values: ChannelV
                                   streamWidth?: unknown): Record<string, unknown> {
   const px = Number(tokens["width.salmon.casing"] ?? 0);
   const open = (values ?? NO_VALUES).salmon?.open ?? [];
+  const noaccess = noAccessShown("stream", mode, values);
   const w = streamWidth ?? ["interpolate", ["linear"], ["zoom"], 6, 1.2, 10, 2, 14, 3.2];
   return {
     "line-color": tokens["color.salmon.casing"],
     "line-width": withinZoomCurve(w, (v) => ["+", v, 2 * px]),
-    "line-opacity": mode === "salmon" && px > 0 && open.length ? ["case", salmonLabelIn(open), 1, 0] : 0,
+    // (T937) never round a no-access section: it is the dotted grey line, not a kept water
+    "line-opacity": mode === "salmon" && px > 0 && open.length
+      ? ["case", salmonLabelIn(open), noaccess === null ? 1 : ["case", noaccess, 0, 1], 0] : 0,
   };
 }
 
@@ -323,6 +360,9 @@ export const CLOSED_CUE_LAYER = "stream-closed";
 
 /** Where `mode` paints a stream section closed, as a boolean expression; null where the mode never does. */
 export function closedShown(layerId: string, mode: string, values: ChannelValues | null = NO_VALUES): unknown | null {
+  return offNoAccess(layerId, mode, values, closedBase(layerId, mode, values));
+}
+function closedBase(layerId: string, mode: string, values: ChannelValues | null): unknown | null {
   const m = STYLE_META.colorModes[layerId]?.[mode];
   if (!m || !("categories" in m) || !m.categories["closed"]) return null;
   if (m.scale === "profile") {
@@ -376,13 +416,13 @@ export const ISSUE_SHARE = 0.6;
 export const ISSUE_MODE = "salmon";
 
 /** Where the stripe is shown on a stream in `mode`, as a boolean expression; null: nowhere (any other view). */
-export function issueShown(mode: string): unknown | null {
-  return mode === ISSUE_MODE ? ["==", ["coalesce", ["feature-state", "gi"], ""], "1"] : null;
+export function issueShown(mode: string, values: ChannelValues | null = NO_VALUES): unknown | null {
+  return offNoAccess("stream", mode, values, mode === ISSUE_MODE ? ["==", ["coalesce", ["feature-state", "gi"], ""], "1"] : null);
 }
 
-export function issuePaint(part: keyof typeof ISSUE_LAYERS, mode: string, tokens: Tokens, streamWidth?: unknown): Record<string, unknown> {
+export function issuePaint(part: keyof typeof ISSUE_LAYERS, mode: string, tokens: Tokens, streamWidth?: unknown, values: ChannelValues | null = NO_VALUES): Record<string, unknown> {
   const w = streamWidth ?? ["interpolate", ["linear"], ["zoom"], 6, 1.2, 10, 2, 14, 3.2];
-  const shown = issueShown(mode);
+  const shown = issueShown(mode, values);
   return {
     "line-color": tokens[part === "casing" ? "color.issue.casing" : "color.issue.stripe"],
     "line-width": withinZoomCurve(w, (v) => ["*", v, ISSUE_SHARE]),
@@ -536,7 +576,7 @@ export function markShownIn(mark: ModalMark, mode: string, layerId: "stream" | "
   const cats = m && "categories" in m ? m.categories : {};
   switch (mark) {
     case "nobaseline": return mode === "standing";
-    case "noaccess": return cats["no_access"] !== undefined && (m?.scale === "profile" || m?.scale === "categorical");
+    case "noaccess": return accessMode(layerId, mode) !== null;
     case "gear": return GEAR_MODES.includes(mode) && m?.scale === "profile";
     case "closed": return cats["closed"] !== undefined && (m?.scale === "profile" || m?.scale === "categorical");
     case "runs": return mode === "runs";

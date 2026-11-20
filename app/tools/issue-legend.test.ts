@@ -23,11 +23,11 @@ const draw = (c: never) => render(h(MapLegend, { col: c, conditions: false, pale
 const FEED = { sections: new Set([1]) };
 
 describe("(T759) the legend's issue entry", () => {
-  it("Salmon key with issue waters: one entry, the stripe swatch, in the second row after the gear marks", () => {
+  it("Salmon key with issue waters: one entry, the stripe swatch, in the third row, after the gear marks", () => {
     draw(col("salmon", FEED));
     const entries = screen.getAllByTestId("legend-entry").map((e) => e.textContent);
-    expect(entries).toEqual(["Keep salmon", "Release only", "Closed", "Check DFO", "Fly only", "Bait ban", "Check rule"]);
-    expect(screen.getAllByTestId("legend-row").length).toBe(2);
+    expect(entries).toEqual(["Keep salmon", "Release only", "Closed", "Check DFO", "No access", "Fly only", "Bait ban", "Check rule"]);
+    expect(screen.getAllByTestId("legend-row").length).toBe(3);
     expect(screen.getAllByTestId("swatch-issue").length).toBe(1);
   });
   it("absent without issue waters, and absent from the Standard (Trout) key where the stripe is never drawn", () => {

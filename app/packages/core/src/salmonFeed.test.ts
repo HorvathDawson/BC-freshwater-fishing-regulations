@@ -6,7 +6,7 @@
 import { describe, expect, it } from "vitest";
 import { SALMON_FEED_GOLDEN } from "./salmonFeed.golden";
 import { salmonCard, salmonChainStatus, salmonNotes, type SalmonFacts } from "./salmon";
-import { composeChain, dfoNoticeRows, feedFinfishOn, feedTables, parseDfoUnplaced, parseSalmonFeed, pickSalmon, salmonFeedLine, salmonChecked, salmonCheckedLine, salmonFeedOf, withSalmonFeed } from "./salmonFeed";
+import { composeChain, dfoNoticeRows, feedFinfishOn, feedTables, parseDfoUnplaced, parseSalmonFeed, pickSalmon, salmonFeedLine, salmonFeedOf, withSalmonFeed } from "./salmonFeed";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any -- the golden is the pipeline's JSON, read as data
 const G = SALMON_FEED_GOLDEN as any;
@@ -153,26 +153,16 @@ describe("(T350) the bucket goes with the notes it is read from", () => {
   });
 });
 
-describe("the line by the mode switch (T276)", () => {
-  it("says when the feed was fetched, in the feed's own time; nothing for the release's own file", () => {
-    const f = feed();
-    expect(salmonCheckedLine(withSalmonFeed(release(), { ...f, at: "2026-10-29T09:11:27Z" }))).toBe("DFO rules checked Oct 29");
-    expect(salmonChecked(withSalmonFeed(release(), { ...f, at: "2026-10-29T09:11:27Z" }))).toEqual({ short: "Checked Oct 29", label: "DFO rules checked Oct 29" });
-    expect(salmonChecked(release())).toBeNull();
-    expect(salmonCheckedLine(release())).toBeNull();
-    expect(salmonCheckedLine(null)).toBeNull();
-  });
-
-  it("T551: the legend's date and the card's line are ONE B.C. stamp, whatever zone the device is in", () => {
+describe("the feed line (T276)", () => {
+  it("T551: the card's line is a B.C. stamp, whatever zone the device is in", () => {
     const f = feed();
     // 00:15 UTC Aug 15 is 17:15 PT Aug 14: the legend used the UTC date (Aug 15) beside a card saying Aug 14
     const at = "2026-08-15T00:15:00Z";
     const withAt = withSalmonFeed(release(), { ...f, at });
-    expect(salmonCheckedLine(withAt)).toBe("DFO rules checked Aug 14");
     expect(salmonFeedLine(withAt)).toBe("Checked with DFO Aug 14, 2026, 5:15 pm PT");
-    // and the two agree on a fetch just past B.C. midnight (07:05 UTC = 00:05 PT)
+    // and a fetch just past B.C. midnight (07:05 UTC = 00:05 PT) is the next B.C. day
     const late = withSalmonFeed(release(), { ...f, at: "2026-11-10T07:05:00Z" });
-    expect([salmonCheckedLine(late), salmonFeedLine(late)]).toEqual(["DFO rules checked Nov 10", "Checked with DFO Nov 10, 2026, 12:05 am PT"]);
+    expect(salmonFeedLine(late)).toBe("Checked with DFO Nov 10, 2026, 12:05 am PT");
   });
 });
 

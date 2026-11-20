@@ -44,7 +44,9 @@ export type ColorMode =
   | { label: string; scale: "profile"; property: string; enum: string;
       categories: Record<string, TokenRef>; missing: TokenRef;
       /** Whose values it reads: provider `salmon` (T211) is the salmon channel's day, every other the status's. */
-      data?: { provider: string; field?: string } };
+      data?: { provider: string; field?: string };
+      /** (T937) the mode of this layer whose `no_access` labels also draw the no-access dots here (Salmon: Standard's). */
+      accessFrom?: string };
 
 /** (T211) THE CHANNEL A PROFILE MODE READS ITS DAY FROM: the Salmon colouring's own, else the day's status. */
 type ProfileChannel = "status" | "salmon";
@@ -316,7 +318,18 @@ export function colorExpression(layerId: string, modeName: string, t: Tokens,
       if (labels.length) out.push([...labels], val(ref));
     }
     out.push(val(mode.missing));           // `none` (tidal, outside B.C.) and every unplaced label
-    const byDay = out.length > 3 ? out : val(mode.missing);
+    const plain = out.length > 3 ? out : val(mode.missing);
+    // (T937) NO PUBLIC ACCESS reads the same colour on every colouring: where this mode takes its access from another
+    // (`accessFrom`, Salmon), the status day's no_access sections wear that mode's no_access colour, ahead of the day
+    const from = mode.accessFrom ? STYLE_META.colorModes[layerId]?.[mode.accessFrom] : undefined;
+    const noAccess = from && "categories" in from ? from.categories["no_access"] : undefined;
+    const naLabels = values?.status?.no_access ?? [];
+    // a DFO finfish closure holds the grey off, as on Standard: all fishing is closed there, and the section reads closed
+    const finAway = from && "property" in from ? finfishOver(from, values) : null;
+    const noAccessIs = ["in", ["coalesce", ["feature-state", from && "property" in from ? from.property : ""], ""], ["literal", [...naLabels]]];
+    const byDay = from && "property" in from && noAccess && naLabels.length
+      ? ["case", finAway ? ["all", noAccessIs, ["!", salmonLabelIn([...finAway.closed, ...finAway.none])]] : noAccessIs, val(noAccess), plain]
+      : plain;
     // (T796 A6) DFO's finfish closures, ahead of the day's profile: closed (or, isolated away, `missing`) by the chain
     const fin = finfishOver(mode, values);
     if (!fin) return byDay;

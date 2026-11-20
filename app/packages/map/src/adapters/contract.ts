@@ -18,7 +18,7 @@ import {
 } from "../style";
 import { SALMON_CASING_LAYER, salmonCasingPaint, ISSUE_LAYERS, issuePaint, CLOSED_CUE_LAYER, closedCuePaint, casingPaint, glowPaint, focusTheOthers, hideTheOthers, copyFillPaint, copyLinePaint, GEAR_LAYERS, gearPaint, NOACCESS_LAYER, noaccessPaint, NOBASELINE_LAYER, nobaselineOpacity, RUNS_PASS_LAYER, runsPassPaint,
          paintFor, ringPaint, SELECTION_CASING, SELECTION_GLOW, SELECTION_RINGS, type SelectionCue,
-         markShownIn, markWidth, splitStream, STREAM_HEAVY, streamWidths } from "../paint";
+         markShownIn, markWidth, splitStream, STREAM_HEAVY, streamWidths, takesAccessFromStatus } from "../paint";
 import { openedPaint, waterOnImagery } from "../on-imagery";
 import { unsetValue } from "../sections";
 
@@ -270,7 +270,7 @@ export function baseAdapter(platform: "native" | "web"): MapAdapter {
       const iw = markWidth("issue", mode, sw);
       for (const part of ["casing", "stripe"] as const) {
         h.setVisibility(ISSUE_LAYERS[part], markShownIn("issue", mode));
-        for (const [prop, value] of Object.entries(onGround(quiet(issuePaint(part, mode, tokens, iw)), iw, tokens, true, iw)))
+        for (const [prop, value] of Object.entries(onGround(quiet(issuePaint(part, mode, tokens, iw, values)), iw, tokens, true, iw)))
           h.setPaint(ISSUE_LAYERS[part], prop, value);
       }
       // the selection's outline goes with the stream: its width is the stream's, its colour the theme's (full strength)
@@ -411,7 +411,9 @@ export function baseAdapter(platform: "native" | "web"): MapAdapter {
       const tokens = resolveTheme(themeName, overrides);
       for (const [layerId, mode] of Object.entries(modeOf))
         // (T213) the method day draws no colour: it marks the stream's and the lake's gear edges, painted with them
-        if (channelOf(layerId, mode) === channel || (channel === "method" && (layerId === "stream" || layerId === "lake")))
+        if (channelOf(layerId, mode) === channel || (channel === "method" && (layerId === "stream" || layerId === "lake"))
+            // (T937) a mode that takes its access from the status day (Salmon's `accessFrom`) reads its no_access labels
+            || (channel === "status" && takesAccessFromStatus(layerId, mode)))
           paint(h, layerId, mode, tokens);
     },
 
