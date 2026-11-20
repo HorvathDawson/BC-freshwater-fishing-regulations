@@ -8,10 +8,11 @@ writes `<out>/matches.json` (default `GENERATED.inseason / "feed"`, which the lo
 
 FORMAT `inseason-links/4` (T673, owner 2026-11-13: ONE file, release-independent — "Why not just have a single file
 that does both?"; /3 named the one release its ranges were read on). Where a notice applies was resolved where the
-atlas is (`pipeline.regs.inseason.resolve`: the review app on save, its Re-resolve after a promote) and committed in
-`notice_waters.json`; this only copies it out:
+atlas is (`pipeline.regs.inseason.resolve`: the review app on save, its Re-resolve after a promote, the release's
+`follows` stage) and written beside the curated `notice_waters.json` as the GENERATED resolution (T679 #11,
+`matches.resolved_path()`, never committed); this only copies the two out, read as one document (`matches.load`):
 
-    {"format": "inseason-links/4", "digest": <sha of the curated file>,
+    {"format": "inseason-links/4", "digest": <sha of that document's text, `matches.dumps`>,
      "notices": {"is-…": {"from"?: "YYYY-MM-DD", "to"?: "YYYY-MM-DD",
                           "waters": {"gnis:…": {"all": true}
                                      | {"runs": [[blk, m0, m1], …], "lakes"?: true, "ends": [[low, high], …]}}}}}
@@ -142,14 +143,16 @@ def main(argv: list[str] | None = None) -> int:
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--out", type=Path, default=None)
     ap.add_argument("--matches", type=Path, default=None, help="the curated file (default CURATED.inseason.notice_waters)")
+    ap.add_argument("--resolved", type=Path, default=None,
+                    help="its generated resolution (default matches.resolved_path(); `resolve` writes it)")
     ap.add_argument("--feed", type=Path, default=None, help="a captured feed index.json to copy beside it (dev)")
     ap.add_argument("--side-release", type=Path, default=None,
                     help="check against this SIDE build's release instead of data/release/LATEST (never by default)")
     a = ap.parse_args(argv)
-    src = a.matches or M.default_path()
-    text = Path(src).read_text(encoding="utf-8")
-    doc = M.load(src)
-    links = compile_links(doc, hashlib.sha256(text.encode("utf-8")).hexdigest()[:16])
+    # (T679 #11) the curated matches + their generated resolution, one document; the digest is of its text (the
+    # curated file's whole text before the two were split, so an unchanged notice set keeps its digest)
+    doc = M.load(a.matches, resolved=a.resolved)
+    links = compile_links(doc, hashlib.sha256(M.dumps(doc).encode("utf-8")).hexdigest()[:16])
     root = Path(GENERATED.release)
     if a.side_release is None:
         from pipeline.deliver.release.manifest import live

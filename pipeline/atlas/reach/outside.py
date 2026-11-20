@@ -36,7 +36,6 @@ import re
 
 from pipeline.atlas.registry import regions as _regions
 from pipeline.common import entry_id as EID
-from pipeline.common.tolerances import AT_CUT_M as _AT_CUT_M   # a piece ending this close to the shore cut ends AT it
 
 #: POLICY (user ruling 2026-09-25, 9144c975): a WATER row (its water printed by no other region)
 #: is not held to any region — neither its reach nor its tributary walk (`region_limit`).
@@ -58,9 +57,18 @@ def outside_bc(registry, graph) -> frozenset[str]:
     if cached is not None and cached[0] is registry:
         return cached[1]
     out = {nid for nid, n in graph.nodes.items() if getattr(n, "out_of_bc", False)}
-    inside = _regions.area_family_sections(registry, "region", graph)
-    if inside is not None:
-        out |= {nid for nid in graph.nodes if nid not in inside}
+    from pipeline.atlas.splits import border as _border
+    if _border.ONE_OUTSIDE_FLAG:
+        # T679 #1: the atlas stamped the regionless nodes too (`border.mark_regionless`): the flag is the one answer,
+        # and an atlas that left one unstamped is refused, never patched here
+        left = sorted(_border.regionless(graph, registry) - out)
+        if left:
+            raise SystemExit(f"outside: {len(left)} node(s) in no region are not stamped `out_of_bc` ({left[:5]}) — "
+                             "the atlas predates T679 #1 (`border.ONE_OUTSIDE_FLAG`): rebuild it")
+    else:
+        inside = _regions.area_family_sections(registry, "region", graph)
+        if inside is not None:
+            out |= {nid for nid in graph.nodes if nid not in inside}
     got = frozenset(out)
     try:
         setattr(graph, "_reach_outside_cache", (registry, got))
@@ -236,266 +244,52 @@ def tidal_owner(entries, registry, *, strict: bool = True) -> dict[str, str]:
 
 
 # ------------------------------------------------------------------------------------------------
-# T166 step 5 (owner 2026-10-28, RULINGS C-2): THE PIECE BELOW A TIDAL BOUNDARY IS TIDAL WATER.
+# T166 / T212 / T660 / T665 -> T678: THE ATLAS'S TIDAL WATER, read — never resolved here.
 # ------------------------------------------------------------------------------------------------
+# The piece below a tidal boundary (`split:<id>`), a whole tidal water (`water:<item>`), a line tidal for its length
+# (`inside:<blk>`) and a piece below a line's coast cut (`crossing:<section>`) are decided ONCE, by the atlas build
+# (`atlas.splits.coast` / `atlas.splits.tidal`, T678 plans 1-2), and carried on its graph nodes and its one tidal record
+# (`coast.read_tidal`, plan 5). The reach adds only the rows the book marks tidal (`tidal_owner`), and takes all of it
+# out of every binding after the walk. The resolvers that lived here (`tidal_cut_owner`, `tidal_whole_owner`, the
+# crossing fixpoint, the polygon rule's inside lines) moved to the atlas or were retired with the pre-T678 atlases
+# (2026-11-20).
 
-#: THE TIDAL PIECE IS THE WATER BELOW THE CUT, AND ONLY THAT WATER (owner 2026-10-28;
-#: handoff/PLAN/curation-review/tidal/tributary-impact.md): `downstream_of` the tidal split on the
-#: water(s) that carry it, by the same resolver a rule's extent uses (route measure on the cut's own
-#: blue line, braid channels cut at build). No tributary is part of it: a stream entering the tidal
-#: piece keeps its own water, and stays its river's tributary — the walk runs on the full network and
-#: the tidal piece is taken out of each binding AFTER it (`build._without_tidal`). Walking the
-#: freshwater-only graph instead cut 29 rules off whole tributary trees.
-TIDAL_PIECE_HAS_NO_TRIBUTARIES = True
-
-
-def tidal_splits(build_dir) -> tuple[str, ...]:
-    """The split ids this atlas resolved as TIDAL LIMITS — the `split` and `cut` rows of its tidal sidecar
-    (`atlas.splits.tidal`, T326: written from `waters/tidal.json`), sorted. An atlas without the sidecar is
-    refused: a missing sidecar is not "no tidal boundary" (AGENTS 37)."""
-    from pipeline.atlas.splits.tidal import read_resolved
-    return tuple(sorted({str(r["split_id"]) for r in read_resolved(build_dir)
-                         if r["limit"] in ("split", "cut")}))
-
-
-def tidal_cut_owner(registry, graph, split_ids, *, strict: bool = True,
-                    report: list | None = None) -> dict[str, str]:
-    """`{section: "split:<id>"}` — THE TIDAL PIECE below each tidal split (`TIDAL_PIECE_HAS_NO_
-    TRIBUTARIES`): `downstream_of` the cut, scoped to every registry item that carries it (its
-    boundary, or an alias of one). A section below two cuts keeps the first by split id.
-
-    REFUSED (`strict`, the run) — never a silent "nothing is tidal here": a tidal split no item
-    carries (the atlas did not cut it), or one the resolver cannot place on its water. `report`
-    (optional) collects one row per split: its items, the sections it makes tidal, and the pieces
-    the resolver could not place (`unclassified`: a braid or arm reaching the sea unjoined) — those
-    stay freshwater and are listed, never guessed (AGENTS 12)."""
-    from pipeline.atlas.reach import extent as _resolve
-    carriers: dict[str, set[str]] = {}
-    for iid, it in registry.items():
-        for b in getattr(it, "boundaries", ()) or ():
-            for a in b.answers_to():
-                carriers.setdefault(a, set()).add(iid)
-    out: dict[str, str] = {}
-    for sid in sorted(set(split_ids)):
-        items = sorted(carriers.get(sid, ()))
-        if not items:
-            if strict:
-                raise SystemExit(f"tidal: split {sid!r} is a tidal boundary but no registry item "
-                                 "carries it — the atlas did not cut it (rebuild the atlas)")
-            continue
-        why: list = []
-        got = _resolve.resolve_extent(registry, graph, [], {
-            "op": "downstream_of", "splits": [sid], "item_ids": items}, reasons=why)
-        if got is None:
-            if strict:
-                raise SystemExit(f"tidal: the piece below tidal split {sid!r} on {items} cannot be "
-                                 f"resolved: {why}")
-            continue
-        secs = sorted(got.get("sections") or ())
-        for s in secs:
-            out.setdefault(s, f"split:{sid}")
-        if report is not None:
-            report.append({"split": sid, "items": items, "sections": len(secs),
-                           "unplaced": sorted(got.get("unclassified") or ()),
-                           "ambiguous_cut": list(got.get("ambiguous_cut") or ())})
-    return out
-
-
-def tidal_waters(build_dir) -> tuple[str, ...]:
-    """T212 (owner 2026-10-29): the registry items that are TIDAL WATER ALONG THEIR WHOLE LENGTH (the Fraser
-    delta channels, "this entire channel is tidal") — the `whole` rows of the atlas's tidal sidecar (T326), sorted."""
-    from pipeline.atlas.splits.tidal import read_resolved
-    return tuple(sorted({str(r["item"]) for r in read_resolved(build_dir) if r["limit"] == "whole"}))
-
-
-def tidal_whole_owner(registry, item_ids, *, strict: bool = True,
-                      report: list | None = None) -> dict[str, str]:
-    """`{section: "water:<item_id>"}` — EVERY section of each whole tidal water (`tidal_waters`). Like
-    the piece below a tidal split it has no tributary (a creek entering it keeps its own water) and is
-    taken out of every binding after the walk. REFUSED (`strict`): an item the registry does not hold
-    (the curated id went stale) — never a silent "nothing is tidal here"."""
-    out: dict[str, str] = {}
-    for iid in sorted(set(item_ids)):
-        it = registry.get(iid) if hasattr(registry, "get") else None
-        secs = sorted(getattr(it, "section_ids", ()) or ()) if it is not None else []
-        if not secs:
-            if strict:
-                raise SystemExit(f"tidal: whole tidal water {iid!r} (waters/tidal.json) is not in the "
-                                 "registry or has no section")
-            continue
-        for s in secs:
-            out.setdefault(s, f"water:{iid}")
-        if report is not None:
-            report.append({"split": f"water:{iid}", "items": [iid], "sections": len(secs),
-                           "unplaced": [], "ambiguous_cut": []})
-    return out
-
-
-def tidal_water(entries, registry, graph=None, split_ids=(), *, strict: bool = True,
-                report: list | None = None, whole_waters=(), inside_lines=(), record=None) -> dict[str, str]:
-    """`{section: owner}` — ALL THE TIDAL WATER the reach run takes out of every binding: the waters
-    of the rows marked `tidal` (owner: the row's entry id, `tidal_owner`), then the piece below every
-    tidal split (owner `split:<id>`, `tidal_cut_owner`), then every whole tidal water (owner
-    `water:<item_id>`, `tidal_whole_owner`), then the water crossings that end in those two (owner
-    `crossing:<section>`, `tidal_crossing_owner`, T660), with the lines wholly in tidal water (owner `inside:<blk>`,
-    `tidal_inside_owner`, T665) before the crossings. A row's claim stands where both hold. The
-    run writes it as `tidal.jsonl`; the bundle's `tidal` table is read from that file."""
-    out = dict(tidal_owner(entries, registry, strict=strict))
-    if record is not None:
-        # T678: THE ATLAS'S ONE TIDAL RECORD (`atlas.splits.coast.TIDAL_RECORD`): read, never recomputed. Only the rows
-        # the book marks tidal (above) are the reach's own fact. A row's claim stands where both hold.
-        if split_ids or whole_waters or inside_lines:
-            raise SystemExit("tidal: the atlas's tidal record and the old tidal inputs were both given — read the record")
-        for s, o in sorted(record.items()):
-            if registry is not None and graph is not None and strict and s not in graph.nodes:
-                raise SystemExit(f"tidal: the atlas's tidal record names {s!r}, which its graph does not hold")
-            out.setdefault(s, o)
-        if report is not None:
-            kinds: dict[str, int] = {}
-            for o in record.values():
-                k = o.split(":", 1)[0]
-                kinds[k] = kinds.get(k, 0) + 1
-            for k in sorted(kinds):
-                report.append({"split": f"{k}: (the atlas's tidal record)", "items": [], "sections": kinds[k],
-                               "unplaced": [], "ambiguous_cut": []})
-        return out
-    if split_ids:
-        for s, o in tidal_cut_owner(registry, graph, split_ids, strict=strict,
-                                    report=report).items():
-            out.setdefault(s, o)
-    if whole_waters:
-        for s, o in tidal_whole_owner(registry, whole_waters, strict=strict, report=report).items():
-            out.setdefault(s, o)
-    if graph is not None and inside_lines:
-        got = tidal_inside_owner(graph, inside_lines, strict=strict)
-        for s, o in got.items():
-            out.setdefault(s, o)
-        if report is not None:
-            report.append({"split": INSIDE_REPORT, "items": [], "sections": len(got), "unplaced": [],
-                           "ambiguous_cut": []})
-    if graph is not None and out:
-        # off-the-map tidal water only (a cut's piece, a whole water): the tiles take the same set
-        # (`tiles.tidal.tidal_pieces`), so the bundle's proof that the map leaves exactly these off holds
-        crossing = tidal_crossing_owner(graph, {s for s, o in out.items() if is_cut_owner(o)})
-        for s, o in crossing.items():
-            out.setdefault(s, o)
-        if report is not None and crossing:
-            report.append({"split": CROSSING_REPORT, "items": [], "sections": len(crossing),
-                           "unplaced": [], "ambiguous_cut": []})
-    return out
-
-
-# ------------------------------------------------------------------------------------------------
-# T660 (owner 2026-11-11): A STREAM ENTERING TIDAL WATER ENDS AT ITS OWN SHORE.
-# ------------------------------------------------------------------------------------------------
-
-#: THE LINE A STREAM IS DRAWN WITH ACROSS THE TIDAL WATER IT ENTERS IS TIDAL WATER. FWA carries a creek on from its
-#: shore straight across a double-line river or estuary to the receiving main flow (`fwa_edge_types.WATER_CROSSING`).
-#: Below the Skeena's tidal limit 38 creeks crossed the removed estuary that way: 84.8 km drawn and bound as freshwater
-#: over tidal water (owner, T632 sheets: "collapsed to the boundary"). The atlas gives each crossing a section of its
-#: own (`atlas.splits.shore`: a cut at the top of the crossing, where the creek leaves the water); the reach takes it
-#: as tidal exactly when it ENDS IN TIDAL WATER OFF THE MAP — a tidal piece, a whole tidal water, or another crossing
-#: that does (a fixpoint). A row marked tidal (Nitinat Lake) stays drawn, so it is no outlet here. A crossing into
-#: FRESH water (a river the owner's limit keeps freshwater to its mouth: the Bear, the Kemano) stays freshwater, and
-#: a crossing with no outlet is not decided here either: both are owner calls, listed, never guessed. The creek above
-#: its shore keeps its own water and stays its river's tributary (taken out AFTER the walk, as every tidal piece).
-A_CROSSING_INTO_TIDAL_WATER_IS_TIDAL = True
-#: the `report.tidal_cuts` row that counts them
-CROSSING_REPORT = "crossings into tidal water"
 _CROSSING = "crossing:"
-#: the shore cut's boundary id (`atlas.splits.shore.SOURCE`, minted `shore:<blk>:<measure>`), as a section bound carries it
-SHORE_PREFIX = "split:shore:"
+_INSIDE = "inside:"
 
 
-def crossing_pieces(graph) -> frozenset[str]:
-    """THE WATER CROSSINGS this atlas holds: every stream piece on a blue line at or below its SHORE CUT (a boundary
-    whose id or alias is a `shore:` split, `atlas.splits.shore`), and every stream piece whose every FWA line is a
-    crossing (`fwa_edge_types.is_water_crossing_only`: a crossing that is its own line, so the atlas had nothing to
-    cut). A cut piece's `edge_types` are its parent's, so the shore cut, not the edge types, says where a cut
-    crossing ends."""
-    from pipeline.common import fwa_edge_types as _et
-    shore: dict[str, float] = {}
-    # pieces of a blue line (a lake or polygon node has no `blk`): the question is the line, not the water's kind, so
-    # no node kind is read (T121: the water kind is `water_kind.kind_of`'s alone)
-    streams = [(nid, n) for nid, n in graph.nodes.items() if n.blk]
-    for _, n in streams:
-        for b in (n.lower_bound, n.upper_bound):
-            if b is None or b.route_measure is None:
-                continue
-            if any(str(x).startswith(SHORE_PREFIX) for x in (b.boundary_id, *b.aliases)):
-                shore[n.blk] = max(shore.get(n.blk, float("-inf")), float(b.route_measure))
-    out = set()
-    for nid, n in streams:
-        top = shore.get(n.blk)
-        if (top is not None and n.up_m <= top + _AT_CUT_M) or _et.is_water_crossing_only(n):
-            out.add(nid)
-    return frozenset(out)
-
-
-def tidal_crossing_owner(graph, tidal) -> dict[str, str]:
-    """`{section: "crossing:<section>"}` — every water crossing (`crossing_pieces`) not already in `tidal` whose every
-    outlet is in `tidal` (the off-the-map tidal sections) or is another such crossing. Deterministic: a fixpoint over
-    the sorted candidates. A crossing with no outlet, or one into fresh water, stays as it is."""
-    cand = sorted(s for s in crossing_pieces(graph) if s not in tidal)
-    out: dict[str, str] = {}
-    grew = True
-    while grew:
-        grew = False
-        for nid in cand:
-            if nid in out:
-                continue
-            downs = [graph.edges[i].to_node for i in graph.down_adj.get(nid, ())]
-            if downs and all(d in tidal or d in out for d in downs):
-                out[nid] = _CROSSING + nid
-                grew = True
+def tidal_water(entries, registry, graph=None, *, record=None, strict: bool = True,
+                report: list | None = None) -> dict[str, str]:
+    """`{section: owner}` — ALL THE TIDAL WATER the reach run takes out of every binding: the waters of the rows the
+    book marks `tidal` (owner: the row's entry id, `tidal_owner`), then THE ATLAS'S tidal sections (`record`, from
+    `atlas.splits.coast.read_tidal`: read, never recomputed). A row's claim stands where both hold. `record` None: no
+    atlas tidal water (a unit-test registry). The run writes the answer as `tidal.jsonl`; the bundle's `tidal` table is
+    read from that file."""
+    out = dict(tidal_owner(entries, registry, strict=strict))
+    if record is None:
+        return out
+    for s, o in sorted(record.items()):
+        if graph is not None and strict and s not in graph.nodes:
+            raise SystemExit(f"tidal: the atlas's tidal record names {s!r}, which its graph does not hold")
+        out.setdefault(s, o)
+    if report is not None:
+        kinds: dict[str, int] = {}
+        for o in record.values():
+            k = o.split(":", 1)[0]
+            kinds[k] = kinds.get(k, 0) + 1
+        for k in sorted(kinds):
+            report.append({"split": f"{k}: (the atlas's tidal record)", "items": [], "sections": kinds[k],
+                           "unplaced": [], "ambiguous_cut": []})
     return out
 
 
 def is_cut_owner(owner: str) -> bool:
-    """Is a `tidal` owner curated tidal water OFF THE MAP — the piece below a tidal split
-    (`split:<id>`), a whole tidal water (`water:<item_id>`, T212), a line wholly in tidal water (`inside:<blk>`,
-    T665) or a water crossing ending in any of them (`crossing:<section>`, T660) — not a row marked tidal?"""
+    """Is a `tidal` owner the atlas's tidal water OFF THE MAP — the piece below a tidal split (`split:<id>`), a whole
+    tidal water (`water:<item_id>`, T212), a line tidal for its length (`inside:<blk>`) or a piece below a coast cut
+    (`crossing:<section>`) — not a row marked tidal?"""
     return str(owner or "").startswith(("split:", "water:", _INSIDE, _CROSSING))
 
 
-# ------------------------------------------------------------------------------------------------
-# T665 (owner 2026-11-11): A LINE WHOLLY INSIDE THE TIDAL POLYGON IS TIDAL WATER.
-# ------------------------------------------------------------------------------------------------
-
-#: THE LINES THE ATLAS LISTS AS TIDAL WATER WHOLE (`atlas.splits.shore.INSIDE`: wholly inside the DFO tidal polygon,
-#: or a creek whose polygon exit is its top) are tidal water off the map: every stream piece of the line, owner
-#: `inside:<blk>`, taken out after the walk like every tidal piece; a creek entering one keeps its own water. False is
-#: the mutation pin.
-A_LINE_THE_ATLAS_LISTS_INSIDE_IS_TIDAL = True
-#: the `report.tidal_cuts` row that counts them
-INSIDE_REPORT = "lines wholly in tidal water"
-_INSIDE = "inside:"
-
-
-def tidal_inside_owner(graph, blks, *, strict: bool = True) -> dict[str, str]:
-    """`{section: "inside:<blk>"}` — every stream piece of each listed line. REFUSED (`strict`): a listed blk with no
-    piece in the graph (the sidecar is from another atlas)."""
-    if not A_LINE_THE_ATLAS_LISTS_INSIDE_IS_TIDAL:
-        return {}
-    want = set(blks)
-    out: dict[str, str] = {}
-    for nid in sorted(graph.nodes):
-        n = graph.nodes[nid]
-        if n.blk in want:
-            out[nid] = _INSIDE + n.blk
-    missing = sorted(want - {n[len(_INSIDE):] for n in out.values()})
-    if missing and strict:
-        raise SystemExit(f"tidal: {len(missing)} line(s) the atlas lists as tidal whole have no piece in its graph: "
-                         f"{missing[:5]}")
-    return out
-
-
-def inside_lines(build_dir) -> tuple[str, ...]:
-    """The atlas's lines wholly in tidal water (`atlas.splits.shore.read_inside`), sorted."""
-    from pipeline.atlas.splits.shore import read_inside
-    return read_inside(build_dir)
-
-
 def is_crossing_owner(owner: str) -> bool:
-    """Is a `tidal` owner a water crossing ending in tidal water (`crossing:<section>`, T660)?"""
+    """Is a `tidal` owner a piece below a line's coast cut (`crossing:<section>`)?"""
     return str(owner or "").startswith(_CROSSING)

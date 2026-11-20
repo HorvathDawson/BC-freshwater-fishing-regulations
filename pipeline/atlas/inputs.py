@@ -71,6 +71,9 @@ NOT_ATLAS_INPUTS: dict[str, str] = {
     "curated:gauges.matches": "guarded by its own record, `gauge_matches.json` (cut-set digest, T159): a row that is "
                               "no cut does not change the graph (`gauges.matches.check_record`)",
     "curated:gauges.match_calls": "read only for the printed trust mix of the gauge cuts; shapes nothing",
+    "curated:waters.added_stream_calls": "(T679 #13) read only by the added-streams GENERATOR (`added_streams.clean."
+                                         "calls`), never by the atlas build: its reviewed output, added_streams.json, "
+                                         "is the atlas input",
 }
 
 #: what catches a stale input up. Every input needs a rebuild (T678: there is no post-build tidal rewrite).

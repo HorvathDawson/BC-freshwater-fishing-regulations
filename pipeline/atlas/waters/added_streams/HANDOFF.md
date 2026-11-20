@@ -68,7 +68,7 @@ a bare `pytest` (testpaths = pipeline/tests) does NOT collect them; run the expl
   Slough → 100-). tidal is still the last resort when nothing else is within reach.
 
 ## Curation config
-- `clean.py::_EXCLUDE_NAMES_BY_SOURCE` (drop by name) and `_EXCLUDE_SRC_IDS_BY_SOURCE` (drop one piece by
+- (T679 #13: now curated, `data/curated/waters/added_stream_calls.json`, `clean.calls()`) `exclude_names` (drop by name) and `exclude_src_ids` (drop one piece by
   src_id, incl. a single `.N` MLS part — checked AFTER the suffix). burnaby prunes: 344, 356.1, 279, 305,
   274, 268. squamish: 654/.1/.2, 608.5, 597.1/.2, 664, 658.1.
 - `build_dataset.py`: `FWA_EXCLUDE_BY_SOURCE` (squamish adds 900-102882-190726), `RELIABLE_SOURCES=set()`,

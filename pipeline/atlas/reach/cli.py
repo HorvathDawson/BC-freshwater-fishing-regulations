@@ -70,23 +70,14 @@ def main() -> int:
     # THE USER'S KNOWN-STEELHEAD LIST (curated; a missing file raises) — `reach.steelhead`: a
     # presence indicator, it binds no rule.
     from pipeline.atlas.reach.steelhead import load_list
-    # THE TIDAL BOUNDARIES THIS ATLAS CUT (T166, `outside.tidal_splits`): the piece below each is
-    # tidal water, out of every binding after the walk.
-    from pipeline.atlas.reach.outside import inside_lines, tidal_splits, tidal_waters
+    # THE ATLAS'S TIDAL WATER (T678): its graph nodes (plan 5) checked against its one tidal record, or the record of an
+    # atlas built before plan 5 — read, never recomputed; an atlas cut before the coast rule is refused
     from pipeline.atlas.splits import coast as _coast
-    if _coast.built_by_coast_rule(build):
-        # T678: an atlas cut by the coast rule writes THE tidal record; the reach reads it and recomputes nothing
-        rec = _coast.read_record(build)
-        print(f"  tidal: the atlas's tidal record ({_coast.TIDAL_RECORD}, {len(rec):,} section(s))")
-        result = build_reaches(entries, registry, graph, build=build.name,
-                               handles=digest_for(build), steelhead_list=load_list(), tidal_record=rec)
-    else:
-        # an atlas cut before T678 (no record): its tidal inputs, as it was built to be read
-        print(f"  tidal: {build.name} was cut before T678 (no {_coast.TIDAL_RECORD}): reading its tidal sidecars")
-        result = build_reaches(entries, registry, graph, build=build.name,
-                               handles=digest_for(build), steelhead_list=load_list(),
-                               tidal_splits=tidal_splits(build), tidal_waters=tidal_waters(build),
-                               inside_lines=inside_lines(build))
+    rec = _coast.read_tidal(build, graph)
+    print(f"  tidal: the atlas's tidal water ({'its graph nodes, = ' if _coast.record_on_nodes(build) else ''}"
+          f"{_coast.TIDAL_RECORD}, {len(rec):,} section(s))")
+    result = build_reaches(entries, registry, graph, build=build.name,
+                           handles=digest_for(build), steelhead_list=load_list(), tidal_record=rec)
     r = result.report
     # T546 item 7: the curated override ids this registry lacks — the matcher's `unresolved_ids` had no reader,
     # so a partly resolved override bound the ids that resolved and dropped the rest unseen

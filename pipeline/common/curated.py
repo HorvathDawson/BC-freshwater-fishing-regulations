@@ -138,6 +138,9 @@ class Waters(BaseModel):
     added_lakes: FilePath
     #: PROMOTED, not authored — 361 minted streams whose negative `blk` ids are a live ABI.
     added_streams: FilePath
+    #: AUTHORED (T679 #13): the added-streams generator's hand fixes (a feature dropped by name or src_id, a name typo,
+    #: a receiver override), read by the generator only (`added_streams.clean.calls`), never by the atlas build.
+    added_stream_calls: FilePath
     #: The worklist for minting more added lakes (was `ungazetted.json`). No build reader BY DESIGN; the minting is a
     #: hand process. Checked by `check_curated --waters`; declared so a dead-file sweep cannot delete it.
     unmapped_waters: FilePath
@@ -204,6 +207,9 @@ class Regulations(BaseModel):
     #: ACCEPTED (T679 D4): every printed-word read the reach made that matched on the accepted run; a listed read that
     #: stops matching stops the reach run (`pipeline.atlas.reach.word_reads`).
     word_reads: FilePath
+    #: AUTHORED (T679 #12): the owner's rulings on the export's two closure scans, a dated water release / a water
+    #: row's quota under a blanket closure (`pipeline.deliver.export.closures.under_closure_calls`).
+    under_closure_calls: FilePath
 
     _abs = field_validator("*", mode="before")(_absolute)
 
@@ -255,7 +261,7 @@ class RunTiming(BaseModel):
 class InSeason(BaseModel):
     """T226: the provincial in-season notices bound to waters (`notice_waters.json`, was `matches.json`;
     `pipeline.regs.inseason.matches`), AUTHORED — written by the review app's In-season tab or by hand, never by a
-    generator."""
+    generator. (T679 #11) The owner's matches only: their resolved ranges are generated (`matches.resolved_path()`)."""
 
     model_config = ConfigDict(frozen=True)
 

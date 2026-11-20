@@ -15,19 +15,31 @@ catalogue (`parsing.entry_models.Extent`), narrowed to what a banner needs:
 "to"}, ISO; either may be omitted), `note` is the curator's. `history` is append-only: one row per edit (set / clear)
 with its time, who and the note.
 
-(T520) `waters` is the match RESOLVED on the release the file names (`release`), by `pipeline.regs.inseason.resolve`
-where the atlas is (the review app on save; the release promote, `upload.sh`, re-resolves every match): per water it
-touches, `{"all": true}` (every section of it) or `{"runs": [[blk, m0, m1], …], "lakes"?: true, "ends": [[lo, hi], …]}`
+(T520) `waters` is the match RESOLVED on the release the resolution names (`release`), by
+`pipeline.regs.inseason.resolve` where the atlas is (the review app on save; the release command's `follows` stage
+re-resolves every match on its candidate): per water it touches, `{"all": true}` (every section of it) or `{"runs": [[blk, m0, m1], …], "lakes"?: true, "ends": [[lo, hi], …]}`
 — FWA stream key + metre ranges (never a section id or a part index, AGENTS 5). (T673) They are RELEASE-INDEPENDENT:
 a release places a range on every section of the water whose line [from, to) it touches (`resolve.touched`), so any
 release, older or newer, reads the same file; `lakes: true` = every lake piece of the river (no line to range).
 `release` stays as where it was resolved and proved (the stamp). Lakes and wetlands are whole-item only. `unresolved` says why a re-resolve could not place the match (publish refuses it).
 `publish` only formats this — no atlas.
 
+(T679 #11) TWO FILES, ONE DOCUMENT. The owner's matches are curated (`notice_waters.json`, `CURATED_FORMAT`: each
+match's extents, dates, note, who, and the history); what a resolve DERIVES from them — `release`, `words`, and each
+match's `waters` / `unresolved` / `stamp` — is generated (`resolved_path()`, `GENERATED.inseason/resolved.json`,
+`RESOLVED_FORMAT`), written by `resolve` (and the review app's two in-season routes) only, never committed. `load` reads
+both into one `Matches` (the in-memory `FORMAT`, the shape the curated file had before the split: `dumps` is still its
+text, and publish's digest is of that text); a missing resolution RAISES, naming the command that makes it. A curated
+match the resolution does not hold reads `unresolved` (publish refuses it until re-resolved); a resolution of a match
+the owner cleared is dropped.
+
 INFORMATIONAL ONLY. A match puts a banner on the water in the app; it never changes a computed answer or a status.
 This file is never a mark (AGENTS 66): the review app writes it through its one in-season route, `writes.commit`.
 
-    load(path=None) -> Matches       raises on a missing file (AGENTS 37) and on an invalid one
+    load(path=None) -> Matches       the curated file + its resolution; raises on a missing file (AGENTS 37) and on
+                                     an invalid one
+    load_curated(path=None)          the curated file alone (no resolution): what `resolve` reads
+    dumps_curated / dumps_resolved   the two files' texts
     problems(doc, feed_ids=…, split_ids=…) -> [str]   every reason the doc is refused, [] when it is not
     set_match / clear_match          the edit + its history row (pure: the caller commits the text)
     dumps(doc) -> str                the file's text (stable key order)
@@ -41,7 +53,18 @@ from typing import Dict, Iterable, List, Literal, Optional, Tuple
 
 from pydantic import BaseModel, ConfigDict, Field, ValidationError, field_validator
 
+#: the in-memory document: the curated matches WITH their resolution (the curated file's shape before T679 #11)
 FORMAT = "inseason-matches/2"
+#: (T679 #11) the curated file: the owner's matches only
+CURATED_FORMAT = "inseason-matches/3"
+#: (T679 #11) the generated file: what `resolve` derived, per match, on one release
+RESOLVED_FORMAT = "inseason-resolved/1"
+RESOLVED_NAME = "resolved.json"
+#: the fields of `Matches` / `Match` that are DERIVED (the generated file's), never in the curated file
+DERIVED_DOC = ("release", "words")
+DERIVED_MATCH = ("waters", "unresolved", "stamp")
+#: the command that writes the resolution (named by every refusal of a missing one)
+RESOLVE_CMD = "python -m pipeline.regs.inseason.resolve"
 ID_RE = re.compile(r"^is-[0-9a-f]{12}$")
 ITEM_RE = re.compile(r"^(gnis|wbk|blk|wsc):[\w.\-]+$")
 DATE_RE = re.compile(r"^\d{4}-\d{2}-\d{2}$")
@@ -194,19 +217,73 @@ def default_path() -> Path:
     return CURATED.inseason.notice_waters
 
 
+def resolved_path() -> Path:
+    """(T679 #11) the generated resolution of the curated matches (`resolve` writes it; never committed)."""
+    from pipeline.common.curated import GENERATED
+    return Path(GENERATED.inseason) / RESOLVED_NAME
+
+
 def parse(text: str) -> Matches:
+    """The in-memory document (`FORMAT`: matches with their resolution) from its text."""
     return Matches.model_validate(json.loads(text))
 
 
-def load(path: Path | str | None = None, *, split_ids: Iterable[str] | None = None) -> Matches:
-    """The curated matches, validated. A missing file RAISES (AGENTS 37); so does an unknown split when `split_ids`
-    is given (default: every id in the curated splits.json)."""
+def parse_curated(text: str, where: str = "notice_waters.json") -> Matches:
+    """The CURATED file (`CURATED_FORMAT`) as a document with no resolution. Refused: another format, or a derived
+    field in it (the resolution lives in the generated file only)."""
+    raw = json.loads(text)
+    if raw.get("format") != CURATED_FORMAT:
+        raise ValueError(f"{where}: format {raw.get('format')!r}, not {CURATED_FORMAT!r}")
+    bad = [k for k in DERIVED_DOC if k in raw]
+    bad += [f"{rid}.{k}" for rid, m in sorted((raw.get("matches") or {}).items()) for k in DERIVED_MATCH if k in m]
+    if bad:
+        raise ValueError(f"{where}: derived field(s) {bad[:5]} belong in the generated resolution "
+                         f"({RESOLVED_NAME}, `{RESOLVE_CMD}`), not the curated file")
+    return Matches.model_validate({**raw, "format": FORMAT})
+
+
+def merge(doc: Matches, resolved: dict) -> Matches:
+    """`doc` (curated, no resolution) with the generated resolution `resolved` (`RESOLVED_FORMAT`). A match the
+    resolution does not hold reads `unresolved` (publish refuses it); a resolution of a match not in `doc` is dropped."""
+    if resolved.get("format") != RESOLVED_FORMAT:
+        raise ValueError(f"{RESOLVED_NAME}: format {resolved.get('format')!r}, not {RESOLVED_FORMAT!r}")
+    got = resolved.get("matches") or {}
+    out = {}
+    for rid in sorted(doc.matches):
+        r = got.get(rid)
+        if r is None:
+            out[rid] = doc.matches[rid].model_copy(update={"unresolved": f"not resolved yet: run {RESOLVE_CMD}"})
+            continue
+        base = doc.matches[rid].model_dump(by_alias=True, exclude_none=True, exclude=set(DERIVED_MATCH))
+        out[rid] = Match.model_validate({**base, **{k: v for k, v in r.items() if k in DERIVED_MATCH}})
+    return doc.model_copy(update={"release": str(resolved.get("release") or ""),
+                                  "words": dict(resolved.get("words") or {}), "matches": out})
+
+
+def load_curated(path: Path | str | None = None, *, split_ids: Iterable[str] | None = None) -> Matches:
+    """The curated matches alone (no resolution), validated. A missing file RAISES (AGENTS 37); so does an unknown
+    split when `split_ids` is given (default: every id in the curated splits.json)."""
     p = Path(path) if path else default_path()
-    doc = parse(p.read_text(encoding="utf-8"))
+    doc = parse_curated(p.read_text(encoding="utf-8"), str(p))
     errs = problems(doc, split_ids=all_split_ids() if split_ids is None else split_ids)
     if errs:
         raise ValueError(f"{p}: " + "; ".join(errs))
     return doc
+
+
+def load(path: Path | str | None = None, *, resolved: Path | str | None = None,
+         split_ids: Iterable[str] | None = None) -> Matches:
+    """The curated matches WITH their generated resolution (`resolved`, default `resolved_path()`), validated. A
+    missing file of either RAISES (AGENTS 37) — the resolution's refusal names the command that writes it."""
+    doc = load_curated(path, split_ids=split_ids)
+    if not doc.matches:
+        return doc                       # nothing matched: nothing to resolve (the mini release's empty tree)
+    r = Path(resolved) if resolved else resolved_path()
+    if not r.exists():
+        raise FileNotFoundError(f"{r}: the in-season matches are not resolved on this machine — make it with "
+                                f"`{RESOLVE_CMD}` (it resolves {Path(path) if path else default_path()} on "
+                                "data/release/LATEST)")
+    return merge(doc, json.loads(r.read_text(encoding="utf-8")))
 
 
 def all_split_ids() -> set[str]:
@@ -288,10 +365,41 @@ def dumps(doc: Matches) -> str:
            "words": {k: doc.words[k] for k in sorted(doc.words)},
            "matches": {k: _dump_match(doc.matches[k]) for k in sorted(doc.matches)},
            "history": [h.model_dump(exclude_none=True) for h in doc.history]}
-    text = json.dumps(out, indent=2, ensure_ascii=False) + "\n"
+    return _one_line(json.dumps(out, indent=2, ensure_ascii=False) + "\n")
+
+
+def _one_line(text: str) -> str:
     # a range or an end pair on one line (the file is read by people too)
     return re.sub(r"\[\s+(-?\d+|\"[^\"\n]*\"),\s+(-?\d+|\"[^\"\n]*\")(?:,\s+(-?\d+))?\s+\]",
                   lambda g: "[" + ", ".join(x for x in g.groups() if x is not None) + "]", text)
+
+
+def dumps_curated(doc: Matches) -> str:
+    """(T679 #11) the CURATED file's text: `dumps` without the derived fields (`DERIVED_DOC`, `DERIVED_MATCH`)."""
+    out = json.loads(dumps(doc))
+    for k in DERIVED_DOC:
+        out.pop(k, None)
+    for m in out["matches"].values():
+        for k in DERIVED_MATCH:
+            m.pop(k, None)
+    out["format"] = CURATED_FORMAT
+    return json.dumps(out, indent=2, ensure_ascii=False) + "\n"
+
+
+#: the generated file's own note
+RESOLVED_COMMENT = ("GENERATED by pipeline.regs.inseason.resolve (T679 #11): the curated in-season matches "
+                    "(data/curated/inseason/notice_waters.json) resolved on `release` — FWA ranges + end tokens per "
+                    "match. Never edited by hand, never committed; read with the curated file through "
+                    "pipeline.regs.inseason.matches.load.")
+
+
+def dumps_resolved(doc: Matches) -> str:
+    """(T679 #11) the GENERATED resolution's text: the release, the words and each match's derived fields."""
+    full = json.loads(dumps(doc))
+    out = {"$comment": RESOLVED_COMMENT, "format": RESOLVED_FORMAT, "release": full["release"],
+           "words": full["words"],
+           "matches": {rid: {k: m[k] for k in DERIVED_MATCH if k in m} for rid, m in full["matches"].items()}}
+    return _one_line(json.dumps(out, indent=2, ensure_ascii=False) + "\n")
 
 
 def set_match(doc: Matches, rid: str, match: Match, *, at: str, by: str = "", note: str = "") -> Matches:
@@ -313,5 +421,6 @@ def clear_match(doc: Matches, rid: str, *, at: str, by: str = "", note: str = ""
 
 
 __all__ = ["FORMAT", "InSeasonExtent", "Effective", "Match", "HistoryRow", "Matches", "ValidationError",
-           "Water", "span", "stamp_of", "stamped", "load", "parse", "problems", "dumps", "set_match", "clear_match", "split_labels", "all_split_ids",
-           "default_path"]
+           "Water", "span", "stamp_of", "stamped", "load", "load_curated", "parse", "parse_curated", "merge", "problems",
+           "dumps", "dumps_curated", "dumps_resolved", "set_match", "clear_match", "split_labels", "all_split_ids",
+           "default_path", "resolved_path"]

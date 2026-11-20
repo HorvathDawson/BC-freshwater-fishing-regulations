@@ -570,6 +570,46 @@ def build_registry(graph: StreamGraph, prof=None, pinned: dict[str, str] | None 
     return registry
 
 
+#: T679 #6 (prepared 2026-11-20 for the wave-4 atlas build; False until that build): THE REGISTRY OWNS EVERY NAMED
+#: NODE. A section of no registry water still carried its FWA name: the tiles labelled it (`Owners.label` falls back
+#: to `node.display_name`), the bundle's span words named a cut with it, and the app opened it as unnamed on a tap. On:
+#: the build clears `display_name` on every node no stream / lake / wetland item holds (`clear_unheld_names`), after
+#: the final registry and before graph.pkl is written; `name_tuples` stay (provenance, and the passes `atlas.sidecars`
+#: re-runs read them). Measured on every build (`step10_report.json`). Flipping it changes labels: rebuild + diff.
+NAMED_NODES_ARE_IN_ITEMS = False
+
+
+def _held(registry: dict) -> set[str]:
+    out: set[str] = set()
+    for it in registry.values():
+        if str(getattr(it, "kind", "") or "") in ("stream", "lake", "wetland"):
+            out.update(it.section_ids)
+    return out
+
+
+def unheld_named(graph: StreamGraph, registry: dict) -> list[str]:
+    """The nodes carrying a `display_name` that no stream / lake / wetland item of `registry` holds, sorted."""
+    held = _held(registry)
+    return sorted(nid for nid, n in graph.nodes.items() if (n.display_name or "").strip() and nid not in held)
+
+
+def count_by_kind(graph: StreamGraph, nids) -> dict[str, int]:
+    out: dict[str, int] = {}
+    for nid in nids:
+        k = str(getattr(graph.nodes[nid].kind, "value", graph.nodes[nid].kind))
+        out[k] = out.get(k, 0) + 1
+    return dict(sorted(out.items()))
+
+
+def clear_unheld_names(graph: StreamGraph, registry: dict) -> int:
+    """T679 #6: clear `display_name` on every node `unheld_named` lists (a frozen node is replaced). Returns the count."""
+    from dataclasses import replace
+    nids = unheld_named(graph, registry)
+    for nid in nids:
+        graph.nodes[nid] = replace(graph.nodes[nid], display_name="")
+    return len(nids)
+
+
 def add_boundary_confidence(registry: dict[str, RegistryItem], split_defs) -> dict[str, RegistryItem]:
     """(T207) Each curated boundary carries its split's authored `confidence` (`SplitDef.confidence`):
     a boundary whose own id is a split authored `medium` or `low` says so; every other stays `high`

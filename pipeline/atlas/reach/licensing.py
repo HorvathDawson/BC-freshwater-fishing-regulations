@@ -275,80 +275,6 @@ def why_not_yield(own, inherited) -> str | None:
     return None
 
 
-def own_beats_inherited(placements: list[LicensingPlacement], records: dict
-                        ) -> tuple[list[LicensingPlacement], list[Diagnostic]]:
-    """A water's OWN designation beats one that reaches it only by another water's tributary walk
-    — WHEN IT SAYS AT LEAST AS MUCH.
-
-    It is how rules resolve — a water's own rule beats one arriving from elsewhere — applied to
-    the designations. A section bound to a designation by REACH (the designation names this
-    water) is taken out of another designation's TRIBUTARY-inherited binding. Without it the
-    Suskwa, Class I with its own designation, also read Class II by the Bulkley's walk; the Elk's
-    unit covered Wigwam, Michel, Forsyth and Abruzzi, each with its own unit licence; and a
-    non-resident on those sections was told to buy two different day licences (design validator
-    6, reported as ambiguous units).
-
-    Only designations, and only the INHERITED half: a designation's own reach is never taken from
-    it. A section two designations both name by reach is CONTESTED and yields nothing — it stays
-    ambiguous and is reported. A `trib_pending` placement's sections are its direct ones, so they
-    count as its own. And the inherited one yields only if `why_not_yield` finds nothing the own
-    one would lose — period, stamp, suspension. Otherwise BOTH stay on the section and the pair is
-    reported (`trib_kept_beside_own`), because silently dropping the stricter designation is the
-    under-requiring direction, which is the unsafe one for licensing.
-
-    `records` maps `(entry_id, record_id)` to the validated `Designation`.
-    Every removal is a diagnostic (`trib_yields_to_own`), naming the designations it yielded to.
-    """
-    own: dict[str, set[tuple[str, str]]] = {}
-    for p in placements:
-        if p.kind == "designation" and p.placement == "sections":
-            trib = set(p.via_tributary)
-            for s in p.sections:
-                if s not in trib:
-                    own.setdefault(s, set()).add((p.entry_id, p.record_id))
-
-    out: list[LicensingPlacement] = []
-    diags: list[Diagnostic] = []
-    for p in placements:
-        if p.kind != "designation" or p.placement != "sections" or not p.via_tributary:
-            out.append(p)
-            continue
-        me = (p.entry_id, p.record_id)
-        yielded: dict[str, set[tuple[str, str]]] = {}
-        kept: dict[tuple[tuple[str, str], str], int] = {}
-        for s in p.via_tributary:
-            others = own.get(s, set()) - {me}
-            if not others:
-                continue
-            if len(others) > 1:
-                kept[(min(others), "contested")] = kept.get((min(others), "contested"), 0) + 1
-                continue
-            (o,) = others
-            why = why_not_yield(records[o], records[me])
-            if why:
-                kept[(o, why)] = kept.get((o, why), 0) + 1
-                continue
-            yielded[s] = others
-        for (o, why), n in sorted(kept.items()):
-            diags.append(Diagnostic(p.entry_id, p.record_id, "trib_kept_beside_own", {
-                "sections": n, "own": f"{o[0]}#{o[1]}", "why": why}))
-        if not yielded:
-            out.append(p)
-            continue
-        keep = tuple(s for s in p.sections if s not in yielded)
-        if not keep:
-            raise AssertionError(f"{p.entry_id}#{p.record_id}: every section it binds is another "
-                                 f"designation's own — it would end bound to nothing")
-        to = sorted({f"{e}#{i}" for v in yielded.values() for e, i in v})
-        diags.append(Diagnostic(p.entry_id, p.record_id, "trib_yields_to_own", {
-            "removed": len(yielded), "kept": len(keep), "to": to}))
-        out.append(LicensingPlacement(
-            p.entry_id, p.record_id, p.kind, p.placement, sections=keep,
-            via_tributary=tuple(s for s in p.via_tributary if s not in yielded),
-            tributaries_pending=p.tributaries_pending, reason=p.reason, detail=p.detail))
-    return out, diags
-
-
 #: POLICY (user rulings 2026-10-03), named so a test can switch it off and watch it go red: a
 #: section takes the Classified Waters designation of the FIRST classified water it flows into,
 #: and a tributary with a row of its own that prints no designation is not classified at all.
@@ -415,6 +341,15 @@ def first_classified_downstream(placements: list[LicensingPlacement], records: d
     section walked by both takes the one whose reach it actually flows into (Limonite Creek and
     the tributaries joining at the A/B cut take the reach the graph joins them to; ruling
     2026-10-04 under the user's 2026-10-03 rule).
+    THE ONE PASS (T679 #10, 2026-11-20). A walked section that is ANOTHER designation's own reach is that
+    designation's stop, so it is re-homed to it whatever its class or period. One case is decided before the
+    walk, because the walker's own water is no stop: a walked section on the WALKER'S OWN WATER (`mine`, outside
+    its own reach) that exactly one other designation names by reach goes to that one when it says at least as
+    much (`why_not_yield` finds nothing: `trib_yields_to_own`); otherwise — two own designations (contested), or
+    one that would lose a period, stamp, class or suspension — the walker keeps it beside them
+    (`trib_kept_beside_own`). This was a separate pass before this one (`own_beats_inherited`); every other
+    section it decided, this pass re-homed to the same designation, so only this case was its own.
+
     Every removal and every re-homing is a diagnostic. `records` maps `(entry_id, record_id)`
     to the validated `Designation`; `owned` is `outside.rowed_waters`; `kind_of(section)` is
     the registry's water kind."""
@@ -537,7 +472,22 @@ def first_classified_downstream(placements: list[LicensingPlacement], records: d
         past = _walked_past_sections(records.get(me), registry)
         rehomed: dict[tuple[str, str], set[str]] = {}
         dropped: dict[str, set[str]] = {}
+        yielded: dict[str, set[tuple[str, str]]] = {}
+        kept: dict[tuple[tuple[str, str], str], int] = {}
         for s in p.via_tributary:
+            here = own_of.get(s, set()) - {me}
+            if here and s in mine:
+                # ON THE WALKER'S OWN WATER another designation names by reach (the docstring's one case)
+                if len(here) > 1:
+                    kept[(min(here), "contested")] = kept.get((min(here), "contested"), 0) + 1
+                    continue
+                (o,) = here
+                why = why_not_yield(records[o], records[me])
+                if why:
+                    kept[(o, why)] = kept.get((o, why), 0) + 1
+                else:
+                    yielded[s] = here
+                continue
             t = stop_at_or_below(s)
             passed: set[str] = set()
             while t is not None and t not in passed:      # a braid turning back: stop
@@ -565,6 +515,14 @@ def first_classified_downstream(placements: list[LicensingPlacement], records: d
                 t = stop_at_or_below(next_down(t))
         gone = set().union(*rehomed.values(), *dropped.values()) if (rehomed or dropped) \
             else set()
+        gone |= set(yielded)
+        for (o, why), n in sorted(kept.items()):
+            diags.append(Diagnostic(p.entry_id, p.record_id, "trib_kept_beside_own", {
+                "sections": n, "own": f"{o[0]}#{o[1]}", "why": why}))
+        if yielded:
+            diags.append(Diagnostic(p.entry_id, p.record_id, "trib_yields_to_own", {
+                "removed": len(yielded), "kept": sum(1 for s in p.sections if s not in gone),
+                "to": sorted({f"{e}#{i}" for v in yielded.values() for e, i in v})}))
         for d, secs in sorted(rehomed.items()):
             why = why_not_yield(records[d], records[me]) if d in records and me in records \
                 else None

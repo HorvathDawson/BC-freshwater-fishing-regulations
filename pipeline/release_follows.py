@@ -67,8 +67,9 @@ FOLLOWS: tuple[Follow, ...] = (
            ("app/packages/data/dev/regs-release", "app/packages/data/dev/section-lines.json"), RECUT),
     Follow("golden-pages", "the frozen golden pages (the words of each golden state's page)",
            ("app/packages/ui-native/src/regs/fixtures",), RECUT, answers=True),
-    Follow("inseason", "the in-season notice matches, their ranges re-derived on the release",
-           (_rel(CURATED.inseason.notice_waters),), INSEASON),
+    Follow("inseason", "the in-season notice matches, their ranges re-derived on the release (T679 #11: into the "
+           "generated resolution, data/generated/inseason/resolved.json; not in git — the curated matches are only read)",
+           (), INSEASON),
     Follow("baseline", "the reach run the live release was cut from (the binding diff's \"before\"; not in git: "
            "data/generated/release/baseline/<LATEST>/, kept by the baseline stage and by `pipeline build`)", (), None),
 )

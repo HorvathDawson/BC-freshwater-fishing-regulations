@@ -186,6 +186,38 @@ def mark_out_of_bc(graph: StreamGraph, geoms: dict, outline, blks=None) -> int:
     return n
 
 
+#: T679 #1 (prepared 2026-11-20 for the wave-4 atlas build; False until that build): ONE "OUTSIDE B.C." FLAG. The
+#: reach counted a section outside when it is `out_of_bc` OR in no region polygon (`reach.outside.outside_bc`), while
+#: the tiles and the tributary walk read `out_of_bc` alone, so the border slivers no region claims were drawn,
+#: tappable, ruleless and "outside B.C." on a tap. On: the atlas stamps `out_of_bc` on every node in no region too
+#: (`mark_regionless`, once the registry's regions exist, before graph.pkl is written), and the reach reads the flag
+#: alone (refusing an atlas that left one regionless node unstamped). Flipping it changes output: a rebuild + a
+#: binding diff by place (AGENTS 63) + the tiles' drawn set against `undrawn.json`.
+ONE_OUTSIDE_FLAG = False
+
+
+def regionless(graph: StreamGraph, registry) -> frozenset[str]:
+    """The nodes in no region polygon by the one membership (`regions.area_family_sections(..., "region")`); empty when
+    the registry holds no region item (a unit-test registry: no claim either way)."""
+    from pipeline.atlas.registry import regions as _regions
+    inside = _regions.area_family_sections(registry, "region", graph)
+    if inside is None:
+        return frozenset()
+    return frozenset(nid for nid in graph.nodes if nid not in inside)
+
+
+def mark_regionless(graph: StreamGraph, registry) -> int:
+    """T679 #1: stamp `out_of_bc=True` on every node in no region polygon (`regionless`) not stamped already. Returns
+    the count stamped."""
+    n = 0
+    for nid in sorted(regionless(graph, registry)):
+        node = graph.nodes[nid]
+        if not node.out_of_bc:
+            graph.nodes[nid] = replace(node, out_of_bc=True)
+            n += 1
+    return n
+
+
 #: A piece has to claim this many metres of route before its missing geometry means anything —
 #: below it, a zero-length piece is a cut-point artifact, not a river leaving the province.
 _NO_GEOM_MIN_M = 250.0

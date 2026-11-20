@@ -320,8 +320,47 @@ def test_the_reach_reads_the_record_and_adds_only_the_books_tidal_rows():
     rec = {"K:0": "crossing:K:0", "X:0": "split:x"}
     got = O.tidal_water([{"entry_id": "e1", "tidal": True, "matched": ["wbk:1"]}], reg, None, record=rec)
     assert got == {"L:0": "e1", "K:0": "crossing:K:0", "X:0": "split:x"}
-    with pytest.raises(SystemExit):                                     # never both: the record or the old inputs
-        O.tidal_water([], reg, None, ("x",), record=rec)
+    assert O.tidal_water([], reg, None) == {}                            # no atlas tidal water given: none
+
+
+def test_plan5_the_owner_is_on_the_node_and_the_record_checks_it(tmp_path, monkeypatch):
+    """T678 plan 5 (owner B): the build stamps each tidal section's owner on its graph node and says so in the record;
+    a reader takes the node, refused when node and record differ, and an atlas built before plan 5 is read from its
+    record. Mutation: `THE_TIDAL_OWNER_IS_ON_THE_NODE = False` -> no node carries it, the record says `on_nodes` no."""
+    import json
+    g = _graph()
+    (tmp_path / "shore_cuts.json").write_text(json.dumps({"rule": C.RULE, "runs": []}))
+    owners = {"X:0": "split:x"}
+    assert C.record_tidal(tmp_path, g, owners, {}) is True
+    assert g.nodes["X:0"].tidal == "split:x" and C.node_owners(g) == owners
+    assert C.record_on_nodes(tmp_path) and C.read_tidal(tmp_path, g) == owners
+    with pytest.raises(SystemExit, match="read it with the atlas's graph"):
+        C.read_tidal(tmp_path)
+    g2 = _graph()                                                         # another graph: no node stamped
+    with pytest.raises(SystemExit, match="differ"):
+        C.read_tidal(tmp_path, g2)
+    with pytest.raises(SystemExit, match="already"):
+        C.stamp_nodes(g, {"X:0": "water:gnis:8"})
+    with pytest.raises(SystemExit, match="does not hold"):
+        C.stamp_nodes(g, {"Q:0": "split:x"})
+    monkeypatch.setattr(C, "THE_TIDAL_OWNER_IS_ON_THE_NODE", False)
+    g3 = _graph()
+    assert C.record_tidal(tmp_path, g3, owners, {}) is False
+    assert C.node_owners(g3) == {} and not C.record_on_nodes(tmp_path) and C.read_tidal(tmp_path) == owners
+    (tmp_path / "shore_cuts.json").write_text(json.dumps({"rule": "polygon/1", "runs": []}))
+    with pytest.raises(SystemExit, match="not cut by the coast rule"):    # a pre-T678 atlas: retired, refused
+        C.read_tidal(tmp_path)
+
+
+def test_plan5_a_pickle_from_before_the_field_reads_no_tidal_owner():
+    import pickle
+    from pipeline.common.models import NodeKind, StreamNode
+    n = StreamNode(node_id="X:0", kind=NodeKind.stream, blk="X")
+    st = dict(n.__dict__)
+    st.pop("tidal")
+    old = StreamNode.__new__(StreamNode)
+    object.__setattr__(old, "__dict__", st)
+    assert pickle.loads(pickle.dumps(old)).tidal == ""
 
 
 def test_the_held_file_refuses_a_cut_without_a_measure(tmp_path):

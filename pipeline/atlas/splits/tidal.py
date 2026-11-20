@@ -16,8 +16,10 @@ its tidal limit is:
 GUARD (memory end-cut-halves-the-water): a tidal row NEVER cuts a line's end. A `mouth` row never becomes a
 SplitPoint, and a `cut` within `SLIVER_M` of its line's lower end is refused (`refuse_end_cuts`).
 
-The atlas writes what it made of every row to `tidal.resolved.json` beside registry.json; the reach run, the tiles and
-the review app read that sidecar (`reach.outside.tidal_splits` / `tidal_waters`), never this file.
+The atlas writes what it made of every row to `tidal.resolved.json` beside registry.json (read by people and the
+release checks). THE PIECE A RANK-1 ROW MAKES TIDAL is resolved here, in the atlas (T678 plan 2: `tidal_cut_owner`,
+`tidal_whole_owner`, `rank1_owners`), once before the coast cut and once on the registry written; the atlas's one tidal
+record (`coast.TIDAL_RECORD`) carries the answer, and the reach, tiles and review app read that, never this file.
 """
 from __future__ import annotations
 
@@ -281,3 +283,105 @@ def read_resolved(build_dir) -> list[dict]:
         raise SystemExit(f"tidal: {p} is missing — the atlas writes it (T326); rebuild the atlas "
                          f"(T678: only the atlas build writes it; there is no post-build tidal rewrite)")
     return json.loads(p.read_text(encoding="utf-8"))
+
+
+# ------------------------------------------------------------------------------------------------
+# T678 plan 2 (moved from `reach.outside`, 2026-11-20): THE PIECE A RANK-1 LIMIT MAKES TIDAL, resolved in the atlas.
+# The reach reads the atlas's record and resolves nothing; it imports these names from here when it needs them.
+# ------------------------------------------------------------------------------------------------
+
+#: THE TIDAL PIECE IS THE WATER BELOW THE CUT, AND ONLY THAT WATER (owner 2026-10-28, RULINGS C-2;
+#: handoff/PLAN/curation-review/tidal/tributary-impact.md): `downstream_of` the tidal split on the water(s) that carry
+#: it, by the same resolver a rule's extent uses (`reach.extent.resolve_extent`, AGENTS 16: one resolver; route measure
+#: on the cut's own blue line, braid channels cut at build). No tributary is part of it: a stream entering the tidal
+#: piece keeps its own water and stays its river's tributary — the walk runs on the full network and the reach takes
+#: the tidal piece out of each binding AFTER it. Walking the freshwater-only graph instead cut 29 rules off whole
+#: tributary trees.
+TIDAL_PIECE_HAS_NO_TRIBUTARIES = True
+
+
+def tidal_cut_owner(registry, graph, split_ids, *, strict: bool = True,
+                    report: list | None = None) -> dict[str, str]:
+    """`{section: "split:<id>"}` — THE TIDAL PIECE below each tidal split (`TIDAL_PIECE_HAS_NO_TRIBUTARIES`):
+    `downstream_of` the cut, scoped to every registry item that carries it (its boundary, or an alias of one). A
+    section below two cuts keeps the first by split id.
+
+    REFUSED (`strict`, a full build) — never a silent "nothing is tidal here": a tidal split no item carries (the atlas
+    did not cut it), or one the resolver cannot place on its water. `report` (optional) collects one row per split: its
+    items, the sections it makes tidal, and the pieces the resolver could not place (`unclassified`: a braid or arm
+    reaching the sea unjoined) — those stay freshwater and are listed, never guessed (AGENTS 12)."""
+    from pipeline.atlas.reach import extent as _resolve
+    carriers: dict[str, set[str]] = {}
+    for iid, it in registry.items():
+        for b in getattr(it, "boundaries", ()) or ():
+            for a in b.answers_to():
+                carriers.setdefault(a, set()).add(iid)
+    out: dict[str, str] = {}
+    for sid in sorted(set(split_ids)):
+        items = sorted(carriers.get(sid, ()))
+        if not items:
+            if strict:
+                raise SystemExit(f"tidal: split {sid!r} is a tidal boundary but no registry item "
+                                 "carries it — the atlas did not cut it (rebuild the atlas)")
+            continue
+        why: list = []
+        got = _resolve.resolve_extent(registry, graph, [], {
+            "op": "downstream_of", "splits": [sid], "item_ids": items}, reasons=why)
+        if got is None:
+            if strict:
+                raise SystemExit(f"tidal: the piece below tidal split {sid!r} on {items} cannot be "
+                                 f"resolved: {why}")
+            continue
+        secs = sorted(got.get("sections") or ())
+        for s in secs:
+            out.setdefault(s, f"split:{sid}")
+        if report is not None:
+            report.append({"split": sid, "items": items, "sections": len(secs),
+                           "unplaced": sorted(got.get("unclassified") or ()),
+                           "ambiguous_cut": list(got.get("ambiguous_cut") or ())})
+    return out
+
+
+def tidal_whole_owner(registry, item_ids, *, strict: bool = True,
+                      report: list | None = None) -> dict[str, str]:
+    """`{section: "water:<item_id>"}` — EVERY section of each whole tidal water (T212, owner 2026-10-29: the Fraser
+    delta channels). Like the piece below a tidal split it has no tributary (a creek entering it keeps its own water).
+    REFUSED (`strict`): an item the registry does not hold (the curated id went stale) — never a silent "nothing is
+    tidal here"."""
+    out: dict[str, str] = {}
+    for iid in sorted(set(item_ids)):
+        it = registry.get(iid) if hasattr(registry, "get") else None
+        secs = sorted(getattr(it, "section_ids", ()) or ()) if it is not None else []
+        if not secs:
+            if strict:
+                raise SystemExit(f"tidal: whole tidal water {iid!r} (waters/tidal_limits.json) is not in the "
+                                 "registry or has no section")
+            continue
+        for s in secs:
+            out.setdefault(s, f"water:{iid}")
+        if report is not None:
+            report.append({"split": f"water:{iid}", "items": [iid], "sections": len(secs),
+                           "unplaced": [], "ambiguous_cut": []})
+    return out
+
+
+def rank1_ids(limits: Iterable[Limit], id_of: Mapping[str, str]) -> tuple[list[str], list[str]]:
+    """`(cut ids, whole items)` of rank-1 rows (`coast.rank1`): the split ids as `resolved_rows` names them (a `split`
+    row's own id, a `cut` row's minted id) and the `whole` rows' items, each sorted."""
+    rows = list(limits)
+    cuts = sorted({str(r.split) for r in rows if r.limit == "split"} | {str(id_of[r.blk]) for r in rows if r.limit == "cut"})
+    whole = sorted({str(r.item) for r in rows if r.limit == "whole"})
+    return cuts, whole
+
+
+def rank1_owners(registry, graph, limits: Iterable[Limit], id_of: Mapping[str, str], *,
+                 strict: bool = True) -> dict[str, str]:
+    """`{section: owner}`: THE TIDAL WATER RANK 1 MAKES on `registry` — the piece below every `split` / `cut` row
+    (`tidal_cut_owner`) then every section of each `whole` water (`tidal_whole_owner`); a section claimed twice keeps the
+    first. The ONE reading: the coast cut asks it before it cuts (`build.cut_shores`) and the record asks it again on the
+    registry written (`coast.tidal_owners`), and the build stops when the two cover different water."""
+    cuts, whole = rank1_ids(limits, id_of)
+    out = dict(tidal_cut_owner(registry, graph, cuts, strict=strict))
+    for s, o in tidal_whole_owner(registry, whole, strict=strict).items():
+        out.setdefault(s, o)
+    return out

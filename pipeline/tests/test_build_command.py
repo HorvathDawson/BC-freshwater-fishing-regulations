@@ -112,7 +112,27 @@ def inputs(tmp_path: Path, monkeypatch):
     clim.write_text('{"release": "2026-01"}')
     monkeypatch.setattr(B, "sources", lambda: src)
     monkeypatch.setattr(B, "CLIM_PATH", clim)
+    monkeypatch.setattr(B, "inseason_ends_digest", lambda: "ends")      # (T679 #11) pinned on its own below
     return src, clim
+
+
+def test_the_inseason_ends_are_in_the_deliver_key(monkeypatch):
+    """(T679 #11) the in-season notices' end tokens (`display.ends` holds their words) come from the GENERATED
+    resolution, outside the curated digest: a resolve that changes them reruns deliver; one that moves only ranges
+    does not (deliver reads only the tokens)."""
+    from pipeline.regs.inseason import matches as M
+    doc = {"ends": [["a", "source"]]}
+
+    def load():
+        return M.Matches.model_validate({"format": M.FORMAT, "release": "r-1", "matches": {"is-aaaaaaaaaaaa": {
+            "region": "1", "extents": [{"op": "whole", "item_id": "gnis:1"}],
+            "waters": {"gnis:1": {"runs": doc.get("runs", [[7, 0, 100]]), "ends": doc["ends"]}}}}})
+    monkeypatch.setattr(M, "load", load)
+    before = B.inseason_ends_digest()
+    doc["runs"] = [[7, 0, 200]]
+    assert B.inseason_ends_digest() == before
+    doc["ends"] = [["b", "source"]]
+    assert B.inseason_ends_digest() != before
 
 
 def test_a_refreshed_gpkg_changes_the_deliver_key(inputs):
