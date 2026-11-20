@@ -9,6 +9,18 @@ Plain summary for the owner, updated as work lands. Newest at the top. Ticket nu
 ---
 
 
+## 2026-11-19 22:04: the batch landed; staging and production websites live from 1fd3e94f0
+
+- Landed on redesign/stream-sections (pushed): the Conditions card redesign [T920], the website page build 1,136 s →
+  470 s [T917], "Join the iPhone test" opens the public TestFlight link [T921], two 0.8.3 leftovers [T919 a, b].
+  Android benches 44/44 (same speed as 0.8.3); dark checks pass; the white map box was not reproduced (a fix is noted).
+- The full test tier was red, but not from this batch: the live-data tests had not run since the 11-15..11-19 rulings, so
+  ~55 still expect the old wording or counts. Ticket [T931]; the one GitHub-tier failure (the TestFlight message test,
+  from T918) is fixed.
+- Staging website: deployed, smoke 19/19. Production website (owner go "Cna do prod website too"): deployed from the same
+  commit on release r-6258ffded676, production smoke 18/18. Production data, workers and phones unchanged.
+- Not touched: Play Closed testing (stays until Google approves build 39) and Apple External (build 41 in review).
+
 ## 2026-11-19 night (one chat): Conditions redesign approved; a landing batch on lane/t920-batch; tester feedback ticketed
 
 **Owner-approved, waiting on its checks (branch `lane/t920-batch`, not yet on redesign/stream-sections, nothing pushed):**
