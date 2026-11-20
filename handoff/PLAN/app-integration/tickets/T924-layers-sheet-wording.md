@@ -19,3 +19,5 @@ Map "Works offline"; Satellite "Photo map · needs internet"; Corridors "Close-u
 offline" [COMING SOON]; Stocked / Depth tag COMING SOON (was NO DATA YET). The "Needs a connection" tag (offline) stays.
 ## Built (lane/t924)
 `core/src/layers.ts` notes + the no-data tag; layers.test.ts + LayersSheet.test.tsx pins. Pictures before landing.
+## Owner 2026-11-20 ~01:40 (main chat): pictures approved
+Verbatim: "Layers good".

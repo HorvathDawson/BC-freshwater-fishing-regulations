@@ -17,3 +17,7 @@ before and after, to the owner.
 ## Acceptance
 Owner picks from the pictures; style build + colour checks pass.
 Depends: none. Size: S. Owner: yes (look). Default: outline = fill hue, ~20 % darker, 1 px low zoom → 1.5 px high zoom.
+## Owner 2026-11-20 ~01:40 (main chat): satellite only, Indigenous land only
+After round-1 pictures (map darker outline, satellite barely changed). Verbatim: "Maybe for satellite we could have it
+purposely stand out a little more ?" then "make indigenous easy to see only in satellite mode it will change". So: the
+map (light/dark) and private land stay as they were; only the reserve outline changes, only on satellite, standing out.
