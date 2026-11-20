@@ -3,14 +3,17 @@
 // before (its lower band's commonest-colour share, `lib/screen.mjs blankShare`), then Cultus Lake from search, its page,
 // Back, and the same band again, at once and after a pan (`T938-ios-<look>-<via>-<step>.png`). Back two ways: the page's ‹,
 // and the left-edge swipe (EdgeBack: T928's suspect, the lane that found T938 may have gone back so; not reproduced by
-// the ‹ on 418f6f3a1). FAILS when the lower band is one flat colour after Back while it was not before.
+// the ‹ on 418f6f3a1). FAILS when the lower band is one flat colour after Back while it was not before, or when the
+// left strip is (the layer left standing off to the right: 6fdb3d8db, light and dark, after the edge swipe: the map
+// and the day bar ~75 % to the right, white / black on the left, through a pan: the tester's T928 picture).
+// T938_LOOKS=light,dark and T938_VIAS=chevron,edge narrow a run.
 //   node app/tools/testbed/run-ios.mjs t938-ios
 import path from 'node:path';
 import { BLANK_AT, blankShareOf } from '../lib/screen.mjs';
 import { readPng } from '../lib/png.mjs';
 
-const LOOKS = ['light', 'dark'];
-const VIAS = ['chevron', 'edge'];
+const LOOKS = (process.env.T938_LOOKS ?? 'light,dark').split(',');
+const VIAS = (process.env.T938_VIAS ?? 'chevron,edge').split(',');
 
 export const t938Ios = {
   id: 't938-ios',
@@ -25,14 +28,25 @@ export const t938Ios = {
       return blankShareOf(file, b);
     };
     const snap = (name) => { const f = path.join(ctx.dir, `T938-ios-${name}.png`); d.screenshot(f); return f; };
-    /** the left-edge swipe back (as run-ios.mjs's EdgeBack step: a few heights and speeds until the page is gone) */
-    const edgeBack = async () => {
+    /** the map's left strip (0-25 % across, 30-80 % down): one flat colour there is the layer standing off to the right */
+    const left = (file) => {
+      const img = readPng(file);
+      return blankShareOf(file, { x0: 0, x1: Math.round(img.w * 0.25), y0: Math.round(img.h * 0.3), y1: Math.round(img.h * 0.8) });
+    };
+    /** the left-edge swipe back (as run-ios.mjs's EdgeBack step: a few heights and speeds until the page is gone); a shot
+     *  after each drag, and the page read from the screen's words (`onPage`), not an id a kept layer may still carry */
+    const edgeBack = async (look) => {
+      const tried = [];
       for (const f of ['edge-back', 'edge-back-high', 'edge-back-low']) {
         ctx.flow(f);
         await d.sleep(1500);
-        if (!d.hasId('water-back')) return f;
+        const w = d.screenText();
+        const page = w.length === 0 || ctx.ios.onPage(w);
+        const m = left(snap(`${look}-edge-drag-${f}`));
+        tried.push(`${f}: ${page ? 'still on the page' : 'back'}, left strip ${(m.share * 100).toFixed(0)} % ${m.colour}`);
+        if (!page) return tried.join(' · ');
       }
-      throw new Error('the edge swipe did not leave the water page');
+      throw new Error(`the edge swipe did not leave the water page (${tried.join(' · ')})`);
     };
     for (const look of LOOKS) for (const via of VIAS) {
       await ctx.step(`${look}: Cultus Lake from search, its page, Back (${via === 'edge' ? 'the left-edge swipe' : 'the page\'s ‹'}): the whole map drawn`, async () => {
@@ -46,16 +60,20 @@ export const t938Ios = {
         await ctx.until(() => d.hasId('water-back'), { ms: 30_000, what: 'the water page (water-back)' });
         await d.sleep(3000);
         snap(`${look}-${via}-2-page`);
-        const how = via === 'edge' ? await edgeBack() : (await ctx.ios.pageBack(ctx), 'the ‹');
+        const how = via === 'edge' ? await edgeBack(look) : (await ctx.ios.pageBack(ctx), 'the ‹');
         await d.sleep(3000);
-        const after = band(snap(`${look}-${via}-3-after-back`));
+        const afterFile = snap(`${look}-${via}-3-after-back`);
+        const after = band(afterFile), afterLeft = left(afterFile);
         ctx.flow('pan-up');
         await d.sleep(2500);
-        const panned = band(snap(`${look}-${via}-4-after-pan`));
+        const pannedFile = snap(`${look}-${via}-4-after-pan`);
+        const panned = band(pannedFile), pannedLeft = left(pannedFile);
         const pct = (m) => `${(m.share * 100).toFixed(1)} % ${m.colour}`;
         const said = `back by ${how}; lower band one colour: before ${pct(before)}, after Back ${pct(after)}, after a pan ${pct(panned)}`;
         if (before.share < BLANK_AT && (after.share >= BLANK_AT || panned.share >= BLANK_AT)) throw new Error(`the map's lower part is flat after Back: ${said}`);
-        return said;
+        const sideways = `left strip one colour after Back ${pct(afterLeft)}, after a pan ${pct(pannedLeft)}`;
+        if (afterLeft.share >= BLANK_AT || pannedLeft.share >= BLANK_AT) throw new Error(`the map stands off to the right after Back (${sideways}); ${said}`);
+        return `${said}; ${sideways}`;
       });
     }
     d.appearance('light');
