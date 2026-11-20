@@ -23,3 +23,15 @@ they aren't in the correct area for their description anymore and can just be ov
 water". So the boundary labels are placed in SCREEN space (laid out once for the framed view) and do not follow the map on
 pan/zoom: they must be anchored to their cut points (a map symbol / marker at the coordinate) or re-laid out on every camera
 move, on every platform.
+
+## iOS simulator repro 2026-11-19 20:35 (main chat's lane-3 agent; iPhone 17 / iOS 26.5, 0.8.3 build 40 from 1f989bb48)
+Shots: scratchpad (session cf82a6c9) `ios-t928-t929/` (cmp-0809.png, cmp-pan.png). REPRODUCED, two causes:
+1. Framing (native): picking a row in "Show all parts" shrinks the map to 48 pt and grows it back in the same render; the
+   refit runs before iOS applies the new frame (log: `fit h=48`, refit at `h=259` 1 ms later, camera zoom 4 instead of ~10;
+   `Map.native.tsx:686-704, :958-964`; the binding fits to the current frame and clips padding, `CameraUpdateItem.m`
+   `_makeCamera` :61-86, `_clippedPadding` :112-133). Stepping with ▲/▼ frames right. Fix: `easeTo` with the centre/zoom JS
+   already computes (`fitZoomOf`), or defer the refit a frame after `onLayout`. Android not checked.
+2. Labels "move with you" (shared, web too): `shiftedLabels` (`point-marks.ts:56-65`) pulls every label to `labelShift(x)`
+   (`marks.ts:9-10`) at each settle, so a mark off screen gets its label pinned 100 px inside the edge and it follows the
+   camera. Fix: shift only marks on screen; a leader line when a label is moved off its mark.
+Not verified: web run (same pinning by code; framing right via `syncSize`); the tester's exact south-east view.
