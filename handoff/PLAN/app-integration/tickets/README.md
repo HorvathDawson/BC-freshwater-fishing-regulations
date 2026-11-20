@@ -247,6 +247,7 @@ reads both files; a ticket closed here moves there once its lane is finished wit
 | T944 | Shea Creek dead-end piece 773423 carries both the Bulkley's and the Morice's Classified Waters units | OPEN | | lane/t936-t931 2026-11-20 (T931 B refused pin) |
 | T945 | Committed unnamed-tributary sweep result stale against the live bundle (41 streams) | OPEN | | lane/t936-t931 2026-11-20 test-full |
 | T946 | Tier 2 tributary lines: 20 parts (Lake Revelstoke tributaries DV, Iverson Creek) not what their rail sets | OPEN | | lane/t936-t931 2026-11-20 test-full |
+| T973 | Classified Waters: does a unit carry up through a tributary whose own row prints no unit (LI-2)? Ask a CO | BLOCKED (owner) | | owner 2026-11-20 11:44 (T944 changes); release keeps LI-2 |
 
 ## Next after closed testing
 
@@ -286,6 +287,7 @@ and records them; T81 records them in decisions.md). Answer here or in decisions
 | Q174 | T404 | The prod data worker replaces v1's `bc-fishing-r2` in place (deploy/prod/data.wrangler.toml; it serves the v1 keys only until switch day)? | yes — check its name + route first; v1 keys deleted the same day (PRODUCTION.md step 11) | owner 2026-11-08 |
 | Q175 | T404 | Share links and the privacy page are `canifishthis.ca` in every environment (the staging site is noindex)? | yes | owner 2026-11-08: yes |
 | Q177 | T540 | Move AGENTS.md "Reading the regulations" (53 % of the file) into a file read only for regulation work? | no — AGENTS.md unchanged | owner |
+| Q181 | T973 | Ask a CO: is a tributary with its own no-unit row (Grave Creek under the Elk, Gosnell under the Morice, the Endako under the Stellako) inside the river's Classified Waters "[Includes Tributaries]"? | LI-2 as shipped: not classified, nor anything above it | owner (ask a CO) |
 
 ### Shipped on default (reverse any)
 
