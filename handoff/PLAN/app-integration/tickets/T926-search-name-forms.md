@@ -179,3 +179,6 @@ Proof: only `name` and the order of `name_sources` change (variants unchanged, t
 same 17,599 keys (17,636 after the variant pass) with 0 keys whose waters change; all 2,996 synopsis entry matches through
 the build's matcher + overrides unchanged; no entry's stored `matched` (what the build binds by) names any of the 8, and
 no item id, section or boundary moves — no rule binding can change. Ships with the next atlas registry.
+
+
+Owner 2026-11-20 09:39 (dialog): the three "Unnamed …" lakes show "Unnamed …" ("Show "Unnamed …" (Recommended)"); "#14A" → "Show Floatplane Lake": a number with a letter on it is a number name too (rule to be extended).

@@ -9,7 +9,17 @@ Things only you can do. Claude keeps this list current while you are away; the w
 `handoff/PLAN/app-integration/tickets/` (README.md is the ledger, and its "Owner questions" table has every question
 with the default Claude uses until you answer). Newest first inside each section.
 
-## 2026-11-20 07:33: push privacy line, now that Android has no push (T739, lane L5; NOT asked yet)
+## 2026-11-20 09:39: morning questions answered (dialog)
+
+- Three "Unnamed …" lakes (3261, 3296, 3299): "Show "Unnamed …" (Recommended)": they show "Unnamed Cayoosh Cr",
+  "Unnamed Vanhorlick 1", "Unnamed Vanhorlick 2"; the number stays a search name. T926.
+- "#14A": "Show Floatplane Lake": a number with a letter on it counts as a number name too; "#14A" stays searchable.
+  T926 (Claude extends the rule and reports how many more waters change).
+- Push privacy line: "Claude's edit (Recommended)": Apple only, "I/my", push token added to "the short version", Apple
+  (push only) added to the services, the one-day salted IP hash and the stored environment + time said, effective date
+  moved to the go-live day. The owner sees the text before it goes live. T739.
+
+## 2026-11-20 07:33: push privacy line, now that Android has no push (T739, lane L5; ANSWERED 09:39, see above)
 
 The push-token paragraph you approved on 11-15 ("Yes to both") is now in the privacy page's source exactly as written
 (`app/tools/seo/html.ts`, heading "Push token", after the crash-report section; it goes live only with a production
@@ -33,7 +43,7 @@ Facts from the independent code review (2026-11-20), for the same pick; the appr
 - A token is sent only when notifications are on AND something is set to be checked (a gauge alert, "New
   regulations data" or "New app version"), not on "notifications on" alone.
 
-## 2026-11-20 07:07: a morning question (T926 number names)
+## 2026-11-20 07:07: a morning question (T926 number names; ANSWERED 09:39, see above)
 
 - **Three lakes would show "Unnamed …" instead of their number.** Under "Never show a number name", the lakes now shown
   as 3261, 3296 and 3299 would show "Unnamed Cayoosh Cr", "Unnamed Vanhorlick 1" and "Unnamed Vanhorlick 2" (their

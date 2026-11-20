@@ -478,3 +478,6 @@ filtered on `/push`, would say whether a register (and its status) arrived befor
   this connection. It tries again when the app next starts." (`pending` carries `what`); "Try again" withdraws again
   (`retryPush` sends the token while a notification is on, else the withdrawal).
 - Wording: a deleted token record comes back "within 7 days" (the worker's log line and comment), not "at the next start".
+
+
+Owner 2026-11-20 09:39 (dialog), privacy line: "Claude's edit (Recommended)": Apple only, "I/my", push token in "the short version", Apple (push only) in the services list, the one-day salted IP hash and stored environment + time said, effective date = go-live day; the owner sees the text before it goes live.
