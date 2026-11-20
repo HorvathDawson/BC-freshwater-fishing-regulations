@@ -230,7 +230,7 @@ export function privacyBody(site: Site, asOf: string): string {
     `I do not store your IP address with it: to limit abuse I keep only a salted one-way hash of it for a day’s counting. ` +
     `The token is deleted when you turn notifications off, or when Apple tells me it no longer works. ` +
     `It is not linked to you or to an account and is not backed up.</p>` +
-    `<h2>This website</h2><p>The website serves plain pages. It sets no cookies and runs no analytics, advertising or tracking scripts. ` +
+    `<h2>This website</h2><p>The website serves plain pages. It sets no cookies and runs no advertising or tracking scripts; the only script is the visit counter described above. ` +
     `Cloudflare, which hosts it, sees ordinary request information such as your IP address.</p>` +
     `<h2>No selling, no sharing</h2><p>I do not sell your information, and I do not share it for advertising. ` +
     `The services named above (Cloudflare, Open-Meteo, Esri, and Apple for push only) receive only the requests described here.</p>` +

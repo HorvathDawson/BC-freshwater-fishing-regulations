@@ -500,3 +500,5 @@ filtered on `/push`, would say whether a register (and its status) arrived befor
 
 
 Owner 2026-11-20 09:39 (dialog), privacy line: "Claude's edit (Recommended)": Apple only, "I/my", push token in "the short version", Apple (push only) in the services list, the one-day salted IP hash and stored environment + time said, effective date = go-live day; the owner sees the text before it goes live.
+
+Owner 2026-11-20 09:48 (dialog): privacy text "Looks good" (merged); and "Fix the sentence": "This website" no longer says "runs no analytics" (it said so beside the T910 visit counter); now "runs no advertising or tracking scripts; the only script is the visit counter described above". Pinned in site.test.ts. Effective date moves to the go-live day.

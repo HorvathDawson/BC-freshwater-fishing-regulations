@@ -127,6 +127,9 @@ describe("T193 + T269 water pages (the app's own pane) and About", () => {
     expect(text(pv.html)).toContain("The services named above (Cloudflare, Open-Meteo, Esri, and Apple for push only) receive only "
       + "the requests described here.");
     expect(text(pv.html)).not.toMatch(/Google issue|or Android|Google tell/);
+    // (owner 2026-11-20 09:48) the page names its visit counter, so "This website" never says it runs no analytics
+    expect(text(pv.html)).not.toMatch(/runs no analytics/);
+    expect(text(pv.html)).toContain("the only script is the visit counter described above");
     expect(pv.html).toMatch(/href="\/privacy"/);
     // every hub page's footer (a water page is the app's pane: the app's More menu links it)
     expect(hubs().every((p) => p.html.includes('<a href="/privacy">Privacy policy</a>'))).toBe(true);

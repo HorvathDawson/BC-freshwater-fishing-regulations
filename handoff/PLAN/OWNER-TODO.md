@@ -9,6 +9,14 @@ Things only you can do. Claude keeps this list current while you are away; the w
 `handoff/PLAN/app-integration/tickets/` (README.md is the ledger, and its "Owner questions" table has every question
 with the default Claude uses until you answer). Newest first inside each section.
 
+## 2026-11-20 09:48: privacy page answered (dialog)
+
+- Push privacy text (pictures `app-integration/T739-shots/privacy-*-light.png`): "Looks good (Recommended)". Merged;
+  goes live with the next production website; effective date moves to that day. T739.
+- Live contradiction found: "This website" said "runs no analytics" while the page names Cloudflare Web Analytics (T910):
+  "Fix the sentence (Recommended)": now "It sets no cookies and runs no advertising or tracking scripts; the only script
+  is the visit counter described above." T739.
+
 ## 2026-11-20 09:39: morning questions answered (dialog)
 
 - Three "Unnamed …" lakes (3261, 3296, 3299): "Show "Unnamed …" (Recommended)": they show "Unnamed Cayoosh Cr",
