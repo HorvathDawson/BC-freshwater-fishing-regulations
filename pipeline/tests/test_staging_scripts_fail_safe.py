@@ -209,7 +209,9 @@ def test_testflight_publishes_one_file_per_version_and_a_failed_put_stops():
     code = _no_comments("deploy/staging/build-ios-testflight.sh")
     loop = code[code.index('for f in "$VER.json" appstore.json; do'):code.index("done", code.index('for f in "$VER.json"'))]
     assert 'put --remote "$BUCKET/app/ios/$f" --file "$OUT/appstore.json"' in loop
-    assert "was NOT published (the build IS uploaded): redo the puts in the header\" >&2; exit 1; }" in loop
+    assert "was NOT published (the build IS uploaded): redo the puts in the header" in loop
+    assert "testflight-distribute.mjs" in loop                     # T918: the redo hint names the distribute step too
+    assert '\" >&2; exit 1; }' in loop                             # ... and a failed put still stops the script
     assert "app/ios/appstore.json\" --file" not in code           # appstore.json only through the loop, after <ver>.json
 
 
