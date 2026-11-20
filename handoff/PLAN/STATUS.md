@@ -9,6 +9,28 @@ Plain summary for the owner, updated as work lands. Newest at the top. Ticket nu
 ---
 
 
+## 2026-11-19 night (one chat): Conditions redesign approved; a landing batch on lane/t920-batch; tester feedback ticketed
+
+**Owner-approved, waiting on its checks (branch `lane/t920-batch`, not yet on redesign/stream-sections, nothing pushed):**
+- T920 Conditions gauge card (round 3, owner "This looks good"): the map under the chart; a taller chart; Flow | Level and
+  72 h | Year in one row above it; the legend's forecast toggles as before; no "Data release" line (the provenance code
+  removed); the gauge list a closed fold "N gauges behind this estimate" with two lines per gauge; a bordered gauge picker.
+  Review fixes in (chart 1:1 on 360-375 dp phones, store-video checks).
+- T919 (a) a tributaries row named once, (b) Elaho p.23 not twice. T921 "Join the iPhone test" opens the TestFlight invite.
+- T917 merged into the lane: website page build 1,136 s -> 470 s, byte-identical (reviewed, fixes in).
+**Running:** full tier (lane 1, started before the review fixes: rerun Tier 1 on the tip after), Android benches + Conditions
+checks on the emulator (lane 2), iPhone simulator investigation of T928/T929 (lane 3). Land = fast-forward
+redesign/stream-sections to the lane once all pass, then push.
+**New tickets (tester via owner):** T922 Gear/Methods run-on lines + "Roe", T923 reserve/private land outline, T924 Layers
+wording, T925 Map view for one-section waters, T928 iPhone map 2/3 width after tab changes, T929 water-map boundary labels
+stay in screen space on pan/zoom; (owner) T926 search name forms (measured: abbreviations, joined book names, First Nations
+names need a source), T927 search finds the 477 placed boundary places.
+**Owner decisions open:** T919 (c) map files on first install (default one packed download); T926 (4) First Nations names
+source (default BC Geographical Names). Both on the To-Do page.
+**Tester reports:** none received yet (production 0, staging only test-bed ones); the tester restarted before reporting.
+
+---
+
 ## 2026-11-19 evening: 0.8.3 is on production (web, data, workers, Play closed); iPhone 0.8.3 sent to TestFlight
 
 **What changed for anglers (0.8.3):** smoother pinch-zoom and zoom-out (T903: +61 % / +78 % frames on the stressed

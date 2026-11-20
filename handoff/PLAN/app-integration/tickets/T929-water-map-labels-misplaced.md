@@ -16,3 +16,10 @@ fills the frame, on every platform.
 ## Acceptance
 Shots of Chilliwack parts 1–4 on the three platforms, labels on their points; a test pinning label anchors = cut points.
 Depends: none. Size: M. Owner: no (pictures sent).
+
+## Tester, later the same evening (relayed by the owner), verbatim
+"the labels for the sections just move around with you as you pan around the map ... If you zoom or move off the section
+they aren't in the correct area for their description anymore and can just be over a random piece of land or body of
+water". So the boundary labels are placed in SCREEN space (laid out once for the framed view) and do not follow the map on
+pan/zoom: they must be anchored to their cut points (a map symbol / marker at the coordinate) or re-laid out on every camera
+move, on every platform.

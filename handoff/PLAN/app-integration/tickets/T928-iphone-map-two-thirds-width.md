@@ -15,3 +15,9 @@ test-bed scenario that walks the tabs and asserts the map's frame equals the scr
 ## Acceptance
 The scenario passes on the simulator; a shot after the same tab walk shows the full-width map.
 Depends: none. Size: M. Owner: no.
+
+## More from the tester (2026-11-19, `T928-shots/tester-2026-11-19-restart.png`)
+Owner asked for a report from More → Report a problem; tester, verbatim: "I restarted the app.... Ooops" / "No it reverted
+back to normal. All try to brake it again but I'm not sure if I can reach the button to report a problem". So no report came
+in (checked the production and staging workers 2026-11-19 evening: none from the tester). While reproducing, also check
+whether More → Report a problem is reachable while the map is narrow (the tab bar / More screen at the right width).
