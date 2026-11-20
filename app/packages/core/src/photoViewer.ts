@@ -13,7 +13,8 @@
 import { isPhotoZoomed, photoRubber, type PhotoBox, type PhotoView } from "./photoZoom";
 
 export const PHOTO_VIEWER = {
-  /** a drag at the fit is read as the strip or the dismiss once it has moved this far (px) */
+  /** a drag at the fit is read as the strip or the dismiss once it has moved this far (px); a finger that has moved
+   *  this far is no longer a tap (the viewer's tap and double tap `maxDistance`) */
   decideAfter: 6,
   /** the space between two photos on the strip (px) */
   gap: 16,
