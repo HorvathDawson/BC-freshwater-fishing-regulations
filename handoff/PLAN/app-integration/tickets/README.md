@@ -334,6 +334,7 @@ reads both files; a ticket closed here moves there once its lane is finished wit
 | T931 | Live-data test tier: ~55 stale pins after the 11-15..11-19 rulings, one lake-loop invariant break (T753), env flakes | OPEN | | main chat 2026-11-19 tier diagnosis |
 | T932 | Audit name_variants.json: joined multi-lake lines, wrong targets, twins, book-print forms (owner) | POSTPONED (deferred with T930: after bathy map, stocked lakes, charts) | | owner 2026-11-20 "audit the name variants" |
 | T933 | A dataset for OpenStreetMap of the 324 streams we added (licence per city, missing-only, OSM import process) (owner) | POSTPONED (deferred with T930: after bathy map, stocked lakes, charts) | | owner 2026-11-20 "dataset for OSM" |
+| T934 | The salmon year bar shows the B.C. bait ban and fly-only days too (owner) | OPEN | | owner 2026-11-20 "Bait ban needs to apply to salmon" |
 | T882 | Salmon: DFO's "To be determined" says so instead of "Check DFO"; green whenever any salmon is open (owner) | DONE | b2a5f2522 | owner 2026-11-18 ~21:18 |
 | T884 | A fish sheet's big "20 a day" is cut off at the top on an iPhone (owner) | DONE | 1d19ef12b, fcc3ce3a8 | owner 2026-11-18 ~21:30 |
 | T886 | "How to tell a hatchery fish": a natural fish (the loader's coho), not a smiling one (owner) | DONE | 7a13d8671, 0e4f21738 | owner 2026-11-18 ~21:30 |
