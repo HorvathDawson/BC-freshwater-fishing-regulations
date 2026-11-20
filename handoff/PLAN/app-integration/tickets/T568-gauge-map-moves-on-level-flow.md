@@ -1,6 +1,6 @@
 # T568 — The gauge map moves when Level / Flow is tapped on the chart
 
-Status: IN REVIEW — 1c57e7c07, 694479e25 (map over the chart whatever the quantity; one frame per water; refusal keeps the map). Proof: the owner confirms on the phone that Level / Flow no longer moves the map.
+Status: DONE — 1c57e7c07, 694479e25 (closed on the owner's word 2026-11-20; see the last section)
 
 Source: Owner 2026-11-09: "when you click level vs flow on chart the location of gauge map changes in an obnoxious way
 this is important to fix too".
@@ -51,3 +51,9 @@ stale update on the phone. Look at it with this.
   panel has no gauges (`no-station`, `offline`). The headline above the map still differs by quantity (estimate vs "No
   estimate"), so the map's top moves ~60 px between Flow and Level on a forecast day.
 - Not run on the emulator.
+
+## Closed 2026-11-20
+
+Closed 2026-11-20 on the owner's word ("Couldn't we just assume most of these are done already?"): the gauge map staying put on Level/Flow is taken as checked on the phone.
+
+Status line before closing: IN REVIEW — 1c57e7c07, 694479e25 (map over the chart whatever the quantity; one frame per water; refusal keeps the map). Proof: the owner confirms on the phone that Level / Flow no longer moves the map.

@@ -1,6 +1,6 @@
 # T755 — Review app: what the owner's overnight marks said it could not do (2026-11-15)
 
-Status: IN REVIEW (code merged: 9d8d2f381, follow-up 3920760a4, CI fixes 0a6c82dae, c67ef332d; the main chat's targeted suggestions merge applied (40bafe8be, 36 rows); the tributaries-only places saved at the owner's request (2ec440168); left: the owner re-ticks the saves, owner: OWNER-TODO "Saves to re-tick in the review app")
+Status: DONE — 9d8d2f381, 3920760a4, 40bafe8be, 2ec440168 (closed on the owner's word 2026-11-20; see the last section)
 
 Source: a read-only triage of the 84 marks saved overnight (`~/bcfish-session-backup-2026-11-12/marks-triage-1115.md`) and
 T742. His notes, verbatim:
@@ -148,3 +148,9 @@ Tests:
 - `test_review_checklist`'s memo test pins the full-rebuild path.
 - Frontend node tests: 52 pass. tsc is clean.
 - The 63 review/curation/dfo/audit test files in CI's no-data tier, unfiltered: 886 passed.
+
+## Closed 2026-11-20
+
+Closed 2026-11-20 on the owner's word ("Couldn't we just assume most of these are done already?"): the review-app re-ticks (OWNER-TODO section A) are taken as done.
+
+Status line before closing: IN REVIEW (code merged: 9d8d2f381, follow-up 3920760a4, CI fixes 0a6c82dae, c67ef332d; the main chat's targeted suggestions merge applied (40bafe8be, 36 rows); the tributaries-only places saved at the owner's request (2ec440168); left: the owner re-ticks the saves, owner: OWNER-TODO "Saves to re-tick in the review app")

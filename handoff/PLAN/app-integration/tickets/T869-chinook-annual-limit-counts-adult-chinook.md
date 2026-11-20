@@ -1,6 +1,6 @@
 # T869 — the chinook annual limit counts ADULT chinook, and "adult" differs by river
 
-Status: IN REVIEW — on production since 0.8.3 (data r-6258ffded676, feeds worker 0a3205f6; built c9dc6ba69, a6f79b38a; first on staging r-379e72fc9524); the Vedder follows DFO (owner 2026-11-19 ~06:40 "good"); owner: OWNER-TODO "Test 0.8.2 on staging (2026-11-19 morning)" (item 2).
+Status: DONE — c9dc6ba69, a6f79b38a (closed on the owner's word 2026-11-20; see the last section)
 
 Owner 2026-11-18 ~20:22 (via the app chat), verbatim: "For salmon  It is 10 max adult Chinook not over 50cm because some
 rivers adult is defined differently". His screenshot: Coquitlam River, What you can keep, the salmon block's header:
@@ -65,3 +65,9 @@ The Vedder: DFO's own scoped adult note carries no dates, so the card says "(her
 
 ## Owner 2026-11-19 ~06:40: the Vedder follows DFO
 On "Built: follow DFO (the card says over 62 cm all year). Or use the book's dates?", verbatim: "good". Kept as built.
+
+## Closed 2026-11-20
+
+Closed 2026-11-20 on the owner's word ("Couldn't we just assume most of these are done already?"): 0.8.2 staging list item 2 is taken as checked (on production since 0.8.3).
+
+Status line before closing: IN REVIEW — on production since 0.8.3 (data r-6258ffded676, feeds worker 0a3205f6; built c9dc6ba69, a6f79b38a; first on staging r-379e72fc9524); the Vedder follows DFO (owner 2026-11-19 ~06:40 "good"); owner: OWNER-TODO "Test 0.8.2 on staging (2026-11-19 morning)" (item 2).

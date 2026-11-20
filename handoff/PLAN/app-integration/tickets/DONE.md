@@ -685,3 +685,30 @@ any row here that is not DONE or DROPPED. A reopened ticket's row moves back to 
 | T897 | The More tab's back says "Back", not a tab's name; its head stays put while it scrolls (owner) | DONE | 1468f8bf0 | owner 2026-11-19 ~01:04, ~01:05 |
 | T898 | A daylight-only rule shows today's actual closed times for the section (owner) | DONE | 18044af55 | owner 2026-11-19 ~01:10 |
 | T899 | In-season notices on a water open by default (owner) | DONE | 18044af55 | owner 2026-11-19 ~01:10 |
+| T563 | A percentile alert follows each day's percentile, not the line of the day it was saved | DONE | 3b3e6a1c2 | — |
+| T566 | Switching between the maps causes issues sometimes (owner, Pixel 9, build 24) | DONE | f856e42f2 | — |
+| T567 | Fraser at Mission: the app shows no current readings, the gauge page does | DONE | fb042cdfa, 1c57e7c07, 694479e25 | — |
+| T568 | The gauge map moves when Level / Flow is tapped on the chart | DONE | 1c57e7c07, 694479e25 | — |
+| T570 | Indigenous land names show only when zoomed in a lot more | DONE | 0fd94a0a9 | — |
+| T581 | The gauge card, chart and alert editor all use the quantity asked | DONE | 5a2e4117b, a807fbba1 | — |
+| T582 | One day per water screen, and the same kept state on web and phone | DONE | 52eed5c80 | — |
+| T584 | Conditions reads the same whatever the way in (group strip, picks, part step) | DONE | 5a2e4117b | — |
+| T586 | Small one-answer fixes: saved spot lead, silent gauge dot, two clocks | DONE | 5a2e4117b | — |
+| T620 | One answer on every app screen (search rows follow the picked day, saved-spot times in B.C. time, alerts, Runs, start links) | DONE | adc3499db, d7abdf763, f508d2e96, 22ce46056, 5c86bbe3e, 416b447df, 5aaaaa6ab, afdc7a7e7, eb1fc77a5, 41cb367dc, e4fa8e00b, 045d8589a | — |
+| T869 | The chinook annual limit says "over 50 cm" where it counts ADULT chinook, which is over 62 or 65 cm on some rivers (owner) | DONE | c9dc6ba69, a6f79b38a | — |
+| T870 | Salmon card: Source (DFO) lists every DFO row behind its answers; each bait-ban line says whose, once; a whole-year window reads "all year" (owner) | DONE | c9dc6ba69, a6f79b38a | — |
+| T900 | Gear and Methods: cleaner, easier to read (owner) | DONE | a3a982a17, 1900e1776 | — |
+| T622 | The public pages and share cards use the app's own words and day; with T605 | DONE | 1aed37981 | — |
+| T624 | Runs keeps its own day and names it; a shared water link is the water's own page (right preview) | DONE | a938841a0 | — |
+| T636 | Conditions map: a "level only" gauge is shown by its ring colour, not a text tag | DONE | aca09a946 | — |
+| T729 | The opened credits card is under the legend and cannot be read | DONE | f7c024932, 5e07172a5, c099e9977 | — |
+| T747 | A water's Map opened from search frames the part its bar names, not the whole water (the Skeena read as the province on the desktop strip); one label for two marks with the same words; an unframable part reported. Next free ticket T750 | DONE | 7b60c75f1, 3f6e558ec | — |
+| T750 | Upstream and Downstream walk one line through every part (the release's river order, the parts list's); no branch picker. Next free ticket T751 | DONE | e920d4d0d | — |
+| T755 | Review app: the owner's overnight notes — region ends named by this water's crossing, a named water takes its own channels, tributaries only / excepted tributaries in marks + editor + apply + suggester, Qualicum refused at the save, earlier-mark and size/tributary warnings. | DONE | 9d8d2f381, 3920760a4, 40bafe8be, 2ec440168 | — |
+| T761 | DFO rest-of places: own bounds, the listed areas honoured, dormant / undrawable listed places no longer take or blank the rest, and "areas and times" (the rest-of rule shows on a listed stretch on the days that stretch has no rule); every leftover-worded place uses rest-of (owner 2026-11-15 night) | DONE | d65d4e15d | — |
+| T88 | iOS: signed build + TestFlight upload (re-scoped; the simulator half is T313) | DONE | eb2405de0, 3ca087b56 | — |
+| T244 | app store readiness (icon, splash, listing, privacy labels, internal tracks) | DONE | 57bb1144e, 7d3cf3501, 30364003d, 10f0f037a, c6065568e | — |
+| T749 | Android: turn the code shrinker (R8) back on with keep rules, behind a device proof (dex is 30.4 MB of the 38.8 MB bundle). Next free ticket: read the ledger | DONE | 35dce9bf3, 362c44e6b | — |
+| T594 | Satellite view is not hidden by the stream lines | DONE | dcfbf8f29 | — |
+| T598 | "Days in 10" replaces the percentile wherever the reader sees it | DONE | eb4bf2168 | — |
+| T610 | A "same place" grouping writes why on the place (the Serpentine link had no note) | DONE | 459e01458, 304feaeec | — |

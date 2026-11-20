@@ -1,6 +1,6 @@
 # T761 — DFO "rest-of" places: their own bounds, the listed areas, and DFO's "areas AND TIMES"
 
-Status: IN REVIEW (built, code d65d4e15d; shipped from r-46e4355a7277 on staging and in every release since, production included; left (Claude): none in code; the owner re-ticks the saves, owner: OWNER-TODO "Saves to re-tick in the review app"; leftovers T775)
+Status: DONE — d65d4e15d (closed on the owner's word 2026-11-20; see the last section)
 
 Source: owner, 2026-11-15 22:12 and 22:14 (OWNER-TODO "2026-11-15 night — owner answers"): "this iss handled by rest of
 option in extents" (the Skeena sockeye pair) and "all items wih same structure as that shoul duse rest of extent type
@@ -60,3 +60,9 @@ A DFO place with extent op `rest` is "the whole water less every other placed pl
 ## Not in this ticket
 Gear lines stacking across places and ordering by own-river size (cascade review findings, to be ticketed with the
 cascade report); one-bank places (T754); the lost-closure banner (T759).
+
+## Closed 2026-11-20
+
+Closed 2026-11-20 on the owner's word ("Couldn't we just assume most of these are done already?"): the review-app re-ticks (OWNER-TODO section A) are taken as done; leftovers stay with T775.
+
+Status line before closing: IN REVIEW (built, code d65d4e15d; shipped from r-46e4355a7277 on staging and in every release since, production included; left (Claude): none in code; the owner re-ticks the saves, owner: OWNER-TODO "Saves to re-tick in the review app"; leftovers T775)

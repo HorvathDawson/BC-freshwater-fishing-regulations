@@ -1,6 +1,6 @@
 # T729 — The opened credits card is under the legend and cannot be read
 
-Status: IN REVIEW (in build 32 = 0.7.10, Play internal 2026-11-14; emulator looks passed; owner: OWNER-TODO "Phone check, build 32 = 0.7.10")
+Status: DONE — f7c024932, 5e07172a5, c099e9977 (closed on the owner's word 2026-11-20; see the last section)
 
 Source: owner 2026-11-14, verbatim: "attribution on app goes under the legends on the different map tabs."
 Clarified by the owner 2026-11-14 (dialog), verbatim: "i meant when you open the atrribtuion clicking on it it opens under the legend on the map so you cant read it"
@@ -26,3 +26,9 @@ the dim and the system back. The chip, its place, the startup credit and `credit
   map's corner block; satellite's "Powered by Esri" line is in it; the dim closes it. Fails before the fix.
 - Left (Claude), emulator look on the next APK: Map, Conditions, Run timing x legend open / folded x light / dark x satellite
   on (card whole, readable, links open the licences); the water page's map.
+
+## Closed 2026-11-20
+
+Closed 2026-11-20 on the owner's word ("Couldn't we just assume most of these are done already?"): the credits card above the legend is taken as checked on the phone.
+
+Status line before closing: IN REVIEW (in build 32 = 0.7.10, Play internal 2026-11-14; emulator looks passed; owner: OWNER-TODO "Phone check, build 32 = 0.7.10")

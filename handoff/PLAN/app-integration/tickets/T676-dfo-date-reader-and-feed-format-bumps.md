@@ -1,6 +1,6 @@
 # T676 — The release and the live feed read a DFO date cell the same way; a feed format bump does not strand an older app
 
-Status: PARTIAL (2026-11-12, 4bc03ac14) — items 1, 3 and 4 done (4f591c31a, 4bc03ac14): the release reads every DFO date cell with the live feed's reader on the owner's answer of 2026-11-12; left (Claude): item 2 (a feed format bump that does not strand an older app) — put the choice to the owner (versioned key vs per-feed `minAppVersion`; T673 closed as DONE 785fc9914 without deciding it), then build it. Split from T556 (2026-11-11): what its findings 1 and 3 proposed and T556 did not build.
+Status: PARTIAL (2026-11-12, 4bc03ac14; 2026-11-20 pick) — items 1, 3 and 4 done (4f591c31a, 4bc03ac14). Owner 2026-11-20 on item 2: take the default, a per-feed `minAppVersion` (reuses the release gate's update prompt, which the acceptance asks for; the ticket names no default, so this is Claude's reading of its acceptance, to be revisited if the owner wants the versioned key). left (Claude): build item 2 (each feed index carries `minAppVersion`; an older app shows its last capture AND the update prompt, by test).
 
 Source: T556 (data pipeline review 2026-11-09, findings 1 and 3). T556 pinned the two languages with shared fixtures and
 generated the format strings; these two are changes of behaviour, not pins.
@@ -88,3 +88,9 @@ Owner 2026-11-12: "it is from that day to no end. If the thing is for a closure 
 
 ## Held
 - **Item 2** — owner's choice (versioned key vs per-feed `minAppVersion`), decided with T673. Not started.
+
+## Owner answer 2026-11-20
+
+Owner 2026-11-20 ("Couldn't we just assume most of these are done already?"), item 2 pick (versioned feed key, or a minimum app version per feed): the default is taken: a per-feed `minAppVersion`. The ticket stated no default; this one is chosen because the acceptance asks for an older app to keep its last capture AND show an update prompt. NOT built yet; Claude's next step.
+
+Status line before this answer: PARTIAL (2026-11-12, 4bc03ac14) — items 1, 3 and 4 done (4f591c31a, 4bc03ac14): the release reads every DFO date cell with the live feed's reader on the owner's answer of 2026-11-12; left (Claude): item 2 (a feed format bump that does not strand an older app) — put the choice to the owner (versioned key vs per-feed `minAppVersion`; T673 closed as DONE 785fc9914 without deciding it), then build it. Split from T556 (2026-11-11): what its findings 1 and 3 proposed and T556 did not build.

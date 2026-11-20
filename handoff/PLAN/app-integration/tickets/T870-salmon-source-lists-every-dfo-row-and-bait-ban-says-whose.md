@@ -1,6 +1,6 @@
 # T870 — the salmon card's Source (DFO) lists every DFO row behind its answers; each bait-ban line says whose it is
 
-Status: IN REVIEW — on production since 0.8.3 (data r-6258ffded676, feeds worker 0a3205f6; built c9dc6ba69, a6f79b38a; first on staging r-379e72fc9524); feed size budget raised, shrink is T905; owner: OWNER-TODO "Test 0.8.2 on staging (2026-11-19 morning)" (item 1).
+Status: DONE — c9dc6ba69, a6f79b38a (closed on the owner's word 2026-11-20; see the last section)
 data release + feeds worker deploy carry it; pictures not taken (see Built).
 
 Owner 2026-11-18 ~20:25 (via the app chat), Mamquam River, What you can keep, salmon card (screenshot
@@ -50,3 +50,9 @@ FN1167 notice.
 
 ## Owner 2026-11-19 ~06:40: the feed size budget
 On the 112 -> 135 kB raise, verbatim: "okay we will work to shrink it down later." -> T905.
+
+## Closed 2026-11-20
+
+Closed 2026-11-20 on the owner's word ("Couldn't we just assume most of these are done already?"): 0.8.2 staging list item 1 is taken as checked (on production since 0.8.3).
+
+Status line before closing: IN REVIEW — on production since 0.8.3 (data r-6258ffded676, feeds worker 0a3205f6; built c9dc6ba69, a6f79b38a; first on staging r-379e72fc9524); feed size budget raised, shrink is T905; owner: OWNER-TODO "Test 0.8.2 on staging (2026-11-19 morning)" (item 1).

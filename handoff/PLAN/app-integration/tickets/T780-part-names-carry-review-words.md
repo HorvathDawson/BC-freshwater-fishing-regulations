@@ -1,6 +1,6 @@
 # T780 — Part names show a cut's review words: "…, approximate location (medium confidence)"
 
-Status: OPEN (the words are not in `data/curated/waters/cuts.json`: the labels are clean (e.g. "Skutz Falls", confidence "medium"); deliver appends "approximate location (… confidence)" from the cut's `confidence` field by the T207 rule (`pipeline/deliver/answers/display/part.py`, `confidence_words`). Needs a call on whether part names keep that suffix, then one deliver run and a release)
+Status: OPEN (owner 2026-11-20: take the ticket's default, part names do NOT keep the "approximate location (… confidence)" suffix; NOT built yet. left (Claude): stop `pipeline/deliver/answers/display/part.py` `confidence_words` appending it to a part name, keep the words on the cut's `note`/`confidence`, add the `check_curated --waters` check, change the two pins, one deliver run and a release).
 
 Source: reading the release r-46e4355a7277 fixtures, 2026-11-16. The live release before it already showed one (the
 Cowichan's Sandy Pool sign).
@@ -21,3 +21,9 @@ proposal's review words in the label itself, and an angler reads them:
 - The app chat left two pins that name the Sandy Pool label as it is today (`waterGroup.fixture.test.ts`,
   `waterMap.test.ts`, each says so in a comment): change them with the labels.
 - Labels only: no section moves; one deliver run, binding diff empty.
+
+## Owner answer 2026-11-20
+
+Owner 2026-11-20 ("Couldn't we just assume most of these are done already?"): take the default, part names do not carry the review words (the ticket's "What is wrong" and "What to build"). The change is NOT built yet; the next step is Claude's.
+
+Status line before this answer: OPEN (the words are not in `data/curated/waters/cuts.json`: the labels are clean (e.g. "Skutz Falls", confidence "medium"); deliver appends "approximate location (… confidence)" from the cut's `confidence` field by the T207 rule (`pipeline/deliver/answers/display/part.py`, `confidence_words`). Needs a call on whether part names keep that suffix, then one deliver run and a release)

@@ -1,6 +1,6 @@
 # T636 — Conditions map: a "level only" gauge is shown by its ring, not a text tag
 
-Status: IN REVIEW — aca09a946 (ring A built; owner picked A 2026-11-11); owner: OWNER-TODO "Gauge ring: a gauge that reports only flow or only level shows as a grey dot with a ring"
+Status: DONE — aca09a946 (closed on the owner's word 2026-11-20; see the last section)
 
 Source: owner 2026-11-11: "the level only tag in the conditions map is a lot it should be a border color or something instead to indicate it".
 
@@ -36,3 +36,9 @@ Shots (web, 390 px, Conditions, Fraser at Mission, light basemap and satellite) 
 `handoff/PLAN/app-integration/T636-shots/`: `current-*` (today's "level only" pill), `A-*` (ink ring, built), `B-*`
 (yellow ring #FFE14D), `C-*` (ink ring with a paper halo outside it: reads on dark imagery too; a second circle layer,
 not built). Owner question: A, B or C?
+
+## Closed 2026-11-20
+
+Closed 2026-11-20 on the owner's word ("Couldn't we just assume most of these are done already?"): ring A for a level-only gauge is taken as checked on the phone.
+
+Status line before closing: IN REVIEW — aca09a946 (ring A built; owner picked A 2026-11-11); owner: OWNER-TODO "Gauge ring: a gauge that reports only flow or only level shows as a grey dot with a ring"

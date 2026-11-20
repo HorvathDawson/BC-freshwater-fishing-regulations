@@ -1,6 +1,6 @@
 # T604 — The chart's day marks are readable: no overlapping labels, today is obvious
 
-Status: IN REVIEW — owner looks at the web shots in ../T604-shots/ (`*-after.png`), then on the phone; emulator not run | 90e41efc6
+Status: IN PROGRESS — owner's look at the web shots taken as done on his word 2026-11-20; left (Claude): emulator shots | 90e41efc6
 
 Source: owner 2026-11-10 on build 25 (Fraser, CPR Bridge at Mission → Landstrom Bar, regulations day Wed 11 Nov):
 "The only issue is the chart for 2 days. It has overlapping text and not obvious what current day is." Shot:
@@ -43,3 +43,9 @@ Depends: T582. Size: S. Owner: looks at the shots.
   the buttons and was cut. It is now said whole on its own line under the zoom row (the read-out keeps the row).
 - Shots (web, 412 px wide, dark): one day apart, same day, a week apart, past the window, a Conditions day + regs day,
   adjacent days. Emulator not run. Left: a phone look.
+
+## Owner answer 2026-11-20
+
+Owner 2026-11-20, "Couldn't we just assume most of these are done already?": the owner's look at the T604 web shots and the phone is taken as done. Not closed: the emulator shots are still Claude's step.
+
+Status line before this answer: IN REVIEW — owner looks at the web shots in ../T604-shots/ (`*-after.png`), then on the phone; emulator not run | 90e41efc6

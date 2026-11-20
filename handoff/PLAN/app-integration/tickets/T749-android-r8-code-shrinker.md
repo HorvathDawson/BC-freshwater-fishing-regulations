@@ -1,6 +1,6 @@
 # T749 — Android: turn the code shrinker (R8) back on, with keep rules, behind a device proof
 
-Status: IN REVIEW (merged into `redesign/stream-sections` 35dce9bf3 behind `CANIFISHTHIS_R8=1`, off by default and refused for production builds; six benches pass, both CIs green; the Play internal build 33 (0.7.11, R8 on) was made 2026-11-16 (362c44e6b, bump 88681f9f0) after the six benches passed on its head; owner: OWNER-TODO "t749-r8-phone-walk", the ten-step phone walk)
+Status: DONE — 35dce9bf3, 362c44e6b (closed on the owner's word 2026-11-20; see the last section)
 
 Source: T741 survey 2026-11-14 (owner, verbatim: "can you make sure to keep working on optimizations? make app faster
 and lighter for both ios and android"). History: T250, where the first APK built with R8 died at start and R8 was
@@ -306,3 +306,9 @@ flag on before the build; the 164c928c2 results above stand only for that commit
   the six benches of the section above stand for this build.
 - Left: the owner's ten-step phone walk (the section "Phone walk for the owner"; To-Do row `t749-r8-phone-walk`).
   Not verified by anyone yet: the build on a real phone.
+
+## Closed 2026-11-20
+
+Closed 2026-11-20 on the owner's word ("Couldn't we just assume most of these are done already?"): the ten-step R8 phone walk on build 33 is taken as passed.
+
+Status line before closing: IN REVIEW (merged into `redesign/stream-sections` 35dce9bf3 behind `CANIFISHTHIS_R8=1`, off by default and refused for production builds; six benches pass, both CIs green; the Play internal build 33 (0.7.11, R8 on) was made 2026-11-16 (362c44e6b, bump 88681f9f0) after the six benches passed on its head; owner: OWNER-TODO "t749-r8-phone-walk", the ten-step phone walk)

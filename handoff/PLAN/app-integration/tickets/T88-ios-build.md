@@ -1,6 +1,6 @@
 # T88 — iOS build
 
-Status: PARTIAL — eb2405de0 (`deploy/staging/build-ios-testflight.sh`); signed TestFlight uploads run since 2026-11-14 (3ca087b56: first upload, 0.7.10 build 33; 0.8.3 build 41 went to the External group via T918 on 2026-11-19). left: owner: OWNER-TODO "iOS (T88, T364, T365; 2026-11-05)" (the real-iPhone checks T364 carried: location prompt, offline first download on Wi-Fi and cellular, edge-back swipe, gauge pill padding, walkthrough with VoiceOver).
+Status: DONE — eb2405de0, 3ca087b56 (closed on the owner's word 2026-11-20; see the last section)
 Re-scoped (owner 2026-11-03): a signed device build and a TestFlight upload script; needs the $99 Apple Developer account (owner).
 
 Source: owner deferred iOS at N1 ("code kept platform-neutral so iOS is a build later"); N2 status: "Device run, iOS:
@@ -31,3 +31,9 @@ compiles and links without the account (result below).
 
 ## Merged in (ticket audit 2026-11-05, owner)
 This ticket now also carries the leftovers of: T363, T364, T365 — read each file's open items and finish them here; each closes pointing here.
+
+## Closed 2026-11-20
+
+Closed 2026-11-20 on the owner's word ("Couldn't we just assume most of these are done already?"): the T364 real-iPhone checks (location prompt, offline first download on Wi-Fi and cellular, edge-back swipe, gauge pill padding, VoiceOver walkthrough) are taken as done on a TestFlight build.
+
+Status line before closing: PARTIAL — eb2405de0 (`deploy/staging/build-ios-testflight.sh`); signed TestFlight uploads run since 2026-11-14 (3ca087b56: first upload, 0.7.10 build 33; 0.8.3 build 41 went to the External group via T918 on 2026-11-19). left: owner: OWNER-TODO "iOS (T88, T364, T365; 2026-11-05)" (the real-iPhone checks T364 carried: location prompt, offline first download on Wi-Fi and cellular, edge-back swipe, gauge pill padding, walkthrough with VoiceOver).

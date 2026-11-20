@@ -1,6 +1,6 @@
 # T623 — Rules as shown vs the sources: 21 findings from the 48-water audit
 
-Status: PARTIAL — fixes d8419a5c2, fc832cae0, 19580fc9a, a0f8adb49, 682c884f4, 89206b670, c577f682b, 3884405fd; pending patches applied (ea1c74d67, 2e68ff4c9); reach + deliver done with build 27 (r-303b4007a70a; verification 7d462faf0); F3 fixed by T671 D2 (6b02feb06: a TBD row keeps its own species); left (Claude): F13 (the quota quote keeps "hatchery marked only": `typed.py` + `typed.ts` `RE_QUOTA_SPAN` + a `DFO_REV` bump, diff in the hand-over section); owner: tick the F2/F9 Campbell cut proposals in the review app
+Status: PARTIAL — fixes d8419a5c2, fc832cae0, 19580fc9a, a0f8adb49, 682c884f4, 89206b670, c577f682b, 3884405fd; pending patches applied (ea1c74d67, 2e68ff4c9); reach + deliver done with build 27 (r-303b4007a70a; verification 7d462faf0); F3 fixed by T671 D2 (6b02feb06: a TBD row keeps its own species); left (Claude): F13 (the quota quote keeps "hatchery marked only": `typed.py` + `typed.ts` `RE_QUOTA_SPAN` + a `DFO_REV` bump, diff in the hand-over section); the owner's tick of the F2/F9 Campbell cut proposals is taken as done (owner's word 2026-11-20)
 
 Source: T608 part A, `handoff/PLAN/app-integration/T608A-findings.md` (commit ef14f3b83): 48 waters, 34 clean, no wrong
 value in any regional table; 21 findings F1–F21 (5 high, 7 medium, 9 low), each with the rule as shown, the source
@@ -182,3 +182,9 @@ The new reach tables were compared with the live run, filtered to T623's rules.
 - Not T623:
   - The 11 curation-review in-season/screen failures: the promoted build 27 atlas against a LATEST release cut from the old atlas (handles d5242c0c70509877 vs 105218b34c4adf1b). They should clear when the build 27 release is LATEST.
   - `test_review_screen` 453→458 splits: T637's cuts.
+
+## Owner answer 2026-11-20
+
+Owner 2026-11-20, "Couldn't we just assume most of these are done already?": the F2/F9 Campbell River cut proposals are taken as ticked. Stays PARTIAL: F13 (the quota quote keeps "hatchery marked only") is Claude's work and unbuilt.
+
+Status line before this answer: PARTIAL — fixes d8419a5c2, fc832cae0, 19580fc9a, a0f8adb49, 682c884f4, 89206b670, c577f682b, 3884405fd; pending patches applied (ea1c74d67, 2e68ff4c9); reach + deliver done with build 27 (r-303b4007a70a; verification 7d462faf0); F3 fixed by T671 D2 (6b02feb06: a TBD row keeps its own species); left (Claude): F13 (the quota quote keeps "hatchery marked only": `typed.py` + `typed.ts` `RE_QUOTA_SPAN` + a `DFO_REV` bump, diff in the hand-over section); owner: tick the F2/F9 Campbell cut proposals in the review app

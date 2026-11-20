@@ -1,6 +1,6 @@
 # T750 — Upstream and Downstream walk one line through every part; no branch picker
 
-Status: IN REVIEW (app change e920d4d0d on `redesign/stream-sections` since 2026-11-14; in Play build 33 (0.7.11) and on the staging and production websites since; owner's order answer "upstream is fine" (f6bc9a028); left: the owner's look, owner: OWNER-TODO "the one-line Upstream / Downstream (T750)")
+Status: DONE — e920d4d0d (closed on the owner's word 2026-11-20; see the last section)
 
 Source: owner 2026-11-14, staging website (dff2c7a22), Skeena River, Map tab, part 2 of 18 ("Skeena River Ecological
 Reserve boundary (km 63.5) → Skeena River Ecological Reserve boundary near the Exchamsiks River confluence"). Pressing
@@ -75,3 +75,9 @@ on Wap Creek and Nimpkish River; needs a pipeline change and a release). Owner, 
 shipped `part_ix` order stays; no pipeline change, no release for this.
 
 - 2026-11-15 (CI red on e0785054a): the removed Chooser was still on tools/back-layers.test.ts's surface list (and named in Head's note); both taken off, nothing else of it left in the code. `pnpm check:fast` now runs the two inventories; fast-fail runs back-layers on any apps/mobile, ui, ui-native or map change.
+
+## Closed 2026-11-20
+
+Closed 2026-11-20 on the owner's word ("Couldn't we just assume most of these are done already?"): Upstream / Downstream one part at a time is taken as checked; the Wap Creek / Nimpkish order question takes its default (keep part_ix).
+
+Status line before closing: IN REVIEW (app change e920d4d0d on `redesign/stream-sections` since 2026-11-14; in Play build 33 (0.7.11) and on the staging and production websites since; owner's order answer "upstream is fine" (f6bc9a028); left: the owner's look, owner: OWNER-TODO "the one-line Upstream / Downstream (T750)")

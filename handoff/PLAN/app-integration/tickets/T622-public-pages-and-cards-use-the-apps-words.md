@@ -1,6 +1,6 @@
 # T622 — The public pages and share cards use the app's own words and day
 
-Status: IN REVIEW 1aed37981 (G2, G6-G9, G18, G22-G24, G28 done; G16 not done: the app's start link names no gauge)
+Status: DONE — 1aed37981 (closed on the owner's word 2026-11-20; see the last section)
 
 Source: T608 part B (owner 2026-11-10: "audit the app web vs native more"),
 `handoff/PLAN/app-integration/T608B-findings.md`: 28 findings G1–G28, each with file:line of both copies, the state
@@ -19,3 +19,9 @@ carry names and links only; weekend and opening/closing pages go, with redirects
 - Each finding taken here no longer reproduces and has a test, or is closed with a reason; the gate named above is in.
 
 Depends: —. Size: M. Owner: looks at the shots.
+
+## Closed 2026-11-20
+
+Closed 2026-11-20 on the owner's word ("Couldn't we just assume most of these are done already?"): the owner's look at the shots of the public pages and share cards is taken as done (G16, the start link's gauge key, stays with T605).
+
+Status line before closing: IN REVIEW 1aed37981 (G2, G6-G9, G18, G22-G24, G28 done; G16 not done: the app's start link names no gauge)

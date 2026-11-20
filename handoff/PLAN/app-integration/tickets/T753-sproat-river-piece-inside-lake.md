@@ -252,3 +252,7 @@ lake is never divided into areas, so this follows the repo's lake-split deferral
 provincial parks and the like) do not hold a loop. They are listed on the moved row: Sproat Lake's two shore parks.
 Built and promoted locally: 7 lines move (Sproat, Moat/Cruickshank, Tatlatui/Firesteel, Nanika, Tsintsunko, Isintok,
 Garnet/Eneas), and Kotcho is not moved (`rebuild-finish-2026-11-15.md`).
+
+## Closed 2026-11-20
+
+Closed 2026-11-20 on the owner's word ("Couldn't we just assume most of these are done already?"): the two optional loop points (ponds a loop passes, nameless-creek loops) are taken as fine as built. Status stays DONE.

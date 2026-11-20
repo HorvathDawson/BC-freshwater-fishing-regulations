@@ -1,6 +1,6 @@
 # T711 — Part header text follows the "Source" end name (ruling P55)
 
-Status: IN PROGRESS (code + tests done; left (Claude): the Kanaka shot once the next release carries it).
+Status: IN PROGRESS (code + tests done; owner 2026-11-20: keep what is built, the "Source" wording in both header and name, the ticket's default; left (Claude): the Kanaka shot once a release carries it).
 
 Source: owner 2026-11-13, boundary-name review: "Source" stands for Kanaka, Mat, Coquitlam and the other tops among the 62 changed by P55. Bug: the part header text still says "up to a lake outlet" while the name says "→ Source".
 ## Work
@@ -23,3 +23,9 @@ Check on the live export (r-adc4e248a163), recomputed with the new code: all 62 
 water's ends the same 62 say "a lake outlet"). Kanaka Creek: "From the Cliff Park Falls up to a lake outlet" →
 "From the Cliff Park Falls up to the top of the river"; Buntzen Creek: "From Coquitlam Watershed boundary up to the top
 of the river". Rides the next deliver (no atlas or reach change).
+
+## Owner answer 2026-11-20
+
+Owner 2026-11-20 ("Couldn't we just assume most of these are done already?"): the pick (should the part header say "Source" too?) takes the default, "Source" wording in both, which is built (a2727a3b0). Stays IN PROGRESS: the Kanaka Creek shot is Claude's step.
+
+Status line before this answer: IN PROGRESS (code + tests done; left (Claude): the Kanaka shot once the next release carries it).

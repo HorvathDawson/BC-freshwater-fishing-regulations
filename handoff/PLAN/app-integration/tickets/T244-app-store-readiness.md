@@ -1,6 +1,6 @@
 # T244 — app store readiness
 
-Status: IN PROGRESS — Claude's part done (splash, icons, listing + privacy drafts: 57bb1144e, 7d3cf3501, 30364003d, 10f0f037a; Play listing push tool c6065568e). Since the 11-05 check: signed TestFlight uploads run (first 3ca087b56, 2026-11-14), the production build 39 is on Play Closed (2026-11-19), the privacy page is live on canifishthis.ca; store screenshots are T319. Left (owner): the listing text + privacy-label sign-off and the support@ mailbox, neither recorded as done.
+Status: DONE — 57bb1144e, 7d3cf3501, 30364003d, 10f0f037a, c6065568e (closed on the owner's word 2026-11-20; see the last section)
 
 Source: owner 2026-10-28 — approved proposal P10 in handoff/PLAN/proposed-tickets-2026-10-28.md ("approved ALL 16").
 
@@ -66,3 +66,9 @@ are in OWNER-TODO.
   an artist-made icon later → T447 (POSTPONED).
 - Support URL: https://canifishthis.ca/about.
 - Store screenshot titles (T319, `app/tools/store-shots.json`): kept as they are.
+
+## Closed 2026-11-20
+
+Closed 2026-11-20 on the owner's word ("Couldn't we just assume most of these are done already?"): the listing text and privacy-label sign-off and the support@ mailbox are taken as done.
+
+Status line before closing: IN PROGRESS — Claude's part done (splash, icons, listing + privacy drafts: 57bb1144e, 7d3cf3501, 30364003d, 10f0f037a; Play listing push tool c6065568e). Since the 11-05 check: signed TestFlight uploads run (first 3ca087b56, 2026-11-14), the production build 39 is on Play Closed (2026-11-19), the privacy page is live on canifishthis.ca; store screenshots are T319. Left (owner): the listing text + privacy-label sign-off and the support@ mailbox, neither recorded as done.

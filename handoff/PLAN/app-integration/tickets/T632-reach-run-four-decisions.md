@@ -68,3 +68,7 @@ so every release or APK build that runs it stops there too.
 Leftovers (no ticket made): place the Skeena channels in the atlas (the braid sweep); check whether the Noons and
 Seymour pieces lie in their closures; mint items for the oxbow channel lines if the owner wants them exempt; DFO
 `owned=` (joining water at a confluence cut) is still not passed; render the tidal images from `geometries.pkl`.
+
+## Closed 2026-11-20
+
+Closed 2026-11-20 on the owner's word ("Couldn't we just assume most of these are done already?"): the six matched rows (the curator's saved match wins) are taken as fine; none should take the matcher's pick. Status stays DONE.

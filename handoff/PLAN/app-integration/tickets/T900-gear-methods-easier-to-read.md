@@ -1,6 +1,6 @@
 # T900 — Gear and Methods: cleaner, easier to read (next chat)
 
-Status: IN REVIEW — owner-approved proposal (2026-11-19 ~03:25) landed in 0.8.2 (a3a982a17, changelog 1900e1776), on production since 0.8.3; owner: OWNER-TODO "Test 0.8.2 on staging (2026-11-19 morning)" (item 4).
+Status: DONE — a3a982a17, 1900e1776 (closed on the owner's word 2026-11-20; see the last section)
 
 Owner 2026-11-19 ~01:12 (app chat), two desktop shots of a Fraser water's Gear and Methods
 (/Users/dawson.horvath/.claude/uploads/699dcd1b-ff73-4ed1-a69c-69feb621d839/9fe767d8-image.png and the one before it in that folder; if gone, re-shoot any Lower Fraser water's Gear/Methods),
@@ -32,3 +32,9 @@ Tests: typecheck clean; vitest core/regs + ui-native + conformance/regs (fixture
 
 ## Owner 2026-11-19 ~03:25: approved
 Owner, verbatim (main chat): "T900 looks good you can add side channels style too". The proposal (a3a982a17) lands in 0.8.2 as built.
+
+## Closed 2026-11-20
+
+Closed 2026-11-20 on the owner's word ("Couldn't we just assume most of these are done already?"): 0.8.2 staging list item 4 is taken as checked (on production since 0.8.3).
+
+Status line before closing: IN REVIEW — owner-approved proposal (2026-11-19 ~03:25) landed in 0.8.2 (a3a982a17, changelog 1900e1776), on production since 0.8.3; owner: OWNER-TODO "Test 0.8.2 on staging (2026-11-19 morning)" (item 4).
