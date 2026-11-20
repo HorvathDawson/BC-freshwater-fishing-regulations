@@ -80,3 +80,22 @@ Shots (web, 390 px, Jan 15, release only, no live feed): `T669-shots/before-qual
 `T669-shots/after-qualcho-creek-jan15.png`.
 Under the live feed the app reads the pair table. `deploy/staging/upload.sh` re-stages it (sync-inputs `dfo-pairs`)
 with the release, so the feed path changes on that upload.
+
+## Owner 2026-11-20: "Ship it" + "Name the region"
+The owner asked why coho reads "only 1 over 50 cm" when Region 5B says 2: that cap is Region 6's. His answer:
+"Name the region". On a MIXED line (numbers taken from both regions) each number now names the region it came from:
+"Up to 4 coho a day in total, all waters of Management Units 5-6 to 5-11 combined (Region 5B) · only 1 over 50 cm
+(Region 6)". A line taken whole from one region stays as it was (chinook on Qualcho reads Region 5B's own).
+- How it works: `deliver.salmon.region_label` gives each group's region from its places' page slugs (a `book:` place
+  names none). `strictest(answers, regions)` and `stricter_opening(a, b, ra, rb)` tag each cap with its region.
+  `_name_regions` adds " (Region …)" to the words (`says`) of each tier or kind line in a tree mixed from more than one
+  region. A count that is hatchery-marked only because of the other region names both regions. `_caps` reads the
+  labels back, so a third region folds in correctly.
+- Who passes the regions: `chain_calendar` (the release), `live.compose` (the feed reference) and
+  `salmon_pairs.pairs` all pass them. If the same two openings in another region pair would name other regions, the
+  table holds the numbers with no names (the table is keyed by content), never a wrong name.
+- The app draws the stored words as they are: no app code change and no format bump.
+- Tests: `test_t669_name_the_region_on_a_mixed_line` (the `_name_regions` no-op mutant fails it) and
+  `test_t669_the_release_and_the_live_feed_name_the_same_regions`. The app test now draws a labeled merged tree.
+  RULINGS Z4a amended.
+- Picture: the Jan 15 after shot is re-taken (`T669-shots/after-qualcho-creek-jan15.png`, side release r-6b6f7a2b4777, which differs from r-3c76ec6cf0d4 only on chain 300).

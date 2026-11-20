@@ -230,3 +230,46 @@ def test_mutation_a_reader_that_never_displaces_fails_the_table(monkeypatch):
     monkeypatch.setattr(sys.modules[__name__], "stricter", lambda a, b: False)
     wrong = [c[0] for c in CASES if not isinstance(c[5], dict) and c[5] != "both" and fresh(c[1], c[2]) != c[5]]
     assert len(wrong) >= 4
+
+
+def test_t669_name_the_region_on_a_mixed_line():
+    """(owner 2026-11-20 "Name the region") a MIXED line — numbers from both regions — says each number's region; a line
+    taken whole from one region stays DFO's words. Qualcho Creek (5B pool + Region 6's size cap). A third region folds
+    in with the labels read back. MUTATION: `_name_regions` a no-op — the coho line names no region and this fails."""
+    co = opening(4, "4 per day, only 2 over 50 cm", pooled=POOL, over=[(50, 2)])
+    six = opening(4, "4 per day, only 1 over 50 cm", over=[(50, 1)])
+    regions = ["Region 5B", "Region 6"]
+    got = S.strictest([co, six], regions)
+    assert Q.words(got["tree"]) == ("Up to 4 coho a day in total, all waters of Management Units 5-6 to 5-11 combined "
+                                    "(Region 5B) · only 1 over 50 cm (Region 6)")
+    own = opening(4, "4 per day, only 1 over 50 cm", pooled=POOL, over=[(50, 1)])
+    assert S.strictest([own, opening(4, "4, only 1 over 65", over=[(65, 1)])], regions) is own
+    assert "Region" not in Q.words(S.strictest([co, six])["tree"])          # no regions given: no names
+    three = S.strictest([co, six, opening(3, "3 a day")], [*regions, "Region 7"])
+    assert Q.words(three["tree"]) == ("Up to 4 coho a day in total, all waters of Management Units 5-6 to 5-11 combined "
+                                      "(Region 5B) · 3 a day (Region 7) · only 1 over 50 cm (Region 6)")
+    hatch = S.strictest([opening(2, "2 hatchery marked", hatchery=True), opening(1, "1 a day")], regions)
+    assert Q.words(hatch["tree"]) == "1 a day, hatchery-marked only (Region 5B, Region 6)"
+    assert S.region_label(["5b:region:section", "book:z5:x::y"]) == "Region 5B"
+
+
+def test_t669_the_release_and_the_live_feed_name_the_same_regions(monkeypatch):
+    """`chain_calendar` (the release) and `live.compose` (the feed, the pair table's reference) hand `strictest` the same
+    group regions (`region_label` of each group's places). MUTATION: either side without its labels fails here."""
+    from pipeline.regs.dfo_salmon import live as L
+    from pipeline.tests.test_t668_salmon_regions import _build, _chain_of, _d3_world
+    locs, rules, placed, reg = _d3_world()
+    payload, secs = _build(locs, rules, placed, reg)
+    c = _chain_of(payload, secs, 67)
+    seen = []
+    real = S.strictest
+    monkeypatch.setattr(S, "strictest", lambda answers, regions=None: (seen.append(tuple(regions or ())),
+                                                                       real(answers, regions))[1])
+    v, g = S._Interner(), S._Interner()
+    v(S.NOT_LISTED)
+    cals = {l: L.location_calendar(rules[l], v, g) for l in c["l"]}
+    L.compose(c["l"], cals, v.items, groups=c["s"], intern=v, gears=g.items, gear_intern=g)
+    fed = set(seen)
+    seen.clear()
+    _build(locs, rules, placed, reg)
+    assert fed == {("Region 6", "Region 7")} and ("Region 6", "Region 7") in set(seen)

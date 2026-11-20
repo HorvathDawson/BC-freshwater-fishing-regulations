@@ -98,13 +98,20 @@ def pairs(chains: List[dict], rules_of: Dict[str, List[dict]], static: Optional[
             for d in range(len(S.DAYS)):
                 ans = [V.items[next((x for x in (L._at(cal[lids[j]]["sp"][k], d) for j in g) if x >= 0), 0)]
                        for g in groups]
-                best = ans[0]
-                for v in ans[1:]:
+                labels = [S.region_label(lids[j] for j in g) for g in groups]
+                best, rb = ans[0], labels[0]
+                for v, r in zip(ans[1:], labels[1:]):
                     if v["s"] == best["s"] == "open" and v != best:
                         key = (_key(best), _key(v))
+                        said = S.stricter_opening(best, v, rb, r)
                         if key not in got:
+                            got[key] = [best, v, said]
+                        elif got[key][2] != said:
+                            # (T669 item 3) the same two openings in another region pair name other regions: the
+                            # table keys by content, so it holds the numbers without names (never a wrong name)
                             got[key] = [best, v, S.stricter_opening(best, v)]
-                    best = S.strictest([best, v])
+                    nxt = S.strictest([best, v], [rb, r])
+                    best, rb = nxt, (rb if nxt is best else r if nxt is v else "")
     return [got[k] for k in sorted(got)], sorted(missing)
 
 

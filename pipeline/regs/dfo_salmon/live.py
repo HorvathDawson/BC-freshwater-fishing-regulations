@@ -174,6 +174,8 @@ def compose(lids: Sequence[str], locs: Mapping[str, dict], verdicts: Sequence[di
     list added through `gear_intern`, `gears` the feed's). A merge with no interner to add it to STOPS (never a guess)."""
     subs = [[locs[lids[i]] for i in g if lids[i] in locs] for g in groups] if groups else \
         [[locs[l] for l in lids if l in locs]]
+    # (T669 item 3, owner 2026-11-20) each group's region, named on a mixed line (`deliver.salmon.region_label`)
+    labels = [S.region_label(lids[i] for i in g) for g in groups] if groups else None
     per_sp: List[List[int]] = [[] for _ in S.SPECIES]
     gear: List[int] = []
     fish: List[int] = []
@@ -183,7 +185,7 @@ def compose(lids: Sequence[str], locs: Mapping[str, dict], verdicts: Sequence[di
     def one(ixs: List[int]) -> int:
         if len(ixs) == 1:
             return ixs[0]
-        got = S.strictest([verdicts[i] for i in ixs])
+        got = S.strictest([verdicts[i] for i in ixs], labels)
         hit = next((i for i in ixs if verdicts[i] is got), None)
         if hit is not None:
             return hit

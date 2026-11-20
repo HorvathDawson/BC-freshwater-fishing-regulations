@@ -591,7 +591,28 @@ def _cap(sp: List[str], take: int, **kw) -> dict:
     return {"type": "retention_limit", "take": take, "species": sp, **kw}
 
 
-def _caps(v: Mapping) -> Optional[List[dict]]:
+#: (T669 item 3, owner 2026-11-20 "Name the region") on a MIXED strictest line — numbers taken from both regions — each
+#: number's words end with the region it came from: "Up to 4 coho a day in total, … (Region 5B) · only 1 over 50 cm
+#: (Region 6)". A line one region's own stays as DFO's words. The label is part of the store's words (`says`), so the
+#: app draws it as it draws any tree and decides nothing; `_caps` reads it back when a third region folds in.
+_LABEL = re.compile(r" \((Region [^()]+)\)$")
+
+
+def region_label(lids: Iterable[str]) -> str:
+    """A group's region as a merged line names it: its DFO places' page slugs ("5b:region:section" -> "Region 5B"; a
+    rule-book place, `book:…`, names none). "" where none."""
+    slugs = sorted({str(l).split(":", 1)[0] for l in lids if not str(l).startswith("book:")})
+    return f"Region {', '.join(x.upper() for x in slugs)}" if slugs else ""
+
+
+def _said(node: Mapping, region: str) -> Tuple[str, str]:
+    """A node's words without a region label, and its region (the label it carries, else `region`)."""
+    says = str(node.get("says") or "")
+    m = _LABEL.search(says)
+    return (says[:m.start()], m.group(1)) if m else (says, region)
+
+
+def _caps(v: Mapping, region: str = "") -> Optional[List[dict]]:
     """An opening's limits as the freshwater reader's rules (`bundle.read` shape), so two regions' openings are compared
     by the SAME primitives a two-region freshwater section is (`ladder.stricter`, `rules.statement`):
       the count tier                     its daily count;
@@ -603,13 +624,16 @@ def _caps(v: Mapping) -> Optional[List[dict]]:
       a plain kind (folded)              the count's own fish, with its ceiling (the "none over" size tier says it);
       a size tier                        "none over X cm" (take 0 over X), "only k over X cm" (take k over X), a
                                          monthly one with its `period`.
-    None where the number cannot be read (`u`), or the tree holds anything else (both regions' words then stand)."""
+    None where the number cannot be read (`u`), or the tree holds anything else (both regions' words then stand).
+    `region` (the answer's region, `region_label`): each cap carries the region it came from (`region`; a node's own
+    label wins — a merged answer folding in a third region), so a mixed line can name it."""
     tree = v.get("tree")
     if v.get("u") or not tree or tree.get("node", "tier") != "tier" or tree.get("tier") not in ("count", "total") \
             or not isinstance(tree.get("n"), int) or (tree["tier"] == "total") != bool(tree.get("whose")):
         return None
     sp = list(tree.get("species") or [])
-    root = _cap(sp, tree["n"])
+    tag = lambda node: ({"region": r} if (r := _said(node, region)[1]) else {})        # noqa: E731
+    root = _cap(sp, tree["n"], **tag(tree))
     out = [root]
     hatchery = wild = False
     for c in tree.get("children") or ():
@@ -620,23 +644,28 @@ def _caps(v: Mapping) -> Optional[List[dict]]:
             if c.get("folded") and c["n"] == tree["n"] and not name.startswith(_WILD_KIND):
                 if name.startswith(_HATCHERY_KIND):
                     hatchery = True
-                    out.append(_cap(sp, 0, origin="wild"))
+                    out.append(_cap(sp, 0, origin="wild", **tag(tree)))
+                continue
+            if not c.get("folded") and name.startswith(_HATCHERY_KIND) and c["n"] == tree["n"]:
+                hatchery = True                     # a merged pool's hatchery-marked kind, said on its own line
+                out.append(_cap(sp, 0, origin="wild", **tag(c)))
                 continue
             if c.get("folded") or not name.startswith(_WILD_KIND):
                 return None
             wild = True
-            out.append(_cap(sp, c["n"], origin="wild"))
+            out.append(_cap(sp, c["n"], origin="wild", **tag(c)))
             continue
         if c.get("node") != "tier" or c.get("tier") != "size" or c.get("children") \
                 or c.get("period") not in (None, "monthly") or not isinstance(c.get("over_cm"), int) \
                 or not isinstance(c.get("n"), int):
             return None
         band = {"min_cm": c["over_cm"], **({"take": 0} if c["n"] == 0 and not c.get("period") else {})}
-        out.append(_cap(sp, c["n"], lengths=[band], **({"period": c["period"]} if c.get("period") else {})))
+        out.append(_cap(sp, c["n"], lengths=[band], **({"period": c["period"]} if c.get("period") else {}), **tag(c)))
     if hatchery and wild:
         return None
     if tree["tier"] == "total":
-        root.update(whose=tree["whose"], says=tree.get("says") or "", hatchery=hatchery)
+        root.update(whose=tree["whose"], says=_said(tree, "")[0], hatchery=hatchery and any(
+            k.get("folded") and str(k.get("name") or "").startswith(_HATCHERY_KIND) for k in tree.get("children") or ()))
     return out
 
 
@@ -710,6 +739,7 @@ def _tree_of(caps: List[dict]) -> Optional[dict]:
             pool["children"] = [{**k, "folded": False} if k.get("node") == "kind" and k.get("folded") else k
                                 for k in tree["children"]]
         tree = pool
+    _name_regions(tree, caps, pools, plain, wild, hatchery)
     seq = iter(range(1, 1000))
 
     def ids(t: dict) -> dict:          # the tiers numbered in the order said (pre-order), as `_one` numbers them
@@ -718,20 +748,57 @@ def _tree_of(caps: List[dict]) -> Optional[dict]:
     return ids(tree)
 
 
-def stricter_opening(a: dict, b: dict) -> dict:
+def _name_regions(tree: dict, caps: List[dict], pools: List[dict], plain: List[dict], wild: List[dict],
+                  hatchery: bool) -> None:
+    """(owner 2026-11-20 "Name the region") a tree of caps from MORE THAN ONE region: each tier and each kind said on its
+    own line ends with the region(s) its number came from (`_LABEL`); the count says hatchery-marked only in its own
+    words, so it names that region too. Caps of one region (or with no region given): the words as built."""
+    if len({c.get("region") for c in caps}) < 2 or not all(c.get("region") for c in caps):
+        return
+
+    def name(node: dict, *cs) -> None:
+        regs = sorted({c["region"] for c in cs if c})
+        node["says"] = f"{node['says']} ({', '.join(regs)})"
+    h = wild[0] if hatchery else None
+    top = tree
+    if pools:
+        if plain:
+            name(top, pools[0])
+            top = top["children"][0]
+            name(top, plain[0], h)
+        else:
+            folded = any(k.get("node") == "kind" and k.get("folded") and str(k.get("name")).startswith(_HATCHERY_KIND)
+                         for k in top["children"])
+            name(top, pools[0], h if folded else None)
+    else:
+        name(top, plain[0], h)
+    sizes = [c for c in caps if c.get("lengths")]
+    for k in top["children"]:
+        if k.get("node") == "kind" and not k.get("folded"):
+            name(k, wild[0])
+        elif k.get("node") == "tier":
+            got = [c for c in sizes if c["lengths"][0]["min_cm"] == k.get("over_cm") and c["take"] == k.get("n")
+                   and c.get("period") == k.get("period")]
+            if got:
+                name(k, *got)
+
+
+def stricter_opening(a: dict, b: dict, ra: str = "", rb: str = "") -> dict:
     """(owner 2026-11-11, RULINGS Z4a: "straddles should always take the most strict rules from both regions") two
     regions' openings of one species and day, read as the freshwater reader reads two regions' quotas (`_both_bind`):
     where the caps that bind are one region's own, that region's opening; (T669 item 3) where they mix (a lower count
     from one, a size cap from the other, a pool, a hatchery or wild share), ONE quota tree of the caps that bind
     (`_tree_of`) — numbers, beside both regions' words (`t`); where a number cannot be read, or the caps are not one
-    tree, BOTH regions' words with no number (`u`) — the app then shows DFO's words, and no limit is dropped."""
+    tree, BOTH regions' words with no number (`u`) — the app then shows DFO's words, and no limit is dropped.
+    `ra` / `rb`: the two answers' regions (`region_label`); given, a mixed tree names the region of each number."""
     if a == b:
         return a
-    ca, cb = _caps(a), _caps(b)
+    ca, cb = _caps(a, ra), _caps(b, rb)
     tree = None
     if ca is not None and cb is not None:
         bind = _moot(_both_bind(ca, cb))
-        key = lambda xs: sorted(json.dumps(x, sort_keys=True) for x in xs)       # noqa: E731
+        key = lambda xs: sorted(json.dumps({k: v for k, v in x.items() if k != "region"}, sort_keys=True)  # noqa: E731
+                                for x in xs)
         if key(bind) == key(_moot(ca)):
             return a
         if key(bind) == key(_moot(cb)):
@@ -745,17 +812,19 @@ def stricter_opening(a: dict, b: dict) -> dict:
     return out
 
 
-def strictest(answers: Sequence[Optional[dict]]) -> dict:
+def strictest(answers: Sequence[Optional[dict]], regions: Optional[Sequence[str]] = None) -> dict:
     """The most strict of each region's answer for one species and day (regions by number); a region saying nothing
     that day is closed to it (`NOT_LISTED`: closed unless DFO opens it). Two openings: the stricter limit
-    (`stricter_opening`). The live feed composes the same (`regs.dfo_salmon.live.compose`)."""
-    best = None
-    for v in answers:
-        v = v or NOT_LISTED
+    (`stricter_opening`; `regions`, each answer's `region_label`, name the regions on a mixed line). The live feed
+    composes the same (`regs.dfo_salmon.live.compose`)."""
+    best, rb = None, ""
+    for i, v in enumerate(answers):
+        v, r = v or NOT_LISTED, (regions[i] if regions else "")
         if best is None or STRICT.index(v["s"]) < STRICT.index(best["s"]):
-            best = v
+            best, rb = v, r
         elif v["s"] == best["s"] == "open":
-            best = stricter_opening(best, v)
+            got = stricter_opening(best, v, rb, r)
+            best, rb = got, (rb if got is best else r if got is v else "")
     return best
 
 
@@ -817,7 +886,7 @@ def closed_by_header(sp_runs: Sequence[Sequence[int]], verdicts: Sequence[dict])
 
 def chain_calendar(chain: Sequence[Sequence[dict]], verdicts: _Interner, gears: _Interner,
                    undrawn_closed: bool = True, speaks: bool = False,
-                   groups: Optional[Sequence[Sequence[int]]] = None) -> dict:
+                   groups: Optional[Sequence[Sequence[int]]] = None, labels: Optional[Sequence[str]] = None) -> dict:
     """One chain's year: per species runs of a verdict index (`NOT_LISTED` where nothing opens it), the gear runs (-1:
     no gear line), the map-status runs. (T372, owner 2026-11-04: the trout way) a DFO place on the water not drawn yet
     never paints the map — it is the card's caveat, as an undrawn trout rule is (`status_index`: it never colours a
@@ -827,7 +896,7 @@ def chain_calendar(chain: Sequence[Sequence[dict]], verdicts: _Interner, gears: 
     caveat's "in force today" — the card lists it first on those days. (T668) `groups` (a chain on a section in two
     regions, its places of each region as indices into `chain`): each group cascades on its own and the most strict
     answer per fish speaks (`strictest`, two openings by their limits); the gear lines are every group's
-    (`both_gear`) — as the live feed composes them (`live.compose`)."""
+    (`both_gear`) — as the live feed composes them (`live.compose`). `labels`: each group's `region_label`."""
     per_sp: List[List[int]] = [[] for _ in SPECIES]
     gear: List[int] = []
     shut: List[int] = []
@@ -835,7 +904,7 @@ def chain_calendar(chain: Sequence[Sequence[dict]], verdicts: _Interner, gears: 
     subs = [[chain[i] for i in g] for g in groups] if groups else None
     for md in DAYS:
         if subs:
-            vs = [strictest([verdict_on(c, sp, md) for c in subs]) for sp in SPECIES]
+            vs = [strictest([verdict_on(c, sp, md) for c in subs], labels) for sp in SPECIES]
             g = both_gear([gear_on(c, md) for c in subs])
             o = both_gear([closures_on(c, md) for c in subs])
         else:
@@ -1100,7 +1169,8 @@ def build(entry_files: Mapping[str, object], feeds: Mapping[str, dict], placed: 
             rs = sorted({locs[l][0] for l in key + uk})
             cal = chain_calendar([rules_of[l] for l in key], verdicts, gears,
                                  undrawn_closed=all(all(r.get("header_note") for r in rules_of[l]) for l in uk),
-                                 speaks=speaks, groups=groups or None)
+                                 speaks=speaks, groups=groups or None,
+                                 labels=[region_label(key[i] for i in g) for g in groups] or None)
             # (T668 fix 4, owner 2026-11-11) `a`: per species the place that answers (an index into `l`), so the card
             # names its region and its level of DFO's cascade (`salmon_who`; the places are payload `p`)
             who = {"a": answering_places(cal["sp"], [own_sp(l) for l in key], groups or None,
