@@ -1,6 +1,8 @@
 # T852 — The coho loader is drawn sharp on the phone (and the web)
 
-Status: IN PROGRESS, 0.8.1 — both parts built on branch worktree-agent-aa579d9bb6fd2ca09 (dc6a19b13 sheets, 0f3ada780 line B); waits to be merged and shipped (owner 2026-11-18 ~13:50: "also on the app the loader fish icon should be higher resolution please"; ~13:55 the line under it too).
+Status: DONE — dc6a19b13, 0f3ada780. coho loader sheets baked at 2.5 px/dp (phones) and 2 px/css px (web); the line under it set as the owner's pick B.
+
+Closed by the 2026-11-20 audit: owner picked B 2026-11-18 14:04 (2ef385a37); both commits are on the dev branch and shipped from 0.8.1 (production 0.8.3).
 
 Today (T814/T844): the sheet is baked at 1.5 px per dp (`tools/build-coho.mjs` FRAME_PX 288 for a 192 dp loader;
 80 frames of 288x120 in an 8x10 sheet, 2304x1200, lossless WebP ~0.9-1.1 MB per theme). A Pixel 9 draws ~2.6 px per dp,

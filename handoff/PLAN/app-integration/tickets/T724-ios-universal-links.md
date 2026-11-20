@@ -1,6 +1,6 @@
 # T724 — iOS: shared links open the app as universal links (IOS-7)
 
-Status: PARTIAL (left (Claude): the simulator `openurl` run on the next build; the real hand-off waits for the Team ID and the signed build, T88).
+Status: PARTIAL (built: 9af44b246, ffd44b943, f9d47f0d9; the Team ID is in place since 2026-11-14 (4cc85a914), so every site build writes `apple-app-site-association`; left (Claude): the simulator `openurl` run, then the verified hand-off on a signed build (needs the App ID with Associated Domains on, T88)).
 
 Source: owner 2026-11-14, verbatim: "Maybe we could make a handoff to start improving the ios versions? Making sure it is
 rock solid too?" and "We want to do as much work as possible without the Apple account". Stub IOS-7 in

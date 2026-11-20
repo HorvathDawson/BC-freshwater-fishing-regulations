@@ -1,6 +1,6 @@
 # T404 — One switch to production, and the prod release runbook
 
-Status: IN REVIEW — 124f5257c (merged 2026-11-07; b8d4bec0b was its worktree copy); owner: read handoff/PLAN/release/PRODUCTION.md and answer Q171–Q175 (OWNER-TODO "SEO / domain"); nothing production was run.
+Status: IN PROGRESS — 124f5257c (merged 2026-11-07). The owner's part is done: Q171–Q175 answered (tickets/README; Q172 in OWNER-TODO batch 13) and production was run from PRODUCTION.md on 2026-11-18/19 (OWNER-TODO record 2026-11-18 22:13; STATUS 2026-11-19 evening); the prod prune landed with T865 (4f4b5c827). left (Claude): `pipeline/runtiming/feed/publish.py` takes no `--bucket`, so feeds-runtiming.yml cannot publish to production (deploy/prod/upload.sh copies staging's run timing meanwhile).
 Earlier: IN REVIEW — built 2026-11-07 (b8d4bec0b) on branch worktree-agent-add737f1e347ca347 (not merged); proof pending: the owner reads handoff/PLAN/release/PRODUCTION.md and answers Q171–Q175; nothing production was run.
 
 Source: owner 2026-11-05, on `play.json` living on staging until prod: "can we have a single switch for moving to

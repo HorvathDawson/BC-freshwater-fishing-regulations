@@ -1,6 +1,8 @@
 # T793 — Wild-trout limits are missing from the keep card on at least 15 lakes and on the Kitimat and 23 streams under it (the app allows what the book forbids)
 
-Status: IN REVIEW (fix ready on branch `data/t793-wild-limits-on-card`, f672f4444, not merged; owner: OWNER-TODO "2026-11-16 morning list" question 37, the new sentences and his go; then left (Claude): merge, deliver, rehearse, staging release).
+Status: DONE — da961f55c. A kind keeping both origins says where the wild fish keeps less on the card (Kitimat wild 1, Comox, Dodd and the wild-2 lakes); build stop `tree.origin_unsaid`; owner OK'd the sentences 2026-11-16.
+
+Closed by the 2026-11-20 audit: the branch fix (f672f4444) landed on redesign/stream-sections as da961f55c (same change, same 22 keys). The owner answered question 37 "Go as worded (Recommended)" and question 38 "Trout and char (Recommended)". The Lois/Khartoum double-count went to T805 part C (0f6fe2868). The check carried into the T810 trout table (trout/check.origin_problems). Released from the 0.8.0 data release on.
 
 Source: general audit 2026-11-16, answers checker A1 and A2 (`handoff/PLAN/audit-2026-11-16/answers.md`); the same fault as T782 item 1.
 

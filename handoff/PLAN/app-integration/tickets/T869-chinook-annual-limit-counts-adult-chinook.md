@@ -1,6 +1,6 @@
 # T869 — the chinook annual limit counts ADULT chinook, and "adult" differs by river
 
-Status: IN REVIEW — on staging (release r-379e72fc9524, feeds worker, Play build 37; c9dc6ba69, a6f79b38a); owner: OWNER-TODO "Test 0.8.2 on staging (2026-11-19 morning)".
+Status: IN REVIEW — on production since 0.8.3 (data r-6258ffded676, feeds worker 0a3205f6; built c9dc6ba69, a6f79b38a; first on staging r-379e72fc9524); the Vedder follows DFO (owner 2026-11-19 ~06:40 "good"); owner: OWNER-TODO "Test 0.8.2 on staging (2026-11-19 morning)" (item 2).
 
 Owner 2026-11-18 ~20:22 (via the app chat), verbatim: "For salmon  It is 10 max adult Chinook not over 50cm because some
 rivers adult is defined differently". His screenshot: Coquitlam River, What you can keep, the salmon block's header:

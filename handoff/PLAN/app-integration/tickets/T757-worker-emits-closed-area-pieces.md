@@ -1,6 +1,8 @@
 # T757 — Feeds worker and app: closed areas inside a DFO place (T573's pieces) are live locations, never read as open
 
-Status: IN PROGRESS (app chat; WORKER HALF MERGED into `redesign/stream-sections` 2026-11-16, see "Merged" at the end; production's worker is the owner's deploy. Still on branches, each its own merge: item 6, the app's minimum feed shape (`app/t757-min-feed-shape`); item 7, the deploy refusals (`deploy/t757-worker-shape-refusal`); item 5, the shape in `index.json`, with T759's feed half).
+Status: DONE — c7a09348a, 5a4f5e245, fa0c7a1c5, 8967ca419, 731447000. Worker emits closed-area pieces and states its feed shape; the app's minimum feed shape and the deploy refusals are merged (item 3 superseded by T759 / item 6); the production worker was deployed 2026-11-19.
+
+Closed by the 2026-11-20 audit: the worker half merged (c7a09348a); item 5 (5a4f5e245) and item 6 (fa0c7a1c5, via 7875490fe) merged with merge/t759; item 7's deploy refusals merged (8967ca419, fix 731447000). The ticket says item 3 was superseded by T759 / item 6. The production feeds worker with closed-area pieces was deployed 2026-11-19 (OWNER-TODO '0.8.3 to production', step 1).
 
 Source: Android chat 2026-11-15 (its pipeline lane's T573 build step), agreed between the two chats the same day.
 

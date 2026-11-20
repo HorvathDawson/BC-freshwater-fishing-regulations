@@ -1,6 +1,6 @@
 # T737 — Web: the first river click waits for the background download of the whole release files
 
-Status: IN PROGRESS (lane: first-click investigation 2026-11-14; fix committed + unnamed-stream background order e974cabf7 (2026-11-14 night); multi-region water 673b1d8e3 (2026-11-15); the ahead lane + unnamed reads together (2026-11-15 late, unpushed); staging deploy is the main chat's; region slices left as an option)
+Status: IN PROGRESS (fix a43e750b9; unnamed-stream background order e974cabf7; multi-region water 673b1d8e3; the ahead lane + unnamed reads together bf23b3819, b35f91e0b: all on `redesign/stream-sections` (2026-11-14/15) and on the staging and production websites since; left (Claude): the smoke's first-tap step (item 4); region slices of regs-sid/down/lines are the owner's call)
 
 Source: owner 2026-11-14 evening, verbatim: "On staging.canifishthis.ca  The first river click takes a very long time
 to open". Staging = b2dba0297 (app 0.7.10) on release r-f749475d0962. The staging smoke's "tap a named water" step said

@@ -1,6 +1,8 @@
 # T849 — WaterMode's cross-water test waits for the ▲ before it taps (a CI flake)
 
-Status: OPEN (fix built on branch worktree-agent-a2d88a582cedab642, waits for the merge).
+Status: DONE — 36559a549. WaterMode's cross-water taps wait for a settled, enabled arrow; load proof 10/10 twice.
+
+Closed by the 2026-11-20 audit: fix built on the branch and merged as 36559a549 (2026-11-18).
 
 Source: app CI on d6cbad35d, attempt 2 (2026-11-18): "across waters: ▲ on the Vedder opens the Chilliwack's map at its
 lowest part IN ITS PLACE" failed at 22.1 s, the first `until()` (20 s) after the "Upstream into Chilliwack River" tap.

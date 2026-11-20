@@ -1,6 +1,6 @@
 # T548 — In-season notices: a notice still in force is shown, the feed has a stale rule, and the app says it reads it
 
-Status: IN REVIEW — 65df4ce38, 0bdb754e0, e2f235509, 3a90a1591 (items 1+9, 2+3, 4, 6 done; worker parts wait for the next feeds deploy; owner looks at the one-off vs yearly window rule, below)
+Status: IN PROGRESS — 65df4ce38, 0bdb754e0, e2f235509, 3a90a1591 (items 1+9, 2+3, 4, 6 done; worker parts deployed with the staging worker 2026-11-12 and production 2026-11-18; item 8's per-release links replaced by T673 on the owner's word). Owner answered the window rule 2026-11-11 (below: "Never invent an end date"). left (Claude): check the built one-off rule (an end taken from a window that opens on the row's `from` day, core inseason.ts inSeasonSpan) against that answer and change it if it conflicts; file the not-done items 4 (per-row reading), 7 and 10 as tickets (the Status said 'proposed as new tickets', none exists).
 
 Source: data pipeline review 2026-11-09 (owner-led; 14 areas + a gap check, every finding re-read against the code and release data by a second reviewer). Rank 4 of 17; highest severity 5 of 5.
 

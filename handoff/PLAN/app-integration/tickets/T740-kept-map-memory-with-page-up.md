@@ -1,6 +1,6 @@
 # T740 — The map kept under a water's page costs memory (iPhone measured, Android not paired)
 
-Status: OPEN (before closed testing: decide after one like-for-like measure; fix may be small)
+Status: OPEN (owner 2026-11-17 ~15:11: "After 0.8.0 (Recommended)"; 2026-11-18 put on the 0.8.1 list ("All these fixes can go in 0.8.1"), not built in 0.8.1 to 0.8.3; first step: one like-for-like measure; fix may be small)
 
 Source: iOS chat's memory scenario, 2026-11-14 (written in T725, fd045cd3c), after T717 (6c4547b13: the browse map is
 kept mounted, hidden, under a water's page so Back shows it at once).

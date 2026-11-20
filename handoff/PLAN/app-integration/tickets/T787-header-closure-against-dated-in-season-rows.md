@@ -1,6 +1,8 @@
 # T787 — Regions 7 and 5A: the page header "no fishing for salmon until further notice" overrides the dated in-season openings in the table
 
-Status: OPEN (owner: OWNER-TODO "2026-11-16 morning list" question 15; `pipeline/deliver/salmon.py` `location_rules`, and the feeds worker must read the same way).
+Status: DONE — 178d52320, ba106ce58. Rows of a DFO table DFO hides in an HTML comment are kept for provenance, marked hidden, and answer nothing (Python and feeds worker); merged 02aea5be3.
+
+Closed by the 2026-11-20 audit: the owner's question 15 is answered in the ticket ("we should keep reading them for provenance but mark them hidden..."). Python (178d52320) and worker twin (ba106ce58) are merged via 02aea5be3; the vectors were regenerated in the same lane.
 
 Source: general audit 2026-11-16, labels checker finding 2 (`handoff/PLAN/audit-2026-11-16/labels.md`).
 

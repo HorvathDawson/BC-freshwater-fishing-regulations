@@ -1,6 +1,8 @@
 # T621 — The map's web and native halves agree
 
-Status: IN REVIEW (d59ea56 G4, 1ed2bf7 G19, 9f3052f G15, 7d3f88a gate; G5 and G21 NOT DONE, below)
+Status: DONE — d59ea5674 (G4), 1ed2bf7bd (G19), 9f3052f48 (G15), 7d3f88aa6 (gate). G5 built in T831 (57d816fdb, d7af5c02c: the phone's route map draws its pins and lines); G21 and the device looks went to T603 items 7-8.
+
+Closed by the 2026-11-20 audit: gate in (map-props-gate.test.ts now lists no open gap; 'trace is honoured since T831 (T608B G5 closed)'); G21 + device checks taken over by T603 items 7-8 ('Added 2026-11-10 (T621: the map changes that need a device)').
 
 Source: T608 part B (owner 2026-11-10: "audit the app web vs native more"),
 `handoff/PLAN/app-integration/T608B-findings.md`: 28 findings G1–G28, each with file:line of both copies, the state

@@ -1,6 +1,6 @@
 # T461 — The tidal-water polygon: simpler, quieter
 
-Status: PARTIAL 2026-11-06 — f3038a2 (the quieter look, owner approved). Left: the polygon's simplification at the tile build, with the next release build (tiles and bundle share a vintage).
+Status: PARTIAL 2026-11-06 — f3038a255 (the quieter look, owner approved). left (Claude): Work 1–2 (measure tidal_water per tile, then the per-zoom simplification at the tile build), riding a tile rebuild that ships with a release (tiles and bundle share a vintage); several release builds have passed without it.
 
 Owner: "the tidal polygon might be overwhelming stuff? should it be simplified more?"
 

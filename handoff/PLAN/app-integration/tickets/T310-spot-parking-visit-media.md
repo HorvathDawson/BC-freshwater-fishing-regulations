@@ -1,6 +1,6 @@
 # T310 — Spots: a parking spot; notes and photos belong to visits
 
-Status: PARTIAL (in review, phone shots pending; owner 2026-10-31: "for spots it would be nice to have the option to add a parking spot to it. Also the pictures
+Status: PARTIAL — fd36533e3 (parking + Directions, a P on the map; notes/photos per visit with the migration test); left (Claude): the acceptance's shots on the emulator (a spot with parking + 2 visits each with notes/photos; Directions opens maps). Owner 2026-10-31: "for spots it would be nice to have the option to add a parking spot to it. Also the pictures and text should instead be linked to the visits not to the spot overall".
 and text should instead be linked to the visits not to the spot overall").
 
 ## Work

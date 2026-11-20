@@ -1,6 +1,8 @@
 # T632 — Owner: four decisions from the reach run (T546 items 4 and 5)
 
-Status: IN REVIEW — 8fdcb79d4
+Status: DONE — 8fdcb79d4, 646924e28. All four decisions answered by the owner 2026-11-11 and built (tidal subtracted from every DFO place, unplaced pieces stop the run unless accepted, dead override ids refused, the curator's saved match wins); the Oxbows stop cleared by T637/T664.
+
+Closed by the 2026-11-20 audit: 8fdcb79d4 (tidal subtraction, unplaced gate, dead-id refusal), 646924e28 (owner accepted the 5 pieces); the Oxbows follow-up closed by T637/T664 (promoted f5831c1ac).
 
 Source: T546 report 2026-11-11.
 

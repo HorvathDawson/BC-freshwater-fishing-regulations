@@ -1,6 +1,6 @@
 # T795 — Fraser Lake, Kotcho Lake and Cold Fish Lake read closed all year because an ecological reserve covers 0.1 % of the lake
 
-Status: OPEN (data: `outside_items` on `zp:superior_closures.r3`; the two partly-inside lakes wait on the owner, question 34).
+Status: PARTIAL (data fix DONE 46c13b267: `zp:superior_closures.r3` takes six lakes out (Fraser, Kotcho, Cold Fish, 15 Mile Swamp, and Westwick and Priest per the owner's question 34 "Both open with the note"), the reserve held as an undrawn-part note `r3p`; left (Claude): the build check that lists a `within` closure holding a lake less than half inside its area (needs lake-in-area shares stored by the atlas build; no follow-up ticket yet))
 
 Source: general audit 2026-11-16, answers checker B1 (`handoff/PLAN/audit-2026-11-16/answers.md`).
 

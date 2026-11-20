@@ -1,6 +1,6 @@
 # T756 — Reopening the app mid-download throws away a first install's big files when they were queued "Wait for Wi-Fi"
 
-Status: IN PROGRESS (bench settled 2026-11-16 with T760: three fully passing bg-install sessions; landing in merge 3 `merge/t756-t760`)
+Status: IN PROGRESS (merged onto `redesign/stream-sections` 2026-11-16 with T760 in merge 3 (c62c1fa51); bench settled 076ff72ad: three bg-install sessions 8/8; left (Claude): work 5's iPhone twin run (T722 is merged))
 
 Source: found 2026-11-15 by the R8 lane (T749) while the `bg-install` bench hung on a slow line; mechanism read from the
 code by the iOS chat the same day. The Android chat (first install on Android is its area) found no decision that

@@ -1,6 +1,8 @@
 # T798 — Readings for the owner from the answers audit: Coal Creek above the bridge, the Puntledge above Comox Lake, Skeena "Section 4", DFO "non-retention"
 
-Status: OPEN (owner: OWNER-TODO "2026-11-16 morning list" questions 31, 33, 35, 36).
+Status: DONE — 374f94b48, 4f68105da, 5c39b0b4d, ae3061f71, f4d677c5c, 9af7efbd7. Coal Creek above the bridge is Class II (Li5a); the Puntledge's fly-only and summer exemption carry above Comox Lake and its 'No Fishing tributaries' binds the whole river; Section 4 runs all the way up (T801 item 1); RULINGS D7 non-retention reads Closed.
+
+Closed by the 2026-11-20 audit: all four owner answers (q31, 33, 35, 36) recorded in the ticket and built on the dev branch: Coal Creek 374f94b48, Puntledge 4f68105da + owner checks 5c39b0b4d/ae3061f71 (11-18), RULINGS D7 f4d677c5c, Section 4 9af7efbd7; the lane hashes in the ticket (20b902f56, b79a4513d, 865cbac37, 186388445) are not on the dev branch, their dev equivalents are these.
 
 Source: general audit 2026-11-16, answers checker A4, F1, F3, F5 (`handoff/PLAN/audit-2026-11-16/answers.md`).
 

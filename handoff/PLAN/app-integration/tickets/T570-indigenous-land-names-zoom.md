@@ -1,6 +1,6 @@
 # T570 — Indigenous land names show only when zoomed in a lot more
 
-Status: IN REVIEW
+Status: IN REVIEW — 0fd94a0a9 (Indigenous land names from zoom 12, was 9; owner approved the shots 2026-11-10). Proof: the owner's look on the phone.
 
 Source: owner 2026-11-10: "indigenous land names shouldnt show until zoomed in a lot more."
 

@@ -1,6 +1,6 @@
 # T661 — Two tests red after the hardening lanes
 
-Status: PARTIAL — d12bb0108; left (Claude): install the parked heavy.sh gate (T535) once scripts/fast-fail.sh is green on a quiet tree and the mid-run commit question below is answered
+Status: PARTIAL — d12bb0108, 8c6b53935: both red tests are green (item 1 fixed, item 2 passes unchanged, stepcache fix); left (Claude): item 3, install the parked heavy.sh gate built and tested in T535 (handoff/PLAN/app-integration/T535-heavy-gate/) once fast-fail is green.
 
 Source: scripts-hardening hand-back 2026-11-11. Both fail on the branch and stop fast-fail's changed-test step.
 

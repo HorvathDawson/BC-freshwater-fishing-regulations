@@ -1,6 +1,6 @@
 # T730 — Search on the phone: swipe down to close, small recents, the map stays, a fresh search each time
 
-Status: IN PROGRESS (in build 32 as first built; one behaviour changed after the owner's 2026-11-16 answer "we should fix anything that doesnt seem desirable": branch `app-fix/small-looks-1116` 5f8ca1bb6, not merged; left: the emulator look and the merge)
+Status: IN PROGRESS (in build 32 as first built; one behaviour changed after the owner's 2026-11-16 answer "we should fix anything that doesnt seem desirable": 5f8ca1bb6 on branch `app-fix/small-looks-1116`, merged onto `redesign/stream-sections` 2026-11-16 (265fae08a; benches 572a6957a; Android back test fe89a5d47); left (Claude): the emulator look)
 
 Source: owner 2026-11-14, from using the app on a phone, verbatim:
 1. "When you open search on app you can't swipe down to close it also recent searchs take up a huge amount."

@@ -1,6 +1,8 @@
 # T848 — The web map lags zooming out over Intata Reach (the Nechako Reservoir lakes)
 
-Status: OPEN, cause found (owner 2026-11-18 ~13:15; target 0.8.1, the web site can ship it earlier).
+Status: DONE — 4c005321e, e3dabfbf5. stream line-width free of feature-state (stream-heavy layer) and unused marks hidden by mode; Intata zoom-out long tasks 10/~1,060 ms -> 1-2/~140 ms, 0 map pixels changed.
+
+Closed by the 2026-11-20 audit: fix merged 4c005321e with before/after measures and pixel diff in the ticket; shipped in 0.8.1 and on production 0.8.3; T861 measured the same fix on Conditions (a8a95e4fc).
 
 Source: owner 2026-11-18, verbatim: "Here is a trace from zooming out in map on a high detail big lake and it lags out
 bad … Be nice to fix this in 0.8.1 if it is still an issue in 0.8.0". In the dialog: where = "In Chrome (staging web)";

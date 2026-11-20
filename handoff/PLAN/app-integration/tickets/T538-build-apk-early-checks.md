@@ -1,6 +1,6 @@
 # T538 — build-apk.sh: cheap checks before the lock, changelog required, MapLibre proof on both paths
 
-Status: IN PROGRESS — fcbcda2ba (built; prechecks, stock-APK refusal and changelog shown); left (Claude): one real build-apk.sh --play run (bump commit after the checks, play.json + email), and the expected build id beside the patch in app/tools/maplibre-patch (tools lane).
+Status: IN PROGRESS — fcbcda2ba (built; prechecks, stock-APK refusal and changelog shown); real `build-apk.sh --play` runs since, each bumping versionCode after the checks (88681f9f0 build 33 … 8f2e96c8b build 41, 2026-11-19). left (Claude): the expected build id recorded beside the patch in app/tools/maplibre-patch (Work 4; the id is still read from the AAR itself).
 
 Source: workflow review 2026-11-09 (verified against the code). Rank 6.
 

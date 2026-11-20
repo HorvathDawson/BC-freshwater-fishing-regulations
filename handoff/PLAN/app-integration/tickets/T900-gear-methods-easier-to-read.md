@@ -1,6 +1,6 @@
 # T900 — Gear and Methods: cleaner, easier to read (next chat)
 
-Status: IN REVIEW — approved proposal on staging (a3a982a17); owner: OWNER-TODO "Test 0.8.2 on staging (2026-11-19 morning)".
+Status: IN REVIEW — owner-approved proposal (2026-11-19 ~03:25) landed in 0.8.2 (a3a982a17, changelog 1900e1776), on production since 0.8.3; owner: OWNER-TODO "Test 0.8.2 on staging (2026-11-19 morning)" (item 4).
 
 Owner 2026-11-19 ~01:12 (app chat), two desktop shots of a Fraser water's Gear and Methods
 (/Users/dawson.horvath/.claude/uploads/699dcd1b-ff73-4ed1-a69c-69feb621d839/9fe767d8-image.png and the one before it in that folder; if gone, re-shoot any Lower Fraser water's Gear/Methods),

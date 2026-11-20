@@ -1,6 +1,6 @@
 # T750 — Upstream and Downstream walk one line through every part; no branch picker
 
-Status: IN PROGRESS (this lane; app change e920d4d0d, unpushed; left (Claude): staging deploy by the main chat, then the owner's look)
+Status: IN REVIEW (app change e920d4d0d on `redesign/stream-sections` since 2026-11-14; in Play build 33 (0.7.11) and on the staging and production websites since; owner's order answer "upstream is fine" (f6bc9a028); left: the owner's look, owner: OWNER-TODO "the one-line Upstream / Downstream (T750)")
 
 Source: owner 2026-11-14, staging website (dff2c7a22), Skeena River, Map tab, part 2 of 18 ("Skeena River Ecological
 Reserve boundary (km 63.5) → Skeena River Ecological Reserve boundary near the Exchamsiks River confluence"). Pressing

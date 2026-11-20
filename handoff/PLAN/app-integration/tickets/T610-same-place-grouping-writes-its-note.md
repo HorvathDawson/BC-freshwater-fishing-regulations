@@ -1,6 +1,6 @@
 # T610 — A "same place" grouping writes why on the place (the Serpentine link had no note)
 
-Status: IN REVIEW
+Status: IN PROGRESS — 459e01458, 304feaeec: a "same place" grouping save writes why on the place; the Serpentine link's note landed through the app's own apply. left (Claude): the Thompson grouping (3:thompson-river:from-kamloops-lake-outlet-downstre) still has no note (checked 2026-11-20); either widen the test to region 3 and ask the owner to re-save its "same place", or record why it stays.
 
 Source: found 2026-11-10 while testing T607; coordinator: "ticket + fix … in your lane".
 

@@ -1,6 +1,6 @@
 # T788 — Gates that hide their cause or do not fire when they should (found by the audit and by last night's release)
 
-Status: OPEN (pipeline release / deploy scripts; none let a bad release through).
+Status: PARTIAL (pipeline release / deploy scripts; none let a bad release through; item 3 FIXED 3c38c1d9b; item 9 done by T765 (5d928a1fb: taps.py lists every stale declaration in one run); item 12 done (no comment cites `exclusions.ts` any more); left (Claude): items 1, 2, 4, 5, 6, 7, 8, 10, 11)
 
 Source: general audit 2026-11-16, code and guards checkers (`handoff/PLAN/audit-2026-11-16/code.md`, `handoff/PLAN/audit-2026-11-16/guards.md`).
 

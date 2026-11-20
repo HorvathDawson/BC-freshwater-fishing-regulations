@@ -1,6 +1,6 @@
 # T679 — Each decision in its own stage (everything but tidal)
 
-Status: IN PROGRESS — D2 and D6 built in c9488453c (owner 2026-11-12); left (Claude): D1 ponds, D3 nearer row and D5 DFO confluence cuts at the next atlas build (diffs shown), the D4 guard, gauge placement #4 at the next build, then the plan below
+Status: IN PROGRESS — D2 and D6 built in c9488453c (owner 2026-11-12); D1 ponds, D3 nearer row, D4 word-read guard, D5 DFO confluence cuts and gauge placement #4 built in 9b0d6f4ae (+ f7f4fcfee), promoted with `full_t678b` (a5fe40636) and released in r-0a9930fb8826; the 11 other-line gauge cuts decided (RULINGS P49, T682); plan steps 1–3 done (#9 e1f1a268c, #2 8bc6eadbe, #4 b3a3938de); left (Claude): plan steps 5–10 (#8, #16, #17, #12, #10, #11, #13; next-atlas #1, #6, #18, #15) and #14 as its own ticket
 
 Source: owner 2026-11-11, about tidal: "we want to avoid it being a weird post processing step", "the cuts used for
 tidal should happen where cuts happen etc.", then: "Look for other things like that too". Tidal itself is T678; this

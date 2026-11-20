@@ -1,6 +1,6 @@
 # T870 — the salmon card's Source (DFO) lists every DFO row behind its answers; each bait-ban line says whose it is
 
-Status: IN REVIEW — on staging (release r-379e72fc9524, feeds worker, Play build 37; c9dc6ba69, a6f79b38a); owner: OWNER-TODO "Test 0.8.2 on staging (2026-11-19 morning)".
+Status: IN REVIEW — on production since 0.8.3 (data r-6258ffded676, feeds worker 0a3205f6; built c9dc6ba69, a6f79b38a; first on staging r-379e72fc9524); feed size budget raised, shrink is T905; owner: OWNER-TODO "Test 0.8.2 on staging (2026-11-19 morning)" (item 1).
 data release + feeds worker deploy carry it; pictures not taken (see Built).
 
 Owner 2026-11-18 ~20:25 (via the app chat), Mamquam River, What you can keep, salmon card (screenshot

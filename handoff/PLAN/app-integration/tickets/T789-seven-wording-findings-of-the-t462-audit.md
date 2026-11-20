@@ -1,6 +1,8 @@
 # T789 — Seven wording findings of the T462 audit have no ticket (the owner's gate 1 for closed testing: each fixed or ticketed with his OK)
 
-Status: IN PROGRESS (K6, K7 and G10 landed 45fff5e63; G8 app half landed c76ff33d4; G9, D6, K8 pipeline) (app core wording; before closed testing).
+Status: DONE — 45fff5e63, dbaa009b9, ee9fb62ff, 95989667f, 83d98ee55, c76ff33d4, a90350e0d. All seven T462 wording findings fixed (K6 via T800 8b6bad68c, K7, K8, G8 per water, G9 one fly, G10 own prices, D6 hook span) with the owner's OKs.
+
+Closed by the 2026-11-20 audit: K6/K7/G10 are in 45fff5e63 (K6 by T800 8b6bad68c); K8 dbaa009b9; G9 ee9fb62ff; G8 data 95989667f + per water 83d98ee55 + app c76ff33d4 (owner "Yes, ship it (Recommended)" 2026-11-17 ~21:07); D6 a90350e0d (Python + worker twin, vectors). The status still lists G9, D6 and K8 as pipeline work, but all are on redesign/stream-sections.
 
 Source: general audit 2026-11-16, decisions checker item 7 (`handoff/PLAN/audit-2026-11-16/decisions.md`); T462 is DONE, T495 gate 1.
 

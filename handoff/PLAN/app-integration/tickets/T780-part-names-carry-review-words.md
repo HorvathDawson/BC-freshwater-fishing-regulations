@@ -1,6 +1,6 @@
 # T780 — Part names show a cut's review words: "…, approximate location (medium confidence)"
 
-Status: OPEN (data: `data/curated/waters/cuts.json` labels; then one deliver run and a release).
+Status: OPEN (the words are not in `data/curated/waters/cuts.json`: the labels are clean (e.g. "Skutz Falls", confidence "medium"); deliver appends "approximate location (… confidence)" from the cut's `confidence` field by the T207 rule (`pipeline/deliver/answers/display/part.py`, `confidence_words`). Needs a call on whether part names keep that suffix, then one deliver run and a release)
 
 Source: reading the release r-46e4355a7277 fixtures, 2026-11-16. The live release before it already showed one (the
 Cowichan's Sandy Pool sign).

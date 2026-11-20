@@ -1,6 +1,6 @@
 # T812 — Babine Lake: split on the Gullwing Creek line; creek-mouth closures drawn as circles, not lake sections
 
-Status: OPEN (owner 2026-11-16).
+Status: PARTIAL — the split landed: Babine Lake split on the Gullwing Creek line (a9475700d, merge 8f6dd09cf; ef6480005, aa69b89d6), shipped with the 2026-11-17 rebuild (a5638c5e7). left (Claude): the 12 creek-mouth circles as circle geometry the pipeline ships and the app draws (Salmon map only, follows the day, tap opens Babine Lake's card); the same circles are T885 item 2.
 
 Source: owner 2026-11-16, typed: "We want to split babine lake on the line like our other split lakes. Then we want the
 circles to just be circles on the map not separate sections of the lake. Otherwise it will be overboard." Before it:

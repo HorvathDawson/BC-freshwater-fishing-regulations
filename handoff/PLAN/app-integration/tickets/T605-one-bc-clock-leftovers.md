@@ -1,6 +1,6 @@
 # T605 — One B.C. clock: what T551 left
 
-Status: PARTIAL — items 1, 2, 5 (1aed37981) and 3, 4 built; left (Claude): the start link's region (or bounds) key and its gauge key (T622 G16), see the end
+Status: PARTIAL — items 1, 2, 5 (1aed37981) and 3, 4 (baf4720a9) built; the gauge key in the start link is not wanted (owner 2026-11-12: "Gauge link: leave, not built"). left (Claude): the start link's region (or bounds) key, so a region page's map link focuses its region (see Still open).
 
 Source: T551's report 2026-11-10 (commits d3b7f080e, e1142f148, 7af7f39e4). T551's ticket file numbers the items.
 

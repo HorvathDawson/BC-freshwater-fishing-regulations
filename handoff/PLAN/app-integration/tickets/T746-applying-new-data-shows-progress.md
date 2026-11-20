@@ -1,6 +1,6 @@
 # T746 — While new data is applied the app shows a loading mark and a line of text, not a still screen
 
-Status: IN PROGRESS (merged onto `redesign/stream-sections` 2026-11-16 via `merge/held-group1`; left (Claude): the Android benches and a look at the curtain, §4).
+Status: IN PROGRESS (merged onto `redesign/stream-sections` 2026-11-16 via `merge/held-group1` (70d30e77f); the Android benches (update-freeze, big-update, regs-open, tap-stalls and the rest) all PASS on the merged APK, 2026-11-16 (b60d6436e); left (Claude): a look at the curtain on an Android screen, §4)
 
 Source: owner 2026-11-14 (evening), relayed by the Android chat, verbatim: "also when changes apply to app we want to make
 it so that it has a loading icon with text like splash so it doesnt looking like it is frozen. (applying changes as in

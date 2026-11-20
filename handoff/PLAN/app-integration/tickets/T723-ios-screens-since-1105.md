@@ -1,6 +1,6 @@
 # T723 — iOS: salmon, run timing, search, saved spots, photos work on the simulator (IOS-6)
 
-Status: IN PROGRESS (app chat; the keyboard and back fixes and the small audit fixes are MERGED into `redesign/stream-sections` 2026-11-16, see "Merged" at the end; left: the scenario ports, the Conditions alert field under the decimal pad, the owner's two picks (Save row, back strip width)).
+Status: IN PROGRESS (app chat; the keyboard and back fixes and the small audit fixes are MERGED into `redesign/stream-sections` 2026-11-16 (d15784a4f), see "Merged" at the end; the owner answered the two picks 2026-11-16 12:08: a spot's Save row is lifted above the keyboard on iOS, the back strip stays 16 pt; left (Claude): the scenario ports, the Conditions alert field under the decimal pad, the iOS Save-row lift with its simulator proof).
 
 Source: owner 2026-11-14, verbatim: "Maybe we could make a handoff to start improving the ios versions? Making sure it is
 rock solid too?" and "We want to do as much work as possible without the Apple account". Stub IOS-6 in

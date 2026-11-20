@@ -1,6 +1,8 @@
 # T892 — "What you can keep" table: a row that comes from another water's tributary rule says so
 
-Status: IN REVIEW — trout rows carry their line, on staging (r-379e72fc9524; 2fe421dd7, 72b060088, 3ab2b1b24); owner: OWNER-TODO "Test 0.8.2 on staging (2026-11-19 morning)".
+Status: DONE — 8bdb9cbf0, 2b0c80429, c33e06d91, 8ccae9a9d, 2fe421dd7, 72b060088, 3ab2b1b24. a table row whose answer comes from another water's tributary rule says so (Other fish rows, quota groups, trout fold, and the trout table's rows via TRow.down); the trout rows' look was redone by T907.
+
+Closed by the 2026-11-20 audit: built and merged (app 8bdb9cbf0 + reviews, trout rows 2fe421dd7/72b060088/3ab2b1b24); T907 (DONE, 0.8.3) took over the trout rows' tributary display and the owner approved it on the Glenn Creek pictures (2026-11-19 ~12:27, round 2 'yes good to put in 0.8.3'), which answers OWNER-TODO Q4; on production since 0.8.3.
 
 Owner 2026-11-19 ~00:10 (app chat), verbatim: "The table should say if it came from tributaries too.."
 

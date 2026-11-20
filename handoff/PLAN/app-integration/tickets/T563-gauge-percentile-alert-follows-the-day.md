@@ -1,6 +1,6 @@
 # T563 — A percentile alert follows each day's percentile, not the line of the day it was saved
 
-Status: IN REVIEW — 3b3e6a1c2.
+Status: IN REVIEW — 3b3e6a1c2 (a percentile alert's line is worked out again from the record the phone holds on every open; App.tsx mount in 931235468). Proof: the owner's phone look at the alert editor words, and an emulator run of T527 checklist step 4.
 
 Source: Owner 2026-11-09 (owner checks page, T527): "it should be the percentile of each day so you set percentile on nov 4 then on dec 31 you want it to alert if the percentile crosses that bound for the percentile on that day not the day it was set".
 

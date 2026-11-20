@@ -1,6 +1,6 @@
 # T761 — DFO "rest-of" places: their own bounds, the listed areas, and DFO's "areas AND TIMES"
 
-Status: IN PROGRESS (built, code d65d4e15d; on staging in r-46e4355a7277; left (Claude): none in code; the owner re-ticks the saves; leftovers T775).
+Status: IN REVIEW (built, code d65d4e15d; shipped from r-46e4355a7277 on staging and in every release since, production included; left (Claude): none in code; the owner re-ticks the saves, owner: OWNER-TODO "Saves to re-tick in the review app"; leftovers T775)
 
 Source: owner, 2026-11-15 22:12 and 22:14 (OWNER-TODO "2026-11-15 night — owner answers"): "this iss handled by rest of
 option in extents" (the Skeena sockeye pair) and "all items wih same structure as that shoul duse rest of extent type

@@ -1,6 +1,8 @@
 # T690 — Whiteswan Lake's inlet & outlet streams: every inlet No Fishing, the exception only below the falls
 
-Status: IN PROGRESS — c41d54742; left (Claude): promote full_next + release (built 2026-11-12) (the 12 unnamed inlets become items); read
+Status: DONE — c41d54742. Every Whiteswan inlet and the outlet down to the falls are No Fishing; the 12 inlets became items in the final full_next and shipped in r-adc4e248a163.
+
+Closed by the 2026-11-20 audit: the final full_next with T690 (12 inlet items, r1 16 sections) went into candidate r-adc4e248a163, on staging 2026-11-13 (chain finished, attributed diff names T690); T790 item 4 lists T690 as shipped.
 `whiteswan_lakes_inlet_outlet_streams.r1` in that build's binding diff (2 → 16 sections expected)
 
 Source: owner 2026-11-12, answering T637's "say if the name or the piece is wrong", verbatim: "It is this (no Fishing

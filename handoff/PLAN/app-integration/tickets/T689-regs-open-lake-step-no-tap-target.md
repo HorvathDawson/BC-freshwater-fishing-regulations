@@ -1,6 +1,8 @@
 # T689 — Test bed `regs-open`: the lake step ("Cultus") finds no tap target, twice in a row
 
-Status: IN PROGRESS — the probe is fixed in the code (606037505); left (Claude): the `regs-open` 10/10 rerun on the
+Status: DONE — 606037505, 1c5ab986c. The test bed's tap target accepts a lake's own still water; regs-open passes with the Cultus lake step; own-rules lake colour option B applied.
+
+Closed by the 2026-11-20 audit: regs-open rerun on the next test-bed APK passed: T678-progress 2026-11-13 (0.7.8 test-bed APK) 'regs-open 13/13 steps PASS (small, Fraser, Cultus)', and 19/19 on 0.7.9 (2026-11-14).
 next test-bed APK (no APK may be built in the lane that fixed it).
 
 Source: emulator smoke on build 29 (APK stamp 87d2eeac0), 2026-11-12: first run 9/10, rerun the same evening 9/10 (run

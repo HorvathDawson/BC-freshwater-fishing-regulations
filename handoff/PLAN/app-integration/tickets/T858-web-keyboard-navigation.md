@@ -1,6 +1,6 @@
 # T858 — Web: keyboard navigation in lists, starting with search (arrows move the highlight, Enter opens)
 
-Status: OPEN (app chat; 0.8.1 WEB: lands after the 0.8.1 phone build is cut, then the staging site redeploys from that
+Status: PARTIAL — item 1 merged: web search results keyboard (da865828d, review fixes c49d0764b); left (Claude): item 2 (the water's parts list, Spots, the menu pages: each done or ruled out, listed here) and item 3's check on the staging web at desktop width.
 commit; owner 2026-11-18 ~16:55: "these can be in 0.8.1 web version? since it doesnt change app it shouldnt effect release
 of app?").
 

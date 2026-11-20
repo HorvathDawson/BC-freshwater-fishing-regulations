@@ -1,6 +1,6 @@
 # T636 — Conditions map: a "level only" gauge is shown by its ring, not a text tag
 
-Status: IN REVIEW — aca09a946 (ring A built); owner picked A 2026-11-11; owner phone check on the next build
+Status: IN REVIEW — aca09a946 (ring A built; owner picked A 2026-11-11); owner: OWNER-TODO "Gauge ring: a gauge that reports only flow or only level shows as a grey dot with a ring"
 
 Source: owner 2026-11-11: "the level only tag in the conditions map is a lot it should be a border color or something instead to indicate it".
 

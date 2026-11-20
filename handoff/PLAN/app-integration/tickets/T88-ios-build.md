@@ -1,6 +1,6 @@
 # T88 — iOS build
 
-Status: PARTIAL 2026-11-05 — eb2405de0 (`deploy/staging/build-ios-testflight.sh`); running it needs the owner's Apple Developer account (OWNER-TODO "iOS"). Ships after Android 0.5.0.
+Status: PARTIAL — eb2405de0 (`deploy/staging/build-ios-testflight.sh`); signed TestFlight uploads run since 2026-11-14 (3ca087b56: first upload, 0.7.10 build 33; 0.8.3 build 41 went to the External group via T918 on 2026-11-19). left: owner: OWNER-TODO "iOS (T88, T364, T365; 2026-11-05)" (the real-iPhone checks T364 carried: location prompt, offline first download on Wi-Fi and cellular, edge-back swipe, gauge pill padding, walkthrough with VoiceOver).
 Re-scoped (owner 2026-11-03): a signed device build and a TestFlight upload script; needs the $99 Apple Developer account (owner).
 
 Source: owner deferred iOS at N1 ("code kept platform-neutral so iOS is a build later"); N2 status: "Device run, iOS:

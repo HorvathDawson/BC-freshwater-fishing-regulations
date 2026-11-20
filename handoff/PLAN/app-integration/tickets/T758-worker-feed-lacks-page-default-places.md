@@ -1,6 +1,8 @@
 # T758 — The feeds worker's live salmon feed has no answer for the region-default places the Python feed publishes
 
-Status: IN PROGRESS (app chat; MERGED into `redesign/stream-sections` 2026-11-16 with T757's worker half, the owner's answer to question 19; live on STAGING since 2026-11-15 15:57; left: production's worker, the owner's deploy, To-Do row `t758-prod-feeds-worker`).
+Status: DONE — 179c6cba5, c7a09348a. The feeds worker publishes the page-default places from the page's own sentence, equal to the Python on all 435 chains; staging since 2026-11-15, production worker deployed 2026-11-19.
+
+Closed by the 2026-11-20 audit: worker fix 179c6cba5 (equal to the Python on all 435 chains, 99dfae816), merged via c7a09348a 2026-11-16. The only item left, the production worker, was deployed 2026-11-19 with 0.8.3 (OWNER-TODO: 'Done by Claude: step 1 (feeds worker, version 0a3205f6 ...)').
 
 Source: found 2026-11-15 by the T757 worker lane when the worker's test copies of the curated DFO entries were
 refreshed; confirmed on the live staging feed the same day. The Android chat (DFO is its area) has no ticket or owner

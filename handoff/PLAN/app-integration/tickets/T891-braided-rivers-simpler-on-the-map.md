@@ -1,6 +1,6 @@
 # T891 — braided rivers drawn simpler: side channels thinner, braids simplified in the tile build
 
-Status: PARTIAL — part one on staging (tiles `sc` + thinner style, r-379e72fc9524; 2b5a1748a, 07ee36ad5); owner: OWNER-TODO "Test 0.8.2 on staging (2026-11-19 morning)"; part two (braid simplification) waits for him.
+Status: PARTIAL — part one on production since 0.8.3 (tiles `sc` + thinner side-channel style; 2b5a1748a, 07ee36ad5; owner approved the style ~03:25 and kept the ~9.8k small lines thinner ~06:40); owner: OWNER-TODO "Test 0.8.2 on staging (2026-11-19 morning)" (item 5); left (Claude): part two, braids simplified harder at low and middle zooms in the tile build, pictures to the owner first.
 
 Owner 2026-11-18 ~22:02 (main chat), staging map shot of the Lillooet River braids near Pemberton, MU 2-9
 (/Users/dawson.horvath/.claude/uploads/b8ddfca9-44eb-400e-a9bf-bd89b4b0f359/8b47b3ee-image.png), verbatim: "Isn't

@@ -1,6 +1,6 @@
 # T634 — Lake tab: depth charts and stocking, to the owner's decisions of 2026-11-11
 
-Status: OPEN
+Status: OPEN — three research passes done, nothing shipped, app untouched: first d55900aba (licence per record, vector reader/placing, PDF trial, chart->lake proposals), second b8e65f2f0 (PDFs 200 dpi 1-bit, 748 -> 201 MB), third a1d7da363 (Access Only records built on the owner's word, licence flag; stocking 1,751 clean, contours 25/28, vectors 298 strict); left (Claude): the path to ship in the ticket and item 6 (the app's Lake tab), after closed testing
 
 Source: the depth and stocking audit (T608 D, page https://claude.ai/artifact/7Dn9FwZu3N1aMGxsCR4ea3) and the owner's answers 2026-11-11.
 

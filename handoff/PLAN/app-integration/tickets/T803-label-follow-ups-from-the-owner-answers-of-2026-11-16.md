@@ -1,6 +1,6 @@
 # T803 — Label follow-ups from the owner's answers of 2026-11-16: Cowichan tributaries mark off, Middle Shuswap main river only, Campbell and Fraser Region 3 re-saved, Mara Bridge cut name, Babine areas confirmed, Gitnadoix powerline at the mouth, a side channel renamed, gotchas, Stamp Falls cut 60 m down
 
-Status: OPEN (curated data and saves; some need the next map rebuild).
+Status: PARTIAL — done: 1, 2, 9, 11 (a5990dd7b, 5debac3ef; carries 02f0fedca), 3 (RULINGS T16, f4d677c5c), 5 and 6 (GOTCHAS 4bd6e5333), 13 superseded (3d3b0e90e; Sproat re-saved), 14 and 15 no change, 16 with T770. left (Claude): 4, 8, 10 re-saves through the review app (4's label lookup is T776); 7 the Chemainus DFO sentence in waters/tidal_split_authority.json (still dfo_written: false; atlas input, next atlas rebuild); 12 the Skeena side channel name.
 
 Source: the owner's answers of 2026-11-16 by question dialog (`handoff/PLAN/OWNER-TODO.md`, "Answers by batch",
 batches 2 to 9). His words are quoted there; the work, one item each:

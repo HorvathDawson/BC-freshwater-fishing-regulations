@@ -1,6 +1,6 @@
 # T537 — `release --staging`: resolve in-season before the promote, resume from the smoke, name the after-chores
 
-Status: IN PROGRESS — b3b950e5e (built + unit-proved); left (Claude): one real `python -m pipeline release --staging` ending with a clean tree and green fast-fail, and the pointer-free smoke group in app/tools/smoke-staging.mjs (tools lane) — see Built.
+Status: IN PROGRESS — b3b950e5e (built + unit-proved); real `python -m pipeline release --staging` runs since 2026-11-12 resolve in-season on the candidate and commit notice_waters.json alone (b76c997d9 first, 4c9b96bbc on r-6258ffded676, 2026-11-19). left (Claude): the pointer-free smoke group in app/tools/smoke-staging.mjs (feeds status, backup age, private/ not served) run before any upload (Work 2; tools lane).
 
 Source: workflow review 2026-11-09 (verified against the code). Rank 5.
 

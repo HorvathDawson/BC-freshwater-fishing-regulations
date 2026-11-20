@@ -2,6 +2,8 @@
 
 Status: IN REVIEW — owner looks (a proposal waits in the review app)
 
+Superseded by T573 (2026-11-20 audit: The ticket itself says the four-open-stretches proposal 'is REPLACED' by the owner's two-entries direction (T573); the three closed areas are now T573 pieces confirmed in data/curated/dfo_salmon/closed_areas.json (3 Thompson stretches) and their cuts landed (ec2198839, 85f465788, c6bef0aea).)
+
 Owner, problem report saved in the review app 2026-11-09 (marks.jsonl, DFO place
 `3:thompson-river:from-kamloops-lake-outlet-downstre`, rows 2, 4, 5, 6, 7 picked wrong, problem "split missing"):
 "need to figure out how to represent all of these".

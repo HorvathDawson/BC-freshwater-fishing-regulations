@@ -1,6 +1,6 @@
 # T801 — Skeena Section 4: the "separate licence per section" line barely shows, the stamp sentence quotes the wrong printed line, zone (b) reads "the Zymoetz River confluence (1500 m upstream)"; the upper-end flag is cleared (owner: all the way up)
 
-Status: IN PROGRESS (item 2 landed: pipeline 6d5651c2f, app 45fff5e63; item 3 landed 8e3d5f051; the rest as below).
+Status: IN PROGRESS (items 1-4 landed: 1 9af7efbd7; 2 pipeline 6d5651c2f + app 8d7f17709 (batch 45fff5e63); 3 8e3d5f051; 4 d0df51fd0); left (Claude): item 5, cosmetic: the "Mainstem only" tag shows on parts 11 and 14-18 only, and the Reserve side channel (part 4) carries the Skeena River 2 unit internally.
 
 Source: owner 2026-11-16, question 35 and his two maps of the weekend zones: "Should run all the way up but also we
 should handle the weekend zones properly too. Make sure licensing info is done properly there." The province's

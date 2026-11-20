@@ -1,6 +1,6 @@
 # T836 — The spot photo viewer behaves like the standard phone photo viewers
 
-Status: IN PROGRESS — built on branch `app-fix/t836-photo-viewer` (worktree lane), not merged; Android / iPhone bench owed.
+Status: IN PROGRESS — merged 00edd4889 (2026-11-17: all four behaviours, tests); left (Claude): the Android and iPhone simulator bench, light and dark (open/close from the thumbnail, drag down, strip, tap vs double tap, pinch rubber and fling glide; on Android, that the buttons' layer passes touches).
 
 Source: owner 2026-11-17 ~11:15, in the app chat, verbatim: "the photo viewer could also use a little improvement to
 make it industry standard". Asked which of four standard (Apple / Google Photos) behaviours to add; picked all four

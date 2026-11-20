@@ -1,6 +1,6 @@
 # T569 — Report a problem from the screen you are on (Conditions has no way in)
 
-Status: IN REVIEW — 774befd64 (A "Report a problem with this water" link on a water's Conditions and Map views opens the existing form prefilled: water item id, place, part, tab, day, gauge charted (`station`), `quantity`, `span`, `feed` (station file fetch stamp); section handle cleared (AGENTS 5). New report/2 context keys: station, quantity, span, feed. Worker needs a DEPLOY before an app build sends them (unknown keys are refused). Review app Reports tab must show those four fields (not touched here). Shots ../T583-shots/T569-*.)
+Status: IN PROGRESS — 774befd64 (a "Report a problem with this water" link on a water's Conditions and Map views opens the form prefilled: water, place, part, tab, day, `station`, `quantity`, `span`, `feed`). The feeds worker with the new report/2 keys is deployed (staging 2026-11-12, production 2026-11-18). left (Claude): the review app's Reports tab does not show station / quantity / span / feed (ReportsView.tsx context type lacks them), which the acceptance needs.
 
 Source: Owner 2026-11-09: "I sent a report after navigating away from the conditions pane to the about tab because there
 is no report an issue button on the conditions tab. You need to add that too, it is a bug."

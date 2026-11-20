@@ -1,6 +1,6 @@
 # T791 — A smaller check plan: rehearse the release once, run the tests once, run the data tests on the new release
 
-Status: OPEN (owner: OWNER-TODO "2026-11-16 morning list" section H; nothing changes until his yes).
+Status: PARTIAL (owner 2026-11-16, question 14: "Yes, as proposed (Recommended)"; item 3's code part and item 6 DONE df6f6d22e (fast-fail leaves the no-data tier to the fresh copy; app check timings); item 1 is practice; left (Claude): item 2 (one before-push command; a pre-push hook is the owner's call) and item 4 (the data tier on the candidate, in chunks))
 
 Source: owner 2026-11-16 01:45 "Everything takes so long maybe we should have less tests all the time and do it together at end or something", "Feels wasteful"; general audit, guards checker (`handoff/PLAN/audit-2026-11-16/guards.md`).
 

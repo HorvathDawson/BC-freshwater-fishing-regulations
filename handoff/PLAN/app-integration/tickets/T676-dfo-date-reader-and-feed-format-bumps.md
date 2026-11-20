@@ -1,6 +1,6 @@
 # T676 — The release and the live feed read a DFO date cell the same way; a feed format bump does not strand an older app
 
-Status: PARTIAL (2026-11-12, 4bc03ac14) — items 1, 3 and 4 done: the release reads every DFO date cell with the live feed's reader on the owner's answer of 2026-11-12; item 2 waits on the owner's choice, decided with T673; left (Claude): item 2 with T673. Split from T556 (2026-11-11): what its findings 1 and 3 proposed and T556 did not build.
+Status: PARTIAL (2026-11-12, 4bc03ac14) — items 1, 3 and 4 done (4f591c31a, 4bc03ac14): the release reads every DFO date cell with the live feed's reader on the owner's answer of 2026-11-12; left (Claude): item 2 (a feed format bump that does not strand an older app) — put the choice to the owner (versioned key vs per-feed `minAppVersion`; T673 closed as DONE 785fc9914 without deciding it), then build it. Split from T556 (2026-11-11): what its findings 1 and 3 proposed and T556 did not build.
 
 Source: T556 (data pipeline review 2026-11-09, findings 1 and 3). T556 pinned the two languages with shared fixtures and
 generated the format strings; these two are changes of behaviour, not pins.

@@ -1,6 +1,6 @@
 # T595 — Error reports that are not defects stop arriving as errors
 
-Status: IN REVIEW (b1f252e7c, 5af74464c, 40d8abb75; worker change waits for the next feeds deploy; items 2: test-bed + simulator builds tagged, an owner-APK installed on an emulator is not — see proposal)
+Status: IN PROGRESS — b1f252e7c, 5af74464c, 40d8abb75 (no Play service is a known state; test-bed builds tagged; the worker classes each crash kind). The worker change is deployed (staging 2026-11-12, production 2026-11-18); the emulator-install leftovers were done in T603 items 5-6 (46afd5ad1). left (Claude): the acceptance read — a fresh emulator install files no error kind, and GET /crashes with no flags lists only defects.
 
 Source: worker `GET /crashes` read 2026-11-10 (40 kinds since 10-29). Owner: "get feed worker reports and errors and make
 sure all are covered."

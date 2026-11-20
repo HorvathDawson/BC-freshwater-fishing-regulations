@@ -1,6 +1,8 @@
 # T853 — One command draws the Nass-style rules map for any water (salmon or freshwater)
 
-Status: OPEN (owner 2026-11-18 14:12, verbatim: "could we make a script that generates the nass style images for any stream
+Status: DONE — 203ecf76d, b9c097417. `python -m pipeline.tools.water_map` draws the Nass-style rules map for any water, salmon or freshwater, from a release.
+
+Closed by the 2026-11-20 audit: tool merged 203ecf76d (+ b9c097417), 11 tests; proof images (Nass, Vedder/Chilliwack, Kamloops Lake) sent to the owner (5efd062b5).
 we want? for both salmon or freshwater regs?").
 
 The Nass maps (2026-11-18; app chat scratchpad nass-map/py: extract, render, zoom) were drawn from a release's bundle,

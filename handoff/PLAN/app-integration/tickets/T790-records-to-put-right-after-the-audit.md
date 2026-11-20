@@ -1,6 +1,6 @@
 # T790 — Records to put right: answers shown as open, stale ledger rows, stalled tickets, readings missing from the rulings file, lost follow-ups
 
-Status: OPEN (docs and small tickets; main chat).
+Status: PARTIAL (docs and small tickets; main chat; items 1 and 7 DONE 2b4e0d826; item 4's ledger half DONE c0f8da79c (47 DONE/DROPPED rows to DONE.md); left (Claude): items 2, 3, 4 (stale statuses, missing ticket numbers), 5, 6 (the lost follow-ups still to ticket), 8, 9)
 
 Source: general audit 2026-11-16, decisions checker (`handoff/PLAN/audit-2026-11-16/decisions.md`).
 

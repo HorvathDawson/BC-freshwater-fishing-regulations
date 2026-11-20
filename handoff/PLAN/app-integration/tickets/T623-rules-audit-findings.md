@@ -1,6 +1,6 @@
 # T623 — Rules as shown vs the sources: 21 findings from the 48-water audit
 
-Status: PARTIAL — left (Claude): after the T637/T660 atlas rebuild, reach + deliver (F5 incl. Bowron/Willow, F6, F8, F12, F14, F15 then show; the F5 bundle tests are red until then); feeds-chat hand-over F3/F13; owner: tick the F2/F9 cuts in the review app
+Status: PARTIAL — fixes d8419a5c2, fc832cae0, 19580fc9a, a0f8adb49, 682c884f4, 89206b670, c577f682b, 3884405fd; pending patches applied (ea1c74d67, 2e68ff4c9); reach + deliver done with build 27 (r-303b4007a70a; verification 7d462faf0); F3 fixed by T671 D2 (6b02feb06: a TBD row keeps its own species); left (Claude): F13 (the quota quote keeps "hatchery marked only": `typed.py` + `typed.ts` `RE_QUOTA_SPAN` + a `DFO_REV` bump, diff in the hand-over section); owner: tick the F2/F9 Campbell cut proposals in the review app
 
 Source: T608 part A, `handoff/PLAN/app-integration/T608A-findings.md` (commit ef14f3b83): 48 waters, 34 clean, no wrong
 value in any regional table; 21 findings F1–F21 (5 high, 7 medium, 9 low), each with the rule as shown, the source

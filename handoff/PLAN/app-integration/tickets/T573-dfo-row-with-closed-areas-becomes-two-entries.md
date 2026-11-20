@@ -1,6 +1,8 @@
 # T573 — A DFO row that names closed areas inside its words becomes two entries (the Thompson)
 
-Status: IN REVIEW — owner confirms / moves each closed area in the review app (entry B is saveable since 2026-11-10); the build side below waits on him
+Status: IN PROGRESS — built: two entries (e4f98d84e, c21037796), entry B saveable per closed area (4089f60cd), the build step (b58aa325a, fe11e0af7, be6484e1b, 554558a12, 2026-11-15). The owner's closed areas are confirmed: 16 pieces in data/curated/dfo_salmon/closed_areas.json (Thompson 3, Shuswap 1, Babine 11 circles + the Gullwing line, 2026-11-15..17), their cuts landed. Worker / app half: T757; Babine circles drawn as circles: T812. left (Claude): record the 'what the next reach run + bundle must verify' check (dfo closed lines, Thompson pieces bound inside the place, Babine carried, feed_vs_release) on the live release.
+
+Supersedes T572 (2026-11-20 audit).
 
 Owner 2026-11-10, on the Thompson (T572): "we need a way to represent this … it is like it should become 2 entries?"
 

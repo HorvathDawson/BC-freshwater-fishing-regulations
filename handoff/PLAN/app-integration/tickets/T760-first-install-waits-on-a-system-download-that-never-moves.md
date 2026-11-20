@@ -1,6 +1,6 @@
 # T760 — First install waits for ever, without a word, on a system download that is paused and never moves; and the bench does not clear the downloader
 
-Status: IN PROGRESS (bench settled 2026-11-16: three fully passing bg-install sessions; merge 3 `merge/t756-t760` is landing)
+Status: IN PROGRESS (merged onto `redesign/stream-sections` 2026-11-16 in merge 3 (c62c1fa51) with T756; keep trying e600c5dc1; bench settled 076ff72ad / b4c1a72d9: three bg-install sessions 8/8; left (Claude): the iPhone twin run (work 4))
 
 Source: 2026-11-15, the R8 bench (T749). Traced on the emulator, not inferred.
 

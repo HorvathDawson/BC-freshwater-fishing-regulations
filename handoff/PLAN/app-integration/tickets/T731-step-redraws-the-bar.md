@@ -1,6 +1,6 @@
 # T731 — A step on a water's map closes the bar, resizes the map, then draws it all again
 
-Status: IN PROGRESS (in build 32 as first built; one behaviour changed after the owner's 2026-11-16 answer "we should fix anything that doesnt seem desirable": branch `app-fix/small-looks-1116` 8e1791c7e, not merged; left: the emulator look and the merge)
+Status: IN PROGRESS (in build 32 as first built; one behaviour changed after the owner's 2026-11-16 answer "we should fix anything that doesnt seem desirable": 8e1791c7e on branch `app-fix/small-looks-1116`, merged onto `redesign/stream-sections` 2026-11-16 (265fae08a; benches 572a6957a); the steps' placement later reworked by T875 (DONE, 1c0911f91, 93efeda60); left (Claude): the emulator look and the test bed scenario `step-in-place`)
 
 Source: owner 2026-11-14, phone, verbatim: "When you are in the navigate section view and you click upstream or downstream it
 is like menus briefly close at bottom and cause a flash of a resize then rerender that is a bit abraisive"

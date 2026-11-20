@@ -1,6 +1,8 @@
 # T783 — A rest-of place stands behind its LIVE listed places only; a retired (dormant) listed place it now covers can be answered after it
 
-Status: OPEN (pipeline `pipeline/deliver/salmon.py` `rests_behind` / `rest_after`; latent: no answer is wrong today).
+Status: DONE — 3f90138cf. A rest-of place stands behind its dormant listed places too (Stamp chains 55, 56); merged 02aea5be3.
+
+Closed by the 2026-11-20 audit: built and tested on lane/salmon-rules-1116 (3f90138cf, test_t783_rest_behind_dormant.py, chain diff = 3 Stamp sections). Merged via 02aea5be3 after the owner's 2026-11-16 go-ahead ("Go on all (Recommended)", which names T783). Shipped from the 0.8.0 data release on.
 
 Source: general audit 2026-11-16, code checker finding 1 (`handoff/PLAN/audit-2026-11-16/code.md`).
 

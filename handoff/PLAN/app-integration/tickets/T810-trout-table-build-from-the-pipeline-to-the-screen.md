@@ -1,6 +1,6 @@
 # T810 — Trout and char block as the new table, built from the Python pipeline to the screen (umbrella; the spec is written, the build waits for the owner's go)
 
-Status: OPEN, NOT STARTED beyond its first two steps (T805 = step 1, T809 = step 2). Nothing here holds any other fix
+Status: PARTIAL — built, merged and shipped through step 11: the cutover landed e0434e1b8 (2026-11-18 06:27, CI green); owner signed off the finals from staging 2026-11-18 12:18; 0.8.0 to Play internal and TestFlight 13:44 (8c73939b7); in production since 0.8.3 (2026-11-19). left (Claude): spec step 12, S2 dead-branch cleanup (optional) and the MAP / AGENTS notes; T809's cutover diff (step 11) is not recorded as run.
 or a release (owner 2026-11-15).
 
 Source: owner 2026-11-16 15:18: "have another opus agent spec out what would be involved in transitioning the trout

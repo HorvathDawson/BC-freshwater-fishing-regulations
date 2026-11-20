@@ -1,6 +1,6 @@
 # T802 — An indicator of classified waters (Class I, Class II) on the map and the card: looks for the owner to pick from (his idea, not yet a decision)
 
-Status: OPEN (looks first; the app chat's when a lane is free).
+Status: OPEN (the card half shipped as T841's Class badge in the card header, c76ff33d4; left (Claude): the map looks for Class I / Class II stretches, pictures to the owner first; the app chat's when a lane is free).
 
 Source: owner 2026-11-16, on Skeena Section 4, twice: "Also we might want to have a way to indicate classified water
 types on the map/card?" and "also maybe we should have the classified waters indicator for the different types?"

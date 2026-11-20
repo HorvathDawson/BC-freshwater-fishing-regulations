@@ -1,6 +1,6 @@
 # T568 — The gauge map moves when Level / Flow is tapped on the chart
 
-Status: IN REVIEW — 1c57e7c07 (map over the chart whatever the quantity; one frame per water; refusal keeps the map; reaches the phone with the next build; owner confirms there)
+Status: IN REVIEW — 1c57e7c07, 694479e25 (map over the chart whatever the quantity; one frame per water; refusal keeps the map). Proof: the owner confirms on the phone that Level / Flow no longer moves the map.
 
 Source: Owner 2026-11-09: "when you click level vs flow on chart the location of gauge map changes in an obnoxious way
 this is important to fix too".

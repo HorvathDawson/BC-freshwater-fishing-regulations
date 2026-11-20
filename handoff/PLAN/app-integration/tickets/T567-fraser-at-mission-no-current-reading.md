@@ -1,6 +1,6 @@
 # T567 — Fraser at Mission: the app shows no current readings, the gauge page does
 
-Status: IN REVIEW — fb042cdfa, 1c57e7c07 (open parts a, c, d done; b (one lead gauge per water) waits for an owner decision, below; reaches the phone with the next build; owner confirms there)
+Status: IN REVIEW — fb042cdfa, 1c57e7c07, 694479e25 (a, c, d done; b done on the owner's 2026-11-10 rule "flow is always the leading option": one lead gauge per water and day, chosen in Flow). Proof: the owner confirms Fraser at Mission's reading on the phone.
 
 Source: Owner 2026-11-09: "the fraser at mission gauge has no current readings (but the gauge page for it does so there is an issue there?)".
 

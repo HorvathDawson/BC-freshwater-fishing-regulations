@@ -1,6 +1,8 @@
 # T770 — Salmon gear lines of a wider place vanish when a narrower place has a gear line that day
 
-Status: OPEN (pipeline, `pipeline/deliver/salmon.py`; needs the owner's yes on the rule before it is built).
+Status: DONE — 4e0feaca9, 58debf8a7, b7449a66b, c20de86c1, abb01d6c2. A chain's salmon gear lines are every place's, narrowest first (pipeline, app, worker); eulachon is its own closure line (owner 2026-11-16).
+
+Closed by the 2026-11-20 audit: the owner's yes recorded (question 13 "Show both (Recommended)"; eulachon "As a closure line (Recommended)"). Built in the pipeline (4e0feaca9, c20de86c1, abb01d6c2), the app (58debf8a7) and the worker (b7449a66b). Merged via 02aea5be3 and e389f9ce8. The app/worker `o` line was drawn under T796 (a6bbaf951, 58fa0593c). Shipped from the 0.8.0 data release on.
 
 Source: second-look fix lane A, 2026-11-15 night (`handoff/PLAN/curation-review/second-look-fixes-2026-11-15.md`,
 "New findings" 1).

@@ -1,6 +1,6 @@
 # T747 — A water's Map opened from search frames the part its bar names, not the whole water
 
-Status: IN PROGRESS (fix committed, unpushed; left (Claude): staging deploy by the main chat, then the owner's look)
+Status: IN REVIEW (fix 7b60c75f1 + proof 3f6e558ec on `redesign/stream-sections` since 2026-11-14; in Play build 33 (0.7.11) and on the staging and production websites since; left: the owner's look, owner: OWNER-TODO "the water map on its part (T747)")
 
 Source: owner 2026-11-14, staging website (dff2c7a22, desktop, light), verbatim: "i clicked search skeena then clicked
 view skeena river then it went to this it is the section view but it is fully zoomed out instead of on the first

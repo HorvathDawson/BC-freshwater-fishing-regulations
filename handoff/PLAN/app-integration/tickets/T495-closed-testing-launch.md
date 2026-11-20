@@ -1,6 +1,6 @@
 # T495 — The near goal: Play closed testing on production, good enough for first users
 
-Status: OPEN — owner 2026-11-07 (chat 7). This is the release goal; every chat works this list first.
+Status: OPEN — owner 2026-11-07 (chat 7). This is the release goal; every chat works this list first. 2026-11-19: production serves the new site, data r-6258ffded676 and the feeds + data workers, and the gated build 39 (0.8.3, production) is on Play Closed waiting for Google's review (STATUS 2026-11-19 evening). Left: gate 2 T360 (PARTIAL), gate 3 T401 (PARTIAL, owner: not urgent), step 3 T463 (owner runs /code-review ultra), store T319 / T390 / T514, and the closed-testing clock itself (T371).
 
 ## The goal
 Get the app out to the first users (Play closed testing: 12 testers × 14 days) without a bad first experience,

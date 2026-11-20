@@ -1,6 +1,8 @@
 # T855 — The Salmon map draws noticeably slower than the Trout map (0.8.0)
 
-Status: OPEN (app chat; 0.8.1).
+Status: DONE — 4c005321e, 309c05303. same cause as T848; the stream-heavy layer split takes the Salmon zoom-out from ~2.5 s to ~0.5 s and pan from ~1.1 s to ~285 ms.
+
+Closed by the 2026-11-20 audit: measured and fixed by T848's 4c005321e (merged, 0.8.1; production 0.8.3); ticket records before/after on the same trace.
 
 Owner 2026-11-18 ~14:20 (to the main chat, relayed), verbatim: "so we fixed the salmon painting? right now on 0.8.0 it
 seems way slower then trout painting?"

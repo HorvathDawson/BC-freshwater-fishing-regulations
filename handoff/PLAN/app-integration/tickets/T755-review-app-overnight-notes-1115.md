@@ -1,6 +1,6 @@
 # T755 — Review app: what the owner's overnight marks said it could not do (2026-11-15)
 
-Status: IN PROGRESS (review-app lane, 2026-11-15: code in; left (Claude): main chat applies the targeted suggestions merge, the owner restarts his copy and re-marks the places listed below)
+Status: IN REVIEW (code merged: 9d8d2f381, follow-up 3920760a4, CI fixes 0a6c82dae, c67ef332d; the main chat's targeted suggestions merge applied (40bafe8be, 36 rows); the tributaries-only places saved at the owner's request (2ec440168); left: the owner re-ticks the saves, owner: OWNER-TODO "Saves to re-tick in the review app")
 
 Source: a read-only triage of the 84 marks saved overnight (`~/bcfish-session-backup-2026-11-12/marks-triage-1115.md`) and
 T742. His notes, verbatim:

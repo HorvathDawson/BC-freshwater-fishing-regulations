@@ -1,6 +1,8 @@
 # T865 — Production data clean-up is automatic (stay under R2's free 10 GB)
 
-Status: PARTIAL — built 4f4b5c8 + review fixes 8b279ce (lane app/t865-prod-prune, not merged); left (Claude): at the
+Status: DONE — 4f4b5c827, 8b279ce64. production prunes old releases after each promote (upload.sh, allowlist); v1 dropped by drop-v1.sh at the switch.
+
+Closed by the 2026-11-20 audit: both commits merged on the dev branch; the switch happened 2026-11-18 ~23:05-23:21 (OWNER-TODO): bc-fishing-cron schedules removed, main's three update workflows gone, deploy/prod/drop-v1.sh freed 20,019 objects / 8.57 GB, smoke --production 8/0/0.
 switch, on the owner's word, turn off `bc-fishing-cron` + `main`'s three update workflows and run
 `deploy/prod/drop-v1.sh` (PRODUCTION.md step 11).
 
