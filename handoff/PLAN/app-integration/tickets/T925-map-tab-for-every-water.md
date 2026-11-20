@@ -1,6 +1,6 @@
 # T925 — A water with one section gets its Map view too
 
-Status: OPEN.
+Status: DONE (landed on redesign/stream-sections 2026-11-20 01:50 in b5634ba92 34a10b157 70dce488f 2a4bedabb; owner approved the pictures).
 
 Source: a tester relayed by the owner 2026-11-19 (`T925-shots/tester-2026-11-19-cheakamus.png`, Cheakamus River's
 Regulations card shows only Regulations | Conditions). Tester, verbatim: "when you click on a river it highlights for just a

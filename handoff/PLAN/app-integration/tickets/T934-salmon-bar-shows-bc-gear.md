@@ -1,6 +1,6 @@
 # T934 — The salmon year bar shows the B.C. bait ban and fly-only days too
 
-Status: OPEN.
+Status: DONE (landed on redesign/stream-sections 2026-11-20 01:50 in 05dacb264 bb7b5ec53 40b7a90ae 2be00455c; owner approved the pictures).
 
 Source: owner 2026-11-20 ~00:08 (main chat), screenshot `T934-shots/owner-2026-11-20-cheakamus.png` (Cheakamus River,
 Regulations, Nov 20: the GAME FISH bar carries the bait-ban band all year, the SALMON bar only Open / Closed). Verbatim:

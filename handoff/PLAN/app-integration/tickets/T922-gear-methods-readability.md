@@ -1,6 +1,6 @@
 # T922 — Gear and Methods read as run-on sentences; "Roe" says it plainly
 
-Status: OPEN.
+Status: DONE (landed on redesign/stream-sections 2026-11-20 01:50 in a88ddb254 474ff31ee 79b8686bd 6520d6c42 66dcc548a; owner approved the pictures).
 
 Source: a tester's feedback relayed by the owner 2026-11-19 (screenshots `T922-shots/tester-2026-11-19-{1..4}.png`, Alice
 Lake, Gear + Methods). Tester, verbatim: "The way things are formatted here makes it seem like a confusing run-on sentence.

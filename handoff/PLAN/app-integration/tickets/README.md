@@ -222,10 +222,10 @@ reads both files; a ticket closed here moves there once its lane is finished wit
 | T919 | 0.8.3 leftovers: K_DOWN near-duplicate labels, Elaho p.23 twice, map assets still downloaded, T912 resume check | IN PROGRESS — (a), (b) DONE; (c) one packed download, (d) next | 30e052328 | found by Claude 2026-11-19 |
 | T920 | Conditions: the gauge map goes below the gauge chart; check the white map box in dark mode (owner) | DONE | b49e10e49 20dd416f9 | owner 2026-11-19 ~16:30 "move the gauge map below the chart on conditions" |
 | T921 | "Join the iPhone test" opens the public TestFlight link (web app + website) (owner) | DONE | 82673b6f2 | owner 2026-11-19 "join apple trial we could have this link" |
-| T922 | Gear / Methods read as run-on sentences; "Roe" said plainly (tester via owner) | OPEN | | tester 2026-11-19 via owner |
+| T922 | Gear / Methods read as run-on sentences; "Roe" said plainly (tester via owner) | DONE | a88ddb254 474ff31ee 79b8686bd 6520d6c42 66dcc548a | tester 2026-11-19 via owner |
 | T923 | Not-fishable land (reserves, private) hard to see on satellite and light mode: darker same-hue outline (tester via owner) | OPEN | | tester 2026-11-19 via owner |
-| T924 | Layers sheet wording read "a little weird" (tester via owner) | OPEN | | tester 2026-11-19 via owner |
-| T925 | A water with one section gets its Map view too; the tapped part stays marked (tester via owner) | OPEN | | tester 2026-11-19 via owner |
+| T924 | Layers sheet wording read "a little weird" (tester via owner) | DONE | 3c057089f 820fbcf32 32135b5d2 | tester 2026-11-19 via owner |
+| T925 | A water with one section gets its Map view too; the tapped part stays marked (tester via owner) | DONE | b5634ba92 34a10b157 70dce488f 2a4bedabb | tester 2026-11-19 via owner |
 | T926 | Search: every entry in name_variants.json, as it stands, finds its water (31 misses today); nothing else (owner) | OPEN | | owner 2026-11-19 "did we ever make sure handle name variants" |
 | T927 | Search finds the book's boundary places (477 placed cuts: "Vedder Crossing", "Greendale Trestle") (owner) | OPEN | | owner 2026-11-19 "search a cut location from book" |
 | T928 | iPhone: the main map fills only 2/3 of the screen after tab changes (tester via owner) | OPEN | | tester 2026-11-19 via owner |
@@ -234,7 +234,7 @@ reads both files; a ticket closed here moves there once its lane is finished wit
 | T931 | Live-data test tier: ~55 stale pins after the 11-15..11-19 rulings, one lake-loop invariant break (T753), env flakes | OPEN | | main chat 2026-11-19 tier diagnosis |
 | T932 | Audit name_variants.json: joined multi-lake lines, wrong targets, twins, book-print forms (owner) | POSTPONED (deferred with T930: after bathy map, stocked lakes, charts) | | owner 2026-11-20 "audit the name variants" |
 | T933 | A dataset for OpenStreetMap of the 324 streams we added (licence per city, missing-only, OSM import process) (owner) | POSTPONED (deferred with T930: after bathy map, stocked lakes, charts) | | owner 2026-11-20 "dataset for OSM" |
-| T934 | The salmon year bar shows the B.C. bait ban and fly-only days too (owner) | OPEN | | owner 2026-11-20 "Bait ban needs to apply to salmon" |
+| T934 | The salmon year bar shows the B.C. bait ban and fly-only days too (owner) | DONE | 05dacb264 bb7b5ec53 40b7a90ae 2be00455c | owner 2026-11-20 "Bait ban needs to apply to salmon" |
 | T935 | iPhone: the year bars' closed days and the Closed key swatch draw no colour (owner) | DONE | 33aa04409 8bcbb359a 7008a6c73 | owner 2026-11-20 "On apple DFO calendar when closed has no color" |
 | T936 | Build warning: salmon open on a game-fish-closed day that carries a B.C. gear rule (owner) | OPEN | | owner 2026-11-20 "add a build warning if there is a waterbody like that" |
 | T937 | Salmon map: no-access water drawn grey like Trout, with its key entry (owner) | OPEN | | owner 2026-11-20 "salmon should have the no access land set to grey like trout" |
