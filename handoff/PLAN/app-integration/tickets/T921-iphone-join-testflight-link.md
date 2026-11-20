@@ -1,6 +1,6 @@
 # T921 — "Join the iPhone test" opens the public TestFlight link
 
-Status: IN PROGRESS (main chat, 2026-11-19 evening: built, uncommitted; lands with the T920 batch).
+Status: DONE 2026-11-19 (82673b6f2; landed at d28344298).
 
 Source: owner 2026-11-19 (main chat), verbatim: "in the webapp where it says join apple trial we could have this link??
 https://testflight.apple.com/join/x7uVRt8j"

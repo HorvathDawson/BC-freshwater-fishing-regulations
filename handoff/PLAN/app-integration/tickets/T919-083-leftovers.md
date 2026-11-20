@@ -1,6 +1,6 @@
 # T919 — 0.8.3 leftovers
 
-Status: IN PROGRESS (main chat, 2026-11-19 evening: (a) and (b) built, uncommitted until review; (c), (d) next).
+Status: IN PROGRESS: (a), (b) DONE 2026-11-19 (30e052328, landed at d28344298); (c) one packed download (owner 20:31) and (d) next.
 
 Small finds that did not block 0.8.3. Batch them into the next release.
 

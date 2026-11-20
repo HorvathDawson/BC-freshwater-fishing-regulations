@@ -1,8 +1,8 @@
 # T917 — The website's page build (build-seo) is slow: about 15 minutes per site
 
-Status: IN PROGRESS — round 1 built in worktree branch `worktree-agent-a72298791d841faf6` (full build 1,136 s → 470 s,
-byte-identical); left (Claude): independent review + merge. Items 3-4 (rebuild only what changed, prod reusing staging) not
-started.
+Status: DONE 2026-11-19 (7d85dd1bc round 1 + fa459e908 review fixes; landed on redesign/stream-sections at d28344298). Full build 1,136 s → 470 s, byte-identical.
+Items 3-4 (rebuild only what changed; production reusing staging's pages) not started: not needed now that a full
+build takes ~8 min; reopen as a new ticket if the build grows again.
 
 Owner 2026-11-19 ~15:42 (main chat), watching the 0.8.3 production website build ("building the water pages, about 3,000
 done so far"), verbatim: "this is so slow ... im sure we could speed it up make that a future ticket".

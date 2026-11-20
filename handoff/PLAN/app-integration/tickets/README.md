@@ -317,11 +317,11 @@ reads both files; a ticket closed here moves there once its lane is finished wit
 | T914 | Web start: break up the first script's evaluation and the first screen's build (mobile Lighthouse) (owner) | OPEN | after 0.8.3 | owner 2026-11-19 ~12:00 |
 | T915 | Day calendar: no size jump in January; a desktop-shaped popup on wide web (owner) | DONE — shipped in 0.8.3 (staging + production 2026-11-19) | 1aeb9f3f2 | owner 2026-11-19 ~12:45 |
 | T916 | "This water in the rule book p.7" on Sweltzer River points at the wrong page (owner) | DONE — shipped in 0.8.3 (staging + production 2026-11-19) | de2cb25bb | owner 2026-11-19 ~12:55 |
-| T917 | The website's page build (build-seo) takes ~15 min per site: profile, more threads, rebuild only changed pages (owner) | IN PROGRESS — round 1 (1,136 s → 470 s, byte-identical) in worktree branch worktree-agent-a72298791d841faf6; left: independent review + merge | T917 lane | owner 2026-11-19 ~15:42 "make that a future ticket" |
+| T917 | The website's page build (build-seo) takes ~15 min per site: profile, more threads, rebuild only changed pages (owner) | DONE | 7d85dd1bc fa459e908 | owner 2026-11-19 ~15:42 "make that a future ticket" |
 | T918 | TestFlight: a new iPhone build is added to the External group (and sent for beta review) by the upload script (owner) | DONE — 0.8.3 build 41 in "testers ext", waiting for Beta App Review (2026-11-19) | 98b66c7e4 f030e3938 | owner 2026-11-19 ~15:49 |
-| T919 | 0.8.3 leftovers: K_DOWN near-duplicate labels, Elaho p.23 twice, map assets still downloaded, T912 resume check | IN PROGRESS | main chat | found by Claude 2026-11-19 |
-| T920 | Conditions: the gauge map goes below the gauge chart; check the white map box in dark mode (owner) | IN PROGRESS | main chat | owner 2026-11-19 ~16:30 "move the gauge map below the chart on conditions" |
-| T921 | "Join the iPhone test" opens the public TestFlight link (web app + website) (owner) | IN PROGRESS | main chat | owner 2026-11-19 "join apple trial we could have this link" |
+| T919 | 0.8.3 leftovers: K_DOWN near-duplicate labels, Elaho p.23 twice, map assets still downloaded, T912 resume check | IN PROGRESS — (a), (b) DONE; (c) one packed download, (d) next | 30e052328 | found by Claude 2026-11-19 |
+| T920 | Conditions: the gauge map goes below the gauge chart; check the white map box in dark mode (owner) | DONE | b49e10e49 20dd416f9 | owner 2026-11-19 ~16:30 "move the gauge map below the chart on conditions" |
+| T921 | "Join the iPhone test" opens the public TestFlight link (web app + website) (owner) | DONE | 82673b6f2 | owner 2026-11-19 "join apple trial we could have this link" |
 | T922 | Gear / Methods read as run-on sentences; "Roe" said plainly (tester via owner) | OPEN | | tester 2026-11-19 via owner |
 | T923 | Not-fishable land (reserves, private) hard to see on satellite and light mode: darker same-hue outline (tester via owner) | OPEN | | tester 2026-11-19 via owner |
 | T924 | Layers sheet wording read "a little weird" (tester via owner) | OPEN | | tester 2026-11-19 via owner |
