@@ -783,6 +783,7 @@ decisions.md "CLAUDE 2026-10-23 — owner-question triage" (read and reverse any
   Q27 sign-off walk.
 
 ## Things only you can run or provide
+- **T595/T596 /crashes reads (run token)**: the feeds worker's `GET /crashes` needs your RUN_TOKEN (403 without it; Claude may not read the token). Run on staging (`https://bc-fishing-feeds-staging.horvath-dawson.workers.dev`) and production (`https://feeds.canifishthis.ca`), or give a session the token to do it: `curl -H "Authorization: Bearer $RUN_TOKEN" "<worker>/crashes?since=2026-11-09"`. Look for: only `defect` kinds listed, none from the 11-19/20 emulator installs (T595); kind 4219b587 (.sqlite.part) absent since 0.7.3 (T596). Then tell Claude, who records both tickets.
 - **Store listing sign-off (T244)**: privacy drafts APPROVED and the name DECIDED (owner 2026-11-06: "Can I Fish?" on the
   icon only, "Can I Fish This?" everywhere else). Still open from the 10-29 list: `app-integration/store/listing-draft.md` and `store/privacy-labels-draft.md`
   (nothing is submitted). Decide: the **app icon / adaptive icon / feature graphic** (DONE from the favicon, per your answer: `T244-shots/icons-preview.png`; add words to the feature graphic if you want), the support URL, categories. Contact = support@canifishthis.ca and the Location row (declared: collected + shared with Open-Meteo) are decided.
