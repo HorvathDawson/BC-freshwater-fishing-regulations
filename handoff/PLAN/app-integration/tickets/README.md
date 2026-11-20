@@ -247,6 +247,9 @@ reads both files; a ticket closed here moves there once its lane is finished wit
 | T945 | Committed unnamed-tributary sweep result stale against the live bundle (41 streams) | IN PROGRESS — left (Claude): main chat review + merge (41 = atlas: T796 names, Sheldens Creek, Lakelse cut) | 3f8cddad8 | lane/t936-t931 2026-11-20 test-full |
 | T946 | Tier 2 tributary lines: 20 parts (Lake Revelstoke tributaries DV, Iverson Creek) not what their rail sets | IN PROGRESS — left (Claude): main chat review + merge (the sweep's rail reader missed T919 a's bare kicker) | 67ed64d77 | lane/t936-t931 2026-11-20 test-full |
 | T973 | Classified Waters: does a unit carry up through a tributary whose own row prints no unit (LI-2)? Ask a CO | BLOCKED (owner) | | owner 2026-11-20 11:44 (T944 changes); release keeps LI-2 |
+| T970 | Photo viewer: the buttons stay at full strength while the photo is dragged down to close | OPEN | | L4 Android looks 2026-11-20 |
+| T971 | Conditions: picking Level in the gauge card also re-ranks the estimate card above it | OPEN | | L4 Android looks 2026-11-20 |
+| T972 | Search for "Thompson" lists "Thompson Plateau" locality five times, identical lines | OPEN | | L4 Android looks 2026-11-20 |
 
 ## Next after closed testing
 

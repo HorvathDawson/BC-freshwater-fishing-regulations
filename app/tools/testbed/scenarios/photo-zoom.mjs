@@ -6,11 +6,12 @@
 //   node app/tools/testbed/run.mjs photo-zoom
 import fs from 'node:fs';
 import path from 'node:path';
-import { spawn } from 'node:child_process';
+import { spawn, execFileSync } from 'node:child_process';
 import { coldStart, toMap } from './common.mjs';
 import { capture, LAKE } from './spots.mjs';
 import { touchscreen, pinch } from './gestures.mjs';
 import { changed, readPng } from '../lib/png.mjs';
+import { find, look, shown, tap } from '../lib/screen.mjs';
 
 const HERE = path.dirname(new URL(import.meta.url).pathname);
 const OUT = path.join(HERE, '..', 'out', 't454');
@@ -101,10 +102,14 @@ export const photoZoom = {
     });
     await ctx.step('pinch (two-finger spread) zooms', async () => {
       if (!ts) { checks.push('pinch: no multi-touch screen found'); ctx.skip('no touchscreen'); }
+      // the touchscreen node is root's on the Play image (zoom-flick's way): adbd as root for the pinch, put back after
+      try { d.adb(['root'], { timeout: 30_000 }); await d.sleep(3000); } catch { /* the pinch says so below */ }
       try { pinch(ctx, ts, size, cx, cy, 120, 600); } catch (e) {
         checks.push(`pinch: not driven (${String(e.message).split('\n').pop().slice(0, 80)})`);
+        try { d.adb(['unroot'], { timeout: 30_000 }); } catch { /* was not root */ }
         ctx.skip('pinch not driven');
       }
+      try { d.adb(['unroot'], { timeout: 30_000 }); await d.sleep(3000); } catch { /* was not root */ }
       await d.sleep(1200);
       return judge('pinch', true);
     });
@@ -123,9 +128,126 @@ export const photoZoom = {
       if (t0 === t1) throw new Error(`the photo did not change: ${t0}`);
       return `${t0} -> ${t1}`;
     });
+    // ---- (T836) the viewer's four behaviours, looked at on the screen. Shots and recorded sheets go to the run's folder as
+    // `T836-*`. A sheet is a recording cut into 10 frames a second (ffmpeg), so a motion can be read frame by frame.
+    const adbBin = path.join(process.env.ANDROID_HOME ?? `${process.env.HOME}/Library/Android/sdk`, 'platform-tools/adb');
+    const shot836 = (name) => { const f = path.join(ctx.dir, `T836-${name}.png`); d.screenshot(f); return f; };
+    const chromeShown = async () => {
+      const ns = await look(d);
+      const c = find(ns, 'resource-id="photo-counter"'), x = find(ns, 'resource-id="photo-chrome"');
+      return { counter: c && shown(c) ? c.text : null, chrome: !!(x && shown(x)) };
+    };
+    /** a swipe that does not block: the screen can be photographed while the finger is still down */
+    const slowSwipe = (x0, y0, x1, y1, ms) => spawn(adbBin, ['-s', d.serial(), 'shell', `input swipe ${x0} ${y0} ${x1} ${y1} ${ms}`], { stdio: 'ignore' });
+    const sheet = async (name, act, secs = 6) => {
+      const dev = `/sdcard/t836-${name}.mp4`, local = path.join(ctx.dir, `T836-${name}.mp4`);
+      const r = spawn(adbBin, ['-s', d.serial(), 'shell', 'screenrecord', '--time-limit', String(secs), dev], { stdio: 'ignore' });
+      await d.sleep(1500);
+      await act();
+      await d.sleep(Math.max(0, secs * 1000 - 1500 - 200) + 1800);
+      try { r.kill(); } catch { /* ended */ }
+      d.adb(['pull', dev, local]);
+      execFileSync('ffmpeg', ['-v', 'error', '-y', '-i', local, '-vf', 'fps=10,scale=180:-1,tile=12x5', '-frames:v', '1', path.join(ctx.dir, `T836-${name}-sheet.png`)]);
+      return local;
+    };
+    const thumb = async (n) => {
+      const t = (await look(d)).find((x) => x.desc === `Photo ${n} of 2` && shown(x));
+      if (!t) throw new Error(`no thumbnail "Photo ${n} of 2" on the spot page`);
+      return t;
+    };
+
+    await ctx.step('T836: the counter, and one tap hides the buttons and the next brings them back', async () => {
+      const a = await chromeShown();
+      if (!a.counter || !/^\d of 2$/.test(a.counter)) throw new Error(`no "N of 2" counter at the top (${JSON.stringify(a)})`);
+      shot836('1-chrome-shown');
+      d.sh(`input tap ${cx} ${cy}`);
+      await d.sleep(900);   // the single tap waits for a possible double tap
+      const hidden = await chromeShown();
+      shot836('2-chrome-hidden');
+      d.sh(`input tap ${cx} ${cy}`);
+      await d.sleep(900);
+      const back = await chromeShown();
+      shot836('3-chrome-back');
+      if (hidden.counter) throw new Error(`a tap did not hide the counter (${JSON.stringify(hidden)})`);
+      if (!back.counter) throw new Error('a second tap did not bring the counter back');
+      return `counter "${a.counter}"; hidden by a tap; back by the next "${back.counter}"`;
+    });
+
+    await ctx.step('T836: the strip follows the finger (mid-drag shot), then settles on the other photo', async () => {
+      const t0 = which();
+      // toward the other photo: left from the first, right from the last (a drag past either end is the rubber band)
+      const dx = /^Photo 1 of/.test(t0) ? 300 : -300;
+      const sw = slowSwipe(cx + dx, cy, cx - dx, cy, 1800);
+      await d.sleep(800);
+      const mid = shot836('4-strip-mid-drag');
+      await new Promise((r) => sw.on('close', r));
+      await d.sleep(1200);
+      shot836('5-strip-settled');
+      const t1 = which();
+      checks.push(`T836 strip: ${t0} -> ${t1}`);
+      if (t0 === t1) throw new Error(`the photo did not change after a 600 px drag (${t0})`);
+      return `${t0} -> ${t1}; mid-drag ${path.basename(mid)}`;
+    });
+
+    await ctx.step('T836: a short drag down springs back; a long one closes (mid-drag shots)', async () => {
+      const before = path.join(ctx.dir, 'T836-6-fit-before-drag.png');
+      d.screenshot(before);
+      const pre = readPng(before);
+      const short = slowSwipe(cx, cy, cx, cy + Math.round(size.h * 0.06), 1500);
+      await d.sleep(750);
+      shot836('7-drag-short-mid');
+      await new Promise((r) => short.on('close', r));
+      await d.sleep(1200);
+      const afterShort = readPng(shot836('8-after-short-drag'));
+      const frac = changed(pre, afterShort, box);
+      const stillOpen = !!find(await look(d), 'resource-id="photo-zoom-area"');
+      if (!stillOpen) throw new Error('a short drag down (6 % of the height) closed the viewer');
+      if (frac > 0.03) throw new Error(`after a short drag the photo did not spring back (${(frac * 100).toFixed(0)} % of its box differs)`);
+      const long = slowSwipe(cx, cy, cx, cy + Math.round(size.h * 0.4), 1800);
+      await d.sleep(900);
+      shot836('9-drag-long-mid');
+      await new Promise((r) => long.on('close', r));
+      await d.sleep(1500);
+      const open = !!find(await look(d), 'resource-id="photo-zoom-area"');
+      shot836('10-after-long-drag');
+      if (open) throw new Error('a drag down of 40 % of the height did not close the viewer');
+      return `short: sprang back (${(frac * 100).toFixed(1)} % differs); long: closed`;
+    });
+
+    for (const mode of ['light', 'dark']) {
+      await ctx.step(`T836 ${mode}: opens from its thumbnail and closes into it (recorded, cut into 10 frames a second)`, async () => {
+        d.sh(`cmd uimode night ${mode === 'dark' ? 'yes' : 'no'}`);
+        await d.sleep(2500);
+        if (!find(await look(d), 'resource-id="spot-photo-grid"')) {   // the viewer may still be up (an earlier step failed)
+          d.sh('input keyevent 4'); await d.sleep(1200);
+        }
+        let t = await thumb(1);
+        shot836(`11-${mode}-page-thumbnails`);
+        await sheet(`${mode}-open`, () => d.sh(`input tap ${Math.round((t.box.x0 + t.box.x1) / 2)} ${Math.round((t.box.y0 + t.box.y1) / 2)}`));
+        const up = !!find(await look(d), 'resource-id="photo-zoom-area"');
+        shot836(`12-${mode}-viewer-open`);
+        if (!up) throw new Error('a tap on the thumbnail did not open the viewer');
+        await sheet(`${mode}-close`, () => d.sh('input keyevent 4'));
+        const gone = !find(await look(d), 'resource-id="photo-zoom-area"');
+        shot836(`13-${mode}-closed`);
+        if (!gone) throw new Error('Back did not close the viewer');
+        t = await thumb(1);
+        return `opened and closed; frames in T836-${mode}-open-sheet.png / T836-${mode}-close-sheet.png`;
+      });
+    }
+    await ctx.step('T836: the viewer reopened for the steps that follow', async () => {
+      d.sh('cmd uimode night no');
+      await d.sleep(2000);
+      const t = await thumb(1);
+      tap(d, t);
+      await d.sleep(1800);
+      box = area();
+      return 'open';
+    }, { shot: false });
+
     await ctx.step('finish the recording, pull it, close the viewer, delete the spot', async () => {
       // stop our own screenrecord (device-side pid), which finalises the mp4
-      const pid = d.sh('pidof screenrecord').trim().split(/\s+/)[0];
+      const pid = d.sh('pidof screenrecord || true').trim().split(/\s+/)[0];
       if (pid) d.sh(`kill -2 ${pid}`);
       await d.sleep(3000);
       try { rec?.kill(); } catch { /* ended */ }

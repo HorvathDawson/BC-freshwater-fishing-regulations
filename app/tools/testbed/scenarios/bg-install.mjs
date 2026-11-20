@@ -6,6 +6,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { appUp } from './common.mjs';
+import { readPng } from '../lib/png.mjs';
 import { stallWatch, thrownAway } from '../lib/download-watch.mjs';
 import { lineProbe } from '../lib/line-probe.mjs';
 import { downloadJobs, findNode } from '../lib/ui-nodes.mjs';
@@ -127,6 +128,56 @@ export const bgInstall = {
         await d.sleep(500);
       }
     });
+    // (T738) THE BAR AGAINST THE BYTES: the bar's own line ("12.5 of 1,461.2 MB downloaded") read beside the bytes the system
+    // downloader holds (its provider: `current_bytes` of every job), a shot each time, three moments of the line held to
+    // SLOW_BPS. Pass line (the ticket): the bar is within BAR_SLACK_MB of the bytes held and never goes down between shots.
+    // A provider that cannot be read from the shell is said, and the bar is then judged on never going down alone.
+    // The bytes held: the Mac-side throttle proxy's count of what has gone through it to the phone (the shell cannot read the
+    // system downloader's provider: ACCESS_ALL_DOWNLOADS). The bar's figure: its words cannot be read while the fish turns (the
+    // accessibility tree never goes idle), so it is read off the screenshot: the violet fill's share of the grey track times
+    // the release's total (BAR_TOTAL_MB, 480.8 on the live release; the bar's own line says "N of 480.8 MB downloaded").
+    const held = () => proxy.bytes;
+    const barMb = () => {
+      const f = path.join(ctx.dir, 'T738-bar-probe.png');
+      d.screenshot(f);
+      const img = readPng(f), TOTAL = Number(process.env.BAR_TOTAL_MB ?? 480.8);
+      for (let y = Math.round(img.h * 0.5); y < Math.round(img.h * 0.8); y++) {
+        let x0 = -1, x1 = -1, track = -1;
+        for (let x = 0; x < img.w; x++) {
+          const i = (y * img.w + x) * img.ch, r = img.px[i], g = img.px[i + 1], b = img.px[i + 2];
+          if (r < 130 && g < 80 && b > 170) { if (x0 < 0) x0 = x; x1 = x; }
+          else if (x0 >= 0 && Math.abs(r - g) < 8 && Math.abs(g - b) < 10 && r > 200 && r < 245) track = x;
+        }
+        if (x0 >= 0 && track - x0 > 300 && x1 - x0 > 1) {
+          const frac = (x1 - x0 + 1) / (track - x0 + 1);
+          return { got: Math.round(frac * TOTAL * 10) / 10, of: TOTAL, frac };
+        }
+      }
+      return null;
+    };
+    const BAR_SLACK_MB = Number(process.env.BAR_SLACK_MB ?? 10);
+    const samples = [];
+    await ctx.step('T738: the bar against the bytes held, at three moments of the download', async () => {
+      const rows = [];
+      for (let i = 0; i < 3; i++) {
+        if (i) await d.sleep(i === 1 ? 25_000 : 40_000);   // poll interval between the three moments
+        shot(`T738-bar-${i + 1}`);
+        const bar = barMb(), heldB = held();
+        const row = { i: i + 1, bar, heldMb: heldB == null ? null : heldB / 1e6 };
+        rows.push(row); samples.push(row);
+      }
+      const text = rows.map((r) => `#${r.i} bar ${r.bar ? `${r.bar.got} of ${r.bar.of} MB` : 'none shown'} · held ${r.heldMb == null ? 'unreadable' : `${r.heldMb.toFixed(1)} MB`}`).join(' | ');
+      fs.writeFileSync(path.join(ctx.dir, 'T738-bar-vs-bytes.txt'), `${text}\n`);
+      const bad = [];
+      rows.forEach((r, k) => {
+        if (!r.bar) { bad.push(`#${r.i}: no bar figure on screen`); return; }
+        if (k && rows[k - 1].bar && r.bar.got < rows[k - 1].bar.got) bad.push(`#${r.i}: the bar went down (${rows[k - 1].bar.got} -> ${r.bar.got} MB)`);
+        if (r.heldMb != null && Math.abs(r.bar.got - r.heldMb) > BAR_SLACK_MB) bad.push(`#${r.i}: bar ${r.bar.got} MB vs held ${r.heldMb.toFixed(1)} MB (more than ${BAR_SLACK_MB} MB apart)`);
+      });
+      if (rows.every((r) => r.heldMb == null)) ctx.finding('T738: the bytes held could not be read from the shell (content://downloads/all_downloads); the bar was judged only on never going down');
+      if (bad.length) throw new Error(`${bad.join(' ; ')} · ${text}`);
+      return text;
+    });
     let notes = [];
     await ctx.step('app CLOSED mid-download: the system download goes on, in the notification bar', async () => {
       d.background();
@@ -193,6 +244,10 @@ export const bgInstall = {
     });
     await ctx.step('reopened mid-download: no running download is thrown away; setup finishes and the map opens', async () => {
       proxy.setRate(Infinity); unset();   // the tap is done: the rest at full speed (open tunnels too)
+      d.sh('cmd statusbar collapse'); await d.sleep(1500);   // the shade must be shut before the reading
+      shot('T738-after-relaunch');   // (T738) the first look after the app came back, the bar beside what was held
+      const relaunchBar = barMb(), relaunchHeld = held();
+      ctx.finding(`T738 after the relaunch: bar ${relaunchBar ? `${relaunchBar.got} MB` : 'none shown'} · held ${relaunchHeld == null ? 'unreadable' : `${(relaunchHeld / 1e6).toFixed(1)} MB`} (last bar before the kill: ${samples.at(-1)?.bar?.got ?? '?'} MB)`);
       let opened = 'the notification tap';
       if (!front()) { opened = 'a launch (the tap did not open it)'; d.sh('cmd statusbar collapse'); d.launch(); }
       const t0 = Date.now();

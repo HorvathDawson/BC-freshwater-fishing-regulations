@@ -62,3 +62,10 @@ install, memory, bg-install, crash-bed PASS; tap-stalls PASS; regs-open FAILED t
 (t797) twice, first taps 33–112 ms, both pass; the small APK twice more without a rebuild, first taps 40–86 ms,
 both pass. Read: the slow first taps were the first run after an install, not these changes (none is on the path
 before the cue). The regs-and-back tests after the T797 merge: 1124 pass.
+
+## Emulator look 2026-11-20 (L4, `small-looks`, build of 124d79efa)
+Chilliwack River's Map view, part 1: down into the Vedder River and up back. The bar under the map measured 857 px before, after
+the step down and after the step up. A recording of the step down, cut into 10 frames a second (`handoff/PLAN/app-integration/L4-android-shots-2026-11-20/T731/down-step-frames-10fps.png`),
+shows the old bar and map for the whole read and then one frame where the title, map and bar change together: no spinner, no blank bar,
+no resize. Shots `1-chilliwack-part-1.png`, `2-after-down-into-vedder.png` (the one-part water keeps the bar's two buttons: "Lowest
+part" dashed, "Upstream into Chilliwack River"). The `step-in-place` scenario was written as the T731 step of `small-looks`.

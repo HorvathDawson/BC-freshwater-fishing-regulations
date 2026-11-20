@@ -66,3 +66,10 @@ d. Every close resets search (`setSearchMemory(NO_SEARCH)` when `searching` turn
 Owner (question dialog in the main chat, 2026-11-16 12:08, on the list of small behaviours left as built): "we should fix anything that doesnt seem desirable". This one was left as built with an alternative on offer; the app chat judged it undesirable.
 Now, on branch `app-fix/small-looks-1116` (5f8ca1bb6, not merged): Back from a place picked in search closes search too (one Back returns to the map); the on-screen "All results" row still steps back to the results. Each fix has a test that failed first;
 `check:fast` passes. Left: the emulator look, then the merge with its benches.
+
+## Emulator look 2026-11-20 (L4, `small-looks`, build of 124d79efa)
+Shots in `handoff/PLAN/app-integration/L4-android-shots-2026-11-20/T730/`. A swipe down from the grabber closes the search sheet (mid-drag it follows the finger; closed after), light
+and dark. The recents are one block, 208 px tall, with "Recent searches / CLEAR" and square tags (a second tag after Thompson River;
+they wrap). Thompson River picked, then Back: the map stays framed on the river (`after-back-map-stays-on-thompson.png`), and the next
+open is an empty field with the recents. Not seen: the drag from the list scrolled and not scrolled, the keyboard down, the wide
+layout (the Gboard handwriting popup sat over the left of the sheet in every shot: an emulator artefact). Found: T972.

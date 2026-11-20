@@ -14,6 +14,7 @@
 // string): the shots are the check for that.
 //
 //   node app/tools/testbed/run.mjs saved-spots        SAVED_AT="lon,lat"  ALERT_Q / ALERT_ROW: the gauged water
+import path from 'node:path';
 import { capture } from './spots.mjs';
 import { coldStart, openWater, toMap, closeWaters } from './common.mjs';
 import { all, chipProblem, find, labelProblem, look, screenSize, scrollTo, shown, tap, within } from '../lib/screen.mjs';
@@ -204,12 +205,36 @@ export const savedSpots = {
       if (!said) throw new Error('no "Saved. Manage alerts in More → Notifications." after Save');
       // where the reader is left: the confirmation should be on screen without a scroll
       const onScreen = shown(said) && said.box.y0 >= PANE_BAND.top - 40;
-      if (!onScreen) ctx.finding('alert editor: after Save the page is left scrolled past the card, so "Saved. Manage alerts in More → Notifications." and the "1 alert on this gauge" count are off screen until the reader scrolls up');
+      // (T674 a) the finding of 2026-11-11 is now a failing check: the confirmation AND the count are on screen at rest
+      const cnt0 = find(ns, 'resource-id="alert-me-count"');
+      const countOn = shown(cnt0) && cnt0.box.y0 >= PANE_BAND.top - 40 && cnt0.box.y1 <= PANE_BAND.bottom + 60;
+      if (!onScreen || !countOn) throw new Error(`T674 a: after Save the confirmation is ${onScreen ? 'on screen' : 'off screen'} and the count is ${countOn ? 'on screen' : 'off screen'} (saved y ${said.box.y0}, count ${cnt0 ? cnt0.box.y0 : 'not drawn'}, band ${PANE_BAND.top}-${PANE_BAND.bottom})`);
       const count = await scrollTo(d, 'resource-id="alert-me-count"', PANE_BAND);
       ns = await look(d);
       fail([labelProblem(count, { screenW: W }), labelProblem(find(ns, 'resource-id="alert-me-saved"'), { screenW: W })]);
       if (!/^\d+ alerts? on this gauge$/.test(count.text)) throw new Error(`the count reads "${count.text}"`);
-      return `${count.text} · ${find(ns, 'resource-id="alert-me-saved"').text}${onScreen ? '' : ' (off screen after Save: finding)'}`;
+      return `${count.text} · ${find(ns, 'resource-id="alert-me-saved"').text}`;
+    });
+
+    // (T674 b) the spot is at Hope and the map is on Coquitlam: no spot-mark node (a 3 px button at the map's corner was
+    // there before the fix); "Show on map" takes the map to Hope and the node is there
+    await ctx.step('T674 b: the map away from the spot holds no spot-mark node; Show on map brings it', async () => {
+      if (!saved) ctx.skip('no spot was saved');
+      await closeWaters(ctx);
+      await toMap(ctx);
+      await d.sleep(2500);
+      const away = all(await look(d), 'resource-id="spot-mark:"', { prefix: true });
+      d.screenshot(path.join(ctx.dir, 'T674-map-away.png'));
+      if (away.length) throw new Error(`T674 b: ${away.length} spot-mark node(s) with the map away from the spot: ${away.map((n) => `${n.id} ${JSON.stringify(n.box)}`).join('; ')}`);
+      ctx.flow('tab', { TAB: 'Spots' });
+      await ctx.waitText(new RegExp(spot.title), 15_000);
+      ctx.flow('tap-text', { TEXT: spot.title });
+      await ctx.until(() => ctx.hasId('spot-visits'), { ms: 10_000, what: 'the spot\'s page' });
+      ctx.flow('scroll-to', { TEXT: 'Show on map' });
+      ctx.flow('tap-text', { TEXT: 'Show on map' });
+      await ctx.until(async () => all(await look(d), 'resource-id="spot-mark:"', { prefix: true }).length > 0, { ms: 20_000, what: 'the spot-mark node on the map at the spot' });
+      d.screenshot(path.join(ctx.dir, 'T674-map-at-spot.png'));
+      return 'none while away; present at the spot';
     });
 
     await ctx.step('More → Notifications: the alert\'s line, whole; then removed', async () => {

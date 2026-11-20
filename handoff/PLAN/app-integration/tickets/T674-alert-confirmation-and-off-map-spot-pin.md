@@ -35,3 +35,11 @@ b. One core function, `spotsInView` (`core/spotPins.ts`): the marks whose face r
   water, wherever the camera is). They belong to the water on screen, so they were left; say if they should follow.
 
 Depends: T603. Size: S. Owner: no.
+
+## Emulator check 2026-11-20 (L4, `saved-spots`, build of 124d79efa)
+- a. The 11-11 finding is now a failing check (`saved-spots`: after Save alert the confirmation AND the "1 alert on this gauge"
+  count must be inside the pane band at rest). PASS on the emulator: the shot (`handoff/PLAN/app-integration/L4-android-shots-2026-11-20/T674/a-after-save-alert-confirmation-on-screen.png`)
+  shows "1 alert on this gauge" and "Saved. Manage alerts in More -> Notifications." on screen under the header.
+- b. New step "T674 b" (uiautomator `spot-mark:` prefix): with the spot at Hope and the map on Coquitlam Lake, no `spot-mark:`
+  node (`b-map-away-no-spot-mark.png`); Spots -> the spot -> Show on map, the node is there and the pin is drawn
+  (`b-map-at-spot.png`, the spot's black square and its label). PASS.

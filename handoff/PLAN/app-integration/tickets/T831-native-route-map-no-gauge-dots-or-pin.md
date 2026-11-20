@@ -45,3 +45,11 @@ route map: a solid line to each gauge downstream, dashed upstream, arrows along 
 ## Not done
 
 - Phone proof (the test-bed step on Android and iOS, shots beside the web).
+
+## Android proof 2026-11-20 (L4, `route-scroll`, build of 124d79efa)
+T920 moved the route map UNDER the chart (header, headline, detail, chart, map, donors), so `route-scroll` never found it any
+more (its wait failed at 30 s): it now brings the pane to its top and drags down in the gutter until the map is on screen
+(`fromTop`). Coquitlam River: PASS, "1269 accent pixels in the map (the pin)", and ten fling rounds with the map 39-44 % its
+commonest colour every time (never blank). The picture `handoff/PLAN/app-integration/L4-android-shots-2026-11-20/T831/T831-route-pins.png` shows the lines (violet over the river,
+arrows down it, dashed upstream), a gauge dot with its share at each end (18 % orange, 82 % teal), the "you are here" pin and
+the key line under it. iOS and the web set beside it are not part of this pass.

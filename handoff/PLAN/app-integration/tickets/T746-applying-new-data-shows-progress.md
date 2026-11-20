@@ -167,3 +167,6 @@ check` rc 0. Android benches on the `g1` APK, all PASS: install, memory, tap-sta
 bg-install, crash-bed, update-freeze and big-update (staging test channel, reset after), crash. The `crash` scenario had
 never started its stub (a bench gap, also failing on the head APK; fixed in 2d615838f, cherry-picked here); `crash` then
 `crash-bed` in one session counts the first's leftover cached-process exit record, so they run in separate sessions.
+
+## Android curtain shot 2026-11-20 (L4, `update-freeze`, emulator, build of 124d79efa)
+The go-to-map fix works: T746 curtain light and dark PASS (curtain up to down 842 ms light, 658 ms dark; 3 frames each, 10 a second). Seen: the fish on a plain ground (light white, dark near-black) with one line: "Netting the latest regulations..." (light), "Reeling in the new regulations..." (dark); no bar, no figure. Same run: stall check on the apply 0 over 100 ms while panning, 1 at 80 ms after. Shots `handoff/PLAN/app-integration/L4-android-shots-2026-11-20/T746/T746-curtain-up-light.png` and `-dark.png`.
