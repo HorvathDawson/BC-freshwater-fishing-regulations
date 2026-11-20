@@ -9,6 +9,12 @@ Things only you can do. Claude keeps this list current while you are away; the w
 `handoff/PLAN/app-integration/tickets/` (README.md is the ledger, and its "Owner questions" table has every question
 with the default Claude uses until you answer). Newest first inside each section.
 
+## 2026-11-20 (before 06:25): T937 and T923 looks answered
+
+T937 Salmon map no-access grey: owner, verbatim, "Remove checked dste" (remove the "Checked Nov 19" line from the Salmon
+key so it stays two rows). T923 satellite outline for reserves and private land: "Looks good, land it" (review, then it
+lands with this release).
+
 ## 2026-11-20 01:56: lane-plan batch answered
 
 Dropped (tickets labelled so, nothing to do): T537 and T538 leftovers (both tickets DONE on what was built), T801 item
