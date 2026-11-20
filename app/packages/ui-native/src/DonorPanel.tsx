@@ -84,13 +84,15 @@ const placeMid = (b: readonly [number, number, number, number] | null | undefine
 
 export function DonorPanel({ palette, value, day, askedAt, at, theme, from, selected,
                              horizon = 0, onHorizon, chain: chainProp, standing,
-                             detail, chart, foot, after, quantity, sides, count, waterLine, place, holdKey, own }: {
+                             detail, chart, foot, after, quantity, rankedIn, sides, count, waterLine, place, holdKey, own }: {
   palette: Palette; value: PanelAnswer;
   /**
    * The quantity the answer is in, when the caller knows it (the conditions sheet: the one the map paints). Only the
    * tide's sentence reads it — Level only (T78). A saved spot passes none and says nothing of the tide.
    */
   quantity?: Quantity;
+  /** (T971) The quantity the estimate is ranked in, when it is not `quantity` (see `DonorViewOptions.rankedIn`). */
+  rankedIn?: Quantity;
   /**
    * The day the answer is FOR — today on a live sheet, the visit on a saved spot. The
    * range's "for early September" is said of this day plus the horizon, never of whenever
@@ -172,7 +174,7 @@ export function DonorPanel({ palette, value, day, askedAt, at, theme, from, sele
   const vm = useDonorView(value, { day, ...(askedAt !== undefined ? { ref: askedAt } : {}), horizon, from: from ?? null,
                                    size: { width: mapWidth, height: mapH },
                                    selected: selected ?? null, pickable: false,   // (T920) the list is a legend; the gauge card's title picks the chart
-                                   ...(quantity ? { quantity } : {}), sides: sides ?? null, place: place ?? null,
+                                   ...(quantity ? { quantity } : {}), ...(rankedIn ? { rankedIn } : {}), sides: sides ?? null, place: place ?? null,
                                    own: own ?? null });
 
   /**

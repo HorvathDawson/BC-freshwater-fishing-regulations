@@ -97,6 +97,8 @@ export interface ConditionsVM {
   /** The station the chart and the reading are about. */
   lead: StationId | null;
   select: (station: StationId) => void;
+  /** (T971) The quantity the estimate card is ranked in: Flow, whatever the gauge card shows; Level only where no gauge answers in flow. */
+  estimateQuantity: Quantity;
   /** Null when the lead gauge has no reading: draw `quiet` if it is set, else `noGauge`. */
   reading: ReadingVM | null;
   /**
@@ -173,7 +175,21 @@ export function useConditionsView(
   // shows at once without them, and is refreshed in place)
   const routes = useRoutes(source, section);
   const lakes = useMemo(() => throughLakeStations(routes), [routes]);
-  const asked = usePanelAsk(source, feed, section, quantity, horizon, lakes);
+  // (T584, T580 F6) THE GAUGE PICK IS THE SECTION'S: it is dropped when the section changes (a part step, a new water), so
+  // every way into a part leads with the same gauge; the reader's span and model are kept apart (`useChartPrefs`)
+  const [pick, setPick] = useState<{ section: SectionId | null; station: StationId } | null>(null);
+  const picked = pick && pick.section === section ? pick.station : null;
+  const select = useCallback((station: StationId) => setPick({ section, station }), [section]);
+  // (owner 2026-11-10) ONE LEAD per water and day, chosen in FLOW whatever the chart shows (`leadOver`); level ranks it
+  // only where no gauge answers in flow. The two asks are the same ones the rows come from (cached; one of them is `asked`).
+  const flowAsk = usePanelAsk(source, feed, section, "discharge", horizon, lakes);
+  const levelAsk = usePanelAsk(source, feed, section, "level", horizon, lakes);
+  const { lead, levelOnly } = leadOver(speaker, { discharge: flowAsk.value.rows, level: levelAsk.value.rows }, picked);
+  // (T971, owner 2026-11-10 "Flow leads, Level auxiliary") THE ESTIMATE IS THE LEAD'S, NOT THE CARD'S: the panel (estimate
+  // card, donor rows, route colours, horizon chips) is asked in Flow whatever the gauge card shows; the card's Flow / Level
+  // pick is a view of the chart only. Level answers only where no gauge of the water does in flow (`levelOnly`).
+  const estimateQuantity: Quantity = levelOnly ? "level" : "discharge";
+  const asked = estimateQuantity === "level" ? levelAsk : flowAsk;
   const panel = useLastReports(feed, useJoinedRoutes(asked.value, routes));
   const nowDay = useBcToday();                  // (T551) rolls over at B.C. midnight
   const today = day ?? nowDay;
@@ -186,7 +202,7 @@ export function useConditionsView(
   const chain = useMemo<readonly SectionKey[]>(
     () => [...new Set(panel.rows.filter((r) => !donorSilent(r, { ref, horizon }))
                                 .flatMap((r) => r.route?.path ?? []))], [panel.rows, today, horizon]);
-  const standings = usePanelStandings(source, feed, chain as readonly SectionId[], quantity,
+  const standings = usePanelStandings(source, feed, chain as readonly SectionId[], estimateQuantity,
                                       horizon);
   // THE ROUTE AS THE ENGINE'S CLASSES, kept while the route is. A horizon change re-asks the panel, which answers no rows
   // while it loads and then the same rows as new objects: the chain goes empty and comes back new-but-equal. New labels
@@ -206,16 +222,6 @@ export function useConditionsView(
    * (`sheetLead`). The station `section_gauge` matched to this reach is never read for a reading: for 54,386 sections
    * with no panel it quoted a gauge the map left uncoloured, and a gauged lake (no `section_gauge` row) read nothing.
    */
-  // (T584, T580 F6) THE GAUGE PICK IS THE SECTION'S: it is dropped when the section changes (a part step, a new water), so
-  // every way into a part leads with the same gauge; the reader's span and model are kept apart (`useChartPrefs`)
-  const [pick, setPick] = useState<{ section: SectionId | null; station: StationId } | null>(null);
-  const picked = pick && pick.section === section ? pick.station : null;
-  const select = useCallback((station: StationId) => setPick({ section, station }), [section]);
-  // (owner 2026-11-10) ONE LEAD per water and day, chosen in FLOW whatever the chart shows (`leadOver`); level ranks it
-  // only where no gauge answers in flow. The two asks are the same ones the rows come from (cached; one of them is `asked`).
-  const flowAsk = usePanelAsk(source, feed, section, "discharge", horizon, lakes);
-  const levelAsk = usePanelAsk(source, feed, section, "level", horizon, lakes);
-  const { lead, levelOnly } = leadOver(speaker, { discharge: flowAsk.value.rows, level: levelAsk.value.rows }, picked);
   const got = useStationReading(source, lead);
   const c = got.state === "ready" ? got.value : null;
   // (T168) on this water or a donor: every station that speaks for the section — the panel's members, a lake's own
@@ -237,7 +243,9 @@ export function useConditionsView(
     ?? lead ?? "";
 
   const dayName = forecastDayName(today, horizon);
-  const leadRow = panel.rows.find((r) => r.station === lead);
+  // the chart's own forecast line is about the quantity the card shows: its rows are that quantity's, not the estimate's
+  const cardRow = (quantity === estimateQuantity ? panel.rows : (quantity === "level" ? levelAsk : flowAsk).value.rows)
+    .find((r) => r.station === lead);
   const ahead = dayName
     ? { at: bcMidnight(wallIso(shiftDay(today, aheadDays(horizon)))) + 12 * 3_600_000,
         label: forecastDayMark(dayName) } : null;
@@ -257,9 +265,9 @@ export function useConditionsView(
       figures: { ...(c.discharge != null ? { discharge: c.discharge } : {}), ...(c.level != null ? { level: c.level } : {}) },
       reports: c.reports ?? null,
       scope: dayName ? FORECAST_DAY_WORDS.today : null,
-      forecast: dayName && leadRow
-        ? (quantity === "level" && donorState(leadRow, ask).kind === "flow-only" ? leadGapLine(dayName)
-           : forecastFigureLine(dayName, donorReads(leadRow, ask))) : null,
+      forecast: dayName && cardRow
+        ? (quantity === "level" && donorState(cardRow, ask).kind === "flow-only" ? leadGapLine(dayName)
+           : forecastFigureLine(dayName, donorReads(cardRow, ask))) : null,
       // (T585 F8/F14) a figure the index did not rank says which reading was ranked and which this is; a kept one says so
       standing: readingStanding({ percentile: c.percentile, standing: c.standing as Standing | null,
                                   ...(c.rankedAt !== undefined ? { rankedAt: c.rankedAt } : {}), observedAt: c.observedAt }),
@@ -284,7 +292,7 @@ export function useConditionsView(
     // A LAKE IS READ AT ITS OWN GAUGE: the donor panel says so, not "no gauge on this water" (answerFrom's "no-station"
     // for a section with no panel), which the lake's own reading under it would contradict (T105 review).
     day: today, ref, panel: speaker?.kind === "lake" ? { ...panel, answer: { ok: false, why: "own-gauge" } } : panel,
-    chain, route, lead, select, reading, quiet,
+    chain, route, lead, select, estimateQuantity, reading, quiet,
     // THE REFUSAL ONLY WHERE NOTHING SPEAKS (`speakerFor` null): a panel offline or a lake gone quiet has a gauge that
     // speaks for it, and "No gauge is entitled to speak for this water" over it would be false (T105 review).
     refuse: spoken.state !== "loading" && speaker === null,

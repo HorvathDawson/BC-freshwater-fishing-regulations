@@ -200,6 +200,11 @@ export interface DonorViewOptions {
    * T78); left out (a saved spot, which did not record it), the tide is not said.
    */
   quantity?: Quantity;
+  /**
+   * (T971) The quantity the ESTIMATE is ranked in, when it is not `quantity` (a water's Conditions card: the estimate is the
+   * lead's, in Flow, whatever the gauge card shows). It decides the horizon chips (Change is Flow only); left out, `quantity`.
+   */
+  rankedIn?: Quantity;
   /** (T168) Each member's side; null or absent: one run, as before. */
   sides?: GaugeSides;
   /**
@@ -349,7 +354,7 @@ export function donorView(value: PanelAnswer, o: DonorViewOptions): DonorVM {
 
   if (!answer.ok)
     return { ok: false, heading: CONDITIONS_WORDS.noEstimate, reason: donorReason(answer.why, o.horizon),
-             horizons: refusalIsAboutTheDay(answer.why) ? horizonChips(o.horizon, o.quantity) : null,
+             horizons: refusalIsAboutTheDay(answer.why) ? horizonChips(o.horizon, o.rankedIn ?? o.quantity) : null,
              // T143: under a flow-only forecast the members are not without one — "No forecast this far ahead: …" under
              // the reason that says the forecast is there, in flow, would contradict it
              silent: answer.why === "flow-forecast-only" ? null : silent, map };
@@ -388,7 +393,7 @@ export function donorView(value: PanelAnswer, o: DonorViewOptions): DonorVM {
     range: estimateRange(e, o.day, o.horizon, value.areaKm2),
     scale: { at: e.percentile, lo: interval(e)[0] / 100, hi: interval(e)[1] / 100,
              ramp: o.horizon === "change" ? "change" : "flow" },
-    horizons: horizonChips(o.horizon, o.quantity),
+    horizons: horizonChips(o.horizon, o.rankedIn ?? o.quantity),
     map,
     listLabel: CONDITIONS_WORDS.donorList,
     gaugesFold: CONDITIONS_WORDS.gaugesFold(rows.length),
@@ -485,7 +490,7 @@ export function useGaugeSides(source: WaterSource, section: SectionId | null,
 
 /** `donorView`, memoised for a component. */
 export function useDonorView(value: PanelAnswer, o: DonorViewOptions): DonorVM {
-  const { day, ref, horizon, from, size, selected, pickable, quantity, sides, place, own } = o;
+  const { day, ref, horizon, from, size, selected, pickable, quantity, rankedIn, sides, place, own } = o;
   const t = day.getTime();
   const lat = from?.lat;
   const lon = from?.lon;
@@ -496,8 +501,8 @@ export function useDonorView(value: PanelAnswer, o: DonorViewOptions): DonorVM {
     () => donorView(value, { day: new Date(t), ...(ref !== undefined ? { ref } : {}), horizon,
                              from: lat != null && lon != null ? { lat, lon } : null,
                              size: { width, height }, selected, pickable,
-                             ...(quantity ? { quantity } : {}), sides: sides ?? null,
+                             ...(quantity ? { quantity } : {}), ...(rankedIn ? { rankedIn } : {}), sides: sides ?? null,
                              place: placeKey ? place ?? null : null, own: ownKey ? own ?? null : null }),
     // eslint-disable-next-line react-hooks/exhaustive-deps -- the box and the lake's own gauge by value
-    [value, t, ref, horizon, lat, lon, width, height, selected, pickable, quantity, sides, placeKey, ownKey]);
+    [value, t, ref, horizon, lat, lon, width, height, selected, pickable, quantity, rankedIn, sides, placeKey, ownKey]);
 }

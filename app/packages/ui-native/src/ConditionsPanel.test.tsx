@@ -106,6 +106,30 @@ describe("the conditions panel", () => {
     expect(screen.queryByTestId("gauge-card-data-release")).toBeNull();
   });
 
+  it("(T971) the estimate card stays on Flow when the gauge card shows Level: same words, no \"Flow only\" on Change", async () => {
+    // owner 2026-11-10 "Flow leads, Level auxiliary": the card's Flow / Level pick is a view of the chart, never of the estimate
+    const both = { index: async () => ({ stations: {
+      LEAD: { percentile: 0.15, parameter: "discharge" as const, discharge: 0.15, level: 0.8 } } }) };
+    const source = sourceWith({ discharge: 12.5, level: 1.2, percentile: 0.15, standing: "below",
+                                at: "2026-09-04T06:00:00Z", parameter: "discharge" }, PANEL);
+    const read = async (parameter: "discharge" | "level") => {
+      render(<ConditionsPanel source={source} section={SEC} palette={LIGHT} feed={both} parameter={parameter}
+                              scroll={false} day={new Date(2026, 8, 4, 12)} horizon={0} onHorizon={() => {}} />);
+      await waitFor(() => expect(screen.getByTestId("estimate-tile")).toBeTruthy());
+      await waitFor(() => expect(screen.getByTestId("panel-horizons")).toBeTruthy());
+      const out = { estimate: screen.getByTestId("estimate-tile").textContent, horizons: screen.getByTestId("panel-horizons").textContent,
+                    flowOnly: screen.queryByText("Flow only") };
+      cleanup();
+      clearPanelCache();
+      return out;
+    };
+    const flow = await read("discharge");
+    const level = await read("level");
+    expect(level.estimate).toBe(flow.estimate);
+    expect(level.horizons).toBe(flow.horizons);
+    expect(level.flowOnly).toBeNull();
+  });
+
   it("never puts one quantity's figure under the other's chart (T567)", async () => {
     // a station that reports both, ranked in flow: under a LEVEL chart the figure is the level, its standing says it was ranked on flow
     const both = sourceWith({ discharge: 197, level: 2.18, percentile: 0.27, standing: "below",
