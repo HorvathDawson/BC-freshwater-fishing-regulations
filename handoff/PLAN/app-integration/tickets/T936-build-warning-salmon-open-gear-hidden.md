@@ -19,7 +19,7 @@ build), and write the full list beside the release's other build reports. A test
 The build prints the warning (or "none"); the count is reported to the owner with the next release.
 Depends: none. Size: S. Owner: no (see the count with the release). Data change: rides the next data release.
 
-## Built (lane/t936-t931, d7599d0f9)
+## Built (lane/t936-t931, d7599d0f9; 513627e13: deliver all passes `--reports` before the tile flags)
 `pipeline/deliver/release/salmon_gear.py`, called by `release.build` right after the T796 book closures join the salmon
 chains (`with_book_closures`): per section and day, every moment's display frame closed with NO rule closing every game
 fish at every moment (the frame's `closing`, the same test as `salmon.book_closures`), the chain answering `open` /
