@@ -1,6 +1,6 @@
 # T676 — The release and the live feed read a DFO date cell the same way; a feed format bump does not strand an older app
 
-Status: PARTIAL (2026-11-12, 4bc03ac14; 2026-11-20 pick) — items 1, 3 and 4 done (4f591c31a, 4bc03ac14). Owner 2026-11-20 on item 2: take the default, a per-feed `minAppVersion` (reuses the release gate's update prompt, which the acceptance asks for; the ticket names no default, so this is Claude's reading of its acceptance, to be revisited if the owner wants the versioned key). left (Claude): build item 2 (each feed index carries `minAppVersion`; an older app shows its last capture AND the update prompt, by test).
+Status: IN PROGRESS (2026-11-20, b1f6f23dc) — items 1, 3 and 4 done (4f591c31a, 4bc03ac14); item 2 built on the owner's 2026-11-20 pick (per-feed `minAppVersion`), branch lane/l1-feeds. left (Claude): main chat review + merge, then the staging feeds worker deploy (the worker stamps the dfo / inseason / live indexes) and the next app build (the gate ships in the app; an app older than it ignores the field)
 
 Source: T556 (data pipeline review 2026-11-09, findings 1 and 3). T556 pinned the two languages with shared fixtures and
 generated the format strings; these two are changes of behaviour, not pins.
@@ -94,3 +94,34 @@ Owner 2026-11-12: "it is from that day to no end. If the thing is for a closure 
 Owner 2026-11-20 ("Couldn't we just assume most of these are done already?"), item 2 pick (versioned feed key, or a minimum app version per feed): the default is taken: a per-feed `minAppVersion`. The ticket stated no default; this one is chosen because the acceptance asks for an older app to keep its last capture AND show an update prompt. NOT built yet; Claude's next step.
 
 Status line before this answer: PARTIAL (2026-11-12, 4bc03ac14) — items 1, 3 and 4 done (4f591c31a, 4bc03ac14): the release reads every DFO date cell with the live feed's reader on the owner's answer of 2026-11-12; left (Claude): item 2 (a feed format bump that does not strand an older app) — put the choice to the owner (versioned key vs per-feed `minAppVersion`; T673 closed as DONE 785fc9914 without deciding it), then build it. Split from T556 (2026-11-11): what its findings 1 and 3 proposed and T556 did not build.
+
+## Done 2026-11-20 — item 2 (b1f6f23dc, lane/l1-feeds)
+- **One table.** `pipeline/common/feed_formats.py` `FEED_MIN_APP`: per index feed (dfo_feed, inseason_feed, gauge_feed,
+  runtiming_index) the oldest app that reads its format; emitted as TypeScript `FEED_MIN_APP`. Today every value is
+  `0.0.0` (every app that carries the gate reads today's formats). `test_feed_formats.py` pins (format, minimum) pairs:
+  a format bump without a new minimum fails, saying what to set.
+- **Every writer stamps it** as the index's `minAppVersion`: the worker's `dfo/live.ts`, `inseason.ts`,
+  `gauges/publish.ts`; the Python `regs/dfo_salmon/live.py`, `gauges/feed/publish.py`, `runtiming/feed/build.py` (run
+  timing's index is written by Python only, not the worker as the plan said). Every reader takes extra keys, so today's
+  installed apps read the stamped indexes as before (the gauge contract's key list gained it).
+- **The gate** (core `feedGate.ts`): `createFeedGate(appVersion)` with the release gate's rule (`releaseAllowed`): an
+  index for a newer app throws `FeedNeedsNewerApp`; the need is held per feed and cleared by a readable index. No app
+  version (the web) passes everything, as the release gate does. App.tsx makes one and hands it to every reader
+  (`httpSalmonFeed`, `httpInSeason`, `httpFeed`, `httpRunTiming`) and to the update service.
+- **The readers**: an index for a newer app is refused, NOT reported (a known state), the last capture answers (DFO,
+  in-season, run timing) or what the session/phone holds (gauges); the in-season inbox shows no "unreadable" line for it.
+- **The prompt**: the update service treats a loader's `FeedNeedsNewerApp` as checked, not seen (the next check reads it
+  again), logs `app-too-old` with "needs app ≥ x", and its snapshot carries `needsApp` (the gate's highest, whoever
+  fetched). core `appTooOld(updates)` (a release's `app-too-old` or a feed's `needsApp`) is what Shell hands
+  `useAppUpdate`: the same strong prompt, "New data needs the latest app".
+- **Tests**: `app/packages/data/src/feed/gate.test.ts` is the acceptance — a staging format bump (`dfo-feed/4`,
+  `minAppVersion` 0.9.0) on app 0.8.4: the capture keeps answering, the strong prompt shows, nothing is reported, the
+  feed is read again next check, a readable index clears it; the mutation (no gate) reads as a refused, reported feed with
+  no prompt; one case per reader. `core/src/feedGate.test.ts` (the rule, today's stamps pass an unstamped build, the web,
+  `appTooOld`). Worker: dfo / in-season / gauge index stamp pinned (`dfo.worker.test.ts`, `events.test.ts`,
+  `gauges.contract.test.ts`).
+- **Not covered** (by design): `feeds/inseason/matches.json` (links carry their own format and are refused per T673) and
+  the files an index names (fetched from the index, verified). An app older than this build ignores `minAppVersion`, so
+  a bump still strands those until they update.
+- Owner decision recorded in the Status (2026-11-20 pick) — no question left.
+
