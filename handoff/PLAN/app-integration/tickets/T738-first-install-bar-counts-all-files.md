@@ -111,3 +111,6 @@ buffered: not proven either way. To settle: the downloader's own `current_bytes`
 The relaunch shot was taken with the notification shade open and is not a reading: still owed. Shots
 `handoff/PLAN/app-integration/L4-android-shots-2026-11-20/T738/` (49.5 MB on run 1; 98.5 and 217.1 MB on run 2).
 
+
+## Android relaunch reading 2026-11-20 (L4, `bg-install`, shade closed first, run 3)
+The step now collapses the shade before the shot (shot `T738/T738-after-relaunch-shade-closed.png`, viewed): the bar reads 193.3 MB of 480.8 (pixel reading 190.1 MB) after the notification tap, against 211.2 MB on the last bar before the kill: no jump back to zero, and the download was not queued again from zero (step PASS). The held figure at that moment (231.1 MB) is not a reading: the proxy was set to full speed just before it. In the same run the in-flight gap held: bar 92.1 vs proxy 75.2, and 211.2 vs 195.3 MB (16-17 MB above, both times): still unproven which side lags; the downloader own count (adb root) is still owed.

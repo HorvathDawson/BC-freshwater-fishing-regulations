@@ -244,6 +244,7 @@ export const bgInstall = {
     });
     await ctx.step('reopened mid-download: no running download is thrown away; setup finishes and the map opens', async () => {
       proxy.setRate(Infinity); unset();   // the tap is done: the rest at full speed (open tunnels too)
+      d.sh('cmd statusbar collapse'); await d.sleep(1500);   // the shade must be shut before the reading
       shot('T738-after-relaunch');   // (T738) the first look after the app came back, the bar beside what was held
       const relaunchBar = barMb(), relaunchHeld = held();
       ctx.finding(`T738 after the relaunch: bar ${relaunchBar ? `${relaunchBar.got} MB` : 'none shown'} · held ${relaunchHeld == null ? 'unreadable' : `${(relaunchHeld / 1e6).toFixed(1)} MB`} (last bar before the kill: ${samples.at(-1)?.bar?.got ?? '?'} MB)`);
