@@ -160,7 +160,7 @@ function sectionsOf(page: Omit<RegsPage, "sheet">): Section[] {
                  ...(g.mode?.changes ?? []).map((c) => item(`${c.chip}: ${c.when} ${c.says}`)),
                  ...g.lines.flatMap((l) => [item(`${l.label}: ${l.values.join(", ")}`), ...l.changes.map((c) => item(`${c.chip}: ${c.when} ${c.says}`))]),
                  ...(g.bait ? [item(g.bait.label), ...g.bait.notes.map((n) => item(n)),
-                               ...g.bait.list.flatMap((c) => [item(c.head), ...c.items.map((i) => item(i.note ? `${i.name} (${i.note})` : i.name))])] : [])]);
+                               ...g.bait.list.flatMap((c) => [item(c.head), ...c.items.map((i) => item(i.notes.length ? `${i.name} (${i.notes.join(" ")})` : i.name))])] : [])]);
   }
   const m = page.methods;
   if (m) {
