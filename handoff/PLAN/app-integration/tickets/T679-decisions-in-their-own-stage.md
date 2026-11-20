@@ -150,3 +150,22 @@ stops the run); D5 `build.DFO_JOINING_WATER_STAYS_OUT` (7 DFO places keep the jo
 `place.nodes_at_cuts` (bundle): 10 of the owner's 29 move, 17 lake-outlet cuts and 11 cuts on another blue line keep the
 projection, listed. Left (Claude): D1/D3/gauges show at the next deliver after promote; the 11 other-line gauge cuts and
 the Dewdney side effect go to the owner.
+
+## Plan step 5, lane L8 (2026-11-20, `lane/l8-shrink`)
+- **#17 BUILT.** The export joins a rule-set group's runs once (`export.read.group_runs`, the water field `grp_runs`,
+  only where a group has 2+ parts: 200 waters on the live bundle); the answers read it (`display.builders._by_grp`
+  refuses a 2+-part group with none, never re-joins). Proof: export + answers on the live bundle with the code before and
+  after (via `scripts/heavy.sh`): `ui-rules-answers.json` BYTE-IDENTICAL; the export differs only by `grp_runs` and its
+  field-dictionary line. Measured alternative, not taken: composing each group's runs from its sections
+  (`compose_runs` over the union) equals the join in 244 of 246 groups; the Shuswap (gnis:25478, a branch run's order)
+  and gnis:3273 (three zero-length side-channel branch runs dropped) would change — a visible change for a maint item.
+- **#8 NOT BUILT — owner question (OWNER-TODO 2026-11-20 10:05).** The app's "on this water" (`gaugeSide`: the gauge's
+  water is this water or a `water_continue` of it) and the ranking's own (`panels.own_distances`: the same, walked along
+  the water, a lake ends it) can differ; which one to keep is what the angler sees. Measured on the live bundle: the
+  app's rule over 176,367 (section, panel member) pairs calls 12,306 own, and in 12 of 1,587 panels it differs between
+  the panel's sections, so the flag ships PER PAINT SECTION (a bitmask over the panel's members, as `flow-small`), not
+  per member; it needs a release format (new file or flow-small/2), its app reader beside `gaugeSide` for older releases,
+  and the atlas graph to measure which gauges move.
+- **#16 NOT BUILT.** One flag means a paint format (paint/6: the union share `section_no_access` or a mostly-inside bit,
+  instead of the app summing per-area rows) with its app reader; `access.summed_rule_disagrees` already refuses any
+  bundle where the two disagree, so nothing on screen differs today (maint). Left for the next paint format change.
