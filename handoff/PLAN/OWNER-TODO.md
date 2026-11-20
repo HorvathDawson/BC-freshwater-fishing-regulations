@@ -16,6 +16,10 @@ selector); the chart's gauge picker is a bordered "N gauges ▾" field. Pictures
 checks and an independent review. **T919 (c), your call:** the map's 777 font/sprite files (13.8 MB) are fetched one by
 one on first install (35–160 s). Default: pack them into one file through the system downloader; or ship them in the app.
 
+**T926 (4), your call:** search has no First Nations names on waters ("Sts'ailes", "Stó:lō", "Xsan", "Quw'utsun" find
+nothing): no source we hold carries them. Default: take official and alternate names from the BC Geographical Names
+service as search names (shown names unchanged); or leave them out.
+
 ## 2026-11-19 afternoon: 0.8.3 on staging, then 0.8.3 to production (0.8.2 production skipped)
 
 **Owner plan, 2026-11-19 ~12:40:** finish 0.8.3, put it on staging, then take 0.8.3 straight to production (web, Play,
