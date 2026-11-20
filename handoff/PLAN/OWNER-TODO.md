@@ -24,6 +24,13 @@ T937 Salmon map no-access grey: owner, verbatim, "Remove checked dste" (remove t
 key so it stays two rows). T923 satellite outline for reserves and private land: "Looks good, land it" (review, then it
 lands with this release).
 
+## 2026-11-20: T928/T929 pictures to look at
+
+**T928/T929 pictures (iPhone simulator, before / after):** a "Show all parts" pick framing its part, and the boundary
+labels staying on their marks when you pan (`handoff/PLAN/app-integration/tickets/T929-shots/`); T928's sideways shift
+was not reproduced (the drag now always comes home), and a separate "map drawn in part of the screen after search →
+water → Back" was found (`handoff/PLAN/app-integration/tickets/T928-shots/`). Then the main chat reviews and merges.
+
 ## 2026-11-20 01:56: lane-plan batch answered
 
 Dropped (tickets labelled so, nothing to do): T537 and T538 leftovers (both tickets DONE on what was built), T801 item

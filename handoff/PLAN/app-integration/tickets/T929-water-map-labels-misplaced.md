@@ -1,6 +1,6 @@
 # T929 — Water map ("Show all parts"): boundary labels don't line up with the place they name
 
-Status: OPEN.
+Status: IN REVIEW — owner: OWNER-TODO "T928/T929 pictures", then main chat review + merge (lane/t929-t928: de6f5155f).
 
 Source: a tester on iPhone relayed by the owner 2026-11-19 (`T928-shots/tester-2026-11-19-iphone.png`, top shot: Chilliwack
 River, Map, part 3 of 4 "100 m below the Slesse Creek confluence → Chilliwack River Ecological Reserve boundary"; the label
@@ -35,3 +35,22 @@ Shots: scratchpad (session cf82a6c9) `ios-t928-t929/` (cmp-0809.png, cmp-pan.png
    (`marks.ts:9-10`) at each settle, so a mark off screen gets its label pinned 100 px inside the edge and it follows the
    camera. Fix: shift only marks on screen; a leader line when a label is moved off its mark.
 Not verified: web run (same pinning by code; framing right via `syncSize`); the tester's exact south-east view.
+
+## Fixed 2026-11-20 (lane t929-t928: de6f5155f)
+- **Labels (web and phone):** a label's point is now always its mark's own cut point (`marksData`); near an edge only its
+  `text-anchor` changes (`labelAnchor`, `marks.ts`: bottom-left / bottom-right within 100 px of an edge, else bottom),
+  so the box's corner sits over its ring and it never needs a leader. It moves with the map and leaves the screen with
+  its mark. Only `project` is asked now (`native/labelShift.ts` → `native/labelAnchor.ts`, the T734 guard kept).
+  Pinned: `point-marks.test.ts` (label coordinates = cut points whatever the camera), `marks.test.ts`, the web contract
+  test (anchor changes at `moveend`, point unchanged).
+- **Framing (phone):** the fit is sent as a centre and a zoom worked out from the laid-out size (`fitCamera`, core
+  `ladder.ts`, via `easeTo`), never the binding's `fitBounds` (which fitted to iOS's not-yet-grown 48 pt frame). Android
+  takes the same path. Pinned: `ladder.test.ts`, the native contract test (48 pt fit, refit at 259 pt lands at the
+  259-pt zoom, no fitBounds sent). Web unchanged (its `useFit` measures the canvas first).
+- **Pictures (iPhone 17e simulator, 390 pt, light; before = 0.8.3 build at 1f989bb48, after = 6bf58c8cf):**
+  `T929-shots/ios-part3-pick-before-after.png` (part 3 picked in "Show all parts": z4 / 100 km before, the part framed at
+  5 km after), `T929-shots/ios-pan-labels-before-after.png` (after a pan: the Slesse label pinned at the left edge
+  before, gone with its mark after), `T929-shots/ios-edge-label-before-after.png` (Tamihi Rapids Bridge near the right
+  edge: label slid left off its ring before, hanging from it after).
+- Not checked: Android emulator and a web run (unit/contract tests only). Seen: part 3's lower mark sits under the
+  "Whole river" button at that framing (its label shows above it); not changed here.
