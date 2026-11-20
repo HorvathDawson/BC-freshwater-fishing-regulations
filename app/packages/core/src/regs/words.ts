@@ -473,11 +473,13 @@ export const LIC = Object.freeze({
   STAMP_WAIVED: ". Steelhead Stamp not needed here unless you fish for steelhead", STOP: ".", SEP: ", ",
   FLAG: "?",
   CONTESTED: "Check: part of this water is also marked “not a Classified Water”.",
-  /** (T973, owner 2026-11-20 12:11) a unit carried through waters whose own line prints no unit: "Stellako River Class II
-   *  may apply here: Endako River has its own line without Classified Waters. Check with a CO." */
-  MAY_NEED: (unit: string, cls: string, period: string, through: string, many: boolean, part: boolean) =>
-    `${part ? "On part of this water: " : ""}${unit} Class ${cls}${period ? ` (${period})` : ""} may apply here: ${through} ${
-      many ? "have their own lines" : "has its own line"} without Classified Waters. Check with a CO.`,
+  /** (T973, owner 2026-11-20 13:22) a unit carried through waters whose own line prints no unit: shown as Classified
+   *  Waters, the why behind this fold: "Stellako River's Class II covers its tributaries. Endako River has its own line
+   *  in the rule book without Classified Waters, so it may not apply here. Check with a CO." */
+  MAY_WHY_FOLD: "Why this may not apply here",
+  MAY_WHY: (unit: string, cls: string, through: string, many: boolean, part: boolean) =>
+    `${part ? "On part of this water: " : ""}${unit}’s Class ${cls} covers its tributaries. ${through} ${
+      many ? "have their own lines" : "has its own line"} in the rule book without Classified Waters, so it may not apply here. Check with a CO.`,
   EXEMPT_FROM: (docs: string) => `You’re exempt from: ${docs}.`,
   // none needed
   NONE_HEAD: "No licence needed to fish here", NONE_U16: "Anglers under 16 who live in B.C. don’t need a basic angling licence.",
