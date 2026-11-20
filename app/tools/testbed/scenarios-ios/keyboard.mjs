@@ -224,12 +224,28 @@ export const keyboardIos = {
       const t = await typeIn(ctx, 'spot-title', 'Name this spot', name, (n) => n.text === name);
       // as a reader: the keyboard down, the page scrolled until the notes box shows, then a tap in it (the box is read by
       // its label "Notes" and its height from the tree: the block's heading has the same word, one line tall)
-      // (L6 2026-11-20) Maestro's hideKeyboard failed on this page ("Hide Keyboard... FAILED"): a drag down the page
-      // takes the keyboard with it (the scroll's keyboardDismissMode="interactive", T723)
-      must(ctx, 'kb-spot-notes-find', '- swipe: { start: "50%, 40%", end: "50%, 97%", duration: 700 }\n- scrollUntilVisible:\n    element: { text: "Add from photos" }\n    timeout: 15000\n');
-      await d.sleep(800);
-      const ns = d.nodes();
-      const box = ns.find((n) => (n.desc === 'Notes' || /^What happened/.test(n.text)) && n.box.y1 - n.box.y0 > 60);
+      // the notes box straight from the title when it shows above the keyboard (no keyboard dance); else, as a reader, the
+      // keyboard down and the page scrolled to it. (L6 2026-11-20: Maestro's hideKeyboard failed on this page, and after a
+      // drag down the page its scrollUntilVisible did not find "Add from photos" on screen: both kept as the fallback)
+      const notesBox = (ns) => ns.find((n) => (n.desc === 'Notes' || /^What happened/.test(n.text)) && n.box.y1 - n.box.y0 > 60);
+      // (L6 2026-11-20) a drag down the page with the keyboard (and its Save bar) up: the keyboard goes away, and the app's
+      // main thread does not spin. With keyboardDismissMode "interactive" it stayed half way down and the app logged ~7,000
+      // keyboard preference reads a second ("KeyboardBias") for 45 minutes
+      d.logcatClear();
+      must(ctx, 'kb-spot-drag', '- swipe: { start: "50%, 40%", end: "50%, 97%", duration: 700 }\n');
+      await d.sleep(5000);
+      const spin = d.appLogLines().filter((l) => l.includes('KeyboardBias')).length;
+      const kbAfterDrag = keyboardUp(ctx, 'spot-after-drag');
+      const dragSaid = `a drag down: keyboard ${kbAfterDrag ? 'STILL UP' : 'away'}, ${spin} keyboard preference reads in 5 s`;
+      if (spin > 500) throw new Error(`${dragSaid}: the main thread is looping (T723-kb-spot-after-drag.png)`);
+      let ns = d.nodes();
+      const seen = notesBox(ns);
+      if (!(seen && seen.box.y1 < 800 && (!kbAfterDrag || (t.kbTop !== null && seen.box.y0 + 30 < t.kbTop)))) {
+        must(ctx, 'kb-spot-notes-find', '- hideKeyboard\n- scrollUntilVisible:\n    element: { text: "Add from photos" }\n    timeout: 15000\n');
+        await d.sleep(800);
+        ns = d.nodes();
+      }
+      const box = notesBox(ns);
       // else by place: the box (96 pt tall) ends ~50 pt above "Add from photos" (iPhone 17e, T723-kb shots)
       const add = ns.find((n) => /^Add from photos$/.test(n.text || n.desc));
       if (!box && !add) { fs.writeFileSync(path.join(ctx.dir, 'T723-kb-spot-tree.json'), JSON.stringify(ns, null, 1)); throw new Error('neither the notes box nor "Add from photos" is in the tree (T723-kb-spot-tree.json)'); }
@@ -255,7 +271,7 @@ export const keyboardIos = {
         if (still) { ctx.finding('G10: the first tap on Save spot (keyboard up) did not save'); ctx.flow('tap-text', { TEXT: 'Save spot' }); await d.sleep(2500); }
       }
       if (d.screenText().includes('Save spot')) { try { must(ctx, 'kb-spot-save', '- hideKeyboard\n- scrollUntilVisible:\n    element: { text: "Save spot" }\n    timeout: 15000\n- tapOn: { text: "Save spot" }\n'); } catch { /* said by the probe */ } await d.sleep(2500); }
-      return `${t.note}; ${nn.note}; ${barSaid}; one tap on Save spot: ${once}`;
+      return `${t.note}; ${dragSaid}; ${nn.note}; ${barSaid}; one tap on Save spot: ${once}`;
     });
     await open("alert fields on a water's Conditions (Coquihalla River → Conditions → Alert me)", async () => {
       ctx.flow('search', { Q: 'Coquihalla River' });

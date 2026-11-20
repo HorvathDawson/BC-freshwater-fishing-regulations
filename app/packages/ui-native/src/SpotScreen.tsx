@@ -299,8 +299,11 @@ export function SpotScreen(p: SpotScreenProps) {
 
       {/* (T723 F2, G10) iOS: the focused title / notes kept above the keyboard (iOS-only prop: Android resizes its
           window), a tap on a button with the keyboard up acts at once instead of only closing the keyboard, and a drag
-          down the page takes the keyboard with it (iOS only), so the Save row under it can be reached */}
-      <ScrollView automaticallyAdjustKeyboardInsets keyboardShouldPersistTaps="handled" keyboardDismissMode="interactive"
+          of the page puts the keyboard away ("on-drag": Save rides on the keyboard now, so nothing is under it).
+          NOT "interactive" (L6 2026-11-20, simulator): a drag down the page with the keyboard's Save bar up left the
+          keyboard half way down and the app's main thread in a loop (~7,000 keyboard preference reads a second for
+          45 minutes, until the bench's cap) */}
+      <ScrollView automaticallyAdjustKeyboardInsets keyboardShouldPersistTaps="handled" keyboardDismissMode="on-drag"
                   contentContainerStyle={{ padding: 18, paddingTop: 6, gap: 22,
                                            paddingBottom: 40, ...MEASURE_NOW }}>
         <View style={{ gap: 4 }}>

@@ -5,6 +5,7 @@
  * web has no soft keyboard. The phone's half is drawn here (`KeyboardBar.native`); how it sits on the keyboard is the
  * simulator's (handoff/PLAN/ios/shots/t723/).
  */
+import { createElement, forwardRef } from "react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { Platform } from "react-native";
@@ -13,12 +14,21 @@ import type { Spot } from "@app/data/spots";
 import { LIGHT } from "./theme";
 
 vi.mock("./KeyboardBar", async () => await import("./KeyboardBar.native"));
+const scrolls: Record<string, unknown>[] = [];
+vi.mock("react-native", async (importOriginal) => {
+  const rn = await importOriginal<typeof import("react-native")>();
+  const Spy = forwardRef<unknown, Record<string, unknown>>(function ScrollView(p, ref) {
+    scrolls.push(p);
+    return createElement(rn.ScrollView as never, { ...p, ref });
+  });
+  return { ...rn, ScrollView: Spy };
+});
 const { SpotScreen } = await import("./SpotScreen");
 const { KeyboardBar: KeyboardBarWeb } = await import("./KeyboardBar.web");
 
 const OS = Platform.OS;
 const as = (os: string) => { (Platform as { OS: string }).OS = os; };
-afterEach(() => { cleanup(); as(OS); });
+afterEach(() => { cleanup(); as(OS); scrolls.length = 0; });
 
 const VISIT = new Date(2026, 7, 30, 9).getTime();
 const SPOT: Spot = {
@@ -60,5 +70,14 @@ describe("<SpotScreen> Save on the iOS keyboard (T723)", () => {
     cleanup();
     const w = render(<KeyboardBarWeb id="x" palette={LIGHT}><span>Save</span></KeyboardBarWeb>);
     expect(w.container.innerHTML).toBe("");
+  });
+
+  it("a drag of the page puts the keyboard away at once (on-drag), never the interactive dismiss that looped with the bar up", () => {
+    // L6 2026-11-20, simulator: with the Save bar on the keyboard, an interactive drag down left the keyboard half way and
+    // the main thread spinning for 45 minutes; the page's scroll keeps its keyboard insets and its tap-through
+    as("ios");
+    draw("draft", () => {});
+    const page = scrolls.find((p) => p.automaticallyAdjustKeyboardInsets === true);
+    expect([page?.keyboardDismissMode, page?.keyboardShouldPersistTaps]).toEqual(["on-drag", "handled"]);
   });
 });
