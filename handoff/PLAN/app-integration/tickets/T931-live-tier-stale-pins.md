@@ -26,7 +26,9 @@ not run against the live tree since the rulings landed. The live data matches th
 - E. Environment: test_curation_review_screen GETs `/api/reports`, which calls the live staging feeds worker (503 on a 30 s
   timeout): stub it. test_review_dfo: `node --test` segfault under load (passed on rerun). `app/tools/r8-config.test.ts`
   fails when a prebuilt gitignored `app/apps/mobile/android/` sits in the checkout (T913 plugin throws on its own
-  declaration): make the plugin accept its own `required=false` line, or introspect in a clean copy.
+  declaration): make the plugin accept its own `required=false` line, or introspect in a clean copy. Do NOT delete
+  `android/` to get round it: `android/app/debug.keystore` there is the shared signing key build-apk.sh copies (deleted
+  2026-11-19 22:10, restored from a worktree copy, sha256 221e0a31…; a lone keystore does not trip the test).
 - (D, the TestFlight message test broken by T918, was fixed on lane/t920-batch.)
 
 ## Acceptance
