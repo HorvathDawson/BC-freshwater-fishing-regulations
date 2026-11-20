@@ -1,6 +1,6 @@
 # T971 — Conditions: picking Level in the gauge card also changes the estimate card above it
 
-Status: IN REVIEW — built on lane/t971-flow-leads, 2a2aa0e75; left (Claude): merge lane/t971-flow-leads into redesign/stream-sections after review.
+Status: IN PROGRESS — built on lane/t971-flow-leads, 2a2aa0e75; left (Claude): merge lane/t971-flow-leads into redesign/stream-sections after review.
 
 Source: L4 Android device-looks pass 2026-11-20 (T728 look, emulator).
 
