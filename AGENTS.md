@@ -593,7 +593,8 @@ W46. **The guards the 2026-11 audits put in (T429–T442) stay in. A change that
     bundle → status index → export (each still runs alone); the index header (version 2) carries the
     bundle's `reach_digest` beside the handles, and the app refuses a mismatch. An atlas built before
     the sidecars existed gets them from `python -m pipeline.atlas.sidecars` (same inputs, never a
-    rebuild). THE READER RUNS ONCE (DATAFLOW, 2026-10-08): the bundle decides the rule order
+    rebuild; T679 #15: the supported label-only path, whose files must equal the build's own — `--check OUT`,
+    `test_sidecars_agree.py`). THE READER RUNS ONCE (DATAFLOW, 2026-10-08): the bundle decides the rule order
     (`rule_ix`), each section's rule key (`section_ruleset.key_ix`), every rule's `closure_grade`
     and THE PARTS of every named water (`part`/`part_section`); `python -m pipeline.deliver
     verdicts` writes `verdicts.sqlite` beside it (the traced reader per rule key × reading × fish ×

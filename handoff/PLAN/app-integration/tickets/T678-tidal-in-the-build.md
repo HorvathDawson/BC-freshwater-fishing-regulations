@@ -226,3 +226,12 @@ regenerated owner list (187 lines) in the progress note. Left: owner reads the d
   none named; 1,133 inside tidal river polygons (edge type 1450, the river's own construction lines: Fraser 385, Skeena
   290, Nass 158 …), 71 in the sea. A list changes no output (no piece to mark). Recommendation: no list; if wanted, the
   71 sea lines in a new file beside `waters/shore_held.json`. Owner rows OWNER-TODO 11 and 13.
+
+## Lane L7, 2026-11-20 — plan 2, plan 5 code, legacy retirement (8e8c3e79f)
+Proof on the live atlas (no rebuild; the disk was too full for one): the atlas's own resolver
+(`splits/tidal.tidal_cut_owner` / `tidal_whole_owner`) reproduces all 110 rank-1 rows of `tidal_sections.json` (36 cuts,
+16 whole items), and `coast.tidal_owners` on top rebuilds the whole 283-row record identically. Plan 5: `stamp_nodes`
+stamps 283 nodes, `node_owners` reads back exactly the record, and `read_tidal` on an `on_nodes` record equals it. Reach
+on the live atlas with the lane's code: `binding_diff` empty, `tidal.jsonl`, `outside_bc.jsonl` and both licensing files
+byte-identical. Left: plan 5's stamp runs in the wave-4 atlas build; then the record-only read path retires.
+

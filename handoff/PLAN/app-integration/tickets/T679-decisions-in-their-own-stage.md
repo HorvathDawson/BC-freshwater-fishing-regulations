@@ -1,6 +1,6 @@
 # T679 — Each decision in its own stage (everything but tidal)
 
-Status: IN PROGRESS — D2 and D6 built in c9488453c (owner 2026-11-12); D1 ponds, D3 nearer row, D4 word-read guard, D5 DFO confluence cuts and gauge placement #4 built in 9b0d6f4ae (+ f7f4fcfee), promoted with `full_t678b` (a5fe40636) and released in r-0a9930fb8826; the 11 other-line gauge cuts decided (RULINGS P49, T682); plan steps 1–3 done (#9 e1f1a268c, #2 8bc6eadbe, #4 b3a3938de); left (Claude): plan steps 5–10 (#8, #16, #17, #12, #10, #11, #13; next-atlas #1, #6, #18, #15) and #14 as its own ticket
+Status: IN PROGRESS — D2 and D6 built in c9488453c (owner 2026-11-12); D1 ponds, D3 nearer row, D4 word-read guard, D5 DFO confluence cuts and gauge placement #4 built in 9b0d6f4ae (+ f7f4fcfee), promoted with `full_t678b` (a5fe40636) and released in r-0a9930fb8826; the 11 other-line gauge cuts decided (RULINGS P49, T682); plan steps 1–3 done (#9 e1f1a268c, #2 8bc6eadbe, #4 b3a3938de); #14 done (9b0d6f4ae); lane L7 2026-11-20: #10 ece8f7a29, #11 7774bcbab, #12 rulings a493cf12d (+ 59e9589cc), #13 61f2bd774, step-10 code 5339c18ef (#1 and #6 behind switches, #15) and 94842bada (#18 dead code), all proved no output change; owner: OWNER-TODO "T679 #12: should the bundle carry"; left (Claude): wave 4 flips #1/#6 with the atlas rebuild and diffs, #18's continuation / places / part point, and L8's steps 5 (#8, #16, #17)
 
 Source: owner 2026-11-11, about tidal: "we want to avoid it being a weird post processing step", "the cuts used for
 tidal should happen where cuts happen etc.", then: "Look for other things like that too". Tidal itself is T678; this
@@ -150,3 +150,53 @@ stops the run); D5 `build.DFO_JOINING_WATER_STAYS_OUT` (7 DFO places keep the jo
 `place.nodes_at_cuts` (bundle): 10 of the owner's 29 move, 17 lake-outlet cuts and 11 cuts on another blue line keep the
 projection, listed. Left (Claude): D1/D3/gauges show at the next deliver after promote; the 11 other-line gauge cuts and
 the Dewdney side effect go to the owner.
+
+## Lane L7, 2026-11-20 (wave 3: parity only, no live atlas rebuilt)
+Owner kept #10, #13, #15, #17 (#17 is lane L8's, with #8/#16); #14 was already done.
+- **#10 one licensing pass** (ece8f7a29): `own_beats_inherited` folded into `first_classified_downstream` (one call in
+  `reach/build.py`; its one own case — a walked section on the walker's own water another designation names by reach —
+  is decided before the walk: `trib_yields_to_own` / `trib_kept_beside_own`). Proof: reach on the live atlas,
+  `licensing_section.jsonl` (1,049,654 rows) and `licensing_placement.jsonl` byte-identical, `binding_diff` empty; the
+  11 `trib_yields_to_own` records (317 sections) now count under `first_classified_downstream`. POLICY_VERSION unchanged.
+- **#11 in-season ranges generated** (7774bcbab): `inseason/notice_waters.json` (format 3) holds only the owner's
+  matches; what a resolve derives is `data/generated/inseason/resolved.json` (`python -m pipeline.regs.inseason.resolve`;
+  a missing one stops, naming it). The release commits nothing for in-season; AGENTS 66 updated. Proof on
+  r-6258ffded676: split + merge byte-identical (38 matches, 79 history rows), published `feeds/inseason/matches.json`
+  byte-identical. The deliver stage key now carries the notices' end tokens (deliver reruns once).
+- **#12 rulings to curated data** (a493cf12d, 59e9589cc): `RELEASE_UNDER_CLOSURE_KNOWN` (1) and
+  `QUOTA_UNDER_CLOSURE_KNOWN` (19) are `regulations/under_closure_calls.json` (`closures.under_closure_calls`, refuses
+  a missing / malformed / duplicate row). Proof: the export alone on the live bundle, `ui-rules-export.json`
+  byte-identical. LEFT: `UNDRAWN_PART_TRIBUTARIES` / `EXCEPTED_RIVERS_CREEKS_CLOSED` need the bundle to carry a rule's
+  own tributary scope (it drops `includes_tributaries: false`) and `tributary_excludes` (kept out on purpose,
+  `bundle/rules/row.py:84`) — an owner question (OWNER-TODO 2026-11-20) and L8's files.
+- **#13 added-stream hand fixes curated** (61f2bd774): `waters/added_stream_calls.json` (drop by name, the name-typo
+  map, 77 src_ids, the Magnolia receiver), read by `added_streams.clean.calls()`; not an atlas input. Proof: the loaded
+  file equals the old constants and the cleaned layers are byte-identical for all six sources (abbotsford 18,583,
+  burnaby 432, squamish 1,486, port_moody 506, osm 2, manual 1); the full generator was not rerun (it fetches DEM tiles).
+- **#15 the sidecar writer stays, named** (5339c18ef): `atlas.sidecars` is the supported label-only path; its files
+  must equal the build's (`disagreements`, `--check OUT`, `test_sidecars_agree.py -m slow` on the atlas under test).
+  Fixed: `widening_fold_report.json` was missing from `SIDECARS`, so an `--out` run wrote it through its link into the
+  source atlas. Its full-data run waits for the wave-4 atlas (an atlas built by today's code and curated files).
+- **#1 one outside flag** (5339c18ef, `border.ONE_OUTSIDE_FLAG`, off): the atlas stamps `out_of_bc` on every node in no
+  region polygon (`mark_regionless`, in `build_registry` before graph.pkl); the reach reads the flag alone and refuses an
+  atlas that left one unstamped. Measured on every build in `step10_report.json`.
+  Live atlas (probe 2026-11-20): 1,019 regionless nodes, 203 of them not yet `out_of_bc` (lake 71, stream 58,
+  wetland 74) — what the flip moves outside.
+- **#6 the registry owns every named node** (5339c18ef, `registry.build.NAMED_NODES_ARE_IN_ITEMS`, off): a node no
+  stream / lake / wetland item holds loses its `display_name` (`clear_unheld_names`; `name_tuples` kept). Measured the
+  same way. Live atlas: 42 named nodes in no water (stream 38, lake 4; e.g. Serpentine River,
+  Salmon River, Katzie Slough, Kootenay River pieces) — check those in the wave-4 diff before flipping.
+- **#18** (94842bada): the bundle's dead `_in_bc` / "dropped" count go. Left for wave 4 (output changes, L8's files):
+  continuation's topology into the atlas (`bundle/continuation.links` + `goes_on` as an atlas sidecar, the bundle keeping
+  the book pairs and the owner gate), one place-dedupe precision (tiles 3 dp vs bundle 4 dp), one "where is it" point
+  per part (`part_geo.mid_sid` vs `release/part_line.py`).
+
+### Wave 4 must run (one rebuild)
+1. Flip `border.ONE_OUTSIDE_FLAG` and `registry.build.NAMED_NODES_ARE_IN_ITEMS` to True (their tests in
+   `test_t679_step10.py` flip with them) — or leave either off on the owner's word.
+2. The side atlas build (heavy.sh), then `python -m pipeline.atlas.sidecars --build <side> --check <new dir>` (#15: must
+   print "the two writers agree") and `ATLAS_BUILD=<side> pytest -m slow pipeline/tests/test_sidecars_agree.py`.
+3. `build_parity.py` live → side, reach on the side atlas, `binding_diff` against the live reach run; attribute every
+   change to #1 (sections newly outside: the regionless count in `step10_report.json`), #6 (labels only), T926 / T780 and
+   the curated edits since the live atlas (tidal_limits.json, name_variants.json are ahead of it).
+4. Tiles: the drawn set against `undrawn.json` (#1 drops the regionless slivers from the stream layer).
