@@ -26,7 +26,8 @@ waters + 2,917 aliases, ~52k queries, found = in the top 40):
 ## Acceptance
 The probe rerun: every miss class above found (except 4 until the owner picks a source); `searchIndex.test.ts` pins one
 case per class; no ranking change for exact names (the probe's 22,699 exact queries unchanged).
-Depends: none. Size: M. Owner: answered 2026-11-19 (4 dropped, see below). Build 1, 2, 3, 5 and the 31 curated misses.
+Depends: none. Size: S–M. Owner: answered 2026-11-19 23:49 (see the last section): ONLY the variants; 1 dropped, 2 and 3 only
+where they are not numbered names; 4 dropped. (Earlier "build 1, 2, 3, 5" here was Claude's reading, never the owner's.)
 
 ## Owner 2026-11-19 20:31 (main chat, question batch)
 (4) Picked "Use BC Geographical Names (Recommended)": official and alternate names from the BC Geographical Names
@@ -36,3 +37,15 @@ Verbatim: "We have all the name variants in the file / We want to add those / I 
 file (curated `name_variants.json`: 7,742 / 7,773 found, no First Nations names except Tŝilhqox Biny in a note):
 "It sound like it has them all already". So: no BC Geographical Names fetch; (4) is dropped. Add instead: make the 31
 curated variants search misses into finds. "Sts'ailes", "Stó:lō" etc. still find nothing after this (no source holds them).
+## Owner 2026-11-19 23:49 (main chat): scope
+Verbatim: "We want all the variants no abbreviations though and no numbered lake names. We do want to add all the cuts on a
+river as a searchable thing too. So you could search something like ten Mile pool and get chuckwalla river?"
+So T926 is now:
+- IN: every name variant finds its water: the 31 curated `name_variants.json` misses, and the book's own alternate names
+  (bracketed names, `book_name_links`) that are real names. (5) the "Pete'S Pond …" casing/description bug stays (a
+  display fix).
+- OUT: (1) abbreviations (Lk, Ck, R., St); numbered lake names ("KETTLE LAKE #2", "Champion Lakes No. 1 & 2"); the
+  book's print marks ("L.", "*"); (4) First Nations names (T930).
+- (2) joined headings ("Chilliwack / Vedder Rivers"): only if a joined heading is itself one of the variants; no general
+  splitting rule.
+- The cuts part is T927 (confirmed the same message; "Ten Mile Pool" is a placed cut on the Chuckwalla River).

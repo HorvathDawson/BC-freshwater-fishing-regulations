@@ -326,7 +326,7 @@ reads both files; a ticket closed here moves there once its lane is finished wit
 | T923 | Not-fishable land (reserves, private) hard to see on satellite and light mode: darker same-hue outline (tester via owner) | OPEN | | tester 2026-11-19 via owner |
 | T924 | Layers sheet wording read "a little weird" (tester via owner) | OPEN | | tester 2026-11-19 via owner |
 | T925 | A water with one section gets its Map view too; the tapped part stays marked (tester via owner) | OPEN | | tester 2026-11-19 via owner |
-| T926 | Search: abbreviations (Lk, Ck, R., St), joined book names ("Chilliwack / Vedder"), the book's own names; First Nations names need a source (owner) | OPEN | | owner 2026-11-19 "did we ever make sure handle name variants" |
+| T926 | Search: every name variant finds its water (31 curated misses, the book's alternate names); no abbreviations, no numbered lake names (owner) | OPEN | | owner 2026-11-19 "did we ever make sure handle name variants" |
 | T927 | Search finds the book's boundary places (477 placed cuts: "Vedder Crossing", "Greendale Trestle") (owner) | OPEN | | owner 2026-11-19 "search a cut location from book" |
 | T928 | iPhone: the main map fills only 2/3 of the screen after tab changes (tester via owner) | OPEN | | tester 2026-11-19 via owner |
 | T929 | Water map: boundary labels don't line up with the place they name; the part looks mis-framed (Chilliwack) (tester via owner) | OPEN | | tester 2026-11-19 via owner |

@@ -22,4 +22,10 @@ places exist only in book words, mostly generic ("within 100 m of outlet"). Toda
 ## Acceptance
 "Vedder Crossing", "Greendale Trestle", "Limonite Creek" (the Zymoetz boundary) each find their place first among places;
 pictures of the result rows and the opened place to the owner.
-Depends: a release (new core table). Size: M. Owner: yes (look). Default: the 477 part-end places, named ones only.
+Depends: a release (new core table). Size: M. Owner: yes (look). Owner 23:49: all the placed cuts (see below).
+
+## Owner 2026-11-19 23:49 (main chat): yes
+Verbatim: "We do want to add all the cuts on a river as a searchable thing too. So you could search something like ten Mile
+pool and get chuckwalla river?" Yes: `cuts.json` `chuckwalla_river__fishing_boundary_signs_at_ten_mile_pool_200_m_downstream`
+is placed. Acceptance adds "Ten Mile Pool" → Chuckwalla River. "All the cuts": every placed cut, not only the named 274
+(generic labels still need the water's name in the query, per Pitfalls).
