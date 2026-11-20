@@ -352,7 +352,10 @@ def test_bella_coola_tributaries_only_holds_none_of_the_mainstem_and_atnarko_is_
     assert not got & set(reg["gnis:17209"].section_ids)            # the Atnarko: left out
     whole, _ = build_reach(*[x if i == 0 else x[0] for i, x in enumerate(E.to_reach_input(
         E.EntryLocation.from_dict(BELLA_LOC), [{}], water))], reg, g)
-    assert set(whole.sections) & set(reg["gnis:11611"].section_ids)   # the mark as saved: it covers the mainstem
+    # (T931 B; T807, owner 2026-11-16/17: a DFO place's side streams come from its own words — "all tributaries …" is
+    # side streams ONLY, `side_streams.derive`) the place as saved, with no setting of its own, no longer covers the
+    # mainstem either: its words decide, so the closure reads on the side streams, never the Bella Coola itself
+    assert set(whole.sections) and not set(whole.sections) & set(reg["gnis:11611"].section_ids)
 
 
 # ---------------------------------------------------------------------------- mouth / tidal ends (owner 2026-11-15)

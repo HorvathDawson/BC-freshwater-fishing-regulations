@@ -9,6 +9,7 @@ import { forecastFor, type Observations } from "../feed/http";
 import type { Aged, GaugeLink, GaugeWaters, ItemId, NameHit, NearHit, Parameter, PanelRoute, PointerHit, SectionId,
               Series, StationId } from "../index";
 import { num, str, type Cell, type Row } from "./db";
+import { unclim3 } from "../release/packed";
 
 /** (T300) a model's place in the publisher's order (CLEVER, COFFEE, ELF); a model outside it comes after. */
 const modelRank = (m: string): number => {
@@ -151,10 +152,14 @@ const bytesOf = (raw: Uint8Array | ArrayBuffer) => (raw instanceof Uint8Array ? 
  * The envelope blob to 73 pentads. `clim/1` (the bundle) is per pentad `u8 pentad, 5 × float32 LE`; `clim/2` (the
  * release, MINIMAL-PACKAGING §4) the same with float16. A short or ragged blob is treated as no envelope rather than
  * half of one: a band built from a truncated read would be silently wrong at exactly one time of year.
+ * (T686) `clim/3` (a climate/2 release) is clim/2's float16 bits transposed + delta (`release/packed.ts`): it is decoded
+ * back to clim/2 first, and a blob that does not parse THROWS (the decoder's own check, W46).
  */
-export function pentadsOf(raw: Uint8Array | ArrayBuffer | null | undefined, codec: "clim/1" | "clim/2"): (Band | null)[] {
+export function pentadsOf(raw: Uint8Array | ArrayBuffer | null | undefined,
+                          codec: "clim/1" | "clim/2" | "clim/3"): (Band | null)[] {
   const pentads: (Band | null)[] = Array.from({ length: 73 }, () => null);
   if (!raw) return pentads;
+  if (codec === "clim/3") return pentadsOf(unclim3(bytesOf(raw)), "clim/2");
   const bytes = bytesOf(raw);
   const dv = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
   const w = codec === "clim/1" ? 4 : 2, rec = 1 + 5 * w;

@@ -58,7 +58,13 @@ def test_the_st_mary_row_on_perry_creek_lists_no_brook_trout(perry):
             {"members": ["CT", "DV"], "bands": None, "back": True, "xref": False, "sub": None, "conds": [1]},
             {"members": ["GB", "LT", "RB"], "bands": [[30, None, 1]], "back": False, "xref": False, "sub": None,
              "conds": []}]), md
-        assert row["group"]["kinds"] == ["GB", "LT", "RB"]
+        # T834 (owner 2026-11-17, "Strict everywhere"; RULINGS T17) + T810 cutover: the GROUP is the water's whole trout
+        # box, so Perry Creek's own brook trout 20 is in it as its OWN tier (raising the box's total to 20 for brook
+        # trout); the St. Mary's tier still holds only GB / LT / RB — no "counts toward this one" for brook trout (T127)
+        assert row["group"]["kinds"] == ["EB", "GB", "LT", "RB"]
+        own = {t["says"].split(":")[0]: [k for c in t["children"] for k in c["species"]]
+               for t in row["group"]["tree"][0]["children"]}
+        assert own == {"This creek’s rule": ["EB"], "The St. Mary River’s rule for its tributaries": ["GB", "LT", "RB"]}
 
 
 @pytest.mark.needs_bundle

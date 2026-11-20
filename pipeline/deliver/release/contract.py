@@ -10,6 +10,7 @@ from __future__ import annotations
 from pipeline.deliver import lake_facts as LF
 from pipeline.deliver import method as METHOD
 from pipeline.deliver import salmon as SALMON
+from pipeline.deliver.release import packed as PACKED
 from pipeline.deliver.release import paint as PAINT
 from pipeline.deliver.release import shards as SH
 
@@ -57,15 +58,42 @@ def region_tables(sections=()) -> dict:
 #: (T823) `flow-small` is BUILT into every release from now, and optional only so an app built from this contract still
 #: reads a release cut before it (staging, 2026-11-16): the app reads its absence as "no warning bits", by the file's
 #: presence in the manifest, never by catching an error. Required once a release carrying it is live and the app reads it.
-OPTIONAL = frozenset({"lakes", "flow-small"})
+#: (T679 #8) `flow-own` too: built only once `packed.SHIP_OWN_GAUGE_FLAG` is on; its absence is "decide as before".
+OPTIONAL = frozenset({"lakes", "flow-small", "flow-own"})
+
+#: (T686, owner 2026-11-20 09:59: "Ship readers now, formats later") THE OLD FORMS of the switched files: what a
+#: release WRITES while `packed.SHIP_PACKED_FORMATS` is off (`written_files`). `FILES` below stays the app's contract (the
+#: packed forms; app 0.8.4 reads these too, `ALSO_READS`).
+UNPACKED = {
+    # (T679 #16, the same switch, owner 2026-11-20 10:00: every left-over on this release) paint/5, no access flag
+    "paint": {"format": PAINT.FORMAT, "kind": "bin", "tables": {}},
+    "near": {"format": "near/1", "kind": "sqlite", "tables": {
+        "meta": ["k", "v"], "place_water": ["place_id", "ckm", "ord"]}},
+    "down": {"format": "down/1", "kind": "sqlite", "tables": {
+        "meta": ["k", "v"], "section_down": ["sid", "down_sid", "len", "lake"]}},
+    "climate": {"format": "climate/1", "kind": "sqlite", "tables": {
+        "meta": ["k", "v"], "gauge_clim": ["station", "parameter", "bands"]}},
+}
+
+
+def written_files(packed: bool | None = None) -> dict:
+    """The files a release writes: `FILES`, with the three packed ones in their old form (`UNPACKED`) unless `packed`
+    (default: `packed.SHIP_PACKED_FORMATS`, read at call time)."""
+    on = PACKED.SHIP_PACKED_FORMATS if packed is None else packed
+    return dict(FILES) if on else {**FILES, **UNPACKED}
+
 
 #: {file: {"format", "kind": "sqlite" | "bin", "tables": {table: [columns]}}}
 FILES = {
-    "paint": {"format": PAINT.FORMAT, "kind": "bin", "tables": {}},
+    # (T679 #16) paint/6 (+ the one access flag), written once `packed.SHIP_PACKED_FORMATS` is on (`UNPACKED`: paint/5)
+    "paint": {"format": PAINT.MOSTLY_FORMAT, "kind": "bin", "tables": {}},
     "flow-area": {"format": PAINT.AREA_FORMAT, "kind": "bin", "tables": {}},
     # (T823) per paint section, which of its panel's members drain so much more than it that their reading carries the
     # small-water warning (the conditions meta's `small_water_text`): pipeline/gauges/consume/small_water.py
     "flow-small": {"format": PAINT.SMALL_FORMAT, "kind": "bin", "tables": {}},
+    # (T679 #8) per paint section, which of its panel's members stand on its own water (the ranking's rule): the gauge
+    # list's "ON THIS WATER" heading reads it (paint.py `encode_own`; behind `packed.SHIP_OWN_GAUGE_FLAG`)
+    "flow-own": {"format": PAINT.OWN_FORMAT, "kind": "bin", "tables": {}},
     # (T54) the gentler access tiers (permit / reserve / private) a Regulations page notes; paint carries the no-access rows
     "access": {"format": PAINT.ACCESS_FORMAT, "kind": "bin", "tables": {}},
     "lakes": {"format": LF.FORMAT, "kind": "bin", "tables": {}},
@@ -112,8 +140,11 @@ FILES = {
         # metres, AGENTS 5; a map mark's microdegrees where one stands). ADDITIVE, so still core/1: a core without it
         # finds no places (the app asks `HAS_CUT_PLACE` first)
         "cut_place": ["ord", "words", "alt", "generic", "blk", "m", "lon", "lat"]}},
-    "near": {"format": "near/1", "kind": "sqlite", "tables": {
-        "meta": ["k", "v"], "place_water": ["place_id", "ckm", "ord"]}},
+    # (T686) near/2: one row per town, its waters packed (`packed.py`: ords ascending as gaps, then ckm as byte planes).
+    # near/1 was (place_id, ckm, ord), one row per town and water; the app still reads it (`NEAR_READS`), so an app
+    # built from this contract opens a release cut before it
+    "near": {"format": PACKED.NEAR_FORMAT, "kind": "sqlite", "tables": {
+        "meta": ["k", "v"], "place_water": PACKED.NEAR_COLUMNS}},
     # (T182) the tables T129 measured riding in a file a moment did not otherwise need moved into files of their own:
     # `section_down` (down), `gauge_clim` (climate) out of conditions, `part_geo` (geo) out of water; and conditions
     # gained `lake_section` (build.lake_section), so it answers the lake road without core. The app reads a release cut
@@ -136,11 +167,13 @@ FILES = {
         "basin": ["ix", "basin_id", "name"],
         "basin_frame": ["w", "s", "dlon", "dlat", "cols", "rows"],
         "basin_grid": ["row", "b"]}},
-    "down": {"format": "down/1", "kind": "sqlite", "tables": {
-        # `len` (T252): ADDITIVE, last, nullable — still down/1; an older release has none (no along-river distance).
-        # `lake` (T296): the same — an older release has none (the app reads a route's lake from its water's kind)
-        "meta": ["k", "v"], "section_down": ["sid", "down_sid", "len", "lake"]}},
-    "climate": {"format": "climate/1", "kind": "sqlite", "tables": {
+    # (T686) down/2: blocks of 4096 sids (`packed.py`), each row's down_sid, len and lake inside. down/1 was (sid,
+    # down_sid, len, lake) per row (`len` T252, `lake` T296 additive in it); the app still reads it (`DOWN_READS`)
+    "down": {"format": PACKED.DOWN_FORMAT, "kind": "sqlite", "tables": {
+        "meta": ["k", "v"], "section_down": PACKED.DOWN_COLUMNS}},
+    # (T686) climate/2: the same table, `bands` clim/3 (clim/2's float16 bits transposed + delta, `packed.py`).
+    # climate/1 carried clim/2; the app still reads it (`CLIMATE_READS`)
+    "climate": {"format": PACKED.CLIMATE_FORMAT, "kind": "sqlite", "tables": {
         "meta": ["k", "v"], "gauge_clim": ["station", "parameter", "bands"]}},
     # (T517) geo/2: a part is one connected run numbered in river order, so `part_stretch` is gone and `rank` (always
     # part_ix) left the table
@@ -244,12 +277,22 @@ UNITS = {
     "geo.part_geo.w": "microdegrees", "geo.part_geo.s": "microdegrees", "geo.part_geo.e": "microdegrees",
     "geo.part_geo.n": "microdegrees",
     "water.part_mark.lon": "microdegrees", "water.part_mark.lat": "microdegrees",
-    "climate.gauge_clim.bands": "clim/2: [u8 pentad, 5 x float16 LE] records",
+    "climate.gauge_clim.bands": "clim/3: u8 N, N pentad bytes, then per p10/p25/p50/p75/p90 the N float16 bit deltas "
+                                "(mod 2^16, the first from 0) as 5N low bytes then 5N high bytes; decoded, clim/2's "
+                                "[u8 pentad, 5 x float16 LE] records (pipeline/deliver/release/packed.py)",
+    "near.place_water.b": "near/2: LEB128 N, N x (ord - previous ord - 1, the first from -1), N ckm low bytes, N ckm high "
+                          "bytes; read sorted by (ckm, ord) (pipeline/deliver/release/packed.py)",
+    "down.section_down.b": "down/2: per block of 4096 sids, LEB128 N, N x sid gap (from block<<12 - 1), N x zz(down_sid "
+                           "delta, from block<<12), N x (len + 1, 0 NULL), L, L x lake slot gap (from -1) "
+                           "(pipeline/deliver/release/packed.py)",
     "flow-area": "flow-area/1: 'BCFA', u8 1, one LEB128 varint per paint section (sid order) = round(km2 x 1000)",
     "flow-small": "flow-small/1: 'BCFS', u8 1, one LEB128 varint per paint section (sid order) = bitmask over its panel's "
                   "members by ord: bit i set where member i drains at least the conditions meta's small_water_ratio times "
                   "the section's target area (show small_water_text beside that member's reading)",
-    "paint": "paint/5: see pipeline/deliver/release/paint.py",
+    "paint": "paint/6 (paint/5 while packed.SHIP_PACKED_FORMATS is off): see pipeline/deliver/release/paint.py",
+    "flow-own": "flow-own/1: 'BCFO', u8 1, one LEB128 varint per paint section (sid order) = bitmask over its panel's "
+                "members by ord: bit i set where member i stands on the section's own water (along the water, across a "
+                "water_continue, a lake on the way ends it: the bundle's section_own)",
     "access": "access/1: 'BCAX', u8 1, 8 bytes section_handles, then an access half (pipeline/deliver/release/paint.py)",
     "lakes": "lakes/1: 'BCLK', u8 1, 8 bytes section_handles, LEB128 asof+1, LEB128 count, then per section "
              "(sid ascending) LEB128 sid delta, u8 survey (0 none, 1 sheet, 2 digitised), LEB128 stocked day+1 "
@@ -349,6 +392,9 @@ WEB_BUDGET = {
                           # (T252) + ~498 kB on `down` (closed downstream, named panel seeds, reach lengths: 624,913 →
                           # 1,122,957) ≈ 6,715,000: the gate 6,850,000 → 7,200,000
                           # (T256) water-{region}: 7,200,000 → 6,200,000
+                          # (T686) down/2 (`down` 1,169,858 → 608,697): 5,473,323 on the side release of 2026-11-20.
+                          # Kept at 6,200,000 while the live release (6,034,484, down/1) is the one
+                          # `app/tools/release-budget.test.ts` holds to it; ~6,000,000 once a down/2 release is LATEST
                           "gate": 6_200_000},
     # the Conditions tab: gauges and the lake road (conditions' `lake_section`, so no core), the panels' areas; the
     # climatology (climate) waits for a chart (4,151,534 → 997,511)

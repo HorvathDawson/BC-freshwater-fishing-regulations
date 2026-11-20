@@ -698,8 +698,22 @@ def test_f6_the_peace_river_is_outside_zone_bs_kokanee_stream_release(db):
     Lake outlet"; it showed "release KO"). A Peace tributary is a stream like any other: still released."""
     peace = set(_sections(db, "gnis:14619"))
     assert peace and not (peace & _bound_to(db, "z7b:daily_quotas", "species_quotas.r5"))
-    sid = db.execute("select p.rep_sid from part p join item i on i.ord = p.ord where i.item_id = 'gnis:14619' "
-                     "and p.part_ix = 9").fetchone()[0]
-    got = {f"{x['entry']}::{x['rule']}" for x in R.effective_rules(sid, (7, 1), "KO", BUNDLE) if x["state"] == "speaks"}
-    assert "z7b:daily_quotas::species_quotas.r4" in got, got
+    # (T931 B) BY PLACE, never a part number. Since T794 (2026-11-16) the one stretch no Peace row covered — below
+    # W.A.C. Bennett Dam, "From Dinosaur Lake up to the Williston Lake outlet" — is closed by the Dinosaur Lake row
+    # (`dinosaur_lake.r1b`, "No Fishing from W.A.C. Bennett Dam …"), and every other part has a Peace row's own kokanee
+    # quota. So F6 reads: on EVERY Peace part Zone B's "Kokanee: 10" takes part (speaks, or a Peace row's quota or the
+    # closure beats it on the ladder) and the stream release never does
+    reps = db.execute("select p.rep_sid from part p join item i on i.ord = p.ord where i.item_id = 'gnis:14619' "
+                      "and p.set_id is not null").fetchall()
+    dam = []
+    for (sid,) in reps:
+        took = {f"{x['entry']}::{x['rule']}": x for x in R.effective_rules(sid, (7, 1), "KO", BUNDLE, trace=True)}
+        assert "z7b:daily_quotas::species_quotas.r4" in took, sid
+        assert "z7b:daily_quotas::species_quotas.r5" not in took, sid
+        if took.get(DINOSAUR_R1B, {}).get("state") == "speaks":
+            dam.append(sid)
+    assert len(dam) == 1, "the stretch below W.A.C. Bennett Dam is one part, closed by the Dinosaur Lake row (T794)"
     assert _bound_to(db, "z7b:daily_quotas", "species_quotas.r5"), "the release still binds Zone B's other streams"
+
+
+DINOSAUR_R1B = "r7:dinosaur_lake_reservoir_downstream_of_w_a_c_bennett_dam@7-31::dinosaur_lake.r1b"

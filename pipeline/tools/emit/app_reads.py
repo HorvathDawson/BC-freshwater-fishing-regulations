@@ -43,6 +43,10 @@ APP_JSON = "app/apps/mobile/app.json"
 PACK_TS = "app/packages/data/src/pack.generated.ts"
 PAINT_TS = "app/packages/core/src/paint.ts"
 MANIFEST_TS = "app/packages/data/src/manifest.ts"
+PACKED_TS = "app/packages/data/src/release/packed.ts"
+#: (T686) every ALSO_READS entry this reads: {file: (the constant, the file that declares it as a literal list)}
+_ALSO_SOURCES = {"paint": ("PAINT_READS", PAINT_TS), "near": ("NEAR_ALSO_READS", PACKED_TS),
+                 "down": ("DOWN_ALSO_READS", PACKED_TS), "climate": ("CLIMATE_ALSO_READS", PACKED_TS)}
 _BY = "python -m pipeline.tools.emit.app_reads"
 ABOUT = ("What each app version reads: per release file, the formats its reader accepts (T555 item 4). Written by "
          f"`{_BY}` (the current version; `--backfill` proved the older rows by git), kept by its `--check` in "
@@ -60,6 +64,12 @@ def ver(s: str) -> tuple:
 
 def _paint_reads(paint_ts: str) -> list[str] | None:
     m = _PAINT_READS.search(paint_ts)
+    return list(json.loads(m.group(1))) if m else None
+
+
+def _const_reads(src: str, const: str) -> list[str] | None:
+    """`export const <const>: readonly string[] = [...]` → the list (None: not declared that way)."""
+    m = re.search(rf"export const {const}: readonly string\[\] = (\[[^\]]*\]);", src)
     return list(json.loads(m.group(1))) if m else None
 
 
@@ -82,13 +92,14 @@ def current_reads(root: Path = REPO_ROOT) -> dict[str, list[str]]:
     also: dict[str, list[str]] = {}
     for part in (p.strip() for p in also_src.group(1).split(",") if p.strip()):
         name, _, value = (x.strip() for x in part.partition(":"))
-        if (name, value) != ("paint", "PAINT_READS"):
+        if _ALSO_SOURCES.get(name, (None,))[0] != value:
             raise SystemExit(f"app_reads: ALSO_READS has an entry this does not know ({part!r}): teach "
-                             "pipeline/tools/emit/app_reads.py where its formats are listed")
-        got = _paint_reads((root / PAINT_TS).read_text(encoding="utf-8"))
+                             "pipeline/tools/emit/app_reads.py where its formats are listed (`_ALSO_SOURCES`)")
+        const, where = _ALSO_SOURCES[name]
+        got = _const_reads((root / where).read_text(encoding="utf-8"), const)
         if got is None:
-            raise SystemExit(f"app_reads: {PAINT_TS} no longer declares PAINT_READS as a literal list")
-        also["paint"] = got
+            raise SystemExit(f"app_reads: {where} no longer declares {const} as a literal list")
+        also[name] = got
     return reads_of(C.FILES, also)
 
 

@@ -173,6 +173,13 @@ Dala (p.50), Ksi Hlginx (p.52), Triumph (p.54), and the West Road mainstem (Regi
 
 **BC Fish and Wildlife, Region 7A (Omineca)**: Stellako River, see Region 6 question 1.
 
+**BC Fish and Wildlife, Classified Waters licence (any region; T973, owner 2026-11-20)**
+1. A river is Classified Waters "[Includes Tributaries]". One of its tributaries has its own row that does not mention
+   Classified Waters. Does a non-resident need the river's Classified Waters licence on that tributary and the creeks
+   above it? (Built: no.)
+   - Example: Stellako River (p.53): "Class II water [Includes Tributaries]". Its tributary the Endako River has its own
+     row, which prints only "No Fishing Nov 15-June 30".
+
 **DFO (salmon)**
 1. Tatshenshini below the border: "All | Jul 24 to Aug 14 | No fishing for salmon" beside "Coho | Apr 1 to Mar 31 | 2
    per day". Is coho closed Jul 24-Aug 14?

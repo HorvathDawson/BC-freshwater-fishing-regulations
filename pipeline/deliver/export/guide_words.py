@@ -257,6 +257,9 @@ WATER_TEXT = {
              "`water.parts[]`",
     "outside_bc": "how many of its sections lie outside British Columbia (0 when none): they "
                   "carry no set; show 'outside B.C.' (`placement.outside_bc`)",
+    "grp_runs": "(T679 #17) ONLY on a water where some rule-set group `grp` has 2+ parts: per grp (0..n-1), its "
+                "parts' runs as one list, upstream first, the pieces of one run the DFO salmon chain cut joined end "
+                "to end — say a group's stretches from this, never by joining its parts' `runs`",
     "part_of": "ONLY on a lake PART: the item_id of the whole lake it was cut from "
                "(`placement.part_of`)",
     "steelhead": "ONLY where some part is \"known\" or \"possible\": \"known\" if any part is "

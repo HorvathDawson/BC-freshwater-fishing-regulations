@@ -165,27 +165,17 @@ def _by_grp(item_id: str, w: dict, doc: dict):
         members.setdefault(q["grp"], []).append(ex)
     if sorted(members) != list(range(len(members))):
         raise AnswersError(f"display: {item_id}'s part groups are not 0..n-1: {sorted(members)}")
+    # (T679 #17) the group's runs are the export's (`grp_runs`: pieces of one run the salmon chain cut, joined once
+    # there, `export.read.group_runs`); a one-part group's are its part's. A group of 2+ parts with none is refused
+    grp_runs = w.get("grp_runs")
     merged = []
     for g in range(len(members)):
         qs = [w["parts"][ex] for ex in members[g]]
-        tagged = [(k, dict(r)) for k, q in enumerate(qs) for r in q.get("runs") or []]
-        tagged.sort(key=lambda t: (t[1].get("km_from") is None, -(t[1].get("km_from") or 0)))
-        # pieces of ONE run (the salmon chain cut it, T517) meet end to end where one PART ends and the next begins:
-        # said as the one run they were before T517. Two runs of one part stay two (a border, a lake between).
-        joined: List[tuple] = []
-        stem: Optional[int] = None                      # the index in `joined` of the last main-stem run
-        for k, r in tagged:
-            last = joined[stem] if stem is not None else None
-            if last and last[0] != k and not r.get("branch") and last[1].get("to") \
-                    and last[1].get("to") == r.get("from") and last[1].get("km_to") == r.get("km_from") \
-                    and set(last[1]) == set(r):
-                last[1]["to"], last[1]["km_to"] = r.get("to"), r.get("km_to")
-                joined[stem] = (k, last[1])
-                continue
-            joined.append((k, r))
-            if not r.get("branch"):
-                stem = len(joined) - 1
-        merged.append({**qs[0], "runs": [r for _, r in joined], "sections": sum(q["sections"] for q in qs),
+        if len(qs) > 1 and grp_runs is None:
+            raise AnswersError(f"display: {item_id}'s group {g} has {len(qs)} parts and the export joined no runs "
+                               "(`grp_runs`): rebuild the export")
+        runs = [dict(r) for r in (grp_runs[g] if grp_runs is not None else qs[0].get("runs") or [])]
+        merged.append({**qs[0], "runs": runs, "sections": sum(q["sections"] for q in qs),
                        # (T801 item 5(1)) each member's licensing set where it runs on the main stem (`part_place`)
                        STEM_LICENSING: stem_licensing(qs)})
     return Water(item_id, {**w, "parts": merged}, doc), members

@@ -36,6 +36,11 @@ export function notesOn(e: ChangelogEntry, os: "android" | "ios" | "web"): reado
 
 export const CHANGELOG: readonly ChangelogEntry[] = [
   {
+    version: "0.8.4", date: null, draft: true, notes: [
+      "Smaller data updates: town search, river flow charts and the walk downstream from a stream take about 2 MB less to download",
+    ],
+  },
+  {
     version: "0.8.3", date: null, draft: true, notes: [
       "Smoother pinch-zoom and zoom-out on the map",
       "Data updates keep downloading after you leave the app",

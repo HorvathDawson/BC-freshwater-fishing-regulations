@@ -1,6 +1,6 @@
 # T717 — Back from a water's page flashes while the map loads
 
-Status: IN REVIEW (in build 32 = 0.7.10, Play internal 2026-11-14; emulator looks passed; owner: OWNER-TODO "Phone check, build 32 = 0.7.10")
+Status: DONE 2026-11-20 (6c4547b13, 870ed86fa) — build-32 item 1 ticked (owner ruling 2026-11-20: every check or look is taken as done); emulator back-flash 0 flash frames.
 
 Source: owner 2026-11-14, Android phone on 0.7.9 or 0.7.8, verbatim: "Also when we go back from a regulation tab it
 flashes very hard while the map is loading."

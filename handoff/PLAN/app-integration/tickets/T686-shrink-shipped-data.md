@@ -1,6 +1,6 @@
 # T686 — Shrink shipped data across the board
 
-Status: IN PROGRESS — OWNER PICKED (a) 2026-11-16 11:57, "(a) Three lossless changes (Recommended)": near as one blob per place, climate bands packed, down in blocks, about 1.94 MB; to build (who builds is being settled between the two chats). Survey and prototypes of 2026-11-14 (r-f749475d0962) are ranked below
+Status: IN PROGRESS — (a) BUILT 2026-11-20 on `lane/l8-shrink` behind ONE SWITCH, OFF (owner 09:59 "Ship readers now, formats later"): `pipeline/deliver/release/packed.py` `SHIP_PACKED_FORMATS = False`. App 0.8.4 reads both forms. Left: flip it (one line) in the FIRST data release cut after app 0.8.4 is live in BOTH production stores (Google Play production and the App Store); then lower `first_tap_unnamed` (6.2 → ~6.0 MB)
 
 Source: owner 2026-11-12 (T678 release stopped at the size gate): "Raise now, shrink later, but the ticket should cover
 ways to shrink data across the board, not just ponds." RULINGS O5 raised `core`, `conditions` and the web's
@@ -125,3 +125,56 @@ once the Stikine and Taku places bound, `pipeline/deliver/release/build.py` `SIZ
 `salmon-6` is a candidate here (lower it again once the picked changes ship).
 
 Owner 2026-11-20 09:59 (dialog): "Ship readers now, formats later (Recommended)": app 0.8.4 reads both; this release's data (staging and production) stays in the old formats; the packed formats switch on in the first data release after 0.8.4 reaches the production stores.
+
+## Built 2026-11-20 (lane L8, `lane/l8-shrink`): the owner's (a)
+Three lossless release formats, the bundle unchanged (the pipeline still reads its rows; only the release packs):
+- `near/2` — `place_water (place_id, b)`, one row per town: its waters' ords as gaps, then ckm as two byte planes. The
+  app reads a town's blob (`watersNear`), and for the by-water reads (`locate`'s rings, the town counts) inverts every
+  blob once into typed arrays (near/1 scanned the table for those).
+- `down/2` — `section_down (block, b)`, 4096 sids a block: sid gaps, zigzag down_sid deltas, len + 1, lake slots.
+  The app decodes a block once and keeps it (a walk stays in a few blocks).
+- `climate/2` — `gauge_clim.bands` clim/3: clim/2's float16 bits transposed, delta per column, low then high bytes.
+Writer `pipeline/deliver/release/packed.py`; reader `app/packages/data/src/release/packed.ts`; one parity fixture
+(`app/packages/data/dev/packed-parity.json`, `test_release_packed.py` + `app/tools/packed-parity.test.ts`); four format
+pairs in `scripts/check-format-pairs.py`. Layouts were chosen by measurement on the live tables (near: ord-sorted +
+ckm planes 884 k vs the prototype's ckm-delta 1.13 M; clim: byte planes 986 k vs u16 deltas 1.08 M).
+
+Losslessness (side release r-89607ac837e5 of the live bundle, via `scripts/heavy.sh`; proof script in the session
+scratchpad `l8/prove.py`): every near row (392,355), down row (145,803; 16,726 lakes) and climatology byte (2,393
+envelopes) decoded equal to r-6258ffded676's near/1, down/1, climate/1 AND to the bundle; every other file byte-identical.
+
+| file | live gz | packed gz | gate before → after |
+|---|---:|---:|---|
+| near | 2,129,181 | 884,236 (−58 %) | 2,250,000 → 1,000,000 |
+| down | 1,169,858 | 608,697 (−48 %) | 1,250,000 → 700,000 |
+| climate | 1,433,007 | 985,939 (−31 %) | 1,650,000 → 1,100,000 |
+| phone total | 17,482,831 | 15,229,657 (−2,253,174) | OFFLINE_GATE 20 MB kept |
+| web first_tap_unnamed | 6,034,484 | 5,473,323 | 6,200,000 kept until a down/2 release is LATEST (the live budget test reads LATEST) |
+
+`salmon-6` stays 460,000: nothing here shrinks it (415,307, ~11 % under).
+
+OLD APPS: the new formats are recorded for app 0.8.4 (`app_reads.json`; version bumped, draft changelog line). A release
+carrying them derives `minAppVersion` ≥ 0.8.4 (`app_gate.oldest_reader`; the upload refuses a lower stamp), so 0.8.3 and
+older keep the data they hold and show the update prompt (`releaseAllowed`; `readsRelease` refuses near/2 too). The
+0.8.4 app still reads near/1, down/1, climate/1 (`ALSO_READS`, by the manifest's format), so it works on the live
+release and the committed fixtures before the packed release ships. Not measured: device decode time (the town index
+is built on the first town search or water map, ~392 k pairs).
+
+## The switch (owner 2026-11-20 09:59, built the same day, lane L8)
+`pipeline/deliver/release/packed.py` **`SHIP_PACKED_FORMATS = False`**. Read when a release runs (`contract.written_files`,
+`build.formats()`, `build.size_gates()`, `paint.written_version()`), never at import:
+- OFF (now, staging AND production): near/1, down/1, climate/1 and paint/5, today's gates (`build.UNPACKED_GATES`: near
+  2,250,000, down 1,250,000, climate 1,650,000). No app floor moves.
+- ON: near/2, down/2, climate/2, and (T679 #16, the same switch) paint/6, with the lowered gates (`build.PACKED_GATES`:
+  1,000,000 / 700,000 / 1,100,000). The release's derived `minAppVersion` becomes 0.8.4 (`app_gate`).
+- WHAT FLIPS IT: a one-line change to `True`, made in the first data release cut AFTER app 0.8.4 is live in both
+  production stores (Play production and the App Store), not on staging alone. Before that, an installed 0.8.3 would
+  refuse the release and keep its old data. `test_release_packed.py` pins it False until then.
+- App 0.8.4 reads both forms (`ALSO_READS`: near/1, down/1, climate/1; `PAINT_READS` paint/4–6), whichever is shipped.
+
+Proof (side releases of the live bundle via `scripts/heavy.sh`, 2026-11-20; `l8/side2.sh` + `l8/prove2.py` in the session
+scratchpad):
+- OFF: all 53 files equal to r-6258ffded676 byte for byte (sha256, bytes, gz, format). The release id differs only
+  because the side run shipped no synopsis PDF. Derived app floor 0.8.0, the same as live. Gates pass.
+- ON: near / down / climate decoded equal to live. paint/6 decodes to paint/5 plus the flag (3,597 sections, the same set
+  the summed rows give). Gates pass, app floor 0.8.4. Phone total 17,482,831 → 15,229,939 B gz (paint +282 B).

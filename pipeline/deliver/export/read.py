@@ -799,6 +799,13 @@ def read(bundle: Path) -> dict:
     for (item_id, pi), sids in sorted(members.items()):
         w = waters[item_id]
         w["parts"][pi]["runs"] = part_runs(item_id, w, sorted(sids), span, touch_of)
+    # (T679 #17) A RULE-SET GROUP'S RUNS, JOINED ONCE HERE: where the salmon chain cut one run into parts (T517), the
+    # pieces said as the one run they are (`group_runs`); the answers read `grp_runs`, never re-join (only on a water
+    # with a group of 2+ parts — a one-part group's runs are its part's)
+    for item_id, w in waters.items():
+        joined = group_runs(w["parts"])
+        if joined is not None:
+            w["grp_runs"] = joined
     # WATER B.C. DOES NOT GOVERN — the sections of each water that lie outside the province. They
     # carry no set (the build refuses one that does), so they are among the parts with
     # `ruleset: null`; this count says why they have none.
@@ -907,6 +914,40 @@ def is_polygon_part(water: dict, sids: list[int], span: dict) -> bool:
         return True
     rows = [span.get(s) for s in sids]
     return bool(rows) and all(r is not None and r[5] == 1 and r[0] is None for r in rows)
+
+
+def group_runs(parts: list[dict]) -> list[list[dict]] | None:
+    """(T679 #17, was the answers' `display.builders._by_grp`) Per rule-set group `grp` (0..n-1), its parts' runs as one
+    list, upstream first (`km_from` descending, polygon runs last; ties in part order), where pieces of ONE run — the
+    salmon chain cut it (T517) — meet end to end on the main stem (one part's `to` / `km_to` the next part's `from` /
+    `km_from`, the same keys) said as the one run they were. Two runs of one part stay two (a border, a lake between).
+    None when every group is one part (its runs are that part's)."""
+    members: dict[int, list[int]] = defaultdict(list)
+    for ex, q in enumerate(parts):
+        members[q["grp"]].append(ex)
+    if all(len(v) == 1 for v in members.values()):
+        return None
+    if sorted(members) != list(range(len(members))):
+        raise SystemExit(f"pipeline.deliver.export: part groups are not 0..n-1: {sorted(members)}")
+    out = []
+    for g in range(len(members)):
+        tagged = [(k, dict(r)) for k, ex in enumerate(members[g]) for r in parts[ex].get("runs") or []]
+        tagged.sort(key=lambda t: (t[1].get("km_from") is None, -(t[1].get("km_from") or 0)))
+        joined: list[tuple] = []
+        stem: int | None = None                         # the index in `joined` of the last main-stem run
+        for k, r in tagged:
+            last = joined[stem] if stem is not None else None
+            if last and last[0] != k and not r.get("branch") and last[1].get("to") \
+                    and last[1].get("to") == r.get("from") and last[1].get("km_to") == r.get("km_from") \
+                    and set(last[1]) == set(r):
+                last[1]["to"], last[1]["km_to"] = r.get("to"), r.get("km_to")
+                joined[stem] = (k, last[1])
+                continue
+            joined.append((k, r))
+            if not r.get("branch"):
+                stem = len(joined) - 1
+        out.append([r for _, r in joined])
+    return out
 
 
 def part_runs(item_id: str, water: dict, sids: list[int], span: dict, touch: dict) -> list[dict]:

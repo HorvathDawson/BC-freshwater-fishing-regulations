@@ -167,18 +167,32 @@ def _owner(db) -> dict[int, tuple[str, str]]:
         "SELECT i.item_id, i.kind, s.sid FROM item i JOIN item_section s ON s.ord = i.ord")}
 
 
+def _lake_loop_lines(build: Path) -> set[str]:
+    """The line sections T753 moved from their river to their lake (`lake_loop_report.json` `moved`, the atlas build's
+    own record of `registry.lake_loops`)."""
+    rep = json.loads((build / "lake_loop_report.json").read_text(encoding="utf-8"))
+    return {s for m in rep["moved"] for s in m["moved_sections"]}
+
+
 @pytest.mark.needs_tiles
 @pytest.mark.needs_bundle
 @pytest.mark.slow
-def test_one_water_kind(db, registry, graph, handles, doc, tiles):
+def test_one_water_kind(db, registry, graph, handles, doc, tiles, build):
     """For EVERY section: the bundle owner's `item.kind` == the reach's `kind_of` == the export's
     `waters[owner].kind` == the tile's kind (the `stream` layer, or a `lake`/`wetland` feature
     with `water: stream` => stream; else its layer). Every lake/wetland feature carries `water`; a
     stream's polygon is in BOTH the `stream` and its polygon layer. MUTATIONS: recompute `flows`
-    in the export; drop `water` from the LayerSpec; write a stream's route to `under_lake`."""
+    in the export; drop `water` from the LayerSpec; write a stream's route to `under_lake`.
+
+    ONE KNOWN DRAWING (T931 C, T753): a nameless loop LINE T753 moved to its lake (`lake_loop_report.json` `moved`) is
+    the lake's everywhere (bundle, reach, export: `lake`), and the tiles draw it, as T753's rebuild verified ("the tiles
+    draw them in the `stream` layer under the lake's name"), as a line in the `stream` layer: its tile reads `stream`.
+    Only those lines, and only as lines, pass; any other line a lake owns still fails here. Its flow answer follows the
+    lake (`panels.standing_water_lines`)."""
     from pipeline.atlas.reach.water_kind import kind_of
     owner = _owner(db)
     node_of = {s: n for n, s in handles.items()}
+    loops = _lake_loop_lines(build)
     tile_kind: dict[int, str] = {}
     for layer in ("lake", "wetland"):
         for sid, (water, _) in tiles[layer].items():
@@ -194,6 +208,9 @@ def test_one_water_kind(db, registry, graph, handles, doc, tiles):
         reach = kind_of(graph, registry, node_of[sid])
         export = doc["waters"][item]["kind"]
         tile = tile_kind.get(sid)
+        if tile == "stream" and kind == "lake" and node_of[sid] in loops and sid not in tiles["lake"] \
+                and graph.nodes[node_of[sid]].kind.value == "stream":
+            tile = kind                                     # a T753 loop line, drawn as a line (above)
         if not (kind == reach == export) or (tile is not None and tile != kind):
             bad.append((sid, item, kind, reach, export, tile))
     assert bad == [], bad[:20]
@@ -329,10 +346,12 @@ def test_no_item_has_a_lake_boundary_on_its_own_section_and_no_section_is_owned_
 @pytest.mark.needs_bundle
 @pytest.mark.slow
 def test_a_split_lake_parent_owns_nothing(db, registry, handles, doc, tiles):
-    """Kootenay, Williston, Shannon: no section in the registry or the bundle, listed in the export
+    """Kootenay, Williston, Shannon, Babine: no section in the registry or the bundle, listed in the export
     with `divided_into` and its parts' entries, not drawn as a whole in the tiles."""
     parents = {v.part_of for v in registry.values() if v.part_of}
-    assert parents == {"wbk:328974235", "wbk:328961697", "wbk:329459193"}
+    # (T931 B; T812, owner 2026-11-16 "split babine lake on the line like our other split lakes": Babine Lake
+    # wbk:329026676 split on the Gullwing Creek line, shipped with the 2026-11-17 rebuild)
+    assert parents == {"wbk:328974235", "wbk:328961697", "wbk:329459193", "wbk:329026676"}
     for p in parents:
         assert registry[p].section_ids == ()
         assert db.execute("SELECT COUNT(*) FROM item i JOIN item_section s ON s.ord = i.ord "

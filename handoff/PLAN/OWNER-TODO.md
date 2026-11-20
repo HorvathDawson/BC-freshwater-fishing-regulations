@@ -9,6 +9,42 @@ Things only you can do. Claude keeps this list current while you are away; the w
 `handoff/PLAN/app-integration/tickets/` (README.md is the ledger, and its "Owner questions" table has every question
 with the default Claude uses until you answer). Newest first inside each section.
 
+## 2026-11-20 13:32: release scope: Apple External in, production data in
+
+- Owner, verbatim: "Apple external can be touched with this release as a product build. Also we will want to update
+  prod data too". This release now also puts the 0.8.4 production build (reading production data) on TestFlight
+  EXTERNAL testing (Apple's beta review applies). Production data was already in. Order: merge → map rebuild →
+  staging → production data → Play Internal + TestFlight internal and external → production website. Play Closed
+  stays untouched. An App Store production submission stays yours.
+
+## 2026-11-20 13:22: Classified Waters carried unit shown as Classified Waters, the why behind a button (T973)
+
+- Owner 13:22, on the Endako shot (note above "You need" with a "?"), verbatim: "in the photo you sent there is a rouge ? in the line and the line is under the header Canadian, other province, 167 and older?". Then (dialog), verbatim: "we should just say it is classified waters then give a button that expands the note on why we say that maybe? ".
+  Built as: a carried unit shows as an ordinary Classified Waters licence row, in the same place and for the same
+  anglers as a real unit. An expand control on the row opens the why ("Stellako River's Class II covers its
+  tributaries; Endako River has its own line in the rule book without Classified Waters, so it may not apply here.
+  Check with a CO."). The "?" and the note above "You need" go.
+
+## 2026-11-20 12:54: Classified Waters units that stop at their own water: confirmed (T973)
+
+- The owner checked the book: only Thompson (R3), Skeena sections 2 and 4 (R6), West Road (R5) and Deena Creek (R1) stop
+  at their own water; all 5 are right. Verbatim: "yes i missed those both are correct too."
+
+## 2026-11-20 12:38: Classified Waters "may need" cleanup after a CO answers (T974)
+
+- Owner, verbatim: "we want to ticket cleaning this up once we get contact with a CO". → T974: once the CO answers,
+  the note becomes a firm unit or is dropped, and the optional file and the note path go. Waits for your CO contact.
+- Owner asked whether "[Includes Tributaries]" on the water plus a CW on its row means the tributaries get the CW.
+  Answer: yes. A CW line with no tributary marker of its own inherits the water's "includes tributaries"
+  (`classify.wants_tributaries`, AGENTS 9). That is the same as a "X's tributaries" line.
+
+## 2026-11-20 12:24: Classified Waters, nearest wins both ways (T973)
+
+- Owner, verbatim: "this also happens invereted (Nearest still wins: a stream gets only one unit, and an upstream Class II overrules a downstream Class I above it.) for example a upstrem class i overrules a downstream class ii too. (assumign that the classified water sis applied to tributaries) usually it says it?"
+- Yes: nearest wins whatever the class. A unit claims the creeks above it only when its row says "[Includes
+  Tributaries]" (or is a tributaries-only row). Default built: a classified water whose unit stops at its own water is
+  passed through, with a "may need" note above it. L10 brings the count and examples to confirm.
+
 ## 2026-11-20 12:15: iPhone fixes from lane L6, two things for you (T723, T760; NOT asked yet)
 
 - **The Save bar over the iPhone keyboard (T723).** On a spot's page, while you type a title or notes, a purple
@@ -30,6 +66,70 @@ with the default Claude uses until you answer). Newest first inside each section
   `handoff/PLAN/ios/shots/t938/before-fix-light-3-after-edge-back.jpg`; after:
   `handoff/PLAN/ios/shots/t938/after-fix-light-3-after-edge-back.jpg`. Also fixed: in the spot photo viewer a swipe to
   the next photo no longer hides the buttons (T836).
+
+## 2026-11-20 12:11: Classified Waters carried through, with its path (T973), in this release
+
+- Owner 12:10, verbatim: "Maybe we should propogate classified waters through the separate listed streams still just
+  make it a tuple or something with what class, where the source of that classified waters is and anither item saying
+  if it passed through anither listed stream without classified water title etc. still have nearest classified water
+  level with so downstream cwi is overruled by a more upstream cwii etc. make sense? Then we can at least have the info
+  throughout".
+- Answers (dialog 12:11): display **"\"May need\" note (Recommended)"** (e.g. "Stellako River Class II may apply here:
+  the Endako has its own line without Classified Waters. Check with a CO."); when **"In this release"**. The CO
+  question (GOTCHAS, Classified Waters licence) stays yours; its answer decides the note later.
+
+## 2026-11-20 11:44: Classified Waters through a rowed tributary: ask a CO (T973)
+
+- On T944's licensing changes, the owner asked whether they follow his tributary rule (carry rules down; nearest wins
+  on a conflict; compatible rules stack). The unit MOVES (Morice tributaries Bulkley → Morice; Brownie Creek Elk →
+  Fording) follow it: two units always conflict, so the nearest wins (RU-13). The DROPS (Harmer Creek above Grave Creek,
+  the Horsefly and Stellako creeks, and as before Gosnell and the Endako) come from LI-2 (2026-10-03): a tributary whose
+  own row prints no unit is not classified, and neither is anything above it. That may not fit "compatible rules
+  stack". Answer (dialog): **"We should maybe just make this a ticket and a gotcha that needs to be asked to a CO. Give
+  info in the ticket. Doesn't hold release (keep what we have but on ticket reset we can measure it better etc and make
+  a decision)"**. → T973 (question for the CO drafted there; Q181). The release keeps LI-2.
+- **Yours:** ask a Conservation Officer the T973 question when you get the chance.
+
+## 2026-11-20 11:11: salmon card and map fixes answered (dialog); T971 settled by the Flow-leads ruling
+
+- T669 item 3 (lane L9, pictures `tickets/T669-shots/before|after-qualcho-creek-jan15.png` sent): **"Ship it
+  (Recommended)"**: a straddling water's salmon card shows the stricter region's numbers instead of "see DFO's words
+  below" (Qualcho Creek, Region 5B/6, is the only live card that changes).
+  Then the owner asked whether coho "only 1 over 50" was wrong (5B says 2 over 50): it is Region 6's own cap (all Region 6
+  waters: "4 per day, only 1 over 50 cm"), the stricter of the two. Answer (dialog): **"Name the region (Recommended)"**:
+  on a mixed line each number says its region, e.g. "Up to 4 coho a day in total, all waters of MU 5-6 to 5-11 combined
+  (Region 5B) · only 1 over 50 cm (Region 6)".
+- T679 #1 (203 pieces just outside B.C. marked outside) and #6 (42 named pieces given to their water): **"Turn both on
+  (Recommended)"** in the map rebuild; Claude checks the before/after diff first and stops if anything unexpected moves.
+- T679 #12 (tributary scope into the bundle): not asked; lane L7's default stands (the two lists stay in code).
+- T971 (Level in the gauge card re-ranks the estimate card, lane L4 10:28): NOT asked: the owner's 2026-11-10 ruling
+  (Flow leads, Level never picks its own; never ask) settles it. The estimate card stays on Flow; fixed in this release.
+
+## 2026-11-20 11:02: T679 #8 lake rule answered (dialog)
+
+The owner worried tiny lakes would cut a river off from its own gauge. Measured (lane/l8-blockers e39e97d1c,
+`T679-shots/own-gauge-blockers.csv`): of the 1,060 moved labels, 881 are blocked by a lake or pond; 448 of those by
+unnamed ponds that belong to no water (Halfway: a 0.44 ha pond cuts off 80 sections), 433 by named lakes (Pitt, Bowron,
+Lillooet); 179 are no lake (another branch or channel). Answer: **"Named lakes only (Recommended)"**: the walk along a
+water passes through unnamed ponds that belong to no water, at any size; named lakes still end it. The same walk ranks
+the lead gauge (`own_distances`), so both change together. Ships with #8 in this release.
+
+## 2026-11-20 10:45: credits and T679 #8 answered (dialog)
+
+The owner asked how much is left (credits running low) and why so many gauges "changed waters". Claude's answer: none
+changes water and no lead gauge changes; #8 only relabels a list entry "on this water" → "nearby" where a lake lies
+between (1,060 of 12,306 own labels; list sent as `app-integration/T679-shots/own-gauge-moves.csv`). Answers:
+- Credit savings: **"One combined review (Recommended)"**: the remaining lanes get ONE independent review together
+  before merge, not one each. (Not chosen: pausing T940, fewer pictures.)
+- T679 #8: **"Ship it"**: `SHIP_OWN_GAUGE_FLAG` on in this release; it rides the map-data rebuild.
+
+## 2026-11-20 10:22: T679 #8 list to look at (lane L8; ANSWERED 10:45: ship it, see above)
+
+The gauges that would move from "ON THIS WATER" to "ESTIMATING FROM OTHER WATERS" under the rule you picked at 09:59 (along
+the water, a lake on the way ends it): `handoff/PLAN/app-integration/T679-shots/own-gauge-moves.csv` (water, gauge,
+was → now, sections). 155 gauges on 104 waters, all own → donor, 1,060 of 176,367 (section, gauge) pairs. Biggest:
+Halfway River (2 gauges, 59 + 53 sections), Stikine at Telegraph Creek (44), Lillooet at Tenas Narrows (35), Columbia at
+Donald (34) and Nicholson (31). Nothing ships until you say so (`packed.SHIP_OWN_GAUGE_FLAG` stays off). T679.
 
 ## 2026-11-20 10:00: every leftover goes on this release (owner, verbatim; clarified 10:05)
 
@@ -65,6 +165,19 @@ in production; T709/T715 postponed; dropped items stay dropped.
 - Push privacy line: "Claude's edit (Recommended)": Apple only, "I/my", push token added to "the short version", Apple
   (push only) added to the services, the one-day salted IP hash and the stored environment + time said, effective date
   moved to the go-live day. The owner sees the text before it goes live. T739.
+
+## 2026-11-20 09:52: T679 #8 — which gauges count as "on this water" (lane L8; ANSWERED 09:59, see above)
+
+Two parts of the app decide whether a gauge is on the water you are reading, by different rules: the gauge list's
+"ON THIS WATER" heading (the app: the gauge's water is this water or one it continues as, `water_continue`) and the
+lead-gauge ranking (the pipeline: the same, but walked along the water, so a lake on the way ends it). T679 #8 moves the
+decision into the data, once. Before building it, the one rule to keep:
+(a) DEFAULT: the ranking's (along the water, a lake between ends it) — a gauge on the far side of a lake would move from
+"ON THIS WATER" to "ESTIMATING FROM OTHER WATERS"; (b) the heading's (same water, lakes or not) — the ranking would start
+treating such a gauge as the water's own. Not measured yet: how many gauges move under either (needs the atlas graph;
+a side run measures it before anything ships). Measured: over 1,587 panels the heading's rule differs between a panel's
+sections in 12, so the flag is shipped per section (like the small-water warning), not per gauge.
+No picture yet: the list of gauges that move comes with the measurement.
 
 ## 2026-11-20 07:33: push privacy line, now that Android has no push (T739, lane L5; ANSWERED 09:39, see above)
 

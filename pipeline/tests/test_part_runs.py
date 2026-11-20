@@ -431,15 +431,26 @@ def test_bull_river_rest_is_the_river_outside_its_release_reaches(doc):
 @pytest.mark.needs_bundle
 def test_thompson_between_the_cnr_bridges(doc):
     a, b = "thompson_river__cnr_bridge", "thompson_river__cnr_bridge_2"
-    between = [runs for _, runs in _runs(doc, "gnis:39492")
-               if [(r["from"], r["to"]) for r in runs] == [(a, b)]]
-    assert len(between) == 1
-    assert between[0][0]["km_from"] == doc["splits"][a]["km"] > doc["splits"][b]["km"] == \
-        between[0][0]["km_to"]
-    # the rule set around them is two parts (T517: one per run), the lower first (river order)
+    # (T931 B; T573 entry B / AGENTS 68: the Thompson's Juniper, Deadman and Ashcroft closed areas are DFO locations of
+    # their own, and T517 cuts a part where the salmon chain changes) the one rule set between the CNR bridges is three
+    # parts, cut at the Juniper closed area's lower and upper signs, tiling the bridges' km end to end in river order
+    juniper_lo = "thompson_river__juniper_closed_area_lower_signs_50_46_893_n_121_08_110_w"
+    juniper_hi = "thompson_river__juniper_closed_area_upper_signs_4_km_upstream_of_its_lower_u4000m"
+    (inner,) = {rs for rs, runs in _runs(doc, "gnis:39492") if any(r["to"] == b for r in runs)}
+    between = [runs for q, runs in _runs(doc, "gnis:39492") if q == inner]
+    assert [[(r["from"], r["to"]) for r in runs] for runs in between] == [
+        [(juniper_lo, b)], [(juniper_hi, juniper_lo)], [(a, juniper_hi)]]
+    assert between[0][0]["km_to"] == doc["splits"][b]["km"] < doc["splits"][a]["km"] == between[-1][0]["km_from"]
+    assert all(between[i][0]["km_from"] == between[i + 1][0]["km_to"] for i in range(len(between) - 1))
+    # the rule set around them (T517: one part per run, river order), cut where the salmon chain changes: the Ashcroft
+    # bridge and the Bonaparte below, the Deadman closed area's upper signs above
     (rs,) = {rs for rs, runs in _runs(doc, "gnis:39492") if any(r["to"] == a for r in runs)}
     around = [[(r["from"], r["to"]) for r in runs] for q, runs in _runs(doc, "gnis:39492") if q == rs]
-    assert around == [[(b, "thompson_river__boundary_signs")], [("lake_outlet:wbk:329563838", a)]]
+    deadman = "thompson_river__deadman_closed_area_upper_signs_1_km_downstream_of_the_hwy_1_d1000m"
+    assert around == [[("thompson_river__hwy_97c_bridge_in_ashcroft", "thompson_river__boundary_signs")],
+                      [("thompson_river__bonaparte_river", "thompson_river__hwy_97c_bridge_in_ashcroft")],
+                      [(b, "thompson_river__bonaparte_river")], [(deadman, a)],
+                      [("lake_outlet:wbk:329563838", deadman)]]
 
 
 @pytest.mark.needs_bundle

@@ -946,6 +946,13 @@ CREATE TABLE section_panel (sid INTEGER PRIMARY KEY,
 -- Such a donor is admitted only for water that is all but its own (REGULATED_MAX_RATIO in
 -- panel.py), where that schedule is what this water is actually doing — and the screen still
 -- has to say so, or the app presents a release schedule as a description of the weather.
+-- (T679 #8, owner 2026-11-20 09:59: "Ranking's rule, list first") WHICH OF A SECTION'S PANEL MEMBERS STAND ON ITS OWN
+-- WATER: bit i of `bits` = panel_member `ord` i, by the ranking's rule (`panels.own_distances`: along the water, across
+-- a `water_continue`, a lake on the way ends it). The app's "ON THIS WATER" heading reads it (release `flow-own`) instead
+-- of deciding again. A section with none has no row.
+CREATE TABLE section_own (sid INTEGER PRIMARY KEY,
+                          bits INTEGER NOT NULL CHECK (bits > 0));
+
 CREATE TABLE panel_member (panel_id INTEGER NOT NULL,
                            ord INTEGER NOT NULL,
                            station TEXT NOT NULL,

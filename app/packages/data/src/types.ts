@@ -205,6 +205,11 @@ export interface PanelMember {
 export interface GaugeWaters {
   waters: readonly ItemId[];
   gauges: ReadonlyMap<StationId, { item: ItemId | null; section: SectionId | null }>;
+  /**
+   * (T679 #8) The stations ON THIS WATER by the release's own flag (`flow-own`: the ranking's rule, along the water, a
+   * lake on the way ends it). Absent: the release carries no flag, and the heading decides from `waters` as before.
+   */
+  own?: ReadonlySet<StationId>;
 }
 
 /**

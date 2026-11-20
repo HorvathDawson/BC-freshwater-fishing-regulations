@@ -6,7 +6,7 @@ rows.DECISIONS F1-F10). Every fix on the real card it was found on, each with a 
   * F2  Chilliwack Lake, Jul 15: "No wild trout over 50 cm" shows although the wild daily number
         and winner are the hatchery's;
   * F3  Kitimat R., Feb 15: the cutthroat and brown trout release survives (fish SETS compared);
-        its count-collision mutation (2 fish against the row's 2) on Humphrys Creek, June 10;
+        its count-collision mutation (2 fish against the row's 2) on the Ashnola River;
   * F4  Vedder R., Jan 15: hatchery rainbow counts toward Region 2's 4, not the stream share's 2;
         its own row reads 0-50 cm (F5c) and still counts toward the region (F7);
   * F5a Teslin L.: slots are bands of 0; F6 its possession limits are not yearly limits;
@@ -39,8 +39,8 @@ ANDERSON, CHILLIWACK_L, KITIMAT, VEDDER = "gnis:10030", "wbk:329083341", "gnis:3
 TESLIN, THOMPSON, MAYER, TRANQUILLE = "wbk:328961703", "gnis:39492", "wbk:329163196", "wbk:329563842"
 MOUTH = "mouth"                     # the Vedder part ending at the mouth (Vedder Crossing Bridge down)
 R8_STREAM = "gnis:10098"            # Buchanan Creek (Region 8)
-HUMPHRYS = "gnis:2046"              # Humphrys Creek (Region 6, no steelhead): F3's count-collision witness (T80 2)
-WATERS = (ANDERSON, CHILLIWACK_L, KITIMAT, VEDDER, TESLIN, THOMPSON, MAYER, TRANQUILLE, R8_STREAM, HUMPHRYS)
+ASHNOLA = "gnis:17159"              # Ashnola River (Region 8): F3's count-collision witness (T80 2; T931 A re-pin)
+WATERS = (ANDERSON, CHILLIWACK_L, KITIMAT, VEDDER, TESLIN, THOMPSON, MAYER, TRANQUILLE, R8_STREAM, ASHNOLA)
 
 
 @pytest.fixture(scope="module")
@@ -167,43 +167,44 @@ def test_chilliwack_lake_no_wild_trout_over_50(built):
 
 @pytest.mark.needs_bundle
 def test_kitimat_february_cutthroat_and_brown_go_back(built):
-    """Feb 15 is inside Region 6's Nov 1-June 30 stream release (r7): the pool keeps EB/LT, and r7 sends cutthroat,
-    brook-trout-ish GB AND (owner ruling 2026-10-21 (a), GOTCHAS.md) hatchery steelhead back.
+    """Feb 15 is inside Region 6's Nov 1-June 30 stream release (r7): cutthroat and brown trout go back, and (owner ruling
+    2026-10-21 (a), GOTCHAS.md) hatchery steelhead too.
 
-    The page-bug mutation this test used to carry (the page's count comparison drops a release that names as many fish as
-    the row has members — 2 vs 2) no longer applies here: with steelhead the release names 3 fish against the row's 2, so
-    the mutant could not fail. It was removed rather than kept as a tautology; its witness is now Humphrys Creek
-    (`test_humphrys_june_count_collision`, T80 2)."""
+    RE-PINNED (T931 A, 2026-11-20) to RULINGS C2 as refined by the owner 2026-11-18 (T854): Region 6's lake trout and
+    brook trout from streams fall under that release too, so on Feb 15 no trout but the Kitimat's own rainbow may be kept
+    and the zone pool (z6 trout_char_quota.r1, which kept EB/LT here before) is gone from the card: the released trout
+    share one pool-less row. The page-bug mutation (the count comparison) has its witness in
+    `test_ashnola_count_collision` (Humphrys Creek, its old witness, lost its row to the same ruling)."""
     data = built[0]
     t = card(built, KITIMAT, 1, (2, 15))
-    row = row_of(built, t, "z6:daily_quotas::trout_char_quota.r1")
-    assert sorted(row["members"]) == ["EB", "LT"]
-    back = [c for c in row["conds"] if c["c"] == "back" and sorted(c["who"]) == ["CT", "GB", "ST"]]
-    assert back and _rid(data, back[0]["r"]).endswith("trout_char_quota.r7")
-    assert item_of(row, "CT")["back"] and item_of(row, "GB")["back"]
-    assert "CT" not in (row["real_daily"] or {}).get("open", [])
+    assert not any(r["pool"] is not None and _rid(data, r["pool"]).endswith("z6:daily_quotas::trout_char_quota.r1")
+                   for r in t["rows"])
+    (row,) = [r for r in t["rows"] if "CT" in r["members"]]
+    assert (row["pool"], sorted(row["members"])) == (None, ["CT", "EB", "GB", "LT", "ST"])
+    assert {S: t["fish"][S]["hatchery"]["status"] for S in ("CT", "GB", "EB", "LT", "ST", "RB")} == {
+        "CT": "release", "GB": "release", "EB": "release", "LT": "release", "ST": "release", "RB": "keep"}
 
 
 @pytest.mark.needs_bundle
-def test_humphrys_june_count_collision(built, monkeypatch):
-    """F3's count collision (T80 2). Humphrys Creek, Region 6, June 10: the zone's Nov 1-June 30 stream release (r7)
-    sends cutthroat and GB back, while Region 6's steelhead closure (May 15-June 15) holds steelhead apart — so r7
-    names exactly two fish against a pool row of two OTHER fish (brook and lake trout). Compared by count, as the
-    consumer page did, that release reads as everyone's and is dropped. Found by scanning every shipped row for a
-    go-back line naming as many fish as its row and not the same ones (64 such lines; the Kitimat lost its own when
-    hatchery steelhead joined its release)."""
+def test_ashnola_count_collision(built, monkeypatch):
+    """F3's count collision (T80 2). Ashnola River (Region 8), every segment: its own row's rainbow and cutthroat catch and
+    release (ashnola_river.r1) sends CT and RB back against Region 8's pool row of two OTHER fish (brown and lake trout).
+    Compared by count, as the consumer page did, that release reads as everyone's and is dropped.
+    RE-PINNED (T931 A, 2026-11-20): the witness was Humphrys Creek on June 10 (Region 6's r7 sending CT/GB back against a
+    pool of EB/LT); RULINGS C2 refined by the owner 2026-11-18 (T854) puts EB and LT under that release too, so that row
+    is gone. Ashnola is the commonest such line in the shipped answers (with the Similkameen's and the Tulameen's)."""
     data = built[0]
     def backs(t):
-        row = row_of(built, t, "z6:daily_quotas::trout_char_quota.r1")
+        row = row_of(built, t, "z8:daily_quotas::trout_char_quota.r1")
         return sorted(row["members"]), [(sorted(c["who"]), _rid(data, c["r"])) for c in row["conds"] if c["c"] == "back"]
-    closure = (["ST"], "z6:steelhead_stream_closure::steelhead_stream_closure.r1")
-    dv = (["DV"], "z6:daily_quotas::trout_char_quota.r5")
-    ct_gb = (["CT", "GB"], "z6:daily_quotas::trout_char_quota.r7")
-    assert backs(card(built, HUMPHRYS, 0, (6, 10))) == (["EB", "LT"], [closure, dv, ct_gb])
+    dv = (["DV"], "z8:daily_quotas::trout_char_quota.r6")
+    ct_rb = (["CT", "RB"], "r8:ashnola_river@8-3::ashnola_river.r1")
+    for md in ((1, 15), (7, 15)):
+        assert backs(card(built, ASHNOLA, 0, md)) == (["GB", "LT"], [dv, ct_rb]), md
     # MUTATION: the page's count comparison drops the release (two fish, like the row's two); nothing else moves
     monkeypatch.setattr(RW.conds, "_who_n", lambda l, r: None if (not l.get("members") or l.get("general")
                         or len(l["members"]) == len(r["members"])) else list(l["members"]))
-    assert backs(card(built, HUMPHRYS, 0, (6, 10), lambda *_: None)) == (["EB", "LT"], [closure, dv])
+    assert backs(card(built, ASHNOLA, 0, (7, 15), lambda *_: None)) == (["GB", "LT"], [dv])
 
 
 # --------------------------------------------------------------------------------------------

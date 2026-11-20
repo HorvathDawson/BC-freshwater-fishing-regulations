@@ -34,7 +34,26 @@ BACKEND = REPO / "curation-review" / "backend"
 ADAM = "r1:adam_river_except_eve_river@1-10"
 ZONE = "z4:daily_quotas"
 _MODS = ("app", "reuse", "model_api", "answer", "synopsis_pages", "writes", "review", "evidence",
-         "dfo", "inseason", "checks")
+         "dfo", "inseason", "checks", "reports")
+
+
+class _NoWorker:
+    """(T931 E) The staging feeds worker's answer, stood in: no reports. Asked like `urllib.request.urlopen`."""
+
+    def __init__(self, req, timeout=None):
+        assert req.full_url.split("?")[0].endswith("/reports") and req.headers.get("Authorization"), req.full_url
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, *exc):
+        return False
+
+    def read(self) -> bytes:
+        return b'{"reports": []}'
+
+
+_no_worker = _NoWorker
 #: T164: a DFO location with no extent yet, and the tributary whose confluence it names
 CAMPBELL = "1:campbell-river:downstream-of-the-confluence-with"
 _QUINSAM = {"ref": "n1", "anchor": "confluence", "name": "Quinsam River", "item_id": "gnis:27883",
@@ -68,8 +87,15 @@ def env(request, tmp_path_factory):
     for mod in _MODS:
         sys.modules.pop(mod, None)
     import app as app_mod                                     # noqa: E402
+    import reports                                            # noqa: E402
     import reuse                                              # noqa: E402
     assert reuse.ENTRIES_DIR == cat
+    # (T931 E) the Reports tab asks the STAGING feeds worker (`reports.fetch`, a network call with a 30 s timeout that
+    # answered 503 under load); the route sweep gets a stand-in worker at the network edge, so the route's own reading
+    # of the answer still runs and nothing leaves the machine
+    mp.setenv("CURATION_REPORTS_TOKEN", "test-token")
+    real_fetch = reports.fetch
+    mp.setattr(reports, "fetch", lambda since=None, opener=None: real_fetch(since, opener=_no_worker))
     from fastapi.testclient import TestClient
     yield {"client": TestClient(app_mod.app), "app": app_mod, "root": root, "reuse": reuse}
     mp.undo()
