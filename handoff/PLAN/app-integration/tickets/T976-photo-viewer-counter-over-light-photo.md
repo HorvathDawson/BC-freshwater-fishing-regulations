@@ -1,4 +1,4 @@
-# T942 — The photo viewer's counter can't be read over a light photo
+# T976 — The photo viewer's counter can't be read over a light photo
 
 Status: OPEN
 

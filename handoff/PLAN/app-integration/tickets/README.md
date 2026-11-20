@@ -187,7 +187,7 @@ reads both files; a ticket closed here moves there once its lane is finished wit
 | T822 | iPhone push: the phone never registers with the staging worker | IN PROGRESS (fix f4598b112 merged with T739, f9c2e42b5; staging feeds worker deployed 2026-11-20 09:07; left (Claude): TestFlight build with this release, then the owner phone test) | f4598b112, f9c2e42b5 | owner iPhone build 36, 2026-11-16 |
 | T827 | A fresh agent tries to break every salmon rule against DFO's own pages | OPEN | — | owner 2026-11-16 (future) |
 | T831 | The route map inside a water's Conditions view draws no gauge dots and no "you are here" pin on the phones | IN PROGRESS — fix merged; iPhone proof done (lane L6: route lines, gauge dots and the pin, light and dark); left (Claude): the Android route-scroll step and shots beside the web | 57d816fdb, d7af5c02c, 278bcfb17, 2f4b492aa | T826 agent 2026-11-17 |
-| T836 | The spot photo viewer behaves like the standard phone photo viewers (swipe down to close, tap to hide, counter, opens from its thumbnail) | IN PROGRESS — iPhone simulator 9 of 9 after the swipe-is-no-tap fix (6fdb3d8db, lane L6); left (Claude): the Android bench and the pinch / fling feel; counter readability is T942 | 00edd4889, 6fdb3d8db | Android + iPhone simulator bench (light/dark) |
+| T836 | The spot photo viewer behaves like the standard phone photo viewers (swipe down to close, tap to hide, counter, opens from its thumbnail) | IN PROGRESS — iPhone simulator 9 of 9 after the swipe-is-no-tap fix (6fdb3d8db, lane L6); left (Claude): the Android bench and the pinch / fling feel; counter readability is T976 | 00edd4889, 6fdb3d8db | Android + iPhone simulator bench (light/dark) |
 | T840 | A salmon verdict's short text carries its own condition (two verdicts with different quota trees never share one `t`; lands with the app dropping its T767 join) | OPEN | — | app chat T767 2026-11-17 (after 0.8.0) |
 | T851 | The DFO salmon feed reads "stale" for every region after one failed daily fetch (owner: big issue) | PARTIAL — worker/Python fix merged d66e0bfdb; left: the app's 'Checked with DFO' line and stale doc comment | d66e0bfdb | owner 2026-11-18 13:43 |
 | T857 | Revisit the Rust port of MapLibre Native (mln-rs) for the phones once it has phone SDKs (owner; future) | OPEN — FUTURE | app chat | owner 2026-11-18 |
@@ -242,7 +242,7 @@ reads both files; a ticket closed here moves there once its lane is finished wit
 | T939 | DFO salmon: the quota quote drops trailing conditions ("only 2 over 35 cm") | OPEN | | review of lane/l1-feeds 2026-11-20 |
 | T940 | Satellite: one colour set for all water lines, the same in light and dark (owner) | OPEN | | owner 2026-11-20, after this release |
 | T941 | Search rows and neighbour-water names show a water's name cased, as the water page does (core item.name via display_case at bundle export) | OPEN | | main chat 2026-11-20 (T926 review), after this release unless small |
-| T942 | The photo viewer's counter ("2 of 3") can't be read over a light photo: white text, no backing (the buttons have a disc) | OPEN | | lane L6 2026-11-20, T836 iPhone simulator shots |
+| T976 | The photo viewer's counter ("2 of 3") can't be read over a light photo: white text, no backing (the buttons have a disc) | OPEN | | lane L6 2026-11-20, T836 iPhone simulator shots |
 
 ## Next after closed testing
 
@@ -282,7 +282,7 @@ and records them; T81 records them in decisions.md). Answer here or in decisions
 | Q174 | T404 | The prod data worker replaces v1's `bc-fishing-r2` in place (deploy/prod/data.wrangler.toml; it serves the v1 keys only until switch day)? | yes — check its name + route first; v1 keys deleted the same day (PRODUCTION.md step 11) | owner 2026-11-08 |
 | Q175 | T404 | Share links and the privacy page are `canifishthis.ca` in every environment (the staging site is noindex)? | yes | owner 2026-11-08: yes |
 | Q177 | T540 | Move AGENTS.md "Reading the regulations" (53 % of the file) into a file read only for regulation work? | no — AGENTS.md unchanged | owner |
-| Q178 | T723 | iPhone: keep the "Save spot" bar that rides on top of the keyboard while a spot's title or notes are typed (shots in OWNER-TODO 2026-11-20 12:15)? | keep it as built | owner |
+| Q182 | T723 | iPhone: keep the "Save spot" bar that rides on top of the keyboard while a spot's title or notes are typed (shots in OWNER-TODO 2026-11-20 12:15)? | keep it as built | owner |
 
 ### Shipped on default (reverse any)
 

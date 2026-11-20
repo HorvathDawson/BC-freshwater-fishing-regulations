@@ -1,6 +1,6 @@
 # T836 — The spot photo viewer behaves like the standard phone photo viewers
 
-Status: IN PROGRESS — merged 00edd4889 (2026-11-17: all four behaviours, tests); lane L6: the iPhone simulator bench 9 of 9 light and dark after one fix (a swipe also hid the buttons: 6fdb3d8db, tap maxDistance); left (Claude): the Android bench (open/close from the thumbnail, drag down, strip, tap vs double tap, that the buttons' layer passes touches), pinch rubber and fling glide feel; the counter over a light photo is T942
+Status: IN PROGRESS — merged 00edd4889 (2026-11-17: all four behaviours, tests); lane L6: the iPhone simulator bench 9 of 9 light and dark after one fix (a swipe also hid the buttons: 6fdb3d8db, tap maxDistance); left (Claude): the Android bench (open/close from the thumbnail, drag down, strip, tap vs double tap, that the buttons' layer passes touches), pinch rubber and fling glide feel; the counter over a light photo is T976
 
 Source: owner 2026-11-17 ~11:15, in the app chat, verbatim: "the photo viewer could also use a little improvement to
 make it industry standard". Asked which of four standard (Apple / Google Photos) behaviours to add; picked all four
