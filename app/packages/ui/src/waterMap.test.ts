@@ -44,6 +44,8 @@ beforeAll(async () => {
 
 const run = (g: WaterGroup, s: WaterMapState, ...as: WaterMapAction[]) => as.reduce((x, a) => waterMapStep(g, x, a), s);
 const view = (g: WaterGroup, s: WaterMapState) => waterMapView(g, s)!;
+/** (T780) an end's words without the review note a fixture cut before T780 still carries (the release since says none). */
+const plainEnd = (s: string) => s.replace(/, approximate location \([a-z]+ confidence\)$/, "");
 /** What the bar says, whole. */
 const bar = (g: WaterGroup, s: WaterMapState) => {
   const v = view(g, s);
@@ -354,8 +356,10 @@ describe("Cowichan, Vedder and the Kootenay Lake West Arm", () => {
     expect([g.parts[0]!.lo, g.parts[n - 1]!.hi, g.parts.slice(1).map((p, i) => p.lo === g.parts[i]!.hi)])
       .toEqual(["mouth", "lake_outlet:wbk:329101302", g.parts.slice(1).map(() => true)]);
     expect(new Set(g.parts.map((_, i) => partName(g, i))).size).toBe(n);   // every part by its own name
-    // the cut placed approximately says so once on its mark (T207; the release's words already carry it)
-    expect(view(g, waterMapStart(0)).marks[0]!.label).toBe("White triangle boundary sign located in Sandy Pool Regional Park, approximate location (medium confidence)");
+    // (T780, owner 2026-11-20) the mark says the place's name alone: a release since T780 ships no ", approximate
+    // location (… confidence)" in its end words; the committed fixture (cut before it) still does, read here without it
+    // until the release re-cuts the fixture (`plainEnd`)
+    expect(plainEnd(view(g, waterMapStart(0)).marks[0]!.label!)).toBe("White triangle boundary sign located in Sandy Pool Regional Park");
   });
 
   it("Vedder: two parts of one run (T517); its mouth flows into the Sumas (its top part's ▲ goes on into the Chilliwack, above)", async () => {

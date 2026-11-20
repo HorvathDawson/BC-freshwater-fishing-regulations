@@ -10,7 +10,8 @@ THE WATERS CHECK (T324, owner 2026-11-05: "keep hand edits; add a fast check"). 
 and before this a bad edit surfaced only after the hour-long atlas build. `--waters` reads each file and checks its
 SHAPE (the fields its loader needs, unique ids, coordinates inside BC) and its REFERENCES (an area def's `file` names
 a declared curated file; an added stream's name variant names an added stream; an added lake's `part_of` lake is in
-the atlas registry; a continuation is never listed twice, or both reviewed and refused). It is the build's FIRST step (`pipeline.build.preflight`) and a CI step (pipeline-ci.yml).
+the atlas registry; T780: no cut label in `cuts` carries review words such as "approximate location (… confidence)",
+a tidal limit's label is warned; a continuation is never listed twice, or both reviewed and refused). It is the build's FIRST step (`pipeline.build.preflight`) and a CI step (pipeline-ci.yml).
 Ids a name variant targets that the current registry does not hold are WARNINGS, not errors: a new variant reaches
 the registry only with the next atlas, so "not yet built" and "a typo" look alike until then — the list is printed.
 With no atlas registry on the machine (CI) the registry checks are skipped and the output says so.
@@ -49,6 +50,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import re
 import sys
 from dataclasses import dataclass
 from pathlib import Path
@@ -437,7 +439,33 @@ def check_waters(waters=None, registry: Path | None = None) -> tuple[list[str], 
             loc = r.get("location")
             if not (isinstance(loc, list) and len(loc) == 2 and _in_bc(*loc)):
                 err.append(f"{where}: `location` must be [lon, lat] inside BC")
+
+    # (T780, owner 2026-11-20) a cut's label is the place's name an angler reads in a part's name: never a review word
+    cu = load("cuts")
+    if cu is not None:
+        for wb in (cu.get("waterbodies") if isinstance(cu, dict) else None) or []:
+            for sp in (wb or {}).get("splits") or []:
+                hit = REVIEW_WORDS.search(str((sp or {}).get("label") or ""))
+                if hit:
+                    err.append(f"cuts[{(sp or {}).get('id')}]: the label carries the review words {hit.group(0)!r} "
+                               "(an angler reads it in the part's name): keep the place's name; how sure the cut is "
+                               "goes in `confidence`, a review note in `note` / `_note`")
+    # the tidal limits' cut labels are the same kind of name; the owner's own rows are his to reword, and a change
+    # there moves the atlas inputs (an atlas build) — said as a warning, never refused here
+    td = load("tidal")
+    if td is not None:
+        for r in (td.get("waters") if isinstance(td, dict) else None) or []:
+            hit = REVIEW_WORDS.search(str(((r or {}).get("at") or {}).get("label") or ""))
+            if hit:
+                warn.append(f"tidal[{r.get('blk')} {r.get('name')}]: the cut label carries the review words "
+                            f"{hit.group(0)!r} (T780: an angler reads it in a part's name); reword it at the next "
+                            "atlas build")
     return err, warn, notes
+
+
+#: (T780) the review words a cut's label must not carry: the T207 confidence sentence, a bare confidence, a curator's
+#: CHECK / TODO / "??" and a bracketed review note ("[review: …]")
+REVIEW_WORDS = re.compile(r"approximate location|\bconfidence\b|\bCHECK\b|\bTODO\b|\?\?|\[\s*review\b", re.I)
 
 
 def waters_main(registry: Path | None) -> int:
@@ -451,7 +479,8 @@ def waters_main(registry: Path | None) -> int:
     for x in err:
         print(f" ERROR  {x}")
     print(f"waters check: {len(err)} error(s), {len(warn)} warning(s) in {time.time() - t:.1f}s "
-          "(name_variants, area_closures, added_areas, added_lakes, added_streams, continuations, unmapped_waters)")
+          "(name_variants, area_closures, added_areas, added_lakes, added_streams, continuations, unmapped_waters, "
+          "cut labels)")
     return 1 if err else 0
 
 

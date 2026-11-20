@@ -17,7 +17,8 @@ const names = (g: WaterGroup) => g.parts.map((_, i) => partName(g, i));
 const marks = (g: WaterGroup) => g.marks.map((m) => `${markLabel(g, m) ?? "—"}: ${m.down} → ${m.up.join(",")}`);
 const steps = (g: WaterGroup) =>
   g.parts.map((_, i) => `${stepDown(g, i) ?? "-"}|${stepUp(g, i) ?? "-"}`);
-/** A name without the note a cut placed approximately carries in its stored words (the data side's T780). */
+/** (T780, owner 2026-11-20) A name without the review note a cut placed approximately carried in the end words of a
+ *  release cut before T780 (this fixture's); a release since ships none, and `plain` changes nothing on it. */
 const plain = (s: string) => s.replace(/, approximate location \([a-z]+ confidence\)/g, "");
 
 describe("the water map's group from the fixture release", () => {
@@ -64,17 +65,14 @@ describe("the water map's group from the fixture release", () => {
       await sec.streams([[356363467, 12723]])]);
   });
 
-  // (T517) the Cowichan's lowest rule set is cut by the salmon chain at the Sandy Pool sign (placed approximately: the
-  // release's end words say so, and the mark says it once)
+  // (T517) the Cowichan's lowest rule set is cut by the salmon chain at the Sandy Pool sign (placed approximately)
   // (r-46e4355a7277) and at Skutz Falls, a new part end inside "CNR Mile 66 Trestle → CNR Bridge (mile 70.2)": six parts.
-  // Skutz Falls is placed approximately too; its words are read here without the cut's stored note (the data side's T780)
+  // (T780) both are placed approximately; a mark says the place's name alone (`plain`: the fixture is older than T780)
   it("Cowichan: six parts in a line", async () => {
     const g = await loadWaterGroup(st, "gnis:12227");
     expect(marks(g).map(plain)).toEqual([
       "White triangle boundary sign located in Sandy Pool Regional Park: 0 → 1",
       "CNR Mile 66 Trestle: 1 → 2", "Skutz Falls: 2 → 3", "CNR Bridge (mile 70.2): 3 → 4", "Greendale Trestle: 4 → 5"]);
-    expect(marks(g)[0]).toBe(
-      "White triangle boundary sign located in Sandy Pool Regional Park, approximate location (medium confidence): 0 → 1");
     expect([steps(g), g.exit]).toEqual([["-|1", "0|2", "1|3", "2|4", "3|5", "4|-"], null]);
   });
 
@@ -94,7 +92,7 @@ describe("the water map's group from the fixture release", () => {
     // the part above the canyon
     expect(names(g).map(plain)).toEqual([
       // (r-46e4355a7277) a new part end at the Hwy 16 bridge, 0.59 km above the mouth (one rule set, cut by the salmon
-      // chain; placed approximately, read here without the cut's stored note)
+      // chain; placed approximately, said by its name alone since T780)
       "Mouth → Hwy 16 bridge over the Zymoetz (Copper)",
       "Hwy 16 bridge over the Zymoetz (Copper) → Zymoetz Canyon lower entrance = transmission-line sign",
       "Zymoetz Canyon lower entrance = transmission-line sign → Zymoetz Canyon upper entrance",

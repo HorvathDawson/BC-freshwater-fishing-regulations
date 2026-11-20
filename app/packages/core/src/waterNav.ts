@@ -381,7 +381,7 @@ export function itemNote(g: WaterGroup, i: number): string {
 }
 
 /** (T517, owner 2026-11-09) A boundary's words: the end token its two parts share, said by the release's `display.ends`
- *  (`endWords`, the one end resolver — the words already carry an approximate cut's confidence, T207); null: no named
+ *  (`endWords`, the one end resolver — the place's name alone: T780 keeps a cut's confidence out of them); null: no named
  *  place (no token) — the mark is drawn with no words. */
 export function markLabel(g: WaterGroup, m: NavMark): string | null {
   return m.token === null ? null : endWords(g.ends, m.token, "hi");
