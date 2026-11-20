@@ -244,9 +244,9 @@ reads both files; a ticket closed here moves there once its lane is finished wit
 | T941 | Search rows and neighbour-water names show a water's name cased, as the water page does (core item.name via display_case at bundle export) | OPEN | | main chat 2026-11-20 (T926 review), after this release unless small |
 | T942 | Kitimat: the 2-over-50 cm rule (only 1 not a hatchery steelhead) is enforced but no longer shown | OPEN | | lane/t936-t931 2026-11-20 (T931 A refused pins) |
 | T943 | Chilliwack Lake: the lake trout row shows no wild cap (a wild one can never be kept) | OPEN | | lane/t936-t931 2026-11-20 (T931 A) |
-| T944 | Shea Creek dead-end piece 773423 carries both the Bulkley's and the Morice's Classified Waters units | IN PROGRESS — left (Claude): main chat review + merge; next reach run + bundle (9 sections' licensing, 0 rules) | | lane/t936-t931 2026-11-20 (T931 B refused pin) |
-| T945 | Committed unnamed-tributary sweep result stale against the live bundle (41 streams) | IN PROGRESS — left (Claude): main chat review + merge (41 = atlas: T796 names, Sheldens Creek, Lakelse cut) | | lane/t936-t931 2026-11-20 test-full |
-| T946 | Tier 2 tributary lines: 20 parts (Lake Revelstoke tributaries DV, Iverson Creek) not what their rail sets | IN PROGRESS — left (Claude): main chat review + merge (the sweep's rail reader missed T919 a's bare kicker) | | lane/t936-t931 2026-11-20 test-full |
+| T944 | Shea Creek dead-end piece 773423 carries both the Bulkley's and the Morice's Classified Waters units | IN PROGRESS — left (Claude): main chat review + merge; next reach run + bundle (9 sections' licensing, 0 rules) | d23bbc9b6 | lane/t936-t931 2026-11-20 (T931 B refused pin) |
+| T945 | Committed unnamed-tributary sweep result stale against the live bundle (41 streams) | IN PROGRESS — left (Claude): main chat review + merge (41 = atlas: T796 names, Sheldens Creek, Lakelse cut) | 3f8cddad8 | lane/t936-t931 2026-11-20 test-full |
+| T946 | Tier 2 tributary lines: 20 parts (Lake Revelstoke tributaries DV, Iverson Creek) not what their rail sets | IN PROGRESS — left (Claude): main chat review + merge (the sweep's rail reader missed T919 a's bare kicker) | 67ed64d77 | lane/t936-t931 2026-11-20 test-full |
 
 ## Next after closed testing
 
