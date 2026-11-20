@@ -117,12 +117,17 @@ export async function buildSite(o: BuildOpts): Promise<SiteBuild> {
     const m = await waterModel(store, ord, on);
     if (m && m.region >= 1 && (!o.only || o.only.has(m.id))) models.push(m);
   }
+  // every water's model held to the app's own pages (verify.ts); (T917) run while the render threads draw the water pages
+  // (it was ~70 s of the main thread before the first page was asked for), and gated before any page is awaited below
+  const verifyApp = async (): Promise<void> => {
+    const differ: string[] = [];
+    for (const m of models) {
+      const pages = await Promise.all(m.parts.map((p) => appPage(store, m.id, p.partIx, on)));
+      differ.push(...verifyAgainstApp(m, pages));
+    }
+    if (differ.length) throw new Error(`seo: ${differ.length} page(s) differ from the app:\n${differ.slice(0, 20).join("\n")}`);
+  };
   const bad: string[] = [];
-  for (const m of models) {
-    const pages = await Promise.all(m.parts.map((p) => appPage(store, m.id, p.partIx, on)));
-    bad.push(...verifyAgainstApp(m, pages));
-  }
-  if (bad.length) throw new Error(`seo: ${bad.length} page(s) differ from the app:\n${bad.slice(0, 20).join("\n")}`);
 
   const towns = await nearestTowns(store), units = await managementUnits(store);
   const { map: slugMap, removed, steps: slugSteps } = assignSlugs(models.map((m) => ({ id: m.id, name: m.name, region: m.region, town: towns.get(m.id) ?? null, mus: units.get(m.id) ?? [] })), o.slugMap);
@@ -187,6 +192,7 @@ export async function buildSite(o: BuildOpts): Promise<SiteBuild> {
     // (T406) the card's source: build.ts draws it as `share/<slug>.png` (share.ts) and ships the PNG only
     files.set(`share/${slugOf(m.id)}.svg`, shareSvg(m, site));
   }
+  await verifyApp();
   for (const w of made) {
     const p = await w.page;
     if (p.html !== null) { add("water", w.path, p.html, w.hash); continue; }

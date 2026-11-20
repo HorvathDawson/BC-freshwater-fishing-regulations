@@ -191,7 +191,7 @@ engines, and retiring the old v1 setup.
    EXPO_PUBLIC_CONTACT=support@canifishthis.ca EXPO_PUBLIC_APP_ENV=production \
      pnpm -C app --filter @app/mobile exec expo export --clear --platform web --output-dir ../../dist/web-prod
    scripts/heavy.sh seo-prod 30 -- node app/tools/build-seo.mjs --release-dir data/release/<r-id> \
-     --app app/dist/web-prod --threads 4 --out app/dist/seo-prod
+     --app app/dist/web-prod --threads auto --out app/dist/seo-prod
    CONFIRM_PROD=canifishthis.ca deploy/prod/site.sh
    ```
 4. **App, if it changed:** `CONFIRM_PROD=canifishthis.ca deploy/prod/build-apk.sh`, then in Play Console move that build

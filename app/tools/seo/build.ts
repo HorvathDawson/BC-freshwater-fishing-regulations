@@ -35,7 +35,9 @@ import { FACES_REQUIRED, fontFaceCss, paneCss as paneCss_, PaneRenderer, type Pa
 import { PanePool } from "./panePool";
 import type { WaterModel } from "./model";
 import { appDocument } from "./prerender";
-import { drawSharePngs } from "./share";
+import { drawSharePngs, SHARE_CARD } from "./share";
+import { JobPool } from "./jobs";
+import { threadCounts, type ThreadCounts } from "./threads";
 import { withFavicon } from "./favicon";
 import { appSiteAssociationFile, assetLinksFile, headersFile, IOS_TEAM_ID_RE, hostRules, hostWorker, redirectsFile } from "./hosting";
 import type { Site } from "./html";
@@ -80,10 +82,11 @@ export interface BuildArgs {
   readonly app?: AppExport;
   readonly images?: { readonly fish: FishImages };
   /**
-   * (T279) the render threads: at most 4 (heavy jobs), each writing its pages compressed under `out` (`compressed.ts`);
-   * absent → rendered here, kept in `files` (a test's few)
+   * (T279) the render threads, each page then written compressed under `out` (`compressed.ts`); (T917) `n` render threads
+   * and `jobs` job threads (compression, share cards), as `threadCounts` decided; absent → rendered here, kept in `files`
+   * (a test's few)
    */
-  readonly threads?: { readonly n: number; readonly releaseDir: string; readonly appDir: string; readonly out: string };
+  readonly threads?: { readonly n: number; readonly jobs: number; readonly releaseDir: string; readonly appDir: string; readonly out: string };
   readonly only?: ReadonlySet<string>;
   /** no water page is rendered (a stub stands in): for `--snapshot-only`, whose output is the snapshot alone */
   readonly bare?: boolean;
@@ -129,12 +132,14 @@ export async function buildAll(a: BuildArgs): Promise<Built> {
   const doc = { critical: PaneRenderer.critical(), cssHref: paneHref, preload };
   let waterPage: (m: WaterModel, head: string, file: string) => Promise<WaterMade>;
   let cssParts: () => Promise<PaneCssParts[]>;
-  let pool: PanePool | null = null;
+  let pool: PanePool | null = null, jobs: JobPool | null = null;
   if (a.bare) {
     waterPage = async (m) => ({ html: null, size: { path: m.id, gzipBytes: 0, blocking: false, critical: "" }, problems: [] });
     cssParts = async () => [];
   } else if (a.threads) {
-    pool = new PanePool(Math.min(4, Math.max(1, a.threads.n)), { ...a.threads, origin: config.origin, doc });
+    const { n, jobs: j, ...where } = a.threads;
+    jobs = new JobPool(j, SHARE_CARD);
+    pool = new PanePool(n, { ...where, origin: config.origin, doc }, jobs);
     waterPage = (m, head, file) => pool!.page(m.id, m.focus, head, file);
     cssParts = () => pool!.css();
   } else {
@@ -149,27 +154,31 @@ export async function buildAll(a: BuildArgs): Promise<Built> {
     };
     cssParts = async () => [panes.parts()];
   }
-  let build: SiteBuild, parts: PaneCssParts[];
+  let build: SiteBuild, parts: PaneCssParts[], files: Map<string, string>;
+  // (T406) each water's card drawn as the PNG its head names; its SVG source is not shipped
+  const binary = new Map<string, Uint8Array>(), toDraw: [string, string][] = [];
   // (T487) the gauges and the waters each serves (null: a release with no conditions file, the regs fixture)
   const gaugeRows = a.gauges !== undefined ? a.gauges : await readGaugeRows(a.loader);
   try {
-    build = await buildSite({
-      store, site: config, release: { id: store.meta.release, validUntil: a.loader.manifest.regulations.valid_until },
-      on: a.on, slugMap: a.slugMap ?? EMPTY_SLUG_MAP, previous: a.previous ?? null, ...(a.hubSplitAt ? { hubSplitAt: a.hubSplitAt } : {}),
-      waterPage, ...(a.only ? { only: a.only } : {}), gauges: gaugeRows,
-    });
-    parts = await cssParts();
-  } finally { await pool?.close(); }
-  const files = new Map(build.files);
-  // (T406) each water's card drawn as the PNG its head names; its SVG source is not shipped
-  const binary = new Map<string, Uint8Array>(), toDraw: [string, string][] = [];
-  for (const [name, svg] of build.files) {
-    if (!/^share\/[^/]+\.svg$/.test(name)) continue;
-    files.delete(name);
-    if (!a.bare) toDraw.push([name.replace(/\.svg$/, ".png"), svg]);
-  }
-  // drawn with a turn between cards (share.ts: a synchronous loop held every card's native pixmap, 59 GB)
-  await drawSharePngs(toDraw, (name, png) => binary.set(name, png));
+    try {
+      build = await buildSite({
+        store, site: config, release: { id: store.meta.release, validUntil: a.loader.manifest.regulations.valid_until },
+        on: a.on, slugMap: a.slugMap ?? EMPTY_SLUG_MAP, previous: a.previous ?? null, ...(a.hubSplitAt ? { hubSplitAt: a.hubSplitAt } : {}),
+        waterPage, ...(a.only ? { only: a.only } : {}), gauges: gaugeRows,
+      });
+      parts = await cssParts();
+    } finally { await pool?.close(); }
+    files = new Map(build.files);
+    for (const [name, svg] of build.files) {
+      if (!/^share\/[^/]+\.svg$/.test(name)) continue;
+      files.delete(name);
+      if (!a.bare) toDraw.push([name.replace(/\.svg$/, ".png"), svg]);
+    }
+    // drawn with a turn between cards (share.ts: a synchronous loop held every card's native pixmap, 59 GB); (T917) on the
+    // job threads when the build has them (each its own turn), kept in the order asked
+    if (jobs) for (const [name, png] of await Promise.all(toDraw.map(async ([name, svg]) => [name, await jobs!.png(svg)] as const))) binary.set(name, png);
+    else await drawSharePngs(toDraw, (name, png) => binary.set(name, png));
+  } finally { await jobs?.close(); }
   const paneCss = paneCss_(fonts.css, parts);
   const unmerged = parts.flatMap((p) => p.unmerged);
   files.set(paneHref.slice(1), paneCss);
@@ -275,8 +284,11 @@ export async function main(args: readonly string[]): Promise<void> {
   const out = outDir(opt(args, "--out") ?? DEFAULT_OUT), partial = `${out}.partial`;
   rmSync(partial, { recursive: true, force: true });
   const started = Date.now();
-  // (T279) with the app's export, the water pages are rendered on threads (at most 4) and written compressed into `partial`
-  const threads = app ? { n: Number(opt(args, "--threads") ?? 4), releaseDir: dir ? resolve(dir) : regsFixtureDir(), appDir: resolve(appDir!), out: partial } : undefined;
+  // (T279) with the app's export, the water pages are rendered on threads and written compressed into `partial`; (T917) how
+  // many: `--threads N|auto` against the cores and the free memory (threads.ts), said here
+  let counts: ThreadCounts | null = null;
+  if (app) { counts = threadCounts(opt(args, "--threads") ?? "auto"); console.log(`seo: ${counts.said}`); }
+  const threads = app && counts ? { n: counts.render, jobs: counts.jobs, releaseDir: dir ? resolve(dir) : regsFixtureDir(), appDir: resolve(appDir!), out: partial } : undefined;
   // (T724) no Team ID → no apple-app-site-association, said once; `--require-ios-links` (a production build) makes it an error
   const iosTeamId = readIosTeamId();
   if (!iosTeamId) {
@@ -304,7 +316,7 @@ export async function main(args: readonly string[]): Promise<void> {
   if (!fixture && !args.includes("--only")) put(SNAPSHOT_DIR, `${built.build.snapshot.release}.json`, built.files.get("snapshot.json")!);
   console.log(`seo: ${built.build.pages.length} pages (${built.build.models.length} waters), largest ${built.measured.largest.gzipBytes} B gzip, ` +
     `p95 ${built.measured.p95GzipBytes} B gzip, css ${built.measured.cssGzipBytes} B gzip, ${Math.round((Date.now() - started) / 1000)} s` +
-    (threads ? ` on ${Math.min(4, threads.n)} threads; stored ${JSON.stringify(JSON.parse(built.files.get("budget.json")!).compressed)}` : "") +
+    (threads ? ` on ${threads.n} render + ${threads.jobs} job threads; stored ${JSON.stringify(JSON.parse(built.files.get("budget.json")!).compressed)}` : "") +
     `; diffed against ${prevFile ?? "no previous snapshot"}` +
     `; slug steps ${JSON.stringify(built.build.slugSteps)}` + (built.legacy ? `; v1 redirects ${JSON.stringify(built.legacy.counts)}` : ""));
 }
