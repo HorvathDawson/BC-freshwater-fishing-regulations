@@ -20,7 +20,8 @@ checks and an independent review. **T919 (c), ANSWERED 2026-11-19 20:31:** the m
 curated name-variants file already has the variants ("It sound like it has them all already"); its 31 misses get fixed.
 **T926 scope + T927, ANSWERED 2026-11-19 23:49:** "We want all the variants no abbreviations though and no numbered lake
 names. We do want to add all the cuts on a river as a searchable thing too. So you could search something like ten Mile
-pool and get chuckwalla river?" T926 = every name variant finds its water, no abbreviations, no numbered lake names;
+pool and get chuckwalla river?" T926 = every name variant finds its water, no abbreviations, no generic numbered names (23:56: "Kettle lake 2 is okay",
+"lake #265" is not);
 T927 = every placed cut searchable (Ten Mile Pool → Chuckwalla River).
 
 ## 2026-11-19 afternoon: 0.8.3 on staging, then 0.8.3 to production (0.8.2 production skipped)

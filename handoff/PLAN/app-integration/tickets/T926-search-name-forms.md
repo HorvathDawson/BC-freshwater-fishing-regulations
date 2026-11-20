@@ -44,8 +44,11 @@ So T926 is now:
 - IN: every name variant finds its water: the 31 curated `name_variants.json` misses, and the book's own alternate names
   (bracketed names, `book_name_links`) that are real names. (5) the "Pete'S Pond …" casing/description bug stays (a
   display fix).
-- OUT: (1) abbreviations (Lk, Ck, R., St); numbered lake names ("KETTLE LAKE #2", "Champion Lakes No. 1 & 2"); the
-  book's print marks ("L.", "*"); (4) First Nations names (T930).
+- OUT: (1) abbreviations (Lk, Ck, R., St); generic numbered names (a "Lake #265"-style label standing in for an unnamed
+  water); the book's print marks ("L.", "*"); (4) First Nations names (T930).
+- Owner 2026-11-19 23:56, correcting the line above: "number lakes like that are fine but something like lake #265 or
+  whatever is bad. Kettle lake 2 is okay I think." So a real name with its number ("Kettle Lake #2" / "Kettle Lake 2",
+  "Champion Lakes No. 1 & 2") IS a variant and finds its water.
 - (2) joined headings ("Chilliwack / Vedder Rivers"): only if a joined heading is itself one of the variants; no general
   splitting rule.
 - The cuts part is T927 (confirmed the same message; "Ten Mile Pool" is a placed cut on the Chuckwalla River).
