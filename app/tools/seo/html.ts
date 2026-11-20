@@ -220,6 +220,14 @@ export function privacyBody(site: Site, asOf: string): string {
     `except one that stops the app, which is kept on your device and sent the next time the app starts (and deleted from your device if you have switched crash reports off). ` +
     `I keep one stored record per kind of error, with a count, the app versions and the install ids it was seen in; I do not store your IP address, ` +
     `and to limit abuse I keep only a salted one-way hash of it for a day’s counting. Error records are deleted automatically 90 days after the error was last seen.</p>` +
+    // (T739) the push token, owner-approved AS WRITTEN 2026-11-15 ("Yes to both", OWNER-TODO round 6, row
+    // `t739-privacy-wording`); the text is his, do not reword it here
+    `<h2>Push token</h2><p>If you turn notifications on, the app sends our server a push token for this phone ` +
+    `(an address Apple or Google issue so a message can reach the app) and whether the phone is an iPhone or Android. ` +
+    `We use it only to send a silent signal telling the app to check for new data; the signal carries no words, no waters and no location. ` +
+    `We do not receive your alerts, the waters you watch or where you are. ` +
+    `The token is deleted when you turn notifications off, or when Apple or Google tell us it no longer works. ` +
+    `It is not linked to you or to an account and is not backed up.</p>` +
     `<h2>This website</h2><p>The website serves plain pages. It sets no cookies and runs no analytics, advertising or tracking scripts. ` +
     `Cloudflare, which hosts it, sees ordinary request information such as your IP address.</p>` +
     `<h2>No selling, no sharing</h2><p>I do not sell your information, and I do not share it for advertising. ` +

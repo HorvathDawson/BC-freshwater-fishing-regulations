@@ -3,17 +3,17 @@
 // packages/data notify/check.ts) and raises its own local notification if one of its rules fires. WHAT THIS SERVER
 // LEARNS: a device push token, its platform and its APNs environment — never the alert rules, the watched waters or a
 // location (owner 2026-11-14). A token the push service calls dead is deleted; unregister deletes it at once.
+// IPHONE ONLY (owner 2026-11-16 12:08, on Firebase for Android: "we dont want this right now"): Android registers no
+// token, `platform: "android"` is refused (400) and there is no FCM sender.
 //
-//   POST /push/register    {platform: "ios"|"android", token, env: "sandbox"|"production"}  (public, rate-limited per IP
-//   POST /push/unregister  {platform, token, env}                                            like POST /crash)
+//   POST /push/register    {platform: "ios", token, env: "sandbox"|"production"}  (public, rate-limited per IP
+//   POST /push/unregister  {platform, token, env}                                 like POST /crash)
 //   POST /run/push         (Bearer RUN_TOKEN) send one wake now, `?reason=` for the record
 //
 //   iPhone   APNs HTTP/2 with a provider token: an ES256 JWT made with WebCrypto from the secrets APNS_KEY (the .p8 text),
 //            APNS_KEY_ID, APNS_TEAM_ID; topic = the bundle id; `apns-push-type: background`, `apns-priority: 5`, payload
 //            {"aps":{"content-available":1},"k":"check"}; the sandbox host for a token registered as "sandbox".
-//   Android  FCM HTTP v1: the secret FCM_SERVICE_ACCOUNT (the service account's JSON) → an OAuth token (RS256 JWT,
-//            WebCrypto) → a data-only, high-priority message {k: "check"}.
-//   A platform whose secrets are missing sends NOTHING and says so (`missing`) in GET /status(.json) — never a silent
+//   The sender sends NOTHING while a secret is missing sends NOTHING and says so (`missing`) in GET /status(.json) — never a silent
 //   skip. Every send's counts (sent / dead / failed, the first errors) are kept at PUSH_STATUS_KEY and shown there.
 //
 // Stored at private/push/tokens/<sha256(token)>.json — never backed up (backup.ts `personalKind`: "never"): a lost store
@@ -38,9 +38,8 @@ export const APNS_HOSTS = { production: "https://api.push.apple.com", sandbox: "
 export const APNS_PAYLOAD = { aps: { "content-available": 1 }, k: "check" } as const;
 /** a wake older than this is not worth delivering (the next feed change sends another) */
 export const PUSH_TTL_S = 3600;
-export const FCM_SCOPE = "https://www.googleapis.com/auth/firebase.messaging";
 
-export const PUSH_PLATFORMS = ["ios", "android"] as const;
+export const PUSH_PLATFORMS = ["ios"] as const;
 export type PushPlatform = (typeof PUSH_PLATFORMS)[number];
 export const PUSH_ENVS = ["sandbox", "production"] as const;
 export type PushEnvName = (typeof PUSH_ENVS)[number];
@@ -51,7 +50,6 @@ export interface PushEnv extends ReportEnv {
   APNS_KEY?: string;
   APNS_KEY_ID?: string;
   APNS_TEAM_ID?: string;
-  FCM_SERVICE_ACCOUNT?: string;
 }
 
 /**
@@ -71,22 +69,21 @@ const KEEP_ERRORS = 5;
 const json = (body: unknown, status: number) =>
   new Response(JSON.stringify(body), { status, headers: { "Content-Type": "application/json", "Cache-Control": "no-store" } });
 
-/** The payload, checked — or why it is refused (a 400). APNs tokens are hex (32 bytes today); FCM tokens are url-safe text. */
+/** The payload, checked — or why it is refused (a 400). APNs tokens are hex (32 bytes today). Android is refused (no push). */
 export function validatePush(raw: unknown): { ok: true; platform: PushPlatform; token: string; env: PushEnvName } | { ok: false; error: string } {
   if (!raw || typeof raw !== "object" || Array.isArray(raw)) return { ok: false, error: "body must be a JSON object" };
   const o = raw as Record<string, unknown>;
   const extra = Object.keys(o).filter((k) => !["platform", "token", "env"].includes(k));
   if (extra.length) return { ok: false, error: `unknown field(s): ${extra.join(", ")}` };
-  if (!(PUSH_PLATFORMS as readonly unknown[]).includes(o.platform)) return { ok: false, error: "platform must be ios or android" };
+  if (o.platform === "android") return { ok: false, error: "no push on Android" };
+  if (!(PUSH_PLATFORMS as readonly unknown[]).includes(o.platform)) return { ok: false, error: "platform must be ios" };
   const platform = o.platform as PushPlatform;
   if (typeof o.token !== "string") return { ok: false, error: "token must be a string" };
   const token = o.token;
-  if (platform === "ios" && !/^[0-9a-f]{64,200}$/i.test(token)) return { ok: false, error: "an iOS token is 64 to 200 hex characters" };
-  if (platform === "android" && !/^[A-Za-z0-9_:\-.]{32,4096}$/.test(token)) return { ok: false, error: "an Android token is 32 to 4096 url-safe characters" };
-  const env = o.env ?? (platform === "android" ? "production" : undefined);
+  if (!/^[0-9a-f]{64,200}$/i.test(token)) return { ok: false, error: "an iOS token is 64 to 200 hex characters" };
+  const env = o.env;
   if (!(PUSH_ENVS as readonly unknown[]).includes(env)) return { ok: false, error: "env must be sandbox or production" };
-  if (platform === "android" && env !== "production") return { ok: false, error: "an Android token's env is production" };
-  return { ok: true, platform, token: platform === "ios" ? token.toLowerCase() : token, env: env as PushEnvName };
+  return { ok: true, platform, token: token.toLowerCase(), env: env as PushEnvName };
 }
 
 export const tokenKey = async (token: string) => `${TOKENS_PREFIX}${(await sha256hex(token)).slice(0, 40)}.json`;
@@ -131,7 +128,7 @@ const b64url = (b: Uint8Array | string) => {
   for (const x of bytes) s += String.fromCharCode(x);
   return btoa(s).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
 };
-/** the DER bytes of a PEM private key (PKCS#8: "-----BEGIN PRIVATE KEY-----", as Apple's .p8 and Google's JSON hold it) */
+/** the DER bytes of a PEM private key (PKCS#8: "-----BEGIN PRIVATE KEY-----", as Apple's .p8 holds it) */
 export function pemBytes(pem: string): Uint8Array<ArrayBuffer> {
   const body = pem.replace(/\\n/g, "\n").replace(/-----(BEGIN|END) [A-Z ]+-----/g, "").replace(/\s+/g, "");
   if (!body) throw new Error("the key is empty");
@@ -155,22 +152,6 @@ export async function apnsJwt(e: { APNS_KEY: string; APNS_KEY_ID: string; APNS_T
                  { name: "ECDSA", hash: "SHA-256" });
 }
 
-export interface ServiceAccount { client_email: string; private_key: string; project_id: string; token_uri?: string }
-export function parseServiceAccount(text: string): ServiceAccount {
-  let j: Record<string, unknown>;
-  try { j = JSON.parse(text); } catch { throw new Error("FCM_SERVICE_ACCOUNT is not JSON"); }
-  for (const k of ["client_email", "private_key", "project_id"]) if (typeof j[k] !== "string" || !j[k]) throw new Error(`FCM_SERVICE_ACCOUNT has no ${k}`);
-  return j as unknown as ServiceAccount;
-}
-
-/** Google's OAuth assertion for FCM: RS256, iss = the service account, scope firebase.messaging, one hour */
-export async function fcmAssertion(sa: ServiceAccount, now: Date): Promise<string> {
-  const key = await crypto.subtle.importKey("pkcs8", pemBytes(sa.private_key), { name: "RSASSA-PKCS1-v1_5", hash: "SHA-256" }, false, ["sign"]);
-  const iat = Math.floor(now.getTime() / 1000);
-  return signJwt({ alg: "RS256", typ: "JWT" }, { iss: sa.client_email, scope: FCM_SCOPE, aud: sa.token_uri ?? "https://oauth2.googleapis.com/token", iat, exp: iat + 3600 },
-                 key, { name: "RSASSA-PKCS1-v1_5" });
-}
-
 // ── the requests, whole ─────────────────────────────────────────────────────────────────────────────────────────────
 
 export function apnsRequest(rec: Pick<PushRecord, "token" | "env">, jwt: string, now: Date): { url: string; init: RequestInit } {
@@ -187,10 +168,6 @@ export function apnsRequest(rec: Pick<PushRecord, "token" | "env">, jwt: string,
   };
 }
 
-export function fcmMessage(token: string) {
-  return { message: { token, data: { k: "check" }, android: { priority: "HIGH", ttl: `${PUSH_TTL_S}s`, collapse_key: "check" } } };
-}
-
 type Outcome = "sent" | "dead" | { failed: string };
 type Fetch = (u: string, i?: RequestInit) => Promise<Response>;
 
@@ -203,28 +180,18 @@ export async function apnsOutcome(res: Response): Promise<Outcome> {
   return { failed: `APNs ${res.status}${reason ? ` ${reason}` : ""}` };
 }
 
-/** FCM v1: 200 sent; an UNREGISTERED error (404 NOT_FOUND) → dead; anything else failed */
-export async function fcmOutcome(res: Response): Promise<Outcome> {
-  if (res.ok) return "sent";
-  let j: { error?: { status?: string; details?: { errorCode?: string }[] } } = {};
-  try { j = await res.json(); } catch { /* no body */ }
-  const code = j.error?.details?.find((d) => d.errorCode)?.errorCode ?? j.error?.status ?? "";
-  if (code === "UNREGISTERED" || (res.status === 404 && code === "NOT_FOUND")) return "dead";
-  return { failed: `FCM ${res.status}${code ? ` ${code}` : ""}` };
-}
-
 /** which secrets a platform still lacks ([] = it can send) */
 export function pushMissing(env: PushEnv): Record<PushPlatform, string[]> {
   return {
     ios: (["APNS_KEY", "APNS_KEY_ID", "APNS_TEAM_ID"] as const).filter((k) => !env[k]?.trim()),
-    android: env.FCM_SERVICE_ACCOUNT?.trim() ? [] : ["FCM_SERVICE_ACCOUNT"],
   };
 }
 
 export interface PlatformSend { configured: boolean; missing: string[]; tokens: number; sent: number; dead: number; failed: number; errors: string[] }
 export interface PushSend {
-  at: string; reason: string; ok: boolean; ios: PlatformSend; android: PlatformSend; error?: string;
-  /** token records that were stored but did not parse: a fault (counted, logged, shown on /status), each deleted */
+  at: string; reason: string; ok: boolean; ios: PlatformSend; error?: string;
+  /** token records that were stored but did not parse, or are not an iPhone's: a fault (counted, logged, shown on
+   *  /status), each deleted */
   unreadable: number;
 }
 
@@ -236,23 +203,27 @@ const blankSend = (missing: string[]): PlatformSend => ({ configured: !missing.l
  */
 export async function sendWake(env: PushEnv, fetch_: Fetch, now: Date, reason: string): Promise<PushSend> {
   const missing = pushMissing(env);
-  const out: PushSend = { at: now.toISOString(), reason, ok: true, ios: blankSend(missing.ios), android: blankSend(missing.android), unreadable: 0 };
+  const out: PushSend = { at: now.toISOString(), reason, ok: true, ios: blankSend(missing.ios), unreadable: 0 };
   const keys = await listKeys(env.BUCKET, TOKENS_PREFIX, 100_000);
   const recs: { key: string; rec: PushRecord }[] = [];
   for (const key of keys) {
     const o = await env.BUCKET.get(key);
     if (!o) continue;
-    try { recs.push({ key, rec: JSON.parse(await o.text()) as PushRecord }); } catch (e) {
-      // a record we wrote that does not parse is a fault: counted and said; deleted (the phone registers again at its next start)
+    try {
+      const rec = JSON.parse(await o.text()) as PushRecord;
+      if (rec?.platform !== "ios") throw new Error(`not an iPhone's token (platform ${JSON.stringify(rec?.platform)})`);
+      recs.push({ key, rec });
+    } catch (e) {
+      // a record we wrote that does not parse (or names a platform with no push) is a fault: counted and said; deleted
+      // (an iPhone registers again at its next start)
       out.unreadable++;
       console.error(JSON.stringify({ job: "push", unreadableToken: key, error: String((e as Error)?.message ?? e) }));
       await env.BUCKET.delete(key);
     }
   }
-  for (const { rec } of recs) if (out[rec.platform]) out[rec.platform].tokens++;
-  // one credential per platform per send (made only when that platform has someone to send to)
+  out.ios.tokens = recs.length;
+  // one credential per send (made only when there is someone to send to)
   let apns: string | null = null;
-  let fcm: { url: string; bearer: string } | null = null;
   const fail = (p: PlatformSend, why: string) => { p.failed++; if (p.errors.length < KEEP_ERRORS) p.errors.push(why.slice(0, 200)); };
   try {
     if (out.ios.configured && out.ios.tokens) apns = await apnsJwt(env as Required<Pick<PushEnv, "APNS_KEY" | "APNS_KEY_ID" | "APNS_TEAM_ID">>, now);
@@ -260,49 +231,26 @@ export async function sendWake(env: PushEnv, fetch_: Fetch, now: Date, reason: s
     out.ios.errors.push(`APNs key: ${String((e as Error)?.message ?? e).slice(0, 200)}`); out.ios.failed = out.ios.tokens;
     console.error(JSON.stringify({ job: "push", apnsKey: String((e as Error)?.message ?? e) }));
   }
-  try {
-    if (out.android.configured && out.android.tokens) {
-      const sa = parseServiceAccount(env.FCM_SERVICE_ACCOUNT!);
-      const res = await fetch_(sa.token_uri ?? "https://oauth2.googleapis.com/token", {
-        method: "POST", headers: { "content-type": "application/x-www-form-urlencoded" },
-        body: `grant_type=${encodeURIComponent("urn:ietf:params:oauth:grant-type:jwt-bearer")}&assertion=${await fcmAssertion(sa, now)}`,
-      });
-      if (!res.ok) throw new Error(`OAuth token: HTTP ${res.status}`);
-      const tok = ((await res.json()) as { access_token?: string }).access_token;
-      if (!tok) throw new Error("OAuth token: no access_token in the answer");
-      fcm = { url: `https://fcm.googleapis.com/v1/projects/${sa.project_id}/messages:send`, bearer: tok };
-    }
-  } catch (e) {
-    out.android.errors.push(`FCM credential: ${String((e as Error)?.message ?? e).slice(0, 200)}`); out.android.failed = out.android.tokens;
-    console.error(JSON.stringify({ job: "push", fcmCredential: String((e as Error)?.message ?? e) }));
-  }
 
   const one = async ({ key, rec }: { key: string; rec: PushRecord }) => {
-    const p = out[rec.platform];
-    if (!p) return;
-    const via = rec.platform === "ios" ? apns : fcm;
-    if (!via) return;   // missing secret (said in `missing`) or a credential that failed (counted above)
+    const p = out.ios;
+    if (!apns) return;   // missing secret (said in `missing`) or a key that failed (counted above)
     let r: Outcome;
     try {
-      if (rec.platform === "ios") {
-        const q = apnsRequest(rec, apns!, now);
-        r = await apnsOutcome(await fetch_(q.url, q.init));
-      } else {
-        r = await fcmOutcome(await fetch_(fcm!.url, { method: "POST", headers: { authorization: `Bearer ${fcm!.bearer}`, "content-type": "application/json" },
-                                                      body: JSON.stringify(fcmMessage(rec.token)) }));
-      }
+      const q = apnsRequest(rec, apns, now);
+      r = await apnsOutcome(await fetch_(q.url, q.init));
     } catch (e) { r = { failed: `network: ${String((e as Error)?.message ?? e)}` }; }
     if (r === "sent") p.sent++;
     else if (r === "dead") { p.dead++; await env.BUCKET.delete(key); }
     else fail(p, r.failed);
   };
   for (let i = 0; i < recs.length; i += PARALLEL) await Promise.all(recs.slice(i, i + PARALLEL).map(one));
-  out.ok = !out.ios.failed && !out.android.failed && !out.unreadable;
+  out.ok = !out.ios.failed && !out.unreadable;
   try {
     await env.BUCKET.put(PUSH_STATUS_KEY, JSON.stringify(out), { httpMetadata: { contentType: "application/json", cacheControl: "no-store" } });
   } catch (e) { console.error(JSON.stringify({ job: "push", statusError: String(e) })); }
-  const log = { job: "push", reason, ios: { ...out.ios, errors: out.ios.errors.length }, android: { ...out.android, errors: out.android.errors.length } };
-  if (out.ok) console.log(JSON.stringify(log)); else console.error(JSON.stringify({ ...log, errors: [...out.ios.errors, ...out.android.errors] }));
+  const log = { job: "push", reason, ios: { ...out.ios, errors: out.ios.errors.length } };
+  if (out.ok) console.log(JSON.stringify(log)); else console.error(JSON.stringify({ ...log, errors: out.ios.errors }));
   for (const p of PUSH_PLATFORMS) if (out[p].tokens && out[p].missing.length) console.error(JSON.stringify({ job: "push", platform: p, notSent: out[p].tokens, missing: out[p].missing }));
   return out;
 }

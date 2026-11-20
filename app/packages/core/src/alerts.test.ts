@@ -413,10 +413,6 @@ describe("(T722 F3) the notifications intro per platform", () => {
       + "checks the gauges and the data itself. The server keeps only a push token for this phone, never your alerts, your "
       + "waters or where you are. iOS may still hold a check back, often in Low Power Mode, and wakes no app that was swiped "
       + "away until you open it again.");
-    expect(NOTIFY_WORDS.introPushAndroid).toBe("Notifications are made on this phone. When our gauge, salmon or in-season "
-      + "data changes, or new regulations data is out, our server sends this phone a silent signal to check now; the app "
-      + "then checks the gauges and the data itself, and still checks about every 15 minutes at best on its own. The server "
-      + "keeps only a push token for this phone, never your alerts, your waters or where you are.");
     // the push wake's notice is its own; the periodic check's stays as it was
     expect(`${UPDATE_DOWNLOAD_NOTE.title}. ${UPDATE_DOWNLOAD_NOTE.body}`).toBe("New regulations data is ready to download. Open the app to download it.");
     expect(`${UPDATE_READY_NOTE.title}. ${UPDATE_READY_NOTE.body}`).toBe("New regulations data is ready. Open the app to update.");

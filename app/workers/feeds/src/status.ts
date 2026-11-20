@@ -280,7 +280,8 @@ function dailyHtml(d: { backup: any; purge: any; push?: any }, now: Date): strin
     `</table></div>` + (d.push ? pushHtml(d.push, now) : "");
 }
 
-/** (T739) the push wake-ups: per platform whether it can send (the secrets it lacks), and the last send's counts */
+/** (T739) the push wake-ups (iPhone only; owner 2026-11-16: no Android push): whether it can send (the secrets it
+ *  lacks), and the last send's counts */
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function pushHtml(p: { missing: Record<string, string[]>; last: any }, now: Date): string {
   const l = p.last;
@@ -293,8 +294,8 @@ function pushHtml(p: { missing: Record<string, string[]>; last: any }, now: Date
     return `<tr><td>${pl}</td>${state}<td><small>${what}${what ? "<br>" : ""}${counts}</small></td></tr>`;
   };
   const when = typeof l?.unreadable === "string" ? `<span class="failing">unreadable: ${esc(l.unreadable)}</span>` : l ? `${esc(l.at)} <small>(${ago(l.at, now)}) · ${esc(l.reason)}</small>` +
-    (l.unreadable ? ` · <b class="failing">${esc(l.unreadable)} stored token record(s) did not parse (deleted)</b>` : "") : "never";
-  return `<h2>Push wake-ups</h2><p><small>last send: ${when}</small></p><div class="wrap"><table><tr><th>platform</th><th>state</th><th>last send</th></tr>${row("ios")}${row("android")}</table></div>`;
+    (l.unreadable ? ` · <b class="failing">${esc(l.unreadable)} stored token record(s) did not parse or were not an iPhone's (deleted)</b>` : "") : "never";
+  return `<h2>Push wake-ups</h2><p><small>last send: ${when}</small></p><div class="wrap"><table><tr><th>platform</th><th>state</th><th>last send</th></tr>${row("ios")}</table></div>`;
 }
 
 /** (T178) the last monthly model score (private/feeds/skill.json): per lead day, the verdict and its reason */

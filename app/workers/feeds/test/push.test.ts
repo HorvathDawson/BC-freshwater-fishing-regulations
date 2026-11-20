@@ -1,10 +1,10 @@
 // T739: push wake-ups — register / unregister (validated, rate-limited, token store only), the APNs provider token
-// (ES256 JWT, verified with the key's public half), the FCM OAuth assertion (RS256), the requests whole, dead-token
-// deletion, a platform with a missing secret sending nothing and saying so, and the wake reasons a run gives.
+// (ES256 JWT, verified with the key's public half), the request whole, dead-token deletion, a missing secret sending
+// nothing and saying so, and the wake reasons a run gives. iPhone only (owner 2026-11-16): Android is refused.
 import { describe, expect, it } from "vitest";
 import worker from "../src/index";
 import {
-  APNS_PAYLOAD, apnsJwt, apnsRequest, fcmAssertion, fcmMessage, handlePush, newRelease, PUSH_STATE_KEY, PUSH_STATUS_KEY, pushMissing,
+  APNS_PAYLOAD, apnsJwt, apnsRequest, handlePush, newRelease, PUSH_STATE_KEY, PUSH_STATUS_KEY, pushMissing,
   sendWake, TOKENS_PREFIX, tokenKey, validatePush, wakeReason, MANIFEST_KEY,
 } from "../src/push";
 import type { R2BucketLike } from "../src/io";
@@ -33,22 +33,18 @@ async function ecKey() {
   const k = await crypto.subtle.generateKey({ name: "ECDSA", namedCurve: "P-256" }, true, ["sign", "verify"]) as CryptoKeyPair;
   return { pem: toPem(await crypto.subtle.exportKey("pkcs8", k.privateKey)), pub: k.publicKey };
 }
-async function rsaKey() {
-  const k = await crypto.subtle.generateKey({ name: "RSASSA-PKCS1-v1_5", modulusLength: 2048, publicExponent: new Uint8Array([1, 0, 1]), hash: "SHA-256" }, true, ["sign", "verify"]) as CryptoKeyPair;
-  return { pem: toPem(await crypto.subtle.exportKey("pkcs8", k.privateKey)), pub: k.publicKey };
-}
 const parts = (jwt: string) => { const [h, c, s] = jwt.split("."); return { h: JSON.parse(new TextDecoder().decode(b64urlDecode(h!))), c: JSON.parse(new TextDecoder().decode(b64urlDecode(c!))), input: `${h}.${c}`, sig: b64urlDecode(s!) }; };
 
 describe("POST /push/register and /push/unregister (T739)", () => {
-  it("validates: platform, the token's shape per platform, env, and no other field", () => {
+  it("validates: platform (iPhone only), the token's shape, env, and no other field", () => {
     expect(validatePush({ platform: "ios", token: IOS, env: "sandbox" })).toEqual({ ok: true, platform: "ios", token: IOS, env: "sandbox" });
     expect(validatePush({ platform: "ios", token: IOS.toUpperCase(), env: "production" })).toEqual({ ok: true, platform: "ios", token: IOS, env: "production" });
-    expect(validatePush({ platform: "android", token: AND })).toEqual({ ok: true, platform: "android", token: AND, env: "production" });
-    expect(validatePush({ platform: "web", token: IOS, env: "sandbox" })).toEqual({ ok: false, error: "platform must be ios or android" });
+    // (owner 2026-11-16 12:08, on Firebase: "we dont want this right now") no Android push: refused, whatever else it says
+    expect(validatePush({ platform: "android", token: AND })).toEqual({ ok: false, error: "no push on Android" });
+    expect(validatePush({ platform: "android", token: AND, env: "production" })).toEqual({ ok: false, error: "no push on Android" });
+    expect(validatePush({ platform: "web", token: IOS, env: "sandbox" })).toEqual({ ok: false, error: "platform must be ios" });
     expect(validatePush({ platform: "ios", token: "zz", env: "sandbox" })).toEqual({ ok: false, error: "an iOS token is 64 to 200 hex characters" });
     expect(validatePush({ platform: "ios", token: IOS })).toEqual({ ok: false, error: "env must be sandbox or production" });
-    expect(validatePush({ platform: "android", token: "short" })).toEqual({ ok: false, error: "an Android token is 32 to 4096 url-safe characters" });
-    expect(validatePush({ platform: "android", token: AND, env: "sandbox" })).toEqual({ ok: false, error: "an Android token's env is production" });
     expect(validatePush({ platform: "ios", token: IOS, env: "sandbox", waters: ["x"] })).toEqual({ ok: false, error: "unknown field(s): waters" });
     expect(validatePush([1])).toEqual({ ok: false, error: "body must be a JSON object" });
   });
@@ -67,8 +63,11 @@ describe("POST /push/register and /push/unregister (T739)", () => {
     expect(tokens(BUCKET)).toEqual([]);
   });
 
-  it("refuses a bad body (400), a GET (405), and answers 503 without REPORT_SALT", async () => {
+  it("refuses a bad body (400), an Android token (400, nothing stored), a GET (405), and answers 503 without REPORT_SALT", async () => {
     const BUCKET = new MemBucket();
+    const andr = await handlePush(req("/push/register", { platform: "android", token: AND, env: "production" }), { BUCKET, REPORT_SALT: SALT }, "register");
+    expect(andr.status).toBe(400);
+    expect(await andr.json()).toEqual({ ok: false, error: "no push on Android" });
     expect((await handlePush(req("/push/register", "not json"), { BUCKET, REPORT_SALT: SALT }, "register")).status).toBe(400);
     expect((await handlePush(req("/push/register", { platform: "ios", token: "x", env: "sandbox" }), { BUCKET, REPORT_SALT: SALT }, "register")).status).toBe(400);
     expect((await worker.fetch(new Request("https://w.example/push/register"), { BUCKET, REPORT_SALT: SALT } as never)).status).toBe(405);
@@ -116,38 +115,22 @@ describe("the APNs provider token and request (T739)", () => {
   });
 });
 
-describe("the FCM assertion and message (T739)", () => {
-  it("is an RS256 JWT for the service account, scope firebase.messaging, one hour, verified by the public half", async () => {
-    const k = await rsaKey();
-    const jwt = await fcmAssertion({ client_email: "push@p.iam.gserviceaccount.com", private_key: k.pem, project_id: "p" }, at("2026-11-14T12:00:00Z"));
-    const p = parts(jwt);
-    expect(p.h).toEqual({ alg: "RS256", typ: "JWT" });
-    expect(p.c).toEqual({ iss: "push@p.iam.gserviceaccount.com", scope: "https://www.googleapis.com/auth/firebase.messaging",
-                          aud: "https://oauth2.googleapis.com/token", iat: 1794657600, exp: 1794661200 });
-    expect(await crypto.subtle.verify({ name: "RSASSA-PKCS1-v1_5" }, k.pub, p.sig, new TextEncoder().encode(p.input))).toBe(true);
-  });
-  it("the message, whole: data-only, high priority, an hour to live", () => {
-    expect(fcmMessage(AND)).toEqual({ message: { token: AND, data: { k: "check" }, android: { priority: "HIGH", ttl: "3600s", collapse_key: "check" } } });
-  });
-});
-
 describe("sendWake (T739)", () => {
   const seed = async (b: MemBucket, recs: { platform: string; token: string; env: string }[]) => {
     for (const r of recs) b.m.set(await tokenKey(r.token), JSON.stringify({ format: "push-token/1", at: "2026-11-14T00:00:00Z", ...r }));
   };
 
-  it("with no secret set: sends nothing, says which secrets each platform lacks, and keeps that in the status", async () => {
+  it("with no secret set: sends nothing, says which secrets it lacks, and keeps that in the status", async () => {
     const BUCKET = new MemBucket();
-    await seed(BUCKET, [{ platform: "ios", token: IOS, env: "sandbox" }, { platform: "android", token: AND, env: "production" }]);
+    await seed(BUCKET, [{ platform: "ios", token: IOS, env: "sandbox" }, { platform: "ios", token: IOS2, env: "production" }]);
     const calls: string[] = [];
     const r = await sendWake({ BUCKET }, async (u) => { calls.push(u); return new Response(null); }, at("2026-11-14T12:00:00Z"), "gauges");
     expect(calls).toEqual([]);
     expect(r).toEqual({ at: "2026-11-14T12:00:00.000Z", reason: "gauges", ok: true,
-      ios: { configured: false, missing: ["APNS_KEY", "APNS_KEY_ID", "APNS_TEAM_ID"], tokens: 1, sent: 0, dead: 0, failed: 0, errors: [] },
-      android: { configured: false, missing: ["FCM_SERVICE_ACCOUNT"], tokens: 1, sent: 0, dead: 0, failed: 0, errors: [] }, unreadable: 0 });
+      ios: { configured: false, missing: ["APNS_KEY", "APNS_KEY_ID", "APNS_TEAM_ID"], tokens: 2, sent: 0, dead: 0, failed: 0, errors: [] }, unreadable: 0 });
     expect(JSON.parse(BUCKET.m.get(PUSH_STATUS_KEY)!)).toEqual(r);
     expect(tokens(BUCKET)).toHaveLength(2);
-    expect(pushMissing({ BUCKET, APNS_KEY: "k", APNS_KEY_ID: "i", APNS_TEAM_ID: "t", FCM_SERVICE_ACCOUNT: "{}" })).toEqual({ ios: [], android: [] });
+    expect(pushMissing({ BUCKET, APNS_KEY: "k", APNS_KEY_ID: "i", APNS_TEAM_ID: "t" })).toEqual({ ios: [] });
   });
 
   it("sends to every iOS token; a 410 and a BadDeviceToken are deleted, a 500 is counted as failed with its reason", async () => {
@@ -175,27 +158,19 @@ describe("sendWake (T739)", () => {
     expect(tokens(BUCKET).map((t) => t.token).sort()).toEqual([IOS, IOS4]);
   });
 
-  it("Android: one OAuth token, then the message; UNREGISTERED is deleted", async () => {
-    const k = await rsaKey();
+  it("a stored record that names another platform (no push there) is a fault: never sent to, counted, deleted", async () => {
+    const k = await ecKey();
     const BUCKET = new MemBucket();
-    const AND2 = AND.replace("x", "y");
-    await seed(BUCKET, [{ platform: "android", token: AND, env: "production" }, { platform: "android", token: AND2, env: "production" }]);
+    await seed(BUCKET, [{ platform: "ios", token: IOS, env: "sandbox" }, { platform: "android", token: AND, env: "production" }]);
     const urls: string[] = [];
-    const r = await sendWake({ BUCKET, FCM_SERVICE_ACCOUNT: JSON.stringify({ client_email: "e@p", private_key: k.pem, project_id: "proj" }) }, async (u, i) => {
-      urls.push(u);
-      if (u === "https://oauth2.googleapis.com/token") {
-        expect(String(i!.body)).toMatch(/^grant_type=urn%3Aietf%3Aparams%3Aoauth%3Agrant-type%3Ajwt-bearer&assertion=[\w-]+\.[\w-]+\.[\w-]+$/);
-        return Response.json({ access_token: "ya29.T" });
-      }
-      expect((i!.headers as Record<string, string>).authorization).toBe("Bearer ya29.T");
-      const tok = JSON.parse(String(i!.body)).message.token;
-      return tok === AND ? Response.json({ name: "projects/proj/messages/1" })
-        : Response.json({ error: { status: "NOT_FOUND", details: [{ "@type": "type.googleapis.com/google.firebase.fcm.v1.FcmError", errorCode: "UNREGISTERED" }] } }, { status: 404 });
-    }, at("2026-11-14T12:00:00Z"), "dfo");
-    expect(urls.filter((u) => u.includes("oauth2"))).toHaveLength(1);
-    expect(urls.filter((u) => u === "https://fcm.googleapis.com/v1/projects/proj/messages:send")).toHaveLength(2);
-    expect(r.android).toEqual({ configured: true, missing: [], tokens: 2, sent: 1, dead: 1, failed: 0, errors: [] });
-    expect(tokens(BUCKET).map((t) => t.token)).toEqual([AND]);
+    const r = await sendWake({ BUCKET, APNS_KEY: k.pem, APNS_KEY_ID: "KID", APNS_TEAM_ID: "TEAM" },
+                             async (u) => { urls.push(u); return new Response(null, { status: 200 }); }, at("2026-11-14T12:00:00Z"), "dfo");
+    expect(urls).toEqual([`https://api.sandbox.push.apple.com/3/device/${IOS}`]);
+    expect(r.ios).toEqual({ configured: true, missing: [], tokens: 1, sent: 1, dead: 0, failed: 0, errors: [] });
+    expect(r.unreadable).toBe(1);
+    expect(r.ok).toBe(false);
+    expect(tokens(BUCKET).map((t) => t.token)).toEqual([IOS]);
+    expect(Object.keys(r).sort()).toEqual(["at", "ios", "ok", "reason", "unreadable"]);
   });
 
   it("a stored token record that does not parse is a fault: counted, the send not ok, shown on /status; the record deleted", async () => {
@@ -208,10 +183,10 @@ describe("sendWake (T739)", () => {
     expect(r.ios.tokens).toBe(1);
     expect(BUCKET.m.has(`${TOKENS_PREFIX}broken.json`)).toBe(false);
     const h = await (await worker.fetch(new Request("https://w.example/status"), { BUCKET } as never)).text();
-    expect(h).toContain('<b class="failing">1 stored token record(s) did not parse (deleted)</b>');
+    expect(h).toContain('<b class="failing">1 stored token record(s) did not parse or were not an iPhone\'s (deleted)</b>');
   });
 
-  it("a key that cannot be read fails every token of that platform, said (never a silent skip)", async () => {
+  it("a key that cannot be read fails every token, said (never a silent skip)", async () => {
     const BUCKET = new MemBucket();
     await seed(BUCKET, [{ platform: "ios", token: IOS, env: "sandbox" }]);
     const r = await sendWake({ BUCKET, APNS_KEY: "-----BEGIN PRIVATE KEY-----\nAAAA\n-----END PRIVATE KEY-----", APNS_KEY_ID: "K", APNS_TEAM_ID: "T" },
@@ -254,14 +229,15 @@ describe("when a wake is sent (T739)", () => {
     expect(await newRelease(BUCKET)).toBe(null);
   });
 
-  it("GET /status.json says which platform cannot send, and the last send", async () => {
+  it("GET /status.json says whether iPhone push can send (no Android row), and the last send", async () => {
     const BUCKET = new MemBucket();
     BUCKET.m.set(PUSH_STATUS_KEY, JSON.stringify({ at: "2026-11-14T12:00:00.000Z", reason: "gauges", ok: true }));
     const r = await worker.fetch(new Request("https://w.example/status.json"), { BUCKET, APNS_KEY: "k", APNS_KEY_ID: "i", APNS_TEAM_ID: "t" } as never);
     const j = await r.json() as { push: unknown };
-    expect(j.push).toEqual({ missing: { ios: [], android: ["FCM_SERVICE_ACCOUNT"] }, last: { at: "2026-11-14T12:00:00.000Z", reason: "gauges", ok: true } });
+    expect(j.push).toEqual({ missing: { ios: [] }, last: { at: "2026-11-14T12:00:00.000Z", reason: "gauges", ok: true } });
     const h = await (await worker.fetch(new Request("https://w.example/status"), { BUCKET } as never)).text();
     expect(h).toContain('<h2>Push wake-ups</h2>');
-    expect(h).toContain('<td>android</td><td class="failing">not configured</td><td><small>nothing is sent: FCM_SERVICE_ACCOUNT not set<br>no send yet</small></td>');
+    expect(h).toContain('<td>ios</td><td class="failing">not configured</td><td><small>nothing is sent: APNS_KEY, APNS_KEY_ID, APNS_TEAM_ID not set<br>no send yet</small></td>');
+    expect(h).not.toContain("<td>android</td>");
   });
 });

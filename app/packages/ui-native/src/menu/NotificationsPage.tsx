@@ -190,9 +190,10 @@ export function NotificationsPage({ n, palette, source = null }: {
         )}
         {n.error && <Text testID="notify-error" style={{ ...TYPE.small, color: palette.closed }}>{n.error}</Text>}
         {/* (T722 F3) a word per platform (AGENTS 34a: Platform.select): iOS promises no interval, the OS decides;
-            (T739) a build whose checks are also woken by push says what the server is sent and keeps */}
+            (T739) a build whose checks are also woken by push (iPhone only, owner 2026-11-16) says what the server
+            is sent and keeps */}
         <Text testID="notify-intro" style={{ ...TYPE.small, color: palette.sub }}>
-          {n.push ? Platform.select({ ios: W.introPushIos, default: W.introPushAndroid })
+          {n.push ? W.introPushIos
                   : Platform.select({ ios: W.introIos, default: W.intro })}</Text>
         {n.pushStatus && <PushLine n={n} palette={palette} />}
       </Card>

@@ -40,7 +40,7 @@ import { checkRunTiming } from "./runtiming";
 import { handlePush, newRelease, pushMissing, PUSH_STATUS_KEY, sendWake, wakeReason, type PushEnv } from "./push";
 import { capEvents, CORS as REPORT_CORS, handleReport, listReportsCounted, purgeLimits, purgeReports, purgeTestReports, reportEvents, RETENTION_DAYS, RETENTION_STATUS_KEY, type ReportEnv } from "./reports";
 
-/** (T739) PushEnv: the APNs / FCM secrets (APNS_KEY, APNS_KEY_ID, APNS_TEAM_ID, FCM_SERVICE_ACCOUNT; src/push.ts) */
+/** (T739) PushEnv: the APNs secrets (APNS_KEY, APNS_KEY_ID, APNS_TEAM_ID; src/push.ts; iPhone only, no FCM) */
 export interface Env extends ReportEnv, DispatchEnv, PushEnv {
   BUCKET: R2BucketLike;
   RUN_TOKEN?: string;
@@ -550,10 +550,9 @@ async function run(job: Job, env: Env, opts: { regions?: string[]; limit?: numbe
     if (why) {
       try {
         const r = await sendWake(env, (u, i) => fetch(u, i), new Date(), why);
-        push = { reason: why, ok: r.ok, unreadable: r.unreadable, ios: { sent: r.ios.sent, failed: r.ios.failed, missing: r.ios.missing },
-                 android: { sent: r.android.sent, failed: r.android.failed, missing: r.android.missing } };
-        if (r.ios.failed + r.android.failed) logErr(`push: ${r.ios.failed + r.android.failed} wake(s) failed (${[...r.ios.errors, ...r.android.errors].slice(0, 3).join("; ")})`);
-        if (r.unreadable) logErr(`push: ${r.unreadable} stored token record(s) did not parse; deleted (those phones register again at their next start)`);
+        push = { reason: why, ok: r.ok, unreadable: r.unreadable, ios: { sent: r.ios.sent, failed: r.ios.failed, missing: r.ios.missing } };
+        if (r.ios.failed) logErr(`push: ${r.ios.failed} wake(s) failed (${r.ios.errors.slice(0, 3).join("; ")})`);
+        if (r.unreadable) logErr(`push: ${r.unreadable} stored token record(s) did not parse or were not an iPhone's; deleted (those phones register again at their next start)`);
       } catch (e) { logErr(`push: not sent (${String((e as Error)?.message ?? e)})`); }
     }
   }

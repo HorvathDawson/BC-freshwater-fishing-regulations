@@ -31,7 +31,7 @@ export interface NotifyPlatform {
   schedule(active: boolean): Promise<void>;
   /**
    * (T739) send (true) or withdraw (false) this phone's push token with our server, so a feed change wakes the same
-   * check at once; absent: this build has no push (the web; Android until its Firebase file is in the build)
+   * check at once; absent: this build has no push (the web; Android, owner 2026-11-16: no Android push)
    */
   push?(active: boolean): Promise<void>;
   /** (T822) what the push registration last did (`@app/data` `PushRegistrar`): said on More → Notifications, never silent */
@@ -45,7 +45,7 @@ export interface NotifyControls {
   readonly appVersion?: boolean;
 }
 
-/** (T739) this build wakes its check by push (its words say so: core `NOTIFY_WORDS.introPush*`) */
+/** (T739) this build wakes its check by push (its words say so: core `NOTIFY_WORDS.introPushIos`) */
 const hasPush = (c: NotifyControls | null): boolean => typeof c?.platform.push === "function";
 
 const NotifyContext = createContext<NotifyControls | null>(null);

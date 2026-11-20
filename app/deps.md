@@ -258,12 +258,11 @@ off as before; shrinking is a decision of its own (keep rules + a device walk), 
   manifest RECEIVE_BOOT_COMPLETED + POST_NOTIFICATIONS); with no `google-services.json` Firebase never initialises (one
   log line at start) and nothing registers — the emulator checklist in T234 confirms it.
   (T739, owner 2026-11-14) NOW ALSO THE PUSH TOKEN AND THE PUSH WAKE-UP, no new package: `getDevicePushTokenAsync` /
-  `addPushTokenListener` (`apps/mobile/src/pushToken.ios.ts` / `.android.ts`) and `registerTaskAsync` (the background
+  `addPushTokenListener` (`apps/mobile/src/pushToken.ios.ts`) and `registerTaskAsync` (the background
   notification task, `notify.native.ts`); its config plugin's `enableBackgroundRemoteNotifications` adds iOS's
   `remote-notification` background mode. The token goes to our own feeds worker only (no Expo push service: auto server
-  registration is never turned on). On Android all of it stays off until a build carries the owner's
-  `google-services.json` and `EXPO_PUBLIC_FCM=1` (app.config.js); Firebase is then used for push delivery only, Analytics
-  collection off in the manifest (`plugins/with-fcm-no-analytics.js`) and no analytics library added.
+  registration is never turned on). iPhone only: no Android push (owner 2026-11-16, on Firebase: "we dont want this right
+  now"), so Android asks for no token (`pushToken.android.ts` is null) and no build carries `google-services.json`.
 - `expo-background-task` — pinned 58.0.11 (`bundledNativeModules`: `~58.0.11`). (T234) The phone's periodic check:
   Android WorkManager / iOS BGTaskScheduler, ~15 min at best (the system decides; Doze stretches it). Expo's successor to
   `expo-background-fetch` (deprecated in SDK 53: Android's old JobScheduler path and iOS's background fetch API). Chosen

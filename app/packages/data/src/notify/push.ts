@@ -1,7 +1,7 @@
 /**
  * (T739) THE PUSH TOKEN, KEPT IN STEP WITH THE READER'S NOTIFICATIONS. Platform-free: the app hands in the platform's
- * token seam (`apps/mobile` `pushToken.ios.ts` / `.android.ts`: expo-notifications' device token; none on the web and
- * none on Android until the Firebase file is in the build), our worker's address (`POST <url>/register|unregister`,
+ * token seam (`apps/mobile` `pushToken.ios.ts`: expo-notifications' device token; none on the web and none on Android,
+ * owner 2026-11-16: no Android push), our worker's address (`POST <url>/register|unregister`,
  * app/workers/feeds src/push.ts) and a small store of what was last sent.
  *
  *   on    (the reader has notifications on: `notifyActive`) the token is read and registered ONCE PER APP START even
@@ -26,15 +26,16 @@
  */
 import { environmentError, isEnvironment, reportFailure } from "@app/core";
 
-export type PushPlatformName = "ios" | "android";
+/** (owner 2026-11-16 12:08, on Firebase: "we dont want this right now") iPhone only; the worker refuses "android" */
+export type PushPlatformName = "ios";
 export type PushEnvName = "sandbox" | "production";
 
 /** The platform's half (`apps/mobile` `pushToken.*`). */
 export interface PushSeam {
   readonly platform: PushPlatformName;
-  /** APNs environment of this build ("sandbox" for a simulator / development build); Android is always "production" */
+  /** APNs environment of this build ("sandbox" for a simulator / development build) */
   readonly env: PushEnvName;
-  /** the device push token (APNs hex / FCM token); throws when the system will not give one */
+  /** the device push token (APNs hex); throws when the system will not give one */
   token(): Promise<string>;
   /** the system handed the app a new token; returns the undo */
   onToken(on: (token: string) => void): () => void;

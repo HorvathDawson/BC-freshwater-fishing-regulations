@@ -18,7 +18,7 @@
  *               (core `appVersionFileUrl`: `latest.json` beside the staging APK page; a store build has none).
  *               Never Play's own check: Play's in-app update API needs the app in the foreground.
  *   push        (T739, owner 2026-11-14) while the reader has notifications on, this phone's push token (`./pushToken`:
- *               APNs on iPhone; FCM on Android only once the Firebase file is in the build) is registered with our
+ *               APNs on iPhone; none on Android, owner 2026-11-16: no Android push, no task) is registered with our
  *               worker (`PUSH_URL`, POST /push/register; withdrawn when they turn off). The worker's content-free
  *               "check now" push starts PUSH_TASK: `runWake` (@app/data) — the update service's check in this runtime
  *               (it starts a newer release's download when the mobile-data setting allows) and then the SAME check as
