@@ -15,6 +15,13 @@ export const APP_STORE_PUBLIC = false;
 /** Play's page 404s to the public while the app is in closed testing (checked 2026-11-19). Both flags go true at launch. */
 export const PLAY_PUBLIC = false;
 
+/**
+ * (T921, owner 2026-11-19: "in the webapp where it says join apple trial we could have this link") THE PUBLIC TESTFLIGHT
+ * INVITE: anyone with the link joins the iPhone test, no email needed. While the App Store page is not public, "Join the
+ * iPhone test" opens it (`getAppBlock`). Null: back to the email ask.
+ */
+export const TESTFLIGHT_URL: string | null = "https://testflight.apple.com/join/x7uVRt8j";
+
 /** The App Store address to link to, or null while the page is not public (the button says the iPhone app is coming). */
 export const appStoreLink = (): string | null => (APP_STORE_PUBLIC ? APP_STORE_URL : null);
 

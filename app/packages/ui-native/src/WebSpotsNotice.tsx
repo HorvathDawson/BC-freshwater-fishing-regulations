@@ -6,7 +6,7 @@
 import { useState } from "react";
 import { Platform, ScrollView, View } from "react-native";
 import { Text } from "./Text";
-import { appStoreLink, getAppBlock, type JoinStore, playStoreLink, WEB_SPOTS_WORDS as W } from "@app/core";
+import { appStoreLink, getAppBlock, TESTFLIGHT_URL, type JoinStore, playStoreLink, WEB_SPOTS_WORDS as W } from "@app/core";
 import { Button } from "./Button";
 import { JoinTestCard } from "./JoinTestCard";
 import { TYPE } from "./type";
@@ -27,8 +27,10 @@ export const showWebSpotsNotice = (on: boolean | null) => { forced = on; };
 /** equal-width slots: side by side where two fit, else each the full width */
 const SLOT = { flexBasis: 200, minWidth: 200 } as const;
 
-export function WebSpotsNotice({ palette, onDone, contact = null, onReport }: {
+export function WebSpotsNotice({ palette, onDone, contact = null, onReport, testflight = TESTFLIGHT_URL }: {
   palette: Palette;
+  /** (T921) the public iPhone test invite (core's `TESTFLIGHT_URL`); null: the iPhone join is the email ask */
+  testflight?: string | null;
   /** (T901) the app's contact value (More → Contact): "Join the test" emails it */
   contact?: string | null;
   /** (T901) no contact address: "Join the test" opens the Report form with this text in it (absent: no such press) */
@@ -38,7 +40,7 @@ export function WebSpotsNotice({ palette, onDone, contact = null, onReport }: {
 }) {
   // (T911) a Join the test press with an address opens the card (email me / copy email); without one it is the Report form
   const [joining, setJoining] = useState<JoinStore | null>(null);
-  const block = getAppBlock(playStoreLink(), appStoreLink(), contact, onReport !== undefined);
+  const block = getAppBlock(playStoreLink(), appStoreLink(), contact, onReport !== undefined, testflight);
   return (
     <View testID="web-spots-notice" style={{ flex: 1, backgroundColor: palette.card }}>
       <View style={{ paddingHorizontal: GUTTER, paddingTop: 16, paddingBottom: 12, borderBottomWidth: 1.5, borderBottomColor: palette.ink }}>

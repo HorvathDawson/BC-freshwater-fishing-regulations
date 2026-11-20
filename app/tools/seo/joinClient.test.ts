@@ -24,7 +24,7 @@ let clip: { writeText: (t: string) => Promise<void> } | undefined;
 /** the crash reports the page posted: their names and messages */
 let posted: { url: string; name: string; message: string; app: string }[] = [];
 const CRASH = "https://crash.test/crash";
-function mount(html = openInAppControl(null, null, C)) {
+function mount(html = openInAppControl(null, null, C, null)) {
   // the gauge page's config (gaugeBody): the crash endpoint the page's reports go to
   document.body.innerHTML = `<script type="application/json" id="gauge-config">${JSON.stringify({ crash: CRASH, env: "test", release: "r-test" })}</script>` +
     `<div class="opens">${html}</div>`;
@@ -48,7 +48,7 @@ describe("the site's Join the test card (T911)", () => {
     expect(() => joinPopup(document, () => undefined, () => {})).not.toThrow();
   });
   it("each Join link is still the mailto, beside a closed dialog with the line, Email me and Copy email", () => {
-    const html = openInAppControl(null, null, C);
+    const html = openInAppControl(null, null, C, null);
     expect(html).toContain(`<a class="app" href="mailto:${C}?subject=Join%20the%20Android%20test&amp;body=`);
     expect(html).toContain(`data-join="join-android"`);
     expect(html).toContain(P.android); expect(html).toContain(P.iphone);
@@ -57,7 +57,7 @@ describe("the site's Join the test card (T911)", () => {
     expect(html).not.toMatch(/<script/);
   });
   it("no contact: no buttons and no dialogs", () => {
-    expect(openInAppControl(null, null, null)).not.toContain("dialog");
+    expect(openInAppControl(null, null, null, null)).not.toContain("dialog");
   });
   it("a click opens the card instead of the mail, with Email me on the same mailto", () => {
     mount();

@@ -40,13 +40,13 @@ describe("the web's spots notice (T302)", () => {
   });
   it("T901: no contact address: the press opens Report with that subject; no address and no Report: no press at all", () => {
     const asks: string[] = [];
-    render(<WebSpotsNotice palette={LIGHT} onReport={(t) => asks.push(t)} />);
+    render(<WebSpotsNotice palette={LIGHT} onReport={(t) => asks.push(t)} testflight={null} />);
     fireEvent.click(screen.getByText("Join the Android test"));
     fireEvent.click(screen.getByText("Join the iPhone test"));
     expect(asks[0]!.startsWith("Join the Android test")).toBe(true);
     expect(asks[1]!.startsWith("Join the iPhone test")).toBe(true);
     cleanup();
-    render(<WebSpotsNotice palette={LIGHT} />);
+    render(<WebSpotsNotice palette={LIGHT} testflight={null} />);
     expect(screen.queryByText(/Join the/)).toBeNull();
   });
   it("T901: one store live: only the other platform keeps its join button, and the line names only it", async () => {

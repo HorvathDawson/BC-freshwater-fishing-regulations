@@ -82,7 +82,7 @@ describe("T724 apple-app-site-association", () => {
 describe("T514 / T901 share page 'Get the app' block", () => {
   const C = "support@canifishthis.ca", A = "https://apps.apple.com/app/id6835000455";
   it("neither public (the shipped default): one plain line, a lead, and a mailto button per platform; no span, no disabled control", () => {
-    const html = openInAppControl(null, null, C);
+    const html = openInAppControl(null, null, C, null);
     expect(html).toContain(`<p class="small coming">Coming soon to Google Play and the App Store.</p>`);
     expect(html).toContain(`<p class="small joins">Want to try it early?</p>`);
     expect(html).toContain(`<a class="app" href="mailto:${C}?subject=Join%20the%20Android%20test&amp;body=`);
@@ -93,21 +93,27 @@ describe("T514 / T901 share page 'Get the app' block", () => {
     expect(appStoreLink()).toBeNull(); expect(playStoreLink()).toBeNull();      // both pages 404 today
   });
   it("no contact: the line, and no button", () => {
-    expect(openInAppControl(null, null, null)).toBe(`<p class="small coming">Coming soon to Google Play and the App Store.</p>`);
+    expect(openInAppControl(null, null, null, null)).toBe(`<p class="small coming">Coming soon to Google Play and the App Store.</p>`);
   });
   it("a store going live: its link in the join button's spot, the line and the lead name only what is left", () => {
-    const html = openInAppControl(PLAY_STORE_URL, null, C);
+    const html = openInAppControl(PLAY_STORE_URL, null, C, null);
     expect(html).toContain(`<a class="app" href="${PLAY_STORE_URL}">Google Play</a>`);
     expect(html).toContain("Coming soon to the App Store.");
     expect(html).not.toContain("Android test");
     expect(html).toContain("Join the iPhone test");
   });
   it("both live: two store links, no line", () => {
-    expect(openInAppControl(PLAY_STORE_URL, A, C)).toBe(
+    expect(openInAppControl(PLAY_STORE_URL, A, C, null)).toBe(
       `<div class="stores"><a class="app" href="${PLAY_STORE_URL}">Google Play</a><a class="app" href="${A}">App Store</a></div>`);
   });
   it("the addresses are core's: Play by package, the App Store by the Apple ID", () => {
     expect(PLAY_STORE_URL).toBe(`https://play.google.com/store/apps/details?id=${APP_PACKAGE}`);
     expect(APP_STORE_URL).toMatch(/^https:\/\/apps\.apple\.com\/app\/id\d+$/);
+  });
+  it("(T921) the default iPhone join is the TestFlight invite, a plain link with no email card", () => {
+    const html = openInAppControl(null, null, C);
+    expect(html).toContain(`<a class="app" href="https://testflight.apple.com/join/x7uVRt8j">Join the iPhone test</a>`);
+    expect(html).not.toContain(`id="join-iphone"`);
+    expect(html).toContain(`id="join-android"`);
   });
 });

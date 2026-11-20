@@ -14,7 +14,7 @@ afterEach(() => { cleanup(); vi.restoreAllMocks(); });
 describe("the Join the test card (T911)", () => {
   it("a press opens the card instead of the mail: the line in my voice, Email me and Copy email", () => {
     const open = vi.spyOn(Linking, "openURL").mockResolvedValue(true as never);
-    render(<WebSpotsNotice palette={LIGHT} contact={C} />);
+    render(<WebSpotsNotice palette={LIGHT} contact={C} testflight={null} />);
     expect(screen.queryByTestId("join-test-card")).toBeNull();
     fireEvent.click(screen.getByText("Join the Android test"));
     expect(open).not.toHaveBeenCalled();
@@ -24,13 +24,13 @@ describe("the Join the test card (T911)", () => {
     expect(screen.getByText(P.copy)).toBeTruthy();
   });
   it("the iPhone press says the iPhone line", () => {
-    render(<WebSpotsNotice palette={LIGHT} contact={C} />);
+    render(<WebSpotsNotice palette={LIGHT} contact={C} testflight={null} />);
     fireEvent.click(screen.getByText("Join the iPhone test"));
     expect(screen.getByText(P.iphone)).toBeTruthy();
   });
   it("Email me opens the mailto naming the store", () => {
     const open = vi.spyOn(Linking, "openURL").mockResolvedValue(true as never);
-    render(<WebSpotsNotice palette={LIGHT} contact={C} />);
+    render(<WebSpotsNotice palette={LIGHT} contact={C} testflight={null} />);
     fireEvent.click(screen.getByText("Join the iPhone test"));
     fireEvent.click(screen.getByTestId("join-test-email"));
     const a = open.mock.calls.at(-1)![0] as string;
@@ -74,7 +74,7 @@ describe("the Join the test card (T911)", () => {
     } finally { undo(); }
   });
   it("closes by the ✕, the scrim and Escape", async () => {
-    render(<WebSpotsNotice palette={LIGHT} contact={C} />);
+    render(<WebSpotsNotice palette={LIGHT} contact={C} testflight={null} />);
     for (const how of ["close", "scrim", "escape"] as const) {
       fireEvent.click(screen.getByText("Join the Android test"));
       expect(screen.getByTestId("join-test-card")).toBeTruthy();
@@ -86,5 +86,12 @@ describe("the Join the test card (T911)", () => {
       else act(() => { fireEvent.keyUp(document, { key: "Escape" }); });
       expect(screen.queryByTestId("join-test-card")).toBeNull();
     }
+  });
+  it("(T921) with the TestFlight invite (the default), Join the iPhone test opens it: no card, no email", () => {
+    const open = vi.spyOn(Linking, "openURL").mockResolvedValue(true as never);
+    render(<WebSpotsNotice palette={LIGHT} contact={C} />);
+    fireEvent.click(screen.getByText("Join the iPhone test"));
+    expect(screen.queryByTestId("join-test-card")).toBeNull();
+    expect(open).toHaveBeenCalledWith("https://testflight.apple.com/join/x7uVRt8j");
   });
 });

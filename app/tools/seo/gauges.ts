@@ -22,7 +22,7 @@ import { OPEN_METEO_ATTRIBUTION, weatherPlace } from "../../packages/data/src/sp
 import { crashUrlFor, ORIGINS, REPORT_URLS } from "../../apps/mobile/src/env";
 import { clip, esc, SHARE_FONT, SHARE_GROUND, SHARE_H, SHARE_INK, SHARE_W, type Site } from "./html";
 import type { GaugeConfig } from "./gaugeClient";
-import { appStoreLink, WEB_SPOTS_WORDS, bestServes, gaugePath, getAppBlock, playStoreLink, type GetAppSlot, STALE_AFTER_MS, TRUST_RANK, type GaugeRows, type ServesTrust } from "@app/core";
+import { appStoreLink, TESTFLIGHT_URL, WEB_SPOTS_WORDS, bestServes, gaugePath, getAppBlock, playStoreLink, type GetAppSlot, STALE_AFTER_MS, TRUST_RANK, type GaugeRows, type ServesTrust } from "@app/core";
 import { readGaugeRows } from "@app/data/release";
 
 export { readGaugeRows, type GaugeRows };
@@ -165,8 +165,8 @@ export function gaugeDescription(g: GaugeModel): string {
  * `APP_STORE_PUBLIC` is false (`appStoreLink()` null); then its link. A phone with the app installed opens the app (T625).
  */
 export function openInAppControl(play: string | null = playStoreLink(), appStore: string | null = appStoreLink(),
-                                 contact: string | null = null): string {
-  const blk = getAppBlock(play, appStore, contact, false);
+                                 contact: string | null = null, testflight: string | null = TESTFLIGHT_URL): string {
+  const blk = getAppBlock(play, appStore, contact, false, testflight);
   const P = WEB_SPOTS_WORDS.join.popup;
   // (T911) a Join the test link still is the mailto (it works with no script); joinClient.ts opens its card over it
   const slot = (x: GetAppSlot) => x.kind === "store"

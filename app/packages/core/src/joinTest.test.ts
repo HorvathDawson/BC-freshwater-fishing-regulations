@@ -16,13 +16,13 @@ describe("join the test (T901)", () => {
   });
   const C = "support@canifishthis.ca", P = "https://play.google.com/x", A = "https://apps.apple.com/app/id1";
   it("both coming: one line naming both, a lead, and a Join button per platform", () => {
-    const b = getAppBlock(null, null, C, false);
+    const b = getAppBlock(null, null, C, false, null);
     expect(b.coming).toBe("Coming soon to Google Play and the App Store.");
     expect(b.lead).toBe("Want to try it early?");
     expect(b.slots.map((s) => [s.kind, s.store, s.label])).toEqual([["join", "android", "Join the Android test"], ["join", "iphone", "Join the iPhone test"]]);
   });
   it("a live store: its join becomes its store button in the same spot; the line names only the other", () => {
-    const b = getAppBlock(P, null, C, false);
+    const b = getAppBlock(P, null, C, false, null);
     expect(b.coming).toBe("Coming soon to the App Store.");
     expect(b.slots.map((s) => [s.kind, s.store, s.label])).toEqual([["store", "android", "Google Play"], ["join", "iphone", "Join the iPhone test"]]);
     expect(getAppBlock(null, A, C, false).coming).toBe("Coming soon to Google Play.");
@@ -32,7 +32,22 @@ describe("join the test (T901)", () => {
     expect([b.coming, b.lead, b.slots.map((s) => s.label)]).toEqual([null, null, ["Google Play", "App Store"]]);
   });
   it("no contact and no Report: no join button (never a dead one); with Report: both", () => {
-    expect(getAppBlock(null, null, null, false).slots).toEqual([]);
-    expect(getAppBlock(null, null, null, true).slots).toHaveLength(2);
+    expect(getAppBlock(null, null, null, false, null).slots).toEqual([]);
+    expect(getAppBlock(null, null, null, true, null).slots).toHaveLength(2);
+  });
+  it("(T921) a public TestFlight invite: Join the iPhone test opens it (no email), the lead stays; Android still emails", () => {
+    const T = "https://testflight.apple.com/join/x7uVRt8j";
+    const b = getAppBlock(null, null, C, false, T);
+    expect(b.coming).toBe("Coming soon to Google Play and the App Store.");
+    expect(b.lead).toBe("Want to try it early?");
+    expect(b.slots.map((s) => [s.kind, s.store, s.label, s.kind === "store" ? s.url : null]))
+      .toEqual([["join", "android", "Join the Android test", null], ["store", "iphone", "Join the iPhone test", T]]);
+    // even with no contact and no Report, the invite is a live press
+    expect(getAppBlock(null, null, null, false, T).slots.map((s) => s.store)).toEqual(["iphone"]);
+    // a public App Store page wins over the invite
+    expect(getAppBlock(null, A, C, false, T).slots[1]).toEqual({ kind: "store", store: "iphone", label: "App Store", url: A });
+  });
+  it("(T921) the shipped invite is the owner's TestFlight link", () => {
+    expect(getAppBlock(null, null, C, false).slots[1]).toMatchObject({ url: "https://testflight.apple.com/join/x7uVRt8j" });
   });
 });
