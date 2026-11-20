@@ -231,17 +231,22 @@ reads both files; a ticket closed here moves there once its lane is finished wit
 | T928 | iPhone: the main map fills only 2/3 of the screen after tab changes (tester via owner) | DONE | c71429593, 54b256e06 | — |
 | T929 | Water map: boundary labels don't line up with the place they name; the part looks mis-framed (Chilliwack) (tester via owner) | DONE | 65691d11d, 752b5596e, 819419ebb | — |
 | T930 | First Nations names as search names in name_variants.json (hand list of big waters, then BC Geographical Names) (owner) | POSTPONED (deferred, owner 2026-11-19: after bathy map, stocked lakes, charts; T200/T201/T634) | | owner 2026-11-19 "add to name_variants JSON in future" |
-| T931 | Live-data test tier: ~55 stale pins after the 11-15..11-19 rulings, one lake-loop invariant break (T753), env flakes | OPEN | | main chat 2026-11-19 tier diagnosis |
+| T931 | Live-data test tier: ~55 stale pins after the 11-15..11-19 rulings, one lake-loop invariant break (T753), env flakes | IN PROGRESS — left (Claude): main chat review + merge (3 refused pins = suspected bugs; panel invariant waits for the rebuild) | 68224fd7d, 0d2effc0f, 9f4f53e97, 89fcc181e | main chat 2026-11-19 tier diagnosis |
 | T932 | Audit name_variants.json: joined multi-lake lines, wrong targets, twins, book-print forms (owner) | POSTPONED (deferred with T930: after bathy map, stocked lakes, charts) | | owner 2026-11-20 "audit the name variants" |
 | T933 | A dataset for OpenStreetMap of the 324 streams we added (licence per city, missing-only, OSM import process) (owner) | POSTPONED (deferred with T930: after bathy map, stocked lakes, charts) | | owner 2026-11-20 "dataset for OSM" |
 | T934 | The salmon year bar shows the B.C. bait ban and fly-only days too (owner) | DONE | 05dacb264 bb7b5ec53 40b7a90ae 2be00455c | owner 2026-11-20 "Bait ban needs to apply to salmon" |
 | T935 | iPhone: the year bars' closed days and the Closed key swatch draw no colour (owner) | DONE | 33aa04409 8bcbb359a 7008a6c73 | owner 2026-11-20 "On apple DFO calendar when closed has no color" |
-| T936 | Build warning: salmon open on a game-fish-closed day that carries a B.C. gear rule (owner) | OPEN | | owner 2026-11-20 "add a build warning if there is a waterbody like that" |
+| T936 | Build warning: salmon open on a game-fish-closed day that carries a B.C. gear rule (owner) | IN PROGRESS — left (Claude): main chat review + merge (live release: none) | cff5478e9, 0f8a4143d | owner 2026-11-20 "add a build warning if there is a waterbody like that" |
 | T937 | Salmon map: no-access water drawn grey like Trout, with its key entry (owner) | DONE | 81bb25ee5, b9ff4163a, 627303b49, 802f9a5ef | owner 2026-11-20 "salmon should have the no access land set to grey like trout" |
 | T938 | iPhone: after search → water → Back, the browse map draws only its top part (found chasing T928) | OPEN | | main chat lane 2026-11-20, simulator; in 0.8.3 too |
 | T939 | DFO salmon: the quota quote drops trailing conditions ("only 2 over 35 cm") | OPEN | | review of lane/l1-feeds 2026-11-20 |
 | T940 | Satellite: one colour set for all water lines, the same in light and dark (owner) | OPEN | | owner 2026-11-20, after this release |
 | T941 | Search rows and neighbour-water names show a water's name cased, as the water page does (core item.name via display_case at bundle export) | OPEN | | main chat 2026-11-20 (T926 review), after this release unless small |
+| T942 | Kitimat: the 2-over-50 cm rule (only 1 not a hatchery steelhead) is enforced but no longer shown | OPEN | | lane/t936-t931 2026-11-20 (T931 A refused pins) |
+| T943 | Chilliwack Lake: the lake trout row shows no wild cap (a wild one can never be kept) | OPEN | | lane/t936-t931 2026-11-20 (T931 A) |
+| T944 | Shea Creek dead-end piece 773423 carries both the Bulkley's and the Morice's Classified Waters units | OPEN | | lane/t936-t931 2026-11-20 (T931 B refused pin) |
+| T945 | Committed unnamed-tributary sweep result stale against the live bundle (41 streams) | OPEN | | lane/t936-t931 2026-11-20 test-full |
+| T946 | Tier 2 tributary lines: 20 parts (Lake Revelstoke tributaries DV, Iverson Creek) not what their rail sets | OPEN | | lane/t936-t931 2026-11-20 test-full |
 
 ## Next after closed testing
 

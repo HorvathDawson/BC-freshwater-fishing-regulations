@@ -552,11 +552,13 @@ def bundle_section_measure(b: sqlite3.Connection) -> List[tuple]:
 
 def build(*, bundle: Path, store: Path, status_index: Path, export_dir: Path, out_root: Path,
           data_release: Optional[str] = None, tiles: Optional[dict] = None, basemap: Optional[dict] = None,
-          lakes: Optional[Path] = None, sources: Optional[dict] = None, synopsis: Optional[Path] = None) -> Path:
+          lakes: Optional[Path] = None, sources: Optional[dict] = None, synopsis: Optional[Path] = None,
+          reports: Optional[Path] = None) -> Path:
     """Write the release; return its directory (only the shipped files + manifest.json). `tiles`/`basemap`/`sources`
     are the manifest's blocks (manifest.py); `lakes` an optional lakes/1 file (pipeline/deliver/lake_facts.py), shipped
     as the file `lakes`; None (the default, and `deliver all`) ships none. Reads nothing past the bundle: the continuation
-    links are the bundle's own `water_continue`."""
+    links are the bundle's own `water_continue`. `reports` (T936): the build reports' root — the release's own lists are
+    written to `<reports>/<release id>/` (never shipped); None writes none (the warnings are still printed)."""
     from pipeline.deliver.answers.card_check import STAMP_NAME, stamp_problems
     answers = export_dir / "ui-rules-answers.json"
     bad = stamp_problems(answers, answers.read_bytes())
@@ -595,6 +597,17 @@ def build(*, bundle: Path, store: Path, status_index: Path, export_dir: Path, ou
         # the stored verdicts beside the bundle say which rule closes which section on which days)
         _payload, _secs = SALMON.read_bundle(b)
         _payload, _secs = SALMON.with_book_closures(_payload, _secs, *SALMON.book_inputs(bundle, _secs))
+        # (T936) a WARNING, never a stop: game fish closed by species closures alone, DFO salmon open or release, and a
+        # B.C. bait ban / fly rule the closed day's strip does not draw (salmon_gear.py); the whole list goes to `reports`
+        from pipeline.deliver.release import salmon_gear as SALMON_GEAR
+        from pipeline.deliver.store.decode import Store as _Store
+        try:                                            # (T936 review) a warning never stops the build
+            _gear_hidden = SALMON_GEAR.rows(_Store(None, verify=False, con=st), _payload, _secs,
+                                            lambda: SALMON_GEAR.bundle_parts(b))
+            print(SALMON_GEAR.say(_gear_hidden))
+        except Exception as e:                          # shown, not swallowed: the build log names it
+            _gear_hidden = None
+            print(f"WARNING (T936): the hidden-gear check could not run: {type(e).__name__}: {e}")
         for name, blob in SALMON.encode_files(_payload, _secs, base["section_handles"],
                                                lambda sid: _sid_regions.get(sid, ())).items():
             (work / f"{name}.bin").write_bytes(blob)
@@ -677,6 +690,11 @@ def build(*, bundle: Path, store: Path, status_index: Path, export_dir: Path, ou
         # T517 (owner 2026-11-09: fail fast; review finding 8): the names and run rules on the SHIPPED water file too
         from pipeline.deliver.answers.display.name_check import check_release as _name_check
         _name_check(final)
+        if reports is not None and _gear_hidden is not None:   # (T936) beside the release's other reports, by its id
+            try:                                        # after ship(), before LATEST: a failed report never strands it
+                SALMON_GEAR.write(_gear_hidden, Path(reports) / final.name)
+            except OSError as e:
+                print(f"WARNING (T936): the hidden-gear report could not be written: {e}")
         from pipeline.deliver.release.manifest import write_latest
         write_latest(out_root, final.name)              # T72: the pointer every reader asks, not the newest mtime
         return final

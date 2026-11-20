@@ -108,10 +108,11 @@ def test_vedder_mouth_oct_10_card(built):
 @pytest.mark.needs_bundle
 def test_duncan_and_lardeau_cards(built):
     d = _text(_trout(built, DUNCAN, ("mouth", "duncan_river__lardeau_river_into_duncan_river")))
-    # ROUND10 W1: the row's two lifts are ONE line, each kind with its number, highest first
+    # ROUND10 W1: the row's lifts are ONE line. T834 (owner 2026-11-17 11:10, "Strict everywhere"; RULINGS T17, T3a
+    # revised): the bull trout's own 2 equals the 2 from streams and lifts nothing, so the line names rainbow alone
     assert d[:2] == ["2 trout/char a day from streams",            # T475: Region 4 keeps wild fish too
-                     "On this river, its own rule replaces Region 4’s 2-from-streams limit for rainbow "
-                     "trout (up to 5 a day) and Dolly Varden/bull trout (up to 2 a day)."]
+                     "On this river, rainbow trout: up to 5 a day — this river’s rule replaces Region 4’s "
+                     "2-from-streams limit for them."]
     lc = _text(_trout(built, LARDEAU_CREEK))
     assert lc[1] == ("On the Duncan River and its tributaries, rainbow trout: up to 5 a day — the "
                      "Duncan River’s rule replaces Region 4’s 2-from-streams limit for them.")
@@ -120,7 +121,11 @@ def test_duncan_and_lardeau_cards(built):
 @pytest.mark.needs_bundle
 def test_kootenay_lake_plain_lake_and_plain_stream_cards(built):
     k = _text(_trout(built, KOOTENAY_MAIN))
-    assert k[0] == "5 a day per angler" and not any("rule replaces" in t for t in k)
+    # T834 (owner 2026-11-17 13:15, box head "Lead with 5"): the lake's rainbow 10 raises the region's 5 for rainbow
+    # only; the card leads with the region's 5 and says the 10 as the rainbow's exception (still no "rule replaces")
+    assert k[:2] == ["5 trout/char a day",
+                     "On this lake, rainbow trout up to 10 a day — they count toward the 5; past 5, rainbow trout only."]
+    assert not any("rule replaces" in t for t in k)
     lake = _text(_trout(built, R2_LAKE))
     assert lake[0] == "4 a day per angler" and ("Rainbow trout, cutthroat trout, brown trout, Dolly Varden/bull trout, lake "
                                      "trout or brook trout: only 1 over 50 cm between them") in lake

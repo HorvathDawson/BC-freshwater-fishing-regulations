@@ -188,9 +188,13 @@ def test_confirming_a_circle_writes_the_file_in_the_request_and_no_places_file(w
 @pytest.mark.needs_atlas
 def test_placing_an_unplaced_mouth_by_hand_and_an_area_dfo_dropped(wt):  # noqa: F811
     client = wt["client"]
-    a = _area(client, ROW, lambda a: a["kind"] == "circle" and a["state"] == "unplaced")
-    assert a["piece"] is None
-    on = client.get(f"/api/dfo/locations/{ROW}").json()["closure"]["on_item"]
+    # (T931 B; T812 / T803 item 10, owner 2026-11-16: the four missing creek mouths found and accepted with name
+    # variants) every live Babine circle is placed now — none is left unplaced. A mouth is still placed BY HAND the same
+    # way: a centre he gives, over the proposal
+    c = client.get(f"/api/dfo/locations/{ROW}").json()["closure"]
+    assert not [x for x in c["areas"] if x["live"] and x["state"] == "unplaced"], "an unplaced live Babine mouth again"
+    a = _area(client, ROW, lambda a: a["kind"] == "circle" and a["state"] == "placed" and not a["confirmed"])
+    on = c["on_item"]
     piece = {"key": a["key"], "water_id": BABINE, "name": a["name"], "item": a["item"], "kind": "circle",
              "on_item": on, "centre": [-126.0, 54.9], "radius_m": a["radius_m"]}
     pv = client.get(f"/api/dfo/locations/{ROW}/closed-area-preview", params={"piece": json.dumps(piece)})

@@ -95,39 +95,64 @@ def test_the_card_gate_proves_the_t805_waters():
     assert got["groups"] > 20 and got["problems"] == [], got["problems"][:10]
 
 
-def _duties(frame) -> dict:
-    return {k: [d for d in n["duties"] if d.startswith("in your possession")] for k, n in _kinds(frame).items()}
+# T810 ticket L (the cutover, 2026-11-18): the card's trout-only possession duty (`card._duties`' `possession_duty`) was
+# deleted; the fish's possession line is on the TROUT TABLE now — each table row's sheet (`table.boxes[].rows[].sheet`,
+# one row per fish), the page's own line on the rows frame's `page_possession`. Part B (RULINGS P58) is pinned there.
+POSSESSION_WATERS = (TAKLA, CUNNINGHAM, ISTSI, TAGISH)
+
+
+@pytest.fixture(scope="module")
+def table(request):
+    """The rows AND the trout table of the Part B waters (a build of its own: building `trout` cuts the rows over)."""
+    need(request, "bundle", BUNDLE, BUNDLE_HINT)
+    need(request, "bundle", EXPORT_DIR / "ui-rules-export.json", EXPORT_HINT)
+    data, guide = C.load_export(EXPORT_DIR)
+    return A.build(str(BUNDLE), EXPORT_DIR, workers=1, items=POSSESSION_WATERS, sections=["rows", "trout"],
+                   export=(data, guide), log=lambda *_: None)
+
+
+def _duties(model, item, md) -> dict:
+    """`{(box kind, fish): [the row sheet's "In your possession" sentences]}` of the water's trout table that day."""
+    k = model.parts[item][0]
+    t = model.sections["trout"][k][E.segment_index(model.segments[k], CAL.day_of(md))]
+    return {(b["kind"], r["key"]): [h["t"] for h in r["sheet"]["here"] if h["t"].startswith("In your possession")]
+            for b in t["table"]["boxes"] for r in b["rows"]}
 
 
 @pytest.mark.needs_bundle
-def test_zone_7a_lake_trout_and_bull_trout_say_one_days_limit_on_their_rows(built):
-    d = _duties(_frame(built, TAKLA, md=(7, 15)))
-    one = ["in your possession: 1 day’s limit, not 2 (fish at home don’t count)"]
-    assert d[("LT",)] == one and d[("DV",)] == one
-    assert d[("EB", "GB", "CT", "RB")] == []                 # the page's "2 daily quotas" is theirs
+def test_zone_7a_lake_trout_and_bull_trout_say_one_days_limit_on_their_rows(table):
+    d = _duties(table, TAKLA, (7, 15))
+    one = ["In your possession: 1 day’s limit, not 2 (fish at home don’t count)."]
+    assert d == {("keep", "EB"): [], ("keep", "GB"): [], ("keep", "CT"): [], ("keep", "RB"): [],   # the page's
+                 ("keep", "LT"): one, ("keep", "DV"): one}                                        # "2 days' quota"
 
 
 @pytest.mark.needs_bundle
-def test_cunningham_lake_trout_possession_with_its_size(built):
-    d = _duties(_frame(built, CUNNINGHAM, md=(7, 15)))
-    assert d[("LT",)] == ["in your possession: no more than 2 lake trout, only 1 over 50 cm (20 in) "
-                          "(fish at home don’t count)"]
+def test_cunningham_lake_trout_possession_with_its_size(table):
+    d = _duties(table, CUNNINGHAM, (7, 15))
+    assert d[("keep", "LT")] == ["In your possession: no more than 2 lake trout, only 1 over 50 cm (20 in) "
+                                 "(fish at home don’t count)."]
 
 
 @pytest.mark.needs_bundle
 @pytest.mark.parametrize("md", [(1, 15), (7, 15), (10, 15)])
-def test_the_bowron_park_possession_is_on_the_row_every_keeping_day(built, md):
-    """The fourth attack's artifact: the park's line showed only on days lake trout could not be kept."""
-    d = _duties(_frame(built, ISTSI, md=md))
-    assert d[("EB", "GB", "CT", "RB")] == [
-        "in your possession: no more than 1 trout and char in all (fish at home don’t count)"]
+def test_the_bowron_park_possession_is_on_the_row_every_keeping_day(table, md):
+    """The fourth attack's artifact: the park's line showed only on days lake trout could not be kept. On the table every
+    kept trout and char row says it every keeping day (T810 L e6e4a13af "Bowron's possession line": "just 1, the same
+    as the day" where the day's limit is 1 too; Oct 15, lake trout released, the line names the 1 in all)."""
+    d = _duties(table, ISTSI, md)
+    kept = {f: v for (kind, f), v in d.items() if kind == "keep"}
+    said = ("In your possession: no more than 1 trout and char in all (fish at home don’t count)." if md == (10, 15)
+            else "In your possession: just 1, the same as the day (fish at home don’t count).")
+    assert kept and set(kept) >= {"EB", "GB", "CT", "RB"} and all(v == [said] for v in kept.values()), kept
+    assert all(v == [] for (kind, _f), v in d.items() if kind != "keep")
 
 
 @pytest.mark.needs_bundle
-def test_tagish_lake_trout_possession_says_its_size(built):
-    d = _duties(_frame(built, TAGISH, md=(7, 15)))
-    assert d[("LT",)] == ["in your possession: no more than 2 lake trout, only 1 over 90 cm (35 in) "
-                          "(fish at home don’t count)"]
+def test_tagish_lake_trout_possession_says_its_size(table):
+    d = _duties(table, TAGISH, (7, 15))
+    assert d[("keep", "LT")] == ["In your possession: no more than 2 lake trout, only 1 over 90 cm (35 in) "
+                                 "(fish at home don’t count)."]
 
 
 @pytest.mark.needs_bundle

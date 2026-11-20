@@ -1,6 +1,6 @@
 """python -m pipeline.deliver.release [--bundle FILE] --store FILE [--status-index FILE] [--export-dir DIR]
                                     [--out-root DIR] [--data-release ID] [--lake-facts FILE]
-                                    [--tiles DIR] [--tiles-release-root DIR]
+                                    [--tiles DIR] [--tiles-release-root DIR] [--reports DIR]
 
 Writes `<out-root>/<data_release>/` (default `data/release/`), prints the sizes and fails on a size gate."""
 from __future__ import annotations
@@ -38,6 +38,9 @@ def main(argv=None) -> int:
     # (T667 slice 8) a release cut for tests on invented data (the mini release) names its fetched inputs and ships no
     # ground and no book, each by an explicit flag; with none, every input is the live one and a basemap is still
     # required (T416)
+    ap.add_argument("--reports", type=Path, default=None,
+                    help="(T936) the build reports' root: the release's own lists go to <reports>/<release id>/ "
+                         "(deliver all: data/generated/release/checks, beside the release command's checks); none: printed only")
     ap.add_argument("--no-basemap", action="store_true",
                     help="ship no basemap (manifest basemap: null): only for a release no device installs")
     ap.add_argument("--no-synopsis", action="store_true",
@@ -61,7 +64,7 @@ def main(argv=None) -> int:
         "section_handles"]
     d = B.build(bundle=a.bundle, store=a.store, status_index=a.status_index, export_dir=a.export_dir,
                 out_root=a.out_root, data_release=a.data_release, lakes=a.lake_facts,
-                synopsis=syn if syn is not None and syn.exists() else None,
+                synopsis=syn if syn is not None and syn.exists() else None, reports=a.reports,
                 tiles=tiles_block(a.tiles_release_root, handles, a.tiles / "atlas.meta.json"),
                 # T75: the released basemap (its sidecar beside the tiles), so a native install can fetch the ground
                 basemap=None if a.no_basemap else basemap_block(a.tiles_release_root, a.tiles / "basemap.meta.json"),

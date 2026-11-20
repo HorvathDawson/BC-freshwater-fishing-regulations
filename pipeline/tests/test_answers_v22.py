@@ -75,13 +75,14 @@ LOWEST = [(BABINE, "mouth"), (SKEENA, "area:SKEENA RIVER ECOLOGICAL RESERVE|skee
 @pytest.mark.parametrize("item,part", LOWEST, ids=[i for i, _ in LOWEST])
 def test_b_region_6_stream_trout_cap_is_one_for_all_trout_kinds_together(item, part):
     """p.49: '1 trout from streams July 1-Oct 31'. Sep 20 (lake trout released then): only 1 of the
-    5 can be brown, cutthroat, rainbow or steelhead — it was 3 (each kind's own 1, summed)."""
+    5 can be brown, cutthroat, rainbow or steelhead — it was 3 (each kind's own 1, summed).
+    RE-PINNED (T931 A): T854 / RULINGS C2 refined 2026-11-18 put brook trout (and lake trout, released on Sep 20) in that
+    line too (`species_except [DV]`), so it holds EVERY fish kept here: the row's own daily IS the 1, and there is no
+    per-kind sum left to cap (`real_daily` none). Still one 1 for all trout kinds together, never 1 each."""
     t = _tap(item, part, 9, 20, weekday="Sunday")
-    rd = _trout_row(t)["real_daily"]
-    assert rd["n"] == 5 and rd["capped_sum"] == 1 and rd["rb"]
-    assert sorted(rd["capped"]) == ["CT", "GB", "RB", "ST"]
-    assert rd["shared_count"] == [{"take": 1, "members": rd["shared_count"][0]["members"]}]
-    assert sorted(rd["shared_count"][0]["members"]) == ["CT", "GB", "RB", "ST"]
+    row = _trout_row(t)
+    assert row["daily"] == 1 and row["real_daily"] is None
+    assert sorted(row["members"]) == ["CT", "EB", "GB", "RB", "ST"]
 
 
 @pytest.mark.needs_bundle
@@ -111,9 +112,15 @@ def _general_caps(t):
 @pytest.mark.parametrize("item,part", LOWEST, ids=[i for i, _ in LOWEST])
 def test_d_region_6_one_over_50_counts_hatchery_steelhead(item, part):
     """p.49 '1 over 50 cm (quota includes hatchery steelhead)': the general cap leaves no fish out
-    (it was `except: [RB]`, which the page read as 'steelhead don't count')."""
-    caps = _general_caps(_tap(item, part, 8, 1))
-    assert caps and all(not c.get("except") for c in caps if c["a"] == 50)
+    (it was `except: [RB]`, which the page read as 'steelhead don't count').
+    RE-PINNED (T931 A): since T854 the row's day is the 1 from streams (above), and the cap is said as the row's group
+    fact (`groups[].facts` `t: cap`), no longer a general `conds` cap. It holds steelhead and every kind that may be kept
+    over 50 cm; rainbow trout are not in it only because here a rainbow over 50 cm IS a steelhead (its band ends at 50)."""
+    row = _trout_row(_tap(item, part, 8, 1))
+    caps = [f for g in row["groups"] for f in g["facts"] if f["t"] == "cap" and f["a"] == 50]
+    assert [(c["take"], sorted(c["members"])) for c in caps] == [(1, ["CT", "EB", "GB", "LT", "ST"])]
+    rb = next(i for i in row["items"] if i["members"] == ["RB"])
+    assert rb["bands"] == [[30, 50, 1]]
 
 
 @pytest.mark.needs_bundle

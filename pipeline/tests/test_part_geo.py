@@ -384,8 +384,11 @@ def test_the_chilliwack_and_the_cowichan_are_runs_in_river_order_with_a_named_ma
                      ("100 m below the Slesse Creek confluence", 2, "[3]"),
                      ("Chilliwack River Ecological Reserve boundary", 3, "[4]")]
     parts, marks = rows("gnis:12227")
-    assert len(parts) == 5 and [(m[1], m[2]) for m in marks] == [(k, f"[{k + 1}]") for k in range(4)]
-    assert [m[0] for m in marks][1:] == ["CNR Mile 66 Trestle", "CNR Bridge (mile 70.2)", "Greendale Trestle"]
+    # (T931 B; T743, the owner's DFO save of 2026-11-15 "from CNR Trestle at mile 70.2 to Skutz Falls") the Cowichan
+    # is six parts: DFO's Skutz Falls cut splits the Mile 66 trestle to CNR bridge stretch (one rule set, two salmon places)
+    assert len(parts) == 6 and [(m[1], m[2]) for m in marks] == [(k, f"[{k + 1}]") for k in range(5)]
+    assert [m[0] for m in marks][1:] == ["CNR Mile 66 Trestle", "Skutz Falls, approximate location (medium confidence)",
+                                         "CNR Bridge (mile 70.2)", "Greendale Trestle"]
 
 
 @pytest.mark.needs_bundle
@@ -467,7 +470,16 @@ def test_keep_named_reads_the_1_based_handle_and_the_lake_polygons(tmp_path):
 #: leaves its river at no named place, so neither side has an end the other shares. Pinned as a KNOWN COUNT on the
 #: side build (2026-11-08, r-… T517 fix lane); a change moves this number and must say why. The assert in
 #: `topology.mark_words` (a mark's words are the parts' end words) is not weakened: it holds wherever two main stems meet.
-UNLABELLED_MARKS = 110                 # 112 before two parts meeting across a lake were said by the lake (5)
+UNLABELLED_MARKS = 25                  # 112 before two parts meeting across a lake were said by the lake (5)
+# (T931 B, 2026-11-20) 110 -> 25, MEASURED mark by mark between the bundle before the 11-15 rebuild
+# (`bundle.pre_t743`, reach 4f1bdab9d319246f, 110 pairs) and the live one (r-6258ffded676, reach 6ca9a300dad3d95e):
+#   76 by 93a481b71 (2026-11-15, `tributaries.A_DEAD_END_GOES_WITH_ITS_WATER`, AGENTS 63): the side part (a dead
+#      end the walk never climbed) now carries the walk's rules (Chilko Lake tributaries r1, Skeena r1, Dean r7,
+#      Zymoetz r3/r4/r7 …) exactly, so it is the main part's key and the water is ONE part — the mark is gone;
+#    9 on 8 waters whose parts were otherwise re-cut or whose mark now has words: Kitsumkalum (2), Exchamsiks and
+#      Sustut marks now say their bridges (T850 bf22da0c2 cut naming); Bella Coola, Gosnell, Bulkley, Duncan and the
+#      Wood (gnis:8372) changed parts (their side part gained walk rules, not exactly the main part's).
+#   No water gained one. (Counted with scratchpad marks.py / merged.py over `part_mark.label IS NULL`.)
 #                                        106 -> 110 release r-0a9930fb8826 (2026-11-12, T678 D1 pond fold): Biddy,
 #                                        Gravel and Hill creeks and the Exchamsiks River each gain one — a pond folded
 #                                        into the stream carries the pond's other off-stem line as a side-channel part,

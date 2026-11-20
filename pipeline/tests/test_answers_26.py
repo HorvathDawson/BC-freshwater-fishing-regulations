@@ -133,13 +133,18 @@ def test_the_cowichans_fly_only_stretches_are_drawn_from_its_gear(built):
     CNR Mile 66 Trestle fly fishing only Sept 1-Nov 15; the river's bait ban all year (Region 1's
     streams)."""
     mid = "cowichan_river__cnr_bridge|cowichan_river__greendale_trestle"
-    above_66 = "cowichan_river__cnr_trestle|cowichan_river__cnr_bridge"
+    # (T931 B; T743, the owner's DFO save of 2026-11-15 "from CNR Trestle at mile 70.2 to Skutz Falls") the stretch
+    # from the Mile 66 trestle to the CNR bridge is two parts, cut at Skutz Falls where DFO's salmon place changes; one
+    # rule set, so both carry the book's Sept 1-Nov 15 fly only
+    above_66 = ("cowichan_river__cnr_trestle|cowichan_river__skutz_falls",
+                "cowichan_river__skutz_falls|cowichan_river__cnr_bridge")
     for d in ((1, 15), (5, 15), (10, 10), (12, 1)):
         f = at(built, COWICHAN, mid, d, "display")
         assert f["strip"] == CLOSED or f["strip"] & FLY, d
         assert at(built, COWICHAN, mid, d, "gear")["fly"] == "fly_fishing_only"
-    assert at(built, COWICHAN, above_66, (10, 10), "display")["strip"] == FLY | BAIT
-    assert at(built, COWICHAN, above_66, (5, 15), "display")["strip"] == BAIT
+    for part in above_66:
+        assert at(built, COWICHAN, part, (10, 10), "display")["strip"] == FLY | BAIT, part
+        assert at(built, COWICHAN, part, (5, 15), "display")["strip"] == BAIT, part
     # the mouth part is closed Sept 1-Nov 15 below the Mile 66 trestle: since T517 that rule set is two parts, cut where
     # DFO's salmon area changes at the White Triangle boundary sign, and both pieces are closed
     for below_66 in ("cowichan_river__white_triangle_boundary_sign_loc|mouth",
