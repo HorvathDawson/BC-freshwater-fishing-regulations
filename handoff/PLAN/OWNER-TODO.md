@@ -24,6 +24,14 @@ match the app. Pick: (a) leave it as approved, (b) Claude's edit below, (c) your
 4. "The services named above (Cloudflare, Open-Meteo, Esri)" leaves out Apple, which carries the silent signal. Edit: add
    Apple (push only). Also: the page's effective date (2026-11-19) should move to the day this goes live.
 No picture: this is wording only; the whole paragraph is quoted in T739 ("Owner answer, 2026-11-15 evening").
+Facts from the independent code review (2026-11-20), for the same pick; the approved wording is NOT changed:
+- The page says Apple/Google and iPhone/Android, but Android sends nothing (no Android push since 11-16).
+- To limit registrations, the server keeps a salted one-way hash of the phone's IP address for a day (the same as
+  problem and crash reports); the paragraph does not say so.
+- Besides the token and the platform, the server stores the APNs environment (sandbox / production) and the time of
+  the registration.
+- A token is sent only when notifications are on AND something is set to be checked (a gauge alert, "New
+  regulations data" or "New app version"), not on "notifications on" alone.
 
 ## 2026-11-20 ~06:55: number names, T923, satellite colours answered (dialog)
 

@@ -153,6 +153,7 @@ const ALLOW: Record<string, { n: number; why: string }> = {
   "tools/testbed/scenarios-ios/null-clears.mjs": { n: 3, why: `${TESTBED} (T832: two follow the Now shot, whose own failure already failed the run; +10 needs enough colour at Now to judge, which depends on the day's feed)` },
   "tools/testbed/scenarios-ios/modal-back.mjs": { n: 2, why: `${TESTBED} (T723: the "kb probe" spot is the keyboard scenario's; the iOS photo picker cannot always be driven)` },
   "tools/testbed/scenarios/crash-bed.mjs": { n: 1, why: `${TESTBED} (needs the stub APK, session.sh --crash-stub)` },
+  "tools/testbed/scenarios/push-absent.mjs": { n: 1, why: `${TESTBED} (T739: needs the stub APK, session.sh --crash-stub: a register must never reach staging)` },
   "tools/testbed/scenarios/photo-zoom.mjs": { n: 2, why: `${TESTBED} (T454: pinch needs multi-touch injection, which the emulator refuses)` },
   "tools/testbed/scenarios/spots.mjs": { n: 1, why: TESTBED },
   "tools/testbed/scenarios/saved-spots.mjs": { n: 4, why: `${TESTBED} (T603: each follows a step whose own failure already failed the run: spot saved, editor reached, alert saved)` },

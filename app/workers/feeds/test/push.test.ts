@@ -4,7 +4,7 @@
 import { describe, expect, it } from "vitest";
 import worker from "../src/index";
 import {
-  APNS_PAYLOAD, apnsJwt, apnsRequest, handlePush, newRelease, PUSH_STATE_KEY, PUSH_STATUS_KEY, pushMissing,
+  APNS_PAYLOAD, apnsJwt, apnsRequest, handlePush, markReleaseSeen, newRelease, PUSH_STATE_KEY, PUSH_STATUS_KEY, pushMissing,
   sendWake, TOKENS_PREFIX, tokenKey, validatePush, wakeReason, MANIFEST_KEY,
 } from "../src/push";
 import type { R2BucketLike } from "../src/io";
@@ -44,6 +44,10 @@ describe("POST /push/register and /push/unregister (T739)", () => {
     expect(validatePush({ platform: "android", token: AND, env: "production" })).toEqual({ ok: false, error: "no push on Android" });
     expect(validatePush({ platform: "web", token: IOS, env: "sandbox" })).toEqual({ ok: false, error: "platform must be ios" });
     expect(validatePush({ platform: "ios", token: "zz", env: "sandbox" })).toEqual({ ok: false, error: "an iOS token is 64 to 200 hex characters" });
+    // (review 2026-11-20) the length is capped both ways: 64 and 200 hex pass, 63 and 201 do not
+    expect(validatePush({ platform: "ios", token: "c".repeat(200), env: "sandbox" })).toMatchObject({ ok: true });
+    expect(validatePush({ platform: "ios", token: "c".repeat(201), env: "sandbox" })).toEqual({ ok: false, error: "an iOS token is 64 to 200 hex characters" });
+    expect(validatePush({ platform: "ios", token: "c".repeat(63), env: "sandbox" })).toEqual({ ok: false, error: "an iOS token is 64 to 200 hex characters" });
     expect(validatePush({ platform: "ios", token: IOS })).toEqual({ ok: false, error: "env must be sandbox or production" });
     expect(validatePush({ platform: "ios", token: IOS, env: "sandbox", waters: ["x"] })).toEqual({ ok: false, error: "unknown field(s): waters" });
     expect(validatePush([1])).toEqual({ ok: false, error: "body must be a JSON object" });
@@ -72,6 +76,23 @@ describe("POST /push/register and /push/unregister (T739)", () => {
     expect((await handlePush(req("/push/register", { platform: "ios", token: "x", env: "sandbox" }), { BUCKET, REPORT_SALT: SALT }, "register")).status).toBe(400);
     expect((await worker.fetch(new Request("https://w.example/push/register"), { BUCKET, REPORT_SALT: SALT } as never)).status).toBe(405);
     expect((await handlePush(req("/push/register", { platform: "ios", token: IOS, env: "sandbox" }), { BUCKET }, "register")).status).toBe(503);
+    expect(tokens(BUCKET)).toEqual([]);
+  });
+
+  it("(review 2026-11-20) a body over 1 KB is refused 413 before it is read as JSON; unregister is rate-limited too", async () => {
+    const BUCKET = new MemBucket();
+    const env = { BUCKET, REPORT_SALT: SALT };
+    const big = JSON.stringify({ platform: "ios", token: IOS, env: "sandbox", pad: "x".repeat(1100) });
+    const r = await handlePush(req("/push/register", big), env, "register", at("2026-11-14T12:00:00Z"));
+    expect(r.status).toBe(413);
+    expect(await r.json()).toEqual({ ok: false, error: "too large" });
+    expect(tokens(BUCKET)).toEqual([]);
+    const body = { platform: "ios", token: IOS, env: "sandbox" };
+    expect((await handlePush(req("/push/register", body), env, "register", at("2026-11-14T12:00:05Z"))).status).toBe(201);
+    const fast = await handlePush(req("/push/unregister", body), env, "unregister", at("2026-11-14T12:00:06Z"));
+    expect(fast.status).toBe(429);
+    expect(tokens(BUCKET)).toHaveLength(1);   // the refused unregister deleted nothing
+    expect((await handlePush(req("/push/unregister", body), env, "unregister", at("2026-11-14T12:00:09Z"))).status).toBe(200);
     expect(tokens(BUCKET)).toEqual([]);
   });
 
@@ -202,13 +223,15 @@ describe("when a wake is sent (T739)", () => {
     expect(wakeReason("gauges", true, { stations: 400, asked: 430, unchanged: 12 })).toBe("gauges");
     expect(wakeReason("gauges", true, { stations: 400, asked: 430, unchanged: 430 })).toBe(null);
     expect(wakeReason("gauges", false, { stations: 400, asked: 430, unchanged: 0 })).toBe(null);
-    expect(wakeReason("dfo", true, { regions: 6, unchangedRegions: 6, notices: 0 })).toBe(null);
-    expect(wakeReason("dfo", true, { regions: 6, unchangedRegions: 5, notices: 0 })).toBe("dfo");
+    expect(wakeReason("dfo", true, { regions: 6, unchangedRegions: 6, notices: 3, answersChanged: 0 })).toBe(null);   // (M1) notices never wake
+    expect(wakeReason("dfo", true, { regions: 6, unchangedRegions: 5, notices: 0, answersChanged: 0 })).toBe(null);   // a one-region retry
+    expect(wakeReason("dfo", true, { regions: 6, unchangedRegions: 5, notices: 0, answersChanged: 1 })).toBe("dfo");
+    expect(wakeReason("dfo", false, { answersChanged: 1 })).toBe(null);
     expect(wakeReason("inseason", true, { new: 0, changed: 0, removed: 0 })).toBe(null);
     expect(wakeReason("inseason", true, { new: 1, changed: 0, removed: 0 })).toBe("inseason");
   });
 
-  it("a new release: recorded on the first look (no wake), told once when it moves", async () => {
+  it("a new release: recorded on the first look (no wake); a moved one stays NEW until its wake was sent (M2)", async () => {
     const BUCKET = new MemBucket();
     await expect(newRelease(BUCKET)).rejects.toThrow("release/manifest.json is not in the bucket");
     BUCKET.m.set(MANIFEST_KEY, JSON.stringify({ data_release: "r-1" }));
@@ -217,6 +240,10 @@ describe("when a wake is sent (T739)", () => {
     expect(await newRelease(BUCKET)).toBe(null);
     BUCKET.m.set(MANIFEST_KEY, JSON.stringify({ data_release: "r-2" }));
     expect(await newRelease(BUCKET)).toBe("r-2");
+    // (review 2026-11-20, M2) the look does not record it: a send that throws or fails leaves it for the next gauge run
+    expect(JSON.parse(BUCKET.m.get(PUSH_STATE_KEY)!)).toEqual({ release: "r-1" });
+    expect(await newRelease(BUCKET)).toBe("r-2");
+    await markReleaseSeen(BUCKET, "r-2");   // the run, after the wake went out ok
     expect(await newRelease(BUCKET)).toBe(null);
   });
 

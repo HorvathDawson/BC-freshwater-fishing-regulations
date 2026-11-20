@@ -29,9 +29,9 @@ import { platformLine } from "@app/ui-native";
 import * as BackgroundTask from "expo-background-task";
 import * as Notifications from "expo-notifications";
 import * as TaskManager from "expo-task-manager";
-import { appUpdateChannel, appVersionFileUrl, createFeedGate, NOTIFY_WORDS, now, reportFailure, versionHeaders } from "@app/core";
-import { conditionalJson, createNotifySettings, createPushRegistrar, fetchObs, parseManifest, runBackgroundCheck, runWake,
-         versionedFetch, type Notice, type NotifyData, type UpdateService } from "@app/data";
+import { appUpdateChannel, appVersionFileUrl, NOTIFY_WORDS, now, reportFailure, versionHeaders } from "@app/core";
+import { createCheckSources, createNotifySettings, createPushRegistrar, runBackgroundCheck, runWake, versionedFetch,
+         type Notice, type NotifyData, type UpdateService } from "@app/data";
 import { openHeldCopyStore, openNotifyStore, openPushStore } from "@app/data/spots";
 import type { NotifyControls, NotifyPermission } from "@app/ui";
 import { APP_VERSION, ENDPOINTS, PUSH_URL } from "./config";
@@ -89,13 +89,10 @@ async function raise(n: Notice): Promise<void> {
 /** what the check reads and raises: one set for the periodic task and the push wake-up */
 const CHECK = {
   settings, now, appVersion: APP_VERSION, notify: raise,
-  // (T741) a conditional GET with the last copy kept: an unchanged obs.json costs a 304, not ~24 kB a run
-  // (T676 item 2) a feed gate made for THIS run (a need never outlives the run): an obs.json stamped for a newer app
-  // waits for the update, never reported each run; anything else wrong with it is reported
-  obs: () => fetchObs(ENDPOINTS.alertFeed, FETCH, undefined, HELD.obs, createFeedGate(APP_VERSION)),
-  latestApp: VERSION_FILE ? () => conditionalJson(VERSION_FILE, FETCH, HELD.version) : null,
-  // the kept copy is held to the same reader as a fresh one (`parseManifest` throws on a manifest it refuses)
-  manifest: async () => parseManifest(await conditionalJson(ENDPOINTS.manifest, FETCH, HELD.manifest, (v) => { parseManifest(v); })),
+  // (T741) each file by conditional GET with its last copy kept; (T676 item 2) obs held to a feed gate made for THIS
+  // run. In @app/data (`createCheckSources`) so a test holds both (review 2026-11-20)
+  ...createCheckSources({ fetch: FETCH, alertFeed: ENDPOINTS.alertFeed, manifestUrl: ENDPOINTS.manifest, versionFile: VERSION_FILE,
+                          appVersion: APP_VERSION, held: HELD }),
 };
 
 TaskManager.defineTask(TASK, async () => {

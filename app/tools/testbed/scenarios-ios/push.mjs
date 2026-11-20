@@ -7,7 +7,7 @@
 //   PUSH_STUB=http://127.0.0.1:<port> node app/tools/testbed/run-ios.mjs push --out <dir>
 //
 // Pass: turning "New regulations data" on stores exactly one {platform: "ios", env: "sandbox", token: hex} at the stub and
-// the line says "registered"; a cold start registers the same token again (still one); turning Notifications off empties
+// the line says "registered"; a cold start keeps it (still one; it registers again only past 7 days, L1); turning Notifications off empties
 // the stub and the line says so, and a restart brings no token back. Shots `T739-*.png` and the screen's words beside
 // each (`.txt`) to `--out`. The appearance is set before a cold start: the app reads it at start (a switch under a
 // running app left the 2026-11-20 first try's "dark" shot light).
@@ -86,7 +86,7 @@ export const pushIos = {
         if (!w.some((x) => PUSH_INTRO.test(x))) throw new Error('the push intro is not shown');
         return `${said}; stub: {platform: ios, env: sandbox, token: ${t.token.length} hex}; line: "${line(w)}"`;
       });
-      await ctx.step('dark: a cold start registers the same token again (once per app start), the same page', async () => {
+      await ctx.step('dark: after a cold start the phone is still registered (one token), the same page', async () => {
         await openIn('dark');
         await ctx.until(async () => /registered/.test(line(await words())), { ms: 30_000, what: 'the line says registered' });
         const toks = await stubTokens();

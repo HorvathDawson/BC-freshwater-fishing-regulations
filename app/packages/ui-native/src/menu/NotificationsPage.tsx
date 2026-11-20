@@ -154,12 +154,13 @@ function PushLine({ n, palette }: { n: NotificationsVM; palette: Palette }) {
   if (!st) return null;
   const words = st.state === "registered" ? W.push.registered(localStamp(st.at))
     : st.state === "failed" ? W.push.failed(st.why, st.environment)
+    : st.state === "pending" ? W.push.pending
     : st.state === "sending" ? W.push.sending : st.state === "withdrawn" ? W.push.withdrawn : W.push.idle;
   return (
     <>
       <Text testID="notify-push-status" accessibilityLiveRegion="polite"
             style={{ ...TYPE.small, color: st.state === "failed" ? palette.closed : palette.sub }}>{words}</Text>
-      {st.state === "failed" && (
+      {(st.state === "failed" || st.state === "pending") && (
         <Button palette={palette} kind="link" size="meta" label={W.push.retry} testID="notify-push-retry" onPress={n.retryPush} />
       )}
     </>

@@ -360,6 +360,8 @@ export const NOTIFY_WORDS = {
     withdrawn: "Server wake-ups: off (no notification is on); our server keeps no push token for this phone.",
     failed: (why: string, offline: boolean) => `Server wake-ups: this phone is not registered${offline ? " (no connection)" : ""}: ${why}. `
       + "It tries again when the app next starts.",
+    /** (review 2026-11-20, L1) the worker's per-address limit twice (several phones behind one address): not a fault */
+    pending: "Server wake-ups: registration pending: our server is busy for this connection. It tries again when the app next starts.",
     retry: "Try again",
   },
   master: { label: "Notifications", on: "On", off: "Off", hint: "Turn every notification from this app on or off." },

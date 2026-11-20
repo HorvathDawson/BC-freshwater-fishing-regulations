@@ -13,11 +13,14 @@
 //   iPhone   APNs HTTP/2 with a provider token: an ES256 JWT made with WebCrypto from the secrets APNS_KEY (the .p8 text),
 //            APNS_KEY_ID, APNS_TEAM_ID; topic = the bundle id; `apns-push-type: background`, `apns-priority: 5`, payload
 //            {"aps":{"content-available":1},"k":"check"}; the sandbox host for a token registered as "sandbox".
-//   The sender sends NOTHING while a secret is missing sends NOTHING and says so (`missing`) in GET /status(.json) — never a silent
-//   skip. Every send's counts (sent / dead / failed, the first errors) are kept at PUSH_STATUS_KEY and shown there.
+//   The sender sends NOTHING while a secret is missing, and says so (`missing`) in GET /status(.json) — never a silent
+//   skip. Every send's counts (sent / dead / failed, the first errors) are kept at PUSH_STATUS_KEY and shown there; a
+//   send that throws is kept there too (`writePushFailure`: {at, reason, ok: false, error}), and a status that cannot
+//   be written fails the run (review 2026-11-20, M2).
 //
 // Stored at private/push/tokens/<sha256(token)>.json — never backed up (backup.ts `personalKind`: "never"): a lost store
-// is rebuilt by the phones: one with notifications on registers its token again at every app start (packages/data notify/push.ts).
+// is rebuilt by the phones: one with notifications on registers its token again when it changed, or when its last
+// register is over PUSH_REFRESH_MS (7 days) old (packages/data notify/push.ts).
 import type { R2BucketLike } from "./io";
 import { LIMIT_PREFIXES, listKeys, rateLimit, readCapped, sha256hex, noSalt, type ReportEnv } from "./reports";
 
@@ -53,10 +56,11 @@ export interface PushEnv extends ReportEnv {
 }
 
 /**
- * Per address (an IPv4 address or an IPv6 /64): one call every 2 s, 200 a day. Each phone registers once per app start
- * (a cold start, and a background launch a push or the periodic task makes), plus a switch turned on or off; a
- * normal day is a few to a few dozen. 200 leaves room for several phones behind one address (a home, a carrier's NAT).
- * Over the limit the app is answered 429 and registers again at its next start.
+ * Per address (an IPv4 address or an IPv6 /64): one call every 2 s, 200 a day. A phone registers when its token, its
+ * environment or our address changed, or once its last register is 7 days old (review 2026-11-20, L1: it was every
+ * app start, and phones behind one address relaunching together on a wake met the 2 s gap), plus a switch turned on or
+ * off. Over the limit the app is answered 429, waits once, then says "pending" and registers again at its next start.
+ * Unregister is counted the same way.
  */
 export const PUSH_GAP_MS = 2_000;
 export const PUSH_PER_DAY = 200;
@@ -246,9 +250,13 @@ export async function sendWake(env: PushEnv, fetch_: Fetch, now: Date, reason: s
   };
   for (let i = 0; i < recs.length; i += PARALLEL) await Promise.all(recs.slice(i, i + PARALLEL).map(one));
   out.ok = !out.ios.failed && !out.unreadable;
+  // (review 2026-11-20, M2) a send whose record cannot be kept THROWS (after the sends): the caller tries the failure
+  // record and fails the run, so a lost status is never silent
   try {
     await env.BUCKET.put(PUSH_STATUS_KEY, JSON.stringify(out), { httpMetadata: { contentType: "application/json", cacheControl: "no-store" } });
-  } catch (e) { console.error(JSON.stringify({ job: "push", statusError: String(e) })); }
+  } catch (e) {
+    throw Object.assign(new Error(`push: sent (${out.ios.sent} of ${out.ios.tokens}) but the status was not written (${String((e as Error)?.message ?? e)})`), { send: out });
+  }
   const log = { job: "push", reason, ios: { ...out.ios, errors: out.ios.errors.length } };
   if (out.ok) console.log(JSON.stringify(log)); else console.error(JSON.stringify({ ...log, errors: out.ios.errors }));
   for (const p of PUSH_PLATFORMS) if (out[p].tokens && out[p].missing.length) console.error(JSON.stringify({ job: "push", platform: p, notSent: out[p].tokens, missing: out[p].missing }));
@@ -256,9 +264,20 @@ export async function sendWake(env: PushEnv, fetch_: Fetch, now: Date, reason: s
 }
 
 /**
+ * (review 2026-11-20, M2) A wake that threw before its result was kept: `{at, reason, ok: false, error}` at PUSH_STATUS_KEY,
+ * so /status says the last wake failed and why. Throws when that cannot be written (the caller fails the run).
+ */
+export async function writePushFailure(bucket: R2BucketLike, at: Date, reason: string, error: string): Promise<void> {
+  await bucket.put(PUSH_STATUS_KEY, JSON.stringify({ at: at.toISOString(), reason, ok: false, error: error.slice(0, 500) }),
+                   { httpMetadata: { contentType: "application/json", cacheControl: "no-store" } });
+}
+
+/**
  * (T739, owner 2026-11-14 "if new data is there we could send a notification") Has a new release been published since the
  * sender last looked? Reads the live manifest from the bucket; the first look only records it (no wake for the release
  * every phone already has). Throws when the manifest cannot be read or parsed (the caller says so in the run).
+ * (review 2026-11-20, M2) A NEW release is NOT recorded here: the caller records it (`markReleaseSeen`) only once the
+ * wake for it was sent ok, so a send that throws or fails is tried again at the next gauge run.
  */
 export async function newRelease(bucket: R2BucketLike): Promise<string | null> {
   const o = await bucket.get(MANIFEST_KEY);
@@ -278,14 +297,50 @@ export async function newRelease(bucket: R2BucketLike): Promise<string | null> {
     }
   }
   if (seen === rel) return null;
+  if (seen === null) { await markReleaseSeen(bucket, rel); return null; }   // the first look: recorded, no wake
+  return rel;
+}
+
+/** (M2) the release whose wake was sent: the next look does not wake for it again */
+export async function markReleaseSeen(bucket: R2BucketLike, rel: string): Promise<void> {
   await bucket.put(PUSH_STATE_KEY, JSON.stringify({ release: rel }), { httpMetadata: { contentType: "application/json" } });
-  return seen === null ? null : rel;
+}
+
+/**
+ * (review 2026-11-20, M1) Did a DFO run change what a phone reads? The published answers compared with the last feed's:
+ * every place's answers (`locs`), the verdict and gear tables they point into, the issues, and each region's dated
+ * state (`asof`, `stale`, `held`). Not the run's own bookkeeping (`at`, `checked`, `failures`, the page hash, which regions
+ * it asked: `issues.unread`) and not its notices: an unchanged region's notices are re-offered every run (dfo/live.ts,
+ * the outbox tells a key once) and a one-region retry counts nothing as changed. No last feed: changed. Compared with
+ * keys sorted: the last feed is read back from its published bytes, the new one is the run's object (other key order).
+ */
+const stable = (v: unknown): string => JSON.stringify(v, (_k, x: unknown) =>
+  x && typeof x === "object" && !Array.isArray(x)
+    ? Object.fromEntries(Object.keys(x as object).sort().map((k) => [k, (x as Record<string, unknown>)[k]])) : x);
+export function dfoAnswersChanged(prev: unknown, next: unknown): boolean {
+  if (!prev || typeof prev !== "object") return true;
+  const nx = (next ?? {}) as Record<string, unknown>;
+  // the issues the app shows are those of the regions READ in a feed (`salmonIssues.ts` hides an `unread` region's); a
+  // run lists only the regions it read, so the waters compared are those of the regions this run read. `no_water` is
+  // left out: no stretch can show it.
+  const unreadNext = ((nx.issues as { unread?: Record<string, string> } | undefined)?.unread) ?? {};
+  const read = new Set(Object.keys((nx.regions ?? {}) as object).filter((s) => !(s in unreadNext)));
+  const view = (ix: Record<string, unknown>) => {
+    const regions: Record<string, unknown> = {};
+    for (const [slug, r] of Object.entries((ix.regions ?? {}) as Record<string, Record<string, unknown>>))
+      regions[slug] = { asof: r?.asof ?? null, stale: r?.stale ?? null, held: r?.held ?? null };
+    const waters = Object.entries(((ix.issues as { waters?: Record<string, { r?: string }> } | undefined)?.waters) ?? {})
+      .filter(([, w]) => read.has(String(w?.r))).sort(([a], [b]) => (a < b ? -1 : a > b ? 1 : 0));
+    return stable({ locs: ix.locs ?? null, verdicts: ix.verdicts ?? null, gears: ix.gears ?? null, waters, regions });
+  };
+  return view(prev as Record<string, unknown>) !== view(nx);
 }
 
 /** What a feed run changed that a phone's check reads, in a word for the record — or null (no wake). */
 export function wakeReason(job: "gauges" | "dfo" | "inseason", ok: boolean, counts: Record<string, number>): string | null {
   if (!ok) return null;
   if (job === "gauges") return (counts.stations ?? 0) > 0 && (counts.unchanged ?? 0) < (counts.asked ?? 0) ? "gauges" : null;
-  if (job === "dfo") return (counts.regions ?? 0) - (counts.unchangedRegions ?? 0) > 0 || (counts.notices ?? 0) > 0 ? "dfo" : null;
+  // (M1) only answers that changed this run (`dfoAnswersChanged`); notices and region counts never wake
+  if (job === "dfo") return (counts.answersChanged ?? 0) > 0 ? "dfo" : null;
   return (counts.new ?? 0) + (counts.changed ?? 0) + (counts.removed ?? 0) > 0 ? "inseason" : null;
 }

@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 import { isEnvironment, UPDATE_DOWNLOAD_NOTE } from "@app/core";
 import type { Manifest } from "../manifest";
-import { createPushRegistrar, PUSH_RETRY_MS, PUSH_TOKEN_WAIT_MS, type PushSeam } from "./push";
+import { createPushRegistrar, PUSH_REFRESH_MS, PUSH_RETRY_MS, PUSH_TOKEN_WAIT_MS, type PushSeam } from "./push";
 import { runWake } from "./wake";
 import { createNotifySettings, NOTIFY_DEFAULT, type NotifyState } from "./settings";
 import type { Notice } from "./check";
@@ -34,7 +34,7 @@ describe("the push token follows the reader's notifications (T739)", () => {
     await r.sync(true);
     await r.sync(true);
     expect(srv.calls).toEqual([{ url: "https://w.example/push/register", body: { platform: "ios", token: IOS, env: "sandbox" } }]);
-    expect(JSON.parse(store.read()!)).toEqual({ platform: "ios", token: IOS, env: "sandbox", url: URL_ });
+    expect(JSON.parse(store.read()!)).toEqual({ platform: "ios", token: IOS, env: "sandbox", url: URL_, at: expect.any(Number) });
     expect(s.listening()).toBe(true);
     s.give("b".repeat(64));
     await r.sync(true);   // waits for the token's send in the queue
@@ -44,19 +44,34 @@ describe("the push token follows the reader's notifications (T739)", () => {
     ]);
   });
 
-  it("an unchanged token is registered once per app start, not once per sync: a token the worker lost comes back", async () => {
+  it("(L1) an unchanged token is registered again only once its last register is 7 days old: a token the worker lost comes back", async () => {
     const srv = server(), store = memory();
-    const first = createPushRegistrar({ seam: seam(), url: URL_, fetch: srv.fetch, store });
-    await first.sync(true);
+    let t = 1_000;
+    const first = createPushRegistrar({ seam: seam(), url: URL_, fetch: srv.fetch, store, now: () => t });
     await first.sync(true);
     await first.sync(true);
     expect(srv.calls.map((c) => c.url)).toEqual(["https://w.example/push/register"]);
-    // the next app start: a new registrar over the same stored record (token, env and address unchanged) registers again
-    const next = createPushRegistrar({ seam: seam(), url: URL_, fetch: srv.fetch, store });
+    expect(JSON.parse(store.read()!)).toEqual({ platform: "ios", token: IOS, env: "sandbox", url: URL_, at: 1_000 });
+    // the next app start a day later (many phones relaunching on one wake): nothing sent, the line shows the stored time
+    t = 1_000 + 86_400_000;
+    const next = createPushRegistrar({ seam: seam(), url: URL_, fetch: srv.fetch, store, now: () => t });
     await next.sync(true);
-    await next.sync(true);
+    expect(srv.calls).toHaveLength(1);
+    expect(next.status()).toEqual({ state: "registered", at: 1_000 });
+    // a start past PUSH_REFRESH_MS registers again (and keeps the new time)
+    t = 1_000 + PUSH_REFRESH_MS;
+    const late = createPushRegistrar({ seam: seam(), url: URL_, fetch: srv.fetch, store, now: () => t });
+    await late.sync(true);
     expect(srv.calls.map((c) => c.url)).toEqual(["https://w.example/push/register", "https://w.example/push/register"]);
     expect(srv.calls[1]!.body).toEqual({ platform: "ios", token: IOS, env: "sandbox" });
+    expect(JSON.parse(store.read()!).at).toBe(t);
+    // a changed environment (a TestFlight build over a development one) or a record from before `at` registers at once
+    const prod = createPushRegistrar({ seam: seam(IOS, "production"), url: URL_, fetch: srv.fetch, store, now: () => t });
+    await prod.sync(true);
+    expect(srv.calls).toHaveLength(3);
+    const old = memory(JSON.stringify({ platform: "ios", token: IOS, env: "sandbox", url: URL_ }));
+    await createPushRegistrar({ seam: seam(), url: URL_, fetch: srv.fetch, store: old, now: () => t }).sync(true);
+    expect(srv.calls).toHaveLength(4);
   });
 
   it("(T822) the worker's per-address gap (429) is waited out once; a second 429 is a reported defect, said in the status", async () => {
@@ -73,13 +88,16 @@ describe("the push token follows the reader's notifications (T739)", () => {
     expect(calls).toEqual(["https://w.example/push/register", "https://w.example/push/register"]);
     expect(r.status()).toEqual({ state: "registered", at: 7 });
     expect(JSON.parse(store.read()!).token).toBe(IOS);
-    // 429 twice: thrown as a defect (not the environment's), nothing kept, the status says why
-    const capped = createPushRegistrar({ seam: seam(), url: URL_, fetch: server(429).fetch, store: memory(), wait, now: () => 8 });
+    // (L1) 429 twice: the shared address's limit, not a defect: the environment's (never reported), nothing kept, and
+    // the status says PENDING (the page tells the reader; the next start tries again)
+    const kept = memory();
+    const capped = createPushRegistrar({ seam: seam(), url: URL_, fetch: server(429).fetch, store: kept, wait, now: () => 8 });
     const e = await capped.sync(true).catch((x: unknown) => x);
     expect(e).toBeInstanceOf(Error);
-    expect(isEnvironment(e)).toBe(false);
+    expect(isEnvironment(e)).toBe(true);
     expect((e as Error).message).toBe("push register: HTTP 429 twice (the worker's per-address limit)");
-    expect(capped.status()).toEqual({ state: "failed", at: 8, why: "push register: HTTP 429 twice (the worker's per-address limit)", environment: false });
+    expect(capped.status()).toEqual({ state: "pending", at: 8 });
+    expect(kept.read()).toBe(null);
   });
 
   it("(T822) a token the system never hands over fails the sync after the deadline, REPORTED, and frees the queue", async () => {

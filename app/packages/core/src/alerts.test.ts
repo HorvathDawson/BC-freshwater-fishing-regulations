@@ -427,6 +427,8 @@ describe("(T722 F3) the notifications intro per platform", () => {
       + "HTTP 503. It tries again when the app next starts.");
     expect(P.failed("Network request failed", true)).toBe("Server wake-ups: this phone is not registered (no connection): "
       + "Network request failed. It tries again when the app next starts.");
+    expect(P.pending).toBe("Server wake-ups: registration pending: our server is busy for this connection. It tries again "
+      + "when the app next starts.");
     expect(P.retry).toBe("Try again");
   });
 });

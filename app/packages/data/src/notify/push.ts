@@ -4,10 +4,12 @@
  * owner 2026-11-16: no Android push), our worker's address (`POST <url>/register|unregister`,
  * app/workers/feeds src/push.ts) and a small store of what was last sent.
  *
- *   on    (the reader has notifications on: `notifyActive`) the token is read and registered ONCE PER APP START even
- *         when it is the one last sent — so a token the worker deleted (APNs called it dead, its store was lost) comes
- *         back at the next start — and again within the run only when it changes (an older one unregistered first); a
- *         new token from the system (`onToken`) is sent the same way.
+ *   on    (the reader has notifications on: `notifyActive`) the token is read and registered when it, its environment
+ *         or our address changed, or when the last register is older than PUSH_REFRESH_MS (7 days) — so a token the
+ *         worker deleted (APNs called it dead, its store was lost) comes back within a week; an older one is
+ *         unregistered first; a new token from the system (`onToken`) is sent the same way. (Review 2026-11-20, L1: it
+ *         was once per app start, and several iPhones behind one address relaunching together on a wake met the
+ *         worker's per-address limit.)
  *   off   the token last sent is unregistered and forgotten.
  *   WHAT IS SENT: {platform, token, env} — never an alert, a water, a location or the install id.
  *
@@ -20,8 +22,9 @@
  * settles when iOS does not answer, which held the sync queue for the whole run (every later switch queued behind it).
  * Now the token has `tokenWaitMs` (30 s) and then a REPORTED error; a token that comes later still arrives through
  * `onToken`. (2) Offline and the worker's 429 were "the environment's": thrown, never reported, and never shown. Now a 429
- * is waited out once (`retryMs`, past the worker's 2 s gap: a quick off → on hit it and lost the token) and a second
- * one is a reported defect; offline stays unreported (failure.ts) but is SHOWN. Every outcome is the registrar's
+ * is waited out once (`retryMs`, past the worker's 2 s gap: a quick off → on hit it and lost the token); a second one
+ * leaves the register PENDING (said on the page; not reported, the worker's limit is the shared address's, L1) and
+ * the next start tries again; offline stays unreported (failure.ts) but is SHOWN. Every outcome is the registrar's
  * `status()` (More → Notifications says it, with "Try again").
  */
 import { environmentError, isEnvironment, reportFailure } from "@app/core";
@@ -41,7 +44,11 @@ export interface PushSeam {
   onToken(on: (token: string) => void): () => void;
 }
 
-export interface PushSent { readonly platform: PushPlatformName; readonly token: string; readonly env: PushEnvName; readonly url: string }
+export interface PushSent {
+  readonly platform: PushPlatformName; readonly token: string; readonly env: PushEnvName; readonly url: string;
+  /** (L1) when our worker last answered this register (ms); absent in a record from before: registered again */
+  readonly at?: number;
+}
 
 export interface PushStoreText { read(): string | null; write(text: string): void }
 
@@ -54,7 +61,9 @@ export type PushStatus =
   | { readonly state: "sending"; readonly since: number }
   | { readonly state: "registered"; readonly at: number }
   | { readonly state: "withdrawn"; readonly at: number }
-  | { readonly state: "failed"; readonly at: number; readonly why: string; readonly environment: boolean };
+  | { readonly state: "failed"; readonly at: number; readonly why: string; readonly environment: boolean }
+  /** (L1) the worker's per-address limit answered twice: not registered yet, tried again at the next start */
+  | { readonly state: "pending"; readonly at: number };
 
 export interface PushRegistrar {
   /** register (true) or unregister (false); resolves once our server has answered */
@@ -69,6 +78,11 @@ export interface PushRegistrar {
 export const PUSH_TOKEN_WAIT_MS = 30_000;
 /** (T822) a 429 is waited out once this long (the worker's per-address gap is 2 s, `PUSH_GAP_MS`) */
 export const PUSH_RETRY_MS = 3_000;
+/** (L1) an unchanged token is registered again once its last register is this old (a worker that lost it gets it back) */
+export const PUSH_REFRESH_MS = 7 * 86_400_000;
+
+/** (L1) the worker's limit twice: an environment error (never reported), the status says "pending" */
+class PushBusy extends Error {}
 
 type Fetch = (u: string, i?: RequestInit) => Promise<Response>;
 
@@ -105,7 +119,7 @@ export function createPushRegistrar(o: {
     let res = await once(what, s);
     // (T822) the worker's per-address gap (2 s): waited out once; a second refusal is the day's cap, a defect of our limits
     if (res.status === 429) { await wait(o.retryMs ?? PUSH_RETRY_MS); res = await once(what, s); }
-    if (res.status === 429) throw new Error(`push ${what}: HTTP 429 twice (the worker's per-address limit)`);
+    if (res.status === 429) throw environmentError(new PushBusy(`push ${what}: HTTP 429 twice (the worker's per-address limit)`));
     if (!res.ok) throw new Error(`push ${what}: HTTP ${res.status}`);
   };
   /** (T822) the system's token, or a REPORTED error once `tokenWaitMs` has passed without one */
@@ -121,7 +135,8 @@ export function createPushRegistrar(o: {
   const said = async (f: () => Promise<void>, done: () => PushStatus) => {
     set({ state: "sending", since: now() });
     try { await f(); set(done()); } catch (e) {
-      set({ state: "failed", at: now(), why: e instanceof Error ? e.message : String(e), environment: isEnvironment(e) });
+      set(e instanceof PushBusy ? { state: "pending", at: now() }
+        : { state: "failed", at: now(), why: e instanceof Error ? e.message : String(e), environment: isEnvironment(e) });
       throw e;
     }
   };
@@ -129,17 +144,18 @@ export function createPushRegistrar(o: {
   let undo: (() => void) | null = null;
   // one sync at a time, in order (a quick on → off → on ends where the reader left it)
   let chain: Promise<void> = Promise.resolve();
-  /** a register our worker answered in THIS run (this registrar lives as long as the app's runtime: one app start) */
-  let confirmed = false;
+  /** when the register the status shows was answered (a skipped one shows the stored time) */
+  let registeredAt = 0;
   const register = async (token: string) => {
     const was = readSent(o.store);
-    const now = { platform: o.seam.platform, token, env: o.seam.env };
-    const same = !!was && was.token === token && was.env === now.env && was.url === base;
-    if (same && confirmed) return;
+    const cur = { platform: o.seam.platform, token, env: o.seam.env };
+    const same = !!was && was.token === token && was.env === cur.env && was.url === base;
+    // (L1) unchanged and registered within PUSH_REFRESH_MS: nothing sent
+    if (same && typeof was.at === "number" && now() - was.at < PUSH_REFRESH_MS) { registeredAt = was.at; return; }
     if (was && was.url === base && was.token !== token) await post("unregister", was);
-    await post("register", now);
-    o.store.write(JSON.stringify({ ...now, url: base }));
-    confirmed = true;
+    await post("register", cur);
+    registeredAt = now();
+    o.store.write(JSON.stringify({ ...cur, url: base, at: registeredAt }));
   };
   const unregister = async () => {
     const was = readSent(o.store);
@@ -147,10 +163,9 @@ export function createPushRegistrar(o: {
     // a token sent to another address (a build switched environment) is dropped there
     await post("unregister", was).catch((e) => { if (was.url === base) throw e; reportFailure(e); });
     o.store.write("");
-    confirmed = false;
   };
   const run = (f: () => Promise<void>) => (chain = chain.then(f, f));
-  const registered = (): PushStatus => ({ state: "registered", at: now() });
+  const registered = (): PushStatus => ({ state: "registered", at: registeredAt });
   return {
     sync(on) {
       active = on;

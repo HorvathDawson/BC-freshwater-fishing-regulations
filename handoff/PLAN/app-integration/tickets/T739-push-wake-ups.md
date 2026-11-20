@@ -314,7 +314,7 @@ on again (a build from this branch's later head registers at every start by itse
 3. **Send one wake by hand** (from the repo root; the token is never printed):
    `curl -sS -X POST -H @<(printf 'Authorization: Bearer %s\n' "$(cat app/workers/feeds/.run-token)") 'https://bc-fishing-feeds-staging.horvath-dawson.workers.dev/run/push?reason=owner-phone-test'`
    The answer (HTTP 200 if ok, 502 if not) is the send: `{at, reason, ok, unreadable, ios:{configured, missing, tokens,
-   sent, dead, failed, errors[]}, android:{…}}`. **APNs accepted it when `ios.sent` ≥ 1** (APNs answered 200).
+   sent, dead, failed, errors[]}}` (no android block since 2026-11-20); a send that threw answers 500 `{ok: false, error}`. **APNs accepted it when `ios.sent` ≥ 1** (APNs answered 200).
    `ios.dead` ≥ 1 with "BadDeviceToken" in `ios.errors` would mean the wrong host for that token (it is then deleted);
    any other APNs reason is in `ios.errors`. The same object is `push.last` on `/status.json`, and the HTML `/status` has
    a "Push wake-ups" table. `wrangler tail` on the feeds worker prints `{"job":"push","reason":…,"ios":{…}}`.
@@ -429,3 +429,35 @@ filtered on `/push`, would say whether a register (and its status) arrived befor
   check `/status.json` `push.missing.ios == []` (no `android` key any more), TestFlight build (`EXPO_PUBLIC_APNS_ENV=
   production`, already in build-ios-testflight.sh). Then the owner's iPhone test (T822's "To test again"); prod APNs
   secrets + prod worker are his.
+
+### Independent review of `lane/l5-push` 0e6d2bf94 (2026-11-20): fixed on the lane before the merge
+- **M1, DFO woke nearly every run.** `wakeReason` woke on `notices > 0`, and an unchanged region's notices are re-offered
+  every run (dfo/live.ts, T759 makes them common); a T851 one-region retry woke too (`regions` counted the whole index,
+  `unchangedRegions` only that run's region). Now a DFO run wakes only when `dfoAnswersChanged(last feed, new feed)`
+  (`push.ts`): every place's answers, the verdict / gear tables, the issues of the regions read this run, and each
+  region's `asof` / `stale` / `held`, compared with keys sorted; never the run's bookkeeping (`at`, `checked`,
+  `failures`, the page hash, `issues.unread`) or its notices. The run reads the last `feeds/dfo/index.json` first (one
+  more R2 get; unreadable: a step error and the run counts as changed). Tests `test/push.dfo.test.ts` on real runs over
+  the saved pages: an unchanged run with carried notices does not wake, a one-region retry does not, a dropped place does.
+- **M2, a thrown or lost wake left no trace.** A wake that throws is written to the push status as
+  `{at, reason, ok: false, error}` (`writePushFailure`; the run and `POST /run/push`), shown on /status ("not sent: …");
+  `sendWake` whose own status write fails throws after sending; a status that cannot be written at all fails the run.
+  `newRelease` no longer records a new release: the run records it (`markReleaseSeen`) only after its wake went out ok,
+  else the next gauge run wakes for it again. Tests `test/push.run.test.ts` (real in-season runs over a bucket failing on
+  cue) and `push.test.ts`.
+- **Test gaps (mutations that survived):** a token over 200 hex refused (and 63), unregister rate-limited, a body over
+  1 KB answered 413 (`push.test.ts`); the check's sources moved out of `notify.native.ts` into `@app/data`
+  `createCheckSources` with `sources.test.ts`: a new feed gate per run, each file's own kept copy and its validator.
+- **L1, register on every start met the shared-address limit.** The registrar now registers only when the token, its
+  environment or our address changed, or the last register is over 7 days old (`PUSH_REFRESH_MS`, the time kept on the
+  phone in `push-token.json`); a second 429 is no longer a reported defect: the line says "Server wake-ups:
+  registration pending: our server is busy for this connection. It tries again when the app next starts." with "Try
+  again". Tests `notify/push.test.ts`, `Notifications.test.tsx`, `alerts.test.ts`.
+- **Leftovers (not fixed here):**
+  - **L2**: `sendWake` lists tokens with `listKeys(…, 100_000)`, a silent cap: past 100k registered phones the rest get no
+    wake and nothing says so (`push.ts`, the sender's list).
+  - **L3**: one R2 get plus one APNs fetch per token, inside the gauge run's invocation (20 at a time): past a few
+    hundred phones the subrequest budget wants a Cloudflare Queue (the scale note above).
+- The simulator run and the Android benches above are of ae7fc72db, before these fixes: the iPhone line "a cold start
+  registered the same token again" is the old once-per-start rule (L1 now skips it within 7 days; `scenarios-ios/push.mjs`
+  passes either way). Not re-run on a device for the fixes (unit and run tests only); the TestFlight build will carry them.

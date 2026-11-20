@@ -37,7 +37,7 @@ import { neverSeen } from "./gauges/publish";
 import { READING_MAX_AGE_HOURS } from "../../../packages/core/src/gauge-policy.generated";
 import { checkToken, dispatchOnce, OVERDUE_MS, unfinished, type Dispatch, type DispatchEnv } from "./dispatch";
 import { checkRunTiming } from "./runtiming";
-import { handlePush, newRelease, pushMissing, PUSH_STATUS_KEY, sendWake, wakeReason, type PushEnv } from "./push";
+import { dfoAnswersChanged, handlePush, markReleaseSeen, newRelease, pushMissing, PUSH_STATUS_KEY, sendWake, wakeReason, writePushFailure, type PushEnv } from "./push";
 import { capEvents, CORS as REPORT_CORS, handleReport, listReportsCounted, purgeLimits, purgeReports, purgeTestReports, reportEvents, RETENTION_DAYS, RETENTION_STATUS_KEY, type ReportEnv } from "./reports";
 
 /** (T739) PushEnv: the APNs secrets (APNS_KEY, APNS_KEY_ID, APNS_TEAM_ID; src/push.ts; iPhone only, no FCM) */
@@ -398,6 +398,10 @@ async function run(job: Job, env: Env, opts: { regions?: string[]; limit?: numbe
       if (s.answered === 0 && !turn) throw new Error(`no station answered (asked ${s.asked}); index.json ${s.indexKept ? "kept (last good)" : "rewritten"}`);
       if (s.rankDrop) throw new Error(`${s.rankDrop.lost} of ${s.rankDrop.had} stations ranked last run lost their rank with a current reading (clim.json broken or for another roster); index.json kept (last good)`);
     } else if (job === "dfo") {
+      // (review 2026-11-20, M1) the feed the phones read before this run: a wake only when its answers change
+      let prevIndex: unknown = null;
+      try { prevIndex = await readStored(meteredStore(r2Store(env.BUCKET, "feeds/dfo/"), m), "index.json"); }
+      catch (e) { logErr(`push: the last DFO index was not read (${String((e as Error)?.message ?? e)}); this run counts as changed`); }
       const s = await runDfo({
         fetch: fetch_,
         feed: meteredStore(r2Store(env.BUCKET, "feeds/dfo/"), m),
@@ -430,6 +434,7 @@ async function run(job: Job, env: Env, opts: { regions?: string[]; limit?: numbe
       counts = {
         locations: Object.keys((s.index as any).locs ?? {}).length, regions: Object.keys(regions).length, unplaced: s.unplaced.length,
         notices: s.notices.length, unchangedRegions: (s.skipped ?? []).length,
+        answersChanged: dfoAnswersChanged(prevIndex, s.index) ? 1 : 0,
       };
       dfoFailed = Object.entries<any>(regions).filter(([, r]) => Number(r.failures) > 0).map(([slug]) => slug); // eslint-disable-line @typescript-eslint/no-explicit-any
       counts.fetchFailed = dfoFailed.length;
@@ -540,23 +545,39 @@ async function run(job: Job, env: Env, opts: { regions?: string[]; limit?: numbe
   // (T739) THE WAKE-UP: a feed the phones' check reads changed, or (asked on the gauge run, the most frequent) a new
   // release was published -> one silent push to every registered phone. Never on a dry run; a failure is a step error
   let push: unknown = null;
+  // (review 2026-11-20, M2) a wake whose status could not be kept fails the run: a lost record is never silent
+  let pushStatusLost = false;
   if (!opts.dryNotify) {
     const reasons = [wakeReason(job, error === null, counts)];
+    let rel: string | null = null;
     if (job === "gauges") {
-      try { const rel = await newRelease(env.BUCKET); if (rel) reasons.push(`release ${rel}`); }
+      try { rel = await newRelease(env.BUCKET); if (rel) reasons.push(`release ${rel}`); }
       catch (e) { logErr(`push: the release manifest was not read (${String((e as Error)?.message ?? e)})`); }
     }
     const why = reasons.filter(Boolean).join(", ");
     if (why) {
+      const at = new Date();
       try {
-        const r = await sendWake(env, (u, i) => fetch(u, i), new Date(), why);
+        const r = await sendWake(env, (u, i) => fetch(u, i), at, why);
         push = { reason: why, ok: r.ok, unreadable: r.unreadable, ios: { sent: r.ios.sent, failed: r.ios.failed, missing: r.ios.missing } };
         if (r.ios.failed) logErr(`push: ${r.ios.failed} wake(s) failed (${r.ios.errors.slice(0, 3).join("; ")})`);
         if (r.unreadable) logErr(`push: ${r.unreadable} stored token record(s) did not parse or were not an iPhone's; deleted (those phones register again at their next start)`);
-      } catch (e) { logErr(`push: not sent (${String((e as Error)?.message ?? e)})`); }
+        // (M2) the release counts as told only once its wake went out whole; else the next gauge run wakes for it again
+        if (rel && r.ok) {
+          try { await markReleaseSeen(env.BUCKET, rel); }
+          catch (e) { logErr(`push: release ${rel} woken but not recorded (${String((e as Error)?.message ?? e)}); the next gauge run wakes for it again`); }
+        } else if (rel) logErr(`push: release ${rel} not recorded as told (the wake was not ok); the next gauge run tries again`);
+      } catch (e) {
+        const msg = String((e as Error)?.message ?? e);
+        logErr(`push: not sent (${msg})`);
+        push = { reason: why, ok: false, error: msg };
+        try { await writePushFailure(env.BUCKET, at, why, msg); }
+        catch (w) { pushStatusLost = true; logErr(`push: the failure was not recorded on /status either (${String((w as Error)?.message ?? w)})`); }
+        if ((e as { send?: unknown })?.send) pushStatusLost = true;   // sendWake's own status write failed
+      }
     }
   }
-  return { job, ok: error === null, error, wallMs, meter: m, sources: health.sources, failingParts: Object.keys(health.parts).length, summary, notify, push, stepErrors, log: logs.slice(-40) };
+  return { job, ok: error === null && !pushStatusLost, error,wallMs, meter: m, sources: health.sources, failingParts: Object.keys(health.parts).length, summary, notify, push, stepErrors, log: logs.slice(-40) };
 }
 
 // ── (T851) THE DFO SAME-DAY RETRY ─────────────────────────────────────────────────────────────────────────────────────
@@ -810,11 +831,16 @@ export default {
       // (T739) one wake to every registered phone now (a test after the secrets are set); the result as /status shows it
       if (!authed(req, env)) return new Response("Forbidden", { status: 403 });
       const reason = (url.searchParams.get("reason") ?? "by hand").slice(0, 40);
+      const at = new Date();
       try {
-        const r = await sendWake(env, (u, i) => fetch(u, i), new Date(), reason);
+        const r = await sendWake(env, (u, i) => fetch(u, i), at, reason);
         return Response.json(r, { status: r.ok ? 200 : 502 });
       } catch (e) {
-        return Response.json({ ok: false, error: String((e as Error)?.message ?? e) }, { status: 500 });
+        const error = String((e as Error)?.message ?? e);
+        // (M2) kept on /status too; a status that cannot be written is said in the answer
+        let statusError: string | null = null;
+        try { await writePushFailure(env.BUCKET, at, reason, error); } catch (w) { statusError = String((w as Error)?.message ?? w); }
+        return Response.json({ ok: false, error, ...(statusError ? { statusError } : {}) }, { status: 500 });
       }
     }
     if (url.pathname === "/crashes" && req.method === "GET") {

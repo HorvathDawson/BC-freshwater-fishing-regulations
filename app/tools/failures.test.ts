@@ -234,7 +234,7 @@ export const FINE: Record<string, { n: number; why: string }> = {
   "workers/feeds/src/gauges/skill.ts": { n: 2, why: `${W_STATE}; ${W_TORN}` },
   "workers/feeds/src/guard.ts": { n: 1, why: "the edge rate limiter failing opens (T249): the R2 per-IP gate still holds" },
   "workers/feeds/src/health.ts": { n: 3, why: "a URL that will not parse gets the unknown source's policy (the fetch itself then throws and is counted); freeing a retried connection" },
-  "workers/feeds/src/index.ts": { n: 3, why: "a daily job's status file that cannot be read is served as { unreadable: why } (T609 W12); a bad POST body is answered 400" },
+  "workers/feeds/src/index.ts": { n: 4, why: "a daily job's status file that cannot be read is served as { unreadable: why } (T609 W12); a bad POST body is answered 400; (T739 M2) POST /run/push whose failure record cannot be written says so in its answer (statusError)" },
   "workers/feeds/src/inseason.ts": { n: 2, why: W_STATE },
   "workers/feeds/src/io.ts": { n: 1, why: `${W_STATE} (the write manifest: unreadable → every file written again)` },
   "workers/feeds/src/notify.ts": { n: 1, why: `${W_STATE} (what was sent: unreadable → may be sent again, never lost)` },

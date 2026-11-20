@@ -452,6 +452,16 @@ describe("(T822) the push registration is said on More → Notifications, never 
     expect(screen.queryByTestId("notify-push-retry")).toBeNull();
   });
 
+  it("(L1) a register the worker's limit held back says PENDING, with \"Try again\"", async () => {
+    const { c, push } = withPush({ state: "pending", at: NOW });
+    render(<NotifyRoot controls={c}><Page /></NotifyRoot>);
+    await flush();
+    expect(screen.getByTestId("notify-push-status").textContent).toBe(NOTIFY_WORDS.push.pending);
+    push.mockClear();
+    fireEvent.click(screen.getByTestId("notify-push-retry"));
+    expect(push).toHaveBeenCalledWith(true);
+  });
+
   it("a build without push draws no line", async () => {
     const { c } = controls({ on: true, updateReady: true }, "granted", "granted");
     render(<NotifyRoot controls={c}><Page /></NotifyRoot>);
