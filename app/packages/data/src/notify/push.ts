@@ -62,8 +62,8 @@ export type PushStatus =
   | { readonly state: "registered"; readonly at: number }
   | { readonly state: "withdrawn"; readonly at: number }
   | { readonly state: "failed"; readonly at: number; readonly why: string; readonly environment: boolean }
-  /** (L1) the worker's per-address limit answered twice: not registered yet, tried again at the next start */
-  | { readonly state: "pending"; readonly at: number };
+  /** (L1) the worker's per-address limit answered twice: the register (or the unregister: `what`) waits for the next start */
+  | { readonly state: "pending"; readonly at: number; readonly what: "register" | "unregister" };
 
 export interface PushRegistrar {
   /** register (true) or unregister (false); resolves once our server has answered */
@@ -82,7 +82,7 @@ export const PUSH_RETRY_MS = 3_000;
 export const PUSH_REFRESH_MS = 7 * 86_400_000;
 
 /** (L1) the worker's limit twice: an environment error (never reported), the status says "pending" */
-class PushBusy extends Error {}
+class PushBusy extends Error { constructor(readonly what: "register" | "unregister", m: string) { super(m); } }
 
 type Fetch = (u: string, i?: RequestInit) => Promise<Response>;
 
@@ -119,7 +119,7 @@ export function createPushRegistrar(o: {
     let res = await once(what, s);
     // (T822) the worker's per-address gap (2 s): waited out once; a second refusal is the day's cap, a defect of our limits
     if (res.status === 429) { await wait(o.retryMs ?? PUSH_RETRY_MS); res = await once(what, s); }
-    if (res.status === 429) throw environmentError(new PushBusy(`push ${what}: HTTP 429 twice (the worker's per-address limit)`));
+    if (res.status === 429) throw environmentError(new PushBusy(what, `push ${what}: HTTP 429 twice (the worker's per-address limit)`));
     if (!res.ok) throw new Error(`push ${what}: HTTP ${res.status}`);
   };
   /** (T822) the system's token, or a REPORTED error once `tokenWaitMs` has passed without one */
@@ -135,7 +135,7 @@ export function createPushRegistrar(o: {
   const said = async (f: () => Promise<void>, done: () => PushStatus) => {
     set({ state: "sending", since: now() });
     try { await f(); set(done()); } catch (e) {
-      set(e instanceof PushBusy ? { state: "pending", at: now() }
+      set(e instanceof PushBusy ? { state: "pending", at: now(), what: e.what }
         : { state: "failed", at: now(), why: e instanceof Error ? e.message : String(e), environment: isEnvironment(e) });
       throw e;
     }

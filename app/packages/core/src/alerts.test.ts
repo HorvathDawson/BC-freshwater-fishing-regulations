@@ -429,6 +429,8 @@ describe("(T722 F3) the notifications intro per platform", () => {
       + "Network request failed. It tries again when the app next starts.");
     expect(P.pending).toBe("Server wake-ups: registration pending: our server is busy for this connection. It tries again "
       + "when the app next starts.");
+    expect(P.pendingOff).toBe("Server wake-ups: turning off is pending; our server is busy for this connection. It tries "
+      + "again when the app next starts.");
     expect(P.retry).toBe("Try again");
   });
 });

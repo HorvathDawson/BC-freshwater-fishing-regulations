@@ -6,7 +6,7 @@ import { join } from "node:path";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import worker from "../src/index";
 import type { R2BucketLike } from "../src/io";
-import { PUSH_STATUS_KEY, TOKENS_PREFIX } from "../src/push";
+import { MANIFEST_KEY, newRelease, PUSH_STATE_KEY, PUSH_STATUS_KEY, RELEASE_WAKE_TRIES, TOKENS_PREFIX, wakePhones } from "../src/push";
 import { FEED_FORMAT } from "../src/inseason";
 import { INSEASON_LINKS_FORMAT } from "../../../packages/core/src/inseason";
 
@@ -88,5 +88,77 @@ describe("a wake that fails is kept on /status (M2)", () => {
       { BUCKET: b, RUN_TOKEN: "t" } as never);
     expect(res.status).toBe(500);
     expect(JSON.parse(b.m.get(PUSH_STATUS_KEY)!)).toMatchObject({ reason: "test", ok: false, error: expect.stringMatching(/R2 LIST/) });
+  });
+});
+
+// (re-review 2026-11-20) A NEW RELEASE'S WAKE, as the gauge run makes it (`wakePhones` with the release): recorded as told
+// once a phone was reached, never on a wake that reached none, and after RELEASE_WAKE_TRIES wakes at the most (one
+// always-failing token or a broken key must not re-wake every phone at every gauge run without end).
+describe("a new release is recorded as told only when its wake reached a phone (or after the tries)", () => {
+  const toPem = (der: ArrayBuffer) => `-----BEGIN PRIVATE KEY-----\n${btoa(String.fromCharCode(...new Uint8Array(der))).match(/.{1,64}/g)!.join("\n")}\n-----END PRIVATE KEY-----\n`;
+  const key = async () => toPem(await crypto.subtle.exportKey("pkcs8", ((await crypto.subtle.generateKey({ name: "ECDSA", namedCurve: "P-256" }, true, ["sign", "verify"])) as CryptoKeyPair).privateKey));
+  const GOOD = "b".repeat(64), BAD = "c".repeat(64);
+  const putToken = (b: MemBucket, t: string) =>
+    b.m.set(`${TOKENS_PREFIX}${t.slice(0, 8)}.json`, JSON.stringify({ format: "push-token/1", platform: "ios", token: t, env: "production", at: "t" }));
+  /** a bucket that has told r-1 (the first look) and now publishes r-2, with the given tokens */
+  const bucketWith = async (toks: string[]) => {
+    const b = new MemBucket();
+    b.m.set(MANIFEST_KEY, JSON.stringify({ data_release: "r-1" }));
+    expect(await newRelease(b)).toBe(null);
+    b.m.set(MANIFEST_KEY, JSON.stringify({ data_release: "r-2" }));
+    for (const t of toks) putToken(b, t);
+    return b;
+  };
+  /** APNs: 200 for GOOD, 500 for anything else */
+  const apns = async (u: string) => (u.endsWith(GOOD) ? new Response(null, { status: 200 }) : new Response(JSON.stringify({ reason: "InternalServerError" }), { status: 500 }));
+  const gaugeRun = async (b: MemBucket, env: Record<string, unknown>) => {
+    const errs: string[] = [];
+    const rel = await newRelease(b);
+    const w = rel ? await wakePhones({ BUCKET: b, ...env } as never, apns, new Date("2026-11-20T16:00:00Z"), `release ${rel}`, rel, (s) => errs.push(s)) : null;
+    return { rel, w, errs };
+  };
+
+  it("a wake that reached a phone records it (another token failing is still shown); the next run does not wake for it", async () => {
+    vi.spyOn(console, "error").mockImplementation(() => {});
+    vi.spyOn(console, "log").mockImplementation(() => {});
+    const b = await bucketWith([GOOD, BAD]);
+    const env = { APNS_KEY: await key(), APNS_KEY_ID: "K", APNS_TEAM_ID: "T" };
+    const first = await gaugeRun(b, env);
+    expect(first.rel).toBe("r-2");
+    expect(first.w!.push).toMatchObject({ ok: false, ios: { sent: 1, failed: 1 } });
+    expect(JSON.parse(b.m.get(PUSH_STATUS_KEY)!)).toMatchObject({ ok: false, ios: { sent: 1, failed: 1 } });
+    expect(JSON.parse(b.m.get(PUSH_STATE_KEY)!)).toEqual({ release: "r-2" });
+    expect((await gaugeRun(b, env)).rel).toBe(null);
+  });
+
+  it("a wake that reached no phone is NOT recorded; the next runs wake again, and the last try records it (failures still shown)", async () => {
+    vi.spyOn(console, "error").mockImplementation(() => {});
+    const b = await bucketWith([BAD]);
+    const env = { APNS_KEY: await key(), APNS_KEY_ID: "K", APNS_TEAM_ID: "T" };
+    for (let n = 1; n < RELEASE_WAKE_TRIES; n++) {
+      const r = await gaugeRun(b, env);
+      expect(r.rel).toBe("r-2");
+      expect(JSON.parse(b.m.get(PUSH_STATE_KEY)!)).toEqual({ release: "r-1", trying: { release: "r-2", tries: n } });
+      expect(r.errs.join("\n")).toContain(`release r-2 not recorded as told (no phone reached; try ${n} of ${RELEASE_WAKE_TRIES})`);
+    }
+    const last = await gaugeRun(b, env);
+    expect(last.rel).toBe("r-2");
+    expect(JSON.parse(b.m.get(PUSH_STATE_KEY)!)).toEqual({ release: "r-2" });
+    expect(last.errs.join("\n")).toContain(`release r-2 recorded after ${RELEASE_WAKE_TRIES} wakes that reached no phone`);
+    expect(JSON.parse(b.m.get(PUSH_STATUS_KEY)!)).toMatchObject({ ok: false, ios: { sent: 0, failed: 1, errors: ["APNs 500 InternalServerError"] } });
+    expect((await gaugeRun(b, env)).rel).toBe(null);
+  });
+
+  it("a wake that throws counts as a try and records nothing; with nobody registered it is recorded at once", async () => {
+    vi.spyOn(console, "error").mockImplementation(() => {});
+    vi.spyOn(console, "log").mockImplementation(() => {});
+    const b = await bucketWith([GOOD]);
+    b.failList.add(TOKENS_PREFIX);
+    const r = await gaugeRun(b, {});
+    expect(r.w!.push).toMatchObject({ ok: false, error: expect.stringMatching(/R2 LIST/) });
+    expect(JSON.parse(b.m.get(PUSH_STATE_KEY)!)).toEqual({ release: "r-1", trying: { release: "r-2", tries: 1 } });
+    const empty = await bucketWith([]);
+    await gaugeRun(empty, {});
+    expect(JSON.parse(empty.m.get(PUSH_STATE_KEY)!)).toEqual({ release: "r-2" });
   });
 });

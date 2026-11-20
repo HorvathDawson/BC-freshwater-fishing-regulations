@@ -461,3 +461,20 @@ filtered on `/push`, would say whether a register (and its status) arrived befor
 - The simulator run and the Android benches above are of ae7fc72db, before these fixes: the iPhone line "a cold start
   registered the same token again" is the old once-per-start rule (L1 now skips it within 7 days; `scenarios-ios/push.mjs`
   passes either way). Not re-run on a device for the fixes (unit and run tests only); the TestFlight build will carry them.
+
+### Re-review of 22cec92b8 (2026-11-20): last items, fixed on the lane
+- The wake and the release record moved into `push.ts` `wakePhones` (index.ts calls it). A new release is recorded as
+  told once its wake reached a phone (`sent > 0`, or nobody registered), or after `RELEASE_WAKE_TRIES` (3) wakes for it;
+  until then the state is `{release: <last told>, trying: {release, tries}}` and each gauge run wakes for it again. One
+  always-failing token or a broken APNs key no longer re-wakes every phone at every gauge run; its failures stay on
+  /status. Tests `push.run.test.ts`: a partial wake records it, a wake that reached nobody does not until the third, a
+  wake that threw counts as a try, nobody registered records at once. (This replaces "only after its wake went out ok"
+  in the M2 line above.)
+- `dfoAnswersChanged` compares each region's whole record less its bookkeeping (`at`, `checked`, `failures`, `sha256`,
+  `page`, and `changed`, which follows the hash) and the top-level `pairs`: a re-typed header note or limit under the
+  same `asof` wakes; an unchanged next run still does not (`push.dfo.test.ts`: a real run with region 4's closure note
+  re-worded, and record-level cases).
+- An unregister the worker's limit answered twice says "Server wake-ups: turning off is pending; our server is busy for
+  this connection. It tries again when the app next starts." (`pending` carries `what`); "Try again" withdraws again
+  (`retryPush` sends the token while a notification is on, else the withdrawal).
+- Wording: a deleted token record comes back "within 7 days" (the worker's log line and comment), not "at the next start".

@@ -428,8 +428,8 @@ describe("Alert me on a gauge's card, and the editor (T527)", () => {
 });
 
 describe("(T822) the push registration is said on More → Notifications, never silent", () => {
-  function withPush(st: PushStatus) {
-    const { c, platform } = controls({ on: true, updateReady: true }, "granted", "granted");
+  function withPush(st: PushStatus, state: Partial<NotifyState> = { on: true, updateReady: true }) {
+    const { c, platform } = controls(state, "granted", "granted");
     let status = st;
     const subs = new Set<() => void>();
     const push = vi.fn(async (_on: boolean) => {});
@@ -453,13 +453,23 @@ describe("(T822) the push registration is said on More → Notifications, never 
   });
 
   it("(L1) a register the worker's limit held back says PENDING, with \"Try again\"", async () => {
-    const { c, push } = withPush({ state: "pending", at: NOW });
+    const { c, push } = withPush({ state: "pending", at: NOW, what: "register" });
     render(<NotifyRoot controls={c}><Page /></NotifyRoot>);
     await flush();
     expect(screen.getByTestId("notify-push-status").textContent).toBe(NOTIFY_WORDS.push.pending);
     push.mockClear();
     fireEvent.click(screen.getByTestId("notify-push-retry"));
     expect(push).toHaveBeenCalledWith(true);
+  });
+
+  it("(re-review) a TURNING-OFF the limit held back says so, never \"registration pending\"; \"Try again\" withdraws again", async () => {
+    const { c, push } = withPush({ state: "pending", at: NOW, what: "unregister" }, { on: false, updateReady: false });
+    render(<NotifyRoot controls={c}><Page /></NotifyRoot>);
+    await flush();
+    expect(screen.getByTestId("notify-push-status").textContent).toBe(NOTIFY_WORDS.push.pendingOff);
+    push.mockClear();
+    fireEvent.click(screen.getByTestId("notify-push-retry"));
+    expect(push).toHaveBeenCalledWith(false);
   });
 
   it("a build without push draws no line", async () => {

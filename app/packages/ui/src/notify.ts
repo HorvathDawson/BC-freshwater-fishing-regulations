@@ -82,7 +82,8 @@ export interface NotificationsVM {
   readonly push: boolean;
   /** (T822) the push registration's last outcome (null: this build has no push) */
   readonly pushStatus: PushStatus | null;
-  /** (T822) send the token again now (notifications on); a failure is said in `pushStatus` and reported unless offline */
+  /** (T822) send again now: the token (a notification on) or its withdrawal (none on); a failure is said in `pushStatus`
+   *  and reported unless the environment's */
   retryPush(): void;
   setOn(on: boolean): Promise<void>;
   setUpdateReady(on: boolean): Promise<void>;
@@ -142,7 +143,8 @@ export function useNotifications(): NotificationsVM | null {
   if (!c || !state) return null;
   return {
     state, permission, asking, error, canAppVersion: c.appVersion === true, push: hasPush(c), pushStatus,
-    retryPush: () => { if (notifyActive(state)) c.platform.push?.(true).catch(reportFailure); },
+    // (re-review) the send that is pending or failed, again: the register while a notification is on, else the unregister
+    retryPush: () => { c.platform.push?.(notifyActive(state)).catch(reportFailure); },
     setOn: async (on) => { write(setNotifyOn(on)); if (on) await allow(); },
     setUpdateReady: async (on) => { write((s) => (on ? setNotifyOn(true)(setReady(true)(s)) : setReady(false)(s))); if (on) await allow(); },
     setAppVersion: async (on) => { write((s) => (on ? setNotifyOn(true)(setAppVersionNotice(true)(s)) : setAppVersionNotice(false)(s))); if (on) await allow(); },

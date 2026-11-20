@@ -219,7 +219,7 @@ export async function sendWake(env: PushEnv, fetch_: Fetch, now: Date, reason: s
       recs.push({ key, rec });
     } catch (e) {
       // a record we wrote that does not parse (or names a platform with no push) is a fault: counted and said; deleted
-      // (an iPhone registers again at its next start)
+      // (the iPhone registers again within 7 days, PUSH_REFRESH_MS on the phone)
       out.unreadable++;
       console.error(JSON.stringify({ job: "push", unreadableToken: key, error: String((e as Error)?.message ?? e) }));
       await env.BUCKET.delete(key);
@@ -276,8 +276,8 @@ export async function writePushFailure(bucket: R2BucketLike, at: Date, reason: s
  * (T739, owner 2026-11-14 "if new data is there we could send a notification") Has a new release been published since the
  * sender last looked? Reads the live manifest from the bucket; the first look only records it (no wake for the release
  * every phone already has). Throws when the manifest cannot be read or parsed (the caller says so in the run).
- * (review 2026-11-20, M2) A NEW release is NOT recorded here: the caller records it (`markReleaseSeen`) only once the
- * wake for it was sent ok, so a send that throws or fails is tried again at the next gauge run.
+ * (review 2026-11-20, M2) A NEW release is NOT recorded here: `wakePhones` records it (`noteReleaseWake`) once its wake
+ * reached a phone, or after RELEASE_WAKE_TRIES wakes; until then each gauge run wakes for it again.
  */
 export async function newRelease(bucket: R2BucketLike): Promise<string | null> {
   const o = await bucket.get(MANIFEST_KEY);
@@ -306,14 +306,75 @@ export async function markReleaseSeen(bucket: R2BucketLike, rel: string): Promis
   await bucket.put(PUSH_STATE_KEY, JSON.stringify({ release: rel }), { httpMetadata: { contentType: "application/json" } });
 }
 
+/** (re-review 2026-11-20) the gauge runs that may wake for one release before it is recorded anyway */
+export const RELEASE_WAKE_TRIES = 3;
+
+/**
+ * (re-review 2026-11-20) After a wake for a new release: record it once a phone was reached (`sent > 0`) or there was
+ * nobody to reach, or after RELEASE_WAKE_TRIES wakes for it, whichever comes first, so one always-failing token or a
+ * broken APNs key cannot re-wake every phone at every gauge run without end (the failures stay on /status). Until then
+ * the state keeps the release last told and the tries for this one: `{release, trying: {release, tries}}`.
+ */
+export async function noteReleaseWake(bucket: R2BucketLike, rel: string, reached: boolean): Promise<{ recorded: boolean; tries: number }> {
+  const s = await bucket.get(PUSH_STATE_KEY);
+  let st: { release?: string | null; trying?: { release?: string; tries?: number } } = {};
+  // newRelease replaced an unreadable record before it named this release; one torn since THROWS (the run says it)
+  if (s) st = JSON.parse(await s.text());
+  const tries = (st.trying?.release === rel ? Number(st.trying.tries) || 0 : 0) + 1;
+  if (reached || tries >= RELEASE_WAKE_TRIES) { await markReleaseSeen(bucket, rel); return { recorded: true, tries }; }
+  await bucket.put(PUSH_STATE_KEY, JSON.stringify({ release: st.release ?? null, trying: { release: rel, tries } }),
+                   { httpMetadata: { contentType: "application/json" } });
+  return { recorded: false, tries };
+}
+
+/**
+ * (T739) ONE WAKE FROM A FEED RUN (index.ts `run`): the send, its record on /status, and for a new release (`rel`, the
+ * gauge run) whether it is now recorded as told. Never throws: a failure is a step error (`logErr`); a wake that threw is
+ * kept on /status as {at, reason, ok: false, error}; `statusLost` (the status could not be written) fails the run.
+ */
+export async function wakePhones(env: PushEnv, fetch_: Fetch, at: Date, why: string, rel: string | null,
+                                 logErr: (s: string) => void): Promise<{ push: unknown; statusLost: boolean }> {
+  let push: unknown = null;
+  let statusLost = false;
+  let reached = false;
+  try {
+    const r = await sendWake(env, fetch_, at, why);
+    push = { reason: why, ok: r.ok, unreadable: r.unreadable, ios: { sent: r.ios.sent, failed: r.ios.failed, missing: r.ios.missing } };
+    if (r.ios.failed) logErr(`push: ${r.ios.failed} wake(s) failed (${r.ios.errors.slice(0, 3).join("; ")})`);
+    if (r.unreadable) logErr(`push: ${r.unreadable} stored token record(s) did not parse or were not an iPhone's; deleted (those phones register again within 7 days)`);
+    reached = r.ios.sent > 0 || (r.ios.tokens === 0 && r.ok);
+  } catch (e) {
+    const msg = String((e as Error)?.message ?? e);
+    logErr(`push: not sent (${msg})`);
+    push = { reason: why, ok: false, error: msg };
+    const sent = (e as { send?: PushSend })?.send;
+    if (sent) { statusLost = true; reached = sent.ios.sent > 0; }   // sendWake's own status write failed (after sending)
+    try { await writePushFailure(env.BUCKET, at, why, msg); }
+    catch (w) { statusLost = true; logErr(`push: the failure was not recorded on /status either (${String((w as Error)?.message ?? w)})`); }
+  }
+  if (rel) {
+    try {
+      const n = await noteReleaseWake(env.BUCKET, rel, reached);
+      if (!n.recorded) logErr(`push: release ${rel} not recorded as told (no phone reached; try ${n.tries} of ${RELEASE_WAKE_TRIES}); the next gauge run wakes for it again`);
+      else if (!reached) logErr(`push: release ${rel} recorded after ${n.tries} wakes that reached no phone (see the push status)`);
+    } catch (e) { logErr(`push: release ${rel} not recorded (${String((e as Error)?.message ?? e)}); the next gauge run wakes for it again`); }
+  }
+  return { push, statusLost };
+}
+
 /**
  * (review 2026-11-20, M1) Did a DFO run change what a phone reads? The published answers compared with the last feed's:
- * every place's answers (`locs`), the verdict and gear tables they point into, the issues, and each region's dated
- * state (`asof`, `stale`, `held`). Not the run's own bookkeeping (`at`, `checked`, `failures`, the page hash, which regions
- * it asked: `issues.unread`) and not its notices: an unchanged region's notices are re-offered every run (dfo/live.ts,
+ * every place's answers (`locs`), the verdict and gear tables they point into, the issues, `pairs`, and each region's
+ * WHOLE record (its header, notes, limits, date, stale mark, holds…; re-review 2026-11-20: a re-typed header note or
+ * limit under the same `asof` was missed) less the run's own bookkeeping (REGION_BOOKKEEPING: when it was checked, the
+ * fetches that failed, the page hash and when it last moved). Not `at`, not which regions the run asked
+ * (`issues.unread`), and not its notices: an unchanged region's notices are re-offered every run (dfo/live.ts,
  * the outbox tells a key once) and a one-region retry counts nothing as changed. No last feed: changed. Compared with
  * keys sorted: the last feed is read back from its published bytes, the new one is the run's object (other key order).
  */
+/** a region's own run bookkeeping (dfo/live.ts `reg`): never a reason to wake. `changed` is when the page hash last
+ *  moved, so it follows `sha256`; a page whose bytes moved with no other field changing reads the same to a phone. */
+const REGION_BOOKKEEPING = new Set(["at", "checked", "failures", "sha256", "page", "changed"]);
 const stable = (v: unknown): string => JSON.stringify(v, (_k, x: unknown) =>
   x && typeof x === "object" && !Array.isArray(x)
     ? Object.fromEntries(Object.keys(x as object).sort().map((k) => [k, (x as Record<string, unknown>)[k]])) : x);
@@ -328,10 +389,10 @@ export function dfoAnswersChanged(prev: unknown, next: unknown): boolean {
   const view = (ix: Record<string, unknown>) => {
     const regions: Record<string, unknown> = {};
     for (const [slug, r] of Object.entries((ix.regions ?? {}) as Record<string, Record<string, unknown>>))
-      regions[slug] = { asof: r?.asof ?? null, stale: r?.stale ?? null, held: r?.held ?? null };
+      regions[slug] = Object.fromEntries(Object.entries(r ?? {}).filter(([k]) => !REGION_BOOKKEEPING.has(k)));
     const waters = Object.entries(((ix.issues as { waters?: Record<string, { r?: string }> } | undefined)?.waters) ?? {})
       .filter(([, w]) => read.has(String(w?.r))).sort(([a], [b]) => (a < b ? -1 : a > b ? 1 : 0));
-    return stable({ locs: ix.locs ?? null, verdicts: ix.verdicts ?? null, gears: ix.gears ?? null, waters, regions });
+    return stable({ locs: ix.locs ?? null, verdicts: ix.verdicts ?? null, gears: ix.gears ?? null, pairs: ix.pairs ?? null, waters, regions });
   };
   return view(prev as Record<string, unknown>) !== view(nx);
 }

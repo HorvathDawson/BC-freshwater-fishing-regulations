@@ -37,7 +37,7 @@ import { neverSeen } from "./gauges/publish";
 import { READING_MAX_AGE_HOURS } from "../../../packages/core/src/gauge-policy.generated";
 import { checkToken, dispatchOnce, OVERDUE_MS, unfinished, type Dispatch, type DispatchEnv } from "./dispatch";
 import { checkRunTiming } from "./runtiming";
-import { dfoAnswersChanged, handlePush, markReleaseSeen, newRelease, pushMissing, PUSH_STATUS_KEY, sendWake, wakeReason, writePushFailure, type PushEnv } from "./push";
+import { dfoAnswersChanged, handlePush, newRelease, pushMissing, PUSH_STATUS_KEY, sendWake, wakePhones, wakeReason, writePushFailure, type PushEnv } from "./push";
 import { capEvents, CORS as REPORT_CORS, handleReport, listReportsCounted, purgeLimits, purgeReports, purgeTestReports, reportEvents, RETENTION_DAYS, RETENTION_STATUS_KEY, type ReportEnv } from "./reports";
 
 /** (T739) PushEnv: the APNs secrets (APNS_KEY, APNS_KEY_ID, APNS_TEAM_ID; src/push.ts; iPhone only, no FCM) */
@@ -556,28 +556,12 @@ async function run(job: Job, env: Env, opts: { regions?: string[]; limit?: numbe
     }
     const why = reasons.filter(Boolean).join(", ");
     if (why) {
-      const at = new Date();
-      try {
-        const r = await sendWake(env, (u, i) => fetch(u, i), at, why);
-        push = { reason: why, ok: r.ok, unreadable: r.unreadable, ios: { sent: r.ios.sent, failed: r.ios.failed, missing: r.ios.missing } };
-        if (r.ios.failed) logErr(`push: ${r.ios.failed} wake(s) failed (${r.ios.errors.slice(0, 3).join("; ")})`);
-        if (r.unreadable) logErr(`push: ${r.unreadable} stored token record(s) did not parse or were not an iPhone's; deleted (those phones register again at their next start)`);
-        // (M2) the release counts as told only once its wake went out whole; else the next gauge run wakes for it again
-        if (rel && r.ok) {
-          try { await markReleaseSeen(env.BUCKET, rel); }
-          catch (e) { logErr(`push: release ${rel} woken but not recorded (${String((e as Error)?.message ?? e)}); the next gauge run wakes for it again`); }
-        } else if (rel) logErr(`push: release ${rel} not recorded as told (the wake was not ok); the next gauge run tries again`);
-      } catch (e) {
-        const msg = String((e as Error)?.message ?? e);
-        logErr(`push: not sent (${msg})`);
-        push = { reason: why, ok: false, error: msg };
-        try { await writePushFailure(env.BUCKET, at, why, msg); }
-        catch (w) { pushStatusLost = true; logErr(`push: the failure was not recorded on /status either (${String((w as Error)?.message ?? w)})`); }
-        if ((e as { send?: unknown })?.send) pushStatusLost = true;   // sendWake's own status write failed
-      }
+      const w = await wakePhones(env, (u, i) => fetch(u, i), new Date(), why, rel, logErr);
+      push = w.push;
+      pushStatusLost = w.statusLost;
     }
   }
-  return { job, ok: error === null && !pushStatusLost, error,wallMs, meter: m, sources: health.sources, failingParts: Object.keys(health.parts).length, summary, notify, push, stepErrors, log: logs.slice(-40) };
+  return { job, ok: error === null && !pushStatusLost, error, wallMs, meter: m, sources: health.sources, failingParts: Object.keys(health.parts).length, summary, notify, push, stepErrors, log: logs.slice(-40) };
 }
 
 // ── (T851) THE DFO SAME-DAY RETRY ─────────────────────────────────────────────────────────────────────────────────────

@@ -362,6 +362,8 @@ export const NOTIFY_WORDS = {
       + "It tries again when the app next starts.",
     /** (review 2026-11-20, L1) the worker's per-address limit twice (several phones behind one address): not a fault */
     pending: "Server wake-ups: registration pending: our server is busy for this connection. It tries again when the app next starts.",
+    /** (re-review 2026-11-20) the same limit on the way OFF: the token is still on our server until the next start */
+    pendingOff: "Server wake-ups: turning off is pending; our server is busy for this connection. It tries again when the app next starts.",
     retry: "Try again",
   },
   master: { label: "Notifications", on: "On", off: "Off", hint: "Turn every notification from this app on or off." },

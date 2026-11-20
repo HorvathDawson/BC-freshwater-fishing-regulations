@@ -63,11 +63,33 @@ describe("a DFO run wakes only when the answers changed (M1)", () => {
     expect(changed.reason).toBe("dfo");
   });
 
+  it("(re-review) a re-typed header note under the same asof wakes; the next run of that page does not", async () => {
+    const NOTE = "There is no fishing for salmon in Region 4 - Kootenays until further notice.";
+    const html = page("4").replace(NOTE, "There is no fishing for salmon in Region 4 - Kootenays until 2027.");
+    expect(html).not.toBe(page("4"));
+    const pageOf = (s: string) => (s === "4" ? html : page(s));
+    const feed = new MemStore(), priv = privStore();
+    await dfoRun(feed, priv, "2026-10-28T12:00:00Z", SLUGS);
+    const prior = JSON.parse(feed.m.get("index.json")!);
+    const before = prior.regions["4"];
+    const moved = await dfoRun(feed, priv, "2026-10-28T18:00:00Z", ["4"], pageOf);
+    // (on these pages the closure note also reaches the places' answers; the header alone is pinned below, by record)
+    const after = (moved.got.index.regions as Record<string, { asof: string; notes: { t: string }[] }>)["4"]!;
+    expect(after.asof).toBe(before.asof);                                    // the same date on the page
+    expect(after.notes.map((n) => n.t)).toContain("There is no fishing for salmon in Region 4 - Kootenays until 2027.");
+    expect(moved.reason).toBe("dfo");
+    expect((await dfoRun(feed, priv, "2026-10-29T00:00:00Z", ["4"], pageOf)).reason).toBe(null);
+  });
+
   it("the run's own bookkeeping is not a change; a region's date, stale mark or hold is", () => {
     const ix = { at: "a", locs: { L1: { r: "4", sp: [[0, 1]] } }, verdicts: ["x", "y"], gears: [], issues: { waters: {} },
                  regions: { "4": { asof: "2025-04-01", stale: false, held: null, checked: "t1", failures: 0, sha256: "s" } } };
-    const run2 = { ...ix, at: "b", regions: { "4": { ...ix.regions["4"], checked: "t2", failures: 1, sha256: "s2" } } };
+    const run2 = { ...ix, at: "b", regions: { "4": { ...ix.regions["4"], checked: "t2", failures: 1, sha256: "s2", changed: "b" } } };
     expect(dfoAnswersChanged(ix, run2)).toBe(false);
+    // (re-review) the region's whole record counts: a header note, a limit; and the top-level pairs
+    expect(dfoAnswersChanged(ix, { ...ix, regions: { "4": { ...ix.regions["4"], notes: [{ k: "closed", t: "until 2027" }] } } })).toBe(true);
+    expect(dfoAnswersChanged(ix, { ...ix, regions: { "4": { ...ix.regions["4"], header: "another-limit" } } })).toBe(true);
+    expect(dfoAnswersChanged(ix, { ...ix, pairs: { a: "b" } })).toBe(true);
     expect(dfoAnswersChanged(ix, { ...ix, regions: { "4": { ...ix.regions["4"], stale: true } } })).toBe(true);
     expect(dfoAnswersChanged(ix, { ...ix, regions: { "4": { ...ix.regions["4"], asof: "2025-05-01" } } })).toBe(true);
     expect(dfoAnswersChanged(ix, { ...ix, verdicts: ["x", "z"] })).toBe(true);

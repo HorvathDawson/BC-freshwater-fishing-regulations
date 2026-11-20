@@ -96,8 +96,18 @@ describe("the push token follows the reader's notifications (T739)", () => {
     expect(e).toBeInstanceOf(Error);
     expect(isEnvironment(e)).toBe(true);
     expect((e as Error).message).toBe("push register: HTTP 429 twice (the worker's per-address limit)");
-    expect(capped.status()).toEqual({ state: "pending", at: 8 });
+    expect(capped.status()).toEqual({ state: "pending", at: 8, what: "register" });
     expect(kept.read()).toBe(null);
+    // (re-review) the same limit on the way OFF: pending as an unregister, the record kept so the next start withdraws it
+    let limited = false;
+    const sent = memory(JSON.stringify({ platform: "ios", token: IOS, env: "sandbox", url: URL_, at: 1 }));
+    const off = createPushRegistrar({ seam: seam(), url: URL_, wait, now: () => 9, store: sent,
+                                      fetch: async () => { limited = true; return new Response("{}", { status: 429 }); } });
+    const e2 = await off.sync(false).catch((x: unknown) => x);
+    expect(limited).toBe(true);
+    expect(isEnvironment(e2)).toBe(true);
+    expect(off.status()).toEqual({ state: "pending", at: 9, what: "unregister" });
+    expect(JSON.parse(sent.read()!).token).toBe(IOS);
   });
 
   it("(T822) a token the system never hands over fails the sync after the deadline, REPORTED, and frees the queue", async () => {

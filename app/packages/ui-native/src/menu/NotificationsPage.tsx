@@ -154,7 +154,7 @@ function PushLine({ n, palette }: { n: NotificationsVM; palette: Palette }) {
   if (!st) return null;
   const words = st.state === "registered" ? W.push.registered(localStamp(st.at))
     : st.state === "failed" ? W.push.failed(st.why, st.environment)
-    : st.state === "pending" ? W.push.pending
+    : st.state === "pending" ? (st.what === "unregister" ? W.push.pendingOff : W.push.pending)
     : st.state === "sending" ? W.push.sending : st.state === "withdrawn" ? W.push.withdrawn : W.push.idle;
   return (
     <>
