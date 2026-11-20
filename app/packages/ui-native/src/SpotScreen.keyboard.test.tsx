@@ -15,20 +15,25 @@ import { LIGHT } from "./theme";
 
 vi.mock("./KeyboardBar", async () => await import("./KeyboardBar.native"));
 const scrolls: Record<string, unknown>[] = [];
+const fields: Record<string, unknown>[] = [];
 vi.mock("react-native", async (importOriginal) => {
   const rn = await importOriginal<typeof import("react-native")>();
   const Spy = forwardRef<unknown, Record<string, unknown>>(function ScrollView(p, ref) {
     scrolls.push(p);
     return createElement(rn.ScrollView as never, { ...p, ref });
   });
-  return { ...rn, ScrollView: Spy };
+  const Field = forwardRef<unknown, Record<string, unknown>>(function TextInput(p, ref) {
+    fields.push(p);
+    return createElement(rn.TextInput as never, { ...p, ref });
+  });
+  return { ...rn, ScrollView: Spy, TextInput: Field };
 });
 const { SpotScreen } = await import("./SpotScreen");
 const { KeyboardBar: KeyboardBarWeb } = await import("./KeyboardBar.web");
 
 const OS = Platform.OS;
 const as = (os: string) => { (Platform as { OS: string }).OS = os; };
-afterEach(() => { cleanup(); as(OS); scrolls.length = 0; });
+afterEach(() => { cleanup(); as(OS); scrolls.length = 0; fields.length = 0; });
 
 const VISIT = new Date(2026, 7, 30, 9).getTime();
 const SPOT: Spot = {
@@ -44,16 +49,29 @@ describe("<SpotScreen> Save on the iOS keyboard (T723)", () => {
     as("ios");
     const save = vi.fn();
     draw("draft", save);
-    const bar = screen.getByTestId("spot-save-bar-save");
+    const bar = screen.getByTestId("spot-save-bar-notes-save");
     expect(bar.textContent).toBe(SPOT_WORDS.save);
     fireEvent.click(bar);
     expect(save).toHaveBeenCalledTimes(1);
   });
 
+  it("each field names its OWN bar (React Native attaches a bar to the first field naming it), and each bar is drawn", () => {
+    // L6 2026-11-20, simulator: one bar named by both fields rode on the title's keyboard only, never the notes'
+    as("ios");
+    draw("draft", () => {});
+    const named = fields.map((f) => f.inputAccessoryViewID).filter(Boolean);
+    expect(new Set(named).size).toBe(2);
+    // no id named by two fields (the spy sees every render: one field label per id)
+    for (const id of new Set(named)) {
+      expect(new Set(fields.filter((f) => f.inputAccessoryViewID === id).map((f) => f.accessibilityLabel)).size).toBe(1);
+    }
+    for (const id of named) expect(screen.getByTestId(`${id}-save`).textContent).toBe(SPOT_WORDS.save);
+  });
+
   it("iOS, an edit: the bar says Save changes", () => {
     as("ios");
     draw("edit", () => {});
-    expect(screen.getByTestId("spot-save-bar-save").textContent).toBe(SPOT_WORDS.saveChanges);
+    expect(screen.getByTestId("spot-save-bar-title-save").textContent).toBe(SPOT_WORDS.saveChanges);
   });
 
   it("no bar on a saved spot being read, nor with nothing to save; none on Android (its page rises, T819) or the web", () => {

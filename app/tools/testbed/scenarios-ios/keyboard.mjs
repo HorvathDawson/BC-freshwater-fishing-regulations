@@ -253,24 +253,33 @@ export const keyboardIos = {
       ctx.flow('ios-tap-at', { POINT: `${Math.round(at[0])},${Math.round(at[1])}` });
       const nn = await typeIn(ctx, 'spot-notes', null, 'kb notes', (n) => n.text === 'kb notes');
       // (G10) ONE tap on "Save spot" with the keyboard up: it must save, not only close the keyboard
-      // (T723, owner 2026-11-16) the Save row lifted: the same Save rides on the keyboard's bar (`spot-save-bar-save`, an
+      // (T723, owner 2026-11-16) the Save row lifted: the same Save rides on the keyboard's bar (`spot-save-bar-notes-save`, an
       // InputAccessoryView, so its box is ABOVE the keys and the pixel read of the keyboard's top may include the bar);
       // before the fix only the page's row exists, under the keyboard
       const ns2 = d.nodes();
-      const onBar = ns2.find((n) => n.id === 'spot-save-bar-save');
-      const save = onBar ?? ns2.find((n) => /^(Save spot)$/.test(n.text || n.desc));
+      // the bar lives in the keyboard's own window, so it may be missing from the app's tree: then it is read off the
+      // screenshot (`T723-kb-spot-notes.png`) and tapped where it rides, just above the keys (the kb top read off the pixels
+      // is the keys' top: the bar is white like the page, iPhone 17e shots, its Save ~35 pt above it)
+      const onBar = ns2.find((n) => n.id === 'spot-save-bar-notes-save');
+      const row = ns2.find((n) => /^(Save spot)$/.test(n.text || n.desc) && n.id !== 'spot-save-bar-notes-save');
       let once = 'Save spot not in the tree';
-      const barSaid = onBar ? `the keyboard's bar carries Save (${Math.round(onBar.box.y0)}-${Math.round(onBar.box.y1)} pt; keyboard top read ${nn.kbTop === null ? 'none' : Math.round(nn.kbTop)} pt)` : 'no Save on the keyboard';
-      if (!onBar && save && nn.kbTop !== null && save.box.y0 >= nn.kbTop) once = `Save spot (${Math.round(save.box.y0)} pt) is under the keyboard: not tappable with it up`;
-      else if (save) {
-        ctx.flow('ios-tap-at', { POINT: `${Math.round((save.box.x0 + save.box.x1) / 2)},${Math.round((save.box.y0 + save.box.y1) / 2)}` });
+      const barSaid = onBar ? `the keyboard's bar carries Save (${Math.round(onBar.box.y0)}-${Math.round(onBar.box.y1)} pt; keyboard top read ${nn.kbTop === null ? 'none' : Math.round(nn.kbTop)} pt)`
+        : `the bar is not in the tree (the keyboard's window): Save tapped where it rides, ${nn.kbTop === null ? '?' : Math.round(nn.kbTop - 35)} pt`;
+      const tapAt = onBar ? [(onBar.box.x0 + onBar.box.x1) / 2, (onBar.box.y0 + onBar.box.y1) / 2]
+        : nn.kbTop !== null ? [195, nn.kbTop - 35] : null;
+      if (row && nn.kbTop !== null && row.box.y0 >= nn.kbTop) ctx.finding(`(for the record) the page's own Save row (${Math.round(row.box.y0)} pt) is under the keyboard, as designed: the bar carries Save`);
+      if (tapAt) {
+        ctx.flow('ios-tap-at', { POINT: `${Math.round(tapAt[0])},${Math.round(tapAt[1])}` });
         await d.sleep(2500);
         d.screenshot(path.join(ctx.dir, 'T723-kb-spot-save-once.png'));
         const still = d.screenText().includes('Save spot');
         once = still ? 'EATEN (the draft is still open)' : 'saved';
-        if (still) { ctx.finding('G10: the first tap on Save spot (keyboard up) did not save'); ctx.flow('tap-text', { TEXT: 'Save spot' }); await d.sleep(2500); }
+        if (still) ctx.finding('the first tap on the keyboard bar\'s Save (keyboard up) did not save');
       }
-      if (d.screenText().includes('Save spot')) { try { must(ctx, 'kb-spot-save', '- hideKeyboard\n- scrollUntilVisible:\n    element: { text: "Save spot" }\n    timeout: 15000\n- tapOn: { text: "Save spot" }\n'); } catch { /* said by the probe */ } await d.sleep(2500); }
+      if (once !== 'saved') {
+        if (d.screenText().includes('Save spot')) { try { must(ctx, 'kb-spot-save', '- hideKeyboard\n- scrollUntilVisible:\n    element: { text: "Save spot" }\n    timeout: 15000\n- tapOn: { text: "Save spot" }\n'); } catch { /* said below */ } await d.sleep(2500); }
+        throw new Error(`${t.note}; ${dragSaid}; ${nn.note}; ${barSaid}; one tap on Save spot: ${once}`);
+      }
       return `${t.note}; ${dragSaid}; ${nn.note}; ${barSaid}; one tap on Save spot: ${once}`;
     });
     await open("alert fields on a water's Conditions (Coquihalla River → Conditions → Alert me)", async () => {
