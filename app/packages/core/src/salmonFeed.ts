@@ -222,7 +222,8 @@ function intern<T>(items: T[], x: T): number {
  * (T668) The answers of a two-region chain's groups for one species and day, as one: the most strict status speaks
  * (closed > release > check > open, the first region on a tie). TWO DIFFERENT OPENINGS: the Python's answer from the
  * feed's pair table (T668 option 2, owner 2026-11-12: `deliver.salmon.stricter_opening` — one region's opening by the
- * freshwater Z4 ladder, or both regions' words), looked up by the two verdicts' whole content; a pair the table does not
+ * freshwater Z4 ladder, T669 item 3 one quota tree of both regions' caps that bind, or both regions' words), looked up
+ * by the two verdicts' whole content — a merged tree is drawn like any other (`quotaLine`); a pair the table does not
  * hold (a limit changed since the last sync, or no table) shows both regions' words, no number (`u`) — never looser.
  * The app holds no copy of the ladder (the cascade is resolved in Python).
  */

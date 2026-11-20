@@ -2,7 +2,9 @@
 
 Freshwater (RULINGS Z4, `read.effective_rules` step 6): a region's rule is displaced when the other region holds a rule
 `ladder.stricter` than it; everything else binds beside it. Salmon (RULINGS Z4a, `deliver.salmon.strictest`): per fish
-and day, the stricter verdict, and of two openings the stricter limit (`stricter_opening`), else both regions' words.
+and day, the stricter verdict, and of two openings the stricter limit (`stricter_opening`), else (T669 item 3) one quota
+tree of both regions' caps that bind — pooled, hatchery-marked and unmarked shares included — and both regions' words
+only where a number cannot be read. The openings' trees are built by the release's builder (`quota._one`).
 
 Each case states its expected outcome ONCE — "a" (region A's answer alone), "b", or "both" (both regions' rules / words
 stand) — and both readers must reach it. Where the two differ ON PURPOSE (T668 audit, "Freshwater (Z4 / T183) vs salmon
@@ -17,6 +19,7 @@ import pytest
 
 from pipeline.deliver import salmon as S
 from pipeline.deliver.bundle.read.ladder import stricter
+from pipeline.regs.dfo_salmon import quota as Q
 
 CO = ["CO"]
 
@@ -26,13 +29,23 @@ def q(take, **kw):
     return {"type": "retention_limit", "take": take, "species": CO, **kw}
 
 
-def opening(n, t, *, over=(), tier="count", kind=None):
-    """A DFO opening verdict: a daily count `n`, size tiers `over` = [(cm, k)] (k = 0: none over cm)."""
-    kids = [{"node": "tier", "tier": "size", "n": k, "over_cm": cm} for cm, k in over]
-    if kind:                                   # a hatchery / wild limit is a `kind` node (`dfo_salmon.quota`)
-        kids.append({"node": "kind", "species": CO, "name": kind, "n": n, "says": t, "detail": ""})
-    tree = {"node": "tier", "tier": tier, "n": n, "children": kids, "species": CO}
-    return {"s": "open", "t": t, "tree": tree}
+#: Region 5B's pool (`quota.pool_of`): "in the aggregate (combined total), in Management Units 5-6 to 5-11"
+POOL = "area:mu_group:management_units_5_6_to_5_11"
+
+
+def opening(n, t, *, over=(), ceil=None, hatchery=False, wild=None, pooled=None, monthly=()):
+    """A DFO opening verdict for coho, its quota tree built by the release's own builder (`quota._one`): a daily count
+    `n`, "only k over cm" for `over` = [(cm, k)], "none over `ceil` cm", hatchery-marked only, "`wild` of which can be
+    unmarked", a count pooled across an area (`pooled`), a monthly cap [(cm, k)]."""
+    rule = {"type": "retention_limit", "take": n, "species": CO, **({"origin": "hatchery"} if hatchery else {}),
+            **({"pooled_across": [pooled]} if pooled else {})}
+    subs = [{"take": k, "lengths": [{"min_cm": cm}]} for cm, k in over]
+    subs += [{"take": k, "lengths": [{"min_cm": cm}], "period": "monthly"} for cm, k in monthly]
+    if ceil is not None:
+        subs.append({"take": 0, "lengths": [{"min_cm": ceil, "take": 0}]})
+    if wild is not None:
+        subs.append({"origin": "wild", "take": wild})
+    return {"s": "open", "t": t, **Q._one(rule, subs)}
 
 
 def fresh(A, B) -> str:
@@ -70,18 +83,28 @@ CASES = [
      opening(4, "4, only 2 over 50", over=[(50, 2)]), opening(4, "4, only 1 over 50", over=[(50, 1)]), "b"),
     ("a lower count against a size ceiling: both bind",
      [q(2)], [q(4), q(0, lengths=[{"min_cm": 50, "take": 0}])],
-     opening(2, "2 a day"), opening(4, "4 a day, none over 50 cm", over=[(50, 0)]), "both"),
+     opening(2, "2 a day"), opening(4, "4 a day, none over 50 cm", ceil=50), "both"),
     ("caps on two different size bounds: both bind",
      [q(4), q(1, lengths=[{"min_cm": 50}])], [q(4), q(0, lengths=[{"min_cm": 60, "take": 0}])],
-     opening(4, "4, only 1 over 50", over=[(50, 1)]), opening(4, "4, none over 60", over=[(60, 0)]), "both"),
-    ("hatchery quota against a wild release: both (neither holds the other's fish)",
-     [q(2, origin="hatchery")], [q(0, origin="wild")],
-     opening(2, "2 hatchery a day", kind="hatchery"), opening(0, "wild: release", kind="wild"), "both"),
-    ("a pooled count against a plain count",
+     opening(4, "4, only 1 over 50", over=[(50, 1)]), opening(4, "4, none over 60", ceil=60), "both"),
+    ("hatchery-marked only against a lower count: both bind (neither holds the other's fish)",
+     [q(2, origin="hatchery")], [q(1)],
+     opening(2, "2 hatchery marked a day", hatchery=True), opening(1, "1 a day"), "both"),
+    ("an unmarked share against hatchery-marked only: no unmarked fish",
+     [q(2), q(1, origin="wild")], [q(2), q(0, origin="wild")],
+     opening(2, "2 a day, 1 of which can be unmarked", wild=1), opening(2, "2 hatchery marked a day", hatchery=True),
+     "b"),
+    ("a pool at or under a plain count: the pool (it holds every fish the count holds)",
+     [q(2, whose="aggregate")], [q(4)],
+     opening(2, "2 a day in the aggregate", pooled=POOL), opening(4, "4 a day"), "a"),
+    ("a pooled count over a lower plain count",
      [q(4, whose="aggregate")], [q(2)],
-     opening(4, "4 a day, all salmon combined", tier="aggregate"), opening(2, "2 a day"),
+     opening(4, "4 a day in the aggregate", pooled=POOL), opening(2, "2 a day"),
      {"fresh": "b", "salmon": "both",
-      "why": "salmon turns no pooled tree into caps (T669 item 3): both regions' words, no number"}),
+      "why": "a DFO pool counts every water of its set (`whose`), a plain count this water alone: a narrower cap never "
+             "displaces a wider (`ladder.A_NARROWER_CAP_NEVER_DISPLACES_A_WIDER`, over waters), so both bind — the "
+             "pool over the count (T669 item 3); no freshwater quota is pooled over waters (`statement` reads no "
+             "`whose`)"}),
     ("gear: never ranked, both apply",
      [{"type": "gear_restriction", "gear": "barbless"}], [{"type": "gear_restriction", "gear": "single hook"}],
      None, None, "both"),
@@ -125,9 +148,79 @@ def test_both_readers_reach_the_cases_stated_outcome(case):
 def test_only_the_stated_cases_differ_on_purpose():
     """The differences are the T668 audit's, each with its reason; a new one must be stated, never slip in."""
     differ = {c[0]: c[5]["why"] for c in CASES if isinstance(c[5], dict)}
-    assert sorted(differ) == ["a pooled count against a plain count", "a region with nothing to say",
+    assert sorted(differ) == ["a pooled count over a lower plain count", "a region with nothing to say",
                               "hours: a tighter window"]
     assert all(differ.values())
+
+
+#: (T669 item 3) where both regions' caps bind, ONE quota tree of them: the card's line (`quota.words`, the app's
+#: `quotaLine` reads the same tree), never both regions' words with no number
+MIXED = {
+    "a lower count against a size ceiling: both bind": "2 a day · none over 50 cm",
+    "caps on two different size bounds: both bind": "4 a day · only 1 over 50 cm · none over 60 cm",
+    "hatchery-marked only against a lower count: both bind (neither holds the other's fish)":
+        "1 a day, hatchery-marked only",
+    "a pooled count over a lower plain count":
+        "Up to 4 coho a day in total, all waters of Management Units 5-6 to 5-11 combined · 2 a day",
+}
+
+
+def test_t669_item3_a_mix_of_both_regions_caps_shows_numbers():
+    """Every salmon "both" case of the table (bar gear) is one tree of the caps that bind — numbers, with both regions'
+    words kept in `t` — never `u`. Either fold order reads the same numbers."""
+    by = {c[0]: c for c in CASES}
+    assert sorted(MIXED) == sorted(n for n, *_, w in CASES if (w["salmon"] if isinstance(w, dict) else w) == "both"
+                                   and by[n][3] is not None)
+    for name, want in MIXED.items():
+        _n, _A, _B, va, vb, _w = by[name]
+        for got in (S.strictest([va, vb]), S.strictest([vb, va])):
+            assert "u" not in got and got["s"] == "open", name
+            assert Q.words(got["tree"]) == want, name
+        assert S.strictest([va, vb])["t"] == f"{va['t']}; {vb['t']}"
+
+
+def test_t669_item3_every_single_region_tree_reads_back_to_itself():
+    """`_caps` -> `_tree_of` is the identity on every tree shape the release builds (`quota._one`): a merged tree is
+    drawn exactly as a DFO row with those numbers would be. (On r-6258ffded676 all 111 opening trees read back.)"""
+    shapes = [opening(4, "x"), opening(2, "x", over=[(77, 1)]), opening(2, "x", hatchery=True),
+              opening(1, "x", ceil=35), opening(2, "x", wild=1), opening(4, "x", hatchery=True, over=[(35, 2)]),
+              opening(4, "x", pooled=POOL, over=[(50, 1)]), opening(4, "x", monthly=[(65, 1)]),
+              opening(2, "x", wild=1, ceil=50, over=[(40, 1)])]
+    for v in shapes:
+        assert S._tree_of(S._moot(S._caps(v))) == v["tree"], Q.words(v["tree"])
+
+
+def test_t669_item3_what_is_not_one_tree_keeps_both_regions_words():
+    """An unread number, or two pools over different waters, is not one count: both regions' words, no number."""
+    two = opening(2, "2 a day")
+    assert S.strictest([two, {"s": "open", "t": "see notice", "u": 1}]) == {"s": "open", "t": "2 a day; see notice",
+                                                                            "u": 1}
+    other = opening(3, "3 in the aggregate", pooled="area:mu_group:management_units_3_1_to_3_5")
+    assert S.strictest([opening(4, "4 in the aggregate", pooled=POOL), other])["u"] == 1
+
+
+def test_t669_item3_the_live_5b_6_straddler():
+    """r-6258ffded676 chain 300 (Region 5B's region section beside Region 6 E/A): Region 5B pools 4 a day over MUs
+    5-6 to 5-11, Region 6 opens 4 a day. Chinook "only 1 over 50 cm" (5B) against "only 1 over 65 cm" (6): 5B's own
+    opening (1 over 50 holds 1 over 65). Coho "only 2 over 50 cm" (5B) against "only 1 over 50 cm" (6): 5B's pool with
+    Region 6's size cap — before item 3 both regions' words with no number."""
+    pool = lambda sp, k: {"s": "open", "t": f"4 per day, only {k} over 50 cm (Apr 1–Mar 31)",      # noqa: E731
+                          **Q._one({"take": 4, "species": [sp], "pooled_across": [POOL]},
+                                   [{"take": k, "lengths": [{"min_cm": 50}]}])}
+    four = lambda sp, k, cm: {"s": "open", "t": f"4 per day, only {k} over {cm} cm (Apr 1–Mar 31)",  # noqa: E731
+                              **Q._one({"take": 4, "species": [sp]}, [{"take": k, "lengths": [{"min_cm": cm}]}])}
+    ch = pool("CH", 1)
+    assert S.strictest([ch, four("CH", 1, 65)]) is ch
+    got = S.strictest([pool("CO", 2), four("CO", 1, 50)])
+    assert "u" not in got and Q.words(got["tree"]) == \
+        "Up to 4 coho a day in total, all waters of Management Units 5-6 to 5-11 combined · only 1 over 50 cm"
+
+
+def test_mutation_without_the_merged_tree_a_mix_is_words_again(monkeypatch):
+    """MUTATION: `_tree_of` answering None puts every mixed case back to both regions' words with no number."""
+    monkeypatch.setattr(S, "_tree_of", lambda caps: None)
+    by = {c[0]: c for c in CASES}
+    assert all(S.strictest([by[n][3], by[n][4]]).get("u") == 1 for n in MIXED)
 
 
 def test_mutation_a_reader_that_never_displaces_fails_the_table(monkeypatch):

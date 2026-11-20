@@ -169,8 +169,8 @@ def compose(lids: Sequence[str], locs: Mapping[str, dict], verdicts: Sequence[di
     whether the header closure `c` holds for them too. `speaks`: an undrawn place's own chain carries `n`, the days DFO
     speaks for it (`deliver.salmon.speaks_runs`). (T668) `groups`: the chain's `s` — on a section in two regions each
     region's places (indices into `lids`) answer apart and the most strict per fish speaks (`deliver.salmon.strictest`;
-    a group with no answer is `NOT_LISTED`; two openings by their limits, which may be a NEW verdict — both regions'
-    words, no number — added through `intern`, which appends to `verdicts`); the gear lines are every group's (`deliver.salmon.both_gear`, a new
+    a group with no answer is `NOT_LISTED`; two openings by their limits, which may be a NEW verdict — one quota of
+    both regions' caps (T669 item 3), or both regions' words with no number — added through `intern`, which appends to `verdicts`); the gear lines are every group's (`deliver.salmon.both_gear`, a new
     list added through `gear_intern`, `gears` the feed's). A merge with no interner to add it to STOPS (never a guess)."""
     subs = [[locs[lids[i]] for i in g if lids[i] in locs] for g in groups] if groups else \
         [[locs[l] for l in lids if l in locs]]

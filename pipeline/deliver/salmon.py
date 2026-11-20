@@ -581,54 +581,164 @@ def section_regions_of(registry, sid_of: Mapping[str, int], areas: Iterable[str]
 STRICT = ("closed", "release", "check", "open")
 
 
+#: (T669 item 3) the kind names `regs.dfo_salmon.quota._one` gives — the tree carries no origin field, its kind's name
+#: says it: "hatchery-marked coho" (folded into the count: hatchery-marked only), "unmarked (wild) coho" (of the count,
+#: up to n unmarked). `test_strictest_cases` builds its trees with `_one`, so a renamed kind fails there.
+_HATCHERY_KIND, _WILD_KIND = "hatchery-marked ", "unmarked (wild) "
+
+
+def _cap(sp: List[str], take: int, **kw) -> dict:
+    return {"type": "retention_limit", "take": take, "species": sp, **kw}
+
+
 def _caps(v: Mapping) -> Optional[List[dict]]:
-    """An opening's limits as the freshwater reader's rules (`bundle.read` shape): its daily count, and each size tier
-    as its own cap — "none over X cm" (take 0 over X), "only k over X cm" (take k over X) — so two regions' openings
-    are compared by the SAME primitives a two-region freshwater section is (`ladder.stricter`, `statement`). None where
-    the number cannot be read (`u`), or the tree holds a kind (hatchery / wild), a monthly or a pooled limit."""
+    """An opening's limits as the freshwater reader's rules (`bundle.read` shape), so two regions' openings are compared
+    by the SAME primitives a two-region freshwater section is (`ladder.stricter`, `rules.statement`):
+      the count tier                     its daily count;
+      the aggregate tier (T669 item 3)   `total` with `whose` (a count pooled over a set of waters, `quota._one`): the
+                                         count with its `whose` (and the pool's words, `says`, `hatchery`);
+      a hatchery-marked kind (folded)    hatchery-marked only = no unmarked fish: a release of wild ones (take 0, origin
+                                         wild) — so a region's wild share is ranked against it;
+      an unmarked (wild) kind            "up to k unmarked": take k, origin wild;
+      a plain kind (folded)              the count's own fish, with its ceiling (the "none over" size tier says it);
+      a size tier                        "none over X cm" (take 0 over X), "only k over X cm" (take k over X), a
+                                         monthly one with its `period`.
+    None where the number cannot be read (`u`), or the tree holds anything else (both regions' words then stand)."""
     tree = v.get("tree")
-    if v.get("u") or not tree or tree.get("tier") != "count" or not isinstance(tree.get("n"), int):
+    if v.get("u") or not tree or tree.get("node", "tier") != "tier" or tree.get("tier") not in ("count", "total") \
+            or not isinstance(tree.get("n"), int) or (tree["tier"] == "total") != bool(tree.get("whose")):
         return None
     sp = list(tree.get("species") or [])
-    out = [{"type": "retention_limit", "take": tree["n"], "species": sp}]
+    root = _cap(sp, tree["n"])
+    out = [root]
+    hatchery = wild = False
     for c in tree.get("children") or ():
-        if c.get("node") != "tier" or c.get("tier") != "size" or c.get("period") or not isinstance(c.get("over_cm"), int):
+        if c.get("node") == "kind":
+            name = str(c.get("name") or "")
+            if list(c.get("species") or []) != sp or not isinstance(c.get("n"), int):
+                return None
+            if c.get("folded") and c["n"] == tree["n"] and not name.startswith(_WILD_KIND):
+                if name.startswith(_HATCHERY_KIND):
+                    hatchery = True
+                    out.append(_cap(sp, 0, origin="wild"))
+                continue
+            if c.get("folded") or not name.startswith(_WILD_KIND):
+                return None
+            wild = True
+            out.append(_cap(sp, c["n"], origin="wild"))
+            continue
+        if c.get("node") != "tier" or c.get("tier") != "size" or c.get("children") \
+                or c.get("period") not in (None, "monthly") or not isinstance(c.get("over_cm"), int) \
+                or not isinstance(c.get("n"), int):
             return None
-        band = {"min_cm": c["over_cm"], **({"take": 0} if c["n"] == 0 else {})}
-        out.append({"type": "retention_limit", "take": c["n"], "species": sp, "lengths": [band]})
+        band = {"min_cm": c["over_cm"], **({"take": 0} if c["n"] == 0 and not c.get("period") else {})}
+        out.append(_cap(sp, c["n"], lengths=[band], **({"period": c["period"]} if c.get("period") else {})))
+    if hatchery and wild:
+        return None
+    if tree["tier"] == "total":
+        root.update(whose=tree["whose"], says=tree.get("says") or "", hatchery=hatchery)
     return out
 
 
 def _both_bind(a: List[dict], b: List[dict]) -> List[dict]:
     """RULINGS Z4 as the freshwater reader reads it (`read.effective_rules` step 6): of two caps saying the same thing
-    (`rules.statement`) the stricter (`ladder.stricter`; equal: the first region's) — every other cap binds beside it."""
+    (`rules.statement`) the stricter (`ladder.stricter`; equal: the first region's) — every other cap binds beside it.
+    (T669 item 3) A POOLED count is not the same cap as a count of this water alone: the pool holds every water of its
+    set, so a plain count NEVER displaces it (`ladder.A_NARROWER_CAP_NEVER_DISPLACES_A_WIDER`, over waters) and both
+    bind; a pool at or under a plain count holds every fish that count holds, so it displaces it."""
     from pipeline.deliver.bundle.read.ladder import stricter
     from pipeline.deliver.bundle.rules.predicates import statement
-    out = {statement(x): x for x in a}
+    key = lambda x: (statement(x), x.get("whose"))                     # noqa: E731
+    out = {key(x): x for x in a}
     for y in b:
-        k = statement(y)
+        k = key(y)
         if k not in out or stricter(y, out[k]):
             out[k] = y
-    return list(out.values())
+    pools = [x for x in out.values() if x.get("whose")]
+    return [x for x in out.values()
+            if x.get("whose") or not any(statement(p) == statement(x) and p["take"] <= x["take"] for p in pools)]
+
+
+def _moot(caps: List[dict]) -> List[dict]:
+    """The caps less the size caps another cap already holds (the same answer, said once): "only k over Y" or "none
+    over Y" under a "none over X" or "only j over X" (X <= Y, j <= k), and "only k over Y" at or above the daily
+    count. Two regions' caps on one straddler: "4 a day, only 1 over 50 cm" and "only 1 over 65 cm" is the first."""
+    sizes = [c for c in caps if c.get("lengths") and not c.get("period")]
+    roots = [c["take"] for c in caps if not c.get("lengths") and not c.get("origin")]
+    lo = lambda c: c["lengths"][0]["min_cm"]                            # noqa: E731
+
+    def held(c) -> bool:
+        if not c.get("lengths") or c.get("period"):
+            return False
+        if roots and 0 < min(roots) <= c["take"]:
+            return True
+        return any(o is not c and lo(o) <= lo(c) and o["take"] <= c["take"] and (o["take"], lo(o)) != (c["take"], lo(c))
+                   for o in sizes)
+    return [c for c in caps if not held(c)]
+
+
+def _tree_of(caps: List[dict]) -> Optional[dict]:
+    """(T669 item 3) the caps that bind on a straddler as ONE quota tree, the shape a DFO row with those numbers gets
+    (`quota._one`), so the card says numbers: the count (the lower region's), hatchery-marked only where a region
+    releases unmarked fish, the stricter wild share, every size cap that binds; a pool that binds is the `total` tier
+    (in its own words), over the count when a plain count binds beside it. None where the caps are not one tree (two
+    pools, two plain counts)."""
+    from pipeline.regs.dfo_salmon import quota as Q
+    roots = [c for c in caps if not c.get("lengths") and not c.get("origin")]
+    wild = [c for c in caps if c.get("origin") == "wild"]
+    pools, plain = [c for c in roots if c.get("whose")], [c for c in roots if not c.get("whose")]
+    if len(pools) > 1 or len(plain) > 1 or not roots or len(wild) > 1:
+        return None
+    root = plain[0] if plain else pools[0]
+    hatchery = bool(wild) and wild[0]["take"] == 0
+    subs: List[dict] = [{"origin": "wild", "take": wild[0]["take"]}] if wild and not hatchery else []
+    for c in caps:
+        if c.get("lengths"):
+            band = c["lengths"][0]
+            subs.append({"take": c["take"], "lengths": [dict(band)], **({"period": c["period"]} if c.get("period") else {})})
+    rule = _cap(list(root["species"]), root["take"], **({"origin": "hatchery"} if hatchery else {}))
+    q = Q._one(rule, subs)
+    if q.get("u"):
+        return None
+    tree = q["tree"]
+    if pools:
+        p = pools[0]
+        pool = {**tree, "tier": "total", "whose": p["whose"], "says": p["says"], "n": p["take"]}
+        if plain:            # a plain count under the pool: the pool over this water's count
+            pool["children"] = [tree]
+        elif hatchery and not p["hatchery"]:   # hatchery-marked only from the other region: said, the pool does not
+            pool["children"] = [{**k, "folded": False} if k.get("node") == "kind" and k.get("folded") else k
+                                for k in tree["children"]]
+        tree = pool
+    seq = iter(range(1, 1000))
+
+    def ids(t: dict) -> dict:          # the tiers numbered in the order said (pre-order), as `_one` numbers them
+        return {**t, "id": f"t{next(seq)}",
+                "children": [ids(c) if c.get("node") == "tier" else c for c in t.get("children") or ()]}
+    return ids(tree)
 
 
 def stricter_opening(a: dict, b: dict) -> dict:
     """(owner 2026-11-11, RULINGS Z4a: "straddles should always take the most strict rules from both regions") two
     regions' openings of one species and day, read as the freshwater reader reads two regions' quotas (`_both_bind`):
-    where the caps that bind are one region's own, that region's opening; where they mix (a lower count from one, a
-    size cap from the other), or a number cannot be read, BOTH regions' words with no number (`u`) — the app then
-    shows DFO's words, and no limit is dropped."""
+    where the caps that bind are one region's own, that region's opening; (T669 item 3) where they mix (a lower count
+    from one, a size cap from the other, a pool, a hatchery or wild share), ONE quota tree of the caps that bind
+    (`_tree_of`) — numbers, beside both regions' words (`t`); where a number cannot be read, or the caps are not one
+    tree, BOTH regions' words with no number (`u`) — the app then shows DFO's words, and no limit is dropped."""
     if a == b:
         return a
     ca, cb = _caps(a), _caps(b)
+    tree = None
     if ca is not None and cb is not None:
-        bind = _both_bind(ca, cb)
+        bind = _moot(_both_bind(ca, cb))
         key = lambda xs: sorted(json.dumps(x, sort_keys=True) for x in xs)       # noqa: E731
-        if key(bind) == key(ca):
+        if key(bind) == key(_moot(ca)):
             return a
-        if key(bind) == key(cb):
+        if key(bind) == key(_moot(cb)):
             return b
-    out = {"s": "open", "t": "; ".join(dict.fromkeys(x for x in (a.get("t"), b.get("t")) if x)), "u": 1}
+        tree = _tree_of(bind)
+    out = {"s": "open", "t": "; ".join(dict.fromkeys(x for x in (a.get("t"), b.get("t")) if x)),
+           **({"tree": tree} if tree else {"u": 1})}
     n = ", ".join(sorted({x for v in (a, b) for x in str(v.get("n") or "").split(", ") if x}))
     if n:
         out["n"] = n
