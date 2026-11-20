@@ -353,3 +353,19 @@ def test_t552_the_report_names_dfo_records_that_bind_nothing(built, tmp_path):
     _files, _index, report = B.build(timing, poly, make_base(tmp_path))
     assert report["dfo_records_unbound"] == 1 and report["dfo_unbound_examples"] == ["dfo:77:Coho:- Nowhere Creek"]
     assert built[2]["dfo_records_unbound"] == 0
+
+
+def test_t404_publish_honours_the_bucket(tmp_path, capsys):
+    """(T404) publish takes --bucket (default staging); the plan names it; an unknown bucket is refused."""
+    from pipeline.runtiming.feed import publish as P
+    d = tmp_path / "runtiming"
+    d.mkdir()
+    (d / "runs-a.json.gz").write_bytes(b"x")
+    (d / "index.json").write_text(json.dumps({"files": {"runs": {"url": "runs-a.json.gz"}}}))
+    assert P.main(["--dir", str(d), "--via", "wrangler"]) == 0
+    assert f"{P.BUCKET}/runtiming/index.json" in capsys.readouterr().out
+    assert P.main(["--dir", str(d), "--via", "wrangler", "--bucket", P.PROD_BUCKET]) == 0
+    out = capsys.readouterr().out
+    assert f" {P.PROD_BUCKET}/runtiming/index.json" in out and P.BUCKET not in out
+    with pytest.raises(SystemExit, match="not one of"):
+        P.main(["--dir", str(d), "--via", "wrangler", "--bucket", "somebody-elses"])

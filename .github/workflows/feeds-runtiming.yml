@@ -24,8 +24,8 @@ name: feeds — run timing (PSF + DFO) → R2 runtiming/
 # REPORT only (counts, sizes), never the data.
 #
 # TARGET: staging by default and, for now, ONLY staging. Production is an explicit choice that is commented out
-# below until the owner enables it (uncomment the option AND the prod secrets block; publish.py names only staging —
-# give it a --bucket first).
+# below until the owner enables it (uncomment the option AND the prod secrets block; (T404) publish.py takes
+# --bucket, and step 7 passes the BUCKET computed above).
 #
 # SECRETS (the repo's existing ones, as feeds-hydat.yml):
 #   CLOUDFLARE_ACCOUNT_ID            the account id (R2's S3 endpoint is https://<id>.r2.cloudflarestorage.com)
@@ -193,5 +193,5 @@ jobs:
       - name: 7/7 upload to R2 (files, then index.json last) — only a real change
         if: env.UPLOAD == 'true' && env.CHANGED == 'true'
         run: |
-          python -m pipeline.runtiming.feed.publish --dir "$W/out/runtiming" --via aws --yes
+          python -m pipeline.runtiming.feed.publish --dir "$W/out/runtiming" --via aws --bucket "$BUCKET" --yes
           echo "Uploaded run timing (atlas $HANDLES) to $BUCKET/runtiming/." >> "$GITHUB_STEP_SUMMARY"
