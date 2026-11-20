@@ -230,3 +230,42 @@ def test_t679_8_flow_own_is_built_only_behind_its_switch_and_refuses_a_stray_row
     db.execute("INSERT INTO section_own VALUES (77, 1)")
     with pytest.raises(ValueError, match="no panel"):
         PAINT.encode_own(db)
+
+
+def test_t973_cw_through_is_optional_unswitched_and_carries_each_section_one_note(tmp_path):
+    """(T973) `cw-through/1`: OPTIONAL in the contract (an app before 0.8.4 knows no such file, so the app gate asks
+    nothing of it and it reads nothing new), written whatever `SHIP_PACKED_FORMATS` says, and its writer is the bundle's
+    `designation_carried` joined to the designation: one note per (unit, class, period, through), one row per section.
+    A bundle without the table is refused."""
+    from pipeline.deliver.bundle.build import SCHEMA
+    assert "cw-through" in C.OPTIONAL and C.written_files(False)["cw-through"] == C.written_files(True)["cw-through"]
+    assert G.needs({"files": {"cw-through": {"format": "cw-through/1"}}},
+                   {"0.8.3": {"core": ["core/1"]}, "0.8.4": {"cw-through": ["cw-through/1"]}}) == {"cw-through/1": "0.8.3"}
+    bundle = tmp_path / "bundle.sqlite"
+    db = sqlite3.connect(bundle)
+    db.executescript(SCHEMA.read_text())
+    rec = lambda when: json.dumps({"kind": "designation", "id": "d", "classified": "II", **({"when": when} if when else {})})
+    db.executemany("INSERT INTO designation (entry_id, designation_id, classified, unit, unit_name, placement, label, "
+                   "parts, verbatim, record) VALUES (?, 'd', 'II', ?, ?, 'sections', '', '{}', '', ?)",
+                   [("r6:stellako@6-4", "stellako_river", "Stellako River", rec(None)),
+                    ("r6:morice@6-9", "morice_river", "Morice River",
+                     rec({"dates": [{"from_day": 1, "from_month": 9, "to_day": 31, "to_month": 10}]}))])
+    endako = '[["gnis:1","Endako River"]]'
+    db.executemany("INSERT INTO designation_carried VALUES (?, ?, 'd', ?)",
+                   [(5, "r6:stellako@6-4", endako), (7, "r6:stellako@6-4", endako),
+                    (9, "r6:morice@6-9", '[["gnis:2","Gosnell Creek"]]')])
+    db.commit()
+    db.close()
+    out = B.copy_file(tmp_path / "cw.sqlite", {"b": bundle}, [], {"format": "cw-through/1"}, extra=B.cw_through)
+    got = sqlite3.connect(out)
+    assert got.execute("SELECT sid, ix FROM section_cw ORDER BY sid").fetchall() == [(5, 0), (7, 0), (9, 1)]
+    assert got.execute("SELECT * FROM cw_note ORDER BY ix").fetchall() == [
+        (0, "Stellako River", "II", None, endako),
+        (1, "Morice River", "II", '{"dates":[{"from_day":1,"from_month":9,"to_day":31,"to_month":10}]}',
+         '[["gnis:2","Gosnell Creek"]]')]
+    assert {t: [r[1] for r in got.execute(f"PRAGMA table_info({t})")] for t in ("cw_note", "section_cw")} == {
+        t: cols for t, cols in C.FILES["cw-through"]["tables"].items() if t != "meta"}
+    bare = tmp_path / "bare.sqlite"
+    sqlite3.connect(bare).close()
+    with pytest.raises(ValueError, match="designation_carried"):
+        B.copy_file(tmp_path / "cw2.sqlite", {"b": bare}, [], {"format": "cw-through/1"}, extra=B.cw_through)

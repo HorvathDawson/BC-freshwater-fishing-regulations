@@ -607,7 +607,12 @@ W46. **The guards the 2026-11 audits put in (T429–T442) stay in. A change that
     → Morice, handed on from the Bulkley's walk; Gosnell Creek has its own row with no class, so it is
     NOT classified, owner 2026-11-17 "Keep: not classified"), and a tributary with a ROW OF ITS OWN
     that prints no designation is NOT classified, it and everything above it (the Endako under the
-    Stellako). ONE ENTRY PRINTING TWO UNITS on two stretches (the Zymoetz: A below Limonite Creek,
+    Stellako). T973 (owner 2026-11-20, CO question open): such a section still leaves the placements but keeps the unit of the
+    nearest classified water below as a CARRIED "may need" (`licensing.CarriedUnit`, `through` = the rowed no-unit waters
+    passed; reach `licensing_carried.jsonl` → bundle `designation_carried` → OPTIONAL release `cw-through` → app 0.8.4's
+    licence-card note), never a requirement; and only a designation that reaches its tributaries claims a walked section
+    above it — one printed for its own water only is passed the same way (`ONLY_A_UNIT_ON_ITS_TRIBUTARIES_CLAIMS_THEM`).
+    ONE ENTRY PRINTING TWO UNITS on two stretches (the Zymoetz: A below Limonite Creek,
     B above): a walker's own water is no stop EXCEPT its sibling designations' reaches, so each
     walked section takes the one stretch it actually flows into (115 Limonite/Zymoetz sections
     read both). `reach.licensing.first_classified_downstream`, every move a diagnostic

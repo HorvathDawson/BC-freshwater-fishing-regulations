@@ -59,7 +59,9 @@ def region_tables(sections=()) -> dict:
 #: reads a release cut before it (staging, 2026-11-16): the app reads its absence as "no warning bits", by the file's
 #: presence in the manifest, never by catching an error. Required once a release carrying it is live and the app reads it.
 #: (T679 #8) `flow-own` too: built only once `packed.SHIP_OWN_GAUGE_FLAG` is on; its absence is "decide as before".
-OPTIONAL = frozenset({"lakes", "flow-small", "flow-own"})
+#: (T973) `cw-through` too: app 0.8.4 reads it; an older app's contract does not know it, so it reads nothing new and
+#: never shows a carried unit as a plain requirement. Absent: no "may need" note anywhere.
+OPTIONAL = frozenset({"lakes", "flow-small", "flow-own", "cw-through"})
 
 #: (T686, owner 2026-11-20 09:59: "Ship readers now, formats later") THE OLD FORMS of the switched files: what a
 #: release WRITES while `packed.SHIP_PACKED_FORMATS` is off (`written_files`). `FILES` below stays the app's contract (the
@@ -94,6 +96,12 @@ FILES = {
     # (T679 #8) per paint section, which of its panel's members stand on its own water (the ranking's rule): the gauge
     # list's "ON THIS WATER" heading reads it (paint.py `encode_own`; behind `packed.SHIP_OWN_GAUGE_FLAG`)
     "flow-own": {"format": PAINT.OWN_FORMAT, "kind": "bin", "tables": {}},
+    # (T973, owner 2026-11-20 12:11) the Classified Waters units carried through a rowed no-unit water: per section one
+    # note (the carried designation's unit name, class, period, and the rowed waters passed); app 0.8.4's licence card
+    # draws the "may need" note from it (build.cw_through). OPTIONAL
+    "cw-through": {"format": "cw-through/1", "kind": "sqlite", "tables": {
+        "meta": ["k", "v"], "cw_note": ["ix", "unit_name", "classified", "dates", "through"],
+        "section_cw": ["sid", "ix"]}},
     # (T54) the gentler access tiers (permit / reserve / private) a Regulations page notes; paint carries the no-access rows
     "access": {"format": PAINT.ACCESS_FORMAT, "kind": "bin", "tables": {}},
     "lakes": {"format": LF.FORMAT, "kind": "bin", "tables": {}},

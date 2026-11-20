@@ -164,6 +164,9 @@ class BuildReport:
     tributaries_pending: int = 0
     #: Licensing records by `kind:placement` (see `pipeline.atlas.reach.licensing`).
     licensing: dict[str, int] = field(default_factory=dict)
+    #: (T973) the units carried through a rowed no-unit water: `sections` kept, `placed_elsewhere` (a final designation
+    #: holds the section), `disagree` (two walks carried different units to one section; the first kept)
+    licensing_carried: dict[str, int] = field(default_factory=dict)
     #: `steelhead: known | possible` counts (`pipeline.atlas.reach.steelhead.Presence.finish`).
     steelhead: dict = field(default_factory=dict)
     #: T166 -> T678: one row per kind of owner in the atlas's tidal record (`outside.tidal_water`): the

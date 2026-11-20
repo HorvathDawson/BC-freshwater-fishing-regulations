@@ -85,6 +85,34 @@ def _own_row_not_classified(by_section: dict) -> dict:
     return out
 
 
+def write_carried(db: sqlite3.Connection, reaches: Path, sid: dict[str, int], designations: set,
+                  bound: set[str]) -> int:
+    """(T973) `designation_carried` from the reach run's `licensing_carried.jsonl` (`reach.io.CARRIED_TABLE`): one row
+    per section, checked — every section in the handle table, every designation in the corpus, a non-empty `through`
+    of `[item_id, name]` pairs, and NO section a designation binds (a "may need" beside a plain unit would
+    contradict it; the reach run's `carried_units` already leaves those out). A run without the table RAISES (it
+    predates T973: re-run the reach builder)."""
+    from pipeline.atlas.reach.io import CARRIED_TABLE, read_table
+    rows = read_table(reaches, CARRIED_TABLE)
+    out, bad = [], []
+    for r in rows:
+        s, key, through = r["section_id"], (r["entry_id"], r["record_id"]), r["through"]
+        if s not in sid or key not in designations or not through or s in bound or not all(
+                isinstance(w, list) and len(w) == 2 and all(isinstance(x, str) and x for x in w) for w in through):
+            bad.append(r)
+            continue
+        out.append((sid[s], key[0], key[1], json.dumps(through, separators=(",", ":"), ensure_ascii=False)))
+    if bad:
+        raise SystemExit(f"licensing: {len(bad)} carried unit(s) in {reaches / (CARRIED_TABLE + '.jsonl')} name a "
+                         f"section the handle table lacks or a designation binds, a designation the corpus lacks, or no "
+                         f"rowed water passed (e.g. {bad[:2]}) — the run is stale; re-run the reach builder")
+    if len({o[0] for o in out}) != len(out):
+        raise SystemExit(f"licensing: {reaches / (CARRIED_TABLE + '.jsonl')} carries two units on one section")
+    db.executemany("INSERT INTO designation_carried (sid, entry_id, designation_id, through) VALUES (?,?,?,?)",
+                   sorted(out))
+    return len(out)
+
+
 def _jsonl(path: Path):
     with path.open(encoding="utf-8") as fh:
         for line in fh:
@@ -351,6 +379,11 @@ def write(db: sqlite3.Connection, reaches: Path, entries: list, cov,
         "   AND a.entry_id=ls.entry_id AND a.alternative_id=ls.record_id) LIMIT 5").fetchall()
     if orphans:
         raise SystemExit(f"licensing_set names records that are not in the bundle: {orphans}")
+
+    # ---- (T973) the units carried through a rowed no-unit water: beside the bindings, never one ----------------
+    carried = write_carried(db, reaches, sid, {k for k, (_, x) in records.items() if isinstance(x, Designation)},
+                            {s for s, rs in by_section.items() if any(k == "designation" for k, *_ in rs)})
+    cov.filled("designation_carried", carried)
 
     # ---- the report a person reads ------------------------------------------------------
     by_place = Counter((p["kind"], p["placement"]) for p in placed.values())

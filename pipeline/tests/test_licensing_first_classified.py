@@ -334,3 +334,143 @@ def test_mutation_switching_dead_end_outlets_off_leaves_two_units(world, monkeyp
     w, pl = _with_dead_ends(world)
     got, _ = _run(w, pl)
     assert "SH_dead" in got[BULKLEY] and "SH_dead" in got[MORICE]
+
+
+# --- T973: A UNIT CARRIES THROUGH A ROWED NO-UNIT WATER, AS A "MAY NEED" (`A_ROWED_NO_UNIT_WATER_CARRIES_THE_UNIT`) ----
+
+def _carry(world, placements=None, records=None, owned=None):
+    """The pass with and without `carried`: (placements, diagnostics, carried) of the carrying run, after checking that
+    asking for the carried units moves no placement and no diagnostic (the empty-`through` placements are as before)."""
+    g, reg = world
+    args = (records or RECORDS, g, reg, owned or OWNED, lambda s: "lake" if s.startswith("lake:") else "stream")
+    before, d0 = first_classified_downstream(placements or _placements(), *args)
+    carried: list[L.CarriedUnit] = []
+    after, d1 = first_classified_downstream(placements or _placements(), *args, carried=carried)
+    assert after == before and d1 == d0
+    kept, stats = L.carried_units(carried, after)
+    return after, d1, kept, stats
+
+
+def test_a_section_above_a_rowed_no_unit_water_keeps_the_unit_below_it_with_its_path(world):
+    """Gosnell Creek's row prints no unit (LI-2 drops it and everything above it); the walk goes on down to the Morice:
+    each Gosnell section keeps the Morice's unit as a "may need", through Gosnell Creek."""
+    out, diags, kept, stats = _carry(world)
+    assert not {"G", "G_up"} & {s for p in out for s in p.sections}            # still dropped from the placements
+    assert {(c.section, c.entry_id, c.record_id, c.through) for c in kept} == {
+        ("G", MORICE, "d", (("gnis:g", "Gosnell Creek"),)),
+        ("G_up", MORICE, "d", (("gnis:g", "Gosnell Creek"),))}
+    assert stats == {"placed_elsewhere": 0, "disagree": 0}
+
+
+def _with_more(world):
+    """Hidden Creek H (its own row, no unit) joins Gosnell's G_up, and creek H_up joins H; Upper Class I creek X (its own
+    designation) joins G_up too, with X_trib above it. The Morice's walk reaches all of them; X's own walk, X_trib."""
+    g, reg = world
+    for nid, blk, name in (("H", "H", "Hidden Creek"), ("H_up", "HU", ""), ("X", "X", "Upper Creek"),
+                           ("X_trib", "XT", "")):
+        g.nodes[nid] = _node(nid, blk, 0, 100, name)
+    for a, b in (("H", "G_up"), ("H_up", "H"), ("X", "G_up"), ("X_trib", "X")):
+        g.edges.append(FlowEdge(from_node=a, to_node=b, kind="confluence", at_measure=50))
+        i = len(g.edges) - 1
+        g.up_adj.setdefault(b, []).append(i)
+        g.down_adj.setdefault(a, []).append(i)
+    reg = {**reg, "gnis:h": RegistryItem(id="gnis:h", name="Hidden Creek", kind="stream", section_ids=("H",)),
+           "gnis:x": RegistryItem(id="gnis:x", name="Upper Creek", kind="stream", section_ids=("X",))}
+    upper = "r6:upper@6-9"
+    owned = {**OWNED, "gnis:h": (("r6:hidden@6-9", ()),), "gnis:x": ((upper, ()),)}
+    more = ("H", "H_up", "X", "X_trib")
+    pl = _placements()
+    pl[1] = LicensingPlacement(MORICE, "d", "designation", "sections", sections=pl[1].sections + more,
+                               via_tributary=pl[1].via_tributary + more)
+    pl.append(LicensingPlacement(upper, "d", "designation", "sections", sections=("X", "X_trib"),
+                                 via_tributary=("X_trib",)))
+    recs = {**RECORDS, (upper, "d"): _desig("I", "upper")}
+    return (g, reg), pl, recs, owned, upper
+
+
+def test_two_rowed_waters_are_both_in_through_in_order_up_from_the_classified_water(world):
+    w, pl, recs, owned, _ = _with_more(world)
+    _, _, kept, _ = _carry(w, pl, recs, owned)
+    got = {c.section: (c.entry_id, c.through) for c in kept}
+    assert got["H"] == got["H_up"] == (MORICE, (("gnis:g", "Gosnell Creek"), ("gnis:h", "Hidden Creek")))
+
+
+def test_an_upstream_classified_waters_own_reach_still_wins(world):
+    """RU-13: Upper Creek's own Class I reach is the first classified water X_trib flows into; the Morice's Class II
+    below Gosnell is never carried past it."""
+    w, pl, recs, owned, upper = _with_more(world)
+    out, _, kept, _ = _carry(w, pl, recs, owned)
+    assert not {"X", "X_trib"} & {c.section for c in kept}
+    assert {s for p in out if p.entry_id == upper for s in p.sections} == {"X", "X_trib"}
+
+
+def test_a_carried_unit_never_lands_where_a_designation_holds_the_section(world):
+    """One walk drops a section, another places it: it has its unit, and no note beside it. Two carried units for one
+    section collapse to one."""
+    c = L.CarriedUnit("G", MORICE, "d", (("gnis:g", "Gosnell Creek"),))
+    other = L.CarriedUnit("G", BULKLEY, "d", (("gnis:g", "Gosnell Creek"),))
+    held = [LicensingPlacement(SUSKWA, "d", "designation", "sections", sections=("K",))]
+    assert L.carried_units([c, c], held) == ([c], {"placed_elsewhere": 0, "disagree": 0})
+    assert L.carried_units([c, other], held) == ([other], {"placed_elsewhere": 0, "disagree": 1})
+    k = L.CarriedUnit("K", MORICE, "d", (("gnis:g", "Gosnell Creek"),))
+    assert L.carried_units([k], held) == ([], {"placed_elsewhere": 1, "disagree": 0})
+    with pytest.raises(ValueError, match="passed no rowed water"):
+        L.CarriedUnit("G", MORICE, "d", ())
+
+
+def test_mutation_switching_the_carry_off_carries_nothing(world, monkeypatch):
+    """The pin: with `A_ROWED_NO_UNIT_WATER_CARRIES_THE_UNIT` off, Gosnell Creek keeps no unit at all (LI-2 as shipped)."""
+    monkeypatch.setattr(L, "A_ROWED_NO_UNIT_WATER_CARRIES_THE_UNIT", False)
+    _, _, kept, _ = _carry(world)
+    assert kept == []
+
+
+# --- T973 (owner 2026-11-20): nearest wins whatever the class; only a unit that reaches its tributaries claims them ----
+
+ALL_CLAIM = {(BULKLEY, "d"), (MORICE, "d"), (SUSKWA, "d")}
+
+
+@pytest.mark.parametrize("down, up", [("II", "I"), ("I", "II")])
+def test_the_nearest_classified_water_wins_whatever_its_class(world, down, up):
+    """"An upstream Class I overrules a downstream Class II too" (owner): the Suskwa (`up`) over the Bulkley's walk
+    (`down`), and the Morice over it on the Nanika, both ways round."""
+    g, reg = world
+    recs = {(BULKLEY, "d"): _desig(down, "bulkley"), (MORICE, "d"): _desig(up, "morice"),
+            (SUSKWA, "d"): _desig(up, "suskwa")}
+    out, _ = first_classified_downstream(_placements(), recs, g, reg, OWNED,
+                                         lambda s: "lake" if s.startswith("lake:") else "stream", claims=ALL_CLAIM)
+    got = {p.entry_id: set(p.sections) for p in out}
+    assert {"K_trib", "K_hi_trib"} <= got[SUSKWA] and {"N", "N2"} <= got[MORICE]
+    assert not {"K_trib", "K_hi_trib", "N", "N2"} & got[BULKLEY]
+
+
+def _suskwa_on_its_own_water(world, claims):
+    """The Suskwa's row covers ONLY its own water (no "[Includes Tributaries]"): its designation walks nothing."""
+    pl = _placements()
+    pl[2] = LicensingPlacement(SUSKWA, "d", "designation", "sections", sections=("K",))
+    g, reg = world
+    args = (RECORDS, g, reg, OWNED, lambda s: "lake" if s.startswith("lake:") else "stream")
+    plain, d0 = first_classified_downstream(pl, *args, claims=claims)
+    carried: list[L.CarriedUnit] = []
+    out, d1 = first_classified_downstream(pl, *args, claims=claims, carried=carried)
+    assert out == plain and d1 == d0
+    return {p.entry_id: set(p.sections) for p in out}, d1, L.carried_units(carried, out)[0]
+
+
+def test_a_unit_that_stops_at_its_own_water_claims_nothing_above_it(world):
+    """The Bulkley's walk meets the Suskwa (Class I on its own water only): K_trib, K_hi and K_hi_trib are not the
+    Suskwa's; they leave the placements and keep the Bulkley's unit as a "may need", through the Suskwa."""
+    got, diags, kept = _suskwa_on_its_own_water(world, {(BULKLEY, "d"), (MORICE, "d")})
+    assert got[SUSKWA] == {"K"} and not {"K_trib", "K_hi", "K_hi_trib"} & got[BULKLEY]
+    assert {c.section: (c.entry_id, c.through) for c in kept if c.section.startswith("K")} == {
+        s: (BULKLEY, (("gnis:k", "Suskwa River"),)) for s in ("K_trib", "K_hi", "K_hi_trib")}
+    assert any(d.kind == "unit_not_on_tributaries" and d.payload == {"removed": 3, "passed": [f"{SUSKWA}#d"]}
+               for d in diags)
+
+
+def test_mutation_switching_the_tributary_claim_off_lets_any_unit_claim(world, monkeypatch):
+    monkeypatch.setattr(L, "ONLY_A_UNIT_ON_ITS_TRIBUTARIES_CLAIMS_THEM", False)
+    got, diags, kept = _suskwa_on_its_own_water(world, {(BULKLEY, "d"), (MORICE, "d")})
+    assert {"K_trib", "K_hi", "K_hi_trib"} <= got[SUSKWA]
+    assert not any(c.section.startswith("K") for c in kept)
+    assert not any(d.kind == "unit_not_on_tributaries" for d in diags)

@@ -765,6 +765,16 @@ CREATE TABLE requirement (entry_id TEXT NOT NULL, req_id TEXT NOT NULL,
 -- How a document is sold. NEVER bound to a section: the reader attaches terms to the obligation
 -- they go with, by document, who, unit and class. Bound, the Dean's non-guided-alien draw sat on
 -- the whole river, the Class II upper section included.
+-- (T973, owner 2026-11-20 12:10/12:11) A CLASSIFIED WATERS UNIT CARRIED THROUGH A ROWED NO-UNIT WATER, as a "may
+-- need": a section LI-2 leaves unclassified (the walk down first meets a water whose own row prints no unit: the Endako
+-- under the Stellako, Gosnell Creek under the Morice) keeps the designation of the nearest classified water below it
+-- (RU-13: the first one the walk meets), with the rowed no-unit waters passed on the way up (`through`, JSON
+-- [[item_id, name], …], from the classified water up). The reach run's `licensing_carried.jsonl`, as it is. NEVER a
+-- licensing binding: no `licensing_set` row, no answer; the release ships it as the optional file `cw-through` and app
+-- 0.8.4 draws a "may need" note from it. One row per section; none where a designation binds the section.
+CREATE TABLE designation_carried (sid INTEGER PRIMARY KEY,
+                                  entry_id TEXT NOT NULL, designation_id TEXT NOT NULL,
+                                  through TEXT NOT NULL) WITHOUT ROWID;
 CREATE TABLE licence_terms (entry_id TEXT NOT NULL, terms_id TEXT NOT NULL,
                             document TEXT NOT NULL, classified TEXT,
                             units TEXT,                  -- JSON list; [] = every unit

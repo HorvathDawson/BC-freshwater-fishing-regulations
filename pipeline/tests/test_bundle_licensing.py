@@ -154,9 +154,11 @@ def _entries():
     return [elk, coal, cv]
 
 
-def _run(tmp: Path, sections: list[tuple], placements: list[tuple]) -> Path:
+def _run(tmp: Path, sections: list[tuple], placements: list[tuple], carried: list[dict] = ()) -> Path:
     run = tmp / "run"
     run.mkdir()
+    # (T973) the units carried through a rowed no-unit water: none unless a test writes its own
+    (run / "licensing_carried.jsonl").write_text("".join(json.dumps(c) + "\n" for c in carried))
     (run / "licensing_placement.jsonl").write_text("".join(
         json.dumps({"entry_id": e, "record_id": r, "kind": k, "placement": p, "reason": why,
                     "detail": "", "tributaries_pending": False}) + "\n"
@@ -181,10 +183,10 @@ class _Cov:
         self.rows[t] = n
 
 
-def _write(tmp, sections, placements=PLACED, entries=None):
+def _write(tmp, sections, placements=PLACED, entries=None, carried=()):
     db = sqlite3.connect(":memory:")
     db.executescript(SCHEMA.read_text())
-    bundle_lic.write(db, _run(tmp, sections, placements), entries or _entries(), _Cov(), SID)
+    bundle_lic.write(db, _run(tmp, sections, placements, carried), entries or _entries(), _Cov(), SID)
     return db
 
 
@@ -281,6 +283,62 @@ def test_a_run_from_before_licensing_is_refused(tmp_path):
         bundle_lic.write(db, tmp_path / "old", _entries(), _Cov(), SID)
 
 
+# --------------------------------------------------------------------------- T973: the carried units
+
+GRAVE = [["gnis:9", "Grave Creek"]]
+
+
+def test_a_carried_unit_ships_beside_the_bindings_never_as_one(tmp_path, monkeypatch):
+    """`designation_carried` holds the run's carried unit as it is (the designation, the rowed waters passed); the
+    section gets no licensing binding from it — no `licensing_set` row, so no answer reads it as a requirement."""
+    monkeypatch.setattr(bundle_lic, "ACKNOWLEDGED_CONFLICTS", {})
+    db = _write(tmp_path, [("r4:elk@4-2", "elk_river", "designation", "s:2", "trib")],
+                carried=[{"section_id": "s:3", "entry_id": "r4:elk@4-2", "record_id": "elk_river", "through": GRAVE}])
+    assert db.execute("SELECT sid, entry_id, designation_id, through FROM designation_carried").fetchall() == [
+        (3, "r4:elk@4-2", "elk_river", '[["gnis:9","Grave Creek"]]')]
+    assert db.execute("SELECT sid FROM designation_section").fetchall() == [(2,)]
+
+
+@pytest.mark.parametrize("row, why", [
+    ({"section_id": "s:2", "entry_id": "r4:elk@4-2", "record_id": "elk_river", "through": GRAVE}, "designation binds"),
+    ({"section_id": "s:404", "entry_id": "r4:elk@4-2", "record_id": "elk_river", "through": GRAVE}, "handle table"),
+    ({"section_id": "s:3", "entry_id": "r9:gone@9-1", "record_id": "x", "through": GRAVE}, "corpus lacks"),
+    ({"section_id": "s:3", "entry_id": "r4:elk@4-2", "record_id": "elk_river", "through": []}, "no rowed water"),
+])
+def test_a_carried_unit_the_bundle_cannot_hold_stops_the_build(tmp_path, monkeypatch, row, why):
+    monkeypatch.setattr(bundle_lic, "ACKNOWLEDGED_CONFLICTS", {})
+    with pytest.raises(SystemExit, match=why):
+        _write(tmp_path, [("r4:elk@4-2", "elk_river", "designation", "s:2", "trib")], carried=[row])
+
+
+def test_a_run_from_before_the_carried_units_is_refused(tmp_path, monkeypatch):
+    monkeypatch.setattr(bundle_lic, "ACKNOWLEDGED_CONFLICTS", {})
+    run = _run(tmp_path, [], PLACED)
+    (run / "licensing_carried.jsonl").unlink()
+    db = sqlite3.connect(":memory:")
+    db.executescript(SCHEMA.read_text())
+    with pytest.raises(SystemExit, match="predates the `licensing_carried` table"):
+        bundle_lic.write(db, run, _entries(), _Cov(), SID)
+
+
+def test_the_run_writes_the_carried_units_beside_the_licensing_digest(tmp_path):
+    """`licensing_carried.jsonl` + its own digest; `licensing_digest` is the placements' alone."""
+    from pipeline.atlas.reach.io import licensing_digest
+    from pipeline.atlas.reach.models import BuildReport
+    r = _Result()
+    r.report = BuildReport()
+    r.licensing = [LicensingPlacement("e1", "d", "designation", "sections", sections=("a:1",))]
+    r.licensing_diagnostics = []
+    r.licensing_carried = [reach_lic.CarriedUnit("a:9", "e1", "d", (("gnis:9", "Grave Creek"),))]
+    write_run(tmp_path, r, [])
+    rows = [json.loads(x) for x in (tmp_path / "licensing_carried.jsonl").read_text().splitlines()]
+    assert rows == [{"section_id": "a:9", "entry_id": "e1", "record_id": "d", "through": [["gnis:9", "Grave Creek"]]}]
+    rep = json.loads((tmp_path / "report.json").read_text())
+    before = rep["licensing_digest"]
+    r.licensing_carried = []
+    assert licensing_digest(r) == before and rep["licensing_carried_digest"]
+
+
 # --------------------------------------------------------------------------- the ruleset check
 
 RULE_V = "Trout daily quota = 2"
@@ -314,6 +372,7 @@ def _rules_fixture(tmp: Path, bound: list[tuple], unresolved: list[tuple]):
     # no licensing in this corpus, but the run must still say so
     (run / "licensing_placement.jsonl").write_text("")
     (run / "licensing_section.jsonl").write_text("")
+    (run / "licensing_carried.jsonl").write_text("")                  # (T973) nothing carried
     # no row names steelhead either: an empty steelhead presence, and the run's report saying so
     (run / "steelhead_presence.jsonl").write_text("")
     # the water the builder took out of every binding, written with the run: nothing tidal, and

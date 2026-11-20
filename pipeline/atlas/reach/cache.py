@@ -190,5 +190,14 @@ from __future__ import annotations
 #:     `licensing.first_classified_downstream` (RU-13) gives Shea Creek's dead end (773423) its water's answer —
 #:     Gosnell Creek's row, no unit — instead of both the Bulkley's and the Morice's. No classify.py outcome changed;
 #:     the bump marks the binding diff.
-POLICY_VERSION = "48"
+#: 49: (T973, owner 2026-11-20 12:10/12:11) A UNIT CARRIES THROUGH A ROWED NO-UNIT WATER, AS A "MAY NEED"
+#:     (`licensing.A_ROWED_NO_UNIT_WATER_CARRIES_THE_UNIT`): a section LI-2 drops (`own_row_not_classified`: the
+#:     Endako under the Stellako, Gosnell Creek under the Morice) keeps, beside the placements, the unit of the nearest
+#:     classified water below it with the rowed waters passed (`licensing_carried.jsonl`). The placements, the
+#:     licensing tables and `licensing_digest` are unchanged by it. And ONLY A UNIT THAT REACHES ITS TRIBUTARIES CLAIMS
+#:     THEM (`licensing.ONLY_A_UNIT_ON_ITS_TRIBUTARIES_CLAIMS_THEM`, owner 2026-11-20, default pending his confirmation):
+#:     a walked section whose walk down first meets a designation printed for its own water only is passed through it
+#:     (`unit_not_on_tributaries`) and keeps the nearer tributary-reaching unit below as a carried "may need" — this one
+#:     moves placements (counted in T973). No classify.py outcome changed.
+POLICY_VERSION = "49"
 

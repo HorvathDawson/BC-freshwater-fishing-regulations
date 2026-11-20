@@ -287,6 +287,71 @@ FIRST_CLASSIFIED_WATER_DOWNSTREAM = True
 A_WALKED_PAST_EXCEPTION_IS_NO_STOP = True
 
 
+#: POLICY (owner 2026-11-20 12:10/12:11, T973; the CO question stays open): A UNIT CARRIES THROUGH A ROWED NO-UNIT
+#: WATER, AS A "MAY NEED". LI-2 still drops the section from the designation (the placements, the licensing tables and
+#: `licensing_digest` are exactly what they were), but the walk goes on down past the rowed water and the section keeps,
+#: BESIDE the placements, the unit of the nearest classified water below it (`CarriedUnit`: its designation, the
+#: classified water it comes from, and `through`, the rowed no-unit waters passed on the way up). RU-13 holds: the walk
+#: stops at the first designation's own reach, so an upstream Class II overrules a downstream Class I above it. Whether
+#: a carried unit is "you need this" or "you may need it" is a display choice (the app's "may need" note, owner 12:11);
+#: the CO's answer settles it later without a rebuild. False = the mutation pin (nothing carried, as before).
+A_ROWED_NO_UNIT_WATER_CARRIES_THE_UNIT = True
+
+
+#: POLICY (owner 2026-11-20, T973: "this also happens invereted ... for example a upstrem class i overrules a downstream
+#: class ii too. (assumign that the classified water sis applied to tributaries) usually it says it?"; default pending
+#: the owner's confirmation): ONLY A UNIT THAT REACHES ITS TRIBUTARIES CLAIMS THE SECTIONS ABOVE IT. The nearest
+#: classified water wins whatever its class (RU-13), but a designation whose row covers only its own water (no
+#: "[Includes Tributaries]", not a tributaries-only row) is passed like a rowed no-unit water: a walked section above it
+#: leaves the placements and keeps the nearer tributary-reaching unit below as a carried "may need", that water in
+#: `through`. Asked through `claims` (the designations reaching their tributaries, `build_reaches`); without it, every
+#: designation claims as before. False = the mutation pin.
+ONLY_A_UNIT_ON_ITS_TRIBUTARIES_CLAIMS_THEM = True
+
+
+@dataclass(frozen=True)
+class CarriedUnit:
+    """A section LI-2 drops (`own_row_not_classified`) that keeps a unit as a "may need" (T973).
+
+    `entry_id` / `record_id`: the designation of the nearest classified water below the section (its class and unit are
+    the designation's); `through`: the rowed waters with no unit the walk passed, each `(item_id, name)`, IN ORDER UP
+    FROM THE CLASSIFIED WATER (the Stellako's unit on a creek above the Endako: `(("gnis:…", "Endako River"),)`). Never
+    empty: a section that passes no such water is placed as before and is no carried unit."""
+
+    section: str
+    entry_id: str
+    record_id: str
+    through: tuple[tuple[str, str], ...]
+
+    def __post_init__(self) -> None:
+        if not self.through:
+            raise ValueError(f"{self.section}: a carried unit passed no rowed water — it is an ordinary placement")
+
+
+def carried_units(carried: list[CarriedUnit], placements: list[LicensingPlacement]
+                  ) -> tuple[list[CarriedUnit], dict[str, int]]:
+    """The carried units that stand: ONE PER SECTION, and none on a section any final designation holds (a section one
+    walk drops and another places has its unit; the note would contradict it). Two walks dropping one section reach the
+    same unit through the same waters (the walk down from a section does not depend on who walked it, beyond the walker's
+    own water); where they do not, the first in (section, entry, record, through) order is kept and counted
+    (`disagree`). Sorted by section."""
+    held = {s for p in placements if p.kind == "designation" and p.placement == "sections" for s in p.sections}
+    by_section: dict[str, set[CarriedUnit]] = {}
+    for c in carried:
+        by_section.setdefault(c.section, set()).add(c)
+    out: list[CarriedUnit] = []
+    stats = {"placed_elsewhere": 0, "disagree": 0}
+    for s in sorted(by_section):
+        if s in held:
+            stats["placed_elsewhere"] += 1
+            continue
+        cs = sorted(by_section[s], key=lambda c: (c.entry_id, c.record_id, c.through))
+        if len({(c.entry_id, c.record_id, c.through) for c in cs}) > 1:
+            stats["disagree"] += 1
+        out.append(cs[0])
+    return out, stats
+
+
 def _walked_past_sections(record, registry) -> set[str]:
     """The sections of every water `record` excepts by part and walks past (`walk_past`)."""
     if not A_WALKED_PAST_EXCEPTION_IS_NO_STOP or record is None:
@@ -303,7 +368,8 @@ def _walked_past_sections(record, registry) -> set[str]:
 
 
 def first_classified_downstream(placements: list[LicensingPlacement], records: dict, graph,
-                                registry, owned, kind_of, matched_of: dict | None = None
+                                registry, owned, kind_of, matched_of: dict | None = None,
+                                carried: list[CarriedUnit] | None = None, claims: set | None = None
                                 ) -> tuple[list[LicensingPlacement], list[Diagnostic]]:
     """ONE CLASSIFIED WATERS UNIT PER SECTION (user rulings 2026-10-03, RU-13 and LI-2).
 
@@ -350,6 +416,17 @@ def first_classified_downstream(placements: list[LicensingPlacement], records: d
     (`trib_kept_beside_own`). This was a separate pass before this one (`own_beats_inherited`); every other
     section it decided, this pass re-homed to the same designation, so only this case was its own.
 
+    THE CARRIED UNIT (T973, `A_ROWED_NO_UNIT_WATER_CARRIES_THE_UNIT`). A section dropped at a rowed water with no
+    designation is still dropped from the placement; when `carried` is given, the walk goes on down past that water (and
+    any further one) to the first stop that decides as above — the walker's own water, another designation's own reach,
+    a rowed water with a designation — and appends a `CarriedUnit` with the waters passed (`through`). Nothing below
+    (the sea, a braid turning back) leaves it the walker's, as an unpassed section stays. The placements and the
+    diagnostics are the same whether or not `carried` is given (`carried_units` then keeps one per section).
+    `claims` (T973, `ONLY_A_UNIT_ON_ITS_TRIBUTARIES_CLAIMS_THEM`): the designations whose row reaches its tributaries.
+    Given, a designation outside it never takes a walked section: the walk passes its water as it passes a rowed
+    no-unit water — the section leaves the placement (`unit_not_on_tributaries`) and, with `carried`, keeps the nearer
+    claiming unit below with that water in `through`.
+
     Every removal and every re-homing is a diagnostic. `records` maps `(entry_id, record_id)`
     to the validated `Designation`; `owned` is `outside.rowed_waters`; `kind_of(section)` is
     the registry's water kind."""
@@ -368,6 +445,14 @@ def first_classified_downstream(placements: list[LicensingPlacement], records: d
                 if s not in trib:
                     own_of.setdefault(s, set()).add((p.entry_id, p.record_id))
     rowed: set[str] = set()
+    rowed_items: dict[str, set[str]] = {}       # section -> the rowed items holding it (T973's `through`)
+    carrying = carried is not None and A_ROWED_NO_UNIT_WATER_CARRIES_THE_UNIT
+    passing = claims is not None and ONLY_A_UNIT_ON_ITS_TRIBUTARIES_CLAIMS_THEM
+
+    def claimers(ds):
+        """(T973) Of designations met by the walk, the ones that may claim a section above them: all of them, unless
+        `claims` (the designations whose row reaches its tributaries) is given and the policy is on."""
+        return set(ds) if not passing else {d for d in ds if d in claims}
     water_of: dict[str, set[str]] = {}          # entry -> the sections of the waters it rows
     desig_rows: dict[str, list[tuple[str, str]]] = {}   # entry -> its placed designations
     for item, rows in (owned or {}).items():
@@ -375,6 +460,9 @@ def first_classified_downstream(placements: list[LicensingPlacement], records: d
             continue
         secs = set(registry[item].section_ids)
         rowed |= secs
+        if carrying or passing:
+            for sec in secs:
+                rowed_items.setdefault(sec, set()).add(item)
         for row in rows:
             eid = row if isinstance(row, str) else row[0]
             water_of.setdefault(eid, set()).update(secs)
@@ -472,8 +560,59 @@ def first_classified_downstream(placements: list[LicensingPlacement], records: d
         past = _walked_past_sections(records.get(me), registry)
         rehomed: dict[tuple[str, str], set[str]] = {}
         dropped: dict[str, set[str]] = {}
+        passed_by: dict[str, set[str]] = {}       # T973: designations whose unit stops at their own water -> sections
         yielded: dict[str, set[tuple[str, str]]] = {}
         kept: dict[tuple[tuple[str, str], str], int] = {}
+        carry_memo: dict[str, tuple[tuple[str, str], tuple[tuple[str, str], ...]]] = {}
+
+        def carry_from(t0: str, me=me, mine=mine, past=past, p=p, memo=carry_memo):
+            """(T973) From a stop `t0` on a rowed water with no designation, on down to the first stop that decides:
+            (the designation, the rowed no-unit waters passed — up from the classified water)."""
+            if t0 in memo:
+                return memo[t0]
+            met: list[tuple[str, str]] = []           # nearest the section first
+            to: tuple[str, str] | None = None
+            t: str | None = t0
+            seen: set[str] = set()
+            while t is not None and t not in seen:    # a braid turning back: stop
+                seen.add(t)
+                if t in mine:
+                    to = me
+                    break
+                others = own_of.get(t, set()) - {me}
+                if others:
+                    claim = claimers(others)
+                    if claim:
+                        to = min(claim)
+                        break
+                    note_waters(t, met, None, others)      # a unit that stops at its own water: passed
+                elif t not in past:
+                    rows = own_rows(registry, owned, {t}, p.entry_id)
+                    if rows:
+                        with_desig = sorted(d for r in rows for d in desig_rows.get(r, ()))
+                        claim = sorted(claimers(with_desig))
+                        if claim:
+                            to = claim[0]
+                            break
+                        note_waters(t, met, None if with_desig else p.entry_id, with_desig)
+                t = stop_at_or_below(next_down(t))
+            memo[t0] = got = (to or me, tuple(reversed(met)))
+            return got
+
+        def note_waters(t, met, walker, desigs):
+            """The waters at stop `t` the walk passes (`through`): the rowed items there (for a rowed no-unit water,
+            not the walker's own rows), else the passed designations' units by name."""
+            got = []
+            for item in sorted(rowed_items.get(t, ())):
+                if walker is None or any((r if isinstance(r, str) else r[0]) != walker
+                                         and walker not in (() if isinstance(r, str) else r[1]) for r in owned[item]):
+                    got.append((item, registry[item].name))
+            if not got:
+                got = [(f"entry:{d[0]}", records[d].unit_name) for d in sorted(desigs) if d in records]
+            for w in got:
+                if w not in met:
+                    met.append(w)
+
         for s in p.via_tributary:
             here = own_of.get(s, set()) - {me}
             if here and s in mine:
@@ -496,7 +635,14 @@ def first_classified_downstream(placements: list[LicensingPlacement], records: d
                     break
                 others = own_of.get(t, set()) - {me}
                 if others:
-                    rehomed.setdefault(min(others), set()).add(s)
+                    claim = others if t == s else claimers(others)    # its own reach is always its own
+                    if claim:
+                        rehomed.setdefault(min(claim), set()).add(s)
+                    else:                                 # T973: its unit stops at its own water — passed
+                        passed_by.setdefault(",".join(sorted(f"{e}#{r}" for e, r in others)), set()).add(s)
+                        if carrying:
+                            to, through = carry_from(t)
+                            carried.append(CarriedUnit(s, to[0], to[1], through))
                     break
                 if t in past:                             # walked past: keep going down (Li5a)
                     t = stop_at_or_below(next_down(t))
@@ -507,14 +653,23 @@ def first_classified_downstream(placements: list[LicensingPlacement], records: d
                     # this section is outside that designation's reach) it is the first
                     # classified water the section flows into; with none, not classified
                     with_desig = sorted(d for r in rows for d in desig_rows.get(r, ()))
-                    if with_desig:
-                        rehomed.setdefault(with_desig[0], set()).add(s)
+                    claim = sorted(claimers(with_desig))
+                    if claim:
+                        rehomed.setdefault(claim[0], set()).add(s)
+                    elif with_desig:                      # T973: its unit stops at its own water — passed
+                        passed_by.setdefault(",".join(f"{e}#{r}" for e, r in with_desig), set()).add(s)
+                        if carrying:
+                            to, through = carry_from(t)
+                            carried.append(CarriedUnit(s, to[0], to[1], through))
                     else:
                         dropped.setdefault(",".join(rows), set()).add(s)
+                        if carrying:                      # T973: the unit below, as a "may need"
+                            to, through = carry_from(t)
+                            carried.append(CarriedUnit(s, to[0], to[1], through))
                     break
                 t = stop_at_or_below(next_down(t))
-        gone = set().union(*rehomed.values(), *dropped.values()) if (rehomed or dropped) \
-            else set()
+        gone = set().union(*rehomed.values(), *dropped.values(), *passed_by.values()) \
+            if (rehomed or dropped or passed_by) else set()
         gone |= set(yielded)
         for (o, why), n in sorted(kept.items()):
             diags.append(Diagnostic(p.entry_id, p.record_id, "trib_kept_beside_own", {
@@ -530,6 +685,9 @@ def first_classified_downstream(placements: list[LicensingPlacement], records: d
                 "rehomed": len(secs), "to": f"{d[0]}#{d[1]}",
                 **({"why_not_yield": why} if why else {})}))
             gained.setdefault(d, {}).update({s: {me} for s in secs})
+        for ds, secs in sorted(passed_by.items()):
+            diags.append(Diagnostic(p.entry_id, p.record_id, "unit_not_on_tributaries", {
+                "removed": len(secs), "passed": ds.split(",")}))
         for rows, secs in sorted(dropped.items()):
             diags.append(Diagnostic(p.entry_id, p.record_id, "own_row_not_classified", {
                 "removed": len(secs), "rows": rows.split(",")}))
