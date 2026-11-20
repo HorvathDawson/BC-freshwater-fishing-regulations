@@ -139,13 +139,37 @@
           "token": "color.parcel.private"
         },
         "width": {
-          "token": "width.parcel.edge",
-          "mode": "zoom",
-          "ramp": [[11, 1.25], [16, 1.875]]
+          "token": "width.parcel.edge"
         },
-        "$comment": "(T923) 1 px at z11 up to 1.5 px close in (width.parcel.edge 0.8 x 1.25 / 1.875): it was a 0.8 px hairline at every zoom, which vanished over imagery.",
         "opacity": {
           "token": "opacity.parcel.edge"
+        },
+        "satellite": {
+          "$comment": "(T923, owner 2026-11-20: purposely stand out over satellite, reserves and private land) over imagery ONLY: its own hue taken darker, at full strength, 1.5 px far out to 2 px close in, with a thin light casing under it. The drawn map is exactly as it was.",
+          "color": {
+            "token": "color.parcel.edge.imagery"
+          },
+          "width": {
+            "token": "width.land.edge.imagery",
+            "mode": "zoom",
+            "ramp": [[4, 1.5], [11, 1.5], [16, 2]]
+          },
+          "opacity": {
+            "token": "opacity.land.edge.imagery"
+          },
+          "casing": {
+            "color": {
+              "token": "color.imagery.casing"
+            },
+            "width": {
+              "token": "width.land.casing.imagery",
+              "mode": "zoom",
+              "ramp": [[4, 1], [11, 1], [16, 1.2]]
+            },
+            "opacity": {
+              "token": "opacity.land.casing.imagery"
+            }
+          }
         }
       },
       "$comment": "QUIET ON PURPOSE (owner 2026-10-22: \"private land is very abrasive when turned on\" and \"should show slightly more zoomed out\"). A warm tint at `opacity.parcel` and a hairline edge at `opacity.parcel.edge`, under every water colour (first of our layers). From z11: the tile builder now writes the parcel layer from z11 too (pipeline/deliver/tiles/layers.py `parcel` minzoom; about +2 MB of tiles, measured). The atlas shipped today was built at z12, so until the next atlas build z11 asks for parcels the tiles do not have and the layer still starts at z12."
@@ -173,13 +197,39 @@
           "token": "color.indigenous.fill"
         },
         "width": {
-          "token": "width.admin.edge",
-          "mode": "zoom",
-          "ramp": [[4, 0.83], [11, 0.83], [16, 1.25]]
+          "token": "width.admin.edge"
         },
-        "$comment": "(T923, owner 2026-11-19/20: a reserve was hard to see on satellite and in light mode) THE FILL STAYS QUIET AND THE EDGE NOW SHOWS AT EVERY ZOOM: the area's own hue at the firm edge opacity (85%; the fill is a 14-16% tint, so the line reads clearly darker than it, which the parcel edge's 50% did not over imagery), 1 px far out and 1.5 px close in (width.admin.edge 1.2 x 0.83 / 1.25). It was drawn from z11 only, at 35% (light) / 45% (dark), and was lost over satellite.",
+        "minzoom": 11,
+        "$comment": "v1's ADMIN_BORDER_MINZOOM. The hatch and the tint carry this area at a distance; the border is for when you are close enough to want to know exactly where it runs. Drawn from z4 it is one more line in a province already full of them.",
         "opacity": {
-          "token": "opacity.closure.edge"
+          "token": "opacity.admin.edge"
+        },
+        "satellite": {
+          "$comment": "(T923, owner 2026-11-20: purposely stand out over satellite, reserves and private land) over imagery ONLY: its own hue taken darker, at full strength, 1.5 px far out to 2 px close in, with a thin light casing under it. The drawn map is exactly as it was.",
+          "color": {
+            "token": "color.indigenous.edge.imagery"
+          },
+          "width": {
+            "token": "width.land.edge.imagery",
+            "mode": "zoom",
+            "ramp": [[4, 1.5], [11, 1.5], [16, 2]]
+          },
+          "opacity": {
+            "token": "opacity.land.edge.imagery"
+          },
+          "casing": {
+            "color": {
+              "token": "color.imagery.casing"
+            },
+            "width": {
+              "token": "width.land.casing.imagery",
+              "mode": "zoom",
+              "ramp": [[4, 1], [11, 1], [16, 1.2]]
+            },
+            "opacity": {
+              "token": "opacity.land.casing.imagery"
+            }
+          }
         }
       },
       "opacity": {

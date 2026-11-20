@@ -281,6 +281,9 @@ const layersById = new Map();
 const outLayers = [];
 /** Generated companion line layers: edge layer id -> the polygon layer it outlines. */
 const edges = new Map();
+/** (T923) edge layer id -> its paint over satellite imagery (`outline.satellite`); and the casings drawn over satellite only. */
+const satelliteEdges = {};
+const satelliteOnly = [];
 /** Edge layers held back by `outline.drawAfter`: the layer they wait for -> the edges, in source order. */
 const deferredEdges = new Map();
 /**
@@ -650,6 +653,37 @@ for (const l of src.layers ?? []) {
     } else if (l.outline.under === true) outLayers.splice(outLayers.length - 1, 0, edge);
     else outLayers.push(edge);
     edges.set(id, l);
+    /*
+     * (T923) `outline.satellite` — THE EDGE OVER SATELLITE IMAGERY ONLY: its own colour, width and opacity (`color`, `width`,
+     * `opacity`: the edge's, where a pale line on a photograph is lost), and `casing`, a light line drawn UNDER it so it reads
+     * on any photo. The casing is a companion line layer of its own (`<layer>__casing`, an edge like the other: same
+     * source-layer, filter, group and views), registered with `satelliteOnly` so the map's own ground paints it at opacity 0.
+     * The switch is the ground one the map already has (`setBasemap`, `on-imagery.ts`): no second path.
+     */
+    const sat = l.outline.satellite;
+    if (sat) {
+      if (l.outline.under === true || l.outline.drawAfter !== undefined)
+        err(`${where}: outline.satellite cannot go with "under" or "drawAfter"`);
+      tokenValue(sat.color, `${where} outline.satellite colour`);
+      tokenValue({ token: sat.width?.token }, `${where} outline.satellite width`);
+      tokenValue(sat.opacity, `${where} outline.satellite opacity`);
+      if (sat.width?.mode !== "zoom") err(`${where}: outline.satellite.width must declare mode "zoom"`);
+      satelliteEdges[id] = { color: sat.color.token, width: sat.width.token, ramp: sat.width.ramp, opacity: sat.opacity.token };
+      const c = sat.casing;
+      if (c) {
+        const cid = `${l.id}__casing`;
+        tokenValue(c.color, `${where} outline.satellite.casing colour`);
+        tokenValue({ token: c.width?.token }, `${where} outline.satellite.casing width`);
+        tokenValue(c.opacity, `${where} outline.satellite.casing opacity`);
+        if (c.width?.mode !== "zoom") err(`${where}: outline.satellite.casing.width must declare mode "zoom"`);
+        const casing = { id: cid, type: "line", ...geom,
+                         ...(edgeMinzoom !== undefined ? { minzoom: edgeMinzoom } : {}),
+                         ...(l.filter ? { filter: l.filter } : {}) };
+        outLayers.splice(outLayers.length - 1, 0, casing);    // under the edge it carries
+        edges.set(cid, { ...l, id: cid, outline: { color: c.color, width: c.width, opacity: c.opacity } });
+        satelliteOnly.push(cid);
+      }
+    }
   }
   // The edges held back for this layer (`outline.drawAfter`) go directly over it and its own edge.
   for (const e of deferredEdges.get(l.id) ?? []) outLayers.push(e);
@@ -1144,6 +1178,10 @@ const meta = {
   edgeOpacities: Object.fromEntries([...edges].filter(([, l]) => l.outline.opacity)
     .map(([id, l]) => [id, l.outline.opacity.token])),
   /** (T470) edge id -> [[zoom, factor]]: its outline opacity token times a zoom curve (`outline.opacity.ramp`). */
+  /** (T923) edge id -> { color, width, ramp, opacity } tokens of its look over satellite imagery */
+  satelliteEdges,
+  /** (T923) the casing layers drawn over satellite only (opacity 0 on the drawn map) */
+  satelliteOnly,
   edgeOpacityRamps: Object.fromEntries([...edges].filter(([, l]) => l.outline.opacity?.ramp)
     .map(([id, l]) => [id, l.outline.opacity.ramp])),
   // A label's HALO — the only paint property no other layer type has. Text colour rides

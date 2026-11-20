@@ -83,7 +83,9 @@
         "obstacle": "plain",
         "tidal_water": "plain",
         "parcel_private__edge": "plain",
+        "parcel_private__casing": "plain",
         "indigenous_land__edge": "plain",
+        "indigenous_land__casing": "plain",
         "no_access__edge": "plain",
         "no_access_permit__edge": "plain",
         "eco_reserve__edge": "plain",
@@ -150,7 +152,9 @@
         "obstacle": "plain",
         "tidal_water": "plain",
         "parcel_private__edge": "plain",
+        "parcel_private__casing": "plain",
         "indigenous_land__edge": "plain",
+        "indigenous_land__casing": "plain",
         "no_access__edge": "plain",
         "no_access_permit__edge": "plain",
         "eco_reserve__edge": "plain",
@@ -206,7 +210,9 @@
         "obstacle": "plain",
         "tidal_water": "plain",
         "parcel_private__edge": "plain",
+        "parcel_private__casing": "plain",
         "indigenous_land__edge": "plain",
+        "indigenous_land__casing": "plain",
         "no_access__edge": "plain",
         "no_access_permit__edge": "plain",
         "eco_reserve__edge": "plain",
@@ -262,7 +268,9 @@
         "obstacle": "plain",
         "tidal_water": "plain",
         "parcel_private__edge": "plain",
+        "parcel_private__casing": "plain",
         "indigenous_land__edge": "plain",
+        "indigenous_land__casing": "plain",
         "no_access__edge": "plain",
         "no_access_permit__edge": "plain",
         "eco_reserve__edge": "plain",
@@ -376,7 +384,9 @@
     "stream": "water",
     "obstacle": "obstacles",
     "parcel_private__edge": "ownership",
+    "parcel_private__casing": "ownership",
     "indigenous_land__edge": "access",
+    "indigenous_land__casing": "access",
     "no_access__edge": "access",
     "no_access_permit__edge": "access",
     "eco_reserve__edge": "protected",
@@ -1500,12 +1510,30 @@
         }
       }
     },
+    "parcel_private__casing": {
+      "plain": {
+        "label": "parcel_private__casing outline",
+        "scale": "static",
+        "color": {
+          "token": "color.imagery.casing"
+        }
+      }
+    },
     "indigenous_land__edge": {
       "plain": {
         "label": "indigenous_land outline",
         "scale": "static",
         "color": {
           "token": "color.indigenous.fill"
+        }
+      }
+    },
+    "indigenous_land__casing": {
+      "plain": {
+        "label": "indigenous_land__casing outline",
+        "scale": "static",
+        "color": {
+          "token": "color.imagery.casing"
         }
       }
     },
@@ -2345,35 +2373,41 @@
         "token": "width.stream.side"
       }
     },
-    "parcel_private__edge": {
-      "token": "width.parcel.edge",
-      "mode": "zoom",
-      "ramp": [
-        [
-          11,
-          1.25
-        ],
-        [
-          16,
-          1.875
-        ]
-      ]
-    },
-    "indigenous_land__edge": {
-      "token": "width.admin.edge",
+    "parcel_private__edge": "width.parcel.edge",
+    "parcel_private__casing": {
+      "token": "width.land.casing.imagery",
       "mode": "zoom",
       "ramp": [
         [
           4,
-          0.83
+          1
         ],
         [
           11,
-          0.83
+          1
         ],
         [
           16,
-          1.25
+          1.2
+        ]
+      ]
+    },
+    "indigenous_land__edge": "width.admin.edge",
+    "indigenous_land__casing": {
+      "token": "width.land.casing.imagery",
+      "mode": "zoom",
+      "ramp": [
+        [
+          4,
+          1
+        ],
+        [
+          11,
+          1
+        ],
+        [
+          16,
+          1.2
         ]
       ]
     },
@@ -2811,7 +2845,7 @@
       "under_lake": 0,
       "contour": 0,
       "indigenous_land": 0,
-      "indigenous_land__edge": 0,
+      "indigenous_land__edge": 11,
       "indigenous_land__label": 12,
       "no_access": 0,
       "no_access__edge": 10,
@@ -2840,7 +2874,9 @@
   "minzoomByMode": {},
   "edgeOpacities": {
     "parcel_private__edge": "opacity.parcel.edge",
-    "indigenous_land__edge": "opacity.closure.edge",
+    "parcel_private__casing": "opacity.land.casing.imagery",
+    "indigenous_land__edge": "opacity.admin.edge",
+    "indigenous_land__casing": "opacity.land.casing.imagery",
     "no_access__edge": "opacity.closure.edge",
     "no_access_permit__edge": "opacity.closure.edge",
     "eco_reserve__edge": "opacity.closure.edge",
@@ -2850,6 +2886,50 @@
     "mu__edge": "opacity.mu.edge",
     "sign_zone__edge": "opacity.closure.edge"
   },
+  "satelliteEdges": {
+    "parcel_private__edge": {
+      "color": "color.parcel.edge.imagery",
+      "width": "width.land.edge.imagery",
+      "ramp": [
+        [
+          4,
+          1.5
+        ],
+        [
+          11,
+          1.5
+        ],
+        [
+          16,
+          2
+        ]
+      ],
+      "opacity": "opacity.land.edge.imagery"
+    },
+    "indigenous_land__edge": {
+      "color": "color.indigenous.edge.imagery",
+      "width": "width.land.edge.imagery",
+      "ramp": [
+        [
+          4,
+          1.5
+        ],
+        [
+          11,
+          1.5
+        ],
+        [
+          16,
+          2
+        ]
+      ],
+      "opacity": "opacity.land.edge.imagery"
+    }
+  },
+  "satelliteOnly": [
+    "parcel_private__casing",
+    "indigenous_land__casing"
+  ],
   "edgeOpacityRamps": {
     "region__edge": [
       [
@@ -3076,6 +3156,13 @@
         2
       ],
       "color.indigenous.fill": "#6F5D00",
+      "color.indigenous.edge.imagery": "#2E1500",
+      "color.parcel.edge.imagery": "#2A2A1C",
+      "color.imagery.casing": "#F8F8F2",
+      "width.land.edge.imagery": 1,
+      "width.land.casing.imagery": 2.5,
+      "opacity.land.edge.imagery": 1,
+      "opacity.land.casing.imagery": 0.75,
       "opacity.closure": 0.55,
       "opacity.park": 0.32,
       "color.watershed.fill": "#2F5E2A",
@@ -3286,6 +3373,13 @@
         2
       ],
       "color.indigenous.fill": "#C9945E",
+      "color.indigenous.edge.imagery": "#2E1500",
+      "color.parcel.edge.imagery": "#2A2A1C",
+      "color.imagery.casing": "#0A0B0D",
+      "width.land.edge.imagery": 1,
+      "width.land.casing.imagery": 2.5,
+      "opacity.land.edge.imagery": 1,
+      "opacity.land.casing.imagery": 0.75,
       "opacity.closure": 0.6,
       "opacity.park": 0.3,
       "color.watershed.fill": "#1C5A2E",
@@ -3496,6 +3590,13 @@
         2
       ],
       "color.indigenous.fill": "#8B5A2B",
+      "color.indigenous.edge.imagery": "#2E1500",
+      "color.parcel.edge.imagery": "#2A2A1C",
+      "color.imagery.casing": "#F8F8F2",
+      "width.land.edge.imagery": 1,
+      "width.land.casing.imagery": 2.5,
+      "opacity.land.edge.imagery": 1,
+      "opacity.land.casing.imagery": 0.75,
       "opacity.closure": 0.55,
       "opacity.park": 0.2,
       "color.watershed.fill": "#2F5E2A",
@@ -4016,6 +4117,41 @@
       "type": "color",
       "themeable": true,
       "$comment": "Reserves and treaty lands, in brown — the OSM convention, and v1's. ONE token for the fill and its border, because there is one thing to say. It sits deliberately OUTSIDE the crimson/amber restriction language: this is an access advisory, never a fishing closure, and it is the nearest brown to v1's #8B6508 that a reader can still tell apart from `status.restricted`, which is a genuinely different claim."
+    },
+    "color.indigenous.edge.imagery": {
+      "type": "color",
+      "themeable": true,
+      "$comment": "(T923, owner 2026-11-20: 'make indigenous easy to see only in satellite mode') A RESERVE'S OUTLINE OVER SATELLITE IMAGERY ONLY: the reserve brown (`color.indigenous.fill`) taken much darker, at full strength, so the line reads on a photograph. Photos are the same in both themes, so the value is too; the drawn map keeps its fill-hued edge."
+    },
+    "color.parcel.edge.imagery": {
+      "type": "color",
+      "themeable": true,
+      "$comment": "(T923, owner 2026-11-20: 'can be on private too') A PRIVATE PARCEL'S OUTLINE OVER SATELLITE IMAGERY ONLY: the parcel earth tone (`color.parcel.private`) taken darker, in its own hue (redder than the reserve's brown). The drawn map keeps its fill-hued hairline."
+    },
+    "color.imagery.casing": {
+      "type": "color",
+      "themeable": true,
+      "$comment": "(T923) THE LIGHT CASING UNDER A RESERVE'S OR PARCEL'S OUTLINE OVER SATELLITE: the map's paper (`color.outside`), so the darker line is cut out of dark forest and water alike. Not drawn on the drawn map."
+    },
+    "width.land.edge.imagery": {
+      "type": "number",
+      "themeable": false,
+      "$comment": "(T923) the reserve / parcel outline over satellite, px, times its zoom ramp in `layers.source.json` (1.5 px far out, 2 px close in)."
+    },
+    "width.land.casing.imagery": {
+      "type": "number",
+      "themeable": false,
+      "$comment": "(T923) the casing under that outline, px, times its ramp (2.5 px far out, 3 px close in): a thin light rim each side of the line."
+    },
+    "opacity.land.edge.imagery": {
+      "type": "number",
+      "themeable": false,
+      "$comment": "(T923) the reserve / parcel outline over satellite: full strength, where the drawn map's is a firm tint."
+    },
+    "opacity.land.casing.imagery": {
+      "type": "number",
+      "themeable": false,
+      "$comment": "(T923) the casing's opacity under it: light, so it is a rim, not a second line."
     },
     "opacity.closure": {
       "type": "number",

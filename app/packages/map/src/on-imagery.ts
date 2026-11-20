@@ -168,3 +168,22 @@ export function waterOnImagery(layerId: string, paint: Record<string, unknown>, 
     return { ...paint, "line-width": timesRamp(paint["line-width"], IMAGERY_LAKE_EDGE) };
   return paint;
 }
+
+/**
+ * (T923, owner 2026-11-20: "for satellite we could have it purposely stand out a little more") A RESERVE'S AND A PRIVATE
+ * PARCEL'S OUTLINE OVER IMAGERY: the edge in its own darker colour, wider and at full opacity (`outline.satellite` in
+ * `layers.source.json`), and a light casing under it (`<layer>__casing`) so it reads on any photograph. On the drawn map
+ * the edge is as it always was and the casing is not drawn (opacity 0): the same ground switch as the water above.
+ */
+export function landOutline(layerId: string, paint: Record<string, unknown>, tokens: Tokens, satellite: boolean): Record<string, unknown> {
+  if (!satellite) return (STYLE_META.satelliteOnly ?? []).includes(layerId) ? { ...paint, "line-opacity": 0 } : paint;
+  const sat = STYLE_META.satelliteEdges?.[layerId];
+  if (!sat) return paint;
+  const w = num(tokens, sat.width);
+  return {
+    ...paint,
+    "line-color": tokens[sat.color],
+    "line-opacity": num(tokens, sat.opacity),
+    "line-width": ["interpolate", ["linear"], ["zoom"], ...sat.ramp.flatMap(([z, k]) => [z, round(w * k)])],
+  };
+}

@@ -61,6 +61,16 @@
       }
     },
     {
+      "id": "parcel_private__casing",
+      "type": "line",
+      "source": "atlas",
+      "source-layer": "parcel",
+      "minzoom": 11,
+      "layout": {
+        "visibility": "none"
+      }
+    },
+    {
       "id": "parcel_private__edge",
       "type": "line",
       "source": "atlas",
@@ -80,13 +90,24 @@
       }
     },
     {
+      "id": "indigenous_land__casing",
+      "type": "line",
+      "source": "atlas",
+      "source-layer": "indigenous_land",
+      "layout": {
+        "visibility": "visible"
+      },
+      "minzoom": 11
+    },
+    {
       "id": "indigenous_land__edge",
       "type": "line",
       "source": "atlas",
       "source-layer": "indigenous_land",
       "layout": {
         "visibility": "visible"
-      }
+      },
+      "minzoom": 11
     },
     {
       "id": "no_access",

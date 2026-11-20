@@ -106,6 +106,13 @@
       2
     ],
     "color.indigenous.fill": "#8B5A2B",
+    "color.indigenous.edge.imagery": "#2E1500",
+    "color.parcel.edge.imagery": "#2A2A1C",
+    "color.imagery.casing": "@color.outside",
+    "width.land.edge.imagery": 1.0,
+    "width.land.casing.imagery": 2.5,
+    "opacity.land.edge.imagery": 1.0,
+    "opacity.land.casing.imagery": 0.75,
     "opacity.closure": 0.55,
     "opacity.park": 0.20,
     "color.watershed.fill": "#2F5E2A",
