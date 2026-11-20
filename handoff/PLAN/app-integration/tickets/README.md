@@ -264,6 +264,7 @@ reads both files; a ticket closed here moves there once its lane is finished wit
 | T934 | The salmon year bar shows the B.C. bait ban and fly-only days too (owner) | OPEN | | owner 2026-11-20 "Bait ban needs to apply to salmon" |
 | T935 | iPhone: the year bars' closed days and the Closed key swatch draw no colour (owner) | DONE | 33aa04409 8bcbb359a 7008a6c73 | owner 2026-11-20 "On apple DFO calendar when closed has no color" |
 | T936 | Build warning: salmon open on a game-fish-closed day that carries a B.C. gear rule (owner) | OPEN | | owner 2026-11-20 "add a build warning if there is a waterbody like that" |
+| T937 | Salmon map: no-access water drawn grey like Trout, with its key entry (owner) | OPEN | | owner 2026-11-20 "salmon should have the no access land set to grey like trout" |
 
 ## Next after closed testing
 
