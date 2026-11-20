@@ -250,8 +250,8 @@ def _all(a) -> int:
         # (T936) the release's build reports (the salmon-open, gear-hidden list) beside the release command's checks
         reports = (dest / "release-checks") if dest else GENERATED.bundle.parent / "release" / "checks"
         _step(["release", "--bundle", str(bundle), "--store", str(d / "regs.sqlite"), "--status-index",
-               str(d / "status_index.bin"), "--export-dir", str(d), "--out-root", str(d / "release"), *tiles,
-               "--reports", str(reports)])
+               str(d / "status_index.bin"), "--export-dir", str(d), "--out-root", str(d / "release"),
+               "--reports", str(reports), *tiles])
         # (T202) THE BASEMAP THE RELEASE NAMES LIVES BESIDE THE RELEASES (data/release/basemap/<id>/, T75), not in this
         # staging folder, which holds only the new r-* folder. The vintage check resolves the manifest's basemap url
         # under the staging release, so it is shown the released basemaps there; only r-* folders are promoted below.
