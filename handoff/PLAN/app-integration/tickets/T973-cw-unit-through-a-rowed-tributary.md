@@ -1,6 +1,7 @@
 # T973 — Classified Waters: does a unit carry up through a tributary whose own row prints no unit? (ask a CO)
 
-Status: BLOCKED (owner) — a question for a Conservation Officer; the release keeps today's rule (LI-2).
+Status: IN PROGRESS — owner 12:11: build the carried unit with its path IN THIS RELEASE, shown as a "may need" note; the
+CO question stays open (it decides the note later).
 
 Source: owner 2026-11-20 11:44 (dialog, on T944's changes): "We should maybe just make this a ticket and a gotcha that
 needs to be asked to a CO. Give info in the ticket. Doesn't hold release (keep what we have but on ticket reset we can
@@ -43,7 +44,38 @@ synopsis that does not mention Classified Waters (e.g. Grave Creek under the Elk
 Endako under the Stellako). Does a non-resident fishing that tributary, or a creek above it, need the river's
 Classified Waters licence?"
 
-## Work (when the ticket is reset after the answer)
+## Owner's plan (2026-11-20 12:10): carry the unit through, with where it came from
+Verbatim: "Maybe we should propogate classified waters through the separate listed streams still just make it a tuple
+or something with what class, where the source of that classified waters is and anither item saying if it passed
+through anither listed stream without classified water title etc. still have nearest classified water level with so
+downstream cwi is overruled by a more upstream cwii etc. make sense? Then we can at least have the info throughout".
+
+What that means:
+- **The walk no longer stops** at a tributary with its own no-unit row (LI-2's stop). The unit carries on up.
+- **Each placed unit carries a record:**
+  - `class`: the unit's class, e.g. Class I or Class II;
+  - `source`: the classified water it comes from, e.g. the Stellako;
+  - `through`: the rowed no-unit waters it passed on the way up, e.g. [the Endako]. It is empty when it passed none.
+- **RU-13 stays:** one unit per section, and the nearest classified water wins. An upstream Class II overrules a
+  downstream Class I for the sections above it.
+- **The data is kept everywhere.** Whether a unit with a non-empty `through` counts as "you need this licence" or as
+  "you may need it, ask" is a display choice; the CO's answer settles it later without a rebuild.
+
+## Owner answers (2026-11-20 12:11, dialog)
+- Display until a CO answers: **"\"May need\" note (Recommended)"**. A unit that passed through a rowed no-unit water
+  shows with a short note, e.g. "Stellako River Class II may apply here: the Endako has its own line without Classified
+  Waters. Check with a CO." A unit that passed through no such line shows as today.
+- When: **"In this release"** (not after 0.8.4). The release waits for this lane and its review.
+
+## Work (this release)
+1. Reach: carry the unit through rowed no-unit waters with `class`, `source`, `through`; RU-13's nearest-unit rule
+   stays. A unit with an empty `through` is placed exactly as today (byte-identical where nothing passes a rowed water).
+2. Bundle + release: the carried units with a non-empty `through` go in an OPTIONAL new table/file, so apps before 0.8.4
+   show nothing new (as today) and never show them as a plain requirement.
+3. App 0.8.4: the licence card shows the "may need" note from that table.
+4. Measure and list: sections and waters that gain a "may need" note, the biggest first.
+
+## Work (when the CO answers)
 1. Measure: every section LI-2 drops today (switch `own_row_not_classified` off vs on, in memory through heavy.sh, as
    T944 did), counted by water, with the biggest waters listed and rules digest unchanged.
 2. If the CO says "carries through": stop treating a rowed no-unit tributary as a stop in `first_classified_downstream`
