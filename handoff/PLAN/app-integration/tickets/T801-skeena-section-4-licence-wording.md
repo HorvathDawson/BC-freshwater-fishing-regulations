@@ -1,6 +1,6 @@
 # T801 — Skeena Section 4: the "separate licence per section" line barely shows, the stamp sentence quotes the wrong printed line, zone (b) reads "the Zymoetz River confluence (1500 m upstream)"; the upper-end flag is cleared (owner: all the way up)
 
-Status: IN PROGRESS (items 1-4 landed: 1 9af7efbd7; 2 pipeline 6d5651c2f + app 8d7f17709 (batch 45fff5e63); 3 8e3d5f051; 4 d0df51fd0); left (Claude): item 5, cosmetic: the "Mainstem only" tag shows on parts 11 and 14-18 only, and the Reserve side channel (part 4) carries the Skeena River 2 unit internally.
+Status: IN REVIEW (items 1-4 landed: 1 9af7efbd7; 2 pipeline 6d5651c2f + app 8d7f17709 (batch 45fff5e63); 3 8e3d5f051; 4 d0df51fd0; item 5(1) built on lane/l2-parts ab64dd2f1: "Mainstem only" on every Skeena River 2 and Section 4 main-stem part; item 5(2) DROPPED by the owner 2026-11-20, not to be done. owner: OWNER-TODO "5(2) (invisible Skeena side channel)" (dropped 11-20); left (Claude): main chat review + merge; ships with the next data release).
 
 Source: owner 2026-11-16, question 35 and his two maps of the weekend zones: "Should run all the way up but also we
 should handle the weekend zones properly too. Make sure licensing info is done properly there." The province's
@@ -21,8 +21,10 @@ resident's status unchanged on a Saturday, no side stream carrying either licenc
    (`read.py` line 387: `x["verbatim"]` where `w["verbatim"]` is meant).
 4. Zone (b) on weekends: "the Zymoetz River confluence (1500 m upstream)"; the book: "to 1.5 km upstream of Zymoetz
    River confluence". The words come from the stored cut point.
-5. Cosmetic: the "Mainstem only" tag shows on parts 11 and 14 to 18 only; the Reserve side channel (part 4) carries
-   the Skeena River 2 unit internally (closed all year, nothing shows).
+5. Cosmetic: (1) the "Mainstem only" tag shows on parts 11 and 14 to 18 only — BUILT 2026-11-20 (lane L2, below);
+   (2) the Reserve side channel (part 4) carries the Skeena River 2 unit internally (closed all year, nothing shows) —
+   **DROPPED by the owner 2026-11-20 (lane-plan batch, OWNER-TODO 01:56: "Make sure their tickets are
+   removed/completed/no doing labelled"): not to be done.**
 The weekday wording of the weekend closure is the app chat's ticket T800.
 
 ## Lane result (2026-11-16, branch `lane/book-rule-fixes-1116`, commit 186388445)
@@ -56,3 +58,21 @@ after the unit and stamp words ("Licence unit: … . <stamp text>. Non-residents
 licences describing which section they are fishing."); absent or null, no line. Reads the per-record licensing words
 (store `LIC_KEEP`, lane/bugs-080b 6d5651c2f), so it shows once a release carries the field. Tests: `licence.test.ts`
 (with, without, null, after the stamp text); mutation (the appended line removed) fails 2.
+
+## Item 5(1) built (lane L2, branch `lane/l2-parts`, 2026-11-20); item 5(2) DROPPED by the owner
+Commit ab64dd2f1. The place (`display.part.part_place`, the tag) named the "(mainstem only)" row only where its RULES
+bind — the two weekend zones (parts 11 and 14-18). A row whose place is its printed SCOPE, and that speaks by a rule
+somewhere on the water, now also speaks on every part whose MAIN STEM its licensing record covers (`_lic_entries`,
+`reach` placement; a rule-set group only when every main-stem piece is covered — `_by_grp` keeps each member's
+licensing set). Two limits, both measured: a region place ("In Region 6") stays read from the rules alone (else the
+Stellako's Region 6 part would read "Where Region 6 and Region 7 meet" because the Region 7 row's designation covers
+it); a part of side channels alone takes nothing from a designation (the Reserve side channel stays untagged — item
+5(2), its Skeena River 2 unit, the owner DROPPED 2026-11-20 and is not done).
+- Measured on the live export (19,766 waters): three Skeena rule-set groups gain "Mainstem only" (the Skeena River 2
+  stretch Exchamsiks → Hell's Gate, Chimdemash → Cedarvale, and Cedarvale → Sedan + Shegunia → source); nothing else
+  moves. Side deliver r-6db99b676653: binding diff empty, 0 of 1,957,010 sections' answers changed (only part wording).
+- Test: `pipeline/tests/test_t801_mainstem_tag.py` (5 tests, mutations: a side channel given a main-stem run takes the
+  tag; a row with no rule on the water places nothing; a region row moves no region; a group needs every main-stem
+  piece covered).
+- Picture: the water_map tool's Skeena panels 4-10, before / after: `T780-shots/skeena-tags-before.png`,
+  `T780-shots/skeena-tags-after.png` (the app shows this place only in the long part label; the map tool shows it).
