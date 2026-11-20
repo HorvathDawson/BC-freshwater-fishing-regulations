@@ -8,11 +8,12 @@ import { describe, expect, it } from "vitest";
 import type { ItemId, SectionId } from "@app/data";
 import type { NavRows, PartLine, PartRow } from "@app/data/regs";
 import type { SectionLine } from "@app/data/regs/place";
-import { placeOf, resolvePartPlace, resolvePlace, resolveStartLink, type PlaceReads } from "./place";
+import { setFailureSink } from "@app/core";
+import { placeOf, placePartOf, resolvePartPlace, resolvePlace, resolveStartLink, type PlaceReads } from "./place";
 import { parseStartLink, routeSearch } from "./startLink";
-import { HOME, reduce, waterFrame, type WaterFrame, type WaterRoute } from "./route";
+import { HOME, reduce, waterFrame, type RouteAction, type WaterFrame, type WaterRoute } from "./route";
 import { carryRoute } from "./carry";
-import { openWater } from "./openWater";
+import { openWater, waterOpener } from "./openWater";
 
 const BLK = 360000001, RIVER = "gnis:1" as ItemId, ORD = 7;
 /** A release: each section's handle, line and part. `runs`: its `part_line` (T388; every water/2 release has it),
@@ -207,5 +208,33 @@ describe("(T388) a named water's place comes from part_line, never lines", () =>
     await expect(resolveStartLink(parseStartLink(`?blk=${BLK}&m=5500`)!, reads, itemFor(B))).rejects.toThrow("lines read");
     expect(asked).toEqual(["hasLines", "sectionAt"]);
     expect(await placeOf(relB, reach)).toEqual({ blk: BLK, m: 5500 });
+  });
+});
+
+describe("(T927) a boundary place picked in search opens its water on the part holding it", () => {
+  const relA = release(A, { 0: 10, 1: 11, 2: 12 });
+  it("the part whose run holds the place; none (or not this release's water): null, and the miss is REPORTED", async () => {
+    const seen: unknown[] = [];
+    const undo = setFailureSink((e) => seen.push(e));
+    try {
+      const part = placePartOf(async () => relA);
+      expect(await part(RIVER, { blk: BLK, m: 1000 })).toBe(1);       // a cut at 1000: the part above it
+      expect(await part(RIVER, { blk: BLK, m: 4999 })).toBe(2);
+      expect(seen).toEqual([]);
+      expect(await part(RIVER, { blk: BLK, m: 5500 })).toBeNull();    // past every part's run
+      expect(await part("gnis:404" as ItemId, { blk: BLK, m: 10 })).toBeNull();
+      expect(seen.map((e) => (e as Error).message)).toEqual([
+        `place: ${RIVER} has no part holding ${BLK} @ 5500 m`, "place: gnis:404 is not in this release"]);
+    } finally { undo(); }
+  });
+  it("the opener: searched(item, place) opens the Map on that part, search consumed; no place: as a name opens", async () => {
+    const sent: RouteAction[] = [];
+    const o = waterOpener({ itemForSection: async () => null }, (a) => sent.push(a),
+                          { placePart: placePartOf(async () => relA) });
+    await o.searched(RIVER, { blk: BLK, m: 3500 });
+    await o.searched(RIVER);
+    expect(sent).toEqual([
+      { type: "openWater", item: RIVER, tapSid: null, at: null, part: 2, view: "map", fromSearch: true },
+      { type: "openWater", item: RIVER, tapSid: null, at: null, part: null, view: "map", fromSearch: true }]);
   });
 });

@@ -300,18 +300,15 @@ def core_area(con: sqlite3.Connection, schema: str = "b") -> None:
                      for o in sorted(set(regions) | set(mus))])
 
 
-#: (T927) the confidence clause a part end's words may carry ("Ten Mile Pool (100 m upstream), approximate location (low
-#: confidence)"): search shows and keys the place's own words. Taken off whether the answers say it or not (T926/T927 lane
-#: note: another lane drops it from the part names).
-_CONFIDENCE_CLAUSE = re.compile(r",?\s*approximate location(?:\s*\([^)]*\))?\s*$", re.I)
 #: (T927 Pitfalls) a place whose words NAME nothing of their own ("lower falls", "boundary signs", "tidal boundary (DFO
 #: Subarea 3-18)"): no capital letter outside its brackets. Search offers it only with its water's name in the query.
 _BRACKETS = re.compile(r"\([^)]*\)")
 
 
 def cut_words(text: str) -> str:
-    """(T927) A cut's words as search shows them: the confidence clause off, spaces collapsed."""
-    return re.sub(r"\s+", " ", _CONFIDENCE_CLAUSE.sub("", text or "")).strip()
+    """(T927) A cut's words as search shows them, spaces collapsed. (The part ends' words carry no confidence clause since
+    T780: `display.ends` says the place alone.)"""
+    return re.sub(r"\s+", " ", text or "").strip()
 
 
 def cut_generic(words: str) -> bool:
@@ -319,16 +316,17 @@ def cut_generic(words: str) -> bool:
     return not any(c.isupper() for c in _BRACKETS.sub(" ", words))
 
 
-def core_cut_place(con: sqlite3.Connection, ends: Dict[str, List[str]], schema: str = "b") -> None:
+def core_cut_place(con: sqlite3.Connection, ends: Dict[str, List[str]], schema: str = "b") -> List[str]:
     """(T927, owner 2026-11-19 23:49) `cut_place`: THE BOOK'S BOUNDARY PLACES search finds — every curated cut (the
     bundle's `cut_place`) on each named water it stands on: `ord` the water, `words` what the place is called (the part
-    ends' own words, `display.ends`, the confidence clause off; the `split` name where nothing ends there), `alt` its other
+    ends' own words, `display.ends`; the `split` name where nothing ends there), `alt` its other
     names (JSON, NULL: none), `generic` 1 when the words name nothing of their own (`cut_generic`: search wants the
     water's name too), `blk` / `m` THE PLACE (the FWA stream key and metres along it, AGENTS 5 — the app opens the water
     at the part holding it, `@app/ui` place.ts), `lon` / `lat` in microdegrees where a map mark stands there (the
     bundle's `part_mark.token`), else NULL. The waters: the split's main-stem positions (`split.at`), else the waters
-    whose sections hold the place. ADDITIVE, still core/1: a bundle without `cut_place` gives no table, and search finds
-    no places. `schema` holds the bundle; `item` / `item_section` are core's own."""
+    whose sections hold the place; a cut on no water is COUNTED AND PRINTED (T927 review: never dropped silently).
+    ADDITIVE, still core/1: a bundle without `cut_place` gives no table, and search finds no places. `schema` holds the
+    bundle; `item` / `item_section` are core's own. Returns the split ids on no water."""
     have = {r[0] for r in con.execute(f"SELECT name FROM {schema}.sqlite_master WHERE type='table'")}
     if "cut_place" not in have:
         return
@@ -341,7 +339,8 @@ def core_cut_place(con: sqlite3.Connection, ends: Dict[str, List[str]], schema: 
         for tok, lon, lat in con.execute(f"SELECT token, lon, lat FROM {schema}.part_mark WHERE token IS NOT NULL "
                                          "ORDER BY ord, mark_ix"):
             mark.setdefault(tok, (int(round(lon * 1_000_000)), int(round(lat * 1_000_000))))
-    rows = set()
+    rows: set = set()
+    unplaced: List[str] = []
     for sid, blk, m, name, at, same in con.execute(
             f"SELECT c.split_id, c.blk, c.m, s.name, s.at, s.same_place_as FROM {schema}.cut_place c "
             f"JOIN {schema}.split s ON s.split_id = c.split_id ORDER BY c.split_id"):
@@ -361,12 +360,17 @@ def core_cut_place(con: sqlite3.Connection, ends: Dict[str, List[str]], schema: 
                 f"ON s.sid = sm.sid JOIN main.item i ON i.ord = s.ord WHERE sm.blk = ? AND sm.from_m <= ? AND ? <= sm.to_m",
                 (blk, m, m)).fetchall()
             ords = sorted({o for o, st in held if st} or {o for o, _ in held})
+        if not ords:
+            unplaced.append(sid)
         lon, lat = mark.get(sid) or (mark.get(same) if same else None) or (None, None)
         for o in ords:
             # generic by the cut's own label (`split.name`): the part words capitalise their first letter
             rows.add((o, words, json.dumps(alt, ensure_ascii=False) if alt else None, int(cut_generic(name)),
                       blk, m, lon, lat))
     con.executemany("INSERT OR IGNORE INTO cut_place VALUES (?, ?, ?, ?, ?, ?, ?, ?)", sorted(rows, key=lambda r: r[:6]))
+    print(f"  cut_place: {len(rows)} row(s); {len(unplaced)} curated cut(s) on no water, not searchable"
+          + (f": {', '.join(unplaced)}" if unplaced else ""))
+    return unplaced
 
 
 def display_ends(store: sqlite3.Connection) -> Dict[str, List[str]]:

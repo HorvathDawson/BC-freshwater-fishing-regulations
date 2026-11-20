@@ -27,7 +27,7 @@
  *   unnamed    unchanged: the tapped section's middle from `lines`, fetched only when an unnamed reach is on screen or a
  *              link to one is opened.
  */
-import { bcNow } from "@app/core";
+import { bcNow, reportFailure } from "@app/core";
 import type { ItemId, SectionId, WaterSource } from "@app/data";
 import type { PartLine, RegsReads } from "@app/data/regs";
 import type { ReleaseLoader } from "@app/data/release";
@@ -131,8 +131,12 @@ export function placePartOf(reads: () => Promise<PlaceReads>): (item: ItemId, p:
   return async (item, p) => {
     const store = await reads();
     const ord = await store.itemOrd(item);
-    if (ord === null) return null;
-    return (await resolvePartPlace(store, item, ord, await store.partLines(ord), p))?.part ?? null;
+    const part = ord === null ? null : (await resolvePartPlace(store, item, ord, await store.partLines(ord), p))?.part ?? null;
+    // (T927 review) the water still opens (on its own part), and the miss is REPORTED, as a failed read is: a boundary
+    // place search found is always on its water in the release it came from
+    if (part === null)
+      reportFailure(new Error(`place: ${item} ${ord === null ? "is not in this release" : `has no part holding ${p.blk} @ ${p.m} m`}`));
+    return part;
   };
 }
 

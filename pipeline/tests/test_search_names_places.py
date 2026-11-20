@@ -100,8 +100,7 @@ def test_t927_cut_place_rows_are_the_curated_cuts_at_their_host_row():
 
 
 def test_t927_cut_words_and_generic():
-    assert B.cut_words("Ten Mile Pool (100 m upstream), approximate location (low confidence)") == \
-        "Ten Mile Pool (100 m upstream)"
+    assert B.cut_words("  Ten Mile Pool  (100 m upstream) ") == "Ten Mile Pool (100 m upstream)"
     assert B.cut_words("Greendale Trestle") == "Greendale Trestle"
     assert B.cut_generic("lower falls") and B.cut_generic("tidal boundary (DFO Subarea 3-18)")
     assert not B.cut_generic("Greendale Trestle") and not B.cut_generic("Hwy 19 bridge")
@@ -123,11 +122,12 @@ def _cut_db():
         INSERT INTO main.item VALUES (1, 'gnis:1', 'stream'), (2, 'gnis:2', 'stream'), (3, 'wbk:9', 'lake');
         INSERT INTO main.item_section VALUES (10, 2), (11, 3);
         INSERT INTO b.section_measure VALUES (10, 77, 0, 500), (11, 88, 0, 100);
-        INSERT INTO b.cut_place VALUES ('a__pool', 55, 13632), ('b__falls', 77, 120);
+        INSERT INTO b.cut_place VALUES ('a__pool', 55, 13632), ('b__falls', 77, 120), ('c__slope', 99, 5);
         INSERT INTO b.split VALUES
           ('a__pool', 'fishing boundary signs at Ten Mile Pool (100 m upstream)', 'point', '[["gnis:1", 13.63]]',
            NULL, NULL, NULL, 'low'),
-          ('b__falls', 'lower falls', 'point', '[]', NULL, NULL, NULL, NULL);
+          ('b__falls', 'lower falls', 'point', '[]', NULL, NULL, NULL, NULL),
+          ('c__slope', 'foot of the east slope', 'point', '[]', NULL, NULL, NULL, NULL);
         INSERT INTO b.part_mark VALUES (1, 0, -127.1924531, 51.7741559, NULL, 0, '[1]', 'low', NULL, 'a__pool');
     """)
     return con
@@ -135,9 +135,10 @@ def _cut_db():
 
 def test_t927_core_cut_place_names_each_place_on_its_waters():
     con = _cut_db()
-    ends = {"a__pool": ["Ten Mile Pool (100 m upstream), approximate location (low confidence)",
+    ends = {"a__pool": ["Ten Mile Pool (100 m upstream)",
                         "fishing boundary signs at Ten Mile Pool (100 m upstream)", "to:the pool"]}
-    B.core_cut_place(con, ends)
+    # a cut no water holds is not a row, and is COUNTED AND SAID (returned + printed), never dropped silently
+    assert B.core_cut_place(con, ends) == ["c__slope"]
     rows = con.execute("SELECT ord, words, alt, generic, blk, m, lon, lat FROM cut_place ORDER BY ord").fetchall()
     assert rows == [
         (1, "Ten Mile Pool (100 m upstream)", json.dumps(["fishing boundary signs at Ten Mile Pool (100 m upstream)"]),
