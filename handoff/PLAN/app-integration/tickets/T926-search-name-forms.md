@@ -1,6 +1,8 @@
 # T926 — Search: the name forms people type (abbreviations, "/", the book's own names)
 
-Status: OPEN.
+Status: IN REVIEW — owner: OWNER-TODO "T926 = every entry in name_variants.json finds its water" (owner looks at the
+pictures, then main chat review + merge; ships with the next data release — 21 of the 31 need the atlas registry pass,
+see "Lane 2026-11-20").
 
 Source: owner 2026-11-19 (main chat), verbatim: "did we ever make sure handle name variants of water bodies?" Measured the
 same evening (read-only probe, scratchpad `search-probe/`: the real `queryIndex` on release r-6258ffded676's index, 19,782
@@ -65,3 +67,36 @@ Acceptance: the probe's curated-variants class 7,773 / 7,773 found; exact-name r
 Asked whether to remove the 290 generic labels ("LAKE #1013", "LAKE 5567": 288 from the stocking records, 2 markers; all
 search-only, never displayed; the stocking records name those lakes by them). Answer: "Keep as search-only
 (Recommended)". The file stays as it stands; they find their lakes.
+
+## Lane 2026-11-20 (lane/t926-t927, commit 8cce181ab)
+The 31 misses, by cause (probe rerun: the main chat's 52k probes, scratchpad `probe/probe2.mjs`):
+- 21 names on 16 lakes never reached their item: `apply_name_variants` names graph nodes, and an isolated lake is minted
+  AFTER it, so Lilypad Lake's "LAKE #905" / "SCOTT #2", "TEANOOK L.", "BIGHORN RESERVOIR", "KETTLE LAKE #2" … stayed off
+  the registry. Fix: registry pass `attach_wbk_variants` (atlas build + `pipeline.atlas.sidecars`, idempotent; on the live
+  registry it adds 81 names to 43 items, `variants` + `name_sources` only — no name, kind or section moves). SHIPS ONLY
+  WITH A NEW ATLAS REGISTRY (an atlas build, or `sidecars --out` + reach + tiles + deliver): main chat's call.
+- 3 were folded away by the bundle's alias de-duplication (`tiles.names.normalise` turns "*", "#" into spaces): "SNOW LAKE *",
+  "WEST EVERETT LAKE *", "Pigeon Lake # 2". Fix: aliases are new by the SEARCH key (`bundle.build.alias_rows`): +13 alias
+  rows province-wide; a lone "." stays out as before.
+- 5 one-word stocking names ("BEAVER" ×2, "FISH" ×2, "WEST") were aliases tied with every bigger
+  Beaver Creek's prefix match and cut at row 40. Fix (core `queryIndex`): a name or alias typed EXACTLY is never cut off by
+  the limit; it takes the last rows, the top is unchanged ("STANLEY", "PHANTOM": the same, once the registry pass gives them).
+- "UNNAMED 3-20" read as MU 3-20 + "unnamed". Fix: a whole query that IS a name is found whatever part reads as an area.
+- "." (a stocking record's name for Plateau Ponds) cannot be typed as a search (under 2 characters) — the one left:
+  owner question below.
+Probe, curated variants class: 7,749 / 7,780 found before → 7,779 / 7,780 after (all fixes together); the next data
+release alone (no atlas pass) finds 7,758 — the other 21 wait for the registry pass. Exact-name queries (4,214 distinct): the expected
+water's rank unchanged for 4,209; the 5 that moved all improved (3 not found → found, 2 rank 2 → 1). Keystroke time
+unchanged (6.2 ms / query on the probe set, both).
+(5) "Pete'S Pond …": a display bug — `_display_case` now lower-cases a lone letter after an apostrophe ("Pete's", "Sam's
+Folly Lake"; "O'Connor", "D'Arcy" unchanged; 8 names). Atlas-side too, so it ships with the registry pass. The glued
+description is the file's own text ("PETE'S POND UNNAMED LAKE AT THE HEAD OF SAN JUAN RIVER", source regulation) — not
+edited (owner question).
+Pictures (390 px, web, the side release): `T926-shots/` before/after for "SNOW LAKE *" and "Pigeon Lake # 2".
+Owner questions: (a) the variant "." — leave it (it can never be typed) or remove it as an obvious error in the file?
+(b) Pete's Pond: split the description off its regulation name in the file (shown name would become "Pete's Pond")?
+(c) ship the registry pass: a new atlas registry (sidecars) before the next data release, or with the next atlas build?
+Proof: the side deliver of T927's lane section (r-8d7bd8d70ff6 vs live r-6258ffded676): only the search tables moved
+(bundle `alias` +13, `name_source` +13; core the same + `cut_place`); every rules file byte-identical. The atlas half
+(registry pass, display case) was measured on the live registry in memory only, not built.
+Side find: the lake the file calls "Pigeon Lake # 2" shows as "5566" (its marker label is its shown name) — not touched here.
