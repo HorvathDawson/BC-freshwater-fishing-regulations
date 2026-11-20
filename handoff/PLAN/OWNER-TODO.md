@@ -9,6 +9,11 @@ Things only you can do. Claude keeps this list current while you are away; the w
 `handoff/PLAN/app-integration/tickets/` (README.md is the ledger, and its "Owner questions" table has every question
 with the default Claude uses until you answer). Newest first inside each section.
 
+## 2026-11-20 15:11: 0.8.4 production builds approved
+
+- Owner, verbatim: "Yes you can run them": the 0.8.4 production builds (CONFIRM_PROD), Android to Play Internal and iOS
+  to TestFlight internal plus external (beta review). This release only. Never Play Closed; no App Store submission.
+
 ## 2026-11-20 13:32: release scope: Apple External in, production data in
 
 - Owner, verbatim: "Apple external can be touched with this release as a product build. Also we will want to update
