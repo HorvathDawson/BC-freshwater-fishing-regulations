@@ -128,6 +128,12 @@ export interface OpenerOptions {
    * (`regs.ts` `warmUnnamedPage`) — a hint, it decides nothing. Absent: nothing asked.
    */
   unnamed?: (sid: SectionId) => void;
+  /**
+   * (T925, from T737) A water opened by its id (a search result, a spot, a link) is known at once: what its page reads
+   * beside its rules (`regs.ts` `warmWaterPage`: geo) is asked now — a hint, it decides nothing. T221's solo question did
+   * this for these opens; with it gone, the opener asks it itself. Absent: nothing asked.
+   */
+  warm?: (item: ItemId) => void;
 }
 
 /** The opener (`useOpenWater`'s value), React-free: what a test drives. */
@@ -152,21 +158,21 @@ export function waterOpener(source: Pick<WaterSource, "itemForSection">, go: (a:
                                                                         o.unnamed)),
     flow: (item, build) => settle(async (groupOf) => build(groupOf ? await groupOf(item) : undefined)).then(() => undefined),
     // nothing to wait on: at once, and any open still in flight is overtaken
-    item: (item, view = "regs") => { latest += 1; go(openWater({ item, view })); },
+    item: (item, view = "regs") => { latest += 1; o.warm?.(item); go(openWater({ item, view })); },
     cancel: () => { latest += 1; },
     // (T203) a result opens the water's Map, from Conditions or Regs alike — (T925) a water of one part too (T221 had
     // opened that one on its Regulations, with no Map view). (T747, owner 2026-11-14: "it is the section view but it is
     // fully zoomed out instead of on the first section") framed on THE PART ITS BAR NAMES (the frame's part,
     // `useFrameView`), never the whole water: T203 opened it whole while the bar said "Part 1 of 18", and on the wide
     // desktop strip (243 px tall) the whole Skeena read as the province. ⤢ "Whole river" is one press away.
-    searched: (item) => { latest += 1; go(openWater({ item, view: "map", fromSearch: true })); return Promise.resolve(); },
+    searched: (item) => { latest += 1; o.warm?.(item); go(openWater({ item, view: "map", fromSearch: true })); return Promise.resolve(); },
   };
 }
 
 /** The Shell's handle on `openWater` / `openTap`, dispatching to the route. */
 export function useOpenWater(source: Pick<WaterSource, "itemForSection">, go: (a: RouteAction) => void,
                              o: OpenerOptions = {}): WaterOpener {
-  const { now, group, partOf, unnamed } = o;
-  return useMemo(() => waterOpener(source, go, { now, group, partOf, unnamed }),
-                 [source, go, now, group, partOf, unnamed]);
+  const { now, group, partOf, unnamed, warm } = o;
+  return useMemo(() => waterOpener(source, go, { now, group, partOf, unnamed, warm }),
+                 [source, go, now, group, partOf, unnamed, warm]);
 }

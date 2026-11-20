@@ -212,4 +212,13 @@ describe("(T925) every named water opens with its Map view, however it is opened
     expect(sent.map((a) => waterFrame(reduce(mapTab, a))!.view)).toEqual(["map", "regs", "map", "regs"]);
     expect(sent.some((a) => "solo" in a)).toBe(false);
   });
+
+  it("(T737 kept) a search result and an open by id ask the page's geo at once (`warm`), before the pane mounts", () => {
+    const warmed: ItemId[] = [], sent: RouteAction[] = [];
+    const opener = waterOpener(source, (a) => { sent.push(a); warmed.push("|" as never); }, { warm: (i) => warmed.push(i) });
+    void opener.searched(VEDDER);
+    opener.item(VEDDER, "map");
+    // warmed first, then dispatched: the same order T221's solo question gave
+    expect(warmed).toEqual([VEDDER, "|", VEDDER, "|"]);
+  });
 });

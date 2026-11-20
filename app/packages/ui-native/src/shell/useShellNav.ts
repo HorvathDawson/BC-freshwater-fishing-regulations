@@ -70,7 +70,7 @@ export function useShellNav({ source, loader, systemBack, initialRoute, onRoute 
   const partOf = useMemo(() => (loader ? warmedFirst(warm, regsPartOf(loader)) : undefined), [loader, warm]);
   // (T737) an unnamed reach's tap: what its page waits on (regs-sid, down, its region's water slice, access), together
   const unnamed = useMemo(() => (loader ? warmUnnamedPage(loader) : undefined), [loader]);
-  const opener = useOpenWater(source, go, { now, group: groupOf, partOf, unnamed });
+  const opener = useOpenWater(source, go, { now, group: groupOf, partOf, unnamed, warm });
   /*
    * (T369 D8, owner 2026-11-04) A NEW RELEASE WITH A WATER OPEN is applied at once, and the open stack is CARRIED to the
    * same place on the water in it (`carryRoute`: by item and point, never by the old part index). Until it is, the water
