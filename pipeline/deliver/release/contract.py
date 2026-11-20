@@ -97,11 +97,13 @@ FILES = {
     # list's "ON THIS WATER" heading reads it (paint.py `encode_own`; behind `packed.SHIP_OWN_GAUGE_FLAG`)
     "flow-own": {"format": PAINT.OWN_FORMAT, "kind": "bin", "tables": {}},
     # (T973, owner 2026-11-20 12:11) the Classified Waters units carried through a rowed no-unit water: per section one
-    # note (the carried designation's unit name, class, period, and the rowed waters passed); app 0.8.4's licence card
-    # draws the "may need" note from it (build.cw_through). OPTIONAL
+    # note (the carried designation's unit name, class, period, and the rowed waters passed) and its licence year as if
+    # the unit held; app 0.8.4's licence card draws an ordinary Classified Waters row with the why behind an expand
+    # (build.cw_through). OPTIONAL
     "cw-through": {"format": "cw-through/1", "kind": "sqlite", "tables": {
         "meta": ["k", "v"], "cw_note": ["ix", "unit_name", "classified", "dates", "through"],
-        "section_cw": ["sid", "ix"]}},
+        # (owner 13:22) each carried section's licence year as if its unit held (`answers.licence.carried_year`)
+        "cw_year": ["yx", "j"], "section_cw": ["sid", "ix", "yx"]}},
     # (T54) the gentler access tiers (permit / reserve / private) a Regulations page notes; paint carries the no-access rows
     "access": {"format": PAINT.ACCESS_FORMAT, "kind": "bin", "tables": {}},
     "lakes": {"format": LF.FORMAT, "kind": "bin", "tables": {}},

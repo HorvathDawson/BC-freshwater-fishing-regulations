@@ -405,9 +405,12 @@ export interface LicenceVM {
 export interface NeedItemVM { readonly name: string; readonly terms: readonly string[]; readonly when: string; readonly price: string | null;
   /** (T670 G7, RULINGS Li13) how the book sells this document here, for this angler: each p.7 classified-water licence
    *  term the stored answer carries, in the book's words (`verbatim`); [] for none */
-  readonly book: readonly string[] }
+  readonly book: readonly string[];
+  /** (T973, owner 2026-11-20 13:22) a Classified Waters unit carried through a water whose own line prints none: why it
+   *  may not apply, behind a fold; absent on every other row */
+  readonly why?: string }
 export type LicenceBlockVM =
-  | { cls: "classbox"; head: string; terms: readonly string[]; body: string }
+  | { cls: "classbox"; head: string; terms: readonly string[]; body: string; why?: string }
   | { cls: "classbox youth"; head: string; terms: readonly string[]; body: string }
   | { cls: "flag"; text: string } | { cls: "scopenote"; text: string }
   | { cls: "needs"; label: string; items: readonly NeedItemVM[]; onlyIf: { label: string; items: readonly NeedItemVM[] } | null; priceNote: string | null }

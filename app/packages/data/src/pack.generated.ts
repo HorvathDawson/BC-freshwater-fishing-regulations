@@ -728,13 +728,18 @@ export const PACK_FILES: Record<string, PackFile> = {
         "dates",
         "through"
       ],
+      "cw_year": [
+        "yx",
+        "j"
+      ],
       "meta": [
         "k",
         "v"
       ],
       "section_cw": [
         "sid",
-        "ix"
+        "ix",
+        "yx"
       ]
     }
   },

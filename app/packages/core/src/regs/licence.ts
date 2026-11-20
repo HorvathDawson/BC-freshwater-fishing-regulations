@@ -140,11 +140,13 @@ function bookTerms(inp: RegsInputs, P: ProfileAnswer, doc: string, feeP: Profile
   return out;
 }
 
-/** (T973) A carried unit's "may need" note: the release's unit, class, period and the waters passed, in words. */
-export function mayNeedTxt(m: MayNeed): string {
-  const period = whenDates(m.when as RuleWhen).map(([a, b]) => rangeTxt(a, b)).join(LIC.SEP);
-  return LIC.MAY_NEED(m.unitName, m.classified, period, join(m.through), m.through.length > 1, m.part);
+/** (T973, owner 13:22) Why a carried unit may not apply: its unit and class, the waters with their own line it passed. */
+export function mayWhyTxt(m: MayNeed): string {
+  return LIC.MAY_WHY(m.unitName, m.classified, join(m.through), m.through.length > 1, m.part);
 }
+
+/** (T973) The carried unit's why and its designation records (those its answer holds that the part's own does not). */
+type Carried = { readonly why: string; readonly lix: ReadonlySet<number> };
 
 // ── the answer ──────────────────────────────────────────────────────────────────────────────────────────────────────
 
@@ -159,7 +161,7 @@ export const isHolds = (h: LicenceValue["holds"]): h is Holds => !("tidal" in h)
  *  the answer for:", the under-16 residency list, the "Rules for other anglers" fold, "All licence sources" — are the
  *  prototype's removals; so is the "Where each one comes from" fold and its sheet, owner 2026-11-04). */
 function answerBlocks(inp: RegsInputs, F: LicenceValue & { holds: Holds }, who: Who, P: ProfileAnswer,
-                      gloss: ReadonlySet<string>): LicenceBlockVM[] {
+                      gloss: ReadonlySet<string>, carried: Carried | null = null): LicenceBlockVM[] {
   const sp = inp.statics.exportSpecies, H = F.holds, DOC = (d: string) => docName(inp, d);
   const gi = (id: string): string[] => gloss.has(id) ? [id] : [];
   // the B.C. resident adult's reduced-fee sentence lives on the DISABLED resident adult's answer (the app does not ask)
@@ -169,19 +171,20 @@ function answerBlocks(inp: RegsInputs, F: LicenceValue & { holds: Holds }, who: 
   const des = (H.designations ?? []).map((d) => lx(inp, d));
   const datesOf = (w: unknown) => whenDates(w as RuleWhen).map(([a, b]) => rangeTxt(a, b)).join(LIC.SEP);
   const stampDates = des.filter((d) => d.fields.steelhead_stamp_during).map((d) => datesOf(d.fields.steelhead_stamp_during.when))[0] || "";
-  for (const d of des) {
+  // (T973) the why goes on the Classified Waters Licence row where this angler needs one, else on the unit's box
+  const whyOnRow = !!carried && P.documents.some((b) => b.doc === CLASSIFIED_DOC);
+  for (const [i, d] of des.entries()) {
     const f = d.fields;
-    const box = { cls: "classbox" as const, head: d.period?.says ?? LIC.CLASS_HEAD(String(f.classified)), terms: gi(LIC.CLASS_TERM),
+    const box: Extract<LicenceBlockVM, { cls: "classbox" }> = { cls: "classbox" as const, head: d.period?.says ?? LIC.CLASS_HEAD(String(f.classified)), terms: gi(LIC.CLASS_TERM),
       body: LIC.UNIT(String(f.unit_name || f.unit))
         + (f.steelhead_stamp_during ? LIC.STAMP_DURING(datesOf(f.steelhead_stamp_during.when)) + (H.stamp_period ? LIC.IN_FORCE : "") + LIC.STAMP_OTHER_TIME : "")
         + (d.stamp_waiver ? LIC.STOP + " " + d.stamp_waiver.says.replace(/\.$/, "") : f.steelhead_stamp_waived ? LIC.STAMP_WAIVED : "") + LIC.STOP
-        + (d.non_resident_note ? " " + d.non_resident_note.says : "") };
+        + (d.non_resident_note ? " " + d.non_resident_note.says : ""),
+      ...(carried && !whyOnRow && carried.lix.has(H.designations![i]!) ? { why: carried.why } : {}) };
     // (T672, T462 audit G11) two designation records that say the same box, word for word (one licence unit printed on two
     // rows: the Elk's tributaries, the Stellako), are said once; a box that differs in any word is still drawn
     if (!out.some((o) => o.cls === "classbox" && o.head === box.head && o.body === box.body)) out.push(box);
   }
-  // (T973) a unit carried through a water whose own line prints none: a "may need" note, never a box or a requirement
-  for (const m of inp.mayNeed ?? []) out.push({ cls: "flag", text: mayNeedTxt(m) });
   if (H.contested) out.push({ cls: "flag", text: LIC.CONTESTED });
   // page v36's unresolved-licensing flags ("Check: … couldn't be placed on the map") need the store's item.unresolved, which
   // T09 does not load yet (no item carries one in the current release) — not drawn
@@ -215,7 +218,8 @@ function answerBlocks(inp: RegsInputs, F: LicenceValue & { holds: Holds }, who: 
     const alts = altsOf(b);
     return { name: cap([DOC(b.doc), ...alts].join(` ${LIC.OR} `)), docs: [b.doc], terms: docGi(b.doc),
       when: [whenTxt(b.when), ...(b.also_when ?? []).map(alsoTxt)].join(LIC.ALSO_SEP) + (alts.length ? LIC.EITHER : ""),
-      price: priceTxt(b.prices ?? {}) || null, book: bookTerms(inp, P, b.doc, feeP) };
+      price: priceTxt(b.prices ?? {}) || null, book: bookTerms(inp, P, b.doc, feeP),
+      ...(whyOnRow && b.doc === CLASSIFIED_DOC ? { why: carried!.why } : {}) };
   });
 
   // under 16: the stored under_16 entry for this residency (pipeline licence.under_16_summary: with_adult, buy, own_limit).
@@ -281,7 +285,8 @@ function asNeeds(blocks: LicenceBlockVM[], adult: readonly LicenceBlockVM[] | nu
   if (!own.length) return blocks;
   const at = blocks.indexOf(own[0]!);
   const needs: LicenceBlockVM = { cls: "needs", label: LIC.YOU_NEED, onlyIf: null, priceNote: null,
-    items: own.map((b): Item => ({ name: b.head, terms: b.terms, when: b.body, price: null, docs: [], book: [] })) };
+    items: own.map((b): Item => ({ name: b.head, terms: b.terms, when: b.body, price: null, docs: [], book: [],
+                                   ...("why" in b && b.why ? { why: b.why } : {}) })) };
   return [...blocks.slice(0, at), needs, ...blocks.slice(at).filter((b) => !own.includes(b as never))];
 }
 
@@ -323,7 +328,14 @@ const EMPTY: LicenceVM = Object.freeze({ question: null, questionTerms: [], axes
 export function buildLicence(inp: RegsInputs, who: Who, ctx: { readonly closed: boolean; readonly glossary: ReadonlySet<string> }): LicenceVM | null {
   if (!inp.key || ctx.closed) return null;
   if (!inp.frames) return EMPTY;
-  const F = inp.frames.licence, pix = profileOf(who, inp.statics);
+  const F0 = inp.frames.licence, pix = profileOf(who, inp.statics);
+  // (T973, owner 2026-11-20 13:22) A CARRIED UNIT: Python's answer as if the unit held (the part's own closures to the
+  // non-resident alien kept), drawn as any Classified Water's; the why behind a fold on its row
+  const cm = isHolds(F0.holds) ? (inp.mayNeed ?? [])[0] : undefined;
+  const F: LicenceValue = cm ? { ...cm.licence, ...(F0.alien_closures ? { alien_closures: F0.alien_closures } : {}) } : F0;
+  const own = new Set(isHolds(F0.holds) ? F0.holds.designations ?? [] : []);
+  const carried: Carried | null = cm && isHolds(cm.licence.holds)
+    ? { why: mayWhyTxt(cm), lix: new Set((cm.licence.holds.designations ?? []).filter((x) => !own.has(x))) } : null;
   const head = { ...selectors(who, ctx.glossary), label: inp.statics.profileLabels[pix] ?? "" };
   if (!isHolds(F.holds)) {
     const t = F.holds.tidal as { licence?: string; note?: string };
@@ -333,12 +345,13 @@ export function buildLicence(inp: RegsInputs, who: Who, ctx: { readonly closed: 
   if (!isAnswer(P)) return { ...head, blocks: [] };
   const FH = F as LicenceValue & { holds: Holds };
   const adultP = F.profiles[profileOf({ age: "adult", residency: "resident" }, inp.statics)];
-  const adult = isAnswer(adultP) ? answerBlocks(inp, FH, { age: "adult", residency: "resident" }, adultP, ctx.glossary) : null;
+  const adult = isAnswer(adultP) ? answerBlocks(inp, FH, { age: "adult", residency: "resident" }, adultP, ctx.glossary, carried) : null;
   // (b) the "(not kokanee)" words: a stored requirement of this answer that the document meets says them in its label
   const saysNotKokanee = (doc: string): boolean => P.requirements.some((x) => x.paths.some((p) => p.need?.includes(doc))
     && lx(inp, x.req).label.includes(LIC.NOT_KOKANEE));
-  const bare = (it: NeedItemVM): NeedItemVM => ({ name: it.name, terms: it.terms, when: it.when, price: it.price, book: it.book });
-  const blocks = asNeeds(answerBlocks(inp, FH, who, P, ctx.glossary), adult).map((b): LicenceBlockVM => {
+  const bare = (it: NeedItemVM): NeedItemVM => ({ name: it.name, terms: it.terms, when: it.when, price: it.price, book: it.book,
+                                                   ...(it.why ? { why: it.why } : {}) });
+  const blocks = asNeeds(answerBlocks(inp, FH, who, P, ctx.glossary, carried), adult).map((b): LicenceBlockVM => {
     if (b.cls !== "needs") return b;
     const p = patchNeeds(b.items as readonly Item[], (it) => (it.docs ?? []).some(saysNotKokanee));
     return { ...b, items: p.items.map(bare), onlyIf: p.onlyIf && { label: p.onlyIf.label, items: p.onlyIf.items.map(bare) } };
