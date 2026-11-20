@@ -35,3 +35,9 @@ layer when another water is opened.
 Owner (question dialog in the main chat, 2026-11-16 12:08, on the list of small behaviours left as built): "we should fix anything that doesnt seem desirable". This one was left as built with an alternative on offer; the app chat judged it undesirable.
 Now, on branch `app-fix/small-looks-1116` (81a28e7c2, not merged): a water's Conditions card always opens on Flow (his 2026-11-10 ruling: Flow leads, Level auxiliary); a pick made in the card lasts while that water is open, as before; a water with no flow reading says so and offers Level, as before. Each fix has a test that failed first;
 `check:fast` passes. Left: the emulator look, then the merge with its benches.
+
+## Emulator look 2026-11-20 (L4, `small-looks`)
+Coquitlam River -> Conditions: the card opens on Flow; Level picked in the gauge card; back on the map nothing about the map's
+layer changed (shots `handoff/PLAN/app-integration/L4-android-shots-2026-11-20/T728/`). The Conditions-layer map itself (its Show choice) was not opened, so "the map keeps Flow" is
+seen only as the browse map unchanged. Found: the estimate card ABOVE the gauge card also changes with the pick (headline
+Normal -> Below normal): T971.

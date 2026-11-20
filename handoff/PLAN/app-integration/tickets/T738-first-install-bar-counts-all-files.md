@@ -100,3 +100,14 @@ the re-download catches up behind a held figure, so the line would have said "no
 now also carries `had` (the sum as it is, `tally.real()`), and the still line watches that. Test: `tally.test.ts`
 "a big file queued again from zero (T760)". Android bench for it: `bg-install` plus the T760 stuck-download scenario.
 
+## Android measure 2026-11-20 (L4, `bg-install` extended, emulator, build of 124d79efa)
+New step "T738: the bar against the bytes held" at three moments of the first install on the bench's 3 MB/s line: a shot, the bar's
+figure, the bytes held. The bench cannot read the system downloader's own count from the shell (ACCESS_ALL_DOWNLOADS), so the held
+bytes are the throttle proxy's count; and the bar's words cannot be read while the fish turns (uiautomator never idles), so the bar's
+figure is the violet fill's share of the grey track times 480.8 MB (about 5 MB under the bar's own words). Run 2: the shot says 98.5 MB
+(pixels 92.9) with the proxy at 79.9 MB, then 217.1 MB (pixels 212.9) with the proxy at 200.0 MB: the bar read 13-18 MB above the proxy's
+bytes at both moments, the same gap, never going down. Outside "within a few MB", but the proxy lags the downloader by what it has
+buffered: not proven either way. To settle: the downloader's own `current_bytes` read as root (`adb root` at the start of the run).
+The relaunch shot was taken with the notification shade open and is not a reading: still owed. Shots
+`handoff/PLAN/app-integration/L4-android-shots-2026-11-20/T738/` (49.5 MB on run 1; 98.5 and 217.1 MB on run 2).
+

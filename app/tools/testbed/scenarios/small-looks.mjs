@@ -108,7 +108,9 @@ export const smallLooks = {
         shot('T730-7-after-back');
         ctx.flow('tap-id', { ID: 'search-field' });
         await d.sleep(2000);
-        const field = words().filter((w) => /Thompson/i.test(w));
+        // the FIELD's own words (the recents block lists "Thompson River" as a tag: it is not the old query)
+        const fieldNode = find(await look(d), 'resource-id="search-field"');
+        const field = fieldNode && /Thompson/i.test(fieldNode.text) ? [fieldNode.text] : [];
         shot('T730-8-reopened');
         d.sh('input keyevent 4'); await d.sleep(500);
         if (field.length) throw new Error(`the next search still carries the old query: ${field.join(' | ')}`);

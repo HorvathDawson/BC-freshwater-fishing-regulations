@@ -49,3 +49,10 @@ Depends: T582. Size: S. Owner: looks at the shots.
 Owner 2026-11-20, "Couldn't we just assume most of these are done already?": the owner's look at the T604 web shots and the phone is taken as done. Not closed: the emulator shots are still Claude's step.
 
 Status line before this answer: IN REVIEW — owner looks at the web shots in ../T604-shots/ (`*-after.png`), then on the phone; emulator not run | 90e41efc6
+
+## Emulator shots 2026-11-20 (L4, Android emulator, build of 124d79efa, light)
+Coquitlam River -> Conditions, the chart at 1080x2400, shots in `handoff/PLAN/app-integration/L4-android-shots-2026-11-20/T604/`:
+`two-days-regs-day-is-today.png` (one mark: bold "Today", solid rule), `two-days-regs-day-tomorrow.png` ("Today" at the end of the
+solid reading line, "Sat 21 Nov" quiet, dashed, to its right; no overlap; the hint "Pinch to zoom, tap to read a value" whole
+on the line under the controls), `two-days-regs-day-past-window.png` (11 days on: Today only, no regs mark). Not shot: a week
+apart, adjacent days, a Conditions day plus a regs day (the unit test covers them; the web shots of 11-20 show them). Dark not shot.

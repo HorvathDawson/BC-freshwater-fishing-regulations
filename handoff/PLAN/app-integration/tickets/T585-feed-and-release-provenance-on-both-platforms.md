@@ -65,3 +65,11 @@ Depends: T567. Size: M. Owner: no.
 - Airplane mode on a gauge opened before: the card's age line leads with the kept words; the standing is the kept
   rank or the two times.
 
+## Emulator run 2026-11-20 (L4, `bg-update`, `gauge-offline`, build of 124d79efa)
+- `gauge-offline` PASS: Coquitlam River's Conditions online draws live; in airplane mode after a cold start it draws the kept line and
+  says "Offline — measured line as of 2026-11-20 at 08:35 PT, saved on this phone".
+- `bg-update` PASS 8/8, with a new step "T585: a second return and a cold start do not say 'Updated to' again": nothing said on either.
+  NOT proven: that the words showed once at the apply (the apply step saw no toast in 20 s: it may not be in the accessibility tree, or
+  not have shown; a screenshot at the apply would settle it); and the Updates log had no "Release, applied" row at the second look.
+- Not run: the variant that kills the app before the still moment.
+

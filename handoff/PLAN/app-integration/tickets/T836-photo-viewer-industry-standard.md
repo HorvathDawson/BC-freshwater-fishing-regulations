@@ -75,3 +75,14 @@ Modal's window offset is measured, not assumed — check the photo lands on the 
 timing against the double tap, pinch rubber and fling glide feel; on Android, that the buttons' layer passes touches
 (it rests on `pointerEvents` in a style on the safe-area view). Web shots (390 px, light and dark; Spots is the phone
 app's only, so the shots forced the web notice off locally, uncommitted): the lane's scratchpad `t836-shots/`.
+
+## Android bench 2026-11-20 (L4, `photo-zoom` extended, emulator, build of 124d79efa)
+`photo-zoom` now runs, after its old steps: the counter and tap-to-hide, the strip following the finger, a short and a long drag down, and
+the open from / close into the thumbnail, light and dark (screenrecord cut into 10 frames a second). All PASS; the pinch step now drives
+(adbd as root for the touchscreen). Shots in `handoff/PLAN/app-integration/L4-android-shots-2026-11-20/T836/`: tap hides every button
+(`T836-1-chrome-shown.png`, `T836-2-chrome-hidden.png`); the strip follows the finger (`strip-follows-finger-two-photos.png`); a short drag
+down springs back (`T836-7-drag-short-mid.png`), a long one shrinks the photo over the fading page and closes (`T836-9-drag-long-mid.png`;
+the buttons stay at full strength: T970); the photo grows from its thumbnail in about three frames and shrinks back into it
+(`T836-light-open-sheet.png`, `T836-dark-open-sheet.png`, `T836-light-close-sheet.png`); the buttons' layer passes touches on Android.
+`pinch-spread-after-lift.png`: after a spread the photo rests with its bottom edge showing dark ground (one frame, not clamped; the
+settle was not filmed). Not covered: Reduce Motion, the fling glide's feel, a thumbnail off screen, the iPhone.
