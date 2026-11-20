@@ -6,14 +6,14 @@
 // the ‹ on 418f6f3a1). FAILS when the lower band is one flat colour after Back while it was not before, or when the
 // left strip is (the layer left standing off to the right: 6fdb3d8db, light and dark, after the edge swipe: the map
 // and the day bar ~75 % to the right, white / black on the left, through a pan: the tester's T928 picture).
-// T938_LOOKS=light,dark and T938_VIAS=chevron,edge narrow a run.
+// T938_LOOKS=light,dark and T938_VIAS=chevron,edge,edge-low narrow a run.
 //   node app/tools/testbed/run-ios.mjs t938-ios
 import path from 'node:path';
 import { BLANK_AT, blankShareOf } from '../lib/screen.mjs';
 import { readPng } from '../lib/png.mjs';
 
 const LOOKS = (process.env.T938_LOOKS ?? 'light,dark').split(',');
-const VIAS = (process.env.T938_VIAS ?? 'chevron,edge').split(',');
+const VIAS = (process.env.T938_VIAS ?? 'chevron,edge,edge-low').split(',');
 
 export const t938Ios = {
   id: 't938-ios',
@@ -35,9 +35,9 @@ export const t938Ios = {
     };
     /** the left-edge swipe back (as run-ios.mjs's EdgeBack step: a few heights and speeds until the page is gone); a shot
      *  after each drag, and the page read from the screen's words (`onPage`), not an id a kept layer may still carry */
-    const edgeBack = async (look) => {
+    const edgeBack = async (look, flows) => {
       const tried = [];
-      for (const f of ['edge-back', 'edge-back-high', 'edge-back-low']) {
+      for (const f of flows) {
         ctx.flow(f);
         await d.sleep(1500);
         const w = d.screenText();
@@ -49,7 +49,7 @@ export const t938Ios = {
       throw new Error(`the edge swipe did not leave the water page (${tried.join(' · ')})`);
     };
     for (const look of LOOKS) for (const via of VIAS) {
-      await ctx.step(`${look}: Cultus Lake from search, its page, Back (${via === 'edge' ? 'the left-edge swipe' : 'the page\'s ‹'}): the whole map drawn`, async () => {
+      await ctx.step(`${look}: Cultus Lake from search, its page, Back (${via === 'chevron' ? 'the page\'s ‹' : via === 'edge' ? 'the left-edge swipe, after two that pan the page map' : 'one low left-edge swipe'}): the whole map drawn`, async () => {
         d.appearance(look);
         await ctx.ios.coldStart(ctx, { ms: 600_000 });
         await d.sleep(4000);
@@ -60,7 +60,11 @@ export const t938Ios = {
         await ctx.until(() => d.hasId('water-back'), { ms: 30_000, what: 'the water page (water-back)' });
         await d.sleep(3000);
         snap(`${look}-${via}-2-page`);
-        const how = via === 'edge' ? await edgeBack(look) : (await ctx.ios.pageBack(ctx), 'the ‹');
+        // edge: mid, high, then low (on the page's Map view the first two land on its map and are cancelled: EdgeBack's
+        // spring home runs first, so its offset is native-driven when the low one goes back); edge-low: the low drag alone
+        const how = via === 'edge' ? await edgeBack(look, ['edge-back', 'edge-back-high', 'edge-back-low'])
+          : via === 'edge-low' ? await edgeBack(look, ['edge-back-low'])
+          : (await ctx.ios.pageBack(ctx), 'the ‹');
         await d.sleep(3000);
         const afterFile = snap(`${look}-${via}-3-after-back`);
         const after = band(afterFile), afterLeft = left(afterFile);

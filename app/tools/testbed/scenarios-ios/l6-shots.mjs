@@ -47,23 +47,26 @@ export const t831Ios = {
         await ctx.until(() => d.hasId('gauge-card'), { ms: 30_000, what: 'the Conditions view (gauge-card)' });
         await d.sleep(4000);
         // the map under the chart: scroll in the left gutter (a drag ON the map pans it) until its frame is whole on screen
-        const screenH = () => Math.max(...d.nodes().map((x) => x.box.y1));
+        // the screen in points is the hierarchy's root (the app's window, the first box at 0,0); the largest box is not: a scroll view's content
+        // runs below the screen (the first run stopped with the map half off the bottom)
+        const rootOf = (ns) => ns.find((x) => x.box.x0 === 0 && x.box.y0 === 0)?.box ?? null;
+        const screen = () => rootOf(d.nodes());
         let map = null;
         for (let i = 0; i < 8; i++) {
-          const ns = d.nodes(), H = Math.max(...ns.map((x) => x.box.y1));
+          const ns = d.nodes(), H = rootOf(ns)?.y1 ?? 0;
           map = ns.find((x) => x.id === 'donor-route-map') ?? null;
           if (map && map.box.y0 >= H * 0.12 && map.box.y1 <= H * 0.88) break;
           map = null;
           swipe(ctx, `t831-down-${look}-${i}`, '4%,72%', '4%,42%', 700);
           await d.sleep(1200);
         }
-        if (!map) throw new Error(`the route map (donor-route-map) never came whole on screen (screen ${screenH()} pt)`);
+        if (!map) throw new Error(`the route map (donor-route-map) never came whole on screen (screen ${JSON.stringify(screen())})`);
         await d.sleep(9000);                              // the route map's lines are read out of the atlas, then drawn
         const file = path.join(ctx.dir, `T831-ios-route-${look}.png`);
         d.screenshot(file);
         const img = readPng(file);
         // inside the map's frame only (points → pixels), its middle 80 % by 70 % (the zoom buttons' corner left out)
-        const k = img.w / Math.max(...d.nodes().map((x) => x.box.x1));
+        const k = img.w / (screen()?.x1 || img.w);
         const b = map.box, bw = b.x1 - b.x0, bh = b.y1 - b.y0;
         const box = { x: Math.round((b.x0 + bw * 0.1) * k), y: Math.round((b.y0 + bh * 0.2) * k),
                       w: Math.round(bw * 0.8 * k), h: Math.round(bh * 0.7 * k) };

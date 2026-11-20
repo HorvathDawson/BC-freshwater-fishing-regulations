@@ -10,7 +10,6 @@ import { useEffect, useLayoutEffect, useMemo, useRef } from "react";
 import { Animated, AppState } from "react-native";
 import { GestureDetector, usePanGesture, type PanGestureConfig } from "react-native-gesture-handler";
 import type { EdgeBackDrag } from "@app/ui";
-import { NATIVE_DRIVER } from "./motion";
 
 export function EdgeBack({ drag, children }: { drag: EdgeBackDrag; children: React.ReactNode }) {
   // `available` is fixed per platform, so this never remounts the screen underneath. (T250) The recogniser lives in its
@@ -24,6 +23,9 @@ export function EdgeBack({ drag, children }: { drag: EdgeBackDrag; children: Rea
  * before it is put home anyway: a back whose render never reaches this view would otherwise leave it there.
  */
 export const EDGE_BACK_HOLD_MS = 1500;
+
+/** (T938) The edge offset never runs on the native driver, on any platform (see `home` in EdgePan). */
+export const EDGE_BACK_NATIVE_DRIVER = false;
 
 function EdgePan({ drag, children }: { drag: EdgeBackDrag; children: React.ReactNode }) {
   const x = useRef(new Animated.Value(0)).current;
@@ -71,9 +73,17 @@ function EdgePan({ drag, children }: { drag: EdgeBackDrag; children: React.React
   }, []);  // eslint-disable-line react-hooks/exhaustive-deps -- homeNow reads only refs and `x`
   // (T250) RNGH 3's hook API: one config object (memoised: a new object reconfigures the native handler), callbacks on JS
   const config = useMemo((): PanGestureConfig => {
+    /*
+     * (T938) THE SPRING HOME IS JS-DRIVEN, never the native driver. The drag moves `x` from JS every frame (`setValue`);
+     * a native-driven spring on the same value makes it native for good, and from then on a `setValue` goes to the
+     * native side only (React Native does not flush a native value back to React): React's copy keeps the drag's
+     * offset and the view could be left there. iPhone simulator, 2026-11-20: two edge drags that landed on a water
+     * page's map were cancelled (each spring home made `x` native), a third went back, and the browse map and its day
+     * bar stood ~75 % to the right, through pans (`handoff/PLAN/ios/shots/t938/`), as the T928 tester's phone did.
+     */
     const home = () => {
       springing.current = true;
-      Animated.spring(x, { toValue: 0, useNativeDriver: NATIVE_DRIVER, bounciness: 0 })
+      Animated.spring(x, { toValue: 0, useNativeDriver: EDGE_BACK_NATIVE_DRIVER, bounciness: 0 })
         .start(() => { springing.current = false; });
     };
     return {
