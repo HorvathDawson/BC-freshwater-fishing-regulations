@@ -9,7 +9,7 @@
  */
 import type { MapMark } from "./map-props";
 import { SCALE, rgb } from "./raster";
-import { labelShift } from "./marks";
+import { labelAnchor, type MarkLabelAnchor } from "./marks";
 
 export const MARK_SOURCE = "t317-marks";
 export const MARK_RING = "t317-marks-ring";
@@ -36,32 +36,30 @@ const point = (lon: number, lat: number, properties: Record<string, unknown>) =>
   ({ type: "Feature", properties, geometry: { type: "Point", coordinates: [lon, lat] } });
 
 /**
- * The marks' source: one ring per mark, and one label per labelled mark at `labelAt[i]` when given — the point the label
- * is centred over, moved sideways so the label stays inside the map (`labelShift`, measured where the camera settles).
+ * The marks' source: one ring per mark, and one label per labelled mark AT THE MARK (T929: the label names that cut
+ * point, so it is anchored there and moves with the map, never pinned to the screen), hanging from it by `anchors[i]`
+ * (`labelAnchor`, chosen where the camera settles; centred until measured).
  */
 export function marksData(marks: readonly MapMark[] | undefined,
-                          labelAt?: readonly (readonly [number, number] | null | undefined)[]): Fc {
+                          anchors?: readonly (MarkLabelAnchor | null | undefined)[]): Fc {
   const features: unknown[] = [];
   (marks ?? []).forEach((k, i) => {
     features.push(point(k.lon, k.lat, { i, kind: "ring", on: k.on }));
-    if (k.label) {
-      const at = labelAt?.[i] ?? [k.lon, k.lat];
-      features.push(point(at[0], at[1], { i, kind: "label", label: k.label }));
-    }
+    if (k.label) features.push(point(k.lon, k.lat, { i, kind: "label", label: k.label, anchor: anchors?.[i] ?? "bottom" }));
   });
   return { type: "FeatureCollection", features };
 }
 
-/** Where each labelled mark's label goes, from its screen point and the map's width: unchanged, or moved by `labelShift`. */
-export async function shiftedLabels(marks: readonly MapMark[], width: number,
-                                    project: (lon: number, lat: number) => Promise<[number, number] | null> | [number, number] | null,
-                                    unproject: (x: number, y: number) => Promise<[number, number] | null> | [number, number] | null) {
-  return Promise.all(marks.map(async (k): Promise<[number, number] | null> => {
+/**
+ * How each labelled mark's label hangs, from its ring's screen x and the map's width (`labelAnchor`); null for a mark
+ * with no label or one the map did not place. Only `project` is asked: a label's point never moves (T929).
+ */
+export async function labelAnchors(marks: readonly MapMark[], width: number,
+                                   project: (lon: number, lat: number) => Promise<[number, number] | null> | [number, number] | null) {
+  return Promise.all(marks.map(async (k): Promise<MarkLabelAnchor | null> => {
     if (!k.label) return null;
     const p = await project(k.lon, k.lat);
-    if (!p) return null;
-    const dx = labelShift(p[0], width);
-    return dx === 0 ? [k.lon, k.lat] : await unproject(p[0] + dx, p[1]);
+    return p ? labelAnchor(p[0], width) : null;
   }));
 }
 
@@ -82,7 +80,8 @@ export function marksLayers(c: { ink: string; card: string }, box: string) {
       layout: {
         "text-field": ["get", "label"], "text-font": MARK_LABEL_FONT_STACK, "text-size": LABEL_SIZE,
         "text-line-height": LABEL_LINE / LABEL_SIZE, "text-max-width": LABEL_MAX_PX / LABEL_SIZE,
-        "text-anchor": "bottom", "text-justify": "center",
+        // (T929) hung from the mark's own point: centred, or from its corner near an edge (`labelAnchor`)
+        "text-anchor": ["get", "anchor"], "text-justify": "auto",
         "text-offset": [0, -(LABEL_LIFT + LABEL_PAD_Y + LABEL_EDGE) / LABEL_SIZE],
         "icon-image": box, "icon-text-fit": "both",
         "icon-text-fit-padding": [LABEL_PAD_Y, LABEL_PAD_X, LABEL_PAD_Y, LABEL_PAD_X],

@@ -171,3 +171,19 @@ export function fitAtMost(b: readonly [number, number, number, number], maxZoom:
   return [(cx - needX / 2) * 360 - 180, mercLat(cy + needY / 2),
           (cx + needX / 2) * 360 - 180, mercLat(cy - needY / 2)];
 }
+
+/**
+ * (T929) THE CAMERA THAT FRAMES `b` in a `width` x `height` map with `padding` on every side, no closer than `maxZoom`:
+ * the box's centre in Mercator and the zoom that fits it (`fitZoomOf`, capped) — what `fitBounds(fitAtMost(...))` lands
+ * on, worked out here from the size the map was LAID OUT at. The phone sends this instead of the binding's `fitBounds`,
+ * which fits to the native view's frame as it is at that instant: on iOS a pick in "Show all parts" grows the map from
+ * 48 pt back to its height and the refit (`onLayout`) reached the binding before UIKit applied the new frame, so the
+ * part was fitted into 48 pt with its padding clipped (zoom 4 instead of ~10). A centre and a zoom mean the same in any
+ * frame.
+ */
+export function fitCamera(b: readonly [number, number, number, number], maxZoom: number, width: number, height: number,
+                          padding: number): { lon: number; lat: number; zoom: number } {
+  const cx = ((b[0] + 180) / 360 + (b[2] + 180) / 360) / 2;
+  const cy = (mercY(b[3]) + mercY(b[1])) / 2;
+  return { lon: cx * 360 - 180, lat: mercLat(cy), zoom: Math.min(maxZoom, fitZoomOf(b, width, height, padding)) };
+}

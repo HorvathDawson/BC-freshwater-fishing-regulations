@@ -13,7 +13,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { act, cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { useEffect, useImperativeHandle, type ReactNode } from "react";
-import { MAP_GESTURES, setFailureSink } from "@app/core";
+import { MAP_GESTURES, fitCamera, fitZoomLimit, fitZoomOf, setFailureSink } from "@app/core";
 import type { MapProps } from "./map-props";
 import type { StatusIndex } from "@app/core";
 import { maplibreGestures, nativeMapGestures } from "./gestures";
@@ -130,7 +130,7 @@ type Press = { nativeEvent: { point: [number, number]; lngLat: [number, number] 
 const native: { props: Record<string, unknown> | null; camera: Record<string, unknown> | null;
                 geojson: Record<string, unknown>; holdRender: boolean; watched?: string[];
                 layers?: Record<string, { type: string; paint?: unknown }>;
-                images?: Record<string, unknown>; fitOpts?: unknown[];
+                images?: Record<string, unknown>; fitOpts?: unknown[]; easeOpts?: unknown[];
                 onLog?: (e: { level: string; tag: string; message: string }) => boolean } =
   { props: null, camera: null, geojson: {}, holdRender: false };
 vi.mock("@maplibre/maplibre-react-native", () => ({
@@ -160,7 +160,7 @@ vi.mock("@maplibre/maplibre-react-native", () => ({
     native.camera = props;
     useImperativeHandle(ref as never, () => ({
       fitBounds: (b: unknown, o?: unknown) => { (native.fitOpts ??= []).push(o); log.push(`fit ${JSON.stringify(b)}`); },
-      easeTo: (o: { center: [number, number]; zoom: number; duration: number }) =>
+      easeTo: (o: { center: [number, number]; zoom: number; duration: number }) => (native.easeOpts ??= []).push(o) &&
         log.push(`ease ${JSON.stringify(o.center)} z${o.zoom} ${o.duration}ms`),
     }));
     return null;
@@ -206,7 +206,7 @@ afterEach(() => {
   answer = () => [];
   web.map = null; web.opts = null; web.rotationOff = false; web.keyboardRotationOff = false; web.tilesIn = true;
   web.fitOpts = []; web.canvasH = 800; web.data = {}; webCam.lng = -122; webCam.lat = 49;
-  native.props = null; native.camera = null; native.geojson = {}; native.holdRender = false; native.layers = {}; native.fitOpts = [];
+  native.props = null; native.camera = null; native.geojson = {}; native.holdRender = false; native.layers = {}; native.fitOpts = []; native.easeOpts = [];
 });
 
 const AT = { atlas: "file:///d/atlas.pmtiles", basemap: "file:///d/basemap.pmtiles" };
@@ -532,24 +532,26 @@ it("the lift that ends a long press is cancelled, so the browser makes no click 
     expect([web.map!.getLayer(MARK_RING)?.source, web.map!.getLayer(MARK_LABEL)?.source]).toEqual([MARK_SOURCE, MARK_SOURCE]);
     const fc = web.data[MARK_SOURCE] as { features: { properties: Record<string, unknown> }[] };
     expect(fc.features.map((f) => f.properties)).toEqual([
-      { i: 0, kind: "ring", on: false }, { i: 0, kind: "label", label: "Tamihi Rapids Bridge" }, { i: 1, kind: "ring", on: true }]);
+      { i: 0, kind: "ring", on: false }, { i: 0, kind: "label", label: "Tamihi Rapids Bridge", anchor: expect.any(String) },
+      { i: 1, kind: "ring", on: true }]);
     expect(document.querySelectorAll(".maplibregl-marker").length).toBe(0);
   });
 
-  it("P15/T317: a mark's label near the map's edge is moved in where the camera settles — never per frame", async () => {
+  it("P15/T929: a mark's label near the map's edge hangs inward from its own point, chosen where the camera settles", async () => {
     render(<WebMap {...base({ data: undefined, marks: [
       { lon: -121.83788, lat: 49.071839, label: "Tamihi Rapids Bridge", a11y: "Boundary: Tamihi Rapids Bridge", on: false }] })} />);
-    type Fc = { features: { properties: { kind: string }; geometry: { coordinates: number[] } }[] };
-    const labelAt = () => (web.data[MARK_SOURCE] as Fc | undefined)?.features.find((f) => f.properties.kind === "label")
-      ?.geometry.coordinates;
-    // x 362 of 400: 62 px in, the label's point at x 300 (`unproject`: lng = x / 1000 - 122.2)
-    await waitFor(() => expect(labelAt()?.[0]).toBeCloseTo(-121.9, 6));
+    type Fc = { features: { properties: { kind: string; anchor?: string }; geometry: { coordinates: number[] } }[] };
+    const label = () => (web.data[MARK_SOURCE] as Fc | undefined)?.features.find((f) => f.properties.kind === "label");
+    // x 362 of 400: hangs left of its ring, at the ring
+    await waitFor(() => expect(label()?.properties.anchor).toBe("bottom-right"));
+    expect(label()?.geometry.coordinates).toEqual([-121.83788, 49.071839]);
     const project = web.map!.project.bind(web.map);
     web.map!.project = (l) => ({ ...project(l), x: 30 });
     act(() => web.map!.fire("move"));
-    expect(labelAt()?.[0]).toBeCloseTo(-121.9, 6);
+    expect(label()?.properties.anchor).toBe("bottom-right");                  // never per frame
     act(() => web.map!.fire("moveend"));
-    await waitFor(() => expect(labelAt()?.[0]).toBeCloseTo(-122.1, 6));      // 70 px the other way: x 100
+    await waitFor(() => expect(label()?.properties.anchor).toBe("bottom-left"));
+    expect(label()?.geometry.coordinates).toEqual([-121.83788, 49.071839]);   // still the mark's own point
   });
 
   it("T317: the marker and a panel's pins are one GeoJSON source with the pin image per tone, not DOM markers", async () => {
@@ -563,7 +565,7 @@ it("the lift that ends a long press is cancelled, so the browser makes no click 
   });
 });
 
-describe("(T734) the phone's marks' label shift asks only a map that is there", () => {
+describe("(T734) the phone's marks' label anchors ask only a map that is there", () => {
   const MARKS = [{ lon: -121.83788, lat: 49.071839, label: "Tamihi Rapids Bridge", a11y: "Boundary: Tamihi Rapids Bridge", on: false }];
   const asked = () => log.filter((l) => /^(un)?project /.test(l));
   const layout = () => act(() => { (native.props!.onLayout as (e: unknown) => void)({ nativeEvent: { layout: { width: 400, height: 800 } } }); });
@@ -580,7 +582,7 @@ describe("(T734) the phone's marks' label shift asks only a map that is there", 
     await act(async () => {});
     expect(asked()).toEqual([]);
     act(() => { (native.props!.onDidFinishRenderingMapFully as () => void)(); });
-    await waitFor(() => expect(asked()).toEqual(["project -121.83788,49.071839", "unproject 300,400"]));
+    await waitFor(() => expect(asked()).toEqual(["project -121.83788,49.071839"]));       // (T929) never an unproject
   });
 
   it("unmounted: a late settle sends nothing", async () => {
@@ -767,19 +769,43 @@ describe("overzoom: the camera past the tiles, every source at its own deepest z
     await waitFor(() => expect(web.fitOpts.length).toBe(1));
     expect(web.fitOpts).toEqual([{ padding: 48, maxZoom: 14, duration: 450 }]);
   });
-  it("native: a fit to a pond is widened to what z14 shows — the binding's fitBounds has no maxZoom", async () => {
+  it("native: a fit to a pond goes no closer than z14, centred on it — sent as a centre and a zoom (T929)", async () => {
     render(<NativeMap {...base({ fit: { key: "pond", bbox: [-121.9502, 49.1999, -121.9498, 49.2001] } })} />);
-    await waitFor(() => expect(log.some((l) => l.startsWith("fit"))).toBe(true));
-    const fits = log.filter((l) => l.startsWith("fit"))
-      .map((l) => (JSON.parse(l.slice(4)) as number[]).map((v) => Math.round(v * 1e4) / 1e4));
-    // a 400 x 800 phone less 48 px padding: 304 x 704 px of z14 (0.0130° of longitude, 0.0198° of latitude at 49.2°N),
-    // centred on the pond
-    expect(fits).toEqual([[-121.9565, 49.1901, -121.9435, 49.2099]]);
+    await waitFor(() => expect(native.easeOpts?.length).toBe(1));
+    const [c] = native.easeOpts as { center: number[]; zoom: number }[];
+    expect([...c!.center.map((v) => Math.round(v * 1e6) / 1e6), c!.zoom]).toEqual([-121.95, 49.2, 14]);
+    expect(log.filter((l) => l.startsWith("fit"))).toEqual([]);
   });
-  it("(T400) native: a fit EASES — the binding's fitBounds defaults to a 'fly' arc, out and back in, in 450 ms", async () => {
+  it("(T400) native: a fit EASES — never the binding's default 'fly' arc, out and back in, in 450 ms", async () => {
     render(<NativeMap {...base({ fit: { key: "pond", bbox: [-121.9502, 49.1999, -121.9498, 49.2001] } })} />);
-    await waitFor(() => expect(native.fitOpts?.length).toBe(1));
-    expect(native.fitOpts).toEqual([{ padding: { top: 48, right: 48, bottom: 48, left: 48 }, duration: 450, easing: "ease" }]);
+    await waitFor(() => expect(native.easeOpts?.length).toBe(1));
+    expect(native.easeOpts).toEqual([{ center: [expect.closeTo(-121.95, 6), expect.closeTo(49.2, 6)], zoom: 14,
+                                       duration: 450, easing: "ease" }]);
+    expect(native.fitOpts).toEqual([]);
+  });
+  it("(T929) native: a fit framed in a 48 pt strip is framed again in the grown map by a zoom worked out from the NEW size " +
+     "— never a fitBounds the binding measures against a frame iOS has not grown yet", async () => {
+    const part = [-121.75, 49.03, -121.55, 49.12] as const;
+    const layout = (height: number) => act(() => {
+      (native.props!.onLayout as (e: unknown) => void)({ nativeEvent: { layout: { width: 390, height } } });
+    });
+    const r = render(<NativeMap {...base({ data: undefined, highlight: undefined })} />);
+    await waitFor(() => expect(native.props).toBeTruthy());
+    layout(259);
+    layout(48);                                        // the parts list open: the map a strip
+    r.rerender(<NativeMap {...base({ data: undefined, highlight: undefined, fit: { key: "part 3", bbox: part } })} />);
+    await waitFor(() => expect(native.easeOpts?.length).toBe(1));
+    layout(259);                                       // the pick closed the list: the map back to its height
+    const eases = native.easeOpts as { center: number[]; zoom: number }[];
+    const want = (h: number) => {
+      const p = Math.max(8, Math.round(Math.min(56, 390 * 0.12, h * 0.12)));
+      return fitCamera(part, fitZoomLimit({}, fitZoomOf(part, 390, h, p)), 390, h, p);
+    };
+    expect(eases.map((e) => Math.round(e.zoom * 1e6) / 1e6))
+      .toEqual([want(48).zoom, want(259).zoom].map((z) => Math.round(z * 1e6) / 1e6));
+    expect(eases[1]!.zoom).toBeGreaterThan(9.9);         // the part fills the map: not the zoom 4 a 48 pt fit landed at
+    expect(eases[1]!.center).toEqual([want(259).lon, want(259).lat]);
+    expect(native.fitOpts).toEqual([]);
   });
   it("(T48) a fit to a CAMERA puts it back exactly (search's cancel), the same command on both maps, once per key", async () => {
     const fit = { key: "restore:1", bbox: null, camera: { lon: -121.85, lat: 49.15, zoom: 9.4 } };
@@ -958,7 +984,7 @@ it("no listener, no long press: the binding is handed no handler (its long press
     let t = 1_800_000_000_000;
     const clock = vi.spyOn(Date, "now").mockImplementation(() => t);
     const r = render(<NativeMap {...base({ fit, onDrawn: drawn })} />);
-    await waitFor(() => expect(log.some((l) => l.startsWith("fit "))).toBe(true));
+    await waitFor(() => expect(log.some((l) => l.startsWith("ease "))).toBe(true));
     full();                                            // the first draw: the gate opens, the selection is written after it
     await waitFor(() => expect(log.some((l) => l.includes('"selected"'))).toBe(true));
     expect(drawn).not.toHaveBeenCalled();             // the fit is still on its way
@@ -992,7 +1018,7 @@ it("no listener, no long press: the binding is handed no handler (its long press
     let t = 1_800_000_000_000;
     const clock = vi.spyOn(Date, "now").mockImplementation(() => t);
     const r = render(<NativeMap {...base({ fit, onDrawn: drawn })} />);
-    await waitFor(() => expect(log.some((l) => l.startsWith("fit "))).toBe(true));
+    await waitFor(() => expect(log.some((l) => l.startsWith("ease "))).toBe(true));
     act(() => { (native.props!.onDidFinishRenderingMapFully as () => void)(); });   // the one "fully rendered"
     await waitFor(() => expect(log.some((l) => l.includes('"selected"'))).toBe(true));
     const frame = (full: boolean) => act(() => {
@@ -1188,10 +1214,15 @@ it("no listener, no long press: the binding is handed no handler (its long press
   it("frames a subject: a fit moves the camera to the box, once per key", async () => {
     const fit = { key: "a", bbox: [-123, 49, -122, 50] as const };
     const r = render(<NativeMap {...base({ data: undefined, highlight: undefined, fit })} />);
-    await waitFor(() => expect(log.filter((l) => l.startsWith("fit"))).toEqual(["fit [-123,49,-122,50]"]));
+    const sent = () => (native.easeOpts ?? []) as { center: number[]; zoom: number }[];
+    await waitFor(() => expect(sent().length).toBe(1));
+    // (T929) the box's Mercator centre (north of the degrees' middle), at the zoom that frames 1° in 304 px (z7.74)
+    expect([...sent()[0]!.center.map((v) => Math.round(v * 1e4) / 1e4), Math.round(sent()[0]!.zoom * 100) / 100])
+      .toEqual([-122.5, 49.5026, 7.74]);
     r.rerender(<NativeMap {...base({ data: undefined, highlight: undefined, fit: { ...fit } })} />);
     await act(async () => {});
-    expect(log.filter((l) => l.startsWith("fit"))).toEqual(["fit [-123,49,-122,50]"]);
+    expect(sent().length).toBe(1);
+    expect(log.filter((l) => l.startsWith("fit"))).toEqual([]);
   });
   it("(T287) a new status index with the same day's profiles (an applied update) swaps no style", async () => {
     const index = (): StatusIndex => ({

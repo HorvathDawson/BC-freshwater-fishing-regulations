@@ -12,8 +12,7 @@ import type { MapProps } from "../map-props";
 import { hereImage } from "../here-mark";
 import {
   MARK_BOX_IMAGE, MARK_LABEL, MARK_RING, MARK_SOURCE, PIN_ICON, PIN_SOURCE, markBox, markBoxImage, markHit, marksData,
-  marksLayers, pinIconLayer, pinsData, shiftedLabels,
-  titledPin,
+  labelAnchors, marksLayers, pinIconLayer, pinsData, titledPin,
 } from "../point-marks";
 import { afterLoad } from "./ready";
 import type { WebMapRefs } from "./refs";
@@ -83,9 +82,9 @@ export function usePins({ map }: WebMapRefs, marker: MapProps["marker"], pins: M
 
 /**
  * THE BOUNDARY MARKS (P15): a 16 px ring (filled when open) and its label above it in a box, the prototype's `.mk`, now
- * map layers. A tap within 22 px of a mark is the mark's. EACH LABEL KEPT INSIDE THE MAP (the prototype's `--dx`): the
- * label's point is moved sideways by what would hang over an edge, measured where the camera SETTLES (`moveend`), never
- * per frame.
+ * map layers. A tap within 22 px of a mark is the mark's. EACH LABEL KEPT INSIDE THE MAP: (T929) its point is the mark's
+ * own, so it moves with the map; near an edge it hangs from its corner instead of its middle (`labelAnchor`), chosen where
+ * the camera SETTLES (`moveend`), never per frame.
  */
 export function useMarks({ map }: WebMapRefs, marks: MapProps["marks"], onPressMark: MapProps["onPressMark"],
                          furniture: Furniture) {
@@ -100,9 +99,8 @@ export function useMarks({ map }: WebMapRefs, marks: MapProps["marks"], onPressM
     let last = "";
     const place = () => {
       if (!alive) return;
-      void shiftedLabels(ms, m.getContainer().clientWidth,
-                         (lon, lat) => { const p = m.project({ lng: lon, lat }); return [p.x, p.y]; },
-                         (x, y) => { const l = m.unproject([x, y]); return [l.lng, l.lat]; })
+      void labelAnchors(ms, m.getContainer().clientWidth,
+                        (lon, lat) => { const p = m.project({ lng: lon, lat }); return [p.x, p.y]; })
         .then((at) => {
           const data = marksData(ms, at);
           const sig = JSON.stringify(at);

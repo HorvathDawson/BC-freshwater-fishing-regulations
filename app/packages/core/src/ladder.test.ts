@@ -76,6 +76,31 @@ describe("fitAtMost: a fit frames the subject in its country, never past the til
   });
 });
 
+describe("(T929) fitCamera: a fit as a centre and a zoom, the same in any frame", () => {
+  const W = 390, H = 259, PAD = 31;
+  it("lands where fitBounds of the widened box would: its Mercator centre, at the zoom that frames it", () => {
+    const part: [number, number, number, number] = [-121.75, 49.03, -121.55, 49.12];
+    const c = core.fitCamera(part, 14, W, H, PAD);
+    expect(Math.abs(c.zoom - fitZoom(part, W, H, PAD))).toBeLessThan(1e-9);
+    expect(c.lon).toBeCloseTo(-121.65, 9);
+    // Mercator's middle sits a little north of the degrees' middle
+    expect(c.lat).toBeGreaterThan(49.075);
+    expect(c.lat).toBeLessThan(49.0751);
+  });
+  it("no closer than the ceiling: a pond is framed at it, centred on the pond, as `fitAtMost` widens it to", () => {
+    const pond: [number, number, number, number] = [-121.9502, 49.1999, -121.9498, 49.2001];
+    const c = core.fitCamera(pond, FIT_MAX_ZOOM, W, H, PAD);
+    const wide = fitAtMost(pond, FIT_MAX_ZOOM, W, H, PAD);
+    expect(c.zoom).toBe(FIT_MAX_ZOOM);
+    expect(Math.abs(fitZoom(wide, W, H, PAD) - c.zoom)).toBeLessThan(1e-6);
+    expect([c.lon, c.lat].map((v) => Math.round(v * 1e4) / 1e4)).toEqual([-121.95, 49.2]);
+  });
+  it("the zoom is the map's laid-out size's: the 48 pt strip a pick leaves for one render frames the part far out", () => {
+    const part: [number, number, number, number] = [-121.75, 49.03, -121.55, 49.12];
+    expect(core.fitCamera(part, 14, W, 48, 8).zoom).toBeLessThan(core.fitCamera(part, 14, W, H, PAD).zoom - 1.5);
+  });
+});
+
 describe("(T443) a water's part in its country; a step does not lunge", () => {
   it("caps at the fit's maxZoom", () => {
     const f = { maxZoom: core.PART_FIT_MAX_ZOOM };
