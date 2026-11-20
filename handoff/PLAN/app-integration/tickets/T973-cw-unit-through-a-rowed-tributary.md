@@ -97,3 +97,10 @@ Verbatim: "this also happens invereted (Nearest still wins: a stream gets only o
   pass-through like a rowed no-unit water: it goes in `through`, and the card shows the "may need" note. L10 counts the
   cases and names up to 5.
 
+
+## Owner 12:54 (2026-11-20): the 5 Classified Waters units that stop at their own water are right
+Checked against the book by the owner: Thompson River (R3), Skeena River sections 2 and 4 (R6, mainstem only), West Road
+(Blackwater) River (R5, "Mainstem only"), Deena Creek (R1, no tributary mark on its Class II line). The other 60
+waters' units reach their tributaries. Owner verbatim: "yes i missed those both are correct too." (after confirming
+Thompson and Skeena from the book: "so only a few classified waters streams in regulations dont apply to the
+tributaries").

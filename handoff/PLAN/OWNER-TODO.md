@@ -9,6 +9,11 @@ Things only you can do. Claude keeps this list current while you are away; the w
 `handoff/PLAN/app-integration/tickets/` (README.md is the ledger, and its "Owner questions" table has every question
 with the default Claude uses until you answer). Newest first inside each section.
 
+## 2026-11-20 12:54: Classified Waters units that stop at their own water: confirmed (T973)
+
+- The owner checked the book: only Thompson (R3), Skeena sections 2 and 4 (R6), West Road (R5) and Deena Creek (R1) stop
+  at their own water; all 5 are right. Verbatim: "yes i missed those both are correct too."
+
 ## 2026-11-20 12:38: Classified Waters "may need" cleanup after a CO answers (T974)
 
 - Owner, verbatim: "we want to ticket cleaning this up once we get contact with a CO". → T974: once the CO answers,
