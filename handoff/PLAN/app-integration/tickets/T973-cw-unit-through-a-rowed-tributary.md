@@ -1,7 +1,8 @@
 # T973 — Classified Waters: does a unit carry up through a tributary whose own row prints no unit? (ask a CO)
 
-Status: IN PROGRESS — owner 12:11: build the carried unit with its path IN THIS RELEASE, shown as a "may need" note; the
-CO question stays open (it decides the note later).
+Status: IN PROGRESS — left (Claude): main chat review + merge (built on `lane/l10-cw-through`: carried unit with
+`class`/`source`/`through`, optional release file `cw-through/1`, app 0.8.4 "may need" note; the CO question stays open,
+T974 cleans up after the answer).
 
 Source: owner 2026-11-20 11:44 (dialog, on T944's changes): "We should maybe just make this a ticket and a gotcha that
 needs to be asked to a CO. Give info in the ticket. Doesn't hold release (keep what we have but on ticket reset we can
@@ -97,3 +98,121 @@ Verbatim: "this also happens invereted (Nearest still wins: a stream gets only o
   pass-through like a rowed no-unit water: it goes in `through`, and the card shows the "may need" note. L10 counts the
   cases and names up to 5.
 
+
+## Built (lane L10, `lane/l10-cw-through`, 2026-11-20)
+Merged first: `lane/lc-reach-leftovers` (T944, POLICY_VERSION 48) and `lane/l7-stages`; this change is 49.
+
+**Where the stop is applied (every place).**
+1. `pipeline/atlas/reach/licensing.py first_classified_downstream`, the rowed-water branch: the walk down from a walked
+   section first meets a stream of a water with its own row and no designation → the section and everything above it
+   leave the placement (`own_row_not_classified`). This is LI-2 for every walked tributary, and the only place it is
+   applied to a walk. **Changed here** (the carried unit below).
+2. `pipeline/atlas/reach/build.py confluence_excludes` step 3 (the 2026-09-30 ruling T9, "whose own row prints no CW —
+   the Iltasyuko — does not inherit"): a joining water WITH a row of its own at a rule's or a record's confluence CUT is
+   kept out of the stretch, it and everything above it (`tributaries.CONFLUENCE_WATER_WITHOUT_A_ROW_GOES_WITH_THE_CUT`).
+   A separate path: it decides which side of a cut a joining water is on, for rules and licensing records alike.
+   **Not changed** (default: it is a boundary rule, not a tributary walk; changing it moves rules too).
+3. `pipeline/deliver/bundle/licensing.py _own_row_not_classified`: a water's own row that SAYS "NOT a Classified
+   Water" (Coal Creek's `not_classified` record) beats a designation reaching it by a walk. A printed "not classified",
+   not a row that is silent. **Not changed.**
+
+**Reach.** `first_classified_downstream(…, carried=[…], claims={…})`: a section dropped at a rowed no-unit water is
+still dropped from the placement; the walk then goes on down past that water (and any further one) to the first stop
+that decides — the walker's own water, another designation's own reach, a rowed water with a designation — and the
+section gets a `CarriedUnit(section, entry_id, record_id, through)`: the designation (its `class` and unit), the
+classified water it comes from (`source` = that designation's water), and `through` = `[(item_id, name), …]`, the rowed
+no-unit waters passed, in order UP from the classified water. Nothing below (sea, braid loop): the walker's unit, as
+an unpassed section stays the walker's (default). `carried_units`: one per section, none where a final designation
+holds the section. Run table `licensing_carried.jsonl` + `licensing_carried_digest`; `licensing_digest` covers the
+placements only.
+
+**Owner 12:24 addition, built (default, to confirm).** `claims` = the designations whose row reaches its tributaries
+(the record's `includes_tributaries`, else its entry's; or `tributaries_only`): 69 of 74. A walked section whose walk
+meets a non-claiming designation's own reach first is passed through it (`unit_not_on_tributaries`, that water in
+`through`); a section on that designation's own reach is always its own. Switch
+`licensing.ONLY_A_UNIT_ON_ITS_TRIBUTARIES_CLAIMS_THEM`. The five that do not reach their tributaries: Deena Creek,
+Thompson River (downstream of the Kamloops Lake outlet signs), West Road (Blackwater) River, Skeena River 2 and Skeena
+River Section 4 (mainstem only). **Measured on the live atlas: 0 sections** — no walked section meets one of them first
+(each walker's own water comes first), so nothing moves and there are no examples to name. Nearest wins both ways:
+pinned by `test_the_nearest_classified_water_wins_whatever_its_class` (II under I, I under II).
+
+**Bundle + release.** Bundle `designation_carried (sid, entry_id, designation_id, through)` — never a `licensing_set`
+row, so no answer reads it. Release `cw-through/1` (sqlite: `cw_note (ix, unit_name, classified, dates, through)`,
+`section_cw (sid, ix)`), in `contract.OPTIONAL`, written whatever `packed.SHIP_PACKED_FORMATS` says (off this release).
+An app before 0.8.4 has no `cw-through` in its contract, so the app gate asks nothing of it and it reads nothing new; it
+never shows a carried unit as a requirement. `app_reads.json` 0.8.4 row replaced (`--replace`, as T679 #8 did).
+
+**App 0.8.4.** The regs store reads `cw-through` when the manifest names it (held to water's atlas); `loadRegsInputs`
+gives the tapped section's or part's carried units (`part` when only some of the part's sections carry one); the
+licence card draws each as a flag (the "?" line the contested note uses), worded in `LIC.MAY_NEED`:
+"Stellako River Class II may apply here: Endako River has its own line without Classified Waters. Check with a CO."
+With a period: "Morice River Class II (Sep 1–Oct 31) may apply here: …"; two waters: "Thautil River and Gosnell Creek
+have their own lines …"; a part only partly carried starts "On part of this water: ". Never a class box, never in "You
+need". No carried unit: the card exactly as before. Python resolves (unit, class, period, waters); core only words it.
+
+**Proof: byte-identical where nothing passes a rowed water** (reach step in memory on the live atlas through
+`scripts/heavy.sh`, one run, `first_classified_downstream` called three ways on the same inputs): with the carry asked
+and without (= switch off), the placements and the diagnostics are EQUAL; with the tributary-claim rule on too, 0
+sections move. The written run's `licensing_digest` is **72f10f9269d699f8** = T944's switch-on result on the same atlas
+(pre-T973 code); rules digest 6ca9a300dad3d95e unchanged. So every licensing table is byte-identical; only the new
+`licensing_carried` table is added.
+
+**Measured (live atlas): 7,080 sections gain a "may need" note** (raw 10,991 walk-drops, one per section; 0 placed
+elsewhere), on 97 named waters + 6,454 unnamed sections; 14 units, 21 rowed no-unit waters. Biggest first, by
+section count (carried unit | through | named waters among them):
+
+| sections | carried unit | through (up from the classified water) | named waters |
+|---:|---|---|---:|
+| 1,824 | Stellako River Class II | Endako River (gnis:17338) | 25 |
+| 847 | Morice River Class II | Thautil River (gnis:31345) | 7 |
+| 806 | Morice River Class II | Thautil River > Gosnell Creek (gnis:18182) | 2 |
+| 485 | Horsefly River Class II | Little Horsefly River (gnis:10857) | 8 |
+| 476 | Sustut River Class I | Bear River (gnis:15535) | 6 |
+| 386 | Horsefly River Class II | Moffat Creek (gnis:14045) | 3 |
+| 375 | Gitnadoix River Class I | Magar Creek (gnis:36404) | 1 |
+| 326 | Horsefly River Class II | McKinley Creek (gnis:25591) | 8 |
+| 294 | Babine River Class I | Nichyeskwa Creek (gnis:21084) | 1 |
+| 215 | White River Class II | East White River (gnis:10163) | 6 |
+| 175 | Elk River Class II | Line Creek (gnis:10373) | 4 |
+| 175 | Wakeman River Class II | Wahpeeto Creek (gnis:31813) | 1 |
+| 117 | Kitsumkalum River Class II | Lean-to Creek (gnis:3723) | 1 |
+| 111 | White River Class II | Whiteswan Lake outlet stream | 4 |
+| 110 | Bulkley River Class II | Glacier Creek (wsc:400-431358-…) | 1 |
+| 84 | Elk River Class II | Grave Creek (gnis:19452) (Harmer Creek) | 2 |
+| 75 | Skookumchuck Creek Class II | Sandown Creek (gnis:20588) | 1 |
+| 67 | Kitsumkalum River Class II | Deep Creek (gnis:3983) | 1 |
+| 66 | Kispiox River Class II | Hevenor Creek (gnis:37312) | 1 |
+| 44 | Bulkley River Class II | Station Creek (gnis:2404) | 2 |
+| 22 | Bulkley River Class II | Two Mile Creek (gnis:30327) | 1 |
+
+Named waters with the most noted sections: Shovel Creek 33, Tatin Creek 32, Endako River 29, Decker Creek 29, Magar
+Creek 28, Moffat Creek 24, Niquidet Creek 24, Gosnell Creek 20, Dillabough Creek 19, Sandown Creek 18.
+**By name:** Stellako → Endako: 1,824 sections (`through` = Endako River). Morice → Gosnell Creek: 806 sections, and the
+`through` is **Thautil River > Gosnell Creek** (Gosnell joins the Thautil, which has its own no-unit row, 222 m above the
+Morice); 847 more are the Thautil's own drainage.
+**RU-13 check, independent of the pass** (the main-flow path from each carried section down to its unit's own reach):
+4,141 reach it with no other unit's reach first; 77 meet another reach first — all 77 are "Elk River's tributaries"
+carried units whose path crosses the Elk upstream-of-Elko-Dam reach, the SAME unit and class (Elk River, II): none
+where an upstream classified water would give a different unit. The other 2,862 end on the walker's own water beyond
+its reach (no own reach on the main-flow path), as placed sections do.
+
+**Side release (the lane's code end to end).** Reach run (above) → `pipeline.deliver all --out-dir
+data/generated/side/l10-cw/out` → release `r-e82e57dc670c` (vintage check passes): bundle `designation_carried` 7,080
+rows; `cw-through/1` 86,016 B, 30,856 B gz (gate 60,000), 7,080 sections, 21 notes. The DFO salmon placements were
+copied from the live run (the reach CLI writes them, the in-memory run does not; same atlas, tidal and outside tables
+byte-identical). The app gate on it: `cw-through/1` asks nothing of any app (needs 0.0.0); the release's oldest reader is
+0.8.0 with or without the file. The mini release was re-cut (it now carries `cw-through` and the `flow-own` the merged switch writes).
+**Picture** (web, 390 px, the side release, Jul 15, Canadian from another province): `T973-shots/endako-licence-may-need.png`
+— the Endako River's Licence card with "? Stellako River Class II may apply here: Endako River has its own line without
+Classified Waters. Check with a CO." above "You need", which lists no Classified Waters Licence.
+
+**Defaults chosen (tell the owner):** (a) the confluence-cut path (T9, item 2 above) is not changed; (b) nothing below a
+rowed water → the walker's unit; (c) two walks carrying different designations to one section keep the first by
+(entry, record) and count it (`disagree`); (d) a part partly carried says "On part of this water:"; (e) the note shows
+to every angler profile (as the class box does); (f) the owner's 12:24 rule is ON (0 sections affected today).
+
+Tests: `test_licensing_first_classified.py` (+9: carried with path, two waters in order, upstream unit's own reach
+wins, both-ways nearest, a unit on its own water only is passed, one per section, mutation pins for both switches),
+`test_bundle_licensing.py` (+7: the table, four refusals, a run without the table refused, run file + digests),
+`test_release_packed.py` (+1: optional, unswitched, one note per section, refusal), `test_reach_builder.py` (policy
+pin 49); app `licence.test.ts` (+3: the whole note string, every profile, none = as before), `inputs.test.ts` (+2).
