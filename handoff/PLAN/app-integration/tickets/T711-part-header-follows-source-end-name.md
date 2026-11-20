@@ -1,6 +1,6 @@
 # T711 — Part header text follows the "Source" end name (ruling P55)
 
-Status: IN PROGRESS (code + tests done; owner 2026-11-20: keep what is built, the "Source" wording in both header and name, the ticket's default; left (Claude): the Kanaka shot once a release carries it).
+Status: IN REVIEW (code + tests done, a2727a3b0; in the live release r-6258ffded676; the Kanaka Creek shots taken on staging 2026-11-20, `T711-shots/`. owner: OWNER-TODO "Picks taken: T594, T598, T610 closed; T711" ("Source" in both, 11-20); left (Claude): main chat review + merge; ships with the next data release).
 
 Source: owner 2026-11-13, boundary-name review: "Source" stands for Kanaka, Mat, Coquitlam and the other tops among the 62 changed by P55. Bug: the part header text still says "up to a lake outlet" while the name says "→ Source".
 ## Work
@@ -29,3 +29,9 @@ of the river". Rides the next deliver (no atlas or reach change).
 Owner 2026-11-20 ("Couldn't we just assume most of these are done already?"): the pick (should the part header say "Source" too?) takes the default, "Source" wording in both, which is built (a2727a3b0). Stays IN PROGRESS: the Kanaka Creek shot is Claude's step.
 
 Status line before this answer: IN PROGRESS (code + tests done; left (Claude): the Kanaka shot once the next release carries it).
+
+## The Kanaka Creek shot (lane L2, 2026-11-20)
+Staging (release r-6258ffded676, web, 390 px, light): Kanaka Creek's top part reads "Cliff Park Falls → Source" in the
+Map view's part name, in the list of its three parts and in the Regulations header — "Source", never "a lake outlet".
+`T711-shots/kanaka-top-part-map.png`, `T711-shots/kanaka-all-parts.png`, `T711-shots/kanaka-top-part-regulations.png`.
+APPROVED by the owner 2026-11-20 ~06:34 (dialog).

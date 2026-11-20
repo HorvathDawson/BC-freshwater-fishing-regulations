@@ -406,8 +406,9 @@ SPLIT_TEXT = {
                      "keeps that spelling (`area:CLAYHURST ECOLOGICAL RESERVE`) — ids never "
                      "change, and extents bind by them; show `name`, never the id",
     "confidence": "ONLY on a curated cut whose place is not certain: `medium` or `low` (absent: "
-                  "high). Say the cut's name with 'approximate location (low confidence)' wherever "
-                  "it is named — a part's runs, a boundary on the map",
+                  "high): a review fact (the curator's 'approximate location (low confidence)'). "
+                  "Never add it to the cut's name where an angler reads it — a part's runs or name, "
+                  "a boundary on the map, an in-season place (T780, owner 2026-11-20)",
     "near": "ONLY on a GAUGE cut a part ends at (T517): the end token of the nearest named feature on the ground — a "
             "tributary's `confluence:<water id>` or another named cut of the water — and `near_m` how far it stands, "
             "metres. Say that feature where the part's end is named; the gauge's own name is an alternate only",

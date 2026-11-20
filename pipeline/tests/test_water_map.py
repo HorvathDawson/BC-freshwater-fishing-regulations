@@ -112,8 +112,12 @@ def test_breaks_are_named_with_their_km(fixture_river):
 
 def test_end_words_fold_the_confidence_clause():
     ends = {"t": ["Tidal boundary (DFO Subarea 3-12), approximate location (medium confidence)"],
+            "t2": ["Tidal boundary (DFO Subarea 3-12)"],
             "gauge__08DB001": ["Canyon City bridge", "08DB001 · Nass River Above Shumal Creek"]}
-    assert M.end_words(ends, "t") == "≈ Tidal boundary (DFO Subarea 3-12)"
+    assert M.end_words(ends, "t") == "≈ Tidal boundary (DFO Subarea 3-12)"          # a release before T780
+    # T780: the words carry no clause; the mark's own confidence says it
+    assert M.end_words(ends, "t2", "medium") == "≈ Tidal boundary (DFO Subarea 3-12)"
+    assert M.end_words(ends, "t2", "high") == M.end_words(ends, "t2") == "Tidal boundary (DFO Subarea 3-12)"
     assert M.end_words(ends, "gauge__08DB001") == "Canyon City bridge (gauge 08DB001)"
     assert M.end_words(ends, None) is None
 

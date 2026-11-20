@@ -7,7 +7,8 @@ from typing import Dict, List, Optional, Sequence, Tuple
 from pipeline.deliver.answers.common import AnswersError, when_words
 from pipeline.deliver.answers.display.rule import _num, cut_points, rule_facts
 from pipeline.deliver.answers.display.part import (
-    Water, own_end, part_km, part_label, part_labels, part_place, picker, runs_label, water_ends_km
+    STEM_LICENSING, Water, own_end, part_km, part_label, part_labels, part_place, picker, runs_label, stem_licensing,
+    water_ends_km
 )
 
 
@@ -184,7 +185,9 @@ def _by_grp(item_id: str, w: dict, doc: dict):
             joined.append((k, r))
             if not r.get("branch"):
                 stem = len(joined) - 1
-        merged.append({**qs[0], "runs": [r for _, r in joined], "sections": sum(q["sections"] for q in qs)})
+        merged.append({**qs[0], "runs": [r for _, r in joined], "sections": sum(q["sections"] for q in qs),
+                       # (T801 item 5(1)) each member's licensing set where it runs on the main stem (`part_place`)
+                       STEM_LICENSING: stem_licensing(qs)})
     return Water(item_id, {**w, "parts": merged}, doc), members
 
 

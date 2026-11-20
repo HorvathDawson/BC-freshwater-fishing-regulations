@@ -391,15 +391,13 @@ describe("the exit, the highlight and the frame", () => {
 });
 
 describe("(T517, water/3) a boundary is said by the end token its parts share — the one end resolver", () => {
-  const ENDS: EndsTable = { cnr: ["CNR Mile 66 Trestle, approximate location (low confidence)"], br: ["CNR Bridge (mile 70.2)"],
-                            gt: ["Greendale Trestle"] };
+  const ENDS: EndsTable = { cnr: ["CNR Mile 66 Trestle"], br: ["CNR Bridge (mile 70.2)"], gt: ["Greendale Trestle"] };
   const rows: ItemNavRows = { ...COWICHAN, marks: COWICHAN.marks.map((m, i) => ({ ...m, token: ["cnr", "br", "gt"][i]!,
                                                                                     ...(i === 0 ? { confidence: "low" as const } : {}) })) };
-  it("its words are the token's in `display.ends` — an approximate cut's confidence is IN them, never appended again", () => {
+  it("its words are the token's in `display.ends` — the place's name alone; a cut's confidence is never appended (T780)", () => {
     const g = waterGroup([rows], ENDS);
-    expect(g.marks.map((m) => markLabel(g, m))).toEqual([
-      "CNR Mile 66 Trestle, approximate location (low confidence)", "CNR Bridge (mile 70.2)", "Greendale Trestle"]);
-    expect(markA11y(g, g.marks[0]!)).toBe("Boundary: CNR Mile 66 Trestle, approximate location (low confidence)");
+    expect(g.marks.map((m) => markLabel(g, m))).toEqual(["CNR Mile 66 Trestle", "CNR Bridge (mile 70.2)", "Greendale Trestle"]);
+    expect(markA11y(g, g.marks[0]!)).toBe("Boundary: CNR Mile 66 Trestle");
   });
   it("no token (no named place: a side channel meets, a split lake's areas): no words, and \"Boundary\" alone", () => {
     const g = waterGroup([{ ...rows, marks: rows.marks.map((m, i) => (i === 1 ? { ...m, token: null } : m)) }], ENDS);

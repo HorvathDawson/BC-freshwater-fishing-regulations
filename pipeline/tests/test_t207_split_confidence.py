@@ -1,8 +1,9 @@
 """T207 item 3 (owner 2026-10-26): a curated split's optional `confidence` (high | medium | low; absent is
 high) travels end to end — the loader/model, splits.resolved.json, the registry boundary, the bundle's
 `split` and `part_mark`, the export's splits and the part labels, the release contract and the app's
-generated pack — so a reader is told "approximate location (low confidence)" wherever the cut is named.
-One test per hop, each against the code that writes or reads it."""
+generated pack — and the review app says "approximate location (low confidence)" beside the cut's label. T780 (owner
+2026-11-20): an angler's part names and end words never carry those words. One test per hop, each against the code that
+writes or reads it."""
 from __future__ import annotations
 
 import json
@@ -94,7 +95,7 @@ def test_the_bundle_split_row_and_part_mark_carry_it():
     assert "lake_id TEXT, confidence TEXT) WITHOUT ROWID" in sql and "up_parts TEXT NOT NULL, confidence TEXT" in sql
 
 
-def test_the_export_carries_it_and_a_part_label_says_it():
+def test_the_export_carries_it_and_a_part_label_never_says_it():
     from pipeline.deliver.answers.display.part import end_name
     from pipeline.deliver.export.read import read_splits
     db = sqlite3.connect(":memory:")
@@ -107,7 +108,8 @@ def test_the_export_carries_it_and_a_part_label_says_it():
     splits = read_splits(db)
     assert splits["x__falls"]["confidence"] == "low" and "confidence" not in splits["x__bridge"]
     doc = {"splits": splits, "waters": {}}
-    assert end_name(doc, "x__falls") == "the salmon viewing platform, approximate location (low confidence)"
+    # T780 (owner 2026-11-20): a part's end says the place's name alone; the confidence stays on the split
+    assert end_name(doc, "x__falls") == "the salmon viewing platform"
     assert end_name(doc, "x__bridge") == "the Sayward Road bridge"
 
 

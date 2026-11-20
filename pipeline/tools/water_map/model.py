@@ -306,8 +306,10 @@ def system(rel, target: Water, *, focus: Optional[Tuple[float, float]] = None, m
 
 
 # ------------------------------------------------------------------------------------------------------------ words
-def end_words(ends: dict, tok: Optional[str]) -> Optional[str]:
-    """An end token's words (`display.ends`), the confidence clause folded to "≈" and a gauge's station kept."""
+def end_words(ends: dict, tok: Optional[str], confidence: Optional[str] = None) -> Optional[str]:
+    """An end token's words (`display.ends`), "≈ " before a cut placed approximately and a gauge's station kept. The
+    mark's own `confidence` (`part_mark`) says it since T780 dropped the clause from the words; a release before T780
+    still carries ", approximate location (… confidence)" in them, folded the same way."""
     if not tok:
         return None
     ws = ends.get(tok)
@@ -316,7 +318,9 @@ def end_words(ends: dict, tok: Optional[str]) -> Optional[str]:
     s = ws[0]
     approx = re.search(r",? approximate location( \([^)]*\))?", s)
     if approx:
-        s = "≈ " + s[:approx.start()] + s[approx.end():]
+        s = s[:approx.start()] + s[approx.end():]
+    if approx or confidence in ("medium", "low"):
+        s = "≈ " + s
     if tok.startswith("gauge__") and len(ws) > 1:
         s += f" (gauge {tok.split('__', 1)[1]})"
     return s
@@ -796,7 +800,7 @@ def breaks(r: Reader, sys: System, us: Sequence[Unit]) -> List[Break]:
                 continue
             if bs == {a}:
                 continue
-            words = end_words(r.ends, tok) or (json.loads(alt)[0] if alt else "break")
+            words = end_words(r.ends, tok, conf) or (json.loads(alt)[0] if alt else "break")
             km = km_of.get(tok)
             if km is not None:
                 km += offsets.get(o, 0.0)

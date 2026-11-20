@@ -13,7 +13,8 @@ import pytest
 from pipeline.tests import under_test
 from pipeline.tools.audit import check_curated as C
 
-FILES = ("name_variants", "areas", "added_areas", "added_lakes", "added_streams", "continuations", "unmapped_waters")
+FILES = ("name_variants", "areas", "added_areas", "added_lakes", "added_streams", "continuations", "unmapped_waters",
+         "cuts", "tidal")
 
 
 @pytest.fixture
@@ -57,6 +58,12 @@ def test_the_real_files_pass_without_a_registry(waters, tmp_path):
     ("continuations", lambda d: d["reviewed"][0].update(to="Bella Coola River"), "is no item id"),
     ("unmapped_waters", lambda d: d["ungazetted"][0].update(location=[49.0, -122.4]), "inside BC"),
     ("unmapped_waters", lambda d: d["ungazetted"][0].update(id="marsh_pond"), "must start with 'ungaz:'"),
+    # T780: a cut label is the place's name an angler reads; the review words stay in `confidence` / `note`
+    ("cuts", lambda d: d["waterbodies"][0]["splits"][0].update(
+        label=d["waterbodies"][0]["splits"][0]["label"] + ", approximate location (medium confidence)"),
+     "carries the review words"),
+    ("cuts", lambda d: d["waterbodies"][1]["splits"][0].update(label="Hwy 16 bridge [review: check the side]"),
+     "carries the review words"),
 ])
 def test_one_bad_edit_fails(waters, tmp_path, name, mutate, says):
     _edit(getattr(waters, name), mutate)
@@ -76,3 +83,30 @@ def test_a_name_variant_the_registry_lacks_is_a_warning(waters, tmp_path):
     err, warn, _ = C.check_waters(waters, registry=reg)
     assert any("not in the current atlas registry" in w for w in warn)
     assert not any("name_variants" in e for e in err)
+
+
+def _first_tidal_label(d, label):
+    next(r for r in d["waters"] if (r.get("at") or {}).get("label"))["at"]["label"] = label
+
+
+@pytest.mark.parametrize("label", [
+    "Spur 19 Bridge site (road bridge near the mouth, low confidence)",      # the Sheldens Creek row before 11-20
+    "Tidal boundary (medium confidence)", "Tidal boundary, approximate location (low confidence)",
+    "Bridge CHECK", "Bridge (TODO)", "Bridge ??", "Bridge [Review: which side]"])
+def test_a_tidal_limit_label_with_review_words_is_refused(waters, tmp_path, label):
+    """T780 (owner 2026-11-20 reworded the last one): a tidal limit's label is a cut's name too — refused."""
+    _edit(waters.tidal, lambda d: _first_tidal_label(d, label))
+    err, _, _ = C.check_waters(waters, registry=tmp_path / "no-registry.json")
+    assert any(e.startswith("tidal[") and "review words" in e for e in err), err
+
+
+@pytest.mark.parametrize("label", [
+    "Checkerboard Creek confluence", "Check dam", "Confidence Creek confluence", "Todo Lake outlet",
+    "Lake Confidence (north end)", "Spur 19 Bridge site (road bridge near the mouth)"])
+def test_a_place_name_holding_a_review_word_passes(waters, tmp_path, label):
+    """The near misses: a word a review note uses is also a name ("Check dam", "Confidence Creek"); only CHECK / TODO
+    in capitals and confidence said as a note ("(low confidence)", ", medium confidence") are refused."""
+    _edit(waters.cuts, lambda d: d["waterbodies"][0]["splits"][0].update(label=label))
+    _edit(waters.tidal, lambda d: _first_tidal_label(d, label))
+    err, _, _ = C.check_waters(waters, registry=tmp_path / "no-registry.json")
+    assert not any("review words" in e for e in err), err
