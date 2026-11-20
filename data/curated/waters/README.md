@@ -13,6 +13,7 @@ the map only after the next atlas build (`pipeline build --atlas --promote`).
 | `added_areas.geojson` | authored | hand-drawn polygons | an `area_closures.json` def with `file` |
 | `added_lakes.geojson` | authored | hand-drawn polygons | atlas |
 | `added_streams.json` | promoted | the added-streams resolver (never rerun casually: negative `blk` ids are an ABI) | atlas |
+| `added_stream_calls.json` | authored (T679 #13: the resolver's hand fixes — drop by name / src_id, a name typo, a receiver override; each with its `why`) | hand | the added-streams resolver only (`added_streams.clean.calls`), never the atlas |
 | `continuations.json` | authored | hand | bundle (`water_continue` gate) |
 | `tidal_limits.json` | applied | `pipeline.tools.tidal_limits` / write-through (Tidal marks) | atlas (`tidal.resolved.json`) |
 | `tidal_split_authority.json` | classified (Claude, cited; owner may correct) | hand, T678 2026-11-11 | the atlas tidal cut (T678 step 10, not wired yet) |

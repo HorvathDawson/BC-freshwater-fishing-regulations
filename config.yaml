@@ -59,7 +59,8 @@ generated:
   runtiming: "data/generated/runtiming"
 
   # T226: the in-season matches compiled for the app (`pipeline.regs.inseason.publish`); the local tile server serves
-  # `feed/` as /feeds/inseason/ (R2 `feeds/inseason/` in production, beside the T225 worker's index.json).
+  # `feed/` as /feeds/inseason/ (R2 `feeds/inseason/` in production, beside the T225 worker's index.json). (T679 #11)
+  # `resolved.json`: the curated matches resolved on a release (`pipeline.regs.inseason.resolve`; never committed).
   inseason: "data/generated/inseason"
   # T330: the curation review's MACHINE-WRITTEN inputs (tidal candidates / pre-verify / edits / web / OSM landmarks,
   # tidal pass 2, DFO suggestions / pre-verify / split hunt, entry split suggestions, T89 awaiting-water, the Q154
@@ -148,6 +149,8 @@ curated:
     # PROMOTED, not authored. 361 minted streams whose negative blk ids are a live ABI;
     # re-running build_dataset.py remints them and strands every split bound to the old.
     added_streams: "data/curated/waters/added_streams.json"
+    # T679 #13: the generator's hand fixes (drop by name / src_id, a name typo, a receiver override); generator only
+    added_stream_calls: "data/curated/waters/added_stream_calls.json"
     # The worklist for minting MORE added lakes. Zero code readers BY DESIGN (the minting is a hand process) beyond
     # the fast check (`check_curated --waters`). Do not delete it in a dead-file sweep.
     unmapped_waters: "data/curated/waters/unmapped_waters.json"
