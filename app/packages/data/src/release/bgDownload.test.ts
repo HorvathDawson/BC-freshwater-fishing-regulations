@@ -172,6 +172,27 @@ describe("background (T298): the system's downloader carries the big files", () 
       `[download] ${URL}: a Wi-Fi-only download paused (reason 0) at ${BODY.length >> 1} of ${BODY.length} bytes while mobile data is allowed; queued again to use it`]);
   });
 
+  it("(T756, iPhone) a kept Wi-Fi-only job still RUNNING but held back for Wi-Fi (reason 3) while mobile data is allowed is queued again to use it", async () => {
+    // the iPhone module reports a task with bytes down as running, and its network path's reason: it never says paused
+    const fs = memFs();
+    let wait = false;
+    const { dm, log, jobs } = fakeDm(fs, { [URL]: BODY }, { still: () => wait && jobs.has(1) });
+    await background(dm, fs, never).queue([{ url: URL, file: "basemap", bytes: BODY.length, path: "b" }], false);
+    await dm.jobs();                                               // running on Wi-Fi, half down
+    wait = true;                                                   // Wi-Fi gone: the task sits; the module says reason 3
+    jobs.get(1)!.reason = 3;
+    const again = background(dm, fs, never, { pollMs: 0, wifiWaitMs: 0 });
+    await again.queue([{ url: URL, file: "basemap", bytes: BODY.length, path: "b" }], true);   // kept (running)
+    const said: string[] = [];
+    vi.spyOn(console, "info").mockImplementation((m: string) => { said.push(m); });
+    await partDownload({ ...fs, hash: (p) => dm.sha256(fs.uri(p)) }, again.fill)(URL, "b", want);
+    expect(fs.files.get("b")).toEqual(BODY);
+    expect(log.map((l) => l.split(" ").slice(0, 3).join(" "))).toEqual(
+      [`enqueue ${URL} wifi`, "remove 1", `enqueue ${URL} metered`, "claim 2"]);
+    expect(said.filter((m) => m.includes("queued again"))).toEqual([
+      `[download] ${URL}: a Wi-Fi-only download running, waiting for a network (reason 3) at ${BODY.length >> 1} of ${BODY.length} bytes while mobile data is allowed; queued again to use it`]);
+  }, 3_000);
+
   it("(T756) a short pause of a kept Wi-Fi-only job is waited out (not queued again before stuckMs)", async () => {
     let held = 0, still = false;                                   // paused for two polls, then moving again
     const fs = memFs(), { dm, log, jobs } = fakeDm(fs, { [URL]: BODY }, { hold: () => held-- > 0, still: () => still });
@@ -300,6 +321,39 @@ describe("background (T760): a system job that does not move is queued again, a 
       expect(steps(r.log)).toEqual([`enqueue ${URL}`, "claim 1"]);
       vi.useRealTimers(); vi.restoreAllMocks();
     }
+  });
+
+  it("(iPhone) a Wi-Fi-only job PENDING while it waits for Wi-Fi (reason 3), Wi-Fi only asked, is never queued again, however long", async () => {
+    // the iPhone's background session holds a Wi-Fi-only task on mobile data without a word: the module reports it
+    // pending with the reason its network path gives. Two hours on mobile data, then Wi-Fi: the same job runs.
+    fakeClock();
+    const fs = memFs();
+    let polls = 0;
+    const f = fakeDm(fs, { [URL]: BODY }, { tick: MIN, still: () => polls++ < 120 });
+    const said: string[] = [];
+    vi.spyOn(console, "info").mockImplementation((m: string) => { said.push(m); });
+    vi.spyOn(console, "warn").mockImplementation((m: string) => { said.push(m); });
+    const bg = background(f.dm, fs, never, { pollMs: 0 });
+    await bg.queue([item], false);
+    for (const j of f.jobs.values()) j.reason = 3;
+    await partDownload({ ...fs, hash: (p) => f.dm.sha256(fs.uri(p)) }, bg.fill)(URL, "b", want);
+    expect(fs.files.get("b")).toEqual(BODY);
+    expect(steps(f.log)).toEqual([`enqueue ${URL}`, "claim 1"]);
+    expect(said.filter((m) => m.includes("queued again") || m.includes("fails"))).toEqual([]);
+    expect(said[0]).toBe(`[download] ${URL}: pending, waiting for a network (reason 3), 0 of ${BODY.length} bytes`);
+  });
+
+  it("(iPhone) the same pending Wi-Fi-only job with no network-wait reason (the phone is on Wi-Fi) is still queued again after stuckMs", async () => {
+    fakeClock();
+    const fs = memFs();
+    const box: { log?: string[] } = {};
+    const f = fakeDm(fs, { [URL]: BODY }, { tick: MIN, still: () => (box.log ?? []).filter((l) => l.startsWith("enqueue")).length < 2 });
+    box.log = f.log;
+    vi.spyOn(console, "info").mockImplementation(() => {});
+    const bg = background(f.dm, fs, never, { pollMs: 0 });
+    await bg.queue([item], false);
+    await partDownload({ ...fs, hash: (p) => f.dm.sha256(fs.uri(p)) }, bg.fill)(URL, "b", want);
+    expect(steps(f.log)).toEqual([`enqueue ${URL}`, "remove 1", `enqueue ${URL}`, "claim 2"]);
   });
 
   it("bytes that move start the clock again: a job that crawls is never queued again", async () => {

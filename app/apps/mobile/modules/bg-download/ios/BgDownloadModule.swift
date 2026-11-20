@@ -1,6 +1,7 @@
 import CryptoKit
 import ExpoModulesCore
 import Foundation
+import Network
 import UIKit
 
 /*
@@ -25,11 +26,19 @@ import UIKit
  * word from iOS for 10 s is reported "failed" (reason -1): JS queues it again, never waits on it for ever.
  * Not metered: the request may not use cellular / expensive / constrained networks; a background session then waits for
  * Wi-Fi by itself (Android's `setAllowedOverMetered(false)`). The folder is kept out of the device's backup.
+ * (T760) That wait is silent: the task stays "running" with no bytes, so JS read a Wi-Fi-only job on mobile data as a
+ * download the system had parked, queued it again twice and failed the install "stuck" after ~30 min. `jobs` now gives
+ * a live job Android's paused reasons from the phone's current network path (NWPathMonitor): 2 when there is no
+ * network, 3 when the job is Wi-Fi only and the path is expensive (mobile data, a hotspot) or constrained (Low Data
+ * Mode), else 0. JS treats a job with reason 2 / 3 as an honest wait (`bgDownload.ts` `waitsForNetwork`).
  */
 
 private let SESSION_ID = "ca.canifishthis.bgdownload"
 private let MAX_RESUMES = 3
 private let MISSING_SECONDS = 10.0
+/** Android's DownloadManager.PAUSED_WAITING_FOR_NETWORK / PAUSED_QUEUED_FOR_WIFI: the same numbers, so one JS rule reads both */
+private let WAITING_FOR_NETWORK = 2
+private let QUEUED_FOR_WIFI = 3
 
 private struct BgError: LocalizedError {
   let message: String
@@ -64,6 +73,9 @@ final class BgDownloader: NSObject, URLSessionDownloadDelegate {
   private var missingSince: [Int: Date] = [:]
   /** iOS's completion handler for a wake to deliver this session's events (main thread only) */
   var finishEvents: (() -> Void)?
+  /** (T760) the phone's current network path, on `q`; nil until the monitor's first word (then no reason is given) */
+  private var path: NWPath?
+  private let monitor = NWPathMonitor()
 
   let dir: URL
   private let stateFile: URL
@@ -89,6 +101,19 @@ final class BgDownloader: NSObject, URLSessionDownloadDelegate {
       next = s.next
       for j in s.jobs { jobs[j.id] = j }
     }
+    monitor.pathUpdateHandler = { [weak self] p in self?.q.async { self?.path = p } }
+    monitor.start(queue: DispatchQueue(label: "ca.canifishthis.bgdownload.path"))
+  }
+
+  /**
+   * (T760) on `q` only. Why a live job cannot move on the network the phone is on now, as Android's paused reason: 2 no
+   * network, 3 Wi-Fi only on an expensive or constrained path; 0 when it may move (or the path is not known yet).
+   */
+  private func networkWait(metered: Bool) -> Int {
+    guard let p = path else { return 0 }
+    if p.status != .satisfied { return WAITING_FOR_NETWORK }
+    if !metered && (p.isExpensive || p.isConstrained) { return QUEUED_FOR_WIFI }
+    return 0
   }
 
   /** Make the session (re-attaching the transfers iOS kept): at launch, and on a wake for its events. */
@@ -119,6 +144,7 @@ final class BgDownloader: NSObject, URLSessionDownloadDelegate {
               let expected = t.countOfBytesExpectedToReceive
               j.total = expected > 0 ? expected : (rec.total > 0 ? rec.total : -1)
               j.status = t.state == .suspended ? "paused" : (j.bytes > 0 ? "running" : "pending")
+              j.reason = self.networkWait(metered: j.metered)
             } else {
               let since = self.missingSince[j.id] ?? now
               self.missingSince[j.id] = since
