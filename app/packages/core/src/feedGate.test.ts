@@ -38,16 +38,30 @@ describe("createFeedGate", () => {
     expect(told).toBe(4);
   });
 
-  it("a file under the index: refused by its own stamp and held, never clearing; `note` sets or clears from outside", () => {
+  it("a file under the index: refused by its own stamp and held under its name; only that file clears it", () => {
     const g = createFeedGate(APP);
-    expect(() => g.checkFile({ minAppVersion: "0.0.0" }, "gauges")).not.toThrow();
-    expect(g.refused().gauges).toBeUndefined();
-    expect(() => g.checkFile({ minAppVersion: "0.9.0" }, "gauges")).toThrow(FeedNeedsNewerApp);
-    expect(g.refused().gauges).toBe("0.9.0");
-    // a readable file does not speak for the feed: the need stands until the index (or `note`) clears it
-    g.checkFile({ minAppVersion: "0.0.0" }, "gauges");
-    expect(g.refused().gauges).toBe("0.9.0");
+    let told = 0;
+    g.subscribe(() => { told += 1; });
+    expect(() => g.checkFile({ minAppVersion: "0.0.0" }, "gauges", "A.json")).not.toThrow();
+    expect([g.refused().gauges, told]).toEqual([undefined, 0]);
+    expect(() => g.checkFile({ minAppVersion: "0.9.0" }, "gauges", "A.json")).toThrow(FeedNeedsNewerApp);
+    expect([g.refused().gauges, told]).toEqual(["0.9.0", 1]);
+    // (T676 L3) ANOTHER file read fine, the index passing, a 304 of the index (`note(null)`): the hold stands, nobody told
+    g.checkFile({ minAppVersion: "0.0.0" }, "gauges", "B.json");
+    g.check({ minAppVersion: "0.0.0" }, "gauges");
     g.note("gauges", null);
+    expect([g.refused().gauges, g.needs(), told]).toEqual(["0.9.0", "0.9.0", 1]);
+    // the index's need and a file's hold together: the higher is said; the index clearing leaves the file's
+    g.note("gauges", "0.9.5");
+    expect([g.refused().gauges, told]).toEqual(["0.9.5", 2]);
+    g.note("gauges", null);
+    expect([g.refused().gauges, told]).toEqual(["0.9.0", 3]);
+    // the file read again, readable: its own hold clears
+    g.checkFile({ minAppVersion: "0.0.0" }, "gauges", "A.json");
+    expect([g.needs(), told]).toEqual([null, 4]);
+    // a file the origin no longer has (404): `clearFile`
+    expect(() => g.checkFile({ minAppVersion: "0.9.0" }, "gauges", "C.json")).toThrow(FeedNeedsNewerApp);
+    g.clearFile("gauges", "C.json");
     expect(g.needs()).toBeNull();
     g.note("dfo", "0.9.1");
     expect(g.refused()).toEqual({ dfo: "0.9.1" });

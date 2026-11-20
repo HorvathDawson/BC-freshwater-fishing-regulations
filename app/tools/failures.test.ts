@@ -148,7 +148,7 @@ export const FINE: Record<string, { n: number; why: string }> = {
   "packages/core/src/recentSearches.ts": { n: 1, why: PREF },
   "packages/core/src/runTiming.ts": { n: 1, why: PREF },
   "packages/data/src/feed/history.ts": { n: 3, why: CACHE },
-  "packages/data/src/feed/http.ts": { n: 3, why: `${CACHE} (history notes, observation sync — its own outbox)` },
+  "packages/data/src/feed/http.ts": { n: 2, why: `${CACHE} (history notes; the observation sync reports, T676 L4)` },
   "packages/data/src/feed/inseason.ts": { n: 2, why: CACHE },
   "packages/data/src/feed/runtiming.ts": { n: 2, why: CACHE },
   "packages/data/src/feed/salmon.ts": { n: 4, why: `${CACHE}; latest() never rejects (defensive); ${UNCACHE}` },

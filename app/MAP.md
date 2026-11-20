@@ -44,7 +44,9 @@ in-season feed + links (feeds/inseason/, T230) ─▶ data/src/feed/inseason.ts 
 feed gate (T676 item 2): every feed index carries `minAppVersion` (FEED_MIN_APP, pipeline/common/feed_formats.py) ─▶
                    core feedGate.ts `createFeedGate` (App.tsx, one) in each reader (salmon, inseason, http, runtiming):
                    an index for a newer app is refused, the capture answers ─▶ update service `needsApp` ─▶ core
-                   `appTooOld` ─▶ the strong update prompt ("New data needs the latest app"), as a release's app-too-old
+                   `appTooOld` ─▶ the strong update prompt ("New data needs the latest app"), as a release's app-too-old;
+                   a gauge station file / obs.json refused for its own stamp holds its need by name until it reads, is
+                   asked again only by its validator (a 304; T676 L2/L3), and the More row reads the gate per feed
 background check (T234, phone only: apps/mobile notify.native.ts, expo-background-task ~15 min) ─▶ data/src/notify/check.ts
                    (obs.json via feed/http.ts `fetchObs`; the release manifest; our version file, core appUpdate.ts
                    `appVersionFileUrl`) ─▶ core alerts.ts (`evaluateAlerts`, T527 stock-style: crosses above / below a

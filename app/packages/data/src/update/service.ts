@@ -346,17 +346,30 @@ export function createUpdateService(o: UpdateOptions): UpdateService {
   const listeners = new Set<() => void>();
   const feedListeners = new Set<(id: FeedId) => void>();
   let snap: UpdateSnapshot;
+  /**
+   * (T676 L3) A FEED'S ROW SAYS WHAT THE GATE HOLDS FOR IT: its index's need and every file under it still refused (a
+   * gauge station file, `obs.json`), the higher. The row read only the need this service's own index check set, so a
+   * file's hold reached the prompt but not More's row, and a 304 of the index cleared it until the next station read set
+   * it again (a flicker). With a gate, the gate is the word (it hears this service's checks AND the readers' own reads);
+   * without one, this service's own.
+   */
+  const rowOf = (s: SourceStatus): SourceStatus => {
+    if (!o.feedGate) return s;
+    const need = o.feedGate.refused()[s.id as FeedId] ?? null;
+    return (s.needsApp ?? null) === need ? s : { ...s, needsApp: need };
+  };
   const publish = () => {
-    snap = { checking, manual, feeds: o.feeds.map((s) => feeds.get(s.id)!), release, allowMetered, mobileData, mobileDataAnswered,
+    snap = { checking, manual, feeds: o.feeds.map((s) => rowOf(feeds.get(s.id)!)), release, allowMetered, mobileData, mobileDataAnswered,
              needsApp: o.feedGate?.needs() ?? null };
     for (const l of [...listeners]) l();
   };
   publish();
-  // (T676 item 2) a reader's own fetch refused (or let through) an index: the prompt follows at once
-  let lastNeed = o.feedGate?.needs() ?? null;
+  // (T676 item 2) a reader's own fetch refused (or let through) an index or a file: the prompt and the row follow at once
+  const gateWord = () => JSON.stringify(o.feedGate?.refused() ?? {});
+  let lastWord = gateWord();
   o.feedGate?.subscribe(() => {
-    const n = o.feedGate!.needs();
-    if (n !== lastNeed) { lastNeed = n; publish(); }
+    const w = gateWord();
+    if (w !== lastWord) { lastWord = w; publish(); }
   });
 
   // ── the release's session memory: the manifest pending, its validator ───────────────────────────────────────────────

@@ -19,8 +19,8 @@
 // `standing` comes from core rather than being restated here. A second copy of the
 // thresholds is a second answer to "is this river low", and the feed and the sheet
 // would eventually disagree about the same reading (AGENTS rule 23).
-import { gaugeFeedRefusal, isFeedTooNew, reportFailure, shownParameter, standing, type FeedGate,
-         type GaugeFeedFile, type SourceChange, now as clockNow } from "@app/core";
+import { FeedNeedsNewerApp, gaugeFeedRefusal, isFeedTooNew, parseSemver, reportFailure, reportOnce, shownParameter, standing,
+         type FeedGate, type GaugeFeedFile, type SourceChange, now as clockNow } from "@app/core";
 import type { Aged, Forecast, Parameter, Reading, StationId } from "../index";
 import type { AheadDays, StationChange } from "../panel";
 import { fetchJsonResilient } from "../net/fetch";
@@ -275,24 +275,43 @@ const FEED_LIMITS = { firstByteMs: 45_000, stallMs: 45_000, totalMs: 45_000 };
 /**
  * (T315, T234) THE PUBLISHER'S FEED-WIDE NEWEST ROWS (`obs.json`, every station's latest `[time, level, discharge]`),
  * read the one way: the phone's kept week takes it (`syncObservations`) and so does the background alert check
- * (`notify/check.ts`). Throws: the network (offline is the environment's, `NetError`), an HTTP status, or a file that
- * is not the feed's.
+ * (`notify/check.ts`). Throws: the network (offline is the environment's, `NetError`), an HTTP status, a file that
+ * is not the feed's, or the gate's `FeedNeedsNewerApp` (a file stamped for a newer app: a known state).
  */
 export async function fetchObs(base: string, fetchImpl: typeof fetch = fetch,
                                limits: typeof FEED_LIMITS = FEED_LIMITS, held?: ObsHeld, gate?: FeedGate | null): Promise<ObsFile> {
   const url = `${base.replace(/\/+$/, "")}/obs.json`;
-  const kept = held ? readHeldObs(held, url) : null;
+  const k = held ? readHeldObs(held, url) : { kept: null, refused: null };
+  const kept = k.kept;
+  // (T676 L2) a file this app refused as newer, remembered by its validator: asked about by THAT validator, so an
+  // unchanged refused file costs a 304 and no body (it was downloaded again on every run). The gate is asked first
+  // whether the remembered need still refuses (an app updated since reads the file whole); asking holds the need, which
+  // a readable answer below clears
+  let refused = k.refused;
+  if (refused && !(gate && stillRefused(gate, refused.need, url))) refused = null;
   // (T741) a conditional GET when a copy and its validator are kept: an unchanged file costs a 304 and no body. Sent
   // STRONG, as the update service's (`update/check.ts`): the edge gzips and weakens the R2 ETag, the data worker
   // compares strong validators against the R2 object, so a 304 is the origin's proof that the object has not moved.
-  const headers = kept ? { "If-None-Match": kept.etag.replace(/^W\//, "") } : undefined;
+  const validator = refused?.etag ?? kept?.etag ?? null;
+  const headers = validator ? { "If-None-Match": validator.replace(/^W\//, "") } : undefined;
   const got = await fetchJsonResilient<ObsFile>(url, { fetchImpl, attempts: 1, limits, cache: "no-store", ...(headers ? { headers } : {}) });
+  if (!got.ok && got.status === 304 && refused) throw new FeedNeedsNewerApp("gauges", refused.need);
   if (!got.ok && got.status === 304 && kept) return kept.value;
   if (!got.ok) throw new Error(`${url}: HTTP ${got.status}`);
   // (T676 item 2) a file stamped for a newer app throws the gate's refusal (a known state: the caller keeps what it has
   // and reports nothing). Only the file's OWN stamp excuses it: every gauge file is stamped, so a file in another format
   // without one, or a broken file in this app's own format, is a real failure, reported (T557)
-  gate?.checkFile(got.value, "gauges");
+  try {
+    gate?.checkFile(got.value, "gauges", url);
+  } catch (e) {
+    if (isFeedTooNew(e) && held) {
+      // (T676 L2) remembered beside the kept copy, by its validator; with none there is nothing to ask with (said)
+      if (got.etag) held.write(JSON.stringify({ url, ...(kept ? { etag: kept.etag, value: kept.value } : {}),
+                                                refused: { etag: got.etag, need: e.need } }));
+      else console.info(`[obs] ${url}: refused as newer than this app, with no ETag; the next check reads it whole again`);
+    }
+    throw e;
+  }
   const why = gaugeFeedRefusal(got.value, "obs");    // (T557)
   if (why) throw new Error(`${url}: ${why}`);
   if (held) {
@@ -306,24 +325,48 @@ export async function fetchObs(base: string, fetchImpl: typeof fetch = fetch,
   return got.value;
 }
 
-/** (T741) Where the background check keeps the last `obs.json` it read and its ETag (a cache: losing it costs one whole read). */
+/** (T676 L2) Does the gate still refuse a file it once refused for `need`? (asking holds the need under `file`) */
+function stillRefused(gate: FeedGate, need: string, file: string): boolean {
+  try { gate.checkFile({ minAppVersion: need }, "gauges", file); return false; } catch (e) { if (isFeedTooNew(e)) return true; throw e; }
+}
+
+/** (T741) Where the background check keeps the last `obs.json` it read and its ETag (a cache: losing it costs one whole
+ *  read), and (T676 L2) the validator and need of the last one it refused as newer than this app. */
 export interface ObsHeld { read(): string | null; write(text: string): void }
 
-/** The kept copy for `url`, or null (none, another url, or unreadable: a whole read follows, and a bad copy is said). */
-function readHeldObs(held: ObsHeld, url: string): { etag: string; value: ObsFile } | null {
+/** A small in-memory `ObsHeld` (the foreground's own: the session's conditional GETs and refusal). */
+const memoryObsHeld = (): ObsHeld => {
+  let t: string | null = null;
+  return { read: () => t, write: (x) => { t = x; } };
+};
+
+interface HeldObs {
+  /** the kept copy for `url` (none, another url, or unreadable: a whole read follows, and a bad copy is said) */
+  kept: { etag: string; value: ObsFile } | null;
+  /** (T676 L2) the last answer refused as newer than this app: its validator and the version it asked for */
+  refused: { etag: string; need: string } | null;
+}
+
+function readHeldObs(held: ObsHeld, url: string): HeldObs {
+  const none: HeldObs = { kept: null, refused: null };
   const text = held.read();
-  if (!text) return null;
-  let k: { url?: unknown; etag?: unknown; value?: unknown };
+  if (!text) return none;
+  let k: { url?: unknown; etag?: unknown; value?: unknown; refused?: unknown };
   try { k = JSON.parse(text) as typeof k; } catch (e) {
     reportFailure(new Error(`kept obs.json is not JSON (${e instanceof Error ? e.message : String(e)}); reading it whole`));
-    return null;
+    return none;
   }
-  if (k.url !== url || typeof k.etag !== "string" || !k.etag) return null;
+  if (!k || typeof k !== "object" || k.url !== url) return none;
+  const r = k.refused as { etag?: unknown; need?: unknown } | undefined;
+  // a cache: a refusal not in its shape is dropped (one whole read), never trusted
+  const refused = r && typeof r === "object" && typeof r.etag === "string" && r.etag && typeof r.need === "string" && parseSemver(r.need)
+    ? { etag: r.etag, need: r.need } : null;
+  if (typeof k.etag !== "string" || !k.etag) return { kept: null, refused };
   if (gaugeFeedRefusal(k.value, "obs")) {
     reportFailure(new Error(`kept obs.json is not the feed's (${gaugeFeedRefusal(k.value, "obs")}); reading it whole`));
-    return null;
+    return { kept: null, refused };
   }
-  return { etag: k.etag, value: k.value as ObsFile };
+  return { kept: { etag: k.etag, value: k.value as ObsFile }, refused };
 }
 
 export function httpFeed(base: string, fetchImpl: typeof fetch = fetch,
@@ -343,6 +386,8 @@ export function httpFeed(base: string, fetchImpl: typeof fetch = fetch,
   const cache = new Map<string, { at: number; value: unknown }>();
   /** (T254) the last good copy of each file this session read: what a dead line answers with (a refresh keeps it) */
   const good = new Map<string, unknown>();
+  /** (T676 L2) the foreground's own kept obs.json and its validator (and a refusal's): the session's conditional GETs */
+  const obsHeld = memoryObsHeld();
 
   /** (T557) which gauge feed file a path is, for its format check */
   const kindOf = (path: string): GaugeFeedFile => (path === "index.json" ? "index" : path === "obs.json" ? "obs" : "station");
@@ -362,12 +407,28 @@ export function httpFeed(base: string, fetchImpl: typeof fetch = fetch,
     return st ? (opts.history.file(st) as T | null) : null;
   };
 
+  /**
+   * (T676 L2) EACH FILE REFUSED AS NEWER THAN THIS APP, remembered: its validator, the version it asked for, and when it
+   * was last asked. Within FEED_TTL_MS it is not asked again at all (what this session or the phone holds answers);
+   * after, it is asked by ITS validator, so an unchanged refused file costs a 304 and no body. It was downloaded again
+   * on every read before. `refresh` (the sync icon) asks again at once, still by the validator.
+   */
+  const refusedFiles = new Map<string, { etag: string | null; need: string; at: number }>();
+  /** the gate's check for `path` (the index speaks for the feed; any other file holds its own need, by url) */
+  const gateCheck = (path: string, url: string, doc: unknown) => {
+    if (path === "index.json") opts.gate!.check(doc, "gauges");
+    else opts.gate!.checkFile(doc, "gauges", url);
+  };
+
   async function load<T>(path: string): Promise<T | null> {
     const url = `${trimmed}/${path}`;
     const hit = cache.get(url);
     if (hit && (held(url) || clockNow() - hit.at < FEED_TTL_MS)) return hit.value as T;
     // (T315) offline: no request (it would only wait out its timeouts); what this session or the phone holds answers
     if (opts.online && !opts.online()) return fallback<T>(path, url);
+    // (T676 L2) refused a moment ago: nothing is asked; the gate still holds its need
+    const rem = opts.gate ? refusedFiles.get(url) : undefined;
+    if (rem && clockNow() - rem.at < FEED_TTL_MS) return fallback<T>(path, url);
 
     let p = inflight.get(url) as Promise<T | null> | undefined;
     if (!p) {
@@ -376,20 +437,36 @@ export function httpFeed(base: string, fetchImpl: typeof fetch = fetch,
           // (T254) on a bad line a dead request is cut and tried once more (never longer than FEED_LIMITS)
           // (T265) the held index is read the way the update service reads it (`no-store`: the origin's word), so a read made
           // while the service's check is in the air joins that request (`shareFetch`) instead of sending a second one
+          // (T676 L2) a refused file is asked about by its validator (STRONG, as `fetchObs`)
           const got = await fetchJsonResilient<T>(url, { fetchImpl, attempts: 2, limits: opts.limits ?? FEED_LIMITS,
-                                                          ...(held(url) ? { cache: "no-store" as const } : {}) });
-          if (!got.ok) return null;          // 404 = this station is not transmitting
+                                                          ...(held(url) ? { cache: "no-store" as const } : {}),
+                                                          ...(rem?.etag ? { headers: { "If-None-Match": rem.etag.replace(/^W\//, "") } } : {}) });
+          if (!got.ok && got.status === 304 && rem) {
+            // (T676 L2) the same file this app is too old for: still refused, its need held again; nothing downloaded
+            rem.at = clockNow();
+            try { gateCheck(path, url, { minAppVersion: rem.need }); } catch (e) { if (!isFeedTooNew(e)) throw e; }
+            return fallback<T>(path, url);
+          }
+          if (!got.ok) {
+            // 404 = this station is not transmitting (a hold its refused file set is gone with it)
+            refusedFiles.delete(url);
+            if (opts.gate && got.status === 404 && path !== "index.json") opts.gate.clearFile("gauges", url);
+            return null;
+          }
           // (T676 item 2) an index for a newer app: not a failure (no report), what this session or the phone holds
           // answers, and the gate holds the need for the update prompt. A station file or obs.json for a newer app: the
-          // same (the gate holds the need; only the index clears it)
+          // same (the gate holds the file's need until that file reads; T676 L3)
           if (opts.gate) {
             try {
-              if (path === "index.json") opts.gate.check(got.value, "gauges");
-              else opts.gate.checkFile(got.value, "gauges");
+              gateCheck(path, url, got.value);
             } catch (e) {
-              if (isFeedTooNew(e)) return fallback<T>(path, url);
+              if (isFeedTooNew(e)) {
+                refusedFiles.set(url, { etag: got.etag, need: e.need, at: clockNow() });
+                return fallback<T>(path, url);
+              }
               throw e;
             }
+            refusedFiles.delete(url);
           }
           // (T557) a file in another format, or not the shape asked for, is refused and REPORTED, never cached or kept:
           // what this session or the phone already holds answers instead, with its own age. (T676 item 2) Only a file's own
@@ -432,13 +509,25 @@ export function httpFeed(base: string, fetchImpl: typeof fetch = fetch,
     index: () => load<IndexFile>("index.json"),
 
     // in-flight requests are left to finish: the next ask after them is a fresh fetch
-    refresh() { cache.clear(); },
+    refresh() {
+      cache.clear();
+      for (const r of refusedFiles.values()) r.at = -Infinity;   // (T676 L2) asked again now, by the validator
+    },
 
     async syncObservations() {
       if (!opts.history || (opts.online && !opts.online())) return;
       try {
-        opts.history.noteObs(await fetchObs(trimmed, fetchImpl, opts.limits ?? FEED_LIMITS, undefined, opts.gate));
-      } catch { /* offline or not published yet: the next feed update asks again */ }
+        // (T676 L2) the session's own kept copy: an unchanged obs.json (a refused one included) costs a 304
+        opts.history.noteObs(await fetchObs(trimmed, fetchImpl, opts.limits ?? FEED_LIMITS, obsHeld, opts.gate));
+      } catch (e) {
+        // (T676 L4) a file stamped for a newer app is a known state: the gate holds its need (the update prompt and More's
+        // gauges row say it), nothing reported. Offline is the environment's (never reported). Anything else (an HTTP
+        // status, a file that is not the feed's) is a defect: REPORTED, once per kind a run (`reportOnce`): the sync runs
+        // on every feed update, and the same broken file must not fill the crash inbox. Nothing on screen claims the
+        // rows are new: the kept week answers with its own age ("as of")
+        if (isFeedTooNew(e)) return;
+        reportOnce(`obs sync: ${e instanceof Error ? e.message : String(e)}`, e);
+      }
     },
 
     offer(index) {
