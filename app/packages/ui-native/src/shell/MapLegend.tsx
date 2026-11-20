@@ -8,7 +8,7 @@
  */
 import { CHANGE_LEGEND, changeMarkWords, FLOW_LEGEND, OTHER_QUANTITY_WORDS, TEMP_LEGEND, unprovenLine,
          WATER_STATUS_LINE, WATER_STATUSES, type WaterStatus, waterLegend, salmonLegend, GEAR_LEGEND,
-         RUN_WORDS, salmonChecked, slotsFor, MAP_KEY, closedKey, waterKeyWords, OBSTACLE_ICON_KINDS }
+         RUN_WORDS, slotsFor, MAP_KEY, closedKey, waterKeyWords, OBSTACLE_ICON_KINDS }
   from "@app/core";
 import { closedCueColour, gaugeOnlyColours, issueStripeColours, gearEdgeColour, notFishingColours, runStateColour, salmonCasingColour, salmonStatusColour } from "@app/map/colours";
 import { ObstacleIcon } from "../icons";
@@ -52,7 +52,6 @@ export function MapLegend({ col, conditions, palette, theme, mapDay }: {
   // (T367, T425) THE FISHERY HEADS THE KEY IT CHANGES: the Map tab's legend, with (in Salmon, whose rules these are) DFO's
   // source line and the fold above it. The Trout | Salmon switch itself is on the map's rail (`RegsLayerToggle`)
   const fishery = !conditions && col.salmonOffered && col.statusOk && col.layers.water.drawn === "regulations";
-  const checked = fishery && col.regsLayer === "salmon" ? salmonChecked(col.salmonFacts) : null;
   // (T396) the regulations key's entries, laid in two rows below (`LegendRows`)
   const gearRows = col.gearMarked ? GEAR_LEGEND.map((m) => (
     <LegendCount key={m} palette={palette} colour={gearEdgeColour(theme)} edge={m === "fly" ? "solid" : "dashed"} tight
@@ -79,13 +78,6 @@ export function MapLegend({ col, conditions, palette, theme, mapDay }: {
                  cased={r.status === "open" ? salmonCasingColour(theme) ?? undefined : undefined}
                  label={MAP_KEY.salmon[r.status]} {...tap(r.status)} />
   ));
-  // (T896) Salmon's checked date: the key's last word, right-aligned on its last row
-  const checkedNote = checked && (
-    <Text key="checked" testID="salmon-legend-source" accessibilityLabel={checked.label} numberOfLines={1}
-          style={{ ...TYPE.meta, color: palette.sub, marginLeft: "auto" }}>
-      {checked.short}
-    </Text>
-  );
   const strip = (
     <LegendStrip palette={palette} full={onConditions} wrap={!onConditions} card={card}>
       {/* NO QUANTITY SWITCH HERE (owner 2026-10-22): Flow · Level · Temperature is the Layers sheet's Show, one
@@ -141,11 +133,11 @@ export function MapLegend({ col, conditions, palette, theme, mapDay }: {
       ) : col.regsLayer === "salmon" ? (
         // (T211) DFO's salmon: the salmon key in the salmon colours, and whose rules they are. The switch is under the
         // Layers button and the day in the map's corner (T213)
-        // (T396) two rows as Trout & more's where they fit: the three classes, then Check DFO (T882) and No access (T937: Standard's own
-        // entry, the same words and swatch) with the gear marks. T937: with the issue entry or the checked date that is more than 390 dp
-        // (Check DFO + No access + both gear marks fill a row), so they take a third row, never wrapped by chance
+        // (T396) two rows as Trout & more's: the three classes, then Check DFO (T882) and No access (T937: Standard's own entry,
+        // the same words and swatch) with the gear marks. Salmon's checked date left the key (owner 2026-11-20: "Remove checked dste")
+        // to hold the two rows. Only the issue entry (T759, when the feed has such a water) takes a third, never wrapped by chance
         <LegendRows rows={[salmonRows.slice(0, 3), [...salmonRows.slice(3), statusRow("no_access", false), ...gearRows],
-                           [...issueRow, ...(checkedNote ? [checkedNote] : [])]].filter((r) => r.length > 0)} />
+                           issueRow].filter((r) => r.length > 0)} />
       ) : (
         // The three statuses, in the words and colours every surface uses (@app/core
         // WATER_STATUS through the map's theme) — for the day shown. (T213) Then the gear marks drawn ON them: an ink
@@ -179,8 +171,7 @@ export function MapLegend({ col, conditions, palette, theme, mapDay }: {
     </LegendStrip>
   );
   if (!fishery) return strip;
-  // (T896) NO HEAD, NO RESERVE: both modes are exactly T396's two rows (a phone) or one row (from `WIDE_LEGEND`); Salmon's checked
-  // date is the last entry of its key, at the right end of the last row ("Checked Oct 29"; read as "DFO rules checked Oct 29")
+  // (T896) NO HEAD, NO RESERVE: both modes are exactly T396's two rows (a phone) or one row (from `WIDE_LEGEND`)
   // (T904) a desktop's card is the strip itself: no bar round it
   if (card) return strip;
   return (

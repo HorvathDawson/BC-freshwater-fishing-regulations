@@ -17,9 +17,6 @@ export const MAP_KEY = {
   status: { own: "Own rules", base: "Base rules", no_access: "No access" } satisfies Record<Exclude<WaterStatus, "closed">, string>,
   gear: { fly: "Fly only", bait: "Bait ban" } satisfies Record<GearMark, string>,
   notFishing: "Not fishable",
-  /** (T896) when DFO's pages were last fetched, for the Salmon key's last row: `short` is what is drawn ("Checked Oct 29"),
-   *  `label` is what a screen reader says ("DFO rules checked Oct 29"); `on` is the day as the calendar spec names it */
-  checked: { short: (on: string) => `Checked ${on}`, label: (on: string) => `DFO rules checked ${on}` },
   /** (T759) the issue stripe's entry (Salmon key only): the banner on the water's page says what the rule is */
   issue: "Check rule",
   /** (T882, the owner's pick 2026-11-18 ~22:50: "Check DFO") the check colour is DFO's "To be determined" OR a DFO row the

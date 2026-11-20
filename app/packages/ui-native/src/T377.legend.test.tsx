@@ -5,8 +5,6 @@
  */
 import { afterEach, describe, expect, it, vi } from "vitest";
 
-// the checked line, as the feed's fetch time would say it (the line's own wording is salmonFeed.test.ts's)
-vi.mock("@app/core", async (orig) => ({ ...(await orig<Record<string, unknown>>()), salmonChecked: () => ({ short: "Checked Oct 29", label: "DFO rules checked Oct 29" }) }));
 vi.mock("@app/map", async (orig) => ({ ...(await orig<Record<string, unknown>>()), Map: () => null }));
 import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { KEY_ISOLATE_WORDS, MAP_KEY } from "@app/core";
@@ -93,20 +91,14 @@ describe("(T896) the key is visible at a phone's width", () => {
   });
 });
 
-describe("(T396, T896, T937) Trout's bar is two rows on a phone, Salmon's three (No access joined its key: 390 dp holds no more), nothing reserved", () => {
-  it("no head or reserve; Salmon's checked date ends its last row", () => {
+describe("(T396, T896) both modes' bars are the same two rows on a phone, nothing reserved", () => {
+  it("no head or reserve, and no checked date in the key (owner 2026-11-20)", () => {
     for (const mode of ["standard", "salmon"] as const) {
       show(col(mode, null));
-      expect(screen.getAllByTestId("legend-row"), mode).toHaveLength(mode === "standard" ? 2 : 3);
+      expect(screen.getAllByTestId("legend-row"), mode).toHaveLength(2);
       expect(screen.queryByTestId("legend-fishery-head"), mode).toBeNull();
       expect(screen.queryByTestId("legend-reserve"), mode).toBeNull();
-      const note = screen.queryByTestId("salmon-legend-source");
-      if (mode === "standard") expect(note).toBeNull();
-      else {
-        expect(note!.textContent).toBe("Checked Oct 29");
-        expect(note!.getAttribute("aria-label")).toBe("DFO rules checked Oct 29");
-        expect(screen.getAllByTestId("legend-row")[2]!.contains(note)).toBe(true);
-      }
+      expect(screen.queryByTestId("salmon-legend-source"), mode).toBeNull();
       cleanup();
     }
   });
