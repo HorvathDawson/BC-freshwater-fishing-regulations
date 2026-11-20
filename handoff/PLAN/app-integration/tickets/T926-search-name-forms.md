@@ -152,3 +152,30 @@ letter in it (it stays a search name). Pigeon Lake #2 would then show "Pigeon La
 cased); the other three "Unnamed Cayoosh Cr", "Unnamed Vanhorlick 1" / "2". A code rule, no data edit; atlas-side
 (ships with the next atlas build). Alternative: `"display": true` on the wanted name in the file, one entry per lake.
 Matching: none of these numbers is a book name; the proof above would be rerun with the change.
+
+## Owner 2026-11-20 ~06:55 (main chat dialog): "Never show a number name (Recommended)"
+When a water has a name with letters, a name with no letter is never its shown name; it stays a search name.
+Built (lane/t926-numbers): registry pass `show_lettered_names` (`pipeline/atlas/registry/build.py`), inside ONE helper,
+`finish_names` (wbk variants, then shown names), which the atlas build and `pipeline.atlas.sidecars` both call on the
+registry about to be written — in the build after every other registry pass, `tidal.add_mouth_boundaries` included
+(mouth ids are slugged from the name they were made with, so the same in both paths); a test pins the call, its order
+and the variants-first order. Report `shown_name_report.json`, every change printed. A "number name" is a name with no
+letter at all: "5566", and the print forms "#15", "5566-2" count too (decided: the four "#"-forms on the live registry
+are stocking lake numbers like the bare ones). The lettered name shown: the one most of the water's names agree on
+(same matcher key), then the better source, then file order — stored EXACTLY as the file gives it (review: a re-caser
+turned "TEANOOK L." into "Teanook Lake", another water's key); the water page and the tiles case it with the one caser
+(`bundle.place_names.display_case`), and search rows show it as stored, as they show "GREY HORSE LAKE #1" today. Its
+name-source record is its own; a variant with no record gets "Alternate name (source not recorded)". The pass asserts
+the name set and every matcher key stay the same.
+Dry run on the live registry (scratchpad `probe/numbers_proof.py`; same result after the wbk variant pass) — 8 waters
+(all lakes), no number-named water left:
+- wbk:329116782 "5566" → "PIGEON LAKE #2"; wbk:329505260 "3261" → "UNNAMED CAYOOSH CR"; wbk:329505286 "3296" →
+  "UNNAMED VANHORLICK 1"; wbk:329505318 "3299" → "UNNAMED VANHORLICK 2"; wbk:329021876 "#15" → "PRECIPICE LAKE";
+  wbk:329054830 "#1222" → "WILDERNESS"; wbk:329320968 "#1012" → "TRAILS END LAKE"; wbk:329321012 "#825" → "HEIDI LAKE"
+  (the water page reads them cased: "Pigeon Lake #2", "Unnamed Cayoosh Cr" …).
+Owner questions (OWNER-TODO 2026-11-20 07:07): the three "Unnamed …" names, or keep their numbers? Default: the rule.
+And "#14A" (wbk:329021840) has a letter, so it stays shown: does it count as a number name? Default: it stays (the rule).
+Proof: only `name` and the order of `name_sources` change (variants unchanged, the number among them); the matcher's name index is the
+same 17,599 keys (17,636 after the variant pass) with 0 keys whose waters change; all 2,996 synopsis entry matches through
+the build's matcher + overrides unchanged; no entry's stored `matched` (what the build binds by) names any of the 8, and
+no item id, section or boundary moves — no rule binding can change. Ships with the next atlas registry.

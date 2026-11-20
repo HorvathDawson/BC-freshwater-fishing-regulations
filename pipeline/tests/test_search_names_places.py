@@ -153,3 +153,108 @@ def test_t927_a_bundle_without_cut_place_gives_no_table():
     con.execute("CREATE TABLE main.item (ord INTEGER PRIMARY KEY, item_id TEXT, kind TEXT)")
     B.core_cut_place(con, {})
     assert con.execute("SELECT 1 FROM sqlite_master WHERE name = 'cut_place'").fetchone() is None
+
+
+def test_t926_a_number_is_never_the_shown_name_when_a_lettered_one_exists():
+    """(T926, owner 2026-11-20 ~06:55 "Never show a number name") The stocking number "5566" outranked the bathymetry
+    sheet's "PIGEON LAKE #2" (stocking is the better source): a name with no letter ("5566", "#15") is never shown while
+    the water has a lettered name — the one most of its names agree on, stored exactly as given (the bundle and tiles case
+    it) — and stays a search name. The matcher's keys are the same set; a water with only numbers keeps its number."""
+    import tempfile
+    from pathlib import Path
+
+    from pipeline.atlas.registry.build import is_number_name, show_lettered_names
+    from pipeline.atlas.registry.io import write_registry
+    from pipeline.deliver.bundle.build import name_source_rows
+    from pipeline.regs.matching.matcher import build_name_index
+    assert is_number_name("5566") and is_number_name("#15") and is_number_name(" 5566-2 ")
+    assert not is_number_name("Lake 5567") and not is_number_name("Pigeon Lake #2") and not is_number_name("")
+    src = lambda n, s: NameRecord(name=n, source=s, label=s)              # noqa: E731
+    reg = {"wbk:1": RegistryItem(id="wbk:1", name="5566", kind="lake",
+                                 variants=("5566", "CONTROL (PIGEON)", "PIGEON LAKE #2", "Pigeon Lake # 2"),
+                                 name_sources=(src("5566", "stocking"), src("CONTROL (PIGEON)", "stocking"),
+                                               src("PIGEON LAKE #2", "stocking"), src("Pigeon Lake # 2", "marker"))),
+           "wbk:2": RegistryItem(id="wbk:2", name="3135", kind="lake", variants=("3135",),
+                                 name_sources=(src("3135", "stocking"),)),
+           "wbk:3": _lake("wbk:3", "Lilypad Lake", ["Lilypad Lake", "LAKE #905"]),
+           # a lettered name that is a variant no record names: shown, with the honest "source not recorded" record
+           "wbk:4": RegistryItem(id="wbk:4", name="#825", kind="lake", variants=("#825", "HEIDI LAKE"),
+                                 name_sources=(src("#825", "stocking"),))}
+    before = build_name_index(reg)
+    rep: list = []
+    out = show_lettered_names(dict(reg), rep)
+    a = out["wbk:1"]
+    assert a.name == "PIGEON LAKE #2" and a.variants == reg["wbk:1"].variants                 # the number stays one
+    assert a.name_sources[0].name == "PIGEON LAKE #2" and a.name_sources[0].source == "stocking"
+    assert {r.name for r in a.name_sources} == {"5566", "CONTROL (PIGEON)", "PIGEON LAKE #2", "Pigeon Lake # 2"}
+    assert out["wbk:2"] is reg["wbk:2"] and out["wbk:3"] is reg["wbk:3"]
+    h = out["wbk:4"]
+    assert h.name == "HEIDI LAKE" and (h.name_sources[0].source, h.name_sources[0].label) == (
+        "alias", "Alternate name (source not recorded)")
+    assert rep == [{"item": "wbk:1", "was": "5566", "now": "PIGEON LAKE #2"},
+                   {"item": "wbk:4", "was": "#825", "now": "HEIDI LAKE"}]
+    after = build_name_index(out)
+    assert {k: set(v) for k, v in after.items()} == {k: set(v) for k, v in before.items()}
+    assert show_lettered_names(dict(out), []) == out                      # idempotent
+    # the bundle's name-source rows take the "not recorded" record as any other
+    with tempfile.TemporaryDirectory() as t:
+        write_registry(out, Path(t) / "r.json")
+        items = json.loads((Path(t) / "r.json").read_text())["items"]
+    assert name_source_rows([i for i in items if i["id"] == "wbk:4"], set()) == [
+        ("wbk:4", "HEIDI LAKE", "alias", "Alternate name (source not recorded)")]
+
+
+def test_t926_a_name_only_a_source_record_carries_is_never_a_candidate():
+    """(T926 review) A water shown "123" whose only lettered name is in `name_sources` and NOT among its own names (the
+    live `wsc:300-432687-459615` has this shape): no candidate, no raise, the number stays shown."""
+    from pipeline.atlas.registry.build import show_lettered_names
+    reg = {"wsc:1": RegistryItem(id="wsc:1", name="123", kind="stream", variants=("123",),
+                                 name_sources=(NameRecord(name="123", source="stocking", label="s"),
+                                               NameRecord(name="FOO LAKE", source="stocking", label="s")))}
+    rep: list = []
+    out = show_lettered_names(dict(reg), rep)
+    assert out["wsc:1"] is reg["wsc:1"] and rep == []
+
+
+def test_t926_a_shown_name_is_never_recased_into_another_waters_key():
+    """(T926 review) "TEANOOK L." is shown as given: the old casing step made it "Teanook Lake", a matcher key that names
+    ANOTHER water (a second Teanook Lake), and a key may never come to name two waters."""
+    from pipeline.atlas.registry.build import show_lettered_names
+    from pipeline.regs.matching.matcher import build_name_index
+    src = lambda n, s: NameRecord(name=n, source=s, label=s)              # noqa: E731
+    reg = {"wbk:1": RegistryItem(id="wbk:1", name="3301", kind="lake", variants=("3301", "TEANOOK L."),
+                                 name_sources=(src("3301", "stocking"), src("TEANOOK L.", "bathymetry"))),
+           "wbk:2": _lake("wbk:2", "Teanook Lake", ["Teanook Lake"])}
+    before = build_name_index(reg)
+    out = show_lettered_names(dict(reg), [])
+    assert out["wbk:1"].name == "TEANOOK L."
+    after = build_name_index(out)
+    assert {k: set(v) for k, v in after.items()} == {k: set(v) for k, v in before.items()}
+    assert set(after["teanook lake"]) == {"wbk:2"}
+
+
+def test_t926_the_last_name_step_is_one_helper_run_last_by_the_build_and_by_sidecars(tmp_path):
+    """(T926 review) `finish_names` runs the wbk variants BEFORE the shown names (a lake whose only lettered name comes
+    from the variants file gets it) and writes both reports; the atlas build and `pipeline.atlas.sidecars` both call it,
+    neither runs the two passes on its own, and the build calls it after the mouth boundaries, right before the registry
+    is written (a mouth id is slugged from the name it was made with)."""
+    from pathlib import Path
+
+    from pipeline.atlas.registry.build import SHOWN_NAME_REPORT, WBK_VARIANT_REPORT, finish_names
+    reg = {"wbk:7": RegistryItem(id="wbk:7", name="3135", kind="lake", variants=("3135",),
+                                 name_sources=(NameRecord(name="3135", source="stocking", label="s"),))}
+    out = finish_names(reg, [{"target": {"wbks": ["7"]}, "names": [{"name": "MOON LAKE", "source": "stocking"}]}],
+                       tmp_path, log=lambda *_: None)
+    assert out["wbk:7"].name == "MOON LAKE" and "3135" in out["wbk:7"].variants
+    assert json.loads((tmp_path / SHOWN_NAME_REPORT).read_text()) == [
+        {"item": "wbk:7", "was": "3135", "now": "MOON LAKE"}]
+    assert (tmp_path / WBK_VARIANT_REPORT).exists()
+    root = Path(__file__).resolve().parents[2]
+    build = (root / "pipeline/atlas/build.py").read_text()
+    side = (root / "pipeline/atlas/sidecars.py").read_text()
+    for src in (build, side):
+        assert src.count("finish_names(registry,") == 1
+        assert "attach_wbk_variants(registry" not in src and "show_lettered_names(registry" not in src
+    at = build.index("finish_names(registry,")
+    assert build.index("add_mouth_boundaries(registry") < at < build.index('write_registry(registry, out / "registry.json")')
+    assert side.index("finish_names(registry,") < side.index('write_registry(registry, dest / "registry.json")')

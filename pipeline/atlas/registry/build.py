@@ -742,6 +742,85 @@ def attach_wbk_variants(registry: dict[str, RegistryItem], name_variants: list[d
     return registry
 
 
+def is_number_name(name: str) -> bool:
+    """(T926, owner 2026-11-20 ~06:55: "Never show a number name") A name with no letter in it — a stocking record's lake
+    number: "5566", and its print forms "#5566", "5566-2" count too. A name with any letter ("Lake 5567", "Pigeon Lake #2")
+    is a name."""
+    return bool(name and name.strip()) and not any(c.isalpha() for c in name)
+
+
+def show_lettered_names(registry: dict[str, RegistryItem], report: list | None = None) -> dict[str, RegistryItem]:
+    """(T926, owner 2026-11-20 ~06:55, "Never show a number name (Recommended)") A water whose SHOWN name has no letter
+    (`is_number_name`: the stocking number "5566" outranked the bathymetry sheet's "PIGEON LAKE #2", since stocking is the
+    better-ranked source) shows a name with letters when it has one; the number stays a variant, so search still finds it
+    by it. Which lettered name: the one the most of its names agree on (records sharing its matcher key: "PIGEON LAKE #2"
+    and "Pigeon Lake # 2" over "CONTROL (PIGEON)"), then the better source, then the order the names came in. It is
+    stored EXACTLY as the file gives it, never re-cased here: the bundle and the tiles case every shown name with the one
+    caser (`bundle.place_names.display_case`), and a caser that rewrites words ("TEANOOK L." -> "Teanook Lake") would add
+    a matcher key another water owns. ONLY the shown name and the order of `name_sources` (the shown one first) change:
+    the set {name, *variants} is the same set, so every matcher key stays (asserted). A water with no lettered name keeps
+    its number. Each change is appended to `report` ({item, was, now}). Idempotent.
+
+    WHERE IT RUNS: through `finish_names`, on the registry about to be written — in the atlas build after every other
+    registry pass (`tidal.add_mouth_boundaries` included: a mouth boundary id is slugged from the name it was made with,
+    and must be the same id whether the registry came from a build or from `pipeline.atlas.sidecars`)."""
+    from pipeline.regs.matching.matcher import _norm
+    rep = report if report is not None else []
+    for iid in sorted(registry):
+        it = registry[iid]
+        if not is_number_name(it.name):
+            continue
+        # candidates: the water's OWN names only (name + variants) — a name only a source record carries is no name of it
+        # here, and showing it would change the name set (the guard below would stop the build)
+        own = {it.name, *it.variants}
+        recs = [r for r in it.name_sources if r.name in own and not is_number_name(r.name)]
+        lettered = list(dict.fromkeys([*(r.name for r in recs), *(v for v in it.variants if not is_number_name(v))]))
+        if not lettered:
+            continue
+        rank = {r.name: _SRC_RANK[NameSource(r.source)] for r in recs}
+        keys = [_norm(r.name) for r in it.name_sources if r.name]
+        best = min(lettered, key=lambda n: (-keys.count(_norm(n)), rank.get(n, len(_SRC_RANK)), lettered.index(n)))
+        names = {it.name, *it.variants}
+        variants = tuple(sorted(set(it.variants) | {it.name}))       # the number stays a variant; nothing else moves
+        if {best, *variants} != names or {_norm(n) for n in {best, *variants}} != {_norm(n) for n in names}:
+            raise AssertionError(f"show_lettered_names: {iid} would change its names or matcher keys")
+        # its own record; a variant no record names gets the honest "source not recorded" one
+        first = next((r for r in it.name_sources if r.name == best), None) or NameRecord(
+            name=best, source=NameSource.alias.value, label=label_of(NameSource.alias))
+        registry[iid] = replace(it, name=best, variants=variants,
+                                name_sources=(first, *(r for r in it.name_sources if r.name != best)))
+        rep.append({"item": iid, "was": it.name, "now": best})
+    return registry
+
+
+def finish_names(registry: dict[str, RegistryItem], name_variants: list[dict], out_dir, log=print) -> dict[str, RegistryItem]:
+    """(T926) THE LAST NAME STEP of a registry about to be written — ONE helper, so the atlas build and
+    `pipeline.atlas.sidecars` cannot run it differently: every whole-feature wbk name onto its item
+    (`attach_wbk_variants`), THEN a lettered shown name for a water shown by a number (`show_lettered_names`; the order
+    matters: a lake's only lettered name may come from the variants file). Both reports are written into `out_dir`."""
+    wv: dict = {}
+    registry = attach_wbk_variants(registry, name_variants, wv)
+    write_wbk_variant_report(wv, out_dir, log)
+    sn: list = []
+    registry = show_lettered_names(registry, sn)
+    write_shown_name_report(sn, out_dir, log)
+    return registry
+
+
+#: (T926) the file `show_lettered_names`'s report is written to, beside `registry.json`
+SHOWN_NAME_REPORT = "shown_name_report.json"
+
+
+def write_shown_name_report(rep: list, out_dir, log=print) -> None:
+    """Write `show_lettered_names`'s changes beside the registry and say each one."""
+    import json
+    from pathlib import Path
+    (Path(out_dir) / SHOWN_NAME_REPORT).write_text(json.dumps(rep, indent=1) + "\n", encoding="utf-8")
+    log(f"  shown names (T926): {len(rep)} water(s) shown by a lettered name instead of a number -> {SHOWN_NAME_REPORT}")
+    for r in rep:
+        log(f"    {r['item']}: {r['was']!r} -> {r['now']!r}")
+
+
 #: (T926 review) the file `attach_wbk_variants`'s report is written to, beside `registry.json`
 WBK_VARIANT_REPORT = "wbk_variant_report.json"
 
