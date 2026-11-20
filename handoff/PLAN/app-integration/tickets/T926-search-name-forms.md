@@ -100,3 +100,57 @@ Proof: the side deliver of T927's lane section (r-8d7bd8d70ff6 vs live r-6258ffd
 (bundle `alias` +13, `name_source` +13; core the same + `cut_place`); every rules file byte-identical. The atlas half
 (registry pass, display case) was measured on the live registry in memory only, not built.
 Side find: the lake the file calls "Pigeon Lake # 2" shows as "5566" (its marker label is its shown name) — not touched here.
+
+## Owner 2026-11-20 ~06:34 (main chat dialog): pictures approved; clean-ups approved
+The owner looked at the pictures and approved them. Approved data clean-ups in `name_variants.json`: (a) remove the
+"." variant; (b) Pete's Pond's regulation-sourced name "PETE'S POND UNNAMED LAKE AT THE HEAD OF SAN JUAN RIVER" becomes
+"PETE'S POND" (its `note` already holds the description; kept); (c) find out why the lake the file calls "Pigeon Lake # 2"
+shows as "5566" and propose a fix (not applied).
+## Owner 2026-11-20 06:38 (main chat): the condition on the clean-up
+Verbatim: "Withe the name clean up make sure it still matches properly. And that it doesn't need a new override json".
+Done as below: no override file touched, every match proved unchanged.
+
+## Review fixes 2026-11-20 (lane/t926-t927)
+- Exact names under the limit (6cae36cbd): every row typed exactly is kept ahead of the rest; only non-exact rows give
+  way; more exact rows than the limit returns the first `limit` of them (pinned with 50 and 90 "Long Lake"s).
+- The registry pass never makes a matcher key name a second water (9dcb7a264): `attach_wbk_variants` keys each new name
+  as `matcher.build_name_index` does and skips one whose key already names another water, listing it in
+  `wbk_variant_report.json` (printed by the atlas build and sidecars); unknown name sources are refused. Dry run on the
+  live registry: 43 items gain names, 0 existing keys change, 0 lost, 37 new keys each naming one water. NOT attached
+  (7): "KOOTENAY LAKE - UPPER WEST ARM" / "- LOWER WEST ARM" on Kootenay Lake (keys name the parts wbk:-21 / wbk:-22),
+  "WEST ARM" on Kootenay Lake (names wbk:329400588), "SCOTT #2" on Lilypad Lake (Scott #2 Lake, wbk:329055056),
+  "BLUFF LAKE" on Barbour Lake (three Bluff Lakes), "Dorothy" on Dorothy Lake, "Edith" on Edith Lake (another lake each).
+  So "BLUFF LAKE" stays a search miss (the probe: 7,778 / 7,780 with the atlas pass; the other is "."), by design.
+
+## Clean-ups (a) and (b), with the owner's matching proof
+Edit (`git diff` of `data/curated/waters/name_variants.json`, checked by loading both versions): 2 of 3,708 entries
+change, exactly the two names; `check_curated --waters`: 0 errors, 0 warnings. `book_name_links.json` untouched.
+What reads the regulation-sourced variant text: the atlas (graph name tuples → the registry item's name, variants,
+name sources), and through the registry the matchers (`matcher.build_name_index`: `covered.make_matcher` for
+`backfill_matched` / `reparse_candidates`, `dfo_salmon.match`, the batch exporter) and search. The build's bindings
+read each entry's stored `matched`, never a re-match (`reach/covered.py`). `check_curated` only checks shape and targets.
+`water_kind.flows` keeps the lake a lake ("Pete's Pond": a pond does not flow).
+Proof (scratchpad `probe/match_proof.py`, read-only on the live registry, no atlas build, no parser): the registry as
+the atlas would give it after the pass + the two edits, against the live one —
+- name index: one key leaves, "petes pond unnamed lake at the head of san juan river" (it named only Pete's Pond,
+  wbk:329504349); "petes pond" already named only that lake (its bathymetry "PETE'S POND *"), so no key is added; "." has
+  no key at all. No other key gains or loses a water.
+- every synopsis entry re-matched by the build's own matcher + overrides (`covered.make_matcher`), by its verbatim name
+  and by its display name: 2,996 matches, 0 differ (live vs pass, pass vs edited, live vs edited). The Pete's Pond row
+  ("\"PETE'S POND\" Unnamed lake at the head of San Juan River") matches wbk:329504349 through its existing override
+  before and after; its stored `matched` is that lake. No new or edited override JSON is needed.
+- The lake's shown name becomes "Pete's Pond" with the next atlas build. Not touched (A2 file, not asked): the synopsis
+  entry's own `display_name` in `region-1.json` still reads "Pete'S Pond Unnamed Lake At The Head Of San Juan River".
+
+## (c) Why "Pigeon Lake # 2" shows as "5566" — proposed, NOT applied
+The lake (wbk:329116782) has no gazetted name; its names all come from the file: "PIGEON LAKE #2" (bathymetry),
+"Pigeon Lake # 2" (marker), "5566", "CONTROL (PIGEON)", "PIGEON LAKE #2" (stocking). The shown name is the
+best-ranked source's first name (`graph.names.apply_name_variants` → `_sorted_unique` by `NameSource` order: stocking
+ranks above bathymetry and marker), and the first stocking name is the stocking record's lake number "5566". Three more
+lakes show a bare number the same way: 3261 ("UNNAMED CAYOOSH CR"), 3296 ("UNNAMED VANHORLICK 1"), 3299 ("UNNAMED
+VANHORLICK 2").
+Proposed fix: in `apply_name_variants`, a name of digits only is never the shown name while the water has a name with a
+letter in it (it stays a search name). Pigeon Lake #2 would then show "Pigeon Lake #2" (its stocking "PIGEON LAKE #2",
+cased); the other three "Unnamed Cayoosh Cr", "Unnamed Vanhorlick 1" / "2". A code rule, no data edit; atlas-side
+(ships with the next atlas build). Alternative: `"display": true` on the wanted name in the file, one entry per lake.
+Matching: none of these numbers is a book name; the proof above would be rerun with the change.

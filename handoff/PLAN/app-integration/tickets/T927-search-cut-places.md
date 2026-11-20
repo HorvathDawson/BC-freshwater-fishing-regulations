@@ -64,3 +64,14 @@ Pictures (390 px, web, light; before = live release, after = the side release): 
 Pool", "Greendale Trestle", "Vedder Crossing", plus `after-ten-mile-pool-selected.png` (the mark on the map) and
 `after-ten-mile-pool-opened.png` (the water opened at its part). The dev server served no web fonts (both sets alike).
 Note: the map pin uses the town pin's colour (`palette.place`), and on a phone the half sheet sits just under the mark.
+
+## Owner 2026-11-20 ~06:34 (main chat dialog): pictures approved
+## Review fixes 2026-11-20 (lane/t926-t927)
+- A one-word query that is only a kind of place ("bridge", "falls", "confluence", "signs", "boundary", "mouth",
+  "outlet", "inlet", or a water kind) does not find places by a word inside them; a place starting with it still does
+  ("Bridge River confluence") (6cae36cbd).
+- No silent drops (445b1bdce): `core_cut_place` counts, prints and returns every curated cut on no water (the
+  Okanagan River Oxbows slope cut today); `placePartOf` reports a place no part holds (the water still opens, on its
+  own part). The confidence-clause strip is gone: since T780 `display.ends` says the place alone.
+- Tests: the mini release's "Mock Creek Falls" read through the release reader (`makeReleaseSource().searchIndex()`) and
+  found; `placePartOf` + `waterOpener.searched(item, at)` open the Map on the part holding the place.
