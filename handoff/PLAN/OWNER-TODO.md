@@ -18,6 +18,14 @@ between (1,060 of 12,306 own labels; list sent as `app-integration/T679-shots/ow
   before merge, not one each. (Not chosen: pausing T940, fewer pictures.)
 - T679 #8: **"Ship it"**: `SHIP_OWN_GAUGE_FLAG` on in this release; it rides the map-data rebuild.
 
+## 2026-11-20 10:22: T679 #8 list to look at (lane L8; ANSWERED 10:45: ship it, see above)
+
+The gauges that would move from "ON THIS WATER" to "ESTIMATING FROM OTHER WATERS" under the rule you picked at 09:59 (along
+the water, a lake on the way ends it): `handoff/PLAN/app-integration/T679-shots/own-gauge-moves.csv` (water, gauge,
+was → now, sections). 155 gauges on 104 waters, all own → donor, 1,060 of 176,367 (section, gauge) pairs. Biggest:
+Halfway River (2 gauges, 59 + 53 sections), Stikine at Telegraph Creek (44), Lillooet at Tenas Narrows (35), Columbia at
+Donald (34) and Nicholson (31). Nothing ships until you say so (`packed.SHIP_OWN_GAUGE_FLAG` stays off). T679.
+
 ## 2026-11-20 10:00: every leftover goes on this release (owner, verbatim; clarified 10:05)
 
 "Make sure every left over goes on this release when we cut it", clarified: "All stuff we were working on. I meant all
@@ -52,6 +60,19 @@ in production; T709/T715 postponed; dropped items stay dropped.
 - Push privacy line: "Claude's edit (Recommended)": Apple only, "I/my", push token added to "the short version", Apple
   (push only) added to the services, the one-day salted IP hash and the stored environment + time said, effective date
   moved to the go-live day. The owner sees the text before it goes live. T739.
+
+## 2026-11-20 09:52: T679 #8 — which gauges count as "on this water" (lane L8; ANSWERED 09:59, see above)
+
+Two parts of the app decide whether a gauge is on the water you are reading, by different rules: the gauge list's
+"ON THIS WATER" heading (the app: the gauge's water is this water or one it continues as, `water_continue`) and the
+lead-gauge ranking (the pipeline: the same, but walked along the water, so a lake on the way ends it). T679 #8 moves the
+decision into the data, once. Before building it, the one rule to keep:
+(a) DEFAULT: the ranking's (along the water, a lake between ends it) — a gauge on the far side of a lake would move from
+"ON THIS WATER" to "ESTIMATING FROM OTHER WATERS"; (b) the heading's (same water, lakes or not) — the ranking would start
+treating such a gauge as the water's own. Not measured yet: how many gauges move under either (needs the atlas graph;
+a side run measures it before anything ships). Measured: over 1,587 panels the heading's rule differs between a panel's
+sections in 12, so the flag is shipped per section (like the small-water warning), not per gauge.
+No picture yet: the list of gauges that move comes with the measurement.
 
 ## 2026-11-20 07:33: push privacy line, now that Android has no push (T739, lane L5; ANSWERED 09:39, see above)
 

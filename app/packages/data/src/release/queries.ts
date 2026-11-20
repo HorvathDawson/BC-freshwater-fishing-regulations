@@ -92,8 +92,15 @@ export const CROSS = {
     `SELECT s.sid, i.item_id FROM item_section s JOIN item i ON i.ord = s.ord WHERE s.sid IN (${ids(n)})` }),
   COUNTS: { file: "core", sql:
     "SELECT (SELECT COUNT(*) FROM item WHERE name <> '') AS waters, (SELECT COUNT(*) FROM item_section) AS reaches" },
+  /** (T686) near/2: one town's packed waters (`packed.ts` decodeNear), and every town's (the by-water reads invert them
+   *  once, `invertNear`). near/1's three reads below are the old release's. */
+  NEAR_TOWN_BLOB: { file: "near", sql: "SELECT b FROM place_water WHERE place_id = ?" },
+  NEAR_ALL_BLOBS: { file: "near", sql: "SELECT place_id, b FROM place_water ORDER BY place_id" },
+  /** (T686) down/2: one block of 4096 sids' pointers (`packed.ts` decodeDownBlock); DOWN_FROM / LEN_OF / LAKE_OF are
+   *  down/1's. */
+  DOWN_BLOCK: { file: "down", sql: "SELECT b FROM section_down WHERE block = ?" },
   /** near: the waters by a town, nearest first (place_water's primary key). */
-  NEAR_PLACE: { file: "near", sql: "SELECT ord, ckm FROM place_water WHERE place_id = ? ORDER BY ckm, ord LIMIT ?" },
+  NEAR_PLACE:{ file: "near", sql: "SELECT ord, ckm FROM place_water WHERE place_id = ? ORDER BY ckm, ord LIMIT ?" },
   /** near: the towns each of these waters comes near. Keyed by place, so this scans — once per search, as the
    *  bundle's NEAR_FOR_ITEMS did. */
   RINGS_FOR_ORDS: (n: number) => ({ file: "near", sql:

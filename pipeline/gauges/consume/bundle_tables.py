@@ -417,6 +417,10 @@ def write(db: sqlite3.Connection, build_dir: Path, data_dir: Path, registry_item
                        [(sid[_s], _p, _a) for _s, _p, _a in panels.section_rows()])
         db.executemany("INSERT INTO panel_member VALUES (?,?,?,?,?,?,?,?,?,?,?)",
                        panels.member_rows())
+        # (T679 #8) the members on each section's own water, by the ranking's rule (`Panels.own`)
+        own_rows = [(sid[_s], _b) for _s, _b in panels.own_rows()]
+        db.executemany("INSERT INTO section_own (sid, bits) VALUES (?,?)", own_rows)
+        cov.filled("section_own", len(own_rows))
         cov.filled("section_panel", len(panels.by_section))
         cov.filled("panel_member", sum(len(v) for v in panels.members.values()))
         print(f"     panels: {len(panels.by_section):,} sections share "

@@ -33,6 +33,13 @@ column beside paint's runs, 0.19 MB.
 `decode` is the reference decoder, and `test_release.py` proves it reproduces `section_panel`, `panel_member` and
 `basin_member` row for row, and the status half byte for byte.
 
+(T679 #16) paint/6 = paint/5 + one more column after the access half, THE ONE ACCESS FLAG:
+      mostly     count; then per section in sid order, sid gap (sid - the previous one's, the first from 0): the sections
+                 MOSTLY inside no-access land by the bundle's UNION share (`section_no_access.permille` >
+                 `bundle.access.MOSTLY_INSIDE_PERMILLE`) — the app's fourth colour and banner read it, never summing rows
+written only while `packed.SHIP_PACKED_FORMATS` is on (it switches on with the packed formats, owner 2026-11-20); off,
+paint/5 byte for byte.
+
 paint/1 had no `lead`, paint/2 no access half, paint/3 one `years` per member and basin row (the longest record, or
 the last one read) where paint/4 carries the record per quantity, paint/4 no member `lake` (T296); a reader refuses
 another version by its version byte (the app reads 4 and 5; an older app refuses 5, so a release carrying it is
@@ -50,6 +57,15 @@ from pipeline.deliver.bundle.access import TIERS as ACCESS_TIERS
 MAGIC = b"BCPT"
 VERSION = 5
 FORMAT = "paint/5"
+#: (T679 #16) paint/6: + the sections mostly inside no-access land (module doc); written behind the T686 switch
+MOSTLY_VERSION = 6
+MOSTLY_FORMAT = "paint/6"
+
+
+def written_version() -> int:
+    """The paint version a release writes: 6 once `packed.SHIP_PACKED_FORMATS` is on, else 5 (call time)."""
+    from pipeline.deliver.release import packed as PACKED
+    return MOSTLY_VERSION if PACKED.SHIP_PACKED_FORMATS else VERSION
 
 #: Which access tiers ride in paint (the colour and the banner), and which in the `access` file (the gentle note).
 PAINT_TIERS: Tuple[str, ...] = ("no_access",)
@@ -79,11 +95,15 @@ def _milli(x) -> int:
     return int(round(float(x) * 1000))
 
 
-def encode(status_index: bytes, bundle: sqlite3.Connection) -> bytes:
+def encode(status_index: bytes, bundle: sqlite3.Connection, version: int | None = None) -> bytes:
+    """paint/5, or (T679 #16) paint/6 with the one access flag; `version` None: `written_version()` (the switch)."""
+    version = written_version() if version is None else version
+    if version not in (VERSION, MOSTLY_VERSION):
+        raise ValueError(f"paint: no writer for version {version}")
     stations = [s for (s,) in bundle.execute("SELECT station FROM gauge ORDER BY station")]
     six = {s: i for i, s in enumerate(stations)}
     out = bytearray(MAGIC)
-    out.append(VERSION)
+    out.append(version)
     out += struct.pack("<I", len(status_index)) + status_index
     names = "\n".join(stations).encode("utf-8")
     out += struct.pack("<I", len(names)) + names
@@ -127,6 +147,25 @@ def encode(status_index: bytes, bundle: sqlite3.Connection) -> bytes:
         _uv(out, dy)
         _uv(out, ly)
     out += access_half(bundle, PAINT_TIERS)
+    if version == MOSTLY_VERSION:
+        out += mostly_column(bundle)
+    return bytes(out)
+
+
+def mostly_column(bundle: sqlite3.Connection) -> bytes:
+    """(T679 #16) paint/6's last column: the sections whose UNION no-access share is over half (`section_no_access`, the
+    bundle's one decision; `access.MOSTLY_INSIDE_PERMILLE`). A bundle without the table is refused."""
+    from pipeline.deliver.bundle.access import MOSTLY_INSIDE_PERMILLE
+    if not bundle.execute("SELECT 1 FROM sqlite_master WHERE type = 'table' AND name = 'section_no_access'").fetchone():
+        raise ValueError("paint/6: the bundle has no section_no_access table; rebuild it: python -m pipeline.deliver bundle")
+    sids = [s for (s,) in bundle.execute("SELECT sid FROM section_no_access WHERE permille > ? ORDER BY sid",
+                                         (MOSTLY_INSIDE_PERMILLE,))]
+    out = bytearray()
+    _uv(out, len(sids))
+    prev = 0
+    for s in sids:
+        _uv(out, s - prev)
+        prev = s
     return bytes(out)
 
 
@@ -248,11 +287,40 @@ def decode_small(b: bytes, n: int) -> List[int]:
     return out
 
 
+OWN_MAGIC, OWN_FORMAT, OWN_VERSION = b"BCFO", "flow-own/1", 1
+
+
+def encode_own(bundle: sqlite3.Connection) -> bytes:
+    """(T679 #8) `flow-own/1`: "BCFO", u8 1, then one LEB128 varint per section_panel row in paint's sid order (as
+    flow-area) = the bitmask over its panel's members by `ord`: bit i set where member i stands on the section's own
+    water by the ranking's rule (the bundle's `section_own`, `panels.own_distances`). A bundle without it is refused."""
+    if not bundle.execute("SELECT 1 FROM sqlite_master WHERE type = 'table' AND name = 'section_own'").fetchone():
+        raise ValueError("flow-own: the bundle has no section_own table (T679 #8); rebuild it: python -m pipeline.deliver bundle")
+    bits = dict(bundle.execute("SELECT sid, bits FROM section_own"))
+    out = bytearray(OWN_MAGIC)
+    out.append(OWN_VERSION)
+    for (sid,) in bundle.execute("SELECT sid FROM section_panel ORDER BY sid"):
+        _uv(out, bits.pop(sid, 0))
+    if bits:
+        raise ValueError(f"flow-own: {len(bits)} section_own row(s) on sections with no panel, e.g. {sorted(bits)[:5]}")
+    return bytes(out)
+
+
+def decode_own(b: bytes, n: int) -> List[int]:
+    if b[:4] != OWN_MAGIC or b[4] != OWN_VERSION:
+        raise ValueError(f"flow-own: not a {OWN_FORMAT} file")
+    r = _Reader(b, 5)
+    out = [r.uv() for _ in range(n)]
+    if r.i != len(b):
+        raise ValueError(f"flow-own: {len(b) - r.i} trailing bytes (or the paint it pairs with has other sections)")
+    return out
+
+
 def decode(b: bytes) -> Dict[str, object]:
     """{status: bytes, stations, section_panel: [(sid, panel_id)], panel_member: [...], basin_member: [...],
     access: {areas: [(tier, name)], rows: [(sid, area, permille)]}}"""
-    if b[:4] != MAGIC or b[4] != VERSION:
-        raise ValueError(f"paint: not a {FORMAT} file")
+    if b[:4] != MAGIC or b[4] not in (VERSION, MOSTLY_VERSION):
+        raise ValueError(f"paint: not a {FORMAT} or {MOSTLY_FORMAT} file")
     (n,) = struct.unpack_from("<I", b, 5)
     status = b[9:9 + n]
     r = _Reader(b, 9 + n)
@@ -280,7 +348,14 @@ def decode(b: bytes) -> Dict[str, object]:
         dy = r.uv()
         basin_member.append((bid, stations[si], area, dy, r.uv()))
     access = _read_access(r)
+    mostly = None
+    if b[4] == MOSTLY_VERSION:
+        mostly, prev = [], 0
+        for _ in range(r.uv()):
+            prev += r.uv()
+            mostly.append(prev)
     if r.i != len(b):
         raise ValueError(f"paint: {len(b) - r.i} trailing bytes")
     return {"status": status, "stations": stations, "section_panel": section_panel,
-            "panel_member": panel_member, "basin_member": basin_member, "access": access}
+            "panel_member": panel_member, "basin_member": basin_member, "access": access,
+            **({"mostly": mostly} if mostly is not None else {})}

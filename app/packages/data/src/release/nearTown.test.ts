@@ -8,6 +8,7 @@ import { describe, expect, it } from "vitest";
 import { describeBy, HANDICAP_KM, UNKNOWN_HANDICAP_KM } from "@app/core";
 import { NEAR_HANDICAP_KM, NEAR_HANDICAP_UNKNOWN_KM } from "../pack.generated";
 import { memoryRelease, type MemorySeed } from "../sql/drivers/memoryRelease";
+import { encodeNear } from "./packed";
 import { makeReleaseSource } from "./source";
 
 describe("the release's town handicaps are the app's", () => {
@@ -38,8 +39,11 @@ const seed = (withNear: boolean): MemorySeed => ({
     if (withNear) d.exec("INSERT INTO item_near (ord, place_id, ckm) VALUES (1, 1, 440), (2, 2, 30)");
     else d.exec("DROP TABLE item_near");
   },
+  // (T686) near/2: one packed row per town — Mosquito Flats (2): the Elk 0.1 km, the lake 0.3; Fernie (1): 4.4, 9.0
   near: (d) => {
-    d.exec("INSERT INTO place_water (place_id, ckm, ord) VALUES (2, 10, 1), (1, 440, 1), (2, 30, 2), (1, 900, 2)");
+    const put = d.prepare("INSERT INTO place_water (place_id, b) VALUES (?, ?)");
+    put.run(2, encodeNear([[10, 1], [30, 2]]));
+    put.run(1, encodeNear([[900, 2], [440, 1]]));
   },
 });
 
@@ -58,5 +62,16 @@ describe("searchNames: each result's town", () => {
     expect(hits.map((h) => [h.item, h.near?.name, h.near?.km]).sort()).toEqual(
       [["gnis:1", "Fernie", 4.4], ["wbk:2", "Mosquito Flats", 0.3]]);
     expect(loader.opened()).toEqual(["core", "near"]);
+  });
+});
+
+describe("(T686) near/2: a town's waters and a water's towns read from the packed rows", () => {
+  it("watersNear: the town's blob, nearest first, each with how many towns it comes near", async () => {
+    const hits = await makeReleaseSource(memoryRelease(seed(true))).watersNear("1" as never);
+    expect(hits.map((h) => [h.item, h.km, h.signals.towns])).toEqual([["gnis:1", 4.4, 2], ["wbk:2", 9, 2]]);
+  });
+  it("locate: a water's towns, from every town's blob inverted (near/1's scan)", async () => {
+    const fix = await makeReleaseSource(memoryRelease(seed(true))).locate("wbk:2" as never);
+    expect(fix.near.map((r) => [r.lat, r.km])).toEqual([[49.4, 0.3], [49.5, 9]]);   // Mosquito Flats, then Fernie
   });
 });

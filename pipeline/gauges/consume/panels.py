@@ -22,7 +22,7 @@ import collections
 import dataclasses
 import heapq
 import math
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import Any
 
 from pipeline.gauges.consume.panel import (
@@ -82,11 +82,22 @@ class Panels:
 
     by_section: dict[str, tuple[int, float | None]]
     members: dict[int, tuple[Member, ...]]
+    #: (T679 #8, owner 2026-11-20 09:59 "Ranking's rule, list first") section -> the members of its panel that stand ON
+    #: ITS WATER by the ranking's rule (`own_distances`: along the water, through a `water_continue`, a lake on the way
+    #: ends it) — the one answer the app's "ON THIS WATER" heading reads (`own_rows`). Absent: none of them.
+    own: dict[str, frozenset] = field(default_factory=dict)
 
     def section_rows(self):
         """`(section_id, panel_id, area_km2)`."""
         for sec, (pid, area) in sorted(self.by_section.items()):
             yield (sec, pid, None if area is None else round(area, 3))
+
+    def own_rows(self):
+        """(T679 #8) `(section_id, bits)`: bit i set where panel member `ord` i stands on the section's own water."""
+        for sec, (pid, _area) in sorted(self.by_section.items()):
+            bits = sum(1 << i for i, m in enumerate(self.members[pid]) if m.station in self.own.get(sec, ()))
+            if bits:
+                yield (sec, bits)
 
     def member_rows(self):
         """`(panel_id, ord, station, role, area_km2, discharge_years, level_years, regulated, same_river, lead, lake)`."""
@@ -1156,7 +1167,11 @@ def build(graph, model: AreaModel,
     if STANDING_WATER_LINES_HAVE_NO_PANEL:
         for sec in standing_water_lines(graph, water_of, kind_of, by_section):
             by_section.pop(sec)
-    return Panels(by_section=by_section, members=members)
+    # (T679 #8) each section's own stations among its final panel's members (an adopted side channel asks its own
+    # section, as the ranking does)
+    own_of = {sec: frozenset(m.station for m in members[pid] if m.station in own.get(sec, {}))
+              for sec, (pid, _a) in by_section.items()}
+    return Panels(by_section=by_section, members=members, own={k: v for k, v in own_of.items() if v})
 
 
 #: (T931 C, 2026-11-20) a line a LAKE or WETLAND item owns takes the lake's answer (`lake_gauge`), never a flow panel.
@@ -1249,7 +1264,8 @@ def through_lake_panels(panels: Panels, down: dict[str, str], lakes, gauge_secti
             members[new] = chosen
         by_section[sec] = (new, area)
     used = {pid for pid, _a in by_section.values()}
-    return Panels(by_section=by_section, members={pid: ms for pid, ms in members.items() if pid in used})
+    return Panels(by_section=by_section, members={pid: ms for pid, ms in members.items() if pid in used},
+                  own=panels.own)
 
 
 def _panel_key(ms) -> tuple:

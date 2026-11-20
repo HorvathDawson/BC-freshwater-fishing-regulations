@@ -8,7 +8,7 @@ writes paint, derives three per-water flags for search, converts the climatology
   core           item (+ size, gauged, has_rows), alias, item_alias, item_section, place, bundle
                  see_pointer (a group name that only points: search leads to the waters it names),
                  item_near (T182: the town each search row names, so the first search needs no `near`)
-  near           place_water                                                      bundle
+  near           place_water, one packed row per town: near/2 (T686, packed.py)   bundle
   water          the regs store's common tables + display_rule + akey_region,     regs store + bundle
                  part_section, part_mark, water_exit,
                  water_continue (which stream goes on as another: the bundle's
@@ -24,8 +24,10 @@ writes paint, derives three per-water flags for search, converts the climatology
                  road per section, so Conditions needs no core); basin, basin_frame,
                  basin_grid (T376: the watershed groups' names, and which one a
                  point is in — bundle/basin_grid.py)
-  down           section_down (T182: an unnamed tap's "Tributary of ..." walk)    bundle
-  climate        gauge_clim, bands float16: clim/2 (T182: off the Conditions map) bundle
+  down           section_down (T182: an unnamed tap's "Tributary of ..." walk),   bundle
+                 in packed blocks of 4096 sids: down/2 (T686, packed.py)
+  climate        gauge_clim, bands float16 transposed + delta: clim/3 (T686;      bundle
+                 packed.py; T182: off the Conditions map)
   geo            part_geo (T182: "show on the map" without the whole water file), bundle
   flow-area      the panel target areas, one varint per paint section (paint.py)  bundle
   flow-small     (T823) per paint section, the panel members much bigger than it  bundle
@@ -54,13 +56,19 @@ from typing import Dict, Iterable, List, Optional, Tuple
 from pipeline.deliver import lake_facts as LF
 from pipeline.deliver.release import contract as C
 from pipeline.deliver.release import lines as LINES
+from pipeline.deliver.release import packed as PACKED
 from pipeline.deliver.release import part_line as PART_LINE
 from pipeline.deliver.release import paint as PAINT
 from pipeline.deliver.release import shards as SH
 from pipeline.deliver.release import slices as SLICES
 
-#: every file and its format (bumped when a reader must refuse an older one)
-FORMATS = {name: spec["format"] for name, spec in C.FILES.items()}
+#: every file and the format a release WRITES (bumped when a reader must refuse an older one); (T686) near / down /
+#: climate follow `packed.SHIP_PACKED_FORMATS` (`contract.written_files`), read at call time by `formats()`
+def formats() -> Dict[str, str]:
+    return {name: spec["format"] for name, spec in C.written_files().items()}
+
+
+FORMATS = formats()
 #: the gzip size gates (MINIMAL-PACKAGING §2; P08 test 7)
 #: (T211) `salmon`: a provisional gate, set before any release carried the file (the owner's build measures it)
 #: (T213) `method`: 308,222 gzipped measured on the live store 2026-10-27 (433,483 with closed days: over the total gate)
@@ -90,15 +98,26 @@ FORMATS = {name: spec["format"] for name, spec in C.FILES.items()}
 #: (owner 2026-11-16 ~14:55, T796 A5: "but yes you can do the raise"; RULINGS O5, O10) `salmon-6` 420,000 → 460,000: the
 #: book places in every listed chain fragment Region 6's runs, +53,225 B gz on r-46e4355a7277's numbers (379,396 →
 #: ~432,600).
+#: (T686, owner 2026-11-16: "(a) Three lossless changes") ON THE PACKED PATH ONLY (`PACKED_GATES`, owner 2026-11-20:
+#: formats later; the old forms keep `UNPACKED_GATES`): `near` 2,250,000 → 1,000,000, `down` 1,250,000 → 700,000,
+#: `climate` 1,650,000 → 1,100,000: near/2, down/2, climate/2 (`packed.py`) measured on a side release of the live
+#: bundle (reach 6ca9a300dad3d95e, 2026-11-20) against r-6258ffded676 — near 2,129,181 → 884,236, down 1,169,858 →
+#: 608,697, climate 1,433,007 → 985,939 B gz, every value decoded equal; each gate ~11-15 % over, as T182 set them.
+#: `salmon-6` stays 460,000: nothing here shrinks it (415,307 on r-6258ffded676, ~11 % under the gate; 420,000 would
+#: leave 1 %).
+#: (T686) the three files' gates follow the switch (`size_gates()`): the old forms keep today's gates until it flips
+PACKED_GATES = {"near": 1_000_000, "down": 700_000, "climate": 1_100_000}
+UNPACKED_GATES = {"near": 2_250_000, "down": 1_250_000, "climate": 1_650_000}
 SIZE_GATES = {"paint": 1_000_000, "access": 300_000, "core": 1_650_000, "lakes": 100_000, "salmon": 100_000,
               **{f"salmon-{r}": 320_000 for r in (*SH.REGIONS, "x")}, "salmon-6": 460_000, "method": 600_000,
               # (T388) water + `part_line` (79,253 B gz measured alone on the 2026-11-04 bundle; water was 2,409,579 in
               # r-b86b60ca533b → ~2.49 MB, too close to 2.5 MB) → 2,650,000
-              "water": 2_650_000, "near": 2_250_000, "climate": 1_650_000, "regs-sid": 1_400_000, "conditions": 1_060_000,
-              "down": 1_250_000, "geo": 700_000, "flow-area": 220_000,
+              "water": 2_650_000, **UNPACKED_GATES, "regs-sid": 1_400_000, "conditions": 1_060_000, "geo": 700_000, "flow-area": 220_000,
               # (T823) `flow-small`: one bitmask varint per paint section, measured 2026-11-16 on the live bundle (141,189
               # sections): 21,396 B gz at x50 (x200: 27,444)
               "flow-small": 32_000,
+              # (T679 #8) `flow-own`: one bitmask varint per paint section, as flow-small (measured below when built)
+              "flow-own": 40_000,
               # (T369) `lines`: ~0.99-1.08 MB gz estimated 2026-11-03 on the atlas's handles (ends proxied from the FWA
               # stream extents; the build measures the real one); (T386) phone-held too since 2026-11-04 (in the offline
               # total), fetched once a page is drawn (its place in the address) or when a link with a place is opened
@@ -110,6 +129,11 @@ SIZE_GATES = {"paint": 1_000_000, "access": 300_000, "core": 1_650_000, "lakes":
               # measured 100-220 kB)
               **{f"core-{r}": 400_000 for r in SH.REGIONS}, **{f"water-{r}": 400_000 for r in SH.REGIONS},
               "water-shared": 850_000}
+def size_gates() -> Dict[str, int]:
+    """`SIZE_GATES` with near / down / climate at their packed gates when `packed.SHIP_PACKED_FORMATS` is on (call time)."""
+    return {**SIZE_GATES, **(PACKED_GATES if PACKED.SHIP_PACKED_FORMATS else UNPACKED_GATES)}
+
+
 #: (T182) The release total is no longer the web's cap — a web visitor never fetches the whole release (the cold load is
 #: `WEB_BUDGET["cold_load"]`); it is what a PHONE holds offline, beside ~450 MB of tiles + basemap. It stays as a
 #: runaway-growth backstop, raised 15 → 20 MB so the last band's files (T199 runs ~0.87 MB, T200, T201/T218) fit.
@@ -419,9 +443,16 @@ def clim_f16(bands: bytes) -> bytes:
     return bytes(out)
 
 
-def _climate_extra(con: sqlite3.Connection) -> None:
+def _climate_f16(con: sqlite3.Connection) -> None:
+    """float32 → float16 (clim/2): climate/1, what a release writes while `packed.SHIP_PACKED_FORMATS` is off."""
     rows = con.execute("SELECT rowid, bands FROM gauge_clim").fetchall()
     con.executemany("UPDATE gauge_clim SET bands = ? WHERE rowid = ?", [(clim_f16(b), r) for r, b in rows])
+
+
+def _climate_extra(con: sqlite3.Connection) -> None:
+    """float32 → float16 (clim/2), then transposed + delta (clim/3, T686: the same float16 bits, `packed.py`)."""
+    rows = con.execute("SELECT rowid, bands FROM gauge_clim").fetchall()
+    con.executemany("UPDATE gauge_clim SET bands = ? WHERE rowid = ?", [(PACKED.clim3(clim_f16(b)), r) for r, b in rows])
 
 
 
@@ -448,9 +479,9 @@ def sizes(release_dir: Path) -> Dict[str, dict]:
 def gate_problems(release_dir: Path) -> List[str]:
     """The size gates (P08 test 7): each file's gzip under its gate (a file with none fails: T182), the web moments
     (`contract.WEB_BUDGET`), and the offline total (what a phone holds)."""
-    sz = sizes(release_dir)
-    out = [f"{k}: no size gate (build.SIZE_GATES)" for k in sz if k not in SIZE_GATES]
-    out += [f"{k}: {v['gz']:,} B gzip > {SIZE_GATES[k]:,}" for k, v in sz.items() if k in SIZE_GATES and v["gz"] > SIZE_GATES[k]]
+    sz, gates = sizes(release_dir), size_gates()
+    out = [f"{k}: no size gate (build.SIZE_GATES)" for k in sz if k not in gates]
+    out += [f"{k}: {v['gz']:,} B gzip > {gates[k]:,}" for k, v in sz.items() if k in gates and v["gz"] > gates[k]]
     # (T256) the answer slices are web-only (a phone installs the whole files), (T369) and `lines`: not what a phone holds
     total = sum(v["gz"] for k, v in sz.items() if k not in SLICES.slice_marks() and k not in C.WEB_ONLY)
     if total > OFFLINE_GATE:
@@ -647,7 +678,7 @@ def build(*, bundle: Path, store: Path, status_index: Path, export_dir: Path, ou
                             sorted((a, r) for a, rs in regions.items() for r in rs))
             # (T388) each part's own stretch of stream (part_line.py): a named link's place, without `lines`
             PART_LINE.write(con, part_lines)
-        water_meta = {**regs, "format": FORMATS["water"], "card_check": json.dumps(stamp, sort_keys=True),
+        water_meta = {**regs, "format": formats()["water"], "card_check": json.dumps(stamp, sort_keys=True),
                       **{k: smeta[k] for k in ("layout", "about_bundle", "blob_codec", "answers_sha256")},
                       # the store's own meta, whole: the store is put back together from the release and held to its
                       # store_digest (store/release.py `province_store`)
@@ -664,12 +695,12 @@ def build(*, bundle: Path, store: Path, status_index: Path, export_dir: Path, ou
                 col = "akey" if t == "cell" else "id"
                 plan.append(("s", t, f"WHERE {col} IN ({','.join(map(str, keep)) or 'NULL'})"))
             files[f"regs-{r}"] = copy_file(work / f"regs-{r}.sqlite", {"s": store}, plan,
-                                           {**regs, "format": FORMATS[f"regs-{r}"], "region": r})
+                                           {**regs, "format": formats()[f"regs-{r}"], "region": r})
         files["regs-sid"] = copy_file(work / "regs-sid.sqlite", {"s": store}, [("s", t, None) for t in SH.SID_TABLES],
-                                      {**regs, "format": FORMATS["regs-sid"]})
+                                      {**regs, "format": formats()["regs-sid"]})
         # (T369) `lines`: every stream section's stream key and measure span (release/lines.py), so a link's PLACE
         # resolves to a section of this release — packed from the bundle's `section_measure` (read above)
-        files["lines"] = copy_file(work / "lines.sqlite", {}, [], {**base, "format": FORMATS["lines"]},
+        files["lines"] = copy_file(work / "lines.sqlite", {}, [], {**base, "format": formats()["lines"]},
                                    extra=lambda con: LINES.write(con, sm))
         del sm, part_lines
         # (T256) the answer slices: a web tap in region r reads core-<r> + water-<r>, not the whole files
@@ -712,6 +743,7 @@ def bundle_files(work: Path, bundle: Path, b: sqlite3.Connection, base: Dict[str
     words; None: no table). The app's committed fixture releases
     (`app/packages/data/dev/fixture-release/`) were cut once by this code and are frozen (T61)."""
     files: Dict[str, Path] = {}
+    packed = PACKED.SHIP_PACKED_FORMATS          # (T686) near/2, down/2, climate/2 only once the switch is on
     p = work / "paint.bin"
     p.write_bytes(PAINT.encode(status_index, b))
     files["paint"] = p
@@ -737,25 +769,31 @@ def bundle_files(work: Path, bundle: Path, b: sqlite3.Connection, base: Dict[str
     files["core"] = copy_file(work / "core.sqlite", {"b": bundle},
                               [("b", t, None) for t in CORE_TABLES
                                if (t != "name_source" or _has_ns) and (t != "section_note" or _has_sn)],
-                              {**base, "format": FORMATS["core"]}, extra=_core_extra)
+                              {**base, "format": formats()["core"]}, extra=_core_extra)
     files["near"] = copy_file(work / "near.sqlite", {"b": bundle}, [("b", t, None) for t in NEAR_TABLES],
-                              {**base, "format": FORMATS["near"]})
+                              {**base, "format": formats()["near"]}, extra=PACKED.pack_near if packed else None)
     # (T823) THE SMALL-WATER WARNING follows the speaker: one bit per panel member per paint section (`flow-small`,
     # paint.py), the sentence and the threshold in the conditions meta (pipeline/gauges/consume/small_water.py)
     from pipeline.gauges.consume.small_water import META_RATIO_KEY, META_TEXT_KEY, SMALL_WATER_TEXT, ratio_for
     p = work / "flow-small.bin"
     p.write_bytes(PAINT.encode_small(b, ratio_for()))
     files["flow-small"] = p
+    # (T679 #8) the members on each section's own water, once the owner has seen the list (`packed.SHIP_OWN_GAUGE_FLAG`)
+    if PACKED.SHIP_OWN_GAUGE_FLAG:
+        p = work / "flow-own.bin"
+        p.write_bytes(PAINT.encode_own(b))
+        files["flow-own"] = p
     files["conditions"] = copy_file(work / "conditions.sqlite", {"b": bundle},
                                     [("b", t, None) for t in COND_TABLES],
-                                    {**base, "format": FORMATS["conditions"], META_TEXT_KEY: SMALL_WATER_TEXT,
+                                    {**base, "format": formats()["conditions"], META_TEXT_KEY: SMALL_WATER_TEXT,
                                      META_RATIO_KEY: f"{ratio_for():g}"}, extra=lake_section)
     files["down"] = copy_file(work / "down.sqlite", {"b": bundle}, [("b", t, None) for t in DOWN_TABLES],
-                              {**base, "format": FORMATS["down"]})
+                              {**base, "format": formats()["down"]}, extra=PACKED.pack_down if packed else None)
     files["climate"] = copy_file(work / "climate.sqlite", {"b": bundle}, [("b", t, None) for t in CLIMATE_TABLES],
-                                 {**base, "format": FORMATS["climate"], "clim": "clim/2"}, extra=_climate_extra)
+                                 {**base, "format": formats()["climate"], "clim": PACKED.CLIM_CODEC if packed else "clim/2"},
+                                 extra=_climate_extra if packed else _climate_f16)
     files["geo"] = copy_file(work / "geo.sqlite", {"b": bundle}, [("b", "part_geo", None)],
-                             {**base, "format": FORMATS["geo"]}, extra=geo_e6)
+                             {**base, "format": formats()["geo"]}, extra=geo_e6)
     return files
 
 
@@ -775,7 +813,7 @@ def ship(work: Path, files: Dict[str, Path], handles: str, out_root: Path, *, da
         fname = f"{name}-{sha[:12]}{raw.suffix}.gz"
         (work / fname).write_bytes(gz)
         entries[name] = {"url": fname, "bytes": raw.stat().st_size, "gz": len(gz), "sha256": sha,
-                         "format": FORMATS[name], "section_handles": handles,
+                         "format": formats()[name], "section_handles": handles,
                          **SLICES.slice_marks().get(name, {}),       # (T256) web-only: what it is cut from
                          **({"web_only": True} if name in C.WEB_ONLY else {})}   # (T369) a phone never holds it
         raw.unlink()

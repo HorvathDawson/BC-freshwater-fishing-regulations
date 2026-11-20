@@ -12,7 +12,7 @@
  * THE STATUS CARRIES THE ACCESS: `status.access` is this paint's no-access table, so the one colouring pathway (the
  * status channel's `profileLabel`) draws the fourth colour from the same file, with no second feed.
  */
-import { accessOf, ACCESS_TIERS, type AccessArea, type SectionAccess } from "./access";
+import { accessOf, ACCESS_TIERS, withMostly, type AccessArea, type SectionAccess } from "./access";
 import { statusIndexSteps, type StatusIndex } from "./statusIndex";
 import { runNow, runSliced, SLICE_MS, YIELD_EVERY, type Steps } from "./sliced";
 
@@ -117,16 +117,17 @@ export function decodePaintAsync(bytes: Uint8Array, expectHandles: string | null
 }
 
 /** (T403) The paint formats this decoder reads: a release naming another is refused before it is opened. */
-export const PAINT_READS: readonly string[] = ["paint/4", "paint/5"];
+export const PAINT_READS: readonly string[] = ["paint/4", "paint/5", "paint/6"];
 
 /** The decoder as steps (`runNow` / `runSliced`). */
 export function* paintSteps(bytes: Uint8Array, expectHandles: string | null, expectReach: string | null = null): Steps<Paint> {
   if (bytes[0] !== 0x42 || bytes[1] !== 0x43 || bytes[2] !== 0x50 || bytes[3] !== 0x54) throw new PaintError("paint: not a paint file");
   // paint/2 added each member's `lead`, paint/3 the access half, paint/4 the record per quantity (T110), paint/5 each
-  // member's `lake` (T296): 4 and 5 are read (4 says nothing of lakes), another version is refused here
+  // member's `lake` (T296), paint/6 (T679 #16) the sections mostly inside no-access land: 4, 5 and 6 are read (4 says
+  // nothing of lakes; 4 and 5 leave "mostly" to the summed rows), another version is refused here
   const version = bytes[4];
-  if (!PAINT_READS.includes(`paint/${version}`)) throw new PaintError(`paint: version ${version} is not 4 or 5`);
-  const lakes = version === 5;
+  if (!PAINT_READS.includes(`paint/${version}`)) throw new PaintError(`paint: version ${version} is not 4, 5 or 6`);
+  const lakes = version === 5 || version === 6;
   const r = new Reader(bytes, 5);
   const n = r.u32();
   const status = yield* statusIndexSteps(r.bytes(n), expectHandles, expectReach);
@@ -161,7 +162,14 @@ export function* paintSteps(bytes: Uint8Array, expectHandles: string | null, exp
     basins.push({ basin, station: stations[si] ?? r.fail(`station ${si}`), areaKm2, years: { discharge, level } });
   }
   yield;
-  const access = readAccess(r);
+  const rows = readAccess(r);
+  // (T679 #16) paint/6: Python's one decision of "mostly inside" (the union share), read as it is
+  let access = rows;
+  if (version === 6) {
+    const m = r.uv(), mostly = new Uint32Array(m);
+    for (let i = 0, s = 0; i < m; i++) { s += r.uv(); if (i && s <= mostly[i - 1]!) r.fail(`access: mostly sid ${s} not after ${mostly[i - 1]}`); mostly[i] = s; }
+    access = withMostly(rows, mostly);
+  }
   if (r.i !== bytes.length) throw new PaintError(`paint: ${bytes.length - r.i} trailing bytes`);
   const panelOf = (sid: number): number | null => {
     let lo = 0, hi = nr - 1;
@@ -230,5 +238,24 @@ export function decodeFlowSmall(bytes: Uint8Array, n: number): Uint32Array {
     out[i] = m;
   }
   if (r.i !== bytes.length) throw new PaintError("flow-small: its sections are not the paint's");
+  return out;
+}
+
+/**
+ * (T679 #8, owner 2026-11-20 "Ranking's rule") `flow-own/1` ("BCFO", u8 1, paint.py `encode_own`): per paint section
+ * in sid order, the bitmask over its panel's members by `ord` — bit i set where member i stands on the section's OWN
+ * water (along the water, across a `water_continue`, a lake on the way ends it: Python's one decision, the one the lead
+ * ranking uses). The gauge list's "ON THIS WATER" heading reads it (`gaugeSides`). `n` = paint.sectionCount.
+ */
+export function decodeFlowOwn(bytes: Uint8Array, n: number): Uint32Array {
+  if (bytes[0] !== 0x42 || bytes[1] !== 0x43 || bytes[2] !== 0x46 || bytes[3] !== 0x4f || bytes[4] !== 1)
+    throw new PaintError("flow-own: not a flow-own/1 file");
+  const r = new Reader(bytes, 5), out = new Uint32Array(n);
+  for (let i = 0; i < n; i++) {
+    const m = r.uv();
+    if (m >= 2 ** 31) throw new PaintError(`flow-own: section ${i}'s mask ${m} is wider than a panel's 31 members`);
+    out[i] = m;
+  }
+  if (r.i !== bytes.length) throw new PaintError("flow-own: its sections are not the paint's");
   return out;
 }

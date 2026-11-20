@@ -32,6 +32,11 @@ export interface AccessRow { readonly area: AccessArea; readonly share: number }
 export interface SectionAccess {
   /** The section's rows, in the pipeline's area order; [] for a section touching no access polygon. */
   of(section: SectionKey): readonly AccessRow[];
+  /**
+   * (T679 #16) paint/6: whether the section is MOSTLY inside no-access land — the pipeline's one decision (its union
+   * share, `bundle.access`), read as it is. Absent (paint/4–5, the `access` file): the summed rows decide, as before.
+   */
+  mostly?(section: SectionKey): boolean;
 }
 
 /**
@@ -80,7 +85,20 @@ const noAccessShare = (rows: readonly AccessRow[]): number =>
 
 /** Is the section drawn in the fourth colour? Only no-access land, and only when MOST of it is inside. */
 export function noPublicAccess(access: SectionAccess | null | undefined, section: SectionKey): boolean {
-  return !!access && noAccessShare(access.of(section)) > MOSTLY_INSIDE;
+  if (!access) return false;
+  return access.mostly ? access.mostly(section) : noAccessShare(access.of(section)) > MOSTLY_INSIDE;
+}
+
+/** (T679 #16) `rows` with paint/6's flag: `sids` (strictly ascending) are the sections mostly inside no-access land. */
+export function withMostly(rows: SectionAccess, sids: Uint32Array): SectionAccess {
+  const mostly = (section: SectionKey): boolean => {
+    const sid = typeof section === "number" ? section : Number(section);
+    if (!Number.isInteger(sid)) return false;
+    let lo = 0, hi = sids.length;
+    while (lo < hi) { const mid = (lo + hi) >> 1; if (sids[mid]! < sid) lo = mid + 1; else hi = mid; }
+    return lo < sids.length && sids[lo] === sid;
+  };
+  return { of: (s) => rows.of(s), mostly };
 }
 
 /** The words, once (AGENTS 23/33: core composes the sentence, a test pins it whole). */

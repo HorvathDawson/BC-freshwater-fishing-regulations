@@ -478,7 +478,7 @@ export function useGaugeSides(source: WaterSource, section: SectionId | null,
   const got = useAsync(async () => {
     if (section === null || !stations.length) return null;
     const w = await source.gaugeWaters(section, stations);
-    return gaugeSides(stations, { waters: w.waters, section }, w.gauges);
+    return gaugeSides(stations, { waters: w.waters, section }, w.gauges, w.own);
   }, `gaugesides:${section ?? ""}:${key}`, section !== null && stations.length > 0);
   return got.state === "ready" ? got.value : null;
 }
