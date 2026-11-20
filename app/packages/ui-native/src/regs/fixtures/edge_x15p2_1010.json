@@ -28,7 +28,9 @@
       {
        "mark": "✓",
        "name": "Water insects and crayfish",
-       "notes": ["On streams."],
+       "notes": [
+        "On streams."
+       ],
        "terms": []
       }
      ]
@@ -41,7 +43,9 @@
       {
        "mark": "✕",
        "name": "Fish or fish parts",
-       "notes": ["Dead fin fish may be used, when fishing for white sturgeon — upstream of the CPR Bridge at Mission · Fraser River; Pitt River, between CPR Bridge and Pitt Lake; Harrison River, downstream of Harrison Lake — lifts “No fin fish other than roe”."],
+       "notes": [
+        "Dead fin fish may be used, when fishing for white sturgeon — upstream of the CPR Bridge at Mission · Fraser River; Pitt River, between CPR Bridge and Pitt Lake; Harrison River, downstream of Harrison Lake — lifts “No fin fish other than roe”."
+       ],
        "terms": []
       }
      ]
@@ -1223,13 +1227,18 @@
       {
        "mark": "✓",
        "name": "Angling (rod and line)",
-       "notes": ["With a downrigger: attached to your line by a quick-release.","With a light: submerged, attached to the line, within 1 m of the hook."],
+       "notes": [
+        "With a downrigger: attached to your line by a quick-release.",
+        "With a light: submerged, attached to the line, within 1 m of the hook."
+       ],
        "terms": []
       },
       {
        "mark": "✓",
        "name": "Crayfish traps",
-       "notes": ["Release anything in the trap that isn’t a crayfish."],
+       "notes": [
+        "Release anything in the trap that isn’t a crayfish."
+       ],
        "terms": []
       }
      ]

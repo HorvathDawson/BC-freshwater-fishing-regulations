@@ -29,7 +29,7 @@ describe.skipIf(!at.dir)(`T797 item 2: the sturgeon bait allowance is said on th
       const inp = await loadRegsInputs(st, { kind: "part", item, partIx }, { month: 8, day: 12 }, "Wednesday", 2026);
       const bait = buildRegsPage(inp, { today: { month: 8, day: 12 }, who: { age: "adult", residency: "resident" } }).gear?.bait;
       const fin = (bait?.list ?? []).flatMap((c) => c.items).find((x) => x.name === "Fish or fish parts");
-      out.push(fin ? fin.note ?? "" : null);
+      out.push(fin ? fin.notes.join(" ") : null);   // (T922) one sentence per condition
     }
     return out;
   };

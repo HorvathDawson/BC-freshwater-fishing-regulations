@@ -1231,7 +1231,9 @@
       {
        "mark": "✓",
        "name": "Angling (rod and line)",
-       "notes": ["Fly fishing only: nothing but the fly on the line, no float, sinker or attractor."],
+       "notes": [
+        "Fly fishing only: nothing but the fly on the line, no float, sinker or attractor."
+       ],
        "terms": []
       }
      ]

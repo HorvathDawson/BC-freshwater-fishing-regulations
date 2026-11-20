@@ -35,13 +35,17 @@
       {
        "mark": "✕",
        "name": "Water insects and crayfish",
-       "notes": ["Not on lakes."],
+       "notes": [
+        "Not on lakes."
+       ],
        "terms": []
       },
       {
        "mark": "✕",
        "name": "Fish or fish parts",
-       "notes": ["Dead fin fish may be used, while set lining, in lakes — lakes of Region 6 and Zone A of Region 7 — lifts “No fin fish other than roe”."],
+       "notes": [
+        "Dead fin fish may be used, while set lining, in lakes — lakes of Region 6 and Zone A of Region 7 — lifts “No fin fish other than roe”."
+       ],
        "terms": []
       }
      ]
@@ -977,19 +981,34 @@
       {
        "mark": "✓",
        "name": "Angling (rod and line)",
-       "notes": ["With a downrigger: attached to your line by a quick-release.","With a light: submerged, attached to the line, within 1 m of the hook."],
+       "notes": [
+        "With a downrigger: attached to your line by a quick-release.",
+        "With a light: submerged, attached to the line, within 1 m of the hook."
+       ],
        "terms": []
       },
       {
        "mark": "✓",
        "name": "Ice fishing",
-       "notes": ["Lines: 1.","Hook, lure or fly per line: 1.","Remove your ice hut before breakup.","Warn others of your ice hole."],
+       "notes": [
+        "Lines: 1.",
+        "Hook, lure or fly per line: 1.",
+        "Remove your ice hut before breakup.",
+        "Warn others of your ice hole."
+       ],
        "terms": []
       },
       {
        "mark": "✓",
        "name": "Set lines",
-       "notes": ["Lines: 1.","Hooks per line: 1.","Hook gap: at least 3 cm.","Mark your set line with your name, address and telephone number.","All game fish other than burbot — release all, from lakes, taken on a set line.","All game fish other than burbot — release all, taken on a set line."],
+       "notes": [
+        "Lines: 1.",
+        "Hooks per line: 1.",
+        "Hook gap: at least 3 cm.",
+        "Mark your set line with your name, address and telephone number.",
+        "All game fish other than burbot — release all, from lakes, taken on a set line.",
+        "All game fish other than burbot — release all, taken on a set line."
+       ],
        "terms": [
         "set_line"
        ]
@@ -997,13 +1016,18 @@
       {
        "mark": "✓",
        "name": "Spear or bow — not for trout or other game fish",
-       "notes": ["Not for game fish, salmon or protected species.","Burbot allowed."],
+       "notes": [
+        "Not for game fish, salmon or protected species.",
+        "Burbot allowed."
+       ],
        "terms": []
       },
       {
        "mark": "✓",
        "name": "Crayfish traps",
-       "notes": ["Release anything in the trap that isn’t a crayfish."],
+       "notes": [
+        "Release anything in the trap that isn’t a crayfish."
+       ],
        "terms": []
       }
      ]

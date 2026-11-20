@@ -35,7 +35,9 @@
       {
        "mark": "✕",
        "name": "Water insects and crayfish",
-       "notes": ["Not on lakes."],
+       "notes": [
+        "Not on lakes."
+       ],
        "terms": []
       },
       {
@@ -935,19 +937,29 @@
       {
        "mark": "✓",
        "name": "Angling (rod and line)",
-       "notes": ["With a downrigger: attached to your line by a quick-release.","With a light: submerged, attached to the line, within 1 m of the hook."],
+       "notes": [
+        "With a downrigger: attached to your line by a quick-release.",
+        "With a light: submerged, attached to the line, within 1 m of the hook."
+       ],
        "terms": []
       },
       {
        "mark": "✓",
        "name": "Ice fishing",
-       "notes": ["Lines: 1.","Hook, lure or fly per line: 1.","Remove your ice hut before breakup.","Warn others of your ice hole."],
+       "notes": [
+        "Lines: 1.",
+        "Hook, lure or fly per line: 1.",
+        "Remove your ice hut before breakup.",
+        "Warn others of your ice hole."
+       ],
        "terms": []
       },
       {
        "mark": "✓",
        "name": "Crayfish traps",
-       "notes": ["Release anything in the trap that isn’t a crayfish."],
+       "notes": [
+        "Release anything in the trap that isn’t a crayfish."
+       ],
        "terms": []
       }
      ]
