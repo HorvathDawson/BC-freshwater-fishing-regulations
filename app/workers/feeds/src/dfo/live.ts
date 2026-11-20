@@ -21,7 +21,7 @@
 // (or a calendar that throws) keeps that location's last answers (a `check` verdict when it has none), listed in the
 // region's `holds` with the reason, and the rest of the region publishes. A page that does not parse / verify, and a
 // STRUCTURAL reconcile, still hold the region (those are page-level).
-import { FEED_FORMATS } from "../../../../packages/core/src/feedFormats.generated";
+import { FEED_FORMATS, FEED_MIN_APP } from "../../../../packages/core/src/feedFormats.generated";
 import { contentHash, loadManifest, rev, skipSameStore, type Fetch, type Meter, type Store } from "../io";
 import { sendDue } from "../notify";
 import { derive, livePieces, pieceId, PIECES_SHAPE } from "./closures";
@@ -45,6 +45,8 @@ import { feedMap, readBaseline, rowChanges, rowsNotice, ROWS_KEY, type RowChange
 // closure's verdict carries `c`, a region its `shared` + `sizes`, a header note's length is `lengths`
 // (T556) the string is generated from the Python table (pipeline/common/feed_formats.py), the app's reader with it
 export const FORMAT = FEED_FORMATS.dfoFeed;
+/** (T676 item 2) the index's `minAppVersion`: the oldest app that reads it (live.py's MIN_APP, one table) */
+export const MIN_APP = FEED_MIN_APP.dfoFeed;
 const SPECIES_N = [...SPECIES];
 /**
  * (T851) A region is STALE when its last good read (`checked`) is older than this at a run whose fetch failed — not
@@ -824,7 +826,7 @@ export async function runDfo(deps: DfoDeps): Promise<DfoResult> {
   // robust: number verdicts / gears canonically (first use over the sorted locations; NOT_LISTED stays 0) so a carried
   // region and a re-typed one publish the same bytes — what lets an unchanged feed skip its write
   const [vItems, gItems] = robust ? canonical(sortedLocs, verdicts.items, gears.items) : [verdicts.items, gears.items];
-  const index = { format: FORMAT, at, regions, verdicts: vItems, gears: gItems, locs: sortedLocs, unplaced: unplaced.length,
+  const index = { format: FORMAT, minAppVersion: MIN_APP, at, regions, verdicts: vItems, gears: gItems, locs: sortedLocs, unplaced: unplaced.length,
                   dfo: { ...SHAPE },
                   issues: { waters: Object.fromEntries([...issues].sort(([x], [y]) => cmpStr(x, y))), no_water: noWater,
                             unread: Object.fromEntries(ALL_SLUGS.filter((s) => s in unread).map((s) => [s, unread[s]!])) },

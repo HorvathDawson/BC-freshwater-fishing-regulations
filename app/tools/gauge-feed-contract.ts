@@ -12,8 +12,8 @@
 import { FORECAST_DAYS } from "../packages/core/src/gauge-policy.generated";
 import { gaugeFeedRefusal, type GaugeFeedFile } from "../packages/core/src/gaugeFeed";
 
-/** index.json's own keys (`IndexFile`; `forecastAttribution` is read by the panel's credits line). */
-export const INDEX_KEYS = ["format", "fetchedAt", "forecastIssuedAt", "hydat", "maintenance", "forecastAttribution",
+/** index.json's own keys (`IndexFile`; `forecastAttribution` is read by the panel's credits line; `minAppVersion` by the feed gate, T676). */
+export const INDEX_KEYS = ["format", "minAppVersion", "fetchedAt", "forecastIssuedAt", "hydat", "maintenance", "forecastAttribution",
                            "stations", "listed"] as const;
 /** One station's entry in the index (`IndexFile.stations`): what colours a dot and when it was read. `temperature` is the
  *  temperature's place in its own envelope, written by the publisher and not read by the app yet. */

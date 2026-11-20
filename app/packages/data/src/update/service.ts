@@ -23,7 +23,8 @@
  *
  * `snapshot()` is a new object on every change (for `useSyncExternalStore`); `subscribe` is told after each.
  */
-import { errorClassOf, mobileDataFrom, releaseAllowed, reportFailure, type AppVersion, type MobileDataSetting, type UpdateEvent } from "@app/core";
+import { errorClassOf, isFeedTooNew, mobileDataFrom, releaseAllowed, reportFailure, type AppVersion, type FeedGate,
+         type MobileDataSetting, type UpdateEvent } from "@app/core";
 import { parseManifest, type Held, type Manifest, type StageOutcome } from "../manifest";
 // Hermes has no TextDecoder (regs/blob.ts)
 import { utf8 } from "../regs/blob";
@@ -150,6 +151,14 @@ export interface UpdateOptions {
    * the device is online for, and the moment the network comes back. A failure here never fails a check.
    */
   outbox?: { pending(): number; flush(): Promise<unknown> } | null;
+  /**
+   * (T676 item 2) THE FEED GATE every feed reader was given (core `createFeedGate`, this app's version): a feed whose
+   * loader refused it as newer than this app (`FeedNeedsNewerApp`) is not a failure — not reported, not "seen", the
+   * loader's last capture stays in use — and the snapshot's `needsApp` says the version needed, which raises the release
+   * gate's update prompt. The gate also hears the readers' own fetches (run timing's, read on its own), so `needsApp`
+   * is the gate's word, whoever asked.
+   */
+  feedGate?: FeedGate | null;
 }
 
 export interface SourceStatus {
@@ -164,6 +173,8 @@ export interface SourceStatus {
   /** The last failure was the network (offline), not the origin or the bytes. */
   readonly offline: boolean;
   readonly failures: number;
+  /** (T676 item 2) a feed's last index asked for a newer app (the version), so its capture stays in use; null: none */
+  readonly needsApp?: string | null;
 }
 
 export type ReleasePhase = "current" | "waiting-wifi" | "downloading" | "ready" | "app-too-old";
@@ -194,6 +205,9 @@ export interface UpdateSnapshot {
   readonly mobileData: MobileDataSetting;
   /** (T298) the setting was never answered (still the default "ask"): the first prompt's answer is kept */
   readonly mobileDataAnswered: boolean;
+  /** (T676 item 2) a live feed this app is too old for asks for this version (the feed gate's highest), or null: the
+   *  same update prompt as a release's `app-too-old` */
+  readonly needsApp?: string | null;
 }
 
 export interface UpdateService {
@@ -299,10 +313,17 @@ export function createUpdateService(o: UpdateOptions): UpdateService {
   const feedListeners = new Set<(id: FeedId) => void>();
   let snap: UpdateSnapshot;
   const publish = () => {
-    snap = { checking, manual, feeds: o.feeds.map((s) => feeds.get(s.id)!), release, allowMetered, mobileData, mobileDataAnswered };
+    snap = { checking, manual, feeds: o.feeds.map((s) => feeds.get(s.id)!), release, allowMetered, mobileData, mobileDataAnswered,
+             needsApp: o.feedGate?.needs() ?? null };
     for (const l of [...listeners]) l();
   };
   publish();
+  // (T676 item 2) a reader's own fetch refused (or let through) an index: the prompt follows at once
+  let lastNeed = o.feedGate?.needs() ?? null;
+  o.feedGate?.subscribe(() => {
+    const n = o.feedGate!.needs();
+    if (n !== lastNeed) { lastNeed = n; publish(); }
+  });
 
   // ── the release's session memory: the manifest pending, its validator ───────────────────────────────────────────────
   let relSeen: Seen | null = null;
@@ -314,7 +335,7 @@ export function createUpdateService(o: UpdateOptions): UpdateService {
   const okFeed = (id: FeedId, changed: boolean) => {
     const t = now(), was = feeds.get(id)!;
     const next: SourceStatus = { ...was, checkedAt: t, updatedAt: changed ? t : was.updatedAt, error: null,
-                                 failedAt: null, offline: false, failures: 0 };
+                                 failedAt: null, offline: false, failures: 0, ...(changed ? { needsApp: null } : {}) };
     feeds.set(id, next);
     kept.at[id] = { checkedAt: next.checkedAt, updatedAt: next.updatedAt };
   };
@@ -343,6 +364,15 @@ export function createUpdateService(o: UpdateOptions): UpdateService {
     try {
       await spec.apply?.(utf8(r.bytes), r.bytes);
     } catch (e) {
+      if (isFeedTooNew(e)) {
+        // (T676 item 2) an index for a newer app: the origin answered (checked), nothing is put in use (not "seen", so
+        // the next check reads it again), nothing is reported; the loader's capture answers and the prompt is up
+        okFeed(spec.id, false);
+        feeds.set(spec.id, { ...feeds.get(spec.id)!, needsApp: e.need });
+        emit({ source: spec.id, kind: "app-too-old", status: r.status, bytes: r.got, ms: now() - t0, before,
+               after: short(r.sha256), note: `needs app ≥ ${e.need}` });
+        return true;
+      }
       // refused by its loader (not a feed): not "seen", so the next check looks again; the loader keeps what it had
       const error = `${spec.url}: ${said(e)}`;
       feeds.set(spec.id, failSource(feeds.get(spec.id)!, error, false));

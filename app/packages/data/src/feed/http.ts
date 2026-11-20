@@ -19,8 +19,8 @@
 // `standing` comes from core rather than being restated here. A second copy of the
 // thresholds is a second answer to "is this river low", and the feed and the sheet
 // would eventually disagree about the same reading (AGENTS rule 23).
-import { gaugeFeedRefusal, reportFailure, shownParameter, standing, type GaugeFeedFile, type SourceChange, now as clockNow }
-  from "@app/core";
+import { gaugeFeedRefusal, isFeedTooNew, reportFailure, shownParameter, standing, type FeedGate, type GaugeFeedFile,
+         type SourceChange, now as clockNow } from "@app/core";
 import type { Aged, Forecast, Parameter, Reading, StationId } from "../index";
 import type { AheadDays, StationChange } from "../panel";
 import { fetchJsonResilient } from "../net/fetch";
@@ -46,6 +46,8 @@ export const FEED_TTL_MS = 5 * 60_000;
 interface IndexFile {
   /** (T557) `gauge-feed/1` (core GAUGE_FEED_FORMAT); a read refuses any other or none. A kept copy from before may lack it. */
   format?: string;
+  /** (T676 item 2) the oldest app that reads this format; the feed gate refuses the index for an older app */
+  minAppVersion?: string;
   fetchedAt: string;
   /** Which HYDAT release every percentile in this file was measured against. */
   hydat?: { release: string | null; latest: string | null; stale: boolean };
@@ -325,7 +327,9 @@ export function httpFeed(base: string, fetchImpl: typeof fetch = fetch,
                                  /** (T315) the phone's kept week: fed by every station file read, answering offline */
                                  history?: GaugeHistory;
                                  /** (T315) the device's online word: offline, no request is made — the kept copy answers */
-                                 online?: () => boolean } = {}): GaugeFeed {
+                                 online?: () => boolean;
+                                 /** (T676 item 2) refuses an index newer than this app: what is held answers */
+                                 gate?: FeedGate } = {}): GaugeFeed {
   const trimmed = base.replace(/\/+$/, "");
   /** (T231) the update service owns the index: once read it is held until the service offers a newer one (`offer`) */
   const held = (url: string) => !!opts.indexHeld && url === `${trimmed}/index.json`;
@@ -371,6 +375,14 @@ export function httpFeed(base: string, fetchImpl: typeof fetch = fetch,
           const got = await fetchJsonResilient<T>(url, { fetchImpl, attempts: 2, limits: opts.limits ?? FEED_LIMITS,
                                                           ...(held(url) ? { cache: "no-store" as const } : {}) });
           if (!got.ok) return null;          // 404 = this station is not transmitting
+          // (T676 item 2) an index for a newer app: not a failure (no report), what this session or the phone holds
+          // answers, and the gate holds the need for the update prompt
+          if (path === "index.json" && opts.gate) {
+            try { opts.gate.check(got.value, "gauges"); } catch (e) {
+              if (isFeedTooNew(e)) return fallback<T>(path, url);
+              throw e;
+            }
+          }
           // (T557) a file in another format, or not the shape asked for, is refused and REPORTED, never cached or kept:
           // what this session or the phone already holds answers instead, with its own age
           const why = gaugeFeedRefusal(got.value, kindOf(path));
@@ -422,6 +434,7 @@ export function httpFeed(base: string, fetchImpl: typeof fetch = fetch,
 
     offer(index) {
       const i = index as Partial<IndexFile> | null;
+      opts.gate?.check(i, "gauges");                 // (T676 item 2) throws for a newer app: the service says so
       const why = gaugeFeedRefusal(i, "index");      // (T557) the same check a read makes
       if (why) throw new Error(why);
       cache.clear();
