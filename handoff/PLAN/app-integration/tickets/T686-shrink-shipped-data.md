@@ -1,6 +1,6 @@
 # T686 — Shrink shipped data across the board
 
-Status: IN PROGRESS — (a) BUILT 2026-11-20 on `lane/l8-shrink` (lane L8): near/2, down/2, climate/2 (clim/3), every value decoded equal to r-6258ffded676 on a side release; −2.25 MB gz on the phone (17.48 → 15.23 MB). Left: ship it in the wave-4 data release AFTER the app 0.8.4 that reads it is out (app gate), then lower `first_tap_unnamed` (6.2 → ~6.0 MB)
+Status: IN PROGRESS — (a) BUILT 2026-11-20 on `lane/l8-shrink` behind ONE SWITCH, OFF (owner 09:59 "Ship readers now, formats later"): `pipeline/deliver/release/packed.py` `SHIP_PACKED_FORMATS = False`. App 0.8.4 reads both forms. Left: flip it (one line) in the FIRST data release cut after app 0.8.4 is live in BOTH production stores (Google Play production and the App Store); then lower `first_tap_unnamed` (6.2 → ~6.0 MB)
 
 Source: owner 2026-11-12 (T678 release stopped at the size gate): "Raise now, shrink later, but the ticket should cover
 ways to shrink data across the board, not just ponds." RULINGS O5 raised `core`, `conditions` and the web's
@@ -159,3 +159,22 @@ older keep the data they hold and show the update prompt (`releaseAllowed`; `rea
 0.8.4 app still reads near/1, down/1, climate/1 (`ALSO_READS`, by the manifest's format), so it works on the live
 release and the committed fixtures before the packed release ships. Not measured: device decode time (the town index
 is built on the first town search or water map, ~392 k pairs).
+
+## The switch (owner 2026-11-20 09:59, built the same day, lane L8)
+`pipeline/deliver/release/packed.py` **`SHIP_PACKED_FORMATS = False`**. Read when a release runs (`contract.written_files`,
+`build.formats()`, `build.size_gates()`, `paint.written_version()`), never at import:
+- OFF (now, staging AND production): near/1, down/1, climate/1 and paint/5, today's gates (`build.UNPACKED_GATES`: near
+  2,250,000, down 1,250,000, climate 1,650,000). No app floor moves.
+- ON: near/2, down/2, climate/2, and (T679 #16, the same switch) paint/6, with the lowered gates (`build.PACKED_GATES`:
+  1,000,000 / 700,000 / 1,100,000). The release's derived `minAppVersion` becomes 0.8.4 (`app_gate`).
+- WHAT FLIPS IT: a one-line change to `True`, made in the first data release cut AFTER app 0.8.4 is live in both
+  production stores (Play production and the App Store), not on staging alone. Before that, an installed 0.8.3 would
+  refuse the release and keep its old data. `test_release_packed.py` pins it False until then.
+- App 0.8.4 reads both forms (`ALSO_READS`: near/1, down/1, climate/1; `PAINT_READS` paint/4–6), whichever is shipped.
+
+Proof (side releases of the live bundle via `scripts/heavy.sh`, 2026-11-20; `l8/side2.sh` + `l8/prove2.py` in the session
+scratchpad):
+- OFF: all 53 files equal to r-6258ffded676 byte for byte (sha256, bytes, gz, format). The release id differs only
+  because the side run shipped no synopsis PDF. Derived app floor 0.8.0, the same as live. Gates pass.
+- ON: near / down / climate decoded equal to live. paint/6 decodes to paint/5 plus the flag (3,597 sections, the same set
+  the summed rows give). Gates pass, app floor 0.8.4. Phone total 17,482,831 → 15,229,939 B gz (paint +282 B).

@@ -171,3 +171,27 @@ Owner 2026-11-20 09:59 (dialog), #8: "Ranking's rule, list first (Recommended)":
 - **#16 NOT BUILT.** One flag means a paint format (paint/6: the union share `section_no_access` or a mostly-inside bit,
   instead of the app summing per-area rows) with its app reader; `access.summed_rule_disagrees` already refuses any
   bundle where the two disagree, so nothing on screen differs today (maint). Left for the next paint format change.
+
+## #8 and #16 built behind switches (2026-11-20 10:22, lane L8, after the owner's 09:59 / 10:00 answers)
+- **#8 BUILT, NOT SHIPPED — the list waits for the owner.** The rule is the ranking's: along the water, across a
+  `water_continue`, and a lake on the way ends it. `panels.build` keeps each section's own stations (`Panels.own`, from
+  `own_distances`), and the bundle writes `section_own (sid, bits)`: bit i is panel_member `ord` i. The release file
+  `flow-own/1` (`paint.encode_own`, one varint per paint section, the same layout as flow-small) is written only when
+  `packed.SHIP_OWN_GAUGE_FLAG` is on, and it is OFF. App 0.8.4 reads it: `loader.flowOwn`, then `gaugeWaters` gives
+  `own`, then core `gaugeSides(..., own)`. Where a release carries the flag, it is the answer. Without it, the old rule
+  decides, as before. `flow-own` is optional in the contract, so an older app ignores it.
+- **The list** (`app-integration/T679-shots/own-gauge-moves.csv`: water, gauge, was → now, sections). Made by running
+  this branch's gauge pass on the live atlas, read-only, via heavy.sh. Its panels equal the live bundle's exactly.
+  - Over 176,367 (section, panel member) pairs, the heading's rule says own 12,306 times and the ranking's 11,246.
+  - 1,060 pairs move, all of them own → donor. None moves the other way.
+  - That is 155 rows: 155 gauges on 104 waters.
+  - Biggest: Halfway River (07FA006, 59 sections; 07FA003, 53), Stikine at Telegraph Creek (08CE001, 44), Lillooet at
+    Tenas Narrows (08MG027, 35), Columbia at Donald (08NB005, 34) and at Nicholson (08NA002, 31), Graham (07FA005, 26),
+    Pitt near Port Coquitlam (08MH035, 25), Bowron (08KD007, 24), Moberly (07FB008, 22).
+  - It ships only when the owner OKs the list: flip `SHIP_OWN_GAUGE_FLAG`, which needs a bundle rebuild for `section_own`.
+- **#16 BUILT, on the T686 switch** (owner 10:00: every left-over on this release). paint/6 is paint/5 plus one column:
+  the sections MOSTLY inside no-access land, by the bundle's union share (`section_no_access.permille` > 500).
+  - Core `noPublicAccess` reads it where carried (`SectionAccess.mostly`); paint/4–5 still sum the rows.
+  - It is written when `packed.SHIP_PACKED_FORMATS` is on, so it switches on with the packed formats. Off, paint/5 is
+    byte-identical to live.
+  - Measured ON, on the live bundle: 3,597 sections, the same set the summed rows give; +282 B gz.
