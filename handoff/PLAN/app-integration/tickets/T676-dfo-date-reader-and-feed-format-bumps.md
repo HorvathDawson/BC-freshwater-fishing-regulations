@@ -1,6 +1,6 @@
 # T676 — The release and the live feed read a DFO date cell the same way; a feed format bump does not strand an older app
 
-Status: IN PROGRESS (2026-11-20, b1f6f23dc, review fixes 719fd569c 243b46352) — items 1, 3 and 4 done (4f591c31a, 4bc03ac14); item 2 built on the owner's 2026-11-20 pick (per-feed `minAppVersion`), branch lane/l1-feeds. left (Claude): main chat review + merge, then the staging feeds worker deploy (the worker stamps the dfo / inseason / live indexes) and the next app build (the gate ships in the app; an app older than it ignores the field)
+Status: IN PROGRESS (2026-11-20, b1f6f23dc, review fixes 719fd569c 243b46352 2c316de53) — items 1, 3 and 4 done (4f591c31a, 4bc03ac14); item 2 built on the owner's 2026-11-20 pick (per-feed `minAppVersion`), branch lane/l1-feeds. left (Claude): main chat review + merge, then the staging feeds worker deploy (the worker stamps the dfo / inseason / live indexes) and the next app build (the gate ships in the app; an app older than it ignores the field)
 
 Source: T556 (data pipeline review 2026-11-09, findings 1 and 3). T556 pinned the two languages with shared fixtures and
 generated the format strings; these two are changes of behaviour, not pins.
@@ -129,8 +129,8 @@ Status line before this answer: PARTIAL (2026-11-12, 4bc03ac14) — items 1, 3 a
 An independent review of lane/l1-feeds said "merge after fixes":
 - **Every gauge file is gated, not only the index.** Station files and `obs.json` carry `minAppVersion` too (worker
   `gauges/publish.ts`, Python `publish.py` station files; the contract's key lists). The gate's `checkFile` refuses a file
-  stamped for a newer app (held, never clearing: only the index clears); a gauge file this app cannot read while the gate
-  holds the gauge bump falls back to the session's copy / the kept week, unreported (no more T557 reports per panel).
+  stamped for a newer app (held, never clearing: only the index clears) and the session's copy / the kept week answers,
+  unreported. (The "a hold excuses any unreadable gauge file" rule this first built was removed by the second review.)
   `fetchObs` takes the gate; the background check has its own (`notify.native.ts`), so a bumped `obs.json` logs "gauge
   alerts wait for the app update" and reports nothing (alerts' states stand).
 - **A 304 clears a held need**: the index in use answered unchanged → the feed's `needsApp` and the gate's need clear
@@ -144,4 +144,22 @@ An independent review of lane/l1-feeds said "merge after fixes":
   `test_runtiming_feed.py`), no longer by grepping the source.
 - 719fd569c: a gate listener that throws is reported, not swallowed (the T368 scan).
 - Not done here (the main chat tickets it): the quota quote dropping other trailing conditions ("only 2 over 35 cm").
+
+## Second review 2026-11-20 07:00 MST (2c316de53)
+- **M1:** only a gauge file's OWN `minAppVersion` excuses it. The gate's hold no longer excuses a file this app cannot
+  read (`holds()` removed): a broken file in this app's own format, or another format with no stamp, is reported (T557).
+  The background check makes its gate per run (`notify.native.ts`), so no need outlives a run.
+- **M2:** the update store's kept refusals are read back through `keptRefusals` inside the start-clean guard: plain-object
+  entries with a semver `need` and a string-or-null etag / sha256; anything else dropped, the field dropped when not a
+  plain object (`refused: "ab"` crashed every start; `{dfo:{need:5}}` gave needsApp 5).
+- **M3:** `gate.test.ts` proves a broken station file and `obs.json` are reported with a gate present, held or not (fails
+  under the reviewer's `why && opts.gate` mutation; checked); the M2 repros and seven more shapes start clean (fails with
+  the guard removed; checked).
+- **L1:** `gauges.contract.test.ts` pins `minAppVersion` on `obs.json` and every station file the worker writes.
+- **Leftovers (noted, not fixed):**
+  - L2: a gauge station file or `obs.json` refused as newer than the app is downloaded again on every read (only the
+    index's refusal is remembered).
+  - L3: the gauges row on More shows a need only from the index; one set by a station file or `obs.json` reaches the
+    prompt (the gate) but not the row.
+  - L4: `syncObservations` swallows every failure (`catch {}`), a broken `obs.json` included; the T368 scan lists it.
 

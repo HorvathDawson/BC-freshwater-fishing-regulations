@@ -143,4 +143,6 @@ Asked when a notice that prints a window ("July 30 to September 15") shows, the 
   answers, the update service's `offer` throws, the feed's own failure line shows, as for a format bump).
 - Tests: `inseason.test.ts` (the threshold: half reads, over half refuses), `data/src/feed/inseason.test.ts` (offer throws,
   the capture kept), `ui/src/inseason.render.test.tsx` (the inbox line for one dropped row; the whole refusal).
+- Leftover (second review L5, noted, not fixed): an index refused because over half its rows cannot be read shows the
+  generic "could not be read by this version of the app" line and report; neither says it was the rows.
 
