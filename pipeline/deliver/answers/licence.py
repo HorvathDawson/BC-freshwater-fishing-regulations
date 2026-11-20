@@ -655,18 +655,23 @@ def carried_holds(C: Corpus, here: dict, source: dict, designation: str, md) -> 
     """(T973, owner 2026-11-20 13:22) THE ANSWER AS IF A CARRIED DESIGNATION HELD: a section's own `holds` (`here`) with
     the carried designation added on the days it is in force at its own water (`source`, `holds` read at one of its
     own sections) — the designation box, and every requirement that holds where a designation does
-    (`on_designation`: the Classified Waters Licence, the classified steelhead stamp) as the source holds it. The
-    classified water's own answer is the model, so a carried unit is the same row, for the same anglers, at the same
-    price; only what the source holds BECAUSE of its designation moves."""
+    (`on_designation`: the Classified Waters Licence, the classified steelhead stamp) as the source holds it, and the
+    stamp waivers the designation prints (the source's `waived`: the Stellako's "no Steelhead Stamp required" takes the
+    steelhead stamp off, as its box says). The classified water's own answer is the model, so a carried unit is the same
+    row, for the same anglers, at the same price; only what the source holds or waives BECAUSE of its designation moves."""
     if designation not in source["designations"]:
         return here
     add = [k for k in source["rows"] if C.requirements[k].get("_placement") == "on_designation"]
     extra = [k for k in add if k not in here["rows"]]
     desig = list(here["_desig"]) + [d for d in source["_desig"] if f"{d['entry_id']}#{d['id']}" == designation
                                     and f"{d['entry_id']}#{d['id']}" not in here["designations"]]
-    return {**here, "holds": _order(C, list(here["holds"]) + [k for k in extra if k in source["holds"]]),
-            "displaced": {**here["displaced"], **{k: v for k, v in source["displaced"].items() if k in extra}},
-            "rows": _order(C, list(here["rows"]) + extra),
+    gone = {k for k in source.get("waived") or () if k in here["rows"]}       # the designation's own stamp waiver
+    return {**here, "holds": _order(C, [k for k in here["holds"] if k not in gone]
+                                    + [k for k in extra if k in source["holds"]]),
+            "displaced": {**{k: v for k, v in here["displaced"].items() if k not in gone},
+                          **{k: v for k, v in source["displaced"].items() if k in extra}},
+            "rows": _order(C, [k for k in here["rows"] if k not in gone] + extra),
+            "waived": sorted(set(here.get("waived") or ()) | gone),
             "designations": sorted(set(here["designations"]) | {designation}), "_desig": desig,
             "stamp_period": read.steelhead_stamp_period(desig, md)}
 

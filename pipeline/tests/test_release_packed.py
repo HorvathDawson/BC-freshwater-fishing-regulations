@@ -301,3 +301,7 @@ def test_t973_the_carried_answer_is_the_sections_own_with_the_units_on_designati
     assert got["rows"] == got["holds"] == ["zp:basic#basic", "zp:cwl#cwl"] and got["designations"] == ["r6:stellako#d"]
     assert got["_desig"] == [unit]
     assert LA.carried_holds(C, here, {**src, "designations": []}, "r6:stellako#d", (11, 20)) is here
+    # the designation's own stamp waiver goes with it: the steelhead stamp the section holds comes off, as the box says
+    here2 = {**here, "holds": here["holds"] + ["r6:x#steelhead"], "rows": here["rows"] + ["r6:x#steelhead"], "waived": []}
+    got = LA.carried_holds(C, here2, {**src, "waived": ["r6:x#steelhead"]}, "r6:stellako#d", (7, 15))
+    assert "r6:x#steelhead" not in got["rows"] and got["waived"] == ["r6:x#steelhead"]
