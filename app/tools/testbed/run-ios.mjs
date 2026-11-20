@@ -29,6 +29,8 @@ import { conditionsIos } from './scenarios-ios/conditions.mjs';
 import { nullClearsIos } from './scenarios-ios/null-clears.mjs';
 import { t884Ios } from './scenarios-ios/t884.mjs';
 import { bgUpdateIos } from './scenarios-ios/bg-update.mjs';
+import { firstRelaunchIos } from './scenarios-ios/first-relaunch.mjs';
+import { t831Ios, t836Ios } from './scenarios-ios/l6-shots.mjs';
 
 process.env.TESTBED_PLATFORM = 'ios';
 const HERE = path.dirname(new URL(import.meta.url).pathname);
@@ -536,8 +538,15 @@ const SCENARIOS = [
         return `${r} · ${back}`;
       });
       await ctx.step('iOS memory warning (the Simulator\'s "Simulate Memory Warning")', async () => {
-        device.memoryWarning();
-        return measure('after memory warning', 5000);
+        // (T725) the trim is proven by its own line (`memoryTrim.native.ts`: "[trim] iOS memory warning, N database(s)
+        // shrunk, M idle closed"); before T725 the warning never reached the app and nothing said so
+        const before = logLines(-1, '[trim] ').length;
+        const sent = device.memoryWarning();
+        const m = await measure('after memory warning', 5000);
+        const trims = logLines(-1, '[trim] ');
+        const line = trims.length > before ? trims.at(-1).slice(trims.at(-1).indexOf('[trim] ')) : null;
+        if (!line) throw new Error(`${sent}; no [trim] line in the app's log within 5 s (${m})`);
+        return `${sent}; ${line}; ${m}`;
       });
     } },
   { id: 'perf', title: 'Performance, the Android measures (T245 / T286 / T273): cold start → map drawn, a map tap → its page, pan; memory',
@@ -642,6 +651,11 @@ const SCENARIOS = [
   t884Ios,
   // (T912) an update goes on with the app closed (Home, then the process ended): the T722 background session
   bgUpdateIos,
+  // (T756, T738, T760) a first install ended part way and opened again keeps its downloads; the bar starts at what was held
+  firstRelaunchIos,
+  // (T831, T836) the iPhone shots owed by two merged fixes: the route map's pins and lines, the photo viewer
+  t831Ios,
+  t836Ios,
 ];
 
 // ---------- the runner (as run.mjs, without the Android-only crash buffer and test channel) ----------

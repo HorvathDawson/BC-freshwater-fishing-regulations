@@ -233,9 +233,15 @@ export const keyboardIos = {
       ctx.flow('ios-tap-at', { POINT: `${Math.round(at[0])},${Math.round(at[1])}` });
       const nn = await typeIn(ctx, 'spot-notes', null, 'kb notes', (n) => n.text === 'kb notes');
       // (G10) ONE tap on "Save spot" with the keyboard up: it must save, not only close the keyboard
-      const save = d.nodes().find((n) => /^(Save spot)$/.test(n.text || n.desc));
+      // (T723, owner 2026-11-16) the Save row lifted: the same Save rides on the keyboard's bar (`spot-save-bar-save`, an
+      // InputAccessoryView, so its box is ABOVE the keys and the pixel read of the keyboard's top may include the bar);
+      // before the fix only the page's row exists, under the keyboard
+      const ns2 = d.nodes();
+      const onBar = ns2.find((n) => n.id === 'spot-save-bar-save');
+      const save = onBar ?? ns2.find((n) => /^(Save spot)$/.test(n.text || n.desc));
       let once = 'Save spot not in the tree';
-      if (save && nn.kbTop !== null && save.box.y0 >= nn.kbTop) once = `Save spot (${Math.round(save.box.y0)} pt) is under the keyboard: not tappable with it up`;
+      const barSaid = onBar ? `the keyboard's bar carries Save (${Math.round(onBar.box.y0)}-${Math.round(onBar.box.y1)} pt; keyboard top read ${nn.kbTop === null ? 'none' : Math.round(nn.kbTop)} pt)` : 'no Save on the keyboard';
+      if (!onBar && save && nn.kbTop !== null && save.box.y0 >= nn.kbTop) once = `Save spot (${Math.round(save.box.y0)} pt) is under the keyboard: not tappable with it up`;
       else if (save) {
         ctx.flow('ios-tap-at', { POINT: `${Math.round((save.box.x0 + save.box.x1) / 2)},${Math.round((save.box.y0 + save.box.y1) / 2)}` });
         await d.sleep(2500);
@@ -245,7 +251,7 @@ export const keyboardIos = {
         if (still) { ctx.finding('G10: the first tap on Save spot (keyboard up) did not save'); ctx.flow('tap-text', { TEXT: 'Save spot' }); await d.sleep(2500); }
       }
       if (d.screenText().includes('Save spot')) { try { must(ctx, 'kb-spot-save', '- hideKeyboard\n- scrollUntilVisible:\n    element: { text: "Save spot" }\n    timeout: 15000\n- tapOn: { text: "Save spot" }\n'); } catch { /* said by the probe */ } await d.sleep(2500); }
-      return `${t.note}; ${nn.note}; one tap on Save spot: ${once}`;
+      return `${t.note}; ${nn.note}; ${barSaid}; one tap on Save spot: ${once}`;
     });
     await open("alert fields on a water's Conditions (Coquihalla River → Conditions → Alert me)", async () => {
       ctx.flow('search', { Q: 'Coquihalla River' });

@@ -57,6 +57,7 @@ const NOT_IN_APP_SOURCE: Record<string, string> = {
   "edited offline by the test bed": "the text the scenario itself types into a spot",
   "hatchery fence": "a water name from the release data",
   "Audit spot": "(T723) the title of the spot the audit-fixes scenario itself seeds",
+  "Photo spot": "(T836) the title of the spot with three photos the t836-ios scenario itself seeds",
   "kb probe": "(T723) the title the keyboard scenario itself types into a spot (modal-back opens it)",
 };
 
