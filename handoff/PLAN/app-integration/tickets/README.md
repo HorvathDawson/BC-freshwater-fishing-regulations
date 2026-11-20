@@ -240,6 +240,7 @@ reads both files; a ticket closed here moves there once its lane is finished wit
 | T937 | Salmon map: no-access water drawn grey like Trout, with its key entry (owner) | OPEN | | owner 2026-11-20 "salmon should have the no access land set to grey like trout" |
 | T938 | iPhone: after search → water → Back, the browse map draws only its top part (found chasing T928) | OPEN | | main chat lane 2026-11-20, simulator; in 0.8.3 too |
 | T939 | DFO salmon: the quota quote drops trailing conditions ("only 2 over 35 cm") | OPEN | | review of lane/l1-feeds 2026-11-20 |
+| T940 | Satellite: one colour set for all water lines, the same in light and dark (owner) | OPEN | | owner 2026-11-20, after this release |
 
 ## Next after closed testing
 
