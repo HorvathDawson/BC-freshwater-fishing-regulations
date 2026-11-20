@@ -395,7 +395,7 @@ const REGION_4 = {
 /** (T820) a page closed every day: one bar, every day closed; its strip (no provincial bar: no when, no marker) */
 const ALL_CLOSED_BAR = { label: null, unmapped: false, today: "closed", todayWord: "closed", runs: [{ status: "closed", days: 365 }] };
 const STRIP_ALL_CLOSED = (title: string, by: "dfo" | "both" | "book") => ({ title, by, status: "closed", mark: "✕", word: "Closed", when: null, soon: null,
-  runs: [{ drawn: "closed", days: 365 }], generalTitle: "Game fish (B.C. rules)", legend: [{ drawn: "closed", label: "✕ Closed" }] });
+  runs: [{ drawn: "closed", days: 365, gear: 0 }], generalTitle: "Game fish (B.C. rules)", legend: [{ drawn: "closed", label: "✕ Closed" }] });
 const r4Facts = (): SalmonFacts => ({ ...facts(REGION_4), chains: 4, chainOf: (sid) => (sid >= 1 && sid <= 3 ? sid : 0) });
 /** Region 4's page today: the header's closure every day, its own verdict table (other indices) */
 const r4Feed = () => FEED({ regions: { "4": { name: "Kootenays", url: "", asof: "2026-10-01", checked: null, stale: false, held: null } },
