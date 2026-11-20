@@ -247,9 +247,13 @@ try {
   capture.scenes.conditions = await record('conditions', async (mark) => {
     mark('tap'); tapAt(condTab);
     await ctx.timer(1900, 'a person reads the day\'s estimate (the check after the scene proves the view opened)');
-    // one slow drag in the page's right gutter (a drag on the route map pans the map): 1500 px brings the gauge card's chart
-    // under the header (measured 2026-11-13; the check below fails the run if it does not)
-    d.sh('input swipe 1062 2150 1062 650 900'); mark('last');
+    // one slow drag in the page's right gutter: (T920) the gauge card now sits right under the estimate and its chart is
+    // taller, so the drag is MEASURED — the card's top brought to y 600, under the header (the check below fails the run if
+    // the chart and its legend are not whole on screen)
+    const card = node(nodes(d), (n) => n.id === 'gauge-card', 'the gauge card');
+    const dy = Math.max(0, Math.min(1500, card.box.y0 - 600));
+    if (dy > 0) d.sh(`input swipe 1062 ${650 + dy} 1062 650 900`);
+    mark('last');
     const x = await waitScreen((y) => conditionsProblems(y, { water: WATER.name, release: RELEASE, screenH }).length === 0, 'the gauge chart whole on screen', 8000)
       .catch((e) => { throw new Error(`${e.message}: ${conditionsProblems(nodes(d), { water: WATER.name, release: RELEASE, screenH }).join('; ')}`); });
     mark('checked');

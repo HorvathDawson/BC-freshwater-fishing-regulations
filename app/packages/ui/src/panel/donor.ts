@@ -1,7 +1,7 @@
 import { useMemo } from "react";
 import { type DonorRow, type Horizon, type PanelAnswer, type Quantity, type WaterSource, type SectionId,
          type StationId } from "@app/data";
-import { changeLowWaterNote, donorState, CONDITIONS_WORDS, disagreeNote, donorBecause, donorCounted, donorFacts, donorRelation, donorLastReport,
+import { changeLowWaterNote, donorState, CONDITIONS_WORDS, disagreeNote, donorBecause, donorCounted, donorDetailLine, donorFacts, donorRelation, donorLastReport,
          donorPinTitle, donorReads, donorReason, donorRowLabel, donorSilent, donorVotes, donorWeightLine,
          estimateHeadline, estimateRange, estimateSentence, gaugeChoiceLabel, HORIZON_LABELS, isAhead, metresApart,
          panelCamera, ROUTE_MARK_PX, refusalIsAboutTheDay, regulatedNote, SAME_PLACE_M, shortRecordNote, silentLine, sizeApart, tidalNote,
@@ -365,8 +365,7 @@ export function donorView(value: PanelAnswer, o: DonorViewOptions): DonorVM {
       bar: `${Math.max(1, Math.round(r.weight * 100))}%`,
       weightLine: donorWeightLine(r),
       reads, lastReport, facts,
-      // its reading's full stop dropped where the facts follow it on the same line
-      detail: [reads.replace(/\.$/, ""), lastReport, facts].filter(Boolean).join(" · "),
+      detail: donorDetailLine(reads, lastReport, facts),
       relation: !sides || !isDonorSide(sideOf(r)) ? null : donorRelation({
         station: r.station, name: r.route?.name ?? null, role: r.role, reaches: r.route?.path.length ?? 0,
         joined: r.route?.join !== undefined,

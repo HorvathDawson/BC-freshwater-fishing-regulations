@@ -571,3 +571,14 @@ describe("T567 lead gauge words", () => {
     expect(_lo).toBe("No gauge here reports flow today, so the gauge shown is chosen on water level.");
   });
 });
+
+describe("(T920) the gauge legend's detail line", () => {
+  it("joins the reading, the last report and the facts on one line, the reading's full stop dropped only where more follows", async () => {
+    const { donorDetailLine } = await import("./conditions");
+    expect(donorDetailLine("Reads normal · higher than 6 days in 10.", null, "upstream · drains 478 km² · 2.9× apart"))
+      .toBe("Reads normal · higher than 6 days in 10 · upstream · drains 478 km² · 2.9× apart");
+    expect(donorDetailLine("Not reporting today.", "last report Nov 18 at 21:20", null))
+      .toBe("Not reporting today · last report Nov 18 at 21:20");
+    expect(donorDetailLine("Reads normal.", null, null)).toBe("Reads normal.");
+  });
+});

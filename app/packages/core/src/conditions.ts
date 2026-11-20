@@ -554,6 +554,13 @@ export function donorShare(r: Pick<DonorFacts, "weight"> & DonorReading): string
 }
 
 /** The labelled line beside the weight bar. */
+/** (T920) The gauge legend's second line: what the gauge reads (its full stop dropped where more follows), when a quiet
+ *  one last spoke, and its facts — one line, composed here so a test pins it whole (AGENTS 33). */
+export function donorDetailLine(reads: string, lastReport: string | null, facts: string | null): string {
+  const rest = [lastReport, facts].filter(Boolean) as string[];
+  return [rest.length ? reads.replace(/\.$/, "") : reads, ...rest].join(" · ");
+}
+
 export function donorWeightLine(r: DonorFacts): string {
   return donorCounted(r) ? `${donorShare(r)} of this estimate` : "not counted today";
 }

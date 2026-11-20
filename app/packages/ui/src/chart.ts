@@ -41,9 +41,13 @@ export function chartHeight(width: number): number {
   return Math.round(Math.min(420, Math.max(260, width * 1.2)));
 }
 
-/** The chart's box at a measured width (never narrower than the old fixed one). */
+/** (T920 review) The narrowest chart drawn 1:1: a 320 dp phone's card inside is ~262. */
+const MIN_CHART_W = 200;
+
+/** The chart's box at a measured width: exactly that width (so the Svg is drawn 1:1 and a touch's pixels are the
+ *  viewBox's — the read-out does not drift), never under `MIN_CHART_W`; the old fixed box until the width is measured. */
 export function chartBox(width: number): Box {
-  const w = Math.max(DEFAULT_BOX.width, Math.round(width));
+  const w = width > 0 ? Math.max(MIN_CHART_W, Math.round(width)) : DEFAULT_BOX.width;
   return { ...DEFAULT_BOX, width: w, height: chartHeight(w) };
 }
 

@@ -26,7 +26,10 @@ describe("the chart's size", () => {
   it("is built for the width it is drawn at, between 260 and 420 high (T367, T920)", () => {
     expect(chartBox(1000)).toEqual({ width: 1000, height: 420, padLeft: 4, padRight: 4, padTop: 34, padBottom: 24 });
     expect(chartBox(358)).toEqual({ width: 358, height: 420, padLeft: 4, padRight: 4, padTop: 34, padBottom: 24 });
-    expect(chartBox(100).width).toBe(320);
+    // (T920 review) a 360 dp phone's card inside (302) is drawn 1:1, never forced to 320 and scaled down
+    expect(chartBox(302).width).toBe(302);
+    expect(chartBox(100).width).toBe(200);
+    expect(chartBox(0).width).toBe(320);   // not measured yet
     // (T920) about square on a phone, capped on a wide column
     expect([chartHeight(200), chartHeight(332), chartHeight(390), chartHeight(900)]).toEqual([260, 398, 420, 420]);
   });
