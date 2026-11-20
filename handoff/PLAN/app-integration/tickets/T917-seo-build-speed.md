@@ -1,6 +1,8 @@
 # T917 — The website's page build (build-seo) is slow: about 15 minutes per site
 
-Status: OPEN (after 0.8.3; owner 2026-11-19 ~15:42).
+Status: IN PROGRESS — round 1 built in worktree branch `worktree-agent-a72298791d841faf6` (full build 1,136 s → 470 s,
+byte-identical); left (Claude): independent review + merge. Items 3-4 (rebuild only what changed, prod reusing staging) not
+started.
 
 Owner 2026-11-19 ~15:42 (main chat), watching the 0.8.3 production website build ("building the water pages, about 3,000
 done so far"), verbatim: "this is so slow ... im sure we could speed it up make that a future ticket".
@@ -41,3 +43,54 @@ CPU/RSS sampler of the process tree.
    canonical, X-Robots-Tag) rewritten, if 3 is not enough.
 
 Output must stay byte-identical to today's (diff a full build before/after); seo vitest stays green.
+
+## Round 1 (2026-11-19, worktree lane): 1,136 s → 470 s, every file byte-identical
+Same inputs for every run: release r-6258ffded676, one copy of the staging web export (script index-d8a8c26d…),
+`--date 2026-11-19 --previous r-86d43303bee2.json`, output in the lane's scratchpad; each run alone under
+`scripts/heavy.sh`, `/usr/bin/time -l` plus a 5 s CPU/RSS sampler. Baseline = this branch's base commit fc09ec0c2.
+
+| run | threads | wall | CPU (user+sys) | cores used | peak RSS / footprint | 1,000th page |
+|---|---|---|---|---|---|---|
+| baseline (fc09ec0c2) | 4 render | **1,136 s** | 3,748 + 89 s | 3.4 | 9.4 / 9.0 GB | 150 s |
+| after (a)-(c) + verify overlapped | 10 render + 6 job | 567 s | 5,963 + 182 s | 10.8 | 13.7 / 16.4 GB | 129 s |
+| **after, + ladder decode once** | 10 render + 6 job | **470 s** | 5,527 + 159 s | 12.0 | 13.6 / 15.0 GB | 58 s |
+
+(The baseline's 1,136 s vs the 0.8.3 production run's 1,055 s: another export, and two single-core profiling runs of mine
+overlapped it for ~4 min on an otherwise idle 18-core machine; its median CPU, 405 %, is the production run's 408 %.)
+
+**Byte-identical proof:** `find . -type f | sort | shasum -a 256` over the whole output tree (59,647 files: every water
+page's `.br` + `.gz`, every share PNG, hubs, sitemaps, CSS, budget.json, snapshot, workers): baseline vs each after run,
+`diff` empty both times. The fixture build (`--fixture --app`, 305 files) is also identical at `--threads 1`, `4` and `auto`.
+
+What changed:
+- **(a) compression off the render threads.** A render thread now renders and checks the page and hands back its HTML;
+  job threads (`tools/seo/jobs.ts` → `jobs-worker.mjs`, plain workers, no module runner) gzip 9 + brotli 11 and write
+  the `.gz`/`.br`. The byte-making code is one file, `tools/seo/bytes.mjs` (`compressPage`, `drawCard`), used by the job
+  threads and the in-process paths alike. A render thread is not given a page while more than 4 pages per job thread
+  wait (bounded HTML held on the main thread).
+- **(b) share PNGs on the job threads** (in parallel, a turn after each card as before; results kept in the order
+  asked). The serial `drawSharePngs` stays for the in-process path (tests).
+- **(c) thread count from cores and free memory** (`tools/seo/threads.ts`, tested): `--threads auto` (default) = as many
+  render threads as the cores keep busy (18 cores → 10 render + 6 job), held to what the free memory pays for
+  (`memory_pressure` on macOS, as heavy.sh reads it): 1.3 GB a render thread (measured: footprint 9.0 GB at 4, 15-16.4 GB
+  at 10), 4.5 GB main, 10 % of RAM kept free; the result is printed (`seo: 10 render + 6 job threads (...)`).
+  `--threads N` still works and is held the same way. The cap of 4 is gone. `deploy/staging/site-all.sh` and the
+  production runbook (`runbooks/release-by-hand.md` step 3) now pass `--threads auto`.
+- **(d) start-up: 150 s → 58 s to the 1,000th page.** Main-thread prep before the first page request was 61 s models +
+  70 s `verifyAgainstApp` (measured with `--snapshot-only`: 132-140 s total). (1) the verify gate now runs while the
+  render threads draw (site.ts; still gated before any page is awaited, its own error message unchanged); (2)
+  `packages/core/src/regs/ladder.ts` `ladderAt` decodes a frame once per (frame, reasons, states) (WeakMap; settle.ts
+  asked per segment AND day, the frame does not change with the day), shares one map between origins carrying the same
+  wire verdict, and overlays by copy + set (same insertion order as `new Map([...base, ...own])`). `--snapshot-only`:
+  140 s → 41 s. Core + conformance suites green (3,713 + the 261 Python-parity tests).
+
+Checks run: `vitest run tools/seo` (24 files, 169 tests), `tools/web-shell.test.ts`, `packages/core` + `conformance`,
+`tsc -b`, `tsc -p tools/seo/tsconfig.json`, knip (memory_pressure added to ignoreBinaries), check-promises/deps/
+boundaries/platform/anchors/tickets. `scripts/fast-fail.sh` fails in this worktree on 7 review marks NOT LANDED
+(pipeline curation state, unrelated to this change).
+
+Where the time goes now: the render phase is CPU-bound (~14-15 of 18 cores busy, ~19.5 s per 1,000 pages; a render
+thread's per-page time rose from ~110 ms to ~200 ms under contention, so more threads will not help); start-up ~50 s
+(module runners + models). Next, if wanted: a render-thread profile (react-native-web render ~20 % of a thread before),
+then item 3 (hash a page's inputs, copy unchanged pages) — the biggest remaining win, since staging and production of
+the same commit + release would build once.
