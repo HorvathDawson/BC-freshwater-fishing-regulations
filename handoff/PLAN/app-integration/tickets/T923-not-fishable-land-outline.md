@@ -21,3 +21,4 @@ Depends: none. Size: S. Owner: yes (look). Default: outline = fill hue, ~20 % da
 After round-1 pictures (map darker outline, satellite barely changed). Verbatim: "Maybe for satellite we could have it
 purposely stand out a little more ?" then "make indigenous easy to see only in satellite mode it will change". So: the
 map (light/dark) and private land stay as they were; only the reserve outline changes, only on satellite, standing out.
+Then, verbatim: "Can be on private too". So on satellite only, private land gets the same stand-out outline (its own hue).
