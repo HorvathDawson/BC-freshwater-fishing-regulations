@@ -153,6 +153,7 @@ the Dewdney side effect go to the owner.
 
 Owner 2026-11-20 09:59 (dialog), #8: "Ranking's rule, list first (Recommended)": along the water, a lake on the way ends it; the list of gauges that move goes to the owner before it ships.
 Owner 2026-11-20 10:45 (dialog), after the list (`T679-shots/own-gauge-moves.csv`) was sent: **"Ship it"**. `packed.SHIP_OWN_GAUGE_FLAG` is ON (merge of lane/l8-shrink); `flow-own/1` ships with the next data release, which rebuilds the bundle for `section_own`.
+Owner 2026-11-20 11:02 (dialog), after the blocker measure (`T679-shots/own-gauge-blockers.csv`: 448 of 1,060 moves behind unnamed ponds of no water): **"Named lakes only (Recommended)"**: `own_distances` walks through an unnamed pond that belongs to no registry water, at any size; a named lake still ends it. The lead-gauge ranking reads the same walk, so it changes with it. Ships with #8.
 
 ## Plan step 5, lane L8 (2026-11-20, `lane/l8-shrink`)
 - **#17 BUILT.** The export joins a rule-set group's runs once (`export.read.group_runs`, the water field `grp_runs`,
