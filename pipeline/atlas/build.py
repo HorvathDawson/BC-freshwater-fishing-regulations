@@ -1686,6 +1686,11 @@ def build_registry(b: _Build) -> None:
     _wvrep: dict = {}
     registry = attach_wbk_variants(registry, _nv_all, _wvrep)
     write_wbk_variant_report(_wvrep, out)
+    # (T926, owner 2026-11-20) never a number for a shown name when the water has a lettered one (`show_lettered_names`)
+    from pipeline.atlas.registry.build import show_lettered_names, write_shown_name_report
+    _snrep: list = []
+    registry = show_lettered_names(registry, _snrep)
+    write_shown_name_report(_snrep, out)
     # Each region item carries the MUs lying in it, so a Region 7 row's MUs name its ZONE
     # (`reach.outside.entry_regions`): `@7-30+7-37+7-38` is 7A, `@7-31+7-36` is 7B.
     from pipeline.atlas.registry.build import add_region_units

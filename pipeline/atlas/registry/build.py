@@ -742,6 +742,65 @@ def attach_wbk_variants(registry: dict[str, RegistryItem], name_variants: list[d
     return registry
 
 
+def is_number_name(name: str) -> bool:
+    """(T926, owner 2026-11-20 ~06:55: "Never show a number name") A name with no letter in it — a stocking record's lake
+    number: "5566", and its print forms "#5566", "5566-2" count too. A name with any letter ("Lake 5567", "Pigeon Lake #2")
+    is a name."""
+    return bool(name and name.strip()) and not any(c.isalpha() for c in name)
+
+
+def show_lettered_names(registry: dict[str, RegistryItem], report: list | None = None) -> dict[str, RegistryItem]:
+    """(T926, owner 2026-11-20 ~06:55, "Never show a number name (Recommended)") A water whose SHOWN name has no letter
+    (`is_number_name`: the stocking number "5566" outranked the bathymetry sheet's "PIGEON LAKE #2", since stocking is the
+    better-ranked source) shows a name with letters when it has one; the number stays a variant, so search still finds it
+    by it. Which lettered name: the one the most of its names agree on (records sharing its matcher key: "PIGEON LAKE #2"
+    and "Pigeon Lake # 2" over "CONTROL (PIGEON)"), then the better source, then the order the names came in; shown cased
+    (`graph.names._display_case`). ONLY the shown name and the order of `name_sources` (the shown one first) change: the set
+    {name, *variants} — every matcher key — stays the same. A water with no lettered name keeps its number. Each change is
+    appended to `report` ({item, was, now}). Run last by the atlas build and `pipeline.atlas.sidecars`; idempotent."""
+    from pipeline.atlas.graph.names import _display_case
+    from pipeline.regs.matching.matcher import _norm
+    rep = report if report is not None else []
+    for iid in sorted(registry):
+        it = registry[iid]
+        if not is_number_name(it.name):
+            continue
+        recs = [r for r in it.name_sources if r.name and not is_number_name(r.name)]
+        lettered = list(dict.fromkeys([*(r.name for r in recs), *(v for v in it.variants if not is_number_name(v))]))
+        if not lettered:
+            continue
+        rank = {r.name: _SRC_RANK[NameSource(r.source)] for r in recs}
+        keys = [_norm(r.name) for r in it.name_sources if r.name]
+        best = min(lettered, key=lambda n: (-keys.count(_norm(n)), rank.get(n, len(_SRC_RANK)), lettered.index(n)))
+        shown = _display_case(best)
+        names = {it.name, *it.variants}
+        variants = tuple(sorted((names | {best}) - {shown})) if shown != best else tuple(sorted(names - {shown}))
+        if not ({shown, *variants} >= names):
+            raise AssertionError(f"show_lettered_names: {iid} would lose a name")
+        own = next((r for r in it.name_sources if r.name == shown), None)
+        src = next((r for r in it.name_sources if r.name == best), None)
+        first = own or (replace(src, name=shown) if src else NameRecord(name=shown, source=NameSource.override.value,
+                                                                       label=label_of(NameSource.override)))
+        registry[iid] = replace(it, name=shown, variants=variants,
+                                name_sources=(first, *(r for r in it.name_sources if r.name != shown)))
+        rep.append({"item": iid, "was": it.name, "now": shown})
+    return registry
+
+
+#: (T926) the file `show_lettered_names`'s report is written to, beside `registry.json`
+SHOWN_NAME_REPORT = "shown_name_report.json"
+
+
+def write_shown_name_report(rep: list, out_dir, log=print) -> None:
+    """Write `show_lettered_names`'s changes beside the registry and say each one."""
+    import json
+    from pathlib import Path
+    (Path(out_dir) / SHOWN_NAME_REPORT).write_text(json.dumps(rep, indent=1) + "\n", encoding="utf-8")
+    log(f"  shown names (T926): {len(rep)} water(s) shown by a lettered name instead of a number -> {SHOWN_NAME_REPORT}")
+    for r in rep:
+        log(f"    {r['item']}: {r['was']!r} -> {r['now']!r}")
+
+
 #: (T926 review) the file `attach_wbk_variants`'s report is written to, beside `registry.json`
 WBK_VARIANT_REPORT = "wbk_variant_report.json"
 

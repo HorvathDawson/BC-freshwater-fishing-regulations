@@ -42,7 +42,8 @@ from pipeline.common.curated import CURATED, GENERATED
 from pipeline.atlas.splits.splits import dump_resolved, order_resolved
 
 SIDECARS = ("region_home.json", "registry.json", "item_points.json", "merge_report.json", "slough_fold_report.json",
-            "one_water_report.json", "splits.resolved.json", "lake_loop_report.json", "wbk_variant_report.json")
+            "one_water_report.json", "splits.resolved.json", "lake_loop_report.json", "wbk_variant_report.json",
+            "shown_name_report.json")
 
 
 def enrich_resolved(rows: list[dict], curated_defs, *, strict: bool = True) -> list[dict]:
@@ -160,6 +161,11 @@ def write_sidecars(build: Path, out: Path | None = None, *, log=print) -> Path:
     wvrep: dict = {}
     registry = attach_wbk_variants(registry, _nv, wvrep)
     write_wbk_variant_report(wvrep, dest, log)
+    # (T926, owner 2026-11-20) the same pass the atlas build runs: never a number for a shown name
+    from pipeline.atlas.registry.build import show_lettered_names, write_shown_name_report
+    snrep: list = []
+    registry = show_lettered_names(registry, snrep)
+    write_shown_name_report(snrep, dest, log)
     write_registry(registry, dest / "registry.json")
     log(f"  registry.json: {n_parts} lake part(s) carry part_of; their lakes own no section")
     pins_path = build / "item_points.json"

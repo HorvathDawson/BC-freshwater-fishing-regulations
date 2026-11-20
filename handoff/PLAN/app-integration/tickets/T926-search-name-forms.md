@@ -154,3 +154,20 @@ letter in it (it stays a search name). Pigeon Lake #2 would then show "Pigeon La
 cased); the other three "Unnamed Cayoosh Cr", "Unnamed Vanhorlick 1" / "2". A code rule, no data edit; atlas-side
 (ships with the next atlas build). Alternative: `"display": true` on the wanted name in the file, one entry per lake.
 Matching: none of these numbers is a book name; the proof above would be rerun with the change.
+
+## Owner 2026-11-20 ~06:55 (main chat dialog): "Never show a number name (Recommended)"
+When a water has a name with letters, a name with no letter is never its shown name; it stays a search name.
+Built (lane/t926-numbers): registry pass `show_lettered_names` (`pipeline/atlas/registry/build.py`), run last by the
+atlas build and by `pipeline.atlas.sidecars` (report `shown_name_report.json`, every change printed). A "number name" is
+a name with no letter at all: "5566", and the print forms "#15", "5566-2" count too (decided: the four "#"-forms on the
+live registry are stocking lake numbers like the bare ones). The lettered name shown: the one most of the water's names
+agree on (same matcher key), then the better source, then file order; cased by the one caser.
+Dry run on the live registry (scratchpad `probe/numbers_proof.py`; same result after the wbk variant pass) — 8 waters,
+no number-named water left:
+- wbk:329116782 "5566" → "Pigeon Lake #2"; wbk:329505260 "3261" → "Unnamed Cayoosh Cr"; wbk:329505286 "3296" →
+  "Unnamed Vanhorlick 1"; wbk:329505318 "3299" → "Unnamed Vanhorlick 2"; wbk:329021876 "#15" → "Precipice Lake";
+  wbk:329054830 "#1222" → "Wilderness"; wbk:329320968 "#1012" → "Trails End Lake"; wbk:329321012 "#825" → "Heidi Lake".
+Proof: only `name` and the order of `name_sources` change (the number stays a variant); the matcher's name index is the
+same 17,599 keys (17,636 after the variant pass) with 0 keys whose waters change; all 2,996 synopsis entry matches through
+the build's matcher + overrides unchanged; no entry's stored `matched` (what the build binds by) names any of the 8, and
+no item id, section or boundary moves — no rule binding can change. Ships with the next atlas registry.

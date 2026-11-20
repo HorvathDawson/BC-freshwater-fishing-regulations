@@ -153,3 +153,34 @@ def test_t927_a_bundle_without_cut_place_gives_no_table():
     con.execute("CREATE TABLE main.item (ord INTEGER PRIMARY KEY, item_id TEXT, kind TEXT)")
     B.core_cut_place(con, {})
     assert con.execute("SELECT 1 FROM sqlite_master WHERE name = 'cut_place'").fetchone() is None
+
+
+def test_t926_a_number_is_never_the_shown_name_when_a_lettered_one_exists():
+    """(T926, owner 2026-11-20 ~06:55 "Never show a number name") The stocking number "5566" outranked the bathymetry
+    sheet's "PIGEON LAKE #2" (stocking is the better source): a name with no letter ("5566", "#15") is never shown while
+    the water has a lettered name — the one most of its names agree on, cased — and stays a search name. The matcher's
+    keys are the same set; a water with only numbers keeps its number."""
+    from pipeline.atlas.registry.build import is_number_name, show_lettered_names
+    from pipeline.regs.matching.matcher import build_name_index
+    assert is_number_name("5566") and is_number_name("#15") and is_number_name(" 5566-2 ")
+    assert not is_number_name("Lake 5567") and not is_number_name("Pigeon Lake #2") and not is_number_name("")
+    src = lambda n, s: NameRecord(name=n, source=s, label=s)              # noqa: E731
+    reg = {"wbk:1": RegistryItem(id="wbk:1", name="5566", kind="lake",
+                                 variants=("5566", "CONTROL (PIGEON)", "PIGEON LAKE #2", "Pigeon Lake # 2"),
+                                 name_sources=(src("5566", "stocking"), src("CONTROL (PIGEON)", "stocking"),
+                                               src("PIGEON LAKE #2", "stocking"), src("Pigeon Lake # 2", "marker"))),
+           "wbk:2": RegistryItem(id="wbk:2", name="3135", kind="lake", variants=("3135",),
+                                 name_sources=(src("3135", "stocking"),)),
+           "wbk:3": _lake("wbk:3", "Lilypad Lake", ["Lilypad Lake", "LAKE #905"])}
+    before = build_name_index(reg)
+    rep: list = []
+    out = show_lettered_names(dict(reg), rep)
+    a = out["wbk:1"]
+    assert a.name == "Pigeon Lake #2" and "5566" in a.variants
+    assert a.name_sources[0].name == "Pigeon Lake #2" and a.name_sources[0].source == "stocking"
+    assert {r.name for r in a.name_sources} >= {"5566", "CONTROL (PIGEON)", "PIGEON LAKE #2", "Pigeon Lake # 2"}
+    assert out["wbk:2"] is reg["wbk:2"] and out["wbk:3"] is reg["wbk:3"]
+    assert rep == [{"item": "wbk:1", "was": "5566", "now": "Pigeon Lake #2"}]
+    after = build_name_index(out)
+    assert {k: set(v) for k, v in after.items()} == {k: set(v) for k, v in before.items()}
+    assert show_lettered_names(dict(out), []) == out                      # idempotent
