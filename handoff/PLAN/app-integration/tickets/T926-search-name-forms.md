@@ -61,3 +61,7 @@ replicate obvious times.... It feels less hacky that way". So T926 is ONLY:
 - (5) "Pete'S Pond …" stays only if it is a display bug, not a search change;
 - "Only replicate obvious times" read as: fix only obvious errors in the file (Claude's reading; confirm).
 Acceptance: the probe's curated-variants class 7,773 / 7,773 found; exact-name ranking unchanged.
+## Owner 2026-11-20 (main chat, question): generic numbered labels stay
+Asked whether to remove the 290 generic labels ("LAKE #1013", "LAKE 5567": 288 from the stocking records, 2 markers; all
+search-only, never displayed; the stocking records name those lakes by them). Answer: "Keep as search-only
+(Recommended)". The file stays as it stands; they find their lakes.
