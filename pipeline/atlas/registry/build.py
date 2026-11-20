@@ -742,11 +742,19 @@ def attach_wbk_variants(registry: dict[str, RegistryItem], name_variants: list[d
     return registry
 
 
+#: (T926, owner 2026-11-20 09:39: "#14A" -> "Show Floatplane Lake") a number with at most two letters stuck to it, before
+#: or after, optionally after "#": "#14A", "14A", "UL22", "#15", "5566-2". One token, no space between letters and digits:
+#: "Lake 3", "L3 Pond", "No. 5" are names. On the live registry it adds exactly "#14A" (shown) and "UL22" (a variant).
+_NUMBER_TAG = re.compile(r"#?\s*[A-Za-z]{0,2}\d+(?:[-./]\d+)*[A-Za-z]{0,2}")
+
+
 def is_number_name(name: str) -> bool:
-    """(T926, owner 2026-11-20 ~06:55: "Never show a number name") A name with no letter in it — a stocking record's lake
-    number: "5566", and its print forms "#5566", "5566-2" count too. A name with any letter ("Lake 5567", "Pigeon Lake #2")
-    is a name."""
-    return bool(name and name.strip()) and not any(c.isalpha() for c in name)
+    """(T926, owner 2026-11-20 ~06:55: "Never show a number name"; 09:39: a number with a letter on it counts too) A
+    stocking record's lake number: a name with no letter in it ("5566", "#5566", "5566-2"), or a number with at most two
+    letters stuck to it (`_NUMBER_TAG`: "#14A", "14A"). A name with a word in it ("Lake 5567", "Pigeon Lake #2", "L3
+    Pond") is a name."""
+    s = (name or "").strip()
+    return bool(s) and (not any(c.isalpha() for c in s) or _NUMBER_TAG.fullmatch(s) is not None)
 
 
 def show_lettered_names(registry: dict[str, RegistryItem], report: list | None = None) -> dict[str, RegistryItem]:
