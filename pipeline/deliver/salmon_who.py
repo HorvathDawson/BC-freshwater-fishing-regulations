@@ -8,7 +8,7 @@ The release carries (`deliver.salmon.build`):
     (both regions' words together, `salmon.stricter_opening`);
   * payload `p` — per place of any chain: `r` its region slug, `water` its water's name (absent: a region / section /
     area default), `sec` its DFO section exactly as the scraped page prints it ("B(ii)"; absent where the page has no
-    lettered sections) — `places_named`. The card reads "Region 6 · Skeena River · B(ii)" (owner 2026-11-11).
+    lettered sections, or a page default's scope) — `places_named`. The card reads "Region 6 · Skeena River · B(ii)" (owner 2026-11-11).
 The live feed's chains the same (the golden `salmonStraddle.golden.ts`, the app's `composeChain`).
 """
 from __future__ import annotations
@@ -73,10 +73,15 @@ def answering_places(sp_runs: Sequence[Sequence[int]], place_sp: Sequence[Option
 
 def places_named(locs: Mapping[str, tuple], lids: Iterable[str]) -> Dict[str, dict]:
     """Payload `p`: each place's region slug, water name and DFO section, as sourced (the scrape's `water` and
-    `section`; nothing derived) — what the card names a row by."""
+    `section`; nothing derived) — what the card names a row by. A page default's scope (`cascade.is_page_scope`: Region
+    4's and 5B's "region", their page-default places) is no section of the page and is not named: the card reads
+    "Region 5B", never "Region 5B · region"."""
+    from pipeline.regs.dfo_salmon.cascade import is_page_scope
     out: Dict[str, dict] = {}
     for lid in sorted(set(lids)):
         slug, loc, _ef = locs[lid]
         water, sec = getattr(loc, "water", None), getattr(loc, "section", None)
+        if is_page_scope(sec):
+            sec = None
         out[lid] = {"r": slug, **({"water": water} if water else {}), **({"sec": sec} if sec else {})}
     return out

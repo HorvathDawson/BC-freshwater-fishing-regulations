@@ -535,8 +535,12 @@ async function readJson(store: Store, k: string, dflt: Json): Promise<Json> {
 
 const nowStamp = () => isoSeconds(new Date(), true);
 
-/** (T668 option 2) The pair table as the feed carries it: `{format, release, pairs: [[a, b, answer]]}`. */
-export interface PairTable { format: typeof PAIRS_FORMAT; release: string; pairs: [Json, Json, Json][] }
+/** (T668 option 2) The pair table as the feed carries it: `{format, release, pairs: [[a, b, answer]]}`. (T669 item 3,
+ *  LF) `named`, when present: `[a, b, region of a, region of b, answer]` for two openings whose answer names other
+ *  regions in another region pair (`pipeline.deliver.salmon_pairs.pairs`); additive, so an app before 0.8.4 reads
+ *  `pairs` alone (there the numbers with no names). */
+export interface PairTable { format: typeof PAIRS_FORMAT; release: string; pairs: [Json, Json, Json][];
+                             named?: [Json, Json, string, string, Json][] }
 export const PAIRS_FORMAT = FEED_FORMATS.dfoPairs;
 
 /** (T668 option 2) priv `pairs.json` read whole: null (logged) when there is none; anything but a pairs table (`PAIRS_FORMAT`) of
@@ -551,7 +555,11 @@ export function readPairs(text: string | null, log: (s: string) => void): PairTa
   if (!t || t.format !== PAIRS_FORMAT || typeof t.release !== "string" || !Array.isArray(t.pairs)
       || !t.pairs.every((p) => Array.isArray(p) && p.length === 3 && p[0]?.s === "open" && p[1]?.s === "open" && p.every(verdict)))
     throw new Error(`dfo: pairs.json is not a ${PAIRS_FORMAT} table of [opening, opening, answer] verdicts`);
-  return { format: t.format, release: t.release, pairs: t.pairs };
+  if (t.named !== undefined && (!Array.isArray(t.named) || !t.named.every((p) => Array.isArray(p) && p.length === 5
+      && p[0]?.s === "open" && p[1]?.s === "open" && verdict(p[0]) && verdict(p[1]) && typeof p[2] === "string"
+      && typeof p[3] === "string" && verdict(p[4]))))
+    throw new Error(`dfo: pairs.json \`named\` is not a list of [opening, opening, region, region, answer]`);
+  return { format: t.format, release: t.release, pairs: t.pairs, ...(t.named ? { named: t.named } : {}) };
 }
 
 /** One feed run (live.run). Writes feed index.json + unplaced.json, sends the due notices. */

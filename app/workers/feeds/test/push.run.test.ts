@@ -12,6 +12,7 @@ import { INSEASON_LINKS_FORMAT } from "../../../packages/core/src/inseason";
 
 class MemBucket implements R2BucketLike {
   m = new Map<string, string>();
+  async head(k: string) { return this.m.has(k) ? {} : null; }
   ver = new Map<string, number>();
   failPut = new Set<string>();
   failList = new Set<string>();

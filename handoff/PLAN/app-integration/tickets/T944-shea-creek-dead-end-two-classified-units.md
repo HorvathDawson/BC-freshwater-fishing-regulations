@@ -75,3 +75,20 @@ RULE their water lacks (no rule-side copy of this bug); 4 carried a designation 
 774476, Harmer, Horsefly — all fixed above); 17 lack something their water has — 15 are 2300 connectors (policy: a
 barrier is never collected), Powell Lake's second outlet `360228982:0` (its lake not collected) and a 14 m Taku piece
 `360886555:30843` (zone rules, not a walk). Those 17 predate 93a481b71 and are not this bug.
+
+## Review leftover (lane LF, 2026-11-20, 454f0fe65)
+`dead_end_outlets` gave a river's mouth an outlet back upstream whenever its code left itself anywhere (a distributary,
+a braid, a lake beside the river). Now `A_MOUTH_NEVER_FLOWS_BACK_UP`: a sink on its code's MAIN FLOW
+(`fwa_edge_types.is_main_flow`) is a mouth, and an edge its code leaves by that is upstream of it (its water flows down
+into the sink) is no outlet of it. A side-channel dead end (Shea Creek's 1100 piece) keeps its outlets.
+- Measured on the live atlas: 8 of 1,353 sinks with outlets lose them, all of them mouths: the Fraser's
+  (`356364114:0`, it went into lake:329178071) and Tofino Creek's, the Columbia and the Taku at the border (the Taku is
+  the 14 m piece `360886555:30843` above), Poison Cove Creek, an unnamed creek, and one closed loop of two codes. Shea,
+  774476, 766354 and the Horsefly piece are unchanged.
+- Proof: the reach step in memory via heavy.sh, guard on and off: rules 6ca9a300dad3d95e and licensing
+  72f10f9269d699f8 both times (the T944 numbers). No live output changes, so no POLICY_VERSION bump; the switch is pinned
+  in `test_policy_version_is_bumped_when_classify_changes` at 49.
+- Test: `test_a_mouth_never_flows_back_up` (a mouth with a distributary above it and a side piece; the mutation is the
+  switch off).
+- Not changed: a side-channel dead end NEAR a mouth (the Fraser delta's Morey Channel, `355994874:0`) still takes the
+  code's exit, which is upstream of it: it is a dead end, not a mouth, so this guard leaves it (a possible follow-up).

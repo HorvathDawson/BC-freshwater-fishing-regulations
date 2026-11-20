@@ -666,3 +666,15 @@ describe("(T321) DFO's rows in DFO's words", () => {
     expect(salmonCard(facts(), { sids: [101], item: null }, JUL20).dfoWords).toBeNull();
   });
 });
+
+describe("where a row's answer comes from (placeFrom)", () => {
+  // (LF) a page default's scope "region" (Region 4's and 5B's page-default places in a release cut before the pipeline
+  // dropped it) is no section of the page: the whole string, never "Region 5B · region"
+  it("names the region, the water and a lettered section, never a page default's scope", () => {
+    expect(SALMON_WORDS.placeFrom("5b", undefined, "region")).toBe("Region 5B");
+    expect(SALMON_WORDS.placeFrom("4", undefined, "region")).toBe("Region 4");
+    expect(SALMON_WORDS.placeFrom("6", undefined, "A")).toBe("Region 6 · A");
+    expect(SALMON_WORDS.placeFrom("6", "Skeena River", "B(ii)")).toBe("Region 6 · Skeena River · B(ii)");
+    expect(SALMON_WORDS.placeFrom("7a", undefined, undefined)).toBe("Region 7A");
+  });
+});

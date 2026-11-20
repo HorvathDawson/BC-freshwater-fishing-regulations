@@ -20,7 +20,10 @@ class CountingBucket implements R2BucketLike {
   m = new Map<string, string>();
   calls = 0;
   failPut = new Set<string>();
-  async get(k: string) { this.calls++; const v = this.m.get(k); return v === undefined ? null : { text: async () => v, etag: `"${v.length}"` }; }
+  /** every get / head, as "get <key>" / "head <key>" */
+  asked: string[] = [];
+  async get(k: string) { this.calls++; this.asked.push(`get ${k}`); const v = this.m.get(k); return v === undefined ? null : { text: async () => v, etag: `"${v.length}"` }; }
+  async head(k: string) { this.calls++; this.asked.push(`head ${k}`); return this.m.has(k) ? {} : null; }
   async put(k: string, b: string) { this.calls++; if (this.failPut.has(k)) throw new Error(`R2 PUT ${k} 500`); this.m.set(k, b); return {}; }
   async delete(k: string) { this.calls++; this.m.delete(k); }
   async list(o: { prefix: string; cursor?: string; limit?: number }) {
@@ -145,8 +148,11 @@ describe("(T739 L3) a wake too big for one run goes out in parts", () => {
     const r2 = await run();                                   // … but the carried wake goes on
     expect([r2.error === null, r2.push]).toMatchObject([false, { reason: "inseason", carry: { part: 2, left: 0 } }]);
     expect(JSON.parse(b.m.get(PUSH_STATUS_KEY)!).carry).toMatchObject({ part: 2, left: 0 });
+    b.asked.length = 0;
     const r3 = await run();                                   // nothing to wake for, nothing carried: no wake
     expect(r3.push).toBeNull();
+    // (LF) the run looks for a carry by its presence alone: a head, never a get of the record it does not read
+    expect(b.asked.filter((x) => x.endsWith(PUSH_CARRY_KEY))).toEqual([`head ${PUSH_CARRY_KEY}`]);
     // /status, while a wake is carried
     b.m.set(PUSH_STATUS_KEY, JSON.stringify({ ...JSON.parse(b.m.get(PUSH_STATUS_KEY)!), carry: { part: 1, left: 10, since: "2026-11-20T12:00:00.000Z" } }));
     const h = await (await worker.fetch(new Request("https://w/status"), { BUCKET: b } as never)).text();

@@ -559,7 +559,7 @@ async function run(job: Job, env: Env, opts: { regions?: string[]; limit?: numbe
     // that cannot be read is sendWake's to say: it is looked for here only by its presence)
     let carried = false;
     if (!why) {
-      try { carried = !!(await env.BUCKET.get(PUSH_CARRY_KEY)); }
+      try { carried = !!(await env.BUCKET.head(PUSH_CARRY_KEY)); }      // (LF) its presence only: the body is sendWake's
       catch (e) { logErr(`push: the carry-over was not looked for (${String((e as Error)?.message ?? e)})`); }
     }
     if (why || carried) {

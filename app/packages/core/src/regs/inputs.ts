@@ -72,8 +72,9 @@ export interface RegsInputs {
    *  [] none. Drawn as they are (`keep.ts` `sectionNotesOf`). */
   readonly notes: readonly string[];
   /** (T973, owner 2026-11-20) the Classified Waters units carried to the tapped section or part through a water whose own
-   *  line prints no unit (release `cw-through`, Python's answer): each drawn as a "may need" note on the licence card,
-   *  never as a requirement. Absent or []: none (an older release says nothing new). */
+   *  line prints no unit (release `cw-through`, Python's answer): the licence card draws the first
+   *  as an ordinary Classified Waters answer with the why behind an expand (owner 13:22). Absent or []: none (a release
+   *  without the file says nothing new). */
   readonly mayNeed?: readonly MayNeed[];
   /** (T810 M, S) today's trout and char table (the cell's `trout` frame, decoded): null = the cell has none (contract
    *  Q-D3: the banner or the tidal page speaks, or no trout or char fish here); ABSENT = the tap has no cell (outside
@@ -83,11 +84,13 @@ export interface RegsInputs {
 }
 
 /** (T973) One carried unit as the release states it: the classified water's licence unit and class, its classified period
- *  (null: all year), the waters with their own line and no unit it passed (names, up from the classified water), and
- *  whether only part of the tapped water carries it. */
+ *  (null: all year), the waters with their own line and no unit it passed (names, up from the classified water), whether
+ *  only part of the tapped water carries it, and (owner 13:22) the tap day's licence answer AS IF THE UNIT HELD
+ *  (Python's `carried_year`, the licence frame's own shape): the card draws it as an ordinary Classified Waters answer,
+ *  the why behind an expand. */
 export interface MayNeed {
   readonly unitName: string; readonly classified: string; readonly when: RuleWhen | null;
-  readonly through: readonly string[]; readonly part: boolean;
+  readonly through: readonly string[]; readonly part: boolean; readonly licence: LicenceValue;
 }
 
 export interface AkeyRow { akey: number; ruleset: number; licensingSet: number | null; steelheadWater: boolean; steelhead: 1 | 2 | null; steelheadRules: boolean; kind: string; tidal: boolean; seg: number; mom: number | null; nseg: number }

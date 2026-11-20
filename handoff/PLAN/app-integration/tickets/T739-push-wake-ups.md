@@ -523,3 +523,10 @@ Owner 2026-11-20 09:48 (dialog): privacy text "Looks good" (merged); and "Fix th
   that sending all in one run would not fit); the circle over four runs (every phone told once, the untold first); a
   carry that cannot be kept / does not read; real in-season runs (a run with no reason carries it on; /status words).
   Mutation-checked: the 100,000 cap back; no per-run cap; a new wake restarting at the first key; the run not carrying.
+
+## Review leftovers (lane LF, 2026-11-20)
+- f538f437f: `index.ts` looks for a carried wake with `BUCKET.head(PUSH_CARRY_KEY)` (it never read the body).
+  `R2BucketLike` gains `head`; every test double answers it. Test: `push.scale.test.ts` "through the runs" asserts the
+  run makes one `head` and no `get` of the carry key (fails with the old `get`).
+- Two feed runs at once both read the carry: no small, clean fix (R2 `delete` takes no condition; the batch would have
+  to be claimed before sending). Analysis and a lease design in T977.

@@ -92,6 +92,24 @@ def test_a_two_region_chain_names_the_region_whose_answer_shows():
     assert payload["p"]["7:default"] == {"r": "7"}
 
 
+def test_a_page_default_place_names_no_section():
+    """(LF) Region 4's and 5B's page defaults sit on a `section_default` place whose `section` is the page's scope
+    ("region", `5b:region:section`): no section of the page, so the card reads "Region 5B", never "Region 5B · region".
+    A lettered section ("E") and a region default's "A" are named as printed.
+    MUTATION: without the page-scope drop, `5b:region:section` carries `sec: "region"`."""
+    from pipeline.deliver.salmon_who import places_named
+    from pipeline.regs.dfo_salmon.cascade import is_page_scope
+    locs = {"5b:region:section": ("5b", _place(_loc("5b:region:section", 5, 1), "section_default", "region"), None),
+            "2:default:areas-28-29": ("2", _place(_loc("2:default:areas-28-29", 2, -1), "page_default", "areas-28-29"),
+                                      None),
+            "6:e": ("6", _place(_loc("6:e", 6, 1, [R6E]), "section_default", "E"), None),
+            "6:a:region": ("6", _place(_loc("6:a:region", 6, 0), "region_default", "A"), None)}
+    assert places_named(locs, locs) == {"5b:region:section": {"r": "5b"}, "2:default:areas-28-29": {"r": "2"},
+                                        "6:e": {"r": "6", "sec": "E"}, "6:a:region": {"r": "6", "sec": "A"}}
+    assert [is_page_scope(k) for k in ("region", "areas-28-29", "areas-3-4", "A", "B(ii)", "Region", "", None)] == \
+        [True, True, True, False, False, False, False, False]
+
+
 def test_answering_places_reads_the_composed_answer_never_decides():
     """MUTATION: a composed answer that is neither group's own (a both-words opening) names BOTH (-2), never the first
     group — the region must be the one whose words show."""
@@ -158,8 +176,8 @@ def golden() -> dict:
     feed_rules = {"6:e": OPEN + GEAR + COHO_SUMMER_4, "7:default": OPEN + COHO_SUMMER + NO_BAIT, "6:sustut": OPEN,
                   "6:late": OPEN}
     fl, fv, fg = _feed_cals(feed_rules)
-    pairs, missing = salmon_pairs.pairs(payload["chains"], feed_rules)
-    assert not missing and any(not r.get("u") for _, _, r in pairs), "the fixture must exercise a one-region answer"
+    pairs, named, missing = salmon_pairs.pairs(payload["chains"], feed_rules)
+    assert not missing and not named and any(not r.get("u") for _, _, r in pairs), "the fixture must exercise a one-region answer"
     fv.append({"s": "open", "t": "2 chinook per day, see the notice", "u": 1})
     ch = fl["7:default"]["sp"][S.SPECIES.index("CH")]
     fl["7:default"]["sp"][S.SPECIES.index("CH")] = [0, len(fv) - 1, 100, ch[1]]
@@ -186,12 +204,12 @@ def test_t668_option2_the_pair_table_is_the_pythons_answer_for_every_differing_o
     payload, _ = _build(locs, rules, placed, reg, None, waters)
     feed_rules = {"6:e": OPEN + GEAR + COHO_SUMMER_4, "7:default": OPEN + COHO_SUMMER + NO_BAIT, "6:sustut": OPEN,
                   "6:late": OPEN}
-    pairs, missing = salmon_pairs.pairs(payload["chains"], feed_rules)
-    assert missing == []
+    pairs, named, missing = salmon_pairs.pairs(payload["chains"], feed_rules)
+    assert missing == [] and named == []
     assert [(a["t"], b["t"], r["t"], r.get("u")) for a, b, r in pairs] == [
         ("4 coho per day (Jul 1–Aug 31)", "2 coho per day (Jul 1–Aug 31)", "2 coho per day (Jul 1–Aug 31)", None)]
     assert all(r == S.stricter_opening(a, b) for a, b, r in pairs)
-    _, gone = salmon_pairs.pairs(payload["chains"], {k: v for k, v in feed_rules.items() if k != "7:default"})
+    _, _, gone = salmon_pairs.pairs(payload["chains"], {k: v for k, v in feed_rules.items() if k != "7:default"})
     assert gone == ["7:default"]
 
 
@@ -213,8 +231,8 @@ def test_t796_a_book_place_in_a_two_region_chain_answers_from_the_releases_own_y
     verdicts = [S.NOT_LISTED, shut]
     static = {book: {"g": [0, -1], "sp": [[0, 1] for _ in S.SPECIES]}}
     assert salmon_pairs.pairs(two, feed_rules)[0], "without the book place the chain pairs its two openings"
-    assert salmon_pairs.pairs(chains, feed_rules, static, verdicts) == ([], [])
-    assert salmon_pairs.pairs(chains, feed_rules)[1] == [book]
+    assert salmon_pairs.pairs(chains, feed_rules, static, verdicts) == ([], [], [])
+    assert salmon_pairs.pairs(chains, feed_rules)[2] == [book]
     # a book place closed only on its own days leaves the other days' pairs (the year's runs are read, not its first)
     part = {book: {"g": [0, -1], "sp": [[0, -1] for _ in S.SPECIES]}}
     assert salmon_pairs.pairs(chains, feed_rules, part, verdicts) == salmon_pairs.pairs(two, feed_rules)

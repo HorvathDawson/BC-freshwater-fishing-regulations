@@ -102,3 +102,19 @@ The owner asked why coho reads "only 1 over 50 cm" when Region 5B says 2: that c
   `test_t669_the_release_and_the_live_feed_name_the_same_regions`. The app test now draws a labeled merged tree.
   RULINGS Z4a amended.
 - Picture: the Jan 15 after shot is re-taken (`T669-shots/after-qualcho-creek-jan15.png`, side release r-6b6f7a2b4777, which differs from r-3c76ec6cf0d4 only on chain 300).
+
+## Review leftovers (lane LF, 2026-11-20)
+- 5dfb14add — "Region 5B · region": Region 4's and 5B's page-default places carry the page scope "region" as their
+  `section`. `salmon_who.places_named` now drops a page scope (`cascade.is_page_scope`), and the app's `placeFrom` skips
+  a literal "region" (releases already on phones). Tests: `test_a_page_default_place_names_no_section`, the core
+  `placeFrom` test (both fail without their half). Measure: the live release names 2 such places, on 127 chains;
+  they now read "Region 4" / "Region 5B".
+- 5ff9d60f4 — labels agree: when the same two openings meet in two region pairs, `salmon_pairs` stored an unnamed
+  merge while `chain_calendar` and `live.compose` named the regions. The table now also holds `named`
+  ([a, b, region of a, region of b, answer], one per region pair, each what `live.compose` composes there); `pairs`
+  keeps the unnamed merge for apps before 0.8.4. The feeds worker carries `named`; the app asks it first, keyed by its
+  groups' regions (`regionLabel`, the Python's `region_label`). Additive: no `dfo-pairs` format bump (a bump would make
+  0.8.3 drop the whole feed). Tests: `test_t669_the_pair_table_names_the_regions_of_each_region_pair` (fails with the
+  old table), the worker's "named answers ride into the feed", the app's "each chain takes its own region pair's named
+  answer" (fails without the lookup or without the labels). Measure: the live table is byte-identical (one region
+  pair, 5B and 6; 0 `named`).

@@ -388,6 +388,18 @@ describe("(T668) the feed answers per place and carries the Python's straddler p
     expect((await run(priv)).pairs).toEqual(TABLE);
   });
 
+  // (T669 item 3, LF) the same two openings in two region pairs: each region pair's named answer rides along (`named`)
+  it("the named answers per region pair ride into the feed too; a malformed one stops the run", async () => {
+    const [a, b] = TABLE.pairs[0]!;
+    const named = { ...TABLE, named: [[a, b, "Region 5A", "Region 6", { s: "open", t: "2 (Region 6)" }],
+                                      [a, b, "Region 5B", "Region 6", { s: "open", t: "2 (Region 6)" }]] };
+    const priv = privStore();
+    await priv.put("pairs.json", JSON.stringify(named));
+    expect((await run(priv)).pairs).toEqual(named);
+    expect(() => readPairs(JSON.stringify({ ...named, named: [[a, b, "Region 5A", { s: "open", t: "x" }]] }), () => {}))
+      .toThrow("pairs.json `named` is not");
+  });
+
   it("a pairs.json that is not a dfo-pairs table stops the run (the last good feed stands)", async () => {
     const priv = privStore();
     await priv.put("pairs.json", JSON.stringify({ ...TABLE, format: "dfo-pairs/0" }));

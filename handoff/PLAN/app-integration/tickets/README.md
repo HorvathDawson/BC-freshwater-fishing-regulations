@@ -247,13 +247,14 @@ reads both files; a ticket closed here moves there once its lane is finished wit
 | T944 | Shea Creek dead-end piece 773423 carries both the Bulkley's and the Morice's Classified Waters units | IN PROGRESS — left (Claude): main chat review + merge; next reach run + bundle (9 sections' licensing, 0 rules) | d23bbc9b6 | lane/t936-t931 2026-11-20 (T931 B refused pin) |
 | T945 | Committed unnamed-tributary sweep result stale against the live bundle (41 streams) | IN PROGRESS — left (Claude): main chat review + merge (41 = atlas: T796 names, Sheldens Creek, Lakelse cut) | 3f8cddad8 | lane/t936-t931 2026-11-20 test-full |
 | T946 | Tier 2 tributary lines: 20 parts (Lake Revelstoke tributaries DV, Iverson Creek) not what their rail sets | IN PROGRESS — left (Claude): main chat review + merge (the sweep's rail reader missed T919 a's bare kicker) | 67ed64d77 | lane/t936-t931 2026-11-20 test-full |
-| T973 | Classified Waters carried through a tributary whose own row prints no unit, with its path (class, source, through); "may need" note; CO question open | IN PROGRESS — left (Claude): main chat review + merge (lane/l10-cw-through; 7,080 sections carry a note) | 9475cfdb0, e04d6d87b, bf28dbc76, 28eaf73e9 | owner 2026-11-20 11:44 + 12:11 + 12:24 (this release) |
+| T973 | Classified Waters carried through a tributary whose own row prints no unit, with its path (class, source, through); "may need" note; CO question open | IN PROGRESS — left (Claude): main chat review + merge (lane/l10-cw-through; 7,080 sections shown as Classified Waters, the why behind a fold) | 9475cfdb0, e04d6d87b, bf28dbc76, 28eaf73e9, 71403fec6, bbce17168 | owner 2026-11-20 11:44 + 12:11 + 12:24 (this release) |
 | T970 | Photo viewer: the buttons stay at full strength while the photo is dragged down to close | OPEN | | L4 Android looks 2026-11-20 |
 | T971 | Conditions: picking Level in the gauge card also re-ranks the estimate card above it | IN PROGRESS | 2a2aa0e75 (lane/t971-flow-leads) | L4 Android looks 2026-11-20 |
 | T972 | Search for "Thompson" lists "Thompson Plateau" locality five times, identical lines | OPEN | | L4 Android looks 2026-11-20 |
 | T974 | Classified Waters "may need" note: clean up (firm unit or drop, remove the optional file and note) once a CO answers T973 | BLOCKED (owner) | | owner 2026-11-20 12:38 |
 | T975 | Remove the old-format data readers/writers (near/1, down/1, climate/1, paint/5, the SHIP_PACKED_FORMATS switch) once packed formats are live in production | OPEN | | owner 2026-11-20 13:37 (after T686 switch-on) |
 | T976 | The photo viewer's counter ("2 of 3") can't be read over a light photo: white text, no backing (the buttons have a disc) | OPEN | | lane L6 2026-11-20, T836 iPhone simulator shots |
+| T977 | Push wake carry-over: two feed runs at once both read it (duplicate silent pushes, or a wake's circle overwritten); no small fix, a lease when worth it | OPEN | | lane LF 2026-11-20, T739 review |
 
 ## Next after closed testing
 

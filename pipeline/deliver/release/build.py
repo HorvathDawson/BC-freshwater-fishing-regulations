@@ -118,8 +118,9 @@ SIZE_GATES = {"paint": 1_000_000, "access": 300_000, "core": 1_650_000, "lakes":
               "flow-small": 32_000,
               # (T679 #8) `flow-own`: one bitmask varint per paint section, as flow-small (measured below when built)
               "flow-own": 40_000,
-              # (T973) `cw-through`: the carried "may need" units, a few thousand sections (measured below when built)
-              "cw-through": 60_000,
+              # (T973) `cw-through`: the carried units and (owner 13:22) each one's licence year as if the unit held:
+              # 7,080 sections, 21 notes, 15 years, measured 76,015 B gz on the 2026-11-20 side bundle
+              "cw-through": 120_000,
               # (T369) `lines`: ~0.99-1.08 MB gz estimated 2026-11-03 on the atlas's handles (ends proxied from the FWA
               # stream extents; the build measures the real one); (T386) phone-held too since 2026-11-04 (in the offline
               # total), fetched once a page is drawn (its place in the address) or when a link with a place is opened
@@ -409,32 +410,71 @@ def display_ends(store: sqlite3.Connection) -> Dict[str, List[str]]:
     return json.loads(unpack(row[0], zd.get("static")))
 
 
-def cw_through(con: sqlite3.Connection, schema: str = "b") -> None:
-    """(T973, owner 2026-11-20 12:11) `cw-through/1`: the bundle's `designation_carried`, as the app draws it — per
-    section (`section_cw`) one note (`cw_note`): the carried designation's licence unit name and class, its classified
-    period (the record's `when`, JSON; NULL all year) and the rowed no-unit waters passed (`through`, JSON
-    [[item_id, name], …] up from the classified water). Python resolves; the app words the "may need" note
-    (`@app/core` regs/licence.ts). A bundle without the table is refused."""
+def cw_through(con: sqlite3.Connection, schema: str = "b", bundle: Optional[Path] = None, year_of=None) -> None:
+    """(T973, owner 2026-11-20 12:11 + 13:22) `cw-through/1`: the bundle's `designation_carried`, as the app draws it.
+    Per section (`section_cw`): its note (`cw_note`: the carried designation's licence unit name and class, its period
+    — the record's `when`, JSON, NULL all year — and the rowed no-unit waters passed, `through` JSON [[item_id, name], …]
+    up from the classified water) and its LICENCE YEAR (`cw_year`: JSON [[start_day, licence value], …], the licence
+    frame's own shape, `answers.licence.carried_year` — the section's answer as if the carried designation held, so the
+    card draws an ordinary Classified Waters row). Python resolves; the app selects the day and words the why.
+    `year_of(sid, source_sid, designation, set_id)` computes a year (default: `carried_year` over `bundle`). A bundle
+    without the table is refused."""
     if not con.execute(f"SELECT 1 FROM {schema}.sqlite_master WHERE type = 'table' AND name = 'designation_carried'"
                        ).fetchone():
         raise ValueError("cw-through: the bundle has no designation_carried table (T973); rebuild it: "
                          "python -m pipeline.deliver bundle")
     con.execute("CREATE TABLE cw_note (ix INTEGER PRIMARY KEY, unit_name TEXT NOT NULL, classified TEXT NOT NULL, "
                 "dates TEXT, through TEXT NOT NULL)")
-    con.execute("CREATE TABLE section_cw (sid INTEGER PRIMARY KEY, ix INTEGER NOT NULL) WITHOUT ROWID")
+    con.execute("CREATE TABLE cw_year (yx INTEGER PRIMARY KEY, j TEXT NOT NULL)")
+    con.execute("CREATE TABLE section_cw (sid INTEGER PRIMARY KEY, ix INTEGER NOT NULL, yx INTEGER NOT NULL) WITHOUT ROWID")
     rows = con.execute(
-        f"SELECT c.sid, d.unit_name, d.classified, json_extract(d.record, '$.when'), c.through "
+        f"SELECT c.sid, d.unit_name, d.classified, json_extract(d.record, '$.when'), c.through, c.entry_id, "
+        f"c.designation_id, (SELECT sl.set_id FROM {schema}.section_licensing sl WHERE sl.sid = c.sid) "
         f"FROM {schema}.designation_carried c JOIN {schema}.designation d "
         f"ON d.entry_id = c.entry_id AND d.designation_id = c.designation_id ORDER BY c.sid").fetchall()
     (n,) = con.execute(f"SELECT count(*) FROM {schema}.designation_carried").fetchone()
     if len(rows) != n:
         raise ValueError(f"cw-through: {n - len(rows)} carried unit(s) name a designation the bundle does not hold")
+    source: Dict[str, int] = {}
+    for e, d in sorted({(r[5], r[6]) for r in rows}):
+        got = con.execute(f"SELECT min(sid) FROM {schema}.designation_section WHERE entry_id = ? AND designation_id = ? "
+                          f"AND via = 'reach'", (e, d)).fetchone()[0] or con.execute(
+            f"SELECT min(sid) FROM {schema}.designation_section WHERE entry_id = ? AND designation_id = ?", (e, d)
+        ).fetchone()[0]
+        if got is None:
+            raise ValueError(f"cw-through: the carried designation {e}#{d} binds no section of its own")
+        source[f"{e}#{d}"] = got
+    if year_of is None:
+        if bundle is None:
+            raise ValueError("cw-through: no bundle to compute the carried licence years from")
+        from pipeline.deliver.answers import licence as LA
+        from pipeline.deliver.answers.common import connect
+        bdb = connect(str(bundle))
+        C, P, days, contested, memo = LA.corpus(bdb), LA.profiles(), LA.change_days(bdb), LA.contested_sets(bdb), {}
+
+        def year_of(sid, source_sid, designation, set_id):
+            return LA.carried_year(bdb, C, sid, source_sid, designation, set_id, None, days, P, contested, memo)
     notes: Dict[tuple, int] = {}
-    for sid, unit_name, cls, when, through in rows:
+    years: Dict[str, int] = {}
+    by_group: Dict[tuple, int] = {}
+    out = []
+    from pipeline.deliver.answers.licence import section_licence_keys
+    keys = section_licence_keys(con, (r[0] for r in rows), schema)
+    for sid, unit_name, cls, when, through, e, d, set_id in rows:
         key = (unit_name, cls, when if when not in ("{}", "null") else None, through)
         ix = notes.setdefault(key, len(notes))
-        con.execute("INSERT INTO section_cw VALUES (?, ?)", (sid, ix))
+        # every section of one LICENCE KEY answers alike (T973 review, LF): the whole key — licensing set, province
+        # exceptions, tidal, water kind, a keyed rule set — never the licensing set alone (a lake, a wetland or a tidal
+        # section carried beside a stream would take the stream's year)
+        g = (keys[sid], f"{e}#{d}")
+        if g not in by_group:
+            y = year_of(sid, source[g[1]], g[1], set_id)
+            j = json.dumps([[k, y[k]] for k in sorted(y)], separators=(",", ":"), sort_keys=True)
+            by_group[g] = years.setdefault(j, len(years))
+        out.append((sid, ix, by_group[g]))
+    con.executemany("INSERT INTO section_cw VALUES (?, ?, ?)", out)
     con.executemany("INSERT INTO cw_note VALUES (?, ?, ?, ?, ?)", [(ix, *k) for k, ix in notes.items()])
+    con.executemany("INSERT INTO cw_year VALUES (?, ?)", [(yx, j) for j, yx in years.items()])
 
 
 def lake_section(con: sqlite3.Connection, schema: str = "b") -> None:
@@ -818,7 +858,8 @@ def bundle_files(work: Path, bundle: Path, b: sqlite3.Connection, base: Dict[str
     # (T973) the Classified Waters units carried through a rowed no-unit water: app 0.8.4's "may need" note (OPTIONAL in
     # the contract: an older app knows no such file and reads nothing new)
     files["cw-through"] = copy_file(work / "cw-through.sqlite", {"b": bundle}, [],
-                                    {**base, "format": formats()["cw-through"]}, extra=cw_through)
+                                    {**base, "format": formats()["cw-through"]},
+                                    extra=lambda con: cw_through(con, bundle=bundle))
     files["conditions"] = copy_file(work / "conditions.sqlite", {"b": bundle},
                                     [("b", t, None) for t in COND_TABLES],
                                     {**base, "format": formats()["conditions"], META_TEXT_KEY: SMALL_WATER_TEXT,

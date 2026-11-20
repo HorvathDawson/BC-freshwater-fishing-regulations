@@ -82,7 +82,7 @@ export async function loadRegsInputs(store: InputsStore, target: RegsTarget, day
   if (target.kind === "section") {
     const a = await store.sectionAkey(target.handle);
     const notes = notesOfSections(allNotes, [target.handle]);              // (T796) a section handle is its sid
-    const mayNeed = mayNeedOf(carried, [target.handle]);                   // (T973)
+    const mayNeed = mayNeedOf(carried, [target.handle], tapDay(day, calendarYear).day);   // (T973)
     // (T672 1b) a key-less section is outside B.C., or tidal water: regs-sid `section_tidal` says which (a release cut
     // before the table cannot say, and reads as outside, as it always did)
     if (a === 0) return { ...base, notes, mayNeed, item: null, partIx: 0, place: null, ...outside(ruleIndex(stored, new Map(), sp)),
@@ -111,7 +111,7 @@ export async function loadRegsInputs(store: InputsStore, target: RegsTarget, day
   // (T796) a part's notes are its sections' (water `part_section`): read only when the release has any note
   const partSids = allNotes.size || carried.size ? [...(await store.partLengths(ord, partIx)).keys()] : [];
   const notes = allNotes.size ? notesOfSections(allNotes, partSids) : [];
-  const mayNeed = carried.size ? mayNeedOf(carried, partSids) : [];          // (T973) the part's sections'
+  const mayNeed = carried.size ? mayNeedOf(carried, partSids, tapDay(day, calendarYear).day) : [];   // (T973) its sections'
   if (part.akey === null)
     // (T672) a key-less part is outside B.C., or the release's tidal piece: the store says which (`part.tidal`)
     return { ...base, notes, mayNeed, item, partIx, place: null, ...outside(ruleIndex(stored, new Map(), sp)), tidalPart: part.tidal };
@@ -123,12 +123,16 @@ export async function loadRegsInputs(store: InputsStore, target: RegsTarget, day
            mergedParts: await mergedParts(store, stored, sp, parts, picker, partIx, day, weekday, calendarYear) };
 }
 
-/** (T973) The carried units of these sections (release `cw-through`), each note once, in section order; `part` where the
- *  note holds on only some of them. */
-export function mayNeedOf(all: ReadonlyMap<number, CarriedNote>, sids: readonly number[]): readonly MayNeed[] {
+/** (T973) The carried units of these sections (release `cw-through`), each once, in section order; `part` where it holds
+ *  on only some of them; `licence` the year's value on reading day `day` (the last start at or before it). */
+export function mayNeedOf(all: ReadonlyMap<number, CarriedNote>, sids: readonly number[], day: number): readonly MayNeed[] {
   const got = new Map<CarriedNote, number>();
   for (const s of [...sids].sort((x, y) => x - y)) { const c = all.get(s); if (c) got.set(c, (got.get(c) ?? 0) + 1); }
-  return [...got].map(([c, k]) => ({ ...c, part: k < sids.length }));
+  return [...got].map(([{ year, ...c }, k]) => {
+    const at = year.filter(([start]) => start <= day).pop();
+    if (!at) throw new RegsStoreError("damaged", `regs store: a cw-through year has no value on day ${day}`);
+    return { ...c, part: k < sids.length, licence: at[1] };
+  });
 }
 
 /** (T796) The notes of these sections (core `section_note`), each sentence once, in section order. */

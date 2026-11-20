@@ -120,6 +120,12 @@ def case_core_names(con) -> list[tuple[str, str, str]]:
     con.executemany("UPDATE item SET name = ?, name_key = ? WHERE item_id = ?",
                     [(shown, stored_key(shown), i) for i, _, shown in moved])
     if con.execute("SELECT 1 FROM sqlite_master WHERE type = 'table' AND name = 'name_source'").fetchone():
+        # (LF, review of T941) an item may already hold a row under the shown spelling (an alias that is the name
+        # re-cased): the moving row would hit the (item_id, name) key. The name's own row is the one that says where
+        # the shown name came from, so it takes the key and the other row goes — only where the name's own row exists
+        con.executemany("DELETE FROM name_source WHERE item_id = ? AND name = ? AND EXISTS "
+                        "(SELECT 1 FROM name_source o WHERE o.item_id = ? AND o.name = ?)",
+                        [(i, shown, i, name) for i, name, shown in moved])
         con.executemany("UPDATE name_source SET name = ? WHERE item_id = ? AND name = ?",
                         [(shown, i, name) for i, name, shown in moved])
     return moved

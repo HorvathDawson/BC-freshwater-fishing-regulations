@@ -183,6 +183,9 @@ export interface NavRows {
  *  the names of the waters with their own line and no unit it passed, up from the classified water. */
 export interface CarriedNote {
   readonly unitName: string; readonly classified: string; readonly when: RuleWhen | null; readonly through: readonly string[];
+  /** (owner 13:22) the section's licence year as if the unit held: [start reading day, licence value], starts ascending
+   *  from 1 (`cw_year`, Python's `carried_year`) */
+  readonly year: readonly (readonly [number, LicenceValue])[];
 }
 
 /** What the reads stand on (store.ts hands them its own). */
@@ -622,7 +625,7 @@ export function makeReads(base: ReadBase): RegsReads & { clear(): void } {
     carriedUnits: () => once("carriedUnits", 0, async () => {
       const d = base.cw ? await base.cw() : null;
       if (!d) return new Map<number, CarriedNote>();
-      const notes = new Map<number, CarriedNote>();
+      const notes = new Map<number, Omit<CarriedNote, "year">>();
       for (const r of await d.all("SELECT ix, unit_name, classified, dates, through FROM cw_note ORDER BY ix")) {
         const through = json<[string, string][]>(r.through);
         if (typeof r.unit_name !== "string" || typeof r.classified !== "string" || !Array.isArray(through) || !through.length)
@@ -631,10 +634,20 @@ export function makeReads(base: ReadBase): RegsReads & { clear(): void } {
                              when: r.dates === null || r.dates === undefined ? null : json<RuleWhen>(r.dates),
                              through: through.map((w) => w[1]) });
       }
-      return new Map((await d.all("SELECT sid, ix FROM section_cw ORDER BY sid")).map((r) => {
-        const note = notes.get(n(r.ix));
-        if (!note) throw damaged(`cw-through section ${String(r.sid)} names no note ${String(r.ix)}`);
-        return [n(r.sid), note] as const;
+      const years = new Map<number, CarriedNote["year"]>();
+      for (const r of await d.all("SELECT yx, j FROM cw_year ORDER BY yx")) {
+        const y = json<[number, LicenceValue][]>(r.j);
+        if (!Array.isArray(y) || !y.length || y[0]![0] !== 1) throw damaged(`cw-through year ${String(r.yx)} does not start on day 1`);
+        years.set(n(r.yx), y);
+      }
+      const shared = new Map<string, CarriedNote>();
+      return new Map((await d.all("SELECT sid, ix, yx FROM section_cw ORDER BY sid")).map((r) => {
+        const note = notes.get(n(r.ix)), year = years.get(n(r.yx));
+        if (!note || !year) throw damaged(`cw-through section ${String(r.sid)} names no note ${String(r.ix)} or year ${String(r.yx)}`);
+        const k = `${String(r.ix)}:${String(r.yx)}`;
+        let c = shared.get(k);
+        if (!c) shared.set(k, c = { ...note, year });
+        return [n(r.sid), c] as const;
       }));
     }),
 

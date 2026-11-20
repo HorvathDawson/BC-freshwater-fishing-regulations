@@ -273,3 +273,38 @@ def test_t669_the_release_and_the_live_feed_name_the_same_regions(monkeypatch):
     seen.clear()
     _build(locs, rules, placed, reg)
     assert fed == {("Region 6", "Region 7")} and ("Region 6", "Region 7") in set(seen)
+
+
+def test_t669_the_pair_table_names_the_regions_of_each_region_pair():
+    """(T669 item 3, LF) The same two openings in TWO region pairs (5B beside 6, 5A beside 6) have two answers, each
+    naming its own regions — exactly what `live.compose` composes on each chain (and `chain_calendar`, which hands
+    `strictest` the same labels: the test above). The pair table holds each in `named` ([a, b, region a, region b,
+    answer]) and the content-keyed row holds the numbers with no names (what an app before 0.8.4 shows: never a wrong
+    name). One region pair: a content-keyed row only, labelled.
+    MUTATION: the table before this (one content-keyed row, unlabelled on a collision, no `named`) fails here."""
+    from pipeline.deliver import salmon_pairs as SP
+    from pipeline.regs.dfo_salmon import live as L
+    co = opening(4, "4 per day, only 2 over 50 cm", pooled=POOL, over=[(50, 2)])
+    six = opening(4, "4 per day, only 1 over 50 cm", over=[(50, 1)])
+    verdicts = [S.NOT_LISTED, co, six]
+    k = S.SPECIES.index("CO")
+    year = lambda v: {"g": [0, -1], "sp": [[0, v if i == k else -1] for i in range(len(S.SPECIES))]}  # noqa: E731
+    static = {"5b:pool": year(1), "5a:pool": year(1), "6:e": year(2)}
+    chains = [{"l": ["5b:pool", "6:e"], "s": [[0], [1]]}, {"l": ["5a:pool", "6:e"], "s": [[0], [1]]}]
+    rows, named, missing = SP.pairs(chains, {}, static, verdicts)
+    assert missing == [] and [(a, b) for a, b, _ in rows] == [(co, six)]
+    assert "Region" not in Q.words(rows[0][2]["tree"])
+    composed = {}
+    for c in chains:
+        V = S._Interner()
+        for v in verdicts:
+            V(v)
+        got = L.compose(c["l"], {l: static[l] for l in c["l"]}, V.items, groups=c["s"], intern=V)
+        composed[tuple(S.region_label([l]) for l in c["l"])] = V.items[got["sp"][k][1]]
+    assert [(a, b, ra, rb) for a, b, ra, rb, _ in named] == [(co, six, "Region 5A", "Region 6"),
+                                                              (co, six, "Region 5B", "Region 6")]
+    assert {(ra, rb): said for _, _, ra, rb, said in named} == composed
+    assert Q.words(named[1][4]["tree"]) == ("Up to 4 coho a day in total, all waters of Management Units 5-6 to 5-11 "
+                                            "combined (Region 5B) · only 1 over 50 cm (Region 6)")
+    one, none, _ = SP.pairs(chains[:1], {}, static, verdicts)
+    assert none == [] and one == [[co, six, composed[("Region 5B", "Region 6")]]]
