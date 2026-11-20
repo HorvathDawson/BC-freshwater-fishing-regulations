@@ -9,7 +9,42 @@ Things only you can do. Claude keeps this list current while you are away; the w
 `handoff/PLAN/app-integration/tickets/` (README.md is the ledger, and its "Owner questions" table has every question
 with the default Claude uses until you answer). Newest first inside each section.
 
-## 2026-11-20 07:33: push privacy line, now that Android has no push (T739, lane L5; NOT asked yet)
+## 2026-11-20 10:00: every leftover goes on this release (owner, verbatim; clarified 10:05)
+
+"Make sure every left over goes on this release when we cut it", clarified: "All stuff we were working on. I meant all
+the tickets we went through before". So: every ticket we worked through in this batch (the lane plan's tickets, the
+T920–T939 set, and the review leftovers on them) is finished and in this release. Claude also keeps the bug finds from
+that work in (T941–T946: wrong or missing rules and names) as small fixes in the batch. T940 (satellite colours) stays
+"after this release" as the owner first said: its lane finishes and waits unmerged. T686 packed formats after 0.8.4 is
+in production; T709/T715 postponed; dropped items stay dropped.
+
+## 2026-11-20 09:59: T686 formats and T679 #8 answered (dialog)
+
+- T686 smaller formats (near/2, down/2, climate/2; 17.5 → 15.2 MB, lossless; only app 0.8.4 reads them): "Ship readers
+  now, formats later (Recommended)": 0.8.4 reads old and new; this release's data (staging AND production) stays in the
+  old formats; the new formats switch on in the first data release after 0.8.4 is in the production stores.
+- T679 #8 (one rule for "on this water"): "Ranking's rule, list first (Recommended)": along the water, a lake on the way
+  ends it; Claude measures which gauges move and shows the owner the list before it ships.
+
+## 2026-11-20 09:48: privacy page answered (dialog)
+
+- Push privacy text (pictures `app-integration/T739-shots/privacy-*-light.png`): "Looks good (Recommended)". Merged;
+  goes live with the next production website; effective date moves to that day. T739.
+- Live contradiction found: "This website" said "runs no analytics" while the page names Cloudflare Web Analytics (T910):
+  "Fix the sentence (Recommended)": now "It sets no cookies and runs no advertising or tracking scripts; the only script
+  is the visit counter described above." T739.
+
+## 2026-11-20 09:39: morning questions answered (dialog)
+
+- Three "Unnamed …" lakes (3261, 3296, 3299): "Show "Unnamed …" (Recommended)": they show "Unnamed Cayoosh Cr",
+  "Unnamed Vanhorlick 1", "Unnamed Vanhorlick 2"; the number stays a search name. T926.
+- "#14A": "Show Floatplane Lake": a number with a letter on it counts as a number name too; "#14A" stays searchable.
+  T926 (Claude extends the rule and reports how many more waters change).
+- Push privacy line: "Claude's edit (Recommended)": Apple only, "I/my", push token added to "the short version", Apple
+  (push only) added to the services, the one-day salted IP hash and the stored environment + time said, effective date
+  moved to the go-live day. The owner sees the text before it goes live. T739.
+
+## 2026-11-20 07:33: push privacy line, now that Android has no push (T739, lane L5; ANSWERED 09:39, see above)
 
 The push-token paragraph you approved on 11-15 ("Yes to both") is now in the privacy page's source exactly as written
 (`app/tools/seo/html.ts`, heading "Push token", after the crash-report section; it goes live only with a production
@@ -33,7 +68,7 @@ Facts from the independent code review (2026-11-20), for the same pick; the appr
 - A token is sent only when notifications are on AND something is set to be checked (a gauge alert, "New
   regulations data" or "New app version"), not on "notifications on" alone.
 
-## 2026-11-20 07:07: a morning question (T926 number names)
+## 2026-11-20 07:07: a morning question (T926 number names; ANSWERED 09:39, see above)
 
 - **Three lakes would show "Unnamed …" instead of their number.** Under "Never show a number name", the lakes now shown
   as 3261, 3296 and 3299 would show "Unnamed Cayoosh Cr", "Unnamed Vanhorlick 1" and "Unnamed Vanhorlick 2" (their

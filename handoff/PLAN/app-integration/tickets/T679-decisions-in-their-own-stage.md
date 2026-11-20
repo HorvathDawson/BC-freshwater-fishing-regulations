@@ -150,3 +150,5 @@ stops the run); D5 `build.DFO_JOINING_WATER_STAYS_OUT` (7 DFO places keep the jo
 `place.nodes_at_cuts` (bundle): 10 of the owner's 29 move, 17 lake-outlet cuts and 11 cuts on another blue line keep the
 projection, listed. Left (Claude): D1/D3/gauges show at the next deliver after promote; the 11 other-line gauge cuts and
 the Dewdney side effect go to the owner.
+
+Owner 2026-11-20 09:59 (dialog), #8: "Ranking's rule, list first (Recommended)": along the water, a lake on the way ends it; the list of gauges that move goes to the owner before it ships.

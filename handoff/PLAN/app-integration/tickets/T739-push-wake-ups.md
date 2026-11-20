@@ -1,6 +1,6 @@
 # T739 — Push "wake-ups" so alerts and notices arrive on time (iPhone first, Android as a second step)
 
-Status: IN PROGRESS (both steps approved by the owner 2026-11-14: iPhone, then "for android too."; iOS chat, branch `ios/t739-push`; ANDROID PUSH IS OFF THE TABLE FOR NOW, owner 2026-11-16 12:08 on Firebase: "we dont want this right now"; iPhone push unchanged).
+Status: IN PROGRESS (both steps approved by the owner 2026-11-14: iPhone, then "for android too."; iOS chat, branch `ios/t739-push`; ANDROID PUSH IS OFF THE TABLE FOR NOW, owner 2026-11-16 12:08 on Firebase: "we dont want this right now"; iPhone push unchanged). 2026-11-20 09:07: lane/l5-push merged (f9c2e42b5, reviewed twice), staging feeds worker deployed (push.missing.ios == [], 0 tokens); left (Claude): the TestFlight build with this release, then the owner phone test.
 
 Source: owner 2026-11-14, verbatim: "dont we want to use it for the notifications thought?" (on the Push Notifications
 box of the App ID), "there are also time sensitive notifications?" and "can we do this same push notification style to
@@ -69,6 +69,25 @@ Firebase, he typed: "we dont want this right now". So Android gets no push and n
 when the push branch comes up for merge (it is the last of the held merges): the Android app must not register a
 token or need `google-services.json`; the worker's FCM sender may stay as dead code only if nothing can call it
 (else it comes out). iPhone push is unchanged. The 200 registrations a day per address stand as built.
+
+## Privacy page: the owner's pick "Claude's edit" (2026-11-20 09:39), in the source on `lane/t739-privacy`
+`app/tools/seo/html.ts`, pinned whole in `tools/seo/site.test.ts`. Not live until a production release: **the page's
+effective date (`PRIVACY_EFFECTIVE`, still 2026-11-19) moves to the go-live day when this goes out with production.**
+Shots (fixture site build, 390 px, light): `../T739-shots/privacy-push-token-light.png` (the section) and
+`../T739-shots/privacy-short-version-light.png`; the text also in `../T739-shots/privacy-push-token.txt`.
+- **Push token:** "On an iPhone, when notifications are on and at least one is set (a gauge alert, “New regulations
+  data” or “New app version”), the app sends my server a push token for this phone: an address Apple issues so a
+  message can reach the app. With it I keep only whether it is for Apple’s test or live push service and when it was
+  registered. I use it only to send, through Apple’s push service, a silent signal telling the app to check for new
+  data; the signal carries no words, no waters and no location. I do not receive your alerts, the waters you watch or
+  where you are. I do not store your IP address with it: to limit abuse I keep only a salted one-way hash of it for a
+  day’s counting. The token is deleted when you turn notifications off, or when Apple tells me it no longer works. It is
+  not linked to you or to an account and is not backed up."
+- **The short version:** "The app sends me three things: a problem report, only when you press Send; unless you switch
+  it off, a short error report when the app itself fails; and, on an iPhone with notifications on, a push token so I can
+  tell the app to check for new data."
+- **No selling, no sharing:** "The services named above (Cloudflare, Open-Meteo, Esri, and Apple for push only) receive
+  only the requests described here."
 
 ## Results
 
@@ -478,3 +497,8 @@ filtered on `/push`, would say whether a register (and its status) arrived befor
   this connection. It tries again when the app next starts." (`pending` carries `what`); "Try again" withdraws again
   (`retryPush` sends the token while a notification is on, else the withdrawal).
 - Wording: a deleted token record comes back "within 7 days" (the worker's log line and comment), not "at the next start".
+
+
+Owner 2026-11-20 09:39 (dialog), privacy line: "Claude's edit (Recommended)": Apple only, "I/my", push token in "the short version", Apple (push only) in the services list, the one-day salted IP hash and stored environment + time said, effective date = go-live day; the owner sees the text before it goes live.
+
+Owner 2026-11-20 09:48 (dialog): privacy text "Looks good" (merged); and "Fix the sentence": "This website" no longer says "runs no analytics" (it said so beside the T910 visit counter); now "runs no advertising or tracking scripts; the only script is the visit counter described above". Pinned in site.test.ts. Effective date moves to the go-live day.

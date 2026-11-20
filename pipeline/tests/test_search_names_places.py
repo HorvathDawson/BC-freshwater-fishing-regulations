@@ -204,6 +204,21 @@ def test_t926_a_number_is_never_the_shown_name_when_a_lettered_one_exists():
         ("wbk:4", "HEIDI LAKE", "alias", "Alternate name (source not recorded)")]
 
 
+def test_t926_a_number_with_a_letter_on_it_is_a_number_name_a_word_is_not():
+    """(T926, owner 2026-11-20 09:39: "#14A" -> "Show Floatplane Lake") A number with at most two letters stuck to it
+    counts; a name with a word in it never does."""
+    from pipeline.atlas.registry.build import is_number_name, show_lettered_names
+    for n in ("#14A", "14A", "UL22", "#15", "5566-2", "# 14A", "A14"):
+        assert is_number_name(n), n
+    for n in ("Lake 3", "L3 Pond", "No. 5", "Lake 14A", "14A Lake", "Floatplane Lake", "ABC12", "Pigeon Lake #2"):
+        assert not is_number_name(n), n
+    reg = {"wbk:329021840": _lake("wbk:329021840", "#14A", ["#14A", "FLOATPLANE LAKE"])}
+    rep: list = []
+    out = show_lettered_names(dict(reg), rep)
+    assert out["wbk:329021840"].name == "FLOATPLANE LAKE" and "#14A" in out["wbk:329021840"].variants
+    assert rep == [{"item": "wbk:329021840", "was": "#14A", "now": "FLOATPLANE LAKE"}]
+
+
 def test_t926_a_name_only_a_source_record_carries_is_never_a_candidate():
     """(T926 review) A water shown "123" whose only lettered name is in `name_sources` and NOT among its own names (the
     live `wsc:300-432687-459615` has this shape): no candidate, no raise, the number stays shown."""
