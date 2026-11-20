@@ -25,6 +25,11 @@ with the default Claude uses until you answer). Newest first inside each section
   40 minutes, then turn Wi-Fi on. Default until you check: ship as built (Android already behaves this way).
 - Still open from before: the oldest iPhone the app supports (T725, item (1) under "Open from the iOS day"); the memory
   numbers on the simulator are in T725.
+- No action, for your eyes (T938, T928): the iPhone map left standing two-thirds to the right after a swipe back (the
+  tester's picture) is reproduced on the simulator and fixed. Before:
+  `handoff/PLAN/ios/shots/t938/before-fix-light-3-after-edge-back.jpg`; after:
+  `handoff/PLAN/ios/shots/t938/after-fix-light-3-after-edge-back.jpg`. Also fixed: in the spot photo viewer a swipe to
+  the next photo no longer hides the buttons (T836).
 
 ## 2026-11-20 10:00: every leftover goes on this release (owner, verbatim; clarified 10:05)
 

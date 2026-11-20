@@ -47,9 +47,9 @@ export const t831Ios = {
         await ctx.until(() => d.hasId('gauge-card'), { ms: 30_000, what: 'the Conditions view (gauge-card)' });
         await d.sleep(4000);
         // the map under the chart: scroll in the left gutter (a drag ON the map pans it) until its frame is whole on screen
-        // the screen in points is the hierarchy's root (the app's window, the first box at 0,0); the largest box is not: a scroll view's content
+        // the screen in points is the hierarchy's root (the app's window: the first non-empty box at 0,0); the largest box is not: a scroll view's content
         // runs below the screen (the first run stopped with the map half off the bottom)
-        const rootOf = (ns) => ns.find((x) => x.box.x0 === 0 && x.box.y0 === 0)?.box ?? null;
+        const rootOf = (ns) => ns.find((x) => x.box.x0 === 0 && x.box.y0 === 0 && x.box.x1 > 0 && x.box.y1 > 0)?.box ?? null;
         const screen = () => rootOf(d.nodes());
         let map = null;
         for (let i = 0; i < 8; i++) {

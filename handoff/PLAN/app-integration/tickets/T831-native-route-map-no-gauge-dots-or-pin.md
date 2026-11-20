@@ -1,6 +1,6 @@
 # T831 — The route map inside a water's Conditions view draws no gauge dots and no "you are here" pin on the phones
 
-Status: IN PROGRESS — fix merged: 57d816fdb (gauge dots and the you-are-here pin), d7af5c02c (lines through an injected atlas reader), 278bcfb17; left (Claude): the phone proof, the test bed's route-scroll T831 step on Android and iOS with shots beside the web (T881 since draws the route map only where it draws a gauge).
+Status: IN PROGRESS — fix merged: 57d816fdb (gauge dots and the you-are-here pin), d7af5c02c (lines through an injected atlas reader), 278bcfb17; iPhone proof done (lane L6, 3e8189d79: route lines, gauge dots and the pin, light and dark); left (Claude): the Android half, route-scroll's T831 step on the emulator, shots beside the web
 
 Source: found by the T826 agent 2026-11-17 while checking the owner's iPhone report (T826 part 1), on both Android
 and iOS; the web draws them.
@@ -45,3 +45,17 @@ route map: a solid line to each gauge downstream, dashed upstream, arrows along 
 ## Not done
 
 - Phone proof (the test-bed step on Android and iOS, shots beside the web).
+
+## iPhone proof (lane L6, 2026-11-20; 91d27a5a7, 2f4b492aa, 3e8189d79)
+
+- **Bench** `scenarios-ios/l6-shots.mjs` `t831-ios`: Coquitlam River (Region 2) from search → Conditions; the page is
+  scrolled until the route map's frame (`donor-route-map`, a testID added to `DonorMap.tsx`'s map box) is whole on
+  screen (the map sits under the gauge chart since T920), and the accent-violet pixels are counted inside that frame.
+- **A false pass caught on the way:** the first version counted the whole screen and passed (17,252 pixels) on the
+  page's own violet buttons while the map was below the screen. A second version stopped with the map half off the
+  bottom (it took the screen height from the scroll content). Both fixed before the run below.
+- **Run** (build 3e8189d79 `--testbed`, iPhone 17e, iOS 26.5, 13:05-13:20): 2 of 2 PASS. Light: 1,751 accent pixels
+  inside the map (frame 16,270-374,650 pt); dark: 1,619. The shots show the route line with its arrows, two gauge dots
+  with their labels ("100%", "level only") and the violet "you are here" pin with its label.
+- Shots: `handoff/PLAN/ios/shots/t831/ios-route-light.jpg`, `handoff/PLAN/ios/shots/t831/ios-route-dark.jpg`.
+- Left (Claude): the Android half (`route-scroll`'s T831 step on the emulator) and the shots beside the web's.
