@@ -196,3 +196,28 @@ Owner 2026-11-20 10:45 (dialog), after the list (`T679-shots/own-gauge-moves.csv
   - It is written when `packed.SHIP_PACKED_FORMATS` is on, so it switches on with the packed formats. Off, paint/5 is
     byte-identical to live.
   - Measured ON, on the live bundle: 3,597 sections, the same set the summed rows give; +282 B gz.
+
+## #8 follow-up: what ends the ranking's walk (2026-11-20 ~11:05, lane L8, read-only)
+The owner asked whether tiny lakes block "own". For each of the 1,060 moved (section, gauge) pairs, I found the first node
+that ends `own_distances`' walk on the flow path between the gauge and the section. The run used dev's gauge pass on the
+live atlas via heavy.sh, and its panels equal the live bundle's. Results are in `app-integration/T679-shots/own-gauge-blockers.csv`
+(water, gauge, sections, blocker id / name / kind, area_ha; pond areas from FWA `lakes` / `wetlands` AREA_HA).
+- **A lake or pond ends 881 of the 1,060.** By area: under 1 ha 354, under 5 ha 414, under 10 ha 433, under 50 ha
+  443, under 100 ha 450.
+- **448 of the 881 are UNOWNED ponds:** 223 `lake:<waterbody key>` polygons that are in no registry water. They are
+  NOT folded ponds (T679 D1): a folded pond belongs to its river's item, so the walk passes through it. These are ponds
+  the fold did not take. The biggest is 163 ha; most are under 1 ha.
+- **The other 433 are named lakes,** e.g. Pitt, Bowron, Lillooet / Little Lillooet, Laslui, Windermere.
+- **Not a lake (179):**
+  - 127: no flow path. The gauge is neither upstream nor downstream of the section (another branch or a tributary); the
+    walk never turns.
+  - 36: another water's stream piece in between (Hotsprings Channel on the Columbia, Widgeon Slough on the Pitt).
+  - 15: an unowned line.
+  - 1: the path passes every test.
+- **Per river (sections):**
+  - Halfway: ponds under 1 ha 80, ponds of 1 ha or more 10, no path 22. The pond is lake:329626214, 0.44 ha.
+  - Stikine: ponds under 1 ha 23, Laslui Lake 13, no path 5.
+  - Lillooet: Little Lillooet 18, Lillooet Lake 12, no path 5.
+  - Columbia: Hotsprings Channel 21, ponds 20, no path 10, Windermere 6.
+  - Pitt: Pitt Lake 24.
+  - Bowron: Bowron Lake 15, ponds 8.
