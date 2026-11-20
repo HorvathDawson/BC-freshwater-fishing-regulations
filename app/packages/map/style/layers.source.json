@@ -139,8 +139,11 @@
           "token": "color.parcel.private"
         },
         "width": {
-          "token": "width.parcel.edge"
+          "token": "width.parcel.edge",
+          "mode": "zoom",
+          "ramp": [[11, 1.25], [16, 1.875]]
         },
+        "$comment": "(T923) 1 px at z11 up to 1.5 px close in (width.parcel.edge 0.8 x 1.25 / 1.875): it was a 0.8 px hairline at every zoom, which vanished over imagery.",
         "opacity": {
           "token": "opacity.parcel.edge"
         }
@@ -170,12 +173,13 @@
           "token": "color.indigenous.fill"
         },
         "width": {
-          "token": "width.admin.edge"
+          "token": "width.admin.edge",
+          "mode": "zoom",
+          "ramp": [[4, 0.83], [11, 0.83], [16, 1.25]]
         },
-        "minzoom": 11,
-        "$comment": "v1's ADMIN_BORDER_MINZOOM. The hatch and the tint carry this area at a distance; the border is for when you are close enough to want to know exactly where it runs. Drawn from z4 it is one more line in a province already full of them.",
+        "$comment": "(T923, owner 2026-11-19/20: a reserve was hard to see on satellite and in light mode) THE FILL STAYS QUIET AND THE EDGE NOW SHOWS AT EVERY ZOOM: the area's own hue at the firm edge opacity (85%; the fill is a 14-16% tint, so the line reads clearly darker than it, which the parcel edge's 50% did not over imagery), 1 px far out and 1.5 px close in (width.admin.edge 1.2 x 0.83 / 1.25). It was drawn from z11 only, at 35% (light) / 45% (dark), and was lost over satellite.",
         "opacity": {
-          "token": "opacity.admin.edge"
+          "token": "opacity.closure.edge"
         }
       },
       "opacity": {

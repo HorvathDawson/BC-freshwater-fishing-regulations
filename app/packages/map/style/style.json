@@ -86,8 +86,7 @@
       "source-layer": "indigenous_land",
       "layout": {
         "visibility": "visible"
-      },
-      "minzoom": 11
+      }
     },
     {
       "id": "no_access",

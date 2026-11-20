@@ -2345,8 +2345,38 @@
         "token": "width.stream.side"
       }
     },
-    "parcel_private__edge": "width.parcel.edge",
-    "indigenous_land__edge": "width.admin.edge",
+    "parcel_private__edge": {
+      "token": "width.parcel.edge",
+      "mode": "zoom",
+      "ramp": [
+        [
+          11,
+          1.25
+        ],
+        [
+          16,
+          1.875
+        ]
+      ]
+    },
+    "indigenous_land__edge": {
+      "token": "width.admin.edge",
+      "mode": "zoom",
+      "ramp": [
+        [
+          4,
+          0.83
+        ],
+        [
+          11,
+          0.83
+        ],
+        [
+          16,
+          1.25
+        ]
+      ]
+    },
     "no_access__edge": {
       "token": "width.closure.edge",
       "mode": "zoom",
@@ -2781,7 +2811,7 @@
       "under_lake": 0,
       "contour": 0,
       "indigenous_land": 0,
-      "indigenous_land__edge": 11,
+      "indigenous_land__edge": 0,
       "indigenous_land__label": 12,
       "no_access": 0,
       "no_access__edge": 10,
@@ -2810,7 +2840,7 @@
   "minzoomByMode": {},
   "edgeOpacities": {
     "parcel_private__edge": "opacity.parcel.edge",
-    "indigenous_land__edge": "opacity.admin.edge",
+    "indigenous_land__edge": "opacity.closure.edge",
     "no_access__edge": "opacity.closure.edge",
     "no_access_permit__edge": "opacity.closure.edge",
     "eco_reserve__edge": "opacity.closure.edge",
