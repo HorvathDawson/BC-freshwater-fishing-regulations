@@ -204,6 +204,9 @@ class Regulations(BaseModel):
     #: ACCEPTED (T679 D4): every printed-word read the reach made that matched on the accepted run; a listed read that
     #: stops matching stops the reach run (`pipeline.atlas.reach.word_reads`).
     word_reads: FilePath
+    #: AUTHORED (T679 #12): the owner's rulings on the export's two closure scans, a dated water release / a water
+    #: row's quota under a blanket closure (`pipeline.deliver.export.closures.under_closure_calls`).
+    under_closure_calls: FilePath
 
     _abs = field_validator("*", mode="before")(_absolute)
 

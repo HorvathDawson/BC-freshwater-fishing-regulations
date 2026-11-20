@@ -1,0 +1,131 @@
+{
+ "_about": "T679 #12 (moved from `deliver/export/closures.py`, 2026-11-20): the owner's rulings on the export's two closure scans (`closures._closure_scan`), one row per (entry_id, rule_id) with why it is the book. `release`: a DATED WATER RELEASE that speaks while a blanket closure of its region also speaks can never apply - how a missed exemption shows (the Nicola, RU-2); `quota`: a WATER ROW'S KEEPING QUOTA in force that a blanket zone closure silences (review F5; since RU-7 such a quota vanishes from the page). The export refuses a finding not listed here (`closures.release_under_closure_problems`); each listed `why` ships as the finding's `known`. Every reason is read under the STRICT LIFT RULING (2026-10-05): a zone closure and a water's row both hold - closed on the union of their dates - and a row beats the closure only where the book prints an exemption or a dated release/opening/quota INSIDE it. `left`: rows taken off a list, and why (history, read by people). Written by hand (each row is a ruling); read by the export only (`closures.under_closure_calls`).",
+ "format": "under_closure_calls/1",
+ "release": [
+  {
+   "entry_id": "r4:duck_lake_permit_required_see_note_on_page_34@4-6",
+   "rule_id": "duck_lake.r3",
+   "why": "the Duck Lake row's bass catch and release (May 15-Jun 15) binds the STREAM sections of the entry's water (its tributary creeks), under Region 4's Apr 1-Jun 14 stream closure: both hold, and the creeks stay closed to Jun 14 (user decision 2026-10-05: the row's release does not lift the stream closure); the lake itself is not a stream"
+  }
+ ],
+ "quota": [
+  {
+   "entry_id": "r3:thompson_river_downstream_of_signs_at_kamloops_lake_outlet_t@3-13+3-14+3-18",
+   "rule_id": "thompson_river_downstream_of_kamloops_lake.r2",
+   "why": "the row's own Oct 1-May 31 closure and Region 3's Jan 1-Jun 30 spring stream closure both hold (the user's own example of the union); only the printed 'Additional opening May 1-31' lifts, on exactly those dates — so June is closed and the 2 per day holds from Jul 1"
+  },
+  {
+   "entry_id": "r3:nahatlatch_river@3-15",
+   "rule_id": "nahatlatch_river.r3",
+   "why": "Region 3's Jan 1-Jun 30 spring stream closure holds on the whole river: below the lake beside the row's own 'No Fishing Jan 1-May 31' (closed to Jun 30 — the p.28 list is a steelhead closure list, no exemption; user decision 2026-10-05), above it alone; the quota holds Jul 1-Dec 31"
+  },
+  {
+   "entry_id": "r6:west_road_blackwater_river_s_tributaries@6-1",
+   "rule_id": "west_road_river_tributaries.r1",
+   "why": "tributaries only: the mainstem row prints 'tributaries subject to spring closure', so Region 6's Fraser-watershed stream closure (Apr 1-Jun 30) holds on them and no lift reaches a tributary (user decision 2026-10-05); the 1 per day holds the rest of the year"
+  },
+  {
+   "entry_id": "r7:west_road_blackwater_river_s_tributaries@7-10",
+   "rule_id": "west_road_blackwater_rivers_tributaries.r1",
+   "why": "tributaries only: as Region 6's — Zone 7A's spring stream closure holds on them ('tributaries subject to spring closure'); the 1 per day holds the rest of the year"
+  },
+  {
+   "entry_id": "r5:bowron_lake_park_waters_other_than_bowron_lake@5-16",
+   "rule_id": "bowron_lake_park_waters.r1",
+   "why": "the park's streams lying in Zone 7A fall under Zone 7A's spring stream closure: Region 5's page exception (p.42) lifts only Region 5's closure, and the row prints no exemption Zone 7A's tables list; its lakes keep the 1 per day"
+  },
+  {
+   "entry_id": "r4:creston_valley_wildlife_management_area_cvwma_waters@4-6",
+   "rule_id": "creston_valley_wma_waters.r1",
+   "why": "bass 'no limit' on all CVWMA waters, undated: it lifts Region 4's bass CLOSURE (named fish), never the Apr 1-Jun 14 stream closure on its stream/slough sections (sloughs are streams, 2026-10-02) — both hold"
+  },
+  {
+   "entry_id": "r8:okanagan_river@8-1",
+   "rule_id": "okanagan_river.r2",
+   "why": "bass 8 per day, undated, on a stream under Region 8's spring stream closure outside the reaches the row prints exempt: both hold, closed Apr 1-Jun 30"
+  },
+  {
+   "entry_id": "r8:christina_creek@8-15",
+   "rule_id": "christina_creek.r1",
+   "why": "bass 8 per day, undated, under Region 8's spring stream closure: no printed exemption, both hold"
+  },
+  {
+   "entry_id": "r4:duck_lake_permit_required_see_note_on_page_34@4-6",
+   "rule_id": "duck_lake.r1",
+   "why": "the Duck Lake row's bass quota on its tributary creeks (STREAM sections) under Region 4's Apr 1-Jun 14 stream closure: both hold, the creeks are closed to Jun 14 (user decision 2026-10-05: leave as built); the lake is not a stream"
+  },
+  {
+   "entry_id": "r4:duck_lake_permit_required_see_note_on_page_34@4-6",
+   "rule_id": "duck_lake.r2",
+   "why": "the same Duck Lake creeks: the bass size clause under the stream closure"
+  },
+  {
+   "entry_id": "r4:french_slough@4-7",
+   "rule_id": "french_slough.r1",
+   "why": "a slough is a stream (2026-10-02): Region 4's Apr 1-Jun 14 stream closure holds; the row's undated quota lifts the bass CLOSURE (named fish), not the stream closure"
+  },
+  {
+   "entry_id": "r4:lewis_cameron_slough@4-21",
+   "rule_id": "lewis_cameron_slough.r1",
+   "why": "a slough is a stream (2026-10-02): as French Slough"
+  },
+  {
+   "entry_id": "r6:kitimat_river_angling_regulations_for_the_kitimat_river_are@6-3",
+   "rule_id": "kitimat_river.r5",
+   "why": "the hatchery steelhead 2 is silenced by the row's OWN Mar 16-May 31 closure (RU-3) on the days Region 6's steelhead stream closure (May 15-Jun 15, its own exemption list printed — the Kitimat is not on it) also holds"
+  },
+  {
+   "entry_id": "r5:west_road_blackwater_river@5-12+5-13",
+   "rule_id": "west_road_blackwater_river.r2",
+   "why": "the trout/char 1 per day, asked for a steelhead May 15-Jun 15: Region 6's steelhead stream closure holds on the river's Region 6 pieces (its exemptions are the Skeena, Nass, Iskut, Stikine and Taku mainstems only, p.49); the row lifts nothing for it"
+  },
+  {
+   "entry_id": "r6:station_creek@6-9",
+   "rule_id": "station_creek.r2",
+   "why": "the trout/char 1 per day, for a steelhead under Region 6's May 15-Jun 15 steelhead stream closure: 'open all year' lifts only the full winter closure, never a species closure (G4, user decision 2026-10-05)"
+  },
+  {
+   "entry_id": "r6:hevenor_mcqueen_creek@6-30",
+   "rule_id": "hevenor_creek.r2",
+   "why": "as Station Creek: 'open all year' never lifts Region 6's steelhead stream closure"
+  },
+  {
+   "entry_id": "r6:two_mile_creek@6-8",
+   "rule_id": "two_mile_creek.r2",
+   "why": "as Station Creek: 'open all year' never lifts Region 6's steelhead stream closure"
+  },
+  {
+   "entry_id": "r5:bowron_lake_park_waters_other_than_bowron_lake@5-16",
+   "rule_id": "bowron_lake_park_waters.r2",
+   "why": "the park's possession clause beside its 1 per day (r1, above): the same Zone 7A spring stream closure on the park's streams"
+  },
+  {
+   "entry_id": "r4:creston_valley_wildlife_management_area_cvwma_waters@4-6",
+   "rule_id": "creston_valley_wma_waters.r2",
+   "why": "yellow perch 'no limit' beside the bass (r1, above): the same Region 4 Apr 1-Jun 14 stream closure on the CVWMA's stream/slough sections"
+  }
+ ],
+ "left": [
+  {
+   "entry_id": "r3:mahood_river@3-46",
+   "rule_id": "mahood_river.r2",
+   "list": "quota",
+   "date": "2026-10-06",
+   "why": "under the DENETIAH ruling the row's own 'No Fishing Jan 1-June 30' silences its quota - the water closing itself, not a zone closure hiding a missed exemption; `_closure_scan` counts such a quota as speaking"
+  },
+  {
+   "entry_id": "r4:duncan_river@4-19",
+   "rule_id": "duncan_river.r4",
+   "list": "quota",
+   "date": "2026-10-13",
+   "why": "under T13 (owner D4, 2026-10-12, ce74eaef) the ✱ row's \"Exempt from spring closure\" walks to its tributaries with its quotas, so Region 4's stream closure no longer silences the 5 rainbow there"
+  },
+  {
+   "entry_id": "r4:duncan_river@4-19",
+   "rule_id": "duncan_river.r5",
+   "list": "quota",
+   "date": "2026-10-13",
+   "why": "as duncan_river.r4: the 2 bull trout"
+  }
+ ]
+}
