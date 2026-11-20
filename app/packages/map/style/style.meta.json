@@ -3158,7 +3158,7 @@
       "color.indigenous.fill": "#6F5D00",
       "color.indigenous.edge.imagery": "#2E1500",
       "color.parcel.edge.imagery": "#2A2A1C",
-      "color.imagery.casing": "#F8F8F2",
+      "color.imagery.casing": "#FFD9B0",
       "width.land.edge.imagery": 1,
       "width.land.casing.imagery": 2.5,
       "opacity.land.edge.imagery": 1,
@@ -3375,7 +3375,7 @@
       "color.indigenous.fill": "#C9945E",
       "color.indigenous.edge.imagery": "#2E1500",
       "color.parcel.edge.imagery": "#2A2A1C",
-      "color.imagery.casing": "#0A0B0D",
+      "color.imagery.casing": "#FFD9B0",
       "width.land.edge.imagery": 1,
       "width.land.casing.imagery": 2.5,
       "opacity.land.edge.imagery": 1,
@@ -3592,7 +3592,7 @@
       "color.indigenous.fill": "#8B5A2B",
       "color.indigenous.edge.imagery": "#2E1500",
       "color.parcel.edge.imagery": "#2A2A1C",
-      "color.imagery.casing": "#F8F8F2",
+      "color.imagery.casing": "#FFD9B0",
       "width.land.edge.imagery": 1,
       "width.land.casing.imagery": 2.5,
       "opacity.land.edge.imagery": 1,
@@ -4126,12 +4126,12 @@
     "color.parcel.edge.imagery": {
       "type": "color",
       "themeable": true,
-      "$comment": "(T923, owner 2026-11-20: 'can be on private too') A PRIVATE PARCEL'S OUTLINE OVER SATELLITE IMAGERY ONLY: the parcel earth tone (`color.parcel.private`) taken darker, in its own hue (redder than the reserve's brown). The drawn map keeps its fill-hued hairline."
+      "$comment": "(T923, owner 2026-11-20: 'can be on private too') A PRIVATE PARCEL'S OUTLINE OVER SATELLITE IMAGERY ONLY: the parcel earth tone (`color.parcel.private`) taken darker, in its own dark earth hue (an olive-leaning dark, apart from the reserve's brown). The drawn map keeps its fill-hued hairline."
     },
     "color.imagery.casing": {
       "type": "color",
       "themeable": true,
-      "$comment": "(T923) THE LIGHT CASING UNDER A RESERVE'S OR PARCEL'S OUTLINE OVER SATELLITE: the map's paper (`color.outside`), so the darker line is cut out of dark forest and water alike. Not drawn on the drawn map."
+      "$comment": "(T923) THE LIGHT CASING UNDER A RESERVE'S OR PARCEL'S OUTLINE OVER SATELLITE: a fixed pale peach (the same in every theme: the photograph does not change with the theme, and `color.outside` is near-black in dark), so the darker line is cut out of dark forest and water alike. Not drawn on the drawn map."
     },
     "width.land.edge.imagery": {
       "type": "number",
