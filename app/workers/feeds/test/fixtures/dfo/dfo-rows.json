@@ -1,5 +1,5 @@
 {
- "_about": "THE SHARED DFO ROWS (T556; T671's rows). Hand-written: rows as DFO prints them (species | dates | limits and gear) with what the place itself answers. Read by BOTH pipeline/tests/test_t671_salmon_rows.py (typed.to_rules, deliver.salmon.verdict_on) and app/workers/feeds/test/dfo.t671.test.ts (the worker's toRules, locationCalendar), so the two languages cannot each hold a copy that drifts. `typed`: one entry per row, holding only what is asserted of that row's first rule — type, species (null: the rule carries none), reason (tbd | gear_permission: the review_reason starts with that constant). `own`: [species, MMDD, status] — the place's own answer that day, null where it says nothing (a wider place answers). The Python's exact typed rules and year calendar for every case are in python-vectors.generated.json `rows` (generated: python -m pipeline.tools.emit.dfo_vectors), which the worker must reproduce. `place` (T671 5B): the curated place's words and `within` areas, for quota.pool_of / mark_shared (the Python's live.join and the release, the worker's live.ts join); `quota`: [species, MMDD, the quota line (quota.words of the day's tree), null where nothing opens]. `robust` (T679 D6, owner 2026-11-12): rows that do NOT type — `error` the error's type name both readers give, `own` [species, MMDD, status] the place reads in robust mode (the Python's typed feed `feed.type_rows`: its `unread_rule`; the worker's live.ts hold with no last answers: `ROW_HELD_VERDICT`): 'check', reported, never a refused page or a dropped row.",
+ "_about": "THE SHARED DFO ROWS (T556; T671's rows). Hand-written: rows as DFO prints them (species | dates | limits and gear) with what the place itself answers. Read by BOTH pipeline/tests/test_t671_salmon_rows.py (typed.to_rules, deliver.salmon.verdict_on) and app/workers/feeds/test/dfo.t671.test.ts (the worker's toRules, locationCalendar), so the two languages cannot each hold a copy that drifts. `typed`: one entry per row, holding only what is asserted of that row's first rule \u2014 type, species (null: the rule carries none), reason (tbd | gear_permission: the review_reason starts with that constant), verbatim (the rule's quoted words: the verdict's short line, T623 F13). `own`: [species, MMDD, status] \u2014 the place's own answer that day, null where it says nothing (a wider place answers). The Python's exact typed rules and year calendar for every case are in python-vectors.generated.json `rows` (generated: python -m pipeline.tools.emit.dfo_vectors), which the worker must reproduce. `place` (T671 5B): the curated place's words and `within` areas, for quota.pool_of / mark_shared (the Python's live.join and the release, the worker's live.ts join); `quota`: [species, MMDD, the quota line (quota.words of the day's tree), null where nothing opens]. `robust` (T679 D6, owner 2026-11-12): rows that do NOT type \u2014 `error` the error's type name both readers give, `own` [species, MMDD, status] the place reads in robust mode (the Python's typed feed `feed.type_rows`: its `unread_rule`; the worker's live.ts hold with no last answers: `ROW_HELD_VERDICT`): 'check', reported, never a refused page or a dropped row.",
  "cases": [
   {
    "name": "chum to be determined",
@@ -657,7 +657,7 @@
     [
      "Chum",
      "Nov 4 to Dec 31",
-     "2 per day — FN1196"
+     "2 per day \u2014 FN1196"
     ]
    ],
    "own": [
@@ -1057,8 +1057,63 @@
     [
      "CH",
      801,
-     "4 a day · only 1 over 65 cm"
+     "4 a day \u00b7 only 1 over 65 cm"
     ]
+   ]
+  },
+  {
+   "name": "hatchery marked only after the count (T623 F13)",
+   "rows": [
+    [
+     "Coho",
+     "Sep 15 to Jan 31",
+     "1 per day, hatchery marked only"
+    ],
+    [
+     "Coho",
+     "Sep 15 to Jan 31",
+     "2 per day hatchery marked fish only"
+    ],
+    [
+     "Coho",
+     "Sep 15 to Jan 31",
+     "4 hatchery marked per day"
+    ],
+    [
+     "Coho",
+     "Sep 15 to Jan 31",
+     "2 per day. Barbless hooks only"
+    ]
+   ],
+   "typed": [
+    {
+     "type": "retention_limit",
+     "species": [
+      "CO"
+     ],
+     "verbatim": "1 per day, hatchery marked only"
+    },
+    {
+     "type": "retention_limit",
+     "species": [
+      "CO"
+     ],
+     "verbatim": "2 per day hatchery marked fish only"
+    },
+    {
+     "type": "retention_limit",
+     "species": [
+      "CO"
+     ],
+     "verbatim": "4 hatchery marked per day"
+    },
+    {
+     "type": "retention_limit",
+     "species": [
+      "CO"
+     ],
+     "verbatim": "2 per day"
+    }
    ]
   },
   {
