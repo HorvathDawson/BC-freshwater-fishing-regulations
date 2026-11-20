@@ -17,7 +17,8 @@ THE LIST (`INPUTS`), every source read through `CURATED` / `SOURCE`:
                       DFO feed: the Python's answer for two regions' openings, T668)
                                                                     -> private/feeds/dfo/pairs.json
     roster            source bc_hydrometric_stations.json, slim [{station, realtime}] -> private/feeds/gauges/roster.json
-    inseason-matches  `pipeline.regs.inseason.publish` (inseason/notice_waters.json, already resolved to FWA ranges
+    inseason-matches  `pipeline.regs.inseason.publish` (inseason/notice_waters.json + its generated resolution
+                      data/generated/inseason/resolved.json, T679 #11: already resolved to FWA ranges
                       where the atlas is — T520: no atlas here)     -> feeds/inseason/matches.json (PUBLIC)
 
 `private/` keys are never served (the data worker 404s them); the Worker reads them on its next run, no redeploy.

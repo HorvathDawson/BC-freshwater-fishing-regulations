@@ -62,8 +62,8 @@ def sync_tree(tmp_path):
     # (T520) the in-season matches already resolved on LATEST: no resolve step
     (tmp_path / "data/release").mkdir(parents=True)
     (tmp_path / "data/release/LATEST").write_text("r-1\n")
-    (tmp_path / "data/curated/inseason").mkdir(parents=True)
-    (tmp_path / "data/curated/inseason/notice_waters.json").write_text('{"release": "r-1"}')
+    (tmp_path / "data/generated/inseason").mkdir(parents=True)        # (T679 #11) the generated resolution
+    (tmp_path / "data/generated/inseason/resolved.json").write_text('{"release": "r-1"}')
     return tmp_path
 
 
@@ -85,18 +85,23 @@ def test_sync_inputs_stops_on_a_failed_copy(sync_tree):
 
 
 def test_sync_inputs_only_verifies_matches_on_another_release(sync_tree):
-    """(T537) matches on another release than LATEST are refused with the resolve + commit commands; nothing is put
-    and nothing is re-resolved here (`pipeline release` resolves them on the candidate before its promote)."""
+    """(T537) matches on another release than LATEST are refused with the resolve command; nothing is put and nothing
+    is re-resolved here (`pipeline release` resolves them on the candidate before its promote). (T679 #11) the
+    resolution is generated: no commit is asked for, and a missing one is refused the same way."""
     (sync_tree / "data/release/LATEST").write_text("r-2\n")
     _exe(sync_tree / "scripts/heavy.sh", f'#!/usr/bin/env bash\necho ran >> "{sync_tree}/heavy.log"\n')
     r = _sync(sync_tree, 0)
     assert r.returncode != 0 and "LATEST is r-2 — nothing was put" in r.stderr
-    assert "pipeline.regs.inseason.resolve --release data/release/r-2" in r.stderr and "git commit" in r.stderr
+    assert "pipeline.regs.inseason.resolve --release data/release/r-2" in r.stderr and "git commit" not in r.stderr
     assert not (sync_tree / "rclone.log").exists() and not (sync_tree / "heavy.log").exists()
+    (sync_tree / "data/generated/inseason/resolved.json").unlink()
+    r = _sync(sync_tree, 0)
+    assert r.returncode != 0 and "resolved on nothing (no data/generated/inseason/resolved.json)" in r.stderr
+    assert not (sync_tree / "rclone.log").exists()
 
 
 def test_sync_inputs_from_the_review_app_never_rewrites_the_matches(sync_tree):
-    """(T520) from the review app, matches on another release are REFUSED (re-resolve there, then commit) — the
+    """(T520) from the review app, matches on another release are REFUSED (re-resolve there; T679 #11: no commit) — the
     curated file is never rewritten outside its writes.commit."""
     (sync_tree / "data/release/LATEST").write_text("r-2\n")
     _exe(sync_tree / "scripts/heavy.sh", f'#!/usr/bin/env bash\necho ran >> "{sync_tree}/heavy.log"\n')
@@ -104,7 +109,7 @@ def test_sync_inputs_from_the_review_app_never_rewrites_the_matches(sync_tree):
     r = subprocess.run(["bash", str(env_tree / "deploy/staging/sync-inputs.sh")], capture_output=True, text=True,
                        env={**os.environ, "SYNC_INPUTS_FROM_REVIEW": "1",
                             "PATH": f"{env_tree / 'bin'}:{os.environ['PATH']}"})
-    assert r.returncode != 0 and "re-resolve in the review app, then commit" in r.stderr
+    assert r.returncode != 0 and "re-resolve in the review app" in r.stderr and "commit" not in r.stderr
     assert not (sync_tree / "heavy.log").exists()
 
 

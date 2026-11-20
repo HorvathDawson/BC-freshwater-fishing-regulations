@@ -1,32 +1,6 @@
 {
   "$comment": "notice_waters.json (was matches.json; T324). T226 AUTHORED: provincial in-season notices (feeds/inseason/index.json `rows[].id`) -> the waters they apply to. Written by the review app's In-season tab (POST /api/inseason/matches) or by hand; read through pipeline.regs.inseason.matches (validates: unknown splits, ops, ids refused). INFORMATIONAL ONLY: a match puts a banner on the water in the app, it never changes an answer. `history` is append-only, one note per edit.",
-  "format": "inseason-matches/2",
-  "release": "r-6258ffded676",
-  "words": {
-    "alexander_creek__easternmost_hwy_3": "easternmost Hwy 3",
-    "border:356537100:0": "BC boundary",
-    "border:356556558:0": "BC boundary",
-    "border:356561827:0": "BC boundary",
-    "border:356563419:0": "BC boundary",
-    "border:356570170:0": "BC boundary",
-    "border:356570316:0": "BC boundary",
-    "duncan_river__duncan_dam": "Duncan Dam",
-    "fording_river__josephine_falls": "Josephine Falls",
-    "fraser_river__chilcotin_river_into_fraser_river": "Chilcotin River confluence",
-    "fraser_river__spuzzum_creek_into_fraser_river": "Spuzzum Creek confluence",
-    "fraser_river__the_cpr_bridge_at_mission": "the CPR Bridge at Mission",
-    "lake:329120715:outlet": "Trout Lake outlet",
-    "lake:329291806:inlet": "Pitt Lake inlet",
-    "lardeau_river__fishing_boundary_signs_near_mobbs_creek": "the Mobbs Creek confluence (600 m below Trout Lake outlet)",
-    "lodgepole_creek__falls": "Falls",
-    "peace_river__hwy_29_bridge": "Hwy. 29 bridge",
-    "peace_river__peace_canyon_dam": "Peace Canyon Dam",
-    "region:2|3": "Region 2 / Region 3 boundary",
-    "region:3|5": "Region 3 / Region 5 boundary",
-    "region_line:3": "Region 3 boundary",
-    "region_line:8": "Region 8 boundary",
-    "trib:gnis:11410": "Keen Creek confluence"
-  },
+  "format": "inseason-matches/3",
   "matches": {
     "is-00172e79bde1": {
       "region": "4",
@@ -62,18 +36,7 @@
           "the text includes tributaries: the extent walks them"
         ]
       },
-      "confidence": "high",
-      "waters": {
-        "gnis:9343": {
-          "runs": [
-            [356566667, 0, 4681]
-          ],
-          "ends": [
-            ["mouth", "alexander_creek__easternmost_hwy_3"]
-          ]
-        }
-      },
-      "stamp": "3434fd1296c8a75a"
+      "confidence": "high"
     },
     "is-03e14f544b83": {
       "region": "1",
@@ -99,13 +62,7 @@
         "locators": [],
         "splits": {}
       },
-      "confidence": "high",
-      "waters": {
-        "gnis:20215": {
-          "all": true
-        }
-      },
-      "stamp": "5a2b8754bfb69926"
+      "confidence": "high"
     },
     "is-06e7bf41d7fc": {
       "region": "3",
@@ -135,188 +92,7 @@
           "the text includes tributaries: the extent walks them"
         ]
       },
-      "confidence": "high",
-      "waters": {
-        "gnis:10807": {
-          "all": true
-        },
-        "gnis:11021": {
-          "all": true
-        },
-        "gnis:11493": {
-          "all": true
-        },
-        "gnis:11889": {
-          "all": true
-        },
-        "gnis:11971": {
-          "all": true
-        },
-        "gnis:12122": {
-          "all": true
-        },
-        "gnis:12762": {
-          "all": true
-        },
-        "gnis:12890": {
-          "all": true
-        },
-        "gnis:13112": {
-          "all": true
-        },
-        "gnis:13569": {
-          "all": true
-        },
-        "gnis:13619": {
-          "all": true
-        },
-        "gnis:14046": {
-          "all": true
-        },
-        "gnis:15842": {
-          "all": true
-        },
-        "gnis:16556": {
-          "all": true
-        },
-        "gnis:16689": {
-          "all": true
-        },
-        "gnis:16790": {
-          "all": true
-        },
-        "gnis:17385": {
-          "all": true
-        },
-        "gnis:18127": {
-          "all": true
-        },
-        "gnis:18158": {
-          "all": true
-        },
-        "gnis:18599": {
-          "all": true
-        },
-        "gnis:19041": {
-          "all": true
-        },
-        "gnis:19193": {
-          "all": true
-        },
-        "gnis:20481": {
-          "all": true
-        },
-        "gnis:20809": {
-          "all": true
-        },
-        "gnis:2166": {
-          "all": true
-        },
-        "gnis:24090": {
-          "all": true
-        },
-        "gnis:2433": {
-          "all": true
-        },
-        "gnis:2444": {
-          "all": true
-        },
-        "gnis:25196": {
-          "all": true
-        },
-        "gnis:25269": {
-          "all": true
-        },
-        "gnis:25537": {
-          "all": true
-        },
-        "gnis:26281": {
-          "all": true
-        },
-        "gnis:26481": {
-          "all": true
-        },
-        "gnis:26537": {
-          "all": true
-        },
-        "gnis:26783": {
-          "all": true
-        },
-        "gnis:26968": {
-          "all": true
-        },
-        "gnis:27514": {
-          "runs": [
-            [356353372, 0, 7160]
-          ],
-          "ends": [
-            ["mouth", "region_line:3"]
-          ]
-        },
-        "gnis:27745": {
-          "all": true
-        },
-        "gnis:27909": {
-          "runs": [
-            [356364249, 0, 2310]
-          ],
-          "ends": [
-            ["mouth", "region_line:3"]
-          ]
-        },
-        "gnis:28305": {
-          "all": true
-        },
-        "gnis:28742": {
-          "all": true
-        },
-        "gnis:28759": {
-          "all": true
-        },
-        "gnis:28946": {
-          "all": true
-        },
-        "gnis:2933": {
-          "all": true
-        },
-        "gnis:2988": {
-          "all": true
-        },
-        "gnis:30188": {
-          "all": true
-        },
-        "gnis:36082": {
-          "all": true
-        },
-        "gnis:39454": {
-          "all": true
-        },
-        "gnis:5861": {
-          "all": true
-        },
-        "gnis:7849": {
-          "all": true
-        },
-        "gnis:8120": {
-          "all": true
-        },
-        "gnis:8121": {
-          "all": true
-        },
-        "gnis:8135": {
-          "all": true
-        },
-        "gnis:8831": {
-          "all": true
-        },
-        "gnis:9590": {
-          "all": true
-        },
-        "gnis:9846": {
-          "all": true
-        }
-      },
-      "stamp": "03579871e3bd7b89"
+      "confidence": "high"
     },
     "is-0762f7371d1a": {
       "region": "4",
@@ -338,13 +114,7 @@
           "rescind row (informational): Keen Creek whole water (owner: no falls split for now; the rescinded closure was downstream of the falls ~6 km from the Kaslo)"
         ]
       },
-      "confidence": "medium",
-      "waters": {
-        "gnis:11410": {
-          "all": true
-        }
-      },
-      "stamp": "77f630b187c64519"
+      "confidence": "medium"
     },
     "is-14c1a6f972a3": {
       "region": "3",
@@ -353,7 +123,10 @@
         {
           "op": "between",
           "item_id": "gnis:39325",
-          "splits": ["fraser_river__hell_s_gate", "fraser_river__spuzzum_creek_into_fraser_river"]
+          "splits": [
+            "fraser_river__hell_s_gate",
+            "fraser_river__spuzzum_creek_into_fraser_river"
+          ]
         },
         {
           "op": "upstream_of",
@@ -374,7 +147,10 @@
         "items": {
           "gnis:39325": "Fraser River"
         },
-        "locators": ["from Hells Gate to Spuzzum Creek confluence", "upstream of Hells Gate"],
+        "locators": [
+          "from Hells Gate to Spuzzum Creek confluence",
+          "upstream of Hells Gate"
+        ],
         "splits": {
           "Hells Gate": "fraser_river__hell_s_gate",
           "Spuzzum Creek confluence": "fraser_river__spuzzum_creek_into_fraser_river"
@@ -383,25 +159,7 @@
           "the water runs into region(s) 2, 5, 7: the extent is not clipped to region 3"
         ]
       },
-      "confidence": "medium",
-      "waters": {
-        "gnis:39325": {
-          "runs": [
-            [355994344, 0, 185],
-            [355995048, 0, 249],
-            [355996028, 0, 1023],
-            [355997179, 0, 297],
-            [355998097, 0, 1044],
-            [356001314, 0, 309],
-            [356001328, 0, 757],
-            [356364114, 196966, 452701]
-          ],
-          "ends": [
-            ["fraser_river__spuzzum_creek_into_fraser_river", "region_line:3"]
-          ]
-        }
-      },
-      "stamp": "b665e14349a19870"
+      "confidence": "medium"
     },
     "is-164f9965bfbd": {
       "region": "4",
@@ -421,7 +179,10 @@
         "water": "Hellroaring Creek",
         "via": "name",
         "reason": "2 candidates for 'Hellroaring Creek'",
-        "candidates": ["gnis:20676", "gnis:20677"],
+        "candidates": [
+          "gnis:20676",
+          "gnis:20677"
+        ],
         "disambiguated_by": "in the St. Mary River watershed (the row's classified licence)",
         "items": {
           "gnis:20676": "Hellroaring Creek"
@@ -432,13 +193,7 @@
           "a clarification row: informational, bound to its water"
         ]
       },
-      "confidence": "medium",
-      "waters": {
-        "gnis:20676": {
-          "all": true
-        }
-      },
-      "stamp": "2d3ce30cd500f938"
+      "confidence": "medium"
     },
     "is-1cf72da5a533": {
       "region": "4",
@@ -455,18 +210,7 @@
       "note": "PROPOSAL (Claude 2026-11-09): carried from is-d55f2ace6f8e, the same region and water under the row's earlier id (the feed's ids changed). Earlier note: Claude 2026-10-29 at owner's request — check: rescind row (informational): the Kaslo River below the Keen Creek confluence to its mouth at Kootenay Lake (the mouth is the river's end). Check it.",
       "by": "claude",
       "at": "2026-11-10T03:57:10Z",
-      "source": "claude",
-      "waters": {
-        "gnis:11345": {
-          "runs": [
-            [356567321, 526, 29241]
-          ],
-          "ends": [
-            ["mouth", "trib:gnis:11410"]
-          ]
-        }
-      },
-      "stamp": "1faa94832f091ca9"
+      "source": "claude"
     },
     "is-20205c2b98c9": {
       "region": "4",
@@ -502,19 +246,7 @@
           "the text includes tributaries: the extent walks them"
         ]
       },
-      "confidence": "high",
-      "waters": {
-        "gnis:17044": {
-          "runs": [
-            [356565430, 23081, 25906],
-            [356565430, 26216, 29864]
-          ],
-          "ends": [
-            ["lodgepole_creek__falls", "source"]
-          ]
-        }
-      },
-      "stamp": "63341ec14b3a4ebe"
+      "confidence": "high"
     },
     "is-2fa458fef3c3": {
       "region": "8",
@@ -540,13 +272,7 @@
         "locators": [],
         "splits": {}
       },
-      "confidence": "high",
-      "waters": {
-        "gnis:32069": {
-          "all": true
-        }
-      },
-      "stamp": "28d5d8122fb95e29"
+      "confidence": "high"
     },
     "is-4169515839dc": {
       "region": "2",
@@ -575,45 +301,7 @@
           "two waters: Chilliwack Lake whole; 'Upper Pitt River' = the Pitt River upstream of the Pitt Lake inlet"
         ]
       },
-      "confidence": "high",
-      "waters": {
-        "gnis:7551": {
-          "runs": [
-            [355991630, 0, 1487],
-            [355991852, 0, 667],
-            [355992743, 0, 370],
-            [355992745, 0, 709],
-            [355993128, 0, 719],
-            [355993240, 0, 468],
-            [355993241, 0, 1033],
-            [355993386, 0, 351],
-            [355993559, 0, 1005],
-            [355993834, 0, 482],
-            [355994222, 0, 371],
-            [355994946, 0, 300],
-            [355994947, 0, 247],
-            [355995228, 0, 420],
-            [355995229, 0, 638],
-            [355995767, 0, 355],
-            [355996285, 0, 839],
-            [355997808, 0, 752],
-            [355997877, 0, 419],
-            [355997878, 0, 502],
-            [355997912, 0, 524],
-            [355997913, 0, 587],
-            [355998024, 0, 786],
-            [356000662, 0, 659],
-            [356360869, 46555, 105902]
-          ],
-          "ends": [
-            ["lake:329291806:inlet", "source"]
-          ]
-        },
-        "wbk:329083341": {
-          "all": true
-        }
-      },
-      "stamp": "6f957e647131f4ff"
+      "confidence": "high"
     },
     "is-472d822b755f": {
       "region": "4",
@@ -648,23 +336,7 @@
           "a clarification row: informational, bound to its water"
         ]
       },
-      "confidence": "high",
-      "waters": {
-        "gnis:9343": {
-          "runs": [
-            [356366414, 0, 218],
-            [356366698, 0, 234],
-            [356367960, 0, 357],
-            [356368598, 0, 810],
-            [356368599, 0, 159],
-            [356566667, 4681, 36595]
-          ],
-          "ends": [
-            ["alexander_creek__easternmost_hwy_3", "source"]
-          ]
-        }
-      },
-      "stamp": "6e2d9054fd1c257b"
+      "confidence": "high"
     },
     "is-498820589328": {
       "region": "5",
@@ -673,7 +345,10 @@
         {
           "op": "between",
           "item_id": "gnis:39325",
-          "splits": ["fraser_river__chilcotin_river_into_fraser_river", "region:3|5"]
+          "splits": [
+            "fraser_river__chilcotin_river_into_fraser_river",
+            "region:3|5"
+          ]
         }
       ],
       "note": "owner 2026-10-29: within Region 5 — checked: the extent (Chilcotin confluence at 481.9 km down to the Region 3/5 crossing at 418.4 km) lies wholly inside the Fraser's Region 5 stretch (418.4–674.5 km); every section is a Region 5 section, unchanged",
@@ -686,19 +361,7 @@
           "from the Chilcotin confluence downstream to the Region 5 boundary: the lower Region 5 boundary (Region 3/5 crossing), since 'downstream' from the Chilcotin"
         ],
         "owner": "owner 2026-10-29: within Region 5 — checked: the extent (Chilcotin confluence at 481.9 km down to the Region 3/5 crossing at 418.4 km) lies wholly inside the Fraser's Region 5 stretch (418.4–674.5 km); every section is a Region 5 section, unchanged"
-      },
-      "waters": {
-        "gnis:39325": {
-          "runs": [
-            [355999845, 0, 923],
-            [356364114, 418405, 481906]
-          ],
-          "ends": [
-            ["region:3|5", "fraser_river__chilcotin_river_into_fraser_river"]
-          ]
-        }
-      },
-      "stamp": "1da03316d45cad11"
+      }
     },
     "is-4eaad82900f8": {
       "region": "4",
@@ -715,24 +378,7 @@
       "note": "PROPOSAL (Claude 2026-11-09): carried from is-695fd31ebf80, the same region and water under the row's earlier id (the feed's ids changed). Earlier note: auto. Check it.",
       "by": "claude",
       "at": "2026-11-10T03:57:10Z",
-      "source": "claude",
-      "waters": {
-        "gnis:22255": {
-          "runs": [
-            [356364729, 0, 1699],
-            [356364730, 0, 4200],
-            [356364732, 0, 690],
-            [356365277, 1196, 2488],
-            [356365279, 86, 1824],
-            [356365282, 0, 620],
-            [356570552, 438, 9904]
-          ],
-          "ends": [
-            ["mouth", "duncan_river__duncan_dam"]
-          ]
-        }
-      },
-      "stamp": "deb8b159e24391fe"
+      "source": "claude"
     },
     "is-50ac6c61eb00": {
       "region": "4",
@@ -752,7 +398,10 @@
         "water": "Perry Creek",
         "via": "name",
         "reason": "2 candidates for 'Perry Creek'",
-        "candidates": ["gnis:14740", "gnis:14741"],
+        "candidates": [
+          "gnis:14740",
+          "gnis:14741"
+        ],
         "disambiguated_by": "in the St. Mary River watershed (the row's classified licence)",
         "items": {
           "gnis:14741": "Perry Creek"
@@ -763,13 +412,7 @@
           "a clarification row: informational, bound to its water"
         ]
       },
-      "confidence": "medium",
-      "waters": {
-        "gnis:14741": {
-          "all": true
-        }
-      },
-      "stamp": "90b58c8c54990df0"
+      "confidence": "medium"
     },
     "is-546bc1e74bbc": {
       "region": "4",
@@ -784,13 +427,7 @@
       "note": "PROPOSAL (Claude 2026-11-09): carried from is-0762f7371d1a, the same region and water under the row's earlier id (the feed's ids changed). Earlier note: Claude 2026-10-29 at owner's request — check: rescind row (informational): Keen Creek whole water (owner: no falls split for now; the rescinded closure was downstream of the falls ~6 km from the Kaslo). Check it.",
       "by": "claude",
       "at": "2026-11-10T03:57:11Z",
-      "source": "claude",
-      "waters": {
-        "gnis:11410": {
-          "all": true
-        }
-      },
-      "stamp": "77f630b187c64519"
+      "source": "claude"
     },
     "is-689cae172c40": {
       "region": "1",
@@ -816,13 +453,7 @@
         "locators": [],
         "splits": {}
       },
-      "confidence": "high",
-      "waters": {
-        "gnis:12227": {
-          "all": true
-        }
-      },
-      "stamp": "04c73422b5342399"
+      "confidence": "high"
     },
     "is-695fd31ebf80": {
       "region": "4",
@@ -853,26 +484,12 @@
         "splits": {
           "Duncan Dam": "duncan_river__duncan_dam"
         },
-        "notes": ["the text speaks of tributaries", "a rescind row: informational, bound to its water"]
+        "notes": [
+          "the text speaks of tributaries",
+          "a rescind row: informational, bound to its water"
+        ]
       },
-      "confidence": "medium",
-      "waters": {
-        "gnis:22255": {
-          "runs": [
-            [356364729, 0, 1699],
-            [356364730, 0, 4200],
-            [356364732, 0, 690],
-            [356365277, 1196, 2488],
-            [356365279, 86, 1824],
-            [356365282, 0, 620],
-            [356570552, 438, 9904]
-          ],
-          "ends": [
-            ["mouth", "duncan_river__duncan_dam"]
-          ]
-        }
-      },
-      "stamp": "deb8b159e24391fe"
+      "confidence": "medium"
     },
     "is-69d2a07100fc": {
       "region": "8",
@@ -902,181 +519,7 @@
           "the row is the water's tributaries: tributaries only"
         ]
       },
-      "confidence": "high",
-      "waters": {
-        "gnis:10323": {
-          "all": true
-        },
-        "gnis:10644": {
-          "all": true
-        },
-        "gnis:10830": {
-          "all": true
-        },
-        "gnis:10949": {
-          "all": true
-        },
-        "gnis:10951": {
-          "all": true
-        },
-        "gnis:11929": {
-          "all": true
-        },
-        "gnis:13187": {
-          "all": true
-        },
-        "gnis:13421": {
-          "all": true
-        },
-        "gnis:14458": {
-          "all": true
-        },
-        "gnis:14467": {
-          "all": true
-        },
-        "gnis:14902": {
-          "all": true
-        },
-        "gnis:14935": {
-          "all": true
-        },
-        "gnis:16048": {
-          "all": true
-        },
-        "gnis:17252": {
-          "all": true
-        },
-        "gnis:17745": {
-          "all": true
-        },
-        "gnis:17804": {
-          "all": true
-        },
-        "gnis:17807": {
-          "all": true
-        },
-        "gnis:19099": {
-          "all": true
-        },
-        "gnis:19226": {
-          "all": true
-        },
-        "gnis:19780": {
-          "all": true
-        },
-        "gnis:20392": {
-          "all": true
-        },
-        "gnis:20516": {
-          "all": true
-        },
-        "gnis:20571": {
-          "all": true
-        },
-        "gnis:20998": {
-          "all": true
-        },
-        "gnis:21588": {
-          "all": true
-        },
-        "gnis:21644": {
-          "all": true
-        },
-        "gnis:21717": {
-          "all": true
-        },
-        "gnis:21844": {
-          "all": true
-        },
-        "gnis:22539": {
-          "all": true
-        },
-        "gnis:2256": {
-          "all": true
-        },
-        "gnis:2262": {
-          "all": true
-        },
-        "gnis:22656": {
-          "all": true
-        },
-        "gnis:22670": {
-          "all": true
-        },
-        "gnis:23240": {
-          "all": true
-        },
-        "gnis:23519": {
-          "all": true
-        },
-        "gnis:23681": {
-          "all": true
-        },
-        "gnis:24514": {
-          "all": true
-        },
-        "gnis:25241": {
-          "all": true
-        },
-        "gnis:2598": {
-          "all": true
-        },
-        "gnis:26497": {
-          "all": true
-        },
-        "gnis:26606": {
-          "all": true
-        },
-        "gnis:2724": {
-          "all": true
-        },
-        "gnis:27402": {
-          "all": true
-        },
-        "gnis:27621": {
-          "all": true
-        },
-        "gnis:28720": {
-          "all": true
-        },
-        "gnis:28772": {
-          "all": true
-        },
-        "gnis:28922": {
-          "all": true
-        },
-        "gnis:29998": {
-          "all": true
-        },
-        "gnis:3013": {
-          "all": true
-        },
-        "gnis:30197": {
-          "all": true
-        },
-        "gnis:3026": {
-          "all": true
-        },
-        "gnis:32062": {
-          "all": true
-        },
-        "gnis:32148": {
-          "all": true
-        },
-        "gnis:39547": {
-          "all": true
-        },
-        "gnis:8066": {
-          "all": true
-        },
-        "gnis:9620": {
-          "all": true
-        },
-        "gnis:9707": {
-          "all": true
-        }
-      },
-      "stamp": "fa0e7c7639ff8153"
+      "confidence": "high"
     },
     "is-6a32433916ac": {
       "region": "8",
@@ -1102,786 +545,12 @@
         },
         "locators": [],
         "splits": {},
-        "notes": ["the text includes tributaries: the extent walks them", "the water runs into region(s) 2: the extent is not clipped to region 8"]
+        "notes": [
+          "the text includes tributaries: the extent walks them",
+          "the water runs into region(s) 2: the extent is not clipped to region 8"
+        ]
       },
-      "confidence": "medium",
-      "waters": {
-        "blk:356520700": {
-          "all": true
-        },
-        "gnis:10164": {
-          "all": true
-        },
-        "gnis:10477": {
-          "all": true
-        },
-        "gnis:11112": {
-          "runs": [
-            [356537100, 0, 3485]
-          ],
-          "ends": [
-            ["mouth", "border:356537100:0"]
-          ]
-        },
-        "gnis:11606": {
-          "all": true
-        },
-        "gnis:11616": {
-          "all": true
-        },
-        "gnis:11675": {
-          "runs": [
-            [356563419, 0, 7893]
-          ],
-          "ends": [
-            ["mouth", "border:356563419:0"]
-          ]
-        },
-        "gnis:11708": {
-          "all": true
-        },
-        "gnis:11727": {
-          "all": true
-        },
-        "gnis:11829": {
-          "all": true
-        },
-        "gnis:11831": {
-          "all": true
-        },
-        "gnis:11832": {
-          "all": true
-        },
-        "gnis:11881": {
-          "all": true
-        },
-        "gnis:11907": {
-          "all": true
-        },
-        "gnis:11969": {
-          "all": true
-        },
-        "gnis:12040": {
-          "all": true
-        },
-        "gnis:12197": {
-          "all": true
-        },
-        "gnis:12257": {
-          "all": true
-        },
-        "gnis:12419": {
-          "all": true
-        },
-        "gnis:12467": {
-          "all": true
-        },
-        "gnis:12509": {
-          "all": true
-        },
-        "gnis:12527": {
-          "all": true
-        },
-        "gnis:12534": {
-          "all": true
-        },
-        "gnis:12704": {
-          "all": true
-        },
-        "gnis:12752": {
-          "all": true
-        },
-        "gnis:12758": {
-          "all": true
-        },
-        "gnis:12764": {
-          "all": true
-        },
-        "gnis:12783": {
-          "all": true
-        },
-        "gnis:12841": {
-          "all": true
-        },
-        "gnis:12913": {
-          "all": true
-        },
-        "gnis:13208": {
-          "all": true
-        },
-        "gnis:13235": {
-          "all": true
-        },
-        "gnis:13395": {
-          "all": true
-        },
-        "gnis:13449": {
-          "all": true
-        },
-        "gnis:13547": {
-          "all": true
-        },
-        "gnis:13554": {
-          "all": true
-        },
-        "gnis:13630": {
-          "all": true
-        },
-        "gnis:13668": {
-          "all": true
-        },
-        "gnis:13809": {
-          "all": true
-        },
-        "gnis:14303": {
-          "all": true
-        },
-        "gnis:14666": {
-          "runs": [
-            [356556558, 0, 5682]
-          ],
-          "ends": [
-            ["mouth", "border:356556558:0"]
-          ]
-        },
-        "gnis:14734": {
-          "all": true
-        },
-        "gnis:15057": {
-          "all": true
-        },
-        "gnis:15080": {
-          "all": true
-        },
-        "gnis:15198": {
-          "all": true
-        },
-        "gnis:15211": {
-          "all": true
-        },
-        "gnis:15409": {
-          "all": true
-        },
-        "gnis:15739": {
-          "all": true
-        },
-        "gnis:15972": {
-          "all": true
-        },
-        "gnis:16149": {
-          "all": true
-        },
-        "gnis:16214": {
-          "all": true
-        },
-        "gnis:16352": {
-          "all": true
-        },
-        "gnis:16441": {
-          "all": true
-        },
-        "gnis:1662": {
-          "all": true
-        },
-        "gnis:16657": {
-          "all": true
-        },
-        "gnis:16675": {
-          "all": true
-        },
-        "gnis:16781": {
-          "all": true
-        },
-        "gnis:16962": {
-          "all": true
-        },
-        "gnis:17032": {
-          "all": true
-        },
-        "gnis:17159": {
-          "runs": [
-            [356366728, 0, 748],
-            [356367771, 0, 684],
-            [356368088, 0, 420],
-            [356368354, 0, 150],
-            [356368607, 0, 2226],
-            [356368815, 0, 78],
-            [356369505, 0, 271],
-            [356369786, 0, 94],
-            [356570316, 0, 55500]
-          ],
-          "ends": [
-            ["mouth", "border:356570316:0"]
-          ]
-        },
-        "gnis:17171": {
-          "all": true
-        },
-        "gnis:17256": {
-          "all": true
-        },
-        "gnis:17291": {
-          "all": true
-        },
-        "gnis:17361": {
-          "all": true
-        },
-        "gnis:17701": {
-          "all": true
-        },
-        "gnis:1779": {
-          "all": true
-        },
-        "gnis:18054": {
-          "all": true
-        },
-        "gnis:18081": {
-          "all": true
-        },
-        "gnis:18089": {
-          "all": true
-        },
-        "gnis:1855": {
-          "all": true
-        },
-        "gnis:18691": {
-          "all": true
-        },
-        "gnis:18721": {
-          "all": true
-        },
-        "gnis:18793": {
-          "all": true
-        },
-        "gnis:1882": {
-          "all": true
-        },
-        "gnis:18822": {
-          "all": true
-        },
-        "gnis:18843": {
-          "all": true
-        },
-        "gnis:18860": {
-          "all": true
-        },
-        "gnis:18897": {
-          "all": true
-        },
-        "gnis:19061": {
-          "all": true
-        },
-        "gnis:19189": {
-          "all": true
-        },
-        "gnis:19344": {
-          "all": true
-        },
-        "gnis:19352": {
-          "all": true
-        },
-        "gnis:19406": {
-          "all": true
-        },
-        "gnis:19488": {
-          "all": true
-        },
-        "gnis:19734": {
-          "all": true
-        },
-        "gnis:19860": {
-          "all": true
-        },
-        "gnis:20065": {
-          "all": true
-        },
-        "gnis:20181": {
-          "all": true
-        },
-        "gnis:20231": {
-          "all": true
-        },
-        "gnis:20268": {
-          "all": true
-        },
-        "gnis:20298": {
-          "all": true
-        },
-        "gnis:20623": {
-          "all": true
-        },
-        "gnis:20719": {
-          "all": true
-        },
-        "gnis:20822": {
-          "all": true
-        },
-        "gnis:20867": {
-          "all": true
-        },
-        "gnis:20881": {
-          "all": true
-        },
-        "gnis:20977": {
-          "all": true
-        },
-        "gnis:21020": {
-          "all": true
-        },
-        "gnis:21062": {
-          "all": true
-        },
-        "gnis:21085": {
-          "all": true
-        },
-        "gnis:21175": {
-          "all": true
-        },
-        "gnis:21428": {
-          "all": true
-        },
-        "gnis:21607": {
-          "all": true
-        },
-        "gnis:21765": {
-          "all": true
-        },
-        "gnis:21889": {
-          "all": true
-        },
-        "gnis:22292": {
-          "all": true
-        },
-        "gnis:22521": {
-          "all": true
-        },
-        "gnis:22645": {
-          "runs": [
-            [356367511, 0, 718],
-            [356367512, 0, 502],
-            [356368065, 0, 329],
-            [356368210, 0, 193],
-            [356561827, 0, 21518]
-          ],
-          "ends": [
-            ["mouth", "border:356561827:0"]
-          ]
-        },
-        "gnis:22838": {
-          "all": true
-        },
-        "gnis:22846": {
-          "all": true
-        },
-        "gnis:22855": {
-          "all": true
-        },
-        "gnis:22909": {
-          "all": true
-        },
-        "gnis:22936": {
-          "all": true
-        },
-        "gnis:23045": {
-          "all": true
-        },
-        "gnis:23243": {
-          "all": true
-        },
-        "gnis:23273": {
-          "all": true
-        },
-        "gnis:23492": {
-          "all": true
-        },
-        "gnis:23604": {
-          "all": true
-        },
-        "gnis:2364": {
-          "all": true
-        },
-        "gnis:23731": {
-          "all": true
-        },
-        "gnis:23759": {
-          "all": true
-        },
-        "gnis:23839": {
-          "all": true
-        },
-        "gnis:24179": {
-          "all": true
-        },
-        "gnis:2435": {
-          "all": true
-        },
-        "gnis:2445": {
-          "all": true
-        },
-        "gnis:24744": {
-          "all": true
-        },
-        "gnis:24769": {
-          "all": true
-        },
-        "gnis:24788": {
-          "all": true
-        },
-        "gnis:24901": {
-          "all": true
-        },
-        "gnis:2525": {
-          "all": true
-        },
-        "gnis:25481": {
-          "all": true
-        },
-        "gnis:2556": {
-          "all": true
-        },
-        "gnis:25620": {
-          "all": true
-        },
-        "gnis:25654": {
-          "all": true
-        },
-        "gnis:25662": {
-          "all": true
-        },
-        "gnis:25727": {
-          "all": true
-        },
-        "gnis:25779": {
-          "all": true
-        },
-        "gnis:25839": {
-          "all": true
-        },
-        "gnis:25851": {
-          "all": true
-        },
-        "gnis:25974": {
-          "all": true
-        },
-        "gnis:26259": {
-          "all": true
-        },
-        "gnis:26322": {
-          "all": true
-        },
-        "gnis:26324": {
-          "runs": [
-            [356365008, 0, 1107],
-            [356365008, 1196, 3416],
-            [356365555, 0, 3446],
-            [356365556, 0, 305],
-            [356365557, 0, 558],
-            [356365557, 618, 702],
-            [356365557, 794, 2503],
-            [356365557, 2539, 2657],
-            [356365560, 0, 937],
-            [356365908, 0, 210],
-            [356366239, 0, 695],
-            [356366661, 0, 162],
-            [356366661, 249, 522],
-            [356366805, 0, 799],
-            [356366813, 0, 337],
-            [356367014, 0, 1230],
-            [356367085, 0, 282],
-            [356367313, 0, 179],
-            [356367314, 0, 1174],
-            [356367644, 0, 405],
-            [356367809, 0, 392],
-            [356367974, 0, 371],
-            [356367985, 0, 651],
-            [356368080, 0, 1161],
-            [356368214, 0, 366],
-            [356368273, 0, 1435],
-            [356368305, 0, 564],
-            [356368733, 0, 995],
-            [356368740, 0, 1819],
-            [356369077, 0, 1711],
-            [356369279, 0, 1141],
-            [356369294, 0, 660],
-            [356369305, 0, 1303],
-            [356369473, 0, 699],
-            [356369490, 0, 1660],
-            [356370468, 0, 510],
-            [356371178, 0, 456],
-            [356570170, 44764, 200993]
-          ],
-          "lakes": true,
-          "ends": [
-            ["border:356570170:0", "region_line:8"]
-          ]
-        },
-        "gnis:26441": {
-          "all": true
-        },
-        "gnis:26448": {
-          "all": true
-        },
-        "gnis:26486": {
-          "all": true
-        },
-        "gnis:26811": {
-          "all": true
-        },
-        "gnis:26837": {
-          "all": true
-        },
-        "gnis:27132": {
-          "all": true
-        },
-        "gnis:27233": {
-          "all": true
-        },
-        "gnis:27238": {
-          "all": true
-        },
-        "gnis:27292": {
-          "all": true
-        },
-        "gnis:27337": {
-          "all": true
-        },
-        "gnis:27343": {
-          "all": true
-        },
-        "gnis:27390": {
-          "runs": [
-            [356367094, 0, 795],
-            [356367095, 0, 255],
-            [356367095, 579, 2412]
-          ]
-        },
-        "gnis:27633": {
-          "all": true
-        },
-        "gnis:27891": {
-          "all": true
-        },
-        "gnis:27906": {
-          "all": true
-        },
-        "gnis:28610": {
-          "all": true
-        },
-        "gnis:28622": {
-          "all": true
-        },
-        "gnis:28671": {
-          "all": true
-        },
-        "gnis:28723": {
-          "all": true
-        },
-        "gnis:28779": {
-          "all": true
-        },
-        "gnis:28837": {
-          "all": true
-        },
-        "gnis:28846": {
-          "all": true
-        },
-        "gnis:28891": {
-          "all": true
-        },
-        "gnis:28936": {
-          "all": true
-        },
-        "gnis:29181": {
-          "all": true
-        },
-        "gnis:29320": {
-          "all": true
-        },
-        "gnis:29689": {
-          "all": true
-        },
-        "gnis:29844": {
-          "all": true
-        },
-        "gnis:30175": {
-          "all": true
-        },
-        "gnis:30401": {
-          "all": true
-        },
-        "gnis:30442": {
-          "all": true
-        },
-        "gnis:3087": {
-          "all": true
-        },
-        "gnis:34317": {
-          "all": true
-        },
-        "gnis:34546": {
-          "all": true
-        },
-        "gnis:3527": {
-          "runs": [
-            [356562905, 0, 29749]
-          ],
-          "ends": [
-            ["mouth", "region_line:8"]
-          ]
-        },
-        "gnis:36080": {
-          "all": true
-        },
-        "gnis:36214": {
-          "all": true
-        },
-        "gnis:37379": {
-          "all": true
-        },
-        "gnis:37451": {
-          "all": true
-        },
-        "gnis:37470": {
-          "all": true
-        },
-        "gnis:38044": {
-          "all": true
-        },
-        "gnis:38561": {
-          "all": true
-        },
-        "gnis:38617": {
-          "all": true
-        },
-        "gnis:38847": {
-          "all": true
-        },
-        "gnis:38850": {
-          "all": true
-        },
-        "gnis:38853": {
-          "all": true
-        },
-        "gnis:38874": {
-          "all": true
-        },
-        "gnis:38877": {
-          "all": true
-        },
-        "gnis:38882": {
-          "all": true
-        },
-        "gnis:39310": {
-          "all": true
-        },
-        "gnis:39352": {
-          "all": true
-        },
-        "gnis:39431": {
-          "all": true
-        },
-        "gnis:5144": {
-          "all": true
-        },
-        "gnis:7229": {
-          "all": true
-        },
-        "gnis:7371": {
-          "all": true
-        },
-        "gnis:7431": {
-          "all": true
-        },
-        "gnis:7437": {
-          "all": true
-        },
-        "gnis:7447": {
-          "all": true
-        },
-        "gnis:7594": {
-          "all": true
-        },
-        "gnis:7654": {
-          "all": true
-        },
-        "gnis:7793": {
-          "all": true
-        },
-        "gnis:7926": {
-          "all": true
-        },
-        "gnis:7971": {
-          "all": true
-        },
-        "gnis:7998": {
-          "all": true
-        },
-        "gnis:8170": {
-          "all": true
-        },
-        "gnis:8172": {
-          "all": true
-        },
-        "gnis:8235": {
-          "runs": [
-            [356569240, 102, 10834],
-            [356569240, 10868, 10957],
-            [356569240, 10992, 14729],
-            [356569240, 19185, 20191],
-            [356569240, 20345, 20358]
-          ],
-          "lakes": true,
-          "ends": [
-            ["mouth", "region_line:8"],
-            ["region_line:8", "source"]
-          ]
-        },
-        "gnis:8650": {
-          "all": true
-        },
-        "gnis:8907": {
-          "runs": [
-            [356563672, 79, 2713]
-          ],
-          "ends": [
-            ["region_line:8", "region_line:8"]
-          ]
-        },
-        "gnis:8948": {
-          "all": true
-        },
-        "gnis:9150": {
-          "all": true
-        },
-        "gnis:9487": {
-          "all": true
-        },
-        "gnis:9533": {
-          "all": true
-        },
-        "gnis:9613": {
-          "all": true
-        },
-        "gnis:9659": {
-          "all": true
-        },
-        "gnis:9674": {
-          "all": true
-        },
-        "gnis:9678": {
-          "all": true
-        },
-        "gnis:9794": {
-          "all": true
-        },
-        "gnis:9797": {
-          "all": true
-        },
-        "gnis:9972": {
-          "all": true
-        }
-      },
-      "stamp": "0b385cc7fded68fa"
+      "confidence": "medium"
     },
     "is-6db43a66acf9": {
       "region": "7B",
@@ -1890,7 +559,10 @@
         {
           "op": "between",
           "item_id": "gnis:14619",
-          "splits": ["peace_river__peace_canyon_dam", "peace_river__hwy_29_bridge"]
+          "splits": [
+            "peace_river__peace_canyon_dam",
+            "peace_river__hwy_29_bridge"
+          ]
         }
       ],
       "note": "auto",
@@ -1912,18 +584,7 @@
           "Hwy 29 Bridge": "peace_river__hwy_29_bridge"
         }
       },
-      "confidence": "high",
-      "waters": {
-        "gnis:14619": {
-          "runs": [
-            [359572348, 1683398, 1684323]
-          ],
-          "ends": [
-            ["peace_river__hwy_29_bridge", "peace_river__peace_canyon_dam"]
-          ]
-        }
-      },
-      "stamp": "933aa5c06e0ef3d8"
+      "confidence": "high"
     },
     "is-74fcb31b2d0b": {
       "region": "1",
@@ -1960,13 +621,7 @@
           "upstream and downstream of heber_river__top_of_lower_canyon: the whole water"
         ]
       },
-      "confidence": "high",
-      "waters": {
-        "gnis:20215": {
-          "all": true
-        }
-      },
-      "stamp": "5a2b8754bfb69926"
+      "confidence": "high"
     },
     "is-7826b2108311": {
       "region": "2",
@@ -1975,7 +630,10 @@
         {
           "op": "between",
           "item_id": "gnis:39325",
-          "splits": ["fraser_river__the_cpr_bridge_at_mission", "fraser_river__spuzzum_creek_into_fraser_river"]
+          "splits": [
+            "fraser_river__the_cpr_bridge_at_mission",
+            "fraser_river__spuzzum_creek_into_fraser_river"
+          ]
         }
       ],
       "effective": {
@@ -1985,44 +643,7 @@
       "note": "i think spuzzum is the 2->3 boundary",
       "by": "Dawson",
       "at": "2026-11-10T03:45:26Z",
-      "source": "owner",
-      "waters": {
-        "gnis:39325": {
-          "runs": [
-            [355991887, 0, 1537],
-            [355991893, 0, 1108],
-            [355991896, 0, 2748],
-            [355992048, 0, 6391],
-            [355992195, 0, 4865],
-            [355992251, 0, 1020],
-            [355992255, 0, 4316],
-            [355992314, 0, 4315],
-            [355992315, 0, 875],
-            [355992317, 0, 1283],
-            [355992359, 0, 3143],
-            [355992484, 0, 3633],
-            [355992485, 0, 2136],
-            [355993147, 0, 563],
-            [355994425, 0, 1679],
-            [355995295, 0, 1676],
-            [355996061, 0, 1385],
-            [355996062, 0, 1779],
-            [355996063, 0, 2135],
-            [355996184, 214, 1509],
-            [355996304, 0, 2275],
-            [355997500, 0, 2610],
-            [356000032, 0, 1282],
-            [356001015, 0, 1162],
-            [356001526, 0, 1581],
-            [356001890, 0, 1034],
-            [356364114, 76506, 196966]
-          ],
-          "ends": [
-            ["fraser_river__the_cpr_bridge_at_mission", "fraser_river__spuzzum_creek_into_fraser_river"]
-          ]
-        }
-      },
-      "stamp": "465cd27b555e8553"
+      "source": "owner"
     },
     "is-79fcd6f4a6bc": {
       "region": "8",
@@ -2038,181 +659,7 @@
       "note": "PROPOSAL (Claude 2026-11-09): carried from is-69d2a07100fc, the same region and water under the row's earlier id (the feed's ids changed). Earlier note: auto. Check it.",
       "by": "claude",
       "at": "2026-11-10T03:57:12Z",
-      "source": "claude",
-      "waters": {
-        "gnis:10323": {
-          "all": true
-        },
-        "gnis:10644": {
-          "all": true
-        },
-        "gnis:10830": {
-          "all": true
-        },
-        "gnis:10949": {
-          "all": true
-        },
-        "gnis:10951": {
-          "all": true
-        },
-        "gnis:11929": {
-          "all": true
-        },
-        "gnis:13187": {
-          "all": true
-        },
-        "gnis:13421": {
-          "all": true
-        },
-        "gnis:14458": {
-          "all": true
-        },
-        "gnis:14467": {
-          "all": true
-        },
-        "gnis:14902": {
-          "all": true
-        },
-        "gnis:14935": {
-          "all": true
-        },
-        "gnis:16048": {
-          "all": true
-        },
-        "gnis:17252": {
-          "all": true
-        },
-        "gnis:17745": {
-          "all": true
-        },
-        "gnis:17804": {
-          "all": true
-        },
-        "gnis:17807": {
-          "all": true
-        },
-        "gnis:19099": {
-          "all": true
-        },
-        "gnis:19226": {
-          "all": true
-        },
-        "gnis:19780": {
-          "all": true
-        },
-        "gnis:20392": {
-          "all": true
-        },
-        "gnis:20516": {
-          "all": true
-        },
-        "gnis:20571": {
-          "all": true
-        },
-        "gnis:20998": {
-          "all": true
-        },
-        "gnis:21588": {
-          "all": true
-        },
-        "gnis:21644": {
-          "all": true
-        },
-        "gnis:21717": {
-          "all": true
-        },
-        "gnis:21844": {
-          "all": true
-        },
-        "gnis:22539": {
-          "all": true
-        },
-        "gnis:2256": {
-          "all": true
-        },
-        "gnis:2262": {
-          "all": true
-        },
-        "gnis:22656": {
-          "all": true
-        },
-        "gnis:22670": {
-          "all": true
-        },
-        "gnis:23240": {
-          "all": true
-        },
-        "gnis:23519": {
-          "all": true
-        },
-        "gnis:23681": {
-          "all": true
-        },
-        "gnis:24514": {
-          "all": true
-        },
-        "gnis:25241": {
-          "all": true
-        },
-        "gnis:2598": {
-          "all": true
-        },
-        "gnis:26497": {
-          "all": true
-        },
-        "gnis:26606": {
-          "all": true
-        },
-        "gnis:2724": {
-          "all": true
-        },
-        "gnis:27402": {
-          "all": true
-        },
-        "gnis:27621": {
-          "all": true
-        },
-        "gnis:28720": {
-          "all": true
-        },
-        "gnis:28772": {
-          "all": true
-        },
-        "gnis:28922": {
-          "all": true
-        },
-        "gnis:29998": {
-          "all": true
-        },
-        "gnis:3013": {
-          "all": true
-        },
-        "gnis:30197": {
-          "all": true
-        },
-        "gnis:3026": {
-          "all": true
-        },
-        "gnis:32062": {
-          "all": true
-        },
-        "gnis:32148": {
-          "all": true
-        },
-        "gnis:39547": {
-          "all": true
-        },
-        "gnis:8066": {
-          "all": true
-        },
-        "gnis:9620": {
-          "all": true
-        },
-        "gnis:9707": {
-          "all": true
-        }
-      },
-      "stamp": "fa0e7c7639ff8153"
+      "source": "claude"
     },
     "is-8cd37f6e5bf9": {
       "region": "2",
@@ -2236,44 +683,7 @@
           "Region 2 row: the Fraser item below the Spuzzum Creek confluence (that confluence is also the Region 2/3 crossing); the Fraser item is the mainstem, channels/sloughs are their own waters"
         ]
       },
-      "confidence": "medium",
-      "waters": {
-        "gnis:39325": {
-          "runs": [
-            [355991887, 0, 1537],
-            [355991893, 0, 1108],
-            [355991896, 0, 2748],
-            [355992048, 0, 6391],
-            [355992195, 0, 4865],
-            [355992251, 0, 1020],
-            [355992255, 0, 4316],
-            [355992314, 0, 4315],
-            [355992315, 0, 875],
-            [355992317, 0, 1283],
-            [355992359, 0, 3143],
-            [355992484, 0, 3633],
-            [355992485, 0, 2136],
-            [355993147, 0, 563],
-            [355994425, 0, 1679],
-            [355995295, 0, 1676],
-            [355996061, 0, 1385],
-            [355996062, 0, 1779],
-            [355996063, 0, 2135],
-            [355996184, 214, 1509],
-            [355996304, 0, 2275],
-            [355997500, 0, 2610],
-            [356000032, 0, 1282],
-            [356001015, 0, 1162],
-            [356001526, 0, 1581],
-            [356001890, 0, 1034],
-            [356364114, 76506, 196966]
-          ],
-          "ends": [
-            ["fraser_river__the_cpr_bridge_at_mission", "fraser_river__spuzzum_creek_into_fraser_river"]
-          ]
-        }
-      },
-      "stamp": "d3c3c7e8ade63344"
+      "confidence": "medium"
     },
     "is-9e042d16dbe9": {
       "region": "4",
@@ -2308,18 +718,7 @@
           "a clarification row: informational, bound to its water"
         ]
       },
-      "confidence": "medium",
-      "waters": {
-        "gnis:17044": {
-          "runs": [
-            [356565430, 0, 23081]
-          ],
-          "ends": [
-            ["mouth", "lodgepole_creek__falls"]
-          ]
-        }
-      },
-      "stamp": "2c489cdd89b2ac45"
+      "confidence": "medium"
     },
     "is-a8dcfeb1e3c6": {
       "region": "2",
@@ -2328,7 +727,10 @@
         {
           "op": "between",
           "item_id": "gnis:39325",
-          "splits": ["fraser_river__the_cpr_bridge_at_mission", "region:2|3"]
+          "splits": [
+            "fraser_river__the_cpr_bridge_at_mission",
+            "region:2|3"
+          ]
         },
         {
           "op": "whole",
@@ -2401,47 +803,7 @@
           "rescind of the Region 2 trout closure 'Fraser mainstem upstream of the CPR Bridge at Mission': the Fraser item from that bridge up to the Region 2/3 boundary; the book's excluded sloughs and side channels are separate waters and not included"
         ],
         "owner": "owner 2026-10-29: mirror the Region 2 Fraser entry r2:fraser_river_upstream_of_the_cpr_bridge_at_mission@2-4 — the Fraser from the CPR Bridge at Mission to the Region 2/3 boundary plus every water that entry matches (12 channels/sloughs, all Region 2)"
-      },
-      "waters": {
-        "gnis:11481": {
-          "all": true
-        },
-        "gnis:13499": {
-          "all": true
-        },
-        "gnis:39325": {
-          "runs": [
-            [355991887, 0, 1537],
-            [355991893, 0, 1108],
-            [355991896, 0, 2748],
-            [355992048, 0, 6391],
-            [355992195, 0, 4865],
-            [355992251, 0, 1020],
-            [355992255, 0, 4316],
-            [355992317, 0, 1283],
-            [355992359, 0, 3143],
-            [355992484, 0, 3633],
-            [355992485, 0, 2136],
-            [355993147, 0, 563],
-            [355994425, 0, 1679],
-            [355995295, 0, 1676],
-            [355996061, 0, 1385],
-            [355996062, 0, 1779],
-            [355996063, 0, 2135],
-            [355996184, 214, 1509],
-            [355996304, 0, 2275],
-            [355997500, 0, 2610],
-            [356000032, 0, 1282],
-            [356001526, 0, 1581],
-            [356001890, 0, 1034],
-            [356364114, 76506, 196966]
-          ],
-          "ends": [
-            ["fraser_river__the_cpr_bridge_at_mission", "region:2|3"]
-          ]
-        }
-      },
-      "stamp": "3a9ce81795e46d06"
+      }
     },
     "is-a9ddfd332aa7": {
       "region": "4",
@@ -2450,7 +812,10 @@
         {
           "op": "between",
           "item_id": "gnis:16359",
-          "splits": ["lake:329120715:outlet", "lardeau_river__fishing_boundary_signs_near_mobbs_creek"]
+          "splits": [
+            "lake:329120715:outlet",
+            "lardeau_river__fishing_boundary_signs_near_mobbs_creek"
+          ]
         }
       ],
       "note": "auto",
@@ -2472,18 +837,7 @@
           "fishing boundary signs approximately 600m downstream near the confluence of Mobbs Creek": "lardeau_river__fishing_boundary_signs_near_mobbs_creek"
         }
       },
-      "confidence": "high",
-      "waters": {
-        "gnis:16359": {
-          "runs": [
-            [356569776, 43650, 44250]
-          ],
-          "ends": [
-            ["lardeau_river__fishing_boundary_signs_near_mobbs_creek", "lake:329120715:outlet"]
-          ]
-        }
-      },
-      "stamp": "b47bfbaa67b4823a"
+      "confidence": "high"
     },
     "is-b7a6816f8679": {
       "region": "4",
@@ -2518,20 +872,7 @@
           "a clarification row: informational, bound to its water"
         ]
       },
-      "confidence": "high",
-      "waters": {
-        "gnis:19955": {
-          "runs": [
-            [356367541, 0, 405],
-            [356367542, 0, 338],
-            [356568903, 0, 20199]
-          ],
-          "ends": [
-            ["mouth", "fording_river__josephine_falls"]
-          ]
-        }
-      },
-      "stamp": "53fc785e00f9f9f5"
+      "confidence": "high"
     },
     "is-bb5426c61ff3": {
       "region": "8",
@@ -2553,13 +894,7 @@
           "same waters as the book entry r8:okanagan_river_oxbows@8-1: 53 items, all whole"
         ]
       },
-      "confidence": "high",
-      "waters": {
-        "wsc:300-432687-459615": {
-          "all": true
-        }
-      },
-      "stamp": "19261170230c061a"
+      "confidence": "high"
     },
     "is-c77bf6cd7da6": {
       "region": "2",
@@ -2582,13 +917,7 @@
           "the change is in Northrop Spawning Channel (not the Stave): whole channel including tributaries; 'the intake' has no pick-point, so the whole channel"
         ],
         "owner": "owner 2026-10-29: 'the intake' is where Northrop meets the Stave; the atlas has no link at that end (one piece, -2300000000:0, outflow only), so no intake pick-point — whole channel incl. tributaries stays"
-      },
-      "waters": {
-        "wsc:100-046202-028692-080600": {
-          "all": true
-        }
-      },
-      "stamp": "80c76e9cf2cb7ecf"
+      }
     },
     "is-c7dd217d00e3": {
       "region": "4",
@@ -2617,13 +946,7 @@
           "a clarification row: informational, bound to its water"
         ]
       },
-      "confidence": "high",
-      "waters": {
-        "gnis:1961": {
-          "all": true
-        }
-      },
-      "stamp": "24562229b546cc89"
+      "confidence": "high"
     },
     "is-cd23c37ead11": {
       "region": "4",
@@ -2652,13 +975,7 @@
           "a clarification row: informational, bound to its water"
         ]
       },
-      "confidence": "high",
-      "waters": {
-        "gnis:16777": {
-          "all": true
-        }
-      },
-      "stamp": "81c8e90199d5ea24"
+      "confidence": "high"
     },
     "is-d55f2ace6f8e": {
       "region": "4",
@@ -2682,18 +999,7 @@
           "rescind row (informational): the Kaslo River below the Keen Creek confluence to its mouth at Kootenay Lake (the mouth is the river's end)"
         ]
       },
-      "confidence": "medium",
-      "waters": {
-        "gnis:11345": {
-          "runs": [
-            [356567321, 526, 29241]
-          ],
-          "ends": [
-            ["mouth", "trib:gnis:11410"]
-          ]
-        }
-      },
-      "stamp": "1faa94832f091ca9"
+      "confidence": "medium"
     },
     "is-e03c3754d0af": {
       "region": "8",
@@ -2719,13 +1025,7 @@
         "locators": [],
         "splits": {}
       },
-      "confidence": "high",
-      "waters": {
-        "gnis:18775": {
-          "all": true
-        }
-      },
-      "stamp": "ffbd6ada005a123e"
+      "confidence": "high"
     },
     "is-ed799087db95": {
       "region": "4",
@@ -2754,13 +1054,7 @@
           "a clarification row: informational, bound to its water"
         ]
       },
-      "confidence": "high",
-      "waters": {
-        "gnis:14951": {
-          "all": true
-        }
-      },
-      "stamp": "05e1edbf29462e4f"
+      "confidence": "high"
     },
     "is-f1670924c755": {
       "region": "4",
@@ -2789,13 +1083,7 @@
           "a clarification row: informational, bound to its water"
         ]
       },
-      "confidence": "high",
-      "waters": {
-        "gnis:11815": {
-          "all": true
-        }
-      },
-      "stamp": "1b37f7079364b9f3"
+      "confidence": "high"
     },
     "is-f528732e7d5b": {
       "region": "8",
@@ -2825,82 +1113,7 @@
           "the text includes tributaries: the extent walks them"
         ]
       },
-      "confidence": "high",
-      "waters": {
-        "gnis:11138": {
-          "all": true
-        },
-        "gnis:11585": {
-          "all": true
-        },
-        "gnis:12386": {
-          "all": true
-        },
-        "gnis:12868": {
-          "all": true
-        },
-        "gnis:13205": {
-          "all": true
-        },
-        "gnis:13228": {
-          "all": true
-        },
-        "gnis:14485": {
-          "all": true
-        },
-        "gnis:15155": {
-          "all": true
-        },
-        "gnis:15316": {
-          "all": true
-        },
-        "gnis:16070": {
-          "all": true
-        },
-        "gnis:19769": {
-          "all": true
-        },
-        "gnis:20075": {
-          "all": true
-        },
-        "gnis:21090": {
-          "all": true
-        },
-        "gnis:22573": {
-          "all": true
-        },
-        "gnis:22946": {
-          "all": true
-        },
-        "gnis:22990": {
-          "all": true
-        },
-        "gnis:23794": {
-          "all": true
-        },
-        "gnis:2454": {
-          "all": true
-        },
-        "gnis:26073": {
-          "all": true
-        },
-        "gnis:28026": {
-          "all": true
-        },
-        "gnis:29621": {
-          "all": true
-        },
-        "gnis:3554": {
-          "all": true
-        },
-        "gnis:8039": {
-          "all": true
-        },
-        "gnis:9311": {
-          "all": true
-        }
-      },
-      "stamp": "99f12c46d46a8652"
+      "confidence": "high"
     },
     "is-f9e5db230277": {
       "region": "4",
@@ -2918,18 +1131,7 @@
       "note": "PROPOSAL (Claude 2026-11-09): carried from is-00172e79bde1, the same region and water under the row's earlier id (the feed's ids changed). Earlier note: auto. Check it.",
       "by": "claude",
       "at": "2026-11-10T03:57:08Z",
-      "source": "claude",
-      "waters": {
-        "gnis:9343": {
-          "runs": [
-            [356566667, 0, 4681]
-          ],
-          "ends": [
-            ["mouth", "alexander_creek__easternmost_hwy_3"]
-          ]
-        }
-      },
-      "stamp": "3434fd1296c8a75a"
+      "source": "claude"
     }
   },
   "history": [
@@ -3101,7 +1303,10 @@
         {
           "op": "between",
           "item_id": "gnis:14619",
-          "splits": ["peace_river__peace_canyon_dam", "peace_river__hwy_29_bridge"]
+          "splits": [
+            "peace_river__peace_canyon_dam",
+            "peace_river__hwy_29_bridge"
+          ]
         }
       ]
     },
@@ -3115,7 +1320,10 @@
         {
           "op": "between",
           "item_id": "gnis:39325",
-          "splits": ["fraser_river__hell_s_gate", "fraser_river__spuzzum_creek_into_fraser_river"]
+          "splits": [
+            "fraser_river__hell_s_gate",
+            "fraser_river__spuzzum_creek_into_fraser_river"
+          ]
         },
         {
           "op": "upstream_of",
@@ -3349,7 +1557,10 @@
         {
           "op": "between",
           "item_id": "gnis:16359",
-          "splits": ["lake:329120715:outlet", "lardeau_river__fishing_boundary_signs_near_mobbs_creek"]
+          "splits": [
+            "lake:329120715:outlet",
+            "lardeau_river__fishing_boundary_signs_near_mobbs_creek"
+          ]
         }
       ]
     },
@@ -3378,7 +1589,10 @@
         {
           "op": "between",
           "item_id": "gnis:39325",
-          "splits": ["fraser_river__the_cpr_bridge_at_mission", "region:2|3"]
+          "splits": [
+            "fraser_river__the_cpr_bridge_at_mission",
+            "region:2|3"
+          ]
         }
       ]
     },
@@ -3408,7 +1622,10 @@
         {
           "op": "between",
           "item_id": "gnis:39325",
-          "splits": ["fraser_river__chilcotin_river_into_fraser_river", "region:3|5"]
+          "splits": [
+            "fraser_river__chilcotin_river_into_fraser_river",
+            "region:3|5"
+          ]
         }
       ]
     },
@@ -3702,7 +1919,10 @@
         {
           "op": "between",
           "item_id": "gnis:39325",
-          "splits": ["fraser_river__the_cpr_bridge_at_mission", "region:2|3"]
+          "splits": [
+            "fraser_river__the_cpr_bridge_at_mission",
+            "region:2|3"
+          ]
         },
         {
           "op": "whole",
@@ -3776,7 +1996,10 @@
         {
           "op": "between",
           "item_id": "gnis:39325",
-          "splits": ["fraser_river__chilcotin_river_into_fraser_river", "region:3|5"]
+          "splits": [
+            "fraser_river__chilcotin_river_into_fraser_river",
+            "region:3|5"
+          ]
         }
       ]
     },
@@ -4029,7 +2252,10 @@
         {
           "op": "between",
           "item_id": "gnis:39325",
-          "splits": ["fraser_river__the_cpr_bridge_at_mission", "fraser_river__spuzzum_creek_into_fraser_river"]
+          "splits": [
+            "fraser_river__the_cpr_bridge_at_mission",
+            "fraser_river__spuzzum_creek_into_fraser_river"
+          ]
         }
       ]
     },

@@ -6,8 +6,8 @@ The row-box sidecar is made here by the one-off helper itself, for page 16 (no c
 
   * no request writes anything but a mark — every read route is called, then a mark is posted,
     and only the marks store (and its backup) changed; NOTHING under data/curated changed (T185);
-  * the in-season Re-resolve (T520, AGENTS 66's exception) writes only notice_waters.json and never
-    changes what was matched;
+  * the in-season Re-resolve (T520, AGENTS 66's exception) writes only the matches' generated resolution
+    (T679 #11) and never changes what was matched;
   * Adam River shows "ADAM RIVER (except Eve River)" and a readable crop: its row, the water column
     above the regulation column, rendered at 2.6 px/pt (the old crop was the 530 pt row at 24 %);
   * a zone entry is found on its chapter page by text, and each rule carries its impact line;
@@ -61,6 +61,13 @@ def env(request, tmp_path_factory):
                                    "raw_data_sha256": hashlib.sha256(raw.read_bytes()).hexdigest()}))
     mp = pytest.MonkeyPatch()
     curated_root(mp, root / "curated")                        # T422: the whole curated tree is a temp copy
+    # (T679 #11) the in-season resolution is generated: the sandbox holds a copy of this machine's, so a Re-resolve
+    # here writes the copy, never the live one
+    from pipeline.regs.inseason import matches as _inseason
+    live_resolved = need(request, "atlas", _inseason.resolved_path(), _inseason.RESOLVE_CMD)
+    (root / "generated" / "inseason").mkdir(parents=True)
+    (root / "generated" / "inseason" / "resolved.json").write_bytes(live_resolved.read_bytes())
+    mp.setattr(_inseason, "resolved_path", lambda: root / "generated" / "inseason" / "resolved.json")
     cat = Path(under_test.curated().regulations.synopsis)
     for k, v in {"CURATION_BACKUP_DIR": root / "backups", "CURATION_ROW_BOXES": sidecar}.items():
         mp.setenv(k, str(v))
@@ -278,30 +285,25 @@ def test_no_request_writes_anything_but_a_mark(env):
     assert _stamps(load_repo().base) == curated, "a route wrote under data/curated"
 
 
-#: the mark-free fields of an in-season match: what was matched. Re-resolve may rewrite only the derived rest
-_DERIVED = {"waters", "stamp", "unresolved"}
-
-
-def _what_was_matched(doc: dict) -> dict:
-    return {rid: {k: v for k, v in m.items() if k not in _DERIVED} for rid, m in doc["matches"].items()}
-
-
 def _changed(before: dict[str, bytes], after: dict[str, bytes]) -> list[str]:
     return sorted(k for k in set(before) | set(after) if before.get(k) != after.get(k))
 
 
-def test_re_resolve_writes_only_the_matches_file_and_never_changes_a_match(env):
-    """T520 (AGENTS 66): POST /api/inseason/resolve, the in-season matches file's second writer. Made stale the way a
-    release promote leaves it (the file names an older release; a match's ranges are gone), a Re-resolve writes ONLY
-    notice_waters.json (and the backup `writes.commit` took of it first), puts back exactly the ranges the shipped
-    release gives, changes nothing that was matched, and starts no sync (the sandbox is not the live tree). An
-    up-to-date file is not rewritten at all. Nothing under the real data/curated changes."""
+def test_re_resolve_writes_only_the_resolution_and_never_changes_a_match(env):
+    """T520 (AGENTS 66): POST /api/inseason/resolve. (T679 #11) It READS the curated notice_waters.json and writes ONLY
+    the matches' GENERATED resolution (`matches.resolved_path()`, here the sandbox's copy of this machine's), with the
+    backup `writes.commit` takes of it first. An up-to-date resolution is not rewritten; made stale the way a release promote leaves it (it names an older release, a match's
+    ranges are gone), a Re-resolve puts back exactly what the shipped release gives. The curated matches never change,
+    and nothing under the real data/curated changes. No sync starts (the sandbox is not the live tree)."""
+    from pipeline.regs.inseason import matches as M
     c = env["client"]
     curated = _stamps(load_repo().base)
     nw = Path(under_test.curated().inseason.notice_waters)
-    key = str(nw.relative_to(env["root"]))
-    matched = _what_was_matched(json.loads(nw.read_text(encoding="utf-8")))
-    assert matched, "the sandbox copy holds no in-season match: nothing to re-resolve"
+    rs = M.resolved_path()
+    assert env["root"] in rs.parents and rs.exists()
+    key = str(rs.relative_to(env["root"]))
+    matches_text = nw.read_bytes()
+    assert json.loads(matches_text)["matches"], "the sandbox copy holds no in-season match: nothing to re-resolve"
 
     def resolve() -> dict:
         r = c.post("/api/inseason/resolve")
@@ -310,31 +312,31 @@ def test_re_resolve_writes_only_the_matches_file_and_never_changes_a_match(env):
         return r.json()
 
     base = resolve()                                          # the copy, on the shipped release
-    resolved = nw.read_bytes()
+    resolved = rs.read_bytes()
     assert json.loads(resolved)["release"] == base["release"]
-    assert _what_was_matched(json.loads(resolved)) == matched, "re-resolve changed what was matched"
+    assert set(json.loads(resolved)["matches"]) == set(json.loads(matches_text)["matches"])
+    assert nw.read_bytes() == matches_text, "re-resolve wrote the curated matches"
 
     before = _snapshot(env["root"])
     resolve()
-    assert _snapshot(env["root"]) == before, "an up-to-date matches file was rewritten"
+    assert _snapshot(env["root"]) == before, "an up-to-date resolution was rewritten"
 
     stale = json.loads(resolved)
     stale["release"] = "r-000000000000"
-    rid = next(r for r, m in sorted(stale["matches"].items()) if m["waters"])
-    stale["matches"][rid].update(waters={}, stamp=None)
-    nw.write_text(json.dumps(stale, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
+    rid = next(r for r, m in sorted(stale["matches"].items()) if m.get("waters"))
+    stale["matches"][rid] = {}
+    rs.write_text(json.dumps(stale, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
     before = _snapshot(env["root"])
     resolve()
     after = _snapshot(env["root"])
     changed = _changed(before, after)
     backups = [k for k in changed if k != key]
     assert key in changed and len(backups) == 1, changed
-    assert re.fullmatch(r"backups/\d{8}T\d{6}\.\d{6}Z-inseason-resolve/(?:[^/]+/)*notice_waters\.json",
-                        backups[0]), changed
+    assert re.fullmatch(r"backups/\d{8}T\d{6}\.\d{6}Z-inseason-resolve/(?:[^/]+/)*resolved\.json", backups[0]), changed
     assert after[backups[0]] == before[key], "the backup is not the file as it was"
-    assert json.loads(after[key]) == json.loads(resolved), f"{rid}: re-resolve did not put back the ranges the shipped release gives"
+    assert after[key] == resolved, f"{rid}: re-resolve did not put back the ranges the shipped release gives"
+    assert nw.read_bytes() == matches_text, "re-resolve wrote the curated matches"
     assert _stamps(load_repo().base) == curated, "re-resolve wrote under the real data/curated"
-
 
 # --------------------------------------------------------------------------- T164: DFO mode
 

@@ -888,7 +888,10 @@ W46. **The guards the 2026-11 audits put in (T429–T442) stay in. A change that
     `data/curated/inseason/notice_waters.json` (Claude/owner tooling, not a mark), written only via `writes.commit` by
     two routes: `POST /api/inseason/matches` (T230, owner 2026-10-28: an edit, a history note per edit) and
     `POST /api/inseason/resolve` (T520, 2026-11-09: re-derives the saved matches' ranges on the shipped release, never
-    changes a match; the screen test pins it to that one file). The verdict is `marks.verdict_from_answers`, the
+    changes a match). (T679 #11) The ranges are GENERATED, not curated: `data/generated/inseason/resolved.json`
+    (`inseason.matches.resolved_path()`, never committed; `matches.load` reads the two as one and raises on a missing
+    resolution); the save writes the curated match and its resolution in one `writes.commit`, the Re-resolve writes
+    ONLY the resolution (the screen test pins it to that one file). The verdict is `marks.verdict_from_answers`, the
     tiers `regs/review/tiers.py`, the coverage strip `regs/review/coverage.py` (its fold IS `squash`) — one function each.
 67. **The review queue has one order and one reader of the run** (T135). The order is `tiers.queue_rank` (tier, the
     most urgent risk factor `tiers.RISKS`, the severity-A pre-checks). ENTRIES ONLY (T184): no split is a review
