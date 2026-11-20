@@ -1,6 +1,6 @@
 # T595 — Error reports that are not defects stop arriving as errors
 
-Status: IN PROGRESS — b1f252e7c, 5af74464c, 40d8abb75 (no Play service is a known state; test-bed builds tagged; the worker classes each crash kind). The worker change is deployed (staging 2026-11-12, production 2026-11-18); the emulator-install leftovers were done in T603 items 5-6 (46afd5ad1). left (Claude): the acceptance read — a fresh emulator install files no error kind, and GET /crashes with no flags lists only defects.
+Status: IN REVIEW — b1f252e7c, 5af74464c, 40d8abb75 (no Play service is a known state; test-bed builds tagged; the worker classes each crash kind). The worker change is deployed (staging 2026-11-12, production 2026-11-18); the emulator-install leftovers were done in T603 items 5-6 (46afd5ad1). The acceptance read is `GET /crashes`, which answers 403 without the RUN_TOKEN (checked 2026-11-20 on staging and production; the lane may not read the token). owner: OWNER-TODO "T595/T596 /crashes reads (run token)": he (or a session he gives the token) runs the two curls and records that a fresh emulator install files no error kind and the unflagged list shows only defects.
 
 Source: worker `GET /crashes` read 2026-11-10 (40 kinds since 10-29). Owner: "get feed worker reports and errors and make
 sure all are covered."
@@ -29,3 +29,6 @@ sure all are covered."
 - `GET /crashes` with no flags shows only kinds that need a fix.
 
 Depends: —. Size: S–M. Owner: no.
+
+## L3 2026-11-20 read attempt
+`GET /crashes` answers HTTP 403 without the bearer RUN_TOKEN on staging (`bc-fishing-feeds-staging.horvath-dawson.workers.dev`) and production (`feeds.canifishthis.ca`); the token is a secret the lane does not read, so no crash read was made. The owner (or a session he gives the token) runs, per worker: `curl -H "Authorization: Bearer $RUN_TOKEN" "<worker>/crashes?since=2026-11-09"` and records: only `defect` kinds listed by default, none from the 11-19/20 emulator installs.

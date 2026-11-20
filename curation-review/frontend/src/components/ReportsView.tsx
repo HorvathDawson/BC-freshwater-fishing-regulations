@@ -36,7 +36,9 @@ export interface Report {
   reply?: string | null;
   context: { screen?: string; tab?: string; place?: string; water?: string; part?: number; partLabel?: string;
              section?: number; day?: string; mode?: string; app?: string; env?: string; platform?: string;
-             release?: string; tiles?: string; errors?: string[] };
+             release?: string; tiles?: string; errors?: string[];
+             /** (T569) a report sent from a water's Conditions: the gauge charted, its quantity and span, the station file's fetch stamp */
+             station?: string; quantity?: string; span?: string; feed?: string };
   item: { id: string; name: string | null; kind: string | null; known: boolean } | null;
   section: { sid: number; node: string | null; items: string[]; vintage: "same" | "other" | "unknown" } | null;
 }
@@ -216,6 +218,7 @@ function ReportDetail({ r, status, onStatus, nav }: { r: Report; status: ReportS
     ["Screen", [c.screen, c.tab].filter(Boolean).join(" · ") || undefined],
     ["Day", c.day], ["Map colours", c.mode],
     ["App", [c.app, c.env ? `(${c.env})` : null].filter(Boolean).join(" ") || undefined], ["Platform", c.platform],
+    ["Gauge station", c.station], ["Quantity", c.quantity], ["Span", c.span], ["Feed", c.feed],
     ["Release", c.release], ["Tiles", c.tiles],
     ["Sent", `${r.created} · received ${r.received}`],
     ["Email", r.email ? `${r.email}${r.contact ? " · may be contacted" : " · contact NOT allowed"}` : undefined],

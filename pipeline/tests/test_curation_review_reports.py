@@ -147,3 +147,12 @@ def test_a_reply_draft_only_when_the_reporter_allowed_contact(env):
     assert reports.reply_mailto({**r, "contact": None}, "Vedder River") is None
     assert reports.reply_mailto({**r, "email": None}, "Vedder River") is None
     assert "about the app" in parse_qs(urlsplit(reports.reply_mailto(r, None)).query)["subject"][0]
+
+
+def test_t569_the_gauge_keys_of_a_conditions_report_reach_the_tab(env):
+    """(T569) station / quantity / span / feed (report/2, sent from a water's Conditions) pass through enrich untouched,
+    for the Reports tab's detail rows."""
+    got = env["reports"].enrich(_report(screen="water", tab="conditions", station="08MF005", quantity="flow",
+                                        span="7d", feed="2026-11-09T18:00:00Z"))
+    assert {k: got["context"][k] for k in ("station", "quantity", "span", "feed")} == {
+        "station": "08MF005", "quantity": "flow", "span": "7d", "feed": "2026-11-09T18:00:00Z"}

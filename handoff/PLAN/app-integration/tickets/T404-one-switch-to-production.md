@@ -1,6 +1,6 @@
 # T404 — One switch to production, and the prod release runbook
 
-Status: IN PROGRESS — 124f5257c (merged 2026-11-07). The owner's part is done: Q171–Q175 answered (tickets/README; Q172 in OWNER-TODO batch 13) and production was run from PRODUCTION.md on 2026-11-18/19 (OWNER-TODO record 2026-11-18 22:13; STATUS 2026-11-19 evening); the prod prune landed with T865 (4f4b5c827). left (Claude): `pipeline/runtiming/feed/publish.py` takes no `--bucket`, so feeds-runtiming.yml cannot publish to production (deploy/prod/upload.sh copies staging's run timing meanwhile).
+Status: IN PROGRESS — 124f5257c (merged 2026-11-07). The owner's part is done: Q171–Q175 answered (tickets/README; Q172 in OWNER-TODO batch 13) and production was run from PRODUCTION.md on 2026-11-18/19 (OWNER-TODO record 2026-11-18 22:13; STATUS 2026-11-19 evening); the prod prune landed with T865 (4f4b5c827). `--bucket` on `runtiming/feed/publish.py` + `base.py` built by lane L3 2026-11-20 (d63416d48; the workflow's production option stays commented). left (Claude): main chat review + merge; then the owner uncomments the workflow's production option and adds the PROD_R2 secrets.
 Earlier: IN REVIEW — built 2026-11-07 (b8d4bec0b) on branch worktree-agent-add737f1e347ca347 (not merged); proof pending: the owner reads handoff/PLAN/release/PRODUCTION.md and answers Q171–Q175; nothing production was run.
 
 Source: owner 2026-11-05, on `play.json` living on staging until prod: "can we have a single switch for moving to
@@ -106,3 +106,13 @@ owner wants one beyond the above.
 (`bc-fishing-regulations-backup`, staging's lifecycle); Q173 after the switch every Play build reads production,
 staging stays on the sideload APK page (yes); Q174 the prod data worker replaces v1's `bc-fishing-r2` in place (yes,
 check its name first); Q175 share links + privacy page are `canifishthis.ca` for every environment (yes).
+
+## L3 2026-11-20: `--bucket` (d63416d48, branch lane/l3-tools)
+`pipeline/runtiming/feed/publish.py` takes `--bucket` (default the staging bucket; only the staging and production bucket names are accepted, anything else exits); `base.py --upload` takes the same. `feeds-runtiming.yml` step 7 passes `--bucket "$BUCKET"`, the value the workflow already computes from `target`. The workflow's production option and the PROD_R2 secrets block stay COMMENTED: the owner uncomments both. Test `test_t404_publish_honours_the_bucket`. Nothing uploaded or dispatched.
+
+## L3 2026-11-20, after the independent review
+- The production bucket needs `CONFIRM_PROD=canifishthis.ca` in `publish.py` and `base.py` (shared `publish.checked_bucket`: bare lower-cased name, plan or send alike; same value as `deploy/lib/bucket.sh` users). Test `test_t404_the_production_bucket_needs_confirm_prod`.
+- The workflow derives the guard, `DATA` (production: `https://data.canifishthis.ca`, staging: data-staging) and `CONFIRM_PROD` from `target`; before, the guard refused every non-staging bucket and `DATA` was staging's, so a production run would have diffed against staging's feed. The production option itself is still commented.
+- THE OWNER'S EDITS (also in the workflow header): (1) uncomment `- production` in the `target` options; (2) swap the two `AWS_*` env lines for the two commented prod lines; (3) add the secrets `PROD_R2_ACCESS_KEY_ID` / `PROD_R2_SECRET_ACCESS_KEY` (an R2 token scoped to `bc-fishing-regulations`). A production run also needs the production release live and its binding base at `bc-fishing-regulations/private/runtiming/base/<handles>.json.gz` (`deploy/prod/upload.sh` puts it there).
+- Stale comments fixed in `base.py` and `runtiming/feed/__init__.py`.
+

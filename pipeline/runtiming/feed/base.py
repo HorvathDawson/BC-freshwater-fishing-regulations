@@ -41,7 +41,7 @@ from pipeline.common.names import key as the_name_key
 FORMAT = "runtiming-base/1"
 MIN_ORDER = 3
 LAYERS = ("stream", "lake")
-BUCKET = "bc-fishing-regulations-staging"       # STAGING ONLY: this module never names a production bucket
+BUCKET = "bc-fishing-regulations-staging"       # the default; (T404) `--bucket` may name the production one, only under CONFIRM_PROD (publish.checked_bucket)
 KEY = "private/runtiming/base/{handles}.json.gz"
 
 
@@ -277,15 +277,15 @@ def read(path: Path) -> dict:
     return b
 
 
-def upload(path: Path, handles: str, yes: bool) -> None:
+def upload(path: Path, handles: str, yes: bool, bucket: str = BUCKET) -> None:
     key = KEY.format(handles=handles)
-    cmd = ["npx", "--prefix", "app", "wrangler", "r2", "object", "put", f"{BUCKET}/{key}", "--file", str(path),
+    cmd = ["npx", "--prefix", "app", "wrangler", "r2", "object", "put", f"{bucket}/{key}", "--file", str(path),
            "--content-type", "application/gzip", "--remote"]
     if not yes:
         print("plan (add --yes to send):", " ".join(cmd))
         return
     subprocess.run(cmd, check=True)
-    print(f"base: {path.name} -> {BUCKET}/{key}")
+    print(f"base: {path.name} -> {bucket}/{key}")
 
 
 def main(argv=None) -> int:
@@ -296,12 +296,16 @@ def main(argv=None) -> int:
     ap.add_argument("--release", type=Path, default=None, help="the release whose core names the items (default: LATEST)")
     ap.add_argument("--out", type=Path, default=None)
     ap.add_argument("--upload", action="store_true", help="put it on the STAGING bucket's private/runtiming/base/")
+    ap.add_argument("--bucket", default=BUCKET, help="(T404) with --upload: the bucket (default: staging; the production "
+                    "bucket only with CONFIRM_PROD=canifishthis.ca, nothing else)")
     ap.add_argument("--yes", action="store_true", help="with --upload: send it (without: print the plan)")
     ap.add_argument("--add-basins", type=Path, default=None, metavar="BASE",
                     help="add (or replace) the wg column on an existing base, no atlas; written to --out (default: "
                          "beside it, same name)")
     ap.add_argument("--gpkg", type=Path, default=None, help="with --add-basins: the FWA gpkg (default: SOURCE's)")
     a = ap.parse_args(argv)
+    from pipeline.runtiming.feed.publish import checked_bucket
+    a.bucket = checked_bucket(a.bucket, "base")
     if a.add_basins is not None:
         base = add_basins(read(a.add_basins), a.gpkg)
         p = write(base, a.out or a.add_basins.parent)
@@ -309,7 +313,7 @@ def main(argv=None) -> int:
         print(f"base: wg on {hit:,} of {base['count']:,} sections, {len(base['strings']['wg'])} basins -> {p} "
               f"({p.stat().st_size:,} B)")
         if a.upload:
-            upload(p, base["section_handles"], a.yes)
+            upload(p, base["section_handles"], a.yes, a.bucket)
         return 0
     from pipeline.deliver.release.manifest import live
     release = a.release or live(GENERATED.release)
@@ -317,7 +321,7 @@ def main(argv=None) -> int:
     p = write(base, a.out or GENERATED.runtiming / "feed")
     print(f"base: {json.dumps(report, sort_keys=True)} -> {p} ({p.stat().st_size:,} B)")
     if a.upload:
-        upload(p, base["section_handles"], a.yes)
+        upload(p, base["section_handles"], a.yes, a.bucket)
     return 0
 
 

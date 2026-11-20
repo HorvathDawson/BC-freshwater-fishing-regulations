@@ -1,6 +1,6 @@
 # T737 — Web: the first river click waits for the background download of the whole release files
 
-Status: IN PROGRESS (fix a43e750b9; unnamed-stream background order e974cabf7; multi-region water 673b1d8e3; the ahead lane + unnamed reads together bf23b3819, b35f91e0b: all on `redesign/stream-sections` (2026-11-14/15) and on the staging and production websites since; left (Claude): the smoke's first-tap step (item 4); region slices of regs-sid/down/lines are the owner's call)
+Status: IN PROGRESS (fix a43e750b9; unnamed-stream background order e974cabf7; multi-region water 673b1d8e3; the ahead lane + unnamed reads together bf23b3819, b35f91e0b: all on `redesign/stream-sections` (2026-11-14/15) and on the staging and production websites since; the smoke's first-tap step (item 4) is built (lane L3 2026-11-20, d29bb35ca); left (Claude): main chat review + merge; region slices of regs-sid/down/lines are the owner's call)
 
 Source: owner 2026-11-14 evening, verbatim: "On staging.canifishthis.ca  The first river click takes a very long time
 to open". Staging = b2dba0297 (app 0.7.10) on release r-f749475d0962. The staging smoke's "tap a named water" step said
@@ -304,3 +304,7 @@ taps and every 8 s tap: unchanged (0.8-1.9 s at 3 s, 0.1 s at 8 s).
 **Lighthouse 12.8.2 mobile on `/`, 3 alternated runs each, median:** Perf 52 → 54, LCP 7.81 → 7.82 s, TBT 602 → 536 ms,
 SI 5.38 → 5.22 s, CLS 0.010 → 0.010, SEO 92 → 92 (after: `regs-sid` lands inside Lighthouse's window, 6.2 vs 5.6 MiB
 of release files; last request ends 5.8 vs 6.8 s).
+
+## L3 2026-11-20: the smoke first-tap step (item 4), d29bb35ca
+`app/tools/smoke-staging.mjs --only firsttap` (OPT-IN, not in the default run that upload.sh, site.sh and staging-smoke.yml use: a timing measure on a slow line must not stop a deploy): a fresh browser profile (empty cache, no storage; notices seeded as seen), the map paints, 3 s later the Fraser River is tapped at a vertex of its own line below Mission (a Region 2 part); then the map is dragged north to Lillooet and the Fraser is tapped again (Region 3). Each is timed to READABLE (the Regulations header on screen and on top, hit-tested) and to COMPLETE (every release file and picture in, quiet 1.5 s); over 4 s to readable WARNs, over 10 s FAILs; the complete time is printed. Each tap must open the right PART (the Region 2 part `CPR Bridge at Mission →`, the Region 3 part `… Bridge River Rapids →`), not any Fraser. Shots `FT-before-*` / `FT-*` land in --shots.
+Run on STAGING (read-only) 2026-11-20, after the review fixes: **Region 2 part 0.3 s readable / 0.6 s complete, 0 sweep taps, PASS; after the pan to Lillooet 0.1 s / 0.1 s but WARN: 7 sweep taps came first** (the pan leaves the camera tens of pixels off; creeks beside the river opened and were closed before the Fraser part did, so that tap read warm files and its time is the weaker measure). The sweep logs its tap count and WARNs above 0, waits for the wrong water's frame to go before the next tap, and matches the part, not any Fraser. The Region 2 tap is the true first tap, never repeated.
