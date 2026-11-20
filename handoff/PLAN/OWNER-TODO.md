@@ -9,6 +9,15 @@ Things only you can do. Claude keeps this list current while you are away; the w
 `handoff/PLAN/app-integration/tickets/` (README.md is the ledger, and its "Owner questions" table has every question
 with the default Claude uses until you answer). Newest first inside each section.
 
+## 2026-11-20 ~06:34: lane pictures and data clean-ups answered
+
+Looks approved (dialog): part names T780/T711, iPhone map T929, search T926/T927. Data clean-ups, all four OK: remove the
+"." name variant; split Pete's Pond's listed name (name "PETE'S POND", the rest is description); Sheldens Creek tidal
+limit label drops ", low confidence"; look into "Pigeon Lake # 2" shown as "5566" and propose a fix. Owner asked, verbatim:
+"For description where will it love?" (answered in chat: the curated entry's `note` already holds "Unnamed lake at the
+head of San Juan River"; the regulation card keeps the book's printed line). T548: a notice with a printed window shows
+"While the Province lists it" (no seasonal filter; the T548 acceptance line is amended to match).
+
 ## 2026-11-20 (before 06:25): T937 and T923 looks answered
 
 T937 Salmon map no-access grey: owner, verbatim, "Remove checked dste" (remove the "Checked Nov 19" line from the Salmon
