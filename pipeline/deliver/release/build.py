@@ -601,9 +601,13 @@ def build(*, bundle: Path, store: Path, status_index: Path, export_dir: Path, ou
         # B.C. bait ban / fly rule the closed day's strip does not draw (salmon_gear.py); the whole list goes to `reports`
         from pipeline.deliver.release import salmon_gear as SALMON_GEAR
         from pipeline.deliver.store.decode import Store as _Store
-        _gear_hidden = SALMON_GEAR.rows(_Store(None, verify=False, con=st), _payload, _secs,
-                                        lambda: SALMON_GEAR.bundle_parts(b))
-        print(SALMON_GEAR.say(_gear_hidden))
+        try:                                            # (T936 review) a warning never stops the build
+            _gear_hidden = SALMON_GEAR.rows(_Store(None, verify=False, con=st), _payload, _secs,
+                                            lambda: SALMON_GEAR.bundle_parts(b))
+            print(SALMON_GEAR.say(_gear_hidden))
+        except Exception as e:                          # shown, not swallowed: the build log names it
+            _gear_hidden = None
+            print(f"WARNING (T936): the hidden-gear check could not run: {type(e).__name__}: {e}")
         for name, blob in SALMON.encode_files(_payload, _secs, base["section_handles"],
                                                lambda sid: _sid_regions.get(sid, ())).items():
             (work / f"{name}.bin").write_bytes(blob)
@@ -686,8 +690,11 @@ def build(*, bundle: Path, store: Path, status_index: Path, export_dir: Path, ou
         # T517 (owner 2026-11-09: fail fast; review finding 8): the names and run rules on the SHIPPED water file too
         from pipeline.deliver.answers.display.name_check import check_release as _name_check
         _name_check(final)
-        if reports is not None:                         # (T936) beside the release's other reports, by its id
-            SALMON_GEAR.write(_gear_hidden, Path(reports) / final.name)
+        if reports is not None and _gear_hidden is not None:   # (T936) beside the release's other reports, by its id
+            try:                                        # after ship(), before LATEST: a failed report never strands it
+                SALMON_GEAR.write(_gear_hidden, Path(reports) / final.name)
+            except OSError as e:
+                print(f"WARNING (T936): the hidden-gear report could not be written: {e}")
         from pipeline.deliver.release.manifest import write_latest
         write_latest(out_root, final.name)              # T72: the pointer every reader asks, not the newest mtime
         return final
