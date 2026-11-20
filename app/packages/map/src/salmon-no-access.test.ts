@@ -4,7 +4,7 @@
  * channel labels a section `no_access` — no second test of access — and the keep casing never rings it.
  */
 import { describe, expect, it } from "vitest";
-import { markShownIn, noAccessShown, noaccessPaint, paintFor, salmonCasingPaint } from "./paint";
+import { closedShown, issueShown, markShownIn, noAccessShown, noaccessPaint, paintFor, salmonCasingPaint } from "./paint";
 import { NO_VALUES, resolveTheme, type ChannelValues } from "./style";
 
 const t = resolveTheme("light");
@@ -32,5 +32,17 @@ describe("no access on the Salmon map", () => {
   it("the keep casing is held off the no-access sections", () => {
     const c = salmonCasingPaint("salmon", { ...t, "width.salmon.casing": 1 }, values);
     expect(JSON.stringify(c["line-opacity"])).toContain("p7");
+  });
+  it("(round 2) lakes take Standard's no-access colour, and no closed or issue stripe sits on a no-access stream", () => {
+    for (const l of ["lake", "lake_flowing", "wetland_flowing"]) {
+      const p = paintFor(l, "salmon", t, values);
+      const fill = JSON.stringify(p["fill-color"] ?? p["line-color"]);
+      expect(fill, l).toContain(JSON.stringify(t["color.status.no_access"]));
+      expect(fill, l).toContain("p7");
+    }
+    const sv = { ...values, salmon: { open: [], release: [], closed: ["s2"], check: [], none: [] } } as ChannelValues;
+    expect(JSON.stringify(closedShown("stream", "salmon", sv))).toContain("p7");
+    expect(JSON.stringify(issueShown("salmon", sv))).toContain("p7");
+    expect(JSON.stringify(paintFor("lake", "salmon", t, NO_VALUES))).not.toContain("p7");
   });
 });

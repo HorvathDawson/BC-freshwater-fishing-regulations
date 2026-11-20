@@ -318,7 +318,15 @@ export function colorExpression(layerId: string, modeName: string, t: Tokens,
       if (labels.length) out.push([...labels], val(ref));
     }
     out.push(val(mode.missing));           // `none` (tidal, outside B.C.) and every unplaced label
-    const byDay = out.length > 3 ? out : val(mode.missing);
+    const plain = out.length > 3 ? out : val(mode.missing);
+    // (T937) NO PUBLIC ACCESS reads the same colour on every colouring: where this mode takes its access from another
+    // (`accessFrom`, Salmon), the status day's no_access sections wear that mode's no_access colour, ahead of the day
+    const from = mode.accessFrom ? STYLE_META.colorModes[layerId]?.[mode.accessFrom] : undefined;
+    const noAccess = from && "categories" in from ? from.categories["no_access"] : undefined;
+    const naLabels = values?.status?.no_access ?? [];
+    const byDay = from && "property" in from && noAccess && naLabels.length
+      ? ["case", ["in", ["coalesce", ["feature-state", from.property], ""], ["literal", [...naLabels]]], val(noAccess), plain]
+      : plain;
     // (T796 A6) DFO's finfish closures, ahead of the day's profile: closed (or, isolated away, `missing`) by the chain
     const fin = finfishOver(mode, values);
     if (!fin) return byDay;

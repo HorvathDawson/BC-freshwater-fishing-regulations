@@ -270,7 +270,7 @@ export function baseAdapter(platform: "native" | "web"): MapAdapter {
       const iw = markWidth("issue", mode, sw);
       for (const part of ["casing", "stripe"] as const) {
         h.setVisibility(ISSUE_LAYERS[part], markShownIn("issue", mode));
-        for (const [prop, value] of Object.entries(onGround(quiet(issuePaint(part, mode, tokens, iw)), iw, tokens, true, iw)))
+        for (const [prop, value] of Object.entries(onGround(quiet(issuePaint(part, mode, tokens, iw, values)), iw, tokens, true, iw)))
           h.setPaint(ISSUE_LAYERS[part], prop, value);
       }
       // the selection's outline goes with the stream: its width is the stream's, its colour the theme's (full strength)

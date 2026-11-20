@@ -164,6 +164,18 @@ export function noAccessShown(layerId: string, mode: string, values: ChannelValu
   return null;
 }
 
+/**
+ * (T937) `shown` held off the no-access sections of a mode that takes its access from another (`accessFrom`: Salmon):
+ * a no-access water wears the one dotted grey look, with no closed stripe, gear edge or issue stripe on it, exactly as on
+ * Standard (where those marks already stand down for it). `shown` itself in every other mode, and null stays null.
+ */
+function offNoAccess(layerId: string, mode: string, values: ChannelValues | null, shown: unknown | null): unknown | null {
+  const m = STYLE_META.colorModes[layerId]?.[mode];
+  if (shown === null || !m || m.scale !== "profile" || !m.accessFrom) return shown;
+  const na = noAccessShown(layerId, mode, values);
+  return na === null ? shown : ["all", shown, ["!", na]];
+}
+
 /** The dots' opacity for the stream layer in `mode`: 1 on a no-access section, else 0 (every mode without one). */
 export function noaccessOpacity(mode: string, values: ChannelValues | null = NO_VALUES): unknown {
   const shown = noAccessShown("stream", mode, values);
@@ -258,9 +270,9 @@ export function gearShown(layerId: "stream" | "lake", mode: string, mark: GearMa
     : [...(v.status?.closed ?? []), ...(v.status?.no_access ?? []), ...(v.status?.none ?? [])];
   const marked = ["in", ["coalesce", ["feature-state", "gm"], ""], ["literal", [...labels]]];
   // (T796 A6) and a section DFO's finfish closure closes on Standard (`offFinfish`) — the Salmon day closes it already
-  return offFinfish(m, v, off.length
+  return offNoAccess(layerId, mode, values, offFinfish(m, v, off.length
     ? ["all", marked, ["!", ["in", ["coalesce", ["feature-state", m.property], ""], ["literal", off]]]]
-    : marked);
+    : marked));
 }
 
 /** One mark's paint on a stream (an edge round the line, `streamWidth` its own) or a lake (a ring). */
@@ -342,6 +354,9 @@ export const CLOSED_CUE_LAYER = "stream-closed";
 
 /** Where `mode` paints a stream section closed, as a boolean expression; null where the mode never does. */
 export function closedShown(layerId: string, mode: string, values: ChannelValues | null = NO_VALUES): unknown | null {
+  return offNoAccess(layerId, mode, values, closedBase(layerId, mode, values));
+}
+function closedBase(layerId: string, mode: string, values: ChannelValues | null): unknown | null {
   const m = STYLE_META.colorModes[layerId]?.[mode];
   if (!m || !("categories" in m) || !m.categories["closed"]) return null;
   if (m.scale === "profile") {
@@ -395,13 +410,13 @@ export const ISSUE_SHARE = 0.6;
 export const ISSUE_MODE = "salmon";
 
 /** Where the stripe is shown on a stream in `mode`, as a boolean expression; null: nowhere (any other view). */
-export function issueShown(mode: string): unknown | null {
-  return mode === ISSUE_MODE ? ["==", ["coalesce", ["feature-state", "gi"], ""], "1"] : null;
+export function issueShown(mode: string, values: ChannelValues | null = NO_VALUES): unknown | null {
+  return offNoAccess("stream", mode, values, mode === ISSUE_MODE ? ["==", ["coalesce", ["feature-state", "gi"], ""], "1"] : null);
 }
 
-export function issuePaint(part: keyof typeof ISSUE_LAYERS, mode: string, tokens: Tokens, streamWidth?: unknown): Record<string, unknown> {
+export function issuePaint(part: keyof typeof ISSUE_LAYERS, mode: string, tokens: Tokens, streamWidth?: unknown, values: ChannelValues | null = NO_VALUES): Record<string, unknown> {
   const w = streamWidth ?? ["interpolate", ["linear"], ["zoom"], 6, 1.2, 10, 2, 14, 3.2];
-  const shown = issueShown(mode);
+  const shown = issueShown(mode, values);
   return {
     "line-color": tokens[part === "casing" ? "color.issue.casing" : "color.issue.stripe"],
     "line-width": withinZoomCurve(w, (v) => ["*", v, ISSUE_SHARE]),
