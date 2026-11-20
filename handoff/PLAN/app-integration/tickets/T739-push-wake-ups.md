@@ -420,3 +420,12 @@ filtered on `/push`, would say whether a register (and its status) arrived befor
   back. Shots `../T739-shots/ios-notifications-{1-on-light,2-on-dark,3-off-dark,4-off-light}.png`. (Seen: with
   notifications off the intro still reads in the present tense, "our server sends this phone a silent signal"; the line
   under it says off. Not changed.)
+- **Android benches** (emulator, test-bed APK of ae7fc72db with `--crash-stub`, patched MapLibre, `run.mjs --no-r2
+  install crash push-absent`): 3/3 PASS. install: first-run download and map in 70 s, every source ok; crash: one exit
+  record at the next start, none after a normal stop; push-absent (new, `scenarios/push-absent.mjs`): with "New
+  regulations data" on, the stub held no token and saw no push call after 15 s, no "Server wake-ups" line, the periodic
+  intro ("… Nothing is sent to a server … about every 15 minutes at best.").
+- Left (main chat): review + merge `lane/l5-push` into redesign/stream-sections, deploy the STAGING feeds worker and
+  check `/status.json` `push.missing.ios == []` (no `android` key any more), TestFlight build (`EXPO_PUBLIC_APNS_ENV=
+  production`, already in build-ios-testflight.sh). Then the owner's iPhone test (T822's "To test again"); prod APNs
+  secrets + prod worker are his.
