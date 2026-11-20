@@ -156,16 +156,9 @@ def write_sidecars(build: Path, out: Path | None = None, *, log=print) -> Path:
     _nv = load_name_variants(CURATED.waters.name_variants)
     registry = merge_one_waters(registry, one_water_names(_nv), owrep, one_water_takes(_nv))
     (dest / "one_water_report.json").write_text(json.dumps(owrep, indent=1) + "\n", encoding="utf-8")
-    # (T926) the same pass the atlas build runs: every whole-feature wbk name of `name_variants.json` on its item
-    from pipeline.atlas.registry.build import attach_wbk_variants, write_wbk_variant_report
-    wvrep: dict = {}
-    registry = attach_wbk_variants(registry, _nv, wvrep)
-    write_wbk_variant_report(wvrep, dest, log)
-    # (T926, owner 2026-11-20) the same pass the atlas build runs: never a number for a shown name
-    from pipeline.atlas.registry.build import show_lettered_names, write_shown_name_report
-    snrep: list = []
-    registry = show_lettered_names(registry, snrep)
-    write_shown_name_report(snrep, dest, log)
+    # (T926) THE LAST NAME STEP, the one helper the atlas build runs last too: wbk variants, then lettered shown names
+    from pipeline.atlas.registry.build import finish_names
+    registry = finish_names(registry, _nv, dest, log)
     write_registry(registry, dest / "registry.json")
     log(f"  registry.json: {n_parts} lake part(s) carry part_of; their lakes own no section")
     pins_path = build / "item_points.json"

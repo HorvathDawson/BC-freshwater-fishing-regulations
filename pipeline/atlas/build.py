@@ -1680,17 +1680,6 @@ def build_registry(b: _Build) -> None:
               f"{_r['sections']} section(s); listed still water taken as stream: {len(_r.get('took_still_water', ()))}; "
               f"kept apart (still water): {len(_r['kept_apart'])}")
     (out / "one_water_report.json").write_text(json.dumps(_owrep, indent=1) + "\n", encoding="utf-8")
-    # (T926) every whole-feature wbk name of `name_variants.json` on its item: an isolated lake is minted after the
-    # names were put on the graph, so its curated names never reached it (`attach_wbk_variants`; sidecars runs it too)
-    from pipeline.atlas.registry.build import attach_wbk_variants, write_wbk_variant_report
-    _wvrep: dict = {}
-    registry = attach_wbk_variants(registry, _nv_all, _wvrep)
-    write_wbk_variant_report(_wvrep, out)
-    # (T926, owner 2026-11-20) never a number for a shown name when the water has a lettered one (`show_lettered_names`)
-    from pipeline.atlas.registry.build import show_lettered_names, write_shown_name_report
-    _snrep: list = []
-    registry = show_lettered_names(registry, _snrep)
-    write_shown_name_report(_snrep, out)
     # Each region item carries the MUs lying in it, so a Region 7 row's MUs name its ZONE
     # (`reach.outside.entry_regions`): `@7-30+7-37+7-38` is 7A, `@7-31+7-36` is 7B.
     from pipeline.atlas.registry.build import add_region_units
@@ -1731,6 +1720,12 @@ def build_registry(b: _Build) -> None:
         _coast.write_record(out, _owners, getattr(b, "coast_whole", {}))
         print(f"  tidal record: {len(_owners):,} section(s) -> {out / _coast.TIDAL_RECORD} (rank 1 covers the same "
               f"water as the coast cut was decided on: {len(_cov)} line(s)/lake(s))")
+    # (T926) THE LAST NAME STEP, the one helper sidecars runs too (`registry.build.finish_names`): every whole-feature wbk
+    # name of `name_variants.json` on its item (an isolated lake is minted after the names were put on the graph), then a
+    # lettered shown name for a water shown by a number (owner 2026-11-20). After every other pass, the mouth boundaries
+    # included: their ids are slugged from the name they were made with, the same in a build and in sidecars.
+    from pipeline.atlas.registry.build import finish_names
+    registry = finish_names(registry, _nv_all, out)
     write_registry(registry, out / "registry.json")
     print(f"  registry -> {out / 'registry.json'}")
     # THE SECTION HANDLE TABLE, written here because this is where the set of sections is
