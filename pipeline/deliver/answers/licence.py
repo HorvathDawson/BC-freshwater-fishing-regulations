@@ -345,6 +345,31 @@ def part_licence_key(p, sleepy: set, alien: Iterable[int] = ()) -> LicenceKey:
                       p.set_id if keyed else None)
 
 
+def section_licence_keys(db, sids: Iterable[int], schema: str = "") -> Dict[int, Tuple[LicenceKey, ...]]:
+    """(T973 review, LF) Each section's licence key(s), as `part_licence_key` gives the part holding it: its licensing
+    set, province exceptions, tidal water, the water kind (its named water's `item.kind`, one key per water it is a
+    section of; an unnamed section its unnamed part's kind) and its rule set where that is keyed (`keyed_sets`). Read
+    per section, for a caller holding sections and no parts (`release.build.cw_through`). `schema` names an attached
+    bundle (its tables are read there; `keyed_sets` reads the unqualified names, which resolve to it)."""
+    from pipeline.deliver import types as T
+    s = f"{schema}." if schema else ""
+    sleepy, alien = keyed_sets(db)
+    out: Dict[int, Tuple[LicenceKey, ...]] = {}
+    for sid in sorted(set(sids)):
+        ls = (db.execute(f"SELECT set_id FROM {s}section_licensing WHERE sid = ?", (sid,)).fetchone() or (None,))[0]
+        rs, up = db.execute(f"SELECT set_id, up FROM {s}section_ruleset WHERE sid = ?", (sid,)).fetchone() or (None, None)
+        pe = ",".join(T.ProvinceExceptKind(k).value for (k,) in db.execute(
+            f"SELECT area_kind FROM {s}province_except WHERE sid = ? ORDER BY area_kind", (sid,)))
+        tidal = db.execute(f"SELECT 1 FROM {s}tidal WHERE sid = ?", (sid,)).fetchone() is not None
+        kinds = sorted({k for (k,) in db.execute(f"SELECT i.kind FROM {s}item_section x JOIN {s}item i ON i.ord = x.ord "
+                                                   f"WHERE x.sid = ?", (sid,))})
+        if not kinds and up is not None:
+            kinds = [k for (k,) in db.execute(f"SELECT kind FROM {s}unnamed_part WHERE up = ?", (up,))]
+        keyed = rs if (ls in sleepy or rs in alien) else None
+        out[sid] = tuple(LicenceKey(ls, pe, tidal, k, keyed) for k in (kinds or [None]))
+    return out
+
+
 def change_days(db: sqlite3.Connection) -> List[int]:
     """Every day on which any `when` the licence answer reads changes: requirements',
     designations', their stamp periods' and the rules a designation sleeps under. Between two of
@@ -396,6 +421,9 @@ def holds(db, C: Corpus, sid: int, md) -> dict:
             "displaced": {k: got["displaced"][k] for k in rows if k in got["displaced"]},
             "wrong_water": _order(C, got["wrong_water"]),
             "waived": sorted(got["waived"]), "not_yet_mapped": sorted(got["not_yet_mapped"]),
+            # (T973 review, LF) which designation(s) waive each waived requirement (`carried_holds` takes only a carried
+            # designation's own waiver); internal, never on the wire
+            "_waived_by": {k: sorted(v) for k, v in got["waived"].items()},
             "also_printed": {k: v for k, v in sorted(got["also_printed"].items())},
             "designations": sorted(f"{d['entry_id']}#{d['id']}" for d in desig),
             "rows": rows,
@@ -656,8 +684,9 @@ def carried_holds(C: Corpus, here: dict, source: dict, designation: str, md) -> 
     the carried designation added on the days it is in force at its own water (`source`, `holds` read at one of its
     own sections) — the designation box, and every requirement that holds where a designation does
     (`on_designation`: the Classified Waters Licence, the classified steelhead stamp) as the source holds it, and the
-    stamp waivers the designation prints (the source's `waived`: the Stellako's "no Steelhead Stamp required" takes the
-    steelhead stamp off, as its box says). The classified water's own answer is the model, so a carried unit is the same
+    stamp waivers the designation prints (the source's `waived` BY THIS DESIGNATION, `_waived_by`: the Stellako's "no
+    Steelhead Stamp required" takes the steelhead stamp off, as its box says; a waiver another designation prints at the
+    source water stays there, T973 review). The classified water's own answer is the model, so a carried unit is the same
     row, for the same anglers, at the same price; only what the source holds or waives BECAUSE of its designation moves."""
     if designation not in source["designations"]:
         return here
@@ -665,7 +694,8 @@ def carried_holds(C: Corpus, here: dict, source: dict, designation: str, md) -> 
     extra = [k for k in add if k not in here["rows"]]
     desig = list(here["_desig"]) + [d for d in source["_desig"] if f"{d['entry_id']}#{d['id']}" == designation
                                     and f"{d['entry_id']}#{d['id']}" not in here["designations"]]
-    gone = {k for k in source.get("waived") or () if k in here["rows"]}       # the designation's own stamp waiver
+    gone = {k for k, by in source["_waived_by"].items()                       # the designation's own stamp waiver
+            if designation in by and k in here["rows"]}
     return {**here, "holds": _order(C, [k for k in here["holds"] if k not in gone]
                                     + [k for k in extra if k in source["holds"]]),
             "displaced": {**{k: v for k, v in here["displaced"].items() if k not in gone},

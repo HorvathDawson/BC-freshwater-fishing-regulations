@@ -458,10 +458,15 @@ def cw_through(con: sqlite3.Connection, schema: str = "b", bundle: Optional[Path
     years: Dict[str, int] = {}
     by_group: Dict[tuple, int] = {}
     out = []
+    from pipeline.deliver.answers.licence import section_licence_keys
+    keys = section_licence_keys(con, (r[0] for r in rows), schema)
     for sid, unit_name, cls, when, through, e, d, set_id in rows:
         key = (unit_name, cls, when if when not in ("{}", "null") else None, through)
         ix = notes.setdefault(key, len(notes))
-        g = (set_id, f"{e}#{d}")                    # every section of one licensing set answers alike
+        # every section of one LICENCE KEY answers alike (T973 review, LF): the whole key — licensing set, province
+        # exceptions, tidal, water kind, a keyed rule set — never the licensing set alone (a lake, a wetland or a tidal
+        # section carried beside a stream would take the stream's year)
+        g = (keys[sid], f"{e}#{d}")
         if g not in by_group:
             y = year_of(sid, source[g[1]], g[1], set_id)
             j = json.dumps([[k, y[k]] for k in sorted(y)], separators=(",", ":"), sort_keys=True)
