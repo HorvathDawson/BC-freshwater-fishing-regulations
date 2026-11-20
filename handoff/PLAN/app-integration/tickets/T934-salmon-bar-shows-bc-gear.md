@@ -20,3 +20,7 @@ item 2, "— DFO and B.C. rules"); only the bar and its key leave it out.
 ## Acceptance
 Pictures (Cheakamus River, and a fly-only water with salmon, 390 light/dark) approved by the owner before it lands.
 Depends: none. Size: S. Owner: yes (pictures). Batched with T922–T925.
+## Owner 2026-11-20 ~00:58 (main chat): the gap stays unbuilt
+Verbatim: "Yes in theory we could have gear rules on a closed river because it could be a region rule bait ban but closed
+river. But on the river that is closed that doesn't matter because no hear [gear] in water so closed is only closed". So no
+pipeline change: a closed day is closed only, no gear bits.
