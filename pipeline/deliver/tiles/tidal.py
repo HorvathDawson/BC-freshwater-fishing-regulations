@@ -4,10 +4,10 @@ The stream below an accepted tidal boundary is not freshwater (RULINGS K7), so t
 draw it — the line, a river polygon, any piece the reach run makes tidal. Instead the DFO tidal-waters
 polygon is drawn as one labelled area (`tidal_water`), so a tap there explains it.
 
-ONE SET, ONE FUNCTION. The pieces are the reach run's: `reach.outside.tidal_cut_owner` over this atlas's
-tidal splits (`tidal_splits`, from `splits.resolved.json`) — the same call the reach run makes, on the same
-registry and graph, so the tiles and the bundle's `tidal` table cannot disagree (the bundle proves it:
-`bundle.undrawn`, layer `tidal`). A row marked tidal (Nitinat Lake) is not a cut: its water stays drawn.
+ONE SET, READ. The pieces are the atlas's (T678): its one tidal record, and on an atlas built since plan 5 its graph
+nodes (`StreamNode.tidal`, checked against the record: `atlas.splits.coast.read_tidal`, `on_the_graph`) — what the reach
+run reads too, so the tiles and the bundle's `tidal` table cannot disagree (the bundle proves it: `bundle.undrawn`,
+layer `tidal`). A row marked tidal (Nitinat Lake) is not a cut: its water stays drawn.
 
 THE AREA. The DFO polygon follows the coast; where the owner put a cut ABOVE the polygon's edge (the words'
 landmark: Capilano's CN bridge, Nimpkish's signs) the removed piece would sit in neither — so each removed
@@ -34,34 +34,29 @@ AREA_ID = "tidal"
 NAME = "Tidal water"
 
 
-def tidal_pieces(build_dir: Path, graph=None, registry=None, whole=None) -> frozenset[str]:
-    """The section (node) ids below this atlas's tidal splits, plus every section of a whole tidal water
-    (T212; both from the atlas's tidal sidecar, T326), plus every water crossing ending in them (T660,
-    `tidal_crossing_owner`) — the reach run's own set. Empty when there is neither."""
+def tidal_pieces(build_dir: Path) -> frozenset[str]:
+    """The section (node) ids of this atlas's tidal water (its one tidal record, `coast.read_record`): the pieces below
+    its tidal boundaries, its whole tidal waters, the lines tidal for their length, the pieces below a coast cut. An
+    atlas cut before the coast rule is refused (T678: no second reading). On an atlas whose nodes carry the owner
+    (plan 5) each exporter that loads the graph checks the record against them (`on_the_graph`)."""
     from pipeline.atlas.splits import coast as _coast
-    if _coast.built_by_coast_rule(build_dir):
-        # T678: THE atlas's tidal record, read; the tiles recompute nothing
-        return frozenset(_coast.read_record(build_dir))
-    from pipeline.atlas.reach.outside import (inside_lines, tidal_inside_owner, tidal_crossing_owner, tidal_cut_owner,
-                                              tidal_splits, tidal_waters, tidal_whole_owner)
-    ids = tidal_splits(build_dir)
-    if whole is None:                      # T212: whole waters the owner calls tidal, off the map too
-        whole = tidal_waters(build_dir)
-    inside = inside_lines(build_dir)       # T665: lines wholly in tidal water
-    if not ids and not whole and not inside:
-        return frozenset()
-    if registry is None:
-        from pipeline.atlas.registry import load_registry
-        registry = load_registry(str(Path(build_dir) / "registry.json"))
-    out = set(tidal_whole_owner(registry, whole))
-    if graph is None:
-        from pipeline.common.io.serialize import read_artifact
-        graph = read_artifact(str(Path(build_dir) / "graph.pkl"))
-    if ids:
-        out |= set(tidal_cut_owner(registry, graph, ids))
-    out |= set(tidal_inside_owner(graph, inside))
-    out |= set(tidal_crossing_owner(graph, out))
-    return frozenset(out)
+    _coast.require_coast_cut(build_dir)
+    return frozenset(_coast.read_record(build_dir))
+
+
+def on_the_graph(build_dir: Path, graph, pieces: frozenset) -> frozenset:
+    """THE NODE IS THE FACT (T678 plan 5): on an atlas whose nodes carry their tidal owner, the set read off `graph`
+    (the exporter's own graph.pkl), refused unless it is `pieces` (the record) exactly; else `pieces` as given."""
+    from pipeline.atlas.splits import coast as _coast
+    if not pieces and not (Path(build_dir) / _coast.TIDAL_RECORD).exists():
+        return pieces                                           # a layer test's atlas: no tidal water asked about
+    if not _coast.record_on_nodes(build_dir):
+        return pieces
+    got = frozenset(_coast.read_tidal(build_dir, graph))
+    if got != pieces:
+        raise SystemExit(f"tiles: the graph's tidal nodes are not the tidal pieces asked for "
+                         f"({len(got ^ pieces)} differ) — the graph is not this atlas's")
+    return got
 
 
 def area_features(dfo, pieces) -> list:

@@ -500,8 +500,8 @@ def main(argv: list[str] | None = None) -> None:
     prune_graph(b)
     gauge_cuts(b)
     sectionize(b)
-    write_graph(b)
     build_registry(b)
+    write_graph(b)          # T678 plan 5: after the registry, so graph.pkl carries the tidal owner on its nodes
     write_sidecars(b)
     _inputs.write_complete(b.out, b.input_hashes)   # T547 §4: LAST — promote refuses a candidate without it
 
@@ -1316,16 +1316,22 @@ def cut_shores(b: _Build) -> None:
     bbox = getattr(b, "bbox", None)
     b.split_authority = _coast.load_authority()
     limits = _coast.rank1(getattr(b, "tidal_limits", None) or (), b.split_authority)
-    # THE TIDAL WATER RANK 1 MAKES (a DFO-written split's piece, the owner's whole waters), as the reach's own
-    # functions read it on the registry's waters made here once; `build_registry` proves the written registry
-    # covers the same water (`coast.water_cover`) and stops on a difference.
+    # THE TIDAL WATER RANK 1 MAKES (a DFO-written split's piece, the owner's whole waters), resolved by the atlas's own
+    # resolver (`tidal.rank1_owners`, T678 plan 2) on the registry's waters as they stand before this cut;
+    # `build_registry` asks it again on the registry written, proves both cover the same water (`coast.water_cover`)
+    # and stops on a difference. WHY A REGISTRY HERE (T678 plan 2, 2026-11-20): the piece below a limit is the
+    # `downstream_of` of the item carrying it, and the item is the registry's grouping (a nameless side channel by its
+    # watershed code, the folded polygons and ponds, the lake loops; `extent.river_widenings` reads every water the
+    # registry holds) — a graph-only reading misses water (70 of 124 sections on build 27). Its waters are made by the
+    # same `water_registry` the build writes; only the area items wait for `mark_membership`.
     _ids = getattr(b, "tidal_ids", None) or {}
     waters: list = []
     if not limits:
         tidal = frozenset()
     else:
+        from pipeline.atlas.splits import tidal as _tidal
         _reg0, _ = water_registry(b, graph, areas=False)
-        tidal = _shore.reach_tidal(_reg0, graph, limits, _ids, strict=bbox is None)
+        tidal = frozenset(_tidal.rank1_owners(_reg0, graph, limits, _ids, strict=bbox is None))
         # each stream water's lines, so a governed water's added lines (no gnis of their own) are governed too
         for _it in _reg0.values():
             if _it.kind == "stream":
@@ -1514,7 +1520,8 @@ def mark_membership(b: _Build) -> None:
 
 
 def write_graph(b: _Build) -> None:
-    """GRAPH ARTIFACTS: waterbody_polys.pkl (each waterbody's SHAPE), graph.pkl, geometries.pkl.
+    """GRAPH ARTIFACTS: waterbody_polys.pkl (each waterbody's SHAPE), graph.pkl, geometries.pkl. After the registry
+    (T678 plan 5): the nodes carry their tidal owner when graph.pkl is written.
 
     Reads: args, graph, geoms, wb_polys. Writes: out (created)."""
     args, graph, geoms, wb_polys = b.args, b.graph, b.geoms, b.wb_polys
@@ -1538,8 +1545,8 @@ def water_registry(b: _Build, graph, *, areas: bool = True) -> tuple[dict, dict]
     """THE REGISTRY'S WATERS from `graph`: the items and every grouping pass (boundary confidence, named waterbodies,
     curated-only wbks, the flowing-polygon fold, the confirmed sloughs, mined names, lake parts, outside-area items).
     Pure: prints and writes nothing; returns (registry, {counts and the passes' reports}). Called twice by a build:
-    before the shore cuts, so they are decided on the tidal water the reach run will see (`cut_shores`,
-    `shore.reach_tidal`), and for the registry that is written (`build_registry`), which adds the MUs, one-water, the
+    before the coast cut, so it is decided on the tidal water rank 1 makes (`cut_shores`, `tidal.rank1_owners`), and
+    for the registry that is written (`build_registry`), which adds the MUs, one-water, the
     region units and the tidal mouths on top. `areas=False` (the call before the shore cuts): the area flags are
     stamped after every cut (`mark_membership`), so no closure area is an item yet and `outside_area_items`, which
     refuses a missing area, is left out; no tidal answer reads an area item.
@@ -1622,6 +1629,7 @@ def build_registry(b: _Build) -> None:
     Reads: out, fwa, bbox, graph, geoms, splits, lake_names, wetland_names, _nv_all, wb_polys, wbk_polys,
     added_lake_parts, area_defs, catalog_polys. Writes: registry, wbk_polys (topped up)."""
     out, fwa, bbox, graph, geoms, splits, lake_names, wetland_names, _nv_all, wb_polys, wbk_polys, added_lake_parts, area_defs, catalog_polys = b.out, b.fwa, b.bbox, b.graph, b.geoms, b.splits, b.lake_names, b.wetland_names, b._nv_all, b.wb_polys, b.wbk_polys, b.added_lake_parts, b.area_defs, b.catalog_polys
+    out.mkdir(parents=True, exist_ok=True)       # T678 plan 5: the registry is written before graph.pkl
     _tick = b.tick
     # Registry (parser truth) — build from the finalized graph + persist, so the parser tools
     # (matcher / batch_exporter / ingest) never need to rebuild the graph from the ~10GB FWA data.
@@ -1717,9 +1725,10 @@ def build_registry(b: _Build) -> None:
                 encoding="utf-8")
             raise SystemExit(f"coast: the tidal water the coast cut was decided on is not the registry's on "
                              f"{len(_diff)} line(s) {_diff[:5]} — see shore_tidal_mismatch.json (no registry written)")
-        _coast.write_record(out, _owners, getattr(b, "coast_whole", {}))
+        # T678 PLAN 5: the owner on each node too (owner B: kept in the graph, marked tidal), graph.pkl written after
+        _on = _coast.record_tidal(out, graph, _owners, getattr(b, "coast_whole", {}))
         print(f"  tidal record: {len(_owners):,} section(s) -> {out / _coast.TIDAL_RECORD} (rank 1 covers the same "
-              f"water as the coast cut was decided on: {len(_cov)} line(s)/lake(s))")
+              f"water as the coast cut was decided on: {len(_cov)} line(s)/lake(s)){'; on the graph nodes' if _on else ''}")
     # (T926) THE LAST NAME STEP, the one helper sidecars runs too (`registry.build.finish_names`): every whole-feature wbk
     # name of `name_variants.json` on its item (an isolated lake is minted after the names were put on the graph), then a
     # lettered shown name for a water shown by a number (owner 2026-11-20). After every other pass, the mouth boundaries

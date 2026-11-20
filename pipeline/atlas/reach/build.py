@@ -63,8 +63,7 @@ class ReachResult:
 
 
 def build_reaches(entries, registry, graph, *, build: str = "", handles: str = "",
-                  covered_fn=None, steelhead_list=(), tidal_splits=(), tidal_waters=(),
-                  inside_lines=(), tidal_record=None) -> ReachResult:
+                  covered_fn=None, steelhead_list=(), tidal_record=None) -> ReachResult:
     """Resolve every rule in `entries` against one build.
 
     `entries` is an iterable of ``(region, entry_dict)`` — the shape
@@ -79,13 +78,11 @@ def build_reaches(entries, registry, graph, *, build: str = "", handles: str = "
     marked KNOWN — a presence indicator, and on its flowing sections a rainbow over 50 cm is a
     steelhead (`anadromous`, user ruling 2026-10-03); it binds no rule (`reach.steelhead`).
 
-    `tidal_splits` are the atlas's TIDAL BOUNDARIES (`outside.tidal_splits`; T166, owner 2026-10-28):
-    the piece of a water below each is tidal water (`outside.tidal_cut_owner`), taken out of every
-    binding AFTER the tributary walk, like a row marked tidal. A rule left with nothing is unresolved
-    `tidal` and LISTED (`report.tidal_emptied`), never silently gone.
-
-    `tidal_waters` (T212, owner 2026-10-29; `outside.tidal_waters`): registry items that are tidal
-    along their whole length (the Fraser delta channels) — every section out of every binding, the same way.
+    `tidal_record` is THE ATLAS'S TIDAL WATER, `{section: owner}` (`atlas.splits.coast.read_tidal`, T678: the piece
+    below each tidal boundary, the whole tidal waters, the lines tidal for their length, the pieces below a coast cut),
+    read off the atlas and never resolved here: taken out of every binding AFTER the tributary walk, like a row the
+    book marks tidal. A rule left with nothing is unresolved `tidal` and LISTED (`report.tidal_emptied`), never
+    silently gone. None: no atlas tidal water (a unit-test registry).
     """
     t0 = time.time()
     bindings: list[RuleBinding] = []
@@ -130,10 +127,9 @@ def build_reaches(entries, registry, graph, *, build: str = "", handles: str = "
     # none goes with the cut, one with its own row stays out (`confluence_excludes`).
     owned = rowed_waters(ents)
     # Water the book calls tidal (Nitinat Lake): out of every row but its own (`tidal_owner`), and
-    # the piece below every tidal boundary (T166, `tidal_cut_owner`) out of every row — both after
-    # the walk. Written with the run as `tidal.jsonl`; `tidal` maps each section to its owner.
-    tidal_of = tidal_water(ents, registry, graph, tidal_splits, report=report.tidal_cuts,
-                           whole_waters=tidal_waters, inside_lines=inside_lines, record=tidal_record)
+    # the atlas's tidal water (T678, `tidal_record`) out of every row — both after the walk. Written
+    # with the run as `tidal.jsonl`; `tidal` maps each section to its owner.
+    tidal_of = tidal_water(ents, registry, graph, report=report.tidal_cuts, record=tidal_record)
     tidal = tidal_of
     parks = national_park_sections(registry)
     presence = _SteelheadPresence(registry, graph)
@@ -562,12 +558,12 @@ def _without_tidal(entry: dict, rule: dict, binding: RuleBinding, diags: list[Di
         return binding, diags
     gone = set(binding.sections) - left
     kept = tuple(s for s in binding.sections if s in left)
-    # T166: which tidal boundaries took water from it (`outside.tidal_cut_owner`), when the caller
+    # T166: which tidal boundaries took water from it (the atlas's record), when the caller
     # passed the owners — a row marked tidal is no cut and is not named here
     owners = [str(tidal.get(s, "")) if isinstance(tidal, Mapping) else "" for s in sorted(gone)]
     cuts = sorted({(o[len("split:"):] if o.startswith("split:") else o) for o in owners
                    if is_cut_owner(o) and not is_crossing_owner(o)})
-    # T660: the water crossings ending in tidal water are counted, never listed as cuts (one per creek)
+    # T660: the pieces below a coast cut are counted, never listed as cuts (one per creek)
     crossings = sum(1 for o in owners if is_crossing_owner(o))
     diags = diags + [Diagnostic(entry["entry_id"], rule["rule_id"], "tidal", {
         "removed": len(gone), "kept": len(kept),

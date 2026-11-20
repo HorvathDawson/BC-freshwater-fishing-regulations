@@ -166,6 +166,8 @@ def export_streams(build_dir: Path, out_dir: Path, *, limit: int | None = None,
 
     print("  loading graph…")
     graph = pickle.load((build_dir / "graph.pkl").open("rb"))
+    from pipeline.deliver.tiles.tidal import on_the_graph
+    tidal = on_the_graph(build_dir, graph, frozenset(tidal))      # T678 plan 5: the node is the fact
     print("  loading geometries…")
     geoms = pickle.load((build_dir / "geometries.pkl").open("rb"))
     geoms = {k: v for k, v in geoms.items() if v is not None and not v.is_empty}
@@ -607,6 +609,8 @@ def export_waterbodies(build_dir: Path, gpkg: str, out_dir: Path, *, tidal: froz
     tf = Transformer.from_crs(3005, 4326, always_xy=True)
 
     graph = pickle.load((build_dir / "graph.pkl").open("rb"))
+    from pipeline.deliver.tiles.tidal import on_the_graph
+    tidal = on_the_graph(build_dir, graph, frozenset(tidal))      # T678 plan 5: the node is the fact
     poly_path = build_dir / "waterbody_polys.pkl"
     if not poly_path.exists():
         raise SystemExit(

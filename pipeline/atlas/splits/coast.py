@@ -514,8 +514,10 @@ TIDAL_RECORD = "tidal_sections.json"
 TIDAL_ABOUT = ("T678: THE tidal sections of this atlas, one row per section with its owner: `split:<id>` (below a "
                "DFO-written tidal boundary), `water:<item>` (a whole tidal water the owner named), `inside:<blk>` (a "
                "line tidal for its length: coast, stub, Fraser channel, held), `crossing:<section>` (a piece below a "
-               "line's coast cut). Lines stay in the graph, marked tidal (owner B). Written by the atlas build only; "
-               "read by the reach run (which adds only the rows the book marks tidal), the tiles and the review app.")
+               "line's coast cut). Lines stay in the graph, marked tidal (owner B): `on_nodes` says each named node carries "
+               "its owner as `tidal` (plan 5), and a reader takes the node, this file checking it. Written by the atlas "
+               "build only; read by the reach run (which adds only the rows the book marks tidal), the tiles and the "
+               "review app (`coast.read_tidal`).")
 
 
 def rank1(limits, table: Mapping[str, str]) -> list:
@@ -562,17 +564,10 @@ def water_cover(graph, ids) -> dict:
 def tidal_owners(graph, registry, limits, id_of, whole: Mapping[str, str], ok_cuts: Mapping[str, float], *,
                  table: Mapping[str, str], strict: bool = True) -> dict[str, str]:
     """`{section: owner}`: THE TIDAL SECTIONS of a finished atlas (the record's rows). Rank 1 on the written registry
-    (the reach's resolvers, the same calls as before), then every piece of a line tidal for its length, then every
-    piece of a coast-cut line at or below its cut. A section claimed twice keeps the first owner."""
-    from pipeline.atlas.reach import outside as _outside
-    lim = rank1(limits, table)
-    cut_ids = sorted({str(r.split) for r in lim if r.limit == "split"} | {str(id_of[r.blk]) for r in lim if r.limit == "cut"})
-    items = sorted({str(r.item) for r in lim if r.limit == "whole"})
-    out: dict[str, str] = {}
-    for s, o in _outside.tidal_cut_owner(registry, graph, cut_ids, strict=strict).items():
-        out.setdefault(s, o)
-    for s, o in _outside.tidal_whole_owner(registry, items, strict=strict).items():
-        out.setdefault(s, o)
+    (`tidal.rank1_owners`, the atlas's own resolver — the reach resolves nothing), then every piece of a line tidal for
+    its length, then every piece of a coast-cut line at or below its cut. A section claimed twice keeps the first owner."""
+    from pipeline.atlas.splits import tidal as _tidal
+    out = dict(_tidal.rank1_owners(registry, graph, rank1(limits, table), id_of, strict=strict))
     for nid in sorted(graph.nodes):
         n = graph.nodes[nid]
         if not n.blk:
@@ -584,24 +579,104 @@ def tidal_owners(graph, registry, limits, id_of, whole: Mapping[str, str], ok_cu
     return out
 
 
-def write_record(out_dir, owners: Mapping[str, str], whole: Mapping[str, str]) -> None:
+# ------------------------------------------------------------------------------------------------ plan 5: the node
+#: T678 PLAN 5 (owner B, 2026-11-11: "keep them in the graph and mark them tidal in the build"): THE TIDAL OWNER IS A
+#: FACT OF THE GRAPH NODE (`StreamNode.tidal`), stamped by the build before graph.pkl is written; the record says so
+#: (`on_nodes`), and the reach and the tiles read the node (`read_tidal`), the record checking it. False is the
+#: mutation pin (the build writes the record alone, as before plan 5).
+THE_TIDAL_OWNER_IS_ON_THE_NODE = True
+
+
+def stamp_nodes(graph, owners: Mapping[str, str]) -> int:
+    """Set `tidal` = owner on every node `owners` names (a frozen node is replaced, as `border.mark_out_of_bc` does).
+    Refused: a section the graph does not hold, or a node already stamped with another owner. Returns the count."""
+    from dataclasses import replace
+    n = 0
+    for nid in sorted(owners):
+        node = graph.nodes.get(nid)
+        if node is None:
+            raise SystemExit(f"coast: the tidal record names {nid!r}, which the graph does not hold")
+        have = getattr(node, "tidal", "") or ""
+        if have and have != owners[nid]:
+            raise SystemExit(f"coast: {nid} is stamped tidal by {have!r} already, not {owners[nid]!r}")
+        if have != owners[nid]:
+            graph.nodes[nid] = replace(node, tidal=owners[nid])
+            n += 1
+    return n
+
+
+def record_tidal(out_dir, graph, owners: Mapping[str, str], whole: Mapping[str, str]) -> bool:
+    """THE BUILD'S ONE WRITE OF ITS TIDAL WATER: the owner on each node (`stamp_nodes`, while
+    `THE_TIDAL_OWNER_IS_ON_THE_NODE`; graph.pkl is written after it) and the record (`write_record`, `on_nodes` saying
+    so). Returns whether the nodes carry it."""
+    on = THE_TIDAL_OWNER_IS_ON_THE_NODE
+    if on:
+        stamp_nodes(graph, owners)
+    write_record(out_dir, owners, whole, on_nodes=on)
+    return on
+
+
+def node_owners(graph) -> dict[str, str]:
+    """`{section: owner}` read off the graph's nodes (`StreamNode.tidal`; a pickle from before the field reads "")."""
+    return {nid: n.tidal for nid, n in sorted(graph.nodes.items()) if getattr(n, "tidal", "")}
+
+
+def write_record(out_dir, owners: Mapping[str, str], whole: Mapping[str, str], *, on_nodes: bool = False) -> None:
     import json
     from pathlib import Path
     rows = [{"section": s, "owner": owners[s]} for s in sorted(owners)]
-    Path(out_dir, TIDAL_RECORD).write_text(json.dumps({"_about": TIDAL_ABOUT, "rule": RULE, "sections": rows,
-                                                       "lines_whole": [{"blk": b, "why": whole[b]} for b in sorted(whole)]},
-                                                      indent=0) + "\n", encoding="utf-8")
+    doc = {"_about": TIDAL_ABOUT, "rule": RULE, **({"on_nodes": True} if on_nodes else {}), "sections": rows,
+           "lines_whole": [{"blk": b, "why": whole[b]} for b in sorted(whole)]}
+    Path(out_dir, TIDAL_RECORD).write_text(json.dumps(doc, indent=0) + "\n", encoding="utf-8")
 
 
-def read_record(build_dir) -> dict[str, str]:
-    """`{section: owner}` from an atlas's tidal record. Missing is refused (AGENTS 37): an atlas without it was built
-    before T678 and is not "nothing is tidal"."""
+def _record_doc(build_dir) -> dict:
     import json
     from pathlib import Path
     p = Path(build_dir) / TIDAL_RECORD
     if not p.exists():
         raise SystemExit(f"coast: {p} is missing — only the atlas build writes it (T678); rebuild the atlas")
-    return {r["section"]: r["owner"] for r in json.loads(p.read_text(encoding="utf-8"))["sections"]}
+    return json.loads(p.read_text(encoding="utf-8"))
+
+
+def read_record(build_dir) -> dict[str, str]:
+    """`{section: owner}` from an atlas's tidal record. Missing is refused (AGENTS 37): an atlas without it was built
+    before T678 and is not "nothing is tidal"."""
+    return {r["section"]: r["owner"] for r in _record_doc(build_dir)["sections"]}
+
+
+def record_on_nodes(build_dir) -> bool:
+    """Does this atlas carry the tidal owner on its graph nodes (plan 5, the record's `on_nodes`)?"""
+    return bool(_record_doc(build_dir).get("on_nodes"))
+
+
+def require_coast_cut(build_dir) -> None:
+    """Refuse an atlas not cut by the coast rule (`built_by_coast_rule`): the reach, the tiles and the review app read
+    only an atlas carrying the one tidal record (T678; the pre-T678 sidecars and their readers are retired)."""
+    if not built_by_coast_rule(build_dir):
+        raise SystemExit(f"coast: {build_dir} was not cut by the coast rule ({', '.join(RULES)}) — the reach, the tiles "
+                         "and the review app read only an atlas carrying the one tidal record (T678); rebuild the atlas")
+
+
+def read_tidal(build_dir, graph=None) -> dict[str, str]:
+    """THE TIDAL SECTIONS OF AN ATLAS, as every reader takes them (the reach run, the tiles, the review app):
+    `{section: owner}`. Only an atlas cut by the coast rule (`built_by_coast_rule`); one cut before is refused — there is
+    no second reading. Plan 5 (`record_on_nodes`): read off the graph's nodes (`graph`, the atlas's own graph.pkl), and
+    the record must say exactly the same, or it is refused; an atlas built before plan 5 is read from its record.
+    Never recomputed."""
+    require_coast_cut(build_dir)
+    rec = read_record(build_dir)
+    if not record_on_nodes(build_dir):
+        return rec
+    if graph is None:
+        raise SystemExit(f"coast: {build_dir} carries the tidal owner on its graph nodes (T678 plan 5): read it with "
+                         "the atlas's graph")
+    got = node_owners(graph)
+    if got != rec:
+        diff = sorted(set(got.items()) ^ set(rec.items()))
+        raise SystemExit(f"coast: the graph's tidal nodes and {TIDAL_RECORD} differ on {len(diff)} row(s): {diff[:5]} "
+                         "— the graph is not the one this record was written with")
+    return got
 
 
 def built_by_coast_rule(build_dir) -> bool:

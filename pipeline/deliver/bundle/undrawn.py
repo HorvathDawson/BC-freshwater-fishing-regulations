@@ -46,8 +46,8 @@ def load(tiles: Path) -> dict[str, list[int]]:
 
 def tidal_problems(db: sqlite3.Connection, undrawn: dict[str, list[int]]) -> list[str]:
     """T166: THE TIDAL PIECES THE TILES LEFT OUT are exactly the bundle's tidal water below a tidal
-    boundary (`tidal` rows owned `split:<id>` — the reach run's set; both come from
-    `reach.outside.tidal_cut_owner` on the same atlas). They are in items (the river's lower end) and
+    boundary (`tidal` rows owned `split:<id>` — the reach run's set; both read the atlas's one tidal
+    record, T678). They are in items (the river's lower end) and
     carry no rule by construction (`rules.tables` proves it), so the T64 water-row test does not apply."""
     drawn_off = set(undrawn.get("tidal") or ())
     from pipeline.atlas.reach.outside import is_cut_owner      # split:<id> or (T212) water:<item_id>

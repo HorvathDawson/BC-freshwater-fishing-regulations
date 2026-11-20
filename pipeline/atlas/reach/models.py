@@ -166,8 +166,8 @@ class BuildReport:
     licensing: dict[str, int] = field(default_factory=dict)
     #: `steelhead: known | possible` counts (`pipeline.atlas.reach.steelhead.Presence.finish`).
     steelhead: dict = field(default_factory=dict)
-    #: T166: one row per TIDAL BOUNDARY (`outside.tidal_cut_owner`): its items, the sections below it
-    #: made tidal, the pieces the resolver could not place (listed, left freshwater)
+    #: T166 -> T678: one row per kind of owner in the atlas's tidal record (`outside.tidal_water`): the
+    #: sections each kind makes tidal
     tidal_cuts: list = field(default_factory=list)
     #: T166: every rule the tidal boundaries left with NO water — `{entry_id, rule_id, splits}`;
     #: unresolved `tidal`, listed so none vanishes
