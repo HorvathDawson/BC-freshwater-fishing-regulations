@@ -159,8 +159,8 @@ never shows a carried unit as a requirement. `app_reads.json` 0.8.4 row replaced
 **App 0.8.4 (as rebuilt after the owner's 13:22 answer).** Python resolves the whole answer: `cw-through` carries, per
 carried section, its licence YEAR as if the unit held (`answers.licence.carried_year` = `key_year` at the section with
 `carried_holds`: the section's own answer plus the designation and what holds because of it at the unit's own water —
-the `on_designation` rows, the Classified Waters Licence and the classified steelhead stamp — on the days the unit is in
-force there). The regs store reads it (held to water's atlas), `loadRegsInputs` picks the tap day's value, and the
+the `on_designation` rows, the Classified Waters Licence and the classified steelhead stamp, and the stamp waiver it
+prints — on the days the unit is in force there). The regs store reads it (held to water's atlas), `loadRegsInputs` picks the tap day's value, and the
 licence card draws that answer exactly as a real unit's (the class box, the Classified Waters Licence row with its
 price, for the same anglers and on the same days), the part's own closures to the non-resident alien kept. The only
 difference is a fold ("Why this may not apply here", the card's existing `Fold`) on the Classified Waters Licence row —
@@ -219,25 +219,35 @@ where an upstream classified water would give a different unit. The other 2,862 
 its reach (no own reach on the main-flow path), as placed sections do.
 
 **Side release (the lane's code end to end).** Reach run (above) → `pipeline.deliver all --out-dir
-data/generated/side/l10-cw/out` → release `r-e82e57dc670c` (vintage check passes): bundle `designation_carried` 7,080
-rows; `cw-through/1` 86,016 B, 30,856 B gz (gate 60,000), 7,080 sections, 21 notes. The DFO salmon placements were
+data/generated/side/l10-cw/out` → release `r-247dc010285b` (vintage check passes; rebuilt after 13:22): bundle
+`designation_carried` 7,080 rows; `cw-through/1` 75,898 B gz (gate 120,000), 7,080 sections, 21 notes, 15 licence years. The DFO salmon placements were
 copied from the live run (the reach CLI writes them, the in-memory run does not; same atlas, tidal and outside tables
 byte-identical). The app gate on it: `cw-through/1` asks nothing of any app (needs 0.0.0); the release's oldest reader is
 0.8.0 with or without the file. The mini release was re-cut (it now carries `cw-through` and the `flow-own` the merged switch writes).
-**Picture** (web, 390 px, the side release, Jul 15, Canadian from another province): `T973-shots/endako-licence-may-need.png`
-— the Endako River's Licence card with "? Stellako River Class II may apply here: Endako River has its own line without
-Classified Waters. Check with a CO." above "You need", which lists no Classified Waters Licence.
+**Pictures** (web, 390 px, side release `r-247dc010285b` = the lane's code after the owner's 13:22 answer, Jul 15,
+Canadian from another province): `T973-shots/endako-licence-collapsed.png` — the Endako River's Licence card: the
+Stellako's class box, then "You need": the basic licence and the Classified Waters Licence ($22.86 a day, the book's
+terms) exactly as on the Stellako, with the fold "Why this may not apply here" closed under it, and no steelhead stamp
+(the Stellako's waiver, as its box says); `T973-shots/endako-licence-expanded.png` — the fold open: "Stellako River’s
+Class II covers its tributaries. Endako River has its own line in the rule book without Classified Waters, so it may not
+apply here. Check with a CO." No "?" and no note above "You need". (The 12:11 picture, `endako-licence-may-need.png`,
+is removed.)
 
 **Defaults chosen (tell the owner):** (a) the confluence-cut path (T9, item 2 above) is not changed; (b) nothing below a
 rowed water → the walker's unit; (c) two walks carrying different rows to one section keep the first by (entry, record)
 (`disagree` 1,908, all the same unit); (d) a part partly carried says "On part of this water:"; (e) REPLACED (owner 13:22): the
-carried unit follows the real unit's answer for every profile; (e2) the carried answer adds only the source's
-`on_designation` rows, so a waiver the source's designation prints (the Stellako's "No Steelhead Stamp required") is
-not carried — the carried section keeps its own steelhead-stamp row (never under-require); (e3) one licence year per
+carried unit follows the real unit's answer for every profile; (e2) the carried answer adds the source's `on_designation`
+rows AND the stamp waiver the designation prints (the Stellako's "No Steelhead Stamp required": the carried Endako's
+list drops the steelhead stamp, as its class box says and as the Stellako's own card does — first built without the
+waiver, the box and the list disagreed on the shot); (e3) one licence year per
 (licensing set, unit), read at the set's first carried section; (f) the owner's 12:24 rule is ON (0 sections affected today).
 
 Tests: `test_licensing_first_classified.py` (+9: carried with path, two waters in order, upstream unit's own reach
 wins, both-ways nearest, a unit on its own water only is passed, one per section, mutation pins for both switches),
 `test_bundle_licensing.py` (+7: the table, four refusals, a run without the table refused, run file + digests),
-`test_release_packed.py` (+1: optional, unswitched, one note per section, refusal), `test_reach_builder.py` (policy
-pin 49); app `licence.test.ts` (+3: the whole note string, every profile, none = as before), `inputs.test.ts` (+2).
+`test_release_packed.py` (+2: optional, unswitched, one note and one licence year per section, once per (set, unit),
+refusal; `carried_holds` adds only the unit's on_designation rows, and nothing off its days), `test_reach_builder.py`
+(policy pin 49); app `licence.test.ts` (+3, owner 13:22: for every angler the blocks equal a real unit's but for the one
+why — on the Classified Waters Licence row with its price, on the class box for a resident —, no "?", no note above
+"You need"; two waters in order and the part prefix; none = as before), `inputs.test.ts` (+2: the tap day's value of the
+year), `methods-licence.render.test.tsx` (+1: the fold closed until pressed, then the why).
