@@ -216,6 +216,7 @@ export const FINE: Record<string, { n: number; why: string }> = {
   "packages/ui/src/place.ts": { n: 1, why: "hands it to `onMissing`, which reports (systemBack.web.ts)" },
   // (T767) the open water's other regions (useWaterRegionsAhead) now report their failure: no longer listed
   "packages/ui/src/prefetch.ts": { n: 3, why: `${PROBE}; ${CAP} (battery)` },
+  "packages/data/src/notify/push.ts": { n: 1, why: "(T739) the sync queue's own link: each sync's failure is its caller's promise (NotifyRoot reports it), the queue only goes on" },
   "packages/ui/src/recentSearches.ts": { n: 2, why: PREF },
   "packages/ui/src/regs.ts": { n: 11, why: `${WARM} (T737: the opener's geo, warmWaterPage; and an unnamed tap's regs-sid, down, water slice and access, warmUnnamedPage — the loader forgets a failed open and the page's own reads of the same files ask again and say it); ${UNCACHE}; a probe` },
   "packages/ui/src/release.ts": { n: 1, why: UNCACHE },
@@ -233,10 +234,11 @@ export const FINE: Record<string, { n: number; why: string }> = {
   "workers/feeds/src/gauges/skill.ts": { n: 2, why: `${W_STATE}; ${W_TORN}` },
   "workers/feeds/src/guard.ts": { n: 1, why: "the edge rate limiter failing opens (T249): the R2 per-IP gate still holds" },
   "workers/feeds/src/health.ts": { n: 3, why: "a URL that will not parse gets the unknown source's policy (the fetch itself then throws and is counted); freeing a retried connection" },
-  "workers/feeds/src/index.ts": { n: 3, why: "a daily job's status file that cannot be read is served as { unreadable: why } (T609 W12); a bad POST body is answered 400" },
+  "workers/feeds/src/index.ts": { n: 4, why: "a daily job's status file that cannot be read is served as { unreadable: why } (T609 W12); a bad POST body is answered 400; (T739 M2) POST /run/push whose failure record cannot be written says so in its answer (statusError)" },
   "workers/feeds/src/inseason.ts": { n: 2, why: W_STATE },
   "workers/feeds/src/io.ts": { n: 1, why: `${W_STATE} (the write manifest: unreadable → every file written again)` },
   "workers/feeds/src/notify.ts": { n: 1, why: `${W_STATE} (what was sent: unreadable → may be sent again, never lost)` },
+  "workers/feeds/src/push.ts": { n: 2, why: "(T739) APNs' answer with no JSON body is judged by its status alone (the FCM sender went with Android push, owner 2026-11-16); a send that never reached the service is counted failed with its reason (the send's result, /status, a step error)" },
   "workers/feeds/src/reports.ts": { n: 6, why: `${W_TORN}; ${W_STATE} (the per-IP gate); the edge limiter failing never blocks (the R2 gate holds); a test-report delete the next day's purge tries again` },
 };
 

@@ -111,6 +111,13 @@ describe("T193 + T269 water pages (the app's own pane) and About", () => {
     const pv = built.build.pages.find((p) => p.path === "/privacy")!;
     expect(text(pv.html)).toMatch(/Open-Meteo/);
     expect(text(pv.html)).toMatch(/salted one-way hash/);
+    // (T739) the owner's approved push-token line, whole (OWNER-TODO round 6, `t739-privacy-wording`)
+    expect(text(pv.html)).toContain("Push token If you turn notifications on, the app sends our server a push token for this phone "
+      + "(an address Apple or Google issue so a message can reach the app) and whether the phone is an iPhone or Android. "
+      + "We use it only to send a silent signal telling the app to check for new data; the signal carries no words, no waters "
+      + "and no location. We do not receive your alerts, the waters you watch or where you are. The token is deleted when you "
+      + "turn notifications off, or when Apple or Google tell us it no longer works. It is not linked to you or to an account "
+      + "and is not backed up.");
     expect(pv.html).toMatch(/href="\/privacy"/);
     // every hub page's footer (a water page is the app's pane: the app's More menu links it)
     expect(hubs().every((p) => p.html.includes('<a href="/privacy">Privacy policy</a>'))).toBe(true);

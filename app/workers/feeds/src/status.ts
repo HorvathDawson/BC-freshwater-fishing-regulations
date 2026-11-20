@@ -264,7 +264,7 @@ const ago = (iso: string | null, now: Date) => {
 
 /** (T558 item 2) the daily backup and purge: when they last ran and how it went (late past 36 h) */
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-function dailyHtml(d: { backup: any; purge: any }, now: Date): string {
+function dailyHtml(d: { backup: any; purge: any; push?: any }, now: Date): string {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const row = (name: string, j: any, what: (j: any) => string) => {
     if (!j) return `<tr><td>${name}</td><td class="never">never run</td><td></td></tr>`;
@@ -277,7 +277,27 @@ function dailyHtml(d: { backup: any; purge: any }, now: Date): string {
     row("backup", d.backup, (j) => `${j.copied} copied, ${j.bytes} bytes, ${j.pruned ?? 0} pruned, ${j.skipped?.length ?? 0} skipped`) +
     row("purge", d.purge, (j) => `reports ${j.deleted} deleted / ${j.kept} kept` +
       (j.crashes ? ` · error kinds ${j.crashes.deleted} deleted` : "") + (j.limits ? ` · counters ${j.limits.deleted} deleted` : "")) +
-    `</table></div>`;
+    `</table></div>` + (d.push ? pushHtml(d.push, now) : "");
+}
+
+/** (T739) the push wake-ups (iPhone only; owner 2026-11-16: no Android push): whether it can send (the secrets it
+ *  lacks), and the last send's counts */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function pushHtml(p: { missing: Record<string, string[]>; last: any }, now: Date): string {
+  const l = p.last;
+  const row = (pl: string) => {
+    const miss = p.missing[pl] ?? [];
+    const s = l && typeof l.unreadable !== "string" ? l[pl] : null;
+    const state = miss.length ? `<td class="failing">not configured</td>` : `<td class="${(s && s.failed) || l?.ok === false ? "failing" : "ok"}">${(s && s.failed) || l?.ok === false ? "failing" : "ok"}</td>`;
+    const what = miss.length ? `nothing is sent: ${esc(miss.join(", "))} not set` : "";
+    const counts = s ? `${s.tokens} tokens · ${s.sent} sent · ${s.dead} dead (deleted) · ${s.failed} failed${s.errors?.length ? ` · ${esc(s.errors.join("; "))}` : ""}` : typeof l?.error === "string" ? "the last wake was not sent (above)" : "no send yet";
+    return `<tr><td>${pl}</td>${state}<td><small>${what}${what ? "<br>" : ""}${counts}</small></td></tr>`;
+  };
+  const when = typeof l?.unreadable === "string" ? `<span class="failing">unreadable: ${esc(l.unreadable)}</span>` : l ? `${esc(l.at)} <small>(${ago(l.at, now)}) · ${esc(l.reason)}</small>` +
+    (l.unreadable ? ` · <b class="failing">${esc(l.unreadable)} stored token record(s) did not parse or were not an iPhone's (deleted)</b>` : "") +
+    // (review 2026-11-20, M2) a wake that threw: kept as {at, reason, ok: false, error}
+    (typeof l.error === "string" ? ` · <b class="failing">not sent: ${esc(l.error)}</b>` : "") : "never";
+  return `<h2>Push wake-ups</h2><p><small>last send: ${when}</small></p><div class="wrap"><table><tr><th>platform</th><th>state</th><th>last send</th></tr>${row("ios")}</table></div>`;
 }
 
 /** (T178) the last monthly model score (private/feeds/skill.json): per lead day, the verdict and its reason */
@@ -295,7 +315,7 @@ function skillHtml(sk: any, now: Date): string {
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function statusHtml(s: Status, now: Date, skill: any = null, notify: { channel: string; digest: boolean } | null = null,
-                           daily: { backup: any; purge: any } | null = null): string {
+                           daily: { backup: any; purge: any; push?: any } | null = null): string {
   const rows = (["gauges", "dfo", "inseason"] as Job[]).map((j) => {
     const f = s.feeds[j];
     if (!f) return `<tr><td>${j}</td><td class="never">never run</td><td colspan="6"></td></tr>`;

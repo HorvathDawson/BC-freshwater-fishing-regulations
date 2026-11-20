@@ -29,6 +29,7 @@ import { conditionsIos } from './scenarios-ios/conditions.mjs';
 import { nullClearsIos } from './scenarios-ios/null-clears.mjs';
 import { t884Ios } from './scenarios-ios/t884.mjs';
 import { bgUpdateIos } from './scenarios-ios/bg-update.mjs';
+import { pushIos } from './scenarios-ios/push.mjs';
 
 process.env.TESTBED_PLATFORM = 'ios';
 const HERE = path.dirname(new URL(import.meta.url).pathname);
@@ -642,6 +643,8 @@ const SCENARIOS = [
   t884Ios,
   // (T912) an update goes on with the app closed (Home, then the process ended): the T722 background session
   bgUpdateIos,
+  // (T739 T822) the push token registers and unregisters against the local crash stub; the Notifications intro + line
+  pushIos,
 ];
 
 // ---------- the runner (as run.mjs, without the Android-only crash buffer and test channel) ----------

@@ -8,7 +8,7 @@ import { describe, expect, it } from "vitest";
 import {
   ALERT_STALE_MS, alertContextLine, alertLine, alertListLine, alertNotification, alertSummary, evaluateAlert,
   evaluateAlerts, findGauges, hasRecord, migrateAlertRule, newestReading, normalRangeOf, parseAlertValue,
-  percentileByDay, percentileOk, rearmMargin, refreshAlertLines, readingDay, runLine, thresholdAt, NOTIFY_WORDS,
+  percentileByDay, percentileOk, rearmMargin, refreshAlertLines, readingDay, runLine, thresholdAt, NOTIFY_WORDS, UPDATE_DOWNLOAD_NOTE, UPDATE_READY_NOTE,
   type AlertReading, type AlertRuleState, type AlertThreshold, type GaugeAlertRule,
 } from "./alerts";
 import { levelName } from "./standing";
@@ -406,5 +406,31 @@ describe("(T722 F3) the notifications intro per platform", () => {
       + "the gauges and the data itself, when iOS lets it run in the background. iOS runs these checks while the phone is "
       + "idle, often overnight, so a notice can come hours late. None run in Low Power Mode or after the app is swiped "
       + "away, until you open it again.");
+  });
+  it("(T739) with push wake-ups: what the server sends and keeps, and what iOS may still hold back, whole", () => {
+    expect(NOTIFY_WORDS.introPushIos).toBe("Notifications are made on this phone. When our gauge, salmon or in-season data "
+      + "changes, or new regulations data is out, our server sends this phone a silent signal to check now; the app then "
+      + "checks the gauges and the data itself. The server keeps only a push token for this phone, never your alerts, your "
+      + "waters or where you are. iOS may still hold a check back, often in Low Power Mode, and wakes no app that was swiped "
+      + "away until you open it again.");
+    // the push wake's notice is its own; the periodic check's stays as it was
+    expect(`${UPDATE_DOWNLOAD_NOTE.title}. ${UPDATE_DOWNLOAD_NOTE.body}`).toBe("New regulations data is ready to download. Open the app to download it.");
+    expect(`${UPDATE_READY_NOTE.title}. ${UPDATE_READY_NOTE.body}`).toBe("New regulations data is ready. Open the app to update.");
+  });
+  it("(T822) the push registration's line, whole: registered, refused, offline, never silent", () => {
+    const P = NOTIFY_WORDS.push;
+    expect(P.idle).toBe("Server wake-ups: not registered yet. This phone registers when a notification is on.");
+    expect(P.sending).toBe("Server wake-ups: registering this phone…");
+    expect(P.registered("2026-11-16 at 21:52 PDT")).toBe("Server wake-ups: this phone is registered (2026-11-16 at 21:52 PDT).");
+    expect(P.withdrawn).toBe("Server wake-ups: off (no notification is on); our server keeps no push token for this phone.");
+    expect(P.failed("push register: HTTP 503", false)).toBe("Server wake-ups: this phone is not registered: push register: "
+      + "HTTP 503. It tries again when the app next starts.");
+    expect(P.failed("Network request failed", true)).toBe("Server wake-ups: this phone is not registered (no connection): "
+      + "Network request failed. It tries again when the app next starts.");
+    expect(P.pending).toBe("Server wake-ups: registration pending: our server is busy for this connection. It tries again "
+      + "when the app next starts.");
+    expect(P.pendingOff).toBe("Server wake-ups: turning off is pending; our server is busy for this connection. It tries "
+      + "again when the app next starts.");
+    expect(P.retry).toBe("Try again");
   });
 });

@@ -340,6 +340,32 @@ export const NOTIFY_WORDS = {
   introIos: "Notifications are made on this phone. Nothing is sent to a server: the app checks the gauges and the data "
     + "itself, when iOS lets it run in the background. iOS runs these checks while the phone is idle, often overnight, "
     + "so a notice can come hours late. None run in Low Power Mode or after the app is swiped away, until you open it again.",
+  /**
+   * (T739) WITH PUSH WAKE-UPS (this build registered a push token with our server): the worker sends a content-free
+   * "check now" when a feed changes or a new release is out; the check and every notice are still made on the phone.
+   * The server learns a push token and the platform, never the alerts, the waters or a location.
+   */
+  introPushIos: "Notifications are made on this phone. When our gauge, salmon or in-season data changes, or new "
+    + "regulations data is out, our server sends this phone a silent signal to check now; the app then checks the gauges "
+    + "and the data itself. The server keeps only a push token for this phone, never your alerts, your waters or where you "
+    + "are. iOS may still hold a check back, often in Low Power Mode, and wakes no app that was swiped away until you open it again.",
+  /**
+   * (T822) THE PUSH REGISTRATION, said under the intro (a build with push): whether our server can wake this phone, and
+   * why not when it cannot. Never silent: before T822 a phone that never registered looked exactly like one that had.
+   */
+  push: {
+    idle: "Server wake-ups: not registered yet. This phone registers when a notification is on.",
+    sending: "Server wake-ups: registering this phone…",
+    registered: (at: string) => `Server wake-ups: this phone is registered (${at}).`,
+    withdrawn: "Server wake-ups: off (no notification is on); our server keeps no push token for this phone.",
+    failed: (why: string, offline: boolean) => `Server wake-ups: this phone is not registered${offline ? " (no connection)" : ""}: ${why}. `
+      + "It tries again when the app next starts.",
+    /** (review 2026-11-20, L1) the worker's per-address limit twice (several phones behind one address): not a fault */
+    pending: "Server wake-ups: registration pending: our server is busy for this connection. It tries again when the app next starts.",
+    /** (re-review 2026-11-20) the same limit on the way OFF: the token is still on our server until the next start */
+    pendingOff: "Server wake-ups: turning off is pending; our server is busy for this connection. It tries again when the app next starts.",
+    retry: "Try again",
+  },
   master: { label: "Notifications", on: "On", off: "Off", hint: "Turn every notification from this app on or off." },
   updateReady: { label: "New regulations data", hint: "Tell me when a newer regulations release is ready to download." },
   appVersion: { label: "New app version", hint: "Tell me when a newer version of the app is out." },
@@ -443,6 +469,10 @@ export const NOTIFY_WORDS = {
     updateReady: "new data ready",
     appVersion: "new app version",
     noRules: "no alerts set",
+    /** (T739) the run a push from our server started (the periodic ones say nothing of how they began) */
+    woke: "woken by our server",
+    /** (T739) that wake started downloading the newer regulations data */
+    downloading: "new data downloading",
     /** (T676 item 2) the gauge feed asks for a newer app: the alerts wait for the app update (not a failure) */
     appTooOld: "gauge alerts wait for the app update",
   },
@@ -558,6 +588,16 @@ export function findGauges<T extends { readonly station: string; readonly name: 
 export const UPDATE_READY_NOTE = {
   title: "New regulations data is ready",
   body: "Open the app to update.",
+} as const;
+
+/**
+ * (T739, owner 2026-11-14 "if new data is there we could send a notification that the user needs to download it") The
+ * notice of a PUSH wake-up that found a newer release it could not start downloading (held for Wi-Fi, or no app runtime
+ * to download in). The periodic check keeps `UPDATE_READY_NOTE`; Android, which has no push yet, never says this one.
+ */
+export const UPDATE_DOWNLOAD_NOTE = {
+  title: "New regulations data is ready to download",
+  body: "Open the app to download it.",
 } as const;
 
 /** A background run's line in the log: "2026-11-05 at 14:05 PT · 1.2 s · 1 alert". */
