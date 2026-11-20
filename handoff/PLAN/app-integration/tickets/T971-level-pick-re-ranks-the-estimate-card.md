@@ -1,6 +1,6 @@
 # T971 — Conditions: picking Level in the gauge card also changes the estimate card above it
 
-Status: OPEN.
+Status: IN PROGRESS — built on lane/t971-flow-leads, 2a2aa0e75; left (Claude): merge lane/t971-flow-leads into redesign/stream-sections after review.
 
 Source: L4 Android device-looks pass 2026-11-20 (T728 look, emulator).
 
@@ -21,3 +21,10 @@ Decide (owner question in OWNER-TODO): the estimate card stays on Flow whatever 
 and says so. Then one rule, a test, a shot.
 
 Depends: T728. Size: S. Owner: decides.
+
+## Built (2a2aa0e75)
+Owner ruling 2026-11-10 ("Flow leads, Level auxiliary") applied: the estimate card never follows the gauge card's Flow / Level.
+Cause: `ConditionsPanel.tsx` passed the card's pick to `useConditionsView` (`ui/src/panel/conditions.ts`), which asked the panel in that
+quantity, and to `DonorPanel` -> `donorView`, whose `horizonChips` greyed Change as "Flow only". Fix: the panel is asked in
+`estimateQuantity` (Flow; Level only where `leadOver` says no gauge answers in flow); `donorView` takes `rankedIn` for the chips; the
+chart's own forecast line keeps the card's quantity. Test: `ConditionsPanel.test.tsx` "(T971) ...", fails without the fix.

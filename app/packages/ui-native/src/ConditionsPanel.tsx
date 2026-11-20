@@ -419,7 +419,7 @@ export function ConditionsPanel({ source, section, palette, tiles, theme, colour
                   // legend: no `onSelect`; the chart's gauge is picked only in the gauge card's title. `selected` still marks it on the map.
                   from={from} selected={station} horizon={horizon}
                   chain={vm.chain} standing={vm.route.standing}
-                  onHorizon={onHorizon} quantity={parameter ?? "discharge"}
+                  onHorizon={onHorizon} quantity={parameter ?? "discharge"} rankedIn={vm.estimateQuantity}
                   detail={detail} chart={graph}
                   foot={small} after={footer} holdKey={`${section ?? ""}:${String(horizon)}:${vm.day.toDateString()}`} sides={vm.sides} count={vm.count} waterLine={waterLine} place={waterBox}
                   own={vm.own} />
