@@ -297,6 +297,11 @@ describe("(T227) the salmon year at the top of the Keep tab", () => {
                             { drawn: "open", days: 35, gear: 20 }, { drawn: "closed", days: 130, gear: 0 }]);
     expect(s.legend).toEqual([{ drawn: "open", label: "✓ Open" }, { drawn: "closed", label: "✕ Closed" },
                               { drawn: "open", bit: 4, label: "Fly fishing only" }, { drawn: "open", bit: 16, label: "Bait ban" }]);
+    // a release day carries the bait ban only: its stripes are the release ones, so the key never names a fly mark it lacks
+    const rel = { headlineStatus: "release", year: { by: "dfo", bars: [{ label: null, unmapped: false, today: "release",
+      todayWord: "release", runs: [{ status: "release", days: 365 }] }] } } as never;
+    const r = salmonStripOf(rel, { runs: [{ bits: 20, days: 365 }], line: [], legend })!;
+    expect([r.runs, r.legend.map((l) => l.label)]).toEqual([[{ drawn: "release", days: 365, gear: 16 }], ["Release only", "Bait ban"]]);
     // the two bars' days must be the same year
     expect(() => salmonStripOf(c, { runs: [{ bits: 16, days: 300 }], line: [], legend })).toThrow(/300 days/);
   });

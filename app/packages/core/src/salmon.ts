@@ -1570,7 +1570,8 @@ export function salmonStripOf(card: SalmonCardVM, general: {
     throw new Error(`salmonStripOf: the provincial strip has ${bits.length} days, the salmon bar ${days.length}`);
   const runs: { drawn: SalmonDrawn; days: number; gear: number }[] = [];
   days.forEach((dr, i) => {
-    const gear = dr === "open" || dr === "release" ? bits[i] ?? 0 : 0, last = runs[runs.length - 1];
+    // a release day draws the release stripes, which the fly marks would sit under (as on the game-fish bar): the bait band only
+    const gear = dr === "open" ? bits[i] ?? 0 : dr === "release" ? (bits[i] ?? 0) & 16 : 0, last = runs[runs.length - 1];
     if (last && last.drawn === dr && last.gear === gear) last.days++; else runs.push({ drawn: dr, days: 1, gear });
   });
   const i = Math.round((general?.todayAt ?? 0) * BOOK_YEAR_DAYS);
