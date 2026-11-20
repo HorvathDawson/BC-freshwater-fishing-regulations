@@ -407,8 +407,11 @@ def check_tree(P, g: dict) -> List[str]:
                 continue
             # (T942) the tier's `extra` names a kind that sits in an OWN tier (never split: the Kitimat's "up to 5 a
             # day", rainbow trout and steelhead): the tier says that kind's "+1" in its own words, and the extra is
-            # proved against the engine below (its number over the size, the tally together), so it is not unsaid
-            sheltered = any(a["tier"] == "own" for a in above(y))
+            # proved against the engine below (its number over the size, the tally together), so it is not unsaid.
+            # (LF, review of T942) only an own tier the size tier is NOT inside: an own tier above both holds the size
+            # tier too, so a kind beside it there is one the size tier could hold, and its cap is unsaid
+            over_t = {id(a) for a in above(t)}
+            sheltered = any(a["tier"] == "own" and id(a) not in over_t for a in above(y))
             for S in y["species"]:
                 if S in named and sheltered:
                     continue

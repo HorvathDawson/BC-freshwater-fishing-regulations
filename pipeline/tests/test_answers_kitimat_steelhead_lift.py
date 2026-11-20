@@ -443,7 +443,8 @@ def test_the_card_gate_takes_the_kitimats_plus_one_said_from_outside_its_own_tie
     """T942: the Kitimat's hatchery steelhead sit in the river's OWN tier ("up to 5 a day", with the rainbow trout),
     which is never split, so the size tier that says their "+1" cannot hold them. The card gate (ROUND19 3) accepts a
     capped kind outside a size tier only when the tier's `extra` names it AND it sits in an own tier.
-    MUTATION PINS: the steelhead no longer named by the extra, or moved out of the own tier, and the gate refuses again."""
+    MUTATION PINS: the steelhead no longer named by the extra, or moved out of the own tier, or the size tier moved inside
+    the own tier (LF: an own tier above the size tier shelters nothing), and the gate refuses again."""
     from pipeline.deliver.answers import card_check as CC
     g, P = _kitimat_tree(request)
     assert CC.check_tree(P, g) == []
@@ -463,6 +464,19 @@ def test_the_card_gate_takes_the_kitimats_plus_one_said_from_outside_its_own_tie
     own["children"].remove(st)
     total["children"].append(st)
     assert any("caps ST over 50 cm, but ST sits outside it" in p for p in CC.check_tree(P, moved))
+
+    # (LF, review of T942) the own tier must not hold the size tier too: with the size tier moved INSIDE the own tier,
+    # the steelhead sit beside it in a tier it could hold them in, and the gate refuses (it excused them before)
+    nested = copy.deepcopy(g)
+    (total,) = nested["tree"]
+    (own,) = [t for t in total["children"] if t.get("tier") == "own"]
+    (size,) = [t for t in _walk(nested["tree"]) if t.get("tier") == "size"]
+    for t in _walk(nested["tree"]):
+        if size in t.get("children", []):
+            t["children"].remove(size)
+            break
+    own["children"].append(size)
+    assert any("caps ST over 50 cm, but ST sits outside it" in p for p in CC.check_tree(P, nested))
 
 
 def _no_raise(orig):
