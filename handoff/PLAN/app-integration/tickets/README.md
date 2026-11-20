@@ -246,7 +246,7 @@ reads both files; a ticket closed here moves there once its lane is finished wit
 | T943 | Chilliwack Lake: the lake trout row shows no wild cap (a wild one can never be kept) | OPEN | | lane/t936-t931 2026-11-20 (T931 A) |
 | T944 | Shea Creek dead-end piece 773423 carries both the Bulkley's and the Morice's Classified Waters units | OPEN | | lane/t936-t931 2026-11-20 (T931 B refused pin) |
 | T945 | Committed unnamed-tributary sweep result stale against the live bundle (41 streams) | OPEN | | lane/t936-t931 2026-11-20 test-full |
-| T946 | Tier 2 tributary lines: 20 parts (Lake Revelstoke tributaries DV, Iverson Creek) not what their rail sets | OPEN | | lane/t936-t931 2026-11-20 test-full |
+| T946 | Tier 2 tributary lines: 20 parts (Lake Revelstoke tributaries DV, Iverson Creek) not what their rail sets | IN PROGRESS — left (Claude): main chat review + merge (the sweep's rail reader missed T919 a's bare kicker) | | lane/t936-t931 2026-11-20 test-full |
 
 ## Next after closed testing
 
