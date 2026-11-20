@@ -31,6 +31,7 @@ import { t884Ios } from './scenarios-ios/t884.mjs';
 import { bgUpdateIos } from './scenarios-ios/bg-update.mjs';
 import { firstRelaunchIos } from './scenarios-ios/first-relaunch.mjs';
 import { t831Ios, t836Ios } from './scenarios-ios/l6-shots.mjs';
+import { t938Ios } from './scenarios-ios/t938.mjs';
 import { pushIos } from './scenarios-ios/push.mjs';
 
 process.env.TESTBED_PLATFORM = 'ios';
@@ -657,6 +658,8 @@ const SCENARIOS = [
   // (T831, T836) the iPhone shots owed by two merged fixes: the route map's pins and lines, the photo viewer
   t831Ios,
   t836Ios,
+  // (T938) the browse map drawn whole after search → water → Back
+  t938Ios,
   // (T739 T822) the push token registers and unregisters against the local crash stub; the Notifications intro + line
   pushIos,
 ];

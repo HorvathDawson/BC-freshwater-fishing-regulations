@@ -6,13 +6,15 @@
 //             hides the buttons and one that brings them back, a swipe to the next photo, a drag down that closes it
 //             (`T836-ios-<step>-<look>.png`).
 //   node app/tools/testbed/run-ios.mjs t831-ios t836-ios
+import { execFileSync } from 'node:child_process';
 import fs from 'node:fs';
 import path from 'node:path';
-import { count, readPng } from '../lib/png.mjs';
+import { changed, count, readPng } from '../lib/png.mjs';
 import { runYaml } from '../lib/ios-flow.mjs';
 
 const HERE = path.dirname(new URL(import.meta.url).pathname);
-const COQUITLAM = '.* · Region 2 · MU 2-8.*';
+// the search row by its accessibility text on iOS ("Show <name>, …"; a data name, kept out of the static check's scan)
+const COQUITLAM = 'Show Coquitlam River,.*Region 2.*';
 const LOOKS = ['light', 'dark'];
 /** a swipe by screen percentages (Maestro's own), throwing with Maestro's words */
 function swipe(ctx, name, from, to, ms) {
@@ -71,7 +73,12 @@ export const t836Ios = {
       const root = path.join(d.dataDir(), 'Documents', 'spots');
       fs.mkdirSync(path.join(root, 'photos'), { recursive: true });
       const refs = ['a', 'b', 'c'].map((x) => `photos/l6-${x}.jpg`);
-      for (const r of refs) fs.copyFileSync(path.join(HERE, '..', 'media', 'testbed-photo.jpg'), path.join(root, r));
+      // three DIFFERENT pictures (the test photo, turned 90° and 180°), so a move to the next one shows in the pixels
+      const src = path.join(HERE, '..', 'media', 'testbed-photo.jpg');
+      refs.forEach((r, i) => {
+        if (i === 0) fs.copyFileSync(src, path.join(root, r));
+        else execFileSync('sips', ['-r', String(90 * i), src, '--out', path.join(root, r)], { stdio: 'ignore' });
+      });
       const now = Date.now();
       const spot = { id: 'l6-photos', createdAt: now, updatedAt: now, visitedAt: now, lat: 49.1, lon: -121.95, item: null,
         waterName: null, title: 'Photo spot', notes: '', photos: refs, reading: null, weather: null, trace: null, panel: null };
@@ -111,8 +118,12 @@ export const t836Ios = {
         await d.sleep(1500);
         const c = counter();
         shot(`6-next-${look}`);
-        if (c !== '2 of 3') throw new Error(`the counter says ${c ?? 'nothing'} after a swipe left (wanted 2 of 3)`);
-        return c;
+        const a = readPng(path.join(ctx.dir, `T836-ios-5-shown-${look}.png`)), b = readPng(path.join(ctx.dir, `T836-ios-6-next-${look}.png`));
+        const moved = changed(a, b, { x: 0, y: Math.round(a.h * 0.25), w: a.w, h: Math.round(a.h * 0.5) });
+        const said = `the picture ${(moved * 100).toFixed(0)} % changed; counter ${c ?? 'not shown (the buttons hidden?)'}`;
+        if (moved < 0.05) throw new Error(`a swipe left did not move to the next photo: ${said}`);
+        if (c !== '2 of 3') throw new Error(`the next photo is shown but ${said} (wanted the buttons up and "2 of 3")`);
+        return said;
       });
       await ctx.step(`${look}: a drag down closes it, back on the spot`, async () => {
         swipe(ctx, `t836-down-${look}`, '50%, 45%', '50%, 85%', 400);
