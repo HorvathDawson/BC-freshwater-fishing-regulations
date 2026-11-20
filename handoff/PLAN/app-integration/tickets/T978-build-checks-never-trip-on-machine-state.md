@@ -21,6 +21,10 @@ production build stopped four times in fast-fail, never on a code defect:
 - build-apk / build-ios-tf in a worktree: one precheck lists every missing link (cache, .venv, resolved.json, run token)
   with the fix. No silent exits.
 - The marks-landed check moves to the data release (it is about data, not the app).
+- MapLibre (owner 2026-11-20): the owner's PR merged upstream (https://github.com/maplibre/maplibre-native/pull/4919).
+  Build MapLibre from upstream `main` (pinned to a commit) instead of the local lean T420 patch in `cache/maplibre`.
+  Then no worktree needs the patched AAR link. Keep that until a MapLibre release includes the change, then use the
+  release. Check the AAR build-id step and the "MapLibre patched always" rule (T893) against it.
 
 ## Acceptance
 - A fresh worktree of a green dev runs the build's fast-fail clean with no data rebuilt.
