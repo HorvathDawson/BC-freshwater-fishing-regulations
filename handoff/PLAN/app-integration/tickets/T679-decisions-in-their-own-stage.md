@@ -222,3 +222,23 @@ live atlas via heavy.sh, and its panels equal the live bundle's. Results are in 
   - Columbia: Hotsprings Channel 21, ponds 20, no path 10, Windermere 6.
   - Pitt: Pitt Lake 24.
   - Bowron: Bowron Lake 15, ponds 8.
+
+## #8 "Named lakes only" built (2026-11-20 11:16, lane L8, `lane/l8-blockers`; owner 11:02)
+- **The change.** `panels.own_distances` now walks THROUGH a pond that belongs to no registry water, at any size and at
+  its graph length (0). The pond is never itself reached. A named lake (a registry item) still ends the walk, and so does
+  an ownerless line. The panel-membership walk (`candidates`) is unchanged: the lead ranking and `section_own` both read
+  `own_distances`.
+- **The test.** `test_polygon_walk.py::test_t679_8_a_river_cut_by_an_ownerless_pond_keeps_its_own_gauge_a_named_lake_still_cuts`.
+  It fails on the old walk (checked).
+- **D1 folded ponds:** unchanged by construction. A folded pond belongs to its river's item, so it is never "ownerless".
+  None of the 223 pond blockers was a folded pond.
+- **Re-measured** on the live atlas (read-only, heavy.sh), with the two CSVs regenerated
+  (`T679-shots/own-gauge-moves.csv`, `own-gauge-blockers.csv`):
+  - Moved pairs: 611, down from 1,060. That is 118 gauges on 78 waters, all own → donor.
+  - What still blocks them: named lakes 433 (none under 10 ha; 3 under 50 ha, 9 under 100 ha); no flow path 127;
+    another water's stream 34; an ownerless line 16; other gates 1.
+  - Lead gauges changed by this rule, against dev's code without it: 0 sections. The 267 pairs that became own were
+    already leads (an adopted side channel takes its river's panel and leads), so the heading now agrees with the lead.
+  - The same run differs from the live bundle in 7 lake sections: Sproat Lake 2, Moat Lake 2, Tatlatui Lake 2 and
+    Nanika Lake 1 have no panel. That difference comes from dev's other merged work, not from this rule: the baseline
+    without it gives the same 7.

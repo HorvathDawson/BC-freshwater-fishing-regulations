@@ -155,6 +155,25 @@ def test_the_own_gauge_walk_passes_through_its_own_water_s_polygon():
     assert own_distances(graph, water_of, donors) == {"above": {"V": 0.0}}
 
 
+def test_t679_8_a_river_cut_by_an_ownerless_pond_keeps_its_own_gauge_a_named_lake_still_cuts():
+    """(T679 #8, owner 2026-11-20 11:02 "Named lakes only") A pond no registry water owns (`water_of` has no entry: the
+    D1 fold did not take it) is walked THROUGH, at any size, and is never reached itself; a lake that IS a registry
+    water still ends the walk. Halfway River (07FA006, 07FA003) was cut by a 0.44 ha pond, lake:329626214."""
+    nodes = [N("above", 100, blk="H", length_m=2_000.0), poly("pond", mag=100), N("below", 100, blk="H", length_m=3_000.0)]
+    graph = g(nodes, [E("above", "pond"), E("pond", "below")])
+    donors = [("H", "above", 40, False)]
+    ownerless = {"above": UPPER, "below": UPPER}
+    assert own_distances(graph, ownerless, donors, kind_of=KINDS) == {"above": {"H": 0.0}, "below": {"H": 0.0}}
+    assert own_distances(graph, ownerless, [("H", "below", 40, False)], kind_of=KINDS) == \
+        {"above": {"H": 3_000.0}, "below": {"H": 0.0}}     # both ways: one gauge-section away, the pond adds its 0
+    named = {**ownerless, "pond": LAKE}
+    assert own_distances(graph, named, donors, kind_of=KINDS) == {"above": {"H": 0.0}}
+    # an ownerless LINE still cuts: only a pond is walked through
+    line = g([N("above", 100, blk="H", length_m=2_000.0), N("gap", 100, blk="X", length_m=10.0),
+              N("below", 100, blk="H", length_m=3_000.0)], [E("above", "gap"), E("gap", "below")])
+    assert own_distances(line, ownerless, donors, kind_of=KINDS) == {"above": {"H": 0.0}}
+
+
 # ------------------------------------------------------------------ mutation pin
 
 def test_the_water_kind_gate_is_what_holds_these_tests():
