@@ -214,6 +214,8 @@ export const keyboardIos = {
       d.geo(LAKE.lon, LAKE.lat);
       ctx.flow('tap-point', { POINT: TABS.spots });
       await d.sleep(1500);
+      // (T819 item 11) with spots saved, the ways to add sit behind the header's Add (`spots-add`)
+      if (d.hasId('spots-add') && !d.hasId('spots-adds')) { ctx.flow('tap-id', { ID: 'spots-add' }); await d.sleep(1000); }
       ctx.flow('tap-text', { TEXT: 'At my location' });
       await d.sleep(3000);
       await captureIos(ctx);
@@ -222,7 +224,9 @@ export const keyboardIos = {
       const t = await typeIn(ctx, 'spot-title', 'Name this spot', name, (n) => n.text === name);
       // as a reader: the keyboard down, the page scrolled until the notes box shows, then a tap in it (the box is read by
       // its label "Notes" and its height from the tree: the block's heading has the same word, one line tall)
-      must(ctx, 'kb-spot-notes-find', '- hideKeyboard\n- scrollUntilVisible:\n    element: { text: "Add from photos" }\n    timeout: 15000\n');
+      // (L6 2026-11-20) Maestro's hideKeyboard failed on this page ("Hide Keyboard... FAILED"): a drag down the page
+      // takes the keyboard with it (the scroll's keyboardDismissMode="interactive", T723)
+      must(ctx, 'kb-spot-notes-find', '- swipe: { start: "50%, 40%", end: "50%, 97%", duration: 700 }\n- scrollUntilVisible:\n    element: { text: "Add from photos" }\n    timeout: 15000\n');
       await d.sleep(800);
       const ns = d.nodes();
       const box = ns.find((n) => (n.desc === 'Notes' || /^What happened/.test(n.text)) && n.box.y1 - n.box.y0 > 60);
