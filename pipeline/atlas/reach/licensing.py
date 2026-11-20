@@ -389,6 +389,9 @@ def first_classified_downstream(placements: list[LicensingPlacement], records: d
             if item in registry:
                 water_of.setdefault(eid, set()).update(registry[item].section_ids)
 
+    from pipeline.atlas.graph import tributaries as _tribs
+    outlets = _tribs.dead_end_outlets(graph) if _tribs.A_DEAD_END_FLOWS_WHERE_ITS_WATER_FLOWS else {}
+
     def is_stop(node: str) -> bool:
         return node in own_of or (node in rowed and kind_of(node) == "stream")
 
@@ -399,8 +402,10 @@ def first_classified_downstream(placements: list[LicensingPlacement], records: d
         other eleven times before one enters Morice Lake."""
         eis = graph.down_adj.get(node, [])
         rank = {k: 0 for k in MAINSTEM_EDGE_KINDS} | {"lake_in": 1, "outlet": 1}
-        return [graph.edges[i].to_node for i in
-                sorted(eis, key=lambda i: (rank.get(graph.edges[i].kind, 2), i))]
+        got = [graph.edges[i].to_node for i in
+               sorted(eis, key=lambda i: (rank.get(graph.edges[i].kind, 2), i))]
+        # a dead end flows on where its water does (T944, `A_DEAD_END_FLOWS_WHERE_ITS_WATER_FLOWS`)
+        return got + [x for x in outlets.get(node, ()) if x not in got]
 
     def next_down(node: str) -> str | None:
         got = options(node)

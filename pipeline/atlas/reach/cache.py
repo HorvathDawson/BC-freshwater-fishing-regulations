@@ -184,5 +184,11 @@ from __future__ import annotations
 #:     THROUGH-RIVER THAT STAYS OUT OF A LAKE'S WALK STAYS OUT WITH ITS SIDE CHANNELS
 #:     (`build.A_THROUGH_RIVER_STAYS_OUT_WITH_ITS_SIDE_CHANNELS`): Kitsumkalum Lake no longer takes the Kitsumkalum
 #:     River's side channels above the lake.
-POLICY_VERSION = "47"
+#: 48: (T944, 2026-11-20) A DEAD END FLOWS WHERE ITS WATER FLOWS: a sink `A_DEAD_END_GOES_WITH_ITS_WATER` hands a walk
+#:     goes on, for every pass that walks down from it, where the rest of its watershed code leaves that code
+#:     (`tributaries.dead_end_outlets`, `A_DEAD_END_FLOWS_WHERE_ITS_WATER_FLOWS`), never "nothing before the sea".
+#:     `licensing.first_classified_downstream` (RU-13) gives Shea Creek's dead end (773423) its water's answer —
+#:     Gosnell Creek's row, no unit — instead of both the Bulkley's and the Morice's. No classify.py outcome changed;
+#:     the bump marks the binding diff.
+POLICY_VERSION = "48"
 

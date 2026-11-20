@@ -1,6 +1,6 @@
 # T945 — The committed unnamed-tributary sweep result is stale against the live bundle
 
-Status: OPEN.
+Status: IN PROGRESS — result rewritten on lane/lc-reach-leftovers; left (Claude): main chat review + merge.
 
 Source: lane/t936-t931 (`scripts/test-full.sh`, slow tier), 2026-11-20.
 
@@ -14,3 +14,9 @@ Rerun `python -m pipeline.tools.audit.unnamed_trib_sweep --write-result` through
 streams (and any new miss) in T57, as the test's message asks. Likely related: the 11-15 dead-end walk (93a481b71) and
 the T753 lake loops, which changed which pieces count.
 Depends: none. Size: S. Heavy job.
+
+## Done (lane LC, 2026-11-20)
+All 41 explained (T57 "2026-11-20"), none by the reach: the sweep on the live bundle moves ONLY `unnamed_streams`
+(1,179,627 -> 1,179,668) and its stamps; frontier 146, by_reason and by_rule are unchanged, 0 unexplained.
+`unnamed_trib_sweep --write-result` (heavy.sh) written. The T944 fix moves no rule (reach digest stays 6ca9a300), so
+the result stays current on the next run.

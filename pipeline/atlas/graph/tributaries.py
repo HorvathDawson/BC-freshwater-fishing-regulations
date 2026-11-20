@@ -568,6 +568,49 @@ def _feeders(ctx: "Reach", start, seen) -> set[str]:
     return out
 
 
+#: T944 (2026-11-20): A DEAD END FLOWS WHERE ITS WATER FLOWS. `A_DEAD_END_GOES_WITH_ITS_WATER` hands a walk the
+#: sinks of a water it collected, and every pass that then walks DOWN from a collected section to decide it
+#: (`licensing.first_classified_downstream`: "the first classified water it flows into") met a sink with no way on and
+#: read it as "nothing before the sea": the section stayed with EVERY walker. Shea Creek's dead end (773423, a side
+#: piece leaving its own main stem in Burnie-Shea Park) kept the Bulkley's AND the Morice's units while Shea Creek
+#: itself, flowing into Gosnell Creek (a row of its own, no designation), carried neither (RU-13: one unit per
+#: section). A sink of a code that leaves its code elsewhere flows on where that code leaves it
+#: (`dead_end_outlets`); a code with no way out (a river's mouth at the sea) keeps its "nothing below". False = the
+#: mutation pin.
+A_DEAD_END_FLOWS_WHERE_ITS_WATER_FLOWS = True
+
+
+def dead_end_outlets(graph: StreamGraph) -> dict[str, tuple[str, ...]]:
+    """`{node of a sink: the nodes its WATER flows into}` (`A_DEAD_END_FLOWS_WHERE_ITS_WATER_FLOWS`): for every sink
+    of `dead_ends`, where the other pieces of its watershed code leave that code — each edge from a node of the code
+    to a node of another, the main flow first (`MAINSTEM_EDGE_KINDS`, then `lake_in`/`outlet`, then the rest; edge
+    order within a kind). A sink whose code never leaves itself (a river's mouth) is absent. Once per graph object."""
+    cached = getattr(graph, "_dead_end_outlets_cache", None)
+    if cached is not None and cached[0] is graph.edges:
+        return cached[1]
+    by_code, nodes_of = dead_ends(graph)
+    rank = {k: 0 for k in MAINSTEM_EDGE_KINDS} | {"lake_in": 1, "outlet": 1}
+    leaves: dict[str, tuple[str, ...]] = {}
+    out: dict[str, tuple[str, ...]] = {}
+    for c, sinks in by_code.items():
+        if c not in leaves:
+            edges = sorted((rank.get(graph.edges[ei].kind, 2), ei) for n in nodes_of.get(c, ())
+                           for ei in graph.down_adj.get(n, ())
+                           if (t := graph.nodes.get(graph.edges[ei].to_node)) is not None and t.wsc != c)
+            leaves[c] = tuple(dict.fromkeys(graph.edges[ei].to_node for _r, ei in edges))
+        if not leaves[c]:
+            continue
+        for s in sinks:
+            for x in s:
+                if graph.nodes[x].wsc == c:
+                    out[x] = leaves[c]
+    try:
+        setattr(graph, "_dead_end_outlets_cache", (graph.edges, out))
+    except (AttributeError, TypeError):
+        pass
+    return out
+
+
 def _dead_end_seeds(ctx: "Reach", seen: set[str], kept: set[str], refused: set[str]) -> list[str]:
     """`A_DEAD_END_GOES_WITH_ITS_WATER`: the nodes of every unreached sink whose code(s) the walk otherwise
     collected wholly (`kept`: what it collects, less carve-outs passed and own water). A piece of the code the
