@@ -20,6 +20,30 @@ for T931 B's part-mark and multi-part counts), so check it against "a dead end o
 Reach / licensing fix (`atlas/graph/tributaries.py`, `reach.licensing`), then a binding diff; the pin stays as is.
 Depends: none. Size: M. Data change: needs a reach run + bundle.
 
+## Why these changed (plain summary)
+A dead end is a small side piece of a stream that water flows into but not out of. A section takes the Classified
+Waters unit of the first classified water its stream flows into. To find that water, the check walks downstream from the
+section. From a dead end there was no way downstream. The check read that as "reaches the sea", so the dead end kept
+EVERY unit whose tributary walk had collected it. A dead end now flows wherever the rest of its stream flows. That
+changes 16 licensing rows on 9 sections, and no fishing rule:
+- **Shea Creek loses both its units (Bulkley and Morice).** Shea Creek flows into Gosnell Creek, which has its own row
+  and no Classified Waters unit, so the rest of Shea Creek already carried none. Its dead end now matches. It was the one
+  section in BC with two units, which the rules forbid.
+- **Three unnamed Morice tributaries go from the Bulkley to the Morice.** Their water reaches the Morice first, so the
+  Morice's unit is theirs, as it already was for the rest of those streams.
+- **Brownie Creek goes from the Elk to the Fording.** Its water reaches the Fording River first.
+- **Harmer Creek and unnamed creeks off the Horsefly and Stellako drop units the rest of their water doesn't carry.**
+  - Harmer Creek's water stops at Grave Creek's own row.
+  - The Horsefly creek's water stops at Little Horsefly's row.
+  - The Stellako creek's water stops at the Endako's row.
+  - None of those rows carries a unit.
+- **No fishing rule changes.** The rules digest is identical with the switch on and off.
+- **The earlier dead-end merge work (93a481b71) was right.** All 1,175 dead-end stream sections were checked against
+  the rest of their water. 1,154 match exactly, and none carries a rule its water lacks. The only error was 4 extra
+  units, all fixed here: Shea, 774476, Harmer and Horsefly. Brownie and the Stellako creek are not dead ends; they are
+  creeks that feed one, so they moved with it. The 17 sections that lack something their water has (mostly 2300
+  connectors) predate that work and are a separate issue.
+
 ## Done (lane LC, 2026-11-20)
 **Cause (general).** 93a481b71 hands a walk a water's dead ends (sinks); the walk itself was right — Shea Creek's code
 (`…-005657-271238`, flowing into Gosnell Creek) was collected whole by both the Bulkley's and the Morice's walks, and
