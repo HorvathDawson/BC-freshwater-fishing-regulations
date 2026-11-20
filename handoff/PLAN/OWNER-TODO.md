@@ -9,6 +9,12 @@ Things only you can do. Claude keeps this list current while you are away; the w
 `handoff/PLAN/app-integration/tickets/` (README.md is the ledger, and its "Owner questions" table has every question
 with the default Claude uses until you answer). Newest first inside each section.
 
+## 2026-11-20 ~06:45: T923 dark mode answered
+
+Shown the approved dark satellite shot (near-black rim, bold) beside the reviewed one (one pale rim in all themes, thinner
+looking). Owner picked, verbatim: "Second, but thicker": one pale rim in all themes, the satellite outline itself wider.
+Pictures of the thicker outline come before it lands.
+
 ## 2026-11-20 ~06:34: lane pictures and data clean-ups answered
 
 Looks approved (dialog): part names T780/T711, iPhone map T929, search T926/T927. Data clean-ups, all four OK: remove the
