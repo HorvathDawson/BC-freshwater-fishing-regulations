@@ -256,6 +256,7 @@ reads both files; a ticket closed here moves there once its lane is finished wit
 | T976 | The photo viewer's counter ("2 of 3") can't be read over a light photo: white text, no backing (the buttons have a disc) | OPEN | | lane L6 2026-11-20, T836 iPhone simulator shots |
 | T977 | Push wake carry-over: two feed runs at once both read it (duplicate silent pushes, or a wake's circle overwritten); no small fix, a lease when worth it | OPEN | | lane LF 2026-11-20, T739 review |
 | T978 | Release build checks never fail on this machine's state (worktree links, stale export, marks, mini release), only on code | OPEN | | owner 2026-11-20, 0.8.4 build stops |
+| T979 | iPhone: the water page's Map tab could show a much bigger map (too much white space; Squamish) | OPEN | | owner in-app report 2026-11-20 (0.8.3) |
 
 ## Next after closed testing
 
