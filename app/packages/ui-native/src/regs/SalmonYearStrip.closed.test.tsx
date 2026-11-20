@@ -2,7 +2,7 @@
  * (T820, owner 2026-11-16 21:37, iPhone build 36: "also the calendar bar doesnt have a full red line for salmon when closed
  * but instead it is empty with no color on the calendar bar..") A salmon year closed every day draws the FULL closed bar:
  * one run across the whole track, filled with the game-fish bar's own closed hatch (the closed colour, solid stripes over
- * its tint) — never an empty track, never the bare word. Core gives every card that year (`salmon.test.ts`,
+ * its tint; T935: drawn as shapes, iOS drew the rotated pattern as nothing) — never an empty track, never the bare word. Core gives every card that year (`salmon.test.ts`,
  * `salmonBook.test.ts`); this pins the drawing.
  */
 import { afterEach, describe, expect, it } from "vitest";
@@ -38,16 +38,21 @@ describe("(T820) <SalmonYearStrip> closed all year: the full closed bar", () => 
       draw(ALL_CLOSED, palette);
       const bar = screen.getByTestId("salmon-strip-bar");
       const svg = bar.querySelector("svg")!;
+      // (T935) drawn as shapes, never an SVG pattern (iOS drew the rotated one as nothing): the card, a tint of the closed
+      // colour, then solid stripes of it cut to the run — red on every platform, never a colourless track
+      expect(svg.innerHTML).not.toMatch(/<pattern|url\(#/);
       const runs = [...svg.querySelectorAll(":scope > rect")];
-      expect(runs.map((r) => [r.getAttribute("x"), r.getAttribute("width"), r.getAttribute("fill")]))
-        .toEqual([["0", "300", "url(#sb-closed)"]]);
-      // the fill it names is defined in the same picture: the card under a tint of the closed colour, and solid stripes
-      // of it (half of every tile) — red on every platform, never a colourless track
-      const pat = svg.querySelector("pattern#sb-closed")!;
-      expect(pat).not.toBeNull();
-      const tiles = [...pat.querySelectorAll("rect")].map((r) => [r.getAttribute("fill"), r.getAttribute("opacity"), Number(r.getAttribute("width"))]);
-      expect(tiles).toEqual([[palette.card, null, 6 * Math.SQRT2], [palette.closed, "0.3", 6 * Math.SQRT2], [palette.closed, null, 3 * Math.SQRT2]]);
-      expect(pat.getAttribute("patternTransform")).toBe("rotate(135)");
+      expect(runs.map((r) => [r.getAttribute("x"), r.getAttribute("width"), r.getAttribute("fill"), r.getAttribute("opacity")]))
+        .toEqual([["0", "300", palette.card, null], ["0", "300", palette.closed, "0.3"]]);
+      const stripes = [...svg.querySelectorAll(":scope > polygon")];
+      expect(stripes.length).toBe(Math.ceil((300 + 10) / 12));
+      expect(new Set(stripes.map((p) => p.getAttribute("fill")))).toEqual(new Set([palette.closed]));
+      for (const p of stripes) {
+        for (const xy of p.getAttribute("points")!.split(" ")) {
+          const [x, y] = xy.split(",").map(Number);
+          expect(x! >= 0 && x! <= 300 && y! >= 0 && y! <= 10, xy).toBe(true);
+        }
+      }
       // the words and the legend say it too
       expect([screen.getByTestId("salmon-strip-st:closed").textContent, screen.getByTestId("salmon-strip-legend").textContent])
         .toEqual(["✕Closed", "✕ Closed"]);
@@ -72,7 +77,8 @@ describe("(T820) <SalmonYearStrip> closed all year: the full closed bar", () => 
     );
     const block = screen.getByTestId("salmon-block");
     expect(within(block).queryByTestId("salmon-bare")).toBeNull();
-    const fills = [...within(block).getByTestId("salmon-strip-bar").querySelectorAll("svg > rect")].map((r) => r.getAttribute("fill"));
-    expect(fills).toEqual(["url(#sb-closed)"]);
+    const svg = within(block).getByTestId("salmon-strip-bar").querySelector("svg")!;
+    expect([...svg.querySelectorAll(":scope > rect")].map((r) => r.getAttribute("fill"))).toEqual([LIGHT.card, LIGHT.closed]);
+    expect(svg.querySelectorAll(":scope > polygon").length).toBeGreaterThan(0);
   });
 });

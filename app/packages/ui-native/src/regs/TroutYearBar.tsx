@@ -2,7 +2,7 @@
  * (T810 O, contract 2.3 `YearBar`) THE TROUT TABLE'S YEAR BAR: "Trout and char through the year" under the table, drawn
  * only when Python set `table.year` (every trout and char fish shares one state today on an open water, owner 12:42).
  * The app decides nothing: `runs` are used only as lengths, each drawn with the page strip's own fills (`YearStrip`'s
- * `RunRect` / `Patterns`): keep = the open fill, release = the release stripes, closed = the closed hatch; a `none` run
+ * `RunRect`, T935: stripes drawn as shapes): keep = the open fill, release = the release stripes, closed = the closed hatch; a `none` run
  * (no trout or char rule that day) a plain neutral fill, as the salmon bar's `unknown`. The day's marker and the month
  * initials are the page strip's own (`StripVM.todayAt` / `months`), passed in; none: not drawn.
  */
@@ -12,7 +12,7 @@ import type { TroutVM } from "@app/core";
 import { Text } from "../Text";
 import { TYPE } from "../type";
 import type { Palette } from "../theme";
-import { GAP, H, Patterns, RunRect, useBarWidth } from "./YearStrip";
+import { GAP, H, RunRect, useBarWidth } from "./YearStrip";
 
 /** a run's state as the strip's bits: the same fill as the page's game-fish bar (bit 1 closed, bit 2 release, 0 open) */
 const BITS = { keep: 0, release: 2, closed: 1 } as const;
@@ -31,10 +31,9 @@ export function TroutYearBar({ year, palette, todayAt = null, months = [] }: {
             accessible accessibilityRole="image" accessibilityLabel={year.title}>
         {w > 0 && (
           <Svg {...bar.svg}>
-            <Patterns id="ty" palette={palette} />
             {rects.map((r) => r.state === "none"
               ? <Rect key={r.i} testID="trout-year-run:none" x={r.at} y={0} width={r.rw} height={H} fill={palette.line2} />
-              : <RunRect key={r.i} x={r.at} w={r.rw} bits={BITS[r.state]} palette={palette} id="ty" />)}
+              : <RunRect key={r.i} x={r.at} w={r.rw} bits={BITS[r.state]} palette={palette} />)}
           </Svg>
         )}
         {w > 0 && todayAt !== null && (

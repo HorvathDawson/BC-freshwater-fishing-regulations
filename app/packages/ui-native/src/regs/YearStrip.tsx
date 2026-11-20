@@ -10,7 +10,8 @@ export { StripWidthHint };
 import { View } from "react-native";
 import { Text } from "../Text";
 import { TaggedTitle } from "./SourceTag";
-import Svg, { Defs, Line as SvgLine, Pattern, Rect } from "react-native-svg";
+import Svg, { Polygon, Rect } from "react-native-svg";
+import { CLOSED_STRIPES, FLIES_STRIPES, UPRIGHT_STRIPES, stripes, type StripeSet } from "./stripes";
 import { WORDS, legendText, type SalmonDrawn, type SalmonStripVM, type StripVM } from "@app/core";
 import { TYPE } from "../type";
 import { GUTTER, type Palette } from "../theme";
@@ -31,39 +32,36 @@ export function useBarWidth() {
   };
 }
 
-/** One run's fill (prototype .f-* classes): bit 1 closed hatch; else open / release stripes, + fly, flies, bait. */
-export function RunRect({ x, w, bits, palette, id }: { x: number; w: number; bits: number | null; palette: Palette; id: string }) {
-  const f = bits ?? 0;
-  if (f & 1) return <Rect x={x} y={0} width={w} height={H} fill={`url(#${id}-closed)`} />;
-  const base = f & 2 ? `url(#${id}-rel)` : f & 4 ? `url(#${id}-fly)` : f & 8 ? `url(#${id}-flies)` : palette.open;
-  return (
-    <>
-      <Rect x={x} y={0} width={w} height={H} fill={base} />
-      {f & 16 ? <Rect x={x} y={H - 5} width={w} height={5} fill={palette.restricted} /> : null}
-    </>
-  );
+/** (T935) one stripe set's polygons over a run, in one fill */
+function Stripes({ x, w, set, fill }: { x: number; w: number; set: StripeSet; fill: string }) {
+  return <>{stripes(x, w, H, set).map((pts, i) => <Polygon key={i} points={pts} fill={fill} />)}</>;
 }
 
-export function Patterns({ id, palette }: { id: string; palette: Palette }) {
+/**
+ * One run's fill (prototype .f-* classes): bit 1 closed hatch; else open / release stripes, + fly, flies, bait.
+ * (T935) Every stripe is drawn as shapes cut to the run (`stripes.ts`), never as an SVG `<Pattern>`: iOS drew the rotated
+ * closed hatch as nothing. The look is the old patterns' exactly, in the bar's own coordinates.
+ */
+export function RunRect({ x, w, bits, palette }: { x: number; w: number; bits: number | null; palette: Palette }) {
+  const f = bits ?? 0;
+  if (f & 1) {
+    return (
+      <>
+        <Rect x={x} y={0} width={w} height={H} fill={palette.card} />
+        <Rect x={x} y={0} width={w} height={H} fill={palette.closed} opacity={0.3} />
+        <Stripes x={x} w={w} set={CLOSED_STRIPES} fill={palette.closed} />
+      </>
+    );
+  }
+  const base = f & 2 ? <Stripes x={x} w={w} set={UPRIGHT_STRIPES} fill={palette.restricted} />
+    : f & 4 ? <><Rect x={x} y={0} width={w} height={H} fill={palette.card} /><Stripes x={x} w={w} set={UPRIGHT_STRIPES} fill={palette.open} /></>
+    : f & 8 ? <><Rect x={x} y={0} width={w} height={H} fill={palette.card} /><Stripes x={x} w={w} set={FLIES_STRIPES} fill={palette.open} /></>
+    : <Rect x={x} y={0} width={w} height={H} fill={palette.open} />;
   return (
-    <Defs>
-      <Pattern id={`${id}-closed`} patternUnits="userSpaceOnUse" width={6 * Math.SQRT2} height={6 * Math.SQRT2} patternTransform="rotate(135)">
-        <Rect x={0} y={0} width={6 * Math.SQRT2} height={6 * Math.SQRT2} fill={palette.card} />
-        <Rect x={0} y={0} width={6 * Math.SQRT2} height={6 * Math.SQRT2} fill={palette.closed} opacity={0.3} />
-        <Rect x={0} y={0} width={3 * Math.SQRT2} height={6 * Math.SQRT2} fill={palette.closed} />
-      </Pattern>
-      <Pattern id={`${id}-rel`} patternUnits="userSpaceOnUse" width={5} height={H}>
-        <Rect x={0} y={0} width={3} height={H} fill={palette.restricted} />
-      </Pattern>
-      <Pattern id={`${id}-fly`} patternUnits="userSpaceOnUse" width={5} height={H}>
-        <Rect x={0} y={0} width={5} height={H} fill={palette.card} />
-        <Rect x={0} y={0} width={3} height={H} fill={palette.open} />
-      </Pattern>
-      <Pattern id={`${id}-flies`} patternUnits="userSpaceOnUse" width={4} height={4} patternTransform="rotate(45)">
-        <Rect x={0} y={0} width={4} height={4} fill={palette.card} />
-        <SvgLine x1={1} y1={0} x2={1} y2={4} stroke={palette.open} strokeWidth={2} />
-      </Pattern>
-    </Defs>
+    <>
+      {base}
+      {f & 16 ? <Rect x={x} y={H - 5} width={w} height={5} fill={palette.restricted} /> : null}
+    </>
   );
 }
 
@@ -104,8 +102,7 @@ export function YearStrip({ strip, dateLabel, palette, title = null, hours = nul
             accessible accessibilityRole="image" accessibilityLabel={strip.line.map((l) => l.text).join(" ")}>
         {w > 0 && (
           <Svg {...bar.svg}>
-            <Patterns id="ys" palette={palette} />
-            {rects.map((r) => <RunRect key={r.i} x={r.at} w={r.rw} bits={r.bits} palette={palette} id="ys" />)}
+            {rects.map((r) => <RunRect key={r.i} x={r.at} w={r.rw} bits={r.bits} palette={palette} />)}
           </Svg>
         )}
         {w > 0 && (
@@ -121,8 +118,7 @@ export function YearStrip({ strip, dateLabel, palette, title = null, hours = nul
         {strip.legend.map((l) => (
           <View key={l.bit} style={{ flexDirection: "row", alignItems: "center", gap: 5 }}>
             <Svg width={l.bit <= 1 ? 14 : 12} height={10}>
-              <Patterns id={`lg${l.bit}`} palette={palette} />
-              <RunRect x={0} w={l.bit <= 1 ? 14 : 12} bits={l.bit === 0 ? 0 : l.bit} palette={palette} id={`lg${l.bit}`} />
+              <RunRect x={0} w={l.bit <= 1 ? 14 : 12} bits={l.bit === 0 ? 0 : l.bit} palette={palette} />
             </Svg>
             <Text testID="strip-legend-item" style={[TYPE.legend, { color: palette.ink }]}>{legendText(l)}</Text>
           </View>
@@ -135,11 +131,11 @@ export function YearStrip({ strip, dateLabel, palette, title = null, hours = nul
 // ── (T227) THE SALMON BAR ───────────────────────────────────────────────────────────────────────────────────────────
 
 /** A salmon run's fill: the game-fish bar's own (open, release stripes, closed hatch); `unknown` a plain neutral fill. */
-function SalmonRect({ x, w, drawn, palette, id }: { x: number; w: number; drawn: SalmonDrawn; palette: Palette; id: string }) {
+function SalmonRect({ x, w, drawn, palette }: { x: number; w: number; drawn: SalmonDrawn; palette: Palette }) {
   if (drawn === "unknown") return <Rect x={x} y={0} width={w} height={H} fill={palette.line2} />;
   // (T887) keep wears the Salmon map's keep colour (light: its own green); release and closed are the shared patterns
   if (drawn === "open") return <Rect x={x} y={0} width={w} height={H} fill={palette.salmon.open} />;
-  return <RunRect x={x} w={w} bits={drawn === "closed" ? 1 : 2} palette={palette} id={id} />;
+  return <RunRect x={x} w={w} bits={drawn === "closed" ? 1 : 2} palette={palette} />;
 }
 
 /**
@@ -177,8 +173,7 @@ export function SalmonYearStrip({ strip, todayAt, months, dateLabel, palette, he
             accessible accessibilityRole="image" accessibilityLabel={`${strip.title}: ${strip.word}${strip.when ? ` ${strip.when}` : ""}`}>
         {w > 0 && (
           <Svg {...bar.svg}>
-            <Patterns id="sb" palette={palette} />
-            {rects.map((r) => <SalmonRect key={r.i} x={r.at} w={r.rw} drawn={r.drawn} palette={palette} id="sb" />)}
+            {rects.map((r) => <SalmonRect key={r.i} x={r.at} w={r.rw} drawn={r.drawn} palette={palette} />)}
           </Svg>
         )}
         {w > 0 && (
@@ -194,8 +189,7 @@ export function SalmonYearStrip({ strip, todayAt, months, dateLabel, palette, he
         {strip.legend.map((l) => (
           <View key={l.drawn} style={{ flexDirection: "row", alignItems: "center", gap: 5 }}>
             <Svg width={l.drawn === "release" ? 12 : 14} height={10}>
-              <Patterns id={`slg${l.drawn}`} palette={palette} />
-              <SalmonRect x={0} w={l.drawn === "release" ? 12 : 14} drawn={l.drawn} palette={palette} id={`slg${l.drawn}`} />
+              <SalmonRect x={0} w={l.drawn === "release" ? 12 : 14} drawn={l.drawn} palette={palette} />
             </Svg>
             <Text style={[TYPE.legend, { color: palette.ink }]}>{l.label}</Text>
           </View>
