@@ -119,12 +119,51 @@ def _region(e: str) -> Optional[str]:
     return EID.region_of(e) if EID.is_water_row(e) else None
 
 
+#: (T801 item 5(1)) a part's field: the licensing set of each of its pieces that runs on the main stem (`_by_grp`
+#: sets it on a rule-set group; a plain part's is its own, `stem_licensing`)
+STEM_LICENSING = "stem_licensing"
+
+
+def stem_licensing(parts: Sequence[dict]) -> List[Optional[str]]:
+    """The licensing set (or None) of each part in `parts` with a main-stem run (a run that is not a `branch`): a
+    part of side channels alone says nothing of where its water's designations stand."""
+    return [p.get("licensing_set") for p in parts if any(not r.get("branch") for r in p.get("runs") or [])]
+
+
+def _lic_entries(W: Water, j: int) -> List[str]:
+    """(T801 item 5(1), owner 2026-11-16) the water rows whose licensing record is placed (`reach`) on EVERY main-stem
+    piece of part j: the Skeena's "(mainstem only)" row, whose rules bind only its two weekend zones, still speaks on
+    every part its Section 4 designation covers. None when the part has no main-stem piece."""
+    p = W.parts[j]
+    sets = p[STEM_LICENSING] if STEM_LICENSING in p else stem_licensing([p])
+    if not sets:
+        return []
+    entries, lic = W.doc["entries"], W.doc.get("licensing") or {}
+
+    def of(s):
+        ls = W.doc["licensing_sets"].get(s) if s is not None else None
+        return {lic[k]["entry_id"] for k in (ls or {}).get("reach") or []
+                if (entries.get(lic[k]["entry_id"]) or {}).get("kind") == "water"}
+    common = set.intersection(*(of(s) for s in sets))
+    return sorted(common)
+
+
 def part_place(W: Water, i: int) -> str:
     """`partPlace` — the entry a part comes from, when the water's parts come from two or more of
-    its own entries (consumer 3.1 step 1)."""
+    its own entries (consumer 3.1 step 1). A water row speaks on a part by a rule it binds there (rank 0); a row whose
+    place is its printed SCOPE ("(mainstem only)") and that speaks by a rule somewhere on the water speaks too on every
+    part whose main stem its licensing record covers (T801 item 5(1): the Skeena's "Mainstem only" on every Skeena
+    River 2 and Section 4 part, not only its two weekend zones). A region ("In Region 6") is where a part IS, read from
+    the rules alone: a row's designation restated in another region moves no part's region (the Stellako)."""
     entries = W.doc["entries"]
 
-    def ents(j):
+    def scope(e):
+        E = entries.get(e) or {}
+        m = re.search(r"\(([^)]+)\)", E.get("full_name") or "")
+        sc = re.sub(r"\.$", "", E.get("scope_note") or (m.group(1) if m else "") or "")
+        return cap(sc) if sc and len(sc.split(" ")) > 1 else ""
+
+    def by_rules(j):
         out = []
         for k in W.rules[j]:
             x = W.r(k)
@@ -136,6 +175,12 @@ def part_place(W: Water, i: int) -> str:
                     x["entry_id"] not in out:
                 out.append(x["entry_id"])
         return out
+    ruled = {e for j in range(len(W.parts)) for e in by_rules(j)}
+
+    def ents(j):
+        out = by_rules(j)
+        # only rows that speak by a rule elsewhere on the water: no water gains or loses a place
+        return out + [e for e in _lic_entries(W, j) if e in ruled and e not in out and scope(e)]
     every: List[str] = []
     for j in range(len(W.parts)):
         for e in ents(j):
@@ -145,11 +190,8 @@ def part_place(W: Water, i: int) -> str:
         return ""
 
     def say(e):
-        E = entries.get(e) or {}
-        m = re.search(r"\(([^)]+)\)", E.get("full_name") or "")
-        sc = re.sub(r"\.$", "", E.get("scope_note") or (m.group(1) if m else "") or "")
-        if sc and len(sc.split(" ")) > 1:
-            return cap(sc)
+        if scope(e):
+            return scope(e)
         reg = _region(e)
         return f"In Region {reg.upper()}" if reg else ""
     regs = {_region(e) for e in every}
