@@ -76,6 +76,10 @@ def test_a_mid_window_gap_is_filled_from_the_archive(tmp_path, net):
     _seed(tmp_path, have)
     summary = pub.publish(tmp_path, [STATION], now=NOW)
     assert net.count(ARCHIVE) == 1
+    # (T676 item 2) the written index AND each station file name the oldest app that reads them, from the one table
+    from pipeline.common.feed_formats import FEED_MIN_APP
+    assert json.loads((tmp_path / "index.json").read_text())["minAppVersion"] == FEED_MIN_APP["gauge_feed"]
+    assert json.loads((tmp_path / f"{STATION}.json").read_text())["minAppVersion"] == FEED_MIN_APP["gauge_feed"]
     rows = {r[0]: r for r in _daily(tmp_path)}
     assert [rows[d] for d in ("2026-10-05", "2026-10-06", "2026-10-07")] == [
         ["2026-10-05", 2.0, 5.0], ["2026-10-06", 2.0, 6.0], ["2026-10-07", 2.0, 7.0]]

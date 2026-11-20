@@ -22,8 +22,8 @@
  * cannot be raised is reported, and the rule's state is not advanced, so the next run raises it.
  */
 import {
-  alertNotification, alertSilentNotification, APP_VERSION_NOTE, appVersionToTell, evaluateAlerts, isEnvironment, newestReading, NOTIFY_WORDS,
-  releaseAllowed, reportFailure, UPDATE_READY_NOTE, type AppVersion,
+  alertNotification, alertSilentNotification, APP_VERSION_NOTE, appVersionToTell, evaluateAlerts, isEnvironment, isFeedTooNew, newestReading,
+  NOTIFY_WORDS, releaseAllowed, reportFailure, UPDATE_DOWNLOAD_NOTE, UPDATE_READY_NOTE, type AppVersion,
 } from "@app/core";
 import type { Manifest } from "../manifest";
 import type { ObsFile } from "../feed/history";
@@ -39,7 +39,8 @@ export interface Notice { channel: "gauges" | "updates" | "app"; title: string; 
 
 export interface CheckDeps {
   settings: NotifySettings;
-  /** the feed-wide newest rows (`fetchObs` over the app's feed base); throws offline */
+  /** the feed-wide newest rows (`fetchObs` over the app's feed base, with the feed gate); throws offline, and (T676
+   *  item 2) the gate's `FeedNeedsNewerApp` when the feed asks for a newer app */
   obs(): Promise<ObsFile>;
   /** the release manifest (the update service's url); throws offline */
   manifest(): Promise<Manifest>;
@@ -50,6 +51,8 @@ export interface CheckDeps {
   /** this app's version: a release asking for a newer one is not announced; null: no gate */
   appVersion?: AppVersion | null;
   now(): number;
+  /** (T739) this run was woken by our server's push (`runWake`); `downloading`: the release whose download it started */
+  woke?: { readonly downloading: string | null };
 }
 
 /**
@@ -79,6 +82,7 @@ export async function runBackgroundCheck(d: CheckDeps): Promise<BgResult> {
   let fired = 0;
   let silent = 0;
   let told = false;
+  let tooOld = false;
 
   const live = s0.on ? s0.rules.filter((r) => r.on) : [];
   if (live.length) {
@@ -115,14 +119,21 @@ export async function runBackgroundCheck(d: CheckDeps): Promise<BgResult> {
       // only the alerts still there (one deleted while the check ran stays deleted)
       d.settings.update((s) => ({ ...s, ruleState: { ...s.ruleState,
         ...Object.fromEntries(Object.entries(states).filter(([id]) => s.rules.some((r) => r.id === id))) } }));
-    } catch (e) { reportFailure(e); fail(e); }
+    } catch (e) {
+      // (T676 item 2) the gauge feed asks for a newer app: a known state, said in the run line, never reported (the
+      // alerts' states stand; the open app shows the update prompt)
+      if (isFeedTooNew(e)) tooOld = true;
+      else { reportFailure(e); fail(e); }
+    }
   }
 
   if (s0.on && s0.updateReady && s0.held !== null) {
     try {
       const m = await d.manifest();
       if (updateReadyFor(d.settings.read(), m, d.appVersion)) {
-        await d.notify({ channel: "updates", title: UPDATE_READY_NOTE.title, body: UPDATE_READY_NOTE.body,
+        // (T739) a push wake says it is to download (the wake already tried and could not start it); the periodic check as before
+        const note = d.woke ? UPDATE_DOWNLOAD_NOTE : UPDATE_READY_NOTE;
+        await d.notify({ channel: "updates", title: note.title, body: note.body,
                          data: { kind: "update", release: m.data_release } });
         d.settings.update((s) => ({ ...s, toldRelease: m.data_release }));
         told = true;
@@ -146,14 +157,17 @@ export async function runBackgroundCheck(d: CheckDeps): Promise<BgResult> {
   }
 
   const W = NOTIFY_WORDS.run;
+  if (d.woke) parts.push(W.woke);
+  if (d.woke?.downloading) parts.push(W.downloading);
   if (!s0.on || (!live.length && !s0.updateReady && !s0.appVersion)) parts.push(W.noRules);
   if (fired) parts.push(W.fired(fired));
   if (silent) parts.push(W.silent(silent));
+  if (tooOld) parts.push(W.appTooOld);
   if (told) parts.push(W.updateReady);
   if (toldApp) parts.push(W.appVersion);
   if (offline) parts.push(W.offline);
   for (const f of failed) parts.push(W.failed(f));
-  if (!parts.length) parts.push(W.quiet);
+  if (parts.length === (d.woke ? 1 : 0)) parts.push(W.quiet);
   const result: BgResult = { fired, told, offline, failed, line: parts.join(", ") };
   try {
     d.settings.update(noteRun({ at: started, ms: d.now() - started, result: result.line }));

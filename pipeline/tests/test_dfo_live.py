@@ -79,6 +79,9 @@ def test_todays_pages_join_every_location(tmp_path):
     got = L.run(tmp_path, fetcher=_pages(), now=AT, notify_url="http://n", sender=Sender())
     ix = got["index"]
     assert ix["format"] == L.FORMAT == "dfo-feed/3" and ix["unplaced"] == 0 and not got["notices"]
+    # (T676 item 2) the written index names the oldest app that reads it, from the one table
+    from pipeline.common.feed_formats import FEED_MIN_APP
+    assert ix["minAppVersion"] == FEED_MIN_APP["dfo_feed"]
     assert len(ix["locs"]) == 271          # T349: + 7 page-default entries (R4/5B/6 carry the sentence on their own row)
     # T573: + 17 closed areas the live rows name (Thompson 3, middle Shuswap 1, Babine 12 mouths + the Gullwing line)
     assert sum(1 for k in ix["locs"] if "#closed:" in k) == 17

@@ -10,6 +10,7 @@ import { maintenanceNotices } from "../src/gauges/publish";
 import { buildFeed, diff, effectiveDates, undatedEvent, matchedWaters, parseChange, parseInSeason, regionOf, rowId, runInSeason, type InSeasonFeed } from "../src/inseason";
 import { repoData } from "../../../conformance/src/repoData";
 import { MemStore } from "./dfo.scenario";
+import { FEED_MIN_APP } from "../../../packages/core/src/feedFormats.generated";
 import { INSEASON_LINKS_FORMAT } from "../../../packages/core/src/inseason";
 
 /** a test event with the `data` its kind's template renders */
@@ -307,6 +308,7 @@ describe("the published in-season feed (feeds/inseason/index.json, inseason-feed
   it("(T520) a row's id is its content: stable under reorder, a new id for an amended text (status changed)", () => {
     const R = (water: string, change: string) => ({ section: "Region 1 - Vancouver Island", water, change, effective: "" });
     const a = buildFeed([R("Heber Creek", "No fishing"), R("Heber Creek", "Bait ban")], null, "2026-11-01T00:00:00Z", "h", true);
+    expect(a.minAppVersion).toBe(FEED_MIN_APP.inseasonFeed);   // (T676 item 2) the oldest app that reads the index
     // a DFO-style insert above: the existing rows keep their ids (the position never mattered)
     const b = buildFeed([R("Heber Creek", "Catch and release"), R("Heber Creek", "No fishing"), R("Heber Creek", "Bait ban")],
                         a, "2026-11-02T00:00:00Z", "h2", true);

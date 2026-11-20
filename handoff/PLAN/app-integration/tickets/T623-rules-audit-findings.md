@@ -1,6 +1,6 @@
 # T623 — Rules as shown vs the sources: 21 findings from the 48-water audit
 
-Status: PARTIAL — fixes d8419a5c2, fc832cae0, 19580fc9a, a0f8adb49, 682c884f4, 89206b670, c577f682b, 3884405fd; pending patches applied (ea1c74d67, 2e68ff4c9); reach + deliver done with build 27 (r-303b4007a70a; verification 7d462faf0); F3 fixed by T671 D2 (6b02feb06: a TBD row keeps its own species); left (Claude): F13 (the quota quote keeps "hatchery marked only": `typed.py` + `typed.ts` `RE_QUOTA_SPAN` + a `DFO_REV` bump, diff in the hand-over section); the owner's tick of the F2/F9 Campbell cut proposals is taken as done (owner's word 2026-11-20)
+Status: IN PROGRESS — fixes d8419a5c2, fc832cae0, 19580fc9a, a0f8adb49, 682c884f4, 89206b670, c577f682b, 3884405fd; pending patches applied (ea1c74d67, 2e68ff4c9); reach + deliver done with build 27 (r-303b4007a70a; verification 7d462faf0); F3 fixed by T671 D2 (6b02feb06); F13 built 11d7722c6 (lane/l1-feeds); the owner's tick of the F2/F9 Campbell cut proposals is taken as done (owner's word 2026-11-20); left (Claude): main chat review + merge of F13, then the staging feeds worker deploy (DFO_REV 2026-11-20.1 re-types the pages) and `python -m pipeline.regs.dfo_salmon.feed` before the next deliver 2026-11-20 07:18: F13 merged (27e98e4eb), staging feeds worker deployed, DFO typed files re-typed (261 locators, 550 rules); left (Claude): ships with the next data release.
 
 Source: T608 part A, `handoff/PLAN/app-integration/T608A-findings.md` (commit ef14f3b83): 48 waters, 34 clean, no wrong
 value in any regional table; 21 findings F1–F21 (5 high, 7 medium, 9 low), each with the rule as shown, the source
@@ -188,3 +188,17 @@ The new reach tables were compared with the live run, filtered to T623's rules.
 Owner 2026-11-20, "Couldn't we just assume most of these are done already?": the F2/F9 Campbell River cut proposals are taken as ticked. Stays PARTIAL: F13 (the quota quote keeps "hatchery marked only") is Claude's work and unbuilt.
 
 Status line before this answer: PARTIAL — fixes d8419a5c2, fc832cae0, 19580fc9a, a0f8adb49, 682c884f4, 89206b670, c577f682b, 3884405fd; pending patches applied (ea1c74d67, 2e68ff4c9); reach + deliver done with build 27 (r-303b4007a70a; verification 7d462faf0); F3 fixed by T671 D2 (6b02feb06: a TBD row keeps its own species); left (Claude): F13 (the quota quote keeps "hatchery marked only": `typed.py` + `typed.ts` `RE_QUOTA_SPAN` + a `DFO_REV` bump, diff in the hand-over section); owner: tick the F2/F9 Campbell cut proposals in the review app
+
+## Done 2026-11-20 — F13 (11d7722c6, lane/l1-feeds)
+- The quota quote in `typed.py` `to_rules` and the worker's `typed.ts` `RE_QUOTA_SPAN` runs on to an optional
+  `,? hatchery[- ]marked (fish)? only` tail, so the verdict's short line keeps the condition: Squamish coho reads
+  "1 per day, hatchery marked only" (was "1 per day"). `DFO_REV` 2026-11-20.1 so unchanged pages are re-typed after
+  the worker deploy.
+- Tests: a shared row in `app/workers/feeds/test/fixtures/dfo/dfo-rows.json` ("hatchery marked only after the count",
+  four cells incl. "hatchery marked fish only" and a cell with no tail); both readers now assert the rule's `verbatim`
+  (`test_t671_salmon_rows.py`, `dfo.t671.test.ts`); `test_dfo_salmon.py::test_the_quota_quote_keeps_hatchery_marked_only`;
+  vectors regenerated (`python -m pipeline.tools.emit.dfo_vectors`: 6 verdict lines per fixture page set). Mutation:
+  the worker regex alone reverted fails 19 vitest cases.
+- Re-typed scrape (a copy of the main checkout's `rules/`, typed in the lane): 11 rules move, all coho, `verbatim` only
+  (Region 1: 7, Region 2: 4); no species, take, origin or date changes. Nothing angler-visible changes status.
+- Shows after: staging feeds worker deploy (live feed) and the next deliver (the release's salmon file).

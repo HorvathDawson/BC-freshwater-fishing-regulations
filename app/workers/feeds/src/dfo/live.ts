@@ -21,7 +21,7 @@
 // (or a calendar that throws) keeps that location's last answers (a `check` verdict when it has none), listed in the
 // region's `holds` with the reason, and the rest of the region publishes. A page that does not parse / verify, and a
 // STRUCTURAL reconcile, still hold the region (those are page-level).
-import { FEED_FORMATS } from "../../../../packages/core/src/feedFormats.generated";
+import { FEED_FORMATS, FEED_MIN_APP } from "../../../../packages/core/src/feedFormats.generated";
 import { contentHash, loadManifest, rev, skipSameStore, type Fetch, type Meter, type Store } from "../io";
 import { sendDue } from "../notify";
 import { derive, livePieces, pieceId, PIECES_SHAPE } from "./closures";
@@ -45,6 +45,8 @@ import { feedMap, readBaseline, rowChanges, rowsNotice, ROWS_KEY, type RowChange
 // closure's verdict carries `c`, a region its `shared` + `sizes`, a header note's length is `lengths`
 // (T556) the string is generated from the Python table (pipeline/common/feed_formats.py), the app's reader with it
 export const FORMAT = FEED_FORMATS.dfoFeed;
+/** (T676 item 2) the index's `minAppVersion`: the oldest app that reads it (live.py's MIN_APP, one table) */
+export const MIN_APP = FEED_MIN_APP.dfoFeed;
 const SPECIES_N = [...SPECIES];
 /**
  * (T851) A region is STALE when its last good read (`checked`) is older than this at a run whose fetch failed — not
@@ -101,7 +103,7 @@ export interface DfoDeps {
 }
 
 /** Bump when a code change alters what a region's page types to: unchanged pages are re-typed once after a deploy. */
-export const DFO_REV = "2026-11-15.3"; // T759: close matches apply, issues + dfo shape in index.json; T758: + the page-default places (cascade.ts statementLocators); T757: + one loc per closed-area piece today's row names; T521: an unplaced row carries its water's app items (`items`); T332 quota trees
+export const DFO_REV = "2026-11-20.1"; // T623 F13: the quota quote keeps a trailing "hatchery marked (fish) only"; T759: close matches apply, issues + dfo shape in index.json; T758: + the page-default places (cascade.ts statementLocators); T757: + one loc per closed-area piece today's row names; T521: an unplaced row carries its water's app items (`items`); T332 quota trees
 // (T549 items 7, 10) index.json is written by EVERY run that gets to the end, so its `at` is when DFO was last CHECKED.
 // It was skipped while unchanged and under a 20 h heartbeat: in season (a run every 6 h) `at` moved once a day and sat
 // exactly on the app's stale line, so the card said "checked 24 h ago" 6 h after a check. One small put a run.
@@ -824,7 +826,7 @@ export async function runDfo(deps: DfoDeps): Promise<DfoResult> {
   // robust: number verdicts / gears canonically (first use over the sorted locations; NOT_LISTED stays 0) so a carried
   // region and a re-typed one publish the same bytes — what lets an unchanged feed skip its write
   const [vItems, gItems] = robust ? canonical(sortedLocs, verdicts.items, gears.items) : [verdicts.items, gears.items];
-  const index = { format: FORMAT, at, regions, verdicts: vItems, gears: gItems, locs: sortedLocs, unplaced: unplaced.length,
+  const index = { format: FORMAT, minAppVersion: MIN_APP, at, regions, verdicts: vItems, gears: gItems, locs: sortedLocs, unplaced: unplaced.length,
                   dfo: { ...SHAPE },
                   issues: { waters: Object.fromEntries([...issues].sort(([x], [y]) => cmpStr(x, y))), no_water: noWater,
                             unread: Object.fromEntries(ALL_SLUGS.filter((s) => s in unread).map((s) => [s, unread[s]!])) },

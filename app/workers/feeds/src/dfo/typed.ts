@@ -218,7 +218,8 @@ const RE_BAIT_BAN = pyRe("\\bbait\\s+ban\\b|\\bno\\s+natural\\s+bait\\b|\\bnatur
 /** (T320) "Natural bait allowed — FN1038": a permission no rule type states */
 const RE_BAIT_ALLOWED = pyRe("\\bnatural\\s+bait\\s+allowed\\b", "i");
 const RE_BARBLESS = pyRe("\\bsingle,?\\s+barbless\\s+hook\\b", "i");
-const RE_QUOTA_SPAN = pyRe("\\b\\d+\\s+(?:hatchery[- ]marked\\s+)?per\\s+day", "i");
+// (T623 F13) the quote runs on to a trailing "hatchery marked (fish) only" (Squamish coho "1 per day, hatchery marked only")
+const RE_QUOTA_SPAN = pyRe("\\b\\d+\\s+(?:hatchery[- ]marked\\s+)?per\\s+day(?:,?\\s+hatchery[- ]marked(?:\\s+fish)?\\s+only)?", "i");
 const RE_BAIT_SPAN = pyRe("no\\s+natural\\s+bait[\\w\\s]*|bait\\s+ban|natural\\s+bait\\s+not\\s+allowed", "i");
 /** (T789 D6) the hook rule's quoted span runs through a hyphenated word ("non-tidal"), never cut at the hyphen (Region 6's
  *  line read "Single, barbless hook in tidal and non" on 25,787 sections); a free-standing dash still ends it

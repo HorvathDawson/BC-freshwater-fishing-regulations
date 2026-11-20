@@ -53,7 +53,7 @@ from concurrent.futures import ThreadPoolExecutor
 from datetime import date, datetime, timedelta, timezone
 from pathlib import Path
 from pipeline.common.curated import CURATED, SOURCE
-from pipeline.common.feed_formats import FEED_FORMATS
+from pipeline.common.feed_formats import FEED_FORMATS, FEED_MIN_APP
 from pipeline.gauges.feed.climatology import PCTILES
 from pipeline.gauges.feed.change import combine_day as _combine_day, forecast_days, gauge_scale as _gauge_scale
 from pipeline.gauges.feed.change import model_name as _model_name
@@ -333,6 +333,7 @@ HORIZONS = (1, 2, 3, 4, 5, 6, 7, 8, 9, 10)
 # another (core `GAUGE_FEED_FORMAT`, `gaugeFeedRefusal`). (T556) Typed once, in pipeline/common/feed_formats.py, which
 # the app's and the worker's value is generated from.
 FEED_FORMAT = FEED_FORMATS["gauge_feed"]
+MIN_APP = FEED_MIN_APP["gauge_feed"]   # (T676 item 2) the index's `minAppVersion`: the oldest app that reads it
 
 # (T550) A READING OLDER THAN THIS, when the feed is written, IS NOT TODAY'S and is never ranked: its `percentile` is null
 # and its per-quantity ranks are dropped, so no reader counts, weighs or colours it (`age_gate`). Its `observedAt` stays,
@@ -1020,6 +1021,7 @@ def publish(out: Path, stations: list[str], clim: dict | None = None,
 
         (out / f"{r['station']}.json").write_text(json.dumps({
             "format": FEED_FORMAT,
+            "minAppVersion": MIN_APP,      # (T676 item 2) every gauge file names the oldest app that reads it
             "fetchedAt": now.isoformat(timespec="seconds").replace("+00:00", "Z"),
             "station": r["station"],
             "now": {"discharge": r["discharge"], "level": r["level"], "at": r["at"],
@@ -1073,6 +1075,7 @@ def publish(out: Path, stations: list[str], clim: dict | None = None,
                                       previous=before, at=fetched_at, roster=roster)
     (out / "index.json").write_text(json.dumps({
         "format": FEED_FORMAT,
+        "minAppVersion": MIN_APP,
         "fetchedAt": fetched_at,
         # (T68) the newest forecast run's issue time, feed-wide, for the More tab's Forecasts line; null: no run held
         "forecastIssuedAt": newest_forecast_issue(forecast),

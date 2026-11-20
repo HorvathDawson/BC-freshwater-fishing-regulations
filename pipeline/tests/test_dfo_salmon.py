@@ -2387,6 +2387,19 @@ def test_an_unreadable_season_goes_to_review_rather_than_publishing_as_none():
     assert not any(r.review_reason for r in _typed(dates="", limits_gear="2 per day"))
 
 
+def test_the_quota_quote_keeps_hatchery_marked_only():
+    """(T623 F13) DFO Region 2, Squamish River coho: "1 per day, hatchery marked only". The quote is the app's short
+    line, and it stopped at "per day", so the line said "1 per day" with the condition gone. The worker's twin is the
+    shared row in dfo-rows.json ("hatchery marked only after the count")."""
+    rule, = _typed(species="Coho", dates="Sep 15 to Jan 31", limits_gear="1 per day, hatchery marked only")
+    assert rule.verbatim == "1 per day, hatchery marked only" and rule.origin is not None
+    rule, = _typed(species="Coho", dates="Sep 15 to Jan 31", limits_gear="2 per day hatchery marked fish only")
+    assert rule.verbatim == "2 per day hatchery marked fish only"
+    # a cell without the tail quotes the count alone, as before
+    assert _typed(species="Coho", dates="Sep 15 to Jan 31", limits_gear="2 per day. Barbless hooks only")[0].verbatim \
+        == "2 per day"
+
+
 def test_a_repaired_window_is_published_repaired():
     """"Aprl 1 to Jun 15" (2022 Region 6) has one possible reading. Publishing the typo verbatim
     hands the app a season it cannot parse; the repair is recorded, never silent."""

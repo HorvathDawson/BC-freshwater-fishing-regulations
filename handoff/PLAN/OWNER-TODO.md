@@ -9,6 +9,42 @@ Things only you can do. Claude keeps this list current while you are away; the w
 `handoff/PLAN/app-integration/tickets/` (README.md is the ledger, and its "Owner questions" table has every question
 with the default Claude uses until you answer). Newest first inside each section.
 
+## 2026-11-20 07:33: push privacy line, now that Android has no push (T739, lane L5; NOT asked yet)
+
+The push-token paragraph you approved on 11-15 ("Yes to both") is now in the privacy page's source exactly as written
+(`app/tools/seo/html.ts`, heading "Push token", after the crash-report section; it goes live only with a production
+release). Since then you said no Android push (11-16, "we dont want this right now"), so four small things no longer
+match the app. Pick: (a) leave it as approved, (b) Claude's edit below, (c) your words. Default until you answer: (a).
+1. It says "an address Apple or Google issue" and "whether the phone is an iPhone or Android", and "when Apple or Google
+   tell us". Today only iPhones send a token. Edit: "an address Apple issues", drop "and whether the phone is an iPhone or
+   Android", "when Apple tells us".
+2. It says "our server" / "We"; the rest of the page says "my servers" / "I". Edit: "my server", "I".
+3. "The short version" still says "The app sends me two things" (problem report, error report). Edit: add "and, if you
+   turn notifications on, an iPhone's push token".
+4. "The services named above (Cloudflare, Open-Meteo, Esri)" leaves out Apple, which carries the silent signal. Edit: add
+   Apple (push only). Also: the page's effective date (2026-11-19) should move to the day this goes live.
+No picture: this is wording only; the whole paragraph is quoted in T739 ("Owner answer, 2026-11-15 evening").
+Facts from the independent code review (2026-11-20), for the same pick; the approved wording is NOT changed:
+- The page says Apple/Google and iPhone/Android, but Android sends nothing (no Android push since 11-16).
+- To limit registrations, the server keeps a salted one-way hash of the phone's IP address for a day (the same as
+  problem and crash reports); the paragraph does not say so.
+- Besides the token and the platform, the server stores the APNs environment (sandbox / production) and the time of
+  the registration.
+- A token is sent only when notifications are on AND something is set to be checked (a gauge alert, "New
+  regulations data" or "New app version"), not on "notifications on" alone.
+
+## 2026-11-20 07:07: a morning question (T926 number names)
+
+- **Three lakes would show "Unnamed …" instead of their number.** Under "Never show a number name", the lakes now shown
+  as 3261, 3296 and 3299 would show "Unnamed Cayoosh Cr", "Unnamed Vanhorlick 1" and "Unnamed Vanhorlick 2" (their
+  stocking records' only lettered names). OK, or should those three keep their number? Default until you answer: the
+  rule as you gave it (they show the "Unnamed …" names). The other five change to a real lake name: 5566 → Pigeon Lake
+  #2, #15 → Precipice Lake, #1222 → Wilderness, #1012 → Trails End Lake, #825 → Heidi Lake. Ticket T926.
+- **Is "#14A" a number name?** The lake shown "#14A" (wbk:329021840) has a letter in it, so under the rule it stays
+  shown (its other name is "FLOATPLANE LAKE"). Should a number with a letter on it count as a number name too? Default
+  until you answer: it stays shown, the
+  rule as you gave it. Ticket T926.
+
 ## 2026-11-20 ~06:55: number names, T923, satellite colours answered (dialog)
 
 - Lakes shown by a bare number (Pigeon Lake # 2 shown as "5566"; also 3261, 3296, 3299): "Never show a number name": a
@@ -45,13 +81,6 @@ linked by its existing override in book_name_links.json, which stays untouched).
 T937 Salmon map no-access grey: owner, verbatim, "Remove checked dste" (remove the "Checked Nov 19" line from the Salmon
 key so it stays two rows). T923 satellite outline for reserves and private land: "Looks good, land it" (review, then it
 lands with this release).
-
-## 2026-11-20: T928/T929 pictures to look at
-
-**T928/T929 pictures (iPhone simulator, before / after):** a "Show all parts" pick framing its part, and the boundary
-labels staying on their marks when you pan (`handoff/PLAN/app-integration/tickets/T929-shots/`); T928's sideways shift
-was not reproduced (the drag now always comes home), and a separate "map drawn in part of the screen after search →
-water → Back" was found (`handoff/PLAN/app-integration/tickets/T928-shots/`). Then the main chat reviews and merges.
 
 ## 2026-11-20 01:56: lane-plan batch answered
 

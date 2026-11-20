@@ -454,7 +454,10 @@ def to_rules(rec: dict, rule_base: str, order: int) -> List[CatalogueRule]:
         times = _RE_TIMES.search(gear) or _RE_SOLAR_TIMES.search(gear)
         # The closure wording is the whole cell; a quota's cell may also carry gear clauses, so
         # quote just the count where we can find it.
-        quoted = _span(gear, re.compile(r"\b\d+\s+(?:hatchery[- ]marked\s+)?per\s+day", re.I))
+        # (T623 F13) the quote runs on to a trailing "hatchery marked (fish) only": the short line is the quote, and
+        # "1 per day" alone drops the condition (Squamish coho "1 per day, hatchery marked only")
+        quoted = _span(gear, re.compile(r"\b\d+\s+(?:hatchery[- ]marked\s+)?per\s+day"
+                                        r"(?:,?\s+hatchery[- ]marked(?:\s+fish)?\s+only)?", re.I))
         parent_id = rid
         out.append(CatalogueRule(
             rule_id=rid, type=RuleType.retention_limit, species=codes, take=take,

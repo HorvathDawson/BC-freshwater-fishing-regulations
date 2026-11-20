@@ -357,7 +357,9 @@ export function useInSeasonInbox(now: InSeasonNow, store: InSeasonSeenStore | nu
   const count = inboxUnread(state);
   return {
     vm, detail: detail ? inboxDetail(state, detail, today) : null,
-    failure: now.failure ? INBOX_WORDS.failure : null,
+    // (T548 item 4) rows of the feed in use that could not be read: said, as the feed whole is when it cannot be read
+    failure: now.failure ? INBOX_WORDS.failure
+      : now.data?.feed.unread ? INBOX_WORDS.unreadRows(now.data.feed.unread) : null,
     count, label: count ? INBOX_WORDS.badge(count) : null,
     open: opened, pick, back: () => setDetail(null), readAll: () => update(inboxReadAll), close, reads,
   };

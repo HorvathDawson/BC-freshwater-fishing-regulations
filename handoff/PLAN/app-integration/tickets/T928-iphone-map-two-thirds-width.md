@@ -1,6 +1,6 @@
 # T928 — iPhone: the main map fills only 2/3 of the screen after tab changes
 
-Status: IN REVIEW — owner: OWNER-TODO "T928/T929 pictures", then main chat review + merge (lane/t929-t928: c71429593, 54b256e06). Sideways shift not reproduced; drag fixed; the part-drawn browse map found is T938.
+Status: DONE — c71429593, 54b256e06; edge-back drag never leaves the screen; merged via e97c6932a; part-drawn browse map is T938.
 
 Source: a tester on iPhone (TestFlight 0.8.3) relayed by the owner 2026-11-19 (`T928-shots/tester-2026-11-19-iphone.png`,
 middle shot: the map drawn in the right two-thirds, a dark empty strip on the left, the day bar and legend at full width).
