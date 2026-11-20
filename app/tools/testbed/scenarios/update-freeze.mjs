@@ -87,6 +87,46 @@ export const updateFreeze = {
       if (r.worst > 100) throw new Error(r.note);
       return `${head} · ${r.note}`;
     });
+    // (T746 §4) THE CURTAIN ON THE SCREEN, light then dark: a new release staged, the app backgrounded and returned to (the
+    // next pause), a burst of device-side screencaps from the launch, and the frames read against the app's own
+    // `[swap] curtain up` / `down` lines. Kept as `T746-curtain-<mode>-<n>.png` beside the report.
+    for (const mode of ['light', 'dark']) {
+      await ctx.step(`T746 curtain, ${mode}: a new release staged, the app returned to, the curtain photographed`, async () => {
+        const d = ctx.device;
+        d.sh(`cmd uimode night ${mode === 'dark' ? 'yes' : 'no'}`);
+        await toMap(ctx);
+        // a release that changes a data file and the rule book (bg-update's `data-book`) is a REAL apply: a same-files release
+        // is swapped in too fast for the curtain (it is drawn only after 300 ms, T746); the dark look is the way back to the live release
+        const rid = (mode === 'light' ? ctx.updates('data-book') : ctx.updates('reset'))?.data_release ?? null;
+        d.logcatClear();
+        openLog(ctx);
+        ctx.flow('updates-log-action', { ACTION: 'check' });
+        const end = Date.now() + 240_000;
+        let row = '';
+        while (Date.now() < end) {   // staging copies every file: wait until the row says staged
+          row = d.screenText().find((x) => /Release, (staged|applied|unchanged|failed)/.test(x)) ?? '';
+          if (/staged|applied|failed/.test(row)) break;
+          await d.sleep(4000);
+        }
+        if (!/staged/.test(row)) throw new Error(`the release did not reach staged (${row || 'no release row'})`);
+        // the map left still: the Shell applies at the safe moment (map still ~3 s) with no one touching the phone, so the
+        // burst starts the moment the map is up and runs on the device (no adb round trip per frame)
+        await toMap(ctx);
+        d.sh('rm -f /sdcard/tbc-*.png; for i in $(seq 1 40); do screencap /sdcard/tbc-$i.png; done');
+        const frames = [];
+        for (let i = 1; i <= 40; i++) {
+          const f = path.join(ctx.dir, `T746-curtain-${mode}-${String(i).padStart(2, '0')}.png`);
+          try { d.adb(['pull', `/sdcard/tbc-${i}.png`, f]); frames.push(f); } catch { /* none */ }
+        }
+        d.sh('rm -f /sdcard/tbc-*.png');
+        const log = jsLog(ctx).filter((x) => /^\[swap\]/.test(x.line));
+        fs.writeFileSync(path.join(ctx.dir, `T746-curtain-${mode}.txt`), log.map((x) => `${x.at} ${x.line}`).join('\n'));
+        const up = log.find((x) => /curtain up/.test(x.line)), down = log.find((x) => /curtain down/.test(x.line));
+        if (!up) throw new Error(`no "[swap] curtain up" in the log (swap lines: ${log.map((x) => x.line.slice(0, 40)).join(' / ') || 'none'}); ${frames.length} frames kept`);
+        return `${rid}: curtain up ${up.at}${down ? `, down ${down.at} (${down.at - up.at} ms)` : ', no down line'}; ${frames.length} frames kept`;
+      });
+    }
+    ctx.device.sh('cmd uimode night no');
     await ctx.step('test channel back to live staging', async () => { ctx.updates('reset'); }, { shot: false });
   },
 };

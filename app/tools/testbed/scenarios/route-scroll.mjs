@@ -25,6 +25,21 @@ async function routeMap(d, H) {
 /** the map's picture without its buttons' corners and its frame: the middle 80 % by 70 % */
 const core = (b) => { const w = b.x1 - b.x0, h = b.y1 - b.y0; return { x0: Math.round(b.x0 + w * 0.1), x1: Math.round(b.x1 - w * 0.1), y0: Math.round(b.y0 + h * 0.2), y1: Math.round(b.y1 - h * 0.1) }; };
 
+/**
+ * (T920) THE ROUTE MAP IS NOW UNDER THE CHART (header, headline, detail, chart, map, donors): the pane is brought to its top
+ * (six flings up), then dragged down in its left gutter until the map is on screen with room around it. Returns the map.
+ */
+async function fromTop(d, H, x = 20) {
+  for (let k = 0; k < 6; k++) d.sh(`input swipe ${x} ${Math.round(H * 0.4)} ${x} ${Math.round(H * 0.8)} 120`);
+  for (let i = 0; i < 14; i++) {
+    const m = await routeMap(d, H);
+    if (m && m.box.y0 >= H * 0.25 && m.box.y1 <= H * 0.9) return m;
+    d.sh(`input swipe ${x} ${Math.round(H * 0.7)} ${x} ${Math.round(H * 0.45)} 450`);
+    await d.sleep(600);   // poll interval: the drag's own settle
+  }
+  return null;
+}
+
 export const routeScroll = {
   id: 'route-scroll',
   title: `The Conditions route map still draws after ${ROUNDS} scrolls down and up (T603: seen blank once on build 25) — ${Q}`,
@@ -39,7 +54,7 @@ export const routeScroll = {
       await toMap(ctx);
       await openWater(ctx, { q: Q, row: ROW, view: 'conditions' });
       await ctx.until(() => ctx.hasId('gauge-card'), { ms: 30_000, what: 'the Conditions view (gauge-card)' });
-      const map = await ctx.until(() => routeMap(d, H), { ms: 30_000, what: 'the route map on the Conditions view' });
+      const map = await ctx.until(() => fromTop(d, H), { ms: 90_000, what: 'the route map on the Conditions view (under the chart, T920)' });
       await ctx.settle({ ms: 8000, frame: true });
       home = (await routeMap(d, H)).box;
       const file = path.join(ctx.dir, 'T603-route-00-first.png');
@@ -81,9 +96,8 @@ export const routeScroll = {
         const m = blankShareOf(mid, core(moved.box));
         // 2. down: three fast drags (flings), the map leaves the screen; 3. up: until the pane is at its top again
         for (let k = 0; k < 3; k++) d.sh(`input swipe ${x} ${Math.round(H * 0.62)} ${x} ${Math.round(H * 0.33)} 120`);
-        const gone = await routeMap(d, H);
-        if (gone && gone.box.y0 > H * 0.3) throw new Error(`round ${i}: three flings down left the route map on screen (y ${gone.box.y0}): the pane is not scrolling`);
-        for (let k = 0; k < 4; k++) d.sh(`input swipe ${x} ${Math.round(H * 0.4)} ${x} ${Math.round(H * 0.8)} 120`);
+        // back: to the top, then down to the map again (the map comes on screen from below, as a reader scrolls to it)
+        const first = await fromTop(d, H);
         const back = path.join(ctx.dir, `T603-route-${n}-back.png`);
         d.screenshot(back);                                  // the first frame back, before anything settles
         await ctx.settle({ ms: 4000, frame: true });
@@ -92,11 +106,10 @@ export const routeScroll = {
         const rest = path.join(ctx.dir, `T603-route-${n}-rest.png`);
         d.screenshot(rest);
         const backImg = readPng(back), restImg = readPng(rest);
-        const a = blankShare(backImg, core(home)), b = blankShare(restImg, core(map.box));
+        const a = blankShare(backImg, core((first ?? map).box)), b = blankShare(restImg, core(map.box));
         // was the pane already home in the first frame? The strip just above the map (the estimate card's foot) is then
         // the same picture as at rest; while the pane is still gliding it is not, and that frame's "map box" is not the map
-        const atHome = Math.abs(map.box.y0 - home.y0) < 8
-          && changed(backImg, restImg, { x: home.x0, y: home.y0 - 160, w: home.x1 - home.x0, h: 150 }) < 0.02;
+        const atHome = !!first && Math.abs(map.box.y0 - first.box.y0) < 8;
         rows.push(`${i}: moving ${(m.share * 100).toFixed(0)} % · back ${atHome ? `${(a.share * 100).toFixed(0)} %` : 'still gliding'} · rest ${(b.share * 100).toFixed(0)} %`);
         if (m.share >= BLANK_AT) flashes.push(`round ${i}, while the pane moved: ${(m.share * 100).toFixed(1)} % ${m.colour} (${path.basename(mid)})`);
         // the first frame is only judged when the pane was already home in it

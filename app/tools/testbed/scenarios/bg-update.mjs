@@ -145,6 +145,26 @@ export const bgUpdate = {
       return `${toast ? `toast "${toast}"` : 'no toast seen'} · ${head}`;
     });
 
+    // (T585) "Updated to …" shows once: the step above caught it at the apply; a second foreground return (and a cold
+    // start) must say nothing and the Updates log keeps its "applied" row
+    await ctx.step('T585: a second return and a cold start do not say "Updated to" again', async () => {
+      const seen = [];
+      for (const how of ['return', 'cold']) {
+        await toMap(ctx);
+        if (how === 'return') { await toBackground(ctx); d.launch(); } else { d.stop(); d.launch(); await appUp(ctx, { launch: false, ms: 90_000 }); }
+        for (let i = 0; i < 6; i++) {
+          const t = d.screenText().find((w) => /^Updated to |^Data updated$/.test(w));
+          if (t) seen.push(`${how}: "${t}"`);
+          await d.sleep(1000);
+        }
+      }
+      shot('5-second-open');
+      openLog(ctx);
+      const applied = /Release, applied/.test(d.screenText().join('\n'));
+      if (seen.length) throw new Error(`the "Updated to" words came again: ${seen.join(' ; ')}`);
+      return `nothing said on a second return or a cold start · Updates log ${applied ? 'still shows "Release, applied"' : 'has no "Release, applied" row (the row may be replaced by a newer check)'}`;
+    });
+
     await ctx.step('reset: back to the live release (its data file and rule book differ again: downloaded on the full line)', async () => {
       ctx.updates('reset');
       openLog(ctx);
