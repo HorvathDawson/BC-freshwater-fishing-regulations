@@ -57,9 +57,18 @@ def outside_bc(registry, graph) -> frozenset[str]:
     if cached is not None and cached[0] is registry:
         return cached[1]
     out = {nid for nid, n in graph.nodes.items() if getattr(n, "out_of_bc", False)}
-    inside = _regions.area_family_sections(registry, "region", graph)
-    if inside is not None:
-        out |= {nid for nid in graph.nodes if nid not in inside}
+    from pipeline.atlas.splits import border as _border
+    if _border.ONE_OUTSIDE_FLAG:
+        # T679 #1: the atlas stamped the regionless nodes too (`border.mark_regionless`): the flag is the one answer,
+        # and an atlas that left one unstamped is refused, never patched here
+        left = sorted(_border.regionless(graph, registry) - out)
+        if left:
+            raise SystemExit(f"outside: {len(left)} node(s) in no region are not stamped `out_of_bc` ({left[:5]}) — "
+                             "the atlas predates T679 #1 (`border.ONE_OUTSIDE_FLAG`): rebuild it")
+    else:
+        inside = _regions.area_family_sections(registry, "region", graph)
+        if inside is not None:
+            out |= {nid for nid in graph.nodes if nid not in inside}
     got = frozenset(out)
     try:
         setattr(graph, "_reach_outside_cache", (registry, got))

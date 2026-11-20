@@ -1729,6 +1729,33 @@ def build_registry(b: _Build) -> None:
         _on = _coast.record_tidal(out, graph, _owners, getattr(b, "coast_whole", {}))
         print(f"  tidal record: {len(_owners):,} section(s) -> {out / _coast.TIDAL_RECORD} (rank 1 covers the same "
               f"water as the coast cut was decided on: {len(_cov)} line(s)/lake(s)){'; on the graph nodes' if _on else ''}")
+    # T679 #1 (prepared; `border.ONE_OUTSIDE_FLAG`, off until the wave-4 build): ONE outside-B.C. flag — every node in
+    # no region polygon stamped `out_of_bc` too, before graph.pkl is written, so the reach, the tiles and the walk read
+    # one answer
+    # one answer. Measured on every build (the count the flip would stamp), written to `step10_report.json`.
+    from pipeline.atlas.splits import border as _border
+    _rless = _border.regionless(graph, registry)
+    _unstamped = sorted(n for n in _rless if not graph.nodes[n].out_of_bc)
+    # T679 #6 (prepared; `registry.build.NAMED_NODES_ARE_IN_ITEMS`, off until the wave-4 build): a node no registry
+    # water holds carries no name, so the map never names water a tap opens as unnamed. Measured on every build.
+    from pipeline.atlas.registry import build as _rb
+    _unheld = _rb.unheld_named(graph, registry)
+    (out / "step10_report.json").write_text(json.dumps({
+        "_about": "T679 step 10, measured on this build (wave 4 flips the switches): #1 the nodes in no region polygon "
+                  "not stamped out_of_bc (`border.ONE_OUTSIDE_FLAG`), #6 the named nodes no registry water holds "
+                  "(`registry.build.NAMED_NODES_ARE_IN_ITEMS`). Read by people.",
+        "one_outside_flag": _border.ONE_OUTSIDE_FLAG, "regionless": len(_rless),
+        "regionless_not_out_of_bc": {"count": len(_unstamped), "sample": _unstamped[:50]},
+        "named_nodes_are_in_items": _rb.NAMED_NODES_ARE_IN_ITEMS,
+        "named_in_no_water": {"count": len(_unheld), "by_kind": _rb.count_by_kind(graph, _unheld),
+                              "sample": [[n, graph.nodes[n].display_name] for n in _unheld[:50]]}},
+        indent=1, ensure_ascii=False) + "\n", encoding="utf-8")
+    print(f"  step 10 (T679): {len(_unstamped):,} regionless node(s) not out_of_bc, {len(_unheld):,} named node(s) in no "
+          f"water -> step10_report.json")
+    if _border.ONE_OUTSIDE_FLAG:
+        print(f"  outside B.C. (T679 #1): {_border.mark_regionless(graph, registry):,} node(s) in no region stamped out_of_bc")
+    if _rb.NAMED_NODES_ARE_IN_ITEMS:
+        print(f"  names (T679 #6): {_rb.clear_unheld_names(graph, registry):,} named node(s) in no water lose the name")
     # (T926) THE LAST NAME STEP, the one helper sidecars runs too (`registry.build.finish_names`): every whole-feature wbk
     # name of `name_variants.json` on its item (an isolated lake is minted after the names were put on the graph), then a
     # lettered shown name for a water shown by a number (owner 2026-11-20). After every other pass, the mouth boundaries
