@@ -1,6 +1,6 @@
 # T886 — "How to tell a hatchery fish": a natural fish, not a smiling one
 
-Status: DONE (7a13d8671, 0e4f21738; in 0.8.2 on app/integrate-082, ledger brought up to date 2026-11-19). Was: IN PROGRESS (app chat lane app/t884-t886-clip-hatchery-art). Pictures to the owner before it lands.
+Status: DONE (4a9cc54da, 3f5497585; in 0.8.2 on app/integrate-082, ledger brought up to date 2026-11-19). Was: IN PROGRESS (app chat lane app/t884-t886-clip-hatchery-art). Pictures to the owner before it lands.
 
 Owner 2026-11-18 ~21:30, verbatim: "Also the how to tell hatchery fish is very smile creepy we want to make it more
 realistic I think. Better shape more natural smile. Could use the salmon general shape from loading maybe?"
@@ -12,7 +12,7 @@ realistic I think. Better shape more natural smile. Could use the salmon general
 - Colours only from tokens (check-colours); right in light, dark and the colour-blind theme.
 - Before / after pictures at 390 wide, dark and light.
 
-## Done (lane app/t884-t886-clip-hatchery-art, 7a13d8671)
+## Done (lane app/t884-t886-clip-hatchery-art, 4a9cc54da)
 - The two drawings are the loader's coho (`tools/fish-loader/adipose_art.py` over the owner's `fish_loader.build()`), at
   rest, its mouth CLOSED (the loader's open kype with three teeth read as a grin in a still picture); wild: the adipose
   fin; clipped: no fin, a healed scar (a low mound in the red block, a carved line across it); both ringed with a leader.

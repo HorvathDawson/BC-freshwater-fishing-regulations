@@ -1,6 +1,6 @@
 # T103 — One size shape: the plain words contradict the bands and the title
 
-Status: DONE — e7dfba0a. Answers diff: exactly 24 `plain` strings (Bennett 6, Morley/Tagish/Teslin 18),
+Status: DONE — 677158f80. Answers diff: exactly 24 `plain` strings (Bennett 6, Morley/Tagish/Teslin 18),
 no `title`, no `bands`; card gate 0 problems. Rebuild: deliver. Left: owner question below.
 
 Source: owner 2026-10-22 ("look for other spots where this same trap of multiple things that should be checking the

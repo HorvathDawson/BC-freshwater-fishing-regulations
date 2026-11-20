@@ -1,6 +1,6 @@
 # T104 — One "when" in words: titles and plain lines drop hours and weekdays
 
-Status: DONE — e7dfba0a, 485dfdd4 (review: `DateRange.words` also calls `when_words`). Answers diff: 7 titles + 9
+Status: DONE — 677158f80, 92cba91f0 (review: `DateRange.words` also calls `when_words`). Answers diff: 7 titles + 9
 plains (Campbell, Nicomekl, Serpentine, Harrison, Pitt, Slocan, Fraser above Mission title only (no plain: a gate);
 Lower West Arm r3 r4 r5 plains); card gate 0 problems. Rebuild: deliver. Left: owner questions below.
 

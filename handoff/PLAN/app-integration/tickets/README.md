@@ -338,8 +338,8 @@ reads both files; a ticket closed here moves there once its lane is finished wit
 | T935 | iPhone: the year bars' closed days and the Closed key swatch draw no colour (owner) | DONE | 33aa04409 8bcbb359a 7008a6c73 | owner 2026-11-20 "On apple DFO calendar when closed has no color" |
 | T936 | Build warning: salmon open on a game-fish-closed day that carries a B.C. gear rule (owner) | OPEN | | owner 2026-11-20 "add a build warning if there is a waterbody like that" |
 | T882 | Salmon: DFO's "To be determined" says so instead of "Check DFO"; green whenever any salmon is open (owner) | DONE | b2a5f2522 | owner 2026-11-18 ~21:18 |
-| T884 | A fish sheet's big "20 a day" is cut off at the top on an iPhone (owner) | DONE | 1d19ef12b, fcc3ce3a8 | owner 2026-11-18 ~21:30 |
-| T886 | "How to tell a hatchery fish": a natural fish (the loader's coho), not a smiling one (owner) | DONE | 7a13d8671, 0e4f21738 | owner 2026-11-18 ~21:30 |
+| T884 | A fish sheet's big "20 a day" is cut off at the top on an iPhone (owner) | DONE | 1444bb102, 7d871755d | owner 2026-11-18 ~21:30 |
+| T886 | "How to tell a hatchery fish": a natural fish (the loader's coho), not a smiling one (owner) | DONE | 4a9cc54da, 3f5497585 | owner 2026-11-18 ~21:30 |
 | T878 | Sunrise/sunset moves to a small line under the date; the empty place slot collapses (owner) | DONE | df294e791, 717813def | owner 2026-11-18 ~20:49; built, lands after the owner sees the pictures |
 | T881 | Conditions: the gauge map only where it draws a gauge (none on Babine Lake — Main Body); one map size, the larger, fitted, no Fit / Larger map (owner) | DONE | dc413cf44 | owner 2026-11-18 ~21:05 |
 | T887 | Salmon map, light mode: keep is a bright green, clearly apart from release, closed and check (owner) | DONE | a35c0f72f | owner 2026-11-18 ~22:33 |

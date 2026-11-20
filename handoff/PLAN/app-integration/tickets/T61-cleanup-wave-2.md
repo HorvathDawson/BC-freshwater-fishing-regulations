@@ -1,7 +1,7 @@
 # T61 — Cleanup wave 2: merge old pathways and duplicates
 
 Status: DONE — lanes A (9db616f0…a3411ccf), B (46cab8cd…baeda569), C (0a24db3a…884fe9c7) merged; 2.8 the one name
-normaliser (bb22f3eb…a097e407, promoted r-5380a42dab54); 2.17's live-input move done in T63; 2.13 closed fad95e8e (2026-10-28
+normaliser (32e8610e3…ac11effbf, promoted r-5380a42dab54); 2.17's live-input move done in T63; 2.13 closed fad95e8e (2026-10-28
 sweep, below). 2.10's tolerances-in-bundle-meta: dropped (owner 2026-10-24: the app never reads them). 2.18 is T48. Source: handoff/PLAN/audit/PLAN.md §2 "Wave 2" (items 2.x), with the owner's corrections: keep
 stocking / bathymetry / salmon code as "prepared"; prove every script unneeded before deleting it.
 Includes the ONE name normaliser (owner accepts a reviewed binding diff), retiring the dev bundle + riffle fixture
@@ -154,7 +154,7 @@ passed; the 4 synopsis_pages errors are order-dependent (pass alone) → T63.
 
 ## Outcome (2.8)
 
-2026-10-24, commits bb22f3eb..2260322e (15). ONE name key: `pipeline/common/names.py` `key()` (NFKD accent fold, casefold,
+2026-10-24, commits 32e8610e3..7d417418d (15). ONE name key: `pipeline/common/names.py` `key()` (NFKD accent fold, casefold,
 apostrophes DELETED, every other non-letter/digit run one space; St./Saint, Mt./Mount, Cr./Creek NOT folded — measured: no
 registry pair), plus `compact_key` (no spaces, the added-streams compare) and `drop_notes` (the matcher's "(...)" strip).
 Pinned by `pipeline/tests/test_name_key.py`: a whole-value table, one mutation pin per step, "the app search key is finer"
@@ -177,7 +177,7 @@ Pinned by `pipeline/tests/test_name_key.py`: a whole-value table, one mutation p
 - **Promotion:** no atlas, reach or tiles rebuild (handles + registry hash unchanged → the tiles–bundle vintage holds). The
   next ordinary `python -m pipeline.deliver all` (or `python -m pipeline build --no-tiles`) drops the 3 aliases. Generators
   (gauge match: 4 station keys; stocking/bathymetry; added-streams) take effect only at their next regeneration — not run.
-- **Also:** bb22f3eb overwrote `pipeline/tests/test_names.py` (name-tuple tests) by mistake; 9df3d2f0 restores it verbatim.
+- **Also:** 32e8610e3 overwrote `pipeline/tests/test_names.py` (name-tuple tests) by mistake; 9df3d2f0 restores it verbatim.
   Seen failing, not touched: test_dfo_salmon ×3 (need `cache/dfo_salmon`, fail at base too), test_release
   `test_every_cores_effective_key_is_the_search_key` (missing `needs_bundle` marker).
 

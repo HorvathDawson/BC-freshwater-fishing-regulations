@@ -1,6 +1,6 @@
 # T179 — One cut-placement pass: auto cuts merge into names, real cuts stay apart
 
-Status: DONE — deef0cec, 53f3819e, b93c95a6, 5c1ddc90, 6d7fd98e, cb858630 (promoted r-9b51c28ce0fe; post-promote fix in r-46a602244714). Owner 2026-10-24: "would it be better to revise how this is done? So that splits can merge with lake or
+Status: DONE — 90cc18504, 53f3819e, b93c95a6, 5c1ddc90, 6d7fd98e, cb858630 (promoted r-9b51c28ce0fe; post-promote fix in r-46a602244714). Owner 2026-10-24: "would it be better to revise how this is done? So that splits can merge with lake or
 gauge or other auto generated splits, but also handle real splits close together? This just feels fragile."
 
 ## Why (what is fragile today)
@@ -40,7 +40,7 @@ Two phases per blue line, order-independent:
 Depends: after T61 (2.8 normaliser moves bindings too — not in the same rebuild). Size: L (heavy: atlas rebuild).
 Owner: review the binding diff.
 
-## Outcome — PARTIAL (2026-10-24; code deef0cec, build pending)
+## Outcome — PARTIAL (2026-10-24; code 90cc18504, build pending)
 
 Built as designed, in `pipeline/atlas/splits/sectionizer.py` (`_plan_blk` collect → place → cut once;
 `place_points` is the plan, idempotent under `split_graph_at`):
@@ -84,7 +84,7 @@ Predicted binding diff (from the live `splits.resolved.json`; lake edges need th
 - split_conflicts.json: authored pairs expected none (all < 0.03 m). NOT expected empty any more:
   of the 23 curated points the live atlas records as picked up, the 8 `at_edge` are unchanged and the 2
   lake anchors (Adams, Pennask) and the Thompson mouth sit exactly on their place; the other 12 either
-  stood > 5 m off (already cut separately under deef0cec) or < 5 m off and now: shift a minted cut
+  stood > 5 m off (already cut separately under 90cc18504) or < 5 m off and now: shift a minted cut
   (Kootenay Idaho border onto the border cut) or stay + conflict + proposal at a lake edge / end — Stamp
   (Great Central Lake dam, 0.5 m: a lake_edge conflict; stream side → the gate STOPS the build, the fix
   is to accept the proposal or set at_edge), Morice/Bulkley (resolved at 0.0: a mouth line_end,

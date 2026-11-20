@@ -1,6 +1,6 @@
 # T191 — Curation review: a one-row top bar, and a proposed extent fix in the mark
 
-Status: DONE (031eeb0c). Owner to try it in the pilot (T136).
+Status: DONE (3679fb02b). Owner to try it in the pilot (T136).
 
 Source: the owner during the T136 pilot on the T189 screen: the filter bar is too tall; "we have no way to change
 extents? like choose op and 1 or 2 splits. if something is wrong we cant fix it". Correction: the ops are whole,
