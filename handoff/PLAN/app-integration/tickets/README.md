@@ -223,7 +223,7 @@ reads both files; a ticket closed here moves there once its lane is finished wit
 | T920 | Conditions: the gauge map goes below the gauge chart; check the white map box in dark mode (owner) | DONE | b49e10e49 20dd416f9 | owner 2026-11-19 ~16:30 "move the gauge map below the chart on conditions" |
 | T921 | "Join the iPhone test" opens the public TestFlight link (web app + website) (owner) | DONE | 82673b6f2 | owner 2026-11-19 "join apple trial we could have this link" |
 | T922 | Gear / Methods read as run-on sentences; "Roe" said plainly (tester via owner) | DONE | a88ddb254 474ff31ee 79b8686bd 6520d6c42 66dcc548a | tester 2026-11-19 via owner |
-| T923 | Not-fishable land (reserves, private) hard to see on satellite and light mode: darker same-hue outline (tester via owner) | IN REVIEW — owner looks at the thicker satellite outline; then main chat merge | e5b0b4709, 79e7f4432 | tester 2026-11-19 via owner |
+| T923 | Not-fishable land (reserves, private) hard to see on satellite and light mode: darker same-hue outline (tester via owner) | IN REVIEW — left (Claude): owner looks at the thicker satellite outline; then main chat merge | e5b0b4709, 79e7f4432 | tester 2026-11-19 via owner |
 | T924 | Layers sheet wording read "a little weird" (tester via owner) | DONE | 3c057089f 820fbcf32 32135b5d2 | tester 2026-11-19 via owner |
 | T925 | A water with one section gets its Map view too; the tapped part stays marked (tester via owner) | DONE | b5634ba92 34a10b157 70dce488f 2a4bedabb | tester 2026-11-19 via owner |
 | T926 | Search: every entry in name_variants.json, as it stands, finds its water (31 misses today); nothing else (owner) | OPEN | | owner 2026-11-19 "did we ever make sure handle name variants" |
