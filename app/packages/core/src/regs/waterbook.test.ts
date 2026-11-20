@@ -42,4 +42,12 @@ describe("waterBookOf dedupe (T60)", () => {
     const page = [[{ t: "book", printed: 22, pdf: 24 }], { a: { t: "book", printed: 59, pdf: 61 } }];
     expect(waterBookOf(i, page)).toEqual([]);
   });
+  it("(T919 b) a page a section's source line links counts as linked (Elaho River: Gear's sources p.23, not again at the foot)", () => {
+    const page = { gear: { src: { who: "B.C. rules ›", aria: "", open: "srcs:gear", keys: [], pages: [{ printed: 22, pdf: 24 }] } } };
+    expect(waterBookOf(i, page)).toEqual([{ t: "text", s: "This water in the rule book" }, { t: "text", s: " " }, { t: "book", printed: 59, pdf: 61, bare: true }]);
+  });
+  it("(T919 b) a per-row gear source (not drawn since T900) links nothing", () => {
+    const page = { gear: { lines: [{ src: { who: "", aria: "", open: "srcs:gl|hook", keys: [], pages: [{ printed: 22, pdf: 24 }] } }] } };
+    expect(waterBookOf(i, page)).toHaveLength(5);   // both pages still on the line
+  });
 });

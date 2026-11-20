@@ -93,7 +93,9 @@ export const DECIDE = Object.freeze({
   K_BASE: (name: string) => `${name} · base rule`,
   K_AREA: (name: string) => `${name} · area rule`,
   // (owner 2026-11-18 ~23:40) a rule another water's row carries down to its tributaries says so, never "this water's"
-  K_DOWN: (name: string) => `${name} · its tributaries`,
+  // (T919 a) a row whose own name already says it is about tributaries ("Lake Revelstoke's Tributaries", "Chilko Lake's
+  // tributary streams") is named once, never "… Tributaries · its tributaries"
+  K_DOWN: (name: string) => /\btributar(?:y|ies)\b/i.test(name) ? name : `${name} · its tributaries`,
   // (T892) the same fact on the "What you can keep" table's row: under the fish's name, one line
   ROW_DOWN: (names: readonly string[]) => names.length === 1 ? `${whoseTribs(names[0]!)} rule for its tributaries`
     : `${names.slice(0, -1).map(whoseTribs).join(", ")} and ${whoseTribs(names[names.length - 1]!)} rules for their tributaries`,

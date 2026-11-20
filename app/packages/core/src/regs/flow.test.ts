@@ -91,6 +91,12 @@ describe("flowOf", () => {
     expect(f.steps.map((s) => s.kicker)).toEqual(["Chilliwack River · its tributaries"]);
     expect(partStep(TRIB, [text("x")], "Foley Creek", null).kicker).toBe("Chilliwack River · its tributaries");
   });
+  it("(T919 a) a row whose own name says tributaries is named once, not '… Tributaries · its tributaries'", () => {
+    for (const name of ["Lake Revelstoke's Tributaries", "Chilko Lake's tributary streams"]) {
+      const T = { ...rule("t", 1, name, "2", "No fishing Jun 1–Jun 30.", 22), via: "trib", baseRank: 0 } as unknown as RuleView;
+      expect(flowOf([item(T, "governs")], says, "Foley Creek", null).steps.map((s) => s.kicker)).toEqual([name]);
+    }
+  });
   it("review 4: within one level the replaced rule reads first and the deciding one last, just above the answer", () => {
     const OLD = rule("old", 0, "Cultus Lake", "2", "Keep up to 2 kokanee.", 23);
     const f = flowOf([item(LAKE, "governs"), item(OLD, "replaced", LAKE)], says, "Cultus Lake", "Release every one here.");
