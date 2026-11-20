@@ -203,7 +203,7 @@ const withT84 = (status: string): Input => {
   return withTicket({ ...noGit, readme }, "T84", (t) => t.replace(/^Status:.*$/m, `Status: ${status}`));
 };
 /** a text OWNER-TODO holds that no ticket's Status cites today (removing it must name T84 alone) */
-const OWNER_TEXT = [...real.ownerTodo.matchAll(/\*\*([^*]{8,40})\*\*/g)].map((m) => m[1]!)
+const OWNER_TEXT = [...real.ownerTodo.matchAll(/\*\*([^*"]{8,40})\*\*/g)].map((m) => m[1]!)
   .find((text) => !real.tickets.some((t) => t.text.split("\n").slice(0, 6).join("\n").includes(text)))!;
 
 describe("T539 a status names its step", () => {
