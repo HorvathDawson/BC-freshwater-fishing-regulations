@@ -58,6 +58,21 @@ describe("(T668) a two-region chain under the live feed: `live.compose`, pinned"
     expect(parseSalmonFeed({ ...G.feed, pairs: { ...G.feed.pairs, format: "dfo-pairs/0" } })).toBeNull();
   });
 
+  it("(T669 item 3) a pair answered by ONE quota tree of both regions' caps is drawn as numbers, never as both words", () => {
+    // the Python answer for a mix (`stricter_opening` -> `_tree_of`): both words in `t`, the caps in `tree`, each number naming
+    // its region (owner 2026-11-20 "Name the region") — the app draws the store's words as they are
+    const [a, b] = G.feed.pairs.pairs[0];
+    const merged = { s: "open", t: `${a.t}; ${b.t}`, tree: { node: "tier", id: "t1", tier: "count", n: 2, says: "2 a day (Region 7)", by: 0, species: ["CO"],
+      children: [{ node: "tier", id: "t2", tier: "size", n: 0, says: "none over 50 cm (Region 6)", by: 0, children: [], over_cm: 50 }] } };
+    const f = parseSalmonFeed({ ...G.feed, pairs: { ...G.feed.pairs, pairs: [[a, b, merged]] } })!;
+    const card = salmonCard(withSalmonFeed(release(), f), { sids: [67], item: null }, JUL);
+    const coho = salmonTable(card).species.find((r) => r.code === "CO")!;
+    expect([coho.status, coho.quota?.replace(/ /g, " "), coho.quotaUnread]).toEqual(["open", "2 a day (Region 7) · none over 50 cm (Region 6)", undefined]);
+    // DFO's two lines are the numbers' source, not repeated under the table
+    const row = card.rows.find((r) => r.species.includes("CO"))!;
+    expect(row.notes.filter((n) => !row.repeats?.includes(n))).toEqual([]);
+  });
+
   it("a merge with no tables to add it to stops, never a guess", () => {
     const c = G.release.chains[2];
     expect(() => composeChain(c.l, feed(), [], false, c.s)).toThrow("two regions' openings need a merged verdict");

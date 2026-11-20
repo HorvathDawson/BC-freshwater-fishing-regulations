@@ -191,19 +191,22 @@ def _open(n, t, ceil=None, over=()):
 def test_two_openings_on_a_straddler_the_stricter_limit_speaks():
     """Owner 2026-11-11: "straddles should always take the most strict rules from both regions". A lower daily count
     with the same sizes wins; a narrower size ceiling with the same count wins; where each is stricter on one limit
-    (2 a day vs 4 a day none over 50 cm) BOTH regions' words stand, no number (`u`) — neither limit dropped; an
-    unread number likewise. MUTATION: `strictest` without `stricter_opening` keeps the first region's opening."""
+    (2 a day vs 4 a day none over 50 cm) both bind: (T669 item 3) ONE quota tree of the two, numbers, with both regions'
+    words in `t` — neither limit dropped; an unread number: both regions' words, no number (`u`). MUTATION: `strictest`
+    without `stricter_opening` keeps the first region's opening."""
+    from pipeline.regs.dfo_salmon.quota import words
     four, two = _open(4, "4 a day"), _open(2, "2 a day")
     assert S.strictest([four, two]) is two and S.strictest([two, four]) is two
     small = _open(4, "4 a day, none over 50 cm", ceil=50)
     assert S.strictest([four, small]) is small
-    # "only 1 over 50 cm" and "none over 50 cm" are two statements to the freshwater reader (`rules.statement`): both bind
-    assert S.strictest([_open(4, "4, only 1 over 50 cm", over=[(50, 1)]), small]) == \
-        {"s": "open", "t": "4, only 1 over 50 cm; 4 a day, none over 50 cm", "u": 1}
+    # "only 1 over 50 cm" and "none over 50 cm" are two statements to the freshwater reader (`rules.statement`): both
+    # bind, and "none over 50 cm" already holds the other (`_moot`): the ceiling's own opening
+    assert S.strictest([_open(4, "4, only 1 over 50 cm", over=[(50, 1)]), small]) is small
     assert S.strictest([_open(4, "4, only 2 over 50", over=[(50, 2)]), _open(4, "4, only 1 over 50", over=[(50, 1)])]
                        )["t"] == "4, only 1 over 50"
     both = S.strictest([two, small])
-    assert both == {"s": "open", "t": "2 a day; 4 a day, none over 50 cm", "u": 1}
+    assert both["t"] == "2 a day; 4 a day, none over 50 cm" and "u" not in both
+    assert words(both["tree"]) == "2 a day · none over 50 cm"
     unread = {"s": "open", "t": "see notice", "u": 1}
     assert S.strictest([two, unread]) == {"s": "open", "t": "2 a day; see notice", "u": 1}
     assert S.strictest([two, {"s": "closed", "t": "no fishing"}])["s"] == "closed"
