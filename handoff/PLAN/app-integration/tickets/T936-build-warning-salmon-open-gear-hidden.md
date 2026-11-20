@@ -1,6 +1,6 @@
 # T936 — Build warning: a water whose salmon are open on a game-fish-closed day that carries a B.C. gear rule
 
-Status: IN PROGRESS — built on lane/t936-t931 (d7599d0f9); left (Claude): main chat review + merge.
+Status: IN PROGRESS — built on lane/t936-t931 (cff5478e9); left (Claude): main chat review + merge.
 
 Source: owner 2026-11-20 ~01:03 (main chat), after T934. Asked whether a B.C. closure closes salmon: yes, a FULL closure
 does (rule book p.77; T796 A5 puts it on the salmon chains). The leftover case: the game-fish strip reads closed on a day
@@ -19,7 +19,7 @@ build), and write the full list beside the release's other build reports. A test
 The build prints the warning (or "none"); the count is reported to the owner with the next release.
 Depends: none. Size: S. Owner: no (see the count with the release). Data change: rides the next data release.
 
-## Built (lane/t936-t931, d7599d0f9; 513627e13: deliver all passes `--reports` before the tile flags)
+## Built (lane/t936-t931, cff5478e9; 0f8a4143d: deliver all passes `--reports` before the tile flags)
 `pipeline/deliver/release/salmon_gear.py`, called by `release.build` right after the T796 book closures join the salmon
 chains (`with_book_closures`): per section and day, every moment's display frame closed with NO rule closing every game
 fish at every moment (the frame's `closing`, the same test as `salmon.book_closures`), the chain answering `open` /
