@@ -605,3 +605,83 @@ any row here that is not DONE or DROPPED. A reopened ticket's row moves back to 
 | T860 | More → Contact names Report a problem beside the email (owner wording ask) | DONE | d1e1f854b, dea59dca2, 845994f67, d20d7ba63, 902425f66, 0e35d7727, ab5c86008 | in 0.8.2 (app/integrate-082); ledger closed 2026-11-19 night |
 | T864 | A tester far from B.C.: location must not glitch; a plain note that it is not useful there (owner) | DONE | 66901c3e1, 7f929431c, 44075496d | in 0.8.2 (app/integrate-082); ledger closed 2026-11-19 night |
 | T894 | The app's version files per build and per version (Play: play/<versionCode>.json; iPhone: ios/<version>.json) | DONE | 7bc81d896, 8e433846a | in 0.8.2 (app/integrate-082); ledger closed 2026-11-19 night |
+| T532 | Checklist review for every extent (DFO + regulations, one interface): rows generated from the extent + source words, ✓/?/✗, numbered pins, one decision; scales to new DFO items | DONE | 75581bbe4, 4d266e1b2, d217da561, 34f8d3e27 | — |
+| T535 | fast-fail runs every cheap gate (pnpm check, CI steps, review app), from every long-job entry point, cheapest first | DONE | aac40d46e, 3993744e9 | — |
+| T543 | CI: constraints.txt on every install, timeouts, cancel superseded runs, app-ci paths cover the parity tests | DONE | 70d7f91f0 | — |
+| T544 | Staging site deploy is one command; the site names the release it was built on and the smoke compares it | DONE | 64a111515 | — |
+| T546 | Reach run: a curated id, scope or closure piece that cannot be placed stops the run or is counted by the release check | DONE | 3d19bf818, ff4864aec, bc745b149, 13b75473a, 1036ccd51, b90c57268, 461509f03 | — |
+| T547 | Atlas records the curated inputs it was built from; a release refuses an atlas older than its cuts, names or areas | DONE | 9c701a58b, 7377a604a, 4a787ac5d, 1db9d5d8a, 4acd5d0f1, 18db8478b, 0b23c1403 | — |
+| T550 | Gauges: a reading's age gates its rank, level percentiles survive datum shifts, one day for the percentile | DONE | 722535c83, 8f8e589c0, 61a97ca16, 7e08a527f, 5c7b9719d, 0b94e262c, 06052992c | — |
+| T551 | "Today" rolls over at midnight B.C. time everywhere, from one clock; site pages do not print a stale day | DONE | d3b7f080e, e1142f148, 7af7f39e4 | — |
+| T553 | Base rules pinned to the printed book: zone/provincial quota numbers, row text equals the extraction, missing rows noticed | DONE | 377fe1adc, 7f146ad9d, 85ff69e70, e028ad100, 7db6e4b1b, 34986a8f9, 698aeabb7, 63624a50a | — |
+| T564 | Public gauge page: the forecast is on it, and the chart is large and readable | DONE | c6e9a39ed | — |
+| T565 | An in-season notice sits at the top of the Regulations page, not under salmon | DONE | dbbe3121b | — |
+| T571 | Sheldens Creek: the "Spur 19 Bridge site" cut looks misplaced | DONE | 998b4e6ab, df08a776a, e8ffdf96d | — |
+| T583 | One wording for a gauge's standing, everywhere | DONE | dad265255, 5a71f6bb1 | — |
+| T607 | Little Qualicum "all waters unless indicated below" binds nothing: a whole-water sibling empties the rest | DONE | 2dbafca68 | — |
+| T608 | Read-only audits before closed testing: A rules vs the printed book and DFO feed; B one logic in two shells; C the feeds worker from the outside; D bathymetry and stocked lakes | DONE | ef14f3b83, 347b96a45, ea9bda3cd, 1b1cfd8a9, 07e20df52 | — |
+| T621 | The map's web and native halves agree (every MapProps key honoured by both, or listed as by design) | DONE | d59ea5674, 1ed2bf7bd, 9f3052f48, 7d3f88aa6 | — |
+| T630 | One hydrograph presenter for the app and the public gauge page | DROPPED | — | owner 2026-11-12: leave both charts as they are (accepted as built) |
+| T632 | Owner: four decisions from the reach run (tidal subtraction, unplaced-piece gate, expected-unresolved note, 6 matched disagreements) | DONE | 8fdcb79d4, 646924e28 | — |
+| T637 | Okanagan River Oxbows: the owner's hand-matched side channels (26 watershed codes of unnamed lines) must bind again; builds stop on them since T632 | DONE | f4069759f, 216a7e60a, 070230ff5, 298e77cb4, c7decd691, b0646e6d4, f5831c1ac | — |
+| T638 | Pipeline suite leftovers: export files regenerated, heavy.sh blind to compressed memory, stale bytecode, one clean chunked run | DONE | fad79daf0, c85f497c0 | — |
+| T660 | Tidal: streams entering a removed tidal mainstem are not cut at the tidal boundary (Skeena, Nass estuaries) | DONE | 12358ece6, cb41409bb, 7a9a796d0, ce81473a3 | — |
+| T664 | Okanagan River Oxbows: one water, not 31 items (search and map list every channel) | DONE | 25471b393, a3518f5d2, 56b18e8bb, f5831c1ac, be87eb86e, 001e23697, 30aa93f43, 23a65adfa | — |
+| T665 | Tidal: cut every creek where it leaves the tidal polygon; remove the 206 lines wholly inside it (named too) | DONE | f1f928029, 227c53b08, a3518f5d2, 2a21460e0, 76f067600, 56b18e8bb, f5831c1ac, be87eb86e, 001e23697, 30aa93f43, 23a65adfa | — |
+| T666 | One release path: everything cut from the live release is refreshed by the release itself; preflight lists every failure at once | DONE | 24c74a64e, 23a65adfa, 09985e595 | — |
+| T670 | Keep and Gear tabs: show the regulations the release holds and the screens left out (T462 audit K1–K5, G1–G5, G7) | DONE | 738f6608f, e1345fae2, 1358a2de4, fab4c0f6f, 353429f7a, 1ce54b2fa, 1e75ce6e9 | — |
+| T671 | The T462 audit's salmon findings D1–D5 | DONE | 6b02feb06, 188392691, 4bc03ac14, b7749b726, f21981ea2 | — |
+| T672 | T462 audit, W findings and cosmetics: a tidal part's page said "outside B.C.", the search dot beside a tidal piece, fly-only / bait-ban hubs listing a fraction | DONE | 84d420a08, 464139a6d, 82fb5a758, e1345fae2, 1358a2de4, 83b1477ba | — |
+| T687 | Search "Vedder River": the book's pointer "see Chilliwack / Vedder Rivers" opened the Chilliwack: a pointer now opens the water it names | DONE | 5c294120d | — |
+| T689 | Test bed `regs-open`: the lake step ("Cultus") found no tap target on build 29 — the T478 probe skipped every still-water point, so no lake could be a target (test bed only: hand taps open the lake) | DONE | 606037505, 1c5ab986c | — |
+| T690 | Whiteswan Lake's inlet & outlet streams: every inlet (15) and the outlet down to the falls No Fishing; only the outlet below the falls is the exception (Aug 1-Mar 31 closed; rainbow 5, release the rest) | DONE | c41d54742 | — |
+| T718 | iOS: build 0.7.9 for the simulator and record the baseline (IOS-1) | DONE | cc2027743, 8d6fe60de, 6572ee881, 59aaa4de8, 884f16adc | — |
+| T719 | iOS: tap open speed and cue, T716 parity (IOS-2) | DONE | 49b7226b6, efd9ada22, d6afcf124, d15784a4f | — |
+| T720 | iOS: no-stall bench `tap-stalls` on the simulator (IOS-3) | DONE | 49b7226b6, 68bf25229 | — |
+| T722 | iOS: downloads, offline, background and notices (IOS-5) | DONE | 2e6facf8a, a190b3c4a, f990aafed, 347281f96, d15784a4f | — |
+| T753 | A piece of the Sproat River drawn inside Sproat Lake (two channels through a pond, 8.5 km from the river); 15 such same-lake loops on 11 waters | DONE | a458c1fd4, 3bbb20082 | — |
+| T757 | Feeds worker and app: closed areas inside a DFO place (T573 pieces `<water_id>#closed:<key>`) are live locations: the worker emits `locs` for them and says its feed shape in `/status.json`; a bound piece the feed lacks reads "not known" and is reported, never open. | DONE | c7a09348a, 5a4f5e245, fa0c7a1c5, 8967ca419, 731447000 | — |
+| T758 | The feeds worker's live salmon feed has no answer for the 7 region-default places (`1:default:region` …) the Python feed makes from the page's own sentence (T349): find what the app shows for such waters, then port it. | DONE | 179c6cba5, 99dfae816, c7a09348a | — |
+| T770 | Salmon gear lines of a wider place vanish on the days a narrower place has a gear line (`salmon.gear_on` shows the narrowest only; Little Qualicum's all-year hook rule hidden Sep to Nov behind "fly fishing only") | DONE | 4e0feaca9, 58debf8a7, b7449a66b, c20de86c1, abb01d6c2 | — |
+| T772 | A lake "including tributaries" takes its through-river's own side channels (Kitsumkalum Lake: 16 pieces, 14.6 km of the Kitsumkalum River above the lake) | DONE | fa098f1f4, d5547fe69, cb008158f | — |
+| T783 | A rest-of place stands behind its LIVE listed places only; a retired (dormant) listed place it now covers can be answered after it | DONE | 3f90138cf | — |
+| T787 | Regions 7 and 5A: the page header "no fishing for salmon until further notice" overrides the dated in-season openings in the table | DONE | 178d52320, ba106ce58 | — |
+| T789 | Seven wording findings of the T462 audit have no ticket (the owner's gate 1 for closed testing: each fixed or ticketed with his OK) | DONE | 45fff5e63, dbaa009b9, ee9fb62ff, 95989667f, 83d98ee55, c76ff33d4, a90350e0d | — |
+| T793 | Wild-trout limits are missing from the keep card on at least 15 lakes and on the Kitimat and 23 streams under it (the app allows what the book forbids) | DONE | da961f55c | — |
+| T794 | Rules bound to the wrong part: the Peace closure below W.A.C. Bennett Dam, Williston Lake's 30 cm rainbow minimum, "No powered boats" on Bella Coola side channels | DONE | 673e0df2a, 532d12d72, 0e2b483b6 | — |
+| T798 | Readings for the owner from the answers audit: Coal Creek above the bridge, the Puntledge above Comox Lake, Skeena "Section 4", DFO "non-retention" | DONE | 374f94b48, 4f68105da, 5c39b0b4d, ae3061f71, f4d677c5c, 9af7efbd7 | — |
+| T800 | A weekend-only closure reads wrongly from Monday to Friday: the "at certain times" line is cut at the first bracket (Skeena Section 4 zones say no "who" or name no zone; Stellako, Suskwa) | DONE | cec527747 | Skeena Section 4 licence check, 2026-11-16 (owner: "Make sure licensing info is done properly there") |
+| T804 | One stated rule, applied everywhere: a joining water with a row of its own is not inside its neighbour's stretch rule (Gosnell Creek and the Thautil River come out of the Morice closure; Lamprey Creek stays in) | DONE | fa098f1f4, e59d7146f, da515cfeb | — |
+| T805 | Trout data gaps found by the adversarial review of the trout redesign: a wild quota stored per row reads 2 + 2 (Lois, Khartoum), Region 7 possession exceptions on no row, Shamrock Creek's impossible steelhead line, the cross-border quota, Echoes Lakes | DONE | 0f6fe2868, 994941826, 764fe73fc, 39f46ef56, a5990dd7b | — |
+| T807 | A DFO place's side streams are derived from the exact heading its row sits under and its own words; a saved value is only a stated exception (ten places go river-only; a named creek keeps its side streams; the Kitimat outfall strip takes them) | DONE | 235408838, fa098f1f4, 3593c2c9b, cb008158f, da515cfeb | — |
+| T823 | "Small next to its gauge": Python decides when a section's lead gauge reading needs a warning; the release ships it | DONE | edc097013, 3588acc70, 6b7654ef1, 4c8212ec7, f7b41c208 | — |
+| T832 | iOS: a river can keep an old colour after a horizon change or a feed refresh (null feature-state writes dropped) | DONE | 4c005321e, bc7ea9464, 67b512369 | — |
+| T833 | A cut on a line's end drops every line touching that node, not just the lines meeting at the cut (Gitnadoix powerline) | DONE | 20ccb1cd8, dad1dea26, 5debac3ef, a5638c5e7 | — |
+| T834 | A water row's own printed quota takes that fish out of the region's stream share automatically (Kaslo, Keen like the Lardeau) | DONE | 596a677c7, 6cbfd9bd6, 3bbd782e1, df555d0e2 | — |
+| T841 | Every classified water the book marks (symbol or "tributaries of …") is captured, bound and requires the Classified Waters Licence; Class badge in the card header | DONE | a2dd5d272, eacacfde4, df677b340, c258d677d, 8d09554b2, c76ff33d4 | — |
+| T848 | The web map lags zooming out over Intata Reach (Chrome, staging web; owner's trace) | DONE | 4c005321e, e3dabfbf5 | — |
+| T849 | WaterMode's cross-water test waits for the ▲ before it taps (CI flake on d6cbad35d) | DONE | 36559a549 | — |
+| T852 | The coho loader drawn sharp (sheet baked at 1.5 px/dp; phones draw ~2.6), and the line under it set nicer (0.8.1) | DONE | dc6a19b13, 0f3ada780 | — |
+| T853 | One command draws the Nass-style rules map for any water, salmon or freshwater (owner) | DONE | 203ecf76d, b9c097417 | — |
+| T855 | The Salmon map draws noticeably slower than the Trout map on 0.8.0 (owner) | DONE | 4c005321e, 309c05303 | — |
+| T856 | Desktop: the Trout / Salmon map switch moves to the left side bar, under the Map button (owner) | DONE | b05790e0a, d5eace1af, a1d63b480, a6f4731eb, 1e2b46719, 8e82bd06d | — |
+| T861 | The Conditions map feels laggy like the Salmon map did (owner; same cause as T848/T855) | DONE | 4c005321e | fixed by 4c005321e (measured: Conditions/Run timing zoom-out ~1 s -> 0 long tasks); left (Claude): lands with the 0.8.1 merge |
+| T865 | Production data clean-up is automatic: old releases and the v1 layout (owner) | DONE | 4f4b5c827, 8b279ce64 | — |
+| T868 | Each fish's picture once per sheet: the Whitefish sheet drew them twice (owner) | DONE | 7b0738a3f, 940dde702 | owner 2026-11-18 |
+| T876 | Quick pinch-zoom lags on the phone (owner trace 20:35); an old issue, not a 0.8.1 regression (owner 20:51) | DONE | b7c24e218, 9b12cdbe3 | owner 2026-11-18, after launch |
+| T877 | "Which day?" calendar: six weeks every month, every day under its weekday (owner) | DONE | a0bf4876c | owner 2026-11-18 ~20:46 |
+| T878 | Sunrise/sunset moves to a small line under the date; the empty place slot collapses (owner) | DONE | df294e791, 717813def | owner 2026-11-18 ~20:49; built, lands after the owner sees the pictures |
+| T879 | "What you can keep": two headers, one table — salmon in the one fish list, each row tagged DFO / B.C. (owner) | DONE | 1ea9e5279 | owner 2026-11-18 ~20:53; approved ~22:58 ("all are good"); lane app/t879-two-headers-one-table |
+| T881 | Conditions: the gauge map only where it draws a gauge (none on Babine Lake — Main Body); one map size, the larger, fitted, no Fit / Larger map (owner) | DONE | dc413cf44 | owner 2026-11-18 ~21:05 |
+| T882 | Salmon: DFO's "To be determined" says so instead of "Check DFO"; green whenever any salmon is open (owner) | DONE | b2a5f2522 | owner 2026-11-18 ~21:18 |
+| T884 | A fish sheet's big "20 a day" is cut off at the top on an iPhone (owner) | DONE | 1444bb102, 7d871755d | owner 2026-11-18 ~21:30 |
+| T886 | "How to tell a hatchery fish": a natural fish (the loader's coho), not a smiling one (owner) | DONE | 4a9cc54da, 3f5497585 | owner 2026-11-18 ~21:30 |
+| T887 | Salmon map, light mode: keep is a bright green, clearly apart from release, closed and check (owner) | DONE | a35c0f72f | owner 2026-11-18 ~22:33 |
+| T888 | A newer app version: one popup on opening (the swimming coho, "Version X.Y.Z is out", what's new, Update / Not now), then the bell; Android and iOS (owner) | DONE | de20dba04 (merge into app/integrate-082) | owner 2026-11-18 ~23:25; approved ~23:42; two reviews; follow-ups T894 |
+| T892 | "What you can keep" table: a row from another water's tributary rule says so (owner) | DONE | 8bdb9cbf0, 2b0c80429, c33e06d91, 8ccae9a9d, 2fe421dd7, 72b060088, 3ab2b1b24 | — |
+| T893 | Production Android builds carry the patched MapLibre too (owner) | DONE | 572d73fad | owner 2026-11-19 ~00:21 |
+| T895 | Each flow forecast model draws in its own colour, so a toggled model can be told apart (owner) | DONE | ac657a5fc | owner 2026-11-19 ~00:40; approved ~01:03 |
+| T896 | The map key's fold button is useless on a wide screen: show the key, no button, where it fits (owner) | DONE | 214f18f8c | owner 2026-11-19 ~00:51; fold removed everywhere ~00:59 |
+| T897 | The More tab's back says "Back", not a tab's name; its head stays put while it scrolls (owner) | DONE | 1468f8bf0 | owner 2026-11-19 ~01:04, ~01:05 |
+| T898 | A daylight-only rule shows today's actual closed times for the section (owner) | DONE | 18044af55 | owner 2026-11-19 ~01:10 |
+| T899 | In-season notices on a water open by default (owner) | DONE | 18044af55 | owner 2026-11-19 ~01:10 |
