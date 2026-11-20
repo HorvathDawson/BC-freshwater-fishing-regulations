@@ -342,6 +342,29 @@ def test_every_cores_effective_key_is_the_search_key(rel, tmp_path):
         assert sum(n for *_, n in rows) > len(rows) // 2, table
 
 
+@pytest.mark.needs_bundle
+def test_cores_water_names_are_cased_as_the_water_page_cases_them(rel, tmp_path):
+    """(T941) core's `item.name` is `display_case` of the bundle's (the registry's spelling): a search row and an exit's
+    water name read as the water page does. The search key is the stored spelling's, and the water's `name_source` row
+    follows its name. Pinned end to end on one shouting name: KITWANGA MILL POND (wbk:329230021)."""
+    from pipeline.common.search_key import search_key
+    from pipeline.deliver.bundle.place_names import display_case, is_shouting
+    d, _, bundle, _, _ = rel
+    con = _open(d, "core", tmp_path)
+    b = sqlite3.connect(f"file:{bundle}?mode=ro", uri=True)
+    stored = dict(b.execute("SELECT item_id, name FROM item"))
+    core = dict(con.execute("SELECT item_id, name FROM item"))
+    assert core == {i: display_case(n) for i, n in stored.items()}
+    assert [n for n in core.values() if n and n == n.upper() and is_shouting(n)] == []
+    keys = dict(con.execute("SELECT item_id, COALESCE(name_key, lower(name)) FROM item"))
+    assert all(keys[i] == search_key(n) for i, n in stored.items())
+    if "wbk:329230021" in stored:
+        assert (stored["wbk:329230021"], core["wbk:329230021"]) == ("KITWANGA MILL POND", "Kitwanga Mill Pond")
+    shown = {(i, n) for i, n in con.execute("SELECT item_id, name FROM name_source")}
+    was = {(i, n) for i, n in b.execute("SELECT item_id, name FROM name_source")}
+    assert shown == {(i, core[i] if n == stored.get(i) else n) for i, n in was}
+
+
 @pytest.mark.smoke  # T667 D6: a guard beside the file's first test
 def test_the_apps_pack_contract_is_current():
     from pipeline.tools.emit import pack as emit_pack

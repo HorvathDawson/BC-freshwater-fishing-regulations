@@ -100,6 +100,31 @@ def area_display(name: str) -> str:
     return display_case(name)
 
 
+def case_core_names(con) -> list[tuple[str, str, str]]:
+    """(T941) THE RELEASE'S CORE `item.name` AS THE WATER PAGE SHOWS IT: `display_case` (the one caser) of the
+    registry's name, so a search row and an exit / continuation's water name read "Kitwanga Mill Pond", never
+    "KITWANGA MILL POND". Cased HERE, on the core file's copy, never in the registry (the matchers key a name as its
+    source gives it) nor in the bundle (the export keeps that spelling as `official_name`). The search key does not
+    move: `name_key` is re-stored for the new name (`stored_key`) and a name whose key would change is refused, so
+    search finds the same waters by the stored spelling. The water's `name_source` row (keyed by the shown name, read
+    as `name_source.name = item.name`) follows its name. Returns [(item_id, before, after)], sorted."""
+    from pipeline.common.search_key import search_key, stored_key
+    moved = []
+    for item_id, name in con.execute("SELECT item_id, name FROM item WHERE name <> '' ORDER BY item_id").fetchall():
+        shown = display_case(name)
+        if shown == name:
+            continue
+        if search_key(shown) != search_key(name):
+            raise ValueError(f"case_core_names: casing {name!r} would change its search key ({item_id})")
+        moved.append((item_id, name, shown))
+    con.executemany("UPDATE item SET name = ?, name_key = ? WHERE item_id = ?",
+                    [(shown, stored_key(shown), i) for i, _, shown in moved])
+    if con.execute("SELECT 1 FROM sqlite_master WHERE type = 'table' AND name = 'name_source'").fetchone():
+        con.executemany("UPDATE name_source SET name = ? WHERE item_id = ? AND name = ?",
+                        [(shown, i, name) for i, name, shown in moved])
+    return moved
+
+
 def area_name_uncleaned(name: str) -> bool:
     """Whether a shown area name skipped `area_display`: its OpenStreetMap id still on, or the
     source's cut-off last word not restored. The tile export and the access rows refuse one."""

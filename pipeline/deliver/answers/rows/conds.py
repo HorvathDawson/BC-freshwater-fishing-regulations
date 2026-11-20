@@ -186,6 +186,11 @@ def row_conds(P: "Part", model: dict, row: dict) -> dict:
     def moot_cap(l):
         if l["t"] not in ("cap", "outersize") or l["b"] != INF:
             return False
+        if l["t"] == "cap" and _raise_of(P, l["r"]):
+            # (T942) a cap a water's quota RAISES is one tally that also counts the fish the raise lets past (decision
+            # F17, "+1 for steelhead", the Kitimat): never moot because its own members' dailies are 1 — 2 hatchery
+            # steelhead still leave no room for a cutthroat over 50 cm (the card gate's engine enforces it)
+            return False
         for S in (l.get("members") or row["members"]):
             for o in ("H", "W"):
                 r = (R.get(S) or {}).get(o)

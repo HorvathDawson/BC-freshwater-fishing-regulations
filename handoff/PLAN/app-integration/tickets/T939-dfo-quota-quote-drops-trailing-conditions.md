@@ -1,6 +1,6 @@
 # T939 — DFO salmon: the quota quote drops trailing conditions ("only 2 over 35 cm")
 
-Status: OPEN.
+Status: IN PROGRESS — lane/lb-rules-leftovers done; left (Claude): main chat review + merge.
 
 Source: independent review of lane/l1-feeds (T623 F13), 2026-11-20. Out of F13's scope, so ticketed apart.
 
@@ -17,3 +17,18 @@ quote changes; nothing else may move.
 
 ## Acceptance
 Every scraped cell with a trailing quota condition quotes it whole, in both readers; vectors agree.
+
+## Result (lane/lb-rules-leftovers, 2026-11-20)
+The premise does not hold: no condition is lost, so no quote changes, the change list is empty and `DFO_REV` stays.
+- Every trailing quota condition in the 2026-11-20 scrape (only N over X cm, of which may be over, can be unmarked,
+  none over, maximum size, cm or less) is already typed as its own sub-limit rule.
+- Both the verdict's short line `t` (Python `deliver.salmon._text`, worker `salmon.ts`) and the quota line
+  `quota.words` add the sub-limit's quote after the count: "4 hatchery marked per day, only 2 over 35 cm (Sep 1–Dec 31)"
+  and "4 a day, hatchery-marked only · only 2 over 35 cm". Checked on every open verdict, 60 days, all regions.
+- Running the count's own quote on would print the condition twice in both readers. F13 differed: "hatchery marked
+  only" has no sub-rule.
+- Parity pin: shared case "a quota's trailing condition is its own rule (T939)" in
+  `app/workers/feeds/test/fixtures/dfo/dfo-rows.json` (five forms; parent quotes, `own`, `quota`, and a new `says` =
+  the whole `t`), asserted in `pipeline/tests/test_t671_salmon_rows.py` and `app/workers/feeds/test/dfo.t671.test.ts`;
+  `python-vectors.generated.json` regenerated. pytest t671 + dfo_salmon 270 passed; vitest dfo.t671 + dfo.vectors 132
+  passed.

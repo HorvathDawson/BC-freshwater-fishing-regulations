@@ -1,5 +1,5 @@
 {
- "_about": "THE SHARED DFO ROWS (T556; T671's rows). Hand-written: rows as DFO prints them (species | dates | limits and gear) with what the place itself answers. Read by BOTH pipeline/tests/test_t671_salmon_rows.py (typed.to_rules, deliver.salmon.verdict_on) and app/workers/feeds/test/dfo.t671.test.ts (the worker's toRules, locationCalendar), so the two languages cannot each hold a copy that drifts. `typed`: one entry per row, holding only what is asserted of that row's first rule \u2014 type, species (null: the rule carries none), reason (tbd | gear_permission: the review_reason starts with that constant), verbatim (the rule's quoted words: the verdict's short line, T623 F13). `own`: [species, MMDD, status] \u2014 the place's own answer that day, null where it says nothing (a wider place answers). The Python's exact typed rules and year calendar for every case are in python-vectors.generated.json `rows` (generated: python -m pipeline.tools.emit.dfo_vectors), which the worker must reproduce. `place` (T671 5B): the curated place's words and `within` areas, for quota.pool_of / mark_shared (the Python's live.join and the release, the worker's live.ts join); `quota`: [species, MMDD, the quota line (quota.words of the day's tree), null where nothing opens]. `robust` (T679 D6, owner 2026-11-12): rows that do NOT type \u2014 `error` the error's type name both readers give, `own` [species, MMDD, status] the place reads in robust mode (the Python's typed feed `feed.type_rows`: its `unread_rule`; the worker's live.ts hold with no last answers: `ROW_HELD_VERDICT`): 'check', reported, never a refused page or a dropped row.",
+ "_about": "THE SHARED DFO ROWS (T556; T671's rows). Hand-written: rows as DFO prints them (species | dates | limits and gear) with what the place itself answers. Read by BOTH pipeline/tests/test_t671_salmon_rows.py (typed.to_rules, deliver.salmon.verdict_on) and app/workers/feeds/test/dfo.t671.test.ts (the worker's toRules, locationCalendar), so the two languages cannot each hold a copy that drifts. `typed`: one entry per row, holding only what is asserted of that row's first rule \u2014 type, species (null: the rule carries none), reason (tbd | gear_permission: the review_reason starts with that constant), verbatim (the rule's quoted words: the verdict's short line, T623 F13). `says` (T939): [species, MMDD, the verdict's short line `t`, in full]. `own`: [species, MMDD, status] \u2014 the place's own answer that day, null where it says nothing (a wider place answers). The Python's exact typed rules and year calendar for every case are in python-vectors.generated.json `rows` (generated: python -m pipeline.tools.emit.dfo_vectors), which the worker must reproduce. `place` (T671 5B): the curated place's words and `within` areas, for quota.pool_of / mark_shared (the Python's live.join and the release, the worker's live.ts join); `quota`: [species, MMDD, the quota line (quota.words of the day's tree), null where nothing opens]. `robust` (T679 D6, owner 2026-11-12): rows that do NOT type \u2014 `error` the error's type name both readers give, `own` [species, MMDD, status] the place reads in robust mode (the Python's typed feed `feed.type_rows`: its `unread_rule`; the worker's live.ts hold with no last answers: `ROW_HELD_VERDICT`): 'check', reported, never a refused page or a dropped row.",
  "cases": [
   {
    "name": "chum to be determined",
@@ -1114,6 +1114,159 @@
      ],
      "verbatim": "2 per day"
     }
+   ]
+  },
+  {
+   "name": "a quota's trailing condition is its own rule (T939)",
+   "about": "T939, 2026-11-20: every trailing condition in the 2026-11-20 scrape ('only 2 over 35 cm', '1 of which may be more than 77 cm', '80 cm or less', 'none over 50 cm', 'maximum size 35 cm') is typed as a sub-limit `within` the day's count, so the count's own quote stops at 'per day' (no condition said twice) and the shown words carry it: the verdict's short line (count, then each sub-limit's quote) and the quota line below, in both languages",
+   "place": {
+    "specific_area": "",
+    "within": []
+   },
+   "rows": [
+    [
+     "Coho",
+     "Sep 1 to Dec 31",
+     "4 hatchery marked per day, only 2 over 35 cm"
+    ],
+    [
+     "Chinook",
+     "Aug 25 to Dec 31",
+     "2 per day, 1 of which may be more than 77 cm. in length"
+    ],
+    [
+     "Chum",
+     "Apr 1 to Mar 31",
+     "1 per day, 80 cm or less."
+    ],
+    [
+     "Pink",
+     "Aug 28 to Sep 22",
+     "4 per day, none over 50 cm"
+    ],
+    [
+     "Sockeye",
+     "Oct 15 to Mar 31",
+     "1 per day, maximum size 35 cm"
+    ]
+   ],
+   "typed": [
+    {
+     "type": "retention_limit",
+     "species": [
+      "CO"
+     ],
+     "verbatim": "4 hatchery marked per day"
+    },
+    {
+     "type": "retention_limit",
+     "species": [
+      "CH"
+     ],
+     "verbatim": "2 per day"
+    },
+    {
+     "type": "retention_limit",
+     "species": [
+      "CM"
+     ],
+     "verbatim": "1 per day"
+    },
+    {
+     "type": "retention_limit",
+     "species": [
+      "PK"
+     ],
+     "verbatim": "4 per day"
+    },
+    {
+     "type": "retention_limit",
+     "species": [
+      "SK"
+     ],
+     "verbatim": "1 per day"
+    }
+   ],
+   "own": [
+    [
+     "CO",
+     1001,
+     "open"
+    ],
+    [
+     "CH",
+     901,
+     "open"
+    ],
+    [
+     "CM",
+     715,
+     "open"
+    ],
+    [
+     "PK",
+     901,
+     "open"
+    ],
+    [
+     "SK",
+     1101,
+     "open"
+    ]
+   ],
+   "quota": [
+    [
+     "CO",
+     1001,
+     "4 a day, hatchery-marked only \u00b7 only 2 over 35 cm"
+    ],
+    [
+     "CH",
+     901,
+     "2 a day \u00b7 only 1 over 77 cm"
+    ],
+    [
+     "CM",
+     715,
+     "1 a day \u00b7 none over 80 cm"
+    ],
+    [
+     "PK",
+     901,
+     "4 a day \u00b7 none over 50 cm"
+    ],
+    [
+     "SK",
+     1101,
+     "1 a day \u00b7 none over 35 cm"
+    ]
+   ],
+   "says": [
+    [
+     "CO",
+     1001,
+     "4 hatchery marked per day, only 2 over 35 cm (Sep 1\u2013Dec 31)"
+    ],
+    [
+     "CH",
+     901,
+     "2 per day, 1 of which may be more than 77 cm (Aug 25\u2013Dec 31)"
+    ],
+    [
+     "CM",
+     715,
+     "1 per day, 80 cm or less (Apr 1\u2013Mar 31)"
+    ],
+    [
+     "PK",
+     901,
+     "4 per day, none over 50 cm (Aug 28\u2013Sep 22)"
+    ],
+    [
+     "SK",
+     1101,
+     "1 per day, maximum size 35 cm (Oct 15\u2013Mar 31)"
+    ]
    ]
   },
   {

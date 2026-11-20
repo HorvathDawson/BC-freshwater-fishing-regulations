@@ -722,6 +722,8 @@ def bundle_files(work: Path, bundle: Path, b: sqlite3.Connection, base: Dict[str
     _flags = _core_flags if _has_ns else _core_flags_empty_name_source
 
     def _core_extra(con: sqlite3.Connection) -> None:
+        from pipeline.deliver.bundle.place_names import case_core_names
+        case_core_names(con)   # (T941) a search row / neighbour name reads as the water page does
         _flags(con)
         if not _has_sn:
             con.execute(SECTION_NOTE_DDL)

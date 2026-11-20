@@ -312,9 +312,13 @@ def test_kitimat_pool_says_the_hatchery_steelhead_count_toward_a_2_over_50_tally
                    data["rule_ids"][r["pool"]] == "z6:daily_quotas::trout_char_quota.r1"]
         return [{**c, "r": _name(data["rule_ids"], c["r"])} for c in pool["conds"] if c["c"] == "cap"]
     assert caps(AUG15) == CAP_CONDS_RULING
-    # December (ruling (a)): the steelhead are released, so there is no steelhead tally — r2's plain 1 over 50 cm
-    assert caps(DEC1) == [{"c": "cap", "r": "z6 trout_char_quota.r2", "sub": 1, "a": 50, "b": None, "take": 1,
-                           "of": None, "general": True}]
+    # December (ruling (a)): the steelhead are released, so there is no steelhead tally. (T942) Since T854 (owner
+    # 2026-11-18: Region 6 streams release lake trout Nov 1-June 30 too) every fish of the pool goes back from streams
+    # in December, so the pool has no row and no cap at all; while lake trout were kept it was r2's plain 1 over 50 cm
+    rows, _ = _at(data, model, DEC1)
+    assert [r for r in rows["rows"] if r.get("pool") is not None
+            and data["rule_ids"][r["pool"]] == "z6:daily_quotas::trout_char_quota.r1"] == []
+    assert [c for r in rows["rows"] for c in r.get("conds") or [] if c["c"] == "cap"] == []
 
 
 # ---- the ruling, with the Vedder as its parity witness ---------------------------------------
@@ -415,6 +419,50 @@ def test_kitimat_hatchery_steelhead_are_plus_one_over_50_like_the_vedders(pair):
     """OWNER RULING 2026-10-21 on (b): on the Kitimat, as on the Vedder, the hatchery steelhead are
     "+1" over 50 cm: keep 2 and no other trout over 50 cm; keep 1 and 1 other may be."""
     _check_plus_one(*pair)
+
+
+def _kitimat_tree(request):
+    """(the Kitimat's Aug 15 trout and char group, rule refs as keys as the card gate reads it, its Part) on the mouth
+    part."""
+    from pipeline.deliver.answers import card_check as CC
+    from pipeline.deliver.answers import rows as RW
+    data, guide = _export(request)
+    model = _build(data, guide)
+    k = model.parts[KITIMAT][part_at(data, KITIMAT, "mouth")]
+    i = E.segment_index(model.segments[k], CAL.day_of((8, 15)))
+    rk, kd = C.rule_key(model.keys[k]), C.key_dict(model.keys[k])
+    P = RW.Part(C.load(BUNDLE), rk.set_id, rk.steelhead_water, rk.steelhead_rules, kd["kind"], kd["steelhead"],
+                model.sections["ladder"][k][i], (8, 15), {})
+    (g,) = [CC._unref(r["group"], data["rule_ids"]) for r in model.sections["rows"][k][i]["rows"]
+            if r.get("group") and data["rule_ids"][r["group"]["pool"]] == "z6:daily_quotas::trout_char_quota.r1"]
+    return g, P
+
+
+@pytest.mark.needs_bundle
+def test_the_card_gate_takes_the_kitimats_plus_one_said_from_outside_its_own_tier_and_nothing_else(request):
+    """T942: the Kitimat's hatchery steelhead sit in the river's OWN tier ("up to 5 a day", with the rainbow trout),
+    which is never split, so the size tier that says their "+1" cannot hold them. The card gate (ROUND19 3) accepts a
+    capped kind outside a size tier only when the tier's `extra` names it AND it sits in an own tier.
+    MUTATION PINS: the steelhead no longer named by the extra, or moved out of the own tier, and the gate refuses again."""
+    from pipeline.deliver.answers import card_check as CC
+    g, P = _kitimat_tree(request)
+    assert CC.check_tree(P, g) == []
+    (size,) = [t for t in _walk(g["tree"]) if t.get("tier") == "size"]
+    assert size["extra"]["species"] == ["ST"]
+
+    unnamed = copy.deepcopy(g)                     # the extra's cap kept, the steelhead no longer named by it
+    for t in _walk(unnamed["tree"]):
+        if t.get("tier") == "size":
+            t["extra"]["species"] = []
+    assert any("caps ST over 50 cm, but ST sits outside it" in p for p in CC.check_tree(P, unnamed))
+
+    moved = copy.deepcopy(g)
+    (total,) = moved["tree"]
+    (own,) = [t for t in total["children"] if t.get("tier") == "own"]
+    (st,) = [y for y in own["children"] if y["node"] == "kind" and y["species"] == ["ST"]]
+    own["children"].remove(st)
+    total["children"].append(st)
+    assert any("caps ST over 50 cm, but ST sits outside it" in p for p in CC.check_tree(P, moved))
 
 
 def _no_raise(orig):

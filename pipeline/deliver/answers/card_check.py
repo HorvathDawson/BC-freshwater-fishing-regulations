@@ -401,10 +401,17 @@ def check_tree(P, g: dict) -> List[str]:
                 probs.append(f"{where}: size tier {t['says']!r} holds {y['species']}, which cannot be kept over "
                              f"{cm} cm here")
         caps_ = [P.by_key[k] for k in (t["by"], (t.get("extra") or {}).get("by")) if k in P.by_key]
+        named = set((t.get("extra") or {}).get("species") or [])
         for y, _q in walk(tree):
             if y["node"] != "kind" or id(y) in inside:
                 continue
+            # (T942) the tier's `extra` names a kind that sits in an OWN tier (never split: the Kitimat's "up to 5 a
+            # day", rainbow trout and steelhead): the tier says that kind's "+1" in its own words, and the extra is
+            # proved against the engine below (its number over the size, the tally together), so it is not unsaid
+            sheltered = any(a["tier"] == "own" for a in above(y))
             for S in y["species"]:
+                if S in named and sheltered:
+                    continue
                 if any(E.checks(r, f) and ((E._band(r, f[2]) or (0, None))[1] or 0) > 0
                        for r in caps_ for f in E.fish([S]) if f[2] > cm):
                     probs.append(f"{where}: size tier {t['says']!r} caps {S} over {cm} cm, but {S} sits outside it")

@@ -133754,6 +133754,524 @@
     }
    ]
   },
+  "a quota's trailing condition is its own rule (T939)": {
+   "calendar": {
+    "g": [
+     0,
+     -1
+    ],
+    "gears": [],
+    "sp": [
+     [
+      0,
+      -1,
+      237,
+      2
+     ],
+     [
+      0,
+      -1,
+      244,
+      4
+     ],
+     [
+      0,
+      0,
+      91,
+      -1,
+      288,
+      0
+     ],
+     [
+      0,
+      -1,
+      240,
+      3,
+      266,
+      -1
+     ],
+     [
+      0,
+      1
+     ]
+    ],
+    "verdicts": [
+     {
+      "s": "open",
+      "t": "1 per day, maximum size 35 cm (Oct 15–Mar 31)",
+      "tree": {
+       "by": 0,
+       "children": [
+        {
+         "also_counts": [],
+         "detail": "",
+         "duties": [],
+         "folded": true,
+         "n": 1,
+         "name": "sockeye",
+         "node": "kind",
+         "says": "1 a day",
+         "sentence": "1 a day",
+         "sizes": {
+          "cm": [
+           [
+            0,
+            35
+           ]
+          ],
+          "in": [
+           [
+            0,
+            14
+           ]
+          ]
+         },
+         "species": [
+          "SK"
+         ]
+        },
+        {
+         "by": 0,
+         "children": [],
+         "id": "t2",
+         "n": 0,
+         "node": "tier",
+         "over_cm": 35,
+         "says": "none over 35 cm",
+         "tier": "size"
+        }
+       ],
+       "id": "t1",
+       "n": 1,
+       "node": "tier",
+       "says": "1 a day",
+       "species": [
+        "SK"
+       ],
+       "tier": "count"
+      }
+     },
+     {
+      "s": "open",
+      "t": "1 per day, 80 cm or less (Apr 1–Mar 31)",
+      "tree": {
+       "by": 0,
+       "children": [
+        {
+         "also_counts": [],
+         "detail": "",
+         "duties": [],
+         "folded": true,
+         "n": 1,
+         "name": "chum",
+         "node": "kind",
+         "says": "1 a day",
+         "sentence": "1 a day",
+         "sizes": {
+          "cm": [
+           [
+            0,
+            80
+           ]
+          ],
+          "in": [
+           [
+            0,
+            31
+           ]
+          ]
+         },
+         "species": [
+          "CM"
+         ]
+        },
+        {
+         "by": 0,
+         "children": [],
+         "id": "t2",
+         "n": 0,
+         "node": "tier",
+         "over_cm": 80,
+         "says": "none over 80 cm",
+         "tier": "size"
+        }
+       ],
+       "id": "t1",
+       "n": 1,
+       "node": "tier",
+       "says": "1 a day",
+       "species": [
+        "CM"
+       ],
+       "tier": "count"
+      }
+     },
+     {
+      "s": "open",
+      "t": "2 per day, 1 of which may be more than 77 cm (Aug 25–Dec 31)",
+      "tree": {
+       "by": 0,
+       "children": [
+        {
+         "by": 0,
+         "children": [],
+         "id": "t2",
+         "n": 1,
+         "node": "tier",
+         "over_cm": 77,
+         "says": "only 1 over 77 cm",
+         "tier": "size"
+        }
+       ],
+       "id": "t1",
+       "n": 2,
+       "node": "tier",
+       "says": "2 a day",
+       "species": [
+        "CH"
+       ],
+       "tier": "count"
+      }
+     },
+     {
+      "s": "open",
+      "t": "4 per day, none over 50 cm (Aug 28–Sep 22)",
+      "tree": {
+       "by": 0,
+       "children": [
+        {
+         "also_counts": [],
+         "detail": "",
+         "duties": [],
+         "folded": true,
+         "n": 4,
+         "name": "pink",
+         "node": "kind",
+         "says": "4 a day",
+         "sentence": "4 a day",
+         "sizes": {
+          "cm": [
+           [
+            0,
+            50
+           ]
+          ],
+          "in": [
+           [
+            0,
+            20
+           ]
+          ]
+         },
+         "species": [
+          "PK"
+         ]
+        },
+        {
+         "by": 0,
+         "children": [],
+         "id": "t2",
+         "n": 0,
+         "node": "tier",
+         "over_cm": 50,
+         "says": "none over 50 cm",
+         "tier": "size"
+        }
+       ],
+       "id": "t1",
+       "n": 4,
+       "node": "tier",
+       "says": "4 a day",
+       "species": [
+        "PK"
+       ],
+       "tier": "count"
+      }
+     },
+     {
+      "s": "open",
+      "t": "4 hatchery marked per day, only 2 over 35 cm (Sep 1–Dec 31)",
+      "tree": {
+       "by": 0,
+       "children": [
+        {
+         "also_counts": [],
+         "detail": "",
+         "duties": [],
+         "folded": true,
+         "n": 4,
+         "name": "hatchery-marked coho",
+         "node": "kind",
+         "says": "4 a day, hatchery-marked only",
+         "sentence": "4 a day, hatchery-marked only",
+         "sizes": {
+          "cm": [
+           [
+            0,
+            null
+           ]
+          ],
+          "in": [
+           [
+            0,
+            null
+           ]
+          ]
+         },
+         "species": [
+          "CO"
+         ]
+        },
+        {
+         "by": 0,
+         "children": [],
+         "id": "t2",
+         "n": 2,
+         "node": "tier",
+         "over_cm": 35,
+         "says": "only 2 over 35 cm",
+         "tier": "size"
+        }
+       ],
+       "id": "t1",
+       "n": 4,
+       "node": "tier",
+       "says": "4 a day, hatchery-marked only",
+       "species": [
+        "CO"
+       ],
+       "tier": "count"
+      }
+     }
+    ]
+   },
+   "rules": [
+    {
+     "origin": "hatchery",
+     "rule_id": "rows.r0",
+     "species": [
+      "CO"
+     ],
+     "take": 4,
+     "type": "retention_limit",
+     "verbatim": "4 hatchery marked per day",
+     "when": {
+      "dates": [
+       {
+        "from_day": 1,
+        "from_month": 9,
+        "to_day": 31,
+        "to_month": 12
+       }
+      ]
+     }
+    },
+    {
+     "lengths": [
+      {
+       "min_cm": 35
+      }
+     ],
+     "rule_id": "rows.r0b",
+     "species": [
+      "CO"
+     ],
+     "take": 2,
+     "type": "retention_limit",
+     "verbatim": "only 2 over 35 cm",
+     "when": {
+      "dates": [
+       {
+        "from_day": 1,
+        "from_month": 9,
+        "to_day": 31,
+        "to_month": 12
+       }
+      ]
+     },
+     "within": "rows.r0"
+    },
+    {
+     "rule_id": "rows.r1",
+     "species": [
+      "CH"
+     ],
+     "take": 2,
+     "type": "retention_limit",
+     "verbatim": "2 per day",
+     "when": {
+      "dates": [
+       {
+        "from_day": 25,
+        "from_month": 8,
+        "to_day": 31,
+        "to_month": 12
+       }
+      ]
+     }
+    },
+    {
+     "lengths": [
+      {
+       "min_cm": 77
+      }
+     ],
+     "rule_id": "rows.r1b",
+     "species": [
+      "CH"
+     ],
+     "take": 1,
+     "type": "retention_limit",
+     "verbatim": "1 of which may be more than 77 cm",
+     "when": {
+      "dates": [
+       {
+        "from_day": 25,
+        "from_month": 8,
+        "to_day": 31,
+        "to_month": 12
+       }
+      ]
+     },
+     "within": "rows.r1"
+    },
+    {
+     "rule_id": "rows.r2",
+     "species": [
+      "CM"
+     ],
+     "take": 1,
+     "type": "retention_limit",
+     "verbatim": "1 per day",
+     "when": {
+      "dates": [
+       {
+        "from_day": 1,
+        "from_month": 4,
+        "to_day": 31,
+        "to_month": 3
+       }
+      ]
+     }
+    },
+    {
+     "lengths": [
+      {
+       "min_cm": 80,
+       "take": 0
+      }
+     ],
+     "may_target": true,
+     "rule_id": "rows.r2b",
+     "species": [
+      "CM"
+     ],
+     "type": "retention_limit",
+     "verbatim": "80 cm or less",
+     "when": {
+      "dates": [
+       {
+        "from_day": 1,
+        "from_month": 4,
+        "to_day": 31,
+        "to_month": 3
+       }
+      ]
+     },
+     "within": "rows.r2"
+    },
+    {
+     "rule_id": "rows.r3",
+     "species": [
+      "PK"
+     ],
+     "take": 4,
+     "type": "retention_limit",
+     "verbatim": "4 per day",
+     "when": {
+      "dates": [
+       {
+        "from_day": 28,
+        "from_month": 8,
+        "to_day": 22,
+        "to_month": 9
+       }
+      ]
+     }
+    },
+    {
+     "lengths": [
+      {
+       "min_cm": 50,
+       "take": 0
+      }
+     ],
+     "may_target": true,
+     "rule_id": "rows.r3b",
+     "species": [
+      "PK"
+     ],
+     "type": "retention_limit",
+     "verbatim": "none over 50 cm",
+     "when": {
+      "dates": [
+       {
+        "from_day": 28,
+        "from_month": 8,
+        "to_day": 22,
+        "to_month": 9
+       }
+      ]
+     },
+     "within": "rows.r3"
+    },
+    {
+     "rule_id": "rows.r4",
+     "species": [
+      "SK"
+     ],
+     "take": 1,
+     "type": "retention_limit",
+     "verbatim": "1 per day",
+     "when": {
+      "dates": [
+       {
+        "from_day": 15,
+        "from_month": 10,
+        "to_day": 31,
+        "to_month": 3
+       }
+      ]
+     }
+    },
+    {
+     "lengths": [
+      {
+       "min_cm": 35,
+       "take": 0
+      }
+     ],
+     "may_target": true,
+     "rule_id": "rows.r4b",
+     "species": [
+      "SK"
+     ],
+     "type": "retention_limit",
+     "verbatim": "maximum size 35 cm",
+     "when": {
+      "dates": [
+       {
+        "from_day": 15,
+        "from_month": 10,
+        "to_day": 31,
+        "to_month": 3
+       }
+      ]
+     },
+     "within": "rows.r4"
+    }
+   ]
+  },
   "a region closed to salmon": {
    "calendar": {
     "g": [

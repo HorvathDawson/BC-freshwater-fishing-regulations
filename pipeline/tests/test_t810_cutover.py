@@ -729,11 +729,27 @@ def test_hatchery_and_wild_twins_are_one_row(request, monkeypatch):
     assert rb["split"] is True and t["table"]["hatch_link"] is True
     # RE-PINNED (T931 A): RULINGS C2 amended 2026-11-18 (Chilliwack Lake) takes only bull trout out of "No wild trout over
     # 50 cm", so brook trout is a wild-size row too ("a wild brook trout … over 50 cm goes back"): every "if wild" row is
-    # split, bull trout (its own 60 cm line) is not. (Lake trout is left unpinned here: it reads "60 cm (24 in) or longer"
-    # with no wild cap, which C2 amended does not obviously give — reported to the main chat, T931.)
+    # split, bull trout (its own 60 cm line) is not.
     split = {r["fish"]: r["split"] for r in b["rows"]}
-    assert {f: split[f] for f in ("EB", "GB", "CT", "RB", "DV")} == {
-        "EB": True, "GB": True, "CT": True, "RB": True, "DV": False}
+    assert {f: split[f] for f in ("EB", "GB", "CT", "RB", "DV", "LT")} == {
+        "EB": True, "GB": True, "CT": True, "RB": True, "DV": False, "LT": False}
+    # (T943) LAKE TROUT WHOLE: C2 as amended leaves lake trout inside "No wild trout over 50 cm" and Region 2's char rule
+    # keeps none under 60 cm, so no wild lake trout is ever kept: the engine releases it (chilliwack_lake.r1) and the row
+    # says so by its label, "Hatchery only" (one row, `origin_case` "hatchery_only"), its sheet "wild ones go back" —
+    # never a wild cap on a size line that no wild fish can reach
+    lt = next(r for r in b["rows"] if r["fish"] == "LT")
+    assert (lt["key"], lt["origin"], lt["label"], tuple(lt["lines"])) == \
+        ("LT", None, "Hatchery only", ("60 cm (24 in) or longer",))
+    assert [h["t"] for h in lt["sheet"]["here"]][:2] == ["Size: 60 cm (24 in) or longer.", "Hatchery only: wild ones go back."]
+    from pipeline.deliver import calendar as K
+    item = next(i for i, w in data["waters"].items() if w.get("name") == "Chilliwack Lake")
+    (ka,) = {x for x in m.parts[item] if x is not None}
+    fish = m.sections["rows"][ka][E.segment_index(m.segments[ka], K.day_of((7, 15)), m.moments[ka], "Wednesday",
+                                                  inside=False)]["fish"]["LT"]
+    ids = data["rule_ids"]
+    assert [(o, fish[o]["status"], ids[fish[o]["win"]]) for o in ("hatchery", "wild")] == [
+        ("hatchery", "keep", "z2:daily_quotas::trout_char_quota.r1"),
+        ("wild", "release", "r2:chilliwack_lake@2-4::chilliwack_lake.r1")]
     k0 = next(k for k, cells in enumerate(m.sections["trout"]) if any(c is not None and c == t for c in cells))
     cells0 = copy.deepcopy(m.sections["trout"][k0])
     j0 = next(jj for jj, c in enumerate(cells0) if c == t)
