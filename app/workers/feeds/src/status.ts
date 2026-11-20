@@ -290,13 +290,17 @@ function pushHtml(p: { missing: Record<string, string[]>; last: any }, now: Date
     const s = l && typeof l.unreadable !== "string" ? l[pl] : null;
     const state = miss.length ? `<td class="failing">not configured</td>` : `<td class="${(s && s.failed) || l?.ok === false ? "failing" : "ok"}">${(s && s.failed) || l?.ok === false ? "failing" : "ok"}</td>`;
     const what = miss.length ? `nothing is sent: ${esc(miss.join(", "))} not set` : "";
-    const counts = s ? `${s.tokens} tokens · ${s.sent} sent · ${s.dead} dead (deleted) · ${s.failed} failed${s.errors?.length ? ` · ${esc(s.errors.join("; "))}` : ""}` : typeof l?.error === "string" ? "the last wake was not sent (above)" : "no send yet";
+    // (T739 L3) a wake over PUSH_SENDS_PER_RUN phones goes out in parts, one per feed run: which part, how many are left
+    const c = l?.carry;
+    const carry = s && c ? ` · part ${esc(c.part)} of a wake begun ${esc(c.since)}: ${c.left ? `${esc(c.left)} phone(s) left for the next run` : "the last part"}` : "";
+    const counts = s ? `${s.tokens} tokens · ${s.sent} sent · ${s.dead} dead (deleted) · ${s.failed} failed${s.errors?.length ? ` · ${esc(s.errors.join("; "))}` : ""}${carry}` : typeof l?.error === "string" ? "the last wake was not sent (above)" : "no send yet";
     return `<tr><td>${pl}</td>${state}<td><small>${what}${what ? "<br>" : ""}${counts}</small></td></tr>`;
   };
   const when = typeof l?.unreadable === "string" ? `<span class="failing">unreadable: ${esc(l.unreadable)}</span>` : l ? `${esc(l.at)} <small>(${ago(l.at, now)}) · ${esc(l.reason)}</small>` +
     (l.unreadable ? ` · <b class="failing">${esc(l.unreadable)} stored token record(s) did not parse or were not an iPhone's (deleted)</b>` : "") +
     // (review 2026-11-20, M2) a wake that threw: kept as {at, reason, ok: false, error}
-    (typeof l.error === "string" ? ` · <b class="failing">not sent: ${esc(l.error)}</b>` : "") : "never";
+    (typeof l.error === "string" ? ` · <b class="failing">not sent: ${esc(l.error)}</b>` : "") +
+    (typeof l.carryError === "string" ? ` · <b class="failing">the carry-over did not read (${esc(l.carryError)}); the wake began again</b>` : "") : "never";
   return `<h2>Push wake-ups</h2><p><small>last send: ${when}</small></p><div class="wrap"><table><tr><th>platform</th><th>state</th><th>last send</th></tr>${row("ios")}</table></div>`;
 }
 

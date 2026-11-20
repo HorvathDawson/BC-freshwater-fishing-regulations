@@ -197,20 +197,102 @@ export interface PushSend {
   /** token records that were stored but did not parse, or are not an iPhone's: a fault (counted, logged, shown on
    *  /status), each deleted */
   unreadable: number;
+  /**
+   * (T739 L3) a wake too big for one run (over PUSH_SENDS_PER_RUN phones) goes out in parts, one per feed run: which
+   * part this was, how many registered phones are still to be told (0: the wake is done), and when the wake began.
+   * Absent: the whole wake fit in this run.
+   */
+  carry?: { part: number; left: number; since: string };
+  /** (T739 L3) the kept carry-over could not be read: a fault (deleted, the wake began again from the start), said */
+  carryError?: string;
 }
 
 const blankSend = (missing: string[]): PlatformSend => ({ configured: !missing.length, missing, tokens: 0, sent: 0, dead: 0, failed: 0, errors: [] });
 
 /**
- * Send one wake to every registered token. A platform with a secret missing sends nothing and says `missing`; a token
- * the service calls dead is deleted; a failure is counted with its first errors. The result is kept at PUSH_STATUS_KEY.
+ * (T739 L3, 2026-11-20) THE SUBREQUEST BUDGET. A Worker invocation on Workers Paid may make 10,000 subrequests by default
+ * (fetches AND R2 binding calls count: T225 "Limits checked", docs read 2026-10-28), and the wake runs INSIDE a feed
+ * run's invocation, after the run's own work. The gauge run is the heaviest: 1,400–1,900 measured, about 3,000 in the
+ * worst case (T225). A wake costs, per phone, one R2 get (its token record), one APNs fetch, and one R2 delete when
+ * APNs calls the token dead (3 at most); plus one R2 list per 1,000 registered phones (every key is listed: L2) and a
+ * few fixed reads and writes (the carry-over, the status, the release record). Sent all at once, 3,000 phones would
+ * already pass the limit beside a worst gauge run, and Cloudflare would fail the rest of the run's subrequests: the
+ * status write among them. So ONE RUN TELLS AT MOST PUSH_SENDS_PER_RUN PHONES and keeps a carry-over
+ * (PUSH_CARRY_KEY): the next feed run (gauges every 30 min by day) tells the next ones, whether or not it has a reason
+ * of its own, until every phone has had the wake. `pushSubrequests` is the count; push.scale.test.ts measures a wake
+ * against it and holds it, beside the worst gauge run, under the limit up to a million registered phones.
  */
-export async function sendWake(env: PushEnv, fetch_: Fetch, now: Date, reason: string): Promise<PushSend> {
+export const WORKER_SUBREQUESTS = 10_000;
+/** the gauge run's worst case (T225 "Limits checked") */
+export const GAUGE_RUN_SUBREQUESTS_WORST = 3_000;
+/** phones told per run (3 subrequests each at most) */
+export const PUSH_SENDS_PER_RUN = 1_500;
+/** the fixed reads and writes of a wake: the carry read + write/delete, the status, the release state read + write,
+ *  the manifest read, the last DFO index read, and the run's own look for a carry */
+const PUSH_FIXED_SUBREQUESTS = 10;
+/** the subrequests a wake makes at most with `registered` phones listed */
+export const pushSubrequests = (registered: number, perRun = PUSH_SENDS_PER_RUN): number =>
+  Math.max(1, Math.ceil(registered / 1000)) + 3 * Math.min(perRun, registered) + PUSH_FIXED_SUBREQUESTS;
+
+/** (T739 L3) where a wake too big for one run keeps its place: the next feed run tells the next phones */
+export const PUSH_CARRY_KEY = `${PUSH_PREFIX}carry.json`;
+/**
+ * The carry-over. Phones are told in key order, as a circle that starts after `start` ("" = the first key): the wake is
+ * done when the circle comes back round. `cursor` is the last key told. A NEW wake while one is carried starts its own
+ * circle where the carried one stands (`cursor`), so the phones not yet told are told next and nobody waits on a
+ * restart: a gauge run that wakes every 30 minutes still reaches every phone.
+ */
+interface PushCarry { format: "push-carry/1"; reason: string; since: string; start: string; cursor: string; part: number }
+
+/** The kept carry-over, or null (none). Throws when one is kept but cannot be read (the caller says so). */
+export async function readPushCarry(bucket: R2BucketLike): Promise<PushCarry | null> {
+  const o = await bucket.get(PUSH_CARRY_KEY);
+  if (!o) return null;
+  const c = JSON.parse(await o.text()) as Partial<PushCarry>;
+  if (c?.format !== "push-carry/1" || typeof c.reason !== "string" || typeof c.since !== "string" || typeof c.start !== "string"
+      || typeof c.cursor !== "string" || !Number.isSafeInteger(c.part)) throw new Error(`${PUSH_CARRY_KEY} is not a push-carry/1 record`);
+  return c as PushCarry;
+}
+
+/**
+ * Send one wake to the registered phones: every one, or (over PUSH_SENDS_PER_RUN) the next part of them, the rest
+ * carried to the next run (`carry`). `reason` null: no new wake, only the carried one goes on (the caller asks only
+ * when one is kept). A platform with a secret missing sends nothing and says `missing`; a token the service calls dead
+ * is deleted; a failure is counted with its first errors. The result is kept at PUSH_STATUS_KEY.
+ */
+export async function sendWake(env: PushEnv, fetch_: Fetch, now: Date, asked: string | null,
+                               opts: { perRun?: number } = {}): Promise<PushSend> {
+  const perRun = opts.perRun ?? PUSH_SENDS_PER_RUN;
   const missing = pushMissing(env);
-  const out: PushSend = { at: now.toISOString(), reason, ok: true, ios: blankSend(missing.ios), unreadable: 0 };
-  const keys = await listKeys(env.BUCKET, TOKENS_PREFIX, 100_000);
+  let carried: PushCarry | null = null;
+  let carryError: string | null = null;
+  try { carried = await readPushCarry(env.BUCKET); } catch (e) {
+    // a carry-over we wrote that does not read: a fault, said; deleted, and the wake begins at the first phone
+    carryError = String((e as Error)?.message ?? e);
+    console.error(JSON.stringify({ job: "push", carryError }));
+    await env.BUCKET.delete(PUSH_CARRY_KEY);
+  }
+  // a carried wake whose record did not read: its phones were not all told, so it begins again as a new wake
+  const reason = asked ?? (carryError ? "a carried wake (its record did not read)" : null);
+  if (reason === null && !carried) throw new Error("no wake to send: no reason and nothing carried");
+  // a new wake starts its circle where a carried one stands; a carried one goes on from its cursor
+  const start = reason === null ? carried!.start : carried?.cursor ?? "";
+  const cursor = reason === null ? carried!.cursor : null;
+  const why = reason ?? carried!.reason;
+  const since = reason === null ? carried!.since : now.toISOString();
+  const part = reason === null ? carried!.part + 1 : 1;
+  const out: PushSend = { at: now.toISOString(), reason: why, ok: true, ios: blankSend(missing.ios), unreadable: 0,
+                          ...(carryError ? { carryError } : {}) };
+  // (T739 L2) EVERY registered phone is listed (a page of 1,000 a call): the cap of 100,000 stopped silently
+  const keys = await listKeys(env.BUCKET, TOKENS_PREFIX, Infinity);
+  const after = (k: string) => (k > start ? 0 : 1);
+  const order = (a: string, b: string) => after(a) - after(b) || (a < b ? -1 : a > b ? 1 : 0);
+  const due = keys.sort(order).filter((k) => cursor === null || order(k, cursor) > 0);
+  const batch = due.slice(0, perRun);
+  const left = due.length - batch.length;
+
   const recs: { key: string; rec: PushRecord }[] = [];
-  for (const key of keys) {
+  for (const key of batch) {
     const o = await env.BUCKET.get(key);
     if (!o) continue;
     try {
@@ -249,7 +331,18 @@ export async function sendWake(env: PushEnv, fetch_: Fetch, now: Date, reason: s
     else fail(p, r.failed);
   };
   for (let i = 0; i < recs.length; i += PARALLEL) await Promise.all(recs.slice(i, i + PARALLEL).map(one));
-  out.ok = !out.ios.failed && !out.unreadable;
+  out.ok = !out.ios.failed && !out.unreadable && !carryError;
+  // (T739 L3) the place kept for the next run, or the carry-over done. A carry that cannot be kept THROWS, as a lost
+  // status does: the rest of the phones would silently never be told
+  if (left || part > 1) out.carry = { part, left, since };
+  try {
+    if (left) {
+      const next: PushCarry = { format: "push-carry/1", reason: why, since, start, cursor: batch[batch.length - 1]!, part };
+      await env.BUCKET.put(PUSH_CARRY_KEY, JSON.stringify(next), { httpMetadata: { contentType: "application/json" } });
+    } else if (carried) await env.BUCKET.delete(PUSH_CARRY_KEY);
+  } catch (e) {
+    throw Object.assign(new Error(`push: sent (${out.ios.sent} of ${out.ios.tokens}) but the carry-over (${left} phones left) was not kept (${String((e as Error)?.message ?? e)})`), { send: out });
+  }
   // (review 2026-11-20, M2) a send whose record cannot be kept THROWS (after the sends): the caller tries the failure
   // record and fails the run, so a lost status is never silent
   try {
@@ -257,7 +350,7 @@ export async function sendWake(env: PushEnv, fetch_: Fetch, now: Date, reason: s
   } catch (e) {
     throw Object.assign(new Error(`push: sent (${out.ios.sent} of ${out.ios.tokens}) but the status was not written (${String((e as Error)?.message ?? e)})`), { send: out });
   }
-  const log = { job: "push", reason, ios: { ...out.ios, errors: out.ios.errors.length } };
+  const log = { job: "push", reason: why, ios: { ...out.ios, errors: out.ios.errors.length }, ...(out.carry ? { carry: out.carry } : {}) };
   if (out.ok) console.log(JSON.stringify(log)); else console.error(JSON.stringify({ ...log, errors: out.ios.errors }));
   for (const p of PUSH_PLATFORMS) if (out[p].tokens && out[p].missing.length) console.error(JSON.stringify({ job: "push", platform: p, notSent: out[p].tokens, missing: out[p].missing }));
   return out;
@@ -332,24 +425,28 @@ export async function noteReleaseWake(bucket: R2BucketLike, rel: string, reached
  * gauge run) whether it is now recorded as told. Never throws: a failure is a step error (`logErr`); a wake that threw is
  * kept on /status as {at, reason, ok: false, error}; `statusLost` (the status could not be written) fails the run.
  */
-export async function wakePhones(env: PushEnv, fetch_: Fetch, at: Date, why: string, rel: string | null,
+export async function wakePhones(env: PushEnv, fetch_: Fetch, at: Date, why: string | null, rel: string | null,
                                  logErr: (s: string) => void): Promise<{ push: unknown; statusLost: boolean }> {
   let push: unknown = null;
   let statusLost = false;
   let reached = false;
+  /** (T739 L3) `why` null: no new wake, the carried one goes on (a wake over PUSH_SENDS_PER_RUN phones) */
+  const said = why ?? "the carried wake";
   try {
     const r = await sendWake(env, fetch_, at, why);
-    push = { reason: why, ok: r.ok, unreadable: r.unreadable, ios: { sent: r.ios.sent, failed: r.ios.failed, missing: r.ios.missing } };
+    push = { reason: r.reason, ok: r.ok, unreadable: r.unreadable, ios: { sent: r.ios.sent, failed: r.ios.failed, missing: r.ios.missing },
+             ...(r.carry ? { carry: r.carry } : {}) };
     if (r.ios.failed) logErr(`push: ${r.ios.failed} wake(s) failed (${r.ios.errors.slice(0, 3).join("; ")})`);
     if (r.unreadable) logErr(`push: ${r.unreadable} stored token record(s) did not parse or were not an iPhone's; deleted (those phones register again within 7 days)`);
+    if (r.carryError) logErr(`push: the carry-over did not read (${r.carryError}); deleted, the wake began again at the first phone`);
     reached = r.ios.sent > 0 || (r.ios.tokens === 0 && r.ok);
   } catch (e) {
     const msg = String((e as Error)?.message ?? e);
     logErr(`push: not sent (${msg})`);
-    push = { reason: why, ok: false, error: msg };
+    push = { reason: said, ok: false, error: msg };
     const sent = (e as { send?: PushSend })?.send;
-    if (sent) { statusLost = true; reached = sent.ios.sent > 0; }   // sendWake's own status write failed (after sending)
-    try { await writePushFailure(env.BUCKET, at, why, msg); }
+    if (sent) { statusLost = true; reached = sent.ios.sent > 0; }   // sendWake's own status (or carry) write failed (after sending)
+    try { await writePushFailure(env.BUCKET, at, said, msg); }
     catch (w) { statusLost = true; logErr(`push: the failure was not recorded on /status either (${String((w as Error)?.message ?? w)})`); }
   }
   if (rel) {
