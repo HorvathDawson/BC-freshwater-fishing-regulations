@@ -5,6 +5,7 @@ import type { R2BucketLike } from "../src/io";
 
 class Mem implements R2BucketLike {
   m = new Map<string, string>();
+  async head(k: string) { return this.m.has(k) ? {} : null; }
   failDelete = false;
   async get(k: string) { const v = this.m.get(k); return v === undefined ? null : { text: async () => v }; }
   async put(k: string, b: string) { this.m.set(k, b); }
