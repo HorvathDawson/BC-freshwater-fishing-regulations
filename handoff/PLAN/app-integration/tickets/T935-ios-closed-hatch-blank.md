@@ -20,3 +20,12 @@ closed days are likely blank on iOS too.
 ## Acceptance
 Closed days show the red hatch on iOS on every year bar and key; Android and web unchanged in look; pictures to the owner.
 Depends: none. Size: S. Owner: pictures. Batched with T922–T925, T934.
+
+## Built (lane/t935, 0d69e34a2 + shots cb0258128)
+Cause confirmed on the iPhone 17 simulator: react-native-svg 15.16 on iOS applies a `<Pattern>`'s `patternTransform` to the
+tile's own drawing (the JS Pattern passes it as the node `matrix`), so the rotated closed hatch (and the rotate(45) "flies"
+pattern) drew nothing. Fix: no SVG patterns; `regs/stripes.ts` draws each run's stripes as shapes cut to the run, same
+geometry; YearStrip (game-fish + salmon bars, both keys) and TroutYearBar use it. `stripes.test.ts`; regs vitest 104/104.
+## Owner 2026-11-20 00:39 (main chat): pictures approved
+Shown iPhone before/after (Fraser at Mission, Chilliwack) and Android after. Verbatim: "Yes they do". Lands after the
+independent review and a web check.
