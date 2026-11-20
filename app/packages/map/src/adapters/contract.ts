@@ -19,7 +19,7 @@ import {
 import { SALMON_CASING_LAYER, salmonCasingPaint, ISSUE_LAYERS, issuePaint, CLOSED_CUE_LAYER, closedCuePaint, casingPaint, glowPaint, focusTheOthers, hideTheOthers, copyFillPaint, copyLinePaint, GEAR_LAYERS, gearPaint, NOACCESS_LAYER, noaccessPaint, NOBASELINE_LAYER, nobaselineOpacity, RUNS_PASS_LAYER, runsPassPaint,
          paintFor, ringPaint, SELECTION_CASING, SELECTION_GLOW, SELECTION_RINGS, type SelectionCue,
          markShownIn, markWidth, splitStream, STREAM_HEAVY, streamWidths, takesAccessFromStatus } from "../paint";
-import { openedPaint, waterOnImagery } from "../on-imagery";
+import { landOutline, openedPaint, waterOnImagery } from "../on-imagery";
 import { unsetValue } from "../sections";
 
 export type { ChannelValues } from "../style";
@@ -223,7 +223,7 @@ export function baseAdapter(platform: "native" | "web"): MapAdapter {
     modeOf[layerId] = mode;
     const own = paintFor(layerId, mode, tokens, values);
     const out = focused ? focusTheOthers(layerId, own, tokens) : own;
-    const drawn = ground === "satellite" ? waterOnImagery(layerId, out, tokens) : out;
+    const drawn = landOutline(layerId, ground === "satellite" ? waterOnImagery(layerId, out, tokens) : out, tokens, ground === "satellite");
     if (layerId !== "stream") for (const [prop, value] of Object.entries(drawn)) h.setPaint(layerId, prop, value);
     // the stream's dash reads the stream's own mode (a runtime layer: absent from a style that has none, harmless)
     if (layerId === "stream") {
