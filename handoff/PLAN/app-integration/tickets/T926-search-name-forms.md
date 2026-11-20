@@ -26,7 +26,7 @@ waters + 2,917 aliases, ~52k queries, found = in the top 40):
 ## Acceptance
 The probe rerun: every miss class above found (except 4 until the owner picks a source); `searchIndex.test.ts` pins one
 case per class; no ranking change for exact names (the probe's 22,699 exact queries unchanged).
-Depends: none. Size: S. Owner: answered 2026-11-20 00:03 (see the last section): SUPERSEDES the earlier scopes: the variants file
+Depends: none. Size: S. Owner: answered 2026-11-19 23:59 (see the last section): SUPERSEDES the earlier scopes: the variants file
 as it stands, nothing else. (Earlier "build 1, 2, 3, 5" here was Claude's reading, never the owner's.)
 
 ## Owner 2026-11-19 20:31 (main chat, question batch)
@@ -52,7 +52,7 @@ So T926 is now:
 - (2) joined headings ("Chilliwack / Vedder Rivers"): only if a joined heading is itself one of the variants; no general
   splitting rule.
 - The cuts part is T927 (confirmed the same message; "Ten Mile Pool" is a placed cut on the Chuckwalla River).
-## Owner 2026-11-20 00:03 (main chat): the variants file as it stands (supersedes 23:49 / 23:56)
+## Owner 2026-11-19 23:59 (main chat): the variants file as it stands (supersedes 23:49 / 23:56)
 Verbatim: "Maybe we should just leave all numbered lakes in and just user the name variants file as it stands. Only
 replicate obvious times.... It feels less hacky that way". So T926 is ONLY:
 - every entry in `data/curated/waters/name_variants.json`, as it stands, finds its water (the 31 misses today become

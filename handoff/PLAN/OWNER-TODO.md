@@ -23,7 +23,7 @@ names. We do want to add all the cuts on a river as a searchable thing too. So y
 pool and get chuckwalla river?" T926 = every name variant finds its water, no abbreviations, no generic numbered names (23:56: "Kettle lake 2 is okay",
 "lake #265" is not);
 T927 = every placed cut searchable (Ten Mile Pool → Chuckwalla River).
-**T926, 2026-11-20 00:03 (supersedes the two above):** "just user the name variants file as it stands … It feels less
+**T926, 2026-11-19 23:59 (supersedes the two above):** "just user the name variants file as it stands … It feels less
 hacky that way": T926 = every entry in name_variants.json finds its water; no other rules or sources.
 
 ## 2026-11-19 afternoon: 0.8.3 on staging, then 0.8.3 to production (0.8.2 production skipped)
