@@ -471,10 +471,15 @@ def test_keep_named_reads_the_1_based_handle_and_the_lake_polygons(tmp_path):
 #: side build (2026-11-08, r-… T517 fix lane); a change moves this number and must say why. The assert in
 #: `topology.mark_words` (a mark's words are the parts' end words) is not weakened: it holds wherever two main stems meet.
 UNLABELLED_MARKS = 25                  # 112 before two parts meeting across a lake were said by the lake (5)
-# (T931 B, 2026-11-20) 110 -> 25 on the live bundle (r-6258ffded676; the four releases on disk, 11-18..11-19, all
-# ship the same marks): the builds since the 11-08 pin (T67 braid cuts at build, T710, T850 cut naming, the 11-17
-# rebuild) left 25 side-channel meetings with no words. NOT attributed to one change (no older bundle on disk); the
-# rule above (every one is a side-channel meeting) holds on all 25.
+# (T931 B, 2026-11-20) 110 -> 25, MEASURED mark by mark between the bundle before the 11-15 rebuild
+# (`bundle.pre_t743`, reach 4f1bdab9d319246f, 110 pairs) and the live one (r-6258ffded676, reach 6ca9a300dad3d95e):
+#   76 by 93a481b71 (2026-11-15, `tributaries.A_DEAD_END_GOES_WITH_ITS_WATER`, AGENTS 63): the side part (a dead
+#      end the walk never climbed) now carries the walk's rules (Chilko Lake tributaries r1, Skeena r1, Dean r7,
+#      Zymoetz r3/r4/r7 …) exactly, so it is the main part's key and the water is ONE part — the mark is gone;
+#    9 on 8 waters whose parts were otherwise re-cut or whose mark now has words: Kitsumkalum (2), Exchamsiks and
+#      Sustut marks now say their bridges (T850 bf22da0c2 cut naming); Bella Coola, Gosnell, Bulkley, Duncan and the
+#      Wood (gnis:8372) changed parts (their side part gained walk rules, not exactly the main part's).
+#   No water gained one. (Counted with scratchpad marks.py / merged.py over `part_mark.label IS NULL`.)
 #                                        106 -> 110 release r-0a9930fb8826 (2026-11-12, T678 D1 pond fold): Biddy,
 #                                        Gravel and Hill creeks and the Exchamsiks River each gain one — a pond folded
 #                                        into the stream carries the pond's other off-stem line as a side-channel part,
