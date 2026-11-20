@@ -1,6 +1,6 @@
 # T573 — A DFO row that names closed areas inside its words becomes two entries (the Thompson)
 
-Status: IN PROGRESS — built: two entries (e4f98d84e, c21037796), entry B saveable per closed area (4089f60cd), the build step (b58aa325a, fe11e0af7, be6484e1b, 554558a12, 2026-11-15). The owner's closed areas are confirmed: 16 pieces in data/curated/dfo_salmon/closed_areas.json (Thompson 3, Shuswap 1, Babine 11 circles + the Gullwing line, 2026-11-15..17), their cuts landed. Worker / app half: T757; Babine circles drawn as circles: T812. left (Claude): record the 'what the next reach run + bundle must verify' check (dfo closed lines, Thompson pieces bound inside the place, Babine carried, feed_vs_release) on the live release.
+Status: IN REVIEW — built: two entries (e4f98d84e, c21037796), entry B saveable per closed area (4089f60cd), the build step (b58aa325a, fe11e0af7, be6484e1b, 554558a12, 2026-11-15). The owner's closed areas are confirmed: 16 pieces in data/curated/dfo_salmon/closed_areas.json (Thompson 3, Shuswap 1, Babine 11 circles + the Gullwing line, 2026-11-15..17), their cuts landed. Worker half T757 live (staging `dfo.pieces: 1`); Babine circles drawn as circles: T812. VERIFIED on the live release r-6258ffded676 (2026-11-20, last section): 17 pieces, 5 bound inside their places, 12 Babine circles carried, all 17 ids in feed and release; the 17th id is the unconfirmed Tsezakwa Creek circle. owner: OWNER-TODO "Every check or look is taken as done" (11-20); left (Claude): main chat review + merge; ships with the next data release.
 
 Supersedes T572 (2026-11-20 audit).
 
@@ -205,3 +205,31 @@ unmapped; closed_areas.json does not exist yet):
   binds pieces when the worker's `/status.json` lacks `dfo.pieces >= 1`; both upload scripts call it.
 - Worker/app spec, piece-id grammar and oracle: `T573-files/worker-handoff.md`, `app/workers/feeds/test/fixtures/dfo/closure-oracle.generated.json`
   (regenerated with `python -m pipeline.tools.emit.closure_oracle`). The worker port is T757.
+
+## Verify on the live release r-6258ffded676 (lane L2, 2026-11-20; read-only)
+Read from the reach run the release carries (`reach_digest` 6ca9a300dad3d95e, `dfo_salmon.jsonl.gz`: the rows the run's
+`dfo closed` lines print), the release's salmon file (`salmon.read_release`) and the staging DFO feed
+(`data-staging.canifishthis.ca/feeds/dfo/index.json`, written by the worker 2026-11-19 21:51).
+1. `dfo closed` lines: **17 pieces** — Thompson 3, middle Shuswap 1, Babine 12 circles + the Gullwing line.
+   Bound: the 3 Thompson stretches (1 section each), the Shuswap stretch (1 section), the Gullwing line (`lake:-25`).
+   Carried: 11 Babine circles "only partly inside the circle: marked, carried on its water" (10 mark 1 section, Six
+   Mile marks 2) and 1 circle "not confirmed".
+2. Thompson pieces inside the place: each bound section is one of the place's 24
+   (`3:thompson-river:from-kamloops-lake-outlet-downstre~2`; "20" above was before the cuts landed); likewise the
+   Shuswap piece (of its place's 18) and the Gullwing line (of Babine's 2). Every bound piece's DFO chain starts with
+   the piece and answers by it every day for all five species (`a` = place 0 all year: "No fishing, year-round");
+   where the book's Thompson row joins the chain it answers before the piece by date, as every book chain does. The
+   Thompson place's chains without a piece are identical to production r-fc137c4040fa (same reach run); no release from
+   before the pieces is kept on this machine, so "byte-equal to the release before" is not re-proved here.
+3. Babine: no circle binds a section (11 carried with `marked`, 1 carried unconfirmed); all 12 are in the carried (`u`)
+   list of the lake's chains. The Gullwing line is BOUND (`lake:-25`), not "carried deferred" as this list expected on
+   11-15: its cut landed and the line binds the lake part east of it. Pinkut Creek: no piece (its row is a place of its
+   own, `6:pinkut-creek:…`).
+4. `feed_vs_release`: the 17 piece ids are in both the staging feed and the release, none on one side only; the
+   worker serves `dfo.pieces: 1` on `/status.json` (T757). `feed_only` 0, `said` 2, `release_only` 643 (dormant places).
+
+THE 17TH `#closed:` ID (16 confirmed in `closed_areas.json`): `6:babine-lake#closed:6fb2db5fc268`, "within a 400 m
+radius of the mouth of Tsezakwa Creek". Tsezakwa Creek does not reach Babine Lake: it enters Nilkitkwa Lake, 2,115 m
+from Babine's outline (`data/generated/review/dfo_closed_area_geometry.json`, confidence medium). The owner never
+confirmed that circle, so the run carries it on Babine Lake ("not confirmed (no verified closed_area mark)"): never
+bound, never dropped (AGENTS 68). Nothing to build.
