@@ -248,6 +248,7 @@ reads both files; a ticket closed here moves there once its lane is finished wit
 | T945 | Committed unnamed-tributary sweep result stale against the live bundle (41 streams) | OPEN | | lane/t936-t931 2026-11-20 test-full |
 | T946 | Tier 2 tributary lines: 20 parts (Lake Revelstoke tributaries DV, Iverson Creek) not what their rail sets | OPEN | | lane/t936-t931 2026-11-20 test-full |
 | T973 | Classified Waters carried through a tributary whose own row prints no unit, with its path (class, source, through); "may need" note; CO question open | IN PROGRESS | | owner 2026-11-20 11:44 + 12:11 (this release) |
+| T974 | Classified Waters "may need" note: clean up (firm unit or drop, remove the optional file and note) once a CO answers T973 | BLOCKED (owner) | | owner 2026-11-20 12:38 |
 
 ## Next after closed testing
 
