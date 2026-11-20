@@ -175,7 +175,8 @@ Dry run on the live registry (scratchpad `probe/numbers_proof.py`; same result a
   "UNNAMED VANHORLICK 1"; wbk:329505318 "3299" → "UNNAMED VANHORLICK 2"; wbk:329021876 "#15" → "PRECIPICE LAKE";
   wbk:329054830 "#1222" → "WILDERNESS"; wbk:329320968 "#1012" → "TRAILS END LAKE"; wbk:329321012 "#825" → "HEIDI LAKE"
   (the water page reads them cased: "Pigeon Lake #2", "Unnamed Cayoosh Cr" …).
-Owner question (OWNER-TODO 2026-11-20 07:07): the three "Unnamed …" names, or keep their numbers? Default: the rule.
+Owner questions (OWNER-TODO 2026-11-20 07:07): the three "Unnamed …" names, or keep their numbers? Default: the rule.
+And "#14A" (wbk:329021840) has a letter, so it stays shown: does it count as a number name? Default: it stays (the rule).
 Proof: only `name` and the order of `name_sources` change (variants unchanged, the number among them); the matcher's name index is the
 same 17,599 keys (17,636 after the variant pass) with 0 keys whose waters change; all 2,996 synopsis entry matches through
 the build's matcher + overrides unchanged; no entry's stored `matched` (what the build binds by) names any of the 8, and

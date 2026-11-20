@@ -204,6 +204,18 @@ def test_t926_a_number_is_never_the_shown_name_when_a_lettered_one_exists():
         ("wbk:4", "HEIDI LAKE", "alias", "Alternate name (source not recorded)")]
 
 
+def test_t926_a_name_only_a_source_record_carries_is_never_a_candidate():
+    """(T926 review) A water shown "123" whose only lettered name is in `name_sources` and NOT among its own names (the
+    live `wsc:300-432687-459615` has this shape): no candidate, no raise, the number stays shown."""
+    from pipeline.atlas.registry.build import show_lettered_names
+    reg = {"wsc:1": RegistryItem(id="wsc:1", name="123", kind="stream", variants=("123",),
+                                 name_sources=(NameRecord(name="123", source="stocking", label="s"),
+                                               NameRecord(name="FOO LAKE", source="stocking", label="s")))}
+    rep: list = []
+    out = show_lettered_names(dict(reg), rep)
+    assert out["wsc:1"] is reg["wsc:1"] and rep == []
+
+
 def test_t926_a_shown_name_is_never_recased_into_another_waters_key():
     """(T926 review) "TEANOOK L." is shown as given: the old casing step made it "Teanook Lake", a matcher key that names
     ANOTHER water (a second Teanook Lake), and a key may never come to name two waters."""

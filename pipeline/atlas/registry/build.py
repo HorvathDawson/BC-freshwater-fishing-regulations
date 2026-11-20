@@ -770,7 +770,10 @@ def show_lettered_names(registry: dict[str, RegistryItem], report: list | None =
         it = registry[iid]
         if not is_number_name(it.name):
             continue
-        recs = [r for r in it.name_sources if r.name and not is_number_name(r.name)]
+        # candidates: the water's OWN names only (name + variants) — a name only a source record carries is no name of it
+        # here, and showing it would change the name set (the guard below would stop the build)
+        own = {it.name, *it.variants}
+        recs = [r for r in it.name_sources if r.name in own and not is_number_name(r.name)]
         lettered = list(dict.fromkeys([*(r.name for r in recs), *(v for v in it.variants if not is_number_name(v))]))
         if not lettered:
             continue
