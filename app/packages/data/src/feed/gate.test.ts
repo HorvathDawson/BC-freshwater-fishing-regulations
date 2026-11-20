@@ -5,16 +5,18 @@
  * fetch (DFO, in-season, gauges, run timing).
  */
 import { describe, expect, it } from "vitest";
-import { appTooOld, appUpdateVM, APP_UPDATE_WORDS, createFeedGate, GAUGE_FEED_FORMAT, INSEASON_FEED_FORMAT, INSEASON_LINKS_FORMAT,
+import { appTooOld, appUpdateVM, APP_UPDATE_WORDS, createFeedGate, FeedNeedsNewerApp, GAUGE_FEED_FORMAT, INSEASON_FEED_FORMAT, INSEASON_LINKS_FORMAT,
          resolveAppVersion, SALMON_FEED_FORMAT, setFailureSink, type UpdateEvent } from "@app/core";
 import { sha256Hex } from "../sha256";
+import type { StationId } from "../index";
 import { createUpdateService } from "../update/service";
-import { httpFeed } from "./http";
+import { fetchObs, httpFeed } from "./http";
 import { httpInSeason } from "./inseason";
 import { httpRunTiming } from "./runtiming";
 import { httpSalmonFeed } from "./salmon";
 
 const APP = resolveAppVersion({ version: "0.8.4" });
+const A = "A" as StationId;
 const enc = new TextEncoder();
 /** every index's stamp today (core FEED_MIN_APP; `feedGate.test.ts` holds that each passes every app with the gate) */
 const TODAY = "0.0.0";
@@ -32,15 +34,18 @@ const mem = (t: string | null = null) => ({ t, read() { return this.t; }, write(
 
 /** An origin: url → body (a 200 with an ETag of the body; a matching If-None-Match: 304). */
 function origin(files: Record<string, unknown>) {
+  /** every answer's status, in order */
+  const log: number[] = [];
   const f = (async (u: RequestInfo | URL, i?: RequestInit) => {
     const body = files[String(u)];
-    if (body === undefined) return new Response("", { status: 404 });
+    if (body === undefined) { log.push(404); return new Response("", { status: 404 }); }
     const text = typeof body === "string" ? body : JSON.stringify(body);
     const etag = `"${sha256Hex(enc.encode(text)).slice(0, 12)}"`;
-    if (new Headers(i?.headers).get("If-None-Match") === etag) return new Response(null, { status: 304, headers: { ETag: etag } });
+    if (new Headers(i?.headers).get("If-None-Match") === etag) { log.push(304); return new Response(null, { status: 304, headers: { ETag: etag } }); }
+    log.push(200);
     return new Response(text, { status: 200, headers: { ETag: etag } });
   }) as typeof fetch;
-  return { files, fetch: f };
+  return { files, fetch: f, log };
 }
 
 describe("(T676 item 2) a format bump on staging, the previous app", () => {
@@ -78,9 +83,12 @@ describe("(T676 item 2) a format bump on staging, the previous app", () => {
       // a known state, not a failure: nothing reported, no error on the sync badge
       expect(reported).toEqual([]);
 
-      // not "seen": the next check reads it again (and refuses it again)
+      // its validator is remembered: the next check is a 304 and the same refusal, nothing downloaded
+      o.log.length = 0;
       await service.check();
-      expect(events.at(-1)).toMatchObject({ source: "dfo", kind: "app-too-old" });
+      expect(o.log).toEqual([304]);
+      expect(events.at(-1)).toMatchObject({ source: "dfo", kind: "app-too-old", bytes: 0, note: "needs app ≥ 0.9.0 (unchanged)" });
+      expect(service.snapshot().needsApp).toBe("0.9.0");
 
       // the origin goes back to a feed this app reads: the need clears
       o.files[URL_] = { ...DFO, at: "2026-12-02T18:00:00Z" };
@@ -88,6 +96,55 @@ describe("(T676 item 2) a format bump on staging, the previous app", () => {
       expect([service.snapshot().needsApp, appTooOld(service.snapshot()), (await salmon.latest())?.at])
         .toEqual([null, false, "2026-12-02T18:00:00Z"]);
     } finally { undo(); }
+  });
+
+  it("a restart keeps the refusal (a 304, the prompt up at once); the updated app reads the index whole", async () => {
+    const URL_ = "https://o.test/feeds/dfo/index.json";
+    const o = origin({ [URL_]: DFO });
+    const store = mem(), capture = mem();
+    const start = (version: string) => {
+      const gate = createFeedGate(resolveAppVersion({ version }));
+      const salmon = httpSalmonFeed("https://o.test/feeds/dfo/", capture, o.fetch, { gate, ttlMs: 0 });
+      return createUpdateService({ fetch: o.fetch, appVersion: resolveAppVersion({ version }), feedGate: gate, store,
+                                   feeds: [{ id: "dfo", url: URL_, apply: (text) => salmon.offer!(text) }] });
+    };
+    let s = start("0.8.4");
+    await s.check();
+    o.files[URL_] = BUMPED;
+    await s.check();
+    expect(s.snapshot().needsApp).toBe("0.9.0");
+    s = start("0.8.4");                                   // the next launch
+    expect([s.snapshot().needsApp, s.snapshot().feeds[0]!.needsApp]).toEqual(["0.9.0", "0.9.0"]);
+    o.log.length = 0;
+    await s.check();
+    expect([o.log, s.snapshot().needsApp]).toEqual([[304], "0.9.0"]);
+    // an app new enough for the stamp forgets the refusal and reads the index whole (this one still cannot parse /4:
+    // a failure of its own, said as one; the point is that it was downloaded, not answered from the refusal)
+    const undo = setFailureSink(() => {});
+    try {
+      s = start("0.9.0");
+      expect(s.snapshot().needsApp).toBeNull();
+      o.log.length = 0;
+      await s.check();
+      expect(o.log).toEqual([200]);
+    } finally { undo(); }
+  });
+
+  it("(item 4) a 304 of the index in use clears a need a reader's own fetch set (the origin no longer serves it)", async () => {
+    const URL_ = "https://o.test/feeds/dfo/index.json";
+    const o = origin({ [URL_]: DFO });
+    const gate = createFeedGate(APP);
+    const salmon = httpSalmonFeed("https://o.test/feeds/dfo/", mem(), o.fetch, { gate, ttlMs: -1 });
+    const service = createUpdateService({ fetch: o.fetch, appVersion: APP, feedGate: gate,
+                                          feeds: [{ id: "dfo", url: URL_, apply: (text) => salmon.offer!(text) }] });
+    await service.check();
+    o.files[URL_] = BUMPED;
+    await salmon.latest();                                // the reader's own fetch meets the bump first
+    expect(service.snapshot().needsApp).toBe("0.9.0");
+    o.files[URL_] = DFO;                                  // the bump is taken back
+    o.log.length = 0;
+    await service.check();
+    expect([o.log, service.snapshot().needsApp, service.snapshot().feeds[0]!.needsApp, gate.needs()]).toEqual([[304], null, null, null]);
   });
 
   it("the mutation: the same bump to an app WITHOUT the gate reads as a refused feed, reported, and no prompt", async () => {
@@ -135,17 +192,38 @@ describe("(T676 item 2) every reader given the gate refuses an index for a newer
     expect(() => src.offer!(JSON.stringify(bumped))).toThrow(/needs app 0.9.0/);
   }));
 
-  it("gauges: the session's copy answers, the service's offer is refused", () => quiet(async () => {
+  it("gauges: the index, a station file and obs.json — the session's copy answers, nothing reported; the offer is refused", () => quiet(async () => {
     const IDX = { format: GAUGE_FEED_FORMAT, minAppVersion: TODAY, fetchedAt: "2026-11-20T12:00:00Z", stations: { A: {} } };
+    const ST = { format: GAUGE_FEED_FORMAT, minAppVersion: TODAY, fetchedAt: "2026-11-20T12:00:00Z", station: "A",
+                 now: { at: "2026-11-20T11:00:00-08:00", discharge: 12, level: 1.1 } };
+    const OBS = { format: GAUGE_FEED_FORMAT, minAppVersion: TODAY, fetchedAt: "2026-11-20T12:00:00Z", windowHours: 24,
+                  stations: { A: [["2026-11-20T11:00:00-08:00", 1.1, 12]] } };
     const gate = createFeedGate(APP);
-    const files: Record<string, unknown> = { "index.json": IDX };
+    const files: Record<string, unknown> = { "index.json": IDX, "A.json": ST, "obs.json": OBS };
     const f = httpFeed("http://x/feeds/live", serve(files), { gate });
     expect(await f.live()).toEqual(new Set(["A"]));
-    files["index.json"] = { ...IDX, format: "gauge-feed/2", minAppVersion: "0.9.0", stations: { B: {} } };
+    expect(await f.lastReport(A)).toBe(ST.now.at);
+    expect((await fetchObs("http://x/feeds/live", serve(files), undefined, undefined, gate)).stations).toEqual(OBS.stations);
+    // the bump: every gauge file in gauge-feed/2, stamped 0.9.0
+    const bump = (d: object) => ({ ...d, format: "gauge-feed/2", minAppVersion: "0.9.0" });
+    files["index.json"] = bump({ ...IDX, stations: { B: {} } });
+    files["A.json"] = bump({ ...ST, now: { ...ST.now, at: "2026-12-01T11:00:00-08:00" } });
+    files["obs.json"] = bump(OBS);
     f.refresh!();
     expect(await f.live()).toEqual(new Set(["A"]));
+    expect(await f.lastReport(A)).toBe(ST.now.at);           // the station panel keeps the session's copy
     expect(gate.needs()).toBe("0.9.0");
     expect(() => f.offer!(files["index.json"])).toThrow(/needs app 0.9.0/);
+    await expect(fetchObs("http://x/feeds/live", serve(files), undefined, undefined, gate)).rejects.toThrow(FeedNeedsNewerApp);
+    // a bumped station file / obs.json WITHOUT the stamp, while the gate holds the bump: the same known state
+    files["A.json"] = { ...ST, format: "gauge-feed/2" };
+    files["obs.json"] = { ...OBS, format: "gauge-feed/2" };
+    f.refresh!();
+    expect(await f.lastReport(A)).toBe(ST.now.at);
+    await expect(fetchObs("http://x/feeds/live", serve(files), undefined, undefined, gate)).rejects.toThrow(FeedNeedsNewerApp);
+    // the background check's own gate (a fresh one, no index read): obs.json's own stamp is enough
+    files["obs.json"] = bump(OBS);
+    await expect(fetchObs("http://x/feeds/live", serve(files), undefined, undefined, createFeedGate(APP))).rejects.toThrow(FeedNeedsNewerApp);
   }));
 
   it("run timing: the capture answers", () => quiet(async () => {

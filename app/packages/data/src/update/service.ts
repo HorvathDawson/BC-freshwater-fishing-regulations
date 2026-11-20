@@ -243,6 +243,9 @@ interface Persisted {
   allowMetered?: boolean;
   /** (T298) the three-way setting; absent: from `allowMetered` (true → "always"), else "ask" */
   mobileData?: MobileDataSetting;
+  /** (T676 item 2) the index each feed's loader REFUSED as newer than this app — its validator and the version asked
+   *  for — so the next check sends it (a 304 or the same bytes is the same refusal, nothing downloaded) */
+  refused?: Partial<Record<FeedId, Seen & { need: string }>>;
 }
 
 const STORE_VERSION = 1;
@@ -292,9 +295,18 @@ export function createUpdateService(o: UpdateOptions): UpdateService {
   const save = () => { try { o.store?.write(JSON.stringify(kept)); } catch { /* a refused write costs a re-download */ } };
 
   const feeds = new Map<FeedId, SourceStatus>();
+  // (T676 item 2) a refusal kept from an earlier launch stands only while THIS app is still older than it asks (an
+  // updated app reads the index again, whole)
+  const stillRefused = (r: (Seen & { need: string }) | undefined) =>
+    !!r && !!o.appVersion && !releaseAllowed(r.need, o.appVersion).ok;
+  for (const id of Object.keys(kept.refused ?? {}) as FeedId[])
+    if (!stillRefused(kept.refused![id])) delete kept.refused![id];
   for (const s of o.feeds) {
     const at = kept.at[s.id];
-    feeds.set(s.id, { ...blank(s.id), checkedAt: at?.checkedAt ?? null, updatedAt: at?.updatedAt ?? null });
+    const need = kept.refused?.[s.id]?.need ?? null;
+    feeds.set(s.id, { ...blank(s.id), checkedAt: at?.checkedAt ?? null, updatedAt: at?.updatedAt ?? null,
+                      ...(need ? { needsApp: need } : {}) });
+    if (need) o.feedGate?.note(s.id, need);
   }
   const relAt = kept.at.release;
   let release: ReleaseStatus | null = o.release
@@ -348,16 +360,33 @@ export function createUpdateService(o: UpdateOptions): UpdateService {
 
   async function checkFeed(spec: FeedSpec): Promise<boolean> {
     const t0 = now(), before = short(kept.seen[spec.id]?.sha256);
-    const r = await checkObject(spec.url, kept.seen[spec.id] ?? null, f);
+    // (T676 item 2) an index refused as newer than this app is the origin's newest: asked about by ITS validator, so a
+    // 304 (or the same bytes) is that refusal again, without a download
+    const refusedWas = kept.refused?.[spec.id];
+    const r = await checkObject(spec.url, refusedWas ? { etag: refusedWas.etag, sha256: refusedWas.sha256 } : kept.seen[spec.id] ?? null, f);
     if (r.kind === "failed") {
       feeds.set(spec.id, failSource(feeds.get(spec.id)!, r.error, r.offline));
       emit({ source: spec.id, kind: "failed", status: r.status, bytes: 0, ms: now() - t0, error: r.error,
              errorClass: errorClassOf(r.error, r.offline), before });
       return false;
     }
+    if (r.kind === "unchanged" && refusedWas) {
+      // (T676 item 2) the same index this app is too old for: still refused, the need held (a restart's gate too)
+      if (r.etag) kept.refused![spec.id] = { ...refusedWas, etag: r.etag };
+      okFeed(spec.id, false);
+      feeds.set(spec.id, { ...feeds.get(spec.id)!, needsApp: refusedWas.need });
+      o.feedGate?.note(spec.id, refusedWas.need);
+      emit({ source: spec.id, kind: "app-too-old", status: r.status, bytes: r.got, ms: now() - t0, before,
+             after: short(refusedWas.sha256), note: `needs app ≥ ${refusedWas.need} (unchanged)` });
+      return true;
+    }
     if (r.kind === "unchanged") {
       if (r.etag) kept.seen[spec.id] = { etag: r.etag, sha256: kept.seen[spec.id]?.sha256 ?? null };
       okFeed(spec.id, false);
+      // (T676 item 2) the index in use is the origin's: nothing asks for a newer app (a reader's own refusal of a
+      // newer index included — the origin no longer serves it)
+      feeds.set(spec.id, { ...feeds.get(spec.id)!, needsApp: null });
+      o.feedGate?.note(spec.id, null);
       emit({ source: spec.id, kind: "unchanged", status: r.status, bytes: r.got, ms: now() - t0, before, after: before });
       return true;
     }
@@ -369,11 +398,13 @@ export function createUpdateService(o: UpdateOptions): UpdateService {
         // the next check reads it again), nothing is reported; the loader's capture answers and the prompt is up
         okFeed(spec.id, false);
         feeds.set(spec.id, { ...feeds.get(spec.id)!, needsApp: e.need });
+        (kept.refused ??= {})[spec.id] = { etag: r.etag, sha256: r.sha256, need: e.need };
         emit({ source: spec.id, kind: "app-too-old", status: r.status, bytes: r.got, ms: now() - t0, before,
                after: short(r.sha256), note: `needs app ≥ ${e.need}` });
         return true;
       }
       // refused by its loader (not a feed): not "seen", so the next check looks again; the loader keeps what it had
+      if (kept.refused) delete kept.refused[spec.id];
       const error = `${spec.url}: ${said(e)}`;
       feeds.set(spec.id, failSource(feeds.get(spec.id)!, error, false));
       emit({ source: spec.id, kind: "failed", status: r.status, bytes: r.got, ms: now() - t0, error, errorClass: "apply",
@@ -381,6 +412,7 @@ export function createUpdateService(o: UpdateOptions): UpdateService {
       return false;
     }
     kept.seen[spec.id] = { etag: r.etag, sha256: r.sha256 };
+    if (kept.refused) delete kept.refused[spec.id];
     okFeed(spec.id, true);
     emit({ source: spec.id, kind: "changed", status: r.status, bytes: r.got, ms: now() - t0, before, after: short(r.sha256) });
     for (const l of [...feedListeners]) l(spec.id);
@@ -682,6 +714,7 @@ export function createUpdateService(o: UpdateOptions): UpdateService {
     },
     forget() {
       kept.seen = {};
+      kept.refused = {};
       relSeen = null;
       save();
       emit({ source: "app", kind: "action", note: "validators forgotten: the next check downloads everything whole" });

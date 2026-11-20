@@ -38,6 +38,25 @@ describe("createFeedGate", () => {
     expect(told).toBe(4);
   });
 
+  it("a file under the index: refused by its own stamp and held, never clearing; `note` sets or clears from outside", () => {
+    const g = createFeedGate(APP);
+    expect(() => g.checkFile({ minAppVersion: "0.0.0" }, "gauges")).not.toThrow();
+    expect(g.holds("gauges")).toBeNull();
+    expect(() => g.checkFile({ minAppVersion: "0.9.0" }, "gauges")).toThrow(FeedNeedsNewerApp);
+    expect(g.holds("gauges")).toBe("0.9.0");
+    // a readable file does not speak for the feed: the need stands until the index (or `note`) clears it
+    g.checkFile({ minAppVersion: "0.0.0" }, "gauges");
+    expect(g.holds("gauges")).toBe("0.9.0");
+    g.note("gauges", null);
+    expect(g.needs()).toBeNull();
+    g.note("dfo", "0.9.1");
+    expect(g.refused()).toEqual({ dfo: "0.9.1" });
+    // the web: nothing is ever held
+    const web = createFeedGate(null);
+    web.note("dfo", "0.9.1");
+    expect(web.needs()).toBeNull();
+  });
+
   it("a value that is not a version is refused (the app cannot check it), as the release gate does", () => {
     expect(() => createFeedGate(APP).check({ minAppVersion: "soon" }, "inseason")).toThrow(FeedNeedsNewerApp);
   });

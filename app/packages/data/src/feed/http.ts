@@ -19,8 +19,8 @@
 // `standing` comes from core rather than being restated here. A second copy of the
 // thresholds is a second answer to "is this river low", and the feed and the sheet
 // would eventually disagree about the same reading (AGENTS rule 23).
-import { gaugeFeedRefusal, isFeedTooNew, reportFailure, shownParameter, standing, type FeedGate, type GaugeFeedFile,
-         type SourceChange, now as clockNow } from "@app/core";
+import { FeedNeedsNewerApp, gaugeFeedRefusal, isFeedTooNew, reportFailure, shownParameter, standing, type FeedGate,
+         type GaugeFeedFile, type SourceChange, now as clockNow } from "@app/core";
 import type { Aged, Forecast, Parameter, Reading, StationId } from "../index";
 import type { AheadDays, StationChange } from "../panel";
 import { fetchJsonResilient } from "../net/fetch";
@@ -279,7 +279,7 @@ const FEED_LIMITS = { firstByteMs: 45_000, stallMs: 45_000, totalMs: 45_000 };
  * is not the feed's.
  */
 export async function fetchObs(base: string, fetchImpl: typeof fetch = fetch,
-                               limits: typeof FEED_LIMITS = FEED_LIMITS, held?: ObsHeld): Promise<ObsFile> {
+                               limits: typeof FEED_LIMITS = FEED_LIMITS, held?: ObsHeld, gate?: FeedGate | null): Promise<ObsFile> {
   const url = `${base.replace(/\/+$/, "")}/obs.json`;
   const kept = held ? readHeldObs(held, url) : null;
   // (T741) a conditional GET when a copy and its validator are kept: an unchanged file costs a 304 and no body. Sent
@@ -289,7 +289,11 @@ export async function fetchObs(base: string, fetchImpl: typeof fetch = fetch,
   const got = await fetchJsonResilient<ObsFile>(url, { fetchImpl, attempts: 1, limits, cache: "no-store", ...(headers ? { headers } : {}) });
   if (!got.ok && got.status === 304 && kept) return kept.value;
   if (!got.ok) throw new Error(`${url}: HTTP ${got.status}`);
+  // (T676 item 2) a file for a newer app throws the gate's refusal (a known state: the caller keeps what it has and
+  // reports nothing); so does one this app cannot read while the gate holds the gauge feed's bump
+  gate?.checkFile(got.value, "gauges");
   const why = gaugeFeedRefusal(got.value, "obs");    // (T557)
+  if (why && gate?.holds("gauges")) throw new FeedNeedsNewerApp("gauges", gate.holds("gauges")!);
   if (why) throw new Error(`${url}: ${why}`);
   if (held) {
     if (got.etag) held.write(JSON.stringify({ url, etag: got.etag, value: got.value }));
@@ -376,16 +380,22 @@ export function httpFeed(base: string, fetchImpl: typeof fetch = fetch,
                                                           ...(held(url) ? { cache: "no-store" as const } : {}) });
           if (!got.ok) return null;          // 404 = this station is not transmitting
           // (T676 item 2) an index for a newer app: not a failure (no report), what this session or the phone holds
-          // answers, and the gate holds the need for the update prompt
-          if (path === "index.json" && opts.gate) {
-            try { opts.gate.check(got.value, "gauges"); } catch (e) {
+          // answers, and the gate holds the need for the update prompt. A station file or obs.json for a newer app: the
+          // same (the gate holds the need; only the index clears it)
+          if (opts.gate) {
+            try {
+              if (path === "index.json") opts.gate.check(got.value, "gauges");
+              else opts.gate.checkFile(got.value, "gauges");
+            } catch (e) {
               if (isFeedTooNew(e)) return fallback<T>(path, url);
               throw e;
             }
           }
           // (T557) a file in another format, or not the shape asked for, is refused and REPORTED, never cached or kept:
-          // what this session or the phone already holds answers instead, with its own age
+          // what this session or the phone already holds answers instead, with its own age. (T676 item 2) While the gate
+          // holds the gauge feed's bump, a file this app cannot read is that bump: the same fallback, not reported
           const why = gaugeFeedRefusal(got.value, kindOf(path));
+          if (why && opts.gate?.holds("gauges")) return fallback<T>(path, url);
           if (why) {
             reportFailure(new Error(`${url}: ${why}`));
             return fallback<T>(path, url);
@@ -428,7 +438,7 @@ export function httpFeed(base: string, fetchImpl: typeof fetch = fetch,
     async syncObservations() {
       if (!opts.history || (opts.online && !opts.online())) return;
       try {
-        opts.history.noteObs(await fetchObs(trimmed, fetchImpl, opts.limits ?? FEED_LIMITS));
+        opts.history.noteObs(await fetchObs(trimmed, fetchImpl, opts.limits ?? FEED_LIMITS, undefined, opts.gate));
       } catch { /* offline or not published yet: the next feed update asks again */ }
     },
 

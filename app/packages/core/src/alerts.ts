@@ -443,6 +443,8 @@ export const NOTIFY_WORDS = {
     updateReady: "new data ready",
     appVersion: "new app version",
     noRules: "no alerts set",
+    /** (T676 item 2) the gauge feed asks for a newer app: the alerts wait for the app update (not a failure) */
+    appTooOld: "gauge alerts wait for the app update",
   },
 } as const;
 

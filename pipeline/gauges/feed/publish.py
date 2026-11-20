@@ -1021,6 +1021,7 @@ def publish(out: Path, stations: list[str], clim: dict | None = None,
 
         (out / f"{r['station']}.json").write_text(json.dumps({
             "format": FEED_FORMAT,
+            "minAppVersion": MIN_APP,      # (T676 item 2) every gauge file names the oldest app that reads it
             "fetchedAt": now.isoformat(timespec="seconds").replace("+00:00", "Z"),
             "station": r["station"],
             "now": {"discharge": r["discharge"], "level": r["level"], "at": r["at"],

@@ -82,16 +82,16 @@ def test_a_format_bump_raises_the_oldest_app_that_reads_the_index():
     assert any("FEED_MIN_APP stayed" in p for p in _pins_problems(bumped, FF.FEED_MIN_APP))
 
 
-def test_every_python_index_writer_stamps_the_oldest_app_that_reads_it():
-    """The Python writers of a gated index read the table (the worker's are pinned by its own tests)."""
-    import inspect
+def test_every_python_index_writer_reads_the_oldest_app_from_the_table():
+    """The Python writers' constants are the table's. What each WRITES is pinned where it is run on a fixture, on the
+    written file: `test_dfo_live.py::test_todays_pages_join_every_location` (dfo index), `test_feed_gaps.py::
+    test_a_mid_window_gap_is_filled_from_the_archive` (gauge index + station file), `test_runtiming_feed.py::
+    test_each_section_takes_its_relations_and_the_paint_index_says_when` (run timing index); the worker's in its tests."""
     from pipeline.gauges.feed import publish as gauges
     from pipeline.regs.dfo_salmon import live as dfo
     from pipeline.runtiming.feed import build as runtiming
     assert (dfo.MIN_APP, gauges.MIN_APP, runtiming.MIN_APP) == (
         FF.FEED_MIN_APP["dfo_feed"], FF.FEED_MIN_APP["gauge_feed"], FF.FEED_MIN_APP["runtiming_index"])
-    for mod in (dfo, gauges, runtiming):
-        assert '"minAppVersion": MIN_APP' in inspect.getsource(mod), mod.__name__
 
 
 def test_the_typescript_carries_the_minimums():

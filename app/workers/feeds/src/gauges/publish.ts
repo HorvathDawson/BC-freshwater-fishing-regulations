@@ -1097,6 +1097,7 @@ async function publish(a: PublishArgs): Promise<Omit<GaugeSummary, "listSource" 
     const FC = "\u0000forecasts\u0000";
     let text = JSON.stringify({
       format: GAUGE_FEED_FORMAT,
+      minAppVersion: FEED_MIN_APP.gaugeFeed,   // (T676 item 2) every gauge file: the background alert check reads obs alone
       fetchedAt,
       station: st,
       now: { discharge: r.discharge, level: r.level, at: r.at, percentile: index[st].percentile, parameter: param },
@@ -1199,7 +1200,7 @@ async function publish(a: PublishArgs): Promise<Omit<GaugeSummary, "listSource" 
       if (keep.length) obs[st] = keep;
     }
   }
-  if (!indexKept) await feed.put(OBS_FILE, JSON.stringify({ format: GAUGE_FEED_FORMAT, fetchedAt, windowHours: OBS_WINDOW_MS / 3_600_000, stations: obs }), JSON_CT);
+  if (!indexKept) await feed.put(OBS_FILE, JSON.stringify({ format: GAUGE_FEED_FORMAT, minAppVersion: FEED_MIN_APP.gaugeFeed, fetchedAt, windowHours: OBS_WINDOW_MS / 3_600_000, stations: obs }), JSON_CT);
 
   return {
     asked: a.ids.length, answered: got.length, release, stale: staleRelease, latest: a.latest, maintenance,

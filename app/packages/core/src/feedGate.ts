@@ -39,6 +39,17 @@ export function isFeedTooNew(e: unknown): e is FeedNeedsNewerApp {
 export interface FeedGate {
   /** Throws `FeedNeedsNewerApp` when `index` asks for a newer app than this one; otherwise clears `feed`'s need. */
   check(index: unknown, feed: GatedFeed): void;
+  /**
+   * A FILE UNDER a feed's index (a gauge station file, `obs.json`): throws `FeedNeedsNewerApp` when it asks for a newer
+   * app (holding the need). It never clears the need: only the index speaks for the feed.
+   */
+  checkFile(doc: unknown, feed: GatedFeed): void;
+  /** The version `feed` is held to (its index, or one of its files, asked for a newer app), or null. A file of that feed
+   *  this app cannot read is then a known state — the feed's bump — not a failure to report. */
+  holds(feed: GatedFeed): string | null;
+  /** Set a feed's need from outside a read (the update service: a kept refusal after a restart; a 304 of the index
+   *  this app reads); null clears it. */
+  note(feed: GatedFeed, need: string | null): void;
   /** The highest version a refused feed asks for, or null (every feed this app was offered, it reads). */
   needs(): string | null;
   /** Each refused feed and what it asks for. */
@@ -70,6 +81,15 @@ export function createFeedGate(app: AppVersion | null): FeedGate {
       }
       set(feed, null);
     },
+    checkFile(doc, feed) {
+      const g = app ? releaseAllowed(minOf(doc), app) : ({ ok: true } as const);
+      if (!g.ok) {
+        set(feed, refused[feed] && higher(refused[feed]!, g.need) ? refused[feed]! : g.need);
+        throw new FeedNeedsNewerApp(feed, g.need);
+      }
+    },
+    holds: (feed) => refused[feed] ?? null,
+    note(feed, need) { set(feed, app ? need : null); },
     needs() {
       const all = Object.values(refused).filter((v): v is string => !!v).sort();
       return all.length ? all.reduce((a, b) => (higher(a, b) ? a : b)) : null;
