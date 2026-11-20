@@ -1,6 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 import {
-  ALERT_SILENT_TELL_MS, alertLine, alertListLine, localStamp, percentileByDay, setFailureSink, type Band, type GaugeAlertRule,
+  ALERT_SILENT_TELL_MS, alertLine, alertListLine, FeedNeedsNewerApp, localStamp, NOTIFY_WORDS, percentileByDay, setFailureSink, type Band,
+  type GaugeAlertRule,
 } from "@app/core";
 import type { Manifest } from "../manifest";
 import type { ObsFile } from "../feed/history";
@@ -125,6 +126,17 @@ describe("the background check (T234)", () => {
       expect(h.told).toEqual([]);
       expect(sink).not.toHaveBeenCalled();
       expect(h.settings.read().runs.at(-1)!.result).toBe("offline");
+    } finally { undo(); }
+  });
+
+  it("(T676 item 2) a gauge feed for a newer app: nothing raised, nothing reported, the run says the alerts wait", async () => {
+    const sink = vi.fn();
+    const undo = setFailureSink(sink);
+    try {
+      const h = harness({ on: true, rules: [rule] }, { obs: async () => { throw new FeedNeedsNewerApp("gauges", "0.9.0"); } });
+      const r = await runBackgroundCheck(h.deps);
+      expect([r.failed, h.told, sink.mock.calls.length]).toEqual([[], [], 0]);
+      expect(h.settings.read().runs.at(-1)!.result).toBe(NOTIFY_WORDS.run.appTooOld);
     } finally { undo(); }
   });
 

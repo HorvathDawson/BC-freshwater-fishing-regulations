@@ -188,6 +188,10 @@ export const INBOX_WORDS = {
   manyWaters: (n: number) => `Shown on the Regulations page of each of the ${n} waters it applies to.`,
   /** the inbox's line when the feed could not be read (the failure itself is reported by the source) */
   failure: "The latest in-season notices could not be read by this version of the app. Shown: the last ones it read.",
+  /** (T548 item 4) some rows of the feed could not be read: they were left out, the others are shown (also reported) */
+  unreadRows: (n: number) => n === 1
+    ? "1 in-season notice could not be read by this version of the app. It is not shown; the others are."
+    : `${n} in-season notices could not be read by this version of the app. They are not shown; the others are.`,
 } as const;
 
 function dayWords(day: string, today: string): string {

@@ -88,7 +88,9 @@ export function sourcesOf(u: UpdateSnapshot | null): UpdateSourceInput[] {
   if (!u) return [];
   const all = [...u.feeds, ...(u.release ? [u.release] : [])];
   return all.map((s) => ({ k: s.id as UpdateSourceKey, checkedAt: s.checkedAt, updatedAt: s.updatedAt, error: s.error,
-                           failedAt: s.failedAt, offline: s.offline }));
+                           failedAt: s.failedAt, offline: s.offline,
+                           // (T676 item 2) a feed's need (the release says its own by phase)
+                           ...(s.id !== "release" && s.needsApp ? { needsApp: s.needsApp } : {}) }));
 }
 
 export function useSync({ feed, release, checkRelease, named = null, updates = null }: {

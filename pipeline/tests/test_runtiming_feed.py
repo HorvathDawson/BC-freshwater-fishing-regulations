@@ -84,6 +84,9 @@ def built(tmp_path):
 
 def test_each_section_takes_its_relations_and_the_paint_index_says_when(built):
     docs, index, report, _ = built
+    # (T676 item 2) the built index names the oldest app that reads it, from the one table
+    from pipeline.common.feed_formats import FEED_MIN_APP
+    assert index["minAppVersion"] == FEED_MIN_APP["runtiming_index"]
     runs, paint = docs["runs"], docs["paint"]
     assert [r["id"] for r in runs["runs"]] == ["psf:7", "dfo:9:Coho:-"]
     assert runs["slots"][runs["default"]] == "Steelhead"

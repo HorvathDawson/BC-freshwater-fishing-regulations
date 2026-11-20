@@ -7,7 +7,7 @@ import { describe, expect, it } from "vitest";
 import { runDfo } from "../src/dfo";
 import { fetchRegion } from "../src/dfo/fetch";
 import { readPairs } from "../src/dfo/live";
-import { FEED_FORMATS } from "../../../packages/core/src/feedFormats.generated";
+import { FEED_FORMATS, FEED_MIN_APP } from "../../../packages/core/src/feedFormats.generated";
 import { MemStore, privStore, REPO } from "./dfo.scenario";
 
 const FIX = join(REPO, "app/workers/feeds/test/fixtures/dfo");
@@ -144,6 +144,8 @@ describe("change-aware DFO runs", () => {
     const priv = privStore();
     await run(feed, priv, "2026-10-28T12:00:00Z", pages);
     const first = feed.m.get("index.json")!;
+    // (T676 item 2) the index names the oldest app that reads it (one table with live.py)
+    expect(JSON.parse(first).minAppVersion).toBe(FEED_MIN_APP.dfoFeed);
     const m = newMeter();
     const puts: string[] = [];
     const watched = Object.assign(Object.create(feed), { put: async (k: string, b: string) => (puts.push(k), feed.put(k, b)) });
@@ -369,7 +371,7 @@ describe("(T668) the feed answers per place and carries the Python's straddler p
   it("index.json is places and their own answers: no chains, no region groups; no pairs.json, no pairs (said in the log)", async () => {
     const logs: string[] = [];
     const ix = await run(privStore(), logs);
-    expect(Object.keys(ix).sort()).toEqual(["at", "dfo", "format", "gears", "issues", "locs", "regions", "unplaced", "verdicts"]);   // T759: + the shape, the issues
+    expect(Object.keys(ix).sort()).toEqual(["at", "dfo", "format", "gears", "issues", "locs", "minAppVersion", "regions", "unplaced", "verdicts"]);   // T759: + the shape, the issues; T676: + minAppVersion
     expect(logs.some((l) => l.startsWith("dfo: no pairs.json"))).toBe(true);
     const locKeys = new Set(Object.values<Record<string, unknown>>(ix.locs).flatMap((l) => Object.keys(l)));
     // (T770) `o`: a place's own closure line of another fish (Region 6 B(ii)'s eulachon), not a composition; (T870) `pr`:

@@ -76,6 +76,8 @@ def test_every_shared_case_types_and_answers_as_the_file_says(name):
             assert rule.get("species") == want["species"]
         if "reason" in want:
             assert rule["review_reason"].startswith(REASONS[want["reason"]])
+        if "verbatim" in want:  # (T623 F13) the short line the verdict quotes
+            assert rule["verbatim"] == want["verbatim"]
     place = _rules(name)
     assert [[sp, md, _status([place], sp, md)] for sp, md, _ in case.get("own", [])] == case.get("own", [])
 

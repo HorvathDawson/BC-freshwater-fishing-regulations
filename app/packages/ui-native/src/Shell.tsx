@@ -24,7 +24,7 @@
  * The Shell holds only the state more than one of these needs (the camera, the day, which sheet is open) and hands it
  * down. Every answer on every screen comes from a hook (rule 25).
  */
-import { GUIDE_WATER, WATER_SCREEN_WORDS, bellLabel, releaseNoticeVM, dayRange, placeholderFor, runSheet, guideDay, syncVM, type NotFishingKind, bcNow, now as clockNow, reportFailure } from "@app/core";
+import { GUIDE_WATER, WATER_SCREEN_WORDS, appTooOld, bellLabel, releaseNoticeVM, dayRange, placeholderFor, runSheet, guideDay, syncVM, type NotFishingKind, bcNow, now as clockNow, reportFailure } from "@app/core";
 import { openProbe, type ItemId, type SectionId } from "@app/data";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Platform, View } from "react-native";
@@ -465,7 +465,8 @@ export function Shell(p: ShellProps) {
   const sheetUp = !safe || menu.state.page !== null || layersOpen || dayOpen || syncErrorOpen || obstacle !== null
     || notFishing !== undefined || runsAt !== null || rail.drop !== null || rail.picking;
   const appUpdate = useAppUpdate(p.appUpdater ?? null, p.appUpdateStore ?? null,
-                                 { offline: netState.mode.offline, tooOld: syncState.updates?.release?.phase === "app-too-old",
+                                 // (T676 item 2) a release or a live feed this app is too old for: the same prompt
+                                 { offline: netState.mode.offline, tooOld: appTooOld(syncState.updates),
                                    ask: p.openUpdate ?? 0, resume: resumed,
                                    held: firstRun.open || guide.open || guide.pending || bellOpen || inbox.open
                                      || !!p.applyCurtain?.applying || sheetUp,

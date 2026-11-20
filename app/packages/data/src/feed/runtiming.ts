@@ -17,7 +17,8 @@
  * bound to them is never overwritten by an index bound to another atlas: it answers, said as the capture, until the
  * device takes that release. With no capture of its own atlas the new set is read as before (the tab says "out of date").
  */
-import { reportFailure, checkRunTiming, parseRunTimingIndex, RunTimingFacts, type RunTimingIndex } from "@app/core";
+import { isFeedTooNew, reportFailure, checkRunTiming, parseRunTimingIndex, RunTimingFacts, type FeedGate,
+         type RunTimingIndex } from "@app/core";
 import { fetchVerified } from "../fetchVerified";
 
 /** Whole text under one name — async, because a few MB does not belong in localStorage. */
@@ -40,7 +41,9 @@ interface Captured { index: unknown; runs: unknown; paint: unknown }
 const decoder = new TextDecoder();
 
 export function httpRunTiming(base: string, store?: RunTimingStore, fetchImpl: typeof fetch = fetch,
-                              opts: { ttlMs?: number; now?: () => number; handles?: () => string | null } = {}): RunTimingSource {
+                              opts: { ttlMs?: number; now?: () => number; handles?: () => string | null;
+                                      /** (T676 item 2) refuses an index newer than this app: the capture answers */
+                                      gate?: FeedGate } = {}): RunTimingSource {
   const root = base.replace(/\/$/, "");
   const ttl = opts.ttlMs ?? RUN_TIMING_TTL_MS, now = opts.now ?? Date.now;
   let held: { at: number; p: Promise<RunTimingData | null> } | null = null;
@@ -67,8 +70,16 @@ export function httpRunTiming(base: string, store?: RunTimingStore, fetchImpl: t
     let rawIndex: unknown = null;
     try {
       const r = await fetchImpl(`${root}/index.json`, { cache: "no-store" });
-      if (r.ok) { rawIndex = JSON.parse(await r.text()); index = parseRunTimingIndex(rawIndex); }
-    } catch (e) { reportFailure(e); /* offline: the capture answers (T368: anything else is reported too) */ }
+      if (r.ok) {
+        rawIndex = JSON.parse(await r.text());
+        opts.gate?.check(rawIndex, "runtiming");   // (T676 item 2) an index for a newer app: the capture answers
+        index = parseRunTimingIndex(rawIndex);
+      }
+    } catch (e) {
+      // offline: the capture answers (T368: anything else is reported too); (T676 item 2) an index for a newer app is a
+      // known state, held by the gate for the update prompt, not a failure
+      if (!isFeedTooNew(e)) reportFailure(e);
+    }
     if (!index) return was ? { facts: was.facts, from: "capture" } : null;
     // (T552 item 6) a capture of the device's own atlas is kept over a set bound to another
     const mine = opts.handles?.() ?? null;

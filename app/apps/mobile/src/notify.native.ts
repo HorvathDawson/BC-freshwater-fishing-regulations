@@ -23,7 +23,7 @@ import { platformLine } from "@app/ui-native";
 import * as BackgroundTask from "expo-background-task";
 import * as Notifications from "expo-notifications";
 import * as TaskManager from "expo-task-manager";
-import { appUpdateChannel, appVersionFileUrl, NOTIFY_WORDS, now, reportFailure, versionHeaders } from "@app/core";
+import { appUpdateChannel, appVersionFileUrl, createFeedGate, NOTIFY_WORDS, now, reportFailure, versionHeaders } from "@app/core";
 import { conditionalJson, createNotifySettings, fetchObs, parseManifest, runBackgroundCheck, versionedFetch,
          type Notice, type NotifyData } from "@app/data";
 import { openHeldCopyStore, openNotifyStore } from "@app/data/spots";
@@ -82,7 +82,9 @@ TaskManager.defineTask(TASK, async () => {
     await runBackgroundCheck({
       settings, now, appVersion: APP_VERSION, notify: raise,
       // (T741) a conditional GET with the last copy kept: an unchanged obs.json costs a 304, not ~24 kB a run
-      obs: () => fetchObs(ENDPOINTS.alertFeed, FETCH, undefined, HELD.obs),
+      // (T676 item 2) a feed gate made for THIS run (a need never outlives the run): an obs.json stamped for a newer app
+      // waits for the update, never reported each run; anything else wrong with it is reported
+      obs: () => fetchObs(ENDPOINTS.alertFeed, FETCH, undefined, HELD.obs, createFeedGate(APP_VERSION)),
       latestApp: VERSION_FILE ? () => conditionalJson(VERSION_FILE, FETCH, HELD.version) : null,
       // the kept copy is held to the same reader as a fresh one (`parseManifest` throws on a manifest it refuses)
       manifest: async () => parseManifest(await conditionalJson(ENDPOINTS.manifest, FETCH, HELD.manifest, (v) => { parseManifest(v); })),

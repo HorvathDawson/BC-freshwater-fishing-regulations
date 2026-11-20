@@ -35,13 +35,14 @@ from pathlib import Path
 from typing import Dict, List, Optional, Sequence, Set, Tuple
 
 from pipeline.common import calendar_spec as SPEC
-from pipeline.common.feed_formats import FEED_FORMATS
+from pipeline.common.feed_formats import FEED_FORMATS, FEED_MIN_APP
 from pipeline.runtiming.feed import base as BASE
 from pipeline.runtiming.feed.bind import PASSAGE, RELATIONS, SIMPLIFY, atlas_of, bind, km_to_sea
 from pipeline.runtiming.timing import CREDIT, PENTADS, SLOTS, TimedRun, read_timing
 
 # (T556) the three the app reads are typed once, in pipeline/common/feed_formats.py
 INDEX_FORMAT = FEED_FORMATS["runtiming_index"]
+MIN_APP = FEED_MIN_APP["runtiming_index"]   # (T676 item 2) the index's `minAppVersion`: the oldest app that reads it
 RUNS_FORMAT = FEED_FORMATS["runtiming_runs"]
 PAINT_FORMAT = FEED_FORMATS["runtiming_paint"]
 WATERS_FORMAT = "runtiming-waters/1"
@@ -261,7 +262,7 @@ def build(timing_path: Path, polygons_path: Path, base_path: Path,
                   "run_ids": [r.key for r in runs], "profiles": [pr["r"] for pr in profiles], **reaches(rows, a)}
     files = {"runs": runs_raw, "paint": _bytes(paint_doc), "waters": _bytes(waters_doc)}
     built_at = dt.datetime.now(dt.timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
-    index = {"format": INDEX_FORMAT, "built_at": built_at, "section_handles": a.handles,
+    index = {"format": INDEX_FORMAT, "minAppVersion": MIN_APP, "built_at": built_at, "section_handles": a.handles,
              "tile_version": tv, "sources": {k: {"credit": v["credit"], "updated": v["updated"],
                                                              "fetched": v["fetched"]} for k, v in sources.items()},
              "files": {}}

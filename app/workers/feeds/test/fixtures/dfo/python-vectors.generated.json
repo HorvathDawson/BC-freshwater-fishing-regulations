@@ -29969,7 +29969,7 @@
      },
      {
       "s": "open",
-      "t": "2 per day (Apr 1–Mar 31)",
+      "t": "2 per day, hatchery marked only (Apr 1–Mar 31)",
       "tree": {
        "by": 0,
        "children": [
@@ -30045,7 +30045,7 @@
      },
      {
       "s": "open",
-      "t": "2 per day (Aug 25–Dec 31)",
+      "t": "2 per day, hatchery marked only (Aug 25–Dec 31)",
       "tree": {
        "by": 0,
        "children": [
@@ -30279,7 +30279,7 @@
      },
      {
       "s": "open",
-      "t": "1 per day (Oct 1–Nov 30)",
+      "t": "1 per day, hatchery marked only (Oct 1–Nov 30)",
       "tree": {
        "by": 0,
        "children": [
@@ -30329,7 +30329,7 @@
      {
       "n": "FN0952",
       "s": "open",
-      "t": "4 per day (Oct 16–Dec 31)",
+      "t": "4 per day, hatchery marked only (Oct 16–Dec 31)",
       "tree": {
        "by": 0,
        "children": [
@@ -30629,7 +30629,7 @@
      },
      {
       "s": "open",
-      "t": "2 per day (Jun 16–Mar 31)",
+      "t": "2 per day, hatchery marked fish only (Jun 16–Mar 31)",
       "tree": {
        "by": 0,
        "children": [
@@ -30718,7 +30718,7 @@
      {
       "n": "FN0504",
       "s": "open",
-      "t": "2 per day (Aug 25–Sep 18)",
+      "t": "2 per day, hatchery marked only (Aug 25–Sep 18)",
       "tree": {
        "by": 0,
        "children": [
@@ -33634,7 +33634,7 @@
      },
      {
       "s": "open",
-      "t": "2 per day (Apr 1–Mar 31)",
+      "t": "2 per day, hatchery marked only (Apr 1–Mar 31)",
       "tree": {
        "by": 0,
        "children": [
@@ -33710,7 +33710,7 @@
      },
      {
       "s": "open",
-      "t": "2 per day (Aug 25–Dec 31)",
+      "t": "2 per day, hatchery marked only (Aug 25–Dec 31)",
       "tree": {
        "by": 0,
        "children": [
@@ -33944,7 +33944,7 @@
      },
      {
       "s": "open",
-      "t": "1 per day (Oct 1–Nov 30)",
+      "t": "1 per day, hatchery marked only (Oct 1–Nov 30)",
       "tree": {
        "by": 0,
        "children": [
@@ -33994,7 +33994,7 @@
      {
       "n": "FN0952",
       "s": "open",
-      "t": "4 per day (Oct 16–Dec 31)",
+      "t": "4 per day, hatchery marked only (Oct 16–Dec 31)",
       "tree": {
        "by": 0,
        "children": [
@@ -34294,7 +34294,7 @@
      },
      {
       "s": "open",
-      "t": "2 per day (Jun 16–Mar 31)",
+      "t": "2 per day, hatchery marked fish only (Jun 16–Mar 31)",
       "tree": {
        "by": 0,
        "children": [
@@ -34383,7 +34383,7 @@
      {
       "n": "FN0504",
       "s": "open",
-      "t": "2 per day (Aug 25–Sep 18)",
+      "t": "2 per day, hatchery marked only (Aug 25–Sep 18)",
       "tree": {
        "by": 0,
        "children": [
@@ -37325,7 +37325,7 @@
      },
      {
       "s": "open",
-      "t": "2 per day (Apr 1–Mar 31)",
+      "t": "2 per day, hatchery marked only (Apr 1–Mar 31)",
       "tree": {
        "by": 0,
        "children": [
@@ -37401,7 +37401,7 @@
      },
      {
       "s": "open",
-      "t": "2 per day (Aug 25–Dec 31)",
+      "t": "2 per day, hatchery marked only (Aug 25–Dec 31)",
       "tree": {
        "by": 0,
        "children": [
@@ -37635,7 +37635,7 @@
      },
      {
       "s": "open",
-      "t": "1 per day (Oct 1–Nov 30)",
+      "t": "1 per day, hatchery marked only (Oct 1–Nov 30)",
       "tree": {
        "by": 0,
        "children": [
@@ -37685,7 +37685,7 @@
      {
       "n": "FN0952",
       "s": "open",
-      "t": "4 per day (Oct 16–Dec 31)",
+      "t": "4 per day, hatchery marked only (Oct 16–Dec 31)",
       "tree": {
        "by": 0,
        "children": [
@@ -37985,7 +37985,7 @@
      },
      {
       "s": "open",
-      "t": "2 per day (Jun 16–Mar 31)",
+      "t": "2 per day, hatchery marked fish only (Jun 16–Mar 31)",
       "tree": {
        "by": 0,
        "children": [
@@ -38074,7 +38074,7 @@
      {
       "n": "FN0504",
       "s": "open",
-      "t": "2 per day (Aug 25–Sep 18)",
+      "t": "2 per day, hatchery marked only (Aug 25–Sep 18)",
       "tree": {
        "by": 0,
        "children": [
@@ -40974,7 +40974,7 @@
      },
      {
       "s": "open",
-      "t": "2 per day (Apr 1–Mar 31)",
+      "t": "2 per day, hatchery marked only (Apr 1–Mar 31)",
       "tree": {
        "by": 0,
        "children": [
@@ -41050,7 +41050,7 @@
      },
      {
       "s": "open",
-      "t": "2 per day (Aug 25–Dec 31)",
+      "t": "2 per day, hatchery marked only (Aug 25–Dec 31)",
       "tree": {
        "by": 0,
        "children": [
@@ -41284,7 +41284,7 @@
      },
      {
       "s": "open",
-      "t": "1 per day (Oct 1–Nov 30)",
+      "t": "1 per day, hatchery marked only (Oct 1–Nov 30)",
       "tree": {
        "by": 0,
        "children": [
@@ -41334,7 +41334,7 @@
      {
       "n": "FN0952",
       "s": "open",
-      "t": "4 per day (Oct 16–Dec 31)",
+      "t": "4 per day, hatchery marked only (Oct 16–Dec 31)",
       "tree": {
        "by": 0,
        "children": [
@@ -41634,7 +41634,7 @@
      },
      {
       "s": "open",
-      "t": "2 per day (Jun 16–Mar 31)",
+      "t": "2 per day, hatchery marked fish only (Jun 16–Mar 31)",
       "tree": {
        "by": 0,
        "children": [
@@ -41723,7 +41723,7 @@
      {
       "n": "FN0504",
       "s": "open",
-      "t": "2 per day (Aug 25–Sep 18)",
+      "t": "2 per day, hatchery marked only (Aug 25–Sep 18)",
       "tree": {
        "by": 0,
        "children": [
@@ -44580,7 +44580,7 @@
      },
      {
       "s": "open",
-      "t": "2 per day (Apr 1–Mar 31)",
+      "t": "2 per day, hatchery marked only (Apr 1–Mar 31)",
       "tree": {
        "by": 0,
        "children": [
@@ -44656,7 +44656,7 @@
      },
      {
       "s": "open",
-      "t": "2 per day (Aug 25–Dec 31)",
+      "t": "2 per day, hatchery marked only (Aug 25–Dec 31)",
       "tree": {
        "by": 0,
        "children": [
@@ -44890,7 +44890,7 @@
      },
      {
       "s": "open",
-      "t": "1 per day (Oct 1–Nov 30)",
+      "t": "1 per day, hatchery marked only (Oct 1–Nov 30)",
       "tree": {
        "by": 0,
        "children": [
@@ -44956,7 +44956,7 @@
      {
       "n": "FN0952",
       "s": "open",
-      "t": "4 per day (Oct 16–Dec 31)",
+      "t": "4 per day, hatchery marked only (Oct 16–Dec 31)",
       "tree": {
        "by": 0,
        "children": [
@@ -45256,7 +45256,7 @@
      },
      {
       "s": "open",
-      "t": "2 per day (Jun 16–Mar 31)",
+      "t": "2 per day, hatchery marked fish only (Jun 16–Mar 31)",
       "tree": {
        "by": 0,
        "children": [
@@ -45345,7 +45345,7 @@
      {
       "n": "FN0504",
       "s": "open",
-      "t": "2 per day (Aug 25–Sep 18)",
+      "t": "2 per day, hatchery marked only (Aug 25–Sep 18)",
       "tree": {
        "by": 0,
        "children": [
@@ -56041,7 +56041,7 @@
      },
      {
       "s": "open",
-      "t": "2 per day (Apr 1–Mar 31)",
+      "t": "2 per day, hatchery marked only (Apr 1–Mar 31)",
       "tree": {
        "by": 0,
        "children": [
@@ -56117,7 +56117,7 @@
      },
      {
       "s": "open",
-      "t": "2 per day (Aug 25–Dec 31)",
+      "t": "2 per day, hatchery marked only (Aug 25–Dec 31)",
       "tree": {
        "by": 0,
        "children": [
@@ -56351,7 +56351,7 @@
      },
      {
       "s": "open",
-      "t": "1 per day (Oct 1–Nov 30)",
+      "t": "1 per day, hatchery marked only (Oct 1–Nov 30)",
       "tree": {
        "by": 0,
        "children": [
@@ -56401,7 +56401,7 @@
      {
       "n": "FN0952",
       "s": "open",
-      "t": "4 per day (Oct 16–Dec 31)",
+      "t": "4 per day, hatchery marked only (Oct 16–Dec 31)",
       "tree": {
        "by": 0,
        "children": [
@@ -56701,7 +56701,7 @@
      },
      {
       "s": "open",
-      "t": "2 per day (Jun 16–Mar 31)",
+      "t": "2 per day, hatchery marked fish only (Jun 16–Mar 31)",
       "tree": {
        "by": 0,
        "children": [
@@ -56790,7 +56790,7 @@
      {
       "n": "FN0504",
       "s": "open",
-      "t": "2 per day (Aug 25–Sep 18)",
+      "t": "2 per day, hatchery marked only (Aug 25–Sep 18)",
       "tree": {
        "by": 0,
        "children": [
@@ -59709,7 +59709,7 @@
      },
      {
       "s": "open",
-      "t": "2 per day (Apr 1–Mar 31)",
+      "t": "2 per day, hatchery marked only (Apr 1–Mar 31)",
       "tree": {
        "by": 0,
        "children": [
@@ -59785,7 +59785,7 @@
      },
      {
       "s": "open",
-      "t": "2 per day (Aug 25–Dec 31)",
+      "t": "2 per day, hatchery marked only (Aug 25–Dec 31)",
       "tree": {
        "by": 0,
        "children": [
@@ -60019,7 +60019,7 @@
      },
      {
       "s": "open",
-      "t": "1 per day (Oct 1–Nov 30)",
+      "t": "1 per day, hatchery marked only (Oct 1–Nov 30)",
       "tree": {
        "by": 0,
        "children": [
@@ -60069,7 +60069,7 @@
      {
       "n": "FN0952",
       "s": "open",
-      "t": "4 per day (Oct 16–Dec 31)",
+      "t": "4 per day, hatchery marked only (Oct 16–Dec 31)",
       "tree": {
        "by": 0,
        "children": [
@@ -60369,7 +60369,7 @@
      },
      {
       "s": "open",
-      "t": "2 per day (Jun 16–Mar 31)",
+      "t": "2 per day, hatchery marked fish only (Jun 16–Mar 31)",
       "tree": {
        "by": 0,
        "children": [
@@ -60458,7 +60458,7 @@
      {
       "n": "FN0504",
       "s": "open",
-      "t": "2 per day (Aug 25–Sep 18)",
+      "t": "2 per day, hatchery marked only (Aug 25–Sep 18)",
       "tree": {
        "by": 0,
        "children": [
@@ -63332,7 +63332,7 @@
      },
      {
       "s": "open",
-      "t": "2 per day (Apr 1–Mar 31)",
+      "t": "2 per day, hatchery marked only (Apr 1–Mar 31)",
       "tree": {
        "by": 0,
        "children": [
@@ -63408,7 +63408,7 @@
      },
      {
       "s": "open",
-      "t": "2 per day (Aug 25–Dec 31)",
+      "t": "2 per day, hatchery marked only (Aug 25–Dec 31)",
       "tree": {
        "by": 0,
        "children": [
@@ -63642,7 +63642,7 @@
      },
      {
       "s": "open",
-      "t": "1 per day (Oct 1–Nov 30)",
+      "t": "1 per day, hatchery marked only (Oct 1–Nov 30)",
       "tree": {
        "by": 0,
        "children": [
@@ -63692,7 +63692,7 @@
      {
       "n": "FN0952",
       "s": "open",
-      "t": "4 per day (Oct 16–Dec 31)",
+      "t": "4 per day, hatchery marked only (Oct 16–Dec 31)",
       "tree": {
        "by": 0,
        "children": [
@@ -63992,7 +63992,7 @@
      },
      {
       "s": "open",
-      "t": "2 per day (Jun 16–Mar 31)",
+      "t": "2 per day, hatchery marked fish only (Jun 16–Mar 31)",
       "tree": {
        "by": 0,
        "children": [
@@ -64081,7 +64081,7 @@
      {
       "n": "FN0504",
       "s": "open",
-      "t": "2 per day (Aug 25–Sep 18)",
+      "t": "2 per day, hatchery marked only (Aug 25–Sep 18)",
       "tree": {
        "by": 0,
        "children": [
@@ -67042,7 +67042,7 @@
      },
      {
       "s": "open",
-      "t": "2 per day (Apr 1–Mar 31)",
+      "t": "2 per day, hatchery marked only (Apr 1–Mar 31)",
       "tree": {
        "by": 0,
        "children": [
@@ -67118,7 +67118,7 @@
      },
      {
       "s": "open",
-      "t": "2 per day (Aug 25–Dec 31)",
+      "t": "2 per day, hatchery marked only (Aug 25–Dec 31)",
       "tree": {
        "by": 0,
        "children": [
@@ -67352,7 +67352,7 @@
      },
      {
       "s": "open",
-      "t": "1 per day (Oct 1–Nov 30)",
+      "t": "1 per day, hatchery marked only (Oct 1–Nov 30)",
       "tree": {
        "by": 0,
        "children": [
@@ -67402,7 +67402,7 @@
      {
       "n": "FN0952",
       "s": "open",
-      "t": "4 per day (Oct 16–Dec 31)",
+      "t": "4 per day, hatchery marked only (Oct 16–Dec 31)",
       "tree": {
        "by": 0,
        "children": [
@@ -67702,7 +67702,7 @@
      },
      {
       "s": "open",
-      "t": "2 per day (Jun 16–Mar 31)",
+      "t": "2 per day, hatchery marked fish only (Jun 16–Mar 31)",
       "tree": {
        "by": 0,
        "children": [
@@ -67795,7 +67795,7 @@
      {
       "n": "FN0504",
       "s": "open",
-      "t": "2 per day (Aug 25–Sep 18)",
+      "t": "2 per day, hatchery marked only (Aug 25–Sep 18)",
       "tree": {
        "by": 0,
        "children": [
@@ -70691,7 +70691,7 @@
      },
      {
       "s": "open",
-      "t": "2 per day (Apr 1–Mar 31)",
+      "t": "2 per day, hatchery marked only (Apr 1–Mar 31)",
       "tree": {
        "by": 0,
        "children": [
@@ -70767,7 +70767,7 @@
      },
      {
       "s": "open",
-      "t": "2 per day (Aug 25–Dec 31)",
+      "t": "2 per day, hatchery marked only (Aug 25–Dec 31)",
       "tree": {
        "by": 0,
        "children": [
@@ -71001,7 +71001,7 @@
      },
      {
       "s": "open",
-      "t": "1 per day (Oct 1–Nov 30)",
+      "t": "1 per day, hatchery marked only (Oct 1–Nov 30)",
       "tree": {
        "by": 0,
        "children": [
@@ -71051,7 +71051,7 @@
      {
       "n": "FN0952",
       "s": "open",
-      "t": "4 per day (Oct 16–Dec 31)",
+      "t": "4 per day, hatchery marked only (Oct 16–Dec 31)",
       "tree": {
        "by": 0,
        "children": [
@@ -71351,7 +71351,7 @@
      },
      {
       "s": "open",
-      "t": "2 per day (Jun 16–Mar 31)",
+      "t": "2 per day, hatchery marked fish only (Jun 16–Mar 31)",
       "tree": {
        "by": 0,
        "children": [
@@ -71440,7 +71440,7 @@
      {
       "n": "FN0504",
       "s": "open",
-      "t": "2 per day (Aug 25–Sep 18)",
+      "t": "2 per day, hatchery marked only (Aug 25–Sep 18)",
       "tree": {
        "by": 0,
        "children": [
@@ -74607,7 +74607,7 @@
      },
      {
       "s": "open",
-      "t": "2 per day (Apr 1–Mar 31)",
+      "t": "2 per day, hatchery marked only (Apr 1–Mar 31)",
       "tree": {
        "by": 0,
        "children": [
@@ -74683,7 +74683,7 @@
      },
      {
       "s": "open",
-      "t": "2 per day (Aug 25–Dec 31)",
+      "t": "2 per day, hatchery marked only (Aug 25–Dec 31)",
       "tree": {
        "by": 0,
        "children": [
@@ -74917,7 +74917,7 @@
      },
      {
       "s": "open",
-      "t": "1 per day (Oct 1–Nov 30)",
+      "t": "1 per day, hatchery marked only (Oct 1–Nov 30)",
       "tree": {
        "by": 0,
        "children": [
@@ -74967,7 +74967,7 @@
      {
       "n": "FN0952",
       "s": "open",
-      "t": "4 per day (Oct 16–Dec 31)",
+      "t": "4 per day, hatchery marked only (Oct 16–Dec 31)",
       "tree": {
        "by": 0,
        "children": [
@@ -75267,7 +75267,7 @@
      },
      {
       "s": "open",
-      "t": "2 per day (Jun 16–Mar 31)",
+      "t": "2 per day, hatchery marked fish only (Jun 16–Mar 31)",
       "tree": {
        "by": 0,
        "children": [
@@ -75356,7 +75356,7 @@
      {
       "n": "FN0504",
       "s": "open",
-      "t": "2 per day (Aug 25–Sep 18)",
+      "t": "2 per day, hatchery marked only (Aug 25–Sep 18)",
       "tree": {
        "by": 0,
        "children": [
@@ -78247,7 +78247,7 @@
      },
      {
       "s": "open",
-      "t": "2 per day (Apr 1–Mar 31)",
+      "t": "2 per day, hatchery marked only (Apr 1–Mar 31)",
       "tree": {
        "by": 0,
        "children": [
@@ -78323,7 +78323,7 @@
      },
      {
       "s": "open",
-      "t": "2 per day (Aug 25–Dec 31)",
+      "t": "2 per day, hatchery marked only (Aug 25–Dec 31)",
       "tree": {
        "by": 0,
        "children": [
@@ -78557,7 +78557,7 @@
      },
      {
       "s": "open",
-      "t": "1 per day (Oct 1–Nov 30)",
+      "t": "1 per day, hatchery marked only (Oct 1–Nov 30)",
       "tree": {
        "by": 0,
        "children": [
@@ -78607,7 +78607,7 @@
      {
       "n": "FN0952",
       "s": "open",
-      "t": "4 per day (Oct 16–Dec 31)",
+      "t": "4 per day, hatchery marked only (Oct 16–Dec 31)",
       "tree": {
        "by": 0,
        "children": [
@@ -78907,7 +78907,7 @@
      },
      {
       "s": "open",
-      "t": "2 per day (Jun 16–Mar 31)",
+      "t": "2 per day, hatchery marked fish only (Jun 16–Mar 31)",
       "tree": {
        "by": 0,
        "children": [
@@ -78996,7 +78996,7 @@
      {
       "n": "FN0504",
       "s": "open",
-      "t": "2 per day (Aug 25–Sep 18)",
+      "t": "2 per day, hatchery marked only (Aug 25–Sep 18)",
       "tree": {
        "by": 0,
        "children": [
@@ -89949,7 +89949,7 @@
    },
    {
     "s": "open",
-    "t": "2 per day (Apr 1–Mar 31)",
+    "t": "2 per day, hatchery marked only (Apr 1–Mar 31)",
     "tree": {
      "by": 0,
      "children": [
@@ -90025,7 +90025,7 @@
    },
    {
     "s": "open",
-    "t": "2 per day (Aug 25–Dec 31)",
+    "t": "2 per day, hatchery marked only (Aug 25–Dec 31)",
     "tree": {
      "by": 0,
      "children": [
@@ -90259,7 +90259,7 @@
    },
    {
     "s": "open",
-    "t": "1 per day (Oct 1–Nov 30)",
+    "t": "1 per day, hatchery marked only (Oct 1–Nov 30)",
     "tree": {
      "by": 0,
      "children": [
@@ -90309,7 +90309,7 @@
    {
     "n": "FN0952",
     "s": "open",
-    "t": "4 per day (Oct 16–Dec 31)",
+    "t": "4 per day, hatchery marked only (Oct 16–Dec 31)",
     "tree": {
      "by": 0,
      "children": [
@@ -90609,7 +90609,7 @@
    },
    {
     "s": "open",
-    "t": "2 per day (Jun 16–Mar 31)",
+    "t": "2 per day, hatchery marked fish only (Jun 16–Mar 31)",
     "tree": {
      "by": 0,
      "children": [
@@ -90698,7 +90698,7 @@
    {
     "n": "FN0504",
     "s": "open",
-    "t": "2 per day (Aug 25–Sep 18)",
+    "t": "2 per day, hatchery marked only (Aug 25–Sep 18)",
     "tree": {
      "by": 0,
      "children": [
@@ -91382,7 +91382,7 @@
    },
    {
     "s": "open",
-    "t": "1 per day (Sep 15–Jan 31)",
+    "t": "1 per day, hatchery marked only (Sep 15–Jan 31)",
     "tree": {
      "by": 0,
      "children": [
@@ -96447,7 +96447,7 @@
       "verdicts": [
        {
         "s": "open",
-        "t": "2 per day (Apr 1–Mar 31)",
+        "t": "2 per day, hatchery marked only (Apr 1–Mar 31)",
         "tree": {
          "by": 0,
          "children": [
@@ -96505,7 +96505,7 @@
        ],
        "take": 2,
        "type": "retention_limit",
-       "verbatim": "2 per day",
+       "verbatim": "2 per day, hatchery marked only",
        "when": {
         "dates": [
          {
@@ -96665,7 +96665,7 @@
        },
        {
         "s": "open",
-        "t": "2 per day (Aug 25–Dec 31)",
+        "t": "2 per day, hatchery marked only (Aug 25–Dec 31)",
         "tree": {
          "by": 0,
          "children": [
@@ -96768,7 +96768,7 @@
        ],
        "take": 2,
        "type": "retention_limit",
-       "verbatim": "2 per day",
+       "verbatim": "2 per day, hatchery marked only",
        "when": {
         "dates": [
          {
@@ -97657,7 +97657,7 @@
        },
        {
         "s": "open",
-        "t": "1 per day (Oct 1–Nov 30)",
+        "t": "1 per day, hatchery marked only (Oct 1–Nov 30)",
         "tree": {
          "by": 0,
          "children": [
@@ -97762,7 +97762,7 @@
        ],
        "take": 1,
        "type": "retention_limit",
-       "verbatim": "1 per day",
+       "verbatim": "1 per day, hatchery marked only",
        "when": {
         "dates": [
          {
@@ -98411,7 +98411,7 @@
        {
         "n": "FN0952",
         "s": "open",
-        "t": "4 per day (Oct 16–Dec 31)",
+        "t": "4 per day, hatchery marked only (Oct 16–Dec 31)",
         "tree": {
          "by": 0,
          "children": [
@@ -98487,7 +98487,7 @@
        ],
        "take": 4,
        "type": "retention_limit",
-       "verbatim": "4 per day",
+       "verbatim": "4 per day, hatchery marked only",
        "when": {
         "dates": [
          {
@@ -99851,7 +99851,7 @@
       "verdicts": [
        {
         "s": "open",
-        "t": "2 per day (Jun 16–Mar 31)",
+        "t": "2 per day, hatchery marked fish only (Jun 16–Mar 31)",
         "tree": {
          "by": 0,
          "children": [
@@ -99909,7 +99909,7 @@
        ],
        "take": 2,
        "type": "retention_limit",
-       "verbatim": "2 per day",
+       "verbatim": "2 per day, hatchery marked fish only",
        "when": {
         "dates": [
          {
@@ -100472,7 +100472,7 @@
        {
         "n": "FN0504",
         "s": "open",
-        "t": "2 per day (Aug 25–Sep 18)",
+        "t": "2 per day, hatchery marked only (Aug 25–Sep 18)",
         "tree": {
          "by": 0,
          "children": [
@@ -100650,7 +100650,7 @@
        ],
        "take": 2,
        "type": "retention_limit",
-       "verbatim": "2 per day",
+       "verbatim": "2 per day, hatchery marked only",
        "when": {
         "dates": [
          {
@@ -101130,7 +101130,7 @@
        {
         "n": "FN0504",
         "s": "open",
-        "t": "2 per day (Aug 25–Sep 18)",
+        "t": "2 per day, hatchery marked only (Aug 25–Sep 18)",
         "tree": {
          "by": 0,
          "children": [
@@ -101382,7 +101382,7 @@
        ],
        "take": 2,
        "type": "retention_limit",
-       "verbatim": "2 per day",
+       "verbatim": "2 per day, hatchery marked only",
        "when": {
         "dates": [
          {
@@ -104601,7 +104601,7 @@
       "verdicts": [
        {
         "s": "open",
-        "t": "1 per day (Sep 15–Jan 31)",
+        "t": "1 per day, hatchery marked only (Sep 15–Jan 31)",
         "tree": {
          "by": 0,
          "children": [
@@ -104686,7 +104686,7 @@
        ],
        "take": 1,
        "type": "retention_limit",
-       "verbatim": "1 per day",
+       "verbatim": "1 per day, hatchery marked only",
        "when": {
         "dates": [
          {
@@ -106705,7 +106705,7 @@
       "verdicts": [
        {
         "s": "open",
-        "t": "1 per day (Sep 15–Jan 31)",
+        "t": "1 per day, hatchery marked only (Sep 15–Jan 31)",
         "tree": {
          "by": 0,
          "children": [
@@ -106790,7 +106790,7 @@
        ],
        "take": 1,
        "type": "retention_limit",
-       "verbatim": "1 per day",
+       "verbatim": "1 per day, hatchery marked only",
        "when": {
         "dates": [
          {
@@ -107590,7 +107590,7 @@
       "verdicts": [
        {
         "s": "open",
-        "t": "1 per day (Sep 15–Jan 31)",
+        "t": "1 per day, hatchery marked only (Sep 15–Jan 31)",
         "tree": {
          "by": 0,
          "children": [
@@ -107675,7 +107675,7 @@
        ],
        "take": 1,
        "type": "retention_limit",
-       "verbatim": "1 per day",
+       "verbatim": "1 per day, hatchery marked only",
        "when": {
         "dates": [
          {
@@ -134306,6 +134306,131 @@
        }
       ],
       "open_ended": true
+     }
+    }
+   ]
+  },
+  "hatchery marked only after the count (T623 F13)": {
+   "calendar": {
+    "g": [
+     0,
+     -1
+    ],
+    "gears": [],
+    "sp": [
+     [
+      0,
+      -1
+     ],
+     [
+      0,
+      0,
+      31,
+      -1,
+      258,
+      0
+     ],
+     [
+      0,
+      -1
+     ],
+     [
+      0,
+      -1
+     ],
+     [
+      0,
+      -1
+     ]
+    ],
+    "verdicts": [
+     {
+      "s": "open",
+      "t": "1 per day, hatchery marked only (Sep 15–Jan 31); 2 per day hatchery marked fish only (Sep 15–Jan 31); 4 hatchery marked per day (Sep 15–Jan 31); 2 per day (Sep 15–Jan 31)",
+      "u": 1
+     }
+    ]
+   },
+   "rules": [
+    {
+     "origin": "hatchery",
+     "rule_id": "rows.r0",
+     "species": [
+      "CO"
+     ],
+     "take": 1,
+     "type": "retention_limit",
+     "verbatim": "1 per day, hatchery marked only",
+     "when": {
+      "dates": [
+       {
+        "from_day": 15,
+        "from_month": 9,
+        "to_day": 31,
+        "to_month": 1
+       }
+      ]
+     }
+    },
+    {
+     "origin": "hatchery",
+     "review_reason": "new wording: '2 per day hatchery marked fish only'",
+     "rule_id": "rows.r1",
+     "species": [
+      "CO"
+     ],
+     "take": 2,
+     "type": "retention_limit",
+     "verbatim": "2 per day hatchery marked fish only",
+     "when": {
+      "dates": [
+       {
+        "from_day": 15,
+        "from_month": 9,
+        "to_day": 31,
+        "to_month": 1
+       }
+      ]
+     }
+    },
+    {
+     "origin": "hatchery",
+     "rule_id": "rows.r2",
+     "species": [
+      "CO"
+     ],
+     "take": 4,
+     "type": "retention_limit",
+     "verbatim": "4 hatchery marked per day",
+     "when": {
+      "dates": [
+       {
+        "from_day": 15,
+        "from_month": 9,
+        "to_day": 31,
+        "to_month": 1
+       }
+      ]
+     }
+    },
+    {
+     "review_reason": "new wording: 'Barbless hooks only'",
+     "rule_id": "rows.r3",
+     "species": [
+      "CO"
+     ],
+     "take": 2,
+     "type": "retention_limit",
+     "verbatim": "2 per day",
+     "when": {
+      "dates": [
+       {
+        "from_day": 15,
+        "from_month": 9,
+        "to_day": 31,
+        "to_month": 1
+       }
+      ]
      }
     }
    ]
