@@ -232,6 +232,8 @@ def test_t517_a_rule_set_group_says_its_salmon_cut_pieces_as_the_one_run_they_ar
          "runs": [{"from": "cut", "to": "mouth", "km_from": 3.0, "km_to": 0.0}]},
         {"ruleset": "1", "grp": 0, "run": 0, "sections": 1,
          "runs": [{"from": "source", "to": "cut", "km_from": 9.0, "km_to": 3.0}]}]}
+    from pipeline.deliver.export.read import group_runs
+    w["grp_runs"] = group_runs(w["parts"])          # (T679 #17) joined once by the export, as `export.read` writes it
     Wg, members = B._by_grp("x", w, {"waters": {"x": w}, "splits": {}, "rulesets": {"1": {}}, "rules": {}})
     assert Wg.parts[0]["runs"] == [{"from": "source", "to": "mouth", "km_from": 9.0, "km_to": 0.0}]
     assert members == {0: [0, 1]} and Wg.parts[0]["sections"] == 3

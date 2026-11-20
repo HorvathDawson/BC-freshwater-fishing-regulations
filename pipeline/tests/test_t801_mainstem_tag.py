@@ -12,6 +12,7 @@ from __future__ import annotations
 
 from pipeline.deliver.answers.display.builders import _by_grp
 from pipeline.deliver.answers.display.part import Water, part_place
+from pipeline.deliver.export.read import group_runs
 
 MAIN = "r6:skeena_river@6-10"
 STEM = "r6:skeena_river_mainstem_only@6-10"
@@ -73,6 +74,7 @@ def test_a_rule_set_group_takes_the_place_only_where_every_main_stem_piece_is_co
     doc = _doc()
     ps = doc["waters"]["gnis:2936"]["parts"]
     ps[0]["grp"], ps[2]["grp"], ps[3]["grp"] = 0, 0, 2       # part 2 joins the unit-less part 0's group
+    doc["waters"]["gnis:2936"]["grp_runs"] = group_runs(ps)  # (T679 #17) the export joins a group's runs once
     Wg, _ = _by_grp("gnis:2936", doc["waters"]["gnis:2936"], doc)
     got = [part_place(Wg, k) for k in range(len(Wg.parts))]
     assert got == ["", "Mainstem only", ""]                  # group 0 = parts 0 + 2: part 0 has no Section 4

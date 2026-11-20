@@ -207,10 +207,14 @@ def test_the_mini_chain_builds_twice_alike_on_invented_inputs_only(chain):
     assert len(rel) == 1                                                  # one release, the same id both runs
 
 
-def test_the_export_holds_the_mini_corpus_to_its_own_claims(chain, tmp_path):
+def test_the_export_holds_the_mini_corpus_to_its_own_claims(chain, tmp_path, monkeypatch):
     """The mini claims bite as the book's do: a mechanism the corpus has no case of, or an example the reader
     contradicts, refuses the export (the shipped claims pass: the chain above built)."""
     from pipeline.deliver.export import __main__ as X
+    from pipeline.regs.inseason import matches as _M
+    # (T978) in process, the export reads the mini tree's notices as the chain's own export does (CURATED_ROOT), never
+    # the machine's (whose generated resolution CI does not have)
+    monkeypatch.setattr(_M, "default_path", lambda: M.CURATED_TREE / "inseason" / "notice_waters.json")
     out = chain[0] / "a"
     claims = json.loads((out / "fed" / "claims.json").read_text())
     for change, said in ((lambda c: c["mechanisms"].append("two_regions_closure"), "no real case of two_regions_closure"),

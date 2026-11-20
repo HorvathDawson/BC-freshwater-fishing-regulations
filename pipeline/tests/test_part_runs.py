@@ -21,7 +21,7 @@ from types import SimpleNamespace as NS
 
 import pytest
 
-from pipeline.tests.bundle_fixture import finish, section_sets
+from pipeline.tests.bundle_fixture import finish, section_sets, no_notices
 
 from pipeline.deliver.bundle import spans as SP
 from pipeline.deliver.bundle.build import SCHEMA
@@ -30,6 +30,11 @@ from pipeline.deliver.export import (
 )
 from pipeline.tests import under_test
 from pipeline.tests.conftest import need, BUNDLE_HINT
+
+
+@pytest.fixture(autouse=True)
+def _no_live_notices(monkeypatch, tmp_path):
+    no_notices(monkeypatch, tmp_path)          # T978: a hand-made bundle, never the machine's in-season notices
 
 BUNDLE = under_test.path("bundle")
 FRASER = "gnis:39325"

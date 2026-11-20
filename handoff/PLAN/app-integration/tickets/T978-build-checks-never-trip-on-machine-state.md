@@ -31,3 +31,12 @@ production build stopped four times in fast-fail, never on a code defect:
 - A stale export or marks state fails the data release step, not the app build.
 
 Depends: —. Size: M. Owner: no.
+
+## Lane W4, 2026-11-20 (lane/w4-ci): pipeline-ci + the release's fresh-copy run green again
+Eleven no-data tests read this machine's state, so CI (and the fresh clone) failed where this checkout passed:
+- 9 (test_part_touches 7, test_part_runs 1, test_mini_release 1): `export.read` reads the in-season notices' end
+  tokens, whose resolution is generated since T679 #11 (`data/generated/inseason/resolved.json`, absent on CI). The
+  hand-made-bundle tests now point the export at a notice file with no matches (`bundle_fixture.no_notices`); the mini
+  test reads the mini tree's notices, as its chain does. The export's refusal of a missing resolution is unchanged.
+- 2 (test_answers_27 t517, test_t801_mainstem_tag): hand-made waters lacked the export's `grp_runs` (T679 #17 moved the
+  join into the export); each test now gives its water `export.read.group_runs(parts)`, as the export writes it.

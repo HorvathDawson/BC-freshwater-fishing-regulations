@@ -27,3 +27,13 @@ def section_sets(db: sqlite3.Connection, sets: dict[int, int]) -> None:
 def finish(db: sqlite3.Connection) -> None:
     """`rule_ix`, `rule.closure_grade`, `part`, `part_section` — once every other row is in."""
     derived.write(db, _Cov())
+
+
+def no_notices(monkeypatch, tmp_path) -> None:
+    """(T978) the export reads the in-season notices' end tokens (`inseason.matches.load`), whose resolution is
+    generated on a machine that ran `resolve` (T679 #11) and is absent on CI: a test of a HAND-MADE bundle points the
+    export at a notice file with no matches instead of the live one (it tests parts, not notices)."""
+    from pipeline.regs.inseason import matches as _M
+    f = tmp_path / "notice_waters.json"
+    f.write_text('{"format": "inseason-matches/3", "matches": {}, "history": []}\n', encoding="utf-8")
+    monkeypatch.setattr(_M, "default_path", lambda: f)

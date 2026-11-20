@@ -18,12 +18,17 @@ from pathlib import Path
 
 import pytest
 
-from pipeline.tests.bundle_fixture import finish, section_sets
+from pipeline.tests.bundle_fixture import finish, section_sets, no_notices
 
 from pipeline.deliver.bundle.build import SCHEMA, touching_pairs
 from pipeline.deliver.export import checks as export_checks, contract as export_contract, read as export_read
 from pipeline.tests import under_test
 from pipeline.tests.conftest import need, BUNDLE_HINT
+
+
+@pytest.fixture(autouse=True)
+def _no_live_notices(monkeypatch, tmp_path):
+    no_notices(monkeypatch, tmp_path)          # T978: a hand-made bundle, never the machine's in-season notices
 
 BUNDLE = under_test.path("bundle")
 
