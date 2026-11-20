@@ -57,6 +57,9 @@ export function ViewSwipe({ swipe, children, style, testId = "view-swipe", fill 
     // the shield's press and the recogniser's begin arrive in either order (on the web the detector's own listener runs
     // first, React's after; on a device it is not promised), so a press within a moment of the begin counts
     const held = () => heldAt.current >= begun - SHIELD_MS;
+    // (T938 review) only a SPRING home here: its end re-renders the view, so React commits `x` again. A native-driven
+    // `x` (after one spring) takes a hard `x.setValue(0)` on the native side only, and React's copy keeps the drag's
+    // offset: a hard home added here must re-render too, as EdgeBack's `homeNow` does with its `sync()` (EdgeBack.tsx)
     const home = () => Animated.spring(x, { toValue: 0, useNativeDriver: NATIVE_DRIVER, bounciness: 4 }).start();
     return withWebProps({
       runOnJS: true, disableReanimated: true, enabled: swipe.enabled, testID: testId,
